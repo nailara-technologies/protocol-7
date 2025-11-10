@@ -146,6 +146,40 @@ if ( $mode eq 'TRUE' ) {
         account_id => <letsencrypt.parent.acme_account> {account_id},
     };
 
+    ## Install certificate to httpsd
+    <[base.log]>->( 2, "installing certificate to httpsd for $domain" );
+
+    my $httpsd_install_result
+        = <[letsencrypt.parent.install_certificate_to_httpsd]>->($domain);
+
+    if ( $httpsd_install_result->{status} eq qw| success | ) {
+        <[base.log]>->( 2, "certificate installed to httpsd successfully" );
+        <[letsencrypt.parent.activity_logger]>->(
+            qw| enrollment |, $domain, qw| success |,
+            qq| installed to httpsd and reloaded |
+        );
+    } elsif ( $httpsd_install_result->{status} eq qw| partial | ) {
+        <[base.log]>->(
+            1,
+            "certificate installed but httpsd reload failed: "
+                . $httpsd_install_result->{message}
+        );
+        <[letsencrypt.parent.activity_logger]>->(
+            qw| enrollment |, $domain, qw| partial |,
+            qq| installed but httpsd reload failed |
+        );
+    } else {
+        <[base.log]>->(
+            1,
+            "failed to install certificate to httpsd: "
+                . $httpsd_install_result->{message}
+        );
+        <[letsencrypt.parent.activity_logger]>->(
+            qw| enrollment |, $domain, qw| partial |,
+            qq| certificate saved but httpsd install failed |
+        );
+    }
+
     ## Notify HTTPd that certificate has been installed
     my $notify_result
         = <[letsencrypt.parent.notify_httpd_certificate_update]>->(
@@ -182,8 +216,8 @@ if ( $mode eq 'TRUE' ) {
 
 return 0;
 
-#,,,,,,,.,,,.,.,.,.,.,,.,,.,,,,..,,,,,,,,,,,.,.,.,...,...,..,,.,,,,,,,,.,,.,,,
-#IYAFB225IWGT6PEMCF2D44AAP6ASVAGY2LNDKPMO3TD5TVCMVYVM2WAWCL5LDC6PYC2H6J5A5CMTU
-#\\\|6STQ77IXACMTQGWISEJQ2G3ARM4ESHAJK3QE2S74SWS46TY6W2B \ / AMOS7 \ YOURUM ::
-#\[7]RIZRDDRRJEWR4X2TGD7KLAA4H4H3DQHG6RZ5WZ66ZGKHOPLMXUCI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,,,.,,,...,..,,...,...,,,.,.,.,..,,...,...,...,.,,,.,,,,,,,..,,
+#4RFETAACCFWQPNUBMIOGUIP37LAF4DIWTAB5JUBSYIVOOHFYGWT2NG6YUD2NWSXXCXQNQDO2MC3AO
+#\\\|FTOY2ANAUQG65Y7YJGARU3BFEMLDQC7JHCUQN6GUFRAY2ZHHD5Y \ / AMOS7 \ YOURUM ::
+#\[7]PK5ZKSWAWGHBYJ3WUECTC4CU5EIHQW3UTSE5LJA6IVCP5OPK3SDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
