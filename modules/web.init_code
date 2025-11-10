@@ -81,6 +81,19 @@
 <[base.log]>->( 2, "  Command timeout: " . <web.cfg.command_timeout> . "s" );
 <[base.log]>->( 2, "  Cache enabled: " . ( <web.cfg.cache_enabled> ? 'yes' : 'no' ) );
 
+## Load asset registry if available ##
+<[base.log]>->( 2, 'loading asset registry...' );
+if ( <[web.assets.load_registry]>->() ) {
+    <[base.log]>->(
+        2,
+        "  Asset registry: "
+            . <web.assets.stats>{total_assets}
+            . " assets tracked"
+    );
+} else {
+    <[base.log]>->( 2, "  Asset registry: not available (run validator)" );
+}
+
 0;
 
 #,,,.,..,,,,,,,..,.,,,,..,.,.,.,,,,.,,,.,,...,..,,...,...,.,,,.,,,.,,,...,,,.,
