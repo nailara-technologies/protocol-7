@@ -12,10 +12,10 @@ unless ($zenka_name) {
     my @output = ("Available zenki:");
 
     foreach my $zenka_id (sort {
-        <debian.zenki_deps.registry>{$a}{zenka} cmp
-        <debian.zenki_deps.registry>{$b}{zenka}
-    } keys %{<debian.zenki_deps.registry>}) {
-        my $z = <debian.zenki_deps.registry>{$zenka_id};
+        $data{'debian'}{'zenki_deps'}{'registry'}{$a}{zenka} cmp
+        $data{'debian'}{'zenki_deps'}{'registry'}{$b}{zenka}
+    } keys %{$data{'debian'}{'zenki_deps'}{'registry'}}) {
+        my $z = $data{'debian'}{'zenki_deps'}{'registry'}{$zenka_id};
         my $status_icon = $z->{status} eq 'complete' ? '✓' :
                           $z->{status} eq 'partial' ? '⚠' : '✗';
 
@@ -31,7 +31,7 @@ unless ($zenka_name) {
 }
 
 ## Show specific zenka
-my $zenka_id = <debian.zenki_deps.by_zenka>{$zenka_name};
+my $zenka_id = $data{'debian'}{'zenki_deps'}{'by_zenka'}{$zenka_name};
 
 unless ($zenka_id) {
     return {
@@ -40,7 +40,7 @@ unless ($zenka_id) {
     };
 }
 
-my $zenka = <debian.zenki_deps.registry>{$zenka_id};
+my $zenka = $data{'debian'}{'zenki_deps'}{'registry'}{$zenka_id};
 my @output;
 
 push @output, "Zenka: $zenka_name";
@@ -52,9 +52,9 @@ if (@{$zenka->{pm_deps} || []}) {
     push @output, "Perl Module Dependencies (" . $zenka->{pm_deps_count} . "):";
 
     foreach my $pm (@{$zenka->{pm_deps}}) {
-        my $mod_id = <debian.cpan_modules.by_name>{$pm};
+        my $mod_id = $data{'debian'}{'cpan_modules'}{'by_name'}{$pm};
         if ($mod_id) {
-            my $mod = <debian.cpan_modules.registry>{$mod_id};
+            my $mod = $data{'debian'}{'cpan_modules'}{'registry'}{$mod_id};
             my $status_icon = $mod->{status} eq 'via_debian' ? '✓deb' :
                               $mod->{status} eq 'via_cpan' ? '✓cpan' : '✗';
 
@@ -74,9 +74,9 @@ if (@{$zenka->{os_deps} || []}) {
     push @output, "OS Dependencies (" . $zenka->{os_deps_count} . "):";
 
     foreach my $os (@{$zenka->{os_deps}}) {
-        my $pkg_id = <debian.packages.by_name>{$os};
+        my $pkg_id = $data{'debian'}{'packages'}{'by_name'}{$os};
         if ($pkg_id) {
-            my $pkg = <debian.packages.registry>{$pkg_id};
+            my $pkg = $data{'debian'}{'packages'}{'registry'}{$pkg_id};
             my $status_icon = $pkg->{status} eq 'installed' ? '✓' : '✗';
             my $version = $pkg->{installed_version} || 'N/A';
 

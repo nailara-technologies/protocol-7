@@ -22,7 +22,7 @@ sub debian_parent_install_missing {
 
     if ($zenka_filter) {
         ## Install only for specific zenka
-        my $zenka_id = <debian.zenki_deps.by_zenka>{$zenka_filter};
+        my $zenka_id = $data{'debian'}{'zenki_deps'}{'by_zenka'}{$zenka_filter};
 
         unless ($zenka_id) {
             return {
@@ -31,14 +31,14 @@ sub debian_parent_install_missing {
             };
         }
 
-        my $zenka = <debian.zenki_deps.registry>{$zenka_id};
+        my $zenka = $data{'debian'}{'zenki_deps'}{'registry'}{$zenka_id};
 
         ## Check PM dependencies
         foreach my $pm (@{$zenka->{pm_deps} || []}) {
-            my $mod_id = <debian.cpan_modules.by_name>{$pm};
+            my $mod_id = $data{'debian'}{'cpan_modules'}{'by_name'}{$pm};
             next unless $mod_id;
 
-            my $mod = <debian.cpan_modules.registry>{$mod_id};
+            my $mod = $data{'debian'}{'cpan_modules'}{'registry'}{$mod_id};
             next unless $mod->{status} eq 'missing';
 
             if ($prefer_debian && $mod->{debian_package}) {
@@ -50,10 +50,10 @@ sub debian_parent_install_missing {
 
         ## Check OS dependencies
         foreach my $os (@{$zenka->{os_deps} || []}) {
-            my $pkg_id = <debian.packages.by_name>{$os};
+            my $pkg_id = $data{'debian'}{'packages'}{'by_name'}{$os};
             next unless $pkg_id;
 
-            my $pkg = <debian.packages.registry>{$pkg_id};
+            my $pkg = $data{'debian'}{'packages'}{'registry'}{$pkg_id};
             next unless $pkg->{status} eq 'missing';
 
             push @missing_debian, $os;
@@ -63,22 +63,22 @@ sub debian_parent_install_missing {
         ## Install all missing dependencies
 
         ## Collect missing debian packages
-        foreach my $pkg_id (keys %{<debian.packages.registry>}) {
-            my $pkg = <debian.packages.registry>{$pkg_id};
+        foreach my $pkg_id (keys %{$data{'debian'}{'packages'}{'registry'}}) {
+            my $pkg = $data{'debian'}{'packages'}{'registry'}{$pkg_id};
             next unless $pkg->{status} eq 'missing';
 
             push @missing_debian, $pkg->{package};
         }
 
         ## Collect missing CPAN modules
-        foreach my $mod_id (keys %{<debian.cpan_modules.registry>}) {
-            my $mod = <debian.cpan_modules.registry>{$mod_id};
+        foreach my $mod_id (keys %{$data{'debian'}{'cpan_modules'}{'registry'}}) {
+            my $mod = $data{'debian'}{'cpan_modules'}{'registry'}{$mod_id};
             next unless $mod->{status} eq 'missing';
 
             if ($prefer_debian && $mod->{debian_package}) {
                 ## Try debian first
-                my $pkg_id = <debian.packages.by_name>{$mod->{debian_package}};
-                if (!$pkg_id || <debian.packages.registry>{$pkg_id}{status} eq 'missing') {
+                my $pkg_id = $data{'debian'}{'packages'}{'by_name'}{$mod->{debian_package}};
+                if (!$pkg_id || $data{'debian'}{'packages'}{'registry'}{$pkg_id}{status} eq 'missing') {
                     push @missing_debian, $mod->{debian_package};
                     next;
                 }
