@@ -4,8 +4,8 @@
 # descr = Install missing dependencies for zenka or all
 # param = [zenka=<name>] [dry_run=1]
 
-my $call = shift;
-my $args = $$call{'args'} // '';
+my $param = shift;
+my $args = $param->{'args'} // '';
 
 my %params;
 foreach my $pair (split(/\s+/, $args)) {
