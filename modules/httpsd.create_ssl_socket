@@ -1,0 +1,82 @@
+## [:< ##
+
+# name  = httpsd.create_ssl_socket
+# param = $addr, $port
+# descr = Create SSL/TLS socket for HTTPS server using Let's Encrypt certificates
+# return = SSL socket handle or -1 on error
+
+my $addr = shift;
+my $port = shift;
+
+<[base.log]>->( 2, "httpsd: creating SSL socket on $addr:$port" );
+
+## Get certificate paths from configuration
+my $cert_file = <httpsd.cfg.certificate_path>;
+my $key_file  = <httpsd.cfg.key_path>;
+
+<[base.log]>->( 2, "  certificate: $cert_file" );
+<[base.log]>->( 2, "  key: $key_file" );
+
+## Validate certificate files exist
+unless ( -f $cert_file ) {
+    <[base.log]>->( 0, "httpsd: certificate file not found: $cert_file" );
+    return -1;
+}
+
+unless ( -f $key_file ) {
+    <[base.log]>->( 0, "httpsd: key file not found: $key_file" );
+    return -1;
+}
+
+## Get TLS configuration
+my $tls_version  = <httpsd.cfg.tls_version>  // qw| TLSv1_2 |;
+my $cipher_suite = <httpsd.cfg.cipher_suite> //
+    qw| DEFAULT:!aNULL:!eNULL:!MD5:!3DES:!DES:!RC4:!IDEA:!SEED:!aDSS:!SRP:!PSK |;
+
+<[base.log]>->( 2, "  TLS version: $tls_version" );
+<[base.log]>->( 3, "  cipher suite: $cipher_suite" );
+
+## Create SSL socket
+my $ssl_socket;
+
+eval {
+    $ssl_socket = IO::Socket::SSL->new(
+        LocalAddr        => $addr,
+        LocalPort        => $port,
+        Proto            => qw| tcp |,
+        Listen           => <max.connections> // 1024,
+        ReuseAddr        => 1,
+        Timeout          => <httpsd.timeout> // 23,
+        SSL_server       => 1,
+        SSL_cert_file    => $cert_file,
+        SSL_key_file     => $key_file,
+        SSL_version      => $tls_version,
+        SSL_cipher_list  => $cipher_suite,
+        SSL_honor_cipher_order => 1,
+    );
+};
+
+if ($EVAL_ERROR) {
+    <[base.log]>->( 0, "httpsd: SSL socket creation failed: $EVAL_ERROR" );
+    return -1;
+}
+
+unless ( defined $ssl_socket ) {
+    my $ssl_err = IO::Socket::SSL::errstr();
+    $ssl_err =~ s/\n.+//mg;
+    <[base.log]>->( 0, "httpsd: unable to create SSL socket [$ssl_err]" );
+    return -1;
+}
+
+## Start listening
+unless ( $ssl_socket->listen() ) {
+    <[base.log]>->( 0, "httpsd: listen failed: $OS_ERROR" );
+    return -1;
+}
+
+<[base.log]>->( 1, "httpsd: SSL server launched [$addr:$port]" );
+<[base.log]>->( 2, "  listening with $tls_version" );
+
+return $ssl_socket;
+
+0;
