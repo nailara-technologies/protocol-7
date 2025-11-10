@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = v7.post_init_code
+# descr = V7 post-initialization - run session startup checks
+
+<[base.log]>->( 2, 'v7 post-initialization: checking session dependencies..,' );
+
+## Trigger session startup dependency check
+## This runs AFTER all modules are initialized
+if (exists $code{'session.parent.check_and_resolve_deps'}) {
+    ## Slight delay to let v7 fully stabilize
+    ## Then check dependencies in background
+    <[base.log]>->( 2, '  Scheduling dependency check...' );
+
+    ## For now, run immediately
+    ## TODO: Could use event timer for non-blocking background check
+    my $result = <[session.parent.check_and_resolve_deps]>();
+
+    if ($result && $result->{success}) {
+        <[base.log]>->( 2, '  ✓ Session dependency check complete' );
+    }
+} else {
+    <[base.log]>->( 3, '  Session dependency module not loaded - skipping check' );
+}
+
+<[base.log]>->( 2, 'v7 post-initialization complete' );
+
+0;
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

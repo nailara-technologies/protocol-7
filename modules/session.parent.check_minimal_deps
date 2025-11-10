@@ -1,0 +1,67 @@
+## [:< ##
+
+# name = session.parent.check_minimal_deps
+# descr = Check if only minimal/base dependencies are missing (unambiguous case)
+
+sub session_parent_check_minimal_deps {
+    ## List of minimal CPAN modules required for base Protocol-7
+    my @minimal_modules = qw(
+        Event
+        IO::AIO
+        Clone
+        BSD::Resource
+        Const::Fast
+        Hash::Flatten
+        File::Which
+        Module::Refresh
+    );
+
+    ## Check if debian module has scanned
+    return 0 unless $data{'debian'}{'cpan_modules'}{'registry'};
+
+    my $missing_minimal = 0;
+    my $missing_other = 0;
+
+    ## Check each CPAN module
+    foreach my $mod_id (keys %{$data{'debian'}{'cpan_modules'}{'registry'}}) {
+        my $mod = $data{'debian'}{'cpan_modules'}{'registry'}{$mod_id};
+
+        if ($mod->{'status'} eq 'missing') {
+            my $module_name = $mod->{'module'};
+
+            if (grep { $_ eq $module_name } @minimal_modules) {
+                $missing_minimal++;
+            } else {
+                $missing_other++;
+            }
+        }
+    }
+
+    ## Also check OS packages
+    foreach my $pkg_id (keys %{$data{'debian'}{'packages'}{'registry'} || {}}) {
+        my $pkg = $data{'debian'}{'packages'}{'registry'}{$pkg_id};
+
+        if ($pkg->{'status'} eq 'missing') {
+            ## OS packages are generally minimal/required
+            $missing_minimal++;
+        }
+    }
+
+    <[base.log]>->( 3, "  Minimal missing: $missing_minimal, Other missing: $missing_other" );
+
+    ## Return true only if we have minimal deps missing but no other deps
+    ## This makes it unambiguous - we know what to install
+    return ($missing_minimal > 0 && $missing_other == 0);
+}
+
+## Export
+$code{qw| session.parent.check_minimal_deps |} = \&session_parent_check_minimal_deps;
+
+0;
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

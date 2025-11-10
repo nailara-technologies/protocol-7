@@ -1,0 +1,51 @@
+## [:< ##
+
+# name = session.parent.show_startup_help
+# descr = Show helpful startup message about missing dependencies
+
+sub session_parent_show_startup_help {
+    my @messages = (
+        "",
+        "=============================================================================",
+        "  Protocol-7 Dependency Check",
+        "=============================================================================",
+        "",
+        "  Some dependencies are missing. You have several options:",
+        "",
+        "  1. Install all dependencies for specific zenka:",
+        "     \$ ./bin/Protocol-7 debian install-deps <zenka_name>",
+        "",
+        "  2. Check what's missing:",
+        "     \$ ./bin/Protocol-7 debian check-deps",
+        "",
+        "  3. List all zenki with dependency status:",
+        "     \$ ./bin/Protocol-7 debian list-zenki",
+        "",
+        "  4. Install minimal Protocol-7 dependencies:",
+        "     \$ ./bin/Protocol-7 debian install-deps minimal",
+        "",
+        "  To disable this check at startup:",
+        "     <session.cfg.auto_check_deps> = 0",
+        "",
+        "=============================================================================",
+        ""
+    );
+
+    foreach my $line (@messages) {
+        <[base.log]>->( 1, $line );
+    }
+
+    return { success => 1, shown => 1 };
+}
+
+## Export
+$code{qw| session.parent.show_startup_help |} = \&session_parent_show_startup_help;
+
+0;
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

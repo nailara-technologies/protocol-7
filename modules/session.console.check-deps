@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = session.console.check-deps
+# param = [force]
+# descr = manually trigger dependency check and resolution
+
+my $param = shift;
+my $force = ($param && $param eq 'force') ? 1 : 0;
+
+<[base.log]>->( 1, "Checking dependencies..." );
+
+## Trigger the smart check
+my $result = <[session.parent.check_and_resolve_deps]>->({
+    force => $force
+});
+
+if ($result->{already_checked} && !$force) {
+    return say "::\n: ℹ Check already performed this session\n: Use 'check-deps force' to re-check\n::";
+}
+
+if ($result->{debian_not_loaded}) {
+    return say "::\n: ⚠ Debian module not loaded\n: Load debian module to enable dependency checking\n::";
+}
+
+if ($result->{all_satisfied}) {
+    return say "::\n: ✓ All dependencies satisfied\n::";
+}
+
+if ($result->{auto_installed}) {
+    return say "::\n: ✓ Minimal dependencies installed automatically\n::";
+}
+
+if ($result->{showed_helper}) {
+    my $count = $result->{missing_count} || 0;
+    return say "::\n: ℹ Found $count missing dependencies\n: See messages above for installation options\n::";
+}
+
+my $count = $result->{missing_count} || 0;
+my $msg = $result->{message} || "Dependency check complete";
+
+return say "::\n: ℹ $msg\n: Missing: $count\n::";
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
