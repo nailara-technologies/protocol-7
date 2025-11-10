@@ -24,19 +24,15 @@ return 0 if $endline_state_oct == 5;
 
 my $previous_payload_length = length $payload_sref->$*;
 
-if ( $endline_state_oct < 5 ) {
+# Fix #5: Simplify restoration - enforce canonical format instead of trying to restore
+# The delta encoding documents what transformation was applied, but for verification
+# and extraction, we should enforce canonical format (exactly 1 separator endline)
+# rather than attempting to reverse transformations that may not be symmetric.
 
-    ##  amending at signature time removed endlines  ##
-    ##
-    my $endline_count = abs( $endline_state_oct - 4 );
-    $payload_sref->$* .= "\n" x $endline_count;
-
-} else {    ##  removing at signature time added endlines  ##
-
-    my $endline_count = abs( $endline_state_oct - 5 );
-    $payload_sref->$* =~ s|(\n){$endline_count}$||s;
-
-}
+# Ensure file ends with exactly 1 newline (canonical format)
+# First remove all trailing newlines, then add exactly 1
+$payload_sref->$* =~ s/\n*$//s;
+$payload_sref->$* .= "\n";
 
 ##  return length difference [ representing change in trailing endlines ]  ##
 return length( $payload_sref->$* ) - $previous_payload_length;

@@ -1,0 +1,227 @@
+---
+task_id: signature_oscillation_fix
+category: signature_system
+type: bug_fix
+priority: high
+status: pending
+estimated_effort: 3_hours
+discovered_session: Current
+fix_version: "3KZNJAMXLQ-5259.0"
+
+title: "Fix signature oscillation on new/unsigned files"
+
+description: |
+  Root cause analysis identified FIVE distinct issues in the endline handling system
+  that work together to cause signature oscillation. This task involves implementing
+  five targeted fixes to eliminate the oscillation and achieve single-pass signing.
+
+affected_modules:
+  - modules/source.cmd.get-code-signed
+  - modules/source.extract_sig_body
+  - modules/source.harmonize_payload_line_feed
+  - modules/source.create_harmonic_footer
+  - modules/source.restore_payload_endline_state
+
+oscillation_mechanics: |
+  The oscillation occurs because of cascading logic inversions:
+
+  CYCLE 1 (new file):
+  - File has no signature
+  - No separator endline exists
+  - needs_separator_endline flag SET ✓
+  - Separator added during signing ✓
+  - Footer appended ✓
+
+  CYCLE 2 (re-verification):
+  - Separator now exists
+  - BUT: needs_separator_endline flag STILL SET (not cleared!) ← ISSUE #1
+  - Verification sees flag set → marks for re-signing
+  - During extraction, restoration logic is INVERTED ← ISSUE #2
+  - Content endlines modified in opposite direction
+  - Signature CHANGES
+
+  CYCLE 3+ (continuing):
+  - Harmonization adds endlines asymmetrically ← ISSUE #3
+  - State encoding doesn't match actual mods ← ISSUE #4
+  - Restoration assumes symmetry that doesn't exist ← ISSUE #5
+  - Loop continues: file never stabilizes
+
+implementation_order:
+  - step: 1
+    task: "Fix #1: Clear flag after adding separator"
+    module: "modules/source.cmd.get-code-signed"
+    location: "After line 138"
+    time_estimate: "5 minutes"
+    description: |
+      Add flag reset immediately after separator endline is successfully added.
+
+      Add after the endline is appended:
+      ```perl
+      $footer_data->{'needs_separator_endline'} = FALSE;
+      ```
+
+      This prevents verification from triggering re-sign on already-correct files.
+
+  - step: 2
+    task: "Fix #2: Correct inverted restoration condition"
+    module: "modules/source.extract_sig_body"
+    location: "Lines 627-632"
+    time_estimate: "10 minutes"
+    description: |
+      Change the condition that determines when to skip endline restoration.
+
+      Current (incorrect):
+      ```perl
+      if ($seperator_endline_absent) {
+          # skip restoration
+      }
+      ```
+
+      Correct:
+      ```perl
+      if ($seperator_endline_present) {
+          # skip restoration (only skip if separator exists)
+      }
+      ```
+
+      Logic: If separator was already present, don't restore (file was canonical).
+      If separator was absent, DO restore (file needs canonical format).
+
+  - step: 3
+    task: "Fix #3: Standardize harmonization logic"
+    module: "modules/source.harmonize_payload_line_feed"
+    location: "Lines 36-55"
+    time_estimate: "15 minutes"
+    description: |
+      Make endline removal and addition symmetrical to ensure convergence.
+
+      Current asymmetry:
+      - Removes: if 3+ endlines (very high threshold)
+      - Adds: if 0-1 endlines (includes 0)
+      - Result: Files oscillate between 1 and 2 endlines
+
+      Proposed symmetry:
+      - Removes: if 2+ endlines (lower threshold)
+      - Adds: if 0-1 endlines (keep current)
+      - Result: Files converge to exactly 1 separator endline
+
+      This aligns with the canonical format documented in signature-endline-handling.yaml
+
+  - step: 4
+    task: "Fix #4: Sync state encoding with actual modifications"
+    module: "modules/source.create_harmonic_footer"
+    location: "Lines 175-213"
+    time_estimate: "20 minutes"
+    description: |
+      Calculate endline_modification_state AFTER harmonization, not before.
+
+      Current approach: Calculate state, then harmonize separately
+      Problem: Calculated state may not match actual modifications applied
+
+      Proposed approach:
+      1. Track original endline count before harmonization
+      2. Apply harmonization (removes/adds as needed)
+      3. Calculate state based on ACTUAL modifications made
+      4. Encode this state in footer
+
+      This ensures verification can correctly restore the original state if needed.
+
+  - step: 5
+    task: "Fix #5: Simplify restoration logic"
+    module: "modules/source.restore_payload_endline_state"
+    location: "Lines 27-39"
+    time_estimate: "15 minutes"
+    description: |
+      Rather than attempting to restore previous state, enforce canonical format.
+
+      Current approach: Try to reverse endline modifications to restore original
+      Problem: Assumes symmetric modifications; fails when modifications weren't symmetric
+
+      Proposed approach:
+      - Don't attempt to restore original state
+      - Instead: Always enforce canonical format (exactly 1 separator endline)
+      - This aligns with the "deterministic normalization" philosophy in the docs
+
+      The delta encoding (state 0-7) documents what WAS changed for reversibility,
+      but the verification/update cycle should always enforce canonical format,
+      not attempt to restore potentially broken original state.
+
+testing_plan:
+  phase_1_unit_tests:
+    - Create test files with 0, 1, 2, 3+ endlines before signature
+    - Sign each file
+    - Verify: signature is generated
+    - Verify: no needs_separator_endline flag after signing
+    - Re-run verification
+    - Verify: file is not marked for re-signing
+
+  phase_2_oscillation_test:
+    - Create unsigned file with 0 endlines
+    - Run update-signatures
+    - Capture signature (should be: sig_A)
+    - Run update-signatures again
+    - Capture signature (should be: sig_A, NOT sig_B)
+    - Run 3 more times
+    - Verify: signatures remain stable (all sig_A)
+
+  phase_3_regression_test:
+    - Test files with proper endlines (already canonical)
+    - Test files with excessive endlines
+    - Test markdown files
+    - Test code files
+    - Verify all signatures remain valid
+    - Verify verification passes
+
+  phase_4_mixed_endline_test:
+    - Files with mixed line endings (CRLF vs LF)
+    - Files with trailing whitespace + endlines
+    - Files with tabs before signature
+    - Verify canonical format is enforced consistently
+
+validation_criteria:
+  - criterion: "Flag-based oscillation eliminated"
+    measure: "needs_separator_endline flag is FALSE after signing"
+    test: "Run signature update twice; second run should have no changes"
+
+  - criterion: "Signatures converge after one cycle"
+    measure: "Signature hash stable after first signing"
+    test: "Sign file 5 times; all 5 signatures should be identical"
+
+  - criterion: "Restoration logic inverted"
+    measure: "Content not modified when separator already present"
+    test: "Extract and restore; canonical file content unchanged"
+
+  - criterion: "Harmonization converges"
+    measure: "Files with 0-3 endlines all converge to exactly 1"
+    test: "Harmonize files with varying endlines; all result in single separator"
+
+  - criterion: "State encoding accurate"
+    measure: "Encoded state matches actual modifications made"
+    test: "Track original endlines, encoded state, restored endlines; verify match"
+
+  - criterion: "Restoration aligns with canonical format"
+    measure: "All restored files are in canonical format"
+    test: "Restore files with different states; all have exactly 1 separator"
+
+implementation_notes: |
+  - All fixes are localized to specific modules
+  - Changes should not affect cryptographic verification
+  - Focus is on metadata (endline handling) consistency
+  - Fixes enable single-pass signing instead of requiring multiple cycles
+  - Documentation already exists (signature-endline-handling.yaml) - fixes align with it
+
+risk_assessment: |
+  Risk Level: LOW
+  - Changes are localized to endline handling logic
+  - Cryptographic functions are untouched
+  - Backward compatibility: Files with correct endlines unaffected
+  - Worst case: Temporarily re-sign all files once (minor inconvenience)
+
+related_documentation:
+  - "data/yaml/docs/processing/signature-endline-handling.yaml"
+  - "data/yaml/docs/formats/signature-footer.yaml"
+  - "data/yaml/code-reviews/modules/source.signature-endline-policy-system.yaml"
+  - "data/yaml/archive/completed-fix-tasks/sourcecode-zenka.signature-endline-handling-glitch.yaml"
+
+created_date: 2025-11-10
+prepared_for_version: "3KZNJAMXLQ-5259.0"

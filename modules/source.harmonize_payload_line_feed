@@ -32,10 +32,11 @@ my $endline_state_oct       = $cur_endline_state;         ##  unmodified  ##
 my $payload_size_delta      = 0;
 my $previous_payload_length = length $payload_sref->$*;
 
+##  Fix #3: Standardize endline harmonization - make removal/addition symmetrical
 ##  removing too many training LFs  ##
-if ( $payload_sref->$* =~ m|\n{3}$|s ) {
+if ( $payload_sref->$* =~ m|\n{2}$|s ) {
 
-    my $limit = 4 + $mod_offset;
+    my $limit = 3 + $mod_offset;
 
     ##  leaving one between data and footer  ##
     $payload_sref->$* =~ s{([^\n]\n|)\n\n{1,$limit}$}{$1\n}s;
