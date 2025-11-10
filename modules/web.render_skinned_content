@@ -1,0 +1,263 @@
+## [:< ##
+
+# name = web.render_skinned_content
+# descr = Load content from /data/web/, process it, wrap in skin from /var/httpd/
+# args  = $params hashref with: path, session_id, vhost, skin
+
+my $params = shift;
+
+my $content_path = $params->{path} // '';
+my $session_id   = $params->{session_id};
+my $vhost        = $params->{vhost} // 'default';
+my $skin_name    = $params->{skin} // 'default';
+my $base_dir     = $params->{base_dir} // '/data/web';
+my $skin_dir     = $params->{skin_dir} // '/var/httpd';
+
+## Clean up paths ##
+$content_path =~ s/^\/+|\/+$//g;
+$content_path =~ s/\.\.+/./g;
+
+<[base.log]>->(
+    2,
+    "[$session_id] web.render_skinned_content: path='$content_path', vhost='$vhost', skin='$skin_name'"
+);
+
+## Build full content file path ##
+my $content_file = "$base_dir/$vhost/$content_path";
+
+## If path is a directory, look for index file ##
+if ( -d $content_file ) {
+    if ( -f "$content_file/index.txt" ) {
+        $content_file .= '/index.txt';
+    } elsif ( -f "$content_file/index.md" ) {
+        $content_file .= '/index.md';
+    } elsif ( -f "$content_file/index.html" ) {
+        $content_file .= '/index.html';
+    } else {
+        ## No index file, generate directory listing ##
+        <[base.log]>->(
+            2,
+            "[$session_id] no index file in $content_path, generating dirlist"
+        );
+        my $dirlist =
+            <[plugin.web.content.dirlist]>->( "$vhost/$content_path", $base_dir, 0 );
+
+        return {
+            status       => qw| success |,
+            content      => $dirlist,
+            content_type => 'text/html',
+            title        => 'Directory Listing',
+            is_dirlist   => 1,
+        };
+    }
+}
+
+## Check if content file exists ##
+unless ( -f $content_file ) {
+    <[base.log]>->(
+        1,
+        "[$session_id] content file not found: $content_file"
+    );
+    return {
+        status  => qw| error |,
+        error   => qw| not_found |,
+        message => qq| Content not found: $content_path |,
+    };
+}
+
+## Check if content file is readable ##
+unless ( -r $content_file ) {
+    <[base.log]>->(
+        1,
+        "[$session_id] content file not readable: $content_file"
+    );
+    return {
+        status  => qw| error |,
+        error   => qw| permission_denied |,
+        message => qq| Permission denied: $content_path |,
+    };
+}
+
+<[base.log]>->( 2, "[$session_id] loading content from: $content_file" );
+
+## Load content file ##
+my $content = <[file.get]>->( $content_file, qw| :raw | );
+
+unless ( defined $content ) {
+    <[base.log]>->(
+        0,
+        "[$session_id] failed to read content file: $content_file"
+    );
+    return {
+        status  => qw| error |,
+        error   => qw| read_failed |,
+        message => qq| Failed to read content |,
+    };
+}
+
+## Determine content type from file extension ##
+my $content_type = 'text/plain';
+if ( $content_file =~ /\.html?$/ ) {
+    $content_type = 'text/html';
+} elsif ( $content_file =~ /\.md$/ ) {
+    $content_type = 'text/markdown';
+} elsif ( $content_file =~ /\.txt$/ ) {
+    $content_type = 'text/plain';
+}
+
+## Prepare meta variables for template processing ##
+my $meta_vars = {
+    path         => $content_path,
+    vhost        => $vhost,
+    skin         => $skin_name,
+    content_type => $content_type,
+    request_time => time(),
+    session_id   => $session_id,
+};
+
+## Generate template ID ##
+my $template_id = sprintf(
+    'content_%s_%s_%d',
+    $vhost,
+    <[chk-sum.elf.vax-BASE32]>->($content_path),
+    time()
+);
+
+<[base.log]>->(
+    2,
+    "[$session_id] processing content through recursive template parser: $template_id"
+);
+
+## Process content through recursive template parser ##
+my $processed_content = <[web.process_template_recursive]>->(
+    {   content     => $content,
+        meta        => $meta_vars,
+        depth       => 0,
+        template_id => $template_id,
+        session_id  => $session_id,
+    }
+);
+
+if ( $processed_content->{status} ne qw| success | ) {
+    <[base.log]>->(
+        0,
+        "[$session_id] content processing failed: "
+            . $processed_content->{message}
+    );
+    return {
+        status  => qw| error |,
+        error   => qw| processing_failed |,
+        message => qq| Content processing failed |,
+    };
+}
+
+my $rendered_content = $processed_content->{content};
+
+<[base.log]>->(
+    2,
+    "[$session_id] content processed successfully ("
+        . length($rendered_content)
+        . " bytes)"
+);
+
+## Now wrap in skin template ##
+my $skin_file = "$skin_dir/skins/$skin_name.tmpl";
+
+unless ( -f $skin_file ) {
+    <[base.log]>->(
+        1,
+        "[$session_id] skin file not found: $skin_file, using content only"
+    );
+
+    ## Return content without skin ##
+    return {
+        status       => qw| success |,
+        content      => $rendered_content,
+        content_type => $content_type,
+        no_skin      => 1,
+    };
+}
+
+<[base.log]>->( 2, "[$session_id] loading skin: $skin_file" );
+
+## Load skin template ##
+my $skin_template = <[file.get]>->( $skin_file, qw| :raw | );
+
+unless ( defined $skin_template ) {
+    <[base.log]>->(
+        1,
+        "[$session_id] failed to read skin file: $skin_file, using content only"
+    );
+    return {
+        status       => qw| success |,
+        content      => $rendered_content,
+        content_type => 'text/html',
+        no_skin      => 1,
+    };
+}
+
+## Prepare meta variables for skin template ##
+$meta_vars->{content} = $rendered_content;
+
+## Extract title from content (look for first <h1> or <h2> tag) ##
+my $title = 'Untitled';
+if ( $rendered_content =~ /<h[12][^>]*>([^<]+)<\/h[12]>/i ) {
+    $title = $1;
+} elsif ( $content_path =~ m|([^/]+)$| ) {
+    $title = $1;
+    $title =~ s/\..*$//;         ## Remove extension
+    $title =~ s/_/ /g;           ## Replace underscores
+    $title =~ s/\d+\s+//;        ## Remove numeric prefix
+}
+$meta_vars->{title} = $title;
+
+## Generate menu ##
+$meta_vars->{menu} = <[plugin.web.menu.tree]>->( $content_path, $base_dir, 3 );
+
+## Process skin template ##
+my $skin_template_id = sprintf( 'skin_%s_%d', $skin_name, time() );
+
+<[base.log]>->( 2, "[$session_id] processing skin template: $skin_template_id" );
+
+my $final_html = <[web.process_template_recursive]>->(
+    {   content     => $skin_template,
+        meta        => $meta_vars,
+        depth       => 0,
+        template_id => $skin_template_id,
+        session_id  => $session_id,
+    }
+);
+
+if ( $final_html->{status} ne qw| success | ) {
+    <[base.log]>->(
+        1,
+        "[$session_id] skin processing failed, returning content without skin: "
+            . $final_html->{message}
+    );
+    return {
+        status       => qw| success |,
+        content      => $rendered_content,
+        content_type => 'text/html',
+        no_skin      => 1,
+    };
+}
+
+<[base.log]>->(
+    2,
+    "[$session_id] skin processing complete ("
+        . length( $final_html->{content} )
+        . " bytes)"
+);
+
+return {
+    status       => qw| success |,
+    content      => $final_html->{content},
+    content_type => 'text/html',
+    title        => $title,
+};
+
+#,,.,,,,,.,.,,,.,,,.,.,,,,,.,,,.,,.,,.,,,.,.,...,,.,,,,,.,...,...,...,.,.,.,,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

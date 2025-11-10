@@ -1,0 +1,157 @@
+## [:< ##
+
+# name = web.scan_directory
+# descr = Scan directory structure for content files and navigation
+# args  = $base_dir, $current_path, $options
+
+my $base_dir     = shift // '/data/web';
+my $current_path = shift // '';
+my $options      = shift // {};
+
+## Clean up paths ##
+$base_dir =~ s/\/+$//;                    ## Remove trailing slashes
+$current_path =~ s/^\/+|\/+$//g;          ## Remove leading/trailing slashes
+$current_path =~ s/\.\.+/./g;             ## Prevent directory traversal
+
+my $full_path = $base_dir;
+$full_path .= "/$current_path" if length($current_path);
+
+<[base.log]>->( 3, "web.scan_directory: scanning $full_path" );
+
+## Validate directory exists and is readable ##
+unless ( -d $full_path ) {
+    <[base.log]>->( 1, "web.scan_directory: directory not found: $full_path" );
+    return {
+        status => qw| error |,
+        error  => qw| directory_not_found |,
+        path   => $full_path,
+        items  => [],
+    };
+}
+
+unless ( -r $full_path ) {
+    <[base.log]>->( 1, "web.scan_directory: directory not readable: $full_path" );
+    return {
+        status => qw| error |,
+        error  => qw| permission_denied |,
+        path   => $full_path,
+        items  => [],
+    };
+}
+
+## Open directory and read entries ##
+opendir( my $dh, $full_path )
+    or do {
+    <[base.log]>->( 0, "web.scan_directory: failed to open $full_path: $!" );
+    return {
+        status => qw| error |,
+        error  => qw| open_failed |,
+        path   => $full_path,
+        items  => [],
+    };
+    };
+
+my @entries = readdir($dh);
+closedir($dh);
+
+## Filter and process entries ##
+my @items;
+my %seen_names;
+
+foreach my $entry ( sort @entries ) {
+    ## Skip hidden files, backups, and parent directories ##
+    next if $entry =~ /^\.|~$|^DEADJOE$|^\.git/;
+
+    my $entry_path = "$full_path/$entry";
+    my $is_dir     = -d $entry_path;
+    my $is_file    = -f $entry_path;
+
+    next unless $is_dir or $is_file;
+
+    ## Extract display name (remove numeric prefixes like "01_") ##
+    my $display_name = $entry;
+    my $sort_prefix  = '';
+    if ( $display_name =~ s/^(\d+)_// ) {
+        $sort_prefix = $1;
+    }
+
+    ## For files, check if it's a content file ##
+    my $content_type = '';
+    if ($is_file) {
+        if ( $entry =~ /\.(txt|md|html?)$/ ) {
+            $content_type = $1;
+            $display_name =~ s/\.$content_type$//;
+        } else {
+            ## Skip non-content files unless show_all option ##
+            next unless $options->{show_all};
+        }
+    }
+
+    ## Build relative path ##
+    my $relative_path = length($current_path) ? "$current_path/$entry" : $entry;
+
+    ## Get file stats ##
+    my @stat       = stat($entry_path);
+    my $size       = $stat[7];
+    my $mtime      = $stat[9];
+    my $is_index   = ( $entry =~ /^index\.(txt|md|html?)$/ );
+
+    ## Check for duplicate names (dir and file with same base name) ##
+    my $base_name = $display_name;
+    if ( $seen_names{$base_name} ) {
+        ## If both dir and file exist with same name, prefer directory ##
+        if ( $is_dir and $seen_names{$base_name}{type} eq 'file' ) {
+            ## Replace file entry with directory ##
+            @items = grep { $_->{name} ne $base_name } @items;
+            delete $seen_names{$base_name};
+        } elsif ( $is_file and $seen_names{$base_name}{type} eq 'dir' ) {
+            ## Skip file, directory already added ##
+            next;
+        }
+    }
+
+    ## Add item to list ##
+    my $item = {
+        name          => $entry,
+        display_name  => $display_name,
+        sort_prefix   => $sort_prefix,
+        path          => $relative_path,
+        full_path     => $entry_path,
+        type          => $is_dir ? 'dir' : 'file',
+        content_type  => $content_type,
+        size          => $size,
+        mtime         => $mtime,
+        is_index      => $is_index,
+    };
+
+    push @items, $item;
+    $seen_names{$base_name} = $item;
+}
+
+## Sort items: directories first, then by sort prefix, then by name ##
+@items = sort {
+         ( $b->{type} eq 'dir' ) <=> ( $a->{type} eq 'dir' )
+      || $a->{sort_prefix} <=> $b->{sort_prefix}
+      || $a->{display_name} cmp $b->{display_name}
+} @items;
+
+<[base.log]>->(
+    2,
+    "web.scan_directory: found "
+        . scalar(@items)
+        . " items in $full_path"
+);
+
+return {
+    status       => qw| success |,
+    path         => $full_path,
+    current_path => $current_path,
+    items        => \@items,
+    count        => scalar(@items),
+};
+
+#,,,.,.,.,,,.,,,.,,,.,.,.,.,,,,,,,.,.,.,.,.,,,,,.,,,.,,,.,...,...,,.,,.,,,,.,,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
