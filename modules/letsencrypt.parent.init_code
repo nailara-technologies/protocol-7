@@ -3,11 +3,10 @@
 # name  = letsencrypt.parent.init_code
 # descr = Initialize parent process for Let's Encrypt ACME operations - manages state, cache, and renewal scheduling
 
-<[base.log]>->( 2, 'initializing Let\x27s Encrypt ACME parent process..,' );
+<[base.log]>->( 2, "initializing Let's Encrypt ACME parent process..," );
 
-## Load parent-specific modules
-<[base.load_modules]>->('letsencrypt.base');
-<[base.init_modules]>->('letsencrypt.base');
+## letsencrypt.base is already loaded and initialized by zenka startup
+## No need to reload/reinitialize here
 
 ## Initialize parent-side certificate registry and cache
 <letsencrypt.parent.certs>          = {};
@@ -104,24 +103,22 @@ if ( not exists <buffer.acme-activity> ) {
     );
 }
 
-<[base.log]>
-    ->( 2, 'Let\x27s Encrypt parent process initialization complete' );
-<[base.log]>->( 2, '  Certificate cache: ' . <letsencrypt.cache.dir> );
-<[base.log]>->(
+<[base.log]>->( 2, "Let's Encrypt parent process initialization complete" );
+<[base.logs]>->( 2, ': Certificate cache : %s' , <letsencrypt.cache.dir> );
+<[base.logs]>->(
     2,
-    '  Renewal check interval: '
-        . <letsencrypt.renewal.check-interval>
-        . ' seconds'
+    '  Renewal check interval: %d seconds',
+         <letsencrypt.renewal.check-interval>
 );
-<[base.log]>->( 2, '  Activity logging: enabled (acme-activity buffer)' );
+<[base.log]>->( 2, '  Activity logging: enabled [ acme-activity buffer ]' );
 
-## Mark parent as fully initialized (child is ready via IPC pipe)
+## Mark parent as fully initialized [ child is ready via IPC pipe ]
 <letsencrypt.parent.initialized> = 1;
 
 0;
 
-#,,.,,,..,...,,..,.,,,.,.,,,.,...,,.,,,,.,,,.,..,,...,...,..,,,.,,,,.,.,.,.,,,
-#NA55CEENAXHR2X7D4B6RLUZRNJTLE6O5SC3X5RLO4BOCH6TMCBALFF4777ZOXEO6QQFEVX5Q45O2C
-#\\\|NMQR33B5MW3OYLJHJDNTD6KYAYGNGRUOG64FWEWA26YH7MOVK2B \ / AMOS7 \ YOURUM ::
-#\[7]KIRLIZ2DO23CCKEOIYY6APMTTLZGTB6ONWW4AI3FDQVQTRHNBCCY 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,..,,,,,..,,,,,,,..,.,.,,..,...,..,,...,..,,..,,..,,,,.,,..,.,.,
+#C3PMNTJFXVZSV4NEWHEQSEYXHRR24UKEWBOIPHAQWRHMJTJHIVWNGH5OZ3DRO6TFEJDB4LFWFXVBE
+#\\\|UTHJ42JDTS7346KWDMU6O7Q7OUBLPZOS4FDXBJLPK7JOOKFCEY7 \ / AMOS7 \ YOURUM ::
+#\[7]NJXCDM5R3Q2C7SJEPVCJDPQCBFQIWA4RRH4RH3WGDDQED2RGDOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

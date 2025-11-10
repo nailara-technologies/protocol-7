@@ -3,11 +3,11 @@
 # name  = letsencrypt.child.init_code
 # descr = Initialize child process for Let's Encrypt ACME operations - handles blocking crypto and network calls
 
-<[base.log]>->( 2, 'initializing Let\x27s Encrypt ACME child process..,' );
+<[base.log]>->( 2, "initializing Let's Encrypt ACME child process..," );
 
-## Load child-specific modules
-<[base.load_modules]>->('letsencrypt.base');
-<[base.init_modules]>->('letsencrypt.base');
+## Load child-specific cryptographic module (letsencrypt.base already loaded/initialized by zenka startup)
+<[base.load_modules]>->('crypt.C25519');
+<[base.init_modules]>->('crypt.C25519');
 
 ## Initialize ACME client state (child-side)
 <letsencrypt.child.acme_client> = {
@@ -24,14 +24,8 @@
 ## Initialize challenge handlers (child performs actual challenge)
 <letsencrypt.child.active_challenges> = {};
 
-## Load cryptographic modules for ACME
-<[base.perlmod.autoload]>->('Crypt::Ed25519');  ## Account key signing (EdDSA)
-<[base.perlmod.autoload]>->('Crypt::OpenSSL::X509')
-    ;                                           ## CSR certificate generation
-<[base.perlmod.autoload]>->('JSON::XS');
-<[base.perlmod.autoload]>->('Digest::SHA');
-<[base.perlmod.autoload]>->('MIME::Base64');    ## Base64url encoding
-<[base.perlmod.autoload]>->('Crypt::Misc');     ## Base32r encoding/decoding
+## All required cryptographic modules are loaded in letsencrypt.base.pre_init
+## No need to duplicate loading here
 
 ## NOTE: Message handler is registered by fork_letsencrypt_child via base.handler.command
 ## Do NOT register custom handler here - use Protocol-7's command protocol
@@ -51,13 +45,13 @@ if ( -f $account_key_path ) {
 }
 
 <[base.log]>->( 2, "Let's Encrypt child process initialization complete" );
-<[base.logs]>->( 2, '  ACME Server: %s', <letsencrypt.acme.server> );
-<[base.logs]>->( 2, '  Account Key: %s', $account_key_path );
+<[base.logs]>->( 2, ': ACME Server : %s', <letsencrypt.acme.server> );
+<[base.logs]>->( 2, ': Account Key : %s', $account_key_path );
 
 0;
 
-#,,,,,,..,,,.,,.,,,,.,.,,,..,,,,.,.,,,,,,,,..,..,,...,...,.,.,,..,.,.,...,.,,,
-#64HNQZC4NZR7AZ5UQ2WGO4J4OMFW22HYZKXZXTA2HNCYSHT4VCHMX45IFJZP5I65VFCN6PCUUZS7Q
-#\\\|6NH2Q7V5OFNLUEVTSEHZZNFHBCRZADJR7WDKTFHCO55XG6R2TZR \ / AMOS7 \ YOURUM ::
-#\[7]VFJTCD3Y4BVTGNDBA6TOFQSHUBM2IVNO2LUZKUQZHXPBATE6ZSCA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,.,,,,.,.,.,.,,,,,.,.,,,,..,,,,,..,,...,...,.,.,,..,...,.,.,..,,
+#GQRTZKR3DWTRK2GUJGN62CVTMPTVAFKCEZKVLL4ERNXRBCHUEKDKFFHGZUIPBXGCAQDRARBTRYF2M
+#\\\|AVHNNAUBDSCBP347DKPVHIDVPLNBSGMMH4I2FGDALDLPCNYIQDE \ / AMOS7 \ YOURUM ::
+#\[7]GVV3BOFQ4ONQQOMTGN4G3LXGW6ZHOGGGOXMNSI6Y3JEFJMN7C6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,86 +3,100 @@
 # name  = letsencrypt.parent.query_httpd_vhosts
 # descr = Query httpd zenka for list of configured virtual hosts
 
-use Scalar::Util qw(blessed);
-
-<[base.log]>->( 2, "querying httpd for vhost list" );
+<[base.log]>->( 2, 'querying httpd zenka for vhost list..' );
 
 ## Check if httpd is available via cube
-my $vhost_list;
+## Note: httpd.vhost-list may not be available if httpd zenka is not running
+## In that case, we gracefully return empty list and proceed with primary domain only
 
-## Use base command sending to query httpd.vhost-list
-my $reply = <[base.protocol-7.command.send.local]>->(
-    {   'command'   => 'httpd.vhost-list',
-        'call_args' => { 'args' => '' },
-    }
-);
+my $reply = eval {
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => qw| cube.httpd.vhost-list |,
+            'call_args' => { 'args' => '' },
+        }
+    );
+};
 
-unless ($reply) {
+unless ( $reply && ref($reply) eq qw| HASH | ) {
     <[base.log]>->(
-        1, "warning: httpd.vhost-list command returned no response"
+        2, 'httpd.vhost-list not available [ httpd may not be running ]'
     );
     return {
-        status => 'error',
-        error  => 'No response from httpd',
-        vhosts => [],
+        'status' => qw| error |,
+        'error'  => 'httpd not available',
+        'vhosts' => [],
     };
 }
 
 ## Parse reply based on mode
 my $mode = $reply->{cmd}  // $reply->{mode};
-my $data = $reply->{data} // '';
+my $reply_data = $reply->{data} // '';
 
-<[base.log]>->( 3, "httpd reply mode: $mode, data length: " . length($data) );
+unless ($mode) {
+    <[base.log]>->( 2, 'httpd.vhost-list returned unexpected format' );
+    return {
+        'status' => qw| error |,
+        'error'  => 'invalid reply format',
+        'vhosts' => [],
+    };
+}
+
+<[base.logs]>->(
+    3,     ': httpd reply mode : %s, data length : %d',
+    $mode, length($reply_data)
+);
 
 ## The vhost-list returns multiple lines of vhost names
 my @vhosts;
-if ( $mode eq 'SIZE' ) {
+if ( $mode eq qw| SIZE | ) {
     ## SIZE mode means multi-line output
-    @vhosts = grep { length($_) > 0 } split( /\n/, $data );
-} elsif ( $mode eq 'TRUE' ) {
+    @vhosts = grep { length($_) > 0 } split( m|\n|, $reply_data );
+} elsif ( $mode eq qw| TRUE | ) {
     ## TRUE mode with data contains vhost names separated by newlines
-    @vhosts = grep { length($_) > 0 } split( /\n/, $data );
+    @vhosts = grep { length($_) > 0 } split( m|\n|, $reply_data );
 } else {
-    <[base.log]>->( 1, "warning: unexpected reply mode from httpd: $mode" );
+    <[base.logs]>->(
+        1, ': warning : unexpected reply mode from httpd : %s', $mode
+    );
     return {
-        status => 'error',
-        error  => "Unexpected reply mode: $mode",
-        vhosts => [],
+        'status' => qw| error |,
+        'error'  => sprintf( 'unexpected reply mode : %s', $mode ),
+        'vhosts' => [],
     };
 }
 
 ## Remove whitespace
-@vhosts = map  { s/^\s+|\s+$//g; $_ } @vhosts;
+@vhosts = map  { s{^\s+|\s+$}{}g; $ARG } @vhosts;
 @vhosts = grep { length($_) > 0 } @vhosts;
 
 if ( @vhosts == 0 ) {
-    <[base.log]>->( 1, "warning: httpd returned no vhosts" );
+    <[base.log]>->( 1, ': warning : httpd returned no vhosts' );
     return {
-        status => 'error',
-        error  => 'No vhosts from httpd',
-        vhosts => [],
+        'status' => qw| error |,
+        'error'  => 'No vhosts from httpd',
+        'vhosts' => [],
     };
 }
 
-<[base.log]>->( 2, "found " . scalar(@vhosts) . " vhosts from httpd" );
+<[base.logs]>->( 2, 'found %d vhosts from httpd', scalar(@vhosts) );
 foreach my $vh (@vhosts) {
-    <[base.log]>->( 3, "  - $vh" );
+    <[base.logs]>->( 3, '  - %s', $vh );
 }
 
 ## Cache the vhost list with timestamp
 <letsencrypt.parent.vhosts_cache> = {
-    vhosts    => \@vhosts,
-    timestamp => time(),
-    ttl       => 3600,       # 1 hour cache TTL
+    'vhosts'    => \@vhosts,
+    'timestamp' => <[base.time]>,
+    'ttl'       => 3600,            # 1 hour cache TTL
 };
 
 return {
-    status => 'success',
-    vhosts => \@vhosts,
+    'status' => qw| success |,
+    'vhosts' => \@vhosts,
 };
 
-#,,.,,,.,,..,,,,.,,.,,.,,,.,,,,.,,..,,,,.,,,.,..,,...,...,,,.,.,,,.,,,...,.,,,
-#M7O4U7PIH2KDYANQAF3TJ6LSSMIIP2O4W6VLTSDPGGBXZHLKI6IQYIRRSVWUTQJOPHHI2PHGGYZOQ
-#\\\|NZWZYH76AWHC2ZP4NAP7K3QLKJHJ2KB3ZZNBZGBICBYUVQSEFTH \ / AMOS7 \ YOURUM ::
-#\[7]MYFI6BWMMFCBAKEA5UGOYGSHYKPFNYYDFOCG6XLDE475EBXJ7IAQ 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,.,,,,,.,.,...,.,.,...,,,,,,.,,..,,...,.,.,...,,..,...,,..,,..,
+#TQBVQDKTMHPANLAZCHSCBJSZVFJLOHS7SRTBC6N2FCYXM775ISVPQSKRA6ZI4OYYDM3IYSQFM32XE
+#\\\|2NTNMYXS42N2TGQY62EBSRBRC3DXT72QAE4C46ZRI3B472M526Z \ / AMOS7 \ YOURUM ::
+#\[7]HBL2VTJO2VQ5P77ALCJKYQKPV3NRITGGEZLFYVQBNMGVXHSSGYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,7 +3,6 @@
 # name  = letsencrypt.child.load_account_key
 # descr = Load existing Ed25519 account key from Base32r cache
 
-use Crypt::Ed25519;
 use Crypt::Misc qw(decode_b32r);
 
 my $key_path = shift || sprintf '%s/account.key', <letsencrypt.cache.dir>;
@@ -12,31 +11,61 @@ return undef unless -f $key_path;
 
 <[base.log]>->( 2, "loading Ed25519 account key from $key_path" );
 
-## Load Base32r-encoded secret key from cache
-<[file.content]>->( $key_path, \my $secret_b32, qw| :raw | );
+## Load Base32r-encoded secret key from cache using raw file read
+my $secret_b32;
+{
+    open( my $fh, '<:raw', $key_path ) or do {
+        <[base.log]>->( 1, "error: unable to open account key file: $!" );
+        return undef;
+    };
+    local $/;
+    $secret_b32 = <$fh>;
+    close($fh);
+    chomp($secret_b32);  # Remove trailing newlines
+}
 
 ## Decode from Base32r to binary secret key
 my $secret_key = decode_b32r($secret_b32);
 
+<[base.log]>->(
+    3,
+    sprintf(
+        'loaded Base32r key: %d chars, decoded: %d bytes',
+        length($secret_b32),
+        $secret_key ? length($secret_key) : 0
+    )
+);
+
 ## Validate secret key length (should be 32 bytes for Ed25519)
 unless ( $secret_key && length($secret_key) == 32 ) {
     <[base.log]>->(
-        1, 'error: invalid or corrupted account key (invalid length)'
+        1,
+        sprintf(
+            'error: invalid or corrupted account key (expected 32 bytes, got %d)',
+            $secret_key ? length($secret_key) : 0
+        )
     );
     return undef;
 }
 
-## Regenerate keypair from secret
-## Crypt::Ed25519 can reconstruct the full keypair from the seed/secret
-my ( $public_key, $private_key )
-    = Crypt::Ed25519::generate_keypair($secret_key);
+## Generate the account key using Protocol-7 infrastructure
+## Pass the loaded secret seed to gen_keys which will store it in %keys{'C25519'}
+## Use a unique key name with timestamp to avoid conflicts with previously loaded keys
+my $unique_key_name = 'acme-account-' . <[base.prng.chars-anum]>->(8);
 
-## Store keypair in child state
-<letsencrypt.child.acme_client>->{account_key} = {
-    secret  => $secret_key,
-    public  => $public_key,
-    private => $private_key,
-};
+my ( $keypair, $key_name ) = <[crypt.C25519.gen_keys]>->(
+    $unique_key_name,
+    undef,    # no passphrase seed
+    $secret_key  # use the loaded secret key directly
+);
+
+unless ( $keypair && $key_name ) {
+    <[base.log]>->( 1, 'error: failed to regenerate account key from loaded secret' );
+    return undef;
+}
+
+## Store key name in child state (key stays in global %keys{'C25519'} hash)
+<letsencrypt.child.acme_client>->{account_key_name}  = $key_name;
 <letsencrypt.child.acme_client>->{account_key_type} = 'Ed25519';
 
 <[base.log]>
@@ -44,8 +73,8 @@ my ( $public_key, $private_key )
 
 return <letsencrypt.child.acme_client>->{account_key};
 
-#,,,,,...,,.,,.,.,.,,,...,..,,..,,,,.,,,.,..,,..,,...,..,,...,,..,...,.,,,,,.,
-#OICC66ARL2BAYT3MXCHIIU7Z7NNDMY2BY5NE3IDFD7WCGQ4T6GZA5LEBCSSB2BIXQKZHRHP5AJJ72
-#\\\|FE6HFYWWI7NO7OC4O33R6YNU6XYF74N75GU5ZY7QP7BWSL7V7QZ \ / AMOS7 \ YOURUM ::
-#\[7]4BKICRNACG27ZUK4GCIT2RRNUOQ762P6LYAV5K32HOP7F5ACA2AQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,..,,,,,..,,,.,,.,.,,,,,,,,,,.,,..,,...,...,...,.,,,...,,.,,,.,,
+#7YHYN7G7OWEGJBNOWJYNUDSWQLMA2MAGU3GPLDRYMMTRC37GLHTTZGPMKBWVGHGNYYUBR4VJLRIDE
+#\\\|OJTZHLQB7LU6562WWK5AUSYPLQLQH3LZPMD6H63OIHI34HFHGUX \ / AMOS7 \ YOURUM ::
+#\[7]KZVCVB2QFDAPBFYTDUO3ZMX7LVZUPHYQL54X4VJGM4YQECVFRGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

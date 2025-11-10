@@ -3,8 +3,6 @@
 # name  = letsencrypt.child.generate_account_key
 # descr = Generate Ed25519 account key for ACME operations using existing C25519 infrastructure
 
-use Crypt::Ed25519;
-use MIME::Base64 qw(encode_base64url);
 use Crypt::Misc  qw(encode_b32r);
 
 <[base.log]>->(
@@ -31,14 +29,23 @@ my ( $ed_keypair, $key_name ) = <[crypt.C25519.gen_keys]>->(
         . ' seconds'
 );
 
-## Store keypair in child state
-<letsencrypt.child.acme_client>->{account_key}      = $ed_keypair;
+## Store key name in child state (key binary data is in global %keys{'C25519'} hash)
+## Following Protocol-7 pattern: key stays in memory, we reference it by name
+<letsencrypt.child.acme_client>->{account_key_name}  = $key_name;
 <letsencrypt.child.acme_client>->{account_key_type} = 'Ed25519';
 
 ## Save secret key to cache for persistence (as Base32r-encoded)
 my $key_cache  = sprintf '%s/account.key', <letsencrypt.cache.dir>;
 my $secret_b32 = encode_b32r( $ed_keypair->{secret} );
-<[file.put]>->( $key_cache, $secret_b32, qw| :raw | );
+
+{
+    open( my $fh, '>:raw', $key_cache ) or do {
+        <[base.log]>->( 1, "error: unable to write account key file: $!" );
+        return undef;
+    };
+    print $fh $secret_b32;
+    close($fh);
+}
 chmod( 0600, $key_cache );
 
 <[base.log]>->(
@@ -48,8 +55,8 @@ chmod( 0600, $key_cache );
 ## Return keypair for later use
 return $ed_keypair;
 
-#,,,.,.,.,...,.,,,,,,,,..,,.,,..,,..,,,,,,,..,..,,...,...,,..,.,.,.,.,,,,,.,,,
-#DDRDGGBQKZ3U3Y7YPPHA5ELJJKRH6X433FKNLZGVJOXW3M5MIVLUSTBHW4DXTP7GAQZVLSFU5V55S
-#\\\|BNOBKHWEKF4VF4CIFDCEAA2YUEVDHAQQGQDLPLOAPLITIM6X5QI \ / AMOS7 \ YOURUM ::
-#\[7]6BV6Z3JCYM7E6AQE3PMHH7WBGXH3UOIBT6TSVQTWRHAIYDKUM6CQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,.,,,.,,.,,,.,,,,,.,,,,,,,.,.,.,..,,...,..,,.,.,..,,,,.,,.,,.,.,
+#7H2SLP6DFTRVGDHIAOBUUMC5JJEZ3YPJK3M3NK4YTA247HXMROFD3EN5TNQOFDQBFN6IGHZIEWFYU
+#\\\|T2LYL5QUL262WWNW4UCN4RZ467ARGL5XZPKYOM2UL3OWFCU2XWW \ / AMOS7 \ YOURUM ::
+#\[7]YQ5QIMZ5Q3AG5LSNSGBT6TWJQ6SF5YWMCRZMT6QV7J76NFSHBGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

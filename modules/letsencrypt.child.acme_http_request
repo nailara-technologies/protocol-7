@@ -4,7 +4,7 @@
 # descr = Make authenticated ACME request to Let's Encrypt server
 
 use JSON::XS;
-use LWPx::ParanoidAgent;
+use LWP::UserAgent;
 use HTTP::Request;
 
 my $method  = shift;    # GET, POST
@@ -15,14 +15,15 @@ my $kid     = shift;    # Key ID for authenticated requests
 
 <[base.log]>->( 3, "ACME HTTP $method to " . substr( $url, 0, 50 ) . '...' );
 
-## Create HTTPS client with paranoid checks
-my $ua = LWPx::ParanoidAgent->new(
-    timeout  => 10,
-    ssl_opts => {
-        verify_hostname => 1,
-        SSL_verify_mode => 1,    # SSL_VERIFY_PEER
-    },
+## Create HTTP client (use standard LWP::UserAgent to allow localhost for testing)
+my $ua = LWP::UserAgent->new(
+    timeout => 10,
 );
+
+## Disable SSL verification for localhost/test servers
+if ( $url =~ m{^https?://localhost} ) {
+    $ua->ssl_opts( verify_hostname => 0, SSL_verify_mode => 0 );
+}
 
 my $request;
 
@@ -76,11 +77,11 @@ return {
     status  => $response->code,
     data    => $data,
     nonce   => $replay_nonce,
-    headers => $response->headers_as_hash,
+    headers => $response->headers,
 };
 
-#,,,.,,,,,,.,,..,,.,,,.,.,...,.,,,,,,,..,,,,.,..,,...,...,...,...,.,,,,,,,,,,,
-#MFOYIM6TLDGFBTLDHY4TH73L6JVIU36M2HYRJ57IRNKQE7DOLRD4YHRNHXUXRWYI2O7N7CSAW3KXM
-#\\\|UCFQVAGHLMKUIXVICFZWCDXQ66AQ63TF7PE5QOGO7XET3SVCXO3 \ / AMOS7 \ YOURUM ::
-#\[7]JNRYXSFAQGN2SNVXBKLUJ7SL2W76KQGJC53NNYFEZSS64LSJBWAA 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,.,.,.,,,,.,,.,,,.,.,,..,,..,.,.,..,,...,...,...,,..,..,,..,,,,.,
+#TXPHNSONM7PVRXCAJZVNHUEPG5KPAQTHVNMAQKNDIONT3D7UR7CXIPDWT62EXPFGUUQTTPKYQTBRA
+#\\\|SNHNUHBHYAK7DZX72UBWQYZP4SOMPGLCKC5BGVZCLC23U3PBKDZ \ / AMOS7 \ YOURUM ::
+#\[7]YQZXPBYMZ2DDQ56EKR4SEW2R636POVQ2LZ6RB64SVM6SYUGCASCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
