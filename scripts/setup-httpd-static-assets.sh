@@ -41,7 +41,26 @@ chmod -R 755 "$PROJECT_ROOT/var/httpd/static"
 find "$PROJECT_ROOT/var/httpd/static" -type f -exec chmod 644 {} \;
 
 echo ""
-echo "[✓] Static assets setup complete!"
+echo "[✓] Manual asset copy complete!"
+echo ""
+
+## Run template validator for automatic dependency resolution ##
+echo "[*] Running template asset validator..."
+echo ""
+if [ -x "$SCRIPT_DIR/validate-template-assets.pl" ]; then
+    PROJECT_ROOT="$PROJECT_ROOT" "$SCRIPT_DIR/validate-template-assets.pl"
+    VALIDATOR_EXIT=$?
+    echo ""
+    if [ $VALIDATOR_EXIT -eq 0 ]; then
+        echo "[✓] All template assets validated and resolved"
+    else
+        echo "[!] Template validation failed - some assets could not be resolved"
+        exit $VALIDATOR_EXIT
+    fi
+else
+    echo "[!] Warning: validate-template-assets.pl not found or not executable"
+fi
+
 echo ""
 echo "Assets location: /var/httpd/static/"
 echo "Web path:        /static/"
