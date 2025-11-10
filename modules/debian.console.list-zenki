@@ -1,0 +1,87 @@
+## [:< ##
+
+# name  = debian.console.list-zenki
+# descr = list all zenki with dependency status
+
+## Rescan to ensure latest info
+<[debian.parent.scan_zenki_dependencies]>;
+<[debian.parent.check_installed]>;
+
+my @output;
+
+push @output, "::";
+push @output, ": Zenki Dependency Status";
+push @output, ":";
+
+my $zenki_count = 0;
+my $total_missing = 0;
+
+## Sort zenki by name
+my @zenki_ids = sort {
+    my $za = $data{'debian'}{'zenki_deps'}{'registry'}{$a}{'zenka'};
+    my $zb = $data{'debian'}{'zenki_deps'}{'registry'}{$b}{'zenka'};
+    $za cmp $zb
+} keys %{$data{'debian'}{'zenki_deps'}{'registry'} || {}};
+
+foreach my $zenka_id (@zenki_ids) {
+    my $zenka = $data{'debian'}{'zenki_deps'}{'registry'}{$zenka_id};
+    next unless $zenka;
+
+    $zenki_count++;
+
+    my $name = $zenka->{zenka};
+    my $pm_count = $zenka->{pm_deps_count} || 0;
+    my $os_count = $zenka->{os_deps_count} || 0;
+
+    ## Count missing
+    my $pm_missing = 0;
+    foreach my $pm (@{$zenka->{pm_deps} || []}) {
+        my $mod_id = $data{'debian'}{'cpan_modules'}{'by_name'}{$pm};
+        if ($mod_id) {
+            my $mod = $data{'debian'}{'cpan_modules'}{'registry'}{$mod_id};
+            $pm_missing++ if $mod->{status} eq 'missing';
+        }
+    }
+
+    my $os_missing = 0;
+    foreach my $os (@{$zenka->{os_deps} || []}) {
+        my $pkg_id = $data{'debian'}{'packages'}{'by_name'}{$os};
+        if ($pkg_id) {
+            my $pkg = $data{'debian'}{'packages'}{'registry'}{$pkg_id};
+            $os_missing++ if $pkg->{status} eq 'missing';
+        }
+    }
+
+    my $missing = $pm_missing + $os_missing;
+    $total_missing += $missing;
+
+    my $status = $missing == 0 ? '✓' : sprintf('✗ %d', $missing);
+
+    push @output, sprintf(": %-20s  %s  (pm:%d os:%d)",
+        $name, $status, $pm_count, $os_count);
+}
+
+if ($zenki_count == 0) {
+    push @output, ": No zenki found";
+    push @output, ": Run: debian.scan to scan for dependencies";
+} else {
+    push @output, ":";
+    push @output, sprintf(": Total: %d zenki, %d missing dependencies",
+        $zenki_count, $total_missing);
+
+    if ($total_missing > 0) {
+        push @output, ":";
+        push @output, ": To install minimal: install-deps minimal";
+        push @output, ": To install for zenka: install-deps <zenka_name>";
+    }
+}
+
+push @output, "::";
+
+return say join("\n", @output);
+
+#,,,,,.,,,.,.,.,,,.,,,.,.,,,.,,.,,..,,...,.,,,.,.,.,,,..,,...,.,,.,,.,,.,,.,.,,.,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
