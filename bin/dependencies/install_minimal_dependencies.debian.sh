@@ -21,7 +21,7 @@ apt-get -y install gcc git make cpanminus libc6-dev libc6-dev libmce-perl \
             libperl-critic-perl libsub-uplevel-perl libbsd-resource-perl \
             libbsd-resource-perl libdigest-jhash-perl libfile-extattr-perl \
             libfile-slurper-perl libhash-flatten-perl libhttp-message-perl \
-            libyaml-libyaml-perl libconfig-simple-perl libio-socket-ssl-perl \
+            libyaml-libyaml-perl libyaml-tiny-perl libconfig-simple-perl libio-socket-ssl-perl \
             libtest-requires-perl libppix-utilities-perl shared-mime-info \
             libtest-exception-perl libtest-sharedfork-perl libcurses-perl \
             libhash-merge-simple-perl libproc-processtable-perl \

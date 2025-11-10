@@ -10,6 +10,7 @@ use File::Find;
 use File::Copy;
 use File::Path qw(make_path);
 use File::Basename;
+use YAML::Tiny;
 
 ## Configuration ##
 my $project_root = $ENV{PROJECT_ROOT} || "/data/projects/protocol-7";
@@ -31,6 +32,10 @@ my $assets_found      = 0;
 my $assets_missing    = 0;
 my $assets_copied     = 0;
 my %asset_references;
+
+## Asset registry for tracking ##
+my %asset_registry;
+my $registry_file = "$project_root/var/httpd/static/.asset-registry.yaml";
 
 print ".:[ Protocol-7 Template Asset Validator ]:.\n\n";
 print "Project root: $project_root\n";
@@ -66,6 +71,10 @@ print "  Assets missing:       $assets_missing\n";
 print "  Assets auto-copied:   $assets_copied\n";
 print "=" x 70 . "\n";
 
+## Save registry ##
+print "\n[*] Saving asset registry...\n";
+save_registry();
+
 if ( $assets_copied > 0 ) {
     print "\n[✓] Successfully resolved $assets_copied missing asset(s)\n";
 } elsif ( $assets_missing > 0 ) {
@@ -74,6 +83,8 @@ if ( $assets_copied > 0 ) {
 } else {
     print "\n[✓] All assets validated successfully\n";
 }
+
+print "[✓] Asset registry saved: $registry_file\n";
 
 exit 0;
 
@@ -121,8 +132,21 @@ sub validate_asset {
     ## Convert web path to filesystem path ##
     my $fs_path = "$project_root/var/httpd$web_path";
 
+    ## Get current template name ##
+    my $current_template = basename( $File::Find::name || 'unknown' );
+
     if ( -f $fs_path ) {
         print "    [✓] $web_path (exists)\n";
+
+        ## Register asset ##
+        $asset_registry{$web_path} = {
+            asset_path     => $web_path,
+            template       => $current_template,
+            source_path    => '',
+            status         => 'present',
+            last_validated => time(),
+        };
+
         return;
     }
 
@@ -153,8 +177,26 @@ sub validate_asset {
         print "        └─ [✓] Copied successfully\n";
         $assets_copied++;
         $assets_missing--;
+
+        ## Register copied asset ##
+        $asset_registry{$web_path} = {
+            asset_path     => $web_path,
+            template       => $current_template,
+            source_path    => $source_path,
+            status         => 'copied',
+            last_validated => time(),
+        };
     } else {
         print "        └─ [!] Copy failed: $!\n";
+
+        ## Register failed asset ##
+        $asset_registry{$web_path} = {
+            asset_path     => $web_path,
+            template       => $current_template,
+            source_path    => $source_path,
+            status         => 'missing',
+            last_validated => time(),
+        };
     }
 }
 
@@ -180,6 +222,33 @@ sub resolve_source_path {
     }
 
     return undef;
+}
+
+## Save asset registry to YAML ##
+sub save_registry {
+    my %registry_data = (
+        stats => {
+            total_assets      => scalar( keys %asset_registry ),
+            templates_scanned => $templates_scanned,
+            assets_found      => $assets_found,
+            assets_missing    => $assets_missing,
+            assets_copied     => $assets_copied,
+            last_scan_time    => time(),
+        },
+        assets => \%asset_registry,
+    );
+
+    my $yaml = YAML::Tiny->new( \%registry_data );
+
+    eval {
+        $yaml->write($registry_file);
+    };
+
+    if ($@) {
+        print "    [!] Warning: Could not save registry: $@\n";
+    } else {
+        print "    [✓] Registry saved (" . scalar(keys %asset_registry) . " assets)\n";
+    }
 }
 
 #,,,,,.,.,,,,,.,,,,,.,,,,,.,.,.,,,.,.,.,...,,,.,.,,,...,.,,,.,...,...,...,,,..,

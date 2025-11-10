@@ -1,0 +1,134 @@
+## [:< ##
+
+# name = web.cmd.assets
+# descr = Query template asset registry
+# usage = assets [list|stats|check <path>|validate]
+
+my @args = @_;
+my $cmd  = shift(@args) // 'list';
+
+if ( $cmd eq 'list' ) {
+    ## List all registered assets ##
+    my $total = <web.assets.stats>{total_assets};
+
+    if ( $total == 0 ) {
+        return ( 1, qq| No assets registered yet. Run validation first. | );
+    }
+
+    my @output;
+    push @output, qq| |;
+    push @output,
+        sprintf( qq| Total assets: %d |, $total );
+    push @output, qq| |;
+
+    foreach my $path ( sort keys %{ <web.assets.registry> } ) {
+        my $asset  = <web.assets.registry>{$path};
+        my $status = $asset->{status};
+
+        my $status_icon = $status eq 'present'  ? '✓'
+                        : $status eq 'missing'  ? '✗'
+                        : $status eq 'copied'   ? '↻'
+                        :                         '?';
+
+        push @output,
+            sprintf(
+            qq| [%s] %s |,
+            $status_icon,
+            $asset->{asset_path}
+            );
+        push @output,
+            sprintf( qq|     Template: %s |, $asset->{template} );
+
+        if ( $asset->{source_path} ) {
+            push @output,
+                sprintf( qq|     Source:   %s |, $asset->{source_path} );
+        }
+
+        push @output, qq| |;
+    }
+
+    return ( 1, join( "\n", @output ) );
+
+} elsif ( $cmd eq 'stats' ) {
+    ## Display statistics ##
+    my $stats = <web.assets.stats>;
+
+    my @output;
+    push @output, qq| |;
+    push @output, qq| Asset Registry Statistics: |;
+    push @output, qq| |;
+    push @output,
+        sprintf( qq|   Total assets:      %d |, $stats->{total_assets} );
+    push @output,
+        sprintf( qq|   Templates scanned: %d |,
+        $stats->{templates_scanned} );
+    push @output,
+        sprintf( qq|   Assets present:    %d |, $stats->{assets_present} );
+    push @output,
+        sprintf( qq|   Assets missing:    %d |, $stats->{assets_missing} );
+    push @output,
+        sprintf( qq|   Assets copied:     %d |, $stats->{assets_copied} );
+
+    if ( $stats->{last_scan_time} > 0 ) {
+        my $time_ago = time() - $stats->{last_scan_time};
+        push @output,
+            sprintf( qq|   Last scan:         %d seconds ago |, $time_ago );
+    }
+
+    push @output, qq| |;
+
+    return ( 1, join( "\n", @output ) );
+
+} elsif ( $cmd eq 'check' ) {
+    ## Check specific asset ##
+    my $asset_path = shift(@args);
+
+    unless ($asset_path) {
+        return ( 0, qq| Usage: assets check <path> | );
+    }
+
+    my $asset = <[web.assets.get]>->($asset_path);
+
+    unless ($asset) {
+        return ( 0, qq| Asset not found in registry: $asset_path | );
+    }
+
+    my @output;
+    push @output, qq| |;
+    push @output, qq| Asset: $asset->{asset_path} |;
+    push @output, qq| Status: $asset->{status} |;
+    push @output, qq| Template: $asset->{template} |;
+
+    if ( $asset->{source_path} ) {
+        push @output, qq| Source: $asset->{source_path} |;
+    }
+
+    push @output,
+        sprintf( qq| Discovered: %s |,
+        scalar localtime( $asset->{discovered_at} ) );
+    push @output,
+        sprintf( qq| Last validated: %s |,
+        scalar localtime( $asset->{last_validated} ) );
+    push @output, qq| |;
+
+    return ( 1, join( "\n", @output ) );
+
+} elsif ( $cmd eq 'validate' ) {
+    ## Trigger validation scan ##
+    return (
+        1,
+        qq| Use: scripts/validate-template-assets.pl to run validation |
+    );
+
+} else {
+    return (
+        0,
+        qq| Unknown command: $cmd\nUsage: assets [list|stats|check|validate] |
+    );
+}
+
+#,,,.,...,,,.,,,.,,,,,.,.,,,.,.,...,.,.,.,...,.,,,.,.,.,...,...,,,,.,,,,.,.,,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,126 @@
+## [:< ##
+
+# name = web.assets.registry
+# descr = Registry of template assets discovered and managed
+
+## Asset registry data structure ##
+<web.assets.registry> = {};
+
+## Asset statistics ##
+<web.assets.stats> = {
+    total_assets     => 0,
+    templates_scanned => 0,
+    last_scan_time   => 0,
+    assets_present   => 0,
+    assets_missing   => 0,
+    assets_copied    => 0,
+};
+
+## Visibility list for asset registry ##
+<list.web-assets> = {
+    'var'      => qw| data |,
+    'key'      => qw| web.assets.registry |,
+    'sort_key' => 'alpha-len:asset_path',
+    'descr'    => 'Template assets registry - discovered and managed',
+    'mask'     => 'path:asset_path tmpl:template src:source_path status last:last_validated',
+    'align'    => {
+        'path'   => 'left+2',
+        'tmpl'   => 'center',
+        'src'    => 'left+1',
+        'status' => 'center-1',
+        'last'   => 'center-1',
+    },
+    'filters' => {
+        'last' => qw| base.parser.timestamp |,
+    }
+};
+
+<[base.list.init]>->(
+    {   'name'         => qw| web-assets |,
+        'key_ref'      => \$data{'web'}{'assets'}{'registry'},
+        'max_elements' => 1024
+    }
+);
+
+## Register an asset ##
+sub register_asset {
+    my %params = @_;
+
+    my $asset_path  = $params{asset_path}  or return;
+    my $template    = $params{template}    or return;
+    my $source_path = $params{source_path} // '';
+    my $status      = $params{status}      // qw| unknown |;
+
+    <web.assets.registry>{$asset_path} = {
+        asset_path     => $asset_path,
+        template       => $template,
+        source_path    => $source_path,
+        status         => $status,
+        last_validated => time(),
+        discovered_at  => <web.assets.registry>{$asset_path}{discovered_at}
+            // time(),
+    };
+
+    <web.assets.stats>{total_assets} = scalar( keys %{ <web.assets.registry> } );
+
+    return 1;
+}
+
+## Update asset status ##
+sub update_asset_status {
+    my ( $asset_path, $new_status ) = @_;
+
+    return unless exists <web.assets.registry>{$asset_path};
+
+    <web.assets.registry>{$asset_path}{status}         = $new_status;
+    <web.assets.registry>{$asset_path}{last_validated} = time();
+
+    return 1;
+}
+
+## Get asset info ##
+sub get_asset {
+    my ($asset_path) = @_;
+    return <web.assets.registry>{$asset_path};
+}
+
+## Get assets by status ##
+sub get_assets_by_status {
+    my ($status) = @_;
+
+    my @assets;
+    foreach my $path ( keys %{ <web.assets.registry> } ) {
+        push @assets, <web.assets.registry>{$path}
+            if <web.assets.registry>{$path}{status} eq $status;
+    }
+
+    return @assets;
+}
+
+## Get assets by template ##
+sub get_assets_by_template {
+    my ($template) = @_;
+
+    my @assets;
+    foreach my $path ( keys %{ <web.assets.registry> } ) {
+        push @assets, <web.assets.registry>{$path}
+            if <web.assets.registry>{$path}{template} eq $template;
+    }
+
+    return @assets;
+}
+
+## Export functions ##
+$code{'web.assets.register'}           = \&register_asset;
+$code{'web.assets.update_status'}      = \&update_asset_status;
+$code{'web.assets.get'}                = \&get_asset;
+$code{'web.assets.by_status'}          = \&get_assets_by_status;
+$code{'web.assets.by_template'}        = \&get_assets_by_template;
+
+0;
+
+#,,,.,,,,,.,.,.,,,.,.,,,.,.,.,.,,..,.,.,,,,,.,,,.,,,.,...,...,,,.,,...,.,,.,.,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
