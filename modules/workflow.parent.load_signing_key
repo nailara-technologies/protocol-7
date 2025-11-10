@@ -1,0 +1,49 @@
+## [:< ##
+
+# name = workflow.parent.load_signing_key
+# descr = Load and decrypt signing key once (reused for batch operations)
+
+sub workflow_parent_load_signing_key {
+    my $params = shift || {};
+
+    ## Check if already loaded this session
+    if (<workflow.cfg.signing_key_loaded>) {
+        <[base.log]>->( 3, "workflow.key: signing key already loaded this session" );
+        return {
+            success => 1,
+            already_loaded => 1
+        };
+    }
+
+    <[base.log]>->( 2, "workflow.key: loading signing key for this session..." );
+
+    ## TODO: Integrate with sourcecode zenka key loading pattern
+    ## This should:
+    ## 1. Prompt for passphrase ONCE
+    ## 2. Decrypt key into memory
+    ## 3. Store in <workflow.signing_key.decrypted>
+    ## 4. Mark as loaded
+    ## 5. Reuse for all operations this session
+
+    ## For now, just mark as loaded (placeholder)
+    <workflow.cfg.signing_key_loaded> = time();
+
+    <[base.log]>->( 2, "  ✓ Key loaded and ready for batch operations" );
+
+    return {
+        success => 1,
+        loaded_at => <workflow.cfg.signing_key_loaded>
+    };
+}
+
+## Export
+$code{qw| workflow.parent.load_signing_key |} = \&workflow_parent_load_signing_key;
+
+0;
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

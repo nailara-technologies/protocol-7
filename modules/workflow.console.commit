@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = workflow.console.commit
+# param = <message>
+# descr = LLM-friendly commit command (signs automatically with loaded key)
+
+my $message = shift;
+
+unless ($message) {
+    <[base.log]>->( 0, "Error: commit message required" );
+    return say "::\n: Usage: workflow commit <message>\n::";
+}
+
+<[base.log]>->( 1, "Creating signed commit..." );
+
+## Ensure signing key is loaded
+unless (<workflow.cfg.signing_key_loaded>) {
+    <[base.log]>->( 2, "  Loading signing key..." );
+
+    my $key_result = <[workflow.parent.load_signing_key]>();
+
+    unless ($key_result->{success}) {
+        return say "::\n: ✗ Failed to load signing key\n::";
+    }
+}
+
+## TODO: Implement actual git commit with AMOS7 signature
+## This should:
+## 1. Use loaded key (no re-prompting)
+## 2. Generate AMOS7 signature for commit
+## 3. Add signature to commit message
+## 4. Execute git commit
+
+<[base.log]>->( 1, "  ⚠ Auto-signing not yet implemented" );
+<[base.log]>->( 1, "    For now, use: git commit -m \"$message\"" );
+
+return say "::\n: ⚠ Auto-signing TODO\n: Message prepared: $message\n::";
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

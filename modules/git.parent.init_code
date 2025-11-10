@@ -1,0 +1,42 @@
+## [:< ##
+
+# name = git.parent.init_code
+# descr = Initialize git operations module (controlled by workflow zenka)
+
+<[base.log]>->( 2, 'initializing git operations module..,' );
+
+## Check if Git::Wrapper is available
+<[base.perlmod.autoload]>->('Git::Wrapper');
+
+## Configuration
+<git.cfg.repository_path> //= '/data/projects/protocol-7';
+<git.cfg.use_wrapper>     //= 1;   ## Use Git::Wrapper when available
+<git.cfg.cache_log>       //= 1;   ## Cache git log for performance
+
+## Git instance (will be created when needed)
+<git.instance> //= undef;
+
+## Cached data
+<git.cache.log>       //= [];      ## Cached git log
+<git.cache.log_time>  //= 0;       ## Timestamp of cache
+<git.cache.branches>  //= {};      ## Branch information
+<git.cache.tags>      //= {};      ## Tag information
+
+## Statistics
+<git.stats> = {
+    commands_executed => 0,
+    commits_accessed  => 0,
+    cache_hits        => 0,
+    cache_misses      => 0
+};
+
+<[base.log]>->( 2, 'git operations module initialized' );
+
+0;
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

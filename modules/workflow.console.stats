@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = workflow.console.stats
+# param =
+# descr = show workflow statistics
+
+<[base.log]>->( 1, "Workflow statistics:" );
+
+my @output;
+push @output, "::";
+push @output, ": Workflow Orchestration Statistics";
+push @output, ":";
+
+my $wf_stats = $data{'workflow'}{'stats'} || {};
+my $git_stats = $data{'git'}{'stats'} || {};
+
+push @output, ": Git Operations:";
+push @output, sprintf(": %-30s: %d", "  Commands executed", $git_stats->{'commands_executed'} || 0);
+push @output, sprintf(": %-30s: %d", "  Commits accessed", $git_stats->{'commits_accessed'} || 0);
+push @output, sprintf(": %-30s: %d", "  Cache hits", $git_stats->{'cache_hits'} || 0);
+push @output, sprintf(": %-30s: %d", "  Cache misses", $git_stats->{'cache_misses'} || 0);
+push @output, ":";
+
+push @output, ": History Analysis:";
+push @output, sprintf(": %-30s: %d", "  Total commits", $wf_stats->{'commits_total'} || 0);
+push @output, sprintf(": %-30s: %d", "  Commits analyzed", $wf_stats->{'commits_analyzed'} || 0);
+push @output, sprintf(": %-30s: %d", "  Issues found", $wf_stats->{'issues_found'} || 0);
+push @output, sprintf(": %-30s: %d", "  History scans", $wf_stats->{'history_scans'} || 0);
+push @output, ":";
+
+push @output, ": Modifications:";
+push @output, sprintf(": %-30s: %d", "  Commits rewritten", $wf_stats->{'commits_rewritten'} || 0);
+push @output, sprintf(": %-30s: %d", "  Commits resigned", $wf_stats->{'commits_resigned'} || 0);
+push @output, ":";
+
+push @output, ": Configuration:";
+push @output, sprintf(": %-30s: %s", "  Signing key loaded", <workflow.cfg.signing_key_loaded> ? 'yes' : 'no');
+push @output, sprintf(": %-30s: %s", "  Auto-scan on start", <workflow.cfg.auto_scan_on_start> ? 'yes' : 'no');
+
+my $scan_age = <workflow.history.scanned> ? (time() - <workflow.history.scanned>) : 0;
+push @output, sprintf(": %-30s: %s", "  Last scan", $scan_age ? "${scan_age}s ago" : 'never');
+
+push @output, "::";
+
+return say join("\n", @output);
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

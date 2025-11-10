@@ -1,0 +1,58 @@
+## [:< ##
+
+# name = workflow.parent.init_code
+# descr = Initialize workflow orchestration zenka for git/release management
+
+<[base.log]>->( 2, 'initializing workflow orchestration zenka..,' );
+
+## Configuration
+<workflow.cfg.git_binary>          //= '/usr/bin/git';
+<workflow.cfg.root_path>           //= '/data/projects/protocol-7';
+<workflow.cfg.signing_key_loaded>  //= 0;   ## Track if key decrypted this session
+<workflow.cfg.auto_scan_on_start>  //= 0;   ## Auto-scan history at startup
+<workflow.cfg.version_seed>        //= 54;  ## AMOS7 version seed
+<workflow.cfg.readme_path>         //= 'read-me/md/README.md';
+<workflow.cfg.versions_path>       //= 'read-me/project-identity/source-code-versions.md';
+
+## Registries
+<workflow.history.scanned>      //= 0;      ## Timestamp of last scan
+<workflow.history.commits>      //= {};     ## All commits analyzed
+<workflow.history.issues>       //= {};     ## Issues found (missing versions, wrong emails, etc.)
+<workflow.history.gaps>         //= [];     ## Version number gaps
+<workflow.history.unsigned>     //= [];     ## Unsigned commits
+
+## Issue types registry
+<workflow.issues.types> = {
+    missing_version => 'Commit missing version number',
+    wrong_email     => 'Commit author email mismatch',
+    unsigned        => 'Commit not signed with AMOS7',
+    bad_signature   => 'Invalid or corrupted signature',
+    version_gap     => 'Version sequence has gaps'
+};
+
+## Statistics
+<workflow.stats> = {
+    commits_total       => 0,
+    commits_analyzed    => 0,
+    issues_found        => 0,
+    commits_rewritten   => 0,
+    commits_resigned    => 0,
+    history_scans       => 0
+};
+
+## Email harmonization map
+<workflow.email.canonical> = {
+    ## Map various email forms to canonical ones
+    ## Will be populated from scan
+};
+
+<[base.log]>->( 2, 'workflow orchestration zenka initialized' );
+
+0;
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

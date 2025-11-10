@@ -1,0 +1,97 @@
+## [:< ##
+
+# name = git.parent.get_log
+# descr = Get git log with caching (efficient for large histories)
+
+sub git_parent_get_log {
+    my $params = shift || {};
+
+    my $force_refresh = $params->{force} // 0;
+    my $limit = $params->{limit} // 0;
+    my $format = $params->{format} // 'full';
+
+    ## Check cache
+    unless ($force_refresh) {
+        my $cache_age = time() - <git.cache.log_time>;
+
+        if (<git.cfg.cache_log> && $cache_age < 300 && @{<git.cache.log>}) {
+            <[base.log]>->( 3, "git.log: using cached log (age: ${cache_age}s)" );
+            $data{'git'}{'stats'}{'cache_hits'}++;
+
+            my $log = <git.cache.log>;
+            return { success => 1, commits => $limit ? [@{$log}[0..($limit-1)]] : $log };
+        }
+    }
+
+    <[base.log]>->( 2, "git.log: fetching from git..." );
+    $data{'git'}{'stats'}{'cache_misses'}++;
+
+    ## Get git log via wrapper or direct command
+    my @commits;
+
+    if (<git.cfg.use_wrapper> && exists $code{'git.parent.execute_wrapper'}) {
+        ## Use Git::Wrapper for proper parsing
+        my $result = <[git.parent.execute_wrapper]>->({
+            command => 'log',
+            args    => ['--all', '--format=%H|%an|%ae|%at|%s']
+        });
+
+        if ($result->{success}) {
+            foreach my $line (@{$result->{output}}) {
+                my ($hash, $author, $email, $timestamp, $subject) = split /\|/, $line, 5;
+
+                push @commits, {
+                    hash      => $hash,
+                    author    => $author,
+                    email     => $email,
+                    timestamp => $timestamp,
+                    subject   => $subject
+                };
+            }
+        }
+    } else {
+        ## Fallback to direct git command
+        my $git_bin = <workflow.cfg.git_binary> || 'git';
+        my $repo = <git.cfg.repository_path>;
+
+        my $output = `cd $repo && $git_bin log --all --format='%H|%an|%ae|%at|%s' 2>&1`;
+
+        foreach my $line (split /\n/, $output) {
+            next unless $line =~ m/\|/;
+
+            my ($hash, $author, $email, $timestamp, $subject) = split /\|/, $line, 5;
+
+            push @commits, {
+                hash      => $hash,
+                author    => $author,
+                email     => $email,
+                timestamp => $timestamp,
+                subject   => $subject
+            };
+        }
+    }
+
+    <[base.log]>->( 2, "  Fetched " . scalar(@commits) . " commits" );
+
+    ## Update cache
+    <git.cache.log> = [@commits];
+    <git.cache.log_time> = time();
+
+    return {
+        success => 1,
+        commits => $limit ? [@commits[0..($limit-1)]] : \@commits,
+        total   => scalar(@commits)
+    };
+}
+
+## Export
+$code{qw| git.parent.get_log |} = \&git_parent_get_log;
+
+0;
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
