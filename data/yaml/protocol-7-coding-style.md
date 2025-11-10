@@ -5,15 +5,18 @@ A comprehensive guide to coding conventions, best practices, and patterns for Pr
 ## Table of Contents
 
 1. [Module Structure](#module-structure)
-2. [String Literals and Quoting](#string-literals-and-quoting)
-3. [Exception Handling](#exception-handling)
-4. [Logging and Debugging](#logging-and-debugging)
-5. [Variable Management](#variable-management)
-6. [JSON Processing](#json-processing)
-7. [Asynchronous I/O and Event Handling](#asynchronous-io-and-event-handling)
-8. [HTTP Request Handling](#http-request-handling)
-9. [File Operations](#file-operations)
-10. [Code Organization](#code-organization)
+2. [Function Calls and Data Access](#function-calls-and-data-access)
+3. [String Literals and Quoting](#string-literals-and-quoting)
+4. [Exception Handling](#exception-handling)
+5. [Logging and Debugging](#logging-and-debugging)
+6. [Variable Management](#variable-management)
+7. [JSON Processing](#json-processing)
+8. [Asynchronous I/O and Event Handling](#asynchronous-io-and-event-handling)
+9. [HTTP Request Handling](#http-request-handling)
+10. [File Operations](#file-operations)
+11. [Console Commands](#console-commands)
+12. [Init Code Constraints](#init-code-constraints)
+13. [Code Organization](#code-organization)
 
 ---
 
@@ -43,6 +46,90 @@ All modules follow a consistent structure:
   - Config values: `<config.key>` (resolved to configuration values)
 - **Naming convention**: Use dot notation (e.g., `base.init_code`, `httpd.handler.acme_request`)
 - **Module organization**: Group related modules with shared prefixes (e.g., all httpd modules start with `httpd.`)
+
+---
+
+## Function Calls and Data Access
+
+### Function Call Syntax
+
+**Critical**: The `<[...]>` notation returns a **code reference**, not the result of calling the function.
+
+```perl
+## ✗ WRONG - Returns code reference, doesn't call function
+my $result = <[debian.parent.scan_zenki_dependencies]>;
+
+## ✓ CORRECT - Calls function with no arguments
+my $result = <[debian.parent.scan_zenki_dependencies]>();
+
+## ✓ CORRECT - Calls function with arguments
+my $result = <[debian.parent.install_missing]>->({
+    zenka => $zenka_name,
+    prefer_debian => 1
+});
+```
+
+### Function Call Patterns
+
+| Pattern | Use Case | Example |
+|---------|----------|---------|
+| `<[func]>()` | Call with no arguments | `<[base.log]>()` |
+| `<[func]>->($arg)` | Call with single argument | `<[base.log]>->(2, "message")` |
+| `<[func]>->({...})` | Call with hash arguments | `<[install]>->({zenka => 'v7'})` |
+| `<[func]>` | Get code reference | `$code_ref = <[func]>` |
+
+### Data Access Patterns
+
+Protocol-7 uses different syntax for data access depending on context:
+
+#### In `init_code` Modules
+
+Use `<data.key.path>` notation for initialization:
+
+```perl
+## modules/service.init_code
+
+## ✓ CORRECT - Init_code data notation
+<service.config.port> //= 8080;
+<service.registry.clients> //= {};
+```
+
+#### In Regular Modules
+
+Use `$data{...}` hash notation:
+
+```perl
+## modules/service.cmd.list
+
+## ✓ CORRECT - Regular hash access
+my $clients = $data{'service'}{'registry'}{'clients'};
+my $port = $data{'service'}{'config'}{'port'};
+
+## ✗ WRONG - <...> notation doesn't work outside init_code
+my $clients = <service.registry.clients>;  # Won't resolve properly
+```
+
+### Key Distinction
+
+- **`<[...]>`** = Code reference access (for calling functions)
+- **`<...>`** = Data initialization (only in init_code)
+- **`$data{...}`** = Data access (in regular modules)
+
+### Common Mistakes and Fixes
+
+```perl
+## MISTAKE 1: Missing parentheses
+my $result = <[scan_function]>;  # ✗ Returns reference
+my $result = <[scan_function]>(); # ✓ Calls function
+
+## MISTAKE 2: Wrong data access in regular module
+my $val = <service.data.value>;           # ✗ Won't work
+my $val = $data{'service'}{'data'}{'value'}; # ✓ Correct
+
+## MISTAKE 3: Trying to use <...> for code
+<service.function>();  # ✗ Wrong - <...> is for data
+<[service.function]>(); # ✓ Correct - <[...]> is for code
+```
 
 ---
 
@@ -466,6 +553,224 @@ Then reference it in configuration:
 
 ---
 
+## Console Commands
+
+Console commands provide a simple command-line interface to zenka functionality. They're simpler than `.cmd.*` commands.
+
+### Module Naming
+
+```
+modules/service.console.command-name
+```
+
+- **Prefix**: `module.console.*`
+- **No $call parameter**: Unlike `.cmd.*` commands, console commands don't receive structured call data
+- **Direct output**: Use `say` to output results
+
+### Basic Console Command Structure
+
+```perl
+## [:< ##
+
+# name  = debian.console.install-deps
+# param = [zenka=<name>|minimal]
+# descr = install dependencies for zenka or minimal v7 dependencies
+
+my $param = shift;
+
+## Process parameter
+my $zenka_name;
+if (!defined $param || $param eq 'minimal') {
+    ## Install minimal dependencies
+    system('bash', '/path/to/install_minimal.sh');
+} else {
+    ## Install for specific zenka
+    $zenka_name = $param;
+    my $result = <[module.install_for_zenka]>->({ zenka => $zenka_name });
+}
+
+## Output results
+return say "::\n: ✓ Installation complete\n::";
+```
+
+### Console Command vs .cmd Command
+
+| Feature | `.console.*` | `.cmd.*` |
+|---------|--------------|----------|
+| Parameter | `shift` (simple) | `$call` hashref (structured) |
+| Output | `say` directly | Return hashref with mode/data |
+| Use case | Simple CLI operations | Protocol-7 IPC commands |
+| Access | Listed in zenka config | Protocol-7 command routing |
+
+### Console Command Output Format
+
+Use Protocol-7 box formatting for consistency:
+
+```perl
+## Simple message
+return say "::\n: Message here\n::";
+
+## Multi-line output
+my @output;
+push @output, "::";
+push @output, ": Status Report";
+push @output, ":";
+push @output, ": Item 1: Details";
+push @output, ": Item 2: More details";
+push @output, "::";
+return say join("\n", @output);
+```
+
+### Registering Console Commands
+
+Add console commands to zenka configuration's access list:
+
+```perl
+## configuration/zenki/service/start
+
+access.cmd.usr.cube = commands heart reload \
+                      install-deps check-deps list-status *
+```
+
+---
+
+## Init Code Constraints
+
+### Circular Dependency Avoidance
+
+**Critical**: During `init_code` execution, functions from the same module aren't yet available via `<[...]>` notation.
+
+```perl
+## modules/debian.parent.init_code
+
+## ✗ WRONG - Function not yet exported during init
+my $result = <[debian.parent.scan_zenki_dependencies]>();
+
+## ✓ CORRECT - Skip initial scan, perform on first command use
+## Scan will happen when console commands are called
+```
+
+### Why This Happens
+
+1. Module file is executed
+2. Code is defined
+3. **init_code runs** ← We are here
+4. Export happens at END of init_code
+5. Function becomes available via `<[...]>`
+
+### Init Code Best Practices
+
+```perl
+## modules/service.init_code
+
+## 1. Initialize data structures
+<service.registry.items> //= {};
+<service.config.enabled> //= 1;
+
+## 2. Load external dependencies
+<[base.perlmod.autoload]>->('JSON::XS');
+
+## 3. Create list infrastructure
+<list.service-items> = {
+    'var' => qw| data |,
+    'key' => qw| service.registry.items |,
+    ...
+};
+
+<[base.list.init]>->({
+    'name' => qw| service-items |,
+    'key_ref' => \$data{'service'}{'registry'}{'items'},
+    'max_elements' => 1024
+});
+
+## 4. Call OTHER modules' functions (OK)
+<[base.log]>->( 2, 'Service initialization complete' );
+
+## 5. DON'T call own module's functions
+## (They aren't exported yet!)
+
+## 6. Always return 0
+0;
+```
+
+### Workarounds for Init-Time Operations
+
+If you need to perform operations during init:
+
+#### Option 1: Defer to First Use
+
+```perl
+## modules/service.init_code
+<service.initialized> = 0;  # Flag for first-use scan
+
+## modules/service.cmd.list
+unless ( <service.initialized> ) {
+    <[service.scan_data]>();  # Now function is available
+    <service.initialized> = 1;
+}
+```
+
+#### Option 2: Use Helper Sub
+
+Define a helper sub WITHIN init_code:
+
+```perl
+## modules/service.init_code
+
+sub _init_helper {
+    my $data = shift;
+    # Helper logic here
+    return $result;
+}
+
+## Use helper
+my $result = _init_helper($some_data);
+
+## DON'T export helper - it's private to init_code
+0;
+```
+
+#### Option 3: Separate Initialization Module
+
+```perl
+## modules/service.init_code
+<service.data> //= {};
+0;
+
+## modules/service.parent.initialize
+## This can be called after init completes
+sub service_parent_initialize {
+    ## Perform initialization
+    <[service.parent.scan_data]>();  # Functions available now
+}
+$code{'service.parent.initialize'} = \&service_parent_initialize;
+0;
+```
+
+### Module Export Pattern
+
+All modules must export their function and return 0:
+
+```perl
+## modules/service.process_data
+
+sub service_process_data {
+    my $params = shift;
+    # Implementation
+    return $result;
+}
+
+## Export
+$code{qw| service.process_data |} = \&service_process_data;
+
+## Always return 0 from module
+0;
+
+#AMOS7_SIGNATURE_PLACEHOLDER
+```
+
+---
+
 ## Code Organization
 
 ### Module Layering Pattern
@@ -527,6 +832,8 @@ Module A → Module B → Module A
 
 ### Do's ✓
 
+- **Always add `()` when calling functions**: `<[function]>()` not `<[function]>`
+- **Use `$data{...}` for data access in regular modules** (not `<data...>`)
 - Use `qw|...|` for single-word constants (better syntax highlighting)
 - Use `qq|...|` for multi-word strings and messages
 - Use `$EVAL_ERROR` instead of `$@` (available via `use English`)
@@ -537,9 +844,15 @@ Module A → Module B → Module A
 - Handle empty input gracefully, return empty objects instead of crashing
 - Use state-cached parsers for efficiency (JSON, regex, etc.)
 - Check Content-Length and wait for complete body before processing HTTP requests
+- **Defer initialization operations** that depend on own module's functions to first use
+- **Always export functions** with `$code{'module.name'} = \&function_name`
+- **Always return 0** at the end of module files
 
 ### Don'ts ✗
 
+- **Don't forget `()` when calling functions** - `<[func]>` returns reference, not result
+- **Don't use `<data...>` notation in regular modules** - only works in init_code
+- **Don't call own module's functions during init_code** - they aren't exported yet
 - Don't shadow global hashes (`%code`, `%data`, `%keys`, `%colors`)
 - Don't use `qw|...|` for strings with spaces (use `qq|...|` instead)
 - Don't use `mkdir` directly (use `base.file.make_path` instead)
@@ -555,12 +868,16 @@ Module A → Module B → Module A
 
 ## Further Reading
 
+- **Function Calls**: See [Function Calls and Data Access](#function-calls-and-data-access) for critical syntax patterns
+- **Init Code**: See [Init Code Constraints](#init-code-constraints) for circular dependency avoidance
+- **Console Commands**: See [Console Commands](#console-commands) for simple CLI interface patterns
 - **Variable Watchers**: See `modules/base.session.init` for comprehensive watcher setup
 - **HTTP Handlers**: See `modules/httpd.http_post` for POST request handling patterns
 - **Event Loop**: See `modules/base.event.*` for event handling system details
 - **Module System**: See `modules/base.init_code` for module loading and initialization
 - **Logging**: Check `/var/log/protocol-7/` for actual log output patterns
 - **Configuration**: See `configuration/zenki/*/start` for zenka-specific configurations
+- **Dependency Management**: See `modules/debian.*` for example of complete zenka implementation
 
 #,,,,,,.,,,.,,..,,...,.,,,.,,,,.,,,..,,.,,.,,,.,.,...,...,,,.,.,,,.,,,.,.,,..,
 #IIC5I3N6SBLS3V7ULLD6WOKXVPZA27XUDNWO4EO755E7QUEJ57KNMUIITNEIOEMHB6DFECGS4AXGS
