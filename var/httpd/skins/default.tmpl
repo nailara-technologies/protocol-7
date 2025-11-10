@@ -53,13 +53,77 @@
             background: var(--bg-secondary);
             border-bottom: 1px solid var(--border-color);
             padding: 20px 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-branding {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .logo-container {
+            position: relative;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .nailara-logo {
+            height: 60px;
+            width: auto;
+            filter: drop-shadow(0 0 10px var(--neon-cyan))
+                    drop-shadow(0 0 20px var(--neon-blue))
+                    drop-shadow(0 0 30px var(--neon-purple));
+            animation: logo-pulse 3s ease-in-out infinite, hue-rotate 10s linear infinite;
+        }
+
+        @keyframes logo-pulse {
+            0%, 100% {
+                filter: drop-shadow(0 0 10px var(--neon-cyan))
+                        drop-shadow(0 0 20px var(--neon-blue))
+                        drop-shadow(0 0 30px var(--neon-purple));
+            }
+            50% {
+                filter: drop-shadow(0 0 15px var(--neon-cyan))
+                        drop-shadow(0 0 30px var(--neon-blue))
+                        drop-shadow(0 0 45px var(--neon-purple))
+                        drop-shadow(0 0 60px rgba(168, 139, 250, 0.3));
+            }
+        }
+
+        @keyframes hue-rotate {
+            0% { filter: hue-rotate(0deg) drop-shadow(0 0 10px var(--neon-cyan)); }
+            33% { filter: hue-rotate(30deg) drop-shadow(0 0 10px var(--neon-cyan)); }
+            66% { filter: hue-rotate(-30deg) drop-shadow(0 0 10px var(--neon-cyan)); }
+            100% { filter: hue-rotate(0deg) drop-shadow(0 0 10px var(--neon-cyan)); }
+        }
+
+        .header-text {
+            flex: 1;
         }
 
         header h1 {
             color: var(--neon-cyan);
             font-size: 24px;
             font-weight: normal;
-            text-shadow: 0 0 10px var(--neon-cyan);
+            text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-blue);
+            animation: text-glow 2s ease-in-out infinite;
+        }
+
+        @keyframes text-glow {
+            0%, 100% {
+                text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-blue);
+            }
+            50% {
+                text-shadow: 0 0 15px var(--neon-cyan), 0 0 30px var(--neon-blue), 0 0 45px rgba(34, 211, 238, 0.3);
+            }
         }
 
         header .subtitle {
@@ -275,8 +339,15 @@
 <body>
     <div class="container">
         <header>
-            <h1>.:[ Protocol-7 ]:.   </h1>
-            <div class="subtitle">Nailara Technologies · Distributed Content System</div>
+            <div class="header-branding">
+                <div class="logo-container">
+                    <img src="/data/gfx/logos/nailara_logo.trans-dark.png" alt="Nailara" class="nailara-logo">
+                </div>
+                <div class="header-text">
+                    <h1>.:[ Protocol-7 ]:.   </h1>
+                    <div class="subtitle">Nailara Technologies · Distributed Content System</div>
+                </div>
+            </div>
         </header>
 
         <nav>
