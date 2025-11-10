@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = workflow.console.harmonize-emails
+# param = [execute]
+# descr = standardize email addresses across git history
+
+my $param = shift;
+my $dry_run = (!$param || $param ne 'execute') ? 1 : 0;
+
+<[base.log]>->( 1, "Harmonizing email addresses in git history..." );
+
+if ($dry_run) {
+    <[base.log]>->( 1, "DRY RUN mode - use 'harmonize-emails execute' to apply changes" );
+}
+
+## Trigger harmonization
+my $result = <[workflow.parent.harmonize_emails]>->({
+    dry_run => $dry_run
+});
+
+if ($result->{dry_run}) {
+    my $count = $result->{would_change} || 0;
+
+    if ($count == 0) {
+        return say "::\n: ✓ All email addresses are already canonical\n::";
+    }
+
+    my @output;
+    push @output, "::";
+    push @output, ": Email Harmonization Analysis (DRY RUN)";
+    push @output, ":";
+    push @output, sprintf(": Commits needing changes: %d", $count);
+    push @output, ":";
+    push @output, ": Proposed email mappings:";
+
+    foreach my $variant (sort keys %{$result->{email_mapping}}) {
+        my $info = $result->{email_mapping}{$variant};
+        push @output, sprintf(":   %s → %s (%d commits)",
+            $variant, $info->{canonical}, $info->{commits});
+    }
+
+    push @output, ":";
+    push @output, ": To apply changes:";
+    push @output, ":   workflow harmonize-emails execute";
+    push @output, "::";
+
+    return say join("\n", @output);
+}
+
+unless ($result->{success}) {
+    my $error = $result->{error} || 'unknown error';
+    return say "::\n: ✗ Harmonization failed: $error\n::";
+}
+
+my $changed = $result->{changed} || 0;
+return say "::\n: ✓ Harmonized $changed commits\n::";
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
