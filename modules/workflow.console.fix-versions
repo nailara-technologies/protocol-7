@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = workflow.console.fix-versions
+# param = [execute]
+# descr = fix missing version numbers in git history (replaces bin/dev/update-version functionality)
+
+my $param = shift;
+my $dry_run = (!$param || $param ne 'execute') ? 1 : 0;
+
+<[base.log]>->( 1, "Fixing version numbers in git history..." );
+
+if ($dry_run) {
+    <[base.log]>->( 1, "DRY RUN mode - use 'fix-versions execute' to apply changes" );
+}
+
+## Trigger fix
+my $result = <[workflow.parent.fix_versions]>->({
+    dry_run => $dry_run
+});
+
+if ($result->{dry_run}) {
+    my $count = $result->{would_fix} || 0;
+
+    if ($count == 0) {
+        return say "::\n: ✓ All commits have version numbers\n::";
+    }
+
+    my @output;
+    push @output, "::";
+    push @output, ": Version Fix Analysis (DRY RUN)";
+    push @output, ":";
+    push @output, sprintf(": Commits needing fixes: %d", $count);
+    push @output, ":";
+    push @output, ": Commits that would be modified:";
+
+    foreach my $commit (@{$result->{commits} || []}) {
+        push @output, sprintf(":   %s: %s",
+            substr($commit->{hash}, 0, 7),
+            $commit->{commit}{subject}
+        );
+    }
+
+    push @output, ":";
+    push @output, ": To apply fixes:";
+    push @output, ":   workflow fix-versions execute";
+    push @output, "::";
+
+    return say join("\n", @output);
+}
+
+unless ($result->{success}) {
+    my $error = $result->{error} || 'unknown error';
+    return say "::\n: ✗ Fix failed: $error\n::";
+}
+
+my $fixed = $result->{fixed} || 0;
+return say "::\n: ✓ Fixed $fixed commits\n::";
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+

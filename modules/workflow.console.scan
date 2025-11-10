@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = workflow.console.scan
+# param = [force]
+# descr = scan git history for issues (replaces bin/dev/scripts/git-log-chrono analysis)
+
+my $param = shift;
+my $force = ($param && $param eq 'force') ? 1 : 0;
+
+<[base.log]>->( 1, "Scanning git history..." );
+
+## Trigger scan
+my $result = <[workflow.parent.scan_history]>->({
+    force => $force
+});
+
+if ($result->{cached}) {
+    my $age = $result->{age};
+    return say "::\n: ℹ Using cached scan from ${age}s ago\n: Use 'scan force' to rescan\n::";
+}
+
+unless ($result->{success}) {
+    my $error = $result->{error} || 'unknown error';
+    return say "::\n: ✗ Scan failed: $error\n::";
+}
+
+## Show results
+my @output;
+push @output, "::";
+push @output, ": Git History Scan Results";
+push @output, ":";
+push @output, sprintf(": %-30s: %d", "Total commits", $result->{total_commits});
+push @output, sprintf(": %-30s: %d", "Issues found", $result->{issues_found});
+push @output, sprintf(": %-30s: %d", "Unsigned commits", $result->{unsigned});
+push @output, sprintf(": %-30s: %d", "Version gaps", $result->{version_gaps});
+push @output, sprintf(": %-30s: %d", "Email addresses found", scalar(keys %{$result->{emails}}));
+push @output, ":";
+
+if ($result->{issues_found} > 0) {
+    push @output, ": Actions available:";
+    push @output, ":   workflow fix-versions     # Fix missing version numbers";
+    push @output, ":   workflow harmonize-emails # Standardize email addresses";
+    push @output, ":   workflow resign           # Sign unsigned commits";
+}
+
+push @output, "::";
+
+return say join("\n", @output);
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
