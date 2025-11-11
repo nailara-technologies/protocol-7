@@ -44,11 +44,30 @@ if ( $zenka_param =~ <regex.base.iid> ) {
 }
 
 my $zenka_config = <v7.start_setup.zenki.config>->{$zenka_name};
-return {
-    'mode' => qw| false |,
-    'data' => sprintf( "zenka %s not found in start set-up ..,", $zenka_name )
+
+if ( not defined $zenka_config ) {
+    ## Check if zenka directory exists but zenka-startup.v7 is missing
+    my $zenka_dir = <system.conf_path> . "/zenki/$zenka_name";
+    my $startup_file = "$zenka_dir/zenka-startup.v7";
+
+    if ( -d $zenka_dir and not -f $startup_file ) {
+        return {
+            'mode' => qw| false |,
+            'data' => sprintf(
+                "zenka '%s' missing required zenka-startup.v7 file\n" .
+                "  Expected: %s\n" .
+                "  This file is required for v7 to configure authentication and dependencies.\n" .
+                "  See existing zenki (e.g., web, system) for examples.",
+                $zenka_name, $startup_file
+            )
+        };
     }
-    if not defined $zenka_config;
+
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf( "zenka %s not found in start set-up ..,", $zenka_name )
+    };
+}
 
 return {
     'mode' => qw| false |,
