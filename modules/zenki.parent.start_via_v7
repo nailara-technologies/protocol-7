@@ -59,20 +59,52 @@ sub zenki_parent_start_via_v7 {
             };
         }
     } else {
-        ## We're outside v7 - need to use IPC to request start
-        ## TODO: Implement IPC command to v7 via cube
-        ##
-        ## For now, provide helpful error message
-        <[base.log]>->( 1, "  ⚠ IPC to v7 not yet implemented" );
-        <[base.log]>->( 1, "    v7 is running - connect to it to start zenka" );
-        <[base.log]>->( 1, "    Or run: Protocol-7 v7 -- start $zenka_name" );
+        ## We're outside v7 - use IPC to request start via cube
+        <[base.log]>->( 3, "  Sending IPC command to v7 via cube" );
 
-        return {
-            success => 0,
-            error   => 'IPC to running v7 not yet implemented - use: Protocol-7 v7 -- start ' . $zenka_name,
-            v7_running => 1,
-            todo => 'implement cube IPC for zenki -> v7 communication'
-        };
+        ## Check if we have required modules loaded
+        unless (exists $code{'base.protocol-7.command.send.local'}) {
+            return {
+                success => 0,
+                error   => 'zenki module not loaded with IPC support - missing net/protocol modules',
+                hint    => 'ensure zenki configuration includes: modules.load = net protocol io.unix zenki'
+            };
+        }
+
+        ## Check if connected to cube
+        unless (exists $data{'session'} && keys %{$data{'session'}}) {
+            return {
+                success => 0,
+                error   => 'not connected to cube - cannot send IPC command to v7',
+                hint    => 'zenki must connect to cube via [base.net.connect:\'unix\']'
+            };
+        }
+
+        ## Send command to v7 to start the zenka
+        my $cmd_count = <[base.protocol-7.command.send.local]>->({
+            'command'   => "v7.zenka.cmd.start",
+            'call_args' => { 'args' => $zenka_name },
+            'reply'     => {
+                'handler' => 'zenki.handler.v7_start_reply',
+                'params'  => { 'zenka_name' => $zenka_name }
+            }
+        });
+
+        if ($cmd_count && $cmd_count > 0) {
+            <[base.log]>->( 2, "  ✓ Start request sent to v7 for '$zenka_name'" );
+
+            return {
+                success => 1,
+                via_ipc => 1,
+                message => "start request queued via v7 (reply pending)"
+            };
+        } else {
+            return {
+                success => 0,
+                error   => 'failed to send IPC command to v7',
+                cmd_count => $cmd_count
+            };
+        }
     }
 }
 
