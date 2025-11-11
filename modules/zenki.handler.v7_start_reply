@@ -1,0 +1,51 @@
+## [:< ##
+
+# name = zenki.handler.v7_start_reply
+# descr = Handle reply from v7 when requesting zenka start via IPC
+
+my $route_id = shift;
+my $params   = shift;
+
+my $route = $data{'route'}->{$route_id};
+
+unless ($route) {
+    <[base.log]>->( 0, "v7_start_reply: route $route_id not found" );
+    return;
+}
+
+my $zenka_name = $params->{zenka_name} || 'unknown';
+my $mode       = $route->{'reply_mode'} || 'unknown';
+my $reply_data = $route->{'reply_data'} || '';
+
+<[base.log]>->( 2, "v7 start reply for '$zenka_name': mode=$mode" );
+
+if ($mode eq 'true' || $mode eq 'TRUE') {
+    <[base.log]>->( 1, "  ✓ v7 confirmed: $reply_data" );
+
+    ## Update statistics
+    $data{'zenki'}{'stats'}{'successful_starts'}++
+        if exists $data{'zenki'}{'stats'};
+
+} elsif ($mode eq 'false' || $mode eq 'FALSE') {
+    <[base.log]>->( 0, "  ✗ v7 start failed: $reply_data" );
+
+    ## Update statistics
+    $data{'zenki'}{'stats'}{'failed_starts'}++
+        if exists $data{'zenki'}{'stats'};
+
+} else {
+    <[base.log]>->( 1, "  v7 reply ($mode): $reply_data" );
+}
+
+## Clean up route
+<[base.route.remove]>->($route_id)
+    if exists $code{'base.route.remove'};
+
+return 1;
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
