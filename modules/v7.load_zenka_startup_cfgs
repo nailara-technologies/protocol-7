@@ -9,6 +9,28 @@ my $prepared_cfgs  = <v7.cfg_data.start_setup>->[0] // [];
 
 my $s_cfg_data = <[base.code_section_ref]>->( $prepared_cfgs, qw| zenki | );
 
+## Validate: Find zenki directories missing zenka-startup.v7 files
+if ( -d $zenka_cfg_path ) {
+    opendir( my $dh, $zenka_cfg_path ) or die "Cannot open $zenka_cfg_path: $!";
+    my @zenki_dirs = grep { -d "$zenka_cfg_path/$_" && $_ !~ m|^\.| } readdir($dh);
+    closedir($dh);
+
+    foreach my $zenka_name (@zenki_dirs) {
+        my $startup_file = "$zenka_cfg_path/$zenka_name/zenka-startup.v7";
+        my $start_file   = "$zenka_cfg_path/$zenka_name/start";
+
+        if ( -f $start_file && !-f $startup_file ) {
+            <[base.log]>->(
+                0, "⚠ zenka '$zenka_name' missing zenka-startup.v7 file"
+            );
+            <[base.log]>->(
+                0, "  This zenka cannot be started by v7 without it."
+            );
+            <[base.log]>->( 0, "  Expected: $startup_file" );
+        }
+    }
+}
+
 if ( my @start_cfgs
     = grep {m|/zenka-startup.v7$|}
     <[base.sort]>->( <[file.all_files]>->( $zenka_cfg_path, 'recursive' ) ) )
