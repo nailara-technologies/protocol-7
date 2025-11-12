@@ -119,9 +119,10 @@ if ( $use_test_key ) {
 
     if ( $sign_exit != 0 ) {
         say '';
-        say sprintf ' : ✗ Signature update failed (exit: %d)', $sign_exit;
+        say sprintf ' : ⚠ WARNING: Signature update failed (exit: %d)', $sign_exit;
+        say ' : Continuing without signatures';
         say '';
-        return 1;
+        $key_mode = 'none';
     }
 } else {
     # Use production key directly
@@ -130,15 +131,18 @@ if ( $use_test_key ) {
 
     if ( $sign_exit != 0 ) {
         say '';
-        say sprintf ' : ✗ Signature update failed (exit: %d)', $sign_exit;
+        say sprintf ' : ⚠ WARNING: Signature update failed (exit: %d)', $sign_exit;
+        say ' : Continuing without signatures';
         say '';
-        return 1;
+        $key_mode = 'none';
     }
 }
 
-say '';
-say ' : ✓ Signatures updated';
-say '';
+unless ($key_mode eq 'none') {
+    say '';
+    say ' : ✓ Signatures updated';
+    say '';
+}
 
 ## Step 2: Git add all changes
 say ' .:[ STEP 2: STAGING CHANGES ]:.';
@@ -218,9 +222,32 @@ unless ($no_push) {
             say sprintf ' : Pushing to %d configured remotes: %s',
                 scalar(@remotes_to_push), join(', ', @remotes_to_push);
         } else {
-            # Default to origin
-            @remotes_to_push = ('origin');
-            say ' : Pushing to default remote: origin';
+            # Auto-detect available remotes with priority order
+            my $remotes_output = `git remote 2>/dev/null`;
+            chomp $remotes_output if defined $remotes_output;
+            my @available_remotes = split(/\n/, $remotes_output // '');
+
+            if (@available_remotes) {
+                # Priority order: hub > origin > first available
+                my $selected_remote;
+                if (grep { $_ eq 'hub' } @available_remotes) {
+                    $selected_remote = 'hub';
+                    say ' : Auto-detected remote: hub';
+                } elsif (grep { $_ eq 'origin' } @available_remotes) {
+                    $selected_remote = 'origin';
+                    say ' : Auto-detected remote: origin';
+                } else {
+                    $selected_remote = $available_remotes[0];
+                    say sprintf ' : Auto-detected remote: %s', $selected_remote;
+                }
+                @remotes_to_push = ($selected_remote);
+            } else {
+                # No remotes configured - skip push gracefully
+                say ' : ⚠ WARNING: No git remotes configured';
+                say ' : Skipping push';
+                say '';
+                goto SKIP_PUSH;
+            }
         }
 
         say sprintf ' : Branch: %s', $branch;
@@ -256,6 +283,7 @@ unless ($no_push) {
             say '';
             return 1;
         }
+    SKIP_PUSH:
     }
 } else {
     say ' : [Skipped push - --no-push flag]';
