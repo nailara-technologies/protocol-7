@@ -178,7 +178,7 @@ unless ( length $commit_message ) {
 $commit_message .= "\n\nSigned-by: $key_mode-key" if $use_test_key;
 
 my $commit_cmd = sprintf(
-    'git commit -m "%s"',
+    'git commit --no-gpg-sign -m "%s"',
     $commit_message =~ s/"/\\"/gr
 );
 
