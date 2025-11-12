@@ -34,6 +34,10 @@ unless (exists $code{'source.signature_valid'}) {
     <[base.log]>->( 3, "  Loading source module for validation..." );
     <[base.load_modules]>->('source');
     <[base.load_modules]>->('sourcecode');
+
+    ## Initialize modules to set up sign_template and other required data
+    <[base.init_modules]>->('source');
+    <[base.init_modules]>->('sourcecode');
 }
 
 ## Load public key for verification (no passphrase needed)
