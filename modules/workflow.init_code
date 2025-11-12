@@ -1,0 +1,346 @@
+## [:< ##
+
+# name  = workflow.init_code
+# descr = workflow zenka initialization with yaml/workspace aggregation
+
+<[base.perlmod.autoload]>->('YAML::XS');
+<[base.perlmod.autoload]>->('Cwd');
+
+our $PROTOCOL7_ROOT = '/home/user/protocol-7';
+our $YAML_DATA_DIR = "$PROTOCOL7_ROOT/data/yaml";
+our $INDEX_DIR = "$YAML_DATA_DIR/indexes";
+
+# Index file paths
+our $TODOS_INDEX = "$INDEX_DIR/todos-index.yaml";
+our $WORKSPACE_INDEX = "$INDEX_DIR/workspace-transfer-index.yaml";
+
+# Index cache duration (seconds) - regenerate if older than this
+our $INDEX_TTL = 300; # 5 minutes
+
+# Scan data/yaml for task files
+sub scan_yaml_tasks {
+    my %tasks;
+
+    return \%tasks unless -d $YAML_DATA_DIR;
+
+    # Scan coding-tasks using Protocol-7's file matching
+    my $coding_tasks_dir = "$YAML_DATA_DIR/coding-tasks";
+    if (-d $coding_tasks_dir) {
+        my $files = <[base.file.match_files]>->($coding_tasks_dir, '*.yaml');
+        foreach my $file (@$files) {
+            my $path = "$coding_tasks_dir/$file";
+            eval {
+                my $data = YAML::XS::LoadFile($path);
+                $tasks{$file} = {
+                    path => $path,
+                    data => $data,
+                    type => 'coding-task',
+                    source => 'protocol-7'
+                };
+            };
+        }
+    }
+
+    # Scan deferred-tasks using Protocol-7's file matching
+    my $deferred_dir = "$YAML_DATA_DIR/deferred-tasks";
+    if (-d $deferred_dir) {
+        my $files = <[base.file.match_files]>->($deferred_dir, '*.yaml');
+        foreach my $file (@$files) {
+            my $path = "$deferred_dir/$file";
+            eval {
+                my $data = YAML::XS::LoadFile($path);
+                $tasks{$file} = {
+                    path => $path,
+                    data => $data,
+                    type => 'deferred-task',
+                    source => 'protocol-7'
+                };
+            };
+        }
+    }
+
+    return \%tasks;
+}
+
+# Extract todos from yaml tasks
+sub extract_yaml_todos {
+    my $tasks = scan_yaml_tasks();
+    my @todos;
+
+    foreach my $file (sort keys %$tasks) {
+        my $task = $tasks->{$file};
+        my $data = $task->{data};
+
+        # Check task status
+        my $status = $data->{status} || $data->{task_metadata}{status} || 'unknown';
+        next if $status =~ /completed/i;
+
+        # Extract task info
+        my $title = $data->{title} || $data->{task_metadata}{title} || $file;
+        my $priority = $data->{priority} || $data->{task_metadata}{priority} || 'medium';
+        my $category = $data->{category} || $data->{task_metadata}{category} || 'task';
+
+        push @todos, {
+            title => $title,
+            priority => $priority,
+            category => $category,
+            status => $status,
+            file => $file,
+            path => $task->{path},
+            type => $task->{type},
+            source => 'protocol-7-yaml'
+        };
+
+        # Extract phase tasks if present
+        if ($data->{phases}) {
+            foreach my $phase_key (sort keys %{$data->{phases}}) {
+                my $phase = $data->{phases}{$phase_key};
+                next unless $phase->{tasks};
+
+                foreach my $task (@{$phase->{tasks}}) {
+                    my $task_status = $task->{status} || 'pending';
+                    next if $task_status =~ /completed/i;
+
+                    push @todos, {
+                        title => "[$phase->{title}] " . $task->{name},
+                        priority => $priority,
+                        category => $category,
+                        status => $task_status,
+                        file => $file,
+                        phase => $phase_key,
+                        type => 'phase-task',
+                        source => 'protocol-7-yaml'
+                    };
+                }
+            }
+        }
+    }
+
+    return \@todos;
+}
+
+# Scan workspace-transfer repositories
+sub scan_workspace_repos {
+    my @repos;
+
+    my $var_run_dir = '/var/run/.7';
+    return \@repos unless -d $var_run_dir;
+
+    # Use Protocol-7's dir matching function
+    my $dirs = <[base.file.match_dirs]>->($var_run_dir, '*');
+    foreach my $entry (@$dirs) {
+        my $path = "$var_run_dir/$entry";
+        next unless -d "$path/.git";
+
+        push @repos, {
+            name => $entry,
+            path => $path,
+            source => 'workspace-transfer'
+        };
+    }
+
+    return \@repos;
+}
+
+# Extract todos from workspace-transfer TODO.md files
+sub extract_workspace_todos {
+    my @todos;
+    my $repos = scan_workspace_repos();
+
+    foreach my $repo (@$repos) {
+        my $todo_file = "$repo->{path}/TODO.md";
+        next unless -f $todo_file;
+
+        open my $fh, '<', $todo_file or next;
+        while (<$fh>) {
+            if (/^- \[ \](.*)/) {
+                my $desc = $1;
+                $desc =~ s/^\s+//;
+
+                push @todos, {
+                    title => $desc,
+                    priority => 'medium',
+                    category => 'workspace-todo',
+                    status => 'pending',
+                    repo => $repo->{name},
+                    path => $todo_file,
+                    source => 'workspace-transfer-todo'
+                };
+            }
+        }
+        close $fh;
+    }
+
+    return \@todos;
+}
+
+# Extract bugs from workspace-transfer BUGS.md files
+sub extract_workspace_bugs {
+    my @bugs;
+    my $repos = scan_workspace_repos();
+
+    foreach my $repo (@$repos) {
+        my $bug_file = "$repo->{path}/BUGS.md";
+        next unless -f $bug_file;
+
+        open my $fh, '<', $bug_file or next;
+        while (<$fh>) {
+            if (/^- \[ \].*\[BUG-(\d+)\]\*?\*?(.*)/) {
+                my $bug_id = $1;
+                my $desc = $2;
+                $desc =~ s/^\s+//;
+
+                push @bugs, {
+                    bug_id => $bug_id,
+                    title => $desc,
+                    priority => 'high',
+                    category => 'bug',
+                    status => 'open',
+                    repo => $repo->{name},
+                    path => $bug_file,
+                    source => 'workspace-transfer-bug'
+                };
+            }
+        }
+        close $fh;
+    }
+
+    return \@bugs;
+}
+
+# Check if index needs regeneration
+sub index_needs_regeneration {
+    my ($index_file) = @_;
+
+    return 1 unless -f $index_file;
+
+    my $mtime = (stat($index_file))[9];
+    my $age = time() - $mtime;
+
+    return $age > $INDEX_TTL;
+}
+
+# Generate todos index
+sub generate_todos_index {
+    my @todos;
+
+    # Get yaml todos
+    my $yaml_todos = extract_yaml_todos();
+    push @todos, @$yaml_todos;
+
+    # Get workspace todos
+    my $workspace_todos = extract_workspace_todos();
+    push @todos, @$workspace_todos;
+
+    my $index_data = {
+        generated_at => scalar(localtime()),
+        timestamp => time(),
+        total_count => scalar(@todos),
+        by_source => {},
+        by_priority => {},
+        by_status => {},
+        todos => \@todos
+    };
+
+    # Aggregate statistics
+    foreach my $todo (@todos) {
+        $index_data->{by_source}{$todo->{source}}++;
+        $index_data->{by_priority}{$todo->{priority}}++;
+        $index_data->{by_status}{$todo->{status}}++;
+    }
+
+    # Ensure index directory exists
+    unless (-d $INDEX_DIR) {
+        mkdir $INDEX_DIR or die "Cannot create index directory: $!";
+    }
+
+    # Write index
+    YAML::XS::DumpFile($TODOS_INDEX, $index_data);
+
+    return $index_data;
+}
+
+# Generate workspace-transfer index
+sub generate_workspace_index {
+    my $repos = scan_workspace_repos();
+    my @bugs = @{extract_workspace_bugs()};
+
+    my $index_data = {
+        generated_at => scalar(localtime()),
+        timestamp => time(),
+        repos => $repos,
+        total_bugs => scalar(@bugs),
+        bugs => \@bugs
+    };
+
+    # Ensure index directory exists
+    unless (-d $INDEX_DIR) {
+        mkdir $INDEX_DIR or die "Cannot create index directory: $!";
+    }
+
+    # Write index
+    YAML::XS::DumpFile($WORKSPACE_INDEX, $index_data);
+
+    return $index_data;
+}
+
+# Load or generate todos index
+sub load_todos_index {
+    if (index_needs_regeneration($TODOS_INDEX)) {
+        return generate_todos_index();
+    }
+
+    eval {
+        return YAML::XS::LoadFile($TODOS_INDEX);
+    } or do {
+        # If load fails, regenerate
+        return generate_todos_index();
+    };
+}
+
+# Load or generate workspace index
+sub load_workspace_index {
+    if (index_needs_regeneration($WORKSPACE_INDEX)) {
+        return generate_workspace_index();
+    }
+
+    eval {
+        return YAML::XS::LoadFile($WORKSPACE_INDEX);
+    } or do {
+        # If load fails, regenerate
+        return generate_workspace_index();
+    };
+}
+
+# Aggregate all todos from all sources (using indexes)
+sub aggregate_todos {
+    my $index = load_todos_index();
+    return $index->{todos};
+}
+
+# Aggregate all bugs from all sources (using indexes)
+sub aggregate_bugs {
+    my $index = load_workspace_index();
+    return $index->{bugs};
+}
+
+# Get full todo statistics
+sub get_todo_stats {
+    my $index = load_todos_index();
+    return {
+        total => $index->{total_count},
+        by_source => $index->{by_source},
+        by_priority => $index->{by_priority},
+        by_status => $index->{by_status},
+        generated_at => $index->{generated_at}
+    };
+}
+
+# Initialize workflow module
+<[base.logs]>->( 2, 'workflow module initialized with yaml aggregation support' );
+
+#,,.,,.,,,,.,,,,,.,,,.,,,.,,,.,.,.,.,,,.,,,...,...,,.,,,.,.,,,,.,.,,,.,..,,,,,,.
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
