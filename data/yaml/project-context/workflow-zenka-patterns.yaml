@@ -378,3 +378,115 @@ insights:
   - "Auto-detect git remotes with priority: hub > origin > first available"
   - "Protocol-7's base.file.make_path handles recursive dir creation properly"
   - "Module organization: separate files, no package declarations, use %data{}"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## PROTOCOL-7 DEPENDENCY SYSTEM
+## ═══════════════════════════════════════════════════════════════════════════
+
+dependency_system:
+  overview: |
+    Protocol-7 has a sophisticated dependency tracking system in modules/base.dependency.*
+    Used by v7 zenka for zenka dependencies, jobqueue for job dependencies, and workflow for perl modules.
+
+  namespace_swapping: |
+    Dependency functions live in base.dependency.* but get moved to dependency.* namespace:
+    - In pre_init: <[base.swap_subs]>->( 'base.dependency', 'dependency' );
+    - After swap, use <[dependency.setup]>, <[dependency.ok]>, etc.
+
+  setup_pattern:
+    1_define_callback: |
+      Create callback function(s) named: <namespace>.callback.object.<type>
+      Example: workflow.callback.object.perl_module
+      Callback receives object_id, returns TRUE if dependency fulfilled, FALSE otherwise
+
+    2_register_callbacks: |
+      Call dependency.install_callbacks with namespace prefix:
+      <[dependency.install_callbacks]>->('workflow');
+      This scans for all workflow.callback.object.* functions and registers them
+
+    3_create_objects: |
+      For each dependency to track, create an object:
+      my $object_id = <[dependency.add_object]->({
+          type => 'perl_module',
+          module_name => 'YAML::XS',
+          install_cmd => 'cpanm YAML::XS',
+          priority => 'essential'
+      });
+
+    4_check_status: |
+      Check if a dependency is fulfilled:
+      my $is_ok = <[dependency.ok]>->($object_id);
+      This calls the registered callback for that object's type
+
+  key_functions:
+    dependency.setup: "Register callback for an object type"
+    dependency.install_callbacks: "Auto-register all callbacks matching pattern"
+    dependency.add_object: "Create tracked dependency object, returns object_id"
+    dependency.add: "Add dependency relationship between objects"
+    dependency.ok: "Check if all dependencies for an object are fulfilled"
+    dependency.get_missing: "Get list of unfulfilled dependency IDs"
+
+  data_structure:
+    data.dependency.setup.type: "Callbacks registered for each object type"
+    data.dependency.object: "All dependency objects indexed by object_id"
+    data.dependency.chain: "Dependency relationships (chains)"
+
+  examples:
+    v7_usage: "modules/v7.set_up_zenka_dependencies - Tracks zenka dependencies"
+    jobqueue_usage: "modules/jobqueue.check_dependencies - Tracks job dependencies"
+    workflow_usage: "modules/workflow.setup_module_dependencies - Tracks perl modules"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## CONTEXT-AWARE SUGGESTION ENGINE
+## ═══════════════════════════════════════════════════════════════════════════
+
+suggestion_engine:
+  architecture: |
+    Intelligent workflow overview with externalized suggestions and relevance filtering:
+    - Suggestions stored in data/yaml/workflow-suggestions.yaml
+    - Context evaluation determines which suggestions to show
+    - Relevance scoring ensures most important suggestions surface first
+    - Limit filter shows only top N (default: 8) most relevant items
+
+  components:
+    load_suggestions: |
+      Auto-creates workflow-suggestions.yaml with defaults if missing
+      Uses <[file.put_bin]> to write yaml file
+
+    calculate_relevance: |
+      Evaluates suggestion conditions against current context
+      Assigns relevance scores (critical: 100+, contextual: 60+, default: 50+)
+      Returns top N suggestions sorted by relevance
+
+    check_dependencies: |
+      Uses Protocol-7 dependency system to track perl modules
+      Returns structured status for conditional display
+
+  suggestion_types:
+    critical: |
+      Priority 0, shown only when issues detected
+      Examples: missing dependencies, crypto key problems
+      Get [CRITICAL] badge in display
+
+    contextual: |
+      Priority 2-4, shown based on repository state
+      Examples: uncommitted changes, open todos, open bugs
+      Adapt dynamically to current situation
+
+    default: |
+      Priority 5-7, always relevant suggestions
+      Examples: update insights, search workflow data
+      Core actions that are always useful
+
+  conditional_sections: |
+    Sections that only appear when relevant:
+    - MISSING DEPENDENCIES: only when essential deps missing
+    - DEPENDENCY STATUS: stats when all deps present
+    - ISSUES DETECTED: only when issues found
+    Architecture supports easy addition of new conditional sections
+
+  scalability: |
+    Yaml file can contain 100+ suggestions without cluttering display
+    Relevance engine filters down to top 8 most important
+    Easy to extend with new suggestions without code changes
+
