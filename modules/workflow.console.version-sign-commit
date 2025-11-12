@@ -2,12 +2,45 @@
 
 # name  = workflow.console.version-sign-commit
 # param = [commit-message]
-# descr = update version, sign with appropriate key, and commit
+# descr = update version, sign with appropriate key, commit, and push
 
 my $message = shift // '';
+my $no_push = 0;
+
+# Check for --no-push flag
+if ($message eq '--no-push') {
+    $no_push = 1;
+    $message = '';
+}
 
 say '';
-say ' .:[ WORKFLOW: VERSION-SIGN-COMMIT ]:.';
+say ' .:[ WORKFLOW: VERSION-SIGN-COMMIT-PUSH ]:.';
+say '';
+
+## Prompt for message if not provided
+unless (length $message) {
+    print ' : Commit message (or Enter for default): ';
+    $message = <STDIN>;
+    chomp $message if defined $message;
+    $message //= '';
+}
+
+## Step 0: Update version
+say ' .:[ STEP 0: UPDATE VERSION ]:.';
+say '';
+
+system('./bin/dev/update-version');
+my $version_exit = $? >> 8;
+
+if ($version_exit != 0) {
+    say '';
+    say sprintf ' : ✗ Version update failed (exit: %d)', $version_exit;
+    say '';
+    return 1;
+}
+
+say '';
+say ' : ✓ Version updated';
 say '';
 
 ## Detect signing mode based on key presence
@@ -154,12 +187,50 @@ say '';
 say ' : ✓ Changes committed';
 say '';
 
+## Step 4: Push to remote
+unless ($no_push) {
+    say ' .:[ STEP 4: PUSHING TO REMOTE ]:.';
+    say '';
+
+    # Get current branch
+    my $branch = `git branch --show-current`;
+    chomp $branch if defined $branch;
+
+    unless (length $branch) {
+        say ' : ⚠ WARNING: Could not determine current branch';
+        say ' : Skipping push';
+        say '';
+    } else {
+        say sprintf ' : Pushing branch: %s', $branch;
+        say '';
+
+        system('git', 'push', '-u', 'origin', $branch);
+        my $push_exit = $? >> 8;
+
+        if ($push_exit != 0) {
+            say '';
+            say sprintf ' : ✗ Push failed (exit: %d)', $push_exit;
+            say ' : Note: Changes are committed locally';
+            say '';
+            return 1;
+        }
+
+        say '';
+        say ' : ✓ Pushed to remote';
+        say '';
+    }
+} else {
+    say ' : [Skipped push - --no-push flag]';
+    say '';
+}
+
 ## Summary
 say ' .:[ COMPLETE ]:.';
 say '';
 say sprintf ' : Key mode: %s', $key_mode;
 say sprintf ' : Key used: %s', $use_test_key ? $test_key_name : $sig_key_name;
 say sprintf ' : Commit message: %s', $commit_message;
+say sprintf ' : Pushed: %s', $no_push ? 'no' : 'yes';
 say '';
 
 return 0;
