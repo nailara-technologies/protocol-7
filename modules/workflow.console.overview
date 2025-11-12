@@ -22,6 +22,12 @@ say '';
 say "$blacklight .:[ ${TRUE_blue}WORKFLOW OVERVIEW${blacklight} ]:.$reset";
 say '';
 
+## Load suggestions configuration ##
+<[workflow.load_suggestions]>->();
+
+## Check dependencies ##
+my $dep_status = <[workflow.check_dependencies]>->();
+
 ## Get git context ##
 my $branch = `git branch --show-current 2>/dev/null`;
 chomp $branch if defined $branch;
@@ -106,7 +112,32 @@ if ($bugs && ref $bugs eq 'ARRAY' && @$bugs) {
     say "${blacklight}│$reset  ${dim_blue}No bugs tracked$reset";
 }
 
-## Section 4: Modified Files Detail ##
+## Section 4: Conditional Dependencies Section ##
+my $essential_missing = $dep_status->{essential_missing} // [];
+if (@$essential_missing) {
+    say "${blacklight}│$reset";
+    say "${blacklight}├─[ ${neon_red}MISSING DEPENDENCIES${blacklight} ]$reset";
+    say "${blacklight}│$reset";
+
+    foreach my $dep (@$essential_missing) {
+        my $name = $dep->{name};
+        my $install = $dep->{install} // '';
+        say "${blacklight}│$reset  ${neon_red}✗$reset ${neon_orange}$name$reset";
+        if ($install) {
+            say "${blacklight}│$reset    ${dim_blue}Install: $install$reset";
+        }
+    }
+} elsif ($dep_status->{total_tracked} > 0) {
+    ## Show stats when all dependencies are present ##
+    say "${blacklight}│$reset";
+    say "${blacklight}├─[ ${neon_green}DEPENDENCY STATUS${blacklight} ]$reset";
+    say "${blacklight}│$reset";
+    my $total = $dep_status->{total_tracked};
+    my $installed = $dep_status->{total_installed};
+    say "${blacklight}│$reset  ${neon_green}✓$reset Dependencies: ${neon_green}$installed$reset / $total tracked";
+}
+
+## Section 5: Modified Files Detail ##
 if (@modified_files) {
     say "${blacklight}│$reset";
     say "${blacklight}├─[ ${neon_orange}MODIFIED FILES${blacklight} ]$reset";
@@ -134,49 +165,61 @@ if (@modified_files) {
     }
 }
 
-## Section 5: Suggestions ##
+## Section 6: Context-Aware Suggestions ##
 say "${blacklight}│$reset";
 say "${blacklight}└─[ ${neon_green}SUGGESTED ACTIONS${blacklight} ]$reset";
 say '';
 
-my @suggestions;
+## Build context object for relevance calculation ##
+my %context = (
+    has_uncommitted_changes => scalar(@modified_files) > 0,
+    has_open_todos => ($todo_stats && $todo_stats->{open} && $todo_stats->{open} > 0),
+    has_open_bugs => ($bugs && @$bugs),
+    has_remotes => scalar(@remotes) > 0,
+    no_activity => (!@modified_files && (!$todo_stats || $todo_stats->{total} == 0)),
+    has_missing_dependencies => scalar(@$essential_missing) > 0,
+    has_crypto_issues => 0,  ## TODO: detect crypto issues
+    install_command => (@$essential_missing > 0) ? $essential_missing->[0]{install} : '',
+    crypto_details => ''
+);
 
-## Generate context-aware suggestions ##
-if (@modified_files) {
-    push @suggestions, "Review and commit changes: ${neon_orange}git status${reset}";
-    push @suggestions, "Quick commit workflow: ${neon_orange}workflow version-sign-commit \"message\"${reset}";
+## Calculate relevance and get top suggestions ##
+my $suggestions = <[workflow.calculate_suggestion_relevance]>->(\%context, 8);
+
+## Apply color formatting to suggestions ##
+my @formatted_suggestions;
+foreach my $sugg (@$suggestions) {
+    my $text = $sugg->{text};
+
+    ## Colorize command patterns ##
+    $text =~ s/(workflow\s+[\w-]+)/§ORANGE§$1§RESET§/g;
+    $text =~ s/(git\s+\w+)/§ORANGE§$1§RESET§/g;
+    $text =~ s/(edit\s+[\w\/\.\*-]+)/§ORANGE§$1§RESET§/g;
+    $text =~ s/(cpanm\s+[\w:]+)/§ORANGE§$1§RESET§/g;
+
+    ## Replace color placeholders ##
+    $text =~ s/§ORANGE§/$neon_orange/g;
+    $text =~ s/§RESET§/$reset/g;
+
+    ## Add priority prefix for critical suggestions ##
+    if ($sugg->{type} eq 'critical') {
+        push @formatted_suggestions, "${neon_red}0.${reset} $text ${neon_red}[CRITICAL]${reset}";
+    } else {
+        push @formatted_suggestions, $text;
+    }
 }
-
-if ($todo_stats && $todo_stats->{open} && $todo_stats->{open} > 0) {
-    push @suggestions, "View open todos: ${neon_orange}workflow todo-list${reset}";
-}
-
-if ($bugs && @$bugs) {
-    push @suggestions, "Review open bugs: ${neon_orange}workflow bug-list${reset}";
-}
-
-if (!@modified_files && (!$todo_stats || $todo_stats->{total} == 0)) {
-    push @suggestions, "Start tracking todos: ${neon_orange}workflow todo add \"task description\"${reset}";
-    push @suggestions, "View available commands: ${neon_orange}workflow commands${reset}";
-}
-
-## Always show version-sign-commit as it's a core workflow ##
-if (@remotes && !grep(/version-sign-commit/, @suggestions)) {
-    push @suggestions, "Update version and sign: ${neon_orange}workflow version-sign-commit${reset}";
-}
-
-## Search suggestion - always useful ##
-push @suggestions, "Search workflow data/notes: ${neon_orange}workflow search <pattern>${reset}";
-
-## Documentation/insights suggestion ##
-push @suggestions, "Update system insights: ${neon_orange}edit data/yaml/project-context/*.yaml${reset}";
 
 ## Display suggestions ##
-if (@suggestions) {
+if (@formatted_suggestions) {
     my $idx = 1;
-    foreach my $suggestion (@suggestions) {
-        say "  ${blacklight}$idx.${reset} $suggestion";
-        $idx++;
+    foreach my $suggestion (@formatted_suggestions) {
+        if ($suggestion =~ /^\d+\./) {
+            ## Already has priority prefix ##
+            say "  $suggestion";
+        } else {
+            say "  ${blacklight}$idx.${reset} $suggestion";
+            $idx++;
+        }
     }
 } else {
     say "  ${dim_blue}All caught up! No immediate actions needed.$reset";

@@ -1,0 +1,76 @@
+## [:< ##
+
+# name = workflow.check_dependencies
+# descr = Check for missing dependencies and return status
+
+my $suggestions_data = <workflow.suggestions> // {};
+my $dependencies = $suggestions_data->{dependencies} // {};
+
+my %status = (
+    essential_missing => [],
+    optional_missing  => [],
+    essential_present => [],
+    optional_present  => [],
+    total_tracked     => 0,
+    total_installed   => 0
+);
+
+## Check essential dependencies ##
+my $essential = $dependencies->{essential} // [];
+foreach my $dep (@$essential) {
+    $status{total_tracked}++;
+
+    my $name = $dep->{name};
+    my $type = $dep->{type} // 'perl_module';
+
+    my $is_available = 0;
+
+    if ($type eq 'perl_module') {
+        ## Check if perl module is available ##
+        eval "require $name";
+        $is_available = !$@;
+    }
+
+    if ($is_available) {
+        push @{$status{essential_present}}, $dep;
+        $status{total_installed}++;
+    } else {
+        push @{$status{essential_missing}}, $dep;
+    }
+}
+
+## Check optional dependencies ##
+my $optional = $dependencies->{optional} // [];
+foreach my $dep (@$optional) {
+    $status{total_tracked}++;
+
+    my $name = $dep->{name};
+    my $type = $dep->{type} // 'perl_module';
+
+    my $is_available = 0;
+
+    if ($type eq 'perl_module') {
+        eval "require $name";
+        $is_available = !$@;
+    }
+
+    if ($is_available) {
+        push @{$status{optional_present}}, $dep;
+        $status{total_installed}++;
+    } else {
+        push @{$status{optional_missing}}, $dep;
+    }
+}
+
+## Store in workflow data ##
+<workflow.dependencies.status> = \%status;
+
+return \%status;
+
+0;
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

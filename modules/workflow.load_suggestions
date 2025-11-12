@@ -1,0 +1,141 @@
+## [:< ##
+
+# name = workflow.load_suggestions
+# descr = Load workflow suggestions from yaml file, create with defaults if missing
+
+my $suggestions_file = <workflow.cfg.protocol7_root> . '/data/yaml/workflow-suggestions.yaml';
+
+## Check if suggestions file exists ##
+if (-f $suggestions_file) {
+    ## Load existing suggestions ##
+    eval {
+        require YAML::XS;
+        my $yaml_content = <[file.slurp]>->($suggestions_file);
+        my $suggestions_data = YAML::XS::Load($$yaml_content);
+
+        <workflow.suggestions> = $suggestions_data;
+        <[base.log]>->( 3, 'workflow suggestions loaded from yaml' );
+    };
+
+    if ($@) {
+        <[base.log]>->( 1, 'failed to load suggestions yaml: %s', $@ );
+        return undef;
+    }
+} else {
+    ## Create default suggestions file ##
+    <[base.log]>->( 2, 'creating default workflow-suggestions.yaml' );
+
+    my $default_yaml = <<'YAML_END';
+---
+# Workflow Overview Suggestions Configuration
+# Suggestions are displayed in the workflow overview command
+# Priority prefixes: 0 = critical (only when issues), 1-9 = normal priority
+
+suggestions:
+  # Critical suggestions - only shown when conditions are met
+  critical:
+    - condition: missing_dependencies
+      priority: 0
+      text: "Install missing dependencies: {command}"
+
+    - condition: crypto_key_issues
+      priority: 0
+      text: "Fix crypto key permissions: {details}"
+
+  # Default suggestions - always shown when relevant
+  default:
+    - priority: 5
+      text: "Update system or coding insights: edit data/yaml/project-context/*.yaml"
+
+    - priority: 6
+      text: "Search workflow data/notes: workflow search <pattern>"
+
+    - priority: 7
+      text: "View available commands: workflow commands"
+
+  # Contextual suggestions - shown based on repository state
+  contextual:
+    - condition: uncommitted_changes
+      priority: 2
+      text: "Review and commit changes: git status"
+
+    - condition: uncommitted_changes
+      priority: 3
+      text: "Quick commit workflow: workflow version-sign-commit \"message\""
+
+    - condition: open_todos
+      priority: 4
+      text: "View open todos: workflow todo-list"
+
+    - condition: open_bugs
+      priority: 4
+      text: "Review open bugs: workflow bug-list"
+
+    - condition: has_remotes
+      priority: 5
+      text: "Update version and sign: workflow version-sign-commit"
+
+    - condition: no_activity
+      priority: 8
+      text: "Start tracking todos: workflow todo add \"task description\""
+
+# Conditional sections - only displayed when relevant
+conditional_sections:
+  dependencies:
+    show_when: has_missing_dependencies
+    title: "MISSING DEPENDENCIES"
+    style: warning
+
+  issues:
+    show_when: has_issues
+    title: "ISSUES DETECTED"
+    style: error
+
+  statistics:
+    show_when: has_dependency_tracking
+    title: "DEPENDENCY STATUS"
+    style: info
+
+# Dependency tracking
+dependencies:
+  essential:
+    - name: Git::Wrapper
+      type: perl_module
+      install: "cpanm Git::Wrapper"
+
+    - name: YAML::XS
+      type: perl_module
+      install: "cpanm YAML::XS"
+
+  optional:
+    - name: Crypt::Misc
+      type: perl_module
+      install: "cpanm CryptX"
+YAML_END
+
+    ## Write default suggestions file ##
+    my $write_result = <[file.put_bin]>->($suggestions_file, \$default_yaml);
+
+    if ($write_result) {
+        <[base.log]>->( 2, '  ✓ Created default workflow-suggestions.yaml' );
+
+        ## Load the defaults we just created ##
+        eval {
+            require YAML::XS;
+            <workflow.suggestions> = YAML::XS::Load($default_yaml);
+        };
+    } else {
+        <[base.log]>->( 1, '  ✗ Failed to create suggestions file' );
+        return undef;
+    }
+}
+
+return <workflow.suggestions>;
+
+0;
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
