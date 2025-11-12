@@ -77,39 +77,42 @@ if ($dry_run) {
 <[base.log]>->( 1, "  EXECUTE MODE: Rewriting $total_to_fix commits..." );
 <[base.log]>->( 1, "  WARNING: This will rewrite git history!" );
 
-## Load source module for AMOS7 commit signing
+## Load source and sourcecode modules for AMOS7 commit signing
 unless (exists $code{'source.sign_data'}) {
-    <[base.log]>->( 2, "  Loading source module..." );
+    <[base.log]>->( 2, "  Loading source and sourcecode modules..." );
     <[base.load_modules]>->('source');
+    <[base.load_modules]>->('sourcecode');
 }
 
-## Load signing key - enable autocreate for test key if production doesn't exist
+## Load signing key - only use production key (test keys are not verifiable)
 my $sig_key_name = <source.C25519.signature_key_name> // qw| proto-7.sourcecode |;
 <[base.log]>->( 2, "  Loading signature key '$sig_key_name'..." );
 
-## Check if production key exists, fallback to test key with autocreate
+## Check if key exists
 my $key_exists = <[crypt.C25519.key_exists]>->($sig_key_name);
-if (not $key_exists) {
-    ## Try test key instead
-    $sig_key_name = 'proto-7.test';
-    <[base.log]>->( 2, "  Production key not found, trying test key '$sig_key_name'..." );
-
-    $key_exists = <[crypt.C25519.key_exists]>->($sig_key_name);
-    if (not $key_exists) {
-        ## Enable autocreate for test key
-        <[base.log]>->( 2, "  Test key not found, enabling autocreate..." );
-        <source.autocreate-sig-key> = TRUE;
-    }
+unless ($key_exists) {
+    return {
+        success => 0,
+        error   => "Signature key '$sig_key_name' does not exist. Cannot sign commits with test keys - signatures must be verifiable against known public keys."
+    };
 }
 
-<[source.load_signature_key]>->($sig_key_name);
+## Load the key
+my $load_success = <[source.load_signature_key]>->($sig_key_name);
+unless ($load_success) {
+    return {
+        success => 0,
+        error   => "Failed to load signature key '$sig_key_name'"
+    };
+}
 
+## Verify key is properly loaded
 unless (exists $keys{'C25519'}{$sig_key_name}
     && exists $keys{'C25519'}{$sig_key_name}{'private'}
     && exists $keys{'C25519'}{$sig_key_name}{'public'}) {
     return {
         success => 0,
-        error   => "Failed to load signature key '$sig_key_name' - cannot sign commits"
+        error   => "Signature key '$sig_key_name' not properly loaded (missing private or public key)"
     };
 }
 
