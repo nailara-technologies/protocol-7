@@ -1,0 +1,310 @@
+---
+# Next Session Quick Start Guide
+# Date: 2025-11-12
+# Purpose: Optimize LLM session startup and context recovery
+
+## ═══════════════════════════════════════════════════════════════════════════
+## IMMEDIATE STARTUP COMMAND
+## ═══════════════════════════════════════════════════════════════════════════
+
+quick_start:
+  command: "cd /data/projects/protocol-7 && ./bin/Protocol-7 workflow overview"
+  description: "Displays comprehensive workflow state with contextualized suggestions"
+  what_it_shows:
+    - "Current branch and uncommitted changes"
+    - "Recent commits (last 5)"
+    - "Open todos and bugs"
+    - "Missing dependencies (if any)"
+    - "Modified files"
+    - "Context-aware suggestions ranked by relevance"
+
+  plain_text_version: "./bin/Protocol-7 -nc workflow overview"
+  benefits: "Single command provides complete session context without reading files"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## SYSTEM MESSAGE ADDITIONS
+## ═══════════════════════════════════════════════════════════════════════════
+
+system_message_context: |
+  Add this to system message for optimal Protocol-7 workflow zenka work:
+
+  ---
+
+  ## Protocol-7 Workflow Zenka Context
+
+  You are continuing work on Protocol-7's workflow zenka system. This is a hybrid
+  console zenka for git workflow automation, dependency tracking, and LLM session
+  continuity.
+
+  **Quick Context Recovery:**
+  Run `workflow overview` immediately upon session start for complete state.
+
+  **Repository Structure:**
+  - Root: `/data/projects/protocol-7`
+  - Modules: `modules/workflow.*` and `modules/base.dependency.*`
+  - Config: `configuration/zenki/workflow/start`
+  - Data: `data/yaml/workflow-suggestions.yaml`, `data/yaml/project-context/*.yaml`
+
+  **Recent Work (2025-11-12):**
+  - Implemented key phrase filtering and early abort optimization for history tracking
+  - Integrated with Protocol-7 dependency system (base.dependency.*)
+  - Created context-aware suggestion engine with relevance filtering
+  - Added conditional sections (missing deps, dependency status)
+  - Explicit crypto key loading for signing commands
+
+  **Key Patterns:**
+  - Dependency tracking: Use dependency.add_object, dependency.ok, dependency.install_callbacks
+  - Module naming: workflow.<namespace>.<function> (no package declarations)
+  - Crypto keys: Disabled auto-load, explicit loading in commands that need it
+  - Color system: Use %colors hash, respects <system.ansi_color>
+  - Exit codes: [exit:0] overrides errors, sets log_level=2
+
+  **Documentation:**
+  - Comprehensive patterns: `data/yaml/project-context/workflow-zenka-patterns.yaml`
+  - Session summary: `data/yaml/project-context/session-2025-11-12-workflow-enhancements.yaml`
+  - This file: `data/yaml/project-context/next-session-start.yaml`
+
+  **Branch:** `claude/access-frozen-chat-context-011CV3grn6V9wWuKmDAwQYFU`
+
+  ---
+
+## ═══════════════════════════════════════════════════════════════════════════
+## RESUME COMMAND PROMPTS
+## ═══════════════════════════════════════════════════════════════════════════
+
+resume_prompts:
+
+  basic_resume: |
+    "This session is continuing from previous work on Protocol-7 workflow zenka.
+    Please run 'workflow overview' to see current state and suggest next steps."
+
+  detailed_resume: |
+    "Continuing Protocol-7 workflow zenka development. Previous session implemented:
+    - Key phrase filtering and early abort optimization for history tracking
+    - Protocol-7 dependency system integration
+    - Context-aware suggestion engine with relevance filtering
+
+    Run 'workflow overview' for current state, then review:
+    - data/yaml/project-context/session-2025-11-12-workflow-enhancements.yaml
+    - data/yaml/project-context/workflow-zenka-patterns.yaml
+
+    Suggest optimizations or next features to implement."
+
+  specific_task_resume: |
+    "Continuing Protocol-7 workflow zenka. Current task: [SPECIFIC_TASK]
+
+    Context:
+    - Run 'workflow overview' for repository state
+    - Check data/yaml/project-context/ for documentation
+    - Branch: claude/access-frozen-chat-context-011CV3grn6V9wWuKmDAwQYFU
+
+    Please proceed with the task."
+
+## ═══════════════════════════════════════════════════════════════════════════
+## KEY FILES AND THEIR PURPOSE
+## ═══════════════════════════════════════════════════════════════════════════
+
+essential_files:
+
+  documentation:
+    workflow_patterns:
+      path: "data/yaml/project-context/workflow-zenka-patterns.yaml"
+      purpose: "Comprehensive patterns learned (zenka architecture, dependency system, etc.)"
+      read_when: "Learning how Protocol-7 patterns work"
+
+    session_summary:
+      path: "data/yaml/project-context/session-2025-11-12-workflow-enhancements.yaml"
+      purpose: "Complete session accomplishments and next steps"
+      read_when: "Understanding what was done this session"
+
+    suggestions_yaml:
+      path: "data/yaml/workflow-suggestions.yaml"
+      purpose: "Externalized suggestion library (auto-created if missing)"
+      read_when: "Adding new suggestions or understanding suggestion engine"
+
+  configuration:
+    zenka_start:
+      path: "configuration/zenki/workflow/start"
+      purpose: "Workflow zenka startup configuration"
+      key_settings:
+        - "crypt.C25519.auto_load_keys = no"
+        - "git.cfg.repository_path = /data/projects/protocol-7"
+        - "modules.load = auth net protocol io.unix crypt.C25519 git workflow"
+
+  key_modules:
+    overview:
+      path: "modules/workflow.console.overview"
+      purpose: "Session context recovery command - THE most important module"
+
+    dependency_system:
+      paths:
+        - "modules/workflow.setup_module_dependencies"
+        - "modules/workflow.callback.object.perl_module"
+        - "modules/workflow.check_dependencies"
+      purpose: "Protocol-7 dependency tracking integration"
+
+    suggestion_engine:
+      paths:
+        - "modules/workflow.load_suggestions"
+        - "modules/workflow.calculate_suggestion_relevance"
+      purpose: "Context-aware suggestion ranking and filtering"
+
+    history_tracking:
+      paths:
+        - "modules/workflow.parent.scan_history"
+        - "modules/workflow.console.fix-versions"
+        - "modules/workflow.console.harmonize-emails"
+      purpose: "Git history analysis with key phrase filtering and early abort"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## CURRENT STATE SNAPSHOT
+## ═══════════════════════════════════════════════════════════════════════════
+
+current_state:
+
+  repository:
+    path: "/data/projects/protocol-7"
+    branch: "claude/access-frozen-chat-context-011CV3grn6V9wWuKmDAwQYFU"
+    status: "All changes committed and pushed"
+    last_commit: "docs: Add session summary for handover"
+
+  working_features:
+    - "workflow overview - Context-aware dashboard"
+    - "workflow fix-versions [key_phrase] - Version issue analysis (dry-run)"
+    - "workflow harmonize-emails [key_phrase] - Identity analysis (dry-run)"
+    - "workflow version-sign-commit - Complete workflow with explicit key loading"
+    - "workflow search <pattern> - Search workflow data and notes"
+    - "workflow todo-list / bug-list - Task tracking"
+    - "Dependency tracking via Protocol-7 dependency system"
+    - "Context-aware suggestions with relevance filtering"
+    - "Conditional sections (missing deps, dep status)"
+
+  needs_implementation:
+    - "Actual git filter-branch rewriting for fix-versions"
+    - "Actual git filter-branch rewriting for harmonize-emails"
+    - "Crypto issue detection for conditional sections"
+    - "Additional conditional sections (issues, warnings, etc.)"
+
+  needs_testing:
+    - "workflow overview with missing dependencies"
+    - "fix-versions with key phrase filtering"
+    - "harmonize-emails with author name variants"
+    - "Dependency system integration in production"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## OPTIMIZATION OPPORTUNITIES
+## ═══════════════════════════════════════════════════════════════════════════
+
+optimizations:
+
+  performance:
+    - "Cache dependency checks (currently checks every overview run)"
+    - "Add TTL to suggestion yaml loading (like todo/bug indexes)"
+    - "Lazy load git operations (only when needed)"
+    - "Parallel execution of independent checks in overview"
+
+  features:
+    - "Add 'workflow diagnose' for comprehensive health check"
+    - "Implement 'workflow setup' for first-time initialization"
+    - "Add progress bars for long operations (history scanning)"
+    - "Create 'workflow init-session' that runs overview + checks"
+
+  user_experience:
+    - "Add -q/--quiet flag for minimal output"
+    - "Add -v/--verbose for detailed debugging"
+    - "Create short aliases (wf instead of workflow)"
+    - "Add tab completion support"
+
+  documentation:
+    - "Generate markdown docs from workflow-suggestions.yaml"
+    - "Create visual diagram of suggestion engine flow"
+    - "Add inline examples to suggestion descriptions"
+    - "Create video walkthrough of workflow commands"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## TROUBLESHOOTING GUIDE
+## ═══════════════════════════════════════════════════════════════════════════
+
+common_issues:
+
+  crypto_key_warnings:
+    symptom: "no read permission for key 'protocol-7.base.secret'"
+    cause: "auto_load_keys was enabled, trying to load keys for read-only commands"
+    solution: "Already fixed - crypt.C25519.auto_load_keys = no in workflow/start"
+
+  deep_recursion_error:
+    symptom: "<< EMERGENCY SHUTDOWN >> [ anticipated deep recursion in log system ]"
+    cause: "Undefined values in %data hash accessed in log messages"
+    solution: "Use // 0 or // {} for all data hash access, check for defined before using"
+
+  git_path_error:
+    symptom: "cd: can't cd to /home/user/protocol-7"
+    cause: "git.cfg.repository_path set to wrong path"
+    solution: "Already fixed - set to /data/projects/protocol-7 in workflow/start"
+
+  dependency_not_found:
+    symptom: "dependency.ok: object id 'X' not found"
+    cause: "Dependency system not initialized before use"
+    solution: "Call workflow.setup_module_dependencies before workflow.check_dependencies"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## SESSION STARTUP CHECKLIST
+## ═══════════════════════════════════════════════════════════════════════════
+
+startup_checklist:
+  1: "Run: cd /data/projects/protocol-7"
+  2: "Run: ./bin/Protocol-7 workflow overview"
+  3: "Read this file: data/yaml/project-context/next-session-start.yaml"
+  4: "Review: data/yaml/project-context/session-2025-11-12-workflow-enhancements.yaml"
+  5: "Check git status: git status"
+  6: "Verify branch: git branch --show-current"
+  7: "If issues, read: data/yaml/project-context/workflow-zenka-patterns.yaml"
+  8: "Ask user what they'd like to work on"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## NEXT LOGICAL TASKS (PRIORITIZED)
+## ═══════════════════════════════════════════════════════════════════════════
+
+next_tasks:
+
+  priority_1_critical:
+    - task: "Test dependency tracking with missing modules"
+      reason: "Need to verify conditional section behavior works correctly"
+      estimate: "15 minutes"
+
+    - task: "Test workflow overview on clean system"
+      reason: "Ensure suggestions yaml auto-creation works"
+      estimate: "10 minutes"
+
+  priority_2_important:
+    - task: "Implement actual git filter-branch for fix-versions"
+      reason: "Currently only dry-run mode works"
+      estimate: "1-2 hours"
+      complexity: "High - needs careful git history manipulation"
+
+    - task: "Implement actual git filter-branch for harmonize-emails"
+      reason: "Currently only dry-run mode works"
+      estimate: "1-2 hours"
+      complexity: "High - needs git filter-branch --env-filter"
+
+  priority_3_nice_to_have:
+    - task: "Add crypto issue detection"
+      reason: "Complete the conditional section support"
+      estimate: "30 minutes"
+
+    - task: "Add more conditional sections (issues, warnings)"
+      reason: "Make overview even more contextual"
+      estimate: "45 minutes"
+
+    - task: "Implement caching for dependency checks"
+      reason: "Performance optimization"
+      estimate: "30 minutes"
+
+  priority_4_future:
+    - task: "Create 'workflow diagnose' command"
+      reason: "Comprehensive health check"
+      estimate: "1 hour"
+
+    - task: "Add progress bars for long operations"
+      reason: "Better UX for history scanning"
+      estimate: "45 minutes"
