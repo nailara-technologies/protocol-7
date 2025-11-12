@@ -6,18 +6,21 @@
 my $params = shift || {};
 
 my $force = $params->{force} // 0;
+my $key_phrase = $params->{key_phrase} // '';
+my $abort_after_valid = $params->{abort_after_valid} // 0;  ## 0 = scan all
 
 ## Check if already scanned recently
 unless ($force) {
-    my $age = time() - <workflow.history.scanned>;
+    my $last_scan = <workflow.history.scanned> // 0;
+    my $age = time() - $last_scan;
 
-    if ($age < 3600) {
+    if ($last_scan > 0 && $age < 3600) {
         <[base.log]>->( 2, "workflow.scan: history scanned ${age}s ago" );
         return {
             success => 1,
             cached  => 1,
             age     => $age,
-            issues  => scalar(keys %{<workflow.history.issues>})
+            issues  => scalar(keys %{<workflow.history.issues> // {}})
         };
     }
 }
@@ -48,9 +51,24 @@ my $issues_found = 0;
 my %versions_seen;
 my %emails_seen;
 
-## Scan each commit
+## Scan each commit (recent first for early abort optimization)
+my $consecutive_valid = 0;
+my $commits_scanned = 0;
+my %authors_seen;
+
 foreach my $commit (@$commits) {
     my $hash = $commit->{hash};
+
+    ## Filter by key phrase if provided
+    if (length $key_phrase) {
+        my $match = $commit->{subject} =~ m/\Q$key_phrase\E/i
+                 || $commit->{author} =~ m/\Q$key_phrase\E/i
+                 || $commit->{email} =~ m/\Q$key_phrase\E/i;
+        next unless $match;
+    }
+
+    $commits_scanned++;
+    my $has_issues = 0;
 
     ## Check for version number in subject
     unless ($commit->{subject} =~ m/\[v?\d+\.\d+\.\d+\]/) {
@@ -60,6 +78,7 @@ foreach my $commit (@$commits) {
             message => 'No version number in commit subject'
         };
         $issues_found++;
+        $has_issues = 1;
     } else {
         ## Track version numbers
         if ($commit->{subject} =~ m/\[v?(\d+\.\d+\.\d+)\]/) {
@@ -78,11 +97,26 @@ foreach my $commit (@$commits) {
                 message => 'Commit not signed with AMOS7'
             };
             $issues_found++;
+            $has_issues = 1;
         }
     }
 
-    ## Track email addresses for harmonization
+    ## Track email addresses and author names for harmonization
     $emails_seen{$commit->{email}}++;
+    $authors_seen{$commit->{author}}++;
+
+    ## Count consecutive valid commits for early abort
+    if ($has_issues) {
+        $consecutive_valid = 0;  ## Reset counter
+    } else {
+        $consecutive_valid++;
+
+        ## Abort if we've seen enough consecutive valid commits
+        if ($abort_after_valid > 0 && $consecutive_valid >= $abort_after_valid) {
+            <[base.log]>->( 2, "  Early abort: found $consecutive_valid consecutive valid commits" );
+            last;
+        }
+    }
 }
 
 ## Detect version gaps
@@ -104,23 +138,27 @@ for (my $i = 0; $i < @versions - 1; $i++) {
 ## Update statistics
 <workflow.history.scanned> = time();
 $data{'workflow'}{'stats'}{'commits_total'} = $total;
-$data{'workflow'}{'stats'}{'commits_analyzed'} = $total;
+$data{'workflow'}{'stats'}{'commits_analyzed'} = $commits_scanned;
 $data{'workflow'}{'stats'}{'issues_found'} = $issues_found;
 $data{'workflow'}{'stats'}{'history_scans'}++;
 
 <[base.log]>->( 2, "  ✓ Scan complete" );
+<[base.log]>->( 2, "    Commits scanned: $commits_scanned / $total" );
 <[base.log]>->( 2, "    Issues found: $issues_found" );
 <[base.log]>->( 2, "    Unsigned: " . scalar(@{<workflow.history.unsigned>}) );
 <[base.log]>->( 2, "    Version gaps: " . scalar(@{<workflow.history.gaps>}) );
 <[base.log]>->( 2, "    Email addresses: " . scalar(keys %emails_seen) );
+<[base.log]>->( 2, "    Author names: " . scalar(keys %authors_seen) );
 
 return {
-    success       => 1,
-    total_commits => $total,
-    issues_found  => $issues_found,
-    unsigned      => scalar(@{<workflow.history.unsigned>}),
-    version_gaps  => scalar(@{<workflow.history.gaps>}),
-    emails        => \%emails_seen
+    success         => 1,
+    total_commits   => $total,
+    scanned_commits => $commits_scanned,
+    issues_found    => $issues_found,
+    unsigned        => scalar(@{<workflow.history.unsigned>}),
+    version_gaps    => scalar(@{<workflow.history.gaps>}),
+    emails          => \%emails_seen,
+    authors         => \%authors_seen
 };
 
 ## Helper: Compare version strings

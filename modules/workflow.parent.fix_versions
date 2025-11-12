@@ -7,18 +7,25 @@ my $params = shift || {};
 
 my $dry_run = $params->{dry_run} // 1;  ## Safe by default
 my $auto_approve = $params->{auto_approve} // 0;
+my $key_phrase = $params->{key_phrase} // '';
+my $abort_after_valid = $params->{abort_after_valid} // 13;  ## Default optimization
 
 <[base.log]>->( 2, "workflow.fix_versions: analyzing commits needing version fixes..." );
 
-## Ensure history is scanned
-unless (<workflow.history.scanned>) {
-    <[workflow.parent.scan_history]>;
+## Ensure history is scanned with parameters
+my $last_scan = <workflow.history.scanned> // 0;
+unless ($last_scan > 0) {
+    <[workflow.parent.scan_history]>->({
+        key_phrase => $key_phrase,
+        abort_after_valid => $abort_after_valid
+    });
 }
 
 ## Find commits missing versions
 my @commits_to_fix;
 
-foreach my $hash (keys %{<workflow.history.issues>}) {
+my $issues_ref = <workflow.history.issues> // {};
+foreach my $hash (keys %{$issues_ref}) {
     my $issue = $data{'workflow'}{'history'}{'issues'}{$hash};
 
     if ($issue->{type} eq 'missing_version') {
