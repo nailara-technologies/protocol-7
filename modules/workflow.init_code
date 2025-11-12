@@ -3,8 +3,13 @@
 # name  = workflow.init_code
 # descr = workflow zenka initialization with yaml/workspace aggregation
 
-<[base.perlmod.autoload]>->('YAML::XS');
-<[base.perlmod.autoload]>->('Cwd');
+# Load YAML module with error handling
+eval {
+    <[base.perlmod.autoload]>->('YAML::XS');
+};
+if ($@) {
+    <[base.logs]>->( 1, 'YAML::XS not available, yaml aggregation disabled' );
+}
 
 our $PROTOCOL7_ROOT = '/home/user/protocol-7';
 our $YAML_DATA_DIR = "$PROTOCOL7_ROOT/data/yaml";
@@ -17,17 +22,20 @@ our $WORKSPACE_INDEX = "$INDEX_DIR/workspace-transfer-index.yaml";
 # Index cache duration (seconds) - regenerate if older than this
 our $INDEX_TTL = 300; # 5 minutes
 
+# Functions must be in workflow package namespace
+package workflow;
+
 # Scan data/yaml for task files
 sub scan_yaml_tasks {
     my %tasks;
-
     return \%tasks unless -d $YAML_DATA_DIR;
 
-    # Scan coding-tasks using Protocol-7's file matching
+    # Scan coding-tasks
     my $coding_tasks_dir = "$YAML_DATA_DIR/coding-tasks";
     if (-d $coding_tasks_dir) {
-        my $files = <[base.file.match_files]>->($coding_tasks_dir, '*.yaml');
-        foreach my $file (@$files) {
+        opendir my $dh, $coding_tasks_dir or return \%tasks;
+        while (my $file = readdir($dh)) {
+            next unless $file =~ /\.yaml$/;
             my $path = "$coding_tasks_dir/$file";
             eval {
                 my $data = YAML::XS::LoadFile($path);
@@ -39,13 +47,15 @@ sub scan_yaml_tasks {
                 };
             };
         }
+        closedir $dh;
     }
 
-    # Scan deferred-tasks using Protocol-7's file matching
+    # Scan deferred-tasks
     my $deferred_dir = "$YAML_DATA_DIR/deferred-tasks";
     if (-d $deferred_dir) {
-        my $files = <[base.file.match_files]>->($deferred_dir, '*.yaml');
-        foreach my $file (@$files) {
+        opendir my $dh, $deferred_dir or return \%tasks;
+        while (my $file = readdir($dh)) {
+            next unless $file =~ /\.yaml$/;
             my $path = "$deferred_dir/$file";
             eval {
                 my $data = YAML::XS::LoadFile($path);
@@ -57,6 +67,7 @@ sub scan_yaml_tasks {
                 };
             };
         }
+        closedir $dh;
     }
 
     return \%tasks;
@@ -126,11 +137,11 @@ sub scan_workspace_repos {
     my $var_run_dir = '/var/run/.7';
     return \@repos unless -d $var_run_dir;
 
-    # Use Protocol-7's dir matching function
-    my $dirs = <[base.file.match_dirs]>->($var_run_dir, '*');
-    foreach my $entry (@$dirs) {
+    opendir my $dh, $var_run_dir or return \@repos;
+    while (my $entry = readdir($dh)) {
+        next if $entry =~ /^\./;
         my $path = "$var_run_dir/$entry";
-        next unless -d "$path/.git";
+        next unless -d $path && -d "$path/.git";
 
         push @repos, {
             name => $entry,
@@ -138,6 +149,7 @@ sub scan_workspace_repos {
             source => 'workspace-transfer'
         };
     }
+    closedir $dh;
 
     return \@repos;
 }
