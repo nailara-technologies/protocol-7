@@ -83,29 +83,69 @@ unless (exists $code{'source.load_signature_key'}) {
     <[base.load_modules]>->('source');
 }
 
-## Get signature key name from source config (set in source.init_code)
-my $sig_key_name = <source.C25519.signature_key_name> // qw| proto-7.sourcecode |;
-<[base.log]>->( 2, "  Loading signature key '$sig_key_name'..." );
+## Detect and load signing key (with fallback logic like version-sign-commit)
+my $prod_key_name = <source.C25519.signature_key_name> // qw| proto-7.sourcecode |;
+my $test_key_name = qw| test-proto7-sourcecode |;
+my $sig_key_name;
+my $key_mode = 'unknown';
 
-unless (<[crypt.C25519.key_exists]>->($sig_key_name)) {
+<[base.log]>->( 2, "  Detecting available signing keys..." );
+
+## Try to load production key first
+if (<[crypt.C25519.key_exists]>->($prod_key_name)) {
+    <[base.log]>->( 2, "  Loading production key '$prod_key_name'..." );
+    <[crypt.C25519.load_keypair]>->($prod_key_name);
+
+    if (exists $keys{'C25519'}{$prod_key_name}
+        && exists $keys{'C25519'}{$prod_key_name}{'private'}
+        && exists $keys{'C25519'}{$prod_key_name}{'public'}) {
+        $sig_key_name = $prod_key_name;
+        $key_mode = 'production';
+        <[base.log]>->( 2, "  ✓ Production key loaded" );
+    }
+}
+
+## Fallback to test key if production key not available
+unless ($sig_key_name) {
+    <[base.log]>->( 2, "  Production key not available, checking for test key..." );
+
+    if (<[crypt.C25519.key_exists]>->($test_key_name)) {
+        <[base.log]>->( 2, "  Loading test key '$test_key_name'..." );
+        <[crypt.C25519.load_keypair]>->($test_key_name);
+
+        if (exists $keys{'C25519'}{$test_key_name}
+            && exists $keys{'C25519'}{$test_key_name}{'private'}
+            && exists $keys{'C25519'}{$test_key_name}{'public'}) {
+            $sig_key_name = $test_key_name;
+            $key_mode = 'test';
+            <[base.log]>->( 2, "  ✓ Test key loaded" );
+        }
+    } else {
+        ## Try to create test key
+        <[base.log]>->( 2, "  Creating test key '$test_key_name'..." );
+
+        if (exists $code{'crypt.C25519.gen_keys'}) {
+            my ($new_key, $created_name) = <[crypt.C25519.gen_keys]>->($test_key_name);
+
+            if (defined $new_key) {
+                $sig_key_name = $test_key_name;
+                $key_mode = 'test';
+                <[base.log]>->( 2, "  ✓ Test key created and loaded" );
+            }
+        }
+    }
+}
+
+## Final check - we need a key to proceed
+unless ($sig_key_name) {
     return {
         success => 0,
-        error   => "Signature key '$sig_key_name' does not exist - cannot sign commits"
+        error   => "No signing keys available (tried '$prod_key_name' and '$test_key_name')",
+        hint    => "Create a signing key or run on a system with access to keys"
     };
 }
 
-<[crypt.C25519.load_keypair]>->($sig_key_name);
-
-unless (exists $keys{'C25519'}{$sig_key_name}
-    && exists $keys{'C25519'}{$sig_key_name}{'private'}
-    && exists $keys{'C25519'}{$sig_key_name}{'public'}) {
-    return {
-        success => 0,
-        error   => "Failed to load signature key '$sig_key_name'"
-    };
-}
-
-<[base.log]>->( 2, "  ✓ Signature key loaded" );
+<[base.log]>->( 1, "  Using $key_mode key: $sig_key_name" );
 
 ## Get repository path
 my $repo_path = <git.cfg.repository_path>;
