@@ -248,7 +248,7 @@ if (exists $commit_data{$commit_hash}) {
     my $signature = $data->{signature} // '';
 
     ## Only add version if not already present (check for full format TIMESTAMP-COUNT.MINOR)
-    unless ($message =~ /^\[([A-Z0-9]+-\d+\.\d+|\d+)\]/) {
+    unless ($message =~ /^\[[A-Z0-9]+-\d+\.\d+\]/) {
         $message = "[$version] $message";
     }
 
