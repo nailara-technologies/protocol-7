@@ -47,9 +47,24 @@ say '';
 say ' : ✓ Version updated';
 say '';
 
-## Detect signing mode based on key presence
+## Explicitly load crypto keys (since auto_load_keys is disabled for workflow zenka)
 my $sig_key_name = qw| proto-7.sourcecode |;
 my $test_key_name = qw| test-proto7-sourcecode |;
+
+# Attempt to load user's base key if not already loaded
+my $base_key_name = <[crypt.C25519.key_vars]>->()->{'key_name'};
+if ($base_key_name && !exists $keys{'C25519'}{$base_key_name}) {
+    if (<[crypt.C25519.key_exists]>->($base_key_name)) {
+        <[crypt.C25519.load_keypair]>->($base_key_name);
+    }
+}
+
+# Attempt to load production key if it exists
+if (!exists $keys{'C25519'}{$sig_key_name} && <[crypt.C25519.key_exists]>->($sig_key_name)) {
+    <[crypt.C25519.load_keypair]>->($sig_key_name);
+}
+
+## Detect signing mode based on key presence
 my $use_production_key = 0;
 my $use_test_key = 0;
 my $key_mode = 'unknown';
