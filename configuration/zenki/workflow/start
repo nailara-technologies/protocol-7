@@ -6,11 +6,16 @@
 system.verbosity.zenka_buffer = 2
 system.verbosity.zenka_logfile = 2
 
-## Disable automatic key loading for workflow zenka (read-only operations) ##
+## Conditional key loading based on command ##
+## Disable by default (for read-only commands like fix-versions, harmonize-emails)
+## Enable only for commands that need signing (version-sign-commit)
 crypt.C25519.auto_load_keys = no
 
 ## Enable automatic key creation for workflow zenka ##
 crypt.C25519.autocreate-user-key = yes
+
+## Enable key loading for version-sign-commit command ##
+crypt.C25519.auto_load_keys = yes :: <system.args> ~~ m/version-sign-commit/
 
 ## Git repository path for workflow operations ##
 git.cfg.repository_path = /data/projects/protocol-7
