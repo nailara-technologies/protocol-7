@@ -26,12 +26,12 @@ my @commits_to_fix;
 
 my $issues_ref = <workflow.history.issues> // {};
 foreach my $hash (keys %{$issues_ref}) {
-    my $issue = $data{'workflow'}{'history'}{'issues'}{$hash};
+    my $issue = $issues_ref->{$hash} // next;
 
-    if ($issue->{type} eq 'missing_version') {
+    if (($issue->{type} // '') eq 'missing_version') {
         push @commits_to_fix, {
             hash   => $hash,
-            commit => $issue->{commit}
+            commit => $issue->{commit} // {}
         };
     }
 }
@@ -53,10 +53,9 @@ if ($dry_run) {
     <[base.log]>->( 2, "  DRY RUN - showing what would be fixed:" );
 
     foreach my $item (@commits_to_fix) {
-        <[base.log]>->( 2, sprintf("    %s: %s",
-            substr($item->{hash}, 0, 7),
-            $item->{commit}{subject}
-        ));
+        my $hash_short = substr($item->{hash} // '', 0, 7);
+        my $subject = $item->{commit}{subject} // 'no subject';
+        <[base.log]>->( 2, sprintf("    %s: %s", $hash_short, $subject));
     }
 
     return {
