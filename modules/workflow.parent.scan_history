@@ -8,6 +8,7 @@ my $params = shift || {};
 my $force = $params->{force} // 0;
 my $key_phrase = $params->{key_phrase} // '';
 my $abort_after_valid = $params->{abort_after_valid} // 0;  ## 0 = scan all
+my $branch_scope = $params->{branch_scope} // 'HEAD';  ## 'HEAD' (current branch), 'all', or specific branch
 
 ## Check if already scanned recently
 unless ($force) {
@@ -26,9 +27,13 @@ unless ($force) {
 }
 
 <[base.log]>->( 2, "workflow.scan: scanning git history for issues..." );
+<[base.log]>->( 3, "  Scope: $branch_scope" ) if $branch_scope ne 'HEAD';
 
 ## Get git log
-my $log_result = <[git.parent.get_log]>->({ force => 1 });
+my $log_result = <[git.parent.get_log]>->({
+    force => 1,
+    branch_scope => $branch_scope
+});
 
 unless ($log_result->{success}) {
     return {
