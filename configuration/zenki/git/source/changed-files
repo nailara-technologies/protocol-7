@@ -1,0 +1,32 @@
+#!/usr/bin/perl
+## [:< ##
+
+# name  = git.changed-files
+# descr = Extract list of changed files from git status
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use File::Spec;
+use Cwd qw| abs_path |;
+use FindBin qw| $RealBin |;
+
+## Wrapper around bin/admin/vc-changed-files ##
+
+my $up_dir = File::Spec->updir;
+my $p7_root = abs_path(
+    File::Spec->catdir( $RealBin, ($up_dir) x 4 )
+);
+
+my $vc_changed = File::Spec->catfile( $p7_root, 'bin', 'admin', 'vc-changed-files' );
+
+die ":\n:: vc-changed-files not found: $vc_changed\n\n" if !-x $vc_changed;
+
+exec( $vc_changed, @ARGV );
+
+#,,,.,,,,,.,,,.,,,.,.,,.,,,..,,,,,.,.,,..,,,.,,,.,..,,...,...,,.,,,,.,,,.,.,.,,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
