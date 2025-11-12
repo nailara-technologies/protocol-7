@@ -1,6 +1,8 @@
 # 🚀 New Session? Start Here!
 
 **Quick Start Command:**
+**Alternative: Check `.env.session` for environment-based context**
+
 ```bash
 cd /data/projects/protocol-7 && ./bin/Protocol-7 workflow overview
 ```
