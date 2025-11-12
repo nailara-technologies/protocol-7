@@ -29,14 +29,29 @@ unless ($force) {
 <[base.log]>->( 2, "workflow.scan: scanning git history for issues..." );
 <[base.log]>->( 3, "  Scope: $branch_scope" ) if $branch_scope ne 'HEAD';
 
-## Early abort optimization: check version file first as a hint
-## If version file has proper format, recent commits likely have versions too
-my $version_file_valid = 0;
-my $src_ver = <protocol-7.src-ver> // '';
-if ($src_ver =~ m/^[A-Z0-9]+-\d+\.\d+$/) {
-    $version_file_valid = 1;
-    <[base.log]>->( 3, "  Version file has valid format: $src_ver (early abort hint)" );
+## Load source module and key for validation
+unless (exists $code{'source.signature_valid'}) {
+    <[base.log]>->( 3, "  Loading source module for validation..." );
+    <[base.load_modules]>->('source');
+    <[base.load_modules]>->('sourcecode');
 }
+
+## Load public key for verification (no passphrase needed)
+my $sig_key_name = <source.C25519.signature_key_name> // qw| proto-7.sourcecode |;
+unless (exists $keys{'C25519'}{$sig_key_name} && exists $keys{'C25519'}{$sig_key_name}{'public'}) {
+    <[base.log]>->( 3, "  Loading public key for verification..." );
+    ## Try loading from embedded public key first
+    if (exists $code{'base.protocol-7.source-key'} && <[base.protocol-7.source-key]>) {
+        <[crypt.C25519.load_from_string]>->($sig_key_name, <[base.protocol-7.source-key]>);
+    } elsif (<[crypt.C25519.key_exists]>->($sig_key_name)) {
+        <[crypt.C25519.load_keypair]>->($sig_key_name, undef, TRUE, FALSE);
+    }
+}
+
+## Get paths
+my $repo_path = <git.cfg.repository_path>;
+my $version_file_rel = 'configuration/protocol-7.src-ver';
+my $version_file_abs = File::Spec->catfile($repo_path, $version_file_rel);
 
 ## Get git log
 my $log_result = <[git.parent.get_log]>->({
@@ -89,7 +104,7 @@ foreach my $commit (@$commits) {
     $commits_scanned++;
     my $has_issues = 0;
 
-    ## Check for version number in subject
+    ## Step 1: Check for version number in subject
     ## Format: [TIMESTAMP-COUNT.MINOR] like [3K26XZWHJI-5339.0]
     unless ($subject =~ m/^\[[A-Z0-9]+-\d+\.\d+\]/) {
         $data{'workflow'}{'history'}{'issues'}{$hash} = {
@@ -104,11 +119,54 @@ foreach my $commit (@$commits) {
         if ($subject =~ m/^\[[A-Z0-9]+-(\d+)\.\d+\]/) {
             $versions_seen{$1} = 1;
         }
-    }
 
-    ## Note: Commit signatures don't exist yet - commits aren't mirrored into code directory
-    ## Later we can auto-commit git history snippets into the code directory and sign those
-    ## For now, we only check for version format presence
+        ## Step 2: Validate version file signature at this commit
+        my $version_file_content = `git show $hash:$version_file_rel 2>/dev/null`;
+        if ($? == 0 && length $version_file_content) {
+            ## Validate the version file signature
+            my $footer_data = <[source.extract_sig_body]>->(\$version_file_content, qw| strip |, 'strict');
+
+            if ($footer_data && $footer_data->{'was-present'} && $footer_data->{'structure-was-valid'}) {
+                my ($is_valid, $report) = <[source.signature_valid]>->(
+                    \$version_file_content, $footer_data, {}, $sig_key_name, 'strict'
+                );
+
+                unless ($is_valid) {
+                    ## Version file signature invalid
+                    $data{'workflow'}{'history'}{'issues'}{$hash} = {
+                        type    => qw| invalid_version_file |,
+                        commit  => $commit,
+                        message => 'Version file signature invalid'
+                    };
+                    $issues_found++;
+                    $has_issues = 1;
+                } else {
+                    ## Step 3: Version file valid - validate ALL source files at this commit
+                    ## This is expensive but ensures commit is fully valid
+                    ## TODO: Implement full source validation at commit (for now, trust version file)
+                    <[base.log]>->( 3, "  ✓ Commit $hash: version file signature valid" );
+                }
+            } else {
+                ## Version file has no valid signature
+                $data{'workflow'}{'history'}{'issues'}{$hash} = {
+                    type    => qw| unsigned_version_file |,
+                    commit  => $commit,
+                    message => 'Version file not signed or signature structure invalid'
+                };
+                $issues_found++;
+                $has_issues = 1;
+            }
+        } else {
+            ## Version file doesn't exist at this commit
+            $data{'workflow'}{'history'}{'issues'}{$hash} = {
+                type    => qw| missing_version_file |,
+                commit  => $commit,
+                message => 'Version file not found at this commit'
+            };
+            $issues_found++;
+            $has_issues = 1;
+        }
+    }
 
     ## Track email addresses and author names for harmonization
     $emails_seen{$email}++ if length $email;
