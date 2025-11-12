@@ -84,7 +84,7 @@ unless (exists $code{'source.sign_data'}) {
     <[base.load_modules]>->('sourcecode');
 }
 
-## Load signing key - only use production key (test keys are not verifiable)
+## Load signing key - let keys zenka auto-detect and handle everything
 my $sig_key_name = <source.C25519.signature_key_name> // qw| proto-7.sourcecode |;
 <[base.log]>->( 2, "  Loading signature key '$sig_key_name'..." );
 
@@ -94,26 +94,18 @@ my $key_already_loaded = exists $keys{'C25519'}{$sig_key_name}
     && exists $keys{'C25519'}{$sig_key_name}{'public'};
 
 unless ($key_already_loaded) {
-    ## Key not in memory - check if it exists on disk
-    my $key_exists = <[crypt.C25519.key_exists]>->($sig_key_name);
-    unless ($key_exists) {
-        return {
-            success => 0,
-            error   => "Signature key '$sig_key_name' does not exist on disk. Cannot sign commits with test keys - signatures must be verifiable against known public keys."
-        };
-    }
-
-    ## Load the key from disk
+    ## Try to load the key - keys zenka will auto-detect type and ask for passphrase if needed
     my $load_success = <[source.load_signature_key]>->($sig_key_name);
+
     unless ($load_success) {
         return {
             success => 0,
-            error   => "Failed to load signature key '$sig_key_name' from disk"
+            error   => "Failed to load signature key '$sig_key_name' - keys zenka could not load or generate key"
         };
     }
 }
 
-## Verify key is properly loaded with PRIVATE key (needed for signing)
+## Verify key is now loaded with PRIVATE key (needed for signing)
 unless (exists $keys{'C25519'}{$sig_key_name}
     && exists $keys{'C25519'}{$sig_key_name}{'private'}
     && exists $keys{'C25519'}{$sig_key_name}{'public'}) {
