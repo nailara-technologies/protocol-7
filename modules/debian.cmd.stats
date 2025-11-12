@@ -8,37 +8,62 @@ my @output;
 
 push @output, "Debian Dependency Management Statistics:";
 push @output, "";
-push @output, sprintf("Zenki Scanned:        %d", $data{'debian'}{'stats'}{zenki_scanned});
-push @output, sprintf("Last Scan:            %s",
-    $data{'debian'}{'stats'}{last_scan} ?
-    scalar(localtime($data{'debian'}{'stats'}{last_scan})) : 'never');
+push @output,
+    sprintf( "Zenki Scanned:        %d",
+    $data{'debian'}{'stats'}{zenki_scanned} );
+push @output,
+    sprintf( "Last Scan:            %s",
+    $data{'debian'}{'stats'}{last_scan}
+    ? scalar( localtime( $data{'debian'}{'stats'}{last_scan} ) )
+    : 'never' );
 push @output, "";
 push @output, "Dependencies:";
-push @output, sprintf("  Total PM deps:      %d", $data{'debian'}{'stats'}{total_pm_deps});
-push @output, sprintf("  Total OS deps:      %d", $data{'debian'}{'stats'}{total_os_deps});
-push @output, sprintf("  Missing deps:       %d", $data{'debian'}{'stats'}{missing_deps});
+push @output,
+    sprintf( "  Total PM deps:      %d",
+    $data{'debian'}{'stats'}{total_pm_deps} );
+push @output,
+    sprintf( "  Total OS deps:      %d",
+    $data{'debian'}{'stats'}{total_os_deps} );
+push @output,
+    sprintf( "  Missing deps:       %d",
+    $data{'debian'}{'stats'}{missing_deps} );
 push @output, "";
 push @output, "Debian Packages:";
-push @output, sprintf("  Available:          %d", $data{'debian'}{'stats'}{debian_available});
-push @output, sprintf("  Installed:          %d", $data{'debian'}{'stats'}{debian_installed});
+push @output,
+    sprintf( "  Available:          %d",
+    $data{'debian'}{'stats'}{debian_available} );
+push @output,
+    sprintf( "  Installed:          %d",
+    $data{'debian'}{'stats'}{debian_installed} );
 push @output, "";
 push @output, "CPAN Modules:";
-push @output, sprintf("  Via Debian:         %d",
-    scalar(grep { $_->{status} eq 'via_debian' }
-        values %{$data{'debian'}{'cpan_modules'}{'registry'}}));
-push @output, sprintf("  Via CPAN only:      %d", $data{'debian'}{'stats'}{cpan_only});
-push @output, sprintf("  Missing:            %d",
-    scalar(grep { $_->{status} eq 'missing' }
-        values %{$data{'debian'}{'cpan_modules'}{'registry'}}));
+push @output,
+    sprintf(
+    "  Via Debian:         %d",
+    scalar(
+        grep { $_->{status} eq 'via_debian' }
+            values %{ $data{'debian'}{'cpan_modules'}{'registry'} }
+    )
+    );
+push @output,
+    sprintf( "  Via CPAN only:      %d",
+    $data{'debian'}{'stats'}{cpan_only} );
+push @output,
+    sprintf(
+    "  Missing:            %d",
+    scalar(
+        grep { $_->{status} eq 'missing' }
+            values %{ $data{'debian'}{'cpan_modules'}{'registry'} }
+    )
+    );
 
 return {
     'mode' => qw| true |,
-    'data' => join("\n", @output)
+    'data' => join( "\n", @output )
 };
 
-#,.,.,,,.,.,.,,,,..,.,.,...,,.,,,.,,,,,.,,,..,,...,...,...,,,.,,.,,.,,,,..,.,,
-#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
-#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
-#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#,,..,..,,,..,..,,,,,,,,.,...,.,,,...,..,,,,,,..,,...,...,..,,...,.,.,,..,.,,,
+#35WUWMXVZEGXISWN44QNGO7ITOMDIRMN3Y5OPDY6LJG4B3Y3URCE6AGLUGX4X45NPS3UD4OBBVE3E
+#\\\|SGV3G6QQTX7A6ZRF77SHAQYR4T6HGRTQEAQMYS3335WDXVTVAGQ \ / AMOS7 \ YOURUM ::
+#\[7]XKE6EMUI5XI7LXIADPAHTSOEAW4NTFWMMHFUFVX7XIE35FTGYYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-

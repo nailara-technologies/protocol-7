@@ -18,15 +18,16 @@ if ( -d $zenka_cfg_path ) {
     foreach my $zenka_name (@zenki_dirs) {
         my $startup_file = "$zenka_cfg_path/$zenka_name/zenka-startup.v7";
         my $start_file   = "$zenka_cfg_path/$zenka_name/start";
+	my $warn_level = 2;
 
         if ( -f $start_file && !-f $startup_file ) {
             <[base.log]>->(
-                0, "⚠ zenka '$zenka_name' missing zenka-startup.v7 file"
+                $warn_level, "⚠ zenka '$zenka_name' missing zenka-startup.v7 file"
             );
             <[base.log]>->(
-                0, "  This zenka cannot be started by v7 without it."
+                $warn_level, "  This zenka cannot be started by v7 without it."
             );
-            <[base.log]>->( 0, "  Expected: $startup_file" );
+            <[base.log]>->( $warn_level, "  Expected: $startup_file" );
         }
     }
 }
@@ -56,8 +57,8 @@ if ( my @start_cfgs
     <[base.log]>->( 1, ": :.. no additional start-up configs .," );
 }
 
-#,,,,,.,,,,..,,..,,,,,.,.,,,,,.,.,..,,,..,.,.,..,,...,...,.,,,,,,,..,,.,.,.,,,
-#266MCDHOOOFWT7NKISBIJPVFCB5XHDP7YPNRBJCINAMC3PVSHAAH3WM4ZC6ZTLEMABTJIJI7ACTHC
-#\\\|RZQGCUCMYVP3KWSMZILEPBNFRSAGVWHK4TC7HLHZXPUT2FJHR4F \ / AMOS7 \ YOURUM ::
-#\[7]M6YDFNTHR72RZZT2AY5466E37P7SSC7764MI7LRERNAL7WPIK6BY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,...,,,.,.,,,,.,,,,.,.,,,,..,...,..,,...,...,..,,.,,,,,,,...,,,.,
+#EI4WNLA67RXOSOWMVGRRO7M6ULP3ZTLEGPBGUMXV432VR6J7T6HG6P5KUKDFPCFOBX3QSBICEAUP4
+#\\\|2IAI6SAA3Z5LGRW7O7VTKRJK5B2EOHQSG3K7MF7D27EVEILXBJC \ / AMOS7 \ YOURUM ::
+#\[7]XXAGOUTNSAUYNYYBNWKFDOKEFLUXJPYK73GMGS4ZXEJPOIBEAMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

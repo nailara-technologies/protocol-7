@@ -3,109 +3,104 @@
 # name = zenki.parent.ensure_v7
 # descr = Ensure v7 zenka is running (required for managing cube and other zenki)
 
-sub zenki_parent_ensure_v7 {
-    my $params = shift || {};
+my $params = shift || {};
 
-    <[base.log]>->( 3, "zenki.ensure: checking v7 zenka..." );
+<[base.log]>->( 3, "zenki.ensure: checking v7 zenka..." );
 
-    ## Check if v7 is already running
-    my $v7_check = <[zenki.parent.check_running]>->({ zenka => 'v7' });
+## Check if v7 is already running
+my $v7_check = <[zenki.parent.check_running]>->({ zenka => 'v7' });
 
-    if ($v7_check->{running}) {
-        <[base.log]>->( 3, "  ✓ v7 already running (PID: " . $v7_check->{pid} . ")" );
+if ($v7_check->{running}) {
+    <[base.log]>->( 3, "  ✓ v7 already running (PID: " . $v7_check->{pid} . ")" );
 
-        ## Update registry
-        $data{'zenki'}{'running'}{'v7'} = {
-            pid     => $v7_check->{pid},
-            started => $data{'zenki'}{'running'}{'v7'}{'started'} || time(),
-            status  => qw| running |
-        };
-
-        return {
-            success => 1,
-            already_running => 1,
-            pid => $v7_check->{pid}
-        };
-    }
-
-    ## v7 not running - need to start it
-    <[base.log]>->( 2, "  v7 not running - attempting to start..." );
-
-    ## Check if we have permission (need root for v7)
-    unless (<zenki.cfg.auto_start_v7>) {
-        <[base.log]>->( 0, "  Cannot auto-start v7: requires root permissions (UID=$UID)" );
-
-        return {
-            success => 0,
-            error   => 'v7 requires root permissions - run as root or start v7 manually',
-            requires_root => 1
-        };
-    }
-
-    ## Start v7
-    my $v7_binary = <zenki.cfg.v7_binary>;
-
-    unless (-x $v7_binary) {
-        return {
-            success => 0,
-            error   => "v7 binary not found or not executable: $v7_binary"
-        };
-    }
-
-    <[base.log]>->( 2, "  Starting v7: $v7_binary v7 &" );
-
-    ## Start v7 in background using system() with output redirection
-    ## This is the bootstrap case - v7 doesn't exist yet so we can't use jobqueue
-    my $result = system("$v7_binary v7 </dev/null >/dev/null 2>&1 &");
-
-    if ($result != 0) {
-        return {
-            success => 0,
-            error   => "failed to start v7: system() returned $result"
-        };
-    }
-
-    ## Wait for v7 to be ready
-    <[base.log]>->( 2, "  Waiting for v7 to start..." );
-
-    my $timeout = <zenki.cfg.v7_startup_timeout>;
-    my $start_time = time();
-
-    while (time() - $start_time < $timeout) {
-        sleep 1;
-
-        my $check = <[zenki.parent.check_running]>->({ zenka => 'v7' });
-
-        if ($check->{running}) {
-            <[base.log]>->( 2, "  ✓ v7 started successfully" );
-
-            ## Update registry and statistics
-            $data{'zenki'}{'running'}{'v7'} = {
-                pid     => $check->{pid},
-                started => time(),
-                status  => qw| running |
-            };
-
-            $data{'zenki'}{'stats'}{'v7_starts'}++;
-
-            return {
-                success => 1,
-                started => 1,
-                pid     => $check->{pid}
-            };
-        }
-    }
-
-    <[base.log]>->( 0, "  ✗ v7 startup timeout after ${timeout}s" );
+    ## Update registry
+    $data{'zenki'}{'running'}{'v7'} = {
+        pid     => $v7_check->{pid},
+        started => $data{'zenki'}{'running'}{'v7'}{'started'} || time(),
+        status  => qw| running |
+    };
 
     return {
-        success => 0,
-        error   => "v7 startup timeout after ${timeout}s"
+        success => 1,
+        already_running => 1,
+        pid => $v7_check->{pid}
     };
 }
 
-## Export
-$code{qw| zenki.parent.ensure_v7 |} = \&zenki_parent_ensure_v7;
+## v7 not running - need to start it
+<[base.log]>->( 2, "  v7 not running - attempting to start..." );
+
+## Check if we have permission (need root for v7)
+unless (<zenki.cfg.auto_start_v7>) {
+    <[base.log]>->( 0, "  Cannot auto-start v7: requires root permissions (UID=$UID)" );
+
+    return {
+        success => 0,
+        error   => 'v7 requires root permissions - run as root or start v7 manually',
+        requires_root => 1
+    };
+}
+
+## Start v7
+my $v7_binary = <zenki.cfg.v7_binary>;
+
+unless (-x $v7_binary) {
+    return {
+        success => 0,
+        error   => "v7 binary not found or not executable: $v7_binary"
+    };
+}
+
+<[base.log]>->( 2, "  Starting v7: $v7_binary v7 &" );
+
+## Start v7 in background using system() with output redirection
+## This is the bootstrap case - v7 doesn't exist yet so we can't use jobqueue
+my $result = system("$v7_binary v7 </dev/null >/dev/null 2>&1 &");
+
+if ($result != 0) {
+    return {
+        success => 0,
+        error   => "failed to start v7: system() returned $result"
+    };
+}
+
+## Wait for v7 to be ready
+<[base.log]>->( 2, "  Waiting for v7 to start..." );
+
+my $timeout = <zenki.cfg.v7_startup_timeout>;
+my $start_time = time();
+
+while (time() - $start_time < $timeout) {
+    sleep 1;
+
+    my $check = <[zenki.parent.check_running]>->({ zenka => 'v7' });
+
+    if ($check->{running}) {
+        <[base.log]>->( 2, "  ✓ v7 started successfully" );
+
+        ## Update registry and statistics
+        $data{'zenki'}{'running'}{'v7'} = {
+            pid     => $check->{pid},
+            started => time(),
+            status  => qw| running |
+        };
+
+        $data{'zenki'}{'stats'}{'v7_starts'}++;
+
+        return {
+            success => 1,
+            started => 1,
+            pid     => $check->{pid}
+        };
+    }
+}
+
+<[base.log]>->( 0, "  ✗ v7 startup timeout after ${timeout}s" );
+
+return {
+    success => 0,
+    error   => "v7 startup timeout after ${timeout}s"
+};
 
 0;
 
@@ -115,3 +110,8 @@ $code{qw| zenki.parent.ensure_v7 |} = \&zenki_parent_ensure_v7;
 #\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#,,..,,,.,.,.,,,,,,,,,,.,,.,.,..,,,.,,...,...,..,,...,...,,..,,,,,...,.,.,.,.,
+#I5EE2T34Z3HW6R2SOSDFGNADU7DGWUREPHR4VLMT4V22ZOAIZQCS5QELGF76IYQOOEVDZHMIWTCFW
+#\\\|WBGYXQ5GYMOJ2SLVN2DVQFLNOLM734ECLBQZGZLES2NS5MASUER \ / AMOS7 \ YOURUM ::
+#\[7]52WPRQ2HMG3QJ5VCKDWXCC7X4LFWAI3NFCPBHFJJBAPBVXH2RUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,127 +3,125 @@
 # name = workflow.parent.scan_history
 # descr = Scan git history for issues (missing versions, unsigned commits, email mismatches)
 
-sub workflow_parent_scan_history {
-    my $params = shift || {};
+my $params = shift || {};
 
-    my $force = $params->{force} // 0;
+my $force = $params->{force} // 0;
 
-    ## Check if already scanned recently
-    unless ($force) {
-        my $age = time() - <workflow.history.scanned>;
+## Check if already scanned recently
+unless ($force) {
+    my $age = time() - <workflow.history.scanned>;
 
-        if ($age < 3600) {
-            <[base.log]>->( 2, "workflow.scan: history scanned ${age}s ago" );
-            return {
-                success => 1,
-                cached  => 1,
-                age     => $age,
-                issues  => scalar(keys %{<workflow.history.issues>})
-            };
-        }
-    }
-
-    <[base.log]>->( 2, "workflow.scan: scanning git history for issues..." );
-
-    ## Get git log
-    my $log_result = <[git.parent.get_log]>->({ force => 1 });
-
-    unless ($log_result->{success}) {
+    if ($age < 3600) {
+        <[base.log]>->( 2, "workflow.scan: history scanned ${age}s ago" );
         return {
-            success => 0,
-            error   => 'failed to fetch git log'
+            success => 1,
+            cached  => 1,
+            age     => $age,
+            issues  => scalar(keys %{<workflow.history.issues>})
         };
     }
+}
 
-    my $commits = $log_result->{commits};
-    my $total = scalar(@$commits);
+<[base.log]>->( 2, "workflow.scan: scanning git history for issues..." );
 
-    <[base.log]>->( 2, "  Analyzing $total commits..." );
+## Get git log
+my $log_result = <[git.parent.get_log]>->({ force => 1 });
 
-    ## Reset issue tracking
-    <workflow.history.issues> = {};
-    <workflow.history.gaps> = [];
-    <workflow.history.unsigned> = [];
-
-    my $issues_found = 0;
-    my %versions_seen;
-    my %emails_seen;
-
-    ## Scan each commit
-    foreach my $commit (@$commits) {
-        my $hash = $commit->{hash};
-
-        ## Check for version number in subject
-        unless ($commit->{subject} =~ m/\[v?\d+\.\d+\.\d+\]/) {
-            $data{'workflow'}{'history'}{'issues'}{$hash} = {
-                type    => qw| missing_version |,
-                commit  => $commit,
-                message => 'No version number in commit subject'
-            };
-            $issues_found++;
-        } else {
-            ## Track version numbers
-            if ($commit->{subject} =~ m/\[v?(\d+\.\d+\.\d+)\]/) {
-                $versions_seen{$1} = 1;
-            }
-        }
-
-        ## Check for AMOS7 signature
-        unless ($commit->{subject} =~ m/#[A-Z0-9]{64}#/) {
-            push @{<workflow.history.unsigned>}, $hash;
-
-            unless (exists $data{'workflow'}{'history'}{'issues'}{$hash}) {
-                $data{'workflow'}{'history'}{'issues'}{$hash} = {
-                    type    => qw| unsigned |,
-                    commit  => $commit,
-                    message => 'Commit not signed with AMOS7'
-                };
-                $issues_found++;
-            }
-        }
-
-        ## Track email addresses for harmonization
-        $emails_seen{$commit->{email}}++;
-    }
-
-    ## Detect version gaps
-    my @versions = sort { _version_cmp($a, $b) } keys %versions_seen;
-
-    for (my $i = 0; $i < @versions - 1; $i++) {
-        my $current = $versions[$i];
-        my $next = $versions[$i + 1];
-
-        if (_version_gap($current, $next)) {
-            push @{<workflow.history.gaps>}, {
-                from => $current,
-                to   => $next,
-                gap  => _version_diff($current, $next)
-            };
-        }
-    }
-
-    ## Update statistics
-    <workflow.history.scanned> = time();
-    $data{'workflow'}{'stats'}{'commits_total'} = $total;
-    $data{'workflow'}{'stats'}{'commits_analyzed'} = $total;
-    $data{'workflow'}{'stats'}{'issues_found'} = $issues_found;
-    $data{'workflow'}{'stats'}{'history_scans'}++;
-
-    <[base.log]>->( 2, "  ✓ Scan complete" );
-    <[base.log]>->( 2, "    Issues found: $issues_found" );
-    <[base.log]>->( 2, "    Unsigned: " . scalar(@{<workflow.history.unsigned>}) );
-    <[base.log]>->( 2, "    Version gaps: " . scalar(@{<workflow.history.gaps>}) );
-    <[base.log]>->( 2, "    Email addresses: " . scalar(keys %emails_seen) );
-
+unless ($log_result->{success}) {
     return {
-        success       => 1,
-        total_commits => $total,
-        issues_found  => $issues_found,
-        unsigned      => scalar(@{<workflow.history.unsigned>}),
-        version_gaps  => scalar(@{<workflow.history.gaps>}),
-        emails        => \%emails_seen
+        success => 0,
+        error   => 'failed to fetch git log'
     };
 }
+
+my $commits = $log_result->{commits};
+my $total = scalar(@$commits);
+
+<[base.log]>->( 2, "  Analyzing $total commits..." );
+
+## Reset issue tracking
+<workflow.history.issues> = {};
+<workflow.history.gaps> = [];
+<workflow.history.unsigned> = [];
+
+my $issues_found = 0;
+my %versions_seen;
+my %emails_seen;
+
+## Scan each commit
+foreach my $commit (@$commits) {
+    my $hash = $commit->{hash};
+
+    ## Check for version number in subject
+    unless ($commit->{subject} =~ m/\[v?\d+\.\d+\.\d+\]/) {
+        $data{'workflow'}{'history'}{'issues'}{$hash} = {
+            type    => qw| missing_version |,
+            commit  => $commit,
+            message => 'No version number in commit subject'
+        };
+        $issues_found++;
+    } else {
+        ## Track version numbers
+        if ($commit->{subject} =~ m/\[v?(\d+\.\d+\.\d+)\]/) {
+            $versions_seen{$1} = 1;
+        }
+    }
+
+    ## Check for AMOS7 signature
+    unless ($commit->{subject} =~ m/#[A-Z0-9]{64}#/) {
+        push @{<workflow.history.unsigned>}, $hash;
+
+        unless (exists $data{'workflow'}{'history'}{'issues'}{$hash}) {
+            $data{'workflow'}{'history'}{'issues'}{$hash} = {
+                type    => qw| unsigned |,
+                commit  => $commit,
+                message => 'Commit not signed with AMOS7'
+            };
+            $issues_found++;
+        }
+    }
+
+    ## Track email addresses for harmonization
+    $emails_seen{$commit->{email}}++;
+}
+
+## Detect version gaps
+my @versions = sort { _version_cmp($a, $b) } keys %versions_seen;
+
+for (my $i = 0; $i < @versions - 1; $i++) {
+    my $current = $versions[$i];
+    my $next = $versions[$i + 1];
+
+    if (_version_gap($current, $next)) {
+        push @{<workflow.history.gaps>}, {
+            from => $current,
+            to   => $next,
+            gap  => _version_diff($current, $next)
+        };
+    }
+}
+
+## Update statistics
+<workflow.history.scanned> = time();
+$data{'workflow'}{'stats'}{'commits_total'} = $total;
+$data{'workflow'}{'stats'}{'commits_analyzed'} = $total;
+$data{'workflow'}{'stats'}{'issues_found'} = $issues_found;
+$data{'workflow'}{'stats'}{'history_scans'}++;
+
+<[base.log]>->( 2, "  ✓ Scan complete" );
+<[base.log]>->( 2, "    Issues found: $issues_found" );
+<[base.log]>->( 2, "    Unsigned: " . scalar(@{<workflow.history.unsigned>}) );
+<[base.log]>->( 2, "    Version gaps: " . scalar(@{<workflow.history.gaps>}) );
+<[base.log]>->( 2, "    Email addresses: " . scalar(keys %emails_seen) );
+
+return {
+    success       => 1,
+    total_commits => $total,
+    issues_found  => $issues_found,
+    unsigned      => scalar(@{<workflow.history.unsigned>}),
+    version_gaps  => scalar(@{<workflow.history.gaps>}),
+    emails        => \%emails_seen
+};
 
 ## Helper: Compare version strings
 sub _version_cmp {
@@ -167,3 +165,8 @@ $code{qw| workflow.parent.scan_history |} = \&workflow_parent_scan_history;
 #\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#,,,.,,,.,...,,..,..,,.,.,,.,,.,,,.,,,..,,,..,..,,...,...,...,...,..,,,.,,...,
+#BBXVG4F6DGY57LAGPXURNWZXDNTGKZPHX5TCLFQTJEBQAZ2ULJZFIIDVPZW4VBO2XC3Z63VBBMZBM
+#\\\|VQHTC66TDAFTSLWSXPRYWE2MSXEYLB7BIZ2KRDOLMRWV254BC4M \ / AMOS7 \ YOURUM ::
+#\[7]HHZROOJJFRYA2MV4BHFTWJ4LYUE5AKCEC5NSQD3UQASWR23FFYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

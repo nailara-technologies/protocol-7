@@ -1,0 +1,92 @@
+## [:< ##
+
+# name  = debian.parent.callback.register_cpan_module
+# descr = register a zenka perl module dependency
+
+my $module = shift;
+my $zenka  = shift;
+
+## Ensure registries are initialized
+$data{'debian'}{'cpan_modules'}{'registry'} //= {};
+$data{'debian'}{'cpan_modules'}{'by_name'}  //= {};
+
+## Ensure list is initialized if not already
+unless ( exists $data{'_list_meta'}{'cpan-modules'} ) {
+    <[base.list.init]>->(
+        {   'name'         => qw| cpan-modules |,
+            'key_ref'      => \$data{'debian'}{'cpan_modules'}{'registry'},
+            'max_elements' => 4096
+        }
+    );
+}
+
+## Check if already registered
+my $module_id = $data{'debian'}{'cpan_modules'}{'by_name'}->{$module};
+
+if ( defined $module_id ) {
+    ## Update zenki list
+    my $reg = $data{'debian'}{'cpan_modules'}{'registry'}{$module_id};
+    push @{ $reg->{zenki_list} }, $zenka
+        unless grep { $_ eq $zenka } @{ $reg->{zenki_list} || [] };
+
+    ## Also ensure module is in the debian package's cpan_modules list
+    if ( $reg->{debian_package} ) {
+        my $pkg_id = $data{'debian'}{'packages'}{'by_name'}
+            ->{ $reg->{debian_package} };
+        ## Register package if it doesn't exist yet
+        if ( !$pkg_id ) {
+            $pkg_id = <[debian.parent.callback.register_deb_package]>->(
+                $reg->{debian_package}, $zenka
+            );
+        }
+        if ($pkg_id) {
+            my $pkg = $data{'debian'}{'packages'}{'registry'}{$pkg_id};
+            push @{ $pkg->{cpan_modules} }, $module
+                unless grep { $_ eq $module } @{ $pkg->{cpan_modules} || [] };
+        }
+    }
+    return $module_id;
+}
+
+## Resolve to debian package
+my $debian_pkg = <[debian.parent.resolve_cpan_to_debian]>->($module);
+
+## Add to registry
+$module_id = <[base.list.element.add]>->(
+    {   'key_ref' => \$data{'debian'}{'cpan_modules'}{'registry'},
+        'val_ref' => \{
+            module         => $module,
+            debian_package => $debian_pkg,
+            status         => qw| unknown |,
+            zenki_list     => [$zenka]
+        }
+    }
+);
+
+if ( defined $module_id ) {
+    $data{'debian'}{'cpan_modules'}{'by_name'}->{$module} = $module_id;
+
+    ## Also add module to the debian package's cpan_modules list
+    if ($debian_pkg) {
+        my $pkg_id = $data{'debian'}{'packages'}{'by_name'}->{$debian_pkg};
+        ## Register package if it doesn't exist yet
+        if ( !$pkg_id ) {
+            $pkg_id = <[debian.parent.callback.register_deb_package]>->(
+                $debian_pkg, $zenka
+            );
+        }
+        if ($pkg_id) {
+            my $pkg = $data{'debian'}{'packages'}{'registry'}{$pkg_id};
+            push @{ $pkg->{cpan_modules} }, $module
+                unless grep { $_ eq $module } @{ $pkg->{cpan_modules} || [] };
+        }
+    }
+}
+
+return $module_id;
+
+#,,.,,.,,,,,,,,,,,,.,,,.,,,,.,...,.,.,,.,,..,,..,,...,...,..,,..,,.,,,,,.,,..,
+#NZBZ2VN243WI5DTCU3TIORZHWRCHGXS7EHKPANF3OWZMLZDNUAGCZ3OHI5BPFZOX2ZFP4TCEVFGRW
+#\\\|YSTT3UJ6Y3UNHH7K56SDYFIVVEKB3WAN7B2REHVP336FXUE33YB \ / AMOS7 \ YOURUM ::
+#\[7]K65OICT2B54R7PVW2BCRT2X6KYRVU6J4DZ3ZTEGULRVYUDI7JMDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

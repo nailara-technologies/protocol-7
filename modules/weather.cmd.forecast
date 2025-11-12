@@ -3,8 +3,7 @@
 # name = weather.cmd.forecast
 # descr = Format weather forecast for web display with psychedelic styling
 
-sub weather_cmd_forecast {
-    my $params = shift || {};
+my $params = shift || {};
 
     my $days = $params->{days} || 5;
 
@@ -25,10 +24,9 @@ sub weather_cmd_forecast {
     ## Limit to requested days
     @forecast = @forecast[ 0 .. ( $days - 1 ) ] if $days < scalar(@forecast);
 
-    my $html = _format_forecast_widget( \\@forecast );
+my $html = _format_forecast_widget( \@forecast );
 
-    return $html;
-}
+return $html;
 
 sub _format_forecast_widget {
     my ($forecast_ref) = @_;
@@ -73,9 +71,6 @@ sub _format_forecast_widget {
     return $html;
 }
 
-## Export command ##
-$code{qw| weather.cmd.forecast |} = \\&weather_cmd_forecast;
-
 0;
 
 #,,,.,,.,,,.,.,.,.,.,,,.,.,.,.,.,,,,,.,,.,,,.,,.,.,,,,,.,.,,,.,...,,,,,.,,..,,,,
@@ -84,3 +79,8 @@ $code{qw| weather.cmd.forecast |} = \\&weather_cmd_forecast;
 #\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#,,.,,,,.,..,,,,,,..,,..,,...,..,,..,,.,.,.,.,..,,...,...,.,,,,.,,,..,.,,,,..,
+#A3CCY4YHLO2KRZXTKD35GNT4V3BCO6B4CKCTWVBHHDDCJSPCHZKY5W2A7CBOBM53UNURQFZXRWQ5S
+#\\\|RB5EFZUYZTGILL5PKOL3QLGQFEDBHTBXOJGTFJ7W6BOCF4H4F6M \ / AMOS7 \ YOURUM ::
+#\[7]NWOTT5X7M75UYSHZZBWIQF3M3SYMAQATZ3Z4LPTDSRAAYNYLSSCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

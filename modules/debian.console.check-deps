@@ -7,8 +7,8 @@
 my $param = shift;
 my $zenka_filter;
 
-if (defined $param) {
-    if ($param =~ m/^zenka=(.+)$/) {
+if ( defined $param ) {
+    if ( $param =~ m/^zenka=(.+)$/ ) {
         $zenka_filter = $1;
     } else {
         $zenka_filter = $param;
@@ -17,14 +17,14 @@ if (defined $param) {
 
 ## Rescan to ensure latest info
 <[base.log]>->( 2, "Rescanning zenki dependencies..." );
-<[debian.parent.scan_zenki_dependencies]>();
+<[debian.parent.scan_zenki_dependencies]>;
 
 ## Run check
 <[base.log]>->( 2, "Checking installation status..." );
-my $result = <[debian.parent.check_installed]>();
+my $result = <[debian.parent.check_installed]>;
 
-unless ($result->{success}) {
-    <[base.log]>->( 0, "Check failed: " . ($result->{error} || 'unknown') );
+unless ( $result->{success} ) {
+    <[base.log]>->( 0, "Check failed: " . ( $result->{error} || 'unknown' ) );
     return say "::\n: ✗ Check failed\n::";
 }
 
@@ -42,16 +42,16 @@ if ($zenka_filter) {
     unless ($zenka_id) {
         push @output, ": Error: zenka '$zenka_filter' not found";
         push @output, "::";
-        return say join("\n", @output);
+        return say join( "\n", @output );
     }
 
     my $zenka = $data{'debian'}{'zenki_deps'}{'registry'}{$zenka_id};
 
-    push @output, sprintf(": Zenka: %s", $zenka_filter);
+    push @output, sprintf( ": Zenka: %s", $zenka_filter );
     push @output, ":";
 
     my $pm_missing = 0;
-    foreach my $pm (@{$zenka->{pm_deps} || []}) {
+    foreach my $pm ( @{ $zenka->{pm_deps} || [] } ) {
         my $mod_id = $data{'debian'}{'cpan_modules'}{'by_name'}{$pm};
         if ($mod_id) {
             my $mod = $data{'debian'}{'cpan_modules'}{'registry'}{$mod_id};
@@ -60,7 +60,7 @@ if ($zenka_filter) {
     }
 
     my $os_missing = 0;
-    foreach my $os (@{$zenka->{os_deps} || []}) {
+    foreach my $os ( @{ $zenka->{os_deps} || [] } ) {
         my $pkg_id = $data{'debian'}{'packages'}{'by_name'}{$os};
         if ($pkg_id) {
             my $pkg = $data{'debian'}{'packages'}{'registry'}{$pkg_id};
@@ -68,41 +68,60 @@ if ($zenka_filter) {
         }
     }
 
-    push @output, sprintf(":   PM deps: %d total, %d missing",
-        $zenka->{pm_deps_count} || 0, $pm_missing);
-    push @output, sprintf(":   OS deps: %d total, %d missing",
-        $zenka->{os_deps_count} || 0, $os_missing);
+    push @output,
+        sprintf( ":   PM deps: %d total, %d missing",
+        $zenka->{pm_deps_count} || 0, $pm_missing );
+    push @output,
+        sprintf( ":   OS deps: %d total, %d missing",
+        $zenka->{os_deps_count} || 0, $os_missing );
     push @output, ":";
 
-    if ($pm_missing + $os_missing == 0) {
+    if ( $pm_missing + $os_missing == 0 ) {
         push @output, ":   ✓ All dependencies satisfied";
     } else {
-        push @output, sprintf(":   ✗ %d dependencies missing",
-            $pm_missing + $os_missing);
+        push @output,
+            sprintf( ":   ✗ %d dependencies missing",
+            $pm_missing + $os_missing );
         push @output, ":";
         push @output, ":   To install: install-deps $zenka_filter";
     }
 
 } else {
     ## Show summary
-    push @output, sprintf(": Debian Packages: %d installed, %d missing",
-        $result->{installed_pkgs} || 0, $result->{missing_pkgs} || 0);
-    push @output, sprintf(": CPAN Modules: %d installed, %d missing",
-        ($result->{checked_modules} || 0) - ($result->{missing_modules} || 0),
-        $result->{missing_modules} || 0);
+    push @output,
+        sprintf(
+        ": Debian Packages: %d installed, %d missing",
+        $result->{installed_pkgs} || 0,
+        $result->{missing_pkgs}   || 0
+        );
+    push @output,
+        sprintf(
+        ": CPAN Modules: %d installed, %d missing",
+        ( $result->{checked_modules} || 0 )
+            - ( $result->{missing_modules} || 0 ),
+        $result->{missing_modules} || 0
+        );
     push @output, ":";
-    push @output, sprintf(": Zenki scanned: %d",
-        $data{'debian'}{'stats'}{'zenki_scanned'} || 0);
-    push @output, sprintf(": Total missing: %d",
-        $data{'debian'}{'stats'}{'missing_deps'} || 0);
+    push @output,
+        sprintf( ": Zenki scanned: %d",
+        $data{'debian'}{'stats'}{'zenki_scanned'} || 0 );
+    push @output,
+        sprintf( ": Total missing: %d",
+        $data{'debian'}{'stats'}{'missing_deps'} || 0 );
 }
 
 push @output, "::";
 
-return say join("\n", @output);
+return say join( "\n", @output );
 
 #,,,.,,,.,.,.,,,.,,,.,.,.,,,.,,.,,..,,...,.,.,.,,,..,,...,.,,,.,.,,.,,.,..,..,..,
 #PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
 #\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
 #\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,,,.,,,,,.,..,,.,,,,..,,..,,.,,.,.,,..,...,..,,...,...,,..,,,,,,,,,...,,..,
+#7DUW6BWBLJ4BCPU4MOEP3VP3C6UZZCHO4RMOM6QI5AXLJAPO6BR2EJG6Y2ZS3RJWEEIVE5VWJWLHQ
+#\\\|ZVTTNWSWLK6V3OAEK3I4ZMX57RXGL5GSYD36UBLWIWFVE7ZPLWS \ / AMOS7 \ YOURUM ::
+#\[7]WXCN2GPQSHLQCUVENYIT4MGKKR55GYXXOLV7O5SK76VPJZGSFACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

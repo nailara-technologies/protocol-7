@@ -3,37 +3,32 @@
 # name = debian.parent.resolve_cpan_to_debian
 # descr = Resolve CPAN module name to Debian package name
 
-sub debian_parent_resolve_cpan_to_debian {
-    my $cpan_module = shift;
+my $cpan_module = shift;
 
-    return undef unless $cpan_module;
+return undef unless $cpan_module;
 
-    ## Look up in known_dependencies
-    my $known = $data{'debian'}{'known_deps'}{perlmod}{$cpan_module};
+## Look up in known_dependencies
+my $known = $data{'debian'}{'known_deps'}{perlmod}{$cpan_module};
 
-    if ($known && $known->{debian}) {
-        ## Handle array of debian packages
-        if (ref($known->{debian}) eq 'ARRAY') {
-            ## Return first non-cpan: package
-            foreach my $pkg (@{$known->{debian}}) {
-                next if $pkg =~ /^cpan:/;
-                return $pkg;
-            }
+if ( $known && $known->{debian} ) {
+    ## Handle array of debian packages
+    if ( ref( $known->{debian} ) eq 'ARRAY' ) {
+        ## Return first non-cpan: package
+        foreach my $pkg ( @{ $known->{debian} } ) {
+            next if $pkg =~ /^cpan:/;
+            return $pkg;
         }
     }
-
-    ## Fallback: apply naming convention (Foo::Bar => libfoo-bar-perl)
-    my $debian_name = lc($cpan_module);
-    $debian_name =~ s/::/-/g;
-
-    ## Don't add lib prefix if already there
-    $debian_name = "lib$debian_name-perl" unless $debian_name =~ /^lib/;
-
-    return $debian_name;
 }
 
-## Export
-$code{qw| debian.parent.resolve_cpan_to_debian |} = \\&debian_parent_resolve_cpan_to_debian;
+## Fallback: apply naming convention (Foo::Bar => libfoo-bar-perl)
+my $debian_name = lc($cpan_module);
+$debian_name =~ s/::/-/g;
+
+## Don't add lib prefix if already there
+$debian_name = "lib$debian_name-perl" unless $debian_name =~ /^lib/;
+
+return $debian_name;
 
 0;
 
@@ -43,3 +38,8 @@ $code{qw| debian.parent.resolve_cpan_to_debian |} = \\&debian_parent_resolve_cpa
 #\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#,,.,,,,,,,.,,,,.,...,...,,,.,,,,,,,.,,,.,,,.,..,,...,...,,..,,..,.,.,,.,,,..,
+#F7RHW7T2JBLTSF75UMMMYUEWCPZOQGQWZARTYUMJGXTUIKMRWYZ7DIBCGVUEEXTU4CMVYVKQQVMGG
+#\\\|D7GDJOSEQK2MB6SZMQTXKBCQY5FWKPPXP6HKK6RAVU6ICU3HOQW \ / AMOS7 \ YOURUM ::
+#\[7]CU64YVYFBKNKZAOT3TTYAG5HJUJD2D5O5TV75PCLPDKR23C3UQCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

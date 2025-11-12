@@ -4,29 +4,36 @@
 # descr = Show dependencies for specific zenka
 # param = <zenka_name>
 
-my $param = shift;
+my $param      = shift;
 my $zenka_name = $param->{'args'};
 
 unless ($zenka_name) {
     ## List all zenki
     my @output = ("Available zenki:");
 
-    foreach my $zenka_id (sort {
-        $data{'debian'}{'zenki_deps'}{'registry'}{$a}{zenka} cmp
-        $data{'debian'}{'zenki_deps'}{'registry'}{$b}{zenka}
-    } keys %{$data{'debian'}{'zenki_deps'}{'registry'}}) {
+    foreach my $zenka_id (
+        sort {
+            $data{'debian'}{'zenki_deps'}{'registry'}{$a}{zenka}
+                cmp $data{'debian'}{'zenki_deps'}{'registry'}{$b}{zenka}
+        } keys %{ $data{'debian'}{'zenki_deps'}{'registry'} }
+    ) {
         my $z = $data{'debian'}{'zenki_deps'}{'registry'}{$zenka_id};
-        my $status_icon = $z->{status} eq 'complete' ? '✓' :
-                          $z->{status} eq 'partial' ? '⚠' : '✗';
+        my $status_icon
+            = $z->{status} eq 'complete' ? '✓'
+            : $z->{status} eq 'partial'  ? '⚠'
+            :                              '✗';
 
-        push @output, sprintf("  [%s] %-20s  pm:%2d  os:%2d  missing:%2d",
-            $status_icon, $z->{zenka},
-            $z->{pm_deps_count}, $z->{os_deps_count}, $z->{missing_count});
+        push @output,
+            sprintf(
+            "  [%s] %-20s  pm:%2d  os:%2d  missing:%2d",
+            $status_icon,        $z->{zenka}, $z->{pm_deps_count},
+            $z->{os_deps_count}, $z->{missing_count}
+            );
     }
 
     return {
         'mode' => qw| true |,
-        'data' => join("\n", @output)
+        'data' => join( "\n", @output )
     };
 }
 
@@ -48,19 +55,22 @@ push @output, "Status: " . $zenka->{status};
 push @output, "";
 
 ## Show Perl module dependencies
-if (@{$zenka->{pm_deps} || []}) {
-    push @output, "Perl Module Dependencies (" . $zenka->{pm_deps_count} . "):";
+if ( @{ $zenka->{pm_deps} || [] } ) {
+    push @output,
+        "Perl Module Dependencies (" . $zenka->{pm_deps_count} . "):";
 
-    foreach my $pm (@{$zenka->{pm_deps}}) {
+    foreach my $pm ( @{ $zenka->{pm_deps} } ) {
         my $mod_id = $data{'debian'}{'cpan_modules'}{'by_name'}{$pm};
         if ($mod_id) {
             my $mod = $data{'debian'}{'cpan_modules'}{'registry'}{$mod_id};
-            my $status_icon = $mod->{status} eq 'via_debian' ? '✓deb' :
-                              $mod->{status} eq 'via_cpan' ? '✓cpan' : '✗';
+            my $status_icon
+                = $mod->{status} eq 'via_debian' ? '✓deb'
+                : $mod->{status} eq 'via_cpan'   ? '✓cpan'
+                :                                  '✗';
 
             my $deb_pkg = $mod->{debian_package} || 'N/A';
-            push @output, sprintf("  [%5s] %-30s  → %s",
-                $status_icon, $pm, $deb_pkg);
+            push @output,
+                sprintf( "  [%5s] %-30s  → %s", $status_icon, $pm, $deb_pkg );
         } else {
             push @output, "  [    ?] $pm  (not in registry)";
         }
@@ -70,18 +80,18 @@ if (@{$zenka->{pm_deps} || []}) {
 }
 
 ## Show OS dependencies
-if (@{$zenka->{os_deps} || []}) {
+if ( @{ $zenka->{os_deps} || [] } ) {
     push @output, "OS Dependencies (" . $zenka->{os_deps_count} . "):";
 
-    foreach my $os (@{$zenka->{os_deps}}) {
+    foreach my $os ( @{ $zenka->{os_deps} } ) {
         my $pkg_id = $data{'debian'}{'packages'}{'by_name'}{$os};
         if ($pkg_id) {
             my $pkg = $data{'debian'}{'packages'}{'registry'}{$pkg_id};
             my $status_icon = $pkg->{status} eq 'installed' ? '✓' : '✗';
-            my $version = $pkg->{installed_version} || 'N/A';
+            my $version     = $pkg->{installed_version} || 'N/A';
 
-            push @output, sprintf("  [%s] %-40s  %s",
-                $status_icon, $os, $version);
+            push @output,
+                sprintf( "  [%s] %-40s  %s", $status_icon, $os, $version );
         } else {
             push @output, "  [?] $os  (not in registry)";
         }
@@ -90,12 +100,11 @@ if (@{$zenka->{os_deps} || []}) {
 
 return {
     'mode' => qw| true |,
-    'data' => join("\n", @output)
+    'data' => join( "\n", @output )
 };
 
-#,,.,,.,.,,,.,.,,,...,,,.,.,.,.,.,,,.,.,,,..,,...,...,...,,,,.,...,...,...,.,.
-#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
-#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
-#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#,,,.,..,,..,,,,.,.,,,.,.,,.,,,,.,,.,,,,,,...,..,,...,...,.,,,..,,,.,,,,.,,,,,
+#H6RE5GUTPGOUIHQKMMIJKAIWFDYF4HVP2SP46RS6MHOYAGR2QSAZPJV6TIADLSI2TIZ2TKXKLEPBY
+#\\\|YSPXATTFJ2T74Z3TVWLVB7UGAI7NT3ZHFBLISUHKEUPOYS7PCJZ \ / AMOS7 \ YOURUM ::
+#\[7]RA72EVZ2567PX4DRUTPSZ5WAVXKZFSYABN3LCTTPAKBABTURP6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-

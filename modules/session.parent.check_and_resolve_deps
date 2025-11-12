@@ -3,12 +3,11 @@
 # name = session.parent.check_and_resolve_deps
 # descr = Smart dependency resolution - auto-install when unambiguous, helper when needed
 
-sub session_parent_check_and_resolve_deps {
-    my $params = shift || {};
+my $params = shift || {};
 
-    my $force = $params->{force} // 0;
+my $force = $params->{force} // 0;
 
-    ## Don't check again if already done this session (unless forced)
+## Don't check again if already done this session (unless forced)
     if (<session.cfg.check_performed> && !$force) {
         <[base.log]>->( 3, "session.deps: check already performed this session" );
         return { success => 1, already_checked => 1 };
@@ -32,8 +31,8 @@ sub session_parent_check_and_resolve_deps {
     }
 
     ## Perform scan
-    <[debian.parent.scan_zenki_dependencies]>();
-    <[debian.parent.check_installed]>();
+    <[debian.parent.scan_zenki_dependencies]>;
+    <[debian.parent.check_installed]>;
 
     ## Check what's missing
     my $stats = $data{'debian'}{'stats'} || {};
@@ -56,7 +55,7 @@ sub session_parent_check_and_resolve_deps {
     ## Unambiguous case: Only minimal/base dependencies missing
     ## Ambiguous case: Zenka-specific deps missing, user should choose
 
-    my $minimal_missing = <[session.parent.check_minimal_deps]>();
+    my $minimal_missing = <[session.parent.check_minimal_deps]>;
 
     if ($minimal_missing && <session.cfg.auto_install_minimal>) {
         ## UNAMBIGUOUS: Just install minimal dependencies automatically
@@ -95,7 +94,7 @@ sub session_parent_check_and_resolve_deps {
 
         ## TODO: Start startup zenka here
         ## For now, show helpful message
-        <[session.parent.show_startup_help]>();
+        <[session.parent.show_startup_help]>;
 
         return {
             success => 1,
@@ -110,10 +109,6 @@ sub session_parent_check_and_resolve_deps {
         missing_count => $missing_count,
         message => "Missing $missing_count dependencies - run 'debian check-deps' for details"
     };
-}
-
-## Export
-$code{qw| session.parent.check_and_resolve_deps |} = \&session_parent_check_and_resolve_deps;
 
 0;
 
@@ -123,3 +118,8 @@ $code{qw| session.parent.check_and_resolve_deps |} = \&session_parent_check_and_
 #\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#,,..,..,,,.,,,.,,...,.,.,,.,,,.,,.,,,...,...,..,,...,...,,,.,,..,,,,,.,.,,,.,
+#MUIB63YIBNXD7X2NBK55IULQYXJMY3DIIZCO4ZCLW6XLLYMMCJUOHDXKMQ35TYCF7RZUJFPXD6OVU
+#\\\|R5GQSP4TYYKRSKJ43O7G22YKXYT4YYZMIN2W2KZRAMH6NTG2FYG \ / AMOS7 \ YOURUM ::
+#\[7]XAWLKJRQ2SL4SLHKQBAWL6WXA3LMVULMRJIDOIU7D4RSV7IAOIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

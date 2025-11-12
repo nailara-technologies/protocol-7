@@ -1,0 +1,28 @@
+## [:< ##
+
+# name = web.assets.by_template
+# descr = Get assets by template from registry
+
+my ($template) = @_;
+
+my @assets;
+foreach my $path ( keys %{ $data{'web'}{'assets'}{'registry'} } ) {
+    push @assets, $data{'web'}{'assets'}{'registry'}{$path}
+        if $data{'web'}{'assets'}{'registry'}{$path}{template} eq $template;
+}
+
+return @assets;
+
+0;
+
+#,,,.,,,,,.,.,.,,,.,.,.,,,.,.,,,.,.,.,.,,..,.,.,,,,,.,,,.,,,.,...,...,,,.,,...,.,,.,.,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,,,.,.,,..,,,.,.,.,...,.,,,.,,,,..,,,,,,.,,..,,...,...,.,.,...,...,..,,.,.,
+#G3FV3QWG7WPKYJSNE4I6ZMXPDSIOLPXZSJX7QATHDEHH4HVB2BESKGOG3MGE5LGNONJC5SFLYWTSA
+#\\\|OABHUBCIQA3VOAWLUDQDWV6XUJNLVJGO2YI4MEVASMMJXMH755L \ / AMOS7 \ YOURUM ::
+#\[7]DPSRROD3RH4ZBPZUEH632GBLYOG6YZFHZ5CVQQUPOTURMDMO6ECI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

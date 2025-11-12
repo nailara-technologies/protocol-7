@@ -3,147 +3,132 @@
 # name = debian.parent.check_installed
 # descr = Check which dependencies are installed and update registry status
 
-sub debian_parent_check_installed {
-    my $params = shift || {};
+my $params = shift || {};
 
-    <[base.log]>->( 2, "debian.check: checking installation status..." );
+<[base.log]>->( 2, "debian.check: checking installation status..." );
 
-    my $checked_pkgs = 0;
-    my $installed_count = 0;
-    my $missing_count = 0;
+my $checked_pkgs    = 0;
+my $installed_count = 0;
+my $missing_count   = 0;
 
-    ## Check all registered Debian packages
-    foreach my $pkg_id (keys %{$data{'debian'}{'packages'}{'registry'}}) {
-        my $pkg = $data{'debian'}{'packages'}{'registry'}{$pkg_id};
-        my $pkg_name = $pkg->{package};
+## Check all registered Debian packages
+foreach my $pkg_id ( keys %{ $data{'debian'}{'packages'}{'registry'} } ) {
+    my $pkg      = $data{'debian'}{'packages'}{'registry'}{$pkg_id};
+    my $pkg_name = $pkg->{package};
 
-        ## Use dpkg-query to check if installed
-        my $installed = _check_package_installed($pkg_name);
+    ## Use dpkg-query to check if installed
+    my $installed
+        = <[debian.parent.callback.check_package_installed]>->($pkg_name);
 
-        if ($installed) {
-            $pkg->{status} = qw| installed |;
-            $pkg->{installed_version} = $installed;
-            $installed_count++;
-        } else {
-            $pkg->{status} = qw| missing |;
-            $pkg->{installed_version} = undef;
-            $missing_count++;
-        }
-
-        $checked_pkgs++;
+    if ($installed) {
+        $pkg->{status}            = qw| installed |;
+        $pkg->{installed_version} = $installed;
+        $installed_count++;
+    } else {
+        $pkg->{status}            = qw| missing |;
+        $pkg->{installed_version} = undef;
+        $missing_count++;
     }
 
-    ## Check all registered CPAN modules
-    my $checked_modules = 0;
-    my $via_debian = 0;
-    my $via_cpan = 0;
-    my $missing_modules = 0;
-
-    foreach my $mod_id (keys %{$data{'debian'}{'cpan_modules'}{'registry'}}) {
-        my $mod = $data{'debian'}{'cpan_modules'}{'registry'}{$mod_id};
-        my $module_name = $mod->{module};
-
-        ## First check if debian package is installed
-        if ($mod->{debian_package}) {
-            my $pkg_id = $data{'debian'}{'packages'}{'by_name'}{$mod->{debian_package}};
-            if ($pkg_id && $data{'debian'}{'packages'}{'registry'}{$pkg_id}{status} eq 'installed') {
-                $mod->{status} = qw| via_debian |;
-                $via_debian++;
-                $checked_modules++;
-                next;
-            }
-        }
-
-        ## Check if module is loadable (installed via cpan or core)
-        my $loadable = _check_module_loadable($module_name);
-
-        if ($loadable) {
-            $mod->{status} = qw| via_cpan |;
-            $via_cpan++;
-        } else {
-            $mod->{status} = qw| missing |;
-            $missing_modules++;
-        }
-
-        $checked_modules++;
-    }
-
-    ## Update zenki status
-    foreach my $zenka_id (keys %{$data{'debian'}{'zenki_deps'}{'registry'}}) {
-        my $zenka = $data{'debian'}{'zenki_deps'}{'registry'}{$zenka_id};
-
-        my $missing = 0;
-        foreach my $pm (@{$zenka->{pm_deps} || []}) {
-            my $mod_id = $data{'debian'}{'cpan_modules'}{'by_name'}{$pm};
-            if ($mod_id) {
-                my $mod_status = $data{'debian'}{'cpan_modules'}{'registry'}{$mod_id}{status};
-                $missing++ if $mod_status eq 'missing';
-            }
-        }
-
-        foreach my $os (@{$zenka->{os_deps} || []}) {
-            my $pkg_id = $data{'debian'}{'packages'}{'by_name'}{$os};
-            if ($pkg_id) {
-                my $pkg_status = $data{'debian'}{'packages'}{'registry'}{$pkg_id}{status};
-                $missing++ if $pkg_status eq 'missing';
-            }
-        }
-
-        $zenka->{missing_count} = $missing;
-        $zenka->{status} = $missing == 0 ? qw| complete | :
-                           $missing < ($zenka->{pm_deps_count} + $zenka->{os_deps_count}) ?
-                           qw| partial | : qw| missing |;
-    }
-
-    ## Update statistics
-    $data{'debian'}{'stats'}{debian_available} = $checked_pkgs;
-    $data{'debian'}{'stats'}{debian_installed} = $installed_count;
-    $data{'debian'}{'stats'}{cpan_only} = $via_cpan;
-    $data{'debian'}{'stats'}{missing_deps} = $missing_count + $missing_modules;
-
-    <[base.log]>->( 2, "debian.check: complete" );
-    <[base.log]>->( 2, "  Debian packages: $installed_count/$checked_pkgs installed" );
-    <[base.log]>->( 2, "  CPAN modules: $via_debian via debian, $via_cpan via cpan" );
-    <[base.log]>->( 2, "  Missing: " . ($missing_count + $missing_modules) . " total" );
-
-    return {
-        success         => 1,
-        checked_pkgs    => $checked_pkgs,
-        installed_pkgs  => $installed_count,
-        missing_pkgs    => $missing_count,
-        checked_modules => $checked_modules,
-        missing_modules => $missing_modules
-    };
+    $checked_pkgs++;
 }
 
-sub _check_package_installed {
-    my $package = shift;
+## Check all registered CPAN modules
+my $checked_modules = 0;
+my $via_debian      = 0;
+my $via_cpan        = 0;
+my $missing_modules = 0;
 
-    ## Use dpkg-query to check if package is installed
-    my $output = qx(dpkg-query -W -f='\${Status} \${Version}' $package 2>/dev/null);
+foreach my $mod_id ( keys %{ $data{'debian'}{'cpan_modules'}{'registry'} } ) {
+    my $mod         = $data{'debian'}{'cpan_modules'}{'registry'}{$mod_id};
+    my $module_name = $mod->{module};
 
-    if ($output && $output =~ /^install ok installed (.+)$/) {
-        return $1;  ## Return version
+    ## First check if debian package is installed
+    if ( $mod->{debian_package} ) {
+        my $pkg_id = $data{'debian'}{'packages'}{'by_name'}
+            { $mod->{debian_package} };
+        if (   $pkg_id
+            && $data{'debian'}{'packages'}{'registry'}{$pkg_id}{status} eq
+            'installed' ) {
+            $mod->{status} = qw| via_debian |;
+            $via_debian++;
+            $checked_modules++;
+            next;
+        }
     }
 
-    return undef;
+    ## Check if module is loadable (installed via cpan or core)
+    my $loadable
+        = <[debian.parent.callback.check_module_loadable]>->($module_name);
+
+    if ($loadable) {
+        $mod->{status} = qw| via_cpan |;
+        $via_cpan++;
+    } else {
+        $mod->{status} = qw| missing |;
+        $missing_modules++;
+    }
+
+    $checked_modules++;
 }
 
-sub _check_module_loadable {
-    my $module = shift;
+## Update zenki status
+foreach my $zenka_id ( keys %{ $data{'debian'}{'zenki_deps'}{'registry'} } ) {
+    my $zenka = $data{'debian'}{'zenki_deps'}{'registry'}{$zenka_id};
 
-    ## Try to load the module
-    eval {
-        local $SIG{__DIE__} = sub {};
-        local $SIG{__WARN__} = sub {};
-        require $module =~ s|::|/|gr . '.pm';
-    };
+    my $missing = 0;
+    foreach my $pm ( @{ $zenka->{pm_deps} || [] } ) {
+        my $mod_id = $data{'debian'}{'cpan_modules'}{'by_name'}{$pm};
+        if ($mod_id) {
+            my $mod_status
+                = $data{'debian'}{'cpan_modules'}{'registry'}{$mod_id}
+                {status};
+            $missing++ if $mod_status eq 'missing';
+        }
+    }
 
-    return $@ ? 0 : 1;
+    foreach my $os ( @{ $zenka->{os_deps} || [] } ) {
+        my $pkg_id = $data{'debian'}{'packages'}{'by_name'}{$os};
+        if ($pkg_id) {
+            my $pkg_status
+                = $data{'debian'}{'packages'}{'registry'}{$pkg_id}{status};
+            $missing++ if $pkg_status eq 'missing';
+        }
+    }
+
+    $zenka->{missing_count} = $missing;
+    $zenka->{status}
+        = $missing == 0 ? qw| complete |
+        : $missing < ( $zenka->{pm_deps_count} + $zenka->{os_deps_count} )
+        ? qw| partial |
+        : qw| missing |;
 }
 
-## Export
-$code{qw| debian.parent.check_installed |} = \\&debian_parent_check_installed;
+## Update statistics
+$data{'debian'}{'stats'}{debian_available} = $checked_pkgs;
+$data{'debian'}{'stats'}{debian_installed} = $installed_count;
+$data{'debian'}{'stats'}{cpan_only}        = $via_cpan;
+$data{'debian'}{'stats'}{missing_deps} = $missing_count + $missing_modules;
+
+<[base.log]>->( 2, "debian.check: complete" );
+<[base.log]>->(
+    2, "  Debian packages: $installed_count/$checked_pkgs installed"
+);
+<[base.log]>->(
+    2, "  CPAN modules: $via_debian via debian, $via_cpan via cpan"
+);
+<[base.log]>->(
+    2, "  Missing: " . ( $missing_count + $missing_modules ) . " total"
+);
+
+return {
+    success         => 1,
+    checked_pkgs    => $checked_pkgs,
+    installed_pkgs  => $installed_count,
+    missing_pkgs    => $missing_count,
+    checked_modules => $checked_modules,
+    missing_modules => $missing_modules
+};
 
 0;
 
@@ -153,3 +138,8 @@ $code{qw| debian.parent.check_installed |} = \\&debian_parent_check_installed;
 #\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#,,..,.,,,.,.,.,,,.,.,,..,,..,.,,,,,.,..,,..,,..,,...,..,,.,,,,,.,...,,.,,,..,
+#3NLNCXNDJ7OLTLWROCCVPEPMXDQZ6X3R4X7JID2DDTUDF32AFKXFZ3HX574CRKYZ42TWBFELGMYCA
+#\\\|DYDPEIMHXU45NN4FF36K37F72P2NWVXCNBVBEIAFTQQYDYLYGWC \ / AMOS7 \ YOURUM ::
+#\[7]N3HMSKAEYWDMJYMPMEREUFV7OA5E37IM7KICVGRWLYQPKF7BN2AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -69,6 +69,7 @@ say ':';
 my $valid_count = 0;
 my $invalid_count = 0;
 my $unsigned_count = 0;
+my @invalid_files;
 
 foreach my $file_path ( @source_paths ) {
     next unless -f $file_path;
@@ -82,20 +83,26 @@ foreach my $file_path ( @source_paths ) {
         my $state = $footer_data->{'endline-state-encoded'} // '?';
         my $bmw = $footer_data->{'bmw-chksum'} // 'ERROR';
         my $sig = $footer_data->{'signature'} // 'ERROR';
+        my $filename = (split '/', $file_path)[-1];
 
+        my $filename_short = <[base.parser.ellipse_center]>->( $filename, 32 );
         my $bmw_short = <[base.parser.ellipse_center]>->( $bmw, 21 );
         my $sig_short = <[base.parser.ellipse_center]>->( $sig, 21 );
 
-        # Try verifying with temp key - pass the test key name to verification function
+        # Try verifying with temp key - suppress output since we expect most to fail
+        open( my $null_fh, '>', '/dev/null' ) or die "Cannot open /dev/null";
+        my $old_stdout = select($null_fh);
         my ($is_valid_temp, $report_temp) = <[source.signature_valid]>->(
             \$src_str, $footer_data, {}, $test_key_name, 'strict'
         );
+        select($old_stdout);
+        close($null_fh);
 
         # Re-read file for original key verification to avoid state corruption
         <[file.slurp]>->( $file_path, \$src_str, qw| :raw | );
         my $footer_data_orig = <[source.extract_sig_body]>->( \$src_str, qw| strip | );
 
-        # Try verifying with original key - pass the original key name to verification function
+        # Try verifying with original key - use strict mode for proper validation
         my ($is_valid_orig, $report_orig) = <[source.signature_valid]>->(
             \$src_str, $footer_data_orig, {}, $sig_key_name, 'strict'
         );
@@ -105,18 +112,18 @@ foreach my $file_path ( @source_paths ) {
         my $is_valid = 0;
 
         if ( $is_valid_temp && $is_valid_orig ) {
-            $key_marker = '[both]';
+            $key_marker = '[valid:both!]';
             $is_valid = 1;
         } elsif ( $is_valid_temp ) {
-            $key_marker = '[temp]';
+            $key_marker = '[valid:temp.]';
             $is_valid = 1;
         } elsif ( $is_valid_orig ) {
-            $key_marker = '[orig]';
+            $key_marker = '[valid:orig.]';
             $is_valid = 1;
         }
 
-        printf( ': %-30s state=%d bmw=%s sig=%s %s' . "\n",
-            (split '/', $file_path)[-1],
+        printf( ': %32s : state=%d : bmw=%s sig=%s %s' . "\n",
+            $filename_short,
             $state,
             $bmw_short,
             $sig_short,
@@ -127,6 +134,7 @@ foreach my $file_path ( @source_paths ) {
             $valid_count++;
         } else {
             $invalid_count++;
+            push( @invalid_files, (split '/', $file_path)[-1] );
             say sprintf( ':  ^ INVALID (neither key validates)' );
         }
     } else {
@@ -141,6 +149,14 @@ if ( $unsigned_count > 0 ) {
 } else {
     printf( ': Results: %d valid, %d invalid' . "\n", $valid_count, $invalid_count );
 }
+
+if ( @invalid_files ) {
+    say ':';
+    say ': INVALID FILES (neither key validates):';
+    foreach my $invalid_file ( @invalid_files ) {
+        say ': - ' . $invalid_file;
+    }
+}
 say ':';
 
 0;
@@ -151,8 +167,8 @@ say ':';
 #\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,.,..,,,,,,.,,,,..,..,,...,.,.,..,,,,.,.,.,..,,...,...,...,,.,,,,.,..,,,,,,
-#JEDZPRR2JZQYU66LGDNGSVXHVSPI3HKNQQ5IMCULLPQGPAQLYP2HTGQGIRUDNOSIGTBGLO7TZ5Z3W
-#\\\|MDK3OZABE6M4CJCY44ZUWTGGAR3MTTBNF5HY7L6QEMKITISOQVS \ / AMOS7 \ YOURUM ::
-#\[7]PIUSINAPGFJFRROE2AGI5DO3XJKKGGUR3THCFJNT6HLNY2FLZWBQ 7  DATA SIGNATURE ::
+#,,,,,,..,..,,...,...,.,,,...,,..,,,,,,.,,,,,,..,,...,...,.,.,,,,,...,..,,,..,
+#WF6HVDOSKDIUSBUQODQJ7LJZRGCY25IVYBBVOVBZ5INMKNU6L5SJINCSEPKUUCTRUJCFKBDYDLUPM
+#\\\|OZOZAHP5LMIV7WJSPSWYG7VRVT4K4YNKWJVEMKFXH4SV6IGIAAA \ / AMOS7 \ YOURUM ::
+#\[7]BF5E6Q2Z6VPGVTLUFR5ZKS3VXC5G6FB634HEXQPKYWAQ5U23SQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

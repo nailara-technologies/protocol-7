@@ -84,6 +84,8 @@ return [ qw[
         base.cmd.exit
         base.cfg_bool
         X-11.grab_key
+        web.cmd.assets
+        web.assets.get
         v7.zenka.start
         v7.start_count
         udev.init_code
@@ -157,14 +159,17 @@ return [ qw[
         mpv.cmd.align-y
         mpv.cmd.align-x
         index.init_code
+        httpsd.pre_init
         httpd.path_info
         httpd.init_code
+        httpd.http_post
         httpd.http_head
         fs.cmd.re-mount
         devmod.pre_init
         devmod.cmd.true
         devmod.cmd.echo
         devmod.cmd.dump
+        debian.cmd.scan
         cube.cmd.select
         crypt.init_code
         compton.startup
@@ -207,8 +212,10 @@ return [ qw[
         mpv.get_playlist
         mpv.cmd.add_file
         jobqueue.add_job
+        httpsd.init_code
         httpd.serve_file
         httpd.new_header
+        httpd.cmd.vhosts
         geoloc.init_code
         filter.init_code
         filter.del_chain
@@ -218,6 +225,9 @@ return [ qw[
         devmod.init_code
         devmod.cmd.sleep
         devmod.cmd.since
+        debian.cmd.zenka
+        debian.cmd.stats
+        debian.cmd.check
         dbus.cmd.get-pid
         chk-sum.md5.b64u
         base.resolve_key
@@ -252,6 +262,7 @@ return [ qw[
         X-11.check-mouse
         v7.zenka.pre_init
         v7.zenka.cmd.stop
+        v7.post_init_code
         v7.instance_count
         v7.find-AMOS-user
         v7.compile_bin_p7
@@ -321,6 +332,9 @@ return [ qw[
         X-11.cmd.fade_out
         X-11.cmd.bg_color
         USR.lain.base-key
+        zenki.parent.start
+        web.scan_directory
+        weather.cmd.widget
         v7.zenka.setup.add
         v7.zenka.init_code
         v7.zenka.cmd.start
@@ -331,6 +345,7 @@ return [ qw[
         universal.pre_init
         ticker.open_window
         ticker.calc_colors
+        template.init_code
         ssl.client_handler
         power.cmd.show_all
         osd-logo.init_code
@@ -352,6 +367,7 @@ return [ qw[
         impressive.startup
         httpd.status_codes
         httpd.http_options
+        git.parent.get_log
         fs.get_filesystems
         filter.mount_chain
         ffmpeg.frame_count
@@ -364,6 +380,7 @@ return [ qw[
         devmod.cmd.eat-mem
         devmod.cmd.del-env
         devmod.cmd.b32-elf
+        debian.cmd.install
         cube.cmd.unix-path
         cube.cmd.b32-ntime
         content.cmd.update
@@ -399,7 +416,11 @@ return [ qw[
         X-11.update_X11_WM
         X-11.start_gpu_top
         USR.taeki.base-key
+        zenki.console.start
+        web.assets.registry
+        web.assets.register
         web-browser.js_call
+        weather.cmd.current
         v7.zenka.is_enabled
         v7.zenka.cmd.search
         v7.load_start_setup
@@ -431,6 +452,8 @@ return [ qw[
         httpd.scan_site_dir
         httpd.get_mime_type
         httpd.download_init
+        httpd.cmd.del-vhost
+        httpd.cmd.add-vhost
         ext-world.init_code
         devmod.console-dump
         devmod.cmd.true-int
@@ -472,7 +495,10 @@ return [ qw[
         X-11.cmd.keep_above
         X-11.cmd.get_params
         X-11.cmd.get_driver
+        zenki.console.status
+        web.assets.by_status
         web-browser.load_uri
+        weather.cmd.forecast
         v7.zenka.is_disabled
         v7.zenka.cmd.restart
         v7.terminate_process
@@ -496,6 +522,7 @@ return [ qw[
         power.cmd.get_states
         power.cmd.add_device
         power-x11.get_states
+        plugin.web.menu.tree
         p7-log.cmd.list-logs
         osd-logo.open_window
         notify-osd.init_code
@@ -514,7 +541,9 @@ return [ qw[
         impressive.cmd.pause
         httpd.json.init_code
         httpd.determine_host
+        httpd.cmd.vhost-list
         httpd.benchmark.init
+        git.parent.init_code
         filter.compile_chain
         filter.cmd.del_chain
         filter.cmd.add_chain
@@ -574,6 +603,7 @@ return [ qw[
         X-11.cmd.get_display
         X-11.cmd.dpms-status
         X-11.cmd.dpms-enable
+        workflow.console.scan
         web-browser.post_init
         web-browser.init_view
         web-browser.init_code
@@ -594,6 +624,7 @@ return [ qw[
         storage.map-dirs.tree
         source.valid_src_name
         set-up.json.init_code
+        session.console.stats
         reenc-msg.open_window
         reenc-msg.cmd.refresh
         power-x11.open_window
@@ -606,6 +637,7 @@ return [ qw[
         mpv.cmd.show_playlist
         mpv.cmd.current-hwdec
         mpv.callback.silenced
+        letsencrypt.init_code
         keys.read_key_archive
         keys.console.sign-key
         jobqueue.get_next_job
@@ -673,6 +705,10 @@ return [ qw[
         X-11.cmd.get_xorg_pid
         X-11.cmd.get_geometry
         X-11.cmd.dpms-disable
+        zenki.parent.init_code
+        zenki.parent.ensure_v7
+        workflow.console.stats
+        web.assets.by_template
         web-browser.swap_views
         web-browser.cmd.switch
         web-browser.cmd.run_js
@@ -699,6 +735,7 @@ return [ qw[
         start-anim.open_window
         source.signature_valid
         set-up.chk_profile_dir
+        session.console.config
         screenshot.scale_image
         screenshot.pixel_color
         screenshot.grab_region
@@ -717,11 +754,14 @@ return [ qw[
         melt.cmd.extract_frame
         mediainfo.cmd.get_info
         logo-display.init_code
+        letsencrypt.cmd.revoke
+        letsencrypt.cmd.enroll
         keys.console.duplicate
         io.ip.tcp.output.close
         index.cmd.add-wordlist
         impressive.open_window
         impressive.cmd.version
+        httpsd.request_handler
         httpd.system.cpu_usage
         httpd.process_template
         httpd.benchmark.report
@@ -769,6 +809,7 @@ return [ qw[
         X-11.cmd.is-composited
         X-11.cmd.dpms-force-on
         X-11-pointer.init_code
+        workflow.console.commit
         web-browser.proxy_setup
         web-browser.open_window
         web-browser.cmd.iconify
@@ -827,6 +868,7 @@ return [ qw[
         events.cmd.show-enabled
         devmod.cmd.deparse-code
         decoder.zenka.init_code
+        debian.parent.init_code
         dbus.cmd.socket_address
         cube.cmd.present-p7-log
         crypt.C25519.write_keys
@@ -876,6 +918,12 @@ return [ qw[
         X-11.cmd.get_window_pid
         X-11.cmd.get_window_ids
         X-11.cmd.dpms-force-off
+        zenki.parent.ensure_cube
+        workflow.console.release
+        web.process-template-ipc
+        web.cmd.process-template
+        web.assets.update_status
+        web.assets.load_registry
         web-browser.stop_timeout
         web-browser.scroll_start
         web-browser.get_url_list
@@ -900,6 +948,7 @@ return [ qw[
         system.cleanup.init_code
         source.acquire_checksums
         set-up.cmd.export-config
+        session.parent.init_code
         screenshot.cmd.write_png
         rss.ticker.get_feed_urls
         rss.ticker.fetch_content
@@ -920,6 +969,7 @@ return [ qw[
         keys.console.remove-type
         io.unix.socket.init_code
         impressive.check_tmp_dir
+        httpsd.create_ssl_socket
         httpd.system.memory_free
         httpd.parse_range_header
         httpd.event.remove_timer
@@ -971,6 +1021,10 @@ return [ qw[
         X-11.cmd.get_screen_size
         X-11.cmd.get_orientation
         X-11.chk.early-priv-drop
+        zenki.parent.start_via_v7
+        zenki.parent.ensure_zenka
+        zenki.console.attach-logs
+        workflow.parent.init_code
         web-browser.disable_proxy
         web-browser.cmd.slow_down
         web-browser.cmd.fg_insert
@@ -1012,6 +1066,8 @@ return [ qw[
         mpv.cmd.autoskip_interval
         mpv.await_window_presence
         melt.trigger.auto_cleanup
+        letsencrypt.child.get_jwk
+        letsencrypt.base.pre_init
         jobqueue.priorities_table
         jobqueue.joblist_template
         io.unix.socket.input.open
@@ -1023,6 +1079,8 @@ return [ qw[
         download.cmd.get_mimetype
         discover.log_mcast_packet
         discover.cmd.host_details
+        debian.console.list-zenki
+        debian.console.check-deps
         crypt.C25519.load_keypair
         content.cmd.resolve_b32id
         content.cmd.clear-entries
@@ -1061,6 +1119,8 @@ return [ qw[
         X-11.cmd.get-window-title
         X-11.cmd.get-window-names
         X-11.bg-image.clear-cache
+        zenki.parent.check_running
+        web.render_skinned_content
         web-browser.set_properties
         web-browser.process_subcfg
         web-browser.fg_view_insert
@@ -1074,6 +1134,7 @@ return [ qw[
         v7.zenka-instances.get-ids
         v7.sub-process.orphan_pids
         v7.parser.dependency_chain
+        v7.parent.stream_zenka_log
         v7.load_zenka_startup_cfgs
         v7.handler.restart-timeout
         v7.handler.heartbeat_timer
@@ -1097,19 +1158,29 @@ return [ qw[
         set-up.handler.zenka_reply
         set-up.cmd.list-exportable
         set-up.cmd.install-profile
+        session.console.setup-keys
+        session.console.check-deps
         protocol.sftp.read_ssh_env
         power-x11.handler.show_all
+        plugin.web.content.dirlist
         mpv.handler.resume_timeout
         mpv.handler.get_list_reply
         mpv.handler.cmd_prop.pause
         mpv.callback.abort_startup
+        letsencrypt.child.acme_new
+        letsencrypt.base.post_init
+        letsencrypt.base.init_code
         keys.console.split-keypair
         keys.console.clear-chksums
         keys.console.change-passwd
         io.unix.socket.output.open
         io.unix.socket.input.close
         image2html.child.init_code
+        httpsd.reload_certificates
+        httpd.handler.acme_request
         events.set-up.import_rules
+        debian.parser.zenka_status
+        debian.parser.deb_name_str
         crypt.C25519.key_checksums
         crypt.C25519.encrypted_key
         crypt.C25519.clear_chksums
@@ -1158,6 +1229,7 @@ return [ qw[
         v7.zenka.cmd.notify_offline
         v7.sub-process.get_children
         v7.parser.dependency_status
+        v7.parent.attach_zenka_logs
         v7.init_match_name_patterns
         v7.callback.system-poweroff
         v7.callback.setup_zenka_key
@@ -1191,6 +1263,8 @@ return [ qw[
         mpv.callback.reenc_finished
         mod-test.cmd.list-successes
         mod-test.blacklist_perlcode
+        letsencrypt.child.init_code
+        letsencrypt.base.check_dirs
         keys.write_key_archive_file
         keys.console.get-sp-pub-key
         keys.console.enc-key-chksum
@@ -1204,6 +1278,8 @@ return [ qw[
         discover.cmd.show-temp-echo
         devmod.cmd.permission-setup
         devmod.cmd.extract-line-map
+        debian.parser.module_status
+        debian.console.install-deps
         dbus.handler.process_output
         cube.chk-sum.cmd.elf-chksum
         crypt.C25519.sign_file_list
@@ -1236,6 +1312,10 @@ return [ qw[
         X-11.handler.poll_size_list
         X-11.handler.global_hotkeys
         X-11.cmd.screen_size_ranges
+        zenki.handler.v7_start_reply
+        workflow.parent.scan_history
+        workflow.parent.fix_versions
+        web.execute_template_command
         web-browser.set-up.set_privs
         web-browser.handler.sig_term
         web-browser.cmd.scroll_start
@@ -1271,6 +1351,9 @@ return [ qw[
         mpv.callback.start_reenc_msg
         mod-test.cmd.erase-blacklist
         mod-test.cmd.blacklisted-add
+        letsencrypt.parent.init_code
+        letsencrypt.child.create_jws
+        letsencrypt.child.acme_renew
         keys.console.list-upgradable
         keys.console.get-encoded-key
         keys.console.gen-pwd-keyfile
@@ -1284,6 +1367,7 @@ return [ qw[
         download.set-up.export_rules
         discover.process_host_packet
         discover.cmd.request-updates
+        debian.parser.package_status
         crypt.C25519.keystr_is_valid
         crypt.C25519.compare_keypair
         content.cmd.entries_withheld
@@ -1304,6 +1388,8 @@ return [ qw[
         amos-term.term-params-update
         X-11.handler.fade_out_window
         X-11.bg-image.clean-up-cache
+        zenki.parent.request_v7_start
+        workflow.console.fix-versions
         web-browser.process_url_flags
         web-browser.handler.slideshow
         web-browser.enable_javascript
@@ -1334,6 +1420,7 @@ return [ qw[
         system.handler.X-11_pid_reply
         system.callback.xcrash_reboot
         sourcecode.source_path_set_up
+        sourcecode.console.test-cycle
         source.create_harmonic_footer
         set-up.cmd.fetch-zenka-config
         protocol.protocol-7.init_code
@@ -1344,6 +1431,8 @@ return [ qw[
         nodes.cmd.update-protocol-elf
         mpv.handler.event.file-loaded
         mod-test.cmd.list-blacklisted
+        letsencrypt.parent.cmd.status
+        letsencrypt.child.acme_revoke
         keys.select_archive_path.curs
         keys.console.remove-signature
         keys.console.encoding-upgrade
@@ -1357,6 +1446,9 @@ return [ qw[
         discover.cmd.resend-awareness
         devmod.cmd.keep-devmod-loaded
         devmod.cmd.inline-subroutines
+        debian.parser.array_to_string
+        debian.parent.install_missing
+        debian.parent.check_installed
         crypt.C25519.validate_keyname
         crypt.C25519.signature_exists
         crypt.C25519.load_from_string
@@ -1387,6 +1479,8 @@ return [ qw[
         X-11.handler.report-to-system
         X-11.bg-image.cached-path.add
         X-11-pointer.cmd.blank-cursor
+        workflow.parent.create_release
+        web.process_template_recursive
         web-browser.handler.swap_views
         web-browser.disable_javascript
         web-browser.cmd.stop_slideshow
@@ -1426,12 +1520,14 @@ return [ qw[
         mpv.callback.check_parent_dirs
         mod-test.update_blacklist_aref
         melt.handler.frame_count_reply
+        letsencrypt.child.generate_csr
         keys.console.gen-file-seed-key
         jobqueue.handler.queue_counter
         index.callback.wordlist-import
         impressive.cmd.playlist_update
         image2html.base.get_image_size
         httpd.diagnostic.end_operation
+        httpd.cmd.setup-acme-challenge
         graphics-matrix.guess_bg_color
         graphics-matrix.filter.rep-col
         graphics-matrix.cmd.filter-c2a
@@ -1440,6 +1536,7 @@ return [ qw[
         events.callback.object.weekday
         discover.check_packet_timeouts
         devmod.cmd.decode-harmonic-ref
+        debian.parser.deb_pkg_vers_str
         crypt.C25519.key_name_and_type
         crypt.C25519.key_bin_checksums
         crypt.C25519.chksum_cache.retr
@@ -1450,6 +1547,7 @@ return [ qw[
         base.number-cache.true_upwards
         base.log.send-buffer.add-queue
         base.handler.sig_chld.shutdown
+        base.ensure_zenka_dependencies
         base.comp-int.decode_to_buffer
         base.chk-sum.amos.calc_version
         base.cache.refaddr-prefix.init
@@ -1483,9 +1581,12 @@ return [ qw[
         mod-test.write-mem-list-to-disk
         mod-test.cmd.clear-success-list
         mod-test.cmd.blacklisted-remove
+        letsencrypt.dns.inwx_delete_txt
+        letsencrypt.dns.inwx_create_txt
         image2html.base.write_stub_page
         image2html.base.fork_conv_child
         httpd.handler.download_transfer
+        httpd.cmd.remove-acme-challenge
         httpd.benchmark.collect_metrics
         events.cmd.get_overlays_visible
         discover.load_update_notify_rqs
@@ -1508,6 +1609,8 @@ return [ qw[
         X-11.cancel_wait_visible_timers
         X-11.callback.display_connected
         X-11-pointer.cmd.restore-cursor
+        workflow.parent.load_signing_key
+        workflow.parent.harmonize_emails
         web-browser.handler.load_timeout
         web-browser.handler.load_changed
         web-browser.handler.fade_in_view
@@ -1526,17 +1629,23 @@ return [ qw[
         system.process.handler.wait_gone
         system.handler.X-11_driver_reply
         storage.unix.handler.amos-chksum
+        sourcecode.test-endline-handling
+        sourcecode.console.test-diagnose
         sourcecode.callback.load_modules
         set-up.json.cmd.get-config-names
+        session.parent.show_startup_help
         reenc-msg.handler.shutdown_timer
         protocol-7-menu.load-action-keys
         pdf.html.parent.cmd.check_format
         osd-logo.callback.download_image
         openbox.callback.already_running
         mod-test.perlmod.run_reload_test
+        letsencrypt.parent.send_to_child
+        letsencrypt.child.send_to_parent
         keys.console.keys-backup-archive
         image2html.base.write_image_html
         image2html.base.write_error_page
+        httpd.handler.web_template_reply
         httpd.diagnostic.track_operation
         discover.process_incoming_packet
         discover.handler.incoming_packet
@@ -1568,6 +1677,8 @@ return [ qw[
         base.chk-sum.amos.unix.sock_path
         base.calculate_line_length_stats
         X-11.handler.display_power_state
+        zenki.parent.resolve_dependencies
+        workflow.console.harmonize-emails
         web-browser.start-up.raise_window
         web-browser.handler.size_allocate
         web-browser.handler.quit_fade_out
@@ -1581,6 +1692,7 @@ return [ qw[
         tile-groups.calculate_coordinates
         system.process.callback.send_kill
         start-anim.callback.report_online
+        session.parent.check_minimal_deps
         rss.ticker.handler.get_list_reply
         remote-cam.handler.get_list_reply
         protocol.amos-chksum.ext-cmd.exit
@@ -1591,6 +1703,7 @@ return [ qw[
         mod-test.mem_blacklist.remove_mod
         mod-test.cmd.write-blacklist-code
         mod-test.cmd.list-loaded-matching
+        letsencrypt.child.get_fresh_nonce
         keys.pack_format.user_key_archive
         keys.console.downgrade-enc-status
         impressive.handler.stop_lsp_reply
@@ -1639,6 +1752,10 @@ return [ qw[
         protocol-7-menu.cmd.gfx-action-key
         pdf.html.child.check_cache_timeout
         mod-test.write_out_blacklist_pcode
+        letsencrypt.parent.send_from_child
+        letsencrypt.parent.activity_logger
+        letsencrypt.child.load_account_key
+        letsencrypt.child.encode_base64url
         keys.select_archive_path.term_Clui
         jobqueue.event.register_job_queues
         image2html.child.cmd.convert_image
@@ -1666,6 +1783,11 @@ return [ qw[
         osd-logo.handler.colortoalpha_reply
         mod-test.scan_INC_chksum_collisions
         mod-test.callback.reload-test.start
+        letsencrypt.parent.save_certificate
+        letsencrypt.parent.cmd.query-vhosts
+        letsencrypt.parent.cmd.activity-log
+        letsencrypt.child.acme_http_request
+        letsencrypt.child.acme_create_order
         impressive.callback.stop_start-anim
         image2html.child.handler.conversion
         httpd.benchmark.sample_memory_usage
@@ -1688,8 +1810,10 @@ return [ qw[
         protocol.amos-chksum.command-handler
         nodes.handler.discover_details_reply
         mod-test.cmd.blacklisted-add-matches
+        letsencrypt.child.acme_check_account
         image2html.child.check_cache_timeout
         httpd.handler.download_transfer.test
+        debian.parent.resolve_cpan_to_debian
         base.warnings.compact_diff_to_pragma
         base.warnings.compact_diff_from_bits
         base.perlmod.manual_reload_blacklist
@@ -1699,12 +1823,21 @@ return [ qw[
         v7.handler.heartbeat_response_timeout
         universal.handler.extract_frame_reply
         tile-groups.handler.stack_order_reply
+        session.parent.check_and_resolve_deps
         protocol.sftp.handler.write_to_server
         protocol.protocol-7.message-templates
         protocol.amos-chksum.ext-cmd.commands
         protocol.amos-chksum.connect_callback
+        letsencrypt.parent.query_httpd_vhosts
+        letsencrypt.parent.handler_cert_ready
+        letsencrypt.dns.cloudflare_delete_txt
+        letsencrypt.dns.cloudflare_create_txt
+        letsencrypt.child.extract_rsa_modulus
+        letsencrypt.child.cmd.new-certificate
+        letsencrypt.child.acme_finalize_order
         httpd.handler.download_transfer.fixed
         discover.format_discover_mcast_packet
+        debian.parent.scan_zenki_dependencies
         crypt.C25519.list_key_signature_names
         crypt.C25519.generate_session_keypair
         crypt.C25519.create_signature_request
@@ -1719,6 +1852,12 @@ return [ qw[
         protocol.protocol-7.auth.select-method
         mpv.handler.event.property-change.path
         mod-test.callback.reload-test.add-link
+        letsencrypt.parent.process_pending_ops
+        letsencrypt.parent.handler_child_ready
+        letsencrypt.child.respond_to_challenge
+        letsencrypt.child.generate_account_key
+        letsencrypt.child.fetch_acme_directory
+        letsencrypt.child.extract_rsa_exponent
         keys.unpack_format.key_archive_payload
         io.unix.socket.handler.report-tmp-path
         impressive.callback.rendering_finished
@@ -1728,8 +1867,16 @@ return [ qw[
         base.file.path.make-relative-from-list
         weather.parent.handler.station_id_reply
         sourcecode.console.verify-p7-signatures
+        sourcecode.console.test-sign-and-verify
         mpv.handler.event.property-change.width
+        letsencrypt.child.poll_challenge_status
+        letsencrypt.child.cmd.renew-certificate
+        letsencrypt.child.check_dns_propagation
+        letsencrypt.child.acme_verify_challenge
+        letsencrypt.child.acme_register_account
+        letsencrypt.base.fork_letsencrypt_child
         discover.callback.resend_interval_reset
+        debian.parent.ensure_zenka_dependencies
         base.perlmods.reload.reload_blacklisted
         base.perlmods.blacklist_collision_index
         base.parser.chk-sum.embedded-code-style
@@ -1740,9 +1887,16 @@ return [ qw[
         tile-groups.handler.get-tile-color_reply
         tile-groups.handler.check_playlist_reply
         tile-groups.gpu_alerts.enable_auto_speed
+        sourcecode.console.read-sig-footer-state
         protocol.sftp.handler.read_server_output
         mpv.handler.event.property-change.volume
         mpv.handler.event.property-change.height
+        letsencrypt.parent.handler_renewal_retry
+        letsencrypt.parent.handler_renewal_reply
+        letsencrypt.parent.handler_renewal_check
+        letsencrypt.child.create_dns01_challenge
+        letsencrypt.child.cmd.revoke-certificate
+        letsencrypt.child.acme_get_authorization
         base.log.send-buffer.idle-callback-clear
         web-browser.callback.scroll_start_js_exec
         tile-groups.handler.poll_tile_color_reply
@@ -1751,11 +1905,22 @@ return [ qw[
         pdf.html.parent.handler.convert_pdf_reply
         nodes.callback.local_network.offline-node
         mod-test.callback.reload-test.remove-link
+        letsencrypt.parent.send_httpd_vhost_query
+        letsencrypt.parent.queue_renewal_requests
+        letsencrypt.parent.notify_httpd_challenge
+        letsencrypt.parent.handler_renewal_failed
+        letsencrypt.parent.cmd.revoke-certificate
+        letsencrypt.child.create_http01_challenge
+        letsencrypt.child.cmd.request-certificate
         base.zenki.ondemand.handler.startup_reply
         base.agent_code.handler.sig_warn.end_proc
         web-browser.handler.withheld_entries_reply
         tile-groups.impressive.increase_light_mode
+        sourcecode.console.test-sign-with-temp-key
+        sourcecode.console.test-restore-signatures
         sourcecode.console.regen-checksum-symlinks
+        letsencrypt.parent.cmd.request-certificate
+        letsencrypt.parent.cmd.install-certificate
         X-11.background.chksum-cache.write_to_disk
         web-browser.handler.request_starting_signal
         web-browser.disconnect_signal.received_data
@@ -1766,29 +1931,42 @@ return [ qw[
         tile-groups.tile_activity.change_poll_timer
         mpv.handler.event.property-change.core-idle
         mod-test.callback.reload-test.is_registered
+        letsencrypt.parent.handler_revocation_reply
+        letsencrypt.parent.handler_enrollment_retry
+        letsencrypt.parent.handler_enrollment_reply
+        letsencrypt.parent.handler_challenge_needed
         httpd.handler.download_transfer.test-broken
+        debian.parent.callback.register_deb_package
+        debian.parent.callback.register_cpan_module
         base.referenced_subroutines.clear_from_disk
         weather.parent.handler.update_forecast_reply
         system.process.handler.pid-instance_response
+        sourcecode.console.test-verify-with-temp-key
+        letsencrypt.parent.load_certificate_registry
+        letsencrypt.parent.handler_httpd_vhost_reply
+        letsencrypt.parent.handler_httpd_vhost_error
+        letsencrypt.parent.handler_challenge_timeout
+        letsencrypt.parent.handler.vhost_query_reply
+        debian.parent.callback.check_module_loadable
+        letsencrypt.parent.handler_httpd_reload_reply
         image2html.parent.handler.convert_image_reply
         base.log.send-buffer.reply-handler.send-reply
         X-11.background.chksum-cache.reload_from_file
+        letsencrypt.parent.handler_challenge_validated
+        debian.parent.callback.check_package_installed
+        letsencrypt.parent.check_certificate_expiration
         protocol.protocol-7.protocol-version-path-set-up
+        letsencrypt.parent.install_certificate_to_httpsd
+        letsencrypt.parent.determine_certificate_domains
         base.log.send-buffer.reply-handler.notify-online
+        letsencrypt.parent.notify_httpd_certificate_update
         mpv.handler.event.property-change.video-aspect-override
 
     ]
 ];
 
-#,,,.,,.,,,..,,..,,,,,.,.,..,,..,,...,,,,,...,..,,...,...,...,,,.,,,,,,,,,,,,,
-#BCLAF2IKQRWYK35IOI7QRVGKGXZ5ZJYI6HRALYHQP6D3QY3VINJWHJIYXL2FLE5DETFSFFLZFYHKQ
-#\\\|PL63SQHW5DEE6EBL6DP3ROPREVJJFCKVVVRE5LFLCJTOMLJLOTP \ / AMOS7 \ YOURUM ::
-#\[7]TV5A4B7KRL5J33BIFJ3DMHFWP564QNLRLBN6E4CYZUQIHJVK36CQ 7  DATA SIGNATURE ::
-
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,,,,...,,,.,,,,,...,...,,..,.,.,,.,,.,,,,,,,..,,...,...,,,,,,,,,,..,...,.,.,
-#IQTZ2OXWCNZWW7AESSZNNAENZERCYEFVFOU3UKBQ4JYHEARHZ2I5IYXTIPYEHFVTIJD2GDIMJ7BR2
-#\\\|3SKKDZIN4UNR7MUTBP3WUBQVJKIPYTZQ3E3X6CBINYSAG3WUW6T \ / AMOS7 \ YOURUM ::
-#\[7]BG7QQBCTL3NUCMIBXOLPIM36JVPRZPTDURPN3AHWYRX6CXM2WQBI 7  DATA SIGNATURE ::
+#,,..,.,.,,..,.,,,...,.,,,,.,,,,.,,.,,,.,,.,,,..,,...,...,...,.,.,...,.,.,...,
+#7KF3BYR5F33EWW47OOVCOLOQQPSWUM2YNJZGMQDOBNAJY4TFLRAMBV5IMOKED4DNBZC5SUJVIM5YE
+#\\\|HB4JM2AMV24UNO5X3EC5CH4MD36K3JGKT66LP7PH3ML2EBE4VIX \ / AMOS7 \ YOURUM ::
+#\[7]4CCMKBI6XVDMJFCPRM3T3JYGR4VPU3Y3UKTSQ2VOGRSYQRPH32CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

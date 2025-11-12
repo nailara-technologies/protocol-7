@@ -8,10 +8,10 @@
 <[base.log]>->( 2, 'initializing debian dependency management zenka..,' );
 
 ## Configuration
-<debian.cfg.zenki_config_base> //= '/data/projects/protocol-7/configuration/zenki';
-<debian.cfg.auto_install>      //= ($UID == 0 ? 1 : 0);  ## Auto-install when root
-<debian.cfg.prefer_debian>     //= 1;  ## Prefer debian packages over cpanm
-<debian.cfg.use_cpanm>         //= 1;  ## Allow cpanm as fallback
+<debian.cfg.zenki_config_base> //= <system.conf_path> . '/zenki';
+<debian.cfg.auto_install> //= ( $UID == 0 ? 1 : 0 ); ## Auto-install when root
+<debian.cfg.prefer_debian> //= 1;    ## Prefer debian packages over cpanm
+<debian.cfg.use_cpanm>     //= 1;    ## Allow cpanm as fallback
 
 ## Detect OS
 <system.host.os.dist.name> = qw| debian |
@@ -21,9 +21,9 @@
 <[base.log]>->( 2, "  Detected OS: " . <system.host.os.dist.name> );
 
 ## Initialize registries
-<debian.packages.by_name>     //= {};  ## debian_package_name => package_id
-<debian.cpan_modules.by_name> //= {};  ## CPAN::Module => module_id
-<debian.zenki_deps.by_zenka>  //= {};  ## zenka_name => zenka_id
+<debian.packages.by_name>     //= {};    ## debian_package_name => package_id
+<debian.cpan_modules.by_name> //= {};    ## CPAN::Module => module_id
+<debian.zenki_deps.by_zenka>  //= {};    ## zenka_name => zenka_id
 
 ## Debian packages registry
 <debian.packages.registry> //= {};
@@ -32,29 +32,30 @@
     'var'      => qw| data |,
     'key'      => qw| debian.packages.registry |,
     'sort_key' => 'alpha-len:package',
-    'mask'     => 'id package status installed_version cpan_modules zenki_count',
-    'align'    => {
-        'id'        => 'right',
-        'package'   => 'left+2',
-        'status'    => 'center',
-        'installed_version' => 'center',
-        'cpan_modules' => 'left+1',
-        'zenki_count' => 'center'
+    'mask'     => 'package:os_package_name status '
+        . 'installed_version:inst._version cpan_modules zenki_count:zenki',
+    'align' => {
+        'id'                => 'right',
+        'package'           => 'left+2',
+        'status'            => 'center',
+        'installed_version' => 'left+3',
+        'cpan_modules'      => 'left+1',
+        'zenki_count'       => 'center'
     },
-    'filters'  => {
-        'status' => sub {
-            $_[0] eq 'installed' ? '✓' :
-            $_[0] eq 'missing' ? '✗' :
-            $_[0] eq 'unknown' ? '?' : $_[0]
-        }
+    'filters' => {
+        'package'           => qw| debian.parser.deb_name_str |,
+        'status'            => qw| debian.parser.package_status |,
+        'installed_version' => qw| debian.parser.deb_pkg_vers_str |,
+        'cpan_modules'      => qw| debian.parser.array_to_string |
     }
 };
 
-<[base.list.init]>->({
-    'name'         => qw| debian-packages |,
-    'key_ref'      => \$data{'debian'}{'packages'}{'registry'},
-    'max_elements' => 2048
-});
+<[base.list.init]>->(
+    {   'name'         => qw| debian-packages |,
+        'key_ref'      => \$data{'debian'}{'packages'}{'registry'},
+        'max_elements' => 2048
+    }
+);
 
 ## CPAN modules registry
 <debian.cpan_modules.registry> //= {};
@@ -71,20 +72,18 @@
         'status'         => 'center',
         'zenki_list'     => 'left+1'
     },
-    'filters'  => {
-        'status' => sub {
-            $_[0] eq 'via_debian' ? '✓deb' :
-            $_[0] eq 'via_cpan' ? '✓cpan' :
-            $_[0] eq 'missing' ? '✗' : $_[0]
-        }
+    'filters' => {
+        'status'     => qw| debian.parser.module_status |,
+        'zenki_list' => qw| debian.parser.array_to_string |
     }
 };
 
-<[base.list.init]>->({
-    'name'         => qw| cpan-modules |,
-    'key_ref'      => \$data{'debian'}{'cpan_modules'}{'registry'},
-    'max_elements' => 4096
-});
+<[base.list.init]>->(
+    {   'name'         => qw| cpan-modules |,
+        'key_ref'      => \$data{'debian'}{'cpan_modules'}{'registry'},
+        'max_elements' => 4096
+    }
+);
 
 ## Per-zenka dependencies registry
 <debian.zenki_deps.registry> //= {};
@@ -95,45 +94,44 @@
     'sort_key' => 'alpha-len:zenka',
     'mask'     => 'id zenka pm_deps_count os_deps_count missing_count status',
     'align'    => {
-        'id'             => 'right',
-        'zenka'          => 'left+2',
-        'pm_deps_count'  => 'center',
-        'os_deps_count'  => 'center',
-        'missing_count'  => 'center',
-        'status'         => 'center'
+        'id'            => 'right',
+        'zenka'         => 'left+2',
+        'pm_deps_count' => 'center',
+        'os_deps_count' => 'center',
+        'missing_count' => 'center',
+        'status'        => 'center'
     },
-    'filters'  => {
-        'status' => sub {
-            $_[0] eq 'complete' ? '✓' :
-            $_[0] eq 'partial' ? '⚠' :
-            $_[0] eq 'missing' ? '✗' : $_[0]
-        }
-    }
+    'filters' => { 'status' => qw| debian.parser.zenka_status | }
 };
 
-<[base.list.init]>->({
-    'name'         => qw| zenka-deps |,
-    'key_ref'      => \$data{'debian'}{'zenki_deps'}{'registry'},
-    'max_elements' => 256
-});
+<[base.list.init]>->(
+    {   'name'         => qw| zenka-deps |,
+        'key_ref'      => \$data{'debian'}{'zenki_deps'}{'registry'},
+        'max_elements' => 256
+    }
+);
 
 ## Statistics
 <debian.stats> = {
-    zenki_scanned       => 0,
-    total_pm_deps       => 0,
-    total_os_deps       => 0,
-    debian_available    => 0,
-    debian_installed    => 0,
-    cpan_only           => 0,
-    missing_deps        => 0,
-    last_scan           => 0
+    zenki_scanned    => 0,
+    total_pm_deps    => 0,
+    total_os_deps    => 0,
+    debian_available => 0,
+    debian_installed => 0,
+    cpan_only        => 0,
+    missing_deps     => 0,
+    last_scan        => 0
 };
 
 ## Load known dependencies mapping
 <debian.known_deps> = <[base.known_dependencies]>;
 
-<[base.log]>->( 2, "  Loaded known dependencies: " .
-    scalar(keys %{<debian.known_deps>{perlmod}}) . " modules mapped" );
+<[base.log]>->(
+    2,
+    "  Loaded known dependencies: "
+        . scalar( keys %{ <debian.known_deps> {perlmod} } )
+        . " modules mapped"
+);
 
 ## Note: Initial scan skipped during init to avoid circular dependencies
 ## Scan will be performed on first command use
@@ -142,9 +140,8 @@
 
 0;
 
-#,,.,.,.,.,,..,.,.,.,.,,.,,,,.,.,.,,,.,,,..,,...,...,.,,,,,.,...,,,.,,.,,.,,,,
-#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
-#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
-#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#,,,,,.,.,.,.,...,,,,,,,.,,..,,,.,.,.,...,,.,,..,,...,...,.,.,.,,,,.,,,..,..,,
+#FNCKM6U2754ZBJ6ETYJZ36LYZO7RF3WKDX7Q5UQG62VDNZBRTM77FENQC7FOQ6JCIEEH53AGGYFMQ
+#\\\|UWEI65HTDENCKOAND45NL36LVMUCZFWVZOEXLF26G7OFGGFP4X3 \ / AMOS7 \ YOURUM ::
+#\[7]4C5YA3SR4FQ6N7433BLYCGTYIXB2QBV4WPK52PSVQN246QMBOYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-

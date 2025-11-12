@@ -3,84 +3,91 @@
 # name = debian.parent.ensure_zenka_dependencies
 # descr = Ensure all dependencies for a zenka are installed (for startup use)
 
-sub debian_parent_ensure_zenka_dependencies {
-    my $zenka_name = shift;
-    my $auto_install = shift // <debian.cfg.auto_install>;
+my $zenka_name   = shift;
+my $auto_install = shift // <debian.cfg.auto_install>;
 
-    return 1 unless $zenka_name;
+return 1 unless $zenka_name;
 
-    <[base.log]>->( 2, "debian.ensure: checking dependencies for zenka '$zenka_name'" );
+<[base.log]>->(
+    2, "debian.ensure: checking dependencies for zenka '$zenka_name'"
+);
 
-    ## Check if zenka is in registry
-    my $zenka_id = $data{'debian'}{'zenki_deps'}{'by_zenka'}{$zenka_name};
+## Check if zenka is in registry
+my $zenka_id = $data{'debian'}{'zenki_deps'}{'by_zenka'}{$zenka_name};
+
+unless ($zenka_id) {
+    ## Zenka not in registry - rescan
+    <[base.log]>->( 2, "  Zenka not in registry, rescanning..." );
+    <[debian.parent.scan_zenki_dependencies]>;
+
+    $zenka_id = $data{'debian'}{'zenki_deps'}{'by_zenka'}{$zenka_name};
 
     unless ($zenka_id) {
-        ## Zenka not in registry - rescan
-        <[base.log]>->( 2, "  Zenka not in registry, rescanning..." );
-        <[debian.parent.scan_zenki_dependencies]>();
-
-        $zenka_id = $data{'debian'}{'zenki_deps'}{'by_zenka'}{$zenka_name};
-
-        unless ($zenka_id) {
-            <[base.log]>->( 1, "  No dependencies found for zenka '$zenka_name'" );
-            return 1;  ## No deps = OK
-        }
-    }
-
-    my $zenka = $data{'debian'}{'zenki_deps'}{'registry'}{$zenka_id};
-
-    ## Check current status
-    <[debian.parent.check_installed]>();
-
-    my $missing = $zenka->{missing_count} || 0;
-
-    if ($missing == 0) {
-        <[base.log]>->( 2, "  ✓ All dependencies satisfied" );
-        return 1;
-    }
-
-    <[base.log]>->( 1, "  ✗ Missing $missing dependencies" );
-
-    unless ($auto_install) {
-        <[base.log]>->( 1, "  Auto-install disabled - dependencies not installed" );
-        <[base.log]>->( 1, "  Run: debian.install zenka=$zenka_name" );
-        return 0;
-    }
-
-    ## Auto-install missing dependencies
-    <[base.log]>->( 2, "  Auto-installing missing dependencies..." );
-
-    my $result = <[debian.parent.install_missing]>->({
-        zenka => $zenka_name,
-        prefer_debian => <debian.cfg.prefer_debian>,
-        use_cpanm => <debian.cfg.use_cpanm>
-    });
-
-    if ($result->{success}) {
-        my $total_installed = $result->{installed_debian} + $result->{installed_cpan};
-        my $total_failed = $result->{failed_debian} + $result->{failed_cpan};
-
-        if ($total_failed == 0) {
-            <[base.log]>->( 2, "  ✓ Successfully installed $total_installed dependencies" );
-            return 1;
-        } else {
-            <[base.log]>->( 0, "  ⚠ Installed $total_installed, failed $total_failed" );
-            return 0;
-        }
-    } else {
-        <[base.log]>->( 0, "  ✗ Installation failed: " . ($result->{error} || 'unknown') );
-        return 0;
+        <[base.log]>
+            ->( 1, "  No dependencies found for zenka '$zenka_name'" );
+        return 1;    ## No deps = OK
     }
 }
 
-## Export
-$code{qw| debian.parent.ensure_zenka_dependencies |} = \\&debian_parent_ensure_zenka_dependencies;
+my $zenka = $data{'debian'}{'zenki_deps'}{'registry'}{$zenka_id};
+
+## Check current status
+<[debian.parent.check_installed]>;
+
+my $missing = $zenka->{missing_count} || 0;
+
+if ( $missing == 0 ) {
+    <[base.log]>->( 2, "  ✓ All dependencies satisfied" );
+    return 1;
+}
+
+<[base.log]>->( 1, "  ✗ Missing $missing dependencies" );
+
+unless ($auto_install) {
+    <[base.log]>->(
+        1, "  Auto-install disabled - dependencies not installed"
+    );
+    <[base.log]>->( 1, "  Run: debian.install zenka=$zenka_name" );
+    return 0;
+}
+
+## Auto-install missing dependencies
+<[base.log]>->( 2, "  Auto-installing missing dependencies..." );
+
+my $result = <[debian.parent.install_missing]>->(
+    {   zenka         => $zenka_name,
+        prefer_debian => <debian.cfg.prefer_debian>,
+        use_cpanm     => <debian.cfg.use_cpanm>
+    }
+);
+
+if ( $result->{success} ) {
+    my $total_installed
+        = $result->{installed_debian} + $result->{installed_cpan};
+    my $total_failed = $result->{failed_debian} + $result->{failed_cpan};
+
+    if ( $total_failed == 0 ) {
+        <[base.log]>->(
+            2, "  ✓ Successfully installed $total_installed dependencies"
+        );
+        return 1;
+    } else {
+        <[base.log]>->(
+            0, "  ⚠ Installed $total_installed, failed $total_failed"
+        );
+        return 0;
+    }
+} else {
+    <[base.log]>->(
+        0, "  ✗ Installation failed: " . ( $result->{error} || 'unknown' )
+    );
+    return 0;
+}
 
 0;
 
-#,,.,.,.,.,,,.,,..,,,.,,,.,.,.,.,.,,,,,.,,,..,,...,...,.,,..,.,,,,.,.,,.,,...,
-#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
-#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
-#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#,,..,,,.,..,,,.,,.,.,,.,,,.,,,.,,...,,.,,,,.,..,,...,...,.,,,,,.,.,.,,,,,..,,
+#ZXGENS63DFB3IOA2B2YN5L35HY6YWNIVSLUOBDQP2I43P34B53PAJVMUHIEDTBDY4BJ4HAI4XANMK
+#\\\|PNDO775Q6WET3P4MSNKWD7PBM2BIEFXELV5DLAMN4CV5PMFCVR5 \ / AMOS7 \ YOURUM ::
+#\[7]YWVCAFSEQXG27K2TNRT3UZ3UQLS4PGA7LMXEWMXEOTGMY35THWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-

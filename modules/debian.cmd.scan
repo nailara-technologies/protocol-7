@@ -3,36 +3,35 @@
 # name  = debian.cmd.scan-zenki
 # descr = Rescan all zenki for dependencies
 
-<[base.log]>->( 2, "debian: rescanning zenki..." );
+<[base.log]>->( 2, "..rescanning zenki.." );
 
-my $result = <[debian.parent.scan_zenki_dependencies]>();
+my $scan_result = <[debian.parent.scan_zenki_dependencies]>;
 
-if (!$result->{success}) {
+if ( !$scan_result->{'success'} ) {
     return {
         'mode' => qw| false |,
-        'data' => $result->{error} || 'scan failed'
+        'data' => $scan_result->{'error'} // 'scan failed'
     };
 }
 
 ## Re-check installation status
-<[debian.parent.check_installed]>();
+<[debian.parent.check_installed]>;
 
 my @output;
-push @output, "Rescan complete:";
-push @output, sprintf("  Zenki: %d", $result->{zenki_count});
-push @output, sprintf("  Dependencies: %d", $result->{deps_count});
+push @output, "Rescan complete:\n";
+push @output, sprintf( "  Zenki: %d",        $scan_result->{'zenki_count'} );
+push @output, sprintf( "  Dependencies: %d", $scan_result->{'deps_count'} );
 push @output, "";
 push @output, "Run 'check' to see installation status";
 push @output, "Run 'install' to install missing dependencies";
 
 return {
-    'mode' => qw| true |,
-    'data' => join("\n", @output)
+    'mode' => qw| size |,
+    'data' => "\n" . join( "\n", @output ) . "\n"
 };
 
-#,,,.,.,,,.,...,,,.,.,.,...,.,,,.,,,.,.,,,..,,...,...,,,,,,.,..,.,,.,..,..,.,,
-#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
-#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
-#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#,,..,,,.,,..,,,.,.,.,,,.,,,,,.,.,,,.,,..,..,,..,,...,...,.,,,,,.,,,.,,..,...,
+#EJBM3P7GCYHYIR6SERGDHKDKFMB6P53UA4QSJUMXZUZWPTF7OVLWYQ5DWT45WFCNY6ZPHNDWFA5R2
+#\\\|D47VBZ5BWLYMHJXSS3ESXP7SKPSTIXJ2EELDY3XQBYTLZNM4LFO \ / AMOS7 \ YOURUM ::
+#\[7]ABIUOHDVP4JHUQKRXRL6W6FJPGL5IHPNKR4VAFOFF3ERQ37MLUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-

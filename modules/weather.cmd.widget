@@ -3,8 +3,7 @@
 # name = weather.cmd.widget
 # descr = Complete weather widget combining current conditions and forecast
 
-sub weather_cmd_widget {
-    my $params = shift || {};
+my $params = shift || {};
 
     my $show_current  = $params->{current}  // 1;
     my $show_forecast = $params->{forecast} // 1;
@@ -23,10 +22,9 @@ sub weather_cmd_widget {
         $html .= <[weather.forecast]>->( { days => $forecast_days } );
     }
 
-    $html .= qq|</div>|;
+$html .= qq|</div>|;
 
-    return $html;
-}
+return $html;
 
 sub _get_weather_widget_css {
     return qq|
@@ -349,9 +347,6 @@ sub _get_weather_widget_css {
 |;
 }
 
-## Export command ##
-$code{qw| weather.cmd.widget |} = \\&weather_cmd_widget;
-
 0;
 
 #,.,,.,,,.,,,.,.,.,.,.,,,.,,,,,.,,,,,,,.,,,.,.,.,.,.,.,.,.,,,.,,.,.,,,,,.,,,.,.,
@@ -360,3 +355,8 @@ $code{qw| weather.cmd.widget |} = \\&weather_cmd_widget;
 #\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#,,,,,,.,,,..,,..,.,.,.,.,,,,,,..,,,,,.,.,.,,,..,,...,...,.,,,,,.,.,.,.,,,,,.,
+#U37P6FZM4WF5WRYTUY7K5QOECY3DYDCQAUYTNUNZBV34AUURZIOPZIBVVHZ4DB7AX4VHLTRECW4HA
+#\\\|KIUHH4PW74XSZ5DDX7XR44WMCYNAYZGBUI2KPIUHIVVYHJ6T6M3 \ / AMOS7 \ YOURUM ::
+#\[7]JL7DZJZLJBOHSZFOG522PSP5V5ZZ7LLN2GKKA4IETLTBUKD6CYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

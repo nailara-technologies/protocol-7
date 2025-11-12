@@ -3,12 +3,11 @@
 # name = letsencrypt.cmd.revoke
 # descr = Revoke certificate with Let's Encrypt and clean up local files
 
-sub letsencrypt_cmd_revoke {
-    my $params = shift || {};
+my $params = shift || {};
 
-    my $domain = $params->{domain};
+my $domain = $params->{domain};
 
-    if (!$domain) {
+if (!$domain) {
         return {
             success => 0,
             error   => qw| domain parameter required |,
@@ -114,10 +113,6 @@ sub letsencrypt_cmd_revoke {
             hint    => qw| ensure letsencrypt zenka is running or load modules directly |
         };
     }
-}
-
-## Export command ##
-$code{qw| letsencrypt.cmd.revoke |} = \\&letsencrypt_cmd_revoke;
 
 0;
 
@@ -127,3 +122,8 @@ $code{qw| letsencrypt.cmd.revoke |} = \\&letsencrypt_cmd_revoke;
 #\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#,,,.,...,.,.,..,,,,.,.,,,,..,,,,,.,,,,,.,,,,,..,,...,..,,..,,,..,,,.,,..,...,
+#IM62XDVTYF2C2YUEXBTBVCXETM45MGPPSXTL55HQBLXQNHKOS3CRF6C6TOECHVLPMX6BUQIJG5GOK
+#\\\|BKG5BQZHLFM6UDEQLXQK3QQ7QHIVKQHX7BHP43HLT6URVTC4KTV \ / AMOS7 \ YOURUM ::
+#\[7]JTBCF72R4XJBCQMH6KHDMXMSZLZQYUNMLNQWVQTGF4K5CXS7RMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
