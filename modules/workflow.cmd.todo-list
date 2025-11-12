@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = workflow.cmd.todo-list
+# descr = aggregate todos from yaml and workspace-transfer sources
+
+my $todos = workflow::aggregate_todos();
+
+# Group by source
+my %by_source;
+foreach my $todo (@$todos) {
+    my $source = $todo->{source};
+    push @{$by_source{$source}}, $todo;
+}
+
+# Output JSON format for API consumption
+say "=== TODO AGGREGATION ===";
+say "";
+
+foreach my $source (sort keys %by_source) {
+    my $items = $by_source{$source};
+    say sprintf "Source: %s (%d items)", $source, scalar @$items;
+
+    foreach my $todo (@$items) {
+        say sprintf "  [%s] %s", $todo->{status}, $todo->{title};
+        say sprintf "      Priority: %s | Category: %s", $todo->{priority}, $todo->{category};
+        if ($todo->{repo}) {
+            say sprintf "      Repo: %s", $todo->{repo};
+        }
+        if ($todo->{file}) {
+            say sprintf "      File: %s", $todo->{file};
+        }
+        say "";
+    }
+}
+
+my $total = scalar @$todos;
+say "=== TOTAL: $total todos ===";
+
+#,,.,,,.,.,.,.,,,.,.,,,,,.,.,,,,,,,.,,,.,,,...,...,,.,,,.,.,,,.,,,,.,.,,,.,,,,,.
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
