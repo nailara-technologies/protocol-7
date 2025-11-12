@@ -177,15 +177,15 @@ if (   $sign_params_base->{'needs_separator_endline'}
     && $sign_params_base->{'last_line_incomplete'} ) {
 
     # State 7: Add 2 endlines (complete line + separator)
-    # Manually add them since harmonize returns early for state 7
-    $$src_ref .= "\n\n" if $$src_ref !~ /\n\n$/;
+    # Fix: Check for any newline, not double - file had incomplete line, we add 2
+    $$src_ref .= "\n\n" if $$src_ref !~ /\n$/;
     $endline_modification_state = 7;
     <[base.log]>->( 3, ': : using endline state 7 (add 2 endlines)' );
 } elsif ( $sign_params_base->{'needs_separator_endline'} ) {
 
     # State 6: Add 1 endline (separator only)
-    # Manually add it to ensure it's present
-    $$src_ref .= "\n" if $$src_ref !~ /\n\n$/;
+    # Fix: Check for single newline, not double - file had 0 endlines, we add 1
+    $$src_ref .= "\n" if $$src_ref !~ /\n$/;
     $endline_modification_state = 6;
     <[base.log]>->( 3, ': : using endline state 6 (add separator endline)' );
 } else {
@@ -484,8 +484,8 @@ if ( not $iterations_left ) {    ## warn about failed harmonization ##
 }
 
 return $calc_result_href;        ##  return harmonized result data href  ##
-#,,..,,,.,...,,.,,.,,,,..,,..,...,,.,,,,.,.,.,...,...,..,,.,,,,.,,,..,.,.,.,.,
-#WTFDO2KERX4WNVGXQSJBKRPMZPYHB4MORZSSA6MX5LDFKT3ZFXIQIPNGGMDMU72JRU6EMDN3BQYMG
-#\\\|RPZ7UI5H2T7BMEG2BAFJC6YFCVCDEL2JIYFGJJOC6OMDXEQEQZO \ / AMOS7 \ YOURUM ::
-#\[7]VJ6M37XOQKIN7TPRZASW7A4HOVGX2DE32PPZL52MTMVL6QACW2BI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,..,,.,.,...,,.,,,,,,,,.,,.,,.,.,...,...,.,.,,.,,,,,,,..,,..,,,,,
+#JMVS2X5LV6SP5KIBRMPIWSE3452MNDP6XCKUZA3R3YH3OSX736DHQQB3NI4F6NZMTXKC2S4JRGKNC
+#\\\|ZGSP2U2V3DK43346RKUCQJ7EVXZSV6HBYLI5NVYC7JHQMEFQ6YQ \ / AMOS7 \ YOURUM ::
+#\[7]WR4KP3FBC3EPA4MPIQGRVIUST7QZ2J2O2HPA7KU4UKXPNNN7DQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
