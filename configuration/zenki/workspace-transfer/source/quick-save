@@ -1,0 +1,39 @@
+#!/usr/bin/perl
+## [:< ##
+
+# name  = workspace-transfer.quick-save
+# descr = Quick save workspace to GitHub
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use File::Spec;
+use Cwd qw| abs_path |;
+use FindBin qw| $RealBin |;
+
+my $up_dir = File::Spec->updir;
+my $p7_root = abs_path(
+    File::Spec->catdir( $RealBin, ($up_dir) x 4 )
+);
+
+# Get workspace directory (auto-clones if needed)
+my $ensure_workspace = File::Spec->catfile( $RealBin, 'ensure-workspace' );
+my $workspace_transfer = `$ensure_workspace`;
+chomp $workspace_transfer;
+die "Failed to ensure workspace\n" unless $workspace_transfer && -d $workspace_transfer;
+
+my $quick_save_script = File::Spec->catfile(
+    $workspace_transfer, 'github-integration', 'quick_save_workspace.pl'
+);
+
+die ":\n:: workspace-transfer not found: $workspace_transfer\n\n" if !-d $workspace_transfer;
+die ":\n:: quick_save_workspace.pl not found: $quick_save_script\n\n" if !-x $quick_save_script;
+
+exec( $quick_save_script, @ARGV );
+
+#,,.,,.,,..,.,,,.,,,.,.,.,,,.,,,.,,,,,.,,,,.,,.,.,.,,,...,...,,.,,,,,.,.,,.,,,.,,.
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
