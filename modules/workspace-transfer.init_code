@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = workspace-transfer.init_code
+# descr = workspace-transfer zenka initialization
+
+<[base.perlmod.autoload]>->(qw| File::Spec |);
+<[base.perlmod.autoload]>->(qw| Cwd |);
+
+# Workspace directory constant
+our $WORKSPACE_DIR = '/var/run/.7/workspace-transfer';
+our $WORKSPACE_REPO = 'https://github.com/nailara-technologies/workspace-transfer.git';
+
+# Ensure workspace is cloned
+sub ensure_workspace {
+    return $WORKSPACE_DIR if -d $WORKSPACE_DIR && -d "$WORKSPACE_DIR/.git";
+
+    <[base.logs]>->( 1, 'workspace not found at %s', $WORKSPACE_DIR );
+    <[base.logs]>->( 1, 'cloning from %s', $WORKSPACE_REPO );
+
+    system('mkdir', '-p', '/var/run/.7') == 0
+        or die "Failed to create /var/run/.7: $!\n";
+
+    my $result = system('git', 'clone', $WORKSPACE_REPO, $WORKSPACE_DIR);
+
+    if ($result != 0) {
+        <[base.logs]>->( 0, 'failed to clone workspace-transfer repository' );
+        return undef;
+    }
+
+    <[base.logs]>->( 1, 'workspace cloned successfully' );
+    return $WORKSPACE_DIR;
+}
+
+# Change to workspace directory
+sub chdir_workspace {
+    my $ws_dir = ensure_workspace();
+    return undef unless defined $ws_dir;
+
+    chdir $ws_dir or do {
+        <[base.logs]>->( 0, 'cannot cd to workspace: %s', $! );
+        return undef;
+    };
+
+    return $ws_dir;
+}
+
+# Initialize workspace module
+<[base.logs]>->( 2, 'workspace module initialized' );
+
+#,,,.,,,.,.,,,,.,,,,.,.,.,.,,,.,,..,,,,.,,.,,,...,...,,.,,,.,.,.,,..,,,.,,,.,,,.
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
