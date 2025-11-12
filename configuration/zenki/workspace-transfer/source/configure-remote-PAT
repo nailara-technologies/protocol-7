@@ -1,0 +1,68 @@
+#!/usr/bin/perl
+## [:< ##
+
+# name  = workspace-transfer.configure-remote-PAT
+# descr = Configure GitHub Personal Access Token (delegates to keys zenka)
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use File::Spec;
+use Cwd qw| abs_path |;
+use FindBin qw| $RealBin |;
+
+my $up_dir = File::Spec->updir;
+my $p7_root = abs_path(
+    File::Spec->catdir( $RealBin, ($up_dir) x 4 )
+);
+
+# Get workspace directory (auto-clones if needed)
+my $ensure_workspace = File::Spec->catfile( $RealBin, 'ensure-workspace' );
+my $workspace_transfer = `$ensure_workspace`;
+chomp $workspace_transfer;
+die "Failed to ensure workspace\n" unless $workspace_transfer && -d $workspace_transfer;
+
+# Check if Protocol-7 keys module is available
+my $keys_module = File::Spec->catfile(
+    $p7_root, 'modules', 'keys.console.github-pat'
+);
+
+unless (-f $keys_module) {
+    say "";
+    say "⚠ Protocol-7 keys module not found.";
+    say "";
+    say "This command requires Protocol-7 keys infrastructure.";
+    say "Please run from Protocol-7 environment.";
+    say "";
+    exit 1;
+}
+
+# The keys.console.github-pat module should be invoked via keys zenka
+# For now, show instructions
+say "";
+say "=" x 70;
+say "GitHub PAT Configuration";
+say "=" x 70;
+say "";
+say "To configure GitHub Personal Access Token:";
+say "";
+say "  From Protocol-7 keys zenka:";
+say "    zenka keys github-pat workspace-transfer";
+say "";
+say "  Or directly:";
+say "    cd $p7_root";
+say "    # Load v7 environment and call keys.console.github-pat";
+say "";
+say "The keys module will:";
+say "  - Securely prompt for PAT using AMOS7::TERM";
+say "  - Store credentials in .credentials file";
+say "  - Configure git remote with authentication";
+say "  - Test connection to GitHub";
+say "";
+
+#,,.,,,.,,.,,.,,,,.,,.,.,.,,,.,.,...,,,,.,,.,,.,,,..,,,...,...,,.,,,.,.,,,,,.,,.,,.
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
