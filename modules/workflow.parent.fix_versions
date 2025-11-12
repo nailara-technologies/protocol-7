@@ -77,14 +77,14 @@ if ($dry_run) {
 <[base.log]>->( 1, "  EXECUTE MODE: Rewriting $total_to_fix commits..." );
 <[base.log]>->( 1, "  WARNING: This will rewrite git history!" );
 
-## Load required modules
-unless (exists $code{'crypt.C25519.load_keypair'}) {
-    <[base.log]>->( 2, "  Loading crypt.C25519 module..." );
-    <[base.load_modules]>->('crypt.C25519');
+## Load required modules (source module loads crypt.C25519 and sets up paths)
+unless (exists $code{'source.load_signature_key'}) {
+    <[base.log]>->( 2, "  Loading source module..." );
+    <[base.load_modules]>->('source');
 }
 
-## Load signing key
-my $sig_key_name = qw| proto-7.sourcecode |;
+## Get signature key name from source config (set in source.init_code)
+my $sig_key_name = <source.C25519.signature_key_name> // qw| proto-7.sourcecode |;
 <[base.log]>->( 2, "  Loading signature key '$sig_key_name'..." );
 
 unless (<[crypt.C25519.key_exists]>->($sig_key_name)) {
