@@ -113,59 +113,80 @@ foreach my $commit (@$commits) {
     ## Step 1: Check version file at this commit
     my $version_file_content = `git show $hash:$version_file_rel 2>/dev/null`;
     if ($? == 0 && length $version_file_content) {
-        ## Step 2: Validate the version file signature
-        ## Call signature_valid with undef footer_data - it will extract internally
-        my ($is_valid, $report) = <[source.signature_valid]>->(
-            \$version_file_content, undef, {}, $sig_key_name, 'strict'
-        );
+        ## Step 2: Extract and validate version file signature
+        my $footer_data = <[source.extract_sig_body]>->(\$version_file_content, 'strip', 'strict');
 
-        if (defined $is_valid && $is_valid) {
-            ## Step 3: Version file signature is valid - validate ALL source files at this commit
-            <[base.log]>->( 3, "  Validating all source files at commit $hash..." );
+        ## Check if signature present and structurally valid
+        if ($footer_data && $footer_data->{'was-present'} && $footer_data->{'structure-was-valid'}) {
+            ## Validate the signature
+            my ($is_valid, $report) = <[source.signature_valid]>->(
+                \$version_file_content, $footer_data, {}, $sig_key_name, 'strict'
+            );
 
-            ## Get list of source files
-            my @source_paths = <[sourcecode.source_path_set_up]>;
-            my $total_files = scalar @source_paths;
-            my $valid_files = 0;
-            my $invalid_files = 0;
+            if ($is_valid) {
+                ## Step 3: Version file signature is valid - validate ALL source files at this commit
+                <[base.log]>->( 3, "  Validating all source files at commit $hash..." );
 
-            foreach my $file_path (@source_paths) {
-                ## Read file at this commit
-                my $file_content = `git show $hash:$file_path 2>/dev/null`;
-                next if $? != 0 || !length $file_content;
+                ## Get list of source files
+                my @source_paths = <[sourcecode.source_path_set_up]>;
+                my $total_files = scalar @source_paths;
+                my $valid_files = 0;
+                my $invalid_files = 0;
 
-                ## Validate signature - let source.signature_valid handle extraction
-                my ($file_valid, $file_report) = <[source.signature_valid]>->(
-                    \$file_content, undef, {}, $sig_key_name, 'strict'
-                );
+                foreach my $file_path (@source_paths) {
+                    ## Read file at this commit
+                    my $file_content = `git show $hash:$file_path 2>/dev/null`;
+                    next if $? != 0 || !length $file_content;
 
-                if ($file_valid) {
-                    $valid_files++;
-                } else {
-                    $invalid_files++;
-                    last;  ## Stop on first invalid file
+                    ## Extract and validate signature
+                    my $file_footer = <[source.extract_sig_body]>->(\$file_content, 'strip', 'strict');
+
+                    if ($file_footer && $file_footer->{'was-present'} && $file_footer->{'structure-was-valid'}) {
+                        my ($file_valid, $file_report) = <[source.signature_valid]>->(
+                            \$file_content, $file_footer, {}, $sig_key_name, 'strict'
+                        );
+
+                        if ($file_valid) {
+                            $valid_files++;
+                        } else {
+                            $invalid_files++;
+                            last;  ## Stop on first invalid file
+                        }
+                    } else {
+                        $invalid_files++;
+                        last;  ## Stop on first invalid/unsigned file
+                    }
                 }
-            }
 
-            if ($invalid_files > 0) {
-                ## Found invalid source files at this commit
+                if ($invalid_files > 0) {
+                    ## Found invalid source files at this commit
+                    $data{'workflow'}{'history'}{'issues'}{$hash} = {
+                        type    => qw| invalid_sources |,
+                        commit  => $commit,
+                        message => "Invalid or unsigned source files at this commit (checked $valid_files files)"
+                    };
+                    $issues_found++;
+                    $has_issues = 1;
+                } else {
+                    ## All source files valid!
+                    <[base.log]>->( 3, "  ✓ Commit $hash: all $valid_files source files valid" );
+                }
+            } else {
+                ## Version file signature cryptographically invalid
                 $data{'workflow'}{'history'}{'issues'}{$hash} = {
-                    type    => qw| invalid_sources |,
+                    type    => qw| invalid_version_file |,
                     commit  => $commit,
-                    message => "Invalid or unsigned source files at this commit (checked $valid_files files)"
+                    message => 'Version file signature cryptographically invalid'
                 };
                 $issues_found++;
                 $has_issues = 1;
-            } else {
-                ## All source files valid!
-                <[base.log]>->( 3, "  ✓ Commit $hash: all $valid_files source files valid" );
             }
         } else {
-            ## Version file signature invalid or missing
+            ## Version file has no signature or malformed structure
             $data{'workflow'}{'history'}{'issues'}{$hash} = {
-                type    => qw| invalid_version_file |,
+                type    => qw| unsigned_version_file |,
                 commit  => $commit,
-                message => 'Version file signature invalid or missing'
+                message => 'Version file missing signature or has invalid structure'
             };
             $issues_found++;
             $has_issues = 1;
