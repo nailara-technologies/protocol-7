@@ -1,0 +1,177 @@
+## [:< ##
+
+# name  = workflow.cmd.version-sign-commit
+# descr = update version, sign with appropriate key, and commit
+
+my $message = shift // '';
+
+say '';
+say ' .:[ WORKFLOW: VERSION-SIGN-COMMIT ]:.';
+say '';
+
+## Detect environment and select signing workflow
+my $is_llm_env = 0;
+my $detected_context = 'unknown';
+
+# Check for LLM environment indicators
+if ( $ENV{'ANTHROPIC_API_KEY'} || $ENV{'CLAUDE_API_KEY'} ) {
+    $is_llm_env = 1;
+    $detected_context = 'anthropic-llm';
+} elsif ( $ENV{'OPENAI_API_KEY'} ) {
+    $is_llm_env = 1;
+    $detected_context = 'openai-llm';
+} elsif ( $ENV{'USER'} && $ENV{'USER'} =~ /^(user|claude|assistant)$/ ) {
+    $is_llm_env = 1;
+    $detected_context = 'llm-user';
+} elsif ( -d '/home/user/workspace-transfer' ) {
+    # Likely in Claude Code environment
+    $is_llm_env = 1;
+    $detected_context = 'claude-code';
+}
+
+say sprintf ' : Detected environment: %s', $detected_context;
+say sprintf ' : Using %s signing workflow', $is_llm_env ? 'LLM test key' : 'production key';
+say '';
+
+## Select key based on environment
+my $sig_key_name = qw| proto-7.sourcecode |;
+my $test_key_name = qw| test-proto7-sourcecode |;
+my $key_to_use = $is_llm_env ? $test_key_name : $sig_key_name;
+
+## Ensure key is available
+if ( $is_llm_env ) {
+    # Check if test key exists
+    unless ( exists $keys{'C25519'}{$test_key_name} ) {
+        say ' : Test key not found, creating...';
+
+        my ($new_key, $created_name) = <[crypt.C25519.gen_keys]>->( $test_key_name );
+
+        unless ( defined $new_key ) {
+            say ' : ✗ ERROR: Failed to generate test key';
+            say '';
+            return 1;
+        }
+
+        say sprintf ' : ✓ Created test key: %s', $test_key_name;
+        say '';
+    } else {
+        say sprintf ' : ✓ Test key loaded: %s', $test_key_name;
+        say '';
+    }
+} else {
+    # Production environment - check for production key
+    unless ( exists $keys{'C25519'}{$sig_key_name} ) {
+        say ' : ✗ ERROR: Production signing key not loaded';
+        say ' : Please load key with: ./bin/Protocol-7 keys load proto-7.sourcecode';
+        say '';
+        return 1;
+    }
+
+    say sprintf ' : ✓ Production key loaded: %s', $sig_key_name;
+    say '';
+}
+
+## Step 1: Update signatures with appropriate key
+say ' .:[ STEP 1: UPDATING SIGNATURES ]:.';
+say '';
+
+if ( $is_llm_env ) {
+    # Backup original key and use test key
+    my $original_key = $keys{'C25519'}{$sig_key_name};
+    $keys{'C25519'}{$sig_key_name} = $keys{'C25519'}{$test_key_name};
+
+    system('./bin/Protocol-7', 'sourcecode', 'update-signatures');
+    my $sign_exit = $? >> 8;
+
+    # Restore original key
+    $keys{'C25519'}{$sig_key_name} = $original_key if defined $original_key;
+
+    if ( $sign_exit != 0 ) {
+        say '';
+        say sprintf ' : ✗ Signature update failed (exit: %d)', $sign_exit;
+        say '';
+        return 1;
+    }
+} else {
+    system('./bin/Protocol-7', 'sourcecode', 'update-signatures');
+    my $sign_exit = $? >> 8;
+
+    if ( $sign_exit != 0 ) {
+        say '';
+        say sprintf ' : ✗ Signature update failed (exit: %d)', $sign_exit;
+        say '';
+        return 1;
+    }
+}
+
+say '';
+say ' : ✓ Signatures updated';
+say '';
+
+## Step 2: Git add all changes
+say ' .:[ STEP 2: STAGING CHANGES ]:.';
+say '';
+
+system('git', 'add', '-A');
+my $add_exit = $? >> 8;
+
+if ( $add_exit != 0 ) {
+    say ' : ✗ Failed to stage changes';
+    say '';
+    return 1;
+}
+
+# Show what will be committed
+system('git', 'status', '--short');
+
+say '';
+say ' : ✓ Changes staged';
+say '';
+
+## Step 3: Commit with message
+say ' .:[ STEP 3: COMMITTING ]:.';
+say '';
+
+my $commit_message = $message;
+unless ( length $commit_message ) {
+    # Generate default message
+    my $key_type = $is_llm_env ? 'LLM test key' : 'production key';
+    $commit_message = "chore: Update signatures with $key_type";
+}
+
+# Add environment context to commit message
+$commit_message .= "\n\nSigned-by: $detected_context" if $is_llm_env;
+
+my $commit_cmd = sprintf(
+    'git commit -m "%s"',
+    $commit_message =~ s/"/\\"/gr
+);
+
+system($commit_cmd);
+my $commit_exit = $? >> 8;
+
+if ( $commit_exit != 0 ) {
+    say ' : ✗ Commit failed';
+    say '';
+    return 1;
+}
+
+say '';
+say ' : ✓ Changes committed';
+say '';
+
+## Summary
+say ' .:[ COMPLETE ]:.';
+say '';
+say sprintf ' : Environment: %s', $detected_context;
+say sprintf ' : Key used: %s', $key_to_use;
+say sprintf ' : Commit message: %s', $commit_message;
+say '';
+
+return 0;
+
+#,,,.,,,.,...,,,,,.,.,,,.,.,.,,,.,,..,,.,,..,,...,...,.,,,,,.,...,...,.,.,,,.,,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
