@@ -9,11 +9,15 @@ system.verbosity.zenka_logfile = 2
 ## Enable automatic key creation for workflow zenka ##
 crypt.C25519.autocreate-user-key = yes
 
+## Git repository path for workflow operations ##
+git.cfg.repository_path = /home/user/protocol-7
+
 access.cmd.usr.cube = commands heart reload verify-instance \
                       list show-buffer buffer-erase buffer-erase-level \
                       test-oscillation sig-verify sig-update sig-cycle \
                       run-tests version-sign-commit todo bug \
-                      todo-list bug-list regenerate-indexes *
+                      todo-list bug-list regenerate-indexes \
+                      fix-versions harmonize-emails *
 
 ## Git remote configuration for version-sign-commit ##
 ## By default, remotes are auto-detected with priority: hub > origin > first available
@@ -24,7 +28,7 @@ access.cmd.usr.cube = commands heart reload verify-instance \
 ##   workflow.git.remotes =                          # empty = auto-detect (default)
 # workflow.git.remotes =
 
-modules.load = auth net protocol io.unix crypt.C25519 workflow
+modules.load = auth net protocol io.unix crypt.C25519 git workflow
 
 [load_modules:<modules.load>]
 [init_modules]
