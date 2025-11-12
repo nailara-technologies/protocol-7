@@ -9,8 +9,8 @@ die "Usage: bug-commit <description>\n" unless @args;
 my $ws_dir = workspace_transfer::chdir_workspace();
 <[base.exit]>->(qw| 0110 |) unless defined $ws_dir;
 
-# Add the bug using workspace.cmd.bug
-<[workspace.cmd.bug]>->('add', @args);
+# Add the bug using workspace-transfer.cmd.bug
+<[workspace-transfer.cmd.bug]>->('add', @args);
 
 # Get current branch
 my $branch = `git branch --show-current`;
