@@ -9,8 +9,8 @@ die "Usage: todo-commit <description>\n" unless @args;
 my $ws_dir = workspace_transfer::chdir_workspace();
 <[base.exit]>->(qw| 0110 |) unless defined $ws_dir;
 
-# Add the todo using workspace.cmd.todo
-<[workspace.cmd.todo]>->('add', @args);
+# Add the todo using workspace-transfer.cmd.todo
+<[workspace-transfer.cmd.todo]>->('add', @args);
 
 # Get current branch
 my $branch = `git branch --show-current`;

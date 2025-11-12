@@ -1,10 +1,147 @@
 ## [:< ##
 
 # name  = workspace-transfer.console.todo
-# descr = todo list management (console wrapper for .cmd.)
+# descr = todo list management (Protocol-7 styled console output)
 
-# Delegate to .cmd. version
-<[workspace-transfer.cmd.todo]>->(@_);
+## Protocol-7 color scheme ##
+my $reset      = "\e[0m";
+my $nailara_bg = "\e[48;2;9;5;42m";
+my $blacklight = "\e[38;2;68;39;172m";
+my $TRUE_blue  = "\e[38;2;6;71;195m";
+my $neon_orange = "\e[38;2;197;141;7m";
+my $neon_green = "\e[38;2;71;195;6m";
+
+my $cmd = shift || 'list';
+my @args = @_;
+
+my $ws_dir = workspace_transfer::chdir_workspace();
+<[base.exit]>->(qw| 0110 |) unless defined $ws_dir;
+
+my $todo_file = 'TODO.md';
+
+if ($cmd eq 'list') {
+    unless (-f $todo_file) {
+        say "";
+        say "$blacklight .:[ ${TRUE_blue}TODO LIST${blacklight} ]:.$reset";
+        say "";
+        say "  ${neon_orange}No TODOs yet.$reset";
+        say "  ${blacklight}Add one with: ${TRUE_blue}todo add <description>$reset";
+        say "";
+        return;
+    }
+
+    say "";
+    say "$blacklight .:[ ${TRUE_blue}TODO LIST${blacklight} ]:.$reset";
+    say "";
+
+    open my $fh, '<', $todo_file or do {
+        <[base.logs]>->( 0, 'cannot read TODO.md: %s', $! );
+        <[base.exit]>->(qw| 0110 |);
+    };
+
+    my $item_num = 0;
+    my $completed = 0;
+    while (<$fh>) {
+        if (/^- \[ \]/) {
+            $item_num++;
+            s/^- \[ \]/${neon_orange}[$item_num]${reset} ${TRUE_blue}☐$reset/;
+            print;
+        } elsif (/^- \[x\]/) {
+            $completed++;
+            s/^- \[x\]/${neon_green}✓$reset/;
+            print;
+        } else {
+            print;
+        }
+    }
+    close $fh;
+
+    say "";
+    say "$blacklight" . "=" x 60 . "$reset";
+    say sprintf "  ${TRUE_blue}Open: ${neon_orange}%d${reset} | ${TRUE_blue}Completed: ${neon_green}%d${reset}",
+        $item_num, $completed;
+    say "$blacklight" . "=" x 60 . "$reset";
+    say "";
+
+} elsif ($cmd eq 'add') {
+    die "Usage: todo add <description>\n" unless @args;
+
+    my $desc = join(' ', @args);
+    my $timestamp = scalar(localtime());
+
+    open my $fh, '>>', $todo_file or do {
+        <[base.logs]>->( 0, 'cannot write TODO.md: %s', $! );
+        <[base.exit]>->(qw| 0110 |);
+    };
+    print $fh "- [ ] $desc\n";
+    print $fh "  - Added: $timestamp\n";
+    close $fh;
+
+    say "";
+    say "$neon_green✓$reset ${TRUE_blue}Todo added:$reset $neon_orange$desc$reset";
+    say "";
+
+} elsif ($cmd eq 'done') {
+    my ($item_num) = @args;
+    die "Usage: todo done <item_number>\n" unless defined $item_num;
+
+    unless (-f $todo_file) {
+        say "No TODOs to mark done.";
+        return;
+    }
+
+    open my $fh, '<', $todo_file or do {
+        <[base.logs]>->( 0, 'cannot read TODO.md: %s', $! );
+        <[base.exit]>->(qw| 0110 |);
+    };
+    my @lines = <$fh>;
+    close $fh;
+
+    my $count = 0;
+    for my $i (0..$#lines) {
+        if ($lines[$i] =~ /^- \[ \]/) {
+            $count++;
+            if ($count == $item_num) {
+                $lines[$i] =~ s/^- \[ \]/- [x]/;
+                $lines[$i] =~ s/\n$//;
+                $lines[$i] .= " (completed: " . scalar(localtime()) . ")\n";
+
+                open my $out, '>', $todo_file or do {
+                    <[base.logs]>->( 0, 'cannot write TODO.md: %s', $! );
+                    <[base.exit]>->(qw| 0110 |);
+                };
+                print $out @lines;
+                close $out;
+
+                say "";
+                say "$neon_green✓$reset ${TRUE_blue}Marked item$reset $neon_orange$item_num$reset ${TRUE_blue}as done$reset";
+                say "";
+                return;
+            }
+        }
+    }
+
+    say "";
+    say "$neon_orange⚠$reset Item $item_num not found";
+    say "";
+
+} elsif ($cmd eq 'help') {
+    say "";
+    say "$blacklight .:[ ${TRUE_blue}TODO LIST MANAGEMENT${blacklight} ]:.$reset";
+    say "";
+    say "  ${TRUE_blue}Usage:$reset";
+    say "    ${neon_green}todo list${reset}              - List all todos (default)";
+    say "    ${neon_green}todo add${reset} ${neon_orange}<desc>${reset}        - Add a new todo";
+    say "    ${neon_green}todo done${reset} ${neon_orange}<num>${reset}        - Mark todo as done";
+    say "    ${neon_green}todo help${reset}              - Show this help";
+    say "";
+
+} else {
+    say "";
+    say "$neon_orange⚠$reset Unknown command: ${TRUE_blue}$cmd$reset";
+    say "  Run ${neon_green}todo help$reset for usage";
+    say "";
+}
 
 #,,,,.,,,.,.,.,,,.,,,,.,,.,.,.,,.,,,,.,,.,,...,...,,.,,,.,.,,,.,,,,,,.,,.,.,,,.
 #PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
