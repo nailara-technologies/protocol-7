@@ -12,6 +12,15 @@ access.cmd.usr.cube = commands heart reload verify-instance \
                       run-tests version-sign-commit todo bug \
                       todo-list bug-list regenerate-indexes *
 
+## Git remote configuration for version-sign-commit ##
+## By default, remotes are auto-detected with priority: hub > origin > first available
+## Configure multiple remotes to push to all of them automatically:
+## Examples:
+##   workflow.git.remotes = origin backup            # two remotes
+##   workflow.git.remotes = origin backup mirror     # three remotes
+##   workflow.git.remotes =                          # empty = auto-detect (default)
+# workflow.git.remotes =
+
 modules.load = auth net protocol io.unix crypt.C25519 workflow
 
 [load_modules:<modules.load>]
