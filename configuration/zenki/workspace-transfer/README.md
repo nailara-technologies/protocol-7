@@ -34,6 +34,7 @@ workspace-transfer/
 │   ├── Digest__SHA
 │   └── JSON__PP
 └── source/                  # Helper scripts
+    ├── ensure-workspace     # Auto-clone helper
     ├── bootstrap            # Workspace initialization
     ├── init                 # Check init status
     ├── status-check         # Workspace status
@@ -42,7 +43,12 @@ workspace-transfer/
     ├── sign                 # Sign workspace files
     ├── verify               # Verify signatures
     ├── load-checkpoint      # Load conversation checkpoints
-    └── transfer             # Transfer files to protocol-7
+    ├── transfer             # Transfer files to protocol-7
+    ├── todo                 # Todo list management
+    ├── bug                  # Bug tracking
+    ├── todo-commit          # Todo + auto-commit/push
+    ├── bug-commit           # Bug + auto-commit/push
+    └── configure-remote-PAT # GitHub PAT configuration
 ```
 
 ## Operations
@@ -106,6 +112,42 @@ Transfer files from workspace-transfer to protocol-7:
 - Interactive or automatic transfer
 - Backup existing files
 - Preserve permissions
+
+### todo
+Markdown-based todo list management:
+- `todo list` - List all todos
+- `todo add <description>` - Add new todo
+- `todo done <number>` - Mark todo as completed
+- Stores in TODO.md with timestamps
+
+### bug
+Bug tracking system with auto-assigned IDs:
+- `bug list` - List all bugs with statistics
+- `bug add <description>` - Report new bug (auto-assigns BUG-N)
+- `bug fixed <id>` - Mark bug as fixed
+- Stores in BUGS.md with status tracking
+
+### todo-commit
+Add todo with automatic commit and push:
+- Adds todo to TODO.md
+- Commits changes to git
+- Pushes to GitHub (requires PAT)
+- Nothing gets lost anymore!
+
+### bug-commit
+Report bug with automatic commit and push:
+- Adds bug to BUGS.md
+- Commits changes to git
+- Pushes to GitHub (requires PAT)
+- Immediate tracking in version control
+
+### configure-remote-PAT
+Configure GitHub Personal Access Token:
+- Securely reads PAT using AMOS7::TERM (Protocol-7 integration)
+- Stores credentials in .credentials file
+- Configures git remote with authentication
+- Enables auto-push for todo-commit and bug-commit
+- Tests connection to verify setup
 
 ## Dependencies
 
