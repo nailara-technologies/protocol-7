@@ -80,8 +80,9 @@ foreach my $commit (@$commits) {
     $commits_scanned++;
     my $has_issues = 0;
 
-    ## Check for version number in subject (simple counter format like [5380])
-    unless ($subject =~ m/^\[v?\d+\]/) {
+    ## Check for version number in subject
+    ## Format: [TIMESTAMP-COUNT.MINOR] like [3K26XZWHJI-5339.0] or simple [COUNT]
+    unless ($subject =~ m/^\[([A-Z0-9]+-\d+\.\d+|\d+)\]/) {
         $data{'workflow'}{'history'}{'issues'}{$hash} = {
             type    => qw| missing_version |,
             commit  => $commit,
@@ -91,7 +92,7 @@ foreach my $commit (@$commits) {
         $has_issues = 1;
     } else {
         ## Track version numbers
-        if ($subject =~ m/^\[v?(\d+)\]/) {
+        if ($subject =~ m/^\[(?:[A-Z0-9]+-)?(\d+)(?:\.\d+)?\]/) {
             $versions_seen{$1} = 1;
         }
     }
