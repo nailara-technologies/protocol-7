@@ -1,0 +1,36 @@
+
+ .:[ protocol-7 git version control zenka ]:.
+
+[load_config_file:'shared-params']
+
+system.verbosity.zenka_buffer = 2
+system.verbosity.zenka_logfile = 2
+
+access.cmd.usr.cube = commands commit status diff log \
+                      update-version changed-files format \
+                      restore-permissions add push pull \
+                      check-deps install-deps *
+
+modules.load = auth net protocol io.unix git
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,,.,,,.,...,,,,,.,.,,,.,.,.,,,.,,..,,.,,..,,...,...,.,,,,,.,...,...,.,.,,,.,,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,.,..,,..,,,..,...,,,,,.,,,,,.,,,.,.,,,.,.,..,,...,..,,..,,.,,,..,,...,.,.,
+#3H246GMFTUZJAZ5I6ZCCONGYTAQRHOZGVFA5664NPX5MNCNNCG4FEYAMOZQNPDYOKC3ORVSFGASCY
+#\\\|QQBKJG7KE532SMOTORLAZZ2EX7MUUHQHAHQ2LHDQGEZWKG47LHW \ / AMOS7 \ YOURUM ::
+#\[7]ZSRHULOVTKHPSWMWJF2LJQXIZYMRQ23FWKM4GEYJ5CKPUBW666BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
