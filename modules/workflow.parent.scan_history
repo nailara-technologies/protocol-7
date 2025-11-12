@@ -29,23 +29,13 @@ unless ($force) {
 <[base.log]>->( 2, "workflow.scan: scanning git history for issues..." );
 <[base.log]>->( 3, "  Scope: $branch_scope" ) if $branch_scope ne 'HEAD';
 
-## Load source module for signature validation
-unless (exists $code{'source.sign_data'}) {
-    <[base.log]>->( 3, "  Loading source module for signature validation..." );
-    <[base.load_modules]>->('source');
-}
-
-## Load public key for signature verification (no passphrase needed)
-my $sig_key_name = <source.C25519.signature_key_name> // qw| proto-7.sourcecode |;
-unless (exists $keys{'C25519'}{$sig_key_name} && exists $keys{'C25519'}{$sig_key_name}{'public'}) {
-    <[base.log]>->( 3, "  Loading public key for signature verification..." );
-    ## Try loading from embedded public key first
-    if (exists $code{'base.protocol-7.source-key'} && <[base.protocol-7.source-key]>) {
-        <[crypt.C25519.load_from_string]>->($sig_key_name, <[base.protocol-7.source-key]>);
-    } elsif (<[crypt.C25519.key_exists]>->($sig_key_name)) {
-        ## Fall back to loading from file (public key only, no passphrase)
-        <[crypt.C25519.load_keypair]>->($sig_key_name, undef, TRUE, FALSE);
-    }
+## Early abort optimization: check version file first as a hint
+## If version file has proper format, recent commits likely have versions too
+my $version_file_valid = 0;
+my $src_ver = <protocol-7.src-ver> // '';
+if ($src_ver =~ m/^[A-Z0-9]+-\d+\.\d+$/) {
+    $version_file_valid = 1;
+    <[base.log]>->( 3, "  Version file has valid format: $src_ver (early abort hint)" );
 }
 
 ## Get git log
@@ -116,42 +106,9 @@ foreach my $commit (@$commits) {
         }
     }
 
-    ## Check for AMOS7 signature and validate it cryptographically
-    my $signature_valid = 0;
-    if ($subject =~ m/\s*#([A-Z0-9]{64})#\s*$/) {
-        my $signature_b32 = $1;
-
-        ## Extract message without signature for verification
-        my $msg_without_sig = $subject;
-        $msg_without_sig =~ s/\s*#[A-Z0-9]{64}#\s*$//;
-
-        ## Verify signature using crypt.C25519.verify_sign (same as source.signature_valid does)
-        if (exists $keys{'C25519'}{$sig_key_name} && exists $keys{'C25519'}{$sig_key_name}{'public'}) {
-            eval {
-                $signature_valid = <[crypt.C25519.verify_sign]>->(
-                    \$msg_without_sig, \$signature_b32, $sig_key_name
-                ) ? 1 : 0;
-            };
-            $signature_valid = 0 if $@;  ## Failed verification
-        } else {
-            ## If public key not loaded, assume format is valid (can't verify)
-            $signature_valid = 1;
-        }
-    }
-
-    unless ($signature_valid) {
-        push @{<workflow.history.unsigned>}, $hash;
-
-        unless (exists $data{'workflow'}{'history'}{'issues'}{$hash}) {
-            $data{'workflow'}{'history'}{'issues'}{$hash} = {
-                type    => qw| unsigned |,
-                commit  => $commit,
-                message => 'Commit not signed with AMOS7 or signature invalid'
-            };
-            $issues_found++;
-            $has_issues = 1;
-        }
-    }
+    ## Note: Commit signatures don't exist yet - commits aren't mirrored into code directory
+    ## Later we can auto-commit git history snippets into the code directory and sign those
+    ## For now, we only check for version format presence
 
     ## Track email addresses and author names for harmonization
     $emails_seen{$email}++ if length $email;
