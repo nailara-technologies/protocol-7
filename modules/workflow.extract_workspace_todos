@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = workflow.extract_workspace_todos
+# descr = extract todos from workspace-transfer TODO.md files
+
+my @todos;
+my $repos = <[workflow.scan_workspace_repos]>;
+
+foreach my $repo (@$repos) {
+    my $todo_file = "$repo->{path}/TODO.md";
+    next unless -f $todo_file;
+
+    open my $fh, '<', $todo_file or next;
+    while (<$fh>) {
+        if (/^- \[ \](.*)/) {
+            my $desc = $1;
+            $desc =~ s/^\s+//;
+
+            push @todos, {
+                title => $desc,
+                priority => 'medium',
+                category => 'workspace-todo',
+                status => 'pending',
+                repo => $repo->{name},
+                path => $todo_file,
+                source => 'workspace-transfer-todo'
+            };
+        }
+    }
+    close $fh;
+}
+
+return \@todos;
+
+#,,,.,,..,,..,.,.,.,,,.,.,,,,,.,,,.,.,.,.,,,...,...,.,..,.,.,.,.,.,,,.,,,.,,,.,.,,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
