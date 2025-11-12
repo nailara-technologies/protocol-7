@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = workflow.index_needs_regeneration
+# descr = check if index needs regeneration based on TTL
+
+my ($index_file) = @ARG;
+
+return 1 unless -f $index_file;
+
+my $mtime = (stat($index_file))[9];
+return 1 unless defined $mtime;
+
+my $age = time() - $mtime;
+my $index_ttl = <workflow.cfg.index_ttl>;
+
+return $age > $index_ttl;
+
+#,.,,.,.,,.,,.,.,,,.,.,.,.,,,,,.,,,.,,,.,...,...,.,,.,.,.,,,,.,,.,,.,,.,..,,,.,.,,.
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

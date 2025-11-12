@@ -4,12 +4,12 @@
 # descr = force regeneration of all yaml indexes
 
 say "Regenerating todos index...";
-my $todos_index = workflow::generate_todos_index();
+my $todos_index = <[workflow.generate_todos_index]>;
 say sprintf "✓ Todos index regenerated: %d todos", $todos_index->{total_count};
 
 say "";
 say "Regenerating workspace-transfer index...";
-my $workspace_index = workflow::generate_workspace_index();
+my $workspace_index = <[workflow.generate_workspace_index]>;
 say sprintf "✓ Workspace index regenerated: %d bugs", $workspace_index->{total_bugs};
 
 say "";
