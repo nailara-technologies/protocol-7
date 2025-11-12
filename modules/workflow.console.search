@@ -39,29 +39,33 @@ say '';
 say "${blacklight}.:[ ${TRUE_blue}WORKFLOW SEARCH${blacklight} ]:. ${dim_blue}pattern: ${neon_orange}$pattern$reset";
 say '';
 
-my $protocol7_root = <workflow.cfg.protocol7_root> // '/home/user/protocol-7';
+## Use Protocol-7 auto-detected system paths ##
+my $root_path = <system.root_path>;
+my $conf_path = <system.conf_path>;
+my $code_path = <system.code_path>;
+
 my $total_matches = 0;
 my $case_insensitive = lc($pattern) eq $pattern;
 
-## Define search paths ##
+## Define search paths using system paths ##
 my @search_paths = (
     {
-        path => "$protocol7_root/data/yaml",
+        path => "$root_path/data/yaml",
         desc => 'Workflow YAML Data',
         types => [qw| yaml yml |]
     },
     {
-        path => "$protocol7_root/data/asc/what-AI-thinks",
+        path => "$root_path/data/asc/what-AI-thinks",
         desc => 'AI Notes & Documentation',
         types => [qw| md markdown txt |]
     },
     {
-        path => "$protocol7_root/modules",
+        path => $code_path,
         desc => 'Workflow Source Code',
         filter => sub { $_[0] =~ m|/workflow\.| }
     },
     {
-        path => "$protocol7_root/configuration/zenki/workflow",
+        path => "$conf_path/zenki/workflow",
         desc => 'Workflow Configuration',
         types => [qw| * |]
     }
@@ -124,7 +128,7 @@ foreach my $location (@search_paths) {
                 ## Show file header ##
                 if (!$file_header_shown) {
                     my $display_path = $file;
-                    $display_path =~ s|^$protocol7_root/||;
+                    $display_path =~ s|^$root_path/||;
                     say "${blacklight}├──[ ${TRUE_blue}$display_path${blacklight} ]$reset";
                     $file_header_shown = 1;
                 }

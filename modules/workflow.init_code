@@ -11,9 +11,9 @@ if ($@) {
     <[base.logs]>->( 1, 'YAML::XS not available, yaml aggregation features disabled' );
 }
 
-## Configuration ##
-<workflow.cfg.protocol7_root> //= '/home/user/protocol-7';
-<workflow.cfg.yaml_data_dir>  //= <workflow.cfg.protocol7_root> . '/data/yaml';
+## Configuration - use Protocol-7 auto-detected system paths ##
+my $root_path = <system.root_path>;
+<workflow.cfg.yaml_data_dir>  //= "$root_path/data/yaml";
 <workflow.cfg.index_dir>      //= <workflow.cfg.yaml_data_dir> . '/indexes';
 <workflow.cfg.index_ttl>      //= 300;  ## 5 minutes ##
 
