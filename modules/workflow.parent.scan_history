@@ -116,21 +116,25 @@ foreach my $commit (@$commits) {
         }
     }
 
-    ## Check for AMOS7 signature and validate it
+    ## Check for AMOS7 signature and validate it cryptographically
     my $signature_valid = 0;
-    if ($subject =~ m/#([A-Z0-9]{64})#/) {
-        my $existing_sig = $1;
+    if ($subject =~ m/\s*#([A-Z0-9]{64})#\s*$/) {
+        my $signature_b32 = $1;
 
-        ## Extract message without signature to verify
-        my $msg_to_verify = $subject;
-        $msg_to_verify =~ s/\s*#[A-Z0-9]{64}#\s*$//;
+        ## Extract message without signature for verification
+        my $msg_without_sig = $subject;
+        $msg_without_sig =~ s/\s*#[A-Z0-9]{64}#\s*$//;
 
-        ## Only validate if we have source.sign_data loaded
-        if (exists $code{'source.sign_data'}) {
-            my $computed_sig = <[source.sign_data]>->(\$msg_to_verify);
-            $signature_valid = 1 if $computed_sig && $computed_sig eq $existing_sig;
+        ## Verify signature using crypt.C25519.verify_sign (same as source.signature_valid does)
+        if (exists $keys{'C25519'}{$sig_key_name} && exists $keys{'C25519'}{$sig_key_name}{'public'}) {
+            eval {
+                $signature_valid = <[crypt.C25519.verify_sign]>->(
+                    \$msg_without_sig, \$signature_b32, $sig_key_name
+                ) ? 1 : 0;
+            };
+            $signature_valid = 0 if $@;  ## Failed verification
         } else {
-            ## If source module not loaded, assume signature format is valid
+            ## If public key not loaded, assume format is valid (can't verify)
             $signature_valid = 1;
         }
     }
