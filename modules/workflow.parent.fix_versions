@@ -88,31 +88,38 @@ unless (exists $code{'source.sign_data'}) {
 my $sig_key_name = <source.C25519.signature_key_name> // qw| proto-7.sourcecode |;
 <[base.log]>->( 2, "  Loading signature key '$sig_key_name'..." );
 
-## Check if key exists
-my $key_exists = <[crypt.C25519.key_exists]>->($sig_key_name);
-unless ($key_exists) {
-    return {
-        success => 0,
-        error   => "Signature key '$sig_key_name' does not exist. Cannot sign commits with test keys - signatures must be verifiable against known public keys."
-    };
+## Check if key is already loaded in memory (with private key for signing)
+my $key_already_loaded = exists $keys{'C25519'}{$sig_key_name}
+    && exists $keys{'C25519'}{$sig_key_name}{'private'}
+    && exists $keys{'C25519'}{$sig_key_name}{'public'};
+
+unless ($key_already_loaded) {
+    ## Key not in memory - check if it exists on disk
+    my $key_exists = <[crypt.C25519.key_exists]>->($sig_key_name);
+    unless ($key_exists) {
+        return {
+            success => 0,
+            error   => "Signature key '$sig_key_name' does not exist on disk. Cannot sign commits with test keys - signatures must be verifiable against known public keys."
+        };
+    }
+
+    ## Load the key from disk
+    my $load_success = <[source.load_signature_key]>->($sig_key_name);
+    unless ($load_success) {
+        return {
+            success => 0,
+            error   => "Failed to load signature key '$sig_key_name' from disk"
+        };
+    }
 }
 
-## Load the key
-my $load_success = <[source.load_signature_key]>->($sig_key_name);
-unless ($load_success) {
-    return {
-        success => 0,
-        error   => "Failed to load signature key '$sig_key_name'"
-    };
-}
-
-## Verify key is properly loaded
+## Verify key is properly loaded with PRIVATE key (needed for signing)
 unless (exists $keys{'C25519'}{$sig_key_name}
     && exists $keys{'C25519'}{$sig_key_name}{'private'}
     && exists $keys{'C25519'}{$sig_key_name}{'public'}) {
     return {
         success => 0,
-        error   => "Signature key '$sig_key_name' not properly loaded (missing private or public key)"
+        error   => "Signature key '$sig_key_name' not properly loaded - missing private key needed for signing"
     };
 }
 
