@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = workspace-transfer.cmd.bug-commit
+# descr = add bug and auto-commit/push to GitHub
+
+my @args = @_;
+die "Usage: bug-commit <description>\n" unless @args;
+
+my $ws_dir = workspace_transfer::chdir_workspace();
+<[base.exit]>->(qw| 0110 |) unless defined $ws_dir;
+
+# Add the bug using workspace.cmd.bug
+<[workspace.cmd.bug]>->('add', @args);
+
+# Get current branch
+my $branch = `git branch --show-current`;
+chomp $branch;
+
+# Check if BUGS.md changed
+my $status = `git status --short BUGS.md`;
+if ($status =~ /BUGS\.md/) {
+    say "";
+    say "Committing BUGS.md...";
+
+    system('git', 'add', 'BUGS.md') == 0 or do {
+        <[base.logs]>->( 0, 'git add failed' );
+        <[base.exit]>->(qw| 0110 |);
+    };
+
+    my $desc = join(' ', @args);
+    my $commit_msg = "bug: Report - $desc";
+    system('git', 'commit', '--no-gpg-sign', '-m', $commit_msg) == 0 or do {
+        <[base.logs]>->( 0, 'git commit failed' );
+        <[base.exit]>->(qw| 0110 |);
+    };
+
+    say "Pushing to GitHub...";
+    my $result = system('git', 'push', '-u', 'origin', $branch);
+
+    if ($result == 0) {
+        say "";
+        say "✓ Bug reported, committed, and pushed to GitHub!";
+    } else {
+        say "";
+        say "⚠ Bug reported and committed, but push failed.";
+        say "  You may need to configure GitHub PAT.";
+        say sprintf "  Run 'git push -u origin %s' manually.", $branch;
+    }
+} else {
+    say "";
+    say "✓ Bug reported (no changes to commit)";
+}
+
+#,,.,,,.,.,,,.,,,,.,,.,,,.,,,,.,,,.,,.,.,,,...,...,,.,,,.,.,,,.,,,,.,,,.,,,.,,.
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

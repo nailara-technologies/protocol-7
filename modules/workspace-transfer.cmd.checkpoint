@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = workspace-transfer.cmd.checkpoint
+# descr = quick checkpoint commit and push
+
+<[base.perlmod.autoload]>->(qw| POSIX |);
+
+my $message = shift || sprintf("Checkpoint: %s", POSIX::strftime("%Y-%m-%d %H:%M:%S", localtime()));
+
+my $ws_dir = workspace_transfer::chdir_workspace();
+<[base.exit]>->(qw| 0110 |) unless defined $ws_dir;
+
+# Add all changes
+system('git', 'add', '-A') == 0 or do {
+    <[base.logs]>->( 0, 'git add failed: %s', $! );
+    <[base.exit]>->(qw| 0110 |);
+};
+
+# Show what will be committed
+say "=" x 70;
+say "COMMITTING CHANGES";
+say "=" x 70;
+system('git', 'status', '--short');
+say "";
+
+# Commit
+say "Message: $message";
+my $commit_result = system('git', 'commit', '--no-gpg-sign', '-m', $message);
+
+if ($commit_result == 0) {
+    say "✓ Committed successfully";
+
+    # Get current branch
+    my $branch = `git branch --show-current`;
+    chomp $branch;
+
+    # Push to remote
+    say "";
+    say "Pushing to GitHub...";
+    my $push_result = system('git', 'push', '-u', 'origin', $branch);
+
+    if ($push_result == 0) {
+        say "✓ Pushed to remote successfully";
+        say "";
+        say "🌳 Checkpoint saved to GitHub! 🌳";
+    } else {
+        say "⚠ Push failed, but commit is local. Will retry on next checkpoint.";
+    }
+} else {
+    say "ℹ Nothing to commit (working tree clean)";
+}
+
+say "=" x 70;
+
+#,,.,,,.,,,.,.,,,,.,,.,,,.,,,,,,.,,.,,,.,.,...,...,,.,,,.,.,.,,,.,.,,,.,,.,,,,.
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
