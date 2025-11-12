@@ -1,0 +1,108 @@
+## [:< ##
+
+# name  = sourcecode.console.read-sig-footer-state
+# descr = read and display encoded signature footer state
+
+my $command_params = shift // '';
+
+$command_params =~ s,^ *| *$,,;
+
+unless ( length $command_params ) {
+    say ': usage: sourcecode read-sig-footer-state <file-path-pattern>';
+    say ': example: sourcecode read-sig-footer-state bin/elf';
+    return;
+}
+
+my @source_paths = <[base.source.collect_file_list]>->($command_params);
+
+unless ( @source_paths ) {
+    printf( ": no files found for pattern: %s\n", $command_params );
+    return;
+}
+
+say ':';
+say ': .:[ SIGNATURE FOOTER STATE ANALYSIS ]:.::';
+say ':';
+
+my @display_rows;
+
+foreach my $file_path ( @source_paths ) {
+    next unless -f $file_path;
+
+    <[file.slurp]>->( $file_path, \my $src_content, qw| :raw | );
+    next unless defined $src_content;
+
+    # Extract signature footer
+    my $footer_data = <[source.extract_sig_body]>->( \$src_content, qw| | );
+
+    unless ( $footer_data->{'was-present'} ) {
+        push @display_rows, {
+            'file'   => <[base.parser.ellipse_center]>->( (split '/', $file_path)[-1], 24 ),
+            'state'  => '? ',
+            'endline' => '---',
+            'bmw'    => 'not signed',
+            'sig'    => 'not signed'
+        };
+        next;
+    }
+
+    my $state = $footer_data->{'endline-state-encoded'} // '?';
+    my $bmw   = $footer_data->{'bmw-chksum'} // 'ERROR';
+    my $sig   = $footer_data->{'signature'} // 'ERROR';
+
+    # Shorten checksums for display
+    my $bmw_short = <[base.parser.ellipse_center]>->( $bmw, 21 ) if length $bmw;
+    my $sig_short = <[base.parser.ellipse_center]>->( $sig, 21 ) if length $sig;
+
+    my $endline_desc = '';
+    if ( $state == 0 ) { $endline_desc = '0:4-removed'; }
+    elsif ( $state == 1 ) { $endline_desc = '1:3-removed'; }
+    elsif ( $state == 2 ) { $endline_desc = '2:2-removed'; }
+    elsif ( $state == 3 ) { $endline_desc = '3:1-removed'; }
+    elsif ( $state == 4 ) { $endline_desc = '4:no-mod'; }
+    elsif ( $state == 5 ) { $endline_desc = '5:canonical'; }
+    elsif ( $state == 6 ) { $endline_desc = '6:+1-sep'; }
+    elsif ( $state == 7 ) { $endline_desc = '7:+2-added'; }
+    else { $endline_desc = '?:unknown'; }
+
+    push @display_rows, {
+        'file'   => <[base.parser.ellipse_center]>->( (split '/', $file_path)[-1], 24 ),
+        'state'  => sprintf('%d', $state),
+        'endline' => $endline_desc,
+        'bmw'    => $bmw_short // '?',
+        'sig'    => $sig_short // '?'
+    };
+}
+
+# Display header
+say ': :';
+printf( ': : %-26s : %3s : %-12s : %-23s : %-23s' . "\n", 'file', 'st', 'endline', 'bmw-chksum', 'c25519-sig' );
+say ': :' . ('-' x 98);
+
+# Display rows
+foreach my $row ( @display_rows ) {
+    printf( ': : %-26s : %3s : %-12s : %-23s : %-23s' . "\n",
+        $row->{'file'},
+        $row->{'state'},
+        $row->{'endline'},
+        $row->{'bmw'},
+        $row->{'sig'}
+    );
+}
+
+say ': :' . ('-' x 98);
+say ':';
+
+0;
+
+#,,.,,.,,,..,,.,,..,,.,.,,..,.,,,,,.,,,.,,,..,,..,,...,...,.,,,,,.,,,.,.,,.,,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,..,,.,,..,,,,.,,.,,,,,,,.,,...,...,,,,,..,,..,,...,...,..,,,.,,,.,,,..,..,,
+#EV3CJEQRJXHWCGY2QA5SB4JJXZ5GDMX3OKNZS6B7BZGHDEUAHDUG4GEZXSCGLJRZNCPF5IYFRG2AW
+#\\\|L4IDSDKC2FYMTLTQQZXYTPCFI6S6KAMISR5Q3OOAKXIVPZX4TBT \ / AMOS7 \ YOURUM ::
+#\[7]WTMT55VVOZJ65LNO6B7RZSNCBWKLRLG5GEBQRK6RGMXMHWULLCBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

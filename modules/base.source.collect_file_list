@@ -81,28 +81,52 @@ push(    ## enabling [non-recursive] wildcard matches ##
         my $original_pattern = $ARG;
         ( my $base_path = $ARG ) =~ s|/*\*.*$||;
         ( my $pattern   = $ARG ) =~ s|^[^\*]*||;
-        my $absolute_path = catfile( $work_tree, $base_path );
 
-        # Check if base path exists before attempting match
-        if ( not -e $absolute_path ) {
-            <[base.logs]>->(
-                0, ': pattern \'%s\' - base path does not exist',
-                $original_pattern
-            );
-            ();    # return empty list for this pattern
+        # Special case: standalone * or patterns without directory separator
+        # These should match in the work_tree root
+        if ( $original_pattern eq '*' or ( $original_pattern !~ m|/| and $original_pattern =~ m|\*| ) ) {
+            # Try glob in work_tree
+            my @glob_results = glob(catfile($work_tree, $original_pattern));
+            if (@glob_results) {
+                # Return matching directories; files will be collected by file.all_files
+                grep {-d} @glob_results;
+            } else {
+                # No glob matches, return the work_tree itself as fallback for *
+                if ( $original_pattern eq '*' ) {
+                    $work_tree;
+                } else {
+                    <[base.logs]>->(
+                        0, ': pattern \'%s\' - no matches found',
+                        $original_pattern
+                    );
+                    ();
+                }
+            }
         } else {
-            $absolute_path = abs_path($absolute_path);
+            # Original logic for patterns with path separators
+            my $absolute_path = catfile( $work_tree, $base_path );
+
+            # Check if base path exists before attempting match
+            if ( not -e $absolute_path ) {
+                <[base.logs]>->(
+                    0, ': pattern \'%s\' - base path does not exist',
+                    $original_pattern
+                );
+                ();    # return empty list for this pattern
+            } else {
+                $absolute_path = abs_path($absolute_path);
 
 # Special case: pattern ending with /* means scan immediate files non-recursively
 # This is different from /*/ which means find subdirectories
-            if ( $original_pattern =~ m|/\*$| and $pattern eq '*' ) {
+                if ( $original_pattern =~ m|/\*$| and $pattern eq '*' ) {
 
-        # Add the base directory itself to be scanned for immediate files only
-                ($absolute_path);
-            } else {
+            # Add the base directory itself to be scanned for immediate files only
+                    ($absolute_path);
+                } else {
 
-                # Return directory matches for other wildcard patterns
-                <[file.match_dirs]>->( $absolute_path, $pattern );
+                    # Return directory matches for other wildcard patterns
+                    <[file.match_dirs]>->( $absolute_path, $pattern );
+                }
             }
         }
         }

@@ -1,0 +1,107 @@
+## [:< ##
+
+# name  = sourcecode.console.test-sign-with-temp-key
+# descr = test signing with temporary key (creates temp key if needed)
+
+my $command_params = shift // '';
+
+$command_params =~ s,^ *| *$,,;
+
+unless ( length $command_params ) {
+    say ': usage: sourcecode test-sign-with-temp-key <file-pattern>';
+    say ': example: sourcecode test-sign-with-temp-key bin/elf';
+    say ': note: creates test-proto7-sourcecode temp key for workflow';
+    return;
+}
+
+say ':';
+say ': .:[ TEST SIGNING WITH TEMPORARY KEY ]:.::';
+say ':';
+
+my $sig_key_name = qw| proto-7.sourcecode |;
+my $test_key_name = qw| test-proto7-sourcecode |;
+
+# Check if temp key exists, if not create it
+unless ( exists $keys{'C25519'}{$test_key_name} ) {
+    say ': Creating temporary test key...';
+
+    # Generate a new C25519 key pair for testing
+    my ($new_key, $created_name) = <[crypt.C25519.gen_keys]>->( $test_key_name );
+
+    unless ( defined $new_key ) {
+        say ': ERROR: Failed to generate temporary test key';
+        return;
+    }
+
+    say sprintf( ': Created temp key: %s', $test_key_name );
+}
+
+# Backup the original key
+my $original_key = $keys{'C25519'}{$sig_key_name};
+
+# Replace with temp key for this scope
+$keys{'C25519'}{$sig_key_name} = $keys{'C25519'}{$test_key_name};
+
+say sprintf( ': Loaded temp key as %s', $sig_key_name );
+say ':';
+
+my @source_paths = <[base.source.collect_file_list]>->($command_params);
+
+unless ( @source_paths ) {
+    printf( ": no files found for pattern: %s\n", $command_params );
+    $keys{'C25519'}{$sig_key_name} = $original_key;  # Restore
+    return;
+}
+
+say sprintf( ': Found %d files to test-sign', scalar(@source_paths) );
+say ':';
+
+# Store original signatures in backup files
+my $backup_dir = '.test-signature-backups';
+unless ( -d $backup_dir ) {
+    mkdir $backup_dir or die "Cannot create backup directory: $!";
+}
+
+foreach my $file_path ( @source_paths ) {
+    next unless -f $file_path;
+
+    # Read current file
+    <[file.slurp]>->( $file_path, \my $content, qw| :raw | );
+
+    # Extract signature
+    my $footer_data = <[source.extract_sig_body]>->( \$content, qw| | );
+
+    if ( $footer_data->{'was-present'} ) {
+        my $sig_footer = $footer_data->{'signature-footer-str'};
+        my $backup_file = sprintf( '%s/%s.orig-sig', $backup_dir, (split '/', $file_path)[-1] );
+
+        open my $fh, '>', $backup_file or die "Cannot write $backup_file: $!";
+        print $fh $sig_footer;
+        close $fh;
+
+        printf( ": backed up signature for %s\n", (split '/', $file_path)[-1] );
+    }
+}
+
+say ':';
+say ': Now run: sourcecode test-update-signatures ' . $command_params;
+say ': Then run: sourcecode test-verify-with-temp-key ' . $command_params;
+say ': To restore: sourcecode test-restore-signatures ' . $command_params;
+say ':';
+
+# Restore original key
+$keys{'C25519'}{$sig_key_name} = $original_key;
+
+0;
+
+#,,.,,.,,,..,,.,,..,,.,.,,..,.,,,,,.,,,.,,,..,,..,,...,...,.,,,,,.,,,.,.,,.,,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,.,,,.,.,,,..,,,,.,..,,,,.,.,,,,,,,,,.,..,,..,,...,...,.,,,,.,,,,.,..,,,..,
+#J35UESXPZBAZZJTHAAIJFY7RTYO65K4QFXDHSEA6AS7CQP2LXE5LNHE3BMXPSXBDVNCHH5SP6YXOK
+#\\\|LV3RVQYU3BSH5TQPWLCLWZO373EW2ANWY3EVZK4TBQFE6NR76U2 \ / AMOS7 \ YOURUM ::
+#\[7]CUIPIRNLKOXHIX6VOTD2IGOT5YSYTSQRWCDAXMELQYLIBBAA5IDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

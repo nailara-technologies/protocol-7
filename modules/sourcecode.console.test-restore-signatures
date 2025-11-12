@@ -1,0 +1,85 @@
+## [:< ##
+
+# name  = sourcecode.console.test-restore-signatures
+# descr = restore original signatures from test backup
+
+my $command_params = shift // '';
+
+$command_params =~ s,^ *| *$,,;
+
+unless ( length $command_params ) {
+    say ': usage: sourcecode test-restore-signatures <file-pattern>';
+    say ': example: sourcecode test-restore-signatures bin/elf';
+    say ': note: restores signatures from .test-signature-backups/ directory';
+    return;
+}
+
+say ':';
+say ': .:[ RESTORING ORIGINAL SIGNATURES FROM BACKUP ]:.::';
+say ':';
+
+my @source_paths = <[base.source.collect_file_list]>->($command_params);
+
+unless ( @source_paths ) {
+    printf( ": no files found for pattern: %s\n", $command_params );
+    return;
+}
+
+my $backup_dir = '.test-signature-backups';
+
+unless ( -d $backup_dir ) {
+    say ': ERROR: No backup directory found!';
+    say ': Run test-sign-with-temp-key first to create backups.';
+    return;
+}
+
+my $restored_count = 0;
+
+foreach my $file_path ( @source_paths ) {
+    next unless -f $file_path;
+
+    my $file_name = (split '/', $file_path)[-1];
+    my $backup_file = sprintf( '%s/%s.orig-sig', $backup_dir, $file_name );
+
+    unless ( -f $backup_file ) {
+        printf( ': [SKIP] No backup for %s' . "\n", $file_name );
+        next;
+    }
+
+    # Read file content
+    <[file.slurp]>->( $file_path, \my $content, qw| :raw | );
+
+    # Extract and strip new signature
+    my $footer_data = <[source.extract_sig_body]>->( \$content, qw| strip | );
+
+    # Read original signature
+    <[file.slurp]>->( $backup_file, \my $orig_sig );
+
+    # Restore original signature
+    $content .= $orig_sig;
+
+    # Write back
+    <[file.slurp]>->( $file_path, \$content, qw| :write :raw | );
+
+    printf( ': [RESTORED] %s' . "\n", $file_name );
+    $restored_count++;
+}
+
+say ':';
+printf( ': Restored %d files from backup' . "\n", $restored_count );
+say ': Original signatures have been restored.';
+say ':';
+
+0;
+
+#,,.,,.,,,..,,.,,..,,.,.,,..,.,,,,,.,,,.,,,..,,..,,...,...,.,,,,,.,,,.,.,,.,,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,,,.,,,,,,,..,,,,.,,..,.,,,,,,,.,,,.,.,,,,,..,,...,...,,.,,.,.,.,,,,,,,..,,
+#CMJU5L2YCX7ZBJOHX7EHVU52L2XACEREW3ZF37JPX7EFLNT5ONPDFCOYGHJ7TJ5B7WV2W5R5ST5H2
+#\\\|OYBPYYENSMBHXMWDUKLH7RJK32GWHASJ2ZOLHBHC3FTO2YWIZ3B \ / AMOS7 \ YOURUM ::
+#\[7]VNC5L5EVJW573IRI3FARDAQVDQ4LZW7HNSLX6I7S3ARHTZRXLIDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
