@@ -1,0 +1,380 @@
+# Protocol-7 Workflow Zenka Development Patterns
+# Insights and coding standards discovered during workflow zenka implementation
+
+session_info:
+  date: "2025-11-12"
+  context: "Workflow zenka development for LLM onboarding and session continuity"
+  branch: "claude/access-frozen-chat-context-011CV3grn6V9wWuKmDAwQYFU"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## ZENKA ARCHITECTURE PATTERNS
+## ═══════════════════════════════════════════════════════════════════════════
+
+zenka_structure:
+  startup_file: "configuration/zenki/<zenka-name>/start"
+
+  startup_directives:
+    load_config: "[load_config_file:'shared-params']"
+    load_modules: "[load_modules:<modules.load>]"
+    init_modules: "[init_modules]"
+    call_console: "[base.call.console_command:<system.args>]"
+    exit_code: "[exit:0]"
+
+  base_prefix_optional: |
+    In zenka startup files, 'base.' prefix is optional for all modules/base.* code:
+    - [exit:0] ≡ [base.exit:0]
+    - [init_modules] ≡ [base.init_modules]
+    - [call.console_command] ≡ [base.call.console_command]
+    This is a convenience alias for shorter configuration code.
+
+  hybrid_mode_pattern: |
+    Hybrid zenka (standalone + cube modes):
+    1. Use [base.call.console_command:<system.args>] for standalone execution
+    2. Place before zenka.loop for cube mode
+    3. Add [exit:0] after console command to ensure clean exit
+    4. No cube connection required for console commands
+
+  exit_code_behavior: |
+    base.exit controls both exit code AND log level:
+    - exit_code = 0 → log_level = 2 (low priority/debug)
+    - exit_code ≠ 0 → log_level = 1 (error)
+    - Explicit [exit:0] overrides previous error states (e.g., failed module init)
+    - Use [exit:0] to ensure console commands report success even if optional modules fail
+
+## ═══════════════════════════════════════════════════════════════════════════
+## MODULE ORGANIZATION
+## ═══════════════════════════════════════════════════════════════════════════
+
+module_patterns:
+  file_structure: |
+    NEVER declare new namespaces and subs in other routines.
+    Use separate files in modules/<namespace>.* with proper filenames.
+
+    Example:
+    - modules/workflow.scan_yaml_tasks
+    - modules/workflow.extract_yaml_todos
+    - modules/workflow.console.overview
+
+  data_hash_usage: |
+    Use %data{} hash for module-specific data:
+    - Access via <module.sub-namespace.varname>
+    - Equivalent to $data{'module'}{'sub-namespace'}{'varname'}
+    - Example: <workflow.cfg.protocol7_root>
+
+  init_code_patterns: |
+    In module.init_code:
+    1. Initialize configuration with //= (default assignment)
+    2. Create activity log buffers using <buffer.name>
+    3. Register lists with <[base.list.init]>
+    4. Return 0 for success, non-zero for errors
+
+  function_calling: |
+    Use Protocol-7 calling syntax:
+    - <[workflow.function_name]>->(@args)
+    - Not direct Perl function calls
+    - Allows dynamic function loading
+
+  list_registration: |
+    Register display lists in init_code:
+    <list.name> = {
+        'var'      => qw| data |,
+        'key'      => qw| module.path.to.data |,
+        'sort_key' => 'alpha:field_name',
+        'mask'     => '<key>:field1 field2 field3',
+        'align'    => { field1 => 'l', field2 => 'r' },
+        'descr'    => 'list description'
+    };
+
+## ═══════════════════════════════════════════════════════════════════════════
+## COLOR SYSTEM
+## ═══════════════════════════════════════════════════════════════════════════
+
+color_system:
+  use_colors_hash: |
+    ALWAYS use global %colors hash instead of hardcoded ANSI:
+    - Automatically respects <system.ansi_color> setting
+    - Use -nc flag to disable colors globally
+    - Consistent with Protocol-7 color system
+
+  standard_colors:
+    backgrounds:
+      B00: "#000011"  # darkest
+      B01: "#090518"  # dark
+      B02: "#09052a"  # nailara background
+
+    foregrounds:
+      p7_fg_0000: "#442bac"  # blacklight (primary)
+      p7_fg_0001: "#262e99"  # nailara foreground
+      p7_fg_0002: "#c58d07"  # neon orange
+      p7_fg_0003: "#47b906"  # neon green (slight variant)
+      p7_fg_0004: "#0647c3"  # TRUE blue
+
+    special:
+      bold: "\\e[1m"
+      reset: "\\e[0m"
+
+  custom_colors: |
+    Extend %colors hash in modules with workflow-specific colors:
+    $colors{'wf_neon_red'}   //= <system.ansi_color> ? "\\e[38;2;195;6;71m" : '';
+    $colors{'wf_dim_blue'}   //= <system.ansi_color> ? "\\e[38;2;6;71;195;128m" : '';
+    $colors{'wf_neon_green'} //= <system.ansi_color> ? "\\e[38;2;71;195;6m" : '';
+
+  blacklight_neon_aesthetic:
+    background: "#090529"
+    primary: "#4427ac"  # blacklight
+    accents:
+      - "#0647c3"  # TRUE blue
+      - "#47c306"  # neon green
+      - "#c58d07"  # neon orange
+      - "#c30647"  # neon red
+
+  color_usage_pattern: |
+    my $reset       = $colors{'reset'};
+    my $blacklight  = $colors{'p7_fg_0000'};
+    my $TRUE_blue   = $colors{'p7_fg_0004'};
+    my $neon_orange = $colors{'p7_fg_0002'};
+
+    say "$blacklight .:[ ${TRUE_blue}TITLE${blacklight} ]:.$reset";
+
+## ═══════════════════════════════════════════════════════════════════════════
+## GIT WORKFLOW PATTERNS
+## ═══════════════════════════════════════════════════════════════════════════
+
+git_patterns:
+  commit_signing: |
+    GitHub's signing backend requires special handling:
+    - Use --no-gpg-sign to bypass GitHub signing
+    - Let Protocol-7's sourcecode zenka handle signatures
+    - GitHub signing backend at /tmp/code-sign has issues
+
+  multi_remote_push: |
+    Auto-detect remotes with priority:
+    1. Check for 'hub' remote first
+    2. Fallback to 'origin' if hub doesn't exist
+    3. Use first available remote if neither exists
+    4. Support explicit configuration via <workflow.git.remotes>
+
+  remote_detection_code: |
+    my $remotes_output = `git remote 2>/dev/null`;
+    my @available_remotes = split(/\\n/, $remotes_output // '');
+
+    if (grep { $_ eq 'hub' } @available_remotes) {
+        $remote = 'hub';
+    } elsif (grep { $_ eq 'origin' } @available_remotes) {
+        $remote = 'origin';
+    } else {
+        $remote = $available_remotes[0];
+    }
+
+  branch_naming: |
+    Branch names must start with 'claude/' and end with matching session ID
+    for push authentication:
+    - claude/feature-name-<SESSION_ID>
+    - Push will fail with 403 if naming doesn't match
+
+  commit_workflow: |
+    Complete workflow: version → sign → commit → push
+    1. Update version with bin/dev/update-version
+    2. Sign with sourcecode zenka (or skip gracefully)
+    3. Stage changes with git add
+    4. Commit with --no-gpg-sign
+    5. Push to auto-detected or configured remotes
+
+## ═══════════════════════════════════════════════════════════════════════════
+## CRYPTO MODULE PATTERNS
+## ═══════════════════════════════════════════════════════════════════════════
+
+crypto_patterns:
+  key_creation: |
+    Enable automatic key creation in zenka start file:
+    crypt.C25519.autocreate-user-key = yes
+
+  directory_creation: |
+    Use Protocol-7's base.file.make_path for recursive directory creation:
+    my $owner_name = getpwuid($uid);
+    my $group_name = getgrgid($gid);
+    my $path = <[base.file.make_path]>->($key_dir, 0700, $owner_name, $group_name);
+
+    NOT File::Path::make_path directly - use Protocol-7's wrapper
+
+  graceful_degradation: |
+    Allow crypto module to fail gracefully:
+    1. Let module initialization fail without blocking zenka
+    2. Use [exit:0] to override error state
+    3. Console commands should work without crypto
+    4. Warn users but continue operation
+
+  gen_keys_pattern: |
+    Handle undefined key names with fallback chain:
+    my $name = $key_vars_ref->{'key_name'} // $key_name_param;
+    $name //= join(qw| . |, ($ENV{'USER'} // getpwuid($EUID)), qw| base |);
+
+## ═══════════════════════════════════════════════════════════════════════════
+## LLM SESSION CONTINUITY
+## ═══════════════════════════════════════════════════════════════════════════
+
+llm_onboarding:
+  overview_command: |
+    workflow.console.overview provides session state dashboard:
+    - Repository state (branch, remotes, modified files)
+    - Recent commits (last 5)
+    - Current tasks (todos/bugs)
+    - Context-aware suggestions
+    - Works with or without colors (-nc flag)
+
+  search_command: |
+    workflow.console.search for comprehensive data search:
+    - Searches data/yaml/ (workflow data)
+    - Searches data/asc/what-AI-thinks/ (AI notes)
+    - Searches modules/workflow.* (code)
+    - Searches configuration/zenki/workflow/ (config)
+    - Case-insensitive when pattern is lowercase
+    - Pattern highlighting in results
+
+  suggested_workflow: |
+    For new LLM sessions:
+    1. Run: ./bin/Protocol-7 workflow overview
+    2. Review repository state and recent activity
+    3. Check suggested actions
+    4. Use workflow search <pattern> to find relevant context
+    5. Update insights: edit data/yaml/project-context/*.yaml
+
+  plain_text_output: |
+    For LLM processing:
+    - Use -nc flag: ./bin/Protocol-7 -nc workflow overview
+    - Or pipe: ./bin/Protocol-7 workflow overview | bin/dev/strip-ansi-colors
+    - <system.ansi_color> flag controls all color output
+
+## ═══════════════════════════════════════════════════════════════════════════
+## CONSOLE MODULE PATTERNS
+## ═══════════════════════════════════════════════════════════════════════════
+
+console_modules:
+  dual_module_pattern: |
+    Separate .cmd. and .console. modules:
+    - .cmd. modules: API with standardized return format
+    - .console. modules: Pretty formatted output for humans
+    - .console. can wrap .cmd. for consistent data
+
+  return_codes: |
+    Console modules MUST return proper exit codes:
+    - return 0 for success
+    - return 1 for errors
+    - Affects zenka startup success reporting
+
+  output_formatting: |
+    Use box-drawing characters for structure:
+    ┌─[ SECTION NAME ]
+    │
+    │  Content here
+    │
+    ├─[ SUBSECTION ]
+    │
+    │  More content
+    │
+    └─[ FINAL SECTION ]
+
+  suggestion_generation: |
+    Provide context-aware suggestions based on state:
+    - Check git status for uncommitted changes
+    - Check todos/bugs for open items
+    - Offer relevant commands based on context
+    - Include search/documentation suggestions
+
+## ═══════════════════════════════════════════════════════════════════════════
+## YAML DATA MANAGEMENT
+## ═══════════════════════════════════════════════════════════════════════════
+
+yaml_patterns:
+  index_generation: |
+    Use TTL-based caching for yaml indexes:
+    - Index files in data/yaml/indexes/
+    - TTL of 5 minutes (300 seconds)
+    - Regenerate automatically when stale
+    - Check mtime with stat($index_file)[9]
+
+  aggregation_pattern: |
+    Aggregate data from multiple sources:
+    1. Scan yaml files in data/yaml/
+    2. Scan workspace-transfer repositories
+    3. Generate/load indexes
+    4. Merge data structures
+    5. Return unified view
+
+  task_file_structure: |
+    Store tasks/bugs in yaml format:
+    - One file per task or grouped tasks
+    - Include metadata: status, priority, tags
+    - Support both individual and aggregate views
+
+## ═══════════════════════════════════════════════════════════════════════════
+## DEVELOPMENT WORKFLOW
+## ═══════════════════════════════════════════════════════════════════════════
+
+workflow_commands:
+  overview: "Session state dashboard with suggestions"
+  search: "Search all workflow data/notes/code"
+  version_sign_commit: "Complete version/sign/commit/push workflow"
+  todo_list: "View aggregated todos"
+  bug_list: "View aggregated bugs"
+  regenerate_indexes: "Force regeneration of yaml indexes"
+
+development_patterns:
+  test_zenka_command: |
+    ./bin/Protocol-7 workflow <command> [args]
+    ./bin/Protocol-7 workflow -vv <command>  # verbose
+    ./bin/Protocol-7 -nc workflow <command>  # no colors
+
+  module_testing: |
+    Test individual functions:
+    1. Load Protocol-7 environment
+    2. Call function via Protocol-7 calling syntax
+    3. Check return values and side effects
+
+  iterative_development: |
+    1. Implement feature
+    2. Test with workflow zenka
+    3. Fix issues
+    4. Update documentation
+    5. Commit with workflow version-sign-commit
+
+## ═══════════════════════════════════════════════════════════════════════════
+## COMMON PITFALLS
+## ═══════════════════════════════════════════════════════════════════════════
+
+pitfalls:
+  namespace_declarations: |
+    ❌ NEVER use 'package workflow;' in workflow modules
+    ✅ Use separate files with proper naming: modules/workflow.function_name
+
+  data_hash_conflicts: |
+    ❌ Don't create your own %data hash
+    ✅ Use global %data via Protocol-7 syntax: <module.key.value>
+
+  hardcoded_colors: |
+    ❌ Don't hardcode ANSI escape sequences
+    ✅ Use %colors hash: $colors{'p7_fg_0000'}
+
+  file_path_operations: |
+    ❌ Don't use File::Path::make_path directly
+    ✅ Use <[base.file.make_path]>->($path, $mode, $owner, $group)
+
+  init_module_failures: |
+    ❌ Don't let optional module failures block zenka
+    ✅ Use [exit:0] to override error state for console commands
+
+## ═══════════════════════════════════════════════════════════════════════════
+## KEY REALIZATIONS
+## ═══════════════════════════════════════════════════════════════════════════
+
+insights:
+  - "base.* prefix optional in zenka startup files for conciseness"
+  - "[exit:0] overrides module init failures and sets log_level=2"
+  - "Use global %colors hash, not hardcoded ANSI, for color control"
+  - "workflow.console.overview solves frozen context problem for LLMs"
+  - "Multi-remote push enables seamless backup repository handling"
+  - "Hybrid zenka mode via [base.call.console_command] before zenka.loop"
+  - "GitHub signing backend conflicts with Protocol-7 sourcecode signing"
+  - "Auto-detect git remotes with priority: hub > origin > first available"
+  - "Protocol-7's base.file.make_path handles recursive dir creation properly"
+  - "Module organization: separate files, no package declarations, use %data{}"
