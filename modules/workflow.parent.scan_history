@@ -142,9 +142,52 @@ foreach my $commit (@$commits) {
                     $has_issues = 1;
                 } else {
                     ## Step 3: Version file valid - validate ALL source files at this commit
-                    ## This is expensive but ensures commit is fully valid
-                    ## TODO: Implement full source validation at commit (for now, trust version file)
-                    <[base.log]>->( 3, "  ✓ Commit $hash: version file signature valid" );
+                    <[base.log]>->( 3, "  Validating all source files at commit $hash..." );
+
+                    ## Get list of source files
+                    my @source_paths = <[sourcecode.source_path_set_up]>;
+                    my $total_files = scalar @source_paths;
+                    my $valid_files = 0;
+                    my $invalid_files = 0;
+
+                    foreach my $file_path (@source_paths) {
+                        ## Read file at this commit
+                        my $file_content = `git show $hash:$file_path 2>/dev/null`;
+                        next if $? != 0 || !length $file_content;
+
+                        ## Extract and validate signature
+                        my $file_footer = <[source.extract_sig_body]>->(\$file_content, qw| strip |, 'strict');
+
+                        if ($file_footer && $file_footer->{'was-present'} && $file_footer->{'structure-was-valid'}) {
+                            my ($file_valid, $file_report) = <[source.signature_valid]>->(
+                                \$file_content, $file_footer, {}, $sig_key_name, 'strict'
+                            );
+
+                            if ($file_valid) {
+                                $valid_files++;
+                            } else {
+                                $invalid_files++;
+                                last;  ## Stop on first invalid file
+                            }
+                        } else {
+                            $invalid_files++;
+                            last;  ## Stop on first invalid/unsigned file
+                        }
+                    }
+
+                    if ($invalid_files > 0) {
+                        ## Found invalid source files at this commit
+                        $data{'workflow'}{'history'}{'issues'}{$hash} = {
+                            type    => qw| invalid_sources |,
+                            commit  => $commit,
+                            message => "Invalid or unsigned source files at this commit (checked $valid_files files)"
+                        };
+                        $issues_found++;
+                        $has_issues = 1;
+                    } else {
+                        ## All source files valid!
+                        <[base.log]>->( 3, "  ✓ Commit $hash: all $valid_files source files valid" );
+                    }
                 }
             } else {
                 ## Version file has no valid signature
