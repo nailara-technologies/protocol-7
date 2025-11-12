@@ -1,0 +1,30 @@
+
+ .:[ protocol-7 development workflow zenka ]:.
+
+[load_config_file:'shared-params']
+
+system.verbosity.zenka_buffer = 2
+system.verbosity.zenka_logfile = 2
+
+access.cmd.usr.cube = commands heart reload verify-instance \
+                      list show-buffer buffer-erase buffer-erase-level \
+                      test-oscillation sig-verify sig-update sig-cycle \
+                      run-tests *
+
+modules.load = auth net protocol io.unix workflow
+
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,,.,,,.,...,,,,,.,.,,,.,.,.,,,.,,..,,.,,..,,...,...,.,,,,,.,...,...,.,.,,,.,,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
