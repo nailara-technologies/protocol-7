@@ -1,0 +1,177 @@
+## [:< ##
+
+# name  = workflow.console.overview
+# descr = display current workflow state with contextualized suggestions
+
+## Protocol-7 color scheme ##
+my $reset       = "\e[0m";
+my $blacklight  = "\e[38;2;68;39;172m";
+my $TRUE_blue   = "\e[38;2;6;71;195m";
+my $neon_orange = "\e[38;2;197;141;7m";
+my $neon_green  = "\e[38;2;71;195;6m";
+my $neon_red    = "\e[38;2;195;6;71m";
+my $dim_blue    = "\e[38;2;6;71;195;128m";
+
+say '';
+say "$blacklight .:[ ${TRUE_blue}WORKFLOW OVERVIEW${blacklight} ]:.$reset";
+say '';
+
+## Get git context ##
+my $branch = `git branch --show-current 2>/dev/null`;
+chomp $branch if defined $branch;
+$branch //= '(unknown)';
+
+my $git_status = `git status --short 2>/dev/null`;
+my @modified_files = $git_status ? split(/\n/, $git_status) : ();
+
+my $git_log = `git log --oneline -5 2>/dev/null`;
+my @recent_commits = $git_log ? split(/\n/, $git_log) : ();
+
+my $remotes_output = `git remote -v 2>/dev/null`;
+my @remotes = ();
+if ($remotes_output) {
+    my %seen;
+    foreach my $line (split /\n/, $remotes_output) {
+        if ($line =~ /^(\S+)\s+/) {
+            push @remotes, $1 unless $seen{$1}++;
+        }
+    }
+}
+
+## Section 1: Repository State ##
+say "${blacklight}┌─[ ${neon_green}REPOSITORY STATE${blacklight} ]$reset";
+say "${blacklight}│$reset";
+say "${blacklight}│$reset  Branch: ${neon_orange}$branch$reset";
+
+if (@remotes) {
+    say "${blacklight}│$reset  Remotes: ${dim_blue}" . join(', ', @remotes) . "$reset";
+}
+
+if (@modified_files) {
+    say "${blacklight}│$reset  ${neon_red}Uncommitted changes:$reset ${neon_orange}" . scalar(@modified_files) . " files$reset";
+} else {
+    say "${blacklight}│$reset  ${neon_green}Working tree clean$reset";
+}
+
+## Section 2: Recent Activity ##
+say "${blacklight}│$reset";
+say "${blacklight}├─[ ${neon_green}RECENT COMMITS${blacklight} ]$reset";
+say "${blacklight}│$reset";
+
+if (@recent_commits) {
+    foreach my $commit (@recent_commits) {
+        my ($hash, $msg) = $commit =~ /^(\S+)\s+(.*)$/;
+        say "${blacklight}│$reset  ${dim_blue}$hash$reset $msg";
+    }
+} else {
+    say "${blacklight}│$reset  ${dim_blue}(no commits)$reset";
+}
+
+## Section 3: Current Tasks ##
+say "${blacklight}│$reset";
+say "${blacklight}├─[ ${neon_green}CURRENT TASKS${blacklight} ]$reset";
+say "${blacklight}│$reset";
+
+## Get todo stats if available ##
+my $todo_stats = eval { <[workflow.get_todo_stats]>->() };
+if ($todo_stats && ref $todo_stats eq 'HASH') {
+    my $total = $todo_stats->{total} // 0;
+    my $open = $todo_stats->{open} // 0;
+    my $in_progress = $todo_stats->{in_progress} // 0;
+    my $completed = $todo_stats->{completed} // 0;
+
+    if ($total > 0) {
+        say "${blacklight}│$reset  Todos: ${neon_orange}$open open$reset, " .
+            "${neon_green}$completed completed$reset, " .
+            "${dim_blue}$in_progress in progress$reset";
+    } else {
+        say "${blacklight}│$reset  ${dim_blue}No todos tracked$reset";
+    }
+} else {
+    say "${blacklight}│$reset  ${dim_blue}Todo system not initialized$reset";
+}
+
+## Get bug stats if available ##
+my $bugs = eval { <[workflow.aggregate_bugs]>->() };
+if ($bugs && ref $bugs eq 'ARRAY' && @$bugs) {
+    my $bug_count = scalar @$bugs;
+    say "${blacklight}│$reset  Bugs: ${neon_red}$bug_count open$reset";
+} else {
+    say "${blacklight}│$reset  ${dim_blue}No bugs tracked$reset";
+}
+
+## Section 4: Modified Files Detail ##
+if (@modified_files) {
+    say "${blacklight}│$reset";
+    say "${blacklight}├─[ ${neon_orange}MODIFIED FILES${blacklight} ]$reset";
+    say "${blacklight}│$reset";
+
+    my $shown = 0;
+    foreach my $file (@modified_files) {
+        last if $shown >= 10;  ## limit to 10 files
+        $file =~ s/^\s+//;
+        my ($status, $path) = $file =~ /^(\S+)\s+(.+)$/;
+        $status //= '??';
+        $path //= $file;
+
+        my $status_color = $status =~ /^M/ ? $neon_orange :
+                          $status =~ /^A/ ? $neon_green :
+                          $status =~ /^D/ ? $neon_red : $dim_blue;
+
+        say "${blacklight}│$reset  ${status_color}$status$reset $path";
+        $shown++;
+    }
+
+    if (@modified_files > 10) {
+        my $remaining = @modified_files - 10;
+        say "${blacklight}│$reset  ${dim_blue}... and $remaining more$reset";
+    }
+}
+
+## Section 5: Suggestions ##
+say "${blacklight}│$reset";
+say "${blacklight}└─[ ${neon_green}SUGGESTED ACTIONS${blacklight} ]$reset";
+say '';
+
+my @suggestions;
+
+## Generate context-aware suggestions ##
+if (@modified_files) {
+    push @suggestions, "Review and commit changes: ${neon_orange}git status${reset}";
+    push @suggestions, "Quick commit workflow: ${neon_orange}workflow version-sign-commit \"message\"${reset}";
+}
+
+if ($todo_stats && $todo_stats->{open} && $todo_stats->{open} > 0) {
+    push @suggestions, "View open todos: ${neon_orange}workflow todo-list${reset}";
+}
+
+if ($bugs && @$bugs) {
+    push @suggestions, "Review open bugs: ${neon_orange}workflow bug-list${reset}";
+}
+
+if (!@modified_files && (!$todo_stats || $todo_stats->{total} == 0)) {
+    push @suggestions, "Start tracking todos: ${neon_orange}workflow todo add \"task description\"${reset}";
+    push @suggestions, "View available commands: ${neon_orange}workflow commands${reset}";
+}
+
+## Always show version-sign-commit as it's a core workflow ##
+if (@remotes && !grep(/version-sign-commit/, @suggestions)) {
+    push @suggestions, "Update version and sign: ${neon_orange}workflow version-sign-commit${reset}";
+}
+
+## Display suggestions ##
+if (@suggestions) {
+    my $idx = 1;
+    foreach my $suggestion (@suggestions) {
+        say "  ${blacklight}$idx.${reset} $suggestion";
+        $idx++;
+    }
+} else {
+    say "  ${dim_blue}All caught up! No immediate actions needed.$reset";
+}
+
+say '';
+say "${blacklight}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$reset";
+say '';
+
+return 0;
