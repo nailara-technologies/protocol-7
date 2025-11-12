@@ -49,7 +49,7 @@ my $cfg_full_path = sprintf qw| %s/zenki/%s/%s |,
 if ( !-f $cfg_full_path ) {
     <[base.logs]>->( 0, "<< '%s' set-up not found >>", $config_filename );
 } else {
-    <[base.log]>->( 1, "<< loading '%s' event set-up >>", $config_name );
+    <[base.logs]>->( 1, "<< loading '%s' event set-up >>", $config_name );
 
     local <system.conf_path>    ##  loading event set-up config  ##
         = sprintf( qw| %s/zenki/%s |, $cfg_root_path, <system.zenka.name> );
