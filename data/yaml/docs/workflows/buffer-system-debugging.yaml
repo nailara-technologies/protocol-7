@@ -1,0 +1,283 @@
+---
+# Protocol-7 Buffer System and Real-Time Debugging Workflow
+# This workflow describes how to use Protocol-7's in-memory buffer system
+# for real-time debugging, log analysis, and troubleshooting zenki issues.
+
+workflow:
+  name: "Buffer System and Real-Time Debugging"
+  purpose: "Access in-memory log buffers for real-time debugging and post-mortem analysis of zenki behavior"
+
+buffer_architecture:
+  storage: "In-memory at cube (IPC router)"
+  persistence: "Buffers persist even if zenka fails, useful for debugging crashes"
+  access_method: "IPC commands via p7 command-line tool"
+
+  buffer_types:
+    zenka_buffer:
+      name: "zenka"
+      description: "Main log buffer containing all log output from a zenka"
+      access: "p7 <zenka>.show-buffer zenka"
+      contents: "All log messages, including info, warnings, and errors"
+      use_case: "General debugging and monitoring zenka activity"
+
+    named_buffers:
+      description: "Configuration-specific buffers for loaded config files"
+      naming: "Matches configuration name (e.g., 'base' for event-setup.base)"
+      access: "p7 <zenka>.show-buffer <config-name>"
+      contents: "Configuration-specific initialization and setup logs"
+      use_case: "Debugging configuration loading and parsing"
+      example: "p7 events.show-buffer base"
+
+    compile_errors_buffer:
+      name: "compile-errors"
+      description: "Filtered view showing only compilation/parsing errors"
+      access: "p7 <zenka>.show-buffer compile-errors"
+      contents: "Only error messages (subset of zenka buffer)"
+      availability: "Only appears when zenka has compilation errors"
+      use_case: "Quick error identification without noise"
+
+buffer_commands:
+  list_buffers:
+    command: "p7 <zenka>.list buffers"
+    description: "List all available buffers for a zenka"
+    example: "p7 v7.list buffers"
+    returns: "Array of buffer names available for access"
+
+  show_buffer:
+    command: "p7 <zenka>.show-buffer <buffer-name>"
+    description: "Display contents of specified buffer"
+    examples:
+      - "p7 v7.show-buffer zenka"
+      - "p7 events.show-buffer base"
+      - "p7 cube.show-buffer compile-errors"
+    returns: "Buffer contents with timestamps and log levels"
+
+  erase_buffer:
+    command: "p7 <zenka>.erase-buffer <buffer-name>"
+    description: "Clear contents of specified buffer"
+    use_case: "Clear buffer before testing to see only new output"
+
+  erase_level:
+    command: "p7 <zenka>.erase-level <level>"
+    description: "Erase log messages at or below specified verbosity level"
+    use_case: "Remove debug messages while keeping warnings and errors"
+
+common_debugging_workflows:
+  startup_errors:
+    scenario: "Zenka fails to start or crashes during initialization"
+    steps:
+      - "Attempt to start: p7 v7.start <zenka>"
+      - "Check if process exists but failed: p7 list sessions"
+      - "View main buffer: p7 <zenka>.show-buffer zenka"
+      - "Check compile errors: p7 <zenka>.show-buffer compile-errors"
+      - "Identify error location and fix issue"
+
+    example_output:
+      error: "<< authentication not successful [ user 'root' ] >>"
+      solution: "Check cube auth.users configuration"
+      verification: "p7 list sessions shows successful connection"
+
+  authentication_issues:
+    scenario: "Connection fails with authentication errors"
+    steps:
+      - "View cube buffer: p7 cube.show-buffer zenka"
+      - "Check system logs: tail /var/log/protocol-7/runsc.cube.zenka.log"
+      - "Identify rejected user/connection"
+      - "Update configuration/zenki/cube/auth.users"
+      - "Reload cube: p7 cube.reload OR kill -HUP <cube-pid>"
+      - "Test connection: p7 list sessions"
+
+    example_fix:
+      issue: "[auth unix] access as 'unix-root' denied [uname=protocol-7]"
+      location: "configuration/zenki/cube/auth.users:8"
+      original: "auth.setup.usr.unix-root = :unix:root"
+      fixed: "auth.setup.usr.unix-root = :unix:root,protocol-7"
+
+  configuration_loading:
+    scenario: "Event setup or configuration not loading correctly"
+    steps:
+      - "List available buffers: p7 <zenka>.list buffers"
+      - "View main buffer: p7 <zenka>.show-buffer zenka"
+      - "View config buffer: p7 <zenka>.show-buffer <config-name>"
+      - "Check for format strings: grep '%s' in buffer output"
+      - "Verify correct logging functions used (base.logs vs base.log)"
+
+    example_fix:
+      issue: "<< loading '%s' event set-up >> (literal %s instead of value)"
+      location: "modules/events.init_code:52"
+      cause: "Used base.log instead of base.logs"
+      solution: "Change <[base.log]> to <[base.logs]> for sprintf formatting"
+      test: "p7 v7.restart events && p7 events.show-buffer zenka | grep 'loading.*event set-up'"
+
+  real_time_monitoring:
+    scenario: "Monitor zenka activity in real-time"
+    steps:
+      - "Clear buffer: p7 <zenka>.erase-buffer zenka"
+      - "Trigger action or restart zenka"
+      - "View buffer continuously: watch -n 1 'p7 <zenka>.show-buffer zenka | tail -20'"
+      - "Filter for specific patterns: p7 <zenka>.show-buffer zenka | grep pattern"
+
+    use_cases:
+      - "Monitoring event triggers in events zenka"
+      - "Watching authentication attempts in cube"
+      - "Debugging IPC message flow between zenki"
+
+  post_mortem_analysis:
+    scenario: "Zenka crashed or stopped, need to understand why"
+    advantage: "Buffers persist at cube even after zenka terminates"
+    steps:
+      - "Check if cube still running: p7 list sessions"
+      - "View last buffer contents: p7 <zenka>.show-buffer zenka | tail -50"
+      - "Look for error patterns: p7 <zenka>.show-buffer zenka | grep -i error"
+      - "Check compile-errors if available: p7 <zenka>.show-buffer compile-errors"
+
+    note: "This is why buffers are stored at cube, not within each zenka process"
+
+advanced_techniques:
+  buffer_grep_patterns:
+    authentication: "p7 cube.show-buffer zenka | grep -i auth"
+    errors: "p7 <zenka>.show-buffer zenka | grep -E '<<|error|fail'"
+    timing: "p7 <zenka>.show-buffer zenka | grep -E '\\[[0-9]+\\]'"
+    specific_function: "p7 <zenka>.show-buffer zenka | grep 'function-name'"
+
+  combining_with_restart:
+    fast_restart: "p7 v7.restart <zenka>"
+    note: "Faster than separate stop/start commands"
+    workflow: "p7 v7.restart <zenka> && p7 <zenka>.show-buffer zenka"
+    use_case: "Test configuration changes and immediately see new output"
+
+  filtering_output:
+    tail: "p7 <zenka>.show-buffer zenka | tail -n 20"
+    head: "p7 <zenka>.show-buffer zenka | head -n 50"
+    context: "p7 <zenka>.show-buffer zenka | grep -B 3 -A 3 'error'"
+    time_range: "p7 <zenka>.show-buffer zenka | awk '/start-pattern/,/end-pattern/'"
+
+logging_functions:
+  base_log:
+    usage: "<[base.log]>->( level, 'simple message' )"
+    description: "Simple string logging without interpolation"
+    supports_sprintf: false
+    example: "<[base.log]>->( 1, 'server started' )"
+    when_to_use: "Static messages without variables"
+
+  base_logs:
+    usage: "<[base.logs]>->( level, 'format %s %d', $var1, $var2 )"
+    description: "Printf-style formatting with sprintf support"
+    supports_sprintf: true
+    format_codes:
+      "%s": "String interpolation"
+      "%d": "Integer"
+      "%f": "Float"
+    example: "<[base.logs]>->( 1, \"<< loading '%s' event set-up >>\", $config_name )"
+    when_to_use: "Dynamic messages with variable interpolation"
+
+buffer_vs_log_files:
+  buffers:
+    location: "In-memory at cube process"
+    access: "Via p7 IPC commands"
+    persistence: "Until cube restarts or buffer cleared"
+    advantages:
+      - "Real-time access without disk I/O"
+      - "Survive zenka crashes"
+      - "Accessible remotely via IPC"
+      - "Filtered views (compile-errors)"
+
+  log_files:
+    location: "/var/log/protocol-7/"
+    access: "tail, less, grep on filesystem"
+    persistence: "Until log rotation"
+    advantages:
+      - "Historical record beyond cube lifetime"
+      - "Standard Unix tooling"
+      - "Disk-persisted for auditing"
+
+  recommendation: "Use buffers for active debugging, log files for historical analysis"
+
+examples_from_real_sessions:
+  example_1:
+    issue: "Debian zenka not recognized by v7"
+    diagnosis:
+      command: "p7 v7.show-buffer zenka | grep debian"
+      output: "[base.log] << unknown zenka 'debian' >>"
+    solution: "Created configuration/zenki/debian/zenka-startup.v7"
+    verification:
+      command: "p7 v7.show-buffer zenka | grep 'loading.*zenka.*configurations'"
+      output: "loading [ 67 ] zenka configurations (was 66 before)"
+
+  example_2:
+    issue: "Root authentication failing via p7 command"
+    diagnosis:
+      command: "p7 cube.show-buffer zenka | grep 'auth unix'"
+      output: "[auth unix] access as 'unix-root' denied [uname=protocol-7]"
+    solution: "Added protocol-7 to unix-root allowed users in auth.users"
+    verification:
+      command: "p7 list sessions"
+      output: "unix-root session now listed successfully"
+
+  example_3:
+    issue: "Event setup logging showing literal '%s'"
+    diagnosis:
+      command: "p7 events.show-buffer zenka | grep 'loading.*event set-up'"
+      output: "<< loading '%s' event set-up >>"
+    solution: "Changed base.log to base.logs in modules/events.init_code:52"
+    verification:
+      command: "p7 v7.restart events && p7 events.show-buffer zenka | grep 'loading.*event set-up'"
+      output: "<< loading 'base' event set-up >>"
+
+integration_with_v7_management:
+  v7_commands:
+    list_zenki: "p7 v7.list zenki"
+    start_zenka: "p7 v7.start <zenka>"
+    stop_zenka: "p7 v7.stop <zenka>"
+    restart_zenka: "p7 v7.restart <zenka>"
+    teardown: "p7 v7.teardown"
+
+  workflow_integration:
+    - "Start zenka: p7 v7.start <zenka>"
+    - "Check status: p7 list sessions"
+    - "View startup logs: p7 <zenka>.show-buffer zenka"
+    - "If errors: p7 <zenka>.show-buffer compile-errors"
+    - "Fix issue and restart: p7 v7.restart <zenka>"
+    - "Verify fix: p7 <zenka>.show-buffer zenka | tail -20"
+
+troubleshooting:
+  buffer_not_found:
+    symptom: "Buffer 'X' not found or empty"
+    causes:
+      - "Zenka hasn't started yet"
+      - "Configuration wasn't loaded"
+      - "Buffer name misspelled"
+    solution: "List available buffers with: p7 <zenka>.list buffers"
+
+  connection_refused:
+    symptom: "Cannot connect to cube or zenka"
+    causes:
+      - "Cube not running"
+      - "Authentication failure"
+      - "Unix socket permissions"
+    solution: "Check cube status, verify auth.users, check socket ownership"
+
+  empty_buffer:
+    symptom: "Buffer exists but shows no content"
+    causes:
+      - "Zenka started but hasn't logged anything yet"
+      - "Buffer was cleared recently"
+      - "Low verbosity level filtering output"
+    solution: "Restart zenka with verbose flag or trigger activity"
+
+best_practices:
+  - "Use buffers for active debugging, log files for historical analysis"
+  - "Clear buffers before testing to isolate new output"
+  - "Use compile-errors buffer to quickly identify problems"
+  - "Combine buffer viewing with grep for pattern matching"
+  - "Use v7.restart instead of stop/start for faster iteration"
+  - "Check cube buffer for authentication and IPC issues"
+  - "Remember buffers persist after crashes for post-mortem analysis"
+
+related_documentation:
+  v7_management: "See v7 zenka documentation for process lifecycle management"
+  authentication: "See cube auth.users configuration documentation"
+  logging_api: "See base module documentation for logging functions"
+  ipc_system: "See cube IPC documentation for command routing"
+
+#,,.,,..,.,.,,,.,,..,...,...,.,.,,,.,,.,,..,,,.,,,,,,,..,,...,...,..,...,.,,.,.,

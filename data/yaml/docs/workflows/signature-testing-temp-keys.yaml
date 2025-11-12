@@ -1,0 +1,318 @@
+---
+# Protocol-7 Signature Testing with Temporary Keys
+# This workflow describes how to use temporary keys for testing signature
+# changes without needing to create stub signature footers manually
+
+workflow:
+  name: "Signature Testing with Temporary Keys"
+  purpose: "Test signature changes and detect endline oscillation issues using temporary test keys"
+  problem_solved: "When signing new files that had no signature yet, it adds the footer without separator endline, causing oscillation. This testing workflow helps detect and prevent such issues."
+
+prerequisites:
+  perl_module: "Crypt::Curve25519"
+  installation:
+    debian_package: "N/A (custom patched version required)"
+    local_source: "data/lib-path/pm-src/crypt-curve25519"
+    github: "https://github.com/nailara-technologies/crypt-curve25519"
+    install_command: "bin/dependencies/install_minimal_dependencies.debian.sh"
+    note: "Fixed version required due to fmul issue in upstream"
+
+  key_directory:
+    location: "/root/.n/user-keys (or $HOME/.n/user-keys)"
+    permissions: "700 (drwx------)"
+    creation: "mkdir -p /root/.n/user-keys && chmod 700 /root/.n/user-keys"
+
+  test_key:
+    name: "test-proto7-sourcecode"
+    creation: "./bin/Protocol-7 keys create -U test-proto7-sourcecode"
+    purpose: "Temporary signing key for testing without affecting production signatures"
+
+  module_mapping:
+    file: "modules/base.known_dependencies"
+    entry: "'Crypt::Curve25519' => { 'cpan' => 'Crypt::Curve25519' }"
+    purpose: "Protocol-7 module dependency tracking"
+
+available_commands:
+  verify_p7_signatures:
+    command: "./bin/Protocol-7 sourcecode verify-p7-signatures"
+    description: "Standard signature verification using original public key only"
+    purpose: "Production verification (used by pre-commit hook)"
+    passphrase_required: false
+    note: "Requires no passphrase, only uses embedded public key"
+    use_cases:
+      - "Pre-commit hook validation"
+      - "Standard signature verification"
+      - "Quick check of signature validity"
+    exit_codes:
+      "0": "All signatures valid"
+      "N": "N signatures invalid (non-zero = failure)"
+
+  test_verify_with_temp_key:
+    command: "./bin/Protocol-7 sourcecode test-verify-with-temp-key"
+    description: "Verify signatures with both temporary and original keys"
+    purpose: "Identify which files are signed with which key"
+    passphrase_required: false
+    output:
+      - "Loads both original and test keys"
+      - "Verifies all 2282+ source files"
+      - "Reports: [valid:orig.], [valid:temp.], or [valid:both!]"
+      - "Lists invalid files that fail verification with both keys"
+      - "Shows endline state (5=no change, 6=added separator)"
+
+    use_cases:
+      - "After editing files to see which need re-signing"
+      - "Detecting signature oscillation issues"
+      - "Verifying endline state encoding is correct"
+      - "Identifying files signed with test key vs production key"
+
+  test_sign_with_temp_key:
+    command: "./bin/Protocol-7 sourcecode test-sign-with-temp-key <file-pattern>"
+    description: "Sign files using temporary test key"
+    purpose: "Backup signatures and prepare for test signing"
+    workflow:
+      - "Creates test key if not present"
+      - "Backs up original signatures to .test-signature-backups/"
+      - "Prepares for test signing workflow"
+    example: "./bin/Protocol-7 sourcecode test-sign-with-temp-key modules/events*"
+    note: "Requires file pattern parameter"
+
+  test_cycle:
+    command: "./bin/Protocol-7 sourcecode test-cycle <file-pattern>"
+    description: "Complete test cycle: backup → sign → verify → restore"
+    purpose: "Test signature workflow without permanently changing files"
+    workflow:
+      steps:
+        - "STEP 1: Backup original signatures to .test-cycle-backups/"
+        - "STEP 2: Replace production key with test key"
+        - "STEP 3: Update signatures using test key"
+        - "STEP 4: Verify all signatures validate"
+        - "STEP 5: Restore original signatures from backup"
+      advantages:
+        - "Single command for complete test workflow"
+        - "Automatic backup and restore"
+        - "Safe testing without permanent changes"
+        - "Verifies signatures before restoration"
+    example: "./bin/Protocol-7 sourcecode test-cycle modules/base.*"
+    note: "Requires test key to exist first"
+
+  test_diagnose:
+    command: "./bin/Protocol-7 sourcecode test-diagnose"
+    description: "Diagnose signature oscillation issues"
+    purpose: "Detect endline state problems causing repeated signature changes"
+
+  test_restore_signatures:
+    command: "./bin/Protocol-7 sourcecode test-restore-signatures <file-pattern>"
+    description: "Restore original signatures from backup"
+    purpose: "Undo test signing changes"
+    backup_dir: ".test-cycle-backups/ or .test-signature-backups/"
+
+  update_sub_list:
+    command: "./bin/Protocol-7 sourcecode update-sub-list"
+    description: "Update subroutine list (creates file without proper footer)"
+    purpose: "Trigger signature verification testing by creating unsigned content"
+    use_case: "Testing workflow to demonstrate signature verification"
+
+common_workflows:
+  verifying_edited_files:
+    scenario: "After editing source files, identify which need re-signing"
+    steps:
+      - "Edit source files as needed"
+      - "Run: ./bin/Protocol-7 sourcecode test-verify-with-temp-key"
+      - "Check results for invalid signatures"
+      - "User must run update-signatures with private key (AI cannot do this)"
+
+    example_output: |
+      : Results: 2278 valid, 4 invalid
+      :
+      : INVALID FILES (neither key validates):
+      : - events.init_code
+      : - base.list.subroutines
+      : - base.known_dependencies
+      : - auth.users
+
+    interpretation:
+      valid_orig: "File signature is correct with production key"
+      valid_temp: "File signed with test key"
+      valid_both: "File validates with both keys (rare)"
+      invalid: "File edited and needs re-signing"
+
+  testing_signature_workflow:
+    scenario: "Test signing workflow on specific files"
+    steps:
+      - "Ensure test key exists: ./bin/Protocol-7 keys list"
+      - "If not: ./bin/Protocol-7 keys create -U test-proto7-sourcecode"
+      - "Run test cycle: ./bin/Protocol-7 sourcecode test-cycle modules/test.*"
+      - "Verify all steps complete successfully"
+      - "Original signatures automatically restored"
+
+  detecting_oscillation:
+    scenario: "New files without signatures get signed incorrectly"
+    problem: "Footer added without separator endline, causing oscillation"
+    detection:
+      - "Run update-sub-list to create unsigned content"
+      - "Sign files and check endline state"
+      - "Verify endline-state-encoded is correct (5 or 6)"
+      - "Re-sign and verify signature doesn't change"
+
+    endline_states:
+      state_5: "No change (already has exactly 1 trailing endline)"
+      state_6: "Added separator (had 0 endlines, added 1)"
+      state_1: "Normalized excess (had 2+, normalized to 1)"
+
+signature_verification_details:
+  dual_key_system:
+    original_key:
+      name: "proto-7.sourcecode"
+      location: "Embedded in bin/Protocol-7 (public key)"
+      passphrase: "Required for signing (user only)"
+      verification: "No passphrase needed"
+
+    test_key:
+      name: "test-proto7-sourcecode"
+      location: "/root/.n/user-keys/"
+      passphrase: "None (unencrypted for testing)"
+      purpose: "Testing signature workflow without production key"
+
+  verification_modes:
+    strict: "Full validation with BMW checksum and signature"
+    relaxed: "Allow some variations (used in some contexts)"
+
+  signature_components:
+    bmw_checksum: "Digest::BMW hash of file content"
+    signature: "Curve25519 signature of BMW checksum"
+    endline_state: "Encodes normalization delta (0-7)"
+    footer_format: "AMOS7 signature with 4 lines"
+
+  endline_normalization:
+    canonical_state: "Exactly 1 newline before signature footer"
+    purpose: "Consistent file format across all source files"
+    encoding: "Delta stored in AMOS7 header position 11"
+    reversibility: "Can reconstruct original endline count"
+
+test_results_from_session:
+  date: "2025-11-12"
+  environment: "workspace-transfer session"
+
+  setup_completed:
+    - "Installed Crypt::Curve25519 from local patched source"
+    - "Created /root/.n/user-keys directory"
+    - "Generated test-proto7-sourcecode key"
+    - "Added Crypt::Curve25519 to base.known_dependencies"
+    - "Documented buffer system workflow"
+
+  verification_test_results:
+    total_files: 2282
+    valid_signatures: 2278
+    invalid_signatures: 4
+
+    invalid_files:
+      - name: "events.init_code"
+        reason: "Fixed base.log → base.logs for sprintf formatting"
+
+      - name: "base.list.subroutines"
+        reason: "Updated by sourcecode update-sub-list command"
+
+      - name: "base.known_dependencies"
+        reason: "Added Crypt::Curve25519 module mapping"
+
+      - name: "auth.users"
+        reason: "Added protocol-7 user to unix-root authentication"
+
+  key_learnings:
+    - "test-verify-with-temp-key successfully identifies edited files"
+    - "Endline states correctly encoded (state 5 and 6 dominant)"
+    - "Dual-key verification enables test/production key separation"
+    - "No signature oscillation detected in tested files"
+
+integration_with_development_workflow:
+  editing_source_files:
+    workflow:
+      - "Edit source files using standard tools"
+      - "Run test-verify-with-temp-key to identify changed files"
+      - "User runs update-signatures with private key to re-sign"
+      - "Verify signatures now valid"
+      - "Commit changes to git"
+
+    important: "AI agents cannot sign files (no access to private key)"
+
+  pre_commit_hook:
+    location: "bin/dev/git-hooks/pre-commit"
+    checks:
+      - "Version number validation"
+      - "Signature verification (via verify-p7-signatures)"
+      - "File permission restoration"
+
+    related_workflow: "See git-commit-versioning-signing.yaml"
+    recovery: "SKIP_SIGNATURE_CHECK=1 git commit"
+
+troubleshooting:
+  crypt_curve25519_error:
+    symptom: "error while loading perl module 'Crypt::Curve25519'"
+    causes:
+      - "Module not installed"
+      - "Wrong version (upstream has fmul bug)"
+    solution: "Install from data/lib-path/pm-src/crypt-curve25519"
+    commands: |
+      cd data/lib-path/pm-src/crypt-curve25519
+      perl Makefile.PL && make && make install
+
+  key_directory_missing:
+    symptom: "no read permission to key dir ['/root/.n/user-keys']"
+    causes:
+      - "Directory doesn't exist"
+      - "Wrong permissions"
+    solution: "mkdir -p /root/.n/user-keys && chmod 700 /root/.n/user-keys"
+
+  test_key_not_found:
+    symptom: "'test-proto7-sourcecode' key pair not found"
+    solution: "./bin/Protocol-7 keys create -U test-proto7-sourcecode"
+    note: "Test key is unencrypted for convenience"
+
+  sourcecode_zenka_wont_start:
+    symptoms:
+      - "Crypt::Curve25519 module error"
+      - "Key directory not accessible"
+      - "crypt.C25519 init failed"
+    solutions:
+      - "Install Crypt::Curve25519 (see above)"
+      - "Create key directory (see above)"
+      - "Check system.amos-zenka-user setting"
+      - "Verify user has access to key directory"
+
+  all_signatures_invalid:
+    symptom: "All files show invalid signatures"
+    causes:
+      - "Wrong key loaded"
+      - "Signature format changed"
+      - "File encoding issues"
+    diagnosis: "./bin/Protocol-7 sourcecode test-diagnose"
+
+best_practices:
+  - "Always use test-verify before committing to identify invalid signatures"
+  - "Use test-cycle for safe testing without permanent changes"
+  - "Keep test key unencrypted for convenience (it's for testing only)"
+  - "Check endline state when debugging oscillation issues"
+  - "User must perform actual signing (AI cannot access private key)"
+  - "Document signature failures before running update-signatures"
+
+security_notes:
+  test_key_security:
+    - "Test key is unencrypted and stored in user home directory"
+    - "Test key should NEVER be used for production signatures"
+    - "Test key can be deleted and recreated anytime"
+    - "Test key is NOT the same as production signing key"
+
+  production_key_security:
+    - "Production key requires passphrase"
+    - "Stored in configuration/zenki/keys/ with restricted permissions"
+    - "Only user can access (not AI agents)"
+    - "Public key embedded in bin/Protocol-7 for verification"
+
+related_documentation:
+  - "git-commit-versioning-signing.yaml - Git workflow integration"
+  - "buffer-system-debugging.yaml - Real-time debugging workflow"
+  - "modules/source.cmd.get-code-signed - Signing implementation"
+  - "modules/source.signature_valid - Verification implementation"
+  - "modules/source.extract_sig_body - Signature extraction"
+
+#,,.,,.,,,..,,,.,,.,,,,,,,..,.,,,.,.,.,,,..,,..,,...,...,,,,,,,,.,,,.,..,,.,,.,
