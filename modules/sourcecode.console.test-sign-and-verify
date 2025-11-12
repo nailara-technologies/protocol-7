@@ -118,7 +118,8 @@ foreach my $file_path ( @source_paths ) {
         );
 
         # Verify checksum matches
-        my ($is_valid, $report_ref) = <[source.signature_valid]>->( \\$src_str, $footer_data );
+        # Use data-reference from footer_data (already set by extract_sig_body)
+        my ($is_valid, $report_ref) = <[source.signature_valid]>->( $footer_data->{'data-reference'}, $footer_data );
         if ( $is_valid ) {
             $valid_count++;
         } else {

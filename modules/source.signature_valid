@@ -99,6 +99,8 @@ if ( not defined $signature_footer_data
 ## no valid signature footer was found ##
 ##
 if ( not $signature_footer_data->{'was-present'} ) {
+    <[base.s_warn]>->( 'file has no signature footer (unsigned file)' );
+    <[base.logs]>->( 2, ': validation failed: file is unsigned' );
     return ( FALSE, { 'footer-was-present' => FALSE } ) if wantarray;
     return FALSE;
 } elsif ( not $signature_footer_data->{'structure-was-valid'} ) {
