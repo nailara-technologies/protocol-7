@@ -3,144 +3,139 @@
 # name = httpd.cmd.del-vhost
 # descr = Remove virtual host, optionally revoking certificate
 
-sub httpd_cmd_del_vhost {
-    my $params = shift || {};
+my $params = shift || {};
 
-    my $domain = $params->{domain} || $params->{host};
+my $domain = $params->{domain} || $params->{host};
 
-    if (!$domain) {
-        return {
-            success => 0,
-            error   => qw| domain parameter required |,
-            usage   => qw| httpd.del-vhost domain=example.com [revoke_cert=1] [keep_content=0] |
-        };
-    }
-
-    my $revoke_cert  = $params->{revoke_cert}  || $params->{revoke} || 0;
-    my $keep_content = $params->{keep_content} || 0;
-
-    <[base.log]>->( 2, "httpd.cmd.del-vhost: Removing vhost for domain '$domain'" );
-
-    ## Configuration
-    my $site_dir    = <httpd.site_dir>    || '/var/httpd';
-    my $content_dir = <web.cfg.base_dir>  || '/data/web';
-
-    ## Paths
-    my $vhost_link    = "$site_dir/$domain";
-    my $content_path  = "$content_dir/$domain";
-
-    ## Check if vhost exists
-    unless (-e $vhost_link || -d $content_path) {
-        <[base.log]>->( 1, "httpd.cmd.del-vhost: vhost '$domain' not found" );
-
-        return {
-            success => 0,
-            error   => qq| vhost '$domain' does not exist |
-        };
-    }
-
-    my $result = {
-        success => 1,
-        domain  => $domain,
-        actions => []
+if (!$domain) {
+    return {
+        success => 0,
+        error   => qw| domain parameter required |,
+        usage   => qw| httpd.del-vhost domain=example.com [revoke_cert=1] [keep_content=0] |
     };
-
-    ## Step 1: Revoke certificate if requested
-    if ($revoke_cert) {
-        <[base.log]>->( 2, "  Revoking certificate for '$domain'" );
-
-        if (exists $code{'letsencrypt.cmd.revoke'}) {
-            my $revoke_result = <[letsencrypt.cmd.revoke]>->({
-                domain => $domain,
-                reason => 5  ## cessationOfOperation
-            });
-
-            if ($revoke_result->{success}) {
-                <[base.log]>->( 2, "  Certificate revoked successfully" );
-                push @{$result->{actions}}, 'certificate_revoked';
-            } else {
-                <[base.log]>->( 1, "  Certificate revocation failed: " . ($revoke_result->{error} || 'unknown') );
-                push @{$result->{actions}}, 'certificate_revoke_failed';
-                $result->{cert_error} = $revoke_result->{error};
-            }
-        } else {
-            <[base.log]>->( 1, "  Let's Encrypt module not available for revocation" );
-            push @{$result->{actions}}, 'certificate_revoke_skipped';
-        }
-    }
-
-    ## Step 2: Remove vhost symlink
-    if (-l $vhost_link) {
-        <[base.log]>->( 2, "  Removing vhost symlink: $vhost_link" );
-
-        if (unlink($vhost_link)) {
-            push @{$result->{actions}}, 'symlink_removed';
-        } else {
-            <[base.log]>->( 0, "  Failed to remove symlink: $!" );
-            push @{$result->{actions}}, 'symlink_remove_failed';
-            $result->{symlink_error} = $!;
-        }
-    }
-
-    ## Step 3: Remove content directory (unless keep_content)
-    unless ($keep_content) {
-        if (-d $content_path) {
-            <[base.log]>->( 2, "  Removing content directory: $content_path" );
-
-            use File::Path qw| remove_tree |;
-
-            my $removed_count = 0;
-            eval {
-                $removed_count = remove_tree($content_path, { verbose => 0 });
-            };
-
-            if ($@) {
-                <[base.log]>->( 0, "  Failed to remove content directory: $@" );
-                push @{$result->{actions}}, 'content_remove_failed';
-                $result->{content_error} = $@;
-            } else {
-                <[base.log]>->( 2, "  Removed $removed_count files/directories" );
-                push @{$result->{actions}}, 'content_removed';
-            }
-        }
-    } else {
-        <[base.log]>->( 2, "  Keeping content directory (keep_content=1)" );
-        push @{$result->{actions}}, 'content_kept';
-    }
-
-    ## Step 4: Remove from vhost registry
-    my $vhost_id = <httpd.vhosts.by_domain>->{$domain};
-
-    if (defined $vhost_id && exists <httpd.vhosts.registry>->{$vhost_id}) {
-        <[base.log]>->( 2, "  Removing from vhost registry [id=$vhost_id]" );
-
-        delete <httpd.vhosts.registry>->{$vhost_id};
-        delete <httpd.vhosts.by_domain>->{$domain};
-
-        push @{$result->{actions}}, 'registry_removed';
-    }
-
-    ## Step 5: Remove from httpd.cfg.hostnames
-    if (exists <httpd.cfg.hostnames>->{$domain}) {
-        <[base.log]>->( 2, "  Removing from httpd.cfg.hostnames" );
-
-        delete <httpd.cfg.hostnames>->{$domain};
-
-        push @{$result->{actions}}, 'hostname_removed';
-    }
-
-    ## Step 6: Optionally rescan site directory
-    <[base.log]>->( 2, "  Rescanning site directory" );
-    <[httpd.scan_site_dir]>;
-
-    <[base.log]>->( 2, "httpd.cmd.del-vhost: Vhost '$domain' removed successfully" );
-    <[base.log]>->( 2, "  Actions: " . join(', ', @{$result->{actions}}) );
-
-    return $result;
 }
 
-## Export command ##
-$code{qw| httpd.cmd.del-vhost |} = \\&httpd_cmd_del_vhost;
+my $revoke_cert  = $params->{revoke_cert}  || $params->{revoke} || 0;
+my $keep_content = $params->{keep_content} || 0;
+
+<[base.log]>->( 2, "httpd.cmd.del-vhost: Removing vhost for domain '$domain'" );
+
+## Configuration
+my $site_dir    = <httpd.site_dir>    || '/var/httpd';
+my $content_dir = <web.cfg.base_dir>  || '/data/web';
+
+## Paths
+my $vhost_link    = "$site_dir/$domain";
+my $content_path  = "$content_dir/$domain";
+
+## Check if vhost exists
+unless (-e $vhost_link || -d $content_path) {
+    <[base.log]>->( 1, "httpd.cmd.del-vhost: vhost '$domain' not found" );
+
+    return {
+        success => 0,
+        error   => qq| vhost '$domain' does not exist |
+    };
+}
+
+my $result = {
+    success => 1,
+    domain  => $domain,
+    actions => []
+};
+
+## Step 1: Revoke certificate if requested
+if ($revoke_cert) {
+    <[base.log]>->( 2, "  Revoking certificate for '$domain'" );
+
+    if (exists $code{'letsencrypt.cmd.revoke'}) {
+        my $revoke_result = <[letsencrypt.cmd.revoke]>->({
+            domain => $domain,
+            reason => 5  ## cessationOfOperation
+        });
+
+        if ($revoke_result->{success}) {
+            <[base.log]>->( 2, "  Certificate revoked successfully" );
+            push @{$result->{actions}}, 'certificate_revoked';
+        } else {
+            <[base.log]>->( 1, "  Certificate revocation failed: " . ($revoke_result->{error} || 'unknown') );
+            push @{$result->{actions}}, 'certificate_revoke_failed';
+            $result->{cert_error} = $revoke_result->{error};
+        }
+    } else {
+        <[base.log]>->( 1, "  Let's Encrypt module not available for revocation" );
+        push @{$result->{actions}}, 'certificate_revoke_skipped';
+    }
+}
+
+## Step 2: Remove vhost symlink
+if (-l $vhost_link) {
+    <[base.log]>->( 2, "  Removing vhost symlink: $vhost_link" );
+
+    if (unlink($vhost_link)) {
+        push @{$result->{actions}}, 'symlink_removed';
+    } else {
+        <[base.log]>->( 0, "  Failed to remove symlink: $!" );
+        push @{$result->{actions}}, 'symlink_remove_failed';
+        $result->{symlink_error} = $!;
+    }
+}
+
+## Step 3: Remove content directory (unless keep_content)
+unless ($keep_content) {
+    if (-d $content_path) {
+        <[base.log]>->( 2, "  Removing content directory: $content_path" );
+
+        use File::Path qw| remove_tree |;
+
+        my $removed_count = 0;
+        eval {
+            $removed_count = remove_tree($content_path, { verbose => 0 });
+        };
+
+        if ($@) {
+            <[base.log]>->( 0, "  Failed to remove content directory: $@" );
+            push @{$result->{actions}}, 'content_remove_failed';
+            $result->{content_error} = $@;
+        } else {
+            <[base.log]>->( 2, "  Removed $removed_count files/directories" );
+            push @{$result->{actions}}, 'content_removed';
+        }
+    }
+} else {
+    <[base.log]>->( 2, "  Keeping content directory (keep_content=1)" );
+    push @{$result->{actions}}, 'content_kept';
+}
+
+## Step 4: Remove from vhost registry
+my $vhost_id = <httpd.vhosts.by_domain>->{$domain};
+
+if (defined $vhost_id && exists <httpd.vhosts.registry>->{$vhost_id}) {
+    <[base.log]>->( 2, "  Removing from vhost registry [id=$vhost_id]" );
+
+    delete <httpd.vhosts.registry>->{$vhost_id};
+    delete <httpd.vhosts.by_domain>->{$domain};
+
+    push @{$result->{actions}}, 'registry_removed';
+}
+
+## Step 5: Remove from httpd.cfg.hostnames
+if (exists <httpd.cfg.hostnames>->{$domain}) {
+    <[base.log]>->( 2, "  Removing from httpd.cfg.hostnames" );
+
+    delete <httpd.cfg.hostnames>->{$domain};
+
+    push @{$result->{actions}}, 'hostname_removed';
+}
+
+## Step 6: Optionally rescan site directory
+<[base.log]>->( 2, "  Rescanning site directory" );
+<[httpd.scan_site_dir]>;
+
+<[base.log]>->( 2, "httpd.cmd.del-vhost: Vhost '$domain' removed successfully" );
+<[base.log]>->( 2, "  Actions: " . join(', ', @{$result->{actions}}) );
+
+return $result;
 
 0;
 
@@ -150,3 +145,8 @@ $code{qw| httpd.cmd.del-vhost |} = \\&httpd_cmd_del_vhost;
 #\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#,,.,,..,,,,.,.,.,,,.,...,,..,,,.,...,.,,,,..,..,,...,.,.,,,.,,,.,...,..,,,,.,
+#XVHYACNOL7EKGOPHCSQEEJIBRXKMXRFDEFUU5L6T6ETB6AJSB4NHJT5K7JYLVI64YHMBV2D4HWB3A
+#\\\|7M2EQIMU7PE67EZ6DRMKIGOVYZJ47TEORYPJWYLHD7FSJ6FG7VV \ / AMOS7 \ YOURUM ::
+#\[7]4WPZFKPJ3FSSCFE77SSSPVIFYUM6UXPP62NTEPEQTVCYAAYKAQAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

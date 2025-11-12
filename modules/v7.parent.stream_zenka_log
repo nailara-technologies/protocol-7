@@ -3,8 +3,7 @@
 # name = v7.parent.stream_zenka_log
 # descr = Stream zenka log output via unix domain socket (detach/reattach/clone)
 
-sub v7_parent_stream_zenka_log {
-    my $params = shift || {};
+my $params = shift || {};
 
     my $instance_id = $params->{instance_id};
     my $zenka_name = $params->{zenka};
@@ -75,10 +74,6 @@ sub v7_parent_stream_zenka_log {
         instance_id => $instance_id,
         observers   => scalar(@{<v7.log_streams>->{$instance_id}{'observers'}})
     };
-}
-
-## Export
-$code{qw| v7.parent.stream_zenka_log |} = \&v7_parent_stream_zenka_log;
 
 0;
 
@@ -88,3 +83,8 @@ $code{qw| v7.parent.stream_zenka_log |} = \&v7_parent_stream_zenka_log;
 #\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#,,.,,,,,,...,,.,,.,,,.,.,...,..,,,,,,,..,,,,,..,,...,...,...,.,.,,.,,,,,,...,
+#C5WYPW2LSG76ITQJM5QGWDBV2O6XTROJN4JR5QB5S66LADRXSXLS2LMQKO2DIH7MJBMKZVOPXXPLW
+#\\\|5TVDUZMXJYIAOIP45JR22EQ2WSYXQZAO5X5DPOD6EFRCYA3U4TV \ / AMOS7 \ YOURUM ::
+#\[7]74TVDAUCY7EHAB3E4Y5EDW4EARUE4NNMRG5OWOOWN2KQB4YZ4MDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,21 +5,21 @@
 # param = [zenka=<name>] [dry_run=1]
 
 my $param = shift;
-my $args = $param->{'args'} // '';
+my $args  = $param->{'args'} // '';
 
 my %params;
-foreach my $pair (split(/\s+/, $args)) {
-    if ($pair =~ /^(\w+)=(.+)$/) {
+foreach my $pair ( split( /\s+/, $args ) ) {
+    if ( $pair =~ /^(\w+)=(.+)$/ ) {
         $params{$1} = $2;
-    } elsif ($pair =~ /^(\w+)$/) {
+    } elsif ( $pair =~ /^(\w+)$/ ) {
         $params{zenka} = $1;
     }
 }
 
 ## Run installation
-my $result = <[debian.parent.install_missing]>->(\%params);
+my $result = <[debian.parent.install_missing]>->( \%params );
 
-if (!$result->{success}) {
+if ( !$result->{success} ) {
     return {
         'mode' => qw| false |,
         'data' => $result->{error} || 'installation failed'
@@ -29,27 +29,37 @@ if (!$result->{success}) {
 ## Format output
 my @output;
 
-if ($params{dry_run}) {
+if ( $params{dry_run} ) {
     push @output, "Dry run - would install:";
     push @output, "";
-    if (@{$result->{debian_packages}}) {
-        push @output, "Debian packages (" . scalar(@{$result->{debian_packages}}) . "):";
-        push @output, "  " . join(', ', @{$result->{debian_packages}});
+    if ( @{ $result->{debian_packages} } ) {
+        push @output, "Debian packages ("
+            . scalar( @{ $result->{debian_packages} } ) . "):";
+        push @output, "  " . join( ', ', @{ $result->{debian_packages} } );
         push @output, "";
     }
-    if (@{$result->{cpan_modules}}) {
-        push @output, "CPAN modules (" . scalar(@{$result->{cpan_modules}}) . "):";
-        push @output, "  " . join(', ', @{$result->{cpan_modules}});
+    if ( @{ $result->{cpan_modules} } ) {
+        push @output,
+            "CPAN modules (" . scalar( @{ $result->{cpan_modules} } ) . "):";
+        push @output, "  " . join( ', ', @{ $result->{cpan_modules} } );
     }
 } else {
     push @output, "Installation complete:";
     push @output, "";
-    push @output, sprintf("  Debian: %d installed, %d failed",
-        $result->{installed_debian}, $result->{failed_debian});
-    push @output, sprintf("  CPAN:   %d installed, %d failed",
-        $result->{installed_cpan}, $result->{failed_cpan});
+    push @output,
+        sprintf(
+        "  Debian: %d installed, %d failed",
+        $result->{installed_debian},
+        $result->{failed_debian}
+        );
+    push @output,
+        sprintf(
+        "  CPAN:   %d installed, %d failed",
+        $result->{installed_cpan},
+        $result->{failed_cpan}
+        );
 
-    if ($result->{failed_debian} + $result->{failed_cpan} > 0) {
+    if ( $result->{failed_debian} + $result->{failed_cpan} > 0 ) {
         push @output, "";
         push @output, "⚠ Some installations failed - check logs";
     }
@@ -57,7 +67,7 @@ if ($params{dry_run}) {
 
 return {
     'mode' => qw| true |,
-    'data' => join("\n", @output)
+    'data' => join( "\n", @output )
 };
 
 #,,,.,.,.,.,,,.,.,.,,.,,...,.,,,.,,,.,,,..,,...,...,.,,,,,.,.,.,.,,.,,.,,.,..,,
@@ -66,3 +76,8 @@ return {
 #\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#,,..,,.,,...,...,.,,,,,,,,.,,,.,,.,.,.,,,..,,..,,...,...,...,...,.,.,,.,,.,,,
+#NGUQ3C3QMQK3ORH3AMMOCL4PEXWCS7WNPULB2OYCRCBMXK3G4PTYGXGNJVG5BGAEFMQXV4QEGEFVM
+#\\\|7256EPGTSYJWLK3GSXRVQP22YI2P5UD57KQ46SRUKYMPTVCOFXL \ / AMOS7 \ YOURUM ::
+#\[7]54A6KBTJNAUDGYCL454HNSX5JL2SVTNWB3OZ7TGNUVY7TK5GU2AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -54,17 +54,28 @@ All modules follow a consistent structure:
 
 ### Function Call Syntax
 
-**Critical**: The `<[...]>` notation returns a **code reference**, not the result of calling the function.
+The `<[...]>` notation is a Protocol-7 parser feature. **The key in `%code` is EXACTLY the module filename** from `modules/*`.
 
 ```perl
-## ✗ WRONG - Returns code reference, doesn't call function
+## Module filename: modules/debian.parent.scan_zenki_dependencies
+## %code key: 'debian.parent.scan_zenki_dependencies'
+## Function call:
 my $result = <[debian.parent.scan_zenki_dependencies]>;
+## Parses to:
+my $result = $code{'debian.parent.scan_zenki_dependencies'}->();
 
-## ✓ CORRECT - Calls function with no arguments
-my $result = <[debian.parent.scan_zenki_dependencies]>();
+## The dots in the filename are preserved as-is in the %code key
+## They are NOT converted to nested hash access!
+## NOT this (wrong):
+my $result = $code{'debian'}{'parent'}{'scan_zenki_dependencies'}->();
 
-## ✓ CORRECT - Calls function with arguments
+## With arguments:
 my $result = <[debian.parent.install_missing]>->({
+    zenka => $zenka_name,
+    prefer_debian => 1
+});
+## Parses to:
+my $result = $code{'debian.parent.install_missing'}->({
     zenka => $zenka_name,
     prefer_debian => 1
 });
@@ -72,12 +83,13 @@ my $result = <[debian.parent.install_missing]>->({
 
 ### Function Call Patterns
 
-| Pattern | Use Case | Example |
-|---------|----------|---------|
-| `<[func]>()` | Call with no arguments | `<[base.log]>()` |
-| `<[func]>->($arg)` | Call with single argument | `<[base.log]>->(2, "message")` |
-| `<[func]>->({...})` | Call with hash arguments | `<[install]>->({zenka => 'v7'})` |
-| `<[func]>` | Get code reference | `$code_ref = <[func]>` |
+| Pattern | Parsed To | Example |
+|---------|-----------|---------|
+| `<[func]>` | `$code{'func'}->()` | `<[base.log]>` |
+| `<[func]>->($arg)` | `$code{'func'}->($arg)` | `<[base.log]>->(2, "message")` |
+| `<[func]>->({...})` | `$code{'func'}->({...})` | `<[install]>->({zenka => 'v7'})` |
+
+**Note**: The parser does NOT support storing `<[func]>` as a code reference without calling it. Always call the function directly using one of the patterns above.
 
 ### Data Access Patterns
 
@@ -110,26 +122,78 @@ my $port = $data{'service'}{'config'}{'port'};
 my $clients = <service.registry.clients>;  # Won't resolve properly
 ```
 
-### Key Distinction
+### Critical: Dot Handling Difference
 
-- **`<[...]>`** = Code reference access (for calling functions)
-- **`<...>`** = Data initialization (only in init_code)
-- **`$data{...}`** = Data access (in regular modules)
+This is the fundamental difference between the two notations:
+
+#### `<[function.name]>` - Function Calls (key is EXACTLY the module filename)
+```perl
+# Module file: modules/debian.parent.scan
+# Function call:
+<[debian.parent.scan]>;
+# Parses to: $code{'debian.parent.scan'}->()
+# The key 'debian.parent.scan' matches the filename exactly
+```
+
+#### `<data.name.path>` - Data Access in init_code (dots CONVERTED to nested structure)
+```perl
+<debian.cfg.timeout> = 30;
+# Parses to: $data{'debian'}{'cfg'}{'timeout'} = 30
+# Creates nested hash: $data{'debian'} → {'cfg'} → {'timeout'}
+```
+
+#### `$data{'key'}{'path'}` - Data Access in Regular Modules (explicit hash)
+```perl
+my $timeout = $data{'debian'}{'cfg'}{'timeout'};
+# Direct hash access in regular modules
+```
+
+### Key Distinction Summary
+
+**Module Namespace Pattern: Files use dot notation for namespacing**
+
+- **`<[module.name.function]>`** = Function call: Uses exact module filename as %code key
+  - Module file: `modules/module.name.function`
+  - Parser converts to: `$code{'module.name.function'}->()`
+  - Dots in filename become dots in key (NOT nested hash structure)
+
+- **`<config.key.path>`** = Data init (init_code only): Dots converted to nested hashes
+  - Parser converts to: `$data{'config'}{'key'}{'path'}`
+  - Used ONLY in init_code modules
+
+- **`$data{'key'}{'path'}`** = Data access (regular modules): Explicit nested hash structure
+  - Used in all regular (non-init_code) modules
 
 ### Common Mistakes and Fixes
 
 ```perl
-## MISTAKE 1: Missing parentheses
-my $result = <[scan_function]>;  # ✗ Returns reference
-my $result = <[scan_function]>(); # ✓ Calls function
+## MISTAKE 1: Module filenames use dot notation for namespacing
+# Module file: modules/debian.parent.scan
+# ✓ CORRECT: <[debian.parent.scan]>;
+#            Parses to: $code{'debian.parent.scan'}->()
+# ✗ WRONG:   $code{'debian'}{'parent'}{'scan'}->()  - NOT nested!
 
-## MISTAKE 2: Wrong data access in regular module
-my $val = <service.data.value>;           # ✗ Won't work
-my $val = $data{'service'}{'data'}{'value'}; # ✓ Correct
+## MISTAKE 2: The %code key is EXACTLY the module filename
+# If file is: modules/zenki.parent.ensure_cube
+# Then key is: 'zenki.parent.ensure_cube' (with all the dots)
+# Call it with: <[zenki.parent.ensure_cube]>;
 
-## MISTAKE 3: Trying to use <...> for code
-<service.function>();  # ✗ Wrong - <...> is for data
-<[service.function]>(); # ✓ Correct - <[...]> is for code
+## MISTAKE 3: Confusing function dots (preserved) with data dots (converted)
+# In init_code - data dots ARE converted to nested structure:
+<service.config.timeout> = 30;
+# Parses to: $data{'service'}{'config'}{'timeout'} = 30 (nested!)
+
+# But function calls - module filename dots are PRESERVED:
+<[service.config.get_timeout]>;
+# Parses to: $code{'service.config.get_timeout'}->()  (NOT nested!)
+
+## MISTAKE 4: Using <...> data notation in regular modules
+my $x = <service.config.value>;        # ✗ Won't work in regular modules
+my $x = $data{'service'}{'config'}{'value'};  # ✓ Correct - use $data{...}
+
+## MISTAKE 5: Remember: Module names DON'T nest, data paths DO
+<foo.bar>;           # Data in init_code: $data{'foo'}{'bar'}  - nested!
+<[foo.bar]>;         # Function call: $code{'foo.bar'}->()  - NOT nested!
 ```
 
 ---
@@ -443,9 +507,9 @@ sub zenki_parent_resolve_dependencies {
     ## Resolve each dependency in order
     foreach my $dep (@chain) {
         if ($dep eq 'v7') {
-            $result = <[zenki.parent.ensure_v7]>();
+            $result = <[zenki.parent.ensure_v7]>;
         } elsif ($dep eq 'cube') {
-            $result = <[zenki.parent.ensure_cube]>();
+            $result = <[zenki.parent.ensure_cube]>;
         } else {
             $result = <[zenki.parent.ensure_zenka]>->({ zenka => $dep });
         }
@@ -1150,7 +1214,7 @@ access.cmd.usr.cube = commands heart reload \
 ## modules/debian.parent.init_code
 
 ## ✗ WRONG - Function not yet exported during init
-my $result = <[debian.parent.scan_zenki_dependencies]>();
+my $result = <[debian.parent.scan_zenki_dependencies]>;
 
 ## ✓ CORRECT - Skip initial scan, perform on first command use
 ## Scan will happen when console commands are called
@@ -1190,7 +1254,7 @@ my $result = <[debian.parent.scan_zenki_dependencies]>();
 });
 
 ## 4. Call OTHER modules' functions (OK)
-<[base.log]>->( 2, 'Service initialization complete' );
+<[base.log]>( 2, 'Service initialization complete' );
 
 ## 5. DON'T call own module's functions
 ## (They aren't exported yet!)
@@ -1210,9 +1274,9 @@ If you need to perform operations during init:
 <service.initialized> = 0;  # Flag for first-use scan
 
 ## modules/service.cmd.list
-unless ( <service.initialized> ) {
-    <[service.scan_data]>();  # Now function is available
-    <service.initialized> = 1;
+unless ( $data{'service'}{'initialized'} ) {
+    <[service.scan_data]>;  # Now function is available
+    $data{'service'}{'initialized'} = 1;
 }
 ```
 
@@ -1245,35 +1309,33 @@ my $result = _init_helper($some_data);
 
 ## modules/service.parent.initialize
 ## This can be called after init completes
-sub service_parent_initialize {
-    ## Perform initialization
-    <[service.parent.scan_data]>();  # Functions available now
-}
-$code{'service.parent.initialize'} = \&service_parent_initialize;
+## Perform initialization
+<[service.parent.scan_data]>;  # Functions available now
+
 0;
 ```
 
-### Module Export Pattern
+### Module Code Structure
 
-All modules must export their function and return 0:
+All modules are compiled by the parser and made available as code references. Just return the code and result at the end:
 
 ```perl
 ## modules/service.process_data
 
-sub service_process_data {
-    my $params = shift;
-    # Implementation
-    return $result;
-}
+my $params = shift;
+# Implementation
+return $result;
 
-## Export
-$code{qw| service.process_data |} = \&service_process_data;
-
-## Always return 0 from module
+# Always return 0 from module
 0;
 
 #AMOS7_SIGNATURE_PLACEHOLDER
 ```
+
+The parser automatically:
+1. Wraps your code in a subroutine
+2. Registers it in `%code` using the module filename
+3. Makes it available as `<[service.process_data]>->()`
 
 ---
 
@@ -1338,7 +1400,11 @@ Module A → Module B → Module A
 
 ### Do's ✓
 
-- **Always add `()` when calling functions**: `<[function]>()` not `<[function]>`
+- **Module filenames become %code keys directly**: File `modules/zenki.parent.start` → key `'zenki.parent.start'`
+- **Use `<[module.name]>` to call modules**: The bracketed name matches the module filename exactly
+- **Remember: Module filename dots are LITERAL keys**: `<[foo.bar]>` → `$code{'foo.bar'}->()` (NOT nested!)
+- **Pass arguments with `->(...)`**: `<[function]>->({...})` or `<[function]>->($arg)`
+- **Use `<config.key>` in init_code**: Parser converts dots to nesting → `$data{'config'}{'key'}`
 - **Use `$data{...}` for data access in regular modules** (not `<data...>`)
 - Use `qw|...|` for single-word constants (better syntax highlighting)
 - Use `qq|...|` for multi-word strings and messages
@@ -1351,14 +1417,18 @@ Module A → Module B → Module A
 - Use state-cached parsers for efficiency (JSON, regex, etc.)
 - Check Content-Length and wait for complete body before processing HTTP requests
 - **Defer initialization operations** that depend on own module's functions to first use
-- **Always export functions** with `$code{'module.name'} = \&function_name`
-- **Always return 0** at the end of module files
+- **Always return 0** at the end of module files (the parser handles registration automatically)
 
 ### Don'ts ✗
 
-- **Don't forget `()` when calling functions** - `<[func]>` returns reference, not result
-- **Don't use `<data...>` notation in regular modules** - only works in init_code
+- **Don't try to nest module filename keys** - File `modules/zenki.parent.start` creates key `'zenki.parent.start'`, NOT nested!
+- **Don't write `$code{'module'}{'name'}->()`** - Module keys are single strings with dots, not nested hashes
+- **Don't use `$code{...}->()` directly** - Use `<[module.name]>` syntax instead, the parser handles it
+- **Don't confuse module dots with data dots** - Function calls preserve dots literally, data init converts them to nesting!
+- **Don't use `<data...>` notation in regular modules** - only works in init_code, use `$data{...}` instead
+- **Don't forget data dots DO convert to nesting** - `<foo.bar>` becomes `$data{'foo'}{'bar'}`, but `<[foo.bar]>` stays as `$code{'foo.bar'}->()`!
 - **Don't call own module's functions during init_code** - they aren't exported yet
+- **Don't try to store `<[function]>` as a reference** - The parser only supports immediate calls
 - Don't shadow global hashes (`%code`, `%data`, `%keys`, `%colors`)
 - Don't use `qw|...|` for strings with spaces (use `qq|...|` instead)
 - Don't use `mkdir` directly (use `base.file.make_path` instead)
@@ -1385,8 +1455,8 @@ Module A → Module B → Module A
 - **Configuration**: See `configuration/zenki/*/start` for zenka-specific configurations
 - **Dependency Management**: See `modules/debian.*` for example of complete zenka implementation
 
-#,,,,,,.,,,.,,..,,...,.,,,.,,,,.,,,..,,.,,.,,,.,.,...,...,,,.,.,,,.,,,.,.,,..,
-#IIC5I3N6SBLS3V7ULLD6WOKXVPZA27XUDNWO4EO755E7QUEJ57KNMUIITNEIOEMHB6DFECGS4AXGS
-#\\\|EVR56TJSGLGMM56DSUPXANHX56GN4SNFWNGNZBSMAYD7ATVTCTA \ / AMOS7 \ YOURUM ::
-#\[7]XVR7L36YY4X5UDE4Q2D5JZGU4C6XVAZOST7PGB3K2VDLB5BRRWBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,...,,,.,,.,,...,,,.,.,,,..,,,,,,..,,...,...,.,,,,,,,.,,,,,,,,,.,
+#QYK4AOMPK5E774SD7MEUCP6IWN7OE6OEZB5TBGWARWCSSYKPQQVFZ5EZNAELNRSTLSLHC2LWHM7IO
+#\\\|5TSSIPTOGZC7QT2NQMBB6PJ5GMTSXONJGY3QBYNKUD64X6QHD5K \ / AMOS7 \ YOURUM ::
+#\[7]XGOK7XFY7TA2HLHGUYPMYXBMMH6JCASLZ3XKGRMEN3FZOJT3T4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

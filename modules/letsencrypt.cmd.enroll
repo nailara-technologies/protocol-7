@@ -3,12 +3,11 @@
 # name = letsencrypt.cmd.enroll
 # descr = Enroll domain with Let's Encrypt and optionally install to httpsd
 
-sub letsencrypt_cmd_enroll {
-    my $params = shift || {};
+my $params = shift || {};
 
-    my $domain = $params->{domain};
+my $domain = $params->{domain};
 
-    if (!$domain) {
+if (!$domain) {
         return {
             success => 0,
             error   => qw| domain parameter required |,
@@ -143,10 +142,6 @@ sub letsencrypt_cmd_enroll {
             hint    => qw| ensure letsencrypt zenka is running or load modules directly |
         };
     }
-}
-
-## Export command ##
-$code{qw| letsencrypt.cmd.enroll |} = \\&letsencrypt_cmd_enroll;
 
 0;
 
@@ -156,3 +151,8 @@ $code{qw| letsencrypt.cmd.enroll |} = \\&letsencrypt_cmd_enroll;
 #\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#,,..,...,,,.,..,,,..,...,,,.,,,.,.,.,,.,,,.,,..,,...,...,.,.,,..,...,..,,,,,,
+#7RY4VUBD7KIE6W3NLKDF4SXDZJZ6DC4UWHW5OUQ2ZDFXF6GNYZAGVCHOFDJIU3BREK6GLJRKLGVS4
+#\\\|OYI3FBSOKG5465ARHPAIPOMR2KC5JEXLZLSI4DK2ASK2JWWREO7 \ / AMOS7 \ YOURUM ::
+#\[7]SOVQPHFRKKQM53U3XDAD5D6SQLSZEFM5LEXZB3LP7C2OCW5Z7AAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

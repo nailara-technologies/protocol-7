@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = debian.parent.callback.check_module_loadable
+# descr = Check if a perl module is loadable
+
+my $module = shift;
+
+## Try to load the module
+eval {
+    local $SIG{__DIE__}  = sub { };
+    local $SIG{__WARN__} = sub { };
+    require $module =~ s|::|/|gr . '.pm';
+};
+
+return $@ ? 0 : 1;
+
+#,,..,,..,,,.,,,,,,.,,...,.,.,.,,,,,.,..,,,,,,..,,...,...,...,...,,.,,...,,,,,
+#5EKXGF2HTC5EGVMKMDEPYEA2DPODC4ERGAQB2XSZJOUQNHHHXJFXOJZCKEL4VDSI7IJOSFU5P72MY
+#\\\|GXKH4RTZKVBG5U4MEU5YPXQ4TKQZWWILKJTSUHJAS57LNHKTZRL \ / AMOS7 \ YOURUM ::
+#\[7]XPT4L33ZVPABK4SFIY47DRRXX5LLEYDLQ6HUTTWC3BJWFEHR24DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

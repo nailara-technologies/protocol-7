@@ -3,84 +3,79 @@
 # name = workflow.parent.fix_versions
 # descr = Surgical rewrite of commits to fix missing version numbers (minimal changes)
 
-sub workflow_parent_fix_versions {
-    my $params = shift || {};
+my $params = shift || {};
 
-    my $dry_run = $params->{dry_run} // 1;  ## Safe by default
-    my $auto_approve = $params->{auto_approve} // 0;
+my $dry_run = $params->{dry_run} // 1;  ## Safe by default
+my $auto_approve = $params->{auto_approve} // 0;
 
-    <[base.log]>->( 2, "workflow.fix_versions: analyzing commits needing version fixes..." );
+<[base.log]>->( 2, "workflow.fix_versions: analyzing commits needing version fixes..." );
 
-    ## Ensure history is scanned
-    unless (<workflow.history.scanned>) {
-        <[workflow.parent.scan_history]>();
-    }
+## Ensure history is scanned
+unless (<workflow.history.scanned>) {
+    <[workflow.parent.scan_history]>;
+}
 
-    ## Find commits missing versions
-    my @commits_to_fix;
+## Find commits missing versions
+my @commits_to_fix;
 
-    foreach my $hash (keys %{<workflow.history.issues>}) {
-        my $issue = $data{'workflow'}{'history'}{'issues'}{$hash};
+foreach my $hash (keys %{<workflow.history.issues>}) {
+    my $issue = $data{'workflow'}{'history'}{'issues'}{$hash};
 
-        if ($issue->{type} eq 'missing_version') {
-            push @commits_to_fix, {
-                hash   => $hash,
-                commit => $issue->{commit}
-            };
-        }
-    }
-
-    my $total_to_fix = scalar(@commits_to_fix);
-
-    unless ($total_to_fix) {
-        <[base.log]>->( 2, "  ✓ No commits need version fixes" );
-        return {
-            success => 1,
-            fixed   => 0,
-            message => 'All commits have version numbers'
+    if ($issue->{type} eq 'missing_version') {
+        push @commits_to_fix, {
+            hash   => $hash,
+            commit => $issue->{commit}
         };
     }
+}
 
-    <[base.log]>->( 2, "  Found $total_to_fix commits missing version numbers" );
+my $total_to_fix = scalar(@commits_to_fix);
 
-    if ($dry_run) {
-        <[base.log]>->( 2, "  DRY RUN - showing what would be fixed:" );
-
-        foreach my $item (@commits_to_fix) {
-            <[base.log]>->( 2, sprintf("    %s: %s",
-                substr($item->{hash}, 0, 7),
-                $item->{commit}{subject}
-            ));
-        }
-
-        return {
-            success => 1,
-            dry_run => 1,
-            would_fix => $total_to_fix,
-            commits => \@commits_to_fix
-        };
-    }
-
-    ## TODO: Implement actual rewriting
-    ## This is complex - needs:
-    ## 1. Generate version number for each commit (based on position in history)
-    ## 2. Use git filter-branch or git rebase to rewrite commit messages
-    ## 3. Only touch affected commits (surgical)
-    ## 4. Preserve signatures where possible
-    ## 5. Resign modified commits
-
-    <[base.log]>->( 1, "  ⚠ Actual rewriting not yet implemented" );
-    <[base.log]>->( 1, "    This requires careful git filter-branch logic" );
-
+unless ($total_to_fix) {
+    <[base.log]>->( 2, "  ✓ No commits need version fixes" );
     return {
-        success => 0,
-        error   => 'Rewriting not yet implemented - TODO',
-        would_fix => $total_to_fix
+        success => 1,
+        fixed   => 0,
+        message => 'All commits have version numbers'
     };
 }
 
-## Export
-$code{qw| workflow.parent.fix_versions |} = \&workflow_parent_fix_versions;
+<[base.log]>->( 2, "  Found $total_to_fix commits missing version numbers" );
+
+if ($dry_run) {
+    <[base.log]>->( 2, "  DRY RUN - showing what would be fixed:" );
+
+    foreach my $item (@commits_to_fix) {
+        <[base.log]>->( 2, sprintf("    %s: %s",
+            substr($item->{hash}, 0, 7),
+            $item->{commit}{subject}
+        ));
+    }
+
+    return {
+        success => 1,
+        dry_run => 1,
+        would_fix => $total_to_fix,
+        commits => \@commits_to_fix
+    };
+}
+
+## TODO: Implement actual rewriting
+## This is complex - needs:
+## 1. Generate version number for each commit (based on position in history)
+## 2. Use git filter-branch or git rebase to rewrite commit messages
+## 3. Only touch affected commits (surgical)
+## 4. Preserve signatures where possible
+## 5. Resign modified commits
+
+<[base.log]>->( 1, "  ⚠ Actual rewriting not yet implemented" );
+<[base.log]>->( 1, "    This requires careful git filter-branch logic" );
+
+return {
+    success => 0,
+    error   => 'Rewriting not yet implemented - TODO',
+    would_fix => $total_to_fix
+};
 
 0;
 
@@ -90,3 +85,8 @@ $code{qw| workflow.parent.fix_versions |} = \&workflow_parent_fix_versions;
 #\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#,,..,...,...,.,.,,,.,,,.,,,.,..,,.,.,,.,,...,..,,...,...,...,...,..,,,.,,...,
+#TA6QK5EFSCZ7MWENNJ53FV45KZW7JWQYVK6A7HMZH2KTRFT5PXRN6JGGYVX47OCEBOSR377PCYDOA
+#\\\|XZW3GY7MBZLW5SOOQKTJ5IMXQSAGQ4EMEMI4ROQRVD6KBLWFYS2 \ / AMOS7 \ YOURUM ::
+#\[7]CE3SP4W3AKQNMJVQSJEKDDAOQGXRHFLJ6HU53G7Z2AEVJDTWSCDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

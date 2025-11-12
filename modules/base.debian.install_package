@@ -29,14 +29,30 @@ while ( !$ok and $max_fail-- ) {
         }
         <[base.sleep]>->(0.33);
     }
+
     my $s = @deb_list > 1 ? 's' : '';
     <[base.log]>->(
         0, "[AUTO_INSTALL] debian package$s: " . join( ', ', @deb_list )
     );
 
-    if ( system( 'apt-get', '-fy', 'install', @deb_list ) == 0 ) {
+    open(my $apt_out, '-|', 'apt-get', '-fy', 'install', @deb_list) or do {
+        <[base.log]>->( 0, "  ✗ apt-get failed to execute: $!" );
+        $errors++;
+        next;
+    };
+
+    my $output = join('', <$apt_out>);
+    close($apt_out);
+    my $result = $?;
+
+    if ( $result == 0 ) {
         <[base.log]>->( 1, ":. successfully installed." );
         $ok = 1;
+    } elsif ( $output =~ m|Unable to locate package| ) {
+        ## Package doesn't exist - don't retry
+        <[base.log]>->( 0, "  ✗ Package not found - cannot continue" );
+        $errors++;
+        last;  ## Break out of retry loop
     } else {
         $errors++;
         <[base.log]>->( 1, ": retrying automatic installation ..," );
@@ -45,8 +61,8 @@ while ( !$ok and $max_fail-- ) {
 }
 return $errors;
 
-#,,,,,...,,..,...,.,,,,,.,,.,,,,,,,..,...,.,.,..,,...,...,.,,,.,.,..,,..,,,.,,
-#B2SXNWLNLOKYA57LHDI42XKWBIE7J6WKBWCZADJTZORGKLHGKAOYMI6IVPSQPDVK7M56YQJBI5SRA
-#\\\|CAJ5D3CJHE5GOTKGIAWIZ5O723HGIB5GGPKYTJUB5CMPYQ2KJPS \ / AMOS7 \ YOURUM ::
-#\[7]QPJKJGI4T2PEQ5ALBCFYYVEQF2TSFJ7CHJFE6VK7VUQPWR6UFADQ 7  DATA SIGNATURE ::
+#,,,.,,..,..,,..,,.,.,..,,.,,,.,.,,..,..,,..,,..,,...,...,,..,.,.,.,.,,..,,,.,
+#BGAFQA4AVXA6UCCMQGONRC37DHK6BY56SEEENCVLSKVSS37ZT2YLMVEKTRVJHRPVYMMACFWCSHQDI
+#\\\|HPLNQZYQPRBUG42HQGS6SADPTTTB657BGGAVJZ7HO4JVMGMO7BB \ / AMOS7 \ YOURUM ::
+#\[7]ZHEGFYXZMK2FABTEGPBD6YP3QCYIVV55MM47SKS26OJ27VQC4WBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

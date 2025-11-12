@@ -3,8 +3,7 @@
 # name = weather.cmd.current
 # descr = Format current weather conditions for web display with psychedelic styling
 
-sub weather_cmd_current {
-    my $params = shift || {};
+my $params = shift || {};
 
     my $location = $params->{location} || <weather.location> || qw| Offenburg,DE |;
 
@@ -29,10 +28,9 @@ sub weather_cmd_current {
     };
 
     ## Generate psychedelic HTML
-    my $html = _format_current_widget($weather_data);
+my $html = _format_current_widget($weather_data);
 
-    return $html;
-}
+return $html;
 
 sub _format_current_widget {
     my ($data) = @_;
@@ -99,9 +97,6 @@ sub _format_current_widget {
     return $html;
 }
 
-## Export command ##
-$code{qw| weather.cmd.current |} = \\&weather_cmd_current;
-
 0;
 
 #,,,.,,.,.,.,.,.,.,,,,.,,.,,,.,,,.,,,.,,,.,.,.,.,.,.,.,,,.,.,.,,,,,.,...,...,.,,
@@ -110,3 +105,8 @@ $code{qw| weather.cmd.current |} = \\&weather_cmd_current;
 #\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#,,.,,,..,,..,.,.,,,,,...,.,,,,..,,..,,..,.,,,..,,...,..,,...,,.,,,..,,,,,..,,
+#RY6Y75KHKJYGJY6JKVNZCJQQBZESKTRTIFXL53I65A6VOVWZ77KVAQCJ4YO5VNU43XITX7CWBY6FW
+#\\\|YLBCL4YGPRLNCR6CTAT75G5L3RSP4S7DMC2KTGCGWR5524FHWQH \ / AMOS7 \ YOURUM ::
+#\[7]ML76E3S3CBDDAVTI66QOTVJ76I5G273OUFNMLXKTGFWDCDKYZWCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

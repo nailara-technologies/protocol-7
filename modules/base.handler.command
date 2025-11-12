@@ -774,13 +774,18 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     );
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
+
+                    #  = Encode::decode( qw| UTF-8 |, $reply->{'data'} );
+                    if ( utf8::is_utf8( $reply->{'data'} ) ) {
+                        utf8::decode( $reply->{'data'} );
+                        # utf8::downgrade( $reply->{'data'} );
+
+                    }
                     $output->$* .= <[base.sprint_t]>->(  ##  SIZE template  ##
                         qw| X3QVAWA |,
                         $cmd_id_str,
-                        length(
-                            Encode::decode( qw| UTF-8 |, $reply->{'data'} )
-                        ),
-                        Encode::decode( qw| UTF-8 |, $reply->{'data'} )
+                        length( $reply->{'data'} ),
+                        $reply->{'data'}
                     );
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| TERM | ) {
@@ -1020,7 +1025,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
         foreach my $target_sid (@send_sids) {
 
             my $target_session = $data{'session'}{$target_sid};
-            if ( $target_session->{'user'} eq <base.session.uname.server>
+            if (   $target_session->{'user'} eq <base.session.uname.server>
                 or $target_session->{'user'} eq <base.session.uname.client>
                 or not
                 <[base.cfg_bool]>->( $target_session->{'authenticated'} ) ) {
@@ -1146,8 +1151,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 return 0;        ## comand complete ##
 
-#,,..,.,.,...,,,,,...,,,,,,,.,,,,,...,.,.,...,..,,...,..,,.,.,.,.,...,.,,,.,,,
-#5TVUUYHF22DWVXNF77ITJDPTWFNOSIYVEKFSFC5CFHDFK5IE3XQPAV6GLFHQ7CMDJX5T3FAEOQCKW
-#\\\|PQHCY2IWZG5WYSAYHVVFQXXJLGGQQ7YAXS7HPUZ7JEHC6WJTYA5 \ / AMOS7 \ YOURUM ::
-#\[7]IBIJJYO364CRE45HHM355GBZFJKOLLV5PQRH3DHFVR24VKUHMKAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,..,,...,..,,.,,,,..,..,,..,,,..,..,,...,...,...,..,,,.,,,.,,,..,
+#4HX2BGLVDMXVHD2UZHURZURRMHA53XDQ6Y3B2QRDUIZXWMTQF2UJH5YMSPT3XCG6DJ7GSGEHHKAVQ
+#\\\|TMIWFVVDAZEOAX43HZCN5G2S6SVZIYAWOWZYFRUAIBRKUCNJWYI \ / AMOS7 \ YOURUM ::
+#\[7]P2C3GEST6Y3ZAD4FTXYPJBLYBH5LGEU2LBB3G63XUZW7XNQP2UBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

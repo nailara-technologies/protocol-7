@@ -3,8 +3,7 @@
 # name = session.parent.show_startup_help
 # descr = Show helpful startup message about missing dependencies
 
-sub session_parent_show_startup_help {
-    my @messages = (
+my @messages = (
         "",
         "=============================================================================",
         "  Protocol-7 Dependency Check",
@@ -31,15 +30,11 @@ sub session_parent_show_startup_help {
         ""
     );
 
-    foreach my $line (@messages) {
-        <[base.log]>->( 1, $line );
-    }
-
-    return { success => 1, shown => 1 };
+foreach my $line (@messages) {
+    <[base.log]>->( 1, $line );
 }
 
-## Export
-$code{qw| session.parent.show_startup_help |} = \&session_parent_show_startup_help;
+return { success => 1, shown => 1 };
 
 0;
 
@@ -49,3 +44,8 @@ $code{qw| session.parent.show_startup_help |} = \&session_parent_show_startup_he
 #\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#,,.,,,..,..,,...,.,,,,,,,...,,,.,,.,,.,.,,,.,..,,...,...,.,.,,,.,,,.,,,.,,.,,
+#7BEVAKUAER5YC75VCHIQDP446OPAM263GSRQVVMW4I2L2MN5GLDE6ORUAEOHBYTREDCDSS4UJRZHC
+#\\\|DWTJ5I3CSU4SO74C52GYDDS6UBLWZNOIUDBWM6NDZAMLNMV7U7H \ / AMOS7 \ YOURUM ::
+#\[7]HGOYIBT6WSJ3M5TRM5ZWGKRCH5NGZFWCZAES7HHY7WPFBXNXSEAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

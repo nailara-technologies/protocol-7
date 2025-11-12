@@ -42,85 +42,10 @@
     }
 );
 
-## Register an asset ##
-sub register_asset {
-    my %params = @_;
-
-    my $asset_path  = $params{asset_path}  or return;
-    my $template    = $params{template}    or return;
-    my $source_path = $params{source_path} // '';
-    my $status      = $params{status}      // qw| unknown |;
-
-    <web.assets.registry>{$asset_path} = {
-        asset_path     => $asset_path,
-        template       => $template,
-        source_path    => $source_path,
-        status         => $status,
-        last_validated => time(),
-        discovered_at  => <web.assets.registry>{$asset_path}{discovered_at}
-            // time(),
-    };
-
-    <web.assets.stats>{total_assets} = scalar( keys %{ <web.assets.registry> } );
-
-    return 1;
-}
-
-## Update asset status ##
-sub update_asset_status {
-    my ( $asset_path, $new_status ) = @_;
-
-    return unless exists <web.assets.registry>{$asset_path};
-
-    <web.assets.registry>{$asset_path}{status}         = $new_status;
-    <web.assets.registry>{$asset_path}{last_validated} = time();
-
-    return 1;
-}
-
-## Get asset info ##
-sub get_asset {
-    my ($asset_path) = @_;
-    return <web.assets.registry>{$asset_path};
-}
-
-## Get assets by status ##
-sub get_assets_by_status {
-    my ($status) = @_;
-
-    my @assets;
-    foreach my $path ( keys %{ <web.assets.registry> } ) {
-        push @assets, <web.assets.registry>{$path}
-            if <web.assets.registry>{$path}{status} eq $status;
-    }
-
-    return @assets;
-}
-
-## Get assets by template ##
-sub get_assets_by_template {
-    my ($template) = @_;
-
-    my @assets;
-    foreach my $path ( keys %{ <web.assets.registry> } ) {
-        push @assets, <web.assets.registry>{$path}
-            if <web.assets.registry>{$path}{template} eq $template;
-    }
-
-    return @assets;
-}
-
-## Export functions ##
-$code{'web.assets.register'}           = \&register_asset;
-$code{'web.assets.update_status'}      = \&update_asset_status;
-$code{'web.assets.get'}                = \&get_asset;
-$code{'web.assets.by_status'}          = \&get_assets_by_status;
-$code{'web.assets.by_template'}        = \&get_assets_by_template;
-
 0;
 
-#,,,.,,,,,.,.,.,,,.,.,,,.,.,.,.,,..,.,.,,,,,.,,,.,,,.,...,...,,,.,,...,.,,.,.,
-#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
-#\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
-#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#,,..,,,,,,..,,,,,.,.,,..,.,,,,,,,,,.,,.,,...,..,,...,...,...,..,,,.,,.,,,.,,,
+#UQAL2HU2TIPDWEMXF7ZUTYTIISS3SU7VTKN3WARTJYXYCLIFGN7TDOJGPA64JAWTAOCHQHF5J4AYG
+#\\\|6FEO5A4EFX2DA33BVVKI5PYCHLQZMNIQ7ZULX7JBF44HO7YR3SP \ / AMOS7 \ YOURUM ::
+#\[7]J7NYWSPLYS72HBJY7K4I4OBHTMKNRZ7IV4H5GTKW7D4I7OQOFKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

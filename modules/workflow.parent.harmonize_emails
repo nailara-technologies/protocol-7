@@ -3,112 +3,107 @@
 # name = workflow.parent.harmonize_emails
 # descr = Standardize email addresses across git history (surgical rewrite)
 
-sub workflow_parent_harmonize_emails {
-    my $params = shift || {};
+my $params = shift || {};
 
-    my $dry_run = $params->{dry_run} // 1;  ## Safe by default
-    my $email_map = $params->{email_map} // {};  ## User-provided mapping
+my $dry_run = $params->{dry_run} // 1;  ## Safe by default
+my $email_map = $params->{email_map} // {};  ## User-provided mapping
 
-    <[base.log]>->( 2, "workflow.harmonize: analyzing email addresses in history..." );
+<[base.log]>->( 2, "workflow.harmonize: analyzing email addresses in history..." );
 
-    ## Ensure history is scanned
-    unless (<workflow.history.scanned>) {
-        <[workflow.parent.scan_history]>();
-    }
+## Ensure history is scanned
+unless (<workflow.history.scanned>) {
+    <[workflow.parent.scan_history]>;
+}
 
-    ## Build canonical email mapping
-    my %canonical_map = %{<workflow.email.canonical>};
+## Build canonical email mapping
+my %canonical_map = %{<workflow.email.canonical>};
 
-    ## Add user-provided overrides
-    foreach my $variant (keys %$email_map) {
-        $canonical_map{$variant} = $email_map->{$variant};
-    }
+## Add user-provided overrides
+foreach my $variant (keys %$email_map) {
+    $canonical_map{$variant} = $email_map->{$variant};
+}
 
-    ## Collect all unique emails from git history
-    my $log_result = <[git.parent.get_log]>();
-    my %emails_seen;
-    my %email_commits;
+## Collect all unique emails from git history
+my $log_result = <[git.parent.get_log]>;
+my %emails_seen;
+my %email_commits;
 
-    foreach my $commit (@{$log_result->{commits}}) {
-        my $email = $commit->{email};
-        $emails_seen{$email}++;
-        push @{$email_commits{$email}}, $commit->{hash};
-    }
+foreach my $commit (@{$log_result->{commits}}) {
+    my $email = $commit->{email};
+    $emails_seen{$email}++;
+    push @{$email_commits{$email}}, $commit->{hash};
+}
 
-    <[base.log]>->( 2, "  Found " . scalar(keys %emails_seen) . " unique email addresses" );
+<[base.log]>->( 2, "  Found " . scalar(keys %emails_seen) . " unique email addresses" );
 
-    ## Auto-detect canonical forms (most common variant wins)
-    foreach my $email (keys %emails_seen) {
-        next if exists $canonical_map{$email};  ## Already mapped
+## Auto-detect canonical forms (most common variant wins)
+foreach my $email (keys %emails_seen) {
+    next if exists $canonical_map{$email};  ## Already mapped
 
-        ## Extract base email (before @)
-        if ($email =~ /^([^@]+)@(.+)$/) {
-            my ($user, $domain) = ($1, $2);
+    ## Extract base email (before @)
+    if ($email =~ /^([^@]+)@(.+)$/) {
+        my ($user, $domain) = ($1, $2);
 
-            ## If we have other variants of this user@domain, map to most common
-            my @variants = grep { /^\Q$user\E@/i } keys %emails_seen;
+        ## If we have other variants of this user@domain, map to most common
+        my @variants = grep { /^\Q$user\E@/i } keys %emails_seen;
 
-            if (@variants > 1) {
-                ## Find most common variant
-                my $most_common = (sort { $emails_seen{$b} <=> $emails_seen{$a} } @variants)[0];
+        if (@variants > 1) {
+            ## Find most common variant
+            my $most_common = (sort { $emails_seen{$b} <=> $emails_seen{$a} } @variants)[0];
 
-                ## Map all variants to most common
-                foreach my $variant (@variants) {
-                    $canonical_map{$variant} = $most_common unless $variant eq $most_common;
-                }
+            ## Map all variants to most common
+            foreach my $variant (@variants) {
+                $canonical_map{$variant} = $most_common unless $variant eq $most_common;
             }
         }
     }
+}
 
-    ## Count how many commits would be affected
-    my $commits_to_change = 0;
-    my %changes_by_email;
+## Count how many commits would be affected
+my $commits_to_change = 0;
+my %changes_by_email;
 
-    foreach my $variant (keys %canonical_map) {
-        my $canonical = $canonical_map{$variant};
+foreach my $variant (keys %canonical_map) {
+    my $canonical = $canonical_map{$variant};
 
-        if ($variant ne $canonical && $email_commits{$variant}) {
-            my $count = scalar(@{$email_commits{$variant}});
-            $commits_to_change += $count;
-            $changes_by_email{$variant} = {
-                canonical => $canonical,
-                commits   => $count
-            };
-        }
-    }
-
-    <[base.log]>->( 2, "  Commits needing email changes: $commits_to_change" );
-
-    if ($dry_run) {
-        <[base.log]>->( 2, "  DRY RUN - showing proposed changes:" );
-
-        foreach my $variant (sort keys %changes_by_email) {
-            my $info = $changes_by_email{$variant};
-            <[base.log]>->( 2, sprintf("    %s → %s (%d commits)",
-                $variant, $info->{canonical}, $info->{commits}));
-        }
-
-        return {
-            success       => 1,
-            dry_run       => 1,
-            would_change  => $commits_to_change,
-            email_mapping => \%changes_by_email
+    if ($variant ne $canonical && $email_commits{$variant}) {
+        my $count = scalar(@{$email_commits{$variant}});
+        $commits_to_change += $count;
+        $changes_by_email{$variant} = {
+            canonical => $canonical,
+            commits   => $count
         };
     }
+}
 
-    ## TODO: Implement actual rewriting via git filter-branch
-    <[base.log]>->( 1, "  ⚠ Actual email harmonization not yet implemented" );
-    <[base.log]>->( 1, "    This requires git filter-branch --env-filter" );
+<[base.log]>->( 2, "  Commits needing email changes: $commits_to_change" );
+
+if ($dry_run) {
+    <[base.log]>->( 2, "  DRY RUN - showing proposed changes:" );
+
+    foreach my $variant (sort keys %changes_by_email) {
+        my $info = $changes_by_email{$variant};
+        <[base.log]>->( 2, sprintf("    %s → %s (%d commits)",
+            $variant, $info->{canonical}, $info->{commits}));
+    }
 
     return {
-        success      => 0,
-        error        => 'Email harmonization not yet implemented - TODO',
-        would_change => $commits_to_change
+        success       => 1,
+        dry_run       => 1,
+        would_change  => $commits_to_change,
+        email_mapping => \%changes_by_email
     };
 }
 
-## Export
-$code{qw| workflow.parent.harmonize_emails |} = \&workflow_parent_harmonize_emails;
+## TODO: Implement actual rewriting via git filter-branch
+<[base.log]>->( 1, "  ⚠ Actual email harmonization not yet implemented" );
+<[base.log]>->( 1, "    This requires git filter-branch --env-filter" );
+
+return {
+    success      => 0,
+    error        => 'Email harmonization not yet implemented - TODO',
+    would_change => $commits_to_change
+};
 
 0;
 
@@ -118,3 +113,8 @@ $code{qw| workflow.parent.harmonize_emails |} = \&workflow_parent_harmonize_emai
 #\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#,,,,,,.,,,,.,,.,,.,.,.,.,...,,..,.,,,.,.,.,.,..,,...,...,,..,,..,,.,,..,,,,,,
+#J5ZZDRWWJIHAX5ZNJ54UIZXMH3SVND4ALMZWNFUFEWC2ZDRWPSRJ2WDFOLPP2FIGISNTRE3VPDYXC
+#\\\|EVAEEQPKHDJP6KQAGIIWZRBDK5HDEQUHGY5LV4HW6DHYHHDLTAB \ / AMOS7 \ YOURUM ::
+#\[7]42T27EFQKAHEURLEATOU7UQ4GETHTWUJMUEWPCRI2NQXQPEEMCCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,21 @@
+## [:< ##
+
+# name = web.assets.update_status
+# descr = Update asset status in the registry
+
+my ( $asset_path, $new_status ) = @_;
+
+return unless exists $data{'web'}{'assets'}{'registry'}{$asset_path};
+
+$data{'web'}{'assets'}{'registry'}{$asset_path}{status}         = $new_status;
+$data{'web'}{'assets'}{'registry'}{$asset_path}{last_validated} = time();
+
+return 1;
+
+0;
+
+#,,,,,,..,.,,,...,...,,,.,.,.,,,,,,,.,...,.,,,..,,...,...,,,.,..,,,..,,..,.,.,
+#NH4NRBKGMQT22GSDFP4D53SGKM5ZALE5LOV6UQMT3GK3TQGDW5HYQ573JTY7LC3XHBRAXKSFGULJ2
+#\\\|MSODQKWFRSATJDNI6YGW5EPS222G7OFZWPCIRRHC5ODYF7LYLK4 \ / AMOS7 \ YOURUM ::
+#\[7]RJCBCJUDZFZ67J4R5S5CWJZM557QMQNKUZTEIBWA2XICLHCZJQCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,43 +3,38 @@
 # name = zenki.parent.start
 # descr = Smart zenka launcher with automatic dependency resolution
 
-sub zenki_parent_start {
-    my $params = shift || {};
+my $params = shift || {};
 
-    my $zenka_name = $params->{zenka} || $params->{name};
+my $zenka_name = $params->{zenka} || $params->{name};
 
-    unless ($zenka_name) {
-        return {
-            success => 0,
-            error   => 'zenka name required'
-        };
-    }
-
-    <[base.log]>->( 2, "zenki.start: launching '$zenka_name'..." );
-
-    ## Increment statistics
-    $data{'zenki'}{'stats'}{'start_requests'}++;
-
-    ## Use v7's dependency resolution system
-    ## This automatically handles:
-    ## - Ensuring v7 is running (if needed)
-    ## - Resolving all dependencies (cube, etc.)
-    ## - Starting zenka via proper jobqueue mechanism
-    my $result = <[zenki.parent.start_via_v7]>->({
-        zenka_name => $zenka_name
-    });
-
-    if ($result->{success}) {
-        $data{'zenki'}{'stats'}{'successful_starts'}++;
-        return $result;
-    } else {
-        $data{'zenki'}{'stats'}{'failed_starts'}++;
-        return $result;
-    }
+unless ($zenka_name) {
+    return {
+        success => 0,
+        error   => 'zenka name required'
+    };
 }
 
-## Export
-$code{qw| zenki.parent.start |} = \&zenki_parent_start;
+<[base.log]>->( 2, "zenki.start: launching '$zenka_name'..." );
+
+## Increment statistics
+$data{'zenki'}{'stats'}{'start_requests'}++;
+
+## Use v7's dependency resolution system
+## This automatically handles:
+## - Ensuring v7 is running (if needed)
+## - Resolving all dependencies (cube, etc.)
+## - Starting zenka via proper jobqueue mechanism
+my $result = <[zenki.parent.start_via_v7]>->({
+    zenka_name => $zenka_name
+});
+
+if ($result->{success}) {
+    $data{'zenki'}{'stats'}{'successful_starts'}++;
+    return $result;
+} else {
+    $data{'zenki'}{'stats'}{'failed_starts'}++;
+    return $result;
+}
 
 0;
 
@@ -49,3 +44,8 @@ $code{qw| zenki.parent.start |} = \&zenki_parent_start;
 #\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+#,,.,,...,...,,,.,.,,,,,,,,,,,,,.,,,.,,..,,,.,..,,...,..,,.,,,.,.,...,...,,,,,
+#5M6K552LVUSO7XZIGF2GJWLLETBJU4ULH7WNSOD37IFWQC456RATWH7SXFH3GVPWWROGDKEUT7QAW
+#\\\|YQYJCEZQZP3WWZIBT2ONMQU3BJUK6IR7B4MTNRBCNON23BT4S3H \ / AMOS7 \ YOURUM ::
+#\[7]ZAOXNIFG5WIAF2RLN5HCAJOAWUQMF64TEKSQD64A5BQJUP22HSDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
