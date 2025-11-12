@@ -1,0 +1,158 @@
+## [:< ##
+
+# name  = sourcecode.console.test-verify-with-temp-key
+# descr = verify signatures with temporary key (for oscillation testing)
+
+my $command_params = shift // '';
+
+$command_params =~ s,^ *| *$,,;
+
+say ':';
+say ': .:[ TEST VERIFY WITH BOTH KEYS ]:.::';
+say ':';
+
+# Load both temp key AND original key to verify against both
+my $sig_key_name = qw| proto-7.sourcecode |;
+my $test_key_name = qw| test-proto7-sourcecode |;
+
+# Load original key public key from embedded string (no password needed)
+say ': Loading original signature key...';
+<[crypt.C25519.load_from_string]>->(
+    $sig_key_name, <[base.protocol-7.source-key]>
+);
+
+# Verify original key is loaded
+unless ( exists $keys{'C25519'}{$sig_key_name} and exists $keys{'C25519'}{$sig_key_name}->{'public'} ) {
+    say ': ERROR: Original key not loaded';
+    return;
+}
+
+say ': Loading temp key for verification...';
+unless ( <[crypt.C25519.load_keypair]>->( $test_key_name, undef, FALSE, FALSE ) ) {
+    say ': ERROR: Could not load test key';
+    return;
+}
+
+# Verify both keys are still available
+unless ( exists $keys{'C25519'}{$sig_key_name} and exists $keys{'C25519'}{$sig_key_name}->{'public'} ) {
+    say ': ERROR: Original key lost after loading test key';
+    return;
+}
+unless ( exists $keys{'C25519'}{$test_key_name} and exists $keys{'C25519'}{$test_key_name}->{'public'} ) {
+    say ': ERROR: Test key not loaded';
+    return;
+}
+
+say ': Keys loaded for dual-key verification';
+say ':';
+
+my @source_paths;
+
+if ( length $command_params ) {
+    @source_paths = <[base.source.collect_file_list]>->($command_params);
+    unless ( @source_paths ) {
+        printf( ": no files found for pattern: %s\n", $command_params );
+        return;
+    }
+} else {
+    @source_paths = <[sourcecode.source_path_set_up]>;
+}
+
+unless ( @source_paths ) {
+    say ': no source files to verify';
+    return;
+}
+
+printf( ': Verifying %d files with both keys (temp + original)' . "\n", scalar(@source_paths) );
+say ':';
+
+my $valid_count = 0;
+my $invalid_count = 0;
+my $unsigned_count = 0;
+
+foreach my $file_path ( @source_paths ) {
+    next unless -f $file_path;
+
+    <[file.slurp]>->( $file_path, \my $src_str, qw| :raw | );
+
+    # Extract signature for analysis
+    my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip | );
+
+    if ( $footer_data->{'was-present'} ) {
+        my $state = $footer_data->{'endline-state-encoded'} // '?';
+        my $bmw = $footer_data->{'bmw-chksum'} // 'ERROR';
+        my $sig = $footer_data->{'signature'} // 'ERROR';
+
+        my $bmw_short = <[base.parser.ellipse_center]>->( $bmw, 21 );
+        my $sig_short = <[base.parser.ellipse_center]>->( $sig, 21 );
+
+        # Try verifying with temp key - pass the test key name to verification function
+        my ($is_valid_temp, $report_temp) = <[source.signature_valid]>->(
+            \$src_str, $footer_data, {}, $test_key_name, 'strict'
+        );
+
+        # Re-read file for original key verification to avoid state corruption
+        <[file.slurp]>->( $file_path, \$src_str, qw| :raw | );
+        my $footer_data_orig = <[source.extract_sig_body]>->( \$src_str, qw| strip | );
+
+        # Try verifying with original key - pass the original key name to verification function
+        my ($is_valid_orig, $report_orig) = <[source.signature_valid]>->(
+            \$src_str, $footer_data_orig, {}, $sig_key_name, 'strict'
+        );
+
+        # Report results
+        my $key_marker = '';
+        my $is_valid = 0;
+
+        if ( $is_valid_temp && $is_valid_orig ) {
+            $key_marker = '[both]';
+            $is_valid = 1;
+        } elsif ( $is_valid_temp ) {
+            $key_marker = '[temp]';
+            $is_valid = 1;
+        } elsif ( $is_valid_orig ) {
+            $key_marker = '[orig]';
+            $is_valid = 1;
+        }
+
+        printf( ': %-30s state=%d bmw=%s sig=%s %s' . "\n",
+            (split '/', $file_path)[-1],
+            $state,
+            $bmw_short,
+            $sig_short,
+            $key_marker
+        );
+
+        if ( $is_valid ) {
+            $valid_count++;
+        } else {
+            $invalid_count++;
+            say sprintf( ':  ^ INVALID (neither key validates)' );
+        }
+    } else {
+        $unsigned_count++;
+    }
+}
+
+say ':';
+if ( $unsigned_count > 0 ) {
+    printf( ': Results: %d valid, %d invalid, %d unsigned (total: %d)' . "\n",
+        $valid_count, $invalid_count, $unsigned_count, scalar(@source_paths) );
+} else {
+    printf( ': Results: %d valid, %d invalid' . "\n", $valid_count, $invalid_count );
+}
+say ':';
+
+0;
+
+#,,.,,.,,,..,,.,,..,,.,.,,..,.,,,,,.,,,.,,,..,,..,,...,...,.,,,,,.,,,.,.,,.,,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,.,..,,,,,,.,,,,..,..,,...,.,.,..,,,,.,.,.,..,,...,...,...,,.,,,,.,..,,,,,,
+#JEDZPRR2JZQYU66LGDNGSVXHVSPI3HKNQQ5IMCULLPQGPAQLYP2HTGQGIRUDNOSIGTBGLO7TZ5Z3W
+#\\\|MDK3OZABE6M4CJCY44ZUWTGGAR3MTTBNF5HY7L6QEMKITISOQVS \ / AMOS7 \ YOURUM ::
+#\[7]PIUSINAPGFJFRROE2AGI5DO3XJKKGGUR3THCFJNT6HLNY2FLZWBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

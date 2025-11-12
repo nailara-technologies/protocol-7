@@ -1,0 +1,146 @@
+## [:< ##
+
+# name  = sourcecode.console.test-sign-and-verify
+# descr = test sign files with temporary key and verify signatures in one operation
+
+my $command_params = shift // '';
+
+$command_params =~ s,^ *| *$,,;
+
+unless ( length $command_params ) {
+    say ': usage: sourcecode test-sign-and-verify <file-pattern>';
+    say ': example: sourcecode test-sign-and-verify bin/elf';
+    say ': note: creates test-proto7-sourcecode key, signs files, then verifies';
+    return;
+}
+
+say ':';
+say ': .:[ TEST SIGN AND VERIFY WITH TEMPORARY KEY ]:.::';
+say ':';
+
+my $sig_key_name = qw| proto-7.sourcecode |;
+my $test_key_name = qw| test-proto7-sourcecode |;
+
+# Create temp key if not exists
+unless ( exists $keys{'C25519'}{$test_key_name} ) {
+    say ': Creating temporary test key...';
+
+    # Generate a new C25519 key pair for testing
+    my ($new_key, $created_name) = <[crypt.C25519.gen_keys]>->( $test_key_name );
+
+    unless ( defined $new_key ) {
+        say ': ERROR: Failed to generate temporary test key';
+        return;
+    }
+
+    say sprintf( ': Created temp key: %s', $test_key_name );
+}
+
+# Backup the original key
+my $original_key = $keys{'C25519'}{$sig_key_name};
+
+# Replace with temp key for this scope
+$keys{'C25519'}{$sig_key_name} = $keys{'C25519'}{$test_key_name};
+
+say sprintf( ': Loaded temp key as %s', $sig_key_name );
+say ':';
+
+my @source_paths = <[base.source.collect_file_list]>->($command_params);
+
+unless ( @source_paths ) {
+    printf( ": no files found for pattern: %s\n", $command_params );
+    $keys{'C25519'}{$sig_key_name} = $original_key;  # Restore
+    return;
+}
+
+say sprintf( ': Found %d files to test', scalar(@source_paths) );
+say ':';
+
+# Sign the files
+say ': .:[ SIGNING FILES ]:.::';
+my $signed_count = 0;
+
+foreach my $path_rel (@source_paths) {
+    next unless -f $path_rel;
+
+    my $code_data_ref;
+    eval {
+        use warnings FATAL => qw| all |;
+        $code_data_ref = <[source.cmd.get-code-signed]>->(
+            {   qw| args |       => $path_rel,
+                qw| skip-valid | => TRUE,
+                qw| verbosity |  => 0
+            }
+        );
+    };
+
+    if ( defined $code_data_ref and ref $code_data_ref eq 'HASH' and $code_data_ref->{'mode'} ne 'false' ) {
+        # Write the signed file
+        if ( <[file.put_bin]>->( $path_rel, $code_data_ref->{'data'} ) ) {
+            printf( ': [SIGNED] %s' . "\n", (split '/', $path_rel)[-1] );
+            $signed_count++;
+        }
+    }
+}
+
+say ':';
+printf( ': Signed %d files' . "\n", $signed_count );
+say ':';
+
+# Now verify the signed files
+say ': .:[ VERIFYING SIGNED FILES ]:.::';
+say ':';
+
+my $valid_count = 0;
+my $invalid_count = 0;
+
+foreach my $file_path ( @source_paths ) {
+    next unless -f $file_path;
+
+    <[file.slurp]>->( $file_path, \my $src_str, qw| :raw | );
+
+    # Extract signature for analysis
+    my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip | );
+
+    if ( $footer_data->{'was-present'} ) {
+        my $state = $footer_data->{'endline-state-encoded'} // '?';
+        my $bmw = $footer_data->{'bmw-chksum'} // 'ERROR';
+        my $sig = $footer_data->{'signature'} // 'ERROR';
+
+        my $bmw_short = <[base.parser.ellipse_center]>->( $bmw, 21 );
+        my $sig_short = <[base.parser.ellipse_center]>->( $sig, 21 );
+
+        printf( ': %-30s state=%d bmw=%s sig=%s' . "\n",
+            (split '/', $file_path)[-1],
+            $state,
+            $bmw_short,
+            $sig_short
+        );
+
+        # Verify checksum matches
+        my ($is_valid, $report_ref) = <[source.signature_valid]>->( \\$src_str, $footer_data );
+        if ( $is_valid ) {
+            $valid_count++;
+        } else {
+            $invalid_count++;
+            say sprintf( ':  ^ INVALID' );
+        }
+    } else {
+        say sprintf( ': %-30s [NOT SIGNED]', (split '/', $file_path)[-1] );
+    }
+}
+
+say ':';
+printf( ': Results: %d valid, %d invalid' . "\n", $valid_count, $invalid_count );
+say ':';
+
+# Restore original key
+$keys{'C25519'}{$sig_key_name} = $original_key;
+
+0;
+
+#,,,,,,..,...,...,,..,...,.,,,..,,.,,,..,,,,,,..,,...,..,,...,.,,,,,,,...,..,,
+#YT4PWWIPLAMDC4Z6RQKMAEBMPVPR2FDEV54BF4QQ5NUYMKEJ3FB6THEY5KCUZSJDL5BYLECVU4KNK
+#\\\|TN5AQ3HJUGRHO5QWYDS546ICSTZ3R4E4LD644H75UVJJY6LXOCW \ / AMOS7 \ YOURUM ::
+#\[7]6MD62UC3IIF75IDIGTP3NXLUGZ6JO7WPKYB3YPLIOJXW4UBHX2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
