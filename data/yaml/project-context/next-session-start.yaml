@@ -308,3 +308,52 @@ next_tasks:
     - task: "Add progress bars for long operations"
       reason: "Better UX for history scanning"
       estimate: "45 minutes"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## ENVIRONMENT FILE INTEGRATION
+## ═══════════════════════════════════════════════════════════════════════════
+
+environment_files:
+
+  env_session:
+    path: ".env.session"
+    purpose: "Complete LLM session context in .env format"
+    benefits:
+      - "Standard environment variable format"
+      - "Easy to parse programmatically"
+      - "Contains all context in comments"
+      - "Quick reference for paths and commands"
+    
+    sections:
+      - "Repository configuration (paths, branch, zenka)"
+      - "Session context (date, type, summary paths)"
+      - "Recent work summary (5 key accomplishments)"
+      - "Key module paths (for quick file access)"
+      - "Configuration file paths"
+      - "Commands for session recovery"
+      - "Next priority tasks"
+      - "System integration settings"
+      - "Complete LLM context in comments (400+ lines)"
+    
+    read_when: "You prefer environment variable format over yaml/markdown"
+
+  env_example:
+    path: ".env.example"
+    purpose: "Template for standard Protocol-7 environment configuration"
+    use_case: "Copy to .env and customize for local setup"
+
+  integration_notes: |
+    The .env.session file is designed to be:
+    - Parseable by standard .env loaders
+    - Human-readable with extensive comments
+    - Complete standalone context document
+    - Reference for command paths and module locations
+    
+    Key advantage: Standard format that works with many tools/frameworks
+    
+    Usage examples:
+    - Source in shell: source .env.session && eval $CMD_OVERVIEW
+    - Parse with tools: dotenv, python-dotenv, node dotenv, etc.
+    - Read as text: cat .env.session | grep SESSION_WORK
+    - Quick reference: grep TASK_ .env.session
+
