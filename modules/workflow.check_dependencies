@@ -1,10 +1,13 @@
 ## [:< ##
 
 # name = workflow.check_dependencies
-# descr = Check for missing dependencies and return status
+# descr = Check for missing dependencies using Protocol-7 dependency system
 
-my $suggestions_data = <workflow.suggestions> // {};
-my $dependencies = $suggestions_data->{dependencies} // {};
+## Setup dependencies if not already done ##
+unless (<workflow.dependencies.initialized>) {
+    <[workflow.setup_module_dependencies]>->();
+    <workflow.dependencies.initialized> = 1;
+}
 
 my %status = (
     essential_missing => [],
@@ -15,50 +18,51 @@ my %status = (
     total_installed   => 0
 );
 
-## Check essential dependencies ##
-my $essential = $dependencies->{essential} // [];
-foreach my $dep (@$essential) {
+## Check essential modules ##
+my $essential_modules = <workflow.dependencies.essential> // {};
+foreach my $module_name (keys %$essential_modules) {
+    my $object_id = $essential_modules->{$module_name};
+    my $object = <dependency.object>->{$object_id};
+    next unless $object;
+
     $status{total_tracked}++;
 
-    my $name = $dep->{name};
-    my $type = $dep->{type} // 'perl_module';
-
-    my $is_available = 0;
-
-    if ($type eq 'perl_module') {
-        ## Check if perl module is available ##
-        eval "require $name";
-        $is_available = !$@;
-    }
-
-    if ($is_available) {
-        push @{$status{essential_present}}, $dep;
+    ## Use dependency.ok to check if module is available ##
+    if (<[dependency.ok]>->($object_id)) {
+        push @{$status{essential_present}}, {
+            name => $module_name,
+            install => $object->{install_cmd} // ''
+        };
         $status{total_installed}++;
     } else {
-        push @{$status{essential_missing}}, $dep;
+        push @{$status{essential_missing}}, {
+            name => $module_name,
+            install => $object->{install_cmd} // ''
+        };
     }
 }
 
-## Check optional dependencies ##
-my $optional = $dependencies->{optional} // [];
-foreach my $dep (@$optional) {
+## Check optional modules ##
+my $optional_modules = <workflow.dependencies.optional> // {};
+foreach my $module_name (keys %$optional_modules) {
+    my $object_id = $optional_modules->{$module_name};
+    my $object = <dependency.object>->{$object_id};
+    next unless $object;
+
     $status{total_tracked}++;
 
-    my $name = $dep->{name};
-    my $type = $dep->{type} // 'perl_module';
-
-    my $is_available = 0;
-
-    if ($type eq 'perl_module') {
-        eval "require $name";
-        $is_available = !$@;
-    }
-
-    if ($is_available) {
-        push @{$status{optional_present}}, $dep;
+    ## Use dependency.ok to check if module is available ##
+    if (<[dependency.ok]>->($object_id)) {
+        push @{$status{optional_present}}, {
+            name => $module_name,
+            install => $object->{install_cmd} // ''
+        };
         $status{total_installed}++;
     } else {
-        push @{$status{optional_missing}}, $dep;
+        push @{$status{optional_missing}}, {
+            name => $module_name,
+            install => $object->{install_cmd} // ''
+        };
     }
 }
 
