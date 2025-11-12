@@ -357,3 +357,32 @@ environment_files:
     - Read as text: cat .env.session | grep SESSION_WORK
     - Quick reference: grep TASK_ .env.session
 
+
+  env_session_format:
+    note: "Pure KEY=VALUE format only - no comments allowed in this environment"
+    structure: |
+      The .env.session file contains ~96 variables organized by prefix:
+      - PROTOCOL7_* : Repository configuration
+      - SESSION_* : Session metadata and status
+      - MODULE_* : Module file paths
+      - CONFIG_* : Configuration file paths
+      - CMD_* : Ready-to-run commands
+      - FEATURE_* : Feature descriptions
+      - STATUS_* : Feature status (working, dry_run_only, etc.)
+      - NEEDS_IMPL_* : Items needing implementation
+      - TASK_P1_*, P2_*, P3_*, P4_* : Prioritized tasks with estimates
+      - PATTERN_* : Key Protocol-7 patterns learned
+      - ISSUE_* : Resolved issues with solutions
+      - QUICK_START_* : Quick reference info
+      - NEXT_SESSION_ACTION_* : Startup sequence
+    
+    companion_file: ".env.session.md"
+    companion_purpose: "Complete documentation of all variables (since .env can't have comments)"
+    
+    grep_examples: |
+      grep "^TASK_P1" .env.session              # Priority 1 tasks
+      grep "^SESSION_WORK" .env.session         # Recent work
+      grep "^MODULE_" .env.session              # Module paths
+      grep "^NEEDS_IMPL" .env.session           # What needs work
+      grep "^QUICK_START_COMMAND" .env.session  # Get startup command
+
