@@ -1,0 +1,172 @@
+#!/usr/bin/perl
+## [:< ##
+
+# name  = workspace-transfer.bug
+# descr = Bug tracking for workspace-transfer
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use File::Spec;
+use Cwd qw| abs_path |;
+use FindBin qw| $RealBin |;
+use POSIX qw(strftime);
+
+my $up_dir = File::Spec->updir;
+my $p7_root = abs_path(
+    File::Spec->catdir( $RealBin, ($up_dir) x 4 )
+);
+
+# Get workspace directory (auto-clones if needed)
+my $ensure_workspace = File::Spec->catfile( $RealBin, 'ensure-workspace' );
+my $workspace_transfer = `$ensure_workspace`;
+chomp $workspace_transfer;
+die "Failed to ensure workspace\n" unless $workspace_transfer && -d $workspace_transfer;
+
+my $bug_file = File::Spec->catfile( $workspace_transfer, 'BUGS.md' );
+
+# Command handling
+my $cmd = shift @ARGV || 'list';
+
+if ($cmd eq 'list') {
+    list_bugs();
+} elsif ($cmd eq 'add') {
+    add_bug(@ARGV);
+} elsif ($cmd eq 'fixed') {
+    mark_fixed(@ARGV);
+} elsif ($cmd eq 'show') {
+    show_details(@ARGV);
+} elsif ($cmd eq 'help') {
+    show_help();
+} else {
+    die "Unknown command: $cmd\nRun 'bug help' for usage\n";
+}
+
+sub list_bugs {
+    unless (-f $bug_file) {
+        say "No bugs tracked yet. Add one with: bug add <description>";
+        return;
+    }
+
+    open my $fh, '<', $bug_file or die "Cannot read $bug_file: $!\n";
+
+    my $count = 0;
+    my $fixed = 0;
+    while (<$fh>) {
+        if (/^- \[ \]/) {
+            $count++;
+            print;
+        } elsif (/^- \[x\]/) {
+            $fixed++;
+        } else {
+            print;
+        }
+    }
+    close $fh;
+
+    say "";
+    say "=" x 60;
+    say "Open: $count | Fixed: $fixed | Total: " . ($count + $fixed);
+    say "=" x 60;
+}
+
+sub add_bug {
+    my @description = @_;
+    die "Usage: bug add <description>\n" unless @description;
+
+    my $desc = join(' ', @description);
+    my $timestamp = strftime("%Y-%m-%d %H:%M:%S", localtime());
+
+    # Read existing bugs to get next ID
+    my $next_id = 1;
+    if (-f $bug_file) {
+        open my $fh, '<', $bug_file or die "Cannot read $bug_file: $!\n";
+        while (<$fh>) {
+            if (/\[BUG-(\d+)\]/) {
+                my $id = $1;
+                $next_id = $id + 1 if $id >= $next_id;
+            }
+        }
+        close $fh;
+    }
+
+    open my $fh, '>>', $bug_file or die "Cannot write $bug_file: $!\n";
+    print $fh "- [ ] **[BUG-$next_id]** $desc\n";
+    print $fh "  - Reported: $timestamp\n";
+    print $fh "  - Status: Open\n";
+    print $fh "\n";
+    close $fh;
+
+    say "✓ Bug BUG-$next_id added: $desc";
+}
+
+sub mark_fixed {
+    my ($bug_id) = @_;
+    die "Usage: bug fixed <bug_id>\n" unless defined $bug_id;
+
+    $bug_id =~ s/^BUG-//i;  # Allow "BUG-1" or just "1"
+
+    unless (-f $bug_file) {
+        say "No bugs to mark fixed.";
+        return;
+    }
+
+    open my $fh, '<', $bug_file or die "Cannot read $bug_file: $!\n";
+    my @lines = <$fh>;
+    close $fh;
+
+    my $found = 0;
+    for my $i (0..$#lines) {
+        if ($lines[$i] =~ /^- \[ \].*\[BUG-$bug_id\]/) {
+            $lines[$i] =~ s/^- \[ \]/- [x]/;
+            $found = 1;
+
+            # Update status line
+            for my $j ($i+1..$#lines) {
+                if ($lines[$j] =~ /Status: Open/) {
+                    $lines[$j] =~ s/Status: Open/Status: Fixed/;
+                    $lines[$j] =~ s/\n$//;
+                    $lines[$j] .= " (" . strftime("%Y-%m-%d", localtime()) . ")\n";
+                    last;
+                }
+                last if $lines[$j] =~ /^- \[/;  # Next bug
+            }
+
+            open my $out, '>', $bug_file or die "Cannot write $bug_file: $!\n";
+            print $out @lines;
+            close $out;
+
+            say "✓ Bug BUG-$bug_id marked as fixed";
+            return;
+        }
+    }
+
+    say "Bug BUG-$bug_id not found" unless $found;
+}
+
+sub show_details {
+    list_bugs();  # Show list with stats
+}
+
+sub show_help {
+    say "Bug Tracking System";
+    say "";
+    say "Usage:";
+    say "  bug list              - List all bugs (default)";
+    say "  bug add <desc>        - Add a new bug";
+    say "  bug fixed <id>        - Mark bug as fixed";
+    say "  bug show              - Show detailed view with stats";
+    say "  bug help              - Show this help";
+    say "";
+    say "Examples:";
+    say "  bug add Memory leak in parser";
+    say "  bug fixed 1";
+    say "  bug fixed BUG-1";
+}
+
+#,,,,,,.,.,,,,,.,.,,,,..,.,,,,.,,,,.,.,.,...,.,.,,,...,...,,.,,,.,.,,,,,,,.,..,,.
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
