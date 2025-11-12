@@ -57,13 +57,18 @@ my $commits_scanned = 0;
 my %authors_seen;
 
 foreach my $commit (@$commits) {
-    my $hash = $commit->{hash};
+    my $hash = $commit->{hash} // '';
+
+    ## Extract commit fields with safe defaults to prevent undefined warnings
+    my $subject = $commit->{subject} // '';
+    my $author = $commit->{author} // '';
+    my $email = $commit->{email} // '';
 
     ## Filter by key phrase if provided
     if (length $key_phrase) {
-        my $match = $commit->{subject} =~ m/\Q$key_phrase\E/i
-                 || $commit->{author} =~ m/\Q$key_phrase\E/i
-                 || $commit->{email} =~ m/\Q$key_phrase\E/i;
+        my $match = $subject =~ m/\Q$key_phrase\E/i
+                 || $author =~ m/\Q$key_phrase\E/i
+                 || $email =~ m/\Q$key_phrase\E/i;
         next unless $match;
     }
 
@@ -71,7 +76,7 @@ foreach my $commit (@$commits) {
     my $has_issues = 0;
 
     ## Check for version number in subject
-    unless ($commit->{subject} =~ m/\[v?\d+\.\d+\.\d+\]/) {
+    unless ($subject =~ m/\[v?\d+\.\d+\.\d+\]/) {
         $data{'workflow'}{'history'}{'issues'}{$hash} = {
             type    => qw| missing_version |,
             commit  => $commit,
@@ -81,13 +86,13 @@ foreach my $commit (@$commits) {
         $has_issues = 1;
     } else {
         ## Track version numbers
-        if ($commit->{subject} =~ m/\[v?(\d+\.\d+\.\d+)\]/) {
+        if ($subject =~ m/\[v?(\d+\.\d+\.\d+)\]/) {
             $versions_seen{$1} = 1;
         }
     }
 
     ## Check for AMOS7 signature
-    unless ($commit->{subject} =~ m/#[A-Z0-9]{64}#/) {
+    unless ($subject =~ m/#[A-Z0-9]{64}#/) {
         push @{<workflow.history.unsigned>}, $hash;
 
         unless (exists $data{'workflow'}{'history'}{'issues'}{$hash}) {
@@ -102,8 +107,8 @@ foreach my $commit (@$commits) {
     }
 
     ## Track email addresses and author names for harmonization
-    $emails_seen{$commit->{email}}++;
-    $authors_seen{$commit->{author}}++;
+    $emails_seen{$email}++ if length $email;
+    $authors_seen{$author}++ if length $author;
 
     ## Count consecutive valid commits for early abort
     if ($has_issues) {

@@ -12,6 +12,26 @@ my $abort_after_valid = $params->{abort_after_valid} // 13;  ## Default optimiza
 
 <[base.log]>->( 2, "workflow.fix_versions: analyzing commits needing version fixes..." );
 
+## Load signing key for future commit signing (required even for dry-run to verify)
+my $signature_key_name = qw| proto-7.sourcecode |;
+
+unless ($dry_run) {
+    <[base.log]>->( 2, "  Loading signature key '$signature_key_name'..." );
+
+    <[source.load_signature_key]>->($signature_key_name);
+
+    if (   not exists $keys{'C25519'}{$signature_key_name}
+        or not exists $keys{'C25519'}{$signature_key_name}->{'private'}
+        or not exists $keys{'C25519'}{$signature_key_name}->{'public'} ) {
+        return {
+            success => 0,
+            error   => "Signature key '$signature_key_name' not loaded - cannot proceed with rewriting"
+        };
+    }
+
+    <[base.log]>->( 2, "  ✓ Signature key loaded" );
+}
+
 ## Ensure history is scanned with parameters
 my $last_scan = <workflow.history.scanned> // 0;
 unless ($last_scan > 0) {
