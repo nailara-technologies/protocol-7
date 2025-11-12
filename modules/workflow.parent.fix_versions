@@ -9,6 +9,8 @@ my $dry_run = $params->{dry_run} // 1;  ## Safe by default
 my $auto_approve = $params->{auto_approve} // 0;
 my $key_phrase = $params->{key_phrase} // '';
 my $abort_after_valid = $params->{abort_after_valid} // 13;  ## Default optimization
+my $display_limit = $params->{display_limit} // 20;  ## Show first N commits in dry-run
+my $show_all = $params->{show_all} // 0;  ## Override display_limit
 
 <[base.log]>->( 2, "workflow.fix_versions: analyzing commits needing version fixes..." );
 
@@ -70,19 +72,18 @@ unless ($total_to_fix) {
 <[base.log]>->( 2, "  Found $total_to_fix commits missing version numbers" );
 
 if ($dry_run) {
-    <[base.log]>->( 2, "  DRY RUN - showing what would be fixed:" );
-
-    foreach my $item (@commits_to_fix) {
-        my $hash_short = substr($item->{hash} // '', 0, 7);
-        my $subject = $item->{commit}{subject} // 'no subject';
-        <[base.log]>->( 2, sprintf("    %s: %s", $hash_short, $subject));
-    }
+    ## Limit commits returned based on display_limit
+    my $display_count = $show_all ? $total_to_fix : ($display_limit < $total_to_fix ? $display_limit : $total_to_fix);
+    my @commits_to_display = @commits_to_fix[0..($display_count-1)];
 
     return {
         success => 1,
         dry_run => 1,
         would_fix => $total_to_fix,
-        commits => \@commits_to_fix
+        displayed => $display_count,
+        has_more => ($total_to_fix > $display_count),
+        commits => \@commits_to_display,
+        all_commits => \@commits_to_fix  ## Full list if needed
     };
 }
 

@@ -42,11 +42,19 @@ if ($result->{dry_run}) {
         return say "::\n: ✓ All commits have version numbers\n::";
     }
 
+    my $displayed = $result->{displayed} || 0;
+    my $has_more = $result->{has_more} || 0;
+
     my @output;
     push @output, "::";
     push @output, ": Version Fix Analysis (DRY RUN)";
     push @output, ":";
-    push @output, sprintf(": Commits needing fixes: %d", $count);
+    push @output, sprintf(": Total commits needing fixes: %d", $count);
+
+    if ($has_more) {
+        push @output, sprintf(": Showing first %d commits (use 'show_all' for full list)", $displayed);
+    }
+
     push @output, ":";
     push @output, ": Commits that would be modified:";
 
@@ -55,6 +63,11 @@ if ($result->{dry_run}) {
             substr($commit->{hash}, 0, 7),
             $commit->{commit}{subject}
         );
+    }
+
+    if ($has_more) {
+        my $remaining = $count - $displayed;
+        push @output, sprintf(":   ... and %d more commits", $remaining);
     }
 
     push @output, ":";
