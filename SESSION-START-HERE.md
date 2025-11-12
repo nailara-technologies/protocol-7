@@ -4,7 +4,7 @@
 **Alternative: Check `.env.session` for environment-based context**
 
 ```bash
-cd /home/user/protocol-7 && ./bin/Protocol-7 workflow overview
+cd /data/projects/protocol-7 && ./bin/Protocol-7 workflow overview
 ```
 
 **Then Read:**
@@ -16,7 +16,7 @@ cd /home/user/protocol-7 && ./bin/Protocol-7 workflow overview
 `claude/access-frozen-chat-context-011CV3grn6V9wWuKmDAwQYFU`
 
 **Repository:**
-`/home/user/protocol-7`
+`/data/projects/protocol-7`
 
 ---
 
@@ -37,7 +37,7 @@ The `workflow overview` command provides:
 
 Add this to your system prompt for optimal context:
 
-> You are continuing work on Protocol-7's workflow zenka system. Run `workflow overview` immediately for complete state. Repository: `/home/user/protocol-7`. Recent work: Implemented key phrase filtering, Protocol-7 dependency integration, context-aware suggestion engine. Documentation in `data/yaml/project-context/`. Branch: `claude/access-frozen-chat-context-011CV3grn6V9wWuKmDAwQYFU`.
+> You are continuing work on Protocol-7's workflow zenka system. Run `workflow overview` immediately for complete state. Repository: `/data/projects/protocol-7`. Recent work: Implemented key phrase filtering, Protocol-7 dependency integration, context-aware suggestion engine. Documentation in `data/yaml/project-context/`. Branch: `claude/access-frozen-chat-context-011CV3grn6V9wWuKmDAwQYFU`.
 
 ---
 
