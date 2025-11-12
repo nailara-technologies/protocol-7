@@ -140,7 +140,7 @@ for (my $i = 0; $i < @versions - 1; $i++) {
 $data{'workflow'}{'stats'}{'commits_total'} = $total;
 $data{'workflow'}{'stats'}{'commits_analyzed'} = $commits_scanned;
 $data{'workflow'}{'stats'}{'issues_found'} = $issues_found;
-$data{'workflow'}{'stats'}{'history_scans'}++;
+$data{'workflow'}{'stats'}{'history_scans'} = ($data{'workflow'}{'stats'}{'history_scans'} // 0) + 1;
 
 <[base.log]>->( 2, "  ✓ Scan complete" );
 <[base.log]>->( 2, "    Commits scanned: $commits_scanned / $total" );
