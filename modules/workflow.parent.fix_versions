@@ -14,24 +14,10 @@ my $show_all = $params->{show_all} // 0;  ## Override display_limit
 
 <[base.log]>->( 2, "workflow.fix_versions: analyzing commits needing version fixes..." );
 
-## Load signing key for future commit signing (required even for dry-run to verify)
-my $signature_key_name = qw| proto-7.sourcecode |;
-
+## TODO: Load signing key when actual rewriting is implemented
+## For now, just check that execute mode will fail gracefully
 unless ($dry_run) {
-    <[base.log]>->( 2, "  Loading signature key '$signature_key_name'..." );
-
-    <[source.load_signature_key]>->($signature_key_name);
-
-    if (   not exists $keys{'C25519'}{$signature_key_name}
-        or not exists $keys{'C25519'}{$signature_key_name}->{'private'}
-        or not exists $keys{'C25519'}{$signature_key_name}->{'public'} ) {
-        return {
-            success => 0,
-            error   => "Signature key '$signature_key_name' not loaded - cannot proceed with rewriting"
-        };
-    }
-
-    <[base.log]>->( 2, "  ✓ Signature key loaded" );
+    <[base.log]>->( 2, "  Execute mode requested..." );
 }
 
 ## Ensure history is scanned with parameters
