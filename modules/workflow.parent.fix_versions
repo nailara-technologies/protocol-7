@@ -130,7 +130,18 @@ unless (-d $repo_path) {
 ## Generate version numbers for each commit (based on position in history)
 <[base.log]>->( 2, "  Generating version numbers..." );
 
-my %commit_versions;  ## hash -> version number
+## Generate network timestamp for this versioning operation
+my $network_timestamp = <[base.ntime.b32]>;
+unless ($network_timestamp) {
+    return {
+        success => 0,
+        error   => 'Failed to generate network timestamp'
+    };
+}
+
+<[base.log]>->( 2, sprintf("  Using network timestamp: %s", $network_timestamp) );
+
+my %commit_versions;  ## hash -> version string (TIMESTAMP-COUNT.0)
 my $commit_index = 0;
 
 ## Get full commit history to calculate positions
@@ -145,7 +156,9 @@ unless ($log_result->{success}) {
 my @all_commits = reverse @{$log_result->{commits}};  ## oldest first
 for (my $i = 0; $i < @all_commits; $i++) {
     my $hash = $all_commits[$i]{hash};
-    $commit_versions{$hash} = $i + 1;  ## 1-indexed
+    my $count = $i + 1;  ## 1-indexed
+    ## Format: TIMESTAMP-COUNT.0 (e.g., 3K26XZWHJI-5339.0)
+    $commit_versions{$hash} = sprintf("%s-%d.0", $network_timestamp, $count);
 }
 
 <[base.log]>->( 2, sprintf("  ✓ Generated %d version numbers", scalar(keys %commit_versions)) );
@@ -234,8 +247,8 @@ if (exists $commit_data{$commit_hash}) {
     my $version = $data->{version};
     my $signature = $data->{signature} // '';
 
-    ## Only add version if not already present
-    unless ($message =~ /^\[v?\d+/) {
+    ## Only add version if not already present (check for full format TIMESTAMP-COUNT.MINOR)
+    unless ($message =~ /^\[([A-Z0-9]+-\d+\.\d+|\d+)\]/) {
         $message = "[$version] $message";
     }
 
