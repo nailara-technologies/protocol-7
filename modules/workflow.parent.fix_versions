@@ -83,9 +83,24 @@ unless (exists $code{'source.sign_data'}) {
     <[base.load_modules]>->('source');
 }
 
-## Load signing key
+## Load signing key - enable autocreate for test key if production doesn't exist
 my $sig_key_name = <source.C25519.signature_key_name> // qw| proto-7.sourcecode |;
 <[base.log]>->( 2, "  Loading signature key '$sig_key_name'..." );
+
+## Check if production key exists, fallback to test key with autocreate
+my $key_exists = <[crypt.C25519.key_exists]>->($sig_key_name);
+if (not $key_exists) {
+    ## Try test key instead
+    $sig_key_name = 'proto-7.test';
+    <[base.log]>->( 2, "  Production key not found, trying test key '$sig_key_name'..." );
+
+    $key_exists = <[crypt.C25519.key_exists]>->($sig_key_name);
+    if (not $key_exists) {
+        ## Enable autocreate for test key
+        <[base.log]>->( 2, "  Test key not found, enabling autocreate..." );
+        <source.autocreate-sig-key> = TRUE;
+    }
+}
 
 <[source.load_signature_key]>->($sig_key_name);
 
