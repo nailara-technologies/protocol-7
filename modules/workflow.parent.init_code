@@ -5,9 +5,9 @@
 
 <[base.log]>->( 2, 'initializing workflow orchestration zenka..,' );
 
-## Configuration - use auto-detected root path
+## Configuration - always use auto-detected root path (override any cached value)
 <workflow.cfg.git_binary>          //= '/usr/bin/git';
-<workflow.cfg.root_path>           //= <system.root_path>;
+<workflow.cfg.root_path>           = <system.root_path>;
 <workflow.cfg.signing_key_loaded>  //= 0;   ## Track if key decrypted this session
 <workflow.cfg.auto_scan_on_start>  //= 0;   ## Auto-scan history at startup
 <workflow.cfg.version_seed>        //= 54;  ## AMOS7 version seed
