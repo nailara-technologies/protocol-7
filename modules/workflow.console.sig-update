@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = workflow.console.sig-update
+# descr = update all source code signatures
+
+say '';
+say ' .:[ WORKFLOW: UPDATE ALL SIGNATURES ]:.';
+say '';
+
+system('./bin/Protocol-7', 'sourcecode', 'update-signatures');
+my $exit_code = $? >> 8;
+
+say '';
+if ( $exit_code == 0 ) {
+    say ' : ✓ Signatures updated successfully';
+} else {
+    say sprintf ' : ✗ Update failed (exit code: %d)', $exit_code;
+}
+say '';
+
+return $exit_code;
+
+#,,,.,,,.,...,,,,,.,.,,,.,.,.,,,.,,..,,.,,..,,...,...,.,,,,,.,...,...,.,.,,,.,,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

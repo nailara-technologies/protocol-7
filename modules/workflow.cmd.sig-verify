@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = workflow.cmd.sig-verify
+# descr = verify all source code signatures
+
+say '';
+say ' .:[ WORKFLOW: VERIFY ALL SIGNATURES ]:.';
+say '';
+
+system('./bin/Protocol-7', 'sourcecode', 'verify-p7-signatures');
+my $exit_code = $? >> 8;
+
+say '';
+if ( $exit_code == 0 ) {
+    say ' : ✓ All signatures valid';
+} else {
+    say sprintf ' : ✗ %d signature(s) invalid', $exit_code;
+}
+say '';
+
+return $exit_code;
+
+#,,,.,,,.,...,,,,,.,.,,,.,.,.,,,.,,..,,.,,..,,...,...,.,,,,,.,...,...,.,.,,,.,,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

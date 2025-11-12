@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = workflow.cmd.test-oscillation
+# descr = run oscillation tests (simple + sequence)
+
+my $pattern = shift // 'modules/*';
+
+$pattern =~ s,^ *| *$,,;
+
+say '';
+say ' .:[ WORKFLOW: OSCILLATION TEST SUITE ]:.';
+say '';
+say sprintf ' : Pattern: %s', $pattern;
+say '';
+
+# Run simple oscillation test
+say ' .:[ RUNNING: test-oscillation-simple ]:.';
+say '';
+system( './bin/dev/test-oscillation-simple', $pattern );
+my $simple_exit = $? >> 8;
+
+say '';
+say ' .:[ RUNNING: test-oscillation-sequence ]:.';
+say '';
+system( './bin/dev/test-oscillation-sequence', $pattern );
+my $sequence_exit = $? >> 8;
+
+say '';
+say ' .:[ TEST SUITE COMPLETE ]:.';
+say '';
+
+if ( $simple_exit == 0 && $sequence_exit == 0 ) {
+    say ' : ✓ All oscillation tests passed';
+} else {
+    say sprintf ' : ✗ Tests failed (simple:%d, sequence:%d)', $simple_exit, $sequence_exit;
+}
+say '';
+
+return $simple_exit == 0 && $sequence_exit == 0 ? 0 : 1;
+
+#,,,.,,,.,...,,,,,.,.,,,.,.,.,,,.,,..,,.,,..,,...,...,.,,,,,.,...,...,.,.,,,.,,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
