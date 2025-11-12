@@ -10,39 +10,28 @@ say '';
 say ' .:[ WORKFLOW: VERSION-SIGN-COMMIT ]:.';
 say '';
 
-## Detect environment and select signing workflow
-my $is_llm_env = 0;
-my $detected_context = 'unknown';
-
-# Check for LLM environment indicators
-if ( $ENV{'ANTHROPIC_API_KEY'} || $ENV{'CLAUDE_API_KEY'} ) {
-    $is_llm_env = 1;
-    $detected_context = 'anthropic-llm';
-} elsif ( $ENV{'OPENAI_API_KEY'} ) {
-    $is_llm_env = 1;
-    $detected_context = 'openai-llm';
-} elsif ( $ENV{'USER'} && $ENV{'USER'} =~ /^(user|claude|assistant)$/ ) {
-    $is_llm_env = 1;
-    $detected_context = 'llm-user';
-} elsif ( -d '/home/user/workspace-transfer' ) {
-    # Likely in Claude Code environment
-    $is_llm_env = 1;
-    $detected_context = 'claude-code';
-}
-
-say sprintf ' : Detected environment: %s', $detected_context;
-say sprintf ' : Using %s signing workflow', $is_llm_env ? 'LLM test key' : 'production key';
-say '';
-
-## Select key based on environment
+## Detect signing mode based on key presence
 my $sig_key_name = qw| proto-7.sourcecode |;
 my $test_key_name = qw| test-proto7-sourcecode |;
-my $key_to_use = $is_llm_env ? $test_key_name : $sig_key_name;
+my $use_production_key = 0;
+my $use_test_key = 0;
+my $key_mode = 'unknown';
 
-## Ensure key is available
-if ( $is_llm_env ) {
+# Check if production key is loaded
+if ( exists $keys{'C25519'}{$sig_key_name} && defined $keys{'C25519'}{$sig_key_name} ) {
+    $use_production_key = 1;
+    $key_mode = 'production';
+    say ' : ✓ Production key detected';
+    say sprintf ' : Using key: %s', $sig_key_name;
+    say '';
+} else {
+    # Production key not available - use test key mode
+    $use_test_key = 1;
+    $key_mode = 'test';
+    say ' : Production key not loaded - using test key mode';
+
     # Check if test key exists
-    unless ( exists $keys{'C25519'}{$test_key_name} ) {
+    unless ( exists $keys{'C25519'}{$test_key_name} && defined $keys{'C25519'}{$test_key_name} ) {
         say ' : Test key not found, creating...';
 
         my ($new_key, $created_name) = <[crypt.C25519.gen_keys]>->( $test_key_name );
@@ -54,21 +43,9 @@ if ( $is_llm_env ) {
         }
 
         say sprintf ' : ✓ Created test key: %s', $test_key_name;
-        say '';
     } else {
         say sprintf ' : ✓ Test key loaded: %s', $test_key_name;
-        say '';
     }
-} else {
-    # Production environment - check for production key
-    unless ( exists $keys{'C25519'}{$sig_key_name} ) {
-        say ' : ✗ ERROR: Production signing key not loaded';
-        say ' : Please load key with: ./bin/Protocol-7 keys load proto-7.sourcecode';
-        say '';
-        return 1;
-    }
-
-    say sprintf ' : ✓ Production key loaded: %s', $sig_key_name;
     say '';
 }
 
@@ -76,7 +53,7 @@ if ( $is_llm_env ) {
 say ' .:[ STEP 1: UPDATING SIGNATURES ]:.';
 say '';
 
-if ( $is_llm_env ) {
+if ( $use_test_key ) {
     # Backup original key and use test key
     my $original_key = $keys{'C25519'}{$sig_key_name};
     $keys{'C25519'}{$sig_key_name} = $keys{'C25519'}{$test_key_name};
@@ -94,6 +71,7 @@ if ( $is_llm_env ) {
         return 1;
     }
 } else {
+    # Use production key directly
     system('./bin/Protocol-7', 'sourcecode', 'update-signatures');
     my $sign_exit = $? >> 8;
 
@@ -136,12 +114,11 @@ say '';
 my $commit_message = $message;
 unless ( length $commit_message ) {
     # Generate default message
-    my $key_type = $is_llm_env ? 'LLM test key' : 'production key';
-    $commit_message = "chore: Update signatures with $key_type";
+    $commit_message = "chore: Update signatures with $key_mode key";
 }
 
-# Add environment context to commit message
-$commit_message .= "\n\nSigned-by: $detected_context" if $is_llm_env;
+# Add key mode context to commit message
+$commit_message .= "\n\nSigned-by: $key_mode-key" if $use_test_key;
 
 my $commit_cmd = sprintf(
     'git commit -m "%s"',
@@ -164,8 +141,8 @@ say '';
 ## Summary
 say ' .:[ COMPLETE ]:.';
 say '';
-say sprintf ' : Environment: %s', $detected_context;
-say sprintf ' : Key used: %s', $key_to_use;
+say sprintf ' : Key mode: %s', $key_mode;
+say sprintf ' : Key used: %s', $use_test_key ? $test_key_name : $sig_key_name;
 say sprintf ' : Commit message: %s', $commit_message;
 say '';
 
@@ -175,4 +152,10 @@ return 0;
 #PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
 #\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
 #\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,,,,,,,..,,...,.,.,..,,,.,,.,,,,,.,...,..,,..,,...,...,...,.,.,...,...,.,.,
+#6KML2XBK7KQEBNAZ7FT475GOKOIMYQPGNKKGXV7D452XM4R5N4KY422XVRXJPBSPLQCMG4QKLCQ5W
+#\\\|PQER5HW6I5CBQCF2OBRFL2PWTX6EDO7PQEIGBJBO2XB5FD2GL2T \ / AMOS7 \ YOURUM ::
+#\[7]HEVRLYORLOIDQCCNLOBY75UMH37DI5XF3VJIPTLCVOMDOB7AB6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
