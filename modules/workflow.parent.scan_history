@@ -148,8 +148,22 @@ foreach my $commit (@$commits) {
     if ($looks_valid) {
         <[base.log]>->( 1, "    Version file found, checking signature..." );
 
+        ## Debug: Show file structure
+        my $content_len = length($version_file_content);
+        my $has_hash_lines = ($version_file_content =~ tr/#/#/);
+        <[base.logs]>->( 2, "      File length: %d, Hash lines: %d", $content_len, $has_hash_lines );
+
         ## Step 2: Extract and validate version file signature
         my $footer_data = <[source.extract_sig_body]>->(\$version_file_content, 'strip', 'strict');
+
+        ## Debug: Show what extract_sig_body found
+        if ($footer_data) {
+            my $was_present = $footer_data->{'was-present'} // 0;
+            my $struct_valid = $footer_data->{'structure-was-valid'} // 0;
+            <[base.logs]>->( 2, "      extract_sig_body: present=%d, struct_valid=%d", $was_present, $struct_valid );
+        } else {
+            <[base.log]>->( 2, "      extract_sig_body returned undef!" );
+        }
 
         ## Check if signature present and structurally valid
         if ($footer_data && $footer_data->{'was-present'} && $footer_data->{'structure-was-valid'}) {
