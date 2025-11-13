@@ -28,7 +28,7 @@ unless ($force) {
 
 <[base.log]>->( 2, "workflow.scan: scanning git history for issues..." );
 <[base.log]>->( 3, "  Scope: $branch_scope" ) if $branch_scope ne 'HEAD';
-<[base.log]>->( 1, sprintf("  abort_after_valid = %d (0 = scan all commits)", $abort_after_valid) );
+<[base.logs]>->( 1, "  abort_after_valid = %d (0 = scan all commits)", $abort_after_valid );
 
 ## Load source module and key for validation
 unless (exists $code{'source.signature_valid'}) {
@@ -43,7 +43,7 @@ unless (exists $code{'source.signature_valid'}) {
 
 ## Load public key for verification (no passphrase needed)
 my $sig_key_name = <source.C25519.signature_key_name> // qw| proto-7.sourcecode |;
-<[base.log]>->( 1, sprintf("  Using signature key: '%s'", $sig_key_name) );
+<[base.logs]>->( 1, "  Using signature key: '%s'", $sig_key_name );
 
 unless (exists $keys{'C25519'}{$sig_key_name} && exists $keys{'C25519'}{$sig_key_name}{'public'}) {
     <[base.log]>->( 1, "  Loading public key for verification..." );
@@ -124,7 +124,7 @@ foreach my $commit (@$commits) {
 
     ## Log commit being checked
     my $hash_short = substr($hash, 0, 7);
-    <[base.log]>->( 2, sprintf("  [%d/%d] Checking commit %s: %s", $commits_scanned, $total, $hash_short, substr($subject, 0, 60)) );
+    <[base.logs]>->( 2, "  [%d/%d] Checking commit %s: %s", $commits_scanned, $total, $hash_short, substr($subject, 0, 60) );
 
     ## Optional: Track version numbers if present in commit message
     ## (These will be added by fix_versions, so initially won't exist)
@@ -217,7 +217,7 @@ foreach my $commit (@$commits) {
             ## Version file has no signature or malformed structure
             my $was_present = $footer_data->{'was-present'} // 0;
             my $struct_valid = $footer_data->{'structure-was-valid'} // 0;
-            <[base.log]>->( 1, sprintf("    ✗ Signature footer issue (present=%s, struct_valid=%s)", $was_present, $struct_valid) );
+            <[base.logs]>->( 1, "    ✗ Signature footer issue (present=%s, struct_valid=%s)", $was_present, $struct_valid );
             $data{'workflow'}{'history'}{'issues'}{$hash} = {
                 type    => qw| unsigned_version_file |,
                 commit  => $commit,
@@ -245,19 +245,19 @@ foreach my $commit (@$commits) {
     ## Count consecutive valid commits for early abort
     if ($has_issues) {
         if ($consecutive_valid > 0) {
-            <[base.log]>->( 1, sprintf("  Consecutive valid reset (was %d, threshold %d)", $consecutive_valid, $abort_after_valid) );
+            <[base.logs]>->( 1, "  Consecutive valid reset (was %d, threshold %d)", $consecutive_valid, $abort_after_valid );
         }
         $consecutive_valid = 0;  ## Reset counter
     } else {
         $consecutive_valid++;
-        <[base.log]>->( 1, sprintf("  Consecutive valid: %d / %d (abort_after_valid=%d)",
-            $consecutive_valid, $abort_after_valid, $abort_after_valid) );
+        <[base.logs]>->( 1, "  Consecutive valid: %d / %d (abort_after_valid=%d)",
+            $consecutive_valid, $abort_after_valid, $abort_after_valid );
 
         ## Abort if we've seen enough consecutive valid commits
         if ($abort_after_valid > 0 && $consecutive_valid >= $abort_after_valid) {
-            <[base.log]>->( 1, sprintf("  EARLY ABORT: reached %d consecutive valid commits (threshold: %d)",
-                $consecutive_valid, $abort_after_valid) );
-            <[base.log]>->( 2, "  Early abort: found $consecutive_valid consecutive valid commits" );
+            <[base.logs]>->( 1, "  EARLY ABORT: reached %d consecutive valid commits (threshold: %d)",
+                $consecutive_valid, $abort_after_valid );
+            <[base.logs]>->( 2, "  Early abort: found %d consecutive valid commits", $consecutive_valid );
             last;
         }
     }
