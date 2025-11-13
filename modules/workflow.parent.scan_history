@@ -136,7 +136,7 @@ foreach my $commit (@$commits) {
     }
 
     ## Step 1: Check version file at this commit
-    my $version_file_content = `cd '$repo_path' && git show $hash:$version_file_rel 2>/dev/null`;
+    my $version_file_content = `cd $repo_path && git show $hash:$version_file_rel 2>/dev/null`;
     if ($? == 0 && length $version_file_content) {
         <[base.log]>->( 1, "    Version file found, checking signature..." );
 
@@ -168,7 +168,7 @@ foreach my $commit (@$commits) {
                     <[event.once]>->(0.07);
 
                     ## Read file at this commit
-                    my $file_content = `cd '$repo_path' && git show $hash:$file_path 2>/dev/null`;
+                    my $file_content = `cd $repo_path && git show $hash:$file_path 2>/dev/null`;
                     next if $? != 0 || !length $file_content;
 
                     ## Extract and validate signature
