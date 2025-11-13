@@ -148,13 +148,20 @@ foreach my $commit (@$commits) {
     if ($looks_valid) {
         <[base.log]>->( 1, "    Version file found, checking signature..." );
 
-        ## Debug: Show file structure
-        my $content_len = length($version_file_content);
+        ## Debug: Show file structure BEFORE extract_sig_body
+        my $content_len_before = length($version_file_content);
         my $has_hash_lines = ($version_file_content =~ tr/#/#/);
-        <[base.logs]>->( 2, "      File length: %d, Hash lines: %d", $content_len, $has_hash_lines );
+        my $last_line = (split /\n/, $version_file_content)[-1];
+        <[base.logs]>->( 2, "      BEFORE: length=%d, hash_lines=%d, last_line=%s", $content_len_before, $has_hash_lines, substr($last_line, 0, 40) );
 
         ## Step 2: Extract and validate version file signature
-        my $footer_data = <[source.extract_sig_body]>->(\$version_file_content, 'strip', 'strict');
+        ## BUG SUSPECT: 'strip' mode might corrupt state or modify content
+        my $content_copy = $version_file_content;  ## Make a copy to protect original
+        my $footer_data = <[source.extract_sig_body]>->(\$content_copy, 'strip', 'strict');
+
+        ## Debug: Check if content was modified
+        my $content_len_after = length($version_file_content);
+        <[base.logs]>->( 2, "      AFTER: length=%d (diff: %d)", $content_len_after, $content_len_after - $content_len_before );
 
         ## Debug: Show what extract_sig_body found
         if ($footer_data) {
@@ -169,9 +176,9 @@ foreach my $commit (@$commits) {
         if ($footer_data && $footer_data->{'was-present'} && $footer_data->{'structure-was-valid'}) {
             <[base.log]>->( 1, "    Signature footer present and structurally valid, validating cryptographically..." );
 
-            ## Validate the signature
+            ## Validate the signature (use the same copy we extracted from)
             my ($is_valid, $report) = <[source.signature_valid]>->(
-                \$version_file_content, $footer_data, {}, $sig_key_name, 'strict'
+                \$content_copy, $footer_data, {}, $sig_key_name, 'strict'
             );
 
             if ($is_valid) {
