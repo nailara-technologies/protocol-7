@@ -41,6 +41,14 @@ unless (exists $code{'source.signature_valid'}) {
     <[base.init_modules]>->('sourcecode');
 }
 
+## Debug: Check if sign_template is properly initialized
+my $template = <source.sign_template> // '';
+my $template_len = length($template);
+<[base.logs]>->( 1, "  sign_template length: %d (should be >0)", $template_len );
+if ($template_len == 0) {
+    <[base.log]>->( 0, "  ✗ ERROR: sign_template is EMPTY - structure validation will always fail!" );
+}
+
 ## Load public key for verification (no passphrase needed)
 my $sig_key_name = <source.C25519.signature_key_name> // qw| proto-7.sourcecode |;
 <[base.logs]>->( 1, "  Using signature key: '%s'", $sig_key_name );
