@@ -1,0 +1,80 @@
+## [:< ##
+
+# name = workflow.check_dependencies
+# descr = Check for missing dependencies using Protocol-7 dependency system
+
+## Setup dependencies if not already done ##
+unless (<workflow.dependencies.initialized>) {
+    <[workflow.setup_module_dependencies]>->();
+    <workflow.dependencies.initialized> = 1;
+}
+
+my %status = (
+    essential_missing => [],
+    optional_missing  => [],
+    essential_present => [],
+    optional_present  => [],
+    total_tracked     => 0,
+    total_installed   => 0
+);
+
+## Check essential modules ##
+my $essential_modules = <workflow.dependencies.essential> // {};
+foreach my $module_name (keys %$essential_modules) {
+    my $object_id = $essential_modules->{$module_name};
+    my $object = <dependency.object>->{$object_id};
+    next unless $object;
+
+    $status{total_tracked}++;
+
+    ## Use dependency.ok to check if module is available ##
+    if (<[dependency.ok]>->($object_id)) {
+        push @{$status{essential_present}}, {
+            name => $module_name,
+            install => $object->{install_cmd} // ''
+        };
+        $status{total_installed}++;
+    } else {
+        push @{$status{essential_missing}}, {
+            name => $module_name,
+            install => $object->{install_cmd} // ''
+        };
+    }
+}
+
+## Check optional modules ##
+my $optional_modules = <workflow.dependencies.optional> // {};
+foreach my $module_name (keys %$optional_modules) {
+    my $object_id = $optional_modules->{$module_name};
+    my $object = <dependency.object>->{$object_id};
+    next unless $object;
+
+    $status{total_tracked}++;
+
+    ## Use dependency.ok to check if module is available ##
+    if (<[dependency.ok]>->($object_id)) {
+        push @{$status{optional_present}}, {
+            name => $module_name,
+            install => $object->{install_cmd} // ''
+        };
+        $status{total_installed}++;
+    } else {
+        push @{$status{optional_missing}}, {
+            name => $module_name,
+            install => $object->{install_cmd} // ''
+        };
+    }
+}
+
+## Store in workflow data ##
+<workflow.dependencies.status> = \%status;
+
+return \%status;
+
+0;
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = workspace-transfer.cmd.todo-commit
+# descr = add todo and auto-commit/push to GitHub
+
+my @args = @_;
+die "Usage: todo-commit <description>\n" unless @args;
+
+my $ws_dir = workspace_transfer::chdir_workspace();
+<[base.exit]>->(qw| 0110 |) unless defined $ws_dir;
+
+# Add the todo using workspace-transfer.cmd.todo
+<[workspace-transfer.cmd.todo]>->('add', @args);
+
+# Get current branch
+my $branch = `git branch --show-current`;
+chomp $branch;
+
+# Check if TODO.md changed
+my $status = `git status --short TODO.md`;
+if ($status =~ /TODO\.md/) {
+    say "";
+    say "Committing TODO.md...";
+
+    system('git', 'add', 'TODO.md') == 0 or do {
+        <[base.logs]>->( 0, 'git add failed' );
+        <[base.exit]>->(qw| 0110 |);
+    };
+
+    my $desc = join(' ', @args);
+    my $commit_msg = "todo: Add - $desc";
+    system('git', 'commit', '--no-gpg-sign', '-m', $commit_msg) == 0 or do {
+        <[base.logs]>->( 0, 'git commit failed' );
+        <[base.exit]>->(qw| 0110 |);
+    };
+
+    say "Pushing to GitHub...";
+    my $result = system('git', 'push', '-u', 'origin', $branch);
+
+    if ($result == 0) {
+        say "";
+        say "✓ Todo added, committed, and pushed to GitHub!";
+    } else {
+        say "";
+        say "⚠ Todo added and committed, but push failed.";
+        say "  You may need to configure GitHub PAT.";
+        say sprintf "  Run 'git push -u origin %s' manually.", $branch;
+    }
+} else {
+    say "";
+    say "✓ Todo added (no changes to commit)";
+}
+
+#,,,,.,,,.,.,,,.,,.,.,,,.,,.,.,.,,,.,,..,,,...,...,,.,,,.,,,.,,,.,.,,.,,,.,,,,.
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

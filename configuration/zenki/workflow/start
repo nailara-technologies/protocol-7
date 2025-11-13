@@ -6,22 +6,41 @@
 system.verbosity.zenka_buffer = 2
 system.verbosity.zenka_logfile = 2
 
+## Disable automatic key loading for workflow zenka ##
+## Keys are explicitly loaded by commands that need them (e.g., version-sign-commit)
+## Read-only commands (fix-versions, harmonize-emails) don't need keys
+crypt.C25519.auto_load_keys = no
+
+## Enable automatic key creation for workflow zenka ##
+crypt.C25519.autocreate-user-key = yes
+
+## Git repository path is auto-detected from <system.root_path> ##
+## No need to hardcode it here ##
+
 access.cmd.usr.cube = commands heart reload verify-instance \
                       list show-buffer buffer-erase buffer-erase-level \
                       test-oscillation sig-verify sig-update sig-cycle \
-                      run-tests version-sign-commit *
+                      run-tests version-sign-commit todo bug \
+                      todo-list bug-list regenerate-indexes \
+                      fix-versions harmonize-emails *
 
-modules.load = auth net protocol io.unix workflow
+## Git remote configuration for version-sign-commit ##
+## By default, remotes are auto-detected with priority: hub > origin > first available
+## Configure multiple remotes to push to all of them automatically:
+## Examples:
+##   workflow.git.remotes = origin backup            # two remotes
+##   workflow.git.remotes = origin backup mirror     # three remotes
+##   workflow.git.remotes =                          # empty = auto-detect (default)
+# workflow.git.remotes =
+
+modules.load = auth net protocol io.unix crypt.C25519 git workflow
 
 [load_modules:<modules.load>]
 [init_modules]
 
-[root.drop_privs:<system.amos-zenka-user>]
+[base.call.console_command:<system.args>]
 
-[base.net.connect:'unix']
-[base.get_session_id]
-
-[zenka.loop]
+[exit:0]
 
 #,,,.,,,.,...,,,,,.,.,,,.,.,.,,,.,,..,,.,,..,,...,...,.,,,,,.,...,...,.,.,,,.,,
 #PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1

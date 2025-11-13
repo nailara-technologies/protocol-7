@@ -1,0 +1,101 @@
+## [:< ##
+
+# name  = workspace-transfer.cmd.todo
+# descr = todo list management
+
+my $cmd = shift || 'list';
+my @args = @_;
+
+my $ws_dir = workspace_transfer::chdir_workspace();
+<[base.exit]>->(qw| 0110 |) unless defined $ws_dir;
+
+my $todo_file = 'TODO.md';
+
+if ($cmd eq 'list') {
+    unless (-f $todo_file) {
+        say "No TODOs yet. Add one with: todo add <description>";
+        return;
+    }
+
+    open my $fh, '<', $todo_file or do {
+        <[base.logs]>->( 0, 'cannot read TODO.md: %s', $! );
+        <[base.exit]>->(qw| 0110 |);
+    };
+    print while <$fh>;
+    close $fh;
+
+} elsif ($cmd eq 'add') {
+    die "Usage: todo add <description>\n" unless @args;
+
+    my $desc = join(' ', @args);
+    my $timestamp = scalar(localtime());
+
+    open my $fh, '>>', $todo_file or do {
+        <[base.logs]>->( 0, 'cannot write TODO.md: %s', $! );
+        <[base.exit]>->(qw| 0110 |);
+    };
+    print $fh "- [ ] $desc\n";
+    print $fh "  - Added: $timestamp\n";
+    close $fh;
+
+    say "✓ Todo added: $desc";
+
+} elsif ($cmd eq 'done') {
+    my ($item_num) = @args;
+    die "Usage: todo done <item_number>\n" unless defined $item_num;
+
+    unless (-f $todo_file) {
+        say "No TODOs to mark done.";
+        return;
+    }
+
+    open my $fh, '<', $todo_file or do {
+        <[base.logs]>->( 0, 'cannot read TODO.md: %s', $! );
+        <[base.exit]>->(qw| 0110 |);
+    };
+    my @lines = <$fh>;
+    close $fh;
+
+    my $count = 0;
+    for my $i (0..$#lines) {
+        if ($lines[$i] =~ /^- \[ \]/) {
+            $count++;
+            if ($count == $item_num) {
+                $lines[$i] =~ s/^- \[ \]/- [x]/;
+                $lines[$i] =~ s/\n$//;
+                $lines[$i] .= " (completed: " . scalar(localtime()) . ")\n";
+
+                open my $out, '>', $todo_file or do {
+                    <[base.logs]>->( 0, 'cannot write TODO.md: %s', $! );
+                    <[base.exit]>->(qw| 0110 |);
+                };
+                print $out @lines;
+                close $out;
+
+                say "✓ Marked item $item_num as done";
+                return;
+            }
+        }
+    }
+
+    say "Item $item_num not found";
+
+} elsif ($cmd eq 'help') {
+    say "Todo List Management";
+    say "";
+    say "Usage:";
+    say "  todo list              - List all todos (default)";
+    say "  todo add <desc>        - Add a new todo";
+    say "  todo done <num>        - Mark todo as done";
+    say "  todo help              - Show this help";
+
+} else {
+    say "Unknown command: $cmd";
+    say "Run 'todo help' for usage";
+}
+
+#,,.,,,.,.,,,.,,.,,,.,,,,.,,,,.,,.,,,.,,,...,...,,.,,,.,.,,.,,,,.,,,.,,,.,,.,,.
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

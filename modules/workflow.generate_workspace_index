@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = workflow.generate_workspace_index
+# descr = generate workspace-transfer index
+
+my $repos = <[workflow.scan_workspace_repos]>;
+my $bugs = <[workflow.extract_workspace_bugs]>;
+
+my $index_data = {
+    generated_at => scalar(localtime()),
+    timestamp => time(),
+    repos => $repos,
+    total_bugs => scalar(@$bugs),
+    bugs => $bugs
+};
+
+# Ensure index directory exists
+my $index_dir = <workflow.cfg.index_dir>;
+unless (-d $index_dir) {
+    # Create with parents if needed
+    require File::Path;
+    File::Path::make_path($index_dir) or die "Cannot create index directory: $!";
+}
+
+# Write index
+my $workspace_index = <workflow.index.workspace>;
+YAML::XS::DumpFile($workspace_index, $index_data);
+
+return $index_data;
+
+#,,,.,,,.,,,.,,,.,.,,,.,.,,,.,.,,,.,.,,,...,...,.,.,,.,,.,,.,,,.,,.,.,.,.,.,.,,,.,.
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
