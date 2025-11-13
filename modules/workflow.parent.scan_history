@@ -141,6 +141,10 @@ foreach my $commit (@$commits) {
     my $version_file_content = `$cmd`;
     my $exit_code = $?;
     <[base.logs]>->( 1, "    Exit code: %d, Content length: %d", $exit_code, length($version_file_content) );
+    if ($exit_code != 0) {
+        my $error_preview = substr($version_file_content, 0, 200);
+        <[base.logs]>->( 1, "    Error output: %s", $error_preview );
+    }
     if ($exit_code == 0 && length $version_file_content) {
         <[base.log]>->( 1, "    Version file found, checking signature..." );
 
