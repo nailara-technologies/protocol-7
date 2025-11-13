@@ -266,3 +266,9 @@ Blacklight neon aesthetic (matching git zenka):
 #\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
 #\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,,,,.,,.,,,,..,.,.,,.,,.,,,,.,,,..,,..,,.,,..,,...,...,,.,,..,,,,,,..,,,,,,
+#MAPTX6CS43EIDRYLYPLUUV5L627B6YLLUYVBWP64WRFUDMLIO6ISSEGD3XIKPLHYYG3QKIW7G5U32
+#\\\|4YOKCZGXIXJXKVCRV6MD5NKHLEWWONHCTFN3M7J7SLGC22O6277 \ / AMOS7 \ YOURUM ::
+#\[7]ZPFU4HMCP3QUCB5K3GLTZ7NRYYOTITJOMUHNH4H6AU6U5C32ZIAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
