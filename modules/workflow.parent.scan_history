@@ -68,6 +68,9 @@ my $repo_path = <git.cfg.repository_path>;
 my $version_file_rel = 'configuration/protocol-7.src-ver';
 my $version_file_abs = File::Spec->catfile($repo_path, $version_file_rel);
 
+<[base.logs]>->( 1, "  Repository path: '%s'", $repo_path );
+<[base.logs]>->( 1, "  Version file relative path: '%s'", $version_file_rel );
+
 ## Get git log
 my $log_result = <[git.parent.get_log]>->({
     force => 1,
