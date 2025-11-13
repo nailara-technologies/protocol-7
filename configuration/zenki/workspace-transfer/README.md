@@ -261,14 +261,8 @@ Blacklight neon aesthetic (matching git zenka):
 - [/home/user/workspace-transfer/bootstrap.pl](../../../../workspace-transfer/bootstrap.pl) - Bootstrap script
 - [/home/user/workspace-transfer/workspace-sign.pl](../../../../workspace-transfer/workspace-sign.pl) - Signature tool
 
-#,,,,.,.,,,,..,,,,,,,,,....,,,,.,,,.,.,,.,,,..,,,,.,,.,,..,,,...,,..,..,,,..,,,.
-#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
-#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
-#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,,,,,.,,.,,,,..,.,.,,.,,.,,,,.,,,..,,..,,.,,..,,...,...,,.,,..,,,,,,..,,,,,,
-#MAPTX6CS43EIDRYLYPLUUV5L627B6YLLUYVBWP64WRFUDMLIO6ISSEGD3XIKPLHYYG3QKIW7G5U32
-#\\\|4YOKCZGXIXJXKVCRV6MD5NKHLEWWONHCTFN3M7J7SLGC22O6277 \ / AMOS7 \ YOURUM ::
-#\[7]ZPFU4HMCP3QUCB5K3GLTZ7NRYYOTITJOMUHNH4H6AU6U5C32ZIAA 7  DATA SIGNATURE ::
+#,,.,,,..,..,,.,.,.,,,.,,,,,.,..,,,..,,.,,,,,,..,,...,...,.,.,.,,,...,,,,,,,,,
+#6WL47SW3E4KXCUPWC2OBQUYWZN7E7UR3NXJVP5YJ3DROZV7GRIADGKCD7YJLJNJH362UMNMLJLNJ6
+#\\\|6XVYS7BTAJCXHUVLCMYQBGVCT4AJJBM6BKOGA6N4DACAVKYP4O2 \ / AMOS7 \ YOURUM ::
+#\[7]BTSU66MYFUOBU2TZRH6O6KAMZLI5TJLOEFYE7LBIHFHFOFF6KCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

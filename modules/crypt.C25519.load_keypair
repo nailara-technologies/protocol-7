@@ -15,6 +15,9 @@ my $key_usr      = $key_vars_ref->{'usr_name'};
 my $name         = $key_vars_ref->{'key_name'};
 my $key_filename = $key_vars_ref->{'key_filename'};
 
+<[base.logs]>->( 2, "..loading key pair '%s'..", $name );
+<[base.logs]>->( 2, ":... %s ..:.. ..  .",       $key_dir );
+
 foreach my $type ( <[base.sort]>->($key_filename) ) {
     if ( -f $key_filename->{$type} and not -r $key_filename->{$type} ) {
         ( my $file = $key_filename->{$type} ) =~ s|^.*/||;
@@ -384,8 +387,8 @@ SKIP_SECRET_KEY_LOADING:
     return FALSE;    ##  false  ##
 }
 
-#,,..,,,,,.,,,,,.,,..,..,,.,,,.,,,,..,.,,,..,,..,,...,...,..,,..,,,,.,,,.,...,
-#IARJB7JKVGFQ7MLREX4KQ3WE2JNBWBELYNU6SOCHVF2SS72TL4T4TJWSEMPJXKMGTN6347AYL7NCQ
-#\\\|OGXQ4P5CLJQPXXTTHFVCTTICSV6SWMNNNEIXFOQUVJUTOY7VXBV \ / AMOS7 \ YOURUM ::
-#\[7]NOGEE5LAT6VXZXZ2WVR6WQZBFA5553XBATBPMP3EG2FJBHNNZCBY 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,.,...,.,,,.,,,.,,,..,,..,,,..,..,,...,...,,,.,,.,,.,,,,..,.,.,
+#R7WI7Y7DNV4EPVP7PR3JJLH4CBW4HCN366FOIDGT5VU23Z4DXIPEOYBPZ47GHET4FV3HETDAXD2LS
+#\\\|ISAM6KX25534DSNIQT3OBVV6PTLBUUTGXOD4PS4PTO7CP2ZOMCJ \ / AMOS7 \ YOURUM ::
+#\[7]PK3R4TJ5UHFTB7FENUN4IRAXDJY5RWVSQBYJDGE7ZMXEFSWS62BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
