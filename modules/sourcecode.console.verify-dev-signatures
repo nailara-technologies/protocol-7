@@ -1,0 +1,117 @@
+## [:< ##
+
+# name  = sourcecode.console.verify-dev-signatures
+# descr = verify source code signatures using LLM development key
+
+my $command_params = shift // '';
+
+say '';
+say ' .:[ VERIFY LLM DEV SIGNATURES ]:.';
+say '';
+
+my $llm_dev_key_name = qw| LLM-dev.sourcecode |;
+
+# Check if LLM dev key exists
+unless ( <[crypt.C25519.key_exists]>->($llm_dev_key_name) ) {
+    say ' : ⚠ ERROR: LLM dev public key not found';
+    say ' : Run this command to import the key:';
+    say ' :   ./bin/Protocol-7 workflow import-dev-key';
+    say '';
+    return 110;
+}
+
+# Load LLM dev public key
+<[crypt.C25519.load_keypair]>->($llm_dev_key_name);
+
+unless ( exists $keys{'C25519'}{$llm_dev_key_name}
+         && exists $keys{'C25519'}{$llm_dev_key_name}->{'public'} ) {
+    say sprintf ' : ⚠ ERROR: Failed to load LLM dev public key: %s', $llm_dev_key_name;
+    say '';
+    return 110;
+}
+
+say sprintf ' : ✓ Loaded LLM dev public key: %s', $llm_dev_key_name;
+say '';
+
+# Get source file paths
+my $paths = <sourcecode.path>;
+my $work_tree = $paths->{'work_tree'};
+
+my @source_paths;
+
+if ( length $command_params ) {
+    if ( not @source_paths = <[base.source.collect_file_list]>->($command_params) ) {
+        say sprintf ' : ⚠ No files found for: %s', $command_params;
+        say '';
+        return 1;
+    } else {
+        my $file_count = scalar @source_paths;
+        say sprintf ' : Checking %d file(s) matching: %s', $file_count, $command_params;
+        say '';
+    }
+} else {
+    @source_paths = <[sourcecode.source_path_set_up]>;
+}
+
+if ( @source_paths == 0 or (@source_paths == 1 && !defined $source_paths[0]) ) {
+    say ' : ⚠ No source files to verify';
+    say '';
+    return 1;
+}
+
+# Verify signatures
+my $total_files = 0;
+my $valid_count = 0;
+my $invalid_count = 0;
+my $no_sig_count = 0;
+
+say ' : Verifying signatures...';
+say '';
+
+foreach my $file_path ( @source_paths ) {
+    <[event.once]>->(0.0007);  # Ctrl+C support
+
+    next unless -f $file_path;
+    $total_files++;
+
+    my $signature_valid = <[source.signature_valid]>->($file_path, $llm_dev_key_name);
+
+    if ( not defined $signature_valid ) {
+        $no_sig_count++;
+        say sprintf ' : ⚠ NO SIGNATURE: %s', $file_path;
+    } elsif ( $signature_valid ) {
+        $valid_count++;
+    } else {
+        $invalid_count++;
+        say sprintf ' : ✗ INVALID: %s', $file_path;
+    }
+}
+
+say '';
+say ' .:[ RESULTS ]:.';
+say '';
+say sprintf ' : Total files checked: %d', $total_files;
+say sprintf ' : Valid signatures:    %d', $valid_count;
+say sprintf ' : Invalid signatures:  %d', $invalid_count;
+say sprintf ' : No signatures:       %d', $no_sig_count;
+say '';
+
+if ( $invalid_count > 0 ) {
+    say ' : ✗ Verification FAILED - found invalid signatures';
+    say '';
+    return $invalid_count;
+} elsif ( $no_sig_count > 0 ) {
+    say ' : ⚠ WARNING - some files have no signatures';
+    say '';
+    return 0;
+} else {
+    say ' : ✓ All signatures valid';
+    say '';
+    return 0;
+}
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

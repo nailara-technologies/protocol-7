@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = workflow.console.fix-signatures
+# param = [execute] [key_phrase]
+# descr = re-sign files with invalid signatures in git history
+
+my $param1 = shift // '';
+my $param2 = shift // '';
+
+## Determine execute mode and key phrase
+my $dry_run = 1;
+my $key_phrase = '';
+
+if ($param1 eq 'execute') {
+    $dry_run = 0;
+    $key_phrase = $param2;
+} elsif (length $param1) {
+    $key_phrase = $param1;
+}
+
+<[base.log]>->( 1, "Fixing signatures in git history..." );
+
+if (length $key_phrase) {
+    <[base.log]>->( 1, "  Filtering by key phrase: '$key_phrase'" );
+}
+
+if ($dry_run) {
+    <[base.log]>->( 1, "  DRY RUN mode - use 'fix-signatures execute' to apply changes" );
+}
+
+## Trigger signature fixing
+my $result = <[workflow.parent.fix_signatures]>->({
+    dry_run => $dry_run,
+    key_phrase => $key_phrase,
+});
+
+if ($result->{dry_run}) {
+    my $count = $result->{would_fix} || 0;
+
+    if ($count == 0) {
+        return say "\n  ✓ All commits have valid signatures\n";
+    }
+
+    say "";
+    say "  PREVIEW - No changes will be made (dry run)";
+    say "";
+    say sprintf("  Found %d commits with invalid signatures", $count);
+    say "";
+    say "  To execute: workflow fix-signatures execute";
+    if (length $key_phrase) {
+        say sprintf("  With filter: workflow fix-signatures execute \"%s\"", $key_phrase);
+    }
+    say "";
+
+    return 0;
+}
+
+unless ($result->{success}) {
+    my $error = $result->{error} || 'unknown error';
+    return say "::\n: ✗ Fix failed: $error\n::";
+}
+
+my $fixed = $result->{fixed} || 0;
+return say "::\n: ✓ Re-signed $fixed commits\n::";
+
+#,,.,.,,,.,.,.,.,,.,,.,,.,,..,,...,...,.,,,.,,,.,,,.,,,.,,..,,...,...,...,,,,,,..,
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
