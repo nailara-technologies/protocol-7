@@ -1,6 +1,7 @@
 ## [:< ##
 
 # name = base.perlmod.install
+# descr = Install CPAN modules and their debian package dependencies safely
 
 my $module_name = shift;
 my $cpanm_path  = <system.bin_path.cpanm>;
@@ -11,8 +12,29 @@ $module_name = $known_deps->{'cpan'}
     if defined $known_deps->{'cpan'}
     and $known_deps->{'cpan'} ne $module_name;
 
-<[base.logs]>->( 1, ".: installing perl module '%s' :.", $module_name );
+<[base.logs]>->( 2, ": installing perl module '%s' ...", $module_name );
+<[base.buffer.add_line]>->( qw| perlmod-install |, sprintf 'installing: %s', $module_name );
 
+## Detect privilege state for future zenka routing (Level 3) ##
+my $lost_privileges = $UID != 0 && defined <system.zenka-user.current>;
+if ($lost_privileges) {
+    <[base.logs]>->( 2, ":  (running as unprivileged user '%s')", <system.zenka-user.current> );
+    <[base.buffer.add_line]>->( qw| perlmod-install |,
+        sprintf '  (unprivileged: %s)', <system.zenka-user.current> );
+}
+
+my $result = {
+    success         => FALSE,
+    module_name     => $module_name,
+    installed_deb   => [],
+    installed_cpan  => [],
+    failed_deb      => [],
+    failed_cpan     => [],
+    error           => undef,
+    lost_privileges => $lost_privileges,    ## flag for Level 3 zenka routing ##
+};
+
+## Detect OS distribution ##
 <system.host.os.dist.name> //= qw| unknown |;
 <system.host.os.dist.name> = qw| debian |
     if <system.host.os.dist.name> eq qw| unknown |
@@ -20,13 +42,14 @@ $module_name = $known_deps->{'cpan'}
     and <[file.content]>->('/etc/os-release') =~ m|^ID(_LIKE)?=debian$|m;
 
 my @cpan_list = ($module_name);
+my @deb_list;
 
+## Separate debian and cpan packages ##
 if (    <system.host.os.dist.name> eq qw | debian |
     and defined $known_deps->{'debian'}
     and ref( $known_deps->{'debian'} ) eq qw| ARRAY |
     and $known_deps->{'debian'}->@* ) {
     @cpan_list = ();
-    my @deb_list;
     map {
         if ( $ARG =~ s|^cpan:|| ) {
             push @cpan_list, $ARG;
@@ -35,31 +58,73 @@ if (    <system.host.os.dist.name> eq qw | debian |
         }
     } $known_deps->{'debian'}->@*;
 
-    <[base.debian.install_package]>->(@deb_list);
+    ## Install debian packages if available ##
+    if (@deb_list) {
+        my $deb_result = <[base.debian.install_package]>->(@deb_list);
+        $result->{failed_deb} = \@deb_list if $deb_result;
+        push @{ $result->{installed_deb} }, @deb_list if !$deb_result;
+    }
 }
 
+## Install CPAN modules if needed ##
 if (@cpan_list) {
-    if ( not length $cpanm_path ) {    ## create seperate routine ##  [LLL]
-        <[base.log]>->( 0, "[AUTO_INSTALL] 'cpanminus' ..." );
-        if ( <system.host.os.dist.name> eq qw| debian | ) {
-            system qw| apt-get -fy install cpanminus |;
-        } else {                       # LLL: CHECKSUM and config !!!
-            qx'wget https://cpanmin.us -O /var/tmp/autoinst.cpanm';
-            system qw| /var/tmp/autoinst.cpanm --self-upgrade |;
+    ## Ensure cpanm is available ##
+    if ( not length $cpanm_path ) {
+        <[base.logs]>->( 2, ": installing cpanminus ..." );
 
+        my $cpanm_installed = <[base.perlmod.install_cpanm]>;
+        if ( not $cpanm_installed ) {
+            $result->{error} = 'failed to install cpanminus';
+            <[base.logs]>->( 0, "  ✗ cannot proceed without cpanminus" );
+            return $result;
         }
+        $cpanm_path = <system.bin_path.cpanm>;
     }
 
-    my $s = @cpan_list > 1 ? 's' : '';
-    <[base.logs]>->(
-        0,  '[AUTO_INSTALL] module%s: %s',
-        $s, join( ', ', @cpan_list )
-    );
-    system( $cpanm_path, @cpan_list );
+    my $count = @cpan_list;
+    my $s     = $count > 1 ? 's' : '';
+    <[base.logs]>->( 2, ": installing %d CPAN module%s", $count, $s );
+
+    ## Install each CPAN module via cpanm with safe subprocess handling ##
+    foreach my $cpan_module (@cpan_list) {
+        <[base.logs]>->( 2, ":  cpanm %s", $cpan_module );
+
+        my $exit_code = <[base.perlmod.install_cpan_module]>->($cpan_module);
+
+        if ( $exit_code == 0 ) {
+            push @{ $result->{installed_cpan} }, $cpan_module;
+        } else {
+            push @{ $result->{failed_cpan} }, $cpan_module;
+            <[base.logs]>->( 1, ":  ✗ failed to install %s", $cpan_module );
+        }
+    }
 }
 
-#,,.,,,,.,...,,,.,.,,,...,,,,,.,.,,,.,,.,,.,.,..,,...,...,,..,.,.,.,.,,,.,,..,
-#DMISR7SSUXX57J5ATD2Q3X3OY4BELLX5UMC6SPR6EYS6TLMPXSEHGHD6GA2O733I7VTTSFYUEV37E
-#\\\|DB2I5UWLD4QI7U3MBG775N4FJ6JCKAYILZIWGRR2OSXUPBSZJCC \ / AMOS7 \ YOURUM ::
-#\[7]VN3UGSCX6TW22YEJ5RYLIXQTDCYFKO5AKHLV36YJMRE2HHJSPIDA 7  DATA SIGNATURE ::
+## Report final status ##
+if ( !@{ $result->{failed_deb} } and !@{ $result->{failed_cpan} } ) {
+    $result->{success} = TRUE;
+    if ( @{ $result->{installed_deb} } or @{ $result->{installed_cpan} } ) {
+        <[base.logs]>->( 1, ":. installation complete" );
+        <[base.buffer.add_line]>->( qw| perlmod-install |, '✓ installation complete' );
+
+        ## Update statistics ##
+        <perlmod.install.stats>{successful}++;
+        <perlmod.install.stats>{debian_pkgs} += scalar @{ $result->{installed_deb} };
+        <perlmod.install.stats>{cpan_mods} += scalar @{ $result->{installed_cpan} };
+    }
+} else {
+    $result->{error} = 'some packages failed to install';
+    <[base.logs]>->( 0, "  ✗ installation had failures" );
+    <[base.buffer.add_line]>->( qw| perlmod-install |, '✗ installation had failures' );
+    <perlmod.install.stats>{failed}++;
+}
+
+<perlmod.install.stats>{total_attempts}++;
+
+return $result;
+
+#,,.,,..,,.,,,,..,.,,,,,,,,,.,,.,,.,.,,..,.,.,..,,...,...,,,,,,..,.,.,,.,,,,.,
+#QYKBEX4A6QZ76ONAHFDAWRNCFLOY4FT2P4HNIGR6RBOQM6UBYPYZNODNT4KS7PPWZJ2DV6GBKFNHO
+#\\\|DXD5XCS7CLDQJ3CCKMU3IPJW2H6UVA6YRFARULN7YUL2Z74XJKP \ / AMOS7 \ YOURUM ::
+#\[7]6SD2TJXTWW3H4H7Q7YHFOAWJDUXYBI2MTDT65XJW3O6Q6BPPPKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
