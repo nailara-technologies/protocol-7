@@ -136,8 +136,12 @@ foreach my $commit (@$commits) {
     }
 
     ## Step 1: Check version file at this commit
-    my $version_file_content = `cd $repo_path && git show $hash:$version_file_rel 2>/dev/null`;
-    if ($? == 0 && length $version_file_content) {
+    my $cmd = "cd $repo_path && git show $hash:$version_file_rel 2>&1";
+    <[base.logs]>->( 1, "    Running: cd %s && git show %.8s:%s", $repo_path, $hash, $version_file_rel );
+    my $version_file_content = `$cmd`;
+    my $exit_code = $?;
+    <[base.logs]>->( 1, "    Exit code: %d, Content length: %d", $exit_code, length($version_file_content) );
+    if ($exit_code == 0 && length $version_file_content) {
         <[base.log]>->( 1, "    Version file found, checking signature..." );
 
         ## Step 2: Extract and validate version file signature
