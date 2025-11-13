@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = base.perlmod.init_install_buffers
+# descr = Initialize tracking buffers for CPAN module installation operations
+
+## Installation activity log buffer ##
+<buffer.perlmod-install.max_size> //= 32 * 1024;    ## 32K buffer for install logs ##
+
+my $zenka_init = defined $data{'buffer'}{'perlmod-install'}{'data'}
+    ? qw| re-init |
+    : qw| init |;
+
+my $init_msg = sprintf '.:[ zenka %s | CPAN module installation tracker ]:.', $zenka_init;
+
+## Reset buffer if it only has initialization message ##
+if (    $zenka_init eq qw| re-init |
+    and $data{'buffer'}{'perlmod-install'}{'data'}->@* == 3 ) {
+    undef $data{'buffer'}{'perlmod-install'}{'data'}->@*;
+    $data{'buffer'}{'perlmod-install'}{'size'} = 0;
+}
+
+## Populate buffer with initialization message ##
+<[base.buffer.add_line]>->( qw| perlmod-install |, '' ) if $zenka_init eq qw| init |;
+<[base.buffer.add_line]>->( qw| perlmod-install |, $init_msg );
+<[base.buffer.add_line]>->( qw| perlmod-install |, '' );
+
+## Initialize statistics tracking ##
+<perlmod.install.stats> //= {
+    total_attempts => 0,
+    successful     => 0,
+    failed         => 0,
+    debian_pkgs    => 0,
+    cpan_mods      => 0,
+};
+
+## List structure for installation statistics ##
+<list.perlmod-stats> = {
+    qw| var |      => qw| data |,
+    qw| key |      => qw| perlmod.install.stats |,
+    qw| descr |    => 'CPAN module installation statistics',
+    qw| mask |     => 'total_attempts:attempts successful:success failed:failures debian_pkgs:deb cpan_mods:cpan',
+    qw| align |    => {
+        qw| total_attempts | => qw| center |,
+        qw| successful |     => qw| center |,
+        qw| failed |         => qw| center |,
+        qw| debian_pkgs |    => qw| center |,
+        qw| cpan_mods |      => qw| center |,
+    }
+};
+
+## List structure for installation activity log ##
+<list.perlmod-log> = {
+    qw| var |      => qw| data |,
+    qw| key |      => qw| buffer.perlmod-install.data |,
+    qw| descr |    => 'CPAN module installation activity log',
+    qw| no_sort |  => 1,    ## maintain chronological order ##
+};
+
+return 0;
+
+#,,.,,,,.,,.,,,,.,.,.,,.,,...,...,.,,,,.,,..,,..,,...,...,,.,,.,,,,,,,,,,,,..,
+#D6GOAJ7AI63VNWLGCPRRM34DABOFTSQR7TMJOE23HTNGLHP2V2MTGCD3I3ZGMC2WRLGGHSDAZVFRC
+#\\\|R52AAWA23C5Q2WFGMTBJIN2IWAZ66Q65FZNINMOCYXMGC4326PM \ / AMOS7 \ YOURUM ::
+#\[7]ULOBVMHNKBZ6RXIVAQV4WTI3SWWPPMVE5PYJHYLGGEU64IGDMIAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
