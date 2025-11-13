@@ -5,13 +5,12 @@
 my $hash_ref = shift;
 warn 'expected hash reference <{C1>' if ref($hash_ref) ne qw| HASH |;
 
-( undef, my $maxlen )
-    = minmax map { length( $hash_ref->{$ARG} ) // 0 } keys %$hash_ref;
+my $maxlen = max map { length( $hash_ref->{$ARG} ) // 0 } keys %$hash_ref;
 
 return $maxlen;
 
-#,,..,,,,,...,...,...,.,.,,.,,,..,,.,,.,,,,..,..,,...,...,.,,,,,,,.,.,...,,,.,
-#XQE44TFWCJHP2KTN5EBKTTC4PRR6GVS2JP5JOSEBU7Y624JCWKKKU2RWP3A362EOQKOHOQHKN6VQC
-#\\\|CJXDBS3V3RJCOGKINWYPFLXPSY55OMCLG65MTX7YCVIWDLZ75JK \ / AMOS7 \ YOURUM ::
-#\[7]EOX77L2O2Y64GXJV5WOVLW5VQKIJPGAFPEIAK36SD2W7VLQCM4AA 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,..,.,.,.,.,,,,,,,.,,..,...,...,..,,...,...,.,.,,..,...,..,,...,
+#YLMW7ZB3VN3DQDOETBCGKCZLJ3PTLBKVV6GYX3NDK4YDIV66MHS2HVEEU2TLDV4SWLXO74BXEWXT2
+#\\\|J6QMHE3NCU3PNIP2JHUPBZA6IDR7F4BL57XVD5TEL4KIQZC2SLT \ / AMOS7 \ YOURUM ::
+#\[7]3YB7LYB4I62UH67DCAQXQEVAEZS7NYKAH5IYHFREIFONDHWWPOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

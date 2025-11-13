@@ -10,6 +10,7 @@ my ( $stdout, $stderr, $exit ) = capture {
     system qw| git status |;
 };
 chomp $stdout;
+my %displayed;
 
 foreach my $line (
     sort { length $a <=> length $b }
@@ -19,12 +20,13 @@ foreach my $line (
     next if index( $line, qw| : | ) == -1;
     next if $line =~ m|:$|;        ##  show only 'modified:'  ##
     $line =~ s|^.*[ \t]+||;
+    next if $displayed{$line}++;
 
     say $line;
 }
 
-#,,,.,,,,,,..,.,.,,..,,..,..,,,,,,,.,,...,.,,,..,,...,..,,.,,,.,.,,,.,,..,.,.,
-#ZQMJBFSOTIIN73PP3XENWFTOIWAMKYZ3G4NVZWNKHI4MYIWEOEXSSUA7KU4DXACXOAYRVMQYH5T4K
-#\\\|ZP2W5IZHZ6RTWSMLDXCJPQY4Y2U2XPI2CRM6DTWTPHI3QVPNN2V \ / AMOS7 \ YOURUM ::
-#\[7]NZOZQUSGHOZG53GKQ3BXUYEWFPUMUC64XT37ZGAFRIW7TDCZ6OCY 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,.,,,..,,,,,...,.,.,..,,..,,,.,,..,,...,...,...,,,.,.,.,.,,,,.,,
+#LHM66DM5A32WWAOG57HIR3TG6G3IUVWKIFANA4K4RMPCEIB3OXSSYIIM62EVPOMUVB6O57KQFVAEU
+#\\\|KLYINCENE5KBI6IDEWPD4U3PLH5HE7C54RNDEITKCDMX6XIOLG2 \ / AMOS7 \ YOURUM ::
+#\[7]IISJELEKSTAY5RFXZDSETI2VPJ32FA7Z4YAH25ZVFHKQUVCFOODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

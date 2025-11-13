@@ -15,7 +15,7 @@ if ( not defined $command_cache->{$source_version} ) {    ## cache output ##
     my @commands_list = <[base.reverse-sort]>
         ->( grep {s|^protocol\.amos-chksum\.ext\-cmd\.||} keys %code );
 
-    ( undef, my $maxlen ) = minmax map {length} @commands_list;
+    my $maxlen = max map {length} @commands_list;
     $command_cache->{$source_version} = join '', map {
         ##  prevent namespace collisions [ protocol.., ]  ##  [LLL]
         sprintf( "%*s : %s\n",
@@ -25,8 +25,8 @@ if ( not defined $command_cache->{$source_version} ) {    ## cache output ##
 
 return { 'mode' => qw| data |, 'data' => $command_cache->{$source_version} };
 
-#,,.,,,.,,...,,.,,..,,.,.,,..,..,,.,.,..,,,.,,..,,...,...,,..,,,,,,.,,,,.,,,.,
-#7ZZ6F7W3P4RM475GLXZ2AYY5UIOOWJQPNU3MLUFJKT6UVLDKMPDTVNZM5KV7RQK23SMRRXWZZB2V4
-#\\\|EWAFNK5LNLWCTON6G3HCRUACWSW342X77PTMS4WOHMMHMBKTASW \ / AMOS7 \ YOURUM ::
-#\[7]4YE3IBULZRU4R2HDT6APLVS2A3UD765CDJV6ABDWE7UAJ2XFKEBY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,,,,,,,,.,,,...,,,,,,..,...,...,..,,...,..,,...,,.,,.,,,...,.,,,
+#A447I3CTFXD2KD7HLLV46SCCP5HA4GYFZVX7B4Q3WIC56YBUEYE5JHMZC2BMRQYMPRVOVJ55H6PXI
+#\\\|HLLJSYPDMVEVUQ43I6W4MI6YIBAPD3W7VTSNORYIQSE7YHY5ZEN \ / AMOS7 \ YOURUM ::
+#\[7]KOJ7UWVHEG3PFV2IX3UOXCL427H2J4A6HQNJBGG7CA4D3P2S5KCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

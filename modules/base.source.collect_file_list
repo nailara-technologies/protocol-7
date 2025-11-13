@@ -84,14 +84,20 @@ push(    ## enabling [non-recursive] wildcard matches ##
 
         # Special case: standalone * or patterns without directory separator
         # These should match in the work_tree root
-        if ( $original_pattern eq '*' or ( $original_pattern !~ m|/| and $original_pattern =~ m|\*| ) ) {
+        if ( $original_pattern eq '*'
+            or ( $original_pattern !~ m|/| and $original_pattern =~ m|\*| ) )
+        {
             # Try glob in work_tree
-            my @glob_results = glob(catfile($work_tree, $original_pattern));
+            my @glob_results
+                = glob( catfile( $work_tree, $original_pattern ) );
             if (@glob_results) {
-                # Return matching directories; files will be collected by file.all_files
+
+                # Return matching directories;
+                # files will be collected by file.all_files
                 grep {-d} @glob_results;
             } else {
-                # No glob matches, return the work_tree itself as fallback for *
+
+              # No glob matches, return the work_tree itself as fallback for *
                 if ( $original_pattern eq '*' ) {
                     $work_tree;
                 } else {
@@ -103,6 +109,7 @@ push(    ## enabling [non-recursive] wildcard matches ##
                 }
             }
         } else {
+
             # Original logic for patterns with path separators
             my $absolute_path = catfile( $work_tree, $base_path );
 
@@ -116,11 +123,13 @@ push(    ## enabling [non-recursive] wildcard matches ##
             } else {
                 $absolute_path = abs_path($absolute_path);
 
-# Special case: pattern ending with /* means scan immediate files non-recursively
-# This is different from /*/ which means find subdirectories
+                # Special case: pattern ending with /* means scan immediate
+                # files non-recursively This is different from /*/ which
+                # means find subdirectories
                 if ( $original_pattern =~ m|/\*$| and $pattern eq '*' ) {
 
-            # Add the base directory itself to be scanned for immediate files only
+                    # Add the base directory itself to be scanned for
+                    # immediate files only
                     ($absolute_path);
                 } else {
 
@@ -180,7 +189,8 @@ foreach my $absolute_path (@all_dirs) {
     <[file.all_files]>->( $absolute_path, \@all_files );
 }
 
-# Deduplicate absolute paths before converting to relative paths
+## Deduplicate absolute paths
+# before converting to relative
 @all_files = uniq @all_files;
 
 my @source_paths
@@ -220,8 +230,8 @@ NXT_PATH:
 
 return @source_paths;
 
-#,,,.,...,,,,,,.,,,,.,,,.,..,,...,.,.,..,,,,,,..,,...,...,.,,,...,.,,,.,,,..,,
-#BRU5OE3XVQWFJV3WGJFTOGI5DH5MAN7SX6IJXQ3YOMS3KAHHAIR5TJN6PMURAXW6CKT2DOW4L2TUA
-#\\\|3BBCVFMZD6ANLHBLL7RPA3NRUBGALX76N4HADRPN65RYNBBPIWG \ / AMOS7 \ YOURUM ::
-#\[7]F24KI3MHHAPSUOSDMY6XS5IA6T7TNPLRR6XGRLN2LNLONMPBA2BI 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,..,,,,,,...,,.,,..,,..,,.,,,.,,,..,,...,...,.,.,,.,,.,,,,,,,.,.,
+#F6MECL53IKLIHQ62YPJM7HWESNKFCAFCTPNWBFDNS4NHLOIIVY4JPPZVOFX5UEBVBI2IUY4UFVX3M
+#\\\|CZSI3KIFCV3OX4LVPO6Z7UYGIJIUXHKX2FQWG7OUT6KNE6C53PW \ / AMOS7 \ YOURUM ::
+#\[7]XARQRDF6RBXUVRHVJGGELA4RZ4THAELZTDXLTMOYN3C643YS36CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

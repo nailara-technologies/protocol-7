@@ -9,18 +9,15 @@ my $cfg_ref = {
 };
 
 my $max_name_length = {
-    qw| strt-conf | =>
-        [ minmax map {length} keys $cfg_ref->{'strt-conf'}->%* ]->[1],
-    qw| exec-conf | =>
-        [ minmax map {length} keys $cfg_ref->{'exec-conf'}->%* ]->[1],
+    qw| strt-conf | => max map {length} keys $cfg_ref->{'strt-conf'}->%*,
+    qw| exec-conf | => max map {length} keys $cfg_ref->{'exec-conf'}->%*,
 };
 
 $reply->{'mode'} = qw| size |;
 $reply->{'data'} = '';
 
 my $total_maxlen
-    = [ minmax map { $max_name_length->{$ARG} } keys $max_name_length->%* ]
-    ->[1];
+    = max map { $max_name_length->{$ARG} } keys $max_name_length->%*;
 
 my $left_column_limit   = 24;
 my $desc_column_min_len = 50;
@@ -28,7 +25,7 @@ my $desc_column_min_len = 50;
 my $wrap_len = 78 - $total_maxlen;
 $wrap_len = $desc_column_min_len if $wrap_len < $desc_column_min_len;
 
-say '< wrap len > ', $wrap_len;
+# say '< wrap len > ', $wrap_len;
 
 foreach my $cfg_type ( <[base.sort]>->($cfg_ref) ) {
 
@@ -43,7 +40,7 @@ foreach my $cfg_type ( <[base.sort]>->($cfg_ref) ) {
         } keys $cfg_ref->{$cfg_type}->%*
     );
 
-    my $max_len = [ minmax map {length} @shortened_key ]->[1];
+    my $max_len = max map {length} @shortened_key;
 
     if ( $total_maxlen - $max_len > 2 ) {
         $max_len += sprintf qw| %.0f |, ( $total_maxlen - $max_len ) * 0.6;
@@ -72,8 +69,8 @@ foreach my $cfg_type ( <[base.sort]>->($cfg_ref) ) {
     $reply->{'data'} .= ".\n";
 }
 
-#,,,,,.,,,,,.,...,,.,,...,,.,,.,,,..,,,,.,,..,..,,...,...,.,.,,..,,,,,...,...,
-#RCCJVDW3ECMSFJLJZ445VY6B7XIIOOEHVGSD4HDDPPHWC26B22KQRDDOJX5CDD2JQOGI5SKOZRX74
-#\\\|2CDDRZU6KGB5QHRVAVHF53GSWRL7HYZRR7TPRJPJN6QR47TDWIC \ / AMOS7 \ YOURUM ::
-#\[7]4CGVEXG4J7TLJZR33RSPNCKNEPY3TKCBH3KL7Z53W6TDZ2U46KBI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,..,,,..,..,,..,,.,,,,,.,,.,,,.,,..,,...,..,,,.,,.,.,,,,,...,.,,,
+#GGSTYOPAL4ZFHLCJ5G44ATI27XXREYYQ3TRMGU5U4W75AIDMZHSQ4J7WGHN6UXLPNFRBD33OKUOAO
+#\\\|VVXGWADWJ66NLYAWCCVGO6QAF7VAOSCBPYQEYO4ASK4LGKB4B4D \ / AMOS7 \ YOURUM ::
+#\[7]XEALA4RQC676YVHIOY7XZDAZSHCIRVRRVAT776J6SG6LEXECVCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

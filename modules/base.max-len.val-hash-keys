@@ -5,15 +5,15 @@
 my $hash_ref = shift;
 warn 'expected hash reference <{C1>' if ref $hash_ref ne qw| HASH |;
 
-( undef, my $maxlen ) = minmax map {
+my $maxlen = max map {
     map {length}
         keys %{ $hash_ref->{$ARG} // {} }
 } keys $hash_ref->%*;
 
 return $maxlen;
 
-#,,..,...,,..,,..,.,.,,..,,.,,,..,.,.,...,,..,..,,...,...,..,,,,.,...,...,.,.,
-#4E7MWJQLTZK6HDSKYE54XSTYGPZV35XEOPOQFHELBGKM5TOTTMBNDD2V42VEY2MRXQAI7Z35XDEE4
-#\\\|TCKYX6NAH5Q7LTAJIHTPBPXQZ3BW2BZAPODEHOYD4RCJXHCIWWQ \ / AMOS7 \ YOURUM ::
-#\[7]YQ3CR56J2VJ7VQG62QIK7FTXSB3STQACKHZGU6OBIZL6JMCCLUCA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,.,,...,...,,,.,...,...,,.,,..,,..,,...,...,,,.,,,,,,,.,.,.,,,,,
+#AOKXMZB6IQGM27QCHYOSLZTBTU5QXRFKYHIBWJ3L3U6GEY6M6UKZ7AXR7JNASWAVZ2O4W3K2XECPE
+#\\\|AYQM2PBZALY3GT656V4P6ESO7EMERZA75KKPNIY22VBE6ADUIPH \ / AMOS7 \ YOURUM ::
+#\[7]LPVRX5AENFMRYSVQAOHXUBGT6WPVCCE62FXTOC6V7VNG7TP4QSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
