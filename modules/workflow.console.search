@@ -1,0 +1,178 @@
+## [:< ##
+
+# name  = workflow.console.search
+# descr = search workflow data yaml AI notes modules and config files
+
+my $pattern = shift // '';
+
+## Extend %colors hash with workflow-specific colors ##
+$colors{'wf_neon_red'}   //= <system.ansi_color> ? "\e[38;2;195;6;71m" : '';
+$colors{'wf_dim_blue'}   //= <system.ansi_color> ? "\e[38;2;6;71;195;128m" : '';
+$colors{'wf_neon_green'} //= <system.ansi_color> ? "\e[38;2;71;195;6m" : '';
+
+## Use Protocol-7 color scheme ##
+my $reset       = $colors{'reset'};
+my $blacklight  = $colors{'p7_fg_0000'};
+my $TRUE_blue   = $colors{'p7_fg_0004'};
+my $neon_orange = $colors{'p7_fg_0002'};
+my $neon_green  = $colors{'wf_neon_green'};
+my $neon_red    = $colors{'wf_neon_red'};
+my $dim_blue    = $colors{'wf_dim_blue'};
+my $nailara_bg  = $colors{'B02'};
+
+if (!length $pattern) {
+    say '';
+    say "${blacklight}.:[ ${neon_red}ERROR${blacklight} ]:.$reset";
+    say '';
+    say "  Usage: ${neon_orange}workflow search <pattern>${reset}";
+    say '';
+    say "  Search locations:";
+    say "    ${dim_blue}•${reset} data/yaml/ ${dim_blue}(workflow data)${reset}";
+    say "    ${dim_blue}•${reset} data/asc/what-AI-thinks/ ${dim_blue}(AI notes)${reset}";
+    say "    ${dim_blue}•${reset} modules/workflow.* ${dim_blue}(workflow code)${reset}";
+    say "    ${dim_blue}•${reset} configuration/zenki/workflow/ ${dim_blue}(workflow config)${reset}";
+    say '';
+    return 1;
+}
+
+say '';
+say "${blacklight}.:[ ${TRUE_blue}WORKFLOW SEARCH${blacklight} ]:. ${dim_blue}pattern: ${neon_orange}$pattern$reset";
+say '';
+
+## Use Protocol-7 auto-detected system paths ##
+my $root_path = <system.root_path>;
+my $conf_path = <system.conf_path>;
+my $code_path = <system.code_path>;
+
+my $total_matches = 0;
+my $case_insensitive = lc($pattern) eq $pattern;
+
+## Define search paths using system paths ##
+my @search_paths = (
+    {
+        path => "$root_path/data/yaml",
+        desc => 'Workflow YAML Data',
+        types => [qw| yaml yml |]
+    },
+    {
+        path => "$root_path/data/asc/what-AI-thinks",
+        desc => 'AI Notes & Documentation',
+        types => [qw| md markdown txt |]
+    },
+    {
+        path => $code_path,
+        desc => 'Workflow Source Code',
+        filter => sub { $_[0] =~ m|/workflow\.| }
+    },
+    {
+        path => "$conf_path/zenki/workflow",
+        desc => 'Workflow Configuration',
+        types => [qw| * |]
+    }
+);
+
+## Search each location ##
+foreach my $location (@search_paths) {
+    my $path = $location->{path};
+    next unless -d $path;
+
+    my @files;
+
+    if ($location->{types}) {
+        ## Collect files by extension ##
+        my @exts = @{$location->{types}};
+        if (grep { $_ eq '*' } @exts) {
+            @files = `find '$path' -type f 2>/dev/null`;
+        } else {
+            foreach my $ext (@exts) {
+                push @files, `find '$path' -type f -name '*.$ext' 2>/dev/null`;
+            }
+        }
+    } elsif ($location->{filter}) {
+        ## Custom filter ##
+        my @all_files = `find '$path' -type f 2>/dev/null`;
+        @files = grep { $location->{filter}->($_) } @all_files;
+    }
+
+    chomp @files;
+    next unless @files;
+
+    my $section_matches = 0;
+    my $section_header_shown = 0;
+
+    foreach my $file (@files) {
+        next unless -f $file;
+
+        open my $fh, '<', $file or next;
+        my @lines = <$fh>;
+        close $fh;
+
+        my $line_num = 0;
+        my $file_header_shown = 0;
+
+        foreach my $line (@lines) {
+            $line_num++;
+
+            my $matched = $case_insensitive
+                ? $line =~ m{$pattern}i
+                : $line =~ m{$pattern};
+
+            if ($matched) {
+                ## Show section header ##
+                if (!$section_header_shown) {
+                    say "${blacklight}┌─[ ${neon_green}$location->{desc}${blacklight} ]$reset";
+                    say "${blacklight}│$reset";
+                    $section_header_shown = 1;
+                }
+
+                ## Show file header ##
+                if (!$file_header_shown) {
+                    my $display_path = $file;
+                    $display_path =~ s|^$root_path/||;
+                    say "${blacklight}├──[ ${TRUE_blue}$display_path${blacklight} ]$reset";
+                    $file_header_shown = 1;
+                }
+
+                ## Show matching line ##
+                chomp $line;
+                $line =~ s/^\s+//;  ## trim leading whitespace
+
+                ## Highlight pattern in line ##
+                my $highlighted = $line;
+                if ($case_insensitive) {
+                    $highlighted =~ s/($pattern)/${neon_orange}$1${reset}/gi;
+                } else {
+                    $highlighted =~ s/($pattern)/${neon_orange}$1${reset}/g;
+                }
+
+                printf "${blacklight}│${reset}   ${dim_blue}%4d:${reset} %s\n",
+                    $line_num, $highlighted;
+
+                $section_matches++;
+                $total_matches++;
+            }
+        }
+    }
+
+    if ($section_header_shown) {
+        say "${blacklight}│$reset";
+        say "${blacklight}│${reset}   ${dim_blue}Found $section_matches matches$reset";
+        say "${blacklight}└$reset";
+        say '';
+    }
+}
+
+## Summary ##
+if ($total_matches > 0) {
+    say "${blacklight}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$reset";
+    say '';
+    say "  ${neon_green}✓${reset} Found ${neon_orange}$total_matches${reset} total matches";
+    say '';
+} else {
+    say "${blacklight}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$reset";
+    say '';
+    say "  ${dim_blue}No matches found for pattern: ${neon_orange}$pattern$reset";
+    say '';
+}
+
+return 0;

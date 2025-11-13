@@ -1,0 +1,93 @@
+## [:< ##
+
+# name  = workspace-transfer.console.checkpoint
+# descr = quick checkpoint commit and push (Protocol-7 styled console output)
+
+## Protocol-7 color scheme ##
+my $reset      = "\e[0m";
+my $nailara_bg = "\e[48;2;9;5;42m";
+my $blacklight = "\e[38;2;68;39;172m";
+my $TRUE_blue  = "\e[38;2;6;71;195m";
+my $neon_orange = "\e[38;2;197;141;7m";
+my $neon_green = "\e[38;2;71;195;6m";
+my $neon_red   = "\e[38;2;195;6;71m";
+
+<[base.perlmod.autoload]>->(qw| POSIX |);
+
+my $message = shift || sprintf("Checkpoint: %s", POSIX::strftime("%Y-%m-%d %H:%M:%S", localtime()));
+
+my $ws_dir = workspace_transfer::chdir_workspace();
+<[base.exit]>->(qw| 0110 |) unless defined $ws_dir;
+
+# Add all changes
+system('git', 'add', '-A') == 0 or do {
+    <[base.logs]>->( 0, 'git add failed: %s', $! );
+    <[base.exit]>->(qw| 0110 |);
+};
+
+# Show what will be committed
+say "";
+say "$blacklight" . "=" x 70 . "$reset";
+say "$blacklight .:[ ${TRUE_blue}CHECKPOINT SAVE${blacklight} ]:.$reset";
+say "$blacklight" . "=" x 70 . "$reset";
+say "";
+say "${TRUE_blue}Changes to commit:$reset";
+say "";
+
+my @status = `git status --short`;
+if (@status) {
+    foreach (@status) {
+        chomp;
+        s/^\s*M\s+/${neon_orange}M$reset /;
+        s/^\s*A\s+/${neon_green}A$reset /;
+        s/^\s*D\s+/${neon_red}D$reset /;
+        s/^\s*\?\?\s+/${blacklight}?$reset /;
+        say "  $_";
+    }
+} else {
+    say "  ${blacklight}(no changes)$reset";
+}
+
+say "";
+say "${blacklight}Message:$reset ${neon_orange}$message$reset";
+say "";
+
+# Commit
+my $commit_result = system('git', 'commit', '--no-gpg-sign', '-m', $message);
+
+if ($commit_result == 0) {
+    say "$neon_green✓$reset ${neon_green}Committed successfully$reset";
+
+    # Get current branch
+    my $branch = `git branch --show-current`;
+    chomp $branch;
+
+    # Push to remote
+    say "";
+    say "${TRUE_blue}Pushing to GitHub...$reset";
+
+    my $push_result = system('git', 'push', '-u', 'origin', $branch);
+
+    if ($push_result == 0) {
+        say "";
+        say "$neon_green✓$reset ${neon_green}Pushed to remote successfully$reset";
+        say "";
+        say "$neon_green" . "🌳 " . "$reset${TRUE_blue}Checkpoint saved to GitHub!$reset $neon_green" . "🌳" . "$reset";
+    } else {
+        say "";
+        say "$neon_orange⚠$reset Push failed, but commit is local. Will retry on next checkpoint.";
+    }
+} else {
+    say "";
+    say "${blacklight}ℹ$reset Nothing to commit (working tree clean)";
+}
+
+say "";
+say "$blacklight" . "=" x 70 . "$reset";
+say "";
+
+#,,.,,,.,,,.,.,,,,.,,.,,,.,,,,,,.,,.,,,.,.,...,...,,.,,,.,.,.,,,.,.,,,.,,.,,,,.
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

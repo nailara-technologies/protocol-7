@@ -1,0 +1,147 @@
+## [:< ##
+
+# name  = workspace-transfer.cmd.bug
+# descr = bug tracking system
+
+<[base.perlmod.autoload]>->(qw| POSIX |);
+
+my $cmd = shift || 'list';
+my @args = @_;
+
+my $ws_dir = workspace_transfer::chdir_workspace();
+<[base.exit]>->(qw| 0110 |) unless defined $ws_dir;
+
+my $bug_file = 'BUGS.md';
+
+if ($cmd eq 'list') {
+    unless (-f $bug_file) {
+        say "No bugs tracked yet. Add one with: bug add <description>";
+        return;
+    }
+
+    open my $fh, '<', $bug_file or do {
+        <[base.logs]>->( 0, 'cannot read BUGS.md: %s', $! );
+        <[base.exit]>->(qw| 0110 |);
+    };
+
+    my $count = 0;
+    my $fixed = 0;
+    while (<$fh>) {
+        if (/^- \[ \]/) {
+            $count++;
+            print;
+        } elsif (/^- \[x\]/) {
+            $fixed++;
+        } else {
+            print;
+        }
+    }
+    close $fh;
+
+    say "";
+    say "=" x 60;
+    say sprintf "Open: %d | Fixed: %d | Total: %d", $count, $fixed, ($count + $fixed);
+    say "=" x 60;
+
+} elsif ($cmd eq 'add') {
+    die "Usage: bug add <description>\n" unless @args;
+
+    my $desc = join(' ', @args);
+    my $timestamp = POSIX::strftime("%Y-%m-%d %H:%M:%S", localtime());
+
+    # Read existing bugs to get next ID
+    my $next_id = 1;
+    if (-f $bug_file) {
+        open my $fh, '<', $bug_file or do {
+            <[base.logs]>->( 0, 'cannot read BUGS.md: %s', $! );
+            <[base.exit]>->(qw| 0110 |);
+        };
+        while (<$fh>) {
+            if (/\[BUG-(\d+)\]/) {
+                my $id = $1;
+                $next_id = $id + 1 if $id >= $next_id;
+            }
+        }
+        close $fh;
+    }
+
+    open my $fh, '>>', $bug_file or do {
+        <[base.logs]>->( 0, 'cannot write BUGS.md: %s', $! );
+        <[base.exit]>->(qw| 0110 |);
+    };
+    print $fh sprintf "- [ ] **[BUG-%d]** %s\n", $next_id, $desc;
+    print $fh "  - Reported: $timestamp\n";
+    print $fh "  - Status: Open\n";
+    print $fh "\n";
+    close $fh;
+
+    say sprintf "✓ Bug BUG-%d added: %s", $next_id, $desc;
+
+} elsif ($cmd eq 'fixed') {
+    my ($bug_id) = @args;
+    die "Usage: bug fixed <bug_id>\n" unless defined $bug_id;
+
+    $bug_id =~ s/^BUG-//i;  # Allow "BUG-1" or just "1"
+
+    unless (-f $bug_file) {
+        say "No bugs to mark fixed.";
+        return;
+    }
+
+    open my $fh, '<', $bug_file or do {
+        <[base.logs]>->( 0, 'cannot read BUGS.md: %s', $! );
+        <[base.exit]>->(qw| 0110 |);
+    };
+    my @lines = <$fh>;
+    close $fh;
+
+    my $found = 0;
+    for my $i (0..$#lines) {
+        if ($lines[$i] =~ /^- \[ \].*\[BUG-$bug_id\]/) {
+            $lines[$i] =~ s/^- \[ \]/- [x]/;
+            $found = 1;
+
+            # Update status line
+            for my $j ($i+1..$#lines) {
+                if ($lines[$j] =~ /Status: Open/) {
+                    $lines[$j] =~ s/Status: Open/Status: Fixed/;
+                    $lines[$j] =~ s/\n$//;
+                    $lines[$j] .= " (" . POSIX::strftime("%Y-%m-%d", localtime()) . ")\n";
+                    last;
+                }
+                last if $lines[$j] =~ /^- \[/;  # Next bug
+            }
+
+            open my $out, '>', $bug_file or do {
+                <[base.logs]>->( 0, 'cannot write BUGS.md: %s', $! );
+                <[base.exit]>->(qw| 0110 |);
+            };
+            print $out @lines;
+            close $out;
+
+            say sprintf "✓ Bug BUG-%d marked as fixed", $bug_id;
+            return;
+        }
+    }
+
+    say sprintf "Bug BUG-%d not found", $bug_id unless $found;
+
+} elsif ($cmd eq 'help') {
+    say "Bug Tracking System";
+    say "";
+    say "Usage:";
+    say "  bug list              - List all bugs (default)";
+    say "  bug add <desc>        - Add a new bug";
+    say "  bug fixed <id>        - Mark bug as fixed";
+    say "  bug help              - Show this help";
+
+} else {
+    say "Unknown command: $cmd";
+    say "Run 'bug help' for usage";
+}
+
+#,,.,,,.,.,,,,.,.,,.,,,.,.,.,,.,,,..,,.,,.,,,...,...,,.,,,.,.,,.,,,,.,..,,.,,,.
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

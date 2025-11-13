@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = workflow.cmd.bug-list
+# descr = aggregate bugs from workspace-transfer sources
+
+my $bugs = <[workflow.aggregate_bugs]>;
+
+# Group by repo
+my %by_repo;
+foreach my $bug (@$bugs) {
+    my $repo = $bug->{repo} || 'unknown';
+    push @{$by_repo{$repo}}, $bug;
+}
+
+# Output JSON format for API consumption
+say "=== BUG AGGREGATION ===";
+say "";
+
+foreach my $repo (sort keys %by_repo) {
+    my $items = $by_repo{$repo};
+    say sprintf "Repository: %s (%d bugs)", $repo, scalar @$items;
+
+    foreach my $bug (@$items) {
+        say sprintf "  [BUG-%s] %s", $bug->{bug_id}, $bug->{title};
+        say sprintf "      Priority: %s | Status: %s", $bug->{priority}, $bug->{status};
+        say "";
+    }
+}
+
+my $total = scalar @$bugs;
+say "=== TOTAL: $total bugs ===";
+
+#,,.,,,.,,,,,,.,,,,.,.,,,.,,,.,.,.,,,.,.,,,...,...,,.,,,.,,,,.,,,,.,,,.,,.,,.,,,.
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

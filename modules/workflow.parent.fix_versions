@@ -7,24 +7,39 @@ my $params = shift || {};
 
 my $dry_run = $params->{dry_run} // 1;  ## Safe by default
 my $auto_approve = $params->{auto_approve} // 0;
+my $key_phrase = $params->{key_phrase} // '';
+my $abort_after_valid = $params->{abort_after_valid} // 13;  ## Default optimization
+my $display_limit = $params->{display_limit} // 20;  ## Show first N commits in dry-run
+my $show_all = $params->{show_all} // 0;  ## Override display_limit
 
 <[base.log]>->( 2, "workflow.fix_versions: analyzing commits needing version fixes..." );
 
-## Ensure history is scanned
-unless (<workflow.history.scanned>) {
-    <[workflow.parent.scan_history]>;
+## TODO: Load signing key when actual rewriting is implemented
+## For now, just check that execute mode will fail gracefully
+unless ($dry_run) {
+    <[base.log]>->( 2, "  Execute mode requested..." );
+}
+
+## Ensure history is scanned with parameters
+my $last_scan = <workflow.history.scanned> // 0;
+unless ($last_scan > 0) {
+    <[workflow.parent.scan_history]>->({
+        key_phrase => $key_phrase,
+        abort_after_valid => $abort_after_valid
+    });
 }
 
 ## Find commits missing versions
 my @commits_to_fix;
 
-foreach my $hash (keys %{<workflow.history.issues>}) {
-    my $issue = $data{'workflow'}{'history'}{'issues'}{$hash};
+my $issues_ref = <workflow.history.issues> // {};
+foreach my $hash (keys %{$issues_ref}) {
+    my $issue = $issues_ref->{$hash} // next;
 
-    if ($issue->{type} eq 'missing_version') {
+    if (($issue->{type} // '') eq 'missing_version') {
         push @commits_to_fix, {
             hash   => $hash,
-            commit => $issue->{commit}
+            commit => $issue->{commit} // {}
         };
     }
 }
@@ -43,38 +58,262 @@ unless ($total_to_fix) {
 <[base.log]>->( 2, "  Found $total_to_fix commits missing version numbers" );
 
 if ($dry_run) {
-    <[base.log]>->( 2, "  DRY RUN - showing what would be fixed:" );
-
-    foreach my $item (@commits_to_fix) {
-        <[base.log]>->( 2, sprintf("    %s: %s",
-            substr($item->{hash}, 0, 7),
-            $item->{commit}{subject}
-        ));
-    }
+    ## Limit commits returned based on display_limit
+    my $display_count = $show_all ? $total_to_fix : ($display_limit < $total_to_fix ? $display_limit : $total_to_fix);
+    my @commits_to_display = @commits_to_fix[0..($display_count-1)];
 
     return {
         success => 1,
         dry_run => 1,
         would_fix => $total_to_fix,
-        commits => \@commits_to_fix
+        displayed => $display_count,
+        has_more => ($total_to_fix > $display_count),
+        commits => \@commits_to_display,
+        all_commits => \@commits_to_fix  ## Full list if needed
     };
 }
 
-## TODO: Implement actual rewriting
-## This is complex - needs:
-## 1. Generate version number for each commit (based on position in history)
-## 2. Use git filter-branch or git rebase to rewrite commit messages
-## 3. Only touch affected commits (surgical)
-## 4. Preserve signatures where possible
-## 5. Resign modified commits
+## Execute mode: Actually rewrite commits
+<[base.log]>->( 1, "  EXECUTE MODE: Rewriting $total_to_fix commits..." );
+<[base.log]>->( 1, "  WARNING: This will rewrite git history!" );
 
-<[base.log]>->( 1, "  ⚠ Actual rewriting not yet implemented" );
-<[base.log]>->( 1, "    This requires careful git filter-branch logic" );
+## Load source and sourcecode modules for AMOS7 commit signing
+unless (exists $code{'source.sign_data'}) {
+    <[base.log]>->( 2, "  Loading source and sourcecode modules..." );
+    <[base.load_modules]>->('source');
+    <[base.load_modules]>->('sourcecode');
+}
+
+## Load signing key - let keys zenka auto-detect and handle everything
+my $sig_key_name = <source.C25519.signature_key_name> // qw| proto-7.sourcecode |;
+<[base.log]>->( 2, "  Loading signature key '$sig_key_name'..." );
+
+## Check if key is already loaded in memory (with private key for signing)
+my $key_already_loaded = exists $keys{'C25519'}{$sig_key_name}
+    && exists $keys{'C25519'}{$sig_key_name}{'private'}
+    && exists $keys{'C25519'}{$sig_key_name}{'public'};
+
+unless ($key_already_loaded) {
+    ## Try to load the key - keys zenka will auto-detect type and ask for passphrase if needed
+    my $load_success = <[source.load_signature_key]>->($sig_key_name);
+
+    unless ($load_success) {
+        return {
+            success => 0,
+            error   => "Failed to load signature key '$sig_key_name' - keys zenka could not load or generate key"
+        };
+    }
+}
+
+## Verify key is now loaded with PRIVATE key (needed for signing)
+unless (exists $keys{'C25519'}{$sig_key_name}
+    && exists $keys{'C25519'}{$sig_key_name}{'private'}
+    && exists $keys{'C25519'}{$sig_key_name}{'public'}) {
+    return {
+        success => 0,
+        error   => "Signature key '$sig_key_name' not properly loaded - missing private key needed for signing"
+    };
+}
+
+<[base.log]>->( 2, "  ✓ Signature key loaded" );
+
+## Get repository path
+my $repo_path = <git.cfg.repository_path>;
+unless (-d $repo_path) {
+    return {
+        success => 0,
+        error   => "Repository path not found: $repo_path"
+    };
+}
+
+## Generate version numbers for each commit (based on position in history)
+<[base.log]>->( 2, "  Generating version numbers..." );
+
+## Generate network timestamp for this versioning operation
+my $network_timestamp = <[base.ntime.b32]>;
+unless ($network_timestamp) {
+    return {
+        success => 0,
+        error   => 'Failed to generate network timestamp'
+    };
+}
+
+<[base.log]>->( 2, sprintf("  Using network timestamp: %s", $network_timestamp) );
+
+my %commit_versions;  ## hash -> version string (TIMESTAMP-COUNT.0)
+my $commit_index = 0;
+
+## Get full commit history to calculate positions
+my $log_result = <[git.parent.get_log]>->({});
+unless ($log_result->{success}) {
+    return {
+        success => 0,
+        error   => 'Failed to get full commit history'
+    };
+}
+
+my @all_commits = reverse @{$log_result->{commits}};  ## oldest first
+for (my $i = 0; $i < @all_commits; $i++) {
+    my $hash = $all_commits[$i]{hash};
+    my $count = $i + 1;  ## 1-indexed
+    ## Format: TIMESTAMP-COUNT.0 (e.g., 3K26XZWHJI-5339.0)
+    $commit_versions{$hash} = sprintf("%s-%d.0", $network_timestamp, $count);
+}
+
+<[base.log]>->( 2, sprintf("  ✓ Generated %d version numbers", scalar(keys %commit_versions)) );
+
+## Pre-compute AMOS7 signatures for all commit messages
+<[base.log]>->( 2, "  Pre-computing AMOS7 signatures..." );
+
+my %commit_signatures;  ## hash -> signature
+
+for (my $i = 0; $i < @all_commits; $i++) {
+    my $commit = $all_commits[$i];
+    my $hash = $commit->{hash};
+    my $version = $commit_versions{$hash};
+    my $original_subject = $commit->{subject};
+
+    ## Build new message with version number
+    my $new_message = "[$version] $original_subject";
+
+    ## Sign the new message
+    my $signature = <[source.sign_data]>->(\$new_message);
+
+    unless ($signature) {
+        return {
+            success => 0,
+            error   => "Failed to generate signature for commit $hash"
+        };
+    }
+
+    $commit_signatures{$hash} = $signature;
+}
+
+<[base.log]>->( 2, sprintf("  ✓ Generated %d signatures", scalar(keys %commit_signatures)) );
+
+## Create message filter script
+<[base.log]>->( 2, "  Creating message filter script..." );
+
+my $filter_script = "$repo_path/.git/workflow-msg-filter.pl";
+my $data_file = "$repo_path/.git/workflow-commit-data.txt";
+
+## Write version+signature mappings to file for filter script to read
+open(my $vfh, '>', $data_file) or do {
+    return {
+        success => 0,
+        error   => "Cannot create data file: $!"
+    };
+};
+
+foreach my $hash (keys %commit_versions) {
+    my $version = $commit_versions{$hash};
+    my $signature = $commit_signatures{$hash} // '';
+    say {$vfh} "$hash\t$version\t$signature";
+}
+close($vfh);
+
+## Create the msg-filter script
+my $filter_code = <<'FILTER_END';
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use warnings;
+
+my $data_file = $ENV{WORKFLOW_DATA_FILE};
+my $commit_hash = $ENV{GIT_COMMIT};
+
+## Load version and signature mappings
+my %commit_data;  ## hash -> {version, signature}
+if (open(my $fh, '<', $data_file)) {
+    while (my $line = <$fh>) {
+        chomp $line;
+        if ($line =~ /^(\S+)\t(\d+)\t(.*)$/) {
+            $commit_data{$1} = {
+                version   => $2,
+                signature => $3
+            };
+        }
+    }
+    close($fh);
+}
+
+## Read commit message from stdin
+my $message = do { local $/; <STDIN> };
+
+## Add version and signature if this commit needs them
+if (exists $commit_data{$commit_hash}) {
+    my $data = $commit_data{$commit_hash};
+    my $version = $data->{version};
+    my $signature = $data->{signature} // '';
+
+    ## Only add version if not already present (check for full format TIMESTAMP-COUNT.MINOR)
+    unless ($message =~ /^\[[A-Z0-9]+-\d+\.\d+\]/) {
+        $message = "[$version] $message";
+    }
+
+    ## Add AMOS7 signature if available and not already present
+    if (length($signature) && $message !~ /#[A-Z0-9]{64}#/) {
+        chomp $message;
+        $message .= " #$signature#\n";
+    }
+}
+
+print $message;
+FILTER_END
+
+open(my $sfh, '>', $filter_script) or do {
+    return {
+        success => 0,
+        error   => "Cannot create filter script: $!"
+    };
+};
+print {$sfh} $filter_code;
+close($sfh);
+chmod 0755, $filter_script;
+
+<[base.log]>->( 2, "  ✓ Message filter created" );
+
+## Find oldest commit that needs fixing
+my @commit_hashes = map { $_->{hash} } @commits_to_fix;
+my $oldest_hash = $commit_hashes[-1];  ## Last in list (oldest)
+
+<[base.log]>->( 1, "  Running git filter-branch..." );
+<[base.log]>->( 1, "    This may take several minutes for large histories" );
+
+## Set environment for filter script
+$ENV{WORKFLOW_DATA_FILE} = $data_file;
+
+## Run git filter-branch
+my $git_cmd = sprintf(
+    'cd %s && git filter-branch -f --msg-filter %s --',
+    $repo_path,
+    $filter_script
+);
+
+my $output = `$git_cmd 2>&1`;
+my $exit_code = $? >> 8;
+
+## Clean up temporary files
+unlink $filter_script;
+unlink $data_file;
+
+if ($exit_code != 0) {
+    <[base.log]>->( 0, "  ✗ Git filter-branch failed:" );
+    <[base.log]>->( 0, "  $output" );
+    return {
+        success => 0,
+        error   => "Git filter-branch failed (exit: $exit_code)",
+        output  => $output
+    };
+}
+
+<[base.log]>->( 1, "  ✓ Git history rewritten successfully" );
+<[base.log]>->( 1, "  ✓ Added version numbers and AMOS7 signatures to $total_to_fix commits" );
 
 return {
-    success => 0,
-    error   => 'Rewriting not yet implemented - TODO',
-    would_fix => $total_to_fix
+    success => 1,
+    fixed   => $total_to_fix,
+    message => "Successfully added version numbers and AMOS7 signatures to $total_to_fix commits"
 };
 
 0;

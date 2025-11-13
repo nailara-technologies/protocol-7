@@ -9,7 +9,10 @@ my $secret_key          = shift;    ##  optional  ##
 my $harmoic_public_keys = TRUE;     ##  public key truth requirement  ##
 
 my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name_param);
-my $name         = $key_vars_ref->{'key_name'};
+my $name         = $key_vars_ref->{'key_name'} // $key_name_param;
+
+##  fallback to parameter when key_vars fails  ##
+$name //= join( qw| . |, ( $ENV{'USER'} // getpwuid($EUID) ), qw| base | );
 
 $keys{'C25519'} //= {};
 

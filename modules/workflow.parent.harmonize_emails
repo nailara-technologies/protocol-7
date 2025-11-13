@@ -1,44 +1,73 @@
 ## [:< ##
 
 # name = workflow.parent.harmonize_emails
-# descr = Standardize email addresses across git history (surgical rewrite)
+# descr = Standardize author names and email addresses across git history (surgical rewrite)
 
 my $params = shift || {};
 
 my $dry_run = $params->{dry_run} // 1;  ## Safe by default
-my $email_map = $params->{email_map} // {};  ## User-provided mapping
+my $email_map = $params->{email_map} // {};  ## User-provided email mapping
+my $author_map = $params->{author_map} // {};  ## User-provided author mapping
+my $key_phrase = $params->{key_phrase} // '';
+my $abort_after_valid = $params->{abort_after_valid} // 13;  ## Default optimization
 
-<[base.log]>->( 2, "workflow.harmonize: analyzing email addresses in history..." );
+<[base.log]>->( 2, "workflow.harmonize: analyzing author names and email addresses in history..." );
 
-## Ensure history is scanned
-unless (<workflow.history.scanned>) {
-    <[workflow.parent.scan_history]>;
+## Ensure history is scanned with parameters
+my $last_scan = <workflow.history.scanned> // 0;
+unless ($last_scan > 0) {
+    <[workflow.parent.scan_history]>->({
+        key_phrase => $key_phrase,
+        abort_after_valid => $abort_after_valid
+    });
 }
 
 ## Build canonical email mapping
-my %canonical_map = %{<workflow.email.canonical>};
+my %canonical_email_map = %{<workflow.email.canonical> // {}};
+
+## Build canonical author mapping
+my %canonical_author_map = %{<workflow.author.canonical> // {}};
 
 ## Add user-provided overrides
 foreach my $variant (keys %$email_map) {
-    $canonical_map{$variant} = $email_map->{$variant};
+    $canonical_email_map{$variant} = $email_map->{$variant};
 }
 
-## Collect all unique emails from git history
+foreach my $variant (keys %$author_map) {
+    $canonical_author_map{$variant} = $author_map->{$variant};
+}
+
+## Collect all unique emails and authors from git history
 my $log_result = <[git.parent.get_log]>;
 my %emails_seen;
+my %authors_seen;
 my %email_commits;
+my %author_commits;
 
 foreach my $commit (@{$log_result->{commits}}) {
+    ## Filter by key phrase if provided
+    if (length $key_phrase) {
+        my $match = $commit->{subject} =~ m/\Q$key_phrase\E/i
+                 || $commit->{author} =~ m/\Q$key_phrase\E/i
+                 || $commit->{email} =~ m/\Q$key_phrase\E/i;
+        next unless $match;
+    }
+
     my $email = $commit->{email};
+    my $author = $commit->{author};
+
     $emails_seen{$email}++;
+    $authors_seen{$author}++;
     push @{$email_commits{$email}}, $commit->{hash};
+    push @{$author_commits{$author}}, $commit->{hash};
 }
 
 <[base.log]>->( 2, "  Found " . scalar(keys %emails_seen) . " unique email addresses" );
+<[base.log]>->( 2, "  Found " . scalar(keys %authors_seen) . " unique author names" );
 
-## Auto-detect canonical forms (most common variant wins)
+## Auto-detect canonical email forms (most common variant wins)
 foreach my $email (keys %emails_seen) {
-    next if exists $canonical_map{$email};  ## Already mapped
+    next if exists $canonical_email_map{$email};  ## Already mapped
 
     ## Extract base email (before @)
     if ($email =~ /^([^@]+)@(.+)$/) {
@@ -53,8 +82,35 @@ foreach my $email (keys %emails_seen) {
 
             ## Map all variants to most common
             foreach my $variant (@variants) {
-                $canonical_map{$variant} = $most_common unless $variant eq $most_common;
+                $canonical_email_map{$variant} = $most_common unless $variant eq $most_common;
             }
+        }
+    }
+}
+
+## Auto-detect canonical author forms (most common variant wins)
+foreach my $author (keys %authors_seen) {
+    next if exists $canonical_author_map{$author};  ## Already mapped
+
+    ## Check for similar author names (case-insensitive, whitespace normalized)
+    my $normalized = lc($author);
+    $normalized =~ s/\s+/ /g;
+    $normalized =~ s/^\s+|\s+$//g;
+
+    my @variants = grep {
+        my $other = lc($_);
+        $other =~ s/\s+/ /g;
+        $other =~ s/^\s+|\s+$//g;
+        $other eq $normalized
+    } keys %authors_seen;
+
+    if (@variants > 1) {
+        ## Find most common variant
+        my $most_common = (sort { $authors_seen{$b} <=> $authors_seen{$a} } @variants)[0];
+
+        ## Map all variants to most common
+        foreach my $variant (@variants) {
+            $canonical_author_map{$variant} = $most_common unless $variant eq $most_common;
         }
     }
 }
@@ -62,9 +118,10 @@ foreach my $email (keys %emails_seen) {
 ## Count how many commits would be affected
 my $commits_to_change = 0;
 my %changes_by_email;
+my %changes_by_author;
 
-foreach my $variant (keys %canonical_map) {
-    my $canonical = $canonical_map{$variant};
+foreach my $variant (keys %canonical_email_map) {
+    my $canonical = $canonical_email_map{$variant};
 
     if ($variant ne $canonical && $email_commits{$variant}) {
         my $count = scalar(@{$email_commits{$variant}});
@@ -76,22 +133,49 @@ foreach my $variant (keys %canonical_map) {
     }
 }
 
-<[base.log]>->( 2, "  Commits needing email changes: $commits_to_change" );
+foreach my $variant (keys %canonical_author_map) {
+    my $canonical = $canonical_author_map{$variant};
+
+    if ($variant ne $canonical && $author_commits{$variant}) {
+        my $count = scalar(@{$author_commits{$variant}});
+        $commits_to_change += $count;
+        $changes_by_author{$variant} = {
+            canonical => $canonical,
+            commits   => $count
+        };
+    }
+}
+
+<[base.log]>->( 2, "  Commits needing email changes: " . scalar(keys %changes_by_email) );
+<[base.log]>->( 2, "  Commits needing author changes: " . scalar(keys %changes_by_author) );
 
 if ($dry_run) {
     <[base.log]>->( 2, "  DRY RUN - showing proposed changes:" );
 
-    foreach my $variant (sort keys %changes_by_email) {
-        my $info = $changes_by_email{$variant};
-        <[base.log]>->( 2, sprintf("    %s → %s (%d commits)",
-            $variant, $info->{canonical}, $info->{commits}));
+    if (%changes_by_email) {
+        <[base.log]>->( 2, "  Email changes:" );
+        foreach my $variant (sort keys %changes_by_email) {
+            my $info = $changes_by_email{$variant};
+            <[base.log]>->( 2, sprintf("    %s → %s (%d commits)",
+                $variant, $info->{canonical}, $info->{commits}));
+        }
+    }
+
+    if (%changes_by_author) {
+        <[base.log]>->( 2, "  Author changes:" );
+        foreach my $variant (sort keys %changes_by_author) {
+            my $info = $changes_by_author{$variant};
+            <[base.log]>->( 2, sprintf("    %s → %s (%d commits)",
+                $variant, $info->{canonical}, $info->{commits}));
+        }
     }
 
     return {
-        success       => 1,
-        dry_run       => 1,
-        would_change  => $commits_to_change,
-        email_mapping => \%changes_by_email
+        success        => 1,
+        dry_run        => 1,
+        would_change   => $commits_to_change,
+        email_mapping  => \%changes_by_email,
+        author_mapping => \%changes_by_author
     };
 }
 

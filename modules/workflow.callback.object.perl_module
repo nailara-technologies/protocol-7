@@ -1,0 +1,26 @@
+## [:< ##
+
+# name = workflow.callback.object.perl_module
+# descr = Callback to check if a perl module dependency is fulfilled
+
+my $object_id = shift;
+
+## Get the dependency object ##
+my $object = <dependency.object>->{$object_id};
+return 0 unless defined $object;
+
+my $module_name = $object->{module_name};
+return 0 unless defined $module_name;
+
+## Check if perl module can be loaded ##
+my $is_available = eval "require $module_name; 1";
+
+return $is_available ? 1 : 0;
+
+0;
+
+#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -42,9 +42,11 @@ $log_msg =~ s|\0|\\0|g;
 $log_msg =~ s|\e|\\e|g;
 
 ## prevent deep recursions in error log system ###
+## Only trigger on actual Perl "Deep recursion on subroutine" warnings
+## (not on commit messages that happen to mention "deep recursion")
 ##
 my $fatal_exit
-    = ( $log_msg =~ m|deep recursion |i and $log_msg =~ m,log|buffer, )
+    = ( $log_msg =~ m|Deep recursion on subroutine| )
     ? TRUE
     : FALSE;
 

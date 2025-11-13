@@ -1,0 +1,32 @@
+#!/usr/bin/perl
+## [:< ##
+
+# name  = workflow.todo
+# descr = Todo list management via workspace-transfer zenka
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use File::Spec;
+use Cwd qw| abs_path |;
+use FindBin qw| $RealBin |;
+
+my $up_dir = File::Spec->updir;
+my $p7_root = abs_path(
+    File::Spec->catdir( $RealBin, ($up_dir) x 4 )
+);
+
+my $workspace_todo = File::Spec->catfile(
+    $p7_root, 'configuration', 'zenki', 'workspace-transfer', 'source', 'todo'
+);
+
+die ":\n:: workspace-transfer todo not found: $workspace_todo\n\n" if !-x $workspace_todo;
+
+exec( $workspace_todo, @ARGV );
+
+#,,,.,.,,,.,,,.,,,,.,,.,,,.,.,.,,,,.,.,,.,,,...,...,,.,,..,,..,,.,.,.,,,,,.,.,,,.
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

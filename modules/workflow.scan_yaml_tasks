@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = workflow.scan_yaml_tasks
+# descr = scan data/yaml for task files
+
+my %tasks;
+my $yaml_data_dir = <workflow.cfg.yaml_data_dir>;
+return \%tasks unless -d $yaml_data_dir;
+
+# Scan coding-tasks
+my $coding_tasks_dir = "$yaml_data_dir/coding-tasks";
+if (-d $coding_tasks_dir) {
+    opendir my $dh, $coding_tasks_dir or return \%tasks;
+    while (my $file = readdir($dh)) {
+        next unless $file =~ /\.yaml$/;
+        my $path = "$coding_tasks_dir/$file";
+        eval {
+            my $task_data = YAML::XS::LoadFile($path);
+            $tasks{$file} = {
+                path => $path,
+                data => $task_data,
+                type => 'coding-task',
+                source => 'protocol-7'
+            };
+        };
+    }
+    closedir $dh;
+}
+
+# Scan deferred-tasks
+my $deferred_dir = "$yaml_data_dir/deferred-tasks";
+if (-d $deferred_dir) {
+    opendir my $dh, $deferred_dir or return \%tasks;
+    while (my $file = readdir($dh)) {
+        next unless $file =~ /\.yaml$/;
+        my $path = "$deferred_dir/$file";
+        eval {
+            my $task_data = YAML::XS::LoadFile($path);
+            $tasks{$file} = {
+                path => $path,
+                data => $task_data,
+                type => 'deferred-task',
+                source => 'protocol-7'
+            };
+        };
+    }
+    closedir $dh;
+}
+
+return \%tasks;
+
+#,,,.,.,,,.,,,.,,,,,.,.,,,.,,,.,,,.,.,...,...,,.,,,.,,,,,,.,,,.,.,,,.,.,.,.,.,.,.,,,.
+#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
+#\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
+#\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

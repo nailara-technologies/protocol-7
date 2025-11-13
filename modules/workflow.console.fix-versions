@@ -1,21 +1,38 @@
 ## [:< ##
 
 # name  = workflow.console.fix-versions
-# param = [execute]
-# descr = fix missing version numbers in git history (replaces bin/dev/update-version functionality)
+# param = [execute] [key_phrase]
+# descr = fix missing version numbers in git history with optional key phrase filter (aborts after 13 consecutive valid)
 
-my $param = shift;
-my $dry_run = (!$param || $param ne 'execute') ? 1 : 0;
+my $param1 = shift // '';
+my $param2 = shift // '';
+
+## Determine execute mode and key phrase
+my $dry_run = 1;
+my $key_phrase = '';
+
+if ($param1 eq 'execute') {
+    $dry_run = 0;
+    $key_phrase = $param2;
+} elsif (length $param1) {
+    $key_phrase = $param1;
+}
 
 <[base.log]>->( 1, "Fixing version numbers in git history..." );
 
+if (length $key_phrase) {
+    <[base.log]>->( 1, "  Filtering by key phrase: '$key_phrase'" );
+}
+
 if ($dry_run) {
-    <[base.log]>->( 1, "DRY RUN mode - use 'fix-versions execute' to apply changes" );
+    <[base.log]>->( 1, "DRY RUN mode - use 'fix-versions execute [key_phrase]' to apply changes" );
 }
 
 ## Trigger fix
 my $result = <[workflow.parent.fix_versions]>->({
-    dry_run => $dry_run
+    dry_run => $dry_run,
+    key_phrase => $key_phrase,
+    abort_after_valid => 13
 });
 
 if ($result->{dry_run}) {
@@ -25,11 +42,19 @@ if ($result->{dry_run}) {
         return say "::\n: ✓ All commits have version numbers\n::";
     }
 
+    my $displayed = $result->{displayed} || 0;
+    my $has_more = $result->{has_more} || 0;
+
     my @output;
     push @output, "::";
     push @output, ": Version Fix Analysis (DRY RUN)";
     push @output, ":";
-    push @output, sprintf(": Commits needing fixes: %d", $count);
+    push @output, sprintf(": Total commits needing fixes: %d", $count);
+
+    if ($has_more) {
+        push @output, sprintf(": Showing first %d commits (use 'show_all' for full list)", $displayed);
+    }
+
     push @output, ":";
     push @output, ": Commits that would be modified:";
 
@@ -38,6 +63,11 @@ if ($result->{dry_run}) {
             substr($commit->{hash}, 0, 7),
             $commit->{commit}{subject}
         );
+    }
+
+    if ($has_more) {
+        my $remaining = $count - $displayed;
+        push @output, sprintf(":   ... and %d more commits", $remaining);
     }
 
     push @output, ":";

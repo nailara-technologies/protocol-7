@@ -8,17 +8,21 @@ my $params = shift || {};
 my $force_refresh = $params->{force} // 0;
 my $limit = $params->{limit} // 0;
 my $format = $params->{format} // 'full';
+my $branch_scope = $params->{branch_scope} // 'HEAD';  ## 'HEAD', 'all', or specific branch name
 
-## Check cache
+## Check cache (keyed by branch scope to avoid cross-contamination)
 unless ($force_refresh) {
-    my $cache_age = time() - <git.cache.log_time>;
+    my $cache_key = "log_$branch_scope";
+    my $time_key = "log_time_$branch_scope";
 
-    if (<git.cfg.cache_log> && $cache_age < 300 && @{<git.cache.log>}) {
-        <[base.log]>->( 3, "git.log: using cached log (age: ${cache_age}s)" );
+    my $cache_age = time() - ($data{'git'}{'cache'}{$time_key} // 0);
+    my $cached_log = $data{'git'}{'cache'}{$cache_key} // [];
+
+    if (<git.cfg.cache_log> && $cache_age < 300 && @$cached_log) {
+        <[base.log]>->( 3, "git.log: using cached log for '$branch_scope' (age: ${cache_age}s)" );
         $data{'git'}{'stats'}{'cache_hits'}++;
 
-        my $log = <git.cache.log>;
-        return { success => 1, commits => $limit ? [@{$log}[0..($limit-1)]] : $log };
+        return { success => 1, commits => $limit ? [@{$cached_log}[0..($limit-1)]] : $cached_log };
     }
 }
 
@@ -28,11 +32,21 @@ $data{'git'}{'stats'}{'cache_misses'}++;
 ## Get git log via wrapper or direct command
 my @commits;
 
+## Determine git log arguments based on branch scope
+my @scope_args;
+if ($branch_scope eq 'all') {
+    @scope_args = ('--all');
+} elsif ($branch_scope eq 'HEAD') {
+    @scope_args = ('HEAD');
+} else {
+    @scope_args = ($branch_scope);  ## Specific branch name
+}
+
 if (<git.cfg.use_wrapper> && exists $code{'git.parent.execute_wrapper'}) {
     ## Use Git::Wrapper for proper parsing
     my $result = <[git.parent.execute_wrapper]>->({
         command => 'log',
-        args    => ['--all', '--format=%H|%an|%ae|%at|%s']
+        args    => [@scope_args, '--format=%H|%an|%ae|%at|%s']
     });
 
     if ($result->{success}) {
@@ -53,7 +67,8 @@ if (<git.cfg.use_wrapper> && exists $code{'git.parent.execute_wrapper'}) {
     my $git_bin = <workflow.cfg.git_binary> || 'git';
     my $repo = <git.cfg.repository_path>;
 
-    my $output = `cd $repo && $git_bin log --all --format='%H|%an|%ae|%at|%s' 2>&1`;
+    my $scope_arg_str = join(' ', @scope_args);
+    my $output = `cd $repo && $git_bin log $scope_arg_str --format='%H|%an|%ae|%at|%s' 2>&1`;
 
     foreach my $line (split /\n/, $output) {
         next unless $line =~ m/\|/;
@@ -70,11 +85,13 @@ if (<git.cfg.use_wrapper> && exists $code{'git.parent.execute_wrapper'}) {
     }
 }
 
-<[base.log]>->( 2, "  Fetched " . scalar(@commits) . " commits" );
+<[base.log]>->( 2, "  Fetched " . scalar(@commits) . " commits from '$branch_scope'" );
 
-## Update cache
-<git.cache.log> = [@commits];
-<git.cache.log_time> = time();
+## Update cache (keyed by branch scope)
+my $cache_key = "log_$branch_scope";
+my $time_key = "log_time_$branch_scope";
+$data{'git'}{'cache'}{$cache_key} = [@commits];
+$data{'git'}{'cache'}{$time_key} = time();
 
 return {
     success => 1,

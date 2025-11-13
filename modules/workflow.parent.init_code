@@ -5,9 +5,9 @@
 
 <[base.log]>->( 2, 'initializing workflow orchestration zenka..,' );
 
-## Configuration
+## Configuration - always use auto-detected root path (override any cached value)
 <workflow.cfg.git_binary>          //= '/usr/bin/git';
-<workflow.cfg.root_path>           //= '/data/projects/protocol-7';
+<workflow.cfg.root_path>           = <system.root_path>;
 <workflow.cfg.signing_key_loaded>  //= 0;   ## Track if key decrypted this session
 <workflow.cfg.auto_scan_on_start>  //= 0;   ## Auto-scan history at startup
 <workflow.cfg.version_seed>        //= 54;  ## AMOS7 version seed
@@ -30,15 +30,14 @@
     version_gap     => 'Version sequence has gaps'
 };
 
-## Statistics
-<workflow.stats> = {
-    commits_total       => 0,
-    commits_analyzed    => 0,
-    issues_found        => 0,
-    commits_rewritten   => 0,
-    commits_resigned    => 0,
-    history_scans       => 0
-};
+## Statistics - initialize all fields to prevent undefined warnings
+<workflow.stats> //= {};
+<workflow.stats.commits_total>    //= 0;
+<workflow.stats.commits_analyzed> //= 0;
+<workflow.stats.issues_found>     //= 0;
+<workflow.stats.commits_rewritten> //= 0;
+<workflow.stats.commits_resigned>  //= 0;
+<workflow.stats.history_scans>    //= 0;
 
 ## Email harmonization map
 <workflow.email.canonical> = {
