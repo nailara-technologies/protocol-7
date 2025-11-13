@@ -28,6 +28,7 @@ unless ($force) {
 
 <[base.log]>->( 2, "workflow.scan: scanning git history for issues..." );
 <[base.log]>->( 3, "  Scope: $branch_scope" ) if $branch_scope ne 'HEAD';
+<[base.log]>->( 1, sprintf("  abort_after_valid = %d (0 = scan all commits)", $abort_after_valid) );
 
 ## Load source module and key for validation
 unless (exists $code{'source.signature_valid'}) {
@@ -42,14 +43,24 @@ unless (exists $code{'source.signature_valid'}) {
 
 ## Load public key for verification (no passphrase needed)
 my $sig_key_name = <source.C25519.signature_key_name> // qw| proto-7.sourcecode |;
+<[base.log]>->( 1, sprintf("  Using signature key: '%s'", $sig_key_name) );
+
 unless (exists $keys{'C25519'}{$sig_key_name} && exists $keys{'C25519'}{$sig_key_name}{'public'}) {
-    <[base.log]>->( 3, "  Loading public key for verification..." );
+    <[base.log]>->( 1, "  Loading public key for verification..." );
     ## Try loading from embedded public key first
     if (exists $code{'base.protocol-7.source-key'} && <[base.protocol-7.source-key]>) {
+        <[base.log]>->( 1, "    Loading from embedded public key..." );
         <[crypt.C25519.load_from_string]>->($sig_key_name, <[base.protocol-7.source-key]>);
     } elsif (<[crypt.C25519.key_exists]>->($sig_key_name)) {
+        <[base.log]>->( 1, "    Loading from key file..." );
         <[crypt.C25519.load_keypair]>->($sig_key_name, undef, TRUE, FALSE);
     }
+}
+
+if (exists $keys{'C25519'}{$sig_key_name} && exists $keys{'C25519'}{$sig_key_name}{'public'}) {
+    <[base.log]>->( 1, "  ✓ Signature key loaded successfully" );
+} else {
+    <[base.log]>->( 0, "  ✗ WARNING: Signature key NOT loaded - validation will fail!" );
 }
 
 ## Get paths
@@ -111,6 +122,10 @@ foreach my $commit (@$commits) {
     ## Allow event processing for Ctrl+C abort
     <[event.once]>->(0.0007);
 
+    ## Log commit being checked
+    my $hash_short = substr($hash, 0, 7);
+    <[base.log]>->( 2, sprintf("  [%d/%d] Checking commit %s: %s", $commits_scanned, $total, $hash_short, substr($subject, 0, 60)) );
+
     ## Optional: Track version numbers if present in commit message
     ## (These will be added by fix_versions, so initially won't exist)
     if ($subject =~ m/^\[[A-Z0-9]+-(\d+)\.\d+\]/) {
@@ -120,17 +135,22 @@ foreach my $commit (@$commits) {
     ## Step 1: Check version file at this commit
     my $version_file_content = `git show $hash:$version_file_rel 2>/dev/null`;
     if ($? == 0 && length $version_file_content) {
+        <[base.log]>->( 1, "    Version file found, checking signature..." );
+
         ## Step 2: Extract and validate version file signature
         my $footer_data = <[source.extract_sig_body]>->(\$version_file_content, 'strip', 'strict');
 
         ## Check if signature present and structurally valid
         if ($footer_data && $footer_data->{'was-present'} && $footer_data->{'structure-was-valid'}) {
+            <[base.log]>->( 1, "    Signature footer present and structurally valid, validating cryptographically..." );
+
             ## Validate the signature
             my ($is_valid, $report) = <[source.signature_valid]>->(
                 \$version_file_content, $footer_data, {}, $sig_key_name, 'strict'
             );
 
             if ($is_valid) {
+                <[base.log]>->( 1, "    ✓ Version file signature cryptographically VALID" );
                 ## Step 3: Version file signature is valid - validate ALL source files at this commit
                 <[base.log]>->( 3, "  Validating all source files at commit $hash..." );
 
@@ -170,6 +190,7 @@ foreach my $commit (@$commits) {
 
                 if ($invalid_files > 0) {
                     ## Found invalid source files at this commit
+                    <[base.log]>->( 1, "    ✗ Source file validation failed (checked $valid_files/$total_files files)" );
                     $data{'workflow'}{'history'}{'issues'}{$hash} = {
                         type    => qw| invalid_sources |,
                         commit  => $commit,
@@ -179,10 +200,11 @@ foreach my $commit (@$commits) {
                     $has_issues = 1;
                 } else {
                     ## All source files valid!
-                    <[base.log]>->( 3, "  ✓ Commit $hash: all $valid_files source files valid" );
+                    <[base.log]>->( 1, "    ✓ All $valid_files source files VALID - commit is fully validated!" );
                 }
             } else {
                 ## Version file signature cryptographically invalid
+                <[base.log]>->( 1, "    ✗ Version file signature cryptographically INVALID" );
                 $data{'workflow'}{'history'}{'issues'}{$hash} = {
                     type    => qw| invalid_version_file |,
                     commit  => $commit,
@@ -193,6 +215,9 @@ foreach my $commit (@$commits) {
             }
         } else {
             ## Version file has no signature or malformed structure
+            my $was_present = $footer_data->{'was-present'} // 0;
+            my $struct_valid = $footer_data->{'structure-was-valid'} // 0;
+            <[base.log]>->( 1, sprintf("    ✗ Signature footer issue (present=%s, struct_valid=%s)", $was_present, $struct_valid) );
             $data{'workflow'}{'history'}{'issues'}{$hash} = {
                 type    => qw| unsigned_version_file |,
                 commit  => $commit,
@@ -203,6 +228,7 @@ foreach my $commit (@$commits) {
         }
     } else {
         ## Version file doesn't exist at this commit
+        <[base.log]>->( 1, "    ✗ Version file NOT FOUND at this commit" );
         $data{'workflow'}{'history'}{'issues'}{$hash} = {
             type    => qw| missing_version_file |,
             commit  => $commit,
@@ -218,12 +244,19 @@ foreach my $commit (@$commits) {
 
     ## Count consecutive valid commits for early abort
     if ($has_issues) {
+        if ($consecutive_valid > 0) {
+            <[base.log]>->( 1, sprintf("  Consecutive valid reset (was %d, threshold %d)", $consecutive_valid, $abort_after_valid) );
+        }
         $consecutive_valid = 0;  ## Reset counter
     } else {
         $consecutive_valid++;
+        <[base.log]>->( 1, sprintf("  Consecutive valid: %d / %d (abort_after_valid=%d)",
+            $consecutive_valid, $abort_after_valid, $abort_after_valid) );
 
         ## Abort if we've seen enough consecutive valid commits
         if ($abort_after_valid > 0 && $consecutive_valid >= $abort_after_valid) {
+            <[base.log]>->( 1, sprintf("  EARLY ABORT: reached %d consecutive valid commits (threshold: %d)",
+                $consecutive_valid, $abort_after_valid) );
             <[base.log]>->( 2, "  Early abort: found $consecutive_valid consecutive valid commits" );
             last;
         }
