@@ -163,9 +163,9 @@ foreach my $commit (@$commits) {
         <[base.logs]>->( 2, "      BEFORE: length=%d, hash_lines=%d, last_line=%s", $content_len_before, $has_hash_lines, substr($last_line, 0, 40) );
 
         ## Step 2: Extract and validate version file signature
-        ## Use 'repair' mode to accept old BMW checksum endline encoding (pre-oscillation-fix)
+        ## BUG SUSPECT: 'strip' mode might corrupt state or modify content
         my $content_copy = $version_file_content;  ## Make a copy to protect original
-        my $footer_data = <[source.extract_sig_body]>->(\$content_copy, 'strip', 'repair');
+        my $footer_data = <[source.extract_sig_body]>->(\$content_copy, 'strip', 'strict');
 
         ## Debug: Check if content was modified
         my $content_len_after = length($version_file_content);
@@ -175,12 +175,7 @@ foreach my $commit (@$commits) {
         if ($footer_data) {
             my $was_present = $footer_data->{'was-present'} // 0;
             my $struct_valid = $footer_data->{'structure-was-valid'} // 0;
-            my $template_mismatch = $footer_data->{'template_mismatch'} // 0;
-            <[base.logs]>->( 2, "      extract_sig_body: present=%d, struct_valid=%d, template_mismatch=%d",
-                $was_present, $struct_valid, $template_mismatch );
-            if ($template_mismatch) {
-                <[base.log]>->( 1, "    Note: Old BMW checksum format detected (pre-oscillation-fix)" );
-            }
+            <[base.logs]>->( 2, "      extract_sig_body: present=%d, struct_valid=%d", $was_present, $struct_valid );
         } else {
             <[base.log]>->( 2, "      extract_sig_body returned undef!" );
         }
@@ -190,9 +185,8 @@ foreach my $commit (@$commits) {
             <[base.log]>->( 1, "    Signature footer present and structurally valid, validating cryptographically..." );
 
             ## Validate the signature (use the same copy we extracted from)
-            ## Use 'repair' mode to enable BMW checksum recovery for old signatures
             my ($is_valid, $report) = <[source.signature_valid]>->(
-                \$content_copy, $footer_data, {}, $sig_key_name, 'repair'
+                \$content_copy, $footer_data, {}, $sig_key_name, 'strict'
             );
 
             if ($is_valid) {
