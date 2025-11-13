@@ -108,6 +108,9 @@ foreach my $commit (@$commits) {
     $commits_scanned++;
     my $has_issues = 0;
 
+    ## Allow event processing for Ctrl+C abort
+    <[event.once]>->(0.07);
+
     ## Optional: Track version numbers if present in commit message
     ## (These will be added by fix_versions, so initially won't exist)
     if ($subject =~ m/^\[[A-Z0-9]+-(\d+)\.\d+\]/) {
@@ -138,6 +141,9 @@ foreach my $commit (@$commits) {
                 my $invalid_files = 0;
 
                 foreach my $file_path (@source_paths) {
+                    ## Allow event processing for Ctrl+C abort during file validation
+                    <[event.once]>->(0.07);
+
                     ## Read file at this commit
                     my $file_content = `git show $hash:$file_path 2>/dev/null`;
                     next if $? != 0 || !length $file_content;
