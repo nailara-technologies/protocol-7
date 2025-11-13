@@ -1,0 +1,460 @@
+---
+# Protocol-7 LLM Development Workflow
+# This workflow describes the complete system for LLM-assisted development
+# with persistent signing keys, dual-key validation, and trust chain verification
+
+workflow:
+  name: "LLM Development Workflow"
+  purpose: "Enable LLM agents to sign commits and maintain trust chain for user verification"
+  version: "1.0"
+  date_created: "2025-11-13"
+
+overview:
+  problem: "LLM agents cannot access production signing keys (passphrased), but need to sign files for commit automation"
+  solution: "Persistent unencrypted LLM development key with user verification workflow"
+  trust_model: "LLM signs with dev key → User verifies → User re-signs with production key"
+
+architecture:
+  key_types:
+    production_key:
+      name: "proto-7.sourcecode"
+      location: "configuration/zenki/keys/"
+      passphrase: "Required (user only)"
+      purpose: "Official production signatures"
+      public_key: "Embedded in bin/Protocol-7"
+      access: "User only (not accessible to LLM)"
+
+    llm_dev_key:
+      name: "LLM-dev.sourcecode"
+      location: "$HOME/.n/user-keys/"
+      passphrase: "None (unencrypted)"
+      purpose: "LLM session signatures for verification"
+      public_key_export: "../workspace-transfer/LLM-dev.sourcecode.pub"
+      access: "LLM agents (persistent across session)"
+      persistence: "Saved to disk, consistent throughout session"
+
+  path_discovery:
+    method: "Auto-discovery using system root_path"
+    implementation: |
+      my $root_path = $data{'system'}{'root_path'};
+      my $workspace_repo = "$root_path/../workspace-transfer";
+    benefits:
+      - "No hardcoded paths"
+      - "Works in any environment"
+      - "Sibling repository discovery"
+
+  signing_approach:
+    method: "In-process signing with module loading"
+    implementation: |
+      # Load modules dynamically
+      <[base.load_modules]>->(qw| source amos7 sourcecode |);
+      <[base.init_modules]>->(qw| source amos7 sourcecode |);
+
+      # Swap LLM dev key into production slot
+      my $original_key = $keys{'C25519'}{$sig_key_name};
+      $keys{'C25519'}{$sig_key_name} = $keys{'C25519'}{$test_key_name};
+
+      # Sign files
+      <[source.cmd.get-code-signed]>->($file_path);
+
+      # Restore original key
+      $keys{'C25519'}{$sig_key_name} = $original_key;
+    benefits:
+      - "No subprocess overhead"
+      - "Access to all zenka modules"
+      - "Direct key manipulation"
+
+  dual_key_validation:
+    purpose: "Prevent re-signing files that already have valid signatures"
+    algorithm: |
+      1. Load production key (if exists on disk)
+      2. Load LLM dev key
+      3. For each modified file:
+         a. Check signature with production key
+         b. If invalid, check signature with LLM dev key
+         c. Only sign if both validations fail
+    benefits:
+      - "Preserves valid production signatures"
+      - "Prevents re-signing all files"
+      - "Respects existing LLM dev signatures"
+      - "Smart selective signing"
+
+commands:
+  workflow_commit:
+    command: "./bin/Protocol-7 workflow commit <message>"
+    purpose: "LLM-friendly auto-sign and commit workflow"
+    workflow:
+      - "Detect signing mode (production vs LLM dev)"
+      - "Create/load persistent LLM dev key"
+      - "Export public key to workspace-transfer"
+      - "Detect modified/new files via git"
+      - "Filter files with valid signatures (dual-key check)"
+      - "Sign only files needing signatures"
+      - "Stage all changes"
+      - "Commit with message"
+
+    key_features:
+      - "Persistent key across sessions"
+      - "Smart selective signing (checks both keys)"
+      - "Path auto-discovery"
+      - "Ctrl+C support"
+      - "No subprocess overhead"
+
+    example_usage: |
+      ./bin/Protocol-7 workflow commit "feat: Add new feature X"
+
+    output_format: |
+      .:[ WORKFLOW: AUTO-SIGN-COMMIT ]:.
+
+      : Production key not loaded - using LLM development key mode
+      : Loading existing LLM dev key: LLM-dev.sourcecode
+      : ✓ LLM dev key loaded from disk
+
+      .:[ UPDATING SIGNATURES ]:.
+
+      : Signing 3 file(s) without valid signatures...
+      : ✓ Signed 3 file(s)
+      : ✓ Signatures updated
+
+      .:[ STAGING CHANGES ]:.
+
+      : ✓ Changes staged
+
+      .:[ COMMITTING ]:.
+
+      : ✓ Changes committed
+
+  workflow_import_dev_key:
+    command: "./bin/Protocol-7 workflow import-dev-key [workspace-path]"
+    purpose: "Import LLM public key for verification"
+    workflow:
+      - "Auto-discover workspace-transfer path"
+      - "Find LLM-dev.sourcecode.pub file"
+      - "Import to user key directory"
+      - "Set appropriate permissions (0640)"
+      - "Verify checksum if already exists"
+
+    example_usage: |
+      ./bin/Protocol-7 workflow import-dev-key
+      ./bin/Protocol-7 workflow import-dev-key /custom/path
+
+    prerequisites:
+      - "LLM must have committed changes using workflow commit"
+      - "workspace-transfer repository must exist"
+      - "Public key file must be present"
+
+  sourcecode_verify_dev_signatures:
+    command: "./bin/Protocol-7 sourcecode verify-dev-signatures [file-pattern]"
+    purpose: "Verify signatures using LLM development key"
+    workflow:
+      - "Check if LLM dev key exists"
+      - "Load LLM dev public key"
+      - "Verify all source files (or pattern)"
+      - "Report valid/invalid/missing signatures"
+      - "Ctrl+C support"
+
+    example_usage: |
+      ./bin/Protocol-7 sourcecode verify-dev-signatures
+      ./bin/Protocol-7 sourcecode verify-dev-signatures modules/workflow.*
+
+    output_format: |
+      .:[ VERIFY LLM DEV SIGNATURES ]:.
+
+      : Total files checked: 100
+      : Valid signatures:    95
+      : Invalid signatures:  3
+      : No signatures:       2
+
+      : ✗ INVALID: modules/workflow.console.commit
+      : ⚠ NO SIGNATURE: modules/new-file.pl
+
+  workflow_fix_signatures:
+    command: "./bin/Protocol-7 workflow fix-signatures [file-pattern]"
+    purpose: "Repair invalid or missing signatures"
+    workflow:
+      - "Scan for files with invalid signatures"
+      - "Backup original signatures"
+      - "Re-sign files with production key"
+      - "Verify signatures after repair"
+
+    use_cases:
+      - "After git merge conflicts"
+      - "After manual file edits"
+      - "After signature format changes"
+
+complete_trust_chain_workflow:
+  scenario: "LLM develops feature, user verifies and accepts"
+
+  step_1_llm_development:
+    actor: "LLM Agent"
+    actions:
+      - "Create/modify source files"
+      - "Run: ./bin/Protocol-7 workflow commit 'feat: ...'"
+      - "LLM dev key auto-generated if needed"
+      - "Files signed with LLM dev key"
+      - "Public key exported to workspace-transfer"
+      - "Changes committed and pushed"
+
+  step_2_user_import:
+    actor: "User"
+    actions:
+      - "Pull changes from git"
+      - "Run: ./bin/Protocol-7 workflow import-dev-key"
+      - "LLM public key imported to user keyring"
+
+  step_3_user_verification:
+    actor: "User"
+    actions:
+      - "Run: ./bin/Protocol-7 sourcecode verify-dev-signatures"
+      - "Review list of files signed by LLM"
+      - "Inspect file contents for correctness"
+      - "Check for security issues"
+
+  step_4_user_acceptance:
+    actor: "User"
+    actions:
+      - "If satisfied: ./bin/Protocol-7 sourcecode update-signatures"
+      - "Files re-signed with production key"
+      - "LLM signatures replaced with production signatures"
+      - "Commit and push with production signatures"
+
+  trust_model:
+    llm_signature: "Ephemeral, for transit verification only"
+    production_signature: "Permanent, indicates user approval"
+    verification: "User can audit all LLM changes before accepting"
+
+key_management:
+  llm_dev_key_lifecycle:
+    creation:
+      trigger: "First use of workflow commit without production key"
+      method: "<[crypt.C25519.gen_keys]>->($test_key_name)"
+      storage: "Unencrypted to disk in $HOME/.n/user-keys/"
+      export: "Public key copied to workspace-transfer/LLM-dev.sourcecode.pub"
+
+    persistence:
+      location: "$HOME/.n/user-keys/LLM-dev.sourcecode.{public,secret}"
+      duration: "Permanent across sessions"
+      consistency: "Same key used for entire session lifecycle"
+
+    security_model:
+      threat: "LLM dev key compromise"
+      impact: "Low - only affects LLM-signed files awaiting user review"
+      mitigation: "User must verify and re-sign before production acceptance"
+      recovery: "Delete key, regenerate, re-sign all LLM-modified files"
+
+  production_key_lifecycle:
+    creation: "User generates with passphrase"
+    storage: "Encrypted in configuration/zenki/keys/"
+    access: "User only (not accessible to LLM)"
+    usage: "Final approval signatures after user verification"
+
+smart_signature_filtering:
+  problem: "Naive approach re-signs all 5000+ files on every commit"
+  solution: "Multi-stage filtering with dual-key validation"
+
+  stage_1_modified_file_detection:
+    method: "Git-based change detection"
+    implementation: |
+      git diff --name-only                    # Unstaged changes
+      git diff --cached --name-only           # Staged changes
+      git ls-files --others --exclude-standard # New untracked files
+    benefits:
+      - "Only considers actually modified files"
+      - "Excludes unchanged files from consideration"
+
+  stage_2_path_filtering:
+    method: "Regex-based source file matching"
+    implementation: |
+      @modified_files = grep { m/^(modules|bin|configuration)\/.*[^~]$/ } @modified_files;
+    benefits:
+      - "Only process Protocol-7 source files"
+      - "Skip editor backup files (~)"
+      - "Skip non-source directories"
+
+  stage_3_production_signature_check:
+    method: "Validate against production key"
+    implementation: |
+      if ( $prod_key_loaded ) {
+          my $valid_with_prod = <[source.signature_valid]>->($file_path, $sig_key_name);
+          $needs_signing = 0 if $valid_with_prod;
+      }
+    benefits:
+      - "Preserve existing production signatures"
+      - "Don't overwrite user-approved signatures"
+
+  stage_4_llm_dev_signature_check:
+    method: "Validate against LLM dev key"
+    implementation: |
+      if ( $needs_signing ) {
+          my $valid_with_llm = <[source.signature_valid]>->($file_path, $test_key_name);
+          $needs_signing = 0 if $valid_with_llm;
+      }
+    benefits:
+      - "Don't re-sign files already signed by LLM"
+      - "Prevent signature oscillation"
+      - "Maintain consistent signatures within session"
+
+  result:
+    before: "5000+ files re-signed on every commit"
+    after: "Only modified files without valid signatures are signed"
+    performance: "Commit time reduced from minutes to seconds"
+
+technical_insights:
+  key_slot_swapping:
+    pattern: "Temporarily swap keys in hash for in-process signing"
+    reason: "Signing functions expect key in production slot"
+    implementation: |
+      # Save original (may be undef)
+      my $original_key = $keys{'C25519'}{$sig_key_name};
+
+      # Swap LLM dev key into production slot
+      $keys{'C25519'}{$sig_key_name} = $keys{'C25519'}{$test_key_name};
+
+      # Perform signing with functions expecting production key
+      <[source.cmd.get-code-signed]>->($file_path);
+
+      # Restore original state
+      $keys{'C25519'}{$sig_key_name} = $original_key if defined $original_key;
+
+    benefits:
+      - "Reuse existing signing infrastructure"
+      - "No code duplication"
+      - "Clean separation of concerns"
+
+  module_loading:
+    pattern: "Dynamic module loading only when needed"
+    implementation: |
+      unless ( exists $code{'source.cmd.get-code-signed'} ) {
+          <[base.load_modules]>->(qw| source amos7 sourcecode |);
+          <[base.init_modules]>->(qw| source amos7 sourcecode |);
+          <[sourcecode.init_code]> if exists $code{'sourcecode.init_code'};
+      }
+
+    benefits:
+      - "Avoid module loading overhead if not needed"
+      - "Properly initialize zenka system"
+      - "Access to all signing infrastructure"
+
+  path_auto_discovery:
+    pattern: "Use system root_path for sibling repository discovery"
+    implementation: |
+      my $root_path = $data{'system'}{'root_path'};  # /home/user/protocol-7
+      my $workspace_repo = "$root_path/../workspace-transfer";
+
+    benefits:
+      - "No hardcoded paths"
+      - "Works in any environment"
+      - "Portable across systems"
+
+debugging_and_troubleshooting:
+  signature_oscillation:
+    symptom: "Files keep getting re-signed on every commit"
+    causes:
+      - "Signature validation not checking both keys"
+      - "Modified file detection too broad"
+      - "Key swapping done too early (before validation)"
+
+    fixes:
+      - "Check both production and LLM dev keys before signing"
+      - "Only consider git-reported modified files"
+      - "Swap keys only during actual signing, not validation"
+
+  undefined_subroutine:
+    symptom: "Can't use an undefined value as a subroutine reference"
+    cause: "Modules not loaded before accessing zenka functions"
+    fix: "Load and initialize modules: base.load_modules, base.init_modules"
+
+  key_not_found:
+    symptom: "LLM-dev.sourcecode key pair not found"
+    causes:
+      - "Key directory doesn't exist"
+      - "Key not generated yet"
+
+    fixes:
+      - "Ensure $HOME/.n/user-keys directory exists"
+      - "Run workflow commit to auto-generate key"
+      - "Check crypt.C25519.chk_key_dir result"
+
+  public_key_not_exported:
+    symptom: "workflow import-dev-key can't find public key"
+    causes:
+      - "workspace-transfer path incorrect"
+      - "Public key not exported"
+      - "Path auto-discovery failed"
+
+    fixes:
+      - "Check workspace-transfer directory exists"
+      - "Verify path auto-discovery: $data{'system'}{'root_path'}"
+      - "Run workflow commit to trigger export"
+
+best_practices:
+  for_llm_agents:
+    - "Always use 'workflow commit' instead of manual git commands"
+    - "Don't try to access production key (not available)"
+    - "Trust dual-key validation to prevent re-signing"
+    - "Export public key automatically on every commit"
+    - "Use path auto-discovery instead of hardcoded paths"
+
+  for_users:
+    - "Import LLM public key before verifying"
+    - "Always verify LLM signatures before accepting"
+    - "Re-sign with production key after verification"
+    - "Keep LLM dev key separate from production key"
+    - "Rotate LLM dev key periodically (delete and regenerate)"
+
+  for_workflow_developers:
+    - "Check both keys before deciding to sign"
+    - "Swap keys only during signing, not validation"
+    - "Load modules dynamically only when needed"
+    - "Use path auto-discovery for portability"
+    - "Support Ctrl+C in long-running operations"
+
+comparison_with_previous_approach:
+  old_approach:
+    key_name: "test-proto7-sourcecode"
+    persistence: "Subprocess-based, in-memory only"
+    verification: "Manual test-verify-with-temp-key command"
+    signing: "Subprocess with update-signatures"
+    filtering: "Path-based only"
+
+    problems:
+      - "Key not persistent across sessions"
+      - "Subprocess couldn't access in-memory key"
+      - "Path-based filtering caused re-signing all files"
+      - "No automatic public key export"
+      - "Hardcoded /home/user/ paths"
+
+  new_approach:
+    key_name: "LLM-dev.sourcecode"
+    persistence: "Saved to disk, persistent across sessions"
+    verification: "Automatic dual-key validation"
+    signing: "In-process with module loading"
+    filtering: "Git-based + dual-key validation"
+
+    improvements:
+      - "Consistent key across session lifecycle"
+      - "No subprocess overhead"
+      - "Smart filtering prevents re-signing"
+      - "Automatic public key export on commit"
+      - "Path auto-discovery using system root_path"
+
+related_documentation:
+  - "signature-testing-temp-keys.yaml - Previous test key approach"
+  - "git-commit-versioning-signing.yaml - Git workflow integration"
+  - "buffer-system-debugging.yaml - Real-time debugging workflow"
+
+  modules:
+    - "modules/workflow.console.commit - Main LLM commit workflow"
+    - "modules/workflow.console.import-dev-key - Key import for users"
+    - "modules/sourcecode.console.verify-dev-signatures - Signature verification"
+    - "modules/source.cmd.get-code-signed - Core signing implementation"
+    - "modules/source.signature_valid - Signature validation"
+
+future_enhancements:
+  - "Automatic LLM dev key rotation after N commits"
+  - "Multi-LLM session support (different keys per session)"
+  - "Signature diff showing LLM vs production signed files"
+  - "Integration with git hooks for pre-commit verification"
+  - "Automated testing of signature workflow"
+
+#,,,.,,,.,.,.,.,.,.,,,.,,.,,.,,,,.,,.,,,.,,,,.,,,,.,,,.,.,.,,,,,..,,...,...,,,.,.

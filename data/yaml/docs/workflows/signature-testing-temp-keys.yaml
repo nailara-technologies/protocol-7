@@ -23,9 +23,10 @@ prerequisites:
     creation: "mkdir -p /root/.n/user-keys && chmod 700 /root/.n/user-keys"
 
   test_key:
-    name: "test-proto7-sourcecode"
+    name: "test-proto7-sourcecode (DEPRECATED: use LLM-dev.sourcecode)"
     creation: "./bin/Protocol-7 keys create -U test-proto7-sourcecode"
     purpose: "Temporary signing key for testing without affecting production signatures"
+    note: "For LLM development workflow, use LLM-dev.sourcecode (see llm-development-workflow.yaml)"
 
   module_mapping:
     file: "modules/base.known_dependencies"
@@ -309,10 +310,16 @@ security_notes:
     - "Public key embedded in bin/Protocol-7 for verification"
 
 related_documentation:
+  - "llm-development-workflow.yaml - NEW: LLM development with persistent keys"
   - "git-commit-versioning-signing.yaml - Git workflow integration"
   - "buffer-system-debugging.yaml - Real-time debugging workflow"
   - "modules/source.cmd.get-code-signed - Signing implementation"
   - "modules/source.signature_valid - Verification implementation"
   - "modules/source.extract_sig_body - Signature extraction"
+
+note:
+  "This workflow is primarily for manual testing. For LLM-assisted development,
+   see llm-development-workflow.yaml which documents the modern persistent key
+   approach with workflow commit, import-dev-key, and verify-dev-signatures commands."
 
 #,,.,,.,,,..,,,.,,.,,,,,,,..,.,,,.,.,.,,,..,,..,,...,...,,,,,,,,.,,,.,..,,.,,.,
