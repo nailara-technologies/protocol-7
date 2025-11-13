@@ -136,16 +136,16 @@ foreach my $commit (@$commits) {
     }
 
     ## Step 1: Check version file at this commit
-    my $cmd = "cd $repo_path && git show $hash:$version_file_rel 2>&1";
-    <[base.logs]>->( 1, "    Running: cd %s && git show %.8s:%s", $repo_path, $hash, $version_file_rel );
-    my $version_file_content = `$cmd`;
-    my $exit_code = $?;
-    <[base.logs]>->( 1, "    Exit code: %d, Content length: %d", $exit_code, length($version_file_content) );
-    if ($exit_code != 0) {
-        my $error_preview = substr($version_file_content, 0, 200);
-        <[base.logs]>->( 1, "    Error output: %s", $error_preview );
-    }
-    if ($exit_code == 0 && length $version_file_content) {
+    my $version_file_content = `cd $repo_path && git show $hash:$version_file_rel 2>&1`;
+
+    ## Check if content looks like a version file (starts with version number, not an error)
+    ## SIGCHLD=IGNORE interferes with exit codes, so check content instead
+    my $looks_valid = (length($version_file_content) > 0
+                       && $version_file_content !~ m/^fatal:/
+                       && $version_file_content !~ m/^error:/
+                       && $version_file_content =~ m/^[A-Z0-9]+-\d+\.\d+/);
+
+    if ($looks_valid) {
         <[base.log]>->( 1, "    Version file found, checking signature..." );
 
         ## Step 2: Extract and validate version file signature
@@ -176,8 +176,13 @@ foreach my $commit (@$commits) {
                     <[event.once]>->(0.07);
 
                     ## Read file at this commit
-                    my $file_content = `cd $repo_path && git show $hash:$file_path 2>/dev/null`;
-                    next if $? != 0 || !length $file_content;
+                    my $file_content = `cd $repo_path && git show $hash:$file_path 2>&1`;
+
+                    ## Check if content looks valid (not a git error message)
+                    ## SIGCHLD=IGNORE interferes with exit codes
+                    next if (!length($file_content)
+                             || $file_content =~ m/^fatal:/
+                             || $file_content =~ m/^error:/);
 
                     ## Extract and validate signature
                     my $file_footer = <[source.extract_sig_body]>->(\$file_content, 'strip', 'strict');
@@ -238,8 +243,12 @@ foreach my $commit (@$commits) {
             $has_issues = 1;
         }
     } else {
-        ## Version file doesn't exist at this commit
+        ## Version file doesn't exist or is invalid at this commit
         <[base.log]>->( 1, "    ✗ Version file NOT FOUND at this commit" );
+        my $preview = substr($version_file_content, 0, 100);
+        $preview =~ s/\n/\\n/g;
+        <[base.logs]>->( 2, "      Content preview: %s", $preview ) if length($version_file_content) > 0;
+
         $data{'workflow'}{'history'}{'issues'}{$hash} = {
             type    => qw| missing_version_file |,
             commit  => $commit,
