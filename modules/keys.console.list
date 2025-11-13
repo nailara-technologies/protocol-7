@@ -78,10 +78,8 @@ foreach my $file (@display_kfiles) {
     push $key_files{$name}->@*, $file;
 }
 
-my $names_len
-    = 2 + [ minmax( map {length} keys %key_files ) ]->[1];
-$names_len
-    = [ minmax( $names_len, map {length} values %key_chksums ) ]->[1];
+my $names_len = 2 + max( map {length} keys %key_files );
+$names_len = max( $names_len, map {length} values %key_chksums );
 
 <[base.logs]>->( "listing key files ['%s']", $key_dir );
 
@@ -173,8 +171,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $key_list_string;
 
-#,,.,,,..,,,.,,,.,.,.,.,.,,..,,,.,.,,,.,.,.,,,..,,...,...,.,.,,,.,,,,,...,..,,
-#CYD4PUR265RNV4KJSFNLG4J4H7SFR5SGGYHQEPSUPUPIFFNMNVZM2OJHX2SU3YE4E3QFEGEDP6O7E
-#\\\|OQOPDW44DXG2MPS3DSCMBUHC4E6WKIGZXYNMBSMYWYZ2LQ7NGEX \ / AMOS7 \ YOURUM ::
-#\[7]VHDWN66B2CUHBHI44JYWYWTGAMWKPYQTDRQHXEBLW5CPQZISL2DQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,.,.,,.,,...,.,,,,,,,.,.,.,.,.,,,..,,...,.,.,,.,,,.,,,.,,,,.,,..,
+#BVEFEJ2KABSRM2C7PMRUIZHIHXROIQ5TJM43KGZ344IQNKRDSBBKXGP2ZGJCYIAOO26BYZO6DCO6U
+#\\\|VAQGDFKYDWWCNUGQG2MK3KH6JVA3ZH63CGSTVBKQYSQ3VLBWCLJ \ / AMOS7 \ YOURUM ::
+#\[7]J7E73SUT6XAH6J3XFO6VA5BPV6SKQHFNIJGGZQMC7JUIW6GODKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

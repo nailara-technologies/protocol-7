@@ -42,7 +42,7 @@ foreach my $dir_name ( <[base.sort]>->( readdir $dir_fh ) ) {
     }
 }
 
-( undef, my $vh_max_len ) = minmax map {length} @vhosts;
+my $vh_max_len = max map {length} @vhosts;
 while (@ext_dirs) {
     my $dir_name    = shift @ext_dirs;
     my $link_target = shift @ext_dirs;
@@ -77,8 +77,8 @@ foreach my $link_name (@vhosts) {
 
 0;
 
-#,,..,,.,,.,.,,..,,..,,,.,..,,...,,,,,,,,,.,,,..,,...,..,,...,.,.,,,.,...,.,,,
-#P4W6MGRRNAGKFXSANC67XLHIBCBYCI4EBG2L736JQ5GAHNLW4J7KBF3L6MHGE7TMWRCBRBAE2A6PY
-#\\\|OGQJU5JR6BXCOZ5KRNTMTMPD2THIICIWJEE6ZKVHB7NWX3G4Q5T \ / AMOS7 \ YOURUM ::
-#\[7]THRX2CVCXAWMXVVX5VNGD6Z7SANLAOMGWUYGVSPMM7SY3WU2WWBI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,..,,.,.,...,.,,,..,,.,,,,,.,.,,,..,,...,..,,,,,,,,,,.,,,..,,,..,
+#ELC2NI3MXTL3FI5KU5EX774CDSUIRV6EK2Q4NLVHAEEZS75THABNMZXI4USCR6ULQBQVVOZCUCLYE
+#\\\|IMZLW46ZSDOHEUQUQEKUD47S6AIAKF7DYBAIJKMZLLGDNDYH6EL \ / AMOS7 \ YOURUM ::
+#\[7]SK6CAJSE66VKISA4IH6DVR3PAG4AV4EAYBYQB66ANGYHZVA36KBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

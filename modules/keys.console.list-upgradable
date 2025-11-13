@@ -4,7 +4,7 @@
 # descr = [aged] key encoding format version list
 
 my @k_files     = <[base.reverse-sort]>->(<[keys.get_keyfiles]>) or return;
-my $maxlen      = [ minmax map {length} @k_files ]->[1];
+my $maxlen      = max map {length} @k_files;
 my $key_dir_len = 1 + length <[crypt.C25519.key_vars]>->{'key_dir'};
 $maxlen -= $key_dir_len;
 
@@ -52,8 +52,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
     print $keyformat_list_str;    ##[ monochrome version ]##
 }
 
-#,,,,,.,.,,,,,,.,,...,...,,..,.,.,,.,,,,.,,..,..,,...,...,,..,..,,,,,,...,,.,,
-#BLYCJCBVSSX44UP7SZFP5RL7XHRDTFU3WHIOSY57IMY7WL5IA3ZV3KPJASGZCSDN4EPLQRVG2A2CQ
-#\\\|RII5TS4XBABQRYB3X3ZLE6SFL5ZUPGXUCRWUUEQ6YGV4DAT7LHH \ / AMOS7 \ YOURUM ::
-#\[7]RJVZT5RHIPESLEZB5Q3WAVZE2RJKSJKPF3UPLOVKFI3B646XFWBA 7  DATA SIGNATURE ::
+#,,..,.,,,...,...,.,.,,,,,...,.,.,.,.,,,.,,..,..,,...,...,,..,,,.,.,.,,,,,,..,
+#5CNF2PQAMLDG3GPMSRMM4FVAKKHZ7ZSJ4FFUIVKSIVKRF7BRMXEBWZJEWKCZ3YCNDQX4RCY2IQG7C
+#\\\|MSAJSC67LJQB2C4CMEOMC3D7EIIFVIBV4L4IE4LRISJ5KLBNVDL \ / AMOS7 \ YOURUM ::
+#\[7]UY6PECKDOUA7ZAIFVK45KRN3NKJJ6KGBQFEWLMH2NUICOJATZQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

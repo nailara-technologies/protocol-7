@@ -37,7 +37,7 @@ if ( defined $user ) {
         'data' => sprintf( "no permissions set-up for '%s'", $user )
         }
         if not defined <access.cmd.usr>->{$user} and not @mapped_users;
-    ( undef, my $max_len ) = minmax map {length} ( $user, @mapped_users );
+    my $max_len   = max( map {length} ( $user, @mapped_users ) );
     my $w_prefix  = ':' . ' ' x ( $max_len + 7 );
     my $reply_str = defined <access.cmd.usr>->{'*'} ? '' : ":\n";
     my $map_names = {};
@@ -95,7 +95,7 @@ if ( defined $user ) {
     return { 'mode' => qw| size |, 'data' => $reply_str };
 
 } elsif ( keys <access.cmd.usr>->%* ) {
-    ( undef, my $max_len ) = minmax map {length} keys( <access.cmd.usr>->%* );
+    my $max_len   = max map {length} keys( <access.cmd.usr>->%* );
     my $w_prefix  = ':' . ' ' x ( $max_len + 7 );
     my $reply_str = ":\n";
     foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
@@ -117,8 +117,8 @@ if ( defined $user ) {
     };
 }
 
-#,,,.,..,,...,..,,,..,...,...,.,,,,,.,..,,,..,..,,...,...,.,.,..,,,,,,,..,,..,
-#FKOY7KHWQDM2VF3OW6E6IIR52PE7KC5RNO6TELUINCNHMWNIER56QMRK7YXAJ2FRR442WNX7PVZO6
-#\\\|UUYQ36TDXXBLOMJTOMU2UDETCVTXKYZ2DXTYSIUH2UMQIOC5GCW \ / AMOS7 \ YOURUM ::
-#\[7]KG7JPJ2SMKZPM3KAPV3R3O3IDMOUA6HYVOMXR6UPFMO3I76QH2DA 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,.,,,..,.,.,,,.,,.,,.,,,...,...,..,,...,...,,,,,.,.,.,,,..,,,,,,
+#C5AEFPAWWUWVPC2AR43GUI7I5WE36ZLH3TJF3XHZGCJB26BAVCUYIA64UVVZAUWKBYQQ77TERJIRS
+#\\\|35QEWCATQF3GRGK5DMHDL3I433JSGGFGCAOQY2AZKZAL6MLJNNV \ / AMOS7 \ YOURUM ::
+#\[7]6WIAZHLJ2XXBZYGIQ66BNZE43V2Z35WCOHRPS5UVC6RI3F6BRKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -33,7 +33,7 @@ if ( @values == 1 ) {    ##  single input value  ##
 } else {    ##  multiple values : filtered for outliers to their average  ##
 
     ##  determine potential  ##
-    my ( $low_value, $high_val ) = minmax @values;
+    my ( $low_value, $high_val ) = <[base.minmax]>->(@values);
     my $middle_value = sprintf qw| %.*f |,
         $internal_precision,
         $low_value + ( ( $high_val - $low_value ) / 2 );
@@ -42,7 +42,7 @@ if ( @values == 1 ) {    ##  single input value  ##
     eval {
         $total_average = sprintf qw| %.*f |,
             $internal_precision,
-            ( reduce_0 { $a + $b } @values ) / scalar @values;
+            ( reduce { $a + $b } 0, @values ) / scalar @values;
     };
 
     return <[base.s_warn]>->(
@@ -64,7 +64,7 @@ if ( @values == 1 ) {    ##  single input value  ##
     ##  calculating average excluding outliers to base_mass  ##
     $base_value_average = sprintf qw| %.*f |,
         $internal_precision,
-        ( reduce_0 { $a + $b } @base_values ) / scalar @base_values;
+        ( reduce { $a + $b } 0, @base_values ) / scalar @base_values;
 
 }
 
@@ -100,8 +100,8 @@ $value_ref->$* =~ s,(\.0+|(*nlb:\.)0+)$,,g;      ##  sanitizing zulum  ##
 
 return $base_value_average;   ##  returning filtered average of input data  ##
 
-#,,.,,,,,,,.,,.,.,.,,,.,.,.,,,..,,,..,,,.,.,,,..,,...,...,,.,,,..,,..,,,.,,,.,
-#JXHRXP4CSOI5FF7TTS6R4SYXP24NDQGN654TPVMIG2D5LFVEMJZIHOX2KRSMEJ7BRHNJHZ7HRIJOG
-#\\\|AU6NY32EHSNOJFLPG66OX3QGBMJNBM3UJTM4WQZS3FIL6RDOSX4 \ / AMOS7 \ YOURUM ::
-#\[7]HDWNGNN5GTGUXHZRFOOQDIS5OMXNML5WL66GO7R4VO5S45OSDGCY 7  DATA SIGNATURE ::
+#,,,.,...,...,,.,,.,.,...,,.,,,,.,.,.,.,,,.,.,..,,...,...,...,,,.,.,,,,,,,...,
+#VNNRW5SLNBWV5KPEJAPXUMBNTN2UQMZUKPK56ILQU7HQBS7AXT6RVGFQ5SNEYDXGHS2JB7H5WXUZ6
+#\\\|UDQHDMUQ6F3Z657S4SGYZPNUPO3SBLJLIWYZSAI3FZ7HZCFRVHL \ / AMOS7 \ YOURUM ::
+#\[7]5TYA3FDP7QXQ42K3LTY27E7CF3C2S7DURVYWWQ656K2AHVEFWGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

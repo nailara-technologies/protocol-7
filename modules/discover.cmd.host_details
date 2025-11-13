@@ -26,7 +26,7 @@ return { 'mode' => qw| false |, 'data' => 'host is not known' } if not $match;
 my $reply_string;
 my $host_details_ref = $data{'hosts'}->{$hostname_L13};
 
-my $key_len = [ minmax( map {length} keys $host_details_ref->%* ) ]->[1];
+my $key_len = max( map {length} keys $host_details_ref->%* );
 
 foreach my $param_key ( <[base.reverse-sort]>->($host_details_ref) ) {
 
@@ -39,8 +39,8 @@ foreach my $param_key ( <[base.reverse-sort]>->($host_details_ref) ) {
 
 return { 'mode' => qw| size |, 'data' => $reply_string };
 
-#,,,.,,,,,,,,,.,,,...,,,.,.,,,.,,,..,,,,.,,,.,..,,...,...,,..,,.,,.,.,.,,,,.,,
-#ICSKS5GB6GBXIHLW7KXCBYDKNQ6AMMSJRSXZBW7ZS7GT6MLJNCUO6OV7KWWE2IWQKZNQHX4LYTHUI
-#\\\|5SJKARCKZJQT5C3RWJZUWIKX5KRIMRTZSW2TYEKP5AQWT6RAMSN \ / AMOS7 \ YOURUM ::
-#\[7]P64IUKMERGHZAZXDFBGGK2NHUDEGUGURDSC5DPYLCVIZJCOPWMAY 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,,,..,,,,,,,,,,...,,,,,,..,.,.,..,,...,.,.,...,,,.,,..,,.,,,,.,
+#TYOIBGIFHPJLM5YGPZKQPCD4SQ3WSMTLEUMRCN4BMCE7DQSHLHHTNXG6WXXY5FKGI5Y3ZO3DVCKFI
+#\\\|QZDEXCDN4CQEHYUPQI5EKIHU5KZN4JTHK3AMAYRMH5ET3NQDSM5 \ / AMOS7 \ YOURUM ::
+#\[7]2F2IGDDPPOKLQVHBBCT34N5O76765W62GBP4AQLJCLQJ2XO6VIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
