@@ -15,6 +15,7 @@ cp $EXT_LIB_PATH/systemd/system/Protocol-7.service /lib/systemd/system/
 
 apt-get -y install gcc git make cpanminus libc6-dev libc6-dev libmce-perl \
             liburi-perl libclone-perl libevent-perl libcryptx-perl \
+            libio-stringy-perl liblist-moreutils-perl \
             libio-aio-perl libjson-xs-perl libnet-dns-perl libtimedate-perl \
             libhttp-date-perl liburi-query-perl libdigest-crc-perl \
             libdigest-elf-perl libfile-which-perl libfile-finder-perl \
