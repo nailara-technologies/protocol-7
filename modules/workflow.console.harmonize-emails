@@ -1,61 +1,66 @@
 ## [:< ##
 
 # name  = workflow.console.harmonize-emails
-# param = [execute|harmonize-outliers] [key_phrase]
-# descr = standardize author/email across git history
+# param = [execute|harmonize-outliers] [pattern]
+# descr = standardize author+email across git history
 
 my $param1 = shift // '';
 my $param2 = shift // '';
 
 ## Determine execute mode, harmonize_outliers, and key phrase
-my $dry_run = 1;
+my $dry_run            = 1;
 my $harmonize_outliers = 0;
-my $key_phrase = '';
+my $key_phrase         = '';
 
-if ($param1 eq 'execute') {
-    $dry_run = 0;
+if ( $param1 eq 'execute' ) {
+    $dry_run    = 0;
     $key_phrase = $param2;
-} elsif ($param1 eq 'harmonize-outliers') {
+} elsif ( $param1 eq 'harmonize-outliers' ) {
     $harmonize_outliers = 1;
-    if ($param2 eq 'execute') {
+    if ( $param2 eq 'execute' ) {
         $dry_run = 0;
     } else {
         $key_phrase = $param2;
     }
-} elsif (length $param1) {
+} elsif ( length $param1 ) {
     $key_phrase = $param1;
 }
 
-<[base.log]>->( 1, "Harmonizing author names and email addresses in git history..." );
+<[base.log]>->(
+    1, "Harmonizing author names and email addresses in git history..."
+);
 
 if ($harmonize_outliers) {
     <[base.log]>->( 1, "  Mode: Harmonizing outliers to main developer" );
 }
 
-if (length $key_phrase) {
+if ( length $key_phrase ) {
     <[base.log]>->( 1, "  Filtering by key phrase: '$key_phrase'" );
 }
 
 if ($dry_run) {
-    <[base.log]>->( 1, "  DRY RUN mode - use 'execute' parameter to apply changes" );
+    <[base.log]>->(
+        1, "  DRY RUN mode - use 'execute' parameter to apply changes"
+    );
 }
 
 ## Trigger harmonization
-my $result = <[workflow.parent.harmonize_emails]>->({
-    dry_run => $dry_run,
-    harmonize_outliers => $harmonize_outliers,
-    key_phrase => $key_phrase,
-    abort_after_valid => 13
-});
+my $result = <[workflow.parent.harmonize_emails]>->(
+    {   dry_run            => $dry_run,
+        harmonize_outliers => $harmonize_outliers,
+        key_phrase         => $key_phrase,
+        abort_after_valid  => 13
+    }
+);
 
-if ($result->{dry_run}) {
+if ( $result->{dry_run} ) {
     ## The parent function already printed detailed output
     ## Just wrap with clean formatting
     say "";
     return 0;
 }
 
-unless ($result->{success}) {
+unless ( $result->{success} ) {
     my $error = $result->{error} || 'unknown error';
     return say "::\n: ✗ Harmonization failed: $error\n::";
 }
@@ -63,14 +68,8 @@ unless ($result->{success}) {
 my $changed = $result->{changed} || 0;
 return say "::\n: ✓ Harmonized $changed commits\n::";
 
-#,,.,.,.,,,.,.,.,.,,,.,,,..,,...,...,.,,.,,..,,,.,,,..,,...,...,.,,,.,,,.,,.,,.,..
-#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
-#\\\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
-#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,..,.,,,.,,,,..,,,,,,.,,,.,,...,,,.,.,,,.,.,..,,...,...,,,,,.,,,.,,,,.,,,..,
-#K6SOYUVHONO444BVA36AKGEC7OMYDJHJWHHPK5QD5CXQV6GHV436ONJTMFZ6BKT3WFN4O2FML3DOE
-#\\\|KUB7HIDKDH4RD6E752Z7EERUJDB6GYWRIMW3K2S7AB3DUWUI2WT \ / AMOS7 \ YOURUM ::
-#\[7]GSNB4HLP4E2HP6VWDFMFBHDSUIJQ4MKVTX42VDK4FBZDI7BH46DI 7  DATA SIGNATURE ::
+#,,,.,...,,,,,.,,,,.,,,,,,.,,,,,.,,,,,..,,,,,,..,,...,..,,,..,,,.,...,...,,..,
+#HOWAYA4NYBDQ3HBYWA36RLHNY2NC7EJYHF7WQN6B5P3NWRL3BD72HVPL24DI5FNADBSYUDAH4QNLU
+#\\\|BS3SVJWQ3BMYZ7E7BDFGVGBLD4DNDA2AZEHJQAES2QKCVX3EGD7 \ / AMOS7 \ YOURUM ::
+#\[7]KJRBGYK7H32OAW3QRO3SRFA6I6XPYWMILQOQPLWCHRGUAJPKXEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
