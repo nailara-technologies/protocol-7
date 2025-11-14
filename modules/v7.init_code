@@ -87,13 +87,13 @@ if ( !-x <v7.gcc_bin> ) {
 
 ## modprobe ##
 <v7.modprobe_bin> = <[base.required_bin_path]>->(qw| modprobe |);
-if ( !-x <v7.modprobe_bin> ) {
+if ( !defined <v7.modprobe_bin> || !-x <v7.modprobe_bin> ) {
     <v7.modprobe_bin> = undef;
     <[base.log]>->( 0, "<< 'modprobe' binary not found >>" );
 }
 ## rmmod ##
 <v7.rmmod_bin> = <[base.required_bin_path]>->(qw| rmmod |);
-if ( !-x <v7.rmmod_bin> ) {
+if ( !defined <v7.rmmod_bin> || !-x <v7.rmmod_bin> ) {
     <v7.rmmod_bin> = undef;
     <[base.log]>->( 0, "<< 'rmmod' binary not found >>" );
 }
