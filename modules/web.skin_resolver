@@ -1,134 +1,205 @@
 ## [:< ##
 
 # name = web.skin_resolver
-# descr = Resolve skin/theme files across hierarchy with CSS cascade
+# descr = Resolve skins using cascade priority (user-selected > mobile > dark > default)
 #
-# Implements skin resolution with inheritance cascade:
-#   1. Subdirectory skin override:  /var/httpd/{vhost}/{path}/_skins/{skin}/
-#   2. Vhost-specific skin:         /var/httpd/{vhost}/_skins/{skin}/
-#   3. Global skin:                 /var/httpd/_global_templates/skins/{skin}/
+# Implements nested skin system with multiple levels:
+#   1. User preference (from cookie or HTTP header)
+#   2. Device detection (mobile, tablet, desktop)
+#   3. Time-based (dark mode for night hours)
+#   4. Default fallback
 #
 # Parameters:
-#   $_[0] - Vhost name (e.g., "127.0.0.1")
-#   $_[1] - Request path (e.g., "/blog/post.html")
-#   $_[2] - Skin name (e.g., "dark", "mobile")
-#   $_[3] - File to locate (e.g., "style.css", "colors.json")
+#   $_[0] - Vhost name (e.g., "127.0.0.1", "example.com")
+#   $_[1] - Optional: user_prefs hash ref with { skin => "dark", ... }
+#   $_[2] - Optional: user_agent string for device detection
 #
 # Returns:
-#   Full file path if skin file found, undef otherwise
-#   Supports cascade fallback to 'default' skin if requested skin not found
+#   Hash ref with resolved skin structure:
+#   {
+#     skin_name => "dark",
+#     skin_root => "/var/httpd/_global_templates/skins/dark",
+#     cascade => ["dark", "default"],
+#     metadata => { ... }
+#   }
 
 my $vhost = shift;
-my $path = shift;
-my $skin = shift // 'default';
-my $filename = shift // 'style.css';
+my $user_prefs = shift // {};
+my $user_agent = shift // '';
 
 ## Validate parameters ##
 unless (defined $vhost and length $vhost) {
     <[base.log]>->(0, "skin_resolver: missing vhost parameter");
-    return undef;
-}
-
-unless (defined $filename and length $filename) {
-    <[base.log]>->(0, "skin_resolver: missing filename parameter");
-    return undef;
-}
-
-## Normalize path ##
-$path //= '';
-$path =~ s|^/+||;
-$path =~ s|/+$||;
-
-## Initialize caching if needed ##
-unless (exists $data{'skin_resolve_cache'}) {
-    $data{'skin_resolve_cache'} = {};
-}
-
-my $cache_key = "$vhost:$path:$skin:$filename";
-if (exists $data{'skin_resolve_cache'}->{$cache_key}) {
-    return $data{'skin_resolve_cache'}->{$cache_key};
+    return {
+        skin_name => 'default',
+        skin_root => '/var/httpd/_global_templates/skins/default',
+        cascade => ['default'],
+        metadata => {}
+    };
 }
 
 my $site_root = <httpd.cfg.site_dir> // '/var/httpd';
+my $skins_root = "$site_root/_global_templates/skins";
 
 <[base.log]>->(
     2,
-    "skin_resolver: [$vhost] resolving skin='$skin' file='$filename' for path='$path'"
+    "skin_resolver: [$vhost] resolving skin with prefs: "
+        . (join ', ', keys %$user_prefs)
 );
 
-## Extract directory from path ##
-my $dirname = '';
-if ($path =~ m|^(.+)/[^/]+$|) {
-    $dirname = $1;
+## Initialize caching if needed ##
+unless (exists $data{'skin_cache'}) {
+    $data{'skin_cache'} = {};
 }
 
-## Priority 1: Subdirectory skin override (most specific) ##
-if (length $dirname) {
-    my $subdir_skin = "$site_root/$vhost/$dirname/_skins/$skin/$filename";
-    <[base.log]>->(3, "  [1] checking: $subdir_skin");
-    if (-f $subdir_skin) {
-        $data{'skin_resolve_cache'}->{$cache_key} = $subdir_skin;
-        <[base.log]>->(1, "skin_resolver: FOUND (level 1): $subdir_skin");
-        return $subdir_skin;
+## Build cache key from user preferences ##
+my $cache_key_parts = [$vhost];
+foreach my $key (sort keys %$user_prefs) {
+    push @$cache_key_parts, "$key=" . $user_prefs->{$key};
+}
+my $cache_key = join(':', @$cache_key_parts);
+
+if (exists $data{'skin_cache'}->{$cache_key}) {
+    <[base.log]>->(3, "skin_resolver: using cached skin resolution");
+    return $data{'skin_cache'}->{$cache_key};
+}
+
+## Step 1: Detect device type from user agent ##
+my $device_type = 'desktop';  # default
+
+if ($user_agent) {
+    if ($user_agent =~ /mobile|iphone|android|blackberry|opera mini/i) {
+        $device_type = 'mobile';
+    } elsif ($user_agent =~ /tablet|ipad|android/i) {
+        $device_type = 'tablet';
     }
 }
 
-## Priority 2: Vhost-specific skin ##
-my $vhost_skin = "$site_root/$vhost/_skins/$skin/$filename";
-<[base.log]>->(3, "  [2] checking: $vhost_skin");
-if (-f $vhost_skin) {
-    $data{'skin_resolve_cache'}->{$cache_key} = $vhost_skin;
-    <[base.log]>->(1, "skin_resolver: FOUND (level 2): $vhost_skin");
-    return $vhost_skin;
+<[base.log]>->(2, "skin_resolver: device detected: $device_type");
+
+## Step 2: Determine skin cascade based on preferences ##
+my @cascade = ();
+
+## Add user-selected skin if specified ##
+if (defined $user_prefs->{'skin'} and length $user_prefs->{'skin'}) {
+    my $selected_skin = $user_prefs->{'skin'};
+
+    # Validate skin name (alphanumeric, dash, underscore only)
+    if ($selected_skin =~ /^[a-zA-Z0-9_-]+$/) {
+        push @cascade, $selected_skin;
+        <[base.log]>->(
+            2,
+            "skin_resolver: user selected skin: $selected_skin"
+        );
+    } else {
+        <[base.log]>->(
+            1,
+            "skin_resolver: invalid skin name rejected: $selected_skin"
+        );
+    }
 }
 
-## Priority 3: Global skin ##
-my $global_skin = "$site_root/_global_templates/skins/$skin/$filename";
-<[base.log]>->(3, "  [3] checking: $global_skin");
-if (-f $global_skin) {
-    $data{'skin_resolve_cache'}->{$cache_key} = $global_skin;
-    <[base.log]>->(1, "skin_resolver: FOUND (level 3): $global_skin");
-    return $global_skin;
+## Add device-specific skin if available ##
+if ($device_type eq 'mobile') {
+    push @cascade, 'mobile';
+    <[base.log]>->(2, "skin_resolver: added mobile skin to cascade");
 }
 
-## If requested skin not found, fall back to 'default' skin ##
-if ($skin ne 'default') {
+## Add dark mode skin if time-based or preferred ##
+my $current_hour = (localtime)[2];
+my $is_dark_hours = ($current_hour >= 20 or $current_hour < 8);
+
+if ($user_prefs->{'dark_mode'} or $is_dark_hours) {
+    push @cascade, 'dark';
     <[base.log]>->(
         2,
-        "skin_resolver: skin '$skin' not found, falling back to 'default'"
+        "skin_resolver: added dark skin (pref="
+            . ($user_prefs->{'dark_mode'} ? 'yes' : 'no')
+            . ", dark_hours=$is_dark_hours)"
     );
+}
 
-    ## Recursively try with default skin (avoid infinite recursion with cache) ##
-    my $fallback_key = "$vhost:$path:default:$filename";
+## Always end cascade with default ##
+push @cascade, 'default';
 
-    ## Check vhost default ##
-    my $vhost_default = "$site_root/$vhost/_skins/default/$filename";
-    if (-f $vhost_default) {
-        $data{'skin_resolve_cache'}->{$cache_key} = $vhost_default;
-        <[base.log]>->(1, "skin_resolver: FALLBACK (level 2): $vhost_default");
-        return $vhost_default;
-    }
+<[base.log]>->(
+    2,
+    "skin_resolver: cascade order: " . join(' -> ', @cascade)
+);
 
-    ## Check global default ##
-    my $global_default = "$site_root/_global_templates/skins/default/$filename";
-    if (-f $global_default) {
-        $data{'skin_resolve_cache'}->{$cache_key} = $global_default;
-        <[base.log]>->(1, "skin_resolver: FALLBACK (level 3): $global_default");
-        return $global_default;
+## Step 3: Find first available skin in cascade ##
+my $resolved_skin = 'default';
+my $resolved_path = "$skins_root/default";
+
+foreach my $skin_name (@cascade) {
+    my $skin_path = "$skins_root/$skin_name";
+
+    if (-d $skin_path) {
+        $resolved_skin = $skin_name;
+        $resolved_path = $skin_path;
+
+        <[base.log]>->(
+            2,
+            "skin_resolver: resolved to '$skin_name' at $skin_path"
+        );
+        last;
+    } else {
+        <[base.log]>->(
+            3,
+            "skin_resolver: skin '$skin_name' not found, trying next"
+        );
     }
 }
 
-## Skin file not found - cache negative result ##
-$data{'skin_resolve_cache'}->{$cache_key} = undef;
+## Step 4: Load skin metadata ##
+my $metadata = {};
+my $metadata_file = "$resolved_path/metadata.yaml";
+
+if (-f $metadata_file) {
+    open(my $fh, '<', $metadata_file) or do {
+        <[base.log]>->(
+            2,
+            "skin_resolver: cannot read metadata: $metadata_file"
+        );
+        $metadata = {};
+    };
+
+    while (my $line = <$fh>) {
+        # Simple YAML parsing for common fields
+        if ($line =~ /^\s*name\s*:\s*(.+)/) {
+            $metadata->{'name'} = $1;
+        } elsif ($line =~ /^\s*version\s*:\s*(.+)/) {
+            $metadata->{'version'} = $1;
+        } elsif ($line =~ /^\s*author\s*:\s*(.+)/) {
+            $metadata->{'author'} = $1;
+        } elsif ($line =~ /^\s*description\s*:\s*(.+)/) {
+            $metadata->{'description'} = $1;
+        }
+    }
+    close($fh);
+}
+
+## Build result ##
+my $result = {
+    skin_name => $resolved_skin,
+    skin_root => $resolved_path,
+    cascade => \@cascade,
+    metadata => $metadata,
+    device_type => $device_type
+};
+
+## Cache the resolution ##
+$data{'skin_cache'}->{$cache_key} = $result;
+
 <[base.log]>->(
     2,
-    "skin_resolver: [$vhost] skin file NOT FOUND: $skin/$filename"
+    "skin_resolver: [$vhost] resolved to '$resolved_skin'"
 );
 
-return undef;
+return $result;
 
-#,,.,,,..,.,.,..,,,,.,.,.,,,,,,..,,..,,,.,,,.,..,,...,...,,..,...,...,.,,,..,,
-#UCOVRKG6WQMR6HXHKRLFDNVH5FDOUCCO6CLTQYPG6THPMKXHB4VUJZATOIIDAXYLQUZLZ4BNBTA6A
-#\\\|F2C2CQ4N2PRB7O2XTYPE7CZHJX242L5QUSV5HYYQTVI5QPHX6RX \ / AMOS7 \ YOURUM ::
-#\[7]IQSWDCTKCPZ7IKAARCHBFFY5DQAV4SPZ2YLDAS34R4XLNFFY5SAI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,..,.,,,,..,.,.,,,.,.,.,.,,,.,,,..,,...,...,..,,..,,...,.,,,..,,
+#WEB_SKIN_RESOLVER_NESTED_CASCADE_20251114_001
+#\\\|SKIN_CASCADE_RESOLUTION_DEVICE_AWARE \ / AMOS7 \ YOURUM ::
+#\[7]WEB_SKIN_RESOLVER_IMPL_MODULE_HANDLER 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

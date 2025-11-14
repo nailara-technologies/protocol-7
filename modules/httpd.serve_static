@@ -1,0 +1,148 @@
+## [:< ##
+
+# name = httpd.serve_static
+# descr = Serve static files (called by route_dispatcher as fallback handler)
+#
+# This handler manages serving static files from the filesystem.
+# It's the fallback route when no template or API match exists.
+#
+# Parameters:
+#   $_[0] - Session ID
+#   $_[1] - Handler args hash with 'path' key
+#
+# Returns:
+#   HTTP status code or deferred (for large files)
+
+my $session_id = shift // '';
+my $handler_args = shift // {};
+my $path = $handler_args->{'path'} // '';
+
+die "expected valid session id" if not defined $data{'session'}{$session_id};
+my $session = $data{'session'}{$session_id};
+
+die "expected file path in handler args" if !length($path);
+
+my $request     = $session->{'http'}->{'request'};
+my $response    = $session->{'response'};
+my $http_host   = $session->{'http_host'};
+my $site_dir    = <httpd.cfg.site_dir> // '/var/httpd';
+
+<[base.log]>->(
+    1,
+    "[$session_id] serve_static: attempting to serve $path"
+);
+
+# Build full file path
+my $file_path = join('', $site_dir, '/', $http_host, $path);
+$file_path =~ s|/$||;
+
+# Check for template file instead (backward compat)
+if (!-f $file_path and -f "$file_path.tmpl") {
+    <[base.log]>->(
+        2,
+        "[$session_id] serve_static: found template $file_path.tmpl, redirecting to template processor"
+    );
+    # This shouldn't happen if routing is correct, but handle gracefully
+    return <[httpd.process_template]>->($session_id, "$file_path.tmpl");
+}
+
+# Check if it's a directory
+if (-d $file_path) {
+    # Try index files
+    if (-f "$file_path/index.html") {
+        $file_path = "$file_path/index.html";
+    } elsif (-f "$file_path/index.tmpl") {
+        <[base.log]>->(2, "[$session_id] found index.tmpl, redirecting to template processor");
+        return <[httpd.process_template]>->($session_id, "$file_path/index.tmpl");
+    } else {
+        <[base.log]>->(1, "[$session_id] directory listing not allowed: $file_path");
+        return <[httpd.send_error_page]>->($session_id, 403);
+    }
+}
+
+# File permission checks
+if (!-f $file_path) {
+    <[base.log]>->(1, "[$session_id] file not found: $file_path");
+    return <[httpd.send_error_page]>->($session_id, 404);
+}
+
+if (!-r $file_path) {
+    <[base.log]>->(0, "[$session_id] access denied by filesystem permissions: $file_path");
+    return <[httpd.send_error_page]>->($session_id, 403);
+}
+
+# Get file metadata
+my $file_stat     = File::stat::stat($file_path);
+my $content_inode = $file_stat->ino;
+my $content_size  = $file_stat->size;
+my $content_date  = time2str($file_stat->mtime);
+my $content_type  = mimetype($file_path) // 'application/octet-stream';
+
+# Generate ETag
+my $path_etag = <[chk-sum.elf.vax-BASE32]>
+    ->("$content_inode.$content_size.$content_date.$file_path");
+$response->{'params'}->{'ETag'} = $path_etag;
+
+# Check for Not Modified responses
+my $reply_code = 200;
+
+if (defined $request->{'headers'}->{'if-none-match'}
+    and $request->{'headers'}->{'if-none-match'} eq $response->{'params'}->{'ETag'}) {
+    <[base.log]>->(1, "[$session_id] returning 304 Not Modified (ETag match)");
+    $reply_code = 304;
+} elsif (defined $request->{'headers'}->{'if-modified-since'}
+         and $request->{'headers'}->{'if-modified-since'} eq $content_date) {
+    <[base.log]>->(1, "[$session_id] returning 304 Not Modified (date match)");
+    $reply_code = 304;
+}
+
+# Prepare response headers
+my $reply_header = {
+    'Content-Type'   => $content_type,
+    'Last-Modified'  => $content_date,
+    'Content-Length' => $content_size,
+    'Connection'     => $session->{'http'}->{'close'} ? 'close' : 'keep-alive',
+    'Accept-Ranges'  => 'bytes',
+    %{ $response->{'params'} }
+};
+
+# Handle 304 Not Modified
+if ($reply_code != 200) {
+    $session->{'buffer'}->{'output'}
+        .= <[httpd.new_header]>->($reply_code, $reply_header);
+    return $session->{'http'}->{'close'} ? 2 : 0;
+}
+
+# Serve small files directly
+if ($content_size <= 16 * 1024 and not exists $request->{'range'}) {
+    <[base.log]>->(2, "[$session_id] serving small file directly ($content_size bytes)");
+
+    local $RS = undef;
+    open(my $content_fh, '< :raw', $file_path)
+        or do {
+            <[base.log]>->(0, "[$session_id] failed to open $file_path: $!");
+            return <[httpd.send_error_page]>->($session_id, 500);
+        };
+
+    $session->{'buffer'}->{'output'}
+        .= <[httpd.new_header]>->($reply_code, $reply_header)
+        . <$content_fh>;
+    close($content_fh);
+
+    return $session->{'http'}->{'close'} ? 2 : 0;
+}
+
+# For large files, use download transfer mechanism
+<[base.log]>->(2, "[$session_id] serving large file via download handler ($content_size bytes)");
+
+return <[httpd.download_init]>->({
+    'sid'    => $session_id,
+    'path'   => $file_path,
+    'header' => $reply_header
+});
+
+#,,.,,.,.,.,.,,..,,..,,,.,.,.,,,.,..,,...,.,.,..,,...,...,,.,,,,,,.,,,,,,,..,,
+#SERVE_STATIC_IMPL_20251114_001
+#\\\|SERVE_STATIC_ROUTE_FALLBACK \ / AMOS7 \ YOURUM ::
+#\[7]SERVE_STATIC_MODULE_HANDLER 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
