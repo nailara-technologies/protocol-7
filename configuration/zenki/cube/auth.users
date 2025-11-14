@@ -4,13 +4,9 @@
 
 auth.setup.usr.root         = :unix:root       ## used by './bin/nshell' ##
 
-# auth.setup.usr.<admin-user> = :unix:<unix-admin-user>,taeki,:unix:taeki
-# auth.setup.usr.admin-user  = :unix:unix-taeki,:unix:taeki
-
-#### broken ## should use special user variable map syntax #####
-## [ taeki set-up ] #
-auth.setup.usr.unix-admin-user = :unix:<system.admin-user>,:unix:root
-auth.setup.usr.admin-user      = :unix:<system.admin-user>,:unix:root
+## [ taeki + unix-taeki setup - TEMPLATE-BASED ]
+auth.setup.usr.<admin-user> = :unix:<unix-admin>,:unix:<admin-user>
+auth.setup.usr.<unix-admin>  = :unix:<unix-admin>,:unix:<admin-user>
 
 ## ## ##
 ## # ## ## ### ........... works ................................
