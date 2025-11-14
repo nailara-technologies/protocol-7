@@ -27,6 +27,7 @@ apt-get -y install gcc git make cpanminus libc6-dev libc6-dev libmce-perl \
             libtest-exception-perl libtest-sharedfork-perl libcurses-perl \
             libhash-merge-simple-perl libproc-processtable-perl \
             libterm-readline-gnu-perl libterm-readpassword-perl \
+            libterm-readkey-perl \
             liblwp-protocol-https-perl libclass-accessor-lite-perl \
             libio-socket-multicast-perl libinline-c-perl libconst-fast-perl \
             liblwpx-paranoidagent-perl liblinux-inotify2-perl \
