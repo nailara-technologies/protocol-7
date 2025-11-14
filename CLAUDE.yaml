@@ -1,0 +1,274 @@
+# CLAUDE.yaml - Quick Reference for Protocol-7
+# Token-efficient structured guide
+# Last Updated: 2025-11-14
+
+meta:
+  repository: nailara-technologies/protocol-7
+  purpose: Perl-based modular multi-agent system (zenki)
+  default_branch: base
+  architecture: Asynchronous message-passing between autonomous agents
+  documentation: CLAUDE.md  # Read for comprehensive technical details
+
+# CRITICAL: Session initialization
+initialization:
+  required_command: ./bin/Protocol-7 workflow overview
+  why: Single command provides complete development context
+  token_cost: ~800-1000 tokens
+  provides:
+    - Current branch and git status
+    - Recent commits (last 5)
+    - Open todos and bugs
+    - Missing dependencies
+    - Context-aware suggestions ranked by relevance
+
+  alternative_docs:
+    - SESSION-START-HERE.md
+    - data/yaml/project-context/next-session-start.yaml
+    - .env.session  # Environment-based context
+
+# Quick commands (most useful)
+quick_commands:
+  overview: ./bin/Protocol-7 workflow overview
+  run_zenka: ./bin/Protocol-7 <zenka-name>
+  interactive_shell: ./bin/nshell
+  system_binary: p7 <command> [args]  # Low-latency system-wide access
+
+  workflow:
+    bug_list: ./bin/Protocol-7 workflow bug-list
+    todo_list: ./bin/Protocol-7 workflow todo-list
+    commit: ./bin/Protocol-7 workflow version-sign-commit "message"
+    search: ./bin/Protocol-7 workflow search <pattern>
+
+  workspace_transfer:
+    status: ./bin/Protocol-7 workspace-transfer status-check
+    checkpoint: ./bin/Protocol-7 workspace-transfer checkpoint
+    bug: ./bin/Protocol-7 workspace-transfer bug "<description>"
+    todo: ./bin/Protocol-7 workspace-transfer todo "<task>"
+
+# Multi-agent architecture (Zenki)
+zenki_system:
+  core_concept: Each agent (zenka, plural: zenki) is an autonomous process
+
+  core_zenki:
+    cube: Message router between all zenki (started first)
+    v7: Zenka manager (starts and manages other zenki)
+    httpd: HTTP server agent
+    workflow: Development workflow automation
+    workspace-transfer: Workspace-transfer repo integration
+
+  deployment_modes:
+    always_on: Listed in configuration/zenki/v7/start-set-up.base
+    on_demand: Started when first accessed (auto-timeout possible)
+    unmanaged: Manually started, connects but not monitored
+    standalone: Runs independently without cube connection
+
+  communication:
+    transport: Unix domain sockets or TCP (equivalent after auth)
+    routing: Via cube zenka (message router)
+    syntax:
+      - Direct: "list users" (no dots)
+      - Routed: "zenka.command" (dot notation)
+      - Example: "workflow.overview" → routes to workflow zenka
+
+# Module system (unique architecture)
+modules:
+  location: modules/  # All 5270+ functional modules
+  naming: Dot notation (e.g., base.init_code, httpd.file_transfer.init)
+
+  structure: |
+    ## [:< ##
+    # name = module.name.here
+    # descr = Brief description
+    # Implementation code...
+
+  no_sub_declarations: Filename becomes the callable subroutine
+
+  invocation:
+    standard: $code{'module.name'}->()
+    special: <[module.name]>->()  # Parsed before compilation
+
+  organization:
+    base: Common functionality (base.*)
+    zenka_specific: Each zenka has namespace (cube.*, httpd.*, workflow.*)
+    shared: Descriptive names for reuse across zenki
+
+  signature: AMOS7 data signatures at end of files for integrity
+
+# AMOS7 system
+amos7:
+  location: data/lib-path/pm/AMOS7/
+  purpose: Project-internal Perl modules for unique functionality
+
+  key_modules:
+    Assert_Truth: Harmonic truth calculation (division by 13)
+    CHKSUM: Specialized checksum implementations
+    Protocol_P7: Protocol-7 specific implementations
+    Twofish: Cryptographic functions
+
+  constants:
+    TRUE: 5
+    FALSE: 0
+    UNKNOWN: 2
+
+  harmonic_truth:
+    TRUE_HARMONIC: 384615  # 5/13 repeating
+    FALSE_HARMONIC: 230769  # 3/13 repeating
+
+# Dependencies
+dependencies:
+  install_minimal: ./bin/dependencies/install_minimal_dependencies.debian.sh
+  install_full: ./bin/dependencies/install_dependencies.debian.sh
+  cpan_modules: ./bin/dependencies/cpan_install.debian.sh
+
+  system_deps:
+    - gcc, make, libc6-dev
+    - perl (v5.24+)
+    - git
+
+  perl_modules:
+    - Curve25519 (included in data/lib-path/pm-src/)
+    - Digest::BMW
+    - Many others (see install scripts)
+
+# Color scheme (Protocol-7 aesthetic)
+colors:
+  blacklight: "\e[38;2;68;39;172m"  # Blacklight purple
+  TRUE_blue: "\e[38;2;6;71;195m"  # TRUE harmonic blue
+  neon_orange: "\e[38;2;197;141;7m"
+  neon_green: "\e[38;2;71;195;6m"
+  neon_red: "\e[38;2;195;6;71m"
+  nailara_bg: "\e[48;2;9;5;42m"  # Nailara background
+
+  usage: Used in console output for workflow, workspace-transfer zenki
+
+# Cryptographic system
+crypto:
+  keys: modules/crypt.C25519.* (Curve25519)
+  checksums: Multiple algorithms (AMOS, BMW, ELF, JHA)
+  user_keys: modules/USR.[username].*
+  signatures: AMOS7 signatures for file integrity
+
+# Workflow zenka integration
+workflow:
+  purpose: Development workflow automation with AI assistance
+
+  features:
+    - Git status and commit management
+    - Todo and bug tracking across workspace repos
+    - Dependency checking and installation
+    - Context-aware suggestions
+    - Signature verification
+    - Email harmonization
+
+  commands:
+    overview: Complete development context
+    bug_list: Show tracked bugs
+    todo_list: Show tracked todos
+    commit: Version-sign-commit workflow
+    search: Search workflow data/notes
+
+  storage:
+    todos: data/yaml/indexes/todos-index.yaml
+    bugs: Aggregated from workspace repos
+    context: data/yaml/project-context/
+
+# workspace-transfer integration
+workspace_transfer:
+  repo: https://github.com/nailara-technologies/workspace-transfer.git
+  local_path: /var/run/.7/workspace-transfer
+
+  zenka_modules:
+    - workspace-transfer.init_code
+    - workspace-transfer.console.status-check
+    - workspace-transfer.console.checkpoint
+    - workspace-transfer.cmd.bug
+    - workspace-transfer.cmd.todo
+    - workspace-transfer.console.bug-commit
+    - workspace-transfer.console.todo-commit
+
+  purpose: AI collaboration staging area for Protocol-7 development
+  workflow: Stage work → Transfer to protocol-7 → Commit → Push
+
+# Directory structure
+structure:
+  bin/: Executables (Protocol-7, nshell, utilities)
+  modules/: All 5270+ functional modules
+  configuration/: System and zenka configs
+  data/: Data storage, lib-path, YAML indexes
+  docs/: Documentation
+  scripts/: Additional scripts
+  appliances/: Appliance definitions
+  var/: Runtime data
+
+# Git workflow
+git:
+  default_branch: base
+  commit_workflow: ./bin/Protocol-7 workflow version-sign-commit "message"
+  admin_tools:
+    - ./bin/admin/vc_commit
+    - ./bin/dev/vci
+    - ./bin/dev/update-version
+
+  signatures: Commits include AMOS7 signatures for integrity
+
+# Development workflow
+session_pattern:
+  start:
+    - cd /data/projects/protocol-7  # Or your path
+    - ./bin/Protocol-7 workflow overview
+    - Read suggested actions
+    - Check data/yaml/project-context/ for context
+
+  during:
+    - Work on suggested tasks
+    - Use workflow commands for tracking
+    - Commit with version-sign-commit
+
+  end:
+    - Ensure all changes committed
+    - Update session documentation in data/yaml/project-context/
+    - Push to remote
+
+# Common issues
+troubleshooting:
+  missing_dependencies:
+    symptom: "Can't locate <Module>.pm"
+    fix: ./bin/dependencies/install_minimal_dependencies.debian.sh
+
+  crypto_warnings:
+    symptom: Crypt::C25519 warnings
+    fix: Set crypt.C25519.auto_load_keys = no in config
+
+  key_directory:
+    symptom: "no read permission to key dir"
+    fix: Create /home/protocol-7/.n/user-keys or disable crypto
+
+  deep_recursion:
+    symptom: Deep recursion error
+    fix: Use // 0 or // {} for all %data hash access
+
+# Best practices
+practices:
+  - Always run 'workflow overview' at session start
+  - Use workflow commands for tracking (not manual git)
+  - Follow module naming conventions
+  - Include AMOS7 signatures
+  - Test before committing
+  - Use context-aware suggestions
+  - Update session documentation
+
+# Philosophy
+philosophy: |
+  Protocol-7 is a self-organizing multi-agent system where:
+  - Each zenka is autonomous and resumable
+  - Communication via harmonic message routing
+  - Cryptographic integrity throughout
+  - Code quality via verifiable physics (harmonic resonance)
+  - AI-assisted development via workflow zenka
+
+  "Quality emerges from verifiable truth, not authority."
+
+# Related repositories
+related:
+  workspace-transfer: https://github.com/nailara-technologies/workspace-transfer
+  purpose: AI collaboration and staging for Protocol-7 development
