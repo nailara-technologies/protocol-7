@@ -1,6 +1,8 @@
 ## [:< ##
 
 # name = httpd.http_get
+# descr = HTTP GET handler with intelligent routing via route_dispatcher
+# Updated: 2025-11-14 to integrate httpd.route_dispatcher for modern content routing
 
 my $id            = shift;
 my $session       = $data{'session'}->{$id};
@@ -40,6 +42,57 @@ if (    $link_target =~ m|^\d{3}$|
 }
 
 $session->{'http'}{'request'}{'matched_host'} = $http_host;
+
+## ============================================================================
+## NEW: Intelligent request routing via route_dispatcher (v2025-11-14)
+## ============================================================================
+## Extract URI path and delegate to route_dispatcher for intelligent routing
+
+my $uri_obj  = URI->new($http_uri);
+my $uri_path = $uri_obj->path // '/';
+
+<[base.log]>->(2, "[$id] route_dispatcher: GET $uri_path (vhost=$http_host)");
+
+# Call route_dispatcher to determine the appropriate handler
+my $route = <[httpd.route_dispatcher]>->('GET', $uri_path, $http_host, $id);
+
+unless (defined $route and ref($route) eq 'HASH') {
+    <[base.log]>->(0, "[$id] route_dispatcher returned invalid result");
+    return <[httpd.send_error_page]>->($id, 500);
+}
+
+my $handler_name = $route->{'handler'} // 'httpd.send_error_page';
+my $handler_args = $route->{'handler_args'} // {};
+
+<[base.log]>->(
+    2,
+    "[$id] dispatcher selected: $handler_name"
+);
+
+# Dispatch to the appropriate handler
+if ($handler_name eq 'httpd.process_template') {
+    # Template processing
+    return <[$handler_name]>->($id, $handler_args->{'template_path'});
+} elsif ($handler_name eq 'httpd.serve_static') {
+    # Static file serving
+    return <[$handler_name]>->($id, $handler_args);
+} elsif ($handler_name eq 'httpd.handler.acme_request') {
+    # ACME challenge
+    return <[$handler_name]>->($id, $handler_args->{'token'});
+} elsif ($handler_name eq 'letsencrypt.http.api_handler') {
+    # Let's Encrypt API
+    return <[$handler_name]>->($id, $handler_args->{'endpoint'});
+} elsif ($handler_name eq 'httpd.send_error_page') {
+    # Error response
+    return <[$handler_name]>->($id, $handler_args->{'code'} // 500);
+} else {
+    # Generic handler fallback
+    <[base.log]>->(1, "[$id] calling handler: $handler_name");
+    return <[$handler_name]>->($id, $handler_args);
+}
+
+## Legacy fallback (should not be reached if routing is correct)
+<[base.log]>->(0, "[$id] http_get: unexpected fallthrough");
 
 if ( exists $headers->{'range'} ) {
     my $bad_req = 0;

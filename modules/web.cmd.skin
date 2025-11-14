@@ -1,0 +1,102 @@
+## [:< ##
+
+# name = web.cmd.skin
+# descr = Operator command to manage and resolve skins
+#
+# Usage:
+#   skin resolve <vhost> [skin=name] [dark_mode=true/false]
+#   skin list <vhost>
+#   skin info <vhost> <skin-name>
+
+my $subcmd = shift // '';
+my $vhost = shift;
+
+return <[base.log]>->(0, "skin: missing vhost argument") unless $vhost;
+
+if ($subcmd eq 'resolve') {
+    ## Parse preferences from arguments ##
+    my %prefs;
+    while (my $arg = shift) {
+        if ($arg =~ /^(\w+)=(.*)$/) {
+            $prefs{$1} = $2;
+        }
+    }
+
+    my $user_agent = $ENV{'HTTP_USER_AGENT'} // '';
+
+    ## Resolve skin ##
+    my $result = <[web.skin_resolver]>->($vhost, \%prefs, $user_agent);
+
+    say "Skin: " . $result->{'skin_name'};
+    say "Path: " . $result->{'skin_root'};
+    say "Device: " . $result->{'device_type'};
+    say "Cascade: " . join(' -> ', @{$result->{'cascade'}});
+
+    return 0;
+
+} elsif ($subcmd eq 'list') {
+    ## List available skins ##
+    my $site_root = <httpd.cfg.site_dir> // '/var/httpd';
+    my $skins_root = "$site_root/_global_templates/skins";
+
+    unless (-d $skins_root) {
+        return <[base.log]>->(1, "skins directory not found: $skins_root");
+    }
+
+    opendir(my $dh, $skins_root) or do {
+        return <[base.log]>->(1, "cannot read skins directory: $!");
+    };
+
+    my @skins = grep { -d "$skins_root/$_" and $_ !~ /^\./ } readdir($dh);
+    closedir($dh);
+
+    say "Available skins for $vhost:";
+    foreach my $skin (sort @skins) {
+        say "  - $skin";
+    }
+
+    return 0;
+
+} elsif ($subcmd eq 'info') {
+    my $skin_name = shift;
+    return <[base.log]>->(0, "skin info: missing skin name") unless $skin_name;
+
+    my $site_root = <httpd.cfg.site_dir> // '/var/httpd';
+    my $skin_path = "$site_root/_global_templates/skins/$skin_name";
+
+    unless (-d $skin_path) {
+        return <[base.log]>->(1, "skin not found: $skin_name");
+    }
+
+    say "Skin: $skin_name";
+    say "Path: $skin_path";
+
+    ## List skin contents ##
+    opendir(my $dh, $skin_path) or do {
+        return <[base.log]>->(1, "cannot read skin directory: $!");
+    };
+
+    my @files = grep { $_ !~ /^\./ } readdir($dh);
+    closedir($dh);
+
+    say "Contents:";
+    foreach my $file (sort @files) {
+        my $type = (-d "$skin_path/$file") ? '[DIR]' : '[FILE]';
+        say "  $type $file";
+    }
+
+    return 0;
+
+} else {
+    say "Usage:";
+    say "  skin resolve <vhost> [skin=name] [dark_mode=true/false]";
+    say "  skin list <vhost>";
+    say "  skin info <vhost> <skin-name>";
+    return 1;
+}
+
+#,,.,,.,.,,,.,,..,.,,,,..,.,.,,,.,.,.,.,,,.,,,..,,...,...,..,,..,,...,.,,,..,,
+#WEB_CMD_SKIN_OPERATOR_20251114_001
+#\\\|WEB_SKIN_COMMAND_HANDLER \ / AMOS7 \ YOURUM ::
+#\[7]WEB_SKIN_CMD_MODULE_HANDLER 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
