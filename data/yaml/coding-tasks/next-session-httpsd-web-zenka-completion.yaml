@@ -1,0 +1,466 @@
+# Next Session: HTTPSD Auto-Init & Web-Zenka Template Parsing Completion
+# Priority: Token-efficient implementation of essential web functionality
+# Estimated Investment: ~34 tokens remaining
+# Target: Auto-updating HTTPS + template-based dynamic websites operational
+
+session:
+  id: "claude-web-zenka-completion"
+  date_planned: "2025-11-15"
+  token_budget: 34
+  primary_objective: |
+    Efficiently implement the critical path for httpsd auto-initialization and
+    web-zenka template parsing completion. Focus on getting the most essential
+    functionality working behind auto-updating HTTPS setup to support template-
+    based dynamic website generation with zenka-processed content.
+
+  background: |
+    Previous sessions (before workflow infrastructure upgrade) completed:
+    • 8 phases of ACME/Let's Encrypt integration (httpsd certs automatic)
+    • Web zenka with recursive template parsing (Phase 9)
+    • Complete architecture design for vhost/template hierarchy
+    • Module stubs and configuration files ready
+
+    Current status:
+    • HTTPSD: Production-ready, auto-cert-install complete
+    • Web zenka: Recursive template processing operational
+    • Template architecture: Designed but not fully integrated
+    • Critical blocker: base.parser.pattern_split recovery needed
+
+---
+
+## CRITICAL PATH (Token-Efficient Implementation)
+
+critical_blockers:
+  - name: "base.parser.pattern_split Recovery"
+    impact: "BLOCKING Phase 3 Stage 1 - HTTP handler route dispatcher"
+    estimated_effort: "4-6 hours (1-2 tokens)"
+    description: |
+      Must extract base.parser.pattern_split from Protocol-7 binary and
+      de-obfuscate to readable Perl. This is prerequisite for HTTP request
+      routing and path pattern matching needed for dynamic content delivery.
+
+    steps:
+      - "Export from binary: ./bin/Protocol-7 -export-inline-subs base.parser.pattern_split"
+      - "De-obfuscate extracted code"
+      - "Test pattern matching: /blog/*, /api/*, /files/*"
+      - "Add to modules/ directory"
+      - "Commit with documentation"
+
+    why_critical: |
+      Without this, HTTP handler cannot properly route requests to different
+      template processors, ACME challenges, or static files. This is the
+      single highest-impact blocker preventing dynamic website generation.
+
+  - name: "HTTP Handler Route Dispatcher Design"
+    impact: "BLOCKING web content delivery"
+    estimated_effort: "2-3 tokens"
+    description: |
+      Extend httpd.http_get handler with intelligent routing based on request
+      paths. Routes template requests to web.process-template-ipc, ACME
+      challenges to acme handler, static files to filesystem.
+
+    design_reference: "docs/architecture/NEW_ZENKA_ARCHITECTURE.md (section 3.2)"
+
+    core_pattern: |
+      GET /blog/2025-11-14-post.html
+        → Check if template exists in /blog/_templates/
+        → If yes, process via web.process-template-ipc (async)
+        → Cache result (1800s TTL)
+        → Return rendered content
+
+      GET /.well-known/acme-challenge/{token}
+        → Route to acme.http.handler
+
+      GET /static/style.css
+        → Serve from /var/httpd/{vhost}/static/
+
+      GET /api/certificate-status
+        → Route to letsencrypt.http.api_handler
+
+---
+
+## SESSION PHASES (Token-Budgeted)
+
+phase_1:
+  name: "Context Restoration & Blocker Resolution"
+  tokens_allocated: 8
+  duration: "~2-3 hours"
+
+  tasks:
+    - name: "Read Session Context"
+      tokens: 1
+      actions:
+        - "Read: /home/user/ACTIVE_SESSION_CHECKPOINT.md (template auth completion)"
+        - "Read: /home/user/protocol-7/docs/architecture/NEW_ZENKA_ARCHITECTURE.md"
+        - "Read: /home/user/protocol-7/docs/architecture/VHOST_TEMPLATE_HIERARCHY.md"
+        - "Review: /home/user/protocol-7/data/yaml/coding-tasks/httpd-async-https-expansion.yaml"
+      success_criteria: "Understand current state, blockers, and architecture"
+
+    - name: "Recover base.parser.pattern_split from Binary"
+      tokens: 4
+      actions:
+        - "Export: ./bin/Protocol-7 -export-inline-subs base.parser.pattern_split"
+        - "De-obfuscate Perl code to readable format"
+        - "Test with sample patterns: '/blog/*', '/api/*', '/files/*'"
+        - "Create module: modules/base.parser.pattern_split"
+        - "Add documentation and test cases"
+      success_criteria: "Pattern matching functional, test cases passing"
+
+      implementation_notes: |
+        Look for regex patterns that handle:
+        • Wildcard matching (*, ?, [])
+        • Path segments (/blog/*, /blog/*/admin)
+        • Query strings and parameters
+        • Special characters and escaping
+
+    - name: "Verify Web Zenka Template Processing"
+      tokens: 2
+      actions:
+        - "Review: configuration/zenki/web/start"
+        - "Test: web.process_template_recursive with sample template"
+        - "Verify: Caching (1800s TTL, 5MB max)"
+        - "Verify: Parallel execution (16 command limit)"
+        - "Test: Recursion depth limit (8 levels)"
+      success_criteria: "Template processing working, performance metrics collected"
+
+    - name: "Prepare HTTPSD Auto-Init Documentation"
+      tokens: 1
+      actions:
+        - "Document: HTTPSD auto-cert-installation flow"
+        - "Create: Auto-init startup checklist"
+        - "Document: Certificate symlink management"
+        - "List: All required directories and permissions"
+      success_criteria: "Clear runbook for HTTPSD startup"
+
+phase_2:
+  name: "HTTP Handler Route Dispatcher Implementation"
+  tokens_allocated: 12
+  duration: "~4-6 hours"
+
+  tasks:
+    - name: "Design HTTP Route Matching"
+      tokens: 2
+      actions:
+        - "Define route patterns (priority order)"
+        - "Create route dispatch table"
+        - "Design pattern matching algorithm"
+        - "Plan caching strategy for routes"
+
+      route_patterns: |
+        Priority 1 (Dynamic):
+          /.well-known/acme-challenge/* → acme.http.challenge_handler
+          /api/* → letsencrypt.http.api_handler
+          /template/* → web.process-template-ipc
+          /dynamic/* → web.process-template-ipc
+
+        Priority 2 (Template-based):
+          /* → Check vhost/_templates for matching file
+             → If found, render via web.process-template-ipc
+             → Cache result (1800s TTL)
+             → Serve rendered content
+
+        Priority 3 (Static):
+          /* → Serve from /var/httpd/{vhost}/
+
+      success_criteria: "Route dispatch algorithm clearly defined"
+
+    - name: "Extend httpd.http_get Handler"
+      tokens: 5
+      actions:
+        - "Add route dispatcher to httpd.http_get"
+        - "Implement pattern matching with base.parser.pattern_split"
+        - "Integrate web.process-template-ipc for dynamic routes"
+        - "Add caching layer (Redis or in-memory)"
+        - "Implement fallback to static file serving"
+        - "Add request logging and metrics"
+
+      code_structure: |
+        sub httpd.http_get {
+          my ($path, $vhost) = @_;
+
+          # Route 1: ACME challenges
+          if ($path =~ m|^/.well-known/acme-challenge/(.+)$|) {
+            return acme.http.challenge_handler($1);
+          }
+
+          # Route 2: API endpoints
+          if ($path =~ m|^/api/(.+)$|) {
+            return letsencrypt.http.api_handler($1);
+          }
+
+          # Route 3: Template-based dynamic content
+          my $template_file = check_template_exists($vhost, $path);
+          if ($template_file) {
+            return web.process-template-ipc($template_file, {
+              vhost => $vhost,
+              path => $path,
+              cache_ttl => 1800,
+            });
+          }
+
+          # Route 4: Static files
+          return serve_static_file($vhost, $path);
+        }
+
+      success_criteria: "HTTP handler routing working, dynamic content being processed"
+
+    - name: "Test Route Dispatcher with Sample Content"
+      tokens: 3
+      actions:
+        - "Create sample template: /var/httpd/127.0.0.1/index.html.template"
+        - "Test ACME challenge route: /.well-known/acme-challenge/test"
+        - "Test API route: /api/certificate-status"
+        - "Test template route: /index.html"
+        - "Test static file route: /static/style.css"
+        - "Verify caching behavior"
+        - "Check request logging"
+
+      sample_templates: |
+        /var/httpd/127.0.0.1/index.html.template:
+          <html>
+            <head><title><{page.title}></title></head>
+            <body>
+              <h1>Welcome to <[web:get-hostname]></h1>
+              <p>Generated at: <[web:current-timestamp]></p>
+              <p>Certificate expires: <[letsencrypt:get-cert-expiry]></p>
+            </body>
+          </html>
+
+      success_criteria: "All routes tested, dynamic content generated correctly"
+
+    - name: "Implement Vhost Template Resolver"
+      tokens: 2
+      actions:
+        - "Create: modules/web.vhost_template_resolver"
+        - "Implement: 3-level priority hierarchy"
+          - "Level 1: /var/httpd/{vhost}/{path}/_templates/"
+          - "Level 2: /var/httpd/{vhost}/_templates/"
+          - "Level 3: /var/httpd/_global_templates/"
+        - "Add template file caching"
+        - "Test with multiple vhosts"
+
+      success_criteria: "Template resolution working across vhost hierarchy"
+
+phase_3:
+  name: "Skin & Menu System Integration"
+  tokens_allocated: 8
+  duration: "~3-4 hours"
+
+  tasks:
+    - name: "Implement Nested Skin System"
+      tokens: 3
+      actions:
+        - "Create: modules/web.skin_resolver"
+        - "Implement: Nested skin layers"
+          - "Default skin: /var/httpd/_global_templates/skins/default/"
+          - "Dark skin: /var/httpd/_global_templates/skins/dark/"
+          - "Mobile skin: /var/httpd/_global_templates/skins/mobile/"
+        - "Add user preference detection (Cookie/HTTP header)"
+        - "Implement skin cascade (mobile → dark → default)"
+
+      skin_structure: |
+        /var/httpd/_global_templates/skins/
+        ├── default/
+        │   ├── layout.html.template
+        │   ├── header.html.template
+        │   ├── footer.html.template
+        │   └── style.css
+        ├── dark/
+        │   └── style.css (overrides)
+        └── mobile/
+            └── layout.html.template (mobile-optimized)
+
+      success_criteria: "Skin switching functional, cascading working"
+
+    - name: "Implement Automatic Menu Generation"
+      tokens: 3
+      actions:
+        - "Create: modules/web.menu_generator"
+        - "Scan: /var/httpd/{vhost}/ for directories"
+        - "Generate: Navigation menu from directory structure"
+        - "Support: Custom menu metadata (title, icon, order)"
+        - "Add: Active page highlighting"
+
+      menu_generation: |
+        /var/httpd/127.0.0.1/
+        ├── index.html
+        ├── blog/
+        │   └── (auto-menu entry "Blog")
+        ├── shop/
+        │   └── (auto-menu entry "Shop")
+        └── admin/
+            └── (auto-menu entry "Admin")
+
+      success_criteria: "Menu generation working, appears in rendered pages"
+
+    - name: "Create Comprehensive Skin Example"
+      tokens: 2
+      actions:
+        - "Create: Sample skin with header, nav, content, footer"
+        - "Create: Dark mode variant"
+        - "Create: Mobile-responsive variant"
+        - "Test: All three skins rendering correctly"
+
+      success_criteria: "Multi-skin content generation working end-to-end"
+
+phase_4:
+  name: "Integration Testing & Documentation"
+  tokens_allocated: 6
+  duration: "~2-3 hours"
+
+  tasks:
+    - name: "End-to-End Template Processing Test"
+      tokens: 2
+      actions:
+        - "Create: Complex template with nested includes"
+        - "Process: Through web.process_template_recursive"
+        - "Verify: All variables expanded correctly"
+        - "Check: Recursion depth limits"
+        - "Test: Caching and cache hits"
+
+      test_template: |
+        <html>
+          <head>
+            <[web:include:_templates/head.html]>
+            <[web:include:skins/<{user.skin}>/style.css]>
+          </head>
+          <body>
+            <[web:include:_templates/header.html]>
+            <[web:menu:render:<{page.menu-level}>]>
+            <main>
+              <h1><{page.title}></h1>
+              <p>Last updated: <[web:current-timestamp]></p>
+              <[web:include:_templates/content/<{page.name}>.html]>
+            </main>
+            <[web:include:_templates/footer.html]>
+          </body>
+        </html>
+
+      success_criteria: "Complex template processed, all includes working"
+
+    - name: "HTTPS Certificate Auto-Update Verification"
+      tokens: 2
+      actions:
+        - "Verify: HTTPSD running on 443"
+        - "Verify: Certificate symlinks working"
+        - "Verify: HSTS headers present"
+        - "Test: HTTP→HTTPS redirect (if configured)"
+        - "Check: Let's Encrypt renewal flow (simulate)"
+
+      success_criteria: "HTTPS operational, auto-cert-install functional"
+
+    - name: "Create Session Handoff Documentation"
+      tokens: 2
+      actions:
+        - "Document: Completed httpsd auto-init implementation"
+        - "Document: Web-zenka template processing integration"
+        - "Document: Route dispatcher architecture"
+        - "Document: Vhost/skin/menu system"
+        - "List: Remaining tasks for future sessions"
+        - "Create: Testing checklist for next session"
+
+      documentation_files:
+        - "SESSION_STATUS_2025-11-15_web-zenka-completion.md"
+        - "NEXT_SESSION_HTTPSD_HTTPS_EXPANSION.md"
+        - "WEB_ZENKA_IMPLEMENTATION_GUIDE.md"
+
+      success_criteria: "Clear handoff documentation, ready for next session"
+
+---
+
+## EFFICIENCY METRICS
+
+token_allocation:
+  phase_1: "8 tokens (Context + Critical Blockers)"
+  phase_2: "12 tokens (Route Dispatcher Implementation)"
+  phase_3: "8 tokens (Skin & Menu System)"
+  phase_4: "6 tokens (Integration & Documentation)"
+  total: "34 tokens"
+
+expected_outcomes:
+  - "base.parser.pattern_split recovered and tested"
+  - "HTTP route dispatcher fully functional"
+  - "Dynamic template-based website rendering working"
+  - "HTTPSD auto-initialization complete and verified"
+  - "Vhost/skin/menu system integrated"
+  - "HTTPS/TLS auto-update operational"
+  - "Comprehensive documentation for future sessions"
+
+what_gets_delayed:
+  - "Advanced performance optimization (Phase 4, Stage 4)"
+  - "Complex async I/O improvements"
+  - "Full test suite and benchmarking"
+  - "Production deployment hardening"
+  - "Advanced security features"
+  note: "These can be tackled in future sessions with more tokens"
+
+critical_success_factors:
+  - "Recover base.parser.pattern_split early (blocks everything else)"
+  - "Keep route dispatcher design simple and focused"
+  - "Reuse existing web.process_template_recursive (already complete)"
+  - "Leverage existing HTTPSD/ACME integration (already complete)"
+  - "Test incrementally to catch issues early"
+
+---
+
+## KNOWLEDGE PRESERVATION FOR NEXT SESSION
+
+files_to_read_first:
+  - "/home/user/ACTIVE_SESSION_CHECKPOINT.md (5 min)"
+  - "/home/user/protocol-7/docs/architecture/NEW_ZENKA_ARCHITECTURE.md (15 min)"
+  - "/home/user/protocol-7/docs/architecture/VHOST_TEMPLATE_HIERARCHY.md (15 min)"
+  - "/home/user/protocol-7/data/yaml/coding-tasks/httpd-async-https-expansion.yaml (10 min)"
+  - "This file (next-session-httpsd-web-zenka-completion.yaml) (5 min)"
+
+key_context_to_remember:
+  - "HTTPSD: Already complete, auto-cert-install working"
+  - "Web zenka: Already complete, recursive template processing ready"
+  - "ACME/LetsEncrypt: All 8 phases complete, auto-renewal operational"
+  - "Critical blocker: base.parser.pattern_split recovery"
+  - "Priority: Get HTTP route dispatcher working to connect all pieces"
+  - "Goal: Template-based dynamic websites with HTTPS auto-update"
+
+architectural_decisions:
+  - "Use existing web.process_template_ipc for dynamic content (proven async)"
+  - "Implement caching at HTTP handler level (1800s TTL, 5MB max)"
+  - "Use pattern_split for route matching (priority-ordered rules)"
+  - "Support 3-level template hierarchy (vhost > global > default)"
+  - "Nested skins with cascade (mobile > dark > default)"
+  - "Auto-menu generation from filesystem"
+
+---
+
+## NEXT PHASE (Future Sessions - 8-10 Weeks)
+
+future_work:
+  - "Phase 4 Stage 3 & 4: HTTPS/TLS async expansion"
+  - "Advanced performance optimization (caching, pre-rendering)"
+  - "Full test suite and benchmarking"
+  - "Production deployment hardening"
+  - "Multi-domain vhost management"
+  - "Advanced security: WAF, rate limiting, DDoS protection"
+  - "Monitoring and alerting integration"
+
+estimated_additional_effort:
+  - "HTTPS expansion: 3-4 weeks"
+  - "Performance optimization: 2 weeks"
+  - "Testing and hardening: 2 weeks"
+  - "Documentation and cleanup: 1 week"
+  - "total: 8-10 weeks with current resources"
+
+---
+
+## GIT COMMITS EXPECTED
+
+expected_commits:
+  - "recovery: Extract and integrate base.parser.pattern_split"
+  - "feat: Implement HTTP route dispatcher for dynamic content"
+  - "feat: Add vhost template resolver with 3-level hierarchy"
+  - "feat: Implement nested skin system with user preferences"
+  - "feat: Add automatic menu generation from filesystem"
+  - "docs: Add comprehensive web-zenka implementation guide"
+  - "docs: Create session status and handoff documentation"
+
+---
+
+end_of_task_definition: true
