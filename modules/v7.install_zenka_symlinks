@@ -1,0 +1,97 @@
+## [:< ##
+
+# name  = v7.install_zenka_symlinks
+# descr = Install p7.<zenka> symlinks for console-only zenki access
+
+my $root_path     = <system.root_path>;
+my $protocol7_bin = sprintf('%s/bin/Protocol-7', $root_path);
+my $symlink_dir   = <v7.cfg.zenka_symlink_dir> || '/usr/local/bin';
+my $enabled       = <[base.cfg_bool]>->(<v7.cfg.install_zenka_symlinks> // 'yes');
+
+return 0 unless $enabled;
+return 0 unless $UID == 0;  ## root only
+return 0 unless -x $protocol7_bin;
+return 0 unless -d $symlink_dir and -w $symlink_dir;
+
+## Get list of zenki to create symlinks for
+my @zenka_list = ();
+
+## Console-only zenki (from modules directory)
+my $modules_dir = "$root_path/modules";
+if (-d $modules_dir) {
+    opendir(my $mod_dh, $modules_dir) or return 0;
+    while (my $file = readdir($mod_dh)) {
+        ## Match .console files (workflow.console.commit, sourcecode.console.*, etc)
+        if ($file =~ m|^([^.]+)\.console\.|) {
+            my $zenka_name = $1;
+            push @zenka_list, $zenka_name unless grep { $ARG eq $zenka_name } @zenka_list;
+        }
+    }
+    closedir($mod_dh);
+}
+
+## Add configured zenki from startup configs
+my $zenki_dir = "$root_path/configuration/zenki";
+if (-d $zenki_dir) {
+    opendir(my $cfg_dh, $zenki_dir) or return 0;
+    while (my $dir = readdir($cfg_dh)) {
+        next if $dir =~ m|^\.\.?$|;
+        next unless -d "$zenki_dir/$dir";
+        ## Skip v7 itself and system zenki
+        next if $dir eq 'v7' or $dir eq 'cube';
+        push @zenka_list, $dir unless grep { $ARG eq $dir } @zenka_list;
+    }
+    closedir($cfg_dh);
+}
+
+return 0 unless @zenka_list;
+
+my $installed_count = 0;
+my $updated_count   = 0;
+
+foreach my $zenka_name (sort @zenka_list) {
+    my $symlink_path = "$symlink_dir/p7.$zenka_name";
+
+    ## Check if symlink already exists and is current
+    if (-l $symlink_path) {
+        my $current_target = readlink($symlink_path);
+        if ($current_target eq $protocol7_bin) {
+            ## Already correct, skip
+            next;
+        } else {
+            ## Update symlink
+            unlink($symlink_path) or do {
+                <[base.log]>->(0, ": cannot update symlink: $symlink_path");
+                next;
+            };
+            $updated_count++;
+        }
+    }
+
+    ## Create symlink
+    if (symlink($protocol7_bin, $symlink_path)) {
+        $installed_count++;
+    } else {
+        <[base.log]>->(0, ": failed to create symlink: $symlink_path [ \l$OS_ERROR ]");
+    }
+}
+
+if ($installed_count > 0 or $updated_count > 0) {
+    <[base.log]>->(1, sprintf(
+        ": installed %d zenka symlink%s to %s",
+        $installed_count + $updated_count,
+        $installed_count + $updated_count == 1 ? '' : 's',
+        $symlink_dir
+    ));
+
+    if ($installed_count > 0) {
+        <[base.log]>->(2, sprintf(": :. new: %d", $installed_count));
+    }
+    if ($updated_count > 0) {
+        <[base.log]>->(2, sprintf(": :. updated: %d", $updated_count));
+    }
+}
+
+return $installed_count + $updated_count;
+
+#,,.,,,,,.,,..,,..,.,.,.,,,..,,.,.,.,...,,,.,,,.,..,,...,..,...,,...,.,,,...,,
