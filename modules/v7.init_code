@@ -82,6 +82,9 @@ if ( !-x <v7.gcc_bin> ) {
 ## Install p7.<zenka> symlinks for console-only zenki access ##
 <[v7.install_zenka_symlinks]> if $UID == 0;
 
+## Install common workflow shorthand aliases (p7.w, p7.wo, etc.)
+<[v7.install_workflow_shortcuts]> if $UID == 0;
+
 ## modprobe ##
 <v7.modprobe_bin> = <[base.required_bin_path]>->(qw| modprobe |);
 if ( !-x <v7.modprobe_bin> ) {
@@ -99,23 +102,31 @@ if ( !-x <v7.rmmod_bin> ) {
 <[v7.load_start_setup]>->(<load.start_setup>)
     if defined <load.start_setup>;
 
-## Check and install dependencies (development mode)
-if ($UID == 0) {
-    <[base.log]>->( 2, "v7: checking dependencies..." );
+## Verify and install dependencies for all registered zenka
+if ($UID == 0 && exists $code{'debian.parent.scan_zenki_dependencies'}) {
+    <[base.log]>->( 2, "v7: scanning zenka dependencies..." );
 
-    ## Check if debian module is available
-    if (exists $code{'debian.parent.ensure_zenka_dependencies'}) {
-        my $deps_ok = <[debian.parent.ensure_zenka_dependencies]>->('v7', 1);
+    ## Scan all zenka for their dependencies
+    my $scan_result = <[debian.parent.scan_zenki_dependencies]>;
 
-        if ($deps_ok) {
-            <[base.log]>->( 2, "v7: ✓ all dependencies satisfied" );
-        } else {
-            <[base.log]>->( 0, "v7: ⚠ some dependencies missing - continuing anyway" );
+    if ($scan_result && %$scan_result) {
+        <[base.log]>->( 2, "v7: dependency scan complete - verifying and installing..." );
+
+        ## Verify and install dependencies for all scanned zenka
+        if (exists $code{'v7.verify_and_install_zenka_dependencies'}) {
+            my $install_result = <[v7.verify_and_install_zenka_dependencies]>;
+
+            if ($install_result && $install_result->{success}) {
+                <[base.log]>->( 2, "v7: ✓ dependency verification complete" );
+                if ($install_result->{alerts_count} > 0) {
+                    <[base.log]>->( 1, "v7: ⚠ %d dependency alerts recorded", $install_result->{alerts_count} );
+                }
+            } else {
+                <[base.log]>->( 0, "v7: ⚠ dependency verification incomplete - continuing anyway" );
+            }
         }
-    } elsif (exists $code{'base.ensure_zenka_dependencies'}) {
-        <[base.ensure_zenka_dependencies]>->('v7');
     } else {
-        <[base.log]>->( 2, "v7: debian zenka not available - skipping dependency check" );
+        <[base.log]>->( 2, "v7: no zenka dependencies found - skipping verification" );
     }
 }
 
@@ -236,8 +247,8 @@ delete <list.users>;
 
 return 0;
 
-#,,..,,,,,,..,,,,,,,.,,,,,,,.,.,,,,,.,,..,...,..,,...,...,..,,..,,,..,,,.,,.,,
-#XAYM2EGNCGX32PHEENX4ZHDQS426WSZG4IWEORZTON76UOISZRE7KOCZ2VYNWCPQ3CQZF4R3U5GIE
-#\\\|PPQHNQK7TKLRN4YKDMH22QF7AJHPJ2MLYZI362S7AMUID4EH7LW \ / AMOS7 \ YOURUM ::
-#\[7]VUNRP2DJLBADBNRAPJLFBVQW5DVINOYIOUC6NTQRWU375P2UFOCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,.,.,,,.,,,,.,,,,,,..,,...,,..,..,,...,...,.,.,.,,,...,.,.,,..,
+#3ZHZCPA7GFLPRDYFYZXPS5DQMZWOQ2DV7PYFED7FQUJXN4P7J4POHEXFMVXRY7LDTKL7AVMHGJMCQ
+#\\\|NQX27MXWR25WFDUBVVTDUU5TSRJAQC7CX3SSGXQFXNDUFSDXKN7 \ / AMOS7 \ YOURUM ::
+#\[7]EQHZJ3XNFII7IQVESJXDKKQURWLXBW4YTMYHGTFELOZP6VXMUMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
