@@ -17,6 +17,14 @@ return { 'mode' => qw| false |, 'data' => 'expected <add|del> <zenka_name>' }
 my ( $cmd, $zenka_name ) = split m|\s+|, $args;
 
 if ( $cmd eq 'add' ) {
+    ## Validate composite name safety
+    my $validation = <[base.validate.composite_name]>->( $zenka_name, 'ondemand' );
+    if ( !$validation->{valid} ) {
+        return {
+            'mode' => qw| false |,
+            'data' => "zenka name validation failed:\n" . $validation->{error}
+        };
+    }
     map {
         return {
             'mode' => qw| false |,
