@@ -8,9 +8,9 @@
 ## IMPORTANT: These limits affect wire protocol compatibility and composite identifiers!
 ##
 ## Composite patterns that cascade from these limits:
-##   - 'unix-<username>'         = 5 + MAX_USERNAME  (auth prefix)
-##   - 'username[subname]'       = MAX_USERNAME + 2 + MAX_SUBNAME
-##   - 'username.cmd.subcmd'     = variable (command paths)
+##   - 'unix-' prefix + username  = 5 + MAX_USERNAME chars (auth prefix)
+##   - username + [subname]       = MAX_USERNAME + 2 + MAX_SUBNAME chars
+##   - username.cmd.subcmd        = variable length (command paths)
 ##
 ## Current limits:
 ##   MAX_USERNAME    = 32  (base username/zenka name)
@@ -18,12 +18,12 @@
 ##   MAX_SYSTEM_USER = 32  (unix system username, OS standard)
 ##
 ## Safe composite maximums with current limits:
-##   'unix-<username>'   = 37 chars (5+32, EXCEEDS system-usr!)
-##   'username[subname]' = 52 chars (32+2+18, may exceed display/buffer limits)
+##   'unix-' prefix composite = 37 chars (5+32, EXCEEDS system-usr!)
+##   username with subname    = 52 chars (32+2+18, may exceed display/buffer limits)
 ##
-## ⚠ WARNING: Changing MAX_USERNAME above 27 breaks unix-auth prefix safety!
-##          : 'unix-' prefix (5) + username must fit in system-usr (32)
-##          : Recommended MAX_USERNAME = 24 for safe margin
+## WARNING: Changing MAX_USERNAME above 27 breaks unix-auth prefix safety!
+##          'unix-' prefix (5) + username must fit in system-usr (32)
+##          Recommended MAX_USERNAME = 24 for safe margin
 ##
 ## Configure validation behavior in: base.validate.composite_name
 ##
