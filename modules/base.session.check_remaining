@@ -11,8 +11,9 @@ if ($session_count) {
     my $single_server_session = 0;
     if ( $session_count == 1 ) {
         ( my $session_id ) = keys $data{'session'}->%*;
-        $single_server_session = 5
-            if $data{'session'}{$session_id}{'mode'} eq qw| server |;
+        my $mode = $data{'session'}{$session_id}{'mode'};
+        $single_server_session = TRUE
+            if defined $mode and $mode eq qw| server |;
     }
     if ($single_server_session) {
         <[base.log]>->( 2, 'one active server session ..,' );
@@ -37,9 +38,17 @@ if (    ( $session_count + $exit_count ) == 0
         return if <v7.check_remaining.fail_count> < 2;
     }
 
-    <[base.log]>->( 2, "executing 'closing_last' callback..," );
-    $code{<callback.session.closing_last.name>}
-        ->( @{<callback.session.closing_last.params>} );
+    if ( defined <callback.session.closing_last.name> ) {
+        my $callback_name = <callback.session.closing_last.name>;
+
+        <[base.logs]>->(
+            0, "'closing_last' callback '%s' not defined",
+            $callback_name
+        ) if ref $code{$callback_name} ne qw| CODE |;
+
+        <[base.log]>->( 2, "executing 'closing_last' callback..," );
+        $code{$callback_name}->( @{<callback.session.closing_last.params>} );
+    }
 }
 
 <[v7.teardown]>
@@ -47,8 +56,8 @@ if (    ( $session_count + $exit_count ) == 0
     and <system.zenka.name> eq qw| v7 |
     and <[v7.zenka.cmd.get-instance-ids]>->('cube')->{'mode'} eq qw| false |;
 
-#,,.,,,.,,,,,,,,,,..,,,,.,,..,,..,,.,,,,,,,,.,..,,...,...,,..,,,.,,..,.,.,...,
-#K5PXVDEXA3QBVLP2C2CUOUA7ORHB544ZH6372AFGWAXVES6B3WZB3GRQF7NSXOHW6BC4II57KD3KO
-#\\\|R34ZTVWMLHUV4Q4JKH5RD4UWXDG5RXPIUEJ4OF7XJSRQWEO4SOK \ / AMOS7 \ YOURUM ::
-#\[7]LWERRKH5WXZQ3REE5TSMHMQJKPU4ZDA7BV7LBPBISKWWSOEIGMAQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,..,,,..,,..,.,,,,,.,.,.,,.,,,..,..,,...,...,.,.,.,.,,..,,,,,..,,
+#O543FL2UXEPRNI2CJIIZ7ODFP7QON7HNPAVBLSFXDLQ4VIUBSBHXHPQULN5DUTIIJRKQZYHJ7J7WA
+#\\\|MWG7EE5MQXANZVIY7HU4JR5VYDGP7E4WTBI2VWULTENSLVMJAXY \ / AMOS7 \ YOURUM ::
+#\[7]SNHZKBYTZLPRFU6DTBJZLNGHUNQ35VSDIKZDP23LMJIR6KNMQECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

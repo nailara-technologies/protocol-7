@@ -24,7 +24,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
         return 2;
     }
 
-    my $authorize_unix_session = 0;
+    my $authorize_unix_session = FALSE;
 
     my $client_uid
         = $data{'handle'}{ $data{'session'}{$id}{'handle'} }{'unix'}{'uid'};
@@ -38,60 +38,88 @@ if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
         return 2;
     }
 
-    my $mapped_user_str;
-    if ( defined <auth.setup.usr>->{$auth_user}
-        and <auth.setup.usr>->{$auth_user} =~ m|:unix:(\S+)| ) {
-        my @allowed_users = split( m|\s*,\s*|, $1 );
+    printf STDERR "\n: testing : auth user : %s\n\n", $auth_user;
 
-        map { $authorize_unix_session = 5 if $client_uname eq $ARG }
-            @allowed_users;
+    ## Expand template variables in auth username (e.g., <admin-user> -> admin-user)
+    my $lookup_auth_user = $auth_user;
+    if ( $auth_user =~ m|^<([^>]+)>$| ) {
+        my $template = "<${^CAPTURE}[0]}>";
+        my $expanded = <[base.access.special-user-map]>->($template, 1);  # silent mode
+        if ( defined $expanded ) {
+            $lookup_auth_user = $expanded;
+            printf STDERR ": expanded template auth user: %s -> %s\n", $auth_user, $lookup_auth_user;
+        }
+    }
+
+    my $mapped_user_string;
+    if ( defined <auth.setup.usr>->{$lookup_auth_user}
+        and <auth.setup.usr>->{$lookup_auth_user} =~ m|:unix:(\S+)| ) {
+        my @allowed_users = split( m|\s*[, +]\s*|, ${^CAPTURE}[0] );
+
+        map {
+            printf STDERR ": allowed users : %s\n", $ARG;
+            $authorize_unix_session = TRUE
+                if $client_uname eq $ARG;
+
+        } @allowed_users;
 
         if ( not $authorize_unix_session ) {
 
-            ## 'unix-' prefixed users are matched against unix accounts ##
+            ## 'unix-'-prefixed users are matched ##
+            ##  #### against actual unix accounts ##
             foreach my $allowed_user (@allowed_users) {
-                my $special_user
+
+                my $prefixed_user  ## acquire the special user variable map ##
                     = <[base.access.special-user-map]>->($allowed_user);
-                next
-                    if not defined $special_user
-                    or $special_user !~ s|^unix-||;
 
-                if ( $special_user eq $client_uname ) {  ## unix user match ##
-                    $mapped_user_str = $allowed_user;
+                next               ## no match for access ##
+                    if defined $prefixed_user
+                    and $prefixed_user !~ s|^unix-||
+                    and $prefixed_user ne $allowed_user;
+
+                ## unix user match ##
+
+                warn ": prefixed user : $prefixed_user";
+
+                if ( $prefixed_user eq $allowed_user ) {
+                    ###                                       ###
                     ## authorized using special user template ##
-
-                    $authorize_unix_session = 5;
-                    last;                                ##  5 == true  ##
+                    #                                         #
+                    $mapped_user_string     = $allowed_user;
+                    $authorize_unix_session = TRUE;
+                    last;    ##  5 == true  ##
                 }
             }
         }
-
+    } else {
+        printf STDERR ": not present in auth.setup.\n";
+        printf STDERR ": :. with ':unix:' prefix .:\n";
     }
 
     if ($authorize_unix_session) {
         $output->$* .= "AUTH_TRUE =)\n";
-        my $s_usr = $client_uname ne $auth_user ? " [u:$client_uname]" : '';
+        my $s_usr = $client_uname ne $auth_user ? " [$client_uname]" : '';
 
         <[base.logs]>->(    ## reports unix user seperated if different ##
-            "[%d] '%s' session authorized%s",
-            $id, $auth_user, $s_usr
+            "[%d] session authorized%s as '%s'",
+            $id, $s_usr, $auth_user
         );
         <[base.logs]>->(    ##  report matching template  ##
-            "[%d] :. unix user '%s' match in %s",
-            $id, $client_uname, $mapped_user_str
-        ) if defined $mapped_user_str;
+            "[%d] .: unix user '%s' match in %s",
+            $id, $client_uname, $mapped_user_string
+        ) if defined $mapped_user_string;
 
-        return ( 0, $auth_user );    ## register as authorized ##
-        #######
+        return ( FALSE, $auth_user );    ## register as authorized ##
+        #######  #####  ##########
     } else {    ##  no match for unix-user \ auth-user pair  ##
         $output->$* .= "AUTH_ERROR `>:|\n";
-        my $s_usr
-            = $client_uname ne $auth_user
-            ? sprintf( ' [uname=%s]', $client_uname )
-            : '';
         <[base.logs]>->(
-            0,   "[%s] [auth unix] access as '%s' denied%s",
-            $id, $auth_user, $s_usr
+            0,   "[%s] :auth.unix: no '%s' access",
+            $id, $auth_user
+        );
+        <[base.logs]>->(
+            0,             "          :UNIX.USER: :. %s != %s",
+            $client_uname, $auth_user
         );
         return 2;
     }
@@ -106,8 +134,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
 
 return 2;
 
-#,,,,,,,,,.,,,,..,,..,.,,,,,.,.,,,,..,,.,,,..,..,,...,...,...,..,,,..,.,,,..,,
-#6GOTVGGM3L7F2R75B6O4QJC5RNW7KEXP7LUGCMG3CZ26J5HHWYYM4ZFQKRWRO7TB3W3VQHHASFCPE
-#\\\|VXX3CMIRZSNCEJYHY5CBSHCCQOYNG5JIBWYB74WPAZG5ZWM7EUV \ / AMOS7 \ YOURUM ::
-#\[7]A2GQRV5EMY6PGOTRE7BHB4UBWADKLRLIVPAESTA4SCC46OSWVCCY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,...,.,,,,,,,,,,,,,,,,,,,.,.,..,,..,,...,...,...,,.,,,.,,,,,,.,,,
+#J3NI4KNU7G3VTS7BXALQABSWK7TM547M2AVN4NKB2SGLWLMJI6N6FLR5C2RQX4K4N7KFCGLQHIA3A
+#\\\|KKYXACO6UN3DDRYOB62XAL4CACMMOYX5BEVTP4UP5SAZOJF74OL \ / AMOS7 \ YOURUM ::
+#\[7]5P5OUQCRWMZSKL5ZQPGZQK3SB47XC63IAY3ENAG5N6TXXVK324BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
