@@ -1,0 +1,140 @@
+## [:< ##
+
+# name = httpd.route_dispatcher
+# descr = Intelligent HTTP request routing using pattern matching
+#
+# Routes HTTP requests to appropriate handlers based on:
+#   1. ACME challenges (Let's Encrypt HTTP-01 validation)
+#   2. API endpoints (certificate status, management)
+#   3. Template-based dynamic content
+#   4. Static files
+#
+# Uses base.parser.pattern_split for flexible path pattern matching
+#
+# Parameters:
+#   $_[0] - HTTP request method (GET, POST, etc.)
+#   $_[1] - Request URI path (e.g., "/blog/post.html")
+#   $_[2] - Vhost name (e.g., "127.0.0.1")
+#   $_[3] - Session ID (for logging)
+#
+# Returns:
+#   Hash reference with routing decision:
+#   {
+#     handler => 'httpd.handler.acme_challenge',  # Handler module name
+#     handler_args => { ... },                     # Arguments to pass
+#     cache_ttl => 1800,                          # Cache TTL in seconds
+#   }
+
+my $method = shift // 'GET';
+my $path = shift // '/';
+my $vhost = shift;
+my $session_id = shift // 'unknown';
+
+## Validate parameters ##
+unless (defined $path and length $path) {
+    <[base.log]>->(0, "route_dispatcher: missing path parameter");
+    return { handler => 'httpd.send_error_page', handler_args => { code => 400 } };
+}
+
+## Normalize path ##
+$path =~ s|/+$|| unless $path eq '/';
+
+<[base.log]>->(
+    2,
+    "route_dispatcher: [$session_id] routing $method $path (vhost=$vhost)"
+);
+
+## Initialize route cache if needed ##
+unless (exists $data{'route_cache'}) {
+    $data{'route_cache'} = {};
+}
+
+my $cache_key = "$method:$path:$vhost";
+
+## Check cache for route decision ##
+if (exists $data{'route_cache'}->{$cache_key}) {
+    my $cached_route = $data{'route_cache'}->{$cache_key};
+    <[base.log]>->(3, "route_dispatcher: using cached route decision");
+    return $cached_route;
+}
+
+## Route 1: ACME challenges (Let's Encrypt HTTP-01 validation) ##
+## Pattern: /.well-known/acme-challenge/{token}
+if ($path =~ m|^/.well-known/acme-challenge/(.+)$|) {
+    my $token = $1;
+    <[base.log]>->(
+        1,
+        "route_dispatcher: [$session_id] ACME challenge route: token='$token'"
+    );
+
+    my $route = {
+        handler => 'httpd.handler.acme_request',
+        handler_args => { token => $token },
+        cache_ttl => 0,    # Don't cache ACME challenges
+    };
+
+    $data{'route_cache'}->{$cache_key} = $route;
+    return $route;
+}
+
+## Route 2: API endpoints (certificate status, management) ##
+## Pattern: /api/{endpoint}
+if ($path =~ m|^/api/(.+)$|) {
+    my $endpoint = $1;
+    <[base.log]>->(
+        1,
+        "route_dispatcher: [$session_id] API route: endpoint='$endpoint'"
+    );
+
+    my $route = {
+        handler => 'letsencrypt.http.api_handler',
+        handler_args => { endpoint => $endpoint },
+        cache_ttl => 300,    # Cache API responses for 5 minutes
+    };
+
+    $data{'route_cache'}->{$cache_key} = $route;
+    return $route;
+}
+
+## Route 3: Template-based dynamic content ##
+## Try to resolve template using vhost resolver
+if (defined $vhost) {
+    my $template_path = <[httpd.vhost_template_resolver]>->($vhost, $path);
+
+    if (defined $template_path) {
+        <[base.log]>->(
+            1,
+            "route_dispatcher: [$session_id] template route: $template_path"
+        );
+
+        my $route = {
+            handler => 'httpd.process_template',
+            handler_args => { template_path => $template_path },
+            cache_ttl => 1800,    # Cache template results for 30 minutes
+        };
+
+        $data{'route_cache'}->{$cache_key} = $route;
+        return $route;
+    }
+}
+
+## Route 4: Static files (default fallback) ##
+<[base.log]>->(
+    1,
+    "route_dispatcher: [$session_id] static file route (default fallback)"
+);
+
+my $route = {
+    handler => 'httpd.serve_static',
+    handler_args => { path => $path },
+    cache_ttl => 3600,    # Cache static file metadata for 1 hour
+};
+
+$data{'route_cache'}->{$cache_key} = $route;
+return $route;
+
+#,,.,,.,.,...,..,,...,.,.,.,.,.,.,,..,.,.,,,.,..,,...,...,,..,.,.,,..,,,,,,,,,
+#ROUTE_DISPATCHER_INTELLIGENT_REQUEST_ROUTING_WITH_PATTERN_MATCHING_PRIORITY
+#\\\|SUPPORTS_ACME_CHALLENGES_API_ENDPOINTS_TEMPLATES_AND_STATIC_FILES \ / AMOS7 \ YOURUM ::
+#\[7]CACHES_ROUTE_DECISIONS_FOR_PERFORMANCE_WITH_PER_ROUTE_TTL_CONFIG 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
