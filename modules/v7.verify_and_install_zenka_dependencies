@@ -58,7 +58,7 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
 
                 ## Attempt installation via CPAN (uses Level 2 installer)
                 my $install_result
-                    = <[base.perlmod.install]>->( [$pm_module] );
+                    = <[base.perlmod.install]>->( $pm_module );
 
                 if ( $install_result && $install_result->{success} ) {
                     push @{ $verification_state{installed_deps} },
