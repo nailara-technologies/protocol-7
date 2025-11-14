@@ -234,9 +234,74 @@ Different session context, possibly different permissions
 - `configuration/zenki/cube/access.zenki` - Zenka access permissions
 - Other zenka configs that reference admin users
 
+## Parser Implementation & Fixes (November 2025)
+
+### Critical Regex Pattern Fix
+
+**Issue**: The parser regex patterns contained escaped angle brackets that prevented template matching:
+```perl
+# BROKEN (lines 116, 129 before fix):
+while ( $_name =~ m|(?<!')\<([\w_-]+)>(?!')| ) {   # \< breaks pattern
+while ( $_value =~ m|(?<!')\<([\w_-]+(\.[\w_-]+)+)>(?!')| ) {
+```
+
+**Root Cause**: The backslash `\` before `<` was escaping the angle bracket, making the regex unable to match template syntax like `<admin-user>`.
+
+**Solution**: Remove the unnecessary escaping:
+```perl
+# FIXED (commit 7c21c839c):
+while ( $_name =~ m|(?<!')<([\w_-]+)>(?!')| ) {    # Correct pattern
+while ( $_value =~ m|(?<!')<([\w_-]+(\.[\w_-]+)+)>(?!')| ) {
+```
+
+**Why this works**: In Perl regex, angle brackets `<>` have no special meaning and don't require escaping. The pattern now correctly matches template syntax.
+
+### Successful Testing Results (November 14, 2025)
+
+Authentication testing with live cube zenka confirmed all template expansions working:
+
+```bash
+# Test environment
+export PROTOCOL_7_UNIX_PATH="/var/run/.7/UNIX/NIW7OAQ"
+cd /home/user/protocol-7
+
+# Test results
+$ ./bin/p7 whoami
+unix-root 7792712
+
+$ USER=kitten ./bin/p7 whoami
+unix-kitten 2307702
+
+$ USER=taeki ./bin/p7 whoami
+unix-taeki 5314413  ✓ NOW WORKING WITH TEMPLATES!
+```
+
+### Configuration Updates
+
+Template syntax in `configuration/zenki/cube/auth.users` (lines 8-9):
+```perl
+## [ taeki + unix-taeki setup - TEMPLATE-BASED ]
+auth.setup.usr.<admin-user> = :unix:<unix-admin>,:unix:<admin-user>
+auth.setup.usr.<unix-admin>  = :unix:<unix-admin>,:unix:<admin-user>
+```
+
+These now correctly expand via the fixed parser to:
+```perl
+auth.setup.usr.admin-user = :unix:unix-taeki,:unix:taeki
+auth.setup.usr.unix-admin  = :unix:unix-taeki,:unix:taeki
+```
+
+### Related Commits
+
+- `7c21c839c`: fix: Remove escaped angle brackets in regex patterns for template expansion
+- `6332d1062`: fix: Template-based user configuration and base parser refinements
+- `043981267`: fix: Use consistent template syntax for taeki/unix-taeki authentication
+- `51b86963a`: fix: Correct invalid template name <unix-admin-user> to <unix-admin>
+
 ## Future Enhancements
 
 - Template versioning (different admin levels: `<admin-user>`, `<super-admin>`)
 - Conditional expansion based on context (X11 vs headless)
 - Template validation at startup
 - Template dependency analysis (detect unused templates)
+- Enhanced error reporting for unrecognized templates
