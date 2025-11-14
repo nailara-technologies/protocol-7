@@ -48,7 +48,7 @@ our $truth_templates = [];
 
 ##[ RUNTIME OPTIONS ]#########################################################
 
-my $option_list = << 'EOL';
+my $option_list = <<'EOL';
 
     .: amos-chksum command line options :.
 
@@ -295,7 +295,7 @@ if ( $option{'v'} ) {
         ),
         '',
 
-        ##[  AMOS7 bits  ]##
+        ##[ AMOS7 bits ]##
         ##
         sprintf(
             '%s %*s  : %s%s %032b %s%s',
@@ -364,7 +364,7 @@ if ( $option{'v'} ) {
             $C{T},          $left_column_with,
             'input chksum', true_bits($AMOS7::CHKSUM::checksum_bits) ),
 
-        ##[  bmw-mod-bits  ]##
+        ##[ bmw-mod-bits ]##
         ##
         @mod_bits_str,
         '',
@@ -372,18 +372,18 @@ if ( $option{'v'} ) {
         ##[ elf truth mode ]##
         ##
         sprintf(
-            '%s %*s  :  %s%s%s %s%s',
+            '%s %*s  :  %s%s %s: %s%s:',
             $C{T},
             $left_column_with,
             qw| elf-truth-mode |,
             $C{T},
             @modes == 1 ? '' : qw| elf-modes |,
             $C{0},
-            join( ' ', map {"$C{b}$C{T}$ARG$C{R}$C{0} "} sort @modes ),
-            $C{R}
+            join( '', map {"$C{b}$C{T}$ARG$C{R}$C{0} "} sort @modes ),
+            $C{R} . $C{T}
         ),
 
-        ##[  elf truth templates  ]##
+        ##[ elf truth templates ]##
         ##
         scalar $truth_templates->@* == 0 ? () : (
             '',
@@ -411,29 +411,29 @@ if ( $option{'v'} ) {
         ##[ elf overflow ]##
         ##
         sprintf(
-            '%s %s%*s%s  :  %s%s %s%s %s %s%s %s',
-            $C{T},           $C{0}, $left_column_with,
-            'elf overflow',  $C{T}, qw| bit-shift |,
-            $C{0},           $C{b}, $C{T},
-            $elf_shift_bits, $C{R}, $C{0},
-            $C{R}
+            '%s %s%*s%s  :  %s%s %s%s%s: -%s :.%s%s.%s',
+            $C{T},           $C{0},           $left_column_with,
+            'elf overflow',  $C{T},           $C{0},
+            qw| bit-shift |, $C{0},           $C{b},
+            $C{T},           $elf_shift_bits, $C{R},
+            $C{0},           $C{R}
         ),
         '',
 
-        ##  harmonization  ##
+        ##[ harmonization ]##
         ##
         sprintf(
-            '%s %*s  :  %s%s%s %s%s%s%s%s %s',
+            '%s %*s  :  %s%s%s :..: %s%s%03d%s%s :...: %s',
             $C{T},                        $left_column_with,
             qw| harmonization |,          $C{T},
-            'iteration count',            $C{0},
+            'iteration counter',          $C{0},
             $C{b},                        $C{T},
             $AMOS7::CHKSUM::bmw_mod_step, $C{R},
             $C{0},                        $C{R},
         ),
         '',
 
-        ##[  VAX-encoded  ]##
+        ##[ VAX-encoded ]##
         ##
         sprintf(
             '%s %*s  : %s %s%s%s%s%s%s %s %s',
@@ -450,18 +450,18 @@ if ( $option{'v'} ) {
 
 } elsif ( $option{'n'} or $option{'b'} ) {
 
-    ##  numerical AMOS7-checksum value  ##
+    ##  [ numerical AMOS7-checksum value ]  ##
     ##
     my $chksum = $AMOS7::CHKSUM::num_amos_csum;
 
-    ##  [ or binary AMOS7-checksum version ] ##
+    ## [ or binary AMOS7-checksum version ] ##
     ##
     $chksum = sprintf qw| %032b |, $chksum if $option{'b'};
 
     say $chksum and exit if $option{'q'};
     say sprintf "$C{0}:\n:$C{b} $C{T}%s$C{0} $C{R}\n$C{0}:$C{R}", $chksum;
 
-##  encoded AMOS7 checksum  ##
+##  [ encoded AMOS7 checksum ]  ##
 ##
 } elsif ( defined $chksum_encoded ) {
     say $chksum_encoded and exit if $option{'q'};
@@ -498,8 +498,8 @@ sub true_bits {    ## not numerical ##
         : "$C{0}$visualize_data$C{R}";
 }
 
-#,,,.,..,,,.,,...,.,,,,.,,.,,,,,,,..,,,..,.,,,..,,...,...,,.,,...,,,.,.,,,..,,
-#JNO6Y7QJR2GUE4RUI47TKKLAPPOUIRLAUJO3SC2XPHY4M5XW2R5SMUU6HOWFWRPUGNUFVPXCCBIWY
-#\\\|ZMTXBPASLQ24IJXQ6V3IY6YAQXVMNKBPDD5CCAAFP3T5ISD5UC5 \ / AMOS7 \ YOURUM ::
-#\[7]K36BIJ5N5BTIEEN2ZDJBAJSSPJY7XCR266DFMF5WNBZCPKG5QIAY 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,,,,...,...,,..,.,.,.,,,...,,,,,..,,...,...,,,.,...,,.,,,,.,,.,,
+#OH324UQD4IVG5PGALIOAFYQ6DGHJ3ZFGUMQ3FNJJILZS5NCI7PQKFN6M2T2FSQL27PJICJL65O5MM
+#\\\|FCTJPE5U6PQPKBYC35RYEEE3LU47NRJO3CGKLFAXZQGWF426AI4 \ / AMOS7 \ YOURUM ::
+#\[7]UFJUP2D22Y7NSJU7GPZXBYFEK4IZVLWZZEWMQF6NTXYYRTIPZCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
