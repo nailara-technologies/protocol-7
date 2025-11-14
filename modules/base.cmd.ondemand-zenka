@@ -6,12 +6,15 @@
 
 my $re = $data{'regex'}{'base'};
 
-return { 'mode' => qw| false |, 'data' => 'expected <add|del> <zenka_name>' }
-    if not defined $$call{'args'}
-    or !length( $$call{'args'} )
-    or $$call{'args'} !~ m{^(add|del) ($re->{'usr_str'})$};
+## Trim leading/trailing whitespace from arguments
+my $args = defined $$call{'args'} ? $$call{'args'} : '';
+$args =~ s{^\s+|\s+$}{}g;
 
-my ( $cmd, $zenka_name ) = split m| +|, $$call{'args'};
+return { 'mode' => qw| false |, 'data' => 'expected <add|del> <zenka_name>' }
+    if !length($args)
+    or $args !~ m{^(add|del)\s+($re->{'usr_str'})$};
+
+my ( $cmd, $zenka_name ) = split m|\s+|, $args;
 
 if ( $cmd eq 'add' ) {
     map {
