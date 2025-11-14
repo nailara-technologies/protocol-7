@@ -1,0 +1,134 @@
+## [:< ##
+
+# name = web.skin_resolver
+# descr = Resolve skin/theme files across hierarchy with CSS cascade
+#
+# Implements skin resolution with inheritance cascade:
+#   1. Subdirectory skin override:  /var/httpd/{vhost}/{path}/_skins/{skin}/
+#   2. Vhost-specific skin:         /var/httpd/{vhost}/_skins/{skin}/
+#   3. Global skin:                 /var/httpd/_global_templates/skins/{skin}/
+#
+# Parameters:
+#   $_[0] - Vhost name (e.g., "127.0.0.1")
+#   $_[1] - Request path (e.g., "/blog/post.html")
+#   $_[2] - Skin name (e.g., "dark", "mobile")
+#   $_[3] - File to locate (e.g., "style.css", "colors.json")
+#
+# Returns:
+#   Full file path if skin file found, undef otherwise
+#   Supports cascade fallback to 'default' skin if requested skin not found
+
+my $vhost = shift;
+my $path = shift;
+my $skin = shift // 'default';
+my $filename = shift // 'style.css';
+
+## Validate parameters ##
+unless (defined $vhost and length $vhost) {
+    <[base.log]>->(0, "skin_resolver: missing vhost parameter");
+    return undef;
+}
+
+unless (defined $filename and length $filename) {
+    <[base.log]>->(0, "skin_resolver: missing filename parameter");
+    return undef;
+}
+
+## Normalize path ##
+$path //= '';
+$path =~ s|^/+||;
+$path =~ s|/+$||;
+
+## Initialize caching if needed ##
+unless (exists $data{'skin_resolve_cache'}) {
+    $data{'skin_resolve_cache'} = {};
+}
+
+my $cache_key = "$vhost:$path:$skin:$filename";
+if (exists $data{'skin_resolve_cache'}->{$cache_key}) {
+    return $data{'skin_resolve_cache'}->{$cache_key};
+}
+
+my $site_root = <httpd.cfg.site_dir> // '/var/httpd';
+
+<[base.log]>->(
+    2,
+    "skin_resolver: [$vhost] resolving skin='$skin' file='$filename' for path='$path'"
+);
+
+## Extract directory from path ##
+my $dirname = '';
+if ($path =~ m|^(.+)/[^/]+$|) {
+    $dirname = $1;
+}
+
+## Priority 1: Subdirectory skin override (most specific) ##
+if (length $dirname) {
+    my $subdir_skin = "$site_root/$vhost/$dirname/_skins/$skin/$filename";
+    <[base.log]>->(3, "  [1] checking: $subdir_skin");
+    if (-f $subdir_skin) {
+        $data{'skin_resolve_cache'}->{$cache_key} = $subdir_skin;
+        <[base.log]>->(1, "skin_resolver: FOUND (level 1): $subdir_skin");
+        return $subdir_skin;
+    }
+}
+
+## Priority 2: Vhost-specific skin ##
+my $vhost_skin = "$site_root/$vhost/_skins/$skin/$filename";
+<[base.log]>->(3, "  [2] checking: $vhost_skin");
+if (-f $vhost_skin) {
+    $data{'skin_resolve_cache'}->{$cache_key} = $vhost_skin;
+    <[base.log]>->(1, "skin_resolver: FOUND (level 2): $vhost_skin");
+    return $vhost_skin;
+}
+
+## Priority 3: Global skin ##
+my $global_skin = "$site_root/_global_templates/skins/$skin/$filename";
+<[base.log]>->(3, "  [3] checking: $global_skin");
+if (-f $global_skin) {
+    $data{'skin_resolve_cache'}->{$cache_key} = $global_skin;
+    <[base.log]>->(1, "skin_resolver: FOUND (level 3): $global_skin");
+    return $global_skin;
+}
+
+## If requested skin not found, fall back to 'default' skin ##
+if ($skin ne 'default') {
+    <[base.log]>->(
+        2,
+        "skin_resolver: skin '$skin' not found, falling back to 'default'"
+    );
+
+    ## Recursively try with default skin (avoid infinite recursion with cache) ##
+    my $fallback_key = "$vhost:$path:default:$filename";
+
+    ## Check vhost default ##
+    my $vhost_default = "$site_root/$vhost/_skins/default/$filename";
+    if (-f $vhost_default) {
+        $data{'skin_resolve_cache'}->{$cache_key} = $vhost_default;
+        <[base.log]>->(1, "skin_resolver: FALLBACK (level 2): $vhost_default");
+        return $vhost_default;
+    }
+
+    ## Check global default ##
+    my $global_default = "$site_root/_global_templates/skins/default/$filename";
+    if (-f $global_default) {
+        $data{'skin_resolve_cache'}->{$cache_key} = $global_default;
+        <[base.log]>->(1, "skin_resolver: FALLBACK (level 3): $global_default");
+        return $global_default;
+    }
+}
+
+## Skin file not found - cache negative result ##
+$data{'skin_resolve_cache'}->{$cache_key} = undef;
+<[base.log]>->(
+    2,
+    "skin_resolver: [$vhost] skin file NOT FOUND: $skin/$filename"
+);
+
+return undef;
+
+#,,.,,.,.,...,..,,...,.,.,.,.,.,.,,..,.,.,,,.,..,,...,...,,..,.,.,,..,,,,,,,,,
+#SKIN_RESOLVER_CASCADE_INHERITANCE_WITH_FALLBACK_TO_DEFAULT_THEME_STRATEGY
+#\\\|SUPPORTS_DARK_MODE_MOBILE_RESPONSIVE_AND_CUSTOM_SKIN_VARIANTS \ / AMOS7 \ YOURUM ::
+#\[7]STYLESHEET_RESOLUTION_WITH_CACHING_FOR_PERFORMANCE_OPTIMIZATION 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
