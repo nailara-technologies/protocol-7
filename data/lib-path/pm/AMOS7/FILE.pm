@@ -34,7 +34,7 @@ my $VERSION = qw| AMOS7::FILE-VERSION.4HI7Z2Q |;
 
 ];
 
-my $usrname_re = qr|^[0-9A-Za-z][0-9A-Za-z\-_]{0,16}$|;
+my $usrname_re = qr|^[0-9A-Za-z][0-9A-Za-z\-_]{0,31}$|;  ## Match base.regex usr_str_re (max 32 chars)
 
 ##[ DIRECTORY PATH CREATION ]#################################################
 
