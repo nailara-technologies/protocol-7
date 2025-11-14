@@ -3,7 +3,23 @@
 
 
 auth.setup.usr.root         = :unix:root       ## used by './bin/nshell' ##
-auth.setup.usr.unix-root-2  = :unix:root
+
+# auth.setup.usr.<admin-user> = :unix:<unix-admin-user>,taeki,:unix:taeki
+# auth.setup.usr.admin-user  = :unix:unix-taeki,:unix:taeki
+
+#### broken ## should use special user variable map syntax #####
+## [ taeki set-up ] #
+auth.setup.usr.unix-admin-user = :unix:<system.admin-user>,:unix:root
+auth.setup.usr.admin-user      = :unix:<system.admin-user>,:unix:root
+
+## ## ##
+## # ## ## ### ........... works ................................
+auth.setup.usr.unix-kitten = :unix:root,:unix:<system.admin-user>
+auth.setup.usr.kitten      = :unix:root :unix:<system.admin-user> #res.#:'unix:taeki'
+## # ## ## ### ........... works ................................
+## ## ##
+## ##
+##
                                               # 'unix-*' are used by ./bin/p7
 auth.setup.usr.unix-root       = :unix:root,protocol-7   ## ,.adjust these as desired ..,
 auth.setup.usr.unix-protocol-7 = :unix:root,protocol-7
@@ -15,8 +31,8 @@ auth.setup.usr.power-x11    = :unix:<unix-admin-user>,<unix-AMOS-user>
 
 ##  use './bin/mk.usr' to create users with password hashes  ##
 
-#,,,.,.,.,,,.,,..,.,,,...,..,,...,,,,,..,,..,,..,,...,...,...,...,.,,,,,,,,,.,
-#X7V4TL532JTPU2UW3HK7WQO3FJR4IGPWHOQTCDODWKK53IBXKHDLB7ALAAD76K2C3XP5A3L536VW2
-#\\\|H72CR36NS32I7XBGUUWOLD2WM44ONT3MI7LXJZL6EAXDIKOV5X4 \ / AMOS7 \ YOURUM ::
-#\[7]R37ETXNEUTLDUDVLXN2TJAGLQZHT23ZL5YW3AWJPDPGBEHET5EBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,.,,,,,,,,,.,.,,,,,,,,..,,,,,...,..,,...,...,...,,..,...,,.,,.,.,
+#N5GMA3D5MGVJ7WLHTZ7LDRS26GIAVUWAZF4IOO2EO326QBJYFXGGMXQU354QSZCLU6PTZNOP3ZBWC
+#\\\|EZFIAI4UCXS5QAZ4QHK7JVBAEOQQQH653GTUWBZ47CPWEPDV2GV \ / AMOS7 \ YOURUM ::
+#\[7]JBV6LLNPLEXCCJTYAJGXND6QWFTEEY6F7VOUM7R46SP3L66OKICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
