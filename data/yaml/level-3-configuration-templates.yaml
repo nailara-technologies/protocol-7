@@ -1,0 +1,673 @@
+# Level 3: Configuration Templates for Dynamic Dependency Verification
+
+# Template 1: Binary Dependency Registration
+# Usage: Add these to os-dep/binary/ directories
+# Format: Empty files with binary names
+---
+binary_dependencies_template:
+  description: "Binary dependencies for a zenka"
+  location: "configuration/zenki/{zenka}/os-dep/binary/"
+  examples:
+    - name: "git"
+      required_for: "source control operations"
+      validation: "which git"
+      auto_installable: false
+      notes: "System binary, must be pre-installed"
+
+    - name: "convert"
+      required_for: "image conversion (ImageMagick)"
+      validation: "which convert"
+      auto_installable: false
+      notes: "Part of imagemagick package"
+
+    - name: "cpanm"
+      required_for: "perl module installation"
+      validation: "which cpanm"
+      auto_installable: false
+      notes: "Can be bootstrapped via Level 2 install_cpanm"
+
+    - name: "ffmpeg"
+      required_for: "video processing"
+      validation: "which ffmpeg"
+      auto_installable: false
+      notes: "System binary, user must install"
+
+
+# Template 2: List Configuration for Dependency Monitoring
+---
+dependency_status_list:
+  name: "dependency-status"
+  display:
+    title: "Zenka Dependency Verification Status"
+    description: "Current state of all dependencies for managed zenka"
+    refreshable: true
+    sort_by: "zenka_name"
+
+  fields:
+    zenka_name:
+      type: "string"
+      width: 20
+      align: "left"
+
+    pm_verified:
+      type: "boolean"
+      symbol:
+        true: "✓"
+        false: "✗"
+      align: "center"
+
+    os_verified:
+      type: "boolean"
+      symbol:
+        true: "✓"
+        false: "✗"
+      align: "center"
+
+    binary_verified:
+      type: "boolean"
+      symbol:
+        true: "✓"
+        false: "⚠"
+      align: "center"
+      notes: "⚠ = warning, binary deps missing (admin action needed)"
+
+    missing_pm:
+      type: "count"
+      align: "right"
+      width: 4
+
+    missing_os:
+      type: "count"
+      align: "right"
+      width: 4
+
+    missing_binary:
+      type: "count"
+      align: "right"
+      width: 4
+
+    verified:
+      type: "boolean"
+      symbol:
+        true: "✓ OK"
+        false: "⚠ BROKEN"
+      align: "center"
+      color:
+        true: "green"
+        false: "red"
+
+    repaired_count:
+      type: "count"
+      align: "right"
+      width: 4
+
+dependency_alerts_list:
+  name: "dependency-alerts"
+  display:
+    title: "Dependency Anomalies & Alerts"
+    description: "Missing binaries, broken modules, and auto-repairs"
+    refreshable: true
+    sort_by: "first_detected"
+    sort_order: "descending"
+
+  fields:
+    zenka_name:
+      type: "string"
+      width: 15
+      align: "left"
+
+    type:
+      type: "enum"
+      values:
+        missing_pm: "Missing PM Module"
+        missing_os: "Missing OS Package"
+        missing_binary: "Missing Binary"
+        broken_pm: "Broken PM Module"
+      align: "left"
+      color:
+        missing_pm: "yellow"
+        missing_os: "yellow"
+        missing_binary: "red"
+        broken_pm: "orange"
+
+    dependency:
+      type: "string"
+      width: 30
+      align: "left"
+
+    first_detected:
+      type: "timestamp"
+      format: "YYYY-MM-DD HH:MM:SS"
+      align: "left"
+
+    detected_count:
+      type: "count"
+      align: "right"
+      width: 3
+      notes: "How many times detected"
+
+    action:
+      type: "enum"
+      values:
+        alert_admin: "Requires admin action"
+        auto_repaired: "Auto-repaired"
+        pending: "Pending verification"
+      align: "center"
+      color:
+        alert_admin: "red"
+        auto_repaired: "green"
+        pending: "yellow"
+
+
+# Template 3: Verification State Structure
+---
+verification_state_schema:
+  description: "Data structure stored in v7.dependency.verification_state"
+
+  root_keys:
+    last_verified:
+      type: "timestamp"
+      description: "When verification last ran"
+
+    zenka_states:
+      type: "hash"
+      key_type: "zenka_name"
+      value_schema:
+        pm_verified:
+          type: "boolean"
+          description: "All PM modules available"
+
+        os_verified:
+          type: "boolean"
+          description: "All OS packages available"
+
+        binary_verified:
+          type: "boolean"
+          description: "All binaries in PATH"
+
+        missing_pm:
+          type: "array"
+          element_type: "string"
+          description: "PM modules not found"
+
+        missing_os:
+          type: "array"
+          element_type: "string"
+          description: "OS packages not installed"
+
+        missing_binary:
+          type: "array"
+          element_type: "string"
+          description: "Binaries not in PATH (admin action needed)"
+
+        broken_pm:
+          type: "array"
+          element_type: "string"
+          description: "PM modules that can't load"
+
+        installed_now:
+          type: "array"
+          element_type: "string"
+          description: "Just installed this verification"
+
+        repaired_count:
+          type: "integer"
+          description: "Times this zenka's deps were repaired"
+
+        last_repair:
+          type: "timestamp"
+          description: "When last repair occurred"
+
+    anomalies:
+      type: "array"
+      element_schema:
+        zenka:
+          type: "string"
+          description: "Which zenka"
+
+        type:
+          type: "enum"
+          values: ["missing_pm", "missing_os", "missing_binary", "broken_pm"]
+          description: "Type of anomaly"
+
+        dependency:
+          type: "string"
+          description: "Which dependency"
+
+        first_detected:
+          type: "timestamp"
+          description: "When first detected"
+
+        detected_count:
+          type: "integer"
+          description: "How many times detected"
+
+        repaired:
+          type: "timestamp"
+          nullable: true
+          description: "When repaired (null if still broken)"
+
+        repaired_count:
+          type: "integer"
+          description: "Times this dependency was repaired"
+
+        action:
+          type: "enum"
+          values: ["alert_admin", "auto_repaired", "pending"]
+          description: "What action was taken"
+
+
+# Template 4: Integration Points in Code
+---
+integration_points:
+
+  parent_fork_modules:
+    description: "Where to insert dependency verification before fork"
+    modules:
+      - name: "weather.base.fork_weather_child"
+        line: "~24"
+        position: "before <weather.child.pid> = <[base.fork]>"
+        snippet: |
+          ## Verify child's dependencies before spawning
+          if ($UID == 0 and exists $code{'v7.verify_and_install_zenka_dependencies'}) {
+              <[base.log]>->(2, 'verifying child dependencies...');
+
+              my $dep_state = <[v7.verify_and_install_zenka_dependencies]>->(
+                  'weather.child', 1  # verify and install if missing
+              );
+
+              if (!$dep_state->{verified}) {
+                  if (@{$dep_state->{missing_binary}}) {
+                      <[base.log]>->(0, 'ERROR: missing binary dependencies: %s',
+                                    join(', ', @{$dep_state->{missing_binary}}));
+                      return { error => 'missing_binary_dependencies' };
+                  }
+              }
+          }
+
+      - name: "image2html.base.fork_conv_child"
+        line: "~18"
+        position: "before <image2html.child.pid> = <[base.fork]>"
+
+      - name: "pdf.html.base.fork_conv_child"
+        line: "~similar"
+        position: "before fork"
+
+  v7_heartbeat_monitoring:
+    description: "Where to insert periodic health monitoring"
+    module: "v7.init_code"
+    line: "~62"
+    position: "after existing instance verification loop (lines 52-61)"
+    important_note: |
+      NOT all zenka have heartbeats enabled!
+      ~42 zenka have heartbeat.disabled = 1 (on-demand, not monitored)
+      ~45 zenka have heartbeats enabled (always-on, can be monitored)
+
+      Filter logic: Skip zenka with disabled heartbeats to avoid excessive checks
+      on on-demand zenka that may not be running
+    snippet: |
+      ## Monitor dependency health during instance verification (always-on zenka only)
+      if ($UID == 0 and exists $code{'v7.monitor_dependency_health'}) {
+          foreach my $instance (@{<v7.zenka.instance>}) {
+              my $zenka_name = $instance->{zenka_name};
+              my $status = $instance->{status};
+
+              next unless $status eq 'online' || $status eq 'extbin';
+
+              ## Skip zenka with disabled heartbeats (on-demand zenka)
+              next if <[v7.zenka.is_enabled]>->($zenka_name, 'heartbeat_disabled');
+
+              <[v7.monitor_dependency_health]>->($zenka_name);
+          }
+      }
+
+  list_definitions:
+    description: "Where to add list structures for UI"
+    module: "v7.init_code"
+    line: "~145"
+    position: "where other lists are defined (after line 158)"
+    lists:
+      - dependency-status
+      - dependency-alerts
+
+
+# Template 5: Module Creation Checklist
+---
+module_creation_checklist:
+
+  step_1_extend_debian_parent_scan_zenka_dependencies:
+    status: "TODO"
+    description: "Add binary dependency scanning"
+    files:
+      - debian.parent.scan_zenka_dependencies (modify)
+      - debian.parent.callback.register_binary_dependency (new)
+    changes:
+      - Add binary scanning loop after line 95
+      - Create registry for binaries
+      - Create by_name and by_zenka lookups
+    acceptance_criteria:
+      - Binary files in os-dep/binary/ are scanned
+      - Binaries registered in debian.binary_deps registry
+      - Statistics show binary dep counts
+
+  step_2_create_debian_parent_verify_dependency_state:
+    status: "TODO"
+    description: "Universal dependency verification function"
+    file: "debian.parent.verify_dependency_state (new)"
+    inputs:
+      - $type: "pm|os|binary"
+      - $dependency_name: "Module::Name or package-name"
+      - $zenka_name: "optional"
+    outputs:
+      - available: 0|1
+      - error: "error message if applicable"
+      - path: "for binaries, the full path"
+    implementation_notes:
+      - PM: eval { Module::Load::load() }
+      - OS: dpkg -l query
+      - Binary: which or File::Which
+    acceptance_criteria:
+      - Can verify each dependency type
+      - Returns consistent structure
+      - Handles errors gracefully
+
+  step_3_create_v7_verify_and_install_zenka_dependencies:
+    status: "TODO"
+    description: "Comprehensive verification & repair orchestrator"
+    file: "v7.verify_and_install_zenka_dependencies (new)"
+    inputs:
+      - $zenka_name: "which zenka to verify"
+      - $install_if_missing: "0=check only, 1=check and install"
+    logic:
+      - Read expected deps from config dirs
+      - Call verify_dependency_state for each
+      - Calculate missing/broken
+      - If install_if_missing, call installers
+      - Return comprehensive state
+    returns:
+      - verified: 1|0
+      - missing_pm: array
+      - missing_os: array
+      - missing_binary: array
+      - broken_pm: array
+      - installed_now: array
+      - warnings: array
+    acceptance_criteria:
+      - Detects missing dependencies
+      - Can install missing via existing installers
+      - Tracks state for monitoring
+      - Binary deps trigger warnings not errors
+
+  step_4_create_v7_monitor_dependency_health:
+    status: "TODO"
+    description: "Periodic health monitoring for anomaly detection"
+    file: "v7.monitor_dependency_health (new)"
+    important_note: |
+      Called ONLY for always-on zenka with heartbeats enabled.
+      On-demand zenka (heartbeat.disabled=1) are not monitored continuously.
+      They verify dependencies before fork (Step 5).
+    triggers:
+      - Run from v7 heartbeat loop (after filtering for enabled heartbeats)
+      - Only called for ~45 always-on zenka
+      - Skips ~42 on-demand zenka with heartbeat.disabled
+    logic:
+      - Call verify_and_install with install=1
+      - Compare to last known state
+      - Detect system upgrades, manual uninstalls
+      - Track anomalies with timestamps
+      - Log appropriately by severity
+    acceptance_criteria:
+      - Detects new missing dependencies
+      - Detects manual uninstalls
+      - Tracks repair history
+      - Generates appropriate log levels
+      - Doesn't check on-demand zenka unless they're running
+
+  step_5_integrate_parent_fork_modules:
+    status: "TODO"
+    description: "Insert verification before child fork"
+    files:
+      - weather.base.fork_weather_child (modify)
+      - image2html.base.fork_conv_child (modify)
+      - pdf.html.base.fork_conv_child (modify)
+    changes:
+      - Insert verify call before fork
+      - Check for missing binaries, return error
+      - Log verification results
+    acceptance_criteria:
+      - Child dependencies verified before fork
+      - Missing binary deps prevent fork with clear error
+      - Parent logs verification status
+
+  step_6_integrate_v7_monitoring:
+    status: "TODO"
+    description: "Add periodic monitoring to v7 heartbeat (for always-on zenka only)"
+    file: "v7.init_code (modify)"
+    changes:
+      - Insert monitoring loop after line 61
+      - Monitor ONLY zenka with heartbeats enabled
+      - Filter out zenka with heartbeat.disabled = 1
+      - Skip unprivileged users
+    acceptance_criteria:
+      - Monitoring runs in heartbeat loop for ~45 always-on zenka
+      - On-demand zenka (~42) skipped by heartbeat check
+      - Can be queried with 'list dependency-status'
+      - Anomalies visible in 'list dependency-alerts'
+      - Performance impact minimal (only always-on zenka checked)
+
+  step_7_create_monitoring_lists:
+    status: "TODO"
+    description: "UI lists for dependency monitoring"
+    file: "v7.init_code (add list definitions)"
+    lists_to_create:
+      - list.dependency-status
+      - list.dependency-alerts
+    acceptance_criteria:
+      - Lists display in console
+      - Show current verification status
+      - Show detected anomalies
+      - Color-code severity
+
+  step_8_configure_debian_zenka_idle_shutdown:
+    status: "OPTIONAL - RECOMMENDED"
+    description: "Add idle timeout to debian zenka for auto-shutdown"
+    file: "configuration/zenki/debian/zenka-startup.v7 (add one line)"
+    background: |
+      Debian zenka is already on-demand (start.on-demand = 1).
+      Adding idle timeout creates self-managing resource efficiency:
+      - Starts when dependency installation needed
+      - Auto-shuts down after operations complete
+      - Zero resource cost when idle
+      - Restarts automatically if needed again
+    change:
+      - Locate zenka-init section in debian startup config
+      - Add: [base.zenki.set_ondemand_timeout:445]
+      - 445 seconds = ~7.4 minutes (matches Protocol-7 design philosophy)
+    expected_result: |
+      Debian zenka auto-shuts down 445 seconds after last dependency operation
+      Resource usage drops to zero when not in use
+      Automatically restarts on next v7.monitor_dependency_health or fork operation
+    acceptance_criteria:
+      - Idle timeout line added to config
+      - Debian zenka starts when dependency check triggers
+      - Debian zenka shuts down 445s after operations complete
+      - Zero resource footprint when idle
+      - Automatically restarts when dependency operations resume
+
+
+# Template 6: Testing Scenarios
+---
+testing_scenarios:
+
+  test_1_normal_startup:
+    name: "Normal Startup - All Dependencies Present"
+    preconditions:
+      - All pm-dep, os-dep/debian, os-dep/binary markers present
+      - All dependencies actually installed
+      - System in clean state
+    actions:
+      - Start v7
+    expected_results:
+      - All zenka verify as OK
+      - No anomalies detected
+      - No repair attempts
+
+  test_2_system_upgrade:
+    name: "System Upgrade - Packages Removed"
+    preconditions:
+      - v7 running and verified OK
+      - All dependencies installed
+    actions:
+      - Run: apt-get remove package-x
+      - v7 detects in next heartbeat
+    expected_results:
+      - Anomaly detected: missing_os
+      - Auto-repair triggered
+      - Package reinstalled
+      - Anomaly logged with timestamps
+
+  test_3_manual_uninstall:
+    name: "User Manual Uninstall - Binary Removed"
+    preconditions:
+      - v7 running and verified OK
+      - Binary in PATH and registered
+    actions:
+      - Run: sudo rm /usr/bin/convert
+      - v7 detects in next heartbeat
+    expected_results:
+      - Anomaly detected: missing_binary
+      - Alert logged (Level 0 error)
+      - Cannot auto-repair
+      - Shows in dependency-alerts list
+      - Requires admin action
+
+  test_4_pm_module_broken:
+    name: "PM Module Can't Load"
+    preconditions:
+      - Module installed but corrupted
+      - v7 running
+    actions:
+      - Module present but eval { load } fails
+      - v7 detects in verification
+    expected_results:
+      - Anomaly detected: broken_pm
+      - Auto-repair triggered (reinstall via cpanm)
+      - Module reloads successfully
+      - Repair tracked in anomaly log
+
+  test_4b_on_demand_zenka_verification:
+    name: "On-Demand Zenka Dependency Check"
+    preconditions:
+      - On-demand zenka (e.g., calc, screenshot) with heartbeat.disabled=1
+      - Some dependencies missing
+      - v7 running
+    actions:
+      - v7 heartbeat loop runs
+      - Tries to check dependencies
+    expected_results:
+      - On-demand zenka is SKIPPED by heartbeat monitoring (not checked)
+      - No unnecessary checks on inactive zenka
+      - Dependencies verified when zenka is actually accessed/forked
+      - Performance impact minimized
+
+  test_5_parent_child_dependency_failure:
+    name: "Child Zenka Missing Dependencies"
+    preconditions:
+      - Parent (weather) running
+      - Child dependencies removed manually
+    actions:
+      - Trigger child fork (e.g., location change)
+      - Verification runs before fork
+    expected_results:
+      - If missing_binary: fork blocked, error returned
+      - If missing PM/OS: reinstalled, then fork proceeds
+      - Parent logs verification and action taken
+      - Child spawns only after deps satisfied
+
+  test_6_unprivileged_operation:
+    name: "Unprivileged User (No Root)"
+    preconditions:
+      - v7 running as regular user
+      - Some dependencies missing
+    actions:
+      - Verification runs
+      - Cannot install packages
+    expected_results:
+      - Verification works (can check states)
+      - No install attempts made
+      - Returns state to caller
+      - Logs warning about missing deps
+      - Graceful degradation
+
+
+# Template 7: Monitoring Commands for Administrators
+---
+admin_monitoring_commands:
+  description: "Console commands for checking dependency status"
+
+  check_dependency_status:
+    command: "list dependency-status"
+    output: "Table showing verification status for all zenka"
+    columns:
+      - zenka_name
+      - pm_verified
+      - os_verified
+      - binary_verified
+      - missing_pm
+      - missing_os
+      - missing_binary
+      - verified
+      - repaired_count
+    example_output: |
+      .: Zenka Dependency Verification Status :.
+
+      zenka_name        | pm | os | bin | missing_pm | missing_os | missing_binary | verified | repairs
+      ─────────────────┼────┼────┼────┼────────────┼────────────┼────────────────┼──────────┼────────
+      httpd             | ✓  | ✓  | ✓  |          0 |          0 |              0 | ✓ OK     |       0
+      weather           | ✓  | ✓  | ⚠  |          0 |          0 |              1 | ⚠ BROKEN |       2
+      image2html        | ✓  | ✓  | ⚠  |          0 |          0 |              2 | ⚠ BROKEN |       1
+
+  check_dependency_alerts:
+    command: "list dependency-alerts"
+    output: "Table showing anomalies and repairs"
+    columns:
+      - zenka_name
+      - type
+      - dependency
+      - first_detected
+      - detected_count
+      - action
+    example_output: |
+      .: Dependency Anomalies & Alerts :.
+
+      zenka_name  | type           | dependency     | first_detected          | count | action
+      ────────────┼────────────────┼────────────────┼─────────────────────────┼───────┼──────────────
+      weather     | missing_binary | convert        | 2025-11-13 15:23:45     |     3 | alert_admin
+      httpd       | broken_pm      | IO::AIO        | 2025-11-13 12:10:22     |     1 | auto_repaired
+      image2html  | missing_binary | ghostscript    | 2025-11-13 10:45:10     |     2 | alert_admin
+
+  check_specific_zenka:
+    command: "zenka dependency-status weather"
+    output: "Detailed status for single zenka"
+    details_shown:
+      - All missing PM modules
+      - All missing OS packages
+      - All missing binaries
+      - Repair history
+
+  force_verification:
+    command: "v7.monitor_dependency_health weather"
+    output: "Manually trigger verification"
+    effect: "Checks and repairs dependencies immediately"
+    usage: "When admin knows system was upgraded or packages changed"
+
+  query_anomaly_history:
+    command: "dump v7.dependency.anomalies"
+    output: "Full anomaly history with timestamps"
+    usage: "For troubleshooting and audit trail"
+
+#,,..,..,,,,.,,,.,...,,.,,..,,.,,,,..,.,,,...,..,,...,..,,.,.,..,,.,,,...,,,,,
+#WUITZ2IX6PL7VOJEECYFCBNSBQHVT4J4LXYJOF24LLJ3O7NHZK2VBTNV7MTNRCPUIOINYULDUSRDK
+#\\\|OLECIQK35AJWY53VVWFEXICDDWI5BUAHOGBVO2SVE7ARIZHMUKQ \ / AMOS7 \ YOURUM ::
+#\[7]W6ZKMVXGU4RODMBY4IYPLWORKJTKWRD65CDEIZLDGFFYNP4MUEDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

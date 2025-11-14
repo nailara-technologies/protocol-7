@@ -8,9 +8,11 @@
 ## Ensure registries are initialized
 $data{'debian'}{'packages'}{'registry'}     //= {};
 $data{'debian'}{'cpan_modules'}{'registry'} //= {};
+$data{'debian'}{'binaries'}{'registry'}     //= {};
 $data{'debian'}{'zenki_deps'}{'registry'}   //= {};
 $data{'debian'}{'packages'}{'by_name'}      //= {};
 $data{'debian'}{'cpan_modules'}{'by_name'}  //= {};
+$data{'debian'}{'binaries'}{'by_name'}      //= {};
 $data{'debian'}{'zenki_deps'}{'by_zenka'}   //= {};
 
 ## Ensure lists are initialized if not already
@@ -28,6 +30,15 @@ unless ( exists $data{'_list_meta'}{'cpan-modules'} ) {
         {   'name'         => qw| cpan-modules |,
             'key_ref'      => \$data{'debian'}{'cpan_modules'}{'registry'},
             'max_elements' => 4096
+        }
+    );
+}
+
+unless ( exists $data{'_list_meta'}{'binary-dependencies'} ) {
+    <[base.list.init]>->(
+        {   'name'         => qw| binary-dependencies |,
+            'key_ref'      => \$data{'debian'}{'binaries'}{'registry'},
+            'max_elements' => 512
         }
     );
 }
@@ -53,9 +64,10 @@ unless ( defined $base_path && -d $base_path ) {
 
 <[base.log]>->( 2, "debian.scan: scanning zenki at $base_path" );
 
-my $zenki_count   = 0;
-my $total_pm_deps = 0;
-my $total_os_deps = 0;
+my $zenki_count    = 0;
+my $total_pm_deps  = 0;
+my $total_os_deps  = 0;
+my $total_bin_deps = 0;
 
 ## Find all zenka directories
 opendir( my $dh, $base_path )
@@ -74,11 +86,13 @@ foreach my $zenka (@zenki) {
     my $zenka_path = "$base_path/$zenka";
 
     ## Check for pm-dep directory
-    my $pm_dep_path = "$zenka_path/pm-dep";
-    my $os_dep_path = "$zenka_path/os-dep/debian";
+    my $pm_dep_path      = "$zenka_path/pm-dep";
+    my $os_dep_path      = "$zenka_path/os-dep/debian";
+    my $bin_dep_path     = "$zenka_path/os-dep/binary";
 
     my @pm_deps;
     my @os_deps;
+    my @bin_deps;
 
     ## Scan Perl module dependencies
     if ( -d $pm_dep_path ) {
@@ -99,11 +113,20 @@ foreach my $zenka (@zenki) {
         closedir($os_dh);
     }
 
-    next unless @pm_deps || @os_deps;
+    ## Scan Binary dependencies
+    if ( -d $bin_dep_path ) {
+        opendir( my $bin_dh, $bin_dep_path ) or next;
+        @bin_deps
+            = grep { $_ !~ /^\./ && -f "$bin_dep_path/$_" } readdir($bin_dh);
+        closedir($bin_dh);
+    }
+
+    next unless @pm_deps || @os_deps || @bin_deps;
 
     $zenki_count++;
-    $total_pm_deps += scalar(@pm_deps);
-    $total_os_deps += scalar(@os_deps);
+    $total_pm_deps  += scalar(@pm_deps);
+    $total_os_deps  += scalar(@os_deps);
+    $total_bin_deps += scalar(@bin_deps);
 
     <[base.log]>->(
         3,
@@ -111,7 +134,9 @@ foreach my $zenka (@zenki) {
             . scalar(@pm_deps)
             . " pm-dep, "
             . scalar(@os_deps)
-            . " os-dep"
+            . " os-dep, "
+            . scalar(@bin_deps)
+            . " bin-dep"
     );
 
     ## Register zenka dependencies
@@ -121,8 +146,10 @@ foreach my $zenka (@zenki) {
                 zenka         => $zenka,
                 pm_deps       => [@pm_deps],
                 os_deps       => [@os_deps],
+                bin_deps      => [@bin_deps],
                 pm_deps_count => scalar(@pm_deps),
                 os_deps_count => scalar(@os_deps),
+                bin_deps_count => scalar(@bin_deps),
                 missing_count => 0,                  ## Will be calculated
                 status        => qw| unknown |
             }
@@ -145,28 +172,37 @@ foreach my $zenka (@zenki) {
                 $deb_pkg, $zenka
             );
         }
+
+        ## Register each Binary dependency
+        foreach my $binary (@bin_deps) {
+            <[debian.parent.callback.register_binary_dependency]>->(
+                $binary, $zenka
+            );
+        }
     }
 }
 
 ## Update statistics
 $data{'debian'}{'stats'}{zenki_scanned} = $zenki_count;
-$data{'debian'}{'stats'}{total_pm_deps} = $total_pm_deps;
-$data{'debian'}{'stats'}{total_os_deps} = $total_os_deps;
-$data{'debian'}{'stats'}{last_scan}     = time();
+$data{'debian'}{'stats'}{total_pm_deps}  = $total_pm_deps;
+$data{'debian'}{'stats'}{total_os_deps}  = $total_os_deps;
+$data{'debian'}{'stats'}{total_bin_deps} = $total_bin_deps;
+$data{'debian'}{'stats'}{last_scan}      = time();
 
 <[base.log]>->( 2, "debian.scan: complete" );
 <[base.log]>->( 2, "  Zenki scanned: $zenki_count" );
 <[base.log]>->( 2, "  PM dependencies: $total_pm_deps" );
 <[base.log]>->( 2, "  OS dependencies: $total_os_deps" );
+<[base.log]>->( 2, "  Binary dependencies: $total_bin_deps" );
 
 return {
     success     => 1,
     zenki_count => $zenki_count,
-    deps_count  => $total_pm_deps + $total_os_deps
+    deps_count  => $total_pm_deps + $total_os_deps + $total_bin_deps
 };
 
-#,,,,,...,..,,,..,.,,,.,,,,,,,,.,,..,,,.,,,..,..,,...,...,..,,.,.,,,,,,..,.,.,
-#FMHLNU6WDVYZ7AHNBBUQA4E5MSOHRQUOE3PLRWL32LVXT55WDAJBU3H27XA4O3UJLTNC466HSQ2YM
-#\\\|ITCOJMLMBH2LHYMQRSM3GP7FOXCWJFOPPTLYRLYEYPXYHEMZKU2 \ / AMOS7 \ YOURUM ::
-#\[7]AZSEB5L2O2UQMW33SAWRDFEBE6P4FJT6XB7IDXVSI3GI32UXQSBA 7  DATA SIGNATURE ::
+#,,.,,.,,,...,.,,,,..,.,.,.,.,...,.,.,,.,,.,,,..,,...,...,,.,,..,,...,,,.,.,,,
+#RPRTHS766CCOVSZZVM5OBJ7ROHDDX7W4E3EY2R6VR7FLZZ7OCTECENOPPYC2XRF25KJCDJPITO2KA
+#\\\|4FY6ZHCFCB6QCIQJUYUXC6QHUHAYCTERUE347LSTUDKSHKQXVYC \ / AMOS7 \ YOURUM ::
+#\[7]FUA7SWVVDEQ7L3XAYUQPYXSB5ZEY7BHGNK45DWPRELPBOLV4LAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
