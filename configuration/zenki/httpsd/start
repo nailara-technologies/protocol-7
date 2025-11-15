@@ -45,6 +45,9 @@ httpsd.timeout      =  23
 
 [base.net.connect:'unix']
 
+## Validate certificate files exist before attempting socket creation
+[httpsd.startup.validate_certificates]
+
 httpsd.sock = [httpsd.create_ssl_socket:<net.https.addr>,<net.https.port>]
 [base.protocol.bind:<httpsd.sock>,'https','server']
 
