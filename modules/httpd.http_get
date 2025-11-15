@@ -70,25 +70,28 @@ my $handler_args = $route->{'handler_args'} // {};
 );
 
 # Dispatch to the appropriate handler
+# Get the actual code reference from the code hash
+my $handler_ref = $code{$handler_name};
+unless (defined $handler_ref && ref($handler_ref) eq 'CODE') {
+    <[base.log]>->(0, "[$id] handler not found or not a coderef: $handler_name");
+    return <[httpd.send_error_page]>->($id, 500);
+}
+
+# Call the handler with appropriate arguments based on handler type
 if ($handler_name eq 'httpd.process_template') {
-    # Template processing
-    return <[$handler_name]>->($id, $handler_args->{'template_path'});
+    return $handler_ref->($id, $handler_args->{'template_path'});
 } elsif ($handler_name eq 'httpd.serve_static') {
-    # Static file serving
-    return <[$handler_name]>->($id, $handler_args);
+    return $handler_ref->($id, $handler_args);
 } elsif ($handler_name eq 'httpd.handler.acme_request') {
-    # ACME challenge
-    return <[$handler_name]>->($id, $handler_args->{'token'});
+    return $handler_ref->($id, $handler_args->{'token'});
 } elsif ($handler_name eq 'letsencrypt.http.api_handler') {
-    # Let's Encrypt API
-    return <[$handler_name]>->($id, $handler_args->{'endpoint'});
+    return $handler_ref->($id, $handler_args->{'endpoint'});
 } elsif ($handler_name eq 'httpd.send_error_page') {
-    # Error response
-    return <[$handler_name]>->($id, $handler_args->{'code'} // 500);
+    return $handler_ref->($id, $handler_args->{'code'} // 500);
 } else {
     # Generic handler fallback
     <[base.log]>->(1, "[$id] calling handler: $handler_name");
-    return <[$handler_name]>->($id, $handler_args);
+    return $handler_ref->($id, $handler_args);
 }
 
 ## Legacy fallback (should not be reached if routing is correct)
