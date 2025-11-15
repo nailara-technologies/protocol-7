@@ -46,17 +46,6 @@ httpsd.timeout      =  23
 [base.net.connect:'unix']
 
 httpsd.sock = [httpsd.create_ssl_socket:<net.https.addr>,<net.https.port>]
-
-## Check if socket creation succeeded - fail fast on certificate errors
-[unless:<httpsd.sock>]
-  [base.log:0,'FATAL: HTTPSD SSL socket creation failed']
-  [base.log:0,'Check certificate files exist:']
-  [base.log:0,'  Certificate: <httpsd.cfg.certificate_path>']
-  [base.log:0,'  Key: <httpsd.cfg.key_path>']
-  [base.log:0,'HTTPSD cannot start without valid SSL/TLS certificates.']
-  [exit:1]
-[/unless]
-
 [base.protocol.bind:<httpsd.sock>,'https','server']
 
 [root.drop_privs:<httpsd.system.user>]
