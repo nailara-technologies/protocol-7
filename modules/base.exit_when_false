@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = base.exit_when_empty
+# descr = Exit zenka if first parameter is undef, empty or a number < 1
+
+my $value = shift @ARG;
+
+if (   not defined $value
+    or $value eq ''
+    or $value =~ m|^-?\d+$| and $value < 1 ) {
+    ## when irst parameter is empty|undef or a number < 1 : exit with error ##
+    <[base.exit]>->(@ARG);    ## <-- passing on remaining parameters ##
+} else {
+    ## First parameter has value, return it for continued processing ##
+    return $value;
+}
+
+#,,,.,.,,,,,,,..,,.,.,.,,,.,.,,.,,,,.,,.,,...,..,,...,...,...,...,.,,,,..,.,,,
+#ZAI5ERQATOSVJPJFK6ETTOXIBNZ7NR4OP6YOGCZ6AVBMV7OPQGRPJQPH7WVPLIUTWXTQJDKEC6LBY
+#\\\|YWXGO6ASEGFIOEH2S6BI3TWKFHVDU56P2IH76HJE3OTNIHLC3YI \ / AMOS7 \ YOURUM ::
+#\[7]GTOGYTXDSRFPLBBB4WWX5JWSG5O7ILKQKL3A735MUH5KNROJIICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
