@@ -1,0 +1,102 @@
+---
+title: HTTPSD Startup Error Handling & Missing Module Fixes
+description: |
+  Issues found during httpsd startup on base branch integration.
+  These require fixes to ensure proper error handling and complete module coverage.
+priority: high
+status: blocked-on-remote-model
+
+issues:
+
+  - id: httpsd-cert-error-handling
+    title: Insufficient Error Handling for Missing Certificate File
+    severity: high
+
+    problem: |
+      When certificate file is missing at /etc/protocol-7/certs/current.pem:
+
+      1. httpsd.create_ssl_socket fails silently, returns invalid socket
+      2. base.protocol.bind attempts to bind with empty fd
+      3. Error message "cannot bind protocol 'https' to ''-fd'" is confusing
+      4. Root cause (missing cert) is buried in earlier log lines
+      5. Remote model won't detect this issue because they have certs in place
+
+    current_error_chain: |
+      . DESKTOP-FP4OP26.httpsd      . httpsd: certificate file not found: /etc/protocol-7/certs/current.pem
+      . DESKTOP-FP4OP26.httpsd      . << cannot bind protocol 'https' to ''-fd >>
+
+    requirements: |
+      1. In httpsd.create_ssl_socket:
+         - Check certificate file exists BEFORE attempting socket creation
+         - If missing, use one of these approaches:
+           a) Generate self-signed certificate automatically
+           b) Fail fast with clear error message (prefer this for security)
+
+      2. Prevent invalid socket from reaching base.protocol.bind:
+         - Return error/undef from httpsd.create_ssl_socket on cert failure
+         - Check return value in /configuration/zenki/httpsd/start
+         - Abort httpsd startup with clear message if socket creation failed
+
+      3. Error message should be clear:
+         "FATAL: Certificate file not found at /etc/protocol-7/certs/current.pem
+          HTTPSD cannot start without valid SSL certificate.
+          Please generate certificate or provide path via configuration."
+
+    test_scenario: |
+      - Remove /etc/protocol-7/certs/current.pem
+      - Start httpsd
+      - Should see clear error message about missing cert
+      - httpsd should NOT attempt to bind or continue startup
+      - Error should be in PRIMARY output, not buried in logs
+
+  - id: httpsd-missing-module
+    title: Missing Module base.list.formatted.show
+    severity: high
+
+    problem: |
+      Module base.list.formatted.show is referenced but does not exist.
+      Called from: base.referenced_subroutines.clear_from_disk:22
+
+      Error message:
+      . : warn : << source not found : 'modules/base.list.formatted.show' >>
+      . : undefined routine :. 'base.list.formatted.show'
+
+    requirements: |
+      1. Create modules/base.list.formatted.show
+         - Purpose: Format and display list data in structured output
+         - Should handle the use case in base.referenced_subroutines
+         - Document the expected input format and output format
+
+      2. Or: If this module is not needed:
+         - Remove the call from base.referenced_subroutines.clear_from_disk
+         - Document why it was originally called
+
+    test_scenario: |
+      - httpsd startup should complete without "source not found" warnings
+      - If module is created, test the formatting output
+      - If module is not needed, verify base.referenced_subroutines works correctly
+
+integration_notes: |
+  - These issues were discovered during base branch integration
+  - Remote model likely has these fixed locally but they weren't committed
+  - Certificate handling especially needs defensive coding since cert paths vary by deployment
+  - Once fixed, httpsd should start cleanly on systems without pre-existing certificates
+  - Consider adding HTTPS startup test to integration suite
+
+related_files:
+  - configuration/zenki/httpsd/start
+  - modules/httpsd.create_ssl_socket
+  - modules/base.protocol.bind
+  - modules/base.referenced_subroutines.clear_from_disk
+  - modules/base.list.formatted.show (missing - needs creation)
+
+completed_by: remote-model
+commit_message_hint: |
+  fix: Add robust certificate handling and missing base.list.formatted.show module
+
+  - Implement fail-fast certificate validation in httpsd.create_ssl_socket
+  - Prevent socket bind attempt when certificate is missing
+  - Add clear error message for missing certificate at startup
+  - Create modules/base.list.formatted.show with proper list formatting
+
+  Fixes httpsd startup issues discovered during base branch integration.

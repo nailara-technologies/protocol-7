@@ -38,30 +38,17 @@ if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
         return 2;
     }
 
-    printf STDERR "\n: testing : auth user : %s\n\n", $auth_user;
-
     ## Expand template variables in auth username (e.g., <admin-user> -> admin-user)
     my $lookup_auth_user = $auth_user;
     if ( $auth_user =~ m|^<([^>]+)>$| ) {
         my $template = "<${^CAPTURE}[0]}>";
         my $expanded = <[base.access.special-user-map]>->($template, 1);  # silent mode
-        if ( defined $expanded ) {
-            $lookup_auth_user = $expanded;
-            printf STDERR ": expanded template auth user: %s -> %s\n", $auth_user, $lookup_auth_user;
-        }
     }
 
     my $mapped_user_string;
     if ( defined <auth.setup.usr>->{$lookup_auth_user}
         and <auth.setup.usr>->{$lookup_auth_user} =~ m|:unix:(\S+)| ) {
         my @allowed_users = split( m|\s*[, +]\s*|, ${^CAPTURE}[0] );
-
-        map {
-            printf STDERR ": allowed users : %s\n", $ARG;
-            $authorize_unix_session = TRUE
-                if $client_uname eq $ARG;
-
-        } @allowed_users;
 
         if ( not $authorize_unix_session ) {
 
@@ -78,9 +65,6 @@ if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
                     and $prefixed_user ne $allowed_user;
 
                 ## unix user match ##
-
-                warn ": prefixed user : $prefixed_user";
-
                 if ( $prefixed_user eq $allowed_user ) {
                     ###                                       ###
                     ## authorized using special user template ##
@@ -134,8 +118,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
 
 return 2;
 
-#,,..,.,,,..,,...,.,,,,,,,,,,,,,,,,,,,.,.,..,,..,,...,...,...,,.,,,.,,,,,,.,,,
-#J3NI4KNU7G3VTS7BXALQABSWK7TM547M2AVN4NKB2SGLWLMJI6N6FLR5C2RQX4K4N7KFCGLQHIA3A
-#\\\|KKYXACO6UN3DDRYOB62XAL4CACMMOYX5BEVTP4UP5SAZOJF74OL \ / AMOS7 \ YOURUM ::
-#\[7]5P5OUQCRWMZSKL5ZQPGZQK3SB47XC63IAY3ENAG5N6TXXVK324BI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,...,,,,,,..,,.,,...,,.,,,,,,,.,,..,,...,...,,,,,,.,,...,,,,,..,,
+#7ET6O2U4VCNT7WZ2SWX5PXOH2IRMUFK4DYF2Y7PCXUQMXPW244ZOE2FSFCU6IBCIOLMVQ4QOOQJ6W
+#\\\|IZTI3FR7SQBYXEXLWPGDH7ENUBXMTPAX5GKIFOKC6AP33GHTJ4D \ / AMOS7 \ YOURUM ::
+#\[7]7N2RAK22AYJ467FOLFC3VTPBYKI5SBBU66CIKE6FAR5WDFHMDKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
