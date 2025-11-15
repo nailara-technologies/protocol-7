@@ -7,7 +7,10 @@
 
 my $domain = shift;
 
-return { qw| status | => qw| error |, qw| message | => qq| domain parameter required | }
+return {
+    qw| status |  => qw| error |,
+    qw| message | => qq| domain parameter required |
+    }
     unless defined $domain && length($domain);
 
 <[base.log]>->( 2, "installing certificate for $domain to httpsd" );
@@ -31,7 +34,7 @@ unless ( defined $cert_entry ) {
 }
 
 ## Source paths from letsencrypt cache
-my $cache_dir  = <letsencrypt.cache.dir>;
+my $cache_dir   = <letsencrypt.cache.dir>;
 my $source_cert = sprintf '%s/%s.pem', $cache_dir, $domain;
 my $source_key  = sprintf '%s/%s.key', $cache_dir, $domain;
 
@@ -60,8 +63,8 @@ unless ( -f $source_key ) {
 
 ## Target paths for httpsd
 my $httpsd_cert_dir = <httpsd.cfg.certificate_dir> // '/etc/protocol-7/certs';
-my $target_cert     = sprintf '%s/%s.pem', $httpsd_cert_dir, $domain;
-my $target_key      = sprintf '%s/%s.key', $httpsd_cert_dir, $domain;
+my $target_cert     = sprintf '%s/%s.pem',      $httpsd_cert_dir, $domain;
+my $target_key      = sprintf '%s/%s.key',      $httpsd_cert_dir, $domain;
 my $current_cert    = sprintf '%s/current.pem', $httpsd_cert_dir;
 my $current_key     = sprintf '%s/current.key', $httpsd_cert_dir;
 
@@ -88,8 +91,9 @@ unless ( -d $httpsd_cert_dir ) {
 
 my $cert_content;
 {
+    my $fh;
     local $/ = undef;
-    unless ( open( my $fh, '<', $source_cert ) ) {
+    unless ( open( $fh, '<', $source_cert ) ) {
         <[base.log]>->( 1, "failed to open source cert: $!" );
         return {
             qw| status |  => qw| error |,
@@ -100,24 +104,28 @@ my $cert_content;
     close($fh);
 }
 
-unless ( open( my $fh, '>', $target_cert ) ) {
-    <[base.log]>->( 1, "failed to write target cert: $!" );
-    return {
-        qw| status |  => qw| error |,
-        qw| message | => qq| failed to write certificate: $! |
-    };
+{
+    my $fh;
+    unless ( open( $fh, '>', $target_cert ) ) {
+        <[base.log]>->( 1, "failed to write target cert: $!" );
+        return {
+            qw| status |  => qw| error |,
+            qw| message | => qq| failed to write certificate: $! |
+        };
+    }
+    print $fh $cert_content;
+    close($fh);
+    chmod( 0644, $target_cert );
 }
-print $fh $cert_content;
-close($fh);
-chmod( 0644, $target_cert );
 
 ## Copy key file (more secure handling)
 <[base.log]>->( 2, "copying private key: $source_key -> $target_key" );
 
 my $key_content;
 {
+    my $fh;
     local $/ = undef;
-    unless ( open( my $fh, '<', $source_key ) ) {
+    unless ( open( $fh, '<', $source_key ) ) {
         <[base.log]>->( 1, "failed to open source key: $!" );
         return {
             qw| status |  => qw| error |,
@@ -128,7 +136,8 @@ my $key_content;
     close($fh);
 }
 
-unless ( open( my $fh, '>', $target_key ) ) {
+my $fh;
+unless ( open( $fh, '>', $target_key ) ) {
     <[base.log]>->( 1, "failed to write target key: $!" );
     return {
         qw| status |  => qw| error |,
@@ -187,7 +196,8 @@ if ($reload_result) {
 } else {
     <[base.log]>->( 1, "httpsd certificate reload failed" );
     <[letsencrypt.parent.activity_logger]>->(
-        qw| install |, $domain, qw| partial |, qq| installed but reload failed |
+        qw| install |, $domain, qw| partial |,
+        qq| installed but reload failed |
     );
 
     return {
@@ -199,8 +209,9 @@ if ($reload_result) {
 }
 
 0;
-#,,..,,,,,,,,,,..,,,.,.,.,,,.,,..,.,,,.,,,,,.,..,,...,..,,...,..,,,,.,...,.,,,
-#DW2WUQYTEFP3HH7UBHORIZ7MSZXXTZENVIHMLU2IQCFE6PTOILHEMH6G4D4TOYFV4EQ4VBJODKN7C
-#\\\|35MT6KJL3XBFLDJ3AGZMNQFTEMFYSCBQISAGOZWX6Y64VV7GYR4 \ / AMOS7 \ YOURUM ::
-#\[7]PVVZHRFBY7WBBOXGUIHQ7ETFATDPG55PBLUAFHRWQ5SR67HVG4BY 7  DATA SIGNATURE ::
+
+#,,.,,..,,.,,,.,.,..,,,.,,,,,,...,,.,,...,,,,,..,,...,...,...,,.,,.,,,..,,.,.,
+#KRGNPC2MSMJONBBZNJ7SOVTBRNLSWUXA3LWWM64OBP3V5UWN5X3EYOQ7BA37FDW553N2V5BOHCUVE
+#\\\|E3HV5Y55Y7X5LVLAXWJNSG27JYWTMIGKBC66BKBOGBFJI3WIAJO \ / AMOS7 \ YOURUM ::
+#\[7]KLYXKAG3FRCDPCBTISNJKGZB7K6AJKYOWURGBDER3QSPNKIMTYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
