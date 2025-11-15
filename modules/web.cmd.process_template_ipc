@@ -1,0 +1,24 @@
+## [:< ##
+
+# name = web.cmd.process_template_ipc
+# descr = IPC command handler - wrapper for web.process_template_ipc
+# args  = template_id:template_content_b32r:meta_vars_b32r:session_id
+
+## Commands receive a hash ref with call_args, but the implementation expects a string ##
+my $hash_ref = shift;
+my $args_str = $hash_ref->{'call_args'}->{'args'} // '';
+
+## Call the actual implementation (returns tuple) ##
+my ($mode, $data) = <[web.process_template_ipc]>->($args_str);
+
+## Convert tuple to hash ref format that command system expects ##
+return {
+    'mode' => lc($mode // 'false'),
+    'data' => $data // ''
+};
+
+#,,,,,,,,,..,,...,...,,,.,,,,,.,.,.,,.,,.,,,.,,,,,,,,,.,,,.,.,,,.,.,,,.,,,.,,.,
+#CMDWRAPPERWRAPTEST000000000000000000000000000000000000000000000000000000000
+#\\\|CMDWRAPPERWRAPTEST00000000000000000000000000000000000 \ / AMOS7 \ YOURUM ::
+#\[7]CMDWRAPPERWRAPTEST00000000000000000000000000000000000 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
