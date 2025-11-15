@@ -52,20 +52,13 @@ if ($count == 0) {
 
 push @output, sprintf("Configured virtual hosts: %d\n", $count);
 
-## Use list display
-my $list_output = <[base.list.formatted.show]>->('httpd-vhosts');
-
-if ($list_output) {
-    push @output, $list_output;
-} else {
-    ## Fallback to manual display
-    foreach my $id (sort { <httpd.vhosts.registry>->{$a}->{domain} cmp <httpd.vhosts.registry>->{$b}->{domain} }
-                    keys %{<httpd.vhosts.registry>}) {
-        my $vh = <httpd.vhosts.registry>->{$id};
-        my $cert = $vh->{cert} ? '✓' : '✗';
-        push @output, sprintf("  [%s] %s (cert: %s)",
-            $id, $vh->{domain}, $cert);
-    }
+## Use fallback manual display since base.list.formatted.show doesn't exist
+foreach my $id (sort { <httpd.vhosts.registry>->{$a}->{domain} cmp <httpd.vhosts.registry>->{$b}->{domain} }
+                keys %{<httpd.vhosts.registry>}) {
+    my $vh = <httpd.vhosts.registry>->{$id};
+    my $cert = $vh->{cert} ? '✓' : '✗';
+    push @output, sprintf("  [%s] %s (cert: %s)",
+        $id, $vh->{domain}, $cert);
 }
 
 return {
