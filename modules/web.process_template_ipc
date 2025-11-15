@@ -49,7 +49,7 @@ if ( defined $meta_b32r and length($meta_b32r) ) {
 );
 
 ## Track active template processing ##
-<web.templates.active>{$template_id} = {
+<web.templates.active>->{$template_id} = {
     template_id => $template_id,
     client_id   => $session_id,
     status      => qw| processing |,
@@ -72,7 +72,7 @@ my $result = <[web.process_template_recursive]>->(
 my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
 
 ## Clean up active template tracking ##
-delete <web.templates.active>{$template_id};
+delete <web.templates.active>->{$template_id};
 
 ## Update metrics ##
 <web.templates.processed>++;
@@ -107,8 +107,8 @@ if ( $result->{status} eq qw| success | ) {
     return ( 'FALSE', qq| template processing failed: | . $result->{message} );
 }
 
-#,,,,,,..,.,,,,,.,.,.,,,,,,.,,...,..,,.,,,..,,..,,...,...,..,,,..,,.,,...,.,.,
-#IHMWWEGQVLES6FDUQ7OPQWNRJHFL7XAYJPOB2FBYH6OYXIJ7JYGBHZC2IL7H7Y6NWK3IJYIPUYOSU
-#\\\|4KQHDBDWYZOVAXZA2MRV6TDWV7U2XR4Z3J2SZFHC3HW57ERBBCC \ / AMOS7 \ YOURUM ::
-#\[7]X3M3OWB7XEPQZY7EK34JTLGZDGBRO3KVDHAO56RHRXU3OOLUFOBI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,..,,,.,,,.,...,,..,,,.,...,.,,,..,,...,...,,..,..,,,,,,,,,,,,,,
+#67W7F6M4VMVV57JBUAC6YTAAQOA3WFKFCIQRNLUY6TT25SUUR3WVKWGPBXCZLOTUAHTLS6WRMO6V4
+#\\\|BQSUVGHKE47QM2S3776XWINA7PGZ7VA3I3HDDOVAJWFKKV2ISMA \ / AMOS7 \ YOURUM ::
+#\[7]C6ZPYQI6FK4RQZOFJ44P5BMGEPYA3GH7PGYBXVHH5A74W3ECGCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -108,23 +108,23 @@ if ( !@{ $result->{failed_deb} } and !@{ $result->{failed_cpan} } ) {
         <[base.buffer.add_line]>->( qw| perlmod-install |, '✓ installation complete' );
 
         ## Update statistics ##
-        <perlmod.install.stats>{successful}++;
-        <perlmod.install.stats>{debian_pkgs} += scalar @{ $result->{installed_deb} };
-        <perlmod.install.stats>{cpan_mods} += scalar @{ $result->{installed_cpan} };
+        <perlmod.install.stats>->{successful}++;
+        <perlmod.install.stats>->{debian_pkgs} += scalar @{ $result->{installed_deb} };
+        <perlmod.install.stats>->{cpan_mods} += scalar @{ $result->{installed_cpan} };
     }
 } else {
     $result->{error} = 'some packages failed to install';
     <[base.logs]>->( 0, "  ✗ installation had failures" );
     <[base.buffer.add_line]>->( qw| perlmod-install |, '✗ installation had failures' );
-    <perlmod.install.stats>{failed}++;
+    <perlmod.install.stats>->{failed}++;
 }
 
-<perlmod.install.stats>{total_attempts}++;
+<perlmod.install.stats>->{total_attempts}++;
 
 return $result;
 
-#,,.,,..,,.,,,,..,.,,,,,,,,,.,,.,,.,.,,..,.,.,..,,...,...,,,,,,..,.,.,,.,,,,.,
-#QYKBEX4A6QZ76ONAHFDAWRNCFLOY4FT2P4HNIGR6RBOQM6UBYPYZNODNT4KS7PPWZJ2DV6GBKFNHO
-#\\\|DXD5XCS7CLDQJ3CCKMU3IPJW2H6UVA6YRFARULN7YUL2Z74XJKP \ / AMOS7 \ YOURUM ::
-#\[7]6SD2TJXTWW3H4H7Q7YHFOAWJDUXYBI2MTDT65XJW3O6Q6BPPPKDA 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,,.,.,.,,.,,..,,,,.,.,,,...,.,,,..,,...,...,.,,,.,,,.,.,,.,,,.,,
+#EB5OBYUSD5RHLFILJSYQ4JQMLJPWWJOSFONVCX5EJLJMXRZB4COYQLVHLCZGY3RIZVR2SFOLTVSK2
+#\\\|275SFVAAJHYYKXAS3YGH2AF325OB4LQXMN644QALRYNEVJBGONV \ / AMOS7 \ YOURUM ::
+#\[7]JTEXNL6QEELWCMHIY2ZT6HSOOE63HIWEBHIGXO5ZZCZSJ4EICKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
