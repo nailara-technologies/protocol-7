@@ -70,7 +70,7 @@ my $template_id = sprintf(
 );
 
 ## Track active template processing ##
-<web.templates.active>{$template_id} = {
+<web.templates.active>->{$template_id} = {
     template_id => $template_id,
     client_id   => qw| operator |,
     status      => qw| processing |,
@@ -95,7 +95,7 @@ my $result = <[web.process_template_recursive]>->(
 my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
 
 ## Clean up active template tracking ##
-delete <web.templates.active>{$template_id};
+delete <web.templates.active>->{$template_id};
 
 ## Update metrics ##
 <web.templates.processed>++;
@@ -129,8 +129,8 @@ if ( $result->{status} eq qw| success | ) {
     );
 }
 
-#,,,.,,,.,,..,.,,,,.,,.,.,...,..,,..,,...,..,,..,,...,...,,..,...,,,,,,,.,..,,
-#PU3KOEKVCASCY37EZ2H3UZNYHTKU4LNZZCG7QK273LWSZ43LOCMV27IVQG7GPZXAANCCQBPNPS3VK
-#\\\|ZEAHZIDC4SQ3CNM4B5NQ46CBJT33335OT2XZKY75MGXGEDECIOM \ / AMOS7 \ YOURUM ::
-#\[7]QVYLU33AH62CXNAP3UC4P6XDDXALMKC5WQFZXRBZRQEAJN7YIADQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,,,,.,,,.,.,,.,,..,,,.,,,,.,..,,..,,...,...,,.,,..,,...,,,.,,,.,
+#7R7WYNL6LMURZYRJSM4QO3KSAXLZH7REYVYFRKT5OCQ2755OUGLSXMMGLOSPRAIOWKW6IWENPZPG4
+#\\\|HTB7FZNVBQHTJECMKWKVLG37HN3NVNQBMUO7FS7QNOAMCDCXLEM \ / AMOS7 \ YOURUM ::
+#\[7]F2IKWQE4KNM5DPNI35C7WPCHARQCENWV6A4BIK34TXC4KSI3O4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

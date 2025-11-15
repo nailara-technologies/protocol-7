@@ -45,7 +45,7 @@ unless ( $module_path =~ /^[\w\-_.]+$/ ) {
 
 ## Track pending command ##
 my $cmd_id = sprintf( '%s_%s_%d', $template_id, $module_path, time() );
-<web.commands.pending>{$cmd_id} = {
+<web.commands.pending>->{$cmd_id} = {
     command_name => $module_path,
     template_id  => $template_id,
     status       => qw| executing |,
@@ -59,7 +59,7 @@ unless ( exists $code{$module_path} ) {
         "[$session_id] template command not found: $module_path"
     );
 
-    delete <web.commands.pending>{$cmd_id};
+    delete <web.commands.pending>->{$cmd_id};
 
     return {
         status  => qw| error |,
@@ -108,7 +108,7 @@ if ($@) {
 }
 
 ## Clean up pending command tracking ##
-delete <web.commands.pending>{$cmd_id};
+delete <web.commands.pending>->{$cmd_id};
 
 ## Validate result type ##
 unless ( defined $result ) {
@@ -154,8 +154,8 @@ return {
     result  => $result,
 };
 
-#,,.,,..,,,.,,...,,.,,.,.,.,.,.,,,..,,,.,,,.,,..,,...,..,,.,.,,,,,,.,,,,,,,.,,
-#IOO5QEY4BAEZMYWLFCS2YEMYSCF2ZNRJXON2KVYEIDCQVHPAY7HQEWX2LYQ7P6IUYKNN6HRVCBNXC
-#\\\|45U6IQU46BV4IVLKHCZUOKPNWQK6NIPHS5IMQR5PSQKIMS47WEA \ / AMOS7 \ YOURUM ::
-#\[7]OKI3TH7RZ75EOEHHAYK2YH3ON4RCYLNW3TIF352M3OML7BKITCAY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,..,...,.,.,,.,,,.,,,,.,,,,,.,.,..,,...,...,.,.,...,,,,,,.,,..,,
+#IRMDIHBRRJSO2XVQGLX2WC7FBIVYLJSPEEODAHVE25ATFMSMXMPU5G7U6NZICKCWNKEGFPTX4M33I
+#\\\|GK4IY4VKYRR6JHXBO35BGOWO2KSJ3YT3GMJZRFPRV6WDN35G5NZ \ / AMOS7 \ YOURUM ::
+#\[7]TXHOBEWBPOWFJQJUY7DH3DCSPOO3KL7QZXB6FTGSIJ5OTPOBIYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

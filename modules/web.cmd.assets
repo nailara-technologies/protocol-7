@@ -9,7 +9,7 @@ my $cmd  = shift(@args) // 'list';
 
 if ( $cmd eq 'list' ) {
     ## List all registered assets ##
-    my $total = <web.assets.stats>{total_assets};
+    my $total = <web.assets.stats>->{total_assets};
 
     if ( $total == 0 ) {
         return ( 1, qq| No assets registered yet. Run validation first. | );
@@ -22,7 +22,7 @@ if ( $cmd eq 'list' ) {
     push @output, qq| |;
 
     foreach my $path ( sort keys %{ <web.assets.registry> } ) {
-        my $asset  = <web.assets.registry>{$path};
+        my $asset  = <web.assets.registry>->{$path};
         my $status = $asset->{status};
 
         my $status_icon = $status eq 'present'  ? '✓'
@@ -127,8 +127,8 @@ if ( $cmd eq 'list' ) {
     );
 }
 
-#,,,.,,.,,...,,,.,...,...,.,.,...,.,.,,,.,..,,..,,...,...,...,,,.,..,,.,.,,,,,
-#XXZEANGYTSU7AAZ3J3GCHSK7I4BMKYS7DAOBSU37PY3JX7J4MB3QRVJGXDA5Y5AT4D5LXACQQBEBQ
-#\\\|7AAMABNER3LHIBNZACYSGIVIBFKGSWENZIK3HJCBZPCXQKHQFP7 \ / AMOS7 \ YOURUM ::
-#\[7]U6KTGJHQ22STNGX2KZDYSDJJT5A5UTT323X3YT2JC27IT4VWVSAY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,...,.,,,,.,,,,,,,,,,,..,,,,,..,,..,,...,..,,,,.,,,,,,..,,..,,,.,
+#GI2RPMYOAZMOGWR2L4JUTWYHOQK3XZN3VL3FUYSWO7SPBGPP6NCG7SGTCY5IABX36HTF5PPT7VN2M
+#\\\|IBEY7QHB3IY5PN6KVGPXOPD3KGN64WAJPDCDUDJZCLS2YO4VLXR \ / AMOS7 \ YOURUM ::
+#\[7]37ASDSQX6OW63J3RHTK6IQRRGJHFIEXE4NX73SLUH4244X5FRSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

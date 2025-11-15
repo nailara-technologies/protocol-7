@@ -41,7 +41,7 @@ if ( $data->{stats} ) {
         2,
         sprintf(
             'web.assets.load_registry: loaded stats - %d total assets',
-            <web.assets.stats>{total_assets}
+            <web.assets.stats>->{total_assets}
         )
     );
 }
@@ -57,21 +57,21 @@ if ( $data->{assets} ) {
     );
 
     ## Update statistics ##
-    <web.assets.stats>{total_assets}   = $count;
-    <web.assets.stats>{assets_present} = 0;
-    <web.assets.stats>{assets_missing} = 0;
-    <web.assets.stats>{assets_copied}  = 0;
+    <web.assets.stats>->{total_assets}   = $count;
+    <web.assets.stats>->{assets_present} = 0;
+    <web.assets.stats>->{assets_missing} = 0;
+    <web.assets.stats>->{assets_copied}  = 0;
 
     ## Count by status ##
     foreach my $path ( keys %{ <web.assets.registry> } ) {
-        my $status = <web.assets.registry>{$path}{status};
+        my $status = <web.assets.registry>->{$path}{status};
 
         if ( $status eq 'present' ) {
-            <web.assets.stats>{assets_present}++;
+            <web.assets.stats>->{assets_present}++;
         } elsif ( $status eq 'missing' ) {
-            <web.assets.stats>{assets_missing}++;
+            <web.assets.stats>->{assets_missing}++;
         } elsif ( $status eq 'copied' ) {
-            <web.assets.stats>{assets_copied}++;
+            <web.assets.stats>->{assets_copied}++;
         }
     }
 }
@@ -80,8 +80,8 @@ if ( $data->{assets} ) {
 
 return 1;
 
-#,,..,,,.,..,,,,,,.,,,,.,,...,,..,...,...,,.,,..,,...,...,...,,,.,,..,,,,,,.,,
-#OJQHCEZZGTAT3ZVU2VNT7S2TFDSSIB42VLTLXWVWCFSUC4WMAK546W2SISKKO67K6CH32SNSN2726
-#\\\|G3T47HDE6DMMU2R4GL4Z2IUJVJIGGZTMDYLE2TFBPLLKVRWKNRB \ / AMOS7 \ YOURUM ::
-#\[7]4XLNS5BG263W64Q4YYS626A5XJLNZTCZFBJ4RSI4O63I4HZWMUDA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,..,.,.,,,,,,,,,,.,,..,,.,.,,..,..,,...,...,,..,.,.,,,.,...,..,,
+#BWTFAAAWLYVXOKLQXMDZWEFFIYSNV3RCSB6DK57SZOP4H6X4QJLDSGMES34XH5BCPPVKHASW2JGIY
+#\\\|PLJPBC42UGAFU4C4IK7YG5S5UPSC2T3IMWCJ6GLQEZDCEGPDG6Y \ / AMOS7 \ YOURUM ::
+#\[7]Y7OUG5NTQJKIXW5NUZ7P4HUVGXJRU2TTRMCL24IMXGJLCMMMIQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
