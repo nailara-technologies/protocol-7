@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = httpsd.startup.validate_certificates
+# descr = Validate certificate files exist before creating SSL socket
+# return = 1 on success, 0 on failure
+
+my $cert_file = <httpsd.cfg.certificate_path>;
+my $key_file  = <httpsd.cfg.key_path>;
+
+<[base.log]>->( 2, "httpsd: validating certificate files before startup" );
+<[base.log]>->( 2, "  checking certificate: $cert_file" );
+<[base.log]>->( 2, "  checking key: $key_file" );
+
+unless ( -f $cert_file ) {
+    <[base.log]>->(
+        0,
+        "FATAL: Certificate file not found: $cert_file"
+    );
+    <[base.log]>->(
+        0,
+        "HTTPSD cannot start without valid SSL/TLS certificate."
+    );
+    return 0;
+}
+
+unless ( -f $key_file ) {
+    <[base.log]>->(
+        0,
+        "FATAL: Key file not found: $key_file"
+    );
+    <[base.log]>->(
+        0,
+        "HTTPSD cannot start without valid SSL/TLS key."
+    );
+    return 0;
+}
+
+<[base.log]>->( 2, "httpsd: certificate files validated successfully" );
+return 1;
+
+#,,,,,,,.,.,,,,.,,.,..,,,,,,,.,,.,.,.,.,..,,...,..,,...,...,,...,...,...,.,.,.,
+#2TBFG2XAIBDQSZ2H64G3HVQGRSFLFNC3WVFZKEFB2IDVHXXEDBKH73WTCHHDSAGP32PEBGKGFYHJDLI
+#\\\|IUZM2EVHX5WT77UFHFR3TM5I4RVXK44J6R23MJLFG43CI7FWP3Y \ / AMOS7 \ YOURUM ::
+#\[7]E4R2PCCHPJ6MWHDNMH7UVVZPNZFUUQYNCDHMZW3CVCZFJBRDYF7DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
