@@ -7,8 +7,12 @@ my $reply_data = shift;
 
 my $client_sid  = $reply_data->{'params'}{'client_sid'};
 my $template_id = $reply_data->{'params'}{'template_id'};
-my $mode        = $reply_data->{'cmd'};
+my $mode        = lc($reply_data->{'cmd'} // '');  ## Normalize to lowercase
 my $data        = $reply_data->{'data'};
+
+## Debug logging ##
+<[base.log]>->( 0, "handler: data type=" . ref($data) . ", length=" . (defined $data ? length($data) : 0) );
+<[base.log]>->( 0, "handler: data preview=[" . substr($data, 0, 100) . "]" ) if defined $data;
 
 unless ( defined $data{'session'}{$client_sid} ) {
     <[base.log]>->(
@@ -25,7 +29,7 @@ my $session = $data{'session'}{$client_sid};
     "httpd.handler.web_template_reply: received reply for $template_id (mode: $mode)"
 );
 
-if ( $mode eq 'SIZE' ) {
+if ( $mode eq 'size' ) {
     ## SUCCESS: Web zenka returned processed content ##
 
     my $content         = $data;
@@ -63,7 +67,7 @@ if ( $mode eq 'SIZE' ) {
         $session->{'flush'} = 1;
     }
 
-} elsif ( $mode eq 'FALSE' ) {
+} elsif ( $mode eq 'false' ) {
     ## ERROR: Web zenka failed to process template ##
 
     my $error_message = $data // 'unknown error';
@@ -77,11 +81,11 @@ if ( $mode eq 'SIZE' ) {
     <[httpd.send_error_page]>->( $client_sid, 500 );
     $session->{'flush_shutdown'} = 1;
 
-} elsif ( $mode eq 'TRUE' ) {
+} elsif ( $mode eq 'true' ) {
     ## Unexpected TRUE response without data ##
     <[base.log]>->(
         1,
-        "[$client_sid] unexpected TRUE response for $template_id (expected SIZE)"
+        "[$client_sid] unexpected TRUE response for $template_id (expected size)"
     );
 
     ## Send 500 Internal Server Error ##

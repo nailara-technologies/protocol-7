@@ -4,18 +4,18 @@
 # descr = IPC command handler - wrapper for web.process_template_ipc
 # args  = template_id:template_content_b32r:meta_vars_b32r:session_id
 
-## Commands receive a hash ref with call_args, but the implementation expects a string ##
+## Commands receive a hash ref with args directly ##
 my $hash_ref = shift;
-my $args_str = $hash_ref->{'call_args'}->{'args'} // '';
+my $args_str = $hash_ref->{'args'} // '';
 
-## Call the actual implementation (returns tuple) ##
-my ($mode, $data) = <[web.process_template_ipc]>->($args_str);
+## Call the actual implementation (returns hash ref) ##
+my $result = <[web.process_template_ipc]>->($args_str);
 
-## Convert tuple to hash ref format that command system expects ##
-return {
-    'mode' => lc($mode // 'false'),
-    'data' => $data // ''
-};
+## Debug logging ##
+<[base.log]>->( 0, "wrapper: mode=" . ($result->{'mode'} // 'unknown') . ", data type=" . ref($result->{'data'}) . ", length=" . (defined $result->{'data'} ? length($result->{'data'}) : 0) );
+
+## Return hash ref directly ##
+return $result;
 
 #,,..,.,.,,,,,.,,,.,,,,.,,...,,.,,..,,,.,,,,,,..,,...,.,.,...,,..,..,,,..,,..,
 #ZHLNJ2X7ZGZEVU7NCNH23QAHVPGYNFW6AEH6WZQTZXQOATP2BAKK7BNWBUM4DLWON3JRTNA3DRG7I

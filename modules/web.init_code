@@ -3,6 +3,9 @@
 # name = web.init_code
 # descr = Initialize web content zenka - recursive template processing engine
 
+<[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r decode_b32r | );
+<[base.perlmod.autoload]>->('JSON::XS');
+
 <[base.log]>->( 2, 'initializing web (content processing) zenka..,' );
 
 # Content directory configuration
