@@ -46,19 +46,20 @@ httpsd.timeout      =  23
 [base.net.connect:'unix']
 
 ## Validate certificate files exist before attempting socket creation
-[httpsd.startup.validate_certificates]
+httpsd.cert_status = [httpsd.startup.validate_certificates]
+[exit_when_false:<httpsd.cert_status>,0,'certificate load error, shutdown.,.']
 
 httpsd.sock = [httpsd.create_ssl_socket:<net.https.addr>,<net.https.port>]
 [base.protocol.bind:<httpsd.sock>,'https','server']
 
 [root.drop_privs:<httpsd.system.user>]
 
-[base.get_session_id]
+[get_session_id]
 
 [zenka.loop]
 
-#,,,.,...,,.,,...,,,.,.,,,.,.,.,.,..,,,..,,..,..,,...,...,...,,..,,,,,,..,..,,
-#6E3MF3MLBG3DO3BIVDDZMRDV4A6VK6NF3IRWTG3IR4WBAK5UO57RSFLAA3MKIEDVUO4ZLXPKBJSAU
-#\\\|B2FUYQUT3463MHMIJ5NOQKBKNASYLL4GASEWFIW7RA2A6FJ6XNN \ / AMOS7 \ YOURUM ::
-#\[7]NME64CJTE6F4FFOZBXVWM4MCN6ICMEZURUETMHVH2L45KH6AUMDI 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,...,,,.,,,.,...,.,.,.,.,...,.,,,..,,...,...,...,.,.,,,,,.,.,,.,,
+#HUZTQIHIIJB5FHGKW4TL7F4HKXWDMZ4ZBXJRJVJV4B65B5CQWR3AH25KA6U4VTKTTGUADKJEV5L4W
+#\\\|3I4GDIVBFQDRW3UTWGQW6KFZZAVT4E4FCTPMNL4L4EXNVH2QBVX \ / AMOS7 \ YOURUM ::
+#\[7]N3EDSEQSOKKGDOETZQ6G5A5TNTNNG7UZLI6YJX437WKK6XPFRSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
