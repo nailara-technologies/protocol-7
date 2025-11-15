@@ -12,14 +12,14 @@ die "template file not found"              if !-f $template_path;
 my $response_params = $session->{'response'}->{'params'};
 my $content_date    = time2str( int( $session->{'start_time'} ) );
 my $content_type    = 'text/plain';
-$content_type = 'text/html' if mimetype($template_path) =~ /html/;
+$content_type = 'text/html' if $template_path =~ /\.html/;
 
 # LLL: ;charset=...
 
 <[base.log]>->( 1, "[process_template] $template_path (offloading to web zenka)" );
 
 ## Load template content ##
-my $template_content = <[file.get]>->( $template_path, qw| :raw | );
+my $template_content = <[file.slurp]>->( $template_path );
 
 unless ( defined $template_content ) {
     <[base.log]>->( 0, "[$session_id] failed to read template: $template_path" );
@@ -45,12 +45,11 @@ my $template_id = sprintf(
 my $meta_vars = $session->{'meta'} // {};
 
 ## Serialize meta variables for IPC transmission ##
-## Convert hash to base32r-encoded JSON for safe transport ##
-my $meta_json = <[base.json.encode]>->($meta_vars);
-my $meta_b32r = <[base.encode.base32r]>->($meta_json);
+## For now, pass meta vars and template directly without encoding
+my $meta_json = <[httpd.json.encode]>->($meta_vars) // '{}';
 
-## Encode template content for safe IPC transmission ##
-my $template_b32r = <[base.encode.base32r]>->($template_content);
+## Template is already raw text, no encoding needed for now
+my $template_b32r = $template_content;
 
 <[base.log]>->(
     2,
@@ -67,7 +66,7 @@ my $template_b32r = <[base.encode.base32r]>->($template_content);
                 ':',
                 $template_id,
                 $template_b32r,
-                $meta_b32r,
+                $meta_json,
                 $session_id
             )
         },

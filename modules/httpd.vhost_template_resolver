@@ -39,6 +39,9 @@ my $site_root = <httpd.cfg.site_dir> // '/var/httpd';
 $path =~ s|^/+||;
 $path =~ s|/+$||;
 
+## Handle root path - use index.html as default ##
+$path = 'index.html' if !length $path;
+
 ## Initialize caching if needed ##
 unless (exists $data{'template_resolve_cache'}) {
     $data{'template_resolve_cache'} = {};
