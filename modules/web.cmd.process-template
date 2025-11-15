@@ -56,7 +56,7 @@ if ( $file_size > $max_size ) {
 <[base.log]>->( 2, "process-template: loading $template_path ($file_size bytes)" );
 
 ## Load template content ##
-my $template_content = <[file.get]>->( $template_path, qw| :raw | );
+my $template_content = <[file.slurp]>->($template_path);
 
 unless ( defined $template_content ) {
     return ( 0, qq| failed to read template file: $template_path | );

@@ -81,7 +81,7 @@ unless ( -r $content_file ) {
 <[base.log]>->( 2, "[$session_id] loading content from: $content_file" );
 
 ## Load content file ##
-my $content = <[file.get]>->( $content_file, qw| :raw | );
+my $content = <[file.slurp]>->($content_file);
 
 unless ( defined $content ) {
     <[base.log]>->(
@@ -181,7 +181,7 @@ unless ( -f $skin_file ) {
 <[base.log]>->( 2, "[$session_id] loading skin: $skin_file" );
 
 ## Load skin template ##
-my $skin_template = <[file.get]>->( $skin_file, qw| :raw | );
+my $skin_template = <[file.slurp]>->($skin_file);
 
 unless ( defined $skin_template ) {
     <[base.log]>->(

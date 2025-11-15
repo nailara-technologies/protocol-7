@@ -7,14 +7,14 @@
 my $args_str = shift // '';
 
 unless ( length($args_str) ) {
-    return ( 0, qq| usage: template_id:template_b32r:meta_b32r:session_id | );
+    return ( 'FALSE', qq| usage: template_id:template_b32r:meta_b32r:session_id | );
 }
 
 my ( $template_id, $template_b32r, $meta_b32r, $session_id )
     = split( /:/, $args_str, 4 );
 
 unless ( defined $template_id and defined $template_b32r ) {
-    return ( 0, qq| missing required parameters | );
+    return ( 'FALSE', qq| missing required parameters | );
 }
 
 <[base.log]>->(
@@ -30,7 +30,7 @@ unless ( defined $template_content and length($template_content) ) {
         0,
         "web.process-template-ipc: missing template content for $template_id"
     );
-    return ( 0, qq| missing template content | );
+    return ( 'FALSE', qq| missing template content | );
 }
 
 ## Meta variables are now sent as plain JSON (not base32r encoded) ##
@@ -94,7 +94,7 @@ if ( $result->{status} eq qw| success | ) {
 
     ## Return processed content as SIZE response ##
     ## This will send the content back to httpd via IPC ##
-    return ( 5, $result->{content} );    ## 5 = TRUE + SIZE (return data)
+    return ( 'SIZE', $result->{content} );
 
 } else {
     <[base.log]>->(
@@ -104,7 +104,7 @@ if ( $result->{status} eq qw| success | ) {
     );
 
     ## Return error as FALSE response ##
-    return ( 0, qq| template processing failed: | . $result->{message} );
+    return ( 'FALSE', qq| template processing failed: | . $result->{message} );
 }
 
 #,,.,,,,,,..,,,.,,,,.,,.,,,,.,,,,,..,,,,.,,,,,..,,...,...,.,.,.,,,.,,,.,.,..,,
