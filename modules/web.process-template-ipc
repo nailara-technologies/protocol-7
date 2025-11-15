@@ -22,24 +22,21 @@ unless ( defined $template_id and defined $template_b32r ) {
     "web.process-template-ipc: received template $template_id from httpd session $session_id"
 );
 
-## Decode template content from base32r ##
-my $template_content = <[base.decode.base32r]>->($template_b32r);
+## Template content is now sent as plain text (not base32r encoded) ##
+my $template_content = $template_b32r;
 
-unless ( defined $template_content ) {
+unless ( defined $template_content and length($template_content) ) {
     <[base.log]>->(
         0,
-        "web.process-template-ipc: failed to decode template content for $template_id"
+        "web.process-template-ipc: missing template content for $template_id"
     );
-    return ( 0, qq| failed to decode template content | );
+    return ( 0, qq| missing template content | );
 }
 
-## Decode meta variables from base32r-encoded JSON ##
+## Meta variables are now sent as plain JSON (not base32r encoded) ##
 my $meta_vars = {};
 if ( defined $meta_b32r and length($meta_b32r) ) {
-    my $meta_json = <[base.decode.base32r]>->($meta_b32r);
-    if ( defined $meta_json ) {
-        $meta_vars = <[base.json.decode]>->($meta_json) // {};
-    }
+    $meta_vars = <[httpd.json.decode]>->($meta_b32r) // {};
 }
 
 <[base.log]>->(
