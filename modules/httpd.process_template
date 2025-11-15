@@ -26,6 +26,9 @@ unless ( defined $template_content ) {
     return <[httpd.send_error_page]>->( $session_id, 500 );
 }
 
+## Dereference if file.slurp returned a scalar reference ##
+$template_content = $$template_content if ref($template_content) eq 'SCALAR';
+
 ## Store template processing state in session ##
 $session->{'content'} = {
     'date'          => $content_date,
@@ -45,11 +48,12 @@ my $template_id = sprintf(
 my $meta_vars = $session->{'meta'} // {};
 
 ## Serialize meta variables for IPC transmission ##
-## For now, pass meta vars and template directly without encoding
+## Encode meta vars as JSON then base32r to avoid delimiter conflicts
 my $meta_json = <[httpd.json.encode]>->($meta_vars) // '{}';
+my $meta_b32r = encode_b32r($meta_json);
 
-## Template is already raw text, no encoding needed for now
-my $template_b32r = $template_content;
+## Encode template content as base32r to avoid colon delimiter conflicts in IPC
+my $template_b32r = encode_b32r($template_content);
 
 <[base.log]>->(
     2,
@@ -66,7 +70,7 @@ my $template_b32r = $template_content;
                 ':',
                 $template_id,
                 $template_b32r,
-                $meta_json,
+                $meta_b32r,
                 $session_id
             )
         },

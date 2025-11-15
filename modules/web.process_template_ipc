@@ -7,14 +7,20 @@
 my $args_str = shift // '';
 
 unless ( length($args_str) ) {
-    return ( 'FALSE', qq| usage: template_id:template_b32r:meta_b32r:session_id | );
+    return {
+        'mode' => qw| false |,
+        'data' => qq| usage: template_id:template_b32r:meta_b32r:session_id |
+    };
 }
 
 my ( $template_id, $template_b32r, $meta_b32r, $session_id )
     = split( /:/, $args_str, 4 );
 
 unless ( defined $template_id and defined $template_b32r ) {
-    return ( 'FALSE', qq| missing required parameters | );
+    return {
+        'mode' => qw| false |,
+        'data' => qq| missing required parameters |
+    };
 }
 
 <[base.log]>->(
@@ -22,21 +28,25 @@ unless ( defined $template_id and defined $template_b32r ) {
     "web.process-template-ipc: received template $template_id from httpd session $session_id"
 );
 
-## Template content is now sent as plain text (not base32r encoded) ##
-my $template_content = $template_b32r;
+## Template content is base32r-encoded to avoid colon delimiter conflicts ##
+my $template_content = decode_b32r($template_b32r);
 
 unless ( defined $template_content and length($template_content) ) {
     <[base.log]>->(
         0,
         "web.process-template-ipc: missing template content for $template_id"
     );
-    return ( 'FALSE', qq| missing template content | );
+    return {
+        'mode' => qw| false |,
+        'data' => qq| missing template content |
+    };
 }
 
-## Meta variables are now sent as plain JSON (not base32r encoded) ##
+## Meta variables are base32r-encoded JSON ##
 my $meta_vars = {};
 if ( defined $meta_b32r and length($meta_b32r) ) {
-    $meta_vars = <[httpd.json.decode]>->($meta_b32r) // {};
+    my $meta_json = decode_b32r($meta_b32r);
+    $meta_vars = JSON::XS::decode_json($meta_json) // {};
 }
 
 <[base.log]>->(
@@ -82,19 +92,42 @@ my $prev_avg = <web.metrics>->{avg_processing_time_ms};
     / <web.templates.processed>;
 
 if ( $result->{status} eq qw| success | ) {
+    my $content = $result->{content};
+    my $ref_type = ref($content);
+
+    <[base.log]>->( 0, "ipc: result content ref type=[$ref_type]" );
+
+    ## If content is an array reference, join it into a string ##
+    if ( $ref_type eq 'ARRAY' ) {
+        <[base.log]>->( 0, "ipc: array has " . scalar(@{$content}) . " elements" );
+        <[base.log]>->( 0, "ipc: first element type=[" . ref($content->[0]) . "]" ) if @{$content};
+        <[base.log]>->( 0, "ipc: first element value=[" . substr($content->[0], 0, 50) . "]" ) if @{$content};
+
+        ## Dereference any scalar refs in the array ##
+        my @deref = map { ref($_) eq 'SCALAR' ? $$_ : $_ } @{$content};
+        $content = join( '', @deref );
+    } elsif ( $ref_type eq 'SCALAR' ) {
+        $content = $$content;  ## Dereference scalar ref
+    }
+
+    <[base.log]>->( 0, "ipc: after processing ref type=[" . ref($content) . "] length=" . length($content) );
+
     <[base.log]>->(
         2,
         sprintf(
             "web.process-template-ipc: completed $template_id in %.2fms (depth: %d, size: %d bytes)",
             $elapsed_ms,
             $result->{depth},
-            length( $result->{content} )
+            length( $content )
         )
     );
 
-    ## Return processed content as SIZE response ##
+    ## Return processed content as size response (lowercase for multi-line support) ##
     ## This will send the content back to httpd via IPC ##
-    return ( 'SIZE', $result->{content} );
+    return {
+        'mode' => qw| size |,
+        'data' => $content
+    };
 
 } else {
     <[base.log]>->(
@@ -103,8 +136,11 @@ if ( $result->{status} eq qw| success | ) {
             . $result->{message}
     );
 
-    ## Return error as FALSE response ##
-    return ( 'FALSE', qq| template processing failed: | . $result->{message} );
+    ## Return error as false response ##
+    return {
+        'mode' => qw| false |,
+        'data' => qq| template processing failed: | . $result->{message}
+    };
 }
 
 #,,,,,.,.,.,.,,..,,,.,,,.,...,,..,,,.,...,.,,,..,,...,...,,..,..,,,,,,,,,,,,,,

@@ -33,10 +33,11 @@ unless ( defined $template_content and length($template_content) ) {
     return ( 0, qq| missing template content | );
 }
 
-## Meta variables are now sent as plain JSON (not base32r encoded) ##
+## Meta variables are base32r-encoded JSON ##
 my $meta_vars = {};
 if ( defined $meta_b32r and length($meta_b32r) ) {
-    $meta_vars = <[httpd.json.decode]>->($meta_b32r) // {};
+    my $meta_json = decode_b32r($meta_b32r);
+    $meta_vars = JSON::XS::decode_json($meta_json) // {};
 }
 
 <[base.log]>->(
@@ -82,19 +83,26 @@ my $prev_avg = <web.metrics>->{avg_processing_time_ms};
     / <web.templates.processed>;
 
 if ( $result->{status} eq qw| success | ) {
+    my $content = $result->{content};
+
+    ## If content is an array reference, join it into a string ##
+    if ( ref($content) eq 'ARRAY' ) {
+        $content = join( '', @{$content} );
+    }
+
     <[base.log]>->(
         2,
         sprintf(
             "web.process-template-ipc: completed $template_id in %.2fms (depth: %d, size: %d bytes)",
             $elapsed_ms,
             $result->{depth},
-            length( $result->{content} )
+            length( $content )
         )
     );
 
     ## Return processed content as SIZE response ##
     ## This will send the content back to httpd via IPC ##
-    return ( 5, $result->{content} );    ## 5 = TRUE + SIZE (return data)
+    return ( 5, $content );    ## 5 = TRUE + SIZE (return data)
 
 } else {
     <[base.log]>->(

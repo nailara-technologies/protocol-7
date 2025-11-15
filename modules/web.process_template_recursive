@@ -51,7 +51,7 @@ my $command_index   = 0;
 
 ## Parse template and extract commands with their positions ##
 my $parsed_content = <[base.parser.pattern_split]>->(
-    \$template_content,
+    \$template_content,   ## Must pass as scalar ref
     $command_pattern,
     sub {
         my ( $before, $after, $captured ) = @_;
@@ -172,9 +172,18 @@ if ( $parsed_content =~ /<\[/ and $depth < $max_depth - 1 ) {
     );
 }
 
+## Ensure content is a string, not an array or array of refs ##
+## base.parser.pattern_split returns array ref with scalar refs to text fragments ##
+my $final_content = $parsed_content;
+if ( ref($final_content) eq 'ARRAY' ) {
+    ## Dereference ALL elements (they're all scalar refs from pattern_split) ##
+    my @deref = map { ref($_) ? $$_ : $_ } @{$final_content};
+    $final_content = join( '', @deref );
+}
+
 return {
     status  => qw| success |,
-    content => $parsed_content,
+    content => $final_content,
     depth   => $depth,
 };
 
