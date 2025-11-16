@@ -1,15 +1,29 @@
 #!/usr/bin/env perl
-# Protocol-7 Dependency Manager
+## [:< ##
+
+# Protocol-7 Dependency Manager (bin/p7-deps)
 # Reads from base.known_dependencies and zenki configurations
 # Generates/updates dependency YAML for workspace-transfer
 # Provides comprehensive dependency reporting
 
+use v5.24;
 use strict;
 use warnings;
 use FindBin qw($RealBin);
 use File::Spec;
 use File::Find;
 use Data::Dumper;
+use English;
+
+$OUTPUT_AUTOFLUSH = 1;
+
+# Color palette inspired by Nailara branding
+my $reset             = "\e[0m";
+my $blacklight        = "\e[38;2;68;39;172m";    # Dark purple
+my $nailara_fg        = "\e[38;2;38;46;153m";    # Dark blue
+my $TRUE_color        = "\e[38;2;6;71;195m";     # Bright blue
+my $NEON_orange       = "\e[38;2;197;141;7m";    # Bright orange
+my $NEON_green_yellow = "\e[38;2;71;195;6m";     # Green-yellow
 
 my $P7_ROOT = File::Spec->catdir($RealBin, '..');
 my $MODULES_DIR = File::Spec->catdir($P7_ROOT, 'modules');
@@ -125,44 +139,48 @@ sub get_zenki_os_deps {
 }
 
 sub list_dependencies {
-    print "Protocol-7 Dependency Analysis\n";
-    print "================================\n\n";
+    print "${blacklight}:$reset\n";
+    print "${blacklight}::[$NEON_green_yellow Protocol-7 Dependency Analysis $blacklight]$reset\n";
+    print "${blacklight}:$reset\n\n";
 
     my $known = load_known_dependencies();
     my $pm_deps = get_zenki_pm_deps();
     my $os_deps = get_zenki_os_deps();
 
-    print "📦 CPAN Modules from base.known_dependencies:\n";
-    print "   Total: " . scalar(keys %{$known->{perlmod}}) . "\n\n";
+    print "${blacklight}::[$TRUE_color CPAN Modules$blacklight from base.known_dependencies$blacklight]$reset\n";
+    print "${blacklight}::$reset   Total: ${NEON_orange}" . scalar(keys %{$known->{perlmod}}) . "$reset\n\n";
 
-    print "🔧 Zenki PM Dependencies (from pm-dep):\n";
+    print "${blacklight}::[$TRUE_color Zenki PM Dependencies$blacklight (from pm-dep)$blacklight]$reset\n";
     my %module_zenki;
     for my $module (sort keys %{$pm_deps}) {
         $module_zenki{$module} = $pm_deps->{$module};
     }
     for my $module (sort keys %module_zenki) {
-        print "   $module (zenka: $module_zenki{$module})\n";
+        print "${blacklight}::$reset   ${NEON_green_yellow}$module$reset (zenka: ${NEON_orange}$module_zenki{$module}$reset)\n";
     }
-    print "   Total: " . scalar(keys %module_zenki) . "\n\n";
+    print "${blacklight}::$reset   Total: ${NEON_orange}" . scalar(keys %module_zenki) . "$reset\n\n";
 
-    print "📚 Debian Packages (from os-dep/debian):\n";
+    print "${blacklight}::[$TRUE_color Debian Packages$blacklight (from os-dep/debian)$blacklight]$reset\n";
     for my $pkg (sort keys %{$os_deps->{debian}}) {
-        print "   $pkg (zenka: $os_deps->{debian}{$pkg})\n";
+        print "${blacklight}::$reset   ${NEON_green_yellow}$pkg$reset (zenka: ${NEON_orange}$os_deps->{debian}{$pkg}$reset)\n";
     }
-    print "   Total: " . scalar(keys %{$os_deps->{debian}}) . "\n\n";
+    print "${blacklight}::$reset   Total: ${NEON_orange}" . scalar(keys %{$os_deps->{debian}}) . "$reset\n\n";
 
-    print "⚙️  Binary Commands (from os-dep/binary):\n";
+    print "${blacklight}::[$TRUE_color Binary Commands$blacklight (from os-dep/binary)$blacklight]$reset\n";
     for my $bin (sort keys %{$os_deps->{binary}}) {
-        print "   $bin (zenka: $os_deps->{binary}{$bin})\n";
+        print "${blacklight}::$reset   ${NEON_green_yellow}$bin$reset (zenka: ${NEON_orange}$os_deps->{binary}{$bin}$reset)\n";
     }
-    print "   Total: " . scalar(keys %{$os_deps->{binary}}) . "\n\n";
+    print "${blacklight}::$reset   Total: ${NEON_orange}" . scalar(keys %{$os_deps->{binary}}) . "$reset\n";
+    print "${blacklight}:$reset\n";
 }
 
 sub check_dependencies {
     my ($profile_name) = @_;
     $profile_name ||= 'protocol7_full';
 
-    print "Checking Protocol-7 dependencies for profile: $profile_name\n\n";
+    print "${blacklight}:$reset\n";
+    print "${blacklight}::[$NEON_green_yellow Checking Protocol-7 dependencies $blacklight for ${NEON_orange}$profile_name$blacklight]$reset\n";
+    print "${blacklight}:$reset\n\n";
 
     my $known = load_known_dependencies();
     my $pm_deps = get_zenki_pm_deps();
@@ -197,25 +215,28 @@ sub check_dependencies {
         }
     }
 
-    print "✅ Total CPAN modules to install: " . scalar(@all_cpan) . "\n";
-    print "✅ Total Debian packages to install: " . scalar(@all_debian) . "\n\n";
+    print "${blacklight}::[$TRUE_color CPAN modules$blacklight]$reset ${NEON_orange}" . scalar(@all_cpan) . "$reset\n";
+    print "${blacklight}::[$TRUE_color Debian packages$blacklight]$reset ${NEON_orange}" . scalar(@all_debian) . "$reset\n\n";
 
-    print "CPAN Modules:\n";
+    print "${blacklight}::[$NEON_green_yellow CPAN Modules$blacklight]$reset\n";
     for my $module (sort @all_cpan) {
-        print "   - $module\n";
+        print "${blacklight}::$reset   ${NEON_green_yellow}$module$reset\n";
     }
 
-    print "\nDebian Packages:\n";
+    print "\n${blacklight}::[$NEON_green_yellow Debian Packages$blacklight]$reset\n";
     for my $pkg (sort @all_debian) {
-        print "   - $pkg\n";
+        print "${blacklight}::$reset   ${NEON_green_yellow}$pkg$reset\n";
     }
+    print "${blacklight}:$reset\n";
 }
 
 sub generate_yaml {
     my ($output_file) = @_;
     $output_file ||= File::Spec->catfile($P7_ROOT, '.deps', 'protocol7_full.yaml');
 
-    print "Generating YAML from Protocol-7 dependencies...\n";
+    print "${blacklight}:$reset\n";
+    print "${blacklight}::[$NEON_green_yellow Generating YAML$blacklight from Protocol-7 dependencies$blacklight]$reset\n";
+    print "${blacklight}:$reset\n\n";
 
     my $known = load_known_dependencies();
     my $pm_deps = get_zenki_pm_deps();
@@ -272,9 +293,10 @@ sub generate_yaml {
 
     close $fh;
 
-    print "✅ Generated: $output_file\n";
-    print "   CPAN modules: " . scalar(keys %all_cpan) . "\n";
-    print "   Debian packages: " . scalar(keys %all_debian) . "\n";
+    print "${blacklight}::[$TRUE_color Generated$blacklight]$reset ${NEON_orange}$output_file$reset\n";
+    print "${blacklight}::$reset   CPAN modules: ${NEON_orange}" . scalar(keys %all_cpan) . "$reset\n";
+    print "${blacklight}::$reset   Debian packages: ${NEON_orange}" . scalar(keys %all_debian) . "$reset\n";
+    print "${blacklight}:$reset\n";
 }
 
 sub update_workspace_profiles {
