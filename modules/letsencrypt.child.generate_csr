@@ -14,14 +14,14 @@ return undef unless $domains && @$domains;
 
 my $primary_domain = $domains->[0];
 
-## Generate new certificate key (RSA-2048) using openssl
-<[base.log]>->( 2, 'generating certificate key...' );
+## Generate new certificate key (Ed25519 ECDSA) using openssl
+<[base.log]>->( 2, 'generating certificate key (Ed25519)...' );
 
 my ( $key_fh, $key_file ) = tempfile( UNLINK => 1 );
-system("openssl genrsa -out '$key_file' 2048 2>/dev/null");
+system("openssl genpkey -algorithm Ed25519 -out '$key_file' 2>/dev/null");
 
 unless ( -f $key_file && -s $key_file ) {
-    <[base.log]>->( 1, 'error: failed to generate RSA key' );
+    <[base.log]>->( 1, 'error: failed to generate Ed25519 key' );
     return undef;
 }
 
