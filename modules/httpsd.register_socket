@@ -24,10 +24,11 @@ unless ( defined $type and defined $mode ) {
 my $fd = fileno($socket);
 
 ## Register socket in handle data structure
-$data{'handle'}{$fd}{'link'}   = $type;
-$data{'handle'}{$fd}{'mode'}   = $mode;
+$data{'handle'}{$fd}{'link'}      = $type;
+$data{'handle'}{$fd}{'mode'}      = $mode;
+$data{'handle'}{$fd}{'protocol'}  = 'https';  # Mark this socket as HTTPS protocol
 
-<[base.logs]>->( 2, "httpsd.register_socket: registered fd=$fd as type=$type mode=$mode" );
+<[base.logs]>->( 2, "httpsd.register_socket: registered fd=$fd as type=$type mode=$mode protocol=https" );
 
 return 1;
 
