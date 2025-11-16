@@ -21,6 +21,23 @@
 <protocol.https.state> = <protocol.http.state>;  # Inherit HTTP state handlers
 <protocol.https.connect.banner> = '';
 
+# CRITICAL FIX: Register HTTPS handlers in global data structure
+# This allows base.handler.connect to find the handlers when a TLS connection arrives
+$data{'protocol'}{'https'} = {
+    'connect' => {
+        'callback' => undef,  # No custom connect callback needed
+        'banner'  => ''
+    },
+    'state' => {
+        '0' => {
+            'input'  => { 'handler' => 'httpsd.request_handler' },
+            'output' => { 'handler' => 'base.handler.write' }
+        }
+    }
+};
+
+<[base.log]>->( 2, 'registered HTTPS protocol handlers in data structure' );
+
 # Session management for HTTPS
 <httpsd.sessions>         = {};
 <httpsd.connection_count> = 0;
