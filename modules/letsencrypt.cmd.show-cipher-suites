@@ -1,184 +1,95 @@
 ## [:< ##
 
 # name  = letsencrypt.cmd.show-cipher-suites
-# descr = Display configured HTTPS cipher suites with detailed cryptographic information
+# descr = Display configured HTTPS cipher suites with cryptographic details
 
 <[base.log]>->( 2, 'show-cipher-suites command requested' );
 
-## Cipher suite definitions with cryptographic details
-my @cipher_suites = (
+## Cipher suite definitions
+my @suites = (
     {
-        name          => 'ECDHE-ECDSA-CHACHA20-POLY1305',
-        priority      => 'PRIMARY',
-        key_exchange  => 'ECDHE (X25519)',
-        auth          => 'ECDSA (Ed25519)',
-        encryption    => 'ChaCha20',
-        aead          => 'Poly1305',
-        strength      => '256-bit',
-        tls_versions  => 'TLS 1.3, 1.2',
-        notes         => 'Modern, fast, excellent on non-AES-NI hardware'
+        name  => 'ECDHE-ECDSA-CHACHA20-POLY1305',
+        prio  => 'PRIMARY',
+        kex   => 'X25519',
+        auth  => 'Ed25519',
+        enc   => 'ChaCha20-Poly1305',
+        bits  => '256-bit',
+        note  => 'Fast on non-AES-NI hardware'
     },
     {
-        name          => 'ECDHE-ECDSA-AES256-GCM-SHA384',
-        priority      => 'FALLBACK',
-        key_exchange  => 'ECDHE (X25519)',
-        auth          => 'ECDSA (Ed25519)',
-        encryption    => 'AES-256',
-        aead          => 'GCM',
-        strength      => '256-bit',
-        tls_versions  => 'TLS 1.3, 1.2',
-        notes         => 'Wide compatibility, hardware accelerated'
+        name  => 'ECDHE-ECDSA-AES256-GCM-SHA384',
+        prio  => 'FALLBACK',
+        kex   => 'X25519',
+        auth  => 'Ed25519',
+        enc   => 'AES-256-GCM',
+        bits  => '256-bit',
+        note  => 'Hardware accelerated'
     },
     {
-        name          => 'ECDHE-ECDSA-AES128-GCM-SHA256',
-        priority      => 'FALLBACK',
-        key_exchange  => 'ECDHE (X25519)',
-        auth          => 'ECDSA (Ed25519)',
-        encryption    => 'AES-128',
-        aead          => 'GCM',
-        strength      => '128-bit',
-        tls_versions  => 'TLS 1.3, 1.2',
-        notes         => 'Maximum compatibility, still secure'
+        name  => 'ECDHE-ECDSA-AES128-GCM-SHA256',
+        prio  => 'FALLBACK',
+        kex   => 'X25519',
+        auth  => 'Ed25519',
+        enc   => 'AES-128-GCM',
+        bits  => '128-bit',
+        note  => 'Maximum compatibility'
     },
 );
 
-## Build formatted table report
-my $report = "\n";
-$report .= "  :::[ protocol-7 HTTPS cipher suite configuration ]:::\n\n";
-$report .= "." x 130 . "\n\n";
+## Calculate column widths
+my $max_name = max( map {length $_->{name}} @suites );
+my $w_prefix = ':' . ' ' x ( $max_name + 35 );
+my $wrap_len = 65;
 
-## Header section with summary
-$report .= ":: ACTIVE CONFIGURATION ::\n:\n";
-$report .= sprintf( ":   %-40s :  %s\n", "TLS Versions", "TLSv1.3, TLSv1.2" );
-$report .= sprintf(
-    ":   %-40s :  %d suites\n",
-    "Total Cipher Suites", scalar(@cipher_suites)
-);
-$report .= sprintf(
-    ":   %-40s :  %s\n",
-    "Key Exchange Family",
-    "Elliptic Curve (X25519 / Curve25519)"
-);
-$report .= sprintf(
-    ":   %-40s :  %s\n",
-    "Certificate Algorithm",
-    "ECDSA with Ed25519"
-);
-$report .= sprintf(
-    ":   %-40s :  %s\n",
-    "Cryptographic Backend",
-    "OpenSSL 1.1.1+ (native support)"
-);
-$report .= ":.\n\n";
+## Build report
+my $reply_str = ":\n";
+$reply_str .= sprintf ":  %*s  :  %s\n", $max_name, 'CIPHER SUITE',
+    'PRIORITY  KEY EX  AUTH     ENCRYPTION        BITS';
+$reply_str .= sprintf ":  %s  :  %s\n", '-' x $max_name,
+    '--------  ------  --------  ----------------  --------';
 
-## Detailed cipher suite table
-$report .= ":: CIPHER SUITE DETAILS ::\n:\n";
-$report .= sprintf(
-    ": %-50s : %-10s : %-30s :\n",
-    "Cipher Suite Name", "Priority", "Key Exchange"
-);
-$report .= sprintf(
-    ": %-50s : %-10s : %-30s :\n",
-    "-" x 50,
-    "-" x 10,
-    "-" x 30
-);
-
-foreach my $suite (@cipher_suites) {
-    $report .= sprintf(
-        ": %-50s : %-10s : %-30s :\n",
-        $suite->{name},
-        $suite->{priority},
-        $suite->{key_exchange}
-    );
-    $report .= sprintf(
-        ":   Authentication  : %-70s :\n",
-        $suite->{auth}
-    );
-    $report .= sprintf(
-        ":   Encryption      : %-30s  AEAD: %-30s :\n",
-        $suite->{encryption},
-        $suite->{aead}
-    );
-    $report .= sprintf(
-        ":   Strength        : %-30s  TLS: %-28s :\n",
-        $suite->{strength},
-        $suite->{tls_versions}
-    );
-    $report .= sprintf( ":   Notes           : %s\n", $suite->{notes} );
-    $report .= ":\n";
+foreach my $suite ( @suites ) {
+    $reply_str .= sprintf ":  %*s  :  %-8s  %-6s  %-8s  %-16s  %s\n",
+        $max_name, $suite->{name},
+        $suite->{prio}, $suite->{kex}, $suite->{auth},
+        $suite->{enc}, $suite->{bits};
+    $reply_str .= sprintf ":  %*s  :  %s\n", $max_name, '',
+        <[base.wrap_text]>->(
+            $w_prefix, $wrap_len,
+            "Note: " . $suite->{note}
+        );
 }
 
-$report .= ":.\n\n";
+$reply_str .= ":\n:\n";
 
-## Cryptographic details section
-$report .= ":: CRYPTOGRAPHIC PROPERTIES ::\n:\n";
-$report .= sprintf(
-    ":   %-40s :  %s\n",
-    "Elliptic Curve",
-    "Curve25519 (X25519 for key exchange)"
-);
-$report .= sprintf(
-    ":   %-40s :  %s\n",
-    "Curve Security Level",
-    "~256-bit equivalent (NIST) / ~128-bit symmetric strength"
-);
-$report .= sprintf(
-    ":   %-40s :  %s\n",
-    "Signature Algorithm",
-    "Ed25519 (EdDSA - Schnorr variant)"
-);
-$report .= sprintf(
-    ":   %-40s :  %s\n",
-    "Signature Security",
-    "~256-bit, fast constant-time verification"
-);
-$report .= sprintf(
-    ":   %-40s :  %s\n",
-    "Forward Secrecy",
-    "Perfect (ephemeral ECDHE)"
-);
-$report .= sprintf(
-    ":   %-40s :  %s\n",
-    "Session Resumption",
-    "Supported (PSK + ECDHE with TLS 1.3)"
-);
-$report .= ":.\n\n";
+## Configuration summary
+$reply_str .= ":  CONFIGURATION\n:\n";
+$reply_str .= sprintf ":   %-38s :  %s\n", "TLS Versions", "TLSv1.3, TLSv1.2";
+$reply_str .= sprintf ":   %-38s :  %s\n", "Total Cipher Suites", scalar(@suites);
+$reply_str .= sprintf ":   %-38s :  %s\n", "Key Exchange", "ECDHE (Curve25519)";
+$reply_str .= sprintf ":   %-38s :  %s\n", "Server Certificate", "ECDSA (Ed25519)";
+$reply_str .= sprintf ":   %-38s :  %s\n", "Forward Secrecy", "Perfect (ephemeral)";
+$reply_str .= ":\n";
 
-## Security notes
-$report .= ":: SECURITY NOTES ::\n:\n";
-$report .= ":   • NO RSA dependencies (deprecated in favor of ECDSA)\n";
-$report .= ":   • NO weak algorithms (MD5, DES, RC4, 3DES excluded)\n";
-$report .= ":   • Whitelist approach: only strong suites allowed\n";
-$report .= ":   • CHACHA20-POLY1305 optimized for non-AES-NI CPUs\n";
-$report .= ":   • All suites require ECDSA-signed certificates\n";
-$report .= ":   • Perfect Forward Secrecy (PFS) on all connections\n";
-$report .= ":\n";
-$report .= ":   Recommended for Production: ECDHE-ECDSA-CHACHA20-POLY1305\n";
-$report .= ":   Fallback Priority: AES256-GCM > AES128-GCM\n";
-$report .= ":.\n\n";
+## Security properties
+$reply_str .= ":  SECURITY PROPERTIES\n:\n";
+$reply_str .= sprintf ":   %-38s :  %s\n", "RSA Dependencies", "NONE (removed entirely)";
+$reply_str .= sprintf ":   %-38s :  %s\n", "Weak Algorithms", "Excluded (MD5, DES, RC4, 3DES)";
+$reply_str .= sprintf ":   %-38s :  %s\n", "Selection Method", "Whitelist (explicit allow)";
+$reply_str .= sprintf ":   %-38s :  %s\n", "CHACHA20 Optimization", "Non-AES-NI CPUs";
+$reply_str .= sprintf ":   %-38s :  %s\n", "Certificate Algorithm", "Ed25519 ECDSA";
+$reply_str .= ":\n";
 
-## Implementation details
-$report .= ":: PROTOCOL-7 CONFIGURATION ::\n:\n";
-$report .= ":   Configuration Files:\n";
-$report .= ":     • modules/httpsd.init_code (line 13-14)\n";
-$report .= ":     • configuration/zenki/httpsd/start (line 18)\n";
-$report .= ":\n";
-$report .= ":   Certificate Generation:\n";
-$report .= ":     • modules/letsencrypt.child.generate_csr\n";
-$report .= ":     • Ed25519 keys via: openssl genpkey -algorithm Ed25519\n";
-$report .= ":\n";
-$report .= ":   ACME Account Keys:\n";
-$report .= ":     • Generated via crypt.C25519 module\n";
-$report .= ":     • Ed25519 using Crypt::PRNG::Fortuna entropy\n";
-$report .= ":.\n\n";
+## Implementation
+$reply_str .= ":  IMPLEMENTATION\n:\n";
+$reply_str .= sprintf ":   %-38s :  %s\n", "HTTPSD Config", "modules/httpsd.init_code (13-14)";
+$reply_str .= sprintf ":   %-38s :  %s\n", "Zenka Config", "configuration/zenki/httpsd/start (18)";
+$reply_str .= sprintf ":   %-38s :  %s\n", "Certificate Key Gen", "Ed25519 via openssl genpkey";
+$reply_str .= sprintf ":   %-38s :  %s\n", "ACME Account Keys", "crypt.C25519 (Ed25519)";
+$reply_str .= sprintf ":   %-38s :  %s\n", "Entropy Source", "Crypt::PRNG::Fortuna";
+$reply_str .= ":\n";
 
-$report .= "." x 130 . "\n\n";
-
-return {
-    mode => 'size',
-    data => $report,
-};
+return { 'mode' => qw| size |, 'data' => $reply_str };
 
 #,,,.,,,,.,,,,..,,,..,.,,.,,,..,..,,..,,,.,,,..,..,,...,...,.,.,,.,,.,.,,,,,,.,,.,
 #XQTJFK47VSMGVUUI3IRLZ2PFQUIPQUWK4VYRVLH2AGMHWECWPOCAHGFJHGDXVHZFSYQWKFQNXLPUUMY
