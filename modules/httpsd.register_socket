@@ -23,12 +23,18 @@ unless ( defined $type and defined $mode ) {
 
 my $fd = fileno($socket);
 
-## Register socket in handle data structure
+## Register socket in handle data structure using both socket reference AND file descriptor
+## Socket reference is used by base.protocol.bind, numeric FD is used by handler connection lookup
+$data{'handle'}{$socket}{'link'}      = $type;
+$data{'handle'}{$socket}{'mode'}      = $mode;
+$data{'handle'}{$socket}{'protocol'}  = 'https';
+
 $data{'handle'}{$fd}{'link'}      = $type;
 $data{'handle'}{$fd}{'mode'}      = $mode;
-$data{'handle'}{$fd}{'protocol'}  = 'https';  # Mark this socket as HTTPS protocol
+$data{'handle'}{$fd}{'protocol'}  = 'https';
 
-<[base.logs]>->( 2, "httpsd.register_socket: registered fd=$fd as type=$type mode=$mode protocol=https" );
+<[base.logs]>->( 2, "httpsd.register_socket: registered fd=$fd using both socket ref and numeric fd" );
+<[base.logs]>->( 3, "  type=$type mode=$mode protocol=https" );
 
 return 1;
 
