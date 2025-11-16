@@ -24,7 +24,7 @@ while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {    ##  WNOHANG  ##
     $child_count-- if $pid and delete $wait_pids{$pid};
 }
 
-my $es = <[base.cnt_s]>->( $child_count == 1, ' process', 'es' );
+my $es = <[base.cnt_s]>->( $child_count == 1, 'es', '' );
 $reason = sprintf( '.. %u sub-process%s .,', $child_count, $es )
     if not length($reason)
     and $child_count;
@@ -124,8 +124,8 @@ map {
 <[base.log]>->( 1, ':. done.' );
 exit($exit_code);
 
-#,,.,,,.,,.,,,,,,,.,.,,,.,,.,,,.,,,..,,,,,.,,,..,,...,...,,.,,,..,,,.,,,.,,.,,
-#RVHF5ZMSVIDM35FPXXZD4DFPPMCBKANE3EYKEGUBFPWIPJ45CBCCBFFTU6GWTTXP44M45FGK2PETG
-#\\\|RMIA7PYFN5AUZRC6Y4A2YXKVKEIOW2PGDB5VADKYUQXM2BQ6JVK \ / AMOS7 \ YOURUM ::
-#\[7]BHFMFXHHOYRDIPK45WTLAPTNNUNX7PN5UVQHOKPD5T26XUBSGODI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,.,,,..,,,.,..,,..,,,,,,..,,.,.,..,,...,..,,.,.,,,.,,..,.,.,,,,,
+#CRT6JMR6ZSL2HIKS3CKPGHKVCVPYM2K5MXUBQ4U7GOAU2YOLMOI4MYGZ2NU4IROWJJ6KDXVXUSUJO
+#\\\|XZW4OQPK2TB6DAYVMFIGBOKLJXIECGYFUQM26CCJ6PSBU4CK2CO \ / AMOS7 \ YOURUM ::
+#\[7]B5DJM4LOL5G2SQ7OPPZGC44QSLU2AXLETTDWS2DHV5RBJO4VDMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
