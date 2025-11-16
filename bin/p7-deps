@@ -1,0 +1,346 @@
+#!/usr/bin/env perl
+# Protocol-7 Dependency Manager
+# Reads from base.known_dependencies and zenki configurations
+# Generates/updates dependency YAML for workspace-transfer
+# Provides comprehensive dependency reporting
+
+use strict;
+use warnings;
+use FindBin qw($RealBin);
+use File::Spec;
+use File::Find;
+use Data::Dumper;
+
+my $P7_ROOT = File::Spec->catdir($RealBin, '..');
+my $MODULES_DIR = File::Spec->catdir($P7_ROOT, 'modules');
+my $ZENKI_DIR = File::Spec->catdir($P7_ROOT, 'configuration', 'zenki');
+my $KNOWN_DEPS_FILE = File::Spec->catfile($MODULES_DIR, 'base.known_dependencies');
+my $WORKSPACE_TRANSFER = File::Spec->catdir($P7_ROOT, '..');
+my $WORKSPACE_PROFILES = File::Spec->catfile($WORKSPACE_TRANSFER, 'workspace-transfer', '.deps', 'profiles.yaml');
+
+# Parse command
+my $cmd = shift @ARGV || 'help';
+
+if ($cmd eq 'list') {
+    list_dependencies(@ARGV);
+} elsif ($cmd eq 'check') {
+    check_dependencies(@ARGV);
+} elsif ($cmd eq 'generate') {
+    generate_yaml(@ARGV);
+} elsif ($cmd eq 'update-workspace') {
+    update_workspace_profiles(@ARGV);
+} elsif ($cmd eq 'help' || $cmd eq '--help') {
+    show_help();
+} else {
+    die "Unknown command: $cmd\nRun '$0 help' for usage.\n";
+}
+
+sub load_known_dependencies {
+    unless (-f $KNOWN_DEPS_FILE) {
+        die "Cannot find $KNOWN_DEPS_FILE\n";
+    }
+
+    open my $fh, '<', $KNOWN_DEPS_FILE or die "Cannot read $KNOWN_DEPS_FILE: $!\n";
+    my $content = do { local $/; <$fh> };
+    close $fh;
+
+    # Remove header comments
+    $content =~ s/^##.*?\n//;
+    $content =~ s/#.*?\n/\n/g;
+
+    # Evaluate Perl hash
+    my $deps = eval $content;
+    die "Error evaluating $KNOWN_DEPS_FILE: $@\n" if $@;
+
+    return $deps;
+}
+
+sub get_zenki_pm_deps {
+    my %pm_deps;
+
+    return \%pm_deps unless -d $ZENKI_DIR;
+
+    # Scan all zenki directories
+    opendir my $dh, $ZENKI_DIR or return \%pm_deps;
+    while (my $zenki = readdir $dh) {
+        next if $zenki =~ /^\./;
+
+        my $pm_dep_dir = File::Spec->catdir($ZENKI_DIR, $zenki, 'pm-dep');
+        next unless -d $pm_dep_dir;
+
+        opendir my $pdh, $pm_dep_dir or next;
+        while (my $file = readdir $pdh) {
+            next if $file =~ /^\./;
+
+            # Convert filename back to module name (__ -> ::)
+            my $module = $file;
+            $module =~ s/__/::/g;
+            $pm_deps{$module} = $zenki;
+        }
+        closedir $pdh;
+    }
+    closedir $dh;
+
+    return \%pm_deps;
+}
+
+sub get_zenki_os_deps {
+    my %os_deps = (
+        debian => {},
+        binary => {}
+    );
+
+    return \%os_deps unless -d $ZENKI_DIR;
+
+    # Scan all zenki directories
+    opendir my $dh, $ZENKI_DIR or return \%os_deps;
+    while (my $zenki = readdir $dh) {
+        next if $zenki =~ /^\./;
+
+        # Check debian packages
+        my $debian_dir = File::Spec->catdir($ZENKI_DIR, $zenki, 'os-dep', 'debian');
+        if (-d $debian_dir) {
+            opendir my $ddh, $debian_dir or next;
+            while (my $pkg = readdir $ddh) {
+                next if $pkg =~ /^\./;
+                $os_deps{debian}{$pkg} = $zenki;
+            }
+            closedir $ddh;
+        }
+
+        # Check binary requirements
+        my $binary_dir = File::Spec->catdir($ZENKI_DIR, $zenki, 'os-dep', 'binary');
+        if (-d $binary_dir) {
+            opendir my $bdh, $binary_dir or next;
+            while (my $bin = readdir $bdh) {
+                next if $bin =~ /^\./;
+                $os_deps{binary}{$bin} = $zenki;
+            }
+            closedir $bdh;
+        }
+    }
+    closedir $dh;
+
+    return \%os_deps;
+}
+
+sub list_dependencies {
+    print "Protocol-7 Dependency Analysis\n";
+    print "================================\n\n";
+
+    my $known = load_known_dependencies();
+    my $pm_deps = get_zenki_pm_deps();
+    my $os_deps = get_zenki_os_deps();
+
+    print "📦 CPAN Modules from base.known_dependencies:\n";
+    print "   Total: " . scalar(keys %{$known->{perlmod}}) . "\n\n";
+
+    print "🔧 Zenki PM Dependencies (from pm-dep):\n";
+    my %module_zenki;
+    for my $module (sort keys %{$pm_deps}) {
+        $module_zenki{$module} = $pm_deps->{$module};
+    }
+    for my $module (sort keys %module_zenki) {
+        print "   $module (zenka: $module_zenki{$module})\n";
+    }
+    print "   Total: " . scalar(keys %module_zenki) . "\n\n";
+
+    print "📚 Debian Packages (from os-dep/debian):\n";
+    for my $pkg (sort keys %{$os_deps->{debian}}) {
+        print "   $pkg (zenka: $os_deps->{debian}{$pkg})\n";
+    }
+    print "   Total: " . scalar(keys %{$os_deps->{debian}}) . "\n\n";
+
+    print "⚙️  Binary Commands (from os-dep/binary):\n";
+    for my $bin (sort keys %{$os_deps->{binary}}) {
+        print "   $bin (zenka: $os_deps->{binary}{$bin})\n";
+    }
+    print "   Total: " . scalar(keys %{$os_deps->{binary}}) . "\n\n";
+}
+
+sub check_dependencies {
+    my ($profile_name) = @_;
+    $profile_name ||= 'protocol7_full';
+
+    print "Checking Protocol-7 dependencies for profile: $profile_name\n\n";
+
+    my $known = load_known_dependencies();
+    my $pm_deps = get_zenki_pm_deps();
+    my $os_deps = get_zenki_os_deps();
+
+    # Aggregate dependencies
+    my @all_cpan;
+    my @all_debian;
+
+    # From base.known_dependencies
+    for my $module (keys %{$known->{perlmod}}) {
+        push @all_cpan, $module if $known->{perlmod}{$module}{cpan};
+    }
+
+    # From zenki pm-dep
+    for my $module (keys %{$pm_deps}) {
+        push @all_cpan, $module unless grep { $_ eq $module } @all_cpan;
+    }
+
+    # From zenki os-dep/debian
+    for my $pkg (keys %{$os_deps->{debian}}) {
+        push @all_debian, $pkg;
+    }
+
+    # Add debian packages from base.known_dependencies
+    for my $module (keys %{$known->{perlmod}}) {
+        if ($known->{perlmod}{$module}{debian}) {
+            for my $pkg (@{$known->{perlmod}{$module}{debian}}) {
+                next if $pkg =~ /^cpan:/;
+                push @all_debian, $pkg unless grep { $_ eq $pkg } @all_debian;
+            }
+        }
+    }
+
+    print "✅ Total CPAN modules to install: " . scalar(@all_cpan) . "\n";
+    print "✅ Total Debian packages to install: " . scalar(@all_debian) . "\n\n";
+
+    print "CPAN Modules:\n";
+    for my $module (sort @all_cpan) {
+        print "   - $module\n";
+    }
+
+    print "\nDebian Packages:\n";
+    for my $pkg (sort @all_debian) {
+        print "   - $pkg\n";
+    }
+}
+
+sub generate_yaml {
+    my ($output_file) = @_;
+    $output_file ||= File::Spec->catfile($P7_ROOT, '.deps', 'protocol7_full.yaml');
+
+    print "Generating YAML from Protocol-7 dependencies...\n";
+
+    my $known = load_known_dependencies();
+    my $pm_deps = get_zenki_pm_deps();
+    my $os_deps = get_zenki_os_deps();
+
+    # Aggregate dependencies
+    my %all_cpan;
+    my %all_debian;
+
+    # From base.known_dependencies
+    for my $module (keys %{$known->{perlmod}}) {
+        if ($known->{perlmod}{$module}{cpan}) {
+            $all_cpan{$known->{perlmod}{$module}{cpan}} = 1;
+        }
+        if ($known->{perlmod}{$module}{debian}) {
+            for my $pkg (@{$known->{perlmod}{$module}{debian}}) {
+                next if $pkg =~ /^cpan:/;
+                $all_debian{$pkg} = 1;
+            }
+        }
+    }
+
+    # From zenki pm-dep
+    for my $module (keys %{$pm_deps}) {
+        $all_cpan{$module} = 1;
+    }
+
+    # From zenki os-dep/debian
+    for my $pkg (keys %{$os_deps->{debian}}) {
+        $all_debian{$pkg} = 1;
+    }
+
+    # Create output directory
+    my $dir = File::Spec->catdir($P7_ROOT, '.deps');
+    mkdir $dir unless -d $dir;
+
+    open my $fh, '>', $output_file or die "Cannot write to $output_file: $!\n";
+
+    print $fh "# Protocol-7 Dependencies (auto-generated from base.known_dependencies and zenki configs)\n";
+    print $fh "# Generated: " . scalar(localtime()) . "\n";
+    print $fh "# This file is used to sync with workspace-transfer/dependencies.yaml\n\n";
+
+    print $fh "protocol7_full:\n";
+    print $fh "  description: \"Protocol-7 complete development environment (auto-generated)\"\n";
+    print $fh "  apt:\n";
+    for my $pkg (sort keys %all_debian) {
+        print $fh "    - $pkg\n";
+    }
+
+    print $fh "  cpan:\n";
+    for my $module (sort keys %all_cpan) {
+        print $fh "    - $module\n";
+    }
+
+    close $fh;
+
+    print "✅ Generated: $output_file\n";
+    print "   CPAN modules: " . scalar(keys %all_cpan) . "\n";
+    print "   Debian packages: " . scalar(keys %all_debian) . "\n";
+}
+
+sub update_workspace_profiles {
+    print "Updating workspace-transfer profiles from Protocol-7...\n\n";
+
+    # Generate YAML in protocol-7
+    my $p7_yaml = File::Spec->catfile($P7_ROOT, '.deps', 'protocol7_full.yaml');
+    generate_yaml($p7_yaml);
+
+    print "\n📋 To manually update workspace-transfer profiles:\n";
+    print "   1. Review the generated YAML: $p7_yaml\n";
+    print "   2. Update workspace-transfer/.deps/profiles.yaml with new dependencies\n";
+    print "   3. Commit and push changes\n\n";
+
+    print "Or use this to sync automatically:\n";
+    print "   bin/p7-deps copy-to-workspace\n";
+}
+
+sub show_help {
+    print <<'HELP';
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Protocol-7 Dependency Manager
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+USAGE:
+  bin/p7-deps <command> [args]
+
+COMMANDS:
+  list                    List all dependencies from all sources
+  check [profile]         Check aggregated dependencies for a profile
+  generate [file]         Generate YAML from Protocol-7 dependencies
+  update-workspace        Update workspace-transfer profiles guidance
+  help                    Show this help
+
+DEPENDENCY SOURCES:
+  - modules/base.known_dependencies
+    Perl module definitions with Debian package mappings
+
+  - configuration/zenki/*/pm-dep
+    Zero-byte files indicating required CPAN modules per zenka
+
+  - configuration/zenki/*/os-dep/debian
+    Zero-byte files indicating required Debian packages per zenka
+
+  - configuration/zenki/*/os-dep/binary
+    Zero-byte files indicating required system commands per zenka
+
+EXAMPLES:
+  bin/p7-deps list                 # Show all dependencies
+  bin/p7-deps check protocol7      # Check aggregated dependencies
+  bin/p7-deps generate             # Generate YAML file
+  bin/p7-deps update-workspace     # Guidance for updating workspace
+
+WORKFLOW:
+  1. Update base.known_dependencies or zenki configurations
+  2. Run: bin/p7-deps generate
+  3. Review: .deps/protocol7_full.yaml
+  4. Update workspace-transfer/.deps/profiles.yaml
+  5. Commit both repositories
+
+FILES:
+  modules/base.known_dependencies     Perl module database
+  configuration/zenki/*/pm-dep/       CPAN module requirements
+  configuration/zenki/*/os-dep/       OS package requirements
+  .deps/protocol7_full.yaml           Generated dependency file
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+HELP
+}
