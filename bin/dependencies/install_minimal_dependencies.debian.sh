@@ -32,7 +32,8 @@ apt-get -y install gcc git make cpanminus libc6-dev libc6-dev libmce-perl \
             libio-socket-multicast-perl libinline-c-perl libconst-fast-perl \
             liblwpx-paranoidagent-perl liblinux-inotify2-perl \
             libio-compress-perl libcapture-tiny-perl libfreezethaw-perl \
-            libio-compress-lzma-perl libgit-wrapper-perl &&
+            libio-compress-lzma-perl libgit-wrapper-perl \
+            libcrypt-openssl-x509-perl libcrypt-openssl-rsa-perl &&
 
 # no longer found: libmodule-build-pluggable-perl
 
