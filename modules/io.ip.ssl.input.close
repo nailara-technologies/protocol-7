@@ -1,0 +1,30 @@
+## [:< ##
+
+# name = io.ip.ssl.input.close
+# descr = Clean up SSL client socket after input processing complete
+
+my $client_sock = shift;
+
+return undef if not defined $client_sock;
+
+<[base.logs]>->(
+    2,
+    '[close] SSL client socket closing, fd=%d',
+    fileno($client_sock)
+);
+
+# Close the SSL socket (automatically closes underlying TCP socket)
+if ( defined $client_sock ) {
+    close($client_sock);
+    return 1;
+}
+
+return undef;
+
+0;
+
+#,,,.,,.,,.,,,..,,,,.,...,,.,,,,,,.,,,.,,,,.,,..,,...,...,...,.,,,,,.,,..,,.,,
+#SSL_CLIENT_SOCKET_CLOSE_AFTER_SESSION_COMPLETE
+#\\\|VUHLYV24HSL6ZTG7UDSPYZVSQLKYPBMPARMR4WI45JTAPTV4CV \ / AMOS7 \ YOURUM ::
+#\[7]6XDEGHYXGMIZYJBREINLX5SBXPSA2GJ5NPBMKE7NLCPIDUX7Y4BA 7  DATA SIGNATURE ::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
