@@ -2,36 +2,29 @@
 
 # name = httpsd.request_handler
 # descr = HTTPS request handler - adds HSTS headers and delegates to httpd handler
+# note : return 2 to close connection
 
-my $request = shift;
-my $session = shift;
+my $id      = $_[0]->w->data;
+my $session = $data{'session'}->{$id};
 
-<[base.log]>
-    ->( 3, "httpsd: processing HTTPS request for <$request->{path}>" );
+# First call httpd request handler to process the HTTP request
+my $result = <[httpd.request_handler]>->(@_);
 
-# Track that this is HTTPS
-$request->{is_secure}        = 5;         # TRUE
-$request->{protocol_version} = 'HTTPS';
-
-# Delegate to httpd request handler for actual processing
-my $response = <[httpd.request_handler]>->( $request, $session );
-
-# Add HSTS header to response
-if ( defined $response ) {
+# If httpd returned a response object (usually not directly in protocol state handler)
+# Then modify HTTPS-specific headers
+if ( defined $result && ref($result) eq 'HASH' && $result->{headers} ) {
     my $hsts_max_age = <httpsd.cfg.hsts_max_age> // 31536000;
-    my $hsts_header  = "Strict-Transport-Security: max-age=$hsts_max_age";
 
-    if (<httpsd.cfg.hsts_include_subdomains>) {
-        $hsts_header .= "; includeSubDomains";
-    }
+    $result->{headers}->{'Strict-Transport-Security'}
+        = "max-age=$hsts_max_age" . ( <httpsd.cfg.hsts_include_subdomains> ? "; includeSubDomains" : "" );
 
-    $response->{headers} //= {};
-    $response->{headers}->{'Strict-Transport-Security'} = $hsts_max_age;
-
-    <[base.log]>->( 3, "httpsd: added HSTS header" );
+    <[base.log]>->( 3, "[%d] added HSTS header to HTTPS response", $id );
 }
 
-return $response;
+# Mark session as HTTPS for request processing
+$session->{'is_https'} = 1 if defined $session;
+
+return $result;
 
 #,,,.,...,.,.,,,.,,.,,,..,.,,,,..,...,.,.,.,,,..,,...,...,,.,,,,,,,,,,.,.,...,
 #TEOCE6IZFPVHC3LJZWADFTFGSUNM4AIGLJO2PP7J63EU3IRD372DZRK27KEX573YRXVG7HKXWP7IK
