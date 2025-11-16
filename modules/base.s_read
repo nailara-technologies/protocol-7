@@ -22,20 +22,40 @@ warn 'buffer ref not present <{C1}>' and return undef
 #
 ## aio_read  $fh, $offset, $length, $data, $dataoffset, $callback->($retval)
 
-my $b_read;
-IO::AIO::aio_read( $read_fh, $fh_offset, $read_len, my $r_buff //= '',
-    0, sub { $b_read = $ARG[0] // -1 } );
+# SSL-aware: Check if this is an IO::Socket::SSL object
+if ( ref($read_fh) eq qw| IO::Socket::SSL | ) {
 
-##  wait until read request has been completed  ##
-while ( not defined $b_read ) { IO::AIO::poll() }
+    # For SSL sockets, use sysread which handles TLS decryption automatically
+    my $b_read = $read_fh->sysread( my $r_buff, $read_len, 0 );
 
-if ( $b_read > 0 ) {
-    utf8::decode($r_buff);
-    $b_read = length($r_buff);    ##  adjust for decoding  ##
-    $buffer_ref->$* .= $r_buff;
+    if ( defined $b_read && $b_read > 0 ) {
+        utf8::decode($r_buff);
+        $b_read = length($r_buff);    ##  adjust for decoding  ##
+        $buffer_ref->$* .= $r_buff;
+        return $b_read;
+    } else {
+        return $b_read // -1;
+    }
+
+} else {
+
+    # For TCP and other socket types, use async read
+    my $b_read;
+    IO::AIO::aio_read( $read_fh, $fh_offset, $read_len, my $r_buff //= '',
+        0, sub { $b_read = $ARG[0] // -1 } );
+
+    ##  wait until read request has been completed  ##
+    while ( not defined $b_read ) { IO::AIO::poll() }
+
+    if ( $b_read > 0 ) {
+        utf8::decode($r_buff);
+        $b_read = length($r_buff);    ##  adjust for decoding  ##
+        $buffer_ref->$* .= $r_buff;
+    }
+
+    return $b_read;                   ## [ returns -1 on error ] ##
+
 }
-
-return $b_read;                   ## [ returns -1 on error ] ##
 
 #,,..,.,,,,.,,,..,,,.,...,...,.,.,,,,,.,,,,.,,..,,...,..,,..,,..,,,..,,..,,..,
 #GUAQC7DHXN2BNWDOINILPPEDVGW46OY5DHMW4P2BD27UVH5YWPWGLNQM6ISWXEIIDOETEZ2QKT7WO
