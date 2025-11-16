@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = httpsd.register_socket
+# param = $socket, $type, $mode
+# descr = Register SSL socket in data structure for handler connection lookup
+# note  = Called after SSL socket creation since httpsd.create_ssl_socket doesn't
+#         register the socket like base.open does. This ensures base.handler.connect
+#         can find the handler definitions when a connection arrives.
+
+my $socket = shift;
+my $type   = shift;
+my $mode   = shift;
+
+unless ( defined $socket and fileno($socket) ) {
+    <[base.logs]>->( 0, "httpsd.register_socket: invalid socket supplied" );
+    return undef;
+}
+
+unless ( defined $type and defined $mode ) {
+    <[base.logs]>->( 0, "httpsd.register_socket: missing type or mode parameter" );
+    return undef;
+}
+
+my $fd = fileno($socket);
+
+## Register socket in handle data structure
+$data{'handle'}{$fd}{'link'}   = $type;
+$data{'handle'}{$fd}{'mode'}   = $mode;
+
+<[base.logs]>->( 2, "httpsd.register_socket: registered fd=$fd as type=$type mode=$mode" );
+
+return 1;
+
+0;
+#,,..,..,,.,.,..,,..,,,..,,.,,.,.,,,.,,.,,,,.,..,,...,..,,,.,,...,..,,.,.,,..,
+#HTTPSD_SOCKET_REGISTRATION_FD_TYPE_MODE_IN_DATA_STRUCTURE_FOR_HANDLER_LOOKUP
+#\\\|REGISTER_SOCKET_TYPE_MODE_TO_DATA_HANDLE_FD_LINK \ / AMOS7 \ YOURUM ::
+#\[7]HTTPSD_SOCKET_REGISTRATION_DATA_LINK_MODE_FOR_CONNECT_HANDLER 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -51,6 +51,11 @@ httpsd.cert_status = [httpsd.startup.validate_certificates]
 [exit_when_false:<httpsd.cert_status>,0,'certificate load error, shutdown.,.']
 
 httpsd.sock = [httpsd.create_ssl_socket:<net.https.addr>,<net.https.port>]
+
+## Manually register socket type/mode in data structure for handler connection lookup
+## (httpsd.create_ssl_socket returns a socket but doesn't register it like base.open does)
+[httpsd.register_socket:<httpsd.sock>,'ip.tcp','input']
+
 [base.protocol.bind:<httpsd.sock>,'https','server']
 
 [root.drop_privs:<httpsd.system.user>]
