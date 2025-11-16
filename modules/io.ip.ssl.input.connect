@@ -1,0 +1,60 @@
+## [:< ##
+
+# name = io.ip.ssl.input.connect
+# descr = Handle incoming SSL/TLS connections (like io.ip.tcp.input.connect but for IO::Socket::SSL)
+
+my $fd = $_[0]->w->fd;     ## <-- $data{'session'}{$id}{'handle'} ##
+my $id = $_[0]->w->data;
+
+return undef if not defined $data{'session'}{$id};
+
+my $client_sock_fd;
+
+# Accept connections from IO::Socket::SSL listening socket
+if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
+    if ( not $client_sock_fd = $fd->accept() ) {
+        my $err_msg = <[base.format_error]>->($OS_ERROR);
+        <[base.log]>->( 0, "[$id] cannot accept() SSL connection : $err_msg" );
+        return undef;
+    }
+
+    my ( $p_host, $p_port )
+        = ( $client_sock_fd->peerhost(), $client_sock_fd->peerport() );
+
+    return undef    ##  <-- closed .., ##
+        if not defined $p_host
+        or not defined $p_port;
+
+    ## Register accepted client connection in handle data structure
+    $data{'handle'}{$client_sock_fd} = {
+        'encryption' => qw| tls |,
+        'mode'       => qw| input |,
+        'link'       => qw| ip.ssl |,
+        'peerhost'   => $p_host,
+        'peerport'   => $p_port,
+        'v4_over_6'  => $p_host =~ s|^::ffff:|| ? 1 : 0
+    };
+
+    <[base.logs]>->(
+        1, '[%s] IN.-SSL [%s:%s] encrypted=tls',
+        $id,
+        $data{'handle'}{$client_sock_fd}{'peerhost'},
+        $data{'handle'}{$client_sock_fd}{'peerport'}
+    );
+
+    return $client_sock_fd;    ## <-- success \ returning client socket ##
+
+} else {
+    <[base.logs]>->(
+        0,   '[%d] server socket is not valid (expected IO::Socket::SSL) %s',
+        $id, <[base.caller]>
+    );
+    return undef;              ## <-- connection closed \ error connecting ##
+}
+
+#,,,.,,.,,.,,,..,,,,.,...,,.,,,,,,.,,,.,,,,.,,..,,...,...,...,.,,,,,.,,..,,.,,
+#SSL_HANDLER_CUSTOM_IO_SOCKET_SSL_ACCEPT_CONNECTION_FOR_HTTPS
+#\\\|VUHLYV24HSL6ZTG7UDSPYZVSQLKYPBMPARMR4WI45JTAPTV4CV \ / AMOS7 \ YOURUM ::
+#\[7]6XDEGHYXGMIZYJBREINLX5SBXPSA2GJ5NPBMKE7NLCPIDUX7Y4BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
