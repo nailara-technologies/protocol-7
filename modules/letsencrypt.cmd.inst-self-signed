@@ -3,9 +3,6 @@
 # name  = letsencrypt.cmd.inst-self-signed
 # descr = Generate and install a self-signed Ed25519 ECDSA certificate for local testing
 
-use File::Temp qw(tempfile);
-use File::Spec;
-
 <[base.log]>->( 2, 'inst-self-signed command requested' );
 
 # Certificate paths from httpsd config
@@ -26,22 +23,21 @@ if ( -f $cert_path && -f $key_path ) {
 
 ## Ensure certificate directory exists
 unless ( -d $cert_dir ) {
-    mkdir( $cert_dir, 0700 ) or do {
-        my $err = "error: failed to create directory $cert_dir: $!";
+    unless ( <[file.make_path]>->( $cert_dir, 0700 ) ) {
+        my $err = "error: failed to create directory $cert_dir";
         <[base.log]>->( 1, $err );
         return {
             'mode' => 'inline',
             'data' => "✗ Failed to create certificate directory:\n  $err\n"
         };
-    };
+    }
     <[base.log]>->( 2, "created certificate directory: $cert_dir" );
 }
 
 ## Generate private key (Ed25519)
 <[base.log]>->( 2, 'generating Ed25519 private key...' );
 
-my ( $temp_key_fh, $temp_key_file ) = tempfile( UNLINK => 1 );
-close($temp_key_fh);  # Close so openssl can write to it
+my $temp_key_file = <[file.temp]>->();
 
 my $key_result = system("openssl genpkey -algorithm Ed25519 -out '$temp_key_file' 2>/dev/null");
 
@@ -58,8 +54,7 @@ unless ( -f $temp_key_file && -s $temp_key_file && $key_result == 0 ) {
 ## Generate self-signed certificate (365 days, no intermediate processing)
 <[base.log]>->( 2, 'generating self-signed certificate...' );
 
-my ( $temp_cert_fh, $temp_cert_file ) = tempfile( UNLINK => 1 );
-close($temp_cert_fh);  # Close so openssl can write to it
+my $temp_cert_file = <[file.temp]>->();
 
 my $cert_result = system("openssl req -new -x509 -key '$temp_key_file' " .
     "-out '$temp_cert_file' -days 365 -subj '/CN=localhost' 2>/dev/null");
@@ -77,7 +72,7 @@ unless ( -f $temp_cert_file && -s $temp_cert_file && $cert_result == 0 ) {
 ## Install certificate to final location
 <[base.log]>->( 2, "installing certificate to $cert_path" );
 
-unless ( copy_file( $temp_cert_file, $cert_path ) ) {
+unless ( <[file.copy]>->( $temp_cert_file, $cert_path ) ) {
     <[base.log]>->( 1, "error: failed to install certificate to $cert_path" );
     return {
         'mode' => 'inline',
@@ -94,7 +89,7 @@ unless ( chmod( 0600, $cert_path ) ) {
 ## Install private key to final location
 <[base.log]>->( 2, "installing private key to $key_path" );
 
-unless ( copy_file( $temp_key_file, $key_path ) ) {
+unless ( <[file.copy]>->( $temp_key_file, $key_path ) ) {
     <[base.log]>->( 1, "error: failed to install private key to $key_path" );
     return {
         'mode' => 'inline',
@@ -130,22 +125,6 @@ return {
     'mode' => 'inline',
     'data' => $reply
 };
-
-## Helper function to safely copy files
-sub copy_file {
-    my ( $src, $dst ) = @_;
-
-    open( my $src_fh, '<:raw', $src ) or return undef;
-    local $/;
-    my $content = <$src_fh>;
-    close($src_fh);
-
-    open( my $dst_fh, '>:raw', $dst ) or return undef;
-    print $dst_fh $content;
-    close($dst_fh);
-
-    return 1;
-}
 
 #,,,.,.,.,,,.,,.,,..,,.,,,.,,,.,.,,,.,.,,,.,.,..,,...,..,,..,,,..,,..,..,,.,.,
 #7CENXJ5VZT27MHOW4HBFNTOWEU6P7NVIDH2REQZI4MKI7FMPHZ3H62OO2PSFEOQOH7T3HTNG2DXYC
