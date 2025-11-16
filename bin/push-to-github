@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# push-to-github - Configure remote and push to GitHub
+# Handles remote URL resets by automatically configuring GitHub direct access
+# Usage: ./bin/push-to-github [branch-name] [remote-name]
+
+set -e
+
+BRANCH="${1:-$(git rev-parse --abbrev-ref HEAD)}"
+REMOTE="${2:-origin}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+echo "Pushing to GitHub: $REMOTE/$BRANCH"
+echo ""
+
+# Configure remote before pushing
+echo "Step 1: Ensuring remote is configured for GitHub direct access..."
+if [ -x "$SCRIPT_DIR/configure-remote" ]; then
+    "$SCRIPT_DIR/configure-remote" "$(git rev-parse --show-toplevel)"
+else
+    echo "Warning: configure-remote script not found, skipping remote configuration"
+fi
+
+echo ""
+echo "Step 2: Pushing to $REMOTE/$BRANCH..."
+
+# Try push with exponential backoff on network errors
+MAX_RETRIES=4
+RETRY=0
+BACKOFF=2
+
+while [ $RETRY -lt $MAX_RETRIES ]; do
+    if git push "$REMOTE" "$BRANCH"; then
+        echo ""
+        echo "✓ Push successful"
+        exit 0
+    else
+        RETRY=$((RETRY + 1))
+        if [ $RETRY -lt $MAX_RETRIES ]; then
+            echo "Push failed, retrying in ${BACKOFF}s... (attempt $((RETRY+1))/$MAX_RETRIES)"
+            sleep $BACKOFF
+            BACKOFF=$((BACKOFF * 2))
+        fi
+    fi
+done
+
+echo ""
+echo "✗ Push failed after $MAX_RETRIES attempts"
+exit 1

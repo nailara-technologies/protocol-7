@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# configure-remote - Fix git remote URLs to use GitHub direct access with PAT
+# Usage: ./bin/configure-remote [repo-path]
+
+set -e
+
+REPO_PATH="${1:-.}"
+GITHUB_PAT="${GITHUB_PAT}"
+
+if [ -z "$GITHUB_PAT" ]; then
+    echo "Error: GITHUB_PAT environment variable not set"
+    exit 1
+fi
+
+if [ ! -d "$REPO_PATH/.git" ]; then
+    echo "Error: $REPO_PATH is not a git repository"
+    exit 1
+fi
+
+cd "$REPO_PATH"
+
+echo "Configuring git remote for: $REPO_PATH"
+echo "Current remotes:"
+git remote -v
+
+# Get the current origin URL
+CURRENT_URL=$(git remote get-url origin)
+echo ""
+echo "Current origin URL: $CURRENT_URL"
+
+# Determine repo owner and name
+if [[ $CURRENT_URL =~ github.com/([^/]+)/([^/]+)(\.git)?$ ]]; then
+    OWNER="${BASH_REMATCH[1]}"
+    REPO="${BASH_REMATCH[2]%.git}"
+elif [[ $CURRENT_URL =~ /([^/]+)/([^/]+)(\.git)?$ ]]; then
+    # Handle local proxy format like: /git/nailara-technologies/protocol-7
+    OWNER="${BASH_REMATCH[1]}"
+    REPO="${BASH_REMATCH[2]%.git}"
+else
+    echo "Error: Could not parse repository owner and name from URL"
+    exit 1
+fi
+
+# Set GitHub direct URL with PAT
+GITHUB_URL="https://${GITHUB_PAT}@github.com/${OWNER}/${REPO}.git"
+
+if [ "$CURRENT_URL" != "$GITHUB_URL" ]; then
+    echo ""
+    echo "Setting remote URL to GitHub direct access..."
+    git remote set-url origin "$GITHUB_URL"
+    echo "✓ Remote configured"
+else
+    echo "✓ Remote already configured correctly"
+fi
+
+echo ""
+echo "Updated remotes:"
+git remote -v | sed "s/${GITHUB_PAT}/***PAT***/g"
+
+echo ""
+echo "✓ Remote configuration complete"
