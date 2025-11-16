@@ -45,18 +45,24 @@ $data{'io'}{'type'}{'ip.ssl'} = {
 };
 
 # Register HTTPS protocol with proper handler chain
+# Use HTTP state as base but override input handler with httpsd.request_handler
 $data{'protocol'}{'https'} = {
     'connect' => {
         'callback' => undef,  # No custom connect callback needed
         'banner'  => ''
     },
-    'state' => {
+    'state' => <protocol.https.state> // {  # Use previously set state, fallback if not set
         '0' => {
             'input'  => { 'handler' => 'httpsd.request_handler' },
             'output' => { 'handler' => 'base.handler.write' }
         }
     }
 };
+
+# Override the input handler specifically for HTTPS
+if ( defined $data{'protocol'}{'https'}{'state'}{'0'} ) {
+    $data{'protocol'}{'https'}{'state'}{'0'}{'input'}{'handler'} = 'httpsd.request_handler';
+}
 
 <[base.log]>->( 2, 'registered SSL socket type (ip.ssl) and HTTPS protocol handlers' );
 
