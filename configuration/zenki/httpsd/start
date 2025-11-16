@@ -54,7 +54,8 @@ httpsd.sock = [httpsd.create_ssl_socket:<net.https.addr>,<net.https.port>]
 
 ## Manually register socket type/mode in data structure for handler connection lookup
 ## (httpsd.create_ssl_socket returns a socket but doesn't register it like base.open does)
-[httpsd.register_socket:<httpsd.sock>,'ip.tcp','input']
+## Using 'ip.ssl' type instead of 'ip.tcp' since socket is IO::Socket::SSL, not IO::Socket::IP
+[httpsd.register_socket:<httpsd.sock>,'ip.ssl','input']
 
 [base.protocol.bind:<httpsd.sock>,'https','server']
 

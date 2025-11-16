@@ -21,8 +21,30 @@
 <protocol.https.state> = <protocol.http.state>;  # Inherit HTTP state handlers
 <protocol.https.connect.banner> = '';
 
-# CRITICAL FIX: Register HTTPS handlers in global data structure
+# CRITICAL FIX: Register SSL socket type and HTTPS protocol handlers
 # This allows base.handler.connect to find the handlers when a TLS connection arrives
+
+# Register IO::Socket::SSL type handlers (for listening socket)
+$data{'io'}{'type'}{'ip.ssl'} = {
+    'ref' => 'IO::Socket::SSL',
+    'handler' => {
+        'output' => {
+            'open'  => 'io.ip.ssl.output.open',      # TODO: May not exist, fallback to tcp
+            'close' => 'io.ip.ssl.output.close',      # TODO: May not exist, fallback to tcp
+            'read'  => 'base.handler.read',
+            'write' => 'base.handler.write'
+        },
+        'input' => {
+            'open'    => 'io.ip.ssl.input.open',      # TODO: May not exist, fallback to tcp
+            'close'   => 'io.ip.ssl.input.close',     # TODO: May not exist, fallback to tcp
+            'connect' => 'io.ip.ssl.input.connect',   # Custom SSL handler
+            'read'    => 'base.handler.read',
+            'write'   => 'base.handler.write'
+        }
+    }
+};
+
+# Register HTTPS protocol with proper handler chain
 $data{'protocol'}{'https'} = {
     'connect' => {
         'callback' => undef,  # No custom connect callback needed
@@ -36,7 +58,7 @@ $data{'protocol'}{'https'} = {
     }
 };
 
-<[base.log]>->( 2, 'registered HTTPS protocol handlers in data structure' );
+<[base.log]>->( 2, 'registered SSL socket type (ip.ssl) and HTTPS protocol handlers' );
 
 # Session management for HTTPS
 <httpsd.sessions>         = {};
