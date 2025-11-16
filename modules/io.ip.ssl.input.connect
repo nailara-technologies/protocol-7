@@ -25,7 +25,9 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
         if not defined $p_host
         or not defined $p_port;
 
-    ## Register accepted client connection in handle data structure
+    ## Register accepted client connection in handle data structure (by both socket ref and FD)
+    my $client_fd = fileno($client_sock_fd);
+
     $data{'handle'}{$client_sock_fd} = {
         'encryption' => qw| tls |,
         'mode'       => qw| input |,
@@ -35,11 +37,19 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
         'v4_over_6'  => $p_host =~ s|^::ffff:|| ? 1 : 0
     };
 
+    # Also register by numeric FD for event loop lookup
+    $data{'handle'}{$client_fd} = $data{'handle'}{$client_sock_fd};
+
     <[base.logs]>->(
         1, '[%s] IN.-SSL [%s:%s] encrypted=tls',
         $id,
         $data{'handle'}{$client_sock_fd}{'peerhost'},
         $data{'handle'}{$client_sock_fd}{'peerport'}
+    );
+
+    <[base.logs]>->(
+        2, '[%s] SSL socket registered: fd=%d (ref and numeric)',
+        $id, $client_fd
     );
 
     return $client_sock_fd;    ## <-- success \ returning client socket ##
