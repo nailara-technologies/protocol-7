@@ -26,9 +26,11 @@ return [ qw[
         devmod.dump
         base.s_warn
         base.s_read
+        base.minmax
         base.getcwd
         base.gen_id
         .context.md
+        web.cmd.skin
         v7.post_init
         v7.init_code
         v7.child.add
@@ -260,6 +262,7 @@ return [ qw[
         X-11.connect_X11
         X-11.cmd.rand-bg
         X-11.check-mouse
+        web.skin_resolver
         v7.zenka.pre_init
         v7.zenka.cmd.stop
         v7.post_init_code
@@ -333,7 +336,9 @@ return [ qw[
         X-11.cmd.bg_color
         USR.lain.base-key
         zenki.parent.start
+        workflow.init_code
         web.scan_directory
+        web.menu_generator
         weather.cmd.widget
         v7.zenka.setup.add
         v7.zenka.init_code
@@ -366,6 +371,7 @@ return [ qw[
         index.cmd.add-path
         impressive.startup
         httpd.status_codes
+        httpd.serve_static
         httpd.http_options
         git.parent.get_log
         fs.get_filesystems
@@ -536,6 +542,7 @@ return [ qw[
         keys.console.enc-key
         keys.console.dec-key
         io.ip.tcp.input.open
+        io.ip.ssl.input.open
         impressive.parse_bin
         impressive.init_code
         impressive.cmd.pause
@@ -573,6 +580,8 @@ return [ qw[
         base.handler.connect
         base.handler.command
         base.file.match_dirs
+        base.exit_when_false
+        base.exit_when_empty
         base.event.init_code
         base.event.add_timer
         base.eval.get_params
@@ -604,6 +613,7 @@ return [ qw[
         X-11.cmd.dpms-status
         X-11.cmd.dpms-enable
         workflow.console.scan
+        workflow.cmd.bug-list
         web-browser.post_init
         web-browser.init_view
         web-browser.init_code
@@ -644,6 +654,7 @@ return [ qw[
         jobqueue.get_job_data
         io.ip.tcp.output.open
         io.ip.tcp.input.close
+        io.ip.ssl.input.close
         impressive.cmd.status
         impressive.cmd.resume
         httpd.system.get_load
@@ -708,6 +719,9 @@ return [ qw[
         zenki.parent.init_code
         zenki.parent.ensure_v7
         workflow.console.stats
+        workflow.cmd.todo-list
+        workflow.cmd.sig-cycle
+        workflow.cmd.run-tests
         web.assets.by_template
         web-browser.swap_views
         web-browser.cmd.switch
@@ -762,7 +776,9 @@ return [ qw[
         impressive.open_window
         impressive.cmd.version
         httpsd.request_handler
+        httpsd.register_socket
         httpd.system.cpu_usage
+        httpd.route_dispatcher
         httpd.process_template
         httpd.benchmark.report
         filter.cmd.mount_chain
@@ -809,7 +825,12 @@ return [ qw[
         X-11.cmd.is-composited
         X-11.cmd.dpms-force-on
         X-11-pointer.init_code
+        workflow.get_todo_stats
+        workflow.console.search
         workflow.console.commit
+        workflow.cmd.sig-verify
+        workflow.cmd.sig-update
+        workflow.aggregate_bugs
         web-browser.proxy_setup
         web-browser.open_window
         web-browser.cmd.iconify
@@ -858,9 +879,11 @@ return [ qw[
         mpv.handler.event.pause
         mpv.cmd.reload_playlist
         mpv.cmd.playlist_update
+        keys.console.github-pat
         jobqueue.queue_template
         io.unix.socket.end_code
         io.ip.tcp.input.connect
+        io.ip.ssl.input.connect
         impressive.get_playlist
         httpd.system.network_io
         httpd.diagnostic.report
@@ -919,7 +942,10 @@ return [ qw[
         X-11.cmd.get_window_ids
         X-11.cmd.dpms-force-off
         zenki.parent.ensure_cube
+        workflow.scan_yaml_tasks
         workflow.console.release
+        workflow.aggregate_todos
+        web.process_template_ipc
         web.process-template-ipc
         web.cmd.process-template
         web.assets.update_status
@@ -1025,6 +1051,10 @@ return [ qw[
         zenki.parent.ensure_zenka
         zenki.console.attach-logs
         workflow.parent.init_code
+        workflow.load_todos_index
+        workflow.load_suggestions
+        workflow.console.overview
+        workflow.console.bug-list
         web-browser.disable_proxy
         web-browser.cmd.slow_down
         web-browser.cmd.fg_insert
@@ -1040,6 +1070,7 @@ return [ qw[
         v7.zenka.cmd.subname-sids
         v7.zenka.cmd.pid-instance
         v7.zenka.cmd.clear-manual
+        v7.install_zenka_symlinks
         v7.handler.start-time-out
         v7.enable_heartbeat_timer
         v7.cancel_instance_timers
@@ -1120,6 +1151,11 @@ return [ qw[
         X-11.cmd.get-window-names
         X-11.bg-image.clear-cache
         zenki.parent.check_running
+        workspace-transfer.cmd.bug
+        workflow.console.todo-list
+        workflow.console.sig-cycle
+        workflow.console.shortcuts
+        workflow.console.run-tests
         web.render_skinned_content
         web-browser.set_properties
         web-browser.process_subcfg
@@ -1193,6 +1229,7 @@ return [ qw[
         base.session.check.flushed
         base.reverse-sort.key-name
         base.perlmods.INC_path_pms
+        base.perlmod.install_cpanm
         base.parser.xclient-errors
         base.parser.splice_in_data
         base.parser.key_mem_chksum
@@ -1214,6 +1251,11 @@ return [ qw[
         X-11.cmd.mouse_over_coords
         X-11.cmd.dpms-blanking-set
         X-11.background-image-list
+        workspace-transfer.cmd.todo
+        workflow.extract_yaml_todos
+        workflow.console.sig-verify
+        workflow.console.sig-update
+        workflow.check_dependencies
         web-browser.wait_for_window
         web-browser.start_slideshow
         web-browser.cmd.scroll_stop
@@ -1313,9 +1355,11 @@ return [ qw[
         X-11.handler.global_hotkeys
         X-11.cmd.screen_size_ranges
         zenki.handler.v7_start_reply
+        workspace-transfer.init_code
         workflow.parent.scan_history
         workflow.parent.fix_versions
         web.execute_template_command
+        web.cmd.process_template_ipc
         web-browser.set-up.set_privs
         web-browser.handler.sig_term
         web-browser.cmd.scroll_start
@@ -1371,6 +1415,7 @@ return [ qw[
         crypt.C25519.keystr_is_valid
         crypt.C25519.compare_keypair
         content.cmd.entries_withheld
+        base.validate.composite_name
         base.session.check_remaining
         base.run_if_not.load_perlmod
         base.process-into-background
@@ -1389,7 +1434,11 @@ return [ qw[
         X-11.handler.fade_out_window
         X-11.bg-image.clean-up-cache
         zenki.parent.request_v7_start
+        workflow.scan_workspace_repos
+        workflow.load_workspace_index
+        workflow.generate_todos_index
         workflow.console.fix-versions
+        workflow.cmd.test-oscillation
         web-browser.process_url_flags
         web-browser.handler.slideshow
         web-browser.enable_javascript
@@ -1404,6 +1453,7 @@ return [ qw[
         v7.zenka.cmd.get-instance-ids
         v7.report_collected_child_pid
         v7.load_zenka_output_patterns
+        v7.install_workflow_shortcuts
         v7.init_zenka_output_patterns
         v7.handler.cube_session_close
         v7.callback.register_ondemand
@@ -1439,6 +1489,7 @@ return [ qw[
         image2html.parent.cmd.get_url
         image2html.base.get_html_path
         image2html.base.download_file
+        httpd.vhost_template_resolver
         httpd.benchmark.start_request
         graphics-matrix.filter.c-to-a
         ffmpeg.cmd.extract_last_frame
@@ -1479,6 +1530,8 @@ return [ qw[
         X-11.handler.report-to-system
         X-11.bg-image.cached-path.add
         X-11-pointer.cmd.blank-cursor
+        workspace-transfer.console.bug
+        workflow.parent.fix_signatures
         workflow.parent.create_release
         web.process_template_recursive
         web-browser.handler.swap_views
@@ -1555,6 +1608,12 @@ return [ qw[
         X-11.handler.protocol-warnings
         X-11.cmd.dpms-blanking-disable
         X-11.background.next-rnd-index
+        workspace-transfer.console.todo
+        workflow.lib.detect-environment
+        workflow.extract_workspace_bugs
+        workflow.console.import-dev-key
+        workflow.console.fix-signatures
+        workflow.cmd.regenerate-indexes
         web-browser.set-up.import_rules
         web-browser.handler.auto_scroll
         web-browser.handler.2html_reply
@@ -1611,6 +1670,8 @@ return [ qw[
         X-11-pointer.cmd.restore-cursor
         workflow.parent.load_signing_key
         workflow.parent.harmonize_emails
+        workflow.extract_workspace_todos
+        workflow.cmd.version-sign-commit
         web-browser.handler.load_timeout
         web-browser.handler.load_changed
         web-browser.handler.fade_in_view
@@ -1662,6 +1723,7 @@ return [ qw[
         content.handler.get_hidden_reply
         compton.callback.already_running
         base.sourcecode.in-mem.checksums
+        base.perlmod.install_cpan_module
         base.perlmod.get_collision_index
         base.parser.harmonized_reference
         base.number-cache.delete-content
@@ -1678,6 +1740,11 @@ return [ qw[
         base.calculate_line_length_stats
         X-11.handler.display_power_state
         zenki.parent.resolve_dependencies
+        workspace-transfer.cmd.checkpoint
+        workspace-transfer.cmd.bug-commit
+        workflow.index_needs_regeneration
+        workflow.generate_workspace_index
+        workflow.console.test-oscillation
         workflow.console.harmonize-emails
         web-browser.start-up.raise_window
         web-browser.handler.size_allocate
@@ -1713,6 +1780,7 @@ return [ qw[
         crypt.C25519.verify_key_signature
         content.update.send_notifications
         base.sourcecode.in-mem.sub-source
+        base.perlmod.init_install_buffers
         base.perlmod.get_loaded_INC_names
         base.parser.sorted_array_ref_list
         base.parser.center_ellipse_string
@@ -1727,6 +1795,8 @@ return [ qw[
         X-11.bg-image.cached-path-look-up
         X-11.backgrounds.set_random_image
         X-11.autoconfigure.non-root-start
+        workspace-transfer.cmd.todo-commit
+        workflow.setup_module_dependencies
         web-browser.handler.url_list_reply
         web-browser.handler.gpu_load_reply
         web-browser.cmd.disable_javascript
@@ -1771,6 +1841,7 @@ return [ qw[
         base.file.recursive.matching_paths
         base.chk-sum.bmw.calculate_L13_sum
         USR.AMOS7-admin.sourcecode-pub-key
+        workspace-transfer.cmd.status-check
         web-browser.callback.load_fail_page
         weather.parent.handler.update_timer
         v7.zenka.instance.cmd.change-status
@@ -1796,6 +1867,8 @@ return [ qw[
         base.number-cache.is_valid_template
         base.handler.counter_overflow_reset
         base.event.callback.io-idle-restart
+        workflow.console.version-sign-commit
+        workflow.callback.object.perl_module
         web-browser.process_crash_mitigation
         web-browser.handler.progress_changed
         weather.parent.cache.read_station_id
@@ -1812,6 +1885,7 @@ return [ qw[
         mod-test.cmd.blacklisted-add-matches
         letsencrypt.child.acme_check_account
         image2html.child.check_cache_timeout
+        httpsd.startup.validate_certificates
         httpd.handler.download_transfer.test
         debian.parent.resolve_cpan_to_debian
         base.warnings.compact_diff_to_pragma
@@ -1819,6 +1893,8 @@ return [ qw[
         base.perlmod.manual_reload_blacklist
         base.parser.decode_harmonized_refstr
         base.file.file_chksums_are_identical
+        workspace-transfer.console.checkpoint
+        workspace-transfer.console.bug-commit
         weather.parent.cache.write_station_id
         v7.handler.heartbeat_response_timeout
         universal.handler.extract_frame_reply
@@ -1837,12 +1913,14 @@ return [ qw[
         letsencrypt.child.acme_finalize_order
         httpd.handler.download_transfer.fixed
         discover.format_discover_mcast_packet
+        debian.parent.verify_dependency_state
         debian.parent.scan_zenki_dependencies
         crypt.C25519.list_key_signature_names
         crypt.C25519.generate_session_keypair
         crypt.C25519.create_signature_request
         base.perlmods.reload.chksum_blacklist
         base.perlmod.unregister_loaded_module
+        workspace-transfer.console.todo-commit
         web-browser.start-up.init_window_title
         web-browser.handler.signal.load_failed
         weather.parent.wind.calculate_beaufort
@@ -1865,6 +1943,8 @@ return [ qw[
         httpd.benchmark.get_event_loop_metrics
         base.log.send-buffer.idle-callback-set
         base.file.path.make-relative-from-list
+        workspace-transfer.console.status-check
+        workflow.calculate_suggestion_relevance
         weather.parent.handler.station_id_reply
         sourcecode.console.verify-p7-signatures
         sourcecode.console.test-sign-and-verify
@@ -1884,9 +1964,11 @@ return [ qw[
         base.init_zenka.install_signal_handlers
         base.chk-sum.amos.truth_template_chksum
         weather.parent.handler.coordinates_reply
+        v7.verify_and_install_zenka_dependencies
         tile-groups.handler.get-tile-color_reply
         tile-groups.handler.check_playlist_reply
         tile-groups.gpu_alerts.enable_auto_speed
+        sourcecode.console.verify-dev-signatures
         sourcecode.console.read-sig-footer-state
         protocol.sftp.handler.read_server_output
         mpv.handler.event.property-change.volume
@@ -1959,14 +2041,15 @@ return [ qw[
         letsencrypt.parent.install_certificate_to_httpsd
         letsencrypt.parent.determine_certificate_domains
         base.log.send-buffer.reply-handler.notify-online
+        debian.parent.callback.register_binary_dependency
         letsencrypt.parent.notify_httpd_certificate_update
         mpv.handler.event.property-change.video-aspect-override
 
     ]
 ];
 
-#,,..,.,.,,..,.,,,...,.,,,,.,,,,.,,.,,,.,,.,,,..,,...,...,...,.,.,...,.,.,...,
-#7KF3BYR5F33EWW47OOVCOLOQQPSWUM2YNJZGMQDOBNAJY4TFLRAMBV5IMOKED4DNBZC5SUJVIM5YE
-#\\\|HB4JM2AMV24UNO5X3EC5CH4MD36K3JGKT66LP7PH3ML2EBE4VIX \ / AMOS7 \ YOURUM ::
-#\[7]4CCMKBI6XVDMJFCPRM3T3JYGR4VPU3Y3UKTSQ2VOGRSYQRPH32CI 7  DATA SIGNATURE ::
+#,,,,,,..,,..,.,,,...,,.,,,..,.,.,,,,,,.,,..,,..,,...,...,.,.,,.,,..,,,..,,,,,
+#SQMLPZNDBRIZ4A4MEGYFGHF75JFTPSW4IORXJK3M2JLXCQWUSHAZC5BGPGDB6MUCPFX36D24JAQQA
+#\\\|KHWUAFMC62GL45OD4QSLKRPW3EH7R4C53JIJ3XBWN7Q6CRUHIVO \ / AMOS7 \ YOURUM ::
+#\[7]EWKENRUHZUYR2GRUD6HKZEIO3X5QRQNNFG65HK3R3MV3IK5IRMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
