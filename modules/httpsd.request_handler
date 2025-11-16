@@ -7,6 +7,15 @@
 my $id      = $_[0]->w->data;
 my $session = $data{'session'}->{$id};
 
+# DEBUG: Check if we're being called
+if ( defined $session ) {
+    my $input_len = length($session->{'buffer'}->{'input'} // '');
+    <[base.log]>->( 1, "[%d] httpsd.request_handler called, input_buffer_len=%d", $id, $input_len );
+} else {
+    <[base.log]>->( 0, "[%d] httpsd.request_handler: session not found!", $id );
+    return 2;
+}
+
 # First call httpd request handler to process the HTTP request
 my $result = <[httpd.request_handler]>->(@_);
 
