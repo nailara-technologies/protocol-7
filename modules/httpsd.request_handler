@@ -10,9 +10,9 @@ my $session = $data{'session'}->{$id};
 # DEBUG: Check if we're being called
 if ( defined $session ) {
     my $input_len = length($session->{'buffer'}->{'input'} // '');
-    <[base.log]>->( 1, "[%d] httpsd.request_handler called, input_buffer_len=%d", $id, $input_len );
+    <[base.logs]>->( 1, "[%d] httpsd.request_handler called, input_buffer_len=%d", $id, $input_len );
 } else {
-    <[base.log]>->( 0, "[%d] httpsd.request_handler: session not found!", $id );
+    <[base.logs]>->( 0, "[%d] httpsd.request_handler: session not found!", $id );
     return 2;
 }
 
@@ -27,7 +27,7 @@ if ( defined $result && ref($result) eq 'HASH' && $result->{headers} ) {
     $result->{headers}->{'Strict-Transport-Security'}
         = "max-age=$hsts_max_age" . ( <httpsd.cfg.hsts_include_subdomains> ? "; includeSubDomains" : "" );
 
-    <[base.log]>->( 3, "[%d] added HSTS header to HTTPS response", $id );
+    <[base.logs]>->( 3, "[%d] added HSTS header to HTTPS response", $id );
 }
 
 # Mark session as HTTPS for request processing
@@ -35,8 +35,8 @@ $session->{'is_https'} = 1 if defined $session;
 
 return $result;
 
-#,,,.,...,.,.,,,.,,.,,,..,.,,,,..,...,.,.,.,,,..,,...,...,,.,,,,,,,,,,.,.,...,
-#TEOCE6IZFPVHC3LJZWADFTFGSUNM4AIGLJO2PP7J63EU3IRD372DZRK27KEX573YRXVG7HKXWP7IK
-#\\\|CFAW2YXXZBCIDOFBPZ2I3EZJMJUR5OM3I32GS6OWOKTM642IK5R \ / AMOS7 \ YOURUM ::
-#\[7]OZK745IOZT2CYIFHBOEX4PTSWWAPKQ3Y76QC2X2JOTBXCZJ7ICBY 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,.,,,,.,,,,,.,.,,,.,...,.,,,.,.,..,,...,..,,.,.,,.,,,,.,..,,.,,,
+#NJUS7RKRMA25HO465OB765PROCU5J5WFCDQ7OGPVTOFLZCI4DUKZ3472ZEJS6WODS52DP5AL2ZU5A
+#\\\|AJNUYNXQ2MMI2JNPWHSWVRGOV46X4MK5Q47BZHLVQEMND2W2NCM \ / AMOS7 \ YOURUM ::
+#\[7]I33PPVQXTY5M2YSCTFA5STPFFXTAJRQETURQZKOK2TVH7DIIFMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
