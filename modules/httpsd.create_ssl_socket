@@ -43,7 +43,6 @@ eval {
     $ssl_socket = IO::Socket::SSL->new(
         LocalAddr        => $addr,
         LocalPort        => $port,
-        Proto            => qw| tcp |,
         Listen           => <max.connections> // 1024,
         ReuseAddr        => 1,
         Timeout          => <httpsd.timeout> // 23,
@@ -69,6 +68,10 @@ unless ( defined $ssl_socket ) {
 }
 
 ## Start listening
+<[base.log]>->( 2, "httpsd: SSL socket created successfully" );
+<[base.log]>->( 2, "  socket ref: " . ref($ssl_socket) );
+<[base.log]>->( 2, "  socket fd: " . fileno($ssl_socket) // 'undef' );
+
 unless ( $ssl_socket->listen() ) {
     <[base.log]>->( 0, "httpsd: listen failed: $OS_ERROR" );
     return -1;
