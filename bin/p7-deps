@@ -25,12 +25,27 @@ my $TRUE_color        = "\e[38;2;6;71;195m";     # Bright blue
 my $NEON_orange       = "\e[38;2;197;141;7m";    # Bright orange
 my $NEON_green_yellow = "\e[38;2;71;195;6m";     # Green-yellow
 
-my $P7_ROOT = File::Spec->catdir($RealBin, '..');
-my $MODULES_DIR = File::Spec->catdir($P7_ROOT, 'modules');
-my $ZENKI_DIR = File::Spec->catdir($P7_ROOT, 'configuration', 'zenki');
+##[ PROJECT PATH DISCOVERY ]######################################################
+use Cwd qw(abs_path);
+
+# Helper functions for path operations (inspired by amos-chksum)
+sub catdir  { File::Spec->catdir(@_) }
+sub rel2abs { File::Spec->rel2abs(@_) }
+
+# Discover Protocol-7 root path using FindBin
+my $up_dir = File::Spec->updir;
+my $P7_ROOT = abs_path(rel2abs(catdir($RealBin, $up_dir)));
+
+# Build all necessary paths
+my $MODULES_DIR = catdir($P7_ROOT, 'modules');
+my $ZENKI_DIR = catdir($P7_ROOT, 'configuration', 'zenki');
 my $KNOWN_DEPS_FILE = File::Spec->catfile($MODULES_DIR, 'base.known_dependencies');
-my $WORKSPACE_TRANSFER = File::Spec->catdir($P7_ROOT, '..');
-my $WORKSPACE_PROFILES = File::Spec->catfile($WORKSPACE_TRANSFER, 'workspace-transfer', '.deps', 'profiles.yaml');
+my $P7_DEPS_DIR = catdir($P7_ROOT, '.deps');
+
+# Workspace-transfer paths
+my $WORKSPACE_TRANSFER = catdir($P7_ROOT, '..');
+my $WORKSPACE_TRANSFER_DEPS = catdir($WORKSPACE_TRANSFER, 'workspace-transfer', '.deps');
+my $WORKSPACE_PROFILES = File::Spec->catfile($WORKSPACE_TRANSFER_DEPS, 'profiles.yaml');
 
 # Parse command
 my $cmd = shift @ARGV || 'help';
@@ -232,7 +247,7 @@ sub check_dependencies {
 
 sub generate_yaml {
     my ($output_file) = @_;
-    $output_file ||= File::Spec->catfile($P7_ROOT, '.deps', 'protocol7_full.yaml');
+    $output_file ||= File::Spec->catfile($P7_DEPS_DIR, 'protocol7_full.yaml');
 
     print "${blacklight}:$reset\n";
     print "${blacklight}::[$NEON_green_yellow Generating YAML$blacklight from Protocol-7 dependencies$blacklight]$reset\n";
@@ -270,8 +285,7 @@ sub generate_yaml {
     }
 
     # Create output directory
-    my $dir = File::Spec->catdir($P7_ROOT, '.deps');
-    mkdir $dir unless -d $dir;
+    mkdir $P7_DEPS_DIR unless -d $P7_DEPS_DIR;
 
     open my $fh, '>', $output_file or die "Cannot write to $output_file: $!\n";
 
