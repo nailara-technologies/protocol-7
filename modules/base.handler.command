@@ -782,15 +782,18 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     my $is_utf8_flagged = utf8::is_utf8( $data_to_send );
                     my $char_len = length( $data_to_send );
 
+                    ## DEBUG: Check if data actually has UTF-8 encoded characters
+                    my $has_wide = grep { ord($_) > 127 } split( //, $data_to_send );
+
                     if ( $is_utf8_flagged ) {
                         ## For UTF-8 flagged strings, convert to bytes
                         utf8::encode( $data_to_send );  # Convert to actual UTF-8 bytes
                         $byte_count = length( $data_to_send );
-                        <[base.log]>->( 3, 'SIZE: UTF-8 flagged, chars=%d, bytes=%d', $char_len, $byte_count );
+                        <[base.log]>->( 3, 'SIZE: UTF-8 flagged (wide=%d), chars=%d, bytes=%d', $has_wide, $char_len, $byte_count );
                     } else {
                         ## Already bytes, use directly
                         $byte_count = length( $data_to_send );
-                        <[base.log]>->( 3, 'SIZE: Not UTF-8 flagged, bytes=%d', $byte_count );
+                        <[base.log]>->( 3, 'SIZE: Not UTF-8 flagged (wide=%d), bytes=%d', $has_wide, $byte_count );
                     }
 
                     $output->$* .= <[base.sprint_t]>->(  ##  SIZE template  ##
