@@ -776,31 +776,26 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                 } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
 
                     ## Calculate byte length correctly for UTF-8 data
-                    ## and prepare data for transmission as bytes
-                    my $byte_count;
                     my $data_to_send = $reply->{'data'};
-                    my $is_utf8_flagged = utf8::is_utf8( $data_to_send );
-                    my $char_len = length( $data_to_send );
+                    my $byte_count;
 
-                    ## DEBUG: Check if data actually has UTF-8 encoded characters
-                    my $has_wide = grep { ord($_) > 127 } split( //, $data_to_send );
-
-                    if ( $is_utf8_flagged ) {
-                        ## For UTF-8 flagged strings, convert to bytes
-                        utf8::encode( $data_to_send );  # Convert to actual UTF-8 bytes
-                        $byte_count = length( $data_to_send );
-                        <[base.log]>->( 3, 'SIZE: UTF-8 flagged (wide=%d), chars=%d, bytes=%d', $has_wide, $char_len, $byte_count );
+                    if ( utf8::is_utf8( $data_to_send ) ) {
+                        ## For UTF-8 flagged strings, encode to get actual byte length
+                        my $temp = $data_to_send;
+                        utf8::encode( $temp );
+                        $byte_count = length( $temp );
+                        ## Ensure the original is also encoded for transmission
+                        utf8::encode( $data_to_send );
                     } else {
                         ## Already bytes, use directly
                         $byte_count = length( $data_to_send );
-                        <[base.log]>->( 3, 'SIZE: Not UTF-8 flagged (wide=%d), bytes=%d', $has_wide, $byte_count );
                     }
 
                     $output->$* .= <[base.sprint_t]>->(  ##  SIZE template  ##
                         qw| X3QVAWA |,
                         $cmd_id_str,
                         $byte_count,
-                        $data_to_send  ## Use encoded bytes for consistent transmission
+                        $data_to_send
                     );
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| TERM | ) {
