@@ -775,23 +775,26 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
 
-                    ## Ensure data and byte count are consistent
+                    ## Calculate byte length without modifying original data
+                    ## Use temp copy approach to measure actual UTF-8 byte count
                     my $data_to_send = $reply->{'data'};
                     my $byte_count;
 
                     if ( utf8::is_utf8( $data_to_send ) ) {
-                        ## UTF-8 flagged: convert to actual bytes
-                        utf8::encode( $data_to_send );
+                        ## UTF-8 flagged: create temp copy to measure actual bytes
+                        my $temp = $data_to_send;
+                        utf8::encode( $temp );
+                        $byte_count = length( $temp );
+                    } else {
+                        ## Already bytes
+                        $byte_count = length( $data_to_send );
                     }
-
-                    ## Now $data_to_send is definitely bytes, count them
-                    $byte_count = length( $data_to_send );
 
                     $output->$* .= <[base.sprint_t]>->(  ##  SIZE template  ##
                         qw| X3QVAWA |,
                         $cmd_id_str,
                         $byte_count,
-                        $data_to_send  ## Pass the data in byte form we counted
+                        $data_to_send  ## Pass original data as-is
                     );
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| TERM | ) {
