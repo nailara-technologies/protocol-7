@@ -10,9 +10,8 @@
 #           base32 (7-bit safe, fully encoded)
 #           base32-xz (base32 with XZ compression)
 
-my $requested_mode = ( ref( $call->{'args'} ) eq 'ARRAY' )
-                      ? ( $call->{'args'}->[0] // '' )
-                      : ( $call->{'args'} // '' );
+my $session_id    = $$call{'session_id'};
+my $requested_mode = $$call{'args'} // '';
 
 $requested_mode = lc($requested_mode);
 $requested_mode =~ s/\s+//g;  # Remove whitespace
@@ -24,36 +23,46 @@ if ( $requested_mode eq 'utf8' ||
      $requested_mode eq 'base32' ) {
 
     ## Standard modes - always available
-    $session->{'reply_encoding_mode'} = $requested_mode;
-    $reply->{'mode'} = 'true';
-    $reply->{'data'} = "reply encoding mode set to: $requested_mode";
+    $data{'session'}{$session_id}{'reply_encoding_mode'} = $requested_mode;
+    return {
+        'mode' => 'true',
+        'data' => "reply encoding mode set to: $requested_mode"
+    };
 
 } elsif ( $requested_mode eq 'base32-xz' ) {
 
     ## Check if XZ compression is available
     ## Protocol-7 loads compression deps early, so we can check
     if ( eval { require Compress::Raw::Lzma; 1; } ) {
-        $session->{'reply_encoding_mode'} = 'base32-xz';
-        $reply->{'mode'} = 'true';
-        $reply->{'data'} = 'reply encoding mode set to: base32-xz';
+        $data{'session'}{$session_id}{'reply_encoding_mode'} = 'base32-xz';
+        return {
+            'mode' => 'true',
+            'data' => 'reply encoding mode set to: base32-xz'
+        };
     } else {
-        $reply->{'mode'} = 'false';
-        $reply->{'data'} = 'base32-xz mode not available (XZ compression not installed)';
+        return {
+            'mode' => 'false',
+            'data' => 'base32-xz mode not available (XZ compression not installed)'
+        };
     }
 
 } elsif ( $requested_mode eq '' ) {
 
-    ## No mode specified - show current mode or error
-    my $current_mode = $session->{'reply_encoding_mode'} // 'utf8';
-    $reply->{'mode'} = 'true';
-    $reply->{'data'} = "current reply encoding mode: $current_mode";
+    ## No mode specified - show current mode
+    my $current_mode = $data{'session'}{$session_id}{'reply_encoding_mode'} // 'utf8';
+    return {
+        'mode' => 'true',
+        'data' => "current reply encoding mode: $current_mode"
+    };
 
 } else {
 
     ## Unknown mode
-    $reply->{'mode'} = 'false';
-    $reply->{'data'} = "unsupported encoding mode: '$requested_mode' " .
-                       "(supported: utf8, utf7, octets, base32, base32-xz)";
+    return {
+        'mode' => 'false',
+        'data' => "unsupported encoding mode: '$requested_mode' " .
+                   "(supported: utf8, utf7, octets, base32, base32-xz)"
+    };
 }
 
 1;
