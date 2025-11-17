@@ -159,8 +159,9 @@ int main( int argc, char * argv[] ) {
     int continue_read = 1;
     int close_at_lf   = 1;
     int reading_size  = 0;
-    long bytes_to_read = -1;
+    long chars_to_read = -1;  // Changed to chars (UTF-8 aware)
     int space_seen = 0;
+    int utf8_char_count = 0;  // Track UTF-8 characters read
     while ( continue_read ) {
         result = recv( socket_fd, &byte, 1, MSG_WAITALL );
         if ( result < 1 ) {
@@ -198,11 +199,12 @@ int main( int argc, char * argv[] ) {
 
                         if( byte == '\n' ) {
                             size_str_buf[sizes_len] = '\0';
-                            bytes_to_read = atoi(size_str_buf);
+                            chars_to_read = atoi(size_str_buf);  // Interpret as character count
                             close_at_lf  = 0;
                             reading_size = 0;
+                            utf8_char_count = 0;  // Reset character counter
                             // SIZE 00000
-                            if( bytes_to_read == 0 )
+                            if( chars_to_read == 0 )
                                 continue_read = 0;
                             else {
                                 output_bytes = 1;
@@ -219,18 +221,28 @@ int main( int argc, char * argv[] ) {
 
                     if ( skip_this_one )
                         skip_this_one = 0;
-                    else
+                    else {
                         /*  writing payload-data to stdout  */
                         write( STDOUT_FILENO, &byte, result );
+
+                        // Count UTF-8 characters: start of character is 0xxxxxxx or 11xxxxxx
+                        // Continuation bytes are 10xxxxxx
+                        if ( chars_to_read > -1 ) {
+                            unsigned char ubyte = (unsigned char)byte;
+                            // Count if this is start of a UTF-8 character:
+                            // ASCII (0xxxxxxx) or start of multi-byte (11xxxxxx)
+                            if ( (ubyte & 0xC0) != 0x80 ) {
+                                utf8_char_count++;
+                            }
+                        }
+                    }
 
                     if ( close_at_lf && byte == '\n' ) // TRUE || FALSE line
                         continue_read = 0;
 
-                    else if ( bytes_to_read > -1 ) {
-                        bytes_to_read--;
-
-                        //  'SIZE <bytes>'-reply completed
-                        if ( bytes_to_read < 0 )
+                    else if ( chars_to_read > -1 ) {
+                        // 'SIZE <chars>'-reply completed when we've counted enough characters
+                        if ( utf8_char_count >= chars_to_read )
                             continue_read = 0;
                     }
                 }
