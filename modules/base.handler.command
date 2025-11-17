@@ -775,17 +775,15 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
 
-                    ## Calculate byte length correctly for UTF-8 data
-                    ## Must account for both the byte count calculation AND what sprintf outputs
+                    ## Calculate byte length and ensure data is sent as bytes, not UTF-8 chars
                     my $data_to_send = $reply->{'data'};
                     my $byte_count;
 
                     if ( utf8::is_utf8( $data_to_send ) ) {
-                        ## For UTF-8 flagged strings, use Encode to get proper byte representation
-                        require Encode;
-                        my $encoded_data = Encode::encode_utf8( $data_to_send );
-                        $byte_count = length( $encoded_data );
-                        $data_to_send = $encoded_data;
+                        ## UTF-8 flagged: must convert to actual bytes
+                        utf8::encode( $data_to_send );
+                        ## After encode, calculate actual byte length
+                        $byte_count = length( $data_to_send );
                     } else {
                         ## Already bytes
                         $byte_count = length( $data_to_send );
@@ -795,7 +793,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         qw| X3QVAWA |,
                         $cmd_id_str,
                         $byte_count,
-                        $data_to_send
+                        $data_to_send  ## Now data is bytes, not UTF-8 flagged
                     );
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| TERM | ) {
