@@ -776,24 +776,24 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                 } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
 
                     ## Calculate byte length correctly for UTF-8 data
-                    ## without modifying the original string
+                    ## and prepare data for transmission as bytes
                     my $byte_count;
-                    if ( utf8::is_utf8( $reply->{'data'} ) ) {
-                        ## For UTF-8 flagged strings, we need byte length not char length
-                        ## Use a temporary to avoid modifying original
-                        my $temp = $reply->{'data'};
-                        utf8::encode( $temp );  # Convert UTF-8 flagged string to UTF-8 bytes
-                        $byte_count = length( $temp );
+                    my $data_to_send = $reply->{'data'};
+
+                    if ( utf8::is_utf8( $data_to_send ) ) {
+                        ## For UTF-8 flagged strings, convert to bytes
+                        utf8::encode( $data_to_send );  # Convert to actual UTF-8 bytes
+                        $byte_count = length( $data_to_send );
                     } else {
                         ## Already bytes, use directly
-                        $byte_count = length( $reply->{'data'} );
+                        $byte_count = length( $data_to_send );
                     }
 
                     $output->$* .= <[base.sprint_t]>->(  ##  SIZE template  ##
                         qw| X3QVAWA |,
                         $cmd_id_str,
                         $byte_count,
-                        $reply->{'data'}  ## Always use original data, never modified
+                        $data_to_send  ## Use encoded bytes for consistent transmission
                     );
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| TERM | ) {
