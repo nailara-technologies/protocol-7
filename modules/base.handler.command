@@ -792,7 +792,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                             utf8::encode( $temp );
                         }
                         $count = length( $temp );
-                        $template = qw| W9K2LMN |;  ## OCTETS template
+                        $template = qw| BMHFBCI |;  ## OCTETS template
                     } else {
                         ## SIZE mode (default): count characters
                         $count = length( $data_to_send );  # Character count for UTF-8 strings
