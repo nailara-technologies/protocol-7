@@ -1,0 +1,63 @@
+## [:< ##
+
+# name    = cube.cmd.reply-encoding-mode
+# descr   = set session reply encoding mode (utf8, utf7, octets, base32, base32-xz)
+#
+# usage   : reply-encoding-mode <mode>
+# modes   : utf8 (default, character count)
+#           utf7 (7-bit safe, ASCII-readable)
+#           octets (raw byte count)
+#           base32 (7-bit safe, fully encoded)
+#           base32-xz (base32 with XZ compression)
+
+my $requested_mode = $call->{'args'}->[0] // '';
+
+$requested_mode = lc($requested_mode);
+$requested_mode =~ s/\s+//g;  # Remove whitespace
+
+## Validate requested mode
+if ( $requested_mode eq 'utf8' ||
+     $requested_mode eq 'utf7' ||
+     $requested_mode eq 'octets' ||
+     $requested_mode eq 'base32' ) {
+
+    ## Standard modes - always available
+    $session->{'reply_encoding_mode'} = $requested_mode;
+    $reply->{'mode'} = 'true';
+    $reply->{'data'} = "reply encoding mode set to: $requested_mode";
+
+} elsif ( $requested_mode eq 'base32-xz' ) {
+
+    ## Check if XZ compression is available
+    ## Protocol-7 loads compression deps early, so we can check
+    if ( eval { require Compress::Raw::Lzma; 1; } ) {
+        $session->{'reply_encoding_mode'} = 'base32-xz';
+        $reply->{'mode'} = 'true';
+        $reply->{'data'} = 'reply encoding mode set to: base32-xz';
+    } else {
+        $reply->{'mode'} = 'false';
+        $reply->{'data'} = 'base32-xz mode not available (XZ compression not installed)';
+    }
+
+} elsif ( $requested_mode eq '' ) {
+
+    ## No mode specified - show current mode or error
+    my $current_mode = $session->{'reply_encoding_mode'} // 'utf8';
+    $reply->{'mode'} = 'true';
+    $reply->{'data'} = "current reply encoding mode: $current_mode";
+
+} else {
+
+    ## Unknown mode
+    $reply->{'mode'} = 'false';
+    $reply->{'data'} = "unsupported encoding mode: '$requested_mode' " .
+                       "(supported: utf8, utf7, octets, base32, base32-xz)";
+}
+
+1;
+
+#,,.,,,,.,...,.,,,,..,,.,,,..,,.,,,..,,..,.,,,..,,...,...,...,.,,,...,,,.,.,.,
+# [ AMOS7 checksum placeholder - will be updated ]
+#\\\|PLACEHOLDER \ / AMOS7 \ YOURUM ::
+#\[7]PLACEHOLDER 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
