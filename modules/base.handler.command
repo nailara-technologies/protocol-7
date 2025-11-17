@@ -775,26 +775,16 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
 
-                    ## Calculate byte length without modifying original data
-                    ## Use temp copy approach to measure actual UTF-8 byte count
+                    ## Perl philosophy: SIZE reports character count, not bytes
+                    ## Both client and server work with characters when UTF-8 flagged
                     my $data_to_send = $reply->{'data'};
-                    my $byte_count;
-
-                    if ( utf8::is_utf8( $data_to_send ) ) {
-                        ## UTF-8 flagged: create temp copy to measure actual bytes
-                        my $temp = $data_to_send;
-                        utf8::encode( $temp );
-                        $byte_count = length( $temp );
-                    } else {
-                        ## Already bytes
-                        $byte_count = length( $data_to_send );
-                    }
+                    my $char_count = length( $data_to_send );  # Returns character count for UTF-8 strings
 
                     $output->$* .= <[base.sprint_t]>->(  ##  SIZE template  ##
                         qw| X3QVAWA |,
                         $cmd_id_str,
-                        $byte_count,
-                        $data_to_send  ## Pass original data as-is
+                        $char_count,
+                        $data_to_send
                     );
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| TERM | ) {
