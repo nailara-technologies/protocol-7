@@ -53,10 +53,65 @@ Protocol-7 uses a sophisticated dependency tracking system to manage Perl module
 - **Core Dependencies**: Perl 5.28.0 or newer
 - **Perl Modules**: Required modules are tracked in the `pm-dep` directory of each zenka and mapped in [modules/base.known_dependencies](modules/base.known_dependencies)
 - **Package Management**: Dependencies can be resolved from Debian packages or CPAN as specified in the dependency mappings
+- **Dependency Manager**: [bin/p7-deps](bin/p7-deps) provides comprehensive dependency analysis and installation
 
 The system automatically tracks which modules each zenka uses and will register new dependencies when they are encountered.
 
+### Dependency Management with bin/p7-deps
+
+The `bin/p7-deps` tool provides both analysis and installation capabilities:
+
+**Analysis Commands:**
+- `bin/p7-deps list` - Show all dependencies from all sources
+- `bin/p7-deps check [profile]` - Check aggregated dependencies for a profile
+- `bin/p7-deps generate` - Generate YAML from Protocol-7 dependencies
+
+**Installation Commands:**
+- `bin/p7-deps install [profile]` - Install all dependencies (APT + CPAN)
+- `bin/p7-deps install-apt [profile]` - Install only Debian packages
+- `bin/p7-deps install-cpan [profile]` - Install only CPAN modules
+
+**Installation Options:**
+- `--dry-run` - Preview what would be installed without making changes
+- `--verbose` or `-v` - Show detailed output during installation
+
+**Features:**
+- Automatic root detection (skips sudo when running as root)
+- Aggregates dependencies from base.known_dependencies and all zenki configurations
+- Supports profile-based installation (default: protocol7_full)
+- Self-contained: no need for workspace-transfer repository
+
 ## Installation
+
+### Recommended: Using bin/p7-deps
+
+The easiest way to install Protocol-7 dependencies is using the built-in dependency manager:
+
+**Preview what will be installed:**
+```bash
+bin/p7-deps --dry-run install
+```
+
+**Install all dependencies:**
+```bash
+bin/p7-deps install
+```
+
+**Install only what you need:**
+```bash
+bin/p7-deps install-apt          # Debian packages only
+bin/p7-deps install-cpan         # CPAN modules only
+```
+
+This approach:
+- Automatically detects if running as root
+- Aggregates all dependencies from zenki configurations
+- Provides clear status output with Protocol-7 styling
+- Optionally generates dependency reports for documentation
+
+### Legacy: Using Debian Installation Scripts
+
+For backwards compatibility, traditional installation scripts are still available:
 
 ### Minimal Installation
 
@@ -67,7 +122,7 @@ Run this command: `bin/dependencies/install_minimal_dependencies.debian.sh`
 This script installs:
 
 - Core Perl modules and system packages for basic functionality
-- Requirements for  'v7', 'cube', 'p7-log', 'system', 'httpd', 'events' and some non-X11 zenki
+- Requirements for 'v7', 'cube', 'p7-log', 'system', 'httpd', 'events' and some non-X11 zenki
 - Creates necessary symlinks and systemd service
 
 ### Full Installation
