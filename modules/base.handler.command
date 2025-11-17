@@ -775,17 +775,25 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
 
-                    #  = Encode::decode( qw| UTF-8 |, $reply->{'data'} );
+                    ## Calculate byte length correctly for UTF-8 data
+                    ## without modifying the original string
+                    my $byte_count;
                     if ( utf8::is_utf8( $reply->{'data'} ) ) {
-                        utf8::decode( $reply->{'data'} );
-                        # utf8::downgrade( $reply->{'data'} );
-
+                        ## For UTF-8 flagged strings, we need byte length not char length
+                        ## Use a temporary to avoid modifying original
+                        my $temp = $reply->{'data'};
+                        utf8::encode( $temp );  # Convert UTF-8 flagged string to UTF-8 bytes
+                        $byte_count = length( $temp );
+                    } else {
+                        ## Already bytes, use directly
+                        $byte_count = length( $reply->{'data'} );
                     }
+
                     $output->$* .= <[base.sprint_t]>->(  ##  SIZE template  ##
                         qw| X3QVAWA |,
                         $cmd_id_str,
-                        length( $reply->{'data'} ),
-                        $reply->{'data'}
+                        $byte_count,
+                        $reply->{'data'}  ## Always use original data, never modified
                     );
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| TERM | ) {
