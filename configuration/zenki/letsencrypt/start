@@ -10,14 +10,14 @@ access.cmd.usr.cube = commands heart verify-instance reload name \
                       list show-buffer buffer-erase buffer-erase-level \
                       status renew force-renew list-domains child.commands \
                       list-certificates dump echo request-certificate \
-                      revoke-certificate activity-log # \ # <-- require devmod module
-                                                      # child.* 
+                      revoke-certificate activity-log \ # <-- require devmod module
+                                              child.* 
 
                       # reload command currently disabled [ drops parent cmds ]
 
 access.cmd.usr.parent = commands reload show-buffer \
                         status renew force-renew \
-                        list ## * ** # <-- LLL
+                        list inst-self-signed ## * ** # <-- LLL
 
 ## ACME Server Configuration
 #letsencrypt.acme.server = https://acme-v02.api.letsencrypt.org/directory
@@ -62,8 +62,8 @@ modules.load = auth net protocol io.unix io.ip letsencrypt.base      ## devmod
 
 [zenka.loop]
 
-#,,,,,.,.,,,,,,.,,.,.,,..,.,.,,.,,.,.,..,,,..,..,,...,..,,...,,,,,,,,,.,,,,,.,
-#6YOG7TVN7FBKGC5IN3VFFFPQOK7U4EBD3F4XE4AJTYMQKUXJSPI7GMBVQROQ6Q4R5IF2GGGRARE2I
-#\\\|HP7MOMRSFASCUGMQDYYXM2FU2W2RLY5ILXYR4ATM63HJM3CGMKC \ / AMOS7 \ YOURUM ::
-#\[7]X3HPPZSLNKJU5EE53WQ4EKF55ZODO37VRZXPOE7OXA3GJBVZDQCY 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,..,...,,..,,.,,,,.,,,.,.,.,,..,..,,...,..,,...,.,,,.,,,..,,,,.,
+#2LHG7C7BTN7MO3SFAVDKUB6RIJEFEVL2YQBXS3TZSISSOKEYGQYNOATD2CHWZ2QNVGKILWY6XDEGS
+#\\\|5JEFRKQNZETCGSDVEMQXNJPXLBBLDFLLTGNRR6ZMN7HRV7T4HTO \ / AMOS7 \ YOURUM ::
+#\[7]TZM6MEMNYB2EZBVW3L2LHEUHZVRTBDQACKMFVR2Q7JLXP5M7YUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
