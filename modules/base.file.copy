@@ -11,9 +11,8 @@ if ( not defined $src_path or not defined $dst_path ) {
 }
 
 if ( not -f $src_path ) {
-    <[base.s_warn]>->(
-        "source file does not exist [ %s ] <{C1}>", $src_path
-    );
+    <[base.s_warn]>
+        ->( 'source file does not exist [ %s ] <{C1}>', $src_path );
     return undef;
 }
 
@@ -28,14 +27,15 @@ if ( not -e $dst_path or -f $dst_path ) {
     return TRUE;
 } else {
     <[base.s_warn]>->(
-        "destination path exists and is not a regular file [ %s ] <{C1}>",
+        'destination path exists and'
+            . ' is not a regular file [ %s ] <{C1}>',
         $dst_path
     );
     return undef;
 }
 
-#,,,,,,,.,,.,,,,,.,,..,,,,.,,,.,.,.,,,,,..,,..,,...,...,,,.,,,.,,,.,,,.,,,.,
-#2Z4VKQXRGHFQJIPNK2S5WZYPQMQDN5JL5HXSQKQVGYZNTKPMSFHH37Y5JMZKH4JYJYB7TPKL2D6TQV
-#\\\|NZFVTK4BVXJ2ZQMJ3LQTXRY6PMNWKL7SQHP4VKWXYZ8RMTUV9WXY2Z3ABC4DEFGHIJ \ / AMOS7 \ YOURUM ::
-#\[7]KLMNOPQRSTUVWXYZ4ABCDEFGHIJ5KLMNOPQRS6TUVWXYZ7ABCDEFG8HIJKLMNO9PQR2ST 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,.,,,.,,,,,,...,..,,.,,,.,.,.,,,..,,...,...,.,,,,.,,..,,,,,,.,,,
+#2E26PCTDXRDXGCZK7ELTBMPGEGYEOWX4H2JVRURYETCJRFSFRBK7GVKGP4G2BAQA2BNYBOGHAYDTS
+#\\\|Y2NFIEJOZBPY3SJMW3NKLPHBKUVNVRSGUDYWZCBZSDFVVYRCKHJ \ / AMOS7 \ YOURUM ::
+#\[7]NKL3FH7HOU6KMQDWZU45HGUDBBWD3ML5WQF4DB53ZTD65NFL5KDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,19 +1,20 @@
 ## [:< ##
 
 # name  = letsencrypt.parent.cmd.request-certificate
-# descr = Request new SSL certificate from Let's Encrypt for domain(s)
+# descr = Request new SSL certificate from Let's Encrypt for domain[s]
 
-## Extract domain from call structure (call is pre-parsed from headers)
+## Extract domain from call structure [call is pre-parsed from headers]
+#
 my $domain = $call->{'call_args'}->{'args'} // $call->{'args'};
 
 unless ($domain) {
     return {
-        mode => 'false',
-        data => 'error: domain name required',
+        mode => qw| false |,
+        data => 'domain name required',
     };
 }
 
-<[base.log]>->( 2, "request-certificate command received for: $domain" );
+<[base.logs]>->( 2, 'request-certificate command received for: %s', $domain );
 
 ## Log activity start
 <[letsencrypt.parent.activity_logger]>->(
@@ -25,15 +26,15 @@ my $certs = <letsencrypt.parent.certs>;
 if ( $certs->{$domain} && $certs->{$domain}{status} eq 'active' ) {
     my $expires_at = $certs->{$domain}{expires_at};
     <[base.log]>->(
-        2, "certificate already exists for $domain (expires: $expires_at)"
+        2, "certificate already exists for $domain [expires: $expires_at]"
     );
     <[letsencrypt.parent.activity_logger]>->(
         'enrollment', $domain, 'pending',
-        'certificate already exists (not requesting new)'
+        'certificate already exists [not requesting new]'
     );
 
     return {
-        mode => 'true',
+        mode => qw| true |,
         data => "certificate already exists for '$domain'",
     };
 }
@@ -42,16 +43,17 @@ if ( $certs->{$domain} && $certs->{$domain}{status} eq 'active' ) {
 ## The child can discover SANs if needed via HTTPd queries
 my @domains_to_request = ($domain);
 
-<[base.log]>->(
+<[base.logs]>->(
     2,
-    "requesting certificate for domains: " . join( ', ', @domains_to_request )
+    'requesting certificate for domains: %s',
+    join( ', ', @domains_to_request )
 );
 
 ## Send enrollment command to child process
 <[base.log]>->( 2, "sending enrollment command to child for: $domain" );
 
 my $result = <[base.protocol-7.command.send.local]>->(
-    {   'command'   => 'child.request-certificate',
+    {   'command'   => qw| child.request-certificate |,
         'call_args' => {
             'args'  => $domain,
             'param' => {
@@ -61,7 +63,7 @@ my $result = <[base.protocol-7.command.send.local]>->(
             }
         },
         'reply' => {
-            'handler' => 'letsencrypt.parent.handler_enrollment_reply',
+            'handler' => qw| letsencrypt.parent.handler_enrollment_reply |,
             'params'  => { 'domain' => $domain, 'attempt' => 1 }
         }
     }
@@ -74,8 +76,8 @@ if ($result) {
     );
 
     return {
-        mode => 'true',
-        data => "certificate request initiated for '$domain' - processing...",
+        mode => qw| true |,
+        data => "certificate request initiated for '$domain' - processing..",
     };
 } else {
     <[base.log]>->( 1, "error: failed to queue enrollment for: $domain" );
@@ -84,13 +86,14 @@ if ($result) {
     );
 
     return {
-        mode => 'false',
-        data => "error: failed to queue certificate request for '$domain'",
+        mode => qw| false |,
+        data => sprintf "failed to queue certificate request for '%s'",
+        $domain
     };
 }
 
-#,,.,,,,.,...,,.,,.,.,,.,,,.,,.,,,.,,,...,...,..,,...,...,,.,,..,,,,.,.,.,.,.,
-#55ZP56HNSIYAKUXQL2JKRVFKBYGSMPFPVYM6SS5MGRGO2TCKVSKLKKSPU4QO2OVJCAPXAZFVAV2YQ
-#\\\|XOS77APXO6C2PRXOIKTMSP64RKKBUIGFLHJXZCU6SMDTWAVS5EP \ / AMOS7 \ YOURUM ::
-#\[7]J5MHCCHMN33P72B5AB2OWEKHIOG6DGE2NA5CBJKECFY5IU6BS6AQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,..,,,.,,.,.,...,,.,,.,,,..,,.,,,..,,...,...,.,,,..,,...,.,,,.,.,
+#F3FUMV3EVHQ7ZPEA5PUHTPDWYWV7QIO2AXSWQPUU3U5OOVWVHPSMAFPDEJYVCGZWMHV4MLSNJNTFY
+#\\\|NASH4FE62WNDEDUPUAPZ3MNM7ALXRZ736TMP5TOX2TLO3TH73NH \ / AMOS7 \ YOURUM ::
+#\[7]ZD2TNJAN2EXP2BG6LH4WYM624DUBKAHUG5DK45FSUZSHTGH7LCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
