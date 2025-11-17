@@ -14,7 +14,7 @@ my $domain    = $msg->{domain};
 ## STEP 1: Load certificate from disk
 unless ( -f $cert_path ) {
     return {
-        status => 'error',
+        status => qw| error |,
         error  => "Certificate file not found: $cert_path"
     };
 }
@@ -24,7 +24,7 @@ unless ( -f $cert_path ) {
 my $cert_content;
 open( my $cert_fh, '<', $cert_path )
     or return {
-    status => 'error',
+    status => qw| error |,
     error  => "Failed to read certificate: $!"
     };
 {
@@ -35,16 +35,16 @@ close($cert_fh);
 
 ## Extract certificate DER encoding for revocation request
 my $x509 = Crypt::OpenSSL::X509->new_from_string( $cert_content,
-    Crypt::OpenSSL::X509::FORMAT_PEM );
+    qw| FORMAT_PEM | );
 unless ($x509) {
     return {
-        status => 'error',
+        status => qw| error |,
         error  => 'Failed to parse certificate'
     };
 }
 
 ## Get DER format for ACME revocation
-my $cert_der  = $x509->as_string(Crypt::OpenSSL::X509::FORMAT_ASN1);
+my $cert_der  = $x509->as_string(qw| FORMAT_ASN1 |);
 my $cert_b64u = <[letsencrypt.child.encode_base64url]>->($cert_der);
 
 <[base.log]>->( 2, "certificate loaded and encoded for revocation" );
@@ -56,7 +56,7 @@ unless ( <letsencrypt.child.acme_client> {directory} ) {
     my $dir_info = <[letsencrypt.child.fetch_acme_directory]>->();
     unless ($dir_info) {
         return {
-            status => 'error',
+            status => qw| error |,
             error  => 'Failed to fetch ACME directory'
         };
     }
@@ -64,12 +64,12 @@ unless ( <letsencrypt.child.acme_client> {directory} ) {
 
 unless ( <letsencrypt.child.acme_client> {account_url} ) {
     ## Try to get or register account
-    my $account_info = <[letsencrypt.child.acme_check_account]>->();
+    my $account_info = <[letsencrypt.child.acme_check_account]>;
     unless ($account_info) {
-        $account_info = <[letsencrypt.child.acme_register_account]>->();
+        $account_info = <[letsencrypt.child.acme_register_account]>;
         unless ($account_info) {
             return {
-                status => 'error',
+                status => qw| error |,
                 error  => 'Failed to register ACME account'
             };
         }
@@ -79,10 +79,10 @@ unless ( <letsencrypt.child.acme_client> {account_url} ) {
 ## STEP 3: Get fresh nonce
 <[base.log]>->( 2, 'step 3: obtaining fresh nonce' );
 
-my $nonce = <[letsencrypt.child.get_fresh_nonce]>->();
+my $nonce = <[letsencrypt.child.get_fresh_nonce]>;
 unless ($nonce) {
     return {
-        status => 'error',
+        status => qw| error |,
         error  => 'Failed to obtain fresh nonce'
     };
 }
@@ -93,7 +93,7 @@ unless ($nonce) {
 my $revoke_url = <letsencrypt.child.acme_client> {directory}{revoke};
 unless ($revoke_url) {
     return {
-        status => 'error',
+        status => qw| error |,
         error  => 'ACME directory missing revoke endpoint'
     };
 }
@@ -111,7 +111,7 @@ my $revoke_response = <[letsencrypt.child.acme_http_request]>->(
 
 unless ($revoke_response) {
     return {
-        status => 'error',
+        status => qw| error |,
         error  => 'Failed to send revocation request'
     };
 }
@@ -124,7 +124,7 @@ if ( $http_status != 200 ) {
         1, "revocation failed with HTTP $http_status: $error_msg"
     );
     return {
-        status => 'error',
+        status => qw| error |,
         error  => "ACME revocation error: $error_msg"
     };
 }
@@ -132,7 +132,7 @@ if ( $http_status != 200 ) {
 <[base.log]>->( 2, 'certificate successfully revoked with ACME server' );
 
 my $result = {
-    status     => 'success',
+    status     => qw| success |,
     domain     => $domain,
     revoked_at => time(),
 };
@@ -141,8 +141,8 @@ my $result = {
 
 return $result;
 
-#,,,.,,.,,,.,,,,.,..,,,,.,,..,,,,,,..,...,,..,..,,...,...,.,,,,,.,...,,..,..,,
-#B4EQAFCB5R72SCEUWMKYRKO4X6EICBRPDG5URBOV7NXTDR62HFWH5XU3UM53UBA3QMWFCQPVEG6BK
-#\\\|74LO6YAC3WBOHI26CRT5JSLBGL5RS463SW557DXBK6NCL3XCBY4 \ / AMOS7 \ YOURUM ::
-#\[7]GAIDPPEBA3GZMPFT6SULDZJLZZU3DJ7I4NXO6OBHU7I7QSJPVSBY 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,,.,,,,,,,.,..,,,.,,...,.,.,,..,..,,...,...,...,.,,,,..,,..,,,,,
+#NCEBJMJWRLPQP6PAP3LCES2T53L3DLKEPQJFWJ7XTTKK37OYTBKM7D2Q3W5B5ESHDAKZWZM45YHL2
+#\\\|I3N6AOXGYHP6N7R6IHKJ4CNTSMHSMZZBYCLYGB6VRPMMP3MJWDQ \ / AMOS7 \ YOURUM ::
+#\[7]QNAQ277MT2K6C7X7XVT2LIDCGPIUUTAARFZTZS5U63T7EBLUOSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

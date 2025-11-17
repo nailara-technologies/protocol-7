@@ -1,25 +1,26 @@
 ## [:< ##
 
 # name  = letsencrypt.cmd.inst-self-signed
-# descr = Generate and install a self-signed Ed25519 ECDSA certificate for local testing
+# descr = generate and install self-signed Ed25519 ECDSA cert for local testing
 
-<[base.log]>->( 2, 'inst-self-signed command requested' );
+<[base.log]>->( 1, 'installing self-signed certificate.. [requested]' );
 
 # Certificate paths from httpsd config
-my $cert_dir  = '/etc/protocol-7/certs';
+my $cert_dir  = qw| /etc/protocol-7/certs |;
 my $cert_path = <httpsd.cfg.certificate_path> // "$cert_dir/current.pem";
-my $key_path  = <httpsd.cfg.key_path> // "$cert_dir/current.key";
+my $key_path  = <httpsd.cfg.key_path>         // "$cert_dir/current.key";
 
 ## Check if certificates already exist
 if ( -f $cert_path && -f $key_path ) {
     <[base.log]>->( 2, 'certificates already installed' );
     return {
-        'mode' => 'inline',
-        'data' => "✓ Self-signed certificate already installed at:\n  Cert: $cert_path\n  Key:  $key_path\n"
+        'mode' => qw| size |,
+        'data' => "✓ Self-signed certificate already installed at:\n"
+            . "  Cert: $cert_path\n  Key:  $key_path\n"
     };
 }
 
-<[base.log]>->( 2, 'generating self-signed Ed25519 ECDSA certificate...' );
+<[base.log]>->( 2, ':. generating self-signed Ed25519 ECDSA certificate..' );
 
 ## Ensure certificate directory exists
 unless ( -d $cert_dir ) {
@@ -27,72 +28,77 @@ unless ( -d $cert_dir ) {
         my $err = "error: failed to create directory $cert_dir";
         <[base.log]>->( 1, $err );
         return {
-            'mode' => 'inline',
+            'mode' => qw| size |,
             'data' => "✗ Failed to create certificate directory:\n  $err\n"
         };
     }
-    <[base.log]>->( 2, "created certificate directory: $cert_dir" );
+    <[base.log]>->( 2, ": created certificate directory: $cert_dir" );
 }
 
-## Generate private key (Ed25519)
-<[base.log]>->( 2, 'generating Ed25519 private key...' );
+## Generate private key [Ed25519]
+<[base.log]>->( 2, ':. generating Ed25519 private key..' );
 
-my $temp_key_file = <[file.temp]>->();
+my $temp_key_file = <[file.temp]>;
 
-my $key_result = system("openssl genpkey -algorithm Ed25519 -out '$temp_key_file' 2>/dev/null");
+my $key_result = system( "openssl genpkey -algorithm Ed25519"
+        . " -out '$temp_key_file' 2>/dev/null" );
 
 unless ( -f $temp_key_file && -s $temp_key_file && $key_result == 0 ) {
-    <[base.log]>->( 1, 'error: failed to generate Ed25519 key' );
+    <[base.log]>->( 0, 'failed to generate Ed25519 key' );
     return {
-        'mode' => 'inline',
+        'mode' => qw| false |,
         'data' => "✗ Failed to generate Ed25519 private key\n"
     };
 }
 
-<[base.log]>->( 2, 'Ed25519 key generated successfully' );
+<[base.log]>->( 2, ':.. Ed25519 key generated successfully' );
 
 ## Generate self-signed certificate (365 days, no intermediate processing)
-<[base.log]>->( 2, 'generating self-signed certificate...' );
+<[base.log]>->( 2, ':. generating self-signed certificate..' );
 
-my $temp_cert_file = <[file.temp]>->();
+my $temp_cert_file = <[file.temp]>;
 
-my $cert_result = system("openssl req -new -x509 -key '$temp_key_file' " .
-    "-out '$temp_cert_file' -days 365 -subj '/CN=localhost' 2>/dev/null");
+my $cert_result
+    = system( "openssl req -new -x509 -key '$temp_key_file' "
+        . "-out '$temp_cert_file' -days 365 -subj '/CN=localhost' 2>/dev/null"
+    );
 
 unless ( -f $temp_cert_file && -s $temp_cert_file && $cert_result == 0 ) {
-    <[base.log]>->( 1, 'error: failed to generate self-signed certificate' );
+    <[base.log]>->( 0, 'failed to generate self-signed certificate' );
     return {
-        'mode' => 'inline',
+        'mode' => qw| false |,
         'data' => "✗ Failed to generate self-signed certificate\n"
     };
 }
 
-<[base.log]>->( 2, 'self-signed certificate generated successfully' );
+<[base.log]>->( 2, ':.. self-signed certificate generated successfully' );
 
 ## Install certificate to final location
-<[base.log]>->( 2, "installing certificate to $cert_path" );
+<[base.log]>->( 2, ":. installing certificate to $cert_path" );
 
 unless ( <[file.copy]>->( $temp_cert_file, $cert_path ) ) {
-    <[base.log]>->( 1, "error: failed to install certificate to $cert_path" );
+    <[base.log]>->( 0, "failed to install certificate to $cert_path" );
     return {
-        'mode' => 'inline',
+        'mode' => qw| false |,
         'data' => "✗ Failed to install certificate to $cert_path\n"
     };
 }
 
 unless ( chmod( 0600, $cert_path ) ) {
-    <[base.log]>->( 1, "warning: could not set permissions on $cert_path" );
+    <[base.log]>->(
+        0, ":. warning .: could not set permissions on $cert_path"
+    );
 }
 
 <[base.log]>->( 2, "certificate installed successfully" );
 
 ## Install private key to final location
-<[base.log]>->( 2, "installing private key to $key_path" );
+<[base.log]>->( 2, ":. installing private key to $key_path" );
 
 unless ( <[file.copy]>->( $temp_key_file, $key_path ) ) {
-    <[base.log]>->( 1, "error: failed to install private key to $key_path" );
+    <[base.log]>->( 0, "failed to install private key to $key_path" );
     return {
-        'mode' => 'inline',
+        'mode' => qw| false |,
         'data' => "✗ Failed to install private key to $key_path\n"
     };
 }
@@ -103,31 +109,37 @@ unless ( chmod( 0600, $key_path ) ) {
 
 <[base.log]>->( 2, "private key installed successfully" );
 
-## Build response
-my $reply = "✓ Self-signed certificate successfully generated and installed\n\n";
-$reply .= ":  INSTALLATION SUMMARY\n";
-$reply .= ":    Certificate: $cert_path\n";
-$reply .= ":    Private Key: $key_path\n";
-$reply .= ":    Validity:    365 days\n";
-$reply .= ":    Algorithm:   Ed25519 ECDSA\n";
-$reply .= ":    CN:          localhost\n";
-$reply .= ":\n";
-$reply .= ":  USAGE\n";
-$reply .= ":    This certificate is suitable for local testing only.\n";
-$reply .= ":    Browsers will show security warnings (expected for self-signed certs).\n";
-$reply .= ":\n";
-$reply .= ":  NEXT STEPS\n";
-$reply .= ":    1. Reload httpsd to use the new certificate\n";
-$reply .= ":    2. Test with: curl -k -s https://localhost/\n";
-$reply .= ":\n";
+## Build success response
+my $reply_string
+    = "✓ Self-signed certificate successfully generated and installed\n\n";
+$reply_string .= ":  INSTALLATION SUMMARY\n";
+$reply_string .= ":    Certificate: $cert_path\n";
+$reply_string .= ":    Private Key: $key_path\n";
+$reply_string .= ":    Validity:    365 days\n";
+$reply_string .= ":    Algorithm:   Ed25519 ECDSA\n";
+$reply_string .= ":    CN:          localhost\n";
+$reply_string .= ":\n";
+$reply_string .= ":  USAGE\n";
+$reply_string
+    .= ":    This certificate is suitable" . " for local testing only.\n";
+$reply_string
+    .= ":    Browsers will show security warnings"
+    . " [expected for self-signed certs].\n";
+$reply_string .= ":\n";
+$reply_string .= ":  NEXT STEPS\n";
+$reply_string .= ":    1. Reload httpsd to use the new certificate\n";
+$reply_string .= ":    2. Test with: curl -k -s https://localhost/\n";
+$reply_string .= ":\n";
+
+<[base.logs]>->( 1, ':. successfully installed to %s', $cert_dir );
 
 return {
-    'mode' => 'inline',
-    'data' => $reply
+    'mode' => qw| size |,
+    'data' => $reply_string
 };
 
-#,,,.,.,.,,,.,,.,,..,,.,,,.,,,.,.,,,.,.,,,.,.,..,,...,..,,..,,,..,,..,..,,.,.,
-#7CENXJ5VZT27MHOW4HBFNTOWEU6P7NVIDH2REQZI4MKI7FMPHZ3H62OO2PSFEOQOH7T3HTNG2DXYC
-#\\\|AUVBUZN75PATWPEYBSCBADTX2O2BU7NXE47TVT43F324GIJF73F \ / AMOS7 \ YOURUM ::
-#\[7]WA5UEEEEA7TTEQX537AEGJXKN5KQEEEZTX73YZOQQZYVLHHP2UCI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,...,,,.,.,.,.,,,,.,,,..,,..,,.,,..,,...,...,,..,,,.,,,,,,.,,,,.,
+#GXSDKDGBEU6VIFXUYC73R3D7MQCZFAR7IK5ZZZ7OCXOXK4EST7ZJ5E5KX7MCUVIWXNET7UHEKCJJO
+#\\\|IEBT2YEVFHASJRYEBP3HGRNEZSONF7J3I6L5R5WRER5L2ZPZQ5T \ / AMOS7 \ YOURUM ::
+#\[7]PMOKCQAMYR3BBGIHONAPOCX76DQ2ZVMIRKNF7VDDLWHVR3436SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
