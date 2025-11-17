@@ -10,48 +10,50 @@
 #           base32 (7-bit safe, fully encoded)
 #           base32-xz (base32 with XZ compression)
 
-my $session_id    = $$call{'session_id'};
-my $requested_mode = $$call{'args'} // '';
+my $session_id     = $call->{'session_id'};
+my $requested_mode = $call->{'args'} // '';
 
 $requested_mode = lc($requested_mode);
-$requested_mode =~ s/\s+//g;  # Remove whitespace
+$requested_mode =~ s|\s+||g;    # Remove whitespace
 
 ## Validate requested mode
-if ( $requested_mode eq 'utf8' ||
-     $requested_mode eq 'utf7' ||
-     $requested_mode eq 'octets' ||
-     $requested_mode eq 'base32' ) {
+if (   $requested_mode eq qw| utf8 |
+    || $requested_mode eq qw| utf7 |
+    || $requested_mode eq qw| octets |
+    || $requested_mode eq qw| base32 | ) {
 
     ## Standard modes - always available
     $data{'session'}{$session_id}{'reply_encoding_mode'} = $requested_mode;
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' => "reply encoding mode set to: $requested_mode"
     };
 
-} elsif ( $requested_mode eq 'base32-xz' ) {
+} elsif ( $requested_mode eq qw| base32-xz | ) {
 
     ## Check if XZ compression is available
     ## Protocol-7 loads compression deps early, so we can check
-    if ( eval { require Compress::Raw::Lzma; 1; } ) {
-        $data{'session'}{$session_id}{'reply_encoding_mode'} = 'base32-xz';
+    if ( <base.perlmod.loaded>->{'Compress::Raw::Lzma'} ) {
+        $data{'session'}{$session_id}{'reply_encoding_mode'} = qw|base32-xz|;
         return {
-            'mode' => 'true',
+            'mode' => qw| true |,
             'data' => 'reply encoding mode set to: base32-xz'
         };
     } else {
         return {
-            'mode' => 'false',
-            'data' => 'base32-xz mode not available (XZ compression not installed)'
+            'mode' => qw| false |,
+            'data' =>
+                'base32-xz mode not available [XZ compression not installed]'
         };
     }
 
 } elsif ( $requested_mode eq '' ) {
 
     ## No mode specified - show current mode
-    my $current_mode = $data{'session'}{$session_id}{'reply_encoding_mode'} // 'utf8';
+    my $current_mode = $data{'session'}{$session_id}{'reply_encoding_mode'}
+        // qw| utf8 |;
     return {
-        'mode' => 'true',
+        'mode' => qw| true |,
         'data' => "current reply encoding mode: $current_mode"
     };
 
@@ -59,10 +61,16 @@ if ( $requested_mode eq 'utf8' ||
 
     ## Unknown mode
     return {
-        'mode' => 'false',
-        'data' => "unsupported encoding mode: '$requested_mode' " .
-                   "(supported: utf8, utf7, octets, base32, base32-xz)"
+        'mode' => qw| false |,
+        'data' => "unsupported encoding mode: '$requested_mode' "
+            . "[ supported : utf8, utf7, octets, base32, base32-xz ]"
     };
 }
 
 1;
+
+#,,..,,..,,..,,,.,.,.,.,.,..,,,,,,,,,,,,.,..,,..,,...,...,,..,,,,,,..,.,.,,,,,
+#3V4NDQK2KGNXWCQFMVPA6KMAITXZQIY7Q2YA52LRRTYYXCG53CEG555BKVQKGPKWFVZOLJG6YGSC6
+#\\\|UEJSC3MP2CXCKUY6RODVMR5HDAOOZRIK6YDLLJRLNFNXTJLEHVY \ / AMOS7 \ YOURUM ::
+#\[7]XNBFC2PRLWFKBOVGYPHB52JMRFCDNTASNVUPDJSVLGQLXQMI6GDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

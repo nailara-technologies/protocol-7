@@ -257,12 +257,13 @@ sub p7_load_perl_modules { ##  load early used perl modules [ more later ]  ##
     ##  MODULES  ##
 
     use File::stat;
-   # use IO::Handle;
+
+    # use IO::Handle;
     use Sys::Hostname;
     use Text::Wrap qw| wrap |;
     use File::Spec::Functions;
-    use Cwd     qw| abs_path |;
-    use FindBin qw| $RealBin $RealScript |;
+    use Cwd        qw| abs_path |;
+    use FindBin    qw| $RealBin $RealScript |;
     use List::Util qw| min max uniq reduce |;
 
     ##  includes : S_IWUSR, S_IWGRP, S_ISFIFO  ##
@@ -3303,6 +3304,7 @@ sub p7_uncompress_subroutine_str {
         eval sprintf 'use %s qw| anyuncompress $AnyUncompressError |',
             $module_name;
         if ( length $EVAL_ERROR or not defined &anyuncompress ) {
+            $data{'base'}{'perlmod'}{'loaded'}{$module_name} = FALSE;
             my $err_str
                 = defined $code{'base.format_error'}
                 ? scalar $code{'base.format_error'}->( $EVAL_ERROR, -1 )
@@ -3314,6 +3316,8 @@ sub p7_uncompress_subroutine_str {
                     $module_name, $err_str
                 )
             );
+        } else {
+            $data{'base'}{'perlmod'}{'loaded'}{$module_name} = TRUE;
         }
     }
     ## module loaded ##
@@ -5137,8 +5141,8 @@ __DATA__
 :
 :.
 
-#,,,.,,,.,.,,,,..,,..,,..,..,,...,,,.,,..,.,,,..,,...,...,,.,,,,,,..,,..,,.,.,
-#LLO3JXIQPVUX3UWCORKGRUTISGXWDC2O4NWHMAOBJO23TM32TAQCEURHMIQQLWTHYV2JGVFTYNXM4
-#\\\|4K34PJWAAZ4QG74SRZGJQABEL7VMGCWP7LWZ3UHTQYUBOYN4SJ4 \ / AMOS7 \ YOURUM ::
-#\[7]EMD36CJ7WBFKRB7WCDT2T4P2EPCIS6UHXMSRZWA54PE4RQVUOQDY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,,,,.,.,.,.,.,,,,..,,..,.,,,,.,,..,,...,...,,..,,.,,,..,..,,.,,,
+#BVC5L3X2NNM63DJQDYRINAKRVWB5ZVJTNUF6UQBPCPV3AABCTAPIIP7ZQM47Z3S433QRBUKCVXHLU
+#\\\|EWM4OHYWZ7PIBBWCBGUFUBILS4VECJHZQKD4V4TIL3KWXN66YZC \ / AMOS7 \ YOURUM ::
+#\[7]ZQAWFLHZXW5E5T455ZWMU4HNWFCNFUJ6FL6CDVQZ3ONJHZMKOIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
