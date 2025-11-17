@@ -779,14 +779,18 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     ## and prepare data for transmission as bytes
                     my $byte_count;
                     my $data_to_send = $reply->{'data'};
+                    my $is_utf8_flagged = utf8::is_utf8( $data_to_send );
+                    my $char_len = length( $data_to_send );
 
-                    if ( utf8::is_utf8( $data_to_send ) ) {
+                    if ( $is_utf8_flagged ) {
                         ## For UTF-8 flagged strings, convert to bytes
                         utf8::encode( $data_to_send );  # Convert to actual UTF-8 bytes
                         $byte_count = length( $data_to_send );
+                        <[base.log]>->( 3, 'SIZE: UTF-8 flagged, chars=%d, bytes=%d', $char_len, $byte_count );
                     } else {
                         ## Already bytes, use directly
                         $byte_count = length( $data_to_send );
+                        <[base.log]>->( 3, 'SIZE: Not UTF-8 flagged, bytes=%d', $byte_count );
                     }
 
                     $output->$* .= <[base.sprint_t]>->(  ##  SIZE template  ##
