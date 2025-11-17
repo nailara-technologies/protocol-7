@@ -775,25 +775,23 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
 
-                    ## Calculate byte length and ensure data is sent as bytes, not UTF-8 chars
+                    ## Ensure data and byte count are consistent
                     my $data_to_send = $reply->{'data'};
                     my $byte_count;
 
                     if ( utf8::is_utf8( $data_to_send ) ) {
-                        ## UTF-8 flagged: must convert to actual bytes
+                        ## UTF-8 flagged: convert to actual bytes
                         utf8::encode( $data_to_send );
-                        ## After encode, calculate actual byte length
-                        $byte_count = length( $data_to_send );
-                    } else {
-                        ## Already bytes
-                        $byte_count = length( $data_to_send );
                     }
+
+                    ## Now $data_to_send is definitely bytes, count them
+                    $byte_count = length( $data_to_send );
 
                     $output->$* .= <[base.sprint_t]>->(  ##  SIZE template  ##
                         qw| X3QVAWA |,
                         $cmd_id_str,
                         $byte_count,
-                        $data_to_send  ## Now data is bytes, not UTF-8 flagged
+                        $data_to_send  ## Pass the data in byte form we counted
                     );
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| TERM | ) {
