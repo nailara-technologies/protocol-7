@@ -10,7 +10,9 @@
 #           base32 (7-bit safe, fully encoded)
 #           base32-xz (base32 with XZ compression)
 
-my $requested_mode = $call->{'args'}->[0] // '';
+my $requested_mode = ( ref( $call->{'args'} ) eq 'ARRAY' )
+                      ? ( $call->{'args'}->[0] // '' )
+                      : ( $call->{'args'} // '' );
 
 $requested_mode = lc($requested_mode);
 $requested_mode =~ s/\s+//g;  # Remove whitespace
