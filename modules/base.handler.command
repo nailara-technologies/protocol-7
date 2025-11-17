@@ -775,15 +775,34 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
 
-                    ## Perl philosophy: SIZE reports character count, not bytes
-                    ## Both client and server work with characters when UTF-8 flagged
+                    ## SIZE protocol with optional OCTETS mode
+                    ## Default: SIZE reports character count (Perl philosophy)
+                    ## OCTETS mode: reports byte count (for byte-oriented clients)
                     my $data_to_send = $reply->{'data'};
-                    my $char_count = length( $data_to_send );  # Returns character count for UTF-8 strings
+                    my $count;
+                    my $template;
 
-                    $output->$* .= <[base.sprint_t]>->(  ##  SIZE template  ##
-                        qw| X3QVAWA |,
+                    ## Check session preference for response format (default: SIZE/characters)
+                    my $response_mode = $session->{'size_mode'} // 'SIZE';
+
+                    if ( $response_mode eq 'OCTETS' ) {
+                        ## OCTETS mode: count actual bytes
+                        my $temp = $data_to_send;
+                        if ( utf8::is_utf8( $temp ) ) {
+                            utf8::encode( $temp );
+                        }
+                        $count = length( $temp );
+                        $template = qw| W9K2LMN |;  ## OCTETS template
+                    } else {
+                        ## SIZE mode (default): count characters
+                        $count = length( $data_to_send );  # Character count for UTF-8 strings
+                        $template = qw| X3QVAWA |;  ## SIZE template
+                    }
+
+                    $output->$* .= <[base.sprint_t]>->(
+                        $template,
                         $cmd_id_str,
-                        $char_count,
+                        $count,
                         $data_to_send
                     );
 

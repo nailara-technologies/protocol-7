@@ -159,9 +159,10 @@ int main( int argc, char * argv[] ) {
     int continue_read = 1;
     int close_at_lf   = 1;
     int reading_size  = 0;
-    long chars_to_read = -1;  // Changed to chars (UTF-8 aware)
+    long count_to_read = -1;    // Characters (SIZE mode) or bytes (OCTETS mode)
     int space_seen = 0;
-    int utf8_char_count = 0;  // Track UTF-8 characters read
+    int utf8_char_count = 0;    // Track UTF-8 characters read (SIZE mode)
+    int bytes_read = 0;         // Track raw bytes read (OCTETS mode)
     while ( continue_read ) {
         result = recv( socket_fd, &byte, 1, MSG_WAITALL );
         if ( result < 1 ) {
@@ -183,13 +184,15 @@ int main( int argc, char * argv[] ) {
                          strcmp( reply_type, "FALSE" ) == 0 )
                         output_bytes = 1;
 
-                    if ( reading_size ||
-                         strcmp( reply_type, "SIZE" ) == 0 ) {
+                    int is_size_response = ( strcmp( reply_type, "SIZE" ) == 0 ||
+                                             strcmp( reply_type, "OCTETS" ) == 0 );
+
+                    if ( reading_size || is_size_response ) {
                         size_t sizes_len = strlen(size_str_buf);
 
                         if ( sizes_len > 20 ) {
                             fprintf( stderr,
-                                "<< SIZE reply error : numeric overflow >>\n"
+                                "<< SIZE/OCTETS reply error : numeric overflow >>\n"
                             );
                             return 20;
                         }
@@ -199,16 +202,17 @@ int main( int argc, char * argv[] ) {
 
                         if( byte == '\n' ) {
                             size_str_buf[sizes_len] = '\0';
-                            chars_to_read = atoi(size_str_buf);  // Interpret as character count
+                            count_to_read = atoi(size_str_buf);
                             close_at_lf  = 0;
                             reading_size = 0;
-                            utf8_char_count = 0;  // Reset character counter
-                            // SIZE 00000
-                            if( chars_to_read == 0 )
+                            utf8_char_count = 0;  // Reset counters
+                            bytes_read = 0;
+                            // SIZE/OCTETS 00000
+                            if( count_to_read == 0 )
                                 continue_read = 0;
                             else {
                                 output_bytes = 1;
-                                skip_this_one = 1; // endline from SIZE reply
+                                skip_this_one = 1; // endline from SIZE/OCTETS reply
                             }
                         }
                         else {
@@ -225,14 +229,21 @@ int main( int argc, char * argv[] ) {
                         /*  writing payload-data to stdout  */
                         write( STDOUT_FILENO, &byte, result );
 
-                        // Count UTF-8 characters: start of character is 0xxxxxxx or 11xxxxxx
-                        // Continuation bytes are 10xxxxxx
-                        if ( chars_to_read > -1 ) {
-                            unsigned char ubyte = (unsigned char)byte;
-                            // Count if this is start of a UTF-8 character:
-                            // ASCII (0xxxxxxx) or start of multi-byte (11xxxxxx)
-                            if ( (ubyte & 0xC0) != 0x80 ) {
-                                utf8_char_count++;
+                        // Handle both SIZE (character-based) and OCTETS (byte-based) modes
+                        if ( count_to_read > -1 ) {
+                            int is_octets = ( strcmp( reply_type, "OCTETS" ) == 0 );
+
+                            if ( is_octets ) {
+                                // OCTETS mode: count raw bytes
+                                bytes_read++;
+                            } else {
+                                // SIZE mode: count UTF-8 characters
+                                // Start of character is 0xxxxxxx (ASCII) or 11xxxxxx (multi-byte)
+                                // Continuation bytes are 10xxxxxx
+                                unsigned char ubyte = (unsigned char)byte;
+                                if ( (ubyte & 0xC0) != 0x80 ) {
+                                    utf8_char_count++;
+                                }
                             }
                         }
                     }
@@ -240,10 +251,19 @@ int main( int argc, char * argv[] ) {
                     if ( close_at_lf && byte == '\n' ) // TRUE || FALSE line
                         continue_read = 0;
 
-                    else if ( chars_to_read > -1 ) {
-                        // 'SIZE <chars>'-reply completed when we've counted enough characters
-                        if ( utf8_char_count >= chars_to_read )
-                            continue_read = 0;
+                    else if ( count_to_read > -1 ) {
+                        int is_octets = ( strcmp( reply_type, "OCTETS" ) == 0 );
+
+                        // Check if we've read enough based on response type
+                        if ( is_octets ) {
+                            // OCTETS mode: stop when bytes_read >= count_to_read
+                            if ( bytes_read >= count_to_read )
+                                continue_read = 0;
+                        } else {
+                            // SIZE mode: stop when UTF-8 char_count >= count_to_read
+                            if ( utf8_char_count >= count_to_read )
+                                continue_read = 0;
+                        }
                     }
                 }
             }
