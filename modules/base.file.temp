@@ -12,12 +12,14 @@ if ( $tmpl =~ m|/| ) {    # allow paths later
     return undef;
 }
 
-my $first_dir;
-my $zenka_name = <system.zenka.name>;
-@check_dirs = qw| /var/protocol-7 | if @check_dirs == 0;
-
 <[base.perlmod.load]>->( 'File::Path', qw| make_path | )
     if not exists &{'make_path'};
+
+my $first_dir;
+my $zenka_name = <system.zenka.name>;
+@check_dirs = (qw| /var/protocol-7 |)
+    if !@check_dirs
+    or @check_dirs == 1 and not defined $check_dirs[0];
 
 foreach my $chk_dir (@check_dirs) {
     my $subdir_path = catfile( $chk_dir, $zenka_name );
@@ -81,8 +83,8 @@ if ($register) {
 
 return ( $tmp_fh, $tmp_file_path );
 
-#,,,,,,,,,,,.,.,,,..,,.,,,.,,,,..,...,,..,,,,,..,,...,...,,..,,..,,,.,..,,,,.,
-#JA6DHY5DOEF425WE4NIE64HMWY6IJS6CX5VJX2G7I5XLSRF4ANFVKOZAXBZLBQILEFEYYFY2OQ6JU
-#\\\|7DRVUWJ47CC2Z56SXPZNT332SHSS7NPCKOTBRGH2QR56RP5PJHN \ / AMOS7 \ YOURUM ::
-#\[7]7NAZK246HL2ZXAPAHQZUFAWOGZLMKHI6QRHYL2SW5MNF6DGSKMDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,..,,..,,,.,,..,...,...,,.,,,..,..,,...,...,.,.,,..,,,.,,..,.,,,
+#QOU4DMZGXLOTJSVAIUM463LJZP33EO44KYYUSNKU7KB53ZXKOU4YWSS5YRU62VFB3UDHYIBSWMYMQ
+#\\\|O37BD4L5GPEEV7KIESM2QB4IHGDJVX3BT5O3L4FAQU6O2JSU67F \ / AMOS7 \ YOURUM ::
+#\[7]GZZOIPEPAYX57EKXLNF7766OQTYRWQU2EJAQNFXCI32BX75GCIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
