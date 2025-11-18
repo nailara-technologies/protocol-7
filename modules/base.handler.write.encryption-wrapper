@@ -1,0 +1,97 @@
+## [:< ##
+
+# name  = base.handler.write.encryption-wrapper
+# descr = output handler wrapper factory for encrypted session state (state 3)
+#         encrypts outgoing data before transmission
+#
+# installed_by = protocol.protocol-7.encryption.init during state 3 initialization
+# cipher = ChaCha20-Poly1305 AEAD cipher
+# key = 32-byte session encryption key derived from C25519 DH shared secret
+#
+# args  = session_id, encryption_key
+# returns = code reference for encryption transformation
+#
+# note  = creates session-specific closure with persistent state
+#         integrates with encoding layer (if negotiated) in write pipeline
+
+my ( $session_id, $enc_key ) = @ARG;
+
+return sub {
+    my $output_ref = shift;
+    my $session = $data{'session'}{$session_id};
+
+    ## Check if encryption is still active
+    if ( not defined $session->{'link_encryption_context'} ) {
+        return $$output_ref;
+    }
+
+    my $plaintext = $$output_ref;
+
+    ## Empty output: still needs auth tag (empty ciphertext + tag)
+    if ( not defined $plaintext or not length $plaintext ) {
+        ## Return empty message with just the auth tag
+        ## This is a keepalive/heartbeat
+        my $cipher = $session->{'link_encryption_context'};
+
+        $session->{'link_write_counter'} //= 0;
+        $session->{'link_write_counter'}++;
+
+        my $session_bytes = pack qw| N |, $session_id;
+        my $counter_bytes = pack qw| N |, $session->{'link_write_counter'};
+        my $nonce = $session_bytes . $counter_bytes . qq|\0\0\0\0|;
+
+        my $auth_tag = eval {
+            $cipher->encrypt_add( '' );
+            $cipher->encrypt_done( );
+        };
+
+        if ( my $error = $@ ) {
+            <[base.s_warn]>->(
+                sprintf 'ChaCha20-Poly1305 encryption failed [session %d]: %s',
+                $session_id, $error
+            );
+            return '';
+        }
+
+        return $auth_tag // '';
+    }
+
+    ## Encrypt the plaintext using ChaCha20-Poly1305
+    my $cipher = $session->{'link_encryption_context'};
+
+    ## Increment message counter for write side
+    $session->{'link_write_counter'} //= 0;
+    $session->{'link_write_counter'}++;
+
+    ## Generate message-specific nonce for this write
+    ## Format: 4-byte session_id + 4-byte counter + 4-byte zeros = 12-byte nonce
+    my $session_bytes = pack qw| N |, $session_id;
+    my $counter_bytes = pack qw| N |, $session->{'link_write_counter'};
+    my $nonce = $session_bytes . $counter_bytes . qq|\0\0\0\0|;
+
+    ## Encrypt plaintext and get authentication tag
+    my $ciphertext = eval {
+        $cipher->encrypt_add( $plaintext );
+        $cipher->encrypt_done( );
+    };
+
+    if ( my $error = $@ ) {
+        <[base.s_warn]>->(
+            sprintf 'ChaCha20-Poly1305 encryption failed [session %d]: %s',
+            $session_id, $error
+        );
+        return '';
+    }
+
+    ## Return ciphertext with authentication tag appended
+    ## Tag is automatically included in the ciphertext by encrypt_done()
+    return $ciphertext // '';
+};
+
+1;
+
+#,,.,,.,,,,.,,,.,,,,.,.,,,,,,,,.,,,.,,.,,,..,,..,,...,..,,...,,,,,,,,,..,,,,.,
+#4NFOMFHDVZLLZQ2K5YTWQJUZPVMQXHX4DQYQKD3EKD5XCMACFZ5LEUFL4JWTW4FGQBFKWVPKSKOXKXI
+#\\\|6LKQKNCTIPQSDCL3KFHXZ4WYTWHDPV4P2Y7HZILQSCJFXPNRNDK \ / AMOS7 \ YOURUM ::
+#\[7]DZEBDFMW4QRSX4TY2XBZZRGHK6U6DUXZCXFMKDKBVKXHMJ5APXFZQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

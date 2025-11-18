@@ -44,20 +44,68 @@ if ( not defined $enc_key or length($enc_key) != 32 ) {
 ## Store encryption key in session (volatile, not persistent)
 $session->{'link_encryption_key'} = $enc_key;
 
-## TODO: Initialize cipher context (ChaCha20-Poly1305)
-## Store cipher state for read/write operations
-## For now, placeholder for future implementation
+## Initialize ChaCha20-Poly1305 cipher context
+## Load cipher module if not already loaded
+if ( not <base.perlmod.loaded>->( 'Crypt::AuthEnc::ChaCha20Poly1305' ) ) {
+    <[base.perlmod.load]>->( 'Crypt::AuthEnc::ChaCha20Poly1305' );
+}
+
+my $cipher_context = Crypt::AuthEnc::ChaCha20Poly1305->new( $enc_key );
+if ( not defined $cipher_context ) {
+    <[base.logs]>->(
+        0,
+        '[%d] encryption init: failed to initialize ChaCha20-Poly1305 cipher',
+        $session_id
+    );
+    return 0;
+}
+
+$session->{'link_encryption_context'} = $cipher_context;
+$session->{'link_msg_counter'} = 0;  ## message counter for nonce generation
+
+<[base.logs]>->(
+    2,
+    '[%d] ChaCha20-Poly1305 cipher initialized',
+    $session_id
+);
+
+## Save current input/output handlers before installing encryption wrappers
+if ( not defined $session->{'input'}->{'handler_encryption_original'} ) {
+    $session->{'input'}->{'handler_encryption_original'} = $session->{'input'}->{'handler'} // qw| base.handler.command |;
+}
+if ( not defined $session->{'output'}->{'handler_encryption_original'} ) {
+    $session->{'output'}->{'handler_encryption_original'} = $session->{'output'}->{'handler'} // qw| base.handler.write |;
+}
+
+## Install read encryption wrapper (decrypts incoming data)
+$session->{'input'}->{'handler'} = qw| base.handler.read.encryption-wrapper |;
+
+## Create session-specific write encryption wrapper
+my $write_crypto_handler_name = sprintf qw| base.handler.write.encryption-%d |, $session_id;
+my $write_crypto_wrapper = <[base.handler.write.encryption-wrapper]>->(
+    $session_id, $enc_key
+);
+$code{$write_crypto_handler_name} = $write_crypto_wrapper if ref $write_crypto_wrapper eq qw| CODE |;
+
+## Install write encryption wrapper
+$session->{'output'}->{'handler'} = $write_crypto_handler_name;
+
+<[base.logs]>->(
+    2,
+    '[%d] encryption wrappers installed',
+    $session_id
+);
 
 ## Install encoding wrappers if negotiated
 if ( defined $session->{'link_encoding_mode'}
     and length $session->{'link_encoding_mode'} ) {
 
-    ## Save original handlers
+    ## Save encryption wrappers as original for encoding wrappers
     if ( not defined $session->{'input'}->{'handler_original'} ) {
-        $session->{'input'}->{'handler_original'} = $session->{'input'}->{'handler'};
+        $session->{'input'}->{'handler_original'} = qw| base.handler.read.encryption-wrapper |;
     }
     if ( not defined $session->{'output'}->{'handler_original'} ) {
-        $session->{'output'}->{'handler_original'} = $session->{'output'}->{'handler'};
+        $session->{'output'}->{'handler_original'} = $write_crypto_handler_name;
     }
 
     ## Install read wrapper (decode after decrypt)
@@ -82,14 +130,9 @@ if ( defined $session->{'link_encoding_mode'}
 
 <[base.logs]>->(
     2,
-    '[%d] encryption initialized (state %d), encryption key derived',
+    '[%d] encryption initialized (state %d), all layers configured',
     $session_id, $state_id
 );
-
-## TODO: Install encryption wrappers
-## - Implement base.handler.read.encryption-wrapper (decrypt layer)
-## - Implement base.handler.write.encryption-wrapper (encrypt layer)
-## - Order: plaintext → encrypt → [compress] → encode → linewise
 
 return 1;
 

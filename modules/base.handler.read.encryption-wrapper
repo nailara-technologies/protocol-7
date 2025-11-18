@@ -14,20 +14,69 @@ my $event = shift;
 my $session_id = $event->w->data;
 my $session = $data{'session'}{$session_id};
 
-## Get original handler reference (would be base.handler.command)
+## Get original handler reference (encoding wrapper or command handler)
 my $original_handler = $session->{'input'}->{'handler_original'}
     // qw| base.handler.command |;
 
-## Call original handler (processes decrypted commands)
+## Check if encryption is initialized for this session (state 3)
+if ( not defined $session->{'link_encryption_context'} or not defined $session->{'link_encryption_key'} ) {
+    ## Encryption not active, call original handler directly
+    return $code{$original_handler}->($event);
+}
+
+## Apply decryption to input buffer before calling original handler
+my $input_ref = \$session->{'buffer'}->{'input'};
+
+if ( defined $$input_ref and length $$input_ref ) {
+
+    ## ChaCha20-Poly1305 expects: ciphertext + 16-byte authentication tag
+    ## Minimum: 16 bytes tag (empty plaintext) or more
+    if ( length $$input_ref >= 16 ) {
+
+        my $cipher = $session->{'link_encryption_context'};
+
+        ## Increment message counter for nonce generation (read side)
+        $session->{'link_read_counter'} //= 0;
+        $session->{'link_read_counter'}++;
+
+        ## Generate message-specific nonce for this read
+        ## Format: 4-byte session_id + 4-byte counter + 4-byte zeros = 12-byte nonce
+        my $session_bytes = pack qw| N |, $session_id;
+        my $counter_bytes = pack qw| N |, $session->{'link_read_counter'};
+        my $nonce = $session_bytes . $counter_bytes . qq|\0\0\0\0|;
+
+        ## Extract authentication tag from end of ciphertext (last 16 bytes)
+        my $ciphertext_with_tag = $$input_ref;
+        my $ciphertext = substr( $ciphertext_with_tag, 0, length($ciphertext_with_tag) - 16 );
+        my $auth_tag = substr( $ciphertext_with_tag, -16 );
+
+        ## Decrypt and authenticate using ChaCha20-Poly1305
+        my $plaintext = eval {
+            $cipher->decrypt_add( $ciphertext );
+            $cipher->decrypt_done( $auth_tag );
+        };
+
+        if ( my $error = $@ ) {
+            <[base.s_warn]>->(
+                sprintf 'ChaCha20-Poly1305 decryption failed [session %d]: %s',
+                $session_id, $error
+            );
+            $session->{'shutdown'} = TRUE;
+            return 2;  ## disconnect
+        }
+
+        ## Update input buffer with decrypted plaintext
+        if ( defined $plaintext ) {
+            $$input_ref = $plaintext;
+        } else {
+            $$input_ref = '';
+        }
+    }
+}
+
+## Call original handler on decrypted data
 my $ret_code = $code{$original_handler}->($event);
 
-## TODO: Apply decryption to input buffer
-## - BASE32 decode (reverse of encoding layer)
-## - Decompress if needed (optional XZ layer)
-## - Decrypt using session key established in link-upgrade
-## - Operate on $session->{'buffer'}->{'input'} in-place
-
-## Placeholder: no transformation yet
 return $ret_code;
 
 1;
