@@ -194,11 +194,9 @@ return {
             'cpan_fallback'   =>
                 'XML::RSSLite'    # requires cpanm --force XML::RSS::Timing..,
         },
-        # Note: XML::RSS::TimingBot is not available on CPAN - skipping
-        # 'XML::RSS::TimingBot' => {
-        #     'debian' => [ 'libxml-rsslite-perl', 'cpan:XML::RSS::TimingBot' ],
-        #     'cpan_fallback'   => 'XML::RSS::TimingBot'
-        # },
+        # Note: XML::RSS::TimingBot is not available on CPAN
+        # Fallback: LWP::UserAgent is used for HTTP requests in RSS ticker
+        # See modules/rss.ticker.init_code for implementation details
         'SDL' => {
             'debian' => ['libsdl-perl'],
             'cpan_fallback'   => 'SDL'
