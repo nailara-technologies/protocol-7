@@ -18,10 +18,10 @@ die "rss.data.tmp_path '$ENV{TIMINGBOTPATH}' not found"
     if not -d <rss.data.tmp_path>;
 
 <[base.perlmod.autoload]>->('XML::Feed');
-<[base.perlmod.autoload]>->('File::Copy');
 # Note: XML::RSS::TimingBot is not available on CPAN
 # Using LWP::UserAgent as fallback for HTTP requests
 <[base.perlmod.autoload]>->('LWP::UserAgent');
+<[base.perlmod.load]>->( 'File::Copy', qw| move | );
 <[base.perlmod.load]>->( 'File::Path', qw| remove_tree | );
 
 my $db_dir = catfile( <rss.data.tmp_path>, qw| rssdata | );
