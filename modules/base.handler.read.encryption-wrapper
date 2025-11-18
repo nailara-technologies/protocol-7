@@ -19,9 +19,14 @@ my $original_handler = $session->{'input'}->{'handler_original'}
     // qw| base.handler.command |;
 
 ## Check if encryption is initialized for this session (state 3)
-if ( not defined $session->{'link_encryption_context'} or not defined $session->{'link_encryption_key'} ) {
+if ( not defined $session->{'link_encryption_key'} ) {
     ## Encryption not active, call original handler directly
     return $code{$original_handler}->($event);
+}
+
+## Load cipher module if not already loaded
+if ( not <base.perlmod.loaded>->( 'Crypt::AuthEnc::ChaCha20Poly1305' ) ) {
+    <[base.perlmod.load]>->( 'Crypt::AuthEnc::ChaCha20Poly1305' );
 }
 
 ## Apply decryption to input buffer before calling original handler
@@ -33,8 +38,6 @@ if ( defined $$input_ref and length $$input_ref ) {
     ## Minimum: 16 bytes tag (empty plaintext) or more
     if ( length $$input_ref >= 16 ) {
 
-        my $cipher = $session->{'link_encryption_context'};
-
         ## Increment message counter for nonce generation (read side)
         $session->{'link_read_counter'} //= 0;
         $session->{'link_read_counter'}++;
@@ -44,6 +47,19 @@ if ( defined $$input_ref and length $$input_ref ) {
         my $session_bytes = pack qw| N |, $session_id;
         my $counter_bytes = pack qw| N |, $session->{'link_read_counter'};
         my $nonce = $session_bytes . $counter_bytes . qq|\0\0\0\0|;
+
+        ## Create fresh cipher instance with nonce
+        my $cipher = Crypt::AuthEnc::ChaCha20Poly1305->new(
+            $session->{'link_encryption_key'}, $nonce
+        );
+
+        if ( not defined $cipher ) {
+            <[base.s_warn]>->(
+                sprintf 'ChaCha20-Poly1305 initialization failed [session %d]', $session_id
+            );
+            $session->{'shutdown'} = TRUE;
+            return 2;
+        }
 
         ## Extract authentication tag from end of ciphertext (last 16 bytes)
         my $ciphertext_with_tag = $$input_ref;

@@ -21,45 +21,18 @@ return sub {
     my $session = $data{'session'}{$session_id};
 
     ## Check if encryption is still active
-    if ( not defined $session->{'link_encryption_context'} ) {
+    if ( not defined $session->{'link_encryption_key'} ) {
         return $$output_ref;
+    }
+
+    ## Load cipher module if not already loaded
+    if ( not <base.perlmod.loaded>->( 'Crypt::AuthEnc::ChaCha20Poly1305' ) ) {
+        <[base.perlmod.load]>->( 'Crypt::AuthEnc::ChaCha20Poly1305' );
     }
 
     my $plaintext = $$output_ref;
 
-    ## Empty output: still needs auth tag (empty ciphertext + tag)
-    if ( not defined $plaintext or not length $plaintext ) {
-        ## Return empty message with just the auth tag
-        ## This is a keepalive/heartbeat
-        my $cipher = $session->{'link_encryption_context'};
-
-        $session->{'link_write_counter'} //= 0;
-        $session->{'link_write_counter'}++;
-
-        my $session_bytes = pack qw| N |, $session_id;
-        my $counter_bytes = pack qw| N |, $session->{'link_write_counter'};
-        my $nonce = $session_bytes . $counter_bytes . qq|\0\0\0\0|;
-
-        my $auth_tag = eval {
-            $cipher->encrypt_add( '' );
-            $cipher->encrypt_done( );
-        };
-
-        if ( my $error = $@ ) {
-            <[base.s_warn]>->(
-                sprintf 'ChaCha20-Poly1305 encryption failed [session %d]: %s',
-                $session_id, $error
-            );
-            return '';
-        }
-
-        return $auth_tag // '';
-    }
-
-    ## Encrypt the plaintext using ChaCha20-Poly1305
-    my $cipher = $session->{'link_encryption_context'};
-
-    ## Increment message counter for write side
+    ## Increment message counter for write side (before any operation)
     $session->{'link_write_counter'} //= 0;
     $session->{'link_write_counter'}++;
 
@@ -69,9 +42,19 @@ return sub {
     my $counter_bytes = pack qw| N |, $session->{'link_write_counter'};
     my $nonce = $session_bytes . $counter_bytes . qq|\0\0\0\0|;
 
+    ## Create fresh cipher instance with nonce
+    my $cipher = Crypt::AuthEnc::ChaCha20Poly1305->new( $enc_key, $nonce );
+
+    if ( not defined $cipher ) {
+        <[base.s_warn]>->(
+            sprintf 'ChaCha20-Poly1305 initialization failed [session %d]', $session_id
+        );
+        return '';
+    }
+
     ## Encrypt plaintext and get authentication tag
     my $ciphertext = eval {
-        $cipher->encrypt_add( $plaintext );
+        $cipher->encrypt_add( $plaintext // '' );
         $cipher->encrypt_done( );
     };
 
