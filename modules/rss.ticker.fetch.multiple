@@ -70,7 +70,8 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
 
         $got_updates++;
         <[base.log]>->( 2, ": : wrote txt data to '$url_data_file'" );
-        <rss.web-browser>->commit;
+        # Note: LWP::UserAgent handles HTTP caching automatically via ETags/Last-Modified
+        # No explicit commit needed (unlike XML::RSS::TimingBot)
 
     } elsif ( $response->code == 304 ) {
         <rss.ticker.fail_warned> = 0;

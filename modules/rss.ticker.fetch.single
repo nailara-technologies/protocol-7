@@ -56,7 +56,8 @@ if ( $response->code == 200 ) {
         or die
         "cannot move '$output_file.NEW' to '$output_file' [ \l$OS_ERROR ]";
     <[base.log]>->( 2, ": : wrote txt data to '$output_file'" );
-    <rss.web-browser>->commit;
+    # Note: LWP::UserAgent handles HTTP caching automatically via ETags/Last-Modified
+    # No explicit commit needed (unlike XML::RSS::TimingBot)
     return 1;
 
 } elsif ( $response->code == 304 ) {
