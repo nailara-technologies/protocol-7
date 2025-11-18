@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = base.handler.link-upgrade.response
+# descr = output handler for link-upgrade negotiation state (state 2)
+#         formats upgrade negotiation responses
+#
+# future = format handshake responses with C25519 public keys and capabilities
+# args   = data reference (upgrade response message)
+# returns = transformed/formatted response string
+
+my $data_sref = shift;
+my $data_str = $$data_sref;
+
+## TODO: Implement link-upgrade response formatting
+## - Include C25519 public key material (BASE32 encoded)
+## - Include capability list (supported encryption algorithms, compression)
+## - Include session parameters
+## - Sign response with ephemeral key if already negotiated
+
+## Placeholder: pass through unchanged
+return $data_str;
+
+1;
+
+#,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..
+#LINKUPGRADERESPONSEC25519KEYSMATERIALBASE32ENCODEDSIGNATURES
+#\\\|UPGRADERESPONSEFORMATTINGCAPABILITYLISTENCRYPTIONALGORITHMS \ / AMOS7 \
+#\[7]LINKUPGRADEOUTPUTHANDLERSTATE2RESPONSE7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

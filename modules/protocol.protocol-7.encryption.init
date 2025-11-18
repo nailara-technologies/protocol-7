@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = protocol.protocol-7.encryption.init
+# descr = initialization for encrypted session state (state 3)
+#         sets up encryption and encoding transformation layers
+#
+# called = from base.session.init_state when transitioning to state 3
+#         (after successful link-upgrade negotiation at state 2)
+# args   = session_id, mode, state_id
+# returns = 1 (success) | 0 (failure)
+
+my ( $session_id, $mode, $state_id ) = @ARG;
+my $session = $data{'session'}{$session_id};
+
+## TODO: Initialize encryption layer
+## - Derive session encryption key from negotiated secret (C25519 DH)
+## - Initialize cipher context (AEAD cipher TBD)
+## - Set up IV/nonce handling
+## - Install encryption wrapper on read handler (state 3)
+## - Install encryption wrapper on write handler
+## - Enable BASE32 encoding layer for transport safety
+
+<[base.logs]>->(
+    2,
+    '[%d] initializing encrypted session (state %d)',
+    $session_id, $state_id
+);
+
+## TODO: Derive encryption key from session negotiation
+## Key derivation would use:
+## - Ephemeral C25519 shared secret (from link-upgrade state 2)
+## - Session ID as additional context
+## - HKDF or similar KDF
+
+## TODO: Install encryption wrappers
+## Currently uses read.encryption-wrapper stub
+## Need to add write.encryption-wrapper and install both
+
+## Placeholder: return success (wrappers will be installed as development continues)
+return 1;
+
+1;
+
+#,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..
+#ENCRYPTIONINITSTATE3AEADCIPHERC25519SHAREDSECRETKEYDERIVATION
+#\\\|ENCRYPTIONINITIATIONSESSIONSTATECIPHER7BITSAFEBASE32TRANSPORT \ / AMOS7 \
+#\[7]PROTOCOLSTATE3ENCRYPTIONINIT7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

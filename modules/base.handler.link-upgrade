@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = base.handler.link-upgrade
+# descr = input handler for link-upgrade negotiation state (state 2)
+#         processes encryption/encoding handshake commands
+#
+# future = handle upgrade-init, key-exchange, capability negotiation
+# returns = 0 (upgrade complete, transition to state 3)
+#           1 (awaiting more negotiation data)
+#           2 (negotiation failed, disconnect)
+
+my $event = shift;
+my $id    = $event->w->data;
+my $session = $data{'session'}{$id};
+my $input = \$session->{'buffer'}->{'input'};
+
+## TODO: Implement link-upgrade negotiation
+## - Parse upgrade commands (upgrade-init, key-exchange, etc.)
+## - Validate C25519 peer keys
+## - Negotiate encryption algorithms
+## - Exchange session parameters
+## - Return 0 when ready to transition to state 3 (encrypted)
+
+<[base.logs]>->(
+    2,
+    '[%d] link-upgrade state: negotiation in progress (placeholder)',
+    $id
+);
+
+## Placeholder: accept any input and return (awaiting implementation)
+return 1;
+
+1;
+
+#,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..
+#LINKUPGRADENEGOSTATE2ENCRYPTION5BITALPHABET7BITSAFELINEWISETRANSPORT
+#\\\|HANDSHAKEC25519KEYSEXCHANGEENCRYPTIONALGORITHMNEGOTIATIONUPGRADE \ / AMOS7 \
+#\[7]LINKUPGRADEINPUTHANDLERSTATE2NEGOTIATION7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
