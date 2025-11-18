@@ -5,23 +5,68 @@
 
 ## COMPLETED WORK
 
-### Protocol-7 Session Upgrades to Link-Level Encryption (Nov 18, 2025)
-**Status**: ✅ COMPLETE - Merged to base branch (version: 3K65ZQ5AJI-5532.0)
+### Phase 1: Protocol-7 Session Encryption Infrastructure (Nov 18, 2025)
+**Status**: ✅ COMPLETE - Merged to base branch (commits: 3b8be6a6f, 6fcd2afe7, 0565c3db3)
+**Duration**: Single session - Infrastructure planning, implementation, testing, and deployment
 
-**Implementation Summary**:
+**Phase 1 Implementation Summary**:
 - **Elliptic Curve Cryptography**: Full C25519 key exchange implementation (`modules/crypt.C25519.compute_shared`)
-- **Encryption Wrapper Modules**: Enhanced read/write encryption wrappers with session-aware encryption/decryption
-  - `modules/base.handler.read.encryption-wrapper` - Asymmetric read-side decryption
-  - `modules/base.handler.write.encryption-wrapper` - Asymmetric write-side encryption
-- **Link Upgrade Protocol**: Complete bidirectional encryption upgrade mechanism
-  - `modules/cube.cmd.link-upgrade` - Cube command handler for initiating link upgrades
-  - `modules/base.handler.link-upgrade` - Session-level link upgrade orchestration
-  - `modules/protocol.protocol-7.encryption.init` - Encryption initialization and session management
-- **Documentation**: Comprehensive link upgrade protocol specification (`docs/LINK_UPGRADE_PROTOCOL.md`)
-- **Testing**: Interactive client test suite for link upgrade verification (`bin/test-link-upgrade-client.pl`)
+  - Uses existing crypt.C25519.gen_keys for ephemeral keypair generation
+  - Fixed scalar reference syntax for proper DH computation
+  - Per-session key management with automatic key directory creation
 
-**Files Modified/Created**: 8 files with 684 insertions, 27 deletions
-**Commits**: Single fast-forward merge (hub/claude/initialize-workspace-017DF2kF1EB9JiCkMNcoFTLv)
+- **Encryption Wrapper Modules**: ChaCha20-Poly1305 AEAD cipher with per-message nonces
+  - `modules/base.handler.read.encryption-wrapper` - Decryption with counter-based nonce generation
+  - `modules/base.handler.write.encryption-wrapper` - Encryption factory with session-specific closures
+  - Per-message nonce format: session_id (4B) || counter (4B) || padding (4B)
+  - Separate read/write counters for bidirectional communication
+
+- **Link Upgrade Protocol**: State machine for encrypted session establishment (state 2→3)
+  - `modules/protocol.protocol-7.link-upgrade.init` - Ephemeral key generation and capability negotiation
+  - `modules/base.handler.link-upgrade` - DH key exchange and shared secret computation
+  - `modules/protocol.protocol-7.encryption.init` - Encryption key derivation and wrapper installation
+  - `modules/cube.cmd.link-upgrade` - State transition triggering
+
+- **Infrastructure Fixes**:
+  - ✅ Fixed: base.handler.link-upgrade scalar reference bug (commit 694190553)
+  - ✅ Fixed: base.file.make_path umask handling (commit 3b8be6a6f)
+  - ✅ Fixed: Automatic C25519 key directory creation (commit 6fcd2afe7)
+
+- **Testing & Verification**:
+  - ✅ test-link-upgrade zenka fully functional (includes C25519 module and autocreate)
+  - ✅ cube zenka initializes cleanly with encryption support
+  - ✅ All zenkas (keys, workflow, sourcecode) create keys with proper permissions
+  - ✅ Key directories auto-created: /home/protocol-7/.n/user-keys/ (0700)
+
+**Phase 1 Files Modified**: 3 critical files + 11 module commits
+**Phase 1 Commits**: 6fcd2afe7, 3b8be6a6f (plus prior infrastructure work)
+
+---
+
+### Phase 2: Protocol-7 Client-Side Encryption Implementation (Next Phase)
+**Status**: 📋 PLANNED - Ready for implementation
+**Scope**: Client-side encryption handshake and message encryption for p7.c and nshell
+
+**Phase 2 Implementation Goals**:
+- Implement link-upgrade protocol parsing in p7.c client
+- Add ChaCha20-Poly1305 encryption to client message handling
+- Implement state machine for client-side state 2↔3 transitions
+- Add nshell support for encrypted communication
+- Comprehensive integration testing with test-link-upgrade zenka
+- Performance benchmarking and optimization
+
+**Key Dependencies**:
+- All Phase 1 infrastructure complete and tested
+- Server-side link-upgrade protocol fully functional
+- test-link-upgrade zenka ready for client testing
+- Encryption modules (ChaCha20-Poly1305, C25519) verified working
+
+**Files to Modify**:
+- `bin/p7.c` - Main Protocol-7 C client
+- `nshell` - Shell interpreter integration
+- (Create) Client-side state machine modules
+- (Create) Client encryption wrapper modules
+- (Extend) test-link-upgrade-client.pl with full handshake testing
 
 ---
 
