@@ -30,6 +30,17 @@ if ( $mod_dir
 
     if (    -d $mod_dir
         and -r $mod_dir ) {
+
+        my $skip_chmod = TRUE;    ## skip chmod if root and standalone ##
+        if ( $EUID == 0 ) {
+            foreach my $start_type (qw| v7-started-zenka cube v7 |) {
+                $skip_chmod = FALSE
+                    and last
+                    if defined <system.zenka.type>
+                    and <system.zenka.type> eq $start_type;  ## <-- improve ##
+            }    ### need to check early availablility \ find alternatives ###
+        }
+
         foreach my $mod_name ( <[base.reverse-sort]>->( \%pmods ) ) {
             ## Convert :: to __ for Windows filesystem compatibility
             ( my $mod_name_fs = $mod_name ) =~ s|::|__|g;
@@ -43,6 +54,8 @@ if ( $mod_dir
                 my $fh;
                 open( $fh, qw| > |, $path_abs )
                     and close($fh);
+
+                next if $skip_chmod;    ## skip chmod [ root + standalone ] ##
 
                 ## chmod ##
                 chmod( $file_perm, $path_abs )
@@ -77,8 +90,8 @@ if ( $mod_dir
     }
 }
 
-#,,,,,...,.,,,,,,,,..,.,,,..,,.,,,,,.,.,.,,,,,..,,...,...,..,,..,,.,,,,,,,,.,,
-#JBQBGOGZNDLIAZRFXQYIJN46RS2P33UMPUNZ2OSBJCDKHDV74C6U6ZMROKOPAIRQOJRP7CULF7GGM
-#\\\|TKAVAKQAUV4HPEMVFO7SWV6HLYRWBN2G5LVK75LCDX3H2PQZBQE \ / AMOS7 \ YOURUM ::
-#\[7]RR7EZOB5DCPLO6U4X4VJU45TZ6COTF5VI63K2FPQUIBY3FYRBSAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,...,,,,,,.,,..,,,,,,,,,,,..,...,,..,..,,...,...,..,,,..,,.,,,,,,,..,
+#PA37B5RXHU7XKKWGKTNCEOQC5GWTL47M5JDC2XNL6DGFJQK7PKFMR37WUAA4M4GXS6IW7SNSDXKFU
+#\\\|LDNFONFTSTVQC27ZQY373CWG6DVJD5ZTV3WWO3USCBLGDDKD7KA \ / AMOS7 \ YOURUM ::
+#\[7]ZBFTQCIXWZC5CLXMIOS6QERP6FFUWPWVT7KVD2FQQ56UFNVXAKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
