@@ -557,14 +557,34 @@ sub install_apt_packages_internal {
     print_status('ok', "Package lists updated");
 
     print_status('info', "Installing " . scalar(@sorted_packages) . " Debian packages...");
-    my $install_cmd = "${sudo}apt-get install -y " . join(' ', @sorted_packages);
 
-    $result = system($install_cmd);
-    if ($result == 0) {
-        print_status('ok', "Debian packages installed successfully");
-    } else {
-        print_error("APT installation failed (exit code: $result)", FALSE);
+    # Set environment variables to suppress prompts during APT operations
+    my $apt_env = "DEBIAN_FRONTEND=noninteractive APT_LISTCHANGES_FRONTEND=none " .
+                 "UCF_FORCE_CONFMISS=true UCF_FORCE_CONFOLD=true PAGER=/bin/true";
+
+    # Install each package individually to prevent one failure from blocking others
+    my $installed = 0;
+    my $failed = 0;
+
+    for my $pkg (@sorted_packages) {
+        # Use dpkg options to force-confold and other non-interactive flags
+        my $cmd = "${apt_env} ${sudo}apt-get install -y " .
+                 "-o Dpkg::Options::=\"--force-confold\" " .
+                 "-o Dpkg::Options::=\"--force-confdef\" " .
+                 "-o Dpkg::Options::=\"--force-confmiss\" " .
+                 "-o Dpkg::Options::=\"--force-overwrite\" $pkg";
+        my $res = system("$cmd 2>/dev/null >/dev/null");
+
+        if ($res == 0) {
+            print_status('ok', "  ✓ $pkg") if $verbose;
+            $installed++;
+        } else {
+            print_status('warn', "  ✗ $pkg (not found or failed)") if $verbose;
+            $failed++;
+        }
     }
+
+    print_status('ok', "Installation complete: $installed installed, $failed unavailable");
 }
 
 sub install_cpan_modules_internal {
