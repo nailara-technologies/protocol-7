@@ -194,10 +194,11 @@ return {
             'cpan_fallback'   =>
                 'XML::RSSLite'    # requires cpanm --force XML::RSS::Timing..,
         },
-        'XML::RSS::TimingBot' => {
-            'debian' => [ 'libxml-rsslite-perl', 'cpan:XML::RSS::TimingBot' ],
-            'cpan_fallback'   => 'XML::RSS::TimingBot'
-        },
+        # Note: XML::RSS::TimingBot is not available on CPAN - skipping
+        # 'XML::RSS::TimingBot' => {
+        #     'debian' => [ 'libxml-rsslite-perl', 'cpan:XML::RSS::TimingBot' ],
+        #     'cpan_fallback'   => 'XML::RSS::TimingBot'
+        # },
         'SDL' => {
             'debian' => ['libsdl-perl'],
             'cpan_fallback'   => 'SDL'
@@ -288,8 +289,7 @@ return {
         },
         'Crypt::Curve25519' => { 'cpan' => 'Crypt::Curve25519' },
         'Digest' => {
-            'debian' => ['libdigest-perl'],
-            'cpan_fallback'   => 'Digest'
+            'cpan' => 'Digest'
         },
         'Digest::Elf' => {
             'debian' => ['libdigest-elf-perl'],
