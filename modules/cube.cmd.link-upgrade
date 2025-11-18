@@ -1,0 +1,52 @@
+## [:< ##
+
+# name    = cube.cmd.link-upgrade
+# descr   = initiate link upgrade to encrypted session (state 2 -> 3)
+#
+# usage   : link-upgrade [<encoding_mode>]
+# modes   : (negotiated during handshake)
+#           utf7, base32, base32-xz (optional, default none)
+#
+# note    = triggers transition to state 2 (link-upgrade negotiation)
+#           if successful, transitions to state 3 (encrypted)
+#           if failed, returns to state 1 (authenticated)
+
+my $session_id = $call->{'session_id'};
+my $requested_encoding = $call->{'args'} // '';
+
+$requested_encoding = lc($requested_encoding);
+$requested_encoding =~ s|\s+||g;
+
+my $session = $data{'session'}{$session_id};
+
+## Validate requested encoding mode (optional)
+my $encoding_mode;
+if ( $requested_encoding =~ m|^$| ) {
+    $encoding_mode = undef;
+} elsif ( $requested_encoding =~ m|^(utf7|base32|base32-xz)$| ) {
+    $encoding_mode = $requested_encoding;
+    if ( $requested_encoding =~ m|^base32-xz$|
+        and not <base.perlmod.loaded>->{'Compress::Raw::Lzma'} ) {
+        return {
+            'mode' => qw| false |,
+            'data' => 'base32-xz mode not available [XZ compression not installed]'
+        };
+    }
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' => "unsupported encoding mode: '$requested_encoding' "
+            . "[ optional: utf7, base32, base32-xz ]"
+    };
+}
+
+## Store requested encoding mode (will be negotiated in state 2)
+$session->{'link_encoding_mode_requested'} = $encoding_mode if defined $encoding_mode;
+
+## TODO: Transition session state 1 -> 2 (link-upgrade negotiation)
+## This should trigger protocol.protocol-7.link-upgrade.init
+
+return {
+    'mode' => qw| true |,
+    'data' => "link upgrade initiated, awaiting handshake"
+};

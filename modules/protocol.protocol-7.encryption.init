@@ -14,40 +14,83 @@
 my ( $session_id, $mode, $state_id ) = @ARG;
 my $session = $data{'session'}{$session_id};
 
-## TODO: Initialize encryption and encoding layers
-## - Derive session encryption key from negotiated secret (C25519 DH)
-## - Initialize cipher context (negotiated during link-upgrade state 2)
-## - Set up IV/nonce handling
-## - Install encryption wrapper on read handler
-## - Install encryption wrapper on write handler
-## - If link_encoding_mode negotiated (utf7/base32/base32-xz):
-##   * Install read.encoding-wrapper to decode after decrypt
-##   * Install write.encoding-wrapper to encode before encrypt
-##   * Order: plaintext → encrypt → [compress] → encode → linewise
+## Verify shared secret exists from link-upgrade negotiation
+if ( not defined $session->{'link_dh_shared_secret'} ) {
+    <[base.logs]>->(
+        0,
+        '[%d] encryption init: missing DH shared secret from link-upgrade',
+        $session_id
+    );
+    return 0;
+}
+
+## Derive encryption key using AMOS7::13::key_32
+## Input: C25519 DH shared secret
+## Seed: session ID for entropy variation
+my $enc_key = AMOS7::13::key_32(
+    \$session->{'link_dh_shared_secret'},
+    $session_id
+);
+
+if ( not defined $enc_key or length($enc_key) != 32 ) {
+    <[base.logs]>->(
+        0,
+        '[%d] encryption init: key derivation failed',
+        $session_id
+    );
+    return 0;
+}
+
+## Store encryption key in session (volatile, not persistent)
+$session->{'link_encryption_key'} = $enc_key;
+
+## TODO: Initialize cipher context (ChaCha20-Poly1305)
+## Store cipher state for read/write operations
+## For now, placeholder for future implementation
+
+## Install encoding wrappers if negotiated
+if ( defined $session->{'link_encoding_mode'}
+    and length $session->{'link_encoding_mode'} ) {
+
+    ## Save original handlers
+    if ( not defined $session->{'input'}->{'handler_original'} ) {
+        $session->{'input'}->{'handler_original'} = $session->{'input'}->{'handler'};
+    }
+    if ( not defined $session->{'output'}->{'handler_original'} ) {
+        $session->{'output'}->{'handler_original'} = $session->{'output'}->{'handler'};
+    }
+
+    ## Install read wrapper (decode after decrypt)
+    $session->{'input'}->{'handler'} = qw| base.handler.read.encoding-wrapper |;
+
+    ## Create session-specific write wrapper (encode before encrypt)
+    my $wrapper_handler_name = sprintf qw| base.handler.write.encoding-%d |, $session_id;
+    my $write_wrapper = <[base.handler.write.encoding-wrapper]>->(
+        $session_id, $session->{'link_encoding_mode'}
+    );
+    $code{$wrapper_handler_name} = $write_wrapper if ref $write_wrapper eq qw| CODE |;
+
+    ## Install write wrapper
+    $session->{'output'}->{'handler'} = $wrapper_handler_name;
+
+    <[base.logs]>->(
+        2,
+        '[%d] installed link-layer encoding wrappers for mode: %s',
+        $session_id, $session->{'link_encoding_mode'}
+    );
+}
 
 <[base.logs]>->(
     2,
-    '[%d] initializing encrypted session (state %d)',
+    '[%d] encryption initialized (state %d), encryption key derived',
     $session_id, $state_id
 );
 
-## TODO: Derive encryption key from session negotiation
-## Key derivation would use:
-## - Ephemeral C25519 shared secret (from link-upgrade state 2)
-## - Session ID as additional context
-## - HKDF or similar KDF
-
 ## TODO: Install encryption wrappers
-## - read.encryption-wrapper: receive linewise → decode (if encoding) → decompress (if xz) → decrypt → plaintext
-## - write.encryption-wrapper: plaintext → encrypt → compress (if xz) → encode (if encoding) → linewise
+## - Implement base.handler.read.encryption-wrapper (decrypt layer)
+## - Implement base.handler.write.encryption-wrapper (encrypt layer)
+## - Order: plaintext → encrypt → [compress] → encode → linewise
 
-## TODO: Link-layer encoding installation
-## If $session->{'link_encoding_mode'} is set from link-upgrade:
-## - Install base.handler.read.encoding-wrapper in pipeline
-## - Install base.handler.write.encoding-wrapper closure
-## - Wrappers handle utf7/base32/base32-xz transformation
-
-## Placeholder: return success (wrappers will be installed as development continues)
 return 1;
 
 1;
