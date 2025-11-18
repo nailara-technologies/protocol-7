@@ -57,8 +57,8 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
 
     ## Compute shared secret: DH(our_private, client_public)
     my $shared_secret = <[crypt.C25519.compute_shared]>->(
-        $ephemeral_keypair->{'secret'},
-        $client_pubkey
+        \$ephemeral_keypair->{'secret'},
+        \$client_pubkey
     );
 
     if ( not defined $shared_secret ) {
