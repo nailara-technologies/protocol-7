@@ -13,23 +13,50 @@
 my ( $session_id, $mode, $state_id ) = @ARG;
 my $session = $data{'session'}{$session_id};
 
-## TODO: Initialize link-upgrade negotiation
-## - Generate or retrieve C25519 ephemeral keypair for this session
-## - Store public key for client exchange
-## - Set up negotiation timeout
-## - Initialize capability flags:
-##   * Encryption algorithms (ChaCha20-Poly1305, AES-GCM, etc.)
-##   * Link-layer encoding modes (utf7, base32, base32-xz)
-##   * Compression support (XZ, Brotli, etc.)
-## - Send initial upgrade offer to client (with our public key and capabilities)
+## Generate ephemeral C25519 keypair for this session
+## Reuse existing C25519 session keypair infrastructure
+my ( $ephemeral_keypair, $ephemeral_key_name ) = <[crypt.C25519.gen_keys]>->(
+    sprintf( qw| link-upgrade-%d-%s |, $session_id, <[base.prng.chars-anum]>->(8) ),
+    'link-upgrade-ephemeral'
+);
+
+if ( not defined $ephemeral_keypair or not defined $ephemeral_key_name ) {
+    <[base.logs]>->(
+        0,
+        '[%d] failed to generate C25519 ephemeral keypair for link-upgrade',
+        $session_id
+    );
+    return 0;
+}
+
+## Store ephemeral keypair info in session
+$session->{'link_ephemeral_key_name'} = $ephemeral_key_name;
+$session->{'link_ephemeral_pubkey'} = $ephemeral_keypair->{'public'};
+
+## Initialize capability flags
+my $capabilities = {
+    'encryption' => ['ChaCha20-Poly1305'],
+    'encoding'   => ['utf7', 'base32', 'base32-xz'],
+    'compression' => []
+};
+
+## Add compression support if available
+if ( <base.perlmod.loaded>->{'Compress::Raw::Lzma'} ) {
+    push @{ $capabilities->{'compression'} }, 'xz';
+}
+
+$session->{'link_capabilities'} = $capabilities;
+
+## Set negotiation timeout (17 seconds, matching auth timeout)
+my $link_timeout = <protocol-7.link-upgrade-timeout> // 17;
+$session->{'link_upgrade_timeout'} = time() + $link_timeout;
 
 <[base.logs]>->(
     2,
-    '[%d] initializing link-upgrade negotiation (state %d)',
+    '[%d] initialized link-upgrade negotiation (state %d), waiting for client key',
     $session_id, $state_id
 );
 
-## Placeholder: return success
 return 1;
 
 1;
