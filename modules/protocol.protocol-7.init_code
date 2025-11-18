@@ -46,7 +46,7 @@ if ( index( <system.p7.ext-proto-ver>, qw| \ |, 0 ) != 0 ) {
 
             qw| error | => { qw|handler| => qw| base.handler.session_error | }
         },
-        qw| 1 | => {  ## Authenticated state (current)
+        qw| 1 | => {  ## Authenticated state (stable, default operational)
 
             ## [ linewise | bytewise | binary ] ##
             qw| read-mode | => qw| linewise |,
@@ -55,9 +55,12 @@ if ( index( <system.p7.ext-proto-ver>, qw| \ |, 0 ) != 0 ) {
             qw| output | => { qw| handler | => qw| base.handler.command | },
 
             qw| error | => { qw|handler| => qw| base.handler.session_error | }
+
+            ## Note: Sessions remain in state 1 indefinitely unless link-upgrade is explicitly
+            ## requested. Unencrypted local links can operate without overhead.
         },
 
-        qw| 2 | => {  ## Link-upgrade negotiation (encryption and transport encoding handshake)
+        qw| 2 | => {  ## Link-upgrade negotiation (OPTIONAL encryption/transport encoding)
 
             ## Linewise for handshake (BASE32 encoding allows linewise transmission)
             qw| read-mode | => qw| linewise |,
@@ -70,9 +73,12 @@ if ( index( <system.p7.ext-proto-ver>, qw| \ |, 0 ) != 0 ) {
             qw| init | => qw| protocol.protocol-7.link-upgrade.init |,
 
             qw| error | => { qw|handler| => qw| base.handler.session_error | }
+
+            ## Note: Only entered if client explicitly requests link upgrade.
+            ## Failed negotiation returns to state 1. Successful completion transitions to state 3.
         },
 
-        qw| 3 | => {  ## Encrypted session state
+        qw| 3 | => {  ## Encrypted session state (post link-upgrade)
 
             ## Linewise transmission with BASE32 encoding wrapping encryption
             ## Order: plaintext → encrypt → compress (optional) → BASE32 encode → linewise
@@ -90,6 +96,9 @@ if ( index( <system.p7.ext-proto-ver>, qw| \ |, 0 ) != 0 ) {
             qw| init | => qw| protocol.protocol-7.encryption.init |,
 
             qw| error | => { qw|handler| => qw| base.handler.session_error | }
+
+            ## Note: Only entered after successful link-upgrade from state 2.
+            ## Encryption and optional link-layer encoding active for session lifetime.
         }
     },
     'clean-up-regex' => [qr|^(\s*\n)+$|], ## <-- applied before cmd processing

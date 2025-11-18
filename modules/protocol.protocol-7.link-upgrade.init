@@ -5,8 +5,10 @@
 #         sets up encryption and link-layer encoding handshake machinery
 #
 # called = from base.session.init_state when transitioning to state 2
+# optional = state 2 only entered if client explicitly requests upgrade
+#            normal unencrypted operation remains in state 1 indefinitely
 # args   = session_id, mode, state_id
-# returns = 1 (success) | 0 (failure)
+# returns = 1 (success) | 0 (failure - return to state 1)
 
 my ( $session_id, $mode, $state_id ) = @ARG;
 my $session = $data{'session'}{$session_id};
