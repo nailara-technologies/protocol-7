@@ -222,3 +222,9 @@ All tests must pass before proceeding to integration testing with the
 actual Protocol-7 zenka infrastructure.
 
 =cut
+
+#,,,.,.,,,.,,,,.,,...,.,,,,.,,.,.,...,.,,,..,,..,,...,...,,..,.,,,..,,,.,,,..,
+#TTLCK2TR6X6ZFBXRJG5TXTNY723RV56MAP5HRY5TKLMPPN5IFCNTTN3OR5PFBGZWOQRJ5YNLTGBU4
+#\\\|CH6YQIKALNZQYWZGYRGAZK46F7AIJON6WPXQ5M7EZ7XVOPSC7YK \ / AMOS7 \ YOURUM ::
+#\[7]CRXYZSHSVLHCM7FVC6DWTS3TRNZJMQW4B5HOZQL2TL4LII2JFSDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

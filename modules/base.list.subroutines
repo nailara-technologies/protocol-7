@@ -665,6 +665,7 @@ return [ qw[
         filter.cmd.del_filter
         filter.cmd.add_filter
         download.cmd.get_file
+        cube.cmd.link-upgrade
         crypt.cbc.init_cipher
         crypt.C25519.pre_init
         crypt.C25519.keyfiles
@@ -1126,6 +1127,7 @@ return [ qw[
         base.log.auto_decay_check
         base.is_defined_recursive
         base.handler.whoami_reply
+        base.handler.link-upgrade
         base.handler.inotify_poll
         base.file.zenka_dir.write
         base.file.write_timestamp
@@ -1327,6 +1329,7 @@ return [ qw[
         cube.chk-sum.cmd.elf-chksum
         crypt.C25519.sign_file_list
         crypt.C25519.key_is_virtual
+        crypt.C25519.compute_shared
         content.set-up.import_rules
         content.set-up.export_rules
         base.zenki.report_child_pid
@@ -1413,6 +1416,7 @@ return [ qw[
         discover.process_host_packet
         discover.cmd.request-updates
         debian.parser.package_status
+        cube.cmd.reply-encoding-mode
         crypt.C25519.keystr_is_valid
         crypt.C25519.compare_keypair
         content.cmd.entries_withheld
@@ -1840,6 +1844,8 @@ return [ qw[
         base.protocol-7.command.send.local
         base.path-set-up.zenka-directories
         base.path-set-up.check-zenka-paths
+        base.handler.read.encoding-wrapper
+        base.handler.link-upgrade.response
         base.file.recursive.matching_paths
         base.chk-sum.bmw.calculate_L13_sum
         USR.AMOS7-admin.sourcecode-pub-key
@@ -1851,6 +1857,7 @@ return [ qw[
         tile-groups.callback.start_osd_logo
         terminal.curses_ui.modified.english
         protocol.sftp.handler.session_close
+        protocol.protocol-7.encryption.init
         protocol.amos-chksum.ext-cmd.select
         protocol-7-menu.cmd.get-action-keys
         osd-logo.handler.colortoalpha_reply
@@ -1867,6 +1874,7 @@ return [ qw[
         content.handler.get_exclusive_reply
         base.perlmod.register_loaded_module
         base.number-cache.is_valid_template
+        base.handler.write.encoding-wrapper
         base.handler.counter_overflow_reset
         base.event.callback.io-idle-restart
         workflow.console.version-sign-commit
@@ -1894,6 +1902,7 @@ return [ qw[
         base.warnings.compact_diff_from_bits
         base.perlmod.manual_reload_blacklist
         base.parser.decode_harmonized_refstr
+        base.handler.read.encryption-wrapper
         base.file.file_chksums_are_identical
         workspace-transfer.console.checkpoint
         workspace-transfer.console.bug-commit
@@ -1904,6 +1913,7 @@ return [ qw[
         session.parent.check_and_resolve_deps
         protocol.sftp.handler.write_to_server
         protocol.protocol-7.message-templates
+        protocol.protocol-7.link-upgrade.init
         protocol.amos-chksum.ext-cmd.commands
         protocol.amos-chksum.connect_callback
         letsencrypt.parent.query_httpd_vhosts
@@ -1922,6 +1932,7 @@ return [ qw[
         crypt.C25519.create_signature_request
         base.perlmods.reload.chksum_blacklist
         base.perlmod.unregister_loaded_module
+        base.handler.write.encryption-wrapper
         workspace-transfer.console.todo-commit
         web-browser.start-up.init_window_title
         web-browser.handler.signal.load_failed
@@ -2051,8 +2062,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,,.,,..,,,,,,.,.,.,.,..,,..,,,,,,...,.,,,..,,...,...,,,.,.,.,,,,,,.,,,,.,
-#EUHQ2FTGYPLZSGHDNUXHJPFQ6WCI545TOGIBPR3FMPNKVCXIKUN25BDNPO4BCIL5HPIGOS55P46P2
-#\\\|THWY6USPWEAONBHOW36PNLUEKMIWNNBMA6BFR4KJDLEMQ2BI3B3 \ / AMOS7 \ YOURUM ::
-#\[7]RLPJQJBMGTAN2FGIGXX52LNRVETXHAQ2UVQ6NQLCZGNXJNGNWKDY 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,,,,,,.,...,.,.,..,,...,..,,,..,..,,...,...,,..,,,,,,,.,,.,,.,.,
+#G2FHSZWZ3Q36NVDXI73SW2Z4URBXBT5LHWYEAGCUANN7H2W5NRSFGRCLXFZ3VV2SOLOPO5HQYAPCW
+#\\\|UKAT5QM5WAJQ5LX2565RKVYDWA7YFQ5HAOHDOZ2VMJURFG4FFBC \ / AMOS7 \ YOURUM ::
+#\[7]QCGA5USLM73FLQVD3UW2CK4DXWODRW3PZRSIGYYW6XIJXIIH4WCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
