@@ -2,7 +2,7 @@
 
 # name  = protocol.protocol-7.encryption.init
 # descr = initialization for encrypted session state (state 3)
-#         sets up encryption and encoding transformation layers
+#         sets up encryption and link-layer encoding transformation layers
 #
 # called = from base.session.init_state when transitioning to state 3
 #         (after successful link-upgrade negotiation at state 2)
@@ -12,13 +12,16 @@
 my ( $session_id, $mode, $state_id ) = @ARG;
 my $session = $data{'session'}{$session_id};
 
-## TODO: Initialize encryption layer
+## TODO: Initialize encryption and encoding layers
 ## - Derive session encryption key from negotiated secret (C25519 DH)
-## - Initialize cipher context (AEAD cipher TBD)
+## - Initialize cipher context (negotiated during link-upgrade state 2)
 ## - Set up IV/nonce handling
-## - Install encryption wrapper on read handler (state 3)
+## - Install encryption wrapper on read handler
 ## - Install encryption wrapper on write handler
-## - Enable BASE32 encoding layer for transport safety
+## - If link_encoding_mode negotiated (utf7/base32/base32-xz):
+##   * Install read.encoding-wrapper to decode after decrypt
+##   * Install write.encoding-wrapper to encode before encrypt
+##   * Order: plaintext → encrypt → [compress] → encode → linewise
 
 <[base.logs]>->(
     2,
@@ -33,8 +36,14 @@ my $session = $data{'session'}{$session_id};
 ## - HKDF or similar KDF
 
 ## TODO: Install encryption wrappers
-## Currently uses read.encryption-wrapper stub
-## Need to add write.encryption-wrapper and install both
+## - read.encryption-wrapper: receive linewise → decode (if encoding) → decompress (if xz) → decrypt → plaintext
+## - write.encryption-wrapper: plaintext → encrypt → compress (if xz) → encode (if encoding) → linewise
+
+## TODO: Link-layer encoding installation
+## If $session->{'link_encoding_mode'} is set from link-upgrade:
+## - Install base.handler.read.encoding-wrapper in pipeline
+## - Install base.handler.write.encoding-wrapper closure
+## - Wrappers handle utf7/base32/base32-xz transformation
 
 ## Placeholder: return success (wrappers will be installed as development continues)
 return 1;

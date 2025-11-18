@@ -1,8 +1,12 @@
 ## [:< ##
 
 # name  = base.handler.read.encoding-wrapper
-# descr = decoding wrapper for advanced encoding modes (utf7, base32, base32-xz)
+# descr = decoding wrapper for transport-layer encoding modes (utf7, base32, base32-xz)
 #         transforms encoded input buffer back to plaintext before command processing
+#
+# installed_by = base.handler.link-upgrade during state 2 negotiation
+# link_layer = transport-level encoding negotiated during link-upgrade handshake
+# modes = utf7 (7-bit safe), base32 (5-bit safe linewise), base32-xz (compressed + encoded)
 #
 # note  = operates on session buffer, does not cut data (no rewatcher trigger)
 #         preserves return code from original handler
@@ -18,10 +22,11 @@ my $original_handler = $session->{'input'}->{'handler_original'}
 ## Call original handler (processes protocol commands on decoded data)
 my $ret_code = $code{$original_handler}->($event);
 
-## Apply decoding to input buffer based on encoding mode
-## Only if mode is set (utf8 and octets pass through unchanged)
-if ( defined $session->{'reply_encoding_mode'} ) {
-    my $mode = $session->{'reply_encoding_mode'};
+## Apply decoding to input buffer based on link-layer encoding mode
+## Set during link-upgrade negotiation (state 2)
+## Only if mode is set (default: no encoding wrapper installed)
+if ( defined $session->{'link_encoding_mode'} ) {
+    my $mode = $session->{'link_encoding_mode'};
     my $input_ref = \$session->{'buffer'}->{'input'};
 
     ## BASE32 modes: decode from 5-bit safe alphabet back to binary
@@ -46,7 +51,6 @@ if ( defined $session->{'reply_encoding_mode'} ) {
             # Implementation depends on specific UTF-7 variant used
         }
     }
-    ## utf8 and octets modes: no transformation needed
 }
 
 return $ret_code;
