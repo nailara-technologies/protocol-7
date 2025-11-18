@@ -11,7 +11,7 @@
 #           if successful, transitions to state 3 (encrypted)
 #           if failed, returns to state 1 (authenticated)
 
-my $session_id = $call->{'session_id'};
+my $session_id         = $call->{'session_id'};
 my $requested_encoding = $call->{'args'} // '';
 
 $requested_encoding = lc($requested_encoding);
@@ -23,13 +23,14 @@ my $session = $data{'session'}{$session_id};
 my $encoding_mode;
 if ( $requested_encoding =~ m|^$| ) {
     $encoding_mode = undef;
-} elsif ( $requested_encoding =~ m|^(utf7|base32|base32-xz)$| ) {
+} elsif ( $requested_encoding =~ m{^(utf7|base32|base32-xz)$} ) {
     $encoding_mode = $requested_encoding;
     if ( $requested_encoding =~ m|^base32-xz$|
         and not <base.perlmod.loaded>->{'Compress::Raw::Lzma'} ) {
         return {
             'mode' => qw| false |,
-            'data' => 'base32-xz mode not available [XZ compression not installed]'
+            'data' =>
+                'base32-xz mode not available [XZ compression not installed]'
         };
     }
 } else {
@@ -41,7 +42,8 @@ if ( $requested_encoding =~ m|^$| ) {
 }
 
 ## Store requested encoding mode (will be negotiated in state 2)
-$session->{'link_encoding_mode_requested'} = $encoding_mode if defined $encoding_mode;
+$session->{'link_encoding_mode_requested'} = $encoding_mode
+    if defined $encoding_mode;
 
 ## TODO: Transition session state 1 -> 2 (link-upgrade negotiation)
 ## This should trigger protocol.protocol-7.link-upgrade.init
@@ -50,3 +52,9 @@ return {
     'mode' => qw| true |,
     'data' => "link upgrade initiated, awaiting handshake"
 };
+
+#,,,.,,..,,,,,.,,,.,,,,,.,,.,,.,,,,..,,.,,...,..,,...,...,,,,,..,,...,..,,.,,,
+#R2OQ4MHQ2PPWXKLLESGKA6A2JVKACAKQHWLBEZOKXAEHFUDC626LZ2MR5ICXZXV3R6QMLVPRLOF5I
+#\\\|2IKZ3A3ALYGM2LPY5LVQMBQXRFP5GEBFRPVT7DJTALFYT6ERE3K \ / AMOS7 \ YOURUM ::
+#\[7]UW6CAU2XIQJRYBYXRZDTM62NJMWOTKITUUNJ2RWACQI2ELTMUWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

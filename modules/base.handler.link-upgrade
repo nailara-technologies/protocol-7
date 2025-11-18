@@ -17,20 +17,16 @@
 #           1 (awaiting more negotiation data)
 #           2 (negotiation failed, return to state 1 authenticated)
 
-my $event = shift;
-my $id    = $event->w->data;
+my $event   = shift;
+my $id      = $event->w->data;
 my $session = $data{'session'}{$id};
-my $input = \$session->{'buffer'}->{'input'};
+my $input   = \$session->{'buffer'}->{'input'};
 
 ## Check for negotiation timeout
 if ( defined $session->{'link_upgrade_timeout'}
     and time() > $session->{'link_upgrade_timeout'} ) {
-    <[base.logs]>->(
-        0,
-        '[%d] link-upgrade negotiation timeout',
-        $id
-    );
-    return 2;  ## Disconnect on timeout
+    <[base.logs]>->( 0, '[%d] link-upgrade negotiation timeout', $id );
+    return 2;    ## Disconnect on timeout
 }
 
 ## Parse link-upgrade negotiation protocol
@@ -52,16 +48,17 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
     ## Perform Diffie-Hellman with client pubkey
     ## Get ephemeral private key
     my $ephemeral_key_name = $session->{'link_ephemeral_key_name'};
-    my $ephemeral_keypair = <keys.C25519>{$ephemeral_key_name};
+    my $ephemeral_keypair  = <keys.C25519>->{$ephemeral_key_name};
 
     if ( not defined $ephemeral_keypair ) {
-        <[base.logs]->( 0, '[%d] ephemeral keypair lost', $id );
+        <[base.logs]>->( 0, '[%d] ephemeral keypair lost', $id );
         return 2;
     }
 
     ## Compute shared secret: DH(our_private, client_public)
-    my $shared_secret = <[crypt.C25519.compute_shared]->(
-        $ephemeral_keypair->{'secret'}, $client_pubkey
+    my $shared_secret = <[crypt.C25519.compute_shared]>->(
+        $ephemeral_keypair->{'secret'},
+        $client_pubkey
     );
 
     if ( not defined $shared_secret ) {
@@ -73,23 +70,21 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
     $session->{'link_dh_shared_secret'} = $shared_secret;
 
     ## Send our public key back (in response to client's key)
-    $session->{'buffer'}->{'output'} .= sprintf(
-        "SIZE 0\n"
-    );  ## Indicate ready for encoding negotiation
+    $session->{'buffer'}->{'output'}
+        .= sprintf("SIZE 0\n");    ## Indicate ready for encoding negotiation
 
     <[base.logs]>->( 2, '[%d] DH completed, shared secret established', $id );
 
-    return 1;  ## Awaiting more negotiation
-}
+    return 1;                      ## Awaiting more negotiation
 
-elsif ( $$input =~ s|^link-confirm-encoding\s+(\S+)\n|| ) {
+} elsif ( $$input =~ s|^link-confirm-encoding\s+(\S+)\n|| ) {
     my $client_encoding = $1;
 
     ## Validate encoding mode
     my $valid_encodings = $session->{'link_capabilities'}->{'encoding'} // [];
-    my $encoding_ok = 0;
+    my $encoding_ok     = 0;
 
-    foreach my $valid ( @$valid_encodings ) {
+    foreach my $valid (@$valid_encodings) {
         if ( $valid =~ m|^\Q$client_encoding\E$| ) {
             $encoding_ok = 1;
             last;
@@ -97,34 +92,45 @@ elsif ( $$input =~ s|^link-confirm-encoding\s+(\S+)\n|| ) {
     }
 
     if ( not $encoding_ok and $client_encoding !~ m|^none$| ) {
-        <[base.logs]>->( 0, '[%d] client requested unsupported encoding: %s', $id, $client_encoding );
+        <[base.logs]>->(
+            0,   '[%d] client requested unsupported encoding: %s',
+            $id, $client_encoding
+        );
         return 2;
     }
 
     ## Store negotiated encoding mode
-    $session->{'link_encoding_mode'} = $client_encoding unless $client_encoding =~ m|^none$|;
+    $session->{'link_encoding_mode'} = $client_encoding
+        unless $client_encoding =~ m|^none$|;
 
-    <[base.logs]>->( 2, '[%d] encoding mode negotiated: %s', $id, $client_encoding );
+    <[base.logs]>->(
+        2,   '[%d] encoding mode negotiated: %s',
+        $id, $client_encoding
+    );
 
-    return 1;  ## Awaiting confirmation
-}
+    return 1;    ## Awaiting confirmation
 
-elsif ( $$input =~ s|^link-complete\n|| ) {
+} elsif ( $$input =~ s|^link-complete\n|| ) {
     ## Handshake complete, transition to encrypted state (state 3)
-    <[base.logs]>->( 2, '[%d] link-upgrade negotiation complete, transitioning to state 3', $id );
-    return 0;  ## Complete, trigger state transition
-}
+    <[base.logs]>->(
+        2,
+        '[%d] link-upgrade negotiation complete, transitioning to state 3',
+        $id
+    );
+    return 0;    ## Complete, trigger state transition
 
-else {
+} else {
     ## Unknown command in link-upgrade state
-    <[base.logs]>->( 1, '[%d] unknown link-upgrade command, awaiting protocol', $id );
-    return 1;  ## Keep waiting
+    <[base.logs]>->(
+        1, '[%d] unknown link-upgrade command, awaiting protocol', $id
+    );
+    return 1;    ## Keep waiting
 }
 
 1;
 
-#,,..,.,.,.,,,.,.,..,,,.,,,.,,,.,,,..,,..,,..,..,,...,..,,...,.,,,,..,,,,,.,,,
-#GZ6HTXDZYP22ALOJVQV5SU4ATH36ZLVBV22UUEWK2STVTJJS5WBU33V5ERS3TYXL7KJDLSRPE4H3C
-#\\\|KU5IDRYDQARUXHDVT237P4H7TJ37RK2ICZVW5NTNE2BT3DWPY7E \ / AMOS7 \ YOURUM ::
-#\[7]DNIHETD6OMKVOIDEP6XDRZLAETTH42QDBQZVWCUEK4DP5GCZRWDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,.,,,,,,,.,,,.,,,,,,,,,.,,.,,.,.,..,,...,.,.,.,,,.,.,.,.,.,,,...,
+#ORBUBH4KSQ7CI6SQB4VX2LCJFOOCZ5LBK3JK27KLOICINAQ2GWV3KTUUCFBOK64U6Q75NWNM5LKOI
+#\\\|RZR2W6YN2QAFHMGVOLNC4YW3TIWOXUAKBE7I325JRMS3OGI2F5V \ / AMOS7 \ YOURUM ::
+#\[7]ETDGFLAPUU23WWP34E6VUNKBBYNHILFJ6KA4P3GJY4HF5P6BHWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
