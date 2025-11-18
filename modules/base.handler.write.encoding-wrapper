@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = base.handler.write.encoding-wrapper
+# descr = encoding wrapper factory for output transformation
+#         creates session-specific closures for encoding modes
+#
+# usage = called from cube.cmd.reply-encoding-mode to create per-session wrapper
+# args  = session_id, encoding_mode
+# returns = code reference for encoding transformation
+
+my ( $session_id, $mode ) = @ARG;
+
+return sub {
+    my $data_sref = shift;
+    my $data_str = $$data_sref;
+    my $session = $data{'session'}{$session_id};
+
+    ## Apply encoding transformation based on mode
+    if ( not defined $session->{'reply_encoding_mode'} ) {
+        return $data_str;
+    }
+
+    my $enc_mode = $session->{'reply_encoding_mode'};
+
+    ## BASE32 encoding: 8-bit binary → 5-bit alphabet (7-bit safe linewise)
+    if ( $enc_mode =~ m|^base32$| ) {
+        if ( length $data_str ) {
+            $data_str = Crypt::Misc::encode_b32r($data_str);
+        }
+    }
+    ## BASE32-XZ: compress binary, then BASE32 encode
+    ## Compression happens on encrypted binary (best ratio), BASE32 keeps linewise
+    elsif ( $enc_mode =~ m|^base32-xz$| ) {
+        if ( length $data_str ) {
+            ## Order: encrypt → compress → encode
+            ## (encryption happens at state 3 wrapper level)
+            my $compressed = Compress::Raw::Lzma::compress($data_str);
+            if ( defined $compressed and length $compressed ) {
+                $data_str = Crypt::Misc::encode_b32r($compressed);
+            }
+        }
+    }
+    ## UTF-7: 7-bit safe ASCII encoding (future)
+    elsif ( $enc_mode =~ m|^utf7$| ) {
+        if ( length $data_str ) {
+            # UTF-7 encoding logic placeholder
+            # Implementation depends on specific UTF-7 variant used
+        }
+    }
+    ## utf8 and octets modes: no transformation needed (pass through)
+
+    return $data_str;
+};
+
+1;
+
+#,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..
+#WRAPPERENCODING5BITALPHABET7BITLINEWISE5BITCOLORSPACELAYER2COMPRESSION
+#\\\|WRITEENCODING8BINTO5BITBASE32WITHOUTCUTTINGDATA7BITSAFELINEWISE \ / AMOS7 \
+#\[7]ENCODEWRAPPEROUTPUTLAYERCLOSUREPERSES SION5BITCOMPRESSIONXZ6 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

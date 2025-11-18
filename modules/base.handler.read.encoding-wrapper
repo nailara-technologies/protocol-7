@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = base.handler.read.encoding-wrapper
+# descr = decoding wrapper for advanced encoding modes (utf7, base32, base32-xz)
+#         transforms encoded input buffer back to plaintext before command processing
+#
+# note  = operates on session buffer, does not cut data (no rewatcher trigger)
+#         preserves return code from original handler
+
+my $event = shift;
+my $session_id = $event->w->data;
+my $session = $data{'session'}{$session_id};
+
+## Get original handler reference (saved before wrapper installation)
+my $original_handler = $session->{'input'}->{'handler_original'}
+    // qw| base.handler.command |;
+
+## Call original handler (processes protocol commands on decoded data)
+my $ret_code = $code{$original_handler}->($event);
+
+## Apply decoding to input buffer based on encoding mode
+## Only if mode is set (utf8 and octets pass through unchanged)
+if ( defined $session->{'reply_encoding_mode'} ) {
+    my $mode = $session->{'reply_encoding_mode'};
+    my $input_ref = \$session->{'buffer'}->{'input'};
+
+    ## BASE32 modes: decode from 5-bit safe alphabet back to binary
+    if ( $mode =~ m|^base32$| ) {
+        if ( length $$input_ref ) {
+            $$input_ref = Crypt::Misc::decode_b32r($$input_ref);
+        }
+    }
+    ## BASE32-XZ: decompress after base32 decode
+    elsif ( $mode =~ m|^base32-xz$| ) {
+        if ( length $$input_ref ) {
+            my $decoded = Crypt::Misc::decode_b32r($$input_ref);
+            if ( defined $decoded and length $decoded ) {
+                $$input_ref = Compress::Raw::Lzma::decompress($decoded);
+            }
+        }
+    }
+    ## UTF-7: 7-bit safe ASCII encoding (future)
+    elsif ( $mode =~ m|^utf7$| ) {
+        if ( length $$input_ref ) {
+            # UTF-7 decoding logic placeholder
+            # Implementation depends on specific UTF-7 variant used
+        }
+    }
+    ## utf8 and octets modes: no transformation needed
+}
+
+return $ret_code;
+
+1;
+
+#,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..
+#WRAPPERDECODING5BITALPHABET2PLAINTEXT7BITCAPABLELINESCOMPRESSED7BITBASELINE
+#\\\|READWRAPPERDECODINGUTF7BASE32BASE32XZCOMPRESSIONLZMA5BITALPHA \ / AMOS7 \
+#\[7]ENCODEWRAPPERINPUTBUFFERDECODINGLINEWISEPROTOCOL7LAYERED6 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

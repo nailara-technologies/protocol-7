@@ -36,7 +36,7 @@ if ( index( <system.p7.ext-proto-ver>, qw| \ |, 0 ) != 0 ) {
     qw| authentication-methods | => {},    ## registry ##
 
     qw| state | => {
-        qw| 0 | => {
+        qw| 0 | => {  ## Pre-auth state
 
             ## [ linewise | bytewise | binary ] ##
             qw| read-mode | => qw| linewise |, ##  bytewise has size limit  ##
@@ -46,7 +46,7 @@ if ( index( <system.p7.ext-proto-ver>, qw| \ |, 0 ) != 0 ) {
 
             qw| error | => { qw|handler| => qw| base.handler.session_error | }
         },
-        qw| 1 | => {
+        qw| 1 | => {  ## Authenticated state (current)
 
             ## [ linewise | bytewise | binary ] ##
             qw| read-mode | => qw| linewise |,
@@ -55,16 +55,48 @@ if ( index( <system.p7.ext-proto-ver>, qw| \ |, 0 ) != 0 ) {
             qw| output | => { qw| handler | => qw| base.handler.command | },
 
             qw| error | => { qw|handler| => qw| base.handler.session_error | }
-        }
+        },
 
-        # , qw| 2 | => { ## .. encrypted session state .., ? ## }
+        qw| 2 | => {  ## Link-upgrade negotiation (encryption/advanced encoding handshake)
+
+            ## Linewise for handshake (BASE32 encoding allows linewise transmission)
+            qw| read-mode | => qw| linewise |,
+
+            qw| input |  => { qw| handler | => qw| base.handler.link-upgrade | },
+            qw| output | => { qw| handler | => qw| base.handler.link-upgrade.response | },
+
+            ## Handshake initialization (exchange C25519 keys, negotiate modes)
+            qw| init | => qw| protocol.protocol-7.link-upgrade.init |,
+
+            qw| error | => { qw|handler| => qw| base.handler.session_error | }
+        },
+
+        qw| 3 | => {  ## Encrypted session state
+
+            ## Linewise transmission with BASE32 encoding wrapping encryption
+            ## Order: plaintext → encrypt → compress (optional) → BASE32 encode → linewise
+            ## Keeps protocol linewise while enabling binary encryption underneath
+            qw| read-mode | => qw| linewise |,
+
+            qw| input |  => {
+                qw| handler | => qw| base.handler.read.encryption-wrapper |
+            },
+            qw| output | => {
+                qw| handler | => qw| base.handler.command |
+            },
+
+            ## Encryption initialization (install encryption layers)
+            qw| init | => qw| protocol.protocol-7.encryption.init |,
+
+            qw| error | => { qw|handler| => qw| base.handler.session_error | }
+        }
     },
     'clean-up-regex' => [qr|^(\s*\n)+$|], ## <-- applied before cmd processing
     qw| command-handlers | =>
         { qw| input | => [qw| multi-line |], qw| process | => [qq||] }
 };
 
-<protocol.protocol-7.settings.do-clean-up> //= 5; ## <-- override in set-up ##
+<protocol.protocol-7.settings.do-clean-up> //= 5; ## default: clean empty lines in input (override in set-up) ##
 
 ##  log and protocol messages  ##
 <[templates.register_add]>;    ## register module sprintf templates ##
