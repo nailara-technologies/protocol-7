@@ -404,14 +404,20 @@ sub install_dependencies {
 
     # Aggregate dependencies
     my @all_cpan;
+    my @all_cpan_fallback;
     my @all_debian;
 
     for my $module (keys %{$known->{perlmod}}) {
-        push @all_cpan, $module if $known->{perlmod}{$module}{cpan};
+        if ($known->{perlmod}{$module}{cpan}) {
+            push @all_cpan, $module;
+        }
+        if ($known->{perlmod}{$module}{cpan_fallback}) {
+            push @all_cpan_fallback, $module;
+        }
     }
 
     for my $module (keys %{$pm_deps}) {
-        push @all_cpan, $module unless grep { $_ eq $module } @all_cpan;
+        push @all_cpan, $module unless grep { $_ eq $module } @all_cpan || grep { $_ eq $module } @all_cpan_fallback;
     }
 
     for my $pkg (keys %{$os_deps->{debian}}) {
@@ -426,6 +432,30 @@ sub install_dependencies {
             }
         }
     }
+
+    # For cpan_fallback modules, only add to CPAN list if Debian package doesn't provide them
+    my @cpan_fallback_to_install;
+    for my $module (@all_cpan_fallback) {
+        my $needs_install = 1;
+        if ($known->{perlmod}{$module}{debian}) {
+            for my $pkg (@{$known->{perlmod}{$module}{debian}}) {
+                next if $pkg =~ /^cpan:/;
+                # Check if Debian package is installed
+                my $is_installed = system("dpkg -l '$pkg' 2>/dev/null | grep -q '^ii'") == 0;
+                if ($is_installed) {
+                    # Check if the module can be loaded
+                    my $module_loadable = system("perl -M$module -e 1 2>/dev/null") == 0;
+                    if ($module_loadable) {
+                        $needs_install = 0;
+                        last;
+                    }
+                }
+            }
+        }
+        push @cpan_fallback_to_install, $module if $needs_install;
+    }
+
+    push @all_cpan, @cpan_fallback_to_install;
 
     print "\n";
     print_section "Debian Packages";
