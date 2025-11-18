@@ -45,12 +45,18 @@ if ( $requested_encoding =~ m|^$| ) {
 $session->{'link_encoding_mode_requested'} = $encoding_mode
     if defined $encoding_mode;
 
-## TODO: Transition session state 1 -> 2 (link-upgrade negotiation)
-## This should trigger protocol.protocol-7.link-upgrade.init
+## Transition session state 1 -> 2 (link-upgrade negotiation)
+## This triggers protocol.protocol-7.link-upgrade.init
+if ( not <[base.session.init_state]>->( $session_id, 2 ) ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "failed to transition to link-upgrade state (state 2)"
+    };
+}
 
 return {
     'mode' => qw| true |,
-    'data' => "link upgrade initiated, awaiting handshake"
+    'data' => "link upgrade initiated, state transition complete"
 };
 
 #,,,.,,..,,,,,.,,,.,,,,,.,,.,,.,,,,..,,.,,...,..,,...,...,,,,,..,,...,..,,.,,,

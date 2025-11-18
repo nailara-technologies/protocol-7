@@ -117,7 +117,18 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
         '[%d] link-upgrade negotiation complete, transitioning to state 3',
         $id
     );
-    return 0;    ## Complete, trigger state transition
+
+    ## Trigger state transition from state 2 to state 3
+    if ( not <[base.session.init_state]>->( $id, 3 ) ) {
+        <[base.logs]>->(
+            0,
+            '[%d] failed to initialize encryption state (state 3)',
+            $id
+        );
+        return 2;  ## Disconnect on init failure
+    }
+
+    return 0;    ## Complete, state transition done
 
 } else {
     ## Unknown command in link-upgrade state
