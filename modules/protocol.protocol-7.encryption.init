@@ -50,18 +50,12 @@ if ( not <base.perlmod.loaded>->( 'Crypt::AuthEnc::ChaCha20Poly1305' ) ) {
     <[base.perlmod.load]>->( 'Crypt::AuthEnc::ChaCha20Poly1305' );
 }
 
-my $cipher_context = Crypt::AuthEnc::ChaCha20Poly1305->new( $enc_key );
-if ( not defined $cipher_context ) {
-    <[base.logs]>->(
-        0,
-        '[%d] encryption init: failed to initialize ChaCha20-Poly1305 cipher',
-        $session_id
-    );
-    return 0;
-}
+## Note: Cipher instances are created per-message with generated nonces
+## No need to create a context here - we'll create fresh instances in the wrappers
+## Just initialize the message counter for nonce generation
 
-$session->{'link_encryption_context'} = $cipher_context;
-$session->{'link_msg_counter'} = 0;  ## message counter for nonce generation
+$session->{'link_read_counter'} = 0;   ## read-side message counter
+$session->{'link_write_counter'} = 0;  ## write-side message counter
 
 <[base.logs]>->(
     2,
