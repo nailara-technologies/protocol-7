@@ -6,11 +6,16 @@
 #         negotiates C25519 key exchange, encryption algorithm, link-layer encoding
 #
 # handles = upgrade-init, key-exchange, capability-set, confirm-upgrade
-# installs = link_encoding_mode (utf7, base32, base32-xz)
-#            read/write encoding wrappers if encoding negotiated
+# installs = link_encryption_key (derived from C25519 DH)
+#            link_encoding_mode (utf7, base32, base32-xz - optional)
+#            encryption/encoding wrappers if negotiated
+#
+# optional = state 2 is only entered if client explicitly requests link upgrade
+#            normal operation stays in state 1 (unencrypted, no overhead)
+#
 # returns = 0 (upgrade complete, transition to state 3 encrypted)
 #           1 (awaiting more negotiation data)
-#           2 (negotiation failed, disconnect)
+#           2 (negotiation failed, return to state 1 authenticated)
 
 my $event = shift;
 my $id    = $event->w->data;
