@@ -1,11 +1,12 @@
 ## [:< ##
 
 # name  = base.handler.write.encoding-wrapper
-# descr = encoding wrapper factory for output transformation
+# descr = encoding wrapper factory for transport-layer output transformation
 #         creates session-specific closures for encoding modes
 #
-# usage = called from cube.cmd.reply-encoding-mode to create per-session wrapper
-# args  = session_id, encoding_mode
+# installed_by = base.handler.link-upgrade during state 2 negotiation
+# link_layer = transport-level encoding negotiated during link-upgrade handshake
+# args  = session_id, encoding_mode (utf7, base32, base32-xz)
 # returns = code reference for encoding transformation
 
 my ( $session_id, $mode ) = @ARG;
@@ -15,12 +16,12 @@ return sub {
     my $data_str = $$data_sref;
     my $session = $data{'session'}{$session_id};
 
-    ## Apply encoding transformation based on mode
-    if ( not defined $session->{'reply_encoding_mode'} ) {
+    ## Apply encoding transformation based on negotiated link-layer encoding mode
+    if ( not defined $session->{'link_encoding_mode'} ) {
         return $data_str;
     }
 
-    my $enc_mode = $session->{'reply_encoding_mode'};
+    my $enc_mode = $session->{'link_encoding_mode'};
 
     ## BASE32 encoding: 8-bit binary → 5-bit alphabet (7-bit safe linewise)
     if ( $enc_mode =~ m|^base32$| ) {

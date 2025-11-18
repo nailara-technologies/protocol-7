@@ -57,7 +57,7 @@ if ( index( <system.p7.ext-proto-ver>, qw| \ |, 0 ) != 0 ) {
             qw| error | => { qw|handler| => qw| base.handler.session_error | }
         },
 
-        qw| 2 | => {  ## Link-upgrade negotiation (encryption/advanced encoding handshake)
+        qw| 2 | => {  ## Link-upgrade negotiation (encryption and transport encoding handshake)
 
             ## Linewise for handshake (BASE32 encoding allows linewise transmission)
             qw| read-mode | => qw| linewise |,
@@ -65,7 +65,8 @@ if ( index( <system.p7.ext-proto-ver>, qw| \ |, 0 ) != 0 ) {
             qw| input |  => { qw| handler | => qw| base.handler.link-upgrade | },
             qw| output | => { qw| handler | => qw| base.handler.link-upgrade.response | },
 
-            ## Handshake initialization (exchange C25519 keys, negotiate modes)
+            ## Handshake initialization: exchange C25519 keys, negotiate encryption
+            ## and transport encoding modes (utf7, base32, base32-xz with optional compression)
             qw| init | => qw| protocol.protocol-7.link-upgrade.init |,
 
             qw| error | => { qw|handler| => qw| base.handler.session_error | }

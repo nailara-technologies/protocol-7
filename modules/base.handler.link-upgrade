@@ -2,10 +2,13 @@
 
 # name  = base.handler.link-upgrade
 # descr = input handler for link-upgrade negotiation state (state 2)
-#         processes encryption/encoding handshake commands
+#         processes encryption and transport-encoding handshake commands
+#         negotiates C25519 key exchange, encryption algorithm, link-layer encoding
 #
-# future = handle upgrade-init, key-exchange, capability negotiation
-# returns = 0 (upgrade complete, transition to state 3)
+# handles = upgrade-init, key-exchange, capability-set, confirm-upgrade
+# installs = link_encoding_mode (utf7, base32, base32-xz)
+#            read/write encoding wrappers if encoding negotiated
+# returns = 0 (upgrade complete, transition to state 3 encrypted)
 #           1 (awaiting more negotiation data)
 #           2 (negotiation failed, disconnect)
 

@@ -1,14 +1,15 @@
 ## [:< ##
 
 # name    = cube.cmd.reply-encoding-mode
-# descr   = set session reply encoding mode (utf8, utf7, octets, base32, base32-xz)
+# descr   = set session SIZE response mode (SIZE or OCTETS)
 #
 # usage   : reply-encoding-mode <mode>
-# modes   : utf8 (default, character count)
-#           utf7 (7-bit safe, ASCII-readable)
-#           octets (raw byte count)
-#           base32 (7-bit safe, fully encoded)
-#           base32-xz (base32 with XZ compression)
+# modes   : SIZE (default, character count)
+#           OCTETS (byte count)
+#
+# note    = controls SIZE vs OCTETS protocol header (SIZE protocol distinction)
+#           transport-level encoding (base32, utf7, etc) belongs to link-upgrade
+#           and is negotiated during encryption handshake (state 2)
 
 my $session_id     = $call->{'session_id'};
 my $requested_mode = $call->{'args'} // '';
@@ -18,107 +19,32 @@ $requested_mode =~ s|\s+||g;    # Remove whitespace
 
 my $session = $data{'session'}{$session_id};
 
-## Helper subroutine to install encoding wrappers for non-default modes
-my $install_encoding_wrapper = sub {
-    my ( $sid, $mode ) = @ARG;
-    my $sess = $data{'session'}{$sid};
-
-    ## Save original handler references if not already saved
-    if ( not defined $sess->{'input'}->{'handler_original'} ) {
-        $sess->{'input'}->{'handler_original'} = $sess->{'input'}->{'handler'};
-    }
-    if ( not defined $sess->{'output'}->{'handler_original'} ) {
-        $sess->{'output'}->{'handler_original'} = $sess->{'output'}->{'handler'};
-    }
-
-    ## Install read wrapper (decodes incoming data)
-    $sess->{'input'}->{'handler'} = qw| base.handler.read.encoding-wrapper |;
-
-    ## Create session-specific write wrapper (encodes outgoing data)
-    my $wrapper_handler_name = sprintf qw| base.handler.write.encoding-%d |, $sid;
-    my $write_wrapper = <[base.handler.write.encoding-wrapper]>->( $sid, $mode );
-    $code{$wrapper_handler_name} = $write_wrapper if ref $write_wrapper eq qw| CODE |;
-
-    ## Install write wrapper handler reference
-    $sess->{'output'}->{'handler'} = $wrapper_handler_name;
-
-    return 1;
-};
-
 ## Validate requested mode
-if ( $requested_mode =~ m|^utf8$| ) {
+if ( $requested_mode =~ m|^size$| ) {
 
-    ## Default mode - remove any wrappers if previously installed
-    $data{'session'}{$session_id}{'reply_encoding_mode'} = qw| utf8 |;
-
-    ## Restore original handlers if wrappers were installed
-    if ( defined $session->{'input'}->{'handler_original'} ) {
-        $session->{'input'}->{'handler'} = $session->{'input'}->{'handler_original'};
-        delete $session->{'input'}->{'handler_original'};
-    }
-    if ( defined $session->{'output'}->{'handler_original'} ) {
-        $session->{'output'}->{'handler'} = $session->{'output'}->{'handler_original'};
-        delete $session->{'output'}->{'handler_original'};
-    }
-
+    ## SIZE mode (default): character count in responses
+    $data{'session'}{$session_id}{'size_mode'} = qw| SIZE |;
     return {
         'mode' => qw| true |,
-        'data' => "reply encoding mode set to: utf8 (default)"
+        'data' => "SIZE response mode set (character count)"
     };
 
-} elsif ( $requested_mode =~ m|^(utf7|octets|base32)$| ) {
+} elsif ( $requested_mode =~ m|^octets$| ) {
 
-    ## Standard advanced modes - always available
-    $data{'session'}{$session_id}{'reply_encoding_mode'} = $requested_mode;
-
-    ## Install encoding wrappers
-    if ( $install_encoding_wrapper->( $session_id, $requested_mode ) ) {
-        return {
-            'mode' => qw| true |,
-            'data' => "reply encoding mode set to: $requested_mode"
-        };
-    } else {
-        return {
-            'mode' => qw| false |,
-            'data' => "failed to install encoding wrapper for mode: $requested_mode"
-        };
-    }
-
-} elsif ( $requested_mode =~ m|^base32-xz$| ) {
-
-    ## Check if XZ compression is available
-    ## Protocol-7 loads compression deps early, so we can check
-    if ( <base.perlmod.loaded>->{'Compress::Raw::Lzma'} ) {
-        $data{'session'}{$session_id}{'reply_encoding_mode'} = qw|base32-xz|;
-
-        ## Install encoding wrappers
-        if ( $install_encoding_wrapper->( $session_id, qw|base32-xz| ) ) {
-            return {
-                'mode' => qw| true |,
-                'data' => 'reply encoding mode set to: base32-xz (compressed)'
-            };
-        } else {
-            return {
-                'mode' => qw| false |,
-                'data' => "failed to install encoding wrapper for base32-xz"
-            };
-        }
-    } else {
-        return {
-            'mode' => qw| false |,
-            'data' =>
-                'base32-xz mode not available [XZ compression not installed]'
-        };
-    }
+    ## OCTETS mode: byte count in responses
+    $data{'session'}{$session_id}{'size_mode'} = qw| OCTETS |;
+    return {
+        'mode' => qw| true |,
+        'data' => "OCTETS response mode set (byte count)"
+    };
 
 } elsif ( $requested_mode =~ m|^$| ) {
 
     ## No mode specified - show current mode
-    my $current_mode = $data{'session'}{$session_id}{'reply_encoding_mode'}
-        // qw| utf8 |;
+    my $current_mode = $data{'session'}{$session_id}{'size_mode'} // qw| SIZE |;
     return {
         'mode' => qw| true |,
-        'data' => "current reply encoding mode: $current_mode"
+        'data' => "current SIZE mode: $current_mode"
     };
 
 } else {
@@ -126,8 +52,8 @@ if ( $requested_mode =~ m|^utf8$| ) {
     ## Unknown mode
     return {
         'mode' => qw| false |,
-        'data' => "unsupported encoding mode: '$requested_mode' "
-            . "[ supported : utf8 (default), utf7, octets, base32, base32-xz ]"
+        'data' => "unsupported mode: '$requested_mode' "
+            . "[ supported : SIZE (default), OCTETS ]"
     };
 }
 

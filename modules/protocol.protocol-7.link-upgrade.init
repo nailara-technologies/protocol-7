@@ -2,7 +2,7 @@
 
 # name  = protocol.protocol-7.link-upgrade.init
 # descr = initialization for link-upgrade negotiation state (state 2)
-#         sets up encryption handshake machinery
+#         sets up encryption and link-layer encoding handshake machinery
 #
 # called = from base.session.init_state when transitioning to state 2
 # args   = session_id, mode, state_id
@@ -15,8 +15,11 @@ my $session = $data{'session'}{$session_id};
 ## - Generate or retrieve C25519 ephemeral keypair for this session
 ## - Store public key for client exchange
 ## - Set up negotiation timeout
-## - Initialize capability flags (supported algorithms, compression)
-## - Send initial upgrade offer to client (with our public key)
+## - Initialize capability flags:
+##   * Encryption algorithms (ChaCha20-Poly1305, AES-GCM, etc.)
+##   * Link-layer encoding modes (utf7, base32, base32-xz)
+##   * Compression support (XZ, Brotli, etc.)
+## - Send initial upgrade offer to client (with our public key and capabilities)
 
 <[base.logs]>->(
     2,
