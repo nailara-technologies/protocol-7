@@ -154,3 +154,9 @@ Protocol-7 Development Team
 See LICENSE file
 
 =cut
+
+#,,..,...,.,,,...,,..,..,,...,..,,..,,.,,,,,,,..,,...,...,,,,,,.,,,..,,..,,,.,
+#KX6IFWXXPZBJWY4GFLSUIV7OUJ2GGJOLY567YRB3G5H7OZYT2WFQ45RWAUUT4VK6HIJV436EZ4EWM
+#\\\|SUYINOIPFCAVUDN7D4RGXBIDWZOIYZ43CWKN2IU72GREJSCR5MB \ / AMOS7 \ YOURUM ::
+#\[7]2CETAH6F4G3ASPPD57G6O3JSEM2COFJEUSAYAPMMHXAJS3PIY4AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
