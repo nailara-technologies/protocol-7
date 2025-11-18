@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = base.handler.read.encryption-wrapper
+# descr = input handler wrapper for encrypted session state (state 3)
+#         decrypts and decompresses incoming data before command processing
+#
+# layering = receive linewise → BASE32 decode → decompress (optional) → decrypt →
+#            plaintext command
+#
+# note  = operates on session buffer, maintains linewise protocol
+#         preserves return code from original handler
+
+my $event = shift;
+my $session_id = $event->w->data;
+my $session = $data{'session'}{$session_id};
+
+## Get original handler reference (would be base.handler.command)
+my $original_handler = $session->{'input'}->{'handler_original'}
+    // qw| base.handler.command |;
+
+## Call original handler (processes decrypted commands)
+my $ret_code = $code{$original_handler}->($event);
+
+## TODO: Apply decryption to input buffer
+## - BASE32 decode (reverse of encoding layer)
+## - Decompress if needed (optional XZ layer)
+## - Decrypt using session key established in link-upgrade
+## - Operate on $session->{'buffer'}->{'input'} in-place
+
+## Placeholder: no transformation yet
+return $ret_code;
+
+1;
+
+#,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..
+#ENCRYPTIONREADWRAPPERBASE32DECODEDECRYPTIONDECOMPRESSIONLINEWISE
+#\\\|STATE3ENCRYPTEDREADHANDLERSESSIONKEYCIPHERTEXT7BITSAFE \ / AMOS7 \
+#\[7]READENCRYPTIONWRAPPERSTATE3DECRYPTION7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

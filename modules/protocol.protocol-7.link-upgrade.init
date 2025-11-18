@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = protocol.protocol-7.link-upgrade.init
+# descr = initialization for link-upgrade negotiation state (state 2)
+#         sets up encryption handshake machinery
+#
+# called = from base.session.init_state when transitioning to state 2
+# args   = session_id, mode, state_id
+# returns = 1 (success) | 0 (failure)
+
+my ( $session_id, $mode, $state_id ) = @ARG;
+my $session = $data{'session'}{$session_id};
+
+## TODO: Initialize link-upgrade negotiation
+## - Generate or retrieve C25519 ephemeral keypair for this session
+## - Store public key for client exchange
+## - Set up negotiation timeout
+## - Initialize capability flags (supported algorithms, compression)
+## - Send initial upgrade offer to client (with our public key)
+
+<[base.logs]>->(
+    2,
+    '[%d] initializing link-upgrade negotiation (state %d)',
+    $session_id, $state_id
+);
+
+## Placeholder: return success
+return 1;
+
+1;
+
+#,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..,,..
+#LINKUPGRADEINITC25519EPHEMERALKEYAIRSYMETRICENCRYPTIONSETUP
+#\\\|LINKUPGRADENEGOTIATIONINITCAPABILITIESEXCHANGE5BITALPHABET \ / AMOS7 \
+#\[7]PROTOCOLSTATE2LINKUPGRADEINITHANDLER7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
