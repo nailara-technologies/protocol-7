@@ -17,8 +17,10 @@ if ( not defined $path ) {
 $param_mode //= 0700;    # <-- strict default
 $param_mode = oct($param_mode) if $param_mode =~ m|^0|;
 
-my $mkdir_umask = 0777 & ~0777;    ## <-- permissive setting.., ##
-my $previous_umask;
+## Save current umask and use permissive setting for mkdir
+my $previous_umask = umask(0);
+my $mkdir_umask = 0;  ## <-- permissive setting for mkdir: 0777 & ~0 = 0777 ##
+umask($previous_umask);  ## Restore original umask before actual mkdir operations ##
 
 ## optionally recursive mode array [ reference ] ##  <-- expand [owners] [LLL]
 my $modes = ref $param_mode ne qw| ARRAY | ? [$param_mode] : $param_mode;
