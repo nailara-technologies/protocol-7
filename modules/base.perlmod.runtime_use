@@ -1,9 +1,10 @@
 ## [:< ##
 
 # name  = base.perlmod.runtime_use
-# desc  = Use Module::Runtime::use_module() to load modules with proper namespace access
-#         This handles modules that don't work with Module::Load-based autoload/load
-#         Automatically registers the loaded module in Protocol-7's module system
+# desc  = Use Module::Runtime::use_module() to load modules with proper
+#         namespace access This handles modules that don't work with
+#         Module::Load-based autoload/load Automatically registers the
+#         loaded module in Protocol-7's module system
 
 my $module_name = shift // '';
 
@@ -12,19 +13,17 @@ if ( not length $module_name ) {
     return undef;
 }
 
-##  First ensure Module::Runtime itself is available  ##
-<[base.perlmod.load]>->('Module::Runtime') if not <[base.perlmod.loaded]>->('Module::Runtime');
+##  Module::Runtime::use_module() to load the module with namespace access  ##
+my $name_loaded = eval { Module::Runtime::use_module($module_name) };
 
-require Module::Runtime;
-
-##  Use Module::Runtime::use_module() to load the module with namespace access  ##
-my $result;
-eval {
-    $result = Module::Runtime::use_module($module_name);
-};
-
-if ($EVAL_ERROR) {
-    warn "failed to load '$module_name' via Module::Runtime::use_module: $EVAL_ERROR";
+if (   length $EVAL_ERROR
+    or not defined $name_loaded
+    or $name_loaded ne $module_name ) {
+    <base.perlmod.loaded>->{$module_name} = FALSE;  ## declaring NOT loaded ##
+    <[base.s_warn]>->(
+        "cannot load '$module_name' [ %s ]",
+        <[base.str.eval_error]>
+    );
     return FALSE;
 }
 
@@ -33,8 +32,8 @@ if ($EVAL_ERROR) {
 
 return TRUE;
 
-#,,.,.,,,,.,,.,,,.,.,,,,,,.,,,..,,..,,.,,..,,...,...,..,,.,.,,..,,.,,..,,
-#DXEXHS36YXAPPVF36EAB5PMBDLQZZRXIFOFPK6O24OWRDEN2G55SJRKBRAVBPQRPZMK6G3ZWXJODS
-#\\\|C2WSFVTCES4WICTON26TQZ3I2QUO6KZ3MHRNA6IW5XDUCJBQV5V \ / AMOS7 \ YOURUM ::
-#\[7]6K6SM6JJPJHCKW4F4UPCRUC6KQY4RX64PLBXSG55M7JU7Q5DCOCY 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,,,.,..,,...,.,.,,.,,...,,.,,,.,,..,,...,...,.,.,.,,,,,.,,,.,..,,
+#NH5Y6X54UCULEPOMQ73P32P23RBEZRMTPGFVC7ZPRKPQFQK45DCTSDMORZPZPZ6U7AWHUGHDG7TV4
+#\\\|F4W2OCQ2W2PPWDUKP3YCRI3GSAS7KIDNF6FWUFHGKUU4T3OOL6Q \ / AMOS7 \ YOURUM ::
+#\[7]GGHTWJEG3WBD5E2HWFIA7CMGEJSOVLHMO5NF7HMLSDD4AV7EOKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

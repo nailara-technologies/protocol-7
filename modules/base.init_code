@@ -18,7 +18,8 @@
 <[base.perlmod.load]>->( 'Time::Local',   qw| timegm_nocheck | );
 <[base.perlmod.load]>->( 'BSD::Resource', qw | getrlimit setrlimit | );
 
-use Const::Fast;    ##  does not work with Module::Load::[auto]load  ##
+## not loadable with Module::Load::[auto]load or Module::Runtime::use : ##
+use Const::Fast;   ## loading too late causes 'const' to be a syntax error! ##
 <[base.perlmod.register_loaded_module]>->('Const::Fast');
 
 <[base.perlmod.load]>->(
@@ -266,8 +267,8 @@ if ( defined <setup.aliases> ) {
 
 return 0;
 
-#,,,,,,.,,,..,...,,,.,,,.,.,.,..,,,..,,..,,.,,..,,...,...,...,,..,,..,..,,..,,
-#DXAZJOO2SVE7AYMVKL3IZ5GNCZEHSGW7OPIMS3XBVD4L3Q5J5K6M5ZE3T6EWHPXC77C4ZRB7RMQ2Q
-#\\\|KN4VZY4CMDA2CUWJLOPYFIYUVMLY6235B2TIALLVH4SSSAMPZTS \ / AMOS7 \ YOURUM ::
-#\[7]4K7WNYYOKQQ2DH7NR6GS3HGFM3XITCCAN6J4NOQDK4JPZNBEMUBA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,.,,,,,,,,.,,,,,,..,..,,...,,,,,..,,...,...,..,,,,.,,..,,.,,.,.,
+#CWTD2DZIPQIFXZTU3XA5WLMBKUQC63PAE3F5XRIP3BLY4CW4SAKBQBDSNENYERMYPCAI5KEPPCY7I
+#\\\|ODIKQ2KLGYT6OMNR6YFF4ECPUXHPLUGNSYDU5JG4DVBPTSH6LUS \ / AMOS7 \ YOURUM ::
+#\[7]NOOAJNNDRMEVMUCPPIRG7LM4VUQPH736PHSY5MQKZELO27W6A4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
