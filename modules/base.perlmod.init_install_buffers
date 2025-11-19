@@ -4,8 +4,7 @@
 # descr = Initialize tracking buffers for CPAN module installation operations
 
 ## Installation activity log buffer ##
-<buffer.perlmod-install.max_size>
-    //= 32 * 1024;    ## 32K buffer for install logs ##
+<buffer.perlmod-install.max_size> //= 32 * 1024; # 32K buffer [install logs] #
 
 my $zenka_init
     = defined $data{'buffer'}{'perlmod-install'}{'data'}
@@ -42,8 +41,14 @@ if (    $zenka_init eq qw| re-init |
     qw| var |   => qw| data |,
     qw| key |   => qw| perlmod.install.stats |,
     qw| descr | => 'CPAN module installation statistics',
-    qw| mask |  =>
-        'total_attempts:attempts successful:success failed:failures debian_pkgs:deb cpan_mods:cpan',
+    qw| mask |  => join ' ',
+    qw |
+        total_attempts:attempts
+        successful:success
+        failed:failures
+        debian_pkgs:deb
+        cpan_mods:cpan
+        |,
     qw| align | => {
         qw| total_attempts | => qw| center |,
         qw| successful |     => qw| center |,
@@ -58,13 +63,13 @@ if (    $zenka_init eq qw| re-init |
     qw| var |     => qw| data |,
     qw| key |     => qw| buffer.perlmod-install.data |,
     qw| descr |   => 'CPAN module installation activity log',
-    qw| no_sort | => 1,    ## maintain chronological order ##
+    qw| no_sort | => TRUE,    ## maintain chronological order ##
 };
 
 return 0;
 
-#,,.,,,,.,,.,,,,.,.,.,,.,,...,...,.,,,,.,,..,,..,,...,...,,.,,.,,,,,,,,,,,,..,
-#D6GOAJ7AI63VNWLGCPRRM34DABOFTSQR7TMJOE23HTNGLHP2V2MTGCD3I3ZGMC2WRLGGHSDAZVFRC
-#\\\|R52AAWA23C5Q2WFGMTBJIN2IWAZ66Q65FZNINMOCYXMGC4326PM \ / AMOS7 \ YOURUM ::
-#\[7]ULOBVMHNKBZ6RXIVAQV4WTI3SWWPPMVE5PYJHYLGGEU64IGDMIAA 7  DATA SIGNATURE ::
+#,,.,,.,,,...,...,.,.,.,.,.,.,.,,,,.,,..,,.,,,..,,...,..,,,.,,,,.,.,,,,,.,.,,,
+#7XMH4W6Z7JSZ4SMB6UASRTZ4LSUKXX5TSHL6MMJCLVMFUCZ7QWNX27PTURJP3PCAHBF22MTU5AKMU
+#\\\|QEDDFUP52CT5UMCX4YPFX2OWC2DY6274LDVIK7SIN7JZMS22G24 \ / AMOS7 \ YOURUM ::
+#\[7]RFOUZ4EWBHQFGPZ4KADTKAX4D4RJECRJ3OP4PQTZIBTJF7TT4CAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
