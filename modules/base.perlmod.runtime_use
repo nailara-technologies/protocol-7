@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = base.perlmod.runtime_use
+# desc  = Use Module::Runtime::use_module() to load modules with proper namespace access
+#         This handles modules that don't work with Module::Load-based autoload/load
+#         Automatically registers the loaded module in Protocol-7's module system
+
+my $module_name = shift // '';
+
+if ( not length $module_name ) {
+    warn 'expected module name parameter <{C1}>';
+    return undef;
+}
+
+##  First ensure Module::Runtime itself is available  ##
+<[base.perlmod.load]>->('Module::Runtime') if not <[base.perlmod.loaded]>->('Module::Runtime');
+
+require Module::Runtime;
+
+##  Use Module::Runtime::use_module() to load the module with namespace access  ##
+my $result;
+eval {
+    $result = Module::Runtime::use_module($module_name);
+};
+
+if ($EVAL_ERROR) {
+    warn "failed to load '$module_name' via Module::Runtime::use_module: $EVAL_ERROR";
+    return FALSE;
+}
+
+##  Register the module in Protocol-7's tracking system  ##
+<[base.perlmod.register_loaded_module]>->($module_name);
+
+return TRUE;
+
+#,,.,.,,,,.,,.,,,.,.,,,,,,.,,,..,,..,,.,,..,,...,...,..,,.,.,,..,,.,,..,,
+#DXEXHS36YXAPPVF36EAB5PMBDLQZZRXIFOFPK6O24OWRDEN2G55SJRKBRAVBPQRPZMK6G3ZWXJODS
+#\\\|C2WSFVTCES4WICTON26TQZ3I2QUO6KZ3MHRNA6IW5XDUCJBQV5V \ / AMOS7 \ YOURUM ::
+#\[7]6K6SM6JJPJHCKW4F4UPCRUC6KQY4RX64PLBXSG55M7JU7Q5DCOCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
