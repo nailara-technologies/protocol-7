@@ -42,7 +42,7 @@ my $uc_name_regex = qr|[0-9A-Z_\-]+|;
 delete <crypt.C25519.regex>    ##  allow updates during reload  ##
     if <[base.is_defined_recursive]>->(qw| crypt.C25519.regex |);
 
-const <crypt.C25519.regex> => {
+const <crypt.C25519.regex> => {    ## requires Const::Fast to be loaded ##
     qw| key_name |           => qr|^$name_regex$|,
     qw| signature_key_name | => qr|^$uc_name_regex|,
     qw| key_sig |            => {
@@ -61,7 +61,7 @@ const <crypt.C25519.regex> => {
 delete <crypt.C25519.keys.sizetype>    ##  allow updates during reload  ##
     if <[base.is_defined_recursive]>->(qw| crypt.C25519.keys.sizetype |);
 
-const <crypt.C25519.keys.sizetype> => {
+const <crypt.C25519.keys.sizetype> => {    ## <- will be read-only [again]. ##
 
     ##  binary [ unencoded ] public or secret keys  ##
     ##
@@ -217,8 +217,8 @@ const <crypt.C25519.keys.sizetype> => {
 
 0;
 
-#,,,.,..,,.,.,,,,,...,,..,,.,,.,.,,..,.,,,...,..,,...,...,,.,,,,.,...,,,.,..,,
-#3BNRLAQB6NL3T3HH3UYHZE6N325PKCBIGF3YB7DQ7AADZ44KZPPLMVXT5YSQLS4YNJTQHMUH5U75A
-#\\\|7ZY4RA3QNHR5U3KPX7XB3B7CCFPRJTL3PPTGVZGHJJVTDBDXGPX \ / AMOS7 \ YOURUM ::
-#\[7]QQUVAJTFVIM6NFRBGDKKWDVL6WCYJDRHOUP7SSDCWSDHSTB3NOCA 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,,,,..,,,..,.,,,.,.,,.,,.,.,,.,,..,,...,...,.,,,..,,,..,.,,,...,
+#3CADUFBHABCJSMM4JTCW5XPWFO3S35WJMSCCGYORDH6QT4QOJLDO7RSGD742DXMEB7CDGXJHVDCSW
+#\\\|WPQPSUCT7QUWRP3I5GX2BHJTHXMEOLSDNDYAB35HOPIOQYHICHE \ / AMOS7 \ YOURUM ::
+#\[7]X652UOCUUSGKIZWQ3V473UMTJHM42XW3VTRRDAZXYAQKXZLYREBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
