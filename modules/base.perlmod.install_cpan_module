@@ -16,13 +16,16 @@ my $errors = '';
 open( my $cpanm_fh, '-|', $cpanm_path, '--quiet', '--notest', $module_name )
     or do {
     <[base.logs]>->( 0, ": failed to execute cpanm: %s", $! );
-    <[base.buffer.add_line]>->( qw| perlmod-install |,
-        sprintf '  ✗ %s (exec failed: %s)', $module_name, $! );
+    <[base.buffer.add_line]>->(
+        qw| perlmod-install |,
+        sprintf '  ✗ %s (exec failed: %s)',
+        $module_name, $!
+    );
     return -1;
     };
 
 ## Capture output while process runs ##
-while ( <$cpanm_fh> ) {
+while (<$cpanm_fh>) {
     chomp;
     $output .= $_ . "\n";
 }
@@ -33,11 +36,15 @@ my $exit_code = $? >> 8;
 ## Log captured output if there were issues ##
 if ( $exit_code != 0 and length $output ) {
     <[base.logs]>->( 2, ": cpanm output: %s", $output );
-    <[base.buffer.add_line]>->( qw| perlmod-install |,
-        sprintf '  ✗ %s (install failed)', $module_name );
+    <[base.buffer.add_line]>->(
+        qw| perlmod-install |,
+        sprintf '  ✗ %s (install failed)', $module_name
+    );
 } elsif ( $exit_code == 0 ) {
-    <[base.buffer.add_line]>->( qw| perlmod-install |,
-        sprintf '  ✓ %s', $module_name );
+    <[base.buffer.add_line]>->(
+        qw| perlmod-install |,
+        sprintf '  ✓ %s', $module_name
+    );
 }
 
 return $exit_code;
