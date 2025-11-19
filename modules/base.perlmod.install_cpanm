@@ -4,18 +4,29 @@
 # descr = Safely install cpanminus via apt-get or manual bootstrap
 
 <system.host.os.dist.name> //= qw| debian |;
-<[base.buffer.add_line]>->( qw| perlmod-install |, 'bootstrapping cpanminus ...' );
+<[base.buffer.add_line]>->(
+    qw| perlmod-install |,
+    'bootstrapping cpanminus ...'
+);
 
 if ( <system.host.os.dist.name> eq qw| debian | ) {
     ## Try debian package first ##
     my $result = <[base.debian.install_package]>->(qw| cpanminus |);
     if ( $result == 0 ) {
-        <[base.buffer.add_line]>->( qw| perlmod-install |, '  ✓ cpanminus (debian)' );
+        <[base.buffer.add_line]>->(
+            qw| perlmod-install |,
+            '  ✓ cpanminus (debian)'
+        );
         return TRUE;
     }
 
-    <[base.logs]>->( 1, ": debian package installation failed, trying bootstrap" );
-    <[base.buffer.add_line]>->( qw| perlmod-install |, '  fallback: manual bootstrap' );
+    <[base.logs]>->(
+        1, ": debian package installation failed, trying bootstrap"
+    );
+    <[base.buffer.add_line]>->(
+        qw| perlmod-install |,
+        '  fallback: manual bootstrap'
+    );
 }
 
 ## Manual bootstrap for non-debian or fallback ##
@@ -25,30 +36,41 @@ my $bootstrap_url = qw| https://cpanmin.us |;
 my $bootstrap_tmp = qw| /var/tmp/autoinst.cpanm |;
 
 ## Download via wget or curl ##
-my @download_cmd = qx( which curl ) ? ( qw| curl -sSfo |, $bootstrap_tmp, $bootstrap_url )
+my @download_cmd
+    = qx( which curl )
+    ? ( qw| curl -sSfo |, $bootstrap_tmp, $bootstrap_url )
     : ( qw| wget -q -O |, $bootstrap_tmp, $bootstrap_url );
 
-my $download_ok = system( @download_cmd ) == 0;
+my $download_ok = system(@download_cmd) == 0;
 
 if ( not $download_ok ) {
     <[base.logs]>->( 0, "  ✗ failed to download cpanminus bootstrap" );
-    <[base.buffer.add_line]>->( qw| perlmod-install |, '  ✗ cpanminus download failed' );
+    <[base.buffer.add_line]>->(
+        qw| perlmod-install |,
+        '  ✗ cpanminus download failed'
+    );
     return FALSE;
 }
 
 <[base.logs]>->( 2, ": executing cpanminus bootstrap ..." );
 
-my $bootstrap_ok = system( qw| /var/tmp/autoinst.cpanm --self-upgrade | ) == 0;
+my $bootstrap_ok = system(qw| /var/tmp/autoinst.cpanm --self-upgrade |) == 0;
 
 if ( not $bootstrap_ok ) {
     <[base.logs]>->( 0, "  ✗ cpanminus bootstrap failed" );
-    <[base.buffer.add_line]>->( qw| perlmod-install |, '  ✗ cpanminus bootstrap failed' );
+    <[base.buffer.add_line]>->(
+        qw| perlmod-install |,
+        '  ✗ cpanminus bootstrap failed'
+    );
     unlink $bootstrap_tmp;
     return FALSE;
 }
 
 <[base.logs]>->( 1, ":. cpanminus installed" );
-<[base.buffer.add_line]>->( qw| perlmod-install |, '  ✓ cpanminus (bootstrap)' );
+<[base.buffer.add_line]>->(
+    qw| perlmod-install |,
+    '  ✓ cpanminus (bootstrap)'
+);
 unlink $bootstrap_tmp;
 
 return TRUE;
