@@ -8,8 +8,9 @@
 package Download::UserAgent;
 
 use English;
+use IO::Scalar;    ##  does not work with Module::Load::[auto]load  ##
 
-<[base.perlmod.load]>->( 'IO::Scalar', qw| -register | );
+<[base.perlmod.register_loaded_module]>->('IO::Scalar');
 <[base.perlmod.autoload]>->('Config::Hosts');
 <[base.perlmod.autoload]>->('LWPx::ParanoidAgent');
 
