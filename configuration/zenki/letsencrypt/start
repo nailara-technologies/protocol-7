@@ -20,12 +20,13 @@ access.cmd.usr.parent = commands reload show-buffer \
                         list inst-self-signed ## * ** # <-- LLL
 
 ## ACME Server Configuration
-#letsencrypt.acme.server = https://acme-v02.api.letsencrypt.org/directory
-letsencrypt.acme.server = http://localhost:8555/directory
-#letsencrypt.acme.server = https://acme-staging-v02.api.letsencrypt.org/directory  # staging server
+# Using Let's Encrypt staging server for testing (no rate limits)
+letsencrypt.acme.server = https://acme-staging-v02.api.letsencrypt.org/directory
+#letsencrypt.acme.server = https://acme-v02.api.letsencrypt.org/directory  # production
+#letsencrypt.acme.server = http://localhost:8555/directory  # local mock
 
 ## Email for Let's Encrypt account and notifications
-letsencrypt.admin.email = admin@yourdomain.local   # [!] update to your admin email
+letsencrypt.admin.email = admin@localhost   # [!] update to your domain email for production
 
 ## Certificate Storage
 letsencrypt.certs.dir = /etc/protocol-7/certs
