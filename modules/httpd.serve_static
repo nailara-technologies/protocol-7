@@ -110,7 +110,9 @@ my $reply_header = {
 if ($reply_code != 200) {
     $session->{'buffer'}->{'output'}
         .= <[httpd.new_header]>->($reply_code, $reply_header);
-    return $session->{'http'}->{'close'} ? 2 : 0;
+    # Set flush_shutdown so base.handler.write will close after flushing the buffer
+    $session->{'flush_shutdown'} = 1 if $session->{'http'}->{'close'};
+    return 0;
 }
 
 # Serve small files directly
@@ -129,7 +131,10 @@ if ($content_size <= 16 * 1024 and not exists $request->{'range'}) {
         . <$content_fh>;
     close($content_fh);
 
-    return $session->{'http'}->{'close'} ? 2 : 0;
+    # Set flush_shutdown so base.handler.write will close after flushing the buffer
+    # Don't return 2 immediately - let the write handler finish sending the response
+    $session->{'flush_shutdown'} = 1 if $session->{'http'}->{'close'};
+    return 0;
 }
 
 # For large files, use download transfer mechanism
