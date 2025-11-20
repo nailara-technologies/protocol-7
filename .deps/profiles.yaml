@@ -1,0 +1,143 @@
+# Protocol-7 Dependency Profiles
+# Defines dependencies for different installation types
+# Format: profile -> package_manager -> packages
+
+profiles:
+  minimal:
+    description: "Minimal protocol-7 runtime (core dependencies only)"
+    apt:
+      - git
+      - perl
+      - make
+    cpan:
+      - Event
+      - IO::AIO
+      - IO::Socket::SSL
+      - JSON::XS
+      - Time::HiRes
+      - URI
+
+  runtime:
+    description: "Protocol-7 runtime with essential modules"
+    apt:
+      - git
+      - perl
+      - make
+      - libssl-dev
+      - curl
+    cpan:
+      - AnyEvent
+      - Event
+      - File::Rsync
+      - IO::AIO
+      - IO::Socket::SSL
+      - JSON::XS
+      - Module::Refresh
+      - Net::DNS
+      - Time::HiRes
+      - URI
+      - YAML::XS
+
+  network:
+    description: "Network and TLS support"
+    apt:
+      - libssl-dev
+      - libnet-ssleay-perl
+    cpan:
+      - IO::Socket::SSL
+      - Net::SSLeay
+      - Net::DNS
+
+  cryptography:
+    description: "Cryptography and checksumming"
+    apt:
+      - libglib2.0-dev
+    cpan:
+      - Crypt::Curve25519
+      - Crypt::Ed25519
+      - Crypt::OpenSSL::RSA
+      - Crypt::OpenSSL::X509
+      - Digest::BMW
+      - Digest::SHA
+      - Digest::Skein
+
+  development:
+    description: "Full development environment"
+    apt:
+      - gcc
+      - git
+      - make
+      - libssl-dev
+      - libcurl4-openssl-dev
+      - libc6-dev
+      - libglib2.0-dev
+      - perl
+    cpan:
+      - AnyEvent
+      - AnyEvent::Curl::Multi
+      - BSD::Resource
+      - Capture::Tiny
+      - Clone
+      - Compress::Raw::Lzma
+      - Config::Hosts
+      - Const::Fast
+      - Crypt::Curve25519
+      - Crypt::Digest::BLAKE2b_384
+      - Crypt::Digest::MD5
+      - Crypt::Digest::SHA1
+      - Crypt::Ed25519
+      - Crypt::Misc
+      - Crypt::OpenSSL::RSA
+      - Crypt::OpenSSL::X509
+      - Crypt::PRNG::Fortuna
+      - Crypt::Random
+      - Cwd
+      - Date::Parse
+      - Digest
+      - Digest::BMW
+      - Digest::CRC
+      - Digest::Elf
+      - Digest::JHash
+      - Digest::SHA
+      - Digest::Skein
+      - Event
+      - File::ExtAttr
+      - File::Find
+      - File::MimeInfo::Magic
+      - File::Path
+      - File::Rsync
+      - File::Spec
+      - File::Which
+      - FreezeThaw
+      - Getopt::Long
+      - Git::Wrapper
+      - Hash::Flatten
+      - Hash::Merge::Simple
+      - IO::AIO
+      - IO::Interface::Simple
+      - IO::Scalar
+      - IO::Socket::Multicast
+      - IO::Socket::SSL
+      - JSON::PP
+      - JSON::XS
+      - LWP::UserAgent
+      - LWPx::ParanoidAgent
+      - Linux::Inotify2
+      - List::MoreUtils
+      - MIME::Base64
+      - Math::Symbolic
+      - Module::Refresh
+      - Net::DNS
+      - Net::IP::Lite
+      - Net::Ifconfig::Wrapper
+      - Net::Libdnet::Arp
+      - Net::Oping
+      - POSIX
+      - Proc::ProcessTable
+      - Sys::Filesystem
+      - Sys::Statistics::Linux
+      - Term::ReadLine
+      - Time::HiRes
+      - URI
+      - URI::QueryParam
+      - YAML::XS
