@@ -37,7 +37,6 @@ foreach my $sugg (@$critical) {
     ## Interpolate variables in text ##
     my $text = $sugg->{text};
     $text =~ s/\{command\}/$context->{install_command} || 'N\/A'/ge;
-    $text =~ s/\{details\}/$context->{crypto_details} || 'check logs'/ge;
 
     push @all_suggestions, {
         text => $text,
