@@ -33,8 +33,19 @@ if ( defined <https.handler.get> ) {
 <httpsd.cfg.hsts_include_subdomains> //= 1;
 
 # Protocol state for HTTPS (using 'https' protocol instead of 'http')
-<protocol.https.state> = <protocol.http.state>;  # Inherit HTTP state handlers
+# Create HTTPS state with httpsd.request_handler for input (overriding HTTP handler)
+<protocol.https.state> = {
+    '0' => {
+        'input'  => { 'handler' => 'httpsd.request_handler' },
+        'output' => { 'handler' => 'base.handler.write' }
+    }
+};
 <protocol.https.connect.banner> = '';
+
+<[base.logs]>->(
+    2,
+    "[protocol-7] configured https protocol state with httpsd.request_handler"
+);
 
 # CRITICAL FIX: Register SSL socket type and HTTPS protocol handlers
 # This allows base.handler.connect to find the handlers when a TLS connection arrives
@@ -71,12 +82,7 @@ $data{'protocol'}{'https'} = {
         'callback' => undef,
         'banner'   => ''
     },
-    'state' => <protocol.https.state> // {
-        '0' => {
-            'input'  => { 'handler' => 'httpsd.request_handler' },
-            'output' => { 'handler' => 'base.handler.write' }
-        }
-    }
+    'state' => <protocol.https.state>
 };
 
 <[base.log]>->(
@@ -103,8 +109,8 @@ $data{'protocol'}{'https'} = {
 
 0;
 
-#,,,,,,,.,.,,,,..,,.,,,.,,.,,,.,.,,,,,..,,...,..,,...,...,,..,,..,.,.,..,,,,.,
-#L6N4TQE3IHPE4O4IH3ZL6EGHJQZH4VKV6L7WT6EOVJFM7M7OIKM3EUTMQRSYOEIBPXUBXNQQQOAE6
-#\\\|2GPXKDM3YFA3OZFIPLFZFEZBCDLDW27ZCA6IYKH2TGQL6ZUZU37 \ / AMOS7 \ YOURUM ::
-#\[7]BH2JKKVJRG3OAHXF2LDJ2WYPDGLBDFOYVFTCXLP5VWUUWCNWUOAI 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,,,,,,,.,.,...,...,..,,,.,,...,..,,...,...,,..,.,.,,,,,,,.,,,,,
+#5LHILDGZAE2FRYQUPFPSK3CTTUM7ZKODGYJ25KUHJR47RGVKSZWSG2YZBBIJTNKDJBFHBSZZLFBEG
+#\\\|ECW426TQS7K4IKAWKG3OYHUJVGJQHICWUOYRJEBLH35P7HOT3UR \ / AMOS7 \ YOURUM ::
+#\[7]XC26UL64NJR5UGATCUZWIJZUJU3BMOTFI452W6LMQVSXNAILOUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

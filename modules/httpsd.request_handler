@@ -5,10 +5,17 @@
 # note : return 2 to close connection
 
 # Receive Event object from protocol state handler invocation [passed on later]
+<[base.logs]>->(
+    1,
+    "httpsd.request_handler: received parameter of type '%s'",
+    ref( $ARG[0] ) // 'UNDEF'
+);
+
 if ( not defined $ARG[0] or ref $ARG[0] ne qw| Event::Event::Io | ) {
     return <[base.s_warn]>->(
-        "expected event argument [got:'%s'] <{C1}>",
-        $ARG[0] // qw| UNDEF |
+        "expected event argument [got:'%s', ref:'%s'] <{C1}>",
+        $ARG[0] // qw| UNDEF |,
+        ref( $ARG[0] ) // qw| UNDEF |
     );
 }
 my $event = shift;
@@ -62,8 +69,8 @@ if ( not defined $result ) {
 
 return $result;
 
-#,,.,,...,,..,,..,..,,,,.,.,,,..,,,.,,,.,,..,,..,,...,...,,..,,..,.,.,,,.,,.,,
-#SJNUFMTVWSJG6623SBSRFVIEDSGUEA2NUQKK7YCA6HXIJ7XU3SMT7MQEGADG653ICUDEZWBCOEVRC
-#\\\|M3ZWCVVDQYBATSXY3OSYJZ2PUWU2RXZPYGNYRFNTZWUBJAYNZMW \ / AMOS7 \ YOURUM ::
-#\[7]7BNE4NVSQB56I2INOXFGX44WISYV6ZXG73AYJDWWL3L33B6YGUDI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,..,,,,,,..,,..,,..,,,.,,,.,,.,.,..,,...,...,..,,..,,,.,,,..,.,,,
+#MRH3XBZIPYXOFSD4WQK3W3SMHU65N37RBOKNDMF6NNIEMCZIGOLUPLBUH25KLQGO6Q2W7T5RQ2TUY
+#\\\|DO3DU3AISW5ES4W7C3WK4TRZPXOR6KBZPZ5LHC2JH5HLZSWE3J2 \ / AMOS7 \ YOURUM ::
+#\[7]PRRAPSVU6YEULVMNQ7DSU5JRYH7IQ7L4BOYQV7PXZEPLIOYVIUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
