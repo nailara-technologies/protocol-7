@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = base.path.to_keywords
+# param = $absolute_path
+# descr = Convert absolute path to use repository keywords
+# return = path string with [protocol-7] or [workspace-transfer] keywords
+
+my $path = shift;
+return $path unless defined $path;
+
+## Get environment detection ##
+my $env_info = <[base.env.detect_environment]>;
+my $protocol7_root = $env_info->{protocol7_root};
+my $workspace_root = $env_info->{workspace_root};
+
+## Replace absolute paths with keywords ##
+## Check workspace-transfer first (might be nested) ##
+if (defined $workspace_root && $path =~ s{^\Q$workspace_root\E(?=/|$)}{[workspace-transfer]}) {
+    return $path;
+}
+
+## Then check protocol-7 ##
+if (defined $protocol7_root && $path =~ s{^\Q$protocol7_root\E(?=/|$)}{[protocol-7]}) {
+    return $path;
+}
+
+## If neither matches, return original ##
+return $path;
+
+#,,.,..,,,.,,,..,,,.,,.,...,,.,,...,,...,..,,,.,,..,...,...,.,,,,,,,,.,,..,.,,,,.,
+#PLACEHOLDER_SIGNATURE_WILL_BE_ADDED_DURING_COMMIT
+#\\\|PLACEHOLDER_HASH \ / AMOS7 \ YOURUM ::
+#\[7]PLACEHOLDER_HASH 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
