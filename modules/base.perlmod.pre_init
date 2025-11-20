@@ -1,11 +1,9 @@
 ## [:< ##
 
 # name  = base.perlmod.pre_init
-# desc  = ensure Module::Runtime is available early for dynamic module loading
+# desc  = ensure early dependencies are available for core functionality
 
-##  Load Module::Runtime early so base.perlmod.runtime_use  ####
-##             can be called from other modules' init_code  ####
-##
+##  Load Module::Runtime early for dynamic module loading in init_code  ####
 <[base.perlmod.autoload]>->('Module::Runtime');
 
 return 0;
