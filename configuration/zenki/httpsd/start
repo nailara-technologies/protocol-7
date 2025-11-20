@@ -13,8 +13,8 @@ modules.load         =  auth net protocol io.unix io.ip httpd httpsd   ## devmod
 net.https.addr       =  0.0.0.0
 net.https.port       =  443
 
-## TLS/Certificate configuration (use TLS for Ed25519 certificate compatibility)
-httpsd.cfg.tls_version              = TLS:TLSv1_2:TLSv1_3
+## TLS/Certificate configuration (use SSLv23 for Ed25519 certificate auto-negotiation)
+httpsd.cfg.tls_version              = SSLv23
 httpsd.cfg.cipher_suite             = ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-GCM-SHA256
 httpsd.cfg.certificate_path         = /etc/protocol-7/certs/current.pem
 httpsd.cfg.key_path                 = /etc/protocol-7/certs/current.key
