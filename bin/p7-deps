@@ -40,12 +40,8 @@ make_path($CACHE_DIR) unless -d $CACHE_DIR;
 
 # Package check cache (in-memory, for current execution)
 # Maps package names to result (1=installed, 0=missing)
+# Always starts fresh - cleared on every script invocation
 my %pkg_cache = ();
-
-# Clear package cache if --no-cache is requested
-if (grep { $_ eq '--no-cache' } @ARGV) {
-    %pkg_cache = ();  # Already empty, but explicit for clarity
-}
 
 # Parse command
 my $cmd = shift @ARGV || 'help';
