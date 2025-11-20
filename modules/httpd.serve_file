@@ -49,7 +49,9 @@ $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
 
 close($content_fh);
 
-return $session->{'http'}->{'close'} ? 2 : 0;
+# Set flush_shutdown so base.handler.write will close after flushing the buffer
+$session->{'flush_shutdown'} = 1 if $session->{'http'}->{'close'};
+return 0;
 
 #,,..,...,..,,.,,,,,,,,..,,,,,...,.,.,.,.,.,,,..,,...,...,,..,,.,,.,,,,.,,.,.,
 #H4DEVRABZSB4MRCLSEFZQLNL5X3MHHJBR2LX3LAOOCL5UKOJIMZHTUBPNJB4KLRXSS5UI6ND6GFUC
