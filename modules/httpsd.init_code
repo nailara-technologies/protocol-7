@@ -63,18 +63,21 @@ $data{'io'}{'type'}{'ip.ssl'} = {
     }
 };
 
-# Register HTTPS protocol - uses HTTP handlers since TLS is transparent at parsing layer
-# The https protocol state is identical to http state since HTTP request parsing
-# is the same whether the connection is TLS-encrypted or plaintext.
-# The TLS encryption/decryption happens at the socket level via IO::Socket::SSL,
-# so httpd.request_handler works unchanged for HTTPS connections.
+# Register HTTPS protocol with proper handler chain
+# HTTPS uses HTTP request parsing (TLS encryption is transparent at socket level)
+# but needs httpsd.request_handler as a bridge to call httpd.request_handler
 $data{'protocol'}{'https'} = {
     'connect' => {
         'callback' => undef,    # No custom connect callback needed
         'banner'   => ''
     },
     'state' => <protocol.https.state>
-        // <protocol.http.state>   # Use HTTP state - handlers work for TLS too
+        // {    # Use HTTP state as base for protocol handlers
+        '0' => {
+            'input'  => { 'handler' => 'httpsd.request_handler' },
+            'output' => { 'handler' => 'base.handler.write' }
+        }
+        }
 };
 
 <[base.log]>->(
