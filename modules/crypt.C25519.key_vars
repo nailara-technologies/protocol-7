@@ -15,13 +15,7 @@ return <crypt.C25519.key_vars>
     );
 
 my $cur_usr = $ENV{'USER'} // getpwuid($EUID);
-
-## Check if we're running in v7 zenka context
-my $is_v7_zenka = defined <system.zenka.type> && (
-    <system.zenka.type> eq 'v7' ||
-    <system.zenka.type> eq 'v7-started-zenka' ||
-    <system.zenka.type> eq 'cube'
-);
+my $is_v7_zenka = <[base.zenka.is_v7_started]>;
 
 ## Use current user unless running as root in v7 zenka (then use amos-zenka-user)
 my $key_usr = ($EUID == 0 && $is_v7_zenka) ?
