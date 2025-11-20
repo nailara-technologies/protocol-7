@@ -4,17 +4,66 @@
 # descr = HTTPS request handler - processes HTTP over TLS
 # note : return 2 to close connection
 
-# Protocol handler for HTTPS that delegates to HTTP request processing
-# The TLS encryption/decryption is transparent at IO::Socket::SSL layer,
-# so HTTP parsing is identical to plaintext HTTP.
+# Receive Event object from protocol state handler invocation [passed on later]
+if ( not defined $ARG[0] or ref $ARG[0] ne qw| Event::Event::Io | ) {
+    return <[base.s_warn]>->(
+        "expected event argument [got:'%s'] <{C1}>",
+        $ARG[0] // qw| UNDEF |
+    );
+}
+my $event = shift;
 
-# Delegate to httpd.request_handler to handle the actual HTTP processing
-# httpd.request_handler expects an Event::Event::Io object, but we receive
-# it from the session management system, so just pass it through directly
-$code{'httpd.request_handler'}->( @_ );
+# Extract session ID from event watcher [same pattern as httpd.request_handler]
+my $id = $event->w->data if defined $event;
 
-#,,..,.,.,..,,..,,,,,,,,.,...,,,.,,.,,,.,,,..,..,,...,...,...,,..,.,.,...,,.,,
-#5DMYUPH7QA7VMKKAFFZATMJXEUIDTKHWXQF3HCRPQUEXEOXXX4Y5IKBD6PZHK4D7ZWQZH7WMAOO2M
-#\\\|EMWPPDUCTB7WYAN7J3LFV6XCH62I6HLQM6I7VSH63RONYXKABM4 \ / AMOS7 \ YOURUM ::
-#\[7]ID4FJ45YOEM2AMFEQPYTHSTGZ3O4Z5KTRQPFOWJ72U2L7JPOZYAY 7  DATA SIGNATURE ::
+if ( not defined $id or $id !~ m|^\d+$| ) {
+    <[base.logs]>->(
+        0,
+        "[%d] httpsd.request_handler: session id not defined! [event param?]",
+        $id
+    );
+    return 2;
+}
+
+## acquiring current session hash structure ##
+my $session = $data{'session'}->{$id};
+
+# Mark session as HTTPS before processing the request
+$session->{'is_https'} = TRUE if defined $session;
+
+# Debug logging
+if ( defined $session ) {
+    my $input_len = length( $session->{'buffer'}->{'input'} // '' );
+    <[base.logs]>->(
+        1, "[%d] httpsd.request_handler called [HTTPS], input_buffer_len=%d",
+        $id, $input_len
+    );
+} else {
+    <[base.logs]>->(
+        0, "[%d] httpsd.request_handler: session not found!", $id
+    );
+    return 2;
+}
+
+# Delegate to httpd request handler - pass the Event object just as we received it
+# httpd.request_handler will handle the actual HTTP request processing
+# The response will be written to the output buffer by the HTTP handler
+# base.handler.write (from protocol state output handler) will send it via SSL socket
+<[base.log]>->( 1, ":. forwarding call to 'httpd.request_handler'.." );
+my $result = <[httpd.request_handler]>->($event) if defined $event;
+
+if ( not defined $result ) {
+    <[base.log]>->(
+        0, ":. :. forwarded call to 'httpd.request_handler' returned undef"
+    );
+    <[base.log]>->( 0, ":. :. :. [ https request processing failed ] .:" );
+    return 2;    ## request failed ##
+}
+
+return $result;
+
+#,,.,,...,,..,,..,..,,,,.,.,,,..,,,.,,,.,,..,,..,,...,...,,..,,..,.,.,,,.,,.,,
+#SJNUFMTVWSJG6623SBSRFVIEDSGUEA2NUQKK7YCA6HXIJ7XU3SMT7MQEGADG653ICUDEZWBCOEVRC
+#\\\|M3ZWCVVDQYBATSXY3OSYJZ2PUWU2RXZPYGNYRFNTZWUBJAYNZMW \ / AMOS7 \ YOURUM ::
+#\[7]7BNE4NVSQB56I2INOXFGX44WISYV6ZXG73AYJDWWL3L33B6YGUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
