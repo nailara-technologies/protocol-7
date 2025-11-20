@@ -15,9 +15,18 @@ return <crypt.C25519.key_vars>
     );
 
 my $cur_usr = $ENV{'USER'} // getpwuid($EUID);
-my $key_usr = <crypt.C25519.usr_name> // <system.amos-zenka-user> // $cur_usr;
 
-$key_usr = $cur_usr if $cur_usr ne qw| root | and $cur_usr ne $ENV{'USER'};
+## Check if we're running in v7 zenka context
+my $is_v7_zenka = defined <system.zenka.type> && (
+    <system.zenka.type> eq 'v7' ||
+    <system.zenka.type> eq 'v7-started-zenka' ||
+    <system.zenka.type> eq 'cube'
+);
+
+## Use current user unless running as root in v7 zenka (then use amos-zenka-user)
+my $key_usr = ($EUID == 0 && $is_v7_zenka) ?
+    (<crypt.C25519.usr_name> // <system.amos-zenka-user> // $cur_usr) :
+    $cur_usr;
 
 ( my $uid, my $gid ) = ( getpwnam($key_usr) )[ 2, 3 ];
 
