@@ -8,6 +8,17 @@
 # Load HTTPD initialization (core HTTP handling)
 <[httpd.init_code]>;
 
+# CRITICAL FIX: Copy hostnames from HTTPS config to HTTP config
+# httpd.determine_host looks for <httpd.cfg.hostnames>, but httpsd configures <httpsd.cfg.hostnames>
+# Solution: Copy HTTPS hostnames to HTTP namespace so httpd.determine_host can find them
+if ( defined <httpsd.cfg.hostnames> and not defined <httpd.cfg.hostnames> ) {
+    <httpd.cfg.hostnames> = <httpsd.cfg.hostnames>;
+    <[base.log]>->(
+        2,
+        'copied httpsd.cfg.hostnames to httpd.cfg.hostnames for host matching'
+    );
+}
+
 # CRITICAL FIX: Copy HTTPS handler configurations to HTTP namespace
 # httpd.request_handler looks for handlers in <http.handler> namespace,
 # but httpsd config defines them as <https.handler.*>
