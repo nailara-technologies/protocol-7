@@ -33,7 +33,7 @@ if ( defined $session ) {
 # httpd.request_handler will handle the actual HTTP request processing
 # The response will be written to the output buffer by the HTTP handler
 # base.handler.write (from protocol state output handler) will send it via SSL socket
-my $result = <[httpd.request_handler]->($event);
+my $result = $code{'httpd.request_handler'}->($event);
 
 return $result;
 
