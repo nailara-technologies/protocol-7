@@ -22,9 +22,30 @@ unless (-d $index_dir) {
     File::Path::make_path($index_dir) or die "Cannot create index directory: $!";
 }
 
-# Write index
+# Check if existing index exists and compare content (ignoring timestamps)
 my $workspace_index = <workflow.index.workspace>;
-YAML::XS::DumpFile($workspace_index, $index_data);
+my $should_write = 1;
+
+if (-f $workspace_index) {
+    my $existing_data = YAML::XS::LoadFile($workspace_index);
+
+    # Compare content excluding timestamp fields
+    my $existing_copy = {%$existing_data};
+    delete $existing_copy->{generated_at};
+    delete $existing_copy->{timestamp};
+
+    my $new_copy = {%$index_data};
+    delete $new_copy->{generated_at};
+    delete $new_copy->{timestamp};
+
+    # Compare serialized versions to detect any actual changes
+    if (YAML::XS::Dump($existing_copy) eq YAML::XS::Dump($new_copy)) {
+        $should_write = 0;  # Only timestamp changed, skip write
+    }
+}
+
+# Write index only if content actually changed
+YAML::XS::DumpFile($workspace_index, $index_data) if $should_write;
 
 return $index_data;
 
