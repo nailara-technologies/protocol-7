@@ -15,12 +15,10 @@ return <crypt.C25519.key_vars>
     );
 
 my $cur_usr = $ENV{'USER'} // getpwuid($EUID);
-my $is_v7_zenka = <[base.zenka.is_v7_started]>;
 
-## Use current user unless running as root in v7 zenka (then use amos-zenka-user)
-my $key_usr = ($EUID == 0 && $is_v7_zenka) ?
-    (<crypt.C25519.usr_name> // <system.amos-zenka-user> // $cur_usr) :
-    $cur_usr;
+## Use explicitly set usr_name, or fall back to current user
+## Security: each process uses its own home directory for keys
+my $key_usr = <crypt.C25519.usr_name> // $cur_usr;
 
 ( my $uid, my $gid ) = ( getpwnam($key_usr) )[ 2, 3 ];
 
