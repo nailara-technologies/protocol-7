@@ -1,27 +1,20 @@
 ## [:< ##
 
-# name  = base.path.open
-# param = $keyword_path, $mode (optional, default 'r')
+# name  = base.file.key-path.open
+# param = $keyword_path[, $encoding][, $mode][, $create][, $perm]
 # descr = Open a file using keyword paths [protocol-7] or [workspace-transfer]
+#         Resolves keyword path to actual file path, then delegates to base.file.open
 # return = filehandle or undef on error
 
-my $path = shift;
-my $mode = shift // '<';
+my $keyword_path = shift;
 
-return unless defined $path;
+return unless defined $keyword_path;
 
 ## Resolve keywords to actual path ##
-my $resolved_path = <[base.path.resolve_keywords]>->($path);
+my $resolved_path = <[base.path.resolve_keywords]>->($keyword_path);
 
-## Open the file and capture filehandle ##
-open my $fh, $mode, $resolved_path or do {
-    <[base.log]>->(
-        0, "Error opening file: $path (resolved: $resolved_path): $!"
-    );
-    return;
-};
-
-return $fh;
+## Delegate to standard file.open with resolved path and all remaining args ##
+return <[file.open]>->( $resolved_path, @_ );
 
 #,,.,,,.,,,.,,..,,,,.,,,,,.,,,,..,.,.,.,,,,,,,..,,...,...,...,..,,,.,,..,,,,,,
 #JFM6L4NYRG62S4OEDPA5B4BGGBKT6GTAFB6R45IZDEUCIGGBAUN37JGTYRBUIT52BXUYCPC3S537S
