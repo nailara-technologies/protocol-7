@@ -289,9 +289,26 @@ sub install_profile {
     # Install CPAN modules
     if (@to_install_cpan) {
         print "Installing CPAN modules: " . join(', ', @to_install_cpan) . "\n";
+
+        # Prefer cpanm (non-interactive, from cpanminus package)
+        # Fall back to cpan with -T flag (batch mode, non-interactive)
+        my $cpan_available = `which cpanm 2>/dev/null`;
+        my $cpan_cmd = $cpan_available ? 'cpanm' : 'cpan';
+
         for my $module (@to_install_cpan) {
-            system("cpan -i $module") == 0
-                or warn "Failed to install $module\n";
+            print "   Installing $module...\n";
+
+            my $cmd = ($cpan_cmd eq 'cpanm')
+                ? "cpanm -n $module"
+                : "cpan -T $module 2>&1 | grep -v 'Loading internal'";
+
+            my $result = system($cmd);
+
+            if ($result == 0) {
+                print "   ✅ $module installed\n";
+            } else {
+                print "   ❌ $module installation failed\n";
+            }
         }
     }
 
