@@ -1,26 +1,16 @@
 #!/usr/bin/env perl
-## [:< ##
+# Protocol-7 Dependency Management System
+# Profile-based dependency installation and verification
 
-# Protocol-7 Dependency Manager (bin/p7-deps)
-# Reads from base.known_dependencies and zenki configurations
-# Manages, analyzes, and installs Protocol-7 dependencies
-
-use v5.24;
 use strict;
-use English;
 use warnings;
 use FindBin qw($RealBin);
 use File::Spec;
-use File::Find;
-use Data::Dumper;
+use File::Path qw(make_path);
 use Cwd qw(abs_path);
+use English;
 
 $OUTPUT_AUTOFLUSH = 1;
-
-##[ global constants ]##
-use constant TRUE    => 5;    ##  TRUE.  ##
-use constant FALSE   => 0;    ##  false  ##
-use constant UNKNOWN => 2;    ##  unknown  ##
 
 # Color palette inspired by Nailara branding
 my $reset             = "\e[0m";
@@ -32,681 +22,423 @@ my $NEON_green_yellow = "\e[38;2;71;195;6m";     # Green-yellow
 
 ##[ PROJECT PATH DISCOVERY ]######################################################
 
-# Helper functions for path operations (inspired by amos-chksum)
+# Helper functions for path operations
 sub catdir  { File::Spec->catdir(@_) }
 sub rel2abs { File::Spec->rel2abs(@_) }
 
-# Discover Protocol-7 root path using FindBin
+# Discover protocol-7 root path using FindBin
 my $up_dir = File::Spec->updir;
 my $P7_ROOT = abs_path(rel2abs(catdir($RealBin, $up_dir)));
 
 # Build all necessary paths
-my $MODULES_DIR = catdir($P7_ROOT, 'modules');
-my $ZENKI_DIR = catdir($P7_ROOT, 'configuration', 'zenki');
-my $KNOWN_DEPS_FILE = File::Spec->catfile($MODULES_DIR, 'base.known_dependencies');
-my $P7_DEPS_DIR = catdir($P7_ROOT, '.deps');
+my $DEPS_DIR = catdir($P7_ROOT, '.deps');
+my $PROFILES_FILE = File::Spec->catfile($DEPS_DIR, 'profiles.yaml');
+my $CACHE_DIR = catdir($DEPS_DIR, 'cache');
 
-# Workspace-transfer paths
-my $WORKSPACE_TRANSFER = catdir($P7_ROOT, '..');
-my $WORKSPACE_TRANSFER_DEPS = catdir($WORKSPACE_TRANSFER, 'workspace-transfer', '.deps');
-my $WORKSPACE_PROFILES = File::Spec->catfile($WORKSPACE_TRANSFER_DEPS, 'profiles.yaml');
-
-# Handle options
-my $dry_run = FALSE;
-my $verbose = FALSE;
-
-while (@ARGV && $ARGV[0] =~ /^--/) {
-    my $opt = shift @ARGV;
-    $dry_run = TRUE if $opt eq '--dry-run';
-    $verbose = TRUE if $opt eq '--verbose' || $opt eq '-v';
-}
+# Ensure cache directory exists
+make_path($CACHE_DIR) unless -d $CACHE_DIR;
 
 # Parse command
 my $cmd = shift @ARGV || 'help';
 
-if ($cmd eq 'list') {
-    list_dependencies(@ARGV);
-} elsif ($cmd eq 'check') {
-    check_dependencies(@ARGV);
+if ($cmd eq 'check') {
+    check_profile(@ARGV);
 } elsif ($cmd eq 'install') {
-    install_dependencies($verbose, $dry_run, @ARGV);
-} elsif ($cmd eq 'install-apt') {
-    install_apt_packages($verbose, $dry_run, @ARGV);
-} elsif ($cmd eq 'install-cpan') {
-    install_cpan_modules($verbose, $dry_run, @ARGV);
-} elsif ($cmd eq 'generate') {
-    generate_yaml(@ARGV);
-} elsif ($cmd eq 'update-workspace') {
-    update_workspace_profiles(@ARGV);
-} elsif ($cmd eq 'help' || $cmd eq '--help') {
+    install_profile(@ARGV);
+} elsif ($cmd eq 'list') {
+    list_profiles();
+} elsif ($cmd eq 'status') {
+    status_all();
+} elsif ($cmd eq 'clear-cache') {
+    clear_cache();
+} elsif ($cmd eq 'help' || $cmd eq '--help' || $cmd eq '-h') {
     show_help();
 } else {
-    print_error("Unknown command: ${NEON_orange}$cmd$blacklight", TRUE);
+    die "Unknown command: $cmd\nRun 'bin/p7-deps help' for usage.\n";
 }
 
-sub load_known_dependencies {
-    unless (-f $KNOWN_DEPS_FILE) {
-        die "Cannot find $KNOWN_DEPS_FILE\n";
+sub check_profile {
+    my ($profile_name, $opts) = @_;
+
+    unless ($profile_name) {
+        die "Usage: bin/p7-deps check <profile> [--no-cache]\n";
     }
 
-    open my $fh, '<', $KNOWN_DEPS_FILE or die "Cannot read $KNOWN_DEPS_FILE: $!\n";
-    my $content = do { local $/; <$fh> };
-    close $fh;
+    my $use_cache = !($opts && $opts eq '--no-cache');
 
-    # Remove header comments
-    $content =~ s/^##.*?\n//;
-    $content =~ s/#.*?\n/\n/g;
-
-    # Evaluate Perl hash
-    my $deps = eval $content;
-    die "Error evaluating $KNOWN_DEPS_FILE: $@\n" if $@;
-
-    return $deps;
-}
-
-sub get_zenki_pm_deps {
-    my %pm_deps;
-
-    return \%pm_deps unless -d $ZENKI_DIR;
-
-    # Scan all zenki directories
-    opendir my $dh, $ZENKI_DIR or return \%pm_deps;
-    while (my $zenki = readdir $dh) {
-        next if $zenki =~ /^\./;
-
-        my $pm_dep_dir = File::Spec->catdir($ZENKI_DIR, $zenki, 'pm-dep');
-        next unless -d $pm_dep_dir;
-
-        opendir my $pdh, $pm_dep_dir or next;
-        while (my $file = readdir $pdh) {
-            next if $file =~ /^\./;
-
-            # Convert filename back to module name (__ -> ::)
-            my $module = $file;
-            $module =~ s/__/::/g;
-            $pm_deps{$module} = $zenki;
-        }
-        closedir $pdh;
-    }
-    closedir $dh;
-
-    return \%pm_deps;
-}
-
-sub get_zenki_os_deps {
-    my %os_deps = (
-        debian => {},
-        binary => {}
-    );
-
-    return \%os_deps unless -d $ZENKI_DIR;
-
-    # Scan all zenki directories
-    opendir my $dh, $ZENKI_DIR or return \%os_deps;
-    while (my $zenki = readdir $dh) {
-        next if $zenki =~ /^\./;
-
-        # Check debian packages
-        my $debian_dir = File::Spec->catdir($ZENKI_DIR, $zenki, 'os-dep', 'debian');
-        if (-d $debian_dir) {
-            opendir my $ddh, $debian_dir or next;
-            while (my $pkg = readdir $ddh) {
-                next if $pkg =~ /^\./;
-                $os_deps{debian}{$pkg} = $zenki;
-            }
-            closedir $ddh;
-        }
-
-        # Check binary requirements
-        my $binary_dir = File::Spec->catdir($ZENKI_DIR, $zenki, 'os-dep', 'binary');
-        if (-d $binary_dir) {
-            opendir my $bdh, $binary_dir or next;
-            while (my $bin = readdir $bdh) {
-                next if $bin =~ /^\./;
-                $os_deps{binary}{$bin} = $zenki;
-            }
-            closedir $bdh;
-        }
-    }
-    closedir $dh;
-
-    return \%os_deps;
-}
-
-sub list_dependencies {
-    print "${blacklight}:$reset\n";
-    print "${blacklight}::[$NEON_green_yellow Protocol-7 Dependency Analysis $blacklight]$reset\n";
-    print "${blacklight}:$reset\n\n";
-
-    my $known = load_known_dependencies();
-    my $pm_deps = get_zenki_pm_deps();
-    my $os_deps = get_zenki_os_deps();
-
-    print "${blacklight}::[$TRUE_color CPAN Modules$blacklight from base.known_dependencies$blacklight]$reset\n";
-    print "${blacklight}::$reset   Total: ${NEON_orange}" . scalar(keys %{$known->{perlmod}}) . "$reset\n\n";
-
-    print "${blacklight}::[$TRUE_color Zenki PM Dependencies$blacklight (from pm-dep)$blacklight]$reset\n";
-    my %module_zenki;
-    for my $module (sort keys %{$pm_deps}) {
-        $module_zenki{$module} = $pm_deps->{$module};
-    }
-    for my $module (sort keys %module_zenki) {
-        print "${blacklight}::$reset   ${NEON_green_yellow}$module$reset (zenka: ${NEON_orange}$module_zenki{$module}$reset)\n";
-    }
-    print "${blacklight}::$reset   Total: ${NEON_orange}" . scalar(keys %module_zenki) . "$reset\n\n";
-
-    print "${blacklight}::[$TRUE_color Debian Packages$blacklight (from os-dep/debian)$blacklight]$reset\n";
-    for my $pkg (sort keys %{$os_deps->{debian}}) {
-        print "${blacklight}::$reset   ${NEON_green_yellow}$pkg$reset (zenka: ${NEON_orange}$os_deps->{debian}{$pkg}$reset)\n";
-    }
-    print "${blacklight}::$reset   Total: ${NEON_orange}" . scalar(keys %{$os_deps->{debian}}) . "$reset\n\n";
-
-    print "${blacklight}::[$TRUE_color Binary Commands$blacklight (from os-dep/binary)$blacklight]$reset\n";
-    for my $bin (sort keys %{$os_deps->{binary}}) {
-        print "${blacklight}::$reset   ${NEON_green_yellow}$bin$reset (zenka: ${NEON_orange}$os_deps->{binary}{$bin}$reset)\n";
-    }
-    print "${blacklight}::$reset   Total: ${NEON_orange}" . scalar(keys %{$os_deps->{binary}}) . "$reset\n";
-    print "${blacklight}:$reset\n";
-}
-
-sub check_dependencies {
-    my ($profile_name) = @_;
-    $profile_name ||= 'protocol7_full';
-
-    print "${blacklight}:$reset\n";
-    print "${blacklight}::[$NEON_green_yellow Checking Protocol-7 dependencies $blacklight for ${NEON_orange}$profile_name$blacklight]$reset\n";
-    print "${blacklight}:$reset\n\n";
-
-    my $known = load_known_dependencies();
-    my $pm_deps = get_zenki_pm_deps();
-    my $os_deps = get_zenki_os_deps();
-
-    # Aggregate dependencies
-    my @all_cpan;
-    my @all_debian;
-
-    # From base.known_dependencies
-    for my $module (keys %{$known->{perlmod}}) {
-        push @all_cpan, $module if $known->{perlmod}{$module}{cpan};
-    }
-
-    # From zenki pm-dep
-    for my $module (keys %{$pm_deps}) {
-        push @all_cpan, $module unless grep { $_ eq $module } @all_cpan;
-    }
-
-    # From zenki os-dep/debian
-    for my $pkg (keys %{$os_deps->{debian}}) {
-        push @all_debian, $pkg;
-    }
-
-    # Add debian packages from base.known_dependencies
-    for my $module (keys %{$known->{perlmod}}) {
-        if ($known->{perlmod}{$module}{debian}) {
-            for my $pkg (@{$known->{perlmod}{$module}{debian}}) {
-                next if $pkg =~ /^cpan:/;
-                push @all_debian, $pkg unless grep { $_ eq $pkg } @all_debian;
+    # Check cache first
+    if ($use_cache) {
+        my $cached = check_cache($profile_name);
+        if (defined $cached) {
+            if ($cached) {
+                print "✅ $profile_name: All dependencies installed (cached)\n";
+                return 0;
+            } else {
+                print "❌ $profile_name: Missing dependencies (cached - use --no-cache to recheck)\n";
+                return 1;
             }
         }
     }
 
-    print "${blacklight}::[$TRUE_color CPAN modules$blacklight]$reset ${NEON_orange}" . scalar(@all_cpan) . "$reset\n";
-    print "${blacklight}::[$TRUE_color Debian packages$blacklight]$reset ${NEON_orange}" . scalar(@all_debian) . "$reset\n\n";
-
-    print "${blacklight}::[$NEON_green_yellow CPAN Modules$blacklight]$reset\n";
-    for my $module (sort @all_cpan) {
-        print "${blacklight}::$reset   ${NEON_green_yellow}$module$reset\n";
+    # Load profile
+    my $profiles = load_profiles();
+    unless (exists $profiles->{$profile_name}) {
+        die "❌ Unknown profile: $profile_name\nRun 'bin/p7-deps list' to see available profiles.\n";
     }
 
-    print "\n${blacklight}::[$NEON_green_yellow Debian Packages$blacklight]$reset\n";
-    for my $pkg (sort @all_debian) {
-        print "${blacklight}::$reset   ${NEON_green_yellow}$pkg$reset\n";
-    }
-    print "${blacklight}:$reset\n";
-}
+    my $profile = $profiles->{$profile_name};
 
-sub generate_yaml {
-    my ($output_file) = @_;
-    $output_file ||= File::Spec->catfile($P7_DEPS_DIR, 'protocol7_full.yaml');
+    print "🔍 Checking dependencies for: $profile_name\n";
+    print "   $profile->{description}\n\n";
 
-    print "${blacklight}:$reset\n";
-    print "${blacklight}::[$NEON_green_yellow Generating YAML$blacklight from Protocol-7 dependencies$blacklight]$reset\n";
-    print "${blacklight}:$reset\n\n";
-
-    my $known = load_known_dependencies();
-    my $pm_deps = get_zenki_pm_deps();
-    my $os_deps = get_zenki_os_deps();
-
-    # Aggregate dependencies
-    my %all_cpan;
-    my %all_debian;
-
-    # From base.known_dependencies
-    for my $module (keys %{$known->{perlmod}}) {
-        if ($known->{perlmod}{$module}{cpan}) {
-            $all_cpan{$known->{perlmod}{$module}{cpan}} = 1;
+    # Handle includes (meta-profiles)
+    if ($profile->{includes}) {
+        print "📦 Profile includes: " . join(', ', @{$profile->{includes}}) . "\n\n";
+        my $all_ok = 1;
+        for my $included (@{$profile->{includes}}) {
+            my $result = check_profile($included, '--no-cache');
+            $all_ok = 0 if $result != 0;
         }
-        if ($known->{perlmod}{$module}{debian}) {
-            for my $pkg (@{$known->{perlmod}{$module}{debian}}) {
-                next if $pkg =~ /^cpan:/;
-                $all_debian{$pkg} = 1;
+        update_cache($profile_name, $all_ok);
+        return $all_ok ? 0 : 1;
+    }
+
+    my @missing;
+    my $total = 0;
+
+    # Check APT packages
+    if ($profile->{apt}) {
+        print "Checking APT packages...\n";
+        for my $pkg (@{$profile->{apt}}) {
+            $total++;
+            if (check_apt($pkg)) {
+                print "  ✅ $pkg\n";
+            } else {
+                print "  ❌ $pkg (missing)\n";
+                push @missing, "apt:$pkg";
             }
         }
+        print "\n";
     }
 
-    # From zenki pm-dep
-    for my $module (keys %{$pm_deps}) {
-        $all_cpan{$module} = 1;
+    # Check CPAN modules
+    if ($profile->{cpan}) {
+        print "Checking CPAN modules...\n";
+        for my $module (@{$profile->{cpan}}) {
+            $total++;
+            if (check_cpan($module)) {
+                print "  ✅ $module\n";
+            } else {
+                print "  ❌ $module (missing)\n";
+                push @missing, "cpan:$module";
+            }
+        }
+        print "\n";
     }
 
-    # From zenki os-dep/debian
-    for my $pkg (keys %{$os_deps->{debian}}) {
-        $all_debian{$pkg} = 1;
+    # Check CPAN fallback modules (preferred via APT)
+    if ($profile->{cpan_fallback}) {
+        my %fallback_map = (
+            'AnyEvent' => 'libanyevent-perl',
+            'BSD::Resource' => 'libbsd-resource-perl',
+            'Cairo' => 'libcairo-perl',
+            'Cairo::GObject' => 'libcairo-gobject-perl',
+            'Capture::Tiny' => 'libcapture-tiny-perl',
+            'Clone' => 'libclone-perl',
+            'Const::Fast' => 'libconst-fast-perl',
+            'Convert::Color' => 'libconvert-color-perl',
+            'CryptX' => 'libcryptx-perl',
+            'Digest::CRC' => 'libdigest-crc-perl',
+            'Digest::Elf' => 'libdigest-elf-perl',
+        );
+
+        print "Checking CPAN modules (Debian fallback)...\n";
+        for my $module (@{$profile->{cpan_fallback}}) {
+            $total++;
+            my $deb_pkg = $fallback_map{$module};
+
+            # Prefer Debian package if available
+            if ($deb_pkg && check_apt($deb_pkg)) {
+                print "  ✅ $module (via Debian: $deb_pkg)\n";
+            } elsif (check_cpan($module)) {
+                print "  ✅ $module\n";
+            } else {
+                print "  ❌ $module (missing)\n";
+                push @missing, "cpan:$module";
+            }
+        }
+        print "\n";
     }
 
-    # Create output directory
-    mkdir $P7_DEPS_DIR unless -d $P7_DEPS_DIR;
-
-    open my $fh, '>', $output_file or die "Cannot write to $output_file: $!\n";
-
-    print $fh "# Protocol-7 Dependencies (auto-generated from base.known_dependencies and zenki configs)\n";
-    print $fh "# Generated: " . scalar(localtime()) . "\n";
-    print $fh "# This file is used to sync with workspace-transfer/dependencies.yaml\n\n";
-
-    print $fh "protocol7_full:\n";
-    print $fh "  description: \"Protocol-7 complete development environment (auto-generated)\"\n";
-    print $fh "  apt:\n";
-    for my $pkg (sort keys %all_debian) {
-        print $fh "    - $pkg\n";
-    }
-
-    print $fh "  cpan:\n";
-    for my $module (sort keys %all_cpan) {
-        print $fh "    - $module\n";
-    }
-
-    close $fh;
-
-    print "${blacklight}::[$TRUE_color Generated$blacklight]$reset ${NEON_orange}$output_file$reset\n";
-    print "${blacklight}::$reset   CPAN modules: ${NEON_orange}" . scalar(keys %all_cpan) . "$reset\n";
-    print "${blacklight}::$reset   Debian packages: ${NEON_orange}" . scalar(keys %all_debian) . "$reset\n";
-    print "${blacklight}:$reset\n";
-}
-
-sub update_workspace_profiles {
-    print "Updating workspace-transfer profiles from Protocol-7...\n\n";
-
-    # Generate YAML in protocol-7
-    my $p7_yaml = File::Spec->catfile($P7_ROOT, '.deps', 'protocol7_full.yaml');
-    generate_yaml($p7_yaml);
-
-    print "\n📋 To manually update workspace-transfer profiles:\n";
-    print "   1. Review the generated YAML: $p7_yaml\n";
-    print "   2. Update workspace-transfer/.deps/profiles.yaml with new dependencies\n";
-    print "   3. Commit and push changes\n\n";
-
-    print "Or use this to sync automatically:\n";
-    print "   bin/p7-deps copy-to-workspace\n";
-}
-
-##############################################################################
-
-sub is_root {
-    return $> == 0;
-}
-
-sub get_sudo {
-    return is_root() ? '' : 'sudo ';
-}
-
-sub print_header {
-    my $title = shift;
-    print "${blacklight}:$reset\n";
-    print "${blacklight}::[$NEON_green_yellow $title $blacklight]$reset\n";
-    print "${blacklight}:$reset\n\n";
-}
-
-sub print_section {
-    my $title = shift;
-    print "${blacklight}::[$TRUE_color $title $blacklight]$reset\n";
-}
-
-sub print_status {
-    my ($status, $message) = @_;
-    my $symbol = ($status eq 'ok') ? '✓' : ($status eq 'error') ? '❌' : '⚠';
-    print "${blacklight}::$reset  $symbol ${NEON_green_yellow}$message$reset\n";
-}
-
-sub print_error {
-    my ($message, $exit_code) = @_;
-    print "\n${blacklight}:\n::[$NEON_orange ERROR $blacklight] .: ${NEON_orange}$message$blacklight ::\n:$reset\n";
-    exit($exit_code // 1) if $exit_code;
-}
-
-sub install_dependencies {
-    my ($verbose, $dry_run, $profile_name) = @_;
-    $profile_name //= 'protocol7_full';
-
-    print_header "Installing Protocol-7 Dependencies for ${NEON_orange}$profile_name$blacklight";
-
-    print_status('info', "Checking root privileges...");
-    my $sudo = get_sudo();
-
-    if (!is_root()) {
-        print_status('warn', "Will use ${NEON_orange}sudo$reset for system operations");
+    if (@missing) {
+        print "❌ Missing " . scalar(@missing) . " dependencies\n\n";
+        print "💡 Install with: bin/p7-deps install $profile_name\n";
+        update_cache($profile_name, 0);
+        return 1;
     } else {
-        print_status('ok', "Running as root (sudo not needed)");
+        print "✅ All dependencies installed ($total/$total)\n";
+        update_cache($profile_name, 1);
+        return 0;
+    }
+}
+
+sub install_profile {
+    my ($profile_name, $opts) = @_;
+
+    unless ($profile_name) {
+        $profile_name = 'minimal';
     }
 
-    my $known = load_known_dependencies();
-    my $pm_deps = get_zenki_pm_deps();
-    my $os_deps = get_zenki_os_deps();
+    # Load profile
+    my $profiles = load_profiles();
+    unless (exists $profiles->{$profile_name}) {
+        die "❌ Unknown profile: $profile_name\n";
+    }
 
-    # Aggregate dependencies
-    my @all_cpan;
-    my @all_cpan_fallback;
-    my @all_debian;
+    my $profile = $profiles->{$profile_name};
 
-    for my $module (keys %{$known->{perlmod}}) {
-        if ($known->{perlmod}{$module}{cpan}) {
-            push @all_cpan, $module;
+    print "\n${NEON_green_yellow}Installing profile: $profile_name${reset}\n";
+    print "   $profile->{description}\n\n";
+
+    # Handle includes (meta-profiles)
+    if ($profile->{includes}) {
+        print "📦 Profile includes: " . join(', ', @{$profile->{includes}}) . "\n\n";
+        for my $included (@{$profile->{includes}}) {
+            install_profile($included, $opts);
         }
-        if ($known->{perlmod}{$module}{cpan_fallback}) {
-            push @all_cpan_fallback, $module;
-        }
+        return;
     }
 
-    for my $module (keys %{$pm_deps}) {
-        push @all_cpan, $module unless grep { $_ eq $module } @all_cpan || grep { $_ eq $module } @all_cpan_fallback;
-    }
+    my @to_install_apt;
+    my @to_install_cpan;
 
-    for my $pkg (keys %{$os_deps->{debian}}) {
-        push @all_debian, $pkg;
-    }
-
-    for my $module (keys %{$known->{perlmod}}) {
-        if ($known->{perlmod}{$module}{debian}) {
-            for my $pkg (@{$known->{perlmod}{$module}{debian}}) {
-                next if $pkg =~ /^cpan:/;
-                push @all_debian, $pkg unless grep { $_ eq $pkg } @all_debian;
+    # Collect APT packages
+    if ($profile->{apt}) {
+        for my $pkg (@{$profile->{apt}}) {
+            unless (check_apt($pkg)) {
+                push @to_install_apt, $pkg;
             }
         }
     }
 
-    # For cpan_fallback modules, only add to CPAN list if Debian package doesn't provide them
-    my @cpan_fallback_to_install;
-    for my $module (@all_cpan_fallback) {
-        my $needs_install = 1;
-        if ($known->{perlmod}{$module}{debian}) {
-            for my $pkg (@{$known->{perlmod}{$module}{debian}}) {
-                next if $pkg =~ /^cpan:/;
-                # Check if Debian package is installed
-                my $is_installed = system("dpkg -l '$pkg' 2>/dev/null | grep -q '^ii'") == 0;
-                if ($is_installed) {
-                    # Check if the module can be loaded
-                    my $module_loadable = system("perl -M$module -e 1 2>/dev/null") == 0;
-                    if ($module_loadable) {
-                        $needs_install = 0;
-                        last;
-                    }
+    # Collect CPAN modules
+    if ($profile->{cpan}) {
+        for my $module (@{$profile->{cpan}}) {
+            unless (check_cpan($module)) {
+                push @to_install_cpan, $module;
+            }
+        }
+    }
+
+    # Collect CPAN fallback modules
+    if ($profile->{cpan_fallback}) {
+        my %fallback_map = (
+            'AnyEvent' => 'libanyevent-perl',
+            'BSD::Resource' => 'libbsd-resource-perl',
+            'Cairo' => 'libcairo-perl',
+            'Cairo::GObject' => 'libcairo-gobject-perl',
+            'Capture::Tiny' => 'libcapture-tiny-perl',
+            'Clone' => 'libclone-perl',
+            'Const::Fast' => 'libconst-fast-perl',
+            'Convert::Color' => 'libconvert-color-perl',
+            'CryptX' => 'libcryptx-perl',
+            'Digest::CRC' => 'libdigest-crc-perl',
+            'Digest::Elf' => 'libdigest-elf-perl',
+        );
+
+        for my $module (@{$profile->{cpan_fallback}}) {
+            my $deb_pkg = $fallback_map{$module};
+
+            # Prefer Debian package
+            if ($deb_pkg) {
+                unless (check_apt($deb_pkg)) {
+                    push @to_install_apt, $deb_pkg;
+                }
+            } else {
+                unless (check_cpan($module)) {
+                    push @to_install_cpan, $module;
                 }
             }
         }
-        push @cpan_fallback_to_install, $module if $needs_install;
     }
 
-    push @all_cpan, @cpan_fallback_to_install;
-
-    print "\n";
-    print_section "Debian Packages";
-    print "${blacklight}::$reset   Total: ${NEON_orange}" . scalar(@all_debian) . "$reset\n\n";
-
-    print_section "CPAN Modules";
-    print "${blacklight}::$reset   Total: ${NEON_orange}" . scalar(@all_cpan) . "$reset\n\n";
-
-    if ($dry_run) {
-        print_status('info', "Dry-run mode: no changes will be made");
-        print "\n${blacklight}::[$TRUE_color Would install Debian packages:$blacklight]$reset\n";
-        for my $pkg (sort @all_debian) {
-            print "${blacklight}::$reset   ${NEON_green_yellow}$pkg$reset\n";
-        }
-        print "\n${blacklight}::[$TRUE_color Would install CPAN modules:$blacklight]$reset\n";
-        for my $module (sort @all_cpan) {
-            print "${blacklight}::$reset   ${NEON_green_yellow}$module$reset\n";
-        }
-    } else {
-        install_apt_packages_internal($verbose, $dry_run, @all_debian);
-        install_cpan_modules_internal($verbose, $dry_run, @all_cpan);
+    # Install APT packages
+    if (@to_install_apt) {
+        print "Installing APT packages: " . join(', ', @to_install_apt) . "\n";
+        system("sudo apt-get install -y " . join(' ', @to_install_apt)) == 0
+            or die "Failed to install APT packages\n";
     }
 
-    print "\n${blacklight}:$reset\n";
-}
-
-sub install_apt_packages {
-    my ($verbose, $dry_run, $profile_name) = @_;
-    $profile_name //= 'protocol7_full';
-
-    my $known = load_known_dependencies();
-    my $os_deps = get_zenki_os_deps();
-
-    my @all_debian;
-    for my $pkg (keys %{$os_deps->{debian}}) {
-        push @all_debian, $pkg;
-    }
-
-    for my $module (keys %{$known->{perlmod}}) {
-        if ($known->{perlmod}{$module}{debian}) {
-            for my $pkg (@{$known->{perlmod}{$module}{debian}}) {
-                next if $pkg =~ /^cpan:/;
-                push @all_debian, $pkg unless grep { $_ eq $pkg } @all_debian;
-            }
+    # Install CPAN modules
+    if (@to_install_cpan) {
+        print "Installing CPAN modules: " . join(', ', @to_install_cpan) . "\n";
+        for my $module (@to_install_cpan) {
+            system("cpan -i $module") == 0
+                or warn "Failed to install $module\n";
         }
     }
 
-    print_header "Installing APT Packages for ${NEON_orange}$profile_name$blacklight";
-    install_apt_packages_internal($verbose, $dry_run, @all_debian);
-    print "\n${blacklight}:$reset\n";
+    print "\n✅ Profile installation complete\n";
+    update_cache($profile_name, 1);
 }
 
-sub install_cpan_modules {
-    my ($verbose, $dry_run, $profile_name) = @_;
-    $profile_name //= 'protocol7_full';
+sub list_profiles {
+    my $profiles = load_profiles();
 
-    my $known = load_known_dependencies();
-    my $pm_deps = get_zenki_pm_deps();
+    print "\n${NEON_green_yellow}Available Dependency Profiles${reset}\n";
+    print "${NEON_green_yellow}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${reset}\n\n";
 
-    my @all_cpan;
-    for my $module (keys %{$known->{perlmod}}) {
-        push @all_cpan, $module if $known->{perlmod}{$module}{cpan};
-    }
+    for my $name (sort keys %$profiles) {
+        my $profile = $profiles->{$name};
+        print "${NEON_green_yellow}$name${reset}\n";
+        print "  $profile->{description}\n";
 
-    for my $module (keys %{$pm_deps}) {
-        push @all_cpan, $module unless grep { $_ eq $module } @all_cpan;
-    }
-
-    print_header "Installing CPAN Modules for ${NEON_orange}$profile_name$blacklight";
-    install_cpan_modules_internal($verbose, $dry_run, @all_cpan);
-    print "\n${blacklight}:$reset\n";
-}
-
-sub install_apt_packages_internal {
-    my ($verbose, $dry_run, @packages) = @_;
-    return unless @packages;
-
-    my $sudo = get_sudo();
-    my @sorted_packages = sort @packages;
-
-    print_section "Debian Packages (${NEON_orange}" . scalar(@sorted_packages) . "$blacklight)";
-    print "\n";
-
-    if ($dry_run) {
-        my $cmd = "${sudo}apt-get update -qq && ${sudo}apt-get install -y " . join(' ', @sorted_packages);
-        print "${blacklight}::$reset   [DRY-RUN] Would execute:\n";
-        print "${blacklight}::$reset   ${NEON_orange}$cmd$reset\n";
-        return;
-    }
-
-    print_status('info', "Updating package lists...");
-    my $update_cmd = "${sudo}apt-get update -qq";
-    my $result = system($update_cmd);
-
-    if ($result != 0) {
-        print_error("APT update failed (exit code: $result)", FALSE);
-        return;
-    }
-    print_status('ok', "Package lists updated");
-
-    print_status('info', "Installing " . scalar(@sorted_packages) . " Debian packages...");
-
-    # Set environment variables to suppress prompts during APT operations
-    my $apt_env = "DEBIAN_FRONTEND=noninteractive APT_LISTCHANGES_FRONTEND=none " .
-                 "UCF_FORCE_CONFMISS=true UCF_FORCE_CONFOLD=true PAGER=/bin/true";
-
-    # Install each package individually to prevent one failure from blocking others
-    my $installed = 0;
-    my $failed = 0;
-
-    for my $pkg (@sorted_packages) {
-        # Use dpkg options to force-confold and other non-interactive flags
-        my $cmd = "${apt_env} ${sudo}apt-get install -y " .
-                 "-o Dpkg::Options::=\"--force-confold\" " .
-                 "-o Dpkg::Options::=\"--force-confdef\" " .
-                 "-o Dpkg::Options::=\"--force-confmiss\" " .
-                 "-o Dpkg::Options::=\"--force-overwrite\" $pkg";
-        my $res = system("$cmd 2>/dev/null >/dev/null");
-
-        if ($res == 0) {
-            print_status('ok', "  ✓ $pkg") if $verbose;
-            $installed++;
+        if ($profile->{includes}) {
+            print "  Includes: " . join(', ', @{$profile->{includes}}) . "\n";
         } else {
-            print_status('warn', "  ✗ $pkg (not found or failed)") if $verbose;
-            $failed++;
+            my $total = 0;
+            $total += scalar(@{$profile->{apt}}) if $profile->{apt};
+            $total += scalar(@{$profile->{cpan}}) if $profile->{cpan};
+            $total += scalar(@{$profile->{cpan_fallback}}) if $profile->{cpan_fallback};
+            print "  Packages: $total total\n";
         }
+        print "\n";
     }
-
-    print_status('ok', "Installation complete: $installed installed, $failed unavailable");
 }
 
-sub install_cpan_modules_internal {
-    my ($verbose, $dry_run, @modules) = @_;
-    return unless @modules;
+sub status_all {
+    my $profiles = load_profiles();
 
-    my @sorted_modules = sort @modules;
+    print "\n${NEON_green_yellow}::[[${TRUE_color} DEPENDENCY STATUS ${NEON_green_yellow}]${reset}\n";
+    print "${NEON_green_yellow}::${reset}\n\n";
 
-    print_section "CPAN Modules (${NEON_orange}" . scalar(@sorted_modules) . "$blacklight)";
-    print "\n";
+    # Skip meta-profiles in status (they depend on other profiles)
+    for my $name (sort keys %$profiles) {
+        next if $profiles->{$name}{includes};
 
-    if ($dry_run) {
-        print "${blacklight}::$reset   [DRY-RUN] Would install via cpanm:\n";
-        for my $module (@sorted_modules) {
-            print "${blacklight}::$reset   ${NEON_green_yellow}$module$reset\n";
+        print "Checking ${NEON_green_yellow}$name${reset}...\n";
+        check_profile($name, '--no-cache');
+        print "\n";
+    }
+}
+
+sub clear_cache {
+    my @cache_files = glob("$CACHE_DIR/*");
+    for my $file (@cache_files) {
+        unlink($file) or warn "Failed to remove $file: $!\n";
+    }
+    print "✅ Cache cleared\n";
+}
+
+##[ HELPER FUNCTIONS ]##########################################################
+
+sub check_apt {
+    my ($pkg) = @_;
+    my $result = `dpkg-query -W -f='\${Status}' "$pkg" 2>/dev/null | grep -q "install ok installed" && echo "found" || echo ""`;
+    return $result =~ /found/ ? 1 : 0;
+}
+
+sub check_cpan {
+    my ($module) = @_;
+    my $cmd = qq{perl -e "use $module" 2>/dev/null};
+    return system($cmd) == 0 ? 1 : 0;
+}
+
+sub load_profiles {
+    unless (-f $PROFILES_FILE) {
+        die "Cannot find $PROFILES_FILE\n";
+    }
+
+    open my $fh, '<', $PROFILES_FILE or die "Cannot read $PROFILES_FILE: $!\n";
+    my %profiles;
+    my $current_profile;
+    my $current_section;
+
+    while (my $line = <$fh>) {
+        chomp $line;
+        next if $line =~ /^\s*#/;
+        next if $line =~ /^\s*$/;
+
+        # Profile header
+        if ($line =~ /^  ([\w-]+):$/) {
+            $current_profile = $1;
+            $current_section = undef;
+            $profiles{$current_profile} = {};
         }
-        return;
-    }
-
-    my $failed = 0;
-    for my $module (@sorted_modules) {
-        print "${blacklight}::$reset   Installing ${NEON_green_yellow}$module$reset ... ";
-        my $cmd = "cpanm --notest " . ($verbose ? '' : '-q ') . $module;
-        my $result = system($cmd . ' > /dev/null 2>&1');
-
-        if ($result == 0) {
-            print "${NEON_green_yellow}✓$reset\n";
-        } else {
-            print "${NEON_orange}failed$reset\n";
-            $failed++;
+        # Description
+        elsif ($line =~ /^    description: "(.+)"$/) {
+            $profiles{$current_profile}{description} = $1;
+        }
+        # Section header
+        elsif ($line =~ /^    (includes|apt|cpan|cpan_fallback):$/) {
+            $current_section = $1;
+            $profiles{$current_profile}{$current_section} = [];
+        }
+        # List items
+        elsif ($line =~ /^      - (.+)$/) {
+            my $item = $1;
+            $item =~ s/\s*#.*//;  # Remove trailing comments
+            $item =~ s/\s+$//;    # Remove trailing whitespace
+            push @{$profiles{$current_profile}{$current_section}}, $item if $item;
         }
     }
+    close $fh;
 
-    if ($failed == 0) {
-        print "\n${blacklight}::$reset   ${NEON_green_yellow}✓ All CPAN modules installed$reset\n";
-    } else {
-        print "\n${blacklight}::$reset   ${NEON_orange}⚠ $failed module(s) failed to install$reset\n";
-    }
+    return \%profiles;
+}
+
+sub check_cache {
+    my ($profile_name) = @_;
+    my $cache_file = File::Spec->catfile($CACHE_DIR, "$profile_name.cache");
+
+    return undef unless -f $cache_file;
+
+    open my $fh, '<', $cache_file or return undef;
+    my $status = <$fh>;
+    close $fh;
+
+    chomp $status;
+    return $status eq 'ok' ? 1 : 0;
+}
+
+sub update_cache {
+    my ($profile_name, $status) = @_;
+    my $cache_file = File::Spec->catfile($CACHE_DIR, "$profile_name.cache");
+
+    open my $fh, '>', $cache_file or die "Cannot write cache: $!\n";
+    print $fh $status ? 'ok' : 'fail';
+    close $fh;
 }
 
 sub show_help {
-    print <<'HELP';
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Protocol-7 Dependency Manager
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    print <<"EOF";
+${NEON_green_yellow}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${reset}
+${NEON_green_yellow}Protocol-7 Dependency Manager${reset}
+${NEON_green_yellow}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${reset}
 
 USAGE:
-  bin/p7-deps [OPTIONS] <command> [args]
+  bin/p7-deps [OPTION] <command> [args]
 
 COMMANDS:
-  list                    List all dependencies from all sources
-  check [profile]         Check aggregated dependencies for a profile
-  install [profile]       Install all dependencies for a profile
-  install-apt [profile]   Install only Debian packages
-  install-cpan [profile]  Install only CPAN modules
-  generate [file]         Generate YAML from Protocol-7 dependencies
-  update-workspace        Update workspace-transfer profiles guidance
-  help                    Show this help
+  ${TRUE_color}list${reset}                    List all available profiles
+  ${TRUE_color}check${reset} [profile]         Check dependencies for a profile
+  ${TRUE_color}install${reset} [profile]       Install all dependencies for a profile
+  ${TRUE_color}status${reset}                  Show status of all base profiles
+  ${TRUE_color}clear-cache${reset}             Clear the dependency cache
+  ${TRUE_color}help${reset}                    Show this help message
 
 OPTIONS:
-  --dry-run              Preview what would be installed (no changes)
-  --verbose, -v          Show detailed output during installation
-
-DEPENDENCY SOURCES:
-  - modules/base.known_dependencies
-    Perl module definitions with Debian package mappings
-
-  - configuration/zenki/*/pm-dep
-    Zero-byte files indicating required CPAN modules per zenka
-
-  - configuration/zenki/*/os-dep/debian
-    Zero-byte files indicating required Debian packages per zenka
-
-  - configuration/zenki/*/os-dep/binary
-    Zero-byte files indicating required system commands per zenka
+  ${TRUE_color}--no-cache${reset}              Force fresh dependency check (bypass cache)
 
 EXAMPLES:
-  bin/p7-deps list                          # Show all dependencies
-  bin/p7-deps check protocol7               # Check aggregated dependencies
-  bin/p7-deps generate                      # Generate YAML file
-  bin/p7-deps --dry-run install             # Preview what would be installed
-  bin/p7-deps install                       # Install all dependencies
-  bin/p7-deps install-apt protocol7_full    # Install Debian packages only
-  bin/p7-deps -v install-cpan               # Install CPAN modules (verbose)
-  bin/p7-deps update-workspace              # Guidance for updating workspace
+  bin/p7-deps list                          # List all profiles
+  bin/p7-deps check minimal                 # Check minimal profile
+  bin/p7-deps check development --no-cache  # Fresh check of development profile
+  bin/p7-deps install minimal               # Install minimal profile
+  bin/p7-deps status                        # Check all profiles
 
-WORKFLOW (Analysis):
-  1. Review current dependencies:
-     bin/p7-deps list
-  2. Check specific profile:
-     bin/p7-deps check protocol7_full
-  3. Generate YAML for workspace-transfer:
-     bin/p7-deps generate
-  4. Update workspace profiles and commit
+PROFILES:
+  Profiles are defined in: $PROFILES_FILE
 
-WORKFLOW (Installation):
-  1. Preview installation:
-     bin/p7-deps --dry-run install
-  2. Install all dependencies:
-     bin/p7-deps install
-  3. Install only system packages:
-     bin/p7-deps install-apt
-  4. Install only Perl modules:
-     bin/p7-deps install-cpan
-
-ROOT DETECTION:
-  - Automatically detects if running as root
-  - Skips sudo for system operations when running as root
-  - Uses sudo for system operations when running as regular user
-
-FILES:
-  modules/base.known_dependencies     Perl module database
-  configuration/zenki/*/pm-dep/       CPAN module requirements
-  configuration/zenki/*/os-dep/       OS package requirements
-  .deps/protocol7_full.yaml           Generated dependency file
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-HELP
+EOF
 }
-
-#,,..,.,,,,..,.,,,,,.,.,.,.,.,,,,,..,,..,,,..,..,,...,..,,,.,,,,.,,,,,.,,,...,
-#F56QI3PDEIKR4BCEXHHMBH34VKI6EO5CIXXW545VA5FBAVSODLXF2LDQ6DFAEV45DNFY7SUMRLRAY
-#\\\|2KHDIEHC5IBKG2VUXIWJDE2ZL26F7EXMCV2SCDJPWEEO7ZHLMYE \ / AMOS7 \ YOURUM ::
-#\[7]QLDMA4QAFTUGDQ7BJDVOEMQBFYXE72C3SFAB34O2EGJMZCNRXEAY 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
