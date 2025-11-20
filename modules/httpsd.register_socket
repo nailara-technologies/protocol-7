@@ -17,7 +17,9 @@ unless ( defined $socket and fileno($socket) ) {
 }
 
 unless ( defined $type and defined $mode ) {
-    <[base.logs]>->( 0, "httpsd.register_socket: missing type or mode parameter" );
+    <[base.logs]>->(
+        0, "httpsd.register_socket: missing type or mode parameter"
+    );
     return undef;
 }
 
@@ -25,15 +27,18 @@ my $fd = fileno($socket);
 
 ## Register socket in handle data structure using both socket reference AND file descriptor
 ## Socket reference is used by base.protocol.bind, numeric FD is used by handler connection lookup
-$data{'handle'}{$socket}{'link'}      = $type;
-$data{'handle'}{$socket}{'mode'}      = $mode;
-$data{'handle'}{$socket}{'protocol'}  = 'https';
+$data{'handle'}{$socket}{'link'}     = $type;
+$data{'handle'}{$socket}{'mode'}     = $mode;
+$data{'handle'}{$socket}{'protocol'} = 'https';
 
-$data{'handle'}{$fd}{'link'}      = $type;
-$data{'handle'}{$fd}{'mode'}      = $mode;
-$data{'handle'}{$fd}{'protocol'}  = 'https';
+$data{'handle'}{$fd}{'link'}     = $type;
+$data{'handle'}{$fd}{'mode'}     = $mode;
+$data{'handle'}{$fd}{'protocol'} = 'https';
 
-<[base.logs]>->( 2, "httpsd.register_socket: registered fd=$fd using both socket ref and numeric fd" );
+<[base.logs]>->(
+    2,
+    "httpsd.register_socket: registered fd=$fd using both socket ref and numeric fd"
+);
 <[base.logs]>->( 3, "  type=$type mode=$mode protocol=https" );
 
 return 1;
