@@ -179,8 +179,7 @@ my %context = (
     no_activity => (!@modified_files && (!$todo_stats || $todo_stats->{total} == 0)),
     has_missing_dependencies => scalar(@$essential_missing) > 0,
     has_crypto_issues => 0,  ## TODO: detect crypto issues
-    install_command => (@$essential_missing > 0) ? $essential_missing->[0]{install} : '',
-    crypto_details => ''
+    install_command => (@$essential_missing > 0) ? $essential_missing->[0]{install} : ''
 );
 
 ## Calculate relevance and get top suggestions ##
