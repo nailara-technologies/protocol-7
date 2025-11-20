@@ -333,8 +333,11 @@ sub status_all {
     print "${blacklight}:$reset\n\n";
 
     for my $name (sort keys %$profiles) {
+        # Skip meta-profiles in status (they depend on other profiles)
+        next if $profiles->{$name}{includes};
+
         print "Checking ${NEON_green_yellow}$name$reset...\n";
-        check_profile($name);
+        check_profile($name, '--no-cache');
         print "\n";
     }
 
