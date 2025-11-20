@@ -29,14 +29,19 @@ unless ( -f $key_file ) {
 }
 
 ## Get TLS configuration
-my $tls_version  = <httpsd.cfg.tls_version>  // 'TLSv1_2';
-my $cipher_suite = <httpsd.cfg.cipher_suite> //
-    'DEFAULT:!aNULL:!eNULL:!MD5:!3DES:!DES:!RC4:!IDEA:!SEED:!aDSS:!SRP:!PSK';
+my $tls_version  = <httpsd.cfg.tls_version> // 'TLSv1_2';
+my $cipher_suite = <httpsd.cfg.cipher_suite>
+    // 'DEFAULT:!aNULL:!eNULL:!MD5:!3DES:!DES:!RC4:!IDEA:!SEED:!aDSS:!SRP:!PSK';
+
+<[base.log]>->( 2, "  TLS version: $tls_version" );
+<[base.log]>->( 3, "  cipher suite: $cipher_suite" );
 
 ## Ensure TLS_version is a scalar string (not a list)
 if ( ref($tls_version) eq 'ARRAY' ) {
     $tls_version = join( ':', @$tls_version );
-    <[base.log]>->( 2, "  note: converted TLS_version array to string: $tls_version" );
+    <[base.log]>->(
+        2, "  note: converted TLS_version array to string: $tls_version"
+    );
 }
 
 ## Convert colon-separated TLS versions to IO::Socket::SSL compatible format
@@ -44,44 +49,56 @@ if ( ref($tls_version) eq 'ARRAY' ) {
 ## Instead, use the highest version for maximum compatibility, or use 'SSLv23' for negotiation
 if ( $tls_version =~ m/:/ ) {
     my @versions = split( /:/, $tls_version );
-    <[base.log]>->( 2, "  note: TLS_version contains multiple protocols, using highest: @versions" );
+    <[base.log]>->(
+        2,
+        "  note: TLS_version contains multiple protocols, using highest: @versions"
+    );
 
     ## Use the first (typically highest) version for IO::Socket::SSL
     ## IO::Socket::SSL::SSL_version accepts single versions like 'TLSv1_3'
     $tls_version = $versions[0];
-    <[base.log]>->( 2, "  note: converted to single version for IO::Socket::SSL: $tls_version" );
+    <[base.log]>->(
+        2,
+        "  note: converted to single version for IO::Socket::SSL: $tls_version"
+    );
 }
 
 ## Verify certificate key type compatibility with cipher suite
-my $cert_info = `openssl x509 -in $cert_file -text -noout 2>/dev/null | grep -i "public key"`;
-my $key_type = `openssl pkey -in $key_file -text -noout 2>/dev/null | head -1`;
+my $cert_info
+    = `openssl x509 -in $cert_file -text -noout 2>/dev/null | grep -i "public key"`;
+my $key_type
+    = `openssl pkey -in $key_file -text -noout 2>/dev/null | head -1`;
 
-<[base.log]>->( 2, "  TLS version: $tls_version" );
-<[base.log]>->( 3, "  cipher suite: $cipher_suite" );
-<[base.log]>->( 3, "  certificate key type: " . ( $key_type ? $key_type : 'unknown' ) );
-<[base.log]>->( 3, "  certificate info: " . ( $cert_info ? $cert_info : 'unknown' ) );
+<[base.log]>->(
+    3, "  certificate key type: " . ( $key_type ? $key_type : 'unknown' )
+);
+<[base.log]>->(
+    3, "  certificate info: " . ( $cert_info ? $cert_info : 'unknown' )
+);
 
 ## Create SSL socket with enhanced error diagnostics
 my $ssl_socket;
 
 eval {
     <[base.log]>->( 3, "  creating IO::Socket::SSL with parameters:" );
-    <[base.log]>->( 3, "    SSL_version: $tls_version (ref: " . ref($tls_version) . ")" );
+    <[base.log]>->(
+        3, "    SSL_version: $tls_version (ref: " . ref($tls_version) . ")"
+    );
     <[base.log]>->( 3, "    SSL_cert_file: $cert_file" );
     <[base.log]>->( 3, "    SSL_key_file: $key_file" );
     <[base.log]>->( 3, "    LocalAddr: $addr, LocalPort: $port" );
 
     $ssl_socket = IO::Socket::SSL->new(
-        LocalAddr        => $addr,
-        LocalPort        => $port,
-        Listen           => <max.connections> // 1024,
-        ReuseAddr        => 1,
-        Timeout          => <httpsd.timeout> // 23,
-        SSL_server       => 1,
-        SSL_cert_file    => $cert_file,
-        SSL_key_file     => $key_file,
-        SSL_version      => $tls_version,
-        SSL_cipher_list  => $cipher_suite,
+        LocalAddr              => $addr,
+        LocalPort              => $port,
+        Listen                 => <max.connections> // 1024,
+        ReuseAddr              => 1,
+        Timeout                => <httpsd.timeout> // 23,
+        SSL_server             => 1,
+        SSL_cert_file          => $cert_file,
+        SSL_key_file           => $key_file,
+        SSL_version            => $tls_version,
+        SSL_cipher_list        => $cipher_suite,
         SSL_honor_cipher_order => 1,
     );
 };
@@ -89,25 +106,35 @@ eval {
 if ($EVAL_ERROR) {
     <[base.log]>->( 0, "httpsd: SSL socket creation EVAL ERROR:" );
     <[base.log]>->( 0, "  error: $EVAL_ERROR" );
-    <[base.log]>->( 0, "  SSL_version parameter: '$tls_version' (type: " . ref($tls_version) . ")" );
+    <[base.log]>->(
+        0,
+        "  SSL_version parameter: '$tls_version' (type: "
+            . ref($tls_version) . ")"
+    );
     <[base.log]>->( 0, "  cert file: $cert_file" );
     <[base.log]>->( 0, "  key file: $key_file" );
 
     ## Log system error if available
-    if ( $OS_ERROR ) {
+    if ($OS_ERROR) {
         <[base.log]>->( 0, "  system error: $OS_ERROR" );
     }
 
     ## Provide specific guidance based on error type
     if ( $EVAL_ERROR =~ /cannot set multiple SSL protocols/ ) {
-        <[base.log]>->( 0, "  hint: Check httpsd.cfg.tls_version - colon-separated versions are handled at config parse time" );
-        <[base.log]>->( 0, "  info: IO::Socket::SSL requires single version string (e.g., 'TLSv1_3' not 'TLSv1_3:TLSv1_2')" );
+        <[base.log]>->(
+            0,
+            "  hint: Check httpsd.cfg.tls_version - colon-separated versions are handled at config parse time"
+        );
+        <[base.log]>->(
+            0,
+            "  info: IO::Socket::SSL requires single version string (e.g., 'TLSv1_3' not 'TLSv1_3:TLSv1_2')"
+        );
     }
     return -1;
 }
 
 unless ( defined $ssl_socket ) {
-    my $ssl_err = IO::Socket::SSL::errstr();
+    my $ssl_err      = IO::Socket::SSL::errstr();
     my $ssl_err_full = $ssl_err;
     $ssl_err =~ s/\n.+//mg;
 
@@ -115,9 +142,18 @@ unless ( defined $ssl_socket ) {
     <[base.log]>->( 0, "  IO::Socket::SSL::errstr(): $ssl_err" );
     <[base.log]>->( 0, "  full error: $ssl_err_full" );
     <[base.log]>->( 0, "  SSL_version was: '$tls_version'" );
-    <[base.log]>->( 0, "  cert type (Ed25519/RSA): check with: openssl x509 -in $cert_file -text -noout | grep -i 'public key'" );
-    <[base.log]>->( 0, "  key type: check with: openssl pkey -in $key_file -text -noout | head -1" );
-    <[base.log]>->( 0, "  hint: Ed25519 certificates from commit 510bbaf require compatible SSL_version and cipher suite" );
+    <[base.log]>->(
+        0,
+        "  cert type (Ed25519/RSA): check with: openssl x509 -in $cert_file -text -noout | grep -i 'public key'"
+    );
+    <[base.log]>->(
+        0,
+        "  key type: check with: openssl pkey -in $key_file -text -noout | head -1"
+    );
+    <[base.log]>->(
+        0,
+        "  hint: Ed25519 certificates from commit 510bbaf require compatible SSL_version and cipher suite"
+    );
     return -1;
 }
 

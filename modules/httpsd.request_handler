@@ -9,10 +9,15 @@ my $session = $data{'session'}->{$id};
 
 # DEBUG: Check if we're being called
 if ( defined $session ) {
-    my $input_len = length($session->{'buffer'}->{'input'} // '');
-    <[base.logs]>->( 1, "[%d] httpsd.request_handler called, input_buffer_len=%d", $id, $input_len );
+    my $input_len = length( $session->{'buffer'}->{'input'} // '' );
+    <[base.logs]>->(
+        1,   "[%d] httpsd.request_handler called, input_buffer_len=%d",
+        $id, $input_len
+    );
 } else {
-    <[base.logs]>->( 0, "[%d] httpsd.request_handler: session not found!", $id );
+    <[base.logs]>->(
+        0, "[%d] httpsd.request_handler: session not found!", $id
+    );
     return 2;
 }
 
@@ -25,7 +30,9 @@ if ( defined $result && ref($result) eq 'HASH' && $result->{headers} ) {
     my $hsts_max_age = <httpsd.cfg.hsts_max_age> // 31536000;
 
     $result->{headers}->{'Strict-Transport-Security'}
-        = "max-age=$hsts_max_age" . ( <httpsd.cfg.hsts_include_subdomains> ? "; includeSubDomains" : "" );
+        = "max-age=$hsts_max_age"
+        . (
+        <httpsd.cfg.hsts_include_subdomains> ? "; includeSubDomains" : "" );
 
     <[base.logs]>->( 3, "[%d] added HSTS header to HTTPS response", $id );
 }

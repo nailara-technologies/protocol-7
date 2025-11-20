@@ -26,18 +26,22 @@
 
 # Register IO::Socket::SSL type handlers (for listening socket)
 $data{'io'}{'type'}{'ip.ssl'} = {
-    'ref' => 'IO::Socket::SSL',
+    'ref'     => 'IO::Socket::SSL',
     'handler' => {
         'output' => {
-            'open'  => 'io.ip.ssl.output.open',      # TODO: May not exist, fallback to tcp
-            'close' => 'io.ip.ssl.output.close',      # TODO: May not exist, fallback to tcp
+            'open' => 'io.ip.ssl.output.open'
+            ,    # TODO: May not exist, fallback to tcp
+            'close' => 'io.ip.ssl.output.close'
+            ,    # TODO: May not exist, fallback to tcp
             'read'  => 'base.handler.read',
             'write' => 'base.handler.write'
         },
         'input' => {
-            'open'    => 'io.ip.ssl.input.open',      # TODO: May not exist, fallback to tcp
-            'close'   => 'io.ip.ssl.input.close',     # TODO: May not exist, fallback to tcp
-            'connect' => 'io.ip.ssl.input.connect',   # Custom SSL handler
+            'open' =>
+                'io.ip.ssl.input.open', # TODO: May not exist, fallback to tcp
+            'close' => 'io.ip.ssl.input.close'
+            ,                           # TODO: May not exist, fallback to tcp
+            'connect' => 'io.ip.ssl.input.connect',    # Custom SSL handler
             'read'    => 'base.handler.read',
             'write'   => 'base.handler.write'
         }
@@ -48,23 +52,27 @@ $data{'io'}{'type'}{'ip.ssl'} = {
 # Use HTTP state as base but override input handler with httpsd.request_handler
 $data{'protocol'}{'https'} = {
     'connect' => {
-        'callback' => undef,  # No custom connect callback needed
-        'banner'  => ''
+        'callback' => undef,    # No custom connect callback needed
+        'banner'   => ''
     },
-    'state' => <protocol.https.state> // {  # Use previously set state, fallback if not set
+    'state' => <protocol.https.state>
+        // {    # Use previously set state, fallback if not set
         '0' => {
             'input'  => { 'handler' => 'httpsd.request_handler' },
             'output' => { 'handler' => 'base.handler.write' }
         }
-    }
+        }
 };
 
 # Override the input handler specifically for HTTPS
 if ( defined $data{'protocol'}{'https'}{'state'}{'0'} ) {
-    $data{'protocol'}{'https'}{'state'}{'0'}{'input'}{'handler'} = 'httpsd.request_handler';
+    $data{'protocol'}{'https'}{'state'}{'0'}{'input'}{'handler'}
+        = 'httpsd.request_handler';
 }
 
-<[base.log]>->( 2, 'registered SSL socket type (ip.ssl) and HTTPS protocol handlers' );
+<[base.log]>->(
+    2, 'registered SSL socket type (ip.ssl) and HTTPS protocol handlers'
+);
 
 # Session management for HTTPS
 <httpsd.sessions>         = {};

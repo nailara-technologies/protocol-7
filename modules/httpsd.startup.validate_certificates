@@ -12,26 +12,16 @@ my $key_file  = <httpsd.cfg.key_path>;
 <[base.log]>->( 2, "  checking key: $key_file" );
 
 unless ( -f $cert_file ) {
+    <[base.log]>->( 0, "FATAL: Certificate file not found: $cert_file" );
     <[base.log]>->(
-        0,
-        "FATAL: Certificate file not found: $cert_file"
-    );
-    <[base.log]>->(
-        0,
-        "HTTPSD cannot start without valid SSL/TLS certificate."
+        0, "HTTPSD cannot start without valid SSL/TLS certificate."
     );
     return FALSE;
 }
 
 unless ( -f $key_file ) {
-    <[base.log]>->(
-        0,
-        "FATAL: Key file not found: $key_file"
-    );
-    <[base.log]>->(
-        0,
-        "HTTPSD cannot start without valid SSL/TLS key."
-    );
+    <[base.log]>->( 0, "FATAL: Key file not found: $key_file" );
+    <[base.log]>->( 0, "HTTPSD cannot start without valid SSL/TLS key." );
     return FALSE;
 }
 
