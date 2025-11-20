@@ -1,0 +1,39 @@
+## [:< ##
+
+# name = protocol.https.init_code
+# descr = HTTPS protocol configuration using TLS encryption
+
+# HTTPS (HTTP Secure) wraps HTTP requests in TLS encryption
+# The encryption/decryption is transparent at IO::Socket::SSL layer
+# so HTTP request parsing is identical to plaintext HTTP
+
+<protocol.https.cfg.tls_version> //= 'TLSv1_3:TLSv1_2';
+<protocol.https.cfg.cipher_suite>
+    //= 'ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-GCM-SHA256';
+<protocol.https.cfg.certificate_path> //= '/etc/protocol-7/certs/current.pem';
+<protocol.https.cfg.key_path>         //= '/etc/protocol-7/certs/current.key';
+<protocol.https.cfg.hsts_max_age>    //= 31536000;
+<protocol.https.cfg.hsts_include_subdomains> //= 1;
+
+# HTTPS protocol definition using HTTP request handlers since TLS is transparent
+<protocol.https> = {
+    qw| connect | => {
+        qw| callback | => undef,
+        qw| banner |   => ''
+    },
+
+    qw| state | => <protocol.https.state> // <protocol.http.state> // {
+        qw| 0 | => {
+            qw| input |  => { qw| handler | => qw| httpsd.request_handler | },
+            qw| output | => { qw| handler | => qw| base.handler.write | }
+        }
+    }
+};
+
+0;
+
+#,,.,,.,.,,...,.,.,,.,...,..,..,,,.,,.,..,,,.,,..,,...,...,,..,,.,.,...,,.,.,,.,,
+#NDGHAXUPCGHBY3SRL5ZAUAP5EMORZ4XAIXLM4MGYLOSKAIZDPOESM76Y4LPNEXBT4KRYB42BKRJ34
+#\\\|H7JKQSQCDS2EQDTAXTPWZ23QCU3OBMV7IDKUW5QOWSOVYWLMTLN \ / AMOS7 \ YOURUM ::
+#\[7]5YPPSP5VB7O42ZI3I3CKFXWFPVO3CIZJMCMSM2W6DAHQO5MFAODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

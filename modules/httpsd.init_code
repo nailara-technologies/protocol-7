@@ -63,22 +63,8 @@ $data{'io'}{'type'}{'ip.ssl'} = {
     }
 };
 
-# Register HTTPS protocol with proper handler chain
-# HTTPS uses HTTP request parsing (TLS encryption is transparent at socket level)
-# but needs httpsd.request_handler as a bridge to call httpd.request_handler
-$data{'protocol'}{'https'} = {
-    'connect' => {
-        'callback' => undef,    # No custom connect callback needed
-        'banner'   => ''
-    },
-    'state' => <protocol.https.state>
-        // {    # Use HTTP state as base for protocol handlers
-        '0' => {
-            'input'  => { 'handler' => 'httpsd.request_handler' },
-            'output' => { 'handler' => 'base.handler.write' }
-        }
-        }
-};
+# Load HTTPS protocol configuration (see modules/protocol.https.init_code)
+<[protocol.https.init_code]>;
 
 <[base.log]>->(
     2, 'registered SSL socket type (ip.ssl) and HTTPS protocol handlers'
