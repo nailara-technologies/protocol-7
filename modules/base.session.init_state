@@ -10,8 +10,17 @@ if ( not defined $data{'session'}{$s_id} ) {
     return 0;
 }
 
-my $session = $data{'session'}->{$s_id};
-my $state   = $data{'protocol'}{ $session->{'protocol'} }{'state'}{$state_id};
+my $session  = $data{'session'}->{$s_id};
+my $protocol = $session->{'protocol'};
+my $state    = $data{'protocol'}{$protocol}{'state'}{$state_id};
+
+<[base.log]>->(
+    2,
+    "[%d] init_state: protocol='%s', state_id=%d, handler will be set from state",
+    $s_id,
+    $protocol,
+    $state_id
+);
 
 if ( not defined $state ) {
     <[base.s_warn]>->( "protocol state '%d' not defined <{C1}>", $state_id );
@@ -19,6 +28,11 @@ if ( not defined $state ) {
 }
 
 my $mode = $data{'handle'}{ $session->{'handle'} }{'mode'};
+
+<[base.log]>->(
+    2, "[%d] init_state: mode='%s', looking for handler in state->{%s}",
+    $s_id, $mode, $mode
+);
 
 if ( not defined $state ) {
     return <[base.s_warn]>->(
@@ -32,6 +46,11 @@ if ( $session->{'mode'} ne qw| server | ) {
 
     ##[ protocol input handler ]##
     $session->{'input'}->{'handler'} = $state->{$mode}->{'handler'};
+
+    <[base.log]>->(
+        2,     "[%d] init_state: set input handler to '%s'",
+        $s_id, $session->{'input'}->{'handler'} // 'UNDEF'
+    );
 
     ## [ LLL ] 'output' handler ? ##
 
@@ -118,8 +137,8 @@ if ( $session->{'mode'} ne qw| server | ) {
 
 return TRUE;    ## <-- success ###
 
-#,,,,,.,.,..,,.,,,..,,.,,,..,,.,.,,,,,,,.,..,,..,,...,...,..,,,..,.,,,.,,,,.,,
-#6B2QVIKIYCAVSGP5GKMQSN6EK6ESQIDVYXGEY52F3H3GVN2U7HL4U7BR4EU4ORACBU5W6CEXRWJEM
-#\\\|XLAODP6OCLSKPHULFAQ7BDRQU3FWLPIMFIIYOSH2SCARETF4FOW \ / AMOS7 \ YOURUM ::
-#\[7]GP7YEZ6T5E4WL5SLW3AJ7TD2VVS7NZMCSEDICDZHLBUXWKGG3CDY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,...,,,.,,.,,.,,,.,.,.,,,,,.,.,,,..,,...,...,..,,,,.,.,.,,.,,,..,
+#VFY7L2ZBBPO6R2H5Y5OP6KEFA6VM4PZTQN5ZELKGTVIVYV2UGCRAZGR44EZXEBYK6C5FVDQLZTBPM
+#\\\|WZCFLL6RH7ALZBSTQZ3M5FKFCMB6OLDYMOT6LGR5HDY7JE2JBC7 \ / AMOS7 \ YOURUM ::
+#\[7]VVFO4YQMTIFMOMFJ26ZFVEBYKQDEBSZ5Y3VKUCCYYXQTPC3AL4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

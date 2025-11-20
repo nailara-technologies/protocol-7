@@ -13,9 +13,18 @@ if ( not defined $data{'session'}{$id} ) {
 }
 
 my $type  = $data{'handle'}{$fd_srv}{'link'};
-my $proto = $data{'session'}{$id}{'protocol'};
+my $proto = $data{'handle'}{$fd_srv}{'protocol'}
+    // $data{'session'}{$id}{'protocol'};
 my $state = $data{'session'}{$id}{'state'};
 my $mode  = $data{'handle'}{$fd_srv}{'mode'};
+
+<[base.logs]>->(
+    2,
+    "[%d] base.handler.connect: server_handle_protocol='%s', derived_protocol='%s'",
+    $id,
+    $data{'handle'}{$fd_srv}{'protocol'} // 'UNDEF',
+    $proto
+);
 
 my $handler       = $data{'io'}{'type'}{$type}{'handler'}{$mode}{'connect'};
 my $banner_string = $data{'protocol'}{$proto}{'connect'}{'banner'} // '';
@@ -87,8 +96,8 @@ if ( not defined $data{'handle'}{$fd_srv}{'protocol'} ) {
     }
 }
 
-#,,..,,,.,,,.,.,.,,,.,..,,,,,,,,,,...,.,,,,,.,..,,...,...,.,,,.,,,,,.,,.,,,..,
-#LFGAJH4P573QBBHH53CKDZQUQKGFQ5MG7LTFGURA2YNLW4DRO6JWZ7Y6AEGIQRGBL26GI6CSS2JNG
-#\\\|PAQ6T5TAYA5IHLDMSNZY2CVHSWW7UJTZXDKZB7JYHPZKF6W4YCN \ / AMOS7 \ YOURUM ::
-#\[7]5ASBPIHVIJLWZTYNNRVMJTZQDWRKGCE53VAMUAFQLSD66AKJJGBI 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,,,..,,,..,,,,,,.,,.,,,.,.,,,,,..,,...,...,.,.,.,.,.,.,..,,,..,
+#HAYHOAJTHNK346FIYOEDABJKQVCV35SGVS6MF7Z23BEH2YHMGIZQ5W6AKJNPBJJ7RLFMOVP3VLD62
+#\\\|5ZPV2O73WLJYWZHMJPNLD3A27XIJ5PY75TXTOCDWVGLQJTAHFA7 \ / AMOS7 \ YOURUM ::
+#\[7]EFQB2J5EWOEQ2D6JKR32HVJBXXQXDTO6IA4BO7XVZWFAYLLYROAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
