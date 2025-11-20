@@ -13,11 +13,7 @@
 ## Determine key owner user: use current user unless running as root in v7 zenka
 ## When NOT started by v7 zenka (console zenka), use current user, not protocol-7 user
 my $current_user = $ENV{'USER'} // getpwuid($EUID);
-my $is_v7_zenka = defined <system.zenka.type> && (
-    <system.zenka.type> eq 'v7' ||
-    <system.zenka.type> eq 'v7-started-zenka' ||
-    <system.zenka.type> eq 'cube'
-);
+my $is_v7_zenka = <[base.zenka.is_v7_started]>;
 
 ## Only use amos-zenka-user if: running as root AND started by v7 zenka
 ## Otherwise use the current user (taeki, etc.)
