@@ -4,14 +4,28 @@
 # descr = HTTPS request handler - adds HSTS headers and delegates to httpd handler
 # note : return 2 to close connection
 
-my $id      = shift;
+# Receive Event object from protocol state handler invocation
+my $event;
+if ( ref $ARG[0] ne qw| Event::Event::Io | and $ARG[0] =~ m|^\d+| ) {
+    # Direct call with session ID (shouldn't happen for state handlers, but handle it)
+    my $id = shift;
+} else {
+    # Standard state handler invocation with Event watcher
+    $event = shift;
+}
+
+# Extract session ID from event watcher (same pattern as httpd.request_handler)
+my $id      = $event->w->data if defined $event;
 my $session = $data{'session'}->{$id};
 
-# DEBUG: Check if we're being called
+# Mark session as HTTPS before processing the request
+$session->{'is_https'} = 1 if defined $session;
+
+# Debug logging
 if ( defined $session ) {
     my $input_len = length( $session->{'buffer'}->{'input'} // '' );
     <[base.logs]>->(
-        1,   "[%d] httpsd.request_handler called, input_buffer_len=%d",
+        1,   "[%d] httpsd.request_handler called (HTTPS), input_buffer_len=%d",
         $id, $input_len
     );
 } else {
@@ -21,24 +35,11 @@ if ( defined $session ) {
     return 2;
 }
 
-# First call httpd request handler to process the HTTP request
-my $result = <[httpd.request_handler]->($id);
-
-# If httpd returned a response object (usually not directly in protocol state handler)
-# Then modify HTTPS-specific headers
-if ( defined $result && ref($result) eq 'HASH' && $result->{headers} ) {
-    my $hsts_max_age = <httpsd.cfg.hsts_max_age> // 31536000;
-
-    $result->{headers}->{'Strict-Transport-Security'}
-        = "max-age=$hsts_max_age"
-        . (
-        <httpsd.cfg.hsts_include_subdomains> ? "; includeSubDomains" : "" );
-
-    <[base.logs]>->( 3, "[%d] added HSTS header to HTTPS response", $id );
-}
-
-# Mark session as HTTPS for request processing
-$session->{'is_https'} = 1 if defined $session;
+# Delegate to httpd request handler - pass the Event object just as we received it
+# httpd.request_handler will handle the actual HTTP request processing
+# The response will be written to the output buffer by the HTTP handler
+# base.handler.write (from protocol state output handler) will send it via SSL socket
+my $result = <[httpd.request_handler]->($event) if defined $event;
 
 return $result;
 
