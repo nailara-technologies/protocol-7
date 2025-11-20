@@ -10,12 +10,24 @@
 
 <crypt.C25519.autocreate-user-key> //= FALSE;
 
-## Determine key owner user: always use current user unless explicitly set
+## Determine key owner user: use smart logic for v7 contexts
 ## Security: each process keeps its own keys in its own home directory
-## v7 zenka must explicitly set <crypt.C25519.usr_name> if dropping privileges later
 my $current_user = $ENV{'USER'} // getpwuid($EUID);
 
-<crypt.C25519.usr_name> //= $current_user;
+## In v7-started zenka that will drop privileges, use the target drop_privs user.
+## In other contexts (console commands, etc.), use current user.
+if (not defined <crypt.C25519.usr_name>) {
+    my $is_v7_started = <[base.zenka.is_v7_started]>->();
+    my $drop_target_user = <system.amos-zenka-user> // '';
+
+    if ($is_v7_started and length($drop_target_user) and $drop_target_user ne $current_user) {
+        ## v7 zenka context with different drop target: use drop target for keys
+        <crypt.C25519.usr_name> = $drop_target_user;
+    } else {
+        ## Console/other context or no privilege drop: use current user
+        <crypt.C25519.usr_name> = $current_user;
+    }
+}
 
 my $key_dir = <[crypt.C25519.chk_key_dir]>;
 
