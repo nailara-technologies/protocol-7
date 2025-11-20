@@ -42,7 +42,7 @@ make_path($CACHE_DIR) unless -d $CACHE_DIR;
 my $cmd = shift @ARGV || 'help';
 
 if ($cmd eq 'check') {
-    check_profile(@ARGV);
+    check_profile(@ARGV, 'explicit');
 } elsif ($cmd eq 'install') {
     install_profile(@ARGV);
 } elsif ($cmd eq 'list') {
@@ -58,16 +58,27 @@ if ($cmd eq 'check') {
 }
 
 sub check_profile {
-    my ($profile_name, $opts) = @_;
+    my ($profile_name, $opts, $is_explicit) = @_;
 
     unless ($profile_name) {
         die "Usage: bin/p7-deps check <profile> [--no-cache]\n";
     }
 
-    my $use_cache = !($opts && $opts eq '--no-cache');
+    # Parse options - could be '--no-cache' or 'explicit' or both
+    my $use_cache = 1;
+    my $is_explicit_check = 0;
 
-    # Check cache first
-    if ($use_cache) {
+    if (defined $opts) {
+        $use_cache = 0 if $opts eq '--no-cache';
+        $is_explicit_check = 1 if $opts eq 'explicit';
+    }
+    if (defined $is_explicit) {
+        $use_cache = 0 if $is_explicit eq '--no-cache';
+        $is_explicit_check = 1 if $is_explicit eq 'explicit';
+    }
+
+    # Cache check for status command (only early return for status)
+    if ($use_cache && !$is_explicit_check) {
         my $cached = check_cache($profile_name);
         if (defined $cached) {
             if ($cached) {
@@ -96,7 +107,8 @@ sub check_profile {
         print "📦 Profile includes: " . join(', ', @{$profile->{includes}}) . "\n\n";
         my $all_ok = 1;
         for my $included (@{$profile->{includes}}) {
-            my $result = check_profile($included, '--no-cache');
+            # Always use fresh checks for included profiles
+            my $result = check_profile($included, '--no-cache', $is_explicit_check ? 'explicit' : undef);
             $all_ok = 0 if $result != 0;
         }
         update_cache($profile_name, $all_ok);
