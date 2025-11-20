@@ -20,6 +20,14 @@ my $TRUE_color        = "\e[38;2;6;71;195m";     # Bright blue
 my $NEON_orange       = "\e[38;2;197;141;7m";    # Bright orange
 my $NEON_green_yellow = "\e[38;2;71;195;6m";     # Green-yellow
 
+##[ SIGNAL HANDLERS ]###########################################################
+
+# Handle Ctrl+C gracefully
+$SIG{INT} = sub {
+    print "\n${NEON_orange}⚠ Interrupted by user${reset}\n";
+    exit 130;  # Standard exit code for SIGINT
+};
+
 ##[ PROJECT PATH DISCOVERY ]######################################################
 
 # Helper functions for path operations
