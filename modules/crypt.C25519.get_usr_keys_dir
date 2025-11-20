@@ -14,15 +14,10 @@ if ( defined $home_dir ) {
 if ( not defined $requested_user ) {
 
     my $cur_usr = $ENV{'USER'} // getpwuid($EUID);
-    my $is_v7_zenka = <[base.zenka.is_v7_started]>;
 
-    ## Use current user unless running as root in v7 zenka (then use amos-zenka-user)
-    if ($EUID == 0 && $is_v7_zenka) {
-        $requested_user = <crypt.C25519.usr_name> // <system.amos-zenka-user>
-            // $cur_usr;
-    } else {
-        $requested_user = $cur_usr;  ## use current user (console zenka or non-root)
-    }
+    ## Use explicitly set usr_name, or fall back to current user
+    ## Security: each process uses its own home directory for keys
+    $requested_user = <crypt.C25519.usr_name> // $cur_usr;
 
     $home_dir = <[base.get_homedir]>->($requested_user);
     $key_dir  = sprintf( qw| %s/.n/user-keys |, $home_dir );

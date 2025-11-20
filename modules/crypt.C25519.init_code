@@ -10,21 +10,12 @@
 
 <crypt.C25519.autocreate-user-key> //= FALSE;
 
-## Determine key owner user: use current user unless running as root in v7 zenka
-## When NOT started by v7 zenka (console zenka), use current user, not protocol-7 user
+## Determine key owner user: always use current user unless explicitly set
+## Security: each process keeps its own keys in its own home directory
+## v7 zenka must explicitly set <crypt.C25519.usr_name> if dropping privileges later
 my $current_user = $ENV{'USER'} // getpwuid($EUID);
-my $is_v7_zenka = <[base.zenka.is_v7_started]>;
 
-## Only use amos-zenka-user if: running as root AND started by v7 zenka
-## Otherwise use the current user (taeki, etc.)
-my $key_owner;
-if ($EUID == 0 && $is_v7_zenka) {
-    $key_owner = <system.amos-zenka-user>;  ## drop to protocol-7 when v7 started
-} else {
-    $key_owner = $current_user;  ## use current user (console zenka or non-root)
-}
-
-<crypt.C25519.usr_name> //= $key_owner;
+<crypt.C25519.usr_name> //= $current_user;
 
 my $key_dir = <[crypt.C25519.chk_key_dir]>;
 
