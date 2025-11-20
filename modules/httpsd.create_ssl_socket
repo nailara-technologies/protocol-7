@@ -39,6 +39,19 @@ if ( ref($tls_version) eq 'ARRAY' ) {
     <[base.log]>->( 2, "  note: converted TLS_version array to string: $tls_version" );
 }
 
+## Convert colon-separated TLS versions to IO::Socket::SSL compatible format
+## IO::Socket::SSL does NOT accept "TLSv1_3:TLSv1_2" format
+## Instead, use the highest version for maximum compatibility, or use 'SSLv23' for negotiation
+if ( $tls_version =~ m/:/ ) {
+    my @versions = split( /:/, $tls_version );
+    <[base.log]>->( 2, "  note: TLS_version contains multiple protocols, using highest: @versions" );
+
+    ## Use the first (typically highest) version for IO::Socket::SSL
+    ## IO::Socket::SSL::SSL_version accepts single versions like 'TLSv1_3'
+    $tls_version = $versions[0];
+    <[base.log]>->( 2, "  note: converted to single version for IO::Socket::SSL: $tls_version" );
+}
+
 ## Verify certificate key type compatibility with cipher suite
 my $cert_info = `openssl x509 -in $cert_file -text -noout 2>/dev/null | grep -i "public key"`;
 my $key_type = `openssl pkey -in $key_file -text -noout 2>/dev/null | head -1`;
@@ -76,13 +89,19 @@ eval {
 if ($EVAL_ERROR) {
     <[base.log]>->( 0, "httpsd: SSL socket creation EVAL ERROR:" );
     <[base.log]>->( 0, "  error: $EVAL_ERROR" );
-    <[base.log]>->( 0, "  SSL_version was: '$tls_version' (type: " . ref($tls_version) . ")" );
+    <[base.log]>->( 0, "  SSL_version parameter: '$tls_version' (type: " . ref($tls_version) . ")" );
     <[base.log]>->( 0, "  cert file: $cert_file" );
     <[base.log]>->( 0, "  key file: $key_file" );
 
     ## Log system error if available
     if ( $OS_ERROR ) {
         <[base.log]>->( 0, "  system error: $OS_ERROR" );
+    }
+
+    ## Provide specific guidance based on error type
+    if ( $EVAL_ERROR =~ /cannot set multiple SSL protocols/ ) {
+        <[base.log]>->( 0, "  hint: Check httpsd.cfg.tls_version - colon-separated versions are handled at config parse time" );
+        <[base.log]>->( 0, "  info: IO::Socket::SSL requires single version string (e.g., 'TLSv1_3' not 'TLSv1_3:TLSv1_2')" );
     }
     return -1;
 }
