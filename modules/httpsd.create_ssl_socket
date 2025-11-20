@@ -2,7 +2,7 @@
 
 # name  = httpsd.create_ssl_socket
 # param = $addr, $port
-# descr = Create SSL/TLS socket for HTTPS server using Let's Encrypt certificates
+# descr = Create SSL/TLS socket for HTTPS server
 # return = SSL socket handle or -1 on error
 
 my $addr = shift;
@@ -31,9 +31,12 @@ unless ( -f $key_file ) {
 }
 
 ## Get TLS configuration
-my $tls_version  = <httpsd.cfg.tls_version> // 'TLSv1_2';
-my $cipher_suite = <httpsd.cfg.cipher_suite>
-    // 'DEFAULT:!aNULL:!eNULL:!MD5:!3DES:!DES:!RC4:!IDEA:!SEED:!aDSS:!SRP:!PSK';
+my $tls_version = <httpsd.cfg.tls_version> // 'TLSv1_2';
+my @cipher_list = qw|
+    DEFAULT !aNULL !eNULL !MD5 !3DES !DES !RC4 !IDEA !SEED !aDSS !SRP !PSK
+|;
+my $default_ciphers = join( ':', @cipher_list );
+my $cipher_suite = <httpsd.cfg.cipher_suite> // $default_ciphers;
 
 <[base.log]>->( 2, "  TLS version: $tls_version" );
 <[base.log]>->( 3, "  cipher suite: $cipher_suite" );
@@ -46,22 +49,22 @@ if ( ref($tls_version) eq 'ARRAY' ) {
     );
 }
 
-## Convert colon-separated TLS versions to IO::Socket::SSL compatible format
+## Convert colon-separated TLS versions to IO::Socket::SSL compatible
 ## IO::Socket::SSL does NOT accept "TLSv1_3:TLSv1_2" format
-## Use highest version for maximum compatibility, or use 'SSLv23' for negotiation
+## Use highest version for compatibility, or use 'SSLv23' for negotiation
 if ( $tls_version =~ m/:/ ) {
     my @versions = split( /:/, $tls_version );
     <[base.log]>->(
         2,
-        "  note: TLS_version contains multiple protocols, using highest: @versions"
+        "  note: TLS has multiple protocols, using highest: @versions"
     );
 
-    ## Use the first (typically highest) version for IO::Socket::SSL
+    ## Use first (typically highest) version for IO::Socket::SSL
     ## IO::Socket::SSL::SSL_version accepts single versions like 'TLSv1_3'
     $tls_version = $versions[0];
     <[base.log]>->(
         2,
-        "  note: converted to single version for IO::Socket::SSL: $tls_version"
+        "  note: converted to single version: $tls_version"
     );
 }
 
@@ -125,7 +128,7 @@ if ($EVAL_ERROR) {
     if ( $EVAL_ERROR =~ /cannot set multiple SSL protocols/ ) {
         <[base.log]>->(
             0,
-            "  hint: Check httpsd.cfg.tls_version - versions handled at parse time"
+            "  hint: Check httpsd.cfg.tls_version - parse versions"
         );
         <[base.log]>->(
             0,
@@ -151,9 +154,9 @@ unless ( defined $ssl_socket ) {
         0,
         "  cert type (Ed25519/RSA): check with:"
     );
-    <[base.log]>->(
-        0, "    openssl x509 -in $cert_file -text -noout | grep -i 'public key'"
-    );
+    my $cmd = "openssl x509 -in $cert_file -text -noout |";
+    $cmd .= " grep -i 'public key'";
+    <[base.log]>->( 0, "    $cmd" );
     <[base.log]>->(
         0, "  key type: check with:"
     );
