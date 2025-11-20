@@ -1,20 +1,17 @@
 ## [:< ##
 
 # name = httpsd.request_handler
-# descr = HTTPS request handler - wrapper for HTTP with TLS and HSTS support
+# descr = HTTPS request handler - processes HTTP over TLS
 # note : return 2 to close connection
 
-# Handler calling is automatic via session management
-# This handler is invoked by the event system when HTTPS data arrives
-# It delegates to httpd.request_handler which will:
-# 1. Parse the HTTP request
-# 2. Call the appropriate HTTP method handler (GET, POST, etc.)
-# 3. The method handler writes response to output buffer
-# 4. base.handler.write is automatically called to send the response
+# Protocol handler for HTTPS that delegates to HTTP request processing
+# The TLS encryption/decryption is transparent at IO::Socket::SSL layer,
+# so HTTP parsing is identical to plaintext HTTP.
 
-# For now, just call httpd's handler - it handles all the HTTP processing
-# The SSL encryption is transparent (handled by IO::Socket::SSL at socket level)
-<[httpd.request_handler]>
+# Delegate to httpd.request_handler to handle the actual HTTP processing
+# httpd.request_handler expects an Event::Event::Io object, but we receive
+# it from the session management system, so just pass it through directly
+$code{'httpd.request_handler'}->( @_ );
 
 #,,..,.,.,..,,..,,,,,,,,.,...,,,.,,.,,,.,,,..,..,,...,...,...,,..,.,.,...,,.,,
 #5DMYUPH7QA7VMKKAFFZATMJXEUIDTKHWXQF3HCRPQUEXEOXXX4Y5IKBD6PZHK4D7ZWQZH7WMAOO2M
