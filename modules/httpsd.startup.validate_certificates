@@ -25,6 +25,53 @@ unless ( -f $key_file ) {
     return FALSE;
 }
 
+## Validate certificate format ##
+unless ( open( my $cert_fh, '<', $cert_file ) ) {
+    <[base.log]>->( 0, "FATAL: Cannot read certificate file: $cert_file" );
+    return FALSE;
+}
+
+my $cert_header = <$cert_fh>;
+close($cert_fh);
+chomp($cert_header);
+
+unless ( $cert_header =~ m/^-----BEGIN CERTIFICATE-----$/ ) {
+    <[base.log]>->( 0, "FATAL: Certificate file has invalid format: $cert_file" );
+    <[base.log]>->( 0, "  Expected: -----BEGIN CERTIFICATE-----" );
+    <[base.log]>->( 0, "  Found:    $cert_header" );
+    <[base.log]>->( 0, "  Certificate must be in PEM format." );
+    return FALSE;
+}
+
+## Validate private key format ##
+unless ( open( my $key_fh, '<', $key_file ) ) {
+    <[base.log]>->( 0, "FATAL: Cannot read key file: $key_file" );
+    return FALSE;
+}
+
+my $key_header = <$key_fh>;
+close($key_fh);
+chomp($key_header);
+
+if ( $key_header =~ m/^-----BEGIN OPENSSH PRIVATE KEY-----$/ ) {
+    <[base.log]>->( 0, "FATAL: Private key is in OpenSSH format: $key_file" );
+    <[base.log]>->( 0, "  Found:    $key_header" );
+    <[base.log]>->( 0, "  IO::Socket::SSL requires PKCS#8 or PEM format." );
+    <[base.log]>->( 0, "  To convert OpenSSH to PKCS#8 format, use:" );
+    <[base.log]>->( 0, "    ssh-keygen -p -N \"\" -m pem -f $key_file" );
+    <[base.log]>->( 0, "  Or regenerate self-signed certificate with:" );
+    <[base.log]>->( 0, "    zenka letsencrypt.child.cmd.inst-self-signed" );
+    return FALSE;
+}
+
+unless ( $key_header =~ m/^-----BEGIN (?:RSA |EC |)PRIVATE KEY-----$/ ) {
+    <[base.log]>->( 0, "FATAL: Private key has invalid format: $key_file" );
+    <[base.log]>->( 0, "  Expected: -----BEGIN [RSA|EC] PRIVATE KEY-----" );
+    <[base.log]>->( 0, "  Found:    $key_header" );
+    <[base.log]>->( 0, "  Key must be in PEM or PKCS#8 format." );
+    return FALSE;
+}
+
 <[base.log]>->( 2, "httpsd: certificate files validated successfully" );
 return TRUE;
 
