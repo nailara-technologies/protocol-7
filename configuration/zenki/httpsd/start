@@ -21,11 +21,11 @@ httpsd.cfg.key_path                 = /etc/protocol-7/certs/current.key
 httpsd.cfg.hsts_max_age             = 31536000
 httpsd.cfg.hsts_include_subdomains  = 1
 
-## HTTP handlers (reuse httpd handlers wrapped by httpsd)
-https.handler.get     =  httpsd.request_handler
-https.handler.head    =  httpsd.request_handler
-https.handler.post    =  httpsd.request_handler
-https.handler.options =  httpsd.request_handler
+## HTTP handlers (reuse httpd handlers for HTTPS)
+https.handler.get     =  httpd.http_get
+https.handler.head    =  httpd.http_head
+https.handler.post    =  httpd.http_post
+https.handler.options =  httpd.http_options
 
 ## Shared settings with httpd (site content)
 httpsd.site_dir    = '/var/httpd/'
