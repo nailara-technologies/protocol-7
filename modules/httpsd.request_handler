@@ -4,7 +4,7 @@
 # descr = HTTPS request handler - adds HSTS headers and delegates to httpd handler
 # note : return 2 to close connection
 
-my $id      = $_[0]->w->data;
+my $id      = shift;
 my $session = $data{'session'}->{$id};
 
 # DEBUG: Check if we're being called
@@ -22,7 +22,7 @@ if ( defined $session ) {
 }
 
 # First call httpd request handler to process the HTTP request
-my $result = <[httpd.request_handler]>->(@_);
+my $result = <[httpd.request_handler]->($id);
 
 # If httpd returned a response object (usually not directly in protocol state handler)
 # Then modify HTTPS-specific headers
