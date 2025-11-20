@@ -13,11 +13,12 @@ if (-d $coding_tasks_dir) {
     opendir my $dh, $coding_tasks_dir or return \%tasks;
     while (my $file = readdir($dh)) {
         next unless $file =~ /\.yaml$/;
-        my $path = "$coding_tasks_dir/$file";
+        my $absolute_path = "$coding_tasks_dir/$file";
+        my $keyword_path = <[base.path.to_keywords]>->($absolute_path);
         eval {
-            my $task_data = YAML::XS::LoadFile($path);
+            my $task_data = YAML::XS::LoadFile($absolute_path);
             $tasks{$file} = {
-                path => $path,
+                path => $keyword_path,
                 data => $task_data,
                 type => 'coding-task',
                 source => 'protocol-7'
@@ -33,11 +34,12 @@ if (-d $deferred_dir) {
     opendir my $dh, $deferred_dir or return \%tasks;
     while (my $file = readdir($dh)) {
         next unless $file =~ /\.yaml$/;
-        my $path = "$deferred_dir/$file";
+        my $absolute_path = "$deferred_dir/$file";
+        my $keyword_path = <[base.path.to_keywords]>->($absolute_path);
         eval {
-            my $task_data = YAML::XS::LoadFile($path);
+            my $task_data = YAML::XS::LoadFile($absolute_path);
             $tasks{$file} = {
-                path => $path,
+                path => $keyword_path,
                 data => $task_data,
                 type => 'deferred-task',
                 source => 'protocol-7'

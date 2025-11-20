@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = base.path.open
+# param = $keyword_path, $mode (optional, default 'r')
+# descr = Open a file using keyword paths [protocol-7] or [workspace-transfer]
+# return = filehandle or undef on error
+
+my $path = shift;
+my $mode = shift // '<';
+
+return unless defined $path;
+
+## Resolve keywords to actual path ##
+my $resolved_path = <[base.path.resolve_keywords]>->($path);
+
+## Open the file and capture filehandle ##
+open my $fh, $mode, $resolved_path or do {
+    <[base.log]>->(
+        0, "Error opening file: $path (resolved: $resolved_path): $!"
+    );
+    return;
+};
+
+return $fh;
+
+#,,.,..,,,.,,,..,,,.,,.,...,,.,,...,,...,..,,,.,,..,...,...,.,,,,,,,,.,,..,.,,,,.,
+#PLACEHOLDER_SIGNATURE_WILL_BE_ADDED_DURING_COMMIT
+#\\\|PLACEHOLDER_HASH \ / AMOS7 \ YOURUM ::
+#\[7]PLACEHOLDER_HASH 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

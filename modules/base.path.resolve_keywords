@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = base.path.resolve_keywords
+# param = $path_string
+# descr = Resolve repository keywords [protocol-7] and [workspace-transfer] to actual paths
+# return = resolved path string
+
+my $path = shift;
+return $path unless defined $path;
+
+## Get environment detection ##
+my $env_info = <[base.env.detect_environment]>;
+my $protocol7_root = $env_info->{protocol7_root};
+my $workspace_root = $env_info->{workspace_root};
+
+## Replace keywords with actual paths ##
+$path =~ s/\[protocol-7\]/$protocol7_root/g if defined $protocol7_root;
+$path =~ s/\[workspace-transfer\]/$workspace_root/g if defined $workspace_root;
+
+return $path;
+
+#,,.,..,,,.,,,..,,,.,,.,...,,.,,...,,...,..,,,.,,..,...,...,.,,,,,,,,.,,..,.,,,,.,
+#PLACEHOLDER_SIGNATURE_WILL_BE_ADDED_DURING_COMMIT
+#\\\|PLACEHOLDER_HASH \ / AMOS7 \ YOURUM ::
+#\[7]PLACEHOLDER_HASH 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
