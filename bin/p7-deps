@@ -1,7 +1,6 @@
 #!/usr/bin/env perl
-# Protocol-7 Dependency Manager (bin/p7-deps)
-# Profile-based dependency management with fallback to base.known_dependencies
-# Supports profile-based installation similar to workspace-transfer/bin/deps
+# Protocol-7 Dependency Management System
+# Profile-based dependency installation and verification
 
 use strict;
 use warnings;
@@ -23,21 +22,18 @@ my $NEON_green_yellow = "\e[38;2;71;195;6m";     # Green-yellow
 
 ##[ PROJECT PATH DISCOVERY ]######################################################
 
-# Helper functions for path operations (inspired by amos-chksum)
+# Helper functions for path operations
 sub catdir  { File::Spec->catdir(@_) }
 sub rel2abs { File::Spec->rel2abs(@_) }
 
-# Discover Protocol-7 root path using FindBin
+# Discover protocol-7 root path using FindBin
 my $up_dir = File::Spec->updir;
 my $P7_ROOT = abs_path(rel2abs(catdir($RealBin, $up_dir)));
 
 # Build all necessary paths
-my $MODULES_DIR = catdir($P7_ROOT, 'modules');
-my $ZENKI_DIR = catdir($P7_ROOT, 'configuration', 'zenki');
-my $KNOWN_DEPS_FILE = File::Spec->catfile($MODULES_DIR, 'base.known_dependencies');
-my $P7_DEPS_DIR = catdir($P7_ROOT, '.deps');
-my $PROFILES_FILE = File::Spec->catfile($P7_DEPS_DIR, 'profiles.yaml');
-my $CACHE_DIR = catdir($P7_DEPS_DIR, 'cache');
+my $DEPS_DIR = catdir($P7_ROOT, '.deps');
+my $PROFILES_FILE = File::Spec->catfile($DEPS_DIR, 'profiles.yaml');
+my $CACHE_DIR = catdir($DEPS_DIR, 'cache');
 
 # Ensure cache directory exists
 make_path($CACHE_DIR) unless -d $CACHE_DIR;
@@ -140,17 +136,49 @@ sub check_profile {
         print "\n";
     }
 
-    # Summary
-    my $ok = @missing == 0;
-    if ($ok) {
+    # Check CPAN fallback modules (preferred via APT)
+    if ($profile->{cpan_fallback}) {
+        my %fallback_map = (
+            'AnyEvent' => 'libanyevent-perl',
+            'BSD::Resource' => 'libbsd-resource-perl',
+            'Cairo' => 'libcairo-perl',
+            'Cairo::GObject' => 'libcairo-gobject-perl',
+            'Capture::Tiny' => 'libcapture-tiny-perl',
+            'Clone' => 'libclone-perl',
+            'Const::Fast' => 'libconst-fast-perl',
+            'Convert::Color' => 'libconvert-color-perl',
+            'CryptX' => 'libcryptx-perl',
+            'Digest::CRC' => 'libdigest-crc-perl',
+            'Digest::Elf' => 'libdigest-elf-perl',
+        );
+
+        print "Checking CPAN modules (Debian fallback)...\n";
+        for my $module (@{$profile->{cpan_fallback}}) {
+            $total++;
+            my $deb_pkg = $fallback_map{$module};
+
+            # Prefer Debian package if available
+            if ($deb_pkg && check_apt($deb_pkg)) {
+                print "  ✅ $module (via Debian: $deb_pkg)\n";
+            } elsif (check_cpan($module)) {
+                print "  ✅ $module\n";
+            } else {
+                print "  ❌ $module (missing)\n";
+                push @missing, "cpan:$module";
+            }
+        }
+        print "\n";
+    }
+
+    if (@missing) {
+        print "❌ Missing " . scalar(@missing) . " dependencies\n\n";
+        print "💡 Install with: bin/p7-deps install $profile_name\n";
+        update_cache($profile_name, 0);
+        return 1;
+    } else {
         print "✅ All dependencies installed ($total/$total)\n";
         update_cache($profile_name, 1);
         return 0;
-    } else {
-        print "❌ Missing " . scalar(@missing) . " dependencies\n";
-        print "\n💡 Install with: bin/p7-deps install $profile_name\n";
-        update_cache($profile_name, 0);
-        return 1;
     }
 }
 
@@ -158,25 +186,19 @@ sub install_profile {
     my ($profile_name, $opts) = @_;
 
     unless ($profile_name) {
-        die "Usage: bin/p7-deps install <profile> [--dry-run]\n";
+        $profile_name = 'minimal';
     }
-
-    my $dry_run = ($opts && $opts eq '--dry-run');
 
     # Load profile
     my $profiles = load_profiles();
     unless (exists $profiles->{$profile_name}) {
-        die "❌ Unknown profile: $profile_name\nRun 'bin/p7-deps list' to see available profiles.\n";
+        die "❌ Unknown profile: $profile_name\n";
     }
 
     my $profile = $profiles->{$profile_name};
 
-    print "📦 Installing dependencies for: $profile_name\n";
+    print "\n${NEON_green_yellow}Installing profile: $profile_name${reset}\n";
     print "   $profile->{description}\n\n";
-
-    if ($dry_run) {
-        print "🔍 DRY RUN - No actual installation\n\n";
-    }
 
     # Handle includes (meta-profiles)
     if ($profile->{includes}) {
@@ -187,311 +209,236 @@ sub install_profile {
         return;
     }
 
-    my @apt_packages;
-    my @cpan_modules;
+    my @to_install_apt;
+    my @to_install_cpan;
 
-    # Collect missing packages
+    # Collect APT packages
     if ($profile->{apt}) {
         for my $pkg (@{$profile->{apt}}) {
             unless (check_apt($pkg)) {
-                push @apt_packages, $pkg;
+                push @to_install_apt, $pkg;
             }
         }
     }
 
+    # Collect CPAN modules
     if ($profile->{cpan}) {
         for my $module (@{$profile->{cpan}}) {
             unless (check_cpan($module)) {
-                push @cpan_modules, $module;
+                push @to_install_cpan, $module;
+            }
+        }
+    }
+
+    # Collect CPAN fallback modules
+    if ($profile->{cpan_fallback}) {
+        my %fallback_map = (
+            'AnyEvent' => 'libanyevent-perl',
+            'BSD::Resource' => 'libbsd-resource-perl',
+            'Cairo' => 'libcairo-perl',
+            'Cairo::GObject' => 'libcairo-gobject-perl',
+            'Capture::Tiny' => 'libcapture-tiny-perl',
+            'Clone' => 'libclone-perl',
+            'Const::Fast' => 'libconst-fast-perl',
+            'Convert::Color' => 'libconvert-color-perl',
+            'CryptX' => 'libcryptx-perl',
+            'Digest::CRC' => 'libdigest-crc-perl',
+            'Digest::Elf' => 'libdigest-elf-perl',
+        );
+
+        for my $module (@{$profile->{cpan_fallback}}) {
+            my $deb_pkg = $fallback_map{$module};
+
+            # Prefer Debian package
+            if ($deb_pkg) {
+                unless (check_apt($deb_pkg)) {
+                    push @to_install_apt, $deb_pkg;
+                }
+            } else {
+                unless (check_cpan($module)) {
+                    push @to_install_cpan, $module;
+                }
             }
         }
     }
 
     # Install APT packages
-    if (@apt_packages) {
-        print "📥 Installing APT packages: " . join(', ', @apt_packages) . "\n";
-
-        if ($dry_run) {
-            my $sudo = get_sudo();
-            for my $pkg (@apt_packages) {
-                print "   [DRY RUN] Would run: ${sudo}apt-get install -y $pkg\n";
-            }
-            print "\n";
-        } else {
-            my $sudo = get_sudo();
-
-            # Set environment variables to suppress prompts during APT operations
-            my $apt_env = "DEBIAN_FRONTEND=noninteractive APT_LISTCHANGES_FRONTEND=none " .
-                         "UCF_FORCE_CONFMISS=true UCF_FORCE_CONFOLD=true PAGER=/bin/true";
-
-            # First, run apt-get update once
-            system("${apt_env} ${sudo}apt-get update -qq");
-
-            # Install each package individually to prevent one failure from blocking others
-            my $installed = 0;
-            my $failed = 0;
-
-            for my $pkg (@apt_packages) {
-                # Use dpkg options to force-confold and other non-interactive flags
-                my $cmd = "${apt_env} ${sudo}apt-get install -y " .
-                         "-o Dpkg::Options::=\"--force-confold\" " .
-                         "-o Dpkg::Options::=\"--force-confdef\" " .
-                         "-o Dpkg::Options::=\"--force-confmiss\" " .
-                         "-o Dpkg::Options::=\"--force-overwrite\" $pkg";
-                my $result = system("$cmd 2>/dev/null >/dev/null");
-
-                if ($result == 0) {
-                    print "   ✅ $pkg installed\n";
-                    $installed++;
-                } else {
-                    print "   ❌ $pkg not found or installation failed\n";
-                    $failed++;
-                }
-            }
-
-            print "\n   Summary: $installed installed, $failed unavailable\n\n";
-        }
+    if (@to_install_apt) {
+        print "Installing APT packages: " . join(', ', @to_install_apt) . "\n";
+        system("sudo apt-get install -y " . join(' ', @to_install_apt)) == 0
+            or die "Failed to install APT packages\n";
     }
 
     # Install CPAN modules
-    if (@cpan_modules) {
-        print "📥 Installing CPAN modules: " . join(', ', @cpan_modules) . "\n";
-
-        # Prefer cpanm (from cpanminus package), fall back to cpan
-        my $cpan_cmd = `which cpanm 2>/dev/null` ? 'cpanm' : 'cpan';
-
-        if ($dry_run) {
-            print "   [DRY RUN] Would run: $cpan_cmd " . join(' ', @cpan_modules) . "\n\n";
-        } else {
-            for my $module (@cpan_modules) {
-                print "   Installing $module...\n";
-
-                my $cmd = ($cpan_cmd eq 'cpanm')
-                    ? "$cpan_cmd -n $module"
-                    : "cpan -T $module 2>&1 | grep -v 'Loading internal'";
-
-                my $result = system($cmd);
-
-                if ($result == 0) {
-                    print "   ✅ $module installed\n";
-                } else {
-                    print "   ❌ $module installation failed\n";
-                }
-            }
-            print "\n";
+    if (@to_install_cpan) {
+        print "Installing CPAN modules: " . join(', ', @to_install_cpan) . "\n";
+        for my $module (@to_install_cpan) {
+            system("cpan -i $module") == 0
+                or warn "Failed to install $module\n";
         }
     }
 
-    if (@apt_packages == 0 && @cpan_modules == 0) {
-        print "✅ All dependencies already installed\n\n";
-    }
-
-    # Clear cache to force recheck
-    clear_cache_for($profile_name);
-
-    unless ($dry_run) {
-        print "💡 Verify installation: bin/p7-deps check $profile_name --no-cache\n";
-    }
+    print "\n✅ Profile installation complete\n";
+    update_cache($profile_name, 1);
 }
 
 sub list_profiles {
     my $profiles = load_profiles();
 
-    print "${blacklight}:$reset\n";
-    print "${blacklight}::[$TRUE_color AVAILABLE DEPENDENCY PROFILES $blacklight]$reset\n";
-    print "${blacklight}:$reset\n\n";
+    print "\n${NEON_green_yellow}Available Dependency Profiles${reset}\n";
+    print "${NEON_green_yellow}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${reset}\n\n";
 
     for my $name (sort keys %$profiles) {
         my $profile = $profiles->{$name};
-        print "${blacklight}::$reset ${NEON_green_yellow}$name$reset\n";
-        print "${blacklight}::$reset   $profile->{description}\n";
+        print "${NEON_green_yellow}$name${reset}\n";
+        print "  $profile->{description}\n";
 
         if ($profile->{includes}) {
-            print "${blacklight}::$reset   Includes: ${NEON_orange}" . join(', ', @{$profile->{includes}}) . "$reset\n";
+            print "  Includes: " . join(', ', @{$profile->{includes}}) . "\n";
         } else {
-            my @types;
-            push @types, scalar(@{$profile->{apt}}) . " apt" if $profile->{apt};
-            push @types, scalar(@{$profile->{cpan}}) . " cpan" if $profile->{cpan};
-            print "${blacklight}::$reset   Packages: ${NEON_orange}" . join(', ', @types) . "$reset\n" if @types;
+            my $total = 0;
+            $total += scalar(@{$profile->{apt}}) if $profile->{apt};
+            $total += scalar(@{$profile->{cpan}}) if $profile->{cpan};
+            $total += scalar(@{$profile->{cpan_fallback}}) if $profile->{cpan_fallback};
+            print "  Packages: $total total\n";
         }
         print "\n";
     }
-
-    print "${blacklight}:$reset\n";
-    print "${blacklight}::[$TRUE_color USAGE$blacklight]$reset\n";
-    print "${blacklight}::$reset   bin/p7-deps check <profile>       # Check if dependencies are installed\n";
-    print "${blacklight}::$reset   bin/p7-deps install <profile>     # Install missing dependencies\n";
-    print "${blacklight}::$reset   bin/p7-deps status                # Check all profiles\n";
-    print "${blacklight}:$reset\n";
 }
 
 sub status_all {
     my $profiles = load_profiles();
 
-    print "${blacklight}:$reset\n";
-    print "${blacklight}::[$TRUE_color DEPENDENCY STATUS $blacklight]$reset\n";
-    print "${blacklight}:$reset\n\n";
+    print "\n${NEON_green_yellow}::[[${TRUE_color} DEPENDENCY STATUS ${NEON_green_yellow}]${reset}\n";
+    print "${NEON_green_yellow}::${reset}\n\n";
 
+    # Skip meta-profiles in status (they depend on other profiles)
     for my $name (sort keys %$profiles) {
-        # Skip meta-profiles in status (they depend on other profiles)
         next if $profiles->{$name}{includes};
 
-        print "Checking ${NEON_green_yellow}$name$reset...\n";
+        print "Checking ${NEON_green_yellow}$name${reset}...\n";
         check_profile($name, '--no-cache');
         print "\n";
     }
-
-    print "${blacklight}:$reset\n";
 }
 
 sub clear_cache {
-    if (-d $CACHE_DIR) {
-        system("rm -rf $CACHE_DIR/*");
-        print "🗑️  Cache cleared\n";
+    my @cache_files = glob("$CACHE_DIR/*");
+    for my $file (@cache_files) {
+        unlink($file) or warn "Failed to remove $file: $!\n";
     }
+    print "✅ Cache cleared\n";
 }
 
-sub clear_cache_for {
-    my ($profile) = @_;
-    my $cache_file = File::Spec->catfile($CACHE_DIR, "$profile.cache");
-    unlink $cache_file if -f $cache_file;
+##[ HELPER FUNCTIONS ]##########################################################
+
+sub check_apt {
+    my ($pkg) = @_;
+    my $result = `dpkg-query -W -f='\${Status}' "$pkg" 2>/dev/null | grep -q "install ok installed" && echo "found" || echo ""`;
+    return $result =~ /found/ ? 1 : 0;
 }
 
-# Helper functions
-
-sub is_root {
-    return $> == 0;
-}
-
-sub get_sudo {
-    return is_root() ? '' : 'sudo ';
+sub check_cpan {
+    my ($module) = @_;
+    my $cmd = qq{perl -e "use $module" 2>/dev/null};
+    return system($cmd) == 0 ? 1 : 0;
 }
 
 sub load_profiles {
-    my %profiles;
-
     unless (-f $PROFILES_FILE) {
-        die "Cannot find profiles.yaml at: $PROFILES_FILE\n";
+        die "Cannot find $PROFILES_FILE\n";
     }
 
     open my $fh, '<', $PROFILES_FILE or die "Cannot read $PROFILES_FILE: $!\n";
-
-    my $current_profile = undef;
-    my $current_section = undef;
+    my %profiles;
+    my $current_profile;
+    my $current_section;
 
     while (my $line = <$fh>) {
         chomp $line;
-        next if $line =~ /^#/ || $line =~ /^\s*$/;
-        next if $line =~ /^profiles:/;
+        next if $line =~ /^\s*#/;
+        next if $line =~ /^\s*$/;
 
+        # Profile header
         if ($line =~ /^  ([\w-]+):$/) {
-            # New profile (supports hyphens in profile names)
             $current_profile = $1;
-            $profiles{$current_profile} = {};
             $current_section = undef;
-        } elsif ($current_profile && $line =~ /^    (\w+):\s*(.*)$/) {
-            my ($key, $val) = ($1, $2);
-
-            if ($key eq 'description') {
-                $val =~ s/^"(.*)"$/$1/;
-                $profiles{$current_profile}{description} = $val;
-            } elsif ($key =~ /^(includes|apt|cpan)$/) {
-                $current_section = $key;
-                $profiles{$current_profile}{$key} = [];
-            }
-        } elsif ($current_profile && $current_section && $line =~ /^      - (.*)$/) {
+            $profiles{$current_profile} = {};
+        }
+        # Description
+        elsif ($line =~ /^    description: "(.+)"$/) {
+            $profiles{$current_profile}{description} = $1;
+        }
+        # Section header
+        elsif ($line =~ /^    (includes|apt|cpan|cpan_fallback):$/) {
+            $current_section = $1;
+            $profiles{$current_profile}{$current_section} = [];
+        }
+        # List items
+        elsif ($line =~ /^      - (.+)$/) {
             my $item = $1;
-            $item =~ s/^"(.*)"$/$1/;
-            push @{$profiles{$current_profile}{$current_section}}, $item;
+            $item =~ s/\s*#.*//;  # Remove trailing comments
+            $item =~ s/\s+$//;    # Remove trailing whitespace
+            push @{$profiles{$current_profile}{$current_section}}, $item if $item;
         }
     }
-
     close $fh;
 
     return \%profiles;
 }
 
-sub check_apt {
-    my ($package) = @_;
-    my $result = `dpkg -l $package 2>/dev/null | grep -q '^ii' && echo 'installed'`;
-    return $result =~ /installed/;
-}
-
-sub check_cpan {
-    my ($module) = @_;
-    my $result = system("perl -M$module -e 1 2>/dev/null");
-    return $result == 0;
-}
-
 sub check_cache {
-    my ($profile) = @_;
-    my $cache_file = File::Spec->catfile($CACHE_DIR, "$profile.cache");
+    my ($profile_name) = @_;
+    my $cache_file = File::Spec->catfile($CACHE_DIR, "$profile_name.cache");
 
     return undef unless -f $cache_file;
-
-    # Check if cache is fresh (< 24 hours old)
-    my $age = time() - (stat($cache_file))[9];
-    return undef if $age > 86400;  # 24 hours
 
     open my $fh, '<', $cache_file or return undef;
     my $status = <$fh>;
     close $fh;
 
-    chomp $status if defined $status;
-    return $status eq 'OK' ? 1 : 0;
+    chomp $status;
+    return $status eq 'ok' ? 1 : 0;
 }
 
 sub update_cache {
-    my ($profile, $ok) = @_;
-    my $cache_file = File::Spec->catfile($CACHE_DIR, "$profile.cache");
+    my ($profile_name, $status) = @_;
+    my $cache_file = File::Spec->catfile($CACHE_DIR, "$profile_name.cache");
 
-    open my $fh, '>', $cache_file or return;
-    print $fh $ok ? 'OK' : 'MISSING';
+    open my $fh, '>', $cache_file or die "Cannot write cache: $!\n";
+    print $fh $status ? 'ok' : 'fail';
     close $fh;
 }
 
 sub show_help {
-    print "${blacklight}:$reset\n";
-    print "${blacklight}::[$TRUE_color p7-deps - Protocol-7 Dependency Manager$blacklight]$reset\n";
-    print "${blacklight}:$reset\n\n";
+    print <<"EOF";
+${NEON_green_yellow}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${reset}
+${NEON_green_yellow}Protocol-7 Dependency Manager${reset}
+${NEON_green_yellow}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${reset}
 
-    print "${blacklight}::[$NEON_orange USAGE$blacklight]$reset\n";
-    print "${blacklight}::$reset   bin/p7-deps <command> [args]\n\n";
+USAGE:
+  bin/p7-deps [OPTION] <command> [args]
 
-    print "${blacklight}::[$NEON_orange COMMANDS$blacklight]$reset\n";
-    print "${blacklight}::$reset   check <profile> [--no-cache]    Check if dependencies are installed\n";
-    print "${blacklight}::$reset   install <profile> [--dry-run]   Install missing dependencies\n";
-    print "${blacklight}::$reset   list                            List available profiles\n";
-    print "${blacklight}::$reset   status                          Check all profiles\n";
-    print "${blacklight}::$reset   clear-cache                     Clear verification cache\n";
-    print "${blacklight}::$reset   help                            Show this help\n\n";
+COMMANDS:
+  ${TRUE_color}list${reset}                    List all available profiles
+  ${TRUE_color}check${reset} [profile]         Check dependencies for a profile
+  ${TRUE_color}install${reset} [profile]       Install all dependencies for a profile
+  ${TRUE_color}status${reset}                  Show status of all base profiles
+  ${TRUE_color}clear-cache${reset}             Clear the dependency cache
+  ${TRUE_color}help${reset}                    Show this help message
 
-    print "${blacklight}::[$NEON_orange PROFILES$blacklight]$reset\n";
-    print "${blacklight}::$reset   minimal        Core dependencies only (Event, IO::AIO, etc)\n";
-    print "${blacklight}::$reset   runtime        Essential modules for deployment\n";
-    print "${blacklight}::$reset   network        TLS and networking support\n";
-    print "${blacklight}::$reset   cryptography   Cryptography and checksumming\n";
-    print "${blacklight}::$reset   x11-desktop    X11 Desktop environment and GUI frameworks\n";
-    print "${blacklight}::$reset   development    Full development environment\n\n";
+OPTIONS:
+  ${TRUE_color}--no-cache${reset}              Force fresh dependency check (bypass cache)
 
-    print "${blacklight}::[$NEON_orange EXAMPLES$blacklight]$reset\n";
-    print "${blacklight}::$reset   bin/p7-deps list                    # List all profiles\n";
-    print "${blacklight}::$reset   bin/p7-deps check minimal           # Check minimal dependencies\n";
-    print "${blacklight}::$reset   bin/p7-deps install development     # Install development dependencies\n";
-    print "${blacklight}::$reset   bin/p7-deps install minimal --dry-run  # Preview installation\n";
-    print "${blacklight}::$reset   bin/p7-deps status                  # Check all profiles\n";
-    print "${blacklight}::$reset   bin/p7-deps clear-cache             # Clear cache\n\n";
+EXAMPLES:
+  bin/p7-deps list                          # List all profiles
+  bin/p7-deps check minimal                 # Check minimal profile
+  bin/p7-deps check development --no-cache  # Fresh check of development profile
+  bin/p7-deps install minimal               # Install minimal profile
+  bin/p7-deps status                        # Check all profiles
 
-    print "${blacklight}::[$NEON_orange CACHING$blacklight]$reset\n";
-    print "${blacklight}::$reset   Dependency checks are cached for performance. Use --no-cache to force recheck.\n";
-    print "${blacklight}::$reset   Clear cache with: bin/p7-deps clear-cache\n\n";
+PROFILES:
+  Profiles are defined in: $PROFILES_FILE
 
-    print "${blacklight}::[$NEON_orange FILES$blacklight]$reset\n";
-    print "${blacklight}::$reset   .deps/profiles.yaml    Dependency profiles\n";
-    print "${blacklight}::$reset   .deps/cache/           Verification cache (gitignored)\n\n";
-
-    print "${blacklight}::[$NEON_orange ROOT DETECTION$blacklight]$reset\n";
-    print "${blacklight}::$reset   Sudo is automatically skipped when running as root user.\n\n";
-
-    print "${blacklight}:$reset\n";
+EOF
 }
