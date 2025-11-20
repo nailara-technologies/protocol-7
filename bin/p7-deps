@@ -38,6 +38,15 @@ my $CACHE_DIR = catdir($DEPS_DIR, 'cache');
 # Ensure cache directory exists
 make_path($CACHE_DIR) unless -d $CACHE_DIR;
 
+# Package check cache (in-memory, for current execution)
+# Maps package names to result (1=installed, 0=missing)
+my %pkg_cache = ();
+
+# Clear package cache if --no-cache is requested
+if (grep { $_ eq '--no-cache' } @ARGV) {
+    %pkg_cache = ();  # Already empty, but explicit for clarity
+}
+
 # Parse command
 my $cmd = shift @ARGV || 'help';
 
@@ -346,14 +355,32 @@ sub clear_cache {
 
 sub check_apt {
     my ($pkg) = @_;
+
+    # Check in-memory cache first
+    return $pkg_cache{"apt:$pkg"} if exists $pkg_cache{"apt:$pkg"};
+
+    # Perform the check
     my $result = `dpkg-query -W -f='\${Status}' "$pkg" 2>/dev/null | grep -q "install ok installed" && echo "found" || echo ""`;
-    return $result =~ /found/ ? 1 : 0;
+    my $installed = $result =~ /found/ ? 1 : 0;
+
+    # Cache and return
+    $pkg_cache{"apt:$pkg"} = $installed;
+    return $installed;
 }
 
 sub check_cpan {
     my ($module) = @_;
+
+    # Check in-memory cache first
+    return $pkg_cache{"cpan:$module"} if exists $pkg_cache{"cpan:$module"};
+
+    # Perform the check
     my $cmd = qq{perl -e "use $module" 2>/dev/null};
-    return system($cmd) == 0 ? 1 : 0;
+    my $installed = system($cmd) == 0 ? 1 : 0;
+
+    # Cache and return
+    $pkg_cache{"cpan:$module"} = $installed;
+    return $installed;
 }
 
 sub load_profiles {
