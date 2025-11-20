@@ -58,13 +58,10 @@ if (    $zenka_init eq qw| re-init |
     }
 };
 
-## List structure for installation activity log ##
-<list.perlmod-log> = {
-    qw| var |     => qw| data |,
-    qw| key |     => qw| buffer.perlmod-install.data |,
-    qw| descr |   => 'CPAN module installation activity log',
-    qw| no_sort | => TRUE,    ## maintain chronological order ##
-};
+## Log buffer reference for installation activity log ##
+## Note: perlmod-log is a log buffer, not a list - use 'p7 httpsd.show-buffer perlmod-install' or similar to view
+## The buffer reference allows direct access to the ring buffer data structure
+<buffer.perlmod-install.type> //= qw| log |;
 
 return 0;
 
