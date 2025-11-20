@@ -29,17 +29,35 @@ unless ( -f $key_file ) {
 }
 
 ## Get TLS configuration
-my $tls_version  = <httpsd.cfg.tls_version>  // qw| TLSv1_2 |;
+my $tls_version  = <httpsd.cfg.tls_version>  // 'TLSv1_2';
 my $cipher_suite = <httpsd.cfg.cipher_suite> //
-    qw| DEFAULT:!aNULL:!eNULL:!MD5:!3DES:!DES:!RC4:!IDEA:!SEED:!aDSS:!SRP:!PSK |;
+    'DEFAULT:!aNULL:!eNULL:!MD5:!3DES:!DES:!RC4:!IDEA:!SEED:!aDSS:!SRP:!PSK';
+
+## Ensure TLS_version is a scalar string (not a list)
+if ( ref($tls_version) eq 'ARRAY' ) {
+    $tls_version = join( ':', @$tls_version );
+    <[base.log]>->( 2, "  note: converted TLS_version array to string: $tls_version" );
+}
+
+## Verify certificate key type compatibility with cipher suite
+my $cert_info = `openssl x509 -in $cert_file -text -noout 2>/dev/null | grep -i "public key"`;
+my $key_type = `openssl pkey -in $key_file -text -noout 2>/dev/null | head -1`;
 
 <[base.log]>->( 2, "  TLS version: $tls_version" );
 <[base.log]>->( 3, "  cipher suite: $cipher_suite" );
+<[base.log]>->( 3, "  certificate key type: " . ( $key_type ? $key_type : 'unknown' ) );
+<[base.log]>->( 3, "  certificate info: " . ( $cert_info ? $cert_info : 'unknown' ) );
 
-## Create SSL socket
+## Create SSL socket with enhanced error diagnostics
 my $ssl_socket;
 
 eval {
+    <[base.log]>->( 3, "  creating IO::Socket::SSL with parameters:" );
+    <[base.log]>->( 3, "    SSL_version: $tls_version (ref: " . ref($tls_version) . ")" );
+    <[base.log]>->( 3, "    SSL_cert_file: $cert_file" );
+    <[base.log]>->( 3, "    SSL_key_file: $key_file" );
+    <[base.log]>->( 3, "    LocalAddr: $addr, LocalPort: $port" );
+
     $ssl_socket = IO::Socket::SSL->new(
         LocalAddr        => $addr,
         LocalPort        => $port,
@@ -56,14 +74,31 @@ eval {
 };
 
 if ($EVAL_ERROR) {
-    <[base.log]>->( 0, "httpsd: SSL socket creation failed: $EVAL_ERROR" );
+    <[base.log]>->( 0, "httpsd: SSL socket creation EVAL ERROR:" );
+    <[base.log]>->( 0, "  error: $EVAL_ERROR" );
+    <[base.log]>->( 0, "  SSL_version was: '$tls_version' (type: " . ref($tls_version) . ")" );
+    <[base.log]>->( 0, "  cert file: $cert_file" );
+    <[base.log]>->( 0, "  key file: $key_file" );
+
+    ## Log system error if available
+    if ( $OS_ERROR ) {
+        <[base.log]>->( 0, "  system error: $OS_ERROR" );
+    }
     return -1;
 }
 
 unless ( defined $ssl_socket ) {
     my $ssl_err = IO::Socket::SSL::errstr();
+    my $ssl_err_full = $ssl_err;
     $ssl_err =~ s/\n.+//mg;
-    <[base.log]>->( 0, "httpsd: unable to create SSL socket [$ssl_err]" );
+
+    <[base.log]>->( 0, "httpsd: SSL socket creation returned UNDEF:" );
+    <[base.log]>->( 0, "  IO::Socket::SSL::errstr(): $ssl_err" );
+    <[base.log]>->( 0, "  full error: $ssl_err_full" );
+    <[base.log]>->( 0, "  SSL_version was: '$tls_version'" );
+    <[base.log]>->( 0, "  cert type (Ed25519/RSA): check with: openssl x509 -in $cert_file -text -noout | grep -i 'public key'" );
+    <[base.log]>->( 0, "  key type: check with: openssl pkey -in $key_file -text -noout | head -1" );
+    <[base.log]>->( 0, "  hint: Ed25519 certificates from commit 510bbaf require compatible SSL_version and cipher suite" );
     return -1;
 }
 
