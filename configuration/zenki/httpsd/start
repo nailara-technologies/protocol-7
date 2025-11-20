@@ -33,6 +33,9 @@ httpsd.site_dir    = '/var/httpd/'
 httpsd.upload_dir  = '/var/protocol-7/httpd/uploads'
 
 httpsd.cfg.default_site_name = default
+
+## Configure accepted hostnames for virtual host matching (reuse httpd hostnames)
+httpsd.cfg.hostnames = { 'default' => 1, 'localhost' => 1, '127.0.0.1' => 1 }
 httpsd.cfg.external_sitedirs = 1
 httpsd.cfg.uploads_enabled   = 1
 httpsd.cfg.allow_range_overlap = 1
