@@ -4,18 +4,12 @@
 # descr = HTTPS request handler - adds HSTS headers and delegates to httpd handler
 # note : return 2 to close connection
 
-# Receive Event object from protocol state handler invocation
-my $event;
-if ( ref $ARG[0] ne qw| Event::Event::Io | and $ARG[0] =~ m|^\d+| ) {
-    # Direct call with session ID (shouldn't happen for state handlers, but handle it)
-    my $id = shift;
-} else {
-    # Standard state handler invocation with Event watcher
-    $event = shift;
-}
+# Receive Event object from protocol state handler invocation (standard pattern)
+# Protocol state handlers always receive an Event::Event::Io object
+my $event = shift;
 
 # Extract session ID from event watcher (same pattern as httpd.request_handler)
-my $id      = $event->w->data if defined $event;
+my $id      = $event->w->data;
 my $session = $data{'session'}->{$id};
 
 # Mark session as HTTPS before processing the request
@@ -39,7 +33,7 @@ if ( defined $session ) {
 # httpd.request_handler will handle the actual HTTP request processing
 # The response will be written to the output buffer by the HTTP handler
 # base.handler.write (from protocol state output handler) will send it via SSL socket
-my $result = <[httpd.request_handler]->($event) if defined $event;
+my $result = <[httpd.request_handler]->($event);
 
 return $result;
 
