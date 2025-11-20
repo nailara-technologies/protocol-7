@@ -11,6 +11,11 @@ return 400 if not defined( my $request = $session->{'http'}->{'request'} );
 ## can be undefined ##
 my $base_site_directory = <httpd.cfg.default_site_name>;
 
+## Initialize default hostnames if not configured
+unless ( defined <httpd.cfg.hostnames> ) {
+    <httpd.cfg.hostnames> = { 'default' => 1, 'localhost' => 1, '127.0.0.1' => 1 };
+}
+
 my $http_host     = $request->{'host'};
 my $http_uri      = $request->{'uri'};
 my $http_method   = $request->{'method'};
