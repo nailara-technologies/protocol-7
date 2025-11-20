@@ -174,7 +174,7 @@ say '';
 my %context = (
     has_uncommitted_changes => scalar(@modified_files) > 0,
     has_open_todos => ($todo_stats && $todo_stats->{open} && $todo_stats->{open} > 0),
-    has_open_bugs => ($bugs && @$bugs),
+    has_open_bugs => ($bugs && scalar(@$bugs) > 0),
     has_remotes => scalar(@remotes) > 0,
     no_activity => (!@modified_files && (!$todo_stats || $todo_stats->{total} == 0)),
     has_missing_dependencies => scalar(@$essential_missing) > 0,
