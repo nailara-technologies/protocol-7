@@ -95,6 +95,18 @@ sub check_profile {
     print "🔍 Checking dependencies for: $profile_name\n";
     print "   $profile->{description}\n\n";
 
+    # Handle includes (meta-profiles)
+    if ($profile->{includes}) {
+        print "📦 Profile includes: " . join(', ', @{$profile->{includes}}) . "\n\n";
+        my $all_ok = 1;
+        for my $included (@{$profile->{includes}}) {
+            my $result = check_profile($included, '--no-cache');
+            $all_ok = 0 if $result != 0;
+        }
+        update_cache($profile_name, $all_ok);
+        return $all_ok ? 0 : 1;
+    }
+
     my @missing;
     my $total = 0;
 
@@ -164,6 +176,15 @@ sub install_profile {
 
     if ($dry_run) {
         print "🔍 DRY RUN - No actual installation\n\n";
+    }
+
+    # Handle includes (meta-profiles)
+    if ($profile->{includes}) {
+        print "📦 Profile includes: " . join(', ', @{$profile->{includes}}) . "\n\n";
+        for my $included (@{$profile->{includes}}) {
+            install_profile($included, $opts);
+        }
+        return;
     }
 
     my @apt_packages;
@@ -364,13 +385,14 @@ sub load_profiles {
             # New profile (supports hyphens in profile names)
             $current_profile = $1;
             $profiles{$current_profile} = {};
+            $current_section = undef;
         } elsif ($current_profile && $line =~ /^    (\w+):\s*(.*)$/) {
             my ($key, $val) = ($1, $2);
 
             if ($key eq 'description') {
                 $val =~ s/^"(.*)"$/$1/;
                 $profiles{$current_profile}{description} = $val;
-            } elsif ($key =~ /^(apt|cpan)$/) {
+            } elsif ($key =~ /^(includes|apt|cpan)$/) {
                 $current_section = $key;
                 $profiles{$current_profile}{$key} = [];
             }
