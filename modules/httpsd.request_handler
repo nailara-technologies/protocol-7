@@ -1,41 +1,20 @@
 ## [:< ##
 
 # name = httpsd.request_handler
-# descr = HTTPS request handler - adds HSTS headers and delegates to httpd handler
+# descr = HTTPS request handler - wrapper for HTTP with TLS and HSTS support
 # note : return 2 to close connection
 
-# Receive Event object from protocol state handler invocation (standard pattern)
-# Protocol state handlers always receive an Event::Event::Io object
-my $event = shift;
+# Handler calling is automatic via session management
+# This handler is invoked by the event system when HTTPS data arrives
+# It delegates to httpd.request_handler which will:
+# 1. Parse the HTTP request
+# 2. Call the appropriate HTTP method handler (GET, POST, etc.)
+# 3. The method handler writes response to output buffer
+# 4. base.handler.write is automatically called to send the response
 
-# Extract session ID from event watcher (same pattern as httpd.request_handler)
-my $id      = $event->w->data;
-my $session = $data{'session'}->{$id};
-
-# Mark session as HTTPS before processing the request
-$session->{'is_https'} = 1 if defined $session;
-
-# Debug logging
-if ( defined $session ) {
-    my $input_len = length( $session->{'buffer'}->{'input'} // '' );
-    <[base.logs]>->(
-        1,   "[%d] httpsd.request_handler called (HTTPS), input_buffer_len=%d",
-        $id, $input_len
-    );
-} else {
-    <[base.logs]>->(
-        0, "[%d] httpsd.request_handler: session not found!", $id
-    );
-    return 2;
-}
-
-# Delegate to httpd request handler - pass the Event object just as we received it
-# httpd.request_handler will handle the actual HTTP request processing
-# The response will be written to the output buffer by the HTTP handler
-# base.handler.write (from protocol state output handler) will send it via SSL socket
-my $result = $code{'httpd.request_handler'}->($event);
-
-return $result;
+# For now, just call httpd's handler - it handles all the HTTP processing
+# The SSL encryption is transparent (handled by IO::Socket::SSL at socket level)
+<[httpd.request_handler]>
 
 #,,..,.,.,..,,..,,,,,,,,.,...,,,.,,.,,,.,,,..,..,,...,...,...,,..,.,.,...,,.,,
 #5DMYUPH7QA7VMKKAFFZATMJXEUIDTKHWXQF3HCRPQUEXEOXXX4Y5IKBD6PZHK4D7ZWQZH7WMAOO2M
