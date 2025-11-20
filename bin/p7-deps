@@ -360,8 +360,8 @@ sub load_profiles {
         next if $line =~ /^#/ || $line =~ /^\s*$/;
         next if $line =~ /^profiles:/;
 
-        if ($line =~ /^  (\w+):$/) {
-            # New profile
+        if ($line =~ /^  ([\w-]+):$/) {
+            # New profile (supports hyphens in profile names)
             $current_profile = $1;
             $profiles{$current_profile} = {};
         } elsif ($current_profile && $line =~ /^    (\w+):\s*(.*)$/) {
@@ -446,6 +446,7 @@ sub show_help {
     print "${blacklight}::$reset   runtime        Essential modules for deployment\n";
     print "${blacklight}::$reset   network        TLS and networking support\n";
     print "${blacklight}::$reset   cryptography   Cryptography and checksumming\n";
+    print "${blacklight}::$reset   x11-desktop    X11 Desktop environment and GUI frameworks\n";
     print "${blacklight}::$reset   development    Full development environment\n\n";
 
     print "${blacklight}::[$NEON_orange EXAMPLES$blacklight]$reset\n";
