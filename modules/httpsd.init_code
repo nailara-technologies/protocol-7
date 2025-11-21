@@ -11,7 +11,8 @@
 # CRITICAL FIX: Copy hostnames from HTTPS config to HTTP config
 # httpd.determine_host looks for <httpd.cfg.hostnames>, but httpsd configures <httpsd.cfg.hostnames>
 # Solution: Copy HTTPS hostnames to HTTP namespace so httpd.determine_host can find them
-if ( defined <httpsd.cfg.hostnames> and not defined <httpd.cfg.hostnames> ) {
+# Always copy to ensure httpsd hostnames take precedence over httpd defaults
+if ( defined <httpsd.cfg.hostnames> ) {
     <httpd.cfg.hostnames> = <httpsd.cfg.hostnames>;
     <[base.log]>->(
         2,
