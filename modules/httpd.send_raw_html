@@ -6,6 +6,17 @@ die "not enough arguments, expected <id>,<code>,<html>" if @_ != 3;
 
 my ( $id, $code, $html_str ) = @_;
 my $session         = $data{'session'}{$id};
+
+unless (defined $session) {
+    <[base.logs]>->( 0, "[%d] send_raw_html: session not found!", $id );
+    return undef;
+}
+
+unless (defined $session->{'buffer'}) {
+    <[base.logs]>->( 0, "[%d] send_raw_html: buffer not initialized!", $id );
+    return undef;
+}
+
 my $http_host       = $session->{'http'}{'request'}{'host'};
 my $matched_host    = $session->{'http'}{'request'}{'matched_host'};
 my $response_params = $session->{'response'}->{'params'} // {};
@@ -20,8 +31,14 @@ $response_params->{'Host'} = $http_host
     and defined $matched_host
     and $matched_host ne 'default';
 
-my $before_len = length( $session->{'buffer'}->{'output'} // '' );
-$session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
+unless (defined $session->{'buffer'}->{'output'}) {
+    $session->{'buffer'}->{'output'} = '';
+    <[base.logs]>->( 1, "[%d] send_raw_html: initializing empty output buffer", $id );
+}
+
+my $before_len = length( $session->{'buffer'}->{'output'} );
+
+my $header_data = <[httpd.new_header]>->(
     $code,
     {   'Content-Type'   => 'text/html',
         'Content-Length' => length($html_str),
@@ -30,7 +47,14 @@ $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
         : 'keep-alive',
         %{$response_params}
     }
-) . $html_str;
+);
+
+<[base.logs]>->(
+    1, "[%d] send_raw_html: header_len=%d, html_len=%d, total=%d",
+    $id, length($header_data), length($html_str), length($header_data) + length($html_str)
+);
+
+$session->{'buffer'}->{'output'} .= $header_data . $html_str;
 my $after_len = length( $session->{'buffer'}->{'output'} // '' );
 
 <[base.logs]>->(
