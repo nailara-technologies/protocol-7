@@ -25,6 +25,7 @@ my $state     = $session->{'state'};
 my $mode      = $data{'handle'}{$fd}{'mode'};
 my $handler   = $session->{'input'}->{'handler'};
 my $start_len = length $session->{'buffer'}->{'input'};
+my $len       = $start_len;
 
 my $handle_href = $data{'handle'}{ $session->{'handle'} };
 
@@ -38,6 +39,7 @@ $session->{'bytes-to-read'} //= 0;
 if ( defined $handler and exists $code{$handler} ) {
 
     my $ret_code = $code{$handler}->($event);
+    $len = length $session->{'buffer'}->{'input'};
 
     <[base.logs]>->(
         2, "[%d] base.handler.input: protocol handler '%s' returned %s (buffer_len=%d, changed=%s)",
@@ -101,7 +103,7 @@ if ( defined $handler and exists $code{$handler} ) {
     }
 }
 
-my $len = length $session->{'buffer'}->{'input'};
+$len = length $session->{'buffer'}->{'input'};
 return $event->w->cancel if not defined $len;   ## <-- buffer 'not defined' ##
 
 if (    $len < <size.buffer.input>
