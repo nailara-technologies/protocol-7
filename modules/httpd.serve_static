@@ -71,8 +71,10 @@ if (-d $file_path) {
 
 # File permission checks
 if (!-f $file_path) {
-    <[base.log]>->(1, "[$session_id] file not found: $file_path");
-    return <[httpd.send_error_page]>->($session_id, 404);
+    <[base.logs]>->(1, "[$session_id] file not found: $file_path, calling send_error_page");
+    my $result = <[httpd.send_error_page]>->($session_id, 404);
+    <[base.logs]>->(2, "[$session_id] send_error_page returned: $result");
+    return $result;
 }
 
 if (!-r $file_path) {
