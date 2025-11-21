@@ -67,6 +67,26 @@ if ( not defined $result ) {
     return 2;    ## request failed ##
 }
 
+## CRITICAL FIX for SSL write buffer: Explicitly flush output for HTTPS connections
+## SSL sockets may not automatically trigger output event handlers, so we must:
+## 1. Always set flush_shutdown=1 for HTTPS to ensure output is sent
+## 2. Explicitly call base.handler.write to immediately flush buffered response
+if ( defined $session and length( $session->{'buffer'}->{'output'} ) > 0 ) {
+    ## Set flush_shutdown flag for SSL connections (not just when closing)
+    ## This ensures the output handler will trigger shutdown after flushing
+    $session->{'flush_shutdown'} = 1;
+
+    <[base.log]>->(
+        2,
+        "[%d] HTTPS response buffered (%d bytes), explicitly flushing SSL output",
+        $id,
+        length( $session->{'buffer'}->{'output'} )
+    );
+
+    ## Explicitly call output handler to flush buffered response through SSL socket
+    <[base.handler.write]>->( $event );
+}
+
 return $result;
 
 #,,,.,,..,.,.,..,,,,,,..,,..,,..,,,.,,,.,,.,.,..,,...,...,..,,..,,,.,,,..,.,,,
