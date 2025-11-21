@@ -10,6 +10,11 @@ my $http_host       = $session->{'http'}{'request'}{'host'};
 my $matched_host    = $session->{'http'}{'request'}{'matched_host'};
 my $response_params = $session->{'response'}->{'params'} // {};
 
+<[base.logs]>->(
+    1, "[%d] send_raw_html: writing %d bytes for HTTP %d response",
+    $id, length($html_str), $code
+);
+
 $response_params->{'Host'} = $http_host
     if defined $http_host
     and defined $matched_host
@@ -25,6 +30,11 @@ $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
         %{$response_params}
     }
 ) . $html_str;
+
+<[base.logs]>->(
+    2, "[%d] send_raw_html: buffer now has %d bytes",
+    $id, length( $session->{'buffer'}->{'output'} // '' )
+);
 
 # Set flush_shutdown so base.handler.write will close after flushing the buffer
 $session->{'flush_shutdown'} = 1 if $session->{'http'}->{'close'};
