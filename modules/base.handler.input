@@ -36,9 +36,11 @@ $session->{'flush_shutdown'} //= FALSE;
 $session->{'read-mode'}     //= qw| linewise |;
 $session->{'bytes-to-read'} //= 0;
 
+my $ret_code = 0;    ## track handler return code for later decision logic ##
+
 if ( defined $handler and exists $code{$handler} ) {
 
-    my $ret_code = $code{$handler}->($event);
+    $ret_code = $code{$handler}->($event);
     $len = length $session->{'buffer'}->{'input'};
 
     ## Only log if result is interesting (incomplete or error), not normal completion
@@ -67,8 +69,15 @@ if ( defined $handler and exists $code{$handler} ) {
 
     $session->{'complete'} = $ret_code == 1 ? FALSE : TRUE;    ## true ##
 
+    ## return code 1 ## incomplete request - stop watcher and wait for more data
+    if ( $ret_code == 1 ) {
+        $event->w->stop;    ## pause tied variable watcher, socket readable will trigger when more data arrives ##
+        <[base.logs]>->(
+            2, '[%d] input incomplete, stopping tied variable watcher, waiting for socket data', $id
+        );
+    }
     ## return code 2 ## terminate session and close connection ##
-    if (   $ret_code == 2
+    elsif (   $ret_code == 2
         or $session->{'shutdown'}
         or $session->{'flush_shutdown'} ) {
         $event->w->cancel;    ##  no longer watching buffer content  ##
@@ -138,12 +147,18 @@ if (    $len < <size.buffer.input>
 if ( $session->{'read-mode'} eq qw| linewise | ) {
 
 ##  buffer contains complete line ?  ##
-    $session->{'watcher'}->{'input_buffer'}->now
-        if $len > 0
-        and $len != $start_len
-        and not $session->{'shutdown'}
-        and not $session->{'flush_shutdown'}
-        and rindex( $session->{'buffer'}->{'input'}, "\n" ) != -1;
+##  BUT: don't re-trigger if handler just returned incomplete (ret_code==1)
+##  because watcher is paused waiting for socket data
+    if ( defined $handler and exists $code{$handler}
+        and $ret_code != 1 )    ## only re-trigger if handler returned 0 or 2
+    {
+        $session->{'watcher'}->{'input_buffer'}->now
+            if $len > 0
+            and $len != $start_len
+            and not $session->{'shutdown'}
+            and not $session->{'flush_shutdown'}
+            and rindex( $session->{'buffer'}->{'input'}, "\n" ) != -1;
+    }
 }
 
 #,,,.,,,.,.,.,,..,...,,,,,,,.,,,.,,.,,,.,,...,..,,...,..,,...,,,,,,.,,...,,,,,
