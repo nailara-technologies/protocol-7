@@ -32,8 +32,17 @@ my $site_dir    = <httpd.cfg.site_dir> // '/var/httpd';
     "[$session_id] serve_static: attempting to serve $path"
 );
 
-# Build full file path
-my $file_path = join('', $site_dir, '/', $http_host, $path);
+# Build full file path - look up hostname in hostnames hash to get directory
+my $base_dir = <httpd.cfg.hostnames>->{$http_host};
+unless (defined $base_dir) {
+    <[base.log]>->(
+        0,
+        "[$session_id] serve_static: hostname '$http_host' not found in hostnames config"
+    );
+    return <[httpd.send_error_page]>->($session_id, 404);
+}
+
+my $file_path = join('', $base_dir, $path);
 $file_path =~ s|/$||;
 
 # Check for template file instead (backward compat)
