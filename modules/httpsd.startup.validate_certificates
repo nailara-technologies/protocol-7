@@ -26,7 +26,8 @@ unless ( -f $key_file ) {
 }
 
 ## Validate certificate format ##
-unless ( open( my $cert_fh, '<', $cert_file ) ) {
+my $cert_fh;
+unless ( open( $cert_fh, '<', $cert_file ) ) {
     <[base.log]>->( 0, "FATAL: Cannot read certificate file: $cert_file" );
     return FALSE;
 }
@@ -44,7 +45,8 @@ unless ( $cert_header =~ m/^-----BEGIN CERTIFICATE-----$/ ) {
 }
 
 ## Validate private key format ##
-unless ( open( my $key_fh, '<', $key_file ) ) {
+my $key_fh;
+unless ( open( $key_fh, '<', $key_file ) ) {
     <[base.log]>->( 0, "FATAL: Cannot read key file: $key_file" );
     return FALSE;
 }
