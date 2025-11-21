@@ -42,6 +42,11 @@ my $return_code = 2;                             ##  set to disconnecting  ##
 
 my $protocol = $session->{'protocol'};
 
+<[base.logs]>->(
+    2, "[%d] base.handler.read FIRED: socket readable event, protocol=%s",
+    $id, $protocol
+);
+
 if ( $session->{'read-mode'} eq qw| binary | ) {    ##  binary protocol  ##
 
     ##  read-mode : binary  ##
