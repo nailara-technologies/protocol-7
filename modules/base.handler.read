@@ -85,6 +85,17 @@ if ( $return_code > 1 ) {    ##  disconnect  ##
             $id, $size_left
         );
 
+        ## If data was read but request is incomplete (return_code==1),
+        ## immediately re-trigger watcher to check if more data has arrived
+        ## (similar to devmod_io pattern where ->again is called after full reads)
+        if ( $return_code == 1 ) {
+            <[base.logs]>->(
+                2, "[%d] base.handler.read: incomplete request, calling ->again to re-trigger",
+                $id
+            );
+            $event->w->again;
+        }
+
     } else {    ##  set timeout ? ##  [LLL]
 
         $handle_href->{'paused'}         = TRUE;
