@@ -72,14 +72,14 @@ if ( not defined $result ) {
 ## 1. Always set flush_shutdown=1 for HTTPS to ensure output is sent
 ## 2. Explicitly call base.handler.write to immediately flush buffered response
 
-<[base.log]>->( 2, "[%d] HTTPS post-processing: output buffer has %d bytes", $id, length( $session->{'buffer'}->{'output'} // '' ) );
+<[base.logs]>->( 2, "[%d] HTTPS post-processing: output buffer has %d bytes", $id, length( $session->{'buffer'}->{'output'} // '' ) );
 
 if ( defined $session and length( $session->{'buffer'}->{'output'} // '' ) > 0 ) {
     ## Set flush_shutdown flag for SSL connections (not just when closing)
     ## This ensures the output handler will trigger shutdown after flushing
     $session->{'flush_shutdown'} = 1;
 
-    <[base.log]>->(
+    <[base.logs]>->(
         2,
         "[%d] HTTPS response buffered, explicitly flushing SSL output (%d bytes)",
         $id,
@@ -89,7 +89,7 @@ if ( defined $session and length( $session->{'buffer'}->{'output'} // '' ) > 0 )
     ## Explicitly call output handler to flush buffered response through SSL socket
     <[base.handler.write]>->( $event );
 } else {
-    <[base.log]>->( 1, "[%d] HTTPS: no output to flush or session undefined", $id );
+    <[base.logs]>->( 1, "[%d] HTTPS: no output to flush or session undefined", $id );
 }
 
 return $result;

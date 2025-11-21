@@ -11,7 +11,7 @@ if ( @ARG < 2 ) {
 my ( $id, $error_code, $additional_reason_str ) = @ARG;
 
 if ( not defined <protocol.http.status_codes>->{$error_code} ) {
-    <[base.logs]>->( 0, '[%d] error code $error_code not defined', $id );
+    <[base.logs]>->( 0, '[%d] error code %d not defined', $id, $error_code );
     $error_code = 500;
 }
 
