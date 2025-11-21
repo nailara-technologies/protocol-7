@@ -31,7 +31,7 @@ if ( ref($read_fh) eq qw| IO::Socket::SSL | ) {
     if ( defined $b_read && $b_read > 0 ) {
         utf8::decode($r_buff);
         $b_read = length($r_buff);    ##  adjust for decoding  ##
-        $buffer_ref->$* .= $r_buff;
+        $$buffer_ref .= $r_buff;
         return $b_read;
     } else {
         return $b_read // -1;
@@ -50,7 +50,7 @@ if ( ref($read_fh) eq qw| IO::Socket::SSL | ) {
     if ( $b_read > 0 ) {
         utf8::decode($r_buff);
         $b_read = length($r_buff);    ##  adjust for decoding  ##
-        $buffer_ref->$* .= $r_buff;
+        $$buffer_ref .= $r_buff;
     }
 
     return $b_read;                   ## [ returns -1 on error ] ##
