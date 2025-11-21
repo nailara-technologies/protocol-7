@@ -92,6 +92,18 @@ if ( $return_code > 1 ) {    ##  disconnect  ##
             ($return_code == 0 ? 'COMPLETE_LINE' : $return_code == 1 ? 'INCOMPLETE_LINE' : 'ERROR')
         );
 
+        ## If new data was read and protocol handler was waiting (paused),
+        ## restart the input_buffer tied variable watcher to process it
+        if ( $return_code == 0 and exists $session->{'watcher'}{'input_buffer'} ) {
+            if ( not $session->{'watcher'}{'input_buffer'}->is_active ) {
+                <[base.logs]>->(
+                    2, "[%d] base.handler.read: restarting paused input_buffer watcher after new data",
+                    $id
+                );
+                $session->{'watcher'}{'input_buffer'}->start;
+            }
+        }
+
     } else {    ##  set timeout ? ##  [LLL]
 
         $handle_href->{'paused'}         = TRUE;
