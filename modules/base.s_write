@@ -29,10 +29,6 @@ $write_len //= length $write_string_ref->$*;
 #    syswrite FILEHANDLE,SCALAR
 #
 #    aio_write $fh, $offset, $length, $data, $dataoffset, $callback->($retval)
-#
-#    CRITICAL FIX for SSL sockets: IO::AIO does not work with IO::Socket::SSL
-#    because SSL encryption/decryption must happen at the OpenSSL library level,
-#    not at the kernel level. For SSL sockets, we use syswrite instead.
 ##
 
 my $size_written = undef;    ##  until write attempt  ##
@@ -51,27 +47,11 @@ if (    $write_len > 0
     $write_len += $delta_len if $delta_len != 0;    ##  string lengthened  ##
 }
 
-## CRITICAL FIX: Use syswrite for SSL sockets instead of IO::AIO
-## IO::AIO doesn't work with SSL sockets because SSL encryption must happen
-## at the OpenSSL library level, not at the kernel level.
-if ( ref($write_fh) eq qw| IO::Socket::SSL | ) {
-    ## Use standard syswrite for SSL sockets - IO::Socket::SSL handles encryption
-    $size_written = syswrite(
-        $write_fh,
-        substr( $write_string_ref->$*, $str_offset ),
-        $write_len
-    );
-    ## syswrite returns undef on error, -1 (via error) on would-block
-    $size_written = -1 if not defined $size_written and $OS_ERROR{'EAGAIN'};
-    $size_written //= -1;  ## convert undef to -1 for consistency
-} else {
-    ## Use IO::AIO for regular TCP sockets (async)
-    IO::AIO::aio_write( $write_fh, $fh_offset, $write_len, $write_string_ref->$*,
-        $str_offset, sub { $size_written = $ARG[0] } );
+IO::AIO::aio_write( $write_fh, $fh_offset, $write_len, $write_string_ref->$*,
+    $str_offset, sub { $size_written = $ARG[0] } );
 
-    ##  blocking until write request has been completed  ##
-    while ( not defined $size_written ) { IO::AIO::poll() }
-}
+##  blocking until write request has been completed  ##
+while ( not defined $size_written ) { IO::AIO::poll() }
 
 return $size_written;    ## [ returns -1 on error ] ##
 

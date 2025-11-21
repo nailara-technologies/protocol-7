@@ -20,10 +20,18 @@ my $write_size = length $session->{'buffer'}->{'output'};
 
 if ( fileno $session->{'handle'} ) {
     if ( $write_size > 0 ) {
-        my $size_written = <[base.s_write]>->(
-            $session->{'handle'}, \$session->{'buffer'}->{'output'},
-            $write_size
-        );
+        ## CRITICAL FIX: For SSL sockets, use base.ssl.write instead of base.s_write
+        ## IO::AIO does not work with IO::Socket::SSL because SSL encryption happens
+        ## at the OpenSSL library level, not the kernel level.
+        my $size_written = ref( $session->{'handle'} ) eq qw| IO::Socket::SSL |
+            ? <[base.ssl.write]>->(
+                $session->{'handle'}, \$session->{'buffer'}->{'output'},
+                $write_size
+            )
+            : <[base.s_write]>->(
+                $session->{'handle'}, \$session->{'buffer'}->{'output'},
+                $write_size
+            );
         if ( $size_written < 0 ) {
             $session->{'shutdown'} = 1;
         } else {

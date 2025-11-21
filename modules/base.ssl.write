@@ -1,0 +1,61 @@
+## [:< ##
+
+# name = base.ssl.write
+# desc = SSL socket write handler using syswrite instead of IO::AIO
+# CRITICAL: SSL sockets must use syswrite not IO::AIO, since SSL encryption
+#           must happen at the OpenSSL library level, not at the kernel level.
+
+my $write_fh         = $ARG[0];
+my $write_string_ref = $ARG[1];
+my $write_len        = $ARG[2];
+my $str_offset       = $ARG[3] // 0;
+my $fh_offset        = $ARG[4];  # Not used for SSL sockets
+
+if ( not defined $write_fh ) {
+    warn 'write_fh param not defined <{C1}>';
+    return -1;
+} elsif ( not defined $write_string_ref ) {
+    warn 'write_string param not defined <{C1}>';
+    return -1;
+} elsif ( not length ref $write_string_ref ) {
+    $write_string_ref = \$ARG[1];    ## scalar reference to argument ##
+}
+
+$write_len //= length $write_string_ref->$*;
+
+## Handle UTF-8 encoding (same as base.s_write does for IO::AIO path)
+if (    $write_len > 0
+    and utf8::is_utf8( $write_string_ref->$* )
+    and $write_string_ref->$* =~ m|[^\p{ASCII}]| ) {
+
+    my $prev_len = length $write_string_ref->$*;
+
+    utf8::encode( $write_string_ref->$* );
+    utf8::downgrade( $write_string_ref->$*, 1 );
+
+    my $delta_len = length( $write_string_ref->$* ) - $prev_len;
+
+    $write_len += $delta_len if $delta_len != 0;
+}
+
+## Use syswrite for SSL sockets
+## syswrite(FILEHANDLE, SCALAR, LENGTH, OFFSET) writes LENGTH bytes from SCALAR starting at OFFSET
+## For SSL sockets, OpenSSL handles the encryption automatically.
+my $size_written = syswrite(
+    $write_fh,
+    $write_string_ref->$*,
+    $write_len,
+    $str_offset
+);
+
+## Convert undef (error) to -1 for consistency with IO::AIO behavior
+## syswrite returns actual bytes written on success, undef on error
+$size_written //= -1;
+
+return $size_written;    ## [ returns bytes written, or -1 on error ] ##
+
+#,,..,,.,,,.,,,..,...,,.,,.,,,..,,.,,,.,.,,,.,..,,...,...,..,,.,,,,,,,,.,,,,,,
+#BASE_SSL_WRITE_HASH_PLACEHOLDER
+#\\\|PK6TZXSNH27PDGC5DBD422KXBYDO7NLOOVX4WMTV2UTSOZ7NE3E \ / AMOS7 \ YOURUM ::
+#\[7]5RHYQIUCBWENE5WBENE5WROK2SKNE3NJH7SV6RU9VGRZSVDSBCBY 7  DATA SIGNATURE ::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
