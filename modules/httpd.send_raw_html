@@ -70,8 +70,9 @@ my $header_data = <[httpd.new_header]>->(
 );
 
 # Write to tied variable - buffer is tied by event.add_var, not a reference
-# Simply concatenate to trigger the STORE method of the tied variable
-$session->{'buffer'}->{'output'} .= $header_data . $html_str;
+# Build complete string first, then assign to trigger STORE method properly
+my $combined_content = $session->{'buffer'}->{'output'} . $header_data . $html_str;
+$session->{'buffer'}->{'output'} = $combined_content;
 
 my $after_len = length( $session->{'buffer'}->{'output'} // '' );
 
