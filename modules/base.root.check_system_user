@@ -77,6 +77,20 @@ if ( not defined $uid and $EFFECTIVE_USER_ID == 0 ) {
             $l, ':.. user creation was successful =)%s', $new_uid_str,
         );
 
+        ## create key directory structure for C25519 cryptography ##
+        if ( not $not_home ) {
+            my $home_dir = <[base.get_homedir]>->($usr);
+            if ( defined $home_dir ) {
+                my $key_parent = catdir( $home_dir, '.n' );
+                my $key_dir    = catdir( $key_parent, 'user-keys' );
+
+                if ( not -d $key_dir ) {
+                    <[base.file.make_path]>->( $key_dir, 0700, $usr, $usr );
+                    <[base.logs]>->( 2, "created key directory '%s'", $key_dir );
+                }
+            }
+        }
+
         return TRUE;     ##[ success ]##
 
     }
