@@ -366,6 +366,12 @@ sub p7_init_exec {    ##  main variable initialization  ##
 
     $SIG{'INT'} = sub { print "\b\b" if fileno(STDOUT); exit };    ## ^C ##
 
+    ## configure default locale for systems with unset LANG ##
+    if ( not length $ENV{'LANG'} ) {
+        $ENV{'LANG'} = qw| C.UTF-8 |;
+        $ENV{'LC_ALL'} = qw| C.UTF-8 |;
+    }
+
     ## choose harmonic PID on -NP switch ##
     #
     # ISSUES : returns to shell, not working with child zenki yet ##
