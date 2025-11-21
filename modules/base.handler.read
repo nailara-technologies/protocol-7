@@ -42,10 +42,11 @@ my $return_code = 2;                             ##  set to disconnecting  ##
 
 my $protocol = $session->{'protocol'};
 
+## Log socket readable events for HTTPS to debug timing issues
 <[base.logs]>->(
     2, "[%d] base.handler.read FIRED: socket readable event, protocol=%s",
     $id, $protocol
-);
+) if $protocol =~ m|https?|;
 
 if ( $session->{'read-mode'} eq qw| binary | ) {    ##  binary protocol  ##
 

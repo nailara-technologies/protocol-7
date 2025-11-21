@@ -41,11 +41,14 @@ if ( defined $handler and exists $code{$handler} ) {
     my $ret_code = $code{$handler}->($event);
     $len = length $session->{'buffer'}->{'input'};
 
-    <[base.logs]>->(
-        2, "[%d] base.handler.input: protocol handler '%s' returned %s (buffer_len=%d, changed=%s)",
-        $id, $handler, $ret_code, $len,
-        ($len != $start_len ? sprintf("YES [%d→%d]", $start_len, $len) : "NO")
-    );
+    ## Only log if result is interesting (incomplete or error), not normal completion
+    if ( $ret_code != 0 ) {
+        <[base.logs]>->(
+            1, "[%d] base.handler.input: protocol handler '%s' returned %s (buffer_len=%d, changed=%s)",
+            $id, $handler, $ret_code, $len,
+            ($len != $start_len ? sprintf("YES [%d→%d]", $start_len, $len) : "NO")
+        );
+    }
 
     ## return code 0 ## command processed  [ removed from buffer ]
     ## return code 1 ## ..not complete.,   [ more data expected. ]
