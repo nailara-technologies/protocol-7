@@ -20,6 +20,7 @@ $response_params->{'Host'} = $http_host
     and defined $matched_host
     and $matched_host ne 'default';
 
+my $before_len = length( $session->{'buffer'}->{'output'} // '' );
 $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
     $code,
     {   'Content-Type'   => 'text/html',
@@ -30,10 +31,11 @@ $session->{'buffer'}->{'output'} .= <[httpd.new_header]>->(
         %{$response_params}
     }
 ) . $html_str;
+my $after_len = length( $session->{'buffer'}->{'output'} // '' );
 
 <[base.logs]>->(
-    2, "[%d] send_raw_html: buffer now has %d bytes",
-    $id, length( $session->{'buffer'}->{'output'} // '' )
+    1, "[%d] send_raw_html: buffer before=%d, after=%d bytes",
+    $id, $before_len, $after_len
 );
 
 # Set flush_shutdown so base.handler.write will close after flushing the buffer
