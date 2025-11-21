@@ -38,6 +38,14 @@ unless (defined $session->{'buffer'}->{'output'}) {
 
 my $before_len = length( $session->{'buffer'}->{'output'} );
 
+<[base.logs]>->(
+    1, "[%d] send_raw_html: output_type=%s, is_ref=%s, before_len=%d",
+    $id,
+    ref( $session->{'buffer'}->{'output'} ) // 'SCALAR',
+    (ref( $session->{'buffer'}->{'output'} ) ? 'YES' : 'NO'),
+    $before_len
+);
+
 my $header_data = <[httpd.new_header]>->(
     $code,
     {   'Content-Type'   => 'text/html',
@@ -56,6 +64,13 @@ my $header_data = <[httpd.new_header]>->(
 
 $session->{'buffer'}->{'output'} .= $header_data . $html_str;
 my $after_len = length( $session->{'buffer'}->{'output'} // '' );
+
+if ($after_len == $before_len) {
+    <[base.logs]>->(
+        0, "[%d] send_raw_html: ERROR - buffer not updated! (before=%d, after=%d, attempted_write=%d)",
+        $id, $before_len, $after_len, length($header_data) + length($html_str)
+    );
+}
 
 <[base.logs]>->(
     1, "[%d] send_raw_html: buffer before=%d, after=%d bytes",
