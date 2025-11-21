@@ -72,7 +72,21 @@ my $header_data = <[httpd.new_header]>->(
 # Write to tied variable - buffer is tied by event.add_var, not a reference
 # Build complete string first, then assign to trigger STORE method properly
 my $combined_content = $session->{'buffer'}->{'output'} . $header_data . $html_str;
+
+# Diagnostic: Log the combined content size before assignment
+<[base.logs]>->(
+    3, "[%d] send_raw_html: about to assign combined_content (size=%d) to buffer",
+    $id, length($combined_content)
+);
+
+# Assignment to tied variable
 $session->{'buffer'}->{'output'} = $combined_content;
+
+# Diagnostic: Check if assignment worked
+<[base.logs]>->(
+    3, "[%d] send_raw_html: after assignment, checking what got stored in buffer",
+    $id
+);
 
 my $after_len = length( $session->{'buffer'}->{'output'} // '' );
 
