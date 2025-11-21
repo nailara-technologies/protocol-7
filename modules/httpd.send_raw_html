@@ -36,6 +36,13 @@ unless (defined $session->{'buffer'}->{'output'}) {
     <[base.logs]>->( 1, "[%d] send_raw_html: initializing empty output buffer", $id );
 }
 
+<[base.logs]>->(
+    2, "[%d] send_raw_html: buffer_obj_type=%s, output_tied=%s",
+    $id,
+    ref( $session->{'buffer'} ) // 'HASH',
+    (tied( %{ $session->{'buffer'} } ) ? 'YES' : 'NO')
+);
+
 my $before_len = length( $session->{'buffer'}->{'output'} );
 
 <[base.logs]>->(
@@ -62,8 +69,18 @@ my $header_data = <[httpd.new_header]>->(
     $id, length($header_data), length($html_str), length($header_data) + length($html_str)
 );
 
-$session->{'buffer'}->{'output'} .= $header_data . $html_str;
+# Try direct assignment approach as a test
+my $new_content = ($session->{'buffer'}->{'output'} // '') . $header_data . $html_str;
+$session->{'buffer'}->{'output'} = $new_content;
 my $after_len = length( $session->{'buffer'}->{'output'} // '' );
+
+<[base.logs]>->(
+    2, "[%d] send_raw_html: session flags - close=%s, shutdown=%s, is_https=%s",
+    $id,
+    ($session->{'close'} ? 'YES' : 'NO'),
+    ($session->{'flush_shutdown'} ? 'YES' : 'NO'),
+    ($session->{'is_https'} ? 'YES' : 'NO')
+);
 
 if ($after_len == $before_len) {
     <[base.logs]>->(
