@@ -80,6 +80,11 @@ if ( $return_code > 1 ) {    ##  disconnect  ##
         $event->w->start;    ##  restarting : still space in buffer  ##
         $handle_href->{'paused'} = FALSE;
 
+        <[base.logs]>->(
+            3, "[%d] base.handler.read: restarted input watcher, size_left=%d",
+            $id, $size_left
+        );
+
     } else {    ##  set timeout ? ##  [LLL]
 
         $handle_href->{'paused'}         = TRUE;
