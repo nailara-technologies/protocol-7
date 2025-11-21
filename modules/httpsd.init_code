@@ -8,9 +8,22 @@
 # Load HTTPD initialization (core HTTP handling)
 <[httpd.init_code]>;
 
-# NOTE: httpsd.cfg.hostnames from config file is a string representation,
-# not a proper hash reference. httpd.determine_host will initialize defaults
-# if httpd.cfg.hostnames is undefined, which achieves the same result.
+# CRITICAL FIX: Ensure httpd.cfg.hostnames has default entries
+# httpd.scan_site_dir initializes httpd.cfg.hostnames as empty, then populates from /var/httpd
+# If no vhosts exist, it remains empty. We must add defaults for localhost/127.0.0.1
+unless ( defined <httpd.cfg.hostnames> ) {
+    <httpd.cfg.hostnames> = {};
+}
+
+# Add defaults if not already present
+<httpd.cfg.hostnames>->{'default'}   //= 1;
+<httpd.cfg.hostnames>->{'localhost'} //= 1;
+<httpd.cfg.hostnames>->{'127.0.0.1'} //= 1;
+
+<[base.log]>->(
+    2,
+    'initialized default hostnames for HTTP/HTTPS routing: default, localhost, 127.0.0.1'
+);
 
 # CRITICAL FIX: Copy HTTPS handler configurations to HTTP namespace
 # httpd.request_handler looks for handlers in <http.handler> namespace,
