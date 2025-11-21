@@ -17,9 +17,17 @@ unless ( defined <httpd.cfg.hostnames> ) {
 
 # Add defaults if not already present (map to directory paths)
 my $default_dir = <httpd.site_dir> . '/default' // '/var/httpd/default';
-<httpd.cfg.hostnames>->{'default'}   //= $default_dir;
-<httpd.cfg.hostnames>->{'localhost'} //= $default_dir;
-<httpd.cfg.hostnames>->{'127.0.0.1'} //= $default_dir;
+
+# Explicitly set hostname mappings (using unless exists to preserve any user-configured overrides)
+unless ( exists <httpd.cfg.hostnames>->{'default'} ) {
+    <httpd.cfg.hostnames>->{'default'} = $default_dir;
+}
+unless ( exists <httpd.cfg.hostnames>->{'localhost'} ) {
+    <httpd.cfg.hostnames>->{'localhost'} = $default_dir;
+}
+unless ( exists <httpd.cfg.hostnames>->{'127.0.0.1'} ) {
+    <httpd.cfg.hostnames>->{'127.0.0.1'} = $default_dir;
+}
 
 <[base.log]>->(
     2,
