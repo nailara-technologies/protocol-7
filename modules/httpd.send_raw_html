@@ -60,44 +60,18 @@ my $header_data = <[httpd.new_header]>->(
     $id, length($header_data), length($html_str), length($header_data) + length($html_str)
 );
 
-# Diagnostic: Check buffer state before write
+# Write to output buffer (tied variable that triggers output handler watcher)
 <[base.logs]>->(
-    2, "[%d] send_raw_html: BEFORE_WRITE buffer_len=%d, is_tied=%s, content=%s",
+    3, "[%d] send_raw_html: writing %d+%d bytes to output buffer (tied=%s)",
     $id,
-    length( $session->{'buffer'}->{'output'} // '' ),
-    (tied( $session->{'buffer'}->{'output'} ) ? 'YES' : 'NO'),
-    (length( $session->{'buffer'}->{'output'} // '' ) > 0 ? 'HAS_DATA' : 'EMPTY')
+    length($header_data),
+    length($html_str),
+    (tied( $session->{'buffer'}->{'output'} ) ? 'YES' : 'NO')
 );
 
-# Write to tied variable - buffer is tied by event.add_var, not a reference
-# Build complete string first, then assign to trigger STORE method properly
-my $combined_content = $session->{'buffer'}->{'output'} . $header_data . $html_str;
-
-# Diagnostic: Log the combined content size before assignment
-<[base.logs]>->(
-    3, "[%d] send_raw_html: about to assign combined_content (size=%d) to buffer",
-    $id, length($combined_content)
-);
-
-# Assignment to tied variable
-$session->{'buffer'}->{'output'} = $combined_content;
-
-# Diagnostic: Check if assignment worked
-<[base.logs]>->(
-    3, "[%d] send_raw_html: after assignment, checking what got stored in buffer",
-    $id
-);
+$session->{'buffer'}->{'output'} .= $header_data . $html_str;
 
 my $after_len = length( $session->{'buffer'}->{'output'} // '' );
-
-# Diagnostic: Check buffer state after write
-<[base.logs]>->(
-    2, "[%d] send_raw_html: AFTER_WRITE buffer_len=%d, is_tied=%s, content=%s",
-    $id,
-    $after_len,
-    (tied( $session->{'buffer'}->{'output'} ) ? 'YES' : 'NO'),
-    ($after_len > 0 ? 'HAS_DATA' : 'EMPTY')
-);
 
 <[base.logs]>->(
     2, "[%d] send_raw_html: session flags - close=%s, shutdown=%s, is_https=%s",
@@ -109,8 +83,13 @@ my $after_len = length( $session->{'buffer'}->{'output'} // '' );
 
 if ($after_len == $before_len) {
     <[base.logs]>->(
-        0, "[%d] send_raw_html: ERROR - buffer not updated! (before=%d, after=%d, attempted_write=%d)",
-        $id, $before_len, $after_len, length($header_data) + length($html_str)
+        0, "[%d] send_raw_html: CRITICAL ERROR - buffer not updated! (before=%d, after=%d bytes)",
+        $id, $before_len, $after_len
+    );
+} else {
+    <[base.logs]>->(
+        2, "[%d] send_raw_html: successfully wrote %d bytes to output buffer",
+        $id, $after_len - $before_len
     );
 }
 
