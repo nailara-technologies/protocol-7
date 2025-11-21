@@ -38,7 +38,7 @@ $session->{'http'} //= {
 };
 my $request = $session->{'http'}->{'request'};
 
-return 0 if $session->{'buffer'}->{'input'} !~ s|^(.+\r?\n\r?\n)||s;
+return 1 if $session->{'buffer'}->{'input'} !~ s|^(.+\r?\n\r?\n)||s;  ## incomplete, more data expected ##
 
 $session->{'http'}->{'request'}->{'data'} = $LAST_PAREN_MATCH // '';
 
