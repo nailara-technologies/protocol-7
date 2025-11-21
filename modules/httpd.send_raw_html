@@ -34,33 +34,15 @@ $response_params->{'Host'} = $http_host
 unless (defined $session->{'buffer'}->{'output'}) {
     $session->{'buffer'}->{'output'} = '';
     <[base.logs]>->( 1, "[%d] send_raw_html: initializing empty output buffer", $id );
-} elsif (ref($session->{'buffer'}->{'output'}) eq 'SCALAR') {
-    # If output is a reference to a scalar, dereference it for initialization check
-    unless (defined ${ $session->{'buffer'}->{'output'} }) {
-        ${ $session->{'buffer'}->{'output'} } = '';
-        <[base.logs]>->( 1, "[%d] send_raw_html: initializing empty referenced scalar buffer", $id );
-    }
 }
 
 <[base.logs]>->(
-    2, "[%d] send_raw_html: buffer_obj_type=%s, output_tied=%s",
+    2, "[%d] send_raw_html: buffer_is_tied=%s",
     $id,
-    ref( $session->{'buffer'} ) // 'HASH',
-    (tied( %{ $session->{'buffer'} } ) ? 'YES' : 'NO')
+    (tied( $session->{'buffer'}->{'output'} ) ? 'YES' : 'NO')
 );
 
-my $buffer_ref_check = $session->{'buffer'}->{'output'};
-my $before_len = length(
-    (ref($buffer_ref_check) ? ${$buffer_ref_check} : $buffer_ref_check) // ''
-);
-
-<[base.logs]>->(
-    1, "[%d] send_raw_html: output_type=%s, is_ref=%s, before_len=%d",
-    $id,
-    ref($buffer_ref_check) // 'SCALAR',
-    (ref($buffer_ref_check) ? 'YES' : 'NO'),
-    $before_len
-);
+my $before_len = length( $session->{'buffer'}->{'output'} // '' );
 
 my $header_data = <[httpd.new_header]>->(
     $code,
@@ -78,20 +60,28 @@ my $header_data = <[httpd.new_header]>->(
     $id, length($header_data), length($html_str), length($header_data) + length($html_str)
 );
 
-# The buffer is a reference to a scalar (for Event watcher), so dereference it
-# event.add_var passes \$session->{'buffer'}->{'output'}, so we need to dereference when writing
-my $buffer_ref = $session->{'buffer'}->{'output'};
-my $new_content = (ref($buffer_ref) ? ${$buffer_ref} : $buffer_ref) . $header_data . $html_str;
+# Diagnostic: Check buffer state before write
+<[base.logs]>->(
+    2, "[%d] send_raw_html: BEFORE_WRITE buffer_len=%d, is_tied=%s, content=%s",
+    $id,
+    length( $session->{'buffer'}->{'output'} // '' ),
+    (tied( $session->{'buffer'}->{'output'} ) ? 'YES' : 'NO'),
+    (length( $session->{'buffer'}->{'output'} // '' ) > 0 ? 'HAS_DATA' : 'EMPTY')
+);
 
-# Assign back, dereferencing if needed
-if (ref($buffer_ref)) {
-    ${$buffer_ref} = $new_content;
-} else {
-    $session->{'buffer'}->{'output'} = $new_content;
-}
+# Write to tied variable - buffer is tied by event.add_var, not a reference
+# Simply concatenate to trigger the STORE method of the tied variable
+$session->{'buffer'}->{'output'} .= $header_data . $html_str;
 
-my $after_len = length(
-    (ref($buffer_ref) ? ${$buffer_ref} : $session->{'buffer'}->{'output'}) // ''
+my $after_len = length( $session->{'buffer'}->{'output'} // '' );
+
+# Diagnostic: Check buffer state after write
+<[base.logs]>->(
+    2, "[%d] send_raw_html: AFTER_WRITE buffer_len=%d, is_tied=%s, content=%s",
+    $id,
+    $after_len,
+    (tied( $session->{'buffer'}->{'output'} ) ? 'YES' : 'NO'),
+    ($after_len > 0 ? 'HAS_DATA' : 'EMPTY')
 );
 
 <[base.logs]>->(
