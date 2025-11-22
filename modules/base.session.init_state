@@ -50,8 +50,13 @@ if ( $session->{'mode'} ne qw| server | ) {
     if ( defined $state->{'read-mode'} ) {
         $session->{'read-mode'} = $state->{'read-mode'};
         <[base.log]>->(
-            2,     "[%d] init_state: set read-mode to '%s'",
+            1,     "[%d] init_state: set read-mode to '%s' from protocol state",
             $s_id, $session->{'read-mode'}
+        );
+    } else {
+        <[base.log]>->(
+            1,     "[%d] init_state: WARNING - read-mode not in protocol state (protocol=%s, state_id=%d)",
+            $s_id, $session->{'protocol'}, $state_id
         );
     }
 
