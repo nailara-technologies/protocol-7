@@ -15,15 +15,8 @@
 <protocol.https.cfg.hsts_max_age>     //= 31536000;
 <protocol.https.cfg.hsts_include_subdomains> //= 1;
 
-# HTTPS protocol definition using HTTP request handlers since TLS is transparent
-# Note: protocol.https.state is defined in httpsd.init_code with read-mode=binary
-<protocol.https> = {
-    qw| connect | => {
-        qw| callback | => undef,
-        qw| banner |   => ''
-    }
-};
-
+## HTTPS protocol structure is defined in httpsd.init_code with proper state and handlers
+## Only set configuration values here, do NOT redefine the protocol structure
 ## Set binary read size for HTTPS - SSL frame size is 16KB max per IO::Socket::SSL docs
 ## This ensures we read complete SSL frames rather than trying to parse line-by-line
 <protocol.https.bytes_to_read> //= 16384;
