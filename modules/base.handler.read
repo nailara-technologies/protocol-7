@@ -72,9 +72,9 @@ if ( $session->{'read-mode'} eq qw| binary | ) {    ##  binary protocol  ##
 if ( $protocol eq qw| https | and ref($session->{'handle'}) eq qw| IO::Socket::SSL | ) {
     if ( $session->{'handle'}->pending and $session->{'last-bytes-read'} > 0 ) {
         ## Data is pending in SSL layer AND we just read new bytes
-        ## Immediately trigger protocol handler to process rest of frame
+        ## Schedule protocol handler at event loop end to avoid infinite loops
         if ( exists $session->{'watcher'}{'input_buffer'} ) {
-            $session->{'watcher'}{'input_buffer'}->now;
+            $session->{'watcher'}{'input_buffer'}->again;
         }
     }
 }
