@@ -24,11 +24,16 @@
 
     qw| state | => <protocol.https.state> // <protocol.http.state> // {
         qw| 0 | => {
+            qw| read-mode | => qw| binary |,
             qw| input |  => { qw| handler | => qw| httpsd.request_handler | },
             qw| output | => { qw| handler | => qw| base.handler.write | }
         }
     }
 };
+
+## Set binary read size for HTTPS - SSL frame size is 16KB max per IO::Socket::SSL docs
+## This ensures we read complete SSL frames rather than trying to parse line-by-line
+<protocol.https.bytes_to_read> //= 16384;
 
 0;
 
