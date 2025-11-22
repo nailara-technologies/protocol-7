@@ -42,12 +42,6 @@ my $return_code = 2;                             ##  set to disconnecting  ##
 
 my $protocol = $session->{'protocol'};
 
-## Log socket readable events for HTTPS to debug timing issues
-<[base.logs]>->(
-    2, "[%d] base.handler.read FIRED: socket readable event, protocol=%s",
-    $id, $protocol
-) if $protocol =~ m|https?|;
-
 if ( $session->{'read-mode'} eq qw| binary | ) {    ##  binary protocol  ##
 
     ##  read-mode : binary  ##
@@ -86,21 +80,11 @@ if ( $return_code > 1 ) {    ##  disconnect  ##
         $event->w->start;    ##  restarting : still space in buffer  ##
         $handle_href->{'paused'} = FALSE;
 
-        <[base.logs]>->(
-            3, "[%d] base.handler.read: restarted input watcher, size_left=%d, net_status=%s",
-            $id, $size_left,
-            ($return_code == 0 ? 'COMPLETE_LINE' : $return_code == 1 ? 'INCOMPLETE_LINE' : 'ERROR')
-        );
-
-        ## CRITICAL: After reading new data, trigger input_buffer tied variable watcher
+        ## CRITICAL: After reading new data, re-trigger input_buffer tied variable watcher
         ## to re-check if protocol handler can now process complete request
-        ## (regardless of whether net.read_linewise found a complete line or not)
+        ## Use ->again (not ->now) to avoid infinite loops
         if ( exists $session->{'watcher'}{'input_buffer'} and $session->{'last-bytes-read'} > 0 ) {
-            <[base.logs]>->(
-                2, "[%d] base.handler.read: read %d bytes, triggering input_buffer watcher",
-                $id, $session->{'last-bytes-read'}
-            );
-            $session->{'watcher'}{'input_buffer'}->now;
+            $session->{'watcher'}{'input_buffer'}->again;
         }
 
     } else {    ##  set timeout ? ##  [LLL]
