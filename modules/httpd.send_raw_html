@@ -69,7 +69,9 @@ my $header_data = <[httpd.new_header]>->(
     (tied( $session->{'buffer'}->{'output'} ) ? 'YES' : 'NO')
 );
 
-$session->{'buffer'}->{'output'} .= $header_data . $html_str;
+## Use explicit assignment instead of .= for tied variables
+## Some tied variable handlers don't properly support compound assignment operators
+$session->{'buffer'}->{'output'} = $session->{'buffer'}->{'output'} . $header_data . $html_str;
 
 my $after_len = length( $session->{'buffer'}->{'output'} // '' );
 
