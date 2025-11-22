@@ -63,8 +63,10 @@ if ( defined <https.handler.get> ) {
 
 # Protocol state for HTTPS (using 'https' protocol instead of 'http')
 # Create HTTPS state with httpsd.request_handler for input (overriding HTTP handler)
+# CRITICAL: Include read-mode=binary to handle SSL frames properly (16KB chunks)
 <protocol.https.state> = {
     '0' => {
+        'read-mode' => 'binary',
         'input'  => { 'handler' => 'httpsd.request_handler' },
         'output' => { 'handler' => 'base.handler.write' }
     }
