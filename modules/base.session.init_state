@@ -60,6 +60,20 @@ if ( $session->{'mode'} ne qw| server | ) {
         );
     }
 
+    ## Apply bytes-to-read from protocol state to session
+    if ( defined $state->{'bytes-to-read'} ) {
+        $session->{'bytes-to-read'} = $state->{'bytes-to-read'};
+        <[base.logs]>->(
+            1,     "[%d] init_state: set bytes-to-read to %d from protocol state",
+            $s_id, $session->{'bytes-to-read'}
+        );
+    } else {
+        <[base.logs]>->(
+            1,     "[%d] init_state: WARNING - bytes-to-read not in protocol state (protocol=%s, state_id=%d)",
+            $s_id, $session->{'protocol'}, $state_id
+        );
+    }
+
     ## [ LLL ] 'output' handler ? ##
 
     ##  post auth handler  ##  [ state 0 --> 1 ]
