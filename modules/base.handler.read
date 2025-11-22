@@ -69,7 +69,7 @@ if ( $session->{'read-mode'} eq qw| binary | ) {    ##  binary protocol  ##
 ## See IO::Socket::SSL manpage: need to check pending() after sysread
 ## BUT: Only re-trigger if we actually read new bytes
 ## If pending() but last-bytes-read == 0, we're stuck with same frame data
-if ( $session->{'is_https'} and ref($session->{'handle'}) eq qw| IO::Socket::SSL | ) {
+if ( $protocol eq qw| https | and ref($session->{'handle'}) eq qw| IO::Socket::SSL | ) {
     if ( $session->{'handle'}->pending and $session->{'last-bytes-read'} > 0 ) {
         ## Data is pending in SSL layer AND we just read new bytes
         ## Immediately trigger protocol handler to process rest of frame
