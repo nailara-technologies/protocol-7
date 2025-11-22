@@ -16,19 +16,22 @@
 <protocol.https.cfg.hsts_include_subdomains> //= 1;
 
 # HTTPS protocol definition using HTTP request handlers since TLS is transparent
+## Define HTTPS state with binary read-mode for proper SSL frame handling
+<protocol.https.state> = {
+    qw| 0 | => {
+        qw| read-mode | => qw| binary |,
+        qw| input |  => { qw| handler | => qw| httpsd.request_handler | },
+        qw| output | => { qw| handler | => qw| base.handler.write | }
+    }
+};
+
 <protocol.https> = {
     qw| connect | => {
         qw| callback | => undef,
         qw| banner |   => ''
     },
 
-    qw| state | => <protocol.https.state> // <protocol.http.state> // {
-        qw| 0 | => {
-            qw| read-mode | => qw| binary |,
-            qw| input |  => { qw| handler | => qw| httpsd.request_handler | },
-            qw| output | => { qw| handler | => qw| base.handler.write | }
-        }
-    }
+    qw| state | => <protocol.https.state>
 };
 
 ## Set binary read size for HTTPS - SSL frame size is 16KB max per IO::Socket::SSL docs
