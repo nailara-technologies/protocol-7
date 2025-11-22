@@ -83,20 +83,9 @@ my $after_len = length( $session->{'buffer'}->{'output'} // '' );
     ($session->{'is_https'} ? 'YES' : 'NO')
 );
 
-if ($after_len == $before_len) {
-    <[base.logs]>->(
-        0, "[%d] send_raw_html: CRITICAL ERROR - buffer not updated! (before=%d, after=%d bytes)",
-        $id, $before_len, $after_len
-    );
-} else {
-    <[base.logs]>->(
-        2, "[%d] send_raw_html: successfully wrote %d bytes to output buffer",
-        $id, $after_len - $before_len
-    );
-}
-
+## Log buffer state for debugging (response delivery is handled by base.handler.write)
 <[base.logs]>->(
-    1, "[%d] send_raw_html: buffer before=%d, after=%d bytes",
+    2, "[%d] send_raw_html: response queued, buffer bytes: %d -> %d",
     $id, $before_len, $after_len
 );
 
@@ -104,8 +93,8 @@ if ($after_len == $before_len) {
 $session->{'flush_shutdown'} = 1 if $session->{'http'}->{'close'};
 return 0;
 
-#,,,.,,.,,...,.,.,,,,,.,,,,,.,,..,.,,,...,,,.,..,,...,.,.,..,,..,,.,.,,.,,...,
-#BRDD7JT75GSKIQY6SVO5OCMTRNZDR5J5JXGEA3PN2LUIKVGKZHCDXWUUU3QUJRSILGX4MA26S2S7C
-#\\\|SEIKXRJCWY2D4GI4MJKDLWEVSZHJHFKTZMOSILBMKENJ37BVEFG \ / AMOS7 \ YOURUM ::
-#\[7]HHESJKGVQDEV2T5JJE4YIMNWYM42SG3FHJCCQ3NKHJDMOFKYAUAI 7  DATA SIGNATURE ::
+#,,,,,...,,.,,..,,,,.,,..,,..,.,,,...,,.,,..,,..,,...,...,.,,,,.,,...,,.,,..,,
+#46FYD32SQIDB4R6G4CK5F6TH4ZRESBQNFIR2GC3NGVKKBHTLUG2K4QDL3MHYGSHLNIU74KPXHCFKC
+#\\\|YS4H6DUTKHO4FZKQMLAD4SY7F46FCPDSSNLUPURZCIDS23VLKQX \ / AMOS7 \ YOURUM ::
+#\[7]3TWQZH3CFJVP25XDMKXUQKNH5JHMD3QI74GUVNCDJMOYQJRKD2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
