@@ -10,11 +10,12 @@ my $signal  = $params->{'signal'};
 my $handler = $params->{'handler'};
 
 my $callback;
-
+my $defined_handler = FALSE;
 if (    defined $handler
     and exists $code{$handler}
     and ref $code{$handler} eq qw| CODE | ) {
 
+    $defined_handler = TRUE;
     ##  wrapped for reloading source code  ##
     $callback = sub { $code{$handler}->() };
 
@@ -35,14 +36,14 @@ if ( defined $SIG{$signal} ) {
     <[base.logs]>->( $log_level, 'unregistering $SIG{%s} ..,', $signal );
     undef $SIG{$signal};
 }
-if ( defined $handler ) {
+if ($defined_handler) {
     <[base.logs]>->(
-        $log_level, 'setting up handler %s for signal %s .,',
+        $log_level, '[set-up] handler %s for signal %s',
         $handler,   $signal
     );
 } else {
     <[base.logs]>->(
-        $log_level, 'setting up signal %s handler with custom cb .,', $signal
+        $log_level, '[set-up] signal %s handler [ with custom cb ]', $signal
     );
 }
 
@@ -63,8 +64,8 @@ if ( length $EVAL_ERROR ) {
 
 return <watcher.signal>->{$signal};
 
-#,,.,,,,,,,,,,,..,.,,,...,,..,,,,,,..,.,.,..,,..,,...,...,...,.,,,.,,,,,.,,,.,
-#5HT77ZZA6XLYKWUS6YZNTXVSGGN5G7EB5BRNMYPEUX4TK3GTWRZFENQFDBZ5IKBEPTHGLFCFEDCS2
-#\\\|YZO3CDI56GPQOMO7J732T6DCAFDQ7EHMCC3EODUGGLPPDUPRXIC \ / AMOS7 \ YOURUM ::
-#\[7]UOT7BWIP6UYUAWWRFPHLCUN6CMXGDODTAIQ64ZDMLBWTK5U7EMBQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,.,,,.,,,..,,..,,,,,...,...,..,,..,,...,...,.,.,.,.,...,,,.,,,,,
+#3O4A77BNNUWME3DSGMWNXNMIVLQZWUGCYUEPJAQDQZZ424HEARALRC2ENI5SSRJRCS3RZCNNHG7HS
+#\\\|STNE7K5MN7MPFSN4GN6POHY3GXL7LAP6555XIR3PDDSGOHVWVLO \ / AMOS7 \ YOURUM ::
+#\[7]REGHNJ34SX6XNDQNUEV2EL6P7V3NPE47J4X3VYMZJ5UUTG3SIIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
