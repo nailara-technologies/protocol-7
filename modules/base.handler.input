@@ -40,25 +40,8 @@ my $ret_code = 0;    ## track handler return code for later decision logic ##
 
 if ( defined $handler and exists $code{$handler} ) {
 
-    ## Only log for HTTP/HTTPS debugging to reduce noise
-    if ( $proto =~ m|https?| ) {
-        <[base.logs]>->(
-            2, "[%d] base.handler.input: CALLING protocol handler '%s', current buffer_len=%d",
-            $id, $handler, $start_len
-        );
-    }
-
     $ret_code = $code{$handler}->($event);
     $len = length $session->{'buffer'}->{'input'};
-
-    ## Only log for HTTP/HTTPS debugging
-    if ( $proto =~ m|https?| ) {
-        <[base.logs]>->(
-            1, "[%d] base.handler.input: protocol handler '%s' returned %s (buffer_len=%d, changed=%s)",
-            $id, $handler, $ret_code, $len,
-            ($len != $start_len ? sprintf("YES [%d→%d]", $start_len, $len) : "NO")
-        );
-    }
 
     ## return code 0 ## command processed  [ removed from buffer ]
     ## return code 1 ## ..not complete.,   [ more data expected. ]
