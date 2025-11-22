@@ -38,11 +38,13 @@ my $bytecount = <[base.s_read]>->(    ## limit : remaining buffer size ##
 
 if ( $bytecount > 0 ) {
     $session->{'fh-last-read-error'} = FALSE;
+    $session->{'last-bytes-read'} = $bytecount;    ## Track bytes read for SSL pending check ##
     $handle_href->{'bytes'}->{'in'} += $bytecount;
     $return_code = 0;    ##  reports request complete [ no size-limit ]  ##
 
 } else {    ##  client is gone \ error  ##
     $session->{'fh-last-read-error'} = TRUE;    ## return code : 2  ##
+    $session->{'last-bytes-read'} = 0;             ## No bytes read ##
 }
 
 return $return_code;

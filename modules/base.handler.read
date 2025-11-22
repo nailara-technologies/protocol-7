@@ -26,6 +26,7 @@ if (   not defined $id
 my $session     = $data{'session'}->{$id};
 my $handle_href = $data{'handle'}->{ $session->{'handle'} };
 $session->{'buffer'}->{'input'} //= '';    ## re-init if gone ##
+$session->{'last-bytes-read'} //= 0;       ## initialize bytes read counter ##
 
 if ( not fileno $session->{'handle'} ) {    ##  filehandle gone ?  ##
     $session->{'fh-last-read-error'} = TRUE;
