@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = base.sig_PIPE
+# descr = install default signal [warning] handler for SIGPIPE signals
+
+my $event = shift;
+
+my $signal_count = 1;
+$signal_count = $event->w->hints    ##  combined events  ##
+    if defined $event and ref $event eq qw| Event::signal |;
+
+<[base.logs]>->(
+    0,
+    ':: SIG PIPE :. unhandled signal%s requiring handler',
+    (   $signal_count == 1
+        ? ''
+        : sprintf( 's [%d]', $signal_count )
+    )
+);
+
+return TRUE;
+
+#,,,,,...,,,,,,,,,,..,,..,.,,,...,,,.,,,.,,,,,..,,...,...,..,,,..,,,.,.,,,.,,,
+#TIUQLYN4CHIE23M7Y7BEO2WWWZZACBI5Z5D4BU6AY5QFP64CT525RCLUPPX5TUHX37LF6JL6HSHHI
+#\\\|D3CAUYYEE7HNR76MZHMIN5BIPMXQRR4UKLAVUWSBZAC2AITHKM6 \ / AMOS7 \ YOURUM ::
+#\[7]QPHJS3QCOSPAAUITZD7MNPUEOE4INSN3RT4MIIDUUJHQFRYIIKCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
