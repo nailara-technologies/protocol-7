@@ -12,21 +12,14 @@ if ( not defined $name or not length $name ) {
         "no send command defined for '%s' buffer <{C1}>", $name
     );
     return undef;
-} elsif (
-    not <[base.is_defined_recursive]>->(
-        sprintf qw| log.send-buffer.%s |, $name
-    )
-) {
+} elsif ( not exists <log.send-buffer>->{$name} ) {
     <[base.s_warn]>->(
         "send-buffer '%s' is not initialized yet <{C1}>", $name
     );
     return undef;
-} elsif (
-    <[base.is_defined_recursive]>->(
-        sprintf qw| log.send-buffer.%s.watcher.idle-send |, $name
-    )
-    and <log.send-buffer>->{$name}->{'watcher'}->{'idle-send'}->is_active
-) {
+} elsif ( exists <log.send-buffer>->{$name}
+    and exists <log.send-buffer>->{$name}->{'watcher'}->{'idle-send'}
+    and <log.send-buffer>->{$name}->{'watcher'}->{'idle-send'}->is_active ) {
     return FALSE;    ## callback exists ##
 }
 
@@ -38,8 +31,8 @@ if ( not defined $name or not length $name ) {
 
 return TRUE;    ## callback installed ##
 
-#,,,.,.,.,...,,,.,,.,,,,.,,.,,,,,,.,,,..,,,,.,..,,...,...,.,,,,,.,..,,...,,..,
-#NF6DL4BK44HJDNIYYZB2HC35D3XUUY54OHWIZZ3EYVHBALF5I4VBIFKMIYHPUG64GUUB2XYCHU7QU
-#\\\|FRXID5QQHSIJRSSLW5MZAW6ZOMHELJDWI6LSVGZ7SWS375OO27P \ / AMOS7 \ YOURUM ::
-#\[7]DSSOVTCANFU3W4ZVNVCHFUD6LWMIF5H46YGVRDKTJOMPJVX4VOBY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,...,,.,,.,.,,,,,..,,,,.,,.,,..,,..,,...,.,.,,,,,.,,,,,.,.,.,.,.,
+#BUX4XLBPAFPTKNJ3RQF2PMAC5URIZ4XPJDWFR45EIW3TTK4QLB3NSHSANQVMGLOGG4GHFKYP4IAKY
+#\\\|YS65NQIOGMEXDPTY4CXJ7CPA55HDZWXOAJNKCXTM5ORRRPMXL5L \ / AMOS7 \ YOURUM ::
+#\[7]U53YPVXG2XRC3U7HKK6EK7L7CMQXGHHJQZOYC7P6AO63WPMBHIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
