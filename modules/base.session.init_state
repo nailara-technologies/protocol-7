@@ -46,6 +46,15 @@ if ( $session->{'mode'} ne qw| server | ) {
         $s_id, $session->{'input'}->{'handler'} // 'UNDEF'
     );
 
+    ## Apply protocol state configuration to session
+    if ( defined $state->{'read-mode'} ) {
+        $session->{'read-mode'} = $state->{'read-mode'};
+        <[base.log]>->(
+            2,     "[%d] init_state: set read-mode to '%s'",
+            $s_id, $session->{'read-mode'}
+        );
+    }
+
     ## [ LLL ] 'output' handler ? ##
 
     ##  post auth handler  ##  [ state 0 --> 1 ]
