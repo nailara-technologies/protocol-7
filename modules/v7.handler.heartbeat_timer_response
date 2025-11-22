@@ -5,8 +5,9 @@
 my $response    = shift;
 my $instance_id = $response->{'params'}->{'instance_id'};
 if ( not exists <v7.zenka.instance>->{$instance_id} ) {
-    <[base.log]>
-        ->( 1, "instance $instance_id gone, skipping response timer" );
+    <[base.logs]>->(
+        1, "instance %d gone, skipping response timer", $instance_id
+    );
     return;
 }
 my $instance        = <v7.zenka.instance>->{$instance_id};
@@ -17,35 +18,36 @@ my $heartbeat_retry = $fail_count ? 0 : 1;                      # retry once
 
 $instance->{'timer'}->{'heartbeat-timeout'}->cancel
     if defined $instance->{'timer'}->{'heartbeat-timeout'}
-    and !$instance->{'timer'}->{'heartbeat-timeout'}->is_cancelled;
+    and not $instance->{'timer'}->{'heartbeat-timeout'}->is_cancelled;
 
 if (    $response->{'cmd'} eq qw| TRUE |
-    and $response->{'call_args'}->{'args'} eq 'beating' ) {    # success again
+    and $response->{'call_args'}->{'args'} eq qw| beating | )
+{    # success again
     delete $instance->{'heartbeat'}->{'errors'};
-    <[base.log]>->(
-        2,
-        "instance $instance_id [$zenka_name] heartbeat response ( success )"
-    ) if !<devmod.skip_v7_heartbeat>;
+    <[base.logs]>->(
+        2, "instance $instance_id [success] heartbeat : =) :: %s ::",
+        $zenka_name
+    ) if not <devmod.skip_v7_heartbeat>;
 
 } elsif ( !$heartbeat_retry ) {
 
-    return if $instance->{'status'} eq 'error';
+    return if $instance->{'status'} eq qw| error |;
 
-    <[base.log]>->(
-        0, "instance $instance_id [$zenka_name] heartbeat response ( error )"
+    <[base.logs]>->(
+        0, "instance $instance_id [:error:] heartbeat : :| :. %s .:",
+        $zenka_name
     );
     delete <callback.session.closing_last>
         if $is_cube_zenka;    # for safe restart
 
     <[v7.stop_heartbeat_timer]>->($instance_id);
     $instance->{'heartbeat'}->{'errors'} = 0;    # <-- resetting error counter
-    <[zenka.change_status]>->( $instance_id, 'error' );
+    <[zenka.change_status]>->( $instance_id, qw| error | );
 
 } else {
-    <[base.log]>->(
-        0,
-        "instance $instance_id [$zenka_name]"
-            . " heartbeat response ( error ) [..retrying..]"
+    <[base.logs]>->(
+        0, "instance %d [%s] heartbeat response ( error ) [..retrying..]",
+        $instance_id, $zenka_name
     );
 
     # setting shorter heartbeat timeout..,
@@ -60,8 +62,8 @@ if (    $response->{'cmd'} eq qw| TRUE |
     );
 }
 
-#,,..,.,,,,,,,,.,,,..,,,,,,,.,,,.,,,.,,,.,.,.,..,,...,...,...,.,.,.,.,...,..,,
-#MQRF53FB6Z6HLIFTLJ5VGYB66GQL2RGEF6WQYE5QGPEGXVF2HDLZKG6UXFL7ANY5PQSS36ZKUYZ2I
-#\\\|NVTAZN27VVO5OYXWCWL5EJRPMDOXOIQQUASSZVBFKCH6DJFOJHS \ / AMOS7 \ YOURUM ::
-#\[7]KBDVCCRWIKH5CYGI2AYTCJMZ3Y4YLCMCXLWLWMILHZXCR5A5CYDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,,.,..,,.,,,,,,,,.,,.,.,,..,,.,,..,,...,...,.,.,,..,.,,,,,.,..,,
+#XSBHPWZMUV5COVYQB2FMTE5CPHMDQFA2RYFQHNZQHDLVPAQGZCCULA4NA25WDU6XKGIXP5MW5TADY
+#\\\|L4PMGURT3U3OOLIQBOQFDWN37CGDY7NBEILCCYA4OVKGMG37UXE \ / AMOS7 \ YOURUM ::
+#\[7]GEXOIUQZTRQEK3UQRYMDQ5F4ZL4D7PU5NSTXOXPFACJAWKFKWQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

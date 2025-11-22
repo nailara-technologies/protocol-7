@@ -17,10 +17,7 @@ if ( not defined $data{'buffer'}->{$name}->{'log_cmd'} ) {
 
 my $log_send_cmd = $data{'buffer'}->{$name}->{'log_cmd'};
 
-if (not <[base.is_defined_recursive]>->(
-        sprintf qw| log.send-buffer.%s |, $name
-    )
-) {
+if ( not exists <log.send-buffer>->{$name} ) {
     <[base.s_warn]>->( "send-buffer '%s' no longer exists <{C1}>", $name );
     return undef;
 }
@@ -111,8 +108,8 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
 
 }
 
-#,,,.,,..,..,,,..,...,.,,,,..,,,.,,,,,,,.,,,,,..,,...,...,...,,.,,...,,..,,..,
-#E6MYJVWYUKOKCTKUY3EWZZKPG3VTRV5HG22AATEYOSFAWY2KPZ4PV6EPDDWZCLUPH2HFG3SKO6CQW
-#\\\|Z5HBWFLCEQSTSFPMDSI2OMOKSTG7EYB6LMYMEWVROXAIFRQHGA6 \ / AMOS7 \ YOURUM ::
-#\[7]ZCJNMUS55YPL536NWATR7UFH5GYCOL2FRGGFK6NK6YI7SQKXBCAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,...,.,.,,.,,...,.,,,.,.,,.,,.,,,..,,...,...,..,,..,,,,.,...,,,,,
+#46TL2DQF7XAD4E7FG4ZRB5JMWHOCLUIAS6MTTZE2Z6FTD7BVLXC5DVQXYEU2P6MBZIWTWUMKYGHAY
+#\\\|PPHGE7HOCKDLTTHBJW4ODZE5OG7NL5H65GHHB577LMVRMNQ7A2X \ / AMOS7 \ YOURUM ::
+#\[7]PBNC3JZNC5RS6QEHNO4TYAYAO6MUN572QZ7LZHWYC3DRMPBCLYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
