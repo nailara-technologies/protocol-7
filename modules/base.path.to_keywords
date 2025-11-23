@@ -2,39 +2,37 @@
 
 # name  = base.path.to_keywords
 # param = $absolute_path
-# descr = Convert absolute path to use repository keywords
-# return = path string with [protocol-7] or [workspace-transfer] keywords
+# descr = Convert absolute path to use registered keywords
+# return = path string with keyword placeholders
 
 my $path = shift;
 return $path unless defined $path;
 
-## Get environment detection ##
-my $env_info = <[base.env.detect_environment]>;
-my $protocol7_root = $env_info->{protocol7_root};
-my $workspace_root = $env_info->{workspace_root};
+## Get keyword registry ##
+return $path unless <[base.is_defined_recursive]>->(qw| base.path.keywords |);
+my $keywords_href = <base.path.keywords>;
 
-## Replace absolute paths with keywords ##
-## Check workspace-transfer first (might be nested) ##
-if (defined $workspace_root && $path =~ s{^\Q$workspace_root\E(?=/|$)}{[workspace-transfer]}) {
-    return $path;
+## Sort keywords by length (longest first) to handle nested paths ##
+my @sorted_keys
+    = sort { length $keywords_href->{$b} <=> length $keywords_href->{$a} }
+    keys %$keywords_href;
+
+## Try each keyword in order ##
+foreach my $key_name (@sorted_keys) {
+    my $key_path = $keywords_href->{$key_name};
+    next unless defined $key_path;
+
+    ## Replace absolute path with keyword placeholder ##
+    if ( $path =~ s{^\Q$key_path\E(?=/|$)}{[$key_name]} ) {
+        return $path;
+    }
 }
 
-## Then check protocol-7 ##
-if (defined $protocol7_root && $path =~ s{^\Q$protocol7_root\E(?=/|$)}{[protocol-7]}) {
-    return $path;
-}
-
-## If neither matches, return original ##
+## If no keyword matches, return original ##
 return $path;
 
-#,,.,..,,,.,,,..,,,.,,.,...,,.,,...,,...,..,,,.,,..,...,...,.,,,,,,,,.,,..,.,,,,.,
-#PLACEHOLDER_SIGNATURE_WILL_BE_ADDED_DURING_COMMIT
-#\\\|PLACEHOLDER_HASH \ / AMOS7 \ YOURUM ::
-#\[7]PLACEHOLDER_HASH 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,,,,.,,,.,,,...,.,.,.,.,,,,,..,,..,,..,,.,,,..,,...,...,.,,,..,,,,.,,..,,,.,
-#6ZVNWRBKDHYRSYGW5QUFJEKQQYPTAWLF47HJO4Q45FDHVT5ZDKLLGO56HZWGUBXTK76BUX5XXUIHA
-#\\\|2UJBVH7XOJZSAGDJV7BL6G72AUVUE7KH3XYDUMNXOPPU337WH2G \ / AMOS7 \ YOURUM ::
-#\[7]EZBP56XLZK7ZXN3TR2P2BFWU7D6KUB2XOZD7EE4FSHPE2TL5U2BY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,.,.,,.,,,,.,,.,,,,.,,,,,.,,,.,.,..,,...,...,...,.,.,...,...,,,.,
+#I5AMR4UYXCWKAT62YKRNR7RBCJFCIUEDTMHHQWDWGMXT26PTMXCVTJMDH5YTB33GML35HYGUWNSKU
+#\\\|IZ5CQ3FIR4HN64RRBPTXLNMNWDG5BUNZPUEU6TUUP63LVN3FGLO \ / AMOS7 \ YOURUM ::
+#\[7]SK333E6ZC3GP2MYL2MGMGQHI3MGFOTAEZNRADXQH7HXMJHOYNEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

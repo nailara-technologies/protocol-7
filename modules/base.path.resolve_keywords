@@ -2,31 +2,28 @@
 
 # name  = base.path.resolve_keywords
 # param = $path_string
-# descr = Resolve repository keywords [protocol-7] and [workspace-transfer] to actual paths
+# descr = Resolve registered keywords to actual paths
 # return = resolved path string
 
 my $path = shift;
 return $path unless defined $path;
 
-## Get environment detection ##
-my $env_info = <[base.env.detect_environment]>;
-my $protocol7_root = $env_info->{protocol7_root};
-my $workspace_root = $env_info->{workspace_root};
+## Get keyword registry ##
+return $path unless <[base.is_defined_recursive]>->(qw| base.path.keywords |);
+my $keywords_href = <base.path.keywords>;
 
-## Replace keywords with actual paths ##
-$path =~ s/\[protocol-7\]/$protocol7_root/g if defined $protocol7_root;
-$path =~ s/\[workspace-transfer\]/$workspace_root/g if defined $workspace_root;
+## Replace all registered keywords with their actual paths ##
+foreach my $key_name ( keys %$keywords_href ) {
+    my $key_path = $keywords_href->{$key_name};
+    next unless defined $key_path;
+
+    $path =~ s{\[$key_name\]}{$key_path}g;
+}
 
 return $path;
 
-#,,.,..,,,.,,,..,,,.,,.,...,,.,,...,,...,..,,,.,,..,...,...,.,,,,,,,,.,,..,.,,,,.,
-#PLACEHOLDER_SIGNATURE_WILL_BE_ADDED_DURING_COMMIT
-#\\\|PLACEHOLDER_HASH \ / AMOS7 \ YOURUM ::
-#\[7]PLACEHOLDER_HASH 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,,,,,,,,..,,,,,,,.,,.,.,,.,,..,,,,,,...,.,,,..,,...,...,.,.,.,.,,,.,.,.,...,
-#7Y5LUUWYSH34GJBWCXKIDRGZJQ4CHFAU6UXSZOWVTVRRFWGVX3ATICAKNZJEVPUU56QZTMK26TJCY
-#\\\|YMDQDW75ZFSUVVCQR6WLPYAD5QOULOUSB2ST4Q2W35T3VCGZ265 \ / AMOS7 \ YOURUM ::
-#\[7]XK4IH6D4EFQNFWXW5VZ7HKMQZB6QQECIA6PAXFJHKTFZR7BTYMCI 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,.,.,,..,..,,...,.,.,,,.,..,,.,.,..,,...,.,.,,,.,.,.,,..,..,,.,.,
+#7MWHBH7HTAF3ZOAQXKYTBHLJRVVWMNUDKZUXECJT657ARTZQGCSRLRWGHJAAKTMLKSYISFFR3FEGE
+#\\\|TWAE4OOP4LWWJRBYW3KD7R5AOXXW6YRYXA2YHDBZAOSYTDQV5YL \ / AMOS7 \ YOURUM ::
+#\[7]QUP22BJL6YRPVG6PW4OARDTKYE4KRB54GF6ZRBP4WC3V7YZRLMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

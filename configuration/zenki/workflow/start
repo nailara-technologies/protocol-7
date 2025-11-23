@@ -7,8 +7,12 @@ system.verbosity.zenka_buffer = 2
 system.verbosity.zenka_logfile = 2
 
 ## Disable automatic key loading for workflow zenka ##
-## Keys are explicitly loaded by commands that need them (e.g., version-sign-commit)
-## Read-only commands (fix-versions, harmonize-emails) don't need keys
+##
+## Keys are explicitly loaded by commands that need
+##                  them [ e.g. version-sign-commit ]
+##
+## Read-only commands [fix-versions, harmonize-emails] don't need keys
+##
 crypt.C25519.auto_load_keys = no
 
 ## Enable automatic key creation for workflow zenka ##
@@ -25,15 +29,18 @@ access.cmd.usr.cube = commands heart reload verify-instance \
                       fix-versions harmonize-emails *
 
 ## Git remote configuration for version-sign-commit ##
-## By default, remotes are auto-detected with priority: hub > origin > first available
+## By default, remotes are auto-detected with
+##   priority: hub > origin > first available
+##
 ## Configure multiple remotes to push to all of them automatically:
 ## Examples:
-##   workflow.git.remotes = origin backup            # two remotes
-##   workflow.git.remotes = origin backup mirror     # three remotes
-##   workflow.git.remotes =                          # empty = auto-detect (default)
+##   workflow.git.remotes = origin backup      # two remotes
+##   workflow.git.remotes = origin backup mirror # three remotes
+##   workflow.git.remotes =                    # empty = auto-detect [default]
 # workflow.git.remotes =
 
-modules.load = auth net protocol io.unix crypt.C25519 git workflow
+modules.load = auth net protocol io.unix crypt.C25519 \
+               git workspace-transfer workflow
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -42,8 +49,8 @@ modules.load = auth net protocol io.unix crypt.C25519 git workflow
 
 [exit:0]
 
-#,,,.,,.,,,,,,.,.,,..,,,,,,.,,.,.,..,,..,,.,.,..,,...,...,.,,,.,,,,.,,,.,,,..,
-#EWZUENWUNCBCA5BTUXKJB54WDI7UWGR3MK7F6LQUYGXZYIJZEINZTW3PHZPIRQS7LJNC23TVK3QUK
-#\\\|RORIVB5J466FDRK5LJQLTWZVYISU3Z2TKB36MXN3APEF6FWNFBH \ / AMOS7 \ YOURUM ::
-#\[7]64GQ4QDLFDW5FNKCQFLX3LCZVTUQKHJ2TTDJC2665URPL2BTVIAY 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,.,,.,,,,,,,..,,,..,,.,,,.,,,..,..,,...,...,.,,,,,.,..,,.,.,..,,
+#4EC4MYBCDD5BRGK2C2TBO4BRM6DQ5SQBH7KXCWFFSC7B5FJQKHKFR6R7A2DR3VX2PF3OCKZLQ4N3U
+#\\\|33IZPYHKOZTAH62736AOD5Y5JKAKFSGPLTZZISFVAH2MILQZEUZ \ / AMOS7 \ YOURUM ::
+#\[7]HC5E5CG2MGNAVTMU4SE7O5YKPBCDLUSP66TOPUDR4C5YI6LY3ECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

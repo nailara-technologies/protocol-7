@@ -1,0 +1,65 @@
+## [:< ##
+
+# name  = base.path.register_keywords
+# descr = register keyword-path pairs for path resolution
+
+<base.path.keywords> //= {};    ## initialize as empty ##
+
+my $keywords_href = shift;
+return
+    <[base.s_warn]>->('expected keyword list hash reference parameter <{C1}>')
+    if ref $keywords_href ne qw| HASH |;
+
+## Validate and sanitize keyword pairs ##
+foreach my $key_name ( keys $keywords_href->%* ) {
+    my $key_path = $keywords_href->{$key_name};
+
+    ## Check key name is valid (non-empty string) ##
+    if ( not length $key_name ) {
+        <[base.s_warn]>->('keyword name cannot be empty <{C1}>');
+        return FALSE;
+    }
+
+    ## Check value is defined ##
+    if ( not defined $key_path ) {
+        <[base.s_warn]>->(
+            'keyword "%s" has undefined value <{C1}>', $key_name
+        );
+        return FALSE;
+    }
+
+    ## Check value is not empty string ##
+    if ( not length $key_path ) {
+        <[base.s_warn]>->(
+            'keyword "%s" path cannot be empty <{C1}>', $key_name
+        );
+        return FALSE;
+    }
+}
+
+<[base.logs]>->(
+    2,
+    '.: : registering %d path keyword%s : :.',
+    scalar keys $keywords_href->%*,
+    <[base.cnt_s]>->( scalar $keywords_href->%* )
+);
+my $entry_count = 0;
+foreach my $key ( sort { length $a <=> length $b } keys $keywords_href->%* ) {
+    $entry_count++;
+    <[base.logs]>->(
+        2, ': %14s : %s', $key,
+        <[base.parser.center_ellipse_string]>->( $keywords_href->{$key}, 29 )
+    );
+
+}
+
+<base.path.keywords> = $keywords_href;
+
+return TRUE if $entry_count;    ## keywords registered ##
+return FALSE;                   ## no entries ##
+
+#,,..,,..,..,,,.,,.,.,...,,,.,,.,,,..,.,.,,,.,..,,...,...,,,.,,,.,,,,,,,,,..,,
+#IXVVMTZTECV4PJRYZJYDMTJW3JKP63G72KJ2LWP2U3ONNDFRMRDWM656CIZZDV6AJJAIJAR33JEGA
+#\\\|VCNINIRNARIJG6EEZBSXNAZB44WGBMRYMAQLTPPBPZRTHALUJYJ \ / AMOS7 \ YOURUM ::
+#\[7]XFDIETEZWAS53FADZLMKA4MG5V6NBZWAQ4QFWR3DULY4YXSI3KBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
