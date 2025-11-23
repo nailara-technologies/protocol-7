@@ -14,12 +14,9 @@ my $session  = $data{'session'}->{$s_id};
 my $protocol = $session->{'protocol'};
 my $state    = $data{'protocol'}{$protocol}{'state'}{$state_id};
 
-<[base.log]>->(
-    2,
-    "[%d] init_state: protocol='%s', state_id=%d, handler will be set from state",
-    $s_id,
-    $protocol,
-    $state_id
+<[base.logs]>->(
+    2, "[%d] init_state: protocol='%s' state_id=%d",
+    $s_id, $protocol, $state_id
 );
 
 if ( not defined $state ) {
@@ -29,10 +26,7 @@ if ( not defined $state ) {
 
 my $mode = $data{'handle'}{ $session->{'handle'} }{'mode'};
 
-<[base.log]>->(
-    2, "[%d] init_state: mode='%s', looking for handler in state->{%s}",
-    $s_id, $mode, $mode
-);
+<[base.logs]>->( 2, "[%d] init_state: mode='%s'", $s_id, $mode );
 
 if ( not defined $state ) {
     return <[base.s_warn]>->(
@@ -47,8 +41,8 @@ if ( $session->{'mode'} ne qw| server | ) {
     ##[ protocol input handler ]##
     $session->{'input'}->{'handler'} = $state->{$mode}->{'handler'};
 
-    <[base.log]>->(
-        2,     "[%d] init_state: set input handler to '%s'",
+    <[base.logs]>->(
+        2,     "[%d] init_state: handler='%s'",
         $s_id, $session->{'input'}->{'handler'} // 'UNDEF'
     );
 
@@ -137,8 +131,8 @@ if ( $session->{'mode'} ne qw| server | ) {
 
 return TRUE;    ## <-- success ###
 
-#,,.,,,.,,,..,...,,,.,,.,,.,,,.,.,.,,,,,.,.,,,..,,...,...,..,,,,.,.,.,,.,,,..,
-#VFY7L2ZBBPO6R2H5Y5OP6KEFA6VM4PZTQN5ZELKGTVIVYV2UGCRAZGR44EZXEBYK6C5FVDQLZTBPM
-#\\\|WZCFLL6RH7ALZBSTQZ3M5FKFCMB6OLDYMOT6LGR5HDY7JE2JBC7 \ / AMOS7 \ YOURUM ::
-#\[7]VVFO4YQMTIFMOMFJ26ZFVEBYKQDEBSZ5Y3VKUCCYYXQTPC3AL4BQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,,.,,..,,.,,..,,.,,,,,,,.,,,.,,,..,,...,...,...,,.,,.,.,...,,,,,
+#ZAECZAQQPO6YMURWHIJMWNFQJL5YKZVXOJJICAXOX4VPDDDI6M6I2J3XBENQTHT6A5J3IBPS3SN3I
+#\\\|C6G27YVJ7JHYRUOSQCBGORFE4Z75R63VIIDCYDJ4SY5HANMRRFB \ / AMOS7 \ YOURUM ::
+#\[7]GXUHSQGHSJPZ6T2G2J36JGXSFJEEEQ4G4MNFUXDVLLQHRZMUIEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
