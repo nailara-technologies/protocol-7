@@ -47,16 +47,13 @@ if ( $session->{'mode'} ne qw| server | ) {
     );
 
     ## Apply protocol state configuration to session
+    ## [ read-mode is optional, only needed for binary|bytewise modes ]
+    ##
     if ( defined $state->{'read-mode'} ) {
         $session->{'read-mode'} = $state->{'read-mode'};
         <[base.logs]>->(
             2,     "[%d] init_state: read-mode='%s'",
             $s_id, $session->{'read-mode'}
-        );
-    } else {
-        <[base.logs]>->(
-            0, "[%d] init_state: WARNING - read-mode not in protocol state",
-            $s_id
         );
     }
 
@@ -166,8 +163,8 @@ if ( $session->{'mode'} ne qw| server | ) {
 
 return TRUE;    ## <-- success ###
 
-#,,..,...,..,,,..,..,,,,,,...,,.,,.,,,,..,,,.,..,,...,...,...,.,,,...,,.,,.,,,
-#AESLD5ZW5KUO6ER3ESSJ72S7CZNVN4BJHOKZ4ZKHOZJ7VBSZK2DB2B5LF6Y7YBX66EDTL7SDP3JTA
-#\\\|CQ6C5GH2OZP45TRQKGEJN5AJPXL52KWMLNASQJNNGJODX3HEJK5 \ / AMOS7 \ YOURUM ::
-#\[7]RYWBIDMVBN7MWT57U7FP6T5KSOXQRRCMAEICXIOX2C4W5MK7EMBY 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,.,.,...,,,,,,..,.,,,,,.,..,,.,.,..,,...,..,,,.,,,.,,,..,..,,.,.,
+#PFVRRHW2JERQYWCPYR6FF2CKCRLPJYQRKWLCGJCD4KQUFCU4HMSSR5QY7XU52XSKH237SFW3MRRWE
+#\\\|LSWM2PM2YLZN3O6YEYIDX3E6OBEDKC4BLV5W32SXK7ULIW5LG7T \ / AMOS7 \ YOURUM ::
+#\[7]7SDLGI4M42PZFNK6EG3UKEJLZCSANGAGU4UMG4J3NYSVT774LOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

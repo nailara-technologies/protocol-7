@@ -86,12 +86,11 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
             join( '.', <system.node.name>, <system.zenka.name> ), 0;
     }
 
-    if ( defined $line_sref->$* ) {
+    if ( defined $line_sref and defined $line_sref->$* ) {
 
         ##  log buffer name and message  ##
         push @send_line, $name, $line_sref->$*;
         <[base.protocol-7.command.send.local]>->(
-
             {   qw| command | => join( '', $route_prefix, $log_send_cmd ),
                 'call_args'   => { qw| args | => join ' ', @send_line },
 
@@ -105,13 +104,18 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
         $b_ref->{'waiting'} = TRUE;   ## register outstanding request reply ##
 
     } else {
-        warn '$line_sref->$* [ log message ] is undefined';
+        <[base.logs]>->(
+            0,
+            "send-buffer: skipping invalid log entry [ undefined message ]"
+        );
+        ### skip not valid entry and remove from queue ###
+        ##
+        shift $b_ref->{'data'}->@*;    ## remove malformed entry ##
     }
-
 }
 
-#,,.,,,,,,.,.,,,,,.,.,.,.,..,,..,,...,.,.,.,,,..,,...,...,,,.,.,.,,..,..,,,,,,
-#OGMCKKDIMNEVVZSQ45TFHIUPWJASHVI6GTJBO7BZQWT36QZ75VOEQA47XXKEWUBMCI2UUE6IV2LMC
-#\\\|MCPSJREYYO4CRJI2WJM5DNL7WZL7H56NR775WJMBFZNXKBPOUI4 \ / AMOS7 \ YOURUM ::
-#\[7]S4TMU75FB76ECLNHVUT2BUKUXDMZB3D7UJVSLAH2WYLYJXYU2MCI 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,.,,...,,.,,.,.,.,,,.,.,.,.,,,.,..,,...,...,..,,,,,,.,.,,.,,,,.,
+#HZSKNWRQ2ZNUIS6QVAZH3U6EU45C27EKOPRF4I5UQQAYFQUOBJFODDXOQYGEU2XX4QONWGHNXLKME
+#\\\|4I6OUVEI4BLVK2AVN7JOPG7LJQLJ2EQCCCO7QKIJKTFLGUDW3MK \ / AMOS7 \ YOURUM ::
+#\[7]T3OE32KYBWDC6ILDTNY6ENMK5FNDH2WUQ3FTABSC6FDET3L4QEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
