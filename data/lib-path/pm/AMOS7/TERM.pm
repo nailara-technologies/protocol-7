@@ -19,7 +19,7 @@ use POSIX;
 use POSIX::SigSet;
 use POSIX::SigAction;
 use Term::ReadLine;
-use Time::HiRes qw| sleep |;
+use Time::HiRes          qw| sleep |;
 use Crypt::PRNG::Fortuna qw| rand |;
 
 use Exporter;
@@ -322,7 +322,7 @@ REREAD_PASSWORD:
                 my $XOR_char = substr $read_chars_buffer, 0, 1, '';
                 my $code     = ord $XOR_char;
 
-                if ( $code == 10 or $code == 13 ) { ## end processing ##
+                if ( $code == 10 or $code == 13 ) {    ## end processing ##
                     $read_chars_buffer = chr 10;
                     $continue_reading  = FALSE;
                     $show_stars        = FALSE;
@@ -511,6 +511,7 @@ sub term_rewind {
     $mprompt_length = 17 + $mprompt_length;
 
     my $term_width = [ AMOS7::TERM::terminal_size() ]->[0];
+    return FALSE if not defined $term_width;  ## return early : i.e. a pipe ##
 
     if ( ( $mprompt_length + $stars_count ) >= $term_width ) {
         if ( $last_color eq $C{'T'} ) {
@@ -885,8 +886,8 @@ sub exit_user_passwd {
 
 return TRUE ##################################################################
 
-#,,..,.,,,,,,,,.,,,,,,.,,,..,,,,,,,,.,.,,,.,,,..,,...,...,,.,,,.,,,,,,.,.,,,.,
-#TPWLAOQSMCXDJRW2EZMCPY55CGT2GLLWMRNTUKGVJ54IDVJJDKQNQNPAGQNJIWOUP3X26LXHZG6LK
-#\\\|AL5ANP4P6B2WTET7F7OTFSUZCQXFSPSSWGA2QQKTJZ2D4TRRKYE \ / AMOS7 \ YOURUM ::
-#\[7]47PUR427JSRDLMIGGIIZKTP7LFBXYNZQGVOEB5XZUXARPCESUKDA 7  DATA SIGNATURE ::
+#,,..,.,.,..,,...,,,.,.,,,,,.,,..,..,,...,,,,,..,,...,...,...,...,,,.,,.,,..,,
+#YFCOR65THOHXLM367EFMBP734AQM7B2D7DKQXSBCQ72VMVUBJYYXHP6UQDR6VQZBUUYR3YDTTW4SY
+#\\\|PAUM5QUEAAYLFAJURBLTOJGCFNWI3OK3U2RQ4IQ3XNG5HCOVOJC \ / AMOS7 \ YOURUM ::
+#\[7]WVLG5NBMXPOOCCXCA2GPDCBWDO6K47MFO4TLMRDB3DCDVLOBI6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
