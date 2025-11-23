@@ -2,25 +2,18 @@
 
 # name  = base.zenka.is_v7_started
 # descr = Check if currently running in a v7 zenka context
-# return = 1 if running in v7 zenka, 0 otherwise
+# return = TRUE [5] if running in v7 zenka, FALSE [0] otherwise
 
 ## Check if zenka type is set to a v7-related type
-my $is_v7 = defined <system.zenka.type> && (
-    <system.zenka.type> eq 'v7' ||
-    <system.zenka.type> eq 'v7-started-zenka' ||
-    <system.zenka.type> eq 'cube'
-);
+my $is_v7 = defined <system.zenka.type>
+    && ( <system.zenka.type> eq qw| v7-started-zenka |
+    || <system.zenka.type> eq qw| cube |
+    || <system.zenka.type> eq qw| v7 | );
 
-return $is_v7 ? 1 : 0;
+return $is_v7 ? TRUE : FALSE;
 
-#,,.,..,,,.,,,..,,,.,,.,...,,.,,...,,...,..,,,.,,..,...,...,.,,,,,,,,.,,..,.,,,,.,
-#PLACEHOLDER_SIGNATURE_WILL_BE_ADDED_DURING_COMMIT
-#\\\|PLACEHOLDER_HASH \ / AMOS7 \ YOURUM ::
-#\[7]PLACEHOLDER_HASH 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,..,,,.,,.,,,,.,..,,.,,,.,.,.,.,.,.,.,,,.,,,..,,...,...,...,,..,.,,,...,.,.,
-#LRZIE7VZW5MRASQ5TM672ARA7R3TEXJTEY5SBNIS3HHBMPX43DHTRKFFQFHQC2EING2QGPV3X3CRW
-#\\\|R4UFV6DNFT5777Y5RFCOOKPO2TO3ZCK6ROM5ZCLDQADIKZFQ5OB \ / AMOS7 \ YOURUM ::
-#\[7]GJ5YEDYNVGWQ6TJ2LWL3UA3PTRZPKOCUJCTNXS23YOH5EP7GKKBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,.,,,,,,.,,.,.,,.,,,,.,.,.,.,.,..,,...,...,..,,,,,,.,.,.,.,.,.,
+#3XNX5BHRKPQMGM2JZHB2WSM67TJARWFDGAOQVTZ6CAIDZWAVXCUMFDTYUB3BJCR6NOPGKAP4TENBW
+#\\\|H6NFBZCPVFVDWM25KEMAVHPQB472Q6CCWIV7S2Z5TPE3QNTMGOM \ / AMOS7 \ YOURUM ::
+#\[7]CIIWHNSNHVXOZJJNY2DIOS7SMJSC4MT2RWWTJYRNL77O47JL44AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
