@@ -84,6 +84,9 @@ my $key_type
 ## Create SSL socket with enhanced error diagnostics
 my $ssl_socket;
 
+#
+$SIG{'PIPE'} = qw| IGNORE |;    ### do not crash when client already gone ###
+
 eval {
     <[base.log]>->( 3, "  creating IO::Socket::SSL with parameters:" );
     <[base.log]>->(
@@ -188,8 +191,8 @@ return $ssl_socket;
 
 0;
 
-#,,,.,,..,,..,.,,,,,,,...,,,.,,..,,.,,,,,,,..,..,,...,..,,.,.,,,,,.,,,.,,,..,,
-#QRP3YYINTMS3VCV6TYZEZLRJLJFNIVINQI2QSUCCI465YPMQ4FXW7K4DUJ5GQGCX4BL3E2UMRLHIK
-#\\\|ABIUUG2OBYYDYWX4Y4KXB2T3FVNYLQR6XGFTV46OYHIOF73UTAN \ / AMOS7 \ YOURUM ::
-#\[7]TSWH4H6HB27MDTKYQHHI2AGKH3LACIK4NPBYRW42FQU2XQTXRACI 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,...,,.,,...,.,.,,..,,.,,.,.,,,,,..,,...,...,...,,.,,.,.,...,,.,,
+#WGB5HL2NMJZS2YNBKCBQAW4IIR3X5M3QKDJN5SABAYJS4LK4KCX5NQZTDMJZCE4M6A6HAZDIZ3F3Q
+#\\\|LDIIIX63YVEVSN3XZGRUHQ7TJMRUNMW6FQWBQ4WXFMYGHDIEIU3 \ / AMOS7 \ YOURUM ::
+#\[7]NIO3VSNTXJMNU7ND4MWBRG3JVP4P7TKQISEU2AH2LA7QUP6ADSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
