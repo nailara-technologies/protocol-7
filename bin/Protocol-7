@@ -368,7 +368,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
 
     ## configure default locale for systems with unset LANG ##
     if ( not length $ENV{'LANG'} ) {
-        $ENV{'LANG'} = qw| C.UTF-8 |;
+        $ENV{'LANG'}   = qw| C.UTF-8 |;
         $ENV{'LC_ALL'} = qw| C.UTF-8 |;
     }
 
@@ -456,6 +456,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
     $data{'system'}{'verbosity'}{'console'}       = 0;
     $data{'system'}{'verbosity'}{'zenka_buffer'}  = 1;
     $data{'system'}{'verbosity'}{'zenka_logfile'} = 0;
+    $data{'system'}{'console'}{'skip-log-prefix'} = FALSE;
 
     $data{'system'}{'ansi_color'} = TRUE;
     $data{'system'}{'start'}{'showbanner'} = TRUE;
@@ -465,7 +466,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
     $data{'system'}{'console-mode'} //= FALSE;
     foreach my $arg (@ARGV) {
         $stdin_mode = FALSE if $arg =~ m|^[^\-]|;
-        if ( $arg =~ m|^-(v+)(h?z?d?)?$| ) {
+        if ( $arg =~ m|^-(v+)(h?z?d?q?)?$| ) {
             $data{'system'}{'verbosity'}{'console'}
                 = length( ${^CAPTURE}[0] );
             my $vis       = ${^CAPTURE}[1] // '';
@@ -480,6 +481,10 @@ sub p7_init_exec {    ##  main variable initialization  ##
                 $visualize->{'harmony'}    = TRUE if $vis =~ m|h|;  ## true ##
                 $visualize->{'zulum'}      = TRUE if $vis =~ m|z|;  ## true ##
                 $visualize->{'disharmony'} = TRUE if $vis =~ m|d|;  ## true ##
+            }
+            ### skip <host>.<zenka> prefix in console log output[?] ##
+            if ( $arg =~ s|q$|| ) {                                 ## true ##
+                $data{'system'}{'console'}{'skip-log-prefix'} = TRUE;
             }
         }
 
@@ -679,15 +684,15 @@ sub p7_init_exec {    ##  main variable initialization  ##
 
             # Get all arguments
             my $args   = $data{'system'}{'args'} // '';
-            my $format = 'decoded';                       # Default format
+            my $format = qw| decoded |;                 ## [default format] ##
 
             # Look for format in all remaining arguments
             foreach my $argv_arg (@ARGV) {
-                if ( $argv_arg =~ /^-format=(.+)$/ ) {
+                if ( $argv_arg =~ m|^-format=(.+)$| ) {
                     my $requested_format = $1;
-                    if (   $requested_format eq 'as-is'
-                        || $requested_format eq 'decoded'
-                        || $requested_format eq 'encoded' ) {
+                    if (   $requested_format eq qw| as-is |
+                        || $requested_format eq qw| decoded |
+                        || $requested_format eq qw| encoded | ) {
                         $format = $requested_format;
                     } else {
                         map { $code{'log.error'}->($ARG) } (
@@ -3063,6 +3068,27 @@ sub p7_clean_up_caller {
 sub p7__log__name_template {
 
     my $lpw = shift // $data{'system'}{'zenka'}{'log_prefix_width'};
+
+    if ( $data{'system'}{'console'}{'skip-log-prefix'} ) {   ## skip prefix ##
+        if ( shift // FALSE ) {  ## highlight name and line [ bold \ ansi ] ##
+            return sprintf(
+                qw| %s:%s |,
+                join( '',
+                    $colors{'B02'}, $colors{'p7_fg_0000'},
+                    $colors{'B00'}, $colors{'bold'} ),
+                join( '',
+                    $colors{'reset'},      $colors{'B02'},
+                    $colors{'p7_fg_0000'}, $colors{'B00'},
+                    $colors{'bold'} )
+            );
+
+        } else {
+            return sprintf( '%s:%s',
+                join( '', $colors{'B02'}, $colors{'p7_fg_0000'} ),
+                $colors{'B00'} );
+        }
+    }
+
     if ( shift // FALSE ) {    ## highlight name and line [ bold \ ansi ] ##
         return sprintf(
             '%s%s.%s %s.%-*s %s.%s',
@@ -5146,8 +5172,8 @@ __DATA__
 :
 :.
 
-#,,,.,,,,,,..,,,,,..,,,,.,..,,,,,,.,,,,,.,..,,..,,...,...,.,,,.,.,..,,..,,,.,,
-#AWFSR5YLNOC2TNPDH42IZQRR3PQVRZEUUINCTXKRFEVS753E255UET6RTI7YMPBVYRCHM33QPQA4E
-#\\\|C3K45YQSHWCFRLZIYZK7SBRRDVBZ4OGAJ4JIVDJBLF2DVXCX2LU \ / AMOS7 \ YOURUM ::
-#\[7]6XMFKINB2YLX6MVX6PPFVNHOVTXDROOGHHW67UUZCSCLTG4DWEBA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,..,..,,..,,,,.,,..,...,,.,,,..,..,,...,..,,.,.,.,.,,,,,...,.,.,
+#PKN4VIROCUXO2VSSUILWFAVETTGXIHVLTYOVHMRLPA6YAPUPMUEVT5CAAB7L2TFZM7BMLODZNFXCE
+#\\\|6OICJPOTS5O5Y2G2CUCPOXLW2AISQ4ZIEKLXAJSIDYWVPU45WVV \ / AMOS7 \ YOURUM ::
+#\[7]5F4QDHAPSX3B6B6X3IRYIN6FMVFTILVS7WV6BRISWW5JRIEQE4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
