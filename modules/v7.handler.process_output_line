@@ -52,6 +52,7 @@ while (
     ##  highlight non-standard output [ devmod lines ]  ##
     if (    index( $zenka_output_line, "\e", 0 ) != 0
         and index( $zenka_output_line, qw| . |, 0 ) != 0 ) {
+
         $zenka_output_line = sprintf(
             '%s%s. : <%s>  %s%s %s %s',
             $colors{'p7_fg_0001'}, $colors{'B02'},
@@ -59,11 +60,27 @@ while (
             $colors{'bold'},       $zenka_output_line,
             $colors{'reset'}
         );
+
     }
 
-    say $zenka_output_line    ##  display when verbose or log level 0  ##
-        if <system.verbosity.console>
-        or $zenka_output_line =~ m|\Q $colors{bold}\E|;
+    if ( <system.verbosity.console>
+        or $zenka_output_line =~ m|\Q $colors{bold}\E| ) {
+
+        ###[  display when verbose or log level 0  ]###
+
+        if ( defined $data{'system'}{'console'}{'skip-log-prefix'}
+            and <system.console.skip-log-prefix> ) {
+            ## shortened [no-prefix] output mode [-v[v[v]]q] ##
+            my $output_line_copy = $zenka_output_line;
+            my $zenka_short
+                = <[base.parser.center_ellipse_string]>->( $zenka_name, 7 );
+            $output_line_copy
+                =~ s{\.? \S+$zenka_name(\s+)(\e\[.+?)?\.}{:.$1$zenka_short :\e[0m};
+            say $output_line_copy;    ## shortened output [ skip prefix ] ##
+        } else {
+            say $zenka_output_line;    ## regular zenka output forwarding ##
+        }
+    }
 
     ## remove colors before matching .., ##
     <[base.strip_ansi]>->( \$zenka_output_line );
@@ -104,8 +121,8 @@ SKIP_PROCESSING:
 ##  more data available ?  ##
 $watcher->now if $zenka_instance->{'console-output'}->can_read(0);
 
-#,,,.,...,,,,,..,,.,,,,,.,,,.,,,.,.,.,..,,.,.,..,,...,...,..,,,,.,,,,,...,,,,,
-#525DJ42EJ43RIOA5HJ5XQD5OHKMM3ZRL63CBXGSKKVUI7KXW2GV4PAAKPDBMHDOFBRFTKV7DXHC26
-#\\\|QI77FSOJ3KIAH2CGPQW5LP3KZC75KKMOEJTH6ISYPBLMZ3Q6WHT \ / AMOS7 \ YOURUM ::
-#\[7]BBGNFT3KPBCCPEWOR4KMWJP77LPSAJB7622MHUHT5T3R3GS6QWAY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,,,.,,,...,,..,,,,,.,.,.,,,.,,,..,,...,...,.,.,.,,,,.,,,..,.,.,
+#OWDW2IOP46JQ6RS6U2ZQSBZOJBRC4PWJVFY2KNFG3LL4OTPUILLRM3M5SY4XSG4VGQTX4GKZSV6BW
+#\\\|SU6AFBC3Y2SUHRRONQ5YZK4ABZWFSUAHSZ5IQEHOB55I5BO6HXK \ / AMOS7 \ YOURUM ::
+#\[7]WNHUHNMM4CURHJGDUCJENCOTZS4DCNC34YHRDLI3R3XTPBDUZCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
