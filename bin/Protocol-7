@@ -466,24 +466,32 @@ sub p7_init_exec {    ##  main variable initialization  ##
     $data{'system'}{'console-mode'} //= FALSE;
     foreach my $arg (@ARGV) {
         $stdin_mode = FALSE if $arg =~ m|^[^\-]|;
-        if ( $arg =~ m|^-(v+)(h?z?d?q?)?$| ) {
+        if ( $arg =~ m{^-(v+[hzdq]*|q)$} ) {
+            ## either: v+ with optional h|z|d|q, OR: standalone q ##
+            my $verbosity_part = $LAST_PAREN_MATCH;
             $data{'system'}{'verbosity'}{'console'}
-                = length( ${^CAPTURE}[0] );
-            my $vis       = ${^CAPTURE}[1] // '';
+                = ( $verbosity_part =~ m|^v| )
+                ? ( $verbosity_part =~ tr|v|| )
+                : 0;
+            my $options = $verbosity_part;
+            $options =~ s|^v+||;    ## remove v's to get remaining options ##
             my $visualize = $data{'base'}{'harmony'}{'visualize'} //= {
                 qw| enabled |    => FALSE,    ## overall ##
                 qw| zulum |      => FALSE,    ## show 0 ##
                 qw| harmony |    => FALSE,    ## 538461 ##
                 qw| disharmony | => FALSE     ## 076923 ##
             };
-            $visualize->{'enabled'} = TRUE if $vis =~ m|[hzd]|;    ## true ##
-            if ( $visualize->{'enabled'} ) {
-                $visualize->{'harmony'}    = TRUE if $vis =~ m|h|;  ## true ##
-                $visualize->{'zulum'}      = TRUE if $vis =~ m|z|;  ## true ##
-                $visualize->{'disharmony'} = TRUE if $vis =~ m|d|;  ## true ##
+            ## h|z|d only valid with verbosity [-v required] ##
+            if ( $verbosity_part =~ m|^v| ) {
+                $visualize->{'enabled'} = TRUE if $options =~ m|[hzd]|;
+                if ( $visualize->{'enabled'} ) {
+                    $visualize->{'harmony'}    = TRUE if $options =~ m|h|;
+                    $visualize->{'zulum'}      = TRUE if $options =~ m|z|;
+                    $visualize->{'disharmony'} = TRUE if $options =~ m|d|;
+                }
             }
-            ### skip <host>.<zenka> prefix in console log output[?] ##
-            if ( $arg =~ s|q$|| ) {                                 ## true ##
+            ### skip <host>.<zenka> prefix in console log output    ##
+            if ( $arg =~ m|q| ) {    ## works with -v or standalone ##
                 $data{'system'}{'console'}{'skip-log-prefix'} = TRUE;
             }
         }
@@ -5172,8 +5180,8 @@ __DATA__
 :
 :.
 
-#,,,,,...,,,,,,..,..,,..,,,,.,,..,...,,.,,,..,..,,...,..,,.,.,.,.,,,,,...,.,.,
-#PKN4VIROCUXO2VSSUILWFAVETTGXIHVLTYOVHMRLPA6YAPUPMUEVT5CAAB7L2TFZM7BMLODZNFXCE
-#\\\|6OICJPOTS5O5Y2G2CUCPOXLW2AISQ4ZIEKLXAJSIDYWVPU45WVV \ / AMOS7 \ YOURUM ::
-#\[7]5F4QDHAPSX3B6B6X3IRYIN6FMVFTILVS7WV6BRISWW5JRIEQE4AA 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,..,,,.,,,..,..,,,.,,.,,,,,,,...,..,,...,...,.,,,,,,,,.,,,.,,.,.,
+#FTSBXECOSSZN4HHSCADK6KBVINMT7KKI2RXVZP2NSEFQ4RND4X5W7CHBKBWWFRSXPO3ZZIDQOS2BQ
+#\\\|EL4Y5LXWGMTVV7ONMEQRDKU525KNK4C32WADIH5T7WKAD6KG4SM \ / AMOS7 \ YOURUM ::
+#\[7]7HN4US2O25LMNJWBJRVHI7QGQ7F6CUSKJBGGRRLM3VWQHYDRDQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
