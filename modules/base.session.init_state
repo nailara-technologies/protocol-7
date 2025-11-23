@@ -49,29 +49,34 @@ if ( $session->{'mode'} ne qw| server | ) {
     ## Apply protocol state configuration to session
     if ( defined $state->{'read-mode'} ) {
         $session->{'read-mode'} = $state->{'read-mode'};
-        <[base.log]>->(
-            1,     "[%d] init_state: set read-mode to '%s' from protocol state",
+        <[base.logs]>->(
+            2,     "[%d] init_state: read-mode='%s'",
             $s_id, $session->{'read-mode'}
         );
     } else {
-        <[base.log]>->(
-            1,     "[%d] init_state: WARNING - read-mode not in protocol state (protocol=%s, state_id=%d)",
-            $s_id, $session->{'protocol'}, $state_id
+        <[base.logs]>->(
+            0, "[%d] init_state: WARNING - read-mode not in protocol state",
+            $s_id
         );
     }
 
-    ## Apply bytes-to-read from protocol state to session (only for binary/bytewise modes)
+    ## Apply bytes-to-read from protocol state to session
+    ## [ only for binary|bytewise modes ]
+    ##
     if ( defined $state->{'bytes-to-read'} ) {
         $session->{'bytes-to-read'} = $state->{'bytes-to-read'};
         <[base.logs]>->(
-            1,     "[%d] init_state: set bytes-to-read to %d from protocol state",
+            2, "[%d] init_state: set bytes-to-read to %d from protocol state",
             $s_id, $session->{'bytes-to-read'}
         );
-    } elsif ( defined $session->{'read-mode'}
-              and ($session->{'read-mode'} eq 'binary' or $session->{'read-mode'} eq 'bytewise') ) {
+    } elsif (
+        defined $session->{'read-mode'}
+        and (  $session->{'read-mode'} eq qw| binary |
+            or $session->{'read-mode'} eq qw| bytewise | )
+    ) {
         ## Only warn about missing bytes-to-read for binary/bytewise modes
         <[base.logs]>->(
-            1,     "[%d] init_state: WARNING - bytes-to-read not set for %s mode",
+            0, "[%d] init_state: WARNING - bytes-to-read not set for %s mode",
             $s_id, $session->{'read-mode'}
         );
     }
@@ -161,8 +166,8 @@ if ( $session->{'mode'} ne qw| server | ) {
 
 return TRUE;    ## <-- success ###
 
-#,,,.,,.,,,..,,.,,,,,,,.,,,..,,.,,..,,.,,,,.,,..,,...,...,..,,,,,,...,..,,.,.,
-#YJ57PNAZ26DOBTRLRNNZJVQYA7PTBNFGSH4PNONJGQQBVPVGOLG7GPZW2DDWY3YM7OESKL52K2EOW
-#\\\|GXGT4AU6CHTU5PAAKSYBHG4M5JTXR2QOO5SO2FPK4BMJDYBZAWR \ / AMOS7 \ YOURUM ::
-#\[7]C4H6YAEJRGPSUGS33NVDBD6JJHS3E5OQ4TTE74PVUIFPW3F4O2BY 7  DATA SIGNATURE ::
+#,,..,...,..,,,..,..,,,,,,...,,.,,.,,,,..,,,.,..,,...,...,...,.,,,...,,.,,.,,,
+#AESLD5ZW5KUO6ER3ESSJ72S7CZNVN4BJHOKZ4ZKHOZJ7VBSZK2DB2B5LF6Y7YBX66EDTL7SDP3JTA
+#\\\|CQ6C5GH2OZP45TRQKGEJN5AJPXL52KWMLNASQJNNGJODX3HEJK5 \ / AMOS7 \ YOURUM ::
+#\[7]RYWBIDMVBN7MWT57U7FP6T5KSOXQRRCMAEICXIOX2C4W5MK7EMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
