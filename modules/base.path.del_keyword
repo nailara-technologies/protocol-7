@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = base.path.del_keyword
+# descr = delete a path keyword from they list hash
+
+my $key_name = shift // '';
+
+if ( not length $key_name ) {
+    <[base.s_warn]>->('expected key name parameter <{C1}>');
+    return FALSE;
+}
+
+if ( not <[base.is_defined_recursive]>->(qw| base.path.keywords |) ) {
+    <[base.s_warn]>->('keyword list is not initialized <{C1}>');
+    return FALSE;
+}
+my $key_href = <base.path.keywords>;
+
+if ( not <[base.is_defined_recursive]>->(qw| base.path.keywords |) ) {
+    <[base.s_warn]>->('keyword list is not initialized <{C1}>');
+    return FALSE;
+}
+
+return FALSE if not exists <base.path.keywords>->{$key_name};
+delete <base.path.keywords>->{$key_name};    ## no such key present ##
+return TRUE;                                 ## key-pair deleted ##
+
+#,,,.,,.,,.,,,,,,,,,.,,.,,..,,,.,,..,,,,.,...,..,,...,..,,,,,,..,,,..,.,,,,.,,
+#AUYZZET5C3NPBHXD37NXVHFDROS2RKYYXRW7MRDMRG4JAS4SD2MMOLAOXFP2HNUJC3WLGIBDJLGAY
+#\\\|A6WQ3IMVZDKDA4Q6GVZL6NX6F7FVQLO43FDJZ3JGVY6JKBQRUI3 \ / AMOS7 \ YOURUM ::
+#\[7]YXPNUHJNJYDSN74DUMBTPAZJO54TOYIXOIO7KSZ7EHZYU7GLVCCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

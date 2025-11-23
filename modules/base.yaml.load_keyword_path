@@ -12,29 +12,20 @@ return unless defined $path;
 my $resolved_path = <[base.path.resolve_keywords]>->($path);
 
 ## Load YAML file ##
-my $data;
-eval {
-    $data = YAML::XS::LoadFile($resolved_path);
-};
+my $yaml_data = eval { YAML::XS::LoadFile($resolved_path) };
 
-if ($@) {
-    <[base.log]>->(
-        0,
-        "Error loading YAML file: $path (resolved: $resolved_path): $@"
+if ( length $EVAL_ERROR or not defined $yaml_data ) {
+    <[base.logs]>->(
+        0, ":: error :: loading YAML file : %s [ resolved : %s ] : %s",
+        $path, $resolved_path, <[base.str.os_err]>
     );
     return;
 }
 
-return $data;
+return $yaml_data;
 
-#,,.,..,,,.,,,..,,,.,,.,...,,.,,...,,...,..,,,.,,..,...,...,.,,,,,,,,.,,..,.,,,,.,
-#PLACEHOLDER_SIGNATURE_WILL_BE_ADDED_DURING_COMMIT
-#\\\|PLACEHOLDER_HASH \ / AMOS7 \ YOURUM ::
-#\[7]PLACEHOLDER_HASH 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,,.,...,...,,,.,..,,,,,,,..,..,,,.,,,..,...,..,,...,...,.,.,,,.,.,,,.,.,,,,,
-#5A4COZNMAAZSQPNWJY2FD743LJLY3K5Y5IF67VFELA4CSZXU3M4GTRH2N2M5ZE5ILPMCW2ALZAJT2
-#\\\|Y3HFF3KH3RDU6EUCIZSMHSETGOLAHMHCMNBSIVK5C5CC5BK27MN \ / AMOS7 \ YOURUM ::
-#\[7]RB3P2ST6TJ4Q5CQ2Q2QLKVWU7S3UPGBXOH7RN5QNKOE3L2TETMDY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,..,,,.,,.,.,,,.,,..,,.,,...,,.,,..,,...,...,...,,,.,,,,,...,,,.,
+#URHKQKZCFS77OJD7W36W6KY5X65YSPDLGQ5ZDVLWXGCOIHLZFJ4M7EMAJN4FVVZD7SRTX5P37SQF2
+#\\\|4RSKLIXB566IGICZENLXAZOYSKFMTUJUVTHBDNMECWQJDLQBYKQ \ / AMOS7 \ YOURUM ::
+#\[7]GYU5KSBE77P5ZHKKFGS4XRMJWUZRXTABXZFYAXKRP32WLRLNWYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

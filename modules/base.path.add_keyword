@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = base.path.add_keyword
+# descr = add a path keyword to the registry
+
+my ( $key_name, $key_value ) = @ARG;
+
+if ( not length $key_name ) {
+    <[base.s_warn]>->('expected key name parameter <{C1}>');
+    return FALSE;
+}
+
+if ( not defined $key_value ) {
+    <[base.s_warn]>->('expected key value parameter <{C1}>');
+    return FALSE;
+}
+
+if ( not <[base.is_defined_recursive]>->(qw| base.path.keywords |) ) {
+    <[base.s_warn]>->('keyword list is not initialized <{C1}>');
+    return FALSE;
+}
+
+<base.path.keywords>->{$key_name} = $key_value;    ## add keyword pair ##
+return TRUE;                                       ## keyword added ##
+
+#,,,.,,,,,.,.,.,.,,,,,,.,,,,,,,,,,.,.,,,.,.,,,..,,...,...,.,.,..,,,,.,,.,,,,,,
+#KFERJW4ZWC4QXNGLLZ6T3GEFHJBVFQSXHNPTIWL72HSSDEE4P7EQZMJGXWG37CMJBREXDAOJF4CTU
+#\\\|DNSEIH5VR6SVEKXOKKTDANTD2QEB4UEYXMT56YJM5WFZBI5P24Z \ / AMOS7 \ YOURUM ::
+#\[7]BKZIGDS5KZ2L7EB72EP3W2O6Y75BVFMPXP5Z4L7HJJDOLNQXCQDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

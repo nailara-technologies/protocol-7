@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = workspace-transfer.pre_init
+# descr = initialize path keywords for protocol-7 + workspace-transfer repos
+
+my $env_href = <[workspace-transfer.env.detect_paths]>;
+return
+    <[base.s_warn]>
+    ->(':: error :: while detecting workspace-transfer environment.')
+    if ref $env_href ne qw| HASH |;
+
+## [LLL] read symlink for path resolution in workspace-transfer.env.detect_paths
+##       from configuration/development/workspace-transfer-repository
+
+## [LLL] use acquired path set-up here ..
+
+###[ [protocol-7] + [workspace-transfer] ]###
+##
+<[base.path.register_keywords]>->($env_href);
+
+0;
+
+#,,,,,,.,,..,,.,,,...,,,.,.,,,,,.,.,,,.,.,,..,..,,...,...,...,,,,,,..,.,,,...,
+#75ZFPD7VUM24IYW7NZ62GFNOR6ZOJHUEIRPRYJHRHD3MDPYNFLRI3RFWW2TYWZI4WX4AMYE5YZS4G
+#\\\|OFIMFZB2ZWBUZ6SEI2JGWNQJ2EP2YMGTRLHMINNINZ7K45KOJY3 \ / AMOS7 \ YOURUM ::
+#\[7]RBLSNOTI6MKGHXPXIU7YEH7RKM7ORRCILH7O3EJT4CYOV7VJXODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
