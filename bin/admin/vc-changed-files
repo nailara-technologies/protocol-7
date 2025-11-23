@@ -6,6 +6,18 @@ use English;
 use warnings;
 use Capture::Tiny qw| capture |;
 
+my $filter_sig_only = 0;
+if (@ARGV) {
+    if ( $ARGV[0] eq '-sig-only' ) {
+        $filter_sig_only = 1;
+    } else {
+        die "\n ::: error ::: [ unknown option '$ARGV[0]' ] :::\n\n"
+            . "  ::[ usage ]:: $0 [-sig-only]\n  :\n"
+            . "  :   [no args.]  :  list all changed files\n"
+            . "  :.  -sig-only   :  list signature-only changes\n";
+    }
+}
+
 my ( $stdout, $stderr, $exit ) = capture {
     system qw| git status |;
 };
@@ -17,16 +29,68 @@ foreach my $line (
     reverse sort split( "\n", $stdout )
 ) {
     $line =~ s|\e\[.*?[mJH]||g;    ##[ strip ansi colors ]##
-    next if index( $line, qw| : | ) == -1;
-    next if $line =~ m|:$|;        ##  show only 'modified:'  ##
-    $line =~ s|^.*[ \t]+||;
+    ##  match only git status lines (modified:, deleted:, renamed:, etc.) ##
+    next unless $line =~ m/\b(modified|deleted|renamed|new file|both):/;
+    $line             =~ s|^.*?:\s+||; ##  remove status label (non-greedy) ##
     next if $displayed{$line}++;
+
+    ##  check if file only has signature changes ##
+    my $has_only_sig_changes = _has_only_signature_changes($line);
+
+    ##  filter for signature-only changes if --sig-only flag is set ##
+    if ($filter_sig_only) {
+        next unless $has_only_sig_changes;
+    }
 
     say $line;
 }
 
-#,,.,,...,.,,,,.,,,..,,,,,...,.,.,..,,..,,,.,,..,,...,...,...,,,.,.,.,.,,,,.,,
-#LHM66DM5A32WWAOG57HIR3TG6G3IUVWKIFANA4K4RMPCEIB3OXSSYIIM62EVPOMUVB6O57KQFVAEU
-#\\\|KLYINCENE5KBI6IDEWPD4U3PLH5HE7C54RNDEITKCDMX6XIOLG2 \ / AMOS7 \ YOURUM ::
-#\[7]IISJELEKSTAY5RFXZDSETI2VPJ32FA7Z4YAH25ZVFHKQUVCFOODI 7  DATA SIGNATURE ::
+sub _has_only_signature_changes {
+    my ($filepath) = @_;
+
+    my ( $diff_stdout, $diff_stderr, $diff_exit ) = capture {
+        system qw| git diff --no-color |, $filepath;
+    };
+
+    ##  extract only the actual diff lines (not headers) ##
+    my @lines = split( "\n", $diff_stdout );
+    my @code_changes;
+
+    foreach my $diff_line (@lines) {
+        ##  skip diff headers ##
+        next if $diff_line =~ m|^---|;
+        next if $diff_line =~ m|^\+\+\+|;
+        next if $diff_line =~ m|^@@|;
+        next if $diff_line =~ m|^Index:|;
+        next if $diff_line =~ m|^index |;
+        next if $diff_line =~ m|^diff --git|;
+
+        ##  skip context lines (unchanged) ##
+        next if $diff_line =~ m|^\ |;
+
+        ##  skip AMOS7 signature lines ##
+        ##  punctuation line (binary encoded) ##
+        next if $diff_line =~ m|^[\+\-]#[,\.]+$|;
+        next if $diff_line =~ m|^[\+\-]#[A-Z0-9]{64,}|;    ##  hash line ##
+        ##  signature marker line (3 backslashes) ##
+        next if $diff_line =~ m|^[\+\-]#\\\\\\\|.*AMOS7|;
+        ##  data signature line (1 backslash) ##
+        next if $diff_line =~ m|^[\+\-]#\\\[7\]|;
+        next if $diff_line =~ m|^[\+\-]#:+$|;              ##  terminator ##
+
+        ##  skip empty lines ##
+        next if $diff_line eq '';
+
+        ##  if we get here, there's a non-signature change ##
+        push @code_changes, $diff_line;
+    }
+
+    ##  return true only if there are NO non-signature changes ##
+    return scalar(@code_changes) == 0 ? 1 : 0;
+}
+
+#,,..,,..,.,.,...,..,,...,.,,,..,,..,,,..,,,,,..,,...,...,.,.,,,.,..,,,,.,,..,
+#D5BZN4IAK7RDXORD7Z67FGFIEN5BMUOI3QNJQGKW7BKRQ4MCWHO4OXKZOLXGDR26PTKCXSD5WFQYC
+#\\\|ZRNNBG2CAILLOB76TGIBALM54OABW6ECRPC3QSLZ7BMCIRNOPAX \ / AMOS7 \ YOURUM ::
+#\[7]Y3FYQPU6RTZTUKAWSKP7B2A4BQW23YQEBIZVPBQFF5FGZS7KR6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
