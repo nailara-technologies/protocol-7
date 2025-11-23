@@ -86,30 +86,32 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
             join( '.', <system.node.name>, <system.zenka.name> ), 0;
     }
 
-    ##  log buffer name and message  ##
-    push @send_line, $name, $line_sref->$*;
+    if ( defined $line_sref->$* ) {
 
-    <[base.protocol-7.command.send.local]>->(
+        ##  log buffer name and message  ##
+        push @send_line, $name, $line_sref->$*;
+        <[base.protocol-7.command.send.local]>->(
 
-        {   qw| command | => join( '', $route_prefix, $log_send_cmd ),
+            {   qw| command | => join( '', $route_prefix, $log_send_cmd ),
+                'call_args'   => { qw| args | => join ' ', @send_line },
 
-            'call_args' => { qw| args | => join ' ', @send_line },
-
-            qw| reply | => {
-
-                'handler' => 'base.log.send-buffer.reply-handler.send-reply',
-
-                qw| params | => { qw| name | => $name }
+                qw| reply | => {
+                    'handler' =>
+                        qw| base.log.send-buffer.reply-handler.send-reply |,
+                    qw| params | => { qw| name | => $name }
+                }
             }
-        }
-    );
+        );
+        $b_ref->{'waiting'} = TRUE;   ## register outstanding request reply ##
 
-    $b_ref->{'waiting'} = TRUE;    ## register outstanding request reply ##
+    } else {
+        warn '$line_sref->$* [ log message ] is undefined';
+    }
 
 }
 
-#,,.,,,,,,,,,,...,.,.,,.,,...,.,,,.,.,,.,,.,,,..,,...,...,..,,..,,,,.,...,,,,,
-#46TL2DQF7XAD4E7FG4ZRB5JMWHOCLUIAS6MTTZE2Z6FTD7BVLXC5DVQXYEU2P6MBZIWTWUMKYGHAY
-#\\\|PPHGE7HOCKDLTTHBJW4ODZE5OG7NL5H65GHHB577LMVRMNQ7A2X \ / AMOS7 \ YOURUM ::
-#\[7]PBNC3JZNC5RS6QEHNO4TYAYAO6MUN572QZ7LZHWYC3DRMPBCLYDA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,,,.,.,.,.,..,,..,,...,.,.,.,,,..,,...,...,,,.,.,.,,..,..,,,,,,
+#OGMCKKDIMNEVVZSQ45TFHIUPWJASHVI6GTJBO7BZQWT36QZ75VOEQA47XXKEWUBMCI2UUE6IV2LMC
+#\\\|MCPSJREYYO4CRJI2WJM5DNL7WZL7H56NR775WJMBFZNXKBPOUI4 \ / AMOS7 \ YOURUM ::
+#\[7]S4TMU75FB76ECLNHVUT2BUKUXDMZB3D7UJVSLAH2WYLYJXYU2MCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
