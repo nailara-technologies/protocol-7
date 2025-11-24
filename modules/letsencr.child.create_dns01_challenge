@@ -1,0 +1,134 @@
+## [:< ##
+
+# name  = letsencr.child.create_dns01_challenge
+# descr = Create DNS-01 challenge TXT record for wildcard domain validation
+
+use JSON::XS;
+use Digest::SHA  qw(sha256);
+use MIME::Base64 qw(encode_base64url);
+
+my $challenge = shift;    # challenge data from authorization
+my $domain    = shift;
+
+return undef unless $challenge && $domain;
+
+<[base.log]>->( 2, "creating DNS-01 challenge response for $domain" );
+
+## Extract challenge token
+my $token = $challenge->{token};
+
+unless ($token) {
+    <[base.log]>->( 1, 'error: no token in challenge' );
+    return undef;
+}
+
+## Get account key thumbprint
+my $jwk = <[letsencr.child.get_jwk]>->();
+unless ($jwk) {
+    <[base.log]>->( 1, 'error: failed to get JWK' );
+    return undef;
+}
+
+## Create JWK thumbprint (RFC 7638)
+my $jwk_ordered = JSON::XS->new->canonical(1)->encode($jwk);
+my $thumbprint  = encode_base64url( sha256($jwk_ordered) );
+
+<[base.log]>->( 3, "JWK thumbprint: $thumbprint" );
+
+## Create key authorization: token.thumbprint
+my $key_auth = "$token.$thumbprint";
+
+<[base.log]>->( 3, "key authorization: $key_auth" );
+
+## For DNS-01, we need to create TXT record at:
+## _acme-challenge.{domain}
+## with value: base64url(SHA256(key_auth))
+
+my $dns_value = encode_base64url( sha256($key_auth) );
+
+<[base.log]>->( 2, "DNS-01 TXT record value: $dns_value" );
+
+## Determine the domain to use for DNS record
+## For wildcard *.example.com, use _acme-challenge.example.com
+## For regular example.com, use _acme-challenge.example.com
+my $base_domain = $domain;
+$base_domain =~ s/^\*\.//;    # Remove wildcard prefix if present
+
+my $dns_record_name = "_acme-challenge.$base_domain";
+
+<[base.log]>->( 2, "DNS TXT record name: $dns_record_name" );
+
+## Determine DNS provider from configuration
+my $dns_provider = <letsencr.dns.provider> // 'inwx';
+
+<[base.log]>->( 2, "DNS provider: $dns_provider" );
+
+## Create DNS TXT record via provider API
+my $dns_result;
+
+if ( $dns_provider eq 'inwx' ) {
+    $dns_result
+        = <[letsencr.dns.inwx_create_txt]>->( $dns_record_name, $dns_value );
+} elsif ( $dns_provider eq 'cloudflare' ) {
+    $dns_result = <[letsencr.dns.cloudflare_create_txt]>->(
+        $dns_record_name, $dns_value
+    );
+} elsif ( $dns_provider eq 'manual' ) {
+    ## Manual DNS-01: notify parent to display instructions
+    <[letsencr.child.send_to_parent]>->(
+        {   command         => 'challenge_needed',
+            type            => 'dns-01',
+            domain          => $domain,
+            base_domain     => $base_domain,
+            token           => $token,
+            dns_record_name => $dns_record_name,
+            dns_value       => $dns_value,
+            challenge_url   => $challenge->{url},
+        }
+    );
+
+    <[base.log]>->(
+        1, "MANUAL DNS-01: Create TXT record: $dns_record_name = $dns_value"
+    );
+
+    ## Wait for user confirmation (would need user interaction)
+    $dns_result = { success => 1, manual => 1 };
+} else {
+    <[base.log]>->( 1, "error: unknown DNS provider: $dns_provider" );
+    return undef;
+}
+
+unless ($dns_result) {
+    <[base.log]>->( 1, "error: failed to create DNS TXT record" );
+    return undef;
+}
+
+<[base.log]>->( 2, "DNS TXT record created successfully" );
+
+## Store challenge info in child state for later cleanup
+<letsencr.child.active_challenges> {$token} = {
+    domain          => $domain,
+    base_domain     => $base_domain,
+    token           => $token,
+    dns_record_name => $dns_record_name,
+    dns_value       => $dns_value,
+    challenge_url   => $challenge->{url},
+    type            => 'dns-01',
+    provider        => $dns_provider,
+    created_at      => time(),
+};
+
+return {
+    token           => $token,
+    dns_record_name => $dns_record_name,
+    dns_value       => $dns_value,
+    challenge_url   => $challenge->{url},
+    type            => 'dns-01',
+    provider        => $dns_provider,
+};
+
+#,,,.,.,.,,.,,.,,,,..,...,,.,,.,,,,.,,.,,,,,.,..,,...,...,.,,,.,,,,..,,.,,..,,
+#BDIYIOZHLEUTS55PZX4BMZ2QK5GH6REB5GX5GVZXKAUKELF6PWLV3V4JMYB5HWSJ7YW7DXJRW6JY4
+#\\\|ROXEVB5YKS6PRTGOH2BZSEPAWDFM2VVUS7NN6O72MAX5DZJJRK2 \ / AMOS7 \ YOURUM ::
+#\[7]SPK6XWPYVAKCXMPSKNROGLEU2TKMRWSSEXWXGM6T3QH4VRPA4MBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

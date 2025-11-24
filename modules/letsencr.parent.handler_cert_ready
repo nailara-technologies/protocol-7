@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = letsencr.parent.handler_cert_ready
+# descr = Handle successful certificate issuance or renewal from child process
+
+my $msg = shift;
+
+my $domain    = $msg->{domain};
+my $cert_data = $msg->{cert};
+
+<[base.log]>->( 2, "certificate ready for domain: $domain" );
+
+## Store certificate info in parent registry
+<letsencr.parent.certs> {$domain} = {
+    issued_at   => time(),
+    valid_until => $msg->{valid_until},
+    fingerprint => $msg->{fingerprint},
+    key_path    => $msg->{key_path},
+    cert_path   => $msg->{cert_path},
+    chain_path  => $msg->{chain_path} || undef,
+};
+
+## Write to disk
+<[file.put]>->(
+    sprintf( '%s/%s.pem', <letsencr.certs.dir>, $domain ),
+    $cert_data, qw| :raw |
+);
+
+<[base.log]>->( 2, "saved certificate for $domain" );
+
+## Update renewal timer tracking
+delete <letsencr.parent.renewal_timers> {$domain}
+    if exists <letsencr.parent.renewal_timers> {$domain};
+
+## Update statistics
+<letsencr.stats.renewals_completed>++;
+
+<[base.log]>->( 2, "certificate updated for $domain" );
+
+## TODO: Notify HTTPSD or other services when certificates are updated
+## This would be done via: cube.httpd.cert-updated with domain as args
+
+#,,..,...,,.,,,,,,..,,...,,..,...,,,.,.,,,,,.,..,,...,..,,,.,,,,,,..,,,,.,...,
+#MKSTGPNJRA5IEEJ5H7QJVWCNZ6X7K2JULSN5AEZIIYZZZRTPWNOYQCI7GY2UJR6EXECDC645QDJEW
+#\\\|JGZPFUQFEYGINMFL3S2I3GGCDC7OZUBENHPTAM7M4I25O6FGCDC \ / AMOS7 \ YOURUM ::
+#\[7]AH7IVA6YRTNMQ5XFYLP2IDNBLF5L3FPFHI7PMMSTJXYEN5ATTYDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

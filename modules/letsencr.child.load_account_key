@@ -1,0 +1,80 @@
+## [:< ##
+
+# name  = letsencr.child.load_account_key
+# descr = Load existing Ed25519 account key from Base32r cache
+
+use Crypt::Misc qw(decode_b32r);
+
+my $key_path = shift || sprintf '%s/account.key', <letsencr.cache.dir>;
+
+return undef unless -f $key_path;
+
+<[base.log]>->( 2, "loading Ed25519 account key from $key_path" );
+
+## Load Base32r-encoded secret key from cache using raw file read
+my $secret_b32;
+{
+    open( my $fh, '<:raw', $key_path ) or do {
+        <[base.log]>->( 1, "error: unable to open account key file: $!" );
+        return undef;
+    };
+    local $/;
+    $secret_b32 = <$fh>;
+    close($fh);
+    chomp($secret_b32);    # Remove trailing newlines
+}
+
+## Decode from Base32r to binary secret key
+my $secret_key = decode_b32r($secret_b32);
+
+<[base.log]>->(
+    3,
+    sprintf(
+        'loaded Base32r key: %d chars, decoded: %d bytes',
+        length($secret_b32), $secret_key ? length($secret_key) : 0
+    )
+);
+
+## Validate secret key length (should be 32 bytes for Ed25519)
+unless ( $secret_key && length($secret_key) == 32 ) {
+    <[base.log]>->(
+        1,
+        sprintf(
+            'error: invalid or corrupted account key (expected 32 bytes, got %d)',
+            $secret_key ? length($secret_key) : 0 )
+    );
+    return undef;
+}
+
+## Generate the account key using Protocol-7 infrastructure
+## Pass the loaded secret seed to gen_keys which will store it in %keys{'C25519'}
+## Use a unique key name with timestamp to avoid conflicts with previously loaded keys
+my $unique_key_name = 'acme-account-' . <[base.prng.chars-anum]>->(8);
+
+my ( $keypair, $key_name ) = <[crypt.C25519.gen_keys]>->(
+    $unique_key_name,
+    undef,         # no passphrase seed
+    $secret_key    # use the loaded secret key directly
+);
+
+unless ( $keypair && $key_name ) {
+    <[base.log]>->(
+        1, 'error: failed to regenerate account key from loaded secret'
+    );
+    return undef;
+}
+
+## Store key name in child state (key stays in global %keys{'C25519'} hash)
+<letsencr.child.acme_client>->{account_key_name} = $key_name;
+<letsencr.child.acme_client>->{account_key_type} = 'Ed25519';
+
+<[base.log]>
+    ->( 2, 'Ed25519 account key loaded and regenerated successfully' );
+
+return <letsencr.child.acme_client>->{account_key};
+
+#,,.,,...,,..,,,,,.,,,..,,,.,,,..,.,.,..,,,..,..,,...,...,.,.,...,,,,,...,.,,,
+#4WRQJNI7GUZTSWJW3VN4PJEFKIMFVLW4BCHCJ6RUJUR4A7AGJWRSZOJKBUWLI4H4H2JPJA7NWRBK2
+#\\\|NSA7GERUDXMPLE3W45IBZL2GADR4HBWXFOZ6E3YGOY5REISEAME \ / AMOS7 \ YOURUM ::
+#\[7]YMP2TREHW4Y77R2YQQJ5NVVOKZK4GRTHFR7LQQZIXT6UG4AUVWBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

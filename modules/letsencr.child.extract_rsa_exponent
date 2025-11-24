@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = letsencr.child.extract_rsa_exponent
+# descr = Extract RSA exponent (e) from RSA key object
+
+my $rsa = shift;
+
+<[base.log]>->( 3, 'extracting RSA exponent' );
+
+## Standard RSA public exponent is typically 65537 (0x010001)
+## We extract it to be accurate
+
+## NOTE: This module is legacy RSA-specific code not used by Ed25519 ACME flow
+## The helper function get_rsa_e is not implemented
+## Ed25519 flow uses RFC 8037 OKP format instead of RSA JWK format
+## This module left for backward compatibility but should not be called
+
+<[base.log]>->(
+    1,
+    'warning: extract_rsa_exponent called but not implemented for Ed25519 flow'
+);
+return undef;
+
+#,,.,,,.,,...,,,,,,,.,...,..,,.,,,,.,,,..,,,,,..,,...,...,..,,,,,,,,.,...,.,,,
+#446QUGA4A4HFNAPF2O64QYLUY7JUH4OJHIKP3MCSUH4VP6RUVV644MGV6VUAQQNBHMRVM3BSBIK3U
+#\\\|WNFZULNMUULJREEZ64J4ZHYPREUW6MWR2UJ2NQHXHE6N3BK72QG \ / AMOS7 \ YOURUM ::
+#\[7]LVKY27OF5EZRUEJJFQGC2Y5EVWYVA24JM67VDQ3DE5SZFZWAJMDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

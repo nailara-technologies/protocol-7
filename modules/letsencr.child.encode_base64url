@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = letsencr.child.encode_base64url
+# descr = URL-safe Base64 encoding for ACME protocol
+
+use MIME::Base64 qw(encode_base64);
+
+my $data = shift;
+
+return undef unless defined $data;
+
+## Standard base64 encode
+my $b64 = encode_base64( $data, '' );    # no line breaks
+
+## Convert to URL-safe: replace + with -, / with _, remove padding
+$b64 =~ tr{+/}{-_};
+$b64 =~ s/=+$//;
+
+return $b64;
+
+#,,,.,.,,,,,,,..,,,..,...,,,.,...,,..,,,,,.,,,..,,...,.,.,..,,,.,,.,.,,,,,,,,,
+#E524VDBFDPJZQQ3M7ML6F3K6EX53T4YMGXXKITENE4DDBZ5UA4M4TFZ5P2WPFZSHG36PLTZNXA232
+#\\\|QVE22YPQC2AAYOPIGJ54PSJQMD74T7XPO7ZMEYVKBTCUNMPOBMC \ / AMOS7 \ YOURUM ::
+#\[7]UFUM7OX6TEJRLOAVA55GDGA3NFXC54ZQCQ2ED74MMMVIL6L72YDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

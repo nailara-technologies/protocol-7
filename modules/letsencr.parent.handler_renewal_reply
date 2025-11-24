@@ -1,0 +1,147 @@
+## [:< ##
+
+# name  = letsencr.parent.handler_renewal_reply
+# descr = Handle renewal command reply from child process (processes TRUE/FALSE/SIZE responses)
+
+my $reply_data = shift;
+
+my $domain = $reply_data->{'params'}{'domain'};
+my $mode   = $reply_data->{'cmd'};
+my $args   = $reply_data->{'call_args'}{'args'};
+my $data   = $reply_data->{'data'};
+
+<[base.log]>->( 2, "renewal reply for domain: $domain, mode: $mode" );
+
+if ( $mode eq 'TRUE' ) {
+    <[base.log]>->( 2, "renewal succeeded for $domain: $args" );
+
+    ## Mark successful renewal
+    if ( exists <letsencr.parent.renewal_timers> {$domain} ) {
+        delete <letsencr.parent.renewal_timers> {$domain};
+    }
+    <letsencr.stats.renewals_completed>++;
+
+} elsif ( $mode eq 'FALSE' ) {
+    <[base.log]>->( 1, "renewal failed for $domain: $args" );
+
+    ## Schedule retry with exponential backoff
+    my $attempt = ( $reply_data->{'params'}{'attempt'} // 1 ) + 1;
+
+    if ( $attempt <= 5 ) {
+        my @backoff_delays = ( 300, 600, 1200, 2400, 4800 )
+            ;    ## 5min, 10min, 20min, 40min, 80min
+        my $delay = $backoff_delays[ $attempt - 1 ] // 4800;
+
+        <[base.log]>->(
+            2,
+            "scheduling retry for $domain in $delay seconds (attempt $attempt)"
+        );
+
+        <[event.add_timer]>->(
+            {   'delay'   => $delay,
+                'handler' => 'letsencr.parent.handler_renewal_retry',
+                'data'    => {
+                    'domain'  => $domain,
+                    'attempt' => $attempt,
+                }
+            }
+        );
+    } else {
+        <[base.log]>->(
+            0, "renewal failed for $domain after 5 attempts - giving up"
+        );
+        <letsencr.stats.renewals_failed>++;
+    }
+
+} elsif ( $mode eq 'SIZE' ) {
+    <[base.log]>->(
+        2,
+        "renewal returned certificate data for $domain ("
+            . length($data)
+            . " bytes)"
+    );
+
+    ## Certificate data returned - decode and save it
+    ## NOTE: Data should come from child as base32r encoded if needed,
+    ## but for now we expect raw certificate PEM
+    my $cert_path = sprintf '%s/%s.pem', <letsencr.certs.dir>, $domain;
+    <[file.put]>->( $cert_path, $data, qw| :raw | );
+
+    <[base.log]>->( 2, "saved certificate for $domain to $cert_path" );
+
+    ## Update stats
+    <letsencr.parent.certs> {$domain} = {
+        issued_at => time(),
+        domain    => $domain,
+    };
+
+    if ( exists <letsencr.parent.renewal_timers> {$domain} ) {
+        delete <letsencr.parent.renewal_timers> {$domain};
+    }
+    <letsencr.stats.renewals_completed>++;
+
+    ## Install renewed certificate to httpsd
+    <[base.log]>->(
+        2, "installing renewed certificate to httpsd for $domain"
+    );
+
+    my $httpsd_install_result
+        = <[letsencr.parent.install_certificate_to_httpsd]>->($domain);
+
+    if ( $httpsd_install_result->{status} eq qw| success | ) {
+        <[base.log]>->(
+            2, "renewed certificate installed to httpsd successfully"
+        );
+        <[letsencr.parent.activity_logger]>->(
+            qw| renewal |, $domain, qw| success |,
+            qq| renewed and installed to httpsd |
+        );
+    } elsif ( $httpsd_install_result->{status} eq qw| partial | ) {
+        <[base.log]>->(
+            1,
+            "renewed certificate installed but httpsd reload failed: "
+                . $httpsd_install_result->{message}
+        );
+        <[letsencr.parent.activity_logger]>->(
+            qw| renewal |, $domain, qw| partial |,
+            qq| renewed but httpsd reload failed |
+        );
+    } else {
+        <[base.log]>->(
+            1,
+            "failed to install renewed certificate to httpsd: "
+                . $httpsd_install_result->{message}
+        );
+        <[letsencr.parent.activity_logger]>->(
+            qw| renewal |, $domain, qw| partial |,
+            qq| renewed but httpsd install failed |
+        );
+    }
+
+    ## Notify HTTPd that certificate has been updated
+    my $notify_result
+        = <[letsencr.parent.notify_httpd_certificate_update]>->(
+        {   domain    => $domain,
+            cert_path => $cert_path,
+            key_path => sprintf( '%s/%s.key', <letsencr.certs.dir>, $domain ),
+        }
+        );
+
+    if ( !$notify_result || $notify_result->{status} ne 'success' ) {
+        <[base.log]>->(
+            1,
+            "warning: failed to notify httpd of certificate update for $domain"
+        );
+    }
+
+} else {
+    <[base.log]>->( 1, "renewal got unexpected mode: $mode for $domain" );
+}
+
+return 0;
+
+#,,,,,.,.,.,,,,.,,...,,..,,..,.,.,...,,,,,.,,,..,,...,...,.,,,,..,,.,,,..,,,.,
+#JSRUPIYY2LUT2PJDTHSU22LEMVUNJDWR6M6YY42JZRWWANCX7ESZVTXEFGL2W3VQHXCMIRYOLYIIC
+#\\\|OPRMQ6HB7XOIIJLIM4OWZUEKFYE7RSRWFP4Y3VGH7VJTHGY5NX6 \ / AMOS7 \ YOURUM ::
+#\[7]JODJLCWAS7SOEXJ5OEKBEM4CND3JV43UTB262JGKFXTRWMC3C2CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

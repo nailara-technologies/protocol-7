@@ -1,0 +1,98 @@
+## [:< ##
+
+# name  = letsencr.child.poll_challenge_status
+# descr = Poll ACME server for challenge validation status with exponential backoff
+
+use JSON::XS;
+
+my $auth_url = shift;
+my $domain   = shift;
+
+return undef unless $auth_url && $domain;
+
+<[base.log]>->( 2, "polling challenge status for $domain" );
+
+my $max_attempts = 60;
+my $attempt      = 0;
+my $backoff      = 1;     # start at 1 second
+my $max_backoff  = 10;    # cap at 10 seconds
+
+while ( $attempt < $max_attempts ) {
+    $attempt++;
+
+    ## Get fresh nonce
+    my $nonce = <[letsencr.child.get_fresh_nonce]>->();
+    unless ($nonce) {
+        <[base.log]>->( 1, 'error: failed to get fresh nonce' );
+        last;
+    }
+
+    ## Fetch authorization status (POST-as-GET)
+    my $response = <[letsencr.child.acme_http_request]>->(
+        'POST',
+        $auth_url,
+        '',    # empty payload for POST-as-GET
+        $nonce,
+        <letsencr.child.acme_client> {account_url}
+    );
+
+    unless ($response) {
+        <[base.log]>->(
+            2, "poll attempt $attempt: request failed, retrying..."
+        );
+        sleep($backoff);
+        $backoff = $backoff < $max_backoff ? $backoff * 1.5 : $max_backoff;
+        next;
+    }
+
+    my $auth_data = $response->{data};
+    my $status    = $auth_data->{status};
+
+    <[base.log]>->( 2, "poll attempt $attempt: status = $status" );
+
+    if ( $status eq 'valid' ) {
+        <[base.log]>->( 2, "challenge validated successfully!" );
+        <letsencr.child.acme_client> {nonce} = $response->{nonce};
+        return {
+            valid    => 1,
+            status   => $status,
+            attempts => $attempt,
+        };
+    } elsif ( $status eq 'invalid' ) {
+        <[base.log]>->( 1, "challenge validation FAILED" );
+        if ( $auth_data->{challenges} ) {
+            foreach my $c ( @{ $auth_data->{challenges} } ) {
+                if ( $c->{error} ) {
+                    <[base.log]>->( 1, "  error: " . $c->{error}{detail} );
+                }
+            }
+        }
+        return {
+            valid    => 0,
+            status   => $status,
+            attempts => $attempt,
+            error    => 'Challenge invalid',
+        };
+    }
+
+    ## Still pending, sleep and retry
+    sleep($backoff);
+    $backoff = $backoff < $max_backoff ? $backoff * 1.5 : $max_backoff;
+}
+
+<[base.log]>->(
+    1, "challenge validation timeout after $max_attempts attempts"
+);
+
+return {
+    valid    => 0,
+    status   => 'timeout',
+    attempts => $attempt,
+    error    => 'Challenge validation timeout',
+};
+
+#,,.,,.,,,,..,.,,,.,.,,,,,.,.,,..,.,.,,,,,...,..,,...,...,..,,.,,,,,,,,..,.,,,
+#5NTENO3CJQ5MJRVZ4YNTJ2NXDOA2WRHGFEKHXVU2IONBC43CXOTU3MOTRUB54U5R6KTTAEV57AMPU
+#\\\|KRSSTFJ5TBIFPGR7WHCFSCWY6GTKADKMM7732GJ2WWG3P6L3NCE \ / AMOS7 \ YOURUM ::
+#\[7]ENO3IHJJRKI4VWL7WK3DUQW5PNVWP2FPWUA3TWBSDIUGK42P2CAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

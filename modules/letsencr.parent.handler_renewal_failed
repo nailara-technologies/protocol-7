@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = letsencr.parent.handler_renewal_failed
+# descr = Handle failed renewal attempts from child process - implement retry logic
+
+my $msg = shift;
+
+my $domain     = $msg->{domain};
+my $error      = $msg->{error};
+my $error_code = $msg->{error_code};
+
+<[base.log]>
+    ->( 1, "renewal FAILED for domain: $domain (error: $error_code)" );
+<[base.log]>->( 2, "error details: $error" );
+
+## Update statistics
+<letsencr.stats.renewals_failed>++;
+
+## Implement retry logic
+if ( !exists <letsencr.parent.renewal_timers> {$domain} ) {
+    <letsencr.parent.renewal_timers> {$domain} = {
+        started  => time(),
+        attempts => 0,
+    };
+}
+
+my $attempts = <letsencr.parent.renewal_timers> {$domain}{attempts}
+++;
+my $max_retries = 5;
+
+if ( $attempts < $max_retries ) {
+    my $retry_delay = <letsencr.renewal.retry-delay>;
+    my $backoff     = 2**
+        $attempts;   # exponential backoff: 300, 600, 1200, 2400, 4800 seconds
+    my $next_retry = $retry_delay * $backoff;
+
+    <[base.log]>->(
+        2,
+        "scheduling retry in $next_retry seconds (attempt $attempts/$max_retries)"
+    );
+
+    ## Schedule retry via event timer
+    <[event.add_timer]>->(
+        {   'after'   => $next_retry,
+            'handler' => qw| letsencr.parent.handler_renewal_retry |,
+            'repeat'  => 0,
+            'data'    => {
+                domain  => $domain,
+                attempt => $attempts + 1,
+            },
+        }
+    );
+} else {
+    <[base.log]>->(
+        1, "CRITICAL: renewal failed for $domain after $max_retries attempts"
+    );
+
+    ## Could notify monitoring/alerting services here if needed
+    ## For now, failures are logged and can be checked via letsencr.show-buffer
+}
+
+return 0;
+
+#,,..,.,.,.,.,,..,.,,,.,.,.,,,,,.,,,.,,,,,.,.,..,,...,...,.,.,,,.,...,,.,,.,.,
+#MB2CSUQEHVHLFL5UROU26GGYIX732IK4QP6IHEQGX54ZCPT5URPCVSC3AKVUDRTDSDPVGEPJM3MYW
+#\\\|XLNR7QHXICSRVHL3GK7I6BDXA235WFFP6LJ4MQNJVIPJUFGBVNB \ / AMOS7 \ YOURUM ::
+#\[7]52CXG2C6LVZAWLYJOI35N3SQKY56PCRJQLEEHMBRSEDI4LTIPEBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

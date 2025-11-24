@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = letsencr.child.extract_rsa_modulus
+# descr = DEPRECATED: Legacy RSA support module (not used with Ed25519 ACME flow)
+
+<[base.log]>->(
+    1,
+    'warning: extract_rsa_modulus is a legacy RSA module and should not be called in Ed25519 ACME flow'
+);
+
+## This module is retained for backward compatibility only.
+##
+## RSA key generation and handling has been completely removed in favor of Ed25519:
+## - ACME account keys: Generated via crypt.C25519 (Ed25519)
+## - Certificate keys: Generated via openssl genpkey -algorithm Ed25519
+## - JWK format: Uses RFC 8037 OKP format instead of RSA JWK format
+##
+## If you encounter calls to this module, verify the ACME flow is using Ed25519.
+## This stub will be removed in a future release.
+
+return undef;
+
+#,,,,,..,,.,.,.,,,,..,.,.,..,,,.,,...,.,,,...,..,,...,..,,,,.,,,,,,,,,,,,,,,,,
+#54MUVQOC3LJZIPA65ZB4ZQD5HT6M6TURT5EOM6RWZSHDI46S62GMFBBFEAKI2NDUPLB76A4ZWFW72
+#\\\|UW6AXW46VUK3Q7HDVNEYI7MRWTEEVLU7J6S32UFLZADWP24NMSB \ / AMOS7 \ YOURUM ::
+#\[7]M4G2SGA5URZD3DIWXDTSPTFGLABO3IZIXGIV6WXIGVYJKSELYQBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,123 @@
+## [:< ##
+
+# name = letsencr.cmd.revoke
+# descr = Revoke certificate with Let's Encrypt and clean up local files
+
+my $params = shift || {};
+
+my $domain = $params->{domain};
+
+if ( !$domain ) {
+    return {
+        success => 0,
+        error   => qw| domain parameter required |,
+        usage   => qw| letsencr.revoke domain=example.com [reason=<0-5>] |
+    };
+}
+
+<[base.log]>
+    ->( 2, "letsencr.cmd.revoke: Revoking certificate for '$domain'" );
+
+## Check if certificate exists
+my $cert_file = "/etc/protocol-7/certs/$domain.pem";
+my $key_file  = "/etc/protocol-7/certs/$domain.key";
+
+if ( !-f $cert_file ) {
+    return {
+        success => 0,
+        error   => qq| certificate not found: $cert_file |
+    };
+}
+
+if ( !-f $key_file ) {
+    return {
+        success => 0,
+        error   => qq| key file not found: $key_file |
+    };
+}
+
+## Reason codes (RFC 5280):
+## 0 = unspecified (default)
+## 1 = keyCompromise
+## 2 = cACompromise
+## 3 = affiliationChanged
+## 4 = superseded
+## 5 = cessationOfOperation
+my $reason = $params->{reason} || 0;
+
+<[base.log]>->( 2, "  Certificate file: $cert_file" );
+<[base.log]>->( 2, "  Revocation reason: $reason" );
+
+## Prepare revocation message for child process
+my $revoke_msg = {
+    cert_path => $cert_file,
+    key_path  => $key_file,
+    domain    => $domain,
+    reason    => $reason
+};
+
+## Check if letsencr zenka/child is available
+if ( exists $code{'letsencr.child.acme_revoke'} ) {
+    ## Direct call (same zenka)
+    <[base.log]>->( 2, "  Calling letsencr.child.acme_revoke directly" );
+
+    my $result;
+    eval { $result = <[letsencr.child.acme_revoke]>->($revoke_msg); };
+
+    if ($@) {
+        <[base.log]>->( 0, "  Revocation failed: $@" );
+        return {
+            success => 0,
+            error   => qq| revocation failed: $@ |
+        };
+    }
+
+    if ( !$result || $result->{status} ne 'success' ) {
+        my $error_msg = $result->{error} || qw| unknown revocation error |;
+        <[base.log]>->( 0, "  Revocation failed: $error_msg" );
+
+        return {
+            success => 0,
+            error   => $error_msg
+        };
+    }
+
+    <[base.log]>->( 2, "  Certificate revoked with ACME server" );
+
+    ## Update metadata (handler will clean up files)
+    if ( exists $code{'letsencr.parent.handler_revocation_reply'} ) {
+        my $handler_data = {
+            cmd    => qw| TRUE |,
+            params => { domain => $domain },
+            data   => 'revoked'
+        };
+
+        <[letsencr.parent.handler_revocation_reply]>->($handler_data);
+    }
+
+    return {
+        success    => 1,
+        domain     => $domain,
+        status     => qw| revoked |,
+        revoked_at => $result->{revoked_at} || time()
+    };
+
+} else {
+    ## IPC call to letsencr zenka (not implemented yet)
+    <[base.log]>->( 0, "  IPC to letsencr zenka not yet implemented" );
+
+    return {
+        success => 0,
+        error   => qw| letsencr zenka IPC not implemented |,
+        hint    =>
+            qw| ensure letsencr zenka is running or load modules directly |
+    };
+}
+
+0;
+
+#,,.,,,..,...,,,,,.,,,.,.,...,,,.,,.,,,..,,,,,..,,...,...,,.,,,..,,,,,...,,,,,
+#6U3Z7XAZCBCNEASI2JUZXJF4HQO7SMH36WKBUIBPIQCRIBOXYS7B3WXGA6RV7I65DPLAT7A2XFV2M
+#\\\|DQOARFSPHBC5JZZH56CP4REC7E6D6X2IQUTWMRL2X5EFNVJR35Q \ / AMOS7 \ YOURUM ::
+#\[7]DWY2KMMPVGOF7GRND7OPUUXGE7M5W66L5BKTPWATZQQBOMBZCMCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

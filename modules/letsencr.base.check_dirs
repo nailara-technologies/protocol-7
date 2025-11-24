@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = letsencr.base.check_dirs
+# descr = Create required directories for Let's Encrypt operations with proper permissions
+
+## Directories to create (called before drop_privs, so runs as root)
+my @dirs = ( <letsencr.certs.dir>, <letsencr.certs.backup>,
+    <letsencr.cache.dir>, );
+
+foreach my $dir (@dirs) {
+    next unless $dir;
+
+    <[file.make_path]>->( $dir, 0700, <system.amos-zenka-user> )
+        or <[base.log]>->( 1, "error: failed to create directory: $dir" );
+}
+
+<[base.log]>->( 2, 'certificate directories created and configured' );
+
+#,,,.,,,,,...,,..,.,,,.,,,,,.,...,...,.,.,.,,,..,,...,...,.,,,,,.,,.,,,.,,,,.,
+#3AL24H6EQ3RJA4E7HS5C5IQ45YAQRIIFOAJS3GCC6RBTT723OD63R5RKOATLQF4TDD5WS2TLN6ZJI
+#\\\|LTQ7O3IF6R6MUU24Z75GHZ7RG2SLP2PA72RCUZ453ETL7DEP4A6 \ / AMOS7 \ YOURUM ::
+#\[7]FQSBRWT7DLF3J63VBIVZQGFHPM4J6HEWVPKFN2LZECIDOVVQA4AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

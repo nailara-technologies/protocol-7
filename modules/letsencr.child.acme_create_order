@@ -1,0 +1,112 @@
+## [:< ##
+
+# name  = letsencr.child.acme_create_order
+# descr = Create new certificate order with Let's Encrypt
+
+use JSON::XS;
+
+my $domains = shift;    # arrayref of domains
+
+return undef unless $domains && @$domains;
+
+<[base.log]>->(
+    2,
+    'creating ACME certificate order for domains: ' . join( ', ', @$domains )
+);
+
+## Ensure account is registered
+unless ( <letsencr.child.acme_client> {account_url} ) {
+    <[base.log]>->( 1, 'error: ACME account not registered' );
+    return undef;
+}
+
+## Get fresh nonce
+my $nonce = <[letsencr.child.get_fresh_nonce]>->();
+unless ($nonce) {
+    <[base.log]>->( 1, 'error: failed to get fresh nonce' );
+    return undef;
+}
+
+## Build identifiers for each domain
+my @identifiers;
+foreach my $domain (@$domains) {
+    push @identifiers,
+        {
+        type  => 'dns',
+        value => $domain,
+        };
+}
+
+## Create order payload
+my $payload = { identifiers => \@identifiers, };
+
+## Get directory
+my $directory    = <letsencr.child.acme_client> {directory};
+my $newOrder_url = $directory->{newOrder};
+
+## Make ACME request (authenticated with account URL as KID)
+my $response = <[letsencr.child.acme_http_request]>->(
+    'POST',
+    $newOrder_url,
+    $payload,
+    $nonce,
+    <letsencr.child.acme_client> {account_url}    # KID = account URL
+);
+
+unless ($response) {
+    <[base.log]>->( 1, 'error: order creation request failed' );
+    return undef;
+}
+
+## Check response status
+unless ( $response->{status} == 201 ) {
+    <[base.log]>->(
+        1, "error: order creation returned status $response->{status}"
+    );
+    if ( $response->{data}{detail} ) {
+        <[base.log]>->( 1, "  details: $response->{data}{detail}" );
+    }
+    return undef;
+}
+
+## Extract order information
+my $order_data = $response->{data};
+my $order_url
+    = $response->{headers}{location} || $response->{headers}{Location};
+
+unless ( $order_url && $order_data->{authorizations} ) {
+    <[base.log]>->( 1, 'error: invalid order response' );
+    return undef;
+}
+
+<[base.log]>->( 2, "order created: $order_url" );
+<[base.log]>->( 2, "  status: $order_data->{status}" );
+<[base.log]>->(
+    2, "  authorizations: " . scalar( @{ $order_data->{authorizations} } )
+);
+
+## Store order info in child state
+<letsencr.child.current_order> = {
+    order_url      => $order_url,
+    status         => $order_data->{status},
+    domains        => $domains,
+    authorizations => $order_data->{authorizations},
+    finalize_url   => $order_data->{finalize},
+    created_at     => time(),
+};
+
+## Update nonce
+<letsencr.child.acme_client> {nonce} = $response->{nonce};
+
+return {
+    order_url      => $order_url,
+    status         => $order_data->{status},
+    authorizations => $order_data->{authorizations},
+    finalize_url   => $order_data->{finalize},
+};
+
+#,,,,,,.,,,,.,,,,,..,,.,,,...,...,.,,,.,.,,.,,..,,...,..,,,.,,.,.,.,,,,,.,..,,
+#DYI6LIVMJUS6XOKF42MU64COYCHRGDBHJO7SEN6KAU26CLDME3C5WMXC7XDY6A3FRXPHJ7PV5Q6MC
+#\\\|FUADKZDRYJI454WXCCX4GRUYJVD3JGPIZBRPO6KI4T5X5JQ5RNJ \ / AMOS7 \ YOURUM ::
+#\[7]5XQGN6GIX4TNSYMWXF4BBCFVZT5K2XQFH46EZQPHMRS3WJMRXADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

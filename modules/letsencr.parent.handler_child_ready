@@ -1,0 +1,20 @@
+## [:< ##
+
+# name  = letsencr.parent.handler_child_ready
+# descr = Handle child process ready notification - completes parent initialization
+
+my $msg = shift;
+
+my $child_pid = $msg->{pid};
+
+<[base.log]>->( 2, "letsencr parent: child process ready (PID: $child_pid)" );
+
+## Check for any pending operations
+<[letsencr.parent.process_pending_ops]>->()
+    if defined <[letsencr.parent.process_pending_ops]>;
+
+#,,.,,,,.,,,,,...,,,.,.,.,.,,,..,,,,,,..,,...,..,,...,...,..,,.,.,,.,,.,,,.,,,
+#5YJ6GM7VYUUIXCSU7H54EGGB7WJ6CW2NARIJ47N2P4E5X65AD3CCG7SMMLAJR7QMOHMV5HKNFY5XM
+#\\\|AXXC4WCZ43BSBFC344M6JM2QA2KN6F5TJ6UMBPFHFGXGATR3WQ5 \ / AMOS7 \ YOURUM ::
+#\[7]53ULAF22TGTSJVCAGRDSM4E2EOL2SQR6EOI2PHHHKFS74OL346AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

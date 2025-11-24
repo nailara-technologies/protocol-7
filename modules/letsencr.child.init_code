@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = letsencr.child.init_code
+# descr = Initialize child process for Let's Encrypt ACME operations - handles blocking crypto and network calls
+
+<[base.log]>->( 2, "initializing Let's Encrypt ACME child process..," );
+
+## Load child-specific cryptographic module (letsencr.base already loaded/initialized by zenka startup)
+<[base.load_modules]>->('crypt.C25519');
+<[base.init_modules]>->('crypt.C25519');
+<[base.perlmod.autoload]>->(
+    'Crypt::OpenSSL::X509', qw| FORMAT_ASN1 FORMAT_PEM |
+);
+
+## Initialize ACME client state (child-side)
+<letsencr.child.acme_client> = {
+    server           => <letsencr.acme.server>,
+    account_key      => undef,
+    account_key_type => 'Ed25519',    ## Track key type for signing (EdDSA)
+    account_id       => undef,
+    nonce            => undef,
+};
+
+## Initialize certificate request queue (for blocking operations)
+<letsencr.child.cert_queue> = [];
+
+## Initialize challenge handlers (child performs actual challenge)
+<letsencr.child.active_challenges> = {};
+
+## All required cryptographic modules are loaded in letsencr.base.pre_init
+## No need to duplicate loading here
+
+## NOTE: Message handler is registered by fork_letsencr_child via base.handler.command
+## Do NOT register custom handler here - use Protocol-7's command protocol
+
+## Initialize ACME account (blocking operation - safe in child)
+my $account_key_path = sprintf '%s/account.key', <letsencr.cache.dir>;
+if ( -f $account_key_path ) {
+    <[base.log]>->( 2, 'loading existing ACME account key' );
+
+    # Load account key (deferred)
+    # <[letsencr.child.load_account_key]>->($account_key_path);
+} else {
+    <[base.log]>->( 2, 'generating new ACME account key' );
+
+    # Generate Ed25519 key (blocking - safe in child)
+    # <[letsencr.child.generate_account_key]>->();
+}
+
+<[base.log]>->( 2, "Let's Encrypt child process initialization complete" );
+<[base.logs]>->( 2, ': ACME Server : %s', <letsencr.acme.server> );
+<[base.logs]>->( 2, ': Account Key : %s', $account_key_path );
+
+0;
+
+#,,,,,,.,,,,.,..,,,,.,...,..,,.,.,.,,,...,.,,,..,,...,...,,..,,..,,,.,,..,,,.,
+#M6W64XU7TPI4ZRRTJYKVIVRGTDTZTACLKZVKCIZXG6VVRTSGV5YTCYAC5JQ7GXDTLCJM735AACE3O
+#\\\|SRC6AGELEXP3S3MG532UZBVIKW2NI2HCLDTVVXUZXJRAHPPOVOG \ / AMOS7 \ YOURUM ::
+#\[7]V7PN2QL4ZWCFGKZJIZ4ZDNZ7H3NY4NOQTHO6YHYN7NVZDBFST6CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = letsencr.child.respond_to_challenge
+# descr = Respond to ACME challenge, signaling readiness for validation
+
+use JSON::XS;
+
+my $challenge_url = shift;
+my $token         = shift;
+
+return undef unless $challenge_url && $token;
+
+<[base.log]>->( 2, "responding to challenge: $token" );
+
+## Get fresh nonce
+my $nonce = <[letsencr.child.get_fresh_nonce]>->();
+unless ($nonce) {
+    <[base.log]>->( 1, 'error: failed to get fresh nonce' );
+    return undef;
+}
+
+## Create response payload (empty JSON object for challenge response)
+my $payload = {};
+
+## Make authenticated POST request to challenge URL
+my $response = <[letsencr.child.acme_http_request]>->(
+    'POST', $challenge_url, $payload, $nonce,
+    <letsencr.child.acme_client> {account_url}
+);
+
+unless ($response) {
+    <[base.log]>->( 1, 'error: challenge response request failed' );
+    return undef;
+}
+
+## Check response status
+unless ( $response->{status} == 200 ) {
+    <[base.log]>->(
+        1, "error: challenge response returned status $response->{status}"
+    );
+    if ( $response->{data}{detail} ) {
+        <[base.log]>->( 1, "  details: $response->{data}{detail}" );
+    }
+    return undef;
+}
+
+<[base.log]>->( 2, "challenge response submitted" );
+<[base.log]>->( 2, "  status: $response->{data}{status}" );
+
+## Update nonce
+<letsencr.child.acme_client> {nonce} = $response->{nonce};
+
+## Update challenge status in child state
+if ( exists <letsencr.child.active_challenges> {$token} ) {
+    <letsencr.child.active_challenges> {$token}{status}
+    = $response->{data}{status};
+    <letsencr.child.active_challenges> {$token}{responded_at}
+    = time();
+}
+
+return {
+    status     => $response->{data}{status},
+    processing => $response->{data}{status} eq 'processing',
+};
+
+#,,,,,,,.,,,.,,,.,...,,,.,...,,,.,,,,,,.,,,..,..,,...,...,,,,,.,.,,,.,..,,.,.,
+#MDQDLRBXG6UVSRFY77THX4OH2AS7R2NSEJTI73HIFUR4SVQDLS5PYC532UZHRTVFR33KL7PKJYQXA
+#\\\|VWOY4QICYZCM35ZZJLLTW36KZ5EA4AAFIMLGY34OOIZ6MEGNLGP \ / AMOS7 \ YOURUM ::
+#\[7]5F4DSW2HPDRYACRZWQKQXU52XYYX73CPTNG2EDHYSBT4F5EHAECI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = letsencr.child.generate_account_key
+# descr = Generate Ed25519 account key for ACME operations using existing C25519 infrastructure
+
+use Crypt::Misc qw(encode_b32r);
+
+<[base.log]>->(
+    2, 'generating new Ed25519 account key for ACME (via C25519)'
+);
+
+my $start_time = time();
+
+## Generate Ed25519 account key using existing Protocol-7 C25519 infrastructure
+## This reuses proven code from modules/crypt.C25519.gen_keys and includes:
+## - Harmonic key generation (AMOS7::Assert::Truth)
+## - Memory locking (IO::AIO::aio_mlock)
+## - Secure entropy (Crypt::PRNG::Fortuna)
+my ( $ed_keypair, $key_name ) = <[crypt.C25519.gen_keys]>->(
+    'acme-account-'
+        . <[base.prng.chars-anum]>->(8),    # unique account key identifier
+    <letsencr.admin.email>    # use admin email as derivation seed
+);
+
+<[base.log]>->(
+    2,
+    'Ed25519 account key generated in '
+        . ( time() - $start_time )
+        . ' seconds'
+);
+
+## Store key name in child state (key binary data is in global %keys{'C25519'} hash)
+## Following Protocol-7 pattern: key stays in memory, we reference it by name
+<letsencr.child.acme_client>->{account_key_name} = $key_name;
+<letsencr.child.acme_client>->{account_key_type} = 'Ed25519';
+
+## Save secret key to cache for persistence (as Base32r-encoded)
+my $key_cache  = sprintf '%s/account.key', <letsencr.cache.dir>;
+my $secret_b32 = encode_b32r( $ed_keypair->{secret} );
+
+{
+    open( my $fh, '>:raw', $key_cache ) or do {
+        <[base.log]>->( 1, "error: unable to write account key file: $!" );
+        return undef;
+    };
+    print $fh $secret_b32;
+    close($fh);
+}
+chmod( 0600, $key_cache );
+
+<[base.log]>->(
+    2, "Ed25519 account key saved to $key_cache (Base32r encoded)"
+);
+
+## Return keypair for later use
+return $ed_keypair;
+
+#,,..,,,.,...,.,.,,,,,...,,,.,..,,,..,.,.,,,.,..,,...,...,...,.,.,,,.,..,,...,
+#PUSBTX4ZTC6VWBCVRUXWEMSKFZCNDY4B5U3OHO2O52AE6XB4UMBIHOBT5PL2FWHDRXKA6LB5ULSOU
+#\\\|QEIMNCCMHKKZKNZBXLICQU5X6GGSTI2UFW6XCBRA74A7RNWAUJY \ / AMOS7 \ YOURUM ::
+#\[7]6HZM6IPQC2HNVNWOY6VGPICZZVTVVOV7EQRPFN6QNKAVWMOIOECI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

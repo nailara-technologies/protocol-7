@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = letsencr.parent.cmd.query-vhosts
+# descr = Query httpd for virtual hosts (async deferred reply)
+# param = none
+
+<[base.log]>->( 2, "query-vhosts command: initiating async vhost retrieval" );
+
+## Store reply_id for deferred reply
+my $reply_id = $call->{'reply_id'};
+
+unless ($reply_id) {
+    return {
+        'mode' => 'false',
+        'data' => 'internal error: no reply_id for deferred operation'
+    };
+}
+
+## Send async command to httpd via cube with reply handler
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => qw| cube.httpd.vhost-list |,
+        'call_args' => { 'args' => '' },
+        'reply'     => {
+            'handler' => qw| letsencr.parent.handler.vhost_query_reply |,
+            'params'  => { 'reply_id' => $reply_id }
+        }
+    }
+);
+
+<[base.log]>->( 3, "vhost query sent to httpd, reply will be deferred" );
+
+## Return deferred to tell Protocol-7 we'll send reply later
+return { 'mode' => qw| deferred | };
+
+#,,..,.,,,,.,,,,,,...,..,,.,,,,.,,,,.,.,,,,.,,..,,...,...,..,,.,,,,,.,..,,,,,,
+#GQBI6JNFP3BSX3ZFKJ4KP5WQ4X3FNVSNFWHVTBRVJHQHH2KRJ2T3HNSTWPGTNTTB55W3PM4EERUPU
+#\\\|I3XKRDUITAIX7NXUSMVNNO4CLPUTDUEI7IGX44TOMPOPYPB5SIF \ / AMOS7 \ YOURUM ::
+#\[7]MYGWJ6F7OWBGR4G3IKUE6HPJXN3XU55IWJZKPW4BTX2EJ4LRBSAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

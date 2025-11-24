@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = letsencr.child.get_fresh_nonce
+# descr = Get fresh nonce from Let's Encrypt server for next ACME request
+
+use LWP::UserAgent;
+
+<[base.log]>->( 3, 'requesting fresh nonce from ACME server' );
+
+## Get nonce URL from directory
+my $directory = <letsencr.child.acme_client> {directory};
+my $nonce_url = $directory->{newNonce};
+
+unless ($nonce_url) {
+    <[base.log]>->( 1, 'error: newNonce endpoint not in directory' );
+    return undef;
+}
+
+## Create HTTP client (use standard LWP::UserAgent to allow localhost for testing)
+my $ua = LWP::UserAgent->new( timeout => 10, );
+
+## Disable SSL verification for localhost/test servers
+if ( $nonce_url =~ m{^https?://localhost} ) {
+    $ua->ssl_opts( verify_hostname => 0, SSL_verify_mode => 0 );
+}
+
+## HEAD request to nonce endpoint
+my $response = $ua->head($nonce_url);
+
+unless ( $response->is_success ) {
+    <[base.log]>->( 1, "error fetching nonce: " . $response->status_line );
+    return undef;
+}
+
+## Extract nonce from Replay-Nonce header
+my $nonce = $response->header('Replay-Nonce');
+
+unless ($nonce) {
+    <[base.log]>->( 1, 'error: no Replay-Nonce header in response' );
+    return undef;
+}
+
+<[base.log]>->( 3, 'fresh nonce obtained' );
+
+## Update current nonce in state
+<letsencr.child.acme_client> {nonce} = $nonce;
+
+return $nonce;
+
+#,,,.,.,,,.,,,..,,,.,,,,.,...,..,,,,.,,.,,,,.,..,,...,...,,..,.,,,..,,,,.,,,,,
+#MGARLAFI7DH2MXSSTHIMGDDM557B55YJ2QKCG2PCZMEQB7RJXY4FFUNXHS2LUYPEPTV7COSQHLFCA
+#\\\|S5HFOYMXAF7E5JLGKQPFEG7QQKHOM6XXOH6FKOUSLRIPBL664KY \ / AMOS7 \ YOURUM ::
+#\[7]OYZ7WF5TT5GMJ7LIMACSTLL4ERN6CYCAGL5EEJQEAAXH3GHU2YBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

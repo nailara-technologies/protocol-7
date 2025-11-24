@@ -1,0 +1,110 @@
+## [:< ##
+
+# name  = letsencr.parent.determine_certificate_domains
+# descr = Map vhost names to certificate domains for enrollment
+
+my $vhosts_list = shift;
+
+return {
+    status  => 'error',
+    error   => 'vhosts array required',
+    domains => {},
+    }
+    unless $vhosts_list && ref($vhosts_list) eq 'ARRAY';
+
+<[base.log]>->(
+    2,
+    "determining certificate domains from "
+        . scalar(@$vhosts_list)
+        . " vhosts"
+);
+
+my %domains_map;
+
+foreach my $vhost (@$vhosts_list) {
+    next unless defined $vhost && length($vhost) > 0;
+
+    ## Skip special vhosts
+    # Skip 'default' - it's a generic vhost
+    next if $vhost eq 'default';
+
+    # Skip localhost references
+    next if $vhost =~ /^localhost|127\.0\.0\.1|::1|\[.*:.*:.*\]$/i;
+
+    # Skip private network ranges (10.x, 172.16-31.x, 192.168.x)
+    next
+        if $vhost
+        =~ /^10\.|^172\.(1[6-9]|2[0-9]|3[01])\.|^192\.168\.|^fd[0-9a-f]{2}:/i;
+
+    # Skip IPv6 link-local
+    next if $vhost =~ /^fe80:/i;
+
+    # Valid domain-like vhost - queue for certificate
+    # Normalize domain (lowercase)
+    my $domain = lc($vhost);
+
+    # Group wildcards and subdomains under base domain
+    # e.g., www.example.com and *.example.com both map to example.com
+    my $base_domain = $domain;
+    if ( $domain =~ /^\*\.(.+)$/ ) {
+
+        # Wildcard domain - use base domain
+        $base_domain = $1;
+    } elsif ( $domain =~ /^www\.(.+)$/ ) {
+
+        # www subdomain - check if we should use base or subdomain
+        # For now, keep both as separate domains
+        # This allows certificate for both www.example.com and example.com
+        $base_domain = $domain;    # Use the full domain
+    }
+
+    # Initialize domain entry if not present
+    unless ( exists $domains_map{$base_domain} ) {
+        $domains_map{$base_domain} = {
+            primary_domain => $base_domain,
+            vhosts         => [],
+            alt_names      => [],
+        };
+    }
+
+    # Add vhost to this domain's list
+    push @{ $domains_map{$base_domain}{vhosts} }, $vhost;
+
+    # If it's a wildcard, add to alt_names
+    if ( $vhost =~ /^\*\./ ) {
+        push @{ $domains_map{$base_domain}{alt_names} }, $vhost;
+    }
+
+    # Add www variant if not present
+    if ( $vhost !~ /^\*\./ && $vhost !~ /^www\./ ) {
+        my $www_variant = "www.$vhost";
+        unless ( grep { $_ eq $www_variant }
+            @{ $domains_map{$base_domain}{alt_names} } ) {
+            push @{ $domains_map{$base_domain}{alt_names} }, $www_variant;
+        }
+    }
+}
+
+## Log determined domains
+<[base.log]>->(
+    2, "determined " . scalar( keys %domains_map ) . " certificate domains"
+);
+foreach my $domain ( sort keys %domains_map ) {
+    my $info = $domains_map{$domain};
+    my $alts
+        = @{ $info->{alt_names} } > 0
+        ? " (+ " . scalar( @{ $info->{alt_names} } ) . " alts)"
+        : "";
+    <[base.log]>->( 2, "  $domain" . $alts );
+}
+
+return {
+    status  => 'success',
+    domains => \%domains_map,
+};
+
+#,,,,,,,,,.,.,,..,,,,,...,,.,,...,..,,...,..,,..,,...,...,.,.,..,,...,.,,,,..,
+#GASKFQYKDR5B6OYL5TSCA2YRLF7XDVAFVSWFWGHY33ITG23DF2I423D3XN5C4BPYZMMSCH56M43KG
+#\\\|K7SOQIPXY4KZGRT2NYKGQUIAELMAKCHECFXJLP2YNZ3DEH3VVOB \ / AMOS7 \ YOURUM ::
+#\[7]HDVLMBXMMCF2YY2IHIF2SJ2VHDH7SNSAIGFEQBCCRGXRAPJKJMDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

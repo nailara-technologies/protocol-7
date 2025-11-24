@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = letsencr.parent.send_httpd_vhost_query
+# descr = Send async request to httpd zenka for vhost list
+
+<[base.log]>->( 2, "querying httpd zenka for vhost list [ async ].." );
+
+## Send async command to httpd via cube with reply handler
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => qw| cube.httpd.vhost-list |,
+        'call_args' => { 'args' => '' },
+        'reply'     =>
+            { 'handler' => qw| letsencr.parent.handler_httpd_vhost_reply |, }
+    }
+);
+
+<[base.log]>->( 3, "vhost query sent to httpd, handler registered" );
+
+return 1;
+
+#,,,.,.,,,,,,,..,,,.,,,,.,,.,,...,,,,,.,,,.,.,..,,...,...,,..,.,.,...,..,,...,
+#TYHQRNJX7M2ZID6JZHURYBSLKMOZW4RL2WLHNO2JQF7XKAWJQVF7O7NL65DLDGVQFCZPTVWFAA3HQ
+#\\\|EPWSK7YHKPQAM35O2SV6WM3F3R7N7SPMN36AEK2YGDTCRNMWILF \ / AMOS7 \ YOURUM ::
+#\[7]72DTZ4VCWYCYZZDJO7D2X4TYGTEFBP6BOEJNFRIDMPN6RXC4FKCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

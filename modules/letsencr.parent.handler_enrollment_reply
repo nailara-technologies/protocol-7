@@ -1,0 +1,225 @@
+## [:< ##
+
+# name  = letsencr.parent.handler_enrollment_reply
+# descr = Handle enrollment command reply from child process (processes TRUE/FALSE/SIZE responses)
+
+my $reply_data = shift;
+
+my $domain = $reply_data->{'params'}{'domain'};
+my $mode   = $reply_data->{'cmd'};
+my $args   = $reply_data->{'call_args'}{'args'};
+my $data   = $reply_data->{'data'} // '';
+
+unless ($domain) {
+    <[base.log]>->(
+        1, "error: enrollment reply handler missing domain in params"
+    );
+    return 0;
+}
+
+<[base.log]>->( 2, "enrollment reply for domain: $domain, mode: $mode" );
+
+<[letsencr.parent.activity_logger]>->(
+    'enrollment', $domain, 'pending', "child replied with mode: $mode"
+);
+
+if ( $mode eq 'TRUE' ) {
+    <[base.log]>->( 2, "enrollment succeeded for $domain" );
+    <[letsencr.parent.activity_logger]>->(
+        'enrollment', $domain, 'success', 'certificate enrollment completed'
+    );
+
+} elsif ( $mode eq 'FALSE' ) {
+    <[base.log]>->( 1, "enrollment failed for $domain: $data" );
+    <[letsencr.parent.activity_logger]>->(
+        'enrollment', $domain, 'failed', "ACME error: $data"
+    );
+
+    ## Schedule retry with exponential backoff
+    my $attempt = ( $reply_data->{'params'}{'attempt'} // 1 ) + 1;
+
+    if ( $attempt <= 3 ) {
+        my @backoff_delays = ( 300, 900, 1800 )
+            ;    ## 5min, 15min, 30min (shorter for enrollment than renewal)
+        my $delay = $backoff_delays[ $attempt - 1 ] // 1800;
+
+        <[base.log]>->(
+            2,
+            "scheduling enrollment retry for $domain in $delay seconds (attempt $attempt)"
+        );
+
+        <[letsencr.parent.activity_logger]>->(
+            'enrollment', $domain, 'pending',
+            "retry scheduled in $delay seconds (attempt $attempt)"
+        );
+
+        ## Store retry data in a module variable for the handler to retrieve
+        <letsencr.parent.pending_retry>->{$domain} = {
+            'domain'  => $domain,
+            'attempt' => $attempt,
+        };
+
+        <[event.add_timer]>->(
+            {   'delay'   => $delay,
+                'handler' => 'letsencr.parent.handler_enrollment_retry',
+                'cb_data' => $domain,
+            }
+        );
+    } else {
+        <[base.log]>->(
+            0, "enrollment failed for $domain after 3 attempts - giving up"
+        );
+        <[letsencr.parent.activity_logger]>->(
+            'enrollment', $domain, 'failed', 'max retries exceeded'
+        );
+    }
+
+} elsif ( $mode eq 'SIZE' ) {
+    <[base.log]>->(
+        2,
+        "enrollment returned certificate data for $domain ("
+            . length($data)
+            . " bytes)"
+    );
+
+    ## Parse certificate bundle from base32r encoded JSON
+    my $bundle_json;
+    eval {
+        $bundle_json
+            = JSON::XS::decode_json( Crypt::Misc::decode_b32r($data) );
+    };
+
+    if ($@) {
+        <[base.log]>->(
+            1, "failed to decode certificate bundle for $domain: $@"
+        );
+        <[letsencr.parent.activity_logger]>->(
+            'enrollment', $domain, 'failed',
+            "failed to decode certificate: $@"
+        );
+        return 0;
+    }
+
+    ## Validate bundle has required fields
+    unless ( $bundle_json->{certificate} && $bundle_json->{key} ) {
+        <[base.log]>->(
+            1, "certificate bundle missing required fields for $domain"
+        );
+        <[letsencr.parent.activity_logger]>->(
+            'enrollment', $domain, 'failed', 'certificate bundle invalid'
+        );
+        return 0;
+    }
+
+    ## Save certificate using existing infrastructure
+    my $save_result = <[letsencr.parent.save_certificate]>->(
+        {   domain          => $domain,
+            certificate_pem => $bundle_json->{certificate},
+            chain_pem       => $bundle_json->{chain} // '',
+            private_key_pem => $bundle_json->{key},
+            expires_at      => $bundle_json->{expires_at},
+            alt_names       => $bundle_json->{domains} // [],
+            account_id      => <letsencr.parent.acme_account> {account_id},
+        }
+    );
+
+    unless ($save_result) {
+        <[base.log]>->( 1, "failed to save certificate for $domain" );
+        <[letsencr.parent.activity_logger]>->(
+            'enrollment', $domain, 'failed', 'failed to save certificate'
+        );
+        return 0;
+    }
+
+    <[base.log]>->( 2, "certificate saved for $domain" );
+    <[letsencr.parent.activity_logger]>->(
+        'enrollment', $domain, 'success', 'certificate saved to disk'
+    );
+
+    ## Update certificate registry
+    <letsencr.parent.certs> {$domain} = {
+        issued_at  => time(),
+        expires_at => $bundle_json->{expires_at},
+        domain     => $domain,
+        status     => 'active',
+        cert_path  => sprintf( '%s/%s.pem', <letsencr.certs.dir>, $domain ),
+        key_path   => sprintf( '%s/%s.key', <letsencr.certs.dir>, $domain ),
+        alt_names  => $bundle_json->{domains} // [],
+        account_id => <letsencr.parent.acme_account> {account_id},
+    };
+
+    ## Install certificate to httpsd
+    <[base.log]>->( 2, "installing certificate to httpsd for $domain" );
+
+    my $httpsd_install_result
+        = <[letsencr.parent.install_certificate_to_httpsd]>->($domain);
+
+    if ( $httpsd_install_result->{status} eq qw| success | ) {
+        <[base.log]>->( 2, "certificate installed to httpsd successfully" );
+        <[letsencr.parent.activity_logger]>->(
+            qw| enrollment |,
+            $domain, qw| success |, qq| installed to httpsd and reloaded |
+        );
+    } elsif ( $httpsd_install_result->{status} eq qw| partial | ) {
+        <[base.log]>->(
+            1,
+            "certificate installed but httpsd reload failed: "
+                . $httpsd_install_result->{message}
+        );
+        <[letsencr.parent.activity_logger]>->(
+            qw| enrollment |,
+            $domain, qw| partial |, qq| installed but httpsd reload failed |
+        );
+    } else {
+        <[base.log]>->(
+            1,
+            "failed to install certificate to httpsd: "
+                . $httpsd_install_result->{message}
+        );
+        <[letsencr.parent.activity_logger]>->(
+            qw| enrollment |,
+            $domain, qw| partial |,
+            qq| certificate saved but httpsd install failed |
+        );
+    }
+
+    ## Notify HTTPd that certificate has been installed
+    my $notify_result
+        = <[letsencr.parent.notify_httpd_certificate_update]>->(
+        {   domain    => $domain,
+            cert_path =>
+                sprintf( '%s/%s.pem', <letsencr.certs.dir>, $domain ),
+            key_path => sprintf( '%s/%s.key', <letsencr.certs.dir>, $domain ),
+        }
+        );
+
+    if ( !$notify_result || $notify_result->{status} ne 'success' ) {
+        <[base.log]>->(
+            1,
+            "warning: failed to notify httpd of certificate installation for $domain"
+        );
+        <[letsencr.parent.activity_logger]>->(
+            'enrollment', $domain, 'success',
+            'certificate installed but httpd notification failed'
+        );
+    } else {
+        <[letsencr.parent.activity_logger]>->(
+            'enrollment', $domain, 'success',
+            'certificate installed and httpd notified'
+        );
+    }
+
+} else {
+    <[base.log]>->( 1, "enrollment got unexpected mode: $mode for $domain" );
+    <[letsencr.parent.activity_logger]>->(
+        'enrollment', $domain, 'failed', "unexpected response mode: $mode"
+    );
+}
+
+return 0;
+
+#,,,,,..,,,,,,,,.,...,,.,,...,.,.,,,,,...,,,.,..,,...,...,,..,.,.,,..,..,,,..,
+#7HU4REGMHHILLAYYEVCCD5ECVYGOIXHSMG4ZSTYJ3LDLSHN7JHHWLE62XJOVOF33CKGZXJB5XPZ74
+#\\\|N55LDKTSTO4JJZEMNFS3WYEEWQSH5HGTCNH65F4LDXI2A7QGENS \ / AMOS7 \ YOURUM ::
+#\[7]VWHEU4ZNG35S5VDJBZXNNPFTJQS5UVL3RLI74R63S7BDACOM36DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = letsencr.parent.process_pending_ops
+# descr = Process pending operations queue from child process
+
+<[base.log]>->( 3, 'processing pending operations from child' );
+
+## Check if there are pending operations
+my $ops_queue = <letsencr.parent.pending_ops>;
+return 0 unless $ops_queue && @$ops_queue;
+
+## Process each pending operation
+while ( my $op = shift @$ops_queue ) {
+    next unless $op;
+
+    my $op_type = $op->{type};
+    <[base.log]>->( 3, "processing pending op: $op_type" );
+
+    if ( $op_type eq 'renewal_check' ) {
+        ## Schedule next renewal check
+        if ( $op->{next_check_time} ) {
+            <letsencr.parent.next_renewal_check> = $op->{next_check_time};
+        }
+    } elsif ( $op_type eq 'cert_ready' ) {
+        ## Certificate is ready for loading
+        <[letsencr.parent.handler_cert_ready]>->($op);
+    }
+}
+
+return 1;
+
+#,,,.,.,,,...,,,,,.,.,,.,,.,,,...,,,,,,,.,,,.,..,,...,...,,.,,...,..,,...,,,,,
+#HJYUWHA4LDS5WYHUCAHORX4MWQC5YTPRCNMMPWWAMNKWWUWXPWRSZUOID2BRAZXHSFZZOGJAJLKZC
+#\\\|VDPXF5EJCZWXW7DQ6CZNBZKHJVPN6Y3WNQYKRPQ66AOZAPPXXCF \ / AMOS7 \ YOURUM ::
+#\[7]ULRBLUP54WPEVBII3KTDF5LSZLS6HLS2IZGIULVLCH2LSLLPEGAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

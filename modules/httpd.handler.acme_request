@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name = httpd.handler.acme_request
-# descr = Handle ACME/API certificate request endpoints - routes to letsencrypt commands
+# descr = Handle ACME/API certificate request endpoints - routes to letsencr commands
 
 my $id       = shift;
 my $http_uri = shift;
@@ -66,12 +66,12 @@ if ( $http_uri =~ m|^/api/certificate/request| ) {
             $id, $domain
         );
 
-        ## Send request to letsencrypt parent via cube
+        ## Send request to letsencr parent via cube
         my $cmd_result = undef;
         eval {
-            ## Try to reach letsencrypt parent command
+            ## Try to reach letsencr parent command
             my $cmd_call = {
-                'command'   => qw| letsencrypt.request-certificate |,
+                'command'   => qw| letsencr.request-certificate |,
                 'call_args' => { 'args' => $domain }
             };
             $cmd_result = <[base.protocol-7.command.send.local]>->($cmd_call);
@@ -79,7 +79,7 @@ if ( $http_uri =~ m|^/api/certificate/request| ) {
 
         if ( $EVAL_ERROR ) {
             <[base.logs]>->(
-                1,   '[%d] error calling letsencrypt: %s',
+                1,   '[%d] error calling letsencr: %s',
                 $id, $EVAL_ERROR
             );
             $reply_code = 500;
@@ -100,7 +100,7 @@ if ( $http_uri =~ m|^/api/certificate/request| ) {
                 }
             );
         } else {
-            ## Fallback: return accepted even if letsencrypt might not have processed
+            ## Fallback: return accepted even if letsencr might not have processed
             <[base.logs]>->(
                 2,   '[%d] queued certificate request for: %s',
                 $id, $domain
@@ -129,10 +129,10 @@ if ( $http_uri =~ m|^/api/certificate/request| ) {
     } else {
         <[base.logs]>->( 2, '[%d] checking status for: %s', $id, $domain );
 
-        ## Get certificate status from letsencrypt
+        ## Get certificate status from letsencr
         my $cmd_result = eval {
             <[base.protocol-7.command.send.local]>->(
-                {   'command'   => qw| letsencrypt.parent.status |,
+                {   'command'   => qw| letsencr.parent.status |,
                     'call_args' => { 'args' => $domain }
                 }
             );
@@ -168,10 +168,10 @@ if ( $http_uri =~ m|^/api/certificate/request| ) {
     ## List certificates endpoint
     <[base.logs]>->( 2, '[%d] listing certificates', $id );
 
-    ## Get certificate list from letsencrypt
+    ## Get certificate list from letsencr
     my $cmd_result = eval {
         <[base.protocol-7.command.send.local]>->(
-            {   'command'   => qw| letsencrypt.parent.status |,
+            {   'command'   => qw| letsencr.parent.status |,
                 'call_args' => { 'args' => '' }
             }
         );
@@ -231,8 +231,8 @@ $session->{'buffer'}->{'output'} .= $reply_body;
 
 return $session->{'http'}->{'close'} ? 2 : 0;
 
-#,,..,,..,,.,,,..,,.,,..,,,.,,,,,,.,,,.,.,,,.,..,,...,.,.,...,.,,,,..,..,,,,,,
-#7BVNKWV4I2HR43QTXNDJXIOPM3VAE3KBLXBTCIG7CREA3PE22FX4QTXMY3DL4EGJWCR3IPJLNVEN4
-#\\\|7X4Z5N34FS3MOUEIWB5VPPRE4CFO3BSDVLWBTGL5OQB77KEYUNL \ / AMOS7 \ YOURUM ::
-#\[7]JPY77PYGC2RGA2Y77YMUR557Y3DVKUL3O4FEDSYQJUA6AOPBVCAA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,..,..,,.,.,...,,.,,..,,,.,,.,.,..,,...,..,,..,,,..,..,,..,,,,.,
+#CDXO5KJW67WIUG6JNJZ6CXVTEZAOUEEXST67GHWBSRRJWFUDDW35AXLUB6RTXHIM6CKLAKUKLEX5Q
+#\\\|ZFTEWMCWOVIZHIOM6VN65ULEFIU7ZFCMI4YZKA55ROCXT7ZCDGX \ / AMOS7 \ YOURUM ::
+#\[7]WXPTKVSAO4ECMDWMTUIDSERRSCEDEFQ46KKOQCQ6PAWGFLQVMKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = letsencr.child.fetch_acme_directory
+# descr = Fetch ACME directory from Let's Encrypt server and get initial nonce
+
+use JSON::XS;
+use LWP::UserAgent;
+
+my $server_url = shift || <letsencr.acme.server>;
+
+return undef unless $server_url;
+
+<[base.log]>->( 2, "fetching ACME directory from $server_url" );
+
+## Create HTTP client (use standard LWP::UserAgent to allow localhost for testing)
+my $ua = LWP::UserAgent->new( timeout => 10, );
+
+## Disable SSL verification for localhost/test servers
+if ( $server_url =~ m{^https?://localhost} ) {
+    $ua->ssl_opts( verify_hostname => 0, SSL_verify_mode => 0 );
+}
+
+## Fetch directory
+my $response = $ua->get($server_url);
+
+unless ( $response->is_success ) {
+    <[base.log]>->(
+        1, "error fetching ACME directory: " . $response->status_line
+    );
+    return undef;
+}
+
+## Parse directory JSON
+my $directory;
+eval { $directory = JSON::XS::decode_json( $response->decoded_content() ); };
+if ($@) {
+    <[base.log]>->( 1, "error parsing ACME directory: $@" );
+    return undef;
+}
+
+## Extract important URLs
+unless ( exists $directory->{newAccount} && exists $directory->{newOrder} ) {
+    <[base.log]>->( 1, "error: ACME directory missing required endpoints" );
+    return undef;
+}
+
+## Get initial nonce from header
+my $initial_nonce = $response->header('Replay-Nonce');
+unless ($initial_nonce) {
+    <[base.log]>->( 1, "error: no Replay-Nonce in directory response" );
+    return undef;
+}
+
+<[base.log]>->( 2, 'ACME directory fetched successfully' );
+
+## Store in child state
+<letsencr.child.acme_client> {directory} = $directory;
+<letsencr.child.acme_client> {nonce}     = $initial_nonce;
+<letsencr.child.acme_client> {server}    = $server_url;
+
+## Return directory info
+return {
+    directory => $directory,
+    nonce     => $initial_nonce,
+    endpoints => {
+        newAccount => $directory->{newAccount},
+        newOrder   => $directory->{newOrder},
+        revokeCert => $directory->{revokeCert},
+        keyChange  => $directory->{keyChange},
+    },
+};
+
+#,,.,,,..,...,...,.,,,,..,...,,,,,..,,...,,.,,..,,...,...,...,,.,,...,,.,,,,.,
+#2E6YRWOSJTAP4W2ZCLGOWVPHBC2NGQLZ5CMLIHULCLLFORWESX6BUTA757LBLPLUHSTCWJFCQPQZC
+#\\\|6WS652FEPXSNOOS7UZXGRTWNVPTJPWGNCLMAOJDZZ233FSTZDF2 \ / AMOS7 \ YOURUM ::
+#\[7]FZJ76KEQTJLXKOYTWXLK3YJZSDEV7M4IVJSDDTDQTS3UAP54HUAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

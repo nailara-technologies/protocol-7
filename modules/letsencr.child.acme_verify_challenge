@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = letsencr.child.acme_verify_challenge
+# descr = Child process verifies ACME challenges with Let's Encrypt server (blocking network call)
+
+my $msg = shift;
+
+my $challenge_type    = $msg->{challenge_type};
+my $challenge_token   = $msg->{challenge_token};
+my $order_url         = $msg->{order_url};
+my $authorization_url = $msg->{authorization_url};
+
+<[base.log]>->( 2, "child: verifying challenge type: $challenge_type" );
+
+## This is where blocking verification occurs:
+## 1. Poll ACME server to check challenge status
+## 2. Retry on transient failures
+## 3. Return success/failure to parent
+
+## Challenge verification polling
+my $max_attempts    = 60;    # 5 minutes with 5-second delays
+my $attempt         = 0;
+my $challenge_valid = 0;
+
+while ( $attempt < $max_attempts ) {
+
+    # Blocking operation: HTTP request to ACME server
+    # my $response = <[base.http.get]>->($authorization_url);
+    # if ( $response->{status} eq 'valid' ) {
+    #     $challenge_valid = 1;
+    #     last;
+    # }
+
+    ## Simulate delay
+    $attempt++;
+    sleep(1) if $attempt < $max_attempts;
+}
+
+if ($challenge_valid) {
+    <[base.log]>->( 2, "child: challenge verified successfully" );
+    <[letsencr.child.send_to_parent]>->(
+        {   command        => 'challenge_verified',
+            challenge_type => $challenge_type,
+            status         => 'valid',
+        }
+    );
+} else {
+    <[base.log]>->( 1, "child: challenge verification FAILED" );
+    <[letsencr.child.send_to_parent]>->(
+        {   command        => 'challenge_failed',
+            challenge_type => $challenge_type,
+            error          => 'Challenge did not validate after retries',
+        }
+    );
+}
+
+#,,.,,...,,..,...,,..,,..,,..,,,.,,,,,.,.,..,,..,,...,...,.,,,..,,...,..,,,,,,
+#NMUG4DTQQIIILN4TY6VRCLZTYZJTYU3CP73COQZOOSJ7YCFCMKSABWYW4QBL3FO2F3XVLD2DUIZTU
+#\\\|HIGEG4KZAUSXDN3IHFUCSA44J2D3VH7YLDWWKSKC4CICYRLVMGX \ / AMOS7 \ YOURUM ::
+#\[7]EL4VZZQIR4MESKAVPS7CGQ3PX2JWJCCBRQNS3FRIAXIKO3MF7YCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
