@@ -19,48 +19,73 @@ my $session    = $data{'session'}{$id};
 my $write_size = length $session->{'buffer'}->{'output'};
 
 if ( fileno $session->{'handle'} ) {
-    if ( $write_size > 0 ) {
+    ## For downloads with SSL sockets, keep writing in a loop until the buffer drains
+    ## or the socket would block, because SSL sockets can only write one TLS record
+    ## (16KB) at a time due to OpenSSL limitations
+    my $is_download = defined $session->{'watcher'}->{'download_handler'};
+
+    while ( $write_size > 0 ) {
         ## CRITICAL FIX: For SSL sockets, use base.ssl.write instead of base.s_write
         ## IO::AIO does not work with IO::Socket::SSL because SSL encryption happens
         ## at the OpenSSL library level, not the kernel level.
-        my $size_written = ref( $session->{'handle'} ) eq qw| IO::Socket::SSL |
+        my $size_written
+            = ref( $session->{'handle'} ) eq qw| IO::Socket::SSL |
             ? <[base.ssl.write]>->(
-                $session->{'handle'}, \$session->{'buffer'}->{'output'},
-                $write_size
+            $session->{'handle'}, \$session->{'buffer'}->{'output'},
+            $write_size
             )
             : <[base.s_write]>->(
-                $session->{'handle'}, \$session->{'buffer'}->{'output'},
-                $write_size
+            $session->{'handle'}, \$session->{'buffer'}->{'output'},
+            $write_size
             );
+
         if ( $size_written < 0 ) {
             $session->{'shutdown'} = 1;
+            last;
+        } elsif ( $size_written == 0 ) {
+            ## No more data could be written (socket would block for SSL)
+            ## For downloads, we'll keep the handler registered to continue later
+            last;
         } else {
-            $event->w->stop;
             $data{'handle'}{ $session->{'handle'} }{'bytes'}{'out'}
                 += $size_written;
+
             substr( $session->{'buffer'}->{'output'}, 0, $size_written, '' );
+            $write_size = length $session->{'buffer'}->{'output'};
 
-            if ( defined $session->{'burst-writes'}
-                and $session->{'burst-writes'} =~ m|^\d+$| ) {
-                $session->{'burst-write-counter'} //= 0;
-                if ( $session->{'burst-write-counter'}++
-                    < $session->{'burst-writes'} ) {
-                    $event->w->start;    ## burst-write mode ##
-                } else {
-                    ##  deferred restart [ idle-watcher ]  ##
-                    delete $session->{'burst-write-counter'};
-                }
+            ## Continue loop to write more data if available
+            ## For SSL downloads, syswrite() typically writes one record (16KB)
+            ## but we keep trying to write all available data in the buffer
+        }
+    }
 
+    if ( defined $event ) {
+        $event->w->stop;
+
+        my $remaining_buf = length $session->{'buffer'}->{'output'};
+
+        ## For downloads, always restart immediately (don't use burst-write defer)
+        if ($is_download) {
+            $event->w->start;    ## immediate restart for downloads ##
+        } elsif ( defined $session->{'burst-writes'}
+            and $session->{'burst-writes'} =~ m|^\d+$| ) {
+            $session->{'burst-write-counter'} //= 0;
+            if ( $session->{'burst-write-counter'}++
+                < $session->{'burst-writes'} ) {
+                $event->w->start;    ## burst-write mode ##
             } else {
-                $event->w->start;    ## immediate restart ##
+                ##  deferred restart [ idle-watcher ]  ##
+                delete $session->{'burst-write-counter'};
             }
 
-            # httpd zenka [ download in progress ]
-            if ( defined $session->{'watcher'}->{'download_handler'}
-                and !$session->{'watcher'}->{'download_handler'}->is_running )
-            {
-                $session->{'watcher'}->{'download_handler'}->start;
-            }
+        } else {
+            $event->w->start;    ## immediate restart ##
+        }
+
+        # httpd zenka [ download in progress ]
+        if ( defined $session->{'watcher'}->{'download_handler'}
+            and !$session->{'watcher'}->{'download_handler'}->is_running ) {
+            $session->{'watcher'}->{'download_handler'}->start;
         }
     }
 } else {
@@ -86,8 +111,8 @@ $session->{'shutdown'} = 1 if !$write_size and $session->{'flush_shutdown'};
 
 return 0;
 
-#,,.,,,,.,..,,.,,,..,,,.,,..,,,..,.,.,,,.,.,.,..,,...,...,,..,,,.,.,.,..,,,..,
-#TSV2C4WK5G7Y75VOKIDP5ACIVNVDVQRDQSVHKL4WGOK2HTG4DTNJH7BFEI7HUWMVKKW4SVLFTZD4W
-#\\\|L3UPS24ZBOXYSX7WAINKC4OIK4F2OSRQPSBQSPI3YNL4TJH74Y7 \ / AMOS7 \ YOURUM ::
-#\[7]RSNR342DHMCIH2FSTT5NVMC3NXPAQY42BVD5PFT7QR73GGRRRMCA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,..,,.,.,,,.,...,.,,,.,.,.,.,..,,..,,...,...,,..,,.,,...,..,,,,,,
+#Z32TZQDOFZHJZEVTPMBB53VHCI3SCFXSAGR5LMNPVJ23EJWOPLHNNH3YF5KHOXHZTQMRIVHU4CFKW
+#\\\|4J6USVBMW3NKDUE3P5M7YSWNDEXGNSAKOZLESHJHIOLCPFXJQKL \ / AMOS7 \ YOURUM ::
+#\[7]FBI3BAJQP6IY4GPSMBU2AATRDEVVXTFZ6XVM53KY7VWS7OARWUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
