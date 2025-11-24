@@ -15,8 +15,10 @@ if ( ref $ARG[0] ne qw| Event::Event::Io | and $ARG[0] =~ m|^\d+| ) {
 
 return <[base.session.check_remaining]> if not defined $data{'session'}{$id};
 
-my $session    = $data{'session'}{$id};
-my $write_size = length $session->{'buffer'}->{'output'};
+my $session = $data{'session'}{$id};
+my $buf     = $session->{'buffer'}->{'output'};
+
+my $write_size = length $buf;
 
 if ( fileno $session->{'handle'} ) {
     ## For downloads with SSL sockets, keep writing in a loop until the buffer drains
@@ -55,6 +57,8 @@ if ( fileno $session->{'handle'} ) {
                 += $size_written;
 
             substr( $session->{'buffer'}->{'output'}, 0, $size_written, '' );
+
+            ## Recalculate write size for next iteration
             $write_size = length $session->{'buffer'}->{'output'};
             $write_count++;
 
@@ -99,6 +103,7 @@ if ( fileno $session->{'handle'} ) {
     return 2;
 }
 
+## Check remaining buffer size
 if ( $write_size = length $session->{'buffer'}->{'output'} ) {
 
     ##  deferred restart [ when idle ]  ##
@@ -116,8 +121,8 @@ $session->{'shutdown'} = 1 if !$write_size and $session->{'flush_shutdown'};
 
 return 0;
 
-#,,,.,.,,,,..,,..,.,.,.,,,.,.,,..,,.,,.,,,..,,..,,...,..,,...,...,.,.,...,..,,
-#XXF6UDPHCHSIQF7K7KMDXYK62LDTZ6XPFHXKXYXP745OOCVRKPVL72WLGCAQAXBVLSNHXQLO6YZ2G
-#\\\|UQF5MBYTT34YHKV7XRCVQPNX7UVIJCL7CDSMD6UNBHMNL6QVZT6 \ / AMOS7 \ YOURUM ::
-#\[7]GJQTX6IG5GJSZFARRMFDATBEBSZ6RGCH2CWA4DK4AEXXRWMAUCDA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,...,,..,...,...,.,.,,.,,.,.,,..,..,,...,...,..,,,..,,.,,..,,,.,,
+#TNLCLV25EPZHHMHHYTEC4IZERBCS65ND5HWDPVBEUT4ZO7JU6IGUQWEEQA6XDIQ6NMZYDLLFAUTTU
+#\\\|QO2ZVWSI7FTV3VCAFZGJTTC2ZVPKH6A6EQKTVCKDCO75GI4G2VM \ / AMOS7 \ YOURUM ::
+#\[7]YTDFFTQ7KDFB46DT6R277CWMEJKHEB6MEHKHMYHJW2G26RPH5CAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

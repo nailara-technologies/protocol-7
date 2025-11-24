@@ -13,12 +13,13 @@ if ( !defined $json ) {
     $json->canonical(1);
     $json->relaxed(1);
     $json->pretty(1);
-    $json->utf8(1);
+    $json->utf8(0);
+    ## Output octets [bytes], not UTF-8 flagged strings
+    ## for OCTETS mode compatibility
 }
-
 return $json->encode($data);
-#,,..,...,...,...,,..,,,,,.,.,,,,,.,.,.,,,,,,,...,...,..,,.,.,.,.,..,,,..,...,
-#R5WMBTMJNEB77A4EPSPEDDASPRZFXBJWBDRBVOMSQ4OQKL4W52SOD4P7I24E7NELXRFL4LZR5R5E4
-#\\\|WA2GLSVD6OGUOFCUZAGSTX34TQZYKFA3HLUP2NFG6V26E4BZ43U \ / AMOS7 \ YOURUM ::
-#\[7]B4ZWU5GQOTBRWLL447IACFUJVYYYZK7NIMPJ7ZPP5HHAFCARLWDI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,,,,...,.,,,,,.,,,,,,..,..,,.,.,...,...,...,,..,.,.,.,.,..,,,..,
+#HW45YSPDLDVR37X37RGHI3ZQHQW4K5SNUBHG632K6I53QLSXTJGLRAB2WFLWN3TQ6XMSGM7PFLUVC
+#\\\|HQNHB3BQIUL637CGCM7DQAGHWH4RWRITR4LU7GV4DKEZBJGQ4RW \ / AMOS7 \ YOURUM ::
+#\[7]SXMAKPE5QNNYC6UAAA2BA2GLEHB3XR3YXE4WDHNWA6QLYL32JGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
