@@ -8,6 +8,10 @@
 # Load HTTPD initialization (core HTTP handling)
 <[httpd.init_code]>;
 
+# Ensure timeout values are set for both httpd and httpsd contexts
+<httpd.timeout> //= 23;
+<httpsd.timeout> //= 23;
+
 # Check and fix httpsd directory access permissions (httpsd-specific setup)
 if ( <system.zenka.name> eq qw| httpsd | and $EUID == 0 ) {
     my ( undef, undef, $httpsd_gid ) = getpwnam('httpsd');
@@ -175,8 +179,8 @@ $data{'protocol'}{'https'} = {
 
 0;
 
-#,,,,,,..,..,,...,...,..,,,,.,.,.,,..,,,.,.,,,..,,...,..,,,.,,.,.,,,.,..,,...,
-#V6OWFODV7MVSLBK2KUD25QAAERN6A3TUJ7LWV7FNNWGE6V76ZY2T5G5P2BU4HLUUJ2OVQYJZ2OCCG
-#\\\|L7EVMNFDXALHCYV3IRPZKCUEEXSZXSITMUE4JXBF232PANA2YXA \ / AMOS7 \ YOURUM ::
-#\[7]ZMPRBRUDUFACL4HWLX7YYKR2OEQHLA6TG72QQ4P5DZ3Y3FIHTCDI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,,.,,..,...,,,,,.,.,..,,,..,...,..,,...,...,,,,,,,,,,,,,,.,,.,.,
+#BH4EGYJZCMTL4MXE5W7EIT3PQDB7UHH2PTJYQ6GPUR72DQL2U4UCS3FPMQIPJMUX7Y3JCQ7AJ5JAW
+#\\\|D76PKFKNHMFBL76BEOIDW2GAZGPKNBVGUEU63HB43PL4O37GUYP \ / AMOS7 \ YOURUM ::
+#\[7]FNBRYU3G3JPG6PODKGNQZPZDGMYARWG32TPDUUU4YRYYPSCH5OCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
