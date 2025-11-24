@@ -4,10 +4,10 @@
 # descr = HTTPS request handler - processes HTTP over TLS
 # note : return 2 to close connection
 
-# Receive Event object from protocol state handler invocation [passed on later]
+# Receive Event object from protocol state handler invocation
 <[base.logs]>->(
-    1,
-    "httpsd.request_handler: received parameter of type '%s'",
+    2,
+    ": httpsd.request_handler: event type='%s'",
     ref( $ARG[0] ) // 'UNDEF'
 );
 
@@ -38,75 +38,42 @@ my $session = $data{'session'}->{$id};
 # Mark session as HTTPS before processing the request
 $session->{'is_https'} = TRUE if defined $session;
 
-# Debug logging
-if ( defined $session ) {
-    my $input_len = length( $session->{'buffer'}->{'input'} // '' );
-    <[base.logs]>->(
-        1, "[%d] httpsd.request_handler called [HTTPS], input_buffer_len=%d",
-        $id, $input_len
-    );
-} else {
-    <[base.logs]>->(
-        0, "[%d] httpsd.request_handler: session not found!", $id
-    );
+# Verify session exists
+if ( not defined $session ) {
+    <[base.logs]>->( 0, "[$id]: HTTPS session not found!" );
     return 2;
 }
 
-# Delegate to httpd request handler - pass the Event object just as we received it
-# httpd.request_handler will handle the actual HTTP request processing
-# The response will be written to the output buffer by the HTTP handler
-# base.handler.write (from protocol state output handler) will send it via SSL socket
-<[base.log]>->( 1, ":. forwarding call to 'httpd.request_handler'.." );
+my $input_len = length( $session->{'buffer'}->{'input'} // '' );
+<[base.logs]>->( 2, "[%d]: HTTPS request [input=%d bytes]", $id, $input_len );
+
+# Delegate to httpd request handler (response goes to output buffer for SSL write)
+<[base.log]>->( 2, ": delegating to httpd.request_handler" );
 my $result = <[httpd.request_handler]>->($event) if defined $event;
 
 if ( not defined $result ) {
-    <[base.log]>->(
-        0, ":. :. forwarded call to 'httpd.request_handler' returned undef"
-    );
-    <[base.log]>->( 0, ":. :. :. [ https request processing failed ] .:" );
-    return 2;    ## request failed ##
+    <[base.log]>->( 0, "[$id]: httpd.request_handler failed" );
+    return 2;
 }
 
-## CRITICAL FIX for SSL write buffer: Explicitly flush output for HTTPS connections
-## SSL sockets may not automatically trigger output event handlers, so we must:
-## 1. Always set flush_shutdown=1 for HTTPS to ensure output is sent
-## 2. Explicitly call base.handler.write to immediately flush buffered response
-
+## Flush output buffer for HTTPS responses
 my $check_session = $data{'session'}->{$id};
-my $buffer_len = length( $check_session->{'buffer'}->{'output'} // '' ) if defined $check_session;
-
-<[base.logs]>->( 2, "[%d] HTTPS post-processing: session=%s, buffer has %d bytes",
-    $id,
-    (defined $check_session ? 'defined' : 'UNDEF'),
-    $buffer_len // 0
-);
-
-if ( defined $check_session and $buffer_len > 0 ) {
-    ## Set flush_shutdown flag for SSL connections (not just when closing)
-    ## This ensures the output handler will trigger shutdown after flushing
-    $check_session->{'flush_shutdown'} = 1;
-
-    <[base.logs]>->(
-        2,
-        "[%d] HTTPS response buffered, explicitly flushing SSL output (%d bytes)",
-        $id,
-        $buffer_len
-    );
-
-    ## Explicitly call output handler to flush buffered response through SSL socket
-    <[base.handler.write]>->( $event );
-} else {
-    <[base.logs]>->( 1, "[%d] HTTPS: no output to flush or session undefined (session=%s, len=%d)",
-        $id,
-        (defined $check_session ? 'defined' : 'UNDEF'),
-        $buffer_len // 0
-    );
+if ( defined $check_session ) {
+    my $buffer_len = length( $check_session->{'buffer'}->{'output'} // '' );
+    if ( $buffer_len > 0 ) {
+        $check_session->{'flush_shutdown'} = 1;
+        <[base.logs]>->(
+            2,   ": [%d]: flushing HTTPS response [%d bytes]",
+            $id, $buffer_len
+        );
+        <[base.handler.write]>->($event);
+    }
 }
 
 return $result;
 
-#,,.,,.,.,.,.,,..,.,.,,.,,..,,...,.,.,,..,...,..,,...,...,...,..,,,..,,,.,,,.,
-#HEPUSV6ROEBFGTXTZGHOWFTAOBS4IJOHPP4LZD6P3E6XGRGL5Y6QMBPBNFVOFNPDEYPPZGR3OCSO2
-#\\\|HE2L2T5U5KP562HU6WTWCYVOJUROSVUHOOEEYDZ4POZLYXNRLDO \ / AMOS7 \ YOURUM ::
-#\[7]JYQK7VZ3BX6TDVKIVVEWCERFEVIGJHLU3ZSJ7MCTHFNCU4NDV6AI 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,.,,...,.,,,,.,,..,,.,,,.,.,,,,,..,,...,.,,,...,...,...,,.,,...,
+#6XEIBFDN3MSY7E7EOHMCO4OIZ3DSH3IAU3XSRIJIAM7ESOGYTZMLRDBLLVKDHSHXBQXPISSOU3WD4
+#\\\|LQGV34IGHKXLSXTDCTBF5RPV3KTRM5XHOQXJFQCZQ3KTTFIBYIR \ / AMOS7 \ YOURUM ::
+#\[7]CCBGDJMVU4RKRO5RXKDFXAOROR4VEIZTRJTNCZJMCEGX5I3COKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
