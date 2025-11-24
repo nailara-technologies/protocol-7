@@ -366,6 +366,7 @@ return [ qw[
         mpv.cmd.current-vo
         mpv.cmd.current-ao
         mod-test.post_init
+        letsencr.init_code
         keys.checksum_href
         jobqueue.init_code
         jobqueue.find_jobs
@@ -452,6 +453,8 @@ return [ qw[
         openbox.cmd.get_pid
         nodes.cmd.add-trunc
         mediainfo.init_code
+        letsencr.cmd.revoke
+        letsencr.cmd.enroll
         keys.console.rename
         keys.console.remove
         keys.console.create
@@ -650,7 +653,6 @@ return [ qw[
         mpv.cmd.show_playlist
         mpv.cmd.current-hwdec
         mpv.callback.silenced
-        letsencr.init_code
         keys.read_key_archive
         keys.console.sign-key
         jobqueue.get_next_job
@@ -687,6 +689,8 @@ return [ qw[
         base.perlmod.pre_init
         base.perlmod.autoload
         base.path.to_keywords
+        base.path.del_keyword
+        base.path.add_keyword
         base.parser.timestamp
         base.ntime.B32_2_unix
         base.max-len.hash-val
@@ -774,8 +778,8 @@ return [ qw[
         melt.cmd.extract_frame
         mediainfo.cmd.get_info
         logo-display.init_code
-        letsencr.cmd.revoke
-        letsencr.cmd.enroll
+        letsencr.child.get_jwk
+        letsencr.base.pre_init
         keys.console.duplicate
         io.ip.tcp.output.close
         index.cmd.add-wordlist
@@ -885,6 +889,9 @@ return [ qw[
         mpv.handler.event.pause
         mpv.cmd.reload_playlist
         mpv.cmd.playlist_update
+        letsencr.child.acme_new
+        letsencr.base.post_init
+        letsencr.base.init_code
         keys.console.github-pat
         jobqueue.queue_template
         io.unix.socket.end_code
@@ -999,6 +1006,8 @@ return [ qw[
         mpv.cmd.shuffle-playlist
         mpv.callback.init_volume
         mod-test.cmd.list-loaded
+        letsencr.child.init_code
+        letsencr.base.check_dirs
         keys.select_archive_path
         keys.console.remove-type
         io.unix.socket.init_code
@@ -1031,6 +1040,7 @@ return [ qw[
         base.session.check.close
         base.perlmod.runtime_use
         base.perlmod.name_chksum
+        base.path.clear_keywords
         base.parser.command_list
         base.ntime.delta_seconds
         base.import_config.plain
@@ -1107,8 +1117,9 @@ return [ qw[
         mpv.cmd.autoskip_interval
         mpv.await_window_presence
         melt.trigger.auto_cleanup
-        letsencr.child.get_jwk
-        letsencr.base.pre_init
+        letsencr.parent.init_code
+        letsencr.child.create_jws
+        letsencr.child.acme_renew
         jobqueue.priorities_table
         jobqueue.joblist_template
         io.unix.socket.input.open
@@ -1214,9 +1225,8 @@ return [ qw[
         mpv.handler.get_list_reply
         mpv.handler.cmd_prop.pause
         mpv.callback.abort_startup
-        letsencr.child.acme_new
-        letsencr.base.post_init
-        letsencr.base.init_code
+        letsencr.parent.cmd.status
+        letsencr.child.acme_revoke
         keys.console.split-keypair
         keys.console.clear-chksums
         keys.console.change-passwd
@@ -1263,6 +1273,7 @@ return [ qw[
         X-11.cmd.mouse_over_coords
         X-11.cmd.dpms-blanking-set
         X-11.background-image-list
+        workspace-transfer.pre_init
         workspace-transfer.cmd.todo
         workflow.extract_yaml_todos
         workflow.console.sig-verify
@@ -1317,8 +1328,7 @@ return [ qw[
         mpv.callback.reenc_finished
         mod-test.cmd.list-successes
         mod-test.blacklist_perlcode
-        letsencr.child.init_code
-        letsencr.base.check_dirs
+        letsencr.child.generate_csr
         keys.write_key_archive_file
         keys.console.get-sp-pub-key
         keys.console.enc-key-chksum
@@ -1349,6 +1359,7 @@ return [ qw[
         base.resolve_data_key.regex
         base.perlmod.strip_INC_path
         base.perlmod.all_registered
+        base.path.register_keywords
         base.parser.splice_out_data
         base.parser.ondemand_status
         base.ntime.harmonized_epoch
@@ -1356,7 +1367,6 @@ return [ qw[
         base.handler.warn_nak_reply
         base.file.write_timestamped
         base.file.gen_path_linkname
-        base.env.detect_environment
         base.devmod.dump.param_hash
         base.dependency.get_reverse
         base.dependency.get_missing
@@ -1410,9 +1420,8 @@ return [ qw[
         mpv.callback.start_reenc_msg
         mod-test.cmd.erase-blacklist
         mod-test.cmd.blacklisted-add
-        letsencr.parent.init_code
-        letsencr.child.create_jws
-        letsencr.child.acme_renew
+        letsencr.dns.inwx_delete_txt
+        letsencr.dns.inwx_create_txt
         keys.console.list-upgradable
         keys.console.get-encoded-key
         keys.console.gen-pwd-keyfile
@@ -1497,8 +1506,8 @@ return [ qw[
         nodes.cmd.update-protocol-elf
         mpv.handler.event.file-loaded
         mod-test.cmd.list-blacklisted
-        letsencr.parent.cmd.status
-        letsencr.child.acme_revoke
+        letsencr.parent.send_to_child
+        letsencr.child.send_to_parent
         keys.select_archive_path.curs
         keys.console.remove-signature
         keys.console.encoding-upgrade
@@ -1589,7 +1598,7 @@ return [ qw[
         mpv.callback.check_parent_dirs
         mod-test.update_blacklist_aref
         melt.handler.frame_count_reply
-        letsencr.child.generate_csr
+        letsencr.child.get_fresh_nonce
         keys.console.gen-file-seed-key
         jobqueue.handler.queue_counter
         index.callback.wordlist-import
@@ -1656,8 +1665,11 @@ return [ qw[
         mod-test.write-mem-list-to-disk
         mod-test.cmd.clear-success-list
         mod-test.cmd.blacklisted-remove
-        letsencr.dns.inwx_delete_txt
-        letsencr.dns.inwx_create_txt
+        letsencr.parent.send_from_child
+        letsencr.parent.activity_logger
+        letsencr.cmd.show-cipher-suites
+        letsencr.child.load_account_key
+        letsencr.child.encode_base64url
         image2html.base.write_stub_page
         image2html.base.fork_conv_child
         httpd.handler.download_transfer
@@ -1717,8 +1729,11 @@ return [ qw[
         osd-logo.callback.download_image
         openbox.callback.already_running
         mod-test.perlmod.run_reload_test
-        letsencr.parent.send_to_child
-        letsencr.child.send_to_parent
+        letsencr.parent.save_certificate
+        letsencr.parent.cmd.query-vhosts
+        letsencr.parent.cmd.activity-log
+        letsencr.child.acme_http_request
+        letsencr.child.acme_create_order
         keys.console.keys-backup-archive
         image2html.base.write_image_html
         image2html.base.write_error_page
@@ -1786,7 +1801,8 @@ return [ qw[
         mod-test.mem_blacklist.remove_mod
         mod-test.cmd.write-blacklist-code
         mod-test.cmd.list-loaded-matching
-        letsencr.child.get_fresh_nonce
+        letsencr.child.acme_check_account
+        letsencr.base.fork_letsencr_child
         keys.pack_format.user_key_archive
         keys.console.downgrade-enc-status
         impressive.handler.stop_lsp_reply
@@ -1838,11 +1854,13 @@ return [ qw[
         protocol-7-menu.cmd.gfx-action-key
         pdf.html.child.check_cache_timeout
         mod-test.write_out_blacklist_pcode
-        letsencr.parent.send_from_child
-        letsencr.parent.activity_logger
-        letsencr.cmd.show-cipher-suites
-        letsencr.child.load_account_key
-        letsencr.child.encode_base64url
+        letsencr.parent.query_httpd_vhosts
+        letsencr.parent.handler_cert_ready
+        letsencr.dns.cloudflare_delete_txt
+        letsencr.dns.cloudflare_create_txt
+        letsencr.child.extract_rsa_modulus
+        letsencr.child.cmd.new-certificate
+        letsencr.child.acme_finalize_order
         keys.select_archive_path.term_Clui
         jobqueue.event.register_job_queues
         image2html.child.cmd.convert_image
@@ -1860,6 +1878,7 @@ return [ qw[
         base.file.recursive.matching_paths
         base.chk-sum.bmw.calculate_L13_sum
         USR.AMOS7-admin.sourcecode-pub-key
+        workspace-transfer.env.detect_paths
         workspace-transfer.cmd.status-check
         web-browser.callback.load_fail_page
         weather.parent.handler.update_timer
@@ -1874,11 +1893,13 @@ return [ qw[
         osd-logo.handler.colortoalpha_reply
         mod-test.scan_INC_chksum_collisions
         mod-test.callback.reload-test.start
-        letsencr.parent.save_certificate
-        letsencr.parent.cmd.query-vhosts
-        letsencr.parent.cmd.activity-log
-        letsencr.child.acme_http_request
-        letsencr.child.acme_create_order
+        letsencr.parent.process_pending_ops
+        letsencr.parent.handler_child_ready
+        letsencr.child.respond_to_challenge
+        letsencr.child.generate_account_key
+        letsencr.child.fetch_acme_directory
+        letsencr.child.extract_rsa_exponent
+        letsencr.child.cmd.inst-self-signed
         impressive.callback.stop_start-anim
         image2html.child.handler.conversion
         httpd.benchmark.sample_memory_usage
@@ -1904,7 +1925,11 @@ return [ qw[
         protocol.amos-chksum.command-handler
         nodes.handler.discover_details_reply
         mod-test.cmd.blacklisted-add-matches
-        letsencr.child.acme_check_account
+        letsencr.child.poll_challenge_status
+        letsencr.child.cmd.renew-certificate
+        letsencr.child.check_dns_propagation
+        letsencr.child.acme_verify_challenge
+        letsencr.child.acme_register_account
         image2html.child.check_cache_timeout
         httpsd.startup.validate_certificates
         httpd.handler.download_transfer.test
@@ -1927,13 +1952,12 @@ return [ qw[
         protocol.protocol-7.link-upgrade.init
         protocol.amos-chksum.ext-cmd.commands
         protocol.amos-chksum.connect_callback
-        letsencr.parent.query_httpd_vhosts
-        letsencr.parent.handler_cert_ready
-        letsencr.dns.cloudflare_delete_txt
-        letsencr.dns.cloudflare_create_txt
-        letsencr.child.extract_rsa_modulus
-        letsencr.child.cmd.new-certificate
-        letsencr.child.acme_finalize_order
+        letsencr.parent.handler_renewal_retry
+        letsencr.parent.handler_renewal_reply
+        letsencr.parent.handler_renewal_check
+        letsencr.child.create_dns01_challenge
+        letsencr.child.cmd.revoke-certificate
+        letsencr.child.acme_get_authorization
         httpd.handler.download_transfer.fixed
         discover.format_discover_mcast_packet
         debian.parent.verify_dependency_state
@@ -1954,13 +1978,13 @@ return [ qw[
         protocol.protocol-7.auth.select-method
         mpv.handler.event.property-change.path
         mod-test.callback.reload-test.add-link
-        letsencr.parent.process_pending_ops
-        letsencr.parent.handler_child_ready
-        letsencr.child.respond_to_challenge
-        letsencr.child.generate_account_key
-        letsencr.child.fetch_acme_directory
-        letsencr.child.extract_rsa_exponent
-        letsencr.child.cmd.inst-self-signed
+        letsencr.parent.send_httpd_vhost_query
+        letsencr.parent.queue_renewal_requests
+        letsencr.parent.notify_httpd_challenge
+        letsencr.parent.handler_renewal_failed
+        letsencr.parent.cmd.revoke-certificate
+        letsencr.child.create_http01_challenge
+        letsencr.child.cmd.request-certificate
         keys.unpack_format.key_archive_payload
         io.unix.socket.handler.report-tmp-path
         impressive.callback.rendering_finished
@@ -1974,12 +1998,8 @@ return [ qw[
         sourcecode.console.verify-p7-signatures
         sourcecode.console.test-sign-and-verify
         mpv.handler.event.property-change.width
-        letsencr.child.poll_challenge_status
-        letsencr.child.cmd.renew-certificate
-        letsencr.child.check_dns_propagation
-        letsencr.child.acme_verify_challenge
-        letsencr.child.acme_register_account
-        letsencr.base.fork_letsencr_child
+        letsencr.parent.cmd.request-certificate
+        letsencr.parent.cmd.install-certificate
         discover.callback.resend_interval_reset
         debian.parent.ensure_zenka_dependencies
         base.perlmods.reload.reload_blacklisted
@@ -1998,12 +2018,10 @@ return [ qw[
         protocol.sftp.handler.read_server_output
         mpv.handler.event.property-change.volume
         mpv.handler.event.property-change.height
-        letsencr.parent.handler_renewal_retry
-        letsencr.parent.handler_renewal_reply
-        letsencr.parent.handler_renewal_check
-        letsencr.child.create_dns01_challenge
-        letsencr.child.cmd.revoke-certificate
-        letsencr.child.acme_get_authorization
+        letsencr.parent.handler_revocation_reply
+        letsencr.parent.handler_enrollment_retry
+        letsencr.parent.handler_enrollment_reply
+        letsencr.parent.handler_challenge_needed
         base.log.send-buffer.idle-callback-clear
         web-browser.callback.scroll_start_js_exec
         tile-groups.handler.poll_tile_color_reply
@@ -2012,13 +2030,11 @@ return [ qw[
         pdf.html.parent.handler.convert_pdf_reply
         nodes.callback.local_network.offline-node
         mod-test.callback.reload-test.remove-link
-        letsencr.parent.send_httpd_vhost_query
-        letsencr.parent.queue_renewal_requests
-        letsencr.parent.notify_httpd_challenge
-        letsencr.parent.handler_renewal_failed
-        letsencr.parent.cmd.revoke-certificate
-        letsencr.child.create_http01_challenge
-        letsencr.child.cmd.request-certificate
+        letsencr.parent.load_certificate_registry
+        letsencr.parent.handler_httpd_vhost_reply
+        letsencr.parent.handler_httpd_vhost_error
+        letsencr.parent.handler_challenge_timeout
+        letsencr.parent.handler.vhost_query_reply
         base.zenki.ondemand.handler.startup_reply
         base.agent_code.handler.sig_warn.end_proc
         web-browser.handler.withheld_entries_reply
@@ -2026,8 +2042,7 @@ return [ qw[
         sourcecode.console.test-sign-with-temp-key
         sourcecode.console.test-restore-signatures
         sourcecode.console.regen-checksum-symlinks
-        letsencr.parent.cmd.request-certificate
-        letsencr.parent.cmd.install-certificate
+        letsencr.parent.handler_httpd_reload_reply
         X-11.background.chksum-cache.write_to_disk
         web-browser.handler.request_starting_signal
         web-browser.disconnect_signal.received_data
@@ -2038,10 +2053,7 @@ return [ qw[
         tile-groups.tile_activity.change_poll_timer
         mpv.handler.event.property-change.core-idle
         mod-test.callback.reload-test.is_registered
-        letsencr.parent.handler_revocation_reply
-        letsencr.parent.handler_enrollment_retry
-        letsencr.parent.handler_enrollment_reply
-        letsencr.parent.handler_challenge_needed
+        letsencr.parent.handler_challenge_validated
         httpd.handler.download_transfer.test-broken
         debian.parent.callback.register_deb_package
         debian.parent.callback.register_cpan_module
@@ -2049,32 +2061,25 @@ return [ qw[
         weather.parent.handler.update_forecast_reply
         system.process.handler.pid-instance_response
         sourcecode.console.test-verify-with-temp-key
-        letsencr.parent.load_certificate_registry
-        letsencr.parent.handler_httpd_vhost_reply
-        letsencr.parent.handler_httpd_vhost_error
-        letsencr.parent.handler_challenge_timeout
-        letsencr.parent.handler.vhost_query_reply
+        letsencr.parent.check_certificate_expiration
         debian.parent.callback.check_module_loadable
-        letsencr.parent.handler_httpd_reload_reply
+        letsencr.parent.install_certificate_to_httpsd
+        letsencr.parent.determine_certificate_domains
         image2html.parent.handler.convert_image_reply
         base.log.send-buffer.reply-handler.send-reply
         X-11.background.chksum-cache.reload_from_file
-        letsencr.parent.handler_challenge_validated
         debian.parent.callback.check_package_installed
-        letsencr.parent.check_certificate_expiration
+        letsencr.parent.notify_httpd_certificate_update
         protocol.protocol-7.protocol-version-path-set-up
-        letsencr.parent.install_certificate_to_httpsd
-        letsencr.parent.determine_certificate_domains
         base.log.send-buffer.reply-handler.notify-online
         debian.parent.callback.register_binary_dependency
-        letsencr.parent.notify_httpd_certificate_update
         mpv.handler.event.property-change.video-aspect-override
 
     ]
 ];
 
-#,,,,,...,.,,,,,,,,..,,.,,...,.,.,,,,,,..,..,,..,,...,...,,..,,..,...,,,.,.,,,
-#Q2L7WDHQIY3NXZ75O6Q72KTT74SVVHQFYRMNGOWJ5XT4JSW3UQCDEOMIBUGIWTBNPH4EPXH2Z44A2
-#\\\|HDXGAHX3V3RP7J722PCQAICEC3VFI5EUIV5CXNW5NMNQIO2ZW34 \ / AMOS7 \ YOURUM ::
-#\[7]L3P76WFUERI4UVFXVLYMBXLNWGZJVGVIFH3NWCNAA3BVCLY5K6CI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,..,,.,,.,,,.,,,..,,.,,,.,.,,,.,..,,...,..,,...,..,,...,,.,,...,
+#56YMT2YZPCLWLWNCIAXXRBHUUCFGYA5PGKVCW4TY2L2QGW5KFIBOJUVG7K7PYE2MTQYXA4SR7LAC6
+#\\\|IWDVEDWI62USRHNAYWDG5DLUF7U3DWT7BEZYTW2LNFCRWJL7HCW \ / AMOS7 \ YOURUM ::
+#\[7]T3CY6FXOUOSDQ4R3ONWIP5IDMNPY4CDOK4UHQ3O35OTWPQSIASBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
