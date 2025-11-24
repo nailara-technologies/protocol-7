@@ -21,10 +21,14 @@ my $write_size = length $session->{'buffer'}->{'output'};
 if ( fileno $session->{'handle'} ) {
     ## For downloads with SSL sockets, keep writing in a loop until the buffer drains
     ## or the socket would block, because SSL sockets can only write one TLS record
-    ## (16KB) at a time due to OpenSSL limitations
+    ## (16KB) at a time due to OpenSSL limitations.
+    ## Limit iterations to ~1MB per handler call to prevent blocking the event loop
+    ## and ensure fair scheduling for other sessions/downloads.
     my $is_download = defined $session->{'watcher'}->{'download_handler'};
+    my $write_count = 0;
+    my $max_writes_per_call = 64;   ## ~1MB per handler invocation (64 * 16KB)
 
-    while ( $write_size > 0 ) {
+    while ( $write_size > 0 && $write_count < $max_writes_per_call ) {
         ## CRITICAL FIX: For SSL sockets, use base.ssl.write instead of base.s_write
         ## IO::AIO does not work with IO::Socket::SSL because SSL encryption happens
         ## at the OpenSSL library level, not the kernel level.
@@ -52,10 +56,11 @@ if ( fileno $session->{'handle'} ) {
 
             substr( $session->{'buffer'}->{'output'}, 0, $size_written, '' );
             $write_size = length $session->{'buffer'}->{'output'};
+            $write_count++;
 
             ## Continue loop to write more data if available
             ## For SSL downloads, syswrite() typically writes one record (16KB)
-            ## but we keep trying to write all available data in the buffer
+            ## Loop limit ($max_writes_per_call) prevents event loop starvation
         }
     }
 
@@ -111,8 +116,8 @@ $session->{'shutdown'} = 1 if !$write_size and $session->{'flush_shutdown'};
 
 return 0;
 
-#,,..,,,.,.,.,..,,.,.,,,.,...,.,,,.,.,.,.,..,,..,,...,...,,..,,.,,...,..,,,,,,
-#Z32TZQDOFZHJZEVTPMBB53VHCI3SCFXSAGR5LMNPVJ23EJWOPLHNNH3YF5KHOXHZTQMRIVHU4CFKW
-#\\\|4J6USVBMW3NKDUE3P5M7YSWNDEXGNSAKOZLESHJHIOLCPFXJQKL \ / AMOS7 \ YOURUM ::
-#\[7]FBI3BAJQP6IY4GPSMBU2AATRDEVVXTFZ6XVM53KY7VWS7OARWUDI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,..,.,.,.,,,.,.,,..,,.,,.,,,..,,..,,...,..,,...,...,.,.,...,..,,
+#XXF6UDPHCHSIQF7K7KMDXYK62LDTZ6XPFHXKXYXP745OOCVRKPVL72WLGCAQAXBVLSNHXQLO6YZ2G
+#\\\|UQF5MBYTT34YHKV7XRCVQPNX7UVIJCL7CDSMD6UNBHMNL6QVZT6 \ / AMOS7 \ YOURUM ::
+#\[7]GJQTX6IG5GJSZFARRMFDATBEBSZ6RGCH2CWA4DK4AEXXRWMAUCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
