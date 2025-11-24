@@ -8,6 +8,42 @@ my $session  = $data{'session'}{$id};
 my $download = $session->{'download'};
 my $clients  = <httpd.downloads.in_progress> ||= 1;
 
+## If EOF reached and buffer is empty, complete the download
+if ( $download->{'eof_reached'}
+    and length( $session->{'buffer'}->{'output'} ) == 0 ) {
+    <[base.logs]>->(
+        '[%d] download transfer completed (buffer fully drained)', $id
+    );
+    $event->w->cancel;
+    close( $download->{'content_fh'} );
+
+    # End diagnostic tracking
+    if ( exists $code{'httpd.diagnostic.end_operation'}
+        and defined $download->{'diagnostic_id'} ) {
+        <[httpd.diagnostic.end_operation]>->(
+            $download->{'diagnostic_id'},
+            'complete', { 'completion_path' => 'normal' }
+        );
+    }
+    delete $session->{'watcher'}->{'download_handler'};
+    delete $session->{'download'};
+    <[httpd.update_download_count]>;
+
+    if ( $session->{'http'}->{'close'} ) {
+        $session->{'flush_shutdown'} = 1;
+    } else {
+        $session->{'watcher'}->{'input_handler'}->timeout(<httpd.timeout>);
+    }
+    return 0;
+}
+
+## If EOF reached, no more data to read
+if ( $download->{'eof_reached'} ) {
+    ## Buffer draining is handled by normal write handlers and output_buffer watcher
+    ## Just keep this handler registered in case we need to re-check completion
+    return 1;    ## Keep handler registered but don't read more data
+}
+
 my $min_buf_size = 4096;
 my $max_buf_size
     = sprintf( qw| %.0f |, <httpd.downloads.total_bufsize_max> / $clients );
@@ -39,7 +75,7 @@ if ($part_count) {    ## one or more byteranges ##
 }
 
 my $multipart_footer;
-if ( $read_size <= 0 ) {
+if ( $read_size <= 0 and $part_count ) {
     if ( $part_id < $part_count - 1 ) {    ## more parts are queued..,
         $download->{'part_id'} = ++$part_id;
         <[base.logs]>->(
@@ -86,7 +122,7 @@ if ( $read_size <= 0 ) {
     }
 }
 
-if ( $read_size == 0 ) {
+if ( $read_size == 0 and $part_count ) {
     <[base.s_warn]>->('[%d] content read size was zero');
     goto ABORT_DOWNLOAD;
 }
@@ -110,29 +146,13 @@ if ( defined $multipart_footer
 }
 
 if ( $download->{'total_bytes_remaining'} == 0 ) {
-    <[base.logs]>->( '[%d] download transfer completed', $id );
-    $event->w->cancel;
+    ## File EOF reached - keep handler registered but stop reading
+    <[base.logs]>->(
+        '[%d] file EOF reached, waiting for buffer to drain', $id
+    );
     close( $download->{'content_fh'} );
-
-    # End diagnostic tracking
-    if ( exists $code{'httpd.diagnostic.end_operation'}
-        and defined $download->{'diagnostic_id'} ) {
-        <[httpd.diagnostic.end_operation]>->(
-            $download->{'diagnostic_id'},
-            'complete', { 'completion_path' => 'normal' }
-        );
-    }
-    delete $session->{'watcher'}->{'download_handler'};
-    delete $session->{'download'};
-
-    <[httpd.update_download_count]>;
-
-    if ( $session->{'http'}->{'close'} ) {
-        $session->{'flush_shutdown'} = 1;
-    } else {
-        $session->{'watcher'}->{'input_handler'}->timeout(<httpd.timeout>);
-    }
-    return 0;
+    $download->{'eof_reached'} = 1;
+    return 1;    ## Keep waiting for buffer drain
 
 } else {
     $download->{'part_pos'} += $bytes_read if $part_count > 1;
@@ -164,8 +184,8 @@ delete $session->{'download'};
 $session->{'flush_shutdown'} = 1;
 return 0;
 
-#,,.,,...,,..,.,,,,.,,,,,,..,,.,.,...,,,,,...,..,,...,...,..,,.,.,..,,,..,.,.,
-#GPIYKVJAYIRCMLWHOKLY2QRUWDZWWS2VQBIQV4KVTI2WKDJA2H7EADZC2CDPE37IG3MIO6XRUIA6U
-#\\\|IS7M65XLBRNPS6AZLKFTT6EIK7MQJVDULN6QBUTKHQCWQ2B7JJU \ / AMOS7 \ YOURUM ::
-#\[7]TFTIUF74CISXHNXIRR7UOICW6PRK5TL27ORJMFSWMWM2YNPH2CCY 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,..,,,,,,,,.,.,,,,.,,,.,,,..,...,..,,...,...,..,,.,,,...,,,,,.,.,
+#SSY4NEOEJIQEQZ6Z6SVP2WNR2LGMWKPPVJRJX3SJDQMBI5F24U75CMUXQ6C27MN5K4RVA73CDAFQM
+#\\\|27RZWV3BFUVDKYDLHWPU2WKAKSSXEF2JQOONRBNTRKUUF7EQIHR \ / AMOS7 \ YOURUM ::
+#\[7]7WQRN7OBTXD3NNFHXYWBN6KAUUXI67ZBPA2XP6VJA7BOOE6MFMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

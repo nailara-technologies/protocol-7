@@ -29,7 +29,13 @@ if ( ref($read_fh) eq qw| IO::Socket::SSL | ) {
     my $b_read = $read_fh->sysread( my $r_buff, $read_len, 0 );
 
     if ( defined $b_read && $b_read > 0 ) {
-        utf8::decode($r_buff);
+        ## For binary file data, downgrade UTF-8 flag to prevent
+        ## double-encoding when sending via SSL sockets [syswrite
+        ## auto-encodes UTF-8 strings]
+        if ( utf8::is_utf8($r_buff) ) {
+            ## 0 = non-fatal, silently strips UTF-8 flag
+            utf8::downgrade( $r_buff, 0 );
+        }
         $b_read = length($r_buff);    ##  adjust for decoding  ##
         $$buffer_ref .= $r_buff;
         return $b_read;
@@ -48,7 +54,12 @@ if ( ref($read_fh) eq qw| IO::Socket::SSL | ) {
     while ( not defined $b_read ) { IO::AIO::poll() }
 
     if ( $b_read > 0 ) {
-        utf8::decode($r_buff);
+        ## For binary file data, downgrade UTF-8 flag to prevent double-encoding
+        ## when sending via SSL sockets (syswrite auto-encodes UTF-8 strings)
+        if ( utf8::is_utf8($r_buff) ) {
+            ## 0 = non-fatal, silently strips UTF-8 flag
+            utf8::downgrade( $r_buff, 0 );
+        }
         $b_read = length($r_buff);    ##  adjust for decoding  ##
         $$buffer_ref .= $r_buff;
     }
@@ -57,8 +68,8 @@ if ( ref($read_fh) eq qw| IO::Socket::SSL | ) {
 
 }
 
-#,,.,,...,..,,,..,,..,..,,,.,,.,,,.,.,,..,,,.,..,,...,..,,.,,,..,,.,.,...,,,,,
-#6LNM47D3VR2VYG56LMYI4ENOFZWSYJCPAXL23UJGI2RUXDYEV27RHWABU5GCMWMCG372OYYYH2TSY
-#\\\|NSRDK4FCKHM3HVCUAGRR4KFTE52U6B6AUIN6K3PC2U5WDTRHYS2 \ / AMOS7 \ YOURUM ::
-#\[7]P6C3ZQFD7WNZKL26NISNH4KWMZMSJZNQ7BQJHZYG4ONLZJRZK2DQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,..,.,.,,.,,..,,...,.,,,.,,,.,.,..,,...,...,.,.,.,,,,.,,.,,,,,.,
+#4T7YC5G6PTDAGQUIAN4UPRNAAKB6F4I622ZCIXZU72YGCBYLPRKMFDWGJOF7FI6XTEXNS2TZZTT5I
+#\\\|Z5H5CBW57E3YHH5C3NTKO3MGRLOP4GAFQBJSXSOOBIC4VUP2TAX \ / AMOS7 \ YOURUM ::
+#\[7]3OQ3H5A4ZAU3CAUKBTEYOXQOASVAJ7OGAIV3PVDKHTV7FPZ55ODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
