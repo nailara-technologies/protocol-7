@@ -8,6 +8,39 @@
 # Load HTTPD initialization (core HTTP handling)
 <[httpd.init_code]>;
 
+# Check and fix httpsd directory access permissions (httpsd-specific setup)
+if ( <system.zenka.name> eq qw| httpsd | and $EUID == 0 ) {
+    my ( undef, undef, $httpsd_gid ) = getpwnam('httpsd');
+    my ( undef, undef, $httpd_gid ) = getgrnam('httpd');
+
+    if ( defined $httpsd_gid && defined $httpd_gid ) {
+        # Add httpsd to httpd group if not already member
+        my $in_group = 0;
+        setgrent();
+        while ( my ( $name, $passwd, $gid, $members ) = getgrent() ) {
+            if ( $gid == $httpd_gid && $members =~ /\bhttpsd\b/ ) {
+                $in_group = 1;
+                last;
+            }
+        }
+        endgrent();
+
+        if ( !$in_group ) {
+            system("usermod -a -G httpd httpsd") == 0
+                and <[base.log]>->(1, 'added httpsd to httpd group');
+        }
+
+        # Fix /var/httpd permissions if needed
+        if ( -d '/var/httpd' ) {
+            my $stat = stat('/var/httpd');
+            if ( !( ( $stat->mode & 0007 ) != 0 ) && !( ( $stat->mode & 0070 ) != 0 ) ) {
+                chmod(0755, '/var/httpd')
+                    and <[base.log]>->(1, 'fixed /var/httpd permissions');
+            }
+        }
+    }
+}
+
 # CRITICAL FIX: Ensure httpd.cfg.hostnames has default entries
 # httpd.scan_site_dir initializes httpd.cfg.hostnames as empty, then populates from /var/httpd
 # If no vhosts exist, it remains empty. We must add defaults for localhost/127.0.0.1
@@ -15,21 +48,21 @@ unless ( defined <httpd.cfg.hostnames> ) {
     <httpd.cfg.hostnames> = {};
 }
 
-# Add defaults if not already present (map to directory paths)
+## Set defaults with actual directory paths (not just 1/TRUE values)
+## Force overwrite any placeholder values from httpd.determine_host initialization
 my $default_dir = <httpd.site_dir> . '/default' // '/var/httpd/default';
 
-# Explicitly set hostname mappings (using unless exists to preserve any user-configured overrides)
-unless ( exists <httpd.cfg.hostnames>->{'default'} ) {
-    <httpd.cfg.hostnames>->{'default'} = $default_dir;
-    <[base.log]>->( 2, "  set httpd.cfg.hostnames->{default} = $default_dir" );
-}
-unless ( exists <httpd.cfg.hostnames>->{'localhost'} ) {
-    <httpd.cfg.hostnames>->{'localhost'} = $default_dir;
-    <[base.log]>->( 2, "  set httpd.cfg.hostnames->{localhost} = $default_dir" );
-}
-unless ( exists <httpd.cfg.hostnames>->{'127.0.0.1'} ) {
-    <httpd.cfg.hostnames>->{'127.0.0.1'} = $default_dir;
-    <[base.log]>->( 2, "  set httpd.cfg.hostnames->{127.0.0.1} = $default_dir" );
+foreach my $hostname ( qw| default localhost 127.0.0.1 | ) {
+    my $current_val = <httpd.cfg.hostnames>->{$hostname};
+    ## Overwrite placeholder (1) or missing values with actual directory path
+    if ( !defined $current_val or $current_val eq '1' or !-d $current_val ) {
+        <httpd.cfg.hostnames>->{$hostname} = $default_dir;
+        <[base.log]>->(
+            2,
+            "  set httpd.cfg.hostnames->{%s} = %s",
+            $hostname, $default_dir
+        );
+    }
 }
 
 <[base.log]>->(
@@ -142,8 +175,8 @@ $data{'protocol'}{'https'} = {
 
 0;
 
-#,,,,,,.,,.,.,,,,,,,.,,..,.,,,,,.,,,,,,.,,,,.,..,,...,...,..,,,,,,...,..,,,..,
-#E74LBULA2FXRWU3ZVW54EKHZE62ANRJBCUURFTSBNFPLEFV47C36WM2IM52UFJZTU2LC7PNGT4HYK
-#\\\|PD7PKU3ADMIE6OFDTEQTGW5KNECFIGJ4K3LHVLID37VENO2J4YX \ / AMOS7 \ YOURUM ::
-#\[7]UUJCSIRDMVDDYQTJGQ2GLRZAZK243MZAV4S7RCL5LWSNN5PA7UCQ 7  DATA SIGNATURE ::
+#,,,,,,..,..,,...,...,..,,,,.,.,.,,..,,,.,.,,,..,,...,..,,,.,,.,.,,,.,..,,...,
+#V6OWFODV7MVSLBK2KUD25QAAERN6A3TUJ7LWV7FNNWGE6V76ZY2T5G5P2BU4HLUUJ2OVQYJZ2OCCG
+#\\\|L7EVMNFDXALHCYV3IRPZKCUEEXSZXSITMUE4JXBF232PANA2YXA \ / AMOS7 \ YOURUM ::
+#\[7]ZMPRBRUDUFACL4HWLX7YYKR2OEQHLA6TG72QQ4P5DZ3Y3FIHTCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

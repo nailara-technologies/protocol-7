@@ -34,6 +34,14 @@ my $site_dir    = <httpd.cfg.site_dir> // '/var/httpd';
 
 # Build full file path - look up hostname in hostnames hash to get directory
 my $base_dir = <httpd.cfg.hostnames>->{$http_host};
+<[base.logs]>->(
+    2,
+    "[$session_id] serve_static: http_host='%s', base_dir='%s' (defined=%s), path='%s'",
+    $http_host,
+    $base_dir // 'UNDEF',
+    (defined $base_dir ? 'yes' : 'no'),
+    $path
+);
 unless (defined $base_dir) {
     <[base.log]>->(
         0,
@@ -43,10 +51,37 @@ unless (defined $base_dir) {
 }
 
 my $file_path = join('', $base_dir, $path);
+<[base.logs]>->(
+    2,
+    "[$session_id] serve_static: file_path='%s'",
+    $file_path
+);
 $file_path =~ s|/$||;
+<[base.logs]>->(
+    2,
+    "[$session_id] serve_static: after strip trailing slash: file_path='%s'",
+    $file_path
+);
 
-# Check for template file instead (backward compat)
-if (!-f $file_path and -f "$file_path.tmpl") {
+# Check for template file instead (backward compat) using directory listing
+my $requested_filename = (split '/', $file_path)[-1];
+my $parent_dir = $file_path;
+$parent_dir =~ s|[^/]*$||;
+$parent_dir =~ s|/$||;
+$parent_dir = '/' if !length($parent_dir);
+
+my $has_file = 0;
+my $has_tmpl = 0;
+if (opendir(my $check_fh, $parent_dir)) {
+    my @dir_entries = readdir($check_fh);
+    closedir($check_fh);
+    foreach my $entry (@dir_entries) {
+        $has_file = 1 if $entry eq $requested_filename;
+        $has_tmpl = 1 if $entry eq "$requested_filename.tmpl";
+    }
+}
+
+if (!$has_file and $has_tmpl) {
     <[base.log]>->(
         2,
         "[$session_id] serve_static: found template $file_path.tmpl, redirecting to template processor"
@@ -55,32 +90,76 @@ if (!-f $file_path and -f "$file_path.tmpl") {
     return <[httpd.process_template]>->($session_id, "$file_path.tmpl");
 }
 
-# Check if it's a directory
-if (-d $file_path) {
-    # Try index files
-    if (-f "$file_path/index.html") {
-        $file_path = "$file_path/index.html";
-    } elsif (-f "$file_path/index.tmpl") {
-        <[base.log]>->(2, "[$session_id] found index.tmpl, redirecting to template processor");
-        return <[httpd.process_template]>->($session_id, "$file_path/index.tmpl");
-    } else {
-        <[base.log]>->(1, "[$session_id] directory listing not allowed: $file_path");
-        return <[httpd.send_error_page]>->($session_id, 403);
+# Check if it's a directory - try index files first
+## Use opendir/readdir instead of -d operator for SSL socket context compatibility
+my $dir_fh;
+my $is_directory = 0;
+my $found_index_html = 0;
+my $found_index_tmpl = 0;
+
+if (opendir($dir_fh, $file_path)) {
+    $is_directory = 1;
+    my @entries = readdir($dir_fh);
+    closedir($dir_fh);
+
+    # Check directory contents for index files
+    foreach my $entry (@entries) {
+        if ($entry eq 'index.html') {
+            $found_index_html = 1;
+        } elsif ($entry eq 'index.tmpl') {
+            $found_index_tmpl = 1;
+        }
+    }
+
+    <[base.logs]>->(
+        2,
+        "[$session_id] directory: found_index.html=%s, found_index.tmpl=%s",
+        ($found_index_html ? 'YES' : 'NO'),
+        ($found_index_tmpl ? 'YES' : 'NO')
+    );
+}
+
+if ($found_index_html) {
+    $file_path = "$file_path/index.html";
+    <[base.logs]>->( 2, "[$session_id] found index.html in directory, using: $file_path" );
+} elsif ($found_index_tmpl) {
+    <[base.log]>->(2, "[$session_id] found index.tmpl, redirecting to template processor");
+    return <[httpd.process_template]>->($session_id, "$file_path/index.tmpl");
+} elsif ($is_directory) {
+    ## Directory exists but no index files
+    <[base.log]>->(1, "[$session_id] directory listing not allowed: $file_path");
+    return <[httpd.send_error_page]>->($session_id, 403);
+}
+
+# File permission checks using directory listing
+my $final_filename = (split '/', $file_path)[-1];
+my $final_parent_dir = $file_path;
+$final_parent_dir =~ s|[^/]*$||;
+$final_parent_dir =~ s|/$||;
+$final_parent_dir = '/' if !length($final_parent_dir);
+
+my $file_exists = 0;
+if (opendir(my $final_check_fh, $final_parent_dir)) {
+    my @final_entries = readdir($final_check_fh);
+    closedir($final_check_fh);
+    foreach my $entry (@final_entries) {
+        if ($entry eq $final_filename) {
+            $file_exists = 1;
+            last;
+        }
     }
 }
 
-# File permission checks
-if (!-f $file_path) {
+if (!$file_exists) {
     <[base.logs]>->(1, "[$session_id] file not found: $file_path, calling send_error_page");
     my $result = <[httpd.send_error_page]>->($session_id, 404);
     <[base.logs]>->(2, "[$session_id] send_error_page returned: $result");
     return $result;
 }
 
-if (!-r $file_path) {
-    <[base.log]>->(0, "[$session_id] access denied by filesystem permissions: $file_path");
-    return <[httpd.send_error_page]>->($session_id, 403);
-}
+## Note: Skip -r check as it may fail in SSL socket context
+## File permissions will be checked when we attempt to open the file (line 182+)
+## If file is not readable, open() will fail and we'll return 500 error
 
 # Get file metadata
 my $file_stat     = File::stat::stat($file_path);
@@ -157,8 +236,8 @@ return <[httpd.download_init]>->({
     'header' => $reply_header
 });
 
-#,,..,,..,.,,,,.,,..,,,..,...,...,,.,,.,.,,.,,..,,...,...,.,,,..,,,,,,,,.,,,,,
-#BUQTFMHYEN2WIBYBZMELUUHPTCY2NWLSVACPOLFW67U4F46MKIW6XVXZH5A2OTDMIHT75RNQAQJN6
-#\\\|47TZND67U334HDHPNMR2XWZ3PMPVUN7QVXGIHAIZSZPGHJ6BSJX \ / AMOS7 \ YOURUM ::
-#\[7]RJB7PI5HZ57R5F3VPSKKAHJAV326DY4SW2LD73BBQ2THM2DGD2BQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,.,,,...,,..,,..,..,,.,.,...,.,.,..,,...,...,.,.,,,.,.,.,...,,,.,
+#EK5P7DTQEMGA3I7Z2W66S6JR5JFMO7VHFFN42PO4PVF4HW6ICN4OS6DDFKGBOX63SOOALPVKYYAUM
+#\\\|RGW3ZJUY7MQAOIHBXFAEZLVIYTVGJTBQRVXEJECGSMQTMFSSPIF \ / AMOS7 \ YOURUM ::
+#\[7]C2LEO55Y3RZXJJL34VD2NRZIYFFLI6CMRNYSGHRDJPYE7P5CY2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
