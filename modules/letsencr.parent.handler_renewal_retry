@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = letsencr.parent.handler_renewal_retry
+# descr = Handle scheduled renewal retry from timer - resend renewal request to child
+
+my $timer_data = shift;
+
+my $domain  = $timer_data->{domain};
+my $attempt = $timer_data->{attempt} // 1;
+
+<[base.log]>->( 2, "renewal retry for domain: $domain (attempt $attempt)" );
+
+## Get certificate info
+my $cert_info = <letsencr.parent.certs> {$domain};
+return 0 unless $cert_info;
+
+## Send renewal command to child via Protocol-7 command protocol
+my $renewal_cmd = sprintf 'letsencr.child.cmd.renew-certificate %s', $domain;
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => $renewal_cmd,
+        'call_args' => {
+            'args'  => '',
+            'param' => {
+                'cert_info'     => $cert_info,
+                'retry_attempt' => $attempt,
+            }
+        },
+        'reply' => {
+            'handler' => 'letsencr.parent.handler_renewal_reply',
+            'params'  => { 'domain' => $domain, 'attempt' => $attempt }
+        }
+    }
+);
+
+## Update attempt counter
+if ( exists <letsencr.parent.renewal_timers> {$domain} ) {
+    <letsencr.parent.renewal_timers> {$domain}{attempts}
+    ++;
+}
+
+return 1;
+
+#,,,.,,,.,.,.,.,.,..,,,,,,.,.,.,,,,,,,,,.,,,.,..,,...,...,..,,,,.,,..,,.,,,.,,
+#XRGBHZ2C4FLFENGDKSED4JRWIPARHIDP5UIIWILHBVS6QP7VYD7HOT674GAOPLASSVVQRVJ64F32Q
+#\\\|7V7KZJC6HZE6FDL3AZSRKLVDQ45ZINZWYDAE3CTIDKXZT7OYEGE \ / AMOS7 \ YOURUM ::
+#\[7]HRZBCVRYCJAOUTCQXLKJOD2N26B2L64DT6D2XSJHAOVV2T5EB4AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = letsencr.parent.cmd.install-certificate
+# param = <domain>
+# descr = Manually install a certificate from Let's Encrypt cache to httpsd
+
+my $domain = shift;
+
+return {
+    qw| mode | => qw| false |,
+    qw| data | => qq| domain parameter required |
+    }
+    unless defined $domain && length($domain);
+
+<[base.log]>->( 2, "manual certificate install requested for: $domain" );
+
+## Check if certificate exists in registry
+unless ( exists <letsencr.parent.certs> {$domain} ) {
+    <[base.log]>->( 1, "certificate not found in registry: $domain" );
+
+    return {
+        qw| mode | => qw| false |,
+        qw| data | => qq| certificate not found for domain: $domain |
+    };
+}
+
+## Call installation module
+my $install_result
+    = <[letsencr.parent.install_certificate_to_httpsd]>->($domain);
+
+if ( $install_result->{status} eq qw| success | ) {
+    <[base.log]>->( 2, "certificate installation successful" );
+
+    return {
+        qw| mode | => qw| true |,
+        qw| data | => sprintf(
+            'certificate installed for %s at %s',
+            $domain, $install_result->{cert}
+        )
+    };
+} elsif ( $install_result->{status} eq qw| partial | ) {
+    <[base.log]>
+        ->( 1, "partial installation: " . $install_result->{message} );
+
+    return {
+        qw| mode | => qw| true |,
+        qw| data | =>
+            sprintf( 'certificate copied but httpsd reload failed: %s',
+            $install_result->{message} )
+    };
+} else {
+    <[base.log]>->( 1, "installation failed: " . $install_result->{message} );
+
+    return {
+        qw| mode | => qw| false |,
+        qw| data | =>
+            sprintf( 'installation failed: %s', $install_result->{message} )
+    };
+}
+
+0;
+
+#,,,,,,,,,...,.,.,.,.,,.,,,,.,.,,,..,,,.,,,.,,..,,...,...,...,,,.,...,..,,,..,
+#GFEWWDXA7P3NCJU4L445YLKMCJ26ZWWXCHZ5HVCGO6V25DDRGCROX2D5O2QC4KNCPYB6M3TEOFD4Y
+#\\\|3WENPOLO5GOI7NFS6ZVVDOZWI3KE7XZFHMZCDCMG3WSNHDW4H7U \ / AMOS7 \ YOURUM ::
+#\[7]6AAV4S7GOW3XFPXXYCV67KBXSOCJKGXXFURPTHQ36EPRHJPZQUBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,182 @@
+## [:< ##
+
+# name  = letsencr.child.acme_renew
+# descr = Child process ACME certificate renewal operation (blocking crypto/network calls)
+
+my $msg = shift;
+
+my $domain    = $msg->{domain};
+my $cert_info = $msg->{cert_info};
+
+<[base.log]>->( 2, "child: starting renewal for domain: $domain" );
+
+## Initialize ACME protocol if needed
+unless ( <letsencr.child.acme_client> {account_key} ) {
+    my $dir_info = <[letsencr.child.fetch_acme_directory]>->();
+    unless ($dir_info) {
+        <[letsencr.child.send_to_parent]>->(
+            {   command    => 'renewal_failed',
+                domain     => $domain,
+                error      => 'Failed to fetch ACME directory',
+                error_code => 'directory_fetch_failed',
+            }
+        );
+        return;
+    }
+
+    ## Load or generate account key
+    unless ( <[letsencr.child.load_account_key]>->() ) {
+        <[letsencr.child.generate_account_key]>->();
+    }
+
+    ## Register account if needed
+    unless ( <letsencr.child.acme_client> {account_url} ) {
+        my $account = <[letsencr.child.acme_register_account]>->();
+        unless ($account) {
+            <[letsencr.child.send_to_parent]>->(
+                {   command    => 'renewal_failed',
+                    domain     => $domain,
+                    error      => 'Account registration failed',
+                    error_code => 'account_registration_failed',
+                }
+            );
+            return;
+        }
+    }
+}
+
+## Start renewal process
+my @domains = ($domain);
+if ( $msg->{san_domains} ) {
+    push @domains, @{ $msg->{san_domains} };
+}
+
+## Create certificate order
+my $order = <[letsencr.child.acme_create_order]>->( \@domains );
+unless ($order) {
+    <[letsencr.child.send_to_parent]>->(
+        {   command    => 'renewal_failed',
+            domain     => $domain,
+            error      => 'Failed to create certificate order',
+            error_code => 'order_creation_failed',
+        }
+    );
+    return;
+}
+
+## Process authorizations and challenges
+foreach my $auth_url ( @{ $order->{authorizations} } ) {
+    my $auth = <[letsencr.child.acme_get_authorization]>->($auth_url);
+    unless ($auth) {
+        <[letsencr.child.send_to_parent]>->(
+            {   command    => 'renewal_failed',
+                domain     => $domain,
+                error      => "Failed to get authorization for $auth_url",
+                error_code => 'authorization_failed',
+            }
+        );
+        return;
+    }
+
+    my $identifier_domain = $auth->{identifier}{value};
+
+    ## Create HTTP-01 challenge response
+    my $challenge_resp = <[letsencr.child.create_http01_challenge]>->(
+        $auth->{http01}, $identifier_domain
+    );
+    unless ($challenge_resp) {
+        <[letsencr.child.send_to_parent]>->(
+            {   command => 'renewal_failed',
+                domain  => $domain,
+                error => "Failed to create challenge for $identifier_domain",
+                error_code => 'challenge_creation_failed',
+            }
+        );
+        return;
+    }
+
+    ## Submit challenge response
+    my $submit = <[letsencr.child.respond_to_challenge]>->(
+        $auth->{http01}{url},
+        $challenge_resp->{token}
+    );
+    unless ($submit) {
+        <[letsencr.child.send_to_parent]>->(
+            {   command => 'renewal_failed',
+                domain  => $domain,
+                error => "Failed to submit challenge for $identifier_domain",
+                error_code => 'challenge_submission_failed',
+            }
+        );
+        return;
+    }
+
+    ## Poll for challenge validation
+    my $poll = <[letsencr.child.poll_challenge_status]>->(
+        $auth_url, $identifier_domain
+    );
+    unless ( $poll->{valid} ) {
+        <[letsencr.child.send_to_parent]>->(
+            {   command => 'renewal_failed',
+                domain  => $domain,
+                error   =>
+                    "Challenge validation failed for $identifier_domain: "
+                    . $poll->{error},
+                error_code => 'challenge_validation_failed',
+            }
+        );
+        return;
+    }
+
+    <[base.log]>->( 2, "challenge validated for $identifier_domain" );
+}
+
+## Generate CSR
+my $csr_info = <[letsencr.child.generate_csr]>->( \@domains );
+unless ($csr_info) {
+    <[letsencr.child.send_to_parent]>->(
+        {   command    => 'renewal_failed',
+            domain     => $domain,
+            error      => 'Failed to generate CSR',
+            error_code => 'csr_generation_failed',
+        }
+    );
+    return;
+}
+
+## Finalize order and download certificate
+my $cert_result = <[letsencr.child.acme_finalize_order]>->();
+unless ($cert_result) {
+    <[letsencr.child.send_to_parent]>->(
+        {   command    => 'renewal_failed',
+            domain     => $domain,
+            error      => 'Failed to finalize order and download certificate',
+            error_code => 'finalization_failed',
+        }
+    );
+    return;
+}
+
+<[base.log]>->( 2, "renewal completed for $domain" );
+
+## Send success back to parent
+<[letsencr.child.send_to_parent]>->(
+    {   command  => 'cert_ready',
+        domain   => $domain,
+        cert     => $cert_result->{certificate},
+        key      => $cert_result->{key},
+        key_path => sprintf '%s/%s.key',
+        <letsencr.certs.dir>, $domain,
+        cert_path => sprintf '%s/%s.pem',
+        <letsencr.certs.dir>, $domain,
+        valid_until => time()
+            + ( 365 * 86400 ),   # valid 1 year (parse from cert for accuracy)
+        fingerprint => 'SHA256:calculated-from-cert',
+    }
+);
+
+#,,.,,,,.,,,,,,.,,.,,,...,..,,.,.,,,.,,,.,.,,,..,,...,..,,..,,...,,,,,...,.,,,
+#7FPJAEJAUROLDNQAAXQUFP3YSMM5F53ZGIY6MDV3EQ4HL3N4465Q5MXQWTFOOBIF5OUC2EIRNUZSU
+#\\\|I773LOBAXRLYS6GTZXHVVH4QHDJYJOFSZPSJBUWZ47MBGLXVAMH \ / AMOS7 \ YOURUM ::
+#\[7]MVA4VXVV56AXE5QRWWO6JPPH5FWW4XLQAYEOE3LKSJ5GGKSTPSCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

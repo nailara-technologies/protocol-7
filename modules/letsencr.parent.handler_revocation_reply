@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = letsencr.parent.handler_revocation_reply
+# descr = Handle revocation response from child process
+
+my $reply_data = shift;
+
+my $domain = $reply_data->{'params'}{'domain'};
+my $mode   = $reply_data->{'cmd'};
+my $data   = $reply_data->{'data'};
+
+<[base.log]>->( 2, "revocation reply for domain: $domain, mode: $mode" );
+
+if ( $mode eq 'TRUE' ) {
+    <[base.log]>->( 2, "revocation succeeded for $domain" );
+    <[letsencr.parent.activity_logger]>->(
+        'revocation', $domain, 'success', 'revoked with ACME server'
+    );
+
+    ## Update certificate status to revoked
+    my $certs = <letsencr.parent.certs>;
+    if ( $certs->{$domain} ) {
+        $certs->{$domain}{status} = 'revoked';
+    }
+
+    ## Remove from renewal schedule (stop attempting to renew revoked certs)
+    my $renewals = <letsencr.parent.renewal_timers>;
+    if ( $renewals->{$domain} ) {
+        delete $renewals->{$domain};
+        <[base.log]>->( 2, "removed $domain from renewal schedule" );
+    }
+
+    ## Optionally clean up certificate files (keep metadata for audit trail)
+    my $certs_dir = <letsencr.certs.dir>;
+    foreach my $ext (qw| pem cert key chain |) {
+        my $file = "$certs_dir/$domain.$ext";
+        if ( -f $file ) {
+            unlink($file);
+            <[base.log]>->( 3, "deleted certificate file: $file" );
+        }
+    }
+
+    <[letsencr.parent.activity_logger]>->(
+        'revocation', $domain, 'success', 'certificate files cleaned up'
+    );
+
+} elsif ( $mode eq 'FALSE' ) {
+    <[base.log]>->( 1, "revocation failed for $domain: $data" );
+    <[letsencr.parent.activity_logger]>->(
+        'revocation', $domain, 'failed', "ACME error: $data"
+    );
+
+    ## Certificate remains in revoked state but keep trying to cleanup locally
+    my $certs = <letsencr.parent.certs>;
+    if ( $certs->{$domain} ) {
+        $certs->{$domain}{status} = 'revocation_failed';
+    }
+
+} else {
+    <[base.log]>->( 1, "revocation got unexpected mode: $mode for $domain" );
+    <[letsencr.parent.activity_logger]>->(
+        'revocation', $domain, 'failed', "unexpected reply mode: $mode"
+    );
+}
+
+return 0;
+
+#,,.,,,,,,.,,,,..,.,.,,.,,,..,.,.,.,,,,,.,,,,,..,,...,...,,..,.,.,.,.,,,,,.,.,
+#5NOCCYXW6GTK4SOHXQYI4JUO4FLR56B6ID4OM6642KG453OIWUFSW3W4LHIIEBHKUFTVA727MZGNU
+#\\\|EHGB35IKYHUBLTKTOQI3GJ5XVPAPWP3YZP5OLO6QWSHLOWYOAEU \ / AMOS7 \ YOURUM ::
+#\[7]PUGLUJAFWRV24Q46BMKWFJ67A2L57IR2BSHHDX4ZXGYGAWUXKWAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

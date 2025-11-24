@@ -1,0 +1,148 @@
+## [:< ##
+
+# name  = letsencr.dns.inwx_create_txt
+# descr = Create TXT record in INWX DNS for ACME DNS-01 challenge
+
+use JSON::XS;
+use XMLRPC::Lite;
+use Digest::MD5 qw(md5_hex);
+
+my $dns_record_name = shift;
+my $dns_value       = shift;
+
+return undef unless $dns_record_name && $dns_value;
+
+<[base.log]>
+    ->( 2, "creating INWX TXT record: $dns_record_name = $dns_value" );
+
+## Get INWX API credentials from config
+my $username = <letsencr.dns.inwx.username>;
+my $password = <letsencr.dns.inwx.password>;
+my $api_url  = <letsencr.dns.inwx.api_url>
+    // 'https://api.domrobot.com/xmlrpc/';
+
+unless ( $username && $password ) {
+    <[base.log]>->( 1, 'error: INWX username or password not configured' );
+    <[base.log]>->(
+        1,
+        'configure: letsencr.dns.inwx.username and letsencr.dns.inwx.password'
+    );
+    return undef;
+}
+
+## Extract base domain from record name
+## _acme-challenge.example.com -> example.com
+my $base_domain = $dns_record_name;
+$base_domain =~ s/^_acme-challenge\.//;
+
+<[base.log]>->( 3, "base domain: $base_domain" );
+
+## Create XMLRPC client
+my $client = XMLRPC::Lite->proxy($api_url);
+
+## Login to INWX API
+<[base.log]>->( 3, "authenticating with INWX API..." );
+
+my $login_result = $client->call(
+    'account.login',
+    {   user => $username,
+        pass => $password,
+    }
+)->result;
+
+unless ( $login_result && $login_result->{code} == 1000 ) {
+    my $error = $login_result->{msg} || 'unknown error';
+    <[base.log]>->( 1, "INWX authentication failed: $error" );
+    return undef;
+}
+
+<[base.log]>->( 3, "INWX authentication successful" );
+
+## Check if TXT record already exists
+<[base.log]>->( 3, "checking for existing TXT record..." );
+
+my $info_result = $client->call(
+    'nameserver.info',
+    {   domain => $base_domain,
+        type   => 'TXT',
+        name   => $dns_record_name,
+    }
+)->result;
+
+my $existing_record_id;
+
+if (   $info_result
+    && $info_result->{code} == 1000
+    && $info_result->{resData}
+    && $info_result->{resData}{record} ) {
+    my $records = $info_result->{resData}{record};
+    $records = [$records] unless ref($records) eq 'ARRAY';
+
+    foreach my $record (@$records) {
+        if ( $record->{name} eq $dns_record_name && $record->{type} eq 'TXT' )
+        {
+            $existing_record_id = $record->{id};
+            <[base.log]>->(
+                2, "found existing TXT record: $existing_record_id"
+            );
+            last;
+        }
+    }
+}
+
+my $result;
+
+if ($existing_record_id) {
+    ## Update existing record
+    <[base.log]>->( 2, "updating existing TXT record..." );
+
+    $result = $client->call(
+        'nameserver.updateRecord',
+        {   id      => $existing_record_id,
+            content => $dns_value,
+            ttl     => 300,                   # 5 minutes for fast propagation
+        }
+    )->result;
+
+} else {
+    ## Create new record
+    <[base.log]>->( 2, "creating new TXT record..." );
+
+    $result = $client->call(
+        'nameserver.createRecord',
+        {   domain  => $base_domain,
+            type    => 'TXT',
+            name    => $dns_record_name,
+            content => $dns_value,
+            ttl     => 300,                # 5 minutes
+        }
+    )->result;
+}
+
+## Logout
+$client->call('account.logout');
+
+## Check result
+unless ( $result && $result->{code} == 1000 ) {
+    my $error = $result->{msg} || 'unknown error';
+    <[base.log]>->( 1, "INWX API request failed: $error" );
+    return undef;
+}
+
+<[base.log]>->( 2, "INWX TXT record created successfully" );
+<[base.log]>->(
+    3, "  record ID: " . ( $existing_record_id || $result->{resData}{id} )
+);
+
+return {
+    success   => 1,
+    record_id => $existing_record_id || $result->{resData}{id},
+    name      => $dns_record_name,
+    value     => $dns_value,
+};
+
+#,,,.,..,,.,,,...,,,,,.,,,.,.,,,.,,,,,..,,,,.,..,,...,...,.,,,,..,.,,,,.,,,,,,
+#HPROG3XCYTDGWFJPE5SUBFYTGWKW5X5GXASUZCN7L7ZMRAOSII6O2UYKX3YEHLFWJMLAI4TDFZW2W
+#\\\|ICWQVKQI63XEQNE4MYCETMLLQGDW5OMX7UYRZZ2R7DJ54VRH3TF \ / AMOS7 \ YOURUM ::
+#\[7]O6IFZLQ3JIPHV45BDDC6WDSGD3O3P5PZMYVVWBR3Y3SNUN6FZ4DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

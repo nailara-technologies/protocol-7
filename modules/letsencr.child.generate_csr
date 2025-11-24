@@ -1,0 +1,113 @@
+## [:< ##
+
+# name  = letsencr.child.generate_csr
+# descr = Generate Certificate Signing Request (CSR) for certificate issuance
+
+use File::Temp   qw(tempfile);
+use MIME::Base64 qw(encode_base64);
+
+my $domains = shift;    # arrayref of domains
+
+return undef unless $domains && @$domains;
+
+<[base.log]>->( 2, 'generating certificate signing request (CSR)' );
+
+my $primary_domain = $domains->[0];
+
+## Generate new certificate key (Ed25519 ECDSA) using openssl
+<[base.log]>->( 2, 'generating certificate key (Ed25519)...' );
+
+my ( $key_fh, $key_file ) = tempfile( UNLINK => 1 );
+system("openssl genpkey -algorithm Ed25519 -out '$key_file' 2>/dev/null");
+
+unless ( -f $key_file && -s $key_file ) {
+    <[base.log]>->( 1, 'error: failed to generate Ed25519 key' );
+    return undef;
+}
+
+open( my $kfh, '<', $key_file ) or return undef;
+local $/;
+my $key_pem = <$kfh>;
+close($kfh);
+
+<[base.log]>->( 2, 'generating CSR...' );
+
+## Create openssl config for CSR with SAN extension
+my ( $conf_fh, $conf_file ) = tempfile( UNLINK => 1 );
+print $conf_fh <<"EOF";
+[req]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+prompt = no
+
+[req_distinguished_name]
+C = US
+ST = State
+L = City
+O = Organization
+CN = $primary_domain
+
+[v3_req]
+EOF
+
+if ( @$domains > 1 ) {
+    my $san_string = join( ', ', map {"DNS:$_"} @$domains );
+    print $conf_fh "subjectAltName = $san_string\n";
+}
+
+close($conf_fh);
+
+## Generate CSR using openssl
+my ( $csr_fh, $csr_file ) = tempfile( UNLINK => 1 );
+system(
+    "openssl req -new -key '$key_file' -out '$csr_file' -config '$conf_file' 2>/dev/null"
+);
+
+unless ( -f $csr_file && -s $csr_file ) {
+    <[base.log]>->( 1, 'error: failed to generate CSR' );
+    return undef;
+}
+
+open( my $cfh, '<', $csr_file ) or return undef;
+local $/;
+my $csr_pem = <$cfh>;
+close($cfh);
+
+<[base.log]>->( 2, 'CSR generated successfully' );
+
+## Extract DER and encode for ACME submission
+my ( $der_fh, $der_file ) = tempfile( UNLINK => 1 );
+system(
+    "openssl req -in '$csr_file' -outform DER -out '$der_file' 2>/dev/null");
+
+open( my $dfh, '<:raw', $der_file ) or return undef;
+local $/;
+my $csr_der = <$dfh>;
+close($dfh);
+
+my $csr_b64url = <[letsencr.child.encode_base64url]>->($csr_der);
+
+## Store in child state
+<letsencr.child.current_csr> = {
+    pem        => $csr_pem,
+    der        => $csr_der,
+    b64url     => $csr_b64url,
+    domains    => $domains,
+    created_at => time(),
+};
+
+## Store certificate key in child state (will be saved to disk after cert issued)
+<letsencr.child.cert_key> = { pem => $key_pem, };
+
+return {
+    csr_pem    => $csr_pem,
+    csr_b64url => $csr_b64url,
+    key_pem    => $key_pem,
+    domains    => $domains,
+};
+
+#,,..,.,.,,.,,..,,...,,.,,.,,,,..,..,,.,.,..,,..,,...,...,.,.,.,.,...,.,.,,.,,
+#FH6O7BS3S5ZJD6N7PULTLSVBXRK2Y7X45DZGG46GVO3UCF2I6BJQLBCJP6Z44OX7J7CCVCIHHSCK4
+#\\\|FFPLKBCJ2VEFGNSCLTNMSWM5WQWLP4XOEJTANFYA44EZWEIBB7F \ / AMOS7 \ YOURUM ::
+#\[7]5QHVAEP5MUCJMQCY7BHTCT24HVC7H6LB5YLDLC7VRXU7GLHWBEBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

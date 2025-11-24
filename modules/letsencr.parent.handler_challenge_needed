@@ -1,0 +1,136 @@
+## [:< ##
+
+# name  = letsencr.parent.handler_challenge_needed
+# descr = Handle challenge notification from child - store pending challenge and notify HTTPd
+
+my $challenge_data = shift;
+
+my $domain = $challenge_data->{'params'}{'domain'};
+my $mode   = $challenge_data->{'cmd'};
+my $data   = $challenge_data->{'data'};
+
+<[base.log]>
+    ->( 2, "challenge notification for domain: $domain, type: $mode" );
+
+<[letsencr.parent.activity_logger]>->(
+    'challenge', $domain, 'pending', "challenge received: $mode"
+);
+
+if ( $mode eq 'http-01' ) {
+    <[base.log]>->( 2, "storing HTTP-01 challenge for $domain" );
+
+    ## Parse challenge data
+    my $token    = $data->{token};
+    my $key_auth = $data->{key_auth};
+
+    unless ( $token && $key_auth ) {
+        <[base.log]>->(
+            1, "error: missing token or key_auth for HTTP-01 challenge"
+        );
+        <[letsencr.parent.activity_logger]>->(
+            'challenge', $domain, 'failed', 'invalid HTTP-01 challenge data'
+        );
+        return 0;
+    }
+
+    ## Store challenge data for later reference
+    <letsencr.parent.pending_challenges> {$token} = {
+        domain     => $domain,
+        type       => 'http-01',
+        token      => $token,
+        key_auth   => $key_auth,
+        created_at => time(),
+        expires_at => time() + 300,    ## 5 minute timeout (standard ACME)
+        status     => 'pending',
+    };
+
+    <[base.log]>->( 2, "  token: $token" );
+    <[base.log]>->( 3, "  key_auth: $key_auth" );
+
+    ## Notify HTTPd to serve the challenge response
+    my $notify_result = <[letsencr.parent.notify_httpd_challenge]>->(
+        {   domain   => $domain,
+            token    => $token,
+            key_auth => $key_auth,
+            type     => 'http-01',
+        }
+    );
+
+    if ( $notify_result && $notify_result->{status} eq 'success' ) {
+        <[base.log]>
+            ->( 2, "HTTPd notified of HTTP-01 challenge for $domain" );
+        <[letsencr.parent.activity_logger]>->(
+            'challenge', $domain, 'pending',
+            'HTTP-01 challenge ready for validation'
+        );
+
+        ## Set timeout to clean up challenge if validation doesn't complete
+        <[event.add_timer]>->(
+            {   'delay'   => 300,
+                'handler' => 'letsencr.parent.handler_challenge_timeout',
+                'data'    => {
+                    'token'  => $token,
+                    'domain' => $domain,
+                }
+            }
+        );
+    } else {
+        my $error = $notify_result->{error} // 'unknown error';
+        <[base.log]>->(
+            1,
+            "failed to notify HTTPd of HTTP-01 challenge for $domain: $error"
+        );
+        <[letsencr.parent.activity_logger]>->(
+            'challenge', $domain, 'failed',
+            "HTTPd notification failed: $error"
+        );
+
+        ## Clean up the stored challenge since HTTPd notification failed
+        delete <letsencr.parent.pending_challenges> {$token};
+    }
+
+} elsif ( $mode eq 'dns-01' ) {
+    <[base.log]>->(
+        2, "DNS-01 challenge notification for $domain (not yet implemented)"
+    );
+    <[letsencr.parent.activity_logger]>->(
+        'challenge', $domain, 'pending',
+        'DNS-01 challenge (manual update required)'
+    );
+
+    ## DNS-01 support coming in future phase
+    ## For now, just store the challenge data
+    my $token           = $data->{token};
+    my $challenge_value = $data->{challenge_value};
+
+    if ( $token && $challenge_value ) {
+        <letsencr.parent.pending_challenges> {$token} = {
+            domain          => $domain,
+            type            => 'dns-01',
+            token           => $token,
+            challenge_value => $challenge_value,
+            created_at      => time(),
+            expires_at      => time() + 300,
+            status          => 'pending',
+        };
+
+        <[base.log]>->(
+            2,
+            "DNS-01 challenge stored for manual completion: $_.$domain TXT $challenge_value"
+        );
+    }
+
+} else {
+    <[base.log]>->( 1, "unknown challenge type: $mode for $domain" );
+    <[letsencr.parent.activity_logger]>->(
+        'challenge', $domain, 'failed', "unknown challenge type: $mode"
+    );
+}
+
+return 0;
+
+#,,,,,.,,,..,,..,,..,,..,,,.,,,,.,,..,,.,,.,.,..,,...,..,,...,.,.,,.,,.,,,,,,,
+#POU2IMYQOO7AUCSD6IAVG4UOANNICMGQTIFZTQQ6SJPLCZJXAUSWBDNTNLI5K3VJEYSGHRCD4Y3F6
+#\\\|4EQMHJIYD46A4PXUBHIWMPF2C4RI4LDFRKJWOHRWEZFTTCPQPUS \ / AMOS7 \ YOURUM ::
+#\[7]MLHQBID3M5POGOY77LYE2DCB5DTNECU6ZYPAOYMXKLY7PF5TK4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,106 @@
+## [:< ##
+
+# name  = letsencr.parent.handler.vhost_query_reply
+# descr = Handle httpd vhost list reply and chain to domain determination
+
+my $reply_data = shift @ARG;
+my $params     = shift @ARG;
+
+<[base.log]>->( 2, "received httpd vhost list reply" );
+
+my $reply_id = $params->{'reply_id'} if ref($params) eq 'HASH';
+
+unless ($reply_id) {
+    <[base.log]>->( 1, "error: no reply_id in handler params" );
+    return 0;
+}
+
+## Validate reply structure
+unless ( $reply_data && ref($reply_data) eq 'HASH' ) {
+    <[base.log]>->( 1, "error: invalid vhost reply structure from httpd" );
+
+    return <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => 'false',
+            'data' => 'Invalid vhost reply structure'
+        }
+    );
+}
+
+## Parse reply based on mode
+my $mode = $reply_data->{cmd}  // $reply_data->{mode};
+my $data = $reply_data->{data} // '';
+
+unless ($mode) {
+    <[base.log]>->( 1, "error: httpd vhost-list returned no mode field" );
+
+    return <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => 'false',
+            'data' => 'Missing reply mode from httpd'
+        }
+    );
+}
+
+<[base.log]>->( 3, "httpd reply mode: $mode, data length: " . length($data) );
+
+## Parse vhost list from reply
+my @vhosts;
+if ( $mode eq 'SIZE' || $mode eq 'TRUE' ) {
+    ## Both SIZE and TRUE modes return multi-line vhost names
+    @vhosts = grep { length($_) > 0 } split( /\n/, $data );
+} else {
+    <[base.log]>->( 1, "error: unexpected reply mode from httpd: $mode" );
+
+    return <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => 'false',
+            'data' => "Unexpected httpd reply mode: $mode"
+        }
+    );
+}
+
+## Remove whitespace and filter empty lines
+@vhosts = map  { s/^\s+|\s+$//g; $_ } @vhosts;
+@vhosts = grep { length($_) > 0 } @vhosts;
+
+unless ( @vhosts > 0 ) {
+    <[base.log]>->( 1, "warning: httpd returned empty vhost list" );
+
+    return <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => 'false',
+            'data' => 'No vhosts from httpd'
+        }
+    );
+}
+
+<[base.log]>->( 2, "found " . scalar(@vhosts) . " vhosts from httpd" );
+foreach my $vh (@vhosts) {
+    <[base.log]>->( 3, "  - $vh" );
+}
+
+## Cache the vhost list with timestamp
+<letsencr.parent.vhosts_cache> = {
+    vhosts    => \@vhosts,
+    timestamp => time(),
+    ttl       => 3600,       # 1 hour cache TTL
+};
+
+## Send successful reply with vhost data
+<[base.callback.cmd_reply]>->(
+    $reply_id,
+    {   'mode' => 'true',
+        'data' => join( "\n", @vhosts )
+    }
+);
+
+<[base.log]>->( 2, "vhost query reply sent successfully" );
+
+return 1;
+
+#,,,.,,,.,,.,,,..,,,.,...,...,.,,,..,,.,,,.,,,..,,...,...,...,.,,,,,,,,..,.,,,
+#DEYHVZNXL2B2C2ULD22CI27GOBNKB6T4Q2YFX234LZXBXB2PDCPGB35GSGVUZZU73TODLWPEIEGA6
+#\\\|YIXML4TITVA3C6ENED765KXTYEM3HAPFWGKEGO32MI7URDD75NM \ / AMOS7 \ YOURUM ::
+#\[7]NOGOBBXMIVPBRI2IFLSKFKG7IRFI4OWJSXZXB7NQZCMM44KYPEDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

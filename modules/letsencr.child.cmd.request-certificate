@@ -1,0 +1,77 @@
+## [:< ##
+
+# name  = letsencr.child.cmd.request-certificate
+# param = <domain>
+# descr = Request new certificate from ACME server for domain[s]
+
+## $call is provided by compiled-in code header
+my $domain = $call->{'args'};
+
+return {
+    'mode' => 'false',
+    'data' => 'domain parameter required'
+    }
+    unless defined $domain && length($domain);
+
+<[base.log]>->( 2, "child: requesting new certificate for domain: $domain" );
+
+## Parse additional domains from parameters (if provided)
+my $alt_names = $call->{'param'}{'domains'} // [$domain];
+my @domains   = @$alt_names if ref($alt_names) eq 'ARRAY' && @$alt_names;
+@domains = ($domain) unless @domains;
+
+## Get admin email from config or parameters
+my $email = $call->{'param'}{'email'} || <letsencr.admin.email>;
+
+<[base.log]>->( 2, "  domains: " . join( ', ', @domains ) );
+<[base.log]>->( 2, "  email: $email" );
+
+## Call ACME new certificate workflow
+my $result = <[letsencr.child.acme_new]>->(
+    {   domains => \@domains,
+        email   => $email,
+    }
+);
+
+## Check result status
+unless ( $result && $result->{status} eq 'success' ) {
+    my $error
+        = $result->{error} || 'Unknown error during certificate enrollment';
+    <[base.log]>->( 1, "certificate enrollment failed: $error" );
+    return {
+        'mode' => 'false',
+        'data' => $error
+    };
+}
+
+<[base.log]>->( 2, "certificate obtained successfully for $domain" );
+
+## Create certificate bundle for parent
+my $cert_bundle = {
+    certificate => $result->{cert},
+    key         => $result->{key},
+    issued_at   => time(),
+    expires_at  => $result->{valid_until},
+    domain      => $domain,
+    domains     => \@domains,
+    cert_url    => $result->{cert_url},
+};
+
+## Encode as JSON then base32r for transmission
+my $bundle_json = JSON::XS::encode_json($cert_bundle);
+my $bundle_b32r = Crypt::Misc::encode_b32r($bundle_json);
+
+<[base.log]>->( 2, "certificate bundle encoded (base32r)" );
+<[base.log]>->( 3, "  bundle size: " . length($bundle_b32r) . " bytes" );
+
+## Return certificate bundle to parent (mode='size' for binary/encoded data)
+return {
+    'mode' => 'size',
+    'data' => $bundle_b32r
+};
+
+#,,..,,,.,,.,,,,.,,.,,..,,,,,,..,,,..,.,,,,,,,..,,...,...,.,,,.,,,.,.,,,,,,,,,
+#REUOR4TTJHD5UCCJQTM7HI5QHO26AEITWGJFFUMC4CJHUSFUCNFVD3QVJIOST4DAER7H5SEKF7WQY
+#\\\|QV3D4NLDBH2DPVQMKYP22NNOMPDP2KABGHCPXUBLBX3MABQAICH \ / AMOS7 \ YOURUM ::
+#\[7]OVXQAMBDFVZHUGAAYPBLWWCMCAANAOQMFV5OODRK4JCBA7SV6ADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

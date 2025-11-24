@@ -1,0 +1,93 @@
+## [:< ##
+
+# name  = letsencr.base.init_code
+# descr = Initialize Let's Encrypt ACME client zenka with configuration and utilities
+
+<[base.log]>->( 2, 'initializing Let\x27s Encrypt ACME client zenka..,' );
+
+## ACME Server Configuration (with defaults)
+<letsencr.acme.server> = <letsencr.acme.server>
+    || 'https://acme-v02.api.letsencrypt.org/directory';
+<letsencr.admin.email> = <letsencr.admin.email> || 'admin@example.com';
+
+## Certificate Storage (with defaults)
+<letsencr.certs.dir>    = <letsencr.certs.dir>    || '/etc/protocol-7/certs';
+<letsencr.certs.backup> = <letsencr.certs.backup> || '/var/protocol-7/certs';
+
+## Renewal Configuration (with defaults)
+<letsencr.renewal.days-before>    = <letsencr.renewal.days-before>    || 30;
+<letsencr.renewal.check-interval> = <letsencr.renewal.check-interval> || 3600;
+<letsencr.renewal.retry-delay>    = <letsencr.renewal.retry-delay>    || 300;
+
+## Cache Configuration (with defaults)
+<letsencr.cache.dir>     = <letsencr.cache.dir>     || '/var/cache/letsencr';
+<letsencr.cache.timeout> = <letsencr.cache.timeout> || 86400;
+
+## Challenge Configuration (with defaults)
+<letsencr.challenge.type>    = <letsencr.challenge.type>    || 'http-01';
+<letsencr.challenge.timeout> = <letsencr.challenge.timeout> || 300;
+
+## Rate Limiting Configuration (with defaults)
+<letsencr.ratelimit.enabled>      = <letsencr.ratelimit.enabled>      || 1;
+<letsencr.ratelimit.max-per-hour> = <letsencr.ratelimit.max-per-hour> || 5;
+
+## Initialize statistics and state
+<letsencr.stats> = {
+    certificates_active   => 0,
+    certificates_expiring => 0,
+    renewals_completed    => 0,
+    renewals_failed       => 0,
+    challenges_succeeded  => 0,
+    challenges_failed     => 0,
+    last_renewal_check    => 0,
+    acme_account_created  => 0,
+};
+
+## Initialize certificate registry
+<letsencr.certs.registry> = {};
+
+## Initialize renewal queue
+<letsencr.renewal.queue> = [];
+
+## Initialize challenge handlers
+<letsencr.challenges> = {
+    'http-01' => {
+        handler => 'letsencr.handler.acme_challenge_http01',
+        timeout => <letsencr.challenge.timeout>,
+    },
+    'dns-01' => {
+        handler => 'letsencr.handler.acme_challenge_dns01',
+        timeout => <letsencr.challenge.timeout>,
+    },
+};
+
+## Validate certificate directories exist or create them
+my @dir_configs = (
+    [ 'certs.dir',    <letsencr.certs.dir> ],
+    [ 'certs.backup', <letsencr.certs.backup> ],
+    [ 'cache.dir',    <letsencr.cache.dir> ],
+);
+
+foreach my $config (@dir_configs) {
+    my ( $name, $dir ) = @$config;
+    if ( !-d $dir ) {
+        <[base.log]>->( 2, "creating directory: $dir" );
+        mkdir( $dir, 0700 )
+            or <[base.log]>->( 1, "warning: could not create $dir: $!" );
+    }
+}
+
+## All ACME protocol modules are loaded in letsencr.base.pre_init
+
+<[base.log]>->( 2, "Let's Encrypt ACME client initialization complete" );
+<[base.logs]>->( 2, ": ACME Server     : %s", <letsencr.acme.server> );
+<[base.logs]>->( 2, ": Certificate Dir : %s", <letsencr.certs.dir> );
+<[base.logs]>->( 2, ": Admin Email     : %s", <letsencr.admin.email> );
+
+0;
+
+#,,..,...,,,,,,,,,...,,,.,,,,,..,,..,,,..,.,,,..,,...,...,...,,..,,,.,,.,,.,.,
+#GINPELYGHPVGQ7VT4M4JGTYXAPVCYPVW7OF6JS7FIO4F5CA4LUXJSY5QKKG66ZMSWLG26ZTQMWKTY
+#\\\|YKN3EWXGDGKBSAVQKJ676SUVTVQBYOQRMD4JXWPQI5BE34TKBGW \ / AMOS7 \ YOURUM ::
+#\[7]6INBJSWGPKNNJ44OPSXQQ7H2EAWXEUODMO6OXPEARNN4AC7OP6CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

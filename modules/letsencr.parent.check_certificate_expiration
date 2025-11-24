@@ -1,0 +1,97 @@
+## [:< ##
+
+# name  = letsencr.parent.check_certificate_expiration
+# descr = Evaluate which certificates need renewal based on expiration
+
+my $cert_registry = shift;
+
+return {
+    status        => 'error',
+    error         => 'certificate registry required',
+    needs_renewal => [],
+    expiring_soon => [],
+    }
+    unless $cert_registry && ref($cert_registry) eq 'HASH';
+
+my $renewal_threshold  = <letsencr.renewal.days-before> // 30;
+my $expiring_threshold = 7;    # Alert for certs expiring within 7 days
+
+<[base.log]>->(
+    2,
+    "checking certificate expiration (renewal threshold: $renewal_threshold days)"
+);
+
+my @needs_renewal;
+my @expiring_soon;
+my $now = time();
+
+foreach my $domain ( keys %$cert_registry ) {
+    my $cert_info = $cert_registry->{$domain};
+    next unless $cert_info->{expires_at};
+
+    my $days_remaining = ( $cert_info->{expires_at} - $now ) / 86400;
+
+    ## Check if renewal needed
+    if ( $days_remaining <= $renewal_threshold ) {
+        push @needs_renewal,
+            {
+            domain          => $domain,
+            days_remaining  => $days_remaining,
+            expires_at      => $cert_info->{expires_at},
+            alt_names       => $cert_info->{alt_names},
+            certificate_url => $cert_info->{certificate_url},
+            account_id      => $cert_info->{account_id},
+            };
+
+        <[base.log]>->(
+            2,
+            "certificate $domain needs renewal (expires in "
+                . sprintf( "%.1f", $days_remaining )
+                . " days)"
+        );
+    }
+
+    ## Check if expiring soon (alert only)
+    elsif ( $days_remaining <= $expiring_threshold ) {
+        push @expiring_soon,
+            {
+            domain         => $domain,
+            days_remaining => $days_remaining,
+            expires_at     => $cert_info->{expires_at},
+            };
+
+        <[base.log]>->(
+            1,
+            "warning: certificate $domain expiring soon (in "
+                . sprintf( "%.1f", $days_remaining )
+                . " days)"
+        );
+    }
+}
+
+## Sort by urgency (most urgent first)
+@needs_renewal
+    = sort { $a->{days_remaining} <=> $b->{days_remaining} } @needs_renewal;
+@expiring_soon
+    = sort { $a->{days_remaining} <=> $b->{days_remaining} } @expiring_soon;
+
+<[base.log]>->(
+    2,
+    "expiration check complete: "
+        . scalar(@needs_renewal)
+        . " need renewal, "
+        . scalar(@expiring_soon)
+        . " expiring soon"
+);
+
+return {
+    status        => 'success',
+    needs_renewal => \@needs_renewal,
+    expiring_soon => \@expiring_soon,
+};
+
+#,,,,,...,,.,,,.,,.,,,,,,,,,,,,,,,,.,,,.,,.,.,..,,...,...,,..,,,,,,.,,...,.,,,
+#7WR3W4MKF475LJHPEPUG6EINJTY7LM22J2BSET7GW5BMLTAJXI5AKEVZBIZAGEULEUZDKT54IFSWO
+#\\\|UJJ5XTGDI5DSJG3ZOT2RMZOFLR5BHIJ55NPLT4YOR43NOUEYNAG \ / AMOS7 \ YOURUM ::
+#\[7]KJOKOMRM7DQV7UBJHC2E6ZWO6M5UUVXIBBO2YIJFYN42LNBRWKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

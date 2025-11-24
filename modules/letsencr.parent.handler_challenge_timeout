@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = letsencr.parent.handler_challenge_timeout
+# descr = Handle challenge timeout - clean up pending challenge if validation doesn't complete
+
+my $data = shift;
+
+my $token  = $data->{token};
+my $domain = $data->{domain};
+
+<[base.log]>->(
+    2, "challenge timeout handler for token: $token (domain: $domain)"
+);
+
+if ( exists <letsencr.parent.pending_challenges> {$token} ) {
+    my $challenge = <letsencr.parent.pending_challenges> {$token};
+
+    ## Check if challenge has been validated
+    if ( $challenge->{status} eq 'valid' ) {
+        <[base.log]>->(
+            2, "challenge was validated before timeout, keeping record"
+        );
+        return 0;
+    }
+
+    ## Challenge has timed out - remove it
+    <[base.log]>->(
+        1,
+        "challenge timeout: token=$token for $domain (no validation received)"
+    );
+
+    <[letsencr.parent.activity_logger]>->(
+        'challenge', $domain, 'failed',
+        'challenge validation timeout (5 minutes)'
+    );
+
+    delete <letsencr.parent.pending_challenges> {$token};
+
+    ## Notify HTTPd to remove the challenge file
+    <[base.log]>->(
+        2, "requesting HTTPd to clean up challenge file for $domain"
+    );
+
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => 'httpd.cmd.remove-acme-challenge',
+            'call_args' => {
+                'args'  => $domain,
+                'param' => { 'token' => $token, }
+            }
+        }
+    );
+
+} else {
+    <[base.log]>->( 3, "token $token not found in pending challenges" );
+}
+
+return 0;
+
+#,,,.,,,.,,..,,..,..,,..,,,..,..,,...,,,,,,,,,..,,...,...,..,,.,.,.,,,,.,,,.,,
+#4NLIKPDVJLB2VAX4HLS3PJTE2W2PBK2LMAISKJW7ZX5DZHIDKQ5VKIDDZAAXTYOI4VTJ62L2TJB2I
+#\\\|TZDJJOM6FXL4KQ3Y4W62V7RFSP5CZUD3BL6XXPTZFQAZAI7RA7V \ / AMOS7 \ YOURUM ::
+#\[7]HQLN2A4PBVCVEHRGEAE7UJ7EQ6GCWRNHPUZGKOCOWYBM6HTENCDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

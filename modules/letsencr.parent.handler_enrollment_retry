@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = letsencr.parent.handler_enrollment_retry
+# descr = Retry handler for failed certificate enrollment with exponential backoff
+
+## Event callbacks receive the event as first argument
+## We store retry data as module variables and iterate over pending retries
+my $event = shift;
+
+## Find and process the first pending retry from the stored data
+my $pending_retries = <letsencr.parent.pending_retry> // {};
+keys %{$pending_retries};    ## Reset iterator before calling each()
+my ( $domain, $retry_data ) = each %{$pending_retries};
+
+unless ( $domain && $retry_data ) {
+    <[base.log]>->( 2, "no pending retries to process" );
+    return 0;
+}
+
+my $attempt = $retry_data->{attempt} // 2;
+
+<[base.log]>->(
+    2, "retrying certificate enrollment for $domain (attempt $attempt)"
+);
+
+<[letsencr.parent.activity_logger]>->(
+    'enrollment', $domain, 'pending', "retry attempt $attempt"
+);
+
+## Send enrollment command to child process
+my $result = <[base.protocol-7.command.send.local]>->(
+    {   'command'   => 'child.request-certificate',
+        'call_args' => {
+            'args'  => $domain,
+            'param' => {
+                'domains' => [$domain],
+                'email'   => <letsencr.admin.email>,
+                'attempt' => $attempt,
+            }
+        },
+        'reply' => {
+            'handler' => 'letsencr.parent.handler_enrollment_reply',
+            'params'  => { 'domain' => $domain, 'attempt' => $attempt }
+        }
+    }
+);
+
+if ($result) {
+    <[base.log]>->( 2, "enrollment retry queued for: $domain" );
+} else {
+    <[base.log]>->(
+        1, "failed to queue enrollment retry for: $domain (attempt $attempt)"
+    );
+    <[letsencr.parent.activity_logger]>->(
+        'enrollment', $domain, 'failed',
+        "failed to queue retry attempt $attempt"
+    );
+}
+
+## Clean up the pending retry data
+delete <letsencr.parent.pending_retry>->{$domain};
+
+return 0;
+
+#,,,,,,,.,,.,,.,,,,,,,,..,.,,,,..,.,,,.,.,,,,,..,,...,..,,,..,.,,,...,..,,,,,,
+#IM4EPKZHVSOV7F6R32JVJ3CSMTTBMXH63HDBQISF2PUYNZCNFXSVRF2YTPQILEEHND4ZSLDUTOPRK
+#\\\|NBJ5G522JACEPERWRYHFBIXLP4SZMVS4NQ56W4X4PXB4MUWEJ3K \ / AMOS7 \ YOURUM ::
+#\[7]47YF6TOWEYWFQRZSFEONC4TAKP77SHCBW7MCEG5FY6BII565TEBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

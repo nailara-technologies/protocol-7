@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = letsencr.child.create_jws
+# descr = Create JSON Web Signature (JWS) for ACME requests (Ed25519/EdDSA signing)
+
+use JSON::XS;
+use MIME::Base64 qw(encode_base64url);
+
+my $payload = shift;  # hashref or JSON string
+my $nonce   = shift;
+my $kid     = shift;  # Key ID (optional, for account requests use thumbprint)
+
+return undef unless defined $nonce;
+
+<[base.log]>->( 3, 'creating JWS for ACME request (EdDSA/Ed25519)' );
+
+## Ensure we have payload as string
+my $payload_json = ref($payload) ? JSON::XS::encode_json($payload) : $payload;
+
+## URL-safe base64 encode payload
+my $payload_b64 = encode_base64url($payload_json);
+
+## Create JOSE header per RFC 8037 (EdDSA)
+my $header = {
+    alg   => 'EdDSA',    # EdDSA signing algorithm
+    nonce => $nonce,
+};
+
+## Add either 'kid' (Key ID) or 'jwk' (public key)
+if ( defined $kid ) {
+    $header->{kid} = $kid;
+} else {
+    ## Include public key for account creation (RFC 8037 format)
+    $header->{jwk} = <[letsencr.child.get_jwk]>->();
+}
+
+my $header_json = JSON::XS::encode_json($header);
+my $header_b64  = encode_base64url($header_json);
+
+## Create signing input: header.payload
+my $signing_input = $header_b64 . '.' . $payload_b64;
+
+## Sign with Ed25519 account key using Protocol-7 signing infrastructure
+my $account_key_name = <letsencr.child.acme_client>->{account_key_name};
+unless ($account_key_name) {
+    <[base.log]>->(
+        1, 'error: account key name not properly initialized for signing'
+    );
+    return undef;
+}
+
+<[base.log]>->( 3, "signing JWS with account key: $account_key_name" );
+
+## Use Protocol-7 signing function which accesses key from global %keys{'C25519'} hash
+my $signature
+    = <[crypt.C25519.sign_data]>->( \$signing_input, $account_key_name );
+
+## URL-safe base64 encode signature
+my $signature_b64 = encode_base64url($signature);
+
+## Return complete JWS (same structure as RSA JWS)
+return {
+    protected => $header_b64,
+    payload   => $payload_b64,
+    signature => $signature_b64,
+};
+
+#,,.,,...,,,,,.,,,...,,..,.,,,.,,,,,,,,.,,.,.,..,,...,...,,,.,.,,,.,,,...,,..,
+#INTAULJENQ24T42PFORDJ3B2HMI7CRQ7LKFW43LNG65GNCRZFWRJT6JXZBPC5HK32M6X5R2X7W7UY
+#\\\|TWJDV6Z5AQFJYIE5GKFZFOX2JPWHDZ4CMDLMUALMPOOC4RTYWFK \ / AMOS7 \ YOURUM ::
+#\[7]OP6BANRM34LQHZAG6N57JFF44XBVKCDAV2I2GXYH7V4WX3S4HKAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

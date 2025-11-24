@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = letsencr.child.cmd.revoke-certificate
+# param = <domain>
+# descr = Revoke certificate with Let's Encrypt ACME server
+
+## $call is provided by compiled-in code header
+my $domain = $call->{'args'};
+
+return {
+    'mode' => 'false',
+    'data' => 'domain parameter required'
+    }
+    unless defined $domain && length($domain);
+
+<[base.log]>->( 2, "child: revoking certificate for domain: $domain" );
+
+## Get certificate and key paths from parent
+my $cert_path = $call->{'param'}{'cert_path'};
+my $key_path  = $call->{'param'}{'key_path'};
+
+unless ( $cert_path && $key_path ) {
+    <[base.log]>->(
+        1, "error: certificate or key path not provided for $domain"
+    );
+    return {
+        'mode' => 'false',
+        'data' => 'certificate or key path not provided'
+    };
+}
+
+unless ( -f $cert_path && -f $key_path ) {
+    <[base.log]>->(
+        1, "error: certificate or key file not found for $domain"
+    );
+    return {
+        'mode' => 'false',
+        'data' => 'certificate or key file not found'
+    };
+}
+
+<[base.log]>->( 2, "  certificate: $cert_path" );
+<[base.log]>->( 2, "  key: $key_path" );
+
+## Call ACME revocation (blocking operation - safe in child)
+my $result = <[letsencr.child.acme_revoke]>->(
+    {   cert_path => $cert_path,
+        key_path  => $key_path,
+        domain    => $domain,
+    }
+);
+
+## Check result status
+unless ( $result && $result->{status} eq 'success' ) {
+    my $error = $result->{error} || 'Unknown error during revocation';
+    <[base.log]>->( 1, "certificate revocation failed: $error" );
+    return {
+        'mode' => 'false',
+        'data' => $error
+    };
+}
+
+<[base.log]>->( 2, "certificate revoked successfully for $domain" );
+
+## Return revocation result to parent
+return {
+    'mode' => 'true',
+    'data' => "Certificate revoked for $domain at " . $result->{revoked_at}
+};
+
+#,,..,...,.,.,.,,,..,,...,.,,,,,,,,,.,..,,,..,..,,...,...,.,.,.,.,.,,,.,,,..,,
+#MMES2D4SJRNXYXK2OUNWC5EXAM3OYBMLWAVVGFK52DJKXCKXIQK46UNCVEYKFEQJEHEBIXRTJ357O
+#\\\|JFTWSRYWV5DHSK65VQD5PSLQ7H4CEQG3PCKGXEALMEZMJYVSJYY \ / AMOS7 \ YOURUM ::
+#\[7]BH2FVWLFG6EYIZFXPO3BJEUO7YLD3PCNY5BWZYY47QIN7IZVHABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

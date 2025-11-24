@@ -177,9 +177,9 @@ my $result = {
 unless ($skip_cert) {
     <[base.log]>->( 2, "  Triggering Let's Encrypt enrollment for '$domain'" );
 
-    ## Check if letsencrypt zenka is available
-    if (exists $code{'letsencrypt.cmd.enroll'}) {
-        my $cert_result = <[letsencrypt.cmd.enroll]>->({
+    ## Check if letsencr zenka is available
+    if (exists $code{'letsencr.cmd.enroll'}) {
+        my $cert_result = <[letsencr.cmd.enroll]>->({
             domain => $domain,
             auto_install => 1  ## Automatically install to httpsd
         });
@@ -212,8 +212,8 @@ return $result;
 
 0;
 
-#,,..,..,,,,,,,.,,,,,,,,.,...,,.,,..,,.,,,.,.,..,,...,...,..,,.,.,,,.,,.,,...,
-#C4ZY22HH55XZVMLY3IZDB2ZC3E3CQMKWFMYHS7ON5QIJGIPRVR5G53KKEGTJXXWBYBYYXYI37NJSA
-#\\\|UKW4IUAFZKTI5BDGJNLH2BHGK4JPSHRWPCO7CRZOFYU232S3OTE \ / AMOS7 \ YOURUM ::
-#\[7]FNY7UG6YJC3VC65EI6N7ZTKEASVEYD2HZBLF2EO7HDANQWRPIODA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,,.,,.,,,..,.,.,..,,,.,,,.,,..,,..,,...,...,,..,.,,,..,,,..,.,,,
+#CW7YJQ7BDA2LGSONZLZEBE2GLXYEAJVJEQN7W4KD74TYI7I3B6FVENE2Y4QRV5GP2H6CWGIKQGQJY
+#\\\|XX2WSRP5OMEJ6IH3NLY4YJCT3HA6PFRGVIN6WW5CYAZJUWWWUXP \ / AMOS7 \ YOURUM ::
+#\[7]JM3YE7KWMQJSS5GLD4VNNPL5BFJDOJLA6FRUEQRARE7HUPNP2MAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

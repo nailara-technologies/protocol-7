@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = letsencr.parent.activity_logger
+# descr = Log ACME operations to activity buffer for visibility and debugging
+
+my $operation = shift;    # enrollment|revocation|challenge|error|renewal
+my $domain    = shift;
+my $status    = shift;    # pending|success|failed|validated
+my $details   = shift;    # optional error message or additional info
+
+unless ( $operation && $domain && $status ) {
+    <[base.log]>->(
+        1, "error: activity_logger requires operation, domain, and status"
+    );
+    return 0;
+}
+
+## Format activity entry with timestamp and log level
+my $log_level
+    = $status eq 'failed' ? 1 : 2;    # WARNING for failures, INFO otherwise
+my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+
+## Build activity message
+my $activity_msg = sprintf( ": acme activity : %-12s : %-35s : %-10s",
+    $operation, $domain, $status );
+
+## Add details if present
+if ($details) {
+    $activity_msg .= " : $details";
+}
+
+## Log to activity buffer (visible via "show-buffer acme-activity")
+<[base.buffer.add_line]>->(
+    qw| acme-activity |,
+    join( ' ', $time_stamp, $log_level, $activity_msg ), $log_level
+);
+
+## Also log to main letsencr log at appropriate level
+if ( $status eq 'failed' ) {
+    <[base.log]>->( 1, "ACME $operation failed for $domain: $details" );
+} elsif ( $status eq 'pending' ) {
+    <[base.log]>->( 3, "ACME $operation pending for $domain" );
+} else {
+    <[base.log]>->( 2, "ACME $operation $status for $domain" );
+}
+
+return 1;
+
+#,,,.,,.,,.,.,.,,,.,.,,,,,...,...,...,,,.,,.,,..,,...,..,,,.,,.,.,,.,,,.,,...,
+#5F5OD3LBJYA3R7YCTFBWUEEJTL3DAJUKUV7BYHSY7BPTVLOCO7Y63ZPXUOV6U4UP5WAZIGDNEICBK
+#\\\|NLMAG6QH5ZHH2OAFUWOEWT3ZHISA2IMULCG64YIA3TI5EOQA2XF \ / AMOS7 \ YOURUM ::
+#\[7]QHXOPANF5JRMRC3HUDDLBESFFF6QIPN7XSSQYMDYPYLUUULW32DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
