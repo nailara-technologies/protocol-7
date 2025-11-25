@@ -21,7 +21,9 @@ my $user    = $session->{'user'};
 my $input  = \$session->{'buffer'}->{'input'};
 my $output = \$session->{'buffer'}->{'output'};
 
-my $buffer_length = length $input->$*;
+## Use bytes::length() for accurate byte count on input buffer
+## Critical for SIZE mode protocol where buffer may contain UTF-8 characters
+my $buffer_length = bytes::length( $input->$* );
 
 my $cmd    = '';
 my $cmd_id = 0;
@@ -49,10 +51,10 @@ if ( defined $session->{'ignore_bytes'} ) {    # ..dropped SIZE replies.,
         );
         if ( $buffer_length >= $ignore_bytes ) {
             substr $input->$*, 0, $ignore_bytes, '';
-            $buffer_length = length $input->$*;
+            $buffer_length = bytes::length( $input->$* );
             delete $session->{'ignore_bytes'};
         } else {
-            $session->{'ignore_bytes'} -= length $input->$*;
+            $session->{'ignore_bytes'} -= bytes::length( $input->$* );
             $input->$* = '';        ##  truncating buffer to ''  ##
             $buffer_length = 0;
         }
@@ -180,7 +182,7 @@ if ( $input->$*
 
         ##  save header parameters for ondemand zenka  ##
         $call_args->{'param'}->{$key} = $val;
-        $buffer_length = length $input->$*;
+        $buffer_length = bytes::length( $input->$* );
     }
 
     $command_mode = 2;
@@ -201,7 +203,8 @@ elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *$re->{cmdrp})\+\n,o ) {
 ## incomplete SIZE reply ## [LLL] switch to stream type transfer ..,
 
 elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *SIZE +(0*\d+)\n),o
-    and $buffer_length - length( ${^CAPTURE}[0] ) < 0 + ${^CAPTURE}[2] ) {
+    and $buffer_length - bytes::length( ${^CAPTURE}[0] )
+    < 0 + ${^CAPTURE}[2] ) {
 
     $session->{'read-mode'} = qw| bytewise |;    ##  switch for efficiency  ##
     $session->{'bytes-to-read'} = 0 + ${^CAPTURE}[2];
@@ -240,7 +243,7 @@ elsif ( $input->$*
     ##  ^ commands prefixed with '..' mean 'parent' to 'select'ed base_path
     ##  'unselect' and '..' are synonymous, they reset the base_path to ''
 
-    $buffer_length = length $input->$*;
+    $buffer_length = bytes::length( $input->$* );
     $command_mode  = 1;
 }
 
@@ -471,9 +474,12 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     my $msg_len = 0 + $LAST_PAREN_MATCH;
                     $call_args->{'args'} = $msg_len; ##  removing 0 prefix  ##
 
-                    if ( $buffer_length >= $msg_len ) {
+                    ## SIZE mode: BYTE count (with global 'use bytes;' pragma active)
+                    my $buffer_len_bytes = bytes::length( $input->$* );
 
-                        ## cut out body data ##
+                    if ( $buffer_len_bytes >= $msg_len ) {    ##BYTES##
+
+                        ## cut out body data ## [ length in bytes ]
                         ##
                         my $data_reply = substr $input->$*, 0, $msg_len, '';
 
@@ -502,6 +508,84 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                                 );
                             }
                         } else {    ## sending SIZE reply to target ##
+                            $data{'session'}{ $route->{'source'}->{'sid'} }
+                                {'buffer'}{'output'} .= <[base.sprint_t]>->(
+                                qw| X3QVAWA |,                   $s_cmd_id,
+                                sprintf( qw| %04d |, $msg_len ), $data_reply
+                                );
+                        }
+
+                        # delete route
+                        my $src_sid    = $$route{'source'}{'sid'};
+                        my $src_cmd_id = $$route{'source'}{'cmd_id'};
+                        delete $data{'session'}{$src_sid}{'route'}
+                            ->{$src_cmd_id};
+                        delete $data{'route'}
+                            ->{ $session->{'route'}{$cmd_id} }
+                            if defined $session->{'route'}{$cmd_id};
+                        delete $data{'session'}{$src_sid}{'route'}
+                            if !keys $data{'session'}{$src_sid}{'route'}->%*;
+                        delete $session->{'route'}{$cmd_id};
+                        delete $session->{'route'}
+                            if not keys $session->{'route'}->%*;
+
+                    } else {    # should never reach this point
+                        <[base.logt]>->(    ##  buffer missing data  ##
+                            qw| KGLJ5RY |, $id, $buffer_length, $msg_len
+                        );
+                        $input->$* = '';    ##  truncating buffer  ##
+                        $data{'session'}->{ $route->{'source'}->{'sid'} }
+                            ->{'buffer'}->{'output'}
+                            .= <[base.sprint_t]>
+                            ->( qw| ZMXCSIA |, $s_cmd_id );
+                    }
+                }
+
+##[ PROCESS REPLY : 'CHRSIZE' ]###############################################
+
+            } elsif ( $cmd eq qw| CHRSIZE | ) {
+                if ( $call_args->{'args'} =~ m|^0*(\d+?)$| ) {
+
+                    my $msg_len = 0 + $LAST_PAREN_MATCH;
+                    $call_args->{'args'} = $msg_len; ##  removing 0 prefix  ##
+
+                    ## CHRSIZE mode: CHARACTER count (UTF-8 aware)
+                    ## Explicitly upgrade to count UTF-8 character boundaries
+                    my $test_input = $input->$*;
+                    utf8::upgrade($test_input);
+                    my $buffer_len_chars = length($test_input);
+
+                    if ( $buffer_len_chars >= $msg_len ) {    ##CHARACTERS##
+
+                        ## cut out body data ## [ length in characters ]
+                        ##
+                        my $data_reply = substr $input->$*, 0, $msg_len, '';
+
+                        ## check if reply handler is set ##
+                        ##
+                        if ( defined $route->{'reply'}->{'handler'} ) {
+                            if ( defined $code{ $route->{reply}->{handler} } )
+                            {
+                                ##  calling reply handler  ##
+                                $code{ $route->{'reply'}->{'handler'} }->(
+                                    {   'sid'       => $id,
+                                        'cmd'       => $cmd,
+                                        'call_args' => $call_args,
+                                        'params'    =>
+                                            $route->{'reply'}->{'params'},
+                                        'data' => $data_reply
+                                    }
+                                );
+
+                            } else {
+                                <[base.logs]>->(
+                                    0,
+                                    "[%d] not defined reply handler ['%s']",
+                                    $id,
+                                    $route->{'reply'}->{'handler'}
+                                );
+                            }
+                        } else {    ## sending CHRSIZE reply to target ##
                             $data{'session'}{ $route->{'source'}->{'sid'} }
                                 {'buffer'}{'output'} .= <[base.sprint_t]>->(
                                 qw| X3QVAWA |,                   $s_cmd_id,
@@ -582,27 +666,45 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
             $id, $cmd, $cmd_id
         );
 
-        if (    $cmd eq qw| SIZE |
+        if (    ( $cmd eq qw| SIZE | or $cmd eq qw| CHRSIZE | )
             and $call_args->{'args'} =~ m|^\d+$|
             and my $ignore_bytes = $call_args->{'args'} ) {
-            if ( $buffer_length >= $ignore_bytes ) {
-                substr $input->$*, 0, $ignore_bytes, '';
+
+            ## For SIZE mode: ignore_bytes is BYTE count
+            ## For CHRSIZE mode: need to count characters
+            my $ignore_count = $ignore_bytes;
+            if ( $cmd eq qw| CHRSIZE | ) {
+                ## Convert character count to byte count for buffer operations
+                my $test_input = $input->$*;
+                utf8::upgrade($test_input);
+                my $chars_available = length($test_input);
+                if ( $chars_available >= $ignore_bytes ) {
+                    ## Extract the substring by character count
+                    my $extracted = substr $test_input, 0, $ignore_bytes;
+                    $ignore_count = bytes::length($extracted);
+                }
+            }
+
+            if ( $buffer_length >= $ignore_count ) {
+                substr $input->$*, 0, $ignore_count, '';
                 <[base.logs]>->(
                     $ignore_log_level,
-                    "[%d] : dropped next %03d byte%s., [ SIZE body ]",
+                    "[%d] : dropped next %03d byte%s., [ %s body ]",
                     $id,
-                    $ignore_bytes,
-                    <[base.cnt_s]>->($ignore_bytes)
+                    $ignore_count,
+                    <[base.cnt_s]>->($ignore_count),
+                    $cmd
                 );
                 return 0;    ## comand complete ###
 
             } else {
                 <[base.log]>->(
                     $ignore_log_level,
-                    "[%d] : to ignore next %03d byte%s., [ SIZE ]",
+                    "[%d] : to ignore next %03d byte%s., [ %s ]",
                     $id,
-                    $ignore_bytes,
-                    <[base.cnt_s]>->($ignore_bytes)
+                    $ignore_count,
+                    <[base.cnt_s]>->($ignore_count),
+                    $cmd
                 );
                 $session->{'ignore_bytes'} -= $buffer_length;
                 $input->$* = '';    ##  truncating buffer to ''  ##
@@ -775,36 +877,60 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
 
-                    ## SIZE protocol with optional OCTETS mode
-                    ## Default: SIZE reports character count (Perl philosophy)
-                    ## OCTETS mode: reports byte count (for byte-oriented clients)
+                    ## SIZE mode: reports BYTE count (with global 'use bytes;' pragma)
                     my $data_to_send = $reply->{'data'};
+                    my $session_mode = $session->{'size_mode'} // qw| SIZE |;
                     my $count;
                     my $template;
 
-                    ## Check session preference for response format (default: SIZE/characters)
-                    my $response_mode = $session->{'size_mode'} // 'SIZE';
+                    ## Check session preference for response format (default: SIZE/bytes)
+                    if ( $session_mode eq qw| CHRSIZE | ) {
+                        ## Translate to CHRSIZE mode: count UTF-8 characters
+                        my $test_data = $data_to_send;
+                        utf8::upgrade($test_data);
+                        $count = length($test_data);
+                        ## Use SIZE template but send CHRSIZE header ##
+                        $template = qw| X3QVAWA |;
 
-                    if ( $response_mode eq 'OCTETS' ) {
-                        ## OCTETS mode: count actual bytes
-                        my $temp = $data_to_send;
-                        if ( utf8::is_utf8( $temp ) ) {
-                            utf8::encode( $temp );
-                        }
-                        $count = length( $temp );
-                        $template = qw| BMHFBCI |;  ## OCTETS template
+                        ## Send CHRSIZE header instead of SIZE
+                        $output->$* .= sprintf "%sCHRSIZE %04d\n%s",
+                            $cmd_id_str, $count, $data_to_send;
+
                     } else {
-                        ## SIZE mode (default): count characters
-                        $count = length( $data_to_send );  # Character count for UTF-8 strings
-                        $template = qw| X3QVAWA |;  ## SIZE template
+                        ## SIZE mode [default]: count bytes
+                        $count    = bytes::length($data_to_send);
+                        $template = qw| X3QVAWA |;    ## SIZE template
+
+                        $output->$* .= <[base.sprint_t]>->(
+                            $template, $cmd_id_str, $count, $data_to_send
+                        );
                     }
 
-                    $output->$* .= <[base.sprint_t]>->(
-                        $template,
-                        $cmd_id_str,
-                        $count,
-                        $data_to_send
-                    );
+                } elsif ( uc( $reply->{'mode'} ) eq qw| CHRSIZE | ) {
+
+                    ## CHRSIZE mode: reports CHARACTER count [UTF-8 aware]
+                    my $data_to_send = $reply->{'data'};
+                    my $session_mode = $session->{'size_mode'} // qw| SIZE |;
+                    my $count;
+
+                    ## Check session preference for response format
+                    if ( $session_mode eq qw| SIZE | ) {
+                        ## Translate to SIZE mode: count bytes
+                        $count = bytes::length($data_to_send);
+
+                        ## Send SIZE header instead of CHRSIZE
+                        $output->$* .= sprintf "%sSIZE %04d\n%s",
+                            $cmd_id_str, $count, $data_to_send;
+
+                    } else {
+                        ## CHRSIZE mode (default): count characters
+                        my $test_data = $data_to_send;
+                        utf8::upgrade($test_data);
+                        $count = length($test_data);
+
+                        $output->$* .= sprintf "%sCHRSIZE %04d\n%s",
+                            $cmd_id_str, $count, $data_to_send;
+                    }
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| TERM | ) {
                     <[base.session.shutdown]>->( $id, $reply->{'data'} );
@@ -1169,8 +1295,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 return 0;        ## comand complete ##
 
-#,,,.,.,.,,,,,..,,,,,,..,,.,,,...,,,.,,..,,,.,..,,...,...,.,.,,..,...,,.,,,..,
-#UTEBZIUSXXLDYSPMVLCVIXX2QHEI77OXRYHOT3L5HNVKBOXYWBQ3SZYCB6HC45MQZPAX6XVCDN6BA
-#\\\|XQM76AP4ZS6QCQVU4CLKKDGJEVMS2R4SGE3Q5CPOVBBHP3I2RXF \ / AMOS7 \ YOURUM ::
-#\[7]E3B2BKE5NFIHLSVF5MSFCTP5DKHWTTVRZWPEXTDFDETB4DM2IEDQ 7  DATA SIGNATURE ::
+#,,.,,,..,..,,.,.,,..,..,,,,,,.,.,.,,,.,,,...,..,,...,..,,..,,,..,,,,,,.,,,..,
+#FNG3SDH4WEL4FGJUK7EKLVKIEUF3UC52RN5EAP453EA34QKJO3YIY4UXZZVLL2TLKYOMQGEU24RYO
+#\\\|ZYU5WOF2SUWPYB26YZU3U3ZVWDBIXBVOR6NOOWKP7B75WYJ472K \ / AMOS7 \ YOURUM ::
+#\[7]V63JWO3HW47AGAXG4BTJNTKHE4QNJJOMEX4UP5O4LHDIZAJZNMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

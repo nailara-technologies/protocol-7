@@ -159,10 +159,10 @@ int main( int argc, char * argv[] ) {
     int continue_read = 1;
     int close_at_lf   = 1;
     int reading_size  = 0;
-    long count_to_read = -1;    // Characters (SIZE mode) or bytes (OCTETS mode)
+    long count_to_read = -1;    // Byte count (SIZE mode) or char count (CHRSIZE mode)
     int space_seen = 0;
-    int utf8_char_count = 0;    // Track UTF-8 characters read (SIZE mode)
-    int bytes_read = 0;         // Track raw bytes read (OCTETS mode)
+    int utf8_char_count = 0;    // Track UTF-8 characters read (CHRSIZE mode only)
+    int bytes_read = 0;         // Track raw bytes read
     while ( continue_read ) {
         result = recv( socket_fd, &byte, 1, MSG_WAITALL );
         if ( result < 1 ) {
@@ -185,14 +185,14 @@ int main( int argc, char * argv[] ) {
                         output_bytes = 1;
 
                     int is_size_response = ( strcmp( reply_type, "SIZE" ) == 0 ||
-                                             strcmp( reply_type, "OCTETS" ) == 0 );
+                                             strcmp( reply_type, "CHRSIZE" ) == 0 );
 
                     if ( reading_size || is_size_response ) {
                         size_t sizes_len = strlen(size_str_buf);
 
                         if ( sizes_len > 20 ) {
                             fprintf( stderr,
-                                "<< SIZE/OCTETS reply error : numeric overflow >>\n"
+                                "<< SIZE/CHRSIZE reply error : numeric overflow >>\n"
                             );
                             return 20;
                         }
@@ -229,21 +229,21 @@ int main( int argc, char * argv[] ) {
                         /*  writing payload-data to stdout  */
                         write( STDOUT_FILENO, &byte, result );
 
-                        // Handle both SIZE (character-based) and OCTETS (byte-based) modes
+                        // Handle both SIZE (byte-based) and CHRSIZE (character-based) modes
                         if ( count_to_read > -1 ) {
-                            int is_octets = ( strcmp( reply_type, "OCTETS" ) == 0 );
+                            int is_chrsize = ( strcmp( reply_type, "CHRSIZE" ) == 0 );
 
-                            if ( is_octets ) {
-                                // OCTETS mode: count raw bytes
-                                bytes_read++;
-                            } else {
-                                // SIZE mode: count UTF-8 characters
+                            if ( is_chrsize ) {
+                                // CHRSIZE mode: count UTF-8 characters
                                 // Start of character is 0xxxxxxx (ASCII) or 11xxxxxx (multi-byte)
                                 // Continuation bytes are 10xxxxxx
                                 unsigned char ubyte = (unsigned char)byte;
                                 if ( (ubyte & 0xC0) != 0x80 ) {
                                     utf8_char_count++;
                                 }
+                            } else {
+                                // SIZE mode: count raw bytes
+                                bytes_read++;
                             }
                         }
                     }
@@ -252,16 +252,16 @@ int main( int argc, char * argv[] ) {
                         continue_read = 0;
 
                     else if ( count_to_read > -1 ) {
-                        int is_octets = ( strcmp( reply_type, "OCTETS" ) == 0 );
+                        int is_chrsize = ( strcmp( reply_type, "CHRSIZE" ) == 0 );
 
                         // Check if we've read enough based on response type
-                        if ( is_octets ) {
-                            // OCTETS mode: stop when bytes_read >= count_to_read
-                            if ( bytes_read >= count_to_read )
+                        if ( is_chrsize ) {
+                            // CHRSIZE mode: stop when UTF-8 char_count >= count_to_read
+                            if ( utf8_char_count >= count_to_read )
                                 continue_read = 0;
                         } else {
-                            // SIZE mode: stop when UTF-8 char_count >= count_to_read
-                            if ( utf8_char_count >= count_to_read )
+                            // SIZE mode: stop when bytes_read >= count_to_read
+                            if ( bytes_read >= count_to_read )
                                 continue_read = 0;
                         }
                     }

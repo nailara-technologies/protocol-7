@@ -18,7 +18,9 @@ return <[base.session.check_remaining]> if not defined $data{'session'}{$id};
 my $session = $data{'session'}{$id};
 my $buf     = $session->{'buffer'}->{'output'};
 
-my $write_size = length $buf;
+## Use bytes::length() to get actual byte count, not character count
+## This is critical when buffer contains UTF-8 multi-byte characters
+my $write_size = bytes::length($buf);
 
 if ( fileno $session->{'handle'} ) {
     ## For downloads with SSL sockets, keep writing in a loop until the buffer drains
@@ -58,8 +60,10 @@ if ( fileno $session->{'handle'} ) {
 
             substr( $session->{'buffer'}->{'output'}, 0, $size_written, '' );
 
-            ## Recalculate write size for next iteration
-            $write_size = length $session->{'buffer'}->{'output'};
+            ## Recalculate write size for next iteration [ using byte length,
+            ## not character count ]
+
+            $write_size = bytes::length( $session->{'buffer'}->{'output'} );
             $write_count++;
 
             ## Continue loop to write more data if available
@@ -73,7 +77,8 @@ if ( fileno $session->{'handle'} ) {
 
         my $remaining_buf = length $session->{'buffer'}->{'output'};
 
-        ## For downloads, always restart immediately (don't use burst-write defer)
+        ## For downloads, always restart immediately
+        ## [ don't use burst-write defer ]
         if ($is_download) {
             $event->w->start;    ## immediate restart for downloads ##
         } elsif ( defined $session->{'burst-writes'}
@@ -103,8 +108,8 @@ if ( fileno $session->{'handle'} ) {
     return 2;
 }
 
-## Check remaining buffer size
-if ( $write_size = length $session->{'buffer'}->{'output'} ) {
+## Check remaining buffer size [use byte length, not character count]
+if ( $write_size = bytes::length( $session->{'buffer'}->{'output'} ) ) {
 
     ##  deferred restart [ when idle ]  ##
     <[event.io_idle_restart]>->($event)
@@ -121,8 +126,8 @@ $session->{'shutdown'} = 1 if !$write_size and $session->{'flush_shutdown'};
 
 return 0;
 
-#,,,,,,,.,.,.,...,,..,...,...,.,.,,.,,.,.,,..,..,,...,...,..,,,..,,.,,..,,,.,,
-#TNLCLV25EPZHHMHHYTEC4IZERBCS65ND5HWDPVBEUT4ZO7JU6IGUQWEEQA6XDIQ6NMZYDLLFAUTTU
-#\\\|QO2ZVWSI7FTV3VCAFZGJTTC2ZVPKH6A6EQKTVCKDCO75GI4G2VM \ / AMOS7 \ YOURUM ::
-#\[7]YTDFFTQ7KDFB46DT6R277CWMEJKHEB6MEHKHMYHJW2G26RPH5CAI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,.,,...,.,.,...,,,.,,..,,,,,,,.,..,,...,...,.,.,..,,,,,,..,,...,
+#2NYO6HXFIUWS7M2WMMNA7AHDZCYMA4HCIENBS3X3MQDKYG5274JG2JZFNT5PFE5XUG2DOF7TH2AFC
+#\\\|NKR4OG6T4IKKE4VUHXC7MAGTBRVXDPO7KPUZOERNGFDKILBVXGB \ / AMOS7 \ YOURUM ::
+#\[7]5VMKGKIT6MYR7KZNK72MC7FGFBSRBIYTLOFQT6DXR2MADIZUBIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
