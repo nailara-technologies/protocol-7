@@ -1,66 +1,39 @@
 ## [:< ##
 
 # name    = cube.cmd.reply-encoding-mode
-# descr   = set session SIZE response mode (SIZE or OCTETS)
+# descr   = info command - SIZE mode always reports byte count with global 'use bytes;'
 #
-# usage   : reply-encoding-mode <mode>
-# modes   : SIZE (default, character count)
-#           OCTETS (byte count)
-#
-# note    = controls SIZE vs OCTETS protocol header (SIZE protocol distinction)
-#           transport-level encoding (base32, utf7, etc) belongs to link-upgrade
-#           and is negotiated during encryption handshake (state 2)
+# usage   : reply-encoding-mode
+# note    = SIZE mode now always reports BYTE count (with global 'use bytes;' pragma)
+#           CHRSIZE mode reports CHARACTER count (UTF-8 aware)
+#           This command is retained for backwards compatibility only
 
 my $session_id     = $call->{'session_id'};
 my $requested_mode = $call->{'args'} // '';
 
-$requested_mode = lc($requested_mode);
-$requested_mode =~ s|\s+||g;    # Remove whitespace
+## SIZE mode now always uses bytes - OCTETS mode is deprecated and removed
+## Clients should use SIZE for byte count and CHRSIZE for character count
 
-my $session = $data{'session'}{$session_id};
-
-## Validate requested mode
-if ( $requested_mode =~ m|^size$| ) {
-
-    ## SIZE mode (default): character count in responses
-    $data{'session'}{$session_id}{'size_mode'} = qw| SIZE |;
+if ( length($requested_mode) == 0 ) {
+    ## No mode specified - show current behavior
     return {
         'mode' => qw| true |,
-        'data' => "SIZE response mode set (character count)"
+        'data' => "SIZE mode: byte count (global 'use bytes;' pragma) "
+            . "| CHRSIZE mode: character count (UTF-8 aware)"
     };
-
-} elsif ( $requested_mode =~ m|^octets$| ) {
-
-    ## OCTETS mode: byte count in responses
-    $data{'session'}{$session_id}{'size_mode'} = qw| OCTETS |;
-    return {
-        'mode' => qw| true |,
-        'data' => "OCTETS response mode set (byte count)"
-    };
-
-} elsif ( $requested_mode =~ m|^$| ) {
-
-    ## No mode specified - show current mode
-    my $current_mode = $data{'session'}{$session_id}{'size_mode'} // qw| SIZE |;
-    return {
-        'mode' => qw| true |,
-        'data' => "current SIZE mode: $current_mode"
-    };
-
 } else {
-
-    ## Unknown mode
+    ## OCTETS mode no longer supported
     return {
         'mode' => qw| false |,
         'data' => "unsupported mode: '$requested_mode' "
-            . "[ supported : SIZE (default), OCTETS ]"
+            . "[ SIZE=bytes (default), CHRSIZE=characters, OCTETS mode removed ]"
     };
 }
 
 1;
 
-#,,,,,,..,,,,,,,.,,,.,,..,...,..,,.,.,,..,,,.,..,,...,...,,.,,,,,,,,.,,.,,...,
-#NFB5LRYTMIX3UJ5WXBPODIP6M4KGQB6H4KVGLUBTJRGY4PYO73BD7EBG3SBCMD5JXDYD5WPBDW22M
-#\\\|DULCR277KMOMUE4QCKZMZHRF56HDNSQH4GUIKPB5RAFHSDRKCWK \ / AMOS7 \ YOURUM ::
-#\[7]VACF2HJLY3MCXK727JT5CQA5QIDZWPPEBMFXZMSIRKQ4K3IO46DQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,,,,,..,,,,,,..,,..,,..,.,.,,,.,..,,...,...,...,.,,,.,.,..,,,,,,
+#5M5FV4QTY3JZ6VPAJ5DVJ372C6HLMNOZTD6RJ3R2E65YN2LWF2AID66F5N33CMKYE3Q5ICNA6PKXU
+#\\\|J635GDBTZOJVT6DU2AOUWCRECU5OGEB6NBBDECSHCMOENPDZ2EQ \ / AMOS7 \ YOURUM ::
+#\[7]SEKQGR3AIY5ZYWNFXTXR7CLOOFAVICSEYB6RVJZ4YP7RLVU66SCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

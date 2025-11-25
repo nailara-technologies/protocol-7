@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = protocol.protocol-7.auth.select-size-mode
+
+my $backend_socket = shift;
+my $size_mode      = shift // '';
+
+## protocol-7 message strings ##
+##
+
+my $protocol_messages = <protocol.protocol-7.connect>;
+
+my $protocol_banner     = $protocol_messages->{'banner'};
+my $proto_msg_timeout   = $protocol_messages->{'timeout'};
+my $protocol_error_msg  = $protocol_messages->{'protocol_error'};
+my $auth_method_warning = $protocol_messages->{'auth_method_wrn'};
+my $auth_method_err     = $protocol_messages->{'auth_method_err'};
+my $select_method_templ = $protocol_messages->{'select-size-mode'};
+
+####
+
+<[base.net.send_to_socket]>->(
+    $backend_socket, \sprintf( $select_method_templ, $size_mode )
+);
+
+my $answer = readline($backend_socket);
+chomp($answer) if defined $answer;
+
+if ( not defined $answer ) {
+    <[base.log]>->( 0, '[X] connection lost :|' ) and return undef;
+} elsif ( sprintf( "%s\n", $answer ) eq $auth_method_warning ) {
+    <[base.log]>->( 0, '[#] server side size-mode error >:|' );
+    return undef;
+} elsif ( sprintf( "%s\n", $answer ) eq $auth_method_err ) {
+    <[base.logs]>->( 0, '[#] %s size-mode not available >:|', $size_mode );
+
+    return -0;    ## not successful ##
+
+} elsif ( $answer ne 'TRUE continue' ) {
+    <[base.log]>->( 0, '[#] size-mode protocol error `:|' );
+
+    return -0;    ## not successful ##
+
+} else {
+    <[base.logs]>->( 2, '[*] %s size-mode selected', $size_mode );
+
+    return TRUE;    ## true ##
+}
+
+#,,.,,.,,,.,.,..,,..,,...,.,.,,,,,,,.,,,,,.,,,..,,...,.,.,..,,,,.,..,,,.,,,,.,
+#PO7JX7IVSKDIHRQT5JSLZX3A2AH7ZJN5LWXMZXUBMOGIBT7EIIMAU67BFHMW3HQ5J5XCFPW743K4U
+#\\\|V4HSHGWKSFS2YDFJGZIZW64LTFIGUTWPNMYETBLJCYX7LGRWWE3 \ / AMOS7 \ YOURUM ::
+#\[7]MRRUD4BETBRT4LQZLRJC4IO76TGB4CTZQR5JF2C6MGB7MIBZP6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

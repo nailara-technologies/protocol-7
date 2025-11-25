@@ -66,9 +66,34 @@ if ( $reply->{'mode'} =~ m{^(TRUE|FALSE|WAIT)$}io ) {
     $output->$* .= sprintf "%s%s %s\n",
         $_cmd_id, uc( $reply->{'mode'} ), $reply->{'data'};
 } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
-    my $len = length( $reply->{'data'} );
+    my $data = $reply->{'data'};
+
+    ## Ensure data ends with newline for protocol coherence
+    $data .= "\n" unless $data =~ /\n$/;
+
+    ## With global 'use bytes;' pragma, length() counts bytes
+    ## SIZE mode reports BYTE count for buffer/socket operations
+    my $byte_count = length($data);
+
+    $output->$* .= sprintf( "%sSIZE %d\n%s", $_cmd_id, $byte_count, $data );
+
+} elsif ( uc( $reply->{'mode'} ) eq qw| CHRSIZE | ) {
+    my $data = $reply->{'data'};
+
+    ## Ensure data ends with newline for protocol coherence
+    $data .= "\n" unless $data =~ /\n$/;
+
+    ## CHRSIZE mode reports CHARACTER count (UTF-8 aware)
+    ## Explicitly upgrade to count UTF-8 character boundaries
+    utf8::upgrade($data);
+    my $char_count = length($data);
+
+    ## Downgrade for buffer operations (restore byte semantics)
+    utf8::downgrade( $data, 1 );
+
     $output->$*
-        .= sprintf( "%sSIZE %d\n%s", $_cmd_id, $len, $reply->{'data'} );
+        .= sprintf( "%sCHRSIZE %d\n%s", $_cmd_id, $char_count, $data );
+
 } elsif ( uc( $reply->{'mode'} ) eq qw| TERM | ) {
     <[base.session.shutdown]>->( $session_id, $reply->{'data'} );
 }
@@ -77,8 +102,8 @@ if ( $reply->{'mode'} =~ m{^(TRUE|FALSE|WAIT)$}io ) {
 
 delete <base.cmd_reply>->{$reply_id};
 
-#,,,,,,.,,..,,.,,,,,,,,..,...,,.,,.,.,...,,.,,..,,...,...,,,.,..,,,.,,..,,.,,,
-#4ZVPTRWEWHN43YSVJ7KZJ6DJFMAV5XKD3PM2QV6JRC74SFGTGFXZWFKKVCQDHCD2RDDCU3TYABSZ6
-#\\\|KEPYGELEMA7BB7H65MLRPXHUIM45Z42PLGQ42TZWHMBXWDO45YM \ / AMOS7 \ YOURUM ::
-#\[7]KGOQDHRGOA7QSW2GTM2OHCC4DJTF5LR7UL2QBSQMNDYLQEACGCAI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,..,,,,,,.,.,,..,.,.,,.,,.,,,...,..,,...,...,...,..,,,,.,,..,...,
+#UJDFC4AYE5TEOLQ7OUNEHP2KKOTVAHQJHU65RCX2PWTJXCVAA3UKC3IP2GNBXV34POV62MGCAJ2UQ
+#\\\|4FU4BXAA3XDFIXVZUOE3DABEZCDASCHUFDSLXYL2ECSHEUDR4G3 \ / AMOS7 \ YOURUM ::
+#\[7]6OAB76B7MXNQLVMWBGNKTSAIL4SRM6VVX6PSKKPAVX3CCK2HGUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

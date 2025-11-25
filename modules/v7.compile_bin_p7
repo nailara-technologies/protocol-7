@@ -30,6 +30,11 @@ push( @gcc_params, qw| -O3 -x c -o |, $tmp_bin, '-' );
 
 unlink($tmp_bin) or die "< unlink > $tmp_bin [ \l$OS_ERROR ]" if -f $tmp_bin;
 
+## Save and ignore SIGCHLD during gcc compilation
+## so gcc's child processes (assembler, linker, etc.) don't trigger zenka SIGCHLD handler
+my $orig_sigchld = $SIG{'CHLD'};
+$SIG{'CHLD'} = 'IGNORE';
+
 ## compiling.., ###
 my $gcc_in_fh  = IO::Handle->new();
 my $gcc_err_fh = IO::Handle->new();
@@ -48,6 +53,9 @@ if ( defined $gcc_pid ) {
     <[base.waitpid]>->( $gcc_pid, 0 );
     alarm(0);
 }
+
+## Restore original SIGCHLD handler after gcc compilation completes
+$SIG{'CHLD'} = $orig_sigchld;
 
 qx| $strip_bin_p7_path -R .comment $tmp_bin |
     if length($strip_bin_p7_path);    # optional ##
@@ -73,8 +81,8 @@ if ( -f $tmp_bin ) {
 }
 return 0;
 
-#,,,,,,..,,,,,,,.,...,..,,..,,.,,,.,.,,..,...,..,,...,.,.,...,,,,,,.,,...,..,,
-#NOVGVU3GZMIG5T5W3UUTTISXPU7SY3D6KMDRKDFY5FXAFADVQ6BBHMX7C4TWDG5ITYJCUSLL2ODWM
-#\\\|2IF4U2AIXFHT7U36RSEGT5C627DNZJDK27AOQLDQHQZV7CCSAPX \ / AMOS7 \ YOURUM ::
-#\[7]GJ3KYSJWF3I2I7NUZHNCYEW57GQVYFPPTDNAFEB3U6EOJ77I2MCI 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,,,,,..,...,,,,,,.,,,,,,,,.,,,.,..,,...,...,...,,,.,..,,.,,,.,.,
+#GMK4WWKK2QAWEVFVBXC5KEMOBGHD7D3G3BUE3F7KZAHENOKGMJWPJV3K5WHL4SC7UFOYGA2MJPBKI
+#\\\|ABFQAVZUB5CQD2KHIVELCX6EFDKO26RXXJG6SCFCBCS2QCSNV7V \ / AMOS7 \ YOURUM ::
+#\[7]6BXZMXBN7ALQDK3D6H36SPFHG7AIN3EZVV73UVD3SCKF7BR6UMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

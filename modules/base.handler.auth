@@ -107,6 +107,52 @@ if ( $input->$* =~ s|^(auth\.)?close\n|| ) {
             return 1;        ## continue protocol ##
         }
     }
+} elsif ( $input->$* =~ s|^(auth\.)?select-size-mode (?<mode>\S+)\n|| )
+{    ## size mode selection (SIZE or CHRSIZE) ##
+
+    my $req_mode    = $+{mode};
+    my $size_select = $$session{'counter'}{'auth'}{'size_select'} //= {};
+    $event->w->start;
+
+    $size_select->{'limit'}
+        //= 3;    ##  <-- limiting allowed 'select-size-mode' commands ##
+    $size_select->{'errors'} //= 0;
+    $size_select->{'calls'}  //= 0;
+
+    if ( $size_select->{'calls'} >= $size_select->{'limit'} ) {
+        <[base.logs]>->(
+            0, '[%u] size-mode select count limit exceeded >:[', $id
+        );
+
+        $output->$* .= "FALSE selection limit exceeded\n";
+        return 2;    ## <-- disconnecting client ##
+
+    } elsif ( $req_mode !~ m{^(SIZE|CHRSIZE)$}i ) {
+
+        <[base.logs]>->(
+            0,   "[%d] invalid size-mode '%s' [ SIZE | CHRSIZE ]",
+            $id, $req_mode
+        );
+
+        $output->$* .= "FALSE invalid mode\n";
+        $size_select->{'errors'}++;
+
+        if ( $size_select->{'errors'} > 2 ) {
+            $output->$* .= "FALSE too many errors\n";
+            return 2;    ## <-- disconnecting client ##
+        }
+
+        return 1;
+
+    } else {
+
+        $session->{'size_mode'} = uc($req_mode);
+        <[base.logs]>->( 2, "[%d] size-mode set to %s", $id, uc($req_mode) );
+        $output->$* .= "TRUE continue\n";
+        $size_select->{'calls'}++;
+        return 1;
+    }
+
 } elsif ( $input->$* =~ s|^(auth\.)?selected\n|| )
 {    ## selected auth method ##
     $event->w->start;
@@ -229,8 +275,8 @@ elsif ( defined $auth_method
     return 2;               ##  no auth method selected + session closing  ##
 }
 
-#,,,,,..,,..,,.,,,,.,,,,,,...,.,.,.,.,,,,,,..,..,,...,..,,.,.,,.,,,..,...,,,,,
-#EPBVSOLYBUSFERPB6WPBVGLOYBA4YUEXDNFZNE2FJIB3S4BBEKWABIFSWG6ICSZHWF5HFOWYQGG5Q
-#\\\|ZPXYZZK5LBJIC43NBQNFM5HST6DGH7DL5OIFJU6HXASWJRUOGCO \ / AMOS7 \ YOURUM ::
-#\[7]PDZZZROGO6PVUTNVPZ5JLRADJHCP3XC4ZAIXYK3RGRGQD5XCYEDI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,..,,.,.,,,.,,,.,,.,,,,,,,,.,,..,..,,...,...,..,,.,.,.,,,..,,,..,
+#AAU2OOAVYYMNZ2AB4XCMITWRPAZQYQGHGUPHTKP7CZD3CQ2O77QZENIM2FI47SBJLF4JOPIHME7ZW
+#\\\|FSXTRMROKJ5PYTBPZ6ZLPOS4JO4IP5QLWUQE4YQLOAPYXAPOYP2 \ / AMOS7 \ YOURUM ::
+#\[7]OWH67JSSDUKRSOOGAPQVSV7AJ3PTMHXMLB4VIUXWYCB3NX2EFWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
