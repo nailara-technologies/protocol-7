@@ -1,0 +1,201 @@
+---
+task_id: base-handler-command-modularization
+date_created: 2025-11-25
+status: planning
+priority: high
+depends_on:
+  - session-2025-11-25-utf8-size-chrsize-negotiation
+context_commit: 63c466c6f
+
+# Refactoring: Modularize base.handler.command
+
+title: |
+  Split monolithic base.handler.command into resilient, modular command handlers
+
+description: |
+  Extract command processing logic from base.handler.command into separate,
+  focused modules following the principle of resilience over static functionality.
+  This improves maintainability, enables feature coupling (link upgrade encryption),
+  and reduces complexity in the core dispatcher.
+
+# Motivation
+
+rationale:
+  - Resilience: Static, unchanged code in critical paths becomes brittle over time
+  - Modularity: Feature additions (like link upgrade) integrate cleanly without touching core
+  - Clarity: Each handler focuses on a single command type
+  - Testability: Individual handlers can be tested independently
+  - Clean separation: Recent SIZE/CHRSIZE changes provide clear boundaries
+
+opportunity:
+  context: |
+    The recent SIZE/CHRSIZE implementation gave us deep familiarity with
+    base.handler.command structure. Handlerization is straightforward with
+    no risk of bug entanglement due to clean, recent changes.
+
+  feature_coupling: |
+    Link upgrade encryption (from D99DD858D0EF0878F3E13F50F463B54B4E99E7E5 and
+    similar commits) can naturally integrate as command handlers once the
+    architecture supports pluggable handlers.
+
+# Proposed Architecture
+
+module_structure:
+  dispatcher: base.handler.command
+  handlers:
+    - base.handler.cmd.size
+    - base.handler.cmd.chrsize
+    - base.handler.cmd.link-upgrade
+    - base.handler.cmd.encryption-negotiation
+    - base.handler.cmd.security-operations
+  utilities:
+    - base.handler.response-translator
+    - base.handler.buffer-operations
+  routing:
+    - base.handler.command-registry
+
+handler_pattern: |
+  Each handler module:
+  - Takes standardized input: ($id, $session, $event, $input_ref, $output_ref, $route)
+  - Returns: success code (0/1/2) and optional action hash
+  - Implements single command or command family
+  - Can register itself in handler registry on module load
+
+dispatcher_responsibilities:
+  - Parse input buffer for command
+  - Validate session state
+  - Dispatch to appropriate handler
+  - Handle response translation
+  - Manage session state updates
+  - Handle error cases
+
+# Implementation Plan
+
+phases:
+  phase_1_infrastructure:
+    title: Set up command registry and dispatcher refactoring
+    tasks:
+      - Create base.handler.command-registry module
+      - Extract dispatcher logic from base.handler.command
+      - Establish handler interface contract
+      - Implement handler registration mechanism
+    risk: low
+    impact: none_yet
+
+  phase_2_size_chrsize_extraction:
+    title: Extract SIZE and CHRSIZE handlers
+    tasks:
+      - Create base.handler.cmd.size module
+      - Create base.handler.cmd.chrsize module
+      - Implement response translation in handlers
+      - Register handlers in registry
+      - Verify identical behavior through testing
+    risk: low
+    depends_on: phase_1_infrastructure
+    testing: |
+      - Run existing command flow tests
+      - Verify 512MB file transfer still works
+      - Validate both SIZE and CHRSIZE modes
+
+  phase_3_remaining_commands:
+    title: Extract remaining command handlers
+    tasks:
+      - Identify command groupings in current code
+      - Create handler modules for each group
+      - Move utility functions to base.handler.buffer-operations
+      - Update dispatcher to use registry
+    risk: medium
+    depends_on: phase_2_size_chrsize_extraction
+
+  phase_4_feature_integration_readiness:
+    title: Prepare for link upgrade and encryption handlers
+    tasks:
+      - Add encryption-negotiation handler skeleton
+      - Add link-upgrade handler skeleton
+      - Document handler integration pattern
+      - Create integration test template
+    risk: low
+    depends_on: phase_3_remaining_commands
+    deliverable: Ready for link upgrade encryption feature integration
+
+# Risk Assessment & Mitigation
+
+risks:
+  - name: Handler dispatch performance
+    severity: medium
+    mitigation: |
+      Benchmark dispatch table lookup vs. inline conditionals.
+      Consider caching handler references in session if needed.
+
+  - name: Session state management complexity
+    severity: medium
+    mitigation: |
+      Establish clear rules for handler state mutations.
+      Document session state contract for all handlers.
+
+  - name: Testing coverage during refactor
+    severity: high
+    mitigation: |
+      Keep base.handler.command working before/after each handler extraction.
+      Run full integration tests after each phase.
+      Compare byte-for-byte output before and after.
+
+# Feature Coupling: Link Upgrade Encryption
+
+integration_point: |
+  Once modularized, link upgrade encryption integrates as:
+  - base.handler.cmd.encryption-negotiation (pre-auth command)
+  - base.handler.cmd.link-upgrade (encryption mode enablement)
+  - base.handler.response-translator (encryption wrapper)
+
+base_modules_affected:
+  - Commit D99DD858D0EF0878F3E13F50F463B54B4E99E7E5
+  - Related encryption negotiation commits
+
+advantage: |
+  Handlers can be added/removed without modifying dispatcher or other handlers.
+  New features follow established pattern: register handler + implement interface.
+
+# Success Criteria
+
+completion:
+  - All command handlers extracted to separate modules
+  - Dispatcher is <500 lines (down from current ~1300)
+  - Zero behavioral changes (byte-for-byte output match)
+  - All zenki reload successfully
+  - 512MB file transfer: same performance (< 2 seconds)
+  - Handler registry fully documented
+  - Integration test template ready
+
+documentation:
+  - Handler implementation guide
+  - Session state contract specification
+  - Feature coupling tutorial (for link upgrade)
+  - Handler registration mechanism documented
+
+# Related Sessions & Context
+
+session_dependencies:
+  - session-2025-11-25-utf8-size-chrsize-negotiation:
+    context: Gave us deep familiarity with command flow, SIZE/CHRSIZE handlers
+    output: Clean, recent changes with clear boundaries
+
+future_sessions:
+  - Link upgrade encryption integration
+  - Command handler performance optimization
+  - Additional security operation handlers
+
+# Notes & Insights
+
+architectural_insights: |
+  This refactoring embodies the principle that resilient systems prefer
+  composition and pluggability over static structure. By making handlers
+  first-class citizens in the architecture, we future-proof the system
+  against feature additions and maintenance needs.
+
+commitment: |
+  No feature changes during refactoring. This is pure architectural
+  improvement with guaranteed identical behavior. Each phase can be
+  reviewed and tested independently before moving to next phase.
+
+---
