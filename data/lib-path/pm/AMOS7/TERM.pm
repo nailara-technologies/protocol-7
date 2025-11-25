@@ -650,11 +650,11 @@ sub init_TTY_no_echo {    ##  adaptation from Term::ReadPassword  ##
     }
     if ( not open $TTY_IN, qw| +< |, $in ) {
         if ( not open $TTY_IN, qw| <& |, *STDIN{IO} ) {
-            warn_err( 'cannot [re-] open STDIN [ %s ]',
+            warn_err( 'terminal input unavailable (cannot access STDIN): %s',
                 1, lcfirst($OS_ERROR) );
             return undef;
         } else {
-            warn_err( 'cannot open %s [rw] [ %s ]',
+            warn_err( 'terminal input unavailable (%s): %s',
                 1, $in, lcfirst($OS_ERROR) );
             return undef;
         }
@@ -662,11 +662,12 @@ sub init_TTY_no_echo {    ##  adaptation from Term::ReadPassword  ##
 
     if ( not open $TTY_OUTPUT, qw| >> |, $out ) {
         if ( not open $TTY_OUTPUT, qw| >>& |, *STDOUT{IO} ) {
-            warn_err( 'cannot [re-] open STDOUT [ %s ]',
+            warn_err(
+                'terminal output unavailable (cannot access STDOUT): %s',
                 1, lcfirst($OS_ERROR) );
             return undef;
         } else {
-            warn_err( 'cannot open %s [writing] [ %s ]',
+            warn_err( 'terminal output unavailable (%s): %s',
                 1, $out, lcfirst($OS_ERROR) );
             return undef;
         }
@@ -886,8 +887,8 @@ sub exit_user_passwd {
 
 return TRUE ##################################################################
 
-#,,..,.,.,..,,...,,,.,.,,,,,.,,..,..,,...,,,,,..,,...,...,...,...,,,.,,.,,..,,
-#YFCOR65THOHXLM367EFMBP734AQM7B2D7DKQXSBCQ72VMVUBJYYXHP6UQDR6VQZBUUYR3YDTTW4SY
-#\\\|PAUM5QUEAAYLFAJURBLTOJGCFNWI3OK3U2RQ4IQ3XNG5HCOVOJC \ / AMOS7 \ YOURUM ::
-#\[7]WVLG5NBMXPOOCCXCA2GPDCBWDO6K47MFO4TLMRDB3DCDVLOBI6DI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,..,,,..,,.,,,,,,,,.,,,,,,,,,..,,..,,...,...,.,.,..,,.,,,,,.,,.,,
+#5ODGALDCZ5JMFUMPQO6QKKYWW3PH3A2OP4D4IGKHEE4YOHBQNAGTTHWCE7TCG5UW2BBRLA5TDB44U
+#\\\|FJOSFBYAQDRKLBIT6UYD6LZQFCIHSOPPVIZXNZ2HPSVHMEJSUND \ / AMOS7 \ YOURUM ::
+#\[7]UHH7LDB7O3BOKDMQEYJWZF3UVFMDNGKOGW3XF4LL2EFDQOOWRCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
