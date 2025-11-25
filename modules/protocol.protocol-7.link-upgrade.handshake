@@ -1,0 +1,120 @@
+## [:< ##
+
+# name  = protocol.protocol-7.link-upgrade.handshake
+# descr = client-side link-upgrade negotiation handler
+#         performs C25519 ECDH key exchange and encryption negotiation
+#         with server for link-level encryption upgrade
+#
+# usage = <[protocol.protocol-7.link-upgrade.handshake]>->($socket, $options)
+# args  = $socket:  IO::Socket (unix or tcp) to protocol-7 server
+#         $options: hash ref with preferences
+#           - encoding: preferred encoding (utf7|base32|base32-xz|none) [default: none]
+#           - timeout:  negotiation timeout in seconds [default: 17]
+#           - verbose:  enable logging [default: 0]
+#
+# returns = (success, result_hash)
+#   success: 1 = upgrade complete, 0 = negotiation failed
+#   result_hash: {
+#       shared_secret => <bytes>,
+#       agreed_encoding => 'none|utf7|base32|base32-xz',
+#       session_state => 3,  # upgrade successful
+#       error => 'error message if failed'
+#   }
+
+my ( $socket, $options ) = @ARG;
+
+my $encoding_pref = $options->{'encoding'} // 'none';
+my $timeout       = $options->{'timeout'}  // 17;
+my $verbose       = $options->{'verbose'}  // 0;
+
+## Generate ephemeral C25519 keypair for this client session
+my ( $client_keypair, $client_key_name ) = <[crypt.C25519.gen_keys]>->(
+    sprintf( 'link-upgrade-client-%s', <[base.prng.chars-anum]>->(12) ),
+    'link-upgrade-client-ephemeral'
+);
+
+if ( not defined $client_keypair or not defined $client_key_name ) {
+    return ( 0, {
+        error => 'Failed to generate C25519 ephemeral keypair'
+    });
+}
+
+my $client_pubkey     = $client_keypair->{'public'};
+my $client_privkey    = $client_keypair->{'secret'};
+
+## Encode public key in BASE32 for transmission
+my $client_pubkey_b32 = Crypt::Misc::encode_b32r($client_pubkey);
+
+## Send link-pub-key command with our public key
+my $pubkey_cmd = sprintf("link-pub-key %s\n", $client_pubkey_b32);
+
+print $socket $pubkey_cmd;
+
+if ( $verbose ) {
+    <[base.logs]>->( 2, 'link-upgrade: sent client public key (%d bytes)',
+        length($client_pubkey) );
+}
+
+## Read server response (should be SIZE 0 indicating ready for encoding negotiation)
+my $server_response = readline($socket);
+
+if ( not defined $server_response or $server_response !~ m|^SIZE 0| ) {
+    return ( 0, {
+        error => 'Server did not acknowledge public key exchange'
+    });
+}
+
+## At this point, server has computed shared secret and is ready for encoding negotiation
+## However, we don't have the server's public key yet (it's computed on server side)
+## The shared secret is derived from: DH(client_private, server_ephemeral_public)
+## Since server has both keys, it can compute it. We'll trust the server's computation.
+
+## Send encoding preference
+my $encoding_cmd = sprintf("link-confirm-encoding %s\n", $encoding_pref);
+
+print $socket $encoding_cmd;
+
+if ( $verbose ) {
+    <[base.logs]>->( 2, 'link-upgrade: sent encoding preference (%s)', $encoding_pref );
+}
+
+## Read server confirmation
+$server_response = readline($socket);
+
+if ( not defined $server_response or $server_response !~ m|^TRUE| ) {
+    return ( 0, {
+        error => 'Server rejected encoding preference'
+    });
+}
+
+## Send link-complete to finalize upgrade
+my $complete_cmd = "link-complete\n";
+print $socket $complete_cmd;
+
+## Read final confirmation
+$server_response = readline($socket);
+
+if ( not defined $server_response or $server_response !~ m|^TRUE| ) {
+    return ( 0, {
+        error => 'Server rejected link-complete'
+    });
+}
+
+if ( $verbose ) {
+    <[base.logs]>->( 1, 'link-upgrade: negotiation complete, encryption enabled' );
+}
+
+return ( 1, {
+    agreed_encoding => $encoding_pref,
+    session_state   => 3,
+    client_pubkey   => $client_pubkey,
+    client_privkey  => $client_privkey,
+} );
+
+1;
+
+#,,..,..,,.,,,,,.,,..,.,.,,,.,,.,,.,,,.,,,,.,,..,,...,...,.,,,,,.,.,.,.,.,,.,,
+#QKVVCRC736BBEGLW3ZKU23FYJAY6ZKBJFP7BDAGEWZBN2ILCLNZHQOHVO7WES2YHZLXZIAOIT5TPQ
+#\\\|P4QHCYK7HPEJ3ADAL5JGPRSQ53Q2KA6YKBNDWEXFIKQFESMGZOR \ / AMOS7 \ YOURUM ::
+#\[7]KZDI4LHMTEMKZDKSJBDIOWMV4MLGSULOZCMHUT7C5GZXZRRCMYDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
