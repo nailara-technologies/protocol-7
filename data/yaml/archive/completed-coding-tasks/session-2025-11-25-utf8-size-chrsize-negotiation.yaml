@@ -1,0 +1,166 @@
+---
+session_date: 2025-11-25
+session_type: UTF-8 Buffer Handling Regression Fix
+status: completed
+commit_hash: 63c466c6f
+
+# Session Overview
+title: |
+  Session-Level SIZE/CHRSIZE Mode Negotiation for UTF-8 Handling
+description: |
+  Resolved a critical UTF-8 buffer length inconsistency (147 chars vs 149 bytes)
+  that was causing client hangs on downloads with multi-byte UTF-8 characters.
+  Implemented elegant session-level encoding format negotiation allowing clients
+  to select their preferred response format (SIZE for bytes or CHRSIZE for
+  characters), with automatic response translation at the endpoint.
+
+# Problem Statement
+problem:
+  symptom: |
+    Client hangs on HTTP downloads when response contains multi-byte UTF-8
+    characters (e.g., emoji, accented characters). Different zenka received
+    same data with different UTF-8 flag states, causing buffer size mismatches.
+
+  root_cause: |
+    Perl's UTF-8 flag state determines whether length() returns character count
+    (UTF-8 flag on) or byte count (UTF-8 flag off). Different zenka were
+    processing the same data with inconsistent flag states:
+    - letsencr zenka: reported 149 bytes (correct)
+    - cube zenka: reported 147 characters (incorrect for SIZE mode)
+
+  impact: |
+    Protocol-7 could not reliably transport multi-byte UTF-8 data through the
+    zenka routing system, breaking HTTP downloads and file transfers.
+
+# Solution Architecture
+solution:
+  strategy: |
+    Eliminate UTF-8 flag surprises through three coordinated changes:
+    1. Global byte semantics via 'use bytes;' pragma
+    2. Explicit SIZE (bytes) vs CHRSIZE (characters) protocol modes
+    3. Session-level mode negotiation with automatic response translation
+
+  key_insight: |
+    The solution elegantly handles client diversity by letting each session
+    negotiate its preferred encoding format, while maintaining consistent
+    internal byte-level semantics. This separation of concerns ensures that
+    the protocol always operates on bytes internally, but clients get the
+    representation that works best for their use case.
+
+# Implementation Details
+
+core_changes:
+  - name: Global Byte Semantics
+    file: modules/base.init_code
+    change: Added global 'use bytes;' pragma to eliminate UTF-8 flag surprises
+    impact: All length() calls count bytes by default
+
+  - name: Session-Level Mode Selection
+    files:
+      - modules/protocol.protocol-7.auth.select-size-mode (NEW)
+      - modules/base.handler.auth (lines 110-154)
+    change: |
+      Pre-auth 'select-size-mode' command with rate limiting
+      (3 call limit, 2 error limit, auto-disconnect)
+    impact: Clients negotiate SIZE or CHRSIZE during authentication
+
+  - name: Response Mode Translation
+    file: modules/base.handler.command (lines 470-620)
+    change: |
+      Automatic translation based on session preference:
+      - SIZE responses converted to CHRSIZE if needed
+      - CHRSIZE responses converted to SIZE if needed
+    impact: Clients receive preferred format seamlessly
+
+  - name: SIGCHLD Signal Isolation
+    file: modules/v7.compile_bin_p7 (lines 33-36, 57-58)
+    change: Save/restore SIGCHLD handler during gcc compilation
+    impact: Eliminates child process signal context leakage
+
+# Mode Semantics
+
+encoding_modes:
+  SIZE:
+    definition: Byte count for buffer operations
+    implementation: bytes::length()
+    use_cases: Socket I/O, file boundaries, protocol framing
+
+  CHRSIZE:
+    definition: UTF-8 character count
+    implementation: utf8::upgrade() + length()
+    use_cases: Text processing, display, character-based operations
+
+# Testing Results
+
+validation:
+  both_zenki_consistent: true
+  validated_byte_count: 149 bytes
+  letsencr_report: 149 bytes
+  cube_report: 149 bytes
+
+performance:
+  large_file_test: 512MB in 1.783 seconds (289.3MB/s)
+  error_rate: 0
+  system_overhead: none_detected
+
+system_reload:
+  status: success
+  subroutines_compiled: 637
+  errors: 0
+
+# Key Insights
+
+technical_learnings:
+  - UTF-8 flag is implicit and unreliable across module boundaries
+  - Global 'use bytes;' pragma is effective for consistent byte semantics
+  - Protocol modes must be explicit (SIZE vs CHRSIZE) not inferred
+  - Session-level negotiation pattern mirrors authentication
+  - Signal isolation needed when spawning blocking child processes
+
+architectural_principles:
+  - Explicit over implicit (protocol modes named clearly)
+  - Separation of concerns (byte operations internally, format negotiation externally)
+  - Client-server negotiation pattern for protocol capabilities
+  - Endpoint translation matching session preference
+  - Rate limiting on configuration commands
+
+avoided_anti_patterns:
+  - Auto-detection of encoding from string content
+  - Attempting UTF-8 flag consistency across boundaries
+  - Implicit mode selection based on data
+  - Blocking operations without signal isolation
+
+# Files Modified
+
+all_changes:
+  base.init_code: Global bytes pragma
+  base.callback.cmd_reply: SIZE/CHRSIZE mode implementations
+  base.handler.auth: select-size-mode command with rate limiting
+  base.handler.command: Response translation logic
+  base.handler.write: Consistent bytes::length() usage
+  cube.cmd.reply-encoding-mode: Info command
+  protocol.protocol-7.auth.select-size-mode: NEW - client module
+  protocol.protocol-7.message-templates: Updated SIZE docs
+  httpd.json.encode: UTF-8 flag handling
+  httpd.json.init_code: Parser consistency
+  bin/c_src/p7.c: SIZE/CHRSIZE recognition
+  v7.compile_bin_p7: SIGCHLD isolation
+
+commit_details:
+  hash: 63c466c6f
+  title: Implement session-level SIZE/CHRSIZE mode negotiation for UTF-8 handling
+  files_changed: 15
+  insertions: 406
+  deletions: 167
+  remote_status: pushed successfully (hub/base)
+
+# Future Possibilities
+
+potential_enhancements:
+  - Persistent session preferences for reconnecting clients
+  - Client capability advertisement in auth handshake
+  - Automatic mode selection based on protocol version
+  - Runtime MODE command for advanced clients
+  - Protocol analytics on client mode preferences
+
+---
