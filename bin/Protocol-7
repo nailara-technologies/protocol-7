@@ -1107,8 +1107,7 @@ sub p7_check_bin_p7 {    ## LLL: reduce calls \ exposure .,
         return $path_str if defined $f_path and -r $f_path;
     }
     $data{'modules'}{'warned'} //= {};    ## <-- cleaned up later
-    my $reason
-        = ( -l $f_path and !-r readlink $f_path ) ? 'readable' : 'found';
+    my $reason = !-r $f_path ? 'readable' : 'found';
     warn "<< source not $reason : '$chk_path' >> <{C1}>"
         if not $data{'modules'}{'warned'}{$f_path}++;
     return undef;
@@ -1414,6 +1413,8 @@ sub p7_load_code {
             ## todo : reconcile with code_path ##
             my $src_abs_path;
             my $src_rel = $code{'base.check_bin_p7'}->("modules/$file_name");
+            ## tracking readability ##
+            my $source_not_readable = not defined $src_rel;
 
             $src_rel //= sprintf qw| modules/%s |, $file_name;    # <-- warn.
 
@@ -1439,7 +1440,8 @@ sub p7_load_code {
                     ####
                 } else {
                     ## loading code from disk [ including ext directory ]
-                    $code{'log.devmod'}->(":[disk]: $src_rel .,");
+                    $src_rel =~ s|^modules/|m.,/|;    ## shorten. ##
+                    $code{'log.devmod'}->(":[src]: $src_rel");
                     open( my $src_fh, qw| < |, $src_abs_path )
                         or die ":$src_abs_path : \l$OS_ERROR";
                     $data{'code'}{$file_name}{'source'} = <$src_fh>;
@@ -1491,6 +1493,8 @@ sub p7_load_code {
 
                 # register for error \ success tracking #
                 $module_code_map{$file_name} = $code_name;
+                $data{'code'}{$file_name}{'source_not_readable'}
+                    = $source_not_readable;
 
             } elsif ( $file_name =~ m|\.orig$| ) {
                 $code{'log.error'}->(
@@ -1663,13 +1667,15 @@ sub p7_load_code {
                 sub {
                 # line 1 "$sub_name"
                 \$code{'base.devmod_sub'}->( qw| $sub_name |, \@ARG );
-                $data{'code'}{$sub_name}{'source'}}
+                $data{'code'}{$sub_name}{'source'}
+                }
                 EOC
         } else {
             $sub_code = <<~"EOC";
                 sub {
                 # line 1 "$sub_name"
-                $data{'code'}{$sub_name}{'source'}}
+                $data{'code'}{$sub_name}{'source'}
+                }
                 EOC
         }
 
@@ -1749,6 +1755,8 @@ sub p7_load_code {
         $code{'base.stderr_restore'}->();
 
         $compilation_success = FALSE if $source_len == 0;
+        $compilation_success = FALSE
+            if $data{'code'}{$sub_name}{'source_not_readable'};
 
         if ($compilation_success) {
 
@@ -1769,10 +1777,14 @@ sub p7_load_code {
 
             $code{$sub_name} = sub {
                 my $caller_str = $code{'base.caller'}->(1);
+                my $reason
+                    = $data{'code'}{$sub_name}{'source_not_readable'}
+                    ? 'undefined'
+                    : 'broken';
                 undef $code{$sub_name}    ##  removing  ##
                     if $sub_name =~ m{^base.(log|buffer)};
                 if ( $sub_name !~ m{\.(cmd|console)\.(.+)$} ) {    ## proto.,
-                    my $lmsg = ": called broken routine : '$sub_name'";
+                    my $lmsg = ": called $reason routine : '$sub_name'";
                     $code{'log.error'}->($lmsg);
                     $code{'log.error'}->(":. $caller_str");
                     push(
@@ -1786,11 +1798,11 @@ sub p7_load_code {
                     return undef;
                 } else {
                     $code{'log.error'}
-                        ->(": broken command called : '$sub_name'");
+                        ->(": $reason command called : '$sub_name'");
                     $code{'log.error'}->(":. $caller_str");
                     return {
                         'mode' => qw| false |,
-                        'data' => "command '$sub_name' is broken.,"
+                        'data' => "command '$sub_name' is $reason.,"
                             . " details in startup log.,"
                     };
                 }
@@ -5182,8 +5194,8 @@ __DATA__
 :
 :.
 
-#,,,.,.,,,..,,,,,,...,...,,,.,..,,,,.,,,.,..,,..,,...,.,.,,..,.,.,..,,,..,.,,,
-#JK4HE7P2BW7UMLO5AMD2Q7AVNSU6EKLPOJS7DNAHGD5DW4RPKC2U52SKDTIJP72D6OYZWG7GFGFZU
-#\\\|3EPW7YMCRI7TTCJK6HQJYHVKDUMY5KT6D45QK2DUX3HAEBDU5AZ \ / AMOS7 \ YOURUM ::
-#\[7]WBJF4VTSIRERLKHOXUGNGCNKY4H6E2DRDFYNXYYXRDL5GDYCTWDQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,,,,,,.,.,.,..,,,..,...,,,.,,,.,..,,...,...,,.,,,.,,.,.,..,,.,,,
+#BI3JR2VGRZWHTSQEJTVCMPT7DTXDDPL62YLZ4CHZZQUCHKWGF6TU2LTQLXRN4ALX4XU5AF5TSKMY6
+#\\\|VPU2G6KHJJIRU7RQFBKM23K6BAAD6ABL7SGPAFAGX6ZJ6AFNGH2 \ / AMOS7 \ YOURUM ::
+#\[7]UXTATORDG4PCR2XQJY2QHA7KQ2WC65Y7WQG3JHDWKE5AUIFPT4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = base.fh-encoding.set
+# descr = register file handle encoding mode in global %fh_encoding hash
+# usage = <[base.fh-encoding.set]>->($fh, $encoding_mode)
+# args  = $fh: file handle; $encoding_mode: 'UTF-8'|'OCTETS'|other
+# returns = TRUE [5] on success, FALSE [0] on failure
+
+my ( $fh, $encoding_mode ) = @ARG;
+
+if ( not defined $fh or not defined $encoding_mode ) {
+    return FALSE;    ## false:0
+}
+
+my $fd = fileno($fh);
+if ( not defined $fd ) {
+    return FALSE;    ## invalid file handle [false:0]
+}
+
+$fh_encoding{$fd} = $encoding_mode;
+return TRUE;         ## success [true:5]
+
+#,,.,,,,,,,,.,...,..,,.,,,,..,,,.,..,,.,.,,.,,..,,...,...,...,.,,,..,,..,,,.,,
+#2QZJUSLBSU4XJ6YS7U3OXE3ZNCGGB4VPPSYUAKDAJ26XYJ3UWHM5KMZTA77GK3TK2ZB2QLNXK655A
+#\\\|HTMD46FC7AZILU4SNXXR3YOAPF7RHNEC6Q3DVBNYS2HO2OSGOBA \ / AMOS7 \ YOURUM ::
+#\[7]F6AJDE754OKELLAIPHDRFBA463T7VXLVCVA4SASFIXYLDARXFEAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

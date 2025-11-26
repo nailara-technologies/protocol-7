@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = base.fh-encoding.get
+# descr = retrieve file handle encoding mode from global %fh_encoding hash
+# usage = <[base.fh-encoding.get]>->($fh)
+# args  = $fh: file handle (GLOB) or filehandle reference
+# returns = encoding_mode string if set, undef if not found
+
+my ($fh) = @ARG;
+
+if ( not defined $fh ) {
+    return undef;
+}
+
+my $fd = fileno($fh);
+if ( not defined $fd ) {
+    return undef;    ## invalid file handle
+}
+
+return $fh_encoding{$fd};
+
+#,,,,,,,,,..,,,.,,...,,,,,,,,,...,.,.,,.,,.,.,..,,...,...,..,,,.,,...,..,,,..,
+#R7IKS6A3SANB5SPXDTM4ZQYRJVKGSF3LHVPYM3YU5OZZK56ZZOKX3AR2B75FGV4X3YYQJOZ6RAE6G
+#\\\|4OJVAA6GWHE5PNROQEALAF3KA3HLCCNGG22YITZPUVFHATR7HQB \ / AMOS7 \ YOURUM ::
+#\[7]3F55TAYAL6K4M2HCYZMQ45MVGJ75MTSWXSMQVPLW4JM4B2QXISDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
