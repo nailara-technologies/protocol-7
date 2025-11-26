@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = base.fh-encoding.apply
+# descr = apply encoding mode to file handle based on %fh_encoding entry
+# usage = <[base.fh-encoding.apply]>->($fh)
+# args  = $fh: file handle (GLOB) or filehandle reference
+# returns = TRUE [5] on success, FALSE [0] on error
+
+my ($fh) = @ARG;
+
+if ( not defined $fh ) {
+    return FALSE;
+}
+
+my $fd = fileno($fh);
+if ( not defined $fd ) {
+    return FALSE;    ## invalid file handle
+}
+
+my $encoding_mode = $fh_encoding{$fd};
+
+if ( not defined $encoding_mode ) {
+    return TRUE;     ## no encoding set, nothing to do [true:5]
+}
+
+if ( $encoding_mode eq 'UTF-8' ) {
+    binmode( $fh, ':encoding(UTF-8)' ) or return FALSE;
+} elsif ( $encoding_mode eq 'OCTETS' ) {
+    binmode( $fh, ':bytes' ) or return FALSE;
+} else {
+    ## try to apply as generic encoding layer
+    binmode( $fh, ":encoding($encoding_mode)" ) or return FALSE;
+}
+
+return TRUE;    ## success [true:5]
+
+#,,..,...,,,,,,..,,,.,,.,,,,,,.,,,.,.,,.,,,..,..,,...,...,,,.,,..,,,.,,..,.,,,
+#BWZC4QZMNLMXPWKF37CMYSCJFQW24TBAR7EJW7PO7GV65IAJ757ASBPP24JZZ7E43753LJWGUGRTE
+#\\\|TXXIUBW6BTIMA5T3CL3HUA5DMLFU6FVJGYGWCNAX7T22BHXKJSN \ / AMOS7 \ YOURUM ::
+#\[7]PSZXXTTYLCAWKFH2LUB5U5CFNZJ6MSBY22WNXPKCRXS3ARL232DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

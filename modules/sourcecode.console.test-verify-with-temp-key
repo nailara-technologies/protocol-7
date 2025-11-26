@@ -12,7 +12,7 @@ say ': .:[ TEST VERIFY WITH BOTH KEYS ]:.::';
 say ':';
 
 # Load both temp key AND original key to verify against both
-my $sig_key_name = qw| proto-7.sourcecode |;
+my $sig_key_name  = qw| proto-7.sourcecode |;
 my $test_key_name = qw| test-proto7-sourcecode |;
 
 # Load original key public key from embedded string (no password needed)
@@ -22,23 +22,27 @@ say ': Loading original signature key...';
 );
 
 # Verify original key is loaded
-unless ( exists $keys{'C25519'}{$sig_key_name} and exists $keys{'C25519'}{$sig_key_name}->{'public'} ) {
+unless (exists $keys{'C25519'}{$sig_key_name}
+    and exists $keys{'C25519'}{$sig_key_name}->{'public'} ) {
     say ': ERROR: Original key not loaded';
     return;
 }
 
 say ': Loading temp key for verification...';
-unless ( <[crypt.C25519.load_keypair]>->( $test_key_name, undef, FALSE, FALSE ) ) {
+unless (
+    <[crypt.C25519.load_keypair]>->( $test_key_name, undef, FALSE, FALSE ) ) {
     say ': ERROR: Could not load test key';
     return;
 }
 
 # Verify both keys are still available
-unless ( exists $keys{'C25519'}{$sig_key_name} and exists $keys{'C25519'}{$sig_key_name}->{'public'} ) {
+unless (exists $keys{'C25519'}{$sig_key_name}
+    and exists $keys{'C25519'}{$sig_key_name}->{'public'} ) {
     say ': ERROR: Original key lost after loading test key';
     return;
 }
-unless ( exists $keys{'C25519'}{$test_key_name} and exists $keys{'C25519'}{$test_key_name}->{'public'} ) {
+unless (exists $keys{'C25519'}{$test_key_name}
+    and exists $keys{'C25519'}{$test_key_name}->{'public'} ) {
     say ': ERROR: Test key not loaded';
     return;
 }
@@ -50,7 +54,7 @@ my @source_paths;
 
 if ( length $command_params ) {
     @source_paths = <[base.source.collect_file_list]>->($command_params);
-    unless ( @source_paths ) {
+    unless (@source_paths) {
         printf( ": no files found for pattern: %s\n", $command_params );
         return;
     }
@@ -58,20 +62,23 @@ if ( length $command_params ) {
     @source_paths = <[sourcecode.source_path_set_up]>;
 }
 
-unless ( @source_paths ) {
+unless (@source_paths) {
     say ': no source files to verify';
     return;
 }
 
-printf( ': Verifying %d files with both keys (temp + original)' . "\n", scalar(@source_paths) );
+printf(
+    ': Verifying %d files with both keys (temp + original)' . "\n",
+    scalar(@source_paths)
+);
 say ':';
 
-my $valid_count = 0;
-my $invalid_count = 0;
+my $valid_count    = 0;
+my $invalid_count  = 0;
 my $unsigned_count = 0;
 my @invalid_files;
 
-foreach my $file_path ( @source_paths ) {
+foreach my $file_path (@source_paths) {
     next unless -f $file_path;
 
     <[file.slurp]>->( $file_path, \my $src_str, qw| :raw | );
@@ -80,19 +87,20 @@ foreach my $file_path ( @source_paths ) {
     my $footer_data = <[source.extract_sig_body]>->( \$src_str, qw| strip | );
 
     if ( $footer_data->{'was-present'} ) {
-        my $state = $footer_data->{'endline-state-encoded'} // '?';
-        my $bmw = $footer_data->{'bmw-chksum'} // 'ERROR';
-        my $sig = $footer_data->{'signature'} // 'ERROR';
-        my $filename = (split '/', $file_path)[-1];
+        my $state    = $footer_data->{'endline-state-encoded'} // '?';
+        my $bmw      = $footer_data->{'bmw-chksum'}            // 'ERROR';
+        my $sig      = $footer_data->{'signature'}             // 'ERROR';
+        my $filename = ( split '/', $file_path )[-1];
 
-        my $filename_short = <[base.parser.ellipse_center]>->( $filename, 32 );
+        my $filename_short
+            = <[base.parser.ellipse_center]>->( $filename, 32 );
         my $bmw_short = <[base.parser.ellipse_center]>->( $bmw, 21 );
         my $sig_short = <[base.parser.ellipse_center]>->( $sig, 21 );
 
-        # Try verifying with temp key - suppress output since we expect most to fail
+  # Try verifying with temp key - suppress output since we expect most to fail
         open( my $null_fh, '>', '/dev/null' ) or die "Cannot open /dev/null";
         my $old_stdout = select($null_fh);
-        my ($is_valid_temp, $report_temp) = <[source.signature_valid]>->(
+        my ( $is_valid_temp, $report_temp ) = <[source.signature_valid]>->(
             \$src_str, $footer_data, {}, $test_key_name, 'strict'
         );
         select($old_stdout);
@@ -100,42 +108,38 @@ foreach my $file_path ( @source_paths ) {
 
         # Re-read file for original key verification to avoid state corruption
         <[file.slurp]>->( $file_path, \$src_str, qw| :raw | );
-        my $footer_data_orig = <[source.extract_sig_body]>->( \$src_str, qw| strip | );
+        my $footer_data_orig
+            = <[source.extract_sig_body]>->( \$src_str, qw| strip | );
 
-        # Try verifying with original key - use strict mode for proper validation
-        my ($is_valid_orig, $report_orig) = <[source.signature_valid]>->(
+     # Try verifying with original key - use strict mode for proper validation
+        my ( $is_valid_orig, $report_orig ) = <[source.signature_valid]>->(
             \$src_str, $footer_data_orig, {}, $sig_key_name, 'strict'
         );
 
         # Report results
         my $key_marker = '';
-        my $is_valid = 0;
+        my $is_valid   = 0;
 
         if ( $is_valid_temp && $is_valid_orig ) {
             $key_marker = '[valid:both!]';
-            $is_valid = 1;
-        } elsif ( $is_valid_temp ) {
+            $is_valid   = 1;
+        } elsif ($is_valid_temp) {
             $key_marker = '[valid:temp.]';
-            $is_valid = 1;
-        } elsif ( $is_valid_orig ) {
+            $is_valid   = 1;
+        } elsif ($is_valid_orig) {
             $key_marker = '[valid:orig.]';
-            $is_valid = 1;
+            $is_valid   = 1;
         }
 
         printf( ': %32s : state=%d : bmw=%s sig=%s %s' . "\n",
-            $filename_short,
-            $state,
-            $bmw_short,
-            $sig_short,
-            $key_marker
-        );
+            $filename_short, $state, $bmw_short, $sig_short, $key_marker );
 
-        if ( $is_valid ) {
+        if ($is_valid) {
             $valid_count++;
         } else {
             $invalid_count++;
-            push( @invalid_files, (split '/', $file_path)[-1] );
-            say sprintf( ':  ^ INVALID (neither key validates)' );
+            push( @invalid_files, ( split '/', $file_path )[-1] );
+            say sprintf(':  ^ INVALID (neither key validates)');
         }
     } else {
         $unsigned_count++;
@@ -144,16 +148,20 @@ foreach my $file_path ( @source_paths ) {
 
 say ':';
 if ( $unsigned_count > 0 ) {
-    printf( ': Results: %d valid, %d invalid, %d unsigned (total: %d)' . "\n",
-        $valid_count, $invalid_count, $unsigned_count, scalar(@source_paths) );
+    printf(
+        ': Results: %d valid, %d invalid, %d unsigned [total: %d]' . "\n",
+        $valid_count,    $invalid_count,
+        $unsigned_count, scalar(@source_paths)
+    );
 } else {
-    printf( ': Results: %d valid, %d invalid' . "\n", $valid_count, $invalid_count );
+    printf( ': Results: %d valid, %d invalid' . "\n",
+        $valid_count, $invalid_count );
 }
 
-if ( @invalid_files ) {
+if (@invalid_files) {
     say ':';
     say ': INVALID FILES (neither key validates):';
-    foreach my $invalid_file ( @invalid_files ) {
+    foreach my $invalid_file (@invalid_files) {
         say ': - ' . $invalid_file;
     }
 }
@@ -161,8 +169,8 @@ say ':';
 
 0;
 
-#,,,.,,..,.,,,,..,...,,.,,,..,,..,,.,,...,,.,,..,,...,...,..,,.,,,,,,,.,.,.,,,
-#BIB56QSC4ZOFG5YJNIRYJ3QTAUGRGCMCDYEIONIF4XM7SYYSCL7YDGUK63JFPV3DLY57LI3KGUHW4
-#\\\|ERIZZZRFP5UVSWH6OVF4J2AAX3OGEFBSUIFX7Z6DT4Q4VMCL3TU \ / AMOS7 \ YOURUM ::
-#\[7]XQATJJXEG7RM3LRJTAVNA67RROBXPZE6BAFU24QWCANI3XLKS6BA 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,,,,..,,.,,,...,...,.,.,,,.,..,,..,,...,..,,,,.,..,,,,,,..,,,,,,
+#N5C7ZMBEBECNKFVUFEVD23HUOYSXVRCGZU4XUARTJTNIBO3HM2L5QZ3ANG3LK2QIBHST2FN26PKMO
+#\\\|43GVNBVFACWY3NKTPQY2LOPOOGE5QJW373K4CQYZKNXQV3N3D26 \ / AMOS7 \ YOURUM ::
+#\[7]NKC3ELRLWPYNRQ4AX5MC5LPA6KPDRJ3BWUOJQNMD22JF4654K4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
