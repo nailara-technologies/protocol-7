@@ -412,6 +412,12 @@ sub s_write {
     return $b_written;
 }
 
+sub s_read {
+    my $read_fh = shift;
+    my $line = <$read_fh>;
+    return $line;
+}
+
 sub clear {
     print "\e[37m\e[H\e[2J" unless $no_tty;  # Skip ANSI codes in no-tty mode
 }
