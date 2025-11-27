@@ -42,24 +42,26 @@ my $home_dir = <crypt.C25519.key_usr_home>
 my $key_dir = <crypt.C25519.key_dir>
     //= sprintf( qw| %s/.n/user-keys |, $home_dir );
 
-if ( not -r $key_dir ) {
+## When running as root from console, allow non-existent key directories
+## The directory will be created by chk_key_dir if needed
+## Only enforce readability if directory already exists
+if ( not -d $key_dir ) {
+    ## Directory doesn't exist yet - this is OK, can be created later
+    ## Just verify parent directory is writable if it exists
     my $parent_dir = <[file.last_existing_dir_path]>->($key_dir);
-    if ( $parent_dir ne $key_dir and not -r $parent_dir ) {
+    if ( $EFFECTIVE_USER_ID != 0 and $parent_dir ne $key_dir and not -w $parent_dir ) {
+        ## Non-root user: parent must be writable for directory creation
         <[base.s_warn]>->(
-            "no read permissions to parent path [ %s ] <{C1}>", $parent_dir
-        );
-        return undef;
-    } elsif ( not -r $key_dir ) {
-        <[base.s_warn]>->(
-            "no read permission to key dir ['%s'] <{C1}>", $key_dir
-        );
-        return undef;
-    } elsif ( not -d $key_dir ) {
-        <[base.s_warn]>->(
-            "user key dir does not exist ['%s'] <{C1}>", $key_dir
+            "no write permissions to parent path [ %s ] <{C1}>", $parent_dir
         );
         return undef;
     }
+} elsif ( not -r $key_dir ) {
+    ## Directory exists but isn't readable - this is an error
+    <[base.s_warn]>->(
+        "no read permission to key dir ['%s'] <{C1}>", $key_dir
+    );
+    return undef;
 }
 
 my $key_file_ext;
