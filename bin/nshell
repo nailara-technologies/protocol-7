@@ -188,7 +188,7 @@ while ($connect) {
             print " :: link-upgrade encryption enabled ::\n";
             $encryption_state{enabled} = 1;
         } else {
-            warn_err("link-upgrade negotiation failed, continuing plaintext");
+            print STDERR "[link-upgrade] Negotiation failed, continuing plaintext\n" if $ENV{DEBUG};
         }
     }
 
