@@ -361,3 +361,9 @@ Protocol-7 Development Team
 As per Protocol-7
 
 =cut
+
+#,,,,,.,,,,.,,,,,,.,,,..,,,,,,..,,,,.,,.,,,,.,..,,...,...,,.,,.,,,.,.,,..,,.,,
+#UF2CWE5DVHS55UZXYQR2MODB5WO3FDHIPJUIMET3VPUJVPFXAQJAYLNMP72Z4IHJ253EXVENOXKIG
+#\\\|USRIEPLRMKVC567RK4T6GPM5CS4EMPF7A4PCUDT67R35RN3367Z \ / AMOS7 \ YOURUM ::
+#\[7]R5S62PTN32SLGDJ46VBGZEKGB7HPJIFD6J4MUGHIZIO7JNXXT6BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
