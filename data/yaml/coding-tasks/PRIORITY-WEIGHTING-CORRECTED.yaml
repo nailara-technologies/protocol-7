@@ -1,0 +1,128 @@
+---
+document_title: "CORRECTED Priority Weighting for Next Session"
+document_date: 2025-11-27
+purpose: "Align task priorities with what 2025-11-26 session explicitly emphasized"
+
+## Key Insight
+
+The 2025-11-26 session (module loading work) created a detailed roadmap that **explicitly prioritizes
+Phase 1: Broken Routine Handler Integration as HIGH and RECOMMENDED NEXT**.
+
+This should take precedence over other improvements.
+
+---
+
+## Corrected Task Priority
+
+### 🚨 TIER 0: CRITICAL (START HERE)
+
+**Phase 1: Broken Routine Handler Integration** ⭐ FIRST PRIORITY
+  source: "next-session-roadmap.yaml (2025-11-26)"
+  explicitly_stated: "Priority: HIGH, Estimated Scope: Medium (1-2 hour session), Recommended Next"
+  effort: 1-2 hours
+  impact: CRITICAL (foundational error handling)
+
+  why_critical:
+    - Direct continuation of 2025-11-26 module loading improvements
+    - Integrates handler with $compilation_success flag
+    - Ensures proper error substitution for unreadable/broken modules
+    - Addresses core infrastructure issue identified in previous session
+
+  next_steps_from_roadmap:
+    1. Analyze handler message flow (lines 1776-1803)
+    2. Track failure reason through compilation flow
+    3. Test handler path selection with unreadable modules
+    4. Document handler behavior clearly
+
+  key_insight_from_roadmap:
+    "The broken routine handler currently doesn't receive any context about WHY the
+    compilation failed. To improve diagnostics further, we should pass the failure
+    reason to the handler."
+
+---
+
+### TIER 1: HIGH PRIORITY (After Phase 1)
+
+**Phase 2: File Handle Encoding Validation**
+  source: "next-session-roadmap.yaml (2025-11-26)"
+  explicitly_stated: "Priority: MEDIUM, Estimated Scope: Small (30-45 min)"
+  effort: 30-45 minutes
+  impact: MEDIUM (improves error handling, catches bugs early)
+
+---
+
+### TIER 2: MEDIUM-HIGH (Parallel tracks, or after Phases 1-2)
+
+**Rename workflow zenka to 'work'**
+  source: "3LE3NKOYM63SA.user-encountered-taks.yaml"
+  effort: 1-1.5 hours
+  impact: HIGH (improves accessibility)
+  note: "Can be done in parallel with Phase 1 or after"
+
+**Fix 'param = ' parser error**
+  source: "3LE3NKOYM63SA.user-encountered-taks.yaml"
+  effort: 30-45 minutes
+  impact: HIGH (fixes bug, improves output quality)
+  note: "Can be done in parallel with Phase 1 or after"
+
+---
+
+### TIER 3: LOWER PRIORITY (Session 2+)
+
+**Sourcecode analysis commands** (#3-5 from PRIORITIZED-TASKS)
+  - Create sourcecode top command (1-2h)
+  - Create signature analyzer (1-2h)
+  - Clean up code outliers (1-2h)
+
+**Phase 3-5: Module loading phases** (from roadmap)
+  - Permission auto-management (LOW)
+  - Diagnostics (LOW)
+  - System-wide audit (DEFERRED)
+
+**Link encryption work**
+  - Multiple sessions, lower priority
+  - Resume after current work completed
+
+---
+
+## Recommended Execution Sequence
+
+### Session 1 (Next) - Focus on Roadmap Priorities
+1. ✅ **Phase 1**: Broken routine handler integration (1-2h) - CRITICAL
+2. Optional: Phase 2 if time permits (30-45m)
+3. Could do in parallel: Rename workflow (1-1.5h) or Fix parser (30-45m)
+
+**Outcome**: Module loading infrastructure significantly improved with better error handling
+
+### Session 2
+1. Complete remaining roadmap phases if not done
+2. Rename workflow → work (1-1.5h)
+3. Fix param parser (30-45m)
+4. Start sourcecode commands if time permits
+
+### Session 3+
+1. Sourcecode analysis commands
+2. Link encryption work
+3. Other optimizations
+
+---
+
+## Summary
+
+The 2025-11-26 session was VERY clear: Module loading Phase 1 is the top priority.
+User-encountered tasks are valuable but should come AFTER the foundation is solid.
+
+**Priority Order:**
+1. Module loading Phase 1 (roadmap - HIGH, CRITICAL)
+2. Module loading Phase 2 (roadmap - MEDIUM)
+3. Workflow rename (user tasks - HIGH)
+4. Parser fix (user tasks - HIGH)
+5. Code quality tools (user tasks - MEDIUM)
+
+---
+
+metadata:
+  created: 2025-11-27
+  purpose: "Correct weighting based on 2025-11-26 roadmap emphasis"
+  status: "Ready for next session"
+  recommendation: "Start with Phase 1 from next-session-roadmap.yaml"
