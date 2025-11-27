@@ -24,9 +24,15 @@ echo "---"
 echo ""
 
 echo "[2/3] Testing latency with p7 heart..."
+echo "     (Expecting 'TRUE beating' reply on working connection)"
 echo "---"
-p7 heart 2>&1 | head -10 || echo "ERROR: Heart command failed"
+p7 heart 2>&1 || echo "ERROR: Heart command failed"
 echo "---"
+if p7 heart 2>&1 | grep -q "TRUE beating"; then
+    echo "✓ Connection is HEALTHY"
+else
+    echo "✗ Connection test FAILED - no heartbeat"
+fi
 echo ""
 
 echo "[3/3] Listing active zenki..."
