@@ -3,7 +3,7 @@
 # name     = base.parser.command_list
 # args     = <cmd_aref>, [section_name]
 # descr    = format command list with short descriptions
-# return   = plain( formatted command list )
+# return   = plain[ formatted command list ]
 
 my $cmd_aref  = shift;
 my $section   = shift // qw| cmd |;    # [cmd|console]
@@ -38,7 +38,8 @@ foreach my $cmd (@commands) {
         if ( defined $data{'base'}{'commands'}{$section}{$cmd} ) {
             $cmd_descr = $data{'base'}{'commands'}{$section}{$cmd}{'descr'};
         }
-        $cmd_descr = 'n/a' if not defined $cmd_descr or $cmd_descr eq '';
+        $cmd_descr = qw| n\\a |
+            if not defined $cmd_descr or not length $cmd_descr;
     } else {
         $cmd_descr = "<< broken command >> [ '$cmd' ]";
     }
@@ -49,8 +50,8 @@ foreach my $cmd (@commands) {
 
 return ( \$reply_str, $max_len );
 
-#,,,.,,,.,.,,,,..,,..,..,,,,.,,,,,,.,,..,,.,.,..,,...,...,.,.,,.,,,,.,,,,,,,.,
-#6YLYZ67FL75Q4RHDJXOMEYOBG37BJUVVXWN4P2SSUX3HLSOLKNBUM5UOWPXLE7P57TVUYRZ55PDDA
-#\\\|CQJ2DLSTOQFZWQ2IGJ3FDRQYUKURNZJM3YIU4DHPTRAFXMQI7QI \ / AMOS7 \ YOURUM ::
-#\[7]UEN3LAO4O672RXUCTA5JSRBLKXQBEAIJSJUU6RLRD5ENOD3MUMCI 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,.,,,,.,,.,,,,,,,..,,,..,,.,,,,,,..,,...,...,..,,,..,,.,,.,,,..,,
+#PDQHIMXDLGQO44SJJ5GHOF3REJ5QNZDHCBHFPGYF26M5KLB4H3LQJJ2EJNQKG7B75D4NU6JWKPFYO
+#\\\|JBNAOSGMRWUHGUJ44FUL6A4BYS5ZIQQVVWIUYFCI3CCNAOCVPDN \ / AMOS7 \ YOURUM ::
+#\[7]S7ACYHMKVUWHVTJX7KQJFYFZU7HKKE7WY2ANPXXZMUAV2ML2JIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
