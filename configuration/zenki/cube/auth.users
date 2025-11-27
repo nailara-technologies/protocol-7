@@ -25,6 +25,12 @@ auth.setup.usr.notify-warn  = :unix:protocol-7,<unix-AMOS-user>
 auth.setup.usr.notify-info  = :unix:protocol-7,<unix-AMOS-user>
 auth.setup.usr.power-x11    = :unix:<unix-admin>,<unix-AMOS-user>
 
+## [ C25519 key-based authentication - Phase 1 ]
+## Format: auth <username> <c25519_pubkey_b32> <ed25519_signature_b32>
+## Master key registered via: register-master-key <username> <ed25519_pubkey_b32>
+auth.setup.usr.taeki        = :unix:taeki,:c25519:
+auth.setup.usr.test-c25519  = :c25519:
+
 ##  use './bin/mk.usr' to create users with password hashes  ##
 
 #,,..,,,,,,.,,,,,,,..,,.,,..,,.,,,.,.,,..,,.,,..,,...,...,.,,,,,,,,..,,,,,,..,
