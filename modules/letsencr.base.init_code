@@ -80,14 +80,18 @@ foreach my $config (@dir_configs) {
 ## All ACME protocol modules are loaded in letsencr.base.pre_init
 
 <[base.log]>->( 2, "Let's Encrypt ACME client initialization complete" );
-<[base.logs]>->( 2, ": ACME Server     : %s", <letsencr.acme.server> );
+<[base.logs]>->(
+    2,
+    ": ACME Server     : %s",
+    <[base.parser.ellipse_center]>->( <letsencr.acme.server>, 35 )
+);
 <[base.logs]>->( 2, ": Certificate Dir : %s", <letsencr.certs.dir> );
 <[base.logs]>->( 2, ": Admin Email     : %s", <letsencr.admin.email> );
 
 0;
 
-#,,..,...,,,,,,,,,...,,,.,,,,,..,,..,,,..,.,,,..,,...,...,...,,..,,,.,,.,,.,.,
-#GINPELYGHPVGQ7VT4M4JGTYXAPVCYPVW7OF6JS7FIO4F5CA4LUXJSY5QKKG66ZMSWLG26ZTQMWKTY
-#\\\|YKN3EWXGDGKBSAVQKJ676SUVTVQBYOQRMD4JXWPQI5BE34TKBGW \ / AMOS7 \ YOURUM ::
-#\[7]6INBJSWGPKNNJ44OPSXQQ7H2EAWXEUODMO6OXPEARNN4AC7OP6CA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,.,,,,..,,.,,,,.,...,,..,,,.,,.,,..,,...,...,.,.,...,.,.,,,.,,,.,
+#WMXJCNT5MXKWAM437YHZSBH5GXXA7ORFTJ3WKAAM2ZA4UYHG2KN5A2HVD6XOE746ETQ5FSKQGXOWE
+#\\\|4R7G5C7KJ3GECYTAMZOOT56PUSATRE6E2B7FUPIYQ47345BHNER \ / AMOS7 \ YOURUM ::
+#\[7]XJRGIPSHT2NUPD5MJOMZMDXUJGYYU4XKDKJMRBTZJSIN27ZJWSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
