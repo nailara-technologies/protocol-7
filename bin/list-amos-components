@@ -3,6 +3,8 @@
 use strict;
 use warnings;
 use v5.28.0;
+use Cwd 'abs_path';
+use File::Spec::Functions qw| catdir catfile |;
 
 =head1 NAME
 
@@ -48,17 +50,6 @@ Commands register themselves via inline metadata in their source files.
     # Get command registry as JSON (for AI)
     bin/list-amos-components --json
 
-=head1 IMPLEMENTATION STATUS
-
-    [NOT IMPLEMENTED YET]
-
-    Planned for next session:
-    - Parse inline command metadata from zenka modules
-    - Build command registry (command → metadata)
-    - Support filtering by tag, zenka, search pattern
-    - Output formats: human-readable, JSON, YAML
-    - Integration with 'describe' command
-
 =head1 METADATA FORMAT
 
 Commands register themselves via inline metadata blocks:
@@ -80,12 +71,210 @@ Commands register themselves via inline metadata blocks:
 
 =cut
 
-# Placeholder implementation
-print "\n :: list-amos-components - command discovery system ::\n";
-print " :: [ not implemented yet ] ::\n\n";
-print " See: configuration/zenki/work/source/inline-documentation-plan.md\n\n";
+## Load AMOS7::Metadata module
+use lib 'data/lib-path/pm';
+require AMOS7::Metadata;
 
-exit(0);
+## ============================================================================
+## HELPER FUNCTIONS
+## ============================================================================
+
+sub find_protocol7_root {
+    my $script_path = abs_path($0);
+    my ($volume, $dirs, $file) = File::Spec->splitpath($script_path);
+    my @dir_parts = File::Spec->splitdir($dirs);
+
+    ## Navigate up to find protocol-7 root (where 'bin' directory is)
+    while (@dir_parts) {
+        pop @dir_parts;
+        my $test_dir = File::Spec->catdir($volume, @dir_parts);
+        if (-d catdir($test_dir, 'bin') && -d catdir($test_dir, 'configuration', 'zenki')) {
+            return $test_dir;
+        }
+    }
+    return '.';
+}
+
+sub print_header {
+    my $title = shift;
+    print "\n :: $title ::\n";
+    print " :: " . ("=" x (length($title) - 4)) . " ::\n\n";
+}
+
+sub print_command_table {
+    my $registry = shift;
+    my @commands = sort keys %$registry;
+
+    return if not @commands;
+
+    ## Calculate column widths
+    my $max_cmd_len = 0;
+    my $max_desc_len = 40;
+
+    foreach my $cmd (@commands) {
+        $max_cmd_len = length($cmd) if length($cmd) > $max_cmd_len;
+    }
+    $max_cmd_len = 30 if $max_cmd_len > 30;  ## cap at 30
+
+    ## Print header
+    printf " %-${max_cmd_len}s  %-${max_desc_len}s  Zenka\n", 'Command', 'Description';
+    print " " . ("-" x $max_cmd_len) . "  " . ("-" x $max_desc_len) . "  -----\n";
+
+    ## Print entries
+    foreach my $cmd (@commands) {
+        my $entry = $registry->{$cmd};
+        my $descr = $entry->{'descr'} // '';
+
+        ## Truncate description if too long
+        if (length($descr) > $max_desc_len) {
+            $descr = substr($descr, 0, $max_desc_len - 3) . '...';
+        }
+
+        my $zenka = $entry->{'zenka'} // '?';
+        printf " %-${max_cmd_len}s  %-${max_desc_len}s  %s\n", $cmd, $descr, $zenka;
+    }
+    print "\n";
+}
+
+sub show_command_details {
+    my $registry = shift;
+    my $cmd = shift;
+
+    my $entry = AMOS7::Metadata::get_command_info($registry, $cmd);
+    return 0 if not defined $entry;
+
+    print_header("Command Details: $cmd");
+
+    print " Description:  " . ($entry->{'descr'} // '(none)') . "\n";
+    print " Zenka:        " . ($entry->{'zenka'} // '?') . "\n";
+    print " File:         " . ($entry->{'filepath'} // '?') . "\n";
+
+    if (exists $entry->{'usage'}) {
+        print " Usage:        " . $entry->{'usage'} . "\n";
+    }
+
+    if (exists $entry->{'tags'} && @{$entry->{'tags'}}) {
+        print " Tags:         " . join(', ', @{$entry->{'tags'}}) . "\n";
+    }
+
+    if (exists $entry->{'features'}) {
+        print " Features:     " . $entry->{'features'} . "\n";
+    }
+
+    if (exists $entry->{'related'}) {
+        print " Related:      " . $entry->{'related'} . "\n";
+    }
+
+    if (exists $entry->{'examples'}) {
+        print " Examples:\n";
+        foreach my $example (@{$entry->{'examples'}}) {
+            print "   - " . $example . "\n";
+        }
+    }
+
+    print "\n";
+    return 1;
+}
+
+## ============================================================================
+## MAIN
+## ============================================================================
+
+my $protocol7_root = find_protocol7_root();
+my $zenka_root = catdir($protocol7_root, 'configuration', 'zenki');
+
+## Parse command-line arguments
+my $output_format = 'human';
+my $filter_tag = undef;
+my $filter_zenka = undef;
+my $search_pattern = undef;
+my $describe_cmd = undef;
+
+while (my $arg = shift @ARGV) {
+    if ($arg eq '--json') {
+        $output_format = 'json';
+    }
+    elsif ($arg eq '--yaml') {
+        $output_format = 'yaml';
+    }
+    elsif ($arg eq '--tag') {
+        $filter_tag = shift @ARGV;
+    }
+    elsif ($arg eq '--search') {
+        $search_pattern = shift @ARGV;
+    }
+    elsif ($arg eq '--zenka') {
+        $filter_zenka = shift @ARGV;
+    }
+    elsif ($arg eq '--describe') {
+        $describe_cmd = shift @ARGV;
+    }
+    elsif ($arg eq '--version') {
+        print "list-amos-components version 1.0\n";
+        exit(0);
+    }
+    elsif ($arg =~ /^--/) {
+        warn "Unknown option: $arg\n";
+    }
+    else {
+        ## Treat positional argument as zenka name
+        $filter_zenka = $arg;
+    }
+}
+
+## Build the command registry
+my $registry = AMOS7::Metadata::build_command_registry($zenka_root);
+
+## Handle --describe option
+if (defined $describe_cmd) {
+    show_command_details($registry, $describe_cmd) or exit(1);
+    exit(0);
+}
+
+## Apply filters
+if (defined $filter_tag) {
+    $registry = AMOS7::Metadata::filter_by_tag($registry, $filter_tag);
+}
+
+if (defined $filter_zenka) {
+    $registry = AMOS7::Metadata::filter_by_zenka($registry, $filter_zenka);
+}
+
+if (defined $search_pattern) {
+    $registry = AMOS7::Metadata::search_registry($registry, $search_pattern);
+}
+
+## Output results
+if ($output_format eq 'json') {
+    print AMOS7::Metadata::registry_to_json($registry);
+    print "\n";
+}
+elsif ($output_format eq 'yaml') {
+    print AMOS7::Metadata::registry_to_yaml($registry);
+}
+else {
+    ## Human-readable format
+    my $filter_desc = '';
+    if (defined $filter_zenka) {
+        $filter_desc = " in '$filter_zenka' zenka";
+    }
+    if (defined $filter_tag) {
+        $filter_desc .= " tagged '$filter_tag'";
+    }
+    if (defined $search_pattern) {
+        $filter_desc .= " matching '$search_pattern'";
+    }
+
+    my $cmd_count = keys %$registry;
+    if ($cmd_count == 0) {
+        print "\n :: No commands found$filter_desc ::\n\n";
+    }
+    else {
+        my $title = "Available Commands$filter_desc ($cmd_count)";
+        print_header($title);
+        print_command_table($registry);
+    }
+}
 
 #,,,,,,.,,.,.,,,.,...,...,,.,,,.,,...,,..,.,.,..,,...,...,...,..,,,,.,.,,,.,,,
 #OPZR6NUGJI7YOU7SLFJGYSYXH7S4QYYU2KTTVESMTZAUCPJ2BXXW26D5IMVB4YMPAY2SIUD6RHCSE

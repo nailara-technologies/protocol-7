@@ -26,14 +26,16 @@ use vars qw| @EXPORT $VERSION |;
     registry_to_yaml
     get_command_info
     $VERSION
+    $METADATA_START
+    $METADATA_END
 |;
 
 our $VERSION = qw| AMOS7::Metadata-VERSION.YT9K8L2 |;
 
 ##[ METADATA CONSTANTS ]#######################################################
 
-use constant METADATA_START => qr/##\s*\[:< \s* command-metadata/x;
-use constant METADATA_END   => qr/##\s*\]:>/x;
+our $METADATA_START = qr/##\s*\[\:<\s*command-metadata/;
+our $METADATA_END   = qr/##\s*\]/;
 
 ##[ GLOBAL REGISTRY ]#########################################################
 
@@ -54,11 +56,11 @@ sub parse_inline_metadata {
     my @metadata_lines;
 
     foreach my $line (@lines) {
-        if ( $line =~ METADATA_START ) {
+        if ( $line =~ $METADATA_START ) {
             $in_metadata = TRUE;
             next;
         }
-        elsif ( $line =~ METADATA_END ) {
+        elsif ( $line =~ $METADATA_END ) {
             $in_metadata = FALSE;
             last;
         }
@@ -85,22 +87,22 @@ sub parse_inline_metadata {
             if ( $key eq 'tag' ) {
 
                 # tags can be comma-separated
-                $metadata{'tags'} = [ split /\s*,\s*/, $value ];
+                $metadata->{'tags'} = [ split /\s*,\s*/, $value ];
             }
             elsif ( $key eq 'examples' ) {
 
                 # examples might span multiple lines, just store first
-                if ( not exists $metadata{'examples'} ) {
-                    $metadata{'examples'} = [$value];
+                if ( not exists $metadata->{'examples'} ) {
+                    $metadata->{'examples'} = [$value];
                 }
                 else {
-                    push @{ $metadata{'examples'} }, $value;
+                    push @{ $metadata->{'examples'} }, $value;
                 }
             }
             else {
 
                 # single value fields
-                $metadata{$key} = $value;
+                $metadata->{$key} = $value;
             }
         }
     }
@@ -122,13 +124,13 @@ sub find_metadata_blocks {
     my $block_start = 0;
 
     for ( my $i = 0; $i < @lines; $i++ ) {
-        if ( $lines[$i] =~ METADATA_START ) {
+        if ( $lines[$i] =~ $METADATA_START ) {
             $in_block     = TRUE;
             $block_start  = $i;
             @block_lines  = ();
             next;
         }
-        elsif ( $lines[$i] =~ METADATA_END ) {
+        elsif ( $lines[$i] =~ $METADATA_END ) {
             $in_block = FALSE;
             if (@block_lines) {
                 push @blocks,
@@ -181,8 +183,8 @@ sub build_command_registry {
             # Parse metadata from this file
             my $metadata = parse_inline_metadata($source_code);
 
-            if ( exists $metadata{'command'} ) {
-                my $cmd = $metadata{'command'};
+            if ( exists $metadata->{'command'} ) {
+                my $cmd = $metadata->{'command'};
                 $registry->{$cmd} = {
                     %$metadata,
                     'zenka'    => $zenka_name,
