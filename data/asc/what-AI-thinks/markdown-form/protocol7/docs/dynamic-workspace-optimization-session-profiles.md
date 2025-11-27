@@ -58,17 +58,76 @@ Instead of guessing, let the system's actual usage pattern drive profiles:
 
 ## Implementation Strategy
 
-### Phase 1: Analysis Command
+### Phase 0: Semantic Intent Parsing
 
 ```bash
-bin/p7-deps analyze-sessions [--since 1w] [--format json|yaml]
+bin/p7-deps parse-intent [--since 1w] [--verbose]
+```
+
+Scan task descriptions and commit messages for dependency mentions using pattern matching:
+
+**Additive Patterns** (things we need/added):
+- "add.*module X" / "install X" / "need X" / "import X"
+- "require.*X" / "use.*X module" / "X dependency"
+- Mentions in task descriptions: "implement X using Y module"
+
+**Removal Patterns** (things we removed/don't need):
+- "remove.*X" / "delete.*X" / "uninstall X"
+- "no longer need X" / "X is obsolete"
+- Task closure: "X work complete, can remove Z"
+
+**Result**: Intent markers that trigger detailed scans
+
+### Phase 1: Validation Scans (Intent-Driven)
+
+When dependencies are mentioned, trigger automated verification:
+
+```bash
+# When task mentions "we need JSON::XS"
+→ bin/p7-deps scan-usage JSON::XS [--aggressive]
+  ├─ Grep codebase for actual use: grep -r 'JSON::XS|JSON::PP'
+  ├─ Check pm-dep declarations: ls configuration/zenki/*/pm-dep/ | grep JSON
+  ├─ Verify in profiles: grep -r 'JSON' .deps/profiles.yaml
+  ├─ Find actual imports: ./bin/ncode s src perlmod.autoload | grep JSON
+  └─ Report: matches X files, declared in Y zenka, used in Z modules
+
+# When task says "removed X dependency"
+→ bin/p7-deps verify-removal X [--aggressive]
+  ├─ Search for orphaned references
+  ├─ Find any remaining imports or declarations
+  ├─ Identify code that might break without X
+  └─ Report: safe to remove? (zero references)
+```
+
+**Pattern Matching Examples**:
+```
+Task: "Implemented webhook validation using Crypt::OpenSSL::X509"
+→ Parse: needs Crypt::OpenSSL::X509
+→ Scan: verify used in code, add to profile if missing
+
+Commit: "Remove obsolete Image::Scale dependency"
+→ Parse: removing Image::Scale
+→ Scan: confirm no code references it, can safely delete pm-dep entry
+
+Task: "Added cryptographic validation layer"
+→ Parse: likely needs Crypt::* modules
+→ Scan: find what Crypt modules were actually imported
+```
+
+### Phase 1.5: Analysis Command
+
+```bash
+bin/p7-deps analyze-sessions [--since 1w] [--format json|yaml] [--intent-driven]
 ```
 
 Examine:
-- Recent commits and task documentation
+- Recent commits and task documentation (now with intent parsing)
+- Extract stated intent (what dependencies were mentioned)
+- Validate against actual code (scan-usage for each mention)
 - Which modules were actually loaded in recent work
-- Group by session/topic
+- Group by session/topic, weighted by intent + reality
 - Output dependency profiles for each
+- Flag discrepancies: declared but not used, used but not declared
 
 ### Phase 2: Profile Creation
 
@@ -103,6 +162,58 @@ In workspace-transfer/.deps/profiles.yaml:
       - Crypt::Random
       - Crypt::Cipher
       # ... crypto modules used
+```
+
+### Phase 2.5: Discrepancy Detection
+
+Before creating profiles, validate intent vs. reality:
+
+```bash
+bin/p7-deps detect-discrepancies [--session recent] [--report detailed]
+```
+
+**Types of Discrepancies Caught**:
+
+1. **Declared But Unused**
+   - Module in pm-dep/ but never imported in code
+   - `scan-usage` returns zero matches
+   - Question: Can we remove it?
+
+2. **Used But Not Declared**
+   - Code imports module but not in pm-dep/
+   - `grep -r "use X"` finds references but declaration missing
+   - Question: Should we add it to pm-dep/?
+
+3. **Intent vs. Reality Mismatch**
+   - Task says "added JSON module" but code uses JSON::XS from external package
+   - Intent parsing found mention but scan shows different actual module used
+   - Question: What really happened?
+
+4. **Orphaned Declarations**
+   - pm-dep/ entry points to a module that doesn't exist in CPAN
+   - Typo in declaration: `JSON-XS` vs `JSON::XS`
+   - Question: Fix declaration or remove entry?
+
+**Example Report**:
+```
+Discrepancies Found: 7
+
+DECLARED BUT UNUSED:
+  • Image::Scale (in zulum/pm-dep/) - last used in commit 2025-11-15
+    → Candidate for removal (safe, zero references)
+
+USED BUT NOT DECLARED:
+  • JSON::PP (imported in workflow code) - not in workflow/pm-dep/
+    → Should declare in workflow/pm-dep/JSON__PP
+
+INTENT VS REALITY:
+  • Task: "Added cryptographic validation using Crypt::OpenSSL::X509"
+  • Code: Actually uses Crypt::Digest::BLAKE2b_384
+  → Task intent unclear, real dependency different than stated
+
+ORPHANED:
+  • x11-protocol-perl (in X-11/pm-dep/) - no such CPAN module found
+  → Typo? Should be X11::Protocol
 ```
 
 ### Phase 3: Convergence Analysis
@@ -205,6 +316,58 @@ Next Developer Installation
 - Automated weekly analysis as part of workflow
 - Natural feedback loop: usage drives profiles → profiles enable new usage
 - System optimizes itself through actual patterns
+
+---
+
+## Intent-Driven Architecture: Bridging Communication and Reality
+
+### The Semantic Layer
+
+Most dependency management operates at one layer:
+- ❌ **Pure filesystem** - Only look at what's declared in pm-dep/ directories
+- ❌ **Pure code** - Only scan for actual imports
+- ✅ **Intent + Reality** - Parse what people SAY they need, validate against what code ACTUALLY uses
+
+The intent-driven approach adds critical intelligence:
+
+```
+Developer Intent          Code Reality          System State
+(Task description)  ↔     (grep/scan)      ↔     (pm-dep/, profiles.yaml)
+     ↓                         ↓                        ↓
+"Added crypto"        →  grep finds Crypt::*  →  Update pm-dep/Crypt*
+"Removed JSON"        →  No code uses JSON    →  Delete pm-dep/JSON*
+"Need validation"     →  grep: X509 module    →  Create declaration
+```
+
+### Pattern Recognition at Human Level
+
+This enables new capabilities:
+
+**Automatic Declaration Creation**
+```
+When task says: "Implemented webhook validation using Crypt::OpenSSL::X509"
+→ Parse mentions Crypt::OpenSSL::X509
+→ Scan confirms it's imported in code
+→ Suggest: "Create configuration/zenki/<relevant-zenka>/pm-dep/Crypt__OpenSSL__X509"
+```
+
+**Safety Checks for Removal**
+```
+When task says: "Remove obsolete Image::Scale dependency"
+→ Parse extracts Image::Scale
+→ Scan confirms: not imported anywhere
+→ Verify: safe to remove
+→ Suggest: "Delete configuration/zenki/zulum/pm-dep/Image__Scale"
+```
+
+**Knowledge Capture**
+```
+When developer mentions: "Need JSON processing"
+→ Intent: JSON-related module
+→ Scan: finds JSON::XS being used
+→ Document: "This zenka uses JSON::XS for high-speed JSON processing"
+→ Profile: Include JSON::XS in this zenka's profile
+```
 
 ---
 
