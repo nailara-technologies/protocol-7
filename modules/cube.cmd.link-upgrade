@@ -66,12 +66,14 @@ unless ( defined $ephemeral_pubkey and length $ephemeral_pubkey == 32 ) {
 }
 
 ## Encode ephemeral pubkey as base32
-## Include pubkey in response data (client will read confirmation + pubkey from response)
+## Include pubkey in response data (client will read confirmation + pubkey)
 my $pubkey_b32 = Crypt::Misc::encode_b32r($ephemeral_pubkey);
 
+## Return response with both confirmation and pubkey
+## Format: "TRUE link-upgrade OK <pubkey>"
 return {
     'mode' => qw| true |,
-    'data' => "link-upgrade OK\n$pubkey_b32"
+    'data' => "link-upgrade OK $pubkey_b32"
 };
 
 #,,..,,,,,,..,,..,.,,,.,,,.,,,,.,,,,.,.,,,.,.,..,,...,...,..,,,..,.,.,...,...,
