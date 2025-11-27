@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = base.handler.link-upgrade.init
+# descr = input handler for link-upgrade initiation in state 1
+#         processes initial "link-upgrade" command and sends ephemeral pubkey
+#         transitions to state 2 for handshake completion
+#
+# handles = link-upgrade (initial client request)
+# returns = 0 (command complete, state transition pending)
+#           1 (command incomplete, wait for more data)
+
+my $event   = shift;
+my $id      = $event->w->data;
+my $session = $data{'session'}{$id};
+my $input   = \$session->{'buffer'}->{'input'};
+
+## Check if we have the link-upgrade command in state 1
+if ( $$input =~ s|^link-upgrade\n|| ) {
+    <[base.logs]>->( 2, '[%d] link-upgrade request received in state 1', $id );
+
+    ## Transition to state 2 (link-upgrade negotiation)
+    if ( not <[base.session.init_state]>->( $id, 2 ) ) {
+        <[base.logs]>->( 0, '[%d] failed to initialize state 2', $id );
+        $session->{'buffer'}->{'output'} .= "link-upgrade FAILED\n";
+        return 0;
+    }
+
+    ## Get ephemeral pubkey from session (set by state 2 init)
+    my $ephemeral_pubkey = $session->{'link_ephemeral_pubkey'};
+
+    if ( not defined $ephemeral_pubkey or not length $ephemeral_pubkey ) {
+        <[base.logs]>->( 0, '[%d] ephemeral public key not available', $id );
+        return 0;
+    }
+
+    ## Encode and send ephemeral pubkey to client
+    use Crypt::Misc;
+    my $pubkey_b32 = Crypt::Misc::encode_b32r($ephemeral_pubkey);
+    $session->{'buffer'}->{'output'} .= "$pubkey_b32\n";
+
+    <[base.logs]>->(
+        2,
+        '[%d] sent ephemeral public key to client, transitioning to state 2',
+        $id
+    );
+
+    return 0;  ## Command complete, state 2 handler will take over
+}
+
+## Not our command in state 1, pass through
+return 1;
+
+1;
+
+#,,.,,.,,,,,..,,,..,.,,,..,,..,,..,,.,.,...,...,,,..,,.,.,,...,..,..,,...,.,.,,,,
+#YQNMBT7RVVXZWKQNJMJIXQPXUYPVWQZGFPWMHFAJS5P7K7KYLDQPF4HYQV5G7B2KKXPPHF7M7K3VSZ
+#\\\|M5IE2SBTDBDDIH5CVJ77OW6E5CDQPA357XDL54GRXA62272723A \ / AMOS7 \ YOURUM ::
+#\[7]IZWWKXC23KQG56MSYB5HJZT5PL3N3ZIUGB7TRLHNQ76ZUHIJC4BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
