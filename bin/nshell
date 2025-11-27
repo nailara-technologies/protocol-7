@@ -681,25 +681,23 @@ sub negotiate_link_upgrade {
         return 0;
     }
 
-    # 1b. Read confirmation response (TRUE link-upgrade OK\n<pubkey>)
-    print STDERR "[link-upgrade] Step 1b: Reading confirmation response\n" if $ENV{DEBUG};
+    # 1b. Read confirmation response (TRUE link-upgrade OK <pubkey>)
+    print STDERR "[link-upgrade] Step 1b: Reading confirmation + pubkey response\n" if $ENV{DEBUG};
     my $cmd_response = s_read($sock);
-    unless ( $cmd_response && $cmd_response =~ m|link-upgrade OK| ) {
-        print STDERR "[link-upgrade] Step 1b FAILED: Expected 'link-upgrade OK' confirmation\n" if $ENV{DEBUG};
+    unless ( $cmd_response && $cmd_response =~ m|link-upgrade OK\s+(\S+)| ) {
+        print STDERR "[link-upgrade] Step 1b FAILED: Expected 'link-upgrade OK <pubkey>' response\n" if $ENV{DEBUG};
         print STDERR "Response: $cmd_response\n" if $ENV{DEBUG} and defined $cmd_response;
         return 0;
     }
-    print STDERR "[link-upgrade] Step 1b OK: Confirmation received: $cmd_response\n" if $ENV{DEBUG};
 
-    # 2. Read server ephemeral pubkey (second line of response)
-    print STDERR "[link-upgrade] Step 2: Reading server ephemeral pubkey\n" if $ENV{DEBUG};
-    my $server_pubkey_b32 = s_read($sock);
+    # Extract the pubkey from the response
+    my $server_pubkey_b32 = $1;
     unless ( $server_pubkey_b32 ) {
-        print STDERR "[link-upgrade] Step 2 FAILED: No server pubkey received\n" if $ENV{DEBUG};
+        print STDERR "[link-upgrade] Step 1b FAILED: No server pubkey received\n" if $ENV{DEBUG};
         return 0;
     }
     chomp($server_pubkey_b32);
-    print STDERR "[link-upgrade] Step 2 OK: Got server pubkey: " . substr($server_pubkey_b32, 0, 20) . "...\n" if $ENV{DEBUG};
+    print STDERR "[link-upgrade] Step 1b OK: Got server pubkey: " . substr($server_pubkey_b32, 0, 20) . "...\n" if $ENV{DEBUG};
 
     # 3. Generate client ephemeral keypair
     print STDERR "[link-upgrade] Step 3: Generating client ephemeral keypair\n" if $ENV{DEBUG};
