@@ -103,11 +103,60 @@ profiles:
       - X11::Protocol::WM
       - X11::Protocol::XSetRoot
 
+  zenka-common:
+    description: "Common modules for active zenka (v7, httpd, httpsd, letsencr, test-link-upgrade)"
+    apt:
+      - libbsd-resource-perl
+    cpan:
+      - BSD::Resource
+      - Capture::Tiny
+      - Clone
+      - Const::Fast
+      - Crypt::Digest::BLAKE2b_384
+      - Crypt::Digest::MD5
+      - Crypt::Digest::SHA1
+      - Crypt::Misc
+      - Crypt::PRNG::Fortuna
+      - Crypt::Random
+      - Digest::CRC
+      - Digest::Elf
+      - Digest::JHash
+      - File::ExtAttr
+      - File::MimeInfo::Magic
+      - File::Which
+      - FreezeThaw
+      - Hash::Flatten
+      - Hash::Merge::Simple
+      - HTTP::Date
+      - HTTP::Request
+      - IO::Interface::Simple
+      - IO::Socket::Multicast
+      - IPC::Open2
+      - IPC::Open3
+      - JSON::PP
+      - Linux::Inotify2
+      - List::MoreUtils
+      - LWP::UserAgent
+      - LWPx::ParanoidAgent
+      - Module::Refresh
+      - Module::Runtime
+      - Net::IP::Lite
+      - Net::Libdnet::Arp
+      - Proc::ProcessTable
+      - Sys::Filesystem
+      - URI::QueryParam
+
   development:
-    description: "Full development environment (all profiles)"
+    description: "Full Protocol-7 development (covers v7, httpd, httpsd, letsencr, test-link-upgrade)"
     includes:
       - minimal
       - runtime
       - network
       - cryptography
+      - zenka-common
+
+  protocol7-extended:
+    description: "Complete Protocol-7 with GUI and advanced tools"
+    includes:
+      - development
       - X11-Desktop
