@@ -30,27 +30,12 @@ if ( defined $session->{'link_upgrade_timeout'}
 }
 
 ## Parse link-upgrade negotiation protocol
-## Expected commands: link-upgrade (initial request from client)
-##                   link-pub-key <base32_encoded_pubkey>
-##                   link-confirm-encoding <mode>
-##                   link-complete
+## Note: "link-upgrade" command was already processed by cube.cmd.link-upgrade
+## and ephemeral pubkey was sent by protocol.protocol-7.link-upgrade.init
+## Now we expect: link-pub-key, link-confirm-encoding, link-complete
 
-if ( $$input =~ s|^link-upgrade\n|| ) {
-    ## Client initiated link-upgrade, send back server's ephemeral public key
-    my $server_pubkey = $session->{'link_ephemeral_pubkey'};
-
-    if ( not defined $server_pubkey or not length $server_pubkey ) {
-        <[base.logs]>->( 0, '[%d] ephemeral public key not available', $id );
-        return 2;
-    }
-
-    my $server_pubkey_b32 = Crypt::Misc::encode_b32r($server_pubkey);
-    $session->{'buffer'}->{'output'} .= "$server_pubkey_b32\n";
-
-    <[base.logs]>->( 2, '[%d] sent ephemeral public key to client', $id );
-    return 1;  ## Awaiting client's public key
-
-} elsif ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
+## Process client's public key response
+if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
     my $client_pubkey_b32 = $1;
     <[base.logs]>->( 2, '[%d] received client pubkey (b32): %s...', $id, substr($client_pubkey_b32, 0, 20) );
 

@@ -674,14 +674,24 @@ sub negotiate_link_upgrade {
     use Crypt::Curve25519;
     use Digest::SHA qw(sha256);
 
-    # 1. Send link-upgrade init
-    print STDERR "[link-upgrade] Step 1: Sending link-upgrade init\n" if $ENV{DEBUG};
+    # 1. Send link-upgrade command
+    print STDERR "[link-upgrade] Step 1: Sending link-upgrade command\n" if $ENV{DEBUG};
     if ( !s_write( $sock, "link-upgrade\n" ) ) {
         print STDERR "[link-upgrade] Step 1 FAILED: Could not send link-upgrade\n" if $ENV{DEBUG};
         return 0;
     }
 
-    # 2. Read server ephemeral pubkey
+    # 1b. Read command response (TRUE from cube.cmd.link-upgrade)
+    print STDERR "[link-upgrade] Step 1b: Reading command response\n" if $ENV{DEBUG};
+    my $cmd_response = s_read($sock);
+    unless ( $cmd_response && $cmd_response =~ m|^TRUE| ) {
+        print STDERR "[link-upgrade] Step 1b FAILED: Command response was not TRUE\n" if $ENV{DEBUG};
+        print STDERR "Response: $cmd_response\n" if $ENV{DEBUG} if defined $cmd_response;
+        return 0;
+    }
+    print STDERR "[link-upgrade] Step 1b OK: Command accepted, entering state 2\n" if $ENV{DEBUG};
+
+    # 2. Read server ephemeral pubkey (sent by protocol.protocol-7.link-upgrade.init)
     print STDERR "[link-upgrade] Step 2: Reading server ephemeral pubkey\n" if $ENV{DEBUG};
     my $server_pubkey_b32 = s_read($sock);
     unless ( $server_pubkey_b32 ) {
