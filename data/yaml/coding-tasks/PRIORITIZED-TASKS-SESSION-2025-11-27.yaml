@@ -1,0 +1,201 @@
+---
+document_title: "Prioritized Tasks for Next Development Session"
+document_date: 2025-11-27
+source: "Consolidated from user-encountered tasks + next-session-roadmap"
+compiled_by: "Claude Code Session 2025-11-27"
+
+## Priority Breakdown
+
+### TIER 1: HIGH PRIORITY (Session-Ready, Foundational)
+
+**1. Rename workflow zenka to 'work'**
+  status: pending
+  effort: medium (1-1.5h)
+  impact: high (improves accessibility of all workflow commands)
+
+  steps:
+    - Rename: configuration/zenki/workflow/ → configuration/zenki/work/
+    - Update all module references: modules/workflow.* → modules/work.*
+    - Update bin/Protocol-7 command parsing
+    - Run: p7.sourcecode update-sub-list
+    - Update version: workflow version-sign-commit "Rename workflow zenka to work"
+    - Re-sign all changed files
+
+  benefits:
+    - work overview (shorter than workflow overview)
+    - work todo-list, work bug-list, work search
+    - Better discoverability
+
+  related_files:
+    - configuration/zenki/workflow/start
+    - modules/workflow.*
+    - bin/Protocol-7
+    - data/yaml/workflow-suggestions.yaml
+
+**2. Fix 'param = ' header missing value parser error**
+  status: pending
+  effort: small (30-45 min)
+  impact: high (fixes parser bug causing incorrect output)
+
+  problem:
+    - When "param = " header has no value (empty)
+    - Parser incorrectly treats NEXT source line as parameter value
+    - Even though endline separates them
+    - Likely interference with comment continuation feature
+
+  symptoms:
+    - Perl code appears in output instead of proper parameter handling
+    - Affects workflow statistics and header parsing throughout system
+
+  investigation_needed:
+    - Locate param header parsing code in bin/Protocol-7
+    - Understand endline handling vs comment continuation
+    - Create test case with empty param header
+
+  fix_approach:
+    - Add endline validation after "param = "
+    - Distinguish between continuation and parameter value
+    - Document parser rules for param headers
+
+### TIER 2: MEDIUM PRIORITY (Enhances code quality, build on TIER 1)
+
+**3. Create sourcecode zenka 'top 50' command**
+  status: pending
+  effort: medium (1-2h)
+  impact: medium (helps identify code quality issues)
+
+  purpose:
+    - Identify code with lines exceeding average width
+    - Prioritize by code file name length (shorter = more generic = more important)
+    - Display in format matching bin/ptd and amos-chksum output
+
+  parameters:
+    - Optional: number limit (default 47)
+    - Sort: by relevance (lines overshooting + file importance)
+
+  output_metrics:
+    - File name
+    - Line count
+    - Lines exceeding average width
+    - Total bytes in overshooting lines
+    - Code quality score
+
+  command_example:
+    - sourcecode top [<n>]          # default 47 results
+    - sourcecode top 100            # top 100 results
+    - sourcecode top quality        # sorted by quality score
+
+**4. Create sourcecode zenka signature iteration analyzer**
+  status: pending
+  effort: medium (1-2h)
+  impact: medium-high (correlates quality with signature iterations)
+
+  purpose:
+    - Decode octal iteration counter from file signatures
+    - Correlate iterations with code quality/changes
+    - Help identify files needing most harmonization
+
+  theory:
+    - Files with FEWER iterations = higher quality changes
+    - Statistically observed: lower iteration = better next version
+    - Use to prioritize harmonization efforts
+
+  output:
+    - Files sorted by: length, then iteration counter
+    - Show: file size, iteration count, quality estimate
+    - Highlight files with high iteration counts (need work)
+
+**5. Clean up worst outlier subroutines**
+  status: pending
+  effort: medium (1-2h)
+  impact: medium (improves code maintainability)
+
+  steps:
+    1. Run sourcecode top command (from TIER 2 task #3)
+    2. Run signature analyzer (from TIER 2 task #4)
+    3. Identify 5-10 worst outliers
+    4. Address code width issues
+    5. Update versions and re-sign
+
+  selection_criteria:
+    - Lines most overshooting average width
+    - Highest iteration counts
+    - File importance (shorter files = more generic = higher priority)
+
+### TIER 3: LOWER PRIORITY (Future planning, depends on earlier phases)
+
+**6. Module Loading Error Handling** (from next-session-roadmap)
+  status: pending
+  effort: varies by phase
+
+  phase_1: Broken routine handler integration (HIGH, 1-2h)
+  phase_2: File handle encoding validation (MEDIUM, 30-45m)
+  phase_3: Module permission auto-management (LOW, 1h)
+  phase_4: Extended diagnostics (LOW, 1h)
+  phase_5: System-wide audit (DEFERRED, 2-3h)
+
+**7. Resume link level encryption work**
+  status: pending
+  effort: large (multiple sessions)
+  impact: high (completes client-side security)
+
+  prerequisites:
+    - Review most recently modified files (ls -lart)
+    - Read handover documents from previous sessions
+    - Understand latest status and insights
+
+  next_steps:
+    - Check data/yaml/archive/next-session-roadmap.yaml
+    - Review session completion documents
+    - Identify blocking issues and dependencies
+
+---
+
+## Execution Order Recommendation
+
+### Session 1 (Next):
+1. ✓ Task #1: Rename workflow → work (HIGH impact, foundational)
+2. ✓ Task #2: Fix param parser error (HIGH impact, blocks output quality)
+3. Optional: Start Task #3 if time permits
+
+### Session 2:
+1. Task #3: Create sourcecode top command
+2. Task #4: Create signature analyzer
+3. Task #5: Clean up outliers
+
+### Session 3+:
+1. Tasks from next-session-roadmap (Phases 1-5)
+2. Task #6: Link encryption work
+
+---
+
+## Integration with Workflow System
+
+Track progress using:
+```
+work todo-list              # View all tasks
+work search "parser"        # Find param parser task
+work version-sign-commit    # Commit work with auto-versioning
+work overview               # See overall progress
+```
+
+---
+
+## Notes
+
+- All major tasks should be committed individually with clear messages
+- Use `workflow version-sign-commit "message"` for each logical step
+- Signature/version updates needed after rename (Task #1)
+- Parser fix (Task #2) should be tested thoroughly before commit
+- Code quality tasks (#3-5) build on each other - do in order
+- Link encryption work (#7) has external dependencies - verify first
+
+---
+
+metadata:
+  source_file: "3LE3NKOYM63SA.user-encountered-taks.yaml + next-session-roadmap.yaml"
+  created: 2025-11-27
+  compiled_by: Claude Code
+  purpose: "Clear prioritized task list for next session"
+  status: "Ready for implementation"
+  last_reviewed: 2025-11-27
