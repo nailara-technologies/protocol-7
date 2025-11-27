@@ -20,10 +20,10 @@ use Crypt::Misc     qw| encode_b32r |;
 
 my @params     = @ARGV;
 my $USE_ANSI   = 1;
-my $AI_FRIENDLY = $ENV{'NCODE_AI_FRIENDLY'} // ($ARGV[0] eq '--ai-friendly' ? 1 : 0);
+my $AI_FRIENDLY = $ENV{'NCODE_AI_FRIENDLY'} // (defined $ARGV[0] && $ARGV[0] eq '--ai-friendly' ? 1 : 0);
 
 # Remove --ai-friendly flag from params if present
-shift(@params) if $ARGV[0] eq '--ai-friendly';
+shift(@params) if defined $ARGV[0] && $ARGV[0] eq '--ai-friendly';
 
 ###[ USED TEXT COLORS ]#######################################################
 
