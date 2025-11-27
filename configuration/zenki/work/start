@@ -1,12 +1,12 @@
 
- .:[ protocol-7 development workflow zenka ]:.
+ .:[ protocol-7 development work zenka ]:.
 
 [load_config_file:'shared-params']
 
 system.verbosity.zenka_buffer = 2
 system.verbosity.zenka_logfile = 2
 
-## Disable automatic key loading for workflow zenka ##
+## Disable automatic key loading for work zenka ##
 ##
 ## Keys are explicitly loaded by commands that need
 ##                  them [ e.g. version-sign-commit ]
@@ -15,7 +15,7 @@ system.verbosity.zenka_logfile = 2
 ##
 crypt.C25519.auto_load_keys = no
 
-## Enable automatic key creation for workflow zenka ##
+## Enable automatic key creation for work zenka ##
 crypt.C25519.autocreate-user-key = yes
 
 ## Git repository path is auto-detected from <system.root_path> ##
@@ -34,13 +34,13 @@ access.cmd.usr.cube = commands heart reload verify-instance \
 ##
 ## Configure multiple remotes to push to all of them automatically:
 ## Examples:
-##   workflow.git.remotes = origin backup      # two remotes
-##   workflow.git.remotes = origin backup mirror # three remotes
-##   workflow.git.remotes =                    # empty = auto-detect [default]
-# workflow.git.remotes =
+##   work.git.remotes = origin backup      # two remotes
+##   work.git.remotes = origin backup mirror # three remotes
+##   work.git.remotes =                    # empty = auto-detect [default]
+# work.git.remotes =
 
 modules.load = auth net protocol io.unix crypt.C25519 \
-               git workspace-transfer workflow
+               git workspace-transfer work
 
 [load_modules:<modules.load>]
 [init_modules]

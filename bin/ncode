@@ -18,8 +18,12 @@ use Digest::BMW     qw| bmw_256 |;
 use List::MoreUtils qw| minmax uniq |;
 use Crypt::Misc     qw| encode_b32r |;
 
-my @params   = @ARGV;
-my $USE_ANSI = 1;
+my @params     = @ARGV;
+my $USE_ANSI   = 1;
+my $AI_FRIENDLY = $ENV{'NCODE_AI_FRIENDLY'} // ($ARGV[0] eq '--ai-friendly' ? 1 : 0);
+
+# Remove --ai-friendly flag from params if present
+shift(@params) if $ARGV[0] eq '--ai-friendly';
 
 ###[ USED TEXT COLORS ]#######################################################
 
@@ -443,7 +447,7 @@ sub cmd_replace {
 
             my $regexp_pattern = create_regexp( \%regexp );
 
-            if (user_confirmed(
+            if (user_confirmed_ai(
                     "is the replacement pattern '$regexp_pattern' correct ?")
             ) {
                 $ok = 1;
@@ -458,12 +462,24 @@ sub cmd_replace {
 
         remove_unmodified( $original_source, $modified_source );
 
-        preview( $original_source, $modified_source, $changes, \%regexp );
+        if ($AI_FRIENDLY) {
+            # Output changes in AI-friendly format
+            printf "\n[CHANGES SUMMARY]\n";
+            printf "Target: %s\n", $target;
+            printf "Pattern: %s\n", $regexp{'search'};
+            printf "Replacement: %s\n", $regexp{'replace'};
+            printf "Total files parsed: %d\n", $changes->{'files_parsed'};
+            printf "Files modified: %d\n", $changes->{'files_changed'};
+            printf "Total replacements: %d\n", $changes->{'total_changes'};
+            printf "\n";
+        } else {
+            preview( $original_source, $modified_source, $changes, \%regexp );
+        }
 
         # ask if we should apply the changes on the source
-        if ( user_confirmed('apply these changes ?') ) {
+        if ( user_confirmed_ai('apply these changes ?') ) {
 
-            warn_apply();
+            warn_apply() unless $AI_FRIENDLY;
 
             my $backup_metadata = {
 
@@ -488,6 +504,12 @@ sub cmd_replace {
 
             # write modification to disk
             overwrite_source_files( $modified_source, $backup_metadata );
+
+            if ($AI_FRIENDLY) {
+                printf "[SUCCESS] Changes applied successfully\n";
+                printf "Files modified: %d\n", $changes->{'files_changed'};
+                printf "Total replacements: %d\n", $changes->{'total_changes'};
+            }
         } else {
             &aborted;
         }
@@ -2193,6 +2215,22 @@ sub user_confirmed {
     print "\r" . ' ' x $space_len . "\r";
 
     return $choice eq qw| y | ? 1 : 0;
+}
+
+# :: user_confirmed_ai :: handles confirmation in AI-friendly mode
+# Returns true (auto-confirm) and outputs structured information
+
+sub user_confirmed_ai {
+    my ($question) = @ARG;
+
+    if ($AI_FRIENDLY) {
+        # Output confirmation in structured format for AI
+        printf "[CONFIRM] %s => YES (auto-confirmed in AI mode)\n", $question;
+        return 1;
+    }
+
+    # Fall back to regular confirmation
+    return user_confirmed($question);
 }
 
 # :: get_character :: grab a single key from STDIN [ terminal to raw mode ]
