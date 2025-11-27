@@ -1859,13 +1859,23 @@ sub p7_load_code {
             my $section = ${^CAPTURE}[0];
             my $command = ${^CAPTURE}[1];
             if ( $data{'code'}{$sub_name}{'status'} eq qw| no-error | ) {
-                if ( $sub_code =~ m|#\s*param\s*=\s*(.+)| ) {
-                    $data{'base'}{'commands'}{$section}{$command}{'param'}
-                        = ${^CAPTURE}[0];
+                if ( $sub_code =~ m|#\s*param\s*=\s*(.*)| ) {
+                    my $param_value = ${^CAPTURE}[0];
+                    $param_value =~ s|^\s+||;  # trim leading whitespace
+                    $param_value =~ s|\s+$||;  # trim trailing whitespace
+                    if ( length $param_value ) {
+                        $data{'base'}{'commands'}{$section}{$command}{'param'}
+                            = $param_value;
+                    }
                 }
-                if ( $sub_code =~ m|#\s*descr\s*=\s*(.+)| ) {
-                    $data{'base'}{'commands'}{$section}{$command}{'descr'}
-                        = ${^CAPTURE}[0];
+                if ( $sub_code =~ m|#\s*descr\s*=\s*(.*)| ) {
+                    my $descr_value = ${^CAPTURE}[0];
+                    $descr_value =~ s|^\s+||;  # trim leading whitespace
+                    $descr_value =~ s|\s+$||;  # trim trailing whitespace
+                    if ( length $descr_value ) {
+                        $data{'base'}{'commands'}{$section}{$command}{'descr'}
+                            = $descr_value;
+                    }
                 } else {    ##  command short description missing  ##
                     $data{'base'}{'commands'}{$section}{$command}{'descr'}
                         = qq|<< cmd description missing [param='descr'] >>|;
