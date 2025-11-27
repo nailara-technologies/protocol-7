@@ -73,9 +73,12 @@ if [ $SYSTEM_RUNNING -eq 0 ]; then
 
     # Step 7: Verify system is ready
     echo "[7/7] Testing connectivity with p7 heart..."
-    p7 heart 2>&1 | head -5 || true
+    if p7 heart 2>&1 | grep -q "beating"; then
+        echo "     ✓ Heartbeat OK - System ready for testing"
+    else
+        echo "     ✗ Warning: No heartbeat detected"
+    fi
     echo ""
-    echo "     System ready for testing"
 else
     # System already running - just reload
     echo "[1/7] System already running, reloading code modules..."
@@ -89,7 +92,11 @@ else
     echo ""
 
     echo "[3/7] Testing connectivity with p7 heart..."
-    p7 heart 2>&1 | head -5 || true
+    if p7 heart 2>&1 | grep -q "beating"; then
+        echo "     ✓ Heartbeat OK - System ready for testing"
+    else
+        echo "     ✗ Warning: No heartbeat detected"
+    fi
     echo ""
 
     echo "[4/7] System ready for testing"
