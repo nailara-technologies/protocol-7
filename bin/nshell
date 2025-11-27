@@ -94,6 +94,7 @@ my $lines_up  = 3;
 my $term_loop = FALSE;
 my $remember  = FALSE;
 my $arg_index = FALSE;
+my $no_tty    = FALSE;  # Non-TTY mode for automation
 my $protocol_7_version;
 our %before_readline_signals;
 our @override_signal_nums = ( SIGINT, SIGTERM, SIGQUIT, SIGABRT, SIGHUP );
@@ -105,6 +106,10 @@ my $link_type = qw| ip.tcp |;
 my @args = @ARGV;
 
 if (@args) {
+
+    if ( @args and $args[0] =~ m,^\-no-?tty$, and shift @args ) {
+        $no_tty = TRUE;
+    }
 
     if ( @args and $args[0] =~ m,^\-u(ser)?$, and shift @args ) {
         die ":\n:: expected name after -u[ser]\n:\n" if not @args;
@@ -140,14 +145,9 @@ $OUTPUT_AUTOFLUSH = TRUE;
 
 # clear();
 
-my $term = new Term::ReadLine('protocol-7.shell');
-$term->ornaments('mh,me,md,me');
-$term->enableUTF8();
-$term->MinLine(undef);
-
-no warnings 'once';
-$readline::rl_completion_function = "main::rl_filename_list_lcl";
-use warnings 'once';
+# Term::ReadLine will be initialized after authentication
+# (after AMOS7::TERM::user_and_passwd has completed)
+my $term;
 
 my $shell_sock;
 while ($connect) {
@@ -161,6 +161,37 @@ while ($connect) {
         $shell_sock = shell_auth( $shell_sock, login_prompt() );
     }
 
+    # Initialize Term::ReadLine after authentication (AMOS7::TERM no longer needed)
+    if ( !$no_tty and !defined $term ) {
+        $term = new Term::ReadLine('protocol-7.shell');
+        $term->ornaments('mh,me,md,me');
+        $term->enableUTF8();
+        $term->MinLine(undef);
+
+        no warnings 'once';
+        $readline::rl_completion_function = "main::rl_filename_list_lcl";
+        use warnings 'once';
+    }
+
+    # Link-upgrade encryption negotiation (optional)
+    my %encryption_state = (
+        enabled       => 0,
+        key           => undef,
+        session_id    => undef,
+        read_counter  => 0,
+        write_counter => 0,
+    );
+
+    # Check if user wants encryption via environment variable
+    if ( defined $ENV{'PROTOCOL_7_LINK_UPGRADE'} and $ENV{'PROTOCOL_7_LINK_UPGRADE'} eq 'yes' ) {
+        if ( negotiate_link_upgrade( $shell_sock, \%encryption_state ) ) {
+            print " :: link-upgrade encryption enabled ::\n";
+            $encryption_state{enabled} = 1;
+        } else {
+            warn_err("link-upgrade negotiation failed, continuing plaintext");
+        }
+    }
+
     # see override_signals ##
     map { $SIG{$ARG} = \&parent_exit } qw| INT TERM HUP |;
 
@@ -169,7 +200,9 @@ while ($connect) {
         $PROGRAM_NAME = "nshell [ $cube_addr : $cube_port ]";
         if ( not defined $stored_cmd ) {
             clear();
-            print "\e[1m\e[5m$C{0}\e-$C{R}\n";
+            if ( !$no_tty ) {
+                print "\e[1m\e[5m$C{0}\e-$C{R}\n";
+            }
         } else {
             if ( !s_write( $shell_sock, "$stored_cmd\n" ) ) {
                 sleep(0.13);
@@ -189,7 +222,7 @@ while ($connect) {
             }
         }
         $lines_up = 3;
-        shell_loop( $shell_sock, $prompt );
+        shell_loop( $shell_sock, $prompt, \%encryption_state );
     }
 }
 
@@ -200,6 +233,15 @@ sub login_prompt {
         return ( $cube_user, $cube_pass );
     }
     my ( $user, $pass );
+
+    # In no-tty mode, cannot use interactive prompts
+    if ( $no_tty ) {
+        die " ::\n :: no-tty mode requires -u/--user argument\n ::\n"
+            unless defined $cube_user;
+        # In no-tty mode, use empty password or require env var
+        $pass = $ENV{'PROTOCOL_7_PASSWORD'} // '';
+        return ( $cube_user, $pass );
+    }
 
     my $node;
     my $zenka = shift // qw| cube |;
@@ -369,16 +411,25 @@ sub s_write {
     return $b_written;
 }
 
-sub clear { print "\e[37m\e[H\e[2J" }
+sub s_read {
+    my $read_fh = shift;
+    my $line = <$read_fh>;
+    return $line;
+}
+
+sub clear {
+    print "\e[37m\e[H\e[2J" unless $no_tty;  # Skip ANSI codes in no-tty mode
+}
 
 sub shell_loop {
-    my $sock   = $ARG[0];
-    my $prompt = $ARG[1];
+    my $sock              = $ARG[0];
+    my $prompt            = $ARG[1];
+    my $encryption_state  = $ARG[2] // {};  # Accept optional encryption state
 
     if ( not $stdout_pid = fork() ) {
         $SIG{'TERM'} = $SIG{'INT'} = $SIG{'HUP'} = qw| IGNORE |;
         $SIG{'PIPE'} = sub { kill( 9, $parent_pid ); exit(2) };
-        stdout_fork();
+        stdout_fork($encryption_state);
         exit;
     }
     if ( defined $stored_cmd ) {
@@ -390,19 +441,38 @@ sub shell_loop {
         $SIG{$ARG} = sub { parent_exit( shift, $stdout_pid ) }
     } qw| TERM INT HUP |;
 
-    $term->add_history('');
+    if ( !$no_tty ) {
+        $term->add_history('');
+    }
 
     $connect = FALSE;
     my $last_line = '';
-    override_signals();
-    while ( -S $sock
-        and defined( my $line = $term->readline($prompt) ) ) {
+    if ( !$no_tty ) {
+        override_signals();
+    }
+
+    while ( -S $sock ) {
+        my $line;
+        if ( $no_tty ) {
+            # Non-TTY mode: read from STDIN
+            $line = <STDIN>;
+            last unless defined $line;
+            chomp($line);
+        } else {
+            # TTY mode: use readline with prompt
+            $line = $term->readline($prompt);
+            last unless defined $line;
+        }
         $WARNED  = FALSE;
         $connect = TRUE;
-        print $C{'T'};    ##  reset to 'true' color  ##
+        if ( !$no_tty ) {
+            print $C{'T'};    ##  reset to 'true' color  ##
+        }
         if ( $line ne '' ) {
 
-            $term->add_history($line) if $line ne $last_line;
+            if ( !$no_tty ) {
+                $term->add_history($line) if $line ne $last_line;
+            }
             $last_line = $line;
 
             if ( $line =~ m|^\. cd (.+)| ) {
@@ -432,7 +502,12 @@ sub shell_loop {
                 }
                 if ( length($line) and $line ne '[quit]' ) {
                     say '' if $PRINT_SEPERATOR_NEWLINE;
-                    if ( !s_write( $sock, sprintf( "%s\n", $line ) ) ) {
+                    my $command_to_send = sprintf( "%s\n", $line );
+                    if ( $encryption_state->{enabled} ) {
+                        $encryption_state->{write_counter}++;
+                        $command_to_send = encrypt_message( $command_to_send, $encryption_state );
+                    }
+                    if ( !s_write( $sock, $command_to_send ) ) {
                         sleep(0.1);
                         $stored_cmd = $line;
                     }
@@ -476,9 +551,16 @@ sub shell_loop {
 }
 
 sub stdout_fork {
+    my $encryption_state = shift // {};  # Accept encryption state from parent
     close(STDIN);
     $PROGRAM_NAME = "nshell [ stdout ]";
     while ( my $out = <$shell_sock> ) {
+        # Decrypt message if encryption is enabled
+        if ( $encryption_state->{enabled} ) {
+            $encryption_state->{read_counter}++;
+            $out = decrypt_message( $out, $encryption_state );
+            next unless defined $out;  # Skip if decryption failed
+        }
         $out =~ s|\n$||;
         print "$out\n";
     }
@@ -583,8 +665,162 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
     exit;
 }
 
-#,,,.,,.,,,,,,,.,,.,,,,..,,,.,..,,,,.,,,.,,,,,..,,...,...,,..,.,.,...,,.,,...,
-#P55Q5RE73FH3BR2XR4RHQPLFURZ7CH5RAESQD3OAGLVYHPJTQG4YWZEB6Q5VIMRE4O6R2GAQGAUL6
-#\\\|TFXQ5JH37JPKDGHN5JL5Y3NCCSMIYEGWDKJWBBQZQVPSAUZBTDV \ / AMOS7 \ YOURUM ::
-#\[7]G74DXJ52WGV6L64ECT7SUHAQFEZBPYZVZIBREJCJKUG53NFQSKAA 7  DATA SIGNATURE ::
+##[ Link-Upgrade Encryption Functions ]#########################################
+
+sub negotiate_link_upgrade {
+    my ( $sock, $state_ref ) = @ARG;
+
+    use Crypt::Misc;
+    use Crypt::Curve25519;
+    use Digest::SHA qw(sha256);
+
+    # 1. Send link-upgrade init
+    if ( !s_write( $sock, "link-upgrade\n" ) ) {
+        warn_err("link-upgrade: failed to send init");
+        return 0;
+    }
+
+    # 2. Read server ephemeral pubkey
+    my $server_pubkey_b32 = s_read($sock);
+    unless ( $server_pubkey_b32 ) {
+        warn_err("link-upgrade: no server response for pubkey");
+        return 0;
+    }
+    chomp($server_pubkey_b32);
+
+    # 3. Generate client ephemeral keypair
+    my $client_secret;
+    eval {
+        $client_secret = Crypt::Misc::random_bytes(32);
+    };
+    if ( $@ ) {
+        warn_err("link-upgrade: failed to generate secret: %s", $@);
+        return 0;
+    }
+
+    my $client_pubkey;
+    eval {
+        $client_pubkey = Crypt::Curve25519::curve25519_public_key($client_secret);
+    };
+    if ( $@ ) {
+        warn_err("link-upgrade: failed to compute pubkey: %s", $@);
+        return 0;
+    }
+
+    unless ( $client_secret and $client_pubkey and
+             length($client_secret) == 32 and length($client_pubkey) == 32 ) {
+        warn_err("link-upgrade: invalid keypair generation");
+        return 0;
+    }
+
+    my $client_pubkey_b32 = Crypt::Misc::encode_b32r($client_pubkey);
+
+    # 4. Send client pubkey
+    if ( !s_write( $sock, "link-pub-key $client_pubkey_b32\n" ) ) {
+        warn_err("link-upgrade: failed to send client pubkey");
+        return 0;
+    }
+
+    # 5. Read readiness confirmation
+    my $confirm = s_read($sock);
+    unless ( $confirm ) {
+        warn_err("link-upgrade: no confirmation from server");
+        return 0;
+    }
+
+    # 6. Compute DH shared secret
+    my $server_pubkey = Crypt::Misc::decode_b32r($server_pubkey_b32);
+    my $shared_secret;
+    eval {
+        $shared_secret = Crypt::Curve25519::curve25519_shared_secret($client_secret, $server_pubkey);
+    };
+    if ( $@ ) {
+        warn_err("link-upgrade: failed to compute DH: %s", $@);
+        return 0;
+    }
+
+    unless ( $shared_secret and length($shared_secret) == 32 ) {
+        warn_err("link-upgrade: invalid DH shared secret");
+        return 0;
+    }
+
+    # 7. Derive encryption key using SHA256-based KDF
+    my $session_id = time() & 0xFFFFFFFF;
+    my $encryption_key = sha256($shared_secret . pack('N', $session_id));
+    unless ( $encryption_key and length($encryption_key) == 32 ) {
+        warn_err("link-upgrade: invalid encryption key");
+        return 0;
+    }
+
+    # 8. Send confirm and complete
+    if ( !s_write( $sock, "link-confirm-encoding\n" ) ) {
+        return 0;
+    }
+
+    my $enc_confirm = s_read($sock);
+    return 0 unless $enc_confirm;
+
+    if ( !s_write( $sock, "link-complete\n" ) ) {
+        return 0;
+    }
+
+    my $complete = s_read($sock);
+    return 0 unless $complete;
+
+    # 9. Store encryption state
+    $state_ref->{key}           = $encryption_key;
+    $state_ref->{session_id}    = $session_id;
+    $state_ref->{read_counter}  = 0;
+    $state_ref->{write_counter} = 0;
+
+    return 1;  # Success
+}
+
+sub encrypt_message {
+    my ( $plaintext, $state_ref ) = @ARG;
+    return $plaintext unless $state_ref->{enabled};
+
+    use Crypt::AuthEnc::ChaCha20Poly1305;
+
+    my $nonce = pack( 'N', $state_ref->{session_id} ) .
+                pack( 'N', $state_ref->{write_counter} ) .
+                "\0\0\0\0";
+
+    my $cipher = Crypt::AuthEnc::ChaCha20Poly1305->new(
+        $state_ref->{key},
+        $nonce
+    );
+    $cipher->encrypt_add($plaintext);
+    my $auth_tag = $cipher->encrypt_done();
+
+    return $cipher->ciphertext() . $auth_tag;
+}
+
+sub decrypt_message {
+    my ( $ciphertext, $state_ref ) = @ARG;
+    return $ciphertext unless $state_ref->{enabled};
+
+    use Crypt::AuthEnc::ChaCha20Poly1305;
+
+    my $nonce = pack( 'N', $state_ref->{session_id} ) .
+                pack( 'N', $state_ref->{read_counter} ) .
+                "\0\0\0\0";
+
+    my $auth_tag = substr( $ciphertext, -16 );
+    my $encrypted = substr( $ciphertext, 0, -16 );
+
+    my $cipher = Crypt::AuthEnc::ChaCha20Poly1305->new(
+        $state_ref->{key},
+        $nonce
+    );
+    my $plaintext = $cipher->decrypt_add($encrypted);
+    my $success = $cipher->decrypt_done($auth_tag);
+
+    return $success ? $plaintext : undef;
+}
+
+#,,.,,.,,,.,,,,,.,,,,,,.,,...,..,,,,,,.,,,..,,..,,...,...,,.,,.,.,...,.,,,..,,
+#BQGYDUIRP4DGNOUZMDNCHC3QMLH6EKLSBAB4MRRQHMT6F6MCIOZMJLGWOCNZIDQ47OXLY4UX2P5LM
+#\\\|375ZM22OD45AKQDCV3LZHLFZEU34THS33VVBKWJXJPQR3PZPCCB \ / AMOS7 \ YOURUM ::
+#\[7]6VKEQIVOEHIQGKDW4DHUTQUWEMP2LCEZWFLK5KRSTBJVWOIT22DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
