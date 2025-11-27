@@ -30,7 +30,8 @@ my $key_type_param      = shift;    ##  REQUIRED  ##
 my $harmonic_public_keys = TRUE;     ##  public key truth requirement  ##
 
 ## Validate key type parameter
-unless ( defined $key_type_param and $key_type_param =~ m|^(?:Ed25519|Curve25519)$| ) {
+unless ( defined $key_type_param and
+         ( $key_type_param eq 'Ed25519' or $key_type_param eq 'Curve25519' ) ) {
     <[base.s_warn]>->(
         "key_type must be 'Ed25519' or 'Curve25519', got '%s'",
         $key_type_param // 'undef'
@@ -47,7 +48,9 @@ my $name         = $key_vars_ref->{'key_name'} // $key_name_param;
 $name //= join( qw| . |, ( $ENV{'USER'} // getpwuid($EUID) ), qw| base | );
 
 ## Include type in key name for proper tracking
-$name = sprintf( '%s:%s', $name, $key_type ) unless $name =~ m/:(?:Ed25519|Curve25519)$/;
+unless ( $name =~ m/:Ed25519$/ or $name =~ m/:Curve25519$/ ) {
+    $name = sprintf( '%s:%s', $name, $key_type );
+}
 
 $keys{'C25519'} //= {};
 
