@@ -65,13 +65,13 @@ unless ( defined $ephemeral_pubkey and length $ephemeral_pubkey == 32 ) {
     };
 }
 
-## Encode ephemeral pubkey as base32 and send as separate message after TRUE response
+## Encode ephemeral pubkey as base32
+## Include pubkey in response data (client will read confirmation + pubkey from response)
 my $pubkey_b32 = Crypt::Misc::encode_b32r($ephemeral_pubkey);
-$session->{'buffer'}->{'output'} .= "$pubkey_b32\n";
 
 return {
     'mode' => qw| true |,
-    'data' => "link upgrade initiated, state transition complete"
+    'data' => "link-upgrade OK\n$pubkey_b32"
 };
 
 #,,..,,,,,,..,,..,.,,,.,,,.,,,,.,,,,.,.,,,.,.,..,,...,...,..,,,..,.,.,...,...,
