@@ -32,6 +32,7 @@ if ( not defined $ephemeral_keypair or not defined $ephemeral_key_name ) {
 ## Store ephemeral keypair info in session
 $session->{'link_ephemeral_key_name'} = $ephemeral_key_name;
 $session->{'link_ephemeral_pubkey'} = $ephemeral_keypair->{'public'};
+$session->{'link_ephemeral_keypair'} = $ephemeral_keypair;  ## Store entire keypair for handler access
 
 ## Initialize capability flags
 my $capabilities = {

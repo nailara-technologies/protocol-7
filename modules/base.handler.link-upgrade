@@ -46,9 +46,8 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
     }
 
     ## Perform Diffie-Hellman with client pubkey
-    ## Get ephemeral private key
-    my $ephemeral_key_name = $session->{'link_ephemeral_key_name'};
-    my $ephemeral_keypair  = <keys.C25519>->{$ephemeral_key_name};
+    ## Get ephemeral keypair from session storage
+    my $ephemeral_keypair  = $session->{'link_ephemeral_keypair'};
 
     if ( not defined $ephemeral_keypair ) {
         <[base.logs]>->( 0, '[%d] ephemeral keypair lost', $id );
