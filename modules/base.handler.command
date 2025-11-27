@@ -387,6 +387,10 @@ if ( $cmd eq 'link-upgrade' and $session->{'state'} == 1 ) {
         '[%d] state transition to 2 complete, handler will process link-upgrade',
         $id
     );
+
+    ## Return 0 to stop command handler from continuing
+    ## State 2 handler will process subsequent negotiation steps
+    return 0;
 }
 
 ##[ PREPARE REPLY \ HAS REPLY ID ]############################################
