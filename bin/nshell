@@ -146,18 +146,9 @@ $OUTPUT_AUTOFLUSH = TRUE;
 
 # clear();
 
-# Initialize Term::ReadLine only in TTY mode
+# Term::ReadLine will be initialized after authentication
+# (after AMOS7::TERM::user_and_passwd has completed)
 my $term;
-if ( !$no_tty ) {
-    $term = new Term::ReadLine('protocol-7.shell');
-    $term->ornaments('mh,me,md,me');
-    $term->enableUTF8();
-    $term->MinLine(undef);
-
-    no warnings 'once';
-    $readline::rl_completion_function = "main::rl_filename_list_lcl";
-    use warnings 'once';
-}
 
 my $shell_sock;
 while ($connect) {
@@ -169,6 +160,18 @@ while ($connect) {
         $shell_sock = unix_auth( $shell_sock, $cube_user );
     } else {
         $shell_sock = shell_auth( $shell_sock, login_prompt() );
+    }
+
+    # Initialize Term::ReadLine after authentication (AMOS7::TERM no longer needed)
+    if ( !$no_tty and !defined $term ) {
+        $term = new Term::ReadLine('protocol-7.shell');
+        $term->ornaments('mh,me,md,me');
+        $term->enableUTF8();
+        $term->MinLine(undef);
+
+        no warnings 'once';
+        $readline::rl_completion_function = "main::rl_filename_list_lcl";
+        use warnings 'once';
     }
 
     # Link-upgrade encryption negotiation (optional)
