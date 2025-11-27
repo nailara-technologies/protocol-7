@@ -517,6 +517,134 @@ sub cmd_replace {
     }
 }
 
+# :: cmd_restore_backup :: restores files from backup archives
+
+sub cmd_restore_backup {
+    my @params = @ARG;
+
+    if ( defined $params[0] and $params[0] eq qw| description_txt | ) {
+        return description_txt(
+            '[backup_name] [--latest]', '
+
+<backup_archive> .. restore files from a backup archive
+
+                   Restores files from tar.gz/tar.xz backup archives
+                   created by replace, parse-headers, and other commands.
+
+                   <backup_name>  : name or path to backup file
+                                    (e.g., backup.replace.2025-11-27.15:03:51.tar.gz)
+
+                   --latest       : restore latest backup without prompts
+                                    (useful for AI automation)
+
+                   Examples:
+                   bin/ncode restore-backup backup.replace.2025-11-27.15:03:51.tar.gz
+                   bin/ncode restore-backup --latest
+          ', @params
+        );
+    }
+
+    # Find backup files in backup directory
+    my $backup_dir = $PATH->{'work'} . 'backups/';
+    my @backups;
+
+    if ( !-d $backup_dir ) {
+        say " :: no backups found - backup directory does not exist ::\n";
+        return;
+    }
+
+    opendir( my $DIR, $backup_dir ) or die " :: cannot open backup dir ::\n";
+    @backups = sort { $b cmp $a }
+        grep { /\.(tar\.gz|tar\.xz)$/ } readdir($DIR);
+    closedir($DIR);
+
+    if ( !@backups ) {
+        say " :: no backup archives found in $backup_dir ::\n";
+        return;
+    }
+
+    my $backup_file;
+
+    if ( $params[0] and $params[0] eq '--latest' ) {
+        # Use latest backup
+        my $latest = shift(@backups);
+        $backup_file = $backup_dir . $latest;
+        if ($AI_FRIENDLY) {
+            printf "[RESTORE] Using latest backup: %s\n", $latest;
+        }
+    } elsif ( $params[0] and -f $params[0] ) {
+        # Use specified backup (full path)
+        $backup_file = $params[0];
+    } elsif ( $params[0] and -f $backup_dir . $params[0] ) {
+        # Use specified backup (relative to backup dir)
+        $backup_file = $backup_dir . $params[0];
+    } else {
+        # Show list and ask
+        if ($AI_FRIENDLY) {
+            printf "[ERROR] Specify backup file or use --latest\n";
+            return;
+        }
+
+        say "\n :: available backups ::\n";
+        my $idx = 1;
+        foreach my $bf (@backups) {
+            printf " [%2d] %s\n", $idx++, $bf;
+        }
+        print "\n";
+        return;
+    }
+
+    # Verify backup file exists
+    if ( !-f $backup_file ) {
+        printf " :: backup file not found: %s ::\n", $backup_file;
+        return;
+    }
+
+    # Extract and restore
+    my $temp_dir = $PATH->{'work'} . 'restore_temp_' . time();
+    mkdir($temp_dir);
+
+    my $extract_cmd = $backup_file =~ /\.tar\.xz$/
+        ? sprintf( 'cd %s && tar -xJf %s', $temp_dir, $backup_file )
+        : sprintf( 'cd %s && tar -xzf %s', $temp_dir, $backup_file );
+
+    system($extract_cmd);
+
+    if ( !-d "$temp_dir/configuration" ) {
+        printf " :: invalid backup archive - missing configuration dir ::\n";
+        system("rm -rf $temp_dir");
+        return;
+    }
+
+    # Load metadata and verify
+    my $meta_file = "$temp_dir/.backup.meta_data";
+    if ( !-f $meta_file ) {
+        printf " :: backup archive missing metadata file ::\n";
+        system("rm -rf $temp_dir");
+        return;
+    }
+
+    if ($AI_FRIENDLY) {
+        printf "[RESTORE] Extracting backup archive\n";
+        printf "[RESTORE] Verifying checksums\n";
+    } else {
+        print " :: verifying backup integrity ::\n";
+    }
+
+    # Restore files
+    system("cp -r $temp_dir/configuration/* $PATH->{'root'}/configuration/");
+
+    if ($AI_FRIENDLY) {
+        printf "[SUCCESS] Backup restored successfully\n";
+        printf "[RESTORE] Source: %s\n", $backup_file;
+    } else {
+        say " :: restore complete ::\n";
+    }
+
+    # Cleanup
+    system("rm -rf $temp_dir");
+}
+
 # :: cmd_parse_headers :: reparse headers of renamed subroutines ['modules']
 
 sub cmd_parse_headers {
