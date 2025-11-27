@@ -152,15 +152,56 @@ sub find_metadata_blocks {
     return @blocks;
 }
 
+##[ PARSE MODULE COMMAND FILES ]##############################################
+
+sub parse_module_command {
+    my $filepath = shift;
+    my $metadata = {};
+
+    open( my $FH, '<', $filepath ) or return $metadata;
+    my $source_code = do { local $/; <$FH> };
+    close($FH);
+
+    # Extract name, param, and descr from comment lines
+    # Format:
+    # # name  = base.console.commands
+    # # param = [pattern]
+    # # descr = list [these] console commands and parameters
+    my @lines = split /\n/, $source_code;
+    foreach my $line (@lines) {
+        if ( $line =~ /^\s*#\s+name\s*=\s*(.+)$/ ) {
+            my $name = $1;
+            $name =~ s/^\s+//;
+            $name =~ s/\s+$//;
+            $metadata->{'command'} = $name;
+        }
+        elsif ( $line =~ /^\s*#\s+param\s*=\s*(.+)$/ ) {
+            my $param = $1;
+            $param =~ s/^\s+//;
+            $param =~ s/\s+$//;
+            $metadata->{'param'} = $param;
+        }
+        elsif ( $line =~ /^\s*#\s+descr\s*=\s*(.+)$/ ) {
+            my $descr = $1;
+            $descr =~ s/^\s+//;
+            $descr =~ s/\s+$//;
+            $metadata->{'descr'} = $descr;
+        }
+    }
+
+    return $metadata;
+}
+
 ##[ BUILD COMMAND REGISTRY ]##################################################
 
 sub build_command_registry {
     my $zenka_root = shift;    # path to configuration/zenki
-    my $registry   = {};
+    my $root_path = shift;     # path to protocol-7 root (optional)
+    my $registry = {};
 
     return $registry if not defined $zenka_root or not -d $zenka_root;
 
-    # Find all .pl files in zenka modules
+    ## Scan zenka source directories for inline metadata
     opendir( my $ZENKA_DIR, $zenka_root ) or return $registry;
     my @zenka_names = grep { -d "$zenka_root/$_" and !/^\./ } readdir($ZENKA_DIR);
     closedir($ZENKA_DIR);
@@ -189,7 +230,41 @@ sub build_command_registry {
                     %$metadata,
                     'zenka'    => $zenka_name,
                     'file'     => $file,
-                    'filepath' => $filepath
+                    'filepath' => $filepath,
+                    'source'   => 'zenka'
+                };
+            }
+        }
+    }
+
+    ## Scan modules/*.console.* files for console commands
+    ## These are Protocol-7 console commands with simple name/param/descr format
+    if ( not defined $root_path ) {
+        ## Try to infer root path from zenka_root
+        ## zenka_root is typically configuration/zenki
+        if ( $zenka_root =~ m{^(.+)/configuration/zenki$} ) {
+            $root_path = $1;
+        }
+    }
+
+    if ( defined $root_path and -d "$root_path/modules" ) {
+        opendir( my $MOD_DIR, "$root_path/modules" ) or return $registry;
+        my @module_files = grep { /\.console\./ and -f "$root_path/modules/$_" }
+            readdir($MOD_DIR);
+        closedir($MOD_DIR);
+
+        foreach my $file (@module_files) {
+            my $filepath = "$root_path/modules/$file";
+            my $metadata = parse_module_command($filepath);
+
+            if ( exists $metadata->{'command'} ) {
+                my $cmd = $metadata->{'command'};
+                $registry->{$cmd} = {
+                    %$metadata,
+                    'file'     => $file,
+                    'filepath' => $filepath,
+                    'source'   => 'console',
+                    'tag'      => 'console-command'
                 };
             }
         }
