@@ -10,7 +10,16 @@ my $start_cfg_name = qw| start |;
 state $access_warned = FALSE;
 
 my $file_perm = 0664;    ##  zenka group gets write access  ##
-my $owner     = <system.amos-zenka-user> // qw|  protocol-7  |;
+
+## Determine owner based on execution context
+my $owner;
+if ( <[base.zenka.is_v7_started]>->() ) {
+    ## In v7 zenka context: use protocol-7 user
+    $owner = <system.amos-zenka-user> // qw| protocol-7 |;
+} else {
+    ## Console execution: use current user (likely root)
+    $owner = getpwuid($EUID) // qw| root |;
+}
 
 my $mod_dir = <[base.get_path.zenka_cfg]>;
 
