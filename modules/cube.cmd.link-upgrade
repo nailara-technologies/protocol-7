@@ -54,6 +54,21 @@ if ( not <[base.session.init_state]>->( $session_id, 2 ) ) {
     };
 }
 
+## Get the ephemeral public key that was generated during state 2 init
+use Crypt::Misc;
+my $ephemeral_pubkey = $session->{'link_ephemeral_pubkey'};
+
+unless ( defined $ephemeral_pubkey and length $ephemeral_pubkey == 32 ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "failed to generate ephemeral public key"
+    };
+}
+
+## Encode ephemeral pubkey as base32 and send as separate message after TRUE response
+my $pubkey_b32 = Crypt::Misc::encode_b32r($ephemeral_pubkey);
+$session->{'buffer'}->{'output'} .= "$pubkey_b32\n";
+
 return {
     'mode' => qw| true |,
     'data' => "link upgrade initiated, state transition complete"

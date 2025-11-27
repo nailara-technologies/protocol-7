@@ -59,17 +59,14 @@ $session->{'link_capabilities'} = $capabilities;
 my $link_timeout = <protocol-7.link-upgrade-timeout> // 17;
 $session->{'link_upgrade_timeout'} = time() + $link_timeout;
 
-## Send ephemeral public key to client immediately upon state 2 entry
-## This happens proactively rather than waiting for client message
-my $pubkey_b32 = Crypt::Misc::encode_b32r($ephemeral_public);
-$session->{'buffer'}->{'output'} .= "$pubkey_b32\n";
-
 <[base.logs]>->(
     2,
-    '[%d] initialized link-upgrade negotiation (state %d), sent ephemeral pubkey',
+    '[%d] initialized link-upgrade negotiation (state %d), ephemeral keypair ready',
     $session_id, $state_id
 );
 
+## Note: ephemeral pubkey is sent by cube.cmd.link-upgrade after command response
+## This ensures proper message ordering: TRUE response first, then pubkey
 return 1;
 
 1;
