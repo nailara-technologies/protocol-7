@@ -1,0 +1,138 @@
+## [:< ##
+
+# name    = plugin.auth.c25519
+# descr   = C25519 key-based authentication (ephemeral session key signed by Ed25519 master key)
+# args    = int(session id)
+# return  = str(user name) (success), undef [error]
+#
+# protocol = auth <username> <c25519_pubkey_b32> <ed25519_signature_b32>
+#           Client signs C25519 session pubkey with Ed25519 master private key
+#           Server verifies signature using stored Ed25519 master public key
+
+use Crypt::Misc;
+use Crypt::Ed25519;
+
+my $id = $_[0]->w->data;
+my $re = <regex.base>;
+
+my $input  = \$data{'session'}{$id}{'buffer'}{'input'};
+my $output = \$data{'session'}{$id}{'buffer'}{'output'};
+
+## Parse: auth <username> <c25519_pubkey_b32> <ed25519_signature_b32>
+if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
+
+    my ( $username, $pubkey_b32, $sig_b32 ) = ( ${^CAPTURE}[0], ${^CAPTURE}[1], ${^CAPTURE}[2] );
+
+    ## Load user's Ed25519 master public key from auth store
+    my $master_key_ref = $keys{'auth'}{'c25519-master'}{$username};
+
+    unless ( defined $master_key_ref and ref $master_key_ref eq 'HASH' ) {
+        $output->$* .= "AUTH_ERROR master key not registered\n";
+        <[base.logs]>->(
+            0, '[%d] c25519 auth failed: no master key for user \'%s\'',
+            $id, $username
+        );
+        return 2;  ## access denied - no master key ##
+    }
+
+    my $master_pubkey_b32 = $master_key_ref->{'public_b32'} // $master_key_ref->{'pubkey_b32'};
+    my $master_pubkey_bin = eval { Crypt::Misc::decode_b32r($master_pubkey_b32) } // undef;
+
+    unless ( defined $master_pubkey_bin and length($master_pubkey_bin) == 32 ) {
+        $output->$* .= "AUTH_ERROR invalid master key format\n";
+        <[base.logs]>->(
+            0, '[%d] c25519 auth failed: invalid master key for user \'%s\'',
+            $id, $username
+        );
+        return 2;  ## access denied - invalid master key ##
+    }
+
+    ## Decode client's C25519 session pubkey
+    my $c25519_pubkey_bin = eval { Crypt::Misc::decode_b32r($pubkey_b32) } // undef;
+
+    unless ( defined $c25519_pubkey_bin and length($c25519_pubkey_bin) == 32 ) {
+        $output->$* .= "AUTH_ERROR invalid session pubkey format\n";
+        <[base.logs]>->(
+            0, '[%d] c25519 auth failed: invalid session pubkey for user \'%s\'',
+            $id, $username
+        );
+        return 2;  ## access denied - invalid pubkey ##
+    }
+
+    ## Decode signature
+    my $signature_bin = eval { Crypt::Misc::decode_b32r($sig_b32) } // undef;
+
+    unless ( defined $signature_bin and length($signature_bin) == 64 ) {
+        $output->$* .= "AUTH_ERROR invalid signature format\n";
+        <[base.logs]>->(
+            0, '[%d] c25519 auth failed: invalid signature for user \'%s\'',
+            $id, $username
+        );
+        return 2;  ## access denied - invalid signature ##
+    }
+
+    ## Verify Ed25519 signature on the C25519 pubkey
+    ## Signature must be over the raw C25519 public key bytes
+    my $signature_valid = 0;
+
+    eval {
+        $signature_valid = Crypt::Ed25519::verify(
+            $c25519_pubkey_bin,      ## message (C25519 pubkey that was signed)
+            $master_pubkey_bin,      ## public key (Ed25519 master pubkey)
+            $signature_bin           ## signature (64 bytes)
+        ) // 0;
+    };
+
+    if ( $@ ) {
+        <[base.logs]>->(
+            0, '[%d] c25519 auth failed: signature verification error: %s',
+            $id, $@
+        );
+        $output->$* .= "AUTH_ERROR signature verification error\n";
+        return 2;  ## access denied - verification error ##
+    }
+
+    if ( $signature_valid ) {
+        ## Signature verified - authenticate user with C25519 session key
+        $output->$* .= "AUTH_TRUE =)\n";
+
+        ## Store C25519 session key for this user
+        $keys{'auth'}{'c25519-session'}{$id} = {
+            'username'  => $username,
+            'pubkey_b32' => $pubkey_b32,
+            'pubkey_bin' => $c25519_pubkey_bin,
+            'timestamp' => time(),
+        };
+
+        <[base.logs]>->(
+            1, '[%d] user session authorized to \'%s\' via C25519 key',
+            $id, $username
+        );
+        return ( 0, $username );  ## success with username ##
+    } else {
+        $output->$* .= "AUTH_ERROR signature verification failed\n";
+        <[base.logs]>->(
+            0, '[%d] c25519 auth failed: signature verification failed for user \'%s\'',
+            $id, $username
+        );
+        return 2;  ## access denied - signature verification failed ##
+    }
+
+} elsif ( $input->$* =~ m|\n| ) {
+    $output->$* .= ">:[\n";
+    <[base.logs]>->(
+        0, '[%d] authentication protocol mismatch [ c25519 ] >:[',
+        $id
+    );
+    return 2;  ## no access [ protocol error ] ##
+} else {
+    return 1;  ## continue [ incomplete line ] ##
+}
+
+1;
+
+#,,,,,.,.,,,.,...,.,,,.,.,..,,...,,,,..,,.,.,,...,..,,.,,...,.,.,...,,,.,.,,.,,,,,
+#XYZABC123DEFGH456IJKLMN789OPQRST0UVWXYZ1ABCDE2FGHIJ3KLMNO4PQRST5UVWXYZ6ABCDE7F
+#\\\|TEST1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890ABCDEFGHIJKLMNO \ / AMOS7 \ YOURUM ::
+#\[7]TEST1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890ABCDEFGHIJKLMNO 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
