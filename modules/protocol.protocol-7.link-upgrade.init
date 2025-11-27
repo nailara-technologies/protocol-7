@@ -13,17 +13,24 @@
 my ( $session_id, $mode, $state_id ) = @ARG;
 my $session = $data{'session'}{$session_id};
 
-## Generate ephemeral C25519 keypair for this session
-## Reuse existing C25519 session keypair infrastructure
-my ( $ephemeral_keypair, $ephemeral_key_name ) = <[crypt.C25519.gen_keys]>->(
-    sprintf( qw| link-upgrade-%d-%s |, $session_id, <[base.prng.chars-anum]>->(8) ),
-    'link-upgrade-ephemeral'
-);
+## Generate ephemeral Curve25519 keypair for this session
+## Use Crypt::Misc for key generation (for DH, not Ed25519 signatures)
+use Crypt::Misc;
+use Crypt::Curve25519;
 
-if ( not defined $ephemeral_keypair or not defined $ephemeral_key_name ) {
+my $ephemeral_secret = Crypt::Misc::random_bytes(32);
+my $ephemeral_public = Crypt::Curve25519::curve25519_public_key($ephemeral_secret);
+my $ephemeral_key_name = sprintf( qw| link-upgrade-%d-%s |, $session_id, <[base.prng.chars-anum]>->(8) );
+
+my $ephemeral_keypair = {
+    'secret' => $ephemeral_secret,
+    'public' => $ephemeral_public,
+};
+
+if ( not defined $ephemeral_keypair or not defined $ephemeral_secret or not defined $ephemeral_public ) {
     <[base.logs]>->(
         0,
-        '[%d] failed to generate C25519 ephemeral keypair for link-upgrade',
+        '[%d] failed to generate Curve25519 ephemeral keypair for link-upgrade',
         $session_id
     );
     return 0;

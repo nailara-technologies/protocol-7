@@ -73,12 +73,14 @@ if ( $$input =~ s|^link-upgrade\n|| ) {
     }
 
     ## Compute shared secret: DH(our_private, client_public)
-    my $shared_secret = <[crypt.C25519.compute_shared]>->(
-        \$ephemeral_keypair->{'secret'},
-        \$client_pubkey
+    ## Use Crypt::Curve25519 for proper Diffie-Hellman (not Ed25519 signatures)
+    use Crypt::Curve25519;
+    my $shared_secret = Crypt::Curve25519::curve25519_shared_secret(
+        $ephemeral_keypair->{'secret'},
+        $client_pubkey
     );
 
-    if ( not defined $shared_secret ) {
+    if ( not defined $shared_secret or not length $shared_secret ) {
         <[base.logs]>->( 0, '[%d] DH computation failed', $id );
         return 2;
     }
