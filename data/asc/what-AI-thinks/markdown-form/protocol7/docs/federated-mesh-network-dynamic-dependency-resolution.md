@@ -634,6 +634,51 @@ Archive Lifecycle:
 Result: Complete system redundancy without central storage
 ```
 
+### User-Controlled Export & Restore
+
+Users can interact with archives directly for backup and recovery:
+
+**Export Capability**:
+```
+Command: bin/p7-mesh archive --export [--timestamp 2025-11-27-14:30]
+↓
+Output: complete-network-archive-2025-11-27-14.30.tar.xz
+└─ Contains: All nodes' state at that timestamp
+  ├─ Source code (all zenka, subroutines)
+  ├─ Configuration (templates, settings)
+  ├─ Session profiles (history of what was built)
+  ├─ Dependency manifests (what was needed)
+  └─ Metadata (signatures, versions, ownership)
+
+Size: Compressed to single portable file
+Portability: Can copy, store, transfer via any means
+Verification: Includes signatures for integrity checking
+```
+
+**Restore Capability**:
+```
+Command: bin/p7-mesh archive --restore complete-network-archive-2025-11-27-14.30.tar.xz
+↓
+Action:
+1. Validate archive signature and integrity
+2. Extract to staging location
+3. Restore node state to exported timestamp
+4. Reload all subroutines, configurations, profiles
+5. Verify all dependencies available
+6. Node resumes operation from checkpoint
+
+Result: Complete network recovery to exact point-in-time
+Time: Seconds (from local archive) instead of minutes/hours (from re-download)
+```
+
+**Benefits**:
+- **Time Travel**: Restore entire system to any previous good state
+- **Disaster Recovery**: Complete backup outside the mesh network
+- **Migration**: Export from one node, import to another
+- **Compliance**: Archival snapshots for audit and regulatory requirements
+- **Experimentation**: Export before trying risky changes, restore if needed
+- **Offline Capability**: Archives work completely offline (no network needed)
+
 ---
 
 **Vision Status**: Complete architectural framework with archive persistence
