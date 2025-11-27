@@ -162,6 +162,25 @@ while ($connect) {
         $shell_sock = shell_auth( $shell_sock, login_prompt() );
     }
 
+    # Link-upgrade encryption negotiation (optional)
+    my %encryption_state = (
+        enabled       => 0,
+        key           => undef,
+        session_id    => undef,
+        read_counter  => 0,
+        write_counter => 0,
+    );
+
+    # Check if user wants encryption via environment variable
+    if ( defined $ENV{'PROTOCOL_7_LINK_UPGRADE'} and $ENV{'PROTOCOL_7_LINK_UPGRADE'} eq 'yes' ) {
+        if ( negotiate_link_upgrade( $shell_sock, \%encryption_state ) ) {
+            print " :: link-upgrade encryption enabled ::\n";
+            $encryption_state{enabled} = 1;
+        } else {
+            warn_err("link-upgrade negotiation failed, continuing plaintext");
+        }
+    }
+
     # see override_signals ##
     map { $SIG{$ARG} = \&parent_exit } qw| INT TERM HUP |;
 
@@ -190,7 +209,7 @@ while ($connect) {
             }
         }
         $lines_up = 3;
-        shell_loop( $shell_sock, $prompt );
+        shell_loop( $shell_sock, $prompt, \%encryption_state );
     }
 }
 
@@ -373,13 +392,14 @@ sub s_write {
 sub clear { print "\e[37m\e[H\e[2J" }
 
 sub shell_loop {
-    my $sock   = $ARG[0];
-    my $prompt = $ARG[1];
+    my $sock              = $ARG[0];
+    my $prompt            = $ARG[1];
+    my $encryption_state  = $ARG[2] // {};  # Accept optional encryption state
 
     if ( not $stdout_pid = fork() ) {
         $SIG{'TERM'} = $SIG{'INT'} = $SIG{'HUP'} = qw| IGNORE |;
         $SIG{'PIPE'} = sub { kill( 9, $parent_pid ); exit(2) };
-        stdout_fork();
+        stdout_fork($encryption_state);
         exit;
     }
     if ( defined $stored_cmd ) {
@@ -433,7 +453,12 @@ sub shell_loop {
                 }
                 if ( length($line) and $line ne '[quit]' ) {
                     say '' if $PRINT_SEPERATOR_NEWLINE;
-                    if ( !s_write( $sock, sprintf( "%s\n", $line ) ) ) {
+                    my $command_to_send = sprintf( "%s\n", $line );
+                    if ( $encryption_state->{enabled} ) {
+                        $encryption_state->{write_counter}++;
+                        $command_to_send = encrypt_message( $command_to_send, $encryption_state );
+                    }
+                    if ( !s_write( $sock, $command_to_send ) ) {
                         sleep(0.1);
                         $stored_cmd = $line;
                     }
@@ -477,9 +502,16 @@ sub shell_loop {
 }
 
 sub stdout_fork {
+    my $encryption_state = shift // {};  # Accept encryption state from parent
     close(STDIN);
     $PROGRAM_NAME = "nshell [ stdout ]";
     while ( my $out = <$shell_sock> ) {
+        # Decrypt message if encryption is enabled
+        if ( $encryption_state->{enabled} ) {
+            $encryption_state->{read_counter}++;
+            $out = decrypt_message( $out, $encryption_state );
+            next unless defined $out;  # Skip if decryption failed
+        }
         $out =~ s|\n$||;
         print "$out\n";
     }
@@ -582,6 +614,128 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
     }
     kill( 9, $stdout_pid ) if defined $stdout_pid;
     exit;
+}
+
+##[ Link-Upgrade Encryption Functions ]#########################################
+
+sub negotiate_link_upgrade {
+    my ( $sock, $state_ref ) = @ARG;
+
+    # 1. Send link-upgrade init
+    if ( !s_write( $sock, "link-upgrade\n" ) ) {
+        return 0;
+    }
+
+    # 2. Read server ephemeral pubkey
+    my $server_pubkey_b32 = s_read($sock);
+    chomp($server_pubkey_b32);
+    return 0 unless $server_pubkey_b32;
+
+    # 3. Generate client ephemeral keypair
+    my $gen_result = <[crypt.C25519.gen_keys]>->(
+        'nshell-ephemeral-' . time(),
+        undef,  # no passphrase
+        undef   # generate new secret
+    );
+    return 0 unless $gen_result and ref($gen_result) eq 'HASH';
+
+    my $client_pubkey = $gen_result->{'public'};
+    my $client_secret = $gen_result->{'secret'};
+
+    # Encode to base32
+    use Crypt::Misc;
+    my $client_pubkey_b32 = Crypt::Misc::encode_b32r($client_pubkey);
+
+    # 4. Send client pubkey
+    if ( !s_write( $sock, "link-pub-key $client_pubkey_b32\n" ) ) {
+        return 0;
+    }
+
+    # 5. Read readiness confirmation
+    my $confirm = s_read($sock);
+    return 0 unless $confirm;
+
+    # 6. Compute DH shared secret
+    my $server_pubkey = Crypt::Misc::decode_b32r($server_pubkey_b32);
+    my $shared_secret_ref = <[crypt.C25519.compute_shared]>->(
+        \$client_secret,
+        $server_pubkey
+    );
+    return 0 unless $shared_secret_ref;
+
+    my $shared_secret = $$shared_secret_ref;
+
+    # 7. Derive encryption key
+    use AMOS7;
+    my $session_id = time() & 0xFFFFFFFF;  # Use time as session ID
+    my $encryption_key = AMOS7::13::key_32( \$shared_secret, $session_id );
+    return 0 unless $encryption_key;
+
+    # 8. Send confirm and complete
+    if ( !s_write( $sock, "link-confirm-encoding\n" ) ) {
+        return 0;
+    }
+
+    my $enc_confirm = s_read($sock);
+    return 0 unless $enc_confirm;
+
+    if ( !s_write( $sock, "link-complete\n" ) ) {
+        return 0;
+    }
+
+    my $complete = s_read($sock);
+    return 0 unless $complete;
+
+    # 9. Store encryption state
+    $state_ref->{key}           = $encryption_key;
+    $state_ref->{session_id}    = $session_id;
+    $state_ref->{read_counter}  = 0;
+    $state_ref->{write_counter} = 0;
+
+    return 1;  # Success
+}
+
+sub encrypt_message {
+    my ( $plaintext, $state_ref ) = @ARG;
+    return $plaintext unless $state_ref->{enabled};
+
+    use Crypt::AuthEnc::ChaCha20Poly1305;
+
+    my $nonce = pack( 'N', $state_ref->{session_id} ) .
+                pack( 'N', $state_ref->{write_counter} ) .
+                "\0\0\0\0";
+
+    my $cipher = Crypt::AuthEnc::ChaCha20Poly1305->new(
+        $state_ref->{key},
+        $nonce
+    );
+    $cipher->encrypt_add($plaintext);
+    my $auth_tag = $cipher->encrypt_done();
+
+    return $cipher->ciphertext() . $auth_tag;
+}
+
+sub decrypt_message {
+    my ( $ciphertext, $state_ref ) = @ARG;
+    return $ciphertext unless $state_ref->{enabled};
+
+    use Crypt::AuthEnc::ChaCha20Poly1305;
+
+    my $nonce = pack( 'N', $state_ref->{session_id} ) .
+                pack( 'N', $state_ref->{read_counter} ) .
+                "\0\0\0\0";
+
+    my $auth_tag = substr( $ciphertext, -16 );
+    my $encrypted = substr( $ciphertext, 0, -16 );
+
+    my $cipher = Crypt::AuthEnc::ChaCha20Poly1305->new(
+        $state_ref->{key},
+        $nonce
+    );
+    my $plaintext = $cipher->decrypt_add($encrypted);
+    my $success = $cipher->decrypt_done($auth_tag);
+
+    return $success ? $plaintext : undef;
 }
 
 #,,,.,,.,,,,,,,.,,.,,,,..,,,.,..,,,,.,,,.,,,,,..,,...,...,,..,.,.,...,,.,,...,
