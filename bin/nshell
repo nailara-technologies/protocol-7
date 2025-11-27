@@ -675,99 +675,105 @@ sub negotiate_link_upgrade {
     use Digest::SHA qw(sha256);
 
     # 1. Send link-upgrade init
+    print STDERR "[link-upgrade] Step 1: Sending link-upgrade init\n" if $ENV{DEBUG};
     if ( !s_write( $sock, "link-upgrade\n" ) ) {
-        warn_err("link-upgrade: failed to send init");
+        print STDERR "[link-upgrade] Step 1 FAILED: Could not send link-upgrade\n" if $ENV{DEBUG};
         return 0;
     }
 
     # 2. Read server ephemeral pubkey
+    print STDERR "[link-upgrade] Step 2: Reading server ephemeral pubkey\n" if $ENV{DEBUG};
     my $server_pubkey_b32 = s_read($sock);
     unless ( $server_pubkey_b32 ) {
-        warn_err("link-upgrade: no server response for pubkey");
+        print STDERR "[link-upgrade] Step 2 FAILED: No server pubkey received\n" if $ENV{DEBUG};
         return 0;
     }
     chomp($server_pubkey_b32);
+    print STDERR "[link-upgrade] Step 2 OK: Got server pubkey: " . substr($server_pubkey_b32, 0, 20) . "...\n" if $ENV{DEBUG};
 
     # 3. Generate client ephemeral keypair
-    my $client_secret;
-    eval {
-        $client_secret = Crypt::Misc::random_bytes(32);
-    };
-    if ( $@ ) {
-        warn_err("link-upgrade: failed to generate secret: %s", $@);
-        return 0;
-    }
-
-    my $client_pubkey;
-    eval {
-        $client_pubkey = Crypt::Curve25519::curve25519_public_key($client_secret);
-    };
-    if ( $@ ) {
-        warn_err("link-upgrade: failed to compute pubkey: %s", $@);
-        return 0;
-    }
+    print STDERR "[link-upgrade] Step 3: Generating client ephemeral keypair\n" if $ENV{DEBUG};
+    my $client_secret = Crypt::Misc::random_bytes(32);
+    my $client_pubkey = Crypt::Curve25519::curve25519_public_key($client_secret);
 
     unless ( $client_secret and $client_pubkey and
              length($client_secret) == 32 and length($client_pubkey) == 32 ) {
-        warn_err("link-upgrade: invalid keypair generation");
+        print STDERR "[link-upgrade] Step 3 FAILED: Keypair generation failed\n" if $ENV{DEBUG};
         return 0;
     }
 
     my $client_pubkey_b32 = Crypt::Misc::encode_b32r($client_pubkey);
+    print STDERR "[link-upgrade] Step 3 OK: Generated keypair\n" if $ENV{DEBUG};
 
     # 4. Send client pubkey
+    print STDERR "[link-upgrade] Step 4: Sending client pubkey\n" if $ENV{DEBUG};
     if ( !s_write( $sock, "link-pub-key $client_pubkey_b32\n" ) ) {
-        warn_err("link-upgrade: failed to send client pubkey");
+        print STDERR "[link-upgrade] Step 4 FAILED: Could not send client pubkey\n" if $ENV{DEBUG};
         return 0;
     }
+    print STDERR "[link-upgrade] Step 4 OK: Client pubkey sent\n" if $ENV{DEBUG};
 
     # 5. Read readiness confirmation
+    print STDERR "[link-upgrade] Step 5: Reading readiness confirmation\n" if $ENV{DEBUG};
     my $confirm = s_read($sock);
     unless ( $confirm ) {
-        warn_err("link-upgrade: no confirmation from server");
+        print STDERR "[link-upgrade] Step 5 FAILED: No confirmation received\n" if $ENV{DEBUG};
         return 0;
     }
+    print STDERR "[link-upgrade] Step 5 OK: Got confirmation\n" if $ENV{DEBUG};
 
     # 6. Compute DH shared secret
+    print STDERR "[link-upgrade] Step 6: Computing DH shared secret\n" if $ENV{DEBUG};
     my $server_pubkey = Crypt::Misc::decode_b32r($server_pubkey_b32);
-    my $shared_secret;
-    eval {
-        $shared_secret = Crypt::Curve25519::curve25519_shared_secret($client_secret, $server_pubkey);
-    };
-    if ( $@ ) {
-        warn_err("link-upgrade: failed to compute DH: %s", $@);
-        return 0;
-    }
+    my $shared_secret = Crypt::Curve25519::curve25519_shared_secret($client_secret, $server_pubkey);
 
     unless ( $shared_secret and length($shared_secret) == 32 ) {
-        warn_err("link-upgrade: invalid DH shared secret");
+        print STDERR "[link-upgrade] Step 6 FAILED: DH computation failed\n" if $ENV{DEBUG};
         return 0;
     }
+    print STDERR "[link-upgrade] Step 6 OK: Shared secret computed\n" if $ENV{DEBUG};
 
     # 7. Derive encryption key using SHA256-based KDF
+    print STDERR "[link-upgrade] Step 7: Deriving encryption key\n" if $ENV{DEBUG};
     my $session_id = time() & 0xFFFFFFFF;
     my $encryption_key = sha256($shared_secret . pack('N', $session_id));
     unless ( $encryption_key and length($encryption_key) == 32 ) {
-        warn_err("link-upgrade: invalid encryption key");
+        print STDERR "[link-upgrade] Step 7 FAILED: Key derivation failed\n" if $ENV{DEBUG};
         return 0;
     }
+    print STDERR "[link-upgrade] Step 7 OK: Encryption key derived (session_id=$session_id)\n" if $ENV{DEBUG};
 
     # 8. Send confirm and complete
+    print STDERR "[link-upgrade] Step 8: Sending link-confirm-encoding\n" if $ENV{DEBUG};
     if ( !s_write( $sock, "link-confirm-encoding\n" ) ) {
+        print STDERR "[link-upgrade] Step 8 FAILED: Could not send confirm-encoding\n" if $ENV{DEBUG};
         return 0;
     }
 
+    print STDERR "[link-upgrade] Step 8b: Reading encoding confirmation\n" if $ENV{DEBUG};
     my $enc_confirm = s_read($sock);
-    return 0 unless $enc_confirm;
+    unless ( $enc_confirm ) {
+        print STDERR "[link-upgrade] Step 8b FAILED: No encoding confirmation received\n" if $ENV{DEBUG};
+        return 0;
+    }
+    print STDERR "[link-upgrade] Step 8b OK: Encoding confirmation received\n" if $ENV{DEBUG};
 
+    print STDERR "[link-upgrade] Step 9: Sending link-complete\n" if $ENV{DEBUG};
     if ( !s_write( $sock, "link-complete\n" ) ) {
+        print STDERR "[link-upgrade] Step 9 FAILED: Could not send link-complete\n" if $ENV{DEBUG};
         return 0;
     }
 
+    print STDERR "[link-upgrade] Step 9b: Reading completion confirmation\n" if $ENV{DEBUG};
     my $complete = s_read($sock);
-    return 0 unless $complete;
+    unless ( $complete ) {
+        print STDERR "[link-upgrade] Step 9b FAILED: No completion confirmation received\n" if $ENV{DEBUG};
+        return 0;
+    }
+    print STDERR "[link-upgrade] Step 9b OK: Completion confirmed\n" if $ENV{DEBUG};
+    print STDERR "[link-upgrade] Negotiation SUCCESS\n" if $ENV{DEBUG};
 
-    # 9. Store encryption state
+    # 10. Store encryption state
     $state_ref->{key}           = $encryption_key;
     $state_ref->{session_id}    = $session_id;
     $state_ref->{read_counter}  = 0;
