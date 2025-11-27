@@ -1,42 +1,88 @@
 #!/usr/bin/perl
 
-use v5.24;
 use strict;
-use English;
 use warnings;
-use Getopt::Std;
+use v5.28.0;
 
-##  list-amos-componemts  ##
+=head1 NAME
 
-##[ LOCAL PM LIB PATH ]#######################################################
+list-amos-components - Discover and list available Protocol-7 console commands
 
-BEGIN {
-    use English;
-    use File::Spec;
-    use Cwd qw| abs_path |;
-    use FindBin qw| $RealBin |;
-    my $up_dir         = File::Spec->updir;
-    my $data_pm_path   = qw| data/lib-path/pm |;
-    my $root_path      = abs_path( r2_abs( c_dir( $RealBin, $up_dir ) ) );
-    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
-    $local_lib_path //= $data_pm_path;
-    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
-    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
-    sub c_dir  { File::Spec->catdir(@ARG) }
-    sub r2_abs { File::Spec->rel2abs(@ARG) }
-}
+=head1 SYNOPSIS
 
-##[ AMOS MODULE ]#############################################################
+    bin/list-amos-components [OPTIONS] [ZENKA]
 
-use AMOS7;
+=head1 DESCRIPTION
 
-##[ MAIN CODE ]###############################################################
+Lists all available console commands across Protocol-7 zenka modules.
+Commands register themselves via inline metadata in their source files.
 
-say sprintf "\n  %s%s: not implemeneted yet :%s\n", $C{'B02'}, $C{'T'},
-    $C{'R'};
+=head1 OPTIONS
 
-#,,..,..,,,.,,.,.,..,,.,,,.,.,.,,,,,,,,..,,,.,..,,...,...,...,.,,,...,,.,,,,,,
-#7YJ3BFBXQ4L46S6YU2MYE35OXIKKBFMPVBPNLXTLDLD6GYBSOTOLXV6XYNRYK7RVVQGPADVTZZNGG
-#\\\|BKWGL6EPQAVJSSQKELRD3EYSHJL5K3WTB6IXWBY4JOWJKL4DMPD \ / AMOS7 \ YOURUM ::
-#\[7]B3ZM4IWM4ZPGYSOOYBNHVVELHUQA2XWYCEBNQRCFYUY6ZYRW7GCI 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    --all              List all commands (default)
+    --json             Output in JSON format (for AI/automation)
+    --yaml             Output in YAML format
+    --tag TAG          Filter by tag (e.g., development-tool, ai-friendly)
+    --search PATTERN   Search command names and descriptions
+    --zenka NAME       List commands from specific zenka
+    --describe CMD     Show full documentation for command
+    --version          Show version
+
+=head1 EXAMPLES
+
+    # List all available commands
+    bin/list-amos-components
+
+    # List all development tools
+    bin/list-amos-components --tag development-tool
+
+    # Search for workflow-related commands
+    bin/list-amos-components --search workflow
+
+    # Show commands in 'work' zenka
+    bin/list-amos-components work
+
+    # Get full documentation for a command
+    bin/list-amos-components --describe work.ncode-replace-ai
+
+    # Get command registry as JSON (for AI)
+    bin/list-amos-components --json
+
+=head1 IMPLEMENTATION STATUS
+
+    [NOT IMPLEMENTED YET]
+
+    Planned for next session:
+    - Parse inline command metadata from zenka modules
+    - Build command registry (command → metadata)
+    - Support filtering by tag, zenka, search pattern
+    - Output formats: human-readable, JSON, YAML
+    - Integration with 'describe' command
+
+=head1 METADATA FORMAT
+
+Commands register themselves via inline metadata blocks:
+
+    ## [:< command-metadata
+    #  command  = work.ncode-replace
+    #  descr    = Replace text patterns using ncode
+    #  usage    = work ncode-replace <target> <search> <replace>
+    #  features = auto-confirms, structured output, full backups
+    #  tag      = development-tool, code-transformation, ai-friendly
+    #  related  = describe, list-amos-components
+    ## ]>
+
+=head1 SEE ALSO
+
+    bin/describe - Show full documentation for a command
+    bin/ncode - Code transformation and analysis tool
+    Configuration: configuration/zenki/work/source/inline-documentation-plan.md
+
+=cut
+
+# Placeholder implementation
+print "\n :: list-amos-components - command discovery system ::\n";
+print " :: [ not implemented yet ] ::\n\n";
+print " See: configuration/zenki/work/source/inline-documentation-plan.md\n\n";
+
+exit(0);
