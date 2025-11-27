@@ -1,0 +1,143 @@
+## [:< ##
+
+# name = crypt.C25519.gen_keys_typed
+# descr = Enhanced keypair generation with explicit type tracking
+#         Generates either Ed25519 (for signatures) or Curve25519 (for DH)
+#         Stores type information for later algorithm selection
+#
+# params:
+#   key_name_param      = optional, name for the keypair
+#   key_seed_passphrase = optional, seed passphrase for reproducible keys
+#   secret_key          = optional, explicit secret key (32 bytes)
+#   key_type            = REQUIRED, 'Ed25519' or 'Curve25519'
+#
+# returns: ( keypair_hash, key_name ) on success
+#          undef on failure
+#
+# keypair structure:
+#   secret       => 32-byte secret key
+#   public       => 32-byte public key
+#   private      => extended key material (if applicable)
+#   type         => 'Ed25519' or 'Curve25519' (for algorithm selection)
+#   time-loaded  => base32-encoded timestamp
+#   checksum     => optional hash verification
+
+my $key_name_param      = shift;    ##  optional  ##
+my $key_seed_passphrase = shift;    ##  optional  ##
+my $secret_key          = shift;    ##  optional  ##
+my $key_type_param      = shift;    ##  REQUIRED  ##
+
+my $harmonic_public_keys = TRUE;     ##  public key truth requirement  ##
+
+## Validate key type parameter
+unless ( defined $key_type_param and $key_type_param =~ m|^(Ed25519|Curve25519)$| ) {
+    <[base.s_warn]>->(
+        "key_type must be 'Ed25519' or 'Curve25519', got '%s'",
+        $key_type_param // 'undef'
+    );
+    return undef;
+}
+
+my $key_type = $key_type_param;
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>->($key_name_param);
+my $name         = $key_vars_ref->{'key_name'} // $key_name_param;
+
+##  fallback to parameter when key_vars fails  ##
+$name //= join( qw| . |, ( $ENV{'USER'} // getpwuid($EUID) ), qw| base | );
+
+## Include type in key name for proper tracking
+$name = sprintf( '%s:%s', $name, $key_type ) unless $name =~ m/:(?:Ed25519|Curve25519)$/;
+
+$keys{'C25519'} //= {};
+
+if ( defined $secret_key and length($secret_key) != 32 ) {
+    warn 'secret key must be 32 bytes long';
+    return undef;
+} elsif ( defined $secret_key and defined $key_seed_passphrase ) {
+    warn 'seed-passphrase and secret-key parameters are mutually exclusive';
+    return undef;
+} elsif ( exists $keys{'C25519'}->{$name} ) {
+    <[base.s_warn]>->(
+        "a C25519 key with name '%s' (type %s) is already loaded [ skipped ]",
+        $name, $key_type
+    );
+    return FALSE;
+}
+
+<[base.logs]>->( 2, "generating '%s' keypair (type: %s) ..,", $name, $key_type );
+
+##  Generate or use provided secret  ##
+$secret_key //= Crypt::Misc::random_bytes(32)
+    if not defined $key_seed_passphrase;
+
+if (defined $key_seed_passphrase) {
+    $secret_key = AMOS7::13::key_32( \$key_seed_passphrase, \$name );
+}
+
+if ( not defined $secret_key or length($secret_key) != 32 ) {
+    <[base.s_warn]>->( "failed to generate or derive 32-byte secret key" );
+    return undef;
+}
+
+## Generate keypair based on type
+my ( $public_key, $private_key );
+
+if ( $key_type eq 'Ed25519' ) {
+    ## Ed25519: Digital signatures
+    use Crypt::Ed25519;
+
+    my $TRUE = $harmonic_public_keys ? FALSE : TRUE;
+
+    while ( not $TRUE ) {
+        <[event.once]>->(0.007);
+        $public_key = Crypt::Ed25519::eddsa_public_key($secret_key);
+
+        $TRUE = TRUE
+            if AMOS7::Assert::Truth::is_true( \$public_key, FALSE, TRUE )
+            and AMOS7::Assert::Truth::is_true( \Crypt::Misc::encode_b32r($public_key), FALSE, TRUE );
+
+        if ( not $TRUE ) {
+            $secret_key = Crypt::Misc::random_bytes(32);
+        }
+    }
+
+    ( $public_key, $private_key ) = Crypt::Ed25519::generate_keypair($secret_key);
+
+} elsif ( $key_type eq 'Curve25519' ) {
+    ## Curve25519: Diffie-Hellman key exchange
+    use Crypt::Curve25519;
+
+    $public_key = Crypt::Curve25519::curve25519_public_key($secret_key);
+    $private_key = $secret_key;  ## For Curve25519, private = secret
+
+    unless ( defined $public_key and length($public_key) == 32 ) {
+        <[base.s_warn]>->( "Curve25519 public key generation failed" );
+        return undef;
+    }
+}
+
+$keys{'C25519'}->{$name} = {
+    qw| public |      => $public_key,
+    qw| secret |      => $secret_key,
+    qw| private |     => $private_key,
+    qw| type |        => $key_type,              ## CRITICAL: type tracking
+    qw| time-loaded | => <[base.ntime.b32]>->( 1, TRUE )
+};
+
+##  lock key in memory to prevent swapping to disk  ##
+IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'private'}, 0, 64 );
+IO::AIO::aio_mlock( $keys{'C25519'}{$name}{'secret'},  0, 32 )
+    if defined $keys{'C25519'}{$name}{'secret'};
+
+<[base.logs]>->( 2, "generated '%s' %s keypair successfully", $name, $key_type );
+
+return ( $keys{'C25519'}->{$name}, $name );
+
+1;
+
+#,,.,,,.,,.,,,,,.,.,.,,,,,..,,,,.,,,,,...,..,,..,,...,...,...,...,...,..,,,.,,
+#BADKJFTQ6MRCTQ2EZBMWJXHPSZ5MYK4J4ACAWLNSLC4BKKFK6SKZEEN4MVQYQW5AKATN47QK3GIDA
+#\\\|TOUVNMGRW2NKVOKRIL537ULBB7GJA2LYXQIXU3Q2ETYSXOFN7PI \ / AMOS7 \ YOURUM ::
+#\[7]EXOBPT4SXDRJBPSGONOVRCR6QAC7CRZDZEDV5JL32GFPWPSL7GAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

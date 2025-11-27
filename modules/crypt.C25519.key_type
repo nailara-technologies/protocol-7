@@ -1,23 +1,59 @@
 ## [:< ##
 
 # name  = crypt.C25519.key_type
-# descr = return type of given key filename
+# descr = return type information for C25519 keys
+#         supports both file types and algorithm types
+#
+# usage:
+#   # Query file type (secret, private, public, virtual)
+#   my $file_type = <[crypt.C25519.key_type]>->($filename);
+#
+#   # Query algorithm type (Ed25519 or Curve25519)
+#   my $algo_type = <[crypt.C25519.key_type]>->($key_name, 'algo');
+#
+# params:
+#   $key_identifier = filename or key name
+#   $query_type = optional, 'algo' to query algorithm type
+#
+# returns: 'secret'|'private'|'public'|'virtual' (file type)
+#          'Ed25519'|'Curve25519' (algorithm type)
+#          undef on failure
 
-my $C25519_filename = shift // '';
+my $key_identifier = shift // '';
+my $query_type     = shift // 'file';  ## 'file' or 'algo'
 
-if ( not length $C25519_filename ) {
-    warn 'expected key filename parameter <{C1}>';
+if ( not length $key_identifier ) {
+    warn 'expected key identifier parameter <{C1}>';
     return undef;
 }
 
+## Query algorithm type from loaded keypair
+if ( $query_type eq 'algo' ) {
+    $keys{'C25519'} //= {};
+
+    my $keypair = $keys{'C25519'}->{$key_identifier};
+
+    if ( defined $keypair ) {
+        ## Return stored algorithm type
+        return $keypair->{'type'} if defined $keypair->{'type'};
+
+        ## Fallback: infer from key name
+        return 'Ed25519'    if $key_identifier =~ m/:Ed25519$/;
+        return 'Curve25519' if $key_identifier =~ m/:Curve25519$/ or $key_identifier =~ m/link-upgrade/;
+    }
+
+    return undef;
+}
+
+## Query file type from filename
 foreach my $type ( keys <crypt.C25519.regex.key_file>->%* ) {
     return $type
-        if $C25519_filename =~ <crypt.C25519.regex.key_file>->{$type};
+        if $key_identifier =~ <crypt.C25519.regex.key_file>->{$type};
 }
 
 <[base.s_warn]>->(
-    'key file %s does not match any defined type <{C1}>',
-    $C25519_filename
+    'key identifier %s does not match any defined type <{C1}>',
+    $key_identifier
 );
 
 return undef;
