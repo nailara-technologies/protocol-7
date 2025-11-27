@@ -230,7 +230,7 @@ Blacklight neon aesthetic (matching git zenka):
 ### With Other Zenki
 - **git zenka**: Version control operations
 - **debian zenka**: Dependency checking
-- **work zenka**: Development automation
+- **workflow zenka**: Development automation
 - **backup zenka**: Workspace backups
 
 ### With Workspace-Transfer Repository
