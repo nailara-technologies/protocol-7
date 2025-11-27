@@ -371,3 +371,9 @@ sub registry_to_yaml {
 #\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
 #\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,.,,.,,...,.,.,...,.,.,,,,,.,.,..,,,..,,,.,..,,...,...,.,.,...,.,,,,,.,.,,,
+#MZLPKDNGEL7R3X2IQCMZH6QFJYMXTB4UWTYA6U4QMLP2W46P5STAREHMSNPG2F76WIAZTLYEZNRCK
+#\\\|KMD7WYEDXSWTGZ66WWLF5K2B5MBGSIC3QP3B3GYWYHHQLMUCLAP \ / AMOS7 \ YOURUM ::
+#\[7]4DZUTMGZJMIN6DLFVGDXF7ZCMELNGEUOSZ5A3N3JK75MG5WJJKBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
