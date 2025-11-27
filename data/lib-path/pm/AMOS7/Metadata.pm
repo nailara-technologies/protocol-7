@@ -367,13 +367,15 @@ sub registry_to_json {
 
         if ( exists $entry->{'descr'} ) {
             my $descr = $entry->{'descr'};
-            $descr =~ s/"/\\"/g;
+            $descr =~ s/\\/\\\\/g;  # escape backslashes first
+            $descr =~ s/"/\\"/g;    # then escape quotes
             $entry_json .= qq|    "description": "$descr",\n|;
         }
 
         if ( exists $entry->{'usage'} ) {
             my $usage = $entry->{'usage'};
-            $usage =~ s/"/\\"/g;
+            $usage =~ s/\\/\\\\/g;  # escape backslashes first
+            $usage =~ s/"/\\"/g;    # then escape quotes
             $entry_json .= qq|    "usage": "$usage",\n|;
         }
 
