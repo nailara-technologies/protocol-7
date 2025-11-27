@@ -127,7 +127,10 @@ if ( $$input =~ s|^link-upgrade\n|| ) {
         $id, $client_encoding
     );
 
-    return 1;    ## Awaiting confirmation
+    ## Send confirmation that encoding was negotiated
+    $session->{'buffer'}->{'output'} .= "encoding-confirmed\n";
+
+    return 1;    ## Awaiting completion confirmation
 
 } elsif ( $$input =~ s|^link-complete\n|| ) {
     ## Handshake complete, transition to encrypted state (state 3)
@@ -136,6 +139,9 @@ if ( $$input =~ s|^link-upgrade\n|| ) {
         '[%d] link-upgrade negotiation complete, transitioning to state 3',
         $id
     );
+
+    ## Send completion confirmation to client
+    $session->{'buffer'}->{'output'} .= "link-complete-ok\n";
 
     ## Trigger state transition from state 2 to state 3
     if ( not <[base.session.init_state]>->( $id, 3 ) ) {

@@ -745,7 +745,7 @@ sub negotiate_link_upgrade {
 
     # 8. Send confirm and complete
     print STDERR "[link-upgrade] Step 8: Sending link-confirm-encoding\n" if $ENV{DEBUG};
-    if ( !s_write( $sock, "link-confirm-encoding\n" ) ) {
+    if ( !s_write( $sock, "link-confirm-encoding none\n" ) ) {
         print STDERR "[link-upgrade] Step 8 FAILED: Could not send confirm-encoding\n" if $ENV{DEBUG};
         return 0;
     }
