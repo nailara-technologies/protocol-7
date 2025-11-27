@@ -686,7 +686,7 @@ sub negotiate_link_upgrade {
     my $cmd_response = s_read($sock);
     unless ( $cmd_response && $cmd_response =~ m|^TRUE| ) {
         print STDERR "[link-upgrade] Step 1b FAILED: Command response was not TRUE\n" if $ENV{DEBUG};
-        print STDERR "Response: $cmd_response\n" if $ENV{DEBUG} if defined $cmd_response;
+        print STDERR "Response: $cmd_response\n" if $ENV{DEBUG} and defined $cmd_response;
         return 0;
     }
     print STDERR "[link-upgrade] Step 1b OK: Command accepted, entering state 2\n" if $ENV{DEBUG};
