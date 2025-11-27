@@ -360,6 +360,35 @@ if ( defined $alias_to and length $alias_to ) {
     }
 }
 
+##[ LINK-UPGRADE \ STATE TRANSITION ]#########################################
+
+## Special handling for link-upgrade protocol initiation
+## Transition from state 1 (authenticated) to state 2 (link-upgrade negotiation)
+if ( $cmd eq 'link-upgrade' and $session->{'state'} == 1 ) {
+    <[base.logs]>->(
+        2,
+        '[%d] link-upgrade request received, transitioning to state 2',
+        $id
+    );
+
+    if ( not <[base.session.init_state]>->( $id, 2 ) ) {
+        <[base.logs]>->(
+            0,
+            '[%d] failed to initialize state 2 (link-upgrade)',
+            $id
+        );
+        $session->{'buffer'}->{'output'} .= "link-upgrade FAILED\n";
+        return 0;
+    }
+
+    ## Log successful transition
+    <[base.logs]>->(
+        2,
+        '[%d] state transition to 2 complete, handler will process link-upgrade',
+        $id
+    );
+}
+
 ##[ PREPARE REPLY \ HAS REPLY ID ]############################################
 
 my $cmd_id_str = '';
