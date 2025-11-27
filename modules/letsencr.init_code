@@ -77,14 +77,16 @@ my $key_dir  = <letsencr.cfg.key_dir>;
 
 foreach my $dir ( $cert_dir, $key_dir ) {
     <[file.make_path]>->( $dir, 0750, <system.amos-zenka-user> )
-        or <[base.logs]>->(
-            0,
-            "warning: could not create directory '%s'", $dir
-        );
+        or <[base.logs]>
+        ->( 0, "warning: could not create directory '%s'", $dir );
 }
 
 <[base.log]>->( 2, "Let's Encrypt manager initialization complete" );
-<[base.logs]>->( 2, ": Environment    : %s", <letsencr.cfg.environment> );
+<[base.logs]>->(
+    2,
+    ": Environment    : %s",
+    <[base.parser.ellipse_center]>->( <letsencr.cfg.environment>, 35 )
+);
 <[base.logs]>->( 2, ": ACME Server    : %s", <letsencr.cfg.acme_server> );
 <[base.logs]>->( 2, ": Challenge Type : %s", <letsencr.cfg.challenge_type> );
 <[base.logs]>->(
@@ -96,8 +98,8 @@ foreach my $dir ( $cert_dir, $key_dir ) {
 
 0;
 
-#,,,.,..,,,,,,..,,,..,,,.,.,.,,.,,...,.,,,,,.,..,,...,...,.,,,.,.,.,,,,.,,...,
-#YOG4TFIISLGCWQV7NRCPR7XSQKXKEWT4R52BQXCOWLYAH4LCJY4AQILPPOG4DUP6IUGP4XUGLDW5O
-#\\\|6GVMM72GNLUFHSSTFV4SSBATMZC2HXZEDEADNYHUZWQRNTNEZ5W \ / AMOS7 \ YOURUM ::
-#\[7]OHIITW4CA4IF6AYDOFTC2S7FOQDQOWSMNEN7436XQCB6XG4G5ICI 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,.,,,,,,...,,,.,.,,,,,,,,.,,..,,..,,...,...,...,,.,,,,,,.,,,..,,
+#LQ43O3Q7L6DI2IUM4QJ7QJ4EZLEINEN3MASBPGJUD2732O7VLIEHDJVIOM3Y7CXQH4EZDKWGKKNZ4
+#\\\|BHJPZJQPWVBEIFEH3CSSDGKJ3A5OVHKAJG4EBFQ5DBCKDDU7XZZ \ / AMOS7 \ YOURUM ::
+#\[7]FICF7R2WGILMOEIBPVPVD7M5LIVQALK3ZSFCHWR7CQNSENTSNUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -48,13 +48,17 @@ if ( -f $account_key_path ) {
 }
 
 <[base.log]>->( 2, "Let's Encrypt child process initialization complete" );
-<[base.logs]>->( 2, ': ACME Server : %s', <letsencr.acme.server> );
+<[base.logs]>->(
+    2,
+    ': ACME Server : %s',
+    <[base.parser.ellipse_center]>->( <letsencr.acme.server>, 35 )
+);
 <[base.logs]>->( 2, ': Account Key : %s', $account_key_path );
 
 0;
 
-#,,,,,,.,,,,.,..,,,,.,...,..,,.,.,.,,,...,.,,,..,,...,...,,..,,..,,,.,,..,,,.,
-#M6W64XU7TPI4ZRRTJYKVIVRGTDTZTACLKZVKCIZXG6VVRTSGV5YTCYAC5JQ7GXDTLCJM735AACE3O
-#\\\|SRC6AGELEXP3S3MG532UZBVIKW2NI2HCLDTVVXUZXJRAHPPOVOG \ / AMOS7 \ YOURUM ::
-#\[7]V7PN2QL4ZWCFGKZJIZ4ZDNZ7H3NY4NOQTHO6YHYN7NVZDBFST6CI 7  DATA SIGNATURE ::
+#,,.,,...,.,,,...,..,,,.,,,..,..,,...,,.,,.,,,..,,...,..,,,..,.,.,..,,,.,,,,.,
+#Q45VCKSKK7363AFRY75C3L6XKEAI4CWR7OR5UZ6S62V2GHIZJ7JXCICFH2MVLOEGKMVSOYPYQSVBI
+#\\\|KRKQAZ3WAEAKGPWQIFITGMNT655KSBY5BWTKOPJ27Y6L5KSX3IT \ / AMOS7 \ YOURUM ::
+#\[7]BVCHTHZDILQK7JQOVEOOVEZBQFREFNM2KS47S7JHBDKMP3EH3WAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
