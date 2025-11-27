@@ -6,7 +6,7 @@
 system.verbosity.zenka_buffer = 2
 system.verbosity.zenka_logfile = 2
 
-## Disable automatic key loading for workflow zenka ##
+## Disable automatic key loading for work zenka ##
 ##
 ## Keys are explicitly loaded by commands that need
 ##                  them [ e.g. version-sign-commit ]
@@ -15,8 +15,10 @@ system.verbosity.zenka_logfile = 2
 ##
 crypt.C25519.auto_load_keys = no
 
-## Enable automatic key creation for workflow zenka ##
-crypt.C25519.autocreate-user-key = yes
+## Disable automatic key creation for console execution
+## Console/admin commands run as root don't need key initialization
+## v7-started zenka will enable this for proper privilege-dropped users
+crypt.C25519.autocreate-user-key = no
 
 ## Git repository path is auto-detected from <system.root_path> ##
 ## No need to hardcode it here ##
