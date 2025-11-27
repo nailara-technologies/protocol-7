@@ -6,7 +6,7 @@ set -e
 
 # Discover Protocol-7 source root path (relative to this script)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-P7_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+P7_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Verify we found the Protocol-7 root
 if [ ! -f "$P7_ROOT/bin/nshell" ]; then
