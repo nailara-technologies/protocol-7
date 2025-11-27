@@ -198,7 +198,9 @@ while ($connect) {
         $PROGRAM_NAME = "nshell [ $cube_addr : $cube_port ]";
         if ( not defined $stored_cmd ) {
             clear();
-            print "\e[1m\e[5m$C{0}\e-$C{R}\n";
+            if ( !$no_tty ) {
+                print "\e[1m\e[5m$C{0}\e-$C{R}\n";
+            }
         } else {
             if ( !s_write( $shell_sock, "$stored_cmd\n" ) ) {
                 sleep(0.13);
@@ -229,6 +231,15 @@ sub login_prompt {
         return ( $cube_user, $cube_pass );
     }
     my ( $user, $pass );
+
+    # In no-tty mode, cannot use interactive prompts
+    if ( $no_tty ) {
+        die " ::\n :: no-tty mode requires -u/--user argument\n ::\n"
+            unless defined $cube_user;
+        # In no-tty mode, use empty password or require env var
+        $pass = $ENV{'PROTOCOL_7_PASSWORD'} // '';
+        return ( $cube_user, $pass );
+    }
 
     my $node;
     my $zenka = shift // qw| cube |;
@@ -398,7 +409,9 @@ sub s_write {
     return $b_written;
 }
 
-sub clear { print "\e[37m\e[H\e[2J" }
+sub clear {
+    print "\e[37m\e[H\e[2J" unless $no_tty;  # Skip ANSI codes in no-tty mode
+}
 
 sub shell_loop {
     my $sock              = $ARG[0];
