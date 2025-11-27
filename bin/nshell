@@ -95,6 +95,7 @@ my $lines_up  = 3;
 my $term_loop = FALSE;
 my $remember  = FALSE;
 my $arg_index = FALSE;
+my $no_tty    = FALSE;  # Non-TTY mode for automation
 my $protocol_7_version;
 our %before_readline_signals;
 our @override_signal_nums = ( SIGINT, SIGTERM, SIGQUIT, SIGABRT, SIGHUP );
@@ -106,6 +107,10 @@ my $link_type = qw| ip.tcp |;
 my @args = @ARGV;
 
 if (@args) {
+
+    if ( @args and $args[0] =~ m,^\-no-?tty$, and shift @args ) {
+        $no_tty = TRUE;
+    }
 
     if ( @args and $args[0] =~ m,^\-u(ser)?$, and shift @args ) {
         die ":\n:: expected name after -u[ser]\n:\n" if not @args;
@@ -141,14 +146,18 @@ $OUTPUT_AUTOFLUSH = TRUE;
 
 # clear();
 
-my $term = new Term::ReadLine('protocol-7.shell');
-$term->ornaments('mh,me,md,me');
-$term->enableUTF8();
-$term->MinLine(undef);
+# Initialize Term::ReadLine only in TTY mode
+my $term;
+if ( !$no_tty ) {
+    $term = new Term::ReadLine('protocol-7.shell');
+    $term->ornaments('mh,me,md,me');
+    $term->enableUTF8();
+    $term->MinLine(undef);
 
-no warnings 'once';
-$readline::rl_completion_function = "main::rl_filename_list_lcl";
-use warnings 'once';
+    no warnings 'once';
+    $readline::rl_completion_function = "main::rl_filename_list_lcl";
+    use warnings 'once';
+}
 
 my $shell_sock;
 while ($connect) {
@@ -411,19 +420,38 @@ sub shell_loop {
         $SIG{$ARG} = sub { parent_exit( shift, $stdout_pid ) }
     } qw| TERM INT HUP |;
 
-    $term->add_history('');
+    if ( !$no_tty ) {
+        $term->add_history('');
+    }
 
     $connect = FALSE;
     my $last_line = '';
-    override_signals();
-    while ( -S $sock
-        and defined( my $line = $term->readline($prompt) ) ) {
+    if ( !$no_tty ) {
+        override_signals();
+    }
+
+    while ( -S $sock ) {
+        my $line;
+        if ( $no_tty ) {
+            # Non-TTY mode: read from STDIN
+            $line = <STDIN>;
+            last unless defined $line;
+            chomp($line);
+        } else {
+            # TTY mode: use readline with prompt
+            $line = $term->readline($prompt);
+            last unless defined $line;
+        }
         $WARNED  = FALSE;
         $connect = TRUE;
-        print $C{'T'};    ##  reset to 'true' color  ##
+        if ( !$no_tty ) {
+            print $C{'T'};    ##  reset to 'true' color  ##
+        }
         if ( $line ne '' ) {
 
-            $term->add_history($line) if $line ne $last_line;
+            if ( !$no_tty ) {
+                $term->add_history($line) if $line ne $last_line;
+            }
             $last_line = $line;
 
             if ( $line =~ m|^\. cd (.+)| ) {
