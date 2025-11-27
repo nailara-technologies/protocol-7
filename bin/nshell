@@ -671,6 +671,10 @@ sub parent_exit {    #   [ globals : $term_loop, $shell_sock, $stdout_pid ]
 sub negotiate_link_upgrade {
     my ( $sock, $state_ref ) = @ARG;
 
+    use Crypt::Misc;
+    use Crypt::Curve25519;
+    use Digest::SHA qw(sha256);
+
     # 1. Send link-upgrade init
     if ( !s_write( $sock, "link-upgrade\n" ) ) {
         return 0;
@@ -682,18 +686,11 @@ sub negotiate_link_upgrade {
     return 0 unless $server_pubkey_b32;
 
     # 3. Generate client ephemeral keypair
-    my $gen_result = <[crypt.C25519.gen_keys]>->(
-        'nshell-ephemeral-' . time(),
-        undef,  # no passphrase
-        undef   # generate new secret
-    );
-    return 0 unless $gen_result and ref($gen_result) eq 'HASH';
+    my $client_secret = Crypt::Misc::random_bytes(32);
+    my $client_pubkey = Crypt::Curve25519::curve25519_public_key($client_secret);
+    return 0 unless $client_secret and $client_pubkey;
+    return 0 unless length($client_secret) == 32 and length($client_pubkey) == 32;
 
-    my $client_pubkey = $gen_result->{'public'};
-    my $client_secret = $gen_result->{'secret'};
-
-    # Encode to base32
-    use Crypt::Misc;
     my $client_pubkey_b32 = Crypt::Misc::encode_b32r($client_pubkey);
 
     # 4. Send client pubkey
@@ -707,19 +704,13 @@ sub negotiate_link_upgrade {
 
     # 6. Compute DH shared secret
     my $server_pubkey = Crypt::Misc::decode_b32r($server_pubkey_b32);
-    my $shared_secret_ref = <[crypt.C25519.compute_shared]>->(
-        \$client_secret,
-        $server_pubkey
-    );
-    return 0 unless $shared_secret_ref;
+    my $shared_secret = Crypt::Curve25519::curve25519_shared_secret($client_secret, $server_pubkey);
+    return 0 unless $shared_secret and length($shared_secret) == 32;
 
-    my $shared_secret = $$shared_secret_ref;
-
-    # 7. Derive encryption key
-    use AMOS7;
+    # 7. Derive encryption key using SHA256-based KDF
     my $session_id = time() & 0xFFFFFFFF;  # Use time as session ID
-    my $encryption_key = AMOS7::13::key_32( \$shared_secret, $session_id );
-    return 0 unless $encryption_key;
+    my $encryption_key = sha256($shared_secret . pack('N', $session_id));
+    return 0 unless $encryption_key and length($encryption_key) == 32;
 
     # 8. Send confirm and complete
     if ( !s_write( $sock, "link-confirm-encoding\n" ) ) {
