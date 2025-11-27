@@ -1,0 +1,215 @@
+---
+document_title: "ACTUAL Priorities for Next Development Session"
+document_date: 2025-11-27
+reality_check: "Updated based on commit history - what's ACTUALLY completed vs TODO"
+
+## ✅ ALREADY COMPLETED (2025-11-26 Session)
+
+**Phase 1: Broken Routine Handler Integration**
+  status: ✅ COMPLETED
+  commit: 9345ff2ce "Fix module loading for unreadable source files with improved diagnostics"
+  work_done:
+    - Track file readability (source files accessible before compilation)
+    - Set compilation_success=FALSE when source unreadable
+    - Broken routine handler substitutes proper error stubs
+    - Distinguish error types: "undefined" (unreadable) vs "broken" (compilation failure)
+    - Fixed error handling at line 1111
+    - Fixed heredoc syntax in devmod logging (lines 1667, 1673)
+
+  additional_work:
+    - Added file handle encoding utility modules:
+      - base.fh-encoding.set
+      - base.fh-encoding.apply
+      - base.fh-encoding.get
+
+---
+
+## 🎯 ACTUAL NEXT PRIORITIES
+
+### TIER 1: NEXT (from roadmap 2025-11-26)
+
+**Phase 2: File Handle Encoding Mode Validation** ⭐ RECOMMENDED NEXT
+  source: "next-session-roadmap.yaml (Phase 2)"
+  status: pending
+  priority: MEDIUM
+  effort: 30-45 minutes
+  impact: MEDIUM (catches invalid encodings early, prevents silent failures)
+
+  objective:
+    Implement validation for encoding mode parameters in base.fh-encoding.set to catch
+    invalid encoding names early and provide clear error messages.
+
+  current_gap:
+    base.fh-encoding.set accepts any string as encoding_mode and stores it without validation.
+    When base.fh-encoding.apply tries to use invalid encoding with binmode(), it silently fails.
+
+  implementation_steps:
+    1. Research valid encoding names (UTF-8, OCTETS, latin1, cp1252, ascii, utf16, etc.)
+    2. Create encoding validation subroutine
+    3. Validate against Perl's encoding registry
+    4. Modify .set module to validate before storing
+    5. Enhance .apply module with better diagnostics
+    6. Test with various encodings (valid, invalid, edge cases)
+
+  key_locations:
+    - modules/base.fh-encoding.set (where encoding_mode is stored)
+    - modules/base.fh-encoding.apply (where binmode() is called)
+    - Perl documentation for binmode() and PerlIO::encoding
+
+---
+
+### TIER 2: HIGH PRIORITY (from user-encountered tasks)
+
+**Task A: Rename workflow zenka to 'work'**
+  source: "3LE3NKOYM63SA.user-encountered-taks.yaml"
+  status: pending
+  priority: HIGH
+  effort: 1-1.5 hours
+  impact: HIGH (improves accessibility of all workflow commands)
+
+  steps:
+    1. Rename: configuration/zenki/workflow/ → configuration/zenki/work/
+    2. Update all module references: modules/workflow.* → modules/work.*
+    3. Update bin/Protocol-7 command parsing
+    4. Run: p7.sourcecode update-sub-list
+    5. Update version: work version-sign-commit "Rename workflow zenka to work"
+    6. Re-sign all changed files
+
+  benefits:
+    - Shorter commands: "work overview" vs "workflow overview"
+    - Better discoverability for workflow commands
+    - Aligns with harmony preference for shorter zenka names
+
+  related_files:
+    - configuration/zenki/workflow/start
+    - modules/workflow.* (all 50+ modules)
+    - bin/Protocol-7
+    - data/yaml/workflow-suggestions.yaml
+
+**Task B: Fix 'param = ' header missing value parser error**
+  source: "3LE3NKOYM63SA.user-encountered-taks.yaml"
+  status: pending
+  priority: HIGH
+  effort: 30-45 minutes
+  impact: HIGH (fixes parser bug affecting output quality)
+
+  problem:
+    When "param = " header has no value (empty), parser incorrectly treats the
+    NEXT sourcecode line as parameter value, even though endline separates them.
+    Likely interference with comment continuation feature.
+
+  symptoms:
+    - Perl code appears in output instead of proper parameter handling
+    - Affects workflow statistics and header parsing throughout system
+
+  investigation_needed:
+    - Locate param header parsing code in bin/Protocol-7
+    - Understand endline handling vs comment continuation
+    - Create test case with empty param header
+
+  fix_approach:
+    - Add endline validation after "param = "
+    - Distinguish between continuation and parameter value
+    - Document parser rules for param headers
+
+---
+
+### TIER 3: MEDIUM PRIORITY (from user-encountered tasks)
+
+**Task C: Create sourcecode zenka 'top 50' command**
+  source: "3LE3NKOYM63SA.user-encountered-taks.yaml"
+  status: pending
+  priority: MEDIUM
+  effort: 1-2 hours
+  impact: MEDIUM (helps identify code quality issues)
+
+  purpose:
+    - Identify code files with lines exceeding average width
+    - Prioritize by file name length (shorter = more generic = higher priority)
+    - Display in format matching bin/ptd and amos-chksum output
+
+**Task D: Create sourcecode zenka signature iteration analyzer**
+  source: "3LE3NKOYM63SA.user-encountered-taks.yaml"
+  status: pending
+  priority: MEDIUM
+  effort: 1-2 hours
+  impact: MEDIUM-HIGH (correlates quality with signature iterations)
+
+  purpose:
+    - Decode octal iteration counter from file signatures
+    - Correlate iterations with code quality/changes
+    - Help identify files needing most harmonization
+
+**Task E: Clean up worst outlier subroutines**
+  source: "3LE3NKOYM63SA.user-encountered-taks.yaml"
+  status: pending
+  priority: MEDIUM
+  effort: 1-2 hours
+  impact: MEDIUM (improves code maintainability)
+
+---
+
+### TIER 4: LOWER PRIORITY (from roadmap)
+
+**Phase 3: Module Permission Auto-Management**
+  priority: LOW
+  effort: 1 hour
+  note: "Optimization, not critical. Current error handling works well."
+
+**Phase 4: Extended Module Loading Diagnostics**
+  priority: LOW
+  effort: 1 hour
+  note: "Diagnostic/operational tools, useful after system is tested."
+
+**Phase 5: System-Wide Encoding Audit**
+  priority: DEFERRED
+  effort: 2-3 hours
+  note: "Holistic work, requires understanding all module requirements."
+
+---
+
+## 📋 RECOMMENDED SESSION EXECUTION
+
+### Next Session (Priority Order)
+
+**Must-Have (Blockage Resolution)**:
+1. ✅ Phase 1 - SKIP (already done)
+2. ⭐ Phase 2: File handle encoding validation (30-45m) - NEXT
+3. Task B: Fix param parser error (30-45m) - In parallel or after Phase 2
+
+**High-Value (1-2h)**:
+4. Task A: Rename workflow → work (1-1.5h)
+
+**If Time Permits (Code Quality)**:
+5. Tasks C-E: Code analysis commands (1-2h each)
+
+### Session After That (Future)
+
+- Phase 3-5: Module loading phases (lower priority)
+- Link encryption work (mentioned in user tasks)
+
+---
+
+## Summary
+
+**What changed from initial analysis**:
+- Phase 1 was ALREADY COMPLETED ✅ (commit 9345ff2ce)
+- Next priority is Phase 2, not Phase 1
+- User-encountered tasks (rename, fix parser) are HIGH but not blocking
+- Code quality tools are lower priority than infrastructure fixes
+
+**Total estimated time for "critical path"**:
+- Phase 2: 30-45 minutes
+- Fix parser: 30-45 minutes
+- Rename workflow: 1-1.5 hours
+- **Total: ~2.5-3 hours** for core work
+
+---
+
+metadata:
+  created: 2025-11-27
+  reality_check: "Based on actual commit history"
+  previous_assumption: "Phase 1 was next priority"
+  actual_reality: "Phase 1 already completed in 9345ff2ce"
+  status: "Ready for next session"
+  recommendation: "Start with Phase 2: File Handle Encoding Validation"
