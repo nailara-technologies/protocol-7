@@ -679,9 +679,61 @@ Time: Seconds (from local archive) instead of minutes/hours (from re-download)
 - **Experimentation**: Export before trying risky changes, restore if needed
 - **Offline Capability**: Archives work completely offline (no network needed)
 
+### Performance Optimization: Smart Decompression Strategy
+
+Archives are designed for both completeness AND performance:
+
+**Initialization Phase**:
+```
+Full archive extracted (compressed xz format):
+1. Extract work tree of loadable code to filesystem
+   ├─ Core subroutines (compiled, ready)
+   ├─ Configuration templates (parsed)
+   ├─ Session profiles (metadata)
+   └─ Dependency manifests (indexed)
+2. Result: Loadable code tree ready for operation
+3. No performance penalty vs. simpler versions
+```
+
+**Runtime Decompression**:
+```
+On-demand decompression with tracking:
+├─ Compressed items remain archived (memory efficient)
+├─ Decompress in-memory only when needed
+├─ Track dependencies like current connection tracking
+├─ Preemptive decompression based on:
+│  ├─ Event predictions (webhook → likely need crypto module)
+│  ├─ Connection state (network active → likely need socket code)
+│  ├─ Spawned zenki (which subroutines they import)
+│  └─ Historical usage patterns (ML-inferred likelihood)
+└─ Result: Minimal memory, maximum availability
+```
+
+**Event-Driven Preemptive Decompression**:
+```
+Integration with event management system:
+- Register subroutines with their dependencies (like zenka dependencies)
+- Track events that trigger subroutine loading
+- When event occurs → check dependencies → preemptively decompress
+- Example:
+  ┌─ Event: "HTTP request received on /webhook endpoint"
+  ├─ Maps to: webhook_handler subroutine
+  ├─ Handler needs: Crypt module, Digest module
+  └─ Action: Decompress those modules before calling handler
+- Result: Subroutines execute immediately with all deps available
+```
+
+**Performance Characteristics**:
+- Initial startup: Full work tree extraction (seconds)
+- Runtime overhead: Zero (preemptive decompression runs ahead)
+- Memory usage: Only loaded code + decompressed items
+- Compression ratio: High (xz compression on inactive code)
+- Responsiveness: Unchanged from eager-loaded version
+- Scalability: Archives compress 100s of subroutines to KB/MB range
+
 ---
 
-**Vision Status**: Complete architectural framework with archive persistence
+**Vision Status**: Complete architectural framework with archive persistence and smart decompression
 **Readiness**: Foundation for implementation
-**Impact**: Transforms Protocol-7 from software to living, self-healing ecosystem
-**Scalability**: Grows indefinitely without central authority or storage bottleneck
+**Impact**: Transforms Protocol-7 from software to living, self-healing, performant ecosystem
+**Scalability**: Grows indefinitely without central authority, storage bottleneck, or performance penalty
