@@ -33,14 +33,17 @@ if ( $$input =~ s|^link-upgrade\n|| ) {
         return 0;
     }
 
-    ## Encode and send ephemeral pubkey to client
+    ## Send confirmation first (before pubkey) to ensure proper message ordering
+    $session->{'buffer'}->{'output'} .= "link-upgrade OK\n";
+
+    ## Encode and send ephemeral pubkey to client as second message
     use Crypt::Misc;
     my $pubkey_b32 = Crypt::Misc::encode_b32r($ephemeral_pubkey);
     $session->{'buffer'}->{'output'} .= "$pubkey_b32\n";
 
     <[base.logs]>->(
         2,
-        '[%d] sent ephemeral public key to client, transitioning to state 2',
+        '[%d] sent confirmation and ephemeral public key to client, transitioning to state 2',
         $id
     );
 
