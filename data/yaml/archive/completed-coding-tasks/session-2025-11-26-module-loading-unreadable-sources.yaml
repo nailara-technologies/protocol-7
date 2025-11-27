@@ -1,0 +1,166 @@
+---
+session_date: 2025-11-26
+session_title: Module Loading Infrastructure - Unreadable Source File Handling
+commit_hash: 9345ff2ce
+commit_message: Fix module loading for unreadable source files with improved diagnostics
+
+## Session Overview
+
+Fixed critical issue where module source files that are not readable (due to file permissions)
+result in undefined subroutine code being substituted, causing runtime errors and confusing
+error messages. Implemented proper error handling and diagnostic messaging to distinguish
+between permission issues ('undefined' routines) and actual compilation failures ('broken' routines).
+
+Also added file handle encoding utility modules to support per-handle character encoding
+control via the global %fh_encoding hash infrastructure.
+
+## Key Problems Solved
+
+### 1. Unreadable Module Sources Creating Undefined Code
+**Problem**: When a module file exists but cannot be read (permissions), the source code
+variable remains undefined, causing the subroutine compilation to produce undefined code
+references. This led to warnings like "Use of uninitialized value in concatenation".
+
+**Root Cause Analysis**:
+- `check_bin_p7()` returns `undef` when file is not readable
+- The fallback `$src_rel //= sprintf...` was used for relative path
+- Module validation passed despite unreadable source
+- Source file loading was attempted despite check_bin_p7 indicating unreadability
+- Compilation succeeded but with undefined source code
+- The broken routine handler was never triggered
+
+**Solution Approach**:
+1. Track readability status: Detect when check_bin_p7 returns undef
+2. Store flag in data structure: $data{'code'}{$sub_name}{'source_not_readable'}
+3. Set compilation_success=FALSE: Trigger broken routine handler to substitute proper error stubs
+4. Improve diagnostics: Use 'undefined' message for unreadable sources vs 'broken' for failures
+
+### 2. Error Message Ambiguity
+**Problem**: Error diagnostics couldn't distinguish between:
+- Source file not found (missing)
+- Source file not readable (permission issue)
+- Actual compilation failure (syntax errors)
+
+**Solution**:
+- Line 1111 fix: Check file readability directly with `!-r $f_path` instead of checking symlink targets
+- Message mode differentiation: 'undefined' for permission issues, 'broken' for compilation failures
+- Both message paths now properly handle and report the actual error condition
+
+### 3. Heredoc Syntax Error
+**Problem**: Malformed brace in module source interpolation at lines 1667 and 1673
+caused Perl warnings "Use of uninitialized value in concatenation".
+
+**Solution**: Moved closing brace `}` to separate line after variable interpolation
+
+## Technical Implementation Details
+
+### File Readability Tracking (Line 1417-1419)
+```perl
+my $src_rel = $code{'base.check_bin_p7'}->("modules/$file_name");
+my $source_not_readable = not defined $src_rel;    ## track readability
+$src_rel //= sprintf qw| modules/%s |, $file_name;
+```
+
+### Flag Storage (Line 1496)
+```perl
+$data{'code'}{$file_name}{'source_not_readable'} = $source_not_readable;
+```
+
+### Compilation Failure Detection (Line 1757)
+```perl
+$compilation_success = FALSE if $data{'code'}{$sub_name}{'source_not_readable'};
+```
+
+### Diagnostic Differentiation (Lines 1778-1782)
+```perl
+my $reason = $data{'code'}{$sub_name}{'source_not_readable'} ? 'undefined' : 'broken';
+my $lmsg = ": called $reason routine : '$sub_name'";
+```
+
+## File Handle Encoding Modules
+
+Added three new utility modules for file handle encoding management:
+
+1. **base.fh-encoding.set**: Register encoding mode for specific file handle
+   - Parameters: file handle, encoding_mode ('UTF-8'|'OCTETS'|other)
+   - Returns: TRUE on success, FALSE on failure
+   - Stores in: %fh_encoding{fileno($fh)} = encoding_mode
+
+2. **base.fh-encoding.apply**: Apply registered encoding to file handle
+   - Applies encoding via binmode() with proper encoding layers
+   - Supports UTF-8, OCTETS (binary), and generic encoding names
+   - Returns: TRUE on success/no encoding set, FALSE on failure
+
+3. **base.fh-encoding.get**: Query encoding mode for file handle
+   - Retrieves encoding from %fh_encoding
+   - Returns: encoding_mode string if set, undef if not found
+
+## Code Quality Improvements
+
+1. **Error handling in p7_check_bin_p7()**
+   - More robust file readability detection
+   - Clearer diagnostic messages for operators
+
+2. **Heredoc syntax fixes**
+   - Removed malformed variable interpolation at lines 1667, 1673
+   - Proper separation of code from string interpolation
+
+3. **Protocol-7 conventions**
+   - All return values use TRUE (5) and FALSE (0) constants
+   - Consistent with Protocol-7 standard practices
+
+## Architecture Insights
+
+### Compilation Success Flow
+The protocol-7 module compilation system has multiple layers of checks:
+1. File path validation (check_bin_p7)
+2. Source path validation (source_path_valid)
+3. Module loading and preprocessing
+4. Subroutine compilation via eval()
+5. Broken routine handler for compilation failures
+
+The fix ensures that readability issues are detected BEFORE the eval() stage and
+properly trigger the broken routine handler, preventing undefined code scenarios.
+
+### File Handle Encoding System
+Implements a global encoding registry separate from Perl's default UTF-8 mode:
+- Global %fh_encoding hash maps file descriptor numbers to encoding modes
+- Allows selective per-handle encoding overrides (important for binary vs text modes)
+- Works in conjunction with global 'use open :encoding(UTF-8)' pragma
+- Critical for OCTETS mode (binary) operations in HTTP responses
+
+## Testing Recommendations
+
+1. Test with file permissions set to 600 (unreadable)
+   - Verify "undefined routine" error message is shown
+   - Verify broken routine handler substitutes proper error stubs
+
+2. Test file handle encoding on various handle types
+   - Regular files, network sockets, pipes
+   - Verify encoding layers are applied correctly
+
+3. Test error message differentiation
+   - Missing file: "source not found"
+   - Unreadable file: "source not readable"
+   - Syntax error: "broken routine"
+
+## Future Considerations
+
+1. **Module Permission Management**: Implement automatic chmod for newly created modules
+2. **Encoding Persistence**: Consider storing encoding preferences in module metadata
+3. **Error Recovery**: Enhanced recovery for permission issues (graceful fallbacks)
+4. **Diagnostics**: Add more detailed permission issue diagnostics (owner, group, mode)
+
+## Related Commits
+
+- Previous: b93257792 (Add global file handle encoding tracking infrastructure)
+- Next: Development continues with broken routine handler integration
+
+---
+metadata:
+  session_duration: ~45 minutes
+  files_modified: 2 (bin/Protocol-7, 3x modules/base.fh-encoding.*)
+  lines_changed: ~85 modified + ~100 added
+  test_status: syntax validated, pre-commit hooks passed
+  breaking_changes: None
+  compatibility: Full backward compatibility maintained

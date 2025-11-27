@@ -1,0 +1,385 @@
+---
+document_title: Next Session Development Roadmap
+document_date: 2025-11-26
+planning_for_context: Continuation from commit 9345ff2ce
+session_context: Module loading, error handling, and file handle encoding infrastructure completed
+
+## Overview
+
+This roadmap outlines the next critical tasks to complete the module loading infrastructure
+improvements and continue with system-wide encoding and error handling enhancements. All tasks
+are sequenced to build on current progress with minimal risk of regressions.
+
+---
+
+## Phase 1: Broken Routine Handler Integration (Recommended Next)
+
+### Priority: HIGH
+### Estimated Scope: Medium (1-2 hour session)
+### Dependencies: Current session complete
+
+### Objective
+Integrate the broken routine handler with the $compilation_success flag flow to ensure
+that unreadable modules and failed compilations both trigger proper error substitution
+rather than leaving undefined code.
+
+### Context & Architecture
+
+**Current State**:
+- Line 1757: We set `$compilation_success = FALSE` when source_not_readable
+- Lines 1772-1803: Broken routine handler creates fallback subroutines
+- The handler has two code paths: regular modules and cmd/console commands
+
+**What Needs Enhancement**:
+The broken routine handler currently doesn't receive any context about WHY the compilation
+failed. To improve diagnostics further, we should pass the failure reason to the handler.
+
+### Detailed Implementation Steps
+
+#### Step 1: Analyze Handler Message Flow
+Read the broken routine handler implementation at lines 1776-1803 to understand:
+- How it determines message type (routine vs command)
+- What information is available in the handler context
+- How the $reason variable is used (we added it)
+- What additional context might be useful
+
+**Key locations**:
+- Line 1778: $reason variable determination
+- Line 1782: lmsg construction
+- Line 1796: Command error response formatting
+- Line 1791: Silent exception warning
+
+#### Step 2: Track Failure Reason Through Flow
+Store additional failure context when setting compilation_success=FALSE:
+- Check if source is unreadable
+- Check if source is empty
+- Check if eval error occurred
+
+Option A: Store in $data{'code'}{$sub_name}{'failure_reason'}
+Option B: Use $reason variable directly (we already set it)
+
+Current approach uses Option B at line 1778 - verify this is working correctly.
+
+#### Step 3: Test Handler Path Selection
+Create test scenario:
+1. Create module with chmod 600 (unreadable)
+2. Verify 'undefined' message appears in logs
+3. Verify broken routine can be called without crash
+4. Verify error includes caller information
+
+#### Step 4: Document Handler Behavior
+In code comments, clarify:
+- When handler is invoked vs when compilation succeeds
+- What messages are logged for different failure types
+- How developers can diagnose failures from logs
+
+### Expected Outcome
+Module loading produces clear, actionable error messages:
+- Unreadable source: "called undefined routine : 'modulename'"
+- Compilation failure: "called broken routine : 'modulename'"
+- Caller information included in all cases
+
+### Verification Checklist
+- [ ] Unreadable modules produce "undefined" message
+- [ ] Syntax error modules produce "broken" message
+- [ ] Caller information is present in error logs
+- [ ] No undefined reference warnings appear
+- [ ] All broken routines can be called safely
+
+---
+
+## Phase 2: File Handle Encoding Mode Validation (Medium Priority)
+
+### Priority: MEDIUM
+### Estimated Scope: Small (30-45 min)
+### Dependencies: Phase 1 optional (can run in parallel)
+
+### Objective
+Implement validation for encoding mode parameters in base.fh-encoding.set to catch
+invalid encoding names early and provide clear error messages.
+
+### Current Implementation Gap
+
+The base.fh-encoding.set module accepts any string as encoding_mode and stores it in
+the hash without validation. When base.fh-encoding.apply tries to use an invalid
+encoding with binmode(), it silently fails.
+
+### Detailed Implementation Steps
+
+#### Step 1: Research Valid Encoding Names
+Determine what encoding names Perl's binmode() accepts:
+- 'UTF-8' - standard UTF-8
+- 'OCTETS' - binary mode (:bytes)
+- 'latin1', 'cp1252', etc. - other character sets
+- 'ascii', 'utf16', etc.
+
+Check Perl documentation for PerlIO::encoding and binmode() valid formats.
+
+#### Step 2: Create Encoding Validation Subroutine
+Add validation logic to base.fh-encoding.set that:
+1. Recognizes standard known encodings (UTF-8, OCTETS, latin1, etc.)
+2. Validates unknown encodings against Perl's encoding registry
+3. Logs warnings for suspicious but potentially valid encodings
+4. Returns FALSE with clear reason for invalid encodings
+
+Option: Create separate module base.fh-encoding.validate if logic is reusable
+
+#### Step 3: Implement Validation in .set Module
+Modify lines handling $encoding_mode in base.fh-encoding.set:
+- Before storing in %fh_encoding, validate the encoding
+- Return FALSE with error message if invalid
+- Log which encoding was rejected and why
+
+```perl
+# Pseudo-code pattern:
+my %valid_encodings = ( 'UTF-8' => 1, 'OCTETS' => 1, ... );
+return FALSE if not valid_encoding($encoding_mode);
+```
+
+#### Step 4: Add Error Context to .apply Module
+Enhance base.fh-encoding.apply to provide better diagnostics:
+- If binmode() fails, log which encoding failed
+- Include file descriptor number in error message
+- Suggest common encodings if typo is suspected
+
+#### Step 5: Test with Various Encodings
+Create test cases:
+- Valid: 'UTF-8', 'OCTETS', 'latin1'
+- Invalid: 'NOTSUPPORTED', 'bad_name'
+- Edge cases: empty string, special characters
+
+### Expected Outcome
+Clear, early detection of encoding mode problems with actionable error messages.
+
+### Verification Checklist
+- [ ] Valid encodings are accepted
+- [ ] Invalid encodings are rejected with reason
+- [ ] Error messages are helpful and specific
+- [ ] Binmode failures are clearly reported
+
+---
+
+## Phase 3: Module Permission Auto-Management (Low Priority)
+
+### Priority: LOW
+### Estimated Scope: Medium (1 hour)
+### Dependencies: Phases 1-2 optional
+
+### Objective
+Implement automatic permission management for module files to prevent unreadable
+module issues from occurring in the first place.
+
+### Context
+
+Currently, module files must be manually set to 644 after creation. Administrators
+sometimes forget this, leading to the unreadable source problems we just fixed.
+
+### Implementation Options
+
+#### Option A: Auto-fix During Module Load (Recommended)
+When loading modules, if file is unreadable, automatically chmod to 644 with logging.
+- Pros: Fixes issues automatically, no operator intervention needed
+- Cons: May hide permission configuration errors, requires root/appropriate privileges
+- Location: In p7_check_bin_p7() or early in module loading
+
+#### Option B: Module Creation Hook
+Create hook that runs when modules are added/updated:
+- Watches for new/modified modules
+- Sets correct permissions automatically
+- Logs permission changes
+- Pro: Preventative rather than reactive
+- Con: Requires integration with file modification detection
+
+#### Option C: Configuration-Driven
+Add Protocol-7 configuration for module permission defaults:
+- config: 'modules.default_permission = 0644'
+- Checked during module discovery
+- Allows customization per environment
+
+### Current Priority Reasoning
+This is LOW priority because:
+1. The fix in Phase 1 properly handles unreadable modules
+2. Manual chmod is acceptable in current workflow
+3. Focus should be on robustness and clear error messages first
+4. This is an optimization, not a critical fix
+
+### If Implemented
+Recommend Option A + C combined:
+- Configuration option for desired permissions
+- Auto-fix during load with warning log
+- Allows operators to choose strictness level
+
+---
+
+## Phase 4: Extended Module Loading Diagnostics (Low Priority)
+
+### Priority: LOW
+### Estimated Scope: Medium (1 hour)
+### Dependencies: Phases 1-2 complete
+
+### Objective
+Add detailed diagnostic module to help operators understand module loading status,
+failures, and the encoding assignments of loaded modules.
+
+### Possible Implementations
+
+#### Diagnostic Command: module-status
+Create a module providing overview of:
+- All loaded modules and their status (success/error/undefined)
+- Error counts and failure reasons
+- Memory usage by module
+- Initialization time
+- Dependencies
+
+Example output:
+```
+base.init_code         : no-error    (2.3 KB, 0.15s)
+base.fh-encoding.set   : no-error    (1.1 KB, 0.02s)
+custom.module          : undefined   (source not readable)
+...
+```
+
+#### Diagnostic Command: encoding-status
+Show current file handle encoding assignments:
+```
+FD 3  : UTF-8     (stdin)
+FD 4  : UTF-8     (stdout)
+FD 5  : UTF-8     (stderr)
+FD 12 : OCTETS    (HTTP response to 192.168.1.5)
+...
+```
+
+#### Diagnostic Command: module-reload
+Allow reloading specific modules after fixing issues without restart.
+
+### Rationale for LOW Priority
+These are diagnostic/operational tools that don't block functionality. More useful
+after Phase 1-2 are stable and the system has been tested in production.
+
+---
+
+## Phase 5: System-Wide Encoding Audit (Future)
+
+### Priority: DEFERRED
+### Estimated Scope: Large (2-3 sessions)
+### Dependencies: Phases 1-3 complete
+
+### Objective
+Audit all file I/O operations across the system to identify where encoding mode
+control is needed and implement appropriate handle encoding assignments.
+
+### Scope Areas
+1. HTTP response output (likely needs OCTETS)
+2. Log file writing (likely needs UTF-8)
+3. Binary data handling (needs OCTETS)
+4. Configuration file reading (needs UTF-8)
+5. Network socket I/O (situation-dependent)
+
+This is deferred because:
+- Current system works with global UTF-8 default
+- Only specific paths need override
+- Requires understanding each module's data type requirements
+- Should be done holistically after current fixes are stable
+
+---
+
+## Implementation Notes & Patterns
+
+### Error Handling Pattern
+When a module loading step fails:
+1. Set `$compilation_success = FALSE`
+2. Store failure reason in `$data{'code'}{$sub_name}` hash
+3. Let broken routine handler create fallback
+4. Log specific error message for diagnostics
+5. Continue loading other modules (don't abort)
+
+### Testing Pattern for Permission Issues
+```bash
+chmod 600 modules/test.module
+./bin/Protocol-7 v7  # Should show "undefined routine" message
+chmod 644 modules/test.module
+# Module should work normally after chmod
+```
+
+### Encoding Assignment Pattern
+```perl
+# In code that needs OCTETS mode:
+<[base.fh-encoding.set]>->($output_fh, 'OCTETS');
+<[base.fh-encoding.apply]>->($output_fh);
+
+# In code that needs UTF-8:
+<[base.fh-encoding.set]>->($input_fh, 'UTF-8');
+<[base.fh-encoding.apply]>->($input_fh);
+```
+
+### Code Review Checklist for All Phases
+- [ ] Perl syntax valid (perl -c)
+- [ ] No warnings when compiled
+- [ ] TRUE/FALSE constants used (not 0/1)
+- [ ] Error messages are helpful and specific
+- [ ] Caller context included in errors
+- [ ] Documentation updated
+- [ ] No breaking changes to existing modules
+
+---
+
+## Handover Optimization Notes
+
+### For Smooth Continuation
+1. **Start with Phase 1**: It directly builds on current work and validates our approach
+2. **Test as you go**: Each phase should be testable independently
+3. **Keep error messages user-focused**: Always include what the operator should do next
+4. **Document discoveries**: If you find issues not covered here, update this roadmap
+5. **Commit frequently**: Each logical step should be committable
+
+### Key Files to Know
+- `bin/Protocol-7` line 1700-1830: Compilation and handler flow (main work area)
+- `modules/base.fh-encoding.*`: Reference implementations (simple, well-structured)
+- `modules/base.log`: Example of safe broken routine handling
+- `/data/projects/protocol-7/data/yaml/archive/`: Session documentation pattern
+
+### Common Debugging Commands
+```bash
+# Check module syntax
+perl -c bin/Protocol-7
+
+# Test module loading
+./bin/Protocol-7 v7 -vq  # verbose, quiet
+
+# Check file permissions
+ls -la modules/base.fh-encoding.*
+
+# View recent changes
+git diff HEAD~3..HEAD bin/Protocol-7
+
+# Test specific module
+# (create test script in /tmp/test.pl)
+```
+
+### Key Insights from Current Session
+1. Error handling is layered: each validation step can provide different diagnostics
+2. The $compilation_success flag is the control point for triggering the broken routine handler
+3. Storing metadata alongside code (`source_not_readable`, failure reasons) is powerful
+4. Clear error messages distinguish between different failure modes
+5. File handle encoding needs explicit management even with global UTF-8 pragma
+
+---
+
+## Quick Reference: What Each Phase Does
+
+| Phase | Task | Time | Complexity | Value |
+|-------|------|------|-----------|-------|
+| 1 | Broken routine handler integration | 1-2h | Med | HIGH |
+| 2 | Encoding validation | 0.5-1h | Low | MED |
+| 3 | Permission auto-management | 1h | Med | LOW |
+| 4 | Diagnostic modules | 1h | Low | LOW |
+| 5 | System-wide audit | 2-3h | High | MED (future) |
+
+---
+
+metadata:
+  created_by: Claude Code
+  for_handover_to: Next developer session
+  completeness: Detailed enough for independent implementation
+  update_frequency: Update before each new session
+  last_updated: 2025-11-26 after commit 9345ff2ce
