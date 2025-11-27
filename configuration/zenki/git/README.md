@@ -2,12 +2,12 @@
 
 ## Overview
 
-The Git zenka provides Protocol-7's harmonically-validated version control work, wrapping standard git operations with:
+The Git zenka provides Protocol-7's harmonically-validated version control workflow, wrapping standard git operations with:
 
 - **Harmonic validation** of commit messages via `AMOS7::Assert::Truth`
 - **Blacklight neon** color scheme for visual consistency
 - **Automated version management** using network time + commit count
-- **Integration** with Protocol-7 development work
+- **Integration** with Protocol-7 development workflow
 
 ## Structure
 
@@ -110,7 +110,7 @@ Blacklight neon aesthetic:
 
 ### With Other Zenki
 - **debian zenka**: Dependency checking
-- **work zenka**: Development automation
+- **workflow zenka**: Development automation
 - **backup zenka**: Pre-commit backups
 
 ### With Existing Scripts
