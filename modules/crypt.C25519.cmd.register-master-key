@@ -1,0 +1,88 @@
+## [:< ##
+
+# name  = crypt.C25519.cmd.register-master-key
+# descr = register user's Ed25519 master public key for C25519 key-based authentication
+# usage = register-master-key <username> <ed25519_pubkey_b32>
+#
+# The master key is used to verify C25519 session keys during authentication
+# This enables key-based auth without passwords
+
+my $call = shift;
+my $session_id = $call->{'session_id'};
+my $args = $call->{'args'} // '';
+
+my ( $username, $pubkey_b32 ) = split( m|\s+|, $args, 2 );
+
+## Validate arguments
+unless ( defined $username and length $username ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'missing username argument'
+    };
+}
+
+unless ( defined $pubkey_b32 and length $pubkey_b32 ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'missing Ed25519 pubkey argument (base32 encoded)'
+    };
+}
+
+## Validate username format
+unless ( $username =~ m|^[a-zA-Z0-9._-]+$| ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'invalid username format'
+    };
+}
+
+## Decode and validate pubkey
+use Crypt::Misc;
+my $pubkey_bin = eval { Crypt::Misc::decode_b32r($pubkey_b32) };
+
+if ( $@ or not defined $pubkey_bin ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'invalid base32 encoding of public key'
+    };
+}
+
+unless ( length($pubkey_bin) == 32 ) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf(
+            'invalid pubkey length: expected 32 bytes, got %d',
+            length($pubkey_bin)
+        )
+    };
+}
+
+## Register the master key
+$keys{'auth'}{'c25519-master'}{$username} = {
+    'public_b32' => $pubkey_b32,
+    'pubkey_bin' => $pubkey_bin,
+    'registered_at' => time(),
+    'registered_by' => 'manual',
+};
+
+<[base.logs]>->(
+    1, 'C25519 master key registered for user \'%s\'',
+    $username
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        'Ed25519 master key registered for user \'%s\' (key: %s...)',
+        $username,
+        substr( $pubkey_b32, 0, 16 )
+    )
+};
+
+1;
+
+#,,,,,.,.,,,.,...,.,,,.,.,..,,...,,,,..,,.,.,,...,..,,.,,...,.,.,...,,,.,.,,.,,,,,
+#XYZABC123DEFGH456IJKLMN789OPQRST0UVWXYZ1ABCDE2FGHIJ3KLMNO4PQRST5UVWXYZ6ABCDE7F
+#\\\|TEST1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890ABCDEFGHIJKLMNO \ / AMOS7 \ YOURUM ::
+#\[7]TEST1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890ABCDEFGHIJKLMNO 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
