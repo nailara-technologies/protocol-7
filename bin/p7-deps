@@ -42,6 +42,7 @@ my $P7_ROOT = abs_path(rel2abs(catdir($RealBin, $up_dir)));
 my $DEPS_DIR = catdir($P7_ROOT, '.deps');
 my $PROFILES_FILE = File::Spec->catfile($DEPS_DIR, 'profiles.yaml');
 my $CACHE_DIR = catdir($DEPS_DIR, 'cache');
+my $ZENKI_DIR = catdir($P7_ROOT, 'configuration', 'zenki');
 
 # Ensure cache directory exists
 make_path($CACHE_DIR) unless -d $CACHE_DIR;
@@ -64,10 +65,18 @@ if ($cmd eq 'check') {
     status_all();
 } elsif ($cmd eq 'clear-cache') {
     clear_cache();
+} elsif ($cmd eq 'zenka-modules') {
+    show_zenka_modules(@ARGV);
+} elsif ($cmd eq 'zenka-packages') {
+    show_zenka_packages(@ARGV);
+} elsif ($cmd eq 'validate') {
+    validate_zenka_declarations(@ARGV);
 } elsif ($cmd eq 'help' || $cmd eq '--help' || $cmd eq '-h') {
     show_help();
 } else {
-    die "Unknown command: $cmd\nRun 'bin/p7-deps help' for usage.\n";
+    print_error("Unknown command: $cmd", 0);
+    show_help();
+    exit 1;
 }
 
 sub check_profile {
@@ -372,6 +381,237 @@ sub clear_cache {
     print "✅ Cache cleared\n";
 }
 
+##[ INTROSPECTION COMMANDS ]####################################################
+
+sub show_zenka_modules {
+    my ($sort_key) = @_;
+    $sort_key ||= 'module';
+
+    print_header("Zenka Module Dependencies");
+
+    my $pm_deps = get_zenki_pm_deps();
+
+    unless (keys %$pm_deps) {
+        print "  No Perl module dependencies declared in zenka configurations.\n\n";
+        return;
+    }
+
+    if ($sort_key eq 'zenka') {
+        # Sort by zenka name
+        my %by_zenka;
+        for my $module (keys %$pm_deps) {
+            my $zenka = $pm_deps->{$module};
+            push @{$by_zenka{$zenka}}, $module;
+        }
+
+        for my $zenka (sort keys %by_zenka) {
+            print_section("${NEON_green_yellow}$zenka${reset}");
+            my @modules = sort @{$by_zenka{$zenka}};
+            for my $module (@modules) {
+                print "  • $module\n";
+            }
+            print "\n";
+        }
+    } else {
+        # Sort by module name (default)
+        for my $module (sort keys %$pm_deps) {
+            my $zenka = $pm_deps->{$module};
+            print "  ${NEON_green_yellow}$module${reset} (zenka: $zenka)\n";
+        }
+        print "\n";
+    }
+
+    print "Total modules: " . scalar(keys %$pm_deps) . "\n\n";
+}
+
+sub show_zenka_packages {
+    my ($sort_key) = @_;
+    $sort_key ||= 'package';
+
+    print_header("Zenka OS Package Dependencies");
+
+    my $os_deps = get_zenki_os_deps();
+
+    my %all_packages = (%{$os_deps->{debian}}, %{$os_deps->{binary}});
+
+    unless (keys %all_packages) {
+        print "  No OS package dependencies declared in zenka configurations.\n\n";
+        return;
+    }
+
+    if ($sort_key eq 'zenka') {
+        # Sort by zenka name
+        my %by_zenka;
+        for my $pkg (keys %all_packages) {
+            my $zenka = $all_packages{$pkg};
+            push @{$by_zenka{$zenka}}, $pkg;
+        }
+
+        for my $zenka (sort keys %by_zenka) {
+            print_section("${NEON_green_yellow}$zenka${reset}");
+            my @packages = sort @{$by_zenka{$zenka}};
+            for my $pkg (@packages) {
+                print "  • $pkg\n";
+            }
+            print "\n";
+        }
+    } else {
+        # Sort by package name (default)
+        for my $pkg (sort keys %all_packages) {
+            my $zenka = $all_packages{$pkg};
+            print "  ${NEON_green_yellow}$pkg${reset} (zenka: $zenka)\n";
+        }
+        print "\n";
+    }
+
+    print "Total packages: " . scalar(keys %all_packages) . "\n\n";
+}
+
+sub validate_zenka_declarations {
+    print_header("Validating Zenka Dependency Declarations");
+
+    my $pm_deps = get_zenki_pm_deps();
+    my $os_deps = get_zenki_os_deps();
+
+    # Collect all declared zenka
+    my %all_zenka;
+    for my $module (keys %$pm_deps) {
+        $all_zenka{$pm_deps->{$module}} = 1;
+    }
+    for my $pkg (keys %{$os_deps->{debian}}) {
+        $all_zenka{$os_deps->{debian}{$pkg}} = 1;
+    }
+    for my $bin (keys %{$os_deps->{binary}}) {
+        $all_zenka{$os_deps->{binary}{$bin}} = 1;
+    }
+
+    my $total_zenka = scalar(keys %all_zenka);
+
+    unless ($total_zenka) {
+        print "  No zenka found with dependency declarations.\n\n";
+        return;
+    }
+
+    print_section("Summary");
+    print "  Found ${NEON_green_yellow}$total_zenka${reset} zenka with declared dependencies\n";
+    print "  • CPAN modules: " . scalar(keys %$pm_deps) . "\n";
+    print "  • Debian packages: " . scalar(keys %{$os_deps->{debian}}) . "\n";
+    print "  • Binary requirements: " . scalar(keys %{$os_deps->{binary}}) . "\n";
+    print "\n";
+
+    print_section("Zenka with Dependencies");
+    for my $zenka (sort keys %all_zenka) {
+        my @modules = grep { $pm_deps->{$_} eq $zenka } keys %$pm_deps;
+        my @debian = grep { $os_deps->{debian}{$_} eq $zenka } keys %{$os_deps->{debian}};
+        my @binary = grep { $os_deps->{binary}{$_} eq $zenka } keys %{$os_deps->{binary}};
+
+        my $count = scalar(@modules) + scalar(@debian) + scalar(@binary);
+        print "  ${NEON_green_yellow}$zenka${reset}: $count dependencies\n";
+        print "    ├─ CPAN: " . scalar(@modules) . "\n" if @modules;
+        print "    ├─ Debian: " . scalar(@debian) . "\n" if @debian;
+        print "    └─ Binary: " . scalar(@binary) . "\n" if @binary;
+    }
+
+    print "\n✅ Validation complete\n\n";
+}
+
+##[ ZENKA INTROSPECTION ]#######################################################
+
+sub get_zenki_pm_deps {
+    my %pm_deps;
+
+    return \%pm_deps unless -d $ZENKI_DIR;
+
+    # Scan all zenka directories
+    opendir my $dh, $ZENKI_DIR or return \%pm_deps;
+    while (my $zenka = readdir $dh) {
+        next if $zenka =~ /^\./;
+
+        my $pm_dep_dir = File::Spec->catdir($ZENKI_DIR, $zenka, 'pm-dep');
+        next unless -d $pm_dep_dir;
+
+        opendir my $pdh, $pm_dep_dir or next;
+        while (my $file = readdir $pdh) {
+            next if $file =~ /^\./;
+
+            # Convert filename back to module name (__ -> ::)
+            my $module = $file;
+            $module =~ s/__/::/g;
+            $pm_deps{$module} = $zenka;
+        }
+        closedir $pdh;
+    }
+    closedir $dh;
+
+    return \%pm_deps;
+}
+
+sub get_zenki_os_deps {
+    my %os_deps = (
+        debian => {},
+        binary => {}
+    );
+
+    return \%os_deps unless -d $ZENKI_DIR;
+
+    # Scan all zenka directories
+    opendir my $dh, $ZENKI_DIR or return \%os_deps;
+    while (my $zenka = readdir $dh) {
+        next if $zenka =~ /^\./;
+
+        # Check debian packages
+        my $debian_dir = File::Spec->catdir($ZENKI_DIR, $zenka, 'os-dep', 'debian');
+        if (-d $debian_dir) {
+            opendir my $ddh, $debian_dir or next;
+            while (my $pkg = readdir $ddh) {
+                next if $pkg =~ /^\./;
+                $os_deps{debian}{$pkg} = $zenka;
+            }
+            closedir $ddh;
+        }
+
+        # Check binary requirements
+        my $binary_dir = File::Spec->catdir($ZENKI_DIR, $zenka, 'os-dep', 'binary');
+        if (-d $binary_dir) {
+            opendir my $bdh, $binary_dir or next;
+            while (my $bin = readdir $bdh) {
+                next if $bin =~ /^\./;
+                $os_deps{binary}{$bin} = $zenka;
+            }
+            closedir $bdh;
+        }
+    }
+    closedir $dh;
+
+    return \%os_deps;
+}
+
+##[ STYLING FUNCTIONS ]#########################################################
+
+sub print_header {
+    my $title = shift;
+    print "${blacklight}:$reset\n";
+    print "${blacklight}::[$NEON_green_yellow $title $blacklight]$reset\n";
+    print "${blacklight}:$reset\n\n";
+}
+
+sub print_section {
+    my $title = shift;
+    print "${blacklight}::[$TRUE_color $title $blacklight]$reset\n";
+}
+
+sub print_status {
+    my ($status, $message) = @_;
+    my $symbol = ($status eq 'ok') ? '✓' : ($status eq 'error') ? '❌' : '⚠';
+    print "${blacklight}::$reset  $symbol ${NEON_green_yellow}$message$reset\n";
+}
+
+sub print_error {
+    my ($message, $exit_code) = @_;
+    print "\n${blacklight}:\n::[$NEON_orange ERROR $blacklight] .: ${NEON_orange}$message$blacklight ::\n:$reset\n";
+    exit($exit_code) if $exit_code;
+}
+
 ##[ HELPER FUNCTIONS ]##########################################################
 
 sub check_apt {
@@ -479,12 +719,19 @@ ${NEON_green_yellow}━━━━━━━━━━━━━━━━━━━━
 USAGE:
   bin/p7-deps [OPTION] <command> [args]
 
-COMMANDS:
+COMMANDS (Installation):
   ${TRUE_color}list${reset}                    List all available profiles
   ${TRUE_color}check${reset} [profile]         Check dependencies for a profile
   ${TRUE_color}install${reset} [profile]       Install all dependencies for a profile
   ${TRUE_color}status${reset}                  Show status of all base profiles
   ${TRUE_color}clear-cache${reset}             Clear the dependency cache
+
+COMMANDS (Introspection):
+  ${TRUE_color}zenka-modules${reset}           Show which zenka declare which CPAN modules
+  ${TRUE_color}zenka-packages${reset}          Show which zenka declare which OS packages
+  ${TRUE_color}validate${reset}                Validate zenka dependency declarations
+
+COMMANDS (Help):
   ${TRUE_color}help${reset}                    Show this help message
 
 OPTIONS:
@@ -496,9 +743,18 @@ EXAMPLES:
   bin/p7-deps check development --no-cache  # Fresh check of development profile
   bin/p7-deps install minimal               # Install minimal profile
   bin/p7-deps status                        # Check all profiles
+  bin/p7-deps zenka-modules                 # Show module-to-zenka mapping
+  bin/p7-deps zenka-packages                # Show package-to-zenka mapping
+  bin/p7-deps validate                      # Validate dependency declarations
 
 PROFILES:
   Profiles are defined in: $PROFILES_FILE
+
+ZENKA CONFIGURATION:
+  Zenka dependency declarations are read from:
+    $ZENKI_DIR/<zenka-name>/pm-dep/       (CPAN modules)
+    $ZENKI_DIR/<zenka-name>/os-dep/debian/ (Debian packages)
+    $ZENKI_DIR/<zenka-name>/os-dep/binary/ (binary requirements)
 
 EOF
 }
