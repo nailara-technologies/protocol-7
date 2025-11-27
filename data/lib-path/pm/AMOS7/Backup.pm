@@ -561,3 +561,9 @@ sub _add_path {
 #\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
 #\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,.,,.,,,,.,...,...,.,,,.,.,.,,,.,.,...,.,,,..,,...,...,.,,,,,.,..,,,,,,..,,
+#3HUWYOPRCC4YT2XCPYDNZTJXLORDIJYYUNVHECUXKQBFJIEPVPDBV5NZREKL5PMB37AHJOSHEY3VO
+#\\\|EB5BDLQMRO3ZFR67I7BS2VIBIS2V4D62EXAAUHSY2L75TVQ4J2R \ / AMOS7 \ YOURUM ::
+#\[7]BTCLB5WWDJ7EBVGNTJNBVNMUHREHO6BPQ7I2RMWUGDGAKP2DOGBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
