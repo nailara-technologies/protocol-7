@@ -677,40 +677,81 @@ sub negotiate_link_upgrade {
 
     # 1. Send link-upgrade init
     if ( !s_write( $sock, "link-upgrade\n" ) ) {
+        warn_err("link-upgrade: failed to send init");
         return 0;
     }
 
     # 2. Read server ephemeral pubkey
     my $server_pubkey_b32 = s_read($sock);
+    unless ( $server_pubkey_b32 ) {
+        warn_err("link-upgrade: no server response for pubkey");
+        return 0;
+    }
     chomp($server_pubkey_b32);
-    return 0 unless $server_pubkey_b32;
 
     # 3. Generate client ephemeral keypair
-    my $client_secret = Crypt::Misc::random_bytes(32);
-    my $client_pubkey = Crypt::Curve25519::curve25519_public_key($client_secret);
-    return 0 unless $client_secret and $client_pubkey;
-    return 0 unless length($client_secret) == 32 and length($client_pubkey) == 32;
+    my $client_secret;
+    eval {
+        $client_secret = Crypt::Misc::random_bytes(32);
+    };
+    if ( $@ ) {
+        warn_err("link-upgrade: failed to generate secret: %s", $@);
+        return 0;
+    }
+
+    my $client_pubkey;
+    eval {
+        $client_pubkey = Crypt::Curve25519::curve25519_public_key($client_secret);
+    };
+    if ( $@ ) {
+        warn_err("link-upgrade: failed to compute pubkey: %s", $@);
+        return 0;
+    }
+
+    unless ( $client_secret and $client_pubkey and
+             length($client_secret) == 32 and length($client_pubkey) == 32 ) {
+        warn_err("link-upgrade: invalid keypair generation");
+        return 0;
+    }
 
     my $client_pubkey_b32 = Crypt::Misc::encode_b32r($client_pubkey);
 
     # 4. Send client pubkey
     if ( !s_write( $sock, "link-pub-key $client_pubkey_b32\n" ) ) {
+        warn_err("link-upgrade: failed to send client pubkey");
         return 0;
     }
 
     # 5. Read readiness confirmation
     my $confirm = s_read($sock);
-    return 0 unless $confirm;
+    unless ( $confirm ) {
+        warn_err("link-upgrade: no confirmation from server");
+        return 0;
+    }
 
     # 6. Compute DH shared secret
     my $server_pubkey = Crypt::Misc::decode_b32r($server_pubkey_b32);
-    my $shared_secret = Crypt::Curve25519::curve25519_shared_secret($client_secret, $server_pubkey);
-    return 0 unless $shared_secret and length($shared_secret) == 32;
+    my $shared_secret;
+    eval {
+        $shared_secret = Crypt::Curve25519::curve25519_shared_secret($client_secret, $server_pubkey);
+    };
+    if ( $@ ) {
+        warn_err("link-upgrade: failed to compute DH: %s", $@);
+        return 0;
+    }
+
+    unless ( $shared_secret and length($shared_secret) == 32 ) {
+        warn_err("link-upgrade: invalid DH shared secret");
+        return 0;
+    }
 
     # 7. Derive encryption key using SHA256-based KDF
-    my $session_id = time() & 0xFFFFFFFF;  # Use time as session ID
+    my $session_id = time() & 0xFFFFFFFF;
     my $encryption_key = sha256($shared_secret . pack('N', $session_id));
-    return 0 unless $encryption_key and length($encryption_key) == 32;
+    unless ( $encryption_key and length($encryption_key) == 32 ) {
+        warn_err("link-upgrade: invalid encryption key");
+        return 0;
+    }
 
     # 8. Send confirm and complete
     if ( !s_write( $sock, "link-confirm-encoding\n" ) ) {
