@@ -30,20 +30,38 @@ if ( defined $session->{'link_upgrade_timeout'}
 }
 
 ## Parse link-upgrade negotiation protocol
-## Expected commands: link-pub-key <base32_encoded_pubkey>
+## Expected commands: link-upgrade (initial request from client)
+##                   link-pub-key <base32_encoded_pubkey>
 ##                   link-confirm-encoding <mode>
 ##                   link-complete
 
-if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
+if ( $$input =~ s|^link-upgrade\n|| ) {
+    ## Client initiated link-upgrade, send back server's ephemeral public key
+    my $server_pubkey = $session->{'link_ephemeral_pubkey'};
+
+    if ( not defined $server_pubkey or not length $server_pubkey ) {
+        <[base.logs]>->( 0, '[%d] ephemeral public key not available', $id );
+        return 2;
+    }
+
+    my $server_pubkey_b32 = Crypt::Misc::encode_b32r($server_pubkey);
+    $session->{'buffer'}->{'output'} .= "$server_pubkey_b32\n";
+
+    <[base.logs]>->( 2, '[%d] sent ephemeral public key to client', $id );
+    return 1;  ## Awaiting client's public key
+
+} elsif ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
     my $client_pubkey_b32 = $1;
+    <[base.logs]>->( 2, '[%d] received client pubkey (b32): %s...', $id, substr($client_pubkey_b32, 0, 20) );
 
     ## Decode client's public key from BASE32
     my $client_pubkey = Crypt::Misc::decode_b32r($client_pubkey_b32);
 
     if ( not defined $client_pubkey or not length $client_pubkey ) {
-        <[base.logs]>->( 0, '[%d] invalid client public key', $id );
+        <[base.logs]>->( 0, '[%d] invalid client public key (decode failed or empty)', $id );
         return 2;
     }
+    <[base.logs]>->( 2, '[%d] decoded client pubkey (%d bytes)', $id, length($client_pubkey) );
 
     ## Perform Diffie-Hellman with client pubkey
     ## Get ephemeral keypair from session storage
