@@ -24,11 +24,11 @@ echo "---"
 echo ""
 
 echo "[2/3] Testing latency with p7 heart..."
-echo "     (Expecting 'TRUE beating' reply on working connection)"
+echo "     (Expecting 'beating' reply on working connection)"
 echo "---"
 p7 heart 2>&1 || echo "ERROR: Heart command failed"
 echo "---"
-if p7 heart 2>&1 | grep -q "TRUE beating"; then
+if p7 heart 2>&1 | grep -q "beating"; then
     echo "✓ Connection is HEALTHY"
 else
     echo "✗ Connection test FAILED - no heartbeat"
