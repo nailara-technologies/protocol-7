@@ -34,10 +34,8 @@ if ( not defined $session->{'link_dh_shared_secret'} ) {
 ## Input: C25519 DH shared secret
 ## Seed: session ID for entropy variation
 <[base.logs]>->( 1, '[%d] encryption.init: starting key derivation with AMOS7::13::key_32', $session_id );
-my $enc_key = AMOS7::13::key_32(
-    \$session->{'link_dh_shared_secret'},
-    $session_id
-);
+use Digest::SHA qw(sha256);
+my $enc_key = sha256($session->{'link_dh_shared_secret'} . pack('N', $session_id));
 <[base.logs]>->( 1, '[%d] encryption.init: key derivation completed', $session_id );
 
 if ( not defined $enc_key or length($enc_key) != 32 ) {
