@@ -26,7 +26,7 @@ return sub {
     }
 
     ## Load cipher module if not already loaded
-    if ( not <[base.perlmod.loaded]>->{'Crypt::AuthEnc::ChaCha20Poly1305'} ) {
+    if ( not <[base.perlmod.loaded]>->( 'Crypt::AuthEnc::ChaCha20Poly1305' ) ) {
         <[base.perlmod.load]>->( 'Crypt::AuthEnc::ChaCha20Poly1305' );
     }
 
