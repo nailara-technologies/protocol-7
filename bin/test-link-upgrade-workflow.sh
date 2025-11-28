@@ -88,3 +88,9 @@ echo "View all link-upgrade logs: p7 cube.show-buffer zenka | grep link-upgrade"
 echo "Check for errors:          p7 cube.show-buffer zenka | grep -i error"
 echo "View client output:        cat /tmp/nshell-output.log"
 echo ""
+
+#,,..,,,.,,.,,,..,,,.,..,,,.,,.,.,,.,,,.,,,,,,..,,...,...,,.,,.,,,.,,,..,,,..,
+#UB2UPZJKIMVKC2J5W32XYTHAT2H5GDSAHV52UM62YHXASCUR5B6DRQWQVYFTUQNENI3E6J5I74UGU
+#\\\|DGQTSH5NCMF6BPS4IRF3O6PWWDIQF4GJQ756HWXNF57KNXGGRDK \ / AMOS7 \ YOURUM ::
+#\[7]6L5MO7TWD54GIBPPGR3JFEO56WEA7VDPFXFRNMS6QKK3AFBWRYAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
