@@ -46,8 +46,13 @@ $session->{'link_encryption_key'} = $enc_key;
 
 ## Initialize ChaCha20-Poly1305 cipher context
 ## Load cipher module if not already loaded
+<[base.logs]>->( 2, '[%d] encryption.init: checking if ChaCha20Poly1305 is loaded', $session_id );
 if ( not <[base.perlmod.loaded]>->( 'Crypt::AuthEnc::ChaCha20Poly1305' ) ) {
+    <[base.logs]>->( 2, '[%d] encryption.init: loading ChaCha20Poly1305 module...', $session_id );
     <[base.perlmod.load]>->( 'Crypt::AuthEnc::ChaCha20Poly1305' );
+    <[base.logs]>->( 2, '[%d] encryption.init: ChaCha20Poly1305 loaded', $session_id );
+} else {
+    <[base.logs]>->( 2, '[%d] encryption.init: ChaCha20Poly1305 already loaded', $session_id );
 }
 
 ## Note: Cipher instances are created per-message with generated nonces
@@ -72,14 +77,18 @@ if ( not defined $session->{'output'}->{'handler_encryption_original'} ) {
 }
 
 ## Install read encryption wrapper (decrypts incoming data)
+<[base.logs]>->( 2, '[%d] encryption.init: installing read wrapper', $session_id );
 $session->{'input'}->{'handler'} = qw| base.handler.read.encryption-wrapper |;
 
 ## Create session-specific write encryption wrapper
+<[base.logs]>->( 2, '[%d] encryption.init: creating write wrapper...', $session_id );
 my $write_crypto_handler_name = sprintf qw| base.handler.write.encryption-%d |, $session_id;
 my $write_crypto_wrapper = <[base.handler.write.encryption-wrapper]>->(
     $session_id, $enc_key
 );
+<[base.logs]>->( 2, '[%d] encryption.init: write wrapper created, ref=%s', $session_id, ref($write_crypto_wrapper) );
 $code{$write_crypto_handler_name} = $write_crypto_wrapper if ref $write_crypto_wrapper eq qw| CODE |;
+<[base.logs]>->( 2, '[%d] encryption.init: write wrapper installed', $session_id );
 
 ## Install write encryption wrapper
 $session->{'output'}->{'handler'} = $write_crypto_handler_name;
@@ -128,6 +137,7 @@ if ( defined $session->{'link_encoding_mode'}
     $session_id, $state_id
 );
 
+<[base.logs]>->( 1, '[%d] encryption.init: COMPLETE AND RETURNING SUCCESS', $session_id );
 return 1;
 
 1;
