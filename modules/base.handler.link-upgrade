@@ -142,8 +142,10 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
 
 } else {
     ## Unknown command in link-upgrade state
+    my $buffer_sample = substr($$input, 0, 100);
+    $buffer_sample =~ s|\n|\\n|g;
     <[base.logs]>->(
-        1, '[%d] unknown link-upgrade command, awaiting protocol', $id
+        1, '[%d] unknown link-upgrade command (buffer: "%s"), awaiting protocol', $id, $buffer_sample
     );
     return 1;    ## Keep waiting
 }
