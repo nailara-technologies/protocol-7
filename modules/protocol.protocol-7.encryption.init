@@ -36,7 +36,7 @@ if ( not defined $session->{'link_dh_shared_secret'} ) {
 <[base.logs]>->( 1, '[%d] encryption.init: starting key derivation with AMOS7::13::key_32', $session_id );
 my $enc_key = AMOS7::13::key_32(
     \$session->{'link_dh_shared_secret'},
-    $session_id
+    \$session_id
 );
 <[base.logs]>->( 1, '[%d] encryption.init: key derivation completed', $session_id );
 
