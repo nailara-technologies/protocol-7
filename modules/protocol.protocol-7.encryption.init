@@ -12,9 +12,14 @@
 # returns = 1 (success) | 0 (failure - disconnect, not return to state 2)
 
 my ( $session_id, $mode, $state_id ) = @ARG;
+
+<[base.logs]>->( 1, '[%d] encryption.init: STARTED (unpacked args)', $session_id );
+
 my $session = $data{'session'}{$session_id};
+<[base.logs]>->( 1, '[%d] encryption.init: got session reference', $session_id );
 
 ## Verify shared secret exists from link-upgrade negotiation
+<[base.logs]>->( 1, '[%d] encryption.init: checking for DH shared secret', $session_id );
 if ( not defined $session->{'link_dh_shared_secret'} ) {
     <[base.logs]>->(
         0,
@@ -23,14 +28,17 @@ if ( not defined $session->{'link_dh_shared_secret'} ) {
     );
     return 0;
 }
+<[base.logs]>->( 1, '[%d] encryption.init: DH shared secret found, deriving key', $session_id );
 
 ## Derive encryption key using AMOS7::13::key_32
 ## Input: C25519 DH shared secret
 ## Seed: session ID for entropy variation
+<[base.logs]>->( 1, '[%d] encryption.init: starting key derivation with AMOS7::13::key_32', $session_id );
 my $enc_key = AMOS7::13::key_32(
     \$session->{'link_dh_shared_secret'},
     $session_id
 );
+<[base.logs]>->( 1, '[%d] encryption.init: key derivation completed', $session_id );
 
 if ( not defined $enc_key or length($enc_key) != 32 ) {
     <[base.logs]>->(
