@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = AMOS7.key-32-safeguard
+# descr = defensive wrapper for AMOS7::13::key_32 with iteration limit checking
+#         warns if numeric seed exceeds safe bounds, offers silencing option
+#
+# usage = my $key = AMOS7::key_32_safe( $secret_ref, $seed, $warn_override );
+#
+# notes = Recommended safe limits:
+#         - Numeric seed: 0-1000 (total iterations 113-1113)
+#         - SCALAR ref: encouraged (auto 113-226)
+#         - Anything > 1000 numeric: warn and suggest SCALAR ref
+
+use strict;
+use warnings;
+
+# Global warning suppression flag
+our $SUPPRESS_KEY_32_WARNING = 0;
+
+# Safe iteration limit
+use constant SAFE_NUMERIC_SEED_LIMIT => 1000;
+use constant TOTAL_ITERATION_LIMIT => 2000;  ## 113 + 1887 max safe
+
+sub key_32_safe {
+    my ($secret_ref, $seed, $suppress_this_call) = @_;
+
+    # Check if seed is numeric and exceeds safe limit
+    if (defined $seed && !ref($seed) && $seed =~ m|^\d+$|) {
+        my $total_iterations = 113 + $seed;
+
+        if ($seed > SAFE_NUMERIC_SEED_LIMIT) {
+            my $ratio = int($total_iterations / TOTAL_ITERATION_LIMIT);
+
+            unless ($SUPPRESS_KEY_32_WARNING || $suppress_this_call) {
+                warn sprintf(
+                    "⚠ AMOS7::13::key_32 warning:\n" .
+                    "  Numeric seed %d exceeds safe limit (%d)\n" .
+                    "  This will create %d total iterations (%dx safe limit)\n" .
+                    "  RECOMMENDED: Use SCALAR ref instead\n" .
+                    "    Changed: key_32(\\\\secret, %d)\n" .
+                    "    To:      key_32(\\\\secret, \\\\%d_ref)\n" .
+                    "  To silence: \$AMOS7::key_32_safeguard::SUPPRESS_KEY_32_WARNING = 1\n",
+                    $seed, SAFE_NUMERIC_SEED_LIMIT, $total_iterations, $ratio,
+                    $seed, $seed
+                );
+            }
+        }
+    }
+
+    # Call the actual key_32 function
+    return AMOS7::13::key_32($secret_ref, $seed);
+}
+
+1;
+
+#,,,,.,.,,.,..,,.,,...,.,,..,,..,,...,..,,...,...,...,...,,.,,.,,.,,.,,..,,.,,,,,.
+#PLACEHOLDER_SIGNATURE_HASH_1
+#\\\|PLACEHOLDER_SIGNATURE_HASH_2 \ / AMOS7 \ YOURUM ::
+#\[7]PLACEHOLDER_SIGNATURE_HASH_3 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

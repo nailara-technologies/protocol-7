@@ -32,7 +32,7 @@ if ( not defined $session->{'link_dh_shared_secret'} ) {
 
 ## Derive encryption key using AMOS7::13::key_32
 ## Input: C25519 DH shared secret
-## Seed: session ID for entropy variation
+## Seed: session ID for entropy variation (passed as SCALAR ref for smart iteration count)
 <[base.logs]>->( 1, '[%d] encryption.init: starting key derivation with AMOS7::13::key_32', $session_id );
 my $enc_key = AMOS7::13::key_32(
     \$session->{'link_dh_shared_secret'},
@@ -54,7 +54,6 @@ $session->{'link_encryption_key'} = $enc_key;
 
 ## Initialize ChaCha20-Poly1305 cipher context
 ## Load cipher module if not already loaded
-<[base.logs]>->( 2, '[%d] encryption.init: checking if ChaCha20Poly1305 is loaded', $session_id );
 if ( not <[base.perlmod.loaded]>->( 'Crypt::AuthEnc::ChaCha20Poly1305' ) ) {
     <[base.logs]>->( 2, '[%d] encryption.init: loading ChaCha20Poly1305 module...', $session_id );
     <[base.perlmod.load]>->( 'Crypt::AuthEnc::ChaCha20Poly1305' );

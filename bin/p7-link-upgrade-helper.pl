@@ -149,12 +149,12 @@ sub op_encrypt {
 
     # Create cipher and encrypt
     my $cipher = Crypt::AuthEnc::ChaCha20Poly1305->new($key, $nonce);
-    $cipher->encrypt_add($plaintext);
+    my $ciphertext = $cipher->encrypt_add($plaintext);
     my $auth_tag = $cipher->encrypt_done();
 
     # Output binary ciphertext + auth_tag
     # Note: This is binary data, not base32
-    print STDOUT $cipher->ciphertext() . $auth_tag;
+    print STDOUT $ciphertext . $auth_tag;
 }
 
 sub op_decrypt {
