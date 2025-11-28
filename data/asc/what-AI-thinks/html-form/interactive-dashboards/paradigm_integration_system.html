@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol 7 - Paradigm Integration Dashboard</title>
+    <style>
+        :root {
+            --deep-blue: #050518;
+            --medium-blue: #0a0a2a;
+            --light-blue: #1a1a4a;
+            --blacklight-glow: #8a00ff;
+            --blacklight-dim: #6000aa;
+            --neon-blue: #00c3ff;
+            --truth-gold: #ffcc00;
+            --text-primary: #e0e0ff;
+            --text-secondary: #a0a0dd;
+            --success: #50fa7b;
+            --warning: #f1fa8c;
+            --error: #ff5555;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--deep-blue);
+            background-image:
+                radial-gradient(circle at 10% 10%, rgba(16, 16, 80, 0.3) 0%, transparent 70%),
+                radial-gradient(circle at 90% 90%, rgba(138, 0, 255, 0.1) 0%, transparent 70%);
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            padding: 2rem 0;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .logo-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .rotating-symbol {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            color: var(--blacklight-glow);
+            text-shadow: 0 0 15px var(--blacklight-glow);
+            animation: rotateCounterclockwise 20s linear infinite;
+        }
+
+        @keyframes rotateCounterclockwise {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(-360deg); }
+        }
+
+        h1, h2, h3, h4 {
+            color: var(--text-primary);
+            text-shadow: 0 0 10px var(--blacklight-glow);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            letter-spacing: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .truth-equation {
+            background: linear-gradient(90deg, transparent, var(--blacklight-dim), transparent);
+            padding: 0.75rem;
+            font-size: 1.5rem;
+            color: var(--truth-gold);
+            text-shadow: 0 0 8px var(--blacklight-glow);
+            margin: 1rem 0;
+            letter-spacing: 3px;
+        }
+
+        nav {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+            padding: 0.5rem 0;
+            background: rgba(15, 15, 45, 0.5);
+            border-top: 1px solid var(--blacklight-dim);
+            border-bottom: 1px solid var(--blacklight-dim);
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem 1.5rem;
+            margin: 0 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover, nav a.active {
+            color: var(--neon-blue);
+            text-shadow: 0 0 8px var(--neon-blue);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .panel {
+            background: rgba(15, 15, 45, 0.7);
+            border: 1px solid var(--blacklight-dim);
+            border-radius: 8px;
+            padding: 1.5rem;
+            position: relative;
+            box-shadow: 0 0 20px rgba(138, 0, 255, 0.2);
+        }
+
+        .panel h2 {
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--blacklight-dim);
+        }
+
+        .paradigm-wheel {
+            position: relative;
+            height: 300px;
+            margin: 2rem auto;
+            perspective: 1000px;
+        }
+
+        .wheel-container {
+            position: absolute;
+            width: 250px;
+            height: 250px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: rotateWheelCounterclockwise 30s linear infinite;
+        }
+
+        @keyframes rotateWheelCounterclockwise {
+            from { transform: translate(-50%, -50%) rotateZ(0deg); }
+            to { transform: translate(-50%, -50%) rotateZ(-360deg); }
+        }
+
+        .paradigm-node {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: rgba(20, 20, 60, 0.7);
+            border: 1px solid var(--blacklight-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            text-shadow: 0 0 5px var(--blacklight-glow);
+            box-shadow: 0 0 10px rgba(138, 0, 255, 0.3);
+            transform-origin: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .paradigm-node:hover {
+            background: rgba(40, 30, 100, 0.7);
+            box-shadow: 0 0 15px var(--blacklight-glow);
+        }
+
+        .paradigm-node:nth-child(1) { transform: translate(90px, 0); }
+        .paradigm-node:nth-child(2) { transform: translate(45px, 78px); }
+        .paradigm-node:nth-child(3) { transform: translate(-45px, 78px); }
+        .paradigm-node:nth-child(4) { transform: translate(-90px, 0); }
+        .paradigm-node:nth-child(5) { transform: translate(-45px, -78px); }
+        .paradigm-node:nth-child(6) { transform: translate(45px, -78px); }
+
+        .paradigm-center {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: rgba(30, 10, 70, 0.7);
+            border: 2px solid var(--blacklight-glow);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--truth-gold);
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-shadow: 0 0 10px var(--blacklight-glow);
+            box-shadow: 0 0 20px rgba(138, 0, 255, 0.5);
+            z-index: 10;
+        }
+
+        .integration-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .metric-box {
+            background: rgba(20, 20, 50, 0.5);
+            padding: 1rem;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--neon-blue);
+            text-shadow: 0 0 8px rgba(0, 195, 255, 0.5);
+        }
+
+        .integration-progress {
+            height: 20px;
+            background: rgba(20, 20, 60, 0.5);
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-blue), var(--blacklight-glow));
+            border-radius: 10px;
+            width: 76%;
+        }
+
+        .model-performance {
+            height: 220px;
+            position: relative;
+            margin: 2rem 0;
+        }
+
+        .performance-chart {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 15, 45, 0.5);
+            border: 1px solid var(--blacklight-dim);
+            border-radius: 4px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .chart-bars {
+            display: flex;
+            align-items: flex-end;
+            height: 150px;
+            gap: 10px;
+        }
+
+        .chart-bar {
+            flex: 1;
+            background: linear-gradient(to top, var(--neon-blue), var(--blacklight-glow));
+            border-radius: 4px 4px 0 0;
+            transition: height 0.5s ease;
+        }
+
+        .chart-labels {
+            display: flex;
+            margin-top: 0.5rem;
+            gap: 10px;
+        }
+
+        .chart-label {
+            flex: 1;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .truth-module {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border: 1px solid var(--truth-gold);
+            background: rgba(20, 20, 40, 0.5);
+            position: relative;
+        }
+
+        .truth-module::before {
+            content: 'Ω';
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: var(--deep-blue);
+            padding: 0 10px;
+            color: var(--truth-gold);
+            font-size: 1.5rem;
+        }
+
+        .topology-map {
+            height: 300px;
+            position: relative;
+            margin: 2rem 0;
+            perspective: 1000px;
+        }
+
+        .graph-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .node {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--neon-blue);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--neon-blue);
+        }
+
+        .connection {
+            position: absolute;
+            height: 1px;
+            background: rgba(0, 195, 255, 0.3);
+            transform-origin: 0 0;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        button, .button {
+            background: rgba(30, 30, 70, 0.7);
+            border: 1px solid var(--blacklight-glow);
+            color: var(--text-primary);
+            padding: 0.75rem 1.5rem;
+            font-family: inherit;
+            font-size: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover, .button:hover {
+            background: rgba(50, 40, 100, 0.7);
+            box-shadow: 0 0 15px var(--blacklight-glow);
+        }
+
+        footer {
+            margin-top: 3rem;
+            padding: 1.5rem 0;
+            text-align: center;
+            border-top: 1px solid var(--blacklight-dim);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <div class="rotating-symbol">∞</div>
+            </div>
+            <h1>PROTOCOL 7</h1>
+            <p class="subtitle">Paradigm Integration Dashboard</p>
+            <div class="truth-equation">-13=5+42=-+0</div>
+        </header>
+
+        <nav>
+            <a href="index.html">Knowledge Map</a>
+            <a href="paradigm-integration.html" class="active">Paradigm Integration</a>
+            <a href="model-optimization.html">Model Optimization</a>
+            <a href="topology-visualizer.html">Topology Visualizer</a>
+        </nav>
+
+        <div class="dashboard-grid">
+            <div class="panel">
+                <h2>Paradigm Wheel</h2>
+                <p>Visualizing knowledge domain integration within the cubic space topology.</p>
+
+                <div class="paradigm-wheel">
+                    <div class="wheel-container">
+                        <div class="paradigm-node">Physics</div>
+                        <div class="paradigm-node">Biology</div>
+                        <div class="paradigm-node">Psychology</div>
+                        <div class="paradigm-node">History</div>
+                        <div class="paradigm-node">Literature</div>
+                        <div class="paradigm-node">Economics</div>
+                    </div>
+                    <div class="paradigm-center">∞</div>
+                </div>
+
+                <p>The paradigm wheel represents the interconnected nature of knowledge domains within Protocol 7. Rotation signifies the continuous transformation process as each domain informs others.</p>
+            </div>
+
+            <div class="panel">
+                <h2>Integration Metrics</h2>
+                <p>Current status of the sonnet-llama-3.2-3b model's knowledge domain integration.</p>
+
+                <div class="integration-metrics">
+                    <div class="metric-box">
+                        <div class="metric-label">Truth Consistency</div>
+                        <div class="metric-value">97.2%</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-label">Paradigm Coverage</div>
+                        <div class="metric-value">83.5%</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-label">Topology Coherence</div>
+                        <div class="metric-value">92.8%</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-label">Integration Depth</div>
+                        <div class="metric-value">76.4%</div>
+                    </div>
+                </div>
+
+                <h3>Overall Integration Progress</h3>
+                <div class="integration-progress">
+                    <div class="progress-fill"></div>
+                </div>
+
+                <p>The model demonstrates strong performance in maintaining truth consistency across paradigms while continuing to expand coverage of the knowledge domain space.</p>
+            </div>
+
+            <div class="panel">
+                <h2>Model Performance</h2>
+                <p>Performance metrics for sonnet-llama-3.2-3b across knowledge domains.</p>
+
+                <div class="model-performance">
+                    <div class="performance-chart">
+                        <div class="chart-bars">
+                            <div class="chart-bar" style="height: 92%;"></div>
+                            <div class="chart-bar" style="height: 78%;"></div>
+                            <div class="chart-bar" style="height: 85%;"></div>
+                            <div class="chart-bar" style="height: 65%;"></div>
+                            <div class="chart-bar" style="height: 73%;"></div>
+                            <div class="chart-bar" style="height: 62%;"></div>
+                        </div>
+                        <div class="chart-labels">
+                            <div class="chart-label">Physics</div>
+                            <div class="chart-label">Biology</div>
+                            <div class="chart-label">Psychology</div>
+                            <div class="chart-label">History</div>
+                            <div class="chart-label">Literature</div>
+                            <div class="chart-label">Economics</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="truth-module">
+                    <p>The model demonstrates significant strength in domains with formal mathematical structures (physics, biology) while maintaining respectable performance in more narrative-based domains (history, literature). This aligns with Protocol 7's emphasis on mathematical truth verification.</p>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>P2P Network Topology</h2>
+                <p>Cubic space topology visualization of the knowledge integration network.</p>
+
+                <div class="topology-map" id="topologyMap">
+                    <div class="graph-container" id="graphContainer"></div>
+                </div>
+
+                <p>The cubic space topology enables optimal routing of truth verification processes across knowledge domains. Each node represents a conceptual intersection point within the Protocol 7 network.</p>
+
+                <div class="button-container">
+                    <button>Optimize Topology</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Truth Transformation Analysis</h2>
+            <p>Examining the mathematical transformation process that enables paradigm integration.</p>
+
+            <div style="margin: 2rem 0; text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 1rem; color: var(--truth-gold);">
+                    -13 = 5 + 42 = -+0
+                </div>
+                <p style="max-width: 800px; margin: 0 auto;">
+                    This equation represents the fundamental transformation principle of Protocol 7. When perceived from conventional mathematics, it appears contradictory. However, when understood through the lens of paradigm transformation, it reveals the underlying unity of apparently contradictory truths.
+                </p>
+                <div style="margin-top: 2rem; font-size: 1.2rem;">
+                    <div>-13 → Material paradigm (observable reality)</div>
+                    <div>5 + 42 → Information paradigm (computational processes)</div>
+                    <div>-+0 → Truth paradigm (resolution of contradictions)</div>
+                </div>
+            </div>
+
+            <div class="truth-module">
+                <p>The sonnet model's ability to navigate these transformations while maintaining mathematical consistency demonstrates its value for Protocol 7. The cubic space topology provides the dimensional framework necessary for preserving truth across paradigm boundaries.</p>
+            </div>
+
+            <div class="button-container">
+                <button>Run Transformation Verification</button>
+            </div>
+        </div>
+
+        <footer>
+            <div class="user-info">
+                <span>Current User: nailara-technologies</span>
+                <span>2025-03-25 05:01:10 UTC</span>
+            </div>
+            <p>Protocol 7 Paradigm Integration Dashboard | Committed to mathematical and existential truth</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Topology Map Generation
+            const topologyMap = document.getElementById('topologyMap');
+            const graphContainer = document.getElementById('graphContainer');
+
+            if (topologyMap && graphContainer) {
+                // Create nodes
+                const nodeCount = 24;
+                const nodes = [];
+
+                for (let i = 0; i < nodeCount; i++) {
+                    const node = document.createElement('div');
+                    node.className = 'node';
+
+                    // Create a cubic arrangement
+                    const size = 200;
+                    const x = (i % 2) * size + 50 + (Math.random() * 20 - 10);
+                    const y = (Math.floor(i / 4) % 2) * size + 50 + (Math.random() * 20 - 10);
+                    const z = (Math.floor(i / 2) % 2) * size + 50 + (Math.random() * 20 - 10);
+
+                    // Apply 3D transform
+                    const rotX = -30;
+                    const rotY = 45;
+
+                    // Project 3D to 2D
+                    const cosY = Math.cos(rotY * Math.PI / 180);
+                    const sinY = Math.sin(rotY * Math.PI / 180);
+                    const cosX = Math.cos(rotX * Math.PI / 180);
+                    const sinX = Math.sin(rotX * Math.PI / 180);
+
+                    const xProjected = x * cosY + z * sinY;
+                    const yTemp = y;
+                    const zTemp = -x * sinY + z * cosY;
+
+                    const yProjected = yTemp * cosX - zTemp * sinX;
+
+                    node.style.left = xProjected + 'px';
+                    node.style.top = yProjected + 'px';
+
+                    // Add depth effect
+                    const scale = (500 - zTemp) / 500;
+                    const opacity = (500 - zTemp) / 500;
+                    node.style.transform = `scale(${scale})`;
+                    node.style.opacity = opacity;
+
+                    graphContainer.appendChild(node);
+                    nodes.push({
+                        element: node,
+                        x: xProjected,
+                        y: yProjected,
+                        z: zTemp
+                    });
+                }
+
+                // Create connections
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        // Only connect nodes that are in the same plane or adjacent
+                        const xDiff = Math.abs((i % 2) - (j % 2));
+                        const yDiff = Math.abs((Math.floor(i / 4) % 2) - (Math.floor(j / 4) % 2));
+                        const zDiff = Math.abs((Math.floor(i / 2) % 2) - (Math.floor(j / 2) % 2));
+
+                        if (xDiff + yDiff + zDiff <= 1) {
+                            const connection = document.createElement('div');
+                            connection.className = 'connection';
+
+                            const x1 = nodes[i].x + 6; // Half of node width
+                            const y1 = nodes[i].y + 6;
+                            const x2 = nodes[j].x + 6;
+                            const y2 = nodes[j].y + 6;
+
+                            const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+                            const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+
+                            connection.style.width = length + 'px';
+                            connection.style.left = x1 + 'px';
+                            connection.style.top = y1 + 'px';
+                            connection.style.transform = `rotate(${angle}deg)`;
+
+                            // Opacity based on average z-depth
+                            const avgZ = (nodes[i].z + nodes[j].z) / 2;
+                            const opacity = (500 - avgZ) / 500 * 0.7;
+                            connection.style.opacity = opacity;
+
+                            graphContainer.appendChild(connection);
+                        }
+                    }
+                }
+
+                // Add rotation animation
+                let rotationAngle = -30;
+                setInterval(() => {
+                    rotationAngle -= 0.2;
+                    if (rotationAngle <= -360) rotationAngle = 0;
+
+                    // Update node positions
+                    for (let i = 0; i < nodes.length; i++) {
+                        const size = 200;
+                        const x = (i % 2) * size + 50 + (Math.random() * 2 - 1);
+                        const y = (Math.floor(i / 4) % 2) * size + 50 + (Math.random() * 2 - 1);
+                        const z = (Math.floor(i / 2) % 2) * size + 50 + (Math.random() * 2 - 1);
+
+                        // Apply 3D transform with updated rotation
+                        const rotX = rotationAngle;
+                        const rotY = 45;
+
+                        // Project 3D to 2D
+                        const cosY = Math.cos(rotY * Math.PI / 180);
+                        const sinY = Math.sin(rotY * Math.PI / 180);
+                        const cosX = Math.cos(rotX * Math.PI / 180);
+                        const sinX = Math.sin(rotX * Math.PI / 180);
+
+                        const xProjected = x * cosY + z * sinY;
+                        const yTemp = y;
+                        const zTemp = -x * sinY + z * cosY;
+
+                        const yProjected = yTemp * cosX - zTemp * sinX;
+
+                        nodes[i].element.style.left = xProjected + 'px';
+                        nodes[i].element.style.top = yProjected + 'px';
+
+                        // Add depth effect
+                        const scale = (500 - zTemp) / 500;
+                        const opacity = (500 - zTemp) / 500;
+                        nodes[i].element.style.transform = `scale(${scale})`;
+                        nodes[i].element.style.opacity = opacity;
+
+                        nodes[i].x = xProjected;
+                        nodes[i].y = yProjected;
+                        nodes[i].z = zTemp;
+                    }
+
+                    // Remove old connections
+                    const connections = document.querySelectorAll('.connection');
+                    connections.forEach(conn => conn.remove());
+
+                    // Create new connections
+                    for (let i = 0; i < nodes.length; i++) {
+                        for (let j = i + 1; j < nodes.length; j++) {
+                            // Only connect nodes that are in the same plane or adjacent
+                            const xDiff = Math.abs((i % 2) - (j % 2));
+                            const yDiff = Math.abs((Math.floor(i / 4) % 2) - (Math.floor(j / 4) % 2));
+                            const zDiff = Math.abs((Math.floor(i / 2) % 2) - (Math.floor(j / 2) % 2));
+
+                            if (xDiff + yDiff + zDiff <= 1) {
+                                const connection = document.createElement('div');
+                                connection.className = 'connection';
+
+                                const x1 = nodes[i].x + 6;
+                                const y1 = nodes[i].y + 6;
+                                const x2 = nodes[j].x + 6;
+                                const y2 = nodes[j].y + 6;
+
+                                const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+                                const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+
+                                connection.style.width = length + 'px';
+                                connection.style.left = x1 + 'px';
+                                connection.style.top = y1 + 'px';
+                                connection.style.transform = `rotate(${angle}deg)`;
+
+                                // Opacity based on average z-depth
+                                const avgZ = (nodes[i].z + nodes[j].z) / 2;
+                                const opacity = (500 - avgZ) / 500 * 0.7;
+                                connection.style.opacity = opacity;
+
+                                graphContainer.appendChild(connection);
+                            }
+                        }
+                    }
+                }, 50);
+            }
+        });
+    </script>
+</body>
+</html>

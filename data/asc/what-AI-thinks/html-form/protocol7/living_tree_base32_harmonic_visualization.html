@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Living Tree + BASE32 Harmonic Routing</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #000;
+    color: #0ff;
+    font-family: 'Courier New', monospace;
+    padding: 20px;
+    overflow-x: hidden;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+h1 {
+    text-align: center;
+    font-size: 2em;
+    margin: 20px 0;
+    text-shadow: 0 0 20px #0ff, 0 0 40px #f0f;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { text-shadow: 0 0 20px #0ff, 0 0 40px #f0f; }
+    50% { text-shadow: 0 0 40px #0ff, 0 0 80px #f0f; }
+}
+
+.section {
+    background: rgba(0, 20, 40, 0.7);
+    border: 2px solid #0ff;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+}
+
+.section h2 {
+    color: #f0f;
+    margin-bottom: 15px;
+    text-shadow: 0 0 10px #f0f;
+}
+
+.tree-node {
+    background: rgba(20, 0, 40, 0.8);
+    border: 2px solid #f0f;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.tree-node:hover {
+    transform: translateX(10px);
+    box-shadow: 0 0 30px rgba(255, 0, 255, 0.5);
+}
+
+.node-header {
+    color: #0ff;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.octal-frame {
+    display: inline-block;
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid #0ff;
+    padding: 5px 10px;
+    margin: 3px;
+    border-radius: 5px;
+    font-family: monospace;
+}
+
+.flipped {
+    background: rgba(255, 0, 255, 0.2);
+    border-color: #f0f;
+    animation: flip-glow 1s infinite;
+}
+
+@keyframes flip-glow {
+    0%, 100% { box-shadow: 0 0 10px rgba(255, 0, 255, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(255, 0, 255, 0.8); }
+}
+
+.resonance-pair {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 20px;
+    align-items: center;
+    margin: 15px 0;
+}
+
+.state-box {
+    background: rgba(0, 255, 255, 0.1);
+    border: 2px solid #0ff;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.resonance-arrow {
+    font-size: 2em;
+    color: #f0f;
+    text-shadow: 0 0 10px #f0f;
+}
+
+.cubic-space {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    background: radial-gradient(circle at center, rgba(0, 20, 40, 0.9), #000);
+    border: 2px solid #0ff;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.waveform-path {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: #0ff;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #0ff;
+    animation: wave-pulse 2s infinite;
+}
+
+@keyframes wave-pulse {
+    0%, 100% { box-shadow: 0 0 10px #0ff; opacity: 1; }
+    50% { box-shadow: 0 0 20px #0ff, 0 0 30px #f0f; opacity: 0.8; }
+}
+
+.harmonic-visual {
+    font-family: monospace;
+    font-size: 0.9em;
+    word-break: break-all;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #0ff;
+}
+
+.comma { color: #0ff; }
+.dot { color: #f0f; }
+
+.route-input {
+    width: 100%;
+    background: rgba(0, 20, 40, 0.8);
+    border: 2px solid #0ff;
+    color: #0ff;
+    padding: 10px;
+    font-family: monospace;
+    font-size: 1.1em;
+    border-radius: 5px;
+}
+
+.button {
+    background: rgba(255, 0, 255, 0.3);
+    border: 2px solid #f0f;
+    color: #f0f;
+    padding: 10px 20px;
+    font-family: monospace;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.3s;
+    margin: 10px 5px;
+}
+
+.button:hover {
+    background: rgba(255, 0, 255, 0.6);
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.8);
+}
+
+.grid-display {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.value-cell {
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid #0ff;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.label {
+    color: #f0f;
+    font-size: 0.9em;
+    margin-bottom: 5px;
+}
+
+.coordinates {
+    display: inline-block;
+    background: rgba(255, 0, 255, 0.2);
+    border: 1px solid #f0f;
+    padding: 3px 8px;
+    margin: 2px;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🌳 LIVING TREE + BASE32 HARMONIC ROUTING 🌳</h1>
+
+    <div class="section">
+        <h2>Route Encoder</h2>
+        <input type="text" id="routeInput" class="route-input"
+               placeholder="Enter BASE32 route (e.g., BDHJHLS)"
+               value="BDHJHLS">
+        <button class="button" onclick="encodeRoute()">ENCODE ROUTE</button>
+        <button class="button" onclick="visualizeCubic()">VISUALIZE CUBIC</button>
+    </div>
+
+    <div class="section" id="encodedOutput" style="display:none;">
+        <h2>Encoded Frames</h2>
+        <div id="framesDisplay"></div>
+    </div>
+
+    <div class="section" id="resonanceOutput" style="display:none;">
+        <h2>Resonant Harmonic Pairs</h2>
+        <div id="resonanceDisplay"></div>
+    </div>
+
+    <div class="section" id="cubicOutput" style="display:none;">
+        <h2>Cubic Space Waveform Propagation</h2>
+        <div class="cubic-space" id="cubicSpace"></div>
+        <div id="pathDetails" style="margin-top: 20px;"></div>
+    </div>
+
+    <div class="section">
+        <h2>Harmonic Constants (Protocol-7)</h2>
+        <div class="grid-display">
+            <div class="value-cell">
+                <div class="label">TRUE_HARMONIC</div>
+                <div>384615</div>
+                <div style="font-size: 0.8em; color: #0ff;">5/13 = LOVE</div>
+            </div>
+            <div class="value-cell">
+                <div class="label">FALSE_HARMONIC</div>
+                <div>230769</div>
+                <div style="font-size: 0.8em; color: #f0f;">3/13 = ≠</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Living Tree Node Format</h2>
+        <div class="tree-node">
+            <div class="node-header">BDHJHLS[32-byte-C25519-key]</div>
+            <div>BASE32 AMOS checksum (7 chars) + C25519 public key (BASE32)</div>
+            <div style="margin-top: 10px;">
+                <span class="octal-frame">Octal: 0-0-6</span>
+                <span class="octal-frame">Harmonic: TRUE</span>
+                <span class="octal-frame">Resonance: ACTIVE</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const BASE32_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+const BASE32_DECODE = {};
+for (let i = 0; i < BASE32_ALPHABET.length; i++) {
+    BASE32_DECODE[BASE32_ALPHABET[i]] = i;
+}
+
+function toBinary(num, bits) {
+    return num.toString(2).padStart(bits, '0');
+}
+
+function encodeOctalFrame(prefixBits, payloadBits) {
+    let frame = prefixBits + '0' + payloadBits + '0';
+    const allZeros = (payloadBits === '000');
+
+    if (allZeros) {
+        // Flip all bits
+        frame = frame.split('').map(b => b === '0' ? '1' : '0').join('');
+    }
+
+    return {
+        frame: frame,
+        flipped: allZeros,
+        prefix: prefixBits,
+        payload: payloadBits,
+        octalP: parseInt(prefixBits, 2),
+        octalPl: parseInt(payloadBits, 2)
+    };
+}
+
+function base32ToOctalGroups(char) {
+    if (!(char in BASE32_DECODE)) return null;
+
+    const value = BASE32_DECODE[char];
+    const binary = toBinary(value, 5);
+    const octalBits = binary.substring(0, 3);
+    const layerBits = binary.substring(3, 5);
+
+    return {
+        char: char,
+        value: value,
+        binary: binary,
+        octalBits: octalBits,
+        layerBits: layerBits,
+        octalValue: parseInt(octalBits, 2)
+    };
+}
+
+function encodeRoute() {
+    const route = document.getElementById('routeInput').value.toUpperCase();
+    const frames = [];
+
+    for (let char of route) {
+        if (!(char in BASE32_DECODE)) continue;
+
+        const b32Data = base32ToOctalGroups(char);
+        const payload = b32Data.layerBits + '0';
+        const frame = encodeOctalFrame(b32Data.octalBits, payload);
+
+        frames.push({
+            char: char,
+            frame: frame,
+            b32: b32Data
+        });
+    }
+
+    displayFrames(frames);
+    displayResonance(frames);
+}
+
+function displayFrames(frames) {
+    const display = document.getElementById('framesDisplay');
+    let html = '<div class="grid-display">';
+
+    for (let f of frames) {
+        const flipClass = f.frame.flipped ? ' flipped' : '';
+        html += `
+            <div class="tree-node">
+                <div class="node-header">'${f.char}'</div>
+                <div class="octal-frame${flipClass}">${f.frame.frame}</div>
+                <div style="margin-top: 5px;">
+                    <div>Octal: ${f.frame.octalP},${f.frame.octalPl}</div>
+                    <div>Binary: ${f.b32.binary}</div>
+                    ${f.frame.flipped ? '<div style="color: #f0f;">FLIPPED</div>' : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    html += '</div>';
+    display.innerHTML = html;
+    document.getElementById('encodedOutput').style.display = 'block';
+}
+
+function displayResonance(frames) {
+    const display = document.getElementById('resonanceDisplay');
+    let html = '';
+
+    for (let i = 0; i < frames.length; i++) {
+        const f = frames[i];
+        const original = f.frame.frame;
+        const resonant = original.split('').map(b => b === '0' ? '1' : '0').join('');
+
+        html += `
+            <div class="resonance-pair">
+                <div class="state-box">
+                    <div class="label">Original</div>
+                    <div>${original}</div>
+                    <div style="margin-top: 5px;">Char: '${f.char}'</div>
+                </div>
+                <div class="resonance-arrow">⟷</div>
+                <div class="state-box">
+                    <div class="label">Resonant</div>
+                    <div>${resonant}</div>
+                    <div style="margin-top: 5px; color: #f0f;">Complementary</div>
+                </div>
+            </div>
+        `;
+    }
+
+    display.innerHTML = html;
+    document.getElementById('resonanceOutput').style.display = 'block';
+}
+
+function visualizeCubic() {
+    const route = document.getElementById('routeInput').value.toUpperCase();
+    const frames = [];
+
+    for (let char of route) {
+        if (!(char in BASE32_DECODE)) continue;
+        const b32Data = base32ToOctalGroups(char);
+        const payload = b32Data.layerBits + '0';
+        const frame = encodeOctalFrame(b32Data.octalBits, payload);
+        frames.push({ char: char, frame: frame });
+    }
+
+    const path = mapToCubicSpace(frames);
+    displayCubicPath(path);
+}
+
+function mapToCubicSpace(frames) {
+    let x = 0, y = 0, z = 0;
+    const path = [];
+
+    for (let frameData of frames) {
+        const frame = frameData.frame;
+        const octalP = frame.octalP;
+        const octalPl = frame.octalPl;
+
+        // Map octal to 3D movement
+        const dx = (octalP & 0b001) ? 1 : -1;
+        const dy = (octalP & 0b010) ? 1 : -1;
+        const dz = (octalP & 0b100) ? 1 : -1;
+
+        const scale = (octalPl + 1) / 8.0;
+
+        x += dx * scale;
+        y += dy * scale;
+        z += dz * scale;
+
+        path.push({
+            char: frameData.char,
+            position: [x, y, z],
+            frame: frame.frame,
+            flipped: frame.flipped
+        });
+    }
+
+    return path;
+}
+
+function displayCubicPath(path) {
+    const space = document.getElementById('cubicSpace');
+    space.innerHTML = '';
+
+    // Normalize positions to fit in display
+    const maxCoord = Math.max(...path.flatMap(p => p.position.map(Math.abs)));
+    const scale = 200 / (maxCoord || 1);
+    const centerX = 250;
+    const centerY = 250;
+
+    // Draw path
+    for (let i = 0; i < path.length; i++) {
+        const p = path[i];
+        const x = centerX + p.position[0] * scale;
+        const y = centerY + p.position[1] * scale;
+
+        const point = document.createElement('div');
+        point.className = 'waveform-path';
+        point.style.left = x + 'px';
+        point.style.top = y + 'px';
+        point.style.width = '10px';
+        point.style.height = '10px';
+        point.style.animationDelay = (i * 0.2) + 's';
+
+        if (p.flipped) {
+            point.style.background = '#f0f';
+            point.style.boxShadow = '0 0 15px #f0f';
+        }
+
+        point.title = `${p.char}: (${p.position.join(', ')})`;
+        space.appendChild(point);
+
+        // Draw line to previous point
+        if (i > 0) {
+            const prev = path[i-1];
+            const prevX = centerX + prev.position[0] * scale;
+            const prevY = centerY + prev.position[1] * scale;
+
+            const line = document.createElement('div');
+            const length = Math.sqrt((x-prevX)**2 + (y-prevY)**2);
+            const angle = Math.atan2(y-prevY, x-prevX) * 180 / Math.PI;
+
+            line.style.position = 'absolute';
+            line.style.left = prevX + 'px';
+            line.style.top = prevY + 'px';
+            line.style.width = length + 'px';
+            line.style.height = '2px';
+            line.style.background = '#0ff';
+            line.style.transformOrigin = '0 0';
+            line.style.transform = `rotate(${angle}deg)`;
+            line.style.opacity = '0.5';
+
+            space.appendChild(line);
+        }
+    }
+
+    // Display path details
+    let html = '<div class="grid-display">';
+    for (let i = 0; i < path.length; i++) {
+        const p = path[i];
+        const flipClass = p.flipped ? ' flipped' : '';
+        html += `
+            <div class="value-cell">
+                <div class="label">Step ${i}: '${p.char}'</div>
+                <div class="coordinates">(${p.position[0].toFixed(2)}, ${p.position[1].toFixed(2)}, ${p.position[2].toFixed(2)})</div>
+                ${p.flipped ? '<div style="color: #f0f; margin-top: 5px;">FLIPPED</div>' : ''}
+            </div>
+        `;
+    }
+    html += '</div>';
+
+    document.getElementById('pathDetails').innerHTML = html;
+    document.getElementById('cubicOutput').style.display = 'block';
+}
+
+// Auto-encode on load
+encodeRoute();
+</script>
+
+</body>
+</html>

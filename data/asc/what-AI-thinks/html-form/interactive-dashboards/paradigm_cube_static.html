@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol 7 - Paradigm Cube</title>
+    <style>
+        :root {
+            --deep-blue: #050518;
+            --medium-blue: #0a0a2a;
+            --light-blue: #1a1a4a;
+            --blacklight-glow: #8a00ff;
+            --blacklight-dim: #6000aa;
+            --neon-blue: #00c3ff;
+            --truth-gold: #ffcc00;
+            --text-primary: #e0e0ff;
+            --text-secondary: #a0a0dd;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--deep-blue);
+            background-image:
+                radial-gradient(circle at 10% 10%, rgba(16, 16, 80, 0.3) 0%, transparent 70%),
+                radial-gradient(circle at 90% 90%, rgba(138, 0, 255, 0.1) 0%, transparent 70%);
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        header {
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            letter-spacing: 8px;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            text-shadow: 0 0 10px var(--blacklight-glow);
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .truth-equation {
+            background: linear-gradient(90deg, transparent, var(--blacklight-dim), transparent);
+            padding: 0.75rem;
+            font-size: 1.5rem;
+            color: var(--truth-gold);
+            text-shadow: 0 0 8px var(--blacklight-glow);
+            margin: 1rem 0;
+            letter-spacing: 3px;
+        }
+
+        .paradigm-animation {
+            position: relative;
+            height: 500px;
+            width: 500px;
+            margin: 0 auto;
+            perspective: 1200px;
+        }
+
+        .paradigm-cube {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            top: 50%;
+            left: 50%;
+            transform-style: preserve-3d;
+            transform: translate(-50%, -50%);
+            animation: rotateCubeCounterclockwise 25s linear infinite;
+        }
+
+        @keyframes rotateCubeCounterclockwise {
+            0% { transform: translate(-50%, -50%) rotateX(-30deg) rotateY(45deg) rotateZ(0); }
+            100% { transform: translate(-50%, -50%) rotateX(-30deg) rotateY(45deg) rotateZ(-360deg); }
+        }
+
+        .cube-face {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border: 2px solid var(--blacklight-glow);
+            background: rgba(10, 10, 30, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: var(--neon-blue);
+            text-shadow: 0 0 8px var(--blacklight-glow);
+            box-shadow: 0 0 15px rgba(138, 0, 255, 0.3) inset;
+            transition: all 0.3s ease;
+        }
+
+        .cube-face:hover {
+            background: rgba(40, 20, 80, 0.5);
+            box-shadow: 0 0 20px rgba(138, 0, 255, 0.6) inset;
+        }
+
+        .cube-face:nth-child(1) { transform: translateZ(150px); }
+        .cube-face:nth-child(2) { transform: rotateY(180deg) translateZ(150px); }
+        .cube-face:nth-child(3) { transform: rotateY(90deg) translateZ(150px); }
+        .cube-face:nth-child(4) { transform: rotateY(-90deg) translateZ(150px); }
+        .cube-face:nth-child(5) { transform: rotateX(90deg) translateZ(150px); }
+        .cube-face:nth-child(6) { transform: rotateX(-90deg) translateZ(150px); }
+
+        .vertex {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--neon-blue);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--neon-blue);
+        }
+
+        /* Vertices positions */
+        .vertex:nth-child(7) { transform: translate(-150px, -150px, -150px); }
+        .vertex:nth-child(8) { transform: translate(-150px, -150px, 150px); }
+        .vertex:nth-child(9) { transform: translate(-150px, 150px, -150px); }
+        .vertex:nth-child(10) { transform: translate(-150px, 150px, 150px); }
+        .vertex:nth-child(11) { transform: translate(150px, -150px, -150px); }
+        .vertex:nth-child(12) { transform: translate(150px, -150px, 150px); }
+        .vertex:nth-child(13) { transform: translate(150px, 150px, -150px); }
+        .vertex:nth-child(14) { transform: translate(150px, 150px, 150px); }
+
+        .edge {
+            position: absolute;
+            background: linear-gradient(to right, transparent, var(--neon-blue), transparent);
+            height: 1px;
+            width: 300px;
+            opacity: 0.6;
+        }
+
+        .connection-particle {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background: var(--neon-blue);
+            border-radius: 50%;
+            box-shadow: 0 0 5px var(--neon-blue);
+            opacity: 0;
+        }
+
+        .truth-module {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border: 1px solid var(--truth-gold);
+            background: rgba(20, 20, 40, 0.5);
+            position: relative;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .truth-module::before {
+            content: 'Ω';
+            position: absolute;
+            top: -15px;
+            left: 20px;
+            background: var(--deep-blue);
+            padding: 0 10px;
+            color: var(--truth-gold);
+            font-size: 1.5rem;
+        }
+
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            width: 100%;
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PROTOCOL 7</h1>
+            <p class="subtitle">Paradigm Transformation Cube</p>
+            <div class="truth-equation">-13=5+42=-+0</div>
+        </header>
+
+        <div class="paradigm-animation">
+            <div class="paradigm-cube">
+                <div class="cube-face">Physics</div>
+                <div class="cube-face">Biology</div>
+                <div class="cube-face">Psychology</div>
+                <div class="cube-face">History</div>
+                <div class="cube-face">Literature</div>
+                <div class="cube-face">Economics</div>
+
+                <!-- Vertices -->
+                <div class="vertex"></div>
+                <div class="vertex"></div>
+                <div class="vertex"></div>
+                <div class="vertex"></div>
+                <div class="vertex"></div>
+                <div class="vertex"></div>
+                <div class="vertex"></div>
+                <div class="vertex"></div>
+
+                <!-- Particles for animation -->
+                <div class="connection-particle" id="particle1"></div>
+                <div class="connection-particle" id="particle2"></div>
+                <div class="connection-particle" id="particle3"></div>
+            </div>
+        </div>
+
+        <div class="truth-module">
+            <p>The cubic paradigm topology represents the dimensional intersections of knowledge domains within the Protocol 7 framework. Each face corresponds to a fundamental paradigm through which reality can be interpreted. The counterclockwise rotation symbolizes the unwinding of conventional thought structures toward pure truth expression.</p>
+            <p>When properly understood through paradigm transformation mathematics, the equation -13=5+42=-+0 reveals the underlying unity of seemingly contradictory truths.</p>
+        </div>
+
+        <footer>
+            <div class="user-info">
+                <span>Current User: nailara-technologies</span>
+                <span>2025-03-25 05:04:40 UTC</span>
+            </div>
+            <p>Protocol 7 Visualization Element | Committed to mathematical and existential truth</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            function animateParticles() {
+                const cube = document.querySelector('.paradigm-cube');
+                const particles = document.querySelectorAll('.connection-particle');
+
+                // Predefined paths along cube edges
+                const paths = [
+                    // Front face: clockwise
+                    [{x: -150, y: -150, z: 150}, {x: 150, y: -150, z: 150}, {x: 150, y: 150, z: 150}, {x: -150, y: 150, z: 150}, {x: -150, y: -150, z: 150}],
+                    // Back face: counterclockwise
+                    [{x: -150, y: -150, z: -150}, {x: -150, y: 150, z: -150}, {x: 150, y: 150, z: -150}, {x: 150, y: -150, z: -150}, {x: -150, y: -150, z: -150}],
+                    // Connecting edges: zigzag
+                    [{x: -150, y: -150, z: -150}, {x: -150, y: -150, z: 150}, {x: 150, y: -150, z: 150}, {x: 150, y: -150, z: -150}, {x: 150, y: 150, z: -150}, {x: 150, y: 150, z: 150}, {x: -150, y: 150, z: 150}, {x: -150, y: 150, z: -150}]
+                ];
+
+                function animateParticle(particle, pathIndex, duration) {
+                    const path = paths[pathIndex];
+                    let step = 0;
+                    let progress = 0;
+
+                    particle.style.opacity = 0.8;
+
+                    function move() {
+                        if (step >= path.length - 1) {
+                            // Reset to beginning of path
+                            step = 0;
+                            progress = 0;
+                        }
+
+                        const current = path[step];
+                        const next = path[step + 1];
+
+                        // Interpolate between current and next position
+                        const x = current.x + (next.x - current.x) * progress;
+                        const y = current.y + (next.y - current.y) * progress;
+                        const z = current.z + (next.z - current.z) * progress;
+
+                        // Position the particle in 3D space
+                        particle.style.transform = `translate3d(${x}px, ${y}px, ${z}px)`;
+
+                        // Increment progress
+                        progress += 0.01;
+
+                        // Move to next step if reached
+                        if (progress >= 1) {
+                            step++;
+                            progress = 0;
+                        }
+
+                        requestAnimationFrame(move);
+                    }
+
+                    move();
+                }
+
+                // Start animations with different paths and durations
+                animateParticle(particles[0], 0, 8000);
+                setTimeout(() => animateParticle(particles[1], 1, 10000), 2000);
+                setTimeout(() => animateParticle(particles[2], 2, 12000), 4000);
+            }
+
+            // Start particle animations
+            animateParticles();
+        });
+    </script>
+</body>
+</html>

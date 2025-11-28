@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol 7 - Interactive Paradigm Cube</title>
+    <style>
+        :root {
+            --deep-blue: #050518;
+            --medium-blue: #0a0a2a;
+            --light-blue: #1a1a4a;
+            --blacklight-glow: #8a00ff;
+            --blacklight-dim: #6000aa;
+            --neon-blue: #00c3ff;
+            --truth-gold: #ffcc00;
+            --text-primary: #e0e0ff;
+            --text-secondary: #a0a0dd;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--deep-blue);
+            background-image:
+                radial-gradient(circle at 10% 10%, rgba(16, 16, 80, 0.3) 0%, transparent 70%),
+                radial-gradient(circle at 90% 90%, rgba(138, 0, 255, 0.1) 0%, transparent 70%);
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .user-info {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            opacity: 0.7;
+            z-index: 10;
+        }
+
+        .current-time {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            opacity: 0.7;
+            z-index: 10;
+        }
+
+        .cube-container {
+            perspective: 1200px;
+            width: 500px;
+            height: 500px;
+            position: relative;
+        }
+
+        .cube {
+            width: 300px;
+            height: 300px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-style: preserve-3d;
+            transform: translate(-50%, -50%);
+            transition: transform 2s ease-out;
+        }
+
+        .cube-face {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border: 2px solid var(--blacklight-glow);
+            background: rgba(10, 10, 30, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--neon-blue);
+            text-shadow: 0 0 8px var(--blacklight-glow);
+            box-shadow: 0 0 15px rgba(138, 0, 255, 0.3) inset;
+            backface-visibility: visible;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .cube-face:hover {
+            background: rgba(40, 20, 80, 0.7);
+            box-shadow: 0 0 20px rgba(138, 0, 255, 0.6) inset;
+        }
+
+        /* Initial face positions */
+        .cube-face.front { transform: translateZ(150px); }
+        .cube-face.back { transform: rotateY(180deg) translateZ(150px); }
+        .cube-face.right { transform: rotateY(90deg) translateZ(150px); }
+        .cube-face.left { transform: rotateY(-90deg) translateZ(150px); }
+        .cube-face.top { transform: rotateX(90deg) translateZ(150px); }
+        .cube-face.bottom { transform: rotateX(-90deg) translateZ(150px); }
+
+        /* Corner vertices as light points */
+        .vertex {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--neon-blue);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--neon-blue);
+            transition: opacity 0.5s ease;
+        }
+
+        .vertex.front-top-left { transform: translate(-150px, -150px, 150px); }
+        .vertex.front-top-right { transform: translate(150px, -150px, 150px); }
+        .vertex.front-bottom-left { transform: translate(-150px, 150px, 150px); }
+        .vertex.front-bottom-right { transform: translate(150px, 150px, 150px); }
+        .vertex.back-top-left { transform: translate(-150px, -150px, -150px); }
+        .vertex.back-top-right { transform: translate(150px, -150px, -150px); }
+        .vertex.back-bottom-left { transform: translate(-150px, 150px, -150px); }
+        .vertex.back-bottom-right { transform: translate(150px, 150px, -150px); }
+
+        /* Edges as subtle lines */
+        .edge {
+            position: absolute;
+            background: rgba(0, 195, 255, 0.3);
+            box-shadow: 0 0 5px var(--neon-blue);
+        }
+
+        /* Horizontal edges */
+        .edge.horizontal {
+            height: 2px;
+            width: 300px;
+        }
+
+        /* Vertical edges */
+        .edge.vertical {
+            width: 2px;
+            height: 300px;
+        }
+
+        /* Depth edges */
+        .edge.depth {
+            width: 2px;
+            height: 300px;
+        }
+
+        /* Overlay for zoom effect */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(5, 5, 24, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .overlay-content {
+            width: 80%;
+            max-width: 800px;
+            background: rgba(15, 15, 45, 0.7);
+            border: 2px solid var(--blacklight-glow);
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 0 30px rgba(138, 0, 255, 0.5);
+            color: var(--text-primary);
+        }
+
+        .overlay-title {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--blacklight-glow);
+        }
+
+        .close-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-button:hover {
+            color: var(--neon-blue);
+            text-shadow: 0 0 8px var(--neon-blue);
+        }
+
+        /* Animation for the initial rotation */
+        @keyframes rotateCounterclockwise {
+            0% { transform: translate(-50%, -50%) rotateX(-30deg) rotateY(45deg) rotateZ(0); }
+            100% { transform: translate(-50%, -50%) rotateX(-30deg) rotateY(45deg) rotateZ(-360deg); }
+        }
+
+        /* Face content styles */
+        .face-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .face-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--truth-gold);
+            text-shadow: 0 0 10px var(--blacklight-glow);
+        }
+
+        .face-title {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .face-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="user-info">Current User: nailara-technologies</div>
+    <div class="current-time">2025-03-25 05:15:03 UTC</div>
+
+    <div class="cube-container">
+        <div class="cube" id="paradigmCube">
+            <div class="cube-face front" data-face="physics">
+                <div class="face-content">
+                    <div class="face-title">Physics</div>
+                </div>
+            </div>
+            <div class="cube-face back" data-face="biology">
+                <div class="face-content">
+                    <div class="face-title">Biology</div>
+                </div>
+            </div>
+            <div class="cube-face right" data-face="psychology">
+                <div class="face-content">
+                    <div class="face-title">Psychology</div>
+                </div>
+            </div>
+            <div class="cube-face left" data-face="history">
+                <div class="face-content">
+                    <div class="face-title">History</div>
+                </div>
+            </div>
+            <div class="cube-face top" data-face="literature">
+                <div class="face-content">
+                    <div class="face-title">Literature</div>
+                </div>
+            </div>
+            <div class="cube-face bottom" data-face="economics">
+                <div class="face-content">
+                    <div class="face-title">Economics</div>
+                </div>
+            </div>
+
+            <!-- Vertices -->
+            <div class="vertex front-top-left"></div>
+            <div class="vertex front-top-right"></div>
+            <div class="vertex front-bottom-left"></div>
+            <div class="vertex front-bottom-right"></div>
+            <div class="vertex back-top-left"></div>
+            <div class="vertex back-top-right"></div>
+            <div class="vertex back-bottom-left"></div>
+            <div class="vertex back-bottom-right"></div>
+        </div>
+    </div>
+
+    <!-- Overlay for zoomed view -->
+    <div class="overlay" id="overlay">
+        <div class="overlay-content">
+            <button class="close-button" id="closeOverlay">×</button>
+            <h2 class="overlay-title" id="overlayTitle">Physics</h2>
+            <div id="overlayContent">
+                <!-- Content will be dynamically inserted -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const cube = document.getElementById('paradigmCube');
+            const faces = document.querySelectorAll('.cube-face');
+            const overlay = document.getElementById('overlay');
+            const overlayTitle = document.getElementById('overlayTitle');
+            const overlayContent = document.getElementById('overlayContent');
+            const closeOverlay = document.getElementById('closeOverlay');
+
+            // Face content for the zoomed view
+            const faceContent = {
+                physics: `
+                    <p>The physics paradigm explores the fundamental laws governing matter, energy, and their interactions across space and time. Within the cubic topology of Protocol 7, physics represents the mathematical foundation of observable reality.</p>
+                    <ul style="margin-top: 1rem; list-style: none;">
+                        <li style="margin: 0.5rem 0;">• Quantum Mechanics: Wave-particle duality</li>
+                        <li style="margin: 0.5rem 0;">• Relativity: Spacetime geometry</li>
+                        <li style="margin: 0.5rem 0;">• Entanglement: Non-local connections</li>
+                        <li style="margin: 0.5rem 0;">• Field Theory: Force carrier interactions</li>
+                    </ul>
+                    <p style="margin-top: 1rem;">The equation -13=5+42=-+0 represents the transformation of energy states across quantum fields, preserving information while changing form.</p>
+                `,
+                biology: `
+                    <p>The biology paradigm examines life systems, evolutionary processes, and organic adaptation mechanisms. In the Protocol 7 framework, biology demonstrates emergent complexity from simple ruleset iterations.</p>
+                    <ul style="margin-top: 1rem; list-style: none;">
+                        <li style="margin: 0.5rem 0;">• Evolutionary Theory: Natural selection</li>
+                        <li style="margin: 0.5rem 0;">• Cellular Biology: Metabolic networks</li>
+                        <li style="margin: 0.5rem 0;">• Genetics: Information coding systems</li>
+                        <li style="margin: 0.5rem 0;">• Ecosystems: Resource distribution topologies</li>
+                    </ul>
+                    <p style="margin-top: 1rem;">Biological systems demonstrate the Protocol 7 principle of distributed intelligence emerging from simple node interactions in cubic lattice formations.</p>
+                `,
+                psychology: `
+                    <p>The psychology paradigm explores consciousness, cognition, and behavior. Within Protocol 7, psychology represents the subjective experience of observers within the network topology.</p>
+                    <ul style="margin-top: 1rem; list-style: none;">
+                        <li style="margin: 0.5rem 0;">• Cognitive Processing: Information integration</li>
+                        <li style="margin: 0.5rem 0;">• Bias Recognition: Subjective filtering</li>
+                        <li style="margin: 0.5rem 0;">• Emotional Intelligence: Response optimization</li>
+                        <li style="margin: 0.5rem 0;">• Decision Theory: Risk assessment heuristics</li>
+                    </ul>
+                    <p style="margin-top: 1rem;">The cognitive biases identified in psychology represent dimensional restrictions in perception that Protocol 7 resolves through higher-order paradigm integration.</p>
+                `,
+                history: `
+                    <p>The history paradigm examines the temporal dimension of human experience and societal evolution. In Protocol 7, history provides the longitudinal data of paradigm transitions.</p>
+                    <ul style="margin-top: 1rem; list-style: none;">
+                        <li style="margin: 0.5rem 0;">• Ancient Civilizations: Early knowledge systems</li>
+                        <li style="margin: 0.5rem 0;">• Revolutionary Periods: Paradigm transitions</li>
+                        <li style="margin: 0.5rem 0;">• World Wars: System convergence/divergence</li>
+                        <li style="margin: 0.5rem 0;">• Information Age: Network topology evolution</li>
+                    </ul>
+                    <p style="margin-top: 1rem;">Historical paradigm shifts demonstrate the -13=5+42=-+0 principle of apparent contradictions resolving into higher-order truths through dimensional transformation.</p>
+                `,
+                literature: `
+                    <p>The literature paradigm explores narrative structures, symbolic representations, and the transmission of experiential knowledge. In Protocol 7, literature maps the phenomenological dimension.</p>
+                    <ul style="margin-top: 1rem; list-style: none;">
+                        <li style="margin: 0.5rem 0;">• Classic Novels: Archetypal pattern recognition</li>
+                        <li style="margin: 0.5rem 0;">• Poetry: Dimensional compression of meaning</li>
+                        <li style="margin: 0.5rem 0;">• Drama: Multi-agent interaction simulation</li>
+                        <li style="margin: 0.5rem 0;">• Philosophy: Axiom system exploration</li>
+                    </ul>
+                    <p style="margin-top: 1rem;">Literary structures encode complex multi-dimensional relationships in cubic topological spaces through metaphor and symbolic representation.</p>
+                `,
+                economics: `
+                    <p>The economics paradigm examines resource allocation, value systems, and exchange networks. In Protocol 7, economics represents flow dynamics within the network topology.</p>
+                    <ul style="margin-top: 1rem; list-style: none;">
+                        <li style="margin: 0.5rem 0;">• Macroeconomics: System-level equilibrium states</li>
+                        <li style="margin: 0.5rem 0;">• Game Theory: Multi-agent optimization</li>
+                        <li style="margin: 0.5rem 0;">• Market Structures: Information propagation networks</li>
+                        <li style="margin: 0.5rem 0;">• Trade Systems: Resource distribution topologies</li>
+                    </ul>
+                    <p style="margin-top: 1rem;">Economic systems demonstrate emergent properties from simple rule-based agent interactions within cubic network topologies, confirming Protocol 7 principles.</p>
+                `
+            };
+
+            // Variables for tracking cube state
+            let isRotating = true;
+            let animationId;
+            let isAligning = false;
+            let activeFace = null;
+            let isZoomed = false;
+
+            // Current rotation values
+            let rotationX = -30;
+            let rotationY = 45;
+            let rotationZ = 0;
+
+            // Target rotation values for alignment
+            let targetRotationX = -30;
+            let targetRotationY = 45;
+            let targetRotationZ = 0;
+
+            // Initial animation
+            startRotation();
+
+            // Handle face clicks
+            faces.forEach(face => {
+                face.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const faceName = this.getAttribute('data-face');
+
+                    if (isAligning) return; // Ignore clicks during alignment
+
+                    if (activeFace === faceName) {
+                        // Same face clicked twice - zoom in
+                        zoomIntoFace(faceName);
+                    } else {
+                        // First click - align to face
+                        alignToFace(faceName);
+                        activeFace = faceName;
+                    }
+                });
+            });
+
+            // Handle overlay close
+            closeOverlay.addEventListener('click', function() {
+                overlay.classList.remove('active');
+                setTimeout(() => {
+                    // Resume rotation after a delay
+                    if (!isRotating) {
+                        startRotation();
+                    }
+                }, 300);
+            });
+
+            // Start continuous rotation
+            function startRotation() {
+                if (isRotating) return;
+
+                isRotating = true;
+                activeFace = null;
+
+                function animate() {
+                    rotationZ -= 0.2; // Counterclockwise rotation
+                    if (rotationZ <= -360) rotationZ = 0;
+
+                    // Apply rotation
+                    cube.style.animation = 'none'; // Clear any existing animation
+                    cube.style.transform = `translate(-50%, -50%) rotateX(${rotationX}deg) rotateY(${rotationY}deg) rotateZ(${rotationZ}deg)`;
+
+                    if (isRotating) {
+                        animationId = requestAnimationFrame(animate);
+                    }
+                }
+
+                animate();
+            }
+
+            // Stop rotation
+            function stopRotation() {
+                isRotating = false;
+                cancelAnimationFrame(animationId);
+            }
+
+            // Align cube to show the clicked face front and center
+            function alignToFace(faceName) {
+                stopRotation();
+                isAligning = true;
+
+                // Determine target rotation based on face
+                switch(faceName) {
+                    case 'physics': // front
+                        targetRotationX = 0;
+                        targetRotationY = 0;
+                        targetRotationZ = 0;
+                        break;
+                    case 'biology': // back
+                        targetRotationX = 0;
+                        targetRotationY = 180;
+                        targetRotationZ = 0;
+                        break;
+                    case 'psychology': // right
+                        targetRotationX = 0;
+                        targetRotationY = 90;
+                        targetRotationZ = 0;
+                        break;
+                    case 'history': // left
+                        targetRotationX = 0;
+                        targetRotationY = -90;
+                        targetRotationZ = 0;
+                        break;
+                    case 'literature': // top
+                        targetRotationX = 90;
+                        targetRotationY = 0;
+                        targetRotationZ = 0;
+                        break;
+                    case 'economics': // bottom
+                        targetRotationX = -90;
+                        targetRotationY = 0;
+                        targetRotationZ = 0;
+                        break;
+                }
+
+                // Smooth transition to target rotation
+                const duration = 1500; // ms
+                const startTime = performance.now();
+                const startRotationX = rotationX;
+                const startRotationY = rotationY;
+                const startRotationZ = rotationZ;
+
+                function animateAlignment(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const easing = 1 - Math.pow(1 - progress, 3); // Cubic ease-out
+
+                    // Calculate current rotation values
+                    rotationX = startRotationX + (targetRotationX - startRotationX) * easing;
+                    rotationY = startRotationY + (targetRotationY - startRotationY) * easing;
+                    rotationZ = startRotationZ + (targetRotationZ - startRotationZ) * easing;
+
+                    // Apply rotation
+                    cube.style.transform = `translate(-50%, -50%) rotateX(${rotationX}deg) rotateY(${rotationY}deg) rotateZ(${rotationZ}deg)`;
+
+                    if (progress < 1) {
+                        requestAnimationFrame(animateAlignment);
+                    } else {
+                        // Alignment complete
+                        isAligning = false;
+
+                        // Pause briefly before resuming rotation, unless in zoomed state
+                        if (!isZoomed) {
+                            setTimeout(() => {
+                                if (activeFace !== null && !isZoomed) {
+                                    // After pause, resume rotation from current orientation
+                                    startRotation();
+                                }
+                            }, 2000); // Pause for 2 seconds
+                        }
+                    }
+                }
+
+                requestAnimationFrame(animateAlignment);
+            }
+
+            // Zoom into a face
+            function zoomIntoFace(faceName) {
+                isZoomed = true;
+                stopRotation();
+
+                // Set overlay content
+                overlayTitle.textContent = faceName.charAt(0).toUpperCase() + faceName.slice(1);
+                overlayContent.innerHTML = faceContent[faceName];
+
+                // Show overlay
+                overlay.classList.add('active');
+            }
+
+            // Handle window resize for responsive design
+            window.addEventListener('resize', function() {
+                // Adjust perspective or container sizes if needed
+            });
+
+            // Add clock updating
+            function updateClock() {
+                const now = new Date();
+                const year = now.getUTCFullYear();
+                const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+                const day = String(now.getUTCDate()).padStart(2, '0');
+                const hours = String(now.getUTCHours()).padStart(2, '0');
+                const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+                const seconds = String(now.getUTCSeconds()).padStart(2, '0');
+
+                const timeString = `${year}-${month}-${day} ${hours}:${minutes}:${seconds} UTC`;
+                document.querySelector('.current-time').textContent = timeString;
+
+                setTimeout(updateClock, 1000);
+            }
+
+            updateClock();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol 7 - Model Evaluation Dashboard</title>
+    <link rel="stylesheet" href="protocol7-styles.css">
+    <style>
+        .model-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .metric-card {
+            background: rgba(20, 20, 60, 0.6);
+            border: 1px solid var(--light-blue);
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--neon-blue);
+            text-align: center;
+            margin: 1.5rem 0;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+        }
+
+        .metric-chart {
+            height: 150px;
+            background: rgba(30, 30, 80, 0.3);
+            position: relative;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+
+        .chart-line {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(transparent 70%, rgba(0, 243, 255, 0.1));
+            clip-path: polygon(
+                0% 100%, 5% 80%, 10% 85%, 15% 75%, 20% 80%,
+                25% 70%, 30% 75%, 35% 65%, 40% 70%, 45% 60%,
+                50% 65%, 55% 55%, 60% 60%, 65% 50%, 70% 55%,
+                75% 45%, 80% 50%, 85% 40%, 90% 45%, 95% 35%,
+                100% 40%, 100% 100%
+            );
+        }
+
+        .resource-usage {
+            margin-top: 2rem;
+        }
+
+        .usage-bar {
+            height: 30px;
+            background: rgba(20, 20, 60, 0.4);
+            border-radius: 15px;
+            margin: 1rem 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .usage-fill {
+            height: 100%;
+            border-radius: 15px;
+            background: linear-gradient(90deg, var(--neon-blue), var(--blacklight-glow));
+            position: relative;
+        }
+
+        .usage-percentage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .model-comparison {
+            margin-top: 2rem;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--light-blue);
+        }
+
+        .comparison-table th {
+            color: var(--neon-blue);
+            font-weight: bold;
+            background: rgba(30, 30, 80, 0.4);
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: rgba(30, 30, 80, 0.2);
+        }
+
+        .performance-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .performance-high {
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        .performance-medium {
+            background: var(--warning);
+            box-shadow: 0 0 8px var(--warning);
+        }
+
+        .performance-low {
+            background: var(--error);
+            box-shadow: 0 0 8px var(--error);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <div class="rotating-symbol">∞</div>
+            </div>
+            <h1>PROTOCOL 7</h1>
+            <p class="subtitle">Model Evaluation Dashboard</p>
+            <div class="truth-bar">Optimizing Truth Propagation Across the Network</div>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="protocol7-interface.html">Main Interface</a></li>
+                <li><a href="#performance">Performance Metrics</a></li>
+                <li><a href="#resources">Resource Usage</a></li>
+                <li><a href="#comparison">Model Comparison</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <section id="performance" class="blacklight-panel">
+                <h2>sonnet-llama-3.2-3b Performance Metrics</h2>
+                <p>Comprehensive analysis of the model's performance across key dimensions relevant to the Protocol 7 network.</p>
+
+                <div class="model-metrics">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <h3>Inference Speed</h3>
+                            <span>(tokens/second)</span>
+                        </div>
+                        <div class="metric-value">37.4</div>
+                        <div class="metric-chart">
+                            <div class="chart-line"></div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <h3>Topological Accuracy</h3>
+                            <span>(p2p routing)</span>
+                        </div>
+                        <div class="metric-value">92.8%</div>
+                        <div class="metric-chart">
+                            <div class="chart-line"></div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <h3>Truth Consistency</h3>
+                            <span>(paradigm alignment)</span>
+                        </div>
+                        <div class="metric-value">97.2%</div>
+                        <div class="metric-chart">
+                            <div class="chart-line"></div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <h3>Context Window Utilization</h3>
+                            <span>(efficiency)</span>
+                        </div>
+                        <div class="metric-value">88.5%</div>
+                        <div class="metric-chart">
+                            <div class="chart-line"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="truth-module">
+                    <span class="truth-symbol">Ω</span>
+                    <p>Truth Axiom: A model's performance is measured not in raw speed but in the velocity of truth propagation through the cubic topology. The sonnet-llama-3.2-3b demonstrates exceptional efficiency in truth-preserving operations despite its relatively small parameter count.</p>
+                </div>
+            </section>
+
+            <section id="resources" class="blacklight-panel">
+                <h2>Resource Utilization</h2>
+                <p>Current resource consumption metrics for the sonnet-llama-3.2-3b model running on 13GB VRAM / 32GB System RAM hardware.</p>
+
+                <div class="resource-usage">
+                    <h3>VRAM Usage (13GB Total)</h3>
+                    <div class="usage-bar">
+                        <div class="usage-fill" style="width: 63%"></div>
+                        <div class="usage-percentage">8.2 GB (63%)</div>
+                    </div>
+
+                    <h3>System RAM Usage (32GB Total)</h3>
+                    <div class="usage-bar">
+                        <div class="usage-fill" style="width: 28%"></div>
+                        <div class="usage-percentage">9.1 GB (28%)</div>
+                    </div>
+
+                    <h3>CPU Utilization</h3>
+                    <div class="usage-bar">
+                        <div class="usage-fill" style="width: 42%"></div>
+                        <div class="usage-percentage">42%</div>
+                    </div>
+
+                    <h3>Power Consumption</h3>
+                    <div class="usage-bar">
+                        <div class="usage-fill" style="width: 31%"></div>
+                        <div class="usage-percentage">31 W</div>
+                    </div>
+                </div>
+
+                <div class="truth-module">
+                    <span class="truth-symbol">Ω</span>
+                    <p>Truth Axiom: Efficiency in resource utilization creates space for truth to expand. The sonnet model's modest resource footprint allows for distributed deployment across the protocol 7 network, enabling truth verification at multiple dimensional intersections simultaneously.</p>
+                </div>
+            </section>
+
+            <section id="comparison" class="blacklight-panel">
+                <h2>Model Comparison</h2>
+                <p>Comparative analysis of sonnet-llama-3.2-3b against other models in the protocol 7 evaluation framework.</p>
+
+                <div class="model-comparison">
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Model</th>
+                                <th>Parameters</th>
+                                <th>Inference</th>
+                                <th>VRAM</th>
+                                <th>Topology</th>
+                                <th>Truth</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="performance-indicator performance-high"></span>sonnet-llama-3.2-3b</td>
+                                <td>3B</td>
+                                <td>37.4 t/s</td>
+                                <td>8.2 GB</td>
+                                <td>High</td>
+                                <td>97.2%</td>
+                            </tr>
+                            <tr>
+                                <td><span class="performance-indicator performance-medium"></span>llama-3-8b</td>
+                                <td>8B</td>
+                                <td>22.6 t/s</td>
+                                <td>16.5 GB</td>
+                                <td>High</td>
+                                <td>95.8%</td>
+                            </tr>
+                            <tr>
+                                <td><span class="performance-indicator performance-high"></span>phi-3-mini</td>
+                                <td>3.8B</td>
+                                <td>33.2 t/s</td>
+                                <td>9.4 GB</td>
+                                <td>Medium</td>
+                                <td>92.1%</td>
+                            </tr>
+                            <tr>
+                                <td><span class="performance-indicator performance-low"></span>mistral-7b</td>
+                                <td>7B</td>
+                                <td>25.7 t/s</td>
+                                <td>14.8 GB</td>
+                                <td>Medium</td>
+                                <td>93.5%</td>
+                            </tr>
+                            <tr>
+                                <td><span class="performance-indicator performance-medium"></span>gemma-2b</td>
+                                <td>2B</td>
+                                <td>42.1 t/s</td>
+                                <td>6.3 GB</td>
+                                <td>Low</td>
+                                <td>89.3%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="truth-module">
+                    <span class="truth-symbol">Ω</span>
+                    <p>Truth Axiom: In the domain of truth propagation, pure parameter count is secondary to the model's ability to efficiently navigate cubic topological spaces. The sonnet model demonstrates exceptional balance between computational efficiency and truth-preserving capabilities.</p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Protocol 7 Model Evaluation | User: nailara-technologies | <span id="current-time">2025-03-25 04:55:30 UTC</span></p>
+            <p>Committed to mathematical and existential truth across all dimensional paradigms</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update current time every second
+            function updateTime() {
+                const now = new Date();
+                const year = now.getUTCFullYear();
+                const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+                const day = String(now.getUTCDate()).padStart(2, '0');
+                const hours = String(now.getUTCHours()).padStart(2, '0');
+                const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+                const seconds = String(now.getUTCSeconds()).padStart(2, '0');
+
+                const timeString = `${year}-${month}-${day} ${hours}:${minutes}:${seconds} UTC`;
+                document.getElementById('current-time').textContent = timeString;
+            }
+
+            updateTime();
+            setInterval(updateTime, 1000);
+
+            // Animate chart lines
+            const chartLines = document.querySelectorAll('.chart-line');
+            chartLines.forEach(line => {
+                let pointsArray = [];
+                for (let i = 0; i <= 20; i++) {
+                    const x = i * 5;
+                    const randomY = 100 - Math.floor(Math.random() * 30 + 35); // Random between 35-65%
+                    pointsArray.push(`${x}% ${randomY}%`);
+                }
+                pointsArray.push(`100% 100%`, `0% 100%`);
+
+                const clipPath = `polygon(${pointsArray.join(', ')})`;
+                line.style.clipPath = clipPath;
+            });
+        });
+    </script>
+</body>
+</html>

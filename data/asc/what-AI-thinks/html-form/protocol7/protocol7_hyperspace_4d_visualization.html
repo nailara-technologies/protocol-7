@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol 7 - Hyperspace Cube Interface</title>
+    <style>
+        :root {
+            --deep-blue: #030312;
+            --medium-blue: #0a0a2a;
+            --light-blue: #1a1a4a;
+            --blacklight-glow: #8a00ff;
+            --blacklight-dim: #6000aa;
+            --neon-blue: #00f3ff;
+            --truth-gold: #ffcc00;
+            --text-primary: #e0e0ff;
+            --text-secondary: #a0a0dd;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--deep-blue);
+            background-image:
+                radial-gradient(circle at 10% 10%, rgba(16, 16, 80, 0.3) 0%, transparent 70%),
+                radial-gradient(circle at 90% 90%, rgba(138, 0, 255, 0.1) 0%, transparent 70%);
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            overflow: hidden;
+            perspective: 800px;
+        }
+
+        .info-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 1rem;
+            background: rgba(5, 5, 24, 0.7);
+            border-bottom: 1px solid var(--blacklight-dim);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            z-index: 100;
+        }
+
+        .control-panel {
+            position: fixed;
+            top: 3rem;
+            left: 1rem;
+            background: rgba(10, 10, 40, 0.7);
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px solid var(--blacklight-dim);
+            z-index: 100;
+        }
+
+        .control-panel button {
+            background: rgba(20, 20, 60, 0.7);
+            border: 1px solid var(--blacklight-glow);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            margin: 0.25rem 0;
+            width: 100%;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .control-panel button:hover {
+            background: rgba(40, 30, 100, 0.7);
+            box-shadow: 0 0 10px rgba(138, 0, 255, 0.5);
+        }
+
+        .cube-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-style: preserve-3d;
+            transform: translate(-50%, -50%);
+            width: 100vw;
+            height: 100vh;
+            perspective-origin: 50% 50%;
+        }
+
+        .navigation-info {
+            position: fixed;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(5, 5, 24, 0.8);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            border: 1px solid var(--blacklight-dim);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            z-index: 100;
+            text-align: center;
+        }
+
+        .current-face {
+            color: var(--neon-blue);
+            font-weight: bold;
+        }
+
+        .cube {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            top: 50%;
+            left: 50%;
+            transform-style: preserve-3d;
+            transform: translate(-50%, -50%) scale(0.5);
+            transition: transform 2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .cube.expanded {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .cube.auto-rotate {
+            animation: autoRotate 60s linear infinite;
+        }
+
+        @keyframes autoRotate {
+            0% { transform: translate(-50%, -50%) scale(1) rotateX(0) rotateY(0) rotateZ(0); }
+            100% { transform: translate(-50%, -50%) scale(1) rotateX(0) rotateY(0) rotateZ(-360deg); }
+        }
+
+        .cube-face {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border: 2px solid var(--blacklight-glow);
+            background: rgba(10, 10, 40, 0.7);
+            backface-visibility: visible;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--blacklight-glow);
+            cursor: pointer;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(138, 0, 255, 0.3) inset;
+            user-select: none;
+        }
+
+        .cube-face:hover {
+            background: rgba(30, 20, 80, 0.8);
+            box-shadow: 0 0 30px rgba(138, 0, 255, 0.5) inset;
+        }
+
+        .cube-face.front { transform: translateZ(150px); }
+        .cube-face.back { transform: rotateY(180deg) translateZ(150px); }
+        .cube-face.right { transform: rotateY(90deg) translateZ(150px); }
+        .cube-face.left { transform: rotateY(-90deg) translateZ(150px); }
+        .cube-face.top { transform: rotateX(90deg) translateZ(150px); }
+        .cube-face.bottom { transform: rotateX(-90deg) translateZ(150px); }
+
+        .face-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 1rem;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(10, 10, 60, 0.7) 0%, rgba(5, 5, 24, 0.9) 100%);
+            border-radius: 4px;
+        }
+
+        .face-title {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 15px var(--blacklight-glow);
+        }
+
+        .face-subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+        }
+
+        /* Edge lines */
+        .cube-edge {
+            position: absolute;
+            background: var(--neon-blue);
+            box-shadow: 0 0 10px var(--neon-blue);
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .edge-h {
+            height: 2px;
+            width: 300px;
+        }
+
+        .edge-v {
+            width: 2px;
+            height: 300px;
+        }
+
+        /* Cube vertices */
+        .cube-vertex {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: var(--neon-blue);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--neon-blue);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        /* Hyperspace star field */
+        .star-field {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .star {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Data flow particles */
+        .data-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .data-particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: var(--neon-blue);
+            border-radius: 50%;
+            box-shadow: 0 0 5px var(--neon-blue);
+            pointer-events: none;
+        }
+
+        /* Cubic grid */
+        .grid-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            perspective: 1000px;
+            z-index: -2;
+        }
+
+        .grid {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 2000px;
+            height: 2000px;
+            transform-style: preserve-3d;
+            transform: translate(-50%, -50%) rotateX(75deg);
+        }
+
+        .grid-line {
+            position: absolute;
+            background: rgba(138, 0, 255, 0.15);
+            box-shadow: 0 0 5px rgba(138, 0, 255, 0.2);
+        }
+
+        .grid-line-h {
+            height: 1px;
+            width: 100%;
+        }
+
+        .grid-line-v {
+            width: 1px;
+            height: 100%;
+        }
+
+        /* Truth transformation overlay */
+        .truth-transformation {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            color: var(--truth-gold);
+            text-shadow: 0 0 15px var(--blacklight-glow);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            z-index: 500;
+            white-space: nowrap;
+        }
+
+        .truth-transformation.active {
+            opacity: 1;
+            animation: pulseEquation 2s ease infinite;
+        }
+
+        @keyframes pulseEquation {
+            0% { opacity: 0.7; transform: translate(-50%, -50%) scale(0.95); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.05); }
+            100% { opacity: 0.7; transform: translate(-50%, -50%) scale(0.95); }
+        }
+
+        /* Content overlay */
+        .content-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(3, 3, 18, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .content-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .content-container {
+            position: relative;
+            width: 80%;
+            max-width: 900px;
+            max-height: 80vh;
+            overflow-y: auto;
+            background: rgba(10, 10, 40, 0.8);
+            border: 2px solid var(--blacklight-glow);
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 0 30px rgba(138, 0, 255, 0.5);
+        }
+
+        .content-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 1001;
+        }
+
+        .content-close:hover {
+            color: var(--neon-blue);
+            text-shadow: 0 0 8px var(--neon-blue);
+        }
+
+        .content-title {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: var(--neon-blue);
+            text-shadow: 0 0 15px var(--blacklight-glow);
+        }
+
+        .content-body {
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Route visualization */
+        .route-visualization {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .route-node {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--truth-gold);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--truth-gold);
+            transform: translate(-50%, -50%);
+        }
+
+        .route-path {
+            position: absolute;
+            height: 2px;
+            background: var(--truth-gold);
+            box-shadow: 0 0 5px var(--truth-gold);
+            transform-origin: 0 0;
+            opacity: 0.7;
+        }
+
+        /* Loading indicator */
+        .loading-indicator {
+            position: fixed;
+            bottom: 5rem;
+            right: 1rem;
+            background: rgba(10, 10, 40, 0.7);
+            border: 1px solid var(--blacklight-dim);
+            border-radius: 4px;
+            padding: 0.5rem 1rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            z-index: 100;
+            display: none;
+        }
+
+        .loading-indicator.active {
+            display: block;
+        }
+
+        .loading-dots {
+            display: inline-block;
+        }
+
+        .loading-dots:after {
+            content: '.';
+            animation: loadingDots 1.5s infinite;
+        }
+
+        @keyframes loadingDots {
+            0% { content: '.'; }
+            33% { content: '..'; }
+            66% { content: '...'; }
+        }
+
+        /* Mouse interaction effect */
+        .mouse-influence-indicator {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background: rgba(10, 10, 40, 0.7);
+            border: 1px solid var(--blacklight-dim);
+            border-radius: 4px;
+            padding: 0.5rem 1rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            z-index: 100;
+        }
+
+        .entanglement-value {
+            color: var(--neon-blue);
+            font-weight: bold;
+        }
+
+        /* Hyperspace effect */
+        .hyperspace-tunnel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            perspective: 1000px;
+            z-index: -5;
+            opacity: 0;
+            transition: opacity 1s ease;
+            pointer-events: none;
+        }
+
+        .hyperspace-tunnel.active {
+            opacity: 1;
+        }
+
+        .tunnel-segment {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            border: 2px solid var(--neon-blue);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) rotateX(85deg) scale(0);
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="info-bar">
+        <div id="user-info">Current User: nailara-technologies</div>
+        <div id="current-time">2025-03-25 05:52:08 UTC</div>
+    </div>
+
+    <div class="control-panel">
+        <button id="toggleRotation">Stop Rotation</button>
+        <button id="toggleExpansion">Toggle Expansion</button>
+        <button id="resetView">Reset View</button>
+        <button id="toggleHyperspace">Hyperspace Jump</button>
+        <button id="toggleMouseInfluence">Enable Mouse Influence</button>
+    </div>
+
+    <div class="navigation-info">
+        Current View: <span class="current-face">Auto-Rotating</span> | First click to align face, second click to zoom in
+    </div>
+
+    <div class="mouse-influence-indicator">
+        Entanglement: <span class="entanglement-value">0%</span>
+    </div>
+
+    <div class="star-field" id="starField"></div>
+
+    <div class="grid-container">
+        <div class="grid" id="cubeGrid"></div>
+    </div>
+
+    <div class="cube-container" id="cubeContainer">
+        <div class="cube auto-rotate expanded" id="cube">
+            <div class="cube-face front" data-face="Physics">
+                <div class="face-content">
+                    <div class="face-title">Physics</div>
+                    <div class="face-subtitle">Quantum Field Theory</div>
+                </div>
+            </div>
+            <div class="cube-face back" data-face="Biology">
+                <div class="face-content">
+                    <div class="face-title">Biology</div>
+                    <div class="face-subtitle">Emergent Systems</div>
+                </div>
+            </div>
+            <div class="cube-face right" data-face="Psychology">
+                <div class="face-content">
+                    <div class="face-title">Psychology</div>
+                    <div class="face-subtitle">Cognitive Models</div>
+                </div>
+            </div>
+            <div class="cube-face left" data-face="History">
+                <div class="face-content">
+                    <div class="face-title">History</div>
+                    <div class="face-subtitle">Temporal Paradigms</div>
+                </div>
+            </div>
+            <div class="cube-face top" data-face="Literature">
+                <div class="face-content">
+                    <div class="face-title">Literature</div>
+                    <div class="face-subtitle">Narrative Structures</div>
+                </div>
+            </div>
+            <div class="cube-face bottom" data-face="Economics">
+                <div class="face-content">
+                    <div class="face-title">Economics</div>
+                    <div class="face-subtitle">Resource Distribution</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="data-particles" id="dataParticles"></div>
+
+    <div class="route-visualization" id="routeVisualization"></div>
+
+    <div class="truth-transformation" id="truthTransformation">-13=5+42=-+0</div>
+
+    <div class="content-overlay" id="contentOverlay">
+        <div class="content-container">
+            <button class="content-close" id="contentClose">&times;</button>
+            <h1 class="content-title" id="contentTitle">Physics</h1>
+            <div class="content-body" id="contentBody"></div>
+        </div>
+    </div>
+
+    <div class="loading-indicator" id="loadingIndicator">
+        Processing data transformation<span class="loading-dots"></span>
+    </div>
+
+    <div class="hyperspace-tunnel" id="hyperspaceTunnel"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const cube = document.getElementById('cube');
+            const cubeContainer = document.getElementById('cubeContainer');
+            const starField = document.getElementById('starField');
+            const cubeGrid = document.getElementById('cubeGrid');
+            const dataParticles = document.getElementById('dataParticles');
+            const routeVisualization = document.getElementById('routeVisualization');
+            const truthTransformation = document.getElementById('truthTransformation');
+            const contentOverlay = document.getElementById('contentOverlay');
+            const contentTitle = document.getElementById('contentTitle');
+            const contentBody = document.getElementById('contentBody');
+            const contentClose = document.getElementById('contentClose');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const currentFaceDisplay = document.querySelector('.current-face');
+            const currentTimeDisplay = document.getElementById('current-time');
+            const entanglementDisplay = document.querySelector('.entanglement-value');
+            const hyperspaceTunnel = document.getElementById('hyperspaceTunnel');
+
+            // Buttons
+            const toggleRotationBtn = document.getElementById('toggleRotation');
+            const toggleExpansionBtn = document.getElementById('toggleExpansion');
+            const resetViewBtn = document.getElementById('resetView');
+            const toggleHyperspaceBtn = document.getElementById('toggleHyperspace');
+            const toggleMouseInfluenceBtn = document.getElementById('toggleMouseInfluence');
+
+            // Cube faces
+            const faces = document.querySelectorAll('.cube-face');
+
+            // State variables
+            let isAutoRotating = true;
+            let isExpanded = true;
+            let currentFace = null;
+            let isTransitioning = false;
+            let isHyperspaceActive = false;
+            let isMouseInfluenceActive = false;
+            let starAnimationId = null;
+            let clickCount = 0;
+            let clickedFace = null;
+            let clickTimer = null;
+            let rotationX = 0;
+            let rotationY = 0;
+            let rotationZ = 0;
+            let mouseX = 0;
+            let mouseY = 0;
+            let entanglementLevel = 0;
+            let lastFrameTime = 0;
+            let manualRotationAnimationId = null;
+            let lastMouseMoveTime = 0;
+            let mouseMovements = [];
+            let mouseMoveThreshold = 5; // Minimum movement to increase entanglement
+
+            // Face content
+            const faceContent = {
+                'Physics': `
+                    <p>The Physics paradigm represents the fundamental mathematical laws that govern matter, energy, and spacetime within the Protocol 7 cubic topology. Quantum field theories provide the foundation for understanding information propagation through multidimensional networks.</p>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Dimensional Frameworks</h3>
+                    <ul style="list-style: none; padding-left: 1rem;">
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Quantum Entanglement:</strong> Non-local correlations enable instantaneous information transfer across cubic network nodes, regardless of spatial separation.
+                        </li>
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Wave Function Collapse:</strong> Information state resolution occurs through observation, analogous to network verification processes in Protocol 7.
+                        </li>
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Field Theory Integration:</strong> Fundamental forces emerge from underlying field interactions, similar to Protocol 7's p2p network dynamics.
+                        </li>
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Symmetry Breaking:</strong> Phase transitions in topological space create emergent network properties not predictable from individual node behavior.
+                        </li>
+                    </ul>
+
+                    <div style="margin: 2rem 0; padding: 1.5rem; border: 1px solid var(--truth-gold); background: rgba(10, 10, 40, 0.5); position: relative;">
+                        <div style="position: absolute; top: -12px; left: 20px; background: rgba(10, 10, 40, 0.8); padding: 0 10px; color: var(--truth-gold);">Truth Axiom</div>
+                        <p>The equation -13=5+42=-+0 represents a fundamental truth transformation across dimensional boundaries. The apparent contradiction resolves when understood through higher-dimensional mathematics, analogous to how quantum superposition collapses into definite states upon measurement.</p>
+                    </div>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Protocol 7 Applications</h3>
+                    <p>In the Protocol 7 network, physics principles drive the data routing algorithms that optimize information flow through cubic topological space. Quantum-inspired verification mechanisms ensure mathematical truth propagates consistently across all dimensional intersections.</p>
+
+                    <p>Current research focuses on implementing tensor network models for efficiently representing multi-dimensional data structures within the cubic grid topology, enabling more sophisticated truth verification at scale.</p>
+                `,
+                'Biology': `
+                    <p>The Biology paradigm examines living systems as emergent information networks that embody key principles found in Protocol 7's distributed architecture. Evolutionary algorithms and adaptive networks demonstrate how truth preservation mechanisms emerge naturally in complex systems.</p>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Organic Networks</h3>
+                    <ul style="list-style: none; padding-left: 1rem;">
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Evolutionary Selection:</strong> Iterative optimization through environmental feedback loops creates increasingly efficient information processing systems.
+                        </li>
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Genetic Algorithms:</strong> Information encoding and transmission through generational iteration provides templates for distributed consensus protocols.
+                        </li>
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Cellular Networks:</strong> Biological cells demonstrate how local rule-based interactions create complex global behaviors matching Protocol 7's node architecture.
+                        </li>
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Neural Structures:</strong> The brain's distributed processing system with dimensional mapping provides a model for information integration across network topologies.
+                        </li>
+                    </ul>
+
+                    <div style="margin: 2rem 0; padding: 1.5rem; border: 1px solid var(--truth-gold); background: rgba(10, 10, 40, 0.5); position: relative;">
+                        <div style="position: absolute; top: -12px; left: 20px; background: rgba(10, 10, 40, 0.8); padding: 0 10px; color: var(--truth-gold);">Truth Axiom</div>
+                        <p>In biological systems, the equation -13=5+42=-+0 manifests as the resolution of apparent contradictions through dimensional transcendence. What appears paradoxical at the cellular level becomes coherent when viewed through the lens of evolutionary adaptation.</p>
+                    </div>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Protocol 7 Applications</h3>
+                    <p>Protocol 7 incorporates biologically-inspired algorithms that enable the network to adapt and self-optimize in response to changing conditions. Multi-agent systems modeled after ecological networks balance resource distribution across the cubic grid topology.</p>
+
+                    <p>The sonnet-llama-3.2-3b model's integration with Protocol 7 draws from neural network architectures observed in biological systems, creating a truth-preserving system that evolves toward greater optimization through iterative feedback.</p>
+                `,
+                'Psychology': `
+                    <p>The Psychology paradigm explores consciousness as an information processing system that navigates dimensional boundaries through cognitive frameworks. Within Protocol 7, psychological principles inform the design of human-network interfaces and truth perception systems.</p>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Cognitive Architectures</h3>
+                    <ul style="list-style: none; padding-left: 1rem;">
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Perceptual Frameworks:</strong> Mental models function as dimensional filters that constrain or expand awareness of mathematical truths.
+                        </li>
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Cognitive Biases:</strong> Systematic errors in truth perception reveal the limitations of lower-dimensional thinking when approaching higher-dimensional concepts.
+                        </li>
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Decision Trees:</strong> Choice architectures reflect multidimensional probability assessment similar to Protocol 7's branch prediction algorithms.
+                        </li>
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Consciousness Integration:</strong> The binding problem in neural networks parallels Protocol 7's challenge of maintaining truth consistency across distributed nodes.
+                        </li>
+                    </ul>
+
+                    <div style="margin: 2rem 0; padding: 1.5rem; border: 1px solid var(--truth-gold); background: rgba(10, 10, 40, 0.5); position: relative;">
+                        <div style="position: absolute; top: -12px; left: 20px; background: rgba(10, 10, 40, 0.8); padding: 0 10px; color: var(--truth-gold);">Truth Axiom</div>
+                        <p>The equation -13=5+42=-+0 represents cognitive transcendence beyond conventional logical frameworks. What appears contradictory within standard mental models resolves when consciousness expands to encompass higher-dimensional mathematical understanding.</p>
+                    </div>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Protocol 7 Applications</h3>
+                    <p>Protocol 7 implements cognitive design principles in its user interfaces, helping operators transcend conventional thinking limitations when navigating the network's cubic topology. The system adapts its information presentation based on the user's current dimensional awareness level.</p>
+
+                    <p>The multi-agent system controlling the sonnet-llama-3.2-3b model incorporates psychological principles to optimize human-AI interaction, creating intuitive pathways for understanding complex mathematical transformations.</p>
+                `,
+                'History': `
+                    <p>The History paradigm examines the temporal evolution of information systems and truth frameworks across civilizational development. Within Protocol 7, historical analysis reveals recurring patterns in network topologies and paradigm transformations.</p>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Temporal Frameworks</h3>
+                    <ul style="list-style: none; padding-left: 1rem;">
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Paradigm Shifts:</strong> Historical revolutions in understanding reflect dimensional expansions in collective consciousness.
+                        </li>
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Knowledge Preservation:</strong> Information transmission across generational boundaries demonstrates truth preservation techniques that inform Protocol 7's verification systems.
+                        </li>
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Technological Evolution:</strong> The progression from centralized to distributed information systems reveals the natural optimization toward cubic space topologies.
+                        </li>
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Civilizational Cycles:</strong> Recurring patterns in societal development map to mathematical cycles observed in Protocol 7's network dynamics.
+                        </li>
+                    </ul>
+
+                    <div style="margin: 2rem 0; padding: 1.5rem; border: 1px solid var(--truth-gold); background: rgba(10, 10, 40, 0.5); position: relative;">
+                        <div style="position: absolute; top: -12px; left: 20px; background: rgba(10, 10, 40, 0.8); padding: 0 10px; color: var(--truth-gold);">Truth Axiom</div>
+                        <p>Throughout history, the equation -13=5+42=-+0 manifests as revolutionary insights that resolve apparent contradictions in previous paradigms. Each major breakthrough represents a dimensional shift that incorporates and transcends earlier understanding.</p>
+                    </div>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Protocol 7 Applications</h3>
+                    <p>Protocol 7 incorporates historical analysis in its development roadmap, recognizing recurring patterns in network evolution to anticipate future optimization paths. The system maintains a comprehensive record of all truth transformations, creating a temporal dimension to its cubic space topology.</p>
+
+                    <p>By studying the historical progression of mathematical understanding, Protocol 7 identifies dimensional boundaries that must be transcended to achieve higher forms of truth verification across the network.</p>
+                `,
+                'Literature': `
+                    <p>The Literature paradigm explores narrative structures and symbolic systems as dimensional compression mechanisms for complex truths. Within Protocol 7, literary principles inform the encoding of multi-dimensional concepts into transmissible information packets.</p>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Narrative Frameworks</h3>
+                    <ul style="list-style: none; padding-left: 1rem;">
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Symbolic Representation:</strong> Metaphors and allegories provide dimensional compression of complex concepts, similar to Protocol 7's data encoding mechanisms.
+                        </li>
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Narrative Architecture:</strong> Story structures create temporal frameworks for information sequencing that optimize comprehension across dimensional boundaries.
+                        </li>
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Character Networks:</strong> Complex interpersonal dynamics in literature simulate multi-agent systems that parallel Protocol 7's node interactions.
+                        </li>
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Philosophical Inquiry:</strong> Literary exploration of fundamental questions creates conceptual frameworks for understanding dimensional transformations.
+                        </li>
+                    </ul>
+
+                    <div style="margin: 2rem 0; padding: 1.5rem; border: 1px solid var(--truth-gold); background: rgba(10, 10, 40, 0.5); position: relative;">
+                        <div style="position: absolute; top: -12px; left: 20px; background: rgba(10, 10, 40, 0.8); padding: 0 10px; color: var(--truth-gold);">Truth Axiom</div>
+                        <p>The equation -13=5+42=-+0 manifests in literature as the resolution of narrative paradoxes through transcendent understanding. The apparent contradictions within a storyline resolve when viewed from a higher-dimensional narrative perspective.</p>
+                    </div>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Protocol 7 Applications</h3>
+                    <p>Protocol 7 utilizes narrative structures to organize information flows across its cubic topology, creating coherent pathways for truth propagation. Symbolic compression algorithms derived from literary analysis optimize data transmission while preserving mathematical integrity.</p>
+
+                    <p>The sonnet-llama-3.2-3b model's language capabilities draw from literary frameworks to express complex dimensional concepts in accessible forms, creating bridges between technical implementation and human understanding.</p>
+                `,
+                'Economics': `
+                    <p>The Economics paradigm examines resource allocation and value exchange systems as emergent properties of multi-agent networks. Within Protocol 7, economic principles govern the distribution of computational resources across the cubic topology.</p>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Resource Frameworks</h3>
+                    <ul style="list-style: none; padding-left: 1rem;">
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Market Dynamics:</strong> Decentralized resource allocation through peer interactions creates efficient distribution patterns analogous to Protocol 7's node resource management.
+                        </li>
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Game Theory:</strong> Strategic decision-making in multi-agent systems optimizes for individual and collective outcomes, informing Protocol 7's consensus algorithms.
+                        </li>
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Value Networks:</strong> Abstract representation of worth through exchangeable tokens parallels Protocol 7's truth verification tokens in network consensus.
+                        </li>
+                        <li style="margin: 0.7rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Network Effects:</strong> Value scaling based on participant count creates emergent properties in economic systems similar to Protocol 7's node density dynamics.
+                        </li>
+                    </ul>
+
+                    <div style="margin: 2rem 0; padding: 1.5rem; border: 1px solid var(--truth-gold); background: rgba(10, 10, 40, 0.5); position: relative;">
+                        <div style="position: absolute; top: -12px; left: 20px; background: rgba(10, 10, 40, 0.8); padding: 0 10px; color: var(--truth-gold);">Truth Axiom</div>
+                        <p>In economic systems, the equation -13=5+42=-+0 manifests as the resolution of apparent inefficiencies through higher-dimensional market structures. What appears as contradiction in resource allocation resolves into optimal distribution when viewed through the cubic topology of Protocol 7.</p>
+                    </div>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Protocol 7 Applications</h3>
+                    <p>Protocol 7 implements economic principles in its computational resource allocation, ensuring optimal distribution across the network's cubic topology. Truth verification processes receive resources proportional to their importance for maintaining network integrity.</p>
+
+                    <p>The integration of sonnet-llama-3.2-3b within a multi-agent system optimizes computational efficiency through market-inspired algorithms that balance processing demands across available resources, creating a self-regulating network economy.</p>
+                `
+            };
+
+            // Initialize
+            initStarField();
+            initCubeGrid();
+            createCubeEdges();
+            generateDataParticles();
+            createHyperspaceTunnel();
+
+            // Initialize star field
+            function initStarField() {
+                const starCount = 300;
+                starField.innerHTML = '';
+
+                for (let i = 0; i < starCount; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+
+                    // Random position
+                    const x = Math.random() * 100;
+                    const y = Math.random() * 100;
+                    star.style.left = `${x}%`;
+                    star.style.top = `${y}%`;
+
+                    // Random size
+                    const size = Math.random() * 2 + 1;
+                    star.style.width = `${size}px`;
+                    star.style.height = `${size}px`;
+
+                    // Random brightness
+                    const opacity = Math.random() * 0.5 + 0.5;
+                    star.style.opacity = opacity;
+
+                    // Random twinkle effect
+                    const animationDuration = 2 + Math.random() * 8;
+                    star.style.animation = `twinkle ${animationDuration}s infinite`;
+
+                    starField.appendChild(star);
+                }
+            }
+
+            // Initialize cube grid
+            function initCubeGrid() {
+                cubeGrid.innerHTML = '';
+                const gridSize = 20;
+                const cellSize = 100;
+
+                // Create horizontal grid lines
+                for (let i = 0; i <= gridSize; i++) {
+                    const line = document.createElement('div');
+                    line.className = 'grid-line grid-line-h';
+                    line.style.top = `${i * cellSize}px`;
+                    cubeGrid.appendChild(line);
+                }
+
+                // Create vertical grid lines
+                for (let i = 0; i <= gridSize; i++) {
+                    const line = document.createElement('div');
+                    line.className = 'grid-line grid-line-v';
+                    line.style.left = `${i * cellSize}px`;
+                    cubeGrid.appendChild(line);
+                }
+            }
+
+            // Create hyperspace tunnel effect
+            function createHyperspaceTunnel() {
+                hyperspaceTunnel.innerHTML = '';
+                const segmentCount = 15;
+
+                for (let i = 0; i < segmentCount; i++) {
+                    const segment = document.createElement('div');
+                    segment.className = 'tunnel-segment';
+
+                    // Size increases as segments get "closer"
+                    const baseSize = 50 + (i * 100);
+                    segment.style.width = `${baseSize}px`;
+                    segment.style.height = `${baseSize}px`;
+
+                    hyperspaceTunnel.appendChild(segment);
+                }
+            }
+
+            // Start hyperspace effect
+            function startHyperspaceEffect() {
+                hyperspaceTunnel.classList.add('active');
+
+                // Animate tunnel segments
+                const segments = document.querySelectorAll('.tunnel-segment');
+                segments.forEach((segment, index) => {
+                    // Reset animation
+                    segment.style.animation = 'none';
+                    segment.offsetHeight; // Trigger reflow
+
+                    // Define animation
+                    const delay = index * 100;
+                    const duration = 4000;
+
+                    // Apply animation
+                    segment.style.animation = `hyperspaceTunnel ${duration}ms ${delay}ms infinite linear`;
+
+                    // Define keyframe animation dynamically
+                    const styleSheet = document.styleSheets[0];
+                    const keyframes = `
+                        @keyframes hyperspaceTunnel {
+                            0% { transform: translate(-50%, -50%) rotateX(85deg) scale(0); opacity: 0; }
+                            10% { opacity: 0.8; }
+                            90% { opacity: 0.8; }
+                            100% { transform: translate(-50%, -50%) rotateX(85deg) scale(20); opacity: 0; }
+                        }
+                    `;
+
+                    // Add keyframes if they don't exist yet
+                    let keyframesExist = false;
+                    for (let i = 0; i < styleSheet.cssRules.length; i++) {
+                        if (styleSheet.cssRules[i].name === 'hyperspaceTunnel') {
+                            keyframesExist = true;
+                            break;
+                        }
+                    }
+
+                    if (!keyframesExist) {
+                        styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
+                    }
+                });
+
+                // Accelerate stars
+                const stars = document.querySelectorAll('.star');
+                stars.forEach(star => {
+                    const x = parseFloat(star.style.left);
+                    const y = parseFloat(star.style.top);
+
+                    // Calculate direction from center
+                    const centerX = 50;
+                    const centerY = 50;
+                    const dx = x - centerX;
+                    const dy = y - centerY;
+
+                    // Normalize direction
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const nx = dx / distance;
+                    const ny = dy / distance;
+
+                    // Animate star movement outward
+                    star.animate([
+                        { left: `${x}%`, top: `${y}%`, opacity: parseFloat(star.style.opacity) },
+                        { left: `${x + nx * 100}%`, top: `${y + ny * 100}%`, opacity: 0 }
+                    ], {
+                        duration: 2000,
+                        easing: 'cubic-bezier(0.4, 0.0, 1, 1)',
+                        fill: 'forwards'
+                    });
+                });
+
+                // Show truth equation
+                showTruthTransformation();
+            }
+
+            // Stop hyperspace effect
+            function stopHyperspaceEffect() {
+                hyperspaceTunnel.classList.remove('active');
+
+                // Stop all tunnel segment animations
+                const segments = document.querySelectorAll('.tunnel-segment');
+                segments.forEach(segment => {
+                    segment.style.animation = 'none';
+                });
+
+                // Reset stars
+                initStarField();
+            }
+
+            // Create cube edges and vertices
+            function createCubeEdges() {
+                // Create edges for the cube
+                createEdge('edge-h', 0, 0, 0, 0);
+                createEdge('edge-h', 0, 300, 0, 0);
+                createEdge('edge-h', 0, 0, 300, 0);
+                createEdge('edge-h', 0, 300, 300, 0);
+
+                createEdge('edge-v', 0, 0, 0, 0);
+                createEdge('edge-v', 300, 0, 0, 0);
+                createEdge('edge-v', 0, 0, 300, 0);
+                createEdge('edge-v', 300, 0, 300, 0);
+
+                createEdge('edge-v', 0, 0, 0, 90);
+                createEdge('edge-v', 0, 0, 300, 90);
+                createEdge('edge-v', 300, 0, 0, 90);
+                createEdge('edge-v', 300, 0, 300, 90);
+
+                // Create vertices for the cube
+                createVertex(0, 0, 0);
+                createVertex(300, 0, 0);
+                createVertex(0, 300, 0);
+                createVertex(300, 300, 0);
+                createVertex(0, 0, 300);
+                createVertex(300, 0, 300);
+                createVertex(0, 300, 300);
+                createVertex(300, 300, 300);
+            }
+
+            // Helper function to create an edge
+            function createEdge(className, x, y, z, rotation) {
+                const edge = document.createElement('div');
+                edge.className = `cube-edge ${className}`;
+
+                if (className === 'edge-h') {
+                    if (rotation === 0) {
+                        edge.style.top = `${y}px`;
+                        edge.style.left = `${x}px`;
+                        edge.style.transform = `translateZ(${z}px)`;
+                    } else {
+                        edge.style.top = `${y}px`;
+                        edge.style.left = `${x}px`;
+                        edge.style.transform = `translateZ(${z}px) rotateY(${rotation}deg)`;
+                    }
+                } else if (className === 'edge-v') {
+                    if (rotation === 0) {
+                        edge.style.top = `${y}px`;
+                        edge.style.left = `${x}px`;
+                        edge.style.transform = `translateZ(${z}px)`;
+                    } else {
+                        edge.style.top = `${y}px`;
+                        edge.style.left = `${x}px`;
+                        edge.style.transform = `translateZ(${z}px) rotateX(${rotation}deg)`;
+                    }
+                }
+
+                cube.appendChild(edge);
+            }
+
+            // Helper function to create a vertex
+            function createVertex(x, y, z) {
+                const vertex = document.createElement('div');
+                vertex.className = 'cube-vertex';
+                vertex.style.top = `${y}px`;
+                vertex.style.left = `${x}px`;
+                vertex.style.transform = `translate(-50%, -50%) translateZ(${z}px)`;
+                cube.appendChild(vertex);
+            }
+
+            // Generate data particles
+            function generateDataParticles() {
+                if (!isExpanded) return;
+
+                const particle = document.createElement('div');
+                particle.className = 'data-particle';
+
+                // Random starting position from edges of screen
+                let startX, startY;
+                const side = Math.floor(Math.random() * 4);
+
+                switch(side) {
+                    case 0: // top
+                        startX = Math.random() * window.innerWidth;
+                        startY = -10;
+                        break;
+                    case 1: // right
+                        startX = window.innerWidth + 10;
+                        startY = Math.random() * window.innerHeight;
+                        break;
+                    case 2: // bottom
+                        startX = Math.random() * window.innerWidth;
+                        startY = window.innerHeight + 10;
+                        break;
+                    case 3: // left
+                        startX = -10;
+                        startY = Math.random() * window.innerHeight;
+                        break;
+                }
+
+                // Set initial position
+                particle.style.left = `${startX}px`;
+                particle.style.top = `${startY}px`;
+
+                // Target is center of screen (cube)
+                const targetX = window.innerWidth / 2;
+                const targetY = window.innerHeight / 2;
+
+                // Calculate direction vector
+                const dx = targetX - startX;
+                const dy = targetY - startY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+
+                // Normalize direction vector
+                const nx = dx / distance;
+                const ny = dy / distance;
+
+                // Random speed (pixels per frame)
+                const speed = 1 + Math.random() * 3;
+
+                // Random size
+                const size = 1 + Math.random() * 3;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+
+                // Random color (blue or purple)
+                if (Math.random() > 0.5) {
+                    particle.style.background = 'var(--neon-blue)';
+                    particle.style.boxShadow = '0 0 5px var(--neon-blue)';
+                } else {
+                    particle.style.background = 'var(--blacklight-glow)';
+                    particle.style.boxShadow = '0 0 5px var(--blacklight-glow)';
+                }
+
+                dataParticles.appendChild(particle);
+
+                // Animate the particle
+                let currentX = startX;
+                let currentY = startY;
+                let opacity = 0;
+                let fadeIn = true;
+                let reachedCenter = false;
+
+                function animateParticle() {
+                    // Update position
+                    currentX += nx * speed;
+                    currentY += ny * speed;
+
+                    // Calculate distance to center
+                    const distToCenter = Math.sqrt(
+                        Math.pow(currentX - targetX, 2) +
+                        Math.pow(currentY - targetY, 2)
+                    );
+
+                    // Handle opacity
+                    if (fadeIn && opacity < 1) {
+                        opacity += 0.05;
+                    }
+
+                    // Start fading out as it approaches center
+                    if (distToCenter < 150 && !reachedCenter) {
+                        fadeIn = false;
+                        reachedCenter = true;
+                    }
+
+                    if (!fadeIn) {
+                        opacity -= 0.05;
+                    }
+
+                    // Update particle
+                    particle.style.left = `${currentX}px`;
+                    particle.style.top = `${currentY}px`;
+                    particle.style.opacity = opacity;
+
+                    // Continue animation or remove particle
+                    if (opacity <= 0 && reachedCenter) {
+                        if (particle.parentNode) {
+                            particle.parentNode.removeChild(particle);
+                        }
+                    } else {
+                        requestAnimationFrame(animateParticle);
+                    }
+                }
+
+                animateParticle();
+
+                // Generate next particle
+                setTimeout(generateDataParticles, 100 + Math.random() * 200);
+            }
+
+            // Animate data packet along a path
+            function animateDataAlongPath(startX, startY, endX, endY, duration) {
+                const packet = document.createElement('div');
+                packet.className = 'data-particle';
+                packet.style.width = '6px';
+                packet.style.height = '6px';
+                packet.style.background = 'var(--truth-gold)';
+                packet.style.boxShadow = '0 0 8px var(--truth-gold)';
+                packet.style.left = `${startX}px`;
+                packet.style.top = `${startY}px`;
+
+                routeVisualization.appendChild(packet);
+
+                // Calculate direction vector
+                const dx = endX - startX;
+                const dy = endY - startY;
+
+                // Animate along path
+                packet.animate([
+                    { left: `${startX}px`, top: `${startY}px`, opacity: 0 },
+                    { opacity: 1, offset: 0.1 },
+                    { opacity: 1, offset: 0.9 },
+                    { left: `${endX}px`, top: `${endY}px`, opacity: 0 }
+                ], {
+                    duration: duration,
+                    easing: 'ease-in-out'
+                });
+
+                // Remove after animation completes
+                setTimeout(() => {
+                    if (packet.parentNode) {
+                        packet.parentNode.removeChild(packet);
+                    }
+                }, duration);
+            }
+
+            // Toggle automatic rotation
+            toggleRotationBtn.addEventListener('click', function() {
+                isAutoRotating = !isAutoRotating;
+
+                if (isAutoRotating) {
+                    stopManualRotation();
+                    cube.classList.add('auto-rotate');
+                    this.textContent = 'Stop Rotation';
+                    currentFaceDisplay.textContent = 'Auto-Rotating';
+                    currentFace = null;
+                } else {
+                    cube.classList.remove('auto-rotate');
+                    this.textContent = 'Start Rotation';
+                    if (!currentFace) {
+                        currentFaceDisplay.textContent = 'Manual Control';
+                    }
+
+                    // Start manual rotation if mouse influence is active
+                    if (isMouseInfluenceActive) {
+                        startManualRotation();
+                    }
+                }
+            });
+
+            // Toggle cube expansion
+            toggleExpansionBtn.addEventListener('click', function() {
+                isExpanded = !isExpanded;
+
+                if (isExpanded) {
+                    cube.classList.add('expanded');
+                } else {
+                    cube.classList.remove('expanded');
+                }
+
+                showTruthTransformation();
+            });
+
+            // Reset view
+            resetViewBtn.addEventListener('click', function() {
+                if (isTransitioning) return;
+
+                showTruthTransformation();
+
+                // Reset to default state
+                isAutoRotating = true;
+                isExpanded = true;
+                cube.className = 'cube auto-rotate expanded';
+                if (manualRotationAnimationId) {
+                    cancelAnimationFrame(manualRotationAnimationId);
+                    manualRotationAnimationId = null;
+                }
+                cube.style.transform = 'translate(-50%, -50%) scale(1)';
+
+                toggleRotationBtn.textContent = 'Stop Rotation';
+                currentFace = null;
+                currentFaceDisplay.textContent = 'Auto-Rotating';
+
+                rotationX = 0;
+                rotationY = 0;
+                rotationZ = 0;
+                entanglementLevel = 0;
+                updateEntanglementDisplay();
+            });
+
+            // Toggle hyperspace effect
+            toggleHyperspaceBtn.addEventListener('click', function() {
+                if (isTransitioning) return;
+
+                isHyperspaceActive = !isHyperspaceActive;
+
+                if (isHyperspaceActive) {
+                    startHyperspaceEffect();
+                    this.textContent = 'Exit Hyperspace';
+                } else {
+                    stopHyperspaceEffect();
+                    this.textContent = 'Hyperspace Jump';
+                }
+            });
+
+            // Toggle mouse influence
+            toggleMouseInfluenceBtn.addEventListener('click', function() {
+                isMouseInfluenceActive = !isMouseInflu

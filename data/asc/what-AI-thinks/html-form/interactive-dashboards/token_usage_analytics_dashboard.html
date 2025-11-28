@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Usage Dashboard - Protocol-7</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a001a 0%, #1a0045 25%, #0f0030 50%, #1a0045 75%, #0a001a 100%);
+            color: #00ddff;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px #00ddff, 0 0 40px #00ddff, 0 0 60px #00ddff;
+            animation: glow-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes glow-pulse {
+            0%, 100% {
+                text-shadow: 0 0 20px #00ddff, 0 0 40px #00ddff, 0 0 60px #00ddff;
+            }
+            50% {
+                text-shadow: 0 0 30px #cc00ff, 0 0 60px #cc00ff, 0 0 90px #cc00ff;
+            }
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #cc00ff;
+            font-size: 1.5em;
+            margin-bottom: 40px;
+            text-shadow: 0 0 15px #cc00ff;
+        }
+
+        .data-status {
+            text-align: center;
+            color: #7799bb;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(100, 150, 200, 0.08);
+            border: 1px solid rgba(100, 150, 200, 0.25);
+            border-radius: 10px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .metric-card {
+            background: rgba(15, 0, 50, 0.9);
+            border: 2px solid #cc00ff;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            border-color: #00ddff;
+            box-shadow: 0 0 35px rgba(0, 221, 255, 0.5);
+            transform: translateY(-5px);
+        }
+
+        .metric-label {
+            color: #aa88ff;
+            font-size: 1em;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .metric-value {
+            font-size: 2.5em;
+            color: #00ddff;
+            font-weight: bold;
+            text-shadow: 0 0 20px #00ddff;
+            display: block;
+            margin: 10px 0;
+        }
+
+        .metric-subtext {
+            color: #88bbff;
+            font-size: 0.9em;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .chart-card {
+            background: rgba(15, 0, 50, 0.9);
+            border: 2px solid #0099ff;
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 25px rgba(0, 204, 255, 0.3);
+        }
+
+        .chart-card h2 {
+            color: #0099ff;
+            font-size: 1.8em;
+            margin-bottom: 25px;
+            text-shadow: 0 0 15px #0099ff;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .tasks-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .tasks-table th,
+        .tasks-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(100, 150, 200, 0.2);
+            color: #6699cc;
+        }
+
+        .tasks-table th {
+            background: rgba(204, 0, 255, 0.2);
+            color: #aa88ff;
+            font-weight: bold;
+        }
+
+        .tasks-table tr:hover {
+            background: rgba(0, 221, 255, 0.1);
+        }
+
+        .trend-up {
+            color: #ff4444;
+        }
+
+        .trend-down {
+            color: #00ddff;
+        }
+
+        .trend-stable {
+            color: #8899bb;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #88bbff;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Token Usage Dashboard</h1>
+        <div class="subtitle">Protocol-7 Token Efficiency Analysis</div>
+
+        <div id="dataStatus" class="data-status"></div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Total Sessions</div>
+                <span class="metric-value" id="totalSessions">0</span>
+                <div class="metric-subtext">Tracked operations</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">Total Tokens</div>
+                <span class="metric-value" id="totalTokens">0</span>
+                <div class="metric-subtext">Cumulative usage</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">Average/Session</div>
+                <span class="metric-value" id="avgTokens">0</span>
+                <div class="metric-subtext">Mean efficiency</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">Task Types</div>
+                <span class="metric-value" id="taskTypes">0</span>
+                <div class="metric-subtext">Distinct operations</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card full-width">
+                <h2>📈 Token Usage Over Time</h2>
+                <div class="chart-container">
+                    <canvas id="timelineChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h2>📊 Usage by Task Type</h2>
+                <div class="chart-container">
+                    <canvas id="taskChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h2>🎯 Task Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card full-width">
+                <h2>📋 Task Statistics</h2>
+                <table class="tasks-table">
+                    <thead>
+                        <tr>
+                            <th>Task Type</th>
+                            <th>Count</th>
+                            <th>Total Tokens</th>
+                            <th>Avg Tokens</th>
+                            <th>Min-Max</th>
+                            <th>Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody id="taskStatsBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="footer">
+            Generated: <span id="timestamp"></span><br>
+            Protocol-7 Workspace Transfer - Token Efficiency System
+        </div>
+    </div>
+
+    <script>
+        // ==================================================================
+        // DATA LOADING AND PROCESSING
+        // ==================================================================
+
+        // This will be replaced by actual data from the token log
+        const TOKEN_DATA = /*TOKEN_DATA_PLACEHOLDER*/[];
+
+        function loadTokenData() {
+            if (TOKEN_DATA.length === 0) {
+                // Sample data for demonstration
+                return generateSampleData();
+            }
+            return TOKEN_DATA;
+        }
+
+        function generateSampleData() {
+            const tasks = ['init', 'development', 'testing', 'documentation', 'optimization', 'debugging'];
+            const data = [];
+            const now = Date.now();
+
+            for (let i = 0; i < 50; i++) {
+                const task = tasks[Math.floor(Math.random() * tasks.length)];
+                const baseTokens = {
+                    'init': 2400,
+                    'development': 8500,
+                    'testing': 5000,
+                    'documentation': 3500,
+                    'optimization': 6000,
+                    'debugging': 7000
+                }[task];
+
+                const variance = baseTokens * 0.3;
+                const tokens = Math.floor(baseTokens + (Math.random() - 0.5) * variance);
+                const timestamp = new Date(now - (50 - i) * 24 * 60 * 60 * 1000);
+
+                data.push({
+                    timestamp: timestamp.toISOString(),
+                    task: task,
+                    tokens: tokens
+                });
+            }
+
+            return data;
+        }
+
+        function processData(data) {
+            const byTask = {};
+            let totalTokens = 0;
+
+            data.forEach(entry => {
+                if (!byTask[entry.task]) {
+                    byTask[entry.task] = {
+                        count: 0,
+                        tokens: [],
+                        total: 0
+                    };
+                }
+
+                byTask[entry.task].count++;
+                byTask[entry.task].tokens.push(entry.tokens);
+                byTask[entry.task].total += entry.tokens;
+                totalTokens += entry.tokens;
+            });
+
+            return {
+                byTask,
+                totalTokens,
+                totalSessions: data.length,
+                avgTokens: Math.round(totalTokens / data.length)
+            };
+        }
+
+        function calculateTrend(tokens) {
+            if (tokens.length < 2) return 'stable';
+
+            const halfPoint = Math.floor(tokens.length / 2);
+            const firstHalf = tokens.slice(0, halfPoint);
+            const secondHalf = tokens.slice(halfPoint);
+
+            const firstAvg = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+            const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+
+            const change = ((secondAvg - firstAvg) / firstAvg) * 100;
+
+            if (change > 15) return 'up';
+            if (change < -15) return 'down';
+            return 'stable';
+        }
+
+        // ==================================================================
+        // CHART CREATION
+        // ==================================================================
+
+        const chartDefaults = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#00ddff',
+                        font: {
+                            family: "'Courier New', monospace",
+                            size: 12
+                        }
+                    }
+                }
+            }
+        };
+
+        function createTimelineChart(data) {
+            const ctx = document.getElementById('timelineChart').getContext('2d');
+
+            const sortedData = [...data].sort((a, b) =>
+                new Date(a.timestamp) - new Date(b.timestamp)
+            );
+
+            const labels = sortedData.map(d => {
+                const date = new Date(d.timestamp);
+                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+            });
+
+            const tokens = sortedData.map(d => d.tokens);
+
+            // Calculate moving average
+            const movingAvg = [];
+            const window = 5;
+            for (let i = 0; i < tokens.length; i++) {
+                const start = Math.max(0, i - window + 1);
+                const subset = tokens.slice(start, i + 1);
+                movingAvg.push(subset.reduce((a, b) => a + b, 0) / subset.length);
+            }
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Token Usage',
+                            data: tokens,
+                            borderColor: '#00ddff',
+                            backgroundColor: 'rgba(0, 221, 255, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Moving Average (5)',
+                            data: movingAvg,
+                            borderColor: '#cc00ff',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.3,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    ...chartDefaults,
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#88bbff',
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: {
+                                    family: "'Courier New', monospace",
+                                    size: 10
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 221, 255, 0.1)'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#88bbff',
+                                font: {
+                                    family: "'Courier New', monospace"
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(204, 0, 255, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createTaskChart(stats) {
+            const ctx = document.getElementById('taskChart').getContext('2d');
+
+            const tasks = Object.keys(stats.byTask);
+            const avgTokens = tasks.map(task => {
+                const data = stats.byTask[task];
+                return Math.round(data.total / data.count);
+            });
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: tasks,
+                    datasets: [{
+                        label: 'Avg Tokens per Task',
+                        data: avgTokens,
+                        backgroundColor: tasks.map((_, i) => {
+                            const colors = [
+                                'rgba(0, 221, 255, 0.7)',
+                                'rgba(204, 0, 255, 0.7)',
+                                'rgba(0, 153, 255, 0.7)',
+                                'rgba(170, 136, 255, 0.7)',
+                                'rgba(255, 100, 255, 0.7)',
+                                'rgba(100, 200, 255, 0.7)'
+                            ];
+                            return colors[i % colors.length];
+                        }),
+                        borderColor: tasks.map((_, i) => {
+                            const colors = [
+                                '#00ddff',
+                                '#cc00ff',
+                                '#0099ff',
+                                '#aa88ff',
+                                '#ff64ff',
+                                '#64c8ff'
+                            ];
+                            return colors[i % colors.length];
+                        }),
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    ...chartDefaults,
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#88bbff',
+                                font: {
+                                    family: "'Courier New', monospace"
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 221, 255, 0.1)'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#88bbff',
+                                font: {
+                                    family: "'Courier New', monospace"
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(204, 0, 255, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createPieChart(stats) {
+            const ctx = document.getElementById('pieChart').getContext('2d');
+
+            const tasks = Object.keys(stats.byTask);
+            const totals = tasks.map(task => stats.byTask[task].total);
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: tasks,
+                    datasets: [{
+                        data: totals,
+                        backgroundColor: [
+                            'rgba(0, 221, 255, 0.7)',
+                            'rgba(204, 0, 255, 0.7)',
+                            'rgba(0, 153, 255, 0.7)',
+                            'rgba(170, 136, 255, 0.7)',
+                            'rgba(255, 100, 255, 0.7)',
+                            'rgba(100, 200, 255, 0.7)'
+                        ],
+                        borderColor: [
+                            '#00ddff',
+                            '#cc00ff',
+                            '#0099ff',
+                            '#aa88ff',
+                            '#ff64ff',
+                            '#64c8ff'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    ...chartDefaults,
+                    plugins: {
+                        ...chartDefaults.plugins,
+                        legend: {
+                            ...chartDefaults.plugins.legend,
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateMetrics(stats) {
+            document.getElementById('totalSessions').textContent = stats.totalSessions.toLocaleString();
+            document.getElementById('totalTokens').textContent = stats.totalTokens.toLocaleString();
+            document.getElementById('avgTokens').textContent = stats.avgTokens.toLocaleString();
+            document.getElementById('taskTypes').textContent = Object.keys(stats.byTask).length;
+        }
+
+        function updateTaskTable(stats) {
+            const tbody = document.getElementById('taskStatsBody');
+            tbody.innerHTML = '';
+
+            const tasks = Object.keys(stats.byTask).sort((a, b) =>
+                stats.byTask[b].total - stats.byTask[a].total
+            );
+
+            tasks.forEach(task => {
+                const data = stats.byTask[task];
+                const avg = Math.round(data.total / data.count);
+                const min = Math.min(...data.tokens);
+                const max = Math.max(...data.tokens);
+                const trend = calculateTrend(data.tokens);
+
+                const trendIcon = {
+                    'up': '📈',
+                    'down': '📉',
+                    'stable': '➡️'
+                }[trend];
+
+                const trendClass = `trend-${trend}`;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${task}</td>
+                    <td>${data.count}</td>
+                    <td>${data.total.toLocaleString()}</td>
+                    <td>${avg.toLocaleString()}</td>
+                    <td>${min.toLocaleString()} - ${max.toLocaleString()}</td>
+                    <td class="${trendClass}">${trendIcon} ${trend}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateDataStatus(hasRealData) {
+            const statusDiv = document.getElementById('dataStatus');
+            if (hasRealData) {
+                statusDiv.innerHTML = '✅ Displaying real token tracking data from .token-stats.log';
+            } else {
+                statusDiv.innerHTML = '⚠️ No tracking data found - Displaying sample data for demonstration<br>' +
+                    '<small>Start tracking with: <code>bin/track-tokens &lt;task&gt; &lt;tokens&gt;</code></small>';
+            }
+        }
+
+        // ==================================================================
+        // INITIALIZATION
+        // ==================================================================
+
+        function initialize() {
+            const data = loadTokenData();
+            const hasRealData = TOKEN_DATA.length > 0;
+
+            updateDataStatus(hasRealData);
+
+            const stats = processData(data);
+
+            updateMetrics(stats);
+            createTimelineChart(data);
+            createTaskChart(stats);
+            createPieChart(stats);
+            updateTaskTable(stats);
+
+            document.getElementById('timestamp').textContent = new Date().toLocaleString();
+        }
+
+        // Run on page load
+        document.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
+</html>
