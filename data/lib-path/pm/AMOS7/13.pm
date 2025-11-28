@@ -868,11 +868,10 @@ sub key_32 {  ## create 32 bytes binary encryption key from arbitrary input ##
 
     ##  SAFEGUARD: Warn if numeric seed creates excessive iterations  ##
     ##  Benchmark shows: safe limit ~1000, 82ms per call at that level   ##
-    our $allow_high_iterations //= 0;  ##  override flag  ##
     if ( defined $keyname_seed and !ref($keyname_seed)
         and $keyname_seed =~ m|^\d+$|
         and $keyname_seed > 1000
-        and not $allow_high_iterations ) {
+        and not ( $AMOS7::13::allow_high_iterations // 0 ) ) {
 
         my $total_iters = $seed_iteration_count;
         my $ratio = int( $total_iters / 1113 );  ##  1113 = 113 + 1000  ##
