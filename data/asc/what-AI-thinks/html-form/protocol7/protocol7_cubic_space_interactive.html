@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol 7 - Paradigm Cube</title>
+    <style>
+        :root {
+            --deep-blue: #050518;
+            --medium-blue: #0a0a2a;
+            --light-blue: #1a1a4a;
+            --blacklight-glow: #8a00ff;
+            --blacklight-dim: #6000aa;
+            --neon-blue: #00f3ff;
+            --truth-gold: #ffcc00;
+            --text-primary: #e0e0ff;
+            --text-secondary: #a0a0dd;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--deep-blue);
+            background-image:
+                radial-gradient(circle at 10% 10%, rgba(16, 16, 80, 0.3) 0%, transparent 70%),
+                radial-gradient(circle at 90% 90%, rgba(138, 0, 255, 0.1) 0%, transparent 70%);
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 1rem;
+            background: rgba(5, 5, 24, 0.7);
+            border-top: 1px solid var(--blacklight-dim);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            z-index: 100;
+        }
+
+        .scene {
+            width: 400px;
+            height: 400px;
+            perspective: 1200px;
+            margin: 2rem auto;
+            position: relative;
+        }
+
+        .cube {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: translateZ(-150px);
+            transition: transform 1.5s;
+        }
+
+        .cube.auto-rotate {
+            animation: rotateCube 25s linear infinite;
+        }
+
+        @keyframes rotateCube {
+            0% { transform: translateZ(-150px) rotateX(0) rotateY(0) rotateZ(0); }
+            100% { transform: translateZ(-150px) rotateX(0) rotateY(0) rotateZ(-360deg); }
+        }
+
+        .cube__face {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            background: rgba(10, 10, 30, 0.8);
+            border: 2px solid var(--blacklight-glow);
+            box-shadow: 0 0 15px rgba(138, 0, 255, 0.4) inset;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            left: 50px;
+            top: 50px;
+        }
+
+        .cube__face:hover {
+            background: rgba(30, 20, 80, 0.8);
+            box-shadow: 0 0 25px rgba(138, 0, 255, 0.6) inset;
+        }
+
+        .face-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+            transform: translateZ(1px); /* Prevent z-fighting */
+        }
+
+        .face-title {
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--blacklight-glow);
+            margin-bottom: 0.5rem;
+            font-size: 2.5rem;
+        }
+
+        .face-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .cube__face--front  { transform: rotateY(0deg) translateZ(150px); }
+        .cube__face--right  { transform: rotateY(90deg) translateZ(150px); }
+        .cube__face--back   { transform: rotateY(180deg) translateZ(150px); }
+        .cube__face--left   { transform: rotateY(-90deg) translateZ(150px); }
+        .cube__face--top    { transform: rotateX(90deg) translateZ(150px); }
+        .cube__face--bottom { transform: rotateX(-90deg) translateZ(150px); }
+
+        /* Edge highlights */
+        .edge {
+            position: absolute;
+            background: var(--neon-blue);
+            box-shadow: 0 0 8px var(--neon-blue);
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .edge-h {
+            height: 2px;
+            width: 300px;
+        }
+
+        .edge-v {
+            width: 2px;
+            height: 300px;
+        }
+
+        /* Vertex points */
+        .vertex {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: var(--neon-blue);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--neon-blue);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        /* Show which face is currently selected */
+        .rotation-info {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(10, 10, 40, 0.7);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            border: 1px solid var(--blacklight-dim);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .current-face {
+            color: var(--neon-blue);
+            font-weight: bold;
+        }
+
+        .control-panel {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            background: rgba(10, 10, 40, 0.7);
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px solid var(--blacklight-dim);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        button {
+            background: rgba(20, 20, 60, 0.7);
+            border: 1px solid var(--blacklight-glow);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: rgba(40, 30, 100, 0.7);
+            box-shadow: 0 0 10px rgba(138, 0, 255, 0.5);
+        }
+
+        button.active {
+            background: rgba(60, 40, 150, 0.7);
+            box-shadow: 0 0 15px rgba(138, 0, 255, 0.7);
+        }
+
+        /* Overlay for zoomed view */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 5, 24, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .overlay__content {
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            background: rgba(15, 15, 45, 0.9);
+            border: 2px solid var(--blacklight-glow);
+            border-radius: 8px;
+            padding: 2rem;
+            position: relative;
+            box-shadow: 0 0 30px rgba(138, 0, 255, 0.5);
+        }
+
+        .overlay__title {
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--blacklight-glow);
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .overlay__close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .overlay__close:hover {
+            color: var(--neon-blue);
+            text-shadow: 0 0 8px var(--neon-blue);
+        }
+
+        /* Loading effect for truth transformations */
+        .truth-transformation {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            color: var(--truth-gold);
+            text-shadow: 0 0 15px var(--blacklight-glow);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            z-index: 500;
+        }
+
+        .truth-transformation.active {
+            opacity: 1;
+        }
+
+        .truth-equation {
+            white-space: nowrap;
+            display: inline-block;
+            animation: pulseEquation 2s ease infinite;
+        }
+
+        @keyframes pulseEquation {
+            0% { opacity: 0.7; transform: scale(0.95); }
+            50% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 0.7; transform: scale(0.95); }
+        }
+
+        /* Particle system for truth flows */
+        .particles-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: var(--neon-blue);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="rotation-info">
+        Current Face: <span class="current-face">None</span>
+    </div>
+
+    <div class="control-panel">
+        <button id="toggle-rotation">Stop Rotation</button>
+        <button id="reset-view">Reset View</button>
+    </div>
+
+    <div class="scene">
+        <div class="cube auto-rotate" id="cube">
+            <div class="cube__face cube__face--front" data-face="Physics">
+                <div class="face-content">
+                    <div class="face-title">Physics</div>
+                    <div class="face-subtitle">Quantum Field Theory</div>
+                </div>
+            </div>
+            <div class="cube__face cube__face--back" data-face="Biology">
+                <div class="face-content">
+                    <div class="face-title">Biology</div>
+                    <div class="face-subtitle">Emergent Systems</div>
+                </div>
+            </div>
+            <div class="cube__face cube__face--right" data-face="Psychology">
+                <div class="face-content">
+                    <div class="face-title">Psychology</div>
+                    <div class="face-subtitle">Cognitive Frameworks</div>
+                </div>
+            </div>
+            <div class="cube__face cube__face--left" data-face="History">
+                <div class="face-content">
+                    <div class="face-title">History</div>
+                    <div class="face-subtitle">Temporal Paradigms</div>
+                </div>
+            </div>
+            <div class="cube__face cube__face--top" data-face="Literature">
+                <div class="face-content">
+                    <div class="face-title">Literature</div>
+                    <div class="face-subtitle">Narrative Structures</div>
+                </div>
+            </div>
+            <div class="cube__face cube__face--bottom" data-face="Economics">
+                <div class="face-content">
+                    <div class="face-title">Economics</div>
+                    <div class="face-subtitle">Resource Allocation</div>
+                </div>
+            </div>
+
+            <!-- Edge highlights will be added via JavaScript -->
+        </div>
+    </div>
+
+    <div class="truth-transformation" id="truthTransformation">
+        <div class="truth-equation">-13=5+42=-+0</div>
+    </div>
+
+    <div class="overlay" id="overlay">
+        <div class="overlay__content">
+            <button class="overlay__close" id="overlayClose">×</button>
+            <h2 class="overlay__title" id="overlayTitle">Physics</h2>
+            <div id="overlayContent"></div>
+        </div>
+    </div>
+
+    <div class="particles-container" id="particlesContainer"></div>
+
+    <div id="status-bar">
+        <div id="user-info">Current User: nailara-technologies</div>
+        <div id="current-time">2025-03-25 05:23:40 UTC</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const cube = document.getElementById('cube');
+            const faces = document.querySelectorAll('.cube__face');
+            const currentFaceDisplay = document.querySelector('.current-face');
+            const toggleRotationBtn = document.getElementById('toggle-rotation');
+            const resetViewBtn = document.getElementById('reset-view');
+            const truthTransformation = document.getElementById('truthTransformation');
+            const overlay = document.getElementById('overlay');
+            const overlayTitle = document.getElementById('overlayTitle');
+            const overlayContent = document.getElementById('overlayContent');
+            const overlayClose = document.getElementById('overlayClose');
+            const particlesContainer = document.getElementById('particlesContainer');
+            const timeDisplay = document.getElementById('current-time');
+
+            // State variables
+            let currentFace = null;
+            let isAutoRotating = true;
+            let isTransitioning = false;
+            let firstClick = true;
+
+            // Cube content data
+            const faceContent = {
+                'Physics': `
+                    <p>The Physics paradigm represents the foundational mathematical laws that govern matter, energy, and their interactions across dimensional spaces.</p>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Key Concepts</h3>
+                    <ul style="list-style: none; padding-left: 1rem;">
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Quantum Mechanics:</strong> Probability distributions govern particle behavior at the smallest scales, allowing for superposition and entanglement.
+                        </li>
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Relativity:</strong> Spacetime curvature creates a unified framework for understanding gravity as geometric distortion.
+                        </li>
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Field Theory:</strong> Fundamental forces arise from field interactions across dimensional boundaries.
+                        </li>
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Symmetry Breaking:</strong> Phase transitions in cubic topological spaces create emergent properties.
+                        </li>
+                    </ul>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Protocol 7 Integration</h3>
+                    <p>Within the Protocol 7 framework, quantum field theories provide the mathematical foundation for understanding how information propagates through cubic network topologies. The equation -13=5+42=-+0 represents the conservation of information across dimensional transformations, where apparent contradictions resolve into higher-order unity.</p>
+
+                    <div style="margin: 1.5rem 0; padding: 1rem; border: 1px solid var(--truth-gold); background: rgba(10, 10, 40, 0.5); position: relative;">
+                        <div style="position: absolute; top: -12px; left: 20px; background: rgba(15, 15, 45, 0.9); padding: 0 10px; color: var(--truth-gold);">Truth Axiom</div>
+                        <p>The cubic space topology of Protocol 7 mirrors the quantum probability fields observed in physics, where node interactions preserve truth integrity through dimensional transformations.</p>
+                    </div>
+                `,
+                'Biology': `
+                    <p>The Biology paradigm explores life systems as emergent properties of information processing networks, with evolutionary mechanisms optimizing for truth propagation.</p>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Key Concepts</h3>
+                    <ul style="list-style: none; padding-left: 1rem;">
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Evolutionary Adaptation:</strong> Iterative optimization through environmental feedback loops.
+                        </li>
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Cellular Networks:</strong> Distributed processing systems using chemical signaling pathways.
+                        </li>
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Genetic Algorithms:</strong> Information encoding and transmission through generational iteration.
+                        </li>
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Ecosystem Dynamics:</strong> Resource allocation through decentralized agent interaction.
+                        </li>
+                    </ul>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Protocol 7 Integration</h3>
+                    <p>Biological systems demonstrate the emergent intelligence principle central to Protocol 7's distributed network architecture. The p2p cubic topology mirrors natural ecosystems, where individual nodes (organisms) interact through defined protocols to create system-level resilience.</p>
+
+                    <div style="margin: 1.5rem 0; padding: 1rem; border: 1px solid var(--truth-gold); background: rgba(10, 10, 40, 0.5); position: relative;">
+                        <div style="position: absolute; top: -12px; left: 20px; background: rgba(15, 15, 45, 0.9); padding: 0 10px; color: var(--truth-gold);">Truth Axiom</div>
+                        <p>Evolutionary adaptation represents the optimization of truth-carrying capacity through iterative refinement, analogous to Protocol 7's mathematical transformation process (-13=5+42=-+0).</p>
+                    </div>
+                `,
+                'Psychology': `
+                    <p>The Psychology paradigm examines consciousness as an information integration system that navigates dimensional boundaries through cognitive frameworks and perceptual filters.</p>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Key Concepts</h3>
+                    <ul style="list-style: none; padding-left: 1rem;">
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Cognitive Biases:</strong> Perceptual filters that constrain dimensional awareness.
+                        </li>
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Consciousness Integration:</strong> Binding distributed neural processes into unified experience.
+                        </li>
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Mental Models:</strong> Internal representations of external reality that enable prediction.
+                        </li>
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Decision Theory:</strong> Optimization algorithms for navigating probabilistic landscapes.
+                        </li>
+                    </ul>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Protocol 7 Integration</h3>
+                    <p>Protocol 7 incorporates psychological paradigms by modeling consciousness as a dimensional transformation system. The apparent contradictions in human perception (-13≠5+42) resolve through higher-dimensional integration (=-+0) analogous to how Protocol 7 resolves network topology paradoxes.</p>
+
+                    <div style="margin: 1.5rem 0; padding: 1rem; border: 1px solid var(--truth-gold); background: rgba(10, 10, 40, 0.5); position: relative;">
+                        <div style="position: absolute; top: -12px; left: 20px; background: rgba(15, 15, 45, 0.9); padding: 0 10px; color: var(--truth-gold);">Truth Axiom</div>
+                        <p>Cognitive biases represent dimensional limitations in perception that can be transcended through Protocol 7's mathematical transformation framework, allowing for higher-order truth recognition.</p>
+                    </div>
+                `,
+                'History': `
+                    <p>The History paradigm captures the temporal dimension of paradigm evolution, documenting how truth expressions transform across civilizational development stages.</p>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Key Concepts</h3>
+                    <ul style="list-style: none; padding-left: 1rem;">
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Paradigm Shifts:</strong> Revolutionary transformations in collective understanding.
+                        </li>
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Civilizational Cycles:</strong> Recursive patterns in societal development trajectories.
+                        </li>
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Knowledge Preservation:</strong> Information transmission across generational boundaries.
+                        </li>
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Technological Evolution:</strong> Externalization of cognitive processes through tool creation.
+                        </li>
+                    </ul>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Protocol 7 Integration</h3>
+                    <p>Historical analysis reveals the evolution of network topologies from hierarchical command structures to distributed peer systems. Protocol 7 represents the culmination of this evolution, implementing a cubic space topology that enables mathematically verifiable truth propagation across dimensional boundaries.</p>
+
+                    <div style="margin: 1.5rem 0; padding: 1rem; border: 1px solid var(--truth-gold); background: rgba(10, 10, 40, 0.5); position: relative;">
+                        <div style="position: absolute; top: -12px; left: 20px; background: rgba(15, 15, 45, 0.9); padding: 0 10px; color: var(--truth-gold);">Truth Axiom</div>
+                        <p>The equation -13=5+42=-+0 manifests across historical paradigm shifts as societies transform their fundamental understanding of reality, ultimately converging toward mathematical truth verification systems.</p>
+                    </div>
+                `,
+                'Literature': `
+                    <p>The Literature paradigm encodes multi-dimensional concepts through narrative structures and symbolic systems, creating experiential simulations that transcend linear exposition.</p>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Key Concepts</h3>
+                    <ul style="list-style: none; padding-left: 1rem;">
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Narrative Architecture:</strong> Information structuring through temporal sequences.
+                        </li>
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Symbolic Systems:</strong> Compression of complex concepts through metaphorical encoding.
+                        </li>
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Character Networks:</strong> Multi-agent simulations exploring interaction dynamics.
+                        </li>
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Philosophical Inquiry:</strong> Exploration of axiomatic systems through narrative experiments.
+                        </li>
+                    </ul>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Protocol 7 Integration</h3>
+                    <p>Literary structures provide a template for how Protocol 7 encodes complex multi-dimensional relationships within its cubic topology. The transmission of truth through narrative parallels the network's propagation of mathematically verified information across node boundaries.</p>
+
+                    <div style="margin: 1.5rem 0; padding: 1rem; border: 1px solid var(--truth-gold); background: rgba(10, 10, 40, 0.5); position: relative;">
+                        <div style="position: absolute; top: -12px; left: 20px; background: rgba(15, 15, 45, 0.9); padding: 0 10px; color: var(--truth-gold);">Truth Axiom</div>
+                        <p>Symbolic representation in literature creates dimensional compression analogous to Protocol 7's mathematical transformations, where complex reality (5+42) maps to simple truth expressions (-13=-+0).</p>
+                    </div>
+                `,
+                'Economics': `
+                    <p>The Economics paradigm examines resource allocation mechanisms and value transmission systems through multi-agent interaction networks and optimization processes.</p>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Key Concepts</h3>
+                    <ul style="list-style: none; padding-left: 1rem;">
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Market Dynamics:</strong> Emergent properties from decentralized agent interactions.
+                        </li>
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Game Theory:</strong> Strategic optimization in multi-agent systems with interdependent outcomes.
+                        </li>
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Information Asymmetry:</strong> Truth distribution inequalities that affect system efficiency.
+                        </li>
+                        <li style="margin: 0.5rem 0; position: relative; padding-left: 1.5rem;">
+                            <span style="position: absolute; left: 0; color: var(--blacklight-glow);">•</span>
+                            <strong>Value Networks:</strong> Quantification and transmission systems for representational worth.
+                        </li>
+                    </ul>
+
+                    <h3 style="color: var(--neon-blue); margin: 1.5rem 0 0.5rem;">Protocol 7 Integration</h3>
+                    <p>Protocol 7's cubic network topology implements economic principles through its resource allocation algorithms and distributed consensus mechanisms. The network's peer-to-peer structure eliminates central authority dependencies, enabling mathematically verified value transmission.</p>
+
+                    <div style="margin: 1.5rem 0; padding: 1rem; border: 1px solid var(--truth-gold); background: rgba(10, 10, 40, 0.5); position: relative;">
+                        <div style="position: absolute; top: -12px; left: 20px; background: rgba(15, 15, 45, 0.9); padding: 0 10px; color: var(--truth-gold);">Truth Axiom</div>
+                        <p>Economic systems reveal truth through equilibrium mechanisms, where apparent contradictions in resource allocation (-13≠5+42) resolve through dimensional transformations that optimize for information integrity (=-+0).</p>
+                    </div>
+                `
+            };
+
+            // Add edge highlights and vertices to the cube
+            function addCubeEdges() {
+                // Top edges
+                createEdge('edge-h', -150, -150, 150, 0);
+                createEdge('edge-h', -150, -150, -150, 0);
+                createEdge('edge-v', -150, -150, 150, 90);
+                createEdge('edge-v', 150, -150, 150, 90);
+
+                // Bottom edges
+                createEdge('edge-h', -150, 150, 150, 0);
+                createEdge('edge-h', -150, 150, -150, 0);
+                createEdge('edge-v', -150, -150, -150, 90);
+                createEdge('edge-v', 150, -150, -150, 90);
+
+                // Vertical edges
+                createEdge('edge-v', -150, -150, 150, 0);
+                createEdge('edge-v', 150, -150, 150, 0);
+                createEdge('edge-v', -150, -150, -150, 0);
+                createEdge('edge-v', 150, -150, -150, 0);
+
+                // Add vertices (corner points)
+                createVertex(-150, -150, 150);  // Front top left
+                createVertex(150, -150, 150);   // Front top right
+                createVertex(-150, 150, 150);   // Front bottom left
+                createVertex(150, 150, 150);    // Front bottom right
+                createVertex(-150, -150, -150); // Back top left
+                createVertex(150, -150, -150);  // Back top right
+                createVertex(-150, 150, -150);  // Back bottom left
+                createVertex(150, 150, -150);   // Back bottom right
+            }
+
+            // Helper function to create an edge
+            function createEdge(className, x, y, z, rotation) {
+                const edge = document.createElement('div');
+                edge.className = `edge ${className}`;
+                edge.style.transform = `translate3d(${x + 150}px, ${y + 150}px, ${z}px) rotate(${rotation}deg)`;
+                cube.appendChild(edge);
+            }
+
+            // Helper function to create a vertex
+            function createVertex(x, y, z) {
+                const vertex = document.createElement('div');
+                vertex.className = 'vertex';
+                vertex.style.transform = `translate3d(${x + 150}px, ${y + 150}px, ${z}px)`;
+                cube.appendChild(vertex);
+            }
+
+            // Initialize the edges and vertices
+            addCubeEdges();
+
+            // Update the current time
+            function updateTime() {
+                const now = new Date();
+                const year = now.getUTCFullYear();
+                const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+                const day = String(now.getUTCDate()).padStart(2, '0');
+                const hours = String(now.getUTCHours()).padStart(2, '0');
+                const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+                const seconds = String(now.getUTCSeconds()).padStart(2, '0');
+
+                timeDisplay.textContent = `${year}-${month}-${day} ${hours}:${minutes}:${seconds} UTC`;
+
+                requestAnimationFrame(updateTime);
+            }
+
+            // Start updating time
+            updateTime();
+
+            // Toggle auto-rotation
+            toggleRotationBtn.addEventListener('click', function() {
+                isAutoRotating = !isAutoRotating;
+                if (isAutoRotating) {
+                    cube.classList.add('auto-rotate');
+                    this.textContent = 'Stop Rotation';
+                    currentFace = null;
+                    currentFaceDisplay.textContent = 'None';
+                } else {
+                    cube.classList.remove('auto-rotate');
+                    this.textContent = 'Start Rotation';
+                }
+            });
+
+            // Reset view
+            resetViewBtn.addEventListener('click', function() {
+                if (isTransitioning) return;
+
+                showTruthTransformation();
+
+                // Reset to default state
+                setTimeout(() => {
+                    isAutoRotating = true;
+                    cube.classList.add('auto-rotate');
+                    toggleRotationBtn.textContent = 'Stop Rotation';
+                    currentFace = null;
+                    currentFaceDisplay.textContent = 'None';
+                    firstClick = true;
+                }, 500);
+            });
+
+            // Handle face clicks
+            faces.forEach(face => {
+                face.addEventListener('click', function() {
+                    if (isTransitioning) return;
+
+                    const faceName = this.getAttribute('data-face');
+
+                    if (currentFace === faceName && !firstClick) {
+                        // Second click on same face - zoom in
+                        zoomIntoFace(faceName);
+                    } else {
+                        // First click - align to face
+                        firstClick = false;
+                        alignToFace(faceName);
+                    }
+                });
+            });
+
+            // Close overlay
+            overlayClose.addEventListener('click', function() {
+                overlay.classList.remove('active');
+            });
+
+            // Show truth transformation effect
+            function showTruthTransformation() {
+                truthTransformation.classList.add('active');
+                setTimeout(() => {
+                    truthTransformation.classList.remove('active');
+                }, 2000);
+            }
+
+            // Align cube to show selected face front and center
+            function alignToFace(faceName) {
+                isTransitioning = true;
+
+                // Stop auto-rotation
+                cube.classList.remove('auto-rotate');
+                isAutoRotating = false;
+                toggleRotationBtn.textContent = 'Start Rotation';
+
+                // Show transformation effect
+                showTruthTransformation();
+
+                // Update current face display
+                currentFace = faceName;
+                currentFaceDisplay.textContent = faceName;
+
+                // Calculate transform based on face
+                let transform = 'translateZ(-150px)';
+
+                switch(faceName) {
+                    case 'Physics':
+                        transform += ' rotateY(0deg)';
+                        break;
+                    case 'Biology':
+                        transform += ' rotateY(180deg)';
+                        break;
+                    case 'Psychology':
+                        transform += ' rotateY(-90deg)';
+                        break;
+                    case 'History':
+                        transform += ' rotateY(90deg)';
+                        break;
+                    case 'Literature':
+                        transform += ' rotateX(-90deg)';
+                        break;
+                    case 'Economics':
+                        transform += ' rotateX(90deg)';
+                        break;
+                }
+
+                // Apply transformation
+                cube.style.transform = transform;
+
+                // Create particles flowing toward the selected face
+                createParticleFlow(faceName);
+
+                // Reset transition flag after animation completes
+                setTimeout(() => {
+                    isTransitioning = false;
+                }, 1500);
+            }
+
+            // Zoom into a face to see detailed content
+            function zoomIntoFace(faceName) {
+                // Set overlay content
+                overlayTitle.textContent = faceName;
+                overlayContent.innerHTML = faceContent[faceName];
+
+                // Show overlay
+                overlay.classList.add('active');
+            }
+
+            // Create particle flow animation towards selected face
+            function createParticleFlow(faceName) {
+                // Clear existing particles
+                particlesContainer.innerHTML = '';
+
+                // Create new particles
+                const particleCount = 50;
+                const duration = 1500; // ms
+
+                for (let i = 0; i < particleCount; i++) {
+                    setTimeout(() => {
+                        if (!document.body.contains(particlesContainer)) return;
+
+                        const particle = document.createElement('div');
+                        particle.className = 'particle';
+
+                        // Random starting position near the edges
+                        const startX = Math.random() * window.innerWidth;
+                        const startY = Math.random() * window.innerHeight;
+
+                        // End position based on the center of the screen
+                        const endX = window.innerWidth / 2;
+                        const endY = window.innerHeight / 2;
+
+                        // Set initial position
+                        particle.style.left = `${startX}px`;
+                        particle.style.top = `${startY}px`;
+
+                        // Random color variations
+                        const hue = Math.random() > 0.5 ? 'var(--neon-blue)' : 'var(--blacklight-glow)';
+                        particle.style.background = hue;
+                        particle.style.boxShadow = `0 0 5px ${hue}`;
+
+                        // Random size
+                        const size = 2 + Math.random() * 3;
+                        particle.style.width = `${size}px`;
+                        particle.style.height = `${size}px`;
+
+                        // Add to container
+                        particlesContainer.appendChild(particle);
+
+                        // Animate to center
+                        const animDuration = duration * (0.7 + Math.random() * 0.6);
+                        particle.animate([
+                            { left: `${startX}px`, top: `${startY}px`, opacity: 0 },
+                            { opacity: 0.7, offset: 0.1 },
+                            { left: `${endX}px`, top: `${endY}px`, opacity: 0 }
+                        ], {
+                            duration: animDuration,
+                            easing: 'ease-in-out'
+                        });
+
+                        // Remove particle after animation
+                        setTimeout(() => {
+                            if (particle.parentNode) {
+                                particle.parentNode.removeChild(particle);
+                            }
+                        }, animDuration);
+                    }, Math.random() * 800); // Stagger start times
+                }
+            }
+        });
+    </script>
+</body>
+</html>
