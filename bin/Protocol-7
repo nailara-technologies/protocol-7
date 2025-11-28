@@ -1701,7 +1701,7 @@ sub p7_load_code {
         my $err_str = $EVAL_ERROR;
         state $t_wrap
             //= ( defined &wrap )
-            ? sub { return wrap( '', ': ..  ', $ARG ) }
+            ? sub { return wrap( '', ': .. ', $ARG ) }
             : sub { return $ARG };
         $err_str =~ s| at $sub_name line (\d+)[\.,]
                          | [ line $LAST_PAREN_MATCH ]\n|sx
@@ -1714,9 +1714,9 @@ sub p7_load_code {
         ( my $lpw )
             = ( $data{'system'}{'start'}{'log_prefix_width'}
                 // $code{'base.get_start_lpw'}->() || 12 );
-        my $width = 76 - $lpw;
+        my $width = 77 - $lpw;
         local $Text::Wrap::columns   = $width;
-        local $Text::Wrap::separator = "\n";
+        local $Text::Wrap::separator = "\n  ";
         delete $data{'code'}{$sub_name}{'warnings'};    ## clear previous ##
         my @compile_errors = (
             qw| > |,
@@ -1734,23 +1734,19 @@ sub p7_load_code {
             )
             if length( $err_str // '' )
             or defined $s_comp_stderr;
-        push(
-            @compile_errors,
-            qq|>|,
-            '  :: warning ::',
-            '  :',
-            (   map {
-                    $warn_count++;
-                    $warn_count_total++;
-                    push(
-                        @{ $data{'code'}{$sub_name}{'warnings'} //= [] },
-                        sprintf( "\l%s" . $ARG )
-                        ),
-                        sprintf( "  :: \l%s", $ARG )
-                } split( m|\n+|, $s_comp_stderr )
-            ),
-            qq|..,|
-        ) if defined $s_comp_stderr;
+
+        push @compile_errors, '> >', '  :: warning ::', '  :';
+        if ( defined $s_comp_stderr ) {
+            foreach my $err_str_line ( split( m|\n+|, $s_comp_stderr ) ) {
+                $warn_count++;
+                my $warn_string = sprintf "  :: \l%s", $err_str_line;
+                push @{ $data{'code'}{$sub_name}{'warnings'} //= [] },
+                    $warn_string;
+                $warn_count_total++;
+                push @compile_errors, sprintf( "  : \l%s", $err_str_line ),
+                    '  :', '< :.', '= .';
+            }
+        }
 
         $code{'base.stderr_restore'}->();
 
@@ -1861,7 +1857,7 @@ sub p7_load_code {
             if ( $data{'code'}{$sub_name}{'status'} eq qw| no-error | ) {
                 if ( $sub_code =~ m|#\s*param\s*=\s*(\S.*)| ) {
                     my $param_value = ${^CAPTURE}[0];
-                    $param_value =~ s|\s+$||;  # trim trailing whitespace
+                    $param_value =~ s|\s+$||;    # trim trailing whitespace
                     if ( length $param_value ) {
                         $data{'base'}{'commands'}{$section}{$command}{'param'}
                             = $param_value;
@@ -1869,7 +1865,7 @@ sub p7_load_code {
                 }
                 if ( $sub_code =~ m|#\s*descr\s*=\s*(\S.*)| ) {
                     my $descr_value = ${^CAPTURE}[0];
-                    $descr_value =~ s|\s+$||;  # trim trailing whitespace
+                    $descr_value =~ s|\s+$||;    # trim trailing whitespace
                     if ( length $descr_value ) {
                         $data{'base'}{'commands'}{$section}{$command}{'descr'}
                             = $descr_value;
@@ -5202,8 +5198,8 @@ __DATA__
 :
 :.
 
-#,,,,,,,.,.,.,.,,,,,,,,,.,,,.,.,.,...,.,,,.,,,..,,...,...,..,,,,.,..,,,,.,.,,,
-#ONB2JEAP5ZKT2H3J52XPYBUDZIHLXUFCCIDSG47IP2FBGZEONDIEGO5YSKITFXQJYJKRWIYKK5PY2
-#\\\|VHPG637WGMXTR6VQLIXH5EGG5WDKDAYMYAKBEXWBKRCZFRD2HJ3 \ / AMOS7 \ YOURUM ::
-#\[7]P5TC2NL5BX3LHFU5V3WX6YSG4ASABTT3RO4INEC6JMESC5KA4SDY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,,,.,,,,..,.,,,,..,,.,,,,,,,,.,..,,...,...,.,.,..,,,,.,,,,,.,,,
+#SHQSJFTLRD46EMLJVP42UAF2LUTPR2D3JOVTU5EGH4BH7KJPGABWL3O4CPGJ4UQM2EY5CVXIYHRWG
+#\\\|F7QSDUS7YDOMUON3YWXE6VOFOTAD2UPDUBZM3G7MCXOOHTKR6MY \ / AMOS7 \ YOURUM ::
+#\[7]JZXRONMZWIOM37Q75OPVNOO7R25IPUDJS37VWIR6LUQPM2ZI2MAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

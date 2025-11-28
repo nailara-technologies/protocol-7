@@ -33,3 +33,9 @@ timeout $TIMEOUT bash -c "echo 'echo test' | DEBUG=1 PROTOCOL_7_LINK_UPGRADE=yes
 
 echo ""
 echo "=== Test Complete ==="
+
+#,,,,,,.,,...,,,,,.,,,,..,,..,...,...,.,,,,,,,..,,...,...,..,,,..,.,.,.,,,..,,
+#LF4GNE3LXQ2EYRNOHJQXFVIZUE3P6K4I7U3CG2DUJLSIXQPYPQJFKJK637PEUXDVWSVK5VGMI6R3O
+#\\\|FJLL7JUIPEMA7JZLLO6E7W3JHTYSYN5AM6QRB33LWBO7FMENE55 \ / AMOS7 \ YOURUM ::
+#\[7]BYGHWBZTV5AHOL2OBX34HM2RQ6KURVPUTUDOVRV6W3WN6GFHROAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

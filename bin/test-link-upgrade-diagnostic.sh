@@ -66,3 +66,9 @@ echo "  2. Full output: cat /tmp/link-upgrade-diag.log"
 echo "  3. Grep for state: p7 cube.show-buffer zenka | grep state"
 echo "  4. Check errors: p7 cube.show-buffer zenka | grep -i error"
 echo ""
+
+#,,,,,,,.,..,,...,...,.,,,,,,,,..,,.,,,,.,...,..,,...,...,,..,,.,,.,,,...,,,.,
+#4GAA4WHUON4JAADBC7L5LKE3YMZ4ZCZXDPLQ3YGX2BRDPUGF4I24TGZ3NOV46GN3Q7GTNVG7CMHXW
+#\\\|FRDKNAXNWL6GI2ZTCHJA7ADEPLXTRXD6VGPZZ4MEDRTDL5QT5QS \ / AMOS7 \ YOURUM ::
+#\[7]YN5HGNXHXJYWH2YRHXJYCCOP7SXLJFLDC7PF533VHQJWSWBMWOCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

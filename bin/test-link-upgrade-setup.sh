@@ -107,3 +107,9 @@ echo ""
 echo "System is now ready for link-upgrade testing."
 echo "Run: ./bin/test-link-upgrade-workflow.sh"
 echo ""
+
+#,,,.,,.,,,.,,.,.,.,,,,,,,.,.,.,.,,,.,,.,,,..,..,,...,..,,..,,...,,,.,.,.,,,,,
+#BUKT7QSVAPOFOEV5CLLI35NVSQQBAO6MWM72J4NCNICLQHK3SGEL25ANNHHBR6IYANTQH5OLTMQ3O
+#\\\|CX6MNVOO3EDZPEF5SQMRJ2YICQ3WA363ESY5PL3BD2CZFUPQFMK \ / AMOS7 \ YOURUM ::
+#\[7]HXIM7MXO5GTGXHEDAB2WLRWATDTY6BRVKRJQJOSEZKYR7YSDBMDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
