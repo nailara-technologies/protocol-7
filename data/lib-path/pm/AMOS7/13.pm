@@ -866,6 +866,29 @@ sub key_32 {  ## create 32 bytes binary encryption key from arbitrary input ##
         return undef;
     }
 
+    ##  SAFEGUARD: Warn if numeric seed creates excessive iterations  ##
+    ##  Benchmark shows: safe limit ~1000, 82ms per call at that level   ##
+    our $allow_high_iterations //= 0;  ##  override flag  ##
+    if ( defined $keyname_seed and !ref($keyname_seed)
+        and $keyname_seed =~ m|^\d+$|
+        and $keyname_seed > 1000
+        and not $allow_high_iterations ) {
+
+        my $total_iters = $seed_iteration_count;
+        my $ratio = int( $total_iters / 1113 );  ##  1113 = 113 + 1000  ##
+
+        warn sprintf(
+            "\n:: AMOS7::13::key_32 WARNING::\n" .
+            ":: Numeric seed %d creates %d iterations (%dx safe limit)\n" .
+            ":: This may cause slowdown in event handlers\n" .
+            ":: RECOMMENDED: Use SCALAR ref instead\n" .
+            "::   Changed: key_32(\\seed, %d)\n" .
+            "::   To:      key_32(\\seed, \\%d_var)\n" .
+            ":: To override: set \$AMOS7::13::allow_high_iterations = 1 before calling\n\n",
+            $keyname_seed, $total_iters, $ratio, $keyname_seed, $keyname_seed
+        );
+    }
+
     if ( ref $pass_sref ne qw| SCALAR | ) {
         warn_err('expected scalar ref param to passphrase <{C1}>');
         return undef;
