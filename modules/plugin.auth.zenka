@@ -113,7 +113,7 @@ if ( $input->$* =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
                 $id, $auth_name
             );
             $output->$* .= "AUTH_ERROR `>:|\n";
-            return 1;
+            return 2;  # Key verification failed - disconnect
         }
     } else {
         <[base.logs]>->(
@@ -121,14 +121,14 @@ if ( $input->$* =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
             $id, $auth_name
         );
         $output->$* .= "AUTH_ERROR `>:|\n";
-        return 1;
+        return 2;  # User not registered - disconnect
     }
 } else {
     <[base.log]>->(
         0, "[$id] authentication protocol mismatch [ zenka ] `:|"
     );
     $output->$* .= ">:[\n";
-    return 1;
+    return 2;  # Protocol error - disconnect
 }
 
 #,,,.,,.,,,,,,,,.,.,,,.,,,,.,,,..,.,.,.,,,..,,..,,...,...,...,...,,.,,,,.,...,

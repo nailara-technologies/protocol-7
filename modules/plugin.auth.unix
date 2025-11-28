@@ -43,6 +43,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
     if ( $auth_user =~ m|^<([^>]+)>$| ) {
         my $template = "<${^CAPTURE}[0]}>";
         my $expanded = <[base.access.special-user-map]>->($template, 1);  # silent mode
+        $lookup_auth_user = $expanded if defined $expanded;  # Apply template expansion
     }
 
     my $mapped_user_string;
@@ -93,8 +94,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
             $id, $client_uname, $mapped_user_string
         ) if defined $mapped_user_string;
 
-        return ( FALSE, $auth_user );    ## register as authorized ##
-        #######  #####  ##########
+        return ( 0, $auth_user );    ## register as authorized (success code 0) ##
     } else {    ##  no match for unix-user \ auth-user pair  ##
         $output->$* .= "AUTH_ERROR `>:|\n";
         <[base.logs]>->(

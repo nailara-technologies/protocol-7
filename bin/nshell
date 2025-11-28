@@ -804,10 +804,10 @@ sub encrypt_message {
         $state_ref->{key},
         $nonce
     );
-    $cipher->encrypt_add($plaintext);
+    my $ciphertext = $cipher->encrypt_add($plaintext);
     my $auth_tag = $cipher->encrypt_done();
 
-    return $cipher->ciphertext() . $auth_tag;
+    return $ciphertext . $auth_tag;
 }
 
 sub decrypt_message {
