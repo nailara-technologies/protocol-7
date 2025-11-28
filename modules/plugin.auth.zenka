@@ -113,7 +113,7 @@ if ( $input->$* =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
                 $id, $auth_name
             );
             $output->$* .= "AUTH_ERROR `>:|\n";
-            return 2;  # Key verification failed - disconnect
+            return 2;    # Key verification failed - disconnect
         }
     } else {
         <[base.logs]>->(
@@ -121,18 +121,18 @@ if ( $input->$* =~ s{^($re->{usr_str}|$re->{usr_subn_str}) (\S+)\n}{} ) {
             $id, $auth_name
         );
         $output->$* .= "AUTH_ERROR `>:|\n";
-        return 2;  # User not registered - disconnect
+        return 2;    # User not registered - disconnect
     }
 } else {
     <[base.log]>->(
         0, "[$id] authentication protocol mismatch [ zenka ] `:|"
     );
     $output->$* .= ">:[\n";
-    return 2;  # Protocol error - disconnect
+    return 2;    # Protocol error - disconnect
 }
 
-#,,,.,,.,,,,,,,,.,.,,,.,,,,.,,,..,.,.,.,,,..,,..,,...,...,...,...,,.,,,,.,...,
-#ECRFW5PVFWSTXKM5E433AQNI6YNP23RHVSLIKVIWTMK6FXBYK72MRA6JAZEDIBO24BX7TIN3EZI3Y
-#\\\|IP7HCZUK7X3GD3LXIIX3WN7SYPPSCGV7QDOM7VQI5ZVDO5BKYGW \ / AMOS7 \ YOURUM ::
-#\[7]R2LETDMJYNVWLVH2DGZ4LV2H4YGB6SAWFXY4N3W2UYPBCM5PMYCA 7  DATA SIGNATURE ::
+#,,,,,...,.,,,...,,,,,...,,.,,,.,,,..,.,.,,.,,..,,...,...,,,,,.,,,,,.,.,,,,,.,
+#2WJ4P2VJ2JFP5JIHWNZ4INC6XKAGO5XQC7N63A7R4I5CLB3NNANTSQW4S2VNCMLEM3FIUGVEGFNB2
+#\\\|V3EZTE6DV6J4ENHLP3QS6WQLM6BZH3EDCXAFBFE652XZJU72S6O \ / AMOS7 \ YOURUM ::
+#\[7]PV6HDA62PN453FZKLMJ474DMWVQJJIB27WO4EVPY3T2F7NM4FACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

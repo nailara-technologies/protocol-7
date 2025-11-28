@@ -128,3 +128,9 @@ echo "  Server: /tmp/p7-server.log"
 echo "  Client: /tmp/nshell-test.log"
 echo "  Buffers: /tmp/server-logs.txt"
 echo ""
+
+#,,..,..,,,,,,,,,,.,,,...,,,.,,.,,...,..,,,,,,..,,...,...,..,,,..,,.,,,..,,..,
+#T4C3TSAHWRFAG26YWON7ZNT2LSTD3EVFDWPZPEDLEIAUDHG4QZAV2ATBFWG3EHJ4OC6ED7VE7T3LQ
+#\\\|RVSGKKJZT5Q5V43INF2XZWIQ3WYQLWRWBHUPIM5HSVZD2Q5XEJ6 \ / AMOS7 \ YOURUM ::
+#\[7]N4JGSIVNOA2BEXNKAAL7NTSZZ6WYFYRHA2SBB3QGCX5GHYDALEAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

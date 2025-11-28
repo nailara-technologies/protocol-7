@@ -42,8 +42,10 @@ if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
     my $lookup_auth_user = $auth_user;
     if ( $auth_user =~ m|^<([^>]+)>$| ) {
         my $template = "<${^CAPTURE}[0]}>";
-        my $expanded = <[base.access.special-user-map]>->($template, 1);  # silent mode
-        $lookup_auth_user = $expanded if defined $expanded;  # Apply template expansion
+        my $expanded = <[base.access.special-user-map]>->( $template, 1 )
+            ;    # silent mode
+        $lookup_auth_user = $expanded
+            if defined $expanded;    # Apply template expansion
     }
 
     my $mapped_user_string;
@@ -94,7 +96,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
             $id, $client_uname, $mapped_user_string
         ) if defined $mapped_user_string;
 
-        return ( 0, $auth_user );    ## register as authorized (success code 0) ##
+        return ( 0, $auth_user )
+            ;               ## register as authorized (success code 0) ##
     } else {    ##  no match for unix-user \ auth-user pair  ##
         $output->$* .= "AUTH_ERROR `>:|\n";
         <[base.logs]>->(
@@ -118,8 +121,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
 
 return 2;
 
-#,,.,,,,.,...,...,,,,,,..,,.,,...,,.,,,,,,,.,,..,,...,...,,,,,,.,,...,,,,,..,,
-#7ET6O2U4VCNT7WZ2SWX5PXOH2IRMUFK4DYF2Y7PCXUQMXPW244ZOE2FSFCU6IBCIOLMVQ4QOOQJ6W
-#\\\|IZTI3FR7SQBYXEXLWPGDH7ENUBXMTPAX5GKIFOKC6AP33GHTJ4D \ / AMOS7 \ YOURUM ::
-#\[7]7N2RAK22AYJ467FOLFC3VTPBYKI5SBBU66CIKE6FAR5WDFHMDKCI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,...,...,,,,,...,,,.,,..,..,,,,,,..,,...,...,,,.,,,.,...,.,,,..,,
+#Y5ZAHHHBLCIPWXYT5CDMP3BJDEGXI5QNNIGSGPBUBL4MXXKVO7YWNMVHB4UZX3Y744TDENSEH6TPO
+#\\\|2FKLGCOVYG5E7CTFN5F5V4RY7M3K2G3IH2ZNPPTYNCTEZHUPJBW \ / AMOS7 \ YOURUM ::
+#\[7]P4LWPZLYQ46HMWJGNASB2JGKFRZMUGZLONYBK2KGUVRUKLA7YKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

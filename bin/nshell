@@ -13,7 +13,7 @@ use IO::Socket;
 use Sys::Hostname;
 use IO::Socket::IP;
 use IO::Socket::UNIX;
-use Cwd qw| abs_path |;
+use Cwd         qw| abs_path |;
 use Time::HiRes qw| sleep |;
 use POSIX       qw| sys_wait_h WNOHANG |;
 
@@ -94,7 +94,7 @@ my $lines_up  = 3;
 my $term_loop = FALSE;
 my $remember  = FALSE;
 my $arg_index = FALSE;
-my $no_tty    = FALSE;  # Non-TTY mode for automation
+my $no_tty    = FALSE;    # Non-TTY mode for automation
 my $protocol_7_version;
 our %before_readline_signals;
 our @override_signal_nums = ( SIGINT, SIGTERM, SIGQUIT, SIGABRT, SIGHUP );
@@ -161,7 +161,7 @@ while ($connect) {
         $shell_sock = shell_auth( $shell_sock, login_prompt() );
     }
 
-    # Initialize Term::ReadLine after authentication (AMOS7::TERM no longer needed)
+# Initialize Term::ReadLine after authentication (AMOS7::TERM no longer needed)
     if ( !$no_tty and !defined $term ) {
         $term = new Term::ReadLine('protocol-7.shell');
         $term->ornaments('mh,me,md,me');
@@ -183,12 +183,15 @@ while ($connect) {
     );
 
     # Check if user wants encryption via environment variable
-    if ( defined $ENV{'PROTOCOL_7_LINK_UPGRADE'} and $ENV{'PROTOCOL_7_LINK_UPGRADE'} eq 'yes' ) {
+    if ( defined $ENV{'PROTOCOL_7_LINK_UPGRADE'}
+        and $ENV{'PROTOCOL_7_LINK_UPGRADE'} eq 'yes' ) {
         if ( negotiate_link_upgrade( $shell_sock, \%encryption_state ) ) {
             print " :: link-upgrade encryption enabled ::\n";
             $encryption_state{enabled} = 1;
         } else {
-            print STDERR "[link-upgrade] Negotiation failed, continuing plaintext\n" if $ENV{DEBUG};
+            print STDERR
+                "[link-upgrade] Negotiation failed, continuing plaintext\n"
+                if $ENV{DEBUG};
         }
     }
 
@@ -235,9 +238,10 @@ sub login_prompt {
     my ( $user, $pass );
 
     # In no-tty mode, cannot use interactive prompts
-    if ( $no_tty ) {
+    if ($no_tty) {
         die " ::\n :: no-tty mode requires -u/--user argument\n ::\n"
             unless defined $cube_user;
+
         # In no-tty mode, use empty password or require env var
         $pass = $ENV{'PROTOCOL_7_PASSWORD'} // '';
         return ( $cube_user, $pass );
@@ -413,18 +417,18 @@ sub s_write {
 
 sub s_read {
     my $read_fh = shift;
-    my $line = <$read_fh>;
+    my $line    = <$read_fh>;
     return $line;
 }
 
 sub clear {
-    print "\e[37m\e[H\e[2J" unless $no_tty;  # Skip ANSI codes in no-tty mode
+    print "\e[37m\e[H\e[2J" unless $no_tty;   # Skip ANSI codes in no-tty mode
 }
 
 sub shell_loop {
-    my $sock              = $ARG[0];
-    my $prompt            = $ARG[1];
-    my $encryption_state  = $ARG[2] // {};  # Accept optional encryption state
+    my $sock             = $ARG[0];
+    my $prompt           = $ARG[1];
+    my $encryption_state = $ARG[2] // {};   # Accept optional encryption state
 
     if ( not $stdout_pid = fork() ) {
         $SIG{'TERM'} = $SIG{'INT'} = $SIG{'HUP'} = qw| IGNORE |;
@@ -453,12 +457,14 @@ sub shell_loop {
 
     while ( -S $sock ) {
         my $line;
-        if ( $no_tty ) {
+        if ($no_tty) {
+
             # Non-TTY mode: read from STDIN
             $line = <STDIN>;
             last unless defined $line;
             chomp($line);
         } else {
+
             # TTY mode: use readline with prompt
             $line = $term->readline($prompt);
             last unless defined $line;
@@ -505,7 +511,8 @@ sub shell_loop {
                     my $command_to_send = sprintf( "%s\n", $line );
                     if ( $encryption_state->{enabled} ) {
                         $encryption_state->{write_counter}++;
-                        $command_to_send = encrypt_message( $command_to_send, $encryption_state );
+                        $command_to_send = encrypt_message( $command_to_send,
+                            $encryption_state );
                     }
                     if ( !s_write( $sock, $command_to_send ) ) {
                         sleep(0.1);
@@ -555,11 +562,12 @@ sub stdout_fork {
     close(STDIN);
     $PROGRAM_NAME = "nshell [ stdout ]";
     while ( my $out = <$shell_sock> ) {
+
         # Decrypt message if encryption is enabled
         if ( $encryption_state->{enabled} ) {
             $encryption_state->{read_counter}++;
             $out = decrypt_message( $out, $encryption_state );
-            next unless defined $out;  # Skip if decryption failed
+            next unless defined $out;    # Skip if decryption failed
         }
         $out =~ s|\n$||;
         print "$out\n";
@@ -675,110 +683,161 @@ sub negotiate_link_upgrade {
     use Digest::SHA qw(sha256);
 
     # 1. Send link-upgrade command
-    print STDERR "[link-upgrade] Step 1: Sending link-upgrade command\n" if $ENV{DEBUG};
+    print STDERR "[link-upgrade] Step 1: Sending link-upgrade command\n"
+        if $ENV{DEBUG};
     if ( !s_write( $sock, "link-upgrade\n" ) ) {
-        print STDERR "[link-upgrade] Step 1 FAILED: Could not send link-upgrade\n" if $ENV{DEBUG};
+        print STDERR
+            "[link-upgrade] Step 1 FAILED: Could not send link-upgrade\n"
+            if $ENV{DEBUG};
         return 0;
     }
 
     # 1b. Read confirmation response (TRUE link-upgrade OK <pubkey>)
-    print STDERR "[link-upgrade] Step 1b: Reading confirmation + pubkey response\n" if $ENV{DEBUG};
+    print STDERR
+        "[link-upgrade] Step 1b: Reading confirmation + pubkey response\n"
+        if $ENV{DEBUG};
     my $cmd_response = s_read($sock);
     unless ( $cmd_response && $cmd_response =~ m|link-upgrade OK\s+(\S+)| ) {
-        print STDERR "[link-upgrade] Step 1b FAILED: Expected 'link-upgrade OK <pubkey>' response\n" if $ENV{DEBUG};
-        print STDERR "Response: $cmd_response\n" if $ENV{DEBUG} and defined $cmd_response;
+        print STDERR
+            "[link-upgrade] Step 1b FAILED: Expected 'link-upgrade OK <pubkey>' response\n"
+            if $ENV{DEBUG};
+        print STDERR "Response: $cmd_response\n"
+            if $ENV{DEBUG} and defined $cmd_response;
         return 0;
     }
 
     # Extract the pubkey from the response
     my $server_pubkey_b32 = $1;
-    unless ( $server_pubkey_b32 ) {
-        print STDERR "[link-upgrade] Step 1b FAILED: No server pubkey received\n" if $ENV{DEBUG};
+    unless ($server_pubkey_b32) {
+        print STDERR
+            "[link-upgrade] Step 1b FAILED: No server pubkey received\n"
+            if $ENV{DEBUG};
         return 0;
     }
     chomp($server_pubkey_b32);
-    print STDERR "[link-upgrade] Step 1b OK: Got server pubkey: " . substr($server_pubkey_b32, 0, 20) . "...\n" if $ENV{DEBUG};
+    print STDERR "[link-upgrade] Step 1b OK: Got server pubkey: "
+        . substr( $server_pubkey_b32, 0, 20 ) . "...\n"
+        if $ENV{DEBUG};
 
     # 3. Generate client ephemeral keypair
-    print STDERR "[link-upgrade] Step 3: Generating client ephemeral keypair\n" if $ENV{DEBUG};
+    print STDERR
+        "[link-upgrade] Step 3: Generating client ephemeral keypair\n"
+        if $ENV{DEBUG};
     my $client_secret = Crypt::Misc::random_bytes(32);
-    my $client_pubkey = Crypt::Curve25519::curve25519_public_key($client_secret);
+    my $client_pubkey
+        = Crypt::Curve25519::curve25519_public_key($client_secret);
 
-    unless ( $client_secret and $client_pubkey and
-             length($client_secret) == 32 and length($client_pubkey) == 32 ) {
-        print STDERR "[link-upgrade] Step 3 FAILED: Keypair generation failed\n" if $ENV{DEBUG};
+    unless ($client_secret
+        and $client_pubkey
+        and length($client_secret) == 32
+        and length($client_pubkey) == 32 ) {
+        print STDERR
+            "[link-upgrade] Step 3 FAILED: Keypair generation failed\n"
+            if $ENV{DEBUG};
         return 0;
     }
 
     my $client_pubkey_b32 = Crypt::Misc::encode_b32r($client_pubkey);
-    print STDERR "[link-upgrade] Step 3 OK: Generated keypair\n" if $ENV{DEBUG};
+    print STDERR "[link-upgrade] Step 3 OK: Generated keypair\n"
+        if $ENV{DEBUG};
 
     # 4. Send client pubkey
-    print STDERR "[link-upgrade] Step 4: Sending client pubkey\n" if $ENV{DEBUG};
+    print STDERR "[link-upgrade] Step 4: Sending client pubkey\n"
+        if $ENV{DEBUG};
     if ( !s_write( $sock, "link-pub-key $client_pubkey_b32\n" ) ) {
-        print STDERR "[link-upgrade] Step 4 FAILED: Could not send client pubkey\n" if $ENV{DEBUG};
+        print STDERR
+            "[link-upgrade] Step 4 FAILED: Could not send client pubkey\n"
+            if $ENV{DEBUG};
         return 0;
     }
-    print STDERR "[link-upgrade] Step 4 OK: Client pubkey sent\n" if $ENV{DEBUG};
+    print STDERR "[link-upgrade] Step 4 OK: Client pubkey sent\n"
+        if $ENV{DEBUG};
 
     # 5. Read readiness confirmation
-    print STDERR "[link-upgrade] Step 5: Reading readiness confirmation\n" if $ENV{DEBUG};
+    print STDERR "[link-upgrade] Step 5: Reading readiness confirmation\n"
+        if $ENV{DEBUG};
     my $confirm = s_read($sock);
-    unless ( $confirm ) {
-        print STDERR "[link-upgrade] Step 5 FAILED: No confirmation received\n" if $ENV{DEBUG};
+    unless ($confirm) {
+        print STDERR
+            "[link-upgrade] Step 5 FAILED: No confirmation received\n"
+            if $ENV{DEBUG};
         return 0;
     }
-    print STDERR "[link-upgrade] Step 5 OK: Got confirmation\n" if $ENV{DEBUG};
+    print STDERR "[link-upgrade] Step 5 OK: Got confirmation\n"
+        if $ENV{DEBUG};
 
     # 6. Compute DH shared secret
-    print STDERR "[link-upgrade] Step 6: Computing DH shared secret\n" if $ENV{DEBUG};
+    print STDERR "[link-upgrade] Step 6: Computing DH shared secret\n"
+        if $ENV{DEBUG};
     my $server_pubkey = Crypt::Misc::decode_b32r($server_pubkey_b32);
-    my $shared_secret = Crypt::Curve25519::curve25519_shared_secret($client_secret, $server_pubkey);
+    my $shared_secret
+        = Crypt::Curve25519::curve25519_shared_secret( $client_secret,
+        $server_pubkey );
 
     unless ( $shared_secret and length($shared_secret) == 32 ) {
-        print STDERR "[link-upgrade] Step 6 FAILED: DH computation failed\n" if $ENV{DEBUG};
+        print STDERR "[link-upgrade] Step 6 FAILED: DH computation failed\n"
+            if $ENV{DEBUG};
         return 0;
     }
-    print STDERR "[link-upgrade] Step 6 OK: Shared secret computed\n" if $ENV{DEBUG};
+    print STDERR "[link-upgrade] Step 6 OK: Shared secret computed\n"
+        if $ENV{DEBUG};
 
     # 7. Derive encryption key using SHA256-based KDF
-    print STDERR "[link-upgrade] Step 7: Deriving encryption key\n" if $ENV{DEBUG};
-    my $session_id = time() & 0xFFFFFFFF;
-    my $encryption_key = sha256($shared_secret . pack('N', $session_id));
+    print STDERR "[link-upgrade] Step 7: Deriving encryption key\n"
+        if $ENV{DEBUG};
+    my $session_id     = time() & 0xFFFFFFFF;
+    my $encryption_key = sha256( $shared_secret . pack( 'N', $session_id ) );
     unless ( $encryption_key and length($encryption_key) == 32 ) {
-        print STDERR "[link-upgrade] Step 7 FAILED: Key derivation failed\n" if $ENV{DEBUG};
+        print STDERR "[link-upgrade] Step 7 FAILED: Key derivation failed\n"
+            if $ENV{DEBUG};
         return 0;
     }
-    print STDERR "[link-upgrade] Step 7 OK: Encryption key derived (session_id=$session_id)\n" if $ENV{DEBUG};
+    print STDERR
+        "[link-upgrade] Step 7 OK: Encryption key derived (session_id=$session_id)\n"
+        if $ENV{DEBUG};
 
     # 8. Send confirm and complete
-    print STDERR "[link-upgrade] Step 8: Sending link-confirm-encoding\n" if $ENV{DEBUG};
+    print STDERR "[link-upgrade] Step 8: Sending link-confirm-encoding\n"
+        if $ENV{DEBUG};
     if ( !s_write( $sock, "link-confirm-encoding none\n" ) ) {
-        print STDERR "[link-upgrade] Step 8 FAILED: Could not send confirm-encoding\n" if $ENV{DEBUG};
+        print STDERR
+            "[link-upgrade] Step 8 FAILED: Could not send confirm-encoding\n"
+            if $ENV{DEBUG};
         return 0;
     }
 
-    print STDERR "[link-upgrade] Step 8b: Reading encoding confirmation\n" if $ENV{DEBUG};
+    print STDERR "[link-upgrade] Step 8b: Reading encoding confirmation\n"
+        if $ENV{DEBUG};
     my $enc_confirm = s_read($sock);
-    unless ( $enc_confirm ) {
-        print STDERR "[link-upgrade] Step 8b FAILED: No encoding confirmation received\n" if $ENV{DEBUG};
+    unless ($enc_confirm) {
+        print STDERR
+            "[link-upgrade] Step 8b FAILED: No encoding confirmation received\n"
+            if $ENV{DEBUG};
         return 0;
     }
-    print STDERR "[link-upgrade] Step 8b OK: Encoding confirmation received\n" if $ENV{DEBUG};
+    print STDERR "[link-upgrade] Step 8b OK: Encoding confirmation received\n"
+        if $ENV{DEBUG};
 
-    print STDERR "[link-upgrade] Step 9: Sending link-complete\n" if $ENV{DEBUG};
+    print STDERR "[link-upgrade] Step 9: Sending link-complete\n"
+        if $ENV{DEBUG};
     if ( !s_write( $sock, "link-complete\n" ) ) {
-        print STDERR "[link-upgrade] Step 9 FAILED: Could not send link-complete\n" if $ENV{DEBUG};
+        print STDERR
+            "[link-upgrade] Step 9 FAILED: Could not send link-complete\n"
+            if $ENV{DEBUG};
         return 0;
     }
 
-    print STDERR "[link-upgrade] Step 9b: Reading completion confirmation\n" if $ENV{DEBUG};
+    print STDERR "[link-upgrade] Step 9b: Reading completion confirmation\n"
+        if $ENV{DEBUG};
     my $complete = s_read($sock);
-    unless ( $complete ) {
-        print STDERR "[link-upgrade] Step 9b FAILED: No completion confirmation received\n" if $ENV{DEBUG};
+    unless ($complete) {
+        print STDERR
+            "[link-upgrade] Step 9b FAILED: No completion confirmation received\n"
+            if $ENV{DEBUG};
         return 0;
     }
-    print STDERR "[link-upgrade] Step 9b OK: Completion confirmed\n" if $ENV{DEBUG};
+    print STDERR "[link-upgrade] Step 9b OK: Completion confirmed\n"
+        if $ENV{DEBUG};
     print STDERR "[link-upgrade] Negotiation SUCCESS\n" if $ENV{DEBUG};
 
     # 10. Store encryption state
@@ -787,7 +846,7 @@ sub negotiate_link_upgrade {
     $state_ref->{read_counter}  = 0;
     $state_ref->{write_counter} = 0;
 
-    return 1;  # Success
+    return 1;    # Success
 }
 
 sub encrypt_message {
@@ -796,16 +855,15 @@ sub encrypt_message {
 
     use Crypt::AuthEnc::ChaCha20Poly1305;
 
-    my $nonce = pack( 'N', $state_ref->{session_id} ) .
-                pack( 'N', $state_ref->{write_counter} ) .
-                "\0\0\0\0";
+    my $nonce
+        = pack( 'N', $state_ref->{session_id} )
+        . pack( 'N', $state_ref->{write_counter} )
+        . "\0\0\0\0";
 
-    my $cipher = Crypt::AuthEnc::ChaCha20Poly1305->new(
-        $state_ref->{key},
-        $nonce
-    );
+    my $cipher
+        = Crypt::AuthEnc::ChaCha20Poly1305->new( $state_ref->{key}, $nonce );
     my $ciphertext = $cipher->encrypt_add($plaintext);
-    my $auth_tag = $cipher->encrypt_done();
+    my $auth_tag   = $cipher->encrypt_done();
 
     return $ciphertext . $auth_tag;
 }
@@ -816,25 +874,24 @@ sub decrypt_message {
 
     use Crypt::AuthEnc::ChaCha20Poly1305;
 
-    my $nonce = pack( 'N', $state_ref->{session_id} ) .
-                pack( 'N', $state_ref->{read_counter} ) .
-                "\0\0\0\0";
+    my $nonce
+        = pack( 'N', $state_ref->{session_id} )
+        . pack( 'N', $state_ref->{read_counter} )
+        . "\0\0\0\0";
 
-    my $auth_tag = substr( $ciphertext, -16 );
+    my $auth_tag  = substr( $ciphertext, -16 );
     my $encrypted = substr( $ciphertext, 0, -16 );
 
-    my $cipher = Crypt::AuthEnc::ChaCha20Poly1305->new(
-        $state_ref->{key},
-        $nonce
-    );
+    my $cipher
+        = Crypt::AuthEnc::ChaCha20Poly1305->new( $state_ref->{key}, $nonce );
     my $plaintext = $cipher->decrypt_add($encrypted);
-    my $success = $cipher->decrypt_done($auth_tag);
+    my $success   = $cipher->decrypt_done($auth_tag);
 
     return $success ? $plaintext : undef;
 }
 
-#,,..,,.,,...,..,,,,.,,.,,,.,,.,,,.,.,..,,,.,,..,,...,..,,,..,.,,,.,.,,.,,...,
-#2UPERVLXAIBEKN5ZOVBFPP3IB4NFEB5AJF4E7H6WCNDAIAN4C2JLXRTKBCDXL72CYWV3FH5JGMC6K
-#\\\|2YPE4LOBBKWKSTXROMM7DSXKWUS6ETUMNJRCGZHT7VIMNSP4VWY \ / AMOS7 \ YOURUM ::
-#\[7]BH7ABC3LQ36MOGNHRRP7EFW2KWOWC7I547EQXVGV553QTGVEI4BQ 7  DATA SIGNATURE ::
+#,,.,,...,...,...,.,,,,.,,.,.,..,,,,,,.,.,,,.,..,,...,..,,,..,,..,,..,..,,,,.,
+#YAG6V56J36TNTHHQ53RKWI4LA6T3AJLES2NBBP6T7HLIP4LX7NHKFAZA2QC7R75P4PDLBHGJDQ6TW
+#\\\|SPE4WIZ4LMJOBEQQH7ADIR4PQK5JTDQT7TMXGLI2HEWPDV4AJY4 \ / AMOS7 \ YOURUM ::
+#\[7]G3OXCAATXUM6OZ4VNFM4MOM5QZ6PGMF7V57LY2FQR6RIMUZ7FUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

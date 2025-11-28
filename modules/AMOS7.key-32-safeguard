@@ -19,36 +19,34 @@ our $SUPPRESS_KEY_32_WARNING = 0;
 
 # Safe iteration limit
 use constant SAFE_NUMERIC_SEED_LIMIT => 1000;
-use constant TOTAL_ITERATION_LIMIT => 2000;  ## 113 + 1887 max safe
+use constant TOTAL_ITERATION_LIMIT   => 2000;    ## 113 + 1887 max safe
 
 sub key_32_safe {
-    my ($secret_ref, $seed, $suppress_this_call) = @_;
+    my ( $secret_ref, $seed, $suppress_this_call ) = @_;
 
     # Check if seed is numeric and exceeds safe limit
-    if (defined $seed && !ref($seed) && $seed =~ m|^\d+$|) {
+    if ( defined $seed && !ref($seed) && $seed =~ m|^\d+$| ) {
         my $total_iterations = 113 + $seed;
 
-        if ($seed > SAFE_NUMERIC_SEED_LIMIT) {
-            my $ratio = int($total_iterations / TOTAL_ITERATION_LIMIT);
+        if ( $seed > SAFE_NUMERIC_SEED_LIMIT ) {
+            my $ratio = int( $total_iterations / TOTAL_ITERATION_LIMIT );
 
-            unless ($SUPPRESS_KEY_32_WARNING || $suppress_this_call) {
-                warn sprintf(
-                    "⚠ AMOS7::13::key_32 warning:\n" .
-                    "  Numeric seed %d exceeds safe limit (%d)\n" .
-                    "  This will create %d total iterations (%dx safe limit)\n" .
-                    "  RECOMMENDED: Use SCALAR ref instead\n" .
-                    "    Changed: key_32(\\\\secret, %d)\n" .
-                    "    To:      key_32(\\\\secret, \\\\%d_ref)\n" .
-                    "  To silence: \$AMOS7::key_32_safeguard::SUPPRESS_KEY_32_WARNING = 1\n",
+            unless ( $SUPPRESS_KEY_32_WARNING || $suppress_this_call ) {
+                warn sprintf( "⚠ AMOS7::13::key_32 warning:\n"
+                        . "  Numeric seed %d exceeds safe limit (%d)\n"
+                        . "  This will create %d total iterations (%dx safe limit)\n"
+                        . "  RECOMMENDED: Use SCALAR ref instead\n"
+                        . "    Changed: key_32(\\\\secret, %d)\n"
+                        . "    To:      key_32(\\\\secret, \\\\%d_ref)\n"
+                        . "  To silence: \$AMOS7::key_32_safeguard::SUPPRESS_KEY_32_WARNING = 1\n",
                     $seed, SAFE_NUMERIC_SEED_LIMIT, $total_iterations, $ratio,
-                    $seed, $seed
-                );
+                    $seed, $seed );
             }
         }
     }
 
     # Call the actual key_32 function
-    return AMOS7::13::key_32($secret_ref, $seed);
+    return AMOS7::13::key_32( $secret_ref, $seed );
 }
 
 1;
@@ -58,3 +56,9 @@ sub key_32_safe {
 #\\\|PLACEHOLDER_SIGNATURE_HASH_2 \ / AMOS7 \ YOURUM ::
 #\[7]PLACEHOLDER_SIGNATURE_HASH_3 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,,,,..,..,,,..,..,,,..,,,.,.,.,,,.,,,,,,..,..,,...,...,..,,.,,,,,,,.,.,,,.,
+#QQ6Q2UTJCJE6AQMJI7ZQUAUYBYBY74ZWY6KGPTNXFTC5XCYBWSLXBJEKOB2U354KUTXNXXDTFZQV6
+#\\\|PYZVBCLHDNZAR7Z6JHAILKQCV3OVI3NRSIH3KD4V66V3KEE74ZP \ / AMOS7 \ YOURUM ::
+#\[7]NNZSZDIO5GY7LBRI6ZKFOYWSYRBV6NAEZAW74MCYT6UIAQEMXYBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

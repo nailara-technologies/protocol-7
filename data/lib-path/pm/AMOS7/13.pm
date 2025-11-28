@@ -868,23 +868,25 @@ sub key_32 {  ## create 32 bytes binary encryption key from arbitrary input ##
 
     ##  SAFEGUARD: Warn if numeric seed creates excessive iterations  ##
     ##  Benchmark shows: safe limit ~1000, 82ms per call at that level   ##
-    if ( defined $keyname_seed and !ref($keyname_seed)
+    if (    defined $keyname_seed
+        and !ref($keyname_seed)
         and $keyname_seed =~ m|^\d+$|
         and $keyname_seed > 1000
-        and not ( $AMOS7::13::allow_high_iterations // 0 ) ) {
+        and not( $AMOS7::13::allow_high_iterations // 0 ) ) {
 
         my $total_iters = $seed_iteration_count;
-        my $ratio = int( $total_iters / 1113 );  ##  1113 = 113 + 1000  ##
+        my $ratio = int( $total_iters / 1113 );    ##  1113 = 113 + 1000  ##
 
         warn sprintf(
-            "\n:: AMOS7::13::key_32 WARNING::\n" .
-            ":: Numeric seed %d creates %d iterations (%dx safe limit)\n" .
-            ":: This may cause slowdown in event handlers\n" .
-            ":: RECOMMENDED: Use SCALAR ref instead\n" .
-            "::   Changed: key_32(\\seed, %d)\n" .
-            "::   To:      key_32(\\seed, \\%d_var)\n" .
-            ":: To override: set \$AMOS7::13::allow_high_iterations = 1 before calling\n\n",
-            $keyname_seed, $total_iters, $ratio, $keyname_seed, $keyname_seed
+            "\n:: AMOS7::13::key_32 WARNING::\n"
+                . ":: Numeric seed %d creates %d iterations (%dx safe limit)\n"
+                . ":: This may cause slowdown in event handlers\n"
+                . ":: RECOMMENDED: Use SCALAR ref instead\n"
+                . "::   Changed: key_32(\\seed, %d)\n"
+                . "::   To:      key_32(\\seed, \\%d_var)\n"
+                . ":: To override: set \$AMOS7::13::allow_high_iterations = 1 before calling\n\n",
+            $keyname_seed, $total_iters, $ratio,
+            $keyname_seed, $keyname_seed
         );
     }
 
@@ -1275,8 +1277,8 @@ sub visualize_bin_032 {
 
 return TRUE ##################################################################
 
-#,,.,,.,,,,,.,.,.,,.,,...,..,,,,,,,..,.,,,.,.,..,,...,..,,.,.,..,,.,,,...,...,
-#TSWDEMPCDFDH43XKUEMNS7AOBR4DLXE273YVAVEQWFILSEYL4TVEM62VQ2KUFRINWYJ3MP7S2UFUK
-#\\\|DNE5IEBBBUNJQJIS6FBSOB23PGI5EX3GN3GDN235JEXJLGO733T \ / AMOS7 \ YOURUM ::
-#\[7]XX4LRIKQ3XX73ELJ423TPFEHEFHESQECYWG45KLREISITU2ZDACQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,.,,,,,.,,,,,...,.,.,.,.,..,,,,,,..,,...,...,,.,,.,,,...,.,.,..,,
+#HF3DX3URF7ENK64ED376NALWBJWOZVALRADVY6EV52N6JNW6FXY4N6AMLJJ3RSKR5KRL7HIK4AQXM
+#\\\|ZRX3HWXPLUPVM2DPCXXKDRJKBJI5LHJHMJHOGL54VB3X4B7ZD3U \ / AMOS7 \ YOURUM ::
+#\[7]4TMUXY4BYROTGIVRHMITP2NHNAAMUEW2V6NLYENZPTX2PNGFBCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

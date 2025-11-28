@@ -20,11 +20,12 @@ if (   $EFFECTIVE_USER_ID == 0
 ) {
     if ( not -d $key_dir ) {
         <[base.logs]>->( 1, "creating key directory '%s' ..", $key_dir );
-        my $owner_name = getpwuid($uid);
-        my $group_name = getgrgid($gid);
-        my $created_path = <[file.make_path]>->( $key_dir, 0700, $owner_name, $group_name );
+        my $owner_name   = getpwuid($uid);
+        my $group_name   = getgrgid($gid);
+        my $created_path = <[file.make_path]>
+            ->( $key_dir, 0700, $owner_name, $group_name );
         return undef if not defined $created_path;    # <-- return error state
-        return $key_dir;                              # success [ dir exists now ]
+        return $key_dir;    # success [ dir exists now ]
     }
 } elsif ( not -r $key_dir or not -d $key_dir ) {
     my $perms     = -d $key_dir ? '' : ' [ permissions ]';
@@ -36,8 +37,8 @@ if (   $EFFECTIVE_USER_ID == 0
 
 return $key_dir      # <-- success [ true ]
 
-#,,,,,,,.,,,.,..,,...,,,.,,,,,,..,..,,,.,,...,..,,...,...,.,.,...,,,,,,..,,,,,
-#ITMLHO4NP7HRV4OQRJHJRAT4BDWQX2UUIGJ3UQMSWXVT433RHUTPPXLJUJX4CFZWGYBSFFMA335Y2
-#\\\|RQQXXOO3PTDQHK2SLWKIHYU6L2W3AKMZVSXYYTTH7XSY4ZQ6EDB \ / AMOS7 \ YOURUM ::
-#\[7]JOS55IONZD22QNWYFU2TBKPYK7PEZJSP7WBGMUCI5DXDPEOHFWCA 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,..,,..,.,,,...,,..,..,,.,,,,..,..,,...,...,,..,.,.,,.,,,..,...,
+#PUBDAYKLYOMJXMLN5M4IX4DXIZYGZQ6YQWKWSD7WRN7NMUHJMC5QGTHRNDV76VTTP3WUGG245EJPA
+#\\\|IMLLFISHDOQ6PBX3EJ7VH4U36BXGLX6LYUWDBBGZY7MIBLEJIZX \ / AMOS7 \ YOURUM ::
+#\[7]ER6INE3GEZ2VRENCCDID2DHATOSIBYFYZK4FAMPZEJNSWISTEWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -16,9 +16,9 @@ use English;
 
 BEGIN {
     # Add Protocol-7 lib path
-    my $up_dir = File::Spec->updir;
-    my $root = abs_path(File::Spec->catdir($RealBin, $up_dir));
-    my $lib_path = File::Spec->catdir($root, 'data', 'lib-path', 'pm');
+    my $up_dir   = File::Spec->updir;
+    my $root     = abs_path( File::Spec->catdir( $RealBin, $up_dir ) );
+    my $lib_path = File::Spec->catdir( $root, 'data', 'lib-path', 'pm' );
 
     die "Library path not found: $lib_path\n" unless -d $lib_path;
     unshift @INC, $lib_path;
@@ -29,23 +29,25 @@ use Crypt::Misc;
 use Crypt::AuthEnc::ChaCha20Poly1305;
 use Crypt::Curve25519;
 use Digest::SHA qw(sha256);
-use AMOS7;  # For key derivation functions
+use AMOS7;    # For key derivation functions
 
 ##[ Main Entry Point ]##########################################################
 
 my $operation = shift @ARGV // 'help';
 
-if ($operation eq 'gen-ephemeral') {
+if ( $operation eq 'gen-ephemeral' ) {
     op_gen_ephemeral();
-} elsif ($operation eq 'compute-dh') {
+} elsif ( $operation eq 'compute-dh' ) {
     op_compute_dh();
-} elsif ($operation eq 'derive-key') {
+} elsif ( $operation eq 'derive-key' ) {
     op_derive_key();
-} elsif ($operation eq 'encrypt') {
+} elsif ( $operation eq 'encrypt' ) {
     op_encrypt();
-} elsif ($operation eq 'decrypt') {
+} elsif ( $operation eq 'decrypt' ) {
     op_decrypt();
-} elsif ($operation eq 'help' || $operation eq '-h' || $operation eq '--help') {
+} elsif ( $operation eq 'help'
+    || $operation eq '-h'
+    || $operation eq '--help' ) {
     show_help();
 } else {
     die "Unknown operation: $operation\n";
@@ -56,6 +58,7 @@ exit 0;
 ##[ Operations ]################################################################
 
 sub op_gen_ephemeral {
+
     # Generate ephemeral C25519 keypair for client
     # Returns: base32(pubkey) on line 1, base32(secret) on line 2
 
@@ -66,7 +69,10 @@ sub op_gen_ephemeral {
     my $pubkey = Crypt::Curve25519::curve25519_public_key($secret);
 
     die "Failed to generate ephemeral keypair\n"
-        unless $secret and $pubkey and length($secret) == 32 and length($pubkey) == 32;
+        unless $secret
+        and $pubkey
+        and length($secret) == 32
+        and length($pubkey) == 32;
 
     # Output in base32 format for easy transmission
     print Crypt::Misc::encode_b32r($pubkey) . "\n";
@@ -74,6 +80,7 @@ sub op_gen_ephemeral {
 }
 
 sub op_compute_dh {
+
     # Compute Diffie-Hellman shared secret using Curve25519
     # Input: client_secret_b32 server_pubkey_b32
     # Returns: base32(shared_secret)
@@ -89,7 +96,9 @@ sub op_compute_dh {
     my $server_pubkey = Crypt::Misc::decode_b32r($server_pubkey_b32);
 
     # Compute DH shared secret using Curve25519
-    my $shared_secret = Crypt::Curve25519::curve25519_shared_secret($client_secret, $server_pubkey);
+    my $shared_secret
+        = Crypt::Curve25519::curve25519_shared_secret( $client_secret,
+        $server_pubkey );
 
     die "Failed to compute DH shared secret\n"
         unless $shared_secret and length($shared_secret) == 32;
@@ -99,6 +108,7 @@ sub op_compute_dh {
 }
 
 sub op_derive_key {
+
     # Derive encryption key from shared secret
     # Input: shared_secret_b32 session_id
     # Returns: base32(encryption_key)
@@ -107,7 +117,7 @@ sub op_derive_key {
     # For production, this should use a proper KDF like PBKDF2
 
     my $shared_secret_b32 = shift @ARGV;
-    my $session_id = shift @ARGV;
+    my $session_id        = shift @ARGV;
 
     die "Usage: $0 derive-key <shared_secret_b32> <session_id>\n"
         unless $shared_secret_b32 and defined $session_id;
@@ -117,40 +127,44 @@ sub op_derive_key {
 
     # Derive encryption key: SHA256(shared_secret || session_id)
     # This produces a 32-byte key suitable for ChaCha20-Poly1305
-    my $key = sha256($shared_secret . pack('N', $session_id));
+    my $key = sha256( $shared_secret . pack( 'N', $session_id ) );
 
-    die "Failed to derive encryption key\n" unless $key and length($key) == 32;
+    die "Failed to derive encryption key\n"
+        unless $key and length($key) == 32;
 
     # Return in base32 format
     print Crypt::Misc::encode_b32r($key) . "\n";
 }
 
 sub op_encrypt {
+
     # Encrypt message with ChaCha20-Poly1305
     # Input: base32(key) session_id counter
     # Input data: plaintext via STDIN
     # Returns: ciphertext + auth_tag (binary) on stdout
 
-    my $key_b32 = shift @ARGV;
+    my $key_b32    = shift @ARGV;
     my $session_id = shift @ARGV;
-    my $counter = shift @ARGV;
+    my $counter    = shift @ARGV;
 
     die "Usage: $0 encrypt <key_b32> <session_id> <counter> < plaintext\n"
-        unless $key_b32 and defined $session_id and defined $counter;
+        unless $key_b32
+        and defined $session_id
+        and defined $counter;
 
     # Read plaintext from STDIN
-    my $plaintext = join('', <>);
+    my $plaintext = join( '', <> );
 
     # Decode key from base32
     my $key = Crypt::Misc::decode_b32r($key_b32);
 
     # Generate nonce: 4-byte session_id + 4-byte counter + 4 zero bytes
-    my $nonce = pack('N', $session_id) . pack('N', $counter) . "\0\0\0\0";
+    my $nonce = pack( 'N', $session_id ) . pack( 'N', $counter ) . "\0\0\0\0";
 
     # Create cipher and encrypt
-    my $cipher = Crypt::AuthEnc::ChaCha20Poly1305->new($key, $nonce);
+    my $cipher     = Crypt::AuthEnc::ChaCha20Poly1305->new( $key, $nonce );
     my $ciphertext = $cipher->encrypt_add($plaintext);
-    my $auth_tag = $cipher->encrypt_done();
+    my $auth_tag   = $cipher->encrypt_done();
 
     # Output binary ciphertext + auth_tag
     # Note: This is binary data, not base32
@@ -158,35 +172,38 @@ sub op_encrypt {
 }
 
 sub op_decrypt {
+
     # Decrypt message with ChaCha20-Poly1305
     # Input: base32(key) session_id counter
     # Input data: ciphertext + auth_tag (binary) via STDIN
     # Returns: plaintext on stdout (or error on stderr)
 
-    my $key_b32 = shift @ARGV;
+    my $key_b32    = shift @ARGV;
     my $session_id = shift @ARGV;
-    my $counter = shift @ARGV;
+    my $counter    = shift @ARGV;
 
     die "Usage: $0 decrypt <key_b32> <session_id> <counter> < ciphertext\n"
-        unless $key_b32 and defined $session_id and defined $counter;
+        unless $key_b32
+        and defined $session_id
+        and defined $counter;
 
     # Read ciphertext from STDIN (binary data)
-    my $ciphertext_with_tag = join('', <>);
+    my $ciphertext_with_tag = join( '', <> );
 
     # Decode key from base32
     my $key = Crypt::Misc::decode_b32r($key_b32);
 
     # Extract auth tag (last 16 bytes) and ciphertext
-    my $auth_tag = substr($ciphertext_with_tag, -16);
-    my $ciphertext = substr($ciphertext_with_tag, 0, -16);
+    my $auth_tag   = substr( $ciphertext_with_tag, -16 );
+    my $ciphertext = substr( $ciphertext_with_tag, 0, -16 );
 
     # Generate nonce: 4-byte session_id + 4-byte counter + 4 zero bytes
-    my $nonce = pack('N', $session_id) . pack('N', $counter) . "\0\0\0\0";
+    my $nonce = pack( 'N', $session_id ) . pack( 'N', $counter ) . "\0\0\0\0";
 
     # Create cipher and decrypt
-    my $cipher = Crypt::AuthEnc::ChaCha20Poly1305->new($key, $nonce);
+    my $cipher    = Crypt::AuthEnc::ChaCha20Poly1305->new( $key, $nonce );
     my $plaintext = $cipher->decrypt_add($ciphertext);
-    my $success = $cipher->decrypt_done($auth_tag);
+    my $success   = $cipher->decrypt_done($auth_tag);
 
     # Output plaintext or error
     if ($success) {
@@ -362,8 +379,8 @@ As per Protocol-7
 
 =cut
 
-#,,,,,.,,,,.,,,,,,.,,,..,,,,,,..,,,,.,,.,,,,.,..,,...,...,,.,,.,,,.,.,,..,,.,,
-#UF2CWE5DVHS55UZXYQR2MODB5WO3FDHIPJUIMET3VPUJVPFXAQJAYLNMP72Z4IHJ253EXVENOXKIG
-#\\\|USRIEPLRMKVC567RK4T6GPM5CS4EMPF7A4PCUDT67R35RN3367Z \ / AMOS7 \ YOURUM ::
-#\[7]R5S62PTN32SLGDJ46VBGZEKGB7HPJIFD6J4MUGHIZIO7JNXXT6BQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,..,,,,,...,.,,,,,.,...,.,,,,.,,..,,...,...,..,,.,.,...,,..,.,,,
+#4K26NGSH4OHPLFN7U2QZPU4QP6UAIV6CUAYMUS4374QTQEFWHXUPI4QY5MK5UT2BKLMOIP7OKMMNU
+#\\\|G2GK22LODEYZ2OMF2ET3KBWWB5JYKIPTEOAY2YHLZGMNIBYM6MW \ / AMOS7 \ YOURUM ::
+#\[7]4LBMFZNFXT7WM2QEZOJWUARP75IFZ3JZZQS7NYGAYUWKSWTSCODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,18 +18,19 @@ print "-" x 70 . "\n";
 
 use AMOS7::13 qw(key_32);
 
-my $secret = "test_secret_data_for_verification";
-my $session_id = 4072297;  # The original buggy value
+my $secret     = "test_secret_data_for_verification";
+my $session_id = 4072297;    # The original buggy value
 
 print "  Testing with the ORIGINAL buggy session_id: $session_id\n";
 print "  (Using SCALAR ref to avoid the bug)\n\n";
 
-my $start = time();
-my $key = key_32(\$secret, \$session_id);
+my $start   = time();
+my $key     = key_32( \$secret, \$session_id );
 my $elapsed = time() - $start;
 
-if (defined $key && length($key) == 32) {
-    printf "  ✓ Key derivation completed in %.4fs (%.1fms)\n", $elapsed, $elapsed * 1000;
+if ( defined $key && length($key) == 32 ) {
+    printf "  ✓ Key derivation completed in %.4fs (%.1fms)\n", $elapsed,
+        $elapsed * 1000;
     printf "  ✓ Generated 32-byte key\n";
     printf "  ✓ INSTANT - no event loop blocking\n";
 } else {
@@ -47,8 +48,9 @@ print "  Expected: WARNING about excessive iterations\n\n";
 
 my $warning_captured = 0;
 {
-    local $SIG{__WARN__} = sub { $warning_captured = 1 if $_[0] =~ /key_32 WARNING/ };
-    my $key_unsafe = key_32(\$secret, 2000);
+    local $SIG{__WARN__}
+        = sub { $warning_captured = 1 if $_[0] =~ /key_32 WARNING/ };
+    my $key_unsafe = key_32( \$secret, 2000 );
 }
 
 if ($warning_captured) {
@@ -68,10 +70,10 @@ $AMOS7::13::allow_high_iterations = 1;
 my $warning_suppressed = 1;
 {
     local $SIG{__WARN__} = sub { $warning_suppressed = 0 };
-    my $key_override = key_32(\$secret, 2000);
+    my $key_override = key_32( \$secret, 2000 );
 }
 
-$AMOS7::13::allow_high_iterations = 0;  # Reset
+$AMOS7::13::allow_high_iterations = 0;    # Reset
 
 if ($warning_suppressed) {
     print "  ✓ Override flag successfully suppresses warning\n";
@@ -86,7 +88,7 @@ print "-" x 70 . "\n";
 
 print "  Checking perlmod.loaded function availability\n";
 
-if (defined &AMOS7::13::key_32) {
+if ( defined &AMOS7::13::key_32 ) {
     print "  ✓ key_32 function available and callable\n";
 }
 
@@ -106,16 +108,20 @@ print "-" x 70 . "\n";
 
 print "  Testing Curve25519 DH key exchange\n";
 
-my $server_secret = join('', map { chr(int(rand(256))) } 1..32);
+my $server_secret = join( '', map { chr( int( rand(256) ) ) } 1 .. 32 );
 my $server_public = Crypt::Curve25519::curve25519_public_key($server_secret);
 
-my $client_secret = join('', map { chr(int(rand(256))) } 1..32);
+my $client_secret = join( '', map { chr( int( rand(256) ) ) } 1 .. 32 );
 my $client_public = Crypt::Curve25519::curve25519_public_key($client_secret);
 
-my $server_shared = Crypt::Curve25519::curve25519_shared_secret($server_secret, $client_public);
-my $client_shared = Crypt::Curve25519::curve25519_shared_secret($client_secret, $server_public);
+my $server_shared
+    = Crypt::Curve25519::curve25519_shared_secret( $server_secret,
+    $client_public );
+my $client_shared
+    = Crypt::Curve25519::curve25519_shared_secret( $client_secret,
+    $server_public );
 
-if ($server_shared eq $client_shared && length($server_shared) == 32) {
+if ( $server_shared eq $client_shared && length($server_shared) == 32 ) {
     print "  ✓ DH key exchange successful\n";
     print "  ✓ Both sides derived matching 32-byte shared secret\n";
 } else {
@@ -125,11 +131,11 @@ if ($server_shared eq $client_shared && length($server_shared) == 32) {
 
 print "  Testing ChaCha20-Poly1305 encryption\n";
 
-my $enc_key = key_32(\$server_shared, \4072297);
-my $nonce = pack('N', 4072297) . pack('N', 1) . "\0\0\0\0";
-my $cipher = Crypt::AuthEnc::ChaCha20Poly1305->new($enc_key, $nonce);
+my $enc_key = key_32( \$server_shared, \4072297 );
+my $nonce   = pack( 'N', 4072297 ) . pack( 'N', 1 ) . "\0\0\0\0";
+my $cipher  = Crypt::AuthEnc::ChaCha20Poly1305->new( $enc_key, $nonce );
 
-if (defined $cipher) {
+if ( defined $cipher ) {
     print "  ✓ ChaCha20-Poly1305 cipher initialized\n";
     print "  ✓ Ready for message encryption/decryption\n";
 } else {
@@ -160,3 +166,9 @@ print "  • Override available: \\\$AMOS7::13::allow_high_iterations\n\n";
 print "=" x 70 . "\n";
 print "Ready for protocol-7 link-upgrade testing\n";
 print "=" x 70 . "\n\n";
+
+#,,..,,.,,...,..,,,,,,,,,,...,,..,.,.,.,.,,..,..,,...,...,,.,,,,.,.,,,..,,.,.,
+#4AXBVXTDUMI2LBEU3X7UWFFVI5DVF3RKOILMHFVYZH44QDJ2C5JSY7ISB56QSWTIH3LKFKYTKPWBG
+#\\\|CJPKMPFLXRN3JNCUFOPPETDP2LLNEVZFYFHVMUBYXKY4IDGGACK \ / AMOS7 \ YOURUM ::
+#\[7]IE4BEDNCQKF2GS6VCS7D2O3CHFMIKQYYAJQEQA6KU4J26BIHOQBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

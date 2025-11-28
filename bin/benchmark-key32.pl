@@ -7,9 +7,9 @@ use v5.24;
 use strict;
 use warnings;
 use Time::HiRes qw(time sleep);
-use AMOS7::13 qw(key_32);
+use AMOS7::13   qw(key_32);
 
-my $RUN_TIME = 5;  # Run benchmark for 5 seconds
+my $RUN_TIME  = 5;    # Run benchmark for 5 seconds
 my $test_seed = "benchmark_entropy_seed_data_test_string";
 
 print "\n";
@@ -23,47 +23,48 @@ print "[TEST 1] SCALAR ref parameter (smart 113-226 iterations)\n";
 print "         Recommended: This is the preferred usage\n";
 print "-" x 60 . "\n";
 
-my $count = 0;
+my $count      = 0;
 my $start_time = time();
 my $total_time = 0;
 
-while ($total_time < $RUN_TIME) {
-    my $seed_var = $count;  # Different entropy per iteration
-    my $key = key_32(\$test_seed, \$seed_var);
+while ( $total_time < $RUN_TIME ) {
+    my $seed_var = $count;    # Different entropy per iteration
+    my $key      = key_32( \$test_seed, \$seed_var );
     $count++;
     $total_time = time() - $start_time;
 }
 
 my $elapsed = time() - $start_time;
-my $rate = $count / $elapsed;
+my $rate    = $count / $elapsed;
 
 printf "  Iterations in %.2fs: %d calls\n", $elapsed, $count;
 printf "  Rate: %.1f calls/second\n", $rate;
-printf "  Average time per call: %.4fs (%.1fms)\n\n", $elapsed / $count, ($elapsed / $count) * 1000;
+printf "  Average time per call: %.4fs (%.1fms)\n\n", $elapsed / $count,
+    ( $elapsed / $count ) * 1000;
 
 # Test 2: Small numeric seeds (safe range)
 print "[TEST 2] Numeric seed parameter (safe: 0-1000)\n";
 print "         Total iterations: 113 + seed\n";
 print "-" x 60 . "\n";
 
-my @test_numeric_seeds = (1, 10, 100, 500, 1000);
+my @test_numeric_seeds = ( 1, 10, 100, 500, 1000 );
 
 foreach my $num_seed (@test_numeric_seeds) {
-    my $count_n = 0;
-    my $start_n = time();
+    my $count_n   = 0;
+    my $start_n   = time();
     my $elapsed_n = 0;
 
-    while ($elapsed_n < 1.0) {
-        my $key = key_32(\$test_seed, $num_seed);
+    while ( $elapsed_n < 1.0 ) {
+        my $key = key_32( \$test_seed, $num_seed );
         $count_n++;
         $elapsed_n = time() - $start_n;
     }
 
-    my $rate_n = $count_n / $elapsed_n;
+    my $rate_n     = $count_n / $elapsed_n;
     my $total_iter = 113 + $num_seed;
 
     printf "  Seed +%-5d (total %4d iters): %.1f calls/sec (%.2fms each)\n",
-        $num_seed, $total_iter, $rate_n, (1000 / $rate_n);
+        $num_seed, $total_iter, $rate_n, ( 1000 / $rate_n );
 }
 
 print "\n";
@@ -96,3 +97,9 @@ print "              Could create millions of iterations\n\n";
 print "=" x 60 . "\n";
 print "Benchmark complete. Use results to set AMOS7::13 limits.\n";
 print "=" x 60 . "\n\n";
+
+#,,..,,.,,.,,,.,.,,,,,...,,,.,..,,,..,...,..,,..,,...,..,,.,.,.,.,.,.,,..,,,.,
+#DO63QJGCOTQZ7YV6GSHIRZ4QWOOKG7U4FC7QDFICCRLCRQ2B4I6M6UMEEZXH4RIHQFW23NBO345CE
+#\\\|USICTEDX22NVHXQADH745KFEW6PLC6JEN6KYXK56MWQSAEEYFZV \ / AMOS7 \ YOURUM ::
+#\[7]JKGFD2OPOXCRSEHKOWYWDKMGWHPSC2SB37NHVJZKIUODBVTLBEDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
