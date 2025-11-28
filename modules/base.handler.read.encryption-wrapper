@@ -10,9 +10,9 @@
 # note  = operates on session buffer, maintains linewise protocol
 #         preserves return code from original handler
 
-my $event = shift;
+my $event      = shift;
 my $session_id = $event->w->data;
-my $session = $data{'session'}{$session_id};
+my $session    = $data{'session'}{$session_id};
 
 ## Get original handler reference (encoding wrapper or command handler)
 my $original_handler = $session->{'input'}->{'handler_original'}
@@ -25,8 +25,8 @@ if ( not defined $session->{'link_encryption_key'} ) {
 }
 
 ## Load cipher module if not already loaded
-if ( not <[base.perlmod.loaded]>->( 'Crypt::AuthEnc::ChaCha20Poly1305' ) ) {
-    <[base.perlmod.load]>->( 'Crypt::AuthEnc::ChaCha20Poly1305' );
+if ( not <[base.perlmod.loaded]>->('Crypt::AuthEnc::ChaCha20Poly1305') ) {
+    <[base.perlmod.load]>->('Crypt::AuthEnc::ChaCha20Poly1305');
 }
 
 ## Apply decryption to input buffer before calling original handler
@@ -46,16 +46,17 @@ if ( defined $$input_ref and length $$input_ref ) {
         ## Format: 4-byte session_id + 4-byte counter + 4-byte zeros = 12-byte nonce
         my $session_bytes = pack qw| N |, $session_id;
         my $counter_bytes = pack qw| N |, $session->{'link_read_counter'};
-        my $nonce = $session_bytes . $counter_bytes . qq|\0\0\0\0|;
+        my $nonce         = $session_bytes . $counter_bytes . qq|\0\0\0\0|;
 
         ## Create fresh cipher instance with nonce
         my $cipher = Crypt::AuthEnc::ChaCha20Poly1305->new(
-            $session->{'link_encryption_key'}, $nonce
-        );
+            $session->{'link_encryption_key'}, $nonce );
 
         if ( not defined $cipher ) {
             <[base.s_warn]>->(
-                sprintf 'ChaCha20-Poly1305 initialization failed [session %d]', $session_id
+                sprintf
+                    'ChaCha20-Poly1305 initialization failed [session %d]',
+                $session_id
             );
             $session->{'shutdown'} = TRUE;
             return 2;
@@ -63,22 +64,24 @@ if ( defined $$input_ref and length $$input_ref ) {
 
         ## Extract authentication tag from end of ciphertext (last 16 bytes)
         my $ciphertext_with_tag = $$input_ref;
-        my $ciphertext = substr( $ciphertext_with_tag, 0, length($ciphertext_with_tag) - 16 );
+        my $ciphertext          = substr( $ciphertext_with_tag, 0,
+            length($ciphertext_with_tag) - 16 );
         my $auth_tag = substr( $ciphertext_with_tag, -16 );
 
         ## Decrypt and authenticate using ChaCha20-Poly1305
         my $plaintext = eval {
-            $cipher->decrypt_add( $ciphertext );
-            $cipher->decrypt_done( $auth_tag );
+            $cipher->decrypt_add($ciphertext);
+            $cipher->decrypt_done($auth_tag);
         };
 
         if ( my $error = $@ ) {
             <[base.s_warn]>->(
-                sprintf 'ChaCha20-Poly1305 decryption failed [session %d]: %s',
+                sprintf
+                    'ChaCha20-Poly1305 decryption failed [session %d]: %s',
                 $session_id, $error
             );
             $session->{'shutdown'} = TRUE;
-            return 2;  ## disconnect
+            return 2;    ## disconnect
         }
 
         ## Update input buffer with decrypted plaintext
@@ -97,8 +100,8 @@ return $ret_code;
 
 1;
 
-#,,,,,,.,,,..,.,.,,..,,,.,.,,,..,,,,,,..,,..,,..,,...,...,..,,,.,,.,,,,,,,,..,
-#62GGKFDPKRXDSWHCQTERUFULV52NZESOTLRKB37LVYHBLDJUWFKAMX23V65WIRJZXH5JIYHL5NBVY
-#\\\|EVUSPFCJ6YWFNHPC65VWO4QPKE4N7QH7FMDM5UKS62MESKZWSJQ \ / AMOS7 \ YOURUM ::
-#\[7]2ULDT2QJIIX2Y32SZEWQXTDQYQ3OLSPZSUABXRWE6MOXKYFKBUBA 7  DATA SIGNATURE ::
+#,,,,,..,,...,,.,,.,,,...,,,.,.,.,.,.,,..,...,..,,...,...,.,,,.,.,,..,.,.,.,,,
+#WRRSNNVEXWMTWUKBL6QOUTHZCYVFS3NVDPTMOKPQ7K2P2LZMFY5H4U6OKCU4VZGIV3WAUW3PCTFXO
+#\\\|CRDVSUPBJ47UW2NWKGOGOM2S4FOJPTVEME4AH2BPYAHBS2X2DKF \ / AMOS7 \ YOURUM ::
+#\[7]AEEIU5GETYUKVSNNMRPC2UC7DSHDV4JZ5GJ3HJZB2TGHGSRHQGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

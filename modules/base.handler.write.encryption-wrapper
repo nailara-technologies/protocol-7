@@ -18,7 +18,7 @@ my ( $session_id, $enc_key ) = @ARG;
 
 return sub {
     my $output_ref = shift;
-    my $session = $data{'session'}{$session_id};
+    my $session    = $data{'session'}{$session_id};
 
     ## Check if encryption is still active
     if ( not defined $session->{'link_encryption_key'} ) {
@@ -26,8 +26,8 @@ return sub {
     }
 
     ## Load cipher module if not already loaded
-    if ( not <[base.perlmod.loaded]>->( 'Crypt::AuthEnc::ChaCha20Poly1305' ) ) {
-        <[base.perlmod.load]>->( 'Crypt::AuthEnc::ChaCha20Poly1305' );
+    if ( not <[base.perlmod.loaded]>->('Crypt::AuthEnc::ChaCha20Poly1305') ) {
+        <[base.perlmod.load]>->('Crypt::AuthEnc::ChaCha20Poly1305');
     }
 
     my $plaintext = $$output_ref;
@@ -40,14 +40,15 @@ return sub {
     ## Format: 4-byte session_id + 4-byte counter + 4-byte zeros = 12-byte nonce
     my $session_bytes = pack qw| N |, $session_id;
     my $counter_bytes = pack qw| N |, $session->{'link_write_counter'};
-    my $nonce = $session_bytes . $counter_bytes . qq|\0\0\0\0|;
+    my $nonce         = $session_bytes . $counter_bytes . qq|\0\0\0\0|;
 
     ## Create fresh cipher instance with nonce
     my $cipher = Crypt::AuthEnc::ChaCha20Poly1305->new( $enc_key, $nonce );
 
     if ( not defined $cipher ) {
         <[base.s_warn]>->(
-            sprintf 'ChaCha20-Poly1305 initialization failed [session %d]', $session_id
+            sprintf 'ChaCha20-Poly1305 initialization failed [session %d]',
+            $session_id
         );
         return '';
     }
@@ -55,7 +56,7 @@ return sub {
     ## Encrypt plaintext and get authentication tag
     my $ciphertext = eval {
         $cipher->encrypt_add( $plaintext // '' );
-        $cipher->encrypt_done( );
+        $cipher->encrypt_done();
     };
 
     if ( my $error = $@ ) {
@@ -73,8 +74,8 @@ return sub {
 
 1;
 
-#,,.,,,,.,,.,,.,,,,,.,..,,..,,,..,,,.,.,,,.,.,..,,...,...,..,,.,.,,..,...,,.,,
-#P7TFA5IGBL2PXLUSDTJFXMRFWTTQOU5KRBQIMUKVV2LTTEDDDEQY5HQDI6RXTHTLLYPFCSFBAN3R2
-#\\\|4FKYBLLQCFA6ADAM6OZELXSSZUNS4UGZDEJ73ADET7MTWGC5FNZ \ / AMOS7 \ YOURUM ::
-#\[7]6DIPMOSD7GNPN2WYILJEANTIOHIGVK6UDRUTJBUDMWP3FVVOUEAI 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,.,.,.,,,,,,..,...,..,,..,,,..,..,,...,...,,,,,.,.,.,,,,.,,,,.,
+#H2JIV5WIYFJKDRPRD4GQQTOQNTY7HMW7WJN4VSQAV3BDNR4M43DNDQY2EB2X6TPD52XLGHAZZ6H56
+#\\\|JC2WKHYGPRCNTCCEEVI2WTAUXLBPCHCJKEBGUMVLSMLCSA3DKFI \ / AMOS7 \ YOURUM ::
+#\[7]FDBVSIQUXIVSIGFVXMDCT4BUELRS7PXEJRJOFHSJUKJPIFTV7GCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

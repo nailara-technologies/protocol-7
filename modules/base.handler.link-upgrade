@@ -37,20 +37,28 @@ if ( defined $session->{'link_upgrade_timeout'}
 ## Process client's public key response
 if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
     my $client_pubkey_b32 = $1;
-    <[base.logs]>->( 2, '[%d] received client pubkey (b32): %s...', $id, substr($client_pubkey_b32, 0, 20) );
+    <[base.logs]>->(
+        2,   '[%d] received client pubkey (b32): %s...',
+        $id, substr( $client_pubkey_b32, 0, 20 )
+    );
 
     ## Decode client's public key from BASE32
     my $client_pubkey = Crypt::Misc::decode_b32r($client_pubkey_b32);
 
     if ( not defined $client_pubkey or not length $client_pubkey ) {
-        <[base.logs]>->( 0, '[%d] invalid client public key (decode failed or empty)', $id );
+        <[base.logs]>->(
+            0, '[%d] invalid client public key (decode failed or empty)', $id
+        );
         return 2;
     }
-    <[base.logs]>->( 2, '[%d] decoded client pubkey (%d bytes)', $id, length($client_pubkey) );
+    <[base.logs]>->(
+        2,   '[%d] decoded client pubkey (%d bytes)',
+        $id, length($client_pubkey)
+    );
 
     ## Perform Diffie-Hellman with client pubkey
     ## Get ephemeral keypair from session storage
-    my $ephemeral_keypair  = $session->{'link_ephemeral_keypair'};
+    my $ephemeral_keypair = $session->{'link_ephemeral_keypair'};
 
     if ( not defined $ephemeral_keypair ) {
         <[base.logs]>->( 0, '[%d] ephemeral keypair lost', $id );
@@ -60,10 +68,10 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
     ## Compute shared secret: DH(our_private, client_public)
     ## Use Crypt::Curve25519 for proper Diffie-Hellman (not Ed25519 signatures)
     use Crypt::Curve25519;
-    my $shared_secret = Crypt::Curve25519::curve25519_shared_secret(
+    my $shared_secret
+        = Crypt::Curve25519::curve25519_shared_secret(
         $ephemeral_keypair->{'secret'},
-        $client_pubkey
-    );
+        $client_pubkey );
 
     if ( not defined $shared_secret or not length $shared_secret ) {
         <[base.logs]>->( 0, '[%d] DH computation failed', $id );
@@ -120,8 +128,7 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
 } elsif ( $$input =~ s|^link-complete\n|| ) {
     ## Handshake complete, transition to encrypted state (state 3)
     <[base.logs]>->(
-        2,
-        '[%d] link-upgrade negotiation complete, transitioning to state 3',
+        2, '[%d] link-upgrade negotiation complete, transitioning to state 3',
         $id
     );
 
@@ -131,29 +138,30 @@ if ( $$input =~ s|^link-pub-key\s+(\S+)\n|| ) {
     ## Trigger state transition from state 2 to state 3
     if ( not <[base.session.init_state]>->( $id, 3 ) ) {
         <[base.logs]>->(
-            0,
-            '[%d] failed to initialize encryption state (state 3)',
-            $id
+            0, '[%d] failed to initialize encryption state (state 3)', $id
         );
-        return 2;  ## Disconnect on init failure
+        return 2;    ## Disconnect on init failure
     }
 
-    return 0;    ## Complete, state transition done
+    return 0;        ## Complete, state transition done
 
 } else {
     ## Unknown command in link-upgrade state
-    my $buffer_sample = substr($$input, 0, 100);
+    my $buffer_sample = substr( $$input, 0, 100 );
     $buffer_sample =~ s|\n|\\n|g;
     <[base.logs]>->(
-        1, '[%d] unknown link-upgrade command (buffer: "%s"), awaiting protocol', $id, $buffer_sample
+        1,
+        '[%d] unknown link-upgrade command (buffer: "%s"), awaiting protocol',
+        $id,
+        $buffer_sample
     );
-    return 1;    ## Keep waiting
+    return 1;        ## Keep waiting
 }
 
 1;
 
-#,,..,,,.,,,,,,..,.,,,,.,,..,,,..,,,.,,.,,.,.,..,,...,...,...,,..,,,,,,,,,.,.,
-#TVKDLOGJFVNBWZPFTVK66OFATKJLRMCRNZ7BNBJGD7MRDO7ZZU7MDEX5PGNV2GNRHBNSBDSQSWXTK
-#\\\|CI6XGD5BBEZ6QWIH5FILNFRINGMJ2VYY6AR3SIUQCIOJC5CM7KO \ / AMOS7 \ YOURUM ::
-#\[7]DV4GVAS4LCOQNTQU6M5HTJLQNZN7DXS4BMIJEAZQPMPK63TA4SCI 7  DATA SIGNATURE ::
+#,,,,,...,...,...,,,,,,.,,,.,,..,,..,,..,,,,,,..,,...,...,..,,...,...,,.,,.,.,
+#ZCFJY5V65FVZATAB65JIJL3ETQIDBF3GDQKOLZKVRMZOSYZUNMZDKGLEHISI3FGKIYHHBZ5WI3G6W
+#\\\|J67K5ES6HH5KRO2EHIPKRQHYECKWCTEBEMHGTETQEOKKL6ZDSMD \ / AMOS7 \ YOURUM ::
+#\[7]Q3BRDSASAMVMIDGEN5N53SMVW7VJYGPTMD7YHNZQQSTXPRCIVWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

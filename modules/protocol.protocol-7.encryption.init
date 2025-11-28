@@ -13,38 +13,48 @@
 
 my ( $session_id, $mode, $state_id ) = @ARG;
 
-<[base.logs]>->( 1, '[%d] encryption.init: STARTED (unpacked args)', $session_id );
+<[base.logs]>->(
+    1, '[%d] encryption.init: STARTED (unpacked args)', $session_id
+);
 
 my $session = $data{'session'}{$session_id};
-<[base.logs]>->( 1, '[%d] encryption.init: got session reference', $session_id );
+<[base.logs]>->(
+    1, '[%d] encryption.init: got session reference', $session_id
+);
 
 ## Verify shared secret exists from link-upgrade negotiation
-<[base.logs]>->( 1, '[%d] encryption.init: checking for DH shared secret', $session_id );
+<[base.logs]>->(
+    1, '[%d] encryption.init: checking for DH shared secret', $session_id
+);
 if ( not defined $session->{'link_dh_shared_secret'} ) {
     <[base.logs]>->(
-        0,
-        '[%d] encryption init: missing DH shared secret from link-upgrade',
+        0, '[%d] encryption init: missing DH shared secret from link-upgrade',
         $session_id
     );
     return 0;
 }
-<[base.logs]>->( 1, '[%d] encryption.init: DH shared secret found, deriving key', $session_id );
+<[base.logs]>->(
+    1, '[%d] encryption.init: DH shared secret found, deriving key',
+    $session_id
+);
 
 ## Derive encryption key using AMOS7::13::key_32
 ## Input: C25519 DH shared secret
 ## Seed: session ID for entropy variation (passed as SCALAR ref for smart iteration count)
-<[base.logs]>->( 1, '[%d] encryption.init: starting key derivation with AMOS7::13::key_32', $session_id );
-my $enc_key = AMOS7::13::key_32(
-    \$session->{'link_dh_shared_secret'},
-    \$session_id
+<[base.logs]>->(
+    1,
+    '[%d] encryption.init: starting key derivation with AMOS7::13::key_32',
+    $session_id
 );
-<[base.logs]>->( 1, '[%d] encryption.init: key derivation completed', $session_id );
+my $enc_key
+    = AMOS7::13::key_32( \$session->{'link_dh_shared_secret'}, \$session_id );
+<[base.logs]>->(
+    1, '[%d] encryption.init: key derivation completed', $session_id
+);
 
 if ( not defined $enc_key or length($enc_key) != 32 ) {
     <[base.logs]>->(
-        0,
-        '[%d] encryption init: key derivation failed',
-        $session_id
+        0, '[%d] encryption init: key derivation failed', $session_id
     );
     return 0;
 }
@@ -54,57 +64,70 @@ $session->{'link_encryption_key'} = $enc_key;
 
 ## Initialize ChaCha20-Poly1305 cipher context
 ## Load cipher module if not already loaded
-if ( not <[base.perlmod.loaded]>->( 'Crypt::AuthEnc::ChaCha20Poly1305' ) ) {
-    <[base.logs]>->( 2, '[%d] encryption.init: loading ChaCha20Poly1305 module...', $session_id );
-    <[base.perlmod.load]>->( 'Crypt::AuthEnc::ChaCha20Poly1305' );
-    <[base.logs]>->( 2, '[%d] encryption.init: ChaCha20Poly1305 loaded', $session_id );
+if ( not <[base.perlmod.loaded]>->('Crypt::AuthEnc::ChaCha20Poly1305') ) {
+    <[base.logs]>->(
+        2, '[%d] encryption.init: loading ChaCha20Poly1305 module...',
+        $session_id
+    );
+    <[base.perlmod.load]>->('Crypt::AuthEnc::ChaCha20Poly1305');
+    <[base.logs]>->(
+        2, '[%d] encryption.init: ChaCha20Poly1305 loaded', $session_id
+    );
 } else {
-    <[base.logs]>->( 2, '[%d] encryption.init: ChaCha20Poly1305 already loaded', $session_id );
+    <[base.logs]>->(
+        2, '[%d] encryption.init: ChaCha20Poly1305 already loaded',
+        $session_id
+    );
 }
 
 ## Note: Cipher instances are created per-message with generated nonces
 ## No need to create a context here - we'll create fresh instances in the wrappers
 ## Just initialize the message counter for nonce generation
 
-$session->{'link_read_counter'} = 0;   ## read-side message counter
-$session->{'link_write_counter'} = 0;  ## write-side message counter
+$session->{'link_read_counter'}  = 0;    ## read-side message counter
+$session->{'link_write_counter'} = 0;    ## write-side message counter
 
-<[base.logs]>->(
-    2,
-    '[%d] ChaCha20-Poly1305 cipher initialized',
-    $session_id
-);
+<[base.logs]>
+    ->( 2, '[%d] ChaCha20-Poly1305 cipher initialized', $session_id );
 
 ## Save current input/output handlers before installing encryption wrappers
 if ( not defined $session->{'input'}->{'handler_encryption_original'} ) {
-    $session->{'input'}->{'handler_encryption_original'} = $session->{'input'}->{'handler'} // qw| base.handler.command |;
+    $session->{'input'}->{'handler_encryption_original'}
+        = $session->{'input'}->{'handler'} // qw| base.handler.command |;
 }
 if ( not defined $session->{'output'}->{'handler_encryption_original'} ) {
-    $session->{'output'}->{'handler_encryption_original'} = $session->{'output'}->{'handler'} // qw| base.handler.write |;
+    $session->{'output'}->{'handler_encryption_original'}
+        = $session->{'output'}->{'handler'} // qw| base.handler.write |;
 }
 
 ## Install read encryption wrapper (decrypts incoming data)
-<[base.logs]>->( 2, '[%d] encryption.init: installing read wrapper', $session_id );
+<[base.logs]>->(
+    2, '[%d] encryption.init: installing read wrapper', $session_id
+);
 $session->{'input'}->{'handler'} = qw| base.handler.read.encryption-wrapper |;
 
 ## Create session-specific write encryption wrapper
-<[base.logs]>->( 2, '[%d] encryption.init: creating write wrapper...', $session_id );
-my $write_crypto_handler_name = sprintf qw| base.handler.write.encryption-%d |, $session_id;
-my $write_crypto_wrapper = <[base.handler.write.encryption-wrapper]>->(
-    $session_id, $enc_key
+<[base.logs]>->(
+    2, '[%d] encryption.init: creating write wrapper...', $session_id
 );
-<[base.logs]>->( 2, '[%d] encryption.init: write wrapper created, ref=%s', $session_id, ref($write_crypto_wrapper) );
-$code{$write_crypto_handler_name} = $write_crypto_wrapper if ref $write_crypto_wrapper eq qw| CODE |;
-<[base.logs]>->( 2, '[%d] encryption.init: write wrapper installed', $session_id );
+my $write_crypto_handler_name
+    = sprintf qw| base.handler.write.encryption-%d |, $session_id;
+my $write_crypto_wrapper
+    = <[base.handler.write.encryption-wrapper]>->( $session_id, $enc_key );
+<[base.logs]>->(
+    2,           '[%d] encryption.init: write wrapper created, ref=%s',
+    $session_id, ref($write_crypto_wrapper)
+);
+$code{$write_crypto_handler_name} = $write_crypto_wrapper
+    if ref $write_crypto_wrapper eq qw| CODE |;
+<[base.logs]>->(
+    2, '[%d] encryption.init: write wrapper installed', $session_id
+);
 
 ## Install write encryption wrapper
 $session->{'output'}->{'handler'} = $write_crypto_handler_name;
 
-<[base.logs]>->(
-    2,
-    '[%d] encryption wrappers installed',
-    $session_id
-);
+<[base.logs]>->( 2, '[%d] encryption wrappers installed', $session_id );
 
 ## Install encoding wrappers if negotiated
 if ( defined $session->{'link_encoding_mode'}
@@ -112,45 +135,50 @@ if ( defined $session->{'link_encoding_mode'}
 
     ## Save encryption wrappers as original for encoding wrappers
     if ( not defined $session->{'input'}->{'handler_original'} ) {
-        $session->{'input'}->{'handler_original'} = qw| base.handler.read.encryption-wrapper |;
+        $session->{'input'}->{'handler_original'}
+            = qw| base.handler.read.encryption-wrapper |;
     }
     if ( not defined $session->{'output'}->{'handler_original'} ) {
-        $session->{'output'}->{'handler_original'} = $write_crypto_handler_name;
+        $session->{'output'}->{'handler_original'}
+            = $write_crypto_handler_name;
     }
 
     ## Install read wrapper (decode after decrypt)
-    $session->{'input'}->{'handler'} = qw| base.handler.read.encoding-wrapper |;
+    $session->{'input'}->{'handler'}
+        = qw| base.handler.read.encoding-wrapper |;
 
     ## Create session-specific write wrapper (encode before encrypt)
-    my $wrapper_handler_name = sprintf qw| base.handler.write.encoding-%d |, $session_id;
+    my $wrapper_handler_name = sprintf qw| base.handler.write.encoding-%d |,
+        $session_id;
     my $write_wrapper = <[base.handler.write.encoding-wrapper]>->(
         $session_id, $session->{'link_encoding_mode'}
     );
-    $code{$wrapper_handler_name} = $write_wrapper if ref $write_wrapper eq qw| CODE |;
+    $code{$wrapper_handler_name} = $write_wrapper
+        if ref $write_wrapper eq qw| CODE |;
 
     ## Install write wrapper
     $session->{'output'}->{'handler'} = $wrapper_handler_name;
 
     <[base.logs]>->(
-        2,
-        '[%d] installed link-layer encoding wrappers for mode: %s',
+        2, '[%d] installed link-layer encoding wrappers for mode: %s',
         $session_id, $session->{'link_encoding_mode'}
     );
 }
 
 <[base.logs]>->(
-    2,
-    '[%d] encryption initialized (state %d), all layers configured',
+    2, '[%d] encryption initialized (state %d), all layers configured',
     $session_id, $state_id
 );
 
-<[base.logs]>->( 1, '[%d] encryption.init: COMPLETE AND RETURNING SUCCESS', $session_id );
+<[base.logs]>->(
+    1, '[%d] encryption.init: COMPLETE AND RETURNING SUCCESS', $session_id
+);
 return 1;
 
 1;
 
-#,,,.,..,,,,.,,,,,.,.,,.,,...,..,,,.,,,,.,,,,,..,,...,...,..,,.,.,,,,,,.,,...,
-#3YZM4GI5WPTAN3XDPK5KGDJLRBXSOF7GH6NTXDGB2GHIZGCFCMJD3BAJRITINTSRUU462TWYJL3QI
-#\\\|LCZFYXZE4D63PTISINC2H63KSGCMRKTNNEPKAU25L5D7WN4NNTX \ / AMOS7 \ YOURUM ::
-#\[7]53DUWBJRCJFKTESZN3AB3R3YLZPUFBFLLPNDTV6G47IKX6CXHYBY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,..,,,,,.,.,,,,,...,,..,,,,,.,,,..,,...,...,.,.,,..,,.,,,.,,.,.,
+#LQZTDROVCJBADANFR5PDIQMLU5CKGSQK7CTX2AN7WH43VOWOTKGAFSSFP64AM7W4AFULUGF26OTWE
+#\\\|IBXOZPDRS63YV64QDPRFCLZ33PFIJUQ3JA62ES4MUHIRHNDSUSC \ / AMOS7 \ YOURUM ::
+#\[7]KWXJ45BX4YX37GRMHY7NB2GSPT437UP4A7X6JBF4UU67QARZFMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
