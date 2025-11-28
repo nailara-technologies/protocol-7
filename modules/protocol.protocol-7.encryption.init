@@ -26,10 +26,10 @@ if ( not defined $session->{'link_dh_shared_secret'} ) {
 
 ## Derive encryption key using AMOS7::13::key_32
 ## Input: C25519 DH shared secret
-## Seed: session ID for entropy variation
+## Seed: session ID for entropy variation (passed as SCALAR ref for smart iteration count)
 my $enc_key = AMOS7::13::key_32(
     \$session->{'link_dh_shared_secret'},
-    $session_id
+    \$session_id
 );
 
 if ( not defined $enc_key or length($enc_key) != 32 ) {
