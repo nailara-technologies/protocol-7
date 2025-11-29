@@ -1,0 +1,83 @@
+#!/usr/bin/env perl
+# Module: web.template_cache.get
+# Purpose: Retrieve cached template by key, checking TTL expiration
+# Pattern: Timestamp-based TTL check (like weather.parent.cache)
+# Storage: $data{'web.template_cache'} = { key => { content, timestamp, ttl, size } }
+
+my $cache_key = shift;
+
+# Validate input
+unless (defined $cache_key && length $cache_key) {
+    return {
+        status => 'error',
+        message => 'Cache key required',
+        hit => 0,
+    };
+}
+
+# Access cache (assume $data structure is available in calling context)
+# We'll build it as a regular hash reference that caller manages
+my $cache_entry = $_[0] if @_ > 1;  # Can pass cache as second arg for testing
+
+# If no cache passed, try to use the global structure (if available)
+unless (defined $cache_entry) {
+    # In Protocol-7, this would access the global data hash
+    # For now, return a miss to avoid errors
+    return {
+        status => 'miss',
+        message => 'No cache available',
+        hit => 0,
+        content => undef,
+    };
+}
+
+# Check if key exists
+unless (exists $cache_entry->{$cache_key}) {
+    return {
+        status => 'miss',
+        message => "Key not in cache: $cache_key",
+        hit => 0,
+        content => undef,
+    };
+}
+
+my $entry = $cache_entry->{$cache_key};
+
+# Validate entry structure
+unless (ref $entry eq 'HASH' && 
+        defined $entry->{content} && 
+        defined $entry->{timestamp} && 
+        defined $entry->{ttl}) {
+    return {
+        status => 'error',
+        message => 'Corrupted cache entry structure',
+        hit => 0,
+        content => undef,
+    };
+}
+
+# Check TTL expiration
+my $age = time() - $entry->{timestamp};
+if ($age > $entry->{ttl}) {
+    # Expired - remove from cache
+    delete $cache_entry->{$cache_key};
+    return {
+        status => 'expired',
+        message => "Expired after $age seconds (ttl=$entry->{ttl})",
+        hit => 0,
+        content => undef,
+        age => $age,
+        ttl => $entry->{ttl},
+    };
+}
+
+# Cache hit!
+return {
+    status => 'hit',
+    message => "Cache hit: $cache_key",
+    hit => 1,
+    content => $entry->{content},
+    age => $age,
+    ttl => $entry->{ttl},
+    size => $entry->{size},
+};

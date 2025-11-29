@@ -1,0 +1,65 @@
+#!/usr/bin/env perl
+# Module: web.template_cache.set
+# Purpose: Store rendered template with timestamp and TTL
+# Pattern: Timestamp-based TTL storage
+# Storage: $data{'web.template_cache'} = { key => { content, timestamp, ttl, size } }
+
+my $cache_key = shift;
+my $content = shift;
+my $ttl = shift;
+
+# Configuration defaults (caller should provide these)
+my $default_ttl = $_[0] // 1800;      # 30 minutes
+my $max_size = $_[1] // (5 * 1024 * 1024);  # 5MB
+
+# Validation
+unless (defined $cache_key && length $cache_key) {
+    return {
+        status => 'error',
+        message => 'Cache key required',
+        stored => 0,
+    };
+}
+
+unless (defined $content) {
+    return {
+        status => 'error',
+        message => 'Content required',
+        stored => 0,
+    };
+}
+
+# Use provided TTL or default
+$ttl = $default_ttl unless defined $ttl && $ttl > 0;
+
+# Check size limit
+my $content_size = length($content);
+if ($content_size > $max_size) {
+    return {
+        status => 'error',
+        message => "Content exceeds max size ($content_size > $max_size bytes)",
+        stored => 0,
+        size => $content_size,
+        max_size => $max_size,
+    };
+}
+
+# Store entry
+my $entry = {
+    content   => $content,
+    timestamp => time(),
+    ttl       => $ttl,
+    size      => $content_size,
+};
+
+# In Protocol-7 context, would store in $data{'web.template_cache'}{$cache_key}
+# For modular testing, return the entry to be stored by caller
+return {
+    status => 'success',
+    message => "Cached $content_size bytes with ttl=$ttl",
+    stored => 1,
+    entry => $entry,
+    cache_key => $cache_key,
+    size => $content_size,
+    ttl => $ttl,
+};
