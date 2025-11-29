@@ -83,11 +83,11 @@ if ($path =~ /\.(css|js|png|jpg|jpeg|gif|pdf|svg|ico|woff|woff2|ttf)$/) {
 if ($path =~ /\.(html|htm)$/) {
     # In live environment, would check:
     # my $template = <[httpd.vhost_template_resolver]>->($vhost, $path, 'tmpl');
-    
+
     $route->{type} = 'template';
     $route->{handler} = 'httpd.process_template';
     $route->{reason} = 'html_file_with_potential_template';
-    $route->{template_path} = "/var/httpd/$vhost/_templates/" . 
+    $route->{template_path} = "/var/httpd/$vhost/_templates/" .
                               (split('/', $path))[-1] . '.tmpl';
     $route->{handler_args} = {
         session_id => $session_id,
@@ -101,3 +101,9 @@ $route->{type} = 'static';
 $route->{handler} = 'httpd.file_transfer';
 $route->{reason} = 'no_template_match';
 return $route;
+
+#,,,.,,,,,..,,,..,,.,,.,.,,.,,,..,.,.,..,,.,,,..,,...,...,.,.,,..,,.,,.,,,.,,,
+#34TRFUJZ6B53EXYXBPTBC2UEIEJ7XSPH6ASOAEQ7J7OZ5UPAFQVGZHE7JIH5NQKQAZOYAYWUHM5HU
+#\\\|FKVABER6IA22OQHTJ7CUTOYXYXVP6BLJMSQNK5IZAYV2OOVPGJF \ / AMOS7 \ YOURUM ::
+#\[7]BJWWEN32CHVIV2FIEG2IF4THWQXEMHEWNPHT5QOJJW7R52IKYWCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
