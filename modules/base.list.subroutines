@@ -356,6 +356,7 @@ return [ qw[
         template.init_code
         ssl.client_handler
         power.cmd.show_all
+        plugin.auth.c25519
         osd-logo.init_code
         notify.cmd.message
         notify-osd.startup
@@ -838,6 +839,7 @@ return [ qw[
         X-11.cmd.is-composited
         X-11.cmd.dpms-force-on
         X-11-pointer.init_code
+        AMOS7.key-32-safeguard
         workflow.get_todo_stats
         workflow.console.search
         workflow.console.commit
@@ -918,6 +920,7 @@ return [ qw[
         content.cmd.clear_flags
         content.check_exclusive
         chk-sum.skein.init_code
+        bench.key-32-iterations
         base.templates.pre_init
         base.strip_chksum_lines
         base.start.unlink_child
@@ -1351,6 +1354,7 @@ return [ qw[
         cube.chk-sum.cmd.elf-chksum
         crypt.C25519.sign_file_list
         crypt.C25519.key_is_virtual
+        crypt.C25519.gen_keys_typed
         crypt.C25519.compute_shared
         content.set-up.import_rules
         content.set-up.export_rules
@@ -1618,6 +1622,7 @@ return [ qw[
         discover.check_packet_timeouts
         devmod.cmd.decode-harmonic-ref
         debian.parser.deb_pkg_vers_str
+        crypt.C25519.keys.version_info
         crypt.C25519.key_name_and_type
         crypt.C25519.key_bin_checksums
         crypt.C25519.chksum_cache.retr
@@ -1628,6 +1633,7 @@ return [ qw[
         base.number-cache.true_upwards
         base.log.send-buffer.add-queue
         base.handler.sig_chld.shutdown
+        base.handler.link-upgrade.init
         base.ensure_zenka_dependencies
         base.comp-int.decode_to_buffer
         base.chk-sum.amos.calc_version
@@ -1681,6 +1687,7 @@ return [ qw[
         events.cmd.get_overlays_visible
         discover.load_update_notify_rqs
         devmod.cmd.change-log-verbosity
+        crypt.C25519.keys.annotate_type
         crypt.C25519.decrypt_secret_key
         crypt.C25519.cmd.set-client-key
         crypt.C25519.cmd.get-public-key
@@ -1937,6 +1944,7 @@ return [ qw[
         httpsd.startup.validate_certificates
         httpd.handler.download_transfer.test
         debian.parent.resolve_cpan_to_debian
+        crypt.C25519.cmd.register-master-key
         base.warnings.compact_diff_to_pragma
         base.warnings.compact_diff_from_bits
         base.perlmod.manual_reload_blacklist
@@ -2083,8 +2091,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,.,.,,..,..,,.,,,...,...,,,.,,,.,..,,,,.,..,,...,..,,..,,.,,,...,,.,,,,,,
-#HE75CHEL2UHNJ3YU6DM23MOLCSAGYHSY2JZM3CD25THORW2POXKRSBYP7A44JXNUXCYPKCKZLC7WA
-#\\\|LXT3HO5DZQOKSDF6KVVG5TX4EJE45ADKSKJGB4ZZRP73YLIZNLG \ / AMOS7 \ YOURUM ::
-#\[7]GFOBRN2NK3GKIWFBOW2OGI4ZECL3YU6JE7BQQDQWHNUITJFYCAAA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,,,,.,.,..,,,.,,.,.,,,,,,,,,.,.,..,,...,...,.,.,..,,,..,.,.,,.,,
+#4F7L4EFGEU7MJ4ZSR63F7MBHFHGZNURMGRS4LDSSNYR7S7M5LLLBUQBLRDEKUVOZZIRUUDX77SC2Y
+#\\\|NCJ5DLHO5I2ECFXX47DXFVFVLCUIAJMNXVV2J4RXHIZNQ6GXDQI \ / AMOS7 \ YOURUM ::
+#\[7]5CRV2EEB6IYREN7MZXKOKQEWZHONOJPUYFJ6U7SHI43WCTNAXKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
