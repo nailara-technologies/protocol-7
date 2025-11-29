@@ -1,0 +1,634 @@
+---
+# Web Template Caching & Content Routing Implementation
+# Complete implementation of template system with caching and intelligent request routing
+
+metadata:
+  title: "Web Template Caching & Content Routing System"
+  description: |
+    Complete implementation of template caching layer and intelligent request routing
+    for Protocol-7 web-zenka. Connects existing template processing infrastructure with
+    content scanning, smart routing (ACME → API → Template → Static), and TTL-aware
+    caching. Builds on Nov 15 infrastructure (vhost_template_resolver, skin_resolver,
+    menu_generator, route_dispatcher).
+
+  status: "planning"
+  priority: "high"
+  assigned_to: "claude"
+  scope: "active-development"
+  estimated_duration: "2-4 hours"
+  
+  created_at: "2025-11-29"
+  planning_session: "context-compilation-and-documentation"
+  
+  architecture_context:
+    - "docs/modules/TEMPLATE-SYSTEM-MODULE-REFERENCE.md (complete API reference)"
+    - "docs/TEMPLATE_SYSTEM_STATUS_SUMMARY.md (status summary)"
+    - "docs/SESSION_STATUS_2025-11-15_web-zenka-progress.md (infrastructure status)"
+    - "docs/architecture/NEW_ZENKA_ARCHITECTURE.md (overall design)"
+    - "docs/architecture/VHOST_TEMPLATE_HIERARCHY.md (template hierarchy)"
+
+  existing_work_completed:
+    - "Web zenka with recursive template processing (Phase 9)"
+    - "Template resolver across 3-level hierarchy (vhost-subdir → vhost → global)"
+    - "Skin cascade resolver (dark/mobile/default fallback)"
+    - "Menu generator from filesystem structure"
+    - "Route dispatcher with 4-level priority (ACME → API → Template → Static)"
+    - "HTTPSD with Let's Encrypt integration (8 phases complete)"
+    - "Configuration template expansion system"
+
+  dependencies:
+    - "Existing: web.init_code, web.process_template_recursive, httpd.process_template"
+    - "Existing: httpd.vhost_template_resolver, web.skin_resolver, web.menu_generator"
+    - "Existing: base caching patterns (weather, crypt.C25519)"
+    - "Existing: File::Find, File::stat, JSON::XS"
+
+---
+
+## PHASE 1: Design & Documentation
+
+phase_1:
+  name: "Design Validation & Test Environment Setup"
+  tokens_allocated: 1
+  duration: "15-30 minutes"
+  
+  tasks:
+    - name: "Launch v7 Zenka and Verify Environment"
+      tokens: 0.25
+      actions:
+        - "Start v7 zenka: ./bin/Protocol-7 v7 -B -v"
+        - "Wait for startup (sleep 7)"
+        - "List loaded zenki: p7 v7.list zenki"
+        - "List active sessions: p7 list sessions"
+        - "Verify modules are present: grep -l 'web.init_code\|httpd.vhost_template' modules/*"
+      
+      success_criteria:
+        - "v7 zenka starts without errors"
+        - "Web zenka and httpd zenka show in zenki list"
+        - "Session list shows active connections"
+        - "Existing template modules load successfully"
+      
+      notes: |
+        This validates that the runtime environment supports our implementation.
+        Confirms module loading system works as documented.
+
+    - name: "Validate Module Naming Conventions"
+      tokens: 0.25
+      actions:
+        - "Review existing modules: ls modules/ | grep -E '^(web|httpsd)\\.' | head -20"
+        - "Check naming patterns: grep '# name = ' modules/web.* | head -10"
+        - "Verify namespace structure: grep '<web\\.|<httpsd\\.' modules/* | head -10"
+      
+      success_criteria:
+        - "Naming patterns consistent (dots preserved in keys, not nested hashes)"
+        - "Can identify where to place new modules"
+        - "Understand configuration value naming"
+
+    - name: "Confirm Cache Storage Strategy"
+      tokens: 0.25
+      actions:
+        - "Review web.init_code: grep -A5 'web.templates.cache' modules/web.init_code"
+        - "Check existing cache patterns: grep -n 'data{' modules/web.menu_generator"
+        - "Understand TTL pattern: grep -B2 -A2 'time -' modules/weather.parent.cache.read_cache_data"
+      
+      success_criteria:
+        - "Understand that <web.templates.cache> is `$data{'web.templates.cache'}`"
+        - "Confirm TTL pattern uses timestamp + age comparison"
+        - "Know where to store new caches"
+
+---
+
+## PHASE 2: Module Implementation
+
+phase_2:
+  name: "Core Module Implementation"
+  tokens_allocated: 2.5
+  duration: "1-1.5 hours"
+  
+  tasks:
+    - name: "Implement: web.scan_content_directories"
+      tokens: 0.75
+      actions:
+        - "Create: modules/web.scan_content_directories"
+        - "Function: Recursively scan /var/httpd/{vhost}/ for template candidates"
+        - "Return: Hash of { path => { has_template, template_path, mtime, ... } }"
+        - "Store: Results in $data{'web.content_index'} with mtime tracking"
+        - "Pattern: Use File::Find or simple directory recursion"
+        - "Caching: Cache by vhost, invalidate on mtime change or manual refresh"
+      
+      pseudocode: |
+        sub scan_content_directories {
+            my ($base_dir, $vhost) = @_;
+            
+            # Build index from /var/httpd/{vhost}/
+            my $index = {};
+            
+            # For each file, check if template exists
+            foreach my $file (@files) {
+                $index->{$file} = {
+                    path => $file,
+                    has_template => (check if _templates/ version exists),
+                    template_path => (if exists),
+                    mtime => (file modification time),
+                };
+            }
+            
+            # Store in data structure
+            <web.content_index> = $index;
+            
+            return $index;
+        }
+      
+      success_criteria:
+        - "Module loads without errors"
+        - "Detects templates in all 3 hierarchy levels"
+        - "Returns correct structure: { path => { has_template, template_path, ... } }"
+        - "Stores results in $data{'web.content_index'}"
+        - "Handles multiple vhosts correctly"
+      
+      testing:
+        - "Create test directory: /tmp/test_vhost/ with subdirs and _templates/"
+        - "Call module with test dir"
+        - "Verify results match expected structure"
+        - "Test with missing templates (negative case)"
+
+    - name: "Implement: web.template_cache.get"
+      tokens: 0.5
+      actions:
+        - "Create: modules/web.template_cache.get"
+        - "Function: Retrieve cached template by key"
+        - "Return: Content if exists and not expired, else undef"
+        - "Check: Timestamp-based TTL expiration"
+        - "Remove: Expired entries from cache automatically"
+        - "Pattern: Similar to weather.parent.cache.read_cache_data"
+      
+      pseudocode: |
+        sub template_cache_get {
+            my $cache_key = shift;
+            
+            my $entry = <web.template_cache>{$cache_key};
+            return undef unless defined $entry;
+            
+            my $age = time - $entry->{timestamp};
+            if ($age > $entry->{ttl}) {
+                delete <web.template_cache>{$cache_key};  # Expired
+                return undef;
+            }
+            
+            <web.metrics>{cache_hits}++;
+            return $entry->{content};
+        }
+      
+      success_criteria:
+        - "Module loads without errors"
+        - "Returns content for valid, non-expired entries"
+        - "Returns undef for expired entries"
+        - "Removes expired entries automatically"
+        - "Updates metrics on cache hit"
+      
+      testing:
+        - "Store test content with 2-second TTL"
+        - "Retrieve immediately (should hit)"
+        - "Wait 3 seconds and retrieve (should miss/expire)"
+        - "Verify entry removed from cache"
+
+    - name: "Implement: web.template_cache.set"
+      tokens: 0.5
+      actions:
+        - "Create: modules/web.template_cache.set"
+        - "Function: Store rendered template with TTL"
+        - "Return: 1 on success, 0 if size exceeded"
+        - "Check: Size limit against <web.cfg.template_max_size>"
+        - "Store: { content, timestamp, ttl, size } structure"
+        - "Update: Metrics (templates_cached increment)"
+      
+      pseudocode: |
+        sub template_cache_set {
+            my ($cache_key, $content, $ttl) = @_;
+            
+            my $max_size = <web.cfg.template_max_size>;
+            if (length($content) > $max_size) {
+                return 0;
+            }
+            
+            <web.template_cache>{$cache_key} = {
+                content   => $content,
+                timestamp => time(),
+                ttl       => $ttl // <web.cfg.cache_ttl>,
+                size      => length($content),
+            };
+            
+            <web.metrics>{templates_cached}++;
+            return 1;
+        }
+      
+      success_criteria:
+        - "Module loads without errors"
+        - "Stores content with correct structure"
+        - "Returns 1 on successful store"
+        - "Returns 0 if content exceeds max size"
+        - "Updates metrics correctly"
+      
+      testing:
+        - "Store valid content (should return 1)"
+        - "Try to store content larger than limit (should return 0)"
+        - "Retrieve stored content (should be exact match)"
+        - "Verify metrics incremented"
+
+    - name: "Implement: httpsd.route_template_request"
+      tokens: 1
+      actions:
+        - "Create: modules/httpsd.route_template_request"
+        - "Function: Route HTTP request to appropriate handler"
+        - "Routes: ACME → API → Template → Static (priority order)"
+        - "Normalize: Remove query strings, fragments, double slashes"
+        - "Template check: Use vhost_template_resolver or content_index"
+        - "Caching: Cache routing decisions with TTL"
+        - "Return: { type, path, handler, handler_args, reason, cache_ttl }"
+      
+      pseudocode: |
+        sub route_template_request {
+            my ($method, $uri, $vhost, $session_id) = @_;
+            
+            # Normalize URI
+            my $path = normalize_path($uri);
+            
+            # Check cache
+            my $cached = check_route_cache($vhost, $path);
+            return { $cached->{route}, cached => 1 } if $cached;
+            
+            # Priority 1: ACME Challenge
+            if ($path =~ m|^/.well-known/acme-challenge/|) {
+                return { type => 'acme', path => $path, ... };
+            }
+            
+            # Priority 2: API
+            if ($path =~ m|^/api/| or $path =~ m|^/webhook/|) {
+                return { type => 'api', path => $path, ... };
+            }
+            
+            # Priority 3: Check for template
+            my $template_path = <[httpd.vhost_template_resolver]>->($vhost, $path, 'tmpl');
+            if (defined $template_path) {
+                return { type => 'template', path => $path, template_path => $template_path, ... };
+            }
+            
+            # Priority 4: Static file (default)
+            return { type => 'static', path => $path, ... };
+        }
+      
+      success_criteria:
+        - "Module loads without errors"
+        - "Routes ACME challenges correctly"
+        - "Routes API endpoints correctly"
+        - "Detects templates via resolver"
+        - "Falls back to static for non-template files"
+        - "Returns correct structure with all required fields"
+        - "Caching works (same request returns cached result)"
+      
+      testing:
+        - "Route ACME challenge: /.well-known/acme-challenge/token123"
+        - "Route API: /api/users, /webhook/github"
+        - "Route template: /blog/post.html (if template exists)"
+        - "Route static: /static/style.css, /index.html"
+        - "Test path normalization: //path//, /path/?, /path#anchor"
+        - "Verify caching: call twice, check cached=1 on second"
+
+---
+
+## PHASE 3: Integration Testing
+
+phase_3:
+  name: "Integration & Runtime Testing"
+  tokens_allocated: 0.75
+  duration: "45-60 minutes"
+  
+  tasks:
+    - name: "Create Test Vhost & Template Structure"
+      tokens: 0.25
+      actions:
+        - "Create: /var/httpd/test.local/ (if not exists)"
+        - "Create: /var/httpd/test.local/_templates/index.html.tmpl"
+        - "Create: /var/httpd/test.local/blog/_templates/post.html.tmpl"
+        - "Create: /var/httpd/test.local/blog/index.html.tmpl (no template version)"
+        - "Create: /var/httpd/_global_templates/fallback.html.tmpl"
+        - "Create: Sample content with template variables: <{title}>, <[web:include:...]>"
+      
+      success_criteria:
+        - "Directory structure matches VHOST_TEMPLATE_HIERARCHY.md"
+        - "Sample templates have valid syntax"
+        - "Can be found by vhost_template_resolver"
+
+    - name: "Test Content Scanner Against Real Structure"
+      tokens: 0.25
+      actions:
+        - "Call: <[web.scan_content_directories]>->('/var/httpd', 'test.local')"
+        - "Verify: Returns index with all 3 files"
+        - "Verify: has_template=1 for templated files"
+        - "Verify: template_path correct for all"
+        - "Test: Storage in $data{'web.content_index'}"
+      
+      success_criteria:
+        - "Scanner finds all templates"
+        - "Correctly marks files with/without templates"
+        - "Template paths are accurate"
+        - "Cache stored with correct structure"
+
+    - name: "Test Router Against Test Structure"
+      tokens: 0.25
+      actions:
+        - "Call router for: /index.html (should find template)"
+        - "Call router for: /blog/post.html (should find template)"
+        - "Call router for: /blog/index.html (no template)"
+        - "Call router for: /static/style.css (static file)"
+        - "Verify: Each returns correct type and paths"
+        - "Verify: Caching works (second call has cached=1)"
+      
+      success_criteria:
+        - "Router correctly identifies template vs static"
+        - "Returns complete route information"
+        - "Caching prevents redundant work"
+        - "Template paths match vhost_template_resolver results"
+
+    - name: "Test Cache Get/Set with Realistic Content"
+      tokens: 0.1
+      actions:
+        - "Store: Rendered template content (1KB HTML)"
+        - "Store: With short TTL (5 seconds)"
+        - "Retrieve: Immediately (should hit)"
+        - "Wait: 6 seconds"
+        - "Retrieve: Again (should miss/expire)"
+        - "Verify: Expired entry removed from cache"
+      
+      success_criteria:
+        - "Cache stores and retrieves content correctly"
+        - "TTL expiration works as expected"
+        - "Expired entries removed automatically"
+        - "Metrics updated on cache operations"
+
+---
+
+## PHASE 4: Documentation & Integration
+
+phase_4:
+  name: "Documentation & HTTP Handler Integration"
+  tokens_allocated: 0.5
+  duration: "30 minutes"
+  
+  tasks:
+    - name: "Document Module API & Usage"
+      tokens: 0.25
+      actions:
+        - "Create: docs/modules/TEMPLATE-CACHING-IMPLEMENTATION.md"
+        - "Document: Each module's signature and behavior"
+        - "Include: Code examples and usage patterns"
+        - "Include: Integration points in httpd.http_get"
+        - "Include: Troubleshooting guide"
+      
+      success_criteria:
+        - "Clear documentation of all 3 modules"
+        - "Ready for operators to understand and use"
+        - "Integration points clearly marked"
+
+    - name: "Plan HTTP Handler Integration (Phase 5)"
+      tokens: 0.25
+      actions:
+        - "Document: How to integrate router into httpd.http_get"
+        - "Create: Integration pseudocode showing control flow"
+        - "Identify: Minimal changes needed to existing handler"
+        - "Note: Can be done incrementally (optional integration)"
+        - "List: All necessary configuration or setup steps"
+      
+      success_criteria:
+        - "Clear integration plan documented"
+        - "Ready for next session to implement if needed"
+        - "Maintains backward compatibility"
+
+---
+
+## PHASE 5: Optional - HTTP Handler Integration
+
+phase_5:
+  name: "HTTP Handler Integration (Optional, Future Session)"
+  tokens_allocated: 0.5
+  duration: "30 minutes"
+  
+  description: |
+    This phase is OPTIONAL and can be deferred to a future session.
+    The modules work standalone and can be tested independently.
+    Integration into httpd.http_get provides the final piece but is not
+    required for modules to function.
+
+  tasks:
+    - name: "Integrate Router into httpd.http_get or httpd.request_handler"
+      tokens: 0.5
+      actions:
+        - "Locate: httpd.http_get or httpd.request_handler module"
+        - "Add: Early call to httpsd.route_template_request"
+        - "Add: Control flow based on route.type (template/api/acme/static)"
+        - "Call: httpd.process_template for template routes"
+        - "Test: Existing static file handling still works"
+        - "Commit: Integration changes separately"
+      
+      pseudocode: |
+        # In httpd.http_get:
+        
+        my $route = <[httpsd.route_template_request]>>->($method, $uri, $vhost, $session_id);
+        
+        if ($route->{type} eq 'template') {
+            return <[httpd.process_template]->($route->{handler_args}{session_id},
+                                               $route->{handler_args}{template_path});
+        }
+        elsif ($route->{type} eq 'api') {
+            # Route to API handler
+            return <[base.protocol-7.command.send.local]>->(...);
+        }
+        elsif ($route->{type} eq 'acme') {
+            # Route to ACME handler
+            return <[acme.http.handler]>->(...);
+        }
+        else {
+            # static file - existing logic
+            return <[httpd.file_transfer]>->(...);
+        }
+      
+      success_criteria:
+        - "HTTP requests routed correctly"
+        - "Template requests processed via new system"
+        - "Static file serving unchanged"
+        - "Existing functionality not broken"
+
+---
+
+## Testing Checklist
+
+### Unit Tests (Per Module)
+```
+[ ] web.scan_content_directories
+    [ ] Detects templates in vhost subdirectories
+    [ ] Detects templates in vhost root
+    [ ] Detects templates in global directory
+    [ ] Returns correct structure with mtime
+    [ ] Handles missing templates (has_template=0)
+    [ ] Caches results
+    [ ] Invalidates cache on mtime change
+
+[ ] web.template_cache.get
+    [ ] Returns content for valid non-expired entry
+    [ ] Returns undef for expired entry
+    [ ] Removes expired entry automatically
+    [ ] Updates cache_hits metric
+    [ ] Handles missing key gracefully
+
+[ ] web.template_cache.set
+    [ ] Stores content successfully
+    [ ] Returns 1 on success
+    [ ] Returns 0 if content exceeds max size
+    [ ] Sets correct TTL
+    [ ] Updates templates_cached metric
+    [ ] Handles edge cases (empty content, unicode)
+
+[ ] httpsd.route_template_request
+    [ ] Routes ACME challenges correctly
+    [ ] Routes API endpoints correctly
+    [ ] Detects template requests
+    [ ] Falls back to static files
+    [ ] Normalizes paths correctly
+    [ ] Caches routing decisions
+    [ ] Returns correct structure
+```
+
+### Integration Tests
+```
+[ ] Full workflow: Request → Route → Template → Cache
+    [ ] Request comes in
+    [ ] Router determines it's a template
+    [ ] httpd.process_template called
+    [ ] web.process_template_recursive called
+    [ ] Cache.get checks (miss on first)
+    [ ] Template processed
+    [ ] Cache.set stores result
+    [ ] Second request hits cache
+    [ ] TTL expiration clears cache
+
+[ ] Fallback chain working
+    [ ] Vhost-specific template found first
+    [ ] Global template found second
+    [ ] Static file served when no template
+
+[ ] Cache invalidation
+    [ ] Template file updated
+    [ ] Old cache still served (until TTL expires)
+    [ ] Manual refresh clears cache
+    [ ] New render on next request
+```
+
+### Performance Validation
+```
+[ ] First request (cache miss): baseline time
+[ ] Second request (cache hit): <5% of first request time
+[ ] Route caching: routing decision under 1ms
+[ ] Content scanning: <100ms for typical vhost
+```
+
+---
+
+## Success Criteria (Overall)
+
+Project is COMPLETE when:
+
+1. ✅ All 3 modules implemented and tested
+2. ✅ Live v7 zenka can load all modules without errors
+3. ✅ Content scanning finds templates correctly
+4. ✅ Router makes correct routing decisions
+5. ✅ Cache stores and retrieves with TTL expiration
+6. ✅ Integration testing shows full workflow functional
+7. ✅ Documentation written and clear
+8. ✅ All commits pushed to protocol-7 base branch
+
+---
+
+## Git Commits Expected
+
+```
+[Phase 2]
+- "feat: Implement web.scan_content_directories module"
+- "feat: Implement web.template_cache.get module"
+- "feat: Implement web.template_cache.set module"
+- "feat: Implement httpsd.route_template_request module"
+
+[Phase 3]
+- "test: Add test vhost and template structure"
+- "test: Verify content scanner and router against live structure"
+
+[Phase 4]
+- "docs: Add template caching implementation guide"
+- "docs: Document HTTP handler integration plan"
+
+[Phase 5 - Optional]
+- "feat: Integrate router into httpd request handler"
+- "test: End-to-end routing integration tests"
+```
+
+---
+
+## Token Budget & Time Estimates
+
+```
+Phase 1: Design & Validation      1.0 token   (15-30 min)
+Phase 2: Core Implementation      2.5 tokens  (1-1.5 hours)
+Phase 3: Integration Testing      0.75 tokens (45-60 min)
+Phase 4: Documentation            0.5 tokens  (30 min)
+Phase 5: Handler Integration      0.5 tokens  (30 min) [OPTIONAL]
+                                  ─────────────────────
+TOTAL (with Phase 5):             5.25 tokens (~3.5-4 hours)
+MINIMUM (without Phase 5):        3.75 tokens (~2.5-3 hours)
+
+Safety buffer recommended: 10% extra = 0.6 tokens
+Realistic total with buffer: 4.4-5.9 tokens
+```
+
+---
+
+## Knowledge Preservation for Next Session
+
+If continuing in a new session:
+
+1. Read: docs/modules/TEMPLATE-SYSTEM-MODULE-REFERENCE.md (complete API)
+2. Read: docs/TEMPLATE_SYSTEM_STATUS_SUMMARY.md (current state)
+3. Review: data/yaml/coding-tasks/web-template-caching-implementation.yaml (this file)
+4. Check: git log --grep="[CLAUDE]" --oneline (see what was committed)
+5. Verify: p7 v7.list zenki (confirm modules loaded)
+
+---
+
+## Notes & Considerations
+
+### Why This Approach?
+
+1. **Documentation First**: Clear spec prevents refactoring mid-way
+2. **Live Testing**: Validate against running v7 zenka, not assumptions
+3. **Modular Implementation**: Each module independent, can test separately
+4. **Namespace Flexible**: Can use `ncode replace all` later if needed
+5. **Feature Complete**: All 3 modules + optional integration = full system
+
+### What Could Go Wrong (Mitigations)
+
+| Risk | Mitigation |
+|------|-----------|
+| Module syntax errors | Test each immediately after creating |
+| Cache key conflicts | Use consistent format: "$vhost:$path" |
+| TTL logic bugs | Test with short TTL (2-5 seconds) |
+| Integration breaks existing code | Keep changes minimal, test static files still work |
+| Storage structure issues | Follow existing patterns (web.menu_generator) |
+
+### Future Optimizations (Post-Implementation)
+
+1. Persistent cache (file-based like weather.parent.cache)
+2. Cache statistics and monitoring
+3. Automatic cache invalidation on file changes
+4. Cache warming (pre-render popular templates)
+5. Distributed caching for multi-instance deployments
+
+---
+
+end_of_task_definition: true
