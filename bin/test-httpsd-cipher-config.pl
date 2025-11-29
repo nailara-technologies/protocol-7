@@ -43,7 +43,7 @@ foreach my $name (sort keys %$profiles) {
     my $profile = $load_profile->($name);
     my $tls = join(', ', @{$profile->{tls_versions}});
     my $ciphers = scalar(split(':', $profile->{cipher_suite}));
-    printf("  %-20s: %s (%d ciphers, TLS %s)\n", 
+    printf("  %-20s: %s (%d ciphers, TLS %s)\n",
            $name, $profile->{description}, $ciphers, $tls);
 }
 print "\n";
@@ -72,7 +72,7 @@ foreach my $name (qw(firefox_compatible high_security)) {
     my $has_tls13 = grep { $_ eq 'TLSv1_3' } @{$p->{tls_versions}};
     my $has_old = grep { /TLSv1\.0|SSLv/ } @{$p->{tls_versions}};
     my $has_weak = $p->{cipher_suite} =~ /RC4|DES|MD5|NULL/ ? 1 : 0;
-    
+
     printf("  %s:\n", $name);
     print "    - TLS 1.3 support: " . ($has_tls13 ? '✅' : '❌') . "\n";
     print "    - Old TLS versions: " . ($has_old ? '❌' : '✅') . "\n";
@@ -110,3 +110,9 @@ if ($verbose) {
 print "╔════════════════════════════════════════════════════════════╗\n";
 print "║  ✅ All tests passed - ready for deployment               ║\n";
 print "╚════════════════════════════════════════════════════════════╝\n";
+
+#,,,.,.,,,,..,,,.,..,,.,,,,,,,,.,,.,,,.,.,.,,,..,,...,...,..,,.,,,.,.,.,.,,..,
+#HKB6DXLP3EFLTOG633YEKTUWEW6WNQJ3MD7DDCH32CQWEIUSTWGYN722ADQXVQ34VZBTCTEKSZHSM
+#\\\|P5AMNIMHG3H4AAXRIKPUT7ADGMPV4TNGQ345SGWR66ARKFGK7VJ \ / AMOS7 \ YOURUM ::
+#\[7]RTSK2YR6H65FESWTE6KQYE74HURGZ6T7HUBRL4LEH25QBCQHBYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

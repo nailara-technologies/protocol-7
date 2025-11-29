@@ -34,3 +34,9 @@ for my $i (1 .. $iterations) {
 }
 
 print "\nDone.\n";
+
+#,,,.,..,,..,,.,,,,.,,,,.,..,,..,,...,,,.,..,,..,,...,...,..,,...,,..,,.,,.,.,
+#MTXCBUFXI2BDXWZCGAQPL5KOE2WGXFNREZBF6WOJ6VU4RMQROXXMCF3SX5JIB7O2PUPYS6QZ2OAMO
+#\\\|ORKJHPTMY44ZHO2EN2DNJZ6CF6E33S2UIZCLXJU3HZGNIIAXHO5 \ / AMOS7 \ YOURUM ::
+#\[7]AGQXS7YB3WU7CB6EPKKQA4XUKIR4HANRREBUYF5IBVR4D4F4DWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
