@@ -30,22 +30,22 @@ unless (-d $scan_dir) {
 my $wanted = sub {
     my $file = $_;
     my $path = $File::Find::name;
-    
+
     # Skip special directories
     return if $path =~ m|/_|;  # Skip _templates, _skins, _config, etc.
     return if $path =~ m|/\.|;  # Skip hidden dirs
     return unless -f $path;      # Only files
-    
+
     # Build relative path from vhost root
     my $rel_path = $path;
     $rel_path =~ s|^$scan_dir||;
     $rel_path =~ s|^/||;
-    
+
     # Check if template exists for this file
     my $has_template = 0;
     my $template_path = undef;
     my $template_level = 0;  # 1=vhost-subdir, 2=vhost-root, 3=global
-    
+
     # Level 1: Check vhost subdirectory templates
     my $dir = (split('/', $rel_path))[0];
     if ($dir) {
@@ -56,7 +56,7 @@ my $wanted = sub {
             $template_level = 1;
         }
     }
-    
+
     # Level 2: Check vhost root templates (if not found at level 1)
     unless ($has_template) {
         my $vhost_template = "$scan_dir/_templates/$file.tmpl";
@@ -66,7 +66,7 @@ my $wanted = sub {
             $template_level = 2;
         }
     }
-    
+
     # Level 3: Check global templates (if not found at levels 1-2)
     unless ($has_template) {
         my $global_template = "$base_dir/_global_templates/$file.tmpl";
@@ -76,11 +76,11 @@ my $wanted = sub {
             $template_level = 3;
         }
     }
-    
+
     # Get file modification time
     my $sb = stat($path);
     my $mtime = $sb->mtime if defined $sb;
-    
+
     # Store in index
     $index->{"/$rel_path"} = {
         path            => "/$rel_path",
@@ -105,3 +105,9 @@ my $entry_count = scalar(keys %$index);
     count    => $entry_count,
     index    => $index,
 };
+
+#,,,.,,..,.,.,,.,,,,.,,..,.,.,,..,...,,,.,,,.,..,,...,...,,.,,.,.,,..,,..,..,,
+#FCN7ZS66LLZ2ELQJ7O5GLH2N5R6ITN4FZY3CE25BQOOSZF36DSMP4LYIFZ6SDJBHCXUXHSFADPKTQ
+#\\\|53KU4GZP24YAAS4LAZTQTDAGHZB5YPKZ7MZEACPLI5WXMARDQIL \ / AMOS7 \ YOURUM ::
+#\[7]E4DXLNPYECXJ4IZLFZRXCHPSP6JTQQX5MYV6VQ5V3FYTXNXBF6AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
