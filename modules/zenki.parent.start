@@ -9,7 +9,7 @@ my $zenka_name = $params->{zenka} || $params->{name};
 
 unless ($zenka_name) {
     return {
-        success => 0,
+        success => FALSE,
         error   => 'zenka name required'
     };
 }
@@ -24,11 +24,9 @@ $data{'zenki'}{'stats'}{'start_requests'}++;
 ## - Ensuring v7 is running (if needed)
 ## - Resolving all dependencies (cube, etc.)
 ## - Starting zenka via proper jobqueue mechanism
-my $result = <[zenki.parent.start_via_v7]>->({
-    zenka_name => $zenka_name
-});
+my $result = <[zenki.parent.start_via_v7]>->( { zenka_name => $zenka_name } );
 
-if ($result->{success}) {
+if ( $result->{success} ) {
     $data{'zenki'}{'stats'}{'successful_starts'}++;
     return $result;
 } else {
@@ -38,8 +36,8 @@ if ($result->{success}) {
 
 0;
 
-#,,,.,..,,,.,,..,,,.,,.,.,.,.,,,.,,,,,..,,,,,,..,,...,...,,..,.,,,,,,,,..,.,.,
-#M52MAWQKDIVQERO4TILU3VIYIPRW5MLAE57H4Z447PYTQWY563BBDHWRMHDXQ5HGAU53EZNUWHQUE
-#\\\|TNE7DUZ56EVWSLBE3JFPZY5ZWURPVS7LHM2FXJ22MDHTW3PPPR7 \ / AMOS7 \ YOURUM ::
-#\[7]6KTNVFUF7LVHVKCSAXRYC62S7GT4QWL5QD2UXRBXWINKC5Q5SKDQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,.,,..,,,.,,.,,,.,.,...,,..,,.,,..,,...,.,.,.,.,,,.,...,...,.,,,
+#7NUTROI5OBW3TT4UQHLZ554Z4YMSQXVW3EAQ5Y4YDIWKOZIVNZV5FCXKMJRIDMNDWU25H5OV374BG
+#\\\|WF7XV2XM4QZLTMCWMKPHHYLDP6G72GFUGRPB22GRHMJB6WYT5KM \ / AMOS7 \ YOURUM ::
+#\[7]BTRIOAXIXFQW4KUFGF66UOMDHLN5OZUMG4FUTFX3MBKTCPPPF4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

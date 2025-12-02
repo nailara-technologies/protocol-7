@@ -1,0 +1,351 @@
+## [:< ##
+
+# name = llm.service.consensus_vote
+# descr = Query multiple LLMs and aggregate responses via cubic topology voting
+# purpose = Reasoning: Multi-model consensus voting with harmonic certainty calculation
+
+use strict;
+use warnings;
+use JSON::XS;
+use Math::Trig qw(cos sin atan2 pi);
+use List::Util qw(sum min max);
+
+# Configuration for available models
+my %MODELS = (
+    'qwen' => {
+        name           => 'Qwen2.5-7B',
+        specialization => 'general-reasoning',
+        vram_mb        => 3500,
+        tokens_per_sec => 6
+    },
+    'mathstral' => {
+        name           => 'Mathstral-7B',
+        specialization => 'mathematical-reasoning',
+        vram_mb        => 3500,
+        tokens_per_sec => 5
+    },
+    'aya' => {
+        name           => 'Aya-23-8B',
+        specialization => 'multilingual',
+        vram_mb        => 4500,
+        tokens_per_sec => 5
+    }
+);
+
+# Query a single LLM via subprocess (llama-cli)
+my $query_single_model = sub {
+    my ( $model, $prompt ) = @_;
+
+    return {
+        success => FALSE,
+        error   => "Unknown model: $model"
+        }
+        unless exists $MODELS{$model};
+
+    return {
+        success => FALSE,
+        error   => "Prompt required"
+        }
+        unless defined $prompt;
+
+    # Use subprocess wrapper for real LLM inference
+    my $llm_result
+        = <[llm.service.subprocess_wrapper]>->( 'query', $model, $prompt );
+
+    if ( !$llm_result->{success} ) {
+
+        # Fallback: check if llama-cli is installed
+        if ( $llm_result->{error} =~ /not found/ ) {
+            return {
+                success => FALSE,
+                error   =>
+                    "llama-cli not available. Install ik_llama.cpp: https://github.com/ikawrakow/ik_llama.cpp",
+                help => "For now, using mock responses for testing",
+                fallback_response =>
+                    _generate_mock_response( $model, $prompt )
+            };
+        }
+        return $llm_result;
+    }
+
+    # Return real LLM response
+    return {
+        success  => TRUE,
+        response => $llm_result->{response}
+    };
+};
+
+# Map responses to cubic space coordinates
+my $map_to_cubic_space = sub {
+    my ($responses) = @_;
+
+    # Cubic space uses harmonic positioning
+    # Each answer is mapped to coordinates based on:
+    # - X axis: confidence level
+    # - Y axis: response complexity
+    # - Z axis: model agreement
+
+    my @coordinates = ();
+
+    for ( my $i = 0; $i < @$responses; $i++ ) {
+        my $resp = $responses->[$i];
+
+        my $x = $resp->{confidence} * 10;         # Normalize to 0-10
+        my $y = length( $resp->{answer} ) / 100;  # Complexity based on length
+        my $z = $i;    # Model position in consensus space
+
+        push @coordinates,
+            {
+            model      => $resp->{model},
+            answer     => $resp->{answer},
+            x          => $x,
+            y          => $y,
+            z          => $z,
+            confidence => $resp->{confidence}
+            };
+    }
+
+    return @coordinates;
+};
+
+# Calculate consensus via center of mass in cubic space
+my $calculate_consensus = sub {
+    my (@coordinates) = @_;
+
+    return {
+        success => FALSE,
+        error   => "Need at least one coordinate"
+        }
+        if scalar(@coordinates) == 0;
+
+    # Calculate center of mass
+    my $cx = sum( map { $_->{x} } @coordinates ) / scalar(@coordinates);
+    my $cy = sum( map { $_->{y} } @coordinates ) / scalar(@coordinates);
+    my $cz = sum( map { $_->{z} } @coordinates ) / scalar(@coordinates);
+
+    # Calculate distances from center (disagreement measure)
+    my @distances    = ();
+    my $max_distance = 0;
+
+    foreach my $coord (@coordinates) {
+        my $dx = $coord->{x} - $cx;
+        my $dy = $coord->{y} - $cy;
+        my $dz = $coord->{z} - $cz;
+
+        my $distance = sqrt( $dx * $dx + $dy * $dy + $dz * $dz );
+        push @distances,
+            {
+            model        => $coord->{model},
+            distance     => $distance,
+            disagreement => $distance
+            };
+
+        $max_distance = $distance if $distance > $max_distance;
+    }
+
+    # Calculate harmonic certainty using BASE32 encoding principles
+    my $avg_distance
+        = sum( map { $_->{distance} } @distances ) / scalar(@distances);
+    my $certainty
+        = $max_distance > 0 ? 1 - ( $avg_distance / $max_distance ) : 1.0;
+
+    # Harmonic certainty (div-7 pattern)
+    my $harmonic_certainty = _encode_harmonic_certainty($certainty);
+
+    return {
+        success   => TRUE,
+        consensus => {
+            center               => { x => $cx, y => $cy, z => $cz },
+            avg_distance         => $avg_distance,
+            max_distance         => $max_distance,
+            certainty            => $certainty,
+            harmonic_certainty   => $harmonic_certainty,
+            disagreement_measure => $avg_distance,
+            models_agreement     => scalar(@distances)
+        },
+        distances => \@distances
+    };
+};
+
+# Perform full consensus voting
+my $consensus_vote = sub {
+    my ( $task, $models_to_use ) = @_;
+
+    $models_to_use //= [ 'qwen', 'mathstral', 'aya' ];
+
+    return {
+        success          => FALSE,
+        error            => "At least one model required",
+        available_models => [ keys %MODELS ]
+        }
+        if !@$models_to_use;
+
+    my $prompt = $task->{request}->{description} // '';
+
+    # Query all models
+    my @responses     = ();
+    my $total_tokens  = 0;
+    my $failed_models = 0;
+
+    foreach my $model (@$models_to_use) {
+        my $result = query_single_model->( $model, $prompt );
+
+        if ( $result->{success} ) {
+            push @responses, $result->{response};
+            $total_tokens += $result->{response}->{tokens_used};
+        } else {
+            $failed_models++;
+        }
+    }
+
+    # Need at least 2 models for meaningful consensus
+    if ( scalar(@responses) < 2 ) {
+        return {
+            success   => FALSE,
+            error     => "Not enough successful model responses",
+            succeeded => scalar(@responses),
+            failed    => $failed_models,
+            needed    => scalar(@$models_to_use)
+        };
+    }
+
+    # Map responses to cubic space
+    my @coordinates = map_to_cubic_space->( \@responses );
+
+    # Calculate consensus
+    my $consensus = calculate_consensus->(@coordinates);
+
+    if ( !$consensus->{success} ) {
+        return {
+            success => FALSE,
+            error   => "Consensus calculation failed"
+        };
+    }
+
+    # Select answer closest to consensus (center)
+    my $best_answer;
+    my $best_distance = 999999;
+
+    foreach my $coord (@coordinates) {
+        my $distance = $consensus->{consensus}->{distances}[0]->{distance}
+            // 0;
+        if ( $distance < $best_distance ) {
+            $best_distance = $distance;
+            $best_answer   = $coord;
+        }
+    }
+
+    return {
+        success       => TRUE,
+        voting_result => {
+            consensus_answer   => $best_answer->{answer},
+            best_model         => $best_answer->{model},
+            certainty_level    => $consensus->{consensus}->{certainty},
+            harmonic_certainty =>
+                $consensus->{consensus}->{harmonic_certainty},
+            model_responses => [
+                map {
+                    {   model                   => $_->{model},
+                        answer                  => $_->{answer},
+                        distance_from_consensus => (
+                            grep { $_->{model} eq $_->{model} }
+                                @{ $consensus->{distances} }
+                        )[0]->{distance} // 0
+                    }
+                } @responses
+            ],
+            voting_stats => {
+                models_queried    => scalar(@$models_to_use),
+                models_successful => scalar(@responses),
+                models_failed     => $failed_models,
+                total_tokens      => $total_tokens,
+                avg_distance      => $consensus->{consensus}->{avg_distance},
+                max_distance      => $consensus->{consensus}->{max_distance}
+            }
+        },
+        task => $task
+    };
+};
+
+# Harmonic certainty encoding (BASE32-like, div-7 pattern)
+sub _encode_harmonic_certainty {
+    my ($certainty) = @_;
+
+    # Map 0-1 to harmonic levels using div-7 pattern
+    # BASE32 encoding: 7^n divisions
+    my $level         = int( $certainty * 7 );
+    my $harmonic_code = sprintf( "%07b", $level );    # 7-bit binary
+
+    return {
+        numeric         => $certainty,
+        harmonic_level  => $level,
+        binary_encoding => $harmonic_code,
+        interpretation  => _interpret_certainty_level($level)
+    };
+}
+
+sub _interpret_certainty_level {
+    my ($level) = @_;
+
+    my @levels = (
+        'Very Low', 'Low',       'Moderate', 'Good',
+        'High',     'Very High', 'Excellent'
+    );
+
+    return $levels[$level] // 'Unknown';
+}
+
+# Mock response generator (for development)
+sub _generate_mock_response {
+    my ( $model, $prompt ) = @_;
+
+    if ( $model eq 'qwen' ) {
+        return
+            "This is a reasoning response from Qwen focusing on logical analysis. ";
+    } elsif ( $model eq 'mathstral' ) {
+        return
+            "This is a mathematical reasoning response from Mathstral with detailed steps. ";
+    } elsif ( $model eq 'aya' ) {
+        return
+            "This is a multilingual response from Aya considering cross-cultural context. ";
+    }
+
+    return
+        "Response from $model regarding: " . substr( $prompt, 0, 50 ) . "...";
+}
+
+# Main entry point
+my $cmd  = shift @_ // 'vote';
+my $arg1 = shift @_;
+
+if ( $cmd eq 'vote' ) {
+    return consensus_vote->( $arg1, $_[0] );
+} elsif ( $cmd eq 'single' ) {
+    return query_single_model->( $arg1, $_[0] );
+} elsif ( $cmd eq 'models' ) {
+    return {
+        success          => TRUE,
+        available_models => \%MODELS
+    };
+} elsif ( $cmd eq 'map-cubic' ) {
+    return {
+        success     => TRUE,
+        coordinates => [ map_to_cubic_space->($arg1) ]
+    };
+} elsif ( $cmd eq 'consensus' ) {
+    return calculate_consensus->(@$arg1);
+} else {
+    return {
+        success   => FALSE,
+        error     => "Unknown consensus command: $cmd",
+        available => [ 'vote', 'single', 'models', 'map-cubic', 'consensus' ]
+    };
+}
+
+# AMOS7::TEMPLATE::signature_placeholder
+
+#,,,.,...,..,,,.,,,.,,.,.,,,,,,..,,,.,...,,..,..,,...,...,.,,,,..,.,.,.,,,,,,,
+#7WP4PSX667NUWIYCL5LP3RAHONK2UAIOAKHJGVXM2TH6JUXQLP7G2JZDHNC567UNSUYQ737LSBU6O
+#\\\|HNYKPT2QS4FH7VTZ64IP3ZDQ3H7A2YG2SB2AQJJG4XEYZ7PF3BH \ / AMOS7 \ YOURUM ::
+#\[7]UA62GRNYKUJL7J6RRGZAKAFXAW2KBFEN4JAKAWWRMW3DS3MSCWAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

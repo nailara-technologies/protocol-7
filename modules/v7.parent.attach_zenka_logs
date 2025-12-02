@@ -5,60 +5,60 @@
 
 my $params = shift || {};
 
-    my $zenka_name = $params->{zenka};
-    my $zenka_pid = $params->{pid};
+my $zenka_name = $params->{zenka};
+my $zenka_pid  = $params->{pid};
 
-    unless ($zenka_name && $zenka_pid) {
-        return {
-            success => 0,
-            error   => 'zenka name and pid required'
-        };
-    }
-
-    <[base.log]>->( 2, "v7.logs: attaching to '$zenka_name' (PID: $zenka_pid)" );
-
-    ## Create unix domain socket for log streaming
-    ## Path: /var/run/.7/logs/<zenka_name>
-    my $socket_dir = '/var/run/.7/logs';
-    my $socket_path = "$socket_dir/$zenka_name";
-
-    ## Ensure socket directory exists
-    unless (-d $socket_dir) {
-        mkdir($socket_dir, 0755) or do {
-            <[base.log]>->( 0, "  Failed to create socket dir: $!" );
-            return { success => 0, error => "mkdir failed: $!" };
-        };
-    }
-
-    ## TODO: Implement log streaming via unix domain socket
-    ## Key features needed:
-    ## 1. Capture zenka stdout/stderr in v7
-    ## 2. Stream to unix socket for observers
-    ## 3. Support multiple simultaneous observers (clone)
-    ## 4. Support detach/reattach (like tmux)
-    ## 5. Stop v7 pass-through when terminal zenka takes over
-
-    ## For now, store socket path in registry
-    $data{'v7'}{'zenki_logs'}{$zenka_name} = {
-        pid         => $zenka_pid,
-        socket_path => $socket_path,
-        attached    => time(),
-        observers   => []
-    };
-
-    <[base.log]>->( 2, "  Log socket: $socket_path" );
-
+unless ( $zenka_name && $zenka_pid ) {
     return {
-        success     => 1,
-        socket_path => $socket_path,
-        zenka       => $zenka_name,
-        pid         => $zenka_pid
+        success => FALSE,
+        error   => 'zenka name and pid required'
     };
+}
+
+<[base.log]>->( 2, "v7.logs: attaching to '$zenka_name' (PID: $zenka_pid)" );
+
+## Create unix domain socket for log streaming
+## Path: /var/run/.7/logs/<zenka_name>
+my $socket_dir  = '/var/run/.7/logs';
+my $socket_path = "$socket_dir/$zenka_name";
+
+## Ensure socket directory exists
+unless ( -d $socket_dir ) {
+    mkdir( $socket_dir, 0755 ) or do {
+        <[base.log]>->( 0, "  Failed to create socket dir: $!" );
+        return { success => FALSE, error => "mkdir failed: $!" };
+    };
+}
+
+## TODO: Implement log streaming via unix domain socket
+## Key features needed:
+## 1. Capture zenka stdout/stderr in v7
+## 2. Stream to unix socket for observers
+## 3. Support multiple simultaneous observers (clone)
+## 4. Support detach/reattach (like tmux)
+## 5. Stop v7 pass-through when terminal zenka takes over
+
+## For now, store socket path in registry
+$data{'v7'}{'zenki_logs'}{$zenka_name} = {
+    pid         => $zenka_pid,
+    socket_path => $socket_path,
+    attached    => time(),
+    observers   => []
+};
+
+<[base.log]>->( 2, "  Log socket: $socket_path" );
+
+return {
+    success     => TRUE,
+    socket_path => $socket_path,
+    zenka       => $zenka_name,
+    pid         => $zenka_pid
+};
 
 0;
 
-#,,.,,.,,,...,,,.,...,,,.,,.,,,.,,,.,,...,,..,..,,...,...,,,.,..,,,.,,.,,,.,.,
-#676YTYHQ46KKAE546WVVB5Y3MKPL7XE2QMNYLGA34HYWLZ7PVR3FN23HJEBI46Z6I5AXYT7ZSMZ5S
-#\\\|ZD35YLRLPRZPCU2MMKCCYWXD6JPWCQS3XI7SSPMFCTQMVUBP3FW \ / AMOS7 \ YOURUM ::
-#\[7]PRSXVZPX6EBFF3X6G3URPM7GZKWV53AAUD5DFHV3IMTBB6LJBWAY 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,,.,,,,,..,,,.,,..,,,,.,,..,...,..,,...,...,,,.,.,.,.,,,,,,,.,.,
+#JOWHWVH4MKLNOQWC5FHYFJA5VRLZXN2OGXN2RNRVAFBK5UPWH52QNGCT6DC2DWPSADKQZEEAGTWCA
+#\\\|SWJ2RTOB3LVY3IOVBMDNO3TDP22IYIPUMSFO3PNRUD6ROK5Z64D \ / AMOS7 \ YOURUM ::
+#\[7]ROYW5VQOCL4ZGXYO5EXWMCPMPKGBWAGE5IJIFQDETSEK5KO63YDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

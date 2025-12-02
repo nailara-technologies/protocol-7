@@ -1,0 +1,296 @@
+## [:< ##
+
+# name = coding.task.queue
+# descr = Manage work queue with priority, dependencies, and state tracking
+# purpose = Queue management: Store tasks, maintain order, track state
+
+use strict;
+use warnings;
+use JSON::XS;
+use Time::HiRes qw(time);
+
+# Internal queue state - stored in memory for this session
+my %TASK_QUEUE        = ();       # task_id => task
+my @QUEUE_ORDER       = ();       # Ordered by priority/insertion
+my %TASK_DEPENDENCIES = ();       # task_id => [dependent_ids]
+my $QUEUE_UPDATED     = time();
+
+# Add task to queue
+my $enqueue_task = sub {
+    my ($task) = @_;
+
+    return {
+        success => FALSE,
+        error   => "Task must be a hashref"
+        }
+        unless ref($task) eq 'HASH';
+
+    my $task_id = $task->{id};
+
+    # Prevent duplicates
+    if ( exists $TASK_QUEUE{$task_id} ) {
+        return {
+            success       => FALSE,
+            error         => "Task already in queue: $task_id",
+            existing_task => $TASK_QUEUE{$task_id}
+        };
+    }
+
+    # Store task
+    $TASK_QUEUE{$task_id} = {
+        %$task,
+        queued_at      => time(),
+        queue_position => scalar(@QUEUE_ORDER)
+    };
+
+    # Add to ordering (will be sorted by priority)
+    push @QUEUE_ORDER, $task_id;
+
+    $QUEUE_UPDATED = time();
+
+    return {
+        success    => TRUE,
+        task_id    => $task_id,
+        queue_size => scalar(@QUEUE_ORDER),
+        message    => "Task enqueued: $task_id"
+    };
+};
+
+# Get next task to execute (respects priority and dependencies)
+my $dequeue_next = sub {
+
+    # Filter tasks that have no unfinished dependencies
+    my @available = ();
+
+    foreach my $task_id (@QUEUE_ORDER) {
+        my $task = $TASK_QUEUE{$task_id};
+
+        # Skip if not pending
+        next unless $task->{execution}->{status} eq 'pending';
+
+        # Check dependencies
+        my $blocked = 0;
+        if ( exists $TASK_DEPENDENCIES{$task_id} ) {
+            foreach my $dep_id ( @{ $TASK_DEPENDENCIES{$task_id} } ) {
+                my $dep_task = $TASK_QUEUE{$dep_id};
+                if (  !$dep_task
+                    || $dep_task->{execution}->{status} ne 'completed' ) {
+                    $blocked = 1;
+                    last;
+                }
+            }
+        }
+
+        next if $blocked;
+
+        push @available,
+            {
+            id             => $task_id,
+            task           => $task,
+            priority_score => _calculate_priority_score($task)
+            };
+    }
+
+    # Sort by priority (highest first)
+    my @sorted
+        = sort { $b->{priority_score} <=> $a->{priority_score} } @available;
+
+    if (@sorted) {
+        my $next = $sorted[0];
+        my $task = $next->{task};
+
+        # Mark as being worked on (don't remove yet)
+        $task->{execution}->{status}  = 'in_progress';
+        $task->{execution}->{started} = time();
+
+        return {
+            success         => TRUE,
+            task            => $task,
+            queue_remaining => scalar(@QUEUE_ORDER) - 1
+        };
+    }
+
+    return {
+        success    => FALSE,
+        error      => "No available tasks in queue",
+        queue_size => scalar(@QUEUE_ORDER)
+    };
+};
+
+# Mark task as completed
+my $complete_task = sub {
+    my ( $task_id, $result, $success ) = @_;
+
+    return {
+        success => FALSE,
+        error   => "Task not found: $task_id"
+        }
+        unless exists $TASK_QUEUE{$task_id};
+
+    my $task = $TASK_QUEUE{$task_id};
+
+    $task->{execution}->{status}    = 'completed';
+    $task->{execution}->{completed} = time();
+    $task->{execution}->{result}    = $result if defined $result;
+    $task->{execution}->{success}   = $success // 1;
+
+    $QUEUE_UPDATED = time();
+
+    return {
+        success => TRUE,
+        task_id => $task_id,
+        message => "Task completed: $task_id"
+    };
+};
+
+# Mark task as failed
+my $fail_task = sub {
+    my ( $task_id, $error ) = @_;
+
+    return {
+        success => FALSE,
+        error   => "Task not found: $task_id"
+        }
+        unless exists $TASK_QUEUE{$task_id};
+
+    my $task = $TASK_QUEUE{$task_id};
+
+    $task->{execution}->{status}    = 'failed';
+    $task->{execution}->{completed} = time();
+    $task->{execution}->{success}   = 0;
+    $task->{execution}->{error}     = $error // 'Unknown error';
+
+    $QUEUE_UPDATED = time();
+
+    return {
+        success => TRUE,
+        task_id => $task_id,
+        error   => $error,
+        message => "Task failed: $task_id"
+    };
+};
+
+# Get task status
+my $get_task_status = sub {
+    my ($task_id) = @_;
+
+    return {
+        success => FALSE,
+        error   => "Task not found: $task_id"
+        }
+        unless exists $TASK_QUEUE{$task_id};
+
+    my $task = $TASK_QUEUE{$task_id};
+
+    return {
+        success   => TRUE,
+        task_id   => $task_id,
+        status    => $task->{execution}->{status},
+        started   => $task->{execution}->{started},
+        completed => $task->{execution}->{completed},
+        result    => $task->{execution}->{result},
+        success   => $task->{execution}->{success}
+    };
+};
+
+# Get queue statistics
+my $get_queue_stats = sub {
+    my $pending     = 0;
+    my $in_progress = 0;
+    my $completed   = 0;
+    my $failed      = 0;
+
+    foreach my $task_id ( keys %TASK_QUEUE ) {
+        my $status = $TASK_QUEUE{$task_id}->{execution}->{status};
+        $pending++     if $status eq 'pending';
+        $in_progress++ if $status eq 'in_progress';
+        $completed++   if $status eq 'completed';
+        $failed++      if $status eq 'failed';
+    }
+
+    return {
+        total_tasks   => scalar( keys %TASK_QUEUE ),
+        pending       => $pending,
+        in_progress   => $in_progress,
+        completed     => $completed,
+        failed        => $failed,
+        queue_updated => $QUEUE_UPDATED
+    };
+};
+
+# Clear completed tasks
+my $clear_completed = sub {
+    my @to_remove = ();
+
+    foreach my $task_id ( keys %TASK_QUEUE ) {
+        if ( $TASK_QUEUE{$task_id}->{execution}->{status} eq 'completed' ) {
+            push @to_remove, $task_id;
+        }
+    }
+
+    foreach my $task_id (@to_remove) {
+        delete $TASK_QUEUE{$task_id};
+        @QUEUE_ORDER = grep { $_ ne $task_id } @QUEUE_ORDER;
+    }
+
+    $QUEUE_UPDATED = time();
+
+    return {
+        success   => TRUE,
+        cleared   => scalar(@to_remove),
+        remaining => scalar(@QUEUE_ORDER)
+    };
+};
+
+# Helper: Calculate priority score
+sub _calculate_priority_score {
+    my ($task) = @_;
+
+    my $priority     = $task->{request}->{priority} // 'normal';
+    my $priority_map = {
+        critical => 100,
+        high     => 50,
+        normal   => 0,
+        low      => -50
+    };
+
+    my $score = $priority_map->{$priority} // 0;
+
+    # Age factor: tasks waiting longer get higher priority
+    my $age = time() - ( $task->{queued_at} // time() );
+    $score += int( $age / 60 );    # +1 per minute waiting
+
+    return $score;
+}
+
+# Route based on first argument
+my $cmd = shift @_ // 'status';
+my $arg = shift @_;
+
+if ( $cmd eq 'enqueue' ) {
+    return $enqueue_task->($arg);
+} elsif ( $cmd eq 'next' ) {
+    return $dequeue_next->();
+} elsif ( $cmd eq 'complete' ) {
+    return $complete_task->( $arg, $_[0], $_[1] );
+} elsif ( $cmd eq 'fail' ) {
+    return $fail_task->( $arg, $_[0] );
+} elsif ( $cmd eq 'status' ) {
+    return $get_task_status->($arg) if defined $arg;
+    return $get_queue_stats->();
+} elsif ( $cmd eq 'clear' ) {
+    return $clear_completed->();
+} else {
+    return {
+        success   => FALSE,
+        error     => "Unknown queue command: $cmd",
+        available =>
+            [ 'enqueue', 'next', 'complete', 'fail', 'status', 'clear' ]
+    };
+}
+
+#,,,,,.,,,,,.,,,,,,..,,..,,..,,..,...,.,.,.,.,..,,...,...,,,.,.,,,..,,,,,,,,,,
+#WC23YUHDSS6OYQIUEKT5FM2HVNHFQKXT6CKYYFSEER3WOHNTJO6IFNSLTONEOSKTDQLH24GDB3BHU
+#\\\|GNFVCMGYLBOZ77426OBT6HSN7JIRM4BPG7WB3FWR7OWWWEYC3CO \ / AMOS7 \ YOURUM ::
+#\[7]ATZMJCDXTC72UPP4EER66L23FFXLWTPYWLVUSA4EUPHORV4T5GCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

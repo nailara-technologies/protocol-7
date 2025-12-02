@@ -87,17 +87,17 @@ foreach my $remove_path_link (@unlink_path_symlink) {
 
     ##  check access permission against user whitelisted  ##
     ##
-    my $path_unlink_allowed = 0;    ##  false  ##
+    my $path_unlink_allowed = FALSE;    ##  false  ##
     foreach my $user_uid ( $perm_ids{'uids'}->@* ) {
         if ( $f_stat->cando( S_IWUSR(), $user_uid ) ) {    ##  UID  ##
-            $path_unlink_allowed = 5;
+            $path_unlink_allowed = TRUE;
             next;
         }
     }
     if ( not $path_unlink_allowed ) {
         foreach my $gid ( $perm_ids{'gids'}->@* ) {
             if ( $f_stat->cando( S_IWGRP(), $gid ) ) {    ##  GROUP  ##
-                $path_unlink_allowed = 5;
+                $path_unlink_allowed = TRUE;
                 next;
             }
         }
@@ -144,8 +144,8 @@ foreach my $remove_path_link (@unlink_path_symlink) {
 
 return $number_files_cleaned;
 
-#,,.,,,,.,.,.,.,.,.,,,...,..,,,.,,.,.,,..,,,,,..,,...,...,,..,..,,.,,,.,,,...,
-#YZTEPDM4MSWHAVUDOZXPO4RFHWOICROVGKH2MNBN6TESOINJAWHXDOT2C2L45YAEENL4UV5CFXFF4
-#\\\|GDHLJF46FSUMIABY4ZGQ7NEG7FHMXCTF6ONRXQZ4LUW6RZF6JS5 \ / AMOS7 \ YOURUM ::
-#\[7]5EKR5F27CCKXS3BK4CPPFHN56EBY6CA5RHNT3LCMTAE5IG5YNEDI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,..,,,.,,.,,,,.,..,,..,,.,,,,,.,..,,...,...,...,,,.,,,.,,..,...,
+#TMZ54TOSAXQNAJIDESKJ5BJDLPTXBK6ZIUHYXRQZ7OJPS7MYGHJUONOTJXBMU6SCB5ROR634MLDZ2
+#\\\|QZ6A7KSRRSM7SO26AZQF7DHOL2WKPG5LV243DWBK7APG3QED5R3 \ / AMOS7 \ YOURUM ::
+#\[7]HWTLIO6OJV3UKBESIGGOA7YC4UXOA6QMCTFBA2SQG7XWLJAEDYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,19 +10,22 @@ my $params = shift || {};
 ## First ensure v7 is running (cube depends on v7)
 my $v7_result = <[zenki.parent.ensure_v7]>;
 
-unless ($v7_result->{success}) {
+unless ( $v7_result->{success} ) {
     return {
-        success => 0,
-        error   => 'v7 dependency failed: ' . ($v7_result->{error} || 'unknown'),
+        success => FALSE,
+        error   => 'v7 dependency failed: '
+            . ( $v7_result->{error} || 'unknown' ),
         dependency_failed => 'v7'
     };
 }
 
 ## Check if cube is already running
-my $cube_check = <[zenki.parent.check_running]>->({ zenka => 'cube' });
+my $cube_check = <[zenki.parent.check_running]>->( { zenka => 'cube' } );
 
-if ($cube_check->{running}) {
-    <[base.log]>->( 3, "  ✓ cube already running (PID: " . $cube_check->{pid} . ")" );
+if ( $cube_check->{running} ) {
+    <[base.log]>->(
+        3, "  ✓ cube already running (PID: " . $cube_check->{pid} . ")"
+    );
 
     ## Update registry
     $data{'zenki'}{'running'}{'cube'} = {
@@ -32,9 +35,9 @@ if ($cube_check->{running}) {
     };
 
     return {
-        success => 1,
+        success         => TRUE,
         already_running => 1,
-        pid => $cube_check->{pid}
+        pid             => $cube_check->{pid}
     };
 }
 
@@ -42,15 +45,15 @@ if ($cube_check->{running}) {
 <[base.log]>->( 2, "  cube not running - v7 should start it..." );
 
 ## Wait for v7 to start cube (v7.init_code starts cube automatically)
-my $timeout = <zenki.cfg.cube_startup_timeout>;
+my $timeout    = <zenki.cfg.cube_startup_timeout>;
 my $start_time = time();
 
-while (time() - $start_time < $timeout) {
+while ( time() - $start_time < $timeout ) {
     sleep 1;
 
-    my $check = <[zenki.parent.check_running]>->({ zenka => 'cube' });
+    my $check = <[zenki.parent.check_running]>->( { zenka => 'cube' } );
 
-    if ($check->{running}) {
+    if ( $check->{running} ) {
         <[base.log]>->( 2, "  ✓ cube started by v7" );
 
         ## Update registry and statistics
@@ -63,9 +66,9 @@ while (time() - $start_time < $timeout) {
         $data{'zenki'}{'stats'}{'cube_starts'}++;
 
         return {
-            success => 1,
+            success       => TRUE,
             started_by_v7 => 1,
-            pid => $check->{pid}
+            pid           => $check->{pid}
         };
     }
 }
@@ -73,14 +76,14 @@ while (time() - $start_time < $timeout) {
 <[base.log]>->( 0, "  ✗ cube startup timeout after ${timeout}s" );
 
 return {
-    success => 0,
+    success => FALSE,
     error   => "cube startup timeout - v7 may have issues starting cube"
 };
 
 0;
 
-#,,,.,.,,,...,...,,.,,,.,,.,,,,.,,..,,.,,,.,.,..,,...,...,,,.,,.,,,,,,,..,,,.,
-#ECHNVNOPN6KF4EUCCVXKXSMYER3QOWLODUJWJ4ATDHG347CYTQGFYSACLENKWVJVQYUFCJUDKLWGE
-#\\\|QJRM36J4BHLHXJZCFCB6ZJT7B32XVNF4UIQTCJNCZT5HAW7UPTO \ / AMOS7 \ YOURUM ::
-#\[7]GSYKCLUULVYYPTEBUN2PYCONDLJ2MJAC77ETK2VWHV5MJG2QDUDA 7  DATA SIGNATURE ::
+#,,,,,,..,...,..,,,.,,,,.,..,,,,,,..,,.,,,.,.,..,,...,...,,..,,,,,,,,,,,,,.,.,
+#ORGQC3I4Q6OICQ66CIKVICEXHAK44JLPDJI2WLHEE5HYKDY2VD6ARIGGRHRHALDPM3BI5HN5M3MNE
+#\\\|GI3MBQJFCBFKBXW5KK4DHGTMSP6DI5HM63AZ6J47TWUQKTAOSAA \ / AMOS7 \ YOURUM ::
+#\[7]6OWQBXJ6N2UTH6J53XAP4FZBIHTZC4C35U6VVLMGS7FRNJIDFIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

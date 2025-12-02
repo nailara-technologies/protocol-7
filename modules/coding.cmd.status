@@ -1,0 +1,95 @@
+## [:< ##
+
+# name  = coding.cmd.status
+# descr = Console command: show coding zenka status and queue information
+# param = optional: task_id to show specific task status
+
+my $task_id = length( $$call{'args'} ) ? $$call{'args'} : undef;
+
+# Get queue statistics
+my $queue_stats = <[coding.task.queue]>->( 'status', $task_id );
+
+if ( !$queue_stats->{success} && !defined $task_id ) {
+
+    # General status
+    return {
+        'mode' => qw| true |,
+        'data' => "Coding Zenka Status:\n"
+            . "  Status: ready\n"
+            . "  Queue: empty or no data available"
+    };
+}
+
+if ( defined $task_id ) {
+
+    # Specific task status
+    my $task_status = $queue_stats;
+
+    if ( !$task_status->{success} ) {
+        return {
+            'mode' => qw| false |,
+            'data' => "Task not found: $task_id"
+        };
+    }
+
+    return {
+        'mode' => qw| true |,
+        'data' => "Task Status: $task_id\n"
+            . "  Status: "
+            . $task_status->{status} . "\n"
+            . "  Started: "
+            . (
+            $task_status->{started}
+            ? scalar( localtime( $task_status->{started} ) )
+            : 'pending'
+            )
+            . "\n"
+            . "  Completed: "
+            . (
+            $task_status->{completed}
+            ? scalar( localtime( $task_status->{completed} ) )
+            : 'in progress'
+            )
+            . "\n"
+            . "  Success: "
+            . ( $task_status->{success} ? 'yes' : 'no' ) . "\n"
+    };
+}
+
+# General statistics
+my $stats = $queue_stats;
+
+# Get budget status
+my $budget = <[coding.budget.track_tokens]>->('status');
+
+return {
+    'mode' => qw| true |,
+    'data' => "Coding Zenka Status:\n"
+        . "  Tasks Pending: "
+        . $stats->{pending} . "\n"
+        . "  Tasks In Progress: "
+        . $stats->{in_progress} . "\n"
+        . "  Tasks Completed: "
+        . $stats->{completed} . "\n"
+        . "  Tasks Failed: "
+        . $stats->{failed} . "\n" . "\n"
+        . "Budget:\n"
+        . "  Allocated: "
+        . $budget->{total_allocated}
+        . " tokens\n"
+        . "  Used: "
+        . $budget->{total_used}
+        . " tokens ("
+        . $budget->{percentage_used} . "%)\n"
+        . "  Remaining: "
+        . $budget->{remaining}
+        . " tokens\n"
+        . "  Status: "
+        . $budget->{status}
+};
+
+#,,,.,..,,..,,,,,,...,,,,,,,.,,,.,,..,.,,,.,,,..,,...,...,...,,..,.,,,.,,,.,,,
+#UWA4V4HRTIA5I64ARXLAWOUHQEYOMHHJPGI7WB3TCXTZWNCGRASARJOV2VAROWQKNG4CGYU7WYJQ4
+#\\\|2ZDVQWPIJA5AXP6OMWXMX7IIF7KZ25XVMMTBUYHGZF7FA7WWBJA \ / AMOS7 \ YOURUM ::
+#\[7]CMB2XGFLAPKXC2AJJLUTB7SFLD2YX3GSUKJMMAGSJGDBURTZKOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

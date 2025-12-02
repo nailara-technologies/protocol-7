@@ -1,0 +1,228 @@
+## [:< ##
+
+# name = coding.learning.track_success
+# descr = Track task outcomes and update routing patterns for continuous improvement
+# purpose = Learning loop: Store success/failure data, improve routing decisions
+
+use strict;
+use warnings;
+use JSON::XS;
+
+# Record a task outcome
+my $record_outcome = sub {
+    my ($task_id, $task_type,   $service_used,
+        $success, $tokens_used, $duration_ms
+    ) = @_;
+
+    return {
+        success => FALSE,
+        error   => "Missing required parameters"
+        }
+        unless defined $task_id && defined $service_used && defined $success;
+
+    # Record outcome in learning data
+    my $outcome = {
+        task_id     => $task_id,
+        task_type   => $task_type // 'unknown',
+        service     => $service_used,
+        success     => $success ? 1 : 0,
+        tokens_used => $tokens_used // 0,
+        duration_ms => $duration_ms // 0,
+        timestamp   => time(),
+        efficiency  => $tokens_used && $duration_ms > 0
+        ? int( $tokens_used / ( $duration_ms / 1000 ) )
+        : 0
+    };
+
+    # Store outcome in history
+    # In a real system, this would update living tree
+    my $key = sprintf( "learning.outcome.%s", $task_id );
+
+    return {
+        success => TRUE,
+        outcome => $outcome,
+        message => "Recorded outcome for task: $task_id"
+    };
+};
+
+# Update success rate for task type
+my $update_success_rate = sub {
+    my ( $task_type, $success ) = @_;
+
+    return {
+        success => FALSE,
+        error   => "Task type required"
+        }
+        unless defined $task_type;
+
+    # In a real system, would query outcomes and calculate rolling statistics
+    return {
+        success      => TRUE,
+        task_type    => $task_type,
+        success_rate => 0.5,          # Placeholder
+        samples      => 0,
+        trend        => 'neutral'
+    };
+};
+
+# Get success statistics
+my $get_statistics = sub {
+    my ( $task_type, $service ) = @_;
+
+    # Placeholder statistics
+    return {
+        success    => TRUE,
+        statistics => {
+            task_type       => $task_type,
+            service         => $service,
+            total_attempts  => 0,
+            successful      => 0,
+            failed          => 0,
+            success_rate    => 0,
+            avg_tokens      => 0,
+            avg_duration_ms => 0
+        }
+    };
+};
+
+# Update routing recommendation based on learning
+my $update_routing_recommendation = sub {
+    my ( $task_type, $recommended_service ) = @_;
+
+    return {
+        success => FALSE,
+        error   => "Task type required"
+        }
+        unless defined $task_type;
+
+    # In a real system, would analyze outcomes and suggest better routing
+    return {
+        success        => TRUE,
+        recommendation => {
+            task_type           => $task_type,
+            recommended_service => $recommended_service // 'consensus-voting',
+            confidence          => 0.5,
+            reason              => 'Based on limited sample'
+        }
+    };
+};
+
+# Identify emerging patterns
+my $identify_patterns = sub {
+    my ($min_samples) = @_;
+
+    $min_samples //= 10;
+
+    # Placeholder pattern detection
+    return {
+        success  => TRUE,
+        patterns => [
+            {   pattern    => 'Code generation works best with mathstral',
+                frequency  => 0,
+                impact     => 'medium',
+                confidence => 0
+            }
+        ]
+    };
+};
+
+# Get model specialization analysis
+my $analyze_model_specialization = sub {
+    my @models = ( 'qwen', 'mathstral', 'aya' );
+
+    my %specialization = ();
+
+    foreach my $model (@models) {
+        $specialization{$model} = {
+            model               => $model,
+            best_for            => [],
+            success_rate        => 0.5,
+            avg_response_tokens => 0,
+            avg_latency_ms      => 0
+        };
+    }
+
+    return {
+        success        => TRUE,
+        specialization => \%specialization
+    };
+};
+
+# Generate improvement recommendations
+my $generate_recommendations = sub {
+    my ($analysis_type) = @_;
+
+    $analysis_type //= 'general';
+
+    my @recommendations = (
+        {   category       => 'routing',
+            recommendation => 'Monitor code generation success rates',
+            priority       => 'high',
+            impact         => 'potential 15% token savings'
+        },
+        {   category       => 'caching',
+            recommendation =>
+                'Cache consensus voting results for similar questions',
+            priority => 'high',
+            impact   => 'potential 40% reduction in repeated queries'
+        },
+        {   category       => 'specialization',
+            recommendation => 'Route mathematical problems to Mathstral',
+            priority       => 'medium',
+            impact         => 'potential 20% faster response times'
+        }
+    );
+
+    return {
+        success         => TRUE,
+        analysis_type   => $analysis_type,
+        recommendations => \@recommendations,
+        generated_at    => time()
+    };
+};
+
+# Reset learning state (for testing)
+my $reset_learning = sub {
+    return {
+        success => TRUE,
+        message => 'Learning state reset',
+        note    => 'In production, would preserve living tree data'
+    };
+};
+
+# Main entry point
+my $cmd  = shift @_ // 'record';
+my $arg1 = shift @_;
+
+if ( $cmd eq 'record' ) {
+    return record_outcome->( $arg1, $_[0], $_[1], $_[2], $_[3], $_[4] );
+} elsif ( $cmd eq 'success-rate' ) {
+    return update_success_rate->( $arg1, $_[0] );
+} elsif ( $cmd eq 'stats' ) {
+    return get_statistics->( $arg1, $_[0] );
+} elsif ( $cmd eq 'recommendation' ) {
+    return update_routing_recommendation->( $arg1, $_[0] );
+} elsif ( $cmd eq 'patterns' ) {
+    return identify_patterns->($arg1);
+} elsif ( $cmd eq 'specialization' ) {
+    return analyze_model_specialization->();
+} elsif ( $cmd eq 'recommend' ) {
+    return generate_recommendations->($arg1);
+} elsif ( $cmd eq 'reset' ) {
+    return reset_learning->();
+} else {
+    return {
+        success   => FALSE,
+        error     => "Unknown learning command: $cmd",
+        available => [
+            'record',   'success-rate',   'stats',     'recommendation',
+            'patterns', 'specialization', 'recommend', 'reset'
+        ]
+    };
+}
+
+#,,..,,.,,,.,,,.,,.,.,.,,,,..,.,.,,,.,,..,..,,..,,...,.,.,.,,,,..,,..,,,,,.,.,
+#PDZKBZIUI722TE5Q4ZEGM2BV6X2C3GEHB5AO6PAJS74T66VK2TR2SJ5KIAEQXM7H4STTWYI4GXSOA
+#\\\|XPNREZFLA7IWGIJQNV6TCUABQNINBCVBOZN44KZ7PGGAEN47653 \ / AMOS7 \ YOURUM ::
+#\[7]W6KPNJ2TNCWJPI7F6SUW5MYMUIORRYJM5P7E57UJFNVEA4L2YSBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

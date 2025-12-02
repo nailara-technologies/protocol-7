@@ -1,0 +1,484 @@
+---
+# Session: 2025-12-01 Coding Zenka - Intelligent Workload Orchestration
+# Status: STRATEGIC ARCHITECTURE DESIGN
+# Priority: Build automation layer that coordinates all services efficiently
+#          Token economy managed through intelligent task routing
+
+date: "2025-12-01"
+session_id: "coding-zenka-orchestration-engine"
+status: "ARCHITECTURE_PLANNING"
+credits_available: "6%"
+running_system: "6 active zenka + extensible framework"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## THE CORE IDEA: CODING ZENKA AS ORCHESTRATION BRAIN
+## ═══════════════════════════════════════════════════════════════════════════
+
+core_vision: |
+  A coding zenka that:
+  1. Receives work requests (from users, other zenka, or API)
+  2. Analyzes what needs to be done (code analysis, task decomposition)
+  3. Routes work to appropriate services:
+     - Complex reasoning → LLM consensus voting
+     - Creative content → Invoke AI
+     - Transcription → Whisper
+     - Code generation → Specialized LLM
+     - Protocol-7 module coding → Local rules
+  4. Tracks success/failure and learns
+  5. Improves workflows automatically
+  6. Manages token budget across all operations
+
+  Not a chatbot. An autonomous task coordinator that knows
+  when to think (LLM), when to create (Invoke), when to listen (Whisper),
+  and when to write code directly (Protocol-7 native).
+
+## ═══════════════════════════════════════════════════════════════════════════
+## ARCHITECTURE: CODING ZENKA LAYERS
+## ═══════════════════════════════════════════════════════════════════════════
+
+coding_zenka_layers:
+
+  layer_1_task_intake:
+    name: "Work Request Ingestion"
+    inputs:
+      - Console commands from users
+      - IPC from other zenka
+      - HTTP API requests (via httpsd)
+      - File-based task queue
+    responsibility: |
+      1. Parse incoming work request
+      2. Extract key information: scope, complexity, deadline, constraints
+      3. Classify work type (code, analysis, creative, transcription, etc.)
+      4. Store in work queue with metadata
+
+  layer_2_task_analysis:
+    name: "Intelligent Decomposition"
+    decision_engine: |
+      Analyze work request to determine:
+
+      COMPLEXITY SCORE (1-10):
+      - Simple: Direct answer from rules/cache
+      - Medium: Single LLM query
+      - Complex: Consensus voting needed
+      - Very Complex: Multi-step workflow required
+
+      WORKLOAD TYPE:
+      - Code generation: Route to coding-specialized model
+      - Analysis: Route to reasoning-specialized model
+      - Creative: Route to diverse consensus group
+      - Transcription: Route to Whisper
+      - Image generation: Route to Invoke AI
+      - Learning/Improvement: Route to reflection module
+
+      TOKEN BUDGET:
+      - Calculate estimated tokens needed
+      - Check remaining budget
+      - Route accordingly (local first, LLM if justified)
+
+      SUCCESS HISTORY:
+      - Has similar task been done before?
+      - What was success rate?
+      - Can we use cached answer?
+      - Should we use different approach?
+
+  layer_3_workload_routing:
+    name: "Intelligent Service Dispatch"
+    routing_rules:
+      rule_1_local_first: |
+        If answer exists in knowledge base or cache: SERVE CACHED
+        Tokens saved: 100% of query cost
+
+      rule_2_simple_rules: |
+        If task matches simple rules (format conversion, basic validation): EXECUTE LOCALLY
+        Tokens saved: Query cost (only use consensus for verification if uncertain)
+
+      rule_3_code_generation: |
+        If task is "generate Protocol-7 module": Route to CODE-SPECIALIST LLM
+        Use Mathstral or Seed-Coder for code tasks
+        Cost: ~200-500 tokens per module
+
+      rule_4_reasoning_simple: |
+        If task is analysis but doesn't need consensus: Route to SINGLE LLM
+        Use Qwen or Mathstral
+        Cost: ~100-300 tokens
+
+      rule_5_reasoning_complex: |
+        If task needs verification or is controversial: Route to CONSENSUS VOTING
+        Query all 3 models: Qwen + Mathstral + Aya
+        They vote on answer
+        Cost: ~300-900 tokens (more expensive but highest confidence)
+
+      rule_6_creative_generation: |
+        If task is "generate image description" or "brainstorm ideas": Route to DIVERSE CONSENSUS
+        Get perspectives from multiple models
+        Cost: ~200-600 tokens
+
+      rule_7_transcription: |
+        If task is "transcribe audio": Route to WHISPER
+        No token cost (local GPU)
+        Cache result in knowledge base
+
+      rule_8_image_generation: |
+        If task is "generate image from text": Route to INVOKE AI
+        No token cost (local GPU + /user/Invoke)
+        Cache generated image + metadata
+
+  layer_4_execution_coordination:
+    name: "Parallel/Sequential Execution Management"
+    capabilities:
+      parallel_execution: |
+        Can query multiple LLMs simultaneously (if enough VRAM)
+        Load Qwen, Mathstral, Aya in sequence and collect responses
+        Then vote on results
+
+      sequential_optimization: |
+        Load one model at a time (most memory efficient)
+        Pass question through each model
+        Aggregate responses
+        Execute voting
+
+      hybrid_mode: |
+        Pre-load 2 models while querying 1st
+        Reduces context-switch overhead
+        Balances memory vs. speed
+
+  layer_5_result_validation:
+    name: "Quality & Certainty Assessment"
+    validation_steps:
+      step_1_confidence: |
+        For consensus voting: certainty level from cubic topology voting
+        For single model: check response quality signals
+        For cached answer: trust level based on age and success history
+
+      step_2_consistency: |
+        Compare answer to previous answers to similar questions
+        Check if contradictions with knowledge base
+        Flag if inconsistency detected
+
+      step_3_success_metrics: |
+        Did answer meet original requirement?
+        Can user verify success?
+        Should this be stored in knowledge base?
+
+      step_4_learning: |
+        Store outcome: question + answer + success/failure
+        Update success metrics for routing rules
+        Adjust model specialization assignments if needed
+
+  layer_6_workflow_improvement:
+    name: "Automatic Learning & Optimization"
+    improvement_loop: |
+      After each task completion:
+      1. Extract patterns: What made this successful?
+      2. Update routing rules: "Code generation works better with Seed-Coder"
+      3. Optimize prompts: "Consensus voting needs less detail, single LLM needs more context"
+      4. Cache patterns: "This type of task has 95% success with approach X"
+      5. Predict: "Next similar task: use approach X"
+
+    metrics_tracked:
+      - Success rate per task type
+      - Token efficiency (output tokens per input token)
+      - Time to completion
+      - Model specialization effectiveness
+      - Consensus agreement rates
+      - Cache hit rates
+
+## ═══════════════════════════════════════════════════════════════════════════
+## WORKLOAD DEFINITION & MANAGEMENT
+## ═══════════════════════════════════════════════════════════════════════════
+
+workload_definition:
+
+  structured_task_format:
+    description: "How work is represented internally"
+    example_task: |
+      {
+        id: "task-20251201-001",
+        type: "code-generation",
+        subtype: "protocol-7-module",
+        source: "console-command",
+
+        request: {
+          description: "Create module to transcribe audio via Whisper",
+          language: "perl",
+          target: "Protocol-7 module",
+          constraints: ["Must follow style guide", "Cache results"],
+          deadline: "within session"
+        },
+
+        analysis: {
+          complexity: 6,
+          estimated_tokens: 400,
+          routed_to: "code-specialist-llm",
+          fallback: "consensus-coding",
+          cache_priority: "high",
+          success_history: { similar_tasks: 5, success_rate: 0.8 }
+        },
+
+        execution: {
+          status: "pending",
+          started: null,
+          completed: null,
+          model_used: null,
+          tokens_used: 0,
+          result: null,
+          success: null
+        },
+
+        learning: {
+          approach_effectiveness: null,
+          should_cache: true,
+          pattern_id: null,
+          next_improvement: null
+        }
+      }
+
+  task_queue_management:
+    purpose: "Manage incoming work efficiently"
+    storage: "$data{'coding'}{'task_queue'}"
+    features:
+      - Priority queue (urgent tasks first)
+      - Dependency tracking (task A must finish before B)
+      - Parallel execution planning
+      - Resource allocation (token budget, VRAM, time)
+      - Progress tracking
+      - Failure recovery
+
+  task_types_mapped_to_services:
+    type_analysis: Route to analysis consensus, track reasoning quality
+    type_code_generation: Route to Seed-Coder or Mathstral, validate syntax
+    type_code_review: Route to reasoning consensus, check patterns
+    type_creative: Route to diverse consensus, collect ideas
+    type_transcription: Route to Whisper, cache result
+    type_image_generation: Route to Invoke AI, cache image
+    type_module_coding: Route to code-specialist, verify Protocol-7 patterns
+    type_documentation: Route to writing-optimized model
+    type_debugging: Route to code-specialist + reasoning
+    type_optimization: Route to performance-specialized model
+
+## ═══════════════════════════════════════════════════════════════════════════
+## TOKEN ECONOMY & BUDGET MANAGEMENT
+## ═══════════════════════════════════════════════════════════════════════════
+
+token_management:
+
+  budget_tracking:
+    session_budget: "6% of total remaining credits"
+    tokens_available: "~12,000 tokens (estimate)"
+    tracking_method: |
+      Each query logged: { task_id, tokens_used, model, success }
+      Running total displayed
+      When budget <10%: Switch to caching-only mode
+      When budget depleted: Use only local services
+
+  token_efficiency_rules:
+    rule_1_cache_first: "Always check cache before querying LLM"
+    rule_2_local_first: "Use local rules/patterns before complex reasoning"
+    rule_3_single_model: "Start with single model, upgrade to consensus if needed"
+    rule_4_concise_prompts: "Shorter prompts use fewer tokens, better quality"
+    rule_5_batch_queries: "Group related questions together"
+
+  cost_per_operation:
+    cached_answer: "0 tokens"
+    local_rule_execution: "0 tokens"
+    single_llm_query: "100-300 tokens"
+    consensus_voting: "300-900 tokens"
+    whisper_transcription: "0 tokens (GPU)"
+    invoke_generation: "0 tokens (GPU)"
+
+  budget_allocation_strategy:
+    phase_1_setup: "Use 2% to set up coding zenka infrastructure"
+    phase_2_testing: "Use 2% to test routing and consensus"
+    phase_3_production: "Reserve 2% for actual task execution"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## IMPLEMENTATION: CODING ZENKA MODULES (PRIORITY ORDER)
+## ═══════════════════════════════════════════════════════════════════════════
+
+module_implementation_priority:
+
+  priority_1_task_management:
+    modules:
+      - "coding.task.intake" (Parse incoming work)
+      - "coding.task.queue" (Store and prioritize)
+      - "coding.task.analyze" (Decompose and classify)
+    purpose: "Accept and understand work"
+    time_estimate: "1 hour"
+    credits: "1%"
+    critical: "YES - everything depends on this"
+
+  priority_2_routing_engine:
+    modules:
+      - "coding.routing.decide_service" (Choose where to route)
+      - "coding.routing.estimate_tokens" (Predict cost)
+      - "coding.routing.check_cache" (Avoid redundant work)
+    purpose: "Intelligent workload distribution"
+    time_estimate: "1 hour"
+    credits: "1%"
+    critical: "YES - enables efficiency"
+
+  priority_3_llm_integration:
+    modules:
+      - "llm.service.query_single" (Call one LLM)
+      - "llm.service.consensus_vote" (Coordinate multiple models)
+      - "llm.cache.store_result" (Save answers)
+    purpose: "Actually execute reasoning"
+    time_estimate: "1 hour"
+    credits: "1-2%"
+    critical: "YES - core capability"
+
+  priority_4_sensory_services:
+    modules:
+      - "audio.service.transcribe" (Whisper wrapper)
+      - "image.service.generate" (Invoke wrapper)
+    purpose: "Integrate external services"
+    time_estimate: "30 minutes"
+    credits: "< 1%"
+    critical: "NO - works without these"
+
+  priority_5_workflow_learning:
+    modules:
+      - "coding.learning.track_success" (Store outcomes)
+      - "coding.learning.update_rules" (Improve routing)
+      - "coding.learning.predict_approach" (Learn patterns)
+    purpose: "Automatic improvement"
+    time_estimate: "1.5 hours"
+    credits: "1-2%"
+    critical: "NO - enhancement"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## SUCCESS CRITERIA: AUTOMATIC FULL SUCCESS RATE
+## ═══════════════════════════════════════════════════════════════════════════
+
+success_criteria:
+
+  phase_1_foundation:
+    goal: "Coding zenka can accept and understand work requests"
+    metrics:
+      - Can parse console commands
+      - Can classify task type
+      - Can estimate complexity
+      - Can identify missing information
+    success_indicator: "Can explain what work needs to be done"
+
+  phase_2_routing:
+    goal: "Work gets routed to appropriate service"
+    metrics:
+      - Simple tasks stay local
+      - Code generation routes to code-specialist
+      - Reasoning routes to consensus voting
+      - Transcription routes to Whisper
+    success_indicator: "Correct service handles each task"
+
+  phase_3_execution:
+    goal: "Tasks complete successfully"
+    metrics:
+      - Simple tasks: 100% success
+      - Complex tasks: 95%+ success (via consensus)
+      - Learning loop improving success rate over time
+    success_indicator: "Tasks marked as 'complete' without human intervention"
+
+  phase_4_automation:
+    goal: "System improves itself automatically"
+    metrics:
+      - Success rate improving each session
+      - Token usage decreasing per task
+      - New patterns discovered and utilized
+      - Workflow optimizations applied
+    success_indicator: "Later tasks complete faster/cheaper than earlier ones"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## SESSION ACTION PLAN (FITS 6% BUDGET)
+## ═══════════════════════════════════════════════════════════════════════════
+
+immediate_actions:
+
+  action_1_design_task_intake:
+    what: "Create data structure for work requests"
+    where: "modules/coding.task.intake"
+    time: "30 minutes"
+    output: "Perl module that parses work requests"
+
+  action_2_create_routing_decision_tree:
+    what: "Implement intelligent service selection"
+    where: "modules/coding.routing.decide_service"
+    time: "45 minutes"
+    output: "Decision tree for routing (local/single-llm/consensus/whisper/invoke)"
+
+  action_3_llm_consensus_adapter:
+    what: "Coordinate with Ollama using existing /mnt/m/ models"
+    where: "modules/llm.service.consensus_vote"
+    time: "45 minutes"
+    output: "Query Qwen+Mathstral+Aya, return consensus"
+
+  action_4_token_tracking:
+    what: "Monitor budget and log usage"
+    where: "modules/coding.budget.track_tokens"
+    time: "30 minutes"
+    output: "Track spending, show remaining budget"
+
+  action_5_learning_framework:
+    what: "Basic success tracking for improvement"
+    where: "modules/coding.learning.track_success"
+    time: "30 minutes"
+    output: "Store outcomes and patterns"
+
+  action_6_console_commands:
+    what: "User interface for coding zenka"
+    where: "modules/coding.cmd.*"
+    time: "30 minutes"
+    output: "Commands: work ask, work submit, work status, work learn"
+
+  total_time: "3-4 hours"
+  total_credits: "3-4%"
+  remaining_budget: "2-3% for refinement and testing"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## DOCUMENT UPDATES NEEDED
+## ═══════════════════════════════════════════════════════════════════════════
+
+documentation:
+
+  file_1_architecture:
+    path: "docs/coding-zenka-architecture.md"
+    content: "High-level system design and component interactions"
+
+  file_2_routing_rules:
+    path: "data/yaml/docs/workload-routing-rules.yaml"
+    content: "Decision tree for routing tasks to services"
+
+  file_3_api_examples:
+    path: "docs/coding-zenka-api.md"
+    content: "How to submit work, track progress, retrieve results"
+
+  file_4_token_economics:
+    path: "data/yaml/docs/token-economy.yaml"
+    content: "Budget tracking, cost per operation, optimization tips"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## FUTURE: INTERCONNECTING ALL SERVICES
+## ═══════════════════════════════════════════════════════════════════════════
+
+next_phases:
+
+  phase_interconnect_audio:
+    when: "After coding zenka foundation is solid"
+    work: "Route transcription tasks to Whisper service"
+    benefit: "Audio input feeds into analysis workflow"
+
+  phase_interconnect_image:
+    when: "After Whisper integration"
+    work: "Route creative tasks to Invoke AI"
+    benefit: "Vision output for multimodal workflows"
+
+  phase_interconnect_agents:
+    when: "After all services connected"
+    work: "Enable agents to request help from coding zenka"
+    benefit: "Autonomous agents can delegate complex tasks"
+
+  phase_full_automation:
+    when: "After learning loop matures"
+    work: "Coding zenka manages all other zenka workflows"
+    benefit: "System becomes self-improving autonomous entity"
+
+---

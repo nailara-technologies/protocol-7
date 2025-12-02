@@ -234,6 +234,7 @@ return [ qw[
         debian.cmd.stats
         debian.cmd.check
         dbus.cmd.get-pid
+        coding.init_code
         chk-sum.md5.b64u
         base.resolve_key
         base.prng.reseed
@@ -306,6 +307,10 @@ return [ qw[
         content.load_file
         content.init_code
         compton.init_code
+        coding.task.queue
+        coding.cmd.submit
+        coding.cmd.status
+        coding.cmd.budget
         chk-sum.init_code
         c-trade.init_code
         base.session.init
@@ -395,6 +400,7 @@ return [ qw[
         cube.cmd.unix-path
         cube.cmd.b32-ntime
         content.cmd.update
+        coding.task.intake
         base.utf8.sanitize
         base.sort.key-name
         base.reload_values
@@ -478,6 +484,7 @@ return [ qw[
         crypt.cbc.init_code
         crypt.XTEA.pre_init
         configure.init_code
+        coding.task.analyze
         base.utf8.clean_str
         base.str.eval_error
         base.round_truncate
@@ -735,6 +742,8 @@ return [ qw[
         workflow.cmd.todo-list
         workflow.cmd.sig-cycle
         workflow.cmd.run-tests
+        web.template_cache.set
+        web.template_cache.get
         web.assets.by_template
         web-browser.swap_views
         web-browser.cmd.switch
@@ -1131,6 +1140,7 @@ return [ qw[
         io.unix.socket.input.open
         impressive.process_subcfg
         image2html.base.init_code
+        httpsd.route_and_dispatch
         httpd.system.memory_stats
         httpd.base.size.normalize
         graphics-matrix.init_code
@@ -1231,6 +1241,7 @@ return [ qw[
         mpv.handler.get_list_reply
         mpv.handler.cmd_prop.pause
         mpv.callback.abort_startup
+        llm.service.consensus_vote
         letsencr.parent.cmd.status
         letsencr.child.acme_revoke
         keys.console.split-keypair
@@ -1252,6 +1263,7 @@ return [ qw[
         content.http.get_mime_type
         content.cmd.get_list_types
         content.callback.load_file
+        coding.budget.track_tokens
         base.warnings.from_bitmask
         base.session.check.flushed
         base.reverse-sort.key-name
@@ -1390,6 +1402,7 @@ return [ qw[
         workspace-transfer.init_code
         workflow.parent.scan_history
         workflow.parent.fix_versions
+        web.scan_content_directories
         web.execute_template_command
         web.cmd.process_template_ipc
         web-browser.set-up.set_privs
@@ -1521,6 +1534,7 @@ return [ qw[
         image2html.parent.cmd.get_url
         image2html.base.get_html_path
         image2html.base.download_file
+        httpsd.route_template_request
         httpd.vhost_template_resolver
         httpd.benchmark.start_request
         graphics-matrix.filter.c-to-a
@@ -1539,6 +1553,8 @@ return [ qw[
         crypt.C25519.get_usr_keys_dir
         crypt.C25519.chksum_cache.add
         content.cmd.get_playlist_path
+        coding.routing.decide_service
+        coding.learning.track_success
         base.validate.data_key_syntax
         base.source.collect_file_list
         base.parser.human.fsize_fixed
@@ -1605,6 +1621,7 @@ return [ qw[
         mpv.callback.check_parent_dirs
         mod-test.update_blacklist_aref
         melt.handler.frame_count_reply
+        llm.service.subprocess_wrapper
         letsencr.child.get_fresh_nonce
         keys.console.gen-file-seed-key
         jobqueue.handler.queue_counter
@@ -2091,8 +2108,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,,,,,,,.,,,,,.,.,..,,,.,,.,.,,,,,,,,,.,.,..,,...,...,.,.,..,,,..,.,.,,.,,
-#4F7L4EFGEU7MJ4ZSR63F7MBHFHGZNURMGRS4LDSSNYR7S7M5LLLBUQBLRDEKUVOZZIRUUDX77SC2Y
-#\\\|NCJ5DLHO5I2ECFXX47DXFVFVLCUIAJMNXVV2J4RXHIZNQ6GXDQI \ / AMOS7 \ YOURUM ::
-#\[7]5CRV2EEB6IYREN7MZXKOKQEWZHONOJPUYFJ6U7SHI43WCTNAXKCQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,.,,,.,,,,,,.,.,.,,,,.,,..,,.,.,..,,...,...,..,,,..,.,.,,.,,,..,
+#EHEQDM3PWT2SILZCRJDIXIRWA75Z7XEAWQNJR7Y4QSHD6CZ7YY43JZH5KI74Z3BOYDHDXAEZFJ2MW
+#\\\|JK6ETXWZFMHSRR3WN5XIU2UG7VOWICUCZO6ZIAEYJMTNETCB2VT \ / AMOS7 \ YOURUM ::
+#\[7]R52EOWROC7OQMCRPBE5B4ON2RFTKN4JQU4LSNDH6COYXSXJLHEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

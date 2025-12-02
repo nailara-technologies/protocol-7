@@ -1,0 +1,289 @@
+## [:< ##
+
+# name = coding.task.analyze
+# descr = Analyze task requirements and determine complexity, type classification
+# purpose = Analysis: Break down tasks, calculate complexity scores, identify requirements
+
+use strict;
+use warnings;
+use JSON::XS;
+
+# Analyze task complexity
+my $analyze_complexity = sub {
+    my ($task) = @_;
+
+    return {
+        success => FALSE,
+        error   => "Task must be a hashref"
+        }
+        unless ref($task) eq 'HASH';
+
+    my $desc       = $task->{request}->{description} // '';
+    my $complexity = 1;    # Start at base level
+
+    # Length-based complexity
+    my $word_count = scalar( split( /\s+/, $desc ) );
+    if ( $word_count > 100 ) {
+        $complexity += 2;
+    } elsif ( $word_count > 50 ) {
+        $complexity += 1;
+    }
+
+    # Keywords indicating complexity
+    my @complex_keywords = qw(
+        consensus voting multiple models complex reasoning
+        algorithm design architecture integration
+        optimization performance debugging
+    );
+
+    foreach my $keyword (@complex_keywords) {
+        if ( lc($desc) =~ /\Q$keyword\E/i ) {
+            $complexity += 2;
+        }
+    }
+
+    # Keywords indicating medium complexity
+    my @medium_keywords = qw(
+        analyze review explain summarize
+        compare contrast identify
+    );
+
+    foreach my $keyword (@medium_keywords) {
+        if ( lc($desc) =~ /\Q$keyword\E/i ) {
+            $complexity += 1;
+        }
+    }
+
+    # Task type adjustments
+    my $type = $task->{type} // 'analysis';
+
+    if ( $type =~ /code|generation|creation/ ) {
+        $complexity += 3;
+    } elsif ( $type =~ /consensus|voting/ ) {
+        $complexity += 4;    # Consensus is most complex
+    } elsif ( $type =~ /transcription|audio/ ) {
+        $complexity -= 2;    # Audio is simpler
+    } elsif ( $type =~ /image|creative/ ) {
+        $complexity += 2;
+    }
+
+    # Constraint count adds to complexity
+    my $constraints = $task->{request}->{constraints} // [];
+    $complexity += scalar(@$constraints);
+
+    # Cap complexity between 1-10
+    $complexity = 1  if $complexity < 1;
+    $complexity = 10 if $complexity > 10;
+
+    return {
+        success    => TRUE,
+        complexity => int($complexity),
+        factors    => {
+            word_count           => $word_count,
+            has_complex_keywords => scalar(@complex_keywords) > 0,
+            constraint_count     => scalar(@$constraints),
+            task_type            => $type
+        }
+    };
+};
+
+# Classify task type
+my $classify_task = sub {
+    my ($task) = @_;
+
+    my $type = $task->{type}                   // 'analysis';
+    my $desc = $task->{request}->{description} // '';
+
+    # Map type strings to canonical types
+    my $canonical_type = {
+        'code'         => 'code-generation',
+        'generation'   => 'code-generation',
+        'create'       => 'code-generation',
+        'write'        => 'code-generation',
+        'consensus'    => 'reasoning',
+        'vote'         => 'reasoning',
+        'analyze'      => 'reasoning',
+        'reason'       => 'reasoning',
+        'transcribe'   => 'transcription',
+        'audio'        => 'transcription',
+        'image'        => 'image-generation',
+        'generate'     => 'image-generation',
+        'create-image' => 'image-generation',
+        'creative'     => 'brainstorming',
+        'brainstorm'   => 'brainstorming',
+        'describe'     => 'analysis'
+    }->{ lc($type) } // 'analysis';
+
+    # Detect subtype from description keywords
+    my $subtype = _detect_subtype($desc);
+
+    return {
+        success        => TRUE,
+        canonical_type => $canonical_type,
+        original_type  => $type,
+        subtype        => $subtype,
+        category       => _get_category($canonical_type)
+    };
+};
+
+# Estimate token requirements
+my $estimate_tokens = sub {
+    my ($task) = @_;
+
+    my $desc_len = length( $task->{request}->{description} // '' );
+    my $type     = $task->{type} // 'analysis';
+
+    # Base token estimates by type
+    my $base_tokens = {
+        'code-generation'  => 300,
+        'reasoning'        => 200,
+        'transcription'    => 50,    # Whisper doesn't use LLM tokens
+        'image-generation' => 50,    # Invoke doesn't use LLM tokens
+        'brainstorming'    => 200,
+        'analysis'         => 150,
+        'default'          => 100
+    };
+
+    my $type_key = lc($type);
+    my $tokens   = $base_tokens->{$type_key} // $base_tokens->{'default'};
+
+    # Adjust by description length (rough estimate: 1 token per 4 characters)
+    $tokens += int( $desc_len / 4 );
+
+    # Consensus voting costs 3x (3 models)
+    my $constraints = $task->{request}->{constraints} // [];
+    foreach my $constraint (@$constraints) {
+        if ( lc($constraint) =~ /consensus|vote/ ) {
+            $tokens *= 3;
+        }
+    }
+
+    return {
+        success          => TRUE,
+        estimated_tokens => int($tokens),
+        breakdown        => {
+            description_tokens => int( $desc_len / 4 ),
+            type               => $type_key,
+            requires_consensus =>
+                ( grep { lc($_) =~ /consensus|vote/ } @$constraints ) ? 1 : 0
+        }
+    };
+};
+
+# Check success history for similar tasks
+my $check_history = sub {
+    my ($task) = @_;
+
+    # In a real system, this would query a database/living tree
+    # For now, we return a placeholder structure
+
+    return {
+        success              => TRUE,
+        similar_tasks_found  => 0,
+        success_rate         => 0,
+        recommended_approach => 'standard',
+        cache_available      => 0
+    };
+};
+
+# Main analysis function
+my $analyze_full = sub {
+    my ($task) = @_;
+
+    return {
+        success => FALSE,
+        error   => "Task must be a hashref"
+        }
+        unless ref($task) eq 'HASH';
+
+    # Run all analyses
+    my $complexity_result = $analyze_complexity->($task);
+    my $classification    = $classify_task->($task);
+    my $token_estimate    = $estimate_tokens->($task);
+    my $history           = $check_history->($task);
+
+    if ( !$complexity_result->{success} ) {
+        return { success => FALSE, error => "Complexity analysis failed" };
+    }
+
+    # Update task with analysis results
+    $task->{analysis}->{complexity} = $complexity_result->{complexity};
+    $task->{analysis}->{estimated_tokens}
+        = $token_estimate->{estimated_tokens};
+    $task->{type}                        = $classification->{canonical_type};
+    $task->{subtype}                     = $classification->{subtype};
+    $task->{analysis}->{success_history} = {
+        similar_tasks   => 0,
+        success_rate    => $history->{success_rate},
+        cache_available => $history->{cache_available}
+    };
+
+    return {
+        success  => TRUE,
+        task     => $task,
+        analysis => {
+            complexity         => $complexity_result->{complexity},
+            complexity_factors => $complexity_result->{factors},
+            type               => $classification->{canonical_type},
+            subtype            => $classification->{subtype},
+            estimated_tokens   => $token_estimate->{estimated_tokens},
+            history            => $history
+        }
+    };
+};
+
+# Helper functions
+sub _detect_subtype {
+    my ($desc) = @_;
+
+    return 'protocol7-module' if $desc =~ /protocol.?7|module|zenka/i;
+    return 'consensus-voting' if $desc =~ /consensus|vote|multiple.*model/i;
+    return 'math-problem'  if $desc =~ /math|equation|calculate|algorithm/i;
+    return 'code-review'   if $desc =~ /review|check|validate|test/i;
+    return 'documentation' if $desc =~ /document|explain|describe|guide/i;
+    return 'general';
+}
+
+sub _get_category {
+    my ($type) = @_;
+
+    my $categories = {
+        'code-generation'  => 'execution',
+        'reasoning'        => 'reasoning',
+        'transcription'    => 'sensory',
+        'image-generation' => 'sensory',
+        'brainstorming'    => 'reasoning',
+        'analysis'         => 'reasoning'
+    };
+
+    return $categories->{$type} // 'other';
+}
+
+# Route based on first argument
+my $cmd  = shift @_ // 'full';
+my $task = shift @_;
+
+if ( $cmd eq 'complexity' ) {
+    return $analyze_complexity->($task);
+} elsif ( $cmd eq 'classify' ) {
+    return $classify_task->($task);
+} elsif ( $cmd eq 'estimate' ) {
+    return $estimate_tokens->($task);
+} elsif ( $cmd eq 'history' ) {
+    return $check_history->($task);
+} elsif ( $cmd eq 'full' || !defined $cmd ) {
+    return $analyze_full->($task);
+} else {
+    return {
+        success   => FALSE,
+        error     => "Unknown analyze command: $cmd",
+        available =>
+            [ 'complexity', 'classify', 'estimate', 'history', 'full' ]
+    };
+}
+
+#,,..,.,.,...,..,,,..,.,.,...,,..,,.,,.,.,,..,..,,...,...,...,...,,,,,,,,,,..,
+#I4HHC4CIJ74WC5KYK6OANH3NHJ6FA7O4ULMCIS4EXA6V3QVP24Y4XH45VHYSKPZYEMAG534YORRA6
+#\\\|VPGK6XEY6Z2LM2CJ5YSP5L6EL2QVNCAPZMZI4G5BVHZEP5CFUOT \ / AMOS7 \ YOURUM ::
+#\[7]2KKVP4OKNL46YLFLCGP4JJO46RKTT6E7FMAUCITXM4X5LUTAQGDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

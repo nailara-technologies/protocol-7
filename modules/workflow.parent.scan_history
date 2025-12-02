@@ -5,33 +5,37 @@
 
 my $params = shift || {};
 
-my $force = $params->{force} // 0;
-my $key_phrase = $params->{key_phrase} // '';
-my $abort_after_valid = $params->{abort_after_valid} // 0;  ## 0 = scan all
-my $branch_scope = $params->{branch_scope} // 'HEAD';  ## 'HEAD' (current branch), 'all', or specific branch
+my $force             = $params->{force}             // 0;
+my $key_phrase        = $params->{key_phrase}        // '';
+my $abort_after_valid = $params->{abort_after_valid} // 0;    ## 0 = scan all
+my $branch_scope      = $params->{branch_scope}
+    // 'HEAD';    ## 'HEAD' (current branch), 'all', or specific branch
 
 ## Check if already scanned recently
 unless ($force) {
     my $last_scan = <workflow.history.scanned> // 0;
-    my $age = time() - $last_scan;
+    my $age       = time() - $last_scan;
 
-    if ($last_scan > 0 && $age < 3600) {
+    if ( $last_scan > 0 && $age < 3600 ) {
         <[base.log]>->( 2, "workflow.scan: history scanned ${age}s ago" );
         return {
-            success => 1,
+            success => TRUE,
             cached  => 1,
             age     => $age,
-            issues  => scalar(keys %{<workflow.history.issues> // {}})
+            issues  => scalar( keys %{ <workflow.history.issues> // {} } )
         };
     }
 }
 
 <[base.log]>->( 2, "workflow.scan: scanning git history for issues..." );
 <[base.log]>->( 3, "  Scope: $branch_scope" ) if $branch_scope ne 'HEAD';
-<[base.logs]>->( 1, "  abort_after_valid = %d (0 = scan all commits)", $abort_after_valid );
+<[base.logs]>->(
+    1, "  abort_after_valid = %d (0 = scan all commits)",
+    $abort_after_valid
+);
 
 ## Load source module and key for validation
-unless (exists $code{'source.signature_valid'}) {
+unless ( exists $code{'source.signature_valid'} ) {
     <[base.log]>->( 3, "  Loading source module for validation..." );
     <[base.load_modules]>->('source');
     <[base.load_modules]>->('sourcecode');
@@ -42,64 +46,79 @@ unless (exists $code{'source.signature_valid'}) {
 }
 
 ## Debug: Check if sign_template is properly initialized
-my $template = <source.sign_template> // '';
+my $template     = <source.sign_template> // '';
 my $template_len = length($template);
-<[base.logs]>->( 1, "  sign_template length: %d (should be >0)", $template_len );
-if ($template_len == 0) {
-    <[base.log]>->( 0, "  ✗ ERROR: sign_template is EMPTY - structure validation will always fail!" );
+<[base.logs]>->(
+    1, "  sign_template length: %d (should be >0)",
+    $template_len
+);
+if ( $template_len == 0 ) {
+    <[base.log]>->(
+        0,
+        "  ✗ ERROR: sign_template is EMPTY - structure validation will always fail!"
+    );
 }
 
 ## Load public key for verification (no passphrase needed)
-my $sig_key_name = <source.C25519.signature_key_name> // qw| proto-7.sourcecode |;
+my $sig_key_name = <source.C25519.signature_key_name>
+    // qw| proto-7.sourcecode |;
 <[base.logs]>->( 1, "  Using signature key: '%s'", $sig_key_name );
 
-unless (exists $keys{'C25519'}{$sig_key_name} && exists $keys{'C25519'}{$sig_key_name}{'public'}) {
+unless ( exists $keys{'C25519'}{$sig_key_name}
+    && exists $keys{'C25519'}{$sig_key_name}{'public'} ) {
     <[base.log]>->( 1, "  Loading public key for verification..." );
     ## Try loading from embedded public key first
-    if (exists $code{'base.protocol-7.source-key'} && <[base.protocol-7.source-key]>) {
+    if ( exists $code{'base.protocol-7.source-key'}
+        && <[base.protocol-7.source-key]> ) {
         <[base.log]>->( 1, "    Loading from embedded public key..." );
-        <[crypt.C25519.load_from_string]>->($sig_key_name, <[base.protocol-7.source-key]>);
-    } elsif (<[crypt.C25519.key_exists]>->($sig_key_name)) {
+        <[crypt.C25519.load_from_string]>->(
+            $sig_key_name, <[base.protocol-7.source-key]>
+        );
+    } elsif ( <[crypt.C25519.key_exists]>->($sig_key_name) ) {
         <[base.log]>->( 1, "    Loading from key file..." );
-        <[crypt.C25519.load_keypair]>->($sig_key_name, undef, TRUE, FALSE);
+        <[crypt.C25519.load_keypair]>->( $sig_key_name, undef, TRUE, FALSE );
     }
 }
 
-if (exists $keys{'C25519'}{$sig_key_name} && exists $keys{'C25519'}{$sig_key_name}{'public'}) {
+if (   exists $keys{'C25519'}{$sig_key_name}
+    && exists $keys{'C25519'}{$sig_key_name}{'public'} ) {
     <[base.log]>->( 1, "  ✓ Signature key loaded successfully" );
 } else {
-    <[base.log]>->( 0, "  ✗ WARNING: Signature key NOT loaded - validation will fail!" );
+    <[base.log]>->(
+        0, "  ✗ WARNING: Signature key NOT loaded - validation will fail!"
+    );
 }
 
 ## Get paths
-my $repo_path = <git.cfg.repository_path>;
+my $repo_path        = <git.cfg.repository_path>;
 my $version_file_rel = 'configuration/protocol-7.src-ver';
-my $version_file_abs = File::Spec->catfile($repo_path, $version_file_rel);
+my $version_file_abs = File::Spec->catfile( $repo_path, $version_file_rel );
 
-<[base.logs]>->( 1, "  Repository path: '%s'", $repo_path );
+<[base.logs]>->( 1, "  Repository path: '%s'",            $repo_path );
 <[base.logs]>->( 1, "  Version file relative path: '%s'", $version_file_rel );
 
 ## Get git log
-my $log_result = <[git.parent.get_log]>->({
-    force => 1,
-    branch_scope => $branch_scope
-});
+my $log_result = <[git.parent.get_log]>->(
+    {   force        => 1,
+        branch_scope => $branch_scope
+    }
+);
 
-unless ($log_result->{success}) {
+unless ( $log_result->{success} ) {
     return {
-        success => 0,
+        success => FALSE,
         error   => 'failed to fetch git log'
     };
 }
 
 my $commits = $log_result->{commits};
-my $total = scalar(@$commits);
+my $total   = scalar(@$commits);
 
 <[base.log]>->( 2, "  Analyzing $total commits..." );
 
 ## Reset issue tracking
-<workflow.history.issues> = {};
-<workflow.history.gaps> = [];
+<workflow.history.issues>   = {};
+<workflow.history.gaps>     = [];
 <workflow.history.unsigned> = [];
 
 my $issues_found = 0;
@@ -108,7 +127,7 @@ my %emails_seen;
 
 ## Scan each commit (recent first for early abort optimization)
 my $consecutive_valid = 0;
-my $commits_scanned = 0;
+my $commits_scanned   = 0;
 my %authors_seen;
 
 foreach my $commit (@$commits) {
@@ -116,14 +135,15 @@ foreach my $commit (@$commits) {
 
     ## Extract commit fields with safe defaults to prevent undefined warnings
     my $subject = $commit->{subject} // '';
-    my $author = $commit->{author} // '';
-    my $email = $commit->{email} // '';
+    my $author  = $commit->{author}  // '';
+    my $email   = $commit->{email}   // '';
 
     ## Filter by key phrase if provided
-    if (length $key_phrase) {
-        my $match = $subject =~ m/\Q$key_phrase\E/i
-                 || $author =~ m/\Q$key_phrase\E/i
-                 || $email =~ m/\Q$key_phrase\E/i;
+    if ( length $key_phrase ) {
+        my $match
+            = $subject =~ m/\Q$key_phrase\E/i
+            || $author =~ m/\Q$key_phrase\E/i
+            || $email  =~ m/\Q$key_phrase\E/i;
         next unless $match;
     }
 
@@ -134,70 +154,95 @@ foreach my $commit (@$commits) {
     <[event.once]>->(0.0007);
 
     ## Log commit being checked
-    my $hash_short = substr($hash, 0, 7);
-    <[base.logs]>->( 2, "  [%d/%d] Checking commit %s: %s", $commits_scanned, $total, $hash_short, substr($subject, 0, 60) );
+    my $hash_short = substr( $hash, 0, 7 );
+    <[base.logs]>->(
+        2, "  [%d/%d] Checking commit %s: %s",
+        $commits_scanned, $total, $hash_short, substr( $subject, 0, 60 )
+    );
 
     ## Optional: Track version numbers if present in commit message
     ## (These will be added by fix_versions, so initially won't exist)
-    if ($subject =~ m/^\[[A-Z0-9]+-(\d+)\.\d+\]/) {
+    if ( $subject =~ m/^\[[A-Z0-9]+-(\d+)\.\d+\]/ ) {
         $versions_seen{$1} = 1;
     }
 
     ## Step 1: Check version file at this commit
-    my $version_file_content = `cd $repo_path && git show $hash:$version_file_rel 2>&1`;
+    my $version_file_content
+        = `cd $repo_path && git show $hash:$version_file_rel 2>&1`;
 
     ## Check if content looks like a version file (starts with version number, not an error)
     ## SIGCHLD=IGNORE interferes with exit codes, so check content instead
-    my $looks_valid = (length($version_file_content) > 0
-                       && $version_file_content !~ m/^fatal:/
-                       && $version_file_content !~ m/^error:/
-                       && $version_file_content =~ m/^[A-Z0-9]+-\d+\.\d+/);
+    my $looks_valid
+        = (    length($version_file_content) > 0
+            && $version_file_content !~ m/^fatal:/
+            && $version_file_content !~ m/^error:/
+            && $version_file_content =~ m/^[A-Z0-9]+-\d+\.\d+/ );
 
     if ($looks_valid) {
         <[base.log]>->( 1, "    Version file found, checking signature..." );
 
         ## Debug: Show file structure BEFORE extract_sig_body
         my $content_len_before = length($version_file_content);
-        my $has_hash_lines = ($version_file_content =~ tr/#/#/);
-        my $last_line = (split /\n/, $version_file_content)[-1];
-        <[base.logs]>->( 2, "      BEFORE: length=%d, hash_lines=%d, last_line=%s", $content_len_before, $has_hash_lines, substr($last_line, 0, 40) );
+        my $has_hash_lines     = ( $version_file_content =~ tr/#/#/ );
+        my $last_line          = ( split /\n/, $version_file_content )[-1];
+        <[base.logs]>->(
+            2, "      BEFORE: length=%d, hash_lines=%d, last_line=%s",
+            $content_len_before, $has_hash_lines, substr( $last_line, 0, 40 )
+        );
 
         ## Step 2: Extract and validate version file signature
         ## BUG SUSPECT: 'strip' mode might corrupt state or modify content
-        my $content_copy = $version_file_content;  ## Make a copy to protect original
-        my $footer_data = <[source.extract_sig_body]>->(\$content_copy, 'strip', 'strict');
+        my $content_copy
+            = $version_file_content;    ## Make a copy to protect original
+        my $footer_data = <[source.extract_sig_body]>
+            ->( \$content_copy, 'strip', 'strict' );
 
         ## Debug: Check if content was modified
         my $content_len_after = length($version_file_content);
-        <[base.logs]>->( 2, "      AFTER: length=%d (diff: %d)", $content_len_after, $content_len_after - $content_len_before );
+        <[base.logs]>->(
+            2,                  "      AFTER: length=%d (diff: %d)",
+            $content_len_after, $content_len_after - $content_len_before
+        );
 
         ## Debug: Show what extract_sig_body found
         if ($footer_data) {
-            my $was_present = $footer_data->{'was-present'} // 0;
+            my $was_present  = $footer_data->{'was-present'}         // 0;
             my $struct_valid = $footer_data->{'structure-was-valid'} // 0;
-            <[base.logs]>->( 2, "      extract_sig_body: present=%d, struct_valid=%d", $was_present, $struct_valid );
+            <[base.logs]>->(
+                2, "      extract_sig_body: present=%d, struct_valid=%d",
+                $was_present, $struct_valid
+            );
         } else {
             <[base.log]>->( 2, "      extract_sig_body returned undef!" );
         }
 
         ## Check if signature present and structurally valid
-        if ($footer_data && $footer_data->{'was-present'} && $footer_data->{'structure-was-valid'}) {
-            <[base.log]>->( 1, "    Signature footer present and structurally valid, validating cryptographically..." );
+        if (   $footer_data
+            && $footer_data->{'was-present'}
+            && $footer_data->{'structure-was-valid'} ) {
+            <[base.log]>->(
+                1,
+                "    Signature footer present and structurally valid, validating cryptographically..."
+            );
 
             ## Validate the signature (use the same copy we extracted from)
-            my ($is_valid, $report) = <[source.signature_valid]>->(
+            my ( $is_valid, $report ) = <[source.signature_valid]>->(
                 \$content_copy, $footer_data, {}, $sig_key_name, 'strict'
             );
 
             if ($is_valid) {
-                <[base.log]>->( 1, "    ✓ Version file signature cryptographically VALID" );
+                <[base.log]>->(
+                    1, "    ✓ Version file signature cryptographically VALID"
+                );
                 ## Step 3: Version file signature is valid - validate ALL source files at this commit
-                <[base.log]>->( 3, "  Validating all source files at commit $hash..." );
+                <[base.log]>->(
+                    3, "  Validating all source files at commit $hash..."
+                );
 
                 ## Get list of source files
-                my @source_paths = <[sourcecode.source_path_set_up]>;
-                my $total_files = scalar @source_paths;
-                my $valid_files = 0;
+                my @source_paths  = <[sourcecode.source_path_set_up]>;
+                my $total_files   = scalar @source_paths;
+                my $valid_files   = 0;
                 my $invalid_files = 0;
 
                 foreach my $file_path (@source_paths) {
@@ -205,68 +250,93 @@ foreach my $commit (@$commits) {
                     <[event.once]>->(0.07);
 
                     ## Read file at this commit
-                    my $file_content = `cd $repo_path && git show $hash:$file_path 2>&1`;
+                    my $file_content
+                        = `cd $repo_path && git show $hash:$file_path 2>&1`;
 
                     ## Check if content looks valid (not a git error message)
                     ## SIGCHLD=IGNORE interferes with exit codes
-                    next if (!length($file_content)
-                             || $file_content =~ m/^fatal:/
-                             || $file_content =~ m/^error:/);
+                    next
+                        if ( !length($file_content)
+                        || $file_content =~ m/^fatal:/
+                        || $file_content =~ m/^error:/ );
 
                     ## Extract and validate signature
-                    my $file_footer = <[source.extract_sig_body]>->(\$file_content, 'strip', 'strict');
+                    my $file_footer = <[source.extract_sig_body]>->(
+                        \$file_content, 'strip', 'strict'
+                    );
 
-                    if ($file_footer && $file_footer->{'was-present'} && $file_footer->{'structure-was-valid'}) {
-                        my ($file_valid, $file_report) = <[source.signature_valid]>->(
-                            \$file_content, $file_footer, {}, $sig_key_name, 'strict'
-                        );
+                    if (   $file_footer
+                        && $file_footer->{'was-present'}
+                        && $file_footer->{'structure-was-valid'} ) {
+                        my ( $file_valid, $file_report )
+                            = <[source.signature_valid]>->(
+                            \$file_content, $file_footer, {}, $sig_key_name,
+                            'strict'
+                            );
 
                         if ($file_valid) {
                             $valid_files++;
                         } else {
                             $invalid_files++;
-                            last;  ## Stop on first invalid file
+                            last;    ## Stop on first invalid file
                         }
                     } else {
                         $invalid_files++;
-                        last;  ## Stop on first invalid/unsigned file
+                        last;        ## Stop on first invalid/unsigned file
                     }
                 }
 
-                if ($invalid_files > 0) {
+                if ( $invalid_files > 0 ) {
                     ## Found invalid source files at this commit
-                    <[base.log]>->( 1, "    ✗ Source file validation failed (checked $valid_files/$total_files files)" );
+                    <[base.log]>->(
+                        1,
+                        "    ✗ Source file validation failed (checked $valid_files/$total_files files)"
+                    );
                     $data{'workflow'}{'history'}{'issues'}{$hash} = {
                         type    => qw| invalid_sources |,
                         commit  => $commit,
-                        message => "Invalid or unsigned source files at this commit (checked $valid_files files)"
+                        message =>
+                            "Invalid or unsigned source files at this commit (checked $valid_files files)"
                     };
                     $issues_found++;
                     $has_issues = 1;
                 } else {
                     ## All source files valid!
-                    <[base.log]>->( 1, "    ✓ All $valid_files source files VALID - commit is fully validated!" );
+                    <[base.log]>->(
+                        1,
+                        "    ✓ All $valid_files source files VALID - commit is fully validated!"
+                    );
                 }
             } else {
                 ## Version file signature cryptographically invalid
-                <[base.log]>->( 1, "    ✗ Version file signature cryptographically INVALID" );
+                <[base.log]>->(
+                    1,
+                    "    ✗ Version file signature cryptographically INVALID"
+                );
                 $data{'workflow'}{'history'}{'issues'}{$hash} = {
                     type    => qw| invalid_version_file |,
                     commit  => $commit,
-                    message => 'Version file signature cryptographically invalid'
+                    message =>
+                        'Version file signature cryptographically invalid'
                 };
                 $issues_found++;
                 $has_issues = 1;
             }
         } else {
             ## Version file has no signature or malformed structure
-            my $was_present = $footer_data->{'was-present'} // 0;
+            my $was_present  = $footer_data->{'was-present'}         // 0;
             my $struct_valid = $footer_data->{'structure-was-valid'} // 0;
-            <[base.logs]>->( 1, "    ✗ Signature footer issue (present=%s, struct_valid=%s)", $was_present, $struct_valid );
+            <[base.logs]>->(
+                1,
+                "    ✗ Signature footer issue (present=%s, struct_valid=%s)",
+                $was_present,
+                $struct_valid
+            );
             $data{'workflow'}{'history'}{'issues'}{$hash} = {
                 type    => qw| unsigned_version_file |,
                 commit  => $commit,
-                message => 'Version file missing signature or has invalid structure'
+                message =>
+                    'Version file missing signature or has invalid structure'
             };
             $issues_found++;
             $has_issues = 1;
@@ -274,9 +344,10 @@ foreach my $commit (@$commits) {
     } else {
         ## Version file doesn't exist or is invalid at this commit
         <[base.log]>->( 1, "    ✗ Version file NOT FOUND at this commit" );
-        my $preview = substr($version_file_content, 0, 100);
+        my $preview = substr( $version_file_content, 0, 100 );
         $preview =~ s/\n/\\n/g;
-        <[base.logs]>->( 2, "      Content preview: %s", $preview ) if length($version_file_content) > 0;
+        <[base.logs]>->( 2, "      Content preview: %s", $preview )
+            if length($version_file_content) > 0;
 
         $data{'workflow'}{'history'}{'issues'}{$hash} = {
             type    => qw| missing_version_file |,
@@ -288,80 +359,99 @@ foreach my $commit (@$commits) {
     }
 
     ## Track email addresses and author names for harmonization
-    $emails_seen{$email}++ if length $email;
+    $emails_seen{$email}++   if length $email;
     $authors_seen{$author}++ if length $author;
 
     ## Count consecutive valid commits for early abort
     if ($has_issues) {
-        if ($consecutive_valid > 0) {
-            <[base.logs]>->( 1, "  Consecutive valid reset (was %d, threshold %d)", $consecutive_valid, $abort_after_valid );
+        if ( $consecutive_valid > 0 ) {
+            <[base.logs]>->(
+                1, "  Consecutive valid reset (was %d, threshold %d)",
+                $consecutive_valid, $abort_after_valid
+            );
         }
-        $consecutive_valid = 0;  ## Reset counter
+        $consecutive_valid = 0;    ## Reset counter
     } else {
         $consecutive_valid++;
-        <[base.logs]>->( 1, "  Consecutive valid: %d / %d (abort_after_valid=%d)",
-            $consecutive_valid, $abort_after_valid, $abort_after_valid );
+        <[base.logs]>->(
+            1, "  Consecutive valid: %d / %d (abort_after_valid=%d)",
+            $consecutive_valid, $abort_after_valid, $abort_after_valid
+        );
 
         ## Abort if we've seen enough consecutive valid commits
-        if ($abort_after_valid > 0 && $consecutive_valid >= $abort_after_valid) {
-            <[base.logs]>->( 1, "  EARLY ABORT: reached %d consecutive valid commits (threshold: %d)",
-                $consecutive_valid, $abort_after_valid );
-            <[base.logs]>->( 2, "  Early abort: found %d consecutive valid commits", $consecutive_valid );
+        if (   $abort_after_valid > 0
+            && $consecutive_valid >= $abort_after_valid ) {
+            <[base.logs]>->(
+                1,
+                "  EARLY ABORT: reached %d consecutive valid commits (threshold: %d)",
+                $consecutive_valid,
+                $abort_after_valid
+            );
+            <[base.logs]>->(
+                2, "  Early abort: found %d consecutive valid commits",
+                $consecutive_valid
+            );
             last;
         }
     }
 }
 
 ## Detect version gaps
-my @versions = sort { _version_cmp($a, $b) } keys %versions_seen;
+my @versions = sort { _version_cmp( $a, $b ) } keys %versions_seen;
 
-for (my $i = 0; $i < @versions - 1; $i++) {
+for ( my $i = 0; $i < @versions - 1; $i++ ) {
     my $current = $versions[$i];
-    my $next = $versions[$i + 1];
+    my $next    = $versions[ $i + 1 ];
 
-    if (_version_gap($current, $next)) {
-        push @{<workflow.history.gaps>}, {
+    if ( _version_gap( $current, $next ) ) {
+        push @{<workflow.history.gaps>},
+            {
             from => $current,
             to   => $next,
-            gap  => _version_diff($current, $next)
-        };
+            gap  => _version_diff( $current, $next )
+            };
     }
 }
 
 ## Update statistics
 <workflow.history.scanned> = time();
-$data{'workflow'}{'stats'}{'commits_total'} = $total;
+$data{'workflow'}{'stats'}{'commits_total'}    = $total;
 $data{'workflow'}{'stats'}{'commits_analyzed'} = $commits_scanned;
-$data{'workflow'}{'stats'}{'issues_found'} = $issues_found;
-$data{'workflow'}{'stats'}{'history_scans'} = ($data{'workflow'}{'stats'}{'history_scans'} // 0) + 1;
+$data{'workflow'}{'stats'}{'issues_found'}     = $issues_found;
+$data{'workflow'}{'stats'}{'history_scans'}
+    = ( $data{'workflow'}{'stats'}{'history_scans'} // 0 ) + 1;
 
 <[base.log]>->( 2, "  ✓ Scan complete" );
 <[base.log]>->( 2, "    Commits scanned: $commits_scanned / $total" );
 <[base.log]>->( 2, "    Issues found: $issues_found" );
-<[base.log]>->( 2, "    Unsigned: " . scalar(@{<workflow.history.unsigned>}) );
-<[base.log]>->( 2, "    Version gaps: " . scalar(@{<workflow.history.gaps>}) );
-<[base.log]>->( 2, "    Email addresses: " . scalar(keys %emails_seen) );
-<[base.log]>->( 2, "    Author names: " . scalar(keys %authors_seen) );
+<[base.log]>->(
+    2, "    Unsigned: " . scalar( @{<workflow.history.unsigned>} )
+);
+<[base.log]>->(
+    2, "    Version gaps: " . scalar( @{<workflow.history.gaps>} )
+);
+<[base.log]>->( 2, "    Email addresses: " . scalar( keys %emails_seen ) );
+<[base.log]>->( 2, "    Author names: " . scalar( keys %authors_seen ) );
 
 return {
-    success         => 1,
+    success         => TRUE,
     total_commits   => $total,
     scanned_commits => $commits_scanned,
     issues_found    => $issues_found,
-    unsigned        => scalar(@{<workflow.history.unsigned>}),
-    version_gaps    => scalar(@{<workflow.history.gaps>}),
+    unsigned        => scalar( @{<workflow.history.unsigned>} ),
+    version_gaps    => scalar( @{<workflow.history.gaps>} ),
     emails          => \%emails_seen,
     authors         => \%authors_seen
 };
 
 ## Helper: Compare version strings
 sub _version_cmp {
-    my ($a, $b) = @_;
+    my ( $a, $b ) = @_;
     my @a_parts = split /\./, $a;
     my @b_parts = split /\./, $b;
 
-    for (my $i = 0; $i < 3; $i++) {
-        my $cmp = ($a_parts[$i] || 0) <=> ($b_parts[$i] || 0);
+    for ( my $i = 0; $i < 3; $i++ ) {
+        my $cmp = ( $a_parts[$i] || 0 ) <=> ( $b_parts[$i] || 0 );
         return $cmp if $cmp != 0;
     }
 
@@ -370,19 +460,19 @@ sub _version_cmp {
 
 ## Helper: Detect if there's a gap between versions
 sub _version_gap {
-    my ($current, $next) = @_;
-    my $diff = _version_diff($current, $next);
+    my ( $current, $next ) = @_;
+    my $diff = _version_diff( $current, $next );
     return $diff > 1;
 }
 
 ## Helper: Calculate difference between versions
 sub _version_diff {
-    my ($a, $b) = @_;
+    my ( $a, $b ) = @_;
     my @a_parts = split /\./, $a;
     my @b_parts = split /\./, $b;
 
     ## Simple heuristic: check if patch version jumped by more than 1
-    return abs(($b_parts[2] || 0) - ($a_parts[2] || 0));
+    return abs( ( $b_parts[2] || 0 ) - ( $a_parts[2] || 0 ) );
 }
 
 ## Export
@@ -390,8 +480,8 @@ $code{qw| workflow.parent.scan_history |} = \&workflow_parent_scan_history;
 
 0;
 
-#,,,.,,,.,,..,...,.,.,,,.,,..,,,,,,.,,,,,,,,.,..,,...,...,,..,.,.,.,.,,,,,,,.,
-#4I6EJDTGO4LYLP2V6ZK66MUMBQ3I4UIAFHJNI2ZNGPEMT5NCCUXE7LGA4XPZIEX4PSN52VR7LNKVY
-#\\\|AADNCN3WR2DQAHKJNHWT2EZW6X2I5SS6TEY7QL7CLP6J5MTXXEH \ / AMOS7 \ YOURUM ::
-#\[7]QEOVLRXF3TGXZFOK2F3DJAHJRB2EOI5BT5X2AVUKIRWU6YTFWQCA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,,,,.,.,,..,,,,,,,,,.,,,,,,,,.,,..,,...,...,.,.,..,,...,,.,,.,.,
+#DQA536RIU5WEXQLCXSBQ7FFG7SQL3TOHOSDHTHYH6TQI4J5IUKU7FC5DMXSLWBRIBUQP5SBXTBMV2
+#\\\|7UDDV44SOQCIQJZPKEGFFYQQGPGDAGRTUMHBA5KW2S5XHOTF2WY \ / AMOS7 \ YOURUM ::
+#\[7]APH2T55KJH6HPNU2KE3ZYNG43HMBR2LGR337MZZQFANVC3FNBYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

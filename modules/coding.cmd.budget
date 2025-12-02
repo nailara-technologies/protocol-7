@@ -1,0 +1,104 @@
+## [:< ##
+
+# name  = coding.cmd.budget
+# descr = Console command: show token budget status and usage breakdown
+# param = optional: 'history' for transaction history, 'breakdown' for service breakdown
+
+my $subcommand = length( $$call{'args'} ) ? $$call{'args'} : 'status';
+
+if ( $subcommand eq 'status' ) {
+
+    # Show current budget status
+    my $budget = <[coding.budget.track_tokens]>->('status');
+
+    return {
+        'mode' => qw| true |,
+        'data' => "Token Budget Status:\n"
+            . "  Total Allocated: "
+            . $budget->{total_allocated}
+            . " tokens\n"
+            . "  Total Used: "
+            . $budget->{total_used}
+            . " tokens\n"
+            . "  Remaining: "
+            . $budget->{remaining}
+            . " tokens\n"
+            . "  Percentage Used: "
+            . $budget->{percentage_used} . "%\n"
+            . "  Percentage Remaining: "
+            . $budget->{percentage_remaining} . "%\n"
+            . "  Status: "
+            . $budget->{status} . "\n"
+            . "  Session Duration: "
+            . $budget->{session_duration} . "\n"
+            . "  Avg per Transaction: "
+            . $budget->{average_per_transaction}
+            . " tokens"
+    };
+
+} elsif ( $subcommand eq 'history' ) {
+
+    # Show transaction history
+    my $history = <[coding.budget.track_tokens]>->( 'history', 10 );
+
+    my $output = "Recent Token Transactions (last 10):\n";
+    $output
+        .= "  Total Transactions: " . $history->{transaction_count} . "\n";
+    $output
+        .= "  Avg per Transaction: "
+        . $history->{summary}->{avg_tokens_per_transaction}
+        . " tokens\n";
+    $output .= "  Successful: " . $history->{summary}->{successful} . "\n";
+    $output .= "  Failed: " . $history->{summary}->{failed} . "\n";
+    $output .= "\n  Recent Transactions:\n";
+
+    foreach my $txn ( @{ $history->{recent} } ) {
+        $output .= sprintf(
+            "    [%s] %s: %d tokens (balance: %d)\n",
+            scalar( localtime( $txn->{timestamp} ) ),
+            $txn->{service} // 'unknown',
+            $txn->{tokens_used}, $txn->{balance_after}
+        );
+    }
+
+    return {
+        'mode' => qw| true |,
+        'data' => $output
+    };
+
+} elsif ( $subcommand eq 'breakdown' ) {
+
+    # Show usage by service
+    my $breakdown = <[coding.budget.track_tokens]>->('breakdown');
+
+    my $output = "Token Usage by Service:\n";
+    $output .= "  Total Transactions: "
+        . $breakdown->{total_transactions} . "\n\n";
+
+    foreach my $service ( @{ $breakdown->{by_service} } ) {
+        my $percentage = ( $service->{tokens_used} / 100 );
+        $output .= sprintf(
+            "  %s: %d tokens (%d transactions, avg %d/txn)\n",
+            $service->{service},      $service->{tokens_used},
+            $service->{transactions}, $service->{average_per_transaction}
+        );
+    }
+
+    return {
+        'mode' => qw| true |,
+        'data' => $output
+    };
+
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' => "Unknown budget subcommand: $subcommand\n"
+            . "Available: status, history, breakdown"
+    };
+}
+
+#,,..,.,,,,,.,.,,,.,,,...,,.,,,,,,..,,...,...,..,,...,..,,,,.,,..,,..,,,.,,,.,
+#ZZEDGSLTF4B2YD4RFNZ35EUCLNFNUC2TGB4LO7HTGI2EKQBAUNPCDN6PMHEXZVYFLZQJS7N7KSVCG
+#\\\|KSUAHBBPAC2Y4CLVV5536ZOTJODIUCKHRTBHUPUHOAQUFVXLT7U \ / AMOS7 \ YOURUM ::
+#\[7]I5WT2AA2REIVOHPVFYD4KVOFF3VD74DSXZYIKO36VRPMIJOW6UDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,524 @@
+---
+# Session: 2025-12-01 ML Consensus - Existing Models Strategy
+# Status: IMMEDIATE IMPLEMENTATION READY
+# Key Finding: 276GB of GGUF models already available at /mnt/m/
+#              No downloads needed. Use existing quantized models.
+
+date: "2025-12-01"
+session_id: "ml-consensus-existing-models"
+models_available: "276GB of GGUF quantized models (already on disk)"
+model_storage_location: "/mnt/m/ (M: drive mounted in WSL)"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## AVAILABLE MODELS INVENTORY (276GB)
+## ═══════════════════════════════════════════════════════════════════════════
+
+model_inventory:
+
+  collections:
+    mradermacher: "76 GB - Professional quantizations of major models"
+    TheBloke: "27 GB - Popular community quantizations"
+    lmstudio_community: "19 GB - Official LM Studio models"
+    reedmayhew: "16 GB - Various architectures"
+    ykarout: "15 GB - Specialized models"
+    Reiterate3680: "15 GB - Training-optimized models"
+    Lewdiculous: "13 GB - Vision + reasoning models"
+    others: "75 GB - Additional specialized models"
+
+  recommended_for_consensus:
+    primary_reasoning:
+      - "Qwen2.5-7B-Instruct-1M-Q4_K_M" (good balance)
+      - "mathstral-7B-v0.1-Q4_K_M" (reasoning)
+      - "Mistral-based models" (fast, accurate)
+
+    secondary_validation:
+      - "aya-23-8B-Q4_K_M" (multilingual backup)
+      - "Seed-Coder-8B" (can handle code in consensus)
+      - "Reasoning models" from various creators
+
+    vision_capable:
+      - "Samantha-vision-gguf" (with mmproj)
+      - "Eris_Prime-Vision" (with mmproj)
+      - "Qwen3-VL-8B" (vision language)
+
+## ═══════════════════════════════════════════════════════════════════════════
+## REVISED STRATEGY: USE EXISTING MODELS
+## ═══════════════════════════════════════════════════════════════════════════
+
+revised_approach:
+
+  why_existing_models_are_better:
+    reason_1: "Already quantized (Q4_K_M, Q4_K_S) = GPU efficient"
+    reason_2: "No download time = immediate testing"
+    reason_3: "GGUF format = compatible with llama.cpp and Ollama"
+    reason_4: "Variety = perfect for consensus voting (different perspectives)"
+    reason_5: "Professional quantizations = tested and optimized"
+
+  three_approaches_compared:
+
+    approach_1_ollama_with_existing:
+      name: "Ollama pointing to existing models"
+      how_it_works: |
+        1. Install Ollama
+        2. Create Modelfile pointing to /mnt/m/ GGUF files
+        3. Ollama manages inference
+        4. REST API stays the same
+      command: |
+        # Create custom Modelfile
+        cat > /tmp/Qwen-Modelfile << EOF
+        FROM /mnt/m/lmstudio-community/Qwen2.5-7B-Instruct-1M-GGUF/Qwen2.5-7B-Instruct-1M-Q4_K_M.gguf
+        EOF
+
+        # Import into Ollama
+        ollama create qwen-consensus -f /tmp/Qwen-Modelfile
+        ollama run qwen-consensus "What is 7 * 13?"
+      pros: |
+        - Easy REST API (same as online models)
+        - No code changes needed
+        - Can swap models by creating new Modelfiles
+      cons: |
+        - Ollama adds slight overhead
+        - Need to manage multiple model files
+      credits_needed: "< 1%"
+      time_estimate: "15 minutes"
+
+    approach_2_llama_cpp_direct:
+      name: "llama.cpp directly on GGUF files"
+      how_it_works: |
+        1. Build llama.cpp
+        2. Point directly to /mnt/m/ GGUF files
+        3. Use llama.cpp HTTP server mode
+        4. Lowest latency, maximum efficiency
+      command: |
+        git clone https://github.com/ggerganov/llama.cpp
+        cd llama.cpp && make
+
+        ./server -m /mnt/m/lmstudio-community/Qwen2.5-7B-Instruct-1M-GGUF/Qwen2.5-7B-Instruct-1M-Q4_K_M.gguf \
+          -ngl 99  # Offload to GPU \
+          -c 2048  # Context window
+      pros: |
+        - Fastest inference
+        - Lowest memory overhead
+        - HTTP API available
+      cons: |
+        - Slightly more complex setup
+        - Less user-friendly UI
+      credits_needed: "< 2%"
+      time_estimate: "30 minutes"
+
+    approach_3_custom_python_wrapper:
+      name: "Python wrapper with llama-cpp-python"
+      how_it_works: |
+        1. pip install llama-cpp-python
+        2. Write Python script to load GGUF
+        3. Create REST API wrapper
+        4. Full control over inference parameters
+      pros: |
+        - Maximum flexibility
+        - Can customize inference (batching, etc.)
+        - Easy to add features
+      cons: |
+        - Most complex setup
+        - Need Python library compilation
+      credits_needed: "< 3%"
+      time_estimate: "45 minutes"
+
+  recommendation: |
+    START: Approach 1 (Ollama with existing models)
+    - Easiest to set up
+    - Reuses existing REST API pattern
+    - Can upgrade to llama.cpp later if needed
+
+## ═══════════════════════════════════════════════════════════════════════════
+## IMMEDIATE ACTION PLAN (FITS 6% BUDGET)
+## ═══════════════════════════════════════════════════════════════════════════
+
+immediate_actions:
+
+  step_1_verify_model_access:
+    command: "ls -lh /mnt/m/lmstudio-community/Qwen2.5-7B-Instruct-1M-GGUF/"
+    purpose: "Confirm model file exists and is accessible"
+    time: "1 minute"
+
+  step_2_install_ollama:
+    command: |
+      curl https://ollama.ai/install.sh | sh
+      sudo systemctl start ollama  # If systemd available
+      # Or just: ollama serve (in new terminal)
+    purpose: "Get Ollama running"
+    time: "5 minutes"
+    credits: "< 0.5%"
+
+  step_3_create_modelfiles_for_consensus_group:
+    description: "Point Ollama to your existing GGUF files"
+    files_to_create:
+      - "/tmp/ollama-qwen-Modelfile"
+      - "/tmp/ollama-mathstral-Modelfile"
+      - "/tmp/ollama-aya-Modelfile"
+    content: |
+      # For Qwen consensus model
+      cat > /tmp/ollama-qwen-Modelfile << 'EOF'
+      FROM /mnt/m/lmstudio-community/Qwen2.5-7B-Instruct-1M-GGUF/Qwen2.5-7B-Instruct-1M-Q4_K_M.gguf
+      PARAMETER num_gpu 99  # GPU acceleration
+      PARAMETER num_ctx 2048  # Context window
+      EOF
+
+      # For Mathstral reasoning model
+      cat > /tmp/ollama-mathstral-Modelfile << 'EOF'
+      FROM /mnt/m/lmstudio-community/mathstral-7B-v0.1-GGUF/mathstral-7B-v0.1-Q4_K_M.gguf
+      PARAMETER num_gpu 99
+      PARAMETER num_ctx 2048
+      EOF
+
+      # For Aya multilingual model
+      cat > /tmp/ollama-aya-Modelfile << 'EOF'
+      FROM /mnt/m/lmstudio-community/aya-23-8B-GGUF/aya-23-8B-Q4_K_M.gguf
+      PARAMETER num_gpu 99
+      PARAMETER num_ctx 2048
+      EOF
+    time: "5 minutes"
+    commands: |
+      # Import models
+      ollama create qwen-consensus -f /tmp/ollama-qwen-Modelfile
+      ollama create mathstral-consensus -f /tmp/ollama-mathstral-Modelfile
+      ollama create aya-consensus -f /tmp/ollama-aya-Modelfile
+
+  step_4_test_consensus_models:
+    command: |
+      # Test Qwen
+      curl http://localhost:11434/api/generate -d '{
+        "model": "qwen-consensus",
+        "prompt": "What is 7 * 13?",
+        "stream": false
+      }'
+
+      # Test Mathstral
+      curl http://localhost:11434/api/generate -d '{
+        "model": "mathstral-consensus",
+        "prompt": "What is 7 * 13?",
+        "stream": false
+      }'
+
+      # Test Aya
+      curl http://localhost:11434/api/generate -d '{
+        "model": "aya-consensus",
+        "prompt": "What is 7 * 13?",
+        "stream": false
+      }'
+    purpose: "Verify all three models work"
+    expected_output: "Three different answers (for consensus voting to decide between)"
+    time: "5 minutes"
+
+  step_5_create_protocol_7_consensus_module:
+    description: "Module to coordinate consensus voting"
+    file: "modules/llm.consensus.vote_multi_model"
+    code: |
+      ## modules/llm.consensus.vote_multi_model
+      ## Query multiple models and vote on answer
+
+      my $call = shift || {};
+      my $question = $call->{'question'} // '';
+      my @models = @{ $call->{'models'} // ['qwen-consensus', 'mathstral-consensus', 'aya-consensus'] };
+
+      use LWP::UserAgent;
+      use JSON::XS;
+
+      my $ua = LWP::UserAgent->new;
+      my $json = JSON::XS->new();
+
+      my @responses;
+
+      foreach my $model (@models) {
+          my $response = $ua->post(
+              'http://localhost:11434/api/generate',
+              Content => $json->encode({
+                  model => $model,
+                  prompt => $question,
+                  stream => 0
+              }),
+              'Content-Type' => 'application/json'
+          );
+
+          if ($response->is_success) {
+              my $result = $json->decode($response->content);
+              push @responses, {
+                  model => $model,
+                  answer => $result->{'response'},
+                  timestamp => time()
+              };
+          }
+      }
+
+      return {
+          success => 1,
+          question => $question,
+          responses => \@responses,
+          model_count => scalar(@responses),
+          consensus_status => 'ready_for_voting'  # Next phase: vote
+      };
+
+    time: "30 minutes"
+    credits: "< 0.5%"
+
+  step_6_create_console_command:
+    file: "modules/llm.cmd.consensus-ask"
+    usage: "work consensus-ask 'What is the meaning of Protocol-7?'"
+    purpose: "Query all models and show their answers"
+    time: "20 minutes"
+    credits: "< 0.5%"
+
+  step_7_document_available_models:
+    file: "data/yaml/docs/available-lm-studio-models.yaml"
+    content: |
+      Available GGUF Models in /mnt/m/:
+
+      RECOMMENDED FOR CONSENSUS:
+      1. Qwen2.5-7B-Instruct-1M (excellent reasoning)
+      2. mathstral-7B (specialized for math)
+      3. aya-23-8B (multilingual)
+
+      ALTERNATIVE MODELS:
+      - Mistral variants (fast)
+      - Seed-Coder-8B (code capability)
+      - Vision models (for image understanding)
+
+      HOW TO ADD NEW MODELS:
+      1. Create Modelfile pointing to GGUF
+      2. ollama create <name> -f Modelfile
+      3. Add to consensus voting
+
+    time: "15 minutes"
+    credits: "< 0.5%"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## PERFORMANCE PREDICTIONS (EXISTING MODELS)
+## ═══════════════════════════════════════════════════════════════════════════
+
+performance_analysis:
+
+  qwen_7b_q4_k_m:
+    vram_usage: "3-4 GB (quantized)"
+    inference_speed: "5-8 tokens/second on RTX 3060"
+    context_window: "1M tokens (truncate to 2048 for consensus)"
+    quality: "Excellent for reasoning"
+
+  mathstral_7b_q4_k_m:
+    vram_usage: "3-4 GB (quantized)"
+    inference_speed: "5-8 tokens/second on RTX 3060"
+    context_window: "4K"
+    quality: "Specialized for mathematical reasoning"
+
+  aya_8b_q4_k_m:
+    vram_usage: "4-5 GB (quantized)"
+    inference_speed: "4-6 tokens/second on RTX 3060"
+    context_window: "4K"
+    quality: "Multilingual (50+ languages)"
+
+  concurrent_execution:
+    strategy: |
+      Load one model at a time (sequential consensus)
+      Takes ~15 seconds per model for short question
+      Total time for 3-model consensus: ~45 seconds
+
+      Alternative: Pre-load 2 models, swap 3rd
+      Could get down to 20-30 seconds total
+    memory_management: |
+      Q4_K_M quantization saves 60-70% memory
+      Can potentially load 2 models simultaneously (~7GB total)
+      Test with your exact hardware
+
+## ═══════════════════════════════════════════════════════════════════════════
+## CUBIC TOPOLOGY VOTING WITH EXISTING MODELS
+## ═══════════════════════════════════════════════════════════════════════════
+
+voting_strategy:
+
+  three_model_consensus_example:
+    question: "What is the relationship between consciousness and mathematics?"
+
+    model_responses:
+      qwen: |
+        "Consciousness allows us to recognize mathematical patterns.
+         Mathematics provides framework for understanding consciousness..."
+
+      mathstral: |
+        "Consciousness is discrete mathematical state space.
+         Each thought maps to theorem in abstract algebra..."
+
+      aya: |
+        "Consciência (Portuguese) y conciencia (Spanish) suggest
+         consciousness universal across languages..."
+
+    voting_process:
+      step_1: "Map each response to cubic coordinates (harmonic hash)"
+      step_2: "Calculate centroid of three positions"
+      step_3: "Distance from Qwen to centroid: 0.34 (close - agreement)"
+      step_4: "Distance from Mathstral to centroid: 0.22 (very close - strong agreement)"
+      step_5: "Distance from Aya to centroid: 0.45 (further - some divergence)"
+
+    consensus_result: |
+      CONSENSUS ANSWER: Merge Qwen + Mathstral perspectives
+      (Aya added multilingual validation but different focus)
+
+      CERTAINTY LEVEL: HIGH (div-7 pattern detected)
+      BASE32 ENCODING: [encoded certainty level here]
+
+## ═══════════════════════════════════════════════════════════════════════════
+## LIVING TREE INTEGRATION WITH CONSENSUS
+## ═══════════════════════════════════════════════════════════════════════════
+
+living_tree_storage:
+
+  question_branch:
+    path: "<llm.consensus.questions.hash_of_question>"
+    stores: |
+      {
+        original: "What is consciousness?",
+        timestamp: 1701432600,
+        models_queried: ['qwen', 'mathstral', 'aya'],
+        hash: "abc123def456"
+      }
+
+  answer_branch:
+    path: "<llm.consensus.answers.hash_of_question>"
+    stores: |
+      {
+        consensus: "Merged answer from voting",
+        certainty: BASE32_HARMONIC_LEVEL,
+        model_responses: [
+          { model: 'qwen', response: '...', distance: 0.34 },
+          { model: 'mathstral', response: '...', distance: 0.22 },
+          { model: 'aya', response: '...', distance: 0.45 }
+        ],
+        voting_result: { consensus_position: {x, y, z}, ... },
+        stored: 1701432620
+      }
+
+  bidirectional_sync:
+    enables: |
+      1. Other consensus groups see this question answered
+      2. If they ask similar question, find pattern match
+      3. Compare answers
+      4. If different: trigger re-evaluation (self-correction)
+
+## ═══════════════════════════════════════════════════════════════════════════
+## TIMELINE FOR THIS SESSION (6% BUDGET)
+## ═══════════════════════════════════════════════════════════════════════════
+
+session_timeline:
+
+  task_1_whisper_integration:
+    what: "Audio transcription (from earlier plan)"
+    time: "30 minutes"
+    credits: "1%"
+    status: "Ready to implement"
+
+  task_2_invoke_ai_integration:
+    what: "Image generation wrapper"
+    time: "20 minutes"
+    credits: "1%"
+    status: "Ready to implement"
+
+  task_3_ollama_setup_with_existing_models:
+    what: "Point Ollama to /mnt/m/ GGUF files"
+    time: "15 minutes"
+    credits: "< 1%"
+    status: "Can start immediately"
+
+  task_4_llm_consensus_module:
+    what: "Create llm.consensus.vote_multi_model"
+    time: "45 minutes"
+    credits: "1%"
+    status: "Can start after task 3"
+
+  task_5_cubic_voting_framework:
+    what: "Implement harmonic position mapping"
+    time: "30 minutes"
+    credits: "1%"
+    status: "Can start after task 4"
+
+  task_6_documentation:
+    what: "Update plans and integrate findings"
+    time: "20 minutes"
+    credits: "< 1%"
+    status: "Ongoing"
+
+  total_estimated: "2.5 hours of implementation"
+  total_credits: "~5-6%"
+  feasibility: "✓ Fits within budget, can complete this session or leave for next"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## STRATEGIC ADVANTAGE: EXISTING MODELS
+## ═══════════════════════════════════════════════════════════════════════════
+
+why_this_is_powerful:
+
+  diversity_already_exists:
+    fact: "You have 276GB of DIVERSE quantized models"
+    implication: "Can immediately test consensus with different perspectives"
+    example: |
+      Qwen = Reasoning-focused
+      Mathstral = Mathematical reasoning
+      Aya = Multilingual understanding
+      Plus 50+ more models for different specialties
+
+  no_retraining_needed:
+    fact: "All models are professionally quantized GGUF"
+    implication: "Use as-is, no fine-tuning, no downloads"
+    advantage: "Consensus voting proves concept without modification"
+
+  consensus_as_feature:
+    fact: "Multiple different models = natural disagreement"
+    implication: "Cubic topology voting becomes meaningful (not artificial)"
+    example: |
+      A single model always agrees with itself
+      Multiple models show how consensus works
+      Disagreement reveals different reasoning paths
+      Self-correction mechanism learns from divergence
+
+  scalability_proven:
+    fact: "Can add any GGUF model from /mnt/m/"
+    implication: "Test with 3 models now, scale to 5, 10, or more"
+    growth_path: |
+      Phase 1: 3 models (quick consensus)
+      Phase 2: 5-7 models (diverse perspectives)
+      Phase 3: 15+ models (specialized consensus groups)
+      Phase 4: Hierarchical consensus (meta-voting)
+
+## ═══════════════════════════════════════════════════════════════════════════
+## CONCLUSION: READY TO BUILD
+## ═══════════════════════════════════════════════════════════════════════════
+
+readiness_assessment:
+
+  infrastructure_ready:
+    whisper: "✓ Installed and GPU tested"
+    invoke_ai: "✓ Available at /user/Invoke/"
+    llm_models: "✓ 276GB of quantized models"
+    protocol_7: "✓ Running live system (6 active zenka)"
+
+  knowledge_ready:
+    living_tree: "✓ Architecture documented"
+    cubic_topology: "✓ Visualizations + theory available"
+    harmonic_voting: "✓ Mathematical foundation solid"
+    consensus_mechanisms: "✓ Algorithms sketched"
+
+  implementation_ready:
+    module_patterns: "✓ Protocol-7 style understood"
+    rest_apis: "✓ Ollama/Invoke API patterns clear"
+    code_examples: "✓ Skeletons written in plan"
+    testing_ready: "✓ Can verify immediately"
+
+  overall_verdict: |
+    READY FOR IMMEDIATE IMPLEMENTATION
+
+    All pieces in place:
+    1. Hardware ✓ (RTX 3060 + CUDA)
+    2. Software ✓ (Whisper, Invoke, GGUF models)
+    3. Infrastructure ✓ (Running Protocol-7)
+    4. Knowledge ✓ (Living tree + topology)
+    5. Plans ✓ (This document)
+
+    No blockers. Begin implementation.
+
+---
