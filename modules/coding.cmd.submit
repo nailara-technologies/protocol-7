@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = coding.cmd.submit
+# descr = Console command: submit work request to coding zenka
+# param = work request string or JSON
+# example = work submit "code-generation: Create whisper module"
+
+return { 'mode' => qw| false |, 'data' => 'work request required' }
+    if !length( $$call{'args'} );
+
+my $request_str = $$call{'args'};
+
+# Parse the work request using task intake module
+my $intake_result = <[coding.task.intake]>->($request_str);
+
+if ( !$intake_result->{success} ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "Failed to parse request: "
+            . ( $intake_result->{error} // 'unknown error' )
+    };
+}
+
+my $task = $intake_result->{task};
+
+# Analyze the task
+my $analysis = <[coding.task.analyze]>->( 'full', $task );
+
+if ( !$analysis->{success} ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "Failed to analyze task: "
+            . ( $analysis->{error} // 'unknown error' )
+    };
+}
+
+my $analyzed_task = $analysis->{task};
+
+# Make routing decision
+my $routing = <[coding.routing.decide_service]>->( 'route', $analyzed_task );
+
+if ( !$routing->{success} ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "Failed to determine routing: "
+            . ( $routing->{error} // 'unknown error' )
+    };
+}
+
+my $routed_task = $routing->{task};
+
+# Enqueue the task
+my $queue_result = <[coding.task.queue]>->( 'enqueue', $routed_task );
+
+if ( !$queue_result->{success} ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "Failed to enqueue task: "
+            . ( $queue_result->{error} // 'unknown error' )
+    };
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => "Task submitted: "
+        . $routed_task->{id} . "\n"
+        . "  Type: "
+        . $routed_task->{type} . "\n"
+        . "  Complexity: "
+        . $routed_task->{analysis}->{complexity} . "\n"
+        . "  Routed to: "
+        . $routed_task->{analysis}->{routed_to} . "\n"
+        . "  Est. tokens: "
+        . $routed_task->{analysis}->{estimated_tokens}
+};
+
+#,,,.,...,...,,..,,,,,.,.,...,...,.,.,...,..,,..,,...,...,.,,,...,.,,,,.,,,,.,
+#MT3BYT3SID2IZHSUDPZEOA5P5325U55KOOM6YFHZRHRITVIY6LFNIX2NNEYDA73VZRYH54YMM7LEA
+#\\\|4RQT4LONFQBIGONAHKLPMGNUZTQIRTK4CBETA4U326TZJ6OGAXE \ / AMOS7 \ YOURUM ::
+#\[7]V7ENSWRKYDH3AP5M2JSEWX3GLLJPV6L7PRCL3WGPTNSMDKXPTSBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

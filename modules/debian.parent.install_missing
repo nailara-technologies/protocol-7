@@ -33,7 +33,7 @@ if ($zenka_filter) {
 
     unless ($zenka_id) {
         return {
-            success => 0,
+            success => FALSE,
             error   => qq| zenka '$zenka_filter' not found in registry |
         };
     }
@@ -117,7 +117,7 @@ if ($zenka_filter) {
 <[base.log]>->( 2, "  Missing CPAN modules: " . scalar(@missing_cpan) );
 
 my $result = {
-    success          => 1,
+    success          => TRUE,
     debian_packages  => [@missing_debian],
     cpan_modules     => [@missing_cpan],
     installed_debian => 0,
@@ -184,8 +184,8 @@ return $result;
 
 0;
 
-#,,,.,,,,,,,,,,,.,.,,,,,,,,.,,,,.,,,,,...,,,,,..,,...,...,.,.,,.,,.,.,.,.,,,.,
-#TOTFQE6GQCFVDBSTCWMVZB4OOUHHHM3JTSOPAEPIFTXGQDGNZZOY2KCQGMC3OR6WVWVUURFO5APJO
-#\\\|L67B7GUCO4VKIPGOQ5Z6IYKIIV35TLY3FFTZF3XFHASF33LYE3A \ / AMOS7 \ YOURUM ::
-#\[7]QW5VMVO6PJBJ4OFOZIKZWFT72Q76HXG5BLC2RUPWSQHPPJZBUYBQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,.,,,.,.,,..,.,,,,..,.,,,.,.,,,,,..,,...,...,,,.,.,,,...,.,.,,,.,
+#4VAOM4VKGRBL56CB5FMM3VFWKYIELX5KAWK3ASKJXLFP7MKGLA6TBN6NL2DCEU55WHYEVXW6PEZ4Y
+#\\\|GB2BUKXKQOFNMMSKUWWTVYCOEYAWOGCJWFWMPV6JPKTJ3UZ2VGJ \ / AMOS7 \ YOURUM ::
+#\[7]XBO3VJBPILEEGNDYJP4J5NLHFCTI72EH5SCIJTWCOLV3JNYMWYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,39 +7,42 @@ my $params = shift || {};
 
 my $domain = $params->{domain} || $params->{host};
 
-if (!$domain) {
+if ( !$domain ) {
     return {
-        success => 0,
+        success => FALSE,
         error   => qw| domain parameter required |,
-        usage   => qw| httpd.del-vhost domain=example.com [revoke_cert=1] [keep_content=0] |
+        usage   =>
+            qw| httpd.del-vhost domain=example.com [revoke_cert=1] [keep_content=0] |
     };
 }
 
 my $revoke_cert  = $params->{revoke_cert}  || $params->{revoke} || 0;
 my $keep_content = $params->{keep_content} || 0;
 
-<[base.log]>->( 2, "httpd.cmd.del-vhost: Removing vhost for domain '$domain'" );
+<[base.log]>->(
+    2, "httpd.cmd.del-vhost: Removing vhost for domain '$domain'"
+);
 
 ## Configuration
-my $site_dir    = <httpd.site_dir>    || '/var/httpd';
-my $content_dir = <web.cfg.base_dir>  || '/data/web';
+my $site_dir    = <httpd.site_dir>   || '/var/httpd';
+my $content_dir = <web.cfg.base_dir> || '/data/web';
 
 ## Paths
-my $vhost_link    = "$site_dir/$domain";
-my $content_path  = "$content_dir/$domain";
+my $vhost_link   = "$site_dir/$domain";
+my $content_path = "$content_dir/$domain";
 
 ## Check if vhost exists
-unless (-e $vhost_link || -d $content_path) {
+unless ( -e $vhost_link || -d $content_path ) {
     <[base.log]>->( 1, "httpd.cmd.del-vhost: vhost '$domain' not found" );
 
     return {
-        success => 0,
+        success => FALSE,
         error   => qq| vhost '$domain' does not exist |
     };
 }
 
 my $result = {
-    success => 1,
+    success => TRUE,
     domain  => $domain,
     actions => []
 };
@@ -48,99 +51,108 @@ my $result = {
 if ($revoke_cert) {
     <[base.log]>->( 2, "  Revoking certificate for '$domain'" );
 
-    if (exists $code{'letsencr.cmd.revoke'}) {
-        my $revoke_result = <[letsencr.cmd.revoke]>->({
-            domain => $domain,
-            reason => 5  ## cessationOfOperation
-        });
+    if ( exists $code{'letsencr.cmd.revoke'} ) {
+        my $revoke_result = <[letsencr.cmd.revoke]>->(
+            {   domain => $domain,
+                reason => 5          ## cessationOfOperation
+            }
+        );
 
-        if ($revoke_result->{success}) {
+        if ( $revoke_result->{success} ) {
             <[base.log]>->( 2, "  Certificate revoked successfully" );
-            push @{$result->{actions}}, 'certificate_revoked';
+            push @{ $result->{actions} }, 'certificate_revoked';
         } else {
-            <[base.log]>->( 1, "  Certificate revocation failed: " . ($revoke_result->{error} || 'unknown') );
-            push @{$result->{actions}}, 'certificate_revoke_failed';
+            <[base.log]>->(
+                1,
+                "  Certificate revocation failed: "
+                    . ( $revoke_result->{error} || 'unknown' )
+            );
+            push @{ $result->{actions} }, 'certificate_revoke_failed';
             $result->{cert_error} = $revoke_result->{error};
         }
     } else {
-        <[base.log]>->( 1, "  Let's Encrypt module not available for revocation" );
-        push @{$result->{actions}}, 'certificate_revoke_skipped';
+        <[base.log]>->(
+            1, "  Let's Encrypt module not available for revocation"
+        );
+        push @{ $result->{actions} }, 'certificate_revoke_skipped';
     }
 }
 
 ## Step 2: Remove vhost symlink
-if (-l $vhost_link) {
+if ( -l $vhost_link ) {
     <[base.log]>->( 2, "  Removing vhost symlink: $vhost_link" );
 
-    if (unlink($vhost_link)) {
-        push @{$result->{actions}}, 'symlink_removed';
+    if ( unlink($vhost_link) ) {
+        push @{ $result->{actions} }, 'symlink_removed';
     } else {
         <[base.log]>->( 0, "  Failed to remove symlink: $!" );
-        push @{$result->{actions}}, 'symlink_remove_failed';
+        push @{ $result->{actions} }, 'symlink_remove_failed';
         $result->{symlink_error} = $!;
     }
 }
 
 ## Step 3: Remove content directory (unless keep_content)
 unless ($keep_content) {
-    if (-d $content_path) {
+    if ( -d $content_path ) {
         <[base.log]>->( 2, "  Removing content directory: $content_path" );
 
         use File::Path qw| remove_tree |;
 
         my $removed_count = 0;
         eval {
-            $removed_count = remove_tree($content_path, { verbose => 0 });
+            $removed_count = remove_tree( $content_path, { verbose => 0 } );
         };
 
         if ($@) {
             <[base.log]>->( 0, "  Failed to remove content directory: $@" );
-            push @{$result->{actions}}, 'content_remove_failed';
+            push @{ $result->{actions} }, 'content_remove_failed';
             $result->{content_error} = $@;
         } else {
             <[base.log]>->( 2, "  Removed $removed_count files/directories" );
-            push @{$result->{actions}}, 'content_removed';
+            push @{ $result->{actions} }, 'content_removed';
         }
     }
 } else {
     <[base.log]>->( 2, "  Keeping content directory (keep_content=1)" );
-    push @{$result->{actions}}, 'content_kept';
+    push @{ $result->{actions} }, 'content_kept';
 }
 
 ## Step 4: Remove from vhost registry
 my $vhost_id = <httpd.vhosts.by_domain>->{$domain};
 
-if (defined $vhost_id && exists <httpd.vhosts.registry>->{$vhost_id}) {
+if ( defined $vhost_id && exists <httpd.vhosts.registry>->{$vhost_id} ) {
     <[base.log]>->( 2, "  Removing from vhost registry [id=$vhost_id]" );
 
     delete <httpd.vhosts.registry>->{$vhost_id};
     delete <httpd.vhosts.by_domain>->{$domain};
 
-    push @{$result->{actions}}, 'registry_removed';
+    push @{ $result->{actions} }, 'registry_removed';
 }
 
 ## Step 5: Remove from httpd.cfg.hostnames
-if (exists <httpd.cfg.hostnames>->{$domain}) {
+if ( exists <httpd.cfg.hostnames>->{$domain} ) {
     <[base.log]>->( 2, "  Removing from httpd.cfg.hostnames" );
 
     delete <httpd.cfg.hostnames>->{$domain};
 
-    push @{$result->{actions}}, 'hostname_removed';
+    push @{ $result->{actions} }, 'hostname_removed';
 }
 
 ## Step 6: Optionally rescan site directory
 <[base.log]>->( 2, "  Rescanning site directory" );
 <[httpd.scan_site_dir]>;
 
-<[base.log]>->( 2, "httpd.cmd.del-vhost: Vhost '$domain' removed successfully" );
-<[base.log]>->( 2, "  Actions: " . join(', ', @{$result->{actions}}) );
+<[base.log]>->(
+    2, "httpd.cmd.del-vhost: Vhost '$domain' removed successfully"
+);
+<[base.log]>->( 2, "  Actions: " . join( ', ', @{ $result->{actions} } ) );
 
 return $result;
 
 0;
 
-#,,..,,,.,.,.,.,,,,,.,.,.,..,,,..,..,,,,,,.,.,..,,...,...,,..,,.,,.,,,.,.,,,.,
-#XN53K5C7XUXMGCE4QDS5FXVWUN73S7TLWLYFAULALVPC5OW5IZMBD6KZBUPE5GGQKPRM6FGWYA4JY
-#\\\|XM7L7365SU7OECW2N7NMVT27FUCXFKB4BN5PLGMFHNPJS7X6OPM \ / AMOS7 \ YOURUM ::
-#\[7]K4LTFRJBC2B2TLZUJCNFNQ7EPFIYLJMGJWYKLNYGDFPQDOENGSCA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,...,..,,,,,,.,,,,,.,..,,.,,,,.,,..,,...,...,,..,,,.,,,,,,,.,,,,,
+#DII2BI5XUY6MJEBRT5RT46QN3MJG7RQ7WWYI46ENTNCL5LSOAEN5T2DQTALPAVVFD2DZXZWNAVLAM
+#\\\|PSB3LYJL7NE3G6ZKZOFJ6YF6KHX6R6FRJVRCGPPEGJC7B73HWU3 \ / AMOS7 \ YOURUM ::
+#\[7]7VOYZUB2BJSIOP7OHNJAIWWWEZXDXOPSYNG6QRR7STEVAOPTUADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,9 +7,11 @@ my $params = shift || {};
 
 ## Check if already loaded this session
 if (<workflow.cfg.signing_key_loaded>) {
-    <[base.log]>->( 3, "workflow.key: signing key already loaded this session" );
+    <[base.log]>->(
+        3, "workflow.key: signing key already loaded this session"
+    );
     return {
-        success => 1,
+        success        => TRUE,
         already_loaded => 1
     };
 }
@@ -30,14 +32,14 @@ if (<workflow.cfg.signing_key_loaded>) {
 <[base.log]>->( 2, "  ✓ Key loaded and ready for batch operations" );
 
 return {
-    success => 1,
+    success   => TRUE,
     loaded_at => <workflow.cfg.signing_key_loaded>
 };
 
 0;
 
-#,,..,,,,,,,.,,,,,..,,,,.,...,...,..,,,.,,.,.,..,,...,..,,,,,,.,.,.,,,,,,,..,,
-#HGNX3UGUDBVKJB5PXOWSJDBJJT4BTFQ7ILGNR7UXZPDQZL2TZMHWQZ2WVUVDXE27R4NKRDKMD42LG
-#\\\|C7KIR2VLJH25OX6JAGNF5NCNXLFGGOJDEVSCF7YZGWRDXZT3N3L \ / AMOS7 \ YOURUM ::
-#\[7]H2DQYKLDLNHL5NJUWLVM2HWJM2QBZAI5WREMGOQCEGKSZHIB3CAI 7  DATA SIGNATURE ::
+#,,..,..,,...,..,,,,.,.,.,,,.,,.,,,,.,,.,,.,,,..,,...,...,.,.,,.,,,,.,,,,,.,,,
+#XJRWRAXZ3M3PFB5AP3AH4MTT7JVXSKPWYYX23OQRH6Y6MG3JQQXUAN7475MXJRDVDAQH225DXXDDK
+#\\\|C2BSSOHCN3JHJO6WCTMFOTIXD5L2WAEYB6Q56KNK744EVPZSYVJ \ / AMOS7 \ YOURUM ::
+#\[7]GFXCPXQSGIEELZ4KWJOGLSING2NP7CB3QJN3A5OLWTYEI7KJCMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

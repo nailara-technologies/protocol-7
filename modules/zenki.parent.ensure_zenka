@@ -9,7 +9,7 @@ my $zenka_name = $params->{zenka};
 my $wait_ready = $params->{wait_ready} // 1;
 
 unless ($zenka_name) {
-    return { success => 0, error => 'zenka name required' };
+    return { success => FALSE, error => 'zenka name required' };
 }
 
 <[base.log]>->( 3, "zenki.ensure: checking zenka '$zenka_name'..." );
@@ -17,64 +17,76 @@ unless ($zenka_name) {
 ## First ensure cube is running (all zenki need cube for IPC)
 my $cube_result = <[zenki.parent.ensure_cube]>;
 
-unless ($cube_result->{success}) {
+unless ( $cube_result->{success} ) {
     return {
-        success => 0,
-        error   => 'cube dependency failed: ' . ($cube_result->{error} || 'unknown'),
+        success => FALSE,
+        error   => 'cube dependency failed: '
+            . ( $cube_result->{error} || 'unknown' ),
         dependency_failed => 'cube'
     };
 }
 
 ## Check if zenka is already running
-my $zenka_check = <[zenki.parent.check_running]>->({ zenka => $zenka_name });
+my $zenka_check
+    = <[zenki.parent.check_running]>->( { zenka => $zenka_name } );
 
-if ($zenka_check->{running}) {
-    <[base.log]>->( 3, "  ✓ zenka '$zenka_name' already running (PID: " .
-        $zenka_check->{pid} . ")" );
+if ( $zenka_check->{running} ) {
+    <[base.log]>->(
+        3,
+        "  ✓ zenka '$zenka_name' already running (PID: "
+            . $zenka_check->{pid} . ")"
+    );
 
     ## Update registry
     $data{'zenki'}{'running'}{'zenki'}{$zenka_name} = {
         pid     => $zenka_check->{pid},
-        started => $data{'zenki'}{'running'}{'zenki'}{$zenka_name}{'started'} || time(),
-        status  => qw| running |
+        started => $data{'zenki'}{'running'}{'zenki'}{$zenka_name}{'started'}
+            || time(),
+        status => qw| running |
     };
 
     return {
-        success => 1,
+        success         => TRUE,
         already_running => 1,
-        zenka   => $zenka_name,
-        pid     => $zenka_check->{pid}
+        zenka           => $zenka_name,
+        pid             => $zenka_check->{pid}
     };
 }
 
 ## Zenka not running - request v7 to start it
-<[base.log]>->( 2, "  zenka '$zenka_name' not running - requesting v7 to start..." );
+<[base.log]>->(
+    2, "  zenka '$zenka_name' not running - requesting v7 to start..."
+);
 
 ## Send IPC command to v7 to start the zenka
-my $start_result = <[zenki.parent.request_v7_start]>->({
-    zenka => $zenka_name
-});
+my $start_result
+    = <[zenki.parent.request_v7_start]>->( { zenka => $zenka_name } );
 
-unless ($start_result->{success}) {
+unless ( $start_result->{success} ) {
     return {
-        success => 0,
-        error   => 'failed to request v7 start: ' . ($start_result->{error} || 'unknown')
+        success => FALSE,
+        error   => 'failed to request v7 start: '
+            . ( $start_result->{error} || 'unknown' )
     };
 }
 
 ## Wait for zenka to start if requested
 if ($wait_ready) {
-    my $timeout = <zenki.cfg.zenka_startup_timeout>;
+    my $timeout    = <zenki.cfg.zenka_startup_timeout>;
     my $start_time = time();
 
-    while (time() - $start_time < $timeout) {
+    while ( time() - $start_time < $timeout ) {
         sleep 1;
 
-        my $check = <[zenki.parent.check_running]>->({ zenka => $zenka_name });
+        my $check
+            = <[zenki.parent.check_running]>->( { zenka => $zenka_name } );
 
-        if ($check->{running}) {
-            <[base.log]>->( 2, "  ✓ zenka '$zenka_name' started (PID: " .
-                $check->{pid} . ")" );
+        if ( $check->{running} ) {
+            <[base.log]>->(
+                2,
+                "  ✓ zenka '$zenka_name' started (PID: "
+                    . $check->{pid} . ")"
+            );
 
             ## Update registry and statistics
             $data{'zenki'}{'running'}{'zenki'}{$zenka_name} = {
@@ -86,7 +98,7 @@ if ($wait_ready) {
             $data{'zenki'}{'stats'}{'zenka_starts'}++;
 
             return {
-                success => 1,
+                success => TRUE,
                 started => 1,
                 zenka   => $zenka_name,
                 pid     => $check->{pid}
@@ -94,17 +106,19 @@ if ($wait_ready) {
         }
     }
 
-    <[base.log]>->( 0, "  ✗ zenka '$zenka_name' startup timeout after ${timeout}s" );
+    <[base.log]>->(
+        0, "  ✗ zenka '$zenka_name' startup timeout after ${timeout}s"
+    );
 
     return {
-        success => 0,
+        success => FALSE,
         error   => "zenka startup timeout after ${timeout}s"
     };
 }
 
 ## Not waiting - assume success
 return {
-    success => 1,
+    success => TRUE,
     started => 1,
     zenka   => $zenka_name,
     waiting => 0
@@ -112,8 +126,8 @@ return {
 
 0;
 
-#,,,,,,.,,,..,,,,,,,,,,..,...,.,,,..,,...,,.,,..,,...,...,..,,.,.,.,,,,..,,,.,
-#TMQOJD5XKC4UM24QP3JF7XLPUJ6IAZX6PYG3EG3GTUVOZ42JBG2F774OQTHQFUHKORQFL6F2TQNHE
-#\\\|X6W7RONMP6UPPEFGTYGT7VEC2YJ2SKAZ23N3IFHCPZHRLSXHPRX \ / AMOS7 \ YOURUM ::
-#\[7]3TSSY7TA2RVMNQ3LG3VVXUHPPTKZRU7DPCNJ255PANSSUUXLLEBA 7  DATA SIGNATURE ::
+#,,..,..,,..,,.,.,.,.,,,,,,..,.,.,,,.,,.,,,..,..,,...,...,...,,.,,..,,...,,.,,
+#RHKPBPPKYBX5ULMOR6O2CEHR37NBLJYLCFHO3HTFSDVQ4YXT3CSKEENQSYKVDW7ZG2KGXSWZ3D544
+#\\\|KDVMLHNLSLKABN7DGQQ6KDQJ2R5GT6Z3GJXKGDYNWUMODWED63R \ / AMOS7 \ YOURUM ::
+#\[7]MNNFN5SBRPCS5D4N6PAK2ED5RDQNTHJX37SWUTED5XS5EW3YF2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

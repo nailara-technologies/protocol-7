@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = coding.init_code
+# descr = Initialize coding zenka state, task queue, budget, and event handlers
+# purpose = Foundation: Set up all internal data structures for orchestration
+
+use Time::HiRes qw(time);
+
+# Initialize coding zenka data structure
+<coding.state> = {
+    initialized => 1,
+    start_time  => time(),
+    version     => '1.0.0',
+    status      => 'ready'
+};
+
+# Initialize task queue
+<coding.task.queue>     = {};
+<coding.task.pending>   = [];
+<coding.task.active>    = [];
+<coding.task.completed> = [];
+<coding.task.failed>    = [];
+
+# Initialize budget tracking
+<coding.budget.allocated>          = 12000;
+<coding.budget.used>               = 0;
+<coding.budget.transactions>       = [];
+<coding.budget.session_start>      = time();
+<coding.budget.warnings_at_levels> = [ 0.75, 0.90, 0.95 ];
+
+# Initialize routing statistics
+<coding.routing.stats> = {
+    total_routes => 0,
+    by_service   => {},
+    cache_hits   => 0
+};
+
+# Initialize learning state
+<coding.learning.patterns>              = {};
+<coding.learning.success_rate>          = {};
+<coding.learning.model_specializations> = {};
+
+# Event handlers are now loaded from separate modules:
+# - coding.event.on_task_complete
+# - coding.event.on_task_fail
+# These are registered in the code registry when loaded
+
+# Register with event system
+<watcher_list.coding.task_processor> = 1;
+
+return TRUE;
+
+#,,,,,...,,,.,,.,,,,,,,,,,,,.,...,,..,,.,,..,,..,,...,...,..,,..,,,.,,,.,,.,,,
+#FR75TIUMBKIKKN6YQPBO7PQZBPJZURBEVTZQJUQCDEK53CULCSOVTZNKMHSFAFUULSRTSNQ5Y35ZK
+#\\\|VW5WPDVJPUPV2Q6EZ7URG2RAX5V3V2ZDAK5OIPFFS4LX4JVQURP \ / AMOS7 \ YOURUM ::
+#\[7]HJTJBQK2DFXP6UAMQFU4YM3MOKECROUGCMSFTWY3HV54LCRSO4BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

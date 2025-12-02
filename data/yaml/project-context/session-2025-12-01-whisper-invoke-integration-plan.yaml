@@ -1,0 +1,511 @@
+---
+# Session: 2025-12-01 Whisper & Invoke AI Integration Planning
+# Status: PLANNING PHASE
+# Context: Neural pathway design for assimilating audio transcription (Whisper)
+#          and image generation (Invoke AI) into Protocol-7 super-worm network
+#
+# Key Insight: Build service communication layer that fits Protocol-7 module
+#              patterns, allowing existing zenka to coordinate with Python ML tools
+#              without forcing major architectural changes.
+
+date: "2025-12-01"
+session_id: "whisper-invoke-integration-plan"
+status: "DESIGN_PHASE"
+credits_available: "6%"
+branch: "base"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## CURRENT STATE ANALYSIS
+## ═══════════════════════════════════════════════════════════════════════════
+
+hardware_verified:
+  gpu: "NVIDIA RTX 3060 (12GB VRAM)"
+  cuda: "12.8 (cu128)"
+  pytorch: "2.9.1+cu128"
+  whisper: "INSTALLED and VERIFIED - models load on GPU (<2s for base)"
+  torchaudio: "2.9.1 (working correctly)"
+  environment: "~/whisper-cuda venv (isolated, ready)"
+  performance: "Expected 5-8x real-time for medium model"
+
+project_knowledge:
+  codebase: "Protocol-7 v7/cube-based zenka architecture"
+  module_pattern: "Flat namespace with dot notation (not nested hash)"
+  data_structure: "$data{'module'}{'path'}{'to'}{'value'}"
+  calling_syntax: "<[module.name]>->({params})"
+  config_pattern: "Initialized in .init_code with //= operator"
+  session_pattern: "Session-based state management via cube IPC"
+
+python_available:
+  version: "3.13.9"
+  whisper_trained_models: "tiny, base, small, medium, large"
+  invoke_ai: "Available at /user/Invoke (Windows mounted path)"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## INTEGRATION ARCHITECTURE OPTIONS
+## ═══════════════════════════════════════════════════════════════════════════
+
+option_analysis:
+
+  option_1_http_microservice:
+    name: "HTTP Microservice Bridge (Recommended)"
+    description: |
+      Create Python HTTP server running Whisper & Invoke separately.
+      Protocol-7 modules make REST calls to Python services.
+
+      Pros:
+      - Minimal Protocol-7 changes (just HTTP client module)
+      - Easy to debug (standard HTTP)
+      - Can run services independently
+      - Scales to multiple clients
+      - Fits your "super-worm" network philosophy
+
+      Cons:
+      - HTTP overhead
+      - Service startup/management needed
+      - Network reliability issues (local socket mitigates)
+
+      Implementation:
+      - Python REST API server (Flask/FastAPI) running Whisper
+      - Another for Invoke AI (or unified)
+      - Protocol-7 module: audio.service.transcribe (HTTP POST to Python)
+      - Protocol-7 module: image.service.generate (HTTP POST to Python)
+
+    effort: "LOW (2-3 hours for basic wrapper)"
+    credits_needed: "3-5%"
+
+  option_2_ipc_socket_bridge:
+    name: "Unix Domain Socket Bridge"
+    description: |
+      Direct Perl ↔ Python via Unix socket.
+      More efficient than HTTP, similar to cube.handle pattern.
+
+      Pros:
+      - No HTTP overhead
+      - Fits Protocol-7's existing socket architecture
+      - Can handle streaming (useful for long transcriptions)
+
+      Cons:
+      - More complex Protocol-7 code
+      - Requires custom protocol definition
+      - Harder to debug
+
+      Implementation:
+      - Python process listens on /var/run/.7/audio.sock
+      - Protocol-7 module: audio.parent.socket.connect
+      - Streaming results similar to cube.handle model
+
+    effort: "MEDIUM (4-6 hours)"
+    credits_needed: "5-8%"
+
+  option_3_subprocess_wrapper:
+    name: "Subprocess Wrapper (Simplest Start)"
+    description: |
+      Perl spawns Python script directly, captures JSON output.
+      Blocking call pattern, simplest to implement.
+
+      Pros:
+      - Absolutely minimal Python code needed
+      - No service management
+      - Fits simple console command pattern
+      - Can start immediately
+
+      Cons:
+      - Blocking (can't handle multiple requests)
+      - Subprocess overhead on each call
+      - No streaming support
+
+      Implementation:
+      - Python script: ~/whisper-cuda/bin/whisper-wrapper.py
+      - Protocol-7 module: audio.cmd.transcribe-file
+      - Simple: fork + exec + capture output
+
+    effort: "VERY LOW (1-2 hours)"
+    credits_needed: "2-3%"
+
+## RECOMMENDATION FOR THIS SESSION
+recommendation:
+  approach: "Option 3 (Subprocess) → Option 1 (HTTP) progression"
+  rationale: |
+    Start with subprocess wrapper to prove concept quickly.
+    This gives you working Whisper integration in ~2 hours.
+
+    Then document the HTTP bridge pattern for future enhancement.
+    The HTTP approach scales better but subprocess proves the model works.
+
+  phase_1_target: "Whisper transcription via console command"
+  phase_2_target: "HTTP service wrapper and Invoke AI integration"
+  phase_3_target: "Session-based streaming results to web UI"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## PHASE 1: SUBPROCESS WRAPPER APPROACH (QUICKSTART)
+## ═══════════════════════════════════════════════════════════════════════════
+
+phase_1_design:
+
+  file_structure:
+    description: "Minimal additions to Protocol-7"
+    files_to_create:
+      - "modules/audio.service.transcribe"
+        purpose: "Calls Python Whisper wrapper via subprocess"
+        interface: "$call = { audio_path, model, language }"
+        returns: "{ success, transcript, detected_language, duration, model_used }"
+
+      - "modules/audio.cmd.transcribe"
+        purpose: "Console command wrapper"
+        interface: "shift -> file path from command line"
+        returns: "Pretty-printed results to console"
+
+      - "~/whisper-cuda/bin/whisper-wrapper.py"
+        purpose: "Python bridge script"
+        interface: "Command line args + JSON output"
+        location: "Inside ~/whisper-cuda venv"
+
+    files_to_modify:
+      - "configuration/zenki/work/start"
+        change: "Add audio module to modules.load"
+        impact: "Minor - one line"
+
+  module_implementation_patterns:
+
+    audio_service_transcribe: |
+      ## modules/audio.service.transcribe
+      ## Calls Python Whisper wrapper, returns JSON result
+
+      my $call = shift || {};
+      my $audio_path = $call->{'audio_path'} // '';
+      my $model_size = $call->{'model'} // 'medium';
+      my $language = $call->{'language'} // 'auto';
+
+      # Validate file exists
+      unless (-f $audio_path) {
+          return {
+              'success' => 0,
+              'error' => "Audio file not found: $audio_path"
+          };
+      }
+
+      # Call Python wrapper
+      my $python_bin = "$ENV{'HOME'}/whisper-cuda/bin/python";
+      my $wrapper = "$ENV{'HOME'}/whisper-cuda/bin/whisper-wrapper.py";
+
+      my @cmd = (
+          $python_bin,
+          $wrapper,
+          '--audio-file', $audio_path,
+          '--model', $model_size,
+          '--language', $language
+      );
+
+      my $json_output = `@cmd 2>&1`;
+
+      # Parse JSON result
+      my $json = JSON::XS->new();
+      my $result = eval { $json->decode($json_output) }
+          // { success => 0, error => "Failed to parse Python output: $json_output" };
+
+      return $result;
+
+    python_wrapper_skeleton: |
+      #!/usr/bin/env python3
+      # ~/whisper-cuda/bin/whisper-wrapper.py
+      # Wrapper to call Whisper from Protocol-7
+
+      import json
+      import sys
+      import argparse
+      import whisper
+      import torch
+
+      parser = argparse.ArgumentParser()
+      parser.add_argument('--audio-file', required=True)
+      parser.add_argument('--model', default='medium')
+      parser.add_argument('--language', default=None)
+      args = parser.parse_args()
+
+      try:
+          device = "cuda" if torch.cuda.is_available() else "cpu"
+          model = whisper.load_model(args.model, device=device)
+
+          result = model.transcribe(
+              args.audio_file,
+              language=args.language if args.language != 'auto' else None,
+              fp16=torch.cuda.is_available()
+          )
+
+          output = {
+              "success": True,
+              "transcript": result['text'],
+              "language": result.get('language', 'unknown'),
+              "duration": result.get('duration', 0),
+              "model_used": args.model
+          }
+      except Exception as e:
+          output = {
+              "success": False,
+              "error": str(e)
+          }
+
+      print(json.dumps(output))
+      sys.exit(0 if output['success'] else 1)
+
+  console_command_pattern:
+    description: "audio.cmd.transcribe for command line use"
+    usage: "work transcribe /path/to/audio.mp3 [model_size]"
+    example: |
+      [taeki] /data/projects/protocol-7 :. p7.work transcribe /tmp/test.wav medium
+
+      ✓ Transcription complete
+      ─────────────────────────────────────────────────────
+      Model: medium
+      Language: English
+      Duration: 12.3s
+      ─────────────────────────────────────────────────────
+      Transcript:
+      "This is the transcribed text from the audio file..."
+
+## ═══════════════════════════════════════════════════════════════════════════
+## PHASE 2: HTTP MICROSERVICE PATTERN (SCALING)
+## ═══════════════════════════════════════════════════════════════════════════
+
+phase_2_design:
+  description: |
+    Once Phase 1 works, upgrade to HTTP service for better performance
+    and to handle Invoke AI integration.
+
+  architecture:
+    - "Python HTTP server running in separate process"
+    - "Listens on http://localhost:7777 (configurable)"
+    - "Protocol-7 modules make REST calls"
+    - "Can serve multiple Protocol-7 zenka simultaneously"
+
+  benefits:
+    - "Non-blocking calls (could use event watchers)"
+    - "Service can be restarted without restarting zenka"
+    - "Scales to multiple clients"
+    - "Same pattern for Invoke AI image generation"
+
+  python_service_skeleton: |
+    # ~/whisper-cuda/bin/audio-service.py
+    from flask import Flask, request, jsonify
+    import whisper
+    import torch
+    import json
+
+    app = Flask(__name__)
+    model = None
+
+    @app.route('/transcribe', methods=['POST'])
+    def transcribe():
+        global model
+
+        data = request.json
+        audio_path = data.get('audio_path')
+        model_size = data.get('model', 'medium')
+        language = data.get('language', None)
+
+        if model is None:
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            model = whisper.load_model(model_size, device=device)
+
+        try:
+            result = model.transcribe(
+                audio_path,
+                language=language,
+                fp16=torch.cuda.is_available()
+            )
+            return jsonify({
+                "success": True,
+                "transcript": result['text'],
+                "language": result.get('language'),
+                "duration": result.get('duration')
+            })
+        except Exception as e:
+            return jsonify({"success": False, "error": str(e)}), 400
+
+    if __name__ == '__main__':
+        app.run(host='localhost', port=7777)
+
+  protocol_7_caller_module: |
+    ## modules/audio.service.http.transcribe
+    ## Make HTTP call to Python service
+
+    my $call = shift || {};
+    my $audio_path = $call->{'audio_path'};
+
+    use LWP::UserAgent;
+    my $ua = LWP::UserAgent->new;
+
+    my $response = $ua->post(
+        'http://localhost:7777/transcribe',
+        Content => JSON::XS->new->encode({
+            audio_path => $audio_path,
+            model => $call->{'model'} // 'medium'
+        }),
+        'Content-Type' => 'application/json'
+    );
+
+    return $response->is_success
+        ? JSON::XS->new->decode($response->content)
+        : { success => 0, error => $response->status_line };
+
+## ═══════════════════════════════════════════════════════════════════════════
+## INVOKE AI INTEGRATION
+## ═══════════════════════════════════════════════════════════════════════════
+
+invoke_ai_integration:
+  current_state: |
+    Invoke AI running on Windows host at C:\Users\User\Invoke\
+    Accessible from WSL at /user/Invoke/
+    Has working models and configuration already in place
+
+  integration_approach: |
+    Option A: Use existing Windows installation via API
+    - Invoke AI can expose HTTP API
+    - Protocol-7 calls it like any other HTTP service
+    - Shared model library avoids duplication
+
+    Option B: Install native WSL version
+    - Copy models from /user/Invoke to ~/invokeai-wsl
+    - Use symlinks to save disk space
+    - Better GPU performance (eliminate Windows overhead)
+    - Can be done incrementally
+
+  recommended_approach: "Option A (immediate) → Option B (later)"
+
+  phase_1_action: "Document Invoke API endpoint patterns"
+  phase_2_action: "Create image.service.generate module"
+
+  example_module_invoke: |
+    ## modules/image.service.generate
+    ## Calls Invoke AI HTTP service
+
+    my $call = shift || {};
+    my $prompt = $call->{'prompt'} // '';
+    my $model = $call->{'model'} // 'sd15';
+
+    use LWP::UserAgent;
+    my $ua = LWP::UserAgent->new;
+
+    my $response = $ua->post(
+        'http://localhost:9090/api/v1/images/generate',
+        Content => JSON::XS->new->encode({
+            prompt => $prompt,
+            model => $model,
+            steps => $call->{'steps'} // 20,
+            width => $call->{'width'} // 512,
+            height => $call->{'height'} // 512
+        }),
+        'Content-Type' => 'application/json'
+    );
+
+    return $response->is_success
+        ? JSON::XS->new->decode($response->content)
+        : { success => 0, error => $response->status_line };
+
+## ═══════════════════════════════════════════════════════════════════════════
+## DOCUMENTATION & KNOWLEDGE EXTRACTION
+## ═══════════════════════════════════════════════════════════════════════════
+
+documentation_needed:
+
+  modules_reference:
+    purpose: "How to use audio.service.* and image.service.* modules"
+    location: "docs/audio-image-services-guide.md"
+    content:
+      - Basic usage examples
+      - Configuration options
+      - Error handling patterns
+      - Performance tuning for RTX 3060
+
+  protocol_7_patterns:
+    purpose: "Document this integration pattern for future ML services"
+    location: "data/yaml/docs/ml-service-integration-pattern.yaml"
+    content:
+      - HTTP microservice wrapper pattern
+      - Subprocess wrapper pattern
+      - Session state management for async results
+      - Error handling and timeouts
+
+  perl_style_guide_addendum:
+    purpose: "Add to protocol-7-coding-style.md"
+    content:
+      - External service calling patterns
+      - JSON handling for service responses
+      - Error handling for subprocess calls
+      - Async patterns with variable watchers
+
+## ═══════════════════════════════════════════════════════════════════════════
+## IMPLEMENTATION TIMELINE
+## ═══════════════════════════════════════════════════════════════════════════
+
+timeline:
+
+  immediate_actions:
+    this_session:
+      - "✓ Verify Whisper installation and GPU (DONE)"
+      - "Create Phase 1 wrapper modules and Python script"
+      - "Test subprocess call from Protocol-7 module"
+      - "Create work zenka console commands"
+
+    time_estimate: "2-3 hours"
+    credits_estimate: "3-5%"
+
+  next_phase:
+    when: "After Phase 1 proven working"
+    actions:
+      - "Convert to HTTP service pattern"
+      - "Integrate Invoke AI service"
+      - "Test concurrent requests"
+      - "Document patterns and workflows"
+
+    time_estimate: "3-4 hours"
+    credits_estimate: "5-8%"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## RESOURCE LOCATIONS
+## ═══════════════════════════════════════════════════════════════════════════
+
+resources:
+
+  python_environment:
+    venv: "~/whisper-cuda"
+    python_bin: "~/whisper-cuda/bin/python"
+    activation: "source ~/whisper-cuda/bin/activate"
+
+  protocol_7_references:
+    coding_style: "data/yaml/protocol-7-coding-style.md"
+    module_patterns: "data/yaml/project-context/workflow-zenka-patterns.yaml"
+    recent_modules: "modules/web.template_cache.* (Nov 29)"
+    http_patterns: "modules/base.net.* (existing network modules)"
+
+  knowledge_base:
+    ai_insights: "data/asc/what-AI-thinks/perl-form/ai-integration/"
+    project_insights: "data/asc/what-AI-thinks/perl-form/project-insights/"
+    extraction_tools: "data/asc/what-AI-thinks/perl-form/extraction-tools/"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## KEY INSIGHTS & PHILOSOPHY
+## ═══════════════════════════════════════════════════════════════════════════
+
+philosophy:
+  super_worm_concept: |
+    "Build the neural pathways between existing tools first, then optimize
+     individual nodes. Don't add features; network what's already there."
+
+  integration_principle: |
+    Protocol-7 modules act as thin abstraction layers.
+    Real computation happens in specialized Python services.
+    Protocol-7 orchestrates and manages state.
+
+  no_redundancy: |
+    Whisper improves performance by 20-100x over LLM-based transcription.
+    Invoke AI provides dedicated image generation.
+    These are not "redundant features" - they're performance optimizations
+    that enable new capabilities without slowing down core systems.
+
+  modular_scaling: |
+    Start with subprocess wrapper (simple, proves concept).
+    Graduate to HTTP services (scalable, enterprise-ready).
+    Each step maintains Protocol-7 patterns and doesn't break existing code.
+
+---

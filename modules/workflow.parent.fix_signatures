@@ -5,36 +5,40 @@
 
 my $params = shift || {};
 
-my $dry_run = $params->{dry_run} // 1;  ## Safe by default
-my $key_phrase = $params->{key_phrase} // '';
+my $dry_run           = $params->{dry_run}           // 1;  ## Safe by default
+my $key_phrase        = $params->{key_phrase}        // '';
 my $abort_after_valid = $params->{abort_after_valid} // 13;
 
-<[base.log]>->( 2, "workflow.fix_signatures: analyzing commits with invalid signatures..." );
+<[base.log]>->(
+    2, "workflow.fix_signatures: analyzing commits with invalid signatures..."
+);
 
 ## Ensure history is scanned
 my $last_scan = <workflow.history.scanned> // 0;
-unless ($last_scan > 0) {
-    <[workflow.parent.scan_history]>->({
-        key_phrase => $key_phrase,
-        abort_after_valid => $abort_after_valid
-    });
+unless ( $last_scan > 0 ) {
+    <[workflow.parent.scan_history]>->(
+        {   key_phrase        => $key_phrase,
+            abort_after_valid => $abort_after_valid
+        }
+    );
 }
 
 ## Find commits with invalid signatures
 my @commits_to_fix;
 
 my $issues_ref = <workflow.history.issues> // {};
-foreach my $hash (keys %{$issues_ref}) {
+foreach my $hash ( keys %{$issues_ref} ) {
     my $issue = $issues_ref->{$hash} // next;
 
     ## Look for signature validation issues
-    if (($issue->{type} // '') eq 'invalid_signature'
-        || ($issue->{type} // '') eq 'missing_signature') {
-        push @commits_to_fix, {
+    if (   ( $issue->{type} // '' ) eq 'invalid_signature'
+        || ( $issue->{type} // '' ) eq 'missing_signature' ) {
+        push @commits_to_fix,
+            {
             hash   => $hash,
             commit => $issue->{commit} // {},
             type   => $issue->{type}
-        };
+            };
     }
 }
 
@@ -43,17 +47,19 @@ my $total_to_fix = scalar(@commits_to_fix);
 unless ($total_to_fix) {
     <[base.log]>->( 1, "  ✓ No commits need signature fixes" );
     return {
-        success => 1,
+        success => TRUE,
         fixed   => 0,
         message => 'All commits have valid signatures'
     };
 }
 
-<[base.log]>->( 1, sprintf("  Found %d commits with signature issues", $total_to_fix) );
+<[base.log]>->(
+    1, sprintf( "  Found %d commits with signature issues", $total_to_fix )
+);
 
 if ($dry_run) {
     return {
-        success   => 1,
+        success   => TRUE,
         dry_run   => 1,
         would_fix => $total_to_fix,
         commits   => \@commits_to_fix
@@ -61,21 +67,25 @@ if ($dry_run) {
 }
 
 ## Execute mode: Re-sign files in history
-<[base.log]>->( 1, "  EXECUTE MODE: Re-signing files in $total_to_fix commits..." );
+<[base.log]>->(
+    1, "  EXECUTE MODE: Re-signing files in $total_to_fix commits..."
+);
 <[base.log]>->( 1, "  WARNING: This will rewrite git history!" );
 
 ## Load source modules for signing
-unless (exists $code{'source.sign_data'}) {
+unless ( exists $code{'source.sign_data'} ) {
     <[base.log]>->( 2, "  Loading source and sourcecode modules..." );
     <[base.load_modules]>->('source');
     <[base.load_modules]>->('sourcecode');
 }
 
 ## Load signing key
-my $sig_key_name = <source.C25519.signature_key_name> // qw| proto-7.sourcecode |;
+my $sig_key_name = <source.C25519.signature_key_name>
+    // qw| proto-7.sourcecode |;
 <[base.log]>->( 1, "  Loading signature key '$sig_key_name'..." );
 
-my $key_loaded = exists $keys{'C25519'}{$sig_key_name}
+my $key_loaded
+    = exists $keys{'C25519'}{$sig_key_name}
     && exists $keys{'C25519'}{$sig_key_name}{'private'}
     && exists $keys{'C25519'}{$sig_key_name}{'public'};
 
@@ -83,17 +93,18 @@ unless ($key_loaded) {
     my $load_success = <[source.load_signature_key]>->($sig_key_name);
     unless ($load_success) {
         return {
-            success => 0,
+            success => FALSE,
             error   => "Failed to load signature key '$sig_key_name'"
         };
     }
 }
 
 ## Verify private key is loaded
-unless (exists $keys{'C25519'}{$sig_key_name}{'private'}) {
+unless ( exists $keys{'C25519'}{$sig_key_name}{'private'} ) {
     return {
-        success => 0,
-        error   => "Signature key '$sig_key_name' missing private key (needed for signing)"
+        success => FALSE,
+        error   =>
+            "Signature key '$sig_key_name' missing private key (needed for signing)"
     };
 }
 
@@ -101,9 +112,9 @@ unless (exists $keys{'C25519'}{$sig_key_name}{'private'}) {
 
 ## Get repository path
 my $repo_path = <git.cfg.repository_path>;
-unless (-d $repo_path) {
+unless ( -d $repo_path ) {
     return {
-        success => 0,
+        success => FALSE,
         error   => "Repository path not found: $repo_path"
     };
 }
@@ -112,18 +123,25 @@ unless (-d $repo_path) {
 my @source_paths = <[sourcecode.source_path_set_up]>;
 unless (@source_paths) {
     return {
-        success => 0,
+        success => FALSE,
         error   => "No source files found to sign"
     };
 }
 
-<[base.log]>->( 1, sprintf("  Will re-sign %d source files per commit", scalar @source_paths) );
+<[base.log]>->(
+    1,
+    sprintf( "  Will re-sign %d source files per commit",
+        scalar @source_paths )
+);
 
 ## Create tree-filter script that re-signs files
 my $filter_script = "$repo_path/.git/workflow-tree-filter-resign.pl";
 
 open my $script_fh, '>', $filter_script or do {
-    return { success => 0, error => "Failed to create filter script: $!" };
+    return {
+        success => FALSE,
+        error   => "Failed to create filter script: $!"
+    };
 };
 
 ## Write the filter script that will run for each commit
@@ -161,27 +179,24 @@ chmod 0755, $filter_script;
 
 ## Build commit range for filter-branch (only process commits that need fixing)
 my @commit_hashes = map { $_->{hash} } @commits_to_fix;
-my $oldest_hash = $commit_hashes[-1];  ## Last in list (oldest)
+my $oldest_hash   = $commit_hashes[-1];    ## Last in list (oldest)
 
 ## Run git filter-branch with tree-filter
-my $git_cmd = sprintf(
-    'cd %s && git filter-branch -f --tree-filter %s %s..HEAD 2>&1',
-    $repo_path,
-    $filter_script,
-    $oldest_hash
-);
+my $git_cmd
+    = sprintf( 'cd %s && git filter-branch -f --tree-filter %s %s..HEAD 2>&1',
+    $repo_path, $filter_script, $oldest_hash );
 
-my $output = `$git_cmd`;
+my $output    = `$git_cmd`;
 my $exit_code = $? >> 8;
 
 ## Clean up
 unlink $filter_script;
 
-if ($exit_code != 0) {
+if ( $exit_code != 0 ) {
     <[base.log]>->( 0, "  ✗ Git filter-branch failed:" );
     <[base.log]>->( 0, "  $output" );
     return {
-        success => 0,
+        success => FALSE,
         error   => "Git filter-branch failed (exit: $exit_code)",
         output  => $output
     };
@@ -189,17 +204,19 @@ if ($exit_code != 0) {
 
 <[base.log]>->( 1, "  ✓ Git history rewritten successfully" );
 <[base.log]>->( 1, "  ✓ Re-signed files in $total_to_fix commits" );
-<[base.log]>->( 1, "  ⚠ Remember to force-push if you've already pushed this branch" );
+<[base.log]>->(
+    1, "  ⚠ Remember to force-push if you've already pushed this branch"
+);
 
 return {
-    success => 1,
+    success => TRUE,
     fixed   => $total_to_fix
 };
 
 0;
 
-#,,..,,,,,,..,,,,,,,.,...,,..,.,.,,,,,.,.,,,,,..,,...,...,.,,,...,,,.,.,,,,,.,
-#Z3URGL46SUVKOE34VQOGPABCNSTZNSOLL2KBI2YA7QOO22BTCOTIC5OA3OYRFKBXCHEZTXIGENIYK
-#\\\|S5OTWO2XEUZ2Q5Y5PCW6UEKXWSO5S4ZVQ65NPVJ5GZF3XOZGNPJ \ / AMOS7 \ YOURUM ::
-#\[7]5KJORFMV5NDHFJ6BEJ5XXBFFJ4B73KVLR6SWQN6ZICIR67XYMAAY 7  DATA SIGNATURE ::
+#,,..,,.,,..,,.,.,,,.,.,,,.,.,...,,..,,.,,.,,,..,,...,...,..,,,,.,,..,.,.,,..,
+#2YWRTVSC64Y2AC7HWZFP4MSGZK3HXDOLC5P3IZL6BO7XA3XYDVESNKGYGT2IKSJAASR7U7MDA24AA
+#\\\|EPVZC5Z436PGM4TNBI6KRJJM5JBI7P4C3UZ36MAWWLGLXN53RHM \ / AMOS7 \ YOURUM ::
+#\[7]AMERVPNZC4266V2MXLHTKROGOMIC4CPQN3NUPYZ376DXGTBJZCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

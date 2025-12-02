@@ -1,0 +1,239 @@
+## [:< ##
+
+# name = llm.service.subprocess_wrapper
+# descr = Query local LLM models via subprocess (llama.cpp/ik_llama.cpp)
+# purpose = Local inference: Run GGUF models directly without server overhead
+
+use strict;
+use warnings;
+use JSON::XS;
+use IPC::Run    qw(run);
+use Time::HiRes qw(time);
+
+# Configuration for models at /mnt/m/ - LM Studio community quantizations
+my %MODEL_CONFIG = (
+    'qwen' => {
+        name       => 'Qwen2.5-7B-Instruct-1M',
+        model_path =>
+            '/mnt/m/lmstudio-community/Qwen2.5-7B-Instruct-1M-GGUF/Qwen2.5-7B-Instruct-1M-Q4_K_M.gguf',
+        context_size   => 2048,
+        batch_size     => 256,
+        threads        => 4,
+        tokens_per_sec => 6
+    },
+    'mathstral' => {
+        name       => 'Mathstral-7B-v0.1',
+        model_path =>
+            '/mnt/m/lmstudio-community/mathstral-7B-v0.1-GGUF/mathstral-7B-v0.1-Q4_K_M.gguf',
+        context_size   => 2048,
+        batch_size     => 256,
+        threads        => 4,
+        tokens_per_sec => 5
+    },
+    'aya' => {
+        name       => 'Aya-23-8B',
+        model_path =>
+            '/mnt/m/lmstudio-community/aya-23-8B-GGUF/aya-23-8B-Q4_K_M.gguf',
+        context_size   => 2048,
+        batch_size     => 256,
+        threads        => 4,
+        tokens_per_sec => 4
+    }
+);
+
+# Query a model via subprocess
+my $query_subprocess = sub {
+    my ( $model, $prompt ) = @_;
+
+    return {
+        success => FALSE,
+        error   => "Unknown model: $model"
+        }
+        unless exists $MODEL_CONFIG{$model};
+
+    return {
+        success => FALSE,
+        error   => "Prompt required"
+        }
+        unless defined $prompt && length($prompt) > 0;
+
+    my $config = $MODEL_CONFIG{$model};
+
+    # Verify model file exists
+    if ( !-f $config->{model_path} ) {
+        return {
+            success => FALSE,
+            error   => "Model file not found: " . $config->{model_path},
+            available_models => [ keys %MODEL_CONFIG ],
+            search_path      => '/mnt/m/'
+        };
+    }
+
+    # Prepare llama.cpp subprocess command
+    # Using ik_llama.cpp for better efficiency
+    my @cmd = (
+        'llama-cli',           # Use llama-cli for direct inference
+        '-m',   $config->{model_path},
+        '-n',   '256',                     # Max tokens to generate
+        '-c',   $config->{context_size},   # Context size
+        '-b',   $config->{batch_size},
+        '-t',   $config->{threads},
+        '-ngl', '99',                      # GPU layers (use GPU if available)
+        '--no-penalize-nl',                # Better formatting
+        '-p', $prompt,                     # The prompt
+    );
+
+    # Execute command and capture output
+    my ( $out, $err );
+    my $start_time = time();
+
+    eval { run \@cmd, \undef, \$out, \$err, { timeout => 30 }; };
+
+    my $elapsed = time() - $start_time;
+
+    if ($@) {
+        return {
+            success => FALSE,
+            error   => "Subprocess execution failed: $@",
+            command => join( ' ', @cmd ),
+            stderr  => $err
+        };
+    }
+
+    # Parse output (llama.cpp outputs the completion after the prompt)
+    my $answer = _extract_completion( $out, $prompt );
+
+    return {
+        success  => TRUE,
+        response => {
+            model       => $model,
+            prompt      => $prompt,
+            answer      => $answer,
+            tokens_used => _estimate_tokens( $prompt, $answer ),
+            latency_ms  => int( $elapsed * 1000 ),
+            timestamp   => time(),
+            confidence  => _estimate_confidence($out)
+        }
+    };
+};
+
+# Extract the completion from llama.cpp output
+sub _extract_completion {
+    my ( $output, $prompt ) = @_;
+
+    # llama.cpp repeats the prompt then shows completion
+    # Find where the completion starts after the prompt
+    my $prompt_escaped = quotemeta($prompt);
+
+    if ( $output =~ /\Q$prompt\E\s*(.+?)$/s ) {
+        my $completion = $1;
+
+        # Clean up trailing tokens
+        $completion =~ s/\[end_of_text\].*$//;
+        $completion =~ s/\s+$//;
+        return $completion if length($completion) > 0;
+    }
+
+    # Fallback: return last 500 chars of output
+    return substr( $output, -500 ) if length($output) > 0;
+
+    return "No response generated";
+}
+
+# Estimate token count (rough approximation)
+sub _estimate_tokens {
+    my ( $prompt, $answer ) = @_;
+
+    my $total_text = $prompt . ' ' . $answer;
+
+    # Rough estimate: 1 token per 4 characters
+    return int( length($total_text) / 4 );
+}
+
+# Estimate confidence from output
+sub _estimate_confidence {
+    my ($output) = @_;
+
+    # Very simple heuristic: if output is substantial, high confidence
+    return 0.5 + ( length($output) / 1000 ) * 0.4;
+}
+
+# Get list of available models
+my $get_available_models = sub {
+    my @available = ();
+
+    foreach my $model_id ( keys %MODEL_CONFIG ) {
+        my $config = $MODEL_CONFIG{$model_id};
+
+        push @available,
+            {
+            id         => $model_id,
+            name       => $config->{name},
+            model_path => $config->{model_path},
+            exists     => -f $config->{model_path} ? 1 : 0
+            };
+    }
+
+    return {
+        success          => TRUE,
+        available_models => \@available,
+        models_found     => scalar( grep { $_->{exists} } @available )
+    };
+};
+
+# Check system has llama-cli
+my $check_llama_cli = sub {
+    my $result = `which llama-cli 2>&1`;
+    chomp($result);
+
+    if ( $result && -f $result ) {
+        return {
+            success        => TRUE,
+            llama_cli_path => $result,
+            ready          => 1
+        };
+    }
+
+    return {
+        success => FALSE,
+        error   => "llama-cli not found in PATH",
+        help    =>
+            "Install ik_llama.cpp from: https://github.com/ikawrakow/ik_llama.cpp",
+        alternatives => [
+            "Build from source: git clone https://github.com/ikawrakow/ik_llama.cpp.git",
+            "Download pre-built binaries from GitHub releases",
+            "Install via package manager if available"
+        ]
+    };
+};
+
+# Main entry point
+my $cmd  = shift @_ // 'query';
+my $arg1 = shift @_;
+
+if ( $cmd eq 'query' ) {
+    return query_subprocess->( $arg1, $_[0] );
+} elsif ( $cmd eq 'models' ) {
+    return get_available_models->();
+} elsif ( $cmd eq 'check' ) {
+    return check_llama_cli->();
+} elsif ( $cmd eq 'test' ) {
+
+    # Simple test to verify llama-cli works
+    return query_subprocess->( 'qwen',
+        'Hello, how are you? Answer briefly.' );
+} else {
+    return {
+        success   => FALSE,
+        error     => "Unknown subprocess command: $cmd",
+        available => [ 'query', 'models', 'check', 'test' ]
+    };
+}
+
+# AMOS7::TEMPLATE::signature_placeholder
+
+#,,,,,,,,,...,...,,..,,.,,..,,..,,,,,,..,,..,,..,,...,...,.,,,,..,...,,.,,..,,
+#YBJBR2CFNZCRCU573WEGR35WED6Q7D5I4BTPBNHFATDM4IDOVBCYJ2D76TS2XWPEB7OD2L2TGMCG4
+#\\\|35DDXBS4SVPPSCQ4LEOLRRNUGLYUJ2OTJHIBEZFG4OLUWJEVIAT \ / AMOS7 \ YOURUM ::
+#\[7]XLUDX6LLLOXEAIRVXY5R4AXU4CC4YSB36QS3H5PR3TGYUIRZBSDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

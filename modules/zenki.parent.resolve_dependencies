@@ -8,46 +8,50 @@ my $params = shift || {};
 my $zenka_name = $params->{zenka};
 
 unless ($zenka_name) {
-    return { success => 0, error => 'zenka name required' };
+    return { success => FALSE, error => 'zenka name required' };
 }
 
-<[base.log]>->( 3, "zenki.resolve: resolving dependencies for '$zenka_name'" );
+<[base.log]>
+    ->( 3, "zenki.resolve: resolving dependencies for '$zenka_name'" );
 
 ## Determine dependency chain
 my @chain;
 
 ## All zenki (except v7 and cube) depend on: cube → v7
-if ($zenka_name eq 'v7') {
+if ( $zenka_name eq 'v7' ) {
     @chain = qw| v7 |;
-} elsif ($zenka_name eq 'cube') {
+} elsif ( $zenka_name eq 'cube' ) {
     @chain = qw| v7 cube |;
 } else {
     @chain = qw| v7 cube |;
 }
 
-<[base.log]>->( 3, "  Dependency chain: " . join(' → ', @chain) );
+<[base.log]>->( 3, "  Dependency chain: " . join( ' → ', @chain ) );
 
 ## Resolve each dependency in order
 foreach my $dep (@chain) {
     my $result;
 
-    if ($dep eq 'v7') {
+    if ( $dep eq 'v7' ) {
         $result = <[zenki.parent.ensure_v7]>;
-    } elsif ($dep eq 'cube') {
+    } elsif ( $dep eq 'cube' ) {
         $result = <[zenki.parent.ensure_cube]>;
     } else {
-        $result = <[zenki.parent.ensure_zenka]>->({ zenka => $dep });
+        $result = <[zenki.parent.ensure_zenka]>->( { zenka => $dep } );
     }
 
-    unless ($result->{success}) {
-        <[base.log]>->( 0, "  Failed to ensure '$dep': " .
-            ($result->{error} || 'unknown') );
+    unless ( $result->{success} ) {
+        <[base.log]>->(
+            0,
+            "  Failed to ensure '$dep': " . ( $result->{error} || 'unknown' )
+        );
 
         return {
-            success => 0,
-            error   => "dependency '$dep' failed: " . ($result->{error} || 'unknown'),
+            success => FALSE,
+            error   => "dependency '$dep' failed: "
+                . ( $result->{error} || 'unknown' ),
             failed_at => $dep,
-            chain   => \@chain
+            chain     => \@chain
         };
     }
 
@@ -55,15 +59,15 @@ foreach my $dep (@chain) {
 }
 
 return {
-    success => 1,
-    chain   => \@chain,
+    success  => TRUE,
+    chain    => \@chain,
     resolved => scalar(@chain)
 };
 
 0;
 
-#,,..,..,,,..,,,.,...,,,.,,,,,...,,..,..,,...,..,,...,...,,..,,,.,,,,,,.,,.,,,
-#EXOFZTR6NF4BFOCF2NR7L56HPTPNE3M6UPCCJ3AVYUZU6CK36W3NGR7GQDZZAV3JX5AJVDKSQW3YW
-#\\\|BDAWRNW6GPNBTEZTZBMLBC3Z746L7BMMK2V2KM6PPR54JAG3D3E \ / AMOS7 \ YOURUM ::
-#\[7]4ZLPCPMYYE5INEHQM5H526CLBMO63T66BDBSFHURZSLCYGDESOBQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,,,,,,.,,,,,...,,.,,..,,...,,,.,..,,...,...,...,..,,.,.,,.,,,.,,
+#L3VHPH7AETECONJPJ4SE5LGIKBB6BVOWSVMLUYKU2KNKPPWQAIXE54NTCVMSBIWK7BVE7KEMDJNOY
+#\\\|5AVNNNJPWSZW27CZDQXG2MU5UA23JPQ5UXBMCGKA57TNNTAI3QB \ / AMOS7 \ YOURUM ::
+#\[7]CSPK4TC3H4JT3N4SXLZMH6K6DQGPO3YK6NFES6NJLZ3S4TVHEEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

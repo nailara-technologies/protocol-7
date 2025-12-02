@@ -8,7 +8,7 @@ my $params = shift || {};
 my $zenka_name = $params->{zenka};
 
 unless ($zenka_name) {
-    return { success => 0, error => 'zenka name required' };
+    return { success => FALSE, error => 'zenka name required' };
 }
 
 <[base.log]>->( 3, "zenki.request: asking v7 to start '$zenka_name'..." );
@@ -18,45 +18,47 @@ unless ($zenka_name) {
 
 my $v7_binary = <zenki.cfg.v7_binary>;
 
-unless (-x $v7_binary) {
+unless ( -x $v7_binary ) {
     return {
-        success => 0,
+        success => FALSE,
         error   => "v7 binary not found: $v7_binary"
     };
 }
 
 ## Start zenka directly for now
 ## TODO: Replace with IPC command to running v7
-<[base.log]>->( 2, "  Starting '$zenka_name' directly (IPC not yet implemented)" );
+<[base.log]>->(
+    2, "  Starting '$zenka_name' directly (IPC not yet implemented)"
+);
 
 my $pid = fork();
 
-if (!defined $pid) {
+if ( !defined $pid ) {
     return {
-        success => 0,
+        success => FALSE,
         error   => "fork failed: $!"
     };
 }
 
-if ($pid == 0) {
+if ( $pid == 0 ) {
     ## Child process - exec zenka
-    exec($v7_binary, $zenka_name);
-    exit(1);  ## Should never reach here
+    exec( $v7_binary, $zenka_name );
+    exit(1);    ## Should never reach here
 }
 
 ## Parent process
 <[base.log]>->( 3, "  Started '$zenka_name' with PID: $pid" );
 
 return {
-    success => 1,
-    method  => qw| direct_fork |,  ## TODO: Change to 'ipc' when implemented
+    success => TRUE,
+    method  => qw| direct_fork |,    ## TODO: Change to 'ipc' when implemented
     pid     => $pid
 };
 
 0;
 
-#,,,.,,,.,,,.,.,.,,..,,.,,...,,..,,,.,...,,.,,..,,...,...,.,.,.,,,..,,,..,,,.,
-#KVWWJ7FK3FSQQAODLNXC3WCOKA2KDKCIXRDFORAEF46XV2UBVOURZWR32YVTYOCSAUTXZQM3HVGOK
-#\\\|RHKCE2GBRIA6OQK52FCG5AY2VEL7KRGB43VTIS3TM2ZEU4JDDIR \ / AMOS7 \ YOURUM ::
-#\[7]YAAPBHFBAXAHZ2SKSBYV3V2WU7RG65ZLOW3MTVGWI7SC75IPIADQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,.,.,.,,,..,,,..,,,,,.,,,.,.,,,.,..,,...,...,,,.,,,.,,..,,,.,,..,
+#LZHT4T75BATPKNEDGI6IXAEHD2UFKKEU3IINJ2YT6V2NX4SDYNALVMVAC2ZWMIHZCRL4UUYQ7UL5O
+#\\\|WL5COGLG7ZBGBVBGJ5TLX762FTWOTCCTMXSMBP67QDFM6AAIUMZ \ / AMOS7 \ YOURUM ::
+#\[7]2ZACSSDOOUZMYYVX7SYYBQZCPGTRCAZJ6EIPSU2DNXQ4FHU5BMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

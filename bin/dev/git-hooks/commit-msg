@@ -31,10 +31,8 @@ my @original_lines = <$fh>;
 close $fh;
 
 # Filter patterns that should be automatically removed from commit message
-my @filter_patterns = (
-    qr/^🤖\s+Generated with/,
-    qr/^Co-Authored-By:/,
-);
+my @filter_patterns
+    = ( qr|^🤖\s+Generated with|, qr|^Co-Authored-By:|, qr|^\[CLAUDE\] |, );
 
 # Process lines: separate filtered from kept lines
 my @kept_lines;
@@ -55,7 +53,8 @@ foreach my $line (@original_lines) {
 }
 
 # If patterns were found, write cleaned message back to file
-if ( @filtered_lines ) {
+if (@filtered_lines) {
+
     # Write cleaned message back to file
     open $fh, '>', $commit_msg_file or die ":\n:: \l$OS_ERROR\n\n";
     foreach my $line (@kept_lines) {
@@ -65,7 +64,7 @@ if ( @filtered_lines ) {
 
     # Inform user that patterns were removed
     print STDERR "\n";
-    print STDERR ":: info :: removed AI-generated metadata from commit message\n";
+    print STDERR ":: info :: removed author metadata from commit message\n";
     print STDERR ":: filtered patterns:\n";
     foreach my $problematic (@filtered_lines) {
         chomp $problematic;
@@ -76,8 +75,8 @@ if ( @filtered_lines ) {
 
 exit 0;
 
-#,,..,...,,,,,.,,,..,,..,,.,.,,,,,...,...,...,..,,...,...,.,.,...,..,,,,.,.,.,
-#G227QE3ICCLQH4CYVAAR73Y6WBUEKT3IBARYOXAZNEO5ISZF7HEUFGFLENHE4DCXNBFD5R77SC4RS
-#\\\|54GYBYDOPZNJWV6DJMOVCTIBENQQQCLLRRL3QHBJIYS56OAHJBA \ / AMOS7 \ YOURUM ::
-#\[7]L6GJQGY2TJBWAGRB4DOEATLLYFFOTVNCXYHEYDHJ4IJTDXGDDGDA 7  DATA SIGNATURE ::
+#,,.,,.,.,...,.,.,,,.,,,.,,,.,.,,,,,,,..,,,..,..,,...,...,,..,...,.,.,,,,,.,,,
+#67TNXKWSP7TZZHHDKAFWQUUMGO3MWRIRPG3I7LKOBIWRXYZHJRPQC3DTQQ2IWPWTZ2XSSBV47D22O
+#\\\|KHYKZV3HDOPUF2HU6GNXAYHVJLFTHLJ5YGKI3FHAOOY4JIDN2AZ \ / AMOS7 \ YOURUM ::
+#\[7]CYOUAL4QRBYIMS4ZHENOFXX2KKO6CR5JVHDVFFYIDOFPF6ONMEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

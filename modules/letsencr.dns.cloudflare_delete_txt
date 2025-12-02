@@ -57,7 +57,7 @@ my $list_data = JSON::XS::decode_json( $list_response->decoded_content );
 
 unless ( $list_data->{success} && @{ $list_data->{result} } ) {
     <[base.log]>->( 2, "TXT record not found (may already be deleted)" );
-    return { success => 1, message => 'record not found' };
+    return { success => TRUE, message => 'record not found' };
 }
 
 my $record_id = $list_data->{result}[0]{id};
@@ -94,12 +94,12 @@ unless ( $result->{success} ) {
 <[base.log]>->( 2, "Cloudflare TXT record deleted successfully" );
 
 return {
-    success => 1,
+    success => TRUE,
     deleted => 1,
 };
 
-#,,,.,,..,,..,..,,,,.,...,,,.,..,,.,,,.,.,..,,..,,...,..,,.,.,,.,,,,.,.,.,..,,
-#PRU77APAETPHHODCUQCHFR7D3QCWVTYPLI3LUQLX3UPBEWQ3YD2IOHRZXDQ7KO6W7WLSTAUMDHAQA
-#\\\|BCI7A3CWQR6KYPUASPVYP5OS4ODC2MO2NKYUBSQV34R427NQ7CZ \ / AMOS7 \ YOURUM ::
-#\[7]UDFVMZHCVCMXPUJBAESDZQ673TRZBKI37LD6IRHUGKMPDTCMVYDA 7  DATA SIGNATURE ::
+#,,.,,.,.,...,...,,..,,,.,.,,,,..,,.,,.,.,,,.,..,,...,...,,.,,.,.,,.,,.,,,,.,,
+#GF5BHLDOBRYINUEWQ6NUYGTPIRFQ7K4ZU3BLTMKD3KMMIEPKEAV5XRCZT2EBJ5JPHIHQPYTTOZ5TU
+#\\\|OEI2UJ2QRY2TUHAG6XJWPJYUUERKYAZHIJDICAZ47XB5YZWJZVN \ / AMOS7 \ YOURUM ::
+#\[7]PDKD4ON3U5YPZZZRPG7ITEILXANTFP7K7OCQOQCWQSIPCJN5P4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

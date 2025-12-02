@@ -22,12 +22,14 @@ my $zenka_deps_registry = $data{'debian'}{'zenki_deps'}{'registry'} // {};
 
 unless (%$zenka_deps_registry) {
     return {
-        success => 0,
-        error   => 'No dependency registry found. Run debian.parent.scan_zenki_dependencies first.'
+        success => FALSE,
+        error   =>
+            'No dependency registry found. Run debian.parent.scan_zenki_dependencies first.'
     };
 }
 
-<[base.log]>->( 2, "v7.verify_and_install: Starting dependency verification" );
+<[base.log]>
+    ->( 2, "v7.verify_and_install: Starting dependency verification" );
 
 ## Verify each registered zenka's dependencies
 foreach my $zenka_id ( keys %$zenka_deps_registry ) {
@@ -41,24 +43,23 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
     ## Verify PM dependencies
     if ( $zenka_entry->{pm_deps} && @{ $zenka_entry->{pm_deps} } ) {
         foreach my $pm_module ( @{ $zenka_entry->{pm_deps} } ) {
-            my $verify_result
-                = <[debian.parent.verify_dependency_state]>->( 'pm_module',
-                $pm_module );
+            my $verify_result = <[debian.parent.verify_dependency_state]>->(
+                'pm_module', $pm_module
+            );
 
             if ( !$verify_result->{available} ) {
                 push @{ $verification_state{missing_deps} },
                     {
-                    type   => 'pm_module',
-                    name   => $pm_module,
-                    zenka  => $zenka_name,
-                    error  => $verify_result->{error}
+                    type  => 'pm_module',
+                    name  => $pm_module,
+                    zenka => $zenka_name,
+                    error => $verify_result->{error}
                     };
 
                 <[base.log]>->( 3, "    Missing PM module: $pm_module" );
 
                 ## Attempt installation via CPAN (uses Level 2 installer)
-                my $install_result
-                    = <[base.perlmod.install]>->( $pm_module );
+                my $install_result = <[base.perlmod.install]>->($pm_module);
 
                 if ( $install_result && $install_result->{success} ) {
                     push @{ $verification_state{installed_deps} },
@@ -67,8 +68,9 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
                         name  => $pm_module,
                         zenka => $zenka_name
                         };
-                    <[base.log]>
-                        ->( 3, "    Auto-installed PM module: $pm_module" );
+                    <[base.log]>->(
+                        3, "    Auto-installed PM module: $pm_module"
+                    );
                 } else {
                     push @{ $verification_state{failed_repairs} },
                         {
@@ -77,9 +79,9 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
                         zenka  => $zenka_name,
                         reason => 'CPAN installation failed'
                         };
-                    <[base.log]>
-                        ->( 2,
-                        "    Failed to install PM module: $pm_module" );
+                    <[base.log]>->(
+                        2, "    Failed to install PM module: $pm_module"
+                    );
                 }
             }
         }
@@ -88,17 +90,17 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
     ## Verify OS dependencies
     if ( $zenka_entry->{os_deps} && @{ $zenka_entry->{os_deps} } ) {
         foreach my $os_package ( @{ $zenka_entry->{os_deps} } ) {
-            my $verify_result
-                = <[debian.parent.verify_dependency_state]>->( 'os_package',
-                $os_package );
+            my $verify_result = <[debian.parent.verify_dependency_state]>->(
+                'os_package', $os_package
+            );
 
             if ( !$verify_result->{available} ) {
                 push @{ $verification_state{missing_deps} },
                     {
-                    type   => 'os_package',
-                    name   => $os_package,
-                    zenka  => $zenka_name,
-                    error  => $verify_result->{error}
+                    type  => 'os_package',
+                    name  => $os_package,
+                    zenka => $zenka_name,
+                    error => $verify_result->{error}
                     };
 
                 <[base.log]>->( 3, "    Missing OS package: $os_package" );
@@ -106,7 +108,8 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
                 ## Attempt installation via apt-get (requires privileges)
                 if ( $UID == 0 ) {
                     my $install_result
-                        = system( "apt-get install -y $os_package 2>/dev/null" );
+                        = system(
+                        "apt-get install -y $os_package 2>/dev/null");
 
                     if ( $install_result == 0 ) {
                         push @{ $verification_state{installed_deps} },
@@ -115,8 +118,9 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
                             name  => $os_package,
                             zenka => $zenka_name
                             };
-                        <[base.log]>->( 3,
-                            "    Auto-installed OS package: $os_package" );
+                        <[base.log]>->(
+                            3, "    Auto-installed OS package: $os_package"
+                        );
                     } else {
                         push @{ $verification_state{failed_repairs} },
                             {
@@ -125,8 +129,10 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
                             zenka  => $zenka_name,
                             reason => 'apt-get installation failed'
                             };
-                        <[base.log]>->( 2,
-                            "    Failed to install OS package: $os_package" );
+                        <[base.log]>->(
+                            2,
+                            "    Failed to install OS package: $os_package"
+                        );
                     }
                 } else {
                     ## Unprivileged: can't install, alert only
@@ -134,10 +140,12 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
                         {
                         type     => 'permission',
                         severity => 'warning',
-                        message  => "Cannot install OS package '$os_package' for zenka '$zenka_name' - unprivileged user",
+                        message  =>
+                            "Cannot install OS package '$os_package' for zenka '$zenka_name' - unprivileged user",
                         };
-                    <[base.log]>->( 2,
-                        "    Cannot install (unprivileged): $os_package" );
+                    <[base.log]>->(
+                        2, "    Cannot install (unprivileged): $os_package"
+                    );
                 }
             }
         }
@@ -146,32 +154,35 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
     ## Verify Binary dependencies
     if ( $zenka_entry->{bin_deps} && @{ $zenka_entry->{bin_deps} } ) {
         foreach my $binary ( @{ $zenka_entry->{bin_deps} } ) {
-            my $verify_result
-                = <[debian.parent.verify_dependency_state]>->( 'binary',
-                $binary );
+            my $verify_result = <[debian.parent.verify_dependency_state]>->(
+                'binary', $binary
+            );
 
             if ( !$verify_result->{available} ) {
                 push @{ $verification_state{missing_deps} },
                     {
-                    type   => 'binary',
-                    name   => $binary,
-                    zenka  => $zenka_name,
-                    error  => $verify_result->{error}
+                    type  => 'binary',
+                    name  => $binary,
+                    zenka => $zenka_name,
+                    error => $verify_result->{error}
                     };
 
                 push @{ $verification_state{alerts} },
                     {
                     type     => 'binary_missing',
                     severity => 'error',
-                    message  => "Required binary '$binary' for zenka '$zenka_name' not found in \$PATH",
+                    message  =>
+                        "Required binary '$binary' for zenka '$zenka_name' not found in \$PATH",
                     };
 
-                <[base.log]>->( 2,
-                    "    Missing binary dependency: $binary (requires admin action)" );
+                <[base.log]>->(
+                    2,
+                    "    Missing binary dependency: $binary (requires admin action)"
+                );
             } else {
-                <[base.log]>
-                    ->( 3,
-                    "    Binary OK: $binary at $verify_result->{path}" );
+                <[base.log]>->(
+                    3, "    Binary OK: $binary at $verify_result->{path}"
+                );
             }
         }
     }
@@ -183,24 +194,35 @@ $data{'v7'}{'dependency_last_checked'}{timestamp} = time();
 
 ## Log summary
 <[base.log]>->( 2, "v7.verify_and_install: Complete" );
-<[base.log]>->( 2, "  Zenka checked: " . scalar( @{ $verification_state{zenka_checked} } ) );
-<[base.log]>->( 2, "  Missing: " . scalar( @{ $verification_state{missing_deps} } ) );
-<[base.log]>->( 2, "  Auto-installed: " . scalar( @{ $verification_state{installed_deps} } ) );
-<[base.log]>->( 2, "  Failed repairs: " . scalar( @{ $verification_state{failed_repairs} } ) );
-<[base.log]>->( 2, "  Alerts: " . scalar( @{ $verification_state{alerts} } ) );
+<[base.log]>->(
+    2, "  Zenka checked: " . scalar( @{ $verification_state{zenka_checked} } )
+);
+<[base.log]>->(
+    2, "  Missing: " . scalar( @{ $verification_state{missing_deps} } )
+);
+<[base.log]>->(
+    2,
+    "  Auto-installed: " . scalar( @{ $verification_state{installed_deps} } )
+);
+<[base.log]>->(
+    2,
+    "  Failed repairs: " . scalar( @{ $verification_state{failed_repairs} } )
+);
+<[base.log]>
+    ->( 2, "  Alerts: " . scalar( @{ $verification_state{alerts} } ) );
 
 return {
-    success           => 1,
-    zenka_checked     => scalar( @{ $verification_state{zenka_checked} } ),
-    missing_count     => scalar( @{ $verification_state{missing_deps} } ),
-    installed_count   => scalar( @{ $verification_state{installed_deps} } ),
-    failed_count      => scalar( @{ $verification_state{failed_repairs} } ),
-    alerts_count      => scalar( @{ $verification_state{alerts} } ),
-    state             => \%verification_state
+    success         => TRUE,
+    zenka_checked   => scalar( @{ $verification_state{zenka_checked} } ),
+    missing_count   => scalar( @{ $verification_state{missing_deps} } ),
+    installed_count => scalar( @{ $verification_state{installed_deps} } ),
+    failed_count    => scalar( @{ $verification_state{failed_repairs} } ),
+    alerts_count    => scalar( @{ $verification_state{alerts} } ),
+    state           => \%verification_state
 };
 
-#,,,,,...,,,,,..,,.,,,...,.,.,.,.,...,,,,,..,,..,,...,..,,..,,.,.,,..,,.,,.,.,
-#CJFVVKJH2KK25LDX2JGEAJZIUA4NB2O7LWMPDWDSURYTZQ3CFNONWWIUXIDE67ULEKPYSQO3K2RB2
-#\\\|JIQ2VY2CWHPMGFFPYJPX4VIFLRCILONDKMOKVL4GNJ62OWUPDXX \ / AMOS7 \ YOURUM ::
-#\[7]T6EVDS6JOFO6Y63FLRJJGIKEZ4RJLS44N5F2ZPAMAH2IWV3PAABY 7  DATA SIGNATURE ::
+#,,,,,...,...,...,.,.,.,.,.,.,,,,,...,,..,,..,..,,...,...,,,.,,..,...,.,.,,.,,
+#73XXOEO25JHGW3NMB2G4WPNQYKKT6RKSQVKMJMZLVHO2XQXOKCV6HD2B4G4BW4F4TSSO2ENUBDNR4
+#\\\|O3BP2UCD7MG6ZYPQJDF65FRGWFYG2OSLP2NAGXFCBOXKISGFKP3 \ / AMOS7 \ YOURUM ::
+#\[7]6IDUHACNIWYB4BL6LZ3XXWJGSW26JMSH57HQMAS2YS3X74TLZCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

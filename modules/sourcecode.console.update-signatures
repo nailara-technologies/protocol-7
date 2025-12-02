@@ -90,9 +90,9 @@ foreach my $path_rel (@source_paths) {
         );
 
         ##  displaying valid signature counter in verbose mode  ##
-        printf "%s  <VALID>  %s%s%05d%s\r", $colors{'p7_fg_0004'},
+        printf "%s    <VALID>  %s%s%-5d%s     %s\r", $colors{'p7_fg_0004'},
             $colors{'p7_fg_0003'},
-            $colors{'B01'}, ++$true_count, $colors{'reset'},
+            $colors{'B01'}, ++$true_count, $colors{'reset'}, ' ' x 13
             if <system.verbosity.console> == 1
             and $code_data_ref->{'mode'} eq qw| true |;
     };
@@ -128,7 +128,7 @@ foreach my $path_rel (@source_paths) {
         next;
     }
 
-    <[base.log]>->( 1, qw| :. | );
+    <[base.logs]>->( 1, ':.%s', ' ' x 13 );
     <[base.logs]>->( ':::[ %s ]:.<+>.::', $path_rel );
     <[base.log]>->( 1, qw| : | );
 
@@ -142,13 +142,13 @@ foreach my $path_rel (@source_paths) {
 }
 
 ## clear eventual numbers on console ##
-printf( "%s\r", ' ' x 20 ) if <system.verbosity.console> == 1;
+printf( "%s\r", ' ' x 18 ) if <system.verbosity.console> == 1;
 
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,.,,,,,,.,.,..,,,.,,,.,,,..,.,,,,,,,..,,...,..,,...,...,,,,,,,,,,,,,,.,,,..,
-#UETMON4GAWLBT4IV6JSSXIBUTRXH4B62DAGX7LYGLMOLBBADCCDODVX2TUICC3SD5YIRVJVS326FQ
-#\\\|MBDQF7DRUQ4UGLFZOU4I7EUDDEEWYWJWZDCY2QHZRQ237QS2G3L \ / AMOS7 \ YOURUM ::
-#\[7]J4ZUIV2CJH3ZGJ3HZOGIDDZJ2JI4VRXYR44WL4FPJIJV4EHBFOBQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,..,,..,,,,.,.,.,,..,,,.,,,.,,.,,..,,...,...,..,,.,.,,..,,.,,,,,,
+#5EOYYWAWGLEANAXQ6522OVQX5SOUACDX55ESXWIPVJWNYUEYI7NTQVSEOSELRPENAVYIQHNXBLOF2
+#\\\|LQW3CZDMFDGY7VTHO5HNCS47XINOT57F6INXGZVHIMBPLI5QNDF \ / AMOS7 \ YOURUM ::
+#\[7]MOJUWY54RGYODBF5VRBCPNJREOSK3JDDTD74XKYOQPCMJPFCMABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

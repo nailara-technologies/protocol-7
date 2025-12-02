@@ -57,7 +57,7 @@ my $base_path = $data{'debian'}{'cfg'}{'zenki_config_base'}
 
 unless ( defined $base_path && -d $base_path ) {
     return {
-        success => 0,
+        success => FALSE,
         error   => qq| zenki config base not found: $base_path |
     };
 }
@@ -72,7 +72,7 @@ my $total_bin_deps = 0;
 ## Find all zenka directories
 opendir( my $dh, $base_path )
     or return {
-    success => 0,
+    success => FALSE,
     error   => qq| cannot read zenki base: $! |
     };
 
@@ -86,9 +86,9 @@ foreach my $zenka (@zenki) {
     my $zenka_path = "$base_path/$zenka";
 
     ## Check for pm-dep directory
-    my $pm_dep_path      = "$zenka_path/pm-dep";
-    my $os_dep_path      = "$zenka_path/os-dep/debian";
-    my $bin_dep_path     = "$zenka_path/os-dep/binary";
+    my $pm_dep_path  = "$zenka_path/pm-dep";
+    my $os_dep_path  = "$zenka_path/os-dep/debian";
+    my $bin_dep_path = "$zenka_path/os-dep/binary";
 
     my @pm_deps;
     my @os_deps;
@@ -143,15 +143,15 @@ foreach my $zenka (@zenki) {
     my $zenka_id = <[base.list.element.add]>->(
         {   'key_ref' => \$data{'debian'}{'zenki_deps'}{'registry'},
             'val_ref' => \{
-                zenka         => $zenka,
-                pm_deps       => [@pm_deps],
-                os_deps       => [@os_deps],
-                bin_deps      => [@bin_deps],
-                pm_deps_count => scalar(@pm_deps),
-                os_deps_count => scalar(@os_deps),
+                zenka          => $zenka,
+                pm_deps        => [@pm_deps],
+                os_deps        => [@os_deps],
+                bin_deps       => [@bin_deps],
+                pm_deps_count  => scalar(@pm_deps),
+                os_deps_count  => scalar(@os_deps),
                 bin_deps_count => scalar(@bin_deps),
-                missing_count => 0,                  ## Will be calculated
-                status        => qw| unknown |
+                missing_count  => 0,                   ## Will be calculated
+                status         => qw| unknown |
             }
         }
     );
@@ -183,7 +183,7 @@ foreach my $zenka (@zenki) {
 }
 
 ## Update statistics
-$data{'debian'}{'stats'}{zenki_scanned} = $zenki_count;
+$data{'debian'}{'stats'}{zenki_scanned}  = $zenki_count;
 $data{'debian'}{'stats'}{total_pm_deps}  = $total_pm_deps;
 $data{'debian'}{'stats'}{total_os_deps}  = $total_os_deps;
 $data{'debian'}{'stats'}{total_bin_deps} = $total_bin_deps;
@@ -196,13 +196,13 @@ $data{'debian'}{'stats'}{last_scan}      = time();
 <[base.log]>->( 2, "  Binary dependencies: $total_bin_deps" );
 
 return {
-    success     => 1,
+    success     => TRUE,
     zenki_count => $zenki_count,
     deps_count  => $total_pm_deps + $total_os_deps + $total_bin_deps
 };
 
-#,,.,,.,,,...,.,,,,..,.,.,.,.,...,.,.,,.,,.,,,..,,...,...,,.,,..,,...,,,.,.,,,
-#RPRTHS766CCOVSZZVM5OBJ7ROHDDX7W4E3EY2R6VR7FLZZ7OCTECENOPPYC2XRF25KJCDJPITO2KA
-#\\\|4FY6ZHCFCB6QCIQJUYUXC6QHUHAYCTERUE347LSTUDKSHKQXVYC \ / AMOS7 \ YOURUM ::
-#\[7]FUA7SWVVDEQ7L3XAYUQPYXSB5ZEY7BHGNK45DWPRELPBOLV4LAAQ 7  DATA SIGNATURE ::
+#,,..,,..,...,,,.,,,.,,,,,.,.,...,,,.,..,,,,,,..,,...,..,,..,,..,,,,.,...,...,
+#JH5T4P6NWV2I3COSSFNHEV2ZPXZZSPBL2HDCFNJRWZPNIDJPUBDX35YL6SM32WB6AMQM74TK46S3Y
+#\\\|XZYMS2B3HM5MOPZIFFJXJRV7YUFYES2QGCZJZ4T4LXLSIPCCZDZ \ / AMOS7 \ YOURUM ::
+#\[7]U5B6LVXA6ILTSJUIIRTXCPBNBITBUGSXVDUNWSS2MC2V6TBJRUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

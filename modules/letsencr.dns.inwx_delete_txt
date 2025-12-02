@@ -84,7 +84,7 @@ if (   $info_result
 unless ($record_id) {
     <[base.log]>->( 2, "TXT record not found (may already be deleted)" );
     $client->call('account.logout');
-    return { success => 1, message => 'record not found' };
+    return { success => TRUE, message => 'record not found' };
 }
 
 ## Delete the record
@@ -107,12 +107,12 @@ unless ( $delete_result && $delete_result->{code} == 1000 ) {
 <[base.log]>->( 2, "INWX TXT record deleted successfully" );
 
 return {
-    success => 1,
+    success => TRUE,
     deleted => 1,
 };
 
-#,,..,,,,,,,.,...,,,,,..,,,,.,..,,,,,,,,.,.,,,..,,...,...,,..,.,.,,.,,,..,..,,
-#LWJOLR4FBXAOEEWSJ6K6MT75KUEOKGWWEDS5UCYI3SFCN6LLEVZSB4V6R66K55554IL2YSOVIER3K
-#\\\|XHTG5JFBFU77ZEGQJ3VSGJUGEKQFEQDXSVGEPH3BRQVWVEPKQCX \ / AMOS7 \ YOURUM ::
-#\[7]DXK3ZHCDURWAKMRI7355J2AVK4ASUZIVIG5WSEOCELEAEL46HCAY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,,,,,,,,...,.,,,,..,,,.,.,.,,.,,..,,...,...,.,,,.,.,,.,,.,.,...,
+#HKNYEWEFAQ5TOHCV3NRR4ON4ZKADYV376MAVPWGZRGP4BDK6CNFK6WL4R34BHHXBXWYLKHLRZPUW2
+#\\\|TABN6M7KL2PHTS6OLXQ5WIMBLKVJDTJ4GJMYBY36NV4TYMBYT4X \ / AMOS7 \ YOURUM ::
+#\[7]T346CHTRF5GLBBPTRWWQJRTEVHDOQH56XM4VK3HN7VKAUWOYIUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
