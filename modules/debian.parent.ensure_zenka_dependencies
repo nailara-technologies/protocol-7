@@ -6,7 +6,7 @@
 my $zenka_name   = shift;
 my $auto_install = shift // <debian.cfg.auto_install>;
 
-return 1 unless $zenka_name;
+return TRUE unless $zenka_name;
 
 <[base.log]>->(
     2, "debian.ensure: checking dependencies for zenka '$zenka_name'"
@@ -38,7 +38,7 @@ my $missing = $zenka->{missing_count} || 0;
 
 if ( $missing == 0 ) {
     <[base.log]>->( 2, "  ✓ All dependencies satisfied" );
-    return 1;
+    return TRUE;
 }
 
 <[base.log]>->( 1, "  ✗ Missing $missing dependencies" );
@@ -48,7 +48,7 @@ unless ($auto_install) {
         1, "  Auto-install disabled - dependencies not installed"
     );
     <[base.log]>->( 1, "  Run: debian.install zenka=$zenka_name" );
-    return 0;
+    return FALSE;
 }
 
 ## Auto-install missing dependencies
@@ -70,24 +70,24 @@ if ( $result->{success} ) {
         <[base.log]>->(
             2, "  ✓ Successfully installed $total_installed dependencies"
         );
-        return 1;
+        return TRUE;
     } else {
         <[base.log]>->(
             0, "  ⚠ Installed $total_installed, failed $total_failed"
         );
-        return 0;
+        return FALSE;
     }
 } else {
     <[base.log]>->(
         0, "  ✗ Installation failed: " . ( $result->{error} || 'unknown' )
     );
-    return 0;
+    return FALSE;
 }
 
 0;
 
-#,,..,,,.,..,,,.,,.,.,,.,,,.,,,.,,...,,.,,,,.,..,,...,...,.,,,,,.,.,.,,,,,..,,
-#ZXGENS63DFB3IOA2B2YN5L35HY6YWNIVSLUOBDQP2I43P34B53PAJVMUHIEDTBDY4BJ4HAI4XANMK
-#\\\|PNDO775Q6WET3P4MSNKWD7PBM2BIEFXELV5DLAMN4CV5PMFCVR5 \ / AMOS7 \ YOURUM ::
-#\[7]YWVCAFSEQXG27K2TNRT3UZ3UQLS4PGA7LMXEWMXEOTGMY35THWDY 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,.,,,.,,.,,,,..,.,,,,.,,..,,,.,,..,,...,...,.,,,,,,,,.,,,,.,,..,
+#52J74FIGYBVTH4S3E4JA5D3HJMJ2GIJEXG5E7X2E6YRLSJ5HWECI2727NQ3W4IOJT3JCCWXOD25W6
+#\\\|YY7NCRE6IJ2CXSU2WLHDTYBJIKL463ICZKNCNHIALCXFFYJWATA \ / AMOS7 \ YOURUM ::
+#\[7]Q7IUXLXJ6P674N4GYEZ5C5I6AA7D3BJ7GPHHXDO3QD3FT7MUECAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

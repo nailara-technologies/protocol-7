@@ -70,8 +70,9 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
 
         $got_updates++;
         <[base.log]>->( 2, ": : wrote txt data to '$url_data_file'" );
-        # Note: LWP::UserAgent handles HTTP caching automatically via ETags/Last-Modified
-        # No explicit commit needed (unlike XML::RSS::TimingBot)
+
+# Note: LWP::UserAgent handles HTTP caching automatically via ETags|Last-Modified
+# No explicit commit needed (unlike XML::RSS::TimingBot)
 
     } elsif ( $response->code == 304 ) {
         <rss.ticker.fail_warned> = 0;
@@ -87,13 +88,13 @@ foreach my $rss_index ( keys( %{$rss_url_ref} ) ) {
 }
 <rss.ticker.fail_warned> = 1 if !<rss.ticker.fail_warned> and keys(%failed);
 
-return 0 if !$got_updates and !keys(%failed);
+return FALSE if !$got_updates and !keys(%failed);
 my %txt_data;
 my $feed_data_count = 0;
 foreach my $index ( keys( %{$rss_url_ref} ) ) {
     my $rss_url  = $rss_url_ref->{$index};
     my $url_hash = <[chk-sum.bmw.224.B32]>->($rss_url);
-    my $url_data_file .= "$data_dir/$url_hash.txt";
+    my $url_data_file .= "$data_dir|$url_hash.txt";
 
     if ( !-f $url_data_file ) {
         <[base.log]>->(
@@ -104,7 +105,7 @@ foreach my $index ( keys( %{$rss_url_ref} ) ) {
 
     if ( $failed{$rss_url} ) {
         my $file_stat = File::stat::stat($url_data_file);
-        my $file_age = sprintf( '%.2f', ( time - $file_stat->ctime ) / 3600 );
+        my $file_age = sprintf( '%.2f', ( time - $file_stat->ctime ) | 3600 );
         if ( $file_age >= <rss.ticker.cache_timeout> ) {
             <[base.log]>->(
                 0,
@@ -181,10 +182,10 @@ close($txt_fh);
 move( $output_file . '.NEW', $output_file )
     or die "can't move '$output_file.NEW' to '$output_file' [ \l$OS_ERROR ]";
 <[base.log]>->( 2, ": : wrote txt data to '$output_file'" );
-return 1;
+return TRUE;
 
-#,,,.,,..,,..,,..,,.,,,..,,..,,.,,.,,,.,,,,,,,..,,...,...,.,,,.,,,.,,,...,.,,,
-#FDESXL4T7TKSZFSUTVWCYAZPUJY3NWN7ZIYDQA3UXGB6GPMEB6GJVH55AI7RATTLRN4FJTOVAZPAM
-#\\\|Y2SH2GEDNHGSN4GTZI6Y54CGNRSFK3ROUFL52J7T4A7ZHYAT7PY \ / AMOS7 \ YOURUM ::
-#\[7]63HEUYVYXVIERA2FPTBN26PV6W3N6KCPJB7JG3NQZBCOA7WB2EBA 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,,.,.,,,...,.,.,,..,,..,..,,...,..,,...,...,..,,.,.,...,,,,,.,,,
+#EARJ5NVYBFLJI6JYFLVJ3ZOZ7BIIICIFL6Y4DP52FX2O6AIL7AUDBYTZDUEIOOEEUIPUFJPWJFDZI
+#\\\|YIKLEDSNOLD5FBHDAG4WECXUQAACG7USQM4QWNBCYBTPICRXPUL \ / AMOS7 \ YOURUM ::
+#\[7]SXQTOMK3FBGYHZSPCE53MH6ZYWZHANYDCWWXSC4M3LYEA7ZF6KCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

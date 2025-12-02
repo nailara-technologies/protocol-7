@@ -14,15 +14,15 @@ my $target_geometry = <mpv.geometry>;
 Event->idle(
     cb => sub {
         <mpv.opacity>++;
-        return 0 if <mpv.opacity> > 100;
+        return FALSE if <mpv.opacity> > 100;
         <[base.X-11.set_window_opacity]>->( <x11.id>, <mpv.opacity> );
-        return 1;
+        return TRUE;
     },
     repeat => 1
 );
 
-#,,,,,.,,,...,...,...,,,,,..,,,.,,..,,,.,,,,,,..,,...,...,.,.,.,.,...,..,,,,.,
-#AJNIB7B2PEJDKIYSNOBQPEZN5XJUL5FY5TLPIHLJIVJ4V4D67YHMD5JEI3P7NEEWHZFEH6RRFNVC6
-#\\\|L6CEGRCKXDM3EHBYZG6RZDPJMMJ74JGOQQSC5Y4T5B2VZP2WDZ3 \ / AMOS7 \ YOURUM ::
-#\[7]AXDTLKHHKWZL5WFEPMGUO7OUDXJQCQEMCC4MWFRDDVOSXQK3HIBA 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,,.,..,,,,,,.,.,,..,,,,,,.,,,..,..,,...,...,,.,,.,.,,.,,,..,,,.,
+#RVMAUWVZESRKW2FRIPDZHXDOYEN2NHS3BCNYEMIFVVB4GPBOHKQ4RQX3GOMDRAM34FYQGGFIT2QNU
+#\\\|PKO4DRPDYRDUHIS7VE7A7NEPTDK7VZ44U4QW5NQYWCKMMPSUQ6P \ / AMOS7 \ YOURUM ::
+#\[7]7GTFTRAXM4J5555QWHKJXKGT3H7LPJBX7PCZC6EOPLB7QKVPYSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,12 +11,12 @@ my $key_dir  = <httpsd.cfg.key_path>;
 ## Verify updated certificates exist
 if ( !-f $cert_dir ) {
     <[base.log]>->( 1, "error: certificate file not found: $cert_dir" );
-    return 0;
+    return FALSE;
 }
 
 if ( !-f $key_dir ) {
     <[base.log]>->( 1, "error: key file not found: $key_dir" );
-    return 0;
+    return FALSE;
 }
 
 ## Update certificate cache in HTTPSD state
@@ -41,10 +41,10 @@ delete <httpsd.cert_cache> if exists <httpsd.cert_cache>;
 ## This would close and reopen the TLS socket, or signal child processes to do so
 # <[httpsd.graceful_reload]>->();
 
-return 1;
+return TRUE;
 
-#,,.,,...,,,,,..,,.,,,.,,,,,,,.,,,,,.,..,,,..,..,,...,...,.,.,,.,,...,...,,,,,
-#PS7MNM3PICYSBFEOJ25OXZI2SQA5GGER35PUTK7LN7YKOZQHPOSQI5VWVLRU6Y4U2P4E6IFW4R2XS
-#\\\|T5NOTN257KU3LTAIE4SXI5BDN5T7AXOVASQASSR25ZMF5OTQEPE \ / AMOS7 \ YOURUM ::
-#\[7]47MTATHL4VM4BVHGSLAHTTKGWUPWEZMOBEBZJ6KEFYK5F4WQGADQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,.,,,,,.,.,.,...,.,,,,,.,,,.,,..,..,,...,...,..,,..,,,..,.,.,..,,
+#VEMM7P4FWLAAYMOKDWPREVGYF2V6WKH4ILHNDG2MBCN2J3HBY52Z2FX5IGBBT3XAFIPA76DSDF3NE
+#\\\|3DACAG34R2B2J2EIE2UN4SBJPVK5KDLNJKW37IZ2UKFAWWA3HNB \ / AMOS7 \ YOURUM ::
+#\[7]7MLVLZJIWSMSTWLFRLEUU23HHMJL2NDCNY45WDU3XGEO4PIAFKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

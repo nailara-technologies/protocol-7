@@ -5,8 +5,8 @@
 
 my %params = @_;
 
-my $asset_path  = $params{asset_path}  or return;
-my $template    = $params{template}    or return;
+my $asset_path  = $params{asset_path} or return;
+my $template    = $params{template}   or return;
 my $source_path = $params{source_path} // '';
 my $status      = $params{status}      // qw| unknown |;
 
@@ -16,18 +16,20 @@ $data{'web'}{'assets'}{'registry'}{$asset_path} = {
     source_path    => $source_path,
     status         => $status,
     last_validated => time(),
-    discovered_at  => $data{'web'}{'assets'}{'registry'}{$asset_path}{discovered_at}
+    discovered_at  =>
+        $data{'web'}{'assets'}{'registry'}{$asset_path}{discovered_at}
         // time(),
 };
 
-$data{'web'}{'assets'}{'stats'}{total_assets} = scalar( keys %{ $data{'web'}{'assets'}{'registry'} } );
+$data{'web'}{'assets'}{'stats'}{total_assets}
+    = scalar( keys %{ $data{'web'}{'assets'}{'registry'} } );
 
-return 1;
+return TRUE;
 
 0;
 
-#,,,,,,,,,,.,,,,,,,.,,,.,,..,,,,,,...,.,.,.,.,..,,...,...,...,..,,,,.,...,..,,
-#5RYKAVR54IBYY4P463IQLDW5NYCQIBRWF642FVTH57AXK35KIKO6O72IB24ZOJHDPLWAFFK7QTKWC
-#\\\|OTFO5EEFZIEVEPSBEGX5L22YGJIZHSKVLMNWODZR2FY5VQ44BNV \ / AMOS7 \ YOURUM ::
-#\[7]MLD4PAGNILCSKGW54H234YL6VQKJU7YSGOW7F5JDRYRN2UD6NOCA 7  DATA SIGNATURE ::
+#,,.,,,.,,...,..,,.,,,...,,,.,,,.,...,,,,,...,..,,...,...,...,.,,,...,,,.,,..,
+#3JJI2K3CFHAORAHP7EXWFCQISXPFOV457AEBN3JKWTHPVD6QCR5H3CK7KESMKXUMIQNUSYQDM4EJK
+#\\\|5RKSM3GV3WDAJT5EYXEQ3H2E3UDVKLTA3AHZDDX5UTWMVMEGGEX \ / AMOS7 \ YOURUM ::
+#\[7]BUJV2TJ7Q2QCAZGORYPHPGGXNQUXHFC4WRLP7GSTIRSV5ZAK2CCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

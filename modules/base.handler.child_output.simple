@@ -34,7 +34,7 @@ if ( $read_bytes < 1 ) {    ## [ assumed filehandle exception ] ##
     }
     <[base.logs]>->( $log_level, ': %s-child shut down.', $bin );
 
-    return 0 if $keep_running;    ##  <-- opc return value ##
+    return FALSE if $keep_running;    ##  <-- opc return value ##
 
     <[base.logs]>->( 2, ': : shutting down %s-zenka.', <system.zenka.name> );
     $code{<base.child_exit.callback>}->($pid)
@@ -78,8 +78,8 @@ while ( <child.output_buffer> =~ s|^([^\n]*)\n||s ) {
     }
 }
 
-#,,,,,,,,,.,,,...,...,.,,,,.,,,..,...,...,,,,,..,,...,...,..,,...,,.,,.,.,,.,,
-#KYZBA2ORKAEFGUY622VFKIJBBOQYKABZNREFTE4G2RBS4YKRUIXCEJC47BPNWXWT663BIP34IWXXA
-#\\\|R7N7UWJIVV2YIEEJJOCT6HM3FRDDHZOL4IQQQLAW5L5D2URT732 \ / AMOS7 \ YOURUM ::
-#\[7]5M5G3AWZDXQE4IXHPOCQLCIGWA5JBUD2V5PWE7VS7DIRD5Z3P6AA 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,,.,.,.,,,,,,,,,,..,.,.,.,.,.,.,..,,...,...,.,,,.,.,..,,,.,,.,.,
+#OLPRQ2J3HIFQNKQSNDZWUOHCTARAI552HINMVUY72P5QW3SND7ZGHIA7GVZF3NKQ56LQL67RNRGVK
+#\\\|FAUB6SUBONEXJP44XWLYIVQQCL2DQGHVFB3U5RG7KNUZXSDIYML \ / AMOS7 \ YOURUM ::
+#\[7]FZKVGJSLZZEMEYMCSILS6TV6YHLZTX43IISCLB2C32W2MZJEJOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

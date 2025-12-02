@@ -52,7 +52,7 @@ my $dns_value = encode_base64url( sha256($key_auth) );
 ## For wildcard *.example.com, use _acme-challenge.example.com
 ## For regular example.com, use _acme-challenge.example.com
 my $base_domain = $domain;
-$base_domain =~ s/^\*\.//;    # Remove wildcard prefix if present
+$base_domain =~ s|^\*\.||;    # Remove wildcard prefix if present
 
 my $dns_record_name = "_acme-challenge.$base_domain";
 
@@ -127,8 +127,8 @@ return {
     provider        => $dns_provider,
 };
 
-#,,,,,..,,...,,,.,,..,,..,.,.,,,.,,,,,.,.,.,,,..,,...,...,.,,,,,,,.,,,.,,,...,
-#HAYGVJSMLLM6VJXAIL5WXDXYJJM3XIE7JXYMNIPGV47CG634VKF2MOF2WM6YWMS77GEC6BTG6T6N4
-#\\\|CMWYHDAQYMWEQPHDUFMMCDJFSJPUCX5L2BMKRGJRW33TWF7746Z \ / AMOS7 \ YOURUM ::
-#\[7]7ZS3L4TJT5JNRA7UVTF437HXFINVFL4MRQUCS6CCHABM5BRY7SAY 7  DATA SIGNATURE ::
+#,,.,,,..,...,.,.,...,,,,,,,.,,..,,..,,..,...,..,,...,...,,,.,,..,,,.,.,.,.,,,
+#O5S4U7OQMUL7PX4OQW37MQWDIXJKLHEAQFHK6EIWJCJ4IXTNSTQBLXQTPANZHEEDTT2RQMOROSS7S
+#\\\|7QILWZ4VPHRAIUUWKSDKW754MPKM5RVVPNU7VLY7TBT7MS2BRGT \ / AMOS7 \ YOURUM ::
+#\[7]JXP42JZ4WYCH6DEAM3TDUGSLO7PF55AGLBC3PUJPR45BO7WSWACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,11 +14,11 @@ my $locale_data = {};
 my $entries = 0;
 
 map {
-    $ARG =~ s/^\s+|\s+$//g;
+    $ARG =~ s{^\s+|\s+$}{}g;
     $ARG =~ s|^ *#[^\n]*$||mg;
     $ARG =~ s| +#[^\n]*$||mg;
     $ARG =~ s|\n\n|\n|sg;
-    $ARG =~ s/^\n|\n$//mg;
+    $ARG =~ s{^\n|\n$}{}mg;
     if ( length($ARG) and $ARG =~ /^([^\:]+?)\s*:\s*(.+?)$/ ) {
         $locale_data->{$1} = $2;
         $entries++;
@@ -31,8 +31,8 @@ my $s = $entries == 1 ? 'y' : 'ies';
 
 return $locale_data;
 
-#,,,.,..,,..,,.,.,...,,,.,,.,,.,.,,.,,..,,.,,,..,,...,.,.,...,,..,,.,,,,.,,.,,
-#QGFBTRPMZXZA3V3J4FODLVIGMAWZKMPQNANY6VRZJ7KT45XOENGWGYI3OMF3LVZX2G3WXQPZY7XQC
-#\\\|7DFJMIM6B3KHA4YG5CP7AGRQBIXR7R52LSAFZGIJVPZ4PQEL5PS \ / AMOS7 \ YOURUM ::
-#\[7]KEGSD7RJLGD3NM744JLORAE63ZLDCOF2VLKZWVNND6JKN7H6HACI 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,.,.,.,,,...,,,,,,..,,,.,,..,,..,..,,...,..,,.,.,,.,,,,.,,,.,.,.,
+#IQOSFFKP6ALTWVYFM56WXH2B4YHSFN63ULEWNYKXLXQLTQRQPOJHIXTYUZKTLCWWJDANZZCTWUP64
+#\\\|A54EYTGJF3ETLQG3I7KUV2ENHVE2ZO3IMDVTCUA7HZW3BKE7JUH \ / AMOS7 \ YOURUM ::
+#\[7]4SNXS57X42SCQ6YO7FNHGE6GD2WWNEFCJ3O6AU35Q2SZCBBAFWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

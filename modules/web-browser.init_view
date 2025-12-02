@@ -94,11 +94,12 @@ $view->signal_connect
         my $evt  = shift;
         my $type = $evt->type();
 
-        return 1 if exists <web-browser.blocked_event_types>->{$type}; # block
+        return TRUE
+            if exists <web-browser.blocked_event_types>->{$type};    # block
         ## say "\n [ event : $type ]\n";
         if ( index( $type, 'key' ) == 0 )
         {    # block key presses outside input fields
-            return 1               if !$v->can_paste_clipboard();
+            return TRUE            if !$v->can_paste_clipboard();
             $v->delete_selection() if $v->can_copy_clipboard();
         }
 
@@ -122,7 +123,7 @@ $view->signal_connect(    ### LLL: <-- check if ever called, remove .,
         my $page_width = $hadj->get_upper();
         my $page_height   = $vadj->get_upper();
         my $window_height = <web-browser.window.size.y>;
-        return 0;
+        return FALSE;
     }
 );
 
@@ -177,8 +178,8 @@ $overlay->add_overlay($scrolled_window);
 <web-browser.gtk_obj.scrolled_window>->{$id} = $scrolled_window;
 <web-browser.gtk_obj.view>->{$id}            = $view;
 
-#,,.,,.,,,.,.,.,,,,..,.,,,.,,,...,...,.,,,,,.,..,,...,.,.,...,,,.,...,,.,,,..,
-#EKLLQ6YEOTGEJ556BKISBXM5NKRGTOHMPGDL2UDWMNIYVU6AHGEQYGR7OHYHM43UNOHPRSMFUHSG2
-#\\\|BBJ2LBWDDM6EAIX6PNXEJGUZRRXOCE6ZBCQYSE6Q43KSVLMNKTW \ / AMOS7 \ YOURUM ::
-#\[7]CBJDPQS6R72OYIWRUATL3OHTMRYCUP6YPD535LVKVOSMBIVE3AAI 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,.,,,...,,,,,,,.,...,,,.,,,,,.,.,..,,...,...,...,,.,,,,,,...,..,,
+#BEJBXM6WBTKBRFCMLUQF5GKCHGEWKFBNOLVOZBNG2WJIPUHYJGDAD4A7WLATAV52OFHZWZARARH7K
+#\\\|P2GTUO7YCHIPFF4DUDQX67WKOQ4NKCZNBG7FDJHUHNU6I6NG7EO \ / AMOS7 \ YOURUM ::
+#\[7]DV2M3WCF5YD5PCC6UR2HYBFM7RUJBEXSYYHBOCOAOSYZ6I3WICBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

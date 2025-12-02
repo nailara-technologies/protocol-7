@@ -29,7 +29,7 @@ foreach my $window_id (<[X-11.get_window_ids]>) {
             }
         );
         delete <X-11.waiting>->{$id};
-        return 0;
+        return FALSE;
     }
     $match_id = $window_id and last if $window_title =~ $title_pattern;
 }
@@ -44,7 +44,7 @@ foreach my $window_id (<[X-11.get_window_ids]>) {
 #      );
 #      delete <X-11.waiting>->{$id};
 #      ## <[X-11.process-x11-error]>->($EVAL_ERROR);
-#      return 0;
+#      return FALSE;
 #  }
 
 if ( length( $match_id // '' ) ) {
@@ -58,13 +58,13 @@ if ( length( $match_id // '' ) ) {
         }
     );
     delete <X-11.waiting>->{$id};
-    return 0;
+    return FALSE;
 } else {
-    return 1;
+    return TRUE;
 }
 
-#,,,,,,,,,...,,,.,.,,,,,.,,..,,..,,,,,...,..,,..,,...,...,...,,..,.,.,,..,..,,
-#Y2SZXTWUQQ4SX4Q7RYEZV5VKAKRS6C3VP6X3DUC7VNNCASMVTLFFYOS3JDTXJNDWWC5FH4TNBCXN6
-#\\\|5DYLJQOT7CNLDE3RBQKHEYTLQDMJ7ZXSCBPVPV2NHDCQED23SHP \ / AMOS7 \ YOURUM ::
-#\[7]G6S5EVE5XYFOW7KDDNKE7LKPW4AHFEV22LBL4U2TO5P5ZYP6C2DY 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,..,,,.,,.,,,,,.,.,,,,,.,.,,,...,..,,...,...,...,,..,,,,,..,,.,.,
+#AUJ75FUXO7B2YJ2GRMROZVL7T7IOXYSROSDDEX5DE4IPX44EU3JGO5GS6WXZESTL7EMDWXQ67VBZ4
+#\\\|XLXCNF5EV7KHLEKCR2C23LMA4JIOBVU2RGBJCGJKQHGGFMP63QP \ / AMOS7 \ YOURUM ::
+#\[7]RFOMQ77ELNGHWJHQYB2QQ4XKA75ZZN3LODDGW34MSFTCNQ7ULWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,19 +14,20 @@ foreach my $repo (@$repos) {
     while (<$fh>) {
         if (/^- \[ \].*\[BUG-(\d+)\]\*?\*?(.*)/) {
             my $bug_id = $1;
-            my $desc = $2;
-            $desc =~ s/^\s+//;
+            my $desc   = $2;
+            $desc =~ s|^\s+||;
 
-            push @bugs, {
-                bug_id => $bug_id,
-                title => $desc,
+            push @bugs,
+                {
+                bug_id   => $bug_id,
+                title    => $desc,
                 priority => 'high',
                 category => 'bug',
-                status => 'open',
-                repo => $repo->{name},
-                path => $bug_file,
-                source => 'workspace-transfer-bug'
-            };
+                status   => 'open',
+                repo     => $repo->{name},
+                path     => $bug_file,
+                source   => 'workspace-transfer-bug'
+                };
         }
     }
     close $fh;
@@ -34,8 +35,8 @@ foreach my $repo (@$repos) {
 
 return \@bugs;
 
-#,,..,..,,,,,,..,,,,,,,..,,..,.,.,,.,,.,,,,,.,..,,...,...,.,.,..,,,..,,..,,,,,
-#5466XAZRI4ZBZUAS33XWND6IK5ZOZ3UGPXTD24AXQGHTPESDF5RO4EYZ5X27M2YUDXWLEW2VRQOXG
-#\\\|FNT4QSNEWTI4MNPZQA32RLSIHYW35NGSP4MCPUJKFJKGML3XF23 \ / AMOS7 \ YOURUM ::
-#\[7]Y5SSPRAE2CJQQGTWT6WWRONHOHBQEAXI2E2DEUTBKCD5T3VTW6DA 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,,.,,.,,.,.,,,.,,,.,,,.,.,,,,.,,..,,...,...,..,,.,.,.,,,.,.,,..,
+#FKQOOPNZEPKRQTTKR656BWAQMTMW5WCLDOJ63UUETECN2PLRZUXEUSTY3HGLW7P7RGZMH6LWDNY4W
+#\\\|PTY3VMCYP6FY3MPWUY7HHGKSWNZVYXSGBF66PGVJIRBDRQ65TQA \ / AMOS7 \ YOURUM ::
+#\[7]NQ57SRJJKDG5WQOZPVCG3AXUEGDOYQC3IC24I3D4YOLI7QSBYWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

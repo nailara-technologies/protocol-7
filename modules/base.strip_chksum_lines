@@ -22,9 +22,9 @@ if ( ref $string_sref ne qw| SCALAR | ) {
 my $str_length = length $string_sref->$*;
 my $pfx_len    = length $line_prefix_str if defined $line_prefix_str;
 
-return 0 if not $str_length;    ##  empty string, nothing to do  ##
-my $continuous_chksum  = 0;     ## elf start checksum ##
-my $next_line_position = 0;     ## start search at position 0 ##
+return FALSE if not $str_length;    ##  empty string, nothing to do  ##
+my $continuous_chksum  = 0;         ## elf start checksum ##
+my $next_line_position = 0;         ## start search at position 0 ##
 
 my %strip_offset_list;
 my $checksum_match_occurred = 0;
@@ -84,7 +84,7 @@ while ( $next_line_position <= $str_length ) {
 }
 
 ## return number of lines stripped [none] ##
-return 0 if not $checksum_match_occurred or not keys %strip_offset_list;
+return FALSE if not $checksum_match_occurred or not keys %strip_offset_list;
 
 my @lines;    ## collecting stripped lines to return ##
 
@@ -103,8 +103,8 @@ foreach       ##  stripping backwards to not need to recalculate offsets  ##
 
 return \@lines;    ##  return removed lines  ##  [ array ref to scalar refs ]
 
-#,,.,,.,,,..,,..,,.,,,,,,,,,,,...,,..,...,..,,..,,...,..,,.,,,,,,,,.,,.,.,.,.,
-#NZGMVGO7QCERJYYIL7HWJOWKXGVYVX7XEQFHIWEMAJJFZJYNXP22UV376KN4FU33N4XJG7OSTN25K
-#\\\|5S5JQZANWR2PSQL3NB3AZOAQUVJWJFKUPI23JJFQUVNLXPHR2KU \ / AMOS7 \ YOURUM ::
-#\[7]FTV4VH7BK7CATUCRPPPO3WHAEVZHGCO5DRLWAJR3GZZKRDORAMBA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,..,,,.,,,,.,,..,...,...,...,,,,,..,,...,...,.,,,..,,..,,,..,,..,
+#ZID5674ZBH65XMJICOJDXAIRJ2FSX3T7UMKO4U2L4FXW6KPHQ3RX5VKAVNHNWCVSS4P7OOSETZWQI
+#\\\|BINOFYOXGGNQZ6QKQY3QGJHXTRRVLXVEEF4KRAS7DL53XLE2PJ3 \ / AMOS7 \ YOURUM ::
+#\[7]V4B2UV3PM4BNPJEBRRGGE67KXSQXI7J4V3G5B3TDX5SJD4OGMWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

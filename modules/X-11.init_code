@@ -11,7 +11,7 @@
 <[base.perlmod.autoload]>->('File::MimeInfo::Magic');
 <[base.perlmod.autoload]>->('X11::Protocol::XSetRoot');
 
-my $modes_re = <X-11.modes_re> = qr,^(host|xnest|nxagent|xorg|xephyr|xvfb)$,;
+my $modes_re = <X-11.modes_re> = qr|^(host|xnest|nxagent|xorg|xephyr|xvfb)$|;
 
 if ( defined <system.zenka.subname> ) {
     my $override_mode = <system.zenka.subname>;
@@ -58,8 +58,8 @@ if ( <X-11.mode> eq qw| auto-xephyr | ) { ## detect if Xorg running --> xephyr
 <X-11.disable_glamor> //= 0;
 <X-11.blank_timeout>  //= 60 * 13;    ## 13 minutes default timeout setting ##
 
-<X-11.bg_gfx_directory> //= sprintf qw| %s/data/gfx/backgrounds |,
-    <system.root_path>;
+<X-11.bg_gfx_directory> //= sprintf( '%s/data/gfx/backgrounds',
+    <system.root_path> );
 
 <X-11.bg_color> //= qw| 000000 |;
 <X-11.bg_color> =~ s|^#?([0-9a-f]{6})$|#$1|i;
@@ -76,8 +76,8 @@ if ( <X-11.mode> eq qw| auto-xephyr | ) { ## detect if Xorg running --> xephyr
 
 0;
 
-#,,,,,.,.,.,.,,,,,,..,.,.,.,,,,.,,,.,,.,.,,.,,..,,...,...,,,.,.,,,..,,,,,,.,.,
-#7WMLCD2M43VGO35QBYTY4TTK74QMS7V4VKLRYWOXC254JP6AOENN6TBN5UCYEM355X7DBHZ4GO3Q6
-#\\\|AO7TM76LAEEMU4RVBTHJ4X2D3L3YWKRTKJU33PNBXUCM3ZZIKM2 \ / AMOS7 \ YOURUM ::
-#\[7]QU2MUTBECLCZ2QD4Z5Q4JU7QOBYF622THLTS7QLRIANO6ZUIN2BQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,,.,...,,..,.,.,.,,,,..,.,,,..,,..,,...,...,...,,..,,,.,,..,,..,
+#QIEBC4ENIITURLNXGBYMM2FFDMLBRH3K5MDD3MKETQLYJBJD6APIFI6BI5EMW4S5WEW5UUX7OUODA
+#\\\|ZWBY2RR5KMV5VGBSR4ZXD4XGBJK3QOCRBIINBHINSNC3JMRN3WC \ / AMOS7 \ YOURUM ::
+#\[7]GVR643CETSSY6WTKZVWJ2NOAPUXKWAION7VLQT7GU7LDJPAXX2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

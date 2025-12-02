@@ -29,7 +29,7 @@ my $abs_chksum_path = catfile( $chksum_dir, $chksum_str );
 
 if ( -l $abs_chksum_path or -e $abs_chksum_path ) {
     <[base.s_warn]>->( 'entry existed already [ %s ] <{C1}>', $chksum_str );
-    return 0;
+    return FALSE;
 }
 
 if ( not symlink( $path_string, $abs_chksum_path ) ) {
@@ -42,8 +42,8 @@ if ( not symlink( $path_string, $abs_chksum_path ) ) {
     return TRUE;    ## true ##   [ success ]   ##
 }
 
-#,,..,.,.,.,.,,.,,,.,,,..,,..,,,,,...,...,.,,,..,,...,...,.,.,,.,,,,,,,,.,..,,
-#E5G6Z3TQFT2YHOBAS2RTOFOTQFKKBTRYIDHJSSEB2PNG7POJRJZMRBPT3U4QCHHY5VGYTYLKE4A24
-#\\\|WTUNDVO35DSCQV4KLGAJOZS4GUNGJ5NV2TVXVANRLOESG3IZUMS \ / AMOS7 \ YOURUM ::
-#\[7]GYZQUITTTXXQV5LBNYLESB7PN5TCRGKMDMNQXWUQJY7WY66OFUAA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,..,,,,,,.,.,,,,,.,.,,.,,.,.,.,,,..,,...,...,...,,..,.,,,,..,.,.,
+#RU654H23CZM4LA52I76OAC5H7S3MTRLJKFN5F22CDQ6CG4LHLJFKNDDECKNGOZ54VLG72LBCYSJUM
+#\\\|T3P3CO3UVY7ZT6ZGA7SKFK6YJC2AAAD7JF4CJTDNTF2MYQPLSFK \ / AMOS7 \ YOURUM ::
+#\[7]BDULF5QEKAUCB7OQVRZIM7JOOJZEYW35QALBDPCK3YVDQIMDC4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

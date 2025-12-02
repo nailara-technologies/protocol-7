@@ -12,7 +12,7 @@ open my $handle, '<:raw', $filename
     or return warn "cannot open '$filename' [ \l$OS_ERROR ]";
 binmode $handle;
 my $lines = 0;
-$seperator =~ s/([\\{}])/\\$1/g;
+$seperator =~ s|([\\{}])|\\$1|g;
 
 my $sysread_status;
 eval qq[
@@ -27,8 +27,8 @@ close $handle or warn "cannot close '$filename' : \l$OS_ERROR";
 
 return $lines;
 
-#,,,.,,..,,.,,.,,,,,,,.,,,,..,,..,,,,,.,.,,.,,..,,...,...,.,,,...,,..,.,,,,..,
-#ENXG7Z3INYMVIMN6TT5D3Q2OG2XUGSC2W3QQ27EAE3LQRICGCV76ICLOAMPKCRASKC43236IVEGNK
-#\\\|CJ7XIAVO26CCLR3KIYGQHT5GYRZP2LSIMXXMIHJBLZNW7DY7FEQ \ / AMOS7 \ YOURUM ::
-#\[7]XBQITTI5TGGIUBWKFMZZSAZC3DPR7QFTFHGDD47P3V3J3GIZJCCI 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,...,...,..,,.,.,.,,,..,,.,,,.,.,..,,...,...,,,.,..,,,.,,.,.,.,,,
+#C4SMR2OJ7XCAJBJMB3MGDYDS5OJFLJU2BNFUWZFWSH5FL2TRFCN55ONOSPSXO5C3IZBOXW7TJDA4I
+#\\\|QCVKMBZTTD4TN5HWY56GEOP7BRJT6G5J4EBNM3QOZPQ33YMONSQ \ / AMOS7 \ YOURUM ::
+#\[7]UATLGKCPMGC22OAVQK4QXD2342UP5LLSWI2E7TE75WLRHGSAMMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

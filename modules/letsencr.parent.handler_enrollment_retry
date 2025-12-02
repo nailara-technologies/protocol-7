@@ -14,7 +14,7 @@ my ( $domain, $retry_data ) = each %{$pending_retries};
 
 unless ( $domain && $retry_data ) {
     <[base.log]>->( 2, "no pending retries to process" );
-    return 0;
+    return FALSE;
 }
 
 my $attempt = $retry_data->{attempt} // 2;
@@ -60,10 +60,10 @@ if ($result) {
 ## Clean up the pending retry data
 delete <letsencr.parent.pending_retry>->{$domain};
 
-return 0;
+return FALSE;
 
-#,,,,,,,.,,.,,.,,,,,,,,..,.,,,,..,.,,,.,.,,,,,..,,...,..,,,..,.,,,...,..,,,,,,
-#IM4EPKZHVSOV7F6R32JVJ3CSMTTBMXH63HDBQISF2PUYNZCNFXSVRF2YTPQILEEHND4ZSLDUTOPRK
-#\\\|NBJ5G522JACEPERWRYHFBIXLP4SZMVS4NQ56W4X4PXB4MUWEJ3K \ / AMOS7 \ YOURUM ::
-#\[7]47YF6TOWEYWFQRZSFEONC4TAKP77SHCBW7MCEG5FY6BII565TEBY 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,,,,,,,,,,.,,.,,.,.,,.,,,,,,..,,..,,...,...,..,,,,,,...,,.,,...,
+#CKQC5GLL6YWERSHJMLRSN6DID6NNZ3DMQFHSC22WT7KIVZRQAJ2CL4WIGGH7KVK4H5I4WWSUDP4JO
+#\\\|SNZSW7IBUO6GWUK6XRRF5QUKEH4JGDVWW2WPGNH4RX2Y65GUH4Q \ / AMOS7 \ YOURUM ::
+#\[7]QMMZT4UKQH7ODKDBZ4SUDZPDJ2HHUHWBQBJ4FXPLWJ476G2Q7IBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

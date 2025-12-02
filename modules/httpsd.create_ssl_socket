@@ -19,9 +19,7 @@ my $key_file  = <httpsd.cfg.key_path>;
 
 ## Validate certificate files exist
 unless ( -f $cert_file ) {
-    <[base.log]>->(
-        0, "httpsd: certificate file not found: $cert_file"
-    );
+    <[base.log]>->( 0, "httpsd: certificate file not found: $cert_file" );
     return -1;
 }
 
@@ -34,9 +32,9 @@ unless ( -f $key_file ) {
 my $tls_version = <httpsd.cfg.tls_version> // 'TLSv1_2';
 my @cipher_list = qw|
     DEFAULT !aNULL !eNULL !MD5 !3DES !DES !RC4 !IDEA !SEED !aDSS !SRP !PSK
-|;
+    |;
 my $default_ciphers = join( ':', @cipher_list );
-my $cipher_suite = <httpsd.cfg.cipher_suite> // $default_ciphers;
+my $cipher_suite    = <httpsd.cfg.cipher_suite> // $default_ciphers;
 
 <[base.log]>->( 2, "  TLS version: $tls_version" );
 <[base.log]>->( 3, "  cipher suite: $cipher_suite" );
@@ -55,17 +53,13 @@ if ( ref($tls_version) eq 'ARRAY' ) {
 if ( $tls_version =~ m/:/ ) {
     my @versions = split( /:/, $tls_version );
     <[base.log]>->(
-        2,
-        "  note: TLS has multiple protocols, using highest: @versions"
+        2, "  note: TLS has multiple protocols, using highest: @versions"
     );
 
     ## Use first (typically highest) version for IO::Socket::SSL
     ## IO::Socket::SSL::SSL_version accepts single versions like 'TLSv1_3'
     $tls_version = $versions[0];
-    <[base.log]>->(
-        2,
-        "  note: converted to single version: $tls_version"
-    );
+    <[base.log]>->( 2, "  note: converted to single version: $tls_version" );
 }
 
 ## Verify certificate key type compatibility with cipher suite
@@ -130,16 +124,12 @@ if ($EVAL_ERROR) {
     ## Provide specific guidance based on error type
     if ( $EVAL_ERROR =~ /cannot set multiple SSL protocols/ ) {
         <[base.log]>->(
-            0,
-            "  hint: Check httpsd.cfg.tls_version - parse versions"
+            0, "  hint: Check httpsd.cfg.tls_version - parse versions"
         );
         <[base.log]>->(
-            0,
-            "  info: IO::Socket::SSL requires single version string"
+            0, "  info: IO::Socket::SSL requires single version string"
         );
-        <[base.log]>->(
-            0, "  (e.g., 'TLSv1_3' not 'TLSv1_3:TLSv1_2')"
-        );
+        <[base.log]>->( 0, "  (e.g., 'TLSv1_3' not 'TLSv1_3:TLSv1_2')" );
     }
     return -1;
 }
@@ -147,28 +137,22 @@ if ($EVAL_ERROR) {
 unless ( defined $ssl_socket ) {
     my $ssl_err      = IO::Socket::SSL::errstr();
     my $ssl_err_full = $ssl_err;
-    $ssl_err =~ s/\n.+//mg;
+    $ssl_err =~ s|\n.+||mg;
 
     <[base.log]>->( 0, "httpsd: SSL socket creation returned UNDEF:" );
     <[base.log]>->( 0, "  IO::Socket::SSL::errstr(): $ssl_err" );
     <[base.log]>->( 0, "  full error: $ssl_err_full" );
     <[base.log]>->( 0, "  SSL_version was: '$tls_version'" );
-    <[base.log]>->(
-        0,
-        "  cert type (Ed25519/RSA): check with:"
-    );
+    <[base.log]>->( 0, "  cert type (Ed25519/RSA): check with:" );
     my $cmd = "openssl x509 -in $cert_file -text -noout |";
     $cmd .= " grep -i 'public key'";
     <[base.log]>->( 0, "    $cmd" );
-    <[base.log]>->(
-        0, "  key type: check with:"
-    );
+    <[base.log]>->( 0, "  key type: check with:" );
     <[base.log]>->(
         0, "    openssl pkey -in $key_file -text -noout | head -1"
     );
     <[base.log]>->(
-        0,
-        "  hint: Ed25519 certificates require compatible SSL_version"
+        0, "  hint: Ed25519 certificates require compatible SSL_version"
     );
     <[base.log]>->( 0, "  and cipher suite (see commit 510bbaf)" );
     return -1;
@@ -191,8 +175,8 @@ return $ssl_socket;
 
 0;
 
-#,,,.,,,.,,.,,...,,.,,...,.,.,,..,,.,,.,.,,,,,..,,...,...,...,,.,,.,.,...,,.,,
-#WGB5HL2NMJZS2YNBKCBQAW4IIR3X5M3QKDJN5SABAYJS4LK4KCX5NQZTDMJZCE4M6A6HAZDIZ3F3Q
-#\\\|LDIIIX63YVEVSN3XZGRUHQ7TJMRUNMW6FQWBQ4WXFMYGHDIEIU3 \ / AMOS7 \ YOURUM ::
-#\[7]NIO3VSNTXJMNU7ND4MWBRG3JVP4P7TKQISEU2AH2LA7QUP6ADSCA 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,.,.,...,,,,,.,,,..,,..,,...,..,,..,,...,...,,..,.,,,..,,..,,,,.,
+#5T6KQEL3IH3KUZ3FR5DRJBJVE2N6IJMIB3RDP6T5IF7ZWPT4ZGK7HKFX3T4B4A3T6POBMVNPPBEY6
+#\\\|UBH7JAZWVBQX6IUJI47XIQJH4EZBJMI4ZBC7FMCU7KHYNYIPMAR \ / AMOS7 \ YOURUM ::
+#\[7]HHP5GXFY3XBI4INS274HBMNOEZ3LL2IUNTQ5ENW5WPLSKJREKUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

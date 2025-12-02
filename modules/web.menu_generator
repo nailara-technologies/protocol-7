@@ -22,13 +22,13 @@
 #     { label => "Shop", path => "/shop/", icon => "shopping-cart" }
 #   ]
 
-my $vhost = shift;
+my $vhost        = shift;
 my $menu_context = shift // 'main';
-my $base_path = shift // '/';
+my $base_path    = shift // '/';
 
 ## Validate parameters ##
-unless (defined $vhost and length $vhost) {
-    <[base.log]>->(0, "menu_generator: missing vhost parameter");
+unless ( defined $vhost and length $vhost ) {
+    <[base.log]>->( 0, "menu_generator: missing vhost parameter" );
     return [];
 }
 
@@ -36,27 +36,26 @@ unless (defined $vhost and length $vhost) {
 $base_path =~ s|^/+||;
 $base_path =~ s|/+$||;
 $base_path = "/$base_path" if length $base_path;
-$base_path = '/' if !length $base_path or $base_path eq '/';
+$base_path = '/'           if !length $base_path or $base_path eq '/';
 
-my $site_root = <httpd.cfg.site_dir> // '/var/httpd';
+my $site_root  = <httpd.cfg.site_dir> // '/var/httpd';
 my $vhost_root = "$site_root/$vhost";
 
 ## Check if vhost directory exists ##
-unless (-d $vhost_root) {
+unless ( -d $vhost_root ) {
     <[base.log]>->(
-        1,
-        "menu_generator: vhost directory not found: $vhost_root"
+        1, "menu_generator: vhost directory not found: $vhost_root"
     );
     return [];
 }
 
 ## Initialize caching if needed ##
-unless (exists $data{'menu_cache'}) {
+unless ( exists $data{'menu_cache'} ) {
     $data{'menu_cache'} = {};
 }
 
 my $cache_key = "$vhost:$menu_context:$base_path";
-if (exists $data{'menu_cache'}->{$cache_key}) {
+if ( exists $data{'menu_cache'}->{$cache_key} ) {
     return $data{'menu_cache'}->{$cache_key};
 }
 
@@ -67,10 +66,9 @@ if (exists $data{'menu_cache'}->{$cache_key}) {
 
 ## Read vhost directory ##
 my @entries;
-opendir(my $dh, $vhost_root) or do {
+opendir( my $dh, $vhost_root ) or do {
     <[base.log]>->(
-        1,
-        "menu_generator: cannot read vhost directory: $vhost_root: $!"
+        1, "menu_generator: cannot read vhost directory: $vhost_root: $!"
     );
     return [];
 };
@@ -82,19 +80,20 @@ closedir($dh);
 my @menu_items;
 
 ## Add "Home" link first ##
-push @menu_items, {
-    label => 'Home',
-    path => '/',
-    icon => 'home',
-    active => ($base_path eq '/' ? 1 : 0)
-};
+push @menu_items,
+    {
+    label  => 'Home',
+    path   => '/',
+    icon   => 'home',
+    active => ( $base_path eq '/' ? 1 : 0 )
+    };
 
 ## Process directory entries ##
-foreach my $entry (sort @dir_contents) {
+foreach my $entry ( sort @dir_contents ) {
     ## Skip special directories ##
-    next if $entry =~ /^_/;      # Skip _templates, _skins, _config, etc.
-    next if $entry =~ /^\./;     # Skip . and ..
-    next if $entry =~ /^[A-Z]/   # Skip uppercase (common for files like README)
+    next if $entry =~ /^_/;    # Skip _templates, _skins, _config, etc.
+    next if $entry =~ /^\./;   # Skip . and ..
+    next if $entry =~ /^[A-Z]/ # Skip uppercase (common for files like README)
         and -f "$vhost_root/$entry";
 
     my $entry_path = "$vhost_root/$entry";
@@ -103,40 +102,42 @@ foreach my $entry (sort @dir_contents) {
     next unless -d $entry_path;
 
     ## Check if directory has index file ##
-    my $has_index = (-f "$entry_path/index.html" or -f "$entry_path/index.tmpl");
+    my $has_index
+        = ( -f "$entry_path/index.html" or -f "$entry_path/index.tmpl" );
 
     ## Build menu label from directory name ##
     my $label = $entry;
-    $label =~ s/_/ /g;           # Replace underscores with spaces
-    $label = ucfirst $label;     # Capitalize first letter
+    $label =~ s|_| |g;          # Replace underscores with spaces
+    $label = ucfirst $label;    # Capitalize first letter
 
     my $path = "/$entry/";
 
     ## Create menu item ##
     my $menu_item = {
-        label => $label,
-        path => $path,
-        active => ($base_path eq $path ? 1 : 0)
+        label  => $label,
+        path   => $path,
+        active => ( $base_path eq $path ? 1 : 0 )
     };
 
     ## Try to read menu metadata from menu.yaml if it exists ##
     my $menu_yaml_path = "$entry_path/menu.yaml";
-    if (-f $menu_yaml_path) {
+    if ( -f $menu_yaml_path ) {
         ## Parse YAML for menu metadata (simplified) ##
-        open(my $fh, '<', $menu_yaml_path) or do {
-            <[base.log]>->(2, "menu_generator: cannot read $menu_yaml_path");
+        open( my $fh, '<', $menu_yaml_path ) or do {
+            <[base.log]>
+                ->( 2, "menu_generator: cannot read $menu_yaml_path" );
             next;
         };
 
-        while (my $line = <$fh>) {
-            if ($line =~ /^\s*label\s*:\s*(.+)/) {
+        while ( my $line = <$fh> ) {
+            if ( $line =~ /^\s*label\s*:\s*(.+)/ ) {
                 $menu_item->{'label'} = $1;
-            } elsif ($line =~ /^\s*icon\s*:\s*(.+)/) {
+            } elsif ( $line =~ /^\s*icon\s*:\s*(.+)/ ) {
                 $menu_item->{'icon'} = $1;
-            } elsif ($line =~ /^\s*order\s*:\s*(\d+)/) {
+            } elsif ( $line =~ /^\s*order\s*:\s*(\d+)/ ) {
                 $menu_item->{'order'} = $1;
-            } elsif ($line =~ /^\s*hidden\s*:\s*(true|false)/) {
-                $menu_item->{'hidden'} = ($1 eq 'true' ? 1 : 0);
+            } elsif ( $line =~ /^\s*hidden\s*:\s*(true|false)/ ) {
+                $menu_item->{'hidden'} = ( $1 eq 'true' ? 1 : 0 );
             }
         }
         close($fh);
@@ -159,14 +160,13 @@ foreach my $entry (sort @dir_contents) {
 $data{'menu_cache'}->{$cache_key} = \@menu_items;
 
 <[base.log]>->(
-    2,
-    "menu_generator: generated " . scalar(@menu_items) . " menu items"
+    2, "menu_generator: generated " . scalar(@menu_items) . " menu items"
 );
 
 return \@menu_items;
 
-#,,.,,.,.,,,.,,..,.,,,,..,.,.,,,.,.,.,.,,,.,,,..,,...,...,..,,..,,...,.,,,..,,
-#CY2CJD6JVNYJXTEK4DUMKMV5ZPFZOWBSE6TOLAHFGVY64JQWAWBPME4YJ34NTFUNK2CFM3PJKR44Y
-#\\\|TXMHKHUDLKPWZQPLUHNG3OKJ5VRA4CGGLRPR77E2AH5VQISW27L \ / AMOS7 \ YOURUM ::
-#\[7]IHSBQX6AHVKQSHTVKEWRKJCP6XNXFB6R6OBHICVE65QD5Z6L2CBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,.,,,,,,,,,,.,.,.,.,.,,,.,.,,..,..,,...,..,,...,..,,.,,,,..,,,.,
+#VCV5DWBNSONKTKESKZRS7WR7Z425B4OV5P4JHLHE7NVZS6E5EMSVIYBH2Y4K6SXBBMOYF3DBFJEBC
+#\\\|KISAWUDUQTK2QWZKB6D3IB472ESLMHA7PFRWEWNQQBQEOWH3BRT \ / AMOS7 \ YOURUM ::
+#\[7]MRJIOKTYY3GYZUPJI4ILTETRDAJ2QEC36VVTFQQ5KIMM5QKFAQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

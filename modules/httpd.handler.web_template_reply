@@ -7,19 +7,26 @@ my $reply_data = shift;
 
 my $client_sid  = $reply_data->{'params'}{'client_sid'};
 my $template_id = $reply_data->{'params'}{'template_id'};
-my $mode        = lc($reply_data->{'cmd'} // '');  ## Normalize to lowercase
+my $mode        = lc( $reply_data->{'cmd'} // '' );  ## Normalize to lowercase
 my $data        = $reply_data->{'data'};
 
 ## Debug logging ##
-<[base.log]>->( 0, "handler: data type=" . ref($data) . ", length=" . (defined $data ? length($data) : 0) );
-<[base.log]>->( 0, "handler: data preview=[" . substr($data, 0, 100) . "]" ) if defined $data;
+<[base.log]>->(
+    0,
+    "handler: data type="
+        . ref($data)
+        . ", length="
+        . ( defined $data ? length($data) : 0 )
+);
+<[base.log]>->( 0, "handler: data preview=[" . substr( $data, 0, 100 ) . "]" )
+    if defined $data;
 
 unless ( defined $data{'session'}{$client_sid} ) {
     <[base.log]>->(
         1,
         "httpd.handler.web_template_reply: session $client_sid no longer exists for $template_id"
     );
-    return 0;
+    return FALSE;
 }
 
 my $session = $data{'session'}{$client_sid};
@@ -95,8 +102,7 @@ if ( $mode eq 'size' ) {
 } else {
     ## Unknown response mode ##
     <[base.log]>->(
-        0,
-        "[$client_sid] unknown reply mode '$mode' for $template_id"
+        0, "[$client_sid] unknown reply mode '$mode' for $template_id"
     );
 
     ## Send 500 Internal Server Error ##
@@ -104,10 +110,10 @@ if ( $mode eq 'size' ) {
     $session->{'flush_shutdown'} = 1;
 }
 
-return 0;
+return FALSE;
 
-#,,..,.,.,,.,,,..,,,,,,,.,..,,.,.,,,,,,,,,.,.,..,,...,...,,..,.,,,,,,,.,,,...,
-#VUS2GP67QN373YJND6GGRC3NELSDMV73B3SG3OFL3CC6CQ5EECDNM73LPI2M5DFQBLCBYVMHN4OJC
-#\\\|KYGG45HZV3P4GKEMDZS3ZDTXNIYNTOK54NMQHFXKEKGOGBWQSFQ \ / AMOS7 \ YOURUM ::
-#\[7]QLFGIUUUUAS4VESQGTWJRD7QC3WCDTDLJHIUE644UDUSQ6QIKCDI 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,.,,,,,.,..,,,,,,,..,.,,,,.,,.,,,..,,...,...,,..,..,,...,...,.,,,
+#NCD7RSAMLJ46GUUFFCZ5PT5K5CEFCLPRIILKGUGP3YN7IUVM6IKRFCWENQRJUBD5TSC2MMG66BCC6
+#\\\|VTQ6GNW2V3XCUWYGE4DA5GODPJZYYMNRKXVJVYTSAGHFLBKHASU \ / AMOS7 \ YOURUM ::
+#\[7]WD37NXBVHA7G2ENJQM3B3HZS6LBZL5634KACCNXDOCRNT2D2SWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

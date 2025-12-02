@@ -5,7 +5,7 @@
 
 <[base.perlmod.autoload]>->(qw| POSIX |);
 
-my $cmd = shift || 'list';
+my $cmd  = shift || 'list';
 my @args = @_;
 
 my $ws_dir = workspace_transfer::chdir_workspace();
@@ -13,8 +13,8 @@ my $ws_dir = workspace_transfer::chdir_workspace();
 
 my $bug_file = 'BUGS.md';
 
-if ($cmd eq 'list') {
-    unless (-f $bug_file) {
+if ( $cmd eq 'list' ) {
+    unless ( -f $bug_file ) {
         say "No bugs tracked yet. Add one with: bug add <description>";
         return;
     }
@@ -40,18 +40,19 @@ if ($cmd eq 'list') {
 
     say "";
     say "=" x 60;
-    say sprintf "Open: %d | Fixed: %d | Total: %d", $count, $fixed, ($count + $fixed);
+    say sprintf "Open: %d | Fixed: %d | Total: %d", $count, $fixed,
+        ( $count + $fixed );
     say "=" x 60;
 
-} elsif ($cmd eq 'add') {
+} elsif ( $cmd eq 'add' ) {
     die "Usage: bug add <description>\n" unless @args;
 
-    my $desc = join(' ', @args);
-    my $timestamp = POSIX::strftime("%Y-%m-%d %H:%M:%S", localtime());
+    my $desc      = join( ' ', @args );
+    my $timestamp = POSIX::strftime( "%Y-%m-%d %H:%M:%S", localtime() );
 
     # Read existing bugs to get next ID
     my $next_id = 1;
-    if (-f $bug_file) {
+    if ( -f $bug_file ) {
         open my $fh, '<', $bug_file or do {
             <[base.logs]>->( 0, 'cannot read BUGS.md: %s', $! );
             <[base.exit]>->(qw| 0110 |);
@@ -77,13 +78,13 @@ if ($cmd eq 'list') {
 
     say sprintf "✓ Bug BUG-%d added: %s", $next_id, $desc;
 
-} elsif ($cmd eq 'fixed') {
+} elsif ( $cmd eq 'fixed' ) {
     my ($bug_id) = @args;
     die "Usage: bug fixed <bug_id>\n" unless defined $bug_id;
 
-    $bug_id =~ s/^BUG-//i;  # Allow "BUG-1" or just "1"
+    $bug_id =~ s|^BUG-||i;    # Allow "BUG-1" or just "1"
 
-    unless (-f $bug_file) {
+    unless ( -f $bug_file ) {
         say "No bugs to mark fixed.";
         return;
     }
@@ -96,20 +97,21 @@ if ($cmd eq 'list') {
     close $fh;
 
     my $found = 0;
-    for my $i (0..$#lines) {
-        if ($lines[$i] =~ /^- \[ \].*\[BUG-$bug_id\]/) {
-            $lines[$i] =~ s/^- \[ \]/- [x]/;
+    for my $i ( 0 .. $#lines ) {
+        if ( $lines[$i] =~ /^- \[ \].*\[BUG-$bug_id\]/ ) {
+            $lines[$i] =~ s|^- \[ \]|- [x]|;
             $found = 1;
 
             # Update status line
-            for my $j ($i+1..$#lines) {
-                if ($lines[$j] =~ /Status: Open/) {
-                    $lines[$j] =~ s/Status: Open/Status: Fixed/;
-                    $lines[$j] =~ s/\n$//;
-                    $lines[$j] .= " (" . POSIX::strftime("%Y-%m-%d", localtime()) . ")\n";
+            for my $j ( $i + 1 .. $#lines ) {
+                if ( $lines[$j] =~ /Status: Open/ ) {
+                    $lines[$j] =~ s|Status: Open|Status: Fixed|;
+                    $lines[$j] =~ s|\n$||;
+                    $lines[$j] .= " ("
+                        . POSIX::strftime( "%Y-%m-%d", localtime() ) . ")\n";
                     last;
                 }
-                last if $lines[$j] =~ /^- \[/;  # Next bug
+                last if $lines[$j] =~ /^- \[/;    # Next bug
             }
 
             open my $out, '>', $bug_file or do {
@@ -126,7 +128,7 @@ if ($cmd eq 'list') {
 
     say sprintf "Bug BUG-%d not found", $bug_id unless $found;
 
-} elsif ($cmd eq 'help') {
+} elsif ( $cmd eq 'help' ) {
     say "Bug Tracking System";
     say "";
     say "Usage:";
@@ -140,8 +142,8 @@ if ($cmd eq 'list') {
     say "Run 'bug help' for usage";
 }
 
-#,,..,.,.,.,.,,..,..,,,.,,.,.,..,,,,.,..,,,.,,..,,...,...,.,,,,,.,.,.,.,,,.,.,
-#SCR3ZNRMXWVT4SS7ZLFUP37VKONWWFVLCPH7F2CLMSHLKQ4MSUKXNNWYUIQERWOX56SWGELVU5OVM
-#\\\|5K3ZAZJ5RJ4RDQES5GCAHA2L7ZGZOI4VVI3GKBQZ64HDBWIAE5Q \ / AMOS7 \ YOURUM ::
-#\[7]2UTSCFK5CODPQA3CLTLLXGAA47OHREPAKNDHZUI42AJZ4UAJ3QBA 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,.,..,,,.,,...,.,.,..,,,..,,..,..,,...,...,..,,...,.,.,,.,,,.,,
+#3GZUBYGGWUEQODBIYLHAP5M2ZPOF6NMZJVOAQE655VCFENPCNSMEO4MBU3MNBAIHKLNE6HP4AAF4C
+#\\\|GERE4EW3ZLOMKO36KMIMBBK3YUSSCCPEPXIWD76NZH2PTQAMZQY \ / AMOS7 \ YOURUM ::
+#\[7]IA3O5XDNEGXEAEA7F65QL6HDYVQKMVLQM2HYOLVLX2Z7DOJTTGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,9 +4,9 @@
 # descr = display current workflow state with contextualized suggestions
 
 ## Extend %colors hash with workflow-specific colors ##
-$colors{'wf_neon_red'}   //= <system.ansi_color> ? "\e[38;2;195;6;71m" : '';
-$colors{'wf_dim_blue'}   //= <system.ansi_color> ? "\e[38;2;6;71;195;128m" : '';
-$colors{'wf_neon_green'} //= <system.ansi_color> ? "\e[38;2;71;195;6m" : '';
+$colors{'wf_neon_red'} //= <system.ansi_color> ? "\e[38;2;195;6;71m"     : '';
+$colors{'wf_dim_blue'} //= <system.ansi_color> ? "\e[38;2;6;71;195;128m" : '';
+$colors{'wf_neon_green'} //= <system.ansi_color> ? "\e[38;2;71;195;6m"   : '';
 
 ## Use Protocol-7 color scheme ##
 my $reset       = $colors{'reset'};
@@ -33,18 +33,18 @@ my $branch = `git branch --show-current 2>/dev/null`;
 chomp $branch if defined $branch;
 $branch //= '(unknown)';
 
-my $git_status = `git status --short 2>/dev/null`;
-my @modified_files = $git_status ? split(/\n/, $git_status) : ();
+my $git_status     = `git status --short 2>/dev/null`;
+my @modified_files = $git_status ? split( /\n/, $git_status ) : ();
 
-my $git_log = `git log --oneline -5 2>/dev/null`;
-my @recent_commits = $git_log ? split(/\n/, $git_log) : ();
+my $git_log        = `git log --oneline -5 2>/dev/null`;
+my @recent_commits = $git_log ? split( /\n/, $git_log ) : ();
 
 my $remotes_output = `git remote -v 2>/dev/null`;
-my @remotes = ();
+my @remotes        = ();
 if ($remotes_output) {
     my %seen;
-    foreach my $line (split /\n/, $remotes_output) {
-        if ($line =~ /^(\S+)\s+/) {
+    foreach my $line ( split /\n/, $remotes_output ) {
+        if ( $line =~ /^(\S+)\s+/ ) {
             push @remotes, $1 unless $seen{$1}++;
         }
     }
@@ -56,11 +56,16 @@ say "${blacklight}│$reset";
 say "${blacklight}│$reset  Branch: ${neon_orange}$branch$reset";
 
 if (@remotes) {
-    say "${blacklight}│$reset  Remotes: ${dim_blue}" . join(', ', @remotes) . "$reset";
+    say "${blacklight}│$reset  Remotes: ${dim_blue}"
+        . join( ', ', @remotes )
+        . "$reset";
 }
 
 if (@modified_files) {
-    say "${blacklight}│$reset  ${neon_red}Uncommitted changes:$reset ${neon_orange}" . scalar(@modified_files) . " files$reset";
+    say
+        "${blacklight}│$reset  ${neon_red}Uncommitted changes:$reset ${neon_orange}"
+        . scalar(@modified_files)
+        . " files$reset";
 } else {
     say "${blacklight}│$reset  ${neon_green}Working tree clean$reset";
 }
@@ -72,7 +77,7 @@ say "${blacklight}│$reset";
 
 if (@recent_commits) {
     foreach my $commit (@recent_commits) {
-        my ($hash, $msg) = $commit =~ /^(\S+)\s+(.*)$/;
+        my ( $hash, $msg ) = $commit =~ /^(\S+)\s+(.*)$/;
         say "${blacklight}│$reset  ${dim_blue}$hash$reset $msg";
     }
 } else {
@@ -86,16 +91,16 @@ say "${blacklight}│$reset";
 
 ## Get todo stats if available ##
 my $todo_stats = eval { <[workflow.get_todo_stats]>->() };
-if ($todo_stats && ref $todo_stats eq 'HASH') {
-    my $total = $todo_stats->{total} // 0;
-    my $open = $todo_stats->{open} // 0;
+if ( $todo_stats && ref $todo_stats eq 'HASH' ) {
+    my $total       = $todo_stats->{total}       // 0;
+    my $open        = $todo_stats->{open}        // 0;
     my $in_progress = $todo_stats->{in_progress} // 0;
-    my $completed = $todo_stats->{completed} // 0;
+    my $completed   = $todo_stats->{completed}   // 0;
 
-    if ($total > 0) {
-        say "${blacklight}│$reset  Todos: ${neon_orange}$open open$reset, " .
-            "${neon_green}$completed completed$reset, " .
-            "${dim_blue}$in_progress in progress$reset";
+    if ( $total > 0 ) {
+        say "${blacklight}│$reset  Todos: ${neon_orange}$open open$reset, "
+            . "${neon_green}$completed completed$reset, "
+            . "${dim_blue}$in_progress in progress$reset";
     } else {
         say "${blacklight}│$reset  ${dim_blue}No todos tracked$reset";
     }
@@ -105,7 +110,7 @@ if ($todo_stats && ref $todo_stats eq 'HASH') {
 
 ## Get bug stats if available ##
 my $bugs = eval { <[workflow.aggregate_bugs]>->() };
-if ($bugs && ref $bugs eq 'ARRAY' && @$bugs) {
+if ( $bugs && ref $bugs eq 'ARRAY' && @$bugs ) {
     my $bug_count = scalar @$bugs;
     say "${blacklight}│$reset  Bugs: ${neon_red}$bug_count open$reset";
 } else {
@@ -116,25 +121,29 @@ if ($bugs && ref $bugs eq 'ARRAY' && @$bugs) {
 my $essential_missing = $dep_status->{essential_missing} // [];
 if (@$essential_missing) {
     say "${blacklight}│$reset";
-    say "${blacklight}├─[ ${neon_red}MISSING DEPENDENCIES${blacklight} ]$reset";
+    say
+        "${blacklight}├─[ ${neon_red}MISSING DEPENDENCIES${blacklight} ]$reset";
     say "${blacklight}│$reset";
 
     foreach my $dep (@$essential_missing) {
-        my $name = $dep->{name};
+        my $name    = $dep->{name};
         my $install = $dep->{install} // '';
-        say "${blacklight}│$reset  ${neon_red}✗$reset ${neon_orange}$name$reset";
+        say
+            "${blacklight}│$reset  ${neon_red}✗$reset ${neon_orange}$name$reset";
         if ($install) {
             say "${blacklight}│$reset    ${dim_blue}Install: $install$reset";
         }
     }
-} elsif ($dep_status->{total_tracked} > 0) {
+} elsif ( $dep_status->{total_tracked} > 0 ) {
     ## Show stats when all dependencies are present ##
     say "${blacklight}│$reset";
-    say "${blacklight}├─[ ${neon_green}DEPENDENCY STATUS${blacklight} ]$reset";
+    say
+        "${blacklight}├─[ ${neon_green}DEPENDENCY STATUS${blacklight} ]$reset";
     say "${blacklight}│$reset";
-    my $total = $dep_status->{total_tracked};
+    my $total     = $dep_status->{total_tracked};
     my $installed = $dep_status->{total_installed};
-    say "${blacklight}│$reset  ${neon_green}✓$reset Dependencies: ${neon_green}$installed$reset / $total tracked";
+    say
+        "${blacklight}│$reset  ${neon_green}✓$reset Dependencies: ${neon_green}$installed$reset / $total tracked";
 }
 
 ## Section 5: Modified Files Detail ##
@@ -145,21 +154,23 @@ if (@modified_files) {
 
     my $shown = 0;
     foreach my $file (@modified_files) {
-        last if $shown >= 10;  ## limit to 10 files
-        $file =~ s/^\s+//;
-        my ($status, $path) = $file =~ /^(\S+)\s+(.+)$/;
+        last if $shown >= 10;    ## limit to 10 files
+        $file =~ s|^\s+||;
+        my ( $status, $path ) = $file =~ /^(\S+)\s+(.+)$/;
         $status //= '??';
-        $path //= $file;
+        $path   //= $file;
 
-        my $status_color = $status =~ /^M/ ? $neon_orange :
-                          $status =~ /^A/ ? $neon_green :
-                          $status =~ /^D/ ? $neon_red : $dim_blue;
+        my $status_color
+            = $status =~ /^M/ ? $neon_orange
+            : $status =~ /^A/ ? $neon_green
+            : $status =~ /^D/ ? $neon_red
+            :                   $dim_blue;
 
         say "${blacklight}│$reset  ${status_color}$status$reset $path";
         $shown++;
     }
 
-    if (@modified_files > 10) {
+    if ( @modified_files > 10 ) {
         my $remaining = @modified_files - 10;
         say "${blacklight}│$reset  ${dim_blue}... and $remaining more$reset";
     }
@@ -173,16 +184,22 @@ say '';
 ## Build context object for relevance calculation ##
 my %context = (
     has_uncommitted_changes => scalar(@modified_files) > 0,
-    has_open_todos => ($todo_stats && $todo_stats->{open} && $todo_stats->{open} > 0),
-    has_open_bugs => ($bugs && scalar(@$bugs) > 0),
-    has_remotes => scalar(@remotes) > 0,
-    no_activity => (!@modified_files && (!$todo_stats || $todo_stats->{total} == 0)),
+    has_open_todos          =>
+        ( $todo_stats && $todo_stats->{open} && $todo_stats->{open} > 0 ),
+    has_open_bugs => ( $bugs && scalar(@$bugs) > 0 ),
+    has_remotes   => scalar(@remotes) > 0,
+    no_activity   => (
+        !@modified_files && ( !$todo_stats || $todo_stats->{total} == 0 )
+    ),
     has_missing_dependencies => scalar(@$essential_missing) > 0,
-    install_command => (@$essential_missing > 0) ? $essential_missing->[0]{install} : ''
+    install_command          => ( @$essential_missing > 0 )
+    ? $essential_missing->[0]{install}
+    : ''
 );
 
 ## Calculate relevance and get top suggestions ##
-my $suggestions = <[workflow.calculate_suggestion_relevance]>->(\%context, 8);
+my $suggestions
+    = <[workflow.calculate_suggestion_relevance]>->( \%context, 8 );
 
 ## Apply color formatting to suggestions ##
 my @formatted_suggestions;
@@ -190,18 +207,19 @@ foreach my $sugg (@$suggestions) {
     my $text = $sugg->{text};
 
     ## Colorize command patterns ##
-    $text =~ s/(workflow\s+[\w-]+)/§ORANGE§$1§RESET§/g;
-    $text =~ s/(git\s+\w+)/§ORANGE§$1§RESET§/g;
+    $text =~ s|(workflow\s+[\w-]+)|§ORANGE§$1§RESET§|g;
+    $text =~ s|(git\s+\w+)|§ORANGE§$1§RESET§|g;
     $text =~ s/(edit\s+[\w\/\.\*-]+)/§ORANGE§$1§RESET§/g;
-    $text =~ s/(cpanm\s+[\w:]+)/§ORANGE§$1§RESET§/g;
+    $text =~ s|(cpanm\s+[\w:]+)|§ORANGE§$1§RESET§|g;
 
     ## Replace color placeholders ##
-    $text =~ s/§ORANGE§/$neon_orange/g;
-    $text =~ s/§RESET§/$reset/g;
+    $text =~ s|§ORANGE§|$neon_orange|g;
+    $text =~ s|§RESET§|$reset|g;
 
     ## Add priority prefix for critical suggestions ##
-    if ($sugg->{type} eq 'critical') {
-        push @formatted_suggestions, "${neon_red}0.${reset} $text ${neon_red}[CRITICAL]${reset}";
+    if ( $sugg->{type} eq 'critical' ) {
+        push @formatted_suggestions,
+            "${neon_red}0.${reset} $text ${neon_red}[CRITICAL]${reset}";
     } else {
         push @formatted_suggestions, $text;
     }
@@ -211,7 +229,7 @@ foreach my $sugg (@$suggestions) {
 if (@formatted_suggestions) {
     my $idx = 1;
     foreach my $suggestion (@formatted_suggestions) {
-        if ($suggestion =~ /^\d+\./) {
+        if ( $suggestion =~ /^\d+\./ ) {
             ## Already has priority prefix ##
             say "  $suggestion";
         } else {
@@ -224,16 +242,19 @@ if (@formatted_suggestions) {
 }
 
 say '';
-say "${blacklight}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$reset";
+say
+    "${blacklight}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$reset";
 say '';
-say "  ${dim_blue}Tip: Use ${neon_orange}-nc${dim_blue} flag for plain text output (no colors)$reset";
-say "  ${dim_blue}New session? See ${neon_orange}SESSION-START-HERE.md${dim_blue} and ${neon_orange}data/yaml/project-context/next-session-start.yaml$reset";
+say
+    "  ${dim_blue}Tip: Use ${neon_orange}-nc${dim_blue} flag for plain text output (no colors)$reset";
+say
+    "  ${dim_blue}New session? See ${neon_orange}SESSION-START-HERE.md${dim_blue} and ${neon_orange}data/yaml/project-context/next-session-start.yaml$reset";
 say '';
 
-return 0;
+return FALSE;
 
-#,,..,..,,.,,,,,,,.,,,.,,,..,,,,.,...,,,,,.,.,..,,...,...,..,,,.,,,,.,,,.,.,,,
-#Q6QWIHOGABNRPJ3WT47AL2JITNE74QFKZN67KTZRUK7LM7ODOBRXRWLPWFJYTVHIZSWYRX3LVOOC6
-#\\\|COU4324U7JFPK2LHUO73EBXI4TS4P4ZUSKBFJJLUAWCJYYLH7IZ \ / AMOS7 \ YOURUM ::
-#\[7]GCY736RLHW7SJYHKUZIRIC2BURRB77DXSY5BHNZE7JGZZJ23N6CA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,,,,,..,...,...,...,,.,,.,.,.,,,..,,...,..,,..,,,.,,.,,,.,.,,.,,
+#XCOFAGGJNEA4JWTIQDF5LOT6IDRGGHYKRBTHQYE3XT2HKI3NMPIG2BJIXGBDFE6LMFAFW6L5BQQGM
+#\\\|4HXBD2DKH7Q43CYGBGJ5SGARP7DAGHF6J52QEH5AZ5FR34PUQXC \ / AMOS7 \ YOURUM ::
+#\[7]ASF26LBP7TVWYCA3QQINZYXLU6SNLMLM4VBGLJR5YBO6H6ZNU6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

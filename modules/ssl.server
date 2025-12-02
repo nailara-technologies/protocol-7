@@ -19,7 +19,7 @@ my $lsock = new IO::Socket::SSL(
 );
 if ( not defined $lsock ) {
     my $ssl_err = &IO::Socket::SSL::errstr();
-    $ssl_err =~ s/\n.+//mg;
+    $ssl_err =~ s|\n.+||mg;
     <[base.log]>
         ->( 0, "ssl: unable to launch server $_[0]:$_[1] [$ssl_err]" );
     return -1;
@@ -30,8 +30,8 @@ if ( not defined $lsock ) {
     return $lsock;
 }
 
-#,,,.,.,,,,,,,,,,,,..,.,.,.,,,,..,...,,,,,,..,..,,...,...,.,,,..,,...,..,,,.,,
-#V7ZK2ER72AQJPU7GYSFLQ5DVPDLPFVUINH6R2BJRPD2MTTNLXRQLWUT6P5OVX4OSVYU74QE6YK75C
-#\\\|UBTCINBNYTJGTHMGXELWOATPUOVG7J55BZDLUL2OT4IBCSPNB5T \ / AMOS7 \ YOURUM ::
-#\[7]S4UJZ2CCXY66DHSDANKRROLOAQZO4E52P3UKI6VXZNNRETNAZMBY 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,,,,...,..,,,..,,,,,,,.,..,,..,,..,,...,...,.,,,...,,.,,...,.,.,
+#VQVK5Q53RKQT2IKTDRGMNIVX4DAWWCBSRMUHUCQCBZYBMSFTE73OG4WDUPQUXPYL35WX4DF6OK5XW
+#\\\|WVZUYNIBLSQJTU3AGSELKDV4L6HI45EBRWLMJWCXZ27DWF36VIZ \ / AMOS7 \ YOURUM ::
+#\[7]RHQYIQC6JUPXCO7MAMH6IDHBE3T5PEDOU4X3KISNXALOV6DPVGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,7 +14,7 @@ if ( @ARG == 2 ) {    ##  parameter list syntax  ##
 } elsif ( @ARG == 1 and ref $ARG[0] eq qw| HASH | ) {    ## href syntax ##
     ## hashref ##
     $params = shift;
-    warn 'expected key \ val pair <{C1}>' and return 0
+    warn 'expected key \ val pair <{C1}>' and return FALSE
         if not defined $params or $params !~ m| |;
 
 }
@@ -29,12 +29,12 @@ if ( defined $params ) {    ##  parameter hashref syntax  ##
     $silent        = $params->{'silent'}   if defined $params->{'silent'};
 }
 
-warn 'no data key supplied <{C1}>' and return 0
+warn 'no data key supplied <{C1}>' and return FALSE
     if not defined $d_key_string or not length $d_key_string;
 
 my @dtree = <[base.parser.data_hkey_tree]>->($d_key_string);
 
-return 0 if not @dtree;    ## syntax not valid ##
+return FALSE if not @dtree;    ## syntax not valid ##
 
 my $last_key = pop @dtree;
 
@@ -58,8 +58,8 @@ return TRUE if $next_ref->{$last_key} eq $value_content;    ## true ##
 
 return FALSE;                                               ##  false  ##
 
-#,,,,,.,.,,.,,,..,...,,,.,,..,.,,,,..,,.,,.,,,..,,...,...,,.,,..,,,..,,,.,,.,,
-#4UAPMXSAKWKAEHJDOCQL42KW7734JADFKYSMFPWXOL7XDBPCCJVNDXJ6N2UXJIPKB76K36ARSOUTU
-#\\\|NK27E7TMF3QQVD5HCC5CNMCGMABMLQPWNCVAXISXG4OQ3JUZXTK \ / AMOS7 \ YOURUM ::
-#\[7]NRPRAR5PWTOIR4XG2JMAQU46FZQ5SVTP6LXMAMTW3CEJJFPJH4BA 7  DATA SIGNATURE ::
+#,,,,,,..,,..,...,.,,,,..,...,..,,.,,,...,..,,..,,...,...,,..,,,,,,.,,...,,..,
+#ZK5ZAKA4AMGSXDR66OY3GEXLS5ZS5OUT6FH25EL5G6VIKPRQHVRJC4S36FNK67YNHR2WSKKJQVR6Y
+#\\\|BJOBGPPECWY45UVY6LNWMJCTTU7NVTOKH35INEVK5VFPDJPZ5HH \ / AMOS7 \ YOURUM ::
+#\[7]NZUT62QE6E6JSWIJN5LAQPPZSHQUUO7UMAQOI763DNFYR3B3QMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,7 +5,7 @@
 # descr = import LLM development public key for signature verification
 
 # Auto-discover workspace-transfer path relative to protocol-7 root
-my $root_path = $data{'system'}{'root_path'};
+my $root_path         = $data{'system'}{'root_path'};
 my $default_workspace = "$root_path/../workspace-transfer";
 
 my $workspace_path = shift // $default_workspace;
@@ -16,42 +16,46 @@ say '';
 
 # Check if workspace directory exists
 unless ( -d $workspace_path ) {
-    say sprintf ' : ⚠ ERROR: Workspace directory not found: %s', $workspace_path;
+    say sprintf ' : ⚠ ERROR: Workspace directory not found: %s',
+        $workspace_path;
     say '';
-    return 1;
+    return TRUE;
 }
 
 # Look for LLM dev public key in workspace
 my $pub_key_source = "$workspace_path/LLM-dev.sourcecode.pub";
 
 unless ( -f $pub_key_source ) {
-    say sprintf ' : ⚠ ERROR: LLM dev public key not found: %s', $pub_key_source;
-    say ' : Make sure LLM has committed changes using workflow commit command';
+    say sprintf ' : ⚠ ERROR: LLM dev public key not found: %s',
+        $pub_key_source;
+    say
+        ' : Make sure LLM has committed changes using workflow commit command';
     say '';
-    return 1;
+    return TRUE;
 }
 
 say sprintf ' : Found LLM dev public key: %s', $pub_key_source;
 
 # Get target key directory
-my $key_name = qw| LLM-dev.sourcecode |;
-my $key_vars = <[crypt.C25519.key_vars]>->($key_name);
-my $key_dir = $key_vars->{'key_dir'};
+my $key_name       = qw| LLM-dev.sourcecode |;
+my $key_vars       = <[crypt.C25519.key_vars]>->($key_name);
+my $key_dir        = $key_vars->{'key_dir'};
 my $pub_key_target = $key_vars->{'key_filename'}->{'public'};
 
 # Ensure key directory exists
 unless ( -d $key_dir ) {
     say sprintf ' : Creating key directory: %s', $key_dir;
-    system('mkdir', '-p', $key_dir);
+    system( 'mkdir', '-p', $key_dir );
     if ( $? != 0 ) {
         say ' : ⚠ ERROR: Failed to create key directory';
         say '';
-        return 1;
+        return TRUE;
     }
 }
 
 # Check if key already exists
 if ( -f $pub_key_target ) {
+
     # Compare checksums
     my $source_checksum = `sha256sum $pub_key_source | cut -d' ' -f1`;
     my $target_checksum = `sha256sum $pub_key_target | cut -d' ' -f1`;
@@ -62,7 +66,7 @@ if ( -f $pub_key_target ) {
         say ' : ✓ LLM dev key already imported (checksums match)';
         say sprintf ' : Target: %s', $pub_key_target;
         say '';
-        return 0;
+        return FALSE;
     } else {
         say ' : ⚠ WARNING: LLM dev key exists but checksums differ';
         say sprintf ' : Source checksum: %s', $source_checksum;
@@ -74,11 +78,11 @@ if ( -f $pub_key_target ) {
 # Copy public key to target location
 say sprintf ' : Importing to: %s', $pub_key_target;
 
-system('cp', $pub_key_source, $pub_key_target);
+system( 'cp', $pub_key_source, $pub_key_target );
 if ( $? != 0 ) {
     say ' : ⚠ ERROR: Failed to copy public key';
     say '';
-    return 1;
+    return TRUE;
 }
 
 # Set appropriate permissions (readable by owner and group)
@@ -90,10 +94,10 @@ say ' : You can now verify LLM-signed files with:';
 say ' :   ./bin/Protocol-7 sourcecode verify-dev-signatures';
 say '';
 
-return 0;
+return FALSE;
 
-#,,,.,...,,.,,,,.,,,,,,..,,,.,.,,,..,,,,,,,..,..,,...,...,..,,.,.,,..,,,.,,..,
-#FT555GISNYX6YJQQ77NVZ77LOJGRITFHK3SDOILVXETF4UJCEXWO5KRHWZJNCS6Z73D2LQ24QHNJ2
-#\\\|6LVN73JKEJW4FXOP6GRBO6VC6M3YHMDMOTDMNOJQJ27KJZKAUVN \ / AMOS7 \ YOURUM ::
-#\[7]RMPFBZ4H5Q2BTXJHTXZPL7USXHIKUPX4RMJXCFFBXTAM2LNPWYDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,...,,,.,,,.,,.,,...,,,.,.,.,.,,,..,,...,...,...,...,,.,,..,,,,.,
+#WUVZR6WYCXVHWUELF5GKFEVWGNIJ3OOJ7LVHHVAST5Z5LQNSLJGQHQ7TNMCLMPYCT6AIZ5BXEOIU2
+#\\\|V3CFFU426YLXSQCHZRLRGX2WM5QF6EO5PUDCADUVBU7LAWCNME5 \ / AMOS7 \ YOURUM ::
+#\[7]2HKWWSX4Y3MHS2XWYKU3PHEQTZXJ2KG2SGJCEGVSTCOFEXELC2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

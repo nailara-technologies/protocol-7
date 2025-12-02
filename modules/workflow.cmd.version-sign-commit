@@ -10,35 +10,39 @@ say ' .:[ WORKFLOW: VERSION-SIGN-COMMIT ]:.';
 say '';
 
 ## Detect signing mode based on key presence
-my $sig_key_name = qw| proto-7.sourcecode |;
-my $test_key_name = qw| test-proto7-sourcecode |;
+my $sig_key_name       = qw| proto-7.sourcecode |;
+my $test_key_name      = qw| test-proto7-sourcecode |;
 my $use_production_key = 0;
-my $use_test_key = 0;
-my $key_mode = 'unknown';
+my $use_test_key       = 0;
+my $key_mode           = 'unknown';
 
 # Check if production key is loaded
-if ( exists $keys{'C25519'}{$sig_key_name} && defined $keys{'C25519'}{$sig_key_name} ) {
+if ( exists $keys{'C25519'}{$sig_key_name}
+    && defined $keys{'C25519'}{$sig_key_name} ) {
     $use_production_key = 1;
-    $key_mode = 'production';
+    $key_mode           = 'production';
     say ' : ✓ Production key detected';
     say sprintf ' : Using key: %s', $sig_key_name;
     say '';
 } else {
+
     # Production key not available - use test key mode
     $use_test_key = 1;
-    $key_mode = 'test';
+    $key_mode     = 'test';
     say ' : Production key not loaded - using test key mode';
 
     # Check if test key exists
-    unless ( exists $keys{'C25519'}{$test_key_name} && defined $keys{'C25519'}{$test_key_name} ) {
+    unless ( exists $keys{'C25519'}{$test_key_name}
+        && defined $keys{'C25519'}{$test_key_name} ) {
         say ' : Test key not found, creating...';
 
-        my ($new_key, $created_name) = <[crypt.C25519.gen_keys]>->( $test_key_name );
+        my ( $new_key, $created_name )
+            = <[crypt.C25519.gen_keys]>->($test_key_name);
 
         unless ( defined $new_key ) {
             say ' : ✗ ERROR: Failed to generate test key';
             say '';
-            return 1;
+            return TRUE;
         }
 
         say sprintf ' : ✓ Created test key: %s', $test_key_name;
@@ -52,12 +56,13 @@ if ( exists $keys{'C25519'}{$sig_key_name} && defined $keys{'C25519'}{$sig_key_n
 say ' .:[ STEP 1: UPDATING SIGNATURES ]:.';
 say '';
 
-if ( $use_test_key ) {
+if ($use_test_key) {
+
     # Backup original key and use test key
     my $original_key = $keys{'C25519'}{$sig_key_name};
     $keys{'C25519'}{$sig_key_name} = $keys{'C25519'}{$test_key_name};
 
-    system('./bin/Protocol-7', 'sourcecode', 'update-signatures');
+    system( './bin/Protocol-7', 'sourcecode', 'update-signatures' );
     my $sign_exit = $? >> 8;
 
     # Restore original key
@@ -67,18 +72,19 @@ if ( $use_test_key ) {
         say '';
         say sprintf ' : ✗ Signature update failed (exit: %d)', $sign_exit;
         say '';
-        return 1;
+        return TRUE;
     }
 } else {
+
     # Use production key directly
-    system('./bin/Protocol-7', 'sourcecode', 'update-signatures');
+    system( './bin/Protocol-7', 'sourcecode', 'update-signatures' );
     my $sign_exit = $? >> 8;
 
     if ( $sign_exit != 0 ) {
         say '';
         say sprintf ' : ✗ Signature update failed (exit: %d)', $sign_exit;
         say '';
-        return 1;
+        return TRUE;
     }
 }
 
@@ -90,17 +96,17 @@ say '';
 say ' .:[ STEP 2: STAGING CHANGES ]:.';
 say '';
 
-system('git', 'add', '-A');
+system( 'git', 'add', '-A' );
 my $add_exit = $? >> 8;
 
 if ( $add_exit != 0 ) {
     say ' : ✗ Failed to stage changes';
     say '';
-    return 1;
+    return TRUE;
 }
 
 # Show what will be committed
-system('git', 'status', '--short');
+system( 'git', 'status', '--short' );
 
 say '';
 say ' : ✓ Changes staged';
@@ -112,6 +118,7 @@ say '';
 
 my $commit_message = $message;
 unless ( length $commit_message ) {
+
     # Generate default message
     $commit_message = "chore: Update signatures with $key_mode key";
 }
@@ -119,10 +126,8 @@ unless ( length $commit_message ) {
 # Add key mode context to commit message
 $commit_message .= "\n\nSigned-by: $key_mode-key" if $use_test_key;
 
-my $commit_cmd = sprintf(
-    'git commit -m "%s"',
-    $commit_message =~ s/"/\\"/gr
-);
+my $commit_cmd
+    = sprintf( 'git commit -m "%s"', $commit_message =~ s|"|\\"|gr );
 
 system($commit_cmd);
 my $commit_exit = $? >> 8;
@@ -130,7 +135,7 @@ my $commit_exit = $? >> 8;
 if ( $commit_exit != 0 ) {
     say ' : ✗ Commit failed';
     say '';
-    return 1;
+    return TRUE;
 }
 
 say '';
@@ -145,10 +150,10 @@ say sprintf ' : Key used: %s', $use_test_key ? $test_key_name : $sig_key_name;
 say sprintf ' : Commit message: %s', $commit_message;
 say '';
 
-return 0;
+return FALSE;
 
-#,,.,,,,,,,..,,,,,,,,,.,,,,..,,,,,,,.,,.,,...,..,,...,...,,,.,.,,,...,...,,,.,
-#6TBWDHXJ5ZR6QZ5V3INNAQ37BIPMFEW6FYUVQ4AWYEYSKD74ZYU534QQIITYSD24A4PBU6QXOLR46
-#\\\|MA6ZYCG25JL6QXHSYWNSSH5P2ENGFYHY6CQKDDX4Y7WSR34WBF4 \ / AMOS7 \ YOURUM ::
-#\[7]YBDG2AG7RLY6LRLB2MRGQXE4DQMPYJ46DN5LXD6QESBRCAX3ZIBY 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,.,,.,.,,.,,.,,,.,.,,,,,...,,..,..,,...,...,,..,,.,,,,,,,,.,,..,
+#G7CUVNTNCQNJAGDKJWP3VUFHBRB34N7M42CSUAJPFB2UHCC7LDEZDL4HFBVY3XAZUTMJQYZNY4RSY
+#\\\|WLNRWYSLCWHOQJVBZFGQFFFK2ZIE6WODZYHMZPSFGXVU5NGE6NQ \ / AMOS7 \ YOURUM ::
+#\[7]QLU7FUNHVQ7MCJDQY2QU4VEP3NTTPZDMM6JU2DUBUPJGF76M3ADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,14 +5,14 @@
 die "not enough arguments, expected <id>,<code>,<html>" if @_ != 3;
 
 my ( $id, $code, $html_str ) = @_;
-my $session         = $data{'session'}{$id};
+my $session = $data{'session'}{$id};
 
-unless (defined $session) {
+unless ( defined $session ) {
     <[base.logs]>->( 0, "[%d] send_raw_html: session not found!", $id );
     return undef;
 }
 
-unless (defined $session->{'buffer'}) {
+unless ( defined $session->{'buffer'} ) {
     <[base.logs]>->( 0, "[%d] send_raw_html: buffer not initialized!", $id );
     return undef;
 }
@@ -22,7 +22,7 @@ my $matched_host    = $session->{'http'}{'request'}{'matched_host'};
 my $response_params = $session->{'response'}->{'params'} // {};
 
 <[base.logs]>->(
-    1, "[%d] send_raw_html: writing %d bytes for HTTP %d response",
+    1,   "[%d] send_raw_html: writing %d bytes for HTTP %d response",
     $id, length($html_str), $code
 );
 
@@ -31,15 +31,16 @@ $response_params->{'Host'} = $http_host
     and defined $matched_host
     and $matched_host ne 'default';
 
-unless (defined $session->{'buffer'}->{'output'}) {
+unless ( defined $session->{'buffer'}->{'output'} ) {
     $session->{'buffer'}->{'output'} = '';
-    <[base.logs]>->( 1, "[%d] send_raw_html: initializing empty output buffer", $id );
+    <[base.logs]>->(
+        1, "[%d] send_raw_html: initializing empty output buffer", $id
+    );
 }
 
 <[base.logs]>->(
     2, "[%d] send_raw_html: buffer_is_tied=%s",
-    $id,
-    (tied( $session->{'buffer'}->{'output'} ) ? 'YES' : 'NO')
+    $id, ( tied( $session->{'buffer'}->{'output'} ) ? 'YES' : 'NO' )
 );
 
 my $before_len = length( $session->{'buffer'}->{'output'} // '' );
@@ -56,45 +57,52 @@ my $header_data = <[httpd.new_header]>->(
 );
 
 <[base.logs]>->(
-    1, "[%d] send_raw_html: header_len=%d, html_len=%d, total=%d",
-    $id, length($header_data), length($html_str), length($header_data) + length($html_str)
+    1,
+    "[%d] send_raw_html: header_len=%d, html_len=%d, total=%d",
+    $id,
+    length($header_data),
+    length($html_str),
+    length($header_data) + length($html_str)
 );
 
 # Write to output buffer (tied variable that triggers output handler watcher)
 <[base.logs]>->(
-    3, "[%d] send_raw_html: writing %d+%d bytes to output buffer (tied=%s)",
+    3,
+    "[%d] send_raw_html: writing %d+%d bytes to output buffer (tied=%s)",
     $id,
     length($header_data),
     length($html_str),
-    (tied( $session->{'buffer'}->{'output'} ) ? 'YES' : 'NO')
+    ( tied( $session->{'buffer'}->{'output'} ) ? 'YES' : 'NO' )
 );
 
 ## Use explicit assignment instead of .= for tied variables
 ## Some tied variable handlers don't properly support compound assignment operators
-$session->{'buffer'}->{'output'} = $session->{'buffer'}->{'output'} . $header_data . $html_str;
+$session->{'buffer'}->{'output'}
+    = $session->{'buffer'}->{'output'} . $header_data . $html_str;
 
 my $after_len = length( $session->{'buffer'}->{'output'} // '' );
 
 <[base.logs]>->(
-    2, "[%d] send_raw_html: session flags - close=%s, shutdown=%s, is_https=%s",
+    2,
+    "[%d] send_raw_html: session flags - close=%s, shutdown=%s, is_https=%s",
     $id,
-    ($session->{'close'} ? 'YES' : 'NO'),
-    ($session->{'flush_shutdown'} ? 'YES' : 'NO'),
-    ($session->{'is_https'} ? 'YES' : 'NO')
+    ( $session->{'close'}          ? 'YES' : 'NO' ),
+    ( $session->{'flush_shutdown'} ? 'YES' : 'NO' ),
+    ( $session->{'is_https'}       ? 'YES' : 'NO' )
 );
 
 ## Log buffer state for debugging (response delivery is handled by base.handler.write)
 <[base.logs]>->(
-    2, "[%d] send_raw_html: response queued, buffer bytes: %d -> %d",
+    2,   "[%d] send_raw_html: response queued, buffer bytes: %d -> %d",
     $id, $before_len, $after_len
 );
 
 # Set flush_shutdown so base.handler.write will close after flushing the buffer
 $session->{'flush_shutdown'} = 1 if $session->{'http'}->{'close'};
-return 0;
+return FALSE;
 
-#,,,,,...,,.,,..,,,,.,,..,,..,.,,,...,,.,,..,,..,,...,...,.,,,,.,,...,,.,,..,,
-#46FYD32SQIDB4R6G4CK5F6TH4ZRESBQNFIR2GC3NGVKKBHTLUG2K4QDL3MHYGSHLNIU74KPXHCFKC
-#\\\|YS4H6DUTKHO4FZKQMLAD4SY7F46FCPDSSNLUPURZCIDS23VLKQX \ / AMOS7 \ YOURUM ::
-#\[7]3TWQZH3CFJVP25XDMKXUQKNH5JHMD3QI74GUVNCDJMOYQJRKD2BI 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,,,,...,.,.,,.,,.,,,,,,,,..,.,.,..,,...,...,,,,,...,.,,,.,,,,..,
+#42XJ3KTAWMNXRC6YXCJVXNW42MWUF42HJ36ZSTJNAMM4E3PZYAJEBJNIIBDMAO6ZRBNIVCLDR2V2S
+#\\\|K5BG2BBBF6Q5KUD5ZJK252ZZ7QKY6HH3DS6VWAE2M73MOOA6Z3Z \ / AMOS7 \ YOURUM ::
+#\[7]63JFQCPK32UPUUG5CARNX7U3Y4VRDMSW3FZF5E2VQ4BUW5MMYGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

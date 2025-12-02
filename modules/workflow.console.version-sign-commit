@@ -4,17 +4,17 @@
 # param = [commit-message]
 # descr = update version, sign, commit and push
 
-my $message = shift // '';
-my $no_push = 0;
+my $message         = shift // '';
+my $no_push         = 0;
 my $specific_remote = '';
 
 # Check for flags
-if ($message eq '--no-push') {
+if ( $message eq '--no-push' ) {
     $no_push = 1;
     $message = '';
-} elsif ($message =~ /^--remote=(.+)$/) {
+} elsif ( $message =~ /^--remote=(.+)$/ ) {
     $specific_remote = $1;
-    $message = '';
+    $message         = '';
 }
 
 say '';
@@ -22,7 +22,7 @@ say ' .:[ WORKFLOW: VERSION-SIGN-COMMIT-PUSH ]:.';
 say '';
 
 ## Prompt for message if not provided
-unless (length $message) {
+unless ( length $message ) {
     print ' : Commit message (or Enter for default): ';
     $message = <STDIN>;
     chomp $message if defined $message;
@@ -36,11 +36,11 @@ say '';
 system('./bin/dev/update-version');
 my $version_exit = $? >> 8;
 
-if ($version_exit != 0) {
+if ( $version_exit != 0 ) {
     say '';
     say sprintf ' : ✗ Version update failed (exit: %d)', $version_exit;
     say '';
-    return 1;
+    return TRUE;
 }
 
 say '';
@@ -48,49 +48,54 @@ say ' : ✓ Version updated';
 say '';
 
 ## Explicitly load crypto keys (since auto_load_keys is disabled for workflow zenka)
-my $sig_key_name = qw| proto-7.sourcecode |;
+my $sig_key_name  = qw| proto-7.sourcecode |;
 my $test_key_name = qw| test-proto7-sourcecode |;
 
 # Attempt to load user's base key if not already loaded
 my $base_key_name = <[crypt.C25519.key_vars]>->()->{'key_name'};
-if ($base_key_name && !exists $keys{'C25519'}{$base_key_name}) {
-    if (<[crypt.C25519.key_exists]>->($base_key_name)) {
+if ( $base_key_name && !exists $keys{'C25519'}{$base_key_name} ) {
+    if ( <[crypt.C25519.key_exists]>->($base_key_name) ) {
         <[crypt.C25519.load_keypair]>->($base_key_name);
     }
 }
 
 # Attempt to load production key if it exists
-if (!exists $keys{'C25519'}{$sig_key_name} && <[crypt.C25519.key_exists]>->($sig_key_name)) {
+if ( !exists $keys{'C25519'}{$sig_key_name}
+    && <[crypt.C25519.key_exists]>->($sig_key_name) ) {
     <[crypt.C25519.load_keypair]>->($sig_key_name);
 }
 
 ## Detect signing mode based on key presence
 my $use_production_key = 0;
-my $use_test_key = 0;
-my $key_mode = 'unknown';
+my $use_test_key       = 0;
+my $key_mode           = 'unknown';
 
 # Check if production key is loaded
-if ( exists $keys{'C25519'}{$sig_key_name} && defined $keys{'C25519'}{$sig_key_name} ) {
+if ( exists $keys{'C25519'}{$sig_key_name}
+    && defined $keys{'C25519'}{$sig_key_name} ) {
     $use_production_key = 1;
-    $key_mode = 'production';
+    $key_mode           = 'production';
     say ' : ✓ Production key detected';
     say sprintf ' : Using key: %s', $sig_key_name;
     say '';
 } else {
+
     # Production key not available - use test key mode
     $use_test_key = 1;
-    $key_mode = 'test';
+    $key_mode     = 'test';
     say ' : Production key not loaded - using test key mode';
 
     # Check if test key exists
-    unless ( exists $keys{'C25519'}{$test_key_name} && defined $keys{'C25519'}{$test_key_name} ) {
+    unless ( exists $keys{'C25519'}{$test_key_name}
+        && defined $keys{'C25519'}{$test_key_name} ) {
         say ' : Test key not found';
 
         # Check if crypt.C25519.gen_keys is available
         if ( exists $code{'crypt.C25519.gen_keys'} ) {
             say ' : Creating test key...';
 
-            my ($new_key, $created_name) = <[crypt.C25519.gen_keys]>->( $test_key_name );
+            my ( $new_key, $created_name )
+                = <[crypt.C25519.gen_keys]>->($test_key_name);
 
             unless ( defined $new_key ) {
                 say ' : ⚠ WARNING: Failed to generate test key';
@@ -98,7 +103,7 @@ if ( exists $keys{'C25519'}{$sig_key_name} && defined $keys{'C25519'}{$sig_key_n
                 say '';
                 say ' : ✓ Task completed (no signatures applied)';
                 say '';
-                return 0;  # Return success anyway
+                return 0;    # Return success anyway
             }
 
             say sprintf ' : ✓ Created test key: %s', $test_key_name;
@@ -109,7 +114,8 @@ if ( exists $keys{'C25519'}{$sig_key_name} && defined $keys{'C25519'}{$sig_key_n
             say '';
             say ' : ✓ Task completed (no signatures applied)';
             say '';
-            return 0;  # Return success - workflow completed even without signing
+            return
+                0;  # Return success - workflow completed even without signing
         }
     } else {
         say sprintf ' : ✓ Test key loaded: %s', $test_key_name;
@@ -121,12 +127,13 @@ if ( exists $keys{'C25519'}{$sig_key_name} && defined $keys{'C25519'}{$sig_key_n
 say ' .:[ STEP 1: UPDATING SIGNATURES ]:.';
 say '';
 
-if ( $use_test_key ) {
+if ($use_test_key) {
+
     # Backup original key and use test key
     my $original_key = $keys{'C25519'}{$sig_key_name};
     $keys{'C25519'}{$sig_key_name} = $keys{'C25519'}{$test_key_name};
 
-    system('./bin/Protocol-7', 'sourcecode', 'update-signatures');
+    system( './bin/Protocol-7', 'sourcecode', 'update-signatures' );
     my $sign_exit = $? >> 8;
 
     # Restore original key
@@ -134,26 +141,29 @@ if ( $use_test_key ) {
 
     if ( $sign_exit != 0 ) {
         say '';
-        say sprintf ' : ⚠ WARNING: Signature update failed (exit: %d)', $sign_exit;
+        say sprintf ' : ⚠ WARNING: Signature update failed (exit: %d)',
+            $sign_exit;
         say ' : Continuing without signatures';
         say '';
         $key_mode = 'none';
     }
 } else {
+
     # Use production key directly
-    system('./bin/Protocol-7', 'sourcecode', 'update-signatures');
+    system( './bin/Protocol-7', 'sourcecode', 'update-signatures' );
     my $sign_exit = $? >> 8;
 
     if ( $sign_exit != 0 ) {
         say '';
-        say sprintf ' : ⚠ WARNING: Signature update failed (exit: %d)', $sign_exit;
+        say sprintf ' : ⚠ WARNING: Signature update failed (exit: %d)',
+            $sign_exit;
         say ' : Continuing without signatures';
         say '';
         $key_mode = 'none';
     }
 }
 
-unless ($key_mode eq 'none') {
+unless ( $key_mode eq 'none' ) {
     say '';
     say ' : ✓ Signatures updated';
     say '';
@@ -163,17 +173,17 @@ unless ($key_mode eq 'none') {
 say ' .:[ STEP 2: STAGING CHANGES ]:.';
 say '';
 
-system('git', 'add', '-A');
+system( 'git', 'add', '-A' );
 my $add_exit = $? >> 8;
 
 if ( $add_exit != 0 ) {
     say ' : ✗ Failed to stage changes';
     say '';
-    return 1;
+    return TRUE;
 }
 
 # Show what will be committed
-system('git', 'status', '--short');
+system( 'git', 'status', '--short' );
 
 say '';
 say ' : ✓ Changes staged';
@@ -185,6 +195,7 @@ say '';
 
 my $commit_message = $message;
 unless ( length $commit_message ) {
+
     # Generate default message
     $commit_message = "chore: Update signatures with $key_mode key";
 }
@@ -192,10 +203,8 @@ unless ( length $commit_message ) {
 # Add key mode context to commit message
 $commit_message .= "\n\nSigned-by: $key_mode-key" if $use_test_key;
 
-my $commit_cmd = sprintf(
-    'git commit --no-gpg-sign -m "%s"',
-    $commit_message =~ s/"/\\"/gr
-);
+my $commit_cmd = sprintf( 'git commit --no-gpg-sign -m "%s"',
+    $commit_message =~ s|"|\\"|gr );
 
 system($commit_cmd);
 my $commit_exit = $? >> 8;
@@ -203,7 +212,7 @@ my $commit_exit = $? >> 8;
 if ( $commit_exit != 0 ) {
     say ' : ✗ Commit failed';
     say '';
-    return 1;
+    return TRUE;
 }
 
 say '';
@@ -219,7 +228,7 @@ unless ($no_push) {
     my $branch = `git branch --show-current`;
     chomp $branch if defined $branch;
 
-    unless (length $branch) {
+    unless ( length $branch ) {
         say ' : ⚠ WARNING: Could not determine current branch';
         say ' : Skipping push';
         say '';
@@ -227,36 +236,43 @@ unless ($no_push) {
         my @remotes_to_push;
 
         # Determine which remotes to push to
-        if (length $specific_remote) {
+        if ( length $specific_remote ) {
+
             # Specific remote requested
             @remotes_to_push = ($specific_remote);
             say sprintf ' : Pushing to specific remote: %s', $specific_remote;
-        } elsif (ref(<workflow.git.remotes>) eq 'ARRAY' && @{<workflow.git.remotes>}) {
+        } elsif ( ref(<workflow.git.remotes>) eq 'ARRAY'
+            && @{<workflow.git.remotes>} ) {
+
             # Multiple remotes configured
             @remotes_to_push = @{<workflow.git.remotes>};
             say sprintf ' : Pushing to %d configured remotes: %s',
-                scalar(@remotes_to_push), join(', ', @remotes_to_push);
+                scalar(@remotes_to_push), join( ', ', @remotes_to_push );
         } else {
+
             # Auto-detect available remotes with priority order
             my $remotes_output = `git remote 2>/dev/null`;
             chomp $remotes_output if defined $remotes_output;
-            my @available_remotes = split(/\n/, $remotes_output // '');
+            my @available_remotes = split( /\n/, $remotes_output // '' );
 
             if (@available_remotes) {
+
                 # Priority order: hub > origin > first available
                 my $selected_remote;
-                if (grep { $_ eq 'hub' } @available_remotes) {
+                if ( grep { $_ eq 'hub' } @available_remotes ) {
                     $selected_remote = 'hub';
                     say ' : Auto-detected remote: hub';
-                } elsif (grep { $_ eq 'origin' } @available_remotes) {
+                } elsif ( grep { $_ eq 'origin' } @available_remotes ) {
                     $selected_remote = 'origin';
                     say ' : Auto-detected remote: origin';
                 } else {
                     $selected_remote = $available_remotes[0];
-                    say sprintf ' : Auto-detected remote: %s', $selected_remote;
+                    say sprintf ' : Auto-detected remote: %s',
+                        $selected_remote;
                 }
                 @remotes_to_push = ($selected_remote);
             } else {
+
                 # No remotes configured - skip push gracefully
                 say ' : ⚠ WARNING: No git remotes configured';
                 say ' : Skipping push';
@@ -274,11 +290,12 @@ unless ($no_push) {
         foreach my $remote (@remotes_to_push) {
             say sprintf ' : → Pushing to %s...', $remote;
 
-            system('git', 'push', '-u', $remote, $branch);
+            system( 'git', 'push', '-u', $remote, $branch );
             my $push_exit = $? >> 8;
 
-            if ($push_exit != 0) {
-                say sprintf '   ✗ Failed to push to %s (exit: %d)', $remote, $push_exit;
+            if ( $push_exit != 0 ) {
+                say sprintf '   ✗ Failed to push to %s (exit: %d)', $remote,
+                    $push_exit;
                 push @failed_remotes, $remote;
                 $all_success = 0;
             } else {
@@ -289,14 +306,16 @@ unless ($no_push) {
         say '';
 
         if ($all_success) {
-            say sprintf ' : ✓ Successfully pushed to all %d remote(s)', scalar(@remotes_to_push);
+            say sprintf ' : ✓ Successfully pushed to all %d remote(s)',
+                scalar(@remotes_to_push);
             say '';
         } else {
             say sprintf ' : ⚠ WARNING: Failed to push to %d remote(s): %s',
-                scalar(@failed_remotes), join(', ', @failed_remotes);
-            say ' : Note: Changes are committed locally and may be pushed to some remotes';
+                scalar(@failed_remotes), join( ', ', @failed_remotes );
+            say
+                ' : Note: Changes are committed locally and may be pushed to some remotes';
             say '';
-            return 1;
+            return TRUE;
         }
     SKIP_PUSH:
     }
@@ -314,20 +333,21 @@ say sprintf ' : Commit message: %s', $commit_message;
 
 if ($no_push) {
     say ' : Pushed: no (--no-push flag)';
-} elsif (length $specific_remote) {
+} elsif ( length $specific_remote ) {
     say sprintf ' : Pushed to: %s', $specific_remote;
-} elsif (ref(<workflow.git.remotes>) eq 'ARRAY' && @{<workflow.git.remotes>}) {
-    say sprintf ' : Pushed to: %s', join(', ', @{<workflow.git.remotes>});
+} elsif ( ref(<workflow.git.remotes>) eq 'ARRAY'
+    && @{<workflow.git.remotes>} ) {
+    say sprintf ' : Pushed to: %s', join( ', ', @{<workflow.git.remotes>} );
 } else {
     say ' : Pushed to: origin';
 }
 
 say '';
 
-return 0;
+return FALSE;
 
-#,,,.,,..,.,.,,,.,,.,,.,,,,.,,.,,,...,.,,,,,.,..,,...,...,,,.,...,.,.,...,.,,,
-#FU5KO4YAHRMMO3XNYN3NHEGSD265R2MCBB3BHHJ7NGPKYEUDGQHTJPBTBJHEOA6VAEBOXEFH64JYO
-#\\\|HOL2KPN4EWRTLJYNKVBYGB5YQTB5ZCTTSSN3ZUB7UZUMFPVM6LX \ / AMOS7 \ YOURUM ::
-#\[7]NVYOAT4G5NKQ2HL5ECMLRTUGVZ4SRFA36XHZGVDRWZOV6SNJJOBI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,..,,..,,,.,,,..,,,,,..,,.,,,,.,,..,,...,.,.,,.,,,.,,,,,,...,,,,,
+#NHKJM44GDUHSFXSBGMXQ4FM5UZWG2WXWU32GLJ2QZPT2ZFDZL3RTR5GVA4FS5GIUYE6IWVHJUCEFI
+#\\\|N3M25STDFWEYX5LLDRQZEEGUP75MR4U5U5YC42GNEZ77RFLWELH \ / AMOS7 \ YOURUM ::
+#\[7]3XICFSLE6E24COSMVXXNRWGCWNCB2I4K2DI4IRFB6YR25N3262BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

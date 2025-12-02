@@ -18,7 +18,7 @@ unless ( exists <letsencr.parent.pending_challenges> {$token} ) {
     <[base.log]>->(
         1, "challenge token $token not found in pending challenges"
     );
-    return 0;
+    return FALSE;
 }
 
 my $challenge = <letsencr.parent.pending_challenges> {$token};
@@ -62,10 +62,10 @@ if ( $mode eq 'TRUE' ) {
     );
 }
 
-return 0;
+return FALSE;
 
-#,,,,,..,,,..,,..,.,.,.,,,.,.,,,,,,..,,,,,...,..,,...,...,...,,.,,,..,,..,,..,
-#BUBQXKNCLR7ADT76KQT55V3K7NBDCP236X4HJR6DCCCIOGG4PQLYDGLY7VZSC5UTEYE3CARSIQMVW
-#\\\|BF4EPSPA36T74VWVYFXZWUDHHSEPV7T3LLK35FNDSXQ4RIFFOTU \ / AMOS7 \ YOURUM ::
-#\[7]V7YAGPEIX24KB7HVC2ONGLS523BDT6OB35TP533KEW24GZBPUGDI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,..,,,,,,,.,,.,,,,,,,.,.,.,.,,..,..,,...,...,.,.,.,,,,,,,...,.,.,
+#QX3RM4FHJBVL2YAJRVLRLUFZ4APSFZTJOTU2HOMHQOOBGSCUP4KVF77ORFAPYVSA2KLPKFVUMNO6S
+#\\\|HEMMG7ULGPTCUHTAGTN524BLX2C3B7PIQDXINQ6IL5WXAHPWPCV \ / AMOS7 \ YOURUM ::
+#\[7]ZV4BXIXT2X7N4V57Z5OHQMGYDP5R2WHJVZLJ6N22XNKFYKPECKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1148,7 +1148,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 ##[ RETURN \ CHECK NONE LEFT ]################################################
 
-        return 0 if @send_sids_left == 0;    ##  <--  all done.,  ###
+        return FALSE if @send_sids_left == 0;    ##  <--  all done.,  ###
         @send_sids = @send_sids_left if @send_sids_left != @send_sids;
 
 ##[ PROCESS \ FILTER HOOKS ]##################################################
@@ -1295,8 +1295,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 return 0;        ## comand complete ##
 
-#,,.,,,..,..,,.,.,,..,..,,,,,,.,.,.,,,.,,,...,..,,...,..,,..,,,..,,,,,,.,,,..,
-#FNG3SDH4WEL4FGJUK7EKLVKIEUF3UC52RN5EAP453EA34QKJO3YIY4UXZZVLL2TLKYOMQGEU24RYO
-#\\\|ZYU5WOF2SUWPYB26YZU3U3ZVWDBIXBVOR6NOOWKP7B75WYJ472K \ / AMOS7 \ YOURUM ::
-#\[7]V63JWO3HW47AGAXG4BTJNTKHE4QNJJOMEX4UP5O4LHDIZAJZNMDA 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,.,,,..,,..,,..,.,.,,,.,,,.,.,.,..,,...,...,.,.,,.,,,.,,..,,,,.,
+#WNQXMP6URK7DFI5F2FB3HRMFE3T67Y6JZQSFBVFHSK5ZDZSPNYDCHYN4RVYNGQMG2WY5R2YBUVLXE
+#\\\|LCU4EYMNGCHY3S5ZFGO4M6SA7J4GLVSW4WF7IQ2BSKJ2YJGCXLL \ / AMOS7 \ YOURUM ::
+#\[7]7GUSV2OPUSRQGHUIRQWRGPFRGGEEMMFJINJBVCBYU3DTZCQ3I6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

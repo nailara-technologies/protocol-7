@@ -180,13 +180,13 @@ foreach my $author ( keys %authors_seen ) {
 
     ## Check for similar author names (case-insensitive, whitespace normalized)
     my $normalized = lc($author);
-    $normalized =~ s/\s+/ /g;
-    $normalized =~ s/^\s+|\s+$//g;
+    $normalized =~ s|\s+| |g;
+    $normalized =~ s{^\s+|\s+$}{}g;
 
     my @variants = grep {
         my $other = lc($_);
-        $other =~ s/\s+/ /g;
-        $other =~ s/^\s+|\s+$//g;
+        $other =~ s|\s+| |g;
+        $other =~ s{^\s+|\s+$}{}g;
         $other eq $normalized
     } keys %authors_seen;
 
@@ -489,8 +489,8 @@ return {
 
 0;
 
-#,,.,,,,,,...,,,.,,.,,...,...,,,.,.,.,,..,,..,..,,...,...,..,,,..,.,,,,..,,..,
-#5TGFC7TSRUJKM2CIHSISYH2JUCQVOI2L5WARPDAA3X4AZJJ4KITWNXF3NICSLJWODFUMQVKTLTFWA
-#\\\|7GXNC3DB5M3CMNWG3UQ4OGYHRHVPGHFR6BMGIP253CADSGQMM7H \ / AMOS7 \ YOURUM ::
-#\[7]O27HFR6ZXJZWRGQUT2XDSO6R32OIEA7ELOCPESC6HLJNZCSX22DY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,.,,,..,,..,..,,..,,...,..,,,..,..,,...,...,,,,,.,.,.,,,.,.,.,,,
+#SKKI7UNHH4GTZIGWLWDZE7HUOHSW2ZQA3AX7VQH7CLHC34P2IL3EEPXJ2ENLMAJCW5HERRJKETQ5Q
+#\\\|VNVIE3WY7DUPARRE34O6A2SREHPDZKG6DBTJT6ZGPH23FQFY4PB \ / AMOS7 \ YOURUM ::
+#\[7]QGWRSNWUT7HIFGH73AAQ5ZPM5Q46BYFZ6SCXO5EBMNMPRSZV5SCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

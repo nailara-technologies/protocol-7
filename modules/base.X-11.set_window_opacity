@@ -26,7 +26,7 @@ if ( defined $data{'session'}->{$sid} ) {   # status 'online' # ->{'cube_sid'}
             'call_args' => { 'args' => "$id $opacity" }
         }
     );
-    return 1;
+    return TRUE;
 }
 
 my $cmd_id  = <[base.gen_id]>->( $data{'route'} );
@@ -48,13 +48,13 @@ while ( !$matched_reply ) {
 
 if ( $reply_string =~ /^\($cmd_id\)FALSE (.+)$/ ) {
     <[base.log]>->( 0, "set_opacity command failed with '$1'.," );
-    return 0;
+    return FALSE;
 } else {
-    return 1;
+    return TRUE;
 }
 
-#,,.,,.,,,,.,,,,,,.,,,,,.,,,,,,.,,.,.,..,,,,,,..,,...,..,,,..,.,.,,..,,.,,,,,,
-#6HOYJQQHNUHF3BMJI7KMC6UGFBRHGVLYG2Z2POSEXR4QAIQ6RRKBM4JZTZAAHU75G3WYM5CUOUBOC
-#\\\|HKKXMGFT3PALTBDGUZEQGWDHBBJ4FT4WRKOL6QKIF3EJ3BVJCAR \ / AMOS7 \ YOURUM ::
-#\[7]EBW6BH2TEY25VO6WN5STT4CDFO7TB4FSZLRMBYG6IWPTUMRPEWBI 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,..,,...,...,,,.,,,.,.,.,,.,,.,.,..,,...,...,.,.,..,,...,.,.,,,,,
+#OSD6AQH5SBEZTIL2SUGQVUFMYWUGXVV5ZN6BPJP6M2Z4VVN6AHUXICD3DWYHNAP73TKHIVBJ5SNP4
+#\\\|6ZCJLSS4Y5YA5254BMULFRGA3ICCZ535VEIUT357B5CC4T4FMEJ \ / AMOS7 \ YOURUM ::
+#\[7]GXMS3OLD6OAFNTUNDANYCS7E4KKPF76PJZ56TFHDLQLYAQ2VWIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

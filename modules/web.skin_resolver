@@ -18,103 +18,101 @@
 #   Hash ref with resolved skin structure:
 #   {
 #     skin_name => "dark",
-#     skin_root => "/var/httpd/_global_templates/skins/dark",
+#     skin_root => "/var/httpd/_global_templates/skins|dark",
 #     cascade => ["dark", "default"],
 #     metadata => { ... }
 #   }
 
-my $vhost = shift;
-my $user_prefs = shift // {};
+my $vhost      = shift;
+my $user_prefs = shift || {};
 my $user_agent = shift // '';
 
 ## Validate parameters ##
-unless (defined $vhost and length $vhost) {
-    <[base.log]>->(0, "skin_resolver: missing vhost parameter");
+unless ( defined $vhost and length $vhost ) {
+    <[base.log]>->( 0, "skin_resolver: missing vhost parameter" );
     return {
         skin_name => 'default',
-        skin_root => '/var/httpd/_global_templates/skins/default',
-        cascade => ['default'],
-        metadata => {}
+        skin_root => '/var/httpd/_global_templates/skins|default',
+        cascade   => ['default'],
+        metadata  => {}
     };
 }
 
-my $site_root = <httpd.cfg.site_dir> // '/var/httpd';
+my $site_root  = <httpd.cfg.site_dir> || '/var/httpd';
 my $skins_root = "$site_root/_global_templates/skins";
 
 <[base.log]>->(
     2,
     "skin_resolver: [$vhost] resolving skin with prefs: "
-        . (join ', ', keys %$user_prefs)
+        . ( join ', ', keys %$user_prefs )
 );
 
 ## Initialize caching if needed ##
-unless (exists $data{'skin_cache'}) {
+unless ( exists $data{'skin_cache'} ) {
     $data{'skin_cache'} = {};
 }
 
 ## Build cache key from user preferences ##
 my $cache_key_parts = [$vhost];
-foreach my $key (sort keys %$user_prefs) {
+foreach my $key ( sort keys %$user_prefs ) {
     push @$cache_key_parts, "$key=" . $user_prefs->{$key};
 }
-my $cache_key = join(':', @$cache_key_parts);
+my $cache_key = join( ':', @$cache_key_parts );
 
-if (exists $data{'skin_cache'}->{$cache_key}) {
-    <[base.log]>->(3, "skin_resolver: using cached skin resolution");
+if ( exists $data{'skin_cache'}->{$cache_key} ) {
+    <[base.log]>->( 3, "skin_resolver: using cached skin resolution" );
     return $data{'skin_cache'}->{$cache_key};
 }
 
 ## Step 1: Detect device type from user agent ##
-my $device_type = 'desktop';  # default
+my $device_type = 'desktop';    # default
 
 if ($user_agent) {
-    if ($user_agent =~ /mobile|iphone|android|blackberry|opera mini/i) {
+    if ( $user_agent =~ /mobile|iphone|android|blackberry|opera mini/i ) {
         $device_type = 'mobile';
-    } elsif ($user_agent =~ /tablet|ipad|android/i) {
+    } elsif ( $user_agent =~ /tablet|ipad|android/i ) {
         $device_type = 'tablet';
     }
 }
 
-<[base.log]>->(2, "skin_resolver: device detected: $device_type");
+<[base.log]>->( 2, "skin_resolver: device detected: $device_type" );
 
 ## Step 2: Determine skin cascade based on preferences ##
 my @cascade = ();
 
 ## Add user-selected skin if specified ##
-if (defined $user_prefs->{'skin'} and length $user_prefs->{'skin'}) {
+if ( defined $user_prefs->{'skin'} and length $user_prefs->{'skin'} ) {
     my $selected_skin = $user_prefs->{'skin'};
 
     # Validate skin name (alphanumeric, dash, underscore only)
-    if ($selected_skin =~ /^[a-zA-Z0-9_-]+$/) {
+    if ( $selected_skin =~ /^[a-zA-Z0-9_-]+$/ ) {
         push @cascade, $selected_skin;
         <[base.log]>->(
-            2,
-            "skin_resolver: user selected skin: $selected_skin"
+            2, "skin_resolver: user selected skin: $selected_skin"
         );
     } else {
         <[base.log]>->(
-            1,
-            "skin_resolver: invalid skin name rejected: $selected_skin"
+            1, "skin_resolver: invalid skin name rejected: $selected_skin"
         );
     }
 }
 
 ## Add device-specific skin if available ##
-if ($device_type eq 'mobile') {
+if ( $device_type eq 'mobile' ) {
     push @cascade, 'mobile';
-    <[base.log]>->(2, "skin_resolver: added mobile skin to cascade");
+    <[base.log]>->( 2, "skin_resolver: added mobile skin to cascade" );
 }
 
 ## Add dark mode skin if time-based or preferred ##
-my $current_hour = (localtime)[2];
-my $is_dark_hours = ($current_hour >= 20 or $current_hour < 8);
+my $current_hour  = (localtime)[2];
+my $is_dark_hours = ( $current_hour >= 20 or $current_hour < 8 );
 
-if ($user_prefs->{'dark_mode'} or $is_dark_hours) {
+if ( $user_prefs->{'dark_mode'} or $is_dark_hours ) {
     push @cascade, 'dark';
     <[base.log]>->(
         2,
         "skin_resolver: added dark skin (pref="
-            . ($user_prefs->{'dark_mode'} ? 'yes' : 'no')
+            . ( $user_prefs->{'dark_mode'} ? 'yes' : 'no' )
             . ", dark_hours=$is_dark_hours)"
     );
 }
@@ -123,8 +121,7 @@ if ($user_prefs->{'dark_mode'} or $is_dark_hours) {
 push @cascade, 'default';
 
 <[base.log]>->(
-    2,
-    "skin_resolver: cascade order: " . join(' -> ', @cascade)
+    2, "skin_resolver: cascade order: " . join( ' -> ', @cascade )
 );
 
 ## Step 3: Find first available skin in cascade ##
@@ -134,45 +131,43 @@ my $resolved_path = "$skins_root/default";
 foreach my $skin_name (@cascade) {
     my $skin_path = "$skins_root/$skin_name";
 
-    if (-d $skin_path) {
+    if ( -d $skin_path ) {
         $resolved_skin = $skin_name;
         $resolved_path = $skin_path;
 
         <[base.log]>->(
-            2,
-            "skin_resolver: resolved to '$skin_name' at $skin_path"
+            2, "skin_resolver: resolved to '$skin_name' at $skin_path"
         );
         last;
     } else {
         <[base.log]>->(
-            3,
-            "skin_resolver: skin '$skin_name' not found, trying next"
+            3, "skin_resolver: skin '$skin_name' not found, trying next"
         );
     }
 }
 
 ## Step 4: Load skin metadata ##
-my $metadata = {};
+my $metadata      = {};
 my $metadata_file = "$resolved_path/metadata.yaml";
 
-if (-f $metadata_file) {
-    open(my $fh, '<', $metadata_file) or do {
+if ( -f $metadata_file ) {
+    open( my $fh, '<', $metadata_file ) or do {
         <[base.log]>->(
-            2,
-            "skin_resolver: cannot read metadata: $metadata_file"
+            2, "skin_resolver: cannot read metadata: $metadata_file"
         );
         $metadata = {};
     };
 
-    while (my $line = <$fh>) {
+    while ( my $line = <$fh> ) {
+
         # Simple YAML parsing for common fields
-        if ($line =~ /^\s*name\s*:\s*(.+)/) {
+        if ( $line =~ /^\s*name\s*:\s*(.+)/ ) {
             $metadata->{'name'} = $1;
-        } elsif ($line =~ /^\s*version\s*:\s*(.+)/) {
+        } elsif ( $line =~ /^\s*version\s*:\s*(.+)/ ) {
             $metadata->{'version'} = $1;
-        } elsif ($line =~ /^\s*author\s*:\s*(.+)/) {
+        } elsif ( $line =~ /^\s*author\s*:\s*(.+)/ ) {
             $metadata->{'author'} = $1;
-        } elsif ($line =~ /^\s*description\s*:\s*(.+)/) {
+        } elsif ( $line =~ /^\s*description\s*:\s*(.+)/ ) {
             $metadata->{'description'} = $1;
         }
     }
@@ -181,25 +176,22 @@ if (-f $metadata_file) {
 
 ## Build result ##
 my $result = {
-    skin_name => $resolved_skin,
-    skin_root => $resolved_path,
-    cascade => \@cascade,
-    metadata => $metadata,
+    skin_name   => $resolved_skin,
+    skin_root   => $resolved_path,
+    cascade     => \@cascade,
+    metadata    => $metadata,
     device_type => $device_type
 };
 
 ## Cache the resolution ##
 $data{'skin_cache'}->{$cache_key} = $result;
 
-<[base.log]>->(
-    2,
-    "skin_resolver: [$vhost] resolved to '$resolved_skin'"
-);
+<[base.log]>->( 2, "skin_resolver: [$vhost] resolved to '$resolved_skin'" );
 
 return $result;
 
-#,,,.,,..,,,.,..,,...,,..,,..,...,,.,,,..,..,,..,,...,.,.,...,,,,,,..,...,,,,,
-#YELN3FMT5HTO7FO74HUXB3IOM3U5IB4GML2BHIDUBWAEO3P7DERBTPR7WAOLGAUKLESG2QYSK7L4A
-#\\\|OOHYSQ4SHFBGFCNBXAMPLVVBLPVEVQ3EFWOYOIVHYQAASKVTI2G \ / AMOS7 \ YOURUM ::
-#\[7]BD7RE753RVJCNE5YO6A3CSMM2IS6FVVEQ4B56XV5R7VT2BHBHCBI 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,,.,.,,,.,.,...,.,,,,,,,.,.,...,..,,...,...,..,,,,,,,.,,..,,,,,,
+#XWZOGZV5RRXT7DO34K2C2FM4LSG6DOKBORGFBZUHWHUFZTXZRJQGCWTBMFSS45W27OJJQDO35DDVQ
+#\\\|HGZ4LHNKYSTXH7ZDSHLVJP2LAHGA7MEE2K3Y3J3ADBAZW4KMXWY \ / AMOS7 \ YOURUM ::
+#\[7]XUWEUYWWDYLKIVPB357UCMHFHGIQTT6N5GSJF5C2F63UW3VO4OBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

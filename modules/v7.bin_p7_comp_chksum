@@ -11,7 +11,7 @@ my $checksum_string = shift;
 ( warn "expected source checksum parameter <{C1}>" and return 0 )
     if not defined $checksum_string;
 
-return 0
+return FALSE
     if not -e $p7_bin_path;    ## no binary present \ checksum not found.. ##
 
 ( <[base.log]>->( 0, "no read access to '$p7_bin_path'" ) and return 0 )
@@ -20,7 +20,7 @@ return 0
 my $binary_fh;
 if ( !open( $binary_fh, join( ' ', '<', ':raw' ), $p7_bin_path ) ) {
     <[base.log]>->( 0, "unable to open '$p7_bin_path' ., [ \l$OS_ERROR ]" );
-    return 0;
+    return FALSE;
 }
 
 my $checksum_found = 0;
@@ -35,8 +35,8 @@ while (<$binary_fh>) {
 close($binary_fh);
 return $checksum_found;
 
-#,,..,...,,,.,...,..,,.,,,..,,...,.,.,.,.,.,,,..,,...,...,...,,..,.,,,,,.,,,,,
-#ZQH4JDRPXSENTIVLE2YPLP3J3L37YJJ44QEWJM75TEGQL6QJRYVSIYBM2JM4QKQL5PIIMTD6VA43Q
-#\\\|G5EOE2NY72L63B23MHHEHWJ6VXQKAPB72WK7NONOIY2ZHIDNQF3 \ / AMOS7 \ YOURUM ::
-#\[7]J7CYXB3OIMF76C6IVKVE34ZFTKRA5VCMVJZRMCOCAYXDIPKVXSBY 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,.,,,..,,,,,,.,,,.,,,,.,,...,...,..,,...,...,..,,,,.,,,.,..,,.,,,
+#NKKDER3HGC2BQPNCUZCJSWFBTRBBSJ3OZQFAO6K4XW7FNUNANDLL34KWIPOYP2KEBDVUWNDAPUR7U
+#\\\|CAN3V2EEQXJX3NYLSMRMKJCJTG2SCVYRF3ON2WUXYOZNWOAVNLC \ / AMOS7 \ YOURUM ::
+#\[7]RHSGUWMHPLYABZAY2N4GPOWUUGZX4FG2RM2JZ3NJ64SUCXLTRYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

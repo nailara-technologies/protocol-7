@@ -9,7 +9,7 @@ $config_name =~ s|^.*/||g;
 my $import_dir  = '/etc/protocol-7/import';
 my $import_path = "$import_dir/$config_name";
 
-return 0 if !-d $import_dir or !-f $import_path;
+return FALSE if !-d $import_dir or !-f $import_path;
 
 <[base.log]>->( 1, "importing config '$config_name'.." );
 <[base.log]>->( 2, ": from directory '$import_dir'" );
@@ -35,8 +35,8 @@ my $status = <[base.execute_zenka_code]>->(
 
 return $status;
 
-#,,.,,,,,,.,,,,,.,.,,,,..,..,,,..,,..,,..,...,..,,...,..,,,..,,.,,,,.,,..,,.,,
-#AZKZ3RADGQJ5GRWVF7BK37X37U7ZGPRTI5NR4HDJ2GUBW2J3DPGFTLSSE7XMZVES44HVMKCUK4DAY
-#\\\|YJGGN5B6L3TXFHAMTQG6IB5F6ZQGJVNYYX4JL6JC42ANZ4DWB5B \ / AMOS7 \ YOURUM ::
-#\[7]W2LNHTC45WVPLFJCNA7WTT5MKJ7NQZPTCUE63UXSOUM3S4U5ZODI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,,,..,,,.,,,,.,..,,,..,,,,,..,,..,,...,...,.,,,,..,...,.,,,,,,,
+#BDA6KVULPEGXJDNCKUIF7YJO4SXOJ46SBJEZAZESN6L7YFBHOVOQK77QQB4D5W4RWUYMS5TTVLFKO
+#\\\|NA64JRAAYUCR4W6FR5M36QO3B6ANN3OZQX736XX5JMZBLKLE63F \ / AMOS7 \ YOURUM ::
+#\[7]MBITBWUJHPND2KKAYFDKEDQNYJNHLPNQAPPKVXUVMKCXXBLDIYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,20 +13,20 @@ unless ($route) {
     return;
 }
 
-my $zenka_name = $params->{zenka_name} || 'unknown';
+my $zenka_name = $params->{zenka_name}  || 'unknown';
 my $mode       = $route->{'reply_mode'} || 'unknown';
 my $reply_data = $route->{'reply_data'} || '';
 
 <[base.log]>->( 2, "v7 start reply for '$zenka_name': mode=$mode" );
 
-if ($mode eq 'true' || $mode eq 'TRUE') {
+if ( $mode eq 'true' || $mode eq 'TRUE' ) {
     <[base.log]>->( 1, "  ✓ v7 confirmed: $reply_data" );
 
     ## Update statistics
     $data{'zenki'}{'stats'}{'successful_starts'}++
         if exists $data{'zenki'}{'stats'};
 
-} elsif ($mode eq 'false' || $mode eq 'FALSE') {
+} elsif ( $mode eq 'false' || $mode eq 'FALSE' ) {
     <[base.log]>->( 0, "  ✗ v7 start failed: $reply_data" );
 
     ## Update statistics
@@ -41,10 +41,10 @@ if ($mode eq 'true' || $mode eq 'TRUE') {
 <[base.route.remove]>->($route_id)
     if exists $code{'base.route.remove'};
 
-return 1;
+return TRUE;
 
-#,,..,,,.,,.,,.,,,...,.,.,,.,,,.,,,,.,,..,,.,,..,,...,...,,.,,.,.,,.,,...,,,,,
-#XMPZGR2J2ZZAOG7BO265UIRGN7MRFVQIZI4HEGAIXFALH4BTJZXU6M3M4TPB4ETAN2P6SZZZQZD2I
-#\\\|GXSQGV4WAMVGDCF2YQRJR2GBIGNN6SMPXOOFMS7ZE22VZ64U3JS \ / AMOS7 \ YOURUM ::
-#\[7]6YVYZ3X3CTT6QUUJKLJMYV3D6FKZFE5YNHTOSB6QTOCQ5R2LHKCY 7  DATA SIGNATURE ::
+#,,.,,...,...,,,,,.,.,,.,,...,.,.,,.,,,,,,...,..,,...,...,..,,.,.,,..,,,.,,,,,
+#R623MPBAKK56ZN2T3KEAH57LRU75BGJQNJ466VQQOITYVJ4JUTURQKRPVY4TNMBSWYSDZRILUPBRK
+#\\\|RCOPDXC3P7TSXC3RUYX2OXKWCGXROQ4NATRVEXTRNSG7ZMYP2CJ \ / AMOS7 \ YOURUM ::
+#\[7]RWMW4ASB4QF6IEIBHQ76OC6OTVUXACJVRJEN7Z72FZNXSFOB3GDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

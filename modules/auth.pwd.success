@@ -16,13 +16,14 @@ if ( not defined $uname_str ) {
     return undef;
 }
 
-return 0 if not length $uname_str;    ## not authorized \ username required ##
+return FALSE
+    if not length $uname_str;    ## not authorized \ username required ##
 
 my $key_href
     = <[base.resolve_key]>->( sprintf qw| auth.setup.usr.%s |, $uname_str );
 
 ##  no such user entry in set-up \ no access  ##
-return 0 if not defined $key_href;
+return FALSE if not defined $key_href;
 
 if ( length $key_href->{'r-type'} or not defined $key_href->{'r-data'} ) {
     <[base.s_warn]>->(
@@ -43,8 +44,8 @@ if ($key_href->{'r-data'} eq    ## 'salted' with <uname>: prefix ##
     return FALSE;    ##  false  ##
 }
 
-#,,,.,.,.,,,.,,.,,,,.,,.,,,,.,,,,,.,,,.,,,,.,,..,,...,...,.,,,.,,,,,.,,,.,..,,
-#7AILZCJXG2K6Y7MGYXQAI5FEFA3OCMTFIOOI5XUZX7OPP3TIEK6LRB35WUV3M3EGTIAKYOPN4JFQE
-#\\\|GVLJDUZUL7DVUE5IM7NIB7BCJXK6AVEOC625RNOLX4D2YKYFVSY \ / AMOS7 \ YOURUM ::
-#\[7]7QZ4A2QEBNUCUXMCVRXW5BNDE3ELKEDVWTGGOUWHJZF2XQN5HODQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,..,.,.,..,,.,,,.,,,,,.,.,,,,,,,..,,...,..,,...,,,,,.,,,.,.,.,.,
+#UJL5KILQISILYKZEPIIBCN7F6YQ53H3DQBIYBQILKIX57AYRQTFYY6XXRQHM44Y27ARE2ESQZQJTK
+#\\\|OMMONU5MYCYNVG4LB7U2JH4TBLRYGSFBLLVLDZ7QMRLHIJHX7E4 \ / AMOS7 \ YOURUM ::
+#\[7]VCT75BZ3NZBPWGY6SL5W6VXMIMDHG5J3LWHVZJWSRMT7BIAKZKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

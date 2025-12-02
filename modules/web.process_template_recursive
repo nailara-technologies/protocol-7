@@ -6,7 +6,7 @@
 my $params = shift;
 
 my $template_content = $params->{content};
-my $meta_vars        = $params->{meta} // {};
+my $meta_vars        = $params->{meta}  // {};
 my $depth            = $params->{depth} // 0;
 my $template_id      = $params->{template_id};
 my $session_id       = $params->{session_id};
@@ -28,13 +28,12 @@ if ( $depth >= $max_depth ) {
 }
 
 <[base.log]>->(
-    3,
-    "[$session_id] processing template at depth $depth (id: $template_id)"
+    3, "[$session_id] processing template at depth $depth (id: $template_id)"
 );
 
 ## Step 1: Process meta variables <{var_name}> ##
 my $meta_pattern = <web.template.meta_pattern>;
-$template_content =~ s/$meta_pattern/
+$template_content =~ s|$meta_pattern|
     my $var_name = $1;
     if (exists $meta_vars->{$var_name}) {
         $meta_vars->{$var_name};
@@ -42,7 +41,7 @@ $template_content =~ s/$meta_pattern/
         <[base.log]>->(2, "[$session_id] undefined meta variable: $var_name");
         "<{$var_name}>";  ## Leave unchanged if undefined
     }
-/ge;
+|ge;
 
 ## Step 2: Extract and parse commands using base.parser.pattern_split ##
 my $command_pattern = <web.template.command_pattern>;
@@ -51,7 +50,7 @@ my $command_index   = 0;
 
 ## Parse template and extract commands with their positions ##
 my $parsed_content = <[base.parser.pattern_split]>->(
-    \$template_content,   ## Must pass as scalar ref
+    \$template_content,    ## Must pass as scalar ref
     $command_pattern,
     sub {
         my ( $before, $after, $captured ) = @_;
@@ -61,12 +60,12 @@ my $parsed_content = <[base.parser.pattern_split]>->(
 
         push @commands,
             {
-            id       => $cmd_id,
-            raw      => $captured,
-            result   => undef,
-            status   => qw| pending |,
-            depth    => $depth + 1,
-            nested   => ( $captured =~ /<\[/ ? 1 : 0 ),
+            id     => $cmd_id,
+            raw    => $captured,
+            result => undef,
+            status => qw| pending |,
+            depth  => $depth + 1,
+            nested => ( $captured =~ /<\[/ ? 1 : 0 ),
             };
 
         ## Return placeholder that will be replaced with command result ##
@@ -90,8 +89,7 @@ my $parsed_content = <[base.parser.pattern_split]>->(
 foreach my $cmd (@commands) {
     if ( $cmd->{nested} ) {
         <[base.log]>->(
-            3,
-            "[$session_id] processing nested command: $cmd->{raw}"
+            3, "[$session_id] processing nested command: $cmd->{raw}"
         );
 
         ## Recursively process the nested command content ##
@@ -149,7 +147,7 @@ foreach my $cmd (@commands) {
 foreach my $cmd (@commands) {
     my $placeholder = "<<COMMAND:$cmd->{id}>>";
     my $result      = $cmd->{result} // '';
-    $parsed_content =~ s/\Q$placeholder\E/$result/g;
+    $parsed_content =~ s|\Q$placeholder\E|$result|g;
 }
 
 <web.commands.completed> += scalar(@commands);
@@ -187,8 +185,8 @@ return {
     depth   => $depth,
 };
 
-#,,,,,,..,...,,,.,.,,,,..,,,,,,.,,,..,..,,..,,..,,...,...,,,,,,.,,,,,,...,...,
-#NYCKEHVYHBF6T5CP6ZYERKR7EQPKLO3MZT4WQINAUIITZX56D6HK5GH7WRSN6U2BGBNSCTDDW5CH4
-#\\\|ZEFCU5RE7HJCFOH3QVFHVUCL34YTXBL5C3QDYLX7X2DEC55Y6N3 \ / AMOS7 \ YOURUM ::
-#\[7]TLTTIUFN2IESEILPEHGRCOKHSGQOMK6DGWL7WE5CJG5MCLVVFOBY 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,,,,,.,,..,,,,.,.,.,.,,,,.,,.,.,..,,...,.,.,...,,,,,,..,,,,,...,
+#KV6LZEHRKDQOHDQFGQW4Q4YZSZUG26NPMB43EUPO4PB4N4NQDRZBSCYOR6KNK52GQYCY4DP34IKXO
+#\\\|OYGA3IILFBV4MQVGXW33WG52N3HZTYRICN2XNOVALM74ABR77HF \ / AMOS7 \ YOURUM ::
+#\[7]DMC35VIVSCSJYPXK5D6NGKPALDG234MLRYHIUUB53HGDFFFH6EBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

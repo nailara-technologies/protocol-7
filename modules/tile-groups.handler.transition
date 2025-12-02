@@ -169,7 +169,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
     }
     delete <tile-groups.transition.status.zenki.stop>->{$zenka};
     <tile-groups.transition.status.waiting.stop>--;
-    ( my $zenka_stripped = $zenka ) =~ s/\[.+$//;
+    ( my $zenka_stripped = $zenka ) =~ s|\[.+$||;
     map {
         if (
             exists <tile-groups.transition.status.zenki.concurrency>->{$ARG} )
@@ -198,7 +198,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
     if ( $cube_reply->{'cmd'} eq qw| FALSE | ) {
         my $reason = $cube_reply->{'call_args'}->{'args'};
         if ( $reason =~ /concurrency/ ) {
-            $zenka =~ s/\[.+$// if $reason !~ /subname/;
+            $zenka =~ s|\[.+$|| if $reason !~ /subname/;
             <tile-groups.transition.status.zenki.concurrency>->{$zenka} = 1;
         } else {
 
@@ -283,8 +283,8 @@ if ( defined <tile-groups.transition.status.waiting> ) {    ## in progress? ##
 #print STDERR ">---\n" . Dumper( $cube_reply, <tile-groups.transition> ) . "<---\n";
 #     if $event_type eq 'fade_out';
 
-#,,..,,,.,,..,,,,,.,,,,,.,,..,,.,,,,.,,.,,..,,..,,...,...,.,,,.,,,...,.,.,...,
-#EYWXHTHENQ3X6JI5PZWCOLHX2VY672JMQRY5FUXC4PJ4PYR4WXFBPYWNK4S7YFW6AFOEXX6JCW42E
-#\\\|2L3RMB3YPZMHPUCAJ7EONHFKKWCJ5ZJ2U3RO7CMCELMVDEH5ON2 \ / AMOS7 \ YOURUM ::
-#\[7]TTVCCBFFLHKZJO7OE3XD6PBZF24TI2426TBVGG7MTCNGCH4LHQBI 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,...,,,.,,.,,,,.,...,,.,,,..,.,,,..,,...,...,.,.,...,.,.,..,,,.,,
+#6JYKYJETKQR3S642DHIAMTFYCNTPAITLGOIY5XDCLO6CJEI6UXVBC3VLFQ4A2TH5DZ7P7RD7IAKS6
+#\\\|7QUMNLJTUXFI53QTPX2DVQRE66S764NMRIMYBPL733W2PNKYAMD \ / AMOS7 \ YOURUM ::
+#\[7]NWXCCUTSENLA3A4PS54YGVR34SYKXYDJ7I32KUNTB7BRVYGGJSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

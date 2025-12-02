@@ -2,10 +2,10 @@
 
 # name = v7.compile_bin_p7
 
-my $bin_p7_src_path
-    = sprintf( '%s/%s', <system.root_path>, <system.bin_p7_src_path> );
+my $bin_p7_src_path = sprintf qw| %s/%s |, <system.root_path>,
+    <system.bin_p7_src_path>;
 my $strip_bin_p7_path = <[file.which]>->(qw| strip |);
-my $compile_static    = <[base.cfg_bool]>->( <v7.cfg.bin_p7_static> // 1 );
+my $compile_static    = <[base.cfg_bool]>->( <v7.cfg.bin_p7_static> // TRUE );
 my $gcc_timeout       = <v7.gcc_timeout> || 7;
 my $p7_bin_path       = <v7.cfg.p7_bin_path>;
 my $gcc_bin           = <v7.gcc_bin>;
@@ -20,7 +20,7 @@ die "source file '$bin_p7_src_path' not found" if !-f $bin_p7_src_path;
 <[file.slurp]>->( $bin_p7_src_path, \my $bin_p7_source )
     or die "cannot compile '$src_name' << ! >>";
 
-my $p7_checksum = delete <v7.checksum.bin_p7_source>
+my $p7_checksum = <v7.checksum.bin_p7_source>
     // <[chk-sum.bmw.filesum]>->( 224, $bin_p7_src_path );
 $bin_p7_source =~ s|\[BMW_FILE_CHkSUM\]|$p7_checksum|g;
 
@@ -68,7 +68,7 @@ if ( -f $tmp_bin ) {
     chmod( 0755, $p7_bin_path )
         or die "< chmod > $p7_bin_path [ \l$OS_ERROR ]";
     <[base.log]>->( 1, ":: :. successfully installed to '$p7_bin_path'. =)" )
-        and return 1
+        and return TRUE
         if <[v7.bin_p7_chksum_current]>->(2); # <-- silent chksum verification
 } else {
     ( my $err_str = join( '', $gcc_err_fh->getlines ) )
@@ -79,10 +79,10 @@ if ( -f $tmp_bin ) {
     $err_str =~ s{^ +| +$}{}g;
     <[base.log]>->( 0, ":: : no success. << $gcc_bin $err_str >>" );
 }
-return 0;
+return FALSE;
 
-#,,..,,.,,,,.,,,,,,..,...,,,,,,.,,,,,,,,.,,,.,..,,...,...,...,,,.,..,,.,,,.,.,
-#GMK4WWKK2QAWEVFVBXC5KEMOBGHD7D3G3BUE3F7KZAHENOKGMJWPJV3K5WHL4SC7UFOYGA2MJPBKI
-#\\\|ABFQAVZUB5CQD2KHIVELCX6EFDKO26RXXJG6SCFCBCS2QCSNV7V \ / AMOS7 \ YOURUM ::
-#\[7]6BXZMXBN7ALQDK3D6H36SPFHG7AIN3EZVV73UVD3SCKF7BR6UMBI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,,.,,..,..,,,..,,,,,..,,..,,,,,,..,,...,...,..,,...,.,,,.,,,.,,,
+#YPMLXQM52LBLE24C3HU6E3DOZ5X65VJ7ETOJXNEQK4EAOY2CVMFOECEOTY2Y4C6C3JHRPJLHDNJDK
+#\\\|DZ4YV55ECIDWB3EOFGTYZAJ7SR4ZAEKLPC2H37KUX5ZUBMJMIDQ \ / AMOS7 \ YOURUM ::
+#\[7]7S4SPNQ3MBP2MLLUELDOOXSAAASQLKNSQVM6O4TQ3UVKX5P4CEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

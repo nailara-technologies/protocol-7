@@ -56,10 +56,12 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
        # Match blank line separator: just a newline before the signature start
        # This represents the blank line between content and signature
 
-    # CRITICAL: Strip all PLACEHOLDER stub footers FIRST - they cause oscillation
-    # Stubs look like real footers but contain PLACEHOLDER text instead of signatures
-    # By removing them upfront, we prevent them from being matched before real signatures
-    if ( $$src_ref =~ s/\n?#[\.,]{77}\n(?:#[^\n]*PLACEHOLDER[^\n]*\n)+#[:]{70,80}\n?//sg ) {
+# CRITICAL: Strip all PLACEHOLDER stub footers FIRST - they cause oscillation
+# Stubs look like real footers but contain PLACEHOLDER text instead of signatures
+# By removing them upfront, we prevent them from being matched before real signatures
+    if ( $$src_ref
+        =~ s|\n?#[\.,]{77}\n(?:#[^\n]*PLACEHOLDER[^\n]*\n)+#[:]{70,80}\n?||sg
+    ) {
         <[base.logs]>->( 3, ': stripped PLACEHOLDER stub footers from file' );
     }
 
@@ -97,13 +99,13 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
             my $capture_start     = $2 // '';
             my $capture_body      = $3 // '';
 
-            # Skip PLACEHOLDER stub footers BEFORE matching - they're not real signatures
+ # Skip PLACEHOLDER stub footers BEFORE matching - they're not real signatures
             if ( $capture_body =~ /PLACEHOLDER/ ) {
-                next;  # Try next pattern without modifying file
+                next;    # Try next pattern without modifying file
             }
 
             # Now do the substitution (only after confirming it's not a stub)
-            my $matched = ( $$src_ref =~ s/$pattern//sg );
+            my $matched = ( $$src_ref =~ s|$pattern||sg );
 
             if ($matched) {
 
@@ -635,16 +637,18 @@ if (   defined $@ && length($@)
     }
 } else {
 
-# Decoding was successful
-# Fix #2: Correct inverted restoration condition
-# Skip restoration ONLY if separator is ABSENT (file wasn't canonical before)
-# Otherwise, do restore to reverse the endline modifications
+ # Decoding was successful
+ # Fix #2: Correct inverted restoration condition
+ # Skip restoration ONLY if separator is ABSENT (file wasn't canonical before)
+ # Otherwise, do restore to reverse the endline modifications
     my $state = $amos7_header->{'endline-state-encoded'};
 
-    if ( $seperator_endline_absent ) {
-        # Separator was absent before - skip restoration, keep file as-is
-        # This prevents modifying content in opposite directions on successive cycles
+    if ($seperator_endline_absent) {
+
+ # Separator was absent before - skip restoration, keep file as-is
+ # This prevents modifying content in opposite directions on successive cycles
     } else {
+
         # Separator was present - file was canonical, restore endline state
         <[source.restore_payload_endline_state]>->( $src_ref, $state );
     }
@@ -712,8 +716,8 @@ if ( $mode eq 'repair' ) {
 }
 
 return $footer_data;
-#,,..,,,.,,,,,,.,,,..,...,..,,.,.,,,.,,..,,.,,...,...,...,.,.,...,...,..,,,..,
-#3WDKYYIYHM7NLBV6QAIMK3GHZGNAJ2IONLBHCSV7GT6YW2KNAOODCMW5DYTCKEJGG2UP2DFCXEQNI
-#\\\|5UEEOTCIM4LKZMUHRCYTT4QSUQDU3CFDWZB2C4NELZYCKY5VVS2 \ / AMOS7 \ YOURUM ::
-#\[7]2IGSD5GVM2U4I3ZGH3DX3KRV2DNOKBWX2XG53MN2G3TFXDZW2UAY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,.,,,,,,.,.,,,.,,,.,,,,,,,.,,..,...,...,...,,..,,..,,.,,,.,,,.,,
+#K4GVAXFVMUXZ4XHFHY43ADQ5TTD6BY5OSLSQ6VHFFXXK3Z6RRSGP46ZMU7CF6OE627KVDGKSVBIM2
+#\\\|E6UFBFWKZU4QWNLR6HGIG3HTVIRJ4GLTA6FR36OWF4OFR7SSPJJ \ / AMOS7 \ YOURUM ::
+#\[7]XOR756ASMMMWUG76NT3MWSJHJU5QOFUDDKWYGXEQVHFRXJHAKODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

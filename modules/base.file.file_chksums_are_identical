@@ -43,7 +43,7 @@ if ( not defined $fstat_0000 ) {
     return undef;
 }
 
-return 0 if $fstat_0000->size != $fstat_0000->size;    ##  size differs  ##
+return FALSE if $fstat_0000->size != $fstat_0000->size;   ##  size differs  ##
 
 my $file_chksum_0000 = eval { <[chk-sum.bmw.filesum]>->( 384, $file_000 ) };
 my $file_chksum_0001 = eval { <[chk-sum.bmw.filesum]>->( 384, $file_001 ) };
@@ -65,11 +65,11 @@ if ( $file_chksum_0000 eq $file_chksum_0001 ) {    ##  files are identical  ##
     return TRUE;
 } else {
     ##  false  ##
-    return 0;
+    return FALSE;
 }
 
-#,,,,,...,..,,,.,,,,.,,,,,,.,,.,,,,.,,.,.,.,,,..,,...,...,,.,,...,,,.,,,,,.,,,
-#SK4MXYHJ4VKVYWXUXLDL72Z36C3EA3T7VLUXC4MFMMAVU6TJ2ZVWK6OMMOZNIWUPHVZI7ZH2RU674
-#\\\|ZWJUPBIN4MMSWXOBCDYN75SAWHJLMOUPPBGBE4L3SNPPL6ULHGN \ / AMOS7 \ YOURUM ::
-#\[7]RYOPPT3GJ27PCIQGSFUI7NLHDGE27Z65MP6QLX4GA23F52WNOSDQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,...,.,,,.,.,.,,,...,..,,,,.,.,,,..,,...,...,..,,...,..,,,.,,,..,
+#FZTTJS7KPX4BTZSNF6JMAEEF2XHIOSCYRTQIVMQB22T7YQJYVJ2BH35KOUTU64FX25TUGES2OYHHS
+#\\\|6ARD5YV2IJKYJEAU3P5MG4LQAFRSMJ4IZY3ZOIQLHTTV7C5DQP7 \ / AMOS7 \ YOURUM ::
+#\[7]NJ6USHPOOYCT4PLJ2N3QAEZFXKXLYB3FPLPNTJLY5EMKPCM6ACBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

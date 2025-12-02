@@ -30,7 +30,7 @@ if ( $mode eq 'http-01' ) {
         <[letsencr.parent.activity_logger]>->(
             'challenge', $domain, 'failed', 'invalid HTTP-01 challenge data'
         );
-        return 0;
+        return FALSE;
     }
 
     ## Store challenge data for later reference
@@ -127,10 +127,10 @@ if ( $mode eq 'http-01' ) {
     );
 }
 
-return 0;
+return FALSE;
 
-#,,,,,.,,,..,,..,,..,,..,,,.,,,,.,,..,,.,,.,.,..,,...,..,,...,.,.,,.,,.,,,,,,,
-#POU2IMYQOO7AUCSD6IAVG4UOANNICMGQTIFZTQQ6SJPLCZJXAUSWBDNTNLI5K3VJEYSGHRCD4Y3F6
-#\\\|4EQMHJIYD46A4PXUBHIWMPF2C4RI4LDFRKJWOHRWEZFTTCPQPUS \ / AMOS7 \ YOURUM ::
-#\[7]MLHQBID3M5POGOY77LYE2DCB5DTNECU6ZYPAOYMXKLY7PF5TK4CQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,,,...,,,.,...,...,,.,,.,.,...,..,,...,...,..,,..,,...,.,.,,.,,
+#2VSGV6WC5SSWEKEKXUM4JLTJKGDG56HV2CQMSK7UDGK3D2VMJHBIXTPBBZAVLI2FTBLC4RT55ZUDW
+#\\\|LYTWXJ7LE66VDBCML5NBGVPOMGIHHHB7Z7IJ3L5XQJPWO7675UI \ / AMOS7 \ YOURUM ::
+#\[7]TUZPT2JJWZPM23URQM3HEVO2H26APZ5B6NDVUPNARNY3KZIPRYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -20,7 +20,7 @@ if ( exists <letsencr.parent.pending_challenges> {$token} ) {
         <[base.log]>->(
             2, "challenge was validated before timeout, keeping record"
         );
-        return 0;
+        return FALSE;
     }
 
     ## Challenge has timed out - remove it
@@ -54,10 +54,10 @@ if ( exists <letsencr.parent.pending_challenges> {$token} ) {
     <[base.log]>->( 3, "token $token not found in pending challenges" );
 }
 
-return 0;
+return FALSE;
 
-#,,,.,,,.,,..,,..,..,,..,,,..,..,,...,,,,,,,,,..,,...,...,..,,.,.,.,,,,.,,,.,,
-#4NLIKPDVJLB2VAX4HLS3PJTE2W2PBK2LMAISKJW7ZX5DZHIDKQ5VKIDDZAAXTYOI4VTJ62L2TJB2I
-#\\\|TZDJJOM6FXL4KQ3Y4W62V7RFSP5CZUD3BL6XXPTZFQAZAI7RA7V \ / AMOS7 \ YOURUM ::
-#\[7]HQLN2A4PBVCVEHRGEAE7UJ7EQ6GCWRNHPUZGKOCOWYBM6HTENCDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,..,.,,,,,,,,..,..,,..,,...,,,.,..,,...,..,,,,.,,..,.,,,...,,..,
+#E2HJ4Q2OZ4CFF5NLOTI7FZ7RYHJ4DMWK3ITB2S447S3GOCGUCMOOAEVFBZOTIKWCM7BOLXKYIBB7W
+#\\\|QBIBILTCIVP7DQ32AWYS22INKYSV6VGPHOJQMC4D47DPQINEIHT \ / AMOS7 \ YOURUM ::
+#\[7]IQBOPPMBMUGMEXHURA4P2SOFPPCKFSR4SPIO7USIJMRACECLYQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

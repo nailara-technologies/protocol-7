@@ -7,7 +7,7 @@
     and <system.timer>->{'send_reports'}->is_active;
 delete <system.timer>->{'send_reports'};
 
-return 0
+return FALSE
     if not defined <system.init_reports>
     or ref <system.init_reports> ne qw| ARRAY |;
 
@@ -17,7 +17,7 @@ my $report_count = scalar <system.init_reports>->@*;
 ##
 if ( $report_count == 0 ) {
     delete <system.init_reports>;
-    return 0;
+    return FALSE;
 
 } elsif ( not <[base.is_defined_recursive]>->(qw| system.zenka.initialized |)
     or not <system.zenka.initialized> ) {
@@ -84,8 +84,8 @@ foreach my $item (@pending_reports) {
 
 return $report_count;
 
-#,,,.,,.,,...,..,,,.,,,..,,.,,,.,,...,.,,,.,,,..,,...,..,,...,,,.,..,,,,,,,..,
-#3KP5LWUTQMYEBMWMSWQHE3JFMGFSC4NJWMJKDI3FCS4MNPXIVDUFNSC4M5PJGKSAHYF73ZMVLKINI
-#\\\|CZFGJMHDA34IUJUEOXMFDQ7TTFET7W4VL2WMR27QLSAEGLL3S5I \ / AMOS7 \ YOURUM ::
-#\[7]ZPBGR3M4AGKRV7HTHSJWU6B3NESNBT4UUDNIWRZLYBQZL7FAJACQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,..,,,..,.,,,...,..,,.,,,,.,,,.,,..,,...,...,,..,,.,,,,.,,,,,.,.,
+#GKPYZ65X4OWGQEJWCX66AZ2YT6BFPEKFJC2IBMBAZO2DH3TLVDMSHA3I7RPMH3EVOB2WNFOK546PE
+#\\\|CIQJJEWMPQJOIJ4INACKYYLNMEG7XK7N665ZCVG3DDEGBIJU2VG \ / AMOS7 \ YOURUM ::
+#\[7]N36BWD27BC2WPO5AZPORQVAA4FZ6G2QL4PZJ33A2VNSFCBSE7ADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

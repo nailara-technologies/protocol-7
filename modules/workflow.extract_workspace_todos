@@ -16,17 +16,18 @@ foreach my $repo (@$repos) {
     while (<$fh>) {
         if (/^- \[ \](.*)/) {
             my $desc = $1;
-            $desc =~ s/^\s+//;
+            $desc =~ s|^\s+||;
 
-            push @todos, {
-                title => $desc,
+            push @todos,
+                {
+                title    => $desc,
                 priority => 'medium',
                 category => 'workspace-todo',
-                status => 'pending',
-                repo => $repo->{name},
-                path => $keyword_todo_file,
-                source => 'workspace-transfer-todo'
-            };
+                status   => 'pending',
+                repo     => $repo->{name},
+                path     => $keyword_todo_file,
+                source   => 'workspace-transfer-todo'
+                };
         }
     }
     close $fh;
@@ -34,8 +35,8 @@ foreach my $repo (@$repos) {
 
 return \@todos;
 
-#,,..,.,.,,..,,..,..,,..,,,,.,...,,..,..,,..,,..,,...,...,.,,,.,,,,,,,...,,,,,
-#6DUIEK7APLAHDE72R7EB2NTXIZXGIBVNC3VKTAPA34APWWAMYUWFXCKNXNDECNVPBJTN5NCG3PCA6
-#\\\|6Q5P6H5EQFROQ2FRQHGT3VHRNHMCFLKPVKPJNCFPMMSN2JLMODM \ / AMOS7 \ YOURUM ::
-#\[7]WISJSN5EKJ744N5N7S7CRPIRMD744UBKPIJXAMF5DKKNIVRUGCAA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,..,,,,,,,,,...,...,,..,,,,,,,,,..,,...,..,,,,.,,.,,.,,,,.,,,..,
+#SWZOXA26MQJNSAB5BRVEO4IY7B6TNTZZETNB5FJMC6OFXM2FJVCBZJ23AGHRD7BOZWAGSKE456AHY
+#\\\|2QSXKNI2O7HRQK4AMVUM45U5TAAD5RFIPBIMBDW2W6MRFFKFEEX \ / AMOS7 \ YOURUM ::
+#\[7]VXGI7OSM4EDNMOTROWRFC2JZ3E6FR5GWAVS27LIZ6KRH2PS6KUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

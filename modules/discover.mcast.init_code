@@ -13,7 +13,7 @@ if (    defined <discover.mcast.obj.sock>
     and <discover.mcast.ip4_port> < 1024
     and $EUID > 0 ) {
     <[base.log]>->( 1, ': skipping socket re-init [ not root ]' );
-    return 0;
+    return FALSE;
 }
 
 <[base.logs]>->(
@@ -89,8 +89,8 @@ my @addr = unpack_sockaddr_in( <discover.mcast.obj.sock>->mcast_dest );
 
 0;
 
-#,,,.,.,.,,,,,.,.,.,.,..,,,..,,..,.,,,.,.,,..,..,,...,...,.,.,,.,,.,,,.,,,.,,,
-#5X3NEE7DN75DXPVHYYSATYPSOAAIVXA2KJURTTGFQFK4SBHHNVVKXW5TT537UWDPFVH5Y2PTK3H2M
-#\\\|WAKGYJZFBX3F75RDH2NC5MJLA6CGYYE7KGBWGOVTWV76HZKMFQD \ / AMOS7 \ YOURUM ::
-#\[7]FPUB6K4Z4AVHNCC5JCZFMUW7O5RNPZ4MTIX5RMUA32P6OKSJ4KAY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,..,,..,,,.,,.,,,.,.,,,,,,,.,,,,,..,,...,...,,.,,,..,,.,,.,.,...,
+#7XGCPZCGNZA5F27HBWTV7N7XHCHUPIOPATQXXSCIFDS6FGXAIBR2GLTPOJXQEEIDG5R2H7V2WSXDA
+#\\\|YCECXGU5HJY5YIXC6LX6N4H3F6GRZUSV2DL6QVHIYSOK2KKHBGX \ / AMOS7 \ YOURUM ::
+#\[7]WTYTDBMBJJHL5WC3XFDPYJ3FWFUXCPQ7X7NC646UFUJM3HB5WEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

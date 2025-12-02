@@ -92,7 +92,7 @@ unless ( -d $httpsd_cert_dir ) {
 my $cert_content;
 {
     my $fh;
-    local $/ = undef;
+    local $} = undef;
     unless ( open( $fh, '<', $source_cert ) ) {
         <[base.log]>->( 1, "failed to open source cert: $!" );
         return {
@@ -210,8 +210,8 @@ if ($reload_result) {
 
 0;
 
-#,,..,,..,,.,,.,,,,..,.,.,,.,,,.,,,.,,,.,,.,,,..,,...,...,...,,,,,,,.,,,,,..,,
-#7XN4J5HNQLDFUV3PZIZBLT2Q5J5YGOYQO27P6GFEUCWM6W744QEVVMUWP32YF4FQ35KZ3CYY7C7AO
-#\\\|FG2PLPWFZPL6XWZZXOVEQAF5FX67ZEMFBYPSL52R2IXZFSUNEBI \ / AMOS7 \ YOURUM ::
-#\[7]QWRCQN6IKSIR2SZBB3VTL4X2XA6V53FXL4TVIYMR7QV4XWM3SMCA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,,.,.,.,,..,.,,,,,,,...,,.,,,..,..,,...,...,...,.,.,,..,...,,,,,
+#VQHSZXW37CNNEWAN5Y6TJRRWHVW34VFE7USQXAYCHMGA2YXSA4HKDLIZGCCNOKBM2YJPJLWG22JDQ
+#\\\|4K7XQ2PEIHURQ2Q32MDO6EHV2P3WSE5E65CFRTS65WKELLW4G2H \ / AMOS7 \ YOURUM ::
+#\[7]OPB45W5KZCMJDR3UMSLLGWTSFSCZNVP7GKDVGQSM47EWA6DINGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

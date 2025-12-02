@@ -10,7 +10,7 @@ die 'v7.zenka.is_disabled: no zenka name specified'
 my $config_href   = <v7.start_setup.globals.zenki>;
 my $zenka_name_re = <regex.base.usr_str>;
 
-return 0
+return FALSE
     if not exists $config_href->{'disabled'}
     or not defined $config_href->{'disabled'}
     or $config_href->{'disabled'} =~ m|^\s*$|;
@@ -26,13 +26,13 @@ if ( $config_href->{'disabled'} !~ m|^($zenka_name_re*\ *)+$|i ) {
     die 'configuration syntax error in zenki.disabled';
 }
 
-map { return 1 if $ARG eq $zenka_name }
+map { return TRUE if $ARG eq $zenka_name }
     split( m|\s+|, $config_href->{'disabled'} );
 
-return 0;
+return FALSE;
 
-#,,..,,,.,,.,,.,,,,..,..,,,.,,..,,,..,,,.,,..,..,,...,..,,,,.,,,.,..,,..,,.,.,
-#3G5RI4F7YBUFXOSQ77JVGKNKTINWVS2PVD2YFHDLJOSC3XZT3TH7FKO5ZDBWCVDF6GYBYMKHTZLX4
-#\\\|DCEIIIS56ASWGDJGPAVZR5RFY4ZT2DVZQ2BJREIQOFZVBDNM7K2 \ / AMOS7 \ YOURUM ::
-#\[7]7H7K47OIDOVGX2FI3X2OMORXEH4TWO2FWJBG624LBO3SRBKP6YAA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,,,,,..,.,.,..,,,.,,,..,,,.,,..,..,,...,...,.,.,,..,,..,.,.,..,,
+#DH3ZLHMZ3FDYO22L5UUNYD6CAWW7546K5KKVW2PLYVDC7KSUJOICY4MZEM3UN4VEXSDB7OQDCKWRY
+#\\\|C22QIOPLUU3DUYOJBUMWHDWLECRTGDEM27GBR5PMWJLFGDABNJH \ / AMOS7 \ YOURUM ::
+#\[7]5ZJN4JNN2IDQDOM2UWDFVM2XQC7NBQOWXM7MU6ZIOPZU4EVOHGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

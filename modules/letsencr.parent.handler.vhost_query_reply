@@ -12,7 +12,7 @@ my $reply_id = $params->{'reply_id'} if ref($params) eq 'HASH';
 
 unless ($reply_id) {
     <[base.log]>->( 1, "error: no reply_id in handler params" );
-    return 0;
+    return FALSE;
 }
 
 ## Validate reply structure
@@ -61,7 +61,7 @@ if ( $mode eq 'SIZE' || $mode eq 'TRUE' ) {
 }
 
 ## Remove whitespace and filter empty lines
-@vhosts = map  { s/^\s+|\s+$//g; $_ } @vhosts;
+@vhosts = map  { s{^\s+|\s+$}{}g; $_ } @vhosts;
 @vhosts = grep { length($_) > 0 } @vhosts;
 
 unless ( @vhosts > 0 ) {
@@ -97,10 +97,10 @@ foreach my $vh (@vhosts) {
 
 <[base.log]>->( 2, "vhost query reply sent successfully" );
 
-return 1;
+return TRUE;
 
-#,,,.,,,.,,.,,,..,,,.,...,...,.,,,..,,.,,,.,,,..,,...,...,...,.,,,,,,,,..,.,,,
-#DEYHVZNXL2B2C2ULD22CI27GOBNKB6T4Q2YFX234LZXBXB2PDCPGB35GSGVUZZU73TODLWPEIEGA6
-#\\\|YIXML4TITVA3C6ENED765KXTYEM3HAPFWGKEGO32MI7URDD75NM \ / AMOS7 \ YOURUM ::
-#\[7]NOGOBBXMIVPBRI2IFLSKFKG7IRFI4OWJSXZXB7NQZCMM44KYPEDA 7  DATA SIGNATURE ::
+#,,,,,...,...,...,,,.,..,,,,,,..,,.,,,,,.,.,.,..,,...,...,...,,,.,.,,,,,.,,,,,
+#TB4COU46FFO2762JSXTI3FK5QQHZAJ5JVU5K7LD5I5QO2SH65LU5Z4ZDFC2QLYI5JYIQEMPKLQAQW
+#\\\|SZRDCO7EFHI5OSIBUIMAQ5RD22SYGEN7LJ6LOLBSKAZZW4PUKHI \ / AMOS7 \ YOURUM ::
+#\[7]H24ZDN6Y5UJZY56JSGXL76WFBUMAJ7A6JW2E3BBBMEJNNIUKNWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

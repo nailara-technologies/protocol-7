@@ -21,16 +21,16 @@ if ( not defined $key_ref or ref($$key_ref) ne 'HASH' ) {
     return 3;
 } elsif ( not defined ${$$key_ref}{$id} ) {
     <[base.log]>->( 0, "base.list.element.del: no such element [$id]" );
-    return 1;
+    return TRUE;
 }
 
 delete ${$$key_ref}{$id};
 $data{'base'}{'element'}{$key_ref}{'count'} = scalar keys( %{$$key_ref} );
 
-return 0;
+return FALSE;
 
-#,,..,,.,,..,,,,,,.,,,.,.,,,.,,,.,,.,,,,.,,,,,..,,...,..,,,..,,.,,,..,,,,,,..,
-#5FIGU7WBSX5GMF7ULR27HZ52CMAY37PBJC4MGK36D3HHRXUB6WXMGR6K52YCQWGMCXBSD52BWUDP4
-#\\\|3NY3SRQF22H2XNFMAB64SFJZT5FUZCCASBH3QGMCR27KZONJI7Y \ / AMOS7 \ YOURUM ::
-#\[7]C5UMGECP6SGAQWI3WJIU4FEWJBEBRSES72QJRHCGZ6CPA6LJ7YCI 7  DATA SIGNATURE ::
+#,,.,,...,...,,.,,...,,.,,.,,,,..,,,.,,,,,,,.,..,,...,...,.,.,,..,,,.,,,,,,,,,
+#ZWUJTXDPYIHYPJUM4BBZZVHBANLIZB4X2EUKUYQ7BE4FOPU2RK7E3NGKRCUB2XJDK77PY3TP5IYU6
+#\\\|3KJEVHNNX6DJVTF7QIRIO2BFKNYR2BWA6EDCHBQM7T3H3LMDVLO \ / AMOS7 \ YOURUM ::
+#\[7]EB5S4CNSKCRUP5QYQFL5KXCQPTVDZWXV5HXBVYCYHUQQD26Z5GBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

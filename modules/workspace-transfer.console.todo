@@ -4,14 +4,14 @@
 # descr = todo list management (Protocol-7 styled console output)
 
 ## Protocol-7 color scheme ##
-my $reset      = "\e[0m";
-my $nailara_bg = "\e[48;2;9;5;42m";
-my $blacklight = "\e[38;2;68;39;172m";
-my $TRUE_blue  = "\e[38;2;6;71;195m";
+my $reset       = "\e[0m";
+my $nailara_bg  = "\e[48;2;9;5;42m";
+my $blacklight  = "\e[38;2;68;39;172m";
+my $TRUE_blue   = "\e[38;2;6;71;195m";
 my $neon_orange = "\e[38;2;197;141;7m";
-my $neon_green = "\e[38;2;71;195;6m";
+my $neon_green  = "\e[38;2;71;195;6m";
 
-my $cmd = shift || 'list';
+my $cmd  = shift || 'list';
 my @args = @_;
 
 my $ws_dir = workspace_transfer::chdir_workspace();
@@ -19,13 +19,14 @@ my $ws_dir = workspace_transfer::chdir_workspace();
 
 my $todo_file = 'TODO.md';
 
-if ($cmd eq 'list') {
-    unless (-f $todo_file) {
+if ( $cmd eq 'list' ) {
+    unless ( -f $todo_file ) {
         say "";
         say "$blacklight .:[ ${TRUE_blue}TODO LIST${blacklight} ]:.$reset";
         say "";
         say "  ${neon_orange}No TODOs yet.$reset";
-        say "  ${blacklight}Add one with: ${TRUE_blue}todo add <description>$reset";
+        say
+            "  ${blacklight}Add one with: ${TRUE_blue}todo add <description>$reset";
         say "";
         return;
     }
@@ -39,16 +40,16 @@ if ($cmd eq 'list') {
         <[base.exit]>->(qw| 0110 |);
     };
 
-    my $item_num = 0;
+    my $item_num  = 0;
     my $completed = 0;
     while (<$fh>) {
         if (/^- \[ \]/) {
             $item_num++;
-            s/^- \[ \]/${neon_orange}[$item_num]${reset} ${TRUE_blue}☐$reset/;
+            s|^- \[ \]|${neon_orange}[$item_num]${reset} ${TRUE_blue}☐$reset|;
             print;
         } elsif (/^- \[x\]/) {
             $completed++;
-            s/^- \[x\]/${neon_green}✓$reset/;
+            s|^- \[x\]|${neon_green}✓$reset|;
             print;
         } else {
             print;
@@ -58,16 +59,17 @@ if ($cmd eq 'list') {
 
     say "";
     say "$blacklight" . "=" x 60 . "$reset";
-    say sprintf "  ${TRUE_blue}Open: ${neon_orange}%d${reset} | ${TRUE_blue}Completed: ${neon_green}%d${reset}",
+    say sprintf
+        "  ${TRUE_blue}Open: ${neon_orange}%d${reset} | ${TRUE_blue}Completed: ${neon_green}%d${reset}",
         $item_num, $completed;
     say "$blacklight" . "=" x 60 . "$reset";
     say "";
 
-} elsif ($cmd eq 'add') {
+} elsif ( $cmd eq 'add' ) {
     die "Usage: todo add <description>\n" unless @args;
 
-    my $desc = join(' ', @args);
-    my $timestamp = scalar(localtime());
+    my $desc      = join( ' ', @args );
+    my $timestamp = scalar( localtime() );
 
     open my $fh, '>>', $todo_file or do {
         <[base.logs]>->( 0, 'cannot write TODO.md: %s', $! );
@@ -78,14 +80,15 @@ if ($cmd eq 'list') {
     close $fh;
 
     say "";
-    say "$neon_green✓$reset ${TRUE_blue}Todo added:$reset $neon_orange$desc$reset";
+    say
+        "$neon_green✓$reset ${TRUE_blue}Todo added:$reset $neon_orange$desc$reset";
     say "";
 
-} elsif ($cmd eq 'done') {
+} elsif ( $cmd eq 'done' ) {
     my ($item_num) = @args;
     die "Usage: todo done <item_number>\n" unless defined $item_num;
 
-    unless (-f $todo_file) {
+    unless ( -f $todo_file ) {
         say "No TODOs to mark done.";
         return;
     }
@@ -98,13 +101,13 @@ if ($cmd eq 'list') {
     close $fh;
 
     my $count = 0;
-    for my $i (0..$#lines) {
-        if ($lines[$i] =~ /^- \[ \]/) {
+    for my $i ( 0 .. $#lines ) {
+        if ( $lines[$i] =~ /^- \[ \]/ ) {
             $count++;
-            if ($count == $item_num) {
-                $lines[$i] =~ s/^- \[ \]/- [x]/;
-                $lines[$i] =~ s/\n$//;
-                $lines[$i] .= " (completed: " . scalar(localtime()) . ")\n";
+            if ( $count == $item_num ) {
+                $lines[$i] =~ s|^- \[ \]|- [x]|;
+                $lines[$i] =~ s|\n$||;
+                $lines[$i] .= " (completed: " . scalar( localtime() ) . ")\n";
 
                 open my $out, '>', $todo_file or do {
                     <[base.logs]>->( 0, 'cannot write TODO.md: %s', $! );
@@ -114,7 +117,8 @@ if ($cmd eq 'list') {
                 close $out;
 
                 say "";
-                say "$neon_green✓$reset ${TRUE_blue}Marked item$reset $neon_orange$item_num$reset ${TRUE_blue}as done$reset";
+                say
+                    "$neon_green✓$reset ${TRUE_blue}Marked item$reset $neon_orange$item_num$reset ${TRUE_blue}as done$reset";
                 say "";
                 return;
             }
@@ -125,14 +129,18 @@ if ($cmd eq 'list') {
     say "$neon_orange⚠$reset Item $item_num not found";
     say "";
 
-} elsif ($cmd eq 'help') {
+} elsif ( $cmd eq 'help' ) {
     say "";
-    say "$blacklight .:[ ${TRUE_blue}TODO LIST MANAGEMENT${blacklight} ]:.$reset";
+    say
+        "$blacklight .:[ ${TRUE_blue}TODO LIST MANAGEMENT${blacklight} ]:.$reset";
     say "";
     say "  ${TRUE_blue}Usage:$reset";
-    say "    ${neon_green}todo list${reset}              - List all todos (default)";
-    say "    ${neon_green}todo add${reset} ${neon_orange}<desc>${reset}        - Add a new todo";
-    say "    ${neon_green}todo done${reset} ${neon_orange}<num>${reset}        - Mark todo as done";
+    say
+        "    ${neon_green}todo list${reset}              - List all todos (default)";
+    say
+        "    ${neon_green}todo add${reset} ${neon_orange}<desc>${reset}        - Add a new todo";
+    say
+        "    ${neon_green}todo done${reset} ${neon_orange}<num>${reset}        - Mark todo as done";
     say "    ${neon_green}todo help${reset}              - Show this help";
     say "";
 
@@ -143,8 +151,8 @@ if ($cmd eq 'list') {
     say "";
 }
 
-#,,,.,...,.,,,,..,..,,,,.,.,,,...,...,,,,,.,,,..,,...,..,,.,,,...,.,,,...,,..,
-#HXDXX6MLEPGYWSQDRI6VAVL5RMZKBGJE2Q6GKTHEJEO3TRUGZUDSAMZOOGJWXYPFAC7DXQ7XC2SFS
-#\\\|6EEJCEJJUSXAASUB6CT5PZNGUJFQI2EENXCWS4UWDVDBXGVM7PG \ / AMOS7 \ YOURUM ::
-#\[7]ZJ3TS3XT2DN2C655UD6HEGVXDNKDIRT7WE7IKI6OI4K7R2OV2MAA 7  DATA SIGNATURE ::
+#,,,,,.,.,...,...,,,.,.,.,..,,.,,,..,,,,,,.,,,..,,...,...,.,.,...,,..,,.,,.,,,
+#4GVQZSKVTNYOK3ZUMDTSRDOSJ4KRG3FCJ6TZSPAV6TWHLUUVASPP7O5II47ANWTJ7TUEU6WWCIQKW
+#\\\|ZDDK47B535HKS7BKTU2DLZEZVVY5LHWDZUTEE7BIGE5JOYH6WCM \ / AMOS7 \ YOURUM ::
+#\[7]YR5FF7NR3FLBBM6QWAFDWKJYE22NIT2OYLYX62EW25N3BQSRQOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,10 +8,10 @@ my $protocol7_bin = sprintf( '%s/bin/Protocol-7', $root_path );
 my $symlink_dir   = <v7.cfg.zenka_symlink_dir> || '/usr/local/bin';
 my $enabled = <[base.cfg_bool]>->( <v7.cfg.install_zenka_symlinks> // 'yes' );
 
-return 0 unless $enabled;
-return 0 unless $UID == 0;                             ## root only
-return 0 unless -x $protocol7_bin;
-return 0 unless -d $symlink_dir and -w $symlink_dir;
+return FALSE unless $enabled;
+return FALSE unless $UID == 0;                             ## root only
+return FALSE unless -x $protocol7_bin;
+return FALSE unless -d $symlink_dir and -w $symlink_dir;
 
 ## Get list of zenki to create symlinks for
 my @zenka_list = ();
@@ -19,7 +19,7 @@ my @zenka_list = ();
 ## Console-only zenki (from modules directory)
 my $modules_dir = "$root_path/modules";
 if ( -d $modules_dir ) {
-    opendir( my $mod_dh, $modules_dir ) or return 0;
+    opendir( my $mod_dh, $modules_dir ) or return FALSE;
     while ( my $file = readdir($mod_dh) ) {
         ## Match .console files (workflow.console.commit, sourcecode.console.*, etc)
         if ( $file =~ m|^([^.]+)\.console\.| ) {
@@ -34,7 +34,7 @@ if ( -d $modules_dir ) {
 ## Add configured zenki from startup configs
 my $zenki_dir = "$root_path/configuration/zenki";
 if ( -d $zenki_dir ) {
-    opendir( my $cfg_dh, $zenki_dir ) or return 0;
+    opendir( my $cfg_dh, $zenki_dir ) or return FALSE;
     while ( my $dir = readdir($cfg_dh) ) {
         next if $dir =~ m|^\.\.?$|;
         next unless -d "$zenki_dir/$dir";
@@ -45,7 +45,7 @@ if ( -d $zenki_dir ) {
     closedir($cfg_dh);
 }
 
-return 0 unless @zenka_list;
+return FALSE unless @zenka_list;
 
 my $installed_count = 0;
 my $updated_count   = 0;
@@ -102,8 +102,8 @@ return $installed_count + $updated_count;
 
 #,,.,,,,,.,,..,,..,.,.,.,,,..,,.,.,.,...,,,.,,,.,..,,...,..,...,,...,.,,,...,,
 
-#,,..,,.,,,,.,..,,.,.,,,,,,.,,,.,,,,.,.,,,.,,,..,,...,..,,...,,.,,,.,,,..,...,
-#7WQXLYBEHZZQR3JN6ZBJ7VG4ZU3LYYGCEUFILBAF36BOGFPKW5VC7GWRGNI7QHVDEAURNVZ3KR5PS
-#\\\|BSQWPHAQIQDTK3A2CWMFFMJV3NOMSGNLJTHOLWDQ5KTH4HQKXUF \ / AMOS7 \ YOURUM ::
-#\[7]EEHJXDQV4SQA2DPB7GX3NXD5KZHCGRCRYEFMNNJGNS4TJY5HQSAA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,..,..,,,.,,,,,,,..,,,.,.,,,,..,..,,...,...,,.,,...,,..,.,,,,.,,
+#VXQYF5WLQCVXLW7XMDLLQEVZVVZEXHBP22TOWDJYMDVT5Z36VANT6DVV6ZQA4J3MPCNPKZEKWKSQ6
+#\\\|OPUWZTWFRSGJBX5CO22IXVTCDI4LKARGPWGE4JG2Y6QA3PQW3YK \ / AMOS7 \ YOURUM ::
+#\[7]D5TRGBDC7MHPW3Y3HCSVCNPFNVMAUV2I55QNCB2ID7QSN4QED2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

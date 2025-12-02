@@ -48,7 +48,7 @@ if ( $mode eq 'SIZE' || $mode eq 'TRUE' ) {
 }
 
 ## Remove whitespace and filter empty lines
-@vhosts = map  { s/^\s+|\s+$//g; $_ } @vhosts;
+@vhosts = map  { s{^\s+|\s+$}{}g; $_ } @vhosts;
 @vhosts = grep { length($_) > 0 } @vhosts;
 
 unless ( @vhosts > 0 ) {
@@ -79,10 +79,10 @@ foreach my $vh (@vhosts) {
 
 <[base.log]>->( 2, "vhost list processed successfully" );
 
-return 1;
+return TRUE;
 
-#,,,,,,,,,...,,.,,,.,,.,.,.,.,..,,,,,,,,.,..,,..,,...,...,...,,.,,,..,.,.,..,,
-#3276474EJRHMJ4Y3YGCY6PGBCLSNYFKS3HYE7DGTNLLJZWIZBRQVQT3K3LJHSMLYAYWAFGEEZGCIK
-#\\\|PUVGJ5N3SX3PZKJCIT2B4KYAGLDK5I6ZJ5KNSMCB5MY7INTVIRV \ / AMOS7 \ YOURUM ::
-#\[7]TYDRN2F7ZUZ4AXFR6JMGBYIK637OPG6SLOGWTVC6Y2DUKSNG4UBI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,,,,.,,,.,,...,.,,,,,.,,..,,.,,..,,...,...,,.,,,,,,.,.,.,.,,,,,
+#3QCWETQ6EKTSTH4UUUHKCQR6UH7LICB6L2J7L7WCYHSMTHZLI22WQXJYZAXP7GESIIT2GKCAHTDWC
+#\\\|YGGDFM3YUD6AH53CEZISJXRX7BC34AN4BCJCDFHVP5W3XVGXTV6 \ / AMOS7 \ YOURUM ::
+#\[7]GQG4THZK7VIME2P66QXXLXLNXYQXAPP3KTXAV6TWIE5K2VAU7KCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

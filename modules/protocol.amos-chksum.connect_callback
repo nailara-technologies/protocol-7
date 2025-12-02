@@ -6,7 +6,7 @@ my $client_fd = shift;
 
 if ( not defined $client_fd or !-S $client_fd ) {
     <[base.log]>->( 2, ': expected valid socket, declining init..,' );
-    return 0;
+    return FALSE;
 }
 my $socket_id = <[chk-sum.amos]>->( \$client_fd );
 
@@ -15,7 +15,7 @@ if ( not defined $data{'handle'}{$client_fd}{'link'}
     <[base.log]>->(
         0, ": [%s] connection type not 'unix', declining init..,", $socket_id
     );
-    return 0;
+    return FALSE;
 }
 
 my $unix = $data{'handle'}{$client_fd}{'unix'} // {};
@@ -27,7 +27,7 @@ if (   not defined $unix->{'pid'}
         0, ": socket %s missing unix credentials, declining init..,",
         $socket_id
     );
-    return 0;
+    return FALSE;
 }
 
 my ( $pid, $uid, $gid ) = ( $unix->{'pid'}, $unix->{'uid'}, $unix->{'gid'} );
@@ -40,7 +40,7 @@ if ( not defined $user ) {
         '[%s] cannot retrieve username from passwd file, init declined ..,',
         $socket_id
     );
-    return 0;
+    return FALSE;
 }
 
 ##                                                  ##
@@ -49,8 +49,8 @@ if ( not defined $user ) {
 
 return ( 5, $user );    ## access approved \ init accepted ## [ testing .., ]
 
-#,,,.,,,,,,.,,...,,.,,...,.,,,...,...,,..,.,,,..,,...,...,,,.,,,.,,,.,.,,,,.,,
-#6RUMBRF2OQT6LHHRFHLYY34TSQ2PWKG5O32XZEXD66SKZHBHACKHU5DEAFKFI3LMWZ6JQRBKXP2UM
-#\\\|POF77SGQ5MTASWP7EI7ZYR4JHDZIMGDVS6HTSE4PBDH3Y22SYE3 \ / AMOS7 \ YOURUM ::
-#\[7]G2NUGTVHUXLB7L5SC76DQG6SQQNKFHQUZN3MYPJMJZDLORRM4ODQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,.,,,,,,,.,.,,,,,,..,...,,,.,..,,..,,...,...,.,.,..,,,,,,.,.,.,.,
+#FUHJDQQ6UIYQIO2DTUHSMFMRQAR5PUNUCPTWZS54Q46KVHO2B5YY3RGA5C3F32N7X4GHZD3J7ULIE
+#\\\|B42KARKKZYMRLVATBWU7JJG65VFOZTEVUCIIXKAAJVLCDKQJTTT \ / AMOS7 \ YOURUM ::
+#\[7]NPHGCFXQTT26XMGZTGV7ZEIR2ZNJTJHSBKFTVOFMTOQVJEYHDEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -21,7 +21,7 @@ my $peer_fh = $session->{'handle'};
 $session->{'amos-chksum'}
     //= { 'modes' => $AMOS7::CHKSUM::algorithm_set_up::elf_truth_modes };
 
-return 1
+return TRUE
     if $session->{'buffer'}{'input'} =~ s|^\r?\n+||s
     or $session->{'buffer'}{'input'} !~ s|^(.+)\r?\n+||s;
 
@@ -54,17 +54,17 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {
 } elsif ( $LAST_PAREN_MATCH !~ m|^  (.+)$| ) {
     $session->{'buffer'}->{'output'} .= sprintf( ": protocol error : %s\n",
         'content requires 2 space indentation' );
-    return 0;
+    return FALSE;
 } else {
     my $modes_ref = $session->{'amos-chksum'}->{'modes'};
     $session->{'buffer'}->{'output'} .= sprintf( "%s\n",
         <[chk-sum.amos]>->( \$LAST_PAREN_MATCH, @{$modes_ref} ) );
 }
 
-return 0;
+return FALSE;
 
-#,,,.,,,.,.,,,,,,,,.,,..,,,,,,.,.,,,.,,,.,,.,,..,,...,..,,...,,,.,.,,,,.,,.,.,
-#SVSWJ6VTN56HNTGFU53O4FK67OPJFNHLZJ54XAGEXVWTQUC53DMDVDHDTL7S3X2RHYTNBWZQG5BVC
-#\\\|N27UH7NUHJBZCWJAILHQXAUBUHVTD4K237KOLKGSHIYWJS5IEJR \ / AMOS7 \ YOURUM ::
-#\[7]QWHOHNRBMRFRVHGYERT4CAZ5VGJGBMCOC5AKKT664RWVXERJQGCA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,...,,..,,.,,,,.,,,.,.,.,,..,,,.,..,,...,...,..,,,,.,,..,..,,...,
+#4O3G2K6HWGQXJSEP5WH7BNFVLOKAXO6WSW35UUWEHGVYGJOOWCFLJOJXGFCNIX62E7GRTQVP6MMQE
+#\\\|LISOAHICUAX4W5K3QYGOSZDSSDJ7Y23JNWLK2V7PYQ7GFZNAWPO \ / AMOS7 \ YOURUM ::
+#\[7]2FFDMMSD2MIR7X2XXJ2RUXJPI43HOEO7C5UUNLB7NCVM64P3UWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

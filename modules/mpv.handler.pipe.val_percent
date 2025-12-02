@@ -9,7 +9,7 @@ return <[base.callback.cmd_reply]>->(
     $reply_id, { 'mode' => qw| false |, 'data' => 'value undefined' }
 ) if defined $reply_id and $value_str !~ /\d$/;
 $value_str = sprintf( '%.3f', $value_str );
-$value_str =~ s/(\.0+|%)$//g;
+$value_str =~ s{(\.0+|%)$}{}g;
 
 my $what = delete <mpv.request>->{$reply_id};
 <mpv.current>->{$what} = $value_str if defined $what;
@@ -18,8 +18,8 @@ my $what = delete <mpv.request>->{$reply_id};
     $reply_id, { 'mode' => qw| true |, 'data' => $value_str . '%' }
 );
 
-#,,,,,,.,,,,,,,,.,...,,,,,.,.,,,,,..,,..,,.,,,..,,...,...,.,.,.,.,...,,..,,,,,
-#ECFHBCGKLOHHET6YRPQ6RRAHJEYEH3R7XYI5STZ4G4H2MDQZZZTILUA7EKA73SVSOQ7RIPCA6FGWA
-#\\\|WDWKMF7LFP2LDDQDAMSV32TFD43BB4C4WJWJDRRE3GINKLZQFH7 \ / AMOS7 \ YOURUM ::
-#\[7]J32N267HGZHYDUVXKKVA6HY36MU6JCUP4YXR7MXPRNNNHH5WNSCQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,.,,,,.,.,.,,,.,.,,,...,,,.,.,,,..,,...,...,,..,.,.,,,.,,,.,.,.,
+#V3XE5AHVVQD2GJARER2HVKOG54CG57YHDVX7Q3QELRW2QSNQMXUWSRWWLUUKRVGN2G3N5AP3SYELG
+#\\\|PQ2QEQDTNESY3GHI7FG7IFNHAUSR66HSAPBBHMP7KRBYBUHJCED \ / AMOS7 \ YOURUM ::
+#\[7]NVRDQZOC4IUAI2ZLW3FXTHFRF2LJGKUT33YGF65V33JEZNFYCCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

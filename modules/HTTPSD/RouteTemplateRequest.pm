@@ -38,61 +38,61 @@ Returns:
 =cut
 
 sub route_template_request {
-    my ($request_path, $content_metadata) = @_;
-    
+    my ( $request_path, $content_metadata ) = @_;
+
     # Normalize request path
     $request_path = _normalize_path($request_path);
-    
+
     # Default routing decision
     my $route = {
-        type => 'static',
-        path => $request_path,
+        type   => 'static',
+        path   => $request_path,
         reason => 'unknown',
     };
-    
+
     # ACME challenge requests: always bypass
-    if (_is_acme_challenge($request_path)) {
+    if ( _is_acme_challenge($request_path) ) {
         return {
-            type => 'acme_challenge',
-            path => $request_path,
+            type   => 'acme_challenge',
+            path   => $request_path,
             reason => 'acme_challenge_path',
         };
     }
-    
+
     # API requests: skip template processing
-    if (_is_api_request($request_path)) {
+    if ( _is_api_request($request_path) ) {
         return {
-            type => 'api',
-            path => $request_path,
+            type   => 'api',
+            path   => $request_path,
             reason => 'api_endpoint',
         };
     }
-    
+
     # Static assets: always serve as static
-    if (_is_static_asset($request_path)) {
+    if ( _is_static_asset($request_path) ) {
         return {
-            type => 'static',
-            path => $request_path,
+            type   => 'static',
+            path   => $request_path,
             reason => 'static_asset',
         };
     }
-    
+
     # Content with template: route to processor
-    if ($content_metadata && ref $content_metadata eq 'HASH') {
-        if ($content_metadata->{is_template}) {
+    if ( $content_metadata && ref $content_metadata eq 'HASH' ) {
+        if ( $content_metadata->{is_template} ) {
             return {
-                type => 'template',
-                path => $request_path,
+                type          => 'template',
+                path          => $request_path,
                 template_path => $content_metadata->{template},
-                reason => 'has_template',
+                reason        => 'has_template',
             };
         }
     }
-    
+
     # Default: serve as static
     return {
-        type => 'static',
-        path => $request_path,
+        type   => 'static',
+        path   => $request_path,
         reason => 'no_template_found',
     };
 }
@@ -111,80 +111,81 @@ Returns:
 =cut
 
 sub route_batch {
-    my ($request_paths, $content_map) = @_;
-    
+    my ( $request_paths, $content_map ) = @_;
+
     my %routes = ();
-    
+
     foreach my $path (@$request_paths) {
         my $metadata = $content_map->{$path};
-        $routes{$path} = route_template_request($path, $metadata);
+        $routes{$path} = route_template_request( $path, $metadata );
     }
-    
+
     return \%routes;
 }
 
 # Private: Normalize request path
 sub _normalize_path {
     my ($path) = @_;
-    
+
     # Ensure leading slash
     $path = '/' . $path unless $path =~ m{^/};
-    
+
     # Remove query string
     $path =~ s{\?.*$}{};
-    
+
     # Remove fragment
     $path =~ s{#.*$}{};
-    
+
     # Normalize multiple slashes
     $path =~ s{//+}{/}g;
-    
+
     # Remove trailing slash (except root)
     $path =~ s{/$}{} unless $path eq '/';
-    
+
     return $path;
 }
 
 # Private: Check if path is ACME challenge
 sub _is_acme_challenge {
     my ($path) = @_;
-    
+
     # ACME challenges are always at this path
-    return 1 if $path =~ m{^/\.well-known/acme-challenge/};
-    
-    return 0;
+    return TRUE if $path =~ m{^/\.well-known/acme-challenge/};
+
+    return FALSE;
 }
 
 # Private: Check if path is API request
 sub _is_api_request {
     my ($path) = @_;
-    
+
     # Common API paths (can be configured)
-    return 1 if $path =~ m{^/api/};
-    return 1 if $path =~ m{^/api$};
-    return 1 if $path =~ m{^/webhook/};
-    return 1 if $path =~ m{^/rest/};
-    
-    return 0;
+    return TRUE if $path =~ m{^/api/};
+    return TRUE if $path =~ m{^/api$};
+    return TRUE if $path =~ m{^/webhook/};
+    return TRUE if $path =~ m{^/rest/};
+
+    return FALSE;
 }
 
 # Private: Check if path is static asset
 sub _is_static_asset {
     my ($path) = @_;
-    
+
     # Common static file extensions
-    return 1 if $path =~ m{\.(
+    return TRUE if $path =~ m{\.(
         css|js|png|jpg|jpeg|gif|svg|ico|
         woff|woff2|ttf|otf|eot|
         mp3|mp4|webm|ogg|webp|
         pdf|zip|tar|gz|7z|
         txt|xml|json|yaml|yml
     )$}ix;
-    
+
     # Static directories
-    return 1 if $path =~ m{^/(?:static|assets|public|img|images|css|js|fonts)/};
-    
-    return 0;
+    return TRUE
+        if $path =~ m{^/(?:static|assets|public|img|images|css|js|fonts)/};
+
+    return FALSE;
 }
 
 1;
@@ -207,7 +208,7 @@ The router makes routing decisions in this order:
 
 3. Static Assets
    - Extensions: .css, .js, .png, .jpg, .svg, .pdf, etc.
-   - Directories: /static/, /assets/, /public/, /css/, /js/, /fonts/
+   - Directories: /static/, /assets/, /public/, /css/, /js|, |fonts|
    - Type: static
    - Reason: No template processing needed for binary/static content
 

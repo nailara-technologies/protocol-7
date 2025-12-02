@@ -25,7 +25,7 @@ unless ( $vhost_result && $vhost_result->{status} eq 'success' ) {
     <[base.log]>->(
         1, "error: cannot query vhosts from httpd - skipping renewal check"
     );
-    return 0;
+    return FALSE;
 }
 
 my @vhosts = @{ $vhost_result->{vhosts} // [] };
@@ -39,7 +39,7 @@ unless ( $domain_result && $domain_result->{status} eq 'success' ) {
         1,
         "error: cannot determine certificate domains - skipping renewal check"
     );
-    return 0;
+    return FALSE;
 }
 
 my %domains_map = %{ $domain_result->{domains} // {} };
@@ -61,7 +61,7 @@ my $check_result = <[letsencr.parent.check_certificate_expiration]>
     ->(<letsencr.parent.certs>);
 unless ( $check_result && ref($check_result) eq 'HASH' ) {
     <[base.log]>->( 1, "error: cannot check certificate expiration" );
-    return 0;
+    return FALSE;
 }
 
 my @needs_renewal = @{ $check_result->{needs_renewal} // [] };
@@ -102,10 +102,10 @@ if ( @new_domains > 0 ) {
 
 <[base.log]>->( 3, 'renewal check complete' );
 
-return 0;
+return FALSE;
 
-#,,,,,,,,,,..,,..,,.,,,,,,..,,,,.,,..,,,,,,,,,..,,...,...,,,.,...,.,.,...,.,,,
-#Z2FPX65ZYHHXTQGHONQ46DFY7SJU3SAXQOKUMNPB4KSZ7OLNQGMJUVDDZH66Y2CE62VNQHEYTEELI
-#\\\|ISLDRWO4EZ7VFFNTWXZMBO5APAWRH75AXSTVSJAZIBN5MKFY4HY \ / AMOS7 \ YOURUM ::
-#\[7]OD26K5A2ZOQGQJFLJ4ERLMZOTCUTWTQA7L7E2EGJBMRV2KFAFECY 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,..,,.,.,,,.,...,..,,...,,,.,.,.,..,,...,...,...,,..,,,,,..,,.,.,
+#G62BTCLWBVRVOUBDABQZ35YJYJEY3W6OLBV7DW4OETZA56MVRJBPPVE6LRZQ5URJWNQKO7VOAHFA2
+#\\\|I5SS3UUCIJXQOUVXMHUG7EL7NKLF6F5DTRJ6WNP6VYWYVAPRYSM \ / AMOS7 \ YOURUM ::
+#\[7]J7ILUTHGWPUBIEYPXSA4CH3CQDOHZTCD52XSM5KTDPRSOWXIDCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

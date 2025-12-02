@@ -26,7 +26,7 @@ unless ( $username && $password ) {
 
 ## Extract base domain from record name
 my $base_domain = $dns_record_name;
-$base_domain =~ s/^_acme-challenge\.//;
+$base_domain =~ s|^_acme-challenge\.||;
 
 <[base.log]>->( 3, "base domain: $base_domain" );
 
@@ -111,8 +111,8 @@ return {
     deleted => 1,
 };
 
-#,,,.,,,,,,,,,,,,,,,,,...,.,,,,..,,,.,.,.,,.,,..,,...,...,.,,,.,.,,.,,.,.,...,
-#HKNYEWEFAQ5TOHCV3NRR4ON4ZKADYV376MAVPWGZRGP4BDK6CNFK6WL4R34BHHXBXWYLKHLRZPUW2
-#\\\|TABN6M7KL2PHTS6OLXQ5WIMBLKVJDTJ4GJMYBY36NV4TYMBYT4X \ / AMOS7 \ YOURUM ::
-#\[7]T346CHTRF5GLBBPTRWWQJRTEVHDOQH56XM4VK3HN7VKAUWOYIUCA 7  DATA SIGNATURE ::
+#,,..,..,,,..,,.,,,..,...,,.,,,..,.,.,,..,,,.,..,,...,..,,,,.,,,,,,.,,..,,.,.,
+#IYFHIJQVVBAWT3C46XRKVVHCYSK5OWNOKQNBZKQCQD2PQJSX63P2FP4VEOXMBB37NF4NCB2XPB4KI
+#\\\|CKF2C6SBS3QFGIO4N6EQV2OOVK454OMHMTORGECRAHC2YOMLDNV \ / AMOS7 \ YOURUM ::
+#\[7]JAECJBGS4ACQSDW2EV77GFTJO6I2URKLCSSDZNA356NTNOZZMKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
