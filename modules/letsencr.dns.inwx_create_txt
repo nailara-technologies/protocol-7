@@ -33,7 +33,7 @@ unless ( $username && $password ) {
 ## Extract base domain from record name
 ## _acme-challenge.example.com -> example.com
 my $base_domain = $dns_record_name;
-$base_domain =~ s/^_acme-challenge\.//;
+$base_domain =~ s|^_acme-challenge\.||;
 
 <[base.log]>->( 3, "base domain: $base_domain" );
 
@@ -141,8 +141,8 @@ return {
     value     => $dns_value,
 };
 
-#,,..,...,,,,,,,.,,.,,,,.,,..,.,.,,,,,,,,,,,.,..,,...,...,.,,,,,,,,,,,,.,,.,,,
-#JW5AZ7K3ADAYXY5OLWO5RPJBG7FUTHFKENBAYIK3FQQ5OXI6NXOP6V2WQ5VPNQ2NJJC5OM4KSZV62
-#\\\|QNKS3BZVMMMECIBFZHRZUYZAEJIULL3Q3A5Q4SIQPRII654KTRW \ / AMOS7 \ YOURUM ::
-#\[7]CBKVTYJOXAXPYQZYCP33AYR4WCFHFGXALKY5LDAQLJBK6FS2F2AA 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,.,,.,,,.,,...,..,,...,.,.,,.,,..,,...,..,,..,,..,,,..,,,,,..,,
+#U7MNTOOS3NG47SOJXOEVBUJSOLJYXU2LQPPI74HYBET7LR3THW25AMHZZFSNRZ6UY6V3NJ3AZYI3E
+#\\\|HT5B672KXPKN724DYP252EHFGU3ROFLKUAVDTKDBMHUHNMBPJZK \ / AMOS7 \ YOURUM ::
+#\[7]EEEOSXI3NN7WAQQMYV6XLF2WMY5X34Y3QMBLFNA7BC44DI4WCWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

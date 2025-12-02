@@ -56,14 +56,15 @@ if ( $response->code == 200 ) {
         or die
         "cannot move '$output_file.NEW' to '$output_file' [ \l$OS_ERROR ]";
     <[base.log]>->( 2, ": : wrote txt data to '$output_file'" );
-    # Note: LWP::UserAgent handles HTTP caching automatically via ETags/Last-Modified
-    # No explicit commit needed (unlike XML::RSS::TimingBot)
-    return 1;
+
+# Note: LWP::UserAgent handles HTTP caching automatically via ETags/Last-Modified
+# No explicit commit needed (unlike XML::RSS::TimingBot)
+    return TRUE;
 
 } elsif ( $response->code == 304 ) {
     <rss.ticker.fail_warned> = 0;
     <[base.log]>->( 2, ": no new content since last request" );
-    return 0;
+    return FALSE;
 } else {
     <rss.ticker.fail_warned> //= 0;
     <[base.log]>->(
@@ -112,8 +113,8 @@ if ( $response->code == 200 ) {
     return -1;
 }
 
-#,,,,,,,.,...,...,.,,,.,.,...,,,,,,.,,,,,,...,..,,...,...,..,,,,,,...,,.,,,.,,
-#GWLQEZCXDIL7BK6DYTJK3VINNRVFWI5E57IE74CKONGXT42VFC2EXE7ILKCNLL4RMYFFJC2E5D6XG
-#\\\|IRPA6QAGPCIWED234MPGE454IQXFBAQTTCDKF4UXNAYN6KYJVJP \ / AMOS7 \ YOURUM ::
-#\[7]IOFW2A3BAJ6UWJBRJPCGO6EHSCPZK26FRXGHOHXZHATMHFVMQCDI 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,.,,,.,,,,.,,.,.,,,.,.,,,,.,,,..,..,,...,..,,...,.,.,,..,.,,,,,,,
+#KDTVEXSJQBQPL7PSOI5A42HFC7VHVZOMJXXA4URWYBEDPJDWE4FD4DHIDO7PXI4ZCGEJBXFX53GGW
+#\\\|MZNUGUUUY533QQFC2CEIZSECSOOBIMJNRRVRMWJYNJYNYVFTGXI \ / AMOS7 \ YOURUM ::
+#\[7]AVAO5TATK2MOUSMAF4URWU4JK624QCIZCCWBK2GV2X5XFD23X4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

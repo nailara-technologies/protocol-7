@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = base.is_defined_recursive
-# descr = return 1 if %data key exists, 5 when defined and 0 when not present
+# descr = return TRUE if %data key exists, 5 when defined and 0 when not present
 
 my $data_key_str = shift // '';
 warn 'expected %data key string parameter' and return undef
@@ -21,12 +21,12 @@ foreach my $subkey (@dtree) {    ## traverse hash keys ##
 
 return TRUE if defined $next_ref->{$last_key};    ##  defined [5] ##
 
-return 1 if exists $next_ref->{$last_key};        ##  only exists [1] ##
+return TRUE if exists $next_ref->{$last_key};     ##  only exists [1] ##
 
 return FALSE;                                     ##  key not present [0]  ##
 
-#,,.,,.,.,,.,,,,,,.,,,,..,,..,,.,,,,,,.,,,,,.,..,,...,...,..,,,,.,..,,..,,.,.,
-#57OM6W33PSY7YFM6GNRNVFWPCGICBLQRXA6P2N5DVDFZEYKGO5PVGSSS6HL4RA3FDGP4VSMQ7UY3Q
-#\\\|MKPORJ4EO2YJCFLKKKSL5GBM3UIITCRREHXZJLAEM226FQZF2UZ \ / AMOS7 \ YOURUM ::
-#\[7]YWVJSVMX6QOUHJGSRGKR46RE3JKQPEOEKIWOT2WYH2QBHV2GVYBY 7  DATA SIGNATURE ::
+#,,..,,,.,,..,...,,,,,,,.,,,.,,..,,,.,..,,,..,..,,...,...,.,.,,,.,...,,.,,,.,,
+#43EJI5A657GFGNXG6ZEXBVQPJLTD3YRXRLPOOEQAAQHJ4XJLH4VY6ZARYB6DKWQNBPHITK7UNVKFA
+#\\\|HSMUEVCVUCDYN44PR2KH5BIT763D3CZIZNTXJNOYZ5O6IILUOFF \ / AMOS7 \ YOURUM ::
+#\[7]LJ4YLMLJWN5LIXGFPQQW5OILT6B2S6P4RPVGOUPBWZROBMLXYYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

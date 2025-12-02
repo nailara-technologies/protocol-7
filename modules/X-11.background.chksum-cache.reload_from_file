@@ -5,9 +5,9 @@
 my $cache_filename = <X-11.path.chksum_cache_name>;
 return undef if not defined $cache_filename;
 
-my $cache_file_path_abs = sprintf qw| %s/%s/%s |,
-    <system.path.zenka-dirs.var_P7>, <system.zenka.name>,
-    $cache_filename;
+my $cache_file_path_abs = sprintf( qw| %s/%s/%s |,
+    <system.path.zenka-dirs.var_P7>,
+    <system.zenka.name>, $cache_filename );
 
 return undef if not -f $cache_file_path_abs;
 
@@ -24,7 +24,7 @@ my $amos7_checksum_cache = {};
 chomp $cache_content_scalar_ref;
 
 foreach my $line ( split "\n", $cache_content_scalar_ref->$* ) {
-    if ( $line !~ m|^([A-Z2-7]{7}):(/.+)$| ) {
+    if ( $line !~ m|^([A-Z2-7]{7}):(.+)$| ) {
         warn 'error in filename chsum cache format <{C1}>';
         return undef;
     } else {
@@ -44,8 +44,8 @@ foreach my $line ( split "\n", $cache_content_scalar_ref->$* ) {
 
 return TRUE;
 
-#,,,.,,,,,.,,,.,.,,,,,.,.,,.,,,,,,...,.,,,,..,..,,...,...,,..,.,.,.,.,,.,,,..,
-#DH2DXQNMQMEUG3IXCTJFNMMOSKMSKAO6RUCFZ6BTEIDRIJLXSVXMS5ERGP4LERDS27SCSRUG5MK7S
-#\\\|SZDM2OE5LYCECQKW6HK35WLNUFEKBVM6IY7HHEKEPWS6WSGO43I \ / AMOS7 \ YOURUM ::
-#\[7]64N5JMLWZVQEXZRVH7SGLWKB5C3ZUVA7WN4BVMKN6ONS2S6WIKDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,..,,,,,.,.,,,,,.,.,,,,,.,.,.,.,..,,...,...,..,,...,,.,,.,.,.,.,
+#DCEYXXLFM55YFUROO2T4J6RJKIZNHM6EUXP74TUUN4N47QLJC66LUKUXAT567BBSGX6O5OWH5WQMW
+#\\\|MQZYUSAHPXM4BYGOA33WGR2TXWNXZYOZQS4F4XQ36JGMVONUGG2 \ / AMOS7 \ YOURUM ::
+#\[7]3NA54DXKMBENCB35LWX5X7Z5ESBMFXL6NCHFJ2DIR5KASAVHM4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

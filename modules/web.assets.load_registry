@@ -8,7 +8,9 @@ use YAML::Tiny;
 my $project_root  = $ENV{PROJECT_ROOT} || '/data/projects/protocol-7';
 my $registry_file = "$project_root/var/httpd/static/.asset-registry.yaml";
 
-<[base.log]>->( 2, 'web.assets.load_registry: loading from ' . $registry_file );
+<[base.log]>->(
+    2, 'web.assets.load_registry: loading from ' . $registry_file
+);
 
 ## Check if registry file exists ##
 unless ( -f $registry_file ) {
@@ -16,7 +18,7 @@ unless ( -f $registry_file ) {
         1,
         'web.assets.load_registry: registry file not found - run validator first'
     );
-    return 0;
+    return FALSE;
 }
 
 ## Load YAML ##
@@ -24,12 +26,13 @@ my $yaml = eval { YAML::Tiny->read($registry_file) };
 
 if ($@) {
     <[base.log]>->( 0, "web.assets.load_registry: YAML parse error: $@" );
-    return 0;
+    return FALSE;
 }
 
 unless ( $yaml and $yaml->[0] ) {
-    <[base.log]>->( 0, 'web.assets.load_registry: empty or invalid registry' );
-    return 0;
+    <[base.log]>
+        ->( 0, 'web.assets.load_registry: empty or invalid registry' );
+    return FALSE;
 }
 
 my $data = $yaml->[0];
@@ -39,10 +42,8 @@ if ( $data->{stats} ) {
     <web.assets.stats> = $data->{stats};
     <[base.log]>->(
         2,
-        sprintf(
-            'web.assets.load_registry: loaded stats - %d total assets',
-            <web.assets.stats>->{total_assets}
-        )
+        sprintf( 'web.assets.load_registry: loaded stats - %d total assets',
+            <web.assets.stats>->{total_assets} )
     );
 }
 
@@ -50,10 +51,9 @@ if ( $data->{stats} ) {
 if ( $data->{assets} ) {
     <web.assets.registry> = $data->{assets};
 
-    my $count = scalar( keys %{ <web.assets.registry> } );
+    my $count = scalar( keys %{<web.assets.registry>} );
     <[base.log]>->(
-        2,
-        "web.assets.load_registry: loaded $count asset entries"
+        2, "web.assets.load_registry: loaded $count asset entries"
     );
 
     ## Update statistics ##
@@ -63,7 +63,7 @@ if ( $data->{assets} ) {
     <web.assets.stats>->{assets_copied}  = 0;
 
     ## Count by status ##
-    foreach my $path ( keys %{ <web.assets.registry> } ) {
+    foreach my $path ( keys %{<web.assets.registry>} ) {
         my $status = <web.assets.registry>->{$path}{status};
 
         if ( $status eq 'present' ) {
@@ -78,10 +78,10 @@ if ( $data->{assets} ) {
 
 <[base.log]>->( 2, 'web.assets.load_registry: registry loaded successfully' );
 
-return 1;
+return TRUE;
 
-#,,.,,,.,,,,.,,..,.,.,,,,,,,,,,.,,..,,.,.,,..,..,,...,...,,..,.,.,,,.,...,..,,
-#BWTFAAAWLYVXOKLQXMDZWEFFIYSNV3RCSB6DK57SZOP4H6X4QJLDSGMES34XH5BCPPVKHASW2JGIY
-#\\\|PLJPBC42UGAFU4C4IK7YG5S5UPSC2T3IMWCJ6GLQEZDCEGPDG6Y \ / AMOS7 \ YOURUM ::
-#\[7]Y7OUG5NTQJKIXW5NUZ7P4HUVGXJRU2TTRMCL24IMXGJLCMMMIQCA 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,.,...,,.,,,.,,..,,.,.,...,.,,,..,,...,...,...,,..,,.,,,,.,..,,
+#TKKWFE2EAJU5FJFXP4RVQLVAGG2I5M3UN6NGRWZWRPG6UYQGCRFAVSGFMSBFFF5AVTZEP4JWWPTTG
+#\\\|SSAWZFALTXGAEWO5A7NA6JWTNSNRYDHRTNY7BM37TH5GP66JMIL \ / AMOS7 \ YOURUM ::
+#\[7]Z5VD2XFJ256XUUM6YBKG5HA3AQ3FNBQ3DVVCKCSP7OKQHEWWMUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

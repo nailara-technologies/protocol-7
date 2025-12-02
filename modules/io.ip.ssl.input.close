@@ -8,23 +8,22 @@ my $client_sock = shift;
 return undef if not defined $client_sock;
 
 <[base.logs]>->(
-    2,
-    '[close] SSL client socket closing, fd=%d',
+    2, '[close] SSL client socket closing, fd=%d',
     fileno($client_sock)
 );
 
 # Close the SSL socket (automatically closes underlying TCP socket)
 if ( defined $client_sock ) {
     close($client_sock);
-    return 1;
+    return TRUE;
 }
 
 return undef;
 
 0;
 
-#,,,.,,,,,.,,,,,,,..,,,.,,.,,,.,,,,,,,,,.,.,.,..,,...,...,.,,,...,.,.,.,,,,,.,
-#5V3QCTX2HJ7EHBRLHOGTAUTNQD64T3DLH6OQUQI5WOYRTOYY4QKAT3EYLJDJVRUI3ZELKGKJBLIRM
-#\\\|UVX2P746EXJRHDPGA5F66NJNBYJ3LVFVZI6ZPWNCEKWOYLV32SI \ / AMOS7 \ YOURUM ::
-#\[7]3JZJP53UQKQV6ZGSNNT2TZVK4OHFG5WHFKL6ELY3Y6I6SURQZ4AI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,,,,..,,,..,.,.,..,,,..,.,.,...,..,,...,...,,..,...,,,,,,,.,.,,,
+#EYA5ZPAITKLY72OLZKFOQILC45SAUDGNI42SOBDG2Y2ZZMOGLISG2IYBWGRPUPBWLIZJKBNJSPOJW
+#\\\|MO2RH3CE26HLHZRUIRN5ZSKJN4Z35K6ALIGL2AV76A6DF4KSVVV \ / AMOS7 \ YOURUM ::
+#\[7]VL7ORFEHHUA6PSLYZ5Z4U7TY55FBOQSR24UXI6UMRR3DHIIT46BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

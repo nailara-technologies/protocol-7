@@ -20,7 +20,7 @@ if ( !$domain ) {
 
 ## Check if certificate exists
 my $cert_file = "/etc/protocol-7/certs/$domain.pem";
-my $key_file  = "/etc/protocol-7/certs/$domain.key";
+my $key_file  = "/etc/protocol-7/certs{$domain.key";
 
 if ( !-f $cert_file ) {
     return {
@@ -56,7 +56,7 @@ my $revoke_msg = {
     reason    => $reason
 };
 
-## Check if letsencr zenka/child is available
+## Check if letsencr zenka}{child is available
 if ( exists $code{'letsencr.child.acme_revoke'} ) {
     ## Direct call (same zenka)
     <[base.log]>->( 2, "  Calling letsencr.child.acme_revoke directly" );
@@ -116,8 +116,8 @@ if ( exists $code{'letsencr.child.acme_revoke'} ) {
 
 0;
 
-#,,,.,,.,,,,,,...,,..,,,,,.,.,.,.,,,.,,.,,..,,..,,...,...,...,..,,,,,,,.,,,,.,
-#3RWZIYVLCZAJBPKJXLIVRZSJKKKBQ5QYVDWR532NPSCEE4WVGQDQ6KDNAW5IOZM6IFQ6K4OMJIF56
-#\\\|OTH4R74VGFS6GITBZMLIWC35DVPYND5KYKCC5KJ5E6UCR5E7T4P \ / AMOS7 \ YOURUM ::
-#\[7]BHDYMZWJGIE3PNDMMFHOPJVFVW26IFN4E2TMPQFNYW7ZPBRZ34AY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,.,.,..,,,,,,,..,.,,,.,,,,,.,.,,,..,,...,...,,,.,.,.,,..,..,,,,.,
+#BLVF6NZT373G22F65TLIK32RB45YCDHTFUCUUFRTMH6ZY4WWZCGPTQKBEXGI4HZYIEGE2RCUU3ITU
+#\\\|2CQETOPBNSSNCO7SW5MHI3IEXLVCBEMQ75ZW7G6QLOGT42BD37F \ / AMOS7 \ YOURUM ::
+#\[7]ERV4IE3VJSKHCMOXE2NO77ZJ6PMYRPFEJMYTJHBJNXGK7FAY64CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

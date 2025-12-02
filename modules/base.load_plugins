@@ -7,19 +7,19 @@ my @plugins_to_load = grep {/^plugin./} split / /, join( ' ', @_ );
 
 if ( !@plugins_to_load ) {
     <[base.log]>->( 0, 'base.load_plugins: no plugin names specified' );
-    return 1;
+    return TRUE;
 }
 <[base.log]>->( 1, '... loading plugins ..,' );
 my ( $subs_ok, $subs_failed ) = <[base.load_code]>->(@plugins_to_load);
 
 if ( not defined $subs_ok or !$subs_ok ) {
     <[base.log]>->( 1, 'base.load_plugins: no plugins were loaded ..' );
-    return 1;
+    return TRUE;
 }
 return $subs_failed;
 
-#,,,,,,,,,,..,.,,,,,.,...,..,,,,.,...,..,,,.,,..,,...,...,.,.,,.,,.,,,,.,,.,.,
-#R3MCZTSXAGGDPFRKDDFM5AAFQXPKCEUB3UGUC2PJKIRDTDHKP7IUAANZFV3ZMJ5XJJZ77CRIKQXTG
-#\\\|UETVQRDTNDCREMSHVU7LLUFYO2JZRPUPUEB2QYLKJ6LCX5REN4X \ / AMOS7 \ YOURUM ::
-#\[7]RV5CLPMEVUAD6OLQYLX6SFNUKSBMYEBVPCOYTLRJMZ3GO62GO6CA 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,.,.,.,.,,,,,,,.,,,,,.,.,,,,,.,.,..,,...,...,..,,...,..,,..,,,,.,
+#AYX4CHL4CVT2YUMI6Z725YNN3ODDTABMLKADQC37U2DKT74DXZP3FJVWWGK6GTFW3VKBLNZZZFNQW
+#\\\|S2TFKQ5HZV34CJY5BEOW4M3B2W6W7ZDC2C6ME2H7MJ43QMGTB36 \ / AMOS7 \ YOURUM ::
+#\[7]RYHQJXVNCI5OKFYA3W6SS4YWLPTIVKPNWVENSEE6WCCLMXSHICBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

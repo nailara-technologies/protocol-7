@@ -7,13 +7,13 @@ my $mount_point = shift;
 
 my $fs_data = <[fs.get_filesystems]>;
 
-return 1 if exists $fs_data->{'mounted'}->{$mount_point};
-return 0 if exists $fs_data->{'unmounted'}->{$mount_point};
+return TRUE  if exists $fs_data->{'mounted'}->{$mount_point};
+return FALSE if exists $fs_data->{'unmounted'}->{$mount_point};
 
 return -1;    # mount-point does not exist
 
-#,,.,,,,.,.,,,,,,,...,..,,,..,.,.,,,.,.,.,...,..,,...,...,...,...,...,,..,,,.,
-#B6MZKPMYYRINLAUW3UDEILKMMFHNJ3PVXXAFQDLPJJWUDAUJYCH7TMF7MGZRI2FXANT4GKC3VRPAA
-#\\\|CGK5QK5FRR7ZQP7ECFN4H4Y4VYOKPAEZI2HGS5UVIRJ2CBISE7F \ / AMOS7 \ YOURUM ::
-#\[7]JMDXIB6I4SXSDLLX2XN2U6TYZCZLMMQHVLCOVS5D3AXJ3I4SJQAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,,.,,,.,..,,.,,,.,,,,.,,,.,,.,.,..,,...,...,...,..,,,,,,,.,,...,
+#ZJAOQ3G7KIRPPUQGJYN2YZ6YLFXLJ67EGAU4BQXR5YRLDM2QQ56YSUSOS6RYHGUVXUYOU4LBVBRTY
+#\\\|4S7D4SHGLLS3CDBPFSFNK5L5MNSKP7TCKEABKUEN32DQHYM7JSV \ / AMOS7 \ YOURUM ::
+#\[7]3LIA2NYHIAMCQGQXE3Y3SQ7AZXO6PQ7METKCF5YOAER2HCPF7ACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,7 +10,7 @@ my $max_depth    = shift // 3;
 
 ## Clean up current path ##
 $current_path =~ s/^\/+|\/+$//g;
-$current_path =~ s/\.\.+/./g;
+$current_path =~ s|\.\.+|.|g;
 
 <[base.log]>->(
     3,
@@ -26,8 +26,7 @@ my $root_scan = <[web.scan_directory]>->( $base_dir, '', {} );
 
 if ( $root_scan->{status} ne qw| success | ) {
     <[base.log]>->(
-        1,
-        "plugin.web.menu.tree: failed to scan root: " . $root_scan->{error}
+        1, "plugin.web.menu.tree: failed to scan root: " . $root_scan->{error}
     );
     return qq| <p>Menu not available</p> |;
 }
@@ -42,20 +41,21 @@ foreach my $item ( @{ $root_scan->{items} } ) {
     next if $item->{type} eq 'file' and !$item->{is_index};
 
     my $item_path = $item->{path};
-    my $is_active = ( $current_path eq $item_path
-            or $current_path =~ m|^\Q$item_path\E/| );
+    my $is_active = (
+               $current_path eq $item_path
+            or $current_path =~ m|^\Q$item_path\E/|
+    );
 
     my $css_class = 'menu-item';
-    $css_class .= ' active'   if $is_active;
-    $css_class .= ' current'  if $current_path eq $item_path;
+    $css_class .= ' active'       if $is_active;
+    $css_class .= ' current'      if $current_path eq $item_path;
     $css_class .= ' has-children' if $item->{type} eq 'dir';
 
     ## Format display name (replace underscores with spaces) ##
     my $display = $item->{display_name};
-    $display =~ s/_/ /g;
+    $display =~ s|_| |g;
 
-    push @html_lines,
-        qq|  <li class="$css_class">|;
+    push @html_lines, qq|  <li class="$css_class">|;
 
     if ($is_active) {
         push @html_lines,
@@ -67,14 +67,12 @@ foreach my $item ( @{ $root_scan->{items} } ) {
 
     ## If this is a directory and it matches the current path's first segment,
     ## recursively expand it ##
-    if ( $item->{type} eq 'dir'
+    if (    $item->{type} eq 'dir'
         and $first_segment eq $item->{name}
-        and $max_depth > 1 )
-    {
-        my $submenu_html = _generate_submenu(
-            $base_dir,     $item_path,     $current_path,
-            $max_depth - 1, 1
-        );
+        and $max_depth > 1 ) {
+        my $submenu_html
+            = _generate_submenu( $base_dir, $item_path, $current_path,
+            $max_depth - 1, 1 );
         push @html_lines, $submenu_html if length($submenu_html);
     }
 
@@ -97,8 +95,8 @@ return $menu_html;
 
 ## Recursive submenu generation ##
 sub _generate_submenu {
-    my ( $base_dir, $parent_path, $current_path, $depth_remaining, $level ) =
-        @_;
+    my ( $base_dir, $parent_path, $current_path, $depth_remaining, $level )
+        = @_;
 
     return '' if $depth_remaining <= 0;
 
@@ -117,15 +115,17 @@ sub _generate_submenu {
         next if $item->{type} eq 'file' and !$item->{is_index};
 
         my $item_path = $item->{path};
-        my $is_active = ( $current_path eq $item_path
-                or $current_path =~ m|^\Q$item_path\E/| );
+        my $is_active = (
+                   $current_path eq $item_path
+                or $current_path =~ m|^\Q$item_path\E/|
+        );
 
         my $css_class = 'menu-item submenu-item';
         $css_class .= ' active'  if $is_active;
         $css_class .= ' current' if $current_path eq $item_path;
 
         my $display = $item->{display_name};
-        $display =~ s/_/ /g;
+        $display =~ s|_| |g;
 
         push @html, qq|      <li class="$css_class">|;
 
@@ -138,14 +138,13 @@ sub _generate_submenu {
         }
 
         ## Recursively expand if directory and in current path ##
-        if ( $item->{type} eq 'dir'
+        if (    $item->{type} eq 'dir'
             and $is_active
-            and $depth_remaining > 1 )
-        {
-            my $submenu = _generate_submenu(
-                $base_dir,         $item_path,       $current_path,
-                $depth_remaining - 1, $level + 1
-            );
+            and $depth_remaining > 1 ) {
+            my $submenu
+                = _generate_submenu( $base_dir, $item_path, $current_path,
+                $depth_remaining - 1,
+                $level + 1 );
             push @html, $submenu if length($submenu);
         }
 
@@ -157,8 +156,8 @@ sub _generate_submenu {
     return join( "\n", @html );
 }
 
-#,,.,,,,.,..,,...,..,,.,,,..,,,.,,.,.,,,.,.,.,..,,...,...,.,.,,,,,...,,..,...,
-#4VIPW6PDSWT277RNXCTMLSGC7JVCELC4KZFDUUWM22AO5U2QAT4OUBCUQBT7A2H2EQI2UZDINE74Y
-#\\\|IDNYNQUCPXYFL2X635ZHXZ7K4PJB52X34YTPC6JVU62C2DXBAGV \ / AMOS7 \ YOURUM ::
-#\[7]5ZOBAYRRTD5VBWWXHF3JT5RA2JWZOJX3SNQQRZU7XTSXV5TOJKCQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,..,..,,,,.,..,,.,.,...,...,...,..,,...,..,,...,,,.,,,,,.,,,...,
+#NHOU6GPS3DJRBZIAASMGQJ2XOAOIS3DAONZ26QJNJ5575X7DGMW6ZDTVKMAF47LN5WD5NAM2WN5MU
+#\\\|SZZWKGIZFYPXINMUHQ3JNKF3EQJI32KPB6V6JSY7Z3CIA62MKSP \ / AMOS7 \ YOURUM ::
+#\[7]2RDKOBTGLU75WQGMM2US3VBBEYZNH7FG4W64WSQDNHOMR3GYXGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

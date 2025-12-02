@@ -6,14 +6,14 @@ my ( $id, $direction, $chain ) = @_;
 
 if ( $chain !~ /^\d+$/ ) {
     <[base.log]>->( 0, 'chain id must be a decimal value' );
-    return 1;
+    return TRUE;
 }
 
 my $chain_handler = 'filter.chain.' . $chain;
 
 if ( not defined &{ $code{$chain_handler} } ) {
     <[base.log]>->( 0, 'no such chain handler' );
-    return 1;
+    return TRUE;
 }
 
 if ( $direction eq 'in' or $direction eq 'out' ) {
@@ -22,14 +22,14 @@ if ( $direction eq 'in' or $direction eq 'out' ) {
         1,
         'mounted ' . $direction . 'put chain ' . $chain . ' on client ' . $id
     );
-    return 0;
+    return FALSE;
 } else {
     <[base.log]>->( 0, 'no such chain handler' );
-    return 1;
+    return TRUE;
 }
 
-#,,..,,..,,.,,..,,,..,,,.,...,.,.,.,.,..,,.,.,..,,...,...,.,.,..,,,.,,..,,.,.,
-#R4BW4LEFTSCC7CPIOARLS55KTKLRXI4IVKVLGYUNWPY3KRLQ2TU6C6YYYTSJ5XVWOQW6LYWKZBCK6
-#\\\|QSRWBQIIYF2YSM6VPT5WEBYD6QXBU75SAVZWLTHVMT45YSTSBNO \ / AMOS7 \ YOURUM ::
-#\[7]26DADRW7L3V7BQPSRE7K6ZDRDY7NONHRXNBRHHUI553563S73MBI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,...,,,,,.,.,.,,,,..,,,.,...,,.,,..,,...,...,,..,...,.,.,...,..,,
+#N5J2GRJNDMSAEETJEQ2IHVDU3H3YYFFSNNWDOSRS6LGUKMFRXAYTKT5PGP5QJ24QU5BDTWMWYTO72
+#\\\|RI2I5JMW5ZECZQ7JWAIXJNTRC2OO44JLYJTEQCDNFSAO4HBLFS4 \ / AMOS7 \ YOURUM ::
+#\[7]SZJMIMIEK5UYI4KMLGJGXVEY4U2L7TJDO7F3DUGV5JEYDLF4NMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

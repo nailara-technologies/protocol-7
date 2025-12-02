@@ -4,22 +4,23 @@
 # descr = workflow zenka initialization
 
 # Load YAML module for aggregation features
-eval {
-    <[base.perlmod.autoload]>->('YAML::XS');
-};
+eval { <[base.perlmod.autoload]>->('YAML::XS'); };
 if ($@) {
-    <[base.logs]>->( 1, 'YAML::XS not available, yaml aggregation features disabled' );
+    <[base.logs]>->(
+        1, 'YAML::XS not available, yaml aggregation features disabled'
+    );
 }
 
 ## Configuration - use Protocol-7 auto-detected system paths ##
 my $root_path = <system.root_path>;
-<workflow.cfg.yaml_data_dir>  //= "$root_path/data/yaml";
-<workflow.cfg.index_dir>      //= <workflow.cfg.yaml_data_dir> . '/indexes';
-<workflow.cfg.index_ttl>      //= 300;  ## 5 minutes ##
+<workflow.cfg.yaml_data_dir> //= "$root_path/data/yaml";
+<workflow.cfg.index_dir>     //= <workflow.cfg.yaml_data_dir> . '/indexes';
+<workflow.cfg.index_ttl>     //= 300;    ## 5 minutes ##
 
 ## Index file paths ##
-<workflow.index.todos>     = <workflow.cfg.index_dir> . '/todos-index.yaml';
-<workflow.index.workspace> = <workflow.cfg.index_dir> . '/workspace-transfer-index.yaml';
+<workflow.index.todos> = <workflow.cfg.index_dir> . '/todos-index.yaml';
+<workflow.index.workspace>
+    = <workflow.cfg.index_dir> . '/workspace-transfer-index.yaml';
 
 ## Workspace-transfer paths ##
 <workflow.cfg.workspace_root> //= '/var/run/.7';
@@ -50,7 +51,7 @@ if ( not exists <buffer.workflow-activity> ) {
 }
 
 if ( not exists <buffer.workflow-aggregation> ) {
-    <buffer.workflow-aggregation.max_size> = 24 * 1024;    ## 24K buffer size ##
+    <buffer.workflow-aggregation.max_size> = 24 * 1024;  ## 24K buffer size ##
     my $log_level  = 0;
     my $log_msg    = 'workflow aggregation buffer initialized ..,';
     my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
@@ -119,12 +120,14 @@ if ( not exists <buffer.workflow-aggregation> ) {
     }
 );
 
-<[base.logs]>->( 2, 'workflow module initialized with yaml aggregation support' );
+<[base.logs]>->(
+    2, 'workflow module initialized with yaml aggregation support'
+);
 
-return 0;
+return FALSE;
 
-#,,,,,...,.,.,,..,.,,,,..,,.,,..,,...,...,,,,,..,,...,..,,..,,...,,.,,.,.,...,
-#BY6QO7HWSQSOFNLPMAG4OEMSCVMJ7KMTBQFCV6MNK3WPSUA24ERAICXSKTQO5E3QHWPOGFFFC3AIY
-#\\\|WSH5V6K5BLB7QMRHL7WLNTMID6EU2YYKGCIULWYNPHQUROT3TEN \ / AMOS7 \ YOURUM ::
-#\[7]XO7VER6KH5HSLO2AZIUI4RKKVXO3J4V3F2WU6DW4RUGFWIFXQGDA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,.,,,,,.,.,.,.,.,.,,..,..,,..,,..,,...,...,...,,,.,,..,,,,,,,,,
+#YDJBJOPPKHDQU5DYKPBYGJXE222OTVNZRLPZ2KNOAPVGY33M6ZGE3YGONAI4KEKZKJXPJYY7FMY7I
+#\\\|OBU2YVJFNVOX3JXC5WBFWGXPZ7EQTMBUDOKRDZOID625XS35P3I \ / AMOS7 \ YOURUM ::
+#\[7]MROZZXCKWWUTD3U5RIW4GBTN4VKWLIRZAUEYTFW4D5UAPFGKQUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

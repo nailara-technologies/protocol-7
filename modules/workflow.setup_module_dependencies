@@ -29,12 +29,13 @@ foreach my $dep (@$essential) {
     <[base.log]>->( 3, "  registering essential module: $module_name" );
 
     ## Create dependency object ##
-    my $object_id = <[dependency.add_object]>->({
-        type         => 'perl_module',
-        module_name  => $module_name,
-        install_cmd  => $install_cmd,
-        priority     => 'essential'
-    });
+    my $object_id = <[dependency.add_object]>->(
+        {   type        => 'perl_module',
+            module_name => $module_name,
+            install_cmd => $install_cmd,
+            priority    => 'essential'
+        }
+    );
 
     ## Store for easy lookup ##
     <workflow.dependencies.essential>->{$module_name} = $object_id;
@@ -49,27 +50,31 @@ foreach my $dep (@$optional) {
     <[base.log]>->( 3, "  registering optional module: $module_name" );
 
     ## Create dependency object ##
-    my $object_id = <[dependency.add_object]>->({
-        type         => 'perl_module',
-        module_name  => $module_name,
-        install_cmd  => $install_cmd,
-        priority     => 'optional'
-    });
+    my $object_id = <[dependency.add_object]>->(
+        {   type        => 'perl_module',
+            module_name => $module_name,
+            install_cmd => $install_cmd,
+            priority    => 'optional'
+        }
+    );
 
     ## Store for easy lookup ##
     <workflow.dependencies.optional>->{$module_name} = $object_id;
 }
 
 my $essential_count = scalar(@$essential);
-my $optional_count = scalar(@$optional);
-<[base.log]>->( 2, "  ✓ registered $essential_count essential, $optional_count optional modules" );
+my $optional_count  = scalar(@$optional);
+<[base.log]>->(
+    2,
+    "  ✓ registered $essential_count essential, $optional_count optional modules"
+);
 
-return 1;
+return TRUE;
 
 0;
 
-#,,,,,...,.,,,,,.,...,,.,,..,,,,,,.,.,,,.,,.,,..,,...,..,,..,,.,.,.,,,.,,,,.,,
-#EIN46Y3ZDAXSRQFB733BT2TALAKLNCH2LGUMND5EGWY2CYKLUIGLD23RE45UEPZNVBNCQTKWRPMQU
-#\\\|IHXT4DGDJTDSSGWJ4P23N6RQH6DHUN5F4UDVLSKHHSRPALJFS67 \ / AMOS7 \ YOURUM ::
-#\[7]YYUGDMT7OLGRQMJBYT4ST2X4D2EGDTQBXXKSYSFUG4IJG7AVYOBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,..,,,.,.,,,...,,,.,.,.,,,.,,,.,..,,...,...,,,.,.,,,,..,,.,,.,.,
+#VWI6VSOUZHQG3YS26KWSSVB32PLHJOZKWQUVYPOXRC2Q6YORLOGECTRSIB2755T2GQBEOIQKKFZGS
+#\\\|UCXK6UEHFJHHRJQGQVYRCCKP22Q37HSZP5L763VW4TPL7SBW2HW \ / AMOS7 \ YOURUM ::
+#\[7]CAGC4K3ZUMNYTJRL7ICGV35BK6TDWK5ZLJJEYIJUEG656VQKZAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

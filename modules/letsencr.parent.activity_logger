@@ -12,7 +12,7 @@ unless ( $operation && $domain && $status ) {
     <[base.log]>->(
         1, "error: activity_logger requires operation, domain, and status"
     );
-    return 0;
+    return FALSE;
 }
 
 ## Format activity entry with timestamp and log level
@@ -44,10 +44,10 @@ if ( $status eq 'failed' ) {
     <[base.log]>->( 2, "ACME $operation $status for $domain" );
 }
 
-return 1;
+return TRUE;
 
-#,,,.,,.,,.,.,.,,,.,.,,,,,...,...,...,,,.,,.,,..,,...,..,,,.,,.,.,,.,,,.,,...,
-#5F5OD3LBJYA3R7YCTFBWUEEJTL3DAJUKUV7BYHSY7BPTVLOCO7Y63ZPXUOV6U4UP5WAZIGDNEICBK
-#\\\|NLMAG6QH5ZHH2OAFUWOEWT3ZHISA2IMULCG64YIA3TI5EOQA2XF \ / AMOS7 \ YOURUM ::
-#\[7]QHXOPANF5JRMRC3HUDDLBESFFF6QIPN7XSSQYMDYPYLUUULW32DQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,.,,,,,,..,,..,,,..,..,,,..,.,.,..,,...,..,,.,.,.,.,.,,,,,,,...,
+#E5CCLKFDSL2M4TGZ2KRU7SVEAROKAERLJLGJCUA74YLQXIFA46HDRX4TMOZTY3353BQEBVS3JNH42
+#\\\|5STS56UNRGRE44ML74I4VHIQBHNXBPSJXW4NX6YI53KR7KGHFFU \ / AMOS7 \ YOURUM ::
+#\[7]M3APMJP7XSORPMNUGYXXLKDB4UUBFFIGRPC6M6TQ5T4DI5KUAODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

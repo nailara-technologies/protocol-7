@@ -8,17 +8,17 @@ my $parent_path = shift // '/';
 my $log_lvl     = shift // 1;
 
 warn 'expected at least <old_user> and <new_user> parameters <{C1}>'
-    and return 0
+    and return FALSE
     if !length($old_user)
     and !length($new_user);
 warn "<old_user> and <new_user> are the same [ '$new_user' ] <{C1}>"
-    and return 0
+    and return FALSE
     if $old_user eq $new_user;
-warn "parent path '$parent_path' does not exist <{C1}>" and return 0
+warn "parent path '$parent_path' does not exist <{C1}>" and return FALSE
     if !-d $parent_path;
 
 warn "'base.file' module not initialized yet, cannot chown_all.., <{C1}>"
-    and return 0
+    and return FALSE
     if not defined $code{'file.callback.chown-all'};
 
 <base.file.chown-all> = {
@@ -32,9 +32,9 @@ my $new_uid = <base.file.chown-all.change_to.uid>   = getpwnam($new_user);
 my $old_gid = <base.file.chown-all.change_from.gid> = getgrnam($old_user);
 my $new_gid = <base.file.chown-all.change_to.gid>   = getgrnam($new_user);
 
-warn "user '$old_user' does not exist <{C1}>" and return 0
+warn "user '$old_user' does not exist <{C1}>" and return FALSE
     if not defined $old_uid;
-warn "user '$new_user' does not exist <{C1}>" and return 0
+warn "user '$new_user' does not exist <{C1}>" and return FALSE
     if not defined $new_uid;
 
 map { <[base.log]>->( $log_lvl, $ARG ) } (
@@ -91,8 +91,8 @@ map { <[base.log]>->( $log_lvl, $ARG ) } (
 
 return $change_count;
 
-#,,,.,,,,,,,.,,,.,,..,,..,,..,..,,,,.,,,,,.,.,..,,...,...,...,...,,.,,,,.,,,,,
-#FXYX5DYIMS7GZ4W2H4X6TNZXPNEF5LNMUCNXYNPQ5V2VQX2G3ZWPEZSGR2N7NXBJ5QOCMTDVPCBHK
-#\\\|HOE5QFCTDAPRNGJA2PAI4U6ZSQX65NE5MX7QBMV6XC5NEVICOE2 \ / AMOS7 \ YOURUM ::
-#\[7]EH63YU6DJBBQTP6Q4JDTSVGYCFSKWGHY2AYTKM52H7ADQYXDUMDI 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,.,,,.,.,,,.,,.,,.,.,.,,,,..,.,.,..,,...,...,.,.,...,,,.,,,,,.,.,
+#ZEWB4SQWGBJLNAM2H7ZPD5553Y3JSKDEM43ZYUNX4IK6QGSLVASKZT2QYOPLG2VWRHAOSMLDXYOXK
+#\\\|S4YZPU77OKNGVNJZWV3SKHVIRI272XBIQLGM4YGZCLTFW6Q5M5K \ / AMOS7 \ YOURUM ::
+#\[7]NCL2PPCN4WENKVLWPSUQLTC4YSZ36DWOZC42AE6EJU3JJU3ZUABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

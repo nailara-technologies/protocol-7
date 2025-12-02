@@ -7,10 +7,10 @@ my $file_path = shift;
 my $bytes     = shift;   # Optional: bytes transferred (for partial downloads)
 
 # Skip if no file path provided
-return 0 if !defined $file_path || $file_path eq '';
+return FALSE if !defined $file_path || $file_path eq '';
 
 # Skip if file doesn't exist
-return 0 if !-f $file_path;
+return FALSE if !-f $file_path;
 
 # Initialize statistics data structure if needed
 $data{'httpd'}{'downloads'}           //= {};
@@ -69,10 +69,10 @@ if ( scalar( keys %{ $data{'httpd'}{'downloads'}{'files'} } ) > 1000 ) {
     }
 }
 
-return 1;
+return TRUE;
 
-#,,,.,,.,,.,,,..,,.,.,..,,,..,,,,,,,.,...,.,,,..,,...,...,.,.,.,.,..,,.,,,.,,,
-#U7HOWI4OAUYEE4YI62N4MM3Z7W5CLHBDTZICU7WCH5BV7TRO7M2H6G2HF7TF5HJYX7LVD6WFSILPC
-#\\\|MZKDL5Y2HUR6FSRL7ATIIQMFKLJ7UIZSAYYWZ3HAQZJUN6MDUCT \ / AMOS7 \ YOURUM ::
-#\[7]OI37S4RDDF2NGKJ22TK6VBFV3OYOIZZHDYGTVYWBJZMMEZPZEYDA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,.,,,.,,,.,,,...,..,,,..,,..,,,.,..,,...,...,..,,,,,,.,,,,,.,,..,
+#VB3X4MV5LZXHQ7BR5RDGPZWC5JV3D4HZJMGC2XOEDVMB3QYIWNSFCGAJDS3Y36NLHH2VBXLLEH3RK
+#\\\|TKZ36TTS5P4BEX7G62MPVK7CSSSVJNELXBYJNEZHXBDOPTFSWY2 \ / AMOS7 \ YOURUM ::
+#\[7]KUZ26BWY6AW5CN2TBDB24HMYBAWORKYSMHLPMGKDMCATN4T6BKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

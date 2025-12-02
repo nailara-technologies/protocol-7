@@ -4,17 +4,17 @@
 
 if ( $_[0] !~ /^\d+$/ ) {
     <[base.log]>->( 0, "del_chain: invalid parameter" );
-    return 0;
+    return FALSE;
 }
 if ( !defined $data{ $_[0] } ) {
     <[base.log]>->( 0, "no such chain ($_[0])" );
-    return 0;
+    return FALSE;
 }
 delete $data{ $_[0] };
-return 1;
+return TRUE;
 
-#,,,.,.,,,,.,,,..,,.,,.,.,,,,,...,,,.,,.,,,,.,..,,...,...,..,,,..,,,.,,,.,,,.,
-#2F6DQQQIHGWECBXNA5OROWXA7O6ZGFI3NSURPZJETIXTOQAOUOCNFZYLLZ64MVY47JDX3YQSDEWEQ
-#\\\|CMH73YIBWGA7CFSSKJCEVH4Q2PHRSRE74CHK3CFH2SLLYJ2UOSN \ / AMOS7 \ YOURUM ::
-#\[7]MXRHCK4FIJW6N4UDEWYFTAHIGKVO3H6SMIRSJQULQH62Z6UZHCDQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,.,,...,,.,,...,...,.,,,,.,,,..,..,,...,...,..,,,,.,,.,,,..,.,.,
+#IIQ4YL5JXIIBPLOTT352O5KQ6RAQKB2X6DZIHCIIWJCL4M3DWFP4FXCI2BNK7GHIR7NGPI52AYA2W
+#\\\|ITEXPYOTYNF3KTRXXC7QJE4LHNRUI5YB7IBQUYMCZNJ5T6VFQGB \ / AMOS7 \ YOURUM ::
+#\[7]KKWYKKIFKXEZQ4WXEYRWJ76ZC2ORCG73PLH5VDU27DGH72FQ4IDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

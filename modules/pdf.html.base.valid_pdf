@@ -5,7 +5,7 @@
 
 my $file_path = shift;
 
-return 0
+return FALSE
     if not defined $file_path
     or !length($file_path)
     or !-f $file_path
@@ -17,7 +17,7 @@ my $file_fh;
 
 if ( !open( $file_fh, $file_path ) ) {
     <[base.s_warn]>->( ': file %s : %s', $file_path, <[base.str.os_err]> );
-    return 0;
+    return FALSE;
 }
 
 my $file_ok = 2;
@@ -49,19 +49,19 @@ if (    $file_ok == 1
         0,
         "apparent error in internal validation pattern for '%s'", $file_path
     );
-    return 1;
+    return TRUE;
 }
 
 if ($file_ok) {
     <[base.log]>->( 2, ': success, format valid.' );
-    return 1 if $file_ok;
+    return TRUE if $file_ok;
 } else {
     <[base.logs]>->( "<< PDF format check failed : '%s' >>", $file_path );
-    return 0;
+    return FALSE;
 }
 
-#,,.,,...,...,,,.,,..,,,,,...,,..,.,.,.,,,.,.,..,,...,...,...,,..,,,.,.,.,,.,,
-#BX32BMZB73GQQHAGVZAYSBGP5QPH4FZVBSBGBYPDTRQIIOFW6444PD2MWCJF3CEJ7FLLM7EMSIGKC
-#\\\|F3MFVWBJ6ZXDXYNPNI2TNNXJNGY5Q3S2T7X6YE72PP4PUCP4HOJ \ / AMOS7 \ YOURUM ::
-#\[7]YS4DVPXQ2EJWLPODTCFAKA7S56ZDXTHMPBSUR7TBJJAARCJCROCY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,..,,,,,..,,...,,,.,,..,.,.,,,,,..,,...,...,...,,.,,.,.,,,.,,,,,
+#BQOMT6UALMNUSOKPUX5YXOL6TSDT2NGPJWYWQJ2CTHKLDY533MV4M7NZ4F2ILJUQLMYWET5ZPLEKY
+#\\\|TS3FB2SX6TRAO7ZW7V5SSWHWKCXSF4YBVBMEMF53YSDRPBWW4FA \ / AMOS7 \ YOURUM ::
+#\[7]NDV5PW5M6HESS577UJ6CGYAVVLY4GE7UQBZFRVJYLKXRQPCZKOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

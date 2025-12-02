@@ -14,7 +14,7 @@ unless ($domain) {
     <[base.log]>->(
         1, "error: enrollment reply handler missing domain in params"
     );
-    return 0;
+    return FALSE;
 }
 
 <[base.log]>->( 2, "enrollment reply for domain: $domain, mode: $mode" );
@@ -97,7 +97,7 @@ if ( $mode eq 'TRUE' ) {
             'enrollment', $domain, 'failed',
             "failed to decode certificate: $@"
         );
-        return 0;
+        return FALSE;
     }
 
     ## Validate bundle has required fields
@@ -108,7 +108,7 @@ if ( $mode eq 'TRUE' ) {
         <[letsencr.parent.activity_logger]>->(
             'enrollment', $domain, 'failed', 'certificate bundle invalid'
         );
-        return 0;
+        return FALSE;
     }
 
     ## Save certificate using existing infrastructure
@@ -128,7 +128,7 @@ if ( $mode eq 'TRUE' ) {
         <[letsencr.parent.activity_logger]>->(
             'enrollment', $domain, 'failed', 'failed to save certificate'
         );
-        return 0;
+        return FALSE;
     }
 
     <[base.log]>->( 2, "certificate saved for $domain" );
@@ -144,7 +144,7 @@ if ( $mode eq 'TRUE' ) {
         status     => 'active',
         cert_path  => sprintf( '%s/%s.pem', <letsencr.certs.dir>, $domain ),
         key_path   => sprintf( '%s/%s.key', <letsencr.certs.dir>, $domain ),
-        alt_names  => $bundle_json->{domains} // [],
+        alt_names  => $bundle_json->{domains} || [],
         account_id => <letsencr.parent.acme_account> {account_id},
     };
 
@@ -216,10 +216,10 @@ if ( $mode eq 'TRUE' ) {
     );
 }
 
-return 0;
+return FALSE;
 
-#,,,,,..,,,,,,,,.,...,,.,,...,.,.,,,,,...,,,.,..,,...,...,,..,.,.,,..,..,,,..,
-#7HU4REGMHHILLAYYEVCCD5ECVYGOIXHSMG4ZSTYJ3LDLSHN7JHHWLE62XJOVOF33CKGZXJB5XPZ74
-#\\\|N55LDKTSTO4JJZEMNFS3WYEEWQSH5HGTCNH65F4LDXI2A7QGENS \ / AMOS7 \ YOURUM ::
-#\[7]VWHEU4ZNG35S5VDJBZXNNPFTJQS5UVL3RLI74R63S7BDACOM36DQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,,.,,,,,,.,,,,,,,..,,..,,.,,,..,..,,...,..,,..,,...,,,.,...,,,,,
+#DA3VLRPQJLL65WG6CFUDJ4ZXEV47Y6EMHSDYG3JZMJWCYKUERIVW4OC5WLO7HLXTO4TLOLFQS774S
+#\\\|XBAULSMTBZMAFYX7AXTGL77I2MTANMCSUL2ZXI2DRSSDGGUZIRK \ / AMOS7 \ YOURUM ::
+#\[7]3IM5XCTA2KUOU4KB7G2GUP2BSGHXAAHFCV72OB6GLXATEKCD6KCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

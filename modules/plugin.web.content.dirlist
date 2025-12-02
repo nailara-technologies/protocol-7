@@ -10,11 +10,10 @@ my $show_checksums = shift // 0;
 
 ## Clean up path ##
 $directory_path =~ s/^\/+|\/+$//g;
-$directory_path =~ s/\.\.+/./g;
+$directory_path =~ s|\.\.+|.|g;
 
 <[base.log]>->(
-    3,
-    "plugin.web.content.dirlist: listing directory '$directory_path'"
+    3, "plugin.web.content.dirlist: listing directory '$directory_path'"
 );
 
 ## Scan directory ##
@@ -26,8 +25,7 @@ my $scan = <[web.scan_directory]>->(
 
 if ( $scan->{status} ne qw| success | ) {
     <[base.log]>->(
-        1,
-        "plugin.web.content.dirlist: failed to scan: " . $scan->{error}
+        1, "plugin.web.content.dirlist: failed to scan: " . $scan->{error}
     );
     return qq| <p class="error">Directory listing not available</p> |;
 }
@@ -47,22 +45,17 @@ unless (@items) {
 
 ## Build HTML table ##
 my @html;
-push @html,
-    qq|<div class="dirlist-container">|;
+push @html, qq|<div class="dirlist-container">|;
 push @html,
     qq|<table class="dirlist" border="0" cellpadding="4" cellspacing="0">|;
 
 ## Table header ##
 push @html, qq|<thead>|;
 push @html, qq|  <tr>|;
-push @html,
-    qq|    <th class="dirlist-name" align="left">Name</th>|;
-push @html,
-    qq|    <th class="dirlist-type" align="left">Type</th>|;
-push @html,
-    qq|    <th class="dirlist-size" align="right">Size</th>|;
-push @html,
-    qq|    <th class="dirlist-modified" align="right">Modified</th>|;
+push @html, qq|    <th class="dirlist-name" align="left">Name</th>|;
+push @html, qq|    <th class="dirlist-type" align="left">Type</th>|;
+push @html, qq|    <th class="dirlist-size" align="right">Size</th>|;
+push @html, qq|    <th class="dirlist-modified" align="right">Modified</th>|;
 
 if ($show_checksums) {
     push @html,
@@ -84,7 +77,7 @@ foreach my $item (@items) {
     my $content_type = $item->{content_type};
 
     ## Format display name ##
-    $name =~ s/_/ /g;
+    $name =~ s|_| |g;
 
     ## Format size ##
     my $size_str = _format_size($size);
@@ -93,7 +86,9 @@ foreach my $item (@items) {
     my ( $sec, $min, $hour, $mday, $mon, $year ) = localtime($mtime);
     $year += 1900;
     $mon  += 1;
-    my $date_str = sprintf( '%04d-%02d-%02d %02d:%02d', $year, $mon, $mday, $hour, $min );
+    my $date_str
+        = sprintf( '%04d-%02d-%02d %02d:%02d', $year, $mon, $mday, $hour,
+        $min );
 
     ## Type description ##
     my $type_str = $type eq 'dir' ? 'Directory' : $content_type || 'File';
@@ -182,8 +177,8 @@ sub _calculate_checksum {
     return $checksum // 'error';
 }
 
-#,,,.,.,,,.,,,.,,,.,.,.,,,.,.,,.,,,..,..,,,..,..,,...,...,,..,.,.,,.,,,.,,,.,,
-#5T7QEKZB2GLRZY5UEDORSR3NHNIM64U64SJQ7JF6A35PQ6V3664FMQ26CQ7Y6XO6SQWVDTLUVVMDY
-#\\\|3B4YXTH6WOOWJUUZKG3L7ETIUZNNSTTNKSJCX7WHIOPP2XWU3SL \ / AMOS7 \ YOURUM ::
-#\[7]DCBTFTYSMXBTVBQAIWDD6ZK6EW3LZR4GPZHF2W36OCKXVLC3Z4AY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,.,,,.,,.,,,,,,,,..,,..,.,.,,,.,..,,...,...,...,,.,,...,.,,,,.,,
+#FBKHPU2337DZK2ICFA27Y7NHFHOCRNQED2CSEWYPCLD2MA3BBWG7KO5RU5TX2WMGACUCSMP6I5I7Y
+#\\\|WT7ACOFZFQAJY3VNNN2MF4F4GCPWCERJEUA7LZ6HDPI4EOICNGK \ / AMOS7 \ YOURUM ::
+#\[7]VFQPLJGI7HXE5TV6QBY7YAIHX6VFZ56HRBUC3UNS3RVN4RFQQCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,7 +11,7 @@ if (<universal.cfg.can_self_restart>) {
     <[base.log]>->( 1, ": : zenka restart., [universal$sname_str]" );
 } else {
     <[base.log]>->( 0, ": . << self restart is disabled >>" );
-    return 0;
+    return FALSE;
 }
 
 Event->unloop_all();    # making sure log messages make it..,
@@ -28,10 +28,10 @@ map { kill( 'TERM', $ARG ) if $ARG =~ m|^\d+$| } keys %{<universal.running>};
     }
 );
 
-return 1;
+return TRUE;
 
-#,,,.,..,,...,..,,.,,,,..,...,.,.,,,,,.,.,,,,,..,,...,..,,..,,,.,,,.,,,..,,.,,
-#CPIIB6HONGM3AWVJ2EFWDTL3YYYZ2Z6LYWI6XX2NZG4OEQW66PGVBO27TRXGNESHTPD3BC67XWRUO
-#\\\|HHDFQJ3BI46ZWLJSPPTZ4QP5TD7ILWAQOHXVK5VKFPAMBBW7MX3 \ / AMOS7 \ YOURUM ::
-#\[7]LEH2VB7J2LZSOYLCEH4ZS5U56XVPOUXN433CWUSHFZAIIC4XQYCI 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,,,..,,,,.,.,.,..,,...,.,.,...,..,,...,...,.,.,.,,,.,.,,..,,,,,
+#IMHDABQDXZCLAT2OAGIGUYL2ZDAR2VICLFRO7FFVN534PDF2EVCZDZ5B7BBSVCLWKY5YK5J27Y5B4
+#\\\|3BBG5Q7TQ46XPI6EBC4J5K5IUHIEIF5TGY45ON6TWTZ4WHLZPTW \ / AMOS7 \ YOURUM ::
+#\[7]L5AZCXDXT4I7PZMPUV7PEAYAJFEK6HPZYHL7P2YKQWPP76YCTMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

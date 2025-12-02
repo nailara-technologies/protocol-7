@@ -28,14 +28,11 @@ unless ($module_path) {
 }
 
 ## Remove leading/trailing whitespace ##
-$module_path =~ s/^\s+|\s+$//g;
+$module_path =~ s{^\s+|\s+$}{}g;
 
 ## Validate module name format (alphanumeric, dots, dashes, underscores) ##
 unless ( $module_path =~ /^[\w\-_.]+$/ ) {
-    <[base.log]>->(
-        1,
-        "[$session_id] invalid command format: $module_path"
-    );
+    <[base.log]>->( 1, "[$session_id] invalid command format: $module_path" );
     return {
         status  => qw| error |,
         message => qq| invalid command format |,
@@ -55,8 +52,7 @@ my $cmd_id = sprintf( '%s_%s_%d', $template_id, $module_path, time() );
 ## Check if module exists ##
 unless ( exists $code{$module_path} ) {
     <[base.log]>->(
-        1,
-        "[$session_id] template command not found: $module_path"
+        1, "[$session_id] template command not found: $module_path"
     );
 
     delete <web.commands.pending>->{$cmd_id};
@@ -69,11 +65,11 @@ unless ( exists $code{$module_path} ) {
 }
 
 ## Execute command with timeout protection ##
-my $timeout       = <web.cfg.command_timeout> // 15;
-my $result        = '';
-my $exec_status   = qw| success |;
-my $exec_message  = '';
-my $timed_out     = 0;
+my $timeout      = <web.cfg.command_timeout> // 15;
+my $result       = '';
+my $exec_status  = qw| success |;
+my $exec_message = '';
+my $timed_out    = 0;
 
 eval {
     local $SIG{ALRM} = sub { die "timeout\n" };
@@ -93,12 +89,11 @@ if ($@) {
         );
         $exec_status  = qw| error |;
         $exec_message = qq| command execution timed out |;
-        $result = qq| <!-- command timed out: $module_path --> |;
-        $timed_out = 1;
+        $result       = qq| <!-- command timed out: $module_path --> |;
+        $timed_out    = 1;
     } else {
         <[base.log]>->(
-            1,
-            "[$session_id] command execution error: $module_path - $@"
+            1, "[$session_id] command execution error: $module_path - $@"
         );
         $exec_status  = qw| error |;
         $exec_message = qq| command execution error: $@ |;
@@ -113,8 +108,7 @@ delete <web.commands.pending>->{$cmd_id};
 ## Validate result type ##
 unless ( defined $result ) {
     <[base.log]>->(
-        2,
-        "[$session_id] command returned undefined result: $module_path"
+        2, "[$session_id] command returned undefined result: $module_path"
     );
     $result = '';
 }
@@ -154,8 +148,8 @@ return {
     result  => $result,
 };
 
-#,,,,,,..,,..,,..,...,.,.,,.,,,.,,,,.,,,,,.,.,..,,...,...,.,.,...,,,,,,.,,..,,
-#IRMDIHBRRJSO2XVQGLX2WC7FBIVYLJSPEEODAHVE25ATFMSMXMPU5G7U6NZICKCWNKEGFPTX4M33I
-#\\\|GK4IY4VKYRR6JHXBO35BGOWO2KSJ3YT3GMJZRFPRV6WDN35G5NZ \ / AMOS7 \ YOURUM ::
-#\[7]TXHOBEWBPOWFJQJUY7DH3DCSPOO3KL7QZXB6FTGSIJ5OTPOBIYDA 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,.,,,,,.,.,.,.,.,.,,.,,...,.,,,..,,...,...,...,,..,,.,,,.,,..,,
+#PCIVQWQDVZWXU7ARHWDL4YAV6ATFLDODD3CTWXGP27XLWDDVJPMZMN2737CIQYKIPNN6YGWTLN5IW
+#\\\|B46CBQB4Y5Y73OSWBVJEGZHFPXGJF7GD5QGWRQXGSBSGYT4POLG \ / AMOS7 \ YOURUM ::
+#\[7]KC57KOX5KPJ2GWI2R3H4IBQH57WL7W6XWGJLFHXPZBKCU4CGTGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

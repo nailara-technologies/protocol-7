@@ -12,30 +12,36 @@ my $headers  = $request->{'headers'};
 my $http_uri = $request->{'uri'};
 
 ## Log POST request
-<[base.logs]>->( 2, '[%d] POST request: %s (content-length: %s)',
-    $id, $http_uri, $headers->{'content-length'} // 'unknown' );
+<[base.logs]>->(
+    2,   '[%d] POST request: %s (content-length: %s)',
+    $id, $http_uri, $headers->{'content-length'} // 'unknown'
+);
 
 ## Check Content-Length to prevent massive uploads
 my $content_length = $headers->{'content-length'} // 0;
-my $max_post_size = <httpd.cfg.max_post_size> // ( 1024 * 1024 );  ## 1MB default
+my $max_post_size  = <httpd.cfg.max_post_size>
+    // ( 1024 * 1024 );    ## 1MB default
 
 if ( $content_length > $max_post_size ) {
     <[base.logs]>->(
-        1, '[%d] POST body too large: %d bytes (max: %d)',
+        1,   '[%d] POST body too large: %d bytes (max: %d)',
         $id, $content_length, $max_post_size
     );
-    return <[httpd.send_error_page]>->( $id, 413 );  ## Payload Too Large
+    return <[httpd.send_error_page]>->( $id, 413 );    ## Payload Too Large
 }
 
 ## For ACME endpoints, wait for complete body before processing
-if ( $http_uri =~ m|^/api/certificate| || $http_uri =~ m|^/\.well-known/acme-challenge| ) {
+if (   $http_uri =~ m|^/api/certificate|
+    || $http_uri =~ m|^/\.well-known/acme-challenge| ) {
 
     ## Check if we have the complete body in the input buffer
-    my $current_body = $session->{'buffer'}->{'input'} // '';
+    my $current_body   = $session->{'buffer'}->{'input'} // '';
     my $bytes_received = length($current_body);
 
-    <[base.logs]>->( 2, '[%d] ACME POST body check: %d bytes received (expected: %d)',
-        $id, $bytes_received, $content_length );
+    <[base.logs]>->(
+        2,   '[%d] ACME POST body check: %d bytes received (expected: %d)',
+        $id, $bytes_received, $content_length
+    );
 
     ## If we don't have the complete body yet, set up a variable watcher
     ## to trigger when more data arrives
@@ -44,8 +50,9 @@ if ( $http_uri =~ m|^/api/certificate| || $http_uri =~ m|^/\.well-known/acme-cha
         ## Initialize body accumulation state if not already done
         unless ( defined $session->{'http'}->{'body_watcher'} ) {
 
-            <[base.logs]>->( 2, '[%d] setting up body accumulation watcher',
-                $id );
+            <[base.logs]>->(
+                2, '[%d] setting up body accumulation watcher', $id
+            );
 
             ## Create a variable watcher on the input buffer
             ## This will trigger again when more data arrives
@@ -55,17 +62,17 @@ if ( $http_uri =~ m|^/api/certificate| || $http_uri =~ m|^/\.well-known/acme-cha
                     'poll'    => qq| w |,
                     'repeat'  => TRUE,
                     'data'    => $id,
-                    'desc'    => sprintf( '[%d] body accumulation watcher', $id )
+                    'desc' => sprintf( '[%d] body accumulation watcher', $id )
                 }
             );
         }
 
         ## Return control to event loop - handler will be called again when body grows
-        return 0;
+        return FALSE;
     }
 
     ## Body is complete - extract it and process
-    $session->{'http'}->{'body'} = $current_body;
+    $session->{'http'}->{'body'}    = $current_body;
     $session->{'buffer'}->{'input'} = '';
 
     ## Remove the watcher if it exists
@@ -75,33 +82,31 @@ if ( $http_uri =~ m|^/api/certificate| || $http_uri =~ m|^/\.well-known/acme-cha
         delete $session->{'http'}->{'body_watcher'};
     }
 
-    <[base.logs]>->( 2, '[%d] ACME POST body complete: %d bytes',
-        $id, length($current_body) );
+    <[base.logs]>->(
+        2,   '[%d] ACME POST body complete: %d bytes',
+        $id, length($current_body)
+    );
 
     ## Route based on URI path
     if ( $http_uri =~ m|^/\.well-known/acme-challenge| ) {
         return <[httpd.handler.acme_request]>->( $id, $http_uri );
-    }
-    elsif ( $http_uri =~ m|^/api/certificate/request| ) {
+    } elsif ( $http_uri =~ m|^/api/certificate/request| ) {
+        return <[httpd.handler.acme_request]>->( $id, $http_uri );
+    } elsif ( $http_uri =~ m|^/api/certificate/status| ) {
+        return <[httpd.handler.acme_request]>->( $id, $http_uri );
+    } elsif ( $http_uri =~ m|^/api/certificate/list| ) {
         return <[httpd.handler.acme_request]>->( $id, $http_uri );
     }
-    elsif ( $http_uri =~ m|^/api/certificate/status| ) {
-        return <[httpd.handler.acme_request]>->( $id, $http_uri );
-    }
-    elsif ( $http_uri =~ m|^/api/certificate/list| ) {
-        return <[httpd.handler.acme_request]>->( $id, $http_uri );
-    }
-}
-else {
+} else {
     ## Unsupported POST endpoint
     <[base.logs]>->( 1, '[%d] POST not supported for: %s', $id, $http_uri );
-    return <[httpd.send_error_page]>->( $id, 405 );  ## Method Not Allowed
+    return <[httpd.send_error_page]>->( $id, 405 );    ## Method Not Allowed
 }
 
-return 2;  ## Should not reach here
+return 2;    ## Should not reach here
 
-#,,..,,,,,,..,..,,,.,,,,.,.,,,.,.,,,,,,.,,.,,,..,,...,...,.,.,,..,..,,,,,,.,,,
-#5XMWQ2K7VFIPJ3FXBZCOIINORGDSW2CH6LKBIOKR7UPJZ45V3R7H7NU64WSVCKPO37C7WEEUN3WWA
-#\\\|PJRNQ7IP5O4JZ3SN3Q7D6OLGRAVMD7XLMA4INOQB2BV4H4TMRK6 \ / AMOS7 \ YOURUM ::
-#\[7]NRK6GQKBUEEV3WQDMNMIFFQTMDRXQN4CLVPUP3P7WTHGCLYYXSDA 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,,,.,,,...,,.,,,..,...,...,.,.,..,,...,...,.,,,.,.,,..,.,,,.,,,
+#JSOR7NDWJ7VHA6BQ27C5UI2YF7SZFXOFEBII7RVRY462GMK3T5GMICKVRKEZX7GAINBIPIG6SJKT6
+#\\\|S66XOCSMBGHEBXI3GOLXEDSBJDNMKF7ZFJRDFF7UI272U5CJFYH \ / AMOS7 \ YOURUM ::
+#\[7]UH7WEH4AD5LIZYOC6UEXV2T3DKCJTXJJ2NKTHRVC7DFV4QUQRKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

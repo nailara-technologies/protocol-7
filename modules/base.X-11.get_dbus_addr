@@ -22,7 +22,7 @@ while ( !$matched_reply ) {
 }
 
 if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
-    ( my $path_str = <x11.dbus_addr> = $1 ) =~ s/^[^=]+=|,.+$//g;
+    ( my $path_str = <x11.dbus_addr> = $1 ) =~ s{^[^=]+=|,.+$}{}g;
     <[base.log]>->( 1, "received dbus socket address ['$path_str']" );
     $ENV{'DBUS_SESSION_BUS_ADDRESS'} = <x11.dbus_addr>;
     return <x11.dbus_addr>;
@@ -34,8 +34,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
     return undef;
 }
 
-#,,,.,,..,,,.,..,,,,,,.,,,.,,,...,.,.,.,,,..,,..,,...,..,,.,,,.,,,,..,..,,.,,,
-#EH4JUGBMTH3YAZMZFXODKPFBIBGSLHCS7VQPN7EUHB25OSVHGPKID2VKIMCWF7M3JQBRGXDIUXU3M
-#\\\|PSW6CTCLG6VQVFWCZ4BVAKYGD3RHTY7MDFE77L2P6JTCUCN5PWE \ / AMOS7 \ YOURUM ::
-#\[7]YJ4IJLDOHOISXMDNYO73BIHYEADTB3P4ZXRM2BZHFDKN744HIWBY 7  DATA SIGNATURE ::
+#,,,.,..,,..,,...,..,,.,,,,.,,,,,,,.,,.,.,...,..,,...,.,.,,,.,.,,,...,.,,,,,,,
+#CVGUVXH6NSLMUDRS6MGPYKIG6TN6D3VZFAAD2ZLGGZA7CB6WPVXORGTFJSYGXAJHKTLQBCWYQ7PMC
+#\\\|U7MA25B3E5IEIB7Q3SUQV6OXBGCYRLSKGDKEVUZMA7PPDXUDJOB \ / AMOS7 \ YOURUM ::
+#\[7]PV2XPBKRNKLZXK2NF5424JT3ROWMGWEHWVVJUWDDJZTGZ2NFXEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

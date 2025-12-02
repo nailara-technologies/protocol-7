@@ -14,11 +14,11 @@ my $mem_statistics = <system.statistics>->get->memstats;
 
 foreach my $p ( @{ <system.process.pt>->table } ) {
     <process.count>++;
-    ( my $cpu = sprintf( '%.2f', $p->pctcpu ) ) =~ s/^ +//;
-    ( my $mem = sprintf( '%.2f', $p->pctmem ) ) =~ s/^ +//;
+    ( my $cpu = sprintf( '%.2f', $p->pctcpu ) ) =~ s|^ +||;
+    ( my $mem = sprintf( '%.2f', $p->pctmem ) ) =~ s|^ +||;
     $cpu = 0 if $cpu !~ /^\d+(\.\d+)?$/;
-    $cpu =~ s/^(\d+\.\d+)0+$/$1/;
-    $mem =~ s/^(\d+\.\d+)0+$/$1/;
+    $cpu =~ s|^(\d+\.\d+)0+$|$1|;
+    $mem =~ s|^(\d+\.\d+)0+$|$1|;
 
     my $p_name
         = (
@@ -54,7 +54,7 @@ foreach my $p ( @{ <system.process.pt>->table } ) {
             and ( not defined $p->cmndline
             or $p->cmndline !~ /^[^\s]*\Q$lp_name\E/ );
         my $lp = <process.limits>->{$lp_name};
-        ( my $rl_name = $p->fname // $p->cmndline ) =~ s/ .*$//;
+        ( my $rl_name = $p->fname // $p->cmndline ) =~ s| .*$||;
 
         if (    defined $lp->{'max_mem'}
             and $lp->{'max_mem'} =~ /^\d+(\.\d+)?$/
@@ -168,8 +168,8 @@ if ( $mem_limit_reached and <mem.autokill> )
     }
 }
 
-#,,.,,,.,,,,.,,,.,.,,,.,,,..,,...,...,,,.,,..,..,,...,...,,,.,,,,,,,,,,.,,.,.,
-#OZ5N4CFJQ7XMN6UUDQVUILDZ7NPCVK5YAZNRAMAK6DUA3B73U23TLSFQROCNWLNAYDWKEPVZDBC3E
-#\\\|JIJWCPP4MSUVJMRQGEBIUS6JWUIWABR4EKW45SICBI3GBQN373I \ / AMOS7 \ YOURUM ::
-#\[7]765WMRW63OHPIFPE2X6AUFG7EKUQEVZCX4FH2LLTK4V2OOXWNABA 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,.,,,.,,..,,.,,...,,,.,,,,,,..,..,,...,...,..,,.,,,,,,,,,.,.,.,
+#54NND3I4ZP44GNOVZOTIQBRH5X5KKLIYQTTC2RSASLYLZOHLIIZ7JTD4NQYI57YO5S5CZSIQ4APME
+#\\\|42COLWI7JZZTIETTKIEWXDW73DW44UOPTZJ7CFSZB35MV7HJ7OW \ / AMOS7 \ YOURUM ::
+#\[7]GPMYHTQI373SSDSQPIPMU5RN2EWZH75OOVOLLBC2W4EL6FOCQKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

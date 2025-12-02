@@ -31,7 +31,7 @@ if ( not defined $session->{'link_dh_shared_secret'} ) {
         0, '[%d] encryption init: missing DH shared secret from link-upgrade',
         $session_id
     );
-    return 0;
+    return FALSE;
 }
 <[base.logs]>->(
     1, '[%d] encryption.init: DH shared secret found, deriving key',
@@ -42,8 +42,7 @@ if ( not defined $session->{'link_dh_shared_secret'} ) {
 ## Input: C25519 DH shared secret
 ## Seed: session ID for entropy variation (passed as SCALAR ref for smart iteration count)
 <[base.logs]>->(
-    1,
-    '[%d] encryption.init: starting key derivation with AMOS7::13::key_32',
+    1, '[%d] encryption.init: starting key derivation with AMOS7::13::key_32',
     $session_id
 );
 my $enc_key
@@ -56,7 +55,7 @@ if ( not defined $enc_key or length($enc_key) != 32 ) {
     <[base.logs]>->(
         0, '[%d] encryption init: key derivation failed', $session_id
     );
-    return 0;
+    return FALSE;
 }
 
 ## Store encryption key in session (volatile, not persistent)
@@ -173,12 +172,12 @@ if ( defined $session->{'link_encoding_mode'}
 <[base.logs]>->(
     1, '[%d] encryption.init: COMPLETE AND RETURNING SUCCESS', $session_id
 );
-return 1;
+return TRUE;
 
 1;
 
-#,,,,,,,.,.,.,,..,,,,,.,.,,,,,...,,..,,,,,.,,,..,,...,...,.,.,,..,,.,,,.,,.,.,
-#LQZTDROVCJBADANFR5PDIQMLU5CKGSQK7CTX2AN7WH43VOWOTKGAFSSFP64AM7W4AFULUGF26OTWE
-#\\\|IBXOZPDRS63YV64QDPRFCLZ33PFIJUQ3JA62ES4MUHIRHNDSUSC \ / AMOS7 \ YOURUM ::
-#\[7]KWXJ45BX4YX37GRMHY7NB2GSPT437UP4A7X6JBF4UU67QARZFMCA 7  DATA SIGNATURE ::
+#,,.,,...,.,,,.,,,,,.,...,,,.,.,.,.,.,...,,,,,..,,...,...,...,.,.,.,,,..,,.,.,
+#XQCYFEB4MAW54Q57POQ6IBTXONT5XZXC5UXRZIN4HTRKOFQY7WSBJVG4H3QVQZRUIPVFUY2EJLKZ6
+#\\\|UZRM6354GXD7ZQLEC4UFCWG45MGYHQAOJLZ4KHFEDSKO4MOLCBZ \ / AMOS7 \ YOURUM ::
+#\[7]QRSR6ZPWV445KLYCTHVIVHEPZRE6AJHJ2ZZUFOC3CE6VGIB2DUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

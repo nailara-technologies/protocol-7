@@ -8,7 +8,7 @@ my $operation_type = shift;
 my $operation_data = shift // {};
 
 # Skip if diagnostic not enabled
-return 0 if !$data{'httpd'}{'diagnostic'}{'enabled'};
+return FALSE if !$data{'httpd'}{'diagnostic'}{'enabled'};
 
 # Generate a unique operation ID
 my $operation_id = <[base.gen_id]>->('httpd.diagnostic.operation');
@@ -28,8 +28,8 @@ $data{'httpd'}{'diagnostic'}{'operations'}{$operation_id} = {
 
 return $operation_id;
 
-#,,,.,,.,,,,.,.,.,,,,,...,.,.,,..,,,.,,.,,,,,,..,,...,...,...,.,.,...,,,,,.,,,
-#OXOZ5ND7XVCOB2OQBXNFKQF3GNV3O2JRDAELHVE4ZBUDR2NUQOLBGILBV4X3RXJVWR445SRU36JTI
-#\\\|LRND6OUDVPHAORBWCKXK3RJ2473UJZOPB6PEBU7OMPGZENZTVEC \ / AMOS7 \ YOURUM ::
-#\[7]O4LL6ZS2XFDPS2UEDFV4KVUBXHSLUK33IY2W37ITGTGWINZG66BQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,,.,.,,,,.,,,..,,.,,,,,,,.,,.,.,..,,...,...,..,,...,.,.,,..,,.,,
+#IUWP6MMRFFDNGB6PR4OQT5LBWX2CPHFGAW2QCY2BHMJD4YKTAE6JP5QKUSAS3C3GHMXDDVNWGABL4
+#\\\|KDJGESGQ6FMPZ746ZVWWC7SRYMUWN4WOJGNXCLSPF55FN4UUGNT \ / AMOS7 \ YOURUM ::
+#\[7]PYQ3KE5CYRA6G4KZVNVDLUHNIAHZXG3FRJQWLQRAKWQYZ7Z3I6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

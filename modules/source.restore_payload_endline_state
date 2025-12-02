@@ -20,7 +20,7 @@ warn 'expected octal endline state descriptor <{C1}>' and return undef
     or $endline_state_oct !~ m|^\d$|
     or $endline_state_oct > 7;
 
-return 0 if $endline_state_oct == 5;
+return FALSE if $endline_state_oct == 5;
 
 my $previous_payload_length = length $payload_sref->$*;
 
@@ -31,14 +31,14 @@ my $previous_payload_length = length $payload_sref->$*;
 
 # Ensure file ends with exactly 1 newline (canonical format)
 # First remove all trailing newlines, then add exactly 1
-$payload_sref->$* =~ s/\n*$//s;
+$payload_sref->$* =~ s|\n*$||s;
 $payload_sref->$* .= "\n";
 
 ##  return length difference [ representing change in trailing endlines ]  ##
 return length( $payload_sref->$* ) - $previous_payload_length;
 
-#,,..,,..,.,.,.,,,,.,,,,,,,.,,..,,,.,,...,..,,..,,...,...,.,,,,,.,.,,,,,.,,,.,
-#OLPWZPKN4LOQCX6QISDXLOOIFK6642FE6VLRXNHFUOFLEUCLSM7BBOVMIWMFBGKXVG67EPI6UE6ME
-#\\\|OK6CVV6SM4DSP2KSOFFKIBZVVDCJWF7XHDTSQY7KZNP44MUVHHA \ / AMOS7 \ YOURUM ::
-#\[7]5EHC5HYJZX4OG2FVGPIZBTSZ5BOJZVMVPDVM4KYCD6FJTTYR24CY 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,.,,.,,...,,.,,.,.,.,,,,.,,,,.,..,,...,..,,,,.,,.,,.,.,..,,.,,,
+#WEXEH6W7Q662QQ5WG7Q2VYNESYCMIRXN3EU6COQA2SJARJDV7U52V4HLFYME3CKTSDNIYQNGOSCRU
+#\\\|NI6JQLRNPVTWQSBLWQG63I7MTJQR5V2UUON63GQYC52RJY7KADJ \ / AMOS7 \ YOURUM ::
+#\[7]FVXPN34RKBGBRGSXD5K3PHX2UBC5U7FBNXHEPPG63FEVAURC6ADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

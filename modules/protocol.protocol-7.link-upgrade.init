@@ -19,32 +19,37 @@ use Crypt::Misc;
 use Crypt::Curve25519;
 
 my $ephemeral_secret = Crypt::Misc::random_bytes(32);
-my $ephemeral_public = Crypt::Curve25519::curve25519_public_key($ephemeral_secret);
-my $ephemeral_key_name = sprintf( qw| link-upgrade-%d-%s |, $session_id, <[base.prng.chars-anum]>->(8) );
+my $ephemeral_public
+    = Crypt::Curve25519::curve25519_public_key($ephemeral_secret);
+my $ephemeral_key_name = sprintf( qw| link-upgrade-%d-%s |,
+    $session_id, <[base.prng.chars-anum]>->(8) );
 
 my $ephemeral_keypair = {
     'secret' => $ephemeral_secret,
     'public' => $ephemeral_public,
 };
 
-if ( not defined $ephemeral_keypair or not defined $ephemeral_secret or not defined $ephemeral_public ) {
+if (   not defined $ephemeral_keypair
+    or not defined $ephemeral_secret
+    or not defined $ephemeral_public ) {
     <[base.logs]>->(
         0,
         '[%d] failed to generate Curve25519 ephemeral keypair for link-upgrade',
         $session_id
     );
-    return 0;
+    return FALSE;
 }
 
 ## Store ephemeral keypair info in session
 $session->{'link_ephemeral_key_name'} = $ephemeral_key_name;
-$session->{'link_ephemeral_pubkey'} = $ephemeral_keypair->{'public'};
-$session->{'link_ephemeral_keypair'} = $ephemeral_keypair;  ## Store entire keypair for handler access
+$session->{'link_ephemeral_pubkey'}   = $ephemeral_keypair->{'public'};
+$session->{'link_ephemeral_keypair'}
+    = $ephemeral_keypair;    ## Store entire keypair for handler access
 
 ## Initialize capability flags
 my $capabilities = {
-    'encryption' => ['ChaCha20-Poly1305'],
-    'encoding'   => ['utf7', 'base32', 'base32-xz'],
+    'encryption'  => ['ChaCha20-Poly1305'],
+    'encoding'    => [ 'utf7', 'base32', 'base32-xz' ],
     'compression' => []
 };
 
@@ -62,17 +67,18 @@ $session->{'link_upgrade_timeout'} = time() + $link_timeout;
 <[base.logs]>->(
     2,
     '[%d] initialized link-upgrade negotiation (state %d), ephemeral keypair ready',
-    $session_id, $state_id
+    $session_id,
+    $state_id
 );
 
 ## Note: ephemeral pubkey is sent by cube.cmd.link-upgrade after command response
 ## This ensures proper message ordering: TRUE response first, then pubkey
-return 1;
+return TRUE;
 
 1;
 
-#,,,,,.,.,.,.,,,,,,.,,.,,,,,.,,..,..,,..,,.,.,..,,...,...,,,.,..,,,.,,,.,,,,.,
-#OHUB7DRL7M3CX72AT267ZRYPDITERGZCF4OWU6NODGIIIKNHVKTG7LYGGT4Y5G6VN7NLD4G2RGQKA
-#\\\|AIUE44FYFY7ZGQKN7XCSUKAMQQIHG3Q7GQBXW534ASNKWFNIMD2 \ / AMOS7 \ YOURUM ::
-#\[7]XEI3D5NGSOQUJLXWUFD3LCCHVXPOF3CACUCVFYNRFJFY2GVG3EBQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,.,.,,,,,,,,,,,.,.,.,,,.,.,,,,,,,..,,...,..,,,.,,.,,,,,,,..,,.,.,
+#OLK6HYO3D63RVKLFOCGK2Q52JXPD2FHL3ASP5A4LVSSBYM6NY3RV2VCNKEWIV5IK2RVAMAJNUJ34E
+#\\\|LLBAPU6TT36QGZ2WOGWE2EFR4VXOF36V3N6WTLRVI42WRSROQWX \ / AMOS7 \ YOURUM ::
+#\[7]ZVODJ3CQTDP5X67GSTXTNUBSUVNFYYX34Z6CYB54G2PLNDCUOEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

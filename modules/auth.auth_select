@@ -18,13 +18,13 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
         <[base.net.send_to_socket]>->(
             $client_sock_fd, "FALSE no zenka authentication expected >:[\n"
         );
-        return 0;
+        return FALSE;
     }
 
     $data{'session'}{$id}{'auth'}{'method'} = $method;
     <[base.net.send_to_socket]>->( $client_sock_fd, "TRUE continue\n" );
     <[base.log]>->( 1, "[$id] selected auth method '$method'.," );
-    return 1;
+    return TRUE;
 } else {
     my $link_type
         = $data{'handle'}{$client_sock_fd}{'link'};
@@ -44,11 +44,11 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
     );
     map { <[base.logs]>->( 2, ":%9s: : :.. %s", '', $ARG ) }
         @available_auth_methods;
-    return 0;
+    return FALSE;
 }
 
-#,,,.,..,,,..,..,,..,,,.,,,,.,.,.,.,.,,.,,,,.,..,,...,..,,.,,,,..,.,.,...,..,,
-#TTSFHBYR5CKH5NOYYAUBA2YG4737UBK73DDK7R6NYBISACYZSDMFX4Y54YCVJWQGFHIN3MQKEEMFM
-#\\\|KQW7EUYHCMFL643PGJUQKBYWCC5IOPQLRSKS4VVLV5FKDZRL7SO \ / AMOS7 \ YOURUM ::
-#\[7]U5DBYC4ZKCQH36WV7GNMQG4ZPV7AWJWRSA7JSC6XRT3DJ4MFVSBA 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,.,,,.,,,.,,...,.,.,,,,,,,,,,,.,..,,...,...,..,,,,.,,,,,...,...,
+#RFE5IPSTS6ITPYB26VT54K2LUG6KQUIUSMJXMOQAAGJH77FZGOZK6UOTZOXW6HMTQHYEIT76HXNN6
+#\\\|MYVAMTHRFSWGHDC4AXWHA7RJZO7M2O4DCXH2PMOKADNN6CG632O \ / AMOS7 \ YOURUM ::
+#\[7]I6JSDVYU4CS3QVYWJCLQ2CAK7VWZVUVUTXF3V574NKW3N4KX3MBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

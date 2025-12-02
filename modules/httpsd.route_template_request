@@ -5,23 +5,23 @@
 
 my $http_method = shift;
 my $request_uri = shift;
-my $vhost = shift // 'localhost';
-my $session_id = shift // '';
+my $vhost       = shift // 'localhost';
+my $session_id  = shift // '';
 
 # Validation
-unless (defined $http_method && defined $request_uri) {
+unless ( defined $http_method && defined $request_uri ) {
     return {
-        type => 'error',
-        path => $request_uri,
+        type   => 'error',
+        path   => $request_uri,
         reason => 'invalid_parameters',
     };
 }
 
 # Normalize path (remove query string, fragments, collapse slashes)
 my $path = $request_uri;
-$path =~ s/\?.*//;        # Remove query string
-$path =~ s/#.*//;         # Remove fragment
-$path =~ s|//+|/|g;       # Collapse multiple slashes
+$path =~ s|\?.*||;     # Remove query string
+$path =~ s|#.*||;      # Remove fragment
+$path =~ s|//+|/|g;    # Collapse multiple slashes
 $path = '/' unless length $path;
 
 # Build cache key
@@ -29,81 +29,82 @@ my $cache_key = "$vhost:$path";
 
 # Create route decision
 my $route = {
-    type        => 'static',  # Default
-    path        => $path,
-    method      => $http_method,
-    vhost       => $vhost,
-    handler     => 'httpd.file_transfer',
+    type         => 'static',                # Default
+    path         => $path,
+    method       => $http_method,
+    vhost        => $vhost,
+    handler      => 'httpd.file_transfer',
     handler_args => {
         session_id => $session_id,
-        file_path => $path,
+        file_path  => $path,
     },
-    cache_ttl   => 3600,
-    reason      => 'default_static',
-    cached      => 0,
+    cache_ttl => 3600,
+    reason    => 'default_static',
+    cached    => 0,
 };
 
 # PRIORITY 1: ACME Challenge
-if ($path =~ /^\/\.well-known\/acme-challenge\//) {
-    $route->{type} = 'acme';
-    $route->{handler} = 'acme.http.handler';
-    $route->{reason} = 'acme_challenge_detected';
+if ( $path =~ /^\/\.well-known\/acme-challenge\// ) {
+    $route->{type}         = 'acme';
+    $route->{handler}      = 'acme.http.handler';
+    $route->{reason}       = 'acme_challenge_detected';
     $route->{handler_args} = {
-        session_id => $session_id,
+        session_id  => $session_id,
         request_uri => $request_uri,
     };
     return $route;
 }
 
 # PRIORITY 2: API Endpoints
-if ($path =~ /^\/(api|webhook|rest)\// || $path =~ /\/api$/) {
-    $route->{type} = 'api';
-    $route->{handler} = 'api.request_handler';
-    $route->{reason} = 'api_endpoint_detected';
+if ( $path =~ /^\/(api|webhook|rest)\// || $path =~ /\/api$/ ) {
+    $route->{type}         = 'api';
+    $route->{handler}      = 'api.request_handler';
+    $route->{reason}       = 'api_endpoint_detected';
     $route->{handler_args} = {
-        session_id => $session_id,
-        method => $http_method,
+        session_id  => $session_id,
+        method      => $http_method,
         request_uri => $request_uri,
-        path => $path,
+        path        => $path,
     };
     return $route;
 }
 
 # PRIORITY 3: Static file extensions (no template processing needed)
-if ($path =~ /\.(css|js|png|jpg|jpeg|gif|pdf|svg|ico|woff|woff2|ttf)$/) {
-    $route->{type} = 'static';
+if ( $path =~ /\.(css|js|png|jpg|jpeg|gif|pdf|svg|ico|woff|woff2|ttf)$/ ) {
+    $route->{type}    = 'static';
     $route->{handler} = 'httpd.file_transfer';
-    $route->{reason} = 'static_extension_detected';
+    $route->{reason}  = 'static_extension_detected';
     return $route;
 }
 
 # PRIORITY 4: Check if template exists
 # This would call httpd.vhost_template_resolver in live environment
 # For now, we'll detect .html/.htm files and assume templates might exist
-if ($path =~ /\.(html|htm)$/) {
-    # In live environment, would check:
-    # my $template = <[httpd.vhost_template_resolver]>->($vhost, $path, 'tmpl');
+if ( $path =~ /\.(html|htm)$/ ) {
 
-    $route->{type} = 'template';
-    $route->{handler} = 'httpd.process_template';
-    $route->{reason} = 'html_file_with_potential_template';
-    $route->{template_path} = "/var/httpd/$vhost/_templates/" .
-                              (split('/', $path))[-1] . '.tmpl';
+  # In live environment, would check:
+  # my $template = <[httpd.vhost_template_resolver]>->($vhost, $path, 'tmpl');
+
+    $route->{type}          = 'template';
+    $route->{handler}       = 'httpd.process_template';
+    $route->{reason}        = 'html_file_with_potential_template';
+    $route->{template_path} = "/var/httpd/$vhost/_templates/"
+        . ( split( '/', $path ) )[-1] . '.tmpl';
     $route->{handler_args} = {
-        session_id => $session_id,
+        session_id    => $session_id,
         template_path => $route->{template_path},
     };
     return $route;
 }
 
 # PRIORITY 5: Default to static (everything else)
-$route->{type} = 'static';
+$route->{type}    = 'static';
 $route->{handler} = 'httpd.file_transfer';
-$route->{reason} = 'no_template_match';
+$route->{reason}  = 'no_template_match';
 return $route;
 
-#,,,.,,,,,..,,,..,,.,,.,.,,.,,,..,.,.,..,,.,,,..,,...,...,.,.,,..,,.,,.,,,.,,,
-#34TRFUJZ6B53EXYXBPTBC2UEIEJ7XSPH6ASOAEQ7J7OZ5UPAFQVGZHE7JIH5NQKQAZOYAYWUHM5HU
-#\\\|FKVABER6IA22OQHTJ7CUTOYXYXVP6BLJMSQNK5IZAYV2OOVPGJF \ / AMOS7 \ YOURUM ::
-#\[7]BJWWEN32CHVIV2FIEG2IF4THWQXEMHEWNPHT5QOJJW7R52IKYWCA 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,.,.,,,,,,..,...,,..,.,.,.,.,,.,,..,,...,...,.,.,...,,.,,..,,,.,,
+#MWJAIZWCQOXBF633UXNAIDORCS4RRU4OBLTJDD6LHKYR2TRYNHWZ6PW3CKJPVZF2IVLPU6DXPPURA
+#\\\|VO52MSXMZE53HKWIPAXYQSMRYWIXVOAFAB6YOWALOPAMNXGWUVD \ / AMOS7 \ YOURUM ::
+#\[7]KTY6GKT55HRDFGF5YPHWGJ3OAVTU2BTPARUDC3U3KMXP7Z3ADAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

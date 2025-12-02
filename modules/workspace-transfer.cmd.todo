@@ -3,7 +3,7 @@
 # name  = workspace-transfer.cmd.todo
 # descr = todo list management
 
-my $cmd = shift || 'list';
+my $cmd  = shift || 'list';
 my @args = @_;
 
 my $ws_dir = workspace_transfer::chdir_workspace();
@@ -11,8 +11,8 @@ my $ws_dir = workspace_transfer::chdir_workspace();
 
 my $todo_file = 'TODO.md';
 
-if ($cmd eq 'list') {
-    unless (-f $todo_file) {
+if ( $cmd eq 'list' ) {
+    unless ( -f $todo_file ) {
         say "No TODOs yet. Add one with: todo add <description>";
         return;
     }
@@ -24,11 +24,11 @@ if ($cmd eq 'list') {
     print while <$fh>;
     close $fh;
 
-} elsif ($cmd eq 'add') {
+} elsif ( $cmd eq 'add' ) {
     die "Usage: todo add <description>\n" unless @args;
 
-    my $desc = join(' ', @args);
-    my $timestamp = scalar(localtime());
+    my $desc      = join( ' ', @args );
+    my $timestamp = scalar( localtime() );
 
     open my $fh, '>>', $todo_file or do {
         <[base.logs]>->( 0, 'cannot write TODO.md: %s', $! );
@@ -40,11 +40,11 @@ if ($cmd eq 'list') {
 
     say "✓ Todo added: $desc";
 
-} elsif ($cmd eq 'done') {
+} elsif ( $cmd eq 'done' ) {
     my ($item_num) = @args;
     die "Usage: todo done <item_number>\n" unless defined $item_num;
 
-    unless (-f $todo_file) {
+    unless ( -f $todo_file ) {
         say "No TODOs to mark done.";
         return;
     }
@@ -57,13 +57,13 @@ if ($cmd eq 'list') {
     close $fh;
 
     my $count = 0;
-    for my $i (0..$#lines) {
-        if ($lines[$i] =~ /^- \[ \]/) {
+    for my $i ( 0 .. $#lines ) {
+        if ( $lines[$i] =~ /^- \[ \]/ ) {
             $count++;
-            if ($count == $item_num) {
-                $lines[$i] =~ s/^- \[ \]/- [x]/;
-                $lines[$i] =~ s/\n$//;
-                $lines[$i] .= " (completed: " . scalar(localtime()) . ")\n";
+            if ( $count == $item_num ) {
+                $lines[$i] =~ s|^- \[ \]|- [x]|;
+                $lines[$i] =~ s|\n$||;
+                $lines[$i] .= " (completed: " . scalar( localtime() ) . ")\n";
 
                 open my $out, '>', $todo_file or do {
                     <[base.logs]>->( 0, 'cannot write TODO.md: %s', $! );
@@ -80,7 +80,7 @@ if ($cmd eq 'list') {
 
     say "Item $item_num not found";
 
-} elsif ($cmd eq 'help') {
+} elsif ( $cmd eq 'help' ) {
     say "Todo List Management";
     say "";
     say "Usage:";
@@ -94,8 +94,8 @@ if ($cmd eq 'list') {
     say "Run 'todo help' for usage";
 }
 
-#,,..,,,,,..,,.,.,,,,,...,.,,,...,...,...,.,,,..,,...,..,,,,,,..,,..,,.,,,,,,,
-#YETUAHALLVJ3SCAS5HM5ZVX4ASUHXLXX74CZIGOTPNUKZ36HVWXQF3DXW5Q7DQC5J7XMTZ2RI27LC
-#\\\|HTJPSYWNHWLKMTEMFZZNPACZ5GUXZHSXCHPKEZXMLSNIFKD4NBI \ / AMOS7 \ YOURUM ::
-#\[7]WMNAWBNP4YZLUWCVMGA46YWQF7LQLKL5TA2SMTEMXBMZZMUZ7YCA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,.,,,.,,,..,,,.,,,.,.,,,...,,,.,..,,...,...,.,,,,,,,.,,,,,.,.,,,
+#BYDODP6V44ULKFO5VKL3OJYM5SY7U6ZCAV3R75FMH4UFRUVTAPTLNJNS6I5FBAQIAXWPO5S4XGEBO
+#\\\|BC36CRVFJFJBMFD2NIWI5ZS4NDSWGFK2OQNSIQRINFRRPVPPS54 \ / AMOS7 \ YOURUM ::
+#\[7]56AR4M5ICTMRMT7CTZF2WMPCYGLKYELWTFZICPIZM3YGCAYN7MBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

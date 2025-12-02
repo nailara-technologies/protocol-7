@@ -8,54 +8,58 @@ my $param1 = shift // '';
 my $param2 = shift // '';
 
 ## Determine execute mode and key phrase
-my $dry_run = 1;
+my $dry_run    = 1;
 my $key_phrase = '';
 
-if ($param1 eq 'execute') {
-    $dry_run = 0;
+if ( $param1 eq 'execute' ) {
+    $dry_run    = 0;
     $key_phrase = $param2;
-} elsif (length $param1) {
+} elsif ( length $param1 ) {
     $key_phrase = $param1;
 }
 
 <[base.log]>->( 1, "Fixing signatures in git history..." );
 
-if (length $key_phrase) {
+if ( length $key_phrase ) {
     <[base.log]>->( 1, "  Filtering by key phrase: '$key_phrase'" );
 }
 
 if ($dry_run) {
-    <[base.log]>->( 1, "  DRY RUN mode - use 'fix-signatures execute' to apply changes" );
+    <[base.log]>->(
+        1, "  DRY RUN mode - use 'fix-signatures execute' to apply changes"
+    );
 }
 
 ## Trigger signature fixing
-my $result = <[workflow.parent.fix_signatures]>->({
-    dry_run => $dry_run,
-    key_phrase => $key_phrase,
-});
+my $result = <[workflow.parent.fix_signatures]>->(
+    {   dry_run    => $dry_run,
+        key_phrase => $key_phrase,
+    }
+);
 
-if ($result->{dry_run}) {
+if ( $result->{dry_run} ) {
     my $count = $result->{would_fix} || 0;
 
-    if ($count == 0) {
+    if ( $count == 0 ) {
         return say "\n  ✓ All commits have valid signatures\n";
     }
 
     say "";
     say "  PREVIEW - No changes will be made (dry run)";
     say "";
-    say sprintf("  Found %d commits with invalid signatures", $count);
+    say sprintf( "  Found %d commits with invalid signatures", $count );
     say "";
     say "  To execute: workflow fix-signatures execute";
-    if (length $key_phrase) {
-        say sprintf("  With filter: workflow fix-signatures execute \"%s\"", $key_phrase);
+    if ( length $key_phrase ) {
+        say sprintf( "  With filter: workflow fix-signatures execute \"%s\"",
+            $key_phrase );
     }
     say "";
 
-    return 0;
+    return FALSE;
 }
 
-unless ($result->{success}) {
+unless ( $result->{success} ) {
     my $error = $result->{error} || 'unknown error';
     return say "::\n: ✗ Fix failed: $error\n::";
 }
@@ -63,8 +67,8 @@ unless ($result->{success}) {
 my $fixed = $result->{fixed} || 0;
 return say "::\n: ✓ Re-signed $fixed commits\n::";
 
-#,,,.,..,,...,.,.,,.,,...,..,,.,,,..,,,,.,,,,,..,,...,...,.,,,...,,.,,.,,,,.,,
-#PQIXPYZO6FNNPI4V5C3CNHLN3CPIWP2XS42RINSUVGXTSZSDA76X6NTRY3VTSRUMA45MRWVALVJKM
-#\\\|3JZDKNWACHJ2FS2IV4T6CSNTGDJEM4QQIO2IHYSOAOCEXGY3GE7 \ / AMOS7 \ YOURUM ::
-#\[7]VDWXWIGYMR4C7HZG7VL5W4JGFMLIQB4HYCCMM3ICHG2QNUSZWMBI 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,.,,,.,,.,.,.,.,...,,.,,,,,,,,,,..,,...,.,.,.,.,,,,,,,.,,..,.,.,
+#LZMNBNEIMHJIVDXF6MKV23Y25KLIRKFXNTZ2JYXWZAUF2DUGJAUH4VQ5BSFAG46WS4GCA35S7DEYW
+#\\\|UC5FNPW4QXJ3CJ4NI5LWTTUPGWZMLAAXS7F6EGSPY635RRBHUXN \ / AMOS7 \ YOURUM ::
+#\[7]PCBF4IYJOMDJK7B56R7FSJSWBXHLSQTHEMBNDPDVPL7FQ4LGLACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

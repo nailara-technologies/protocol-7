@@ -16,13 +16,14 @@ my $input   = \$session->{'buffer'}->{'input'};
 
 ## Check if we have the link-upgrade command in state 1
 if ( $$input =~ s|^link-upgrade\n|| ) {
-    <[base.logs]>->( 2, '[%d] link-upgrade request received in state 1', $id );
+    <[base.logs]>
+        ->( 2, '[%d] link-upgrade request received in state 1', $id );
 
     ## Transition to state 2 (link-upgrade negotiation)
     if ( not <[base.session.init_state]>->( $id, 2 ) ) {
         <[base.logs]>->( 0, '[%d] failed to initialize state 2', $id );
         $session->{'buffer'}->{'output'} .= "link-upgrade FAILED\n";
-        return 0;
+        return FALSE;
     }
 
     ## Get ephemeral pubkey from session (set by state 2 init)
@@ -32,7 +33,7 @@ if ( $$input =~ s|^link-upgrade\n|| ) {
 
     if ( not defined $ephemeral_pubkey or not length $ephemeral_pubkey ) {
         <[base.logs]>->( 0, '[%d] ephemeral public key not available', $id );
-        return 0;
+        return FALSE;
     }
 
     ## Encode and send ephemeral pubkey to client
@@ -46,11 +47,11 @@ if ( $$input =~ s|^link-upgrade\n|| ) {
         $id
     );
 
-    return 0;  ## Command complete, state 2 handler will take over
+    return FALSE;    ## Command complete, state 2 handler will take over
 }
 
 ## Not our command in state 1, pass through
-return 1;
+return TRUE;
 
 1;
 
@@ -60,8 +61,8 @@ return 1;
 #\[7]IZWWKXC23KQG56MSYB5HJZT5PL3N3ZIUGB7TRLHNQ76ZUHIJC4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,.,.,,.,,..,,,,.,.,,,,,.,,,.,,,,,.,,,...,..,,...,..,,,.,,,.,,..,,..,,.,.,
-#ZWOS2HXP7IGELVNBGKF5DR5ICVVZVAGTOZBX4IYJ3SOO33N7POAVEZJOXX4YUTB7P5SXG7BSND2SQ
-#\\\|VXQPMOH4UYI65UV6FMZAW43JYUX6VELT4PRXUZLKQ2PLFLQOXI6 \ / AMOS7 \ YOURUM ::
-#\[7]5FZKS3DYWF3GEHE6YFV5EUJAZKG47WXT6QUSVOK2FWGTNSENNSAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,.,.,.,,,.,.,.,.,...,...,..,,..,,..,,...,...,,.,,.,,,,,.,...,.,,,
+#YJFMU63WXNLDS7YNFPU2OZ7BCMWYV2ZBBWM5QLVRTONTUVHIZLC42A4QZFMM44MGJBUTBG6YPJNXE
+#\\\|NTBZ5ZKMNFLJTIRRZSDU754L7O5SHU3NJTVEPUX5KO6MQO2N5CD \ / AMOS7 \ YOURUM ::
+#\[7]G6FNRRQOZX6UUGYL37GUHMPJJDWBG6P3ITDQNDGEWCSLREDPKWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

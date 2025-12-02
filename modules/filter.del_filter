@@ -4,17 +4,17 @@
 
 if ( $_[0] !~ /^\d+$/ ) {
     <[base.log]>->( 0, "del_filter: invalid parameter" );
-    return 0;
+    return FALSE;
 }
 if ( !defined $data{'filter'}{ $_[0] } ) {
     <[base.log]>->( 0, "no such filter ($_[0])" );
-    return 0;
+    return FALSE;
 }
 delete $data{'filter'}{ $_[0] };
-return 1;
+return TRUE;
 
-#,,,,,.,,,.,,,,.,,,.,,...,,,,,.,,,.,.,,,.,,,,,..,,...,...,,,.,,,,,...,.,.,,,,,
-#4ROC5KM4H6EODEAGG53G66HSD25RC5QWVKBD4T5BAHJCZPRE353S6P3UEUMLQ57SZYCLE7NVP3Q5K
-#\\\|6GOEHCVZEB6AGMUZX6WT7D6YLEXZZZEPZ4ABQAFYRT663DI272I \ / AMOS7 \ YOURUM ::
-#\[7]DAZFGENJ6HJDNNMZGQGBDD4X6OAQKNZDQW2IGKBSZVXDWCMCHSBQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,.,.,,,.,,.,,.,,,,,,,,,.,...,.,.,..,,...,...,...,,..,,..,,,.,...,
+#HY7GQRAP3TD3IAKWPPWLMADCYGNUJHWOPYTMVTT4IWPYHJOFT6EG4XWEPZDF4SCVDQD3UYSRXRHJG
+#\\\|UMR75NKLNOVADC53H3FUBAYY3DCPS7XBXRB5V57TQCZOZLNWGR7 \ / AMOS7 \ YOURUM ::
+#\[7]Q5EBUOHDBV54GY4O2S7GB7E3D7T3B7EAJQ4NY7HZCR7QUAR6RACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

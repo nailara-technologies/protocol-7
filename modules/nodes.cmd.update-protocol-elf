@@ -53,9 +53,9 @@ if (not    ## attempt writing to /etc/protocol-7 first ##
 
 } else {  ## removing any zenka path version when /etc write was successful ##
 
-    my $cfg_path_abs = sprintf qw| %s/%s/%s |,
-        <system.path.zenka-dirs.var_P7>, <system.zenka.name>,
-        $versioncfg_file_path;
+    my $cfg_path_abs = sprintf( qw| %s/%s/%s |,
+        <system.path.zenka-dirs.var_P7>,
+        <system.zenka.name>, $versioncfg_file_path );
 
     <[base.s_warn]>->(
         '[ %s ] unlink [ %s ]',
@@ -72,8 +72,8 @@ my $protocol_code_version_str
 
 return { 'mode' => qw| true |, 'data' => $protocol_code_version_str };
 
-#,,,.,,..,,,,,..,,.,.,,.,,,..,,.,,,,.,,.,,.,,,..,,...,...,.,,,..,,.,.,..,,...,
-#QNTFOHUJVCCUPX4LYVC425RAX5YAWY3Q2TVAS7R3D7Z3BBKNEWELTXN5V4U247RHTCGU3GGKECMME
-#\\\|4ZDINZDBKWYXHRT7HFHRZUCDEWTSTIME63BH3MG5A574VRWWRTJ \ / AMOS7 \ YOURUM ::
-#\[7]WL4XYV4V7LRHPZITH4NAIQRYOVJBPQCSE5VVG736D225DH6NRKAI 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,.,,,.,,...,...,,,.,,,,,...,,..,..,,...,..,,...,.,.,,..,,..,,..,
+#AZT5C4TTWUO23LOWDWVMADKBWWGT7YQKMOHYESUSAEFQYMWR2QPAZCGFUXLGNQNLFELPUXYHQ2VGK
+#\\\|MQZELVDOBRMZQ6CG5M7J2QEYLOOUWWI3WYPIMB3E7QTK7VZ3DPH \ / AMOS7 \ YOURUM ::
+#\[7]SLIDFYN6QPGKQTOSFGH3KGWRKHWZ2RUKM4RUX3VEAKT5QMSQO6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

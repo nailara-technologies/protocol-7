@@ -20,7 +20,7 @@ return { 'mode' => 'false', 'data' => 'token parameter required' }
 <[base.log]>->( 2, "  token: $token" );
 
 ## Build challenge file path
-my $httpd_site_dir = <httpd.cfg.site_dir> // '/var/httpd';
+my $httpd_site_dir = <httpd.cfg.site_dir>     // '/var/httpd';
 my $default_site   = <httpd.cfg.default_site> // 'default';
 my $well_known_dir = '/.well-known/acme-challenge';
 
@@ -34,16 +34,16 @@ my $challenge_file = sprintf '%s/%s%s/%s',
 
 ## Check if file exists
 unless ( -f $challenge_file ) {
-    <[base.log]>->( 2, "challenge file not found (already removed or never created)" );
+    <[base.log]>->(
+        2, "challenge file not found (already removed or never created)"
+    );
     return { 'mode' => 'true', 'data' => "challenge file not found (OK)" };
 }
 
 ## Remove the file
 unless ( unlink($challenge_file) ) {
-    <[base.log]>->(
-        1,
-        "failed to remove challenge file $challenge_file: $!"
-    );
+    <[base.log]>
+        ->( 1, "failed to remove challenge file $challenge_file: $!" );
     return {
         'mode' => 'false',
         'data' => "failed to remove challenge file: $!"
@@ -60,7 +60,7 @@ my $challenge_dir = sprintf '%s/%s%s',
 
 if ( -d $challenge_dir ) {
     if ( opendir( my $dh, $challenge_dir ) ) {
-        my @files = grep { !/^\./ } readdir($dh);
+        my @files = grep { !m|^\.| } readdir($dh);
         closedir($dh);
 
         if ( @files == 0 ) {
@@ -82,8 +82,8 @@ return {
     'data' => "ACME challenge file removed for $domain"
 };
 
-#,,.,,.,.,,,,,.,,,,,.,...,..,,.,,,,..,...,,..,..,,...,...,,..,,..,.,.,,,.,,.,,
-#NAZ4S55F7BDUMZPQE4XVWYVMAPNX4MEQZCPGFRF5BHWQYMA567CZTAA5OPATHDAL3ZONH2WHCFVDC
-#\\\|TUCTRAK76KZGSIEMMKIQJK6TTXTYMRJSH7FW7YA6CRTXU73UTM7 \ / AMOS7 \ YOURUM ::
-#\[7]FHZOYML3AYVT5GQYSVBWRDRRHNHVIEIUSHWWJSX2GDSCH2IFYGAA 7  DATA SIGNATURE ::
+#,,,,,...,..,,..,,,.,,.,.,,,.,,..,..,,.,,,,..,..,,...,.,.,...,,..,,,.,.,.,,.,,
+#CZYIQ4ZSIAQOWJNYWMP2IO3IOYG4QFJ3VSBHAQSNNV4LIWGHNLPRWOXNB25EFJJ3BNYE74MVQNU7S
+#\\\|CB4JUIKHNFP3JZFAUTWMSJXEWIVYO262UPV2S47MKU5SNL33MCS \ / AMOS7 \ YOURUM ::
+#\[7]TIUTW4OFBS2MS7NCSUWFFMDTEOWQXIVJ6TRDXEBX54ROJREDWWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -16,7 +16,7 @@ my %size_suffix = (
 for my $grade ( sort { $b <=> $a } keys %size_suffix ) {
     my $value = sprintf( '%.1f', $size_str / $grade );
     if ( int($value) ) {
-        $value =~ s/\.0+$//;
+        $value =~ s|\.0+$||;
         $size_str = $value . $size_suffix{$grade};
         last;
     }
@@ -24,8 +24,8 @@ for my $grade ( sort { $b <=> $a } keys %size_suffix ) {
 
 return $size_str;
 
-#,,..,..,,,,.,,,.,.,,,...,,,,,,,,,...,.,,,.,,,..,,...,...,.,.,.,.,,..,,,.,,,.,
-#HTOBOLA56F24MKMMMKTSQS34XORAY7MYSBLKHPOQ6VIJVMFJ64O6QAI6YHQXNLJGZPTA2ODCJ3QXC
-#\\\|MTBPPM4LXZESGTLNU6WE3MFHZPSUSKPRPX2WGQEYG4QKFRPJ6GB \ / AMOS7 \ YOURUM ::
-#\[7]Y2WVP7HUZHQVBKPKKNOGW3ZE4U7MQOLVHJTUQV3LOPM6LNFY2MAI 7  DATA SIGNATURE ::
+#,,,.,...,..,,.,.,,,.,.,.,...,...,..,,,,,,..,,..,,...,...,.,.,.,.,.,,,...,,.,,
+#O7I4LHWNY3ZAYQBAWZZ4F6YON2H56UR5EGFPKE2EIFGITXTGI5B7UCVSONUWYFYCGRXR4VOVWFU36
+#\\\|53GE5BH2R7A3YG5ZJRITFZEJLZEJQNVWVZ2RCALZMIZIERZSFER \ / AMOS7 \ YOURUM ::
+#\[7]VPDS5KJJZTTASILQKN53QUGFTFP3QRJSRQX4TVYPJIZ2A5C5QSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

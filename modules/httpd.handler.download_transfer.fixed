@@ -17,7 +17,7 @@ $max_buf_size = <httpd.downloads.max_buffer_size>
 
 my $read_size = $max_buf_size - length $session->{'buffer'}->{'output'};
 
-return 1 if $read_size < 1;    ## <-- output buffer full ##
+return TRUE if $read_size < 1;    ## <-- output buffer full ##
 
 my $content_fh = $download->{'content_fh'};
 my $part_count = $download->{'part_count'};
@@ -82,7 +82,7 @@ if ( $read_size <= 0 ) {
             $session->{'watcher'}->{'input_handler'}
                 ->timeout(<httpd.timeout>);
         }
-        return 0;
+        return FALSE;
     }
 }
 
@@ -132,11 +132,11 @@ if ( $download->{'total_bytes_remaining'} == 0 ) {
     } else {
         $session->{'watcher'}->{'input_handler'}->timeout(<httpd.timeout>);
     }
-    return 0;
+    return FALSE;
 
 } else {
     $download->{'part_pos'} += $bytes_read if $part_count > 1;
-    return 1;
+    return TRUE;
 }
 
 ABORT_DOWNLOAD:
@@ -162,10 +162,10 @@ delete $session->{'watcher'}->{'download_handler'};
 delete $session->{'download'};
 <[httpd.update_download_count]>;
 $session->{'flush_shutdown'} = 1;
-return 0;
+return FALSE;
 
-#,,,,,,..,.,,,,.,,..,,,,.,...,..,,.,.,..,,,..,..,,...,...,.,,,,.,,,.,,,,.,,,.,
-#FAJKEWF6PZS23YWXVUTHTFZB45A2BWJ57B23UDIDKZFZ5R4DUF7YVASFIFY5UCTB2IXKPKQUPSSYY
-#\\\|5WEWGXOVHK365U6ZZYNZPUDSCKMLWFPWL3H74B7FGMX65JSK2BW \ / AMOS7 \ YOURUM ::
-#\[7]6MGU7SY56Z3XMY5XLCWXMNCNZ7D2R6B656GNZ5XUZQK7JJNQOOBI 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,...,.,.,.,,,,,,,,,,,,,.,..,,.,.,..,,...,...,,..,..,,..,,,,.,.,,,
+#3J3JXZ2YEWXIXBLMKDZ4XLLRSN2MJZNWPDPSCNBN6XZ63QSKMI2WGKFWVEOR3JUKF7JIVZOKJJENG
+#\\\|TMFRNPSL7KV5VR3F54NWEJ2Y2ZDVWHOIL4PMIIXNX3VT63ND2UF \ / AMOS7 \ YOURUM ::
+#\[7]6LB3LRZGCX6ZZP7UOQGJNR4GYUHCE63VCE5KMCE4ZO5U2YNSTYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

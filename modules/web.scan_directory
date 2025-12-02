@@ -9,9 +9,9 @@ my $current_path = shift // '';
 my $options      = shift // {};
 
 ## Clean up paths ##
-$base_dir =~ s/\/+$//;                    ## Remove trailing slashes
-$current_path =~ s/^\/+|\/+$//g;          ## Remove leading/trailing slashes
-$current_path =~ s/\.\.+/./g;             ## Prevent directory traversal
+$base_dir     =~ s/\/+$//;          ## Remove trailing slashes
+$current_path =~ s/^\/+|\/+$//g;    ## Remove leading/trailing slashes
+$current_path =~ s|\.\.+|.|g;       ## Prevent directory traversal
 
 my $full_path = $base_dir;
 $full_path .= "/$current_path" if length($current_path);
@@ -20,7 +20,8 @@ $full_path .= "/$current_path" if length($current_path);
 
 ## Validate directory exists and is readable ##
 unless ( -d $full_path ) {
-    <[base.log]>->( 1, "web.scan_directory: directory not found: $full_path" );
+    <[base.log]>
+        ->( 1, "web.scan_directory: directory not found: $full_path" );
     return {
         status => qw| error |,
         error  => qw| directory_not_found |,
@@ -30,7 +31,9 @@ unless ( -d $full_path ) {
 }
 
 unless ( -r $full_path ) {
-    <[base.log]>->( 1, "web.scan_directory: directory not readable: $full_path" );
+    <[base.log]>->(
+        1, "web.scan_directory: directory not readable: $full_path"
+    );
     return {
         status => qw| error |,
         error  => qw| permission_denied |,
@@ -71,7 +74,7 @@ foreach my $entry ( sort @entries ) {
     ## Extract display name (remove numeric prefixes like "01_") ##
     my $display_name = $entry;
     my $sort_prefix  = '';
-    if ( $display_name =~ s/^(\d+)_// ) {
+    if ( $display_name =~ s|^(\d+)_|| ) {
         $sort_prefix = $1;
     }
 
@@ -80,7 +83,7 @@ foreach my $entry ( sort @entries ) {
     if ($is_file) {
         if ( $entry =~ /\.(txt|md|html?)$/ ) {
             $content_type = $1;
-            $display_name =~ s/\.$content_type$//;
+            $display_name =~ s|\.$content_type$||;
         } else {
             ## Skip non-content files unless show_all option ##
             next unless $options->{show_all};
@@ -88,13 +91,14 @@ foreach my $entry ( sort @entries ) {
     }
 
     ## Build relative path ##
-    my $relative_path = length($current_path) ? "$current_path/$entry" : $entry;
+    my $relative_path
+        = length($current_path) ? "$current_path/$entry" : $entry;
 
     ## Get file stats ##
-    my @stat       = stat($entry_path);
-    my $size       = $stat[7];
-    my $mtime      = $stat[9];
-    my $is_index   = ( $entry =~ /^index\.(txt|md|html?)$/ );
+    my @stat     = stat($entry_path);
+    my $size     = $stat[7];
+    my $mtime    = $stat[9];
+    my $is_index = ( $entry =~ /^index\.(txt|md|html?)$/ );
 
     ## Check for duplicate names (dir and file with same base name) ##
     my $base_name = $display_name;
@@ -112,16 +116,16 @@ foreach my $entry ( sort @entries ) {
 
     ## Add item to list ##
     my $item = {
-        name          => $entry,
-        display_name  => $display_name,
-        sort_prefix   => $sort_prefix,
-        path          => $relative_path,
-        full_path     => $entry_path,
-        type          => $is_dir ? 'dir' : 'file',
-        content_type  => $content_type,
-        size          => $size,
-        mtime         => $mtime,
-        is_index      => $is_index,
+        name         => $entry,
+        display_name => $display_name,
+        sort_prefix  => $sort_prefix,
+        path         => $relative_path,
+        full_path    => $entry_path,
+        type         => $is_dir ? 'dir' : 'file',
+        content_type => $content_type,
+        size         => $size,
+        mtime        => $mtime,
+        is_index     => $is_index,
     };
 
     push @items, $item;
@@ -130,16 +134,13 @@ foreach my $entry ( sort @entries ) {
 
 ## Sort items: directories first, then by sort prefix, then by name ##
 @items = sort {
-         ( $b->{type} eq 'dir' ) <=> ( $a->{type} eq 'dir' )
-      || $a->{sort_prefix} <=> $b->{sort_prefix}
-      || $a->{display_name} cmp $b->{display_name}
+           ( $b->{type} eq 'dir' ) <=> ( $a->{type} eq 'dir' )
+        || $a->{sort_prefix} <=> $b->{sort_prefix}
+        || $a->{display_name} cmp $b->{display_name}
 } @items;
 
 <[base.log]>->(
-    2,
-    "web.scan_directory: found "
-        . scalar(@items)
-        . " items in $full_path"
+    2, "web.scan_directory: found " . scalar(@items) . " items in $full_path"
 );
 
 return {
@@ -150,8 +151,8 @@ return {
     count        => scalar(@items),
 };
 
-#,,.,,,..,.,.,.,,,.,,,.,,,,,.,.,.,.,,,,.,,.,,,..,,...,...,.,,,.,.,,.,,,.,,,,,,
-#MESF4P4HD6JWL55IUBPI6B3ZLWRR2H6OD2ZNURKE3BV2WGRRKACQLUERK76TIHRWVMKWKC2BNJWVK
-#\\\|ZTFFRJ4ZDIYGQYHHF5TXMJOYGZVZYKEB27PR5NWNRVB4ZDRYAB7 \ / AMOS7 \ YOURUM ::
-#\[7]KVQHYAALIQ2GXCUNT65TXFT67LAONKYP4RDOPGKOSUBSVCWQ4MBY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,.,,,.,,..,,,.,...,,,.,,,,,.,.,..,,...,...,...,...,,.,,,,,,.,,,
+#ULQMRZVATOX2HFGA6UC7XMNEYCCLANNJLXFOCJD4YMT6NRLSPKZDWHNQTLWQKBXUJK6TJHI7RECLM
+#\\\|CER5FOP3YCO33ZZAASJDABXQEF3F6LST26HC4XHHA66NNB26IDC \ / AMOS7 \ YOURUM ::
+#\[7]QLHIYVWWYTPHDDJI6XXQFT5MYX7SGAK4PRRGRV32MSXZSOVPEUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -27,25 +27,25 @@ foreach my $check_key ( 'enabled', 'disabled' ) {
 }
 
 # all zenki are considered enabled in absence of explicit statements ..,
-return 1
+return TRUE
     if not defined $config_href->{'enabled'}
     and ( not defined $config_href->{'disabled'}
     or $config_href->{'disabled'} =~ m|^\s+$| );
 
 # zenki.diabled takes precedence to zenki.enabled.,
-map { return 0 if $ARG eq $zenka_name }
+map { return FALSE if $ARG eq $zenka_name }
     split( m|\s+|, $config_href->{'disabled'} )
     if defined $config_href->{'disabled'};
 
-return 1 if not defined $config_href->{'enabled'};
+return TRUE if not defined $config_href->{'enabled'};
 
 # if zenki.enabled is present, all zenki not listed there count as disabled .,
-map { return 1 if $ARG eq $zenka_name }
+map { return TRUE if $ARG eq $zenka_name }
     split( m|\s+|, $config_href->{'enabled'} );
-return 0;
+return FALSE;
 
-#,,.,,,.,,.,.,.,,,,,.,,..,..,,,.,,,.,,,.,,,,.,..,,...,...,.,.,..,,.,.,,..,..,,
-#2IZVV7I473O25JFNHXCUAJ2XUJANRGKMIZBQFEE53MCHVZDSIOVI7D2UTZFPYXJ7MPO54O4VVNFZ6
-#\\\|AXFFLOWWGPUWFRXOX4HQZURO256GSXHEE76MP6365B2RPGXOE3O \ / AMOS7 \ YOURUM ::
-#\[7]BXLZXNR35VRY4QTGAIUQINHTOAJRYIXBMBJ6C6LATDTFD2EUPEDA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,...,,,,,.,.,...,..,,,.,,,,,,..,,..,,...,...,,.,,.,,,.,,,,,,,,.,,
+#LUCCBDCI2LA6Y7C2IWCQKSJXGL5WTVU7XHCCWJK6N6UMDVYZWGMESAQDKT3HLZ7L4ULEASDJQPKHA
+#\\\|MOX57QYAMI375IGRMK5RO446WKXVOR73RWV3ZWTTPSIL6BM6AX7 \ / AMOS7 \ YOURUM ::
+#\[7]LS4NTJXSGXDIMSFK5HYC3GSPSTDHMKL7YYA3QGHY242FTPWYIIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,7 +7,7 @@ die "expected instance id" if not defined $instance_id;
 my $instance   = <v7.zenka.instance>->{$instance_id};
 my $parent_pid = $instance->{'process'}->{'id'};
 
-return 0 if not defined $parent_pid;
+return FALSE if not defined $parent_pid;
 
 my %check_pids = ( $parent_pid => 1 );
 map { $check_pids{$ARG} = 1 }
@@ -21,8 +21,8 @@ map { $processes_left++ if <[base.exists.sub-process]>->($ARG) }
 
 return $processes_left;
 
-#,,..,...,,,.,,..,.,,,.,,,.,,,..,,.,.,,..,.,,,..,,...,...,,..,..,,,.,,..,,..,,
-#VQ5VCAEQUA2OA3ZNYLQZMRINCPSDWEOPEGGPWUONFEYH2GB54NXPTRV64BL2FNBI22NGASLUJZZ4S
-#\\\|KRBPTQKFMWFZ76BENX4VC6N6ZPBJ3NWDL2LN4MANU3X3YWCUMT4 \ / AMOS7 \ YOURUM ::
-#\[7]PL37EE6ZTUQZVDSWBD4GEM4FZJWA67355SI3Y4MA747UND27ZGBI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,...,,..,,,,,..,,,.,,,,,,,,,,..,,..,,...,...,..,,.,.,,..,...,..,,
+#57TH6I5XA6WCQRJ3U5WIGGL2YVDS7M5PRZZBPG4LK6RO6GTWUTJXC6ULH3HKLQSZJOP4B37XYJM7C
+#\\\|V3VQGXERVNOWHQZRPDUTHLQ2LDJFMMIWRW3B2PMRLJPY7JVTQKG \ / AMOS7 \ YOURUM ::
+#\[7]ETLBEEKPBYF752BAQQS6IQA6D3MQUGFJWL2HESF3W2NB3JM3H4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

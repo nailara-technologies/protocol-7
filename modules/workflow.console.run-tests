@@ -12,7 +12,7 @@ unless ( defined $pattern && length $pattern ) {
     say ' : example: workflow run-tests oscillation';
     say ' : example: workflow run-tests test-httpd';
     say '';
-    return 1;
+    return TRUE;
 }
 
 $pattern =~ s,^ *| *$,,;
@@ -29,7 +29,7 @@ my @test_scripts = glob("bin/dev/*${pattern}*");
 unless (@test_scripts) {
     say sprintf ' : ✗ No test scripts found matching: %s', $pattern;
     say '';
-    return 1;
+    return TRUE;
 }
 
 say sprintf ' : Found %d test script(s)', scalar(@test_scripts);
@@ -58,14 +58,15 @@ say '';
 if ( $failed == 0 ) {
     say sprintf ' : ✓ All %d test(s) passed', scalar(@test_scripts);
 } else {
-    say sprintf ' : ✗ %d of %d test(s) failed', $failed, scalar(@test_scripts);
+    say sprintf ' : ✗ %d of %d test(s) failed', $failed,
+        scalar(@test_scripts);
 }
 say '';
 
 return $failed > 0 ? 1 : 0;
 
-#,,..,,,,,..,,..,,,..,.,,,,..,,,,,,,,,..,,..,,..,,...,...,.,.,..,,.,.,..,,.,.,
-#7OHS35MHJAPKIUZZ2HWV4AQS7FZLYJZ7B7PK5RUDP6BMZXVESBBIOHZGFSHEXXM2PHBYS6YNQAYOM
-#\\\|V226QU5AQMCOAYNSXX6NPWGASHGRKQV7B3UFP6RDB7GOILHMKFK \ / AMOS7 \ YOURUM ::
-#\[7]PYS6YD3VGFWJWTZZAF7H77HY45GISTL2XMZ2GROFB75DCHWYTUCA 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,,,..,,,..,,.,,..,,,,.,,,.,..,,..,,...,...,.,,,.,.,..,,...,.,.,
+#QFIVFPDF5WQFXBQMDCAOCSCUP3FYDY6EJMGJENTBSSYAZCIUR34CJ6NGF74NWET4ITJZRJRKHKQFW
+#\\\|XE6CZEW5DQBCGPZHFSFXZ75XRCNFMLPWKYLPGM626CUCDA4O55R \ / AMOS7 \ YOURUM ::
+#\[7]O7UOGAJ2DPFBWQBYRFHMA72KVGJB25VVMSSS7GY6WECH5HA4QSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

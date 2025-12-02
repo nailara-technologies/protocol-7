@@ -18,7 +18,7 @@ return {
 push( @{<mpv.reply_ids>},     $$call{'reply_id'} );
 push( @{<mpv.command.reply>}, { 'handler' => 'mpv.handler.pipe.command' } );
 
-if ( $cmd_str !~ s/^\!// ) {
+if ( $cmd_str !~ s|^\!|| ) {
     <[mpv.send_command]>->( split / +/, $cmd_str );
 } else {
     <[mpv.send_command]>->( split / +/, $cmd_str, 2 )
@@ -27,8 +27,8 @@ if ( $cmd_str !~ s/^\!// ) {
 
 return { 'mode' => 'deferred' };
 
-#,,,,,,..,,.,,,..,,,.,,..,,,,,.,.,.,,,.,.,...,..,,...,...,...,,,.,,..,,,,,,.,,
-#RVKR72KYQ2TD5GRPFVCFO66GIYCONT52OPW7X65FKP6FBFGNHNMZ62O26JNECOAXBPLEWH2NYRJR2
-#\\\|Z34PLUOSWFYPS73BBCNXJES43FZ4JTAXFJMRTH4NYOBKSHMFNSF \ / AMOS7 \ YOURUM ::
-#\[7]23ECVAI4ZIF3ULEKSVBKOSJR4JJAW47BGWROVHU67QYY3E3L5MAY 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,.,,,,.,,,.,...,.,.,,,.,.,,,,..,..,,...,..,,,.,,,..,...,,,.,...,
+#P4CUCULHIHEARQT2LMX4UVRE6MD5TBINRVP2SGKTVOVFFQTZ2SU7ZLLB5RVZ4MXAHYJW646XAJU4A
+#\\\|EGOHAETH32YFBK4P5GVRJ5H3K2YNWTXY4ZFL5AT2M36LHNVUX32 \ / AMOS7 \ YOURUM ::
+#\[7]2WMLIDWQFKFYLFY36P3P5MZGGJGU7WXL6SHUA62PD67SJFN3XGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

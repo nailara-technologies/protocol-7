@@ -11,7 +11,7 @@ $padding_bytes //= int( rand(13) ) + 7;    ##  <-- rnd padding  ##
 return warn 'expected scalar reference <{C1}>' ## SCALAR reference expected ##
     if ref $buffer_sref ne qw| SCALAR |;
 
-return 0 if not defined $buffer_sref->$*;      ##  buffer was undefined  ##
+return FALSE if not defined $buffer_sref->$*;    ##  buffer was undefined  ##
 
 my $r_cnt    ##  correct length for UTF-8 content  ##
     = utf8::is_utf8($$buffer_sref)
@@ -20,7 +20,7 @@ my $r_cnt    ##  correct length for UTF-8 content  ##
 
 $r_cnt += $padding_bytes;    ##  for masking length when erasing passwords  ##
 
-return 0 if $r_cnt == 0;     ##  return early \ already empty  ##
+return FALSE if $r_cnt == 0; ##  return early \ already empty  ##
 
 ##  overwrite with entropy to erase \ protect content  ##
 substr( $buffer_sref->$*, 0, $r_cnt, <[base.prng.characters]>->($r_cnt) );
@@ -29,8 +29,8 @@ $buffer_sref->$* = '';       ## truncate to zulum length ##
 
 return $r_cnt;               ##  return length of overwritten content  ##
 
-#,,,.,...,,,.,,,,,,,,,.,,,,.,,,.,,...,.,.,.,.,..,,...,.,.,,,,,,.,,...,...,..,,
-#PTKGZTFPS4N3U4VP762KSZ6YCCPT4IWU326C6PROAHYJPBK3CKZAH46TKPKBS6JXJMOLX7CSVCXV6
-#\\\|KB7PLVQL6B6AVNZ6S4DZ6BEIL76UFYGSXZZN7PCGTNXPADT56I4 \ / AMOS7 \ YOURUM ::
-#\[7]L7XKRINEXRHK75WU63SKLOHQG7LGDRIJ4X4K6VQJ7RF4EMHYOIDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,...,..,,,,.,,,,,...,,,,,.,,,,,.,..,,...,...,..,,,,.,.,,,.,,,...,
+#SXWJSFAEKEXLLIJDN3HS4Y6Q4M5YGVCMVFG26DNZILK2ULQEZPC2FM7VKHCK2EUAK75LSEVAV22L4
+#\\\|RQ5234FYAFQUPOLE7244BP27I7IWVTA7QJSK6EIVIJZ5ZTO2BFP \ / AMOS7 \ YOURUM ::
+#\[7]VVBCFGCCVIGGOEFMFQQXITLHOFW4SED7A2KEU7FGCR52F32XJQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

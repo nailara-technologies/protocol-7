@@ -99,7 +99,7 @@ if ( not defined $signature_footer_data
 ## no valid signature footer was found ##
 ##
 if ( not $signature_footer_data->{'was-present'} ) {
-    <[base.s_warn]>->( 'file has no signature footer (unsigned file)' );
+    <[base.s_warn]>->('file has no signature footer (unsigned file)');
     <[base.logs]>->( 2, ': validation failed: file is unsigned' );
     return ( FALSE, { 'footer-was-present' => FALSE } ) if wantarray;
     return FALSE;
@@ -154,12 +154,12 @@ if ( not $signature_footer_data->{'was-present'} ) {
             if ( $test_state == 6 ) {
 
                 # Add separator endline only
-                $test_content =~ s/(\n*)$/$1\n/;
+                $test_content =~ s|(\n*)$|$1\n|;
                 <[base.log]>->( 2, ': : adding separator endline' );
             } elsif ( $test_state == 7 ) {
 
                 # Add both complete line and separator endlines
-                $test_content =~ s/(\n*)$/$1\n\n/;
+                $test_content =~ s|(\n*)$|$1\n\n|;
                 <[base.log]>->(
                     2, ': : adding complete line and separator endlines'
                 );
@@ -267,11 +267,11 @@ if ( not $signature_footer_data->{'was-present'} ) {
   # We need to carefully quote the replacement patterns to avoid syntax errors
   # Use simple string replacement instead of regex for these complex strings
                 $template_copy
-                    =~ s/\\\\\\\\//;    # Remove first backslash sequence
+                    =~ s|\\\\\\\\||;    # Remove first backslash sequence
                 $template_copy
-                    =~ s/\\\\\\\\/$bmw_chksum\\\\\\\\/;  # Insert BMW checksum
-                $template_copy =~ s/\\\\\\\\\[7\]//; # Remove signature marker
-                $template_copy =~ s/\\\\\\\\\[7\]/$signature\\\\\\\[7\]/
+                    =~ s|\\\\\\\\|$bmw_chksum\\\\\\\\|;  # Insert BMW checksum
+                $template_copy =~ s|\\\\\\\\\[7\]||; # Remove signature marker
+                $template_copy =~ s|\\\\\\\\\[7\]|$signature\\\\\\\[7\]|
                     ;                                # Insert signature
 
                 # Attach the reconstructed footer
@@ -508,16 +508,16 @@ if ( $footer_bmw eq $signature_footer_data->{'bmw-chksum'} ) {
 
                # Remove endlines: state 0 = remove 4, state 1 = remove 3, etc.
                 my $remove_count = 4 - $try_state;
-                $test_payload =~ s/\n{$remove_count,}$/\n/s
+                $test_payload =~ s|\n{$remove_count,}$|\n|s
                     if $remove_count > 0;
             } elsif ( $try_state == 6 ) {
 
                 # Add 1 endline (separator)
-                $test_payload =~ s/(\n*)$/$1\n/s;
+                $test_payload =~ s|(\n*)$|$1\n|s;
             } elsif ( $try_state == 7 ) {
 
                 # Add 2 endlines (complete line + separator)
-                $test_payload =~ s/(\n*)$/$1\n\n/s;
+                $test_payload =~ s|(\n*)$|$1\n\n|s;
             }
 
             # Recalculate BMW with the test payload
@@ -766,8 +766,8 @@ sub _verify_signature_with_data {
     return TRUE;
 }
 
-#,,,.,.,.,..,,..,,,,.,,,.,..,,,,.,,,.,.,.,,..,..,,...,...,...,,,.,,.,,..,,.,.,
-#C76IHXPGGKPUWRFYXVWLHOUKEIXC2INUQFVDMFE36XAZ3GL5Z5KN3UKZ4A2J6VCNLQNLFVXBPN5KU
-#\\\|Y5VL4UIBH6KTWTVXJKJAK322VJ62TXTABCG4NWZG6WOLFAZURBO \ / AMOS7 \ YOURUM ::
-#\[7]IW3BK75BBMLEYTKL4VBJ5RTYKNCDKF5ZG3ZCWD3BX5WHJYJDCGAA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,.,,,.,,.,,,..,..,,,,.,,,.,,.,,..,,...,.,.,..,,,..,...,..,,.,.,
+#3DZIUNLHECUO6ZAB4J6TLL7F375OZTCBFH63RA2WNTDUII5AAJTIT4L5KYWSZTEMC4TNBRVYVPM64
+#\\\|REL7LVS74ZB3RAQQFABAUUOYICMO32EYAWPHTVNALIGOIKL4XAW \ / AMOS7 \ YOURUM ::
+#\[7]WP4U54OA3D7MVD5RP6FUHEPL273XHYTD5QVZYWQIP22OFDMK42DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,7 +13,7 @@ my $request = $session->{'http'}->{'request'};
 my $url = $request->{'url'};
 
 # URL decode
-$url =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;
+$url =~ s|%([0-9A-Fa-f]{2})|chr(hex($1))|eg;
 
 # Sanitize path (prevent directory traversal)
 my $path = $url;
@@ -24,15 +24,15 @@ $path =~ s/^\///;        # Remove leading slash
 
 # Extract query parameters
 my $params = {};
-if ( $path =~ s/\?(.*)$// ) {
+if ( $path =~ s|\?(.*)$|| ) {
     my $query_string = $1;
 
     foreach my $pair ( split( /&/, $query_string ) ) {
         my ( $key, $value ) = split( /=/, $pair, 2 );
 
         # URL decode parameters
-        $key   =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg;
-        $value =~ s/%([0-9A-Fa-f]{2})/chr(hex($1))/eg if defined $value;
+        $key   =~ s|%([0-9A-Fa-f]{2})|chr(hex($1))|eg;
+        $value =~ s|%([0-9A-Fa-f]{2})|chr(hex($1))|eg if defined $value;
 
         $params->{$key} = $value // '';
     }
@@ -64,8 +64,8 @@ if ( !-r $full_path ) {
 $session->{'http'}->{'params'} = $params;
 
 return ( 200, $full_path, $params );        # OK
-#,,,.,.,.,,,,,,,.,..,,.,.,,,,,,.,,,,,,,.,,,,,,...,...,...,.,.,...,..,,.,.,,..,
-#3RJH3L5D7JFDJLGSTQUXFI5UDJSB4KS7LT4TIP6WFVEGT7IERFIKVJ6YJAWEDIHREVXCEQJYZWYV2
-#\\\|YLZEEMHYG54LQ7754OGQETL6FMGP5V6YBKUBZXTT36HAWOR4C62 \ / AMOS7 \ YOURUM ::
-#\[7]NLBOGJOYBLSIPD3HWQ62BXYP4XXL7XQMWSCZOD3YJIGKORGS62AQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,.,,,,,,,,,,,,.,.,,,,..,.,,,,,,,...,...,...,,..,,,,,,,.,,.,,,,.,
+#FXMS6D3U66SXRGTNE7B7QRHYNC3UZYZWGKWV2JLNLQVSMGO6LQBBBP7WMGO2CPZMCLKV4ACTYMQ4Y
+#\\\|7HYNN6NLCVVWFFSOFKQ3BD4Y65EK7E52EM3RCCIB3VRYJDOSM4N \ / AMOS7 \ YOURUM ::
+#\[7]MBIASN3CRKPY7LKITPYAL45U4Z7SWOCNBCMIWS2643YOYN6XEOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

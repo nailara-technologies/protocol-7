@@ -9,15 +9,15 @@
 #   skin info <vhost> <skin-name>
 
 my $subcmd = shift // '';
-my $vhost = shift;
+my $vhost  = shift;
 
-return <[base.log]>->(0, "skin: missing vhost argument") unless $vhost;
+return <[base.log]>->( 0, "skin: missing vhost argument" ) unless $vhost;
 
-if ($subcmd eq 'resolve') {
+if ( $subcmd eq 'resolve' ) {
     ## Parse preferences from arguments ##
     my %prefs;
-    while (my $arg = shift) {
-        if ($arg =~ /^(\w+)=(.*)$/) {
+    while ( my $arg = shift ) {
+        if ( $arg =~ /^(\w+)=(.*)$/ ) {
             $prefs{$1} = $2;
         }
     }
@@ -25,78 +25,79 @@ if ($subcmd eq 'resolve') {
     my $user_agent = $ENV{'HTTP_USER_AGENT'} // '';
 
     ## Resolve skin ##
-    my $result = <[web.skin_resolver]>->($vhost, \%prefs, $user_agent);
+    my $result = <[web.skin_resolver]>->( $vhost, \%prefs, $user_agent );
 
     say "Skin: " . $result->{'skin_name'};
     say "Path: " . $result->{'skin_root'};
     say "Device: " . $result->{'device_type'};
-    say "Cascade: " . join(' -> ', @{$result->{'cascade'}});
+    say "Cascade: " . join( ' -> ', @{ $result->{'cascade'} } );
 
-    return 0;
+    return FALSE;
 
-} elsif ($subcmd eq 'list') {
+} elsif ( $subcmd eq 'list' ) {
     ## List available skins ##
-    my $site_root = <httpd.cfg.site_dir> // '/var/httpd';
+    my $site_root  = <httpd.cfg.site_dir> // '/var/httpd';
     my $skins_root = "$site_root/_global_templates/skins";
 
-    unless (-d $skins_root) {
-        return <[base.log]>->(1, "skins directory not found: $skins_root");
+    unless ( -d $skins_root ) {
+        return <[base.log]>->( 1, "skins directory not found: $skins_root" );
     }
 
-    opendir(my $dh, $skins_root) or do {
-        return <[base.log]>->(1, "cannot read skins directory: $!");
+    opendir( my $dh, $skins_root ) or do {
+        return <[base.log]>->( 1, "cannot read skins directory: $!" );
     };
 
     my @skins = grep { -d "$skins_root/$_" and $_ !~ /^\./ } readdir($dh);
     closedir($dh);
 
     say "Available skins for $vhost:";
-    foreach my $skin (sort @skins) {
+    foreach my $skin ( sort @skins ) {
         say "  - $skin";
     }
 
-    return 0;
+    return FALSE;
 
-} elsif ($subcmd eq 'info') {
+} elsif ( $subcmd eq 'info' ) {
     my $skin_name = shift;
-    return <[base.log]>->(0, "skin info: missing skin name") unless $skin_name;
+    return <[base.log]>->( 0, "skin info: missing skin name" )
+        unless $skin_name;
 
     my $site_root = <httpd.cfg.site_dir> // '/var/httpd';
     my $skin_path = "$site_root/_global_templates/skins/$skin_name";
 
-    unless (-d $skin_path) {
-        return <[base.log]>->(1, "skin not found: $skin_name");
+    unless ( -d $skin_path ) {
+        return <[base.log]>->( 1, "skin not found: $skin_name" );
     }
 
     say "Skin: $skin_name";
     say "Path: $skin_path";
 
     ## List skin contents ##
-    opendir(my $dh, $skin_path) or do {
-        return <[base.log]>->(1, "cannot read skin directory: $!");
+    opendir( my $dh, $skin_path ) or do {
+        return <[base.log]>->( 1, "cannot read skin directory: $!" );
     };
 
-    my @files = grep { $_ !~ /^\./ } readdir($dh);
+    my @files = grep { $_ !~ m|^\.| } readdir($dh);
     closedir($dh);
 
     say "Contents:";
-    foreach my $file (sort @files) {
-        my $type = (-d "$skin_path/$file") ? '[DIR]' : '[FILE]';
+    foreach my $file ( sort @files ) {
+        my $type = ( -d "$skin_path/$file" ) ? '[DIR]' : '[FILE]';
         say "  $type $file";
     }
 
-    return 0;
+    return FALSE;
 
 } else {
     say "Usage:";
     say "  skin resolve <vhost> [skin=name] [dark_mode=true/false]";
     say "  skin list <vhost>";
     say "  skin info <vhost> <skin-name>";
-    return 1;
+    return TRUE;
 }
 
-#,,.,,,.,,.,,,.,,,,..,,,,,,,,,.,.,..,,,,,,,,,,..,,...,...,,..,...,,,,,.,,,,.,,
-#DXHKVVPLE7W5IH6B4JQ5YUQAGLJPHM34E3IMRZILTRC24PFZNWWXENQTEMTCARVNV5CEWHYGNR3SW
-#\\\|ACNCSPP3RYTOAQQPEKTOYVFBIR5CUMRTYSZBBRM4FOK2547MWEZ \ / AMOS7 \ YOURUM ::
-#\[7]XQCLG7J3BZMBEG4WEJYN7774MWVRMZVN6KQMWTHI7A24WPXOGWCY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,..,,..,.,,,,,.,,,.,..,,...,,,.,..,,...,...,..,,.,.,.,,,,..,,,.,
+#2TGMDE6ARZMOJPO64U72N5CAX3Y5XSTEBELORKUALVMWDZODXLMEA6FZ4EPDIGTJLDP7L2UXCZQD4
+#\\\|5BMOCNNVCKGUBSKPR7NA5TZ6J3GPCVBLPIUI2BXAPXXPUFTSOR3 \ / AMOS7 \ YOURUM ::
+#\[7]QNLZ4R66TMCSREBPO7KNFZEQJ4EIJXL2M5D4OKDLU3LZH2BOF6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

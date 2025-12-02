@@ -7,7 +7,7 @@
 
 if ( not defined $data{'session'}{$s_id} ) {
     return <[base.s_warn]>->( "session '%d' does not exist <{C1}>", $s_id );
-    return 0;
+    return FALSE;
 }
 
 my $session  = $data{'session'}->{$s_id};
@@ -21,7 +21,7 @@ my $state    = $data{'protocol'}{$protocol}{'state'}{$state_id};
 
 if ( not defined $state ) {
     <[base.s_warn]>->( "protocol state '%d' not defined <{C1}>", $state_id );
-    return 0;
+    return FALSE;
 }
 
 my $mode = $data{'handle'}{ $session->{'handle'} }{'mode'};
@@ -33,7 +33,7 @@ if ( not defined $state ) {
         "no %s handler defined [ protocol state %d ] <{C1}>",
         $mode, $state_id
     );
-    return 0;
+    return FALSE;
 }
 
 if ( $session->{'mode'} ne qw| server | ) {
@@ -118,7 +118,7 @@ if ( $session->{'mode'} ne qw| server | ) {
                     "[%d] session post-auth inititialization not successful",
                     $s_id
                 );
-                return 0;
+                return FALSE;
             }
         }
     }
@@ -155,7 +155,7 @@ if ( $session->{'mode'} ne qw| server | ) {
                 <[base.logs]>->(
                     0, "[%d] protocol state init was not successful", $s_id
                 );
-                return 0;
+                return FALSE;
             }
         }
     }
@@ -163,8 +163,8 @@ if ( $session->{'mode'} ne qw| server | ) {
 
 return TRUE;    ## <-- success ###
 
-#,,,.,,.,,,..,.,.,...,,,,,,..,.,,,,,.,..,,.,.,..,,...,..,,,.,,,.,,,..,..,,.,.,
-#PFVRRHW2JERQYWCPYR6FF2CKCRLPJYQRKWLCGJCD4KQUFCU4HMSSR5QY7XU52XSKH237SFW3MRRWE
-#\\\|LSWM2PM2YLZN3O6YEYIDX3E6OBEDKC4BLV5W32SXK7ULIW5LG7T \ / AMOS7 \ YOURUM ::
-#\[7]7SDLGI4M42PZFNK6EG3UKEJLZCSANGAGU4UMG4J3NYSVT774LOBY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,...,.,,,..,,...,,,,,,,,,.,.,,.,,..,,...,...,..,,...,.,,,,.,,,,.,
+#WRVK7JDSMXPPSZWJCEISC5TC3H7XUJJWCZIONI32PYW2RCVR5NZ5F7XYTIF2B2S66RSAIUK64GW56
+#\\\|K3RREDAMAK2XEM7IU6RDOWVOSGZURGMVHMSKA2SZK7DFK4THO7O \ / AMOS7 \ YOURUM ::
+#\[7]A5FVPG3ED6U2V6CQDRZKD6MWGNJWZFDQPOG43K26ITS44WPUOKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

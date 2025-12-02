@@ -2,7 +2,7 @@
 
 # name = coding.learning.track_success
 # descr = Track task outcomes and update routing patterns for continuous improvement
-# purpose = Learning loop: Store success/failure data, improve routing decisions
+# purpose = Learning loop: Store success|failure data, improve routing decisions
 
 use strict;
 use warnings;
@@ -23,7 +23,7 @@ my $record_outcome = sub {
     # Record outcome in learning data
     my $outcome = {
         task_id     => $task_id,
-        task_type   => $task_type // 'unknown',
+        task_type   => $task_type || 'unknown',
         service     => $service_used,
         success     => $success ? 1 : 0,
         tokens_used => $tokens_used // 0,
@@ -221,8 +221,8 @@ if ( $cmd eq 'record' ) {
     };
 }
 
-#,,..,,.,,,.,,,.,,.,.,.,,,,..,.,.,,,.,,..,..,,..,,...,.,.,.,,,,..,,..,,,,,.,.,
-#PDZKBZIUI722TE5Q4ZEGM2BV6X2C3GEHB5AO6PAJS74T66VK2TR2SJ5KIAEQXM7H4STTWYI4GXSOA
-#\\\|XPNREZFLA7IWGIJQNV6TCUABQNINBCVBOZN44KZ7PGGAEN47653 \ / AMOS7 \ YOURUM ::
-#\[7]W6KPNJ2TNCWJPI7F6SUW5MYMUIORRYJM5P7E57UJFNVEA4L2YSBA 7  DATA SIGNATURE ::
+#,,,.,...,..,,..,,,.,,.,,,,..,,,,,,..,..,,,,,,..,,...,.,.,..,,.,.,,..,,.,,.,.,
+#ACYMSXGQIYTYQHRTNEDP2EUOXDQY2MIUK6POZOPDNRSWFGJ5QVGU35WZZYMG6XSHQYQHXPDRZ4XCA
+#\\\|YGF74XKLGCBKLJVXO7KW5RI4VM3IIRFGX7SNIZX4SZOREHZYME4 \ / AMOS7 \ YOURUM ::
+#\[7]HJ7KSSYFAS7M4ZIRQJPGIGWCLJHCOT3H5SYSKOUPJCE7KOZJPGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

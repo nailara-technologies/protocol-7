@@ -24,12 +24,12 @@ sub read_hosts {
 
     my $stderr_fhcopy = *STDERR;
     my $stderr_buffer = '';
-    tie *STDERR, IO::Scalar->new(\$stderr_buffer);
+    tie *STDERR, IO::Scalar->new( \$stderr_buffer );
     eval { $etc_hosts->read_hosts($hosts_file) };
     untie *STDERR;
     *STDERR = $stderr_fhcopy;
     if ($EVAL_ERROR) {
-        ( my $reason_str = $EVAL_ERROR ) =~ s/\n/ /g;
+        ( my $reason_str = $EVAL_ERROR ) =~ s|\n| |g;
         $reason_str =~ s|( Bailing out)?[ \.]+$||;
         <[base.log]>->( 0, "<<!>> $hosts_file: $reason_str" );
         $etc_hosts = undef;
@@ -87,8 +87,8 @@ if ( !-d $download_path ) {
 
 0;
 
-#,,,,,..,,...,,.,,.,.,...,,,,,.,,,..,,,,,,.,.,..,,...,...,...,...,,,.,,,.,..,,
-#2CDKJSJQG6EFKKWOH7F7LL6H2KBOCOFVTHAVV5FIWBZF7DKEN5URA56MCKBW5WJWVIKATGNITNUKE
-#\\\|LLWJS4QYRDM7QDB5YKZV5LZMEZMPFKU54XQ6PDSS5RJI4Y6LNI5 \ / AMOS7 \ YOURUM ::
-#\[7]E76KBWAOTGUACMUGCS7RA5ZD2ZSKIQODPDKBT3QAIVZCQCFN46BQ 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,.,,,,,,..,,,.,.,.,.,.,.,.,,,,,..,,...,...,..,,.,.,.,.,.,.,,.,,
+#3ZON7L2R6LHD65VVBSNY2X4MTB2OP7JIIDNKKPIYKCPBW5WLO56JX3UTZAKJC5U6O3NXL7QTE6FT2
+#\\\|ZUVKDW44IWEMVP4WIGQ7SMCQJF2WOZZ3TVGPCHNVU5O726AJDCO \ / AMOS7 \ YOURUM ::
+#\[7]ZL56LPZHPJEJGY2LLEMEMJ3PMNTJD3MYIIXVNFD2JVB2YLNDW4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

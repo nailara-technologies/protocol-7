@@ -3,7 +3,7 @@ use v5.24;
 use strict;
 use warnings;
 use Time::HiRes qw(time);
-use Carp qw(carp);
+use Carp        qw(carp);
 
 =head1 NAME
 
@@ -18,10 +18,10 @@ HTTPSD::TemplateCache - Cache rendered templates for performance
 =cut
 
 # Global cache state
-my %CACHE = ();              # path => { content, mtime, size }
-my $CACHE_TTL = 1800;        # 30 minutes default
-my $MAX_CACHE_SIZE = 5 * 1024 * 1024;  # 5 MB
-my $CURRENT_SIZE = 0;        # Track total cache size
+my %CACHE          = ();                 # path => { content, mtime, size }
+my $CACHE_TTL      = 1800;               # 30 minutes default
+my $MAX_CACHE_SIZE = 5 * 1024 * 1024;    # 5 MB
+my $CURRENT_SIZE   = 0;                  # Track total cache size
 
 =head2 cache_get($key)
 
@@ -37,23 +37,24 @@ Returns:
 
 sub cache_get {
     my ($key) = @_;
-    
+
     return undef unless exists $CACHE{$key};
-    
+
     my $entry = $CACHE{$key};
-    
+
     # Check TTL
     my $now = time();
-    if ($now - $entry->{created} > $entry->{ttl}) {
+    if ( $now - $entry->{created} > $entry->{ttl} ) {
+
         # Entry expired, remove it
         _remove_cache_entry($key);
         return undef;
     }
-    
+
     # Update access time for statistics
     $entry->{accessed} = $now;
     $entry->{hits}++;
-    
+
     return $entry->{content};
 }
 
@@ -72,39 +73,41 @@ Returns:
 =cut
 
 sub cache_set {
-    my ($key, $content, $ttl) = @_;
-    
+    my ( $key, $content, $ttl ) = @_;
+
     $ttl //= $CACHE_TTL;
-    
+
     # Check size
     my $content_size = length($content);
-    if ($content_size > $MAX_CACHE_SIZE) {
-        carp("Cache entry too large: $key ($content_size bytes > $MAX_CACHE_SIZE)");
-        return 0;
+    if ( $content_size > $MAX_CACHE_SIZE ) {
+        carp(
+            "Cache entry too large: $key ($content_size bytes > $MAX_CACHE_SIZE)"
+        );
+        return FALSE;
     }
-    
+
     # Remove existing entry if present (to update size correctly)
-    if (exists $CACHE{$key}) {
+    if ( exists $CACHE{$key} ) {
         _remove_cache_entry($key);
     }
-    
+
     # Add to cache
     $CACHE{$key} = {
-        content => $content,
-        created => time(),
+        content  => $content,
+        created  => time(),
         accessed => time(),
-        mtime => time(),
-        ttl => $ttl,
-        size => $content_size,
-        hits => 0,
+        mtime    => time(),
+        ttl      => $ttl,
+        size     => $content_size,
+        hits     => 0,
     };
-    
+
     $CURRENT_SIZE += $content_size;
-    
+
     # Evict old entries if cache too large
     _evict_if_necessary();
-    
-    return 1;
+
+    return TRUE;
 }
 
 =head2 cache_invalidate($key)
@@ -121,11 +124,11 @@ Returns:
 
 sub cache_invalidate {
     my ($key) = @_;
-    
-    return 0 unless exists $CACHE{$key};
-    
+
+    return FALSE unless exists $CACHE{$key};
+
     _remove_cache_entry($key);
-    return 1;
+    return TRUE;
 }
 
 =head2 cache_clear()
@@ -138,8 +141,8 @@ Returns:
 =cut
 
 sub cache_clear {
-    my $count = scalar(keys %CACHE);
-    %CACHE = ();
+    my $count = scalar( keys %CACHE );
+    %CACHE        = ();
     $CURRENT_SIZE = 0;
     return $count;
 }
@@ -154,24 +157,26 @@ Returns:
 =cut
 
 sub cache_stats {
-    my $total_hits = 0;
-    my $total_entries = scalar(keys %CACHE);
-    my $oldest_entry = time();
-    my $newest_entry = 0;
-    
-    foreach my $key (keys %CACHE) {
+    my $total_hits    = 0;
+    my $total_entries = scalar( keys %CACHE );
+    my $oldest_entry  = time();
+    my $newest_entry  = 0;
+
+    foreach my $key ( keys %CACHE ) {
         my $entry = $CACHE{$key};
         $total_hits += $entry->{hits} // 0;
-        $oldest_entry = $entry->{created} if $entry->{created} < $oldest_entry;
-        $newest_entry = $entry->{accessed} if $entry->{accessed} > $newest_entry;
+        $oldest_entry = $entry->{created}
+            if $entry->{created} < $oldest_entry;
+        $newest_entry = $entry->{accessed}
+            if $entry->{accessed} > $newest_entry;
     }
-    
+
     return {
-        entries => $total_entries,
-        size_bytes => $CURRENT_SIZE,
-        size_mb => sprintf('%.2f', $CURRENT_SIZE / 1024 / 1024),
-        max_size_mb => sprintf('%.2f', $MAX_CACHE_SIZE / 1024 / 1024),
-        total_hits => $total_hits,
+        entries          => $total_entries,
+        size_bytes       => $CURRENT_SIZE,
+        size_mb          => sprintf( '%.2f', $CURRENT_SIZE / 1024 / 1024 ),
+        max_size_mb      => sprintf( '%.2f', $MAX_CACHE_SIZE / 1024 / 1024 ),
+        total_hits       => $total_hits,
         oldest_entry_age => time() - $oldest_entry,
         newest_entry_age => time() - $newest_entry,
     };
@@ -188,19 +193,19 @@ Returns:
 
 sub cache_cleanup {
     my @expired_keys = ();
-    my $now = time();
-    
-    foreach my $key (keys %CACHE) {
+    my $now          = time();
+
+    foreach my $key ( keys %CACHE ) {
         my $entry = $CACHE{$key};
-        if ($now - $entry->{created} > $entry->{ttl}) {
+        if ( $now - $entry->{created} > $entry->{ttl} ) {
             push @expired_keys, $key;
         }
     }
-    
+
     foreach my $key (@expired_keys) {
         _remove_cache_entry($key);
     }
-    
+
     return scalar(@expired_keys);
 }
 
@@ -235,8 +240,8 @@ sub set_max_size {
 # Private: Remove cache entry and update size
 sub _remove_cache_entry {
     my ($key) = @_;
-    
-    if (exists $CACHE{$key}) {
+
+    if ( exists $CACHE{$key} ) {
         $CURRENT_SIZE -= $CACHE{$key}{size};
         delete $CACHE{$key};
     }
@@ -244,16 +249,16 @@ sub _remove_cache_entry {
 
 # Private: Evict entries if cache exceeds max size
 sub _evict_if_necessary {
-    if ($CURRENT_SIZE > $MAX_CACHE_SIZE) {
+    if ( $CURRENT_SIZE > $MAX_CACHE_SIZE ) {
+
         # Use LRU (Least Recently Used) eviction
         # Sort by access time, remove oldest accessed entries
-        
-        my @entries = sort {
-            $CACHE{$a}{accessed} <=> $CACHE{$b}{accessed}
-        } keys %CACHE;
-        
+
+        my @entries = sort { $CACHE{$a}{accessed} <=> $CACHE{$b}{accessed} }
+            keys %CACHE;
+
         # Remove oldest entries until under size limit
-        while ($CURRENT_SIZE > $MAX_CACHE_SIZE && @entries) {
+        while ( $CURRENT_SIZE > $MAX_CACHE_SIZE && @entries ) {
             my $key = shift @entries;
             _remove_cache_entry($key);
         }

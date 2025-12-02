@@ -9,7 +9,7 @@ die "tile-groups '$tile_group_name' does not exist"
     if not exists <tile-groups.setup.tile-groups>->{$tile_group_name};
 
 <tile-groups.overlays.current> //= [];
-$tile_group_name =~ s/\+.*$//;
+$tile_group_name =~ s|\+.*$||;
 my $lay_plain = $tile_group_name;
 $tile_group_name
     = join( '+', $tile_group_name, @{<tile-groups.overlays.current>} );
@@ -32,7 +32,7 @@ if ( $tile_group_name eq <tile-groups.current_tile_group> ) {
     shift @{<tile-groups.transition_queue>};
     <tile-groups.transition_in_progress> = 0
         if !@{<tile-groups.transition_queue>};
-    return 0;
+    return FALSE;
 }
 
 <tile-groups.previous_tile_groups> = <tile-groups.current_tile_group>;
@@ -46,10 +46,10 @@ if ( $tile_group_name eq <tile-groups.current_tile_group> ) {
 <[tile-groups.process-tile-group]>->($tile_group_name);
 
 <[base.log]>->( 1, "switching to tile group '$tile_group_name'.," );
-return 1;
+return TRUE;
 
-#,,..,,,,,.,.,,,.,.,,,.,,,.,.,,,.,...,,..,,..,..,,...,...,...,.,.,...,,..,,,.,
-#UVUIOI556Q2LGXNO6LB4PCMBF5AG6IF3UD3FNKVKWNYPAC2LU2JKNZMYAEIIQCWATRUG5OSMGCV7G
-#\\\|4HFOV5WW6YFUNJ3LJQP66YDSWMI6IVRXSTNT5MHNXVLG4ZK5WYI \ / AMOS7 \ YOURUM ::
-#\[7]6P26EWTSPJ3RBR4RRARNCQ6MFT7WNI2RZ2BBX2HSGPNLSU3H6AAQ 7  DATA SIGNATURE ::
+#,,..,..,,.,.,...,.,,,...,,,,,...,.,.,,.,,.,,,..,,...,...,,..,...,,.,,...,,.,,
+#UVVXM2OUS7BKZB6JFW6VKNPVT7KL3C3FRBQA2XQLC4KORK7RTAKZNLVQQG6MQWG5KB5UENTFS5GHM
+#\\\|BS6M2PUGYZDSLBKLIB23VOAVPAV7TXWQS2ERM4NXO67D52K3RWM \ / AMOS7 \ YOURUM ::
+#\[7]DPZHQVJRU5M3LMFRLQCWR3BTOF5U2GMI3HQ26DCCCQQBFX27DECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

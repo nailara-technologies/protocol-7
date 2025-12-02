@@ -142,7 +142,7 @@ foreach my $d_id (
                 if ( not defined $id ) {
                     my $reset_state = $new_state ? 0 : 1;
                     $widget->set_active($reset_state);
-                    return 1;
+                    return TRUE;
                 } elsif ( $new_state ne
                     <power-x11.devices>->{$id}->{'state'}->{$sn} ) {
                     <[base.protocol-7.command.send.local]>->(
@@ -152,7 +152,7 @@ foreach my $d_id (
                     );
                     <power-x11.devices>->{$id}->{'state'}->{$sn} = $new_state;
                 }
-                return 0;
+                return FALSE;
             }
         );
     }
@@ -171,8 +171,8 @@ $window->move( $pos_x, $pos_y );
 
 Gtk3->main;
 
-#,,,.,.,,,...,,.,,,..,,,.,,,,,...,,..,,,,,..,,..,,...,...,,,,,,,,,..,,...,,.,,
-#FSWDHYJDRMSV3UYIWQYX4SDBTT456FOWBIS27KOVPD65TDLMVA4NYTOWO3JUPZ7KPGKROW2LIQQTS
-#\\\|CPUWMQEXVTVJ422LA3IAD463D7E3LA45XFVBU7BDI72Q4H7EOHI \ / AMOS7 \ YOURUM ::
-#\[7]JP6BE74ZOGPQYLFMNGVFES2LXUOLPMTCKFUD5I6YLFS7S2GJU4AY 7  DATA SIGNATURE ::
+#,,..,..,,,,,,...,,,.,,,.,,,.,...,,,,,..,,.,,,..,,...,...,,.,,.,,,.,.,,,,,,,.,
+#QOZKJE54YZJTIUTS4QOYRXK54V52WIOXZGVWMXEI2MFECKXD67OJO4O5UWWHPMLIN37P6ILODSCHQ
+#\\\|IZVHOTRGRV2HFDQ6QAE5MMRF3Q76RQI3UPMPHYSXDCNXDYG3YKX \ / AMOS7 \ YOURUM ::
+#\[7]IMPXUMMFYDSJBVCFJ4DI6GAFKGR6Q5LDYCTCKORRJZEMKGBLFQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

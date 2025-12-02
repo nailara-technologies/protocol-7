@@ -29,7 +29,7 @@ if ( defined $amos_ref ) {
 
     if ( $amos_ref->{'bytes-to-read'} > 0 ) {    ##  more imput data  ##
 
-        return 1 if not length( $input->$* );    ##  <-- not expected  ##
+        return TRUE if not length( $input->$* );    ##  <-- not expected  ##
 
         my $buffer_len = length( $input->$* );
 
@@ -51,7 +51,7 @@ if ( defined $amos_ref ) {
 
         ## needs idle watcher mode ##
 
-        return 1 if $amos_ref->{'bytes-to-read'} > 0;    ## more expected ##
+        return TRUE if $amos_ref->{'bytes-to-read'} > 0;   ## more expected ##
     }
 
 } else {    ##  line-mode  ##
@@ -90,7 +90,7 @@ my $peer_fh = $session->{'handle'};
 $session->{'amos-chksum'}
     //= { 'modes' => $AMOS7::CHKSUM::algorithm_set_up::elf_truth_modes };
 
-return 1
+return TRUE
     if $input->$* =~ s|^\s*\r?\n+||s
     or $input->$* !~ s|^([^\n]+)\r?\n+||s;
 
@@ -126,7 +126,7 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
     my $cmd_handler = "protocol.amos-chksum.ext-cmd.$command";
     if ( not defined $code{$cmd_handler} ) {
         $output->$* .= "no such command\n";
-        return 0;
+        return FALSE;
     } else {
         my $return_href = eval { $code{$cmd_handler}->( $id, $params ) };
         if ( $EVAL_ERROR or ref( $return_href // '' ) ne 'HASH' ) {
@@ -137,7 +137,7 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
                 warn '[amos-ext-cmd:$command] expected hash reference';
             }
             $output->$* .= "[ error in command handler ]\n";
-            return 0;
+            return FALSE;
         }
 
         my ( $mode, $return_data )
@@ -167,7 +167,7 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
     $output->$* .= sprintf( "protocol hint : %s\n",
         'content to checksum requires 2 space indentation' );
 
-    return 0;
+    return FALSE;
 }
 
 ##############################################################################
@@ -178,10 +178,10 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
 ##
 ## [ bytes bits : data width selection [ i.e. 7 bit multiples ] ?
 
-return 0;
+return FALSE;
 
-#,,..,...,,,,,.,,,.,,,..,,...,,.,,..,,.,,,...,..,,...,...,..,,,,.,,,,,,,,,,..,
-#PVPAX6YPJJLJPF52L3GGRDH3OWJWAPUIYXGO2PDBD6PJKAWU242DIOZLN6KZKW2YTDCUBDRYZWZZS
-#\\\|F4KNASNGQ7YGP6OVVJLJW4WI5H4VWM3J6GXOYBM3MJQNLEJDY37 \ / AMOS7 \ YOURUM ::
-#\[7]ZASU7MAOLZ52OEHNOEGNP25PUZN5EH4653SVKEG263JYU6SG3KCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,...,,,.,.,,,,,.,,.,,,,.,,.,,...,,,,,..,,...,...,,,.,,..,,,.,,..,,..,
+#IMZGX66SFWHSP4QFIRZV4LZLLGHGQU27HPTJCMUG6KX4BK5IITWPDEOWGXDO6A3ADYEQUVUGCSSXO
+#\\\|UR2QWRQTQHZGIT7TNAW2RPYUCEJWWCLUX4J2RXWA444DKHVGNDN \ / AMOS7 \ YOURUM ::
+#\[7]5TGVZGCWLQRKWBWN3FC5URZDRYLFRJVZVXJ5LUGP6XQ5YU2MHEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

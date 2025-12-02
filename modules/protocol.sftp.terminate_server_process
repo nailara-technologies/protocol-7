@@ -8,7 +8,7 @@ my $session_id  = $params->{'session_id'};
 my $srv_proc_id = $params->{'process-id'};
 my $process_fhs = $params->{'process-fhs'};
 
-return 0 if not <[base.exists.sub-process]>->($srv_proc_id);    ## gone. ##
+return FALSE if not <[base.exists.sub-process]>->($srv_proc_id);   ## gone. ##
 
 <[base.logs]>->(
     '[%d] : terminating SFTP-srv process [PID:%d]',
@@ -38,8 +38,8 @@ if ( $status = kill( 15, $srv_proc_id ) ) {
 
 return $status;
 
-#,,.,,.,.,,,.,..,,..,,...,..,,,.,,.,.,,,,,,,,,..,,...,..,,,,.,.,.,...,.,,,,..,
-#3GRLPHHBVWTIH436KFVDOKI35F6FDYUMMFY4WMKJGH4CTBSW3VFUNIKHPXBF3KZMLL5DZFHEAW2Z2
-#\\\|CW6C6UCNZXYGKNJFBUOU5TRFVKJ7ER3Y2MSFLSX7VRAAYFSZBXW \ / AMOS7 \ YOURUM ::
-#\[7]D67JQRXRXA4NUL5YUVL5EMGXEF3GL56QMOKDEFFWPHECJA3SWCAY 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,..,,..,,,.,,.,,,...,.,.,...,..,,..,,...,...,...,,.,,,..,,..,,,.,
+#PUZFV77FD6TYTO3QD5LTMCTUDL3LOWXMLKN7NMULHLAQNBBEMBLHX3ZBHLWMW7NKNBJGKBWSW6XVY
+#\\\|XW5OWXA6S2VQSQQ36BAS6VMSAVO6QTBPRGZFT3P3NFYNMIAQZRW \ / AMOS7 \ YOURUM ::
+#\[7]PU54J6BEKN6QHOT77EPUSQC7VU2VGGHMJP2LQDVWKL7K4EWCP2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

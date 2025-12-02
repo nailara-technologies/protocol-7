@@ -8,14 +8,14 @@ my $status  = shift;
 my $details = shift // {};
 
 # Skip if diagnostic tracking is disabled
-return 0 if !$data{'httpd'}{'diagnostic'}{'enabled'};
+return FALSE if !$data{'httpd'}{'diagnostic'}{'enabled'};
 
 # Skip if operation doesn't exist
 if ( !exists $data{'httpd'}{'diagnostic'}{'operations'}{$op_id} ) {
     <[base.log]>->(
         2, "HTTP diagnostic: Attempt to end non-existent operation ID: $op_id"
     );
-    return 0;
+    return FALSE;
 }
 
 # Get operation data
@@ -70,10 +70,10 @@ if ( scalar @op_ids > 1000 ) {
     }
 }
 
-return 1;
+return TRUE;
 
-#,,,,,,,.,,..,,,.,,,,,..,,.,,,..,,...,,,.,,,,,..,,...,...,,,.,,,.,,..,.,,,,,.,
-#BGGJ75C4UJ4RI4VJPTPEZO27DKMXJPTSJJPU4SGMU643J6NGLPW3GDGY2BNKCEKL3K5XA45LHZ6O4
-#\\\|NEOIHID2WU4SAVEW6K6VMSMWWDFI5ULZUQIXA2X2QV5O4CTIC4U \ / AMOS7 \ YOURUM ::
-#\[7]W2WYHVXLEQ7ECVTB5MI36W43EJMYZ7ZE6NSW7ESB5G5JNTBA2AAI 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,..,.,,,...,,,.,,..,,.,,.,.,.,.,..,,...,...,...,..,,.,.,,,.,..,,
+#B323VHBMKY6LYYD5ABKEMF6MUPP5MHJGINJZYDO4FWUUKHUXVSMMBFWSEG4G3OYEKFECXYL346AMO
+#\\\|YISMGNPE45XVKCHTUHFXM227VGYITCW2ZABRHANH4BTL7Q3ZLRG \ / AMOS7 \ YOURUM ::
+#\[7]7MBHGP735YI527HJHDJL6VUUE7KL7AKCZB645OK2CO6FQNA3BSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

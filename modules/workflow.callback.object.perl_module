@@ -7,10 +7,10 @@ my $object_id = shift;
 
 ## Get the dependency object ##
 my $object = <dependency.object>->{$object_id};
-return 0 unless defined $object;
+return FALSE unless defined $object;
 
 my $module_name = $object->{module_name};
-return 0 unless defined $module_name;
+return FALSE unless defined $module_name;
 
 ## Check if perl module can be loaded ##
 my $is_available = eval "require $module_name; 1";
@@ -19,8 +19,8 @@ return $is_available ? 1 : 0;
 
 0;
 
-#,,,.,,,.,,,.,,..,...,..,,..,,.,.,.,.,.,.,.,.,..,,...,...,..,,..,,,.,,.,,,...,
-#VJG55BCJUPRWU4UQRQOZ6SGW3VB6N7BQDV2LLQ6NHSPAEFFMD46YXTZVH34L2BNKGLSVLUQRA3MYI
-#\\\|BKIHAMPK2LSDRYHEKRKIMSSE7WRN6ZUV3OQAYYC2BVJFFW22AYA \ / AMOS7 \ YOURUM ::
-#\[7]36MEAEMTUNEUGRVLCAVHDOVNMCR4VHUIA7NMQOK7ZRRE7XQVXIAY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,.,,,,..,...,..,,,,.,,,,,.,.,,.,,..,,...,...,...,..,,.,,,.,,,,,,,
+#JLMNMSHW5ASVEXP7FEVPY36TWJQEIBUP6WCRW6ZWCQJX7LOUSGWXEQTYJX7P5EFZ3FTXKGDX5KP4Y
+#\\\|D5EDV6SDPGF2RMISFDUCZPXD4GIJKVYKMGJMK6JYLR5MIET6EDS \ / AMOS7 \ YOURUM ::
+#\[7]UQYPVJA6NPWDPKVYCGIZYV3D2PNNMUPZCSATSG4OP6CWBDL6G4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

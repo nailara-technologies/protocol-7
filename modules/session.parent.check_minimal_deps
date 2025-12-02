@@ -16,19 +16,19 @@ my @minimal_modules = qw(
 );
 
 ## Check if debian module has scanned
-return 0 unless $data{'debian'}{'cpan_modules'}{'registry'};
+return FALSE unless $data{'debian'}{'cpan_modules'}{'registry'};
 
 my $missing_minimal = 0;
-my $missing_other = 0;
+my $missing_other   = 0;
 
 ## Check each CPAN module
-foreach my $mod_id (keys %{$data{'debian'}{'cpan_modules'}{'registry'}}) {
+foreach my $mod_id ( keys %{ $data{'debian'}{'cpan_modules'}{'registry'} } ) {
     my $mod = $data{'debian'}{'cpan_modules'}{'registry'}{$mod_id};
 
-    if ($mod->{'status'} eq 'missing') {
+    if ( $mod->{'status'} eq 'missing' ) {
         my $module_name = $mod->{'module'};
 
-        if (grep { $_ eq $module_name } @minimal_modules) {
+        if ( grep { $_ eq $module_name } @minimal_modules ) {
             $missing_minimal++;
         } else {
             $missing_other++;
@@ -37,25 +37,28 @@ foreach my $mod_id (keys %{$data{'debian'}{'cpan_modules'}{'registry'}}) {
 }
 
 ## Also check OS packages
-foreach my $pkg_id (keys %{$data{'debian'}{'packages'}{'registry'} || {}}) {
+foreach
+    my $pkg_id ( keys %{ $data{'debian'}{'packages'}{'registry'} || {} } ) {
     my $pkg = $data{'debian'}{'packages'}{'registry'}{$pkg_id};
 
-    if ($pkg->{'status'} eq 'missing') {
+    if ( $pkg->{'status'} eq 'missing' ) {
         ## OS packages are generally minimal/required
         $missing_minimal++;
     }
 }
 
-<[base.log]>->( 3, "  Minimal missing: $missing_minimal, Other missing: $missing_other" );
+<[base.log]>->(
+    3, "  Minimal missing: $missing_minimal, Other missing: $missing_other"
+);
 
 ## Return true only if we have minimal deps missing but no other deps
 ## This makes it unambiguous - we know what to install
-return ($missing_minimal > 0 && $missing_other == 0);
+return ( $missing_minimal > 0 && $missing_other == 0 );
 
 0;
 
-#,,,,,.,,,,..,,.,,,,.,.,.,.,.,,,.,.,,,,,.,,,.,..,,...,.,.,,..,.,.,.,,,...,,..,
-#N6Y56BDDQMBXINGNHSTDBQ7TROIZH44JSLU4TE3PC46NJ2J2HVP6EM4HX7T6VTESVMMR7NQKJKWE4
-#\\\|GSDV2X25E6DWTHMV6PMKAUXVTENWTHH6FVLW3G7MJJASIIK2MJM \ / AMOS7 \ YOURUM ::
-#\[7]KPNSZTJOQXRPV7C3ABCFEMUMGLMP4FPFIKMZP4SCQ2ESJM75TSCA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,.,.,...,,..,.,.,.,.,..,,.,.,.,,,..,,...,..,,,..,.,.,,.,,,,.,,,.,
+#DVGVTZEIIOLPB3MVGIW4THKYPCXWYUVSBXNMXO4MKE4R556CEXDTZG73EUCYYP6TC6DJZXHVATTG6
+#\\\|Q3M7LBCFNXS4ATTL7PXWSMXWQXNI2JXRAQJS2RNXAB3VVOREIR3 \ / AMOS7 \ YOURUM ::
+#\[7]72CKCXDO5YGARYWC3ZMW42EIFFMQMTS64QH364QDWUYCKK3WZEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

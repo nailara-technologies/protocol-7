@@ -9,14 +9,14 @@ return <[base.callback.cmd_reply]>->(
     $reply_id, { 'mode' => qw| false |, 'data' => 'undefined' }
 ) if defined $reply_id and $fp_val_str !~ /\d$/;
 $fp_val_str = sprintf( '%.2f', $fp_val_str );
-$fp_val_str =~ s/\.?0+$//g;
+$fp_val_str =~ s|\.?0+$||g;
 
 <[base.callback.cmd_reply]>->(
     $reply_id, { 'mode' => qw| true |, 'data' => $fp_val_str }
 );
 
-#,,,,,.,,,,..,.,,,,,,,..,,,,,,,..,.,.,...,,.,,..,,...,...,.,,,...,...,..,,.,,,
-#HJXKIVSEY3HSAG7GD574QFPTUTQALSFSLH6SMJMXLGM6MQDUWBBIOGCEOEYRKS6Z3TST4K22EDTU4
-#\\\|WWCVV27MYBCGKIKYXD5TV5JSUYMWY5NONEG7ZNWGV2NZ2THXIGG \ / AMOS7 \ YOURUM ::
-#\[7]QP7ZTTKAU4VPM5MIO7AG3R4GAQPDNM7U77WMLQTSGV7EXPA4ASBA 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,,.,,.,,...,.,.,.,.,..,,.,,,...,..,,...,...,..,,,,.,...,,..,...,
+#466Z2BWZR7C377QIA66K2ELRF3QHF2WLXXT4LC437DROQVAX7XACXKRRALCMKUHEGLHSIGV7QACD2
+#\\\|67TUKRSCOW7TLRH3MSVWFJRQSS2BGCVEP6ZBYITEBH2TSWRJ6N2 \ / AMOS7 \ YOURUM ::
+#\[7]3N4RIP2QETTIKFXULUL7HTD2CUAPC4HZLVGHEZZ3H2K6FJFC56AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

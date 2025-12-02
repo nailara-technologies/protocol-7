@@ -31,14 +31,14 @@ while ( !$matched_reply ) {
 if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
     <x11.display> = $1;
     <[base.log]>->( 2, ": ok, gravity applied." );
-    return 1;
+    return TRUE;
 } else {
     <[base.log]>->( 0, "not expected X-11 reply ['$reply_string']" );
-    return 0;
+    return FALSE;
 }
 
-#,,.,,,,,,..,,.,,,,..,,,.,..,,,..,,,.,.,.,.,,,..,,...,...,,,.,,..,,.,,.,,,,,,,
-#WGYAJGGTWPUF5LRS3KZ2CLOMYIPLAA6QRD5Q7OCR7OWC6FCA6LSR2WWU5MQ7AWYTNCEZ6XZHPAKTS
-#\\\|CINVEOMA6RI36AJ6DPPG3UXDF6GIZ7PN7F5UWGLZ7VYXBFP7B3I \ / AMOS7 \ YOURUM ::
-#\[7]LLJ72EJHCJ7XNCF322KCQTZJWQ4WCPHT6IYGBLEAAYNYLUPDAMBQ 7  DATA SIGNATURE ::
+#,,..,.,.,...,,..,,,,,,.,,,.,,,,,,...,.,.,.,.,..,,...,...,,..,,.,,.,.,,.,,,,.,
+#B2U5REMOAUTHMUXP7QBMYGIEUYCLR7JXASYDYWYZ6D26SIAMPOBHRGHF4TETRBWKWVAVHPVIK7JQ4
+#\\\|QA65H3YLZPRZCSZEMVLS6WNUYYJCHZ3OC4GSL4SN53SOURAKUX7 \ / AMOS7 \ YOURUM ::
+#\[7]6OWOEJ3KI3FE6DP2A3PCEWZNYQJAK64O2I5IGLOL6WVQTEHUUKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
