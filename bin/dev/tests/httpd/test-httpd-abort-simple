@@ -1,0 +1,86 @@
+#!/bin/bash
+# Simple test to trigger download abort by rapid connect/disconnect
+# Uses any large file already on the system
+
+set -e
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+echo "======================================"
+echo "HTTP Download Abort Test (Simple)"
+echo "======================================"
+echo ""
+
+# Check version
+echo -e "${YELLOW}Checking httpd version...${NC}"
+cd /data/projects/protocol-7
+VERSION=$(./bin/dev/switch-httpd-version status | grep -o "BROKEN\|FIXED" || echo "UNKNOWN")
+echo "Version: ${VERSION}"
+echo ""
+
+# Create test file in /tmp (writable)
+TEST_FILE="/tmp/httpd-test-large-file.bin"
+echo -e "${YELLOW}Creating 512KB test file in /tmp...${NC}"
+dd if=/dev/zero of="${TEST_FILE}" bs=1024 count=512 2>/dev/null
+echo -e "${GREEN}✓ Created ${TEST_FILE}${NC}"
+echo ""
+
+# Test by rapidly connecting and disconnecting
+echo -e "${YELLOW}Testing with rapid connect/disconnect (10 attempts)...${NC}"
+for i in {1..10}; do
+    # Start download and kill it immediately
+    timeout 0.1 curl -s "http://localhost/" > /dev/null 2>&1 &
+    CURL_PID=$!
+    sleep 0.05
+    kill -9 ${CURL_PID} 2>/dev/null || true
+    wait ${CURL_PID} 2>/dev/null || true
+done
+
+echo -e "${GREEN}✓ Completed 10 rapid connect/disconnect tests${NC}"
+echo ""
+
+# Check httpd logs for errors
+echo -e "${YELLOW}Checking httpd logs for errors...${NC}"
+LOG_OUTPUT=$(p7 httpd.show-buffer zenka 2>/dev/null | tail -50)
+
+# Count error patterns
+ABORT_COUNT=$(echo "$LOG_OUTPUT" | grep -c "aborting download" 2>/dev/null || echo "0")
+FH_ERRORS=$(echo "$LOG_OUTPUT" | grep -c "filehandle already closed\|content filehandle" 2>/dev/null || echo "0")
+READ_ERRORS=$(echo "$LOG_OUTPUT" | grep -c "read size was zero\|unsuccessful read" 2>/dev/null || echo "0")
+
+echo "Results:"
+echo "  Abort messages: ${ABORT_COUNT}"
+echo "  File handle errors: ${FH_ERRORS}"
+echo "  Read errors: ${READ_ERRORS}"
+echo ""
+
+if [ "$VERSION" == "FIXED" ]; then
+    if [ ${FH_ERRORS} -lt 3 ] && [ ${READ_ERRORS} -lt 3 ]; then
+        echo -e "${GREEN}✓ FIXED version: Clean abort behavior (low error count)${NC}"
+    else
+        echo -e "${YELLOW}? FIXED version but errors detected (${FH_ERRORS} fh, ${READ_ERRORS} read)${NC}"
+    fi
+elif [ "$VERSION" == "BROKEN" ]; then
+    if [ ${FH_ERRORS} -gt 5 ] || [ ${READ_ERRORS} -gt 5 ]; then
+        echo -e "${RED}✗ BROKEN version: Error spam detected (${FH_ERRORS} fh, ${READ_ERRORS} read)${NC}"
+        echo "  This indicates watcher spinning on closed handles"
+    else
+        echo -e "${YELLOW}? May need more aggressive test to trigger bug${NC}"
+    fi
+fi
+
+echo ""
+echo -e "${YELLOW}Recent httpd log (last 15 lines):${NC}"
+echo "$LOG_OUTPUT" | tail -15
+
+# Cleanup
+rm -f "${TEST_FILE}"
+
+#,,.,,..,,.,,,.,,,,,.,.,,,...,.,.,,,.,,,.,.,.,..,,...,...,...,,..,,,,,,,,,,..,
+#YM5CNZ5BLC42ZVGXTJKCDUFFETYPNYUGZ6QNAVOJ3EM7JA5VROIBAQJEOBJU2247QTRZ6QAY6KBBI
+#\\\|FMAOEKS77D2GD55RGLARTC5J6XYIURSAL4IBTDQH66D6A5MOK3V \ / AMOS7 \ YOURUM ::
+#\[7]4L7GMWCJ32SYOX6M2BC74JNDU243U4SCJMRCUSIO2YJTSWRBKGAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

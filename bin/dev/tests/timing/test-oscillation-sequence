@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# Test oscillation sequence - runs the diagnostic commands in order
+# Usage: ./bin/dev/test-oscillation-sequence <file-pattern>
+
+if [ -z "$1" ]; then
+    echo "Usage: ./bin/dev/test-oscillation-sequence <file-pattern>"
+    echo "Example: ./bin/dev/test-oscillation-sequence bin/elf"
+    exit 1
+fi
+
+PATTERN="$1"
+TEST_DIR=".test-oscillation-output"
+
+mkdir -p "$TEST_DIR"
+
+echo ""
+echo "=========================================="
+echo "STEP 1: Backup original signatures"
+echo "=========================================="
+./bin/Protocol-7 sourcecode test-sign-with-temp-key "$PATTERN" 2>&1 | tee "$TEST_DIR/step1-backup.log"
+
+echo ""
+echo "=========================================="
+echo "STEP 2: First verify (before update)"
+echo "=========================================="
+./bin/Protocol-7 sourcecode test-verify-with-temp-key "$PATTERN" 2>&1 | tee "$TEST_DIR/step2-verify-before.log"
+
+echo ""
+echo "=========================================="
+echo "STEP 3: Update signatures"
+echo "=========================================="
+./bin/Protocol-7 sourcecode update-signatures :sign-silent: "$PATTERN" 2>&1 | tee "$TEST_DIR/step3-update.log"
+
+echo ""
+echo "=========================================="
+echo "STEP 4: First verify (after update)"
+echo "=========================================="
+./bin/Protocol-7 sourcecode test-verify-with-temp-key "$PATTERN" 2>&1 | tee "$TEST_DIR/step4-verify-after1.log"
+
+echo ""
+echo "=========================================="
+echo "STEP 5: Second update (should be no-op if fixed)"
+echo "=========================================="
+./bin/Protocol-7 sourcecode update-signatures :sign-silent: "$PATTERN" 2>&1 | tee "$TEST_DIR/step5-update2.log"
+
+echo ""
+echo "=========================================="
+echo "STEP 6: Second verify (detect oscillation)"
+echo "=========================================="
+./bin/Protocol-7 sourcecode test-verify-with-temp-key "$PATTERN" 2>&1 | tee "$TEST_DIR/step6-verify-after2.log"
+
+echo ""
+echo "=========================================="
+echo "ANALYSIS"
+echo "=========================================="
+echo ""
+echo "Compare step4 and step6 outputs:"
+echo "- If state/bmw/sig values are SAME: Fix is working!"
+echo "- If state/bmw/sig values are DIFFERENT: Oscillation detected"
+echo ""
+echo "Logs saved to: $TEST_DIR/"
+echo ""
+#,,,,,.,,,,,,,.,,,.,,,...,.,,,,.,,...,.,,,...,..,,...,...,.,,,,.,,,.,,,..,.,,,
+#M2U6NVACKUDHGTZBKE6XZQA3WYBO6B5OMUY7EGBJVU7YMOT4MTRV3OWW455O6D6K4O7OX4THLUXOC
+#\\\|7J4IVIUN26M362DBQPEKOBFJOSR2YBVSEFXFAP34SNJ7M6IY3AA \ / AMOS7 \ YOURUM ::
+#\[7]5WGQIVQYIZBF34PZYSOPFDRP35DIMFJMG3I6WYROAZA4J5C676AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

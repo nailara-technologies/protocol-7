@@ -87,14 +87,45 @@ This directory contains test scripts and test utilities for Protocol-7 developme
 - Tests multiple subsystems together
 - Integration test suite
 
+## Directory Structure
+
+```
+bin/dev/tests/
+├── acme/                   # ACME protocol tests
+├── checksum/              # Checksum/ELF tests
+├── compression/           # Compression algorithm tests
+├── crypto/                # Cryptography/address tests
+├── data/                  # Data import/format tests
+├── encryption/            # Encryption module tests
+├── httpd/                 # HTTP daemon tests
+├── io/                    # I/O and backpressure tests
+├── link-upgrade/          # Link-upgrade negotiation tests
+├── math/                  # Mathematical/Division-13 tests
+├── ml/                    # ML/AI inference tests (Whisper, etc.)
+├── network/               # Network connectivity tests
+├── timing/                # Oscillation/timing tests
+└── workflow/              # Workflow/integration tests
+```
+
 ## Running Tests
 
 ### Run All Tests
 
 ```bash
 cd /home/user/protocol-7/bin/dev/tests
-for test in test-*.sh test-*[!.bits]; do
-    echo "Running: $test"
+for dir in */; do
+    echo "Running tests in $dir"
+    for test in "$dir"test-*; do
+        [ -x "$test" ] && echo "Running: $test" && "$test" || echo "FAILED: $test"
+    done
+done
+```
+
+### Run Specific Category
+
+```bash
+cd /home/user/protocol-7/bin/dev/tests/httpd
+for test in test-*; do
     ./$test || echo "FAILED: $test"
 done
 ```
@@ -102,16 +133,16 @@ done
 ### Run Specific Test
 
 ```bash
-cd /home/user/protocol-7/bin/dev/tests
+cd /home/user/protocol-7/bin/dev/tests/httpd
 ./test-httpd-blocking
 ```
 
 ### Run with Debugging
 
 ```bash
-cd /home/user/protocol-7/bin/dev/tests
+cd /home/user/protocol-7/bin/dev/tests/math
 bash -x test-13.sh
-perl -d blue-doc-import-test.pl
+perl -d ../data/blue-doc-import-test.pl
 ```
 
 ## Test Categories
@@ -128,7 +159,21 @@ perl -d blue-doc-import-test.pl
 
 When adding new test scripts:
 
-1. Place in this `bin/dev/tests/` directory
+1. Place in appropriate subdirectory under `bin/dev/tests/`:
+   - `acme/` - ACME protocol tests
+   - `checksum/` - Checksum/ELF tests
+   - `compression/` - Compression algorithm tests
+   - `crypto/` - Cryptography/address tests
+   - `data/` - Data import/format tests
+   - `encryption/` - Encryption module tests
+   - `httpd/` - HTTP daemon tests
+   - `io/` - I/O and backpressure tests
+   - `link-upgrade/` - Link-upgrade negotiation tests
+   - `math/` - Mathematical operation tests
+   - `ml/` - ML/AI inference tests
+   - `network/` - Network connectivity tests
+   - `timing/` - Oscillation/timing tests
+   - `workflow/` - Workflow/integration tests
 2. Follow naming convention: `test-<feature>` or `test-<component>-<scenario>`
 3. Make script executable: `chmod +x test-<name>`
 4. Add brief description to this README
@@ -186,16 +231,26 @@ export PROTOCOL_7_LINK_UPGRADE=yes
 These tests can be integrated into CI/CD pipelines:
 
 ```bash
-# Run test suite
-./bin/dev/tests/test-13.sh
-./bin/dev/tests/test-httpd-blocking
-./bin/dev/tests/comp-test
+# Run test suite organized by category
+FAILED=0
+for dir in ./bin/dev/tests/*/; do
+    echo "Running tests in $(basename "$dir")..."
+    for test in "$dir"test-*; do
+        [ -x "$test" ] || continue
+        echo "  - $(basename "$test")..."
+        if ! "$test"; then
+            echo "    FAILED!"
+            FAILED=$((FAILED + 1))
+        fi
+    done
+done
 
 # Check results
-if [ $? -eq 0 ]; then
-    echo "All tests passed"
+if [ $FAILED -eq 0 ]; then
+    echo "All tests passed ✓"
+    exit 0
 else
-    echo "Tests failed"
+    echo "Tests failed: $FAILED"
     exit 1
 fi
 ```
@@ -207,7 +262,9 @@ fi
 Ensure you're in the correct directory and scripts are executable:
 ```bash
 cd /home/user/protocol-7/bin/dev/tests
-ls -la test-*.sh  # Should show x permissions
+find . -name "test-*" -type f ! -executable | head -10
+# Should show no output if all tests are executable
+chmod +x */test-*  # Fix any non-executable scripts
 ```
 
 ### Test Hangs or Stalls
@@ -221,8 +278,8 @@ Some tests may require specific Protocol-7 state. Ensure:
 
 Check that test data files are present:
 ```bash
-ls -la test-13.bits
-ls -la address_test.TORUM.LAYA.0000.asc
+ls -la math/test-13.bits
+ls -la crypto/address_test.TORUM.LAYA.0000.asc
 ```
 
 ## Test Coverage
