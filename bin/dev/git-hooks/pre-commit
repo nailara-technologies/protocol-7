@@ -48,7 +48,13 @@ sub p7_root_dir {
 sub is_amend_commit {
     my $is_amend = 0;
 
-    ## check environment first ##                   [ need unsetting again ]
+    ## check PERSISTENT_AMEND first ##              [ does not clear ]
+    if ( defined $ENV{'PERSISTENT_AMEND'} and $ENV{'PERSISTENT_AMEND'} ne '0' ) {
+        $is_amend = 1;
+        print STDERR ":: info :: PERSISTENT_AMEND enabled\n" if $is_amend;
+    }
+
+    ## check environment next ##                    [ need unsetting again ]
     $is_amend = 1 if defined $ENV{'GIT_AMEND'} and $ENV{'GIT_AMEND'} ne '0';
     $is_amend = 1 if defined $ENV{'AMEND'}     and $ENV{'AMEND'} ne '0';
 
@@ -153,8 +159,8 @@ sub check_file_signatures {
     }
 }
 
-#,,,.,.,,,,..,,..,...,,,,,.,,,,,,,,,,,,..,,,.,..,,...,...,.,,,.,,,.,.,,,.,,..,
-#3DVUCMAJK6HD43P522AJQ5EMKM4FX7PGS6UY5FYFG7TJVSZX743NACM7SSDT5UIMOKG57VO2B7YBQ
-#\\\|X4MD4JVRZ4YJQ6C73Z3FZJLN5HENNFUCB4THBNKNJM5MUDGEKKF \ / AMOS7 \ YOURUM ::
-#\[7]VNS6ICC3TOTMRVGEXHUX2WYEAEUFPFRKBU34GI42WIFTKGK7IWBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,.,,..,,,.,,...,,..,,,.,.,,,,..,..,,...,...,...,..,,..,,,,,,,,,,
+#54JNS2YCXV3I6B3QJ5OZ7PLQ6GHXCUU5XILONMRWOSSEB4QTUCDD7QK5Z2MFXCFAHXEQQGBDZXM2U
+#\\\|VVTX3XQ3F2ZKPEVE6Q6NHIT2IB7OTSMZUH73U6AB3SZL7J3GAO7 \ / AMOS7 \ YOURUM ::
+#\[7]3UCDCUF6PKDTHOV5TFOHMFQTWCTN36DRCXKXSC6KX6Y24TRLPOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
