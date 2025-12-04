@@ -49,8 +49,8 @@ apt-get remove -y \
 apt-get autoremove -y 2>&1 | tail -2
 echo "✓ CUDA 13.0 packages removed"
 
-echo "[2/6] Installing CUDA 12.8..."
-apt-get update -qq
+echo "[2/6] Installing CUDA 12.8 from local repository..."
+# Skip internet update - use local sources already configured
 apt-get install -y cuda-runtime-12-8 cuda-toolkit-12-8 2>&1 | tail -3
 
 echo "[3/6] Verifying CUDA 12.8..."
@@ -102,8 +102,8 @@ sudo apt-get remove -y \
 
 sudo apt-get autoremove -y
 
-# 2. Install CUDA 12.8
-sudo apt-get update
+# 2. Install CUDA 12.8 from local repository
+# (Local sources already configured in /etc/apt/sources.list.d/)
 sudo apt-get install -y cuda-runtime-12-8 cuda-toolkit-12-8
 
 # 3. Backup current binary
