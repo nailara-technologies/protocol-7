@@ -1,72 +1,30 @@
 
  .:[ protocol-7 coding zenka ]:.
 
-system.zenka.name = coding
-system.zenka.type = coding
-
 [load_config_file:'shared-params']
-[load_config_file:'X11-vars']
 
-system.verbosity.zenka_buffer      = 2
-system.access.log-permission-masks = 0
+access.cmd.usr.cube = commands heart reload verify-instance \
+                      list show-buffer buffer-erase buffer-erase-level \
+                      budget status submit ## <-- coding zenka comands ## *
 
-# change priority
-[base.change_prio:-13]
-
-# loading coding zenka authentication set-up
-[load_config_file:'zenki/coding/auth.users']
-[load_config_file:'zenki/coding/auth.zenki']
-
-# load command access permission setup
-[load_config_file:'zenki/coding/access.zenki']
-[load_config_file:'zenki/coding/access.users']
-
-##  customized input priority set-up  ##
-[load_config_file:'network/zenka-priorities']
+system.verbosity.zenka_buffer = 2  ##  memory ring buffer verbosity  ##
 
 ## Enable automatic user key creation for coding zenka ##
 crypt.C25519.autocreate-user-key = yes
 
-modules.load                    =    auth net protocol io.unix io.ip \
-                                     crypt.C25519 coding
-
-plugins.load                    =    plugin.auth
-auth.supported_methods          =    zenka unix twofish pwd
-
-# create protocol-7 user if required.,
-[root.check_system_user:<system.amos-zenka-user>]
-
-## loading [auth.] plugins ##
-[load_plugins:<plugins.load>]
-
-## protocol-7 ##
-net.auth.timeout = 13
-
-##  which sockets to launch - HYBRID: both console and network ##
-coding.set-up.use_ip_socket   = yes     ## Enable network access ##
-coding.set-up.use_unix_socket = yes     ## Enable console access ##
-
-## Network configuration for network zenka access ##
-coding.network.port = auto              ## Auto-assign from protocol-7 config ##
-coding.network.address = 127.0.0.1      ## Accept local network requests ##
-
-## calculated network address \ port set in <protocol-7.network.internal> ##
-
-# drop root priviledges [ now 'online' ]
-# [root.drop_privs:<system.amos-zenka-user>]
-
-# load and initialize modules
+modules.load = auth net protocol io.unix io.ip crypt.C25519 coding ## devmod
 [load_modules:<modules.load>]
-[init_modules]                   ##  sockets launched in 'coding.post_init'  ##
+[init_modules]
 
-# initialize coding zenka state
-[coding.init_code]
+[root.drop_privs:<system.amos-zenka-user>] ## [LLL] needs hybrid mode version
 
-# run zenka
+[base.net.connect:'unix']
+[base.get_session_id]
+
 [zenka.loop]
 
-#,,..,,,.,,..,,,,,...,...,,,.,.,.,,,.,..,,,.,,..,,...,...,,..,...,,..,,.,,,,.,
-#R6PE2FA4ECC4YGVTJBMI5BZI2GNZNQMIQ4O5NTLL56KXV7JAWLJ3Z2AMARIIMDDWJ3D2ONATBFJZU
-#\\\|FESBXLCRX6QRHZAW3A3APJTR6HIMJDHMCSQFIQSRGXES4YSF5DN \ / AMOS7 \ YOURUM ::
-#\[7]2B7RNJIRFFMEJ7GP62RXDRT7MQGZOIXWZY7MYPWSSKAS7YTNR4AY 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,.,.,,,,,...,...,,,,,.,,,,,.,,.,,..,,...,...,.,.,,,,,,..,,.,,,,,,
+#CAOHSXKLWPGVOEFULCPGXOPOPUUE5LMYITWNBRPLQB4EG327TZMZ7MNJH2FGDOK4JL36FZBGBOWLW
+#\\\|TRMYS5PIB5ZXKZW7EF7GIWBEBQZQAYE3MYHYHCDWCLJSYC2FTD3 \ / AMOS7 \ YOURUM ::
+#\[7]URHRIM7MCCC75DW2XBFM5BDNTIRUPPQL6PX23LDRNO2MMDZP3ABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

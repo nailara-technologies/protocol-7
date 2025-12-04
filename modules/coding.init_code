@@ -4,12 +4,10 @@
 # descr = Initialize coding zenka state, task queue, budget, and event handlers
 # purpose = Foundation: Set up all internal data structures for orchestration
 
-use Time::HiRes qw(time);
-
 # Initialize coding zenka data structure
 <coding.state> = {
     initialized => 1,
-    start_time  => time(),
+    start_time  => <[base.time]>->(5),
     version     => '1.0.0',
     status      => 'ready'
 };
@@ -25,7 +23,7 @@ use Time::HiRes qw(time);
 <coding.budget.allocated>          = 12000;
 <coding.budget.used>               = 0;
 <coding.budget.transactions>       = [];
-<coding.budget.session_start>      = time();
+<coding.budget.session_start>      = <[base.time]>->();
 <coding.budget.warnings_at_levels> = [ 0.75, 0.90, 0.95 ];
 
 # Initialize routing statistics
@@ -46,12 +44,12 @@ use Time::HiRes qw(time);
 # These are registered in the code registry when loaded
 
 # Register with event system
-<watcher_list.coding.task_processor> = 1;
+<watcher_list.coding.task_processor> = TRUE;
 
 return TRUE;
 
-#,,,,,...,,,.,,.,,,,,,,,,,,,.,...,,..,,.,,..,,..,,...,...,..,,..,,,.,,,.,,.,,,
-#FR75TIUMBKIKKN6YQPBO7PQZBPJZURBEVTZQJUQCDEK53CULCSOVTZNKMHSFAFUULSRTSNQ5Y35ZK
-#\\\|VW5WPDVJPUPV2Q6EZ7URG2RAX5V3V2ZDAK5OIPFFS4LX4JVQURP \ / AMOS7 \ YOURUM ::
-#\[7]HJTJBQK2DFXP6UAMQFU4YM3MOKECROUGCMSFTWY3HV54LCRSO4BI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,.,,.,.,,.,,.,.,,,,,...,...,...,..,,...,...,..,,,,.,,,,,..,,...,
+#6MBHNQ6ZARRVQURPKDFP3MUEB4JAJRNFZXMMNC2O57OHGIJOMRGABBZYMFCEYK2UIU53VKZATNVRW
+#\\\|BE2C4BUDWLNXN6SSI4TLMDOFHUQ3NAPFJ66NDGN2CXAO3BELSS7 \ / AMOS7 \ YOURUM ::
+#\[7]GR5PHEBTNXFRFGGA4WNSUB7AUUQ6WD7ALACKOXDLPBBSTEL3CODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
