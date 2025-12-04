@@ -17,7 +17,7 @@ if ( not defined $cube_sid or exists $instance_data->{'cube_sid'} ) {
     return;    ##  compromisation attempt ?  ## [ when set ]
 }
 
-<[base.log]>->( 2, "instance $instance_id : cube sid = $cube_sid" );
+<[base.logs]>->( 2, "instance %d : cube sid = %d", $instance_id, $cube_sid );
 $instance_data->{'cube_sid'} = $cube_sid;
 
 ## LLL: unclear if will be required \ used later ##
@@ -26,8 +26,15 @@ my $inst_pid = $instance_data->{'process'}->{'id'};
     if defined $inst_pid;
 ##
 
+## check if session exists [should] ###  [LLL] restart self with timer???
+if (   not exists $data{'session'}
+    or ref $data{'session'} ne qw| HASH |
+    or not keys $data{'session'}->%* ) {
+    return <[base.s_warn]>->('no session exists [yet?] <{C2}>');
+}
+
 # acquire local cube sid [ get first and only sid for now ]
-my ($root_sid) = keys %{ $data{'session'} };
+my ($root_sid) = keys $data{'session'}->%*;
 
 $instance_data->{'root_sid'} = $root_sid;
 
@@ -38,20 +45,24 @@ $instance_data->{'instance_verification'} = $verification_str;
 $instance_data->{'timer'}->{'verify_instance'} = <[event.add_timer]>->(
     {   'after'   => <v7.timeout.verify_instance>,
         'handler' => qw| v7.handler.verify_instance_timeout |,
-        'data'    => { 'instance_id' => $instance_id }
+        'data'    => { qw| instance_id | => $instance_id }
     }
 );
 
-<[base.log]>->( 1, "[$instance_id] verification request <$cube_sid>" );
+<[base.logs]>->(
+    1,            '[%d] verification request <%s>',
+    $instance_id, $cube_sid
+);
 
 <[base.protocol-7.command.send.local]>->(
-    {   'command'   => "$root_sid.$cube_sid.verify-instance",
-        'call_args' => { 'args' => $verification_str }
+    {   'command' =>
+            sprintf( qw| %d.%d.verify-instance |, $root_sid, $cube_sid ),
+        'call_args' => { qw| args | => $verification_str }
     }
 );
 
-#,,,,,...,,.,,.,,,,,.,...,,,.,,..,.,.,.,,,.,,,..,,...,...,.,,,,.,,,.,,,.,,,..,
-#CGJJ5YEIK5LC2JIKC54NAPGRJCS4CHPV7AIO36NJTO2U7NUI3JVAJRRWAOIJIB7ZCFQNW7523BKNC
-#\\\|LJI4UMGMKZWYRQZ7XYQW22IH3WXXYRGKC2VKQBV5CKHCXR3GBKN \ / AMOS7 \ YOURUM ::
-#\[7]NMT7MSJKUTF2LW6VPST5E5ITVLUACFXDMFRWPKMAZB35WOQ56YDY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,,.,,,.,.,,,..,,,.,,,.,,,.,,.,,,..,,...,...,...,..,,,,,,..,,,.,,
+#N5P6742EUJ7TYW7M6CUYNC5STJG27DDWKBJ4WF76NPIIWGXGGWOXRSXDXWET657ZJIRANWDYBZXZG
+#\\\|5AIUMIMB57LC7JJUJKNC7SQ2UKBTNT75FTGTKSYGYOL5MNFVMIJ \ / AMOS7 \ YOURUM ::
+#\[7]THQ6MRGQNIVWODLMZDJO3DBXJKXMLF6WKHXBBDW6VDA3VTXHUKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,7 +6,7 @@
 
 my $param = $call->{'args'} // '';
 
-my $reboot_enabled = <[base.cfg_bool]>->( <v7.host-reboot.enabled> // 1 );
+my $reboot_enabled = <[base.cfg_bool]>->( <v7.host-reboot.enabled> // TRUE );
 
 return {
     'mode' => qw| false |,
@@ -35,8 +35,8 @@ system(qw| /bin/sync |) if $param ne qw| nosync |;
 
 return { 'mode' => qw| true |, 'data' => '<< rebooting host system >>' }
 
-#,,,.,.,.,.,.,..,,,,.,,.,,,,.,,.,,,,,,,,,,,.,,..,,...,...,,,.,,..,.,,,,,.,..,,
-#GERVLBKWYWU6C3VPDOLBT72VC3TEZLXMKUAGXKK7E3XO3SDG2VZYZROG437YQMGBA27XMP6KVJSVY
-#\\\|B3DIL7DNGVMPDRUMUOKUUTZDRU33EDZA4HZGEUCH62IV4XMQUKU \ / AMOS7 \ YOURUM ::
-#\[7]GV3IRKD3K3AB5RNZYXKY7M6RN7KWQ6GIVH36O4PCCVJLWLOUHMBA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,.,,,...,,..,,,.,...,...,...,,.,,..,,...,...,,,.,,.,,,.,,...,.,,,
+#2TXDYWUIA5TDNQGEYQYCOUWNBG47AM62MMKMLRIUJPMTBVU5HIA6NEJKIHC2Q6EM4QHTYELF3HXPO
+#\\\|RNI235A2TEWSSQ3NHFV5EJGAE75HJONHBQJAHHIOD27UEPUNXEM \ / AMOS7 \ YOURUM ::
+#\[7]T2G257BTI6MBSOBIDSQCA4YINGXUT4MYNIXXUSKAVJ732UV6BAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
