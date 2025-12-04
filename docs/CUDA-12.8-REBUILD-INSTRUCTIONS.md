@@ -33,18 +33,34 @@ BUILD_DIR="$LLAMA_SOURCE/build"
 INSTALL_PATH="/usr/local/bin/llama-server"
 BACKUP_PATH="/usr/local/bin/llama-server.cuda-13.0.backup"
 
-echo "[1/5] Installing CUDA 12.8..."
+echo "[1/6] Removing CUDA 13.0 packages..."
+apt-get remove -y \
+    'cuda-13-0' \
+    'cuda-*-13-0' \
+    'cuda-runtime-13-0' \
+    'cuda-toolkit-13-0' \
+    'cuda-libraries-13-0' \
+    'cuda-compiler-13-0' \
+    'cuda-command-line-tools-13-0' \
+    'cuda-cccl-13-0' \
+    'cuda-cudart-13-0' \
+    'cuda-minimal-build-13-0' \
+    2>&1 | tail -5
+apt-get autoremove -y 2>&1 | tail -2
+echo "✓ CUDA 13.0 packages removed"
+
+echo "[2/6] Installing CUDA 12.8..."
 apt-get update -qq
 apt-get install -y cuda-runtime-12-8 cuda-toolkit-12-8 2>&1 | tail -3
 
-echo "[2/5] Verifying CUDA 12.8..."
+echo "[3/6] Verifying CUDA 12.8..."
 CUDA_12_8_PATH="/usr/local/cuda-12.8"
 test -f "$CUDA_12_8_PATH/bin/nvcc" || { echo "ERROR: CUDA 12.8 not found"; exit 1; }
 
-echo "[3/5] Backing up current binary..."
+echo "[4/6] Backing up current binary..."
 test -f "$INSTALL_PATH" && cp "$INSTALL_PATH" "$BACKUP_PATH"
 
-echo "[4/5] Rebuilding with CUDA 12.8..."
+echo "[5/6] Rebuilding with CUDA 12.8..."
 cd "$LLAMA_SOURCE"
 rm -rf "$BUILD_DIR"
 cmake -B build \
@@ -55,7 +71,7 @@ cmake -B build \
 
 cmake --build build --config Release -j $(nproc)
 
-echo "[5/5] Installing new binary..."
+echo "[6/6] Installing new binary..."
 cp "$BUILD_DIR/bin/llama-server" "$INSTALL_PATH"
 chmod +x "$INSTALL_PATH"
 
@@ -71,14 +87,29 @@ sudo bash rebuild-llama.sh
 If you prefer step-by-step control:
 
 ```bash
-# 1. Install CUDA 12.8 (requires sudo)
+# 1. Remove CUDA 13.0 packages (requires sudo)
+sudo apt-get remove -y \
+    'cuda-13-0' \
+    'cuda-*-13-0' \
+    'cuda-runtime-13-0' \
+    'cuda-toolkit-13-0' \
+    'cuda-libraries-13-0' \
+    'cuda-compiler-13-0' \
+    'cuda-command-line-tools-13-0' \
+    'cuda-cccl-13-0' \
+    'cuda-cudart-13-0' \
+    'cuda-minimal-build-13-0'
+
+sudo apt-get autoremove -y
+
+# 2. Install CUDA 12.8
 sudo apt-get update
 sudo apt-get install -y cuda-runtime-12-8 cuda-toolkit-12-8
 
-# 2. Backup current binary
+# 3. Backup current binary
 sudo cp /usr/local/bin/llama-server /usr/local/bin/llama-server.cuda-13.0.backup
 
-# 3. Rebuild
+# 4. Rebuild
 cd /data/source/ik_llama.cpp
 rm -rf build
 cmake -B build \
@@ -89,7 +120,7 @@ cmake -B build \
 
 cmake --build build --config Release -j $(nproc)
 
-# 4. Install new binary
+# 5. Install new binary
 sudo cp build/bin/llama-server /usr/local/bin/llama-server
 ```
 
