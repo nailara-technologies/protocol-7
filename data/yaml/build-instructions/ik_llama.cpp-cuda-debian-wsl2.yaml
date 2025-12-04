@@ -1,0 +1,288 @@
+---
+metadata:
+  project: ik_llama.cpp
+  description: Build ik_llama.cpp with CUDA support on Debian WSL2
+  version: "1.0"
+  created: "2025-12-04"
+  author: taeki
+  platform: Debian (WSL2)
+  cuda_version: "13.0"
+  notes: |
+    This guide covers building ik_llama.cpp with CUDA acceleration on a Debian-based
+    WSL2 system. Standard Ubuntu packages like nvidia-cuda-toolkit don't exist in Debian,
+    requiring manual CUDA repository configuration.
+
+system_requirements:
+  os: "Debian (tested on WSL2)"
+  architecture: "x86_64"
+  min_memory: "16GB"
+  min_disk_space: "30GB"
+  notes: "CUDA compilation is resource-intensive; ensure sufficient CPU cores and memory"
+
+build_environment:
+  cuda_toolkit_root: "/usr/local/cuda-13.0"
+  cuda_compiler: "/usr/local/cuda-13.0/bin/nvcc"
+  host_compiler: "GCC 15.2.0 (or compatible)"
+  build_type: "Release"
+  optimization_flags: "-march=native"
+
+dependencies:
+  system_packages:
+    - name: "build-essential"
+      description: "C/C++ compilers and build tools"
+      command: "apt-get install build-essential"
+
+    - name: "cmake"
+      version: ">= 3.18"
+      description: "Build system"
+      command: "apt-get install cmake"
+
+    - name: "git"
+      description: "Version control"
+      command: "apt-get install git"
+
+    - name: "ccache"
+      description: "Compiler cache for faster rebuilds"
+      command: "apt-get install ccache"
+
+  cuda_components:
+    - name: "cuda-toolkit-13-0"
+      description: "Complete CUDA Toolkit"
+      installation_method: |
+        Add NVIDIA CUDA repository for Debian:
+        1. Create /etc/apt/sources.list.d/cuda-debian12.sources with proper URLs
+        2. Run: apt-get update && apt-get install cuda-toolkit-13-0
+
+        Key packages installed:
+        - cuda-cudart-13-0: CUDA Runtime
+        - cuda-cudart-dev-13-0: CUDA Runtime development headers
+        - cuda-compiler-13-0: NVCC compiler
+        - cuda-command-line-tools-13-0: Additional CUDA tools
+
+    - name: "libcudart library"
+      location: "/usr/local/cuda-13.0/targets/x86_64-linux/lib/"
+      files:
+        - "libcudart.so"
+        - "libcudart.so.13"
+        - "libcudart.so.13.0.96"
+        - "libcudart_static.a"
+
+build_steps:
+  step_1_repository_setup:
+    description: "Configure CUDA repository (one-time setup)"
+    commands:
+      - description: "Create CUDA repository source file"
+        command: |
+          cat > /etc/apt/sources.list.d/cuda-debian12.sources <<'EOF'
+          Types: deb
+          URIs: https://developer.download.nvidia.com/compute/cuda/repos/debian12/x86_64/
+          Suites: /
+          Components:
+          Signed-By: /usr/share/keyrings/nvidia-archive-keyring.gpg
+          EOF
+
+      - description: "Update package lists"
+        command: "apt-get update"
+
+  step_2_install_dependencies:
+    description: "Install required build and CUDA packages"
+    commands:
+      - command: "apt-get install -y build-essential cmake git ccache"
+        description: "Install build tools"
+
+      - command: "apt-get install -y cuda-toolkit-13-0 cuda-cudart-13-0 cuda-cudart-dev-13-0"
+        description: "Install CUDA Toolkit and runtime libraries"
+        note: "This will install CUDA to /usr/local/cuda-13.0"
+
+  step_3_clone_repository:
+    description: "Clone the ik_llama.cpp repository"
+    working_directory: "/tmp or desired location"
+    commands:
+      - command: "git clone https://github.com/ikawrakow/ik_llama.cpp.git"
+      - command: "cd ik_llama.cpp"
+
+  step_4_configure_build:
+    description: "Configure the build with CMake and CUDA support"
+    working_directory: "ik_llama.cpp (root)"
+    commands:
+      - command: |
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DGGML_CUDA=ON \
+            -DGGML_SCHED_MAX_COPIES=1 \
+            -DCUDAToolkit_ROOT=/usr/local/cuda-13.0 \
+            -DCMAKE_CUDA_COMPILER=/usr/local/cuda-13.0/bin/nvcc
+        description: "Configure CMake for CUDA build"
+        important: true
+        expected_output: |
+          -- Found CUDAToolkit: /usr/local/cuda-13.0/targets/x86_64-linux/include (found version "13.0.88")
+          -- CUDA found
+          -- Using CUDA architectures: native
+          -- The CUDA compiler identification is NVIDIA 13.0.88 with host compiler GNU 15.2.0
+          -- Configuring done
+
+  step_5_build_project:
+    description: "Compile the project (resource-intensive)"
+    working_directory: "ik_llama.cpp (root)"
+    estimated_time: "30-45 minutes on moderate hardware"
+    commands:
+      - command: "cmake --build build --config Release -j $(nproc)"
+        description: "Build using all available CPU cores"
+        note: |
+          This step will:
+          1. Compile C/C++ source files
+          2. Compile CUDA kernels (.cu files) - most time-consuming
+          3. Compile template instantiations for various quantization formats
+          4. Link all objects into final binaries
+        warning: "High CPU and memory usage - system may be sluggish during compilation"
+
+  step_6_verify_build:
+    description: "Verify the build completed successfully"
+    working_directory: "ik_llama.cpp (root)"
+    commands:
+      - command: "./build/bin/llama-server --version"
+        description: "Check if llama-server was built"
+        expected_output: |
+          version: 4034 (507f3a4d1)
+          built with cc (Debian 15.2.0-9) 15.2.0 for x86_64-linux-gnu
+
+      - command: "ls -lh build/bin/"
+        description: "List all built binaries"
+        expected_binaries:
+          - "llama-server"
+          - "llama-cli"
+          - "Other utility binaries"
+
+build_output:
+  location: "build/bin/"
+  main_executable: "llama-server"
+  executable_size: "~6.2MB (Release build with CUDA)"
+  created_artifacts:
+    - name: "libllama.so"
+      type: "Shared library"
+      description: "Main llama library with CUDA support"
+
+    - name: "llama-server"
+      type: "Executable"
+      description: "API server for running LLMs"
+
+    - name: "llama-cli"
+      type: "Executable"
+      description: "Command-line interface for LLM inference"
+
+cuda_configuration:
+  detected_architectures: "native"
+  explanation: |
+    CMAKE_CUDA_ARCHITECTURES=native means the build will use your GPU's native
+    architecture. This provides optimal performance for your specific GPU but may
+    not be portable to GPUs with different compute capabilities.
+
+  alternative_architectures: |
+    For broader GPU compatibility, specify explicit architectures in CMake:
+    -DCMAKE_CUDA_ARCHITECTURES="50;61;70;75;80"
+
+    - 50: Maxwell generation (GTX 750, GTX 750 Ti)
+    - 61: Pascal generation (GTX 1060, GTX 1070, etc.)
+    - 70: Volta generation (V100)
+    - 75: Turing generation (RTX 2060, RTX 2070, RTX 2080)
+    - 80: Ampere generation (RTX 3060, RTX 3070, RTX 3080, A100)
+
+troubleshooting:
+  problem_1:
+    issue: "CMake says 'CUDA not found'"
+    cause: "CMake can't locate the CUDA toolkit"
+    solutions:
+      - "Ensure /usr/local/cuda-13.0 exists: ls -la /usr/local/cuda-13.0"
+      - "Set CUDAToolkit_ROOT explicitly: -DCUDAToolkit_ROOT=/usr/local/cuda-13.0"
+      - "Verify CUDA packages are installed: dpkg -l | grep cuda"
+
+  problem_2:
+    issue: "Error: 'No CMAKE_CUDA_COMPILER could be found'"
+    cause: "nvcc compiler not found"
+    solutions:
+      - "Verify nvcc exists: which nvcc or find /usr/local -name nvcc"
+      - "Set explicitly: -DCMAKE_CUDA_COMPILER=/usr/local/cuda-13.0/bin/nvcc"
+      - "Check CUDA installation: /usr/local/cuda-13.0/bin/nvcc --version"
+
+  problem_3:
+    issue: "Build fails with 'libcudart not found' or linker errors"
+    cause: "CUDA runtime libraries not properly linked"
+    solutions:
+      - "Verify library exists: ls -la /usr/local/cuda-13.0/targets/x86_64-linux/lib/libcudart*"
+      - "Check library is readable: file /usr/local/cuda-13.0/targets/x86_64-linux/lib/libcudart.so"
+      - "Ensure cuda-cudart-dev-13-0 is installed: apt-get install cuda-cudart-dev-13-0"
+
+  problem_4:
+    issue: "Build runs out of memory or is extremely slow"
+    cause: "Insufficient system resources for parallel compilation"
+    solutions:
+      - "Reduce parallel jobs: cmake --build build -j 4 (instead of -j $(nproc))"
+      - "Use ccache to cache compilation results: apt-get install ccache"
+      - "Check available memory: free -h"
+      - "Monitor during build: top, watch -n 1 free -h"
+
+  problem_5:
+    issue: "CUDA code won't compile or has architecture mismatch"
+    cause: "Target architecture doesn't match GPU capability"
+    solutions:
+      - "Query GPU: /usr/local/cuda-13.0/extras/demo_suite/deviceQuery"
+      - "Use explicit arch: -DCMAKE_CUDA_ARCHITECTURES=75 (example for Turing)"
+      - "Or use native: -DCMAKE_CUDA_ARCHITECTURES=native (recommended)"
+
+cleanup:
+  temporary_files: "build/ directory can be deleted after build to save ~5-10GB"
+  keep_binaries: "Keep build/bin/ for running the application"
+  rebuild: "If only source changes and not CMakeLists.txt: cmake --build build"
+  full_rebuild: "To rebuild from scratch: rm -rf build && cmake -B build ... && cmake --build build ..."
+
+usage_example:
+  server:
+    description: "Running the built llama-server with DeepSeek-R1"
+    command: |
+      ./build/bin/llama-server \
+        --model path/to/model.gguf \
+        -fa -fmoe \
+        -mla 3 -amb 512 \
+        -ctk q8_0 \
+        -c 16384 \
+        -ngl 99 \
+        -ot "blk\.(3|4|5)\.ffn_.*=CUDA0" \
+        -ot exps=CPU \
+        --parallel 1 \
+        --threads 16 \
+        --host 127.0.0.1 \
+        --port 8080
+
+    parameter_notes: |
+      -fa: Enable flash attention
+      -fmoe: Enable mixture of experts
+      -mla: MLA (Multi-head Linear Attention) with 3 heads
+      -ctk q8_0: Context token quantization
+      -c 16384: Context window size
+      -ngl 99: Number of GPU layers (99 = offload most to GPU)
+      --threads: Number of CPU threads (set to physical cores)
+
+notes_and_caveats:
+  wsl2_specific:
+    - "WSL2 has direct GPU access; ensure WSL driver is up-to-date"
+    - "GPU memory may be lower than native Windows due to WSL overhead"
+
+  debian_vs_ubuntu:
+    - "Debian doesn't package nvidia-cuda-toolkit like Ubuntu does"
+    - "Manual CUDA repository configuration is required"
+    - "Repository files must be placed in /etc/apt/sources.list.d/"
+
+  build_caching:
+    - "ccache dramatically speeds up incremental builds"
+    - "First build is slowest; subsequent builds with minor changes are faster"
+
+  cuda_versions:
+    - "This guide specifically covers CUDA 13.0"
+    - "Adapt cuda version numbers for other CUDA versions"
+    - "Check /usr/local/ for installed CUDA: ls /usr/local/cuda*"
+
+references:
+  - "NVIDIA CUDA Toolkit Official Docs: https://docs.nvidia.com/cuda/"
+  - "ik_llama.cpp GitHub: https://github.com/ikawrakow/ik_llama.cpp"
+  - "CMake CUDA support: https://cmake.org/cmake/help/latest/language/CUDA/"
+  - "GGML backend configuration: https://github.com/ggerganov/ggml"
