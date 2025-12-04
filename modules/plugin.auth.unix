@@ -63,8 +63,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
                     = <[base.access.special-user-map]>->($allowed_user);
 
                 next               ## no match for access ##
-                    if defined $prefixed_user
-                    and $prefixed_user !~ s|^unix-||
+                    if not defined $prefixed_user
+                    or $prefixed_user !~ s|^unix-||
                     and $prefixed_user ne $allowed_user;
 
                 ## unix user match ##
@@ -79,8 +79,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
             }
         }
     } else {
-        printf STDERR ": not present in auth.setup.\n";
-        printf STDERR ": :. with ':unix:' prefix .:\n";
+        <[base.log]>->(0, ": not present in auth.setup.\n" );
+        <[base.log]>->(0, ": :. with ':unix:' prefix .:\n" );
     }
 
     if ($authorize_unix_session) {
@@ -121,8 +121,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
 
 return 2;
 
-#,,.,,,..,...,,,,,.,,,,,.,,.,,,.,,,,,,.,,,..,,..,,...,...,,..,.,,,.,,,..,,..,,
-#CQYYHKLG64VHV4XNRQJCHKE7RVXIH6HHAIE7CK2II6Y4SXLR5XB5XNUTTJNEBC5XHAMX33ICMW7LI
-#\\\|ED76NV5BAQO2HT2W3H3XYXPXMQNQDPXKDDAAOHKEZLE3S6D3A3L \ / AMOS7 \ YOURUM ::
-#\[7]AWZT74TWOBUL2OOTD4M6ULVEVV6DRYDZJOZHBSVTDXYZVCSABKAA 7  DATA SIGNATURE ::
+#,,.,,...,.,.,...,...,...,.,,,,,,,,.,,,..,,,,,..,,...,...,.,.,.,.,.,.,...,.,,,
+#5EFVUNFLP6BBRU27CG5R7QL4LYQRESZCF22D6SBN4IP7X53ZLERGYW5M3AMZW3VZCXFJJU6IBNE6S
+#\\\|IRRCEUCBT3SB5RBHZBKOBAUYSFZDAQQIGUTHBUVYY4GPYZLFJZF \ / AMOS7 \ YOURUM ::
+#\[7]CD63HXUCKHTWXFPVOVN2O3FGBGGM6IZBOOWHE4JOJBM5XBBAXYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

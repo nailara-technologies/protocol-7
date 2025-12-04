@@ -22,8 +22,8 @@ my $log_msg
 
 # store additional config filenames for later reload [rewrite if problematic]
 <system.config.reload_order> = [] if not exists <system.config.reload_order>;
-my $already_pushed = 0;
-map { $already_pushed = 1 if $ARG eq $cfg_name }
+my $already_pushed = FALSE;
+map { $already_pushed = TRUE if $ARG eq $cfg_name }
     <system.config.reload_order>->@*;
 push <system.config.reload_order>->@*, $cfg_name
     if $cfg_name ne <system.path.rel.cur_zenka_cfg> and not $already_pushed;
@@ -50,7 +50,7 @@ my $status = <[base.execute_zenka_code]>->(
             join( qw| / |, <system.conf_path>, $cfg_name ),
             sub {
                 $cfg_name =~ s|^.+/||g;
-                <[logs]>->(
+                <[base.logs]>->(
                     0,         "cannot load '%s'-config [ %s ]",
                     $cfg_name, <[base.str.os_err]>
                 );
@@ -65,8 +65,8 @@ my $status = <[base.execute_zenka_code]>->(
 return TRUE if <base.parser.config.errors>;
 return $status;
 
-#,,..,,..,,,.,,,,,,..,..,,.,.,,.,,.,.,.,,,..,,..,,...,...,.,.,...,,,.,,,.,...,
-#XVVZM4XGVRXSN7JPWCN5B5GGKHJQO4ZNCXTBQEKU47CGSN3CX27UK7FIHTNTPJO7P6YCAV62X2J4W
-#\\\|LAIRS2SDRH5AIX6UQDVKS7GRAUOK4C46Y22CD7LZTHLUE6GO7BQ \ / AMOS7 \ YOURUM ::
-#\[7]LQ4MRSPGHOCF3226OUKVORQ5SPE24IR4ED4EZOUKAEBQV26VLQAQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,.,,,,.,,,,.,.,,,,,,,...,.,.,,..,..,,...,..,,.,.,...,,.,,..,,,..,
+#TFIXE2FHUEBAM5LGTOGPKYBB77C573WAE4UVEIZPXVQOV3L25LD3AJYGKQULLIGASHA7LH7T3KNCQ
+#\\\|E2HQU7VGCPAXZ6M7ZC3WT5NWMUUKPOWSDTI7XPVEHDMJNYCGH6H \ / AMOS7 \ YOURUM ::
+#\[7]RSYMXZYYRYMP243TIQ2ZD24CXRZFCADMI6P5BSZSDNSTYENKIQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

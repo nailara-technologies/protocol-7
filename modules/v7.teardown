@@ -29,8 +29,13 @@ $reason = sprintf( '.. %u sub-process%s .,', $child_count, $es )
     if not length($reason)
     and $child_count;
 my $reason_txt = length($reason) ? sprintf( ' [ %s ]', $reason ) : '';
+my $opt_caller = sprintf ' %s', scalar <[base.caller]>->(2);
+$opt_caller = '' if $opt_caller =~ m{Event\.pm:\d+};
 
-<[base.logs]>->( $log_level, 'v7 zenka shutdown%s', $reason_txt );
+<[base.logs]>->(
+    $log_level,  'v7 zenka shutdown%s%s',
+    $reason_txt, $opt_caller
+);
 
 <[base.logs]>->( '.:[ terminating sub-process%s ]:.', $es )
     if $child_count and <system.verbosity.console> == 1;
@@ -44,7 +49,7 @@ foreach my $pid (
     next if exists <v7.child>->{$pid}->{'zenka_child'};
     my $inst_id    = <v7.child>->{$pid}->{'instance_id'};
     my $zenka_name = <v7.zenka.instance>->{$inst_id}->{'zenka_name'}
-        // 'unknown';
+        // qw| unknown |;
     my @children = <[v7.sub-process.get_children]>->($pid)->@*;
     if ( kill( 15, $pid ) ) {
         <[base.logs]>->( ': <TERM> PID %-7s  <-= %11s', $pid, $zenka_name );
@@ -124,8 +129,8 @@ map {
 <[base.log]>->( 1, ':. done.' );
 exit($exit_code);
 
-#,,.,,.,,,...,,.,,,..,,,.,..,,..,,,,,,..,,.,.,..,,...,..,,.,.,,,.,,..,.,.,,,,,
-#CRT6JMR6ZSL2HIKS3CKPGHKVCVPYM2K5MXUBQ4U7GOAU2YOLMOI4MYGZ2NU4IROWJJ6KDXVXUSUJO
-#\\\|XZW4OQPK2TB6DAYVMFIGBOKLJXIECGYFUQM26CCJ6PSBU4CK2CO \ / AMOS7 \ YOURUM ::
-#\[7]B5DJM4LOL5G2SQ7OPPZGC44QSLU2AXLETTDWS2DHV5RBJO4VDMBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,..,,..,,..,,.,,,.,,,.,,.,,,...,..,,...,...,...,,..,,,.,..,,.,.,
+#FU5AOG4GMOT4RTPJU3NZPOUPDXZ36RFZMTXUD4BFHLCOR4W4SCIWI2VZR3OC7ZKTRJ2A3QMDRA77S
+#\\\|PTNCOZYW5B6YYYBBLZBNI25433JYRNCLA4UUF37345XNB3SC5R6 \ / AMOS7 \ YOURUM ::
+#\[7]BNRCBJQ7ZLEFF7CBUDHZOYA5ASHK55FD5DT53U6GVHNXFZRBHABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,9 +23,9 @@
 
 <v7.cfg_data.start_setup> = [];    ##  <--  << RESETTING >>   ##
 
-<v7.host-reboot.enabled>        //= 1;
+<v7.host-reboot.enabled>        //= TRUE;
 <v7.host-reboot.term_delay>     //= 1.3787;
-<v7.system-poweroff.enabled>    //= 1;
+<v7.system-poweroff.enabled>    //= TRUE;
 <v7.system-poweroff.term_delay> //= 1.3787;
 
 <system.acfg_path> = join( qw| / |, <system.conf_path>, qw| zenki | );
@@ -82,7 +82,7 @@ if ( !-x <v7.gcc_bin> ) {
 ## Install p7.<zenka> symlinks for console-only zenki access ##
 <[v7.install_zenka_symlinks]> if $UID == 0;
 
-## Install common workflow shorthand aliases (p7.w, p7.wo, etc.)
+## Install common workflow shorthand aliases [p7.w, p7.wo, etc.]
 <[v7.install_workflow_shortcuts]> if $UID == 0;
 
 ## modprobe ##
@@ -161,6 +161,10 @@ if (    exists <system.subs_loaded.devmod>
     say "\n < v7.start_setup.globals >\n\n$devmod_str";
 }
 
+# # uninstall base CHLD handler
+#   $SIG{'PIPE'} = qw| IGNORE |;
+
+## install custom zenki aware child handler ##
 <[event.add_signal]>
     ->( { 'signal' => qw| CHLD |, 'handler' => qw| v7.handler.sig_chld | } );
 
@@ -258,8 +262,8 @@ delete <list.users>;
 
 return FALSE;
 
-#,,.,,,,.,,.,,.,.,,.,,,.,,,,.,,..,..,,,..,.,.,..,,...,...,.,.,,,,,.,.,...,...,
-#2UAWVAVZKB6HUFM6KD2Y3BGURGOCX4Y2M6LS77HUL7ZT45RHHCJMVWSL2PGJPC6UKVG42MGGX36CM
-#\\\|O36WXCOWLK55DUFGZKOEELSMKNWFIBX4A7JPIN5YMEK555OBV6V \ / AMOS7 \ YOURUM ::
-#\[7]X5OVYHRH2DE5FSRP5J4VYRSL4HLIBASFWZSBX3FDJFK2GF2BUSCQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,.,,,..,,,..,.,,,,.,,.,,,.,.,,.,,..,,...,...,...,...,..,,..,,.,.,
+#2M75FLBMN4QWFJYBBKE2PDV55CZBZE5COZFWDSX4FYVFCBOQ3ATAHX6PKLLTT4Z7HIV4JIR3XKWH4
+#\\\|ORKSQOWKNIY2RADBSDLBCJPTEMGVYZPID6BBJSSMPTQSRYMDRAM \ / AMOS7 \ YOURUM ::
+#\[7]VIKHEUQ44O3NYL76WE7PUCIV6CZOBFBJH5TDIAPTQNCN2D2XCWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
