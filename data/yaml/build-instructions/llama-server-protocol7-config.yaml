@@ -1,0 +1,228 @@
+---
+metadata:
+  name: "llama-server Binary Management for Protocol-7"
+  description: "Configuration for selecting and testing multiple llama-server versions"
+  created: "2025-12-04"
+  purpose: |
+    Protocol-7 projects often need to test and compare different inference engines.
+    This configuration enables easy switching between the CUDA-optimized ik_llama.cpp
+    build and the standard Debian package version.
+
+binary_sources:
+  cuda_optimized:
+    name: "ik_llama.cpp (CUDA-optimized)"
+    location: "/usr/local/bin/llama-server-cuda"
+    symlink: "/usr/local/bin/llama-server"
+    size: "6.2 MB"
+    features:
+      - "Full CUDA GPU acceleration"
+      - "Optimized quantization kernels"
+      - "Flash attention support"
+      - "Latest ik_llama.cpp version"
+    compiler: "GCC 15.2.0 + NVCC 13.0.88"
+    build_date: "2025-12-04"
+    installed_by: "Manual build + install script"
+
+  debian_system:
+    name: "Debian llama.cpp package"
+    location: "/usr/bin/llama-server"
+    size: "2.6 MB"
+    features:
+      - "Standard build (no CUDA)"
+      - "System package management"
+      - "Guaranteed stability"
+    compiler: "Debian package toolchain"
+    build_date: "2024-10-05"
+    installed_by: "apt-get (debian package)"
+
+environment_variables:
+  LLAMA_SERVER_VARIANT:
+    description: "Override llama-server selection"
+    values:
+      - value: "cuda"
+        meaning: "Force use of CUDA-optimized build"
+      - value: "debian"
+        meaning: "Force use of Debian system package"
+      - value: "/path/to/binary"
+        meaning: "Use specific custom binary path"
+    default: "auto (CUDA if available, else Debian)"
+    example: |
+      export LLAMA_SERVER_VARIANT=cuda
+      llama-server --version
+
+  VERBOSE:
+    description: "Print which llama-server version is being used"
+    values:
+      - "1" : "Enable debug output"
+    example: |
+      VERBOSE=1 llama-server --version
+
+execution_wrapper:
+  script: "/data/projects/protocol-7/data/yaml/build-instructions/llama-server-exec-wrapper.sh"
+  purpose: "Smart binary selection with fallback and version reporting"
+  usage: |
+    # Make executable
+    chmod +x /data/projects/protocol-7/data/yaml/build-instructions/llama-server-exec-wrapper.sh
+
+    # Use in scripts or commands
+    ./llama-server-exec-wrapper.sh --version
+
+    # With environment override
+    LLAMA_SERVER_VARIANT=cuda ./llama-server-exec-wrapper.sh --version
+    LLAMA_SERVER_VARIANT=debian ./llama-server-exec-wrapper.sh --version
+
+  fallback_behavior: |
+    The wrapper searches in this order:
+    1. /usr/local/bin/llama-server (symlink to CUDA version)
+    2. /usr/local/bin/llama-server-cuda (CUDA-optimized build)
+    3. /usr/bin/llama-server (Debian system package)
+
+    Uses the first one found in the filesystem.
+
+testing_and_comparison:
+  comparing_versions:
+    description: "How to test both versions side-by-side"
+    procedure: |
+      1. Test CUDA version:
+         LLAMA_SERVER_VARIANT=cuda llama-server --version
+         # Compare inference speed and quality
+
+      2. Test Debian version:
+         LLAMA_SERVER_VARIANT=debian llama-server --version
+         # Compare results
+
+      3. Create test configuration:
+         cat > test_comparison.sh <<'TESTEOF'
+         #!/bin/bash
+         MODEL="path/to/model.gguf"
+         PROMPT="Your test prompt here"
+
+         echo "=== Testing CUDA version ==="
+         LLAMA_SERVER_VARIANT=cuda time \
+           llama-cli -m "$MODEL" -p "$PROMPT" -n 100
+
+         echo ""
+         echo "=== Testing Debian version ==="
+         LLAMA_SERVER_VARIANT=debian time \
+           llama-cli -m "$MODEL" -p "$PROMPT" -n 100
+         TESTEOF
+         chmod +x test_comparison.sh
+         ./test_comparison.sh
+
+performance_expectations:
+  cuda_version:
+    expected_advantages:
+      - "Significant GPU acceleration (10-100x faster on compatible cards)"
+      - "Better quantized model performance"
+      - "Supports larger context windows with GPU VRAM"
+    expected_disadvantages:
+      - "Requires compatible NVIDIA GPU with CUDA support"
+      - "Slightly higher memory overhead"
+    ideal_for: "Production inference, performance-critical applications"
+
+  debian_version:
+    expected_advantages:
+      - "Works on any system (no GPU required)"
+      - "Smaller binary size"
+      - "Standard Debian package updates"
+    expected_disadvantages:
+      - "CPU-only inference (much slower)"
+      - "Limited to system RAM"
+    ideal_for: "Prototyping, CPU-only systems, testing"
+
+installation_commands:
+  install_cuda_build:
+    description: "Install the CUDA-optimized version system-wide"
+    command: "sudo bash /tmp/install_llama_cuda.sh"
+    what_it_does: |
+      - Copies llama-server-cuda to /usr/local/bin/
+      - Creates symlink /usr/local/bin/llama-server -> llama-server-cuda
+      - Makes /usr/local/bin version take precedence in PATH
+    requires_root: true
+
+  remove_cuda_build:
+    description: "Remove CUDA version, restore system default"
+    command: "sudo rm /usr/local/bin/llama-server /usr/local/bin/llama-server-cuda"
+    result: "System llama-server from Debian package will be used"
+
+  restore_system_default:
+    description: "Explicitly use Debian system version"
+    command: "LLAMA_SERVER_VARIANT=debian llama-server --args..."
+    result: "Forces use of /usr/bin/llama-server regardless of /usr/local/bin"
+
+protocol7_integration:
+  configuration_location:
+    path: "/data/projects/protocol-7/data/yaml/build-instructions/"
+    files:
+      - "llama-server-protocol7-config.yaml (this file)"
+      - "llama-server-exec-wrapper.sh (binary selector script)"
+      - "ik_llama.cpp-cuda-debian-wsl2.yaml (build guide)"
+
+  recommended_project_setup:
+    description: "How to use in Protocol-7 projects"
+    approach_1_wrapper_script:
+      name: "Use execution wrapper for all llama-server calls"
+      benefit: "Automatic selection, easy to switch versions"
+      implementation: |
+        In your protocol-7 coding task or script:
+
+        WRAPPER="/data/projects/protocol-7/data/yaml/build-instructions/llama-server-exec-wrapper.sh"
+        $WRAPPER --version
+        $WRAPPER --model model.gguf -p "prompt"
+
+    approach_2_environment_variable:
+      name: "Set LLAMA_SERVER_VARIANT environment variable"
+      benefit: "Simple, works with existing scripts"
+      implementation: |
+        export LLAMA_SERVER_VARIANT=cuda
+        llama-server --model model.gguf -p "prompt"
+
+    approach_3_conditional_logic:
+      name: "Script-based selection"
+      benefit: "Maximum flexibility and control"
+      implementation: |
+        if [ -x /usr/local/bin/llama-server ]; then
+          LLAMA_BIN="/usr/local/bin/llama-server"  # CUDA
+        else
+          LLAMA_BIN="/usr/bin/llama-server"  # Debian
+        fi
+        "$LLAMA_BIN" --args...
+
+build_plugin_opportunities:
+  automated_testing:
+    description: "Create plugins to automatically benchmark both versions"
+    tasks:
+      - "Compare inference speed"
+      - "Compare output quality"
+      - "Compare memory usage"
+      - "Generate comparison reports"
+
+  version_management:
+    description: "Build tools to manage and update llama-server versions"
+    tasks:
+      - "Automated CUDA build triggering"
+      - "Version-aware binary installation"
+      - "Rollback capabilities"
+
+  performance_monitoring:
+    description: "Monitor which version is being used in production"
+    tasks:
+      - "Log which binary is selected per run"
+      - "Collect performance metrics"
+      - "Track usage patterns"
+
+summary:
+  after_installation: |
+    Once you run: sudo bash /tmp/install_llama_cuda.sh
+
+    1. /usr/local/bin/llama-server will use CUDA-optimized version by default
+    2. System Debian version still available as fallback
+    3. Easy to switch versions via LLAMA_SERVER_VARIANT environment variable
+    4. Protocol-7 can use the wrapper for automatic intelligent selection
+
+  recommended_next_steps:
+    - "Run installation script as root"
+    - "Test both versions: LLAMA_SERVER_VARIANT=cuda|debian llama-server --version"
+    - "Integrate wrapper script into Protocol-7 workflow"
+    - "Create build plugins for automated testing/comparison"
+    - "Document performance characteristics for your GPU"
