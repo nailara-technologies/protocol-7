@@ -103,6 +103,7 @@ bin/dev/tests/
 ├── math/                  # Mathematical/Division-13 tests
 ├── ml/                    # ML/AI inference tests (Whisper, etc.)
 ├── network/               # Network connectivity tests
+├── patterns/              # Regex pattern and unit tests
 ├── timing/                # Oscillation/timing tests
 └── workflow/              # Workflow/integration tests
 ```
@@ -172,6 +173,7 @@ When adding new test scripts:
    - `math/` - Mathematical operation tests
    - `ml/` - ML/AI inference tests
    - `network/` - Network connectivity tests
+   - `patterns/` - Regex pattern and unit tests
    - `timing/` - Oscillation/timing tests
    - `workflow/` - Workflow/integration tests
 2. Follow naming convention: `test-<feature>` or `test-<component>-<scenario>`

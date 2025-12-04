@@ -176,3 +176,9 @@ sub host_architecture {
         if not defined $selected;
     return $selected;
 }
+
+#,,.,,,.,,...,.,,,,.,,.,,,..,,...,.,,,...,...,..,,...,...,,,.,.,.,..,,...,.,,,
+#WJFLLDMJFAGBQ2SDXNBNZ3BUKWKKUASCODE4LJGNNOCVSFWGTVVS5DZH35YEKENZIQ5S7QHFY2D7A
+#\\\|UUMYFVT25EX4LWWVFFCVPO27G7OVEJOWVDPOA6LEBXL7AMEYSDS \ / AMOS7 \ YOURUM ::
+#\[7]2WBD73TRI7ZQLCFHOCRLAGMCRSQZ2TNUP4ZMFSQXHZWC4LTQ4KBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

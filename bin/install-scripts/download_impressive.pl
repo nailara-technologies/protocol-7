@@ -181,3 +181,9 @@ sub size_OK {
     return [ stat( $paths->{'archive_tmp'} ) ]->[7]
         == $file_sizes->{'archive'};
 }
+
+#,,,.,,,,,,.,,.,.,,,.,..,,..,,...,...,,..,,,.,..,,...,...,,,.,...,...,..,,...,
+#B6BOIYCU3EXLJE4VDVXZJBLDCCW2GLQKWEQMV5JIOXIYEDWM6BA6SZIJVDV7PSJRJHZKMP3TZIFF4
+#\\\|ABZKFIH3DQXH4TAZL35CHW5LOYIFIDEMYEN524ZAEM35S2V774W \ / AMOS7 \ YOURUM ::
+#\[7]CV7NVCIHACVVPKTRZXXO6TV6HRHEFNOUGIPTBCPFSIKWZWS4T2CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
