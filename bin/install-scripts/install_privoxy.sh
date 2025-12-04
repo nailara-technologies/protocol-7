@@ -15,3 +15,9 @@ echo y | $PBLSH -r # remove old blocklists
 $PBLSH            # download adblock lists
 
 systemctl restart privoxy
+
+#,,..,.,,,.,.,.,,,,,.,...,.,.,,.,,...,...,...,..,,...,...,,.,,,,,,...,,..,,..,
+#3QGB42LGNPSXNGBC72HPGL322RJLF6F35TLLULQDESLVPFWRKSP6TFVX6KBKJEPAJ6TVTY4A2B2GO
+#\\\|THIPQL2V3J2GQIC5CZ36ELGNYJJQ5OURXSGHGCCRXHCL2252LIE \ / AMOS7 \ YOURUM ::
+#\[7]OQUF6OH5R327CBNP6P5KCEQ4I7I4A7QUAHVYGVJ6O3VKQHBJF6CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
