@@ -3,9 +3,24 @@
 # name    = base.load_modules
 # descr   = load a given set of modules
 
-my @modules_to_load = split( m| +|, join( ' ', @ARG ) );
+my $exclude_regex = <regex.base.backup_files>;  ## prepare known exclusions ##
 
-if ( not scalar @modules_to_load ) {
+my @modules_to_load    ## first filter is for editor backup files ##
+    = grep { !$exclude_regex } split( m| +|, join( ' ', @ARG ) );
+
+my %seen;              ## uniq implementation ##
+my $num_elements   = scalar @modules_to_load;
+my @unique_modules = grep { !$seen{$_}++ } @modules_to_load;
+
+my $delta_mod = $num_elements - scalar @unique_modules;
+if ( $delta_mod > 0 ) {
+
+    warn "%d redundant module name%s submitted\n",
+        $delta_mod, ( $delta_mod == 1 ? '' : 's' );
+    ## filtered against redundancy ###
+    @modules_to_load = @unique_modules;
+
+} elsif ( not scalar @modules_to_load ) {
     warn 'expected module name[s] <{C1}>';
     return ( 0, 0 ) if wantarray;
     return FALSE;
@@ -26,8 +41,8 @@ return TRUE if not $subs_failed and $subs_ok;
 
 return FALSE;
 
-#,,.,,..,,.,.,,.,,...,,.,,,.,,.,.,,,.,,,.,...,..,,...,...,.,,,.,.,,,,,.,.,..,,
-#I3XLCK23R6CFJMZMEWEEG2NPVPTJQK2SVDT73GHNPJACE7JX2TCF3KGXOFO62MW52PZ3GG727D6UQ
-#\\\|TD7NCIXC5CT77GXURTQSI44MH3P637UEOVFKYNQIK5MWGRZBB2V \ / AMOS7 \ YOURUM ::
-#\[7]MDLVXJBH7LZ3OMF2CDPYLST4M7VWKDWAFBGLBGO4BOD2RW3PPIAA 7  DATA SIGNATURE ::
+#,,,.,,,.,...,...,,,,,...,,,.,,,,,.,,,,,.,,.,,..,,...,...,,.,,..,,..,,...,,.,,
+#BRR46WDTWWURE4J47NHNPTP76TNJ5ATTZUDDO4GEJNGWQRA5EG6QXFB7N6OI6LQVTPE6R43FCP23S
+#\\\|7HHWU5A3W2O3JQA2THXDWT3OBAABYAOSVYEBSLQHCXUXAWSMIIA \ / AMOS7 \ YOURUM ::
+#\[7]XMDUCSMQW6HS6FAZOSOJZ7SNL5M2AYXGU6N75HBGYTNLJID4BABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

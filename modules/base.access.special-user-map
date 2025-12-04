@@ -3,10 +3,10 @@
 # name  = base.access.special-user-map
 # descr = map '<username>' template syntax to '<system.<username>>' vars
 
-my $template_string = shift // '';    ## returning keyword list on undef ##
-my $do_not_warn     = shift // 0;     ##  optional 'silent' parameter  ##
+my $template_string = shift // '';       ## returning keyword list on undef ##
+my $do_not_warn     = shift // FALSE;    ##  optional 'silent' parameter  ##
 
-my $user_map = {                      ##  defining special-user templates  ##
+my $user_map = {    ##  defining special-user templates  ##
 
     qw| <admin-user> | => <system.admin-user>,
     qw| <unix-admin> | => defined <system.admin-user>
@@ -32,9 +32,9 @@ if ( exists $user_map->{$template_string}
 
     my $username = ${^CAPTURE}[1];
     <[base.s_warn]>->(
-        '<system.%s> not defined <{C1}>',
+        '<unix-%s> not defined <{C1}>',
         $username eq qw| admin | ? qw| admin-user | : $username
-    ) if $do_not_warn == 0;
+    ) if $do_not_warn == FALSE;
 
     return undef;    ##  template is valid but user not defined  ##
 
@@ -42,7 +42,7 @@ if ( exists $user_map->{$template_string}
     <[base.s_warn]>->(
         "special user template name '%s' not known <{C1}>",
         ${^CAPTURE}[0]
-    ) if $do_not_warn == 0;
+    ) if $do_not_warn == FALSE;
 
     return undef;    ##  template name not known  ##
 
@@ -50,8 +50,8 @@ if ( exists $user_map->{$template_string}
     return $template_string;    ##  mot a template syntax  ##
 }
 
-#,,,.,.,,,,.,,,..,..,,,.,,.,,,,..,,..,...,,,,,..,,...,..,,.,.,,.,,,,,,,.,,,.,,
-#QSX5DZY3WDX63UDFCWOCYMFGFPUKBBQI457KTGTJUQGRRUQVQS4F65MTTXGEZ353U6LY4ZNDDGUES
-#\\\|6COYPYIUHCJW2N2SOUZPDSWBGSEDM63RMYBCTI7AL6BWRRCJNSS \ / AMOS7 \ YOURUM ::
-#\[7]7MXAQYLIJOVFHFLUBINYWR4XXTOZ4Z4LH5HA5MB5HUORGHWMEQAA 7  DATA SIGNATURE ::
+#,,,,,...,,,.,...,..,,,..,,,,,...,,..,.,.,..,,..,,...,.,,,,,,,..,,,,.,.,,,.,,,
+#CU74SOLV2JL4HQZ6TMOHDBRVLMQ32LOGB6ERQADLPPWGCHXDTINJBA24SFIO6RMV4LVBHFCYH4GCS
+#\\\|ZEHWJ3YOTQ4AUTT3S4W3LLUTCBW2RRTTR5FTFOK6XOLVDUE5IHM \ / AMOS7 \ YOURUM ::
+#\[7]YJHGRXTLYU4BZF745E7DFMVJH7D7566TGBV22P4HPX7TMA2IXCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,251 @@
+---
+task_id: command-path-regex-validation-hierarchy
+date_created: 2025-12-03
+status: planning
+priority: high
+context_files:
+  - modules/base.regex (lines 21-22, 39-40)
+  - modules/base.validate.composite_name
+
+# Implement Complete Command Path Regex with Hierarchical Validation
+
+title: |
+  Implement complete command path regex validation with zenka[subname] hierarchy support
+
+description: |
+  The current command path regex (base.regex 'cmdp' and 'cmdrp') uses a simplified pattern
+  that validates individual components but does not enforce the complete hierarchical
+  command path structure: zenka[subname].command with optional arguments.
+
+  A more complete pattern exists in commented form (lines 21-22) that validates the
+  full hierarchy but was simplified due to complexity during initial implementation.
+
+  This task is to complete the implementation with proper support for the new unix-
+  authentication prefix that can appear before zenka names.
+
+# Context & Motivation
+
+context: |
+  During Protocol-7 development, two command path regex patterns were considered:
+
+  SIMPLIFIED (currently active):
+    'cmdp' => qr|[0-9a-z]$cmd_rp_str|
+    'cmdrp' => $cmd_rp_str  (where $cmd_rp_str = qr|[0-9a-zA-Z\-_\[\]\.]{1,}|)
+
+  HIERARCHICAL (commented, lines 21-22):
+    $cmd_path_re = qr{(($usr_str_re(\[$sn_str_re\])?)\.)*$cmd_str_re( .+)?}
+    $reply_re = qr|[A-Z]{3,4}( .+)?|
+
+  The simplified pattern works but doesn't validate:
+  - Valid zenka name boundaries (relies on permissive character class)
+  - Subname composition and length limits
+  - Hierarchical structure enforcement
+
+  The hierarchical pattern validates strict structure but was never completed
+  (possibly due to the unix- prefix not being explicitly handled at the time).
+
+rationale:
+  - Security: Protocol safety improves with multiple validation layers
+  - Correctness: Hierarchical validation prevents malformed command routing
+  - Consistency: Should match structure defined in base.validate.composite_name
+  - Future-proof: With unix- prefix now explicit in regex, we can properly implement this
+  - Performance: Multiple validation stages catch errors early in command processing
+
+impact_of_unix_prefix_fix: |
+  Recent fix to base.regex (unix- prefix now optional in $usr_str_re) enables
+  this feature to work correctly. The old hierarchical pattern would have been
+  broken by unix- prefixed usernames unless updated to handle the optional prefix.
+
+# Technical Analysis
+
+current_simplified_approach:
+  pattern: |
+    qr|[0-9a-z]$cmd_rp_str|  where $cmd_rp_str = qr|[0-9a-zA-Z\-_\[\]\.]{1,}|
+
+  validates:
+    - Starts with alphanumeric or lowercase
+    - Contains standard command/path characters
+
+  does_not_validate:
+    - Zenka name boundaries and limits (MAX=32)
+    - Subname boundaries and limits (MAX=18)
+    - Composite zenka[subname] structure
+    - Unix prefix handling
+    - Hierarchical depth
+    - Argument section separation
+
+proposed_hierarchical_approach:
+  base_pattern: |
+    (($usr_str_re(\[$sn_str_re\])?)\.)*$cmd_str_re( .+)?
+
+  with_unix_prefix_support: |
+    (((?:unix-)?$usr_str_re)(\[$sn_str_re\])?\.)*$cmd_str_re( .+)?
+
+  validates:
+    - Optional unix- prefix before zenka name (auth system marker)
+    - Complete zenka name (via $usr_str_re with unix- support)
+    - Optional subname in brackets (via $sn_str_re)
+    - Hierarchical path (zero or more zenka[subname]. prefixes)
+    - Command name (via $cmd_str_re, must start with lowercase)
+    - Optional arguments (space + rest of line)
+
+# Implementation Plan
+
+phases:
+  phase_1_analysis:
+    title: Complete analysis and documentation
+    tasks:
+      - Review actual usage patterns of current 'cmdp'/'cmdrp' in codebase
+      - Identify if any command paths currently exceed hierarchical limits
+      - Document differences between simplified and hierarchical validation
+      - Profile regex performance impact of hierarchical approach
+      - Document unix- prefix behavior in hierarchical context
+    risk: low
+    testing: Analysis only, no code changes
+
+  phase_2_reference_implementation:
+    title: Update commented patterns with unix- prefix support
+    tasks:
+      - Update $cmd_path_re pattern to handle (?:unix-)? prefix explicitly
+      - Update $reply_re pattern (unchanged, but verify)
+      - Document the pattern in comments with examples
+      - Create test cases for pattern validation
+      - Verify pattern handles all expected command formats
+    risk: low
+    impact: Documentation only
+    examples:
+      - taeki.zenka.command args
+      - unix-taeki.zenka.command args
+      - zenka[subname].command args
+      - unix-zenka[subname].command args
+      - cube.v7[coding].status
+      - unix-user.zenka[session123].get-data
+
+  phase_3_gradual_activation:
+    title: Activate hierarchical validation carefully
+    tasks:
+      - Create base.regex.hierarchical module with both patterns
+      - Add flag to base.regex to enable/disable hierarchical validation
+      - Log mismatches between simplified and hierarchical on non-critical paths
+      - Gather data on real command paths that would fail hierarchical validation
+      - Adjust limits if needed based on actual usage patterns
+    risk: medium
+    mitigation: Validation in logging mode only, no rejection yet
+
+  phase_4_enforcement:
+    title: Enable hierarchical validation with safeguards
+    tasks:
+      - Review logged mismatches from phase 3
+      - Update any documented command path standards if needed
+      - Enable hierarchical validation on new commands first
+      - Gradually migrate existing command paths
+      - Add comprehensive error messages for validation failures
+    risk: medium
+    mitigation: Feature flag allows quick disable if issues arise
+
+# Affected Components
+
+modules_using_cmdp_cmdrp:
+  - base.handler.command (CRITICAL: multiline command parsing)
+    usage: Validates command paths in multiline continuation mode
+    pattern: |
+      Optional command ID in parentheses: ($re->{cmd_id})|
+      Followed by command path validation: $re->{cmdp}
+      Used for: multiline_cmd !~ s,^(\($re->{cmd_id}\)|)$re->{cmdp}\+\n,,o
+      Purpose: Handles '+' continuation syntax for multi-line commands
+    validation_critical: yes
+    examples:
+      - "(12345) cube.v7.status\n"
+      - "zenka[session].get-data\n"
+      - "unix-user.command.subcmd\n"
+  - base.cmd.* (command parsing)
+  - cube.* (session commands)
+  - v7.zenka.* (zenka management)
+
+validation_modules_affected:
+  - base.validate.composite_name (user/zenka validation)
+  - base.parser.access_conf (access control parsing)
+
+related_fixes:
+  - Recent unix- prefix support in base.regex
+  - Composite name validation already exists
+
+# Success Criteria
+
+completion:
+  - Hierarchical pattern supports optional unix- prefix correctly
+  - Pattern matches all current valid command paths
+  - Pattern rejects invalid paths that would break routing
+  - Zero behavioral changes to command processing
+  - No performance degradation (<1% overhead acceptable)
+
+testing:
+  - Unit tests for pattern matching (valid/invalid cases)
+  - Integration tests with real command routing
+  - Performance benchmark: 100k command validations
+  - Edge case validation: maximum length paths, special characters
+  - Unix prefix handling: plain and prefixed user names
+
+documentation:
+  - Command path syntax specification
+  - Examples with unix- prefix support
+  - Validation rule documentation
+  - Performance characteristics
+  - Migration guide for existing code
+
+# Risk Assessment
+
+risks:
+  - name: Multiline command validation in base.handler.command
+    severity: critical
+    impact: |
+      The '+' continuation syntax for multiline commands depends on accurate cmdp
+      regex validation. Incorrect patterns could break multi-statement command
+      processing or allow invalid commands to proceed undetected.
+    mitigation: |
+      Extensive integration testing with actual multiline command sequences.
+      Regression tests for base.handler.command multiline parsing.
+      Validation disabled initially, observation mode only.
+
+  - name: Performance impact on high-volume command routing
+    severity: medium
+    mitigation: Profile first, optimize pattern if needed, feature flag disable option
+
+  - name: Existing valid command paths rejected
+    severity: high
+    mitigation: Phase 3 gathering of real paths before enforcement, gradual activation
+
+  - name: Unix prefix interaction with hierarchical patterns
+    severity: medium
+    mitigation: Comprehensive test cases during phase 2 implementation
+
+  - name: Complex regex becomes maintenance burden
+    severity: low
+    mitigation: Comprehensive documentation and examples
+
+# Notes & Insights
+
+architectural_insight: |
+  The simplified approach trades validation completeness for simplicity, which is
+  reasonable in development. However, with multiple validation layers, protocol
+  robustness improves significantly. The commented patterns represent an earlier
+  design decision that should be completed now that the unix- prefix support
+  clarifies the requirements.
+
+design_philosophy: |
+  Protocol-7's architecture favors explicit, validated structures. Command paths
+  have semantic meaning (hierarchical routing through zenki), so validation should
+  enforce that structure rather than just character whitelisting.
+
+unix_prefix_integration: |
+  The recent unix- prefix fix to base.regex creates a natural opportunity to
+  implement this deferred feature, as the prefix handling is now explicit and
+  composable in regex patterns.
+
+future_applications: |
+  Once complete, the hierarchical pattern can be reused for:
+  - Message routing validation
+  - Access control rule validation
+  - Session hierarchy validation
+
+---
