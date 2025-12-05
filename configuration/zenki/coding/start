@@ -1,16 +1,39 @@
 
- .:[ protocol-7 coding zenka ]:.
+ .:[ protocol-7 coding zenka - GPU+CPU dual inference ]:.
 
 [load_config_file:'shared-params']
 
 access.cmd.usr.cube = commands heart reload verify-instance \
                       list show-buffer buffer-erase buffer-erase-level \
-                      budget status submit ## <-- coding zenka comands ## *
+                      budget status submit infer query test-inference ## <-- coding zenka comands ## *
 
 system.verbosity.zenka_buffer = 2  ##  memory ring buffer verbosity  ##
 
 ## Enable automatic user key creation for coding zenka ##
 crypt.C25519.autocreate-user-key = yes
+
+## GPU+CPU Dual Inference Configuration ##
+inference.backend.gpu.enabled = yes
+inference.backend.gpu.binary = /data/source/ik_llama.cpp/llama-server-cuda
+inference.backend.gpu.model = /mnt/m/lmstudio-community/Qwen2.5-7B-Instruct-1M-GGUF/Qwen2.5-7B-Instruct-1M-Q4_K_M.gguf
+inference.backend.gpu.vram_threshold = 8589934592  ## 8GB in bytes ##
+inference.backend.gpu.gpu_layers = 33  ## Full offload for RTX 3060 ##
+
+inference.backend.cpu.enabled = yes
+inference.backend.cpu.binary = /data/source/ik_llama.cpp/llama-server-cpu
+inference.backend.cpu.model = /mnt/m/lmstudio-community/Qwen2.5-7B-Instruct-1M-GGUF/Qwen2.5-7B-Instruct-1M-Q4_K_M.gguf
+inference.backend.cpu.threads = 8  ## Use system thread count ##
+
+## Routing Configuration ##
+inference.routing.prefer_gpu = yes  ## Use GPU when available ##
+inference.routing.gpu_timeout = 30000  ## 30 seconds in ms ##
+inference.routing.cpu_timeout = 300000  ## 300 seconds in ms ##
+inference.routing.fallback_on_timeout = yes  ## Try CPU if GPU times out ##
+
+## Model Configuration ##
+inference.model.context_length = 2048
+inference.model.max_tokens = 256
+inference.model.temperature = 0.7
 
 modules.load = auth net protocol io.unix io.ip crypt.C25519 coding ## devmod
 [load_modules:<modules.load>]
@@ -23,8 +46,8 @@ modules.load = auth net protocol io.unix io.ip crypt.C25519 coding ## devmod
 
 [zenka.loop]
 
-#,,,.,,..,.,.,.,.,,,,,...,...,,,,,.,,,,,.,,.,,..,,...,...,.,.,,,,,,..,,.,,,,,,
-#CAOHSXKLWPGVOEFULCPGXOPOPUUE5LMYITWNBRPLQB4EG327TZMZ7MNJH2FGDOK4JL36FZBGBOWLW
-#\\\|TRMYS5PIB5ZXKZW7EF7GIWBEBQZQAYE3MYHYHCDWCLJSYC2FTD3 \ / AMOS7 \ YOURUM ::
-#\[7]URHRIM7MCCC75DW2XBFM5BDNTIRUPPQL6PX23LDRNO2MMDZP3ABI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,..,,,,,.,,,,..,.,,,...,...,.,,,..,,...,...,,..,.,.,.,,,..,,...,
+#GSXQ2P24KDREE5HGWEXE2EEJFXNPQP432IR5S57ZSJVUILMOBCIWKSZTDZATSOFK2QJ7OCYGWDIJ4
+#\\\|EBPJ7TDSURVW7X6IBSAGBS6DWYLPNUWV5O3XBEESLBGHPOKUQ53 \ / AMOS7 \ YOURUM ::
+#\[7]IFDZ7ICVWOP6NHMYN25CNVUKOD6PO45SIHJUDDKIAFNXIO2RGYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
