@@ -31,8 +31,12 @@ my @original_lines = <$fh>;
 close $fh;
 
 # Filter patterns that should be automatically removed from commit message
-my @filter_patterns
-    = ( qr|^\p{Emoji}\s+Generated with|, qr|^Co-Authored-By:|, qr|^\[CLAUDE\] |, );
+my @filter_patterns = (
+    qr|^\s*.\s+Generated with |,
+    qr|^Co-Authored-By:|,
+    qr|^\[CLAUDE\] |,
+    qr|\[Claude Code\] \([^\)]+\)$|
+);
 
 # Process lines: separate filtered from kept lines
 my @kept_lines;
@@ -75,8 +79,8 @@ if (@filtered_lines) {
 
 exit 0;
 
-#,,,.,.,,,,,,,,,.,,,.,,.,,.,,,,,,,..,,..,,,.,,..,,...,...,..,,.,,,.,.,,,,,,,,,
-#F4LKTVP53MXWJVBWUT22YDUAYHPFPS7BPYLAWZ6ZK3S2S6I6Y75JCB6CPOQWZCHBAHWUPEAL57ZXM
-#\\\|XROXXSJUTPLAG2A27KSNHSXUDYHL4NHK7JCRDEDJ7ZC347BMDIH \ / AMOS7 \ YOURUM ::
-#\[7]Z64N4IPH4ICJETM2ZSTJBBQIEBZEDDWS7F2PQ7QIRE2JECLPUIAI 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,..,,,..,...,,..,.,,,.,.,,,.,.,,,..,,...,...,.,.,,.,,,,,,,,.,,,,,
+#UER3PIMDBOQD5NVRYPSBFURTYRVABV5CTMN5RUDKS4TQIMAXNYMPDTEC4TYMNPQSHOEZUY6RVZVS6
+#\\\|4OBWCEI7PXQENQ4X46BGP5UEIFYNRIDSEPR35223Q6U6IA7GXZM \ / AMOS7 \ YOURUM ::
+#\[7]I2EJBVYKQYT4WJSQXP74ASY2QE6ZWQJHUINCTPEV7QWVB7YIKQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
