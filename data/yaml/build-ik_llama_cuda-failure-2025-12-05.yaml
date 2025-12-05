@@ -1,0 +1,218 @@
+---
+# GPU-Accelerated ik_llama.cpp Build Attempt - FAILED
+# Date: 2025-12-04 to 2025-12-05
+# Status: ABANDONED - Fundamental ecosystem incompatibility
+# Duration: ~4-5 hours of active debugging
+# Effort: Extensive - multiple approaches, CUDA versions, compilation methods
+
+project: "ik_llama.cpp GPU Acceleration for Protocol-7 Coding Zenka"
+objective: "Build llama.cpp with CUDA GPU support to replace LM Studio infrastructure"
+
+system_context:
+  gpu: "NVIDIA GeForce RTX 3060 (12GB VRAM, compute_86)"
+  driver: "NVIDIA-SMI 590.44.01 / Driver 576.88 (WSL2 limitation)"
+  os: "Debian 12 (WSL2)"
+  gcc: "GCC 12.5.0 (Debian 12.5.0-6)"
+  cuda_toolkit: "Tested: 12.8, 12.9, 13.0, 13.1"
+  disk: "~211GB available on external 1TB NVMe"
+  compiler: "CMake 3.31.6 and GNU Make"
+
+root_cause:
+  error_type: "Exception Specification Incompatibility"
+  description: |
+    CUDA math function headers declare functions with 'noexcept(true)'
+    System C++ standard library headers have different/no exception specifications
+    This mismatch occurs at CUDA compiler (nvcc) level, not host compiler level
+    Cannot be suppressed with compiler flags (-fpermissive, -Wno-error)
+    Affects EVERY CUDA version tested (12.8 through 13.1)
+
+  example_error: |
+    /usr/include/x86_64-linux-gnu/bits/mathcalls.h(206): error: exception specification is
+    incompatible with that of previous function "rsqrtf" (declared at line 653 of
+    /usr/local/cuda-13.1/include/crt/math_functions.h)
+
+    The error occurs during CUDA object compilation, not detection phase
+    Cannot be bypassed with CMake settings or environment variables
+
+approaches_attempted:
+  approach_1:
+    name: "CMake with CUDA 13.0"
+    method: "cmake -B build -DGGML_CUDA=ON with permissive flags"
+    result: "FAILED at compiler detection phase"
+    error: "CMakeDetermineCompilerId.cmake - 2 errors in CMakeCUDACompilerId.cu"
+    time_spent: "30 minutes"
+    lesson: "CMake detection runs before flag injection; can't suppress noexcept errors"
+
+  approach_2:
+    name: "CMake with CUDA 12.9"
+    method: "Switched to CUDA 12.9, same CMake approach"
+    result: "FAILED with identical error"
+    error: "6 errors instead of 2 - same root cause"
+    time_spent: "20 minutes"
+    lesson: "Not version-specific; all CUDA versions have this issue"
+
+  approach_3:
+    name: "GCC Downgrade (14 -> 12)"
+    method: "Changed default compiler to GCC 12.5.0 with update-alternatives"
+    result: "FAILED with same noexcept errors"
+    error: "Exception specification mismatch persists"
+    time_spent: "40 minutes"
+    lesson: "GCC version isn't the problem; CUDA headers vs stdlib are incompatible"
+
+  approach_4:
+    name: "CMake Toolchain File"
+    method: "Created cuda13-toolchain.cmake to bypass detection"
+    files_created: "/tmp/cuda13-toolchain.cmake"
+    result: "FAILED - CMakeLists.txt enable_language(CUDA) still triggers detection"
+    error: "Toolchain settings override didn't prevent compiler probing"
+    time_spent: "30 minutes"
+    lesson: "Can't fully bypass CMake's compiler detection with toolchain alone"
+
+  approach_5:
+    name: "Makefile Build with CUDA 12.9"
+    method: "Using GNU Make instead of CMake (GGML_CUDA=1)"
+    result: "FAILED during CUDA object compilation"
+    error: "ggml-cuda.cu compilation failed with noexcept errors"
+    time_spent: "45 minutes"
+    lesson: "Makefile bypasses detection but hits compilation error directly"
+    key_insight: "Makefile approach proved the real blocker is compilation, not detection"
+
+  approach_6:
+    name: "Makefile Build with CUDA 13.1"
+    method: "Removed 12.8/12.9/13.0, installed 13.1, tried Makefile again"
+    result: "FAILED with identical noexcept errors"
+    errors:
+      - "clamp.cu: 4 errors"
+      - "dmmv.cu: 4 errors"
+      - "ggml-cuda.cu: 4 errors"
+      - "undefined GGML_CUDA_FUSION and GGML_CUDA_MIN_BATCH_OFFLOAD"
+    time_spent: "45 minutes"
+    lesson: "All CUDA versions fail the same way - it's a systematic incompatibility"
+
+workarounds_tried:
+  - name: "Permissive Compiler Flags"
+    flags: "-fpermissive -Wno-error"
+    result: "FAILED - doesn't apply to CUDA compiler detection/compilation"
+    why: "CUDA compilation happens before host compiler flags are used"
+
+  - name: "Header Patching"
+    approach: "Remove noexcept(true) from CUDA headers"
+    result: "FAILED - file permissions (not root user)"
+    why: "Non-root user cannot modify /usr/local/cuda-*/include"
+
+  - name: "CMake Implicit Link Configuration"
+    approach: "Set CMAKE_CUDA_IMPLICIT_LINK_LIBRARIES_INIT"
+    result: "FAILED - doesn't suppress noexcept errors during detection"
+    why: "Error occurs before linker phase"
+
+  - name: "Different GCC/Clang Versions"
+    approach: "Tried GCC 12, GCC 14, different compiler combinations"
+    result: "FAILED - error persists across all GCC versions"
+    why: "Problem is CUDA headers vs system stdlib, not host compiler"
+
+system_interactions:
+  disk_space:
+    issue: "Multiple CUDA versions (12.8, 12.9, 13.0, 13.1) consumed 40GB+ each"
+    solution: "Added 1TB external NVMe, redirected /var/cache/apt/archives"
+    status: "✓ SOLVED"
+
+  library_dependencies:
+    issue: "Binary missing libllama.so, libmtmd.so, libggml.so"
+    solution: "Created symlinks to /usr/lib/x86_64-linux-gnu/llama and ggml"
+    status: "✓ SOLVED - CPU-only binary works"
+
+  gpu_availability:
+    status: "✓ GPU fully functional (nvidia-smi shows RTX 3060 12GB)"
+    driver: "590.44.01 working correctly"
+    issue: "Can't compile code to use it"
+
+what_worked:
+  - "GPU driver installation and detection"
+  - "CUDA toolkit installations (syntax-wise)"
+  - "nvcc compiler availability"
+  - "Makefile system overall"
+  - "CPU-only llama-server binary"
+  - "External storage configuration"
+  - "Library symlink workaround"
+
+what_didnt_work:
+  - "Any CUDA version (12.8, 12.9, 13.0, 13.1)"
+  - "CMake compilation path"
+  - "Makefile compilation path"
+  - "GCC version workarounds"
+  - "Compiler flag suppression"
+  - "CMake toolchain bypass"
+  - "Header patching"
+
+token_investment:
+  messages_exchanged: "~80+ back-and-forth exchanges"
+  complexity: "Involved research, debugging, CUDA ecosystem investigation"
+  time_span: "Multiple sessions spanning 2 days"
+  final_assessment: "Legitimate technical blocker, not user error"
+
+decision:
+  outcome: "ABANDONED"
+  reason: "Fundamental ecosystem incompatibility (CUDA headers vs system stdlib)"
+  alternative: "Use LM Studio with pre-built GPU support"
+  impact: "Coding zenka cannot be implemented with ik_llama.cpp"
+  recommendation: "Deferred to future when CUDA/Debian compatibility improves"
+
+lessons_learned:
+  1: "CUDA/Debian ecosystem has known header compatibility issues"
+  2: "Some problems are not fixable with workarounds - they're architectural"
+  3: "Trying multiple CUDA versions was the right debugging approach"
+  4: "Makefile vs CMake doesn't matter if underlying libraries are incompatible"
+  5: "External disk management enabled exploration despite space constraints"
+  6: "Sometimes the pragmatic choice is to accept the blocker and move on"
+  7: "GPU availability ≠ compilable GPU support (driver level vs SDK level)"
+
+files_created:
+  - path: "/data/source/ik_llama.cpp/backup.tmp/build-cuda130.sh"
+    purpose: "Non-root CUDA 13.0 build script"
+    status: "Created but unused due to compilation errors"
+
+  - path: "/data/source/ik_llama.cpp/backup.tmp/build-cuda129.sh"
+    purpose: "Non-root CUDA 12.9 build script"
+    status: "Created but unused due to compilation errors"
+
+  - path: "/data/source/ik_llama.cpp/backup.tmp/cuda13-toolchain.cmake"
+    purpose: "CMake toolchain to bypass detection"
+    status: "Created but insufficient to bypass compilation phase"
+
+  - path: "/data/source/ik_llama.cpp/common/stb_image.h"
+    purpose: "Missing header dependency"
+    status: "Downloaded from upstream to enable build attempt"
+
+  - path: "/tmp/build.log", "/tmp/build-13.1.log"
+    purpose: "Build logs documenting failures"
+    status: "Removed (temp files)"
+
+cleanup_status:
+  cuda_versions_removed: "12.8, 12.9, 13.0"
+  cuda_version_final: "13.1"
+  storage_freed: "~40GB"
+  external_disk_configured: "Yes (1TB NVMe at /mnt/ext-xfs-data)"
+
+conclusion: |
+  This was a legitimate technical blocker, not a matter of trying harder.
+  The CUDA ecosystem and Debian's system C++ standard library have an
+  incompatibility in math function exception specifications that cannot be
+  worked around through compilation flags, version switching, or workarounds.
+
+  All CUDA versions (12.8-13.1) tested exhibited identical failures.
+  Both CMake and Makefile approaches failed at actual compilation time.
+
+  The pragmatic decision: Use LM Studio for GPU model serving.
+  LM Studio is production-ready, pre-compiled, and doesn't require rebuild.
+
+  Coding zenka implementation deferred until viable GPU acceleration available.
+
+timestamp: "2025-12-05T06:30:00Z"
+session_count: "2 sessions, ~4-5 hours active debugging"
+status: "DOCUMENTED AND CLOSED"
+
+#,,,,,,..,,,,,.,,,,,.,,.,,.,.,,..,,..,,,,,,.,,..,,...,.,.,...,,,.,...,,,,,.,,,
+#6XTYB45KFNPBEEHIQVPCGIOSQA6GI4LSSVLOOTN7IVHZ75QW7GQTALHNOFAKG3OIGVSNVGQGRUHDA
+#\\\|EUDZJX2E2XN3KMJM6KCCNJYMVHYNJL3HXK5C3UTY5S54S7CMYBK \ / AMOS7 \ YOURUM ::
+#\[7]D6XCPXCU5E2UPPFCPUZIPNSZYKM3GEU7F7KGNEGHQJII52LXRACA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
