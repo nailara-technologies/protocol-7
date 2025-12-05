@@ -1,0 +1,342 @@
+## Dual GPU+CPU Strategy for ik_llama.cpp Integration
+## Comprehensive approach to reliable and performant inference
+## Date: 2025-12-05
+
+overview:
+  goal: "Implement intelligent workload routing between GPU-accelerated and CPU-only inference"
+  philosophy: "Use GPU when available for 100x speed improvement, fall back to CPU for 100% reliability"
+  implementation: "Hybrid zenka system in Protocol-7 with automatic failover"
+  status: "Both binaries built and tested, ready for integration"
+
+deployment_binaries:
+  gpu_accelerated:
+    name: "llama-server-cuda-12.5.0"
+    location: "/data/source/ik_llama.cpp/llama-server-cuda-12.5.0"
+    size: "6.2 MiB (includes CUDA libraries)"
+    build_method: "Docker-based compilation with full CUDA 12.5.0 stack"
+    compilation_time: "~30 minutes (includes Docker build)"
+    dependencies: |
+      - libcudart.so.12 (CUDA runtime)
+      - libcublas.so.12 (GPU math)
+      - libcublasLt.so.12 (GPU tensor operations)
+      - libcurand.so.10 (GPU random)
+      - libcusparse.so.12 (GPU sparse operations)
+      - NVIDIA RTX 3060 or compatible GPU
+
+    test_status: "✅ VALIDATED"
+    test_model: "Qwen2.5 7B Instruct 1M (Q4_K_M)"
+    gpu_info: "NVIDIA GeForce RTX 3060 (11GB VRAM, Ampere)"
+    performance:
+      gpu_memory: "~7.5 GB for 7B model with full offloading"
+      tokens_per_second: "~5-10 (estimated, -ngl 33)"
+      latency: "100-200ms per token"
+      use_case: "Interactive queries, real-time responses"
+
+  cpu_only:
+    name: "llama-server-cpu"
+    location: "/data/source/ik_llama.cpp/llama-server-cpu"
+    size: "6.1 MiB (fully self-contained)"
+    build_method: "Direct CMake compilation with native optimizations"
+    compilation_time: "~45 seconds (-j8)"
+    dependencies: "None (fully statically compiled)"
+
+    test_status: "✅ VALIDATED"
+    test_model: "Qwen2.5 7B Instruct 1M (Q4_K_M)"
+    system_info: "x86_64 with 8 CPU cores, AVX2 support"
+    performance:
+      system_memory: "~8-10 GB for 7B model"
+      tokens_per_second: "~0.05-0.1 (8 threads)"
+      latency: "10-20 seconds per token"
+      use_case: "Batch processing, background tasks, fallback"
+
+comparative_analysis:
+  primary_decision_factor: "Latency requirements and reliability needs"
+
+  use_gpu_when:
+    - "Latency < 1 second required (interactive)"
+    - "GPU has sufficient free VRAM (>8GB for 7B model)"
+    - "Low-medium throughput (1-5 concurrent requests)"
+    - "Real-time user-facing queries"
+    - "Context-aware responses needed immediately"
+
+  use_cpu_when:
+    - "GPU unavailable or no NVIDIA hardware"
+    - "GPU already at capacity (high queue)"
+    - "Batch processing multiple queries"
+    - "Background tasks (non-interactive)"
+    - "Maximize uptime/availability over speed"
+    - "Cost optimization for non-interactive workloads"
+
+  decision_tree: |
+    1. Is GPU available and initialized?
+       → Yes: Check free VRAM
+       → No: Route to CPU
+
+    2. Does GPU have >8GB free VRAM?
+       → Yes: Estimate queue depth
+       → No: Route to CPU
+
+    3. Is queue depth < 3 requests?
+       → Yes: Route to GPU (will be fast)
+       → No: Queue for CPU (balanced load)
+
+    4. Is this a batch request (>100 tokens context)?
+       → Yes: Prefer CPU (better throughput)
+       → No: Prefer GPU (better latency)
+
+implementation_roadmap:
+  phase_1_documentation:
+    status: "✅ COMPLETE"
+    deliverables:
+      - GPU build documentation (Docker-based, CUDA 12.5)
+      - CPU build documentation (CMake-based, native x86_64)
+      - Binary testing with Qwen2.5 7B model
+      - Performance characteristics documented
+
+  phase_2_integration:
+    status: "🔄 IN PROGRESS"
+    tasks:
+      - "Create coding zenka in Protocol-7"
+      - "Implement GPU availability detection"
+      - "Implement CPU fallback logic"
+      - "Create model loading and management"
+      - "Add health checks and monitoring"
+
+    files_to_create:
+      - configuration/zenki/coding/start
+      - modules/coding.init
+      - modules/coding.gpu_check
+      - modules/coding.inference_router
+      - modules/coding.model_manager
+
+  phase_3_monitoring:
+    status: "PENDING"
+    tasks:
+      - "Create metrics collection (GPU/CPU usage)"
+      - "Implement request latency tracking"
+      - "Add error handling and retry logic"
+      - "Create dashboard for inference statistics"
+
+  phase_4_optimization:
+    status: "PENDING"
+    tasks:
+      - "Load balancing between multiple instances"
+      - "Model caching and preloading"
+      - "Batch request optimization"
+      - "VRAM memory management"
+
+protocol7_integration:
+  architecture_pattern: "Multi-zenka hierarchical system"
+
+  zenka_design:
+    coding_zenka:
+      description: "Main inference coordinator"
+      responsibilities:
+        - "Route queries to appropriate backend"
+        - "Manage model lifecycle"
+        - "Provide unified API for inference"
+        - "Handle request queuing and prioritization"
+
+    gpu_inference_zenka:
+      description: "GPU-accelerated inference worker"
+      responsibilities:
+        - "Manage CUDA initialization"
+        - "Monitor GPU memory"
+        - "Execute GPU-offloaded inference"
+        - "Report performance metrics"
+
+    cpu_inference_zenka:
+      description: "CPU-only fallback worker"
+      responsibilities:
+        - "Manage CPU threading"
+        - "Execute full model on CPU"
+        - "Provide reliable fallback"
+        - "Handle batch operations"
+
+  communication_protocol:
+    request_format: |
+      {
+        "type": "inference",
+        "model": "qwen2.5-7b",
+        "prompt": "What is the capital of France?",
+        "context_length": 2048,
+        "max_tokens": 256,
+        "temperature": 0.7,
+        "priority": "interactive",
+        "timeout_ms": 30000
+      }
+
+    response_format: |
+      {
+        "status": "success",
+        "backend": "gpu|cpu",
+        "response": "The capital of France is Paris.",
+        "tokens_generated": 8,
+        "latency_ms": 450,
+        "model": "qwen2.5-7b"
+      }
+
+  message_routing:
+    local_context: "coding.inference"
+    gpu_context: "gpu_inference.process"
+    cpu_context: "cpu_inference.process"
+    fallback_chain: "GPU → CPU → Error"
+
+model_management:
+  supported_models:
+    - name: "Qwen2.5 7B"
+      size: "7 billion parameters"
+      quantization: "Q4_K_M"
+      context_window: "1M tokens"
+      vram_required: "~7.5 GB (GPU)"
+      memory_required: "~8 GB (CPU)"
+      location: "/mnt/m/lmstudio-community/Qwen2.5-7B-Instruct-1M-GGUF/"
+
+  model_loading_strategy:
+    eager_load: false
+    lazy_load: true
+    preload_on_startup: false
+    keep_in_memory: true
+    max_concurrent_models: 1
+
+  model_switching:
+    cost: "2-5 seconds (model unload + load)"
+    notification: "Inform routing zenka of switching"
+    queue_handling: "Queue pending requests during switch"
+
+inference_request_types:
+  interactive:
+    latency_requirement: "< 2 seconds"
+    preferred_backend: "GPU"
+    timeout: "30 seconds"
+    priority: "HIGH"
+    use_case: "User-facing chat, real-time responses"
+
+  batch:
+    latency_requirement: "None (best effort)"
+    preferred_backend: "CPU"
+    timeout: "300 seconds"
+    priority: "LOW"
+    use_case: "Background analysis, processing multiple queries"
+
+  testing:
+    latency_requirement: "< 10 seconds"
+    preferred_backend: "Either"
+    timeout: "60 seconds"
+    priority: "MEDIUM"
+    use_case: "Model validation, feature testing"
+
+failure_handling:
+  gpu_unavailable:
+    action: "Automatically route to CPU"
+    logging: "Warn level (expected scenario)"
+    recovery: "Continue with CPU, retry GPU check"
+
+  gpu_out_of_memory:
+    action: "Queue for CPU, continue accepting requests"
+    logging: "Info level (load management)"
+    recovery: "Monitor for GPU memory release"
+
+  inference_timeout:
+    action: "Return error to client"
+    logging: "Error level (unexpected)"
+    recovery: "Log details, optionally retry on other backend"
+
+  both_backends_failed:
+    action: "Return error with diagnostic info"
+    logging: "Critical level (system failure)"
+    recovery: "Alert administrator, check system resources"
+
+monitoring_metrics:
+  gpu_metrics:
+    - "GPU memory used / total"
+    - "GPU temperature"
+    - "Request queue depth"
+    - "Average latency per request"
+    - "Tokens generated per second"
+    - "Error rate"
+
+  cpu_metrics:
+    - "CPU utilization (%)"
+    - "Memory used / total"
+    - "Thread count active"
+    - "Request queue depth"
+    - "Average latency per request"
+    - "Tokens generated per second"
+    - "Error rate"
+
+  system_metrics:
+    - "Total requests processed"
+    - "Requests routed to GPU"
+    - "Requests routed to CPU"
+    - "Fallback events (GPU → CPU)"
+    - "System uptime"
+    - "Average response latency"
+
+deployment_checklist:
+  pre_deployment:
+    - ✅ GPU binary compiled and tested
+    - ✅ CPU binary compiled and tested
+    - ✅ Both binaries documented
+    - ⬜ Protocol-7 coding zenka created
+    - ⬜ Router logic implemented
+    - ⬜ Health checks configured
+
+  runtime_validation:
+    - ⬜ Test interactive inference (GPU path)
+    - ⬜ Test fallback inference (CPU path)
+    - ⬜ Test GPU failover scenario
+    - ⬜ Test concurrent requests
+    - ⬜ Test model switching
+    - ⬜ Test error conditions
+
+  production_readiness:
+    - ⬜ Metrics collection enabled
+    - ⬜ Monitoring dashboard created
+    - ⬜ Alert thresholds configured
+    - ⬜ Documentation finalized
+    - ⬜ Runbook created for operators
+    - ⬜ Backup/recovery procedures tested
+
+binary_availability:
+  gpu_binary:
+    primary: "/data/source/ik_llama.cpp/llama-server-cuda-12.5.0"
+    symlink: "/data/source/ik_llama.cpp/llama-server-cuda"
+    portable_copy: "Can be placed anywhere with CUDA 12.5 runtime"
+
+  cpu_binary:
+    primary: "/data/source/ik_llama.cpp/llama-server-cpu"
+    symlink: "/data/source/ik_llama.cpp/llama-server-cpu-latest"
+    portable_copy: "Fully portable, no dependencies"
+
+  both_for_protocol7:
+    location: "Copy to /usr/local/bin or configure in zenka"
+    permissions: "chmod +x on both binaries"
+    accessibility: "Both should be accessible from zenka processes"
+
+system_requirements:
+  gpu_system:
+    gpu: "NVIDIA RTX 3060 or compatible (compute capability 8.6+)"
+    vram: "12GB (tested with 11GB free for 7B model)"
+    cpu: "Any x86_64 (used for host-side operations)"
+    ram: "8GB minimum"
+    storage: "10GB for models, 1GB for binaries"
+
+  cpu_only_system:
+    cpu: "x86_64 with AVX2 support (2010+ Intel/AMD)"
+    cores: "8+ recommended (works with fewer, slower)"
+    ram: "16GB minimum for 7B model"
+    storage: "10GB for models, 1GB for binary"
+    gpu: "Not required"
+
+next_immediate_steps:
+  1: "Review this dual strategy document"
+  2: "Create Protocol-7 coding zenka configuration"
+  3: "Implement GPU availability detection module"
+  4: "Implement inference routing logic"
+  5: "Create model loading and management module"
+  6: "Test both inference paths with test queries"
+  7: "Set up monitoring and metrics collection"
+  8: "Create comprehensive deployment documentation"
+
+## EOF
