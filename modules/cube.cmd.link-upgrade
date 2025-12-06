@@ -1,15 +1,15 @@
 ## [:< ##
 
 # name    = cube.cmd.link-upgrade
-# descr   = initiate link upgrade to encrypted session (state 2 -> 3)
+# descr   = initiate link upgrade to encrypted session
 #
 # usage   : link-upgrade [<encoding_mode>]
-# modes   : (negotiated during handshake)
-#           utf7, base32, base32-xz (optional, default none)
+# modes   : [ negotiated during handshake ]
+#           utf7, base32, base32-xz [ optional, default none ]
 #
-# note    = triggers transition to state 2 (link-upgrade negotiation)
-#           if successful, transitions to state 3 (encrypted)
-#           if failed, returns to state 1 (authenticated)
+# note    = triggers transition to state 2 [ link-upgrade negotiation ]
+#           if successful, transitions to state 3 [encrypted]
+#           if failed, returns to state 1 [authenticated]
 
 my $session_id         = $call->{'session_id'};
 my $requested_encoding = $call->{'args'} // '';
@@ -19,7 +19,7 @@ $requested_encoding =~ s|\s+||g;
 
 my $session = $data{'session'}{$session_id};
 
-## Validate requested encoding mode (optional)
+## Validate requested encoding mode [optional]
 my $encoding_mode;
 if ( $requested_encoding =~ m|^$| ) {
     $encoding_mode = undef;
@@ -76,8 +76,8 @@ return {
     'data' => "link-upgrade OK $pubkey_b32"
 };
 
-#,,..,,,.,.,.,..,,,.,,,..,..,,.,,,,,,,.,,,.,,,..,,...,...,...,,..,...,...,...,
-#TMV2KK5IBUT6VUFTMQTKBDIX5B2RX42VBQGMAXFWNHDXRUNGCA4AEWRH3D6ZKDKZK2DUSHDFLMAZA
-#\\\|4BSQNXYY5QT6X5EK4DPFK6WJOCKAHISLSASUIEPEHIXXPOGF22F \ / AMOS7 \ YOURUM ::
-#\[7]HCM2RASSOUJAMJHNRTCZH6655BACCQUTETDU7VWNLWPMSHN7J6CY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,,.,..,,.,.,,.,,..,,,..,..,,..,,..,,...,...,.,,,,,.,,,,,.,.,,.,,
+#4I3V4FFZG3K2HAHVJIYMZCQG67TGTP6LOBYGILRKKHH2CNM2ZKXWGORGJ4XBKXDN3TZK7TODMEGRA
+#\\\|FIQILO3AHNHLKQGZI6PW4LFKC7YAK5KCDCPIQK277HAKTORGAT4 \ / AMOS7 \ YOURUM ::
+#\[7]3NLHAJWUZN3YVOCCBWVMV7LRCWI4MYIVCQRQL6CU6UJDD6GO4EAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

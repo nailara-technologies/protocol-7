@@ -1,7 +1,7 @@
 ## [:< ##
 
-# name = zenki.parent.start_via_v7
-# descr = Start zenka via v7's jobqueue system (integrates with v7's dependency resolution)
+# name  = zenki.parent.start_via_v7
+# descr = start zenka via v7's jobqueue system [integrates with v7's dependency resolution]
 
 my $params = shift || {};
 
@@ -18,7 +18,7 @@ unless ($zenka_name) {
     2, "zenki.start_via_v7: requesting v7 to start '$zenka_name'..."
 );
 
-## Ensure v7 is running (this is the dependency resolution entry point)
+## Ensure v7 is running [this is the dependency resolution entry point]
 my $v7_result = <[zenki.parent.ensure_v7]>->();
 
 unless ( $v7_result->{success} ) {
@@ -43,7 +43,7 @@ if ($inside_v7) {
     ## We're inside v7 - use v7's native start mechanism
     <[base.log]>->( 3, "  Using v7's native zenka.cmd.start" );
 
-    ## Call v7's start command (with dependency resolution)
+    ## Call v7's start command [with dependency resolution]
     my $result = <[zenka.cmd.start]>->( { args => $zenka_name } );
 
     if ( $result->{mode} eq 'true' ) {
@@ -114,8 +114,8 @@ if ($inside_v7) {
 
 0;
 
-#,,..,..,,.,,,...,.,,,,,.,,,,,,.,,.,.,,..,...,..,,...,...,..,,,.,,.,.,,..,...,
-#YJSQFZ6GJBNC2GDLFNEBXCHQ7RGWJFE5FUGHOYZUN2WLQOMNLYO43KMWH6GAKUIXKFSS3BBNMKBEK
-#\\\|EOHV2EQCSBWTYX7QKPRTHJ3V4INZDTTAO3NHS46HVAYSUL3JLIE \ / AMOS7 \ YOURUM ::
-#\[7]RLONQ624ONUT3BPZPBPUMY6JNKK7MCGWL2AJYJN4YQOAGKVXCEAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,,,,,,,.,.,,.,,,..,,..,..,,,,.,..,,...,...,,..,,..,.,,,,,.,,,.,
+#5GPY52YNASVXM6FTV4XGPJBFZG6O5LLVUEV6TINCHUJ2JICPY2DIUYVIS5VW5MBJ2WXQTH56YDGLW
+#\\\|3LOAQIMIHKQTTUU5EFM3PDR7767XRE7SWMNQMISIHDQE5IKD6VS \ / AMOS7 \ YOURUM ::
+#\[7]A7DPOT5VVIQXAJS3ZEBZK5JSPLXZZQJ4XGWW3YFTV4NGDKRDTCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = httpsd.startup.validate_certificates
-# descr = Validate certificate files exist before creating SSL socket
+# descr = validate certificate files exist before creating SSL socket
 # return = TRUE [5] on success, FALSE [0] on failure
 
 my $cert_file = <httpsd.cfg.certificate_path>;
@@ -77,8 +77,8 @@ unless ( $key_header =~ m/^-----BEGIN (?:RSA |EC |)PRIVATE KEY-----$/ ) {
 <[base.log]>->( 2, "httpsd: certificate files validated successfully" );
 return TRUE;
 
-#,,.,,,.,,...,,.,,,,,,,,.,,,.,...,,..,.,.,...,..,,...,..,,,.,,.,.,,.,,,,,,,,.,
-#JCG4BFXDHMUFJPUIHTCNFPGRNF6XEHHEN4WODBEDJSDPFH7IXNEULLPGRNNKMFXGI7KI7KKOCAH7W
-#\\\|AJ5VYJYD6R2LDP2C6D4WRZPGNUAE6PSF3UBY7V5PL5BOVXUYF76 \ / AMOS7 \ YOURUM ::
-#\[7]GJS4FDLMRAHGTZMXJKR3LEHXQZV4SQHPIJ5VTF6YN57ELFZCIADI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,.,,,...,..,,,,,,...,..,,..,,.,.,..,,...,...,...,,,,,,,,,.,.,,.,,
+#YYQVZICA73C5EXKQKXOORSMSRXOUAGGTVWXTWO3SH7YYQE4KGE2TPXIFZB7CLRUQCSSVF4PS6VFV6
+#\\\|D22WUO3GTD34CZAVGESEJ6OW5DBPG6SHRBMCP5B2SE5MLFOQZ3U \ / AMOS7 \ YOURUM ::
+#\[7]G36LTWMYKJSU5VIA6IUZQAOWU5VS345TUPL2IO44J5FURVNUEWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
