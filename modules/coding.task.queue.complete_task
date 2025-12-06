@@ -1,0 +1,34 @@
+## [:< ##
+
+# name = coding.task.queue.complete_task
+# descr = mark task as completed
+# purpose = queue management : record successful task completion
+
+my ( $task_id, $result, $success ) = @ARG;
+
+return {
+    success => FALSE,
+    error   => sprintf 'task not found : %s', $task_id
+    }
+    unless exists <coding.task.queue.TASK_QUEUE>->{$task_id};
+
+my $task = <coding.task.queue.TASK_QUEUE>->{$task_id};
+
+$task->{execution}->{status}    = qw| completed |;
+$task->{execution}->{completed} = <[base.time]>;
+$task->{execution}->{result}    = $result if defined $result;
+$task->{execution}->{success}   = $success // 1;
+
+<coding.task.queue.QUEUE_UPDATED> = <[base.time]>;
+
+return {
+    success => TRUE,
+    task_id => $task_id,
+    message => "task completed : $task_id"
+};
+
+#,,,,,,..,.,,,,..,,.,,.,,,,,,,.,,,...,,.,,,.,,..,,...,...,..,,...,.,.,,.,,..,,
+#MOTIQ4AJG6WSCZN7Y6YTFZRILJ37MM2J7FZKYKPJF5WH2JZDQZPQYUZNJQWVO6LATFDAWKBCOWNVG
+#\\\|YJCHFXW3FWSZG7ILW3GO443ZCEVNB2XPHXRZGSNRV3A4AVIVPVF \ / AMOS7 \ YOURUM ::
+#\[7]WO2JOA5UXSXJTQLAJ6J2HUXH2L3SMO66OE7X3LEGHSUDTRMUP4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
