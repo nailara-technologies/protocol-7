@@ -1,0 +1,29 @@
+## [:< ##
+
+# name = coding.learning.update_routing_recommendation
+# descr = update routing recommendations based on learning data
+# purpose = learning : suggest better service routing based on outcomes
+
+my ($task_type, $recommended_service) = @ARG;
+
+return {
+    success => FALSE,
+    error   => 'task type required'
+} unless defined $task_type;
+
+# In a real system, would analyze outcomes and suggest better routing
+return {
+    success        => TRUE,
+    recommendation => {
+        task_type           => $task_type,
+        recommended_service => $recommended_service // 'consensus-voting',
+        confidence          => 0.5,
+        reason              => 'based on limited sample'
+    }
+};
+
+#,,,.,.,.,...,..,,.,,,,..,,..,..,,,,.,...,.,.,..,,...,...,.,,,.,.,,,.,..,,,.,,
+#EV2HHTF55XUERAZIDN3QSS25YELEZWAM7JESODXU3JU2KQQVFOEHKU7RRF3BVAYNW62APIBX67EXQ
+#\\\|NNIN5WJU5MLSJBPA3IYEQJEDTRWI4XI56PBK4YEYZD3RBOYD5PT \ / AMOS7 \ YOURUM ::
+#\[7]2TELSB4NIQ3RBEI56FYKQEGGTTLDVIL6K67I5NLXQA6A6BOJTSDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
