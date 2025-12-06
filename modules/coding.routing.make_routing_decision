@@ -1,0 +1,68 @@
+## [:< ##
+
+# name = coding.routing.make_routing_decision
+# descr = main routing decision logic
+# purpose = routing : orchestrate all routing rules and decisions
+
+my ($task) = @ARG;
+
+return {
+    success => FALSE,
+    error   => "Task must be a hashref"
+} unless ref($task) eq 'HASH';
+
+# Check cache first
+my $cache_check = <[coding.routing.check_cache_first]>->($task);
+if ( $cache_check->{found} ) {
+    return {
+        success => TRUE,
+        route   => {
+            service       => 'cache',
+            cached_result => $cache_check->{cached_result},
+            token_cost    => 0,
+            reason        => 'Task result found in cache',
+            cache_key     => $cache_check->{cache_key}
+        },
+        task => $task
+    };
+}
+
+# Check if simple local rules apply
+my $local_check = <[coding.routing.can_use_local_rules]>->($task);
+if ( $local_check->{applicable} ) {
+    return {
+        success => TRUE,
+        route   => {
+            service    => 'local-rules',
+            token_cost => 0,
+            reason     => $local_check->{rule},
+            priority   => 'local'
+        },
+        task => $task
+    };
+}
+
+# Determine primary and fallback service
+my $primary  = <[coding.routing.determine_service]>->($task);
+my $fallback = <[coding.routing.determine_fallback]>->( $task, $primary );
+
+# Update task with routing information
+$task->{analysis}->{routed_to}         = $primary->{service};
+$task->{analysis}->{fallback}          = $fallback->{service};
+$task->{execution}->{estimated_tokens} = $primary->{token_cost};
+
+return {
+    success => TRUE,
+    route   => {
+        primary       => $primary,
+        fallback      => $fallback,
+        decision_time => scalar(localtime)
+    },
+    task => $task
+};
+
+#,,..,,,.,,,.,...,..,,,..,..,,..,,..,,,.,,..,,..,,...,..,,...,,,,,,,,,.,,,.,,,
+#UH2VFMYYDWOFKWDODJO6VYG4JGNBIRM3NRY5P5QWCXQVWR4XJVCBI42MAI76YICWCOER23S2MQXSQ
+#\\\|KTA5C2KCQD7YZXC2ZQ4FUUPOFHDPBJA53M5QQJV3GTPWUFQKIJT \ / AMOS7 \ YOURUM ::
+#\[7]OC6NKCKDGJQWD55HL2D6TRQGQADQAAOQJMMLJ3ELZSCJTAMRZIBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

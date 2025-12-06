@@ -1,0 +1,45 @@
+## [:< ##
+
+# name = coding.routing.determine_fallback
+# descr = determine fallback service if primary fails
+# purpose = routing : fallback routing strategy
+
+my ($task, $primary_service) = @ARG;
+
+my $primary = $primary_service->{service} // 'single-llm';
+
+# If primary fails, what's the fallback?
+if ( $primary eq 'consensus-voting' ) {
+    return {
+        service => 'single-llm',
+        model   => 'qwen',
+        reason  => 'Fallback from consensus to single model'
+    };
+}
+
+if ( $primary eq 'invoke-ai' ) {
+    return {
+        service => 'none',
+        reason  => 'No fallback for image generation'
+    };
+}
+
+if ( $primary eq 'whisper' ) {
+    return {
+        service => 'none',
+        reason  => 'No fallback for transcription'
+    };
+}
+
+# Default: try consensus
+return {
+    service => 'consensus-voting',
+    models  => [ 'qwen', 'mathstral' ],
+    reason  => 'Fallback to consensus voting'
+};
+
+#,,.,,...,...,..,,,,,,,..,.,.,,,.,.,,,.,.,,,.,..,,...,..,,,.,,,..,.,,,..,,,,.,
+#KETYD75ZMSAUT2WDSO6DLUI3OYTITVABVDFFXR2JYNAFJ6TH5ZJ2SZ32PBUVPSQ4WBLVNR65FF57Q
+#\\\|Z665E6DQDDILRX4I4BFBPITMMNCVFFTHEFCQZANIZMPAQVP6KD6 \ / AMOS7 \ YOURUM ::
+#\[7]KH5KBHXH4VUFNECYQFWLNRXIVMH6KLTB6SMPDF2LLQBU2DJSTMCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
