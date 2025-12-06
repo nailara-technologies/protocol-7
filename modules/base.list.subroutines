@@ -400,6 +400,7 @@ return [ qw[
         cube.cmd.unix-path
         cube.cmd.b32-ntime
         content.cmd.update
+        coding.task.status
         coding.task.intake
         base.utf8.sanitize
         base.sort.key-name
@@ -484,6 +485,7 @@ return [ qw[
         crypt.cbc.init_code
         crypt.XTEA.pre_init
         configure.init_code
+        coding.task.enqueue
         coding.task.analyze
         base.utf8.clean_str
         base.str.eval_error
@@ -1264,6 +1266,8 @@ return [ qw[
         content.http.get_mime_type
         content.cmd.get_list_types
         content.callback.load_file
+        coding.helper.reset_budget
+        coding.helper.check_budget
         coding.budget.track_tokens
         base.warnings.from_bitmask
         base.session.check.flushed
@@ -1371,6 +1375,9 @@ return [ qw[
         crypt.C25519.compute_shared
         content.set-up.import_rules
         content.set-up.export_rules
+        coding.helper.task_priority
+        coding.helper.refund_tokens
+        coding.helper.budget_status
         base.zenki.report_child_pid
         base.yaml.load_keyword_path
         base.templates.register_add
@@ -1556,6 +1563,9 @@ return [ qw[
         content.cmd.get_playlist_path
         coding.routing.decide_service
         coding.learning.track_success
+        coding.helper.priority_scorer
+        coding.helper.log_transaction
+        coding.helper.category_mapper
         coding.event.on_task_complete
         base.validate.data_key_syntax
         base.source.collect_file_list
@@ -1646,6 +1656,7 @@ return [ qw[
         crypt.C25519.key_bin_checksums
         crypt.C25519.chksum_cache.retr
         content.handler.mimetype_reply
+        coding.helper.subtype_detector
         base.zenki.ondemand_registered
         base.session.send_init_reports
         base.p7refs.get_refaddr_prefix
@@ -1712,6 +1723,7 @@ return [ qw[
         crypt.C25519.cmd.get-public-key
         content.callback.check_mimetype
         compton.callback.not_composited
+        coding.helper.task_id_generator
         base.zenki.set_ondemand_timeout
         base.warnings.compact_statehash
         base.perlmods.reload.disk_times
@@ -1933,6 +1945,7 @@ return [ qw[
         image2html.child.handler.conversion
         httpd.benchmark.sample_memory_usage
         content.handler.get_exclusive_reply
+        coding.helper.get_service_breakdown
         base.perlmod.register_loaded_module
         base.number-cache.is_valid_template
         base.handler.write.encoding-wrapper
@@ -1995,6 +2008,7 @@ return [ qw[
         crypt.C25519.list_key_signature_names
         crypt.C25519.generate_session_keypair
         crypt.C25519.create_signature_request
+        coding.helper.get_transaction_history
         base.perlmods.reload.chksum_blacklist
         base.perlmod.unregister_loaded_module
         base.handler.write.encryption-wrapper
@@ -2110,8 +2124,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,,,,,..,,.,,,.,.,.,,,.,.,...,.,,,...,.,,,..,,...,...,,.,,.,.,.,,,..,,,,.,
-#CEZHGJ32STU57O5I6DSIXWRVI7SXA5HYZVSDIAQQXXACF62W3KBPDH27SLZYVKN6EFT6ST3V2GD3G
-#\\\|GUDWL3TP42MCUNOQGFORLITBZHRL266VW24GMTQL6ML2ZZ5AK3P \ / AMOS7 \ YOURUM ::
-#\[7]OQQVO24YDGZDQZGCLUZXUZM3CG36IFMQO4NEDQB7WPN4WKOSJSCQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,.,.,...,,.,,.,.,,.,,,,.,,,,,,,.,..,,...,...,..,,,,,,.,,,,..,,,,,
+#CK3MVJJB5PKOWNEW4PJBM7WTEJK27IPQ7K7JAAZ3WQDUM3BV2IMIKL7764HPH5LYK5NILQVUBAPRI
+#\\\|CMMWY2D7GXQYG2EI3U7NTKBNQ5KFH2NPIBNJRIDUK4ENH53OT44 \ / AMOS7 \ YOURUM ::
+#\[7]MBZBFFGDRMK6SJUCBOL7QNW6GJTJ73QHVBVIVWDQGCB3YLB3MKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

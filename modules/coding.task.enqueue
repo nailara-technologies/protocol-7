@@ -1,0 +1,46 @@
+## [:< ##
+
+# name = coding.task.enqueue
+# descr = enqueue coding task with jobqueue backend
+# purpose = coding task management : wrapper around jobqueue.add_job with priority calculation
+
+my ($task) = @ARG;
+
+return {
+    success => FALSE,
+    error   => 'task must be a hashref'
+} unless ref($task) eq 'HASH';
+
+return {
+    success => FALSE,
+    error   => 'task must have id'
+} unless exists $task->{id};
+
+# calculate priority based on task type
+my $priority = <[coding.helper.task_priority]>->( $task->{type} // 'general', $task );
+
+# prepare job params for jobqueue
+my $job_params = {
+    name             => $task->{id},
+    priority         => $priority,
+    object_id        => $task->{id},
+    target_queue     => 'queued',
+    job_callback     => 'coding.task.execute',
+    callback_params  => $task,
+};
+
+# add to jobqueue
+my $job_id = <[jobqueue.add_job]>->($job_params);
+
+return {
+    success => TRUE,
+    job_id  => $job_id,
+    task_id => $task->{id},
+    message => "task enqueued : $task->{id}"
+};
+
+#,,.,,,.,,...,,,,,...,.,.,...,...,,,,,,..,,.,,..,,...,...,...,.,.,,,.,...,.,.,
+#EAA3Z3DGBQAAW3DDQDWHZ5A4543BMMMEOCIPUICWJPBGI5K3QFE3NW737TIRJ4TXMKMYM3TZ6BELQ
+#\\\|THCNR3ENKE2A4KYCBLM2N73T2D6EA4TMS2BCLYXBS7QJ5J47C64 \ / AMOS7 \ YOURUM ::
+#\[7]3WVJG7IP24JXM6EGH5FJA4FLSJ2JXN5HNMTGADN5TASKMDARWKDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
