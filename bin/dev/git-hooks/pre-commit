@@ -18,7 +18,7 @@ our $Bin    = $RealBin;
 my ( $sha_old, $sha_new, $change_br ) = @ARGV;
 print ":\n: running 'pre-commit' checks ..,\n:\n";
 
-my $admin_path = 'bin/admin';
+my $admin_path = qw| bin/admin |;
 my $p7_root    = p7_root_dir();    ## safely determine protocol-7 root path ##
 chdir($p7_root) or die "  :\n  :: \l$OS_ERROR : $p7_root\n\n";
 
@@ -89,7 +89,7 @@ sub check_version_numbers {
 
     # Extract version (format: XXXXX-CCCC.R)
     my $version = $version_content;
-    $version =~ s/\n.+$//sg;    # Strip signature
+    $version =~ s|\n.+$||sg;    # Strip signature
 
     return unless $version =~ m|-(\d+)\.(\d+)$|;
     my ( $file_count, $file_rev ) = ( $1, $2 );
@@ -159,8 +159,8 @@ sub check_file_signatures {
     }
 }
 
-#,,,,,.,,,,,.,,.,,..,,,.,,...,,..,,,.,.,,,,..,..,,...,...,...,..,,..,,,,,,,,,,
-#54JNS2YCXV3I6B3QJ5OZ7PLQ6GHXCUU5XILONMRWOSSEB4QTUCDD7QK5Z2MFXCFAHXEQQGBDZXM2U
-#\\\|VVTX3XQ3F2ZKPEVE6Q6NHIT2IB7OTSMZUH73U6AB3SZL7J3GAO7 \ / AMOS7 \ YOURUM ::
-#\[7]3UCDCUF6PKDTHOV5TFOHMFQTWCTN36DRCXKXSC6KX6Y24TRLPOBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,...,.,,,,..,.,.,..,,,.,,.,,,,.,,,,.,..,,...,..,,,..,,,,,,.,,...,.,,,
+#K2SXYGVBWJQUX7PAAJNMR4JB6EOQPOJRXNMVHPKXTHM5FKO6SNMLGSL5XLX6I5FXPWS54RJMSKKBO
+#\\\|FDY2Q4KD6QWAO2TQMT47RSJJOEQH7Q5BRXPETNFD3LOXYMNK3CF \ / AMOS7 \ YOURUM ::
+#\[7]OG5M6RG5FW5W6VRTIJUKZ7CEDEO3AQN2LLEJVZVLRDU2T43S7SAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
