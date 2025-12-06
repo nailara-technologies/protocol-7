@@ -1,0 +1,86 @@
+## [:< ##
+
+# name = coding.task.analyze_complexity
+# descr = analyze and calculate task complexity score
+# purpose = task analysis : complexity scoring based on multiple factors
+
+my ($task) = @ARG;
+
+return {
+    success => FALSE,
+    error   => "Task must be a hashref"
+} unless ref($task) eq 'HASH';
+
+my $desc       = $task->{request}->{description} // '';
+my $complexity = 1;
+
+# Length-based complexity
+my $word_count = scalar( split( /\s+/, $desc ) );
+if ( $word_count > 100 ) {
+    $complexity += 2;
+} elsif ( $word_count > 50 ) {
+    $complexity += 1;
+}
+
+# Keywords indicating complexity
+my @complex_keywords = qw(
+    consensus voting multiple models complex reasoning
+    algorithm design architecture integration
+    optimization performance debugging
+);
+
+foreach my $keyword (@complex_keywords) {
+    if ( lc($desc) =~ /\Q$keyword\E/i ) {
+        $complexity += 2;
+    }
+}
+
+# Keywords indicating medium complexity
+my @medium_keywords = qw(
+    analyze review explain summarize
+    compare contrast identify
+);
+
+foreach my $keyword (@medium_keywords) {
+    if ( lc($desc) =~ /\Q$keyword\E/i ) {
+        $complexity += 1;
+    }
+}
+
+# Task type adjustments
+my $type = $task->{type} // 'analysis';
+
+if ( $type =~ /code|generation|creation/ ) {
+    $complexity += 3;
+} elsif ( $type =~ /consensus|voting/ ) {
+    $complexity += 4;
+} elsif ( $type =~ /transcription|audio/ ) {
+    $complexity -= 2;
+} elsif ( $type =~ /image|creative/ ) {
+    $complexity += 2;
+}
+
+# Constraint count adds to complexity
+my $constraints = $task->{request}->{constraints} // [];
+$complexity += scalar(@$constraints);
+
+# Cap complexity between 1-10
+$complexity = 1  if $complexity < 1;
+$complexity = 10 if $complexity > 10;
+
+return {
+    success    => TRUE,
+    complexity => int($complexity),
+    factors    => {
+        word_count           => $word_count,
+        has_complex_keywords => scalar(@complex_keywords) > 0,
+        constraint_count     => scalar(@$constraints),
+        task_type            => $type
+    }
+};
+
+#,,,.,...,..,,.,.,,,,,,,,,,,,,...,,,,,..,,...,..,,...,...,..,,..,,,,,,,,.,,.,,
+#RQN4CQPTQZOHOA6NCAGWR5AUPUDSMO3A3DIHWTIZWTU2VZPUS46HVHVQBSIFTFRMQBSWBIBG45M5M
+#\\\|B73YEKUGOZLOSGJCBWVIYHGXG6QUXQLEQUDA3TY3CHBI6POB6XP \ / AMOS7 \ YOURUM ::
+#\[7]PMY32MQD24BOA7ZJSQXOTHJIDGEZ243TFVZKHMATCQQVURYFIUBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

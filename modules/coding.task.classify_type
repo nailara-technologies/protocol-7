@@ -1,0 +1,47 @@
+## [:< ##
+
+# name = coding.task.classify_type
+# descr = classify task type into canonical categories
+# purpose = task analysis : type classification and mapping
+
+my ($task) = @ARG;
+
+my $type = $task->{type}                   // 'analysis';
+my $desc = $task->{request}->{description} // '';
+
+# Map type strings to canonical types
+my $canonical_type = {
+    'code'         => 'code-generation',
+    'generation'   => 'code-generation',
+    'create'       => 'code-generation',
+    'write'        => 'code-generation',
+    'consensus'    => 'reasoning',
+    'vote'         => 'reasoning',
+    'analyze'      => 'reasoning',
+    'reason'       => 'reasoning',
+    'transcribe'   => 'transcription',
+    'audio'        => 'transcription',
+    'image'        => 'image-generation',
+    'generate'     => 'image-generation',
+    'create-image' => 'image-generation',
+    'creative'     => 'brainstorming',
+    'brainstorm'   => 'brainstorming',
+    'describe'     => 'analysis'
+}->{ lc($type) } // 'analysis';
+
+# Detect subtype from description keywords
+my $subtype = <[coding.helper.subtype_detector]>->($desc);
+
+return {
+    success        => TRUE,
+    canonical_type => $canonical_type,
+    original_type  => $type,
+    subtype        => $subtype,
+    category       => <[coding.helper.category_mapper]>->($canonical_type)
+};
+
+#,,..,,,,,...,.,.,...,...,,.,,.,,,,.,,..,,,..,..,,...,...,..,,..,,,..,,.,,,,.,
+#7QESDYE755UMKNZFYKO6I4K5QHJ4U4DLUV74PTYKDY2NBUEDLAZWYFQIVTGAIBY3K6N333WLJPMQQ
+#\\\|SJM2OCHMVBLMLK23DZ3CJABNN6QEQ35J73VPROFYW6IVLXWM27I \ / AMOS7 \ YOURUM ::
+#\[7]46ROTTDJPR6C5HPB3MLHWWR7K6725FI6R56KDSXSPDANG7AJJWDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
