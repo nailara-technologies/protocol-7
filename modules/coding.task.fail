@@ -1,0 +1,39 @@
+## [:< ##
+
+# name = coding.task.fail
+# descr = mark coding task as failed
+# purpose = coding task management : wrapper around jobqueue.move_job to mark job failed with error
+
+my ($job_id, $error_msg) = @ARG;
+
+return {
+    success => FALSE,
+    error   => 'job_id required'
+} unless defined $job_id;
+
+$error_msg //= 'task execution failed';
+
+# Get job data before moving to verify it exists
+my $job_data = <[jobqueue.get_job_data]>->($job_id);
+
+return {
+    success => FALSE,
+    error   => "task not found : $job_id"
+} unless defined $job_data;
+
+# Move job to error queue
+<[jobqueue.move_job]>->($job_id, 'error');
+
+return {
+    success   => TRUE,
+    job_id    => $job_id,
+    task_id   => $job_data->{object_id},
+    error     => $error_msg,
+    message   => "task failed : $job_id"
+};
+
+#,,..,...,.,,,,..,,..,,,.,,.,,..,,..,,,,,,..,,..,,...,...,.,.,,.,,.,,,.,.,..,,
+#TX7EIBGJXFPOURBG7YQYURVTBGOTYBPFVQFI37ERU7LZSYUXDIPGC73JN6E2KXXCXDPUXKVO55VVA
+#\\\|EJYJG6WHNBRLYZCOBG64QVBS36PYLWBHSYK7EAON63N6TU3E3C4 \ / AMOS7 \ YOURUM ::
+#\[7]4R3XROZVSMKMGP3DCYFIB5W4S53T3RAXPV7MIUJ4XDOEPGRZTSDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

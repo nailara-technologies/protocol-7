@@ -1,0 +1,59 @@
+## [:< ##
+
+# name = coding.task.clear
+# descr = remove completed coding tasks from queue
+# purpose = coding task management : wrapper around jobqueue.remove_job for cleanup
+
+my ($job_id) = @ARG;
+
+# If specific job_id provided, remove just that one
+if (defined $job_id) {
+    my $job_data = <[jobqueue.get_job_data]>->($job_id);
+
+    return {
+        success => FALSE,
+        error   => "task not found : $job_id"
+    } unless defined $job_data;
+
+    <[jobqueue.remove_job]>->($job_id);
+
+    return {
+        success => TRUE,
+        job_id  => $job_id,
+        cleared => 1,
+        message => "task removed : $job_id"
+    };
+}
+
+# Otherwise, remove all completed tasks
+my $completed_count = <[jobqueue.count]>->('completed') // 0;
+
+return {
+    success => TRUE,
+    cleared => 0,
+    message => 'no completed tasks to clear'
+} unless $completed_count > 0;
+
+# Get job list and find all completed jobs to remove
+my $job_list = <jobqueue.joblist>;
+my $completed_jobs = $job_list->{completed}->{by_timestamp} // [];
+
+my @removed_ids = ();
+foreach my $removed_id (@$completed_jobs) {
+    <[jobqueue.remove_job]>->($removed_id);
+    push @removed_ids, $removed_id;
+}
+
+return {
+    success   => TRUE,
+    cleared   => scalar(@removed_ids),
+    remaining => <[jobqueue.count]>->('completed') // 0,
+    removed   => \@removed_ids,
+    message   => "cleared " . scalar(@removed_ids) . " completed tasks"
+};
+
+#,,,,,,,,,,,.,,..,..,,.,.,,,.,,.,,,.,,.,,,,.,,..,,...,..,,.,.,.,.,...,,,,,,.,,
+#G6XDMCFYTXWMA2WSRXP7BONRBBVN3O6BJGL3KOWKGUHCFEJD6RO5EMJMZIH4R5BMUPUFXVZBEBKUS
+#\\\|6UROSDZDLBULSNDTLV3KMPJF4WA4WNSMEVW3NBS2F76WZ23JOIX \ / AMOS7 \ YOURUM ::
+#\[7]JJOGOVPQ6OFE5J4RKPADT6XZVVL4MSOT4ZNP6427CUDIOE77QGBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
