@@ -3,24 +3,27 @@
 # name    = base.load_modules
 # descr   = load a given set of modules
 
-my $exclude_regex = <regex.base.backup_files>;  ## prepare known exclusions ##
+## prepare known exclusion patterns ##
+my $exclude_regex = <regex.base.backup_files>
+    // qr{(?<![^\w/])(DEADJOE|.+~)$};    ## editor backup files ##
 
-my @modules_to_load    ## first filter is for editor backup files ##
-    = grep { !$exclude_regex } split( m| +|, join( ' ', @ARG ) );
+my @modules_to_load                      ## filter is for excluded files ##
+    = grep { $ARG !~ $exclude_regex } split( m| +|, join( ' ', @ARG ) );
 
-my %seen;              ## uniq implementation ##
+my %seen;                                ## uniq implementation ##
 my $num_elements   = scalar @modules_to_load;
-my @unique_modules = grep { !$seen{$_}++ } @modules_to_load;
+my @unique_modules = grep { !$seen{$ARG}++ } @modules_to_load;
 
 my $delta_mod = $num_elements - scalar @unique_modules;
 if ( $delta_mod > 0 ) {
-
-    warn "%d redundant module name%s submitted\n",
-        $delta_mod, ( $delta_mod == 1 ? '' : 's' );
+    <[base.s_warn]>->(
+        "%d redundant module name%s submitted\n",
+        $delta_mod, ( $delta_mod == 1 ? '' : 's' )
+    );
     ## filtered against redundancy ###
     @modules_to_load = @unique_modules;
 
-} elsif ( not scalar @modules_to_load ) {
+} elsif ( @modules_to_load == 0 ) {
     warn 'expected module name[s] <{C1}>';
     return ( 0, 0 ) if wantarray;
     return FALSE;
@@ -41,8 +44,8 @@ return TRUE if not $subs_failed and $subs_ok;
 
 return FALSE;
 
-#,,,.,,,.,...,...,,,,,...,,,.,,,,,.,,,,,.,,.,,..,,...,...,,.,,..,,..,,...,,.,,
-#BRR46WDTWWURE4J47NHNPTP76TNJ5ATTZUDDO4GEJNGWQRA5EG6QXFB7N6OI6LQVTPE6R43FCP23S
-#\\\|7HHWU5A3W2O3JQA2THXDWT3OBAABYAOSVYEBSLQHCXUXAWSMIIA \ / AMOS7 \ YOURUM ::
-#\[7]XMDUCSMQW6HS6FAZOSOJZ7SNL5M2AYXGU6N75HBGYTNLJID4BABA 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,.,,,,.,,,,.,...,,,.,,.,,,,,,..,,..,,...,...,...,...,,,,,.,.,..,,
+#HO7AWOOGA7WJVOI3SBVJMHY5HUGT3YBELFYE5KHVXTV2SY4HWVM56E76GSUVYHIR4DHRLNZESC7J2
+#\\\|37DIZNACS2YTV54BCLQL2QS3D6MNRFWMHVHH3NGW4FCNBQEHD3W \ / AMOS7 \ YOURUM ::
+#\[7]UZQL2YRRDF3TR2QYIKHVGPGYQQZYUBTRSMAZBBOJXSIIIKQUTWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
