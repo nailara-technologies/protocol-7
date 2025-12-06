@@ -3,7 +3,7 @@ use v5.24;
 use strict;
 use English;
 use warnings;
-
+use open qw[ :std :utf8 ];
 ##
 ## configure : git config core.hooksPath = bin/dev/git-hooks
 ## Filters out AI-generated metadata (emoji + "Generated with", Co-Authored-By:)
@@ -32,7 +32,7 @@ close $fh;
 
 # Filter patterns that should be automatically removed from commit message
 my @filter_patterns = (
-    qr|^\s*.\s+Generated with |,
+    qr|\p{Emoji} Generated with |,
     qr|^Co-Authored-By:|,
     qr|^\[CLAUDE\] |,
     qr|\[Claude Code\] \([^\)]+\)$|
@@ -79,8 +79,8 @@ if (@filtered_lines) {
 
 exit 0;
 
-#,,,.,.,,,..,,..,,,..,...,,..,.,,,.,.,,,.,.,,,..,,...,...,.,.,,.,,,,,,,,.,,,,,
-#UER3PIMDBOQD5NVRYPSBFURTYRVABV5CTMN5RUDKS4TQIMAXNYMPDTEC4TYMNPQSHOEZUY6RVZVS6
-#\\\|4OBWCEI7PXQENQ4X46BGP5UEIFYNRIDSEPR35223Q6U6IA7GXZM \ / AMOS7 \ YOURUM ::
-#\[7]I2EJBVYKQYT4WJSQXP74ASY2QE6ZWQJHUINCTPEV7QWVB7YIKQDI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,.,,,,..,,,,,...,,.,,...,...,.,.,..,,...,...,.,.,,.,,..,,,,,,,..,
+#6CX2EAXCRFYGA6PTCEXVCA35TX4ID3JHC2MN5UN53564VP4X6LU5O4K4LAOFKNP6FAYP4EMKONO2E
+#\\\|TT2PN5V6BWNTDZYI4667MYRKIIQ636O3CX5DOYMDMZ2CYEMMAMB \ / AMOS7 \ YOURUM ::
+#\[7]NJGB7RHTXVXVUVWD6IFY4CDOHJTU5XJFETLXYZETYFVN5AEY3QCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
