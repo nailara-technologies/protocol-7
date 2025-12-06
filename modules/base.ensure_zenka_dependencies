@@ -1,27 +1,28 @@
 ## [:< ##
 
-# name = base.ensure_zenka_dependencies
-# descr = Wrapper to ensure zenka dependencies (calls debian zenka if available)
+# name  = base.ensure_zenka_dependencies
+# descr = wrapper to ensure zenki dependencies
+#         [ calls debian zenka if available. ]
 
 my $zenka_name = shift // <system.zenka.name>;
 
-## Check if debian zenka is available
-if (exists $code{'debian.parent.ensure_zenka_dependencies'}) {
-    <[base.log]>->( 2, "Checking dependencies via debian zenka for '$zenka_name'" );
-    return <[debian.parent.ensure_zenka_dependencies]>->($zenka_name, 1);
+## check if debian zenka is available
+if ( exists $code{'debian.parent.ensure_zenka_dependencies'} ) {
+    <[base.log]>->(
+        2, "Checking dependencies via debian zenka for '$zenka_name'"
+    );
+    return <[debian.parent.ensure_zenka_dependencies]>->( $zenka_name, TRUE );
 }
 
-## Check via IPC if debian zenka is running
-## (Not implemented yet - would use base.protocol-7.command.send.local)
+## check via IPC if debian zenka is running
+## [ not implemented yet - would use base.protocol-7.command.send.local ]
 
 <[base.log]>->( 2, "debian zenka not available - skipping dependency check" );
 
-return 1;  ## Continue anyway
+return TRUE;    ## Continue anyway
 
-0;
-
-#,,,,,,,,,..,,..,,.,.,...,.,,,,,.,..,,..,,.,.,..,,...,...,,.,,.,,,,,,,.,.,.,,,
-#WQKIUNIYNEZ5OUFB4V6FLWEOKX63NMEWPC4E7Q46DWBEF7G7F7LEMKDBQRYG5U6FXACAW7VF4P6O2
-#\\\|3UHKYCASFD7JP3PI6CMDSXLBWGR4FSCDHQSF2NMRTAV5JRJZ2SW \ / AMOS7 \ YOURUM ::
-#\[7]6V7MO6MRZBSJZ65L5UKXWX2ZKTQEC6E6EEEK2R2OFJ2SO6PLXGBQ 7  DATA SIGNATURE ::
+#,,,.,,..,...,..,,,..,..,,.,,,...,,..,,.,,.,,,..,,...,...,...,,.,,,,,,.,.,,.,,
+#DZBE2PGN4B3DT2L6PCFL5B65DERDAHBX57MIYGC5JPEQDO2KUYHUHAKDZVIX5MY5PHMUCHPER6D76
+#\\\|IEELCGA5OGLLMDTQIJL5MNGWTYQX7ULAS6PP2ZARLITSOYJY7KT \ / AMOS7 \ YOURUM ::
+#\[7]6INQD5QTLQCNSHERQY4XBV7XFW7MUFCV4IYEL7VFOKOISSIPG6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
