@@ -1,0 +1,53 @@
+## [:< ##
+
+# name = coding.task.analyze_full
+# descr = comprehensive task analysis orchestration
+# purpose = task analysis : run all analyses and return consolidated results
+
+my ($task) = @ARG;
+
+return {
+    success => FALSE,
+    error   => "Task must be a hashref"
+} unless ref($task) eq 'HASH';
+
+# Run all analyses
+my $complexity_result = <[coding.task.analyze_complexity]>->($task);
+my $classification    = <[coding.task.classify_type]>->($task);
+my $token_estimate    = <[coding.task.estimate_tokens]>->($task);
+my $history           = <[coding.task.check_history]>->($task);
+
+if ( !$complexity_result->{success} ) {
+    return { success => FALSE, error => "Complexity analysis failed" };
+}
+
+# Update task with analysis results
+$task->{analysis}->{complexity} = $complexity_result->{complexity};
+$task->{analysis}->{estimated_tokens}
+    = $token_estimate->{estimated_tokens};
+$task->{type}                        = $classification->{canonical_type};
+$task->{subtype}                     = $classification->{subtype};
+$task->{analysis}->{success_history} = {
+    similar_tasks   => 0,
+    success_rate    => $history->{success_rate},
+    cache_available => $history->{cache_available}
+};
+
+return {
+    success  => TRUE,
+    task     => $task,
+    analysis => {
+        complexity         => $complexity_result->{complexity},
+        complexity_factors => $complexity_result->{factors},
+        type               => $classification->{canonical_type},
+        subtype            => $classification->{subtype},
+        estimated_tokens   => $token_estimate->{estimated_tokens},
+        history            => $history
+    }
+};
+
+#,,,,,..,,,.,,.,,,,,.,,,.,,,.,.,,,,..,.,,,,..,..,,...,...,...,...,,,,,.,.,.,.,
+#OVM43QCH3K5GIAG5MMNA5Z3WY66BCA4ZVHRFIMISEP2ULHG6JIS6VX5VQIKY5AOM5GTTPXU2IO5KA
+#\\\|73W7FY7ULNFCQHSZ5SSDBC2AAUNWQCSPY4JPCA2OPLBXLT5KOTJ \ / AMOS7 \ YOURUM ::
+#\[7]EPKZZOLJRFYX5G5OEUZUSGZW5DYZSQ64QFKRA33QNGO3C2PHKKDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
