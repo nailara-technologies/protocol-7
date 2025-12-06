@@ -1,0 +1,107 @@
+## [:< ##
+
+# name = coding.routing.determine_service
+# descr = determine optimal service for task routing
+# purpose = routing : service selection based on task type and complexity
+
+my ($task) = @ARG;
+
+my $type        = $task->{type}                   // 'analysis';
+my $complexity  = $task->{analysis}->{complexity} // 5;
+my $constraints = $task->{request}->{constraints} // [];
+
+# Transcription → Whisper
+if ( $type eq 'transcription' ) {
+    return {
+        service    => 'whisper',
+        reason     => 'Task is audio transcription',
+        token_cost => 0,
+        priority   => 'direct'
+    };
+}
+
+# Image generation → Invoke AI
+if ( $type eq 'image-generation' ) {
+    return {
+        service    => 'invoke-ai',
+        reason     => 'Task is image generation',
+        token_cost => 0,
+        priority   => 'direct'
+    };
+}
+
+# Code generation → Code specialist
+if ( $type eq 'code-generation' ) {
+    my $needs_consensus = grep { lc($_) =~ /consensus|verify/ } @$constraints;
+    if ($needs_consensus) {
+        return {
+            service    => 'consensus-voting',
+            models     => [ 'mathstral', 'qwen', 'aya' ],
+            reason     => 'Code generation with consensus',
+            token_cost => 500,
+            priority   => 'consensus'
+        };
+    }
+    return {
+        service    => 'single-llm',
+        model      => 'mathstral',
+        reason     => 'Code generation specialist',
+        token_cost => 300,
+        priority   => 'code-specialist'
+    };
+}
+
+# Reasoning/analysis tasks
+if ( $type eq 'reasoning' || $type eq 'analysis' ) {
+    if ( $complexity >= 7 || ( grep { lc($_) =~ /consensus|verify/ } @$constraints ) ) {
+        return {
+            service    => 'consensus-voting',
+            models     => [ 'qwen', 'mathstral', 'aya' ],
+            reason     => "Complex reasoning (complexity: $complexity) needs consensus",
+            token_cost => 600,
+            priority   => 'consensus'
+        };
+    }
+    if ( $complexity >= 4 ) {
+        return {
+            service    => 'single-llm',
+            model      => 'qwen',
+            reason     => "Medium complexity reasoning (complexity: $complexity)",
+            token_cost => 250,
+            priority   => 'reasoning'
+        };
+    }
+    return {
+        service    => 'single-llm',
+        model      => 'qwen',
+        reason     => "Simple analysis (complexity: $complexity)",
+        token_cost => 100,
+        priority   => 'simple'
+    };
+}
+
+# Creative/brainstorming → diverse consensus
+if ( $type eq 'brainstorming' ) {
+    return {
+        service    => 'consensus-voting',
+        models     => [ 'qwen', 'aya', 'mathstral' ],
+        reason     => 'Creative task needs multiple perspectives',
+        token_cost => 400,
+        priority   => 'diverse'
+    };
+}
+
+# Default fallback
+return {
+    service    => 'single-llm',
+    model      => 'qwen',
+    reason     => "Default routing for type: $type",
+    token_cost => 200,
+    priority   => 'default'
+};
+
+#,,..,.,,,,..,...,.,,,,..,.,.,..,,,.,,.,.,.,,,..,,...,...,.,,,,,.,.,,,,,.,.,.,
+#T2PF5KQ65NJNWYESJ2BLIP5IQERKJSNLOOHH7AFKYPH7HPTJUFJLOKNBYLID3Y5PJGXUEGBYMT57M
+#\\\|3RXRJVYJCE7DXHBQUHHMI4EZXZKCQ5JPKIHKFDW3DIXPPKPGAXC \ / AMOS7 \ YOURUM ::
+#\[7]KMBZVZHSBID24NGOGKM3MFG42ERHQWFQRUSXZ6BRLHMDG7OTW4BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
