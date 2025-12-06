@@ -404,6 +404,7 @@ return [ qw[
         content.cmd.update
         coding.task.status
         coding.task.intake
+        coding.intake.work
         base.utf8.sanitize
         base.sort.key-name
         base.reload_values
@@ -696,6 +697,7 @@ return [ qw[
         content.cmd.set_flags
         content.cmd.add-entry
         content.check_changes
+        coding.intake.process
         chk-sum.md5.init_code
         chk-sum.crc.init_code
         base.vec.offset_write
@@ -819,6 +821,7 @@ return [ qw[
         crypt.C25519.post_init
         crypt.C25519.init_code
         content.http.init_code
+        coding.queue.fail_task
         base.utf8.decode_clean
         base.time.is_leap_year
         base.session.init_code
@@ -1162,6 +1165,8 @@ return [ qw[
         content.cmd.clear-entries
         coding.task.classify_type
         coding.task.check_history
+        coding.queue.enqueue_task
+        coding.queue.dequeue_next
         coding.event.on_task_fail
         base.sourcecode.init_code
         base.session.cancel_route
@@ -1274,6 +1279,7 @@ return [ qw[
         content.http.get_mime_type
         content.cmd.get_list_types
         content.callback.load_file
+        coding.queue.complete_task
         coding.helper.reset_budget
         coding.helper.check_budget
         coding.budget.track_tokens
@@ -1384,6 +1390,7 @@ return [ qw[
         content.set-up.import_rules
         content.set-up.export_rules
         coding.task.estimate_tokens
+        coding.intake.validate_task
         coding.helper.task_priority
         coding.helper.refund_tokens
         coding.helper.budget_status
@@ -1477,6 +1484,10 @@ return [ qw[
         crypt.C25519.keystr_is_valid
         crypt.C25519.compare_keypair
         content.cmd.entries_withheld
+        coding.queue.get_task_status
+        coding.queue.get_queue_stats
+        coding.queue.clear_completed
+        coding.intake.normalize_task
         base.validate.composite_name
         base.session.check_remaining
         base.run_if_not.load_perlmod
@@ -1930,6 +1941,7 @@ return [ qw[
         crypt.C25519.get_type_from_key_str
         content.handler.weather_urls_reply
         coding.routing.can_use_local_rules
+        coding.intake.parse_command_string
         base.protocol-7.command.send.local
         base.path-set-up.zenka-directories
         base.path-set-up.check-zenka-paths
@@ -2148,8 +2160,8 @@ return [ qw[
     ]
 ];
 
-#,,..,...,,,.,,.,,,,,,..,,,,,,,..,,..,,.,,,..,..,,...,...,,..,.,.,,.,,,,,,.,.,
-#WRSIY75N3QNMSOHUXNHJ53HWVXODT7FLLELML2DZVKPW5HMPIEZYRRGNSYUYTCTPAOPSPBA2X3RVW
-#\\\|LZ5L3RN43FK6WFGEGBUK54FDXVIPK5RME6LJSHKYQVHVX3O3KXW \ / AMOS7 \ YOURUM ::
-#\[7]3GI7J5OHFSHZPL3PWXQ6EVX7EBYF52CDCIHMSFFDBSZUALMQKWAQ 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,,,.,.,..,,,.,,..,,...,.,,,,..,..,,...,..,,...,,.,,,..,,,.,.,,,
+#WP6JLACCFPOQ5P5DH2C2Q7LKXDUKJNMSGDPFTFS3ZJWMXY7WSSGOHA664EHIHZKWHTCOCO6W42NYU
+#\\\|ZHEG7VQBKXJD2F676OWWAENQPQYLYT6GZJFNSDHYASENALXGRGH \ / AMOS7 \ YOURUM ::
+#\[7]ZVQ6YOXFZ3GWUJL6OGK5I65Y36RHH5NSVDF66JTVYAPS6TCA5EAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
