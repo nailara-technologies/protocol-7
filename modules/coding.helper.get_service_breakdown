@@ -1,0 +1,39 @@
+## [:< ##
+
+# name = coding.helper.get_service_breakdown
+# descr = get budget breakdown by service
+
+my %service_totals = ();
+my %service_counts = ();
+
+foreach my $txn ( @{<coding.budget.transactions>} ) {
+    my $svc = $txn->{service} // 'unknown';
+    $service_totals{$svc} += $txn->{tokens_used};
+    $service_counts{$svc}++;
+}
+
+my @breakdown = ();
+foreach my $service ( sort keys %service_totals ) {
+    push @breakdown,
+        {
+        service                 => $service,
+        tokens_used             => $service_totals{$service},
+        transactions            => $service_counts{$service},
+        average_per_transaction =>
+            int( $service_totals{$service} / $service_counts{$service} )
+        };
+}
+
+@breakdown = sort { $b->{tokens_used} <=> $a->{tokens_used} } @breakdown;
+
+return {
+    success            => TRUE,
+    by_service         => \@breakdown,
+    total_transactions => scalar( @{<coding.budget.transactions>} )
+};
+
+#,,,.,.,.,..,,,,.,..,,.,.,,,,,...,,.,,,,,,,,,,..,,...,...,..,,,..,,..,,,.,.,,,
+#R7NXWKKID24ITAI6V66GEO4G2EEUHEKOTXFCRMIUW6AZLFTCH6ZCSBWSXL7WI5ANUF2FRRZMCLMLW
+#\\\|6223E5KQLH4XFZTASZSB4T43KTJZ2W3DQCREFZ56FJY753BXVUR \ / AMOS7 \ YOURUM ::
+#\[7]RGPA4M6TQJL6CMPMUMFMCUEBYLAPKSLZFJKGDMWROTZSTLDITYBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

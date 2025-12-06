@@ -2,7 +2,7 @@
 
 # name  = coding.cmd.submit
 # descr = submit work request to coding zenka
-# param = work request string or JSON
+# param = <request_string>
 # example = work submit "code-generation: Create whisper module"
 
 return { 'mode' => qw| false |, 'data' => 'work request required' }
@@ -61,7 +61,7 @@ if ( !$queue_result->{success} ) {
 }
 
 return {
-    'mode' => qw| true |,
+    'mode' => qw| size |,
     'data' => "Task submitted: "
         . $routed_task->{id} . "\n"
         . "  Type: "
@@ -74,8 +74,8 @@ return {
         . $routed_task->{analysis}->{estimated_tokens}
 };
 
-#,,.,,,,,,,,,,,.,,,..,,,,,,..,.,.,,.,,,.,,,,,,..,,...,..,,,.,,,,.,..,,.,,,..,,
-#2FTY7B5H4TZLX62SM364BKVP46XFQHV7NOHOBPXJBE2LZNLIVSYFG2Z5VGIU3SOHLFHRV2P6BSMIM
-#\\\|BN7LHGUF4AAPCFH4NO2EZZID3BWATRTTRLQ32Y4FCT7OKJJSHY6 \ / AMOS7 \ YOURUM ::
-#\[7]SMD2SAI4ZHQCWK2FGZDRPTPOFIEKMPPRAAYCEBUS3M3BPJ6V2MCI 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,..,,.,.,,.,,,,,,,..,..,,.,.,,,.,..,,...,...,.,.,,,.,..,,.,.,,,.,
+#BLSSZDI7KOUE7WAVADY6XBTM3ASDGHQP6JKTDD5KO4W3NXXEGV45IZ4AAJJP2UKOWFMSOSS3MED4Y
+#\\\|235G753KXJ5G7OVDCXB7SD7SQWVC5U7UDJKZ2HNTDKRUHP7VUNS \ / AMOS7 \ YOURUM ::
+#\[7]B2F3LVXJHRI4NLAFCKPEFFDBNHJRN2MENU4VUVGPD6ICTPFLUMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

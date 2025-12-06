@@ -4,31 +4,27 @@
 # descr = track task outcomes and update routing patterns for continuous improvement
 # purpose = Learning loop: Store success|failure data, improve routing decisions
 
-use strict;
-use warnings;
-use JSON::XS;
-
 # Record a task outcome
 my $record_outcome = sub {
     my ($task_id, $task_type,   $service_used,
         $success, $tokens_used, $duration_ms
-    ) = @_;
+    ) = @ARG;
 
     return {
         success => FALSE,
-        error   => "Missing required parameters"
+        error   => qq| missing required parameters |
         }
         unless defined $task_id && defined $service_used && defined $success;
 
     # Record outcome in learning data
     my $outcome = {
         task_id     => $task_id,
-        task_type   => $task_type || 'unknown',
+        task_type   => $task_type || qw| unknown |,
         service     => $service_used,
         success     => $success ? 1 : 0,
         tokens_used => $tokens_used // 0,
         duration_ms => $duration_ms // 0,
-        timestamp   => time(),
+        timestamp   => <[base.time]>,
         efficiency  => $tokens_used && $duration_ms > 0
         ? int( $tokens_used / ( $duration_ms / 1000 ) )
         : 0
@@ -41,17 +37,17 @@ my $record_outcome = sub {
     return {
         success => TRUE,
         outcome => $outcome,
-        message => "Recorded outcome for task: $task_id"
+        message => sprintf( qq| recorded outcome for task : %s |, $task_id )
     };
 };
 
 # Update success rate for task type
 my $update_success_rate = sub {
-    my ( $task_type, $success ) = @_;
+    my ( $task_type, $success ) = @ARG;
 
     return {
         success => FALSE,
-        error   => "Task type required"
+        error   => qq| task type required |
         }
         unless defined $task_type;
 
@@ -59,15 +55,15 @@ my $update_success_rate = sub {
     return {
         success      => TRUE,
         task_type    => $task_type,
-        success_rate => 0.5,          # Placeholder
+        success_rate => 0.5,            # Placeholder
         samples      => 0,
-        trend        => 'neutral'
+        trend        => qw| neutral |
     };
 };
 
 # Get success statistics
 my $get_statistics = sub {
-    my ( $task_type, $service ) = @_;
+    my ( $task_type, $service ) = @ARG;
 
     # Placeholder statistics
     return {
@@ -87,11 +83,11 @@ my $get_statistics = sub {
 
 # Update routing recommendation based on learning
 my $update_routing_recommendation = sub {
-    my ( $task_type, $recommended_service ) = @_;
+    my ( $task_type, $recommended_service ) = @ARG;
 
     return {
         success => FALSE,
-        error   => "Task type required"
+        error   => qq| task type required |
         }
         unless defined $task_type;
 
@@ -100,16 +96,17 @@ my $update_routing_recommendation = sub {
         success        => TRUE,
         recommendation => {
             task_type           => $task_type,
-            recommended_service => $recommended_service // 'consensus-voting',
-            confidence          => 0.5,
-            reason              => 'Based on limited sample'
+            recommended_service => $recommended_service
+                // qw| consensus-voting |,
+            confidence => 0.5,
+            reason     => qq| based on limited sample |
         }
     };
 };
 
 # Identify emerging patterns
 my $identify_patterns = sub {
-    my ($min_samples) = @_;
+    my ($min_samples) = @ARG;
 
     $min_samples //= 10;
 
@@ -117,9 +114,9 @@ my $identify_patterns = sub {
     return {
         success  => TRUE,
         patterns => [
-            {   pattern    => 'Code generation works best with mathstral',
+            {   pattern    => qq| code generation works best with mathstral |,
                 frequency  => 0,
-                impact     => 'medium',
+                impact     => qw| medium |,
                 confidence => 0
             }
         ]
@@ -128,7 +125,7 @@ my $identify_patterns = sub {
 
 # Get model specialization analysis
 my $analyze_model_specialization = sub {
-    my @models = ( 'qwen', 'mathstral', 'aya' );
+    my @models = qw( qwen mathstral aya );
 
     my %specialization = ();
 
@@ -150,26 +147,26 @@ my $analyze_model_specialization = sub {
 
 # Generate improvement recommendations
 my $generate_recommendations = sub {
-    my ($analysis_type) = @_;
+    my ($analysis_type) = @ARG;
 
-    $analysis_type //= 'general';
+    $analysis_type //= qw| general |;
 
     my @recommendations = (
-        {   category       => 'routing',
-            recommendation => 'Monitor code generation success rates',
-            priority       => 'high',
-            impact         => 'potential 15% token savings'
+        {   category       => qw| routing |,
+            recommendation => qq| monitor code generation success rates |,
+            priority       => qw| high |,
+            impact         => qq| potential 15% token savings |
         },
-        {   category       => 'caching',
+        {   category       => qw| caching |,
             recommendation =>
-                'Cache consensus voting results for similar questions',
-            priority => 'high',
-            impact   => 'potential 40% reduction in repeated queries'
+                qq| cache consensus voting results for similar questions |,
+            priority => qw| high |,
+            impact   => qq| potential 40% reduction in repeated queries |
         },
-        {   category       => 'specialization',
-            recommendation => 'Route mathematical problems to Mathstral',
-            priority       => 'medium',
-            impact         => 'potential 20% faster response times'
+        {   category       => qw| specialization |,
+            recommendation => qq| route mathematical problems to mathstral |,
+            priority       => qw| medium |,
+            impact         => qq| potential 20% faster response times |
         }
     );
 
@@ -177,7 +174,7 @@ my $generate_recommendations = sub {
         success         => TRUE,
         analysis_type   => $analysis_type,
         recommendations => \@recommendations,
-        generated_at    => time()
+        generated_at    => <[base.time]>
     };
 };
 
@@ -185,23 +182,24 @@ my $generate_recommendations = sub {
 my $reset_learning = sub {
     return {
         success => TRUE,
-        message => 'Learning state reset',
-        note    => 'In production, would preserve living tree data'
+        message => qq| learning state reset |,
+        note    => qq| in production, would preserve living tree data |
     };
 };
 
 # Main entry point
-my $cmd  = shift @_ // 'record';
-my $arg1 = shift @_;
+my $cmd  = shift @ARG // qw| record |;
+my $arg1 = shift @ARG;
 
 if ( $cmd eq 'record' ) {
-    return record_outcome->( $arg1, $_[0], $_[1], $_[2], $_[3], $_[4] );
+    return record_outcome->( $arg1, $ARG[0], $ARG[1], $ARG[2], $ARG[3],
+        $ARG[4] );
 } elsif ( $cmd eq 'success-rate' ) {
-    return update_success_rate->( $arg1, $_[0] );
+    return update_success_rate->( $arg1, $ARG[0] );
 } elsif ( $cmd eq 'stats' ) {
-    return get_statistics->( $arg1, $_[0] );
+    return get_statistics->( $arg1, $ARG[0] );
 } elsif ( $cmd eq 'recommendation' ) {
-    return update_routing_recommendation->( $arg1, $_[0] );
+    return update_routing_recommendation->( $arg1, $ARG[0] );
 } elsif ( $cmd eq 'patterns' ) {
     return identify_patterns->($arg1);
 } elsif ( $cmd eq 'specialization' ) {
@@ -213,16 +211,16 @@ if ( $cmd eq 'record' ) {
 } else {
     return {
         success   => FALSE,
-        error     => "Unknown learning command: $cmd",
+        error     => sprintf( qq| unknown learning command : %s |, $cmd ),
         available => [
-            'record',   'success-rate',   'stats',     'recommendation',
-            'patterns', 'specialization', 'recommend', 'reset'
+            qw| record success-rate stats recommendation |,
+            qw| patterns specialization recommend reset |
         ]
     };
 }
 
-#,,..,.,.,.,.,,,,,.,.,,,,,..,,.,,,,,.,.,,,,.,,..,,...,..,,..,,...,...,,,,,,.,,
-#E6KWGYWRXU233WXLV4ZEDWWXC7VCCLLRJHSM7YSIUGYEZW7ZSJZY7LTBMGQQEATRH76UA5OB455GE
-#\\\|XHWCXWKH4444FMEKU3KCDRSVPFZGG5FLD6CLZBMLLF6HRU253CL \ / AMOS7 \ YOURUM ::
-#\[7]PMEASGL7E36AP2JN3EX3WQ6GDOQI6KDFGQX4AUVWBEQEEX5ARGBY 7  DATA SIGNATURE ::
+#,,,,,,..,...,,..,,,,,.,.,,.,,,,.,...,,,.,,.,,..,,...,..,,..,,.,,,,.,,..,,.,.,
+#3WJJFB3C5WWB4AMP3ZEAJ7KRALVVABHDXK7LUOQNGRABWMMDAH2UZ5DR6OCALZTVXLOJGVZRX3VR4
+#\\\|QAFTTU33F2OOLZNRHGUYHIHE3N7VSMUWJCTZY7QCOR7USM2ISD7 \ / AMOS7 \ YOURUM ::
+#\[7]ZRHLWVTALE63DDYTQZNBFR6KXU2DXR4A2H63CEDZGT4NQM57JSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

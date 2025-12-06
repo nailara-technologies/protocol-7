@@ -4,13 +4,9 @@
 # descr = intelligent workload routing - decide which service handles each task
 # purpose = Core routing engine: Cache lookup, service selection, fallback determination
 
-use strict;
-use warnings;
-use JSON::XS;
-
 # Rule 1: Check cache first
 my $check_cache_first = sub {
-    my ($task) = @_;
+    my ($task) = @ARG;
 
     # In a real system, check living tree cache
     # For now, return placeholder
@@ -23,7 +19,7 @@ my $check_cache_first = sub {
 
 # Rule 2: Simple rules (no LLM needed)
 my $can_use_local_rules = sub {
-    my ($task) = @_;
+    my ($task) = @ARG;
 
     my $desc = lc( $task->{request}->{description} // '' );
 
@@ -47,7 +43,7 @@ my $can_use_local_rules = sub {
 
 # Rule 3: Determine optimal service
 my $determine_service = sub {
-    my ($task) = @_;
+    my ($task) = @ARG;
 
     my $type        = $task->{type}                   // 'analysis';
     my $complexity  = $task->{analysis}->{complexity} // 5;
@@ -160,7 +156,7 @@ my $determine_service = sub {
 
 # Determine fallback service
 my $determine_fallback = sub {
-    my ( $task, $primary_service ) = @_;
+    my ( $task, $primary_service ) = @ARG;
 
     my $primary = $primary_service->{service} // 'single-llm';
 
@@ -197,7 +193,7 @@ my $determine_fallback = sub {
 
 # Main routing decision
 my $make_routing_decision = sub {
-    my ($task) = @_;
+    my ($task) = @ARG;
 
     return {
         success => FALSE,
@@ -272,8 +268,8 @@ my $get_routing_stats = sub {
 };
 
 # Main entry
-my $cmd  = shift @_ // 'route';
-my $task = shift @_;
+my $cmd  = shift @ARG // qw| route |;
+my $task = shift @ARG;
 
 if ( $cmd eq 'route' ) {
     return make_routing_decision->($task);
@@ -282,24 +278,24 @@ if ( $cmd eq 'route' ) {
 } elsif ( $cmd eq 'determine-service' ) {
     return determine_service->($task);
 } elsif ( $cmd eq 'determine-fallback' ) {
-    my $primary = shift @_;
-    return determine_fallback->( $task, $primary );
+    my $primary = shift @ARG;
+    return $determine_fallback->( $task, $primary );
 } elsif ( $cmd eq 'stats' ) {
     return get_routing_stats->();
 } else {
     return {
         success   => FALSE,
-        error     => "Unknown routing command: $cmd",
+        error     => sprintf( qq| unknown routing command : %s |, $cmd ),
         available => [
-            'route',             'check-cache',
-            'determine-service', 'determine-fallback',
-            'stats'
+            qw| route check-cache |,
+            qw| determine-service determine-fallback |,
+            qw| stats |
         ]
     };
 }
 
-#,,..,,.,,,.,,,.,,,.,,.,.,.,.,.,,,,,,,,,,,,..,..,,...,...,...,..,,,.,,..,,,..,
-#F5EPLOKFPOW77UIHTXH5S53KCITQSS2C3DT3INTN42UNWGGQRLCWDAMBI3D5UYAAEHRS4PMJLG6EY
-#\\\|2ZTOBS5UTP7F6E3VYWUW3PWJ6Y7MUPBKHCHOCCJI6NSN4SYF2LV \ / AMOS7 \ YOURUM ::
-#\[7]QDSAOHWGQUMYJUMWKPMEQZASV4VL5MKRQAKRHYHWAQJM6S3GU2AQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,.,.,...,,.,,,.,,..,,..,,,,,,,.,,..,,...,...,,.,,,..,...,.,.,.,,,
+#SWG6XVHGFIPEJR6MICGS2UNBZURFM266PN43MS6K4IB4I476TUSAOUBLTPKTR4ZCWWNHVI2P7OXLQ
+#\\\|KGDJ3GER2653LW7EC4RWMFSH62GDFAWBWWODZP7R3R3BCJEGRXB \ / AMOS7 \ YOURUM ::
+#\[7]3666C27THARCBR62BAN63DA2WIEOI5H6GJB5HURKOKWRA4T43ECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

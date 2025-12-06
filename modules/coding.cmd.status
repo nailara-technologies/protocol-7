@@ -2,21 +2,21 @@
 
 # name  = coding.cmd.status
 # descr = show coding zenka status and queue information
-# param = optional: task_id to show specific task status
+# param = [task_id]
 
-my $task_id = length( $$call{'args'} ) ? $$call{'args'} : undef;
+my $task_id = length( $$call{'args'} ) ? $call->{'args'} : undef;
 
 # Get queue statistics
 my $queue_stats = <[coding.task.queue]>->( 'status', $task_id );
 
-if ( !$queue_stats->{success} && !defined $task_id ) {
+if ( !$queue_stats->{'success'} && not defined $task_id ) {
 
     # General status
     return {
-        'mode' => qw| true |,
-        'data' => "Coding Zenka Status:\n"
-            . "  Status: ready\n"
-            . "  Queue: empty or no data available"
+        'mode' => qw| size |,
+        'data' => "\n:: coding zenka status ::\n\n"
+            . ": status : ready\n"
+            . ":  queue : empty or no data available\n"
     };
 }
 
@@ -25,34 +25,34 @@ if ( defined $task_id ) {
     # Specific task status
     my $task_status = $queue_stats;
 
-    if ( !$task_status->{success} ) {
+    if ( !$task_status->{'success'} ) {
         return {
             'mode' => qw| false |,
-            'data' => "Task not found: $task_id"
+            'data' => "task not found : $task_id"
         };
     }
 
     return {
-        'mode' => qw| true |,
-        'data' => "Task Status: $task_id\n"
-            . "  Status: "
-            . $task_status->{status} . "\n"
-            . "  Started: "
+        'mode' => qw| size |,
+        'data' => ":: task Status : $task_id ::\n\n"
+            . ": status   : "
+            . $task_status->{'status'} . "\n"
+            . ": started  : "
             . (
-            $task_status->{started}
-            ? scalar( localtime( $task_status->{started} ) )
+            $task_status->{'started'}
+            ? scalar( localtime( $task_status->{'started'} ) )
             : 'pending'
             )
             . "\n"
-            . "  Completed: "
+            . ": completed : "
             . (
-            $task_status->{completed}
-            ? scalar( localtime( $task_status->{completed} ) )
+            $task_status->{'completed'}
+            ? scalar( localtime( $task_status->{'completed'} ) )
             : 'in progress'
             )
             . "\n"
-            . "  Success: "
-            . ( $task_status->{success} ? 'yes' : 'no' ) . "\n"
+            . ":  success  : "
+            . ( $task_status->{'success'} ? 'yes' : 'no' ) . "\n"
     };
 }
 
@@ -63,33 +63,34 @@ my $stats = $queue_stats;
 my $budget = <[coding.budget.track_tokens]>->('status');
 
 return {
-    'mode' => qw| true |,
-    'data' => "Coding Zenka Status:\n"
-        . "  Tasks Pending: "
+    'mode' => qw| size |,
+    'data' => "\n:: coding zenka status ::\n\n"
+        . ": queue stats :\n"
+        . ":  failed    : "
+        . $stats->{failed} . "\n"
+        . ":  pending   : "
         . $stats->{pending} . "\n"
-        . "  Tasks In Progress: "
+        . ":  progress  : "
         . $stats->{in_progress} . "\n"
-        . "  Tasks Completed: "
-        . $stats->{completed} . "\n"
-        . "  Tasks Failed: "
-        . $stats->{failed} . "\n" . "\n"
-        . "Budget:\n"
-        . "  Allocated: "
-        . $budget->{total_allocated}
-        . " tokens\n"
-        . "  Used: "
+        . ":  completed : "
+        . $stats->{completed} . "\n" . "\n"
+        . ": budget info :\n"
+        . ":  used      : "
         . $budget->{total_used}
         . " tokens ("
         . $budget->{percentage_used} . "%)\n"
-        . "  Remaining: "
-        . $budget->{remaining}
+        . ":  status    : "
+        . $budget->{status} . "\n"
+        . ":  allocated : "
+        . $budget->{total_allocated}
         . " tokens\n"
-        . "  Status: "
-        . $budget->{status}
+        . ":  remaining : "
+        . $budget->{remaining}
+        . " tokens"
 };
 
-#,,..,...,.,,,,..,,..,,,,,..,,,,,,,,,,..,,...,..,,...,...,,,.,..,,...,,,.,..,,
-#ZY37HS3MCT7N2WM6DLHTQGUQ44ECGEHWMKA4KE2DMQ4ZXY2ZX5Z3DFJXX3KORY6YUAUJ4KXADYGRY
-#\\\|KCPHJ7C4EGO6HOTVSQRF2PJDI3L63FWFQ4KGAH5QRAZG34XM7BD \ / AMOS7 \ YOURUM ::
-#\[7]COHVGQNATN4TN2LXY3OLWRC2GTK2NZ6UXZVNEBYFTHGFEFRPY6CQ 7  DATA SIGNATURE ::
+#,,..,...,,.,,,..,,,.,,,,,,,,,..,,,,,,,,,,,..,..,,...,.,.,.,.,,,,,.,,,...,..,,
+#DQMYPXKYI62WR2APZ3BHF4SBOKSQQABI7VY7PXCYKA2XNI7XCIPAYRVZSKEBBEBINSDHO25QSORFA
+#\\\|OLREZTUM2S2O23H4IPW6PA75TPNNXGAB3TS6VKAQVVP4YJ34F77 \ / AMOS7 \ YOURUM ::
+#\[7]6FQ5NQ7M2RQ4IFLTG2LTPRGGNJ2SCXKZWCKXOM2FBISK2S47YODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
