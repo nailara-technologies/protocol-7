@@ -1103,12 +1103,15 @@ sub p7_check_bin_p7 {    ## LLL: reduce calls \ exposure .,
         $f_path
             = canonpath catfile( catfile( $base_dir, $chk_parent ),
             $chk_path );
-        ( my $path_str = catfile( $chk_parent, $chk_path ) ) =~ s|^/+||;
-        return $path_str if defined $f_path and -r $f_path;
+        if ( defined $f_path and defined $chk_parent ) {
+            ( my $path_str = catfile( $chk_parent, $chk_path ) ) =~ s|^/+||;
+            return $path_str if -r $f_path;
+        }
     }
     $data{'modules'}{'warned'} //= {};    ## <-- cleaned up later
-    my $reason = !-r $f_path ? 'readable' : 'found';
-    warn "<< source not $reason : '$chk_path' >> <{C1}>"
+    my $reason = !-r $f_path ? qw| readable | : qw| found |;
+    $chk_path =~ s|^modules/|| if $reason eq qw| readable |; ## LLL:improve ##
+    warn( sprintf ":::[ NOT %s ]::: '%s' <{C2}>", uc($reason), $chk_path )
         if not $data{'modules'}{'warned'}{$f_path}++;
     return undef;
 }
@@ -1155,10 +1158,13 @@ sub p7_referenced_subroutines__add {
     } elsif ( ref $sub_source_sref ne qw| SCALAR | ) {
         warn 'expected subroutine source reference <{C1}>';
         return undef;
+    } elsif ( not defined $sub_source_sref->$* ) {   ## failed compilation? ##
+        warn 'expected subroutine source is undefined <{C1}>';
+        return undef;
     }
 
     my $sub_sourcecode = $sub_source_sref->$*;
-    $sub_sourcecode =~ s|#[^\n]+$||mg;    ## <-- improve ##  [LLL]
+    $sub_sourcecode =~ s|#[^\n]+$||mg;               ## <-- improve ##  [LLL]
 
     my @source_lines = split "\n", $sub_sourcecode;
 
@@ -1427,9 +1433,10 @@ sub p7_load_code {
                 and $code{'base.source_path_valid'}->($src_rel) ) {
                 $code_count++;
                 local $RS = undef;
+                $data{'system'}{'no_http_source'} //= FALSE;
                 if ( $src_from_http
                     or !-r $src_abs_path
-                    and !( $data{'system'}{'no_http_source'} // 0 ) ) {
+                    and not $data{'system'}{'no_http_source'} ) {
                     ## read modules from network [ more methods coming ]
 
                     # $code{'log.devmod'}->(":[http]: $src_rel .,");
@@ -1446,6 +1453,21 @@ sub p7_load_code {
                         or die ":$src_abs_path : \l$OS_ERROR";
                     $data{'code'}{$file_name}{'source'} = <$src_fh>;
                     close($src_fh);
+                }
+
+                if ( not defined $data{'code'}{$file_name}{'source'} ) {
+                    $code{'log.error'}->(
+                        sprintf(
+                            ': not readable [ %s ] %s',
+                            $source_not_readable ? 'permissions' : 'io',
+                            $file_name
+                        )
+                    );
+                    $data{'base'}{'p7_mod'}{'errors'}->{$code_name}++;
+                    $data{'base'}{'modules'}{'load_errors'}++;
+                    $data{'code'}{$file_name}{'source_not_readable'}
+                        = $source_not_readable;
+                    next;
                 }
 
                 # <[sub_name]>->(  -->  $code{'sub_name'}->(
@@ -1658,6 +1680,14 @@ sub p7_load_code {
                     $code_header, $data{'code'}{$sub_name}{'source'},
                     $code_footer );
             }
+        }
+
+        if ( not defined $data{'code'}{$sub_name}{'source'} ) {
+            $code{'log.error'}->(
+                sprintf( ': source lost for %s [ internal error ]',
+                    $sub_name )
+            );
+            next;
         }
 
         if ( $data{'system'}{'verbosity'}{'console'} > 2 ) {
@@ -5195,8 +5225,8 @@ __DATA__
 :
 :.
 
-#,,,.,..,,.,,,..,,...,,,,,.,.,,.,,,,.,,..,,,,,..,,...,...,.,,,,..,..,,.,,,,..,
-#UWKVIQOL2KNCV25NPCVTGNBWEDBDLVKDIKOQXMWQHCKC25YBHS7ORHRTXJAOTEQV4B32FHR6WLYXC
-#\\\|4A73JLBJYT6PMYQOGAHFIXJO2FEVQFPRGUVCTLU6OVUTVD2HKRP \ / AMOS7 \ YOURUM ::
-#\[7]2XIKRGJLZSPFDFFK2HTYSE2II7FDS76FIDGQJXAY6VPVLQDMPABA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,.,.,,,.,,.,,.,,,.,,,.,,,.,.,.,,,..,,...,...,,,.,,,.,.,,,...,...,
+#K6QDQK654BVJCUKPSDNFTBDDDTNA2DGXNTRTKWGYAANPLHYJY2CFSACJMQMZSG7HHX3C47XGFJJQK
+#\\\|XBTKUI6IQUSLAHUWW4WAFCWQOYB6Y4FQZNR46CDN4K2OMONBBXQ \ / AMOS7 \ YOURUM ::
+#\[7]ZPHAMICEPRP3UNZIYE3WY5JJGZKEN3GVGE7XDRBAWEHJ3I55PUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
