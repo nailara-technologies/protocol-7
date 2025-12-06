@@ -1,0 +1,41 @@
+## [:< ##
+
+# name = coding.learning.record_outcome
+# descr = record task outcome with metrics and efficiency data
+# purpose = learning : store task success|failure with performance metrics
+
+my ($task_id, $task_type, $service_used, $success, $tokens_used, $duration_ms) = @ARG;
+
+return {
+    success => FALSE,
+    error   => 'missing required parameters'
+} unless defined $task_id && defined $service_used && defined $success;
+
+# Record outcome with computed efficiency metrics
+my $outcome = {
+    task_id     => $task_id,
+    task_type   => $task_type || 'unknown',
+    service     => $service_used,
+    success     => $success ? 1 : 0,
+    tokens_used => $tokens_used // 0,
+    duration_ms => $duration_ms // 0,
+    timestamp   => <[base.time]>,
+    efficiency  => $tokens_used && $duration_ms > 0
+    ? int( $tokens_used / ( $duration_ms / 1000 ) )
+    : 0
+};
+
+# Store outcome in history (placeholder for living tree integration)
+my $key = sprintf( "learning.outcome.%s", $task_id );
+
+return {
+    success => TRUE,
+    outcome => $outcome,
+    message => sprintf( "recorded outcome for task : %s", $task_id )
+};
+
+#,,.,,,,,,..,,.,,,.,,,...,.,,,,.,,.,.,...,...,..,,...,...,..,,,,,,,.,,..,,.,,,
+#BOPQ5OGQSVNBTKA43DFZGZHQ2QR4P5IHQ2J6WHRWOOPQMKOD2E2JDX7LUKCV62TFZIBP6TVQ2OKI2
+#\\\|5OOHPGWWWOJUCJQY2X2R5ODDJ7I3N6VQATMK3JK5ZSFFKRHLCHE \ / AMOS7 \ YOURUM ::
+#\[7]IW2ZKUQMRMK6GV4D2TPBE36MKM5J74TLDA6EIGSA2FPI5FS6TWAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
