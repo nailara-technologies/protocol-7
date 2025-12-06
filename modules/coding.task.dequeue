@@ -1,0 +1,29 @@
+## [:< ##
+
+# name = coding.task.dequeue
+# descr = get next available coding task from queue
+# purpose = coding task management : wrapper around jobqueue.get_next_job for 'queued' queue
+
+my $result = <[jobqueue.get_next_job]>->('queued');
+
+return {
+    success => FALSE,
+    error   => 'no tasks available in queue'
+} unless defined $result;
+
+my ($job_id, $job_data) = @$result;
+
+return {
+    success   => TRUE,
+    job_id    => $job_id,
+    task_id   => $job_data->{object_id},
+    task_type => $job_data->{callback_params}->{type} // 'general',
+    priority  => $job_data->{priority},
+    status    => $job_data->{status},
+};
+
+#,,.,,,,,,...,,,.,.,.,.,.,...,,,,,,,,,.,,,,,,,..,,...,...,...,,.,,,,.,.,,,,,,,
+#GMMRT4FVET4MOAPUXAUSKXVX5DKSV2DSKUOYR52UFSXYN5AZ47C55M245NPO4MZLOTS4VEKF24WGU
+#\\\|5S7OHRYEW5RLILQL2VDCRYS33BFBENPSBNDZDXKA6GHIR53WWUX \ / AMOS7 \ YOURUM ::
+#\[7]J4S4ITOWVXHMPEUROKPPW5ZMVJHYRA6QTKFA5QHZ3G4P5UMIXUBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,28 @@
+## [:< ##
+
+# name = coding.task.queue_stats
+# descr = get statistics about coding task queues
+# purpose = coding task management : wrapper around jobqueue.count for queue statistics
+
+my $stats = {
+    success        => TRUE,
+    queued         => <[jobqueue.count]>->('queued') // 0,
+    running        => <[jobqueue.count]>->('running') // 0,
+    completed      => <[jobqueue.count]>->('completed') // 0,
+    error          => <[jobqueue.count]>->('error') // 0,
+    paused         => <[jobqueue.count]>->('paused') // 0,
+    depending      => <[jobqueue.count]>->('depending') // 0,
+    aborted        => <[jobqueue.count]>->('aborted') // 0,
+};
+
+$stats->{total} = $stats->{queued} + $stats->{running} + $stats->{completed}
+                + $stats->{error} + $stats->{paused} + $stats->{depending}
+                + $stats->{aborted};
+
+return $stats;
+
+#,,.,,..,,,,,,,,.,,,,,,.,,,,,,,..,.,.,.,.,,.,,..,,...,...,...,.,.,.,,,,,,,,.,,
+#52F7U4U77JKVUFVK5TINZ3EVRY22CMGACG66UZXKNLU3GBGUWHRXNROWPYWUXQLZ67OEQCPWJM3UC
+#\\\|C377DLIVUCU7UWZVTSZAEX7QMMI3E2RL7FTK2SQVPISU53OALOE \ / AMOS7 \ YOURUM ::
+#\[7]P5JPOQBRC2M3OSSNZNL5PEJAAU4NV7DPNRQDF6XGH5LCGRETSADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
