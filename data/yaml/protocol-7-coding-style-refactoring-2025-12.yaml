@@ -1,0 +1,667 @@
+# Protocol-7 Coding Style Guide - Refactoring Insights (2025-12)
+# Documentation of patterns and improvements from inline subroutine extraction
+# Generated: 2025-12-06
+
+---
+project: "Protocol-7"
+version: "2025-12"
+scope: "Coding module refactoring and architectural patterns"
+
+overview: |
+  This document captures architectural patterns and code quality improvements discovered
+  through systematic extraction of 27 inline subroutines from monolithic coding modules.
+  The refactoring improved code maintainability, discoverability, and reusability while
+  reducing duplication and complexity.
+
+refactoring_summary:
+  total_modules_extracted: 27
+  source_modules: 3
+    - "coding.task.analyze (5 modules)"
+    - "coding.learning.track_success (8 modules)"
+    - "coding.routing.decide_service (6 modules)"
+  additional_wrappers_created: 8
+  commit_hash: "e6e97770e"
+  extraction_pattern: "One-function-per-module with focused responsibility"
+
+---
+
+# ARCHITECTURAL PATTERNS
+
+## Pattern 1: Wrapper Architecture (jobqueue integration)
+
+description: |
+  Thin wrapper modules that delegate to lower-level services while adding domain-specific logic.
+  This pattern leverages existing generic infrastructure (jobqueue) without code duplication.
+
+implementation:
+  - location: "modules/coding.task.*"
+  - base_service: "jobqueue.* (generic job queue management)"
+  - added_logic: "Priority calculation, type mapping, status translation"
+  - benefits:
+      - Infrastructure reuse without duplication
+      - Clear separation between generic and domain-specific logic
+      - Easier to maintain and test
+      - Shared error handling from base service
+
+example_modules:
+  - name: "coding.task.enqueue"
+    wraps: "jobqueue.add_job()"
+    adds: "Priority calculation from task type"
+    result: "Elegant priority-aware task queuing"
+
+  - name: "coding.task.status"
+    wraps: "jobqueue.get_job_data()"
+    adds: "Status translation to human-readable format"
+    result: "Clean API hiding jobqueue implementation details"
+
+  - name: "coding.task.dequeue"
+    wraps: "jobqueue.get_next_job('queued')"
+    adds: "Consistent queue name management"
+    result: "Prevents queue name typos and improves consistency"
+
+## Pattern 2: One-Module-One-Function Principle
+
+description: |
+  Extract inline subroutines into dedicated modules rather than grouping multiple functions.
+  Each module has a single, focused responsibility with clear inputs and outputs.
+
+rationale:
+  - Discoverability: Module name clearly indicates function purpose
+  - Reusability: Functions can be imported independently by other modules
+  - Testability: Single responsibility simplifies unit testing
+  - Maintainability: Changes are localized to specific modules
+  - Navigation: `<[module.name]>->()` syntax makes call chain obvious
+
+implementation_examples:
+  task_analysis:
+    - "coding.task.analyze_complexity"
+    - "coding.task.classify_type"
+    - "coding.task.estimate_tokens"
+    - "coding.task.check_history"
+    - "coding.task.analyze_full (orchestrator)"
+
+  learning:
+    - "coding.learning.record_outcome"
+    - "coding.learning.update_success_rate"
+    - "coding.learning.get_statistics"
+    - "coding.learning.identify_patterns"
+    - "coding.learning.analyze_model_specialization"
+
+  routing:
+    - "coding.routing.check_cache_first"
+    - "coding.routing.can_use_local_rules"
+    - "coding.routing.determine_service"
+    - "coding.routing.determine_fallback"
+    - "coding.routing.make_routing_decision (orchestrator)"
+
+## Pattern 3: Dynamic Calculations vs Static Values
+
+description: |
+  Avoid hardcoding configuration values. Instead, create helper modules that calculate
+  values dynamically based on logic, making the system adaptable without code changes.
+
+examples:
+  task_priority_calculation:
+    module: "coding.helper.task_priority"
+    maps: "task type → priority score"
+    dynamic_adjustments:
+      - urgent_flag: "-2 priority penalty for urgency"
+      - size_flag: "+1 priority boost for large tasks"
+    benefit: "Priority logic can evolve without touching enqueueing code"
+
+  complexity_scoring:
+    module: "coding.task.analyze_complexity"
+    calculates: "1-10 complexity score based on multiple factors"
+    factors:
+      - word_count: ">100 words = +2, >50 = +1"
+      - keywords: "Complex keywords = +2 each, medium = +1 each"
+      - task_type: "code/generation = +3, consensus = +4, transcription = -2"
+      - constraints: "each constraint = +1"
+    capped: "between 1-10"
+    benefit: "Scoring logic centralized, easily adjusted per policy"
+
+  token_estimation:
+    module: "coding.task.estimate_tokens"
+    base_estimates:
+      code-generation: 300
+      reasoning: 200
+      brainstorming: 200
+      analysis: 150
+      transcription: 50
+      image-generation: 50
+    adjustments:
+      - description_length: "1 token per 4 characters"
+      - consensus_multiplier: "3x for voting models"
+    benefit: "Token cost estimation decoupled from task processing"
+
+## Pattern 4: Orchestrator Modules
+
+description: |
+  Create "orchestrator" modules that coordinate multiple analysis steps and return
+  consolidated results. These modules provide high-level workflow management.
+
+examples:
+  - name: "coding.task.analyze_full"
+    orchestrates:
+      - "coding.task.analyze_complexity"
+      - "coding.task.classify_type"
+      - "coding.task.estimate_tokens"
+      - "coding.task.check_history"
+    consolidates: "All analyses into single result with updated task data"
+    benefit: "Client code calls one module instead of managing workflow"
+
+  - name: "coding.routing.make_routing_decision"
+    orchestrates:
+      - "coding.routing.check_cache_first"
+      - "coding.routing.can_use_local_rules"
+      - "coding.routing.determine_service"
+      - "coding.routing.determine_fallback"
+    consolidates: "All routing decisions into single routing recommendation"
+    benefit: "Routing logic remains testable and modular, but coordinated"
+
+  - name: "coding.learning.generate_recommendations"
+    orchestrates:
+      - "coding.learning.analyze_model_specialization"
+      - "coding.learning.identify_patterns"
+    consolidates: "Routing, caching, and specialization recommendations"
+    benefit: "Recommendations generated from learned patterns"
+
+---
+
+# ANTI-PATTERNS ELIMINATED
+
+## Anti-Pattern 1: Inline Anonymous Subroutines
+
+problem: |
+  Functions defined as anonymous variables within modules:
+  ```perl
+  my $analyze_complexity = sub { ... };
+  my $classify_type = sub { ... };
+  ```
+
+issues:
+  - Not callable through Protocol-7 module system
+  - Lost discoverability (can't list available functions)
+  - Reduced reusability across modules
+  - Complicated call chain (need variable reference)
+  - Testing requires module initialization
+
+solution: "Extract to native modules, use <[module.name]->() syntax"
+result: "27 modules eliminated ~170+ lines of duplicated/hidden code"
+
+## Anti-Pattern 2: Monolithic Modules
+
+problem: |
+  Single module containing many loosely-related functions (e.g., coding.task.analyze
+  contained 5 distinct analytical operations, coding.routing.decide_service contained 6
+  routing decision points)
+
+issues:
+  - Hard to test individual operations
+  - Difficult to reuse specific functionality
+  - Module initialization cost for single function use
+  - Dependencies tangled across operations
+
+solution: "One-module-one-function principle"
+result: "Each operation independently importable and testable"
+
+## Anti-Pattern 3: Hardcoded Configuration Values
+
+problem: |
+  Task priority mappings, token estimates, and complexity weights hardcoded in analysis logic
+
+issues:
+  - Changing estimates requires code modification
+  - Different zenka might need different estimates (not possible)
+  - No audit trail of configuration changes
+  - Scaling strategy locked into code
+
+solution: "Dynamic calculation modules (helper.task_priority, estimate_tokens, etc.)"
+result: "Configuration logic decoupled from processing logic"
+
+---
+
+# CODE QUALITY IMPROVEMENTS
+
+improvement: "Infrastructure Integration"
+description: |
+  New modules leverage existing Protocol-7 features:
+  - jobqueue infrastructure for all task state management
+  - Dynamic calculation instead of hardcoded values
+  - Named queue states for state transitions
+  - Signature generation for code integrity
+metrics:
+  - jobqueue already handles: priorities, state tracking, timestamps, dependencies
+  - Previous code: reimplemented these features locally
+  - Now: single source of truth for state management
+
+improvement: "Code Organization"
+description: |
+  Namespace hierarchy clarifies module relationships:
+  - coding.task.* = task lifecycle operations
+  - coding.helper.* = utility calculations
+  - coding.learning.* = analytics and pattern detection
+  - coding.routing.* = service selection logic
+metrics:
+  - Module name = function purpose (immediate understanding)
+  - Clear dependency graph (which modules call which)
+  - Natural file organization matching architecture
+
+improvement: "Reusability"
+description: |
+  Extracted modules designed for independent reuse:
+  - coding.learning.get_statistics usable by dashboards
+  - coding.routing.get_routing_stats usable by monitoring
+  - coding.task.queue_stats usable by health checks
+metrics:
+  - Functions previously embedded in modules, now available everywhere
+  - No copy-paste needed for similar logic
+
+improvement: "Maintainability"
+description: |
+  Changes localized to specific modules:
+  - Modify priority logic → update coding.helper.task_priority only
+  - Change token estimates → update coding.task.estimate_tokens only
+  - Adjust complexity algorithm → update coding.task.analyze_complexity only
+metrics:
+  - Single location for each responsibility
+  - Reduced cognitive load (understand one module at a time)
+  - Git blame/log clearly shows evolution of each feature
+
+improvement: "Discoverability"
+description: |
+  Module names serve as self-documentation:
+  - `coding.task.analyze_complexity` (obvious what it does)
+  - `coding.routing.determine_fallback` (obvious when/why used)
+  - `coding.learning.record_outcome` (obvious when to call)
+metrics:
+  - New developers can find relevant code by function name
+  - No need to read monolithic modules to find specific logic
+
+---
+
+# EXTRACTED MODULES (27 total)
+
+## Task Management Wrappers (5 modules)
+
+module: "coding.task.dequeue"
+purpose: "Get next available task from 'queued' queue"
+wraps: "jobqueue.get_next_job('queued')"
+returns: "job_id, task_id, task_type, priority, status"
+use_case: "Main task processing loop"
+
+---
+
+module: "coding.task.complete"
+purpose: "Mark task as completed and move to 'completed' queue"
+wraps: "jobqueue.move_job() and jobqueue.get_job_data()"
+parameters: "job_id, optional result"
+use_case: "After successful task execution"
+
+---
+
+module: "coding.task.fail"
+purpose: "Mark task as failed with error message"
+wraps: "jobqueue.move_job() to 'error' queue"
+parameters: "job_id, error_msg"
+use_case: "After task execution failure"
+
+---
+
+module: "coding.task.queue_stats"
+purpose: "Get queue statistics across all states"
+wraps: "Multiple jobqueue.count() calls"
+returns: "counts for queued, running, completed, error, paused, depending, aborted"
+use_case: "Health monitoring and capacity planning"
+
+---
+
+module: "coding.task.clear"
+purpose: "Remove completed tasks from queue"
+wraps: "jobqueue.remove_job()"
+parameters: "job_id (specific) or bulk flag (all completed)"
+use_case: "Queue maintenance and cleanup"
+
+---
+
+## Learning/Analytics Modules (8 modules)
+
+module: "coding.learning.record_outcome"
+purpose: "Records task outcome with metrics"
+captures: "success status, tokens used, duration"
+calculates: "efficiency (tokens / duration)"
+use_case: "End of task execution for learning purposes"
+
+---
+
+module: "coding.learning.update_success_rate"
+purpose: "Updates success rate statistics by task type"
+aggregates: "Per-task-type success metrics"
+use_case: "Called after record_outcome"
+
+---
+
+module: "coding.learning.get_statistics"
+purpose: "Retrieves aggregated statistics"
+returns: "Aggregated data for task types and services"
+use_case: "Dashboard generation, reporting"
+
+---
+
+module: "coding.learning.update_routing_recommendation"
+purpose: "Updates routing recommendations based on learning"
+parameters: "task_type, recommended_service, success_flag"
+use_case: "After routing decision and outcome known"
+
+---
+
+module: "coding.learning.identify_patterns"
+purpose: "Detects emerging patterns in task outcomes"
+parameters: "min_samples (default 10)"
+returns: "Pattern objects with confidence scores"
+use_case: "Periodic pattern analysis for optimization"
+
+---
+
+module: "coding.learning.analyze_model_specialization"
+purpose: "Analyzes specialization of different LLM models"
+returns: "success_rate, avg_response_tokens, avg_latency_ms per model"
+use_case: "Model performance comparison"
+
+---
+
+module: "coding.learning.generate_recommendations"
+purpose: "Generates optimization recommendations from analysis"
+returns: "routing, caching, specialization recommendations with priority and impact"
+use_case: "Automatic system optimization suggestions"
+
+---
+
+module: "coding.learning.reset_learning"
+purpose: "Resets learning state for testing purposes"
+use_case: "Testing and resetting learning system"
+
+---
+
+## Routing Decision Modules (6 modules)
+
+module: "coding.routing.check_cache_first"
+purpose: "Cache lookup optimization"
+checks: "Task description against cached results"
+returns: "found flag, cached_result, cache_key"
+use_case: "First step in routing decision"
+
+---
+
+module: "coding.routing.can_use_local_rules"
+purpose: "Detects simple tasks that don't need LLM"
+simple_tasks: "format, convert, validate, check, list, count"
+non_llm_types: "transcription (use whisper service)"
+returns: "can_use_local_rules flag, recommended_service"
+use_case: "Skip LLM for operations that don't need it"
+
+---
+
+module: "coding.routing.determine_service"
+purpose: "Main service selection based on task characteristics"
+considers:
+  - "Task type (transcription→whisper, image-generation→invoke-ai, etc.)"
+  - "Complexity score (determines consensus vs single model)"
+  - "Constraints (consensus voting requirement)"
+service_selection:
+  transcription: "whisper"
+  image-generation: "invoke-ai"
+  code-generation: "mathstral or consensus"
+  reasoning: "qwen or consensus"
+  analysis: "qwen or consensus"
+  brainstorming: "diverse consensus"
+returns: "primary service recommendation with token cost and reason"
+use_case: "Determine ideal service for task execution"
+
+---
+
+module: "coding.routing.determine_fallback"
+purpose: "Fallback service if primary fails"
+fallback_logic:
+  consensus: "fallback to single-llm"
+  invoke-ai: "no fallback (specialized)"
+  whisper: "no fallback (specialized)"
+  default: "fallback to consensus-voting"
+returns: "fallback service recommendation"
+use_case: "Handle primary service unavailability"
+
+---
+
+module: "coding.routing.make_routing_decision"
+purpose: "Orchestrates all routing rules in sequence"
+orchestrates:
+  - "1. check_cache_first"
+  - "2. can_use_local_rules"
+  - "3. determine_service (primary)"
+  - "4. determine_fallback"
+returns: "Complete routing decision with primary/fallback services"
+use_case: "End-to-end routing decision workflow"
+
+---
+
+module: "coding.routing.get_routing_stats"
+purpose: "Returns routing performance metrics"
+returns: "routes_made, cache_hits, services_used, average_token_cost"
+use_case: "Monitoring and optimization analysis"
+
+---
+
+## Task Analysis Modules (5 modules)
+
+module: "coding.task.analyze_complexity"
+purpose: "Complexity scoring (1-10 scale)"
+scoring_factors:
+  word_count: ">100 words = +2, >50 = +1"
+  complex_keywords: "consensus, algorithm, architecture, optimization, debugging = +2 each"
+  medium_keywords: "analyze, review, explain, summarize, compare = +1 each"
+  task_type: "code/generation = +3, consensus = +4, transcription = -2, image/creative = +2"
+  constraints: "each constraint = +1"
+capped: "1-10 range"
+returns: "complexity score and factors breakdown"
+use_case: "Determine task difficulty for routing"
+
+---
+
+module: "coding.task.classify_type"
+purpose: "Maps type strings to canonical types"
+mapping: "code→code-generation, analyze→reasoning, transcribe→transcription, etc."
+detection: "Detects subtype from description via coding.helper.subtype_detector"
+categorization: "Maps category via coding.helper.category_mapper"
+returns: "canonical_type, original_type, subtype, category"
+use_case: "Normalize task types for consistent processing"
+
+---
+
+module: "coding.task.estimate_tokens"
+purpose: "Estimates token requirements by type"
+base_estimates:
+  code-generation: 300
+  reasoning: 200
+  brainstorming: 200
+  analysis: 150
+  transcription: 50
+  image-generation: 50
+adjustments:
+  description_length: "1 token per 4 characters"
+  consensus_voting: "3x multiplier for voting models"
+returns: "estimated_tokens and breakdown"
+use_case: "Cost estimation and capacity planning"
+
+---
+
+module: "coding.task.check_history"
+purpose: "Checks historical success patterns for similar tasks"
+current: "Placeholder implementation"
+future: "Would query database of task outcomes"
+returns: "similar_tasks_found, success_rate, recommended_approach, cache_available"
+use_case: "Learn from past task successes/failures"
+
+---
+
+module: "coding.task.analyze_full"
+purpose: "Orchestrator running all analyses"
+orchestrates:
+  - "analyze_complexity"
+  - "classify_type"
+  - "estimate_tokens"
+  - "check_history"
+consolidates: "All analyses into single result with updated task data"
+returns: "Complete analysis with complexity, type, tokens, and history"
+use_case: "Initial task analysis before routing"
+
+---
+
+# NAMING CONVENTIONS
+
+convention: "module.namespace.domain.operation"
+examples:
+  - "coding.task.analyze_complexity"
+    part_0: "coding" (zenka-specific)
+    part_1: "task" (domain)
+    part_2: "analyze_complexity" (operation)
+
+  - "coding.helper.task_priority"
+    part_0: "coding"
+    part_1: "helper" (utility functions)
+    part_2: "task_priority" (what it calculates)
+
+  - "coding.learning.record_outcome"
+    part_0: "coding"
+    part_1: "learning" (domain)
+    part_2: "record_outcome" (operation)
+
+benefits:
+  - Immediate understanding of module purpose from name
+  - Logical file organization matching architecture
+  - Easy to locate related modules
+  - Clear responsibility boundaries
+
+---
+
+# FUTURE OPPORTUNITIES
+
+opportunity: "Helper Module Expansion"
+description: |
+  Create additional helper modules for other dynamic calculations
+  Examples:
+  - coding.helper.subtype_detector (already used)
+  - coding.helper.category_mapper (already used)
+  - coding.helper.service_availability_check
+  - coding.helper.constraint_validator
+
+opportunity: "Data Signature Verification"
+description: |
+  Protocol-7 automatically generates cryptographic signatures for all modules.
+  Ensure data structures returned by learning modules include signatures for integrity.
+
+opportunity: "Living Tree Integration"
+description: |
+  When living tree data structure is finalized, update:
+  - coding.learning.* modules to use living tree for shared state
+  - coding.routing.* modules to leverage living tree routing decisions
+  - Allows multi-server deployments to share learned patterns
+
+opportunity: "Caching Layer Enhancement"
+description: |
+  Create dedicated caching modules:
+  - coding.cache.store_result (wrapper around cache infrastructure)
+  - coding.cache.retrieve_result (query cache with TTL support)
+  - Would reduce token costs for repeated tasks
+
+opportunity: "Complexity Algorithm Refinement"
+description: |
+  Current scoring is 1-10 scale. Could enhance to:
+  - Multi-dimensional scoring (code complexity ≠ reasoning complexity)
+  - Model-specific complexity (different models handle different complexity types)
+  - Dynamic threshold adjustment based on service availability
+
+---
+
+# RECOMMENDATIONS
+
+recommendation: "Use Wrapper Architecture Pattern"
+when: "Integrating with existing infrastructure (jobqueue, cache, etc.)"
+benefit: "Reduces code duplication, improves reusability, adds domain-specific logic"
+example: "coding.task.enqueue wraps jobqueue elegantly"
+priority: "HIGH - Apply to other zenka using jobqueue"
+
+---
+
+recommendation: "Enforce One-Module-One-Function"
+when: "Extracting or creating modules"
+benefit: "Improves discoverability, testability, reusability"
+exception: "Orchestrators can coordinate multiple functions"
+priority: "HIGH - Established pattern, proven benefits"
+
+---
+
+recommendation: "Centralize Dynamic Calculations"
+when: "Adding configurable behavior"
+benefit: "Policies can change without code modification"
+example: "Instead of hardcoding token estimates, create estimate module"
+priority: "MEDIUM - Improves system adaptability"
+
+---
+
+recommendation: "Create Orchestrator Modules"
+when: "Multiple analysis/decision steps involved"
+benefit: "Clients call single module, internal steps remain modular"
+example: "coding.task.analyze_full, coding.routing.make_routing_decision"
+priority: "MEDIUM - Improves workflow clarity"
+
+---
+
+recommendation: "Update Style Guide YAML Files"
+when: "Refactoring complete"
+what: "Document patterns, anti-patterns, and metrics from extraction work"
+where: "data/yaml/ directory with version/date in filename"
+priority: "COMPLETE - This document serves as updated style guide"
+
+---
+
+# METRICS
+
+metrics:
+  modules_extracted: 27
+  lines_of_code_eliminated: "~170+ (inline subs removed)"
+  code_duplication_reduced: "jobqueue integration prevents future duplication"
+  modules_with_single_responsibility: 27
+  orchestrator_modules: 3
+  wrapper_modules: 8
+  helper_modules: 2
+  commits_required: "3-4 (with pre-commit hook version updates)"
+  test_coverage_simplified: "Each module tested independently"
+
+code_quality_improvements:
+  - "Eliminated inline anonymous subroutines (27 instances)"
+  - "Established one-module-one-function pattern"
+  - "Centralized dynamic calculations (5 calculation modules)"
+  - "Leveraged jobqueue infrastructure (jobqueue wrapper pattern)"
+  - "Created orchestrator modules for workflow management (3 modules)"
+  - "Improved code discoverability (module names = function purpose)"
+  - "Reduced maintenance burden (changes localized to single modules)"
+
+---
+
+# COMPLETION STATUS
+
+status: "COMPLETED"
+date: "2025-12-06"
+extracted_modules: 27
+committed: true
+commit_hash: "e6e97770e"
+style_guide_updated: true
+next_phase: "Apply same patterns to other coding modules or other zenka using jobqueue"
+
+---
+
+#,,..,,,,,,,.,,.,,,,.,.,,,,,,,,.,,,,.,.,.,,,.,..,,...,...,,..,.,.,...,.,,,,.,,
+#63UT4Y6LX4PFZKCDE6W7AJ35CSGMZIJ3AMESE326VEHJ5GVB3XU2WLHQSJBLBCXSBTKT4567UXIJM
+#\\\|JNWAGWIG3VGNLD2S75UA6ED7MMERK2DYHCU5R6OBDRNRSVR5WX2 \ / AMOS7 \ YOURUM ::
+#\[7]2IVOPHSWTY72QY3A6FCE3LJIAFD7QCAMVPT6PQMKEQSOYFITYQAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
