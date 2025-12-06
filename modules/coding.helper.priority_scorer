@@ -1,0 +1,30 @@
+## [:< ##
+
+# name = coding.helper.priority_scorer
+# descr = calculate task priority scores for queue ordering
+
+my $task = shift @ARG;
+
+return 0 unless ref($task) eq qw| HASH |;
+
+my $priority     = $task->{request}->{'priority'} // qw| normal |;
+my $priority_map = {
+    low      => -50,
+    high     =>  50,
+    normal   =>  0,
+    critical => 100
+};
+
+my $score = $priority_map->{$priority} // 0;
+
+# Age factor: tasks waiting longer get higher priority
+my $age = time() - ( $task->{'queued_at'} // time() );
+$score += int( $age / 60 );    # +1 per minute waiting
+
+return $score;
+
+#,,,,,,..,,..,..,,,,,,,,.,,,,,..,,.,,,,.,,.,,,..,,...,..,,.,.,,.,,,..,..,,.,,,
+#V5BX6VM6DELWPV3AH4GF4B6VHROKI5V7BWE6DVWRDBF7DH4BJCUTWLCFEUQWH6MAYHLC2HQR6NXZG
+#\\\|APAMWFKYKE6HWQL2LQLQZPBKAYQOBK7QC4MZNZRFOAR7CZFAJIF \ / AMOS7 \ YOURUM ::
+#\[7]OAQGFE5G7SIE3UQI5FVEKWPLEBWUHEVQZNHC4YQ5PUVLWXAFM6AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

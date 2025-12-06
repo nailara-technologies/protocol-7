@@ -1,0 +1,32 @@
+## [:< ##
+
+# name = coding.helper.get_transaction_history
+# descr = get detailed transaction history
+
+my ($limit) = @ARG;
+
+$limit //= 20;
+my @history = @{<coding.budget.transactions>};
+
+# Return most recent N transactions
+my @recent = @history[ -$limit .. -1 ];
+
+return {
+    success           => TRUE,
+    transaction_count => scalar(@history),
+    recent            => \@recent,
+    summary           => {
+        total_transactions         => scalar(@history),
+        avg_tokens_per_transaction => scalar(@history) > 0
+        ? int( <coding.budget.used> / scalar(@history) )
+        : 0,
+        successful => scalar( grep { $_->{success} } @history ),
+        failed     => scalar( grep { !$_->{success} } @history )
+    }
+};
+
+#,,,,,.,.,.,.,..,,.,,,,,,,,..,,,,,...,...,,,,,..,,...,...,.,.,...,,,,,,,,,,,.,
+#6TNUAHIWYBSLOY2HAKSPFG2XK57WSASASAISFCV44UIKYCEN42HVJDJLT2OFMKUESAP3YDPY6LE3Y
+#\\\|VNZQVBY4GCYZ4SVGUNRPDOW6R2BWKAEPQW4GMCVNTR4VFXHR4FM \ / AMOS7 \ YOURUM ::
+#\[7]BOS5XZAACS5QDTLKO7ZXKDVMGHHFICFY7CHXXMTGXHTJ5JJIXSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

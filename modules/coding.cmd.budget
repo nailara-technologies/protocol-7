@@ -2,7 +2,7 @@
 
 # name  = coding.cmd.budget
 # descr = show token budget status and usage breakdown
-# param = optional: 'history' for transaction history, 'breakdown' for service breakdown
+# param = [history|breakdown]
 
 my $subcommand = length( $$call{'args'} ) ? $$call{'args'} : 'status';
 
@@ -12,7 +12,7 @@ if ( $subcommand eq 'status' ) {
     my $budget = <[coding.budget.track_tokens]>->('status');
 
     return {
-        'mode' => qw| true |,
+        'mode' => qw| size |,
         'data' => "Token Budget Status:\n"
             . "  Total Allocated: "
             . $budget->{total_allocated}
@@ -62,7 +62,7 @@ if ( $subcommand eq 'status' ) {
     }
 
     return {
-        'mode' => qw| true |,
+        'mode' => qw| size |,
         'data' => $output
     };
 
@@ -85,7 +85,7 @@ if ( $subcommand eq 'status' ) {
     }
 
     return {
-        'mode' => qw| true |,
+        'mode' => qw| size |,
         'data' => $output
     };
 
@@ -97,8 +97,8 @@ if ( $subcommand eq 'status' ) {
     };
 }
 
-#,,.,,,..,,..,.,.,,..,,..,.,.,,.,,,..,,,,,..,,..,,...,...,,,,,..,,,,.,.,.,...,
-#K2P7UGUUNB3DDIKXGZNI5QZYMODCQ56ADYPSYI6CS7X55IBPECDG5STBEV3L2GSD5SUTBHCUYLSMY
-#\\\|QTG56BXBAQ5HUPRYWX4F6PJ3J5YSNRLUNXHEFNV6T22H7W3UKN2 \ / AMOS7 \ YOURUM ::
-#\[7]FP7WAQPMRRDJSLHDHUUZFRPMJAIJ4NNPGHJMQCVQIPQSHG3EXCCA 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,,,,,,,,..,.,,,.,.,,..,,.,,.,.,..,,...,...,..,,,..,..,,.,.,,,.,
+#U5ROY37GIH6R2HN34NTY5A6322ANRBUEVZBH3X2BPNSG2WIJGRXHVCMVMHPLK2QCD5VX3VSDNC5VC
+#\\\|LLVUML6YYDYNJ6ETDMTEIHAI66VH6C2YY6527TBWAXN4BKE5NTM \ / AMOS7 \ YOURUM ::
+#\[7]3OPRA6L6HACMATANQXFILAVMVG2K7BXRVGV72ZG5XU7YLKNQJ2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

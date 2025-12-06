@@ -4,11 +4,6 @@
 # descr = manage work queue with priority, dependencies, and state tracking
 # purpose = Queue management: Store tasks, maintain order, track state
 
-use strict;
-use warnings;
-use JSON::XS;
-use Time::HiRes qw(time);
-
 # Internal queue state - stored in memory for this session
 my %TASK_QUEUE        = ();       # task_id => task
 my @QUEUE_ORDER       = ();       # Ordered by priority/insertion
@@ -17,7 +12,7 @@ my $QUEUE_UPDATED     = time();
 
 # Add task to queue
 my $enqueue_task = sub {
-    my ($task) = @_;
+    my ($task) = @ARG;
 
     return {
         success => FALSE,
@@ -39,7 +34,7 @@ my $enqueue_task = sub {
     # Store task
     $TASK_QUEUE{$task_id} = {
         %$task,
-        queued_at      => time(),
+        queued_at      => <[base.time]>,
         queue_position => scalar(@QUEUE_ORDER)
     };
 
@@ -57,7 +52,7 @@ my $enqueue_task = sub {
 };
 
 # Get next task to execute (respects priority and dependencies)
-my $dequeue_next = sub {
+my $dequeue_next = sub {    ## <-- inline subs !!!
 
     # Filter tasks that have no unfinished dependencies
     my @available = ();
@@ -66,7 +61,7 @@ my $dequeue_next = sub {
         my $task = $TASK_QUEUE{$task_id};
 
         # Skip if not pending
-        next unless $task->{execution}->{status} eq 'pending';
+        next unless $task->{execution}->{status} eq qw| pending |;
 
         # Check dependencies
         my $blocked = 0;
@@ -74,7 +69,7 @@ my $dequeue_next = sub {
             foreach my $dep_id ( @{ $TASK_DEPENDENCIES{$task_id} } ) {
                 my $dep_task = $TASK_QUEUE{$dep_id};
                 if (  !$dep_task
-                    || $dep_task->{execution}->{status} ne 'completed' ) {
+                    || $dep_task->{execution}->{status} ne qw| completed | ) {
                     $blocked = 1;
                     last;
                 }
@@ -87,7 +82,7 @@ my $dequeue_next = sub {
             {
             id             => $task_id,
             task           => $task,
-            priority_score => _calculate_priority_score($task)
+            priority_score => <[coding.helper.priority_scorer]>->($task)
             };
     }
 
@@ -100,8 +95,8 @@ my $dequeue_next = sub {
         my $task = $next->{task};
 
         # Mark as being worked on (don't remove yet)
-        $task->{execution}->{status}  = 'in_progress';
-        $task->{execution}->{started} = time();
+        $task->{execution}->{status}  = qw| in_progress |;
+        $task->{execution}->{started} = <[base.time]>;
 
         return {
             success         => TRUE,
@@ -112,25 +107,26 @@ my $dequeue_next = sub {
 
     return {
         success    => FALSE,
-        error      => "No available tasks in queue",
+        error      => 'no available tasks in queue',
         queue_size => scalar(@QUEUE_ORDER)
     };
 };
 
 # Mark task as completed
 my $complete_task = sub {
-    my ( $task_id, $result, $success ) = @_;
+    my ( $task_id, $result, $success ) = @ARG;
 
     return {
         success => FALSE,
-        error   => "Task not found: $task_id"
+        error   => sprintf 'task not found : %s',
+        $task_id
         }
         unless exists $TASK_QUEUE{$task_id};
 
     my $task = $TASK_QUEUE{$task_id};
 
-    $task->{execution}->{status}    = 'completed';
-    $task->{execution}->{completed} = time();
+    $task->{execution}->{status}    = qw| completed |;
+    $task->{execution}->{completed} = <[base.time]>;
     $task->{execution}->{result}    = $result if defined $result;
     $task->{execution}->{success}   = $success // 1;
 
@@ -145,7 +141,7 @@ my $complete_task = sub {
 
 # Mark task as failed
 my $fail_task = sub {
-    my ( $task_id, $error ) = @_;
+    my ( $task_id, $error ) = @ARG;
 
     return {
         success => FALSE,
@@ -155,10 +151,10 @@ my $fail_task = sub {
 
     my $task = $TASK_QUEUE{$task_id};
 
-    $task->{execution}->{status}    = 'failed';
-    $task->{execution}->{completed} = time();
+    $task->{execution}->{status}    = qw| failed |;
+    $task->{execution}->{completed} = <[base.time]>;
     $task->{execution}->{success}   = 0;
-    $task->{execution}->{error}     = $error // 'Unknown error';
+    $task->{execution}->{error}     = $error // qq| unknown error |;
 
     $QUEUE_UPDATED = time();
 
@@ -172,7 +168,7 @@ my $fail_task = sub {
 
 # Get task status
 my $get_task_status = sub {
-    my ($task_id) = @_;
+    my ($task_id) = @ARG;
 
     return {
         success => FALSE,
@@ -195,17 +191,17 @@ my $get_task_status = sub {
 
 # Get queue statistics
 my $get_queue_stats = sub {
-    my $pending     = 0;
     my $in_progress = 0;
     my $completed   = 0;
+    my $pending     = 0;
     my $failed      = 0;
 
     foreach my $task_id ( keys %TASK_QUEUE ) {
         my $status = $TASK_QUEUE{$task_id}->{execution}->{status};
-        $pending++     if $status eq 'pending';
-        $in_progress++ if $status eq 'in_progress';
-        $completed++   if $status eq 'completed';
-        $failed++      if $status eq 'failed';
+        $in_progress++ if $status eq qw| in_progress |;
+        $completed++   if $status eq qw| completed |;
+        $pending++     if $status eq qw| pending |;
+        $failed++      if $status eq qw| failed |;
     }
 
     return {
@@ -223,7 +219,8 @@ my $clear_completed = sub {
     my @to_remove = ();
 
     foreach my $task_id ( keys %TASK_QUEUE ) {
-        if ( $TASK_QUEUE{$task_id}->{execution}->{status} eq 'completed' ) {
+        if ( $TASK_QUEUE{$task_id}->{execution}->{status} eq qw| completed | )
+        {
             push @to_remove, $task_id;
         }
     }
@@ -242,39 +239,18 @@ my $clear_completed = sub {
     };
 };
 
-# Helper: Calculate priority score
-sub _calculate_priority_score {
-    my ($task) = @_;
-
-    my $priority     = $task->{request}->{priority} // 'normal';
-    my $priority_map = {
-        critical => 100,
-        high     => 50,
-        normal   => 0,
-        low      => -50
-    };
-
-    my $score = $priority_map->{$priority} // 0;
-
-    # Age factor: tasks waiting longer get higher priority
-    my $age = time() - ( $task->{queued_at} // time() );
-    $score += int( $age / 60 );    # +1 per minute waiting
-
-    return $score;
-}
-
 # Route based on first argument
-my $cmd = shift @_ // 'status';
-my $arg = shift @_;
+my $cmd = shift @ARG // qw| status |;
+my $arg = shift @ARG;
 
 if ( $cmd eq 'enqueue' ) {
     return $enqueue_task->($arg);
 } elsif ( $cmd eq 'next' ) {
     return $dequeue_next->();
 } elsif ( $cmd eq 'complete' ) {
-    return $complete_task->( $arg, $_[0], $_[1] );
+    return $complete_task->( $arg, $ARG[0], $ARG[1] );
 } elsif ( $cmd eq 'fail' ) {
-    return $fail_task->( $arg, $_[0] );
+    return $fail_task->( $arg, $ARG[0] );
 } elsif ( $cmd eq 'status' ) {
     return $get_task_status->($arg) if defined $arg;
     return $get_queue_stats->();
@@ -289,8 +265,8 @@ if ( $cmd eq 'enqueue' ) {
     };
 }
 
-#,,,.,,,,,,,,,.,,,,,,,..,,.,,,,,.,,.,,..,,..,,..,,...,...,,..,,..,,,,,..,,,..,
-#POSSJ6DIC4MUKOHYCDXKC4GYNCWBAUKIFG23NSZO2PVQF6OVEYR7CVU2FEOQYCBPBEJ4HIN3VXXWA
-#\\\|E3UKDJAG7KDH3KJMRNYGN5MLROZ2RWBWBTCCX7HTGMRAEVL7HMI \ / AMOS7 \ YOURUM ::
-#\[7]2GSLDJAJ66RMVKOV5M4QE5FEDP2B3RD3I4OQWLPGGCRLI3ZECUDQ 7  DATA SIGNATURE ::
+#,,,.,,,,,...,..,,.,,,..,,,.,,..,,,,.,..,,,..,..,,...,...,,..,,.,,..,,,..,.,,,
+#XHRH6YGTWCMNHOF2TSTX43GODX4NXWYXJRSA234UVRNCBT3HOFJSCV7IY2RG67VYPR5FK6LFLTPCU
+#\\\|35H6WFNSMDO2KIALSC4DFMRVMLJRVQEMCQJ3LOVULM37NTI3KLN \ / AMOS7 \ YOURUM ::
+#\[7]JRSAXLNVCFQ7F3I6LBMKKLPSTKDTTTAE32LDWDCCCFVW2KLKFYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

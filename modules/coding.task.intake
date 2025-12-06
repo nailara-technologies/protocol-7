@@ -10,17 +10,9 @@ use JSON::XS;
 use Time::HiRes qw(time);
 use Digest::SHA qw(sha256_hex);
 
-# Generate unique task ID
-sub _generate_task_id {
-    my ( $type, $description ) = @_;
-    my $timestamp = int( time() * 1000 );
-    my $hash      = substr( sha256_hex( $description . $timestamp ), 0, 8 );
-    return sprintf( "task-%d-%s-%s", $timestamp, $type // 'unknown', $hash );
-}
-
 # Main task intake function
 my $intake_work = sub {
-    my ($request) = @_;
+    my ($request) = @ARG;
 
     # Support multiple input formats
     if ( ref($request) eq 'HASH' ) {
@@ -41,8 +33,9 @@ my $intake_work = sub {
 
     # Validate and structure the work request
     my $task = {
-        id => $request->{id}
-            // _generate_task_id( $request->{type}, $request->{description} ),
+        id => $request->{id} // <[coding.helper.task_id_generator]>->(
+            $request->{type}, $request->{description}
+        ),
         type    => $request->{type}    // 'analysis',
         subtype => $request->{subtype} // '',
         source  => $request->{source}  // 'api',
@@ -101,7 +94,7 @@ my $intake_work = sub {
 
 # Parse command-line style strings into structured requests
 my $parse_command_string = sub {
-    my ($cmd) = @_;
+    my ($cmd) = @ARG;
 
 # Simple command parsing: "type: description | constraints"
 # Example: "code-generation: Create Whisper module | Protocol-7 compatible, cache results"
@@ -132,7 +125,7 @@ my $parse_command_string = sub {
 
 # Validate task has required fields
 my $validate_task = sub {
-    my ($task) = @_;
+    my ($task) = @ARG;
 
     my @errors = ();
 
@@ -148,7 +141,7 @@ my $validate_task = sub {
 
 # Normalize task data (handle defaults, cleanup)
 my $normalize_task = sub {
-    my ($task) = @_;
+    my ($task) = @ARG;
 
     # Ensure all required fields exist with sensible defaults
     $task->{type}                = lc( $task->{type} // 'analysis' );
@@ -194,8 +187,8 @@ my $normalize_task = sub {
 
 # AMOS7::TEMPLATE::signature_placeholder
 
-#,,..,,,.,,..,.,.,.,.,,,.,.,.,.,.,,.,,.,,,..,,..,,...,...,.,.,..,,,..,,.,,.,,,
-#OJMHYNXV6FCYUIXRZBHBOT6LPYPTZPT6WRHYFULZFMXOFQNI6DOUPAPBZXWUDKFDZYMDCC4KU3BQM
-#\\\|GH4LNPCYL5M4HSWLIEZPR233J2ELZVML7IVIS5CZKL3M3JH5ULA \ / AMOS7 \ YOURUM ::
-#\[7]DUF6STWQMBJOF5AXEPHRC4U6MXJ54VA3RV6FNEZ5HKCCRCKWMWCQ 7  DATA SIGNATURE ::
+#,,.,,...,.,,,.,,,,,.,,,,,,,,,...,,.,,,..,,..,..,,...,...,,..,,,,,,.,,,,,,.,.,
+#MAUCHX3ERDQZEU4HSEX4K4HYNGKDE7NI54OU7P65EYJQR3UJFKEFGOXYAYRXFEPMEEQGHYK6PZ6FC
+#\\\|AEPRQ3PZDIPLHLMTCOOZMH4PSWTBUJYH3RORESS3REV6GQSXK46 \ / AMOS7 \ YOURUM ::
+#\[7]6ZD7JR6Y423JGOYXFVP535QFNVB2M5HRR5Q2HG3MOLATTLFZLSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,41 @@
+## [:< ##
+
+# name = coding.helper.log_transaction
+# descr = log a budget transaction
+
+my ( $task_id, $service, $tokens_used, $success, $result ) = @ARG;
+
+my $transaction = {
+    timestamp     => <[base.time]>,
+    task_id       => $task_id,
+    service       => $service,
+    tokens_used   => $tokens_used,
+    success       => $success // 1,
+    result        => $result,
+    balance_after => <coding.budget.allocated>
+        - ( <coding.budget.used> + $tokens_used )
+};
+
+push @{<coding.budget.transactions>}, $transaction;
+<coding.budget.used> += $tokens_used;
+
+return {
+    success       => TRUE,
+    transaction   => $transaction,
+    budget_status => {
+        total_allocated => <coding.budget.allocated>,
+        total_used      => <coding.budget.used>,
+        remaining       => <coding.budget.allocated> - <coding.budget.used>,
+        percentage_used => sprintf( "%.1f",
+            ( <coding.budget.used> / <coding.budget.allocated> ) * 100 ),
+        status => <[coding.helper.budget_status]>->(
+            ( <coding.budget.used> / <coding.budget.allocated> ) * 100
+        )
+    }
+};
+
+#,,..,...,,,,,,.,,.,,,.,.,,..,.,,,,,,,,,.,...,..,,...,...,,,.,,..,,,,,..,,.,.,
+#FWH53GV7BW5JXUPTKPF2IV7A5PR7ES4TDQUEOUTTUXIYSVAJVQMVBOYZD4MZHXJTR7HG5ACCI2YVC
+#\\\|EMGE2YHDJMTPWA2YXQ66R5BTL2MGD3Y36FUCNRRILI3C6SQD662 \ / AMOS7 \ YOURUM ::
+#\[7]ZS5TZMGHGWGYAC57KO6FUXR7KQ6EUEYEDMPM7YMP6USY5QG2FACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

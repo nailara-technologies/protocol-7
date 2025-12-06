@@ -1,0 +1,25 @@
+## [:< ##
+
+# name = coding.helper.check_budget
+# descr = check if budget available for operation
+
+my ($estimated_tokens) = @ARG;
+
+my $remaining = <coding.budget.allocated> - <coding.budget.used>;
+my $percentage_used
+    = ( <coding.budget.used> / <coding.budget.allocated> ) * 100;
+
+return {
+    success         => $remaining >= $estimated_tokens,
+    available       => $remaining,
+    estimated_cost  => $estimated_tokens,
+    can_proceed     => $remaining >= $estimated_tokens,
+    percentage_used => sprintf( "%.1f", $percentage_used ),
+    status          => <[coding.helper.budget_status]>->($percentage_used)
+};
+
+#,,.,,,..,..,,..,,,,,,,,.,...,,.,,..,,..,,,,,,..,,...,...,,..,.,,,,..,.,.,.,,,
+#VNBLA6HQIX4CYITKARY2BNVOHEG5TCGI2W7AER4HNTZQWMPW635VXX7VTBEUNZDGUQVYOAM4RZY6I
+#\\\|EFBQPGGPZJUG5BBJ5NHSZBVIQ72PAVXDI2QWTCXOXGKQDJTMEO6 \ / AMOS7 \ YOURUM ::
+#\[7]CCN3VZSKZ4MUNTR5LTUBX6WH4XD2VWXPHLRSLSCMAPWPDLIJ22CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,13 +4,9 @@
 # descr = analyze task requirements and determine complexity, type classification
 # purpose = Analysis: Break down tasks, calculate complexity scores, identify requirements
 
-use strict;
-use warnings;
-use JSON::XS;
-
 # Analyze task complexity
 my $analyze_complexity = sub {
-    my ($task) = @_;
+    my ($task) = @ARG;
 
     return {
         success => FALSE,
@@ -89,7 +85,7 @@ my $analyze_complexity = sub {
 
 # Classify task type
 my $classify_task = sub {
-    my ($task) = @_;
+    my ($task) = @ARG;
 
     my $type = $task->{type}                   // 'analysis';
     my $desc = $task->{request}->{description} // '';
@@ -115,20 +111,20 @@ my $classify_task = sub {
     }->{ lc($type) } // 'analysis';
 
     # Detect subtype from description keywords
-    my $subtype = _detect_subtype($desc);
+    my $subtype = <[coding.helper.subtype_detector]>->($desc);
 
     return {
         success        => TRUE,
         canonical_type => $canonical_type,
         original_type  => $type,
         subtype        => $subtype,
-        category       => _get_category($canonical_type)
+        category       => <[coding.helper.category_mapper]>->($canonical_type)
     };
 };
 
 # Estimate token requirements
 my $estimate_tokens = sub {
-    my ($task) = @_;
+    my ($task) = @ARG;
 
     my $desc_len = length( $task->{request}->{description} // '' );
     my $type     = $task->{type} // 'analysis';
@@ -172,7 +168,7 @@ my $estimate_tokens = sub {
 
 # Check success history for similar tasks
 my $check_history = sub {
-    my ($task) = @_;
+    my ($task) = @ARG;
 
     # In a real system, this would query a database/living tree
     # For now, we return a placeholder structure
@@ -188,7 +184,7 @@ my $check_history = sub {
 
 # Main analysis function
 my $analyze_full = sub {
-    my ($task) = @_;
+    my ($task) = @ARG;
 
     return {
         success => FALSE,
@@ -232,36 +228,9 @@ my $analyze_full = sub {
     };
 };
 
-# Helper functions
-sub _detect_subtype {
-    my ($desc) = @_;
-
-    return 'protocol7-module' if $desc =~ /protocol.?7|module|zenka/i;
-    return 'consensus-voting' if $desc =~ /consensus|vote|multiple.*model/i;
-    return 'math-problem'  if $desc =~ /math|equation|calculate|algorithm/i;
-    return 'code-review'   if $desc =~ /review|check|validate|test/i;
-    return 'documentation' if $desc =~ /document|explain|describe|guide/i;
-    return 'general';
-}
-
-sub _get_category {
-    my ($type) = @_;
-
-    my $categories = {
-        'code-generation'  => 'execution',
-        'reasoning'        => 'reasoning',
-        'transcription'    => 'sensory',
-        'image-generation' => 'sensory',
-        'brainstorming'    => 'reasoning',
-        'analysis'         => 'reasoning'
-    };
-
-    return $categories->{$type} // 'other';
-}
-
 # Route based on first argument
-my $cmd  = shift @_ // 'full';
-my $task = shift @_;
+my $cmd  = shift @ARG // qw| full |;
+my $task = shift @ARG;
 
 if ( $cmd eq 'complexity' ) {
     return $analyze_complexity->($task);
@@ -276,14 +245,13 @@ if ( $cmd eq 'complexity' ) {
 } else {
     return {
         success   => FALSE,
-        error     => "Unknown analyze command: $cmd",
-        available =>
-            [ 'complexity', 'classify', 'estimate', 'history', 'full' ]
+        error     => sprintf( qq| unknown analyze command : %s |, $cmd ),
+        available => [qw| complexity classify estimate history full |]
     };
 }
 
-#,,.,,,,,,.,.,.,.,,,.,,,.,.,,,.,.,.,.,.,.,,,,,..,,...,...,.,,,,,.,,,.,,.,,..,,
-#YJ5ZE2NA5VBHGWQSQJQ6JJFLKFCVWODAKFRU3TIFDETVCTRWQ3RTBW3Q5JKXLJRUFL3G6EZSAT4MQ
-#\\\|6KSPH7D2EL57GSHWVHDPJQILICKO3QASA4UE4UAM6TJT3GAYO7Y \ / AMOS7 \ YOURUM ::
-#\[7]77G5SZFZA6MS2LPLEMDGUNCBRK7AQVDWTVB432BYBK52QTWMDWAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,,,,.,.,.,.,.,.,.,,,,,.,...,,,,,..,,...,...,,.,,,..,.,.,.,,,,,,,
+#VKFW7LANVMQV7FDSMBTI5ZO6FT3CI3Q5VY5P6LUIHCTP4ZBQZZ767RTPUWMH2FENYCYP4ET6HMAYC
+#\\\|SLU3M27ZZUQMJTX3ZYBY4WPA2LO6QSFEBQJFGGZOEB7KPH37IYT \ / AMOS7 \ YOURUM ::
+#\[7]GAZVOY5ZZXQ3UABADS6KAKUNU7PVZYCYH3NAKZKUSEWQ5TWMHMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

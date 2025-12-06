@@ -4,252 +4,70 @@
 # descr = monitor and manage token budget for API calls
 # purpose = Token economy: Track spending, enforce limits, report usage
 
-use strict;
-use warnings;
-use JSON::XS;
-use Time::HiRes qw(time);
-
 # Budget state now stored in shared coding.budget.* data structure
 # initialized in coding.init_code for proper scope and Registry access
+# [ required modules loaded in coding.init_code: JSON::XS ]
+# Time functions: use <[base.time]>->() instead of time() for proper
+# Protocol-7 integration
 
-# Log a transaction
-my $log_transaction = sub {
-    my ( $task_id, $service, $tokens_used, $success, $result ) = @_;
+my $cmd = shift @ARG // qw| status |;
 
-    my $transaction = {
-        timestamp     => time(),
-        task_id       => $task_id,
-        service       => $service,
-        tokens_used   => $tokens_used,
-        success       => $success // 1,
-        result        => $result,
-        balance_after => <coding.budget.allocated>
-            - ( <coding.budget.used> + $tokens_used )
-    };
-
-    push @{<coding.budget.transactions>}, $transaction;
-    <coding.budget.used> += $tokens_used;
-
-    return {
-        success       => TRUE,
-        transaction   => $transaction,
-        budget_status => _get_budget_status()
-    };
-};
-
-# Check if budget available for operation
-my $check_budget = sub {
-    my ($estimated_tokens) = @_;
-
+if ( $cmd eq qw| log | ) {
+    my ( $task_id, $service, $tokens, $success, $result ) = @ARG;
+    return <[coding.helper.log_transaction]>->(
+        $task_id, $service, $tokens, $success, $result
+    );
+} elsif ( $cmd eq qw| check | ) {
+    my ($estimated) = @ARG;
+    return <[coding.helper.check_budget]>->($estimated);
+} elsif ( $cmd eq qw| status | ) {
     my $remaining = <coding.budget.allocated> - <coding.budget.used>;
     my $percentage_used
         = ( <coding.budget.used> / <coding.budget.allocated> ) * 100;
-
-    return {
-        success         => $remaining >= $estimated_tokens,
-        available       => $remaining,
-        estimated_cost  => $estimated_tokens,
-        can_proceed     => $remaining >= $estimated_tokens,
-        percentage_used => sprintf( "%.1f", $percentage_used ),
-        status          => _determine_budget_status(
-            $percentage_used, $remaining >= $estimated_tokens
-        )
-    };
-};
-
-# Get current budget status
-my $get_budget_status = sub {
-    my $remaining = <coding.budget.allocated> - <coding.budget.used>;
-    my $percentage_used
-        = ( <coding.budget.used> / <coding.budget.allocated> ) * 100;
-
     return {
         total_allocated      => <coding.budget.allocated>,
         total_used           => <coding.budget.used>,
         remaining            => $remaining,
         percentage_used      => sprintf( "%.1f", $percentage_used ),
         percentage_remaining => sprintf( "%.1f", 100 - $percentage_used ),
-        status               => _determine_status_level($percentage_used),
-        session_duration     => int( time() - <coding.budget.session_start> )
-            . 's',
+        status => <[coding.helper.budget_status]>->($percentage_used),
+        session_duration =>
+            <[base.parser.duration]>->(<coding.budget.session_start>),
         average_per_transaction => <coding.budget.used> > 0
         ? int(
-            <coding.budget.used> / scalar( @{<coding.budget.transactions>} )
+            <coding.budget.used> / scalar( <coding.budget.transactions>->@* )
             )
         : 0
     };
-};
-
-# Get detailed transaction history
-my $get_transaction_history = sub {
-    my ($limit) = @_;
-
-    $limit //= 20;
-    my @history = @{<coding.budget.transactions>};
-
-    # Return most recent N transactions
-    my @recent = @history[ -$limit .. -1 ];
-
-    return {
-        success           => TRUE,
-        transaction_count => scalar(@history),
-        recent            => \@recent,
-        summary           => {
-            total_transactions         => scalar(@history),
-            avg_tokens_per_transaction => scalar(@history) > 0
-            ? int( <coding.budget.used> / scalar(@history) )
-            : 0,
-            successful => scalar( grep { $_->{success} } @history ),
-            failed     => scalar( grep { !$_->{success} } @history )
-        }
-    };
-};
-
-# Refund unused tokens from failed operation
-my $refund_tokens = sub {
-    my ( $task_id, $tokens_to_refund ) = @_;
-
-    <coding.budget.used> -= $tokens_to_refund;
-    <coding.budget.used> = 0 if <coding.budget.used> < 0;
-
-    return {
-        success     => TRUE,
-        refunded    => $tokens_to_refund,
-        new_balance => <coding.budget.allocated> - <coding.budget.used>,
-        message     => "Refunded $tokens_to_refund tokens for task $task_id"
-    };
-};
-
-# Reset budget (for new session)
-my $reset_budget = sub {
-    my ($new_allocation) = @_;
-
-    my $old_total = <coding.budget.used>;
-
-    <coding.budget.allocated>     = $new_allocation // 12000;
-    <coding.budget.used>          = 0;
-    <coding.budget.session_start> = time();
-    <coding.budget.transactions>  = [];
-
-    return {
-        success             => TRUE,
-        previous_total_used => $old_total,
-        new_allocation      => <coding.budget.allocated>,
-        message             => "Budget reset for new session"
-    };
-};
-
-# Get budget breakdown by service
-my $get_breakdown_by_service = sub {
-    my %service_totals = ();
-    my %service_counts = ();
-
-    foreach my $txn ( @{<coding.budget.transactions>} ) {
-        my $svc = $txn->{service} // 'unknown';
-        $service_totals{$svc} += $txn->{tokens_used};
-        $service_counts{$svc}++;
-    }
-
-    my @breakdown = ();
-    foreach my $service ( sort keys %service_totals ) {
-        push @breakdown,
-            {
-            service                 => $service,
-            tokens_used             => $service_totals{$service},
-            transactions            => $service_counts{$service},
-            average_per_transaction =>
-                int( $service_totals{$service} / $service_counts{$service} )
-            };
-    }
-
-    @breakdown = sort { $b->{tokens_used} <=> $a->{tokens_used} } @breakdown;
-
-    return {
-        success            => TRUE,
-        by_service         => \@breakdown,
-        total_transactions => scalar( @{<coding.budget.transactions>} )
-    };
-};
-
-# Helper function: determine budget status level
-sub _determine_status_level {
-    my ($percentage_used) = @_;
-
-    if ( $percentage_used >= 95 ) {
-        return 'CRITICAL - Budget nearly exhausted';
-    } elsif ( $percentage_used >= 90 ) {
-        return 'WARNING - Budget 90% used';
-    } elsif ( $percentage_used >= 75 ) {
-        return 'ATTENTION - Budget 75% used';
-    } elsif ( $percentage_used >= 50 ) {
-        return 'NORMAL - Budget 50% used';
-    } else {
-        return 'GOOD - Plenty of budget remaining';
-    }
-}
-
-sub _get_budget_status {
-    my $remaining = <coding.budget.allocated> - <coding.budget.used>;
-    my $percentage_used
-        = ( <coding.budget.used> / <coding.budget.allocated> ) * 100;
-
-    return {
-        total_allocated => <coding.budget.allocated>,
-        total_used      => <coding.budget.used>,
-        remaining       => $remaining,
-        percentage_used => sprintf( "%.1f", $percentage_used ),
-        status          => _determine_status_level($percentage_used)
-    };
-}
-
-sub _determine_budget_status {
-    my ( $percentage_used, $can_proceed ) = @_;
-
-    my $level = _determine_status_level($percentage_used);
-
-    if ( !$can_proceed ) {
-        return 'BUDGET_EXCEEDED';
-    }
-
-    return substr( $level, 0, index( $level, ' ' ) );
-}
-
-# Main entry
-my $cmd = shift @_ // 'status';
-
-if ( $cmd eq 'log' ) {
-    my ( $task_id, $service, $tokens, $success, $result ) = @_;
-    return log_transaction->( $task_id, $service, $tokens, $success,
-        $result );
-} elsif ( $cmd eq 'check' ) {
-    my $estimated = shift @_;
-    return check_budget->($estimated);
-} elsif ( $cmd eq 'status' ) {
-    return get_budget_status->();
-} elsif ( $cmd eq 'history' ) {
-    my $limit = shift @_;
-    return get_transaction_history->($limit);
-} elsif ( $cmd eq 'refund' ) {
-    my ( $task_id, $amount ) = @_;
-    return refund_tokens->( $task_id, $amount );
-} elsif ( $cmd eq 'reset' ) {
-    my $new_alloc = shift @_;
-    return reset_budget->($new_alloc);
-} elsif ( $cmd eq 'breakdown' ) {
-    return get_breakdown_by_service->();
+} elsif ( $cmd eq qw| history | ) {
+    my ($limit) = @ARG;
+    return <[coding.helper.get_transaction_history]>->($limit);
+} elsif ( $cmd eq qw| refund | ) {
+    my ( $task_id, $amount ) = @ARG;
+    return <[coding.helper.refund_tokens]>->( $task_id, $amount );
+} elsif ( $cmd eq qw| reset | ) {
+    my ($new_alloc) = @ARG;
+    return <[coding.helper.reset_budget]>->($new_alloc);
+} elsif ( $cmd eq qw| breakdown | ) {
+    return <[coding.helper.get_service_breakdown]>;
 } else {
     return {
         success   => FALSE,
-        error     => "Unknown budget command: $cmd",
+        error     => sprintf( "unknown budget command : '%s'", $cmd ),
         available => [
-            'log',    'check', 'status', 'history',
-            'refund', 'reset', 'breakdown'
+            qw| log
+                check
+                reset
+                refund
+                status
+                history
+                breakdown |
         ]
     };
 }
 
-#,,,.,,..,...,...,,..,,,,,...,...,.,,,,.,,..,,..,,...,...,..,,,.,,.,,,...,.,,,
-#J7S7PUGP7T6PD3TYWNHM2S7LFUQKHM5DMANIFR3FCHBJUTMYBXM7CONX4C27JCQ2W64YV4LL2TF4Q
-#\\\|RS6L44NCN3IDAIPXNOQZ5L54FQCIOZ76QGFJSQQSMIWYWFTUKSN \ / AMOS7 \ YOURUM ::
-#\[7]TWGBUOSEE2RDSMEPBCNB35L3CBZSC2ZSK4MTWRE2WAD7USDZIWDA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,..,.,.,...,,,.,,.,,,.,,,,.,..,,..,,...,...,.,.,,..,..,,.,,,...,
+#7VIIJFI7XTYB5JIULQS43U375CI4HWVPBV2Q4PGWVDOLXXDWJYUNSIFCCNS2U5PQ232NLWDLXXGWG
+#\\\|GXD74ZD22RA2GSELINPFH5LAQGKZ7OWS6SLFFYYQD5Z4ZSUGO3N \ / AMOS7 \ YOURUM ::
+#\[7]CTL36LCF24KOMZL6MMQFRAMKSFPJMO5YJLDEPTKOZYMBDVZE62BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

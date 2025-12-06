@@ -1,0 +1,24 @@
+## [:< ##
+
+# name = coding.helper.budget_status
+# descr = determine budget status level from usage percentage
+
+my $percentage_used = shift @ARG // 0;
+
+if ( $percentage_used >= 95 ) {
+    return 'CRITICAL - Budget nearly exhausted';
+} elsif ( $percentage_used >= 90 ) {
+    return 'WARNING - Budget 90% used';
+} elsif ( $percentage_used >= 75 ) {
+    return 'ATTENTION - Budget 75% used';
+} elsif ( $percentage_used >= 50 ) {
+    return 'NORMAL - Budget 50% used';
+} else {
+    return 'GOOD - Plenty of budget remaining';
+}
+
+#,,,,,...,...,,,.,,,.,,.,,..,,.,.,,.,,,.,,,.,,..,,...,...,..,,,,,,...,..,,.,.,
+#GT5FKF2L4TZUR236A6K4HOAAWO2WU3SC5334DXQEL3Z5GIIHCJPZOPAHNB4SL36S33LZFVLEROWGE
+#\\\|ICD66NE5CSYX2TNPGRB4OHJDLUIQIBCPG7Q2NJ7UHORPFROGCJD \ / AMOS7 \ YOURUM ::
+#\[7]CKF4DNO3XDL4K773F5DISEXXX2NNQ6IFJZBEGUMP4QEZJG6HY6AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

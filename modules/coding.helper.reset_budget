@@ -1,0 +1,26 @@
+## [:< ##
+
+# name = coding.helper.reset_budget
+# descr = reset budget for new session
+
+my ($new_allocation) = @ARG;
+
+my $old_total = <coding.budget.used>;
+
+<coding.budget.allocated>     = $new_allocation // 12000;
+<coding.budget.used>          = 0;
+<coding.budget.session_start> = <[base.time]>;
+<coding.budget.transactions>  = [];
+
+return {
+    success             => TRUE,
+    previous_total_used => $old_total,
+    new_allocation      => <coding.budget.allocated>,
+    message             => "Budget reset for new session"
+};
+
+#,,..,,..,..,,...,,.,,,,.,...,,,,,,.,,.,,,.,,,..,,...,...,...,,.,,.,,,,.,,...,
+#SPQ2XMKJFU5UKZDIO26E7VXH5374QI5E4PBBAMB4KZJ44VSMQR6OIVOJCHX4BMO2PQFG6NUBU2TGA
+#\\\|IPDGNSKZNURHQYC4AJIPMSJT3VAIARB3HK5WSFK5UYKYRKCGZ4W \ / AMOS7 \ YOURUM ::
+#\[7]X4BVB6UDDZC3FIB2DNY575FYBLZ2SS4KAJ27FWBVL2LECODPNSAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

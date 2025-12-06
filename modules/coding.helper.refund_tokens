@@ -1,0 +1,22 @@
+## [:< ##
+
+# name = coding.helper.refund_tokens
+# descr = refund unused tokens from failed operation
+
+my ( $task_id, $tokens_to_refund ) = @ARG;
+
+<coding.budget.used> -= $tokens_to_refund;
+<coding.budget.used> = 0 if <coding.budget.used> < 0;
+
+return {
+    success     => TRUE,
+    refunded    => $tokens_to_refund,
+    new_balance => <coding.budget.allocated> - <coding.budget.used>,
+    message     => "Refunded $tokens_to_refund tokens for task $task_id"
+};
+
+#,,.,,,.,,,,,,..,,,.,,...,,,,,.,.,.,,,,..,,.,,..,,...,...,...,,,,,.,,,,,.,,,.,
+#253KX4UX5E7HDMH6Z2HIKQ6NQ6LYVXQ4IOFEY3DOIULZMFTYFMSAVSY3GBC3PJXHDLXVWBY7BIERC
+#\\\|EEKYOLKRWMFHDCMRWXVIJER5YNXLQ5ZJUWXE7QDRU6MHQDOWOW2 \ / AMOS7 \ YOURUM ::
+#\[7]H3O2RICGOYVEBKETNFFHP5A4EAICC4QXRDYA5HJQUFZWIDLX4EAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

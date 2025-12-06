@@ -1,0 +1,22 @@
+## [:< ##
+
+# name = coding.helper.task_id_generator
+# descr = generate unique task identifiers with harmonic validation
+
+my $type = shift @ARG // qw| unknown |;
+
+# Create seed from type and harmonized network time
+my $ntime = <[base.ntime.b32]>->(5);
+my $seed  = join '-', $type, $ntime;
+
+# Generate harmonized task ID with template
+my $template = qw| task-%s |;
+my $checksum = <[chk-sum.amos.truth_template_chksum]>->( $template, \$seed );
+
+return sprintf $template, $checksum;
+
+#,,,,,.,,,...,.,.,.,,,,,.,.,.,,.,,.,.,,.,,,.,,..,,...,...,...,.,.,.,,,,..,...,
+#S3QURUUGCF3KQTSXTBFD5RXA6IWBXWIM5ZC4MRN2DFMC7IEPZS24434YSEEE2E3II27EQSLHLKP4K
+#\\\|4UHKXPDI27BABIW3BD5WSHHHH3F5NL2E4NG4AZ2VCI2AWRL65FV \ / AMOS7 \ YOURUM ::
+#\[7]BEKGIA7SIKRDI4SJFFZQJSZUEXNV5L4M4ZFRPQO6PBVY2V45KGAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
