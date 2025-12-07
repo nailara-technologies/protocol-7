@@ -687,6 +687,7 @@ return [ qw[
         impressive.cmd.resume
         image-quality.analyze
         image-batch.init_code
+        image-batch.cmd.pause
         httpd.system.get_load
         httpd.send_error_page
         httpd.request_handler
@@ -813,6 +814,11 @@ return [ qw[
         index.cmd.add-wordlist
         impressive.open_window
         impressive.cmd.version
+        image-batch.cmd.status
+        image-batch.cmd.resume
+        image-batch.cmd.cancel
+        image-batch.child.loop
+        image-batch.child.init
         httpsd.request_handler
         httpsd.register_socket
         httpd.system.cpu_usage
@@ -931,6 +937,7 @@ return [ qw[
         io.ip.ssl.input.connect
         impressive.get_playlist
         image-quality.init_code
+        image-batch.cmd.process
         httpd.system.network_io
         httpd.diagnostic.report
         ffmpeg.frame_count_slow
@@ -1162,6 +1169,7 @@ return [ qw[
         io.unix.socket.input.open
         impressive.process_subcfg
         image2html.base.init_code
+        image-batch.calculate_eta
         httpsd.route_and_dispatch
         httpd.system.memory_stats
         httpd.base.size.normalize
@@ -1278,6 +1286,7 @@ return [ qw[
         io.unix.socket.output.open
         io.unix.socket.input.close
         image2html.child.init_code
+        image-batch.load_yaml_spec
         httpsd.reload_certificates
         httpd.handler.acme_request
         events.set-up.import_rules
@@ -1384,6 +1393,7 @@ return [ qw[
         jobqueue.check_dependencies
         io.unix.socket.output.close
         image2html.parent.init_code
+        image-batch.parent.shutdown
         httpd.update_download_count
         httpd.benchmark.end_request
         httpd.base.file.nonblocking
@@ -1576,6 +1586,8 @@ return [ qw[
         image2html.base.get_html_path
         image2html.base.download_file
         image-quality.vision.http_api
+        image-batch.generate_batch_id
+        image-batch.child.analyze_job
         httpsd.route_template_request
         httpd.vhost_template_resolver
         httpd.benchmark.start_request
@@ -1818,6 +1830,7 @@ return [ qw[
         keys.console.keys-backup-archive
         image2html.base.write_image_html
         image2html.base.write_error_page
+        image-batch.parent.fork_children
         httpd.handler.web_template_reply
         httpd.diagnostic.track_operation
         discover.process_incoming_packet
@@ -1952,6 +1965,8 @@ return [ qw[
         keys.select_archive_path.term_Clui
         jobqueue.event.register_job_queues
         image2html.child.cmd.convert_image
+        image-batch.parent.distribute_jobs
+        image-batch.parent.collect_results
         graphics-matrix.cmd.filter-rep-col
         discover.handler.anounce_host_addr
         discover.cmd.reset-broadcast-timer
@@ -2024,6 +2039,7 @@ return [ qw[
         letsencr.child.acme_verify_challenge
         letsencr.child.acme_register_account
         image2html.child.check_cache_timeout
+        image-batch.parent.handle_child_exit
         httpsd.startup.validate_certificates
         httpd.handler.download_transfer.test
         debian.parent.resolve_cpan_to_debian
@@ -2179,8 +2195,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,.,.,.,.,..,,...,...,..,,,..,.,,,.,,,.,,,..,,...,...,...,,,,,,..,...,,,,,
-#2PT55ZFKGAOJHM4INY2TAHHNGGZJKLWS6267UYSVI4U6QMM3YEWBXREUZUUG6CVNZR2446JUQ2XYM
-#\\\|QANHVX7PMCW26PLMGY2YEVXEUQOZJ3IN4WZOKDYFQE4MILSQYJE \ / AMOS7 \ YOURUM ::
-#\[7]JLVYRRT2QK2P5EEOQFYLNGYN3V2XQX4QAEHFQROZRP7MMUE2NGDA 7  DATA SIGNATURE ::
+#,,..,...,.,.,,.,,,,,,,.,,.,.,,,,,,,.,,.,,.,.,..,,...,...,,.,,.,,,,..,,,,,.,.,
+#2BOZPF2ICC3O7EVJWZGGENOO7HMORG2JUWQ3R4YR2BTXPJGKIVJGFAI2QWEQLROI3OJFSSGHYEDK2
+#\\\|5IOMIMH4P4GF5JEVWTLV7LPPF4ZPLLGKMHIB4RATXZHX34QLFCK \ / AMOS7 \ YOURUM ::
+#\[7]RTE3IZEYQBBM5RL6UEEG4ZR45OYIGYLAASYMEUGTFBQHDERVDICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
