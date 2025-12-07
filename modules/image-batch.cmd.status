@@ -8,10 +8,17 @@ my $batch_id = shift // undef;
 # Call the main image-batch.status module
 my $result = <[image-batch.status]>->($batch_id);
 
-return { 'mode' => qw| TRUE |, 'data' => $result };
+# Extract just the data fields, excluding internal 'success' field
+if ($result->{success}) {
+    # Remove the 'success' field and return data to network format
+    delete $result->{success};
+    return { 'mode' => qw| TRUE |, 'data' => $result };
+} else {
+    return { 'mode' => qw| FALSE |, 'data' => $result->{error} // 'Failed to get batch status' };
+}
 
-#,,..,,..,,,.,.,,,,,,,,,,,.,.,.,.,.,.,.,,,,,,,..,,...,...,..,,,,,,,.,,,,.,,..,
-#4ZG6GI36QPVKEF2MKZCXQBESMM2N4CBBAHEJM7EQVS5BXT7GTRDSQWGXRVOAZADOBQUO3D7C2APCU
-#\\\|CJG7ZMW3MQZMHOZYYWDDQBUX2POX2Q5U3FO3OFMRGGM6PZEQ7K4 \ / AMOS7 \ YOURUM ::
-#\[7]RRGUOPJ7FNOIODTKOXMVV7BWCUTMZKRYVOJX64XKMNBP2MDHTWCI 7  DATA SIGNATURE ::
+#,,.,,.,.,...,.,.,,,.,,,.,...,,..,...,,.,,,,.,..,,...,...,..,,...,,,.,.,,,.,,,
+#SL3NXC7GBYSQQML4LBUQWN5UBWAK4NBKWNSJ3HWYEJ7MYEKVOL4ZIPVSERGPFRRNCNIGJSIEW3FES
+#\\\|C6ZXAUWLHUZTPRVIOQSM5RT3EC6P2QRDWYA72RP27SZ7CMYTVYN \ / AMOS7 \ YOURUM ::
+#\[7]62XTI3LIZVLGM263NYMPSLWZJEHB3J4ZKPFGI6KOIOOEM2NUQWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
