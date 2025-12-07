@@ -18,21 +18,24 @@ my $shutdown_result = <[image-batch.parent.shutdown]>->();
 if ($shutdown_result->{success}) {
     $batch_state->{status} = 'cancelled';
     $batch_state->{cancelled_at} = time();
+    # Return as JSON string to avoid hash serialization issues
+    require JSON::XS;
+    my $json = JSON::XS::encode_json({
+        batch_id => $batch_id,
+        message => 'Batch cancellation initiated',
+        shutdown_signals_sent => $shutdown_result->{signals_sent},
+        pipes_closed => $shutdown_result->{pipes_closed}
+    });
     return {
         'mode' => qw| TRUE |,
-        'data' => {
-            batch_id => $batch_id,
-            message => 'Batch cancellation initiated',
-            shutdown_signals_sent => $shutdown_result->{signals_sent},
-            pipes_closed => $shutdown_result->{pipes_closed}
-        }
+        'data' => $json
     };
 } else {
     return { 'mode' => qw| FALSE |, 'data' => $shutdown_result->{error} };
 }
 
-#,,.,,,.,,..,,..,,...,,..,,,.,..,,..,,,,,,,,.,..,,...,...,,,,,,..,,,.,,,.,,..,
-#IFE2J3YT22WR4BRTEZWPGZSMOPSG77IPOJYRFDNKXIZHZT5V5SFPTCFHLVHVQXTGDCNRR32NP2FGE
-#\\\|QOKWZCPQZ4XLI4YSASPUX75FYL4UTECLRMYVY5ZLULVIGF2BJUV \ / AMOS7 \ YOURUM ::
-#\[7]23A6HKSEVXEZLHMJKSP6KYUOLYNYLTPCBCA4AWF6GDIBDYLBD6DQ 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,.,,,,.,,..,...,,.,,,,.,,..,,.,,..,,...,...,.,.,,,,,,,,,...,,..,
+#OP4WTHHGBFM2RL4TCPRVQZHXRWHBZAJUO6B455CYIBLDSN5B2DMKJLDJ4N2TGWPVBLV3SF7W7QNY2
+#\\\|4KUTQEJ63CX2PSAXPRTZRSOGEHNS3ZWO3DSOHV5MDRWDNEIWM2M \ / AMOS7 \ YOURUM ::
+#\[7]FSQRWMEZDXW45IWJRQ547YD6NOTJFZDI77GXMPGYCJPAFZNOLACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
