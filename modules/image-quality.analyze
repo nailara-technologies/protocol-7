@@ -1,32 +1,90 @@
 ## [:< ##
 
 # name = image-quality.analyze
-# descr = Placeholder for image analysis - to be implemented in Phase 2
+# descr = Analyze image quality using vision models (hybrid HTTP/subprocess)
 
-my ($image_path, $config_ref) = @ARG;
+<[base.perlmod.load]>->('Time::HiRes', qw| time |);
 
-# Placeholder: return mock quality analysis
+my $image_path = shift;
+my $start_time = Time::HiRes::time();
+
+# Validate input
+return { success => FALSE, error => 'Image path required' } unless defined $image_path;
+return { success => FALSE, error => "File not found: $image_path" } unless -f $image_path;
+
+# Select vision model from registry
+my $model_selection = <[image-quality.vision.select_model]>;
+return $model_selection unless $model_selection->{success};
+
+# Prepare analysis prompt
+my $analysis_prompt = q{
+Analyze this image and provide quality assessment:
+1. Composition and framing (score 0-1)
+2. Lighting quality (score 0-1)
+3. Technical quality: sharpness, noise, artifacts (score 0-1)
+4. Subject relevance and clarity (score 0-1)
+5. Overall grade (A+ to F)
+
+Respond in JSON format with scores and brief reasoning.
+};
+
+# Try HTTP API first (primary method)
+my $result = <[image-quality.vision.http_api]>->(
+    $image_path,
+    $model_selection->{model_path},
+    $analysis_prompt
+);
+
+# Fallback to subprocess if HTTP failed
+if (!$result->{success}) {
+    <[base.logs]>->(1, "HTTP API failed, trying subprocess: %s", $result->{error});
+    $result = <[image-quality.vision.subprocess]>->(
+        $image_path,
+        $model_selection->{model_path},
+        $analysis_prompt
+    );
+}
+
+return $result unless $result->{success};
+
+# Parse vision model response into structured metrics
+my $metrics = <[image-quality.vision.parse_response]>->($result->{response});
+return $metrics unless $metrics->{success};
+
+# Calculate duration
+my $duration_ms = int((Time::HiRes::time() - $start_time) * 1000);
+
+# Log to operation_log
+push <operation_log>->@*, {
+    timestamp => time(),
+    image_path => $image_path,
+    grade => $metrics->{overall_grade},
+    duration => $duration_ms
+};
+
+# Cache result
+<analysis_cache>{$image_path} = {
+    metrics => $metrics,
+    timestamp => time(),
+    model => $model_selection->{model_path}
+};
+
 return {
     success => TRUE,
     image_path => $image_path,
-    analysis => {
-        composition => { quality => 3, factors => ['rule of thirds', 'center focus'] },
-        lighting => { quality => 4, brightness => 0.65, contrast => 0.58 },
-        artifacts => { compression => 0, noise => 0, blur => 0 },
-        relevance => { score => 4, confidence => 0.85 },
-        technical => { resolution => '1920x1080', format => 'JPEG', size_mb => 2.3 }
-    },
-    quality_score => 0.78,
-    grade => 'B',
-    analyzed_at => time(),
-    duration_ms => 245,
-    message => 'Mock analysis - Phase 2 implementation pending'
+    composition => $metrics->{composition},
+    lighting => $metrics->{lighting},
+    technical => $metrics->{technical},
+    relevance => $metrics->{relevance},
+    overall_grade => $metrics->{overall_grade},
+    model_used => $model_selection->{model_path},
+    duration_ms => $duration_ms,
+    method => $result->{method} // 'http',
+    analyzed_at => time()
 };
 
-#,,,.,.,,,.,,,.,,,,,.,,,,,...,,.,,,..,,,.,,,,,..,,...,...,,,.,.,.,,,,,..,,,,.,
-
-#,,,.,,,,,.,.,,.,,.,,,,.,,.,,,.,.,..,,,,.,,.,,..,,...,...,...,,.,,.,,,...,.,,,
-#FQAFPF66WRLGQ2A62IQBQBXAFKWLTHTJ7EULWAQUDHS5T754KMUKNII7OTA4R7YELJIU4JK3BPWCS
-#\\\|HCUUB5XGLPJWDFK2GON2IBVGCBBLXNDFVRKHORIDI5T74TWAJ63 \ / AMOS7 \ YOURUM ::
-#\[7]4YEBBRRY62SFMYKWPIEOMVKDKKO4A5OZDPI2B5KGCOR5F5PV7EAA 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,,.,.,,,.,.,..,,,,.,,,.,.,.,.,.,..,,...,...,,,.,..,,.,,,,,.,.,,,
+#W4FHRIEEXG62FT3WRGONWMC3NVNYNAMUQISWGOKI2JMQCXYLAIAWAOK4472GW5I7QPNXLVIFXYTZ4
+#\\\|B5BXS6OMJP7NWOETPIBZHVL5M7XROT5ATXURJ7NPWZRLUOYOPFW \ / AMOS7 \ YOURUM ::
+#\[7]WOKEGSDWF6XVCSEG63UXJ2ETPXXMJN7KVQIDIPNC4WRB34CDNYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

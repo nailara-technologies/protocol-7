@@ -1,0 +1,102 @@
+## [:< ##
+
+# name = image-quality.vision.http_api
+# descr = HTTP API client for llama-server REST API (OpenAI-compatible)
+
+my ($image_path, $model_path, $analysis_prompt) = @_;
+
+# Validate inputs
+return { success => FALSE, error => 'Image path required' } unless defined $image_path;
+return { success => FALSE, error => 'Model path required' } unless defined $model_path;
+return { success => FALSE, error => 'Analysis prompt required' } unless defined $analysis_prompt;
+
+# Load HTTP::Tiny and JSON::XS
+<[base.perlmod.load]>->('HTTP::Tiny');
+<[base.perlmod.load]>->('JSON::XS', qw| encode_json decode_json |);
+
+# Get encoded image first
+my $img_result = <[image-quality.vision.encode_image]>->($image_path);
+return $img_result unless $img_result->{success};
+
+# Build OpenAI-compatible request for vision analysis
+my $request_payload = {
+    model => $model_path,
+    messages => [
+        {
+            role => 'user',
+            content => [
+                {
+                    type => 'text',
+                    text => $analysis_prompt
+                },
+                {
+                    type => 'image_url',
+                    image_url => {
+                        url => "data:$img_result->{mime_type};base64,$img_result->{base64}"
+                    }
+                }
+            ]
+        }
+    ],
+    max_tokens => 512,
+    temperature => 0.1
+};
+
+# Create HTTP client with 60 second timeout
+my $http = HTTP::Tiny->new(timeout => 60);
+
+# Make POST request to llama-server API
+my $response;
+eval {
+    $response = $http->post(
+        'http://localhost:8080/v1/chat/completions',
+        {
+            headers => { 'Content-Type' => 'application/json' },
+            content => encode_json($request_payload)
+        }
+    );
+};
+
+if ($@) {
+    return { success => FALSE, error => "HTTP request failed: $@", method => 'http' };
+}
+
+return { success => FALSE, error => "HTTP error $response->{status}", method => 'http' }
+    unless $response->{success};
+
+# Parse JSON response
+my $result;
+eval {
+    $result = decode_json($response->{content});
+};
+
+if ($@) {
+    return { success => FALSE, error => "Invalid JSON response: $@", method => 'http' };
+}
+
+# Check for API errors in response
+if ($result->{error}) {
+    return { success => FALSE, error => "API error: $result->{error}{message}", method => 'http' };
+}
+
+# Extract response text
+unless ($result->{choices} && ref $result->{choices} eq 'ARRAY' && @{$result->{choices}}) {
+    return { success => FALSE, error => 'Invalid response format from API', method => 'http' };
+}
+
+my $response_text = $result->{choices}[0]{message}{content};
+return { success => FALSE, error => 'Empty response from model' } unless defined $response_text && length $response_text;
+
+return {
+    success => TRUE,
+    response => $response_text,
+    model => $result->{model},
+    tokens_used => $result->{usage},
+    method => 'http'
+};
+
+#,,,,,.,,,.,.,,.,,,,,,,,.,,,.,,,.,...,,.,,,.,,..,,...,...,.,,,,.,,..,,,,,,,,.,
+#DCAWY7TQSGR3FCCOBHGCOVWYE7TMUZJRDLSY5OSHNFE3DQIZPJT4Q52AE52E3ZLAUKYH77YIDVJBM
+#\\\|FAXNDSXTQXQTB4J7WHOAMX3EIMGV33YLFQKUXQCMSDGMP4IVEKR \ / AMOS7 \ YOURUM ::
+#\[7]2F65BNUXWACJXALD2HE2VOWVSROYZH3CUHXPM5WMXVQDJNGVTCCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
