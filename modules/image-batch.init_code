@@ -3,13 +3,13 @@
 # name = image-batch.init_code
 # descr = Image batch orchestrator initialization with infrastructure
 
-## Initialize data structures for batch processing
+## Initialize data structures for batch processing in %data hash for shared access
 
 ## Batch queue: tracks images and their analysis status
-my $batch_queue = [];
+$data{batch_queue} = [];
 
 ## Batch state: overall batch progress and statistics
-my $batch_state = {
+$data{batch_state} = {
     batch_id => '',
     status => 'idle',
     timestamps => { created => 0, started => 0, last_update => 0, completed => 0 },
@@ -18,16 +18,16 @@ my $batch_state = {
 };
 
 ## Child process tracking: maps PID to job information
-my $child_pids = {};
+$data{child_pids} = {};
 
 ## Operation log: chronological record of batch operations
-my $operation_log = [];
+$data{operation_log} = [];
 
 ## Error log: failed analyses and rule application errors
-my $error_log = [];
+$data{error_log} = [];
 
 ## Action log: file operations performed (copy, move, scale, tag)
-my $action_log = [];
+$data{action_log} = [];
 
 ## Define list structures for observability
 
@@ -75,8 +75,8 @@ my $action_log = [];
 
 return TRUE;
 
-#,,.,,,..,.,.,,.,,,,,,..,,,.,,..,,.,.,,..,,,.,..,,...,...,.,,,,,,,,..,.,,,...,
-#2ODKHISY4EPW6EGKL5A7JKG3E57PRLIAPL3U7Y3UXOINB3FWS7PN76O3NTGZEGG3OIQZQXI6JC4FK
-#\\\|ULGP44QBXFJQR5KHAX3VIJKSEIBQQVTSZLURNLLBW5VQ7RZGUB5 \ / AMOS7 \ YOURUM ::
-#\[7]I2RYBKLR7GYUY4KRW6REVTOCPGUEBBUBJN3VHZCQKPVXWNT7WQBY 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,,.,..,,,,.,.,,,.,,,,,,,,..,,,,,..,,...,...,...,,..,,.,,..,,,,,,
+#I3OLYZHF724G5CF2FRPDBHLR34GSZOTYSSP5CPPP4QFNRTIFIAQ44H3F67NQ3XFFVSAP2HKC6G7WO
+#\\\|MPZTVQCMNSYV752HEWROZRVV7VXFCRRU5OLGI7Y3CZHKWPU5JUD \ / AMOS7 \ YOURUM ::
+#\[7]GYTLHM3ZCABLIWZYPOI27JFD3FQQVQW5B3X7WQY7BMM4D5YGNWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
