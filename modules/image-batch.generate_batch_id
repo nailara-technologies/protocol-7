@@ -1,0 +1,37 @@
+## [:< ##
+
+# name = image-batch.generate_batch_id
+# descr = Generate unique batch ID for tracking
+
+# Try using Data::UUID first, fall back to UUID::Tiny or simple timestamp-based ID
+my $batch_id;
+
+# Attempt to generate UUID
+eval {
+    <[base.perlmod.load]>->('Data::UUID');
+    my $ug = Data::UUID->new();
+    $batch_id = $ug->create_str();
+};
+
+# If Data::UUID failed, try UUID::Tiny
+if ($@) {
+    eval {
+        <[base.perlmod.load]>->('UUID::Tiny', qw| create_uuid_as_string UUID_V4 |);
+        $batch_id = create_uuid_as_string(UUID_V4());
+    };
+}
+
+# If UUID libraries unavailable, create a simple deterministic ID
+if (!defined $batch_id) {
+    my $timestamp = time();
+    my $random = int(rand(999999));
+    $batch_id = sprintf('batch-%d-%06d', $timestamp, $random);
+}
+
+return { success => TRUE, batch_id => $batch_id };
+
+#,,,.,..,,..,,,,,,.,,,,,.,.,.,,..,.,,,...,,,.,..,,...,..,,..,,,,,,.,,,,..,...,
+#ZW3Q4V6LFBL2EVPWUKESTSQ6OZNRFVUYSWDU4X243DEUUW6UMBC7V4WNWT7OIA25TJMYWJ2ANS562
+#\\\|3YEIVEY6JO2MAJZYY64CXA3C2AJF5KNBTKFGAVKIZ7Z46GJBIZU \ / AMOS7 \ YOURUM ::
+#\[7]SGLNQAQYCIUCOYRKBM7FT3DY7S6KJQT2RZSFHROPHRWMB557ECCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

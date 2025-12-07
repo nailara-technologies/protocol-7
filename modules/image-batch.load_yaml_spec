@@ -1,0 +1,78 @@
+## [:< ##
+
+# name = image-batch.load_yaml_spec
+# descr = Load and validate YAML batch specification
+
+my $yaml_path = shift;
+
+# Validate input
+return { success => FALSE, error => 'YAML path required' } unless defined $yaml_path;
+return { success => FALSE, error => "File not found: $yaml_path" } unless -f $yaml_path;
+
+# Load YAML module
+<[base.perlmod.load]>->('YAML::XS', qw| LoadFile |);
+
+# Load and parse YAML
+my $spec;
+eval {
+    $spec = LoadFile($yaml_path);
+};
+
+return { success => FALSE, error => "Failed to parse YAML: $@" } if $@;
+return { success => FALSE, error => 'YAML did not parse to valid structure' } unless ref $spec eq 'HASH';
+
+# Validate required fields
+return { success => FALSE, error => 'Missing "batch" section in YAML' } unless exists $spec->{batch};
+return { success => FALSE, error => 'Missing "images" section in YAML' } unless exists $spec->{images};
+
+my $batch = $spec->{batch};
+my $images = $spec->{images};
+
+return { success => FALSE, error => 'batch section must be a hash' } unless ref $batch eq 'HASH';
+return { success => FALSE, error => 'images section must be an array' } unless ref $images eq 'ARRAY';
+
+# Validate batch configuration
+return { success => FALSE, error => 'batch.name is required' } unless exists $batch->{name};
+return { success => FALSE, error => 'batch.name must be a string' } unless defined $batch->{name} && !ref $batch->{name};
+
+# Validate images list
+return { success => FALSE, error => 'images array must not be empty' } unless @$images;
+
+foreach my $idx (0..$#$images) {
+    my $img = $images->[$idx];
+    return { success => FALSE, error => "Image at index $idx is not a hash" } unless ref $img eq 'HASH';
+    return { success => FALSE, error => "Image at index $idx missing 'path' field" } unless exists $img->{path};
+    return { success => FALSE, error => "Image at index $idx path must be a string" } unless defined $img->{path} && !ref $img->{path};
+}
+
+# Extract and set defaults
+my $batch_name = $batch->{name};
+my $concurrency = $batch->{concurrency} // 4;  # Default to 4 workers
+my $timeout_per_image = $batch->{timeout_per_image} // 60;  # Default to 60 seconds
+
+return { success => FALSE, error => 'concurrency must be a positive integer' } unless $concurrency > 0;
+return { success => FALSE, error => 'timeout_per_image must be a positive integer' } unless $timeout_per_image > 0;
+
+# Extract image paths
+my @image_paths = map { $_->{path} } @$images;
+
+# Extract actions config (optional)
+my $actions = $spec->{actions} // {};
+
+# Return parsed specification
+return {
+    success => TRUE,
+    batch_name => $batch_name,
+    concurrency => $concurrency,
+    timeout_per_image => $timeout_per_image,
+    images => \@image_paths,
+    total_images => scalar(@image_paths),
+    actions => $actions,
+    yaml_path => $yaml_path
+};
+
+#,,..,,,.,,.,,,.,,...,,,.,,,.,,..,,.,,,.,,..,,..,,...,...,...,..,,,,,,,..,.,,,
+#5Z6LQCZRT7AYDRCUQ3KELHGBUEELGTMNJDZW5AI43QR4AQZKBVEGV7L6KJR3AMQHSMRLDMUAPS2K4
+#\\\|4FP2BAB3KPOG63P4HGTGR3PODTJ7VSSOQPC77SZP4RMWNX5V2UY \ / AMOS7 \ YOURUM ::
+#\[7]NHH5RKFQ65VPZNEDQXY6MD36IBGI3NXB5QAHUIFCY76TPX4ZMACA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

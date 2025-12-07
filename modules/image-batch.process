@@ -5,20 +5,110 @@
 
 my ($yaml_path) = @ARG;
 
-# Placeholder: acknowledge batch startup
+# Validate YAML path provided
+return { success => FALSE, error => 'YAML path required' } unless defined $yaml_path;
+return { success => FALSE, error => "YAML file not found: $yaml_path" } unless -f $yaml_path;
+
+# Load and validate YAML batch specification
+my $spec_result = <[image-batch.load_yaml_spec]>->($yaml_path);
+return $spec_result unless $spec_result->{success};
+
+my $spec = $spec_result->{spec};
+my $concurrency = $spec->{concurrency} // 4;
+my $image_paths = $spec->{image_paths};
+my $batch_name = $spec->{batch_name} // 'Untitled Batch';
+
+# Generate unique batch ID
+my $batch_id_result = <[image-batch.generate_batch_id]>->();
+return $batch_id_result unless $batch_id_result->{success};
+
+my $batch_id = $batch_id_result->{batch_id};
+
+# Initialize batch_state if not already present
+my $batch_state = <batch_state>;
+
+if (!defined $batch_state) {
+    $batch_state = {
+        batch_id => $batch_id,
+        batch_name => $batch_name,
+        status => 'initializing',
+        started_at => time(),
+        concurrency => $concurrency,
+        total_images => scalar(@$image_paths),
+        child_pids => {},
+        statistics => {
+            processed => 0,
+            completed => 0,
+            failed => 0,
+            processing => 0,
+            total_duration_ms => 0,
+            grade_distribution => {}
+        }
+    };
+}
+
+# Initialize batch_queue if not already present
+my $batch_queue = <batch_queue>;
+
+if (!defined $batch_queue || @$batch_queue == 0) {
+    $batch_queue = [];
+
+    # Create job queue from image paths
+    foreach my $image_path (@$image_paths) {
+        my $job_id = 'job_' . substr($batch_id, 0, 8) . '_' . scalar(@$batch_queue);
+
+        push @$batch_queue, {
+            job_id => $job_id,
+            image_path => $image_path,
+            status => 'queued',
+            queued_at => time(),
+            assigned_to_pid => undef,
+            result => undef,
+            error => undef
+        };
+    }
+}
+
+# Initialize operation_log if not already present
+my $operation_log = <operation_log>;
+if (!defined $operation_log) {
+    $operation_log = [];
+}
+
+# Initialize error_log if not already present
+my $error_log = <error_log>;
+if (!defined $error_log) {
+    $error_log = [];
+}
+
+# Fork worker pool
+my $fork_result = <[image-batch.parent.fork_children]>->($concurrency);
+
+unless ($fork_result->{success}) {
+    return {
+        success => FALSE,
+        error => "Failed to fork worker processes: " . $fork_result->{message},
+        forked => $fork_result->{forked_count} // 0
+    };
+}
+
+# Update batch state to running
+$batch_state->{status} = 'running';
+$batch_state->{workers_spawned} = $fork_result->{forked_count};
+
+# Return immediately with batch_id (non-blocking)
 return {
     success => TRUE,
-    batch_id => 'batch_' . time(),
-    status => 'started',
-    statistics => { total_images => 0, analyzed => 0, pending => 0, failed => 0 },
-    message => 'Batch processing started (placeholder - Phase 3 implementation pending)',
-    note => "YAML path provided: $yaml_path"
+    batch_id => $batch_id,
+    batch_name => $batch_name,
+    status => 'running',
+    total_images => $batch_state->{total_images},
+    workers_spawned => $fork_result->{forked_count},
+    message => "Batch $batch_id processing started with $fork_result->{forked_count} workers"
 };
 
-#,,,.,.,,,.,,,.,,,,,.,,,,,...,,.,,,..,,,.,,,,,..,,...,...,,,.,.,.,,,,,..,,,,.,
-
-#,,,.,,,.,,,.,.,.,,..,,.,,,.,,,,,,,,.,,,,,,,,,..,,...,...,,..,..,,,,,,,,.,.,,,
-#I7PRYHFHAADWEKMJRH3F6GC4O7K7ABE5CB34HUMKMNNYDRZY2CCMZJBJDQG7RX2DJSUKTRQE5ZJIY
-#\\\|F2PAMATHTMYKEVUNBMATF7D4JW2AIS43FV4PXBYTA73OXVTVZYM \ / AMOS7 \ YOURUM ::
-#\[7]IHQ3UIITM6ICQU6G4P6Q7HYBZZLEKBVVA6TZUZLDRRYTK23GJSCA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,...,...,,,,,,.,,,,,,..,,.,.,...,..,,...,...,,..,,..,,,.,,.,,,.,,
+#DQ5Y5AMNAOG6L56MFDHAW3OML3BHUUG4F2JT2B7KBSO2HFIHJLMLS44FFLYHRM35T7WWBYEOQSAXC
+#\\\|7BYFAYYVIMVPXFZWEV7ABIUGKCLRXK6GMUJMDWVQBCXTEQKZU7L \ / AMOS7 \ YOURUM ::
+#\[7]D2YDMU3NPQ5AWKUJB5MK2NXMEVQYNUSSJBCB62E2TEQZTPQQ2WCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
