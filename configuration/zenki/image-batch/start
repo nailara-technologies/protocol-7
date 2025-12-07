@@ -1,0 +1,35 @@
+
+ .:[ protocol-7 image-batch - on-demand batch processing orchestrator ]:.
+
+[load_config_file:'shared-params']
+
+access.cmd.usr.cube = commands heart reload verify-instance \
+                      list show-buffer buffer-erase \
+                      status process pause resume cancel ## <-- image-batch commands ##
+
+system.verbosity.zenka_buffer = 2  ##  memory ring buffer verbosity  ##
+
+## On-demand configuration: orchestrator is started when batch needed ##
+start.on_demand = 1
+restart.disabled = 1
+heartbeat.disabled = 1
+
+## Module loading ##
+modules.load = auth net protocol io.unix io.ip crypt.C25519 image-batch
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,..,,,,,.,.,,,,,,,,,.,,,,,.,...,,.,,,,.,...,..,,...,...,...,..,,,,,,,,,,,..,
+
+#,,..,.,.,.,,,...,.,.,,,.,,,,,,.,,,.,,..,,,,,,..,,...,...,,,,,...,...,,,,,,..,
+#3ONUZHRXP5JEA2ME7QB4BHJUK4SWKJFWIGHYGSEDNTTM523HM72TGQXTY42RQGPMDK46WQHJONBIK
+#\\\|AZ2DWF53EUX3RF2SLVKANJRKN3FPILF55WC355VMUXAMZLQMAVM \ / AMOS7 \ YOURUM ::
+#\[7]MUEGXVDV4AJOOOVTVBREMZORSGDYDBYFPC4FKXNPQ4ZJIJYGXEAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

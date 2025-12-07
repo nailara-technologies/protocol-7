@@ -1,0 +1,523 @@
+---
+# Protocol-7 Zenka Creation Requirements & Patterns
+# Comprehensive guide for creating new zenki with integrated infrastructure
+# Version: 2025-12-07
+
+project: Protocol-7
+subject: Zenka Architecture, Infrastructure, and Best Practices
+audience: Developers creating new zenki (agents)
+status: Active Specification
+
+overview: |
+  This document defines reusable patterns, infrastructure requirements, and best
+  practices for creating new Protocol-7 zenki. It emphasizes using existing
+  infrastructure from day one to avoid refactoring pressure and to naturally
+  emerge generic patterns that can be shared across zenki.
+
+---
+essential_infrastructure:
+  description: "Core systems available in base.init_code and shared modules"
+
+  list_system:
+    name: "List Infrastructure"
+    location: "base.init_code (lines 106-178)"
+    purpose: "Queryable tables of system state accessible via 'list' commands"
+    structure:
+      $data.list: "Hash containing all list definitions"
+      $data.list.buffers: "Ring buffer descriptors (logs)"
+      $data.list.users: "Connected users table"
+      $data.list.sessions: "Active sessions"
+      $data.list.virtual: "Virtual/on-demand zenki"
+    usage_example: |
+      # Define a list in init code
+      <list.jobs> = {
+        'var'   => 'data',
+        'key'   => 'jobs',
+        'mask'  => '<key>:id status:state progress:percent duration:time',
+        'align' => {
+          'progress' => 'right-3',
+          'duration' => 'right-5'
+        },
+        'filters' => {
+          'progress' => 'base.parser.percent_str',
+          'duration' => 'base.parser.duration_str'
+        },
+        'descr' => '[operations] active jobs and status'
+      };
+
+      # Users can then query: "list jobs"
+      # System automatically formats and displays table
+
+    why_use_from_start: |
+      - Provides built-in visibility without custom formatting code
+      - Cube zenka aggregates across all zenki
+      - Parents can monitor child zenka state via list
+      - Forms basis for event-based alerting and monitoring
+
+  buffer_system:
+    name: "Ring Buffer Infrastructure"
+    location: "base.init_code + base.logs modules"
+    purpose: "Fixed-size circular log buffers for activity tracking"
+    structure:
+      format: "Ring buffers with configurable size, line limit, and rotation"
+      access: "Via 'list buffers' command showing all active buffers"
+      integration: "Automatically listed in <list.buffers>"
+    typical_buffers: |
+      - error_log: Errors, failures, exceptions
+      - operation_log: Major state changes, task lifecycle
+      - debug_log: Detailed execution flow (dev mode)
+      - action_log: User/parent actions taken
+    usage_example: |
+      # Create separate buffers in %data for different concerns
+      <operation_log> = [];  # Push operation state changes here
+      <error_log> = [];      # Push errors and failures here
+      <action_log> = [];     # Push parent actions/commands here
+
+      # Then define list structure
+      <list.operation_log> = {
+        'var' => 'data',
+        'key' => 'operation_log',
+        'mask' => 'timestamp:time action:op status:state',
+        'descr' => '[operations] action history'
+      };
+
+    why_use_from_start: |
+      - Audit trail without custom infrastructure
+      - Parents can view child activity via parent zenka's accessible lists
+      - Different buffer purposes (operations vs errors vs debug) naturally emerge
+      - Separating concerns in buffers makes analysis easier
+
+  fork_and_child_system:
+    name: "Child Process Management"
+    location: "base.fork, base.callback.report_children"
+    purpose: "Non-blocking operations via forked child processes"
+    patterns:
+      fork_safe_prng: |
+        # base.fork automatically calls base.prng.reseed in child
+        my $pid = fork;  # Returns child PID in parent, 0 in child
+
+      child_registration: |
+        # Parent reports child to v7 for monitoring
+        push @{<system.report_children>}, $child_pid;
+        <[base.callback.report_children]>->();
+
+      child_connection: |
+        # Child process remains network-accessible
+        # Parent can query via: zenka.child:PID.command
+        # Example: image-quality.child:12345.status
+
+    use_case: |
+      Parent zenka (image-batch):
+        - Receives batch request
+        - For each image: fork a child to analyze
+        - Child (image-quality-child) does blocking work (LLM call)
+        - Parent monitors queue without blocking
+        - Child reconnects to parent's event loop for results
+
+    why_use_from_start: |
+      - Prevents blocking event loop
+      - Scales naturally (multiple children in parallel)
+      - Children register with v7 for lifecycle management
+      - Parent can track child state via list
+
+  event_loop_pattern:
+    name: "Non-blocking Event Loop"
+    location: "modules/base.event.*, zenka.loop"
+    purpose: "Async I/O and scheduling without blocking"
+    key_principle: |
+      Never block the main zenka loop. Use child processes for
+      blocking operations (LLM calls, image processing, file I/O).
+      Main loop handles command routing and state management only.
+
+    zenka_loop_execution: |
+      1. Initialize base modules (base.init_code)
+      2. Load zenka-specific modules
+      3. Initialize zenka-specific data structures and lists
+      4. Drop privileges
+      5. Enter event loop: <[zenka.loop]>
+        - Waits for cube messages
+        - Dispatches to command handlers
+        - Schedules callbacks
+        - Manages child processes (monitors PIDs)
+
+    why_use_from_start: |
+      - Responsiveness to admin queries even during batch operations
+      - Parent can check "list jobs" while children work
+      - No deadlocks or stalled operations
+      - Foundation for scalability
+
+  command_dispatch_pattern:
+    name: "Command Routing Architecture"
+    location: "cube zenka routing, zenka.loop message handling"
+    message_flow: |
+      cube receives: "image-batch.analyze /path/to/config.yaml"
+        -> routes to: image-batch zenka
+        -> dispatches to: image-batch.analyze command handler
+        -> handler returns result back to cube
+        -> cube returns to original caller
+
+    implementation: |
+      # In zenka startup or module:
+      my $cmd = shift @ARG;  # Command name
+      my @args = @ARG;       # Arguments
+
+      if ($cmd eq 'analyze') {
+        return <[image-batch.analyze]>->(@args);
+      } elsif ($cmd eq 'status') {
+        return <[image-batch.status]>(@args);
+      } else {
+        return { success => FALSE, error => "unknown command: $cmd" };
+      }
+
+    why_use_from_start: |
+      - Clear command interface from day one
+      - Enables parent to query child zenka state
+      - Supports interactive exploration and debugging
+      - Matches Protocol-7 routing conventions
+
+---
+state_management_patterns:
+
+  per_zenka_isolation:
+    description: "Each zenka has its own %data, %code, %keys hash"
+    implication: |
+      - No global state conflicts between zenki
+      - Children can inherit parent's data structures (forked copy)
+      - State persists across commands in same zenka
+
+    critical_for_zenka: |
+      - Task queue: zenka maintains job state in %data
+      - Batch tracking: image-batch stores batch progress in %data
+      - Audit logs: each zenka tracks its own events
+
+  data_structure_initialization:
+    pattern: |
+      In init code, initialize all %data structures that will be listed:
+
+      <batch_queue> = [];
+      <job_states> = {};
+      <analysis_results> = {};
+      <operation_log> = [];
+      <error_log> = [];
+
+    then_define_lists_for_each:
+      List each relevant structure so it appears in "list" commands
+
+    why_important: |
+      - Visibility into internal state without debugging
+      - Parent can monitor child via list
+      - Audit trail for troubleshooting
+
+---
+data_flow_principles:
+
+  yaml_configuration:
+    format: "YAML for task descriptions and configuration"
+    advantages: |
+      - Human-readable and model-friendly
+      - Directly parseable without custom parsing
+      - Used by httpd zenka template system
+      - Models understand YAML intuitively
+
+    where_used:
+      - Batch job descriptions (image-batch YAML config)
+      - System prompts (template-based)
+      - Task specifications
+      - Rule definitions (quality thresholds, actions)
+
+    integration: |
+      # In batch command:
+      my $batch_yaml = shift @ARG;
+      my $batch_config = <[base.yaml.parse]>->($batch_yaml);
+      # Proceed with $batch_config hash
+
+  template_system:
+    available_in: "httpd.template.* modules (recursive parsing)"
+    use_for: |
+      - Dynamic system prompts based on task config
+      - Auto-compacting context-aware chat prompts
+      - Task-specific instruction generation
+
+    integration: |
+      # In image-quality zenka LLM call:
+      my $system_prompt_template = <<'TEMPLATE';
+      You are analyzing images for quality.
+      Analyze for: {{ analysis_config.metrics | join(', ') }}
+      Return JSON with structure: {{ json_template }}
+      TEMPLATE
+
+      my $rendered = <[httpd.template.recursive_parse]>->(
+        $system_prompt_template,
+        { analysis_config => $config, json_template => $schema }
+      );
+
+    why_use_from_start: |
+      - Reuses existing infrastructure
+      - Reduces custom formatting code
+      - Models generate better structured output with clear templates
+
+---
+generic_infrastructure_opportunities:
+
+  job_queue_pattern:
+    description: "Already exists in coding.queue.* modules"
+    pattern: |
+      - Each zenka maintains internal queue
+      - Queue has: enqueue, dequeue, complete, fail, get_status operations
+      - Can track progress, elapsed time, result caching
+
+    reusable_for: |
+      - image-batch job queue: jobs waiting for analysis
+      - image-batch worker pool tracking children
+      - Any zenka doing bulk operations
+
+    implementation_note: |
+      Rather than duplicate, consider:
+      - Is there a generic job queue module that could be shared?
+      - Would zenka benefit from a base.queue.* suite?
+
+  result_aggregation:
+    description: "Collecting results from multiple children"
+    pattern: |
+      Parent maintains:
+      - Queue of jobs submitted to children
+      - Hash of child PID -> job_id mapping
+      - Hash of job_id -> result (filled as children complete)
+
+      When all jobs complete:
+      - Merge results into final report
+      - Update <batch_state> and log completion
+
+      If child fails:
+      - Log to error_log
+      - Retry or mark as failed in batch_state
+      - Continue with remaining children
+
+    why_generic: |
+      Any parent zenka doing parallel work needs this pattern
+      Could be extracted as base module suite
+
+  audit_and_recovery:
+    description: "Tracking what happened and why"
+    pattern: |
+      Three buffers:
+      - operation_log: high-level state changes ("started analysis", "completed")
+      - action_log: parent/admin actions ("pause batch", "retry job")
+      - error_log: failures and exceptions
+
+      Each entry: { timestamp, actor, action, status, details }
+
+    usage: |
+      Parent can query operation_log to see:
+        - When batch started/ended
+        - How many succeeded/failed
+        - Which jobs are pending
+
+      On restart, can replay operation_log to determine state
+
+    why_critical: |
+      - Debugging: understand sequence of events
+      - Accountability: who did what when
+      - Recovery: resume from checkpoint if parent crashes
+
+---
+deployment_patterns:
+
+  on_demand_vs_always_on:
+    on_demand:
+      config: "start.on_demand = 1"
+      use_case: "Short-lived operations (single batch), expensive resources"
+      example: "image-batch (started to process one batch, then shut down)"
+      setup: |
+        restart.disabled = 1
+        heartbeat.disabled = 1
+        idle_timeout = 300  (or as needed)
+
+    always_on:
+      config: "Listed in v7/start-set-up.base"
+      use_case: "Always available service (image-quality analyzer)"
+      example: "image-quality (always ready for analysis requests)"
+      setup: |
+        heartbeat.enabled (v7 monitors it)
+        auto-restart on failure
+
+  parent_child_relationship:
+    parent_zenka: |
+      - Receives batch command
+      - Manages overall workflow
+      - Forks children for intensive work
+      - Reports progress to requestor
+      - Can be short-lived (on-demand)
+
+    child_zenka: |
+      - Forked from parent at runtime
+      - Does blocking work (LLM analysis, image processing)
+      - Remains network-accessible (queries via parent)
+      - Reports back to parent when done
+      - May be long-lived (depends on batch size)
+
+---
+minimal_zenka_checklist:
+
+  required_before_first_command:
+    - "[ ] Base modules loaded (base.init_code executes)"
+    - "[ ] Custom module loading (modules.load list defined)"
+    - "[ ] Data structures initialized (%data hashes, arrays)"
+    - "[ ] Lists defined for all observable state (<list.* definitions>)"
+    - "[ ] Operation log setup (for audit trail)"
+    - "[ ] Error log setup (for troubleshooting)"
+    - "[ ] Command dispatcher implemented (command routing)"
+    - "[ ] Basic status command (return zenka state)"
+
+  for_parallelizable_work:
+    - "[ ] Fork function for children"
+    - "[ ] Child registration with v7 (base.callback.report_children)"
+    - "[ ] Result aggregation from children"
+    - "[ ] Job queue management (enqueue/dequeue/status)"
+    - "[ ] Error handling for failed children"
+    - "[ ] Progress tracking via lists"
+
+  for_long_running_work:
+    - "[ ] State persistence (save to file if needed for recovery)"
+    - "[ ] Batch checkpoint system (resume from interruption)"
+    - "[ ] List showing current batch progress"
+    - "[ ] Graceful shutdown handling (SIGTERM)"
+    - "[ ] Operations log (what happened when)"
+
+---
+template_integration:
+
+  where_available:
+    - "httpd.template.recursive_parse (in httpd zenka)"
+    - "Can be imported to other zenki if needed"
+
+  use_patterns:
+    system_prompt_generation: |
+      Template includes:
+      - Task-specific instructions
+      - Input/output schema
+      - Quality metrics to track
+
+    context_management: |
+      Auto-compact history by:
+      - Keeping recent full messages
+      - Summarizing older context
+      - Maintaining token count awareness
+
+    dynamic_prompting: |
+      Different prompts for different image types:
+      - Config defines which metrics matter
+      - Template generates focused prompt
+      - Models produce better structured results
+
+---
+monitoring_and_observability:
+
+  what_parent_can_see:
+    via_list_commands: |
+      - list jobs (in child zenka)
+      - list operation_log (in child)
+      - list error_log (in child)
+
+    via_direct_status: |
+      - parent-zenka.child:PID.status
+      - Returns: { progress, elapsed, estimated_remaining, last_update }
+
+    via_aggregate: |
+      - parent-zenka.batch_status
+      - Returns: { total_jobs, completed, failed, in_progress, eta }
+
+  integration_with_v7:
+    - Child zenka registered with v7
+    - v7 can restart failed children
+    - v7 maintains heartbeat (if enabled)
+    - Parent can query v7 for child status across all instances
+
+---
+error_handling_strategy:
+
+  child_failure_handling:
+    on_child_crash: |
+      - Operation log records: "child PID:12345 failed"
+      - Error log records: failure reason, exit code
+      - Parent detects missing child (no heartbeat response)
+      - Parent either retries or marks job as failed
+      - Batch continues with remaining jobs
+
+    on_bad_output: |
+      - Child returns invalid JSON/YAML
+      - Parent logs error with child PID and output sample
+      - Job marked failed
+      - Batch continues
+
+    on_timeout: |
+      - Parent tracks job submission time
+      - If no result after timeout, kill child
+      - Retry logic or mark as failed
+
+  parent_failure_handling:
+    state_persistence: |
+      Before each major state change:
+      - Write <batch_state> to file
+      - On restart, reload and resume
+      - Operation log shows what was completed
+      - Retry failed jobs
+
+    graceful_shutdown: |
+      On SIGTERM:
+      - Stop accepting new jobs
+      - Wait for in-flight children (with timeout)
+      - Kill remaining children
+      - Write final state to disk
+      - Log shutdown reason
+
+---
+summary_implementation_flow:
+
+  zenka_startup:
+    1. "Protocol-7 loads configuration from configuration/zenki/[name]/start"
+    2. "base.init_code executes (modules, limits, system state)"
+    3. "Zenka-specific modules load (image-batch.* modules)"
+    4. "Init code runs (data structures, lists, buffers)"
+    5. "Privileges dropped (run as configured user)"
+    6. "zenka.loop enters"
+
+  operational_sequence:
+    1. "Admin/parent sends: image-batch.process /path/to/batch.yaml"
+    2. "Command dispatcher calls image-batch.process handler"
+    3. "Handler parses YAML, enqueues jobs, forks children"
+    4. "Parent maintains progress in <operation_log>, <batch_state>"
+    5. "Parent updates <list.jobs> as children report back"
+    6. "Admin can query: list jobs, image-batch.status, list operation_log"
+    7. "Children finish, parent aggregates results"
+    8. "Parent returns final report, logs completion"
+
+  visibility_layers:
+    admin_level: |
+      - list jobs (all jobs in batch)
+      - image-batch.status (overall progress)
+      - list operation_log (major milestones)
+
+    developer_debug: |
+      - list error_log (what went wrong)
+      - list action_log (parent actions)
+      - image-batch.debug (internal state details)
+
+    system_level: |
+      - v7 sees child registration/restart
+      - cube sees all message routing
+      - p7-log sees all events
+
+---
+notes:
+  - "This document should evolve as patterns emerge"
+  - "When creating new zenka, refer back to this"
+  - "If repeating a pattern, consider extracting it to base.*"
+  - "Use existing infrastructure from day one - never 'we'll refactor later'"
+  - "Lists and buffers are cheap - use liberally for visibility"
+
+#,,,,,.,.,,,,,.,,,...,...,.,.,,,,,,..,.,,,..,,..,,...,...,...,.,,,...,...,.,.,
+#OLLPQSHM3LO7MLVVC2ZBO2PDNWKDHITCXEHZI7UXGI5NRO5O5E636DICJIHKXZLIEYA6JSKKZPXKK
+#\\\|GBZHTDFQND4GYAGT473PPSSSGHRCRA77DJUT2S2TG2LXZKR7DPS \ / AMOS7 \ YOURUM ::
+#\[7]232BI3NTUY6BR3ZR7PRXRUYTPR6CLE66SDXKQL2ZBXVDM6Y26SAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

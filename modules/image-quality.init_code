@@ -1,0 +1,47 @@
+## [:< ##
+
+# name = image-quality.init_code
+# descr = Image quality analyzer initialization with infrastructure
+
+## Initialize data structures for image quality analyzer
+
+## Analysis results cache (optional, for recent queries)
+my $analysis_cache = {};
+
+## Operation log: records what was analyzed when
+my $operation_log = [];
+
+## Error log: records analysis failures
+my $error_log = [];
+
+## Define list structures for observability
+
+## List: operation_log - shows recent analysis activity
+<list.operation_log> = {
+    'var'   => 'data',
+    'key'   => 'operation_log',
+    'mask'  => 'timestamp:time image_path:file grade:letter duration:ms',
+    'align' => {
+        'duration' => 'right-4'
+    },
+    'filters' => {},
+    'descr' => '[operations] images analyzed'
+};
+
+## List: error_log - shows analysis failures
+<list.error_log> = {
+    'var'   => 'data',
+    'key'   => 'error_log',
+    'mask'  => 'timestamp:time image_path:file error_type:type reason:msg',
+    'descr' => '[errors] analysis failures'
+};
+
+return TRUE;
+
+#,,,.,.,,,.,,,.,,,,,.,,,,,...,,.,,,..,,,.,,,,,..,,...,...,,,.,.,.,,,,,..,,,,.,
+
+#,,..,.,,,...,,..,...,,..,.,.,,,.,,..,..,,.,.,..,,...,..,,.,,,,,.,...,.,,,...,
+#H7TPSY4KPNHHQYPE3EX2LXGMUBMJQ3H7IA5HN7RMYOESVQS2XOB773FHYRGRYTFSBSFBZCNFG7LJM
+#\\\|T34K763GEFR77FJBZZ7YPPTK336KCX7L4MYILOBID66BQ3AZAK3 \ / AMOS7 \ YOURUM ::
+#\[7]ICJPIUI75XVOYBWIOL7W3CBP4NCOGNARK4SUF7E4NXFRAQZ5PMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
