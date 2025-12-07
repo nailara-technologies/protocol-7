@@ -1,0 +1,53 @@
+## [:< ##
+
+# name = coding.analyze.process
+# descr = Orchestrator for full task analysis pipeline
+
+my ($task) = @ARG;
+
+return {
+    success => FALSE,
+    error   => "Task must be a hashref"
+    }
+    unless ref($task) eq 'HASH';
+
+# Run all analyses
+my $complexity_result = <[coding.analyze.complexity]>->($task);
+my $classification    = <[coding.analyze.classify]>->($task);
+my $token_estimate    = <[coding.analyze.estimate_tokens]>->($task);
+my $history           = <[coding.analyze.check_history]>->($task);
+
+if ( !$complexity_result->{success} ) {
+    return { success => FALSE, error => "Complexity analysis failed" };
+}
+
+# Update task with analysis results
+$task->{analysis}->{complexity} = $complexity_result->{complexity};
+$task->{analysis}->{estimated_tokens}
+    = $token_estimate->{estimated_tokens};
+$task->{type}                        = $classification->{canonical_type};
+$task->{subtype}                     = $classification->{subtype};
+$task->{analysis}->{success_history} = {
+    similar_tasks   => 0,
+    success_rate    => $history->{success_rate},
+    cache_available => $history->{cache_available}
+};
+
+return {
+    success  => TRUE,
+    task     => $task,
+    analysis => {
+        complexity         => $complexity_result->{complexity},
+        complexity_factors => $complexity_result->{factors},
+        type               => $classification->{canonical_type},
+        subtype            => $classification->{subtype},
+        estimated_tokens   => $token_estimate->{estimated_tokens},
+        history            => $history
+    }
+};
+
+#,,,.,.,.,...,..,,...,..,,,..,,,.,,,.,,.,,,..,..,,...,...,,..,,..,..,,,..,.,.,
+#7X3YUCYNLTL4QANCYIYVAMPJHKS5YQW6V23FPZJLDSE5ROP673VOLDKLY2Z5P5YE65F3457MSYRWI
+#\\\|U4BXZXCT5HSHZVCAPD7XLUTZIFI77IYKQ3QMLYAYC6SCON3L27J \ / AMOS7 \ YOURUM ::
+#\[7]MNBGZLQTLPDEZPOSQCTT33W3GRK5PPGDYCIM4RFA6SLH3KG3EIDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
