@@ -1,0 +1,114 @@
+## [:< ##
+
+# name = image-quality.vision.parse_response
+# descr = Parse vision model response into structured quality metrics
+
+my $vision_response = shift;
+
+return { success => FALSE, error => 'No response provided' } unless defined $vision_response;
+return { success => FALSE, error => 'Response is empty' } if length($vision_response) == 0;
+
+# Load JSON parser for potential structured responses
+<[base.perlmod.load]>->('JSON::XS', qw| decode_json |);
+
+# Try to parse as JSON first (most models will return structured JSON)
+my $metrics_data;
+eval {
+    $metrics_data = decode_json($vision_response);
+};
+
+# If JSON parsing fails, parse from text response
+if ($@) {
+    # Fallback: parse quality indicators from text response
+    # Extract scores using regex patterns
+    my $composition_score = 0.5;
+    my $lighting_score = 0.5;
+    my $technical_score = 0.5;
+    my $relevance_score = 0.5;
+    my $overall_grade = 'C';
+
+    # Try to extract numeric scores from response text
+    if ($vision_response =~ /composition[:\s]+([0-9.]+)/i) {
+        $composition_score = $1 + 0;  # Force numeric context
+    }
+    if ($vision_response =~ /lighting[:\s]+([0-9.]+)/i) {
+        $lighting_score = $1 + 0;
+    }
+    if ($vision_response =~ /technical[:\s]+([0-9.]+)/i) {
+        $technical_score = $1 + 0;
+    }
+    if ($vision_response =~ /relevance[:\s]+([0-9.]+)/i) {
+        $relevance_score = $1 + 0;
+    }
+
+    # Extract letter grade
+    if ($vision_response =~ /grade[:\s]+([A-Fa-f][+\-]?)/i) {
+        $overall_grade = uc($1);
+    }
+
+    $metrics_data = {
+        composition => { score => $composition_score, reasoning => 'Extracted from text response' },
+        lighting => { score => $lighting_score, reasoning => 'Extracted from text response' },
+        technical => { score => $technical_score, reasoning => 'Extracted from text response' },
+        relevance => { score => $relevance_score, reasoning => 'Extracted from text response' },
+        overall_grade => $overall_grade
+    };
+}
+
+# Validate/normalize metrics structure
+my $composition = $metrics_data->{composition} || { score => 0.5, reasoning => 'Not provided' };
+my $lighting = $metrics_data->{lighting} || { score => 0.5, reasoning => 'Not provided' };
+my $technical = $metrics_data->{technical} || { score => 0.5, reasoning => 'Not provided' };
+my $relevance = $metrics_data->{relevance} || { score => 0.5, reasoning => 'Not provided' };
+
+# Handle both scalar and hash forms of scores
+if (ref $composition ne 'HASH') {
+    $composition = { score => $composition + 0, reasoning => 'Auto-converted from scalar' };
+}
+if (ref $lighting ne 'HASH') {
+    $lighting = { score => $lighting + 0, reasoning => 'Auto-converted from scalar' };
+}
+if (ref $technical ne 'HASH') {
+    $technical = { score => $technical + 0, reasoning => 'Auto-converted from scalar' };
+}
+if (ref $relevance ne 'HASH') {
+    $relevance = { score => $relevance + 0, reasoning => 'Auto-converted from scalar' };
+}
+
+# Clamp scores to 0-1 range
+$composition->{score} = $composition->{score} > 1 ? 1 : ($composition->{score} < 0 ? 0 : $composition->{score});
+$lighting->{score} = $lighting->{score} > 1 ? 1 : ($lighting->{score} < 0 ? 0 : $lighting->{score});
+$technical->{score} = $technical->{score} > 1 ? 1 : ($technical->{score} < 0 ? 0 : $technical->{score});
+$relevance->{score} = $relevance->{score} > 1 ? 1 : ($relevance->{score} < 0 ? 0 : $relevance->{score});
+
+# Calculate overall grade from average score if not provided
+my $overall_grade = $metrics_data->{overall_grade};
+unless (defined $overall_grade) {
+    my $average = ($composition->{score} + $lighting->{score} + $technical->{score} + $relevance->{score}) / 4;
+    if ($average >= 0.9) { $overall_grade = 'A+'; }
+    elsif ($average >= 0.85) { $overall_grade = 'A'; }
+    elsif ($average >= 0.8) { $overall_grade = 'A-'; }
+    elsif ($average >= 0.75) { $overall_grade = 'B+'; }
+    elsif ($average >= 0.7) { $overall_grade = 'B'; }
+    elsif ($average >= 0.65) { $overall_grade = 'B-'; }
+    elsif ($average >= 0.6) { $overall_grade = 'C+'; }
+    elsif ($average >= 0.5) { $overall_grade = 'C'; }
+    elsif ($average >= 0.4) { $overall_grade = 'D'; }
+    else { $overall_grade = 'F'; }
+}
+
+return {
+    success => TRUE,
+    composition => $composition,
+    lighting => $lighting,
+    technical => $technical,
+    relevance => $relevance,
+    overall_grade => $overall_grade,
+    raw_response => $vision_response
+};
+
+#,,,,,,,,,.,.,,,,,,,.,.,,,,..,.,,,,,.,...,.,.,..,,...,...,,..,.,.,..,,,.,,,,,,
+#WUTB5NZZN2SSBF2BBVSDMWVQWSJKADL2BD6GSWFHLBIUREERFV7FMP5ZHB6MCICZHZ4U76YHJVH2I
+#\\\|THMMBX62QD2F7XAZYYTTK3YMN32JXU5BZRAHESCGVL6HHGJHG54 \ / AMOS7 \ YOURUM ::
+#\[7]BSEVTJY7VVEQEWGQFBTNMZSQF6VNSSVVPKZD4KDD7OBCTCXCHIBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
