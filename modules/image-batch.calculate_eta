@@ -4,11 +4,12 @@
 # descr = Calculate estimated time to completion based on statistics
 
 # Return immediately if no active batch state
+my $batch_state = <batch_state>;
 return { success => FALSE, eta_seconds => undef, reason => 'No active batch' }
-    unless exists <batch_state>;
+    unless defined $batch_state;
 
-my $stats = <batch_state>{statistics};
-my $total = <batch_state>{total_images};
+my $stats = $batch_state->{statistics};
+my $total = $batch_state->{total_images};
 my $processed = $stats->{processed};
 
 # Not enough data yet
@@ -32,7 +33,7 @@ return { success => FALSE, eta_seconds => undef, reason => 'No valid duration da
 my $avg_duration_ms = $total_duration / @$log;
 
 # Count active workers
-my $child_pids = <batch_state>{child_pids};
+my $child_pids = $batch_state->{child_pids};
 my $active_workers = 0;
 
 foreach my $pid (keys %$child_pids) {
@@ -57,8 +58,8 @@ return {
     active_workers => $active_workers
 };
 
-#,,,.,,,,,...,,,.,.,.,,,,,...,,.,,,,.,.,,,,,,,..,,...,...,,..,..,,,,,,,.,,.,.,
-#B65ZAV7NIPRK36N2ETRK6R4GT6SNLXE65LVDQJGJW7EMMILZ3WPZUCE7VMBD2Z3FB5VWZDG5G7WWM
-#\\\|WZ7JI7SLRNNXZTMG7R5NEPTFMHZIIPVGO7DUUDAOFWKFHAKF5FV \ / AMOS7 \ YOURUM ::
-#\[7]F3HRWD5UQADJCHBLENJ54TKSWFA5TTCPXIYLLPMVWAPGWQCBGGBY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,..,,.,,..,,,.,,,,.,.,,,..,,,.,,..,,...,...,,,.,..,,,,,,,,,,,,,,
+#F6O5KWP24VUCBYD3RQSBQH5RETKYUWNAFRUVXHTFC3UHAIGVFL7BYSSM425DBAGH6AEWZTZ2RZKP6
+#\\\|WSUUDAVULGS2XI2F2HMPN3E6XE76HYGZJRZX4D6ZLIPPDGWXWK4 \ / AMOS7 \ YOURUM ::
+#\[7]4FYWVYVS3LUYN4E3BB6SAIPTWUZH4EWAQ6VSCAXJBIAHV75JRIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

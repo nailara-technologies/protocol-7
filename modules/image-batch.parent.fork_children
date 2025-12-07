@@ -27,7 +27,7 @@ for (my $worker_id = 1; $worker_id <= $concurrency; $worker_id++) {
     # Create socketpair for bidirectional IPC
     my ($parent_pipe, $child_pipe);
 
-    my $result = socketpair($parent_pipe, $child_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC);
+    my $result = socketpair($parent_pipe, $child_pipe, 'AF_UNIX', 'SOCK_STREAM', 'PF_UNSPEC');
 
     unless ($result) {
         $failed_count++;
@@ -107,8 +107,8 @@ return {
     message => "Forked $forked_count worker processes" . ($failed_count > 0 ? " ($failed_count failed)" : "")
 };
 
-#,,.,,,..,,,,,,,,,...,,.,,,,.,.,.,.,.,,,.,.,.,..,,...,...,,..,,,.,.,,,...,,,.,
-#IO3PMBJR7NMIV7QTCZGJXJKNTELGQ32D4PMRDKYMHXDH6ZYODYNIWYIWCHYRNRZTLZBEKFZEBLNW2
-#\\\|EQFMLPO2DMHPED57T3F7K54F75H3BLFFRRPJKKRPJ2VS6HH5RGF \ / AMOS7 \ YOURUM ::
-#\[7]DRE5UCRQYBQKGLACTDOK6XNICPCFEEMYQFAUVUBP4RFQ2B3UTSBY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,.,,,,,,,,,.,...,,..,,,,,.,.,.,,,..,,...,...,,..,.,,,.,.,.,.,...,
+#KDWPYZJ3CN22V67KQO2Y3R5PXCAQ4HMXDGZDUSPBVFCCDTH6CXFBSQZYSUHJLWAYUUZMKD6HIYBUA
+#\\\|3BKMH3VP6EP7RMP7IDXUIHAYLETNV7PWI4I27NQILDQ5JPBKQP5 \ / AMOS7 \ YOURUM ::
+#\[7]SQDT35VKI53SWSQZ5ZDP3SRH5BNGZNJ3MNP2MPGZUMVUBVHVVWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
