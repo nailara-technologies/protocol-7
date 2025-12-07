@@ -1,0 +1,86 @@
+## [:< ##
+
+# name = coding.analyze.complexity
+# descr = Calculate task complexity score (1-10) based on description and task type
+
+my ($task) = @ARG;
+
+return {
+    success => FALSE,
+    error   => "Task must be a hashref"
+    }
+    unless ref($task) eq 'HASH';
+
+my $desc       = $task->{request}->{description} // '';
+my $complexity = 1;    # Start at base level
+
+# Length-based complexity
+my $word_count = scalar( split( /\s+/, $desc ) );
+if ( $word_count > 100 ) {
+    $complexity += 2;
+} elsif ( $word_count > 50 ) {
+    $complexity += 1;
+}
+
+# Keywords indicating complexity
+my @complex_keywords = qw(
+    consensus voting multiple models complex reasoning
+    algorithm design architecture integration
+    optimization performance debugging
+);
+
+foreach my $keyword (@complex_keywords) {
+    if ( lc($desc) =~ /\Q$keyword\E/i ) {
+        $complexity += 2;
+    }
+}
+
+# Keywords indicating medium complexity
+my @medium_keywords = qw(
+    analyze review explain summarize
+    compare contrast identify
+);
+
+foreach my $keyword (@medium_keywords) {
+    if ( lc($desc) =~ /\Q$keyword\E/i ) {
+        $complexity += 1;
+    }
+}
+
+# Task type adjustments
+my $type = $task->{type} // 'analysis';
+
+if ( $type =~ /code|generation|creation/ ) {
+    $complexity += 3;
+} elsif ( $type =~ /consensus|voting/ ) {
+    $complexity += 4;    # Consensus is most complex
+} elsif ( $type =~ /transcription|audio/ ) {
+    $complexity -= 2;    # Audio is simpler
+} elsif ( $type =~ /image|creative/ ) {
+    $complexity += 2;
+}
+
+# Constraint count adds to complexity
+my $constraints = $task->{request}->{constraints} // [];
+$complexity += scalar(@$constraints);
+
+# Cap complexity between 1-10
+$complexity = 1  if $complexity < 1;
+$complexity = 10 if $complexity > 10;
+
+return {
+    success    => TRUE,
+    complexity => int($complexity),
+    factors    => {
+        word_count           => $word_count,
+        has_complex_keywords => scalar(@complex_keywords) > 0,
+        constraint_count     => scalar(@$constraints),
+        task_type            => $type
+    }
+};
+
+#,,.,,..,,,..,.,,,.,.,.,.,,,,,.,,,.,.,.,,,.,.,..,,...,,..,..,,,,.,.,,,..,,,,,,
+#2NMAVHMOMZJYB7226B3BYAOJ7FYN6P4ODBWHDDXIDZQSIXMYOAOQCJV4I2D6HYMTTPA3Y6KLGPSLU
+#\\\|GD6AO55EAOKI36ZJGYBJTHCVKKKJ3TCTFBUEQXPKXTHM7RNL4I6 \ / AMOS7 \ YOURUM ::
+#\[7]6R3N4Y43EPO4JYWB6FEOMUVWRO5EQIQDNGACWSLDUF2PNRT2JWAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

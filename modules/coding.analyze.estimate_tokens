@@ -1,0 +1,51 @@
+## [:< ##
+
+# name = coding.analyze.estimate_tokens
+# descr = Estimate token requirements based on task characteristics
+
+my ($task) = @ARG;
+
+my $desc_len = length( $task->{request}->{description} // '' );
+my $type     = $task->{type} // 'analysis';
+
+# Base token estimates by type
+my $base_tokens = {
+    'code-generation'  => 300,
+    'reasoning'        => 200,
+    'transcription'    => 50,    # Whisper doesn't use LLM tokens
+    'image-generation' => 50,    # Invoke doesn't use LLM tokens
+    'brainstorming'    => 200,
+    'analysis'         => 150,
+    'default'          => 100
+};
+
+my $type_key = lc($type);
+my $tokens   = $base_tokens->{$type_key} // $base_tokens->{'default'};
+
+# Adjust by description length (rough estimate: 1 token per 4 characters)
+$tokens += int( $desc_len / 4 );
+
+# Consensus voting costs 3x (3 models)
+my $constraints = $task->{request}->{constraints} // [];
+foreach my $constraint (@$constraints) {
+    if ( lc($constraint) =~ /consensus|vote/ ) {
+        $tokens *= 3;
+    }
+}
+
+return {
+    success          => TRUE,
+    estimated_tokens => int($tokens),
+    breakdown        => {
+        description_tokens => int( $desc_len / 4 ),
+        type               => $type_key,
+        requires_consensus =>
+            ( grep { lc($_) =~ /consensus|vote/ } @$constraints ) ? 1 : 0
+    }
+};
+
+#,,,.,.,,,.,,,.,,,,,.,,,,,...,,.,,,..,,,.,,,,,..,,...,...,,,.,.,.,,,,,..,,,,.,
+#7ICX4HEZYSWLPHVTYHEU4BSFDMG2HY4SXA4NRIIBOHVQ5IUI6KHUUP6XHVXQPTAHYJDUBO5MQSJGY
+#\\\|YV6YARTNXXBOBYNMA6OOC5QMEYEFJENDNQ6JAG75DBC5QNXC77P \ / AMOS7 \ YOURUM ::
+#\[7]EDNFCX7QX7SS366ISYZ7YIFBODINZBDMBMXZUABA2CO2QTKYT4DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

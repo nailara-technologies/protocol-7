@@ -1,0 +1,46 @@
+## [:< ##
+
+# name = coding.analyze.classify
+# descr = Map task type to canonical form and category
+
+my ($task) = @ARG;
+
+my $type = $task->{type}                   // 'analysis';
+my $desc = $task->{request}->{description} // '';
+
+# Map type strings to canonical types
+my $canonical_type = {
+    'code'         => 'code-generation',
+    'generation'   => 'code-generation',
+    'create'       => 'code-generation',
+    'write'        => 'code-generation',
+    'consensus'    => 'reasoning',
+    'vote'         => 'reasoning',
+    'analyze'      => 'reasoning',
+    'reason'       => 'reasoning',
+    'transcribe'   => 'transcription',
+    'audio'        => 'transcription',
+    'image'        => 'image-generation',
+    'generate'     => 'image-generation',
+    'create-image' => 'image-generation',
+    'creative'     => 'brainstorming',
+    'brainstorm'   => 'brainstorming',
+    'describe'     => 'analysis'
+}->{ lc($type) } // 'analysis';
+
+# Detect subtype from description keywords
+my $subtype = <[coding.helper.subtype_detector]>->($desc);
+
+return {
+    success        => TRUE,
+    canonical_type => $canonical_type,
+    original_type  => $type,
+    subtype        => $subtype,
+    category       => <[coding.helper.category_mapper]>->($canonical_type)
+};
+
+#,,..,.,.,..,,.,,,,,,,.,,,..,,,.,,,..,,,.,,..,..,,...,...,.,,,,,,,...,,.,,,,.,
+#ZUVGZ6G43JK2BTAGGBHZXAWMFJ27S6QHUGDSLX2ANE22T2ADVNOFNXBNTFNZHB7XLFRGL73ZQVISO
+#\\\|2GOGE6VDJVWCGY2YMDAUG2CLT3JCIYCYUYUUUI3IXXGCT6CILV6 \ / AMOS7 \ YOURUM ::
+#\[7]ZGJX4ZICYCSIVLMAA66S3TFJR4IONCDGQF44P56P5SSHAPELF2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
