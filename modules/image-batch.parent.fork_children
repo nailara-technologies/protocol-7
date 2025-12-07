@@ -1,0 +1,114 @@
+## [:< ##
+
+# name = image-batch.parent.fork_children
+# descr = Fork worker pool with socketpair IPC for batch processing
+
+<[base.perlmod.load]>->('Socket', qw| socketpair AF_UNIX SOCK_STREAM PF_UNSPEC |);
+<[base.perlmod.load]>->('IO::Handle');
+
+my $concurrency = shift // 4;
+
+return { success => FALSE, error => 'Concurrency must be > 0' } if $concurrency <= 0;
+
+my $batch_state = <batch_state>;
+return { success => FALSE, error => 'No batch_state available' } unless defined $batch_state;
+
+# Register CHLD signal handler
+<[event.add_signal]>->('CHLD', sub {
+    <[image-batch.parent.handle_child_exit]>->();
+});
+
+my $child_pids = $batch_state->{child_pids};
+my $forked_count = 0;
+my $failed_count = 0;
+
+# Fork worker processes
+for (my $worker_id = 1; $worker_id <= $concurrency; $worker_id++) {
+    # Create socketpair for bidirectional IPC
+    my ($parent_pipe, $child_pipe);
+
+    my $result = socketpair($parent_pipe, $child_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC);
+
+    unless ($result) {
+        $failed_count++;
+        next;
+    }
+
+    # Set non-blocking mode and autoflush
+    $parent_pipe->autoflush(1);
+    $child_pipe->autoflush(1);
+
+    # Fork child process
+    my $pid = fork();
+
+    if (!defined $pid) {
+        # Fork failed
+        close $parent_pipe;
+        close $child_pipe;
+        $failed_count++;
+        next;
+
+    } elsif ($pid == 0) {
+        # CHILD PROCESS
+
+        # Close parent's end of pipe in child
+        close $parent_pipe;
+
+        # Reinitialize IO::AIO after fork
+        eval {
+            <[base.perlmod.load]>->('IO::AIO');
+            IO::AIO::reinit();
+        };
+
+        # Store child-specific data
+        my $image_batch_child_parent_pipe = $child_pipe;
+        my $image_batch_child_worker_id = $worker_id;
+
+        # Initialize child process
+        my $init_result = <[image-batch.child.init]>->();
+
+        unless ($init_result->{success}) {
+            # Initialization failed, exit child
+            exit(1);
+        }
+
+        # Enter child event loop (never returns under normal conditions)
+        <[image-batch.child.loop]>->();
+
+        # Graceful exit
+        exit(0);
+
+    } else {
+        # PARENT PROCESS
+
+        # Close child's end of pipe in parent
+        close $child_pipe;
+
+        # Track child process
+        $child_pids->{$pid} = {
+            worker_id => $worker_id,
+            pid => $pid,
+            parent_pipe => $parent_pipe,
+            status => 'spawned',
+            spawned_at => time(),
+            current_job_id => undef,
+            jobs_completed => 0
+        };
+
+        $forked_count++;
+    }
+}
+
+return {
+    success => ($forked_count > 0),
+    forked_count => $forked_count,
+    failed_count => $failed_count,
+    concurrency => $concurrency,
+    message => "Forked $forked_count worker processes" . ($failed_count > 0 ? " ($failed_count failed)" : "")
+};
+
+#,,.,,,..,,,,,,,,,...,,.,,,,.,.,.,.,.,,,.,.,.,..,,...,...,,..,,,.,.,,,...,,,.,
+#IO3PMBJR7NMIV7QTCZGJXJKNTELGQ32D4PMRDKYMHXDH6ZYODYNIWYIWCHYRNRZTLZBEKFZEBLNW2
+#\\\|EQFMLPO2DMHPED57T3F7K54F75H3BLFFRRPJKKRPJ2VS6HH5RGF \ / AMOS7 \ YOURUM ::
+#\[7]DRE5UCRQYBQKGLACTDOK6XNICPCFEEMYQFAUVUBP4RFQ2B3UTSBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,107 @@
+## [:< ##
+
+# name = image-batch.parent.collect_results
+# descr = Collect and process results from child workers
+
+<[base.perlmod.load]>->('JSON::XS', qw| decode_json |);
+
+my $result_line = shift;
+
+# Validate input
+return { success => FALSE, error => 'Result line required' } unless defined $result_line;
+return { success => FALSE, error => 'Result line cannot be empty' } if $result_line eq '';
+
+# Parse JSON result
+my $result;
+eval {
+    $result = decode_json($result_line);
+};
+
+if ($@) {
+    return { success => FALSE, error => "Failed to parse result JSON: $@" };
+}
+
+# Validate result structure
+return { success => FALSE, error => 'Result must have job_id' } unless exists $result->{job_id};
+
+my $batch_state = <batch_state>;
+my $batch_queue = <batch_queue>;
+my $operation_log = <operation_log>;
+my $error_log = <error_log>;
+
+return { success => FALSE, error => 'No batch_state available' } unless defined $batch_state;
+return { success => FALSE, error => 'No batch_queue available' } unless defined $batch_queue;
+
+my $job_id = $result->{job_id};
+my $stats = $batch_state->{statistics};
+
+# Find job in queue and update it
+my $job_found = 0;
+foreach my $job (@$batch_queue) {
+    if ($job->{job_id} eq $job_id) {
+        $job_found = 1;
+
+        if ($result->{success}) {
+            # Successful analysis
+            $job->{status} = 'completed';
+            $job->{result} = $result;
+            $stats->{completed}++;
+            $stats->{processed}++;
+
+            # Log to operation_log
+            push @$operation_log, {
+                job_id => $job_id,
+                image_path => $job->{image_path},
+                success => TRUE,
+                metrics => $result->{metrics},
+                grade => $result->{metrics}->{overall_grade} // 'unknown',
+                duration => $result->{duration_ms},
+                model_used => $result->{model_used},
+                method => $result->{method},
+                timestamp => time()
+            };
+
+            # Update quality distribution histogram
+            my $grade = $result->{metrics}->{overall_grade} // 'unknown';
+            $stats->{grade_distribution}->{$grade}++;
+
+            # Update overall statistics
+            $stats->{total_duration_ms} += $result->{duration_ms} // 0;
+
+        } else {
+            # Failed analysis
+            $job->{status} = 'failed';
+            $job->{error} = $result->{error} // 'Unknown error';
+            $stats->{failed}++;
+            $stats->{processed}++;
+
+            # Log to error_log
+            push @$error_log, {
+                job_id => $job_id,
+                image_path => $job->{image_path},
+                error => $result->{error},
+                timestamp => time(),
+                type => 'analysis_failure'
+            };
+        }
+
+        last;
+    }
+}
+
+return {
+    success => $job_found,
+    job_id => $job_id,
+    message => $job_found ? "Result processed for job $job_id" : "Job $job_id not found in queue",
+    stats_updated => {
+        processed => $stats->{processed},
+        completed => $stats->{completed},
+        failed => $stats->{failed}
+    }
+};
+
+#,,,,,,,.,,,,,,..,,,.,,..,,,.,...,..,,,.,,..,,..,,...,..,,.,,,,,,,.,.,,,.,,.,,
+#BRXQRYTW2G2GGKL5QLVNJBCQ4JUPHXLJVI3ZDW4AG64D7AX3OA63E6M7W775FUEW7YKNEGOSDDCHE
+#\\\|L26ZMBJWGOLD2VSKJPBRXID6F7CRD764HNVFL63LEGMRXYEFVYF \ / AMOS7 \ YOURUM ::
+#\[7]WLSDD6BJH5Q3H3OEDUEK3HW52T5GW3HKZHPTPIHRLAKGEFVVTAAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

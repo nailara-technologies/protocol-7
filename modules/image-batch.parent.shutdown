@@ -1,0 +1,57 @@
+## [:< ##
+
+# name = image-batch.parent.shutdown
+# descr = Graceful shutdown of worker pool with signal delivery
+
+<[base.perlmod.load]>->('JSON::XS', qw| encode_json |);
+
+my $batch_state = <batch_state>;
+my $child_pids = $batch_state->{child_pids};
+
+return { success => FALSE, error => 'No batch_state available' } unless defined $batch_state;
+return { success => FALSE, error => 'No child_pids available' } unless defined $child_pids;
+
+my $shutdown_msg = encode_json({ cmd => 'shutdown' });
+my $sent_count = 0;
+my @closed_pipes;
+
+# Send shutdown signal to all active children
+foreach my $pid (keys %$child_pids) {
+    my $child_info = $child_pids->{$pid};
+    next unless defined $child_info->{parent_pipe};
+
+    # Try to send shutdown command
+    eval {
+        my $pipe = $child_info->{parent_pipe};
+        if (defined $pipe && $pipe->opened) {
+            print {$pipe} "$shutdown_msg\n";
+            $pipe->flush();
+            $sent_count++;
+        }
+    };
+
+    # Close the pipe regardless of error
+    if (defined $child_info->{parent_pipe}) {
+        eval {
+            close $child_info->{parent_pipe};
+        };
+        push @closed_pipes, $pid;
+    }
+}
+
+# Update batch state to indicate shutdown initiated
+$batch_state->{status} = 'shutting_down';
+$batch_state->{shutdown_initiated} = time();
+
+return {
+    success => TRUE,
+    shutdown_sent => $sent_count,
+    pipes_closed => scalar(@closed_pipes),
+    message => "Shutdown signal sent to $sent_count children"
+};
+
+#,,..,,,.,...,...,,.,,,.,,..,,,.,,,.,,.,,,.,.,..,,...,.,.,,..,..,,,..,...,.,,,
+#IAAFR73GOBNF7U5VVGNQHE666TCGIA4C57OPY6IVKJJGZW4XC3SKV24ROYYCAYUAHXDUS3DTE4E6W
+#\\\|473H7QIFQD4LIQY654L4XZNSOA62SXE7P6AXM4BO724S4RJSXKW \ / AMOS7 \ YOURUM ::
+#\[7]F5K7JMQDQGFQI33YPYNG4PS24HMFIVS5GZ27CLXAX6A5UM2ZKGAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,64 @@
+## [:< ##
+
+# name = image-batch.calculate_eta
+# descr = Calculate estimated time to completion based on statistics
+
+# Return immediately if no active batch state
+return { success => FALSE, eta_seconds => undef, reason => 'No active batch' }
+    unless exists <batch_state>;
+
+my $stats = <batch_state>{statistics};
+my $total = <batch_state>{total_images};
+my $processed = $stats->{processed};
+
+# Not enough data yet
+return { success => FALSE, eta_seconds => undef, reason => 'No progress yet' }
+    if $processed == 0;
+
+# Calculate average duration from operation_log
+my $log = <operation_log>;
+return { success => FALSE, eta_seconds => undef, reason => 'No completed analyses yet' }
+    unless defined $log && ref $log eq 'ARRAY' && @$log;
+
+my $total_duration = 0;
+foreach my $entry (@$log) {
+    next unless exists $entry->{duration};
+    $total_duration += $entry->{duration};
+}
+
+return { success => FALSE, eta_seconds => undef, reason => 'No valid duration data' }
+    if $total_duration == 0;
+
+my $avg_duration_ms = $total_duration / @$log;
+
+# Count active workers
+my $child_pids = <batch_state>{child_pids};
+my $active_workers = 0;
+
+foreach my $pid (keys %$child_pids) {
+    my $info = $child_pids->{$pid};
+    $active_workers++ if exists $info->{status} && $info->{status} eq 'busy';
+}
+
+# Default to total concurrency if no active workers detected yet
+$active_workers = scalar(keys %$child_pids) if $active_workers == 0;
+$active_workers = 1 if $active_workers == 0;  # Fallback
+
+# Calculate remaining time
+my $remaining_jobs = $total - $processed;
+my $eta_ms = ($remaining_jobs * $avg_duration_ms) / $active_workers;
+my $eta_seconds = int($eta_ms / 1000);
+
+return {
+    success => TRUE,
+    eta_seconds => $eta_seconds,
+    remaining_jobs => $remaining_jobs,
+    avg_duration_ms => $avg_duration_ms,
+    active_workers => $active_workers
+};
+
+#,,,.,,,,,...,,,.,.,.,,,,,...,,.,,,,.,.,,,,,,,..,,...,...,,..,..,,,,,,,.,,.,.,
+#B65ZAV7NIPRK36N2ETRK6R4GT6SNLXE65LVDQJGJW7EMMILZ3WPZUCE7VMBD2Z3FB5VWZDG5G7WWM
+#\\\|WZ7JI7SLRNNXZTMG7R5NEPTFMHZIIPVGO7DUUDAOFWKFHAKF5FV \ / AMOS7 \ YOURUM ::
+#\[7]F3HRWD5UQADJCHBLENJ54TKSWFA5TTCPXIYLLPMVWAPGWQCBGGBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

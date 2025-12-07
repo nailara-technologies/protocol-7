@@ -1,0 +1,78 @@
+## [:< ##
+
+# name = image-batch.parent.handle_child_exit
+# descr = CHLD signal handler for reaping exited child workers
+
+use POSIX qw( WNOHANG );
+
+# This is a signal handler callback that gets invoked when a child process exits
+# Returns the number of children reaped
+
+my $reaped_count = 0;
+
+# Reap all exited children non-blockingly
+while (1) {
+    my $child_pid = waitpid(-1, WNOHANG);
+
+    # No more children to reap (-1 means error/no children, 0 means no status available)
+    last if $child_pid <= 0;
+
+    my $exit_status = $?;
+
+    # Get batch state to access child_pids and current jobs
+    my $batch_state = <batch_state>;
+    my $child_pids = $batch_state->{child_pids};
+
+    return { success => FALSE, error => 'No batch_state available' } unless defined $batch_state;
+    return { success => FALSE, error => 'No child_pids tracking' } unless defined $child_pids;
+
+    # Find the child that exited
+    my $child_info = $child_pids->{$child_pid};
+
+    if (defined $child_info) {
+        # Mark child as exited
+        $child_info->{status} = 'exited';
+        $child_info->{exit_status} = $exit_status;
+
+        # If child was processing a job, mark it as failed
+        if (exists $child_info->{current_job_id} && defined $child_info->{current_job_id}) {
+            my $job_id = $child_info->{current_job_id};
+            my $batch_queue = <batch_queue>;
+
+            # Find and update the job in the queue
+            foreach my $job (@$batch_queue) {
+                if ($job->{job_id} eq $job_id) {
+                    $job->{status} = 'failed';
+                    $job->{error} = "Child process exited unexpectedly (PID: $child_pid, exit: $exit_status)";
+
+                    # Update batch statistics
+                    my $stats = $batch_state->{statistics};
+                    $stats->{failed}++;
+                    $stats->{processed}++;
+
+                    # Log to error_log
+                    my $error_log = <error_log>;
+                    push @$error_log, {
+                        job_id => $job_id,
+                        image_path => $job->{image_path},
+                        error => $job->{error},
+                        timestamp => time(),
+                        type => 'child_exit'
+                    };
+
+                    last;
+                }
+            }
+        }
+    }
+
+    $reaped_count++;
+}
+
+return { success => TRUE, reaped_count => $reaped_count };
+
+#,,..,..,,,,,,,..,.,,,...,,.,,.,,,,.,,,..,.,.,..,,...,...,.,,,..,,..,,,.,,,,.,
+#5GVJZ2FX3MEJLAF2J47DTHTC3SRX57PM7IUEFER4RUYRYETGOC76Z6RMB2ZSTOCSHQAWP27YLYT3W
+#\\\|WDQU7KFPXQGS5JAB7KELGO57UKWV6UKMRSSHHAIALUQMLYLGI32 \ / AMOS7 \ YOURUM ::
+#\[7]5FAZK6LDR3XKBW7PRBGLFB435PE6KADDNFB7JHKJLUNMQU2Y34AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
