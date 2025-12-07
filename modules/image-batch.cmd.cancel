@@ -1,0 +1,38 @@
+## [:< ##
+
+# name = image-batch.cmd.cancel
+# descr = Cancel batch processing
+
+my $batch_id = shift;
+
+return { 'mode' => qw| FALSE |, 'data' => 'Batch ID required' } unless defined $batch_id;
+
+# Get batch_state to find the batch
+my $batch_state = <batch_state>;
+return { 'mode' => qw| FALSE |, 'data' => 'No active batch found' } unless defined $batch_state;
+return { 'mode' => qw| FALSE |, 'data' => "Batch $batch_id not found" } if $batch_state->{batch_id} ne $batch_id;
+
+# Trigger shutdown of batch
+my $shutdown_result = <[image-batch.parent.shutdown]>->();
+
+if ($shutdown_result->{success}) {
+    $batch_state->{status} = 'cancelled';
+    $batch_state->{cancelled_at} = time();
+    return {
+        'mode' => qw| TRUE |,
+        'data' => {
+            batch_id => $batch_id,
+            message => 'Batch cancellation initiated',
+            shutdown_signals_sent => $shutdown_result->{signals_sent},
+            pipes_closed => $shutdown_result->{pipes_closed}
+        }
+    };
+} else {
+    return { 'mode' => qw| FALSE |, 'data' => $shutdown_result->{error} };
+}
+
+#,,.,,,.,,..,,..,,...,,..,,,.,..,,..,,,,,,,,.,..,,...,...,,,,,,..,,,.,,,.,,..,
+#IFE2J3YT22WR4BRTEZWPGZSMOPSG77IPOJYRFDNKXIZHZT5V5SFPTCFHLVHVQXTGDCNRR32NP2FGE
+#\\\|QOKWZCPQZ4XLI4YSASPUX75FYL4UTECLRMYVY5ZLULVIGF2BJUV \ / AMOS7 \ YOURUM ::
+#\[7]23A6HKSEVXEZLHMJKSP6KYUOLYNYLTPCBCA4AWF6GDIBDYLBD6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

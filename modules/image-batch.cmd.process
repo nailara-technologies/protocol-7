@@ -1,0 +1,20 @@
+## [:< ##
+
+# name = image-batch.cmd.process
+# descr = Submit batch job for processing (expects YAML path as parameter)
+
+my $yaml_path = shift;
+
+return { 'mode' => qw| FALSE |, 'data' => 'YAML batch file path required' } unless defined $yaml_path;
+return { 'mode' => qw| FALSE |, 'data' => 'Path cannot be empty' } if $yaml_path eq '';
+
+# Call the main image-batch.process module
+my $result = <[image-batch.process]>->($yaml_path);
+
+return { 'mode' => qw| TRUE |, 'data' => $result };
+
+#,,..,.,.,..,,.,,,,..,.,,,,,,,.,,,,,,,,,,,...,..,,...,..,,,.,,.,,,.,.,..,,.,,,
+#P7U2PQT4B4UMV7X55ZD6TKLBSGFRK5TOT723NIYOBB6SZWJDH4TGR6W5MA2BEOZ554AAOZYWQX3OS
+#\\\|LPN5WHHIW5A7RP6B7J2YACRXVVLVHENWCRVVDO7L6A4U52IK762 \ / AMOS7 \ YOURUM ::
+#\[7]NSHAEG2VRZXP4VGSM2GDDUUG4Z5YX3U4KBXS4ATXTX4GI7ISI2DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
