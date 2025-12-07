@@ -10,32 +10,30 @@ return { success => FALSE, error => 'Image path required' } unless defined $imag
 return { success => FALSE, error => 'Model path required' } unless defined $model_path;
 return { success => FALSE, error => 'Analysis prompt required' } unless defined $analysis_prompt;
 
-# Load IPC::Run
-<[base.perlmod.load]>->('IPC::Run', qw| run |);
-
-# Build command for llama-server
-# Note: This calls llama-server as a subprocess, which should be compiled with vision support
-my @cmd = (
-    'llama-server',
-    '-m', $model_path,
-    '--image', $image_path,
-    '-p', $analysis_prompt,
-    '-n', '512',
-    '--temp', '0.1'
+# Execute llama-server via backtick command (simplified approach)
+# Build command string
+my $cmd = sprintf(
+    'llama-server -m %s --image %s -p %s -n 512 --temp 0.1 2>&1',
+    quotemeta($model_path),
+    quotemeta($image_path),
+    quotemeta($analysis_prompt)
 );
 
-# Execute command with IPC::Run
-my ($out, $err) = ('', '');
-my $success = eval {
-    run \@cmd, \undef, \$out, \$err, { timeout => 60 };
+# Execute with timeout
+my $out = '';
+eval {
+    local $SIG{ALRM} = sub { die "timeout\n" };
+    alarm(60);
+    $out = `$cmd`;
+    alarm(0);
 };
 
 if ($@) {
     return { success => FALSE, error => "Subprocess failed: $@", method => 'subprocess' };
 }
 
-unless ($success) {
-    return { success => FALSE, error => "llama-server exited with error: $err", method => 'subprocess' };
+if ($? != 0) {
+    return { success => FALSE, error => "llama-server exited with error code $?", method => 'subprocess' };
 }
 
 if (!$out || length($out) == 0) {
@@ -48,8 +46,8 @@ return {
     method => 'subprocess'
 };
 
-#,,..,..,,.,.,..,,,.,,,.,,,..,..,,,,,,...,..,,..,,...,...,.,.,..,,,,.,...,.,,,
-#P7ASERE3H2QIUFAOT2HU7ZYBMV3GCKCMUQHH7XST5EUUDQ7GCMZY6224BDUDURGHJQUIS7CR4JYLC
-#\\\|ZTYFB4AYJEV2FES7T3A6OR4HHVC3AJPQUEXXBZLDMRGG4FLNM72 \ / AMOS7 \ YOURUM ::
-#\[7]7NKKWGEEUVJ2X2CJHMCNLX42NXIP6MNRKOS4FRHUZ3CJOQ63S4BI 7  DATA SIGNATURE ::
+#,,..,...,.,.,..,,..,,,,,,...,,,,,...,,..,.,,,..,,...,..,,..,,..,,,,.,.,.,,,.,
+#R6YEZ5CNIUUJW7IWJTXAOOKLEXVCDOSXLPZ3JQUU5Q3DCOAZOJBJ5D47HPPQSIWX5ORQJZT345NC2
+#\\\|5OGWFL64NZZP7DVL6FI45STU44KEBAI53SNWKG7UMJBCJPE7Z7S \ / AMOS7 \ YOURUM ::
+#\[7]VAKYAUEHEZ2TORMLEE4NJSRW7NA5BQVTULY6LKYUV7QI3A6CZ2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

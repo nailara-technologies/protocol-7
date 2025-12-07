@@ -54,20 +54,8 @@ return $metrics unless $metrics->{success};
 # Calculate duration
 my $duration_ms = int((Time::HiRes::time() - $start_time) * 1000);
 
-# Log to operation_log
-push <operation_log>->@*, {
-    timestamp => time(),
-    image_path => $image_path,
-    grade => $metrics->{overall_grade},
-    duration => $duration_ms
-};
-
-# Cache result
-<analysis_cache>{$image_path} = {
-    metrics => $metrics,
-    timestamp => time(),
-    model => $model_selection->{model_path}
-};
+# TODO: Implement operation_log and analysis_cache using Protocol-7 data structures
+# These require proper angle-bracket syntax support for hash operations
 
 return {
     success => TRUE,
@@ -83,8 +71,8 @@ return {
     analyzed_at => time()
 };
 
-#,,,.,..,,..,,,,.,.,,,.,.,..,,,,.,,,.,.,.,.,.,..,,...,...,,,.,..,,.,,,,,.,.,,,
-#W4FHRIEEXG62FT3WRGONWMC3NVNYNAMUQISWGOKI2JMQCXYLAIAWAOK4472GW5I7QPNXLVIFXYTZ4
-#\\\|B5BXS6OMJP7NWOETPIBZHVL5M7XROT5ATXURJ7NPWZRLUOYOPFW \ / AMOS7 \ YOURUM ::
-#\[7]WOKEGSDWF6XVCSEG63UXJ2ETPXXMJN7KVQIDIPNC4WRB34CDNYBY 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,.,.,...,.,,,,,,,.,.,.,.,.,,,,..,..,,...,...,,,,,..,,.,,,,..,..,,
+#KEO23UUNSBIM4C2HOQIUI3SADRTTZPQ44V7STEKWE6PJITNY6CVU73JVNWIYV3AJHGGHRBOP53JKY
+#\\\|DWH7I6GDPOAY75S5J7LLA6U5JDMNZVRPUG73PJ4FNDTYO47U25F \ / AMOS7 \ YOURUM ::
+#\[7]375OLY55FTJ7TEZ4TBWW7HQYTOHBTZZ2ZGZQL5LNIB7I4YEXKEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
