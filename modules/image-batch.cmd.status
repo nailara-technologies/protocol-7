@@ -16,13 +16,16 @@ if ($result->{success}) {
     # Remove internal 'success' field before sending to client
     my %data = %$result;
     delete $data{success};
-    return { 'mode' => qw| TRUE |, 'data' => \%data };
+    # Return as JSON string to avoid hash serialization issues
+    require JSON::XS;
+    my $json = JSON::XS::encode_json(\%data);
+    return { 'mode' => qw| TRUE |, 'data' => $json };
 } else {
     return { 'mode' => qw| FALSE |, 'data' => $result->{error} // 'Failed to get batch status' };
 }
 
-#,,,.,,.,,.,,,,,.,,..,,,.,.,.,.,,,..,,,.,,,,.,..,,...,..,,,..,,..,,.,,,,.,.,,,
-#EFKKV7ZYJWAMURYOYCAA4CTGDQISATOA2T6EWFMAZUQLDJDTBP5R5VB5RBQ3WCPSIJZHZLWZ3YPMK
-#\\\|FRUI5FIDU3EPN76IAXF3YXNDEJDMKM5CFLJQZZTME3NBJABYI35 \ / AMOS7 \ YOURUM ::
-#\[7]3J73DKDBONM55WG7WKHR5ACN2ZF2P3LMUMPGOSHM6V5C4PXYMEDI 7  DATA SIGNATURE ::
+#,,.,,...,,..,...,,,.,,,,,.,.,,,.,,,,,,..,,..,..,,...,..,,.,.,,,,,.,,,,,,,,,.,
+#FFJ5SGF73HKD4KHEA5S5ZL4PAHBEOKPCJSIJOONMOYAH76DYK3ZEUW4Z6MBIHJGT3H6EQF67ZTV4Y
+#\\\|ZXFXOW3OSHNCL7QXBTVFTD3OEXEAREYTOXUJK4Y4OP273ZMOMCJ \ / AMOS7 \ YOURUM ::
+#\[7]MXKNU4Z7PB7ZIQSOCAOVKJRK5XWMOWEPGW5VDRK3VFIIUXHZIGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

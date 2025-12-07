@@ -11,10 +11,21 @@ return { 'mode' => qw| FALSE |, 'data' => 'Path cannot be empty' } if $yaml_path
 # Call the main image-batch.process module
 my $result = <[image-batch.process]>->($yaml_path);
 
-return { 'mode' => qw| TRUE |, 'data' => $result };
+# Ensure result is valid before returning
+return { 'mode' => qw| FALSE |, 'data' => 'Invalid result from batch process' } unless defined $result && ref($result) eq 'HASH';
 
-#,,..,.,.,..,,.,,,,..,.,,,,,,,.,,,,,,,,,,,...,..,,...,..,,,.,,.,,,.,.,..,,.,,,
-#P7U2PQT4B4UMV7X55ZD6TKLBSGFRK5TOT723NIYOBB6SZWJDH4TGR6W5MA2BEOZ554AAOZYWQX3OS
-#\\\|LPN5WHHIW5A7RP6B7J2YACRXVVLVHENWCRVVDO7L6A4U52IK762 \ / AMOS7 \ YOURUM ::
-#\[7]NSHAEG2VRZXP4VGSM2GDDUUG4Z5YX3U4KBXS4ATXTX4GI7ISI2DQ 7  DATA SIGNATURE ::
+# Return with proper network format
+if ($result->{success}) {
+    # Return as JSON string to avoid hash serialization issues
+    require JSON::XS;
+    my $json = JSON::XS::encode_json($result);
+    return { 'mode' => qw| TRUE |, 'data' => $json };
+} else {
+    return { 'mode' => qw| FALSE |, 'data' => $result->{error} // 'Batch processing failed' };
+}
+
+#,,,,,,..,,,,,..,,...,..,,..,,,,.,,,.,,,.,,.,,..,,...,...,,..,.,,,.,,,...,..,,
+#K5C36UBTP6GQOQ6WUH4KA3LAUVTDGWVLUCMZ3P3IGHXPX5W4K2DIAOPBMQN5CMSRLTWFSIFPXNOVC
+#\\\|5A33DYH5ENIXWY2UBTN4BAMDROGDKNZ3S4FSOLY7DRMQEDTU64F \ / AMOS7 \ YOURUM ::
+#\[7]BLGSKQEZPBKOB6UNJZV7EOMUYIPCQ3RIKS4LLCJNYYS57PVXBIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
