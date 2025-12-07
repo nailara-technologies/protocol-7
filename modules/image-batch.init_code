@@ -1,0 +1,84 @@
+## [:< ##
+
+# name = image-batch.init_code
+# descr = Image batch orchestrator initialization with infrastructure
+
+## Initialize data structures for batch processing
+
+## Batch queue: tracks images and their analysis status
+my $batch_queue = [];
+
+## Batch state: overall batch progress and statistics
+my $batch_state = {
+    batch_id => '',
+    status => 'idle',
+    timestamps => { created => 0, started => 0, last_update => 0, completed => 0 },
+    statistics => { total_images => 0, analyzed => 0, pending => 0, failed => 0, quality_distribution => {} },
+    current_operation => { image_path => '', stage => '', progress_percent => 0, child_pids => [] }
+};
+
+## Child process tracking: maps PID to job information
+my $child_pids = {};
+
+## Operation log: chronological record of batch operations
+my $operation_log = [];
+
+## Error log: failed analyses and rule application errors
+my $error_log = [];
+
+## Action log: file operations performed (copy, move, scale, tag)
+my $action_log = [];
+
+## Define list structures for observability
+
+## List: batch_state - shows current batch status
+<list.batch_state> = {
+    'var'   => 'data',
+    'key'   => 'batch_state',
+    'mask'  => 'batch_id:id status:state analyzed:count pending:count failed:count',
+    'descr' => '[operations] active batch status'
+};
+
+## List: job_queue - shows all jobs and their status
+<list.job_queue> = {
+    'var'   => 'data',
+    'key'   => 'batch_queue',
+    'mask'  => 'image_path:file status:state grade:letter rule_applied:action result:ok',
+    'descr' => '[operations] job queue and results'
+};
+
+## List: operation_log - shows major batch milestones
+<list.operation_log> = {
+    'var'   => 'data',
+    'key'   => 'operation_log',
+    'mask'  => 'timestamp:time action:op image:file status:state',
+    'align' => {},
+    'filters' => {},
+    'descr' => '[operations] major milestones'
+};
+
+## List: error_log - shows failed operations
+<list.error_log> = {
+    'var'   => 'data',
+    'key'   => 'error_log',
+    'mask'  => 'timestamp:time image:file error_type:type reason:msg',
+    'descr' => '[errors] failed operations'
+};
+
+## List: action_log - shows file operations performed
+<list.action_log> = {
+    'var'   => 'data',
+    'key'   => 'action_log',
+    'mask'  => 'timestamp:time image:file action:op source:file target:file',
+    'descr' => '[actions] file operations performed'
+};
+
+return TRUE;
+
+#,,,.,.,,,.,,,.,,,,,.,,,,,...,,.,,,..,,,.,,,,,..,,...,...,,,.,.,.,,,,,..,,,,.,
+
+#,,.,,.,.,..,,,,,,,.,,...,,..,.,,,.,.,.,,,..,,..,,...,..,,...,..,,.,.,,,,,,,.,
+#M3I4LG5B4OJ3O6SY25BCMPBMOLSDOQ5XQDU62T3JHY4TVOHSJJTNIFPEP6KOMTE3IKDKDXHXN26WC
+#\\\|ITQM5ZLHW4JZFL44HFCXJMQCUFTKEJYQMHJOZLVZOHTDF25R25I \ / AMOS7 \ YOURUM ::
+#\[7]DNM6S5L773LAJUX5KCFMKRZH37P5RDSGVLGWITPTH2HIO7C2ASDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

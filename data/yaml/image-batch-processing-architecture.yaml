@@ -1,0 +1,580 @@
+---
+# Image Batch Processing Architecture & Implementation Plan
+# Comprehensive specification for image quality analysis and batch operations
+# Based on: zenki-creation-requirements.yaml patterns
+# Version: 2025-12-07
+
+project: Protocol-7
+feature: Image Batch Processing System
+zenki_involved: ["image-quality", "image-batch"]
+status: Architecture Design Phase
+
+overview: |
+  Distributed image quality analysis system with conditional file operations.
+  Two separate zenki with clear separation of concerns:
+
+  1. image-quality: Analyzes individual images, returns quality metrics
+     - On-demand (started when needed)
+     - Stateless analyzer
+     - Forkable for parallelization
+
+  2. image-batch: Orchestrates batch processing workflow
+     - On-demand (started with batch command)
+     - Manages child processes (image-quality children)
+     - Executes conditional file operations based on analysis
+     - Maintains audit trail and progress tracking
+
+---
+data_structures:
+
+  image_quality_metrics:
+    schema: |
+      {
+        image_path: "/path/to/image.jpg",
+        analysis: {
+          composition: { quality: 1-5, factors: [... detailed breakdown] },
+          lighting: { quality: 1-5, brightness: float, contrast: float },
+          artifacts: { compression: bool, noise: bool, blur: bool },
+          relevance: { score: 1-5, confidence: float },
+          technical: { resolution: "WIDTHxHEIGHT", format: "JPEG", size_mb: float }
+        },
+        quality_score: 0.0-1.0,    # Computed aggregate
+        grade: "A"|"B"|"C"|"D",    # Quality tier
+        analyzed_at: timestamp,
+        analysis_duration_ms: integer
+      }
+
+  batch_configuration:
+    yaml_format: |
+      batch:
+        id: "batch_2025_12_07_001"
+        source_directory: "/path/to/images"
+        pattern: "*.jpg"  # Optional filter
+
+      analysis:
+        metrics: ["composition", "lighting", "artifacts", "relevance"]
+        confidence_threshold: 0.8
+
+      quality_tiers:
+        A: { score_min: 0.85, description: "Archive quality" }
+        B: { score_min: 0.70, description: "General use" }
+        C: { score_min: 0.50, description: "Low quality" }
+        D: { score_min: 0.0,  description: "Reject" }
+
+      rules:
+        # Conditional file operations based on analysis results
+        - condition: "quality_score > 0.85"
+          action: "copy_to"
+          target_dir: "archive/high_quality"
+          metadata_file: true
+
+        - condition: "quality_score < 0.5"
+          action: "move_to"
+          target_dir: "rejected"
+          log_reason: true
+
+        - condition: 'has_artifact("compression")'
+          action: "scale_down"
+          output_dir: "optimized"
+          params:
+            width: 1920
+            quality: 85
+            format: "JPEG"
+
+        - condition: 'grade == "C"'
+          action: "tag"
+          tags: ["low_quality", "review_needed"]
+          update_sidecar: true
+
+  batch_state:
+    structure: |
+      {
+        batch_id: "batch_2025_12_07_001",
+        status: "running|completed|failed|paused",
+        timestamps: {
+          created: timestamp,
+          started: timestamp,
+          last_update: timestamp,
+          completed: timestamp (if finished)
+        },
+        statistics: {
+          total_images: integer,
+          analyzed: integer,
+          pending: integer,
+          failed: integer,
+          quality_distribution: { A: count, B: count, C: count, D: count }
+        },
+        current_operation: {
+          image_path: "current file",
+          stage: "analyzing|copying|scaling|tagging",
+          progress_percent: 0-100,
+          child_pids: [list of active analysis children]
+        }
+      }
+
+---
+zenka_specifications:
+
+  image_quality:
+    type: "on-demand service"
+    purpose: "Stateless image analyzer - analyze single images"
+
+    deployment:
+      scope: "on-demand"
+      restart_policy: "enabled"
+      heartbeat: "enabled (if parent manages)"
+      idle_timeout: "300s"
+
+    commands:
+      analyze:
+        input: |
+          {
+            image_path: "/path/to/image.jpg",
+            config: { metrics: ["composition", "lighting", "artifacts"] },
+            return_format: "json"
+          }
+        returns: |
+          {
+            success: boolean,
+            image_path: string,
+            analysis: { ... detailed metrics ... },
+            quality_score: float,
+            grade: string,
+            analyzed_at: timestamp,
+            duration_ms: integer
+          }
+        implementation: |
+          1. Validate image path exists and is readable
+          2. Prepare system prompt using template with config
+          3. Load image or send to vision model
+          4. Call LLM vision API with template-rendered prompt
+          5. Parse JSON response, compute aggregate quality_score
+          6. Return structured result
+
+      status:
+        returns: |
+          {
+            ready: boolean,
+            uptime_seconds: integer,
+            analyses_completed: integer,
+            last_analysis_duration_ms: integer
+          }
+
+    data_structures:
+      <analysis_cache> = {};     # Optional: cache recent results
+      <operation_log> = [];      # What was analyzed when
+      <error_log> = [];          # Analysis failures
+
+    lists:
+      operation_log:
+        mask: "timestamp:time image_path:file grade:letter duration:ms"
+        filter: { duration: "base.parser.duration_str" }
+        descr: "[operations] images analyzed"
+
+      error_log:
+        mask: "timestamp:time image_path:file error:reason"
+        descr: "[errors] analysis failures"
+
+    module_structure: |
+      modules/
+        image-quality.init_code
+        image-quality.analyze
+        image-quality.status
+        image-quality.helper.prepare_prompt
+        image-quality.helper.parse_result
+        image-quality.helper.compute_grade
+
+  image_batch:
+    type: "on-demand orchestrator"
+    purpose: "Manage batch processing workflow, delegate analysis to children"
+
+    deployment:
+      scope: "on-demand"
+      restart_policy: "disabled"  # One-off job runner
+      heartbeat: "disabled"
+
+    commands:
+      process:
+        input: |
+          yaml_file_path: "/path/to/batch_config.yaml"
+        returns: |
+          {
+            success: boolean,
+            batch_id: string,
+            status: "started",
+            statistics: { ... initial counts ... },
+            message: "Batch processing started"
+          }
+        implementation: |
+          1. Parse YAML config file
+          2. Validate source directory and rules
+          3. Discover images matching pattern
+          4. Initialize batch_state, operation_log, error_log
+          5. Fork child (image-quality) processes for analysis
+          6. Enter monitoring loop:
+             - Track child results as they complete
+             - Update progress in batch_state
+             - Log to operation_log
+             - Execute conditional rules (copy, scale, tag)
+          7. Aggregate results and return summary
+
+      status:
+        returns: |
+          {
+            batch_id: string,
+            status: string,
+            statistics: { total, analyzed, pending, failed, distribution },
+            current_operation: { image, stage, progress_percent },
+            eta_seconds: integer (estimated time remaining)
+          }
+
+      pause:
+        returns: |
+          { success: boolean, message: "Batch paused after current image" }
+        implementation: "Stop forking new children, wait for current work, accept status queries"
+
+      resume:
+        returns: |
+          { success: boolean, batch_id: string, message: "Batch resumed" }
+        implementation: "Resume forking from paused position"
+
+      cancel:
+        returns: |
+          { success: boolean, message: "Batch canceled, in-progress jobs terminated" }
+        implementation: "Kill all child processes, log cancellation, finalize state"
+
+    data_structures:
+      <batch_queue> = [];              # [{ image_path, status, result, timestamp }, ...]
+      <batch_state> = {};              # Current batch info and statistics
+      <child_pids> = {};               # { pid => { image_path, started_at, ... }, ... }
+      <operation_log> = [];            # Chronological record of operations
+      <error_log> = [];                # Failed analyses, rule application errors
+      <action_log> = [];               # What actions were taken (copy, scale, tag)
+
+    lists:
+      batch_state:
+        mask: "batch_id:id status:state analyzed:count pending:count failed:count"
+        descr: "[operations] active batch status"
+
+      job_queue:
+        mask: "image_path:file status:state grade:letter rule_applied:action result:ok"
+        descr: "[operations] job queue and results"
+
+      operation_log:
+        mask: "timestamp:time action:op image:file status:state"
+        descr: "[operations] major milestones"
+
+      error_log:
+        mask: "timestamp:time image:file error_type:type reason:msg"
+        descr: "[errors] failed operations"
+
+      action_log:
+        mask: "timestamp:time image:file action:op source:file target:file"
+        descr: "[actions] file operations (copy/move/scale/tag)"
+
+    module_structure: |
+      modules/
+        image-batch.init_code
+        image-batch.process           # Main orchestrator
+        image-batch.status            # Query current state
+        image-batch.pause
+        image-batch.resume
+        image-batch.cancel
+        image-batch.child
+        image-batch.helper.load_config
+        image-batch.helper.discover_images
+        image-batch.helper.spawn_analyzers
+        image-batch.helper.aggregate_results
+        image-batch.helper.apply_rules
+        image-batch.operator.copy_to
+        image-batch.operator.move_to
+        image-batch.operator.scale_down
+        image-batch.operator.tag
+        image-batch.callback.child_complete
+        image-batch.callback.child_error
+
+---
+workflow_sequence:
+
+  user_initiates_batch:
+    command: |
+      image-batch.process /path/to/batch_config.yaml
+    cube_routes_to: "image-batch zenka (starts on-demand if needed)"
+
+  image_batch_startup:
+    1. "base.init_code loads modules and infrastructure"
+    2. "image-batch.init_code initializes data structures and lists"
+    3. "image-batch.process handler receives YAML path"
+    4. "Parses config with base.yaml.parse"
+    5. "Discovers images: find /source -name '*.jpg'"
+    6. "Initializes batch_state with total count"
+    7. "Logs 'batch started' to operation_log"
+    8. "Returns immediate response: batch_id, status='started'"
+
+  parallel_analysis_phase:
+    1. "For each image (or up to max parallel children):"
+    2. "  - Fork child process (base.fork, runs image-quality analyzer)"
+    3. "  - Register child with v7 (base.callback.report_children)"
+    4. "  - Record in <child_pids> hash: { pid => { image, started_at, ... } }"
+    5. "  - Update <batch_state>.current_operation with new image"
+    6. "Main loop (non-blocking):"
+    7. "  - Check for child completion (SIGCHLD, waitpid)"
+    8. "  - On child complete: receive analysis result"
+    9. "  - Update <batch_queue> entry with result"
+    10. "  - Call <[image-batch.callback.child_complete]>->(result)"
+    11. "  - Continue accepting status queries from parent"
+    12. "  - Can accept pause/resume commands mid-batch"
+
+  conditional_operations_phase:
+    1. "As analysis results arrive, evaluate rules:"
+    2. "  - Parse condition expression (quality_score > 0.85, has_artifact, etc.)"
+    3. "  - If matches, execute action:"
+    4. "    - copy_to: <[image-batch.operator.copy_to]>->(image, target_dir)"
+    5. "    - move_to: <[image-batch.operator.move_to]>->(image, target_dir)"
+    6. "    - scale_down: <[image-batch.operator.scale_down]>->(image, config)"
+    7. "    - tag: <[image-batch.operator.tag]>->(image, tags)"
+    8. "  - Log to action_log: what happened, source, dest, result"
+    9. "  - On error: log to error_log, continue with next image"
+
+  result_aggregation:
+    1. "When all images analyzed:"
+    2. "  - Compute final quality_distribution"
+    3. "  - Count success/failed rules"
+    4. "  - Generate summary report"
+    5. "  - Log 'batch completed' to operation_log"
+    6. "  - Write final batch_state to persistent storage"
+    7. "  - Return final result to requestor"
+
+---
+implementation_phases:
+
+  phase_1_foundation:
+    title: "Core zenka setup with infrastructure"
+    tasks:
+      - "[ ] Create configuration/zenki/image-quality/"
+      - "[ ] Create configuration/zenki/image-batch/"
+      - "[ ] Create modules/image-quality.init_code"
+      - "[ ] Create modules/image-batch.init_code"
+      - "[ ] Define list structures in init codes"
+      - "[ ] Define buffer/log structures"
+      - "[ ] Test zenka startup without commands"
+
+  phase_2_analysis_engine:
+    title: "image-quality analyzer"
+    tasks:
+      - "[ ] Create image-quality.analyze module"
+      - "[ ] Implement system prompt template (using httpd.template)"
+      - "[ ] Implement LLM vision API call"
+      - "[ ] Implement JSON parsing and quality_score computation"
+      - "[ ] Create image-quality.helper.* modules"
+      - "[ ] Implement error handling and logging"
+      - "[ ] Test: single image analysis via command"
+      - "[ ] Create image-quality.status command"
+
+  phase_3_batch_orchestration:
+    title: "image-batch orchestrator"
+    tasks:
+      - "[ ] Create image-batch.process module (main orchestrator)"
+      - "[ ] Implement YAML config parsing"
+      - "[ ] Implement image discovery (find pattern)"
+      - "[ ] Implement fork spawning and child registration"
+      - "[ ] Implement child result collection (SIGCHLD handler)"
+      - "[ ] Create callback modules for child completion"
+      - "[ ] Implement progress tracking in batch_state"
+      - "[ ] Test: fork children, collect results"
+
+  phase_4_conditional_operations:
+    title: "Rule-based file operations"
+    tasks:
+      - "[ ] Parse and evaluate condition expressions"
+      - "[ ] Create image-batch.operator.copy_to"
+      - "[ ] Create image-batch.operator.move_to"
+      - "[ ] Create image-batch.operator.scale_down (using image processing lib)"
+      - "[ ] Create image-batch.operator.tag (metadata/sidecar files)"
+      - "[ ] Implement error handling for operations"
+      - "[ ] Log all operations to action_log"
+      - "[ ] Test: single rule application, then multi-rule"
+
+  phase_5_observability:
+    title: "Full visibility and control"
+    tasks:
+      - "[ ] Implement image-batch.status command"
+      - "[ ] Implement image-batch.pause"
+      - "[ ] Implement image-batch.resume"
+      - "[ ] Implement image-batch.cancel"
+      - "[ ] Verify all lists show correctly: list job_queue, list operation_log, etc."
+      - "[ ] Test: parent querying child status during batch"
+      - "[ ] Test: pause/resume during batch"
+      - "[ ] Test: cancel with cleanup"
+
+  phase_6_integration:
+    title: "End-to-end testing and documentation"
+    tasks:
+      - "[ ] Create example batch_config.yaml"
+      - "[ ] Document batch configuration schema"
+      - "[ ] Document all command interfaces"
+      - "[ ] Test: full workflow with sample images"
+      - "[ ] Test: different quality tiers and rules"
+      - "[ ] Test: error scenarios (bad config, image not found, LLM error)"
+      - "[ ] Performance test: concurrent children, batch size scaling"
+      - "[ ] Create usage guide and troubleshooting"
+
+---
+error_handling:
+
+  image_analysis_failures:
+    on_llm_api_error: |
+      - Log to error_log: { timestamp, image_path, error_type: "llm_api", reason: "..." }
+      - Mark job as failed in batch_queue
+      - Continue with next image
+      - Option: retry logic (configurable retries)
+
+    on_invalid_response: |
+      - Log to error_log: { ..., error_type: "parse_error", reason: "invalid JSON" }
+      - Mark job as failed
+      - Continue with next image
+
+    on_image_missing: |
+      - Log to error_log: { ..., error_type: "file_not_found" }
+      - Mark job as failed
+      - Continue
+
+  child_process_crashes:
+    on_child_exit_nonzero: |
+      - Detect via SIGCHLD handler
+      - Log to error_log: { timestamp, child_pid, image, exit_code, reason }
+      - Mark job as failed
+      - Optionally retry (respawn child)
+      - Continue with queue
+
+    on_timeout: |
+      - Parent tracks child start time
+      - If no result after timeout (configurable, e.g., 60s):
+        - Kill child process
+        - Log timeout error
+        - Mark job as failed
+        - Continue
+
+  file_operation_failures:
+    on_copy_failure: |
+      - Log to action_log and error_log
+      - Continue (don't block batch)
+      - Record in operation_log: "rule applied, but action failed"
+
+    on_permission_denied: |
+      - Log with details (user, path, permissions)
+      - Mark image for manual review
+      - Continue
+
+  batch_level_failures:
+    on_source_dir_missing: |
+      - Fail immediately
+      - Return error to requestor
+      - Log and exit
+
+    on_invalid_config: |
+      - Validate config at start
+      - Return error (no batch_id)
+      - Log to error_log
+
+---
+monitoring_and_debug:
+
+  what_admin_can_query:
+    list_job_queue: "list job_queue"
+    list_operations: "list operation_log"
+    list_errors: "list error_log"
+    list_actions: "list action_log"
+    batch_status: "image-batch.status"
+    child_status: "image-quality.child:PID.status"
+
+  progress_tracking:
+    query: "image-batch.status"
+    returns: |
+      {
+        batch_id: "batch_2025_12_07_001",
+        status: "running",
+        statistics: {
+          total_images: 1000,
+          analyzed: 456,
+          pending: 544,
+          failed: 3
+        },
+        current_operation: {
+          image_path: "/data/batch/img_123.jpg",
+          stage: "analyzing",
+          progress_percent: 45.6,
+          child_pids: [12345, 12346, 12347]
+        },
+        eta_seconds: 1234
+      }
+
+  debugging_checklist:
+    - "[ ] list operation_log: See major milestones"
+    - "[ ] list error_log: See what failed and why"
+    - "[ ] list action_log: See file operations performed"
+    - "[ ] image-batch.status: Check progress and current operation"
+    - "[ ] Check /var/log/image-batch.log (if persisting logs)"
+    - "[ ] image-quality.child:PID.status: Check child analyzer state"
+
+---
+example_batch_config:
+  filename: "batch_high_quality_archive.yaml"
+  content: |
+    batch:
+      id: "archive_2025_12_07"
+      source_directory: "/data/generated_images"
+      pattern: "*.jpg"
+
+    analysis:
+      metrics: ["composition", "lighting", "artifacts", "relevance"]
+      confidence_threshold: 0.85
+
+    quality_tiers:
+      A: { score_min: 0.90, description: "Premium archive" }
+      B: { score_min: 0.75, description: "Standard archive" }
+      C: { score_min: 0.50, description: "Lower tier" }
+      D: { score_min: 0.0,  description: "Reject" }
+
+    rules:
+      - condition: "quality_score > 0.90"
+        action: "copy_to"
+        target_dir: "/archive/premium"
+        metadata_file: true
+
+      - condition: "quality_score > 0.75 AND quality_score <= 0.90"
+        action: "copy_to"
+        target_dir: "/archive/standard"
+        metadata_file: true
+
+      - condition: 'has_artifact("compression")'
+        action: "scale_down"
+        output_dir: "/optimized"
+        params:
+          width: 1920
+          quality: 85
+
+      - condition: "quality_score < 0.50"
+        action: "move_to"
+        target_dir: "/rejected"
+        log_reason: true
+
+---
+estimated_module_count: 20
+  image-quality: ~6 modules
+  image-batch: ~14 modules
+  (can be iterated without complete rewrite)
+
+notes:
+  - "Architecture leverages existing list, buffer, fork, and event systems"
+  - "Uses YAML for batch config and template system for prompts"
+  - "Separation into two zenki enables parallelization"
+  - "All operations are observable via lists and status commands"
+  - "Error handling built-in from the start"
+  - "No custom infrastructure - uses Protocol-7 baseline"
+
+#,,,.,,,,,.,,,..,,...,,.,,...,.,,,,,.,.,.,.,,,..,,...,...,.,.,,.,,,.,,..,,,,,,
+#CG3U7FYBDC7ZYBJ4E7WQXJRKLWG2KQPX43EUM7TP76C3IFD6SFJ2RH2F3URRARAGAG76XJEQLZOWS
+#\\\|DMR3FOA6JWVVQEKC2AEHPKY27OE6BQ4WYRJIANLS7B3Z7QTPBYM \ / AMOS7 \ YOURUM ::
+#\[7]D6777GR4DMIFK7WLWU2VXE3OMF57NG5ULYU55DRVJI3CIPR4ZMAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

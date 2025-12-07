@@ -1,0 +1,39 @@
+
+ .:[ protocol-7 image-quality analyzer - on-demand stateless service ]:.
+
+[load_config_file:'shared-params']
+
+access.cmd.usr.cube = commands heart reload verify-instance \
+                      list show-buffer buffer-erase \
+                      status analyze ## <-- image-quality commands ##
+
+system.verbosity.zenka_buffer = 2  ##  memory ring buffer verbosity  ##
+
+## On-demand configuration: analyzer is started when needed ##
+start.on_demand = 1
+restart.disabled = 1
+heartbeat.disabled = 1
+idle_timeout = 300  ## Auto-shutdown after 5 minutes of inactivity ##
+
+## Enable automatic user key creation ##
+crypt.C25519.autocreate-user-key = yes
+
+## Module loading ##
+modules.load = auth net protocol io.unix io.ip crypt.C25519 image-quality
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,..,,,,,.,.,,,,,,,,,.,,,,,.,...,,.,,,,.,...,..,,...,...,...,..,,,,,,,,,,,..,
+
+#,,..,..,,,..,..,,,.,,.,.,.,.,.,.,,,.,..,,,,,,..,,...,..,,,,,,,,.,,..,,.,,,,,,
+#TKZQKIZ73JQ4LLR6YGWBWTLIBE7QCMPQPELDP3IJ5YW5QSKUJX64LRGAR4W6QZVQHNQFNR3XWSKZE
+#\\\|XK7F73NEMG5NYBRQCPK2JK55GMUC6D3FQK3RAJUTOTM4PC5PSAO \ / AMOS7 \ YOURUM ::
+#\[7]Z5Z65CB7MDL7MZA6JOWN5KVAHEWVQY3IV3SETHTF4KLFDIBTLAAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

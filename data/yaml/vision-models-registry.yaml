@@ -1,0 +1,115 @@
+---
+# Vision Models Registry
+# Categorizes available vision-capable models by reliability and performance
+# Used by image-quality zenka for intelligent model selection
+# Version: 2025-12-07
+
+version: "1.0"
+last_updated: "2025-12-07"
+
+categories:
+
+  stable_production:
+    description: "Tested and working reliably for image analysis"
+    priority: 1
+    models:
+      - name: "Qwen 3 Vision Large"
+        model_path: "qwen/qwen3-vl-8b"
+        params: "8B"
+        capabilities:
+          - image_analysis
+          - detailed_description
+          - text_detection
+          - composition_analysis
+        notes: "Best quality for detailed image analysis"
+        max_resolution: 4096
+
+      - name: "Gemma 3 4B IT (Double Quant)"
+        model_path: "gemma-3-4b-it-uncensored-dbl-x"
+        params: "4B"
+        capabilities:
+          - image_analysis
+          - basic_description
+          - quality_assessment
+        notes: "Efficient, good for quick analysis"
+        max_resolution: 2048
+
+      - name: "Gemma 3 Glitter 4B"
+        model_path: "gemma-3-glitter-4b-uncensored"
+        params: "4B"
+        capabilities:
+          - image_analysis
+          - basic_description
+          - quality_assessment
+        notes: "Good alternative to standard Gemma 3"
+        max_resolution: 2048
+
+  experimental_uncertain:
+    description: "May work but reliability not fully confirmed"
+    priority: 2
+    models:
+      - name: "Eris Prime V4.69 Vision"
+        model_path: "eris_primev4.69-vision-32k-7b-imatrix"
+        params: "7B"
+        capabilities:
+          - image_analysis
+          - detailed_reasoning
+        notes: "Uncertain reliability - use as fallback only"
+        max_resolution: 4096
+        status: "test_more"
+
+      - name: "Visual Laylelemonmaidrp"
+        model_path: "visual-laylelemonmaidrp-7b-iq-imatrix"
+        params: "7B"
+        capabilities:
+          - image_analysis
+        notes: "Uncertain reliability - use as fallback only"
+        max_resolution: 2048
+        status: "test_more"
+
+      - name: "4B Opus 100 Manga"
+        model_path: "4b-opus100-manga"
+        params: "4B"
+        capabilities:
+          - image_analysis
+          - manga_analysis
+        notes: "Specialized for manga - uncertain for general images"
+        max_resolution: 2048
+        status: "test_more"
+
+  do_not_use:
+    description: "Known to crash or fail on image input"
+    priority: 999
+    models:
+      - name: "Samantha Vision"
+        model_path: "samantha-vision"
+        params: "unknown"
+        capabilities: []
+        notes: "CRASHES when attempting to read images - do not use"
+        status: "broken"
+
+selection_strategy:
+  primary: "Use stable_production models in priority order"
+  fallback: "If primary unavailable, try experimental_uncertain with error handling"
+  avoid: "Skip do_not_use category entirely"
+  timeout: 60000  # milliseconds
+
+preferred_order:
+  - "qwen/qwen3-vl-8b"
+  - "gemma-3-4b-it-uncensored-dbl-x"
+  - "gemma-3-glitter-4b-uncensored"
+  - "eris_primev4.69-vision-32k-7b-imatrix"
+  - "visual-laylelemonmaidrp-7b-iq-imatrix"
+  - "4b-opus100-manga"
+
+notes:
+  - "This registry should be updated as testing reveals more about model reliability"
+  - "Models marked 'test_more' need more comprehensive testing before production use"
+  - "Broken models should not be used unless specifically overridden by user request"
+  - "Each model can be queried for availability via llama-server or LM Studio API"
+
+#,,,.,,,,,..,,,.,,,.,,,,.,..,,,.,,...,,,,,,,.,..,,...,...,...,,.,,..,,,..,,..,
+#KVM5HXRIL5UL6FHXI4QB3Z7PWPXZVCQHCZ5NIGPNHGUJKABABLNDM5RIZN43CGIVG7YD7YAGVXKCK
+#\\\|HHRF5RN2VQTR6DTVNWPBTSNBNNGIW3OBQMZVSAFSZQSWFUSEBZW \ / AMOS7 \ YOURUM ::
+#\[7]QCQCXZCXIJBVK3IKCBBNBB7XKKGOMPNWIKTJ2ZX6AR53F32FEKBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
