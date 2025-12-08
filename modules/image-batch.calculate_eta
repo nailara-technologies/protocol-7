@@ -4,7 +4,7 @@
 # descr = Calculate estimated time to completion based on statistics
 
 # Return immediately if no active batch state
-my $batch_state = <batch_state>;
+my $batch_state = <image-batch.batch_state>;
 return { success => FALSE, eta_seconds => undef, reason => 'No active batch' }
     unless defined $batch_state;
 
@@ -17,7 +17,7 @@ return { success => FALSE, eta_seconds => undef, reason => 'No progress yet' }
     if $processed == 0;
 
 # Calculate average duration from operation_log
-my $log = <operation_log>;
+my $log = <image-batch.operation_log>;
 return { success => FALSE, eta_seconds => undef, reason => 'No completed analyses yet' }
     unless defined $log && ref $log eq 'ARRAY' && @$log;
 
@@ -58,8 +58,8 @@ return {
     active_workers => $active_workers
 };
 
-#,,,.,.,.,,,.,,..,,.,,..,,,.,,,,.,.,,,..,,,.,,..,,...,...,,,.,..,,,,,,,,,,,,,,
-#F6O5KWP24VUCBYD3RQSBQH5RETKYUWNAFRUVXHTFC3UHAIGVFL7BYSSM425DBAGH6AEWZTZ2RZKP6
-#\\\|WSUUDAVULGS2XI2F2HMPN3E6XE76HYGZJRZX4D6ZLIPPDGWXWK4 \ / AMOS7 \ YOURUM ::
-#\[7]4FYWVYVS3LUYN4E3BB6SAIPTWUZH4EWAQ6VSCAXJBIAHV75JRIBI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,,,.,,,,..,.,.,...,.,.,.,.,,.,,..,,...,...,.,,,.,,,,,,,,,.,,..,
+#2LZNQPE2RPIR5722WUKK57INPL57QRQCYP6NJK35FT3UL73NEHNSOL4AVQNDLPMREXAG3BIJRXNEO
+#\\\|VZKB3OPCPTDQAFFMLKHNEHT3MO43T4H6O3OZQKKPJIZAHRF5RTT \ / AMOS7 \ YOURUM ::
+#\[7]5KQX7UK3GL5QNAROFOZN4EJPACAAFNWJYBZD42CWV6FYJLX2P2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

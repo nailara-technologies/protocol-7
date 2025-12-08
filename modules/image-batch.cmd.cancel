@@ -8,7 +8,7 @@ my $batch_id = shift;
 return { 'mode' => qw| FALSE |, 'data' => 'Batch ID required' } unless defined $batch_id;
 
 # Get batch_state to find the batch
-my $batch_state = <batch_state>;
+my $batch_state = <image-batch.batch_state>;
 return { 'mode' => qw| FALSE |, 'data' => 'No active batch found' } unless defined $batch_state;
 return { 'mode' => qw| FALSE |, 'data' => "Batch $batch_id not found" } if $batch_state->{batch_id} ne $batch_id;
 
@@ -34,8 +34,8 @@ if ($shutdown_result->{success}) {
     return { 'mode' => qw| FALSE |, 'data' => $shutdown_result->{error} };
 }
 
-#,,,,,,.,,...,,.,,,,.,,..,...,,.,,,,.,,..,,.,,..,,...,...,.,.,,,,,,,,,...,,..,
-#OP4WTHHGBFM2RL4TCPRVQZHXRWHBZAJUO6B455CYIBLDSN5B2DMKJLDJ4N2TGWPVBLV3SF7W7QNY2
-#\\\|4KUTQEJ63CX2PSAXPRTZRSOGEHNS3ZWO3DSOHV5MDRWDNEIWM2M \ / AMOS7 \ YOURUM ::
-#\[7]FSQRWMEZDXW45IWJRQ547YD6NOTJFZDI77GXMPGYCJPAFZNOLACA 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,.,,,..,,..,.,,,.,,,..,,...,,,,,..,,...,...,,.,,,,.,.,,,.,,,..,,
+#RGVQP6754GORGIBBYI66V4R27M5K4Z3H55M3BVWTMBSPC7HOJ6D6DATXAWYGLUX2BSGDG4DRA2S4W
+#\\\|VH33RM7XD6NVDGKSYIN7MNCRK3CYVSCVEURPGIYVXOABR5AL4FV \ / AMOS7 \ YOURUM ::
+#\[7]Q4ABQV246TH7WA45BZNN6MFRGC5PX4BALXH526ACZXEZPH2S22AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

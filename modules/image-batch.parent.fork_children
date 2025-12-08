@@ -10,7 +10,7 @@ my $concurrency = shift // 4;
 
 return { success => FALSE, error => 'Concurrency must be > 0' } if $concurrency <= 0;
 
-my $batch_state = <batch_state>;
+my $batch_state = <image-batch.batch_state>;
 return { success => FALSE, error => 'No batch_state available' } unless defined $batch_state;
 
 # Register CHLD signal handler
@@ -107,8 +107,8 @@ return {
     message => "Forked $forked_count worker processes" . ($failed_count > 0 ? " ($failed_count failed)" : "")
 };
 
-#,,.,,.,,,.,,,.,,,,,,,,,.,...,,..,,,,,.,.,.,,,..,,...,...,,..,.,,,.,.,.,.,...,
-#KDWPYZJ3CN22V67KQO2Y3R5PXCAQ4HMXDGZDUSPBVFCCDTH6CXFBSQZYSUHJLWAYUUZMKD6HIYBUA
-#\\\|3BKMH3VP6EP7RMP7IDXUIHAYLETNV7PWI4I27NQILDQ5JPBKQP5 \ / AMOS7 \ YOURUM ::
-#\[7]SQDT35VKI53SWSQZ5ZDP3SRH5BNGZNJ3MNP2MPGZUMVUBVHVVWAQ 7  DATA SIGNATURE ::
+#,,..,,,,,...,...,..,,,..,,,,,,,.,,,.,..,,,,,,..,,...,...,.,,,,,,,...,,.,,,,,,
+#WWHVV7W3M5PK7T4XHRBGMJZVFQKFU2NEIAJT4VRG5X3GNOQ4T2YAYL5PTNG7ZS2GMSPOHFBE4YJ32
+#\\\|6TFCWDYH3VYT3SMETHWOY2VDECSZA4IEYGXPR6Q2N3MOXE4PDYM \ / AMOS7 \ YOURUM ::
+#\[7]VJY5TKKMUQS23BHXI2TRI35FMSFRZGPINQ7SWDOD3PO4W3XMEKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

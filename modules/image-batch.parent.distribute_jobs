@@ -9,8 +9,8 @@ my $pid = shift;  # The child PID that is ready for work
 
 return { success => FALSE, error => 'Child PID required' } unless defined $pid;
 
-my $batch_state = <batch_state>;
-my $batch_queue = <batch_queue>;
+my $batch_state = <image-batch.batch_state>;
+my $batch_queue = <image-batch.batch_queue>;
 my $child_pids = $batch_state->{child_pids};
 
 return { success => FALSE, error => 'No batch_state available' } unless defined $batch_state;
@@ -77,8 +77,8 @@ return {
     message => "Job assigned to child process"
 };
 
-#,,.,,,,,,,,.,,..,,,,,,..,,..,.,,,,,,,,,,,.,,,..,,...,...,..,,,,,,.,.,,,,,...,
-#TVZAH6QIPLFHWQAD7HTI4IP6OWZT46LK3GAHYY3RTSNDEJLMFFGGTHZZWV5ESOFILYZNEDDCDDWVW
-#\\\|QXQ55AF7ZKBTSRCICIZ6QDWXXR22NSUR433ONQO4VIVZXW57DDZ \ / AMOS7 \ YOURUM ::
-#\[7]CEXUMYHTMYMK23WKJZSUOZSR2K3KWHY44O2EKOX657UKHBN56AAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,.,,..,,...,,.,,,..,..,,,.,,...,..,,...,...,...,,.,,...,,,,,,.,,
+#6WNSUHP73EDSDYVTWVSSOFMYGJPGGTZZSKNRN4VOCSZ7ABZIZVQX5XXTPUTLZ2U5FJJEF35WMBKUQ
+#\\\|RV4BQEYTONWJGHTJUJUDW3PN42IQWCPNJPNFYEGUNPBKX4U3RJT \ / AMOS7 \ YOURUM ::
+#\[7]UU6HVNRN4HZYSS25FRM6DP2NNH226DUAYXSFUCIOVDRIFEDXHWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
