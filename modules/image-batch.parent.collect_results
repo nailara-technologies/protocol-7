@@ -24,10 +24,10 @@ if ($@) {
 # Validate result structure
 return { success => FALSE, error => 'Result must have job_id' } unless exists $result->{job_id};
 
-my $batch_state = <batch_state>;
-my $batch_queue = <batch_queue>;
-my $operation_log = <operation_log>;
-my $error_log = <error_log>;
+my $batch_state = <image-batch.batch_state>;
+my $batch_queue = <image-batch.batch_queue>;
+my $operation_log = <image-batch.operation_log>;
+my $error_log = <image-batch.error_log>;
 
 return { success => FALSE, error => 'No batch_state available' } unless defined $batch_state;
 return { success => FALSE, error => 'No batch_queue available' } unless defined $batch_queue;
@@ -100,8 +100,8 @@ return {
     }
 };
 
-#,,,,,,,.,,,,,,..,,,.,,..,,,.,...,..,,,.,,..,,..,,...,..,,.,,,,,,,.,.,,,.,,.,,
-#BRXQRYTW2G2GGKL5QLVNJBCQ4JUPHXLJVI3ZDW4AG64D7AX3OA63E6M7W775FUEW7YKNEGOSDDCHE
-#\\\|L26ZMBJWGOLD2VSKJPBRXID6F7CRD764HNVFL63LEGMRXYEFVYF \ / AMOS7 \ YOURUM ::
-#\[7]WLSDD6BJH5Q3H3OEDUEK3HW52T5GW3HKZHPTPIHRLAKGEFVVTAAA 7  DATA SIGNATURE ::
+#,,,.,...,..,,.,.,.,,,.,.,,..,.,.,.,.,,,.,,,.,..,,...,...,..,,,..,,,,,.,.,,,,,
+#AAEODKOFNYXYAHLAOLAKW55ZQTJMSG5ZJR2TQSUQUZU5G24IEF7VRR2CSGWLV5EUDQ2ET3GNK73X6
+#\\\|FGR6ZFLX2GYN2B4WSMTXECJCLEHIEFILTC7DLJLXNSAVJXN3YXF \ / AMOS7 \ YOURUM ::
+#\[7]7N7GLQ72BGEQP5PODEJVS4KM5B23SZYBXE3JHNH7HFYJ7RDSCECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

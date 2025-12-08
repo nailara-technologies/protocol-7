@@ -20,7 +20,7 @@ while (1) {
     my $exit_status = $?;
 
     # Get batch state to access child_pids and current jobs
-    my $batch_state = <batch_state>;
+    my $batch_state = <image-batch.batch_state>;
     my $child_pids = $batch_state->{child_pids};
 
     return { success => FALSE, error => 'No batch_state available' } unless defined $batch_state;
@@ -37,7 +37,7 @@ while (1) {
         # If child was processing a job, mark it as failed
         if (exists $child_info->{current_job_id} && defined $child_info->{current_job_id}) {
             my $job_id = $child_info->{current_job_id};
-            my $batch_queue = <batch_queue>;
+            my $batch_queue = <image-batch.batch_queue>;
 
             # Find and update the job in the queue
             foreach my $job (@$batch_queue) {
@@ -51,7 +51,7 @@ while (1) {
                     $stats->{processed}++;
 
                     # Log to error_log
-                    my $error_log = <error_log>;
+                    my $error_log = <image-batch.error_log>;
                     push @$error_log, {
                         job_id => $job_id,
                         image_path => $job->{image_path},
@@ -71,8 +71,8 @@ while (1) {
 
 return { success => TRUE, reaped_count => $reaped_count };
 
-#,,..,..,,,,,,,..,.,,,...,,.,,.,,,,.,,,..,.,.,..,,...,...,.,,,..,,..,,,.,,,,.,
-#5GVJZ2FX3MEJLAF2J47DTHTC3SRX57PM7IUEFER4RUYRYETGOC76Z6RMB2ZSTOCSHQAWP27YLYT3W
-#\\\|WDQU7KFPXQGS5JAB7KELGO57UKWV6UKMRSSHHAIALUQMLYLGI32 \ / AMOS7 \ YOURUM ::
-#\[7]5FAZK6LDR3XKBW7PRBGLFB435PE6KADDNFB7JHKJLUNMQU2Y34AI 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,.,,,,,,,..,,,,,..,,,,,,.,,,.,,,..,,...,...,.,,,,.,,.,,,,..,..,,
+#RQTMEISNBHKWU6Z5B7RHIKHDYGNWQHB6HA6662UWC2UR5RKJLGYYXUA3H4RUSPWBEG2IU7QFQWG2Y
+#\\\|2VD6WYET6FPHFKYM37RWNY4GLA7B6CSSYTZMG4YNEQF3IXIUPQX \ / AMOS7 \ YOURUM ::
+#\[7]SXWVB3ZWRV6HPF6HDBGDMJ3K7KY7BY6LBCFUOMP5TAB5FGZSCUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

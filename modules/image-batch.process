@@ -25,7 +25,7 @@ return $batch_id_result unless $batch_id_result->{success};
 my $batch_id = $batch_id_result->{batch_id};
 
 # Initialize batch_state if not already present
-my $batch_state = <batch_state>;
+my $batch_state = <image-batch.batch_state>;
 
 if (!defined $batch_state) {
     $batch_state = {
@@ -48,7 +48,7 @@ if (!defined $batch_state) {
 }
 
 # Initialize batch_queue if not already present
-my $batch_queue = <batch_queue>;
+my $batch_queue = <image-batch.batch_queue>;
 
 if (!defined $batch_queue || @$batch_queue == 0) {
     $batch_queue = [];
@@ -70,13 +70,13 @@ if (!defined $batch_queue || @$batch_queue == 0) {
 }
 
 # Initialize operation_log if not already present
-my $operation_log = <operation_log>;
+my $operation_log = <image-batch.operation_log>;
 if (!defined $operation_log) {
     $operation_log = [];
 }
 
 # Initialize error_log if not already present
-my $error_log = <error_log>;
+my $error_log = <image-batch.error_log>;
 if (!defined $error_log) {
     $error_log = [];
 }
@@ -107,8 +107,8 @@ return {
     message => "Batch $batch_id processing started with $fork_result->{forked_count} workers"
 };
 
-#,,..,,,,,,.,,,.,,,..,..,,.,,,...,...,..,,,..,..,,...,...,..,,...,,,,,,.,,,.,,
-#3ZE3JFP4APJ25Y7WBDQ4MPKIVDYMH7AVMNQ4NM4AX26XHRNMKEBALYXTL2W4VNSQASGCFBIURIDE4
-#\\\|XRTUGEXYW7HIBFTIM2ETUZXVB56DNCU6RWTPZI5HC5DXGP5IYIX \ / AMOS7 \ YOURUM ::
-#\[7]SUWGKYYK6DBJ4T3Z7SEPZ6J5CEGOTJXFWBFECVC56Z4L6YOI6SBQ 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,..,,,..,,,.,.,,,.,.,.,.,,,,,...,..,,...,..,,..,,...,..,,,.,,.,.,
+#SOPKX72FIPQU3WQ2VOQBCTFH4YT2ANEXF6YO242EHTRFGS5O664HRZ5NDLOEIGQ5QFFTDAEF7KUQO
+#\\\|5LXGFCXDVHQX3TDEGVNFISENKN2J44D6RUATXV3FNSJ6VH4OTG6 \ / AMOS7 \ YOURUM ::
+#\[7]OJSJBG54Z5YOJY6DWTZ34HE36FKZZVT6AQ4DJCUIRXPFPJJG72BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
