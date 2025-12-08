@@ -10,11 +10,11 @@ return { success => FALSE, eta_seconds => undef, reason => 'No active batch' }
 
 my $stats = $batch_state->{statistics};
 my $total = $batch_state->{total_images};
-my $processed = $stats->{processed};
+my $processed = (defined $stats && ref $stats eq 'HASH') ? ($stats->{processed} // 0) : 0;
 
 # Not enough data yet
 return { success => FALSE, eta_seconds => undef, reason => 'No progress yet' }
-    if $processed == 0;
+    if !defined $processed || $processed == 0;
 
 # Calculate average duration from operation_log
 my $log = <image-batch.operation_log>;
@@ -58,8 +58,8 @@ return {
     active_workers => $active_workers
 };
 
-#,,,,,,,,,.,.,,,,,.,,,,..,.,.,...,.,.,.,.,,.,,..,,...,...,.,,,.,,,,,,,,,.,,..,
-#2LZNQPE2RPIR5722WUKK57INPL57QRQCYP6NJK35FT3UL73NEHNSOL4AVQNDLPMREXAG3BIJRXNEO
-#\\\|VZKB3OPCPTDQAFFMLKHNEHT3MO43T4H6O3OZQKKPJIZAHRF5RTT \ / AMOS7 \ YOURUM ::
-#\[7]5KQX7UK3GL5QNAROFOZN4EJPACAAFNWJYBZD42CWV6FYJLX2P2CI 7  DATA SIGNATURE ::
+#,,..,,,,,...,,,,,,.,,,,.,...,,.,,,..,,.,,.,.,..,,...,...,,,.,...,.,.,,..,.,.,
+#MW6OCURF7COOBAL27GSBPNM2KO3KMKXLX4SOCEIVXPPYKO4QHBOVS2U4TSSFQ5ECZRFAAV2JRERAM
+#\\\|XHZHRPEWNSEF3T7HZRM7DIEYF3H5C3S565TYNG4QA2FX4YR2CGG \ / AMOS7 \ YOURUM ::
+#\[7]563QHIWQWAMVHLUDIQVKEE2ESIBXSZK3Q2WEFJ76DC4LUX3HL4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
