@@ -56,6 +56,8 @@ for ( my $worker_id = 1; $worker_id <= $concurrency; $worker_id++ ) {
     } elsif ( $pid == 0 ) {
 
         # CHILD PROCESS
+        # Use parent's logger - child inherits file descriptors
+        <[base.log]>->( 2, "Child process started for worker $worker_id" );
 
         # Close parent's end of pipe in child
         close $parent_pipe;
@@ -76,11 +78,21 @@ for ( my $worker_id = 1; $worker_id <= $concurrency; $worker_id++ ) {
         unless ( $init_result->{success} ) {
 
             # Initialization failed, exit child
+            <[base.log]>->(
+                1,
+                "Child init failed for worker $worker_id: "
+                    . ( $init_result->{error} // 'unknown error' )
+            );
             exit(1);
         }
 
-        # Enter child event loop (never returns under normal conditions)
-        <[image-batch.child.loop]>;
+        # Enter child event loop
+        my $loop_result;
+        eval { $loop_result = <[image-batch.child.loop]>; };
+
+        if ($@) {
+            <[base.log]>->( 1, "Child loop error for worker $worker_id: $@" );
+        }
 
         # Graceful exit
         exit(0);
@@ -125,8 +137,8 @@ return {
         . ( $failed_count > 0 ? " ($failed_count failed)" : '' )
 };
 
-#,,,,,..,,..,,.,,,.,,,,,.,...,..,,.,,,,,.,,,,,..,,...,...,,,.,,,.,,,.,.,.,.,,,
-#JGW2UZQYOJ2NNY4FY2BLIHPSO3EGMZC6JD4RLJI2DDV53DE2ATTSXNRKGYHIC7NN525EJLQ6XNW2A
-#\\\|HQQJ6MJZXLZR22CU63SR2R4F2BPKR5ZGROUHJWK2XMOUXZNDQTL \ / AMOS7 \ YOURUM ::
-#\[7]M5IGXDS7G6L4C5REBFB2USTJC3T2X4DVCPYB5ONMFU45PIHR2EBY 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,.,,,,,,,...,.,,,,.,,.,,,..,,,,,,..,,...,...,...,,,.,,.,,,..,.,,,
+#KFJYRZFUNABKTHOGXZ2SBVDUS4EL3RHJ5RY2P7XINPHPK72LJR53ZF2ALMAHHTDGG2HG632IQPX4E
+#\\\|P32G52MU6ZXFECY3VWCXOQZKEXOKN5K5NPAE6TRVGOS7OYHLKSA \ / AMOS7 \ YOURUM ::
+#\[7]SB2WV6445UWT3SNIZ3ZNNSWWYQWA2HLNZ5TTBK7OAQWK7KQ6ZSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
