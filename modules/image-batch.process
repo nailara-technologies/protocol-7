@@ -47,7 +47,7 @@ my $batch_id = $batch_id_result->{batch_id};
 
 my $batch_state = <image-batch.batch_state>;
 
-# Initialize batch_queue with proper persistence (reset for new batch)
+# Initialize batch_queue with proper persistence [reset for new batch]
 <image-batch.batch_queue> = [];
 
 my $batch_queue = <image-batch.batch_queue>;
@@ -92,24 +92,18 @@ unless ( $fork_result->{success} ) {
     };
 }
 
-# Pump event loop to process initial ready messages from children
-# Each child sends 'ready' message when it starts, allowing parent to distribute jobs
-my $child_pids = $batch_state->{child_pids};
-for ( my $i = 0; $i < 50; $i++ ) {
-    <[event.once]>->(0.02);    # 20ms timeout to process events
-}
-
-# Note: Children may still be in 'spawned' state if slow to start, but will transition
-# to 'ready' as event loop continues to run during normal operations
-
 # Update batch state to running
+# Note: Parent zenka's main event loop will handle
+#          processing child messages automatically
 $batch_state->{status}          = qw| running |;
 $batch_state->{workers_spawned} = $fork_result->{forked_count};
 
-# Persist complete batch state (including queue) to disk for access across command invocations
+# Persist complete batch state (including queue) to
+#        disk for access across command invocations
 <[base.perlmod.load]>->( 'JSON::XS', qw| encode_json | );
 
-# Create serializable copy of batch state (excluding file handles in child_pids)
+# Create serializable copy of batch state 
+#  [excluding file handles in child_pids]
 my $persist_data = {
     batch_id        => $batch_state->{batch_id},
     batch_name      => $batch_state->{batch_name},
@@ -121,14 +115,15 @@ my $persist_data = {
     statistics      => $batch_state->{statistics},
     batch_queue     => $batch_queue
 
-# Note: child_pids excluded because it contains file handles that can't be JSON encoded
+# Note: child_pids excluded because it contains
+#       file handles that can't be JSON encoded
 };
 
 my $batch_file_path    = "$batch_id.json";
 my $batch_file_content = JSON::XS::encode_json($persist_data);
 
 # Use Protocol-7 file.zenka_dir.write for proper error handling and permissions
-# (zenka name is automatically prepended to /var/protocol-7/image-batch/)
+#     [ zenka name is automatically prepended to /var/protocol-7/image-batch/ ]
 if (<[file.zenka_dir.write]>->(
         $batch_file_path, \$batch_file_content, undef, 0660
     )
@@ -154,8 +149,8 @@ return {
     )
 };
 
-#,,..,.,,,.,,,...,,,.,.,.,.,.,.,,,...,..,,,..,..,,...,...,..,,...,,,.,.,,,,,.,
-#LYOCGARINMTFIQVCQLBQN2HFHC3VFBMLZNTBQUVSKXAZVZVYP73MHTELUD6M6CY5FTI7R2GOLC3KU
-#\\\|VFFPJJE3TLDJDYPMDLAOKH2IDJMNIUXLPHVPOOIFHVQYAUCP2KE \ / AMOS7 \ YOURUM ::
-#\[7]SP3RT5TYRG6VMXTHWZP6QXVRF2YDSGW2HE75YGF63IMLFIOKYMAI 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,.,.,.,,,..,,,..,,,,,,,,,,.,,,,,,..,,...,...,...,,,.,.,.,,,,,.,,,
+#3YYL637LKNR5FU5WWQHDLRYTAS2PI5H6MDDFOIRDOJS3KNGMZ3SJQ5GNZ4OJ36RE6R64MM6R4DFQM
+#\\\|UA4CEX6PTXBLOP7TCO6PXHM4U3BV33PMQT2F6VJFB3W2X25WC66 \ / AMOS7 \ YOURUM ::
+#\[7]Z7PSGHDPYSU44TNN322KAIQLW7TWHLYRPOLCNAPE3FZJNTSVGSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
