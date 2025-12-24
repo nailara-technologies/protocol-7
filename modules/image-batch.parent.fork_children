@@ -75,7 +75,7 @@ for ( my $worker_id = 1; $worker_id <= $concurrency; $worker_id++ ) {
         my $ready_msg = JSON::XS::encode_json(
             { cmd => 'ready', worker_id => $worker_id } );
         print {$child_pipe} "$ready_msg\n";
-        $child_pipe->flush() if $child_pipe->can('flush');
+        $child_pipe->flush();
 
         # Child event loop: wait for jobs from parent
         while (1) {
@@ -106,7 +106,24 @@ for ( my $worker_id = 1; $worker_id <= $concurrency; $worker_id++ ) {
             if ( $job->{cmd} eq 'analyze' ) {
 
                 # Process image analysis job
-                my $result = <[image-batch.child.analyze_job]>->($job);
+                my $result;
+                eval { $result = <[image-batch.child.analyze_job]>->($job); };
+
+                if ($@) {
+
+                    # Job processing failed
+                    $result = {
+                        cmd        => 'result',
+                        job_id     => $job->{job_id},
+                        image_path => $job->{image_path},
+                        success    => FALSE,
+                        error      => "Job processing error: $@"
+                    };
+                }
+
+                # Ensure result has required fields
+                $result->{cmd}    //= 'result';
+                $result->{job_id} //= $job->{job_id};
 
                 # Send result back to parent
                 my $response = JSON::XS::encode_json($result);
@@ -176,8 +193,8 @@ return {
         . ( $failed_count > 0 ? " ($failed_count failed)" : '' )
 };
 
-#,,..,..,,,.,,,.,,,..,...,,,,,.,.,,.,,...,..,,..,,...,..,,...,..,,,..,.,.,.,,,
-#EDY7GHWSPO52AC4O4MWHYZHGXB6MUDNBNCER23WWBB4XXSD7RYXWEENGPKFO7ER76HO55XBV5QUEO
-#\\\|ZIHKEE6TVCU6S44VBU5OR252LZJZDUEUC64ZAC2FPRTQ65HOIEI \ / AMOS7 \ YOURUM ::
-#\[7]FV6WPSLLG44WRNMOU4P66QEHMARCDPPDLOXF7T42Y4IFAVXK56BY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,.,,,,,.,.,.,,,,,.,,..,,,,,...,..,,...,...,,..,,,.,,,.,,.,,.,,,
+#XWR4UNW536UG2WHCZ5RUYTT5UPEHDQWASITYCGRUH5HLC6F36NV3IHW7ZQZFTF3GT43QXELPSC6BG
+#\\\|4AXMRMUFWJ7SQDXZ3DOF36HNMJS56PMCWAEKNKXKOTBJWA73QJA \ / AMOS7 \ YOURUM ::
+#\[7]KMVT5TYBQBKC54MAMFLDN7R5Z2E453K2EJDB4HE237ENX3UYOUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
