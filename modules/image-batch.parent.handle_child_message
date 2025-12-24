@@ -1,0 +1,76 @@
+## [:< ##
+
+# name = image-batch.parent.handle_child_message
+# descr = Handle incoming messages from child worker processes
+
+<[base.perlmod.load]>->('JSON::XS', qw| decode_json |);
+
+my ($pipe, $data) = @_;
+my $pid = $data->{pid};
+
+return { success => FALSE, error => 'Child PID required in data' } unless defined $pid;
+
+# Read message from child
+my $line;
+eval {
+    $line = <$pipe>;
+};
+
+if ($@ || !defined $line) {
+    # Pipe closed or error reading - mark child as dead
+    return { success => FALSE, error => "Failed to read from child $pid: $@" };
+}
+
+chomp($line);
+
+# Parse JSON message
+my $msg;
+eval {
+    $msg = decode_json($line);
+};
+
+if ($@) {
+    return { success => FALSE, error => "Failed to parse JSON from child $pid: $@" };
+}
+
+my $cmd = $msg->{cmd};
+
+# Handle different message types
+if ($cmd eq 'ready') {
+    # Child is ready for work - distribute next job
+    my $dist_result = <[image-batch.parent.distribute_jobs]>->($pid);
+    return $dist_result;
+
+} elsif ($cmd eq 'result') {
+    # Child has completed a job - collect the result
+    my $coll_result = <[image-batch.parent.collect_results]>->($pid, $msg);
+
+    if ($coll_result->{success}) {
+        # After collecting, distribute next job to the now-available child
+        return <[image-batch.parent.distribute_jobs]>->($pid);
+    }
+    return $coll_result;
+
+} elsif ($cmd eq 'error') {
+    # Child reported an error - mark job as failed and distribute next
+    return {
+        success => FALSE,
+        error => "Child $pid reported error: " . ($msg->{error} // 'unknown'),
+        child_error => $msg->{error}
+    };
+
+} else {
+    return { success => FALSE, error => "Unknown command from child: $cmd" };
+}
+
+#,,,,,,..,,,...,,...,..,,,,..,,,,,,.,..,,.,.,.,,.,,...,...,..,,,,,.,,,,.,.,,,,.,
+#ZOXN5HZI2UOQKV67RWHKQBNR7SYBVJJVLMVQK5HVQ3C3YJF4QDJHC5XYQPNQRZDVL6PHEMCKGMVMVZQ
+#\\\|WUQY37RZUAM7APQ3TUTSE7XAIW7MH6ZUM5VYCHAKRGMJUQFVYKB \ / AMOS7 \ YOURUM ::
+#\[7]BLQEWFNI3WAVSV3YLYTQD2IMMXOTCRFIAMK4T3POZLRRX4ZUBSDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,..,,,,,.,.,..,,...,...,...,.,,,,,,,.,.,..,,..,,...,..,,,..,.,,,,,.,...,.,,,
+#AM3Y6TYWJ6KIAVTJPMGXF6EPLNFPWHAMK6KU454RLDVBYKBBKBFL6PCVLMT4C7CAXYFO2G46FHXK6
+#\\\|MZM3G33HJ5QHRRARLRS5FICVFWFTZWK5UF6KF3ZWFBSVTH3KZB4 \ / AMOS7 \ YOURUM ::
+#\[7]C6WJQADFDFQOFEJJCL4O5S6YEHOSBOEY32PDVOANGPS2RTLN5EBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

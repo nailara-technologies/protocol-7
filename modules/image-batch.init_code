@@ -29,6 +29,11 @@
 ## Action log: file operations performed (copy, move, scale, tag)
 <image-batch.action_log> = [];
 
+## Load Perl modules at startup time using base.perlmod.autoload
+## Modules are automatically registered in <base.perlmod.loaded> on success
+## Socket, IO::Handle, IO::AIO are already loaded by Protocol-7
+map { <[base.perlmod.autoload]>->( $ARG ) } qw| Data::UUID JSON::XS YAML::XS |;
+
 ## Define list structures for observability
 
 ## List: batch_state - shows current batch status
@@ -75,8 +80,8 @@
 
 return TRUE;
 
-#,,..,,.,,..,,.,,,...,..,,,..,..,,..,,,.,,,.,,..,,...,...,...,,.,,,,.,.,,,...,
-#QYZCPWYETPYNMI2O2BKGLU4XBRRCYMUO5NCTBGISL4YAIQVMLXNOJZCQIXCHUOL4EKVIKIOIV57L4
-#\\\|RRCXMCFXEABHJ4VTISKPRIJYWXWB2VIMLDJRNYXSWMV5NXRUQEH \ / AMOS7 \ YOURUM ::
-#\[7]X2MVU5PWNK3G44ASVTWGSYMC57QVXGXOCK66XEN34RNSUUZTVWCY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,.,,..,,,,,,..,,.,,,..,.,,,.,.,..,,...,...,...,.,,,,,,,,.,,,,.,
+#KOPXA6QJD3YACONHM4IDGE2Y3U3BY2Q2HPZK5HEQF5PT7FQMYMIRXH65DOOZYJ5AJA46P6GPJ2TQS
+#\\\|RZDMB6A4KSYI2NYWVXM5FHOOYI3YCWIUVA3RC5FBYSFBIENYREP \ / AMOS7 \ YOURUM ::
+#\[7]3HLT7QDVEFBGW2RUXKLOVDG4PWM67XUDSBJHNNRHRTKQDGNVQOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

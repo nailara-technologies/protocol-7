@@ -9,23 +9,30 @@ my $batch_id = shift;
 my $result = <[image-batch.status]>->($batch_id);
 
 # Check if we got a valid result
-return { 'mode' => qw| FALSE |, 'data' => 'Invalid status response' } unless defined $result && ref($result) eq 'HASH';
+return { 'mode' => qw| FALSE |, 'data' => 'Invalid status response' }
+    unless defined $result && ref($result) eq qw| HASH |;
 
 # Return status data in network format
-if ($result->{success}) {
+if ( $result->{'success'} ) {
+
     # Remove internal 'success' field before sending to client
-    my %data = %$result;
-    delete $data{success};
-    # Return as JSON string to avoid hash serialization issues
-    require JSON::XS;
-    my $json = JSON::XS::encode_json(\%data);
-    return { 'mode' => qw| TRUE |, 'data' => $json };
+    my %batch_data = %$result;
+    delete $batch_data{'success'};
+
+## Return as YAML string for human-readable output
+##               [ multi-line requires 'size' mode ]
+    <[base.perlmod.load]>->( 'YAML::XS', qw| Dump | );
+    my $yaml = YAML::XS::Dump( \%batch_data );
+    return { 'mode' => qw| size |, 'data' => $yaml };
 } else {
-    return { 'mode' => qw| FALSE |, 'data' => $result->{error} // 'Failed to get batch status' };
+    return {
+        'mode' => qw| false |,
+        'data' => $result->{'error'} // 'Failed to get batch status'
+    };
 }
 
-#,,.,,...,,..,...,,,.,,,,,.,.,,,.,,,,,,..,,..,..,,...,..,,.,.,,,,,.,,,,,,,,,.,
-#FFJ5SGF73HKD4KHEA5S5ZL4PAHBEOKPCJSIJOONMOYAH76DYK3ZEUW4Z6MBIHJGT3H6EQF67ZTV4Y
-#\\\|ZXFXOW3OSHNCL7QXBTVFTD3OEXEAREYTOXUJK4Y4OP273ZMOMCJ \ / AMOS7 \ YOURUM ::
-#\[7]MXKNU4Z7PB7ZIQSOCAOVKJRK5XWMOWEPGW5VDRK3VFIIUXHZIGAY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,,.,...,,..,,..,..,,,..,...,,..,..,,...,...,,,.,,..,.,,,,,.,...,
+#STNT7N327RIX4W2VMF32HK2USU2FQD5ERGMHHM3EDYVTRKR4IE2Q4NYDB2H7P7IAFSSGPCFIJOZRO
+#\\\|NZPVLXKKS77VODI45SRZAMR4FSWWYEN5TTPCEVGO23A5QAL5VJ4 \ / AMOS7 \ YOURUM ::
+#\[7]A4IBP4IZIR5FB5HWVCLGOATOOFHOEMLAWMKRJXI4XY7KKYWUPYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

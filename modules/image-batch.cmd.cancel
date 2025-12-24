@@ -3,39 +3,53 @@
 # name = image-batch.cmd.cancel
 # descr = Cancel batch processing
 
-my $batch_id = shift;
+# Extract batch_id from command args
+# Automatic code header provides $call->{'args'}
+# with space-separated arguments
 
-return { 'mode' => qw| FALSE |, 'data' => 'Batch ID required' } unless defined $batch_id;
+my $batch_id;
+if ( defined $call && ref($call) eq 'HASH' && defined $call->{'args'} ) {
+
+    # Extract first argument from space-separated args string
+    $batch_id = ( split m|\s+|, $call->{'args'} )[0];
+}
+
+return { 'mode' => qw| FALSE |, 'data' => 'Batch ID required' }
+    unless defined $batch_id;
 
 # Get batch_state to find the batch
 my $batch_state = <image-batch.batch_state>;
-return { 'mode' => qw| FALSE |, 'data' => 'No active batch found' } unless defined $batch_state;
-return { 'mode' => qw| FALSE |, 'data' => "Batch $batch_id not found" } if $batch_state->{batch_id} ne $batch_id;
+return { 'mode' => qw| FALSE |, 'data' => 'No active batch found' }
+    unless defined $batch_state;
+return { 'mode' => qw| FALSE |, 'data' => "Batch $batch_id not found" }
+    if $batch_state->{batch_id} ne $batch_id;
 
 # Trigger shutdown of batch
-my $shutdown_result = <[image-batch.parent.shutdown]>->();
+my $shutdown_result = <[image-batch.parent.shutdown]>;
 
-if ($shutdown_result->{success}) {
-    $batch_state->{status} = 'cancelled';
+if ( $shutdown_result->{success} ) {
+    $batch_state->{status}       = 'cancelled';
     $batch_state->{cancelled_at} = time();
-    # Return as JSON string to avoid hash serialization issues
-    require JSON::XS;
-    my $json = JSON::XS::encode_json({
-        batch_id => $batch_id,
-        message => 'Batch cancellation initiated',
-        shutdown_signals_sent => $shutdown_result->{signals_sent},
-        pipes_closed => $shutdown_result->{pipes_closed}
-    });
+
+    # Return as YAML string for human-readable output
+    <[base.perlmod.load]>->( 'YAML::XS', qw| Dump | );
+    my $yaml = YAML::XS::Dump(
+        {   batch_id              => $batch_id,
+            message               => 'Batch cancellation initiated',
+            shutdown_signals_sent => $shutdown_result->{signals_sent},
+            pipes_closed          => $shutdown_result->{pipes_closed}
+        }
+    );
     return {
-        'mode' => qw| TRUE |,
-        'data' => $json
+        'mode' => qw| size |,
+        'data' => $yaml
     };
 } else {
-    return { 'mode' => qw| FALSE |, 'data' => $shutdown_result->{error} };
+    return { 'mode' => qw| false |, 'data' => $shutdown_result->{error} };
 }
 
-#,,,.,..,,.,,,,.,,,..,,..,.,,,.,,,..,,...,,,,,..,,...,...,,.,,,,.,.,,,.,,,..,,
-#RGVQP6754GORGIBBYI66V4R27M5K4Z3H55M3BVWTMBSPC7HOJ6D6DATXAWYGLUX2BSGDG4DRA2S4W
-#\\\|VH33RM7XD6NVDGKSYIN7MNCRK3CYVSCVEURPGIYVXOABR5AL4FV \ / AMOS7 \ YOURUM ::
-#\[7]Q4ABQV246TH7WA45BZNN6MFRGC5PX4BALXH526ACZXEZPH2S22AA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,.,,.,,,.,,,,..,,,,,,..,,..,,.,,..,,...,...,,.,,,..,,,,,.,.,,..,
+#6HT2SNFYNGATFHXEQG362RBOLBIH4PKOLTLK6J5OXAYDOYJTZO42Q2TMRCFFHDDN7SPNICW3A2H2K
+#\\\|24BRY2LBQRHJHH4VCDHKV3NMFVICB3N54DKN3UIHUYTKKGGZQ7Y \ / AMOS7 \ YOURUM ::
+#\[7]ER25SBC33PAUFBRI5TZNBTO7QE27YAEJ45CLNR3ASEFD4YYBXODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
