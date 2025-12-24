@@ -8,6 +8,16 @@ start.on-demand    = 1
 restart.disabled   = 1
 heartbeat.disabled = 1
 
+# Access control for parent and child commands
+access.cmd.usr.cube = commands heart verify-instance reload name \
+                      list show-buffer buffer-erase buffer-erase-level \
+                      process status pause resume cancel \
+                      child.*
+
+access.cmd.usr.parent = commands reload show-buffer \
+                        process status pause resume cancel \
+                        *
+
 : v7-init :
   start_mode = stdin-zenka
   image-batch.key = [base.prng.chars-anum:44]
@@ -17,8 +27,8 @@ heartbeat.disabled = 1
   [base.auth.set_zenka_key:'<{image-batch.key}>']
   [base.zenki.set_ondemand_timeout:780]
 
-#,,,,,,.,,...,,,.,,,.,,,,,,.,,,..,...,..,,..,,..,,...,...,.,.,,.,,.,.,.,.,.,,,
-#TJICZWJ7DJSJKXARNHAO2WO52M6DQEEAK3WA5H6QQ7YGHUU6DYBEV3XZX7ZPAUJWJAORDCVNBBEZ6
-#\\\|SISMQY267UTR5NKRAO4N22PFF2HAKV6UNYRYYIDDGE7TBH3Y5E4 \ / AMOS7 \ YOURUM ::
-#\[7]66GMHPBPVTCEB7UIAKEOV5NSVJBJUDUE4BEOXBOWI2GWI52CAUBI 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,.,,,,.,.,.,.,,,..,,...,.,,,.,.,..,,...,..,,..,,,,.,,,.,,.,,.,,,
+#ELA676PFNUPESJNZTTZOWZOYZYDRIUDU5574G7OCJK7E7WOKUHTIC36I276DRHRY24YEU2TQLDJW4
+#\\\|AZLO2RES7VFSZ3UIRJB2ZJCMPXDWNL4OEURWQILSHABTETD2KEQ \ / AMOS7 \ YOURUM ::
+#\[7]3FA3D2XL2L5MWDRBWROLCBU5XARXIULKKRW7CZDGPG2KLGM4XIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
