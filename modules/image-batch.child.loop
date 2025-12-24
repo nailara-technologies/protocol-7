@@ -16,6 +16,7 @@ $parent_pipe->autoflush(1);
 my $ready_msg
     = JSON::XS::encode_json( { cmd => 'ready', worker_id => $worker_id } );
 print {$parent_pipe} "$ready_msg\n";
+$parent_pipe->flush() if $parent_pipe->can('flush');
 
 # Event loop: wait for jobs from parent
 while (1) {
@@ -76,8 +77,8 @@ while (1) {
 close $parent_pipe;
 return TRUE;
 
-#,,.,,,,.,..,,..,,.,,,.,.,,..,.,.,.,,,,,.,.,.,..,,...,...,..,,.,.,.,,,,.,,..,,
-#34JCTSRD4SUF422YNDA5SE5LVWEAZOXRNEZQ32MWPR3QRQPLU2NT7FFLRMSZPJT223KHCQZCRBM7W
-#\\\|VG5LDCOELU6XAATQQ6KYOORL2A5K6ADCCJIYFDDSQLS4V7WAU2Y \ / AMOS7 \ YOURUM ::
-#\[7]AYEI4SEBFKIJ6R7LLT2T4EHSQMZGCBPRVCI2NXWZSLV564PGXCAI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,...,,.,,,..,,.,,,..,,,,,,.,,,,.,..,,...,...,...,...,.,.,,,,,..,,
+#AIEJE7KS37PVPEOOCEKIX2GYJPNKH6KSYUQUWMQSVMEKVG5EPQ4JC2VZWGTYWS2UMM63PBU3NHR72
+#\\\|2LE2DE6QKEGQQSAYNZVTEJTCKLCOQN2FRQG3XDNBCGVPXZ2KM7U \ / AMOS7 \ YOURUM ::
+#\[7]WXMKK7K7LUJSGJVZ3MFLWOFXIZIAFDQM6KSS2NXWSNSJ2IR3J2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
