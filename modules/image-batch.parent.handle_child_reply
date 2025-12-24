@@ -1,0 +1,146 @@
+## [:< ##
+
+# name = image-batch.parent.handle_child_reply
+# descr = Handle Protocol-7 responses from child processes with analysis results
+
+<[base.perlmod.load]>->( 'Storable', qw| thaw | );
+
+my $reply = shift;
+
+my $batch_state = <image-batch.batch_state>;
+my $batch_queue = <image-batch.batch_queue>;
+my $child_pids  = $batch_state->{child_pids};
+
+return unless defined $batch_state;
+
+my $job_id = $reply->{'params'}->{'job_id'};
+
+# Thaw the serialized response from child
+my $response;
+my $had_error = 0;
+
+if ( $reply->{'cmd'} ne qw| FALSE | ) {
+    eval {
+        my $data_str = $reply->{'data'};
+        $data_str =~ s|\n$||;
+        ($response) = thaw($data_str);
+    };
+
+    if ($@) {
+        <[base.log]>->(
+            1, "ERROR: Failed to deserialize child response for $job_id: $@"
+        );
+        $had_error = 1;
+    }
+} else {
+    my $error_msg = $reply->{'call_args'}->{'args'} // 'Unknown error';
+    <[base.log]>
+        ->( 1, "ERROR: Child command failed for $job_id: $error_msg" );
+    $had_error = 1;
+}
+
+# Find the job in queue
+my $job;
+foreach my $j (@$batch_queue) {
+    if ( $j->{job_id} eq $job_id ) {
+        $job = $j;
+        last;
+    }
+}
+
+unless ( defined $job ) {
+    <[base.log]>->(
+        1, "WARNING: Received result for unknown job_id: $job_id"
+    );
+    return;
+}
+
+# Update job with results
+if ( !$had_error && defined $response ) {
+    $job->{status} = 'completed';
+    $job->{result} = $response;
+    $job->{error}  = undef;
+
+    # Update statistics
+    $batch_state->{statistics}->{completed}++;
+    $batch_state->{statistics}->{processing}--;
+
+    # Record overall grade distribution
+    if ( defined $response->{metrics}->{overall_grade} ) {
+        my $grade = $response->{metrics}->{overall_grade};
+        $batch_state->{statistics}->{grade_distribution}{$grade}++;
+    }
+
+    # Log successful completion
+    <[base.log]>->(
+        2,
+        sprintf(
+            "Job %s completed: %s (grade: %s)",
+            $job_id,
+            $response->{image_path},
+            $response->{metrics}->{overall_grade} // 'N/A'
+        )
+    );
+} else {
+    $job->{status} = 'failed';
+    $job->{result} = undef;
+    $job->{error}  = 'Job analysis failed (deserialization or child error)';
+
+    # Update statistics
+    $batch_state->{statistics}->{failed}++;
+    $batch_state->{statistics}->{processing}--;
+
+    # Log failure
+    <[base.log]>->( 1, sprintf( "Job %s FAILED", $job_id ) );
+}
+
+# Distribute next job to this child
+my $assigned_pid = $reply->{'params'}->{'assigned_pid'};
+if ( defined $assigned_pid ) {
+    my $distribute_result
+        = <[image-batch.parent.distribute_jobs]>->($assigned_pid);
+
+    if ( $distribute_result->{success} ) {
+        <[base.log]>->(
+            2,
+            sprintf(
+                "Next job assigned to PID %d: %s",
+                $assigned_pid, $distribute_result->{job_id}
+            )
+        );
+    }
+}
+
+# Check if batch is complete
+my $total_jobs    = scalar(@$batch_queue);
+my $completed     = 0;
+my $still_pending = 0;
+
+foreach my $j (@$batch_queue) {
+    if ( $j->{status} eq 'completed' || $j->{status} eq 'failed' ) {
+        $completed++;
+    }
+    if ( $j->{status} eq 'queued' || $j->{status} eq 'processing' ) {
+        $still_pending++;
+    }
+}
+
+if ( $completed == $total_jobs && !$still_pending ) {
+    $batch_state->{status}       = 'completed';
+    $batch_state->{completed_at} = <[base.time]>->(3);
+
+    my $summary = sprintf(
+        'Batch completed: %d total, %d successful, %d failed',
+        $total_jobs,
+        $batch_state->{statistics}->{completed},
+        $batch_state->{statistics}->{failed}
+    );
+
+    <[base.log]>->( 0, $summary );
+}
+
+#,,..,,,,,,..,.,,,,,.,.,.,,,,,,,.,...,.,.,...,..,,...,...,...,,,.,...,...,,.,,
+#DSZTLMZXQ4RZK3DHNPAMYAEJDU36SUERMBKXFPPRJO434EKP3KDU445FGXJFHCMN4HTQD6DBC4JFM
+#\\\|ZO4PTJX2VCAGLPYWBNPFMUIPT5USPHZB7BL64BX5D7BV3B4Z3WC \ / AMOS7 \ YOURUM ::
+#\[7]GXIDSNROUDOMTNFOI5WH363TWC3EAPAGEWDNW67PAADQN5XGXYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

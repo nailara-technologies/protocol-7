@@ -1,0 +1,60 @@
+## [:< ##
+
+# name = image-batch.child.cmd.analyze_image
+# param = <image-path> [job_id]
+# descr = Analyze a single image and return quality metrics
+
+my ( $image_path, $job_id ) = split( / +/, $$call{'args'}, 2 );
+
+return {
+    'mode' => qw| false |,
+    'data' => 'image_path parameter required'
+    }
+    if not defined $image_path or !length($image_path);
+
+# Validate image exists and is readable
+return {
+    'mode' => qw| false |,
+    'data' => "Image file not found: $image_path"
+    }
+    if !-f $image_path;
+
+return {
+    'mode' => qw| false |,
+    'data' => "Image file not readable: $image_path"
+    }
+    if !-r $image_path;
+
+# Call Phase 2 vision analysis (non-blocking image quality analyzer)
+my $analysis_result = <[image-quality.analyze]>->($image_path);
+
+# Construct response with metrics
+my $response = {
+    cmd        => 'result',
+    job_id     => $job_id,
+    success    => $analysis_result->{success},
+    image_path => $image_path,
+    metrics    => $analysis_result->{success}
+    ? { composition   => $analysis_result->{composition},
+        lighting      => $analysis_result->{lighting},
+        technical     => $analysis_result->{technical},
+        relevance     => $analysis_result->{relevance},
+        overall_grade => $analysis_result->{overall_grade}
+        }
+    : undef,
+    error       => $analysis_result->{error},
+    duration_ms => $analysis_result->{duration_ms},
+    model_used  => $analysis_result->{model_used},
+    method      => $analysis_result->{method}
+};
+
+return {
+    'mode' => qw| size |,
+    'data' => freeze($response) . "\n"
+    }
+
+#,,,,,,,,,,.,,.,,,..,,.,.,...,,,.,,..,,..,.,,,..,,...,,.,,.,.,,,.,..,,...,...,
+#UIKO6MIBRX2FH2NJPCEP6B25DNJNLQLRAWYTDWIOFMPFVRCGKTNFWUO2NNF6ZQZNXAG6KWPI2MBHO
+#\\\|XJY5UQFJ3TFHAFDXSWVXAMP5CJLLOZSKHSZSL34SKHJFYILRWNR \ / AMOS7 \ YOURUM ::
+#\[7]UNPMM2VBLLWRFZYBAJ2XRGJWMYVRAF52HTZ5EJ452CKRGIFDCMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

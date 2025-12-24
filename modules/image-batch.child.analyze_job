@@ -6,41 +6,47 @@
 my $job = shift;
 
 # Validate job structure
-return { success => FALSE, error => 'Job parameter required' } unless defined $job;
-return { success => FALSE, error => 'Job must be a hash' } unless ref $job eq 'HASH';
-return { success => FALSE, error => 'Job missing image_path' } unless exists $job->{image_path};
-return { success => FALSE, error => 'Job missing job_id' } unless exists $job->{job_id};
+return { success => FALSE, error => 'Job parameter required' }
+    unless defined $job;
+return { success => FALSE, error => 'Job must be a hash' }
+    unless ref $job eq 'HASH';
+return { success => FALSE, error => 'Job missing image_path' }
+    unless exists $job->{image_path};
+return { success => FALSE, error => 'Job missing job_id' }
+    unless exists $job->{job_id};
 
 my $image_path = $job->{image_path};
-my $job_id = $job->{job_id};
+my $job_id     = $job->{job_id};
 
 # Validate image path
-return { success => FALSE, error => "Image file not found: $image_path" } unless -f $image_path;
+return { success => FALSE, error => "Image file not found: $image_path" }
+    unless -f $image_path;
 
 # Call Phase 2 vision analysis (non-blocking image quality analyzer)
 my $analysis_result = <[image-quality.analyze]>->($image_path);
 
 # Construct response for parent process
 return {
-    cmd => 'result',
-    job_id => $job_id,
-    success => $analysis_result->{success},
+    cmd        => 'result',
+    job_id     => $job_id,
+    success    => $analysis_result->{success},
     image_path => $image_path,
-    metrics => $analysis_result->{success} ? {
-        composition => $analysis_result->{composition},
-        lighting => $analysis_result->{lighting},
-        technical => $analysis_result->{technical},
-        relevance => $analysis_result->{relevance},
+    metrics    => $analysis_result->{success}
+    ? { composition   => $analysis_result->{composition},
+        lighting      => $analysis_result->{lighting},
+        technical     => $analysis_result->{technical},
+        relevance     => $analysis_result->{relevance},
         overall_grade => $analysis_result->{overall_grade}
-    } : undef,
-    error => $analysis_result->{error},
+        }
+    : undef,
+    error       => $analysis_result->{error},
     duration_ms => $analysis_result->{duration_ms},
-    model_used => $analysis_result->{model_used},
-    method => $analysis_result->{method}
+    model_used  => $analysis_result->{model_used},
+    method      => $analysis_result->{method}
 };
 
-#,,,.,..,,,..,,.,,,.,,.,,,..,,,,,,...,,,,,.,,,..,,...,...,...,.,,,,,,,...,.,,,
-#JG2SE4ANBI62CMWPHKUQO42Q27IUF2VFOJ4NMQCOTM43HVSZELM6QTSENHLKDEVUZRL74RXMDECGS
-#\\\|WBGHMISBG5XM7U74S2FSTO22E4UZOGU5CG3OMDKLXCO43BLXYCA \ / AMOS7 \ YOURUM ::
-#\[7]OF2O47MGNA6KZDCRO2QHKJBETOM6VNGFYBVYECRU45PFG35RFMCY 7  DATA SIGNATURE ::
+#,,,.,...,,..,,,.,,..,,..,...,.,,,,..,,..,.,,,..,,...,...,,..,,..,,..,,.,,.,,,
+#DNVH6A5MCT4DF3XFB2EB44D527TUDQMFRBUK47YQVCPWDFCB6AQQYM3GEDZ3WU3OAZPMXM2KU2KNQ
+#\\\|GQQXLMUUZCUE43TNO3UKJCSC42TQLYZQTJ4RUXBPPQSP6RXA7YE \ / AMOS7 \ YOURUM ::
+#\[7]OTBCYB5ITJDEKUOK4GLY6O3BSTPXFRJGDLQO3RI2URJW6EOOX6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
