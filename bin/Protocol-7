@@ -1109,7 +1109,7 @@ sub p7_check_bin_p7 {    ## LLL: reduce calls \ exposure .,
         }
     }
     $data{'modules'}{'warned'} //= {};    ## <-- cleaned up later
-    my $reason = !-r $f_path ? qw| readable | : qw| found |;
+    my $reason = -e $f_path ? qw| readable | : qw| found |;
     $chk_path =~ s|^modules/|| if $reason eq qw| readable |; ## LLL:improve ##
     warn( sprintf ":::[ NOT %s ]::: '%s' <{C2}>", uc($reason), $chk_path )
         if not $data{'modules'}{'warned'}{$f_path}++;
@@ -5308,8 +5308,8 @@ __DATA__
 :
 :.
 
-#,,.,,..,,.,.,,.,,.,.,.,,,..,,,,,,,.,,..,,.,.,..,,...,...,.,,,.,,,..,,,,.,,..,
-#UY2WHCMXSVSPEMZWEZGQBE7LFESVFQDZ47IWOHFWUPW5GMWQNP4Y2AUMUCEBC7MP7M57NIJQ6R4CC
-#\\\|DR3YMHRTAUMJOTL7D4QADLMA24LSOLSO7EFADPHFRME2XOIXBC2 \ / AMOS7 \ YOURUM ::
-#\[7]6WK7FGDBW6HVLRVGMLTRYIUYD5FPDUWNX3J5U6MOPKXFQCKD56BI 7  DATA SIGNATURE ::
+#,,,.,...,..,,,,.,..,,...,,,,,,.,,.,,,,,,,,,.,..,,...,..,,.,.,.,,,,..,,,,,,.,,
+#SXEW3JIJRPD5VST5ZQT2LP6ANXHB4GJN4S3SFLL4O365D2UU4MMNGRJSORLNNGSQ4XOSGKNIIERKA
+#\\\|PR4V7Y2BPIJXSMTZD2PHPYVDBA5BPXEBNKJ53XW6FWYWV3KMU5Q \ / AMOS7 \ YOURUM ::
+#\[7]NGPOK4NOS6P6VZKUMW4SJ7ODZXTGI6R6FVL3ZL5XVH5MYCE3MEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
