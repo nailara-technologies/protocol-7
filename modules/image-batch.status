@@ -3,100 +3,138 @@
 # name = image-batch.status
 # descr = Return current batch processing status
 
-my ($arg) = @_;
+my $requested_batch_id = shift;
 
-my $batch_state = <image-batch.batch_state>;
-my $batch_queue = <image-batch.batch_queue>;
+# Try to load batch state from disk first (most reliable for on-demand zenka)
+<[base.perlmod.load]>->( 'JSON::XS', qw| decode_json | );
+
+my $batch_state;
+my $batch_queue;
+
+if ( defined $requested_batch_id && $requested_batch_id ne '' ) {
+
+    # Load specific batch from disk using Protocol-7 file infrastructure
+    # (zenka name is automatically prepended to /var/protocol-7/image-batch/)
+    my $batch_file_path  = "$requested_batch_id.json";
+    my $file_content_ref = <[file.zenka_dir.load]>->($batch_file_path);
+
+    if ( defined $file_content_ref && ref $file_content_ref eq 'SCALAR' ) {
+        eval {
+            my $loaded = decode_json($$file_content_ref);
+            $batch_state = $loaded;
+            $batch_queue = $loaded->{batch_queue};
+        };
+        if ($@) {
+            <[base.log]>->(
+                1, "WARNING: Failed to parse batch state JSON: $@"
+            );
+            $batch_state = undef;
+        }
+    }
+}
+
+# Fall back to in-memory state if file not loaded
+if ( !defined $batch_state ) {
+    $batch_state = <image-batch.batch_state>;
+    $batch_queue = <image-batch.batch_queue>;
+}
 
 # If no active batch, return idle status
-unless (defined $batch_state && defined $batch_queue) {
+unless ( defined $batch_state && $batch_state->{batch_id} ) {
     return {
-        success => TRUE,
-        batch_id => undef,
-        status => 'idle',
+        success    => TRUE,
+        batch_id   => undef,
+        status     => 'idle',
         statistics => {
-            total_images => 0,
-            processed => 0,
-            completed => 0,
-            failed => 0,
-            processing => 0,
+            total_images         => 0,
+            processed            => 0,
+            completed            => 0,
+            failed               => 0,
+            processing           => 0,
             quality_distribution => {}
         },
         active_children => [],
-        eta_seconds => undef,
-        message => 'No active batch'
+        eta_seconds     => undef,
+        message         => 'No active batch'
     };
 }
 
 # Calculate progress percentage
-my $total = $batch_state->{total_images} // 0;
-my $stats = $batch_state->{statistics};
+my $total     = $batch_state->{total_images} // 0;
+my $stats     = $batch_state->{statistics};
 my $processed = $stats->{processed} // 0;
-my $progress_percent = ($total > 0) ? int(($processed / $total) * 100) : 0;
+my $progress_percent
+    = ( $total > 0 ) ? int( ( $processed / $total ) * 100 ) : 0;
 
 # Get list of active children
 my $child_pids = $batch_state->{child_pids};
 my @active_children;
 
-foreach my $pid (keys %$child_pids) {
+foreach my $pid ( keys %$child_pids ) {
     my $info = $child_pids->{$pid};
-    push @active_children, {
-        pid => $pid,
-        worker_id => $info->{worker_id},
-        status => $info->{status},
+    push @active_children,
+        {
+        pid            => $pid,
+        worker_id      => $info->{worker_id},
+        status         => $info->{status},
         current_job_id => $info->{current_job_id},
         jobs_completed => $info->{jobs_completed} // 0
-    };
+        };
 }
 
 # Calculate ETA
 my $eta_info = <[image-batch.calculate_eta]>->();
-my $eta_seconds = (defined $eta_info && $eta_info->{success}) ? $eta_info->{eta_seconds} : undef;
+my $eta_seconds
+    = ( defined $eta_info && $eta_info->{success} )
+    ? $eta_info->{eta_seconds}
+    : undef;
 
 # Find currently processing jobs for status detail
 my $current_operation = {
-    image_path => '',
-    stage => 'processing',
+    image_path       => '',
+    stage            => 'processing',
     processing_count => 0
 };
 
 foreach my $job (@$batch_queue) {
-    if ($job->{status} eq 'processing') {
+    if ( $job->{status} eq 'processing' ) {
         $current_operation->{processing_count}++;
-        if ($current_operation->{image_path} eq '') {
+        if ( $current_operation->{image_path} eq '' ) {
             $current_operation->{image_path} = $job->{image_path};
         }
     }
 }
 
 return {
-    success => TRUE,
-    batch_id => $batch_state->{batch_id},
+    success    => TRUE,
+    batch_id   => $batch_state->{batch_id},
     batch_name => $batch_state->{batch_name},
-    status => $batch_state->{status},
+    status     => $batch_state->{status},
     started_at => $batch_state->{started_at},
     statistics => {
         total_images => $total,
-        processed => $processed,
-        completed => $stats->{completed} // 0,
-        failed => $stats->{failed} // 0,
-        processing => $stats->{processing} // 0,
-        queued => ($total - $processed - ($stats->{processing} // 0)),
+        processed    => $processed,
+        completed    => $stats->{completed}  // 0,
+        failed       => $stats->{failed}     // 0,
+        processing   => $stats->{processing} // 0,
+        queued => ( $total - $processed - ( $stats->{processing} // 0 ) ),
         quality_distribution => $stats->{grade_distribution} // {}
     },
     progress => {
         percent => $progress_percent,
         message => "$processed of $total images processed"
     },
-    active_children => \@active_children,
-    active_child_count => scalar(keys %$child_pids),
-    current_operation => $current_operation,
-    eta_seconds => $eta_seconds,
-    message => $batch_state->{status} eq 'running' ? "Batch processing in progress" : $batch_state->{status}
+    active_children    => \@active_children,
+    active_child_count => scalar( keys %$child_pids ),
+    current_operation  => $current_operation,
+    eta_seconds        => $eta_seconds,
+    message            => $batch_state->{status} eq 'running'
+    ? "Batch processing in progress"
+    : $batch_state->{status}
 };
 
-#,,,.,..,,..,,...,,,,,...,..,,,.,,..,,.,,,,.,,..,,...,..,,,..,,.,,.,,,..,,,.,,
-#PQV7A7QGZVZBIDFGBWGMDOCF3QTQUAGLQ2PGSJYWCKNWQWLVAETIM2PJFIOXFYQMDQIIYPJ72G36K
-#\\\|PWQ2OF6IWZSQW5CNX4IGUECM2MWC4U4SXDCJCVP2L4E32M72ER6 \ / AMOS7 \ YOURUM ::
-#\[7]TCD3LYINC3QSJAEYTDNGI47NWKKY2XPQQ2F35XGTSI3MVR77LMBA 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,.,.,...,..,,,..,...,...,,,.,..,,..,,...,...,,,,,.,.,,,,,.,.,,..,
+#4AYS35YQ4YY4HQWM4YY6HQGBYPDET6RT2Q467ONRV4NU4RGMMWC2KBA5YVFKYHBWA4BGLM3USCVGM
+#\\\|3JR5G7LS4BBFIX7GMYRL4Y6274NH2QTQRYRXKDIHKHRYZNBCFUK \ / AMOS7 \ YOURUM ::
+#\[7]4QQIKC45RHKIARQOATV7A3WGJWKJOBXP5VYXWYWXECA23ZWYUIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

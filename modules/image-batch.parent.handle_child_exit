@@ -12,38 +12,43 @@ my $reaped_count = 0;
 
 # Reap all exited children non-blockingly
 while (1) {
-    my $child_pid = waitpid(-1, WNOHANG);
+    my $child_pid = waitpid( -1, WNOHANG );
 
-    # No more children to reap (-1 means error/no children, 0 means no status available)
+# No more children to reap (-1 means error/no children, 0 means no status available)
     last if $child_pid <= 0;
 
     my $exit_status = $?;
 
     # Get batch state to access child_pids and current jobs
     my $batch_state = <image-batch.batch_state>;
-    my $child_pids = $batch_state->{child_pids};
+    my $child_pids  = $batch_state->{child_pids};
 
-    return { success => FALSE, error => 'No batch_state available' } unless defined $batch_state;
-    return { success => FALSE, error => 'No child_pids tracking' } unless defined $child_pids;
+    return { success => FALSE, error => 'No batch_state available' }
+        unless defined $batch_state;
+    return { success => FALSE, error => 'No child_pids tracking' }
+        unless defined $child_pids;
 
     # Find the child that exited
     my $child_info = $child_pids->{$child_pid};
 
-    if (defined $child_info) {
+    if ( defined $child_info ) {
+
         # Mark child as exited
-        $child_info->{status} = 'exited';
+        $child_info->{status}      = 'exited';
         $child_info->{exit_status} = $exit_status;
 
         # If child was processing a job, mark it as failed
-        if (exists $child_info->{current_job_id} && defined $child_info->{current_job_id}) {
-            my $job_id = $child_info->{current_job_id};
+        if ( exists $child_info->{current_job_id}
+            && defined $child_info->{current_job_id} ) {
+            my $job_id      = $child_info->{current_job_id};
             my $batch_queue = <image-batch.batch_queue>;
 
             # Find and update the job in the queue
             foreach my $job (@$batch_queue) {
-                if ($job->{job_id} eq $job_id) {
+                if ( $job->{job_id} eq $job_id ) {
                     $job->{status} = 'failed';
-                    $job->{error} = "Child process exited unexpectedly (PID: $child_pid, exit: $exit_status)";
+                    $job->{error}
+                        = "Child process exited unexpectedly (PID: $child_pid, exit: $exit_status)";
 
                     # Update batch statistics
                     my $stats = $batch_state->{statistics};
@@ -52,13 +57,14 @@ while (1) {
 
                     # Log to error_log
                     my $error_log = <image-batch.error_log>;
-                    push @$error_log, {
-                        job_id => $job_id,
+                    push @$error_log,
+                        {
+                        job_id     => $job_id,
                         image_path => $job->{image_path},
-                        error => $job->{error},
-                        timestamp => time(),
-                        type => 'child_exit'
-                    };
+                        error      => $job->{error},
+                        timestamp  => <[base.time]>->(3),
+                        type       => 'child_exit'
+                        };
 
                     last;
                 }
@@ -71,8 +77,8 @@ while (1) {
 
 return { success => TRUE, reaped_count => $reaped_count };
 
-#,,,,,...,,.,,,.,,,,,,,..,,,,,..,,,,,,.,,,.,,,..,,...,...,.,,,,.,,.,,,,..,..,,
-#RQTMEISNBHKWU6Z5B7RHIKHDYGNWQHB6HA6662UWC2UR5RKJLGYYXUA3H4RUSPWBEG2IU7QFQWG2Y
-#\\\|2VD6WYET6FPHFKYM37RWNY4GLA7B6CSSYTZMG4YNEQF3IXIUPQX \ / AMOS7 \ YOURUM ::
-#\[7]SXWVB3ZWRV6HPF6HDBGDMJ3K7KY7BY6LBCFUOMP5TAB5FGZSCUDI 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,..,,,.,,.,.,,,.,,,.,,,.,,.,,.,.,..,,...,...,,..,.,.,,.,,.,.,.,,,
+#4PLGQCABRMDJQGFOOO5ULC57AMADTBC44K5UV4HSAS6UAQBW5KYYFZPZ3C7AKRR34TANQGU6WGANY
+#\\\|IMI3536VLTQUPIZQ7DWKPN3TMYNALMOW3JPIDMWSDO6IUAZ5HW3 \ / AMOS7 \ YOURUM ::
+#\[7]AXE7QY5BVUIK5WCPU2HYIJJLWYN4QRSAR3VVDN4CZKYKHDTBBKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
