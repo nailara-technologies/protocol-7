@@ -41,32 +41,22 @@ return {
     }
     unless defined $next_job;
 
-# Prepare job for dispatch
-my $job_msg = JSON::XS::encode_json(
-    {   cmd        => 'analyze',
-        job_id     => $next_job->{job_id},
-        image_path => $next_job->{image_path}
+# Send job to child via Protocol-7 command routing
+# The reply will be automatically routed to image-batch.parent.handle_child_reply handler
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "child.analyze_image",
+        'call_args' => {
+            'args' => sprintf( "%s %s",
+                $next_job->{image_path},
+                $next_job->{job_id} )
+        },
+        'reply' => {
+            'handler' => 'image-batch.parent.handle_child_reply',
+            'params'  =>
+                { 'job_id' => $next_job->{job_id}, 'assigned_pid' => $pid }
+        }
     }
 );
-
-# Send job to child
-my $pipe = $child_info->{parent_pipe};
-
-eval {
-    if ( defined $pipe && $pipe->opened ) {
-        print {$pipe} "$job_msg\n";
-        $pipe->flush();
-    } else {
-        return {
-            success => FALSE,
-            error   => "Child pipe closed for PID $pid"
-        };
-    }
-};
-
-if ($@) {
-    return { success => FALSE, error => "Failed to send job to child: $@" };
-}
 
 # Update job and child tracking
 $next_job->{status}          = 'processing';
@@ -87,8 +77,8 @@ return {
     message         => "Job assigned to child process"
 };
 
-#,,,.,,..,,..,,,,,.,.,,..,.,,,...,,..,...,,,,,..,,...,..,,.,,,,..,.,,,,,,,.,.,
-#BS6QDV4OQ2F7ABXG2XC6DDOW4GXFM6LZVW4IGL3GIH3IM7LEZLCDYIFHX5OOSDHKVESJ52B54TYUY
-#\\\|V4XI3D2ISFGPWGOJJIZS3Z7KPO5ACDYTHAPUFDRISUJP5NQBYPW \ / AMOS7 \ YOURUM ::
-#\[7]NTULDEEWKHQNPMSFDHKQLRCYF6MTPENR2DUSUEPPDTKZ6LT4NCBQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,,,,,..,,,,,...,..,,,,.,,,.,,,,,..,,...,...,...,.,,,,,.,.,.,,,.,
+#PZY7DGC7DA3XXE2E3YLS7ZTVBK5LJS766G6RNAMICOTSPOD5MNTUMOG5UAGJRT577TSEIS4F4AP5Y
+#\\\|GFXVNWS7VFNY7AMUFHLWQHCU4KXEM7WNPWS637GYZ5U7HBJZTCZ \ / AMOS7 \ YOURUM ::
+#\[7]6EW2C77HOHFQUXZRI4GKQBNFB6XGB77NI3D4XAJVYEZHRQLYZ4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

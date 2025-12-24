@@ -98,11 +98,45 @@ unless ( $fork_result->{success} ) {
 $batch_state->{status}          = qw| running |;
 $batch_state->{workers_spawned} = $fork_result->{forked_count};
 
+# Distribute initial jobs to all children
+# Each forked child is ready to receive its first job
+my $child_pids       = $batch_state->{child_pids};
+my $jobs_distributed = 0;
+foreach my $pid ( keys %$child_pids ) {
+    my $distribute_result = <[image-batch.parent.distribute_jobs]>->($pid);
+    if ( $distribute_result->{success} ) {
+        $jobs_distributed++;
+        <[base.log]>->(
+            2,
+            sprintf(
+                'Distributed initial job to child %d: %s',
+                $pid, $distribute_result->{job_id}
+            )
+        );
+    } else {
+        <[base.log]>->(
+            1,
+            sprintf(
+                'Failed to distribute job to child %d: %s',
+                $pid, $distribute_result->{error} // 'Unknown error'
+            )
+        );
+    }
+}
+
+<[base.log]>->(
+    1,
+    sprintf(
+        'Distributed %d initial jobs to %d children',
+        $jobs_distributed, $fork_result->{forked_count}
+    )
+);
+
 # Persist complete batch state (including queue) to
 #        disk for access across command invocations
 <[base.perlmod.load]>->( 'JSON::XS', qw| encode_json | );
 
-# Create serializable copy of batch state 
+# Create serializable copy of batch state
 #  [excluding file handles in child_pids]
 my $persist_data = {
     batch_id        => $batch_state->{batch_id},
@@ -115,8 +149,8 @@ my $persist_data = {
     statistics      => $batch_state->{statistics},
     batch_queue     => $batch_queue
 
-# Note: child_pids excluded because it contains
-#       file handles that can't be JSON encoded
+    # Note: child_pids excluded because it contains
+    #       file handles that can't be JSON encoded
 };
 
 my $batch_file_path    = "$batch_id.json";
@@ -149,8 +183,8 @@ return {
     )
 };
 
-#,,,,,.,,,,.,,.,.,.,,,..,,,..,,,,,,,,,,.,,,,,,..,,...,...,...,,,.,.,.,,,,,.,,,
-#3YYL637LKNR5FU5WWQHDLRYTAS2PI5H6MDDFOIRDOJS3KNGMZ3SJQ5GNZ4OJ36RE6R64MM6R4DFQM
-#\\\|UA4CEX6PTXBLOP7TCO6PXHM4U3BV33PMQT2F6VJFB3W2X25WC66 \ / AMOS7 \ YOURUM ::
-#\[7]Z7PSGHDPYSU44TNN322KAIQLW7TWHLYRPOLCNAPE3FZJNTSVGSDY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,,,.,.,,.,,.,,,,,.,,..,...,.,,,..,,...,...,.,.,,,,,,.,,...,,,.,
+#ELLI2HKP5ZUENXDIJSAZHQ4IRZ44NHN6VQ2KES2EOF4FN2Y53NJAZWA3JSEPFPRBIJJ4YIXYMZ47I
+#\\\|WRF5VPKNC3DYMWFNJTGFQE5YBWHVULFQZ5VJEU2DR6HLEJSX7BC \ / AMOS7 \ YOURUM ::
+#\[7]HLYEU6TS6AMRAGSJSHUC6U6DNERPPIWL3YLCW2OQ7IVV5CXEFACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

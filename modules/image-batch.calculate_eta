@@ -5,20 +5,35 @@
 
 # Return immediately if no active batch state
 my $batch_state = <image-batch.batch_state>;
-return { success => FALSE, eta_seconds => undef, reason => 'No active batch' }
+return {
+    success     => FALSE,
+    eta_seconds => undef,
+    reason      => 'No active batch'
+    }
     unless defined $batch_state;
 
 my $stats = $batch_state->{statistics};
 my $total = $batch_state->{total_images};
-my $processed = (defined $stats && ref $stats eq 'HASH') ? ($stats->{processed} // 0) : 0;
+my $processed
+    = ( defined $stats && ref $stats eq 'HASH' )
+    ? ( $stats->{processed} // 0 )
+    : 0;
 
 # Not enough data yet
-return { success => FALSE, eta_seconds => undef, reason => 'No progress yet' }
+return {
+    success     => FALSE,
+    eta_seconds => undef,
+    reason      => 'No progress yet'
+    }
     if !defined $processed || $processed == 0;
 
 # Calculate average duration from operation_log
 my $log = <image-batch.operation_log>;
-return { success => FALSE, eta_seconds => undef, reason => 'No completed analyses yet' }
+return {
+    success     => FALSE,
+    eta_seconds => undef,
+    reason      => 'No completed analyses yet'
+    }
     unless defined $log && ref $log eq 'ARRAY' && @$log;
 
 my $total_duration = 0;
@@ -27,39 +42,43 @@ foreach my $entry (@$log) {
     $total_duration += $entry->{duration};
 }
 
-return { success => FALSE, eta_seconds => undef, reason => 'No valid duration data' }
+return {
+    success     => FALSE,
+    eta_seconds => undef,
+    reason      => 'No valid duration data'
+    }
     if $total_duration == 0;
 
 my $avg_duration_ms = $total_duration / @$log;
 
 # Count active workers
-my $child_pids = $batch_state->{child_pids};
+my $child_pids     = $batch_state->{child_pids};
 my $active_workers = 0;
 
-foreach my $pid (keys %$child_pids) {
+foreach my $pid ( keys %$child_pids ) {
     my $info = $child_pids->{$pid};
     $active_workers++ if exists $info->{status} && $info->{status} eq 'busy';
 }
 
 # Default to total concurrency if no active workers detected yet
-$active_workers = scalar(keys %$child_pids) if $active_workers == 0;
-$active_workers = 1 if $active_workers == 0;  # Fallback
+$active_workers = scalar( keys %$child_pids ) if $active_workers == 0;
+$active_workers = 1 if $active_workers == 0;    # Fallback
 
 # Calculate remaining time
 my $remaining_jobs = $total - $processed;
-my $eta_ms = ($remaining_jobs * $avg_duration_ms) / $active_workers;
-my $eta_seconds = int($eta_ms / 1000);
+my $eta_ms         = ( $remaining_jobs * $avg_duration_ms ) / $active_workers;
+my $eta_seconds    = int( $eta_ms / 1000 );
 
 return {
-    success => TRUE,
-    eta_seconds => $eta_seconds,
-    remaining_jobs => $remaining_jobs,
+    success         => TRUE,
+    eta_seconds     => $eta_seconds,
+    remaining_jobs  => $remaining_jobs,
     avg_duration_ms => $avg_duration_ms,
-    active_workers => $active_workers
+    active_workers  => $active_workers
 };
 
-#,,..,,,,,...,,,,,,.,,,,.,...,,.,,,..,,.,,.,.,..,,...,...,,,.,...,.,.,,..,.,.,
-#MW6OCURF7COOBAL27GSBPNM2KO3KMKXLX4SOCEIVXPPYKO4QHBOVS2U4TSSFQ5ECZRFAAV2JRERAM
-#\\\|XHZHRPEWNSEF3T7HZRM7DIEYF3H5C3S565TYNG4QA2FX4YR2CGG \ / AMOS7 \ YOURUM ::
-#\[7]563QHIWQWAMVHLUDIQVKEE2ESIBXSZK3Q2WEFJ76DC4LUX3HL4AA 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,,.,.,.,,,.,,,,,.,.,.,,,,..,,..,..,,...,..,,.,.,,,.,,,,,,.,,.,,,
+#AMQZBBZ4Z7NIMXXRV35EOBGGM2X6AMV5I3Q5V346KGRBXLFIWXV523ANTH27DNJCTM3S7H37SP6DM
+#\\\|HQY42ITHIKEKDOOUD5SD5R2F2SIHX2E2BYE2CHVFDKGFQIIQ4O6 \ / AMOS7 \ YOURUM ::
+#\[7]FKJNXSACMF2BZTK5CHYJLYHYJJ7PV7Q3Q734AP5JUCKLJWQMUKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
