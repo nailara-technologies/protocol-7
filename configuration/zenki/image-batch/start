@@ -16,9 +16,12 @@ restart.disabled = 1
 heartbeat.disabled = 1
 
 ## Module loading ##
-modules.load = auth net protocol io.unix io.ip crypt.C25519 image-batch
+modules.load = auth net protocol io.unix io.ip crypt.C25519 \
+                                       jobqueue image-batch
 [load_modules:<modules.load>]
 [init_modules]
+
+# [image-batch.parent.fork_children]
 
 [root.drop_privs:<system.amos-zenka-user>]
 
@@ -27,10 +30,8 @@ modules.load = auth net protocol io.unix io.ip crypt.C25519 image-batch
 
 [zenka.loop]
 
-#,,..,,,,,.,.,,,,,,,,,.,,,,,.,...,,.,,,,.,...,..,,...,...,...,..,,,,,,,,,,,..,
-
-#,,,,,,..,.,.,.,.,,..,.,.,,.,,,,,,,,.,.,.,.,.,..,,...,...,,.,,..,,.,,,.,.,,,,,
-#FX4EJC6MLRGXXWCWPIRUH257JEDGSGO3GO75XYI6RV4N3EEIFNWSS6VTZPSZ45J3Q4HDTZOZ3C5UO
-#\\\|ZU3NQXBT7FE5UG6N4LVWP2BLVX4JXL6FFYQ66U7JSWX6SMOKYJ7 \ / AMOS7 \ YOURUM ::
-#\[7]Q6FZR4OOOAFA6VMUGO3PYQJFTBUYYDQ63RTQKFGJQSPWG2NCKKAQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,,,.,.,,.,,,,,,.,,,.,.,,,.,,,.,..,,...,...,.,.,,,.,,,.,.,,,,.,,
+#2RTHGQQHATXXWHIVMZ67A47A6QBG2NN7NM2KG4OI3CZPWP2ZX6K6R7RIEDJE44E7XTH2UB7JUA2VS
+#\\\|NKEVVRK7MTRCRNIVSGCRQJBWL3VFMUJMATEFLLXBB47L7HTOZ7I \ / AMOS7 \ YOURUM ::
+#\[7]MGH5LPS6FCCBT2GNOXKGV62Q4KYJ5LIQ7S4FYJXQ56DH6NFUDYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

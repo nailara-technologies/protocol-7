@@ -1587,6 +1587,7 @@ return [ qw[
         image2html.base.get_html_path
         image2html.base.download_file
         image-quality.vision.http_api
+        image-batch.parent.fork_child
         image-batch.generate_batch_id
         image-batch.child.analyze_job
         httpsd.route_template_request
@@ -1831,7 +1832,6 @@ return [ qw[
         keys.console.keys-backup-archive
         image2html.base.write_image_html
         image2html.base.write_error_page
-        image-batch.parent.fork_children
         httpd.handler.web_template_reply
         httpd.diagnostic.track_operation
         discover.process_incoming_packet
@@ -1966,7 +1966,6 @@ return [ qw[
         keys.select_archive_path.term_Clui
         jobqueue.event.register_job_queues
         image2html.child.cmd.convert_image
-        image-batch.parent.distribute_jobs
         image-batch.parent.collect_results
         graphics-matrix.cmd.filter-rep-col
         discover.handler.anounce_host_addr
@@ -2009,6 +2008,8 @@ return [ qw[
         impressive.callback.stop_start-anim
         image2html.child.handler.conversion
         image-quality.vision.parse_response
+        image-batch.parent.handle_job_reply
+        image-batch.child.cmd.analyze_image
         httpd.benchmark.sample_memory_usage
         content.handler.get_exclusive_reply
         coding.learning.update_success_rate
@@ -2113,7 +2114,6 @@ return [ qw[
         mpv.handler.event.property-change.width
         letsencr.parent.cmd.request-certificate
         letsencr.parent.cmd.install-certificate
-        image-batch.parent.handle_child_message
         discover.callback.resend_interval_reset
         debian.parent.ensure_zenka_dependencies
         base.perlmods.reload.reload_blacklisted
@@ -2197,8 +2197,8 @@ return [ qw[
     ]
 ];
 
-#,,..,..,,,.,,,..,.,.,,.,,.,.,.,.,.,.,...,,.,,..,,...,...,...,..,,.,.,,,,,...,
-#GOKI5WYU53NVWXPVYHW5ZTZCFOJRWINYBPF75T6UJWW2EQYUUO3GUGHTUFWWOHOYAA5MDRBSBLK52
-#\\\|K3TN74OLSZMINXUQJV4E6CIGP4FVXJJJ6JHMBYY7LFBMH6WHLJA \ / AMOS7 \ YOURUM ::
-#\[7]3WSOJCKW5M7Q2L67HAKO3QXBKVC6P433AC7CLW3VLKPMTVPLB6DA 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,.,,,,,.,.,.,,,...,,..,.,,,.,,,..,,...,...,,.,,,,.,,..,..,,,,,,
+#RRZLYMQOJCGJYIMV2WMPOLZBQ53WJRCLN7SO2S3NYK3VPXUS27EXTPL32K6WY5WEDKOCPEKCMINTA
+#\\\|NAWZD6H35B5F4I2LVOS4GTQRQEH3OG5DOBIEAMXJLXOHCXSILG2 \ / AMOS7 \ YOURUM ::
+#\[7]ST4FCITZ7I4CF2UM5TVRDGSILS7H3YFI77M6VV6TIU73D6Q4QEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
