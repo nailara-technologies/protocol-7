@@ -21,17 +21,19 @@ modules.load = auth net protocol io.unix io.ip crypt.C25519 \
 [load_modules:<modules.load>]
 [init_modules]
 
-# [image-batch.parent.fork_children]
-
 [root.drop_privs:<system.amos-zenka-user>]
 
 [base.net.connect:'unix']
 [base.get_session_id]
 
+# Fork single child process for blocking operations
+# Must be after zenka connects and receives session ID
+[image-batch.parent.fork_child]
+
 [zenka.loop]
 
-#,,.,,,,.,.,,,,,,,.,.,,.,,,,,,.,,,.,.,,,.,,,.,..,,...,...,.,.,,,.,,,.,.,,,,.,,
-#2RTHGQQHATXXWHIVMZ67A47A6QBG2NN7NM2KG4OI3CZPWP2ZX6K6R7RIEDJE44E7XTH2UB7JUA2VS
-#\\\|NKEVVRK7MTRCRNIVSGCRQJBWL3VFMUJMATEFLLXBB47L7HTOZ7I \ / AMOS7 \ YOURUM ::
-#\[7]MGH5LPS6FCCBT2GNOXKGV62Q4KYJ5LIQ7S4FYJXQ56DH6NFUDYAY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,..,,..,,...,,.,,.,.,,.,,,,.,..,,..,,...,...,,.,,.,,,.,.,,..,..,,
+#JS7DNKORKSX656RD7BDV2ZULBVHMRKFNHT5WEDDGUOQWLVJLCYRAIMVXR7WXFWRVQZ47WUQQN74XM
+#\\\|5S4A44O3INMX7LX5EOBPAGOVSCMIW7XAP63IYU5YAVPTFHE2LS6 \ / AMOS7 \ YOURUM ::
+#\[7]BQ5TVLEZ7LMN4NRWJNUEXZVFQED4JTIEG6XS2HBKA37TRSAZ4OCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
