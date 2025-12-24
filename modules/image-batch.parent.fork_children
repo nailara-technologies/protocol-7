@@ -3,31 +3,35 @@
 # name = image-batch.parent.fork_children
 # descr = Fork worker pool with socketpair IPC for batch processing
 
-<[base.perlmod.load]>->('Socket', qw| socketpair AF_UNIX SOCK_STREAM PF_UNSPEC |);
-<[base.perlmod.load]>->('IO::Handle');
+# Modules Socket and IO::Handle are pre-loaded by Protocol-7
 
 my $concurrency = shift // 4;
 
-return { success => FALSE, error => 'Concurrency must be > 0' } if $concurrency <= 0;
+return { success => FALSE, error => 'Concurrency must be > 0' }
+    if $concurrency <= 0;
 
 my $batch_state = <image-batch.batch_state>;
-return { success => FALSE, error => 'No batch_state available' } unless defined $batch_state;
+return { success => FALSE, error => 'No batch_state available' }
+    unless defined $batch_state;
 
 # Register CHLD signal handler
-<[event.add_signal]>->('CHLD', sub {
-    <[image-batch.parent.handle_child_exit]>->();
-});
+<[event.add_signal]>->(
+    {   'signal'  => qw| CHLD |,
+        'handler' => qw| image-batch.parent.handle_child_exit |
+    }
+);
 
-my $child_pids = $batch_state->{child_pids};
+my $child_pids   = $batch_state->{child_pids};
 my $forked_count = 0;
 my $failed_count = 0;
 
 # Fork worker processes
-for (my $worker_id = 1; $worker_id <= $concurrency; $worker_id++) {
-    # Create socketpair for bidirectional IPC
-    my ($parent_pipe, $child_pipe);
+for ( my $worker_id = 1; $worker_id <= $concurrency; $worker_id++ ) {
 
-    my $result = socketpair($parent_pipe, $child_pipe, 'AF_UNIX', 'SOCK_STREAM', 'PF_UNSPEC');
+    # Create socketpair for bidirectional IPC
+    my ( $parent_pipe, $child_pipe );
+
+    my $result = socketpair( $parent_pipe, $child_pipe, 1, 1, 0 );
 
     unless ($result) {
         $failed_count++;
@@ -41,14 +45,16 @@ for (my $worker_id = 1; $worker_id <= $concurrency; $worker_id++) {
     # Fork child process
     my $pid = fork();
 
-    if (!defined $pid) {
+    if ( !defined $pid ) {
+
         # Fork failed
         close $parent_pipe;
         close $child_pipe;
         $failed_count++;
         next;
 
-    } elsif ($pid == 0) {
+    } elsif ( $pid == 0 ) {
+
         # CHILD PROCESS
 
         # Close parent's end of pipe in child
@@ -62,23 +68,25 @@ for (my $worker_id = 1; $worker_id <= $concurrency; $worker_id++) {
 
         # Store child-specific data
         my $image_batch_child_parent_pipe = $child_pipe;
-        my $image_batch_child_worker_id = $worker_id;
+        my $image_batch_child_worker_id   = $worker_id;
 
         # Initialize child process
-        my $init_result = <[image-batch.child.init]>->();
+        my $init_result = <[image-batch.child.init]>;
 
-        unless ($init_result->{success}) {
+        unless ( $init_result->{success} ) {
+
             # Initialization failed, exit child
             exit(1);
         }
 
         # Enter child event loop (never returns under normal conditions)
-        <[image-batch.child.loop]>->();
+        <[image-batch.child.loop]>;
 
         # Graceful exit
         exit(0);
 
     } else {
+
         # PARENT PROCESS
 
         # Close child's end of pipe in parent
@@ -86,29 +94,39 @@ for (my $worker_id = 1; $worker_id <= $concurrency; $worker_id++) {
 
         # Track child process
         $child_pids->{$pid} = {
-            worker_id => $worker_id,
-            pid => $pid,
-            parent_pipe => $parent_pipe,
-            status => 'spawned',
-            spawned_at => time(),
+            worker_id      => $worker_id,
+            pid            => $pid,
+            parent_pipe    => $parent_pipe,
+            status         => qw| spawned | |,
+            spawned_at     => <[base.time]>->(3),
             current_job_id => undef,
             jobs_completed => 0
         };
+
+        # Register event listener for child socketpair
+        <[event.add_io]>->(
+            {   'fd'      => $parent_pipe,
+                'handler' => qw| image-batch.parent.handle_child_message |,
+                'data'    => { 'pid' => $pid },
+                'poll'    => qw| re |
+            }
+        );
 
         $forked_count++;
     }
 }
 
 return {
-    success => ($forked_count > 0),
+    success      => ( $forked_count > 0 ),
     forked_count => $forked_count,
     failed_count => $failed_count,
-    concurrency => $concurrency,
-    message => "Forked $forked_count worker processes" . ($failed_count > 0 ? " ($failed_count failed)" : "")
+    concurrency  => $concurrency,
+    message      => "Forked $forked_count worker processes"
+        . ( $failed_count > 0 ? " ($failed_count failed)" : '' )
 };
 
-#,,..,,,,,...,...,..,,,..,,,,,,,.,,,.,..,,,,,,..,,...,...,.,,,,,,,...,,.,,,,,,
-#WWHVV7W3M5PK7T4XHRBGMJZVFQKFU2NEIAJT4VRG5X3GNOQ4T2YAYL5PTNG7ZS2GMSPOHFBE4YJ32
-#\\\|6TFCWDYH3VYT3SMETHWOY2VDECSZA4IEYGXPR6Q2N3MOXE4PDYM \ / AMOS7 \ YOURUM ::
-#\[7]VJY5TKKMUQS23BHXI2TRI35FMSFRZGPINQ7SWDOD3PO4W3XMEKAY 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,..,..,,.,.,,..,,,.,,,.,..,,...,..,,...,...,,,.,,,.,...,.,.,,,,,
+#Z4255JX4RXAG6NND7D6NTVO6DTBA77BDKGF5H4P66NSITPGTYGAINWV63PHM3GE7ULHI7K5Y7QFLY
+#\\\|4F3NXSO7J4M6CDEEUNIX7UZJ2TEIM5RLSCYHZLQL2Y2CW7WYCUE \ / AMOS7 \ YOURUM ::
+#\[7]S64E42HC7FSVYOFWMLQRXSA53FCOG3IJSV7LZOMLMF3IHDBDTWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

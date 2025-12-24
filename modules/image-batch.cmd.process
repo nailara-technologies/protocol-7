@@ -3,38 +3,47 @@
 # name = image-batch.cmd.process
 # descr = Submit batch job for processing (expects YAML path as parameter)
 
-my $call_args = shift;
-
-# Extract parameter from command args hash
+# Extract parameter from command args
+# Automatic code header provides $call->{'args'} with space-separated arguments
+my $_call = shift;
 my $yaml_path;
-if (defined $call_args && ref($call_args) eq 'HASH' && exists $call_args->{'param'}) {
-    # Try 'arg0' first (positional), then 'yaml_path' or 'path'
-    $yaml_path = $call_args->{'param'}->{'arg0'}
-              // $call_args->{'param'}->{'yaml_path'}
-              // $call_args->{'param'}->{'path'};
+if ( defined $_call && ref($_call) eq qw|HASH| && defined $_call->{'args'} ) {
+
+    # Extract first argument from space-separated args string
+    $yaml_path = ( split m|\s+|, $_call->{'args'} )[0];
 }
 
-return { 'mode' => qw| FALSE |, 'data' => 'YAML batch file path required' } unless defined $yaml_path;
-return { 'mode' => qw| FALSE |, 'data' => 'Path cannot be empty' } if $yaml_path eq '';
+return { 'mode' => qw| FALSE |, 'data' => 'YAML batch file path required' }
+    unless defined $yaml_path;
+return { 'mode' => qw| FALSE |, 'data' => 'Path cannot be empty' }
+    if $yaml_path eq '';
 
 # Call the main image-batch.process module
 my $result = <[image-batch.process]>->($yaml_path);
 
 # Ensure result is valid before returning
-return { 'mode' => qw| FALSE |, 'data' => 'Invalid result from batch process' } unless defined $result && ref($result) eq 'HASH';
+return {
+    'mode' => qw| FALSE |,
+    'data' => 'Invalid result from batch process'
+    }
+    unless defined $result && ref($result) eq qw| HASH |;
 
 # Return with proper network format
-if ($result->{success}) {
-    # Return as JSON string to avoid hash serialization issues
-    require JSON::XS;
-    my $json = JSON::XS::encode_json($result);
-    return { 'mode' => qw| TRUE |, 'data' => $json };
+if ( $result->{success} ) {
+
+    # Return as YAML string for human-readable output
+    <[base.perlmod.load]>->( 'YAML::XS', qw| Dump | );
+    my $yaml = YAML::XS::Dump($result);
+    return { 'mode' => qw| TRUE |, 'data' => $yaml };
 } else {
-    return { 'mode' => qw| FALSE |, 'data' => $result->{error} // 'Batch processing failed' };
+    return {
+        'mode' => qw| FALSE |,
+        'data' => $result->{error} // 'Batch processing failed'
+    };
 }
 
-#,,..,..,,,..,,.,,.,.,.,.,..,,..,,,,.,.,,,,.,,..,,...,...,.,,,,,.,,..,,,,,,..,
-#GSSTGNINCGPWRY2FUWP573F7PWRLHUDD4XVVG5TTOU7XBHGVAWLS5UCNHHYFZLLUH6MVHDTJI62LM
-#\\\|VURGWNVIPMMCOH2EALYEGRPCJP77ITJJRO72RD5OQ3U776WWMEM \ / AMOS7 \ YOURUM ::
-#\[7]NV7JNYR2UCZ32ZWTNQ7JK2SMAIQ4JL7KNMCWZNGX2AR3H7RURABQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,.,,,.,,,..,...,.,,,.,.,..,,...,..,,...,...,,.,,,,.,..,,,.,,,,,,
+#2J7V2RBJAOXOPXBEKGMUEQZHVJ6CTYPVV6ITDGUGUAYIDOBR34Q5NCJVLV5U264QJIU4KNG3QB6XG
+#\\\|UMIYJ3UTGHNA5NDFVW435YCJNTHJDGN43ECVJR2DS77TMAZXTGS \ / AMOS7 \ YOURUM ::
+#\[7]GEQZ2J34QOO6MW6C5I5MJTXVLEG3256JYFKH56HL4ZCVQ6CNUAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

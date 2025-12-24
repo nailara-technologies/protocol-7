@@ -3,20 +3,22 @@
 # name = image-batch.generate_batch_id
 # descr = Generate unique batch ID for tracking
 
-# Try using Data::UUID first, fall back to UUID::Tiny or simple timestamp-based ID
+# Get module availability from init_code
+my $modules_available = <image-batch.modules_available>;
+
 my $batch_id;
 
-# Attempt to generate UUID
-eval {
-    <[base.perlmod.load]>->('Data::UUID');
-    my $ug = Data::UUID->new();
-    $batch_id = $ug->create_str();
-};
-
-# If Data::UUID failed, try UUID::Tiny
-if ($@) {
+# Try using Data::UUID first (module loaded at startup)
+if ($modules_available->{'Data::UUID'}) {
     eval {
-        <[base.perlmod.load]>->('UUID::Tiny', qw| create_uuid_as_string UUID_V4 |);
+        my $ug = Data::UUID->new();
+        $batch_id = $ug->create_str();
+    };
+}
+
+# If Data::UUID failed, try UUID::Tiny (module loaded at startup)
+if (!defined $batch_id && $modules_available->{'UUID::Tiny'}) {
+    eval {
         $batch_id = create_uuid_as_string(UUID_V4());
     };
 }
@@ -30,8 +32,8 @@ if (!defined $batch_id) {
 
 return { success => TRUE, batch_id => $batch_id };
 
-#,,,.,..,,..,,,,,,.,,,,,.,.,.,,..,.,,,...,,,.,..,,...,..,,..,,,,,,.,,,,..,...,
-#ZW3Q4V6LFBL2EVPWUKESTSQ6OZNRFVUYSWDU4X243DEUUW6UMBC7V4WNWT7OIA25TJMYWJ2ANS562
-#\\\|3YEIVEY6JO2MAJZYY64CXA3C2AJF5KNBTKFGAVKIZ7Z46GJBIZU \ / AMOS7 \ YOURUM ::
-#\[7]SGLNQAQYCIUCOYRKBM7FT3DY7S6KJQT2RZSFHROPHRWMB557ECCI 7  DATA SIGNATURE ::
+#,,..,...,,,.,,..,...,,..,,,,,.,.,.,.,...,,,,,..,,...,...,.,.,..,,,,.,,..,,,.,
+#OQ767PQWWX54TFGXHKYN3VXGYSQDXV43RX3FLEVVVNGHLFJVEPXCAPBHHTZSJLA52M6IJAQAAVYJM
+#\\\|ZB6AJXXUIWXCPQCHFWXTQIBOVTLLOKQKMIUC37NZQC7N7PZ2QCH \ / AMOS7 \ YOURUM ::
+#\[7]Z7AYH7STCR3ODWIJTD3UCPX46WHUUS7DPJYSJVRVHLJDVF2IYMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

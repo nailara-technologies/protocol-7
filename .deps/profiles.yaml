@@ -103,10 +103,20 @@ profiles:
       - X11::Protocol::WM
       - X11::Protocol::XSetRoot
 
+  tools:
+    description: "Utility tools and scripts (DBI, database tools, etc.)"
+    apt:
+      - libdbi-perl
+      - libdbd-sqlite3-perl
+    cpan:
+      - DBI
+      - DBD::SQLite
+
   zenka-common:
     description: "Common modules for active zenka (v7, httpd, httpsd, letsencr, test-link-upgrade)"
     apt:
       - libbsd-resource-perl
+      - libdata-uuid-perl
     cpan:
       - BSD::Resource
       - Capture::Tiny
@@ -153,6 +163,7 @@ profiles:
       - runtime
       - network
       - cryptography
+      - tools
       - zenka-common
 
   protocol7-extended:
