@@ -92,10 +92,6 @@ unless ( $fork_result->{success} ) {
     };
 }
 
-# Set extended idle timeout to keep zenka alive during batch processing
-<[base.zenki.set_ondemand_timeout]>->(600)
-    ;    # 10 minutes to handle typical batch processing + status checks
-
 # Update batch state to running
 $batch_state->{status}          = qw| running |;
 $batch_state->{workers_spawned} = $fork_result->{forked_count};
@@ -148,8 +144,8 @@ return {
     )
 };
 
-#,,..,,,,,..,,,,,,.,,,.,,,,,.,,..,...,,.,,...,..,,...,...,.,.,,,.,,,,,...,,,,,
-#OUM5VFE7DDRRTYJYBMMJU5PJKPSEX3NURFUPDTD6AV3YHVX3J6WHRXYNRKCDXSE7NSU7BHVVHJ3WU
-#\\\|JARSR6KAHCP765SMFAYNZ4LDVOET2MY24LHKMXE7MRONLL7QUDF \ / AMOS7 \ YOURUM ::
-#\[7]XL45ZGGMQQDJ6ID7XFFFOOVXLB2KIKN2N22QRPJPEDFYWQZIJEBQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,.,,,...,,..,,..,...,,,,,,,,,.,.,..,,...,.,,,.,,,,.,,..,,,,.,.,,,
+#YKLGF567WKDGHSLFOTF3TA6N4MKYWRBEPYRL4RD5K63SCFOFWINAPR2OS45DH3DBPYWEUVCMVSVL6
+#\\\|7GQYIAQIWDXLOF7KYJK7V4MG6TNNVXSDAO4IBIODZMCVVMR6PNJ \ / AMOS7 \ YOURUM ::
+#\[7]XXY6PMJZOOEHOUUOJ3HB2EXH6EKB6HYZDXJO4IRUCFTLYYVX2GDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
