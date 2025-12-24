@@ -13,7 +13,8 @@ return { success => FALSE, error => 'Parent pipe not initialized' }
 $parent_pipe->autoflush(1);
 
 # Send ready signal to parent
-my $ready_msg = encode_json( { cmd => 'ready', worker_id => $worker_id } );
+my $ready_msg
+    = JSON::XS::encode_json( { cmd => 'ready', worker_id => $worker_id } );
 print {$parent_pipe} "$ready_msg\n";
 
 # Event loop: wait for jobs from parent
@@ -27,12 +28,12 @@ while (1) {
 
     # Parse JSON command
     my $job;
-    eval { $job = decode_json($line); };
+    eval { $job = JSON::XS::decode_json($line); };
 
     if ($@) {
 
         # Invalid JSON, send error and continue
-        my $error_response = encode_json(
+        my $error_response = JSON::XS::encode_json(
             {   cmd   => 'error',
                 error => "Failed to parse JSON: $@"
             }
@@ -48,7 +49,7 @@ while (1) {
         my $result = <[image-batch.child.analyze_job]>->($job);
 
         # Send result back to parent
-        my $response = encode_json($result);
+        my $response = JSON::XS::encode_json($result);
         print {$parent_pipe} "$response\n";
 
         # Send ready signal for next job
@@ -62,7 +63,7 @@ while (1) {
     } else {
 
         # Unknown command
-        my $error_response = encode_json(
+        my $error_response = JSON::XS::encode_json(
             {   cmd   => 'error',
                 error => "Unknown command: $job->{cmd}"
             }
@@ -75,8 +76,8 @@ while (1) {
 close $parent_pipe;
 return TRUE;
 
-#,,.,,,,.,.,,,.,,,...,..,,..,,.,.,,,,,.,,,...,..,,...,...,.,.,..,,,..,.,.,,.,,
-#XAQVHZJYV77BO2P4DVEEK3HRRMAWXOSYUQDAZCTC2MEXWDW2SKI7QSGAG6NO7J6ZVU4F2V72SQU4O
-#\\\|L5GDJB3NB6TXB2R2C3BYN5C6NNUJDBPDZAXTK2EWB6YG2GFDMPH \ / AMOS7 \ YOURUM ::
-#\[7]Q46GHY37QLYX43ZB7UB7ZWRVA5KXAWXDC6MFBSVD55MFQLHUSIBY 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,..,,.,,,.,.,,..,.,.,.,,,,,.,.,.,..,,...,...,..,,.,.,.,,,,.,,..,,
+#34JCTSRD4SUF422YNDA5SE5LVWEAZOXRNEZQ32MWPR3QRQPLU2NT7FFLRMSZPJT223KHCQZCRBM7W
+#\\\|VG5LDCOELU6XAATQQ6KYOORL2A5K6ADCCJIYFDDSQLS4V7WAU2Y \ / AMOS7 \ YOURUM ::
+#\[7]AYEI4SEBFKIJ6R7LLT2T4EHSQMZGCBPRVCI2NXWZSLV564PGXCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

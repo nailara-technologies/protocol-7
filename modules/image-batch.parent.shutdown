@@ -13,7 +13,7 @@ return { success => FALSE, error => 'No batch_state available' }
 return { success => FALSE, error => 'No child_pids available' }
     unless defined $child_pids;
 
-my $shutdown_msg = encode_json( { cmd => 'shutdown' } );
+my $shutdown_msg = JSON::XS::encode_json( { cmd => 'shutdown' } );
 my $sent_count   = 0;
 my @closed_pipes;
 
@@ -50,8 +50,8 @@ return {
     message       => "Shutdown signal sent to $sent_count children"
 };
 
-#,,,,,..,,.,.,...,.,.,.,,,,.,,..,,,,.,.,,,,.,,..,,...,...,..,,.,.,.,,,,..,.,,,
-#24HGQ5BZKVFGKWITBCAVROC7RF5V2J4XD77UK6ERYXVXZ44DTVBYXLZGGXERV6CC5O7NOXKBPKF7S
-#\\\|ABODTWF5B74SQMCVZPJCCTEY6HGHPZIBAPY34SBZOIGZ4AKTX5B \ / AMOS7 \ YOURUM ::
-#\[7]JGJWFE7O47W4KJUIXGPQBRUQ7A2VZXD3AJ2QQOMCUQBXFQBDZMCQ 7  DATA SIGNATURE ::
+#,,.,,...,,,.,.,,,.,,,,..,,,,,.,,,,.,,.,.,,,.,..,,...,...,..,,.,,,,..,.,.,.,,,
+#HYVEUCES3EISRCM27Y2QNOWCIZ2ENCABQ2KS4KDU5IELCXNTZ72HS43JSJ7ZLFTYZ5PND7CC5KCL6
+#\\\|LIV7VEUYX3YC5Q7USR4UNXLWOKBJ52QNSYOT7E3B6YS2HREHQ3O \ / AMOS7 \ YOURUM ::
+#\[7]BROSH7TSZFJ4PAO4BK74XMJSDWFJTRMXX7IDL5KJMBYZB5GQMADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

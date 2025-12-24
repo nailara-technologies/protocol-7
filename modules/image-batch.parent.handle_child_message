@@ -27,7 +27,7 @@ chomp($line);
 
 # Parse JSON message
 my $msg;
-eval { $msg = decode_json($line); };
+eval { $msg = JSON::XS::decode_json($line); };
 
 if ($@) {
     return {
@@ -77,8 +77,8 @@ if ( $cmd eq 'ready' ) {
 #\[7]BLQEWFNI3WAVSV3YLYTQD2IMMXOTCRFIAMK4T3POZLRRX4ZUBSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,...,,,,,..,,..,,.,.,..,,.,.,.,,,.,,,,,.,..,,...,...,.,.,,,.,.,.,.,,,,..,
-#BJYJYUYI3NICVUEU6KZ4RHELPM6N35XFHXYPWY36K5XI5KZEA43OASVSROKVOLQWJZU6ULVRE2GKW
-#\\\|4JKGCMFVMMDGGI42XY53UGR67MAFASTLUDI36R5KDVS26DEPZYA \ / AMOS7 \ YOURUM ::
-#\[7]PPEPE3HKCNEHBSGVCQDFX7GTF63IF2M346DZJOKL3VY3HYS3ZQCA 7  DATA SIGNATURE ::
+#,,..,.,,,...,..,,,..,.,,,.,,,,,,,,..,..,,..,,..,,...,...,,,.,,..,.,.,,..,.,.,
+#GMDYORQ7XOTSOE2AILXAAMQYZOBD2SA2KJOIDC2Y4PLQ3ZZHCR5SACTRRVY3MN5V2VQID73Q6Y5AE
+#\\\|3SCHDAB4JO3XWVP7X4ERGCEK324YV3AWEQNRIUU7YKXSKQ2IKHR \ / AMOS7 \ YOURUM ::
+#\[7]AE7VNURB4I5KNNL3B55S6MXAMJ4BSQVAEZJCU5CKV2N4TK66GMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
