@@ -2367,19 +2367,102 @@ sub p7_assert__harmony {    ##  rename and overload in base module  ##  [LLL]
 
 ##############################################################################
 
-sub p7_load_B32_routines {    ## need fallback to CryptX ##  [ LLL ]
+##[ PURE PERL BASE32 FALLBACK ]###############################################
+
+##  Pure Perl implementation of base32 encoding (RFC 4648)
+##  Used as fallback when Crypt::Misc is not installed
+##  Less performant but fully functional for early testing
+
+sub p7_base_util_base32_encode {
+    my $input_bytes = shift;
+    return '' unless defined $input_bytes && length $input_bytes;
+
+    state $alphabet = join '', 'A' .. 'Z', '2' .. '7';
+
+    my $result         = '';
+    my $buffer         = 0;
+    my $bits_in_buffer = 0;
+
+    for my $byte ( unpack qw| C* |, $input_bytes ) {
+        $buffer = ( $buffer << 8 ) | $byte;
+        $bits_in_buffer += 8;
+
+        while ( $bits_in_buffer >= 5 ) {
+            $bits_in_buffer -= 5;
+            my $index = ( $buffer >> $bits_in_buffer ) & 0x1F;
+            $result .= substr $alphabet, $index, 1;
+        }
+    }
+
+    if ( $bits_in_buffer > 0 ) {
+        my $index = ( $buffer << ( 5 - $bits_in_buffer ) ) & 0x1F;
+        $result .= substr $alphabet, $index, 1;
+    }
+
+    ##  RFC 4648 base32 without padding [base32r variant]  ##
+    return $result;
+}
+
+##  Pure Perl implementation of base32 decoding [RFC 4648]
+##  Used as fallback when Crypt::Misc is not installed
+
+sub p7_base_util_base32_decode {
+    my $input_string = shift;
+    return '' unless defined $input_string && length $input_string;
+
+    my %alphabet
+        = map { substr( join( '', 'A' .. 'Z', '2' .. '7' ), $ARG, 1 ) => $ARG }
+        0 .. 31;
+
+    ##  RFC 4648 base32 without padding [base32r variant]  ##
+    ##  No padding removal needed  ##
+
+    my $result         = '';
+    my $buffer         = 0;
+    my $bits_in_buffer = 0;
+
+    for my $char ( split '', $input_string ) {
+        return undef unless exists $alphabet{$char};
+        my $value = $alphabet{$char};
+        $buffer = ( $buffer << 5 ) | $value;
+        $bits_in_buffer += 5;
+
+        if ( $bits_in_buffer >= 8 ) {
+            $bits_in_buffer -= 8;
+            $result .= chr( ( $buffer >> $bits_in_buffer ) & 0xFF );
+        }
+    }
+
+    return $result;
+}
+
+##############################################################################
+
+sub p7_load_B32_routines {    ## with pure Perl fallback
 
     if ( ( not defined &encode_b32r or not defined &decode_b32r )
         and not defined $data{'modules'}{'startup_error'}{'base32'} ) {
+
+        ##  Try to load optimized Crypt::Misc version first
+        ##
         eval { use Crypt::Misc qw| decode_b32r encode_b32r | };
-        if ( $EVAL_ERROR or not defined &encode_b32r ) {
-            $data{'modules'}{'startup_error'}{'base32'} = 1;
-            return FALSE;    # module not found ##
-        } else {
-            return TRUE;     ## loading successful ##
+
+        if ( not $EVAL_ERROR and defined &encode_b32r ) {
+            return TRUE;    ## Crypt::Misc loaded successfully ##
         }
+
+        ##  Fall back to pure Perl implementation
+        ##
+        *encode_b32r = \&p7_base_util_base32_encode;
+        *decode_b32r = \&p7_base_util_base32_decode;
+
+        $data{'modules'}{'startup_notice'}{'base32_fallback'} = TRUE
+            if defined &encode_b32r;
+
+        return TRUE;    ## Pure Perl fallback in use ##
+
     } else {
-        return TRUE;         ## function already present ##
+        return TRUE;    ## function already present ##
     }
 }
 
@@ -5225,8 +5308,8 @@ __DATA__
 :
 :.
 
-#,,,.,..,,,,,,.,.,,,.,,.,,.,,,.,,,.,,,.,.,.,,,..,,...,...,,,.,,,.,.,,,...,...,
-#K6QDQK654BVJCUKPSDNFTBDDDTNA2DGXNTRTKWGYAANPLHYJY2CFSACJMQMZSG7HHX3C47XGFJJQK
-#\\\|XBTKUI6IQUSLAHUWW4WAFCWQOYB6Y4FQZNR46CDN4K2OMONBBXQ \ / AMOS7 \ YOURUM ::
-#\[7]ZPHAMICEPRP3UNZIYE3WY5JJGZKEN3GVGE7XDRBAWEHJ3I55PUCI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,.,,.,.,.,,,..,,,,,,,.,,..,,.,.,..,,...,...,.,,,.,,,..,,,,.,,..,
+#UY2WHCMXSVSPEMZWEZGQBE7LFESVFQDZ47IWOHFWUPW5GMWQNP4Y2AUMUCEBC7MP7M57NIJQ6R4CC
+#\\\|DR3YMHRTAUMJOTL7D4QADLMA24LSOLSO7EFADPHFRME2XOIXBC2 \ / AMOS7 \ YOURUM ::
+#\[7]6WK7FGDBW6HVLRVGMLTRYIUYD5FPDUWNX3J5U6MOPKXFQCKD56BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
