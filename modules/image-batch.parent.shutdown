@@ -3,27 +3,29 @@
 # name = image-batch.parent.shutdown
 # descr = Graceful shutdown of worker pool with signal delivery
 
-<[base.perlmod.load]>->('JSON::XS', qw| encode_json |);
+<[base.perlmod.load]>->( 'JSON::XS', qw| encode_json | );
 
 my $batch_state = <image-batch.batch_state>;
-my $child_pids = $batch_state->{child_pids};
+my $child_pids  = $batch_state->{child_pids};
 
-return { success => FALSE, error => 'No batch_state available' } unless defined $batch_state;
-return { success => FALSE, error => 'No child_pids available' } unless defined $child_pids;
+return { success => FALSE, error => 'No batch_state available' }
+    unless defined $batch_state;
+return { success => FALSE, error => 'No child_pids available' }
+    unless defined $child_pids;
 
-my $shutdown_msg = encode_json({ cmd => 'shutdown' });
-my $sent_count = 0;
+my $shutdown_msg = encode_json( { cmd => 'shutdown' } );
+my $sent_count   = 0;
 my @closed_pipes;
 
 # Send shutdown signal to all active children
-foreach my $pid (keys %$child_pids) {
+foreach my $pid ( keys %$child_pids ) {
     my $child_info = $child_pids->{$pid};
     next unless defined $child_info->{parent_pipe};
 
     # Try to send shutdown command
     eval {
         my $pipe = $child_info->{parent_pipe};
-        if (defined $pipe && $pipe->opened) {
+        if ( defined $pipe && $pipe->opened ) {
             print {$pipe} "$shutdown_msg\n";
             $pipe->flush();
             $sent_count++;
@@ -31,27 +33,25 @@ foreach my $pid (keys %$child_pids) {
     };
 
     # Close the pipe regardless of error
-    if (defined $child_info->{parent_pipe}) {
-        eval {
-            close $child_info->{parent_pipe};
-        };
+    if ( defined $child_info->{parent_pipe} ) {
+        eval { close $child_info->{parent_pipe}; };
         push @closed_pipes, $pid;
     }
 }
 
 # Update batch state to indicate shutdown initiated
-$batch_state->{status} = 'shutting_down';
-$batch_state->{shutdown_initiated} = time();
+$batch_state->{status}             = 'shutting_down';
+$batch_state->{shutdown_initiated} = <[base.time]>->(3);
 
 return {
-    success => TRUE,
+    success       => TRUE,
     shutdown_sent => $sent_count,
-    pipes_closed => scalar(@closed_pipes),
-    message => "Shutdown signal sent to $sent_count children"
+    pipes_closed  => scalar(@closed_pipes),
+    message       => "Shutdown signal sent to $sent_count children"
 };
 
-#,,..,,,.,...,,..,.,,,,,.,.,.,,..,,.,,..,,...,..,,...,...,...,,,,,..,,,.,,,,.,
-#AMKRMZVMRJR4P5JBUIXDMLW367Y7OY6ZHCADMJXYNOL2HRE7TKHI23NDPOHC22F7BPZ3ULLFDYHBC
-#\\\|H73Q5VKMB2RJABL6JEVKUDDFROC6VGHRRTRYE4E3ZRXJMP5QBA7 \ / AMOS7 \ YOURUM ::
-#\[7]EVR5FUAPHLNSPZHUQMHRLPOKWNLMZTCJ3KMLIXPTWAKRNKW7HODI 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,...,.,.,.,,,,.,,..,,,,.,.,,,,.,,..,,...,...,..,,.,.,.,,,,..,.,,,
+#24HGQ5BZKVFGKWITBCAVROC7RF5V2J4XD77UK6ERYXVXZ44DTVBYXLZGGXERV6CC5O7NOXKBPKF7S
+#\\\|ABODTWF5B74SQMCVZPJCCTEY6HGHPZIBAPY34SBZOIGZ4AKTX5B \ / AMOS7 \ YOURUM ::
+#\[7]JGJWFE7O47W4KJUIXGPQBRUQ7A2VZXD3AJ2QQOMCUQBXFQBDZMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

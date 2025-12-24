@@ -9,7 +9,7 @@ my $modules_available = <image-batch.modules_available>;
 my $batch_id;
 
 # Try using Data::UUID first (module loaded at startup)
-if ($modules_available->{'Data::UUID'}) {
+if ( $modules_available->{'Data::UUID'} ) {
     eval {
         my $ug = Data::UUID->new();
         $batch_id = $ug->create_str();
@@ -17,23 +17,21 @@ if ($modules_available->{'Data::UUID'}) {
 }
 
 # If Data::UUID failed, try UUID::Tiny (module loaded at startup)
-if (!defined $batch_id && $modules_available->{'UUID::Tiny'}) {
-    eval {
-        $batch_id = create_uuid_as_string(UUID_V4());
-    };
+if ( !defined $batch_id && $modules_available->{'UUID::Tiny'} ) {
+    eval { $batch_id = create_uuid_as_string( UUID_V4() ); };
 }
 
 # If UUID libraries unavailable, create a simple deterministic ID
-if (!defined $batch_id) {
-    my $timestamp = time();
-    my $random = int(rand(999999));
-    $batch_id = sprintf('batch-%d-%06d', $timestamp, $random);
+if ( !defined $batch_id ) {
+    my $timestamp = int( <[base.time]>->(3) );
+    my $random    = int( rand(999999) );
+    $batch_id = sprintf( 'batch-%d-%06d', $timestamp, $random );
 }
 
 return { success => TRUE, batch_id => $batch_id };
 
-#,,..,...,,,.,,..,...,,..,,,,,.,.,.,.,...,,,,,..,,...,...,.,.,..,,,,.,,..,,,.,
-#OQ767PQWWX54TFGXHKYN3VXGYSQDXV43RX3FLEVVVNGHLFJVEPXCAPBHHTZSJLA52M6IJAQAAVYJM
-#\\\|ZB6AJXXUIWXCPQCHFWXTQIBOVTLLOKQKMIUC37NZQC7N7PZ2QCH \ / AMOS7 \ YOURUM ::
-#\[7]Z7AYH7STCR3ODWIJTD3UCPX46WHUUS7DPJYSJVRVHLJDVF2IYMDI 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,.,.,.,,,...,...,.,,,,.,,,.,,,.,,..,,...,...,.,,,,..,...,..,,.,,,
+#O5OBRU34BJEE6L67NCXPWMCB26T32T75WCHPWF7E5OXKXD752WZ2MHNDRPJGWSIZ7Y43QEYU7TCOS
+#\\\|ICTGVLRDFEEF3VIJDHSTTXFEBAVTERBRP4FSW5NWYEAZBTHGUYQ \ / AMOS7 \ YOURUM ::
+#\[7]5RVA5FZCOVI2TAU3NKTM3KXD6EX65LJCAK73PRQW7GFUV6P5BSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

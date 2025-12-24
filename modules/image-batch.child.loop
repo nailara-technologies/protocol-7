@@ -3,46 +3,47 @@
 # name = image-batch.child.loop
 # descr = Child worker event loop for job processing
 
-<[base.perlmod.load]>->('JSON::XS', qw| encode_json decode_json |);
-
 my $parent_pipe = <image-batch.child.parent_pipe>;
-my $worker_id = <image-batch.child.worker_id>;
+my $worker_id   = <image-batch.child.worker_id>;
 
-return { success => FALSE, error => 'Parent pipe not initialized' } unless defined $parent_pipe;
+return { success => FALSE, error => 'Parent pipe not initialized' }
+    unless defined $parent_pipe;
 
 # Set autoflush for pipe
 $parent_pipe->autoflush(1);
 
 # Send ready signal to parent
-my $ready_msg = encode_json({ cmd => 'ready', worker_id => $worker_id });
+my $ready_msg = encode_json( { cmd => 'ready', worker_id => $worker_id } );
 print {$parent_pipe} "$ready_msg\n";
 
 # Event loop: wait for jobs from parent
 while (1) {
+
     # Read JSON command from parent
     my $line = <$parent_pipe>;
-    last unless defined $line;  # Parent pipe closed
+    last unless defined $line;    # Parent pipe closed
 
     chomp $line;
 
     # Parse JSON command
     my $job;
-    eval {
-        $job = decode_json($line);
-    };
+    eval { $job = decode_json($line); };
 
     if ($@) {
+
         # Invalid JSON, send error and continue
-        my $error_response = encode_json({
-            cmd => 'error',
-            error => "Failed to parse JSON: $@"
-        });
+        my $error_response = encode_json(
+            {   cmd   => 'error',
+                error => "Failed to parse JSON: $@"
+            }
+        );
         print {$parent_pipe} "$error_response\n";
         next;
     }
 
     # Check command type
-    if ($job->{cmd} eq 'analyze') {
+    if ( $job->{cmd} eq 'analyze' ) {
+
         # Process image analysis job
         my $result = <[image-batch.child.analyze_job]>->($job);
 
@@ -53,16 +54,19 @@ while (1) {
         # Send ready signal for next job
         print {$parent_pipe} "$ready_msg\n";
 
-    } elsif ($job->{cmd} eq 'shutdown') {
+    } elsif ( $job->{cmd} eq 'shutdown' ) {
+
         # Parent signaled shutdown
         last;
 
     } else {
+
         # Unknown command
-        my $error_response = encode_json({
-            cmd => 'error',
-            error => "Unknown command: $job->{cmd}"
-        });
+        my $error_response = encode_json(
+            {   cmd   => 'error',
+                error => "Unknown command: $job->{cmd}"
+            }
+        );
         print {$parent_pipe} "$error_response\n";
     }
 }
@@ -71,8 +75,8 @@ while (1) {
 close $parent_pipe;
 return TRUE;
 
-#,,..,.,,,,..,,,.,.,.,,,,,,.,,,,.,.,.,,,,,,..,..,,...,...,..,,,..,.,.,,,.,.,,,
-#TSVAEHVRWJ4BV5YXGYQPJBUE3JMX4YSKB7FJEX25FZ5XTCQLZS3RXXFE6NTFA2SBFY5TBSX3PDNRM
-#\\\|FEBLZGFFP5EB5N23DEWPB2NK7K4VHOCXTVQICKKVRTQGTVJYZGZ \ / AMOS7 \ YOURUM ::
-#\[7]DYX27PDNMHNKQOCFW3TZU4K6MMCQ5DRODOUVSPN3Q3DRSSMKTYCY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,,,...,..,,..,,.,.,,,,,.,,,...,..,,...,...,.,.,..,,,..,.,.,,.,,
+#XAQVHZJYV77BO2P4DVEEK3HRRMAWXOSYUQDAZCTC2MEXWDW2SKI7QSGAG6NO7J6ZVU4F2V72SQU4O
+#\\\|L5GDJB3NB6TXB2R2C3BYN5C6NNUJDBPDZAXTK2EWB6YG2GFDMPH \ / AMOS7 \ YOURUM ::
+#\[7]Q46GHY37QLYX43ZB7UB7ZWRVA5KXAWXDC6MFBSVD55MFQLHUSIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

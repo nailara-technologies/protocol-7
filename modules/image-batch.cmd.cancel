@@ -29,7 +29,7 @@ my $shutdown_result = <[image-batch.parent.shutdown]>;
 
 if ( $shutdown_result->{success} ) {
     $batch_state->{status}       = 'cancelled';
-    $batch_state->{cancelled_at} = time();
+    $batch_state->{cancelled_at} = <[base.time]>->(3);
 
     # Return as YAML string for human-readable output
     <[base.perlmod.load]>->( 'YAML::XS', qw| Dump | );
@@ -48,8 +48,8 @@ if ( $shutdown_result->{success} ) {
     return { 'mode' => qw| false |, 'data' => $shutdown_result->{error} };
 }
 
-#,,.,,.,,,.,.,,.,,.,,,.,,,,..,,,,,,..,,..,,.,,..,,...,...,,.,,,..,,,,,.,.,,..,
-#6HT2SNFYNGATFHXEQG362RBOLBIH4PKOLTLK6J5OXAYDOYJTZO42Q2TMRCFFHDDN7SPNICW3A2H2K
-#\\\|24BRY2LBQRHJHH4VCDHKV3NMFVICB3N54DKN3UIHUYTKKGGZQ7Y \ / AMOS7 \ YOURUM ::
-#\[7]ER25SBC33PAUFBRI5TZNBTO7QE27YAEJ45CLNR3ASEFD4YYBXODA 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,,,,,,,,,,,,.,,,.,.,..,,,,.,,..,..,,...,...,.,.,.,,,,,.,...,,.,,
+#6LLNAGSSNOKDS23CF4CQBM4BQSMEZ2GZ3LLRGIT63V6SOIV7QU7KV7YIMG5QPNNFLKTYA7WEK7PIA
+#\\\|DHFKP34GKCGOI4OLNRJOYQIP463UI6VS425EPKQOLCNJNVHMEIR \ / AMOS7 \ YOURUM ::
+#\[7]K7KJ4ZXHLT666DDXRBQZISK2IICPPIS3HF67B3RJV6G6NXQLQAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

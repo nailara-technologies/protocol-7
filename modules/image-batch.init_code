@@ -3,6 +3,9 @@
 # name = image-batch.init_code
 # descr = Image batch orchestrator initialization with infrastructure
 
+## Initialize zenka directory paths for persistent storage
+<[base.path-set-up.check-zenka-paths]>->(TRUE);
+
 ## Initialize data structures for batch processing with zenka namespace to avoid collisions
 
 ## Batch queue: tracks images and their analysis status
@@ -10,11 +13,23 @@
 
 ## Batch state: overall batch progress and statistics
 <image-batch.batch_state> = {
-    batch_id => '',
-    status => 'idle',
-    timestamps => { created => 0, started => 0, last_update => 0, completed => 0 },
-    statistics => { total_images => 0, analyzed => 0, pending => 0, failed => 0, quality_distribution => {} },
-    current_operation => { image_path => '', stage => '', progress_percent => 0, child_pids => [] }
+    batch_id   => '',
+    status     => 'idle',
+    timestamps =>
+        { created => 0, started => 0, last_update => 0, completed => 0 },
+    statistics => {
+        total_images         => 0,
+        analyzed             => 0,
+        pending              => 0,
+        failed               => 0,
+        quality_distribution => {}
+    },
+    current_operation => {
+        image_path       => '',
+        stage            => '',
+        progress_percent => 0,
+        child_pids       => []
+    }
 };
 
 ## Child process tracking: maps PID to job information
@@ -32,34 +47,36 @@
 ## Load Perl modules at startup time using base.perlmod.autoload
 ## Modules are automatically registered in <base.perlmod.loaded> on success
 ## Socket, IO::Handle, IO::AIO are already loaded by Protocol-7
-map { <[base.perlmod.autoload]>->( $ARG ) } qw| Data::UUID JSON::XS YAML::XS |;
+map { <[base.perlmod.autoload]>->($ARG) } qw| Data::UUID JSON::XS YAML::XS |;
 
 ## Define list structures for observability
 
 ## List: batch_state - shows current batch status
 <list.batch_state> = {
-    'var'   => 'data',
-    'key'   => 'batch_state',
-    'mask'  => 'batch_id:id status:state analyzed:count pending:count failed:count',
+    'var'  => 'data',
+    'key'  => 'batch_state',
+    'mask' =>
+        'batch_id:id status:state analyzed:count pending:count failed:count',
     'descr' => '[operations] active batch status'
 };
 
 ## List: job_queue - shows all jobs and their status
 <list.job_queue> = {
-    'var'   => 'data',
-    'key'   => 'batch_queue',
-    'mask'  => 'image_path:file status:state grade:letter rule_applied:action result:ok',
+    'var'  => 'data',
+    'key'  => 'batch_queue',
+    'mask' =>
+        'image_path:file status:state grade:letter rule_applied:action result:ok',
     'descr' => '[operations] job queue and results'
 };
 
 ## List: operation_log - shows major batch milestones
 <list.operation_log> = {
-    'var'   => 'data',
-    'key'   => 'operation_log',
-    'mask'  => 'timestamp:time action:op image:file status:state',
-    'align' => {},
+    'var'     => 'data',
+    'key'     => 'operation_log',
+    'mask'    => 'timestamp:time action:op image:file status:state',
+    'align'   => {},
     'filters' => {},
-    'descr' => '[operations] major milestones'
+    'descr'   => '[operations] major milestones'
 };
 
 ## List: error_log - shows failed operations
@@ -80,8 +97,8 @@ map { <[base.perlmod.autoload]>->( $ARG ) } qw| Data::UUID JSON::XS YAML::XS |;
 
 return TRUE;
 
-#,,,,,..,,.,.,,,.,,..,,,,,,..,,.,,,..,.,,,.,.,..,,...,...,...,.,,,,,,,,.,,,,.,
-#KOPXA6QJD3YACONHM4IDGE2Y3U3BY2Q2HPZK5HEQF5PT7FQMYMIRXH65DOOZYJ5AJA46P6GPJ2TQS
-#\\\|RZDMB6A4KSYI2NYWVXM5FHOOYI3YCWIUVA3RC5FBYSFBIENYREP \ / AMOS7 \ YOURUM ::
-#\[7]3HLT7QDVEFBGW2RUXKLOVDG4PWM67XUDSBJHNNRHRTKQDGNVQOCI 7  DATA SIGNATURE ::
+#,,.,,,,,,...,..,,..,,.,.,..,,..,,,.,,.,.,...,..,,...,...,.,.,..,,..,,...,,,.,
+#BOAHQXCYEG2WLVWU7K24WZRGZI462EAJS64OT4R7XW6JMYR3FBWYPZPUJWDCBXUIZLCEHD2TDA57E
+#\\\|BKRL26BJ75MQVOALB4MI6XQLNGBE4SIGAKFBIGULGUBM7IGBTFN \ / AMOS7 \ YOURUM ::
+#\[7]QQSJMT6I7YQFAE23BBTI5K43JJCFOHDM2AAFYMNVJT6AIFYDMUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

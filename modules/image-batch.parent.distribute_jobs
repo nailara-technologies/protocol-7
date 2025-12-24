@@ -3,21 +3,23 @@
 # name = image-batch.parent.distribute_jobs
 # descr = Distribute jobs from queue to available children
 
-<[base.perlmod.load]>->('JSON::XS', qw| encode_json |);
+my $pid = shift;    # The child PID that is ready for work
 
-my $pid = shift;  # The child PID that is ready for work
-
-return { success => FALSE, error => 'Child PID required' } unless defined $pid;
+return { success => FALSE, error => 'Child PID required' }
+    unless defined $pid;
 
 my $batch_state = <image-batch.batch_state>;
 my $batch_queue = <image-batch.batch_queue>;
-my $child_pids = $batch_state->{child_pids};
+my $child_pids  = $batch_state->{child_pids};
 
-return { success => FALSE, error => 'No batch_state available' } unless defined $batch_state;
-return { success => FALSE, error => 'No child_pids available' } unless defined $child_pids;
+return { success => FALSE, error => 'No batch_state available' }
+    unless defined $batch_state;
+return { success => FALSE, error => 'No child_pids available' }
+    unless defined $child_pids;
 
 my $child_info = $child_pids->{$pid};
-return { success => FALSE, error => "Child PID $pid not found in tracking" } unless defined $child_info;
+return { success => FALSE, error => "Child PID $pid not found in tracking" }
+    unless defined $child_info;
 
 # Mark child as ready
 $child_info->{status} = 'ready';
@@ -26,31 +28,39 @@ delete $child_info->{current_job_id};
 # Find next queued job
 my $next_job;
 foreach my $job (@$batch_queue) {
-    if ($job->{status} eq 'queued') {
+    if ( $job->{status} eq 'queued' ) {
         $next_job = $job;
         last;
     }
 }
 
 # If no job available, just return
-return { success => TRUE, message => 'Child marked ready, no jobs available' } unless defined $next_job;
+return {
+    success => TRUE,
+    message => 'Child marked ready, no jobs available'
+    }
+    unless defined $next_job;
 
 # Prepare job for dispatch
-my $job_msg = encode_json({
-    cmd => 'analyze',
-    job_id => $next_job->{job_id},
-    image_path => $next_job->{image_path}
-});
+my $job_msg = encode_json(
+    {   cmd        => 'analyze',
+        job_id     => $next_job->{job_id},
+        image_path => $next_job->{image_path}
+    }
+);
 
 # Send job to child
 my $pipe = $child_info->{parent_pipe};
 
 eval {
-    if (defined $pipe && $pipe->opened) {
+    if ( defined $pipe && $pipe->opened ) {
         print {$pipe} "$job_msg\n";
         $pipe->flush();
     } else {
-        return { success => FALSE, error => "Child pipe closed for PID $pid" };
+        return {
+            success => FALSE,
+            error   => "Child pipe closed for PID $pid"
+        };
     }
 };
 
@@ -59,26 +69,26 @@ if ($@) {
 }
 
 # Update job and child tracking
-$next_job->{status} = 'processing';
+$next_job->{status}          = 'processing';
 $next_job->{assigned_to_pid} = $pid;
-$next_job->{assigned_at} = time();
+$next_job->{assigned_at}     = <[base.time]>->(3);
 
-$child_info->{status} = 'busy';
+$child_info->{status}         = 'busy';
 $child_info->{current_job_id} = $next_job->{job_id};
 
 # Update statistics
 $batch_state->{statistics}->{processing}++;
 
 return {
-    success => TRUE,
-    job_id => $next_job->{job_id},
-    image_path => $next_job->{image_path},
+    success         => TRUE,
+    job_id          => $next_job->{job_id},
+    image_path      => $next_job->{image_path},
     assigned_to_pid => $pid,
-    message => "Job assigned to child process"
+    message         => "Job assigned to child process"
 };
 
-#,,,.,,.,,,..,,.,,..,,...,,.,,,..,..,,,.,,...,..,,...,...,...,,.,,...,,,,,,.,,
-#6WNSUHP73EDSDYVTWVSSOFMYGJPGGTZZSKNRN4VOCSZ7ABZIZVQX5XXTPUTLZ2U5FJJEF35WMBKUQ
-#\\\|RV4BQEYTONWJGHTJUJUDW3PN42IQWCPNJPNFYEGUNPBKX4U3RJT \ / AMOS7 \ YOURUM ::
-#\[7]UU6HVNRN4HZYSS25FRM6DP2NNH226DUAYXSFUCIOVDRIFEDXHWBI 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,,,,,,,.,.,.,...,...,...,,,,,,.,,..,,...,...,...,...,,,,,,..,.,,,
+#D5EDTQJCCWQBD4OZVHG7RDPM26LLFEWTYQUK2K5CXQINY4MV5IDHYIMQGCJEX5NJCWFXHFC7HXIAM
+#\\\|EHFGG723QGKP2FYAGZIUDBIEFSKETFF7PMHX4WYYBRDAZK247JL \ / AMOS7 \ YOURUM ::
+#\[7]6SY37T6CUUH2WJJYWHLBQVT5MCADVXEZCZ6ONJ5GWA46V2JECAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

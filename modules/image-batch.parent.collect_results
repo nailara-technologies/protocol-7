@@ -3,45 +3,37 @@
 # name = image-batch.parent.collect_results
 # descr = Collect and process results from child workers
 
-<[base.perlmod.load]>->('JSON::XS', qw| decode_json |);
-
-my $result_line = shift;
+my $pid = shift;
+my $msg = shift;
 
 # Validate input
-return { success => FALSE, error => 'Result line required' } unless defined $result_line;
-return { success => FALSE, error => 'Result line cannot be empty' } if $result_line eq '';
+return { success => FALSE, error => 'Message required' } unless defined $msg;
+return { success => FALSE, error => 'Message must be a hash' }
+    unless ref $msg eq 'HASH';
 
-# Parse JSON result
-my $result;
-eval {
-    $result = decode_json($result_line);
-};
+my $result = $msg;
 
-if ($@) {
-    return { success => FALSE, error => "Failed to parse result JSON: $@" };
-}
-
-# Validate result structure
-return { success => FALSE, error => 'Result must have job_id' } unless exists $result->{job_id};
-
-my $batch_state = <image-batch.batch_state>;
-my $batch_queue = <image-batch.batch_queue>;
+my $batch_state   = <image-batch.batch_state>;
+my $batch_queue   = <image-batch.batch_queue>;
 my $operation_log = <image-batch.operation_log>;
-my $error_log = <image-batch.error_log>;
+my $error_log     = <image-batch.error_log>;
 
-return { success => FALSE, error => 'No batch_state available' } unless defined $batch_state;
-return { success => FALSE, error => 'No batch_queue available' } unless defined $batch_queue;
+return { success => FALSE, error => 'No batch_state available' }
+    unless defined $batch_state;
+return { success => FALSE, error => 'No batch_queue available' }
+    unless defined $batch_queue;
 
 my $job_id = $result->{job_id};
-my $stats = $batch_state->{statistics};
+my $stats  = $batch_state->{statistics};
 
 # Find job in queue and update it
 my $job_found = 0;
 foreach my $job (@$batch_queue) {
-    if ($job->{job_id} eq $job_id) {
+    if ( $job->{job_id} eq $job_id ) {
         $job_found = 1;
 
-        if ($result->{success}) {
+        if ( $result->{success} ) {
+
             # Successful analysis
             $job->{status} = 'completed';
             $job->{result} = $result;
@@ -49,17 +41,18 @@ foreach my $job (@$batch_queue) {
             $stats->{processed}++;
 
             # Log to operation_log
-            push @$operation_log, {
-                job_id => $job_id,
+            push @$operation_log,
+                {
+                job_id     => $job_id,
                 image_path => $job->{image_path},
-                success => TRUE,
-                metrics => $result->{metrics},
-                grade => $result->{metrics}->{overall_grade} // 'unknown',
+                success    => TRUE,
+                metrics    => $result->{metrics},
+                grade    => $result->{metrics}->{overall_grade} // 'unknown',
                 duration => $result->{duration_ms},
                 model_used => $result->{model_used},
-                method => $result->{method},
-                timestamp => time()
-            };
+                method     => $result->{method},
+                timestamp  => <[base.time]>->(3)
+                };
 
             # Update quality distribution histogram
             my $grade = $result->{metrics}->{overall_grade} // 'unknown';
@@ -69,20 +62,22 @@ foreach my $job (@$batch_queue) {
             $stats->{total_duration_ms} += $result->{duration_ms} // 0;
 
         } else {
+
             # Failed analysis
             $job->{status} = 'failed';
-            $job->{error} = $result->{error} // 'Unknown error';
+            $job->{error}  = $result->{error} // 'Unknown error';
             $stats->{failed}++;
             $stats->{processed}++;
 
             # Log to error_log
-            push @$error_log, {
-                job_id => $job_id,
+            push @$error_log,
+                {
+                job_id     => $job_id,
                 image_path => $job->{image_path},
-                error => $result->{error},
-                timestamp => time(),
-                type => 'analysis_failure'
-            };
+                error      => $result->{error},
+                timestamp  => <[base.time]>->(3),
+                type       => 'analysis_failure'
+                };
         }
 
         last;
@@ -91,17 +86,19 @@ foreach my $job (@$batch_queue) {
 
 return {
     success => $job_found,
-    job_id => $job_id,
-    message => $job_found ? "Result processed for job $job_id" : "Job $job_id not found in queue",
+    job_id  => $job_id,
+    message => $job_found
+    ? "Result processed for job $job_id"
+    : "Job $job_id not found in queue",
     stats_updated => {
         processed => $stats->{processed},
         completed => $stats->{completed},
-        failed => $stats->{failed}
+        failed    => $stats->{failed}
     }
 };
 
-#,,,.,...,..,,.,.,.,,,.,.,,..,.,.,.,.,,,.,,,.,..,,...,...,..,,,..,,,,,.,.,,,,,
-#AAEODKOFNYXYAHLAOLAKW55ZQTJMSG5ZJR2TQSUQUZU5G24IEF7VRR2CSGWLV5EUDQ2ET3GNK73X6
-#\\\|FGR6ZFLX2GYN2B4WSMTXECJCLEHIEFILTC7DLJLXNSAVJXN3YXF \ / AMOS7 \ YOURUM ::
-#\[7]7N7GLQ72BGEQP5PODEJVS4KM5B23SZYBXE3JHNH7HFYJ7RDSCECQ 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,,,,,.,,,.,,,..,.,,,,..,,..,,,.,..,,...,...,,.,,,..,,,.,,..,,,.,
+#GHWY2WR6YI62JMCSIZ7BS4LHWEEMXJCUBBQQICJYRYVWX3Y6JVCW2VPPPQIH2WAI2QTE6CIEFOCOU
+#\\\|76XIAWIS7HEOT27XJEBSFXNJJWSQOB62UWBWAH7LXOF5TLKQRZN \ / AMOS7 \ YOURUM ::
+#\[7]FFS62D2DTVLUP574PWTYGVXRPMPSAKEPU2J7VKAD42N6XUVBHWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

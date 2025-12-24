@@ -15,9 +15,9 @@ return { success => FALSE, error => "YAML file not found: $yaml_path" }
 my $spec_result = <[image-batch.load_yaml_spec]>->($yaml_path);
 return $spec_result unless $spec_result->{success};
 
-my $spec        = $spec_result->{spec};
+my $spec = $spec_result->{batch_name} ? $spec_result : $spec_result->{spec};
 my $concurrency = $spec->{concurrency} // 4;
-my $image_paths = $spec->{image_paths};
+my $image_paths = $spec->{images};
 my $batch_name  = $spec->{batch_name} // 'Untitled Batch';
 
 # Generate unique batch ID
@@ -27,7 +27,7 @@ return $batch_id_result unless $batch_id_result->{success};
 my $batch_id = $batch_id_result->{batch_id};
 
 # Initialize batch_state with proper persistence
-<image-batch.batch_state> //= {
+<image-batch.batch_state> = {
     batch_id     => $batch_id,
     batch_name   => $batch_name,
     status       => qw| initializing |,
@@ -47,31 +47,26 @@ my $batch_id = $batch_id_result->{batch_id};
 
 my $batch_state = <image-batch.batch_state>;
 
-# Initialize batch_queue with proper persistence
-<image-batch.batch_queue> //= [];
+# Initialize batch_queue with proper persistence (reset for new batch)
+<image-batch.batch_queue> = [];
 
 my $batch_queue = <image-batch.batch_queue>;
 
-if ( !defined $batch_queue || @$batch_queue == 0 ) {
+# Populate job queue from image paths
+foreach my $image_path (@$image_paths) {
+    my $job_id
+        = 'job_' . substr( $batch_id, 0, 8 ) . '_' . scalar(@$batch_queue);
 
-    # Populate job queue from image paths
-    foreach my $image_path (@$image_paths) {
-        my $job_id
-            = 'job_'
-            . substr( $batch_id, 0, 8 ) . '_'
-            . scalar(@$batch_queue);
-
-        push @$batch_queue,
-            {
-            job_id          => $job_id,
-            image_path      => $image_path,
-            status          => qw| queued |,
-            queued_at       => <[base.time]>->(3),
-            assigned_to_pid => undef,
-            result          => undef,
-            error           => undef
-            };
-    }
+    push @$batch_queue,
+        {
+        job_id          => $job_id,
+        image_path      => $image_path,
+        status          => qw| queued |,
+        queued_at       => <[base.time]>->(3),
+        assigned_to_pid => undef,
+        result          => undef,
+        error           => undef
+        };
 }
 
 # Initialize operation_log and error_log with proper persistence
@@ -97,9 +92,47 @@ unless ( $fork_result->{success} ) {
     };
 }
 
+# Set extended idle timeout to keep zenka alive during batch processing
+<[base.zenki.set_ondemand_timeout]>->(600)
+    ;    # 10 minutes to handle typical batch processing + status checks
+
 # Update batch state to running
 $batch_state->{status}          = qw| running |;
 $batch_state->{workers_spawned} = $fork_result->{forked_count};
+
+# Persist complete batch state (including queue) to disk for access across command invocations
+<[base.perlmod.load]>->( 'JSON::XS', qw| encode_json | );
+
+# Create serializable copy of batch state (excluding file handles in child_pids)
+my $persist_data = {
+    batch_id        => $batch_state->{batch_id},
+    batch_name      => $batch_state->{batch_name},
+    status          => $batch_state->{status},
+    started_at      => $batch_state->{started_at},
+    concurrency     => $batch_state->{concurrency},
+    total_images    => $batch_state->{total_images},
+    workers_spawned => $batch_state->{workers_spawned},
+    statistics      => $batch_state->{statistics},
+    batch_queue     => $batch_queue
+
+# Note: child_pids excluded because it contains file handles that can't be JSON encoded
+};
+
+my $batch_file_path    = "$batch_id.json";
+my $batch_file_content = encode_json($persist_data);
+
+# Use Protocol-7 file.zenka_dir.write for proper error handling and permissions
+# (zenka name is automatically prepended to /var/protocol-7/image-batch/)
+if (<[file.zenka_dir.write]>->(
+        $batch_file_path, \$batch_file_content, undef, 0660
+    )
+) {
+    <[base.log]>->( 2, "Batch state persisted: $batch_file_path" );
+} else {
+    <[base.log]>->(
+        1, "WARNING: Failed to persist batch state to $batch_file_path"
+    );
+}
 
 # Return immediately with batch_id (non-blocking)
 return {
@@ -115,8 +148,8 @@ return {
     )
 };
 
-#,,..,,.,,.,,,.,,,,.,,...,,..,,,.,..,,,..,...,..,,...,..,,...,,..,,..,,.,,..,,
-#6ODJKDHNJ5P2V6HR7LLD5HQUNCQTI66HURTWYNITQWHL7VFIXEJ3TJPC7VRMDBMH3STLPQ5FLMKK6
-#\\\|NQ6H27ROZVLTJ2UPG5DZ2XAMGJEHUHYRY7VQN77BOLNL3CSXTA2 \ / AMOS7 \ YOURUM ::
-#\[7]6YCAO4WPDPOWPSVC4CUZAJWSZTSMLRG5USTHCMW4YUWKTGGRESAQ 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,.,,.,.,,.,,,.,,.,,,,,,,,,,,,,.,..,,...,...,.,.,,.,,,.,,,.,,.,,,
+#SUBDFPJJIUAES3INPZIVHI2L4GDD2AVTDZZPXB7WPYZM7GKHUPECRMA5EROHF7TKYIBMALXDICSCY
+#\\\|YFRX3O3QTQSZTMACFGO3JOBMSW4P6ABB4OVQGPJSMP5WMPA5K6R \ / AMOS7 \ YOURUM ::
+#\[7]FXCILNKQN6Q56T4R7GX6RMWEXE4AXWUSGIWQBL5RBIXDMI75Y6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
