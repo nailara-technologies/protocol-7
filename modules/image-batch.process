@@ -92,6 +92,16 @@ unless ( $fork_result->{success} ) {
     };
 }
 
+# Pump event loop to process initial ready messages from children
+# Each child sends 'ready' message when it starts, allowing parent to distribute jobs
+my $child_pids = $batch_state->{child_pids};
+for ( my $i = 0; $i < 50; $i++ ) {
+    <[event.once]>->(0.02);    # 20ms timeout to process events
+}
+
+# Note: Children may still be in 'spawned' state if slow to start, but will transition
+# to 'ready' as event loop continues to run during normal operations
+
 # Update batch state to running
 $batch_state->{status}          = qw| running |;
 $batch_state->{workers_spawned} = $fork_result->{forked_count};
@@ -144,8 +154,8 @@ return {
     )
 };
 
-#,,.,,,,.,.,.,.,,,...,,..,,..,...,,,,,,,,,.,.,..,,...,.,,,.,,,,.,,..,,,,.,.,,,
-#YKLGF567WKDGHSLFOTF3TA6N4MKYWRBEPYRL4RD5K63SCFOFWINAPR2OS45DH3DBPYWEUVCMVSVL6
-#\\\|7GQYIAQIWDXLOF7KYJK7V4MG6TNNVXSDAO4IBIODZMCVVMR6PNJ \ / AMOS7 \ YOURUM ::
-#\[7]XXY6PMJZOOEHOUUOJ3HB2EXH6EKB6HYZDXJO4IRUCFTLYYVX2GDQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,...,,,.,.,.,.,.,.,,,...,..,,,..,..,,...,...,..,,...,,,.,.,,,,,.,
+#LYOCGARINMTFIQVCQLBQN2HFHC3VFBMLZNTBQUVSKXAZVZVYP73MHTELUD6M6CY5FTI7R2GOLC3KU
+#\\\|VFFPJJE3TLDJDYPMDLAOKH2IDJMNIUXLPHVPOOIFHVQYAUCP2KE \ / AMOS7 \ YOURUM ::
+#\[7]SP3RT5TYRG6VMXTHWZP6QXVRF2YDSGW2HE75YGF63IMLFIOKYMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
