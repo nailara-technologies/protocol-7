@@ -1,0 +1,92 @@
+## [:< ##
+
+# name = image-batch.parent.fork_child
+# descr = Fork single child process for blocking image analysis operations
+
+use Socket;
+
+( my $session_id ) = keys <user.cube.session>->%*;
+
+<image-batch.pipe> = { 'child' => {}, 'parent' => {} };
+
+<[base.log]>->( 1, 'forking image-batch child.,' );
+
+socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
+    || die "can't create socketpair. [ \l$OS_ERROR ]";
+map { $data{'handle'}{$ARG}{'link'} = qw| ipc.pipe | }
+    ( $child_pipe, $parent_pipe );
+
+<[event.add_signal]>->(
+    { 'signal' => 'CHLD', 'handler' => qw| base.handler.sig_chld.shutdown | }
+);
+
+<image-batch.child.pid> = <[base.fork]>;
+
+if ( !<image-batch.child.pid> ) {
+
+    # CHILD PROCESS
+
+    close($child_pipe);
+    delete <image-batch.pipe.child> if exists <image-batch.pipe.child>;
+
+    # Reinitialize IO::AIO after fork
+    IO::AIO::reinit();
+
+    <image-batch.pipe.parent> = $parent_pipe;
+    <log.file.system.retry_timer>->cancel
+        if exists <log.file.system.retry_timer>;
+
+    my $subname = <system.zenka.subname>;
+    my $sn_str  = defined $subname ? ':' . $subname : '';
+    <system.zenka.subname> = sprintf 'child%s', $sn_str;
+    $PROGRAM_NAME = sprintf '%s[child%s]', <system.zenka.name>, $sn_str;
+
+    # Mark parent session for shutdown when child closes
+    $data{'session'}{$session_id}{'shutdown'} = 1;
+
+    # Initialize Protocol-7 session over socketpair
+    $data{'handle'}{$parent_pipe}{'mode'} = qw| out |;
+    my $id = <[base.session.init]>->(
+        $parent_pipe, qw| protocol-7 client parent |
+    );
+
+    # Set command handler so child can receive and execute Protocol-7 commands
+    $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
+
+    <[base.log]>->( 1, 'preparing to close cube session of child .,' );
+
+    # Load and initialize child-specific modules
+    <[base.load_modules]>->('image-batch.child');
+    <[base.init_modules]>->('image-batch.child');
+
+} else {
+
+    # PARENT PROCESS
+
+    close($parent_pipe);
+    delete <image-batch.pipe.parent> if exists <image-batch.pipe.parent>;
+    <image-batch.pipe.child> = $child_pipe;
+
+    # Load parent-specific modules
+    <[base.load_modules]>->('image-batch.parent');
+    <[base.init_modules]>->('image-batch.parent');
+
+    # Initialize Protocol-7 session over socketpair
+    $data{'handle'}{$child_pipe}{'mode'} = qw| out |;
+    my $id = <[base.session.init]>
+        ->( $child_pipe, qw| protocol-7 client child | );
+
+    # Set command handler so parent can send commands and receive replies
+    $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
+
+    # Store child process and session info
+    <image-batch.child.session_id> = $id;
+
+    <[base.log]>->( 1, 'child process forked and ready for commands.,' );
+}
+
+#,,.,,.,.,,..,...,...,.,,,,.,,.,.,...,..,,.,.,..,,...,...,...,.,.,,..,,..,,,,,
+#DRWN3WRJHEZ5X6UEURZOWTMRUK4LOGOYG3HHQA4GUH6OLKRRLDQBM7RKBLKWTYRTNV4NTIGOIQCQE
+#\\\|BYVPH7G2UU2O6DU5VV6PLLG72XSMRNUUFHDTAOEV3DMKZ3EKBVL \ / AMOS7 \ YOURUM ::
+#\[7]W3YVV534SVVTGWT2RZ5MSC3GKX6ISCCXNDIRQREAYSPI5IORFSDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name = image-batch.process
-# descr = Placeholder for batch processing orchestrator - to be implemented in Phase 3
+# descr = Batch processing orchestrator using jobqueue for concurrency control
 
 my $yaml_path = shift;
 
@@ -16,7 +16,6 @@ my $spec_result = <[image-batch.load_yaml_spec]>->($yaml_path);
 return $spec_result unless $spec_result->{success};
 
 my $spec = $spec_result->{batch_name} ? $spec_result : $spec_result->{spec};
-my $concurrency = $spec->{concurrency} // 4;
 my $image_paths = $spec->{images};
 my $batch_name  = $spec->{batch_name} // 'Untitled Batch';
 
@@ -26,165 +25,134 @@ return $batch_id_result unless $batch_id_result->{success};
 
 my $batch_id = $batch_id_result->{batch_id};
 
-# Initialize batch_state with proper persistence
+# Initialize batch_state with simplified structure (no child_pids array)
 <image-batch.batch_state> = {
     batch_id     => $batch_id,
     batch_name   => $batch_name,
     status       => qw| initializing |,
     started_at   => <[base.time]>->(3),
-    concurrency  => $concurrency,
     total_images => scalar(@$image_paths),
-    child_pids   => {},
     statistics   => {
-        processed          => 0,
         completed          => 0,
         failed             => 0,
-        processing         => 0,
-        total_duration_ms  => 0,
         grade_distribution => {}
     }
 };
 
 my $batch_state = <image-batch.batch_state>;
 
-# Initialize batch_queue with proper persistence [reset for new batch]
-<image-batch.batch_queue> = [];
-
-my $batch_queue = <image-batch.batch_queue>;
-
-# Populate job queue from image paths
+# Populate jobqueue with all image analysis tasks
+# jobqueue handles concurrency and job state management
 foreach my $image_path (@$image_paths) {
     my $job_id
-        = 'job_' . substr( $batch_id, 0, 8 ) . '_' . scalar(@$batch_queue);
+        = 'job_' . substr( $batch_id, 0, 8 ) . '_' . <[jobqueue.count]>;
 
-    push @$batch_queue,
-        {
-        job_id          => $job_id,
-        image_path      => $image_path,
-        status          => qw| queued |,
-        queued_at       => <[base.time]>->(3),
-        assigned_to_pid => undef,
-        result          => undef,
-        error           => undef
-        };
-}
-
-# Initialize operation_log and error_log with proper persistence
-<image-batch.operation_log> //= [];
-<image-batch.error_log>     //= [];
-
-# Fork worker pool
-my $fork_result = <[image-batch.parent.fork_children]>->($concurrency);
-
-unless ( $fork_result->{success} ) {
-    my $error_msg = '';
-    if ( defined $fork_result->{error} ) {
-        $error_msg = $fork_result->{error};
-    } elsif ( defined $fork_result->{message} ) {
-        $error_msg = $fork_result->{message};
-    } else {
-        $error_msg = 'Unknown fork error (no error/message provided)';
-    }
-    return {
-        success => FALSE,
-        error   => "Failed to fork worker processes: $error_msg",
-        forked  => $fork_result->{forked_count} // 0
-    };
-}
-
-# Update batch state to running
-# Note: Parent zenka's main event loop will handle
-#          processing child messages automatically
-$batch_state->{status}          = qw| running |;
-$batch_state->{workers_spawned} = $fork_result->{forked_count};
-
-# Distribute initial jobs to all children
-# Each forked child is ready to receive its first job
-my $child_pids       = $batch_state->{child_pids};
-my $jobs_distributed = 0;
-foreach my $pid ( keys %$child_pids ) {
-    my $distribute_result = <[image-batch.parent.distribute_jobs]>->($pid);
-    if ( $distribute_result->{success} ) {
-        $jobs_distributed++;
-        <[base.log]>->(
-            2,
-            sprintf(
-                'Distributed initial job to child %d: %s',
-                $pid, $distribute_result->{job_id}
-            )
-        );
-    } else {
-        <[base.log]>->(
-            1,
-            sprintf(
-                'Failed to distribute job to child %d: %s',
-                $pid, $distribute_result->{error} // 'Unknown error'
-            )
-        );
-    }
+    <[jobqueue.add_job]>->(
+        {   job_id     => $job_id,
+            batch_id   => $batch_id,
+            image_path => $image_path,
+            type       => 'analyze',
+            priority   => 50,                  # default priority
+            queued_at  => <[base.time]>->(3)
+        }
+    );
 }
 
 <[base.log]>->(
     1,
     sprintf(
-        'Distributed %d initial jobs to %d children',
-        $jobs_distributed, $fork_result->{forked_count}
+        'Batch %s: queued %d images for analysis',
+        $batch_id, <[jobqueue.count]>->('queued')
     )
 );
 
-# Persist complete batch state (including queue) to
-#        disk for access across command invocations
-<[base.perlmod.load]>->( 'JSON::XS', qw| encode_json | );
+# Fork single child process for blocking operations
+<[image-batch.parent.fork_child]>;
 
-# Create serializable copy of batch state
-#  [excluding file handles in child_pids]
-my $persist_data = {
-    batch_id        => $batch_state->{batch_id},
-    batch_name      => $batch_state->{batch_name},
-    status          => $batch_state->{status},
-    started_at      => $batch_state->{started_at},
-    concurrency     => $batch_state->{concurrency},
-    total_images    => $batch_state->{total_images},
-    workers_spawned => $batch_state->{workers_spawned},
-    statistics      => $batch_state->{statistics},
-    batch_queue     => $batch_queue
+# After fork, parent continues here
+if (<image-batch.child.pid>) {
 
-    # Note: child_pids excluded because it contains
-    #       file handles that can't be JSON encoded
-};
+    # PARENT PROCESS
 
-my $batch_file_path    = "$batch_id.json";
-my $batch_file_content = JSON::XS::encode_json($persist_data);
+    <[base.log]>->( 1, 'child forked, dispatching first job.,' );
 
-# Use Protocol-7 file.zenka_dir.write for proper error handling and permissions
-#     [ zenka name is automatically prepended to /var/protocol-7/image-batch/ ]
-if (<[file.zenka_dir.write]>->(
-        $batch_file_path, \$batch_file_content, undef, 0660
-    )
-) {
-    <[base.log]>->( 2, "Batch state persisted: $batch_file_path" );
-} else {
-    <[base.log]>->(
-        1, "WARNING: Failed to persist batch state to $batch_file_path"
-    );
+    # Get first job from queue and send to child
+    my $first_job = <[jobqueue.get_next_job]>->('queued');
+
+    if ( defined $first_job ) {
+        <[jobqueue.move_job]>->( $first_job->{job_id}, 'processing' );
+
+        # Send job to child via Protocol-7 command routing
+        <[base.protocol-7.command.send.local]>->(
+            {   'command'   => "child.analyze_image",
+                'call_args' => {
+                    'args' => sprintf( "%s %s",
+                        $first_job->{image_path},
+                        $first_job->{job_id} )
+                },
+                'reply' => {
+                    'handler' => 'image-batch.parent.handle_job_reply',
+                    'params'  => { 'job_id' => $first_job->{job_id} }
+                }
+            }
+        );
+
+        <[base.log]>->(
+            2,
+            sprintf(
+                'Sent first job to child: %s (%s)',
+                $first_job->{job_id}, $first_job->{image_path}
+            )
+        );
+    } else {
+        <[base.log]>->( 1, 'ERROR: No jobs in queue to process' );
+        $batch_state->{status} = 'failed';
+        return { success => FALSE, error => 'No jobs in queue' };
+    }
+
+    # Update batch state to running
+    $batch_state->{status} = qw| running |;
+
+    # Persist batch state to disk
+    <[base.perlmod.load]>->( 'JSON::XS', qw| encode_json | );
+
+    my $persist_data = {
+        batch_id     => $batch_state->{batch_id},
+        batch_name   => $batch_state->{batch_name},
+        status       => $batch_state->{status},
+        started_at   => $batch_state->{started_at},
+        total_images => $batch_state->{total_images},
+        statistics   => $batch_state->{statistics}
+    };
+
+    my $batch_file_path    = "$batch_id.json";
+    my $batch_file_content = JSON::XS::encode_json($persist_data);
+
+    if (<[file.zenka_dir.write]>->(
+            $batch_file_path, \$batch_file_content, undef, 0660
+        )
+    ) {
+        <[base.log]>->( 2, "Batch state persisted: $batch_file_path" );
+    } else {
+        <[base.log]>->(
+            1, "WARNING: Failed to persist batch state to $batch_file_path"
+        );
+    }
+
+    # Return immediately with batch_id (non-blocking)
+    return {
+        success      => TRUE,
+        batch_id     => $batch_id,
+        batch_name   => $batch_name,
+        status       => qw| running |,
+        total_images => $batch_state->{total_images},
+        message => sprintf( 'Batch %s processing started with single child',
+            $batch_id )
+    };
 }
 
-# Return immediately with batch_id (non-blocking)
-return {
-    success         => TRUE,
-    batch_id        => $batch_id,
-    batch_name      => $batch_name,
-    status          => qw| running |,
-    total_images    => $batch_state->{total_images},
-    workers_spawned => $fork_result->{forked_count},
-    message         => sprintf(
-        'Batch %s processing started with %s workers',
-        $batch_id, $fork_result->{forked_count}
-    )
-};
-
-#,,,,,..,,..,,.,,,.,.,,.,,.,,,,,.,,..,...,.,,,..,,...,...,.,.,,,,,,.,,...,,,.,
-#ELLI2HKP5ZUENXDIJSAZHQ4IRZ44NHN6VQ2KES2EOF4FN2Y53NJAZWA3JSEPFPRBIJJ4YIXYMZ47I
-#\\\|WRF5VPKNC3DYMWFNJTGFQE5YBWHVULFQZ5VJEU2DR6HLEJSX7BC \ / AMOS7 \ YOURUM ::
-#\[7]HLYEU6TS6AMRAGSJSHUC6U6DNERPPIWL3YLCW2OQ7IVV5CXEFACY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,.,,,.,,,.,,..,,...,.,.,,,,,...,..,,...,..,,.,.,,,.,,.,,.,,,...,
+#64PTN7AMESWEXA2T6NE3SRIXWJFAS224LMJOQMA7PUU56LSD6RDAAEQ3OMWIE3FHKXGRUEE5AFYIW
+#\\\|YD45KHFT4D2CGQLZRXCOOOSJZIT45P5ONAKFSBJU7TXPV4KISMI \ / AMOS7 \ YOURUM ::
+#\[7]36V5WBQ6NCTTBJYDVCXDGJI3IL6INE5EU2HCWDHP7BZAGUSJVIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
