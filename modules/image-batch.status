@@ -20,7 +20,7 @@ if ( defined $requested_batch_id && $requested_batch_id ne '' ) {
 
     if ( defined $file_content_ref && ref $file_content_ref eq 'SCALAR' ) {
         eval {
-            my $loaded = decode_json($$file_content_ref);
+            my $loaded = JSON::XS::decode_json($$file_content_ref);
             $batch_state = $loaded;
             $batch_queue = $loaded->{batch_queue};
         };
@@ -133,8 +133,8 @@ return {
     : $batch_state->{status}
 };
 
-#,,..,,.,,.,,,.,.,...,..,,,..,...,...,,,.,..,,..,,...,...,,,,,.,.,,,,,.,.,,..,
-#4AYS35YQ4YY4HQWM4YY6HQGBYPDET6RT2Q467ONRV4NU4RGMMWC2KBA5YVFKYHBWA4BGLM3USCVGM
-#\\\|3JR5G7LS4BBFIX7GMYRL4Y6274NH2QTQRYRXKDIHKHRYZNBCFUK \ / AMOS7 \ YOURUM ::
-#\[7]4QQIKC45RHKIARQOATV7A3WGJWKJOBXP5VYXWYWXECA23ZWYUIAY 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,..,,,,.,.,,,.,.,...,...,.,.,,.,,..,,...,...,.,,,,,.,.,.,..,,.,,,
+#EQ3XXLHGU5RQRYTOHFRT37PU2OIKKSMLPLU5HBINENV7XSW7RNG6D5R5VDAJFZI3FN56EH4WCW27I
+#\\\|TCI2G6XUX4NMBU5CO3R653DAX3T3JJQHNPVN4SYF7SMNQETUSHB \ / AMOS7 \ YOURUM ::
+#\[7]OZX7FR7CJNEIHD6UX5WSGGSY4SEYREY75ZUKCUGW6CUTTSSEW2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

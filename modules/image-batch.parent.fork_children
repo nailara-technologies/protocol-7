@@ -66,9 +66,9 @@ for ( my $worker_id = 1; $worker_id <= $concurrency; $worker_id++ ) {
             IO::AIO::reinit();
         };
 
-        # Store child-specific data
-        my $image_batch_child_parent_pipe = $child_pipe;
-        my $image_batch_child_worker_id   = $worker_id;
+        # Store child-specific data in namespace for child modules to access
+        <image-batch.child.parent_pipe> = $child_pipe;
+        <image-batch.child.worker_id>   = $worker_id;
 
         # Initialize child process
         my $init_result = <[image-batch.child.init]>;
@@ -125,8 +125,8 @@ return {
         . ( $failed_count > 0 ? " ($failed_count failed)" : '' )
 };
 
-#,,.,,...,.,,,.,,,,..,,,,,..,,,..,,..,,,,,.,,,..,,...,...,,..,,..,..,,,,,,.,,,
-#3MMPGRFMTAXYDQBFWIJOYMAJQU42QNDWPQ2TICNVN4PVZTGNKSXE37MAPTGO33RBG7MCVY55CELLA
-#\\\|HGNOBGYJPIR6V2ZNQFDMOIIK5KHHYBEA2KHRIMUQCSNQRKYLXUY \ / AMOS7 \ YOURUM ::
-#\[7]DE3UFCSW6DIXS4C6D7JIK2LRURAYTIVAM5SMQOOBV74TXX6BUIDI 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,,,.,,,,,.,...,..,,.,,,,,.,,,,,..,,...,...,,,.,,,.,,,.,.,.,.,,,
+#JGW2UZQYOJ2NNY4FY2BLIHPSO3EGMZC6JD4RLJI2DDV53DE2ATTSXNRKGYHIC7NN525EJLQ6XNW2A
+#\\\|HQQJ6MJZXLZR22CU63SR2R4F2BPKR5ZGROUHJWK2XMOUXZNDQTL \ / AMOS7 \ YOURUM ::
+#\[7]M5IGXDS7G6L4C5REBFB2USTJC3T2X4DVCPYB5ONMFU45PIHR2EBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

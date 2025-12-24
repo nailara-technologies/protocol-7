@@ -3,69 +3,76 @@
 # name = image-batch.persist
 # descr = File-based persistence for batch state (stores in /tmp/image-batch/)
 
-<[base.perlmod.load]>->('JSON::XS', qw| encode_json decode_json |);
-<[base.perlmod.load]>->('File::Path', qw| make_path |);
+<[base.perlmod.load]>->( 'JSON::XS',   qw| encode_json decode_json | );
+<[base.perlmod.load]>->( 'File::Path', qw| make_path | );
 
-my $cmd = shift;
+my $cmd      = shift;
 my $batch_id = shift;
-my $data = shift;
+my $data     = shift;
 
 my $persist_dir = '/tmp/image-batch';
 make_path($persist_dir) unless -d $persist_dir;
 my $batch_file = "$persist_dir/$batch_id.json";
 
-if ($cmd eq 'save') {
-    # Save batch state to file
-    return { success => FALSE, error => 'No data to save' } unless defined $data;
+if ( $cmd eq 'save' ) {
 
-    my $json_str = encode_json($data);
-    open(my $fh, '>', $batch_file) or return {
+    # Save batch state to file
+    return { success => FALSE, error => 'No data to save' }
+        unless defined $data;
+
+    my $json_str = JSON::XS::encode_json($data);
+    open( my $fh, '>', $batch_file )
+        or return {
         success => FALSE,
-        error => "Cannot write batch file $batch_file: $!"
-    };
+        error   => "Cannot write batch file $batch_file: $!"
+        };
     print $fh $json_str;
     close($fh);
 
     return { success => TRUE, message => "Batch state saved to $batch_file" };
 
-} elsif ($cmd eq 'load') {
+} elsif ( $cmd eq 'load' ) {
+
     # Load batch state from file
     return { success => FALSE, error => "Batch file not found: $batch_file" }
         unless -f $batch_file;
 
-    open(my $fh, '<', $batch_file) or return {
+    open( my $fh, '<', $batch_file )
+        or return {
         success => FALSE,
-        error => "Cannot read batch file $batch_file: $!"
-    };
+        error   => "Cannot read batch file $batch_file: $!"
+        };
     my $json_str = do { local $/; <$fh> };
     close($fh);
 
     my $state;
-    eval {
-        $state = decode_json($json_str);
-    };
+    eval { $state = JSON::XS::decode_json($json_str); };
     return { success => FALSE, error => "Failed to parse JSON: $@" } if $@;
 
     return { success => TRUE, state => $state };
 
-} elsif ($cmd eq 'delete') {
+} elsif ( $cmd eq 'delete' ) {
+
     # Delete batch state file
-    if (-f $batch_file) {
-        unlink($batch_file) or return {
+    if ( -f $batch_file ) {
+        unlink($batch_file)
+            or return {
             success => FALSE,
-            error => "Cannot delete batch file: $!"
-        };
+            error   => "Cannot delete batch file: $!"
+            };
     }
     return { success => TRUE, message => "Batch state deleted" };
 
-} elsif ($cmd eq 'list') {
+} elsif ( $cmd eq 'list' ) {
+
     # List all batch files
     my @batches;
-    opendir(my $dh, $persist_dir) or return {
+    opendir( my $dh, $persist_dir )
+        or return {
         success => FALSE,
-        error => "Cannot read persist directory: $!"
-    };
-    while (my $file = readdir($dh)) {
+        error   => "Cannot read persist directory: $!"
+        };
+    while ( my $file = readdir($dh) ) {
         next unless $file =~ /\.json$/;
         push @batches, $file;
     }
@@ -74,7 +81,7 @@ if ($cmd eq 'save') {
     return {
         success => TRUE,
         batches => \@batches,
-        count => scalar(@batches)
+        count   => scalar(@batches)
     };
 
 } else {
@@ -87,8 +94,8 @@ if ($cmd eq 'save') {
 #\[7]FBFILEPERSISTSTORAGEIMPLEMENTATION7IMAGEBAATCHSTATEFROMDISK 7  DATA SIGNATURE ::
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,,.,,..,,.,.,,,.,.,,,...,.,.,,,,,..,,.,.,..,,...,...,.,,,,..,,,,,.,,,,.,,
-#6YTX6IPZC4TAUEQGLPO7A3C2KJRK4NRHDNZJHVJMTYZIHGVEB74K5DDU66N7UZIITURKWCXEQK4GI
-#\\\|NEN4TT7S5KA2PIPTOBEAZZPGZ63LXY7YYG4E34G7SVMPTWJ4SGP \ / AMOS7 \ YOURUM ::
-#\[7]XWOCPSAKMTCAYA7V5SZ3QJHNEHNYTAI2LK6I3LKPNT4SZ4K5FMCY 7  DATA SIGNATURE ::
+#,,.,,...,,..,,..,,,.,,.,,.,,,...,.,,,,,.,...,..,,...,..,,.,,,,.,,,,.,,.,,.,,,
+#MH3MDMKNP6MBPJGCVHWRK7VZSJSDN5OOD6XY7V3O5QFOXAECJFCWFC5D3OJRXOD3S6FLCSYGFTMG6
+#\\\|EW2EBJSPVNFMUHLEFHG6J4H7QJJHKNJ2XGWNNPM2AGWJZYP2RQ3 \ / AMOS7 \ YOURUM ::
+#\[7]MJAVIY5ENQLQN6A2GTOFL4AKA2VCPXFBP3ADFWBHUOGTCN24LODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

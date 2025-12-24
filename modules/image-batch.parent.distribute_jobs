@@ -42,7 +42,7 @@ return {
     unless defined $next_job;
 
 # Prepare job for dispatch
-my $job_msg = encode_json(
+my $job_msg = JSON::XS::encode_json(
     {   cmd        => 'analyze',
         job_id     => $next_job->{job_id},
         image_path => $next_job->{image_path}
@@ -87,8 +87,8 @@ return {
     message         => "Job assigned to child process"
 };
 
-#,,,,,,.,,..,,,,,,,,.,.,.,...,...,...,,,,,,.,,..,,...,...,...,...,,,,,,..,.,,,
-#D5EDTQJCCWQBD4OZVHG7RDPM26LLFEWTYQUK2K5CXQINY4MV5IDHYIMQGCJEX5NJCWFXHFC7HXIAM
-#\\\|EHFGG723QGKP2FYAGZIUDBIEFSKETFF7PMHX4WYYBRDAZK247JL \ / AMOS7 \ YOURUM ::
-#\[7]6SY37T6CUUH2WJJYWHLBQVT5MCADVXEZCZ6ONJ5GWA46V2JECAAY 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,,,,.,.,,..,.,,,...,,..,...,,,,,..,,...,..,,.,,,,..,.,,,,,,,.,.,
+#BS6QDV4OQ2F7ABXG2XC6DDOW4GXFM6LZVW4IGL3GIH3IM7LEZLCDYIFHX5OOSDHKVESJ52B54TYUY
+#\\\|V4XI3D2ISFGPWGOJJIZS3Z7KPO5ACDYTHAPUFDRISUJP5NQBYPW \ / AMOS7 \ YOURUM ::
+#\[7]NTULDEEWKHQNPMSFDHKQLRCYF6MTPENR2DUSUEPPDTKZ6LT4NCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
