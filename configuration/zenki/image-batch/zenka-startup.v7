@@ -4,6 +4,9 @@
 # descr = 'image-batch' zenka startup configuration used by 'v7' zenka
 
 dependencies = cube
+start.on-demand    = 1
+restart.disabled   = 1
+heartbeat.disabled = 1
 
 : v7-init :
   start_mode = stdin-zenka
@@ -12,11 +15,10 @@ dependencies = cube
 
 : zenka-init :
   [base.auth.set_zenka_key:'<{image-batch.key}>']
+  [base.zenki.set_ondemand_timeout:780]
 
-#,,,.,,,.,..,,..,,.,,,,,.,,,.,..,,...,,,.,...,..,,...,.,.,...,...,.,.,,,.,.,.,
-
-#,,..,.,.,.,.,..,,,..,..,,.,,,...,...,...,.,.,..,,...,...,...,,,.,,,,,,,.,..,,
-#BN4OU4LLQJHNGBDIKVOZONZMEFPW7GMINV6AJYI2BL2HW44GPAPOKXMO7GQPNRHI342DASMFXEQPQ
-#\\\|HEIOO6SKFCIBXXSRIQ7YP7RY4DPEABPVK3YLBIIBMZVHLAYQLHW \ / AMOS7 \ YOURUM ::
-#\[7]AR2V4SLK2YMLM2KTESZNIL3PSMH7UHBW6ZIX7Q25N26ZI24CRMAI 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,,.,,,.,,,,,,.,,,..,...,..,,..,,..,,...,...,.,.,,.,,.,.,.,.,.,,,
+#TJICZWJ7DJSJKXARNHAO2WO52M6DQEEAK3WA5H6QQ7YGHUU6DYBEV3XZX7ZPAUJWJAORDCVNBBEZ6
+#\\\|SISMQY267UTR5NKRAO4N22PFF2HAKV6UNYRYYIDDGE7TBH3Y5E4 \ / AMOS7 \ YOURUM ::
+#\[7]66GMHPBPVTCEB7UIAKEOV5NSVJBJUDUE4BEOXBOWI2GWI52CAUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

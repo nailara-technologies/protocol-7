@@ -56,8 +56,6 @@ for ( my $worker_id = 1; $worker_id <= $concurrency; $worker_id++ ) {
     } elsif ( $pid == 0 ) {
 
         # CHILD PROCESS
-        # Use parent's logger - child inherits file descriptors
-        <[base.log]>->( 2, "Child process started for worker $worker_id" );
 
         # Close parent's end of pipe in child
         close $parent_pipe;
@@ -68,33 +66,74 @@ for ( my $worker_id = 1; $worker_id <= $concurrency; $worker_id++ ) {
             IO::AIO::reinit();
         };
 
-        # Store child-specific data in namespace for child modules to access
-        <image-batch.child.parent_pipe> = $child_pipe;
-        <image-batch.child.worker_id>   = $worker_id;
+        # Load JSON module for communication
+        <[base.perlmod.load]>->( 'JSON::XS', qw| encode_json decode_json | );
 
-        # Initialize child process
-        my $init_result = <[image-batch.child.init]>;
+        # Set autoflush for pipe and send ready signal
+        $child_pipe->autoflush(1);
 
-        unless ( $init_result->{success} ) {
+        my $ready_msg = JSON::XS::encode_json(
+            { cmd => 'ready', worker_id => $worker_id } );
+        print {$child_pipe} "$ready_msg\n";
+        $child_pipe->flush() if $child_pipe->can('flush');
 
-            # Initialization failed, exit child
-            <[base.log]>->(
-                1,
-                "Child init failed for worker $worker_id: "
-                    . ( $init_result->{error} // 'unknown error' )
-            );
-            exit(1);
-        }
+        # Child event loop: wait for jobs from parent
+        while (1) {
 
-        # Enter child event loop
-        my $loop_result;
-        eval { $loop_result = <[image-batch.child.loop]>; };
+            # Read JSON command from parent
+            my $line = <$child_pipe>;
+            last unless defined $line;    # Parent pipe closed
 
-        if ($@) {
-            <[base.log]>->( 1, "Child loop error for worker $worker_id: $@" );
+            chomp $line;
+
+            # Parse JSON command
+            my $job;
+            eval { $job = JSON::XS::decode_json($line); };
+
+            if ($@) {
+
+                # Invalid JSON, send error and continue
+                my $error_response = JSON::XS::encode_json(
+                    {   cmd   => 'error',
+                        error => "Failed to parse JSON: $@"
+                    }
+                );
+                print {$child_pipe} "$error_response\n";
+                next;
+            }
+
+            # Check command type
+            if ( $job->{cmd} eq 'analyze' ) {
+
+                # Process image analysis job
+                my $result = <[image-batch.child.analyze_job]>->($job);
+
+                # Send result back to parent
+                my $response = JSON::XS::encode_json($result);
+                print {$child_pipe} "$response\n";
+
+                # Send ready signal for next job
+                print {$child_pipe} "$ready_msg\n";
+
+            } elsif ( $job->{cmd} eq 'shutdown' ) {
+
+                # Parent signaled shutdown
+                last;
+
+            } else {
+
+                # Unknown command
+                my $error_response = JSON::XS::encode_json(
+                    {   cmd   => 'error',
+                        error => "Unknown command: $job->{cmd}"
+                    }
+                );
+                print {$child_pipe} "$error_response\n";
+            }
         }
 
         # Graceful exit
+        close $child_pipe;
         exit(0);
 
     } else {
@@ -137,8 +176,8 @@ return {
         . ( $failed_count > 0 ? " ($failed_count failed)" : '' )
 };
 
-#,,.,,.,.,,.,,.,,,,,,,...,.,,,,.,,.,,,..,,,,,,..,,...,...,...,,,.,,.,,,..,.,,,
-#KFJYRZFUNABKTHOGXZ2SBVDUS4EL3RHJ5RY2P7XINPHPK72LJR53ZF2ALMAHHTDGG2HG632IQPX4E
-#\\\|P32G52MU6ZXFECY3VWCXOQZKEXOKN5K5NPAE6TRVGOS7OYHLKSA \ / AMOS7 \ YOURUM ::
-#\[7]SB2WV6445UWT3SNIZ3ZNNSWWYQWA2HLNZ5TTBK7OAQWK7KQ6ZSDI 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,.,,,..,...,,,,,.,.,,.,,...,..,,..,,...,..,,...,..,,,..,.,.,.,,,
+#EDY7GHWSPO52AC4O4MWHYZHGXB6MUDNBNCER23WWBB4XXSD7RYXWEENGPKFO7ER76HO55XBV5QUEO
+#\\\|ZIHKEE6TVCU6S44VBU5OR252LZJZDUEUC64ZAC2FPRTQ65HOIEI \ / AMOS7 \ YOURUM ::
+#\[7]FV6WPSLLG44WRNMOU4P66QEHMARCDPPDLOXF7T42Y4IFAVXK56BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
