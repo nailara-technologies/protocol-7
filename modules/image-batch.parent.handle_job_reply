@@ -34,28 +34,28 @@ if ( $reply_data->{success} ) {
         )
     );
 } else {
-    <[jobqueue.move_job]>->( $job_id, 'failed' );
+    <[jobqueue.move_job]>->( $job_id, 'error' );
     $batch_state->{statistics}->{failed}++;
 
     <[base.log]>->(
         1,
-        sprintf( 'Job %s failed [error: %s]', $job_id, $reply_data->{error} )
+        sprintf( 'Job %s error [reason: %s]', $job_id, $reply_data->{error} )
     );
 }
 
-# Check if all jobs are complete
+# Check if all jobs are complete (completed + error)
 my $job_count = <jobqueue.joblist.count>;
 my $completed = $job_count->{completed} // 0;
-my $failed    = $job_count->{failed}    // 0;
+my $errored   = $job_count->{error}     // 0;
 my $total     = $batch_state->{total_images};
 
-if ( $completed + $failed == $total ) {
+if ( $completed + $errored == $total ) {
     $batch_state->{status} = 'completed';
     <[base.log]>->(
         1,
         sprintf(
-            'Batch %s complete: %d/%d succeeded, %d failed',
-            $batch_id, $completed, $total, $failed
+            'Batch %s complete: %d/%d succeeded, %d errored',
+            $batch_id, $completed, $total, $errored
         )
     );
 }
@@ -64,8 +64,8 @@ if ( $completed + $failed == $total ) {
 
 return { success => TRUE, message => "Job result processed: $job_id" };
 
-#,,,,,,.,,.,,,,.,,...,.,,,,..,.,,,,,,,,,.,...,..,,...,...,...,,,,,,,.,,..,,.,,
-#FPLTDUVCRVFLRCXKBWEDPQIEEFHIBUZQ27KFEFINZZIPAUB3Q6HRKH5DNC6G25GKAVBUYCX25HSHI
-#\\\|6CSNRA6DMBUHPX26LK72TNDNQXUOKGOKYA7ST2DKDRXHIUFB2GJ \ / AMOS7 \ YOURUM ::
-#\[7]HOLO3LVJAFPT3QWJO4QLR7RTL436WUCER673GYCW3XIITGGOCABA 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,.,,.,.,,,,,,..,,.,,.,.,...,.,,,..,,...,...,..,,,,,,.,.,,,,,,..,
+#6CQ2RUCRHBAOR7BCBA5SMWCHVQHPWCPIHWJEKIFJPBI6BJWVTJ2PUXG7D2E5WPK6MW4A6TM5PO2JU
+#\\\|V5TTMO3ZDNIKTFYEAX6UABVKTMUKHF5NQCM7KLFKTK6SSMIQX2O \ / AMOS7 \ YOURUM ::
+#\[7]GTSH4ZQQVLBXGTR52CZTZW3JBP6OROA2UJ236TRUDYCVKRO6IWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
