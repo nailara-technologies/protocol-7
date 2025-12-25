@@ -12,27 +12,39 @@ return undef if !$job_list->{'count'}->{'depending'};
 my $job_queue  = $job_list->{'depending'};
 my $prio_queue = $job_queue->{'by_priority'};
 
-foreach my $prio ( sort { $a <=> $b } keys %$prio_queue ) {
+foreach my $prio ( sort { $a <=> $b } keys $prio_queue->%* ) {
     next if !@{ $prio_queue->{$prio} };
 
     foreach my $job_id ( @{ $prio_queue->{$prio} } ) {
         my $object_id = $job_list->{'by_id'}->{$job_id}->{'object_id'};
+        if ( not defined $object_id ) {
+            <[base.logs]>->(
+                0,    ## handle inconsistencies without breaking flow ##
+                "object_id not defined for job '%s'.,",
+                $job_id
+            );
+            <[base.log]>->( 0, ':. use 0 for no deps|prio case .:"' );
+            <[jobqueue.move_job]>->( $job_id, qw| queued | ); # regular target
+            next;
+        } elsif ( $job_id == 0 ) {    ## job-id 0 signifies no dependencies.,
+            <[jobqueue.move_job]>->( $job_id, qw| queued | ); # as-if resolved
+            next;
+        }
         <[base.log]>->( 2, ": dependencies for object $object_id" );
-        if (   not defined $object_id
-            or not exists <dependency.chain>->{$object_id}
+        if ( not exists <dependency.chain>->{$object_id}
             or <[dependency.ok]>->($object_id) ) {
             <[base.log]>->(
                 2, ": : deps successfully resolved [obj.$object_id]"
             );
-            <[jobqueue.move_job]>->( $job_id, 'queued' );
+            <[jobqueue.move_job]>->( $job_id, qw| queued | );
         } else {
             <[base.log]>->( 2, ": : unresolved, waiting.." );
         }
     }
 }
 
-#,,..,.,,,..,,..,,...,...,,,,,,.,,,..,,.,,,,,,..,,...,...,..,,,.,,,..,...,.,.,
-#MJHWIFW4RUOMDDZ64GA3UHIVTZP6L6L7BBHZ43AQ2SMMF67C52GPAYB25MUOLTVJOMTW76JIZIIKM
-#\\\|73AKOFKHFC2DG2CLNCNNUSW5DSA77VFE6TV3CLESH7DAV2RFHIV \ / AMOS7 \ YOURUM ::
-#\[7]GVR3YXUYRNZP7RKKU75RGRNOVCMDC2Y2WYKS3KUVWNZS5SMAYUBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,.,,...,.,.,.,.,.,.,,.,,...,.,,,..,,...,...,,..,,,,,.,,,,.,,,..,
+#E63TQWZOVVOKVCZYKIOYGLDO3ICHNWGGM2OMZHCS6ZQ3V5RHDH6F22NBNFFU2GSDFRLFQLQD4ZSGU
+#\\\|NQWR7BB5TK3L2HZRNE3HFF2PVGXWSNDYO3AG6TBHLWAN6CDWR3G \ / AMOS7 \ YOURUM ::
+#\[7]X4KHELJ67BNBLMG6EBWZDRG6Z2ELNW3XSRGPAZ3B4CNLPDMRQCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

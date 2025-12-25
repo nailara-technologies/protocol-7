@@ -12,6 +12,15 @@ my $job_id     = <[base.gen_id]>->( <jobqueue.joblist.by_id>, $max_jobs );
 
 my $target_queue = $job_params->{'target_queue'} // qw| queued |;
 
+if ( not length( $job_params->{'object_id'} // '' ) ) {   ## no object_id ? ##
+    <[base.logs]>->(
+        0, "jobqueue.add_job : missing object_id for job '%s'", $job_id
+    );
+    <[base.log]>->(
+        0, " :. use object_id = 0 if you meant a no dependencies case .:"
+    );
+}
+
 # LLL: tune defaults later
 my $job_data = {
     'name'      => $job_params->{'name'}     // $job_params->{'job_callback'},
@@ -48,8 +57,8 @@ $joblist->{'count'}->{$target_queue}++;
 
 return $job_id;
 
-#,,,,,.,,,.,,,.,.,,.,,,.,,..,,,,.,,..,.,.,.,.,..,,...,...,,..,,.,,,,.,.,.,.,.,
-#FUH3ADCEEKU4AQJ6DNGVM2WID6XUMBM3K2D25P6JO5A4DBBDOZYTAHABAKUM7TFVSFLTM6CKVVA42
-#\\\|GG2TAXDT5IBC2EZO2OWDUKPPKO7XJE5X2PHUJ7WDBQNHD6PLYCS \ / AMOS7 \ YOURUM ::
-#\[7]YRZMD76PD64HCH7ONWY7724DEXBYB4OWLJL4L2PQWOSCNZES2UCQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,,,,,..,..,,.,,,,,.,,,.,,,.,,,.,..,,...,..,,...,,,,,,,,,.,,,.,.,
+#7NK22IL5BDI4IOHASJFCF7WPTKQ433IZ6T2KW7KFK5T6MJRUQNDENIIHYXSULK7J6RORQ7VZCPRYU
+#\\\|EILMTZY2OI5SZ5KBMWNCU555YF3AICDQ3LN7G2HQH35NGGVESRZ \ / AMOS7 \ YOURUM ::
+#\[7]D3DCKUH2IKPQFBGS53ICZYPIVDL633XCDBWZUUQDG3YDRELF5ACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
