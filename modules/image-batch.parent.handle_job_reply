@@ -16,7 +16,11 @@ return { success => FALSE, error => 'batch_id required' }
 
 my $batch_state = <image-batch.batch_state>;
 
-# Update job result in jobqueue
+# Update job result in jobqueue and log to operation_log
+my $operation_log = <image-batch.operation_log>;
+my $error_log = <image-batch.error_log>;
+my $timestamp = <[base.time]>->(3);
+
 if ( $reply_data->{success} ) {
     <[jobqueue.move_job]>->( $job_id, 'completed' );
     $batch_state->{statistics}->{completed}++;
@@ -25,6 +29,14 @@ if ( $reply_data->{success} ) {
         my $grade = $reply_data->{metrics}->{overall_grade};
         $batch_state->{statistics}->{grade_distribution}->{$grade}++;
     }
+
+    # Log to operation_log (hash indexed by timestamp)
+    $operation_log->{$timestamp} = {
+        timestamp => $timestamp,
+        action    => 'completed',
+        batch_id  => $batch_id,
+        status    => $reply_data->{metrics}->{overall_grade} // 'completed'
+    };
 
     <[base.log]>->(
         2,
@@ -36,6 +48,14 @@ if ( $reply_data->{success} ) {
 } else {
     <[jobqueue.move_job]>->( $job_id, 'error' );
     $batch_state->{statistics}->{failed}++;
+
+    # Log to error_log (hash indexed by timestamp)
+    $error_log->{$timestamp} = {
+        timestamp  => $timestamp,
+        image_path => $reply_data->{image_path} // 'unknown',
+        error_type => 'analysis_failed',
+        reason     => $reply_data->{error} // 'unknown error'
+    };
 
     <[base.log]>->(
         1,
@@ -64,8 +84,8 @@ if ( $completed + $errored == $total ) {
 
 return { success => TRUE, message => "Job result processed: $job_id" };
 
-#,,..,,,,,,..,,.,,.,.,,,,,,..,,.,,.,.,...,.,,,..,,...,...,..,,,,,,.,.,,,,,,..,
-#6CQ2RUCRHBAOR7BCBA5SMWCHVQHPWCPIHWJEKIFJPBI6BJWVTJ2PUXG7D2E5WPK6MW4A6TM5PO2JU
-#\\\|V5TTMO3ZDNIKTFYEAX6UABVKTMUKHF5NQCM7KLFKTK6SSMIQX2O \ / AMOS7 \ YOURUM ::
-#\[7]GTSH4ZQQVLBXGTR52CZTZW3JBP6OROA2UJ236TRUDYCVKRO6IWDQ 7  DATA SIGNATURE ::
+#,,,.,...,,..,,,.,.,,,,.,,..,,,.,,,.,,,,.,,,,,..,,...,...,,,.,,,,,,,,,,,,,,,.,
+#FHVEYF2EGLXFXI6FOXJTX5EVINVBX3NDULGA6D3XEZ2RVKD6YNFYTEKADDYPL6DYNGFYF42DKEI7W
+#\\\|5QOB7FYRE6N7ZBGJRIQ7I4R7DN2CA6J4OCV5LLVDUDOZ6R6D223 \ / AMOS7 \ YOURUM ::
+#\[7]P5GT7KWBBXMTFB5EZ63PWWKZ2N2YEPIIZBUWCZZEAA4CFH4O4IAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
