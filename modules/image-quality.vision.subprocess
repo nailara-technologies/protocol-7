@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name = image-quality.vision.subprocess
-# descr = Subprocess fallback using llama-cli-cuda for GPU-accelerated vision analysis
+# descr = Subprocess for GPU-accelerated vision analysis using llama-mtmd-cli (multimodal)
 
 my ($image_path, $model_identifier, $analysis_prompt) = @_;
 
@@ -41,10 +41,10 @@ return { success => FALSE, error => "Model file not found: $model_file", method 
 return { success => FALSE, error => "Mmproj file not found: $mmproj_file", method => 'subprocess' }
     unless -f $mmproj_file;
 
-# Build llama-cli-cuda command with GPU acceleration
-my $llama_cli = '/data/source/ik_llama.cpp/llama-cli-cuda';
-return { success => FALSE, error => "llama-cli-cuda not found at $llama_cli", method => 'subprocess' }
-    unless -x $llama_cli;
+# Use llama-mtmd-cli (multimodal-enabled binary) for vision analysis
+my $llama_mtmd_cli = '/data/source/ik_llama.cpp/llama-mtmd-cli-cuda';
+return { success => FALSE, error => "llama-mtmd-cli-cuda not found at $llama_mtmd_cli", method => 'subprocess' }
+    unless -x $llama_mtmd_cli;
 
 # Escape paths for shell execution
 my $escaped_model = quotemeta($model_file);
@@ -52,19 +52,21 @@ my $escaped_mmproj = quotemeta($mmproj_file);
 my $escaped_image = quotemeta($image_path);
 my $escaped_prompt = quotemeta($analysis_prompt);
 
-# Build command: use llama-cli-cuda with vision support (GPU-accelerated)
+# Build command: use llama-mtmd-cli with multimodal vision support (GPU-accelerated)
 # Parameters:
-# -n 100: generate up to 100 tokens (sufficient for image analysis)
-# -c 512: context size (appropriate for vision analysis)
-# -e: process escape sequences in prompt
-# --mmproj: multimodal projection for vision encoding
+# -m: model file path
+# --mmproj: multimodal projection for vision encoding (CLIP)
 # --image: input image file path
+# -n 100: generate up to 100 tokens (sufficient for image analysis)
+# -c 8192: context size (8K - sufficient for image embeddings + analysis prompt)
+#          Image embeddings can consume 500-1000+ tokens depending on image size
+# -e: process escape sequences in prompt
 # Wrap in sh -c to ensure LD_LIBRARY_PATH is properly propagated
 my $cmd = sprintf(
     'sh -c %s',
     quotemeta(sprintf(
-        'export LD_LIBRARY_PATH=/data/source/ik_llama.cpp:$LD_LIBRARY_PATH && %s -m %s --mmproj %s --image %s -n 100 -c 512 -e --prompt %s 2>&1',
-        $llama_cli,
+        'export LD_LIBRARY_PATH=/data/source/ik_llama.cpp:$LD_LIBRARY_PATH && %s -m %s --mmproj %s --image %s -n 100 -c 8192 -e --prompt %s 2>&1',
+        $llama_mtmd_cli,
         $escaped_model,
         $escaped_mmproj,
         $escaped_image,
@@ -86,11 +88,11 @@ if ($@) {
 }
 
 if ($? != 0) {
-    return { success => FALSE, error => "llama-cli-cuda exited with error code $?", method => 'subprocess' };
+    return { success => FALSE, error => "llama-mtmd-cli-cuda exited with error code $?", method => 'subprocess' };
 }
 
 if (!$out || length($out) == 0) {
-    return { success => FALSE, error => "No output from llama-cli-cuda subprocess", method => 'subprocess' };
+    return { success => FALSE, error => "No output from llama-mtmd-cli-cuda subprocess", method => 'subprocess' };
 }
 
 return {
@@ -100,8 +102,8 @@ return {
     model_used => $model_identifier
 };
 
-#,,..,..,,.,,,,,,,.,.,,,.,,,,,,.,,.,.,..,,...,..,,...,...,.,.,,.,,,,.,,,,,,,.,
-#KXBIAFRR72OC7RB62NXFRWIEDLVNYY3KWLTJPIJSQYQGNN5F7737CCJOZQQJIFBGSJ2Z3623NW7BO
-#\\\|JWDJ3WXP7IBR27RHA6U6GXXS2ERWR4GRW5ZUQYC6QV56DLQERSY \ / AMOS7 \ YOURUM ::
-#\[7]P42Z23RZAZGA7AGYBV4GHXF64YJQCP7S6DKAKJ4GMG4SK4V3FICY 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,,.,..,,,..,,,.,..,,.,,,...,...,..,,...,...,.,.,..,,,,.,.,.,,,,,
+#YCSATCDQWECUIACIUBBOBA2PTCYDSGP2UKBORD3VVLK76XHLRQ3ZDK22BOPFBFB7FMIK2GMYINEBM
+#\\\|YYADZLMVCRVK5DX6UYLB4BKT5XQRN3RAIQ7JU5FL5K6ZYY2S3UG \ / AMOS7 \ YOURUM ::
+#\[7]IYKQG3Y7DMPIMJWQW2VIMNLC6QV4IU6PDFFFX7N2XU4PXCNI4QCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
