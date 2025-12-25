@@ -1,53 +1,103 @@
 ## [:< ##
 
 # name = image-quality.vision.subprocess
-# descr = Subprocess fallback using IPC::Run for llama-server/llama-cli
+# descr = Subprocess fallback using llama-cli-cuda for GPU-accelerated vision analysis
 
-my ($image_path, $model_path, $analysis_prompt) = @_;
+my ($image_path, $model_identifier, $analysis_prompt) = @_;
 
 # Validate inputs
 return { success => FALSE, error => 'Image path required' } unless defined $image_path;
-return { success => FALSE, error => 'Model path required' } unless defined $model_path;
+return { success => FALSE, error => 'Image file not found' } unless -f $image_path;
+return { success => FALSE, error => 'Model identifier required' } unless defined $model_identifier;
 return { success => FALSE, error => 'Analysis prompt required' } unless defined $analysis_prompt;
 
-# Execute llama-server via backtick command (simplified approach)
-# Build command string
+# Map model identifiers to actual filesystem paths with mmproj support
+my %model_paths = (
+    '4b-opus100-manga' => {
+        model => '/mnt/m/mradermacher/4b-opus100-manga-GGUF/4b-opus100-manga.Q4_K_S.gguf',
+        mmproj => '/mnt/m/mradermacher/4b-opus100-manga-GGUF/4b-opus100-manga.mmproj-f16.gguf'
+    },
+    'gemma-3-4b-it-uncensored-dbl-x' => {
+        model => '/mnt/m/mradermacher/Gemma-3-4b-it-Uncensored-DBL-X-GGUF/Gemma-3-4b-it-Uncensored-DBL-X.Q4_K_S.gguf',
+        mmproj => '/mnt/m/mradermacher/Gemma-3-4b-it-Uncensored-DBL-X-GGUF/Gemma-3-4b-it-Uncensored-DBL-X.mmproj-f16.gguf'
+    },
+    'gemma-3-glitter-4b-uncensored' => {
+        model => '/mnt/m/mradermacher/Gemma-3-Glitter-4B-Uncensored-GGUF/Gemma-3-Glitter-4B-Uncensored.Q4_K_S.gguf',
+        mmproj => '/mnt/m/mradermacher/Gemma-3-Glitter-4B-Uncensored-GGUF/Gemma-3-Glitter-mmproj-f16.gguf'
+    }
+);
+
+# Check if model identifier maps to actual paths
+return { success => FALSE, error => "Unknown model identifier: $model_identifier", method => 'subprocess' }
+    unless exists $model_paths{$model_identifier};
+
+my $model_config = $model_paths{$model_identifier};
+my $model_file = $model_config->{model};
+my $mmproj_file = $model_config->{mmproj};
+
+# Verify model files exist
+return { success => FALSE, error => "Model file not found: $model_file", method => 'subprocess' }
+    unless -f $model_file;
+return { success => FALSE, error => "Mmproj file not found: $mmproj_file", method => 'subprocess' }
+    unless -f $mmproj_file;
+
+# Build llama-cli-cuda command with GPU acceleration
+my $llama_cli = '/data/source/ik_llama.cpp/llama-cli-cuda';
+return { success => FALSE, error => "llama-cli-cuda not found at $llama_cli", method => 'subprocess' }
+    unless -x $llama_cli;
+
+# Escape paths for shell execution
+my $escaped_model = quotemeta($model_file);
+my $escaped_mmproj = quotemeta($mmproj_file);
+my $escaped_image = quotemeta($image_path);
+my $escaped_prompt = quotemeta($analysis_prompt);
+
+# Build command: use llama-cli-cuda with vision support (GPU-accelerated)
+# Parameters:
+# -n 100: generate up to 100 tokens (sufficient for image analysis)
+# -c 512: context size (appropriate for vision analysis)
+# -e: process escape sequences in prompt
+# --mmproj: multimodal projection for vision encoding
+# --image: input image file path
 my $cmd = sprintf(
-    'llama-server -m %s --image %s -p %s -n 512 --temp 0.1 2>&1',
-    quotemeta($model_path),
-    quotemeta($image_path),
-    quotemeta($analysis_prompt)
+    'export LD_LIBRARY_PATH=/data/source/ik_llama.cpp:$LD_LIBRARY_PATH && %s -m %s --mmproj %s --image %s -n 100 -c 512 -e --prompt %s 2>&1',
+    $llama_cli,
+    $escaped_model,
+    $escaped_mmproj,
+    $escaped_image,
+    $escaped_prompt
 );
 
 # Execute with timeout
 my $out = '';
 eval {
     local $SIG{ALRM} = sub { die "timeout\n" };
-    alarm(60);
+    alarm(90);  # 90 second timeout for image analysis
     $out = `$cmd`;
     alarm(0);
 };
 
 if ($@) {
-    return { success => FALSE, error => "Subprocess failed: $@", method => 'subprocess' };
+    return { success => FALSE, error => "Subprocess timeout or error: $@", method => 'subprocess' };
 }
 
 if ($? != 0) {
-    return { success => FALSE, error => "llama-server exited with error code $?", method => 'subprocess' };
+    return { success => FALSE, error => "llama-cli-cuda exited with error code $?", method => 'subprocess' };
 }
 
 if (!$out || length($out) == 0) {
-    return { success => FALSE, error => "No output from llama-server subprocess", method => 'subprocess' };
+    return { success => FALSE, error => "No output from llama-cli-cuda subprocess", method => 'subprocess' };
 }
 
 return {
     success => TRUE,
     response => $out,
-    method => 'subprocess'
+    method => 'subprocess',
+    model_used => $model_identifier
 };
 
-#,,..,...,.,.,..,,..,,,,,,...,,,,,...,,..,.,,,..,,...,..,,..,,..,,,,.,.,.,,,.,
-#R6YEZ5CNIUUJW7IWJTXAOOKLEXVCDOSXLPZ3JQUU5Q3DCOAZOJBJ5D47HPPQSIWX5ORQJZT345NC2
-#\\\|5OGWFL64NZZP7DVL6FI45STU44KEBAI53SNWKG7UMJBCJPE7Z7S \ / AMOS7 \ YOURUM ::
-#\[7]VAKYAUEHEZ2TORMLEE4NJSRW7NA5BQVTULY6LKYUV7QI3A6CZ2DI 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,,,,,.,,,,.,,..,,.,,,,,,..,,...,..,,...,...,.,,,,,,,..,,,..,,..,
+#MMGCBFP5VRWN73GYJQXPFHXANPD2ZJZGACYVY3T22FGBADKBA2DC5ZCLNAI7MW3FUF6IPXULF6J2A
+#\\\|DYGPUDFC5H6BSMOIZ7AZWBI76WYAXRT52U6OEBK6LAYOSXDUK4K \ / AMOS7 \ YOURUM ::
+#\[7]24DXWVFGAJFIEQ4L7S7DE552ENLOAAYEV7HOCGLF4MHJCNFMIECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

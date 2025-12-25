@@ -13,6 +13,15 @@ categories:
     description: "Tested and working reliably for image analysis"
     priority: 1
     models:
+      - name: "4B Opus 100 Manga"
+        model_path: "4b-opus100-manga"
+        params: "4B"
+        capabilities:
+          - image_analysis
+          - detailed_description
+        notes: "Working vision model - GPU accelerated, reliable image encoding via llama-cli-cuda"
+        max_resolution: 2048
+
       - name: "Qwen 3 Vision Large"
         model_path: "qwen/qwen3-vl-8b"
         params: "8B"
@@ -21,7 +30,7 @@ categories:
           - detailed_description
           - text_detection
           - composition_analysis
-        notes: "Best quality for detailed image analysis"
+        notes: "Best quality for detailed image analysis (if compatible with CLI)"
         max_resolution: 4096
 
       - name: "Gemma 3 4B IT (Double Quant)"
@@ -31,7 +40,7 @@ categories:
           - image_analysis
           - basic_description
           - quality_assessment
-        notes: "Efficient, good for quick analysis"
+        notes: "Efficient, good for quick analysis (needs investigation for CLI vision support)"
         max_resolution: 2048
 
       - name: "Gemma 3 Glitter 4B"
@@ -41,7 +50,7 @@ categories:
           - image_analysis
           - basic_description
           - quality_assessment
-        notes: "Good alternative to standard Gemma 3"
+        notes: "Good alternative to standard Gemma 3 (needs investigation for CLI vision support)"
         max_resolution: 2048
 
   experimental_uncertain:
@@ -67,16 +76,6 @@ categories:
         max_resolution: 2048
         status: "test_more"
 
-      - name: "4B Opus 100 Manga"
-        model_path: "4b-opus100-manga"
-        params: "4B"
-        capabilities:
-          - image_analysis
-          - manga_analysis
-        notes: "Specialized for manga - uncertain for general images"
-        max_resolution: 2048
-        status: "test_more"
-
   do_not_use:
     description: "Known to crash or fail on image input"
     priority: 999
@@ -95,12 +94,12 @@ selection_strategy:
   timeout: 60000  # milliseconds
 
 preferred_order:
-  - "qwen/qwen3-vl-8b"
+  - "4b-opus100-manga"
   - "gemma-3-4b-it-uncensored-dbl-x"
   - "gemma-3-glitter-4b-uncensored"
+  - "qwen/qwen3-vl-8b"
   - "eris_primev4.69-vision-32k-7b-imatrix"
   - "visual-laylelemonmaidrp-7b-iq-imatrix"
-  - "4b-opus100-manga"
 
 notes:
   - "This registry should be updated as testing reveals more about model reliability"
@@ -108,8 +107,8 @@ notes:
   - "Broken models should not be used unless specifically overridden by user request"
   - "Each model can be queried for availability via llama-server or LM Studio API"
 
-#,,,.,,,,,..,,,.,,,.,,,,.,..,,,.,,...,,,,,,,.,..,,...,...,...,,.,,..,,,..,,..,
-#KVM5HXRIL5UL6FHXI4QB3Z7PWPXZVCQHCZ5NIGPNHGUJKABABLNDM5RIZN43CGIVG7YD7YAGVXKCK
-#\\\|HHRF5RN2VQTR6DTVNWPBTSNBNNGIW3OBQMZVSAFSZQSWFUSEBZW \ / AMOS7 \ YOURUM ::
-#\[7]QCQCXZCXIJBVK3IKCBBNBB7XKKGOMPNWIKTJ2ZX6AR53F32FEKBA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,.,,...,,..,,,.,.,,,.,,,.,,,,,,,..,,...,..,,..,,...,.,,,..,,,,,,
+#WSGQAJRLHSOEUAHNRZKNCVA3OXXXWUPEXV6O2M7B7ERCSC5JUKZQHFU7I5UA756T5B4MTZYGPXX32
+#\\\|V7SKTJXKOQOJQVST5KR5GKFQD3PLK5HPR6LLTBSV7PLBE7T3EQU \ / AMOS7 \ YOURUM ::
+#\[7]QP4HYEISSY7PQT7CEBKGIZUEDTQRRAIY7I5BNPT6AAR3P5W2KIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
