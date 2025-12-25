@@ -1,12 +1,12 @@
 ## [:< ##
 
-# name = image-batch.cmd.status
+# name = image-batch.parent.cmd.status
 # descr = Query batch processing status (optionally by batch_id)
 
 my $batch_id = shift;
 
 # Call the main image-batch.status module
-my $result = <[image-batch.status]>->($batch_id);
+my $result = <[image-batch.parent.status]>->($batch_id);
 
 # Check if we got a valid result
 return { 'mode' => qw| FALSE |, 'data' => 'Invalid status response' }
@@ -31,8 +31,8 @@ if ( $result->{'success'} ) {
     };
 }
 
-#,,.,,,,,,,..,,,.,...,,..,,..,..,,,..,...,,..,..,,...,...,,,.,,..,.,,,,,.,...,
-#STNT7N327RIX4W2VMF32HK2USU2FQD5ERGMHHM3EDYVTRKR4IE2Q4NYDB2H7P7IAFSSGPCFIJOZRO
-#\\\|NZPVLXKKS77VODI45SRZAMR4FSWWYEN5TTPCEVGO23A5QAL5VJ4 \ / AMOS7 \ YOURUM ::
-#\[7]A4IBP4IZIR5FB5HWVCLGOATOOFHOEMLAWMKRJXI4XY7KKYWUPYDY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,.,.,,,,,,,.,...,..,,,.,,,.,,..,,..,,...,...,,,,,,,.,.,,,,,,,.,,,
+#WK2YLWTRWCBSSYHDZ6SRRK2OKHB22SDFISAUC4SWGUGQOIP5NYZRPSJU2VCEB3IYZ5SJPPTKZCNU2
+#\\\|C3GURZMQDDMWLVUQWZK6V7PIOPKIADAYZYNESKQVHWQQWM5Z72I \ / AMOS7 \ YOURUM ::
+#\[7]OE4KJ4LC4ENKTFNYKJKNJJVGWZXV26GHRLBB5EO3Q2SLHEG2G2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

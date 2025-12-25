@@ -157,8 +157,8 @@ if ($count) {
         }
         map {
             if ( my @removed_job = <[jobqueue.remove_job]>->($ARG) ) {
-                my $a_n
-                    = $removed_job[0]->{'callback_params'};   ## zenka_name ##
+                my $a_n    ## zenka_name ##
+                    = $removed_job[0]->{'callback_params'} // 'unknown';
                 <[base.logs]>->( 0, 'removed orphaned start job [%s]', $ARG );
                 <[base.logs]>->( 0, ': zenka : %s',                    $a_n );
             }
@@ -171,8 +171,8 @@ if ($count) {
     };
 }
 
-#,,.,,..,,,.,,..,,,,.,..,,.,.,,,.,..,,,,.,..,,..,,...,..,,..,,.,,,,,.,,..,...,
-#MZRARDIJUD2U2TB5ECLIV5DKAUAHTXLL2OKPQ4W57YNMC24S4XMZSFGXVFNMUCOZ7QS2YGVDBJPD6
-#\\\|54WAFDVRH42UUAY6LGQ5N6OJC5454LJW54ZA5WOUNAGISYKRPCQ \ / AMOS7 \ YOURUM ::
-#\[7]GOMFVOZEQJ64MCGCBEZM6PPO6ELMJJZHWXZCSZQASICTAAM7BOAQ 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,...,,.,,,.,,.,,,..,,,,.,,,.,,.,,..,,...,...,...,,,,,,,,,,.,,..,,
+#X3FZTHMEBHUT5KM6NPFMMHJSRJLGRBO7XVVBAAE7VCN3YRM4BGOYD5LT5ZZBIV56JRZDTBZN7HNME
+#\\\|77GI6MCYG2KSDGXUMMNHDHHAGXTSD7L7X3OCOQ4GIPT4SDQR6YM \ / AMOS7 \ YOURUM ::
+#\[7]NNHGML7RBCNNAEVLPTEL3VTXJAW2NCIB7E4CERTIO5KH4XTFCCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

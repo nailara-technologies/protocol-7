@@ -16,9 +16,9 @@ socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
 map { $data{'handle'}{$ARG}{'link'} = qw| ipc.pipe | }
     ( $child_pipe, $parent_pipe );
 
-<[event.add_signal]>->(
-    { 'signal' => 'CHLD', 'handler' => qw| base.handler.sig_chld.shutdown | }
-);
+# NOTE: Not setting up CHLD signal handlers here
+# Child process doesn't fork further, so CHLD handling not needed
+# And CHLD signal handlers in this context cause "expected numerical reply_id" error in v7
 
 <image-batch.child.pid> = <[base.fork]>;
 
@@ -41,7 +41,11 @@ if ( !<image-batch.child.pid> ) {
     <system.zenka.subname> = sprintf 'child%s', $sn_str;
     $PROGRAM_NAME = sprintf '%s[child%s]', <system.zenka.name>, $sn_str;
 
-    # Mark parent session for shutdown when child closes
+   # Mark parent's cube session for shutdown in child
+   # Child inherits the parent's cube session after fork, but child should NOT
+   # communicate with cube. Only the parent should handle cube messages.
+   # This line closes the child's inherited copy of the cube session.
+   # The parent keeps its own copy and continues communicating with cube.
     $data{'session'}{$session_id}{'shutdown'} = 1;
 
     # Initialize Protocol-7 session over socketpair
@@ -53,9 +57,9 @@ if ( !<image-batch.child.pid> ) {
     # Set command handler so child can receive and execute Protocol-7 commands
     $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
 
-    <[base.log]>->( 1, 'preparing to close cube session of child .,' );
+    <[base.log]>->( 1, 'preparing to load child modules .,' );
 
-    # Load and initialize child-specific modules
+# Load child-specific modules ONLY in child process (not inherited from parent)
     <[base.load_modules]>->('image-batch.child');
     <[base.init_modules]>->('image-batch.child');
 
@@ -67,7 +71,7 @@ if ( !<image-batch.child.pid> ) {
     delete <image-batch.pipe.parent> if exists <image-batch.pipe.parent>;
     <image-batch.pipe.child> = $child_pipe;
 
-    # Load parent-specific modules
+# Load parent-specific modules ONLY in parent process [not inherited by child]
     <[base.load_modules]>->('image-batch.parent');
     <[base.init_modules]>->('image-batch.parent');
 
@@ -79,14 +83,22 @@ if ( !<image-batch.child.pid> ) {
     # Set command handler so parent can send commands and receive replies
     $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
 
+    $data{'session'}{$id}->{'authenticated'} = qw| yes |; # enabling  commands
+
     # Store child process and session info
     <image-batch.child.session_id> = $id;
+
+    ## reporting child PID to v7 zenka so it is able to terminate it ##
+    <[base.zenki.report_child_pid]>->(<image-batch.child.pid>);
+
+    # Mark zenka as online (following weather pattern)
+    <[base.async.get_session_id]>;    ## --> 'online' ##
 
     <[base.log]>->( 1, 'child process forked and ready for commands.,' );
 }
 
-#,,.,,.,.,,..,...,...,.,,,,.,,.,.,...,..,,.,.,..,,...,...,...,.,.,,..,,..,,,,,
-#DRWN3WRJHEZ5X6UEURZOWTMRUK4LOGOYG3HHQA4GUH6OLKRRLDQBM7RKBLKWTYRTNV4NTIGOIQCQE
-#\\\|BYVPH7G2UU2O6DU5VV6PLLG72XSMRNUUFHDTAOEV3DMKZ3EKBVL \ / AMOS7 \ YOURUM ::
-#\[7]W3YVV534SVVTGWT2RZ5MSC3GKX6ISCCXNDIRQREAYSPI5IORFSDI 7  DATA SIGNATURE ::
+#,,..,,,,,..,,.,.,.,,,,,.,.,.,,,,,.,,,...,.,,,..,,...,...,..,,..,,.,.,,,.,,..,
+#7YY5HA3NOXWU2KGZFRNJIYQCGKKDMP7WZ6O3EX67GIGIXGSOAG63HX54OXANXF3X24VSIGHN5I5EY
+#\\\|FSGUKURMDQZZM353PHNDKL4RK54J25NP5GERMLL3JFWCDNR5XVR \ / AMOS7 \ YOURUM ::
+#\[7]26HAILHGYL3IAX65EUW4UXTSDL32DWCDYZN4W56QNNBZCY6UY6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

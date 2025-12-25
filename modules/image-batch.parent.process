@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name = image-batch.process
+# name = image-batch.parent.process
 # descr = Batch processing orchestrator using jobqueue for concurrency control
 
 my $yaml_path = shift;
@@ -12,7 +12,7 @@ return { success => FALSE, error => "YAML file not found: $yaml_path" }
     unless -f $yaml_path;
 
 # Load and validate YAML batch specification
-my $spec_result = <[image-batch.load_yaml_spec]>->($yaml_path);
+my $spec_result = <[image-batch.parent.load_yaml_spec]>->($yaml_path);
 return $spec_result unless $spec_result->{success};
 
 my $spec = $spec_result->{batch_name} ? $spec_result : $spec_result->{spec};
@@ -20,7 +20,7 @@ my $image_paths = $spec->{images};
 my $batch_name  = $spec->{batch_name} // 'Untitled Batch';
 
 # Generate unique batch ID
-my $batch_id_result = <[image-batch.generate_batch_id]>;
+my $batch_id_result = <[image-batch.parent.generate_batch_id]>;
 return $batch_id_result unless $batch_id_result->{success};
 
 my $batch_id = $batch_id_result->{batch_id};
@@ -151,8 +151,8 @@ if (<image-batch.child.pid>) {
     };
 }
 
-#,,,,,..,,.,,,,.,,,.,,,.,,..,,...,.,.,,,,,...,..,,...,..,,.,.,,,.,,.,,.,,,...,
-#64PTN7AMESWEXA2T6NE3SRIXWJFAS224LMJOQMA7PUU56LSD6RDAAEQ3OMWIE3FHKXGRUEE5AFYIW
-#\\\|YD45KHFT4D2CGQLZRXCOOOSJZIT45P5ONAKFSBJU7TXPV4KISMI \ / AMOS7 \ YOURUM ::
-#\[7]36V5WBQ6NCTTBJYDVCXDGJI3IL6INE5EU2HCWDHP7BZAGUSJVIAA 7  DATA SIGNATURE ::
+#,,.,,..,,...,.,,,,,.,,,.,.,.,.,.,..,,,..,...,..,,...,..,,..,,.,.,,,,,,.,,..,,
+#V3IW3EQYJV3APCXB75P33P33NIS2ZJTOBKV7MGXRIXWAZUTBHFCU7XGTCM2YODP6PZPLPZYXMHERU
+#\\\|K3HFUP4FEMMUBEL255BHWINLMDA5UIQGNHSFNK77ZNNVCOJ3WTE \ / AMOS7 \ YOURUM ::
+#\[7]MCNX65NVKAU6PVDB4WKNHXD4NQON22TAPDGB6LKSG56DXKSYWYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
