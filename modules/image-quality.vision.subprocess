@@ -59,13 +59,17 @@ my $escaped_prompt = quotemeta($analysis_prompt);
 # -e: process escape sequences in prompt
 # --mmproj: multimodal projection for vision encoding
 # --image: input image file path
+# Wrap in sh -c to ensure LD_LIBRARY_PATH is properly propagated
 my $cmd = sprintf(
-    'export LD_LIBRARY_PATH=/data/source/ik_llama.cpp:$LD_LIBRARY_PATH && %s -m %s --mmproj %s --image %s -n 100 -c 512 -e --prompt %s 2>&1',
-    $llama_cli,
-    $escaped_model,
-    $escaped_mmproj,
-    $escaped_image,
-    $escaped_prompt
+    'sh -c %s',
+    quotemeta(sprintf(
+        'export LD_LIBRARY_PATH=/data/source/ik_llama.cpp:$LD_LIBRARY_PATH && %s -m %s --mmproj %s --image %s -n 100 -c 512 -e --prompt %s 2>&1',
+        $llama_cli,
+        $escaped_model,
+        $escaped_mmproj,
+        $escaped_image,
+        $escaped_prompt
+    ))
 );
 
 # Execute with timeout
@@ -96,8 +100,8 @@ return {
     model_used => $model_identifier
 };
 
-#,,.,,,..,,.,,,,,,,.,,,,.,,..,,.,,,,,,..,,...,..,,...,...,.,,,,,,,..,,,..,,..,
-#MMGCBFP5VRWN73GYJQXPFHXANPD2ZJZGACYVY3T22FGBADKBA2DC5ZCLNAI7MW3FUF6IPXULF6J2A
-#\\\|DYGPUDFC5H6BSMOIZ7AZWBI76WYAXRT52U6OEBK6LAYOSXDUK4K \ / AMOS7 \ YOURUM ::
-#\[7]24DXWVFGAJFIEQ4L7S7DE552ENLOAAYEV7HOCGLF4MHJCNFMIECY 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,,,,.,.,,,.,,,,,,.,,.,.,..,,...,..,,...,...,.,.,,.,,,,.,,,,,,,.,
+#KXBIAFRR72OC7RB62NXFRWIEDLVNYY3KWLTJPIJSQYQGNN5F7737CCJOZQQJIFBGSJ2Z3623NW7BO
+#\\\|JWDJ3WXP7IBR27RHA6U6GXXS2ERWR4GRW5ZUQYC6QV56DLQERSY \ / AMOS7 \ YOURUM ::
+#\[7]P42Z23RZAZGA7AGYBV4GHXF64YJQCP7S6DKAKJ4GMG4SK4V3FICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
