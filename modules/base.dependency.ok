@@ -6,6 +6,24 @@
 my $object_id = shift // '';
 my $event_id  = shift;         # <-- optional
 
+# virtual object_id 0 means "explicitly no dependencies" : resolves silently
+if ( defined $object_id && $object_id == 0 ) {
+    return TRUE;
+} elsif ( not defined $object_id or not length $object_id ) {
+
+    # Warn when object_id is undefined\empty [ not 0 ]
+    # This indicates inconsistent state - job created without
+    #                                     proper object registration
+    # Guidance: use object_id => 0 for jobs with no dependencies expected
+    <[base.log]>->(
+        0, "base.dependency.ok: object_id for job %s not defined .,"
+    );
+    <[base.log]>->(
+        0, ":. use object_id 0 for any explicit no dependency cases"
+    );
+    return TRUE;
+}
+
 if ( not exists <dependency.object>->{$object_id} ) {
     <[base.logs]>->(
         0, "base.dependency.ok: object id '%s' not found", $object_id
@@ -46,8 +64,8 @@ foreach my $chain_object_id ( <dependency.chain>->{$object_id}->@* ) {
 }
 return TRUE;
 
-#,,,,,.,.,,.,,,..,,.,,,,.,..,,,,,,...,,.,,.,.,..,,...,...,,,.,...,,,,,..,,,.,,
-#TDFL2G2PB5ZJWFIZXUM3P7SM4ULSTRZI5YYA2N6JMMPS5LEMTA2QT27OGE2SS7LEGFSPYWROCDYUY
-#\\\|FQTU5MGJFSQYPOKTSXQLPNHBK5HOMVKFNZ2QJXMRJ7Q6O3LJQK2 \ / AMOS7 \ YOURUM ::
-#\[7]RXMR7O46F4HSA5RYBKB52RMVTUB3CJK6FX5SSBPWF5CQJ27VOABA 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,...,...,..,,..,,..,,.,,,,..,...,..,,...,...,...,...,,..,...,,..,
+#SOBICPWVTMVRD6OY6B225OE6EFCUHQG7P4BMRJBFOT3OSJV2WNG7KFRRF4NVXOXYQZPZWZBQBDCR4
+#\\\|VZ4AT2TB3EABOCO77WRZIBJ6ATNRALIBYDA6YGVLHPAV2P7OBYW \ / AMOS7 \ YOURUM ::
+#\[7]EZCSMZE2E3L6FAAKV2FBEY7RNJWGF6NGMN5GPIXCQM2RB7NSGEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
