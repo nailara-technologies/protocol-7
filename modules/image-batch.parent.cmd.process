@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name = image-batch.cmd.process
+# name = image-batch.parent.cmd.process
 # descr = Submit batch job for processing (expects YAML path as parameter)
 
 # Extract parameter from command args
@@ -18,8 +18,8 @@ return { 'mode' => qw| FALSE |, 'data' => 'YAML batch file path required' }
 return { 'mode' => qw| FALSE |, 'data' => 'Path cannot be empty' }
     if $yaml_path eq '';
 
-# Call the main image-batch.process module
-my $result = <[image-batch.process]>->($yaml_path);
+# Call the main image-batch.parent.process module
+my $result = <[image-batch.parent.process]>->($yaml_path);
 
 # Ensure result is valid before returning
 return {
@@ -42,8 +42,8 @@ if ( $result->{success} ) {
     };
 }
 
-#,,,,,.,,,,.,,,.,,,.,,,..,...,.,,,.,.,..,,...,..,,...,...,,.,,,,.,..,,,.,,,,,,
-#2J7V2RBJAOXOPXBEKGMUEQZHVJ6CTYPVV6ITDGUGUAYIDOBR34Q5NCJVLV5U264QJIU4KNG3QB6XG
-#\\\|UMIYJ3UTGHNA5NDFVW435YCJNTHJDGN43ECVJR2DS77TMAZXTGS \ / AMOS7 \ YOURUM ::
-#\[7]GEQZ2J34QOO6MW6C5I5MJTXVLEG3256JYFKH56HL4ZCVQ6CNUAAI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,,,,,.,...,,,.,.,.,.,.,..,,.,.,..,,...,...,,.,,..,,..,,..,,..,,
+#AK36AZQ7T6BCB6Q223YDCTLEM5PEEAWG4R4SXZ7ET5GZWWLNRQOUPAF5DFU52STDGRKOB4ASGSHBG
+#\\\|GYV7J4L3MSVT6ZZZ3ZOFUSCEUGCY3IR55BUQ5TTWKT2YYU4PB2X \ / AMOS7 \ YOURUM ::
+#\[7]GSE3YJKCLLO3KT6H5F6N6BHSAKT6ROGIAR3FCK3ZAHHWLHULKICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

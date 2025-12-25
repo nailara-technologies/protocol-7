@@ -298,7 +298,6 @@ return [ qw[
         jobqueue.pre_init
         jobqueue.move_job
         jobqueue.exec_job
-        image-batch.pause
         httpd.json.encode
         httpd.json.decode
         fs.cmd.is_mounted
@@ -383,9 +382,6 @@ return [ qw[
         index.cmd.gen-path
         index.cmd.add-path
         impressive.startup
-        image-batch.status
-        image-batch.resume
-        image-batch.cancel
         httpd.status_codes
         httpd.serve_static
         httpd.http_options
@@ -475,8 +471,6 @@ return [ qw[
         keys.console.create
         jobqueue.remove_job
         io.ip.tcp.init_code
-        image-batch.process
-        image-batch.persist
         httpd.send_raw_html
         httpd.scan_site_dir
         httpd.get_mime_type
@@ -687,8 +681,6 @@ return [ qw[
         impressive.cmd.status
         impressive.cmd.resume
         image-quality.analyze
-        image-batch.init_code
-        image-batch.cmd.pause
         httpd.system.get_load
         httpd.send_error_page
         httpd.request_handler
@@ -815,11 +807,7 @@ return [ qw[
         index.cmd.add-wordlist
         impressive.open_window
         impressive.cmd.version
-        image-batch.cmd.status
-        image-batch.cmd.resume
-        image-batch.cmd.cancel
         image-batch.child.loop
-        image-batch.child.init
         httpsd.request_handler
         httpsd.register_socket
         httpd.system.cpu_usage
@@ -938,7 +926,6 @@ return [ qw[
         io.ip.ssl.input.connect
         impressive.get_playlist
         image-quality.init_code
-        image-batch.cmd.process
         httpd.system.network_io
         httpd.diagnostic.report
         ffmpeg.frame_count_slow
@@ -1056,6 +1043,7 @@ return [ qw[
         keys.console.remove-type
         io.unix.socket.init_code
         impressive.check_tmp_dir
+        image-batch.parent.pause
         httpsd.create_ssl_socket
         httpd.system.memory_free
         httpd.parse_range_header
@@ -1170,7 +1158,9 @@ return [ qw[
         io.unix.socket.input.open
         impressive.process_subcfg
         image2html.base.init_code
-        image-batch.calculate_eta
+        image-batch.parent.status
+        image-batch.parent.resume
+        image-batch.parent.cancel
         httpsd.route_and_dispatch
         httpd.system.memory_stats
         httpd.base.size.normalize
@@ -1287,7 +1277,8 @@ return [ qw[
         io.unix.socket.output.open
         io.unix.socket.input.close
         image2html.child.init_code
-        image-batch.load_yaml_spec
+        image-batch.parent.process
+        image-batch.parent.persist
         httpsd.reload_certificates
         httpd.handler.acme_request
         events.set-up.import_rules
@@ -1395,6 +1386,7 @@ return [ qw[
         io.unix.socket.output.close
         image2html.parent.init_code
         image-batch.parent.shutdown
+        image-batch.child.init_code
         httpd.update_download_count
         httpd.benchmark.end_request
         httpd.base.file.nonblocking
@@ -1496,6 +1488,8 @@ return [ qw[
         keys.console.create-stub-key
         io.unix.socket.input.connect
         impressive.autoinstall_check
+        image-batch.parent.init_code
+        image-batch.parent.cmd.pause
         httpd.handler.template_reply
         graphics-matrix.filter.alpha
         download.set-up.import_rules
@@ -1588,7 +1582,9 @@ return [ qw[
         image2html.base.download_file
         image-quality.vision.http_api
         image-batch.parent.fork_child
-        image-batch.generate_batch_id
+        image-batch.parent.cmd.status
+        image-batch.parent.cmd.resume
+        image-batch.parent.cmd.cancel
         image-batch.child.analyze_job
         httpsd.route_template_request
         httpd.vhost_template_resolver
@@ -1688,6 +1684,7 @@ return [ qw[
         index.callback.wordlist-import
         impressive.cmd.playlist_update
         image2html.base.get_image_size
+        image-batch.parent.cmd.process
         httpd.diagnostic.end_operation
         httpd.cmd.setup-acme-challenge
         graphics-matrix.guess_bg_color
@@ -1832,6 +1829,7 @@ return [ qw[
         keys.console.keys-backup-archive
         image2html.base.write_image_html
         image2html.base.write_error_page
+        image-batch.parent.calculate_eta
         httpd.handler.web_template_reply
         httpd.diagnostic.track_operation
         discover.process_incoming_packet
@@ -1907,6 +1905,7 @@ return [ qw[
         impressive.handler.get_list_reply
         image-quality.vision.select_model
         image-quality.vision.encode_image
+        image-batch.parent.load_yaml_spec
         events.cmd.get_playlist_exclusive
         events.callback.object.date_frame
         crypt.C25519.verify_key_signature
@@ -2042,6 +2041,7 @@ return [ qw[
         letsencr.child.acme_register_account
         image2html.child.check_cache_timeout
         image-batch.parent.handle_child_exit
+        image-batch.parent.generate_batch_id
         httpsd.startup.validate_certificates
         httpd.handler.download_transfer.test
         debian.parent.resolve_cpan_to_debian
@@ -2197,8 +2197,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,,,.,...,,,.,,,,,.,.,.,,,...,,..,.,,,.,,,..,,...,...,,.,,,,.,,..,..,,,,,,
-#RRZLYMQOJCGJYIMV2WMPOLZBQ53WJRCLN7SO2S3NYK3VPXUS27EXTPL32K6WY5WEDKOCPEKCMINTA
-#\\\|NAWZD6H35B5F4I2LVOS4GTQRQEH3OG5DOBIEAMXJLXOHCXSILG2 \ / AMOS7 \ YOURUM ::
-#\[7]ST4FCITZ7I4CF2UM5TVRDGSILS7H3YFI77M6VV6TIU73D6Q4QEAY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,...,,,.,.,,,,..,...,...,,..,,,,,..,,...,...,,.,,,,.,,.,,.,.,..,,
+#DWIZ2RBIVXMIJMWL5HIPR3GJPOMQ3HSCW6WTDPYNDSMRKMMZGZ66XPCTCNBIS2JKABIUGLBNHQ6DK
+#\\\|5SBMDJTETWIEO7BQTPQYYFOSAX2ZCK7HQ45FQAAJG66VZ4A7H6N \ / AMOS7 \ YOURUM ::
+#\[7]ML2Z746LJFJSAP2M2MOMS3RYGC2IEWR5FA4RFZEUYXJGTZB762AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

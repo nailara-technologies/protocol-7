@@ -1,0 +1,20 @@
+## [:< ##
+
+# name = image-batch.child.init_code
+# descr = Child process initialization with module loading
+
+# Load required Perl modules for child process
+<[base.perlmod.load]>->( 'JSON::XS', qw| encode_json decode_json | );
+
+<[base.disable_command]>->('verify-instance');     ## no longer required ##
+<[base.disable_command]>->('register-master-key'); ##LLL: make more generic ##
+
+<[base.log]>->( 1, 'child process initialization complete .,' );
+
+return TRUE;
+
+#,,.,,,,,,...,.,,,,.,,,..,,,,,,,.,,.,,...,,,,,..,,...,.,.,..,,.,.,.,,,,,.,,..,
+#HA4CCXRLH2SOJZCD6ULANWGYQO6YWVSPPGRD67EM6JUDR7LC4WTPUZJPOLYHX2M4FNTCNQHQNRHKG
+#\\\|RFZLLZ3GLJACGVQT327GRAPE4AQ6Y6BFVUACKTXCL3RPBNP56BQ \ / AMOS7 \ YOURUM ::
+#\[7]ONHVP7SZ4WATJLRZQ5IVDB2N75K3N6O3Y4KZ6H4MJOG2XJDWUIBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
