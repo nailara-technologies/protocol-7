@@ -50,55 +50,16 @@
 map { <[base.perlmod.autoload]>->($ARG) } qw| Data::UUID JSON::XS YAML::XS |;
 
 ## Define list structures for observability
-
-## List: batch_state - shows current batch status
-<list.batch_state> = {
-    'var'  => 'data',
-    'key'  => 'batch_state',
-    'mask' =>
-        'batch_id:id status:state analyzed:count pending:count failed:count',
-    'descr' => '[operations] active batch status'
-};
-
-## List: job_queue - shows all jobs and their status
-<list.job_queue> = {
-    'var'  => 'data',
-    'key'  => 'batch_queue',
-    'mask' =>
-        'image_path:file status:state grade:letter rule_applied:action result:ok',
-    'descr' => '[operations] job queue and results'
-};
-
-## List: operation_log - shows major batch milestones
-<list.operation_log> = {
-    'var'     => 'data',
-    'key'     => 'operation_log',
-    'mask'    => 'timestamp:time action:op image:file status:state',
-    'align'   => {},
-    'filters' => {},
-    'descr'   => '[operations] major milestones'
-};
-
-## List: error_log - shows failed operations
-<list.error_log> = {
-    'var'   => 'data',
-    'key'   => 'error_log',
-    'mask'  => 'timestamp:time image:file error_type:type reason:msg',
-    'descr' => '[errors] failed operations'
-};
-
-## List: action_log - shows file operations performed
-<list.action_log> = {
-    'var'   => 'data',
-    'key'   => 'action_log',
-    'mask'  => 'timestamp:time image:file action:op source:file target:file',
-    'descr' => '[actions] file operations performed'
-};
+## Note: Lists are for showing arrays of items; batch_state is a single object
+## Batch status can be queried via image-batch.status command
+## Operation/error/action logs are available as arrays in %data but not yet exposed as lists
+## TODO: Implement logging to operation_log, error_log, action_log arrays
+## TODO: Implement image-batch.status command to display current batch_state
 
 return TRUE;
 
-#,,,,,.,,,,..,..,,..,,...,,..,,..,,.,,,..,,..,..,,...,..,,,..,,,,,..,,.,.,,,,,
-#CQQGNKXP74S2LPHJWJOF3DA5W52CFZSN4AYJPG6VCKXEJXOOBDVWHGW34DJY5PDL3EEMYUHF6SDMO
-#\\\|ZUDR3DZGKINGSQ3JAKOUCKC75CSLOBLK7HUJ3LY6YO3FYQRRW4R \ / AMOS7 \ YOURUM ::
-#\[7]YKFQKHOC5EXTEQ5EXF2HIA3HMC65MDSOSAOI5AAB75OURPXUOUCA 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,..,...,..,,,..,.,.,...,,,,,..,,..,,...,...,...,,..,,..,,..,,..,
+#N4IXKDD24QTCK57WVZNRDJAFKBF57D3SAGIJ3BNLHIRXZRN3RKQYJVAIWWQ4RSQHP7XCPMJLQSOSQ
+#\\\|37GFH3376YE5V4REE7DEPTSO4M4VXNGWKAH7EKV3FXXG5GV7RT3 \ / AMOS7 \ YOURUM ::
+#\[7]VOYMD5IUXABUBQ5BNOTQN5RZCBUHW2WVTOVFA6M2VMKSXA24BUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
