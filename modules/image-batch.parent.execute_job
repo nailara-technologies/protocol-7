@@ -1,0 +1,53 @@
+## [:< ##
+
+# name = image-batch.parent.execute_job
+# descr = Execute job by dispatching image analysis to child process
+# param = { job_id => job_id, params => { image_path => ..., batch_id => ... } }
+
+my $job_params = shift;
+my $job_id = $job_params->{job_id};
+my $params = $job_params->{params};
+
+return { success => FALSE, error => 'job_id required' }
+    unless defined $job_id;
+return { success => FALSE, error => 'params required' }
+    unless defined $params;
+
+my $image_path = $params->{image_path};
+my $batch_id = $params->{batch_id};
+
+return { success => FALSE, error => 'image_path required' }
+    unless defined $image_path;
+return { success => FALSE, error => 'batch_id required' }
+    unless defined $batch_id;
+
+<[base.log]>->(
+    2,
+    sprintf(
+        'Executing job %s: analyzing image %s',
+        $job_id, $image_path
+    )
+);
+
+# Send image analysis job to child process via Protocol-7 command routing
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "child.analyze_image",
+        'call_args' => {
+            'args' => sprintf( "%s %s",
+                $image_path,
+                $job_id )
+        },
+        'reply' => {
+            'handler' => 'image-batch.parent.handle_job_reply',
+            'params'  => { 'job_id' => $job_id, 'batch_id' => $batch_id }
+        }
+    }
+);
+
+return { success => TRUE, message => "Job $job_id dispatched to child" };
+
+#,,,,,..,,,..,,.,,.,.,,.,,,,,,,,.,,..,,.,,...,..,,...,...,,,.,,,,,,,,,..,,...,
+#3BNXHHFR3NANP5SNAOGMTOMNDAODFTQ6S34CRWK23KSTW5JYRT2ID5S7IUBGA2A2NTLJDLAHAJV5Y
+#\\\|EZY4FJK5XX4E4LCONSVIX4YOXJ4B3JDOFEFR4GICHNKUHHC7P3U \ / AMOS7 \ YOURUM ::
+#\[7]KDOZYLTOCGH4Y5LCSF4BNCDDDEWJQYKVU2QJE5RHX2PE5YD47WBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

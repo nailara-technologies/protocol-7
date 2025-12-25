@@ -60,8 +60,11 @@ if ( !<image-batch.child.pid> ) {
     <[base.log]>->( 1, 'preparing to load child modules .,' );
 
 # Load child-specific modules ONLY in child process (not inherited from parent)
+# Include image-quality modules for image analysis
     <[base.load_modules]>->('image-batch.child');
+    <[base.load_modules]>->('image-quality');
     <[base.init_modules]>->('image-batch.child');
+    <[base.init_modules]>->('image-quality');
 
 } else {
 
@@ -97,8 +100,8 @@ if ( !<image-batch.child.pid> ) {
     <[base.log]>->( 1, 'child process forked and ready for commands.,' );
 }
 
-#,,..,,,,,..,,.,.,.,,,,,.,.,.,,,,,.,,,...,.,,,..,,...,...,..,,..,,.,.,,,.,,..,
-#7YY5HA3NOXWU2KGZFRNJIYQCGKKDMP7WZ6O3EX67GIGIXGSOAG63HX54OXANXF3X24VSIGHN5I5EY
-#\\\|FSGUKURMDQZZM353PHNDKL4RK54J25NP5GERMLL3JFWCDNR5XVR \ / AMOS7 \ YOURUM ::
-#\[7]26HAILHGYL3IAX65EUW4UXTSDL32DWCDYZN4W56QNNBZCY6UY6AA 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,.,,,.,.,..,,..,,..,,,..,..,,,,.,..,,...,...,,.,,,..,.,,,,,,,.,,,
+#LZ7ZT5S7QYCXRQIN6YMXRNDAFKN3EVAG5BMLHLWZO5SNANPXPGIKF26X5TWRXJU4OZ5XZEILNNW4G
+#\\\|EGGOGO472BIC2CY3FWYPUEJPNGM2UFRKGC2XSTDQFJZ4QZXVYFR \ / AMOS7 \ YOURUM ::
+#\[7]7M2O5GSIV3QCLLVBUBYP4TEZZY2EEOHCY6TDNRR6S63ONNIA4GCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

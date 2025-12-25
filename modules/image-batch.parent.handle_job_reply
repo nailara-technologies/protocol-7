@@ -1,136 +1,71 @@
 ## [:< ##
 
 # name = image-batch.parent.handle_job_reply
-# descr = Handle Protocol-7 responses from child process with analysis results, dispatch next job
+# descr = Handle analysis results from child and update job/batch state
 
-<[base.perlmod.load]>->( 'Storable', qw| thaw | );
+my $reply_data     = shift;
+my $handler_params = shift;
 
-my $reply = shift;
+my $job_id   = $handler_params->{job_id};
+my $batch_id = $handler_params->{batch_id};
+
+return { success => FALSE, error => 'job_id required' }
+    unless defined $job_id;
+return { success => FALSE, error => 'batch_id required' }
+    unless defined $batch_id;
 
 my $batch_state = <image-batch.batch_state>;
 
-return unless defined $batch_state;
-
-my $job_id = $reply->{'params'}->{'job_id'};
-
-# Thaw the serialized response from child
-my $response;
-my $had_error = 0;
-
-if ( $reply->{'cmd'} ne qw| FALSE | ) {
-    eval {
-        my $data_str = $reply->{'data'};
-        $data_str =~ s|\n$||;
-        ($response) = thaw($data_str);
-    };
-
-    if ($@) {
-        <[base.log]>->(
-            1, "ERROR: Failed to deserialize child response for $job_id: $@"
-        );
-        $had_error = 1;
-    }
-} else {
-    my $error_msg = $reply->{'call_args'}->{'args'} // 'Unknown error';
-    <[base.log]>
-        ->( 1, "ERROR: Child command failed for $job_id: $error_msg" );
-    $had_error = 1;
-}
-
-# Update job status in jobqueue
-if ( !$had_error && defined $response ) {
+# Update job result in jobqueue
+if ( $reply_data->{success} ) {
     <[jobqueue.move_job]>->( $job_id, 'completed' );
-
-    # Update statistics
     $batch_state->{statistics}->{completed}++;
 
-    # Record overall grade distribution
-    if ( defined $response->{metrics}->{overall_grade} ) {
-        my $grade = $response->{metrics}->{overall_grade};
-        $batch_state->{statistics}->{grade_distribution}{$grade}++;
+    if ( $reply_data->{metrics}->{overall_grade} ) {
+        my $grade = $reply_data->{metrics}->{overall_grade};
+        $batch_state->{statistics}->{grade_distribution}->{$grade}++;
     }
 
-    # Log successful completion
     <[base.log]>->(
         2,
         sprintf(
-            "Job %s completed: %s (grade: %s)",
-            $job_id,
-            $response->{image_path},
-            $response->{metrics}->{overall_grade} // 'N/A'
+            'Job %s completed [grade: %s]',
+            $job_id, $reply_data->{metrics}->{overall_grade}
         )
     );
 } else {
     <[jobqueue.move_job]>->( $job_id, 'failed' );
-
-    # Update statistics
     $batch_state->{statistics}->{failed}++;
 
-    # Log failure
-    <[base.log]>->( 1, sprintf( "Job %s FAILED", $job_id ) );
+    <[base.log]>->(
+        1,
+        sprintf( 'Job %s failed [error: %s]', $job_id, $reply_data->{error} )
+    );
 }
 
-# Get next job from queue and send to child
-my $next_job = <[jobqueue.get_next_job]>->('queued');
+# Check if all jobs are complete
+my $job_count = <jobqueue.joblist.count>;
+my $completed = $job_count->{completed} // 0;
+my $failed    = $job_count->{failed}    // 0;
+my $total     = $batch_state->{total_images};
 
-if ( defined $next_job ) {
-    <[jobqueue.move_job]>->( $next_job->{job_id}, 'processing' );
-
-    # Send next job to child
-    <[base.protocol-7.command.send.local]>->(
-        {   'command'   => "child.analyze_image",
-            'call_args' => {
-                'args' => sprintf( "%s %s",
-                    $next_job->{image_path},
-                    $next_job->{job_id} )
-            },
-            'reply' => {
-                'handler' => 'image-batch.parent.handle_job_reply',
-                'params'  => { 'job_id' => $next_job->{job_id} }
-            }
-        }
-    );
-
+if ( $completed + $failed == $total ) {
+    $batch_state->{status} = 'completed';
     <[base.log]>->(
-        2,
+        1,
         sprintf(
-            "Next job assigned to child: %s (%s)",
-            $next_job->{job_id}, $next_job->{image_path}
+            'Batch %s complete: %d/%d succeeded, %d failed',
+            $batch_id, $completed, $total, $failed
         )
     );
-} else {
-
-    # No more jobs - check if batch is complete
-    my $completed_count = <[jobqueue.count]>->('completed') // 0;
-    my $failed_count    = <[jobqueue.count]>->('failed')    // 0;
-    my $total_count     = $batch_state->{total_images};
-
-    if ( $completed_count + $failed_count == $total_count ) {
-        $batch_state->{status}       = 'completed';
-        $batch_state->{completed_at} = <[base.time]>->(3);
-
-        my $summary = sprintf(
-            'Batch completed: %d total, %d successful, %d failed',
-            $total_count,
-            $batch_state->{statistics}->{completed},
-            $batch_state->{statistics}->{failed}
-        );
-
-        <[base.log]>->( 0, $summary );
-    } else {
-        <[base.log]>->(
-            1,
-            sprintf(
-                'All jobs processed: %d completed, %d failed, %d of %d total',
-                $completed_count,                 $failed_count,
-                $completed_count + $failed_count, $total_count
-            )
-        );
-    }
 }
 
-#,,.,,...,.,,,.,.,...,.,.,,,,,...,,,.,..,,.,,,..,,...,...,,..,.,.,.,.,...,,,.,
-#JQGE27IBE7ORNEOOLSI5ZAG2LLJWUTB6JJCLRXHEZFFK67VITFOF5C4UYUJRQ436J3MOB2C2HHS4U
-#\\\|6CAAOLTECM2CE4MCW3KPCOZ4UCCDYIHVOTTHSYBGAILCSMMSXTV \ / AMOS7 \ YOURUM ::
-#\[7]37SKNBWZU4XBLLAQGU4TGBVVWRHKRKFYAMRSCXXJ6UM6BEHVTCBA 7  DATA SIGNATURE ::
+# jobqueue.move_job() triggers counter watcher, which dispatches next job automatically
+
+return { success => TRUE, message => "Job result processed: $job_id" };
+
+#,,,,,,.,,.,,,,.,,...,.,,,,..,.,,,,,,,,,.,...,..,,...,...,...,,,,,,,.,,..,,.,,
+#FPLTDUVCRVFLRCXKBWEDPQIEEFHIBUZQ27KFEFINZZIPAUB3Q6HRKH5DNC6G25GKAVBUYCX25HSHI
+#\\\|6CSNRA6DMBUHPX26LK72TNDNQXUOKGOKYA7ST2DKDRXHIUFB2GJ \ / AMOS7 \ YOURUM ::
+#\[7]HOLO3LVJAFPT3QWJO4QLR7RTL436WUCER673GYCW3XIITGGOCABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
