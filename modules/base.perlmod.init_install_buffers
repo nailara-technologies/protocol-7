@@ -11,7 +11,8 @@ my $zenka_init
     ? qw| re-init |
     : qw| init |;
 
-my $init_msg = sprintf '.:[ zenka %s | CPAN module installation tracker ]:.',
+my $init_msg
+    = sprintf '.:[ zenka %s | CPAN module installation tracker ]:.',
     $zenka_init;
 
 ## Reset buffer if it only has initialization message ##
@@ -27,48 +28,31 @@ if (    $zenka_init eq qw| re-init |
 <[base.buffer.add_line]>->( qw| perlmod-install |, $init_msg );
 <[base.buffer.add_line]>->( qw| perlmod-install |, '' );
 
-## Initialize statistics tracking ##
-<perlmod.install.stats> //= {
-    total_attempts => 0,
-    successful     => 0,
-    failed         => 0,
-    debian_pkgs    => 0,
-    cpan_mods      => 0,
-};
+## Statistics tracking log buffer ##
+## Note: perlmod-stats is a log buffer for tracking module installation statistics,
+##       not a list. Use 'p7 <zenka>.show-buffer perlmod-stats' to view.
+<buffer.perlmod-stats.max_size> //= 16 * 1024;  ## 16K buffer for stats log ##
 
-## List structure for installation statistics ##
-<list.perlmod-stats> = {
-    qw| var |   => qw| data |,
-    qw| key |   => qw| perlmod.install.stats |,
-    qw| descr | => 'CPAN module installation statistics',
-    qw| mask |  => join ' ',
-    qw |
-        total_attempts:attempts
-        successful:success
-        failed:failures
-        debian_pkgs:deb
-        cpan_mods:cpan
-        |,
-    qw| align | => {
-        qw| total_attempts | => qw| center |,
-        qw| successful |     => qw| center |,
-        qw| failed |         => qw| center |,
-        qw| debian_pkgs |    => qw| center |,
-        qw| cpan_mods |      => qw| center |,
-    }
-};
+my $stats_init_msg
+    = sprintf '.:[ zenka %s | CPAN module statistics tracker ]:.',
+    defined $data{'buffer'}{'perlmod-stats'}{'data'}
+    ? qw| re-init |
+    : qw| init |;
+
+<[base.buffer.add_line]>->( qw| perlmod-stats |, '' )
+    if $zenka_init eq qw| init |;
+<[base.buffer.add_line]>->( qw| perlmod-stats |, $stats_init_msg, 0 );
+<[base.buffer.add_line]>->( qw| perlmod-stats |, '' );
 
 ## Log buffer reference for installation activity log ##
-## Note: perlmod-log is a log buffer, not a list
-##       - use 'p7 httpsd.show-buffer perlmod-install' or similar to
-##         view The buffer reference allows direct access to the ring
-##                                             buffer data structure
+## Note: perlmod-install is a log buffer for installation activity
+##       - use 'p7 <zenka>.show-buffer perlmod-install' to view installation logs
 <buffer.perlmod-install.type> //= qw| log |;
 
 return FALSE;
 
-#,,.,,.,.,.,,,,.,,,..,,.,,,.,,,.,,...,.,.,,,.,..,,...,..,,.,.,..,,...,..,,.,,,
-#FTSWHSLM4R76GIJAVTBQ7ODZFQNHRYRJGFTF2AOSJFFIWAQXJ3NH6TWSU6L542P6YOAVVVLS37FK4
-#\\\|I57HNQCL37BZF6T6M4SY2OKTSV2VV357CMOVMT3462PY4NIOINT \ / AMOS7 \ YOURUM ::
-#\[7]JX36HV3S5YNN32CDUL36OLB7QI3FWWATSBI7C5FZK5YCSBUVDADQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,...,,,.,..,,..,,.,,,...,..,,.,,,..,,...,...,,..,,.,,,..,...,.,.,
+#AZRXHJKUYC4LAIRAH6MYUJEHTDV4OSMBWDBFQFQMXI25VPZUCAI2AIYCTXNDAKRKUDRQSLV5T22ZK
+#\\\|4NTUXOCAVWSUGZEFYT3UN2GISB5YOXY77XM6Q4NH5RBBRNIHHKD \ / AMOS7 \ YOURUM ::
+#\[7]VRNMLLFGVBMYPXTWNHAMQ2P4OSA2PZXC7QE4GSVJ5BBSIITLAAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
