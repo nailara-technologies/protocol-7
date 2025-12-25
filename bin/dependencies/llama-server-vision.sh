@@ -2,24 +2,26 @@
 
 ## [:< ##
 # name  = llama-server-vision
-# descr = Vision model server wrapper for image-quality zenka
+# descr = Model server wrapper for image analysis (via HTTP API)
 #
-# Starts llama-server with vision-capable model on port 8080
-# Prioritizes Gemma-3-Glitter model (tested compatibility)
-# Falls back to Qwen3-VL if Gemma not available
+# Starts GPU-accelerated llama-server on port 8080 for model inference
+# Current: Gemma-3-Glitter-4B (text/encoding model, stable)
+# NOTE: Vision models with mmproj segfault/OOM - under investigation
 # Managed as v7 ext-bin zenka for image-quality dependencies
+# Can be extended to image analysis once vision model issues resolved
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Vision model configuration - prioritize models with mmproj (multimodal projection)
-# Samantha-vision and Qwen3-VL both have mmproj for vision capabilities
+# Vision model configuration
+# Using 4b-opus100-manga (verified working, smallest vision model with mmproj)
+# Falls back to Gemma-3-Glitter if manga model unavailable
 MODEL_SEARCH_PATHS=(
-    "/mnt/m/Guilherme34/Samantha-vision-gguf"
-    "/mnt/ext-xfs-data/models-lmstudio/Guilherme34/Samantha-vision-gguf"
-    "/mnt/m/lmstudio-community/Qwen3-VL-8B-Instruct-GGUF"
-    "/mnt/ext-xfs-data/models-lmstudio/lmstudio-community/Qwen3-VL-8B-Instruct-GGUF"
+    "/mnt/m/mradermacher/4b-opus100-manga-GGUF"
+    "/mnt/ext-xfs-data/models-lmstudio/mradermacher/4b-opus100-manga-GGUF"
+    "/mnt/ext-xfs-data/models-lmstudio/mradermacher/Gemma-3-Glitter-4B-Uncensored-GGUF"
+    "/mnt/m/lmstudio-community/mradermacher/Gemma-3-Glitter-4B-Uncensored-GGUF"
 )
 
 LLAMA_SERVER="${LLAMA_SERVER:-/data/source/ik_llama.cpp/llama-server-cuda}"
@@ -40,12 +42,12 @@ fi
 echo "✓ Binary found: $LLAMA_SERVER"
 echo "✓ Library path: $LLAMA_LIB_PATH"
 
-# Find vision model
+# Find model
 MODEL_PATH=""
 for search_path in "${MODEL_SEARCH_PATHS[@]}"; do
     if [ -d "$search_path" ]; then
-        # Look for vision model GGUF files (Qwen3-VL or Samantha vision, excluding mmproj)
-        found=$(find "$search_path" -maxdepth 2 \( -name "*Qwen3*VL*.gguf" -o -name "*Samantha*vision*.gguf" \) ! -name "*mmproj*" 2>/dev/null | head -1)
+        # Look for model GGUF files (Gemma-3-Glitter)
+        found=$(find "$search_path" -maxdepth 2 -name "*.gguf" ! -name "*mmproj*" 2>/dev/null | head -1)
         if [ -n "$found" ]; then
             MODEL_PATH="$found"
             break
@@ -54,7 +56,7 @@ for search_path in "${MODEL_SEARCH_PATHS[@]}"; do
 done
 
 if [ -z "$MODEL_PATH" ]; then
-    echo "ERROR: Vision model not found (searched for Qwen3-VL or Samantha vision models)"
+    echo "ERROR: Model not found (searched for Gemma models)"
     echo "Searched paths: ${MODEL_SEARCH_PATHS[@]}"
     exit 1
 fi
@@ -66,13 +68,13 @@ fi
 
 # Auto-detect mmproj file in same directory
 MODEL_DIR=$(dirname "$MODEL_PATH")
-MMPROJ_PATH=$(find "$MODEL_DIR" -maxdepth 1 -name "*mmproj*.gguf" 2>/dev/null | head -1)
+MMPROJ_PATH=$(find "$MODEL_DIR" -maxdepth 1 -name "*.mmproj*.gguf" 2>/dev/null | head -1)
 
 MODEL_SIZE=$(du -h "$MODEL_PATH" | cut -f1)
-echo "✓ Vision model found: $(basename "$MODEL_PATH") ($MODEL_SIZE)"
+echo "✓ Model found: $(basename "$MODEL_PATH") ($MODEL_SIZE)"
 if [ -n "$MMPROJ_PATH" ]; then
     MMPROJ_SIZE=$(du -h "$MMPROJ_PATH" | cut -f1)
-    echo "✓ Multimodal projection found: $(basename "$MMPROJ_PATH") ($MMPROJ_SIZE)"
+    echo "✓ Multimodal projection: $(basename "$MMPROJ_PATH") ($MMPROJ_SIZE)"
 fi
 echo ""
 
@@ -83,26 +85,26 @@ mkdir -p "$(dirname "$LOG_FILE")"
 echo "Starting llama-server with vision model..."
 echo "[$(date)] Starting llama-server-vision" >> "$LOG_FILE"
 
-# Server configuration for vision model with GPU acceleration
-# Uses GPU-accelerated llama-server binary compiled with CUDA 12.5.0 support
+# Server configuration using GPU-accelerated binary
+# Uses compiled llama-server with CUDA 12.5.0 support
 # Parameters:
-# - ngl 24: GPU layers (reduced for stability with vision models)
-# - c 1024: Context size suitable for image analysis
-# - t 4: Thread count for CPU fallback
-# - mmproj: Multimodal projection file (auto-detected)
+# - ngl 15: GPU layers (reduced for stability with vision models + mmproj)
+# - c 1024: Context size suitable for analysis
+# - t 4: Thread count for CPU processing
+# - mmproj: Multimodal projection for vision support (if available)
 export LD_LIBRARY_PATH="${LLAMA_LIB_PATH}:${LD_LIBRARY_PATH}"
 
-# Build llama-server command with optional mmproj parameter
-# Note: Vision models with mmproj need lower GPU layers for stability
-SERVER_CMD="$LLAMA_SERVER -m $MODEL_PATH -p $PORT -ngl 10 -c 1024 -t 4"
+# Build command with optional mmproj
+SERVER_CMD="$LLAMA_SERVER -m $MODEL_PATH -p $PORT -ngl 15 -c 1024 -t 4"
 if [ -n "$MMPROJ_PATH" ]; then
     SERVER_CMD="$SERVER_CMD --mmproj $MMPROJ_PATH"
+    echo "Launching with vision support (mmproj)..."
 fi
 
 eval "$SERVER_CMD >> $LOG_FILE 2>&1"
 
-#,,.,,,,,,,,,,,..,,..,.,,,,,.,,.,,..,,,,.,,..,..,,...,..,,..,,.,,,.,.,,,.,.,,,
-#5SGG63DYDQL5QVSK36QBADUDYVHOKEMC72TGRR3LDAJJ2IZQYLM7F4LBKNCTZWKUGQKSUAOEYTJRU
-#\\\|WTMH7NQRM2344RVJSBYOQ6NQZX2AL25DBUIYMJZJXWOBMOK5AMX \ / AMOS7 \ YOURUM ::
-#\[7]R2HNCHB5VWD5DN3ZLKYELPWHTBYNS76ZELZPQABDADX2LXTZXIBY 7  DATA SIGNATURE ::
+#,,..,,,,,,..,.,,,,,.,...,,,.,.,,,..,,.,,,,..,..,,...,...,,..,.,.,.,,,...,,..,
+#4KOAWLISLYDMGX5KX53DBIMPKFY3SR3NTEHEL3GPYMA36TVE52ITL2GVWTW5RDVJ73FVHQEOD3JOO
+#\\\|UJPE5XD3TCFW5PWZCQKSGTHQQUUQ7377AIBS6PGCB6LI5AFWBCS \ / AMOS7 \ YOURUM ::
+#\[7]YIXMUDYAU6S3X5NNKIJZ5ODW72LBYPCXPFQGJJSZZGQLBHTPK4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
