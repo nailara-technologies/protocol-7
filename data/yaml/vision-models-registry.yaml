@@ -53,6 +53,27 @@ categories:
         notes: "Good alternative to standard Gemma 3 (needs investigation for CLI vision support)"
         max_resolution: 2048
 
+      - name: "MiniCPM-V 2.6"
+        model_path: "minicpm-v-2.6"
+        params: "2.6B"
+        capabilities:
+          - image_analysis
+          - detailed_description
+          - anime_art_understanding
+        notes: "Lightweight, efficient model optimized for manga/anime content. Works with llama-mtmd-cli. Downloaded from Hugging Face."
+        max_resolution: 2048
+
+      - name: "Qwen 2.5 VL 7B Instruct"
+        model_path: "qwen2.5-vl-7b-instruct"
+        params: "7B"
+        capabilities:
+          - image_analysis
+          - detailed_description
+          - text_detection
+          - composition_analysis
+        notes: "Official Qwen vision model. Larger capability set than MiniCPM-V. Works with llama-mtmd-cli. Highest quality vision analysis."
+        max_resolution: 4096
+
   experimental_uncertain:
     description: "May work but reliability not fully confirmed"
     priority: 2
@@ -94,6 +115,8 @@ selection_strategy:
   timeout: 60000  # milliseconds
 
 preferred_order:
+  - "qwen2.5-vl-7b-instruct"
+  - "minicpm-v-2.6"
   - "4b-opus100-manga"
   - "gemma-3-4b-it-uncensored-dbl-x"
   - "gemma-3-glitter-4b-uncensored"
@@ -107,8 +130,8 @@ notes:
   - "Broken models should not be used unless specifically overridden by user request"
   - "Each model can be queried for availability via llama-server or LM Studio API"
 
-#,,,,,,,,,,,,,,.,,...,,..,,,.,.,,,.,,,.,,,,,,,..,,...,..,,..,,...,.,,,..,,,,,,
-#WSGQAJRLHSOEUAHNRZKNCVA3OXXXWUPEXV6O2M7B7ERCSC5JUKZQHFU7I5UA756T5B4MTZYGPXX32
-#\\\|V7SKTJXKOQOJQVST5KR5GKFQD3PLK5HPR6LLTBSV7PLBE7T3EQU \ / AMOS7 \ YOURUM ::
-#\[7]QP4HYEISSY7PQT7CEBKGIZUEDTQRRAIY7I5BNPT6AAR3P5W2KIDA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,,,,,,,,..,,,..,.,.,,,.,,..,,,,,..,,...,...,.,,,...,...,,,,,.,.,
+#DRE7EB24CY6GFQ36JAVI7PU5WTEHM2UDAEBQR7PJC7JNKIC6TM2RQPYQNR5JEQ2IZAGYACI6WQTI6
+#\\\|CZERKO7OAFUAU3ELNGJCH3NFEPN7YYCYSQSFNSACFQ4WF4AUMLP \ / AMOS7 \ YOURUM ::
+#\[7]4Z4QRET7OOIC3OY2WOIAYEVJHWB3VCGNXL2AWB2FTNFQ3GHMJ6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
