@@ -23,6 +23,17 @@
 
 ### external program example ###    [ supports '<AMOS-user>' from X11-vars ]
 
+  - llama-server-vision
+
+      max_concurrency  = 1
+      restart.disabled = 1
+      idle_timeout = 3600  # Keep running for image-quality analysis
+
+      : v7-init :
+        start_mode = exec-external
+        exec_bin = llama-server-vision.sh
+        exec_usr = protocol-7
+
   - namesrv
 
       max_concurrency = 1
@@ -33,8 +44,8 @@
         exec_bin = /usr/local/bin/namesrv
         exec_usr = root
 
-#,,.,,.,.,.,,,,..,,..,.,,,...,..,,.,.,...,..,,..,,...,..,,,..,,.,,,,,,,,,,..,,
-#4MPDRKDK5BVWAULU4HTOYSDELHNAUUN7GJO5VGOKGXFLUS6NVUTGUWRKKSNJ6GUEATIZQXAY5ZZEO
-#\\\|QCURQ6KVPTEIQB7L2FBE4VFI43JLETZNO2N3QEXSVEUBT2V5JXU \ / AMOS7 \ YOURUM ::
-#\[7]Y2WEAAQEOVNH3NJWZVQFLPUXURBIJTDAP5XKXYSAUIYQBXDNTKDQ 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,,,,.,,...,,,,,,,.,..,,,..,.,,,..,,...,...,.,.,...,,.,,,,.,,,,,
+#5GMXWUFYBJFTBEYMKDWER7AQBTLOE5K6VCOA2NPXNGY4EB5ZWZWEMFCGTDYZYA4GJKQQRJNFWZ44E
+#\\\|3HT2QPBVWYKERCOT4B5AUREW72KCWI4RP6HGFRGY5BLIMKYB645 \ / AMOS7 \ YOURUM ::
+#\[7]UWDBLT4ANIQXJAB74ZA4TWY63CZSUS42YXGYYA6FZUQHRJ5UVWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
