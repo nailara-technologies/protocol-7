@@ -35,14 +35,14 @@
 ## Child process tracking: maps PID to job information
 <image-batch.child_pids> = {};
 
-## Operation log: chronological record of batch operations
-<image-batch.operation_log> = [];
+## Operation log: chronological record of batch operations (hash indexed by timestamp)
+<image-batch.operation_log> = {};
 
-## Error log: failed analyses and rule application errors
-<image-batch.error_log> = [];
+## Error log: failed analyses and rule application errors (hash indexed by timestamp)
+<image-batch.error_log> = {};
 
 ## Action log: file operations performed (copy, move, scale, tag)
-<image-batch.action_log> = [];
+<image-batch.action_log> = {};
 
 ## Load Perl modules at startup time using base.perlmod.autoload
 ## Modules are automatically registered in <base.perlmod.loaded> on success
@@ -50,16 +50,55 @@
 map { <[base.perlmod.autoload]>->($ARG) } qw| Data::UUID JSON::XS YAML::XS |;
 
 ## Define list structures for observability
-## Note: Lists are for showing arrays of items; batch_state is a single object
-## Batch status can be queried via image-batch.status command
-## Operation/error/action logs are available as arrays in %data but not yet exposed as lists
-## TODO: Implement logging to operation_log, error_log, action_log arrays
-## TODO: Implement image-batch.status command to display current batch_state
+
+## List: operation_log - shows major batch milestones
+<list.operation_log> = {
+    'var'      => 'data',
+    'key'      => 'image-batch.operation_log',
+    'descr'    => '[operations] major milestones',
+    'mask'     => 'timestamp:time action:op batch_id:batch status:state',
+    'sort_key' => 'timestamp',
+    'align'    => {
+        'timestamp' => 'left+2',
+        'action'    => 'center',
+        'batch_id'  => 'center',
+        'status'    => 'left+1'
+    }
+};
+
+<[base.list.init]>->(
+    {   'name'         => 'operation_log',
+        'key_ref'      => \$data{'image-batch'}{'operation_log'},
+        'max_elements' => 4097
+    }
+);
+
+## List: error_log - shows failed operations
+<list.error_log> = {
+    'var'      => 'data',
+    'key'      => 'image-batch.error_log',
+    'descr'    => '[errors] failed operations',
+    'mask'     => 'timestamp:time image_path:file error_type:type reason:msg',
+    'sort_key' => 'timestamp',
+    'align'    => {
+        'timestamp'  => 'left+2',
+        'image_path' => 'left+1',
+        'error_type' => 'center',
+        'reason'     => 'left'
+    }
+};
+
+<[base.list.init]>->(
+    {   'name'         => 'error_log',
+        'key_ref'      => \$data{'image-batch'}{'error_log'},
+        'max_elements' => 4097
+    }
+);
 
 return TRUE;
 
-#,,..,,,,,..,,,..,...,..,,,..,.,.,...,,,,,..,,..,,...,...,...,,..,,..,,..,,..,
-#N4IXKDD24QTCK57WVZNRDJAFKBF57D3SAGIJ3BNLHIRXZRN3RKQYJVAIWWQ4RSQHP7XCPMJLQSOSQ
-#\\\|37GFH3376YE5V4REE7DEPTSO4M4VXNGWKAH7EKV3FXXG5GV7RT3 \ / AMOS7 \ YOURUM ::
-#\[7]VOYMD5IUXABUBQ5BNOTQN5RZCBUHW2WVTOVFA6M2VMKSXA24BUCI 7  DATA SIGNATURE ::
+#,,..,.,.,...,,..,,.,,,,.,..,,...,,,,,,..,..,,..,,...,...,,.,,...,.,,,,,,,.,.,
+#GU4MH2J7URMJRMB2EAHRJOJ2DRLPH5AB4DERSF46RE6YBQ6SYNG4LJQO2OS35GOFBCV53MHYOTZWI
+#\\\|225LQNUSE33BQLSVHFNXIIKIIOXCQMCPOHADGXD76WLNDQ5FTGI \ / AMOS7 \ YOURUM ::
+#\[7]TBZYOFOGUSBP62JVX6ULAUBYYKZALZK6DS55EEXK6L36GL6UEEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
