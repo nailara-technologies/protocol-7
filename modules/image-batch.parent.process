@@ -42,73 +42,35 @@ my $batch_id = $batch_id_result->{batch_id};
 my $batch_state = <image-batch.batch_state>;
 
 # Populate jobqueue with all image analysis tasks
-# jobqueue handles concurrency and job state management
+# jobqueue.add_job handles job infrastructure, dependency resolution, and execution
+my @job_ids;
 foreach my $image_path (@$image_paths) {
-    my $job_id
-        = 'job_' . substr( $batch_id, 0, 8 ) . '_' . <[jobqueue.count]>;
-
-    <[jobqueue.add_job]>->(
-        {   job_id     => $job_id,
-            batch_id   => $batch_id,
-            image_path => $image_path,
-            type       => 'analyze',
-            priority   => 50,                  # default priority
-            queued_at  => <[base.time]>->(3)
+    my $job_id = <[jobqueue.add_job]>->({
+        'name'             => "Analyze image: $image_path",
+        'priority'         => 0,
+        'object_id'        => 0,  # Virtual object_id 0: no dependencies, no priorities
+        'target_queue'     => 'queued',
+        'job_callback'     => 'image-batch.parent.execute_job',
+        'callback_params'  => {
+            'image_path' => $image_path,
+            'batch_id'   => $batch_id
         }
-    );
+    });
+    push @job_ids, $job_id;
 }
 
 <[base.log]>->(
     1,
     sprintf(
         'Batch %s: queued %d images for analysis',
-        $batch_id, <[jobqueue.count]>->('queued')
+        $batch_id, scalar(@job_ids)
     )
 );
 
-# Fork single child process for blocking operations
-<[image-batch.parent.fork_child]>;
-
-# After fork, parent continues here
-if (<image-batch.child.pid>) {
-
-    # PARENT PROCESS
-
-    <[base.log]>->( 1, 'child forked, dispatching first job.,' );
-
-    # Get first job from queue and send to child
-    my $first_job = <[jobqueue.get_next_job]>->('queued');
-
-    if ( defined $first_job ) {
-        <[jobqueue.move_job]>->( $first_job->{job_id}, 'processing' );
-
-        # Send job to child via Protocol-7 command routing
-        <[base.protocol-7.command.send.local]>->(
-            {   'command'   => "child.analyze_image",
-                'call_args' => {
-                    'args' => sprintf( "%s %s",
-                        $first_job->{image_path},
-                        $first_job->{job_id} )
-                },
-                'reply' => {
-                    'handler' => 'image-batch.parent.handle_job_reply',
-                    'params'  => { 'job_id' => $first_job->{job_id} }
-                }
-            }
-        );
-
-        <[base.log]>->(
-            2,
-            sprintf(
-                'Sent first job to child: %s (%s)',
-                $first_job->{job_id}, $first_job->{image_path}
-            )
-        );
-    } else {
-        <[base.log]>->( 1, 'ERROR: No jobs in queue to process' );
-        $batch_state->{status} = 'failed';
-        return { success => FALSE, error => 'No jobs in queue' };
-    }
+# jobqueue infrastructure handles the rest:
+# - event.add_var watcher detects queue counter changes
+# - jobqueue.handler.queue_counter checks dependencies and auto-executes
+# - job_callback (image-batch.parent.execute_job) is invoked automatically
 
     # Update batch state to running
     $batch_state->{status} = qw| running |;
@@ -149,10 +111,9 @@ if (<image-batch.child.pid>) {
         message => sprintf( 'Batch %s processing started with single child',
             $batch_id )
     };
-}
 
-#,,.,,..,,...,.,,,,,.,,,.,.,.,.,.,..,,,..,...,..,,...,..,,..,,.,.,,,,,,.,,..,,
-#V3IW3EQYJV3APCXB75P33P33NIS2ZJTOBKV7MGXRIXWAZUTBHFCU7XGTCM2YODP6PZPLPZYXMHERU
-#\\\|K3HFUP4FEMMUBEL255BHWINLMDA5UIQGNHSFNK77ZNNVCOJ3WTE \ / AMOS7 \ YOURUM ::
-#\[7]MCNX65NVKAU6PVDB4WKNHXD4NQON22TAPDGB6LKSG56DXKSYWYAI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,...,..,,,.,,..,,.,,,,..,,,,,..,,..,,...,.,.,,,,,,,,,,..,..,,...,
+#WNMNSCZ27FQ5RNPTKEZPFMO6QC2KI6CI3HT5HKDSWGBJTADACIA2SCF2V227TS7FEAAEUL6OU37U6
+#\\\|I2NLIWLOCGGHBP5PU4R4USTYIQSZXQZHZLZCKPRTN57ZRFHQFGG \ / AMOS7 \ YOURUM ::
+#\[7]K734QXTVFUBRIP3KF5272DKF4P4OOIYSTGJ3SWKXUVUW4OSY2SAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
