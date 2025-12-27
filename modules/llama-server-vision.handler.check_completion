@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = llama-server-vision.handler.check_completion
+# descr = check if vision job is complete (process exited AND all data read)
+
+my $watcher = shift->w;
+my $job_id = $watcher->data;
+
+my $vision_job = <llama-server-vision.jobs>->{$job_id};
+
+unless ( defined $vision_job ) {
+    $watcher->cancel if $watcher->is_active;
+    return;
+}
+
+# Check if process has exited
+my $pid = $vision_job->{'pid'};
+my $wait_res = <[base.waitpid]>->($pid);
+
+# Process still running
+return if !defined $wait_res or $wait_res == 0;
+
+# Process has exited - check if both streams closed
+my $both_closed = $vision_job->{'rdr_closed'} && $vision_job->{'err_closed'};
+return unless $both_closed;
+
+# Process exited AND all data read - now we can send response
+$watcher->cancel if $watcher->is_active;
+delete <llama-server-vision.timers>->{$job_id};
+
+# Trim whitespace
+$vision_job->{'output'} =~ s/^\s+|\s+$//g;
+
+if ( length $vision_job->{'output'} ) {
+    $vision_job->{'status'} = 'completed';
+    <[base.logs]>->( 1, "[check_completion] success: job=%s bytes=%d", 
+                     $job_id, length($vision_job->{'output'}) );
+    <[base.callback.cmd_reply]>->(
+        $vision_job->{'reply_id'},
+        { 'mode' => 'true', 'data' => $vision_job->{'output'} }
+    );
+} else {
+    $vision_job->{'status'} = 'failed';
+    $vision_job->{'error'} = 'no response from vision model';
+    <[base.logs]>->( 0, "ERROR: No output from vision CLI: job=%s", $job_id );
+    <[base.callback.cmd_reply]>->(
+        $vision_job->{'reply_id'},
+        { 'mode' => 'false', 'data' => 'no response from vision model' }
+    );
+}
+
+# Schedule cleanup after 60 seconds
+<[event.add_timer]>->(
+    {
+        'after'   => 60,
+        'handler' => 'llama-server-vision.handler.job_cleanup',
+        'data'    => $job_id
+    }
+);
+
+#,,..,.,.,.,.,..,,,.,,.,..,,,.,,,,,..,,,..,,,,..,,...,...,.,,,,,.,,.,,,,,,,,,.,,
+#W3KQZM7LP9XNBVCXZASDFGHJKLPOIUYTREWQAZXCVBNMQWERTYUIOPASDFGHJKLZXCVBNM1234567
+#\\\|QWERTYUIOPASDFGHJKLZXCVBNM1234567890QWERTYUIOPASDFGHJKLZXCVBNM \ / AMOS7 \ YOURUM ::
+#\[7]ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ 7  DATA SIGNATURE ::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,.,,.,,,..,,...,,,,,.,,,,,.,,.,,..,,.,.,,,.,..,,...,..,,,..,...,...,,.,,,..,
+#GX2OIARKSED53A4HFTHQMYLAQ4ROEKEZPW37TB2YXEMOAHIGIV7W6ETZCMCCPSRDEBBFRKSOZT7AQ
+#\\\|XFGSKF3K2F5JFQQLLHRM5V4YKWJBGVBESD242NUVHU2KQTRWJ2N \ / AMOS7 \ YOURUM ::
+#\[7]2S4FGVFGWCFVAAHE3T642LH4Y2TQGQZ27KO33X6TCUWTSQEWGCCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,9 +1,11 @@
 ## [:< ##
 
-# name  = llama-server-vision.child.init_code
-# descr = child process initialization - configure vision model parameters
+# name  = llama-server-vision.init_code
+# descr = GPU-accelerated vision analysis with job dispatch architecture
 
-# Vision model configuration
+<[base.log]>->( 1, 'llama-server-vision zenka starting.,' );
+
+# Vision model binary and library configuration
 <llama-server-vision.binary> = '/data/source/ik_llama.cpp/llama-mtmd-cli-cuda';
 <llama-server-vision.lib_path> = '/data/source/ik_llama.cpp';
 <llama-server-vision.log_file> = '/var/log/protocol-7/llama-server-vision.log';
@@ -12,31 +14,36 @@
 <llama-server-vision.vision_model_path> = '/mnt/ext-xfs-data/models-lmstudio/Qwen/Qwen2.5-VL-7B-Instruct-Q4_K_M.gguf';
 <llama-server-vision.vision_mmproj_path> = '/mnt/ext-xfs-data/models-lmstudio/Qwen/mmproj-F16.gguf';
 
-<[base.log]>->( 1, 'llama-server vision child process initialized.,' );
+<[base.logs]>->( 1, "Vision binary: %s", <llama-server-vision.binary> );
 
-# Verify model exists
+# Verify model files exist
 my $model_path = <llama-server-vision.vision_model_path>;
 unless ( -f $model_path ) {
     <[base.logs]>->( 0, "ERROR: Vision model not found: %s", $model_path );
-    <[base.exit]>->(qw| 0001 |);
+    return 0;
 }
 
 my $mmproj_path = <llama-server-vision.vision_mmproj_path>;
 unless ( -f $mmproj_path ) {
     <[base.logs]>->( 0, "ERROR: Multimodal projection not found: %s", $mmproj_path );
-    <[base.exit]>->(qw| 0002 |);
+    return 0;
 }
 
 <[base.logs]>->( 1, "Vision model: %s", $model_path );
 <[base.logs]>->( 1, "Multimodal proj: %s", $mmproj_path );
 
-# Initialize reply_ids tracking for routing responses back to callers
-<llama-server-vision.reply_ids> = [];
+# Initialize job queue for vision analysis tasks
+<llama-server-vision.jobs> = {};
+
+# Initialize timers hash for process watchers
+<llama-server-vision.timers> = {};
+
+<[base.logs]>->( 1, "Vision job dispatch system initialized.," );
 
 0;  # Return success for module initialization
 
-#,,..,,..,,..,..,,.,.,...,,,.,.,.,,,.,.,,,,,,,..,,...,...,.,,,,.,,,.,,,,.,,,,,
-#F6ZXWTOHNHIZSKR6KVM3MJTQNG5427P2XU3ZQCJGD5QFUVYILLF6S3X2YLKFP3KCQCMS2EJXUG6FE
-#\\\|QV2CVJ4WD7LJV2BPOR5YRZUCZY26X2UR2UVEHFGA7BFM5QEDOZQ \ / AMOS7 \ YOURUM ::
-#\[7]SJUKBT6RWU2DXYHBLFR7MEJZWSV3AXMXLIVK2Z577TWWSXLLZUBI 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,..,,,.,,,.,,,.,...,.,,,..,,.,.,..,,...,..,,...,,..,,,.,,.,,.,,,
+#RQAHBQ6RZU7ODN3CVB4C26FATJIJUOWRHEJ3DLW6RPYDFX4UDGK3A27N2B5GXUASVEDPHZS5AMZNS
+#\\\|S76WCSY5MQQSIOODYBA7ZGRTGRY4JABICSQSI243ASP357VBGF3 \ / AMOS7 \ YOURUM ::
+#\[7]DWDWLSHVN43VFFHRL5SKCQBWJHEJJCVYZIBPDYLTTRAOD3K6LMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

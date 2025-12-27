@@ -1,24 +1,67 @@
 ## [:< ##
 
 # name  = llama-server-vision.cmd.status
-# descr = get llama-vision server status
+# descr = query vision analysis job status
 
-my $is_alive = <[llama-server-vision.is_alive]>->();
-my $status = $is_alive ? 'online' : 'offline';
-my $child_pid = <llama-server-vision.child.pid>;
-my $pending = scalar keys <llama-server-vision.pending_requests>->%*;
+my $job_id = $call->{'args'};
 
-my $response = "status: $status\n";
-$response .= "child_pid: $child_pid\n";
-$response .= "pending_requests: $pending\n";
+if ( !defined $job_id || !length $job_id ) {
+    # Return overall status
+    my $job_count = scalar keys %{<llama-server-vision.jobs>};
+    my $active = 0;
+    my $completed = 0;
+    my $failed = 0;
+
+    foreach my $job ( values %{<llama-server-vision.jobs>} ) {
+        $active++ if $job->{'status'} eq 'running';
+        $completed++ if $job->{'status'} eq 'completed';
+        $failed++ if $job->{'status'} eq 'failed';
+    }
+
+    return {
+        'mode' => 'true',
+        'data' => sprintf(
+            'Vision Server Ready | Jobs: %d (active: %d, completed: %d, failed: %d)',
+            $job_count, $active, $completed, $failed
+        )
+    };
+}
+
+# Query specific job
+return { 'mode' => 'false', 'data' => 'no such job' }
+    unless exists <llama-server-vision.jobs>->{$job_id};
+
+my $job = <llama-server-vision.jobs>->{$job_id};
+
+my $status_str = sprintf(
+    'Job %s: status=%s pid=%s runtime=%d sec',
+    $job_id,
+    $job->{'status'},
+    ( defined $job->{'pid'} ? $job->{'pid'} : 'N/A' ),
+    ( time() - $job->{'start_time'} )
+);
+
+if ( $job->{'status'} eq 'completed' ) {
+    my $output = $job->{'output'};
+    $output = substr($output, 0, 100) . '...' if length($output) > 100;
+    $status_str .= " | output: $output";
+} elsif ( $job->{'status'} eq 'failed' ) {
+    $status_str .= " | error: " . $job->{'error'};
+}
 
 return {
     'mode' => 'true',
-    'data' => $response
+    'data' => $status_str
 };
 
-#,,,,,,,.,,,,,,,,,,..,,,,,...,..,,,,,,,.,,...,..,,...,...,...,.,.,,.,,.,,,...,
-#P5X4J4IQUFJVO5ZFQ42O22A4ZV2P7KRERFSA2K5NIIXYHIFO6CIN7IWZFTHKUD2JHQMU42HBM5GXC
-#\\\|BYOOLJ64EES7SHBOYQ5MHZGHDA7PEDQHJBMS6U5SJ5AUOQFURKY \ / AMOS7 \ YOURUM ::
-#\[7]3PMJNJCFKQHDVV5PF3VXJFSLPLEUDYBGCJ7G2KR4IP4B7SZ2QWDQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,..,,,.,,.,..,,,.,,,,,..,,,..,,,,..,,...,...,.,,,,,.,,.,,,,,,,,,.,,
+#N7TRGVIVVSQRK6K4KCVHDDXCW46FMJYNZBIFBYP4XAFQAKPJ4VVT46RJAHGJXRSHZSYQKLTQEOGZZI
+#\\\|JHWBCNQVYKTMZWSX5UZ4CH76J4HVNDPZL6OKUMGZ6YRQTWWV3XP \ / AMOS7 \ YOURUM ::
+#\[7]VBQD7X7FVUVQTQTQBICSVMUMQPFQHSXH2MLUGKJ3K3EOQNRUHXLQ 7  DATA SIGNATURE ::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,.,..,,.,,,...,...,,,.,...,.,,,,..,...,,.,,..,,...,...,.,,,...,,.,,,.,,,,,,
+#ABXRS2GHU5AEFQKRRLVMDEKSQHAMUCEMUTA2SZGZEMNLEEX4NWYMUYHCWG7ASIUKRV5ZN6FWYNTEK
+#\\\|ZFLHATAKZ6CH4T7K75HQHVUOB5W7ZPBFIA6CWKXOBEPSXQF5LRL \ / AMOS7 \ YOURUM ::
+#\[7]SSB7HKDMCMVFECBXNEMCVQMYAFBQO2B4CAYOI6CB2ZB5KABYR4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

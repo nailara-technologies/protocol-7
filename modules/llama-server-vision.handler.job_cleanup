@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = llama-server-vision.handler.job_cleanup
+# descr = clean up completed job data from memory
+
+my $watcher = shift->w;
+my $job_id = $watcher->data;
+
+if ( exists <llama-server-vision.jobs>->{$job_id} ) {
+    <[base.logs]>->( 2, "[job_cleanup] removing: job=%s", $job_id );
+    delete <llama-server-vision.jobs>->{$job_id};
+}
+
+#,,,,,,.,,..,,.,.,..,,..,,,.,,..,,,..,,,,,.,.,..,,...,...,,.,,..,,.,.,...,.,,,
+#YALBGTI63PUIIUFGRSLL7BCVHZGUWSE444CJS23VIJ5MZ6HTILZIZRHOQSPDPWVRLFVY2KEPZOKES
+#\\\|TZVKJJSA2ANF64RKQ7PDNBEGJFKAGW4MGRFZZJADKXR2VSZKF2N \ / AMOS7 \ YOURUM ::
+#\[7]Y32G56WLEUWRCRYD2LWKML33BYXO3VZ2LG44YBUWJ2YZMJZYXUAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

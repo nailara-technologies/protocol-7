@@ -1,26 +1,20 @@
 
- .:[ protocol-7 llama-server-vision - GPU-accelerated text inference with child process ]:.
+ .:[ protocol-7 llama-server-vision - GPU-accelerated vision analysis with job dispatch ]:.
 
 [load_config_file:'shared-params']
 
 ### access control ###
 access.cmd.usr.cube = commands heart reload verify-instance \
                       list show-buffer buffer-erase \
-                      status info child.* *
+                      status info * ## <-- restrict some later
 
 access.cmd.usr.parent = commands reload list show-buffer heart *
 
 ## Module loading ##
-## llama-server-vision.fork_server handles forking and pipe setup
-## Parent and child modules are loaded selectively to maintain isolation
+## Job-dispatch architecture: all llama-server-vision.* modules auto-loaded
 modules.load = auth net protocol io.unix io.ip crypt.C25519 \
-               llama-server-vision.fork_server \
-               llama-server-vision.handler.server_output \
-               llama-server-vision.is_alive \
-               llama-server-vision.cmd.status \
-               llama-server-vision.cmd.analyze_image \
-               devmod
-
+                                         llama-server-vision \
+                                         devmod  ## <-- development only.., ##
 [load_modules:<modules.load>]
 
 system.verbosity.zenka_buffer  = 1
@@ -33,13 +27,10 @@ system.verbosity.zenka_logfile = 1
 
 [base.net.connect:'unix']
 
-# Fork child process to spawn and manage llama-server
-[llama-server-vision.fork_server]
-
 [zenka.loop]
 
-#,,.,,.,,,..,,,,,,.,.,.,.,...,...,,..,,.,,..,,..,,...,..,,...,,.,,,,,,,..,.,,,
-#EN7PAOLIS6FIUSRN2DDCNUGQQHHA34PQ43CM45DEIJTFHAALOZMKPHLLGP7FUMR6I6EJXT4OKD7RA
-#\\\|AYUSNWCII3YWLPP4PPAQMKURAG2EXN2BG4VF7BZJONRSXH5FECU \ / AMOS7 \ YOURUM ::
-#\[7]6XJUNBHJYJORQZCSCK3KZP7FWW6QNWWLUJWITMJGBSKMU2UUTABQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,..,,..,,.,.,,,,,...,,,,,...,.,,,..,,...,...,.,,,,..,,.,,,.,,,,,,
+#TLOCVT6WDA5YZSYTXY7TPD3L442LYYJADTJUPOZOLGOXDJXZJPFPCADQBMJBTAP7HNMGJNGKI3LJA
+#\\\|3FI4H7BRP74ILH4VN4EAACN7WTDR7A4VPODKBNNY4SFD5SN5I4U \ / AMOS7 \ YOURUM ::
+#\[7]V6OHIXNTHMZJ4SWRGPGC2N5UAQZYWS3H7G6MWQMXQF6PU6IF2WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
