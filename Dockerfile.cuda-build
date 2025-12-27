@@ -1,0 +1,89 @@
+# ik_llama.cpp GPU-Accelerated Build with CUDA
+# Uses Ubuntu 22.04 with upgraded CMake for CUDA20 support
+# Builds llama-server and llama-cli with CUDA support
+# Configured with hysteria tunnel proxy to bypass mobile network packet loss
+
+ARG CUDA_VERSION=12.5.0
+FROM nvidia/cuda:12.5.0-devel-ubuntu22.04
+
+# Configure package manager to use hysteria tunnel proxy (avoids packet loss on mobile uplink)
+RUN echo 'Acquire::http::Proxy "http://10.0.110.7:4040";' > /etc/apt/apt.conf.d/proxy && \
+    echo 'Acquire::https::Proxy "http://10.0.110.7:4040";' >> /etc/apt/apt.conf.d/proxy && \
+    echo 'Acquire::socks::Proxy "socks5://10.0.110.7:1040";' >> /etc/apt/apt.conf.d/proxy && \
+    apt-get update -o APT::Acquire::Retries=5 && apt-get install -y \
+    git \
+    build-essential \
+    cmake \
+    ccache \
+    pkg-config \
+    libgomp1 \
+    wget \
+    gnupg2 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade CMake to version >= 3.27 for CUDA20 support
+# Using Kitware's CMake APT repository (more reliable than pip through proxy)
+RUN wget -O /tmp/cmake-keyring.gpg https://apt.kitware.com/keys/kitware-archive-latest.asc && \
+    gpg --dearmor < /tmp/cmake-keyring.gpg > /usr/share/keyrings/kitware-archive-keyring.gpg && \
+    echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ jammy main' > /etc/apt/sources.list.d/kitware.list && \
+    apt-get update -o APT::Acquire::Retries=5 && \
+    apt-get install -y cmake && \
+    rm -rf /var/lib/apt/lists/* /tmp/cmake-keyring.gpg
+
+# Clone/copy ik_llama.cpp
+WORKDIR /build
+COPY . .
+
+# Build with CUDA enabled using CMake
+# CMake approach avoids the Makefile header path issues we encountered
+# Set environment for CUDA library discovery + hysteria proxy tunnel
+ENV CUDA_HOME=/usr/local/cuda
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+ENV PATH=/usr/local/cuda/bin:$PATH
+ENV http_proxy=http://10.0.110.7:4040
+ENV https_proxy=http://10.0.110.7:4040
+ENV HTTP_PROXY=http://10.0.110.7:4040
+ENV HTTPS_PROXY=http://10.0.110.7:4040
+ENV ALL_PROXY=socks5://10.0.110.7:1040
+ENV CUDA_ARCHITECTURES=86
+
+RUN cmake -B build \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DGGML_CUDA=ON \
+    -DCMAKE_CUDA_ARCHITECTURES=86 \
+    -DBUILD_SHARED_LIBS=ON \
+    && cmake --build build --config Release -j$(nproc) --target llama-mtmd-cli
+
+# Verify vision binary exists (libcuda.so.1 not available in devel container, will verify in runtime stage)
+RUN test -f ./build/bin/llama-mtmd-cli && echo "Binary verified: llama-mtmd-cli (vision) exists" || (echo "ERROR: llama-mtmd-cli not built" && exit 1)
+
+# Extract to output stage
+FROM nvidia/cuda:12.5.0-runtime-ubuntu22.04
+
+# Configure proxy for runtime stage as well
+RUN echo 'Acquire::http::Proxy "http://10.0.110.7:4040";' > /etc/apt/apt.conf.d/proxy && \
+    echo 'Acquire::https::Proxy "http://10.0.110.7:4040";' >> /etc/apt/apt.conf.d/proxy && \
+    echo 'Acquire::socks::Proxy "socks5://10.0.110.7:1040";' >> /etc/apt/apt.conf.d/proxy && \
+    apt-get update -o APT::Acquire::Retries=5 && apt-get install -y --allow-change-held-packages libgomp1 libnccl2 && rm -rf /var/lib/apt/lists/*
+
+# Copy vision binary and libraries from build stage
+COPY --from=0 /build/build/bin/llama-mtmd-cli /usr/local/bin/llama-mtmd-cli
+COPY --from=0 /build/build/ggml/src/libggml.so /usr/local/lib/libggml.so
+COPY --from=0 /build/build/src/libllama.so /usr/local/lib/libllama.so
+COPY --from=0 /build/build/examples/mtmd/libmtmd.so /usr/local/lib/libmtmd.so
+
+RUN chmod +x /usr/local/bin/llama-mtmd-cli
+RUN ldconfig
+
+# Configure environment for runtime
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:/usr/local/lib:$LD_LIBRARY_PATH
+ENV http_proxy=http://10.0.110.7:4040
+ENV https_proxy=http://10.0.110.7:4040
+ENV HTTP_PROXY=http://10.0.110.7:4040
+ENV HTTPS_PROXY=http://10.0.110.7:4040
+ENV ALL_PROXY=socks5://10.0.110.7:1040
+
+# Note: Binary verification happens on host system where CUDA driver libraries are available
+# The Docker container doesn't have libcuda.so.1 which comes from the NVIDIA driver on the host
+
+ENTRYPOINT [ "llama-mtmd-cli" ]
