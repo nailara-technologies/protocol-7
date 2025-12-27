@@ -30,41 +30,167 @@ delete <llama-server-vision.timers>->{$job_id};
 
 # Extract debug logs and payload using offset-based approach
 my $full_output = $vision_job->{'output'};
-my $marker_pos = index($full_output, '[generate_response]');
 my $payload = '';
 my $debug_log = '';
 
-if ( $marker_pos >= 0 ) {
-    # Store everything before the marker as debug logs
-    $debug_log = substr($full_output, 0, $marker_pos);
+<[base.logs]>->( 1, "[check_completion] raw output length: %d bytes", length($full_output) );
 
-    # Find the newline after the marker to start from the next line
-    my $newline_pos = index($full_output, "\n", $marker_pos);
-    if ( $newline_pos >= 0 ) {
-        # Extract from after the newline to the end
-        my $analysis = substr($full_output, $newline_pos + 1);
-
-        # Remove timing section if present (starts with \nllama_print_timings:)
-        my $timing_pos = index($analysis, "\nllama_print_timings:");
-        if ( $timing_pos >= 0 ) {
-            $payload = substr($analysis, 0, $timing_pos);
-        } else {
-            $payload = $analysis;
-        }
-    } else {
-        # No newline after marker, use from marker onwards
-        $payload = substr($full_output, $marker_pos);
-    }
-} else {
-    # No marker found, use entire output as payload
-    $payload = $full_output;
+# Find where timing output starts (llama_print_timings or the token/ms line)
+my $timing_start = index($full_output, 'llama_print_timings:');
+if ( $timing_start < 0 ) {
+    # Try finding the timing pattern (e.g., "5073.86 ms /   842 tokens")
+    $timing_start = index($full_output, ' ms /');
 }
 
-# Trim whitespace from payload
-$payload =~ s/^\s+|\s+$//g;
+# Find where the actual vision analysis starts
+# Look for patterns that indicate start of model response (after debug logs)
+my $analysis_start = -1;
 
-# Store debug log for diagnostic retrieval
+# Try to find [generate_response] marker
+$analysis_start = index($full_output, '[generate_response]');
+if ( $analysis_start >= 0 ) {
+    # Skip the marker and find the newline
+    my $newline_pos = index($full_output, "\n", $analysis_start);
+    if ( $newline_pos >= 0 ) {
+        $analysis_start = $newline_pos + 1;
+    } else {
+        $analysis_start = $analysis_start + length('[generate_response]');
+    }
+} else {
+    # No marker - look for where non-debug content starts
+    # Debug output typically contains "llm_load", "build info", "llama model loader" etc
+    # Vision response typically starts after these
+    my @debug_keywords = ('llm_load_print_meta', 'build info', 'CUDA', 'load_embedding', 'llama_load_model_from_file');
+
+    # Find the last occurrence of debug keywords
+    my $last_debug = 0;
+    foreach my $keyword (@debug_keywords) {
+        my $pos = rindex($full_output, $keyword);
+        $last_debug = $pos if $pos >= 0 && $pos > $last_debug;
+    }
+
+    if ( $last_debug >= 0 ) {
+        # Find the next newline after last debug keyword
+        my $newline_pos = index($full_output, "\n", $last_debug);
+        if ( $newline_pos >= 0 ) {
+            $analysis_start = $newline_pos + 1;
+        }
+    }
+}
+
+# Extract payload and debug log
+if ( $analysis_start > 0 ) {
+    $debug_log = substr($full_output, 0, $analysis_start);
+
+    if ( $timing_start > $analysis_start ) {
+        # Extract from analysis_start to timing_start
+        $payload = substr($full_output, $analysis_start, $timing_start - $analysis_start);
+    } else {
+        # No timing found, take rest of output after analysis start
+        $payload = substr($full_output, $analysis_start);
+    }
+} else {
+    # Fallback: look for timing section and take everything before it as payload
+    if ( $timing_start > 0 ) {
+        $payload = substr($full_output, 0, $timing_start);
+    } else {
+        $payload = $full_output;
+    }
+}
+
+# PASS 1: Remove file location metadata wrapper (including surrounding spaces)
+# Pattern: spaces + [/build/examples/mtmd/mtmd-cli.cpp: 237] + spaces -> single space
+$payload =~ s/\s*\[\/build\/examples\/mtmd\/mtmd-cli\.cpp:\s*\d+\]\s*/ /g;
+
+# Remove everything before first [generate_response] marker
+my $first_marker_pos = index($payload, '[generate_response]');
+if ( $first_marker_pos > 0 ) {
+    $payload = substr($payload, $first_marker_pos);
+}
+
+# Save raw payload before PASS 2 processing for inspection
+my $raw_payload_debug = substr($payload, 0, 500);  # Save first 500 chars for inspection
+
+# PASS 2: Extract tokens from simplified format
+# Pattern now just: [generate_response]  TEXT[timestamp]
+my @tokens = ();
+my $remaining_content = '';
+my $token_pattern = qr{
+    \[\s*generate_response\]  # Marker
+    \s*
+    ([^\[]+?)  # Capture text token - non-greedy, stop at bracket
+    \[\d{10,}\]  # Timestamp [1766871728]
+}xs;
+
+<[base.parser.pattern_split]>->(
+    \$payload,
+    $token_pattern,
+    sub {
+        my ( $before, $after, $captured ) = @_;
+
+        # Clean up content - handle both $before and captured token
+        my $cleanup_content = sub {
+            my $text = shift;
+            return '' unless $text;
+
+            $text =~ s/\[\s*generate_response\]//g;  # Remove orphaned markers
+            $text =~ s/\s*\r\n\s*//g;  # Remove Windows line endings with padding (specific escape code)
+            $text =~ s/\s*\n\s*//g;  # Remove Unix newlines with padding
+            $text =~ s/\s*\r\s*//g;  # Remove Mac newlines with padding
+            $text =~ s/([a-z])\s\s([a-z])/$1$2/g;  # Remove doubled spaces within words (twin-space padding)
+            $text =~ s/ +/ /g;  # Collapse remaining multiple spaces to single space
+            $text =~ s/^\s+|\s+$//g;  # Trim leading/trailing whitespace
+            return $text;
+        };
+
+        # Preserve content BETWEEN matches (spacing, punctuation, etc)
+        if ( defined $before && length $$before ) {
+            my $between = $cleanup_content->($$before);
+            push @tokens, $between if length $between && $between !~ /^\s+$/;
+        }
+
+        # Extract the matched token text (dereference and clean)
+        my $token = $$captured if defined $captured;
+        $token = $cleanup_content->($token) if $token;
+        push @tokens, $token if defined $token && length $token;
+
+        # Accumulate any remaining content after the last match
+        $remaining_content = $$after if defined $after && length $$after;
+
+        return '';  # Remove the metadata from output
+    }
+);
+
+# Add any remaining unmatched content as fallback (incomplete tokens without timestamps)
+if ( length $remaining_content ) {
+    # Clean up remaining content (remove all metadata markers and artifacts)
+    $remaining_content =~ s/ \[\s*generate_response\] //g;
+    $remaining_content =~ s/ \[\d{10,}\] //g;
+    $remaining_content =~ s/ \[\/[^\]]*\] //g;  # Remove any file path metadata [/build/...]
+    $remaining_content =~ s/ \[\s*main\s*\] //g;  # Remove [main] markers
+    $remaining_content =~ s/ \r\n //g;  # Remove newlines entirely
+    $remaining_content =~ s/ \s //sg;  # Remove newlines entirely
+
+printf ( "\n\n--RC-- :. '%s' .:\n\n", $remaining_content ) if length $remaining_content;
+
+    push @tokens, $remaining_content if length $remaining_content;
+}
+
+# Join tokens with single space
+my $cleaned_payload = join ' ', @tokens;
+
+# Clean up spacing around punctuation
+$cleaned_payload =~ s/\s+([,.;:!?\)]|--[^\s])/$1/g;  # Remove space before punctuation
+$cleaned_payload =~ s/\(\s+/(/g;  # Remove space after opening paren
+
+$cleaned_payload =~ s/^\s+|\s+$//g;  # Trim leading/trailing whitespace
+$payload = $cleaned_payload;
+
+<[base.logs]>->( 1, "[check_completion] tokens extracted: %d, final payload length: %d bytes", scalar(@tokens), length($payload) );
+
+# Store debug log and raw payload for diagnostic retrieval
 $vision_job->{'debug_log'} = $debug_log;
+$vision_job->{'raw_payload_sample'} = $raw_payload_debug;  # First 500 chars before token extraction
 
 if ( length $payload ) {
     $vision_job->{'status'} = 'completed';
@@ -72,7 +198,7 @@ if ( length $payload ) {
                      $job_id, length($payload), length($debug_log) );
     <[base.callback.cmd_reply]>->(
         $vision_job->{'reply_id'},
-        { 'mode' => 'true', 'data' => $payload }
+        { 'mode' => 'size', 'data' => $payload }
     );
 } else {
     $vision_job->{'status'} = 'failed';
@@ -93,8 +219,8 @@ if ( length $payload ) {
     }
 );
 
-#,,..,,,,,...,..,,,,,,,..,,.,,.,,,.,.,,,.,,..,..,,...,...,..,,...,.,.,,,.,,,,,
-#UUQNPL7TF2WI2UKHJQ3LCEMRG2HO2SDDUUH2SYJ7MOPXE47BYMLJYXUDMDMG5BPXHDCNEULRM33NE
-#\\\|E36RL7AYCC6M7S6JDIHUEEWAVDELCSHA55IYTIMN3J5HZTB6RSD \ / AMOS7 \ YOURUM ::
-#\[7]TRZNSDEOW7YSSJW5DPCOHTOQYXKWR6EKGLSBGIQSOMFAJUBBNGBI 7  DATA SIGNATURE ::
+#,,,,,,..,..,,...,,..,.,.,,.,,,,.,,.,,...,..,,..,,...,...,...,,,.,.,,,,,,,,,,,
+#ZCXTVXUY3HIWD5BVG6M64M6GK56LN5ET5RGJLJUWGO4DA4HPGQDGTKF2WW3WIPHY7RE4XXTFQBVJU
+#\\\|2E2YM4IU7EMPFWEC6FNBMH7E4DWPDSHIGT4LYB2G5PAMJOPH2G7 \ / AMOS7 \ YOURUM ::
+#\[7]KH7SVVGMJTFA3XMHB7YSEC7ES4DRDZNFKA7Q53ZMFVMORLWUXEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

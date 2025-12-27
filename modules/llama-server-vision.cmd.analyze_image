@@ -6,6 +6,9 @@
 use IPC::Open3;
 use Symbol qw(gensym);
 
+# Load Imager module for image scaling
+require Imager;
+
 my ($image_path, $prompt) = split( m| +|, $$call{'args'}, 2 );
 $prompt //= 'Describe this image';
 
@@ -17,7 +20,78 @@ unless ( -f $image_path ) {
     return { 'mode' => 'false', 'data' => "image not found: $image_path" };
 }
 
-<[base.logs]>->( 2, "[analyze_image] spawning: image=%s prompt=%s", $image_path, $prompt );
+# Check and scale image if it exceeds max dimensions
+my $working_image_path = $image_path;
+my $img = Imager->new(file => $image_path);
+if ( !$img ) {
+    return { 'mode' => 'false', 'data' => "failed to load image: " . Imager->errstr };
+}
+
+my $img_width = $img->getwidth;
+my $img_height = $img->getheight;
+my $max_width = <llama-server-vision.max_image_width> // 1024;
+my $max_height = <llama-server-vision.max_image_height> // 1024;
+
+<[base.logs]>->( 1, "[analyze_image] image dimensions: %dx%d (max: %dx%d)", $img_width, $img_height, $max_width, $max_height );
+
+if ( $img_width > $max_width || $img_height > $max_height ) {
+    # Calculate scaled dimensions (maintain aspect ratio)
+    my $scale_ratio = 1.0;
+    $scale_ratio = $max_width / $img_width if $img_width > $max_width;
+    my $height_ratio = $max_height / $img_height if $img_height > $max_height;
+    $scale_ratio = $height_ratio if defined $height_ratio && $height_ratio < $scale_ratio;
+
+    my $new_width = int($img_width * $scale_ratio);
+    my $new_height = int($img_height * $scale_ratio);
+
+    <[base.logs]>->( 1, "[analyze_image] scaling: %dx%d -> %dx%d (ratio: %.2f)", $img_width, $img_height, $new_width, $new_height, $scale_ratio );
+
+    # Scale the image
+    my $scaled_img = $img->scale(
+        'xpixels' => $new_width,
+        'ypixels' => $new_height,
+        'qtype'   => 'mixing',
+        'type'    => 'nonprop'
+    );
+
+    unless ( $scaled_img ) {
+        return { 'mode' => 'false', 'data' => "failed to scale image: " . Imager->errstr };
+    }
+
+    # Save scaled image to temp file (registered with v7 for cleanup)
+    my ($temp_fh, $temp_path) = <[file.temp]>->(
+        'llama-vision-XXXXXXXXXXXXXXX.png',
+        undef,   # check_dirs (use default)
+        FALSE,   # unlink (don't auto-cleanup on end_code, keep for reading)
+        TRUE     # register (v7 tracks this for cleanup)
+    );
+
+    unless ( $temp_fh && $temp_path ) {
+        return { 'mode' => 'false', 'data' => "failed to create temp file for scaled image" };
+    }
+
+    # Write to temp file - flush and close properly
+    unless ( $scaled_img->write(file => $temp_path, type => 'png') ) {
+        return { 'mode' => 'false', 'data' => "failed to write scaled image: " . Imager->errstr };
+    }
+
+    close($temp_fh) if $temp_fh;
+
+    # Verify temp file was created and has content
+    unless ( -f $temp_path ) {
+        return { 'mode' => 'false', 'data' => "scaled image temp file not created: $temp_path" };
+    }
+
+    my $temp_size = -s $temp_path;
+    unless ( $temp_size > 0 ) {
+        return { 'mode' => 'false', 'data' => "scaled image temp file is empty (0 bytes)" };
+    }
+
+    $working_image_path = $temp_path;
+    <[base.logs]>->( 1, "[analyze_image] using scaled image: %s (size: %d bytes)", $temp_path, $temp_size );
+}
+
+<[base.logs]>->( 2, "[analyze_image] spawning: image=%s prompt=%s", $working_image_path, $prompt );
 
 # Spawn vision CLI process immediately (4B model loads fast: 6.5s)
 my $binary = <llama-server-vision.binary>;
@@ -29,9 +103,9 @@ my @cmd = (
     '-m', $model_path,
     '--mmproj', $mmproj_path,
     '-ngl', 99,
-    '-c', 1024,
+    '-c', 4096,  # Context for vision encoder tokens (image scaled to 1024x1024, ~500-600 encoder tokens)
     '-t', 4,
-    '--image', $image_path,
+    '--image', $working_image_path,
     '-n', 100,
     '-p', $prompt
 );
@@ -102,8 +176,8 @@ $job->{'err_io'} = <[event.add_io]>->(
 
 return { 'mode' => 'deferred' };
 
-#,,..,,.,,,,,,.,.,,.,,,..,,,.,.,.,,.,,..,,.,.,..,,...,...,..,,.,,,,,,,.,.,,,,,
-#QD7WTTAPG7GNT25EVVFWJ6A7CU2FE3MSX66T3Q5ZTTAFNU4YMU54BAEIE2LTC6AD23XJVHGHD2I7M
-#\\\|SFHLSER46ZXYKYBX45BGQPKSOF4EFUXWR7HLXWFEY7UBS2SW2XK \ / AMOS7 \ YOURUM ::
-#\[7]7RH2HL23SD6RKFQUA5RTA3FSOCSFVFQMQI4375PMUQ7DYEJTMEAA 7  DATA SIGNATURE ::
+#,,,.,...,..,,,..,,,.,..,,.,,,.,,,,,.,..,,...,..,,...,...,,.,,,.,,,,,,,..,...,
+#DJ35IKNLRDL6ARJ7W6DD7LVKLHQTZSFCIQME7HIWO26NZRTCX4WCPYCWY2IVYAN245TET72W6YHT4
+#\\\|OPXLSQNT63RYVNNU3BCYBUFEBKHLQLROS2UPJHLIES53VSYMKWC \ / AMOS7 \ YOURUM ::
+#\[7]NLCN43MNS5UDNPBG75THW7TMQSOOIXJQB6BDPBHADX3XXDK6MECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
