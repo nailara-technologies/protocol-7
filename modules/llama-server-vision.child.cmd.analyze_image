@@ -3,6 +3,9 @@
 # name  = llama-server-vision.child.cmd.analyze_image
 # descr = child-side handler: analyze image with vision model
 
+use IPC::Open3;
+use Symbol qw(gensym);
+
 my ($image_path, $prompt) = split( m| +|, $$call{'args'}, 2 );
 $prompt //= 'Describe this image';
 
@@ -14,26 +17,82 @@ unless ( -f $image_path ) {
     return { 'mode' => 'false', 'data' => "image not found: $image_path" };
 }
 
-# Get write handle to vision model's stdin
-my $vision_stdin = <llama-server-vision.server_input_fh>;
-unless ( defined $vision_stdin ) {
-    return { 'mode' => 'false', 'data' => 'vision server not available' };
-}
-
 # Track reply_id so response can be routed back to original caller
 push( @{<llama-server-vision.reply_ids>}, $$call{'reply_id'} );
 
-# Send image and prompt to vision model
-# Format: -img /path/to/image.jpg then the prompt
-print $vision_stdin "-img $image_path\n" if defined $vision_stdin;
-print $vision_stdin "$prompt\n" if defined $vision_stdin;
+<[base.logs]>->( 2, "[child-analyze] processing: image=%s prompt=%s", $image_path, $prompt );
 
-<[base.logs]>->( 2, "[child-analyze] processing: image=%s prompt=%s reply_id=%d", $image_path, $prompt, $$call{'reply_id'} );
+# Set up environment for vision model
+$ENV{'LD_LIBRARY_PATH'} = <llama-server-vision.lib_path> . ':' . ($ENV{'LD_LIBRARY_PATH'} // '');
 
-return { 'mode' => 'deferred' };
+# Build command for vision CLI with image and prompt
+my $binary = <llama-server-vision.binary>;
+my $model_path = <llama-server-vision.vision_model_path>;
+my $mmproj_path = <llama-server-vision.vision_mmproj_path>;
 
-#,,,,,,..,,.,,.,.,,.,,,,.,,,,,.,,,.,.,,,,,,,.,..,,...,...,..,,,,.,,.,,.,,,...,
-#RNNZQAMGLXFPNDUT4YMYSYXVTSBKTXCLB4VORCBSEJJZKHUUCD4PCYU37LZ6MJO5KLCYTSZYYWK6G
-#\\\|W6OAV54B64ZUOYV7FAPSXO2T6FMTRK4RUCDEQ7LKK3RR5DTAFUY \ / AMOS7 \ YOURUM ::
-#\[7]C4XC66IPK2VLKPWFODRFGEBEBZADVBXCMNT2KLUMD3BJVOEA3AAA 7  DATA SIGNATURE ::
+my @cmd = (
+    $binary,
+    '-m', $model_path,
+    '--mmproj', $mmproj_path,
+    '-ngl', 99,
+    '-c', 2048,
+    '-t', 4,
+    '--image', $image_path,
+    '-n', 50,
+    '-p', $prompt
+);
+
+# Spawn vision CLI process and capture output
+my ($wtr, $rdr, $err);
+$err = gensym;
+
+my $pid = eval { open3($wtr, $rdr, $err, @cmd) };
+
+if ( !$pid || $@ ) {
+    <[base.logs]>->( 0, "ERROR: Failed to spawn vision CLI: %s", $@ // 'unknown error' );
+    # Pop the reply_id we pushed since we're not processing it
+    pop @{<llama-server-vision.reply_ids>};
+    return { 'mode' => 'false', 'data' => 'vision CLI spawn failed' };
+}
+
+close($wtr);  # We don't send any stdin
+
+# Read output from vision model
+my $output = '';
+while ( my $line = <$rdr> ) {
+    $output .= $line;
+}
+
+close($rdr);
+waitpid($pid, 0);
+
+# Trim whitespace
+$output =~ s/^\s+|\s+$//g;
+
+unless ( length $output ) {
+    <[base.logs]>->( 0, "ERROR: No output from vision CLI" );
+    pop @{<llama-server-vision.reply_ids>};
+    return { 'mode' => 'false', 'data' => 'no response from vision model' };
+}
+
+<[base.logs]>->( 2, "[child-analyze] response: %s", $output );
+
+# Send response back - the handler.server_output is not needed anymore,
+# we send the response directly from this command
+my $reply_id = pop @{<llama-server-vision.reply_ids>};
+
+<[base.callback.cmd_reply]>->(
+    $reply_id,
+    {
+        'mode' => 'true',
+        'data' => $output
+    }
+);
+
+return undef;  # Response already sent via callback
+
+#,,,,,,,.,,,.,,,.,,,.,...,...,.,,,,,,,,..,.,,,..,,...,...,.,.,,,.,,.,,..,,,,,,
+#24H7GUN32BUU326ACD3PZAHPNBKRL6XIBQYVUBVD4BXRDLODZP5JRYD6MLU4627KCA2ZN3GOVI7JS
+#\\\|XGH67PHQNKBHMROM2H6DOM4XCWMN2YWM4NSZLLDB2M24MPEND6Y \ / AMOS7 \ YOURUM ::
+#\[7]HFYGJUZ3RMM5ASCRKDEANKG3GE2HXQD47YWGZCBLDCUCPCZS46DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
