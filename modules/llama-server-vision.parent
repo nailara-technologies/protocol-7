@@ -9,22 +9,13 @@
 my $child_pid = <llama-server-vision.child.pid>;
 <[base.logs]>->( 1, "monitoring child process PID %d", $child_pid );
 
-# Initialize reply tracking for pipe communication
-<llama-server-vision.reply_ids> = [];
-<llama-server-vision.pending_requests> = {};
-<llama-server-vision.request_counter> = 0;
-
-# Get parent pipe for sending commands to child
-my $parent_pipe = <llama-server-vision.pipe.parent>;
-
-# Register commands for discovery by framework
-<data.base.cmd.status> = 'llama-server-vision.cmd.status';
-<data.base.cmd.analyze_image> = 'llama-server-vision.cmd.analyze_image';
+# Using Protocol-7 routing system for command handling
+# No manual REQUEST tracking needed - framework handles correlation
 
 <[base.log]>->( 1, 'llama-server vision parent initialized.,' );
 
-#,,.,,..,,,,,,,..,...,,,,,,,,,...,...,,,.,..,,..,,...,...,,,.,.,.,,,.,,..,,,,,
-#BFQ5BZSHJPS2VNCWL5BBMUTXOCOC63K37FMNSTXSFCS4EGCP37YRGROK55UIRGGQOMUT3VR2QKL4C
-#\\\|3B4D6D4DIHEQ2FDZBPDAKFGGIC2YTAT2LSJU76V5Q6ZV53ATIT3 \ / AMOS7 \ YOURUM ::
-#\[7]PBRFW7NFQKXHZFW7VAZZFKI7B4Q2E7EZ7M6NMQB2UDPMOV4JO2CY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,...,.,.,,.,,,,,,,,,,..,,,.,,...,..,,...,...,...,,..,,,.,..,,,..,
+#EEC36X3YVBVBSUDRCNA6VG6WLL37S5IW4Q45SOYSRUQ5TSSH4N7YRTNXL7HTL6LKYSHGI3HJD64ZE
+#\\\|Q75EGQWISFW2RE7ZO4LOAYEMIULLMWQ2UBCFZB6WCDS3C5MGUYH \ / AMOS7 \ YOURUM ::
+#\[7]FX6D6JI6CYNOOARPDWM5RBJKMYX3GH6BAOF66VTGXL4PRFJJ7UBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

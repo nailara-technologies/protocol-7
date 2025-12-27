@@ -28,37 +28,22 @@ if ( defined $log_fh ) {
     $log_fh->flush() if $log_fh->can('flush');
 }
 
-# Check if this is a response line that should be correlated with a request
-if ( my $reply_id = shift <llama-server-vision.reply_ids>->@* ) {
-    # Pop pending request info
-    my $pending = <llama-server-vision.pending_requests>;
-    my $request_data;
+# Pop reply_id from tracking array - responses come in order as vision model processes them
+my $reply_id = shift <llama-server-vision.reply_ids>->@*;
 
-    # Find and remove the matching request (responses might come in order)
-    foreach my $req_id ( sort keys $pending->%* ) {
-        if ( $pending->{$req_id}->{'reply_id'} == $reply_id ) {
-            $request_data = delete $pending->{$req_id};
-            last;
+if ( defined $reply_id ) {
+    # Send response back to original caller via routing system
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {
+            'mode' => 'true',
+            'data' => $line
         }
-    }
-
-    if ( $request_data ) {
-        # Send correlated response back to caller
-        <[base.callback.cmd_reply]>->(
-            $reply_id,
-            {
-                'mode' => 'true',
-                'data' => {
-                    'image' => $request_data->{'image_path'},
-                    'prompt' => $request_data->{'prompt'},
-                    'response' => $line,
-                }
-            }
-        );
-    }
+    );
+    <[base.logs]>->( 2, "[vision] response sent for reply_id %d", $reply_id );
 } else {
-    # Not a correlated response, just log it
-    <[base.logs]>->( 2, "[vision] %s", $line );
+    # No pending request - just log the output
+    <[base.logs]>->( 2, "[vision] untracked output: %s", $line );
 }
 
 #,,,...,,...,..,...,,.,,...,...,..,,,,,..,...,...,.,..,,,..,...,...,,,..,,,..,.,,
@@ -67,8 +52,8 @@ if ( my $reply_id = shift <llama-server-vision.reply_ids>->@* ) {
 #\[7]5HYY44FKXD4TNFIXZN2GFMHF3IOHPZZGTJ4MQGHUFWZ2LGM46PSA 7  DATA SIGNATURE ::
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,.,.,..,,,..,..,,,..,..,,,..,.,,,...,..,,..,,...,...,..,,...,..,,.,.,...,
-#CYFLUYHJRQQ2OVGAXJMO23VT62YETZ44SVKWIJYNJ6T7DYXA4WPND75HEI3E5QCLO3ANJQW2RBSNE
-#\\\|X6UYIJ24TRSXLQEKQ6HY4JXSY5HKR37PRTI6CK25KYTHFWRE6VL \ / AMOS7 \ YOURUM ::
-#\[7]CSUPBT6PZSN26I4XL35VNLTCVIUX3GQHHII5YV2HWLHZR5QFJSDY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,.,,.,.,,.,,,..,.,,,..,,,,.,...,..,,...,...,.,,,,,.,,,.,.,,,.,.,
+#EVPVU2A3WNGKKMKI5MBRHRDH6HAZD2PDMPDKKWZXICZHK2RBNZXLBB646JACCL57DPE7MUBP7PWGE
+#\\\|R2QYHNISUIOPSMFQHM4RUDP6E2DVAKG7JY3KELXXRMJJ77GH4MO \ / AMOS7 \ YOURUM ::
+#\[7]PLCK67T5Q5OJ7A4DXQRR7TSW6YNHMCJFYWCXN4V7J65GN4P6OMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
