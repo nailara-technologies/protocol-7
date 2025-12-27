@@ -3,6 +3,10 @@
 # name = image-batch.parent.init_code
 # descr = Image batch orchestrator initialization with infrastructure
 
+## Initialize jobqueue infrastructure (required for batch job processing)
+<[jobqueue.pre_init]>;
+<[jobqueue.event.register_job_queues]>;
+
 ## Initialize zenka directory paths for persistent storage
 <[base.path-set-up.check-zenka-paths]>->(TRUE);
 
@@ -97,8 +101,8 @@ map { <[base.perlmod.autoload]>->($ARG) } qw| Data::UUID JSON::XS YAML::XS |;
 
 return TRUE;
 
-#,,..,.,.,...,,..,,.,,,,.,..,,...,,,,,,..,..,,..,,...,...,,.,,...,.,,,,,,,.,.,
-#GU4MH2J7URMJRMB2EAHRJOJ2DRLPH5AB4DERSF46RE6YBQ6SYNG4LJQO2OS35GOFBCV53MHYOTZWI
-#\\\|225LQNUSE33BQLSVHFNXIIKIIOXCQMCPOHADGXD76WLNDQ5FTGI \ / AMOS7 \ YOURUM ::
-#\[7]TBZYOFOGUSBP62JVX6ULAUBYYKZALZK6DS55EEXK6L36GL6UEEBI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,.,,,,,,.,,,...,,.,,,,,,.,,,...,..,,...,...,..,,..,,.,,,,,,,,,,,
+#GSVENROVRASB6PGSZ32V2AUUTI4QWDKOTH75RM3IOEYWDARTOMIFUBEXXZKA2BMFWUR5OKM3RDELS
+#\\\|2UQEHIP5U3TOESM4R6LXNI3RI3L27VPAHY24CAGFAWSK3QPK2NJ \ / AMOS7 \ YOURUM ::
+#\[7]PD7EVO6NKD6UQVSMT7K4MLRPYNL3POAOXQNQHVNMZQF2LIL4LOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

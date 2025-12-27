@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = llama-server-vision.parent
+# descr = parent process - monitors llama-server child and provides management API
+
+<[base.log]>->( 1, 'llama-server parent process starting.,' );
+
+# Store child PID for monitoring
+my $child_pid = <llama-server-vision.child.pid>;
+<[base.logs]>->( 1, "monitoring child process PID %d", $child_pid );
+
+# Define parent-side commands
+<llama-server-vision.cmd.status> = {
+    'descr' => 'Get llama-server status',
+    'scope' => 'main',
+};
+
+<llama-server-vision.cmd.info> = {
+    'descr' => 'Get server info',
+    'scope' => 'main',
+};
+
+# Status command handler
+<llama-server-vision.handler.status> = sub {
+    my $is_alive = <[llama-server-vision.is_alive]>();
+    return {
+        'status' => $is_alive ? 'online' : 'offline',
+        'child_pid' => <llama-server-vision.child.pid>,
+        'port' => <llama-server-vision.port>,
+    };
+};
+
+<[base.log]>->( 1, 'llama-server parent initialized.,' );
+
+#,,,.,,..,,.,,,,.,..,,,..,...,.,.,,.,,,,.,...,..,,...,...,.,.,..,,,,.,...,,,,,
+#W3ML7MCJ7KK5GJOHG3DDOCGOIDZZWRFLMYQJ35THF7VF3P2PWXDCYHRRHA275IEOFV6JEKPLOM6NS
+#\\\|PNM2GD5XUJ7DNDFHKGPHZIRRHH52AHED3F2K4P2R4RL742F4USH \ / AMOS7 \ YOURUM ::
+#\[7]CMETJP634MTFSVPIUSQR5A2MCBAVRLTG35UOH4BAN5PCQVE3DUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

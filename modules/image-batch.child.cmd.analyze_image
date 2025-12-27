@@ -6,6 +6,9 @@
 
 my ( $image_path, $job_id ) = split( / +/, $$call{'args'}, 2 );
 
+<[base.log]>->(2, "child.cmd.analyze_image: received command for job_id=$job_id");
+<[base.log]>->(2, sprintf("child.cmd.analyze_image: image_path=%s", $image_path // 'undefined'));
+
 return {
     'mode' => qw| false |,
     'data' => 'image_path parameter required'
@@ -26,7 +29,19 @@ return {
     if !-r $image_path;
 
 # Call Phase 2 vision analysis (non-blocking image quality analyzer)
-my $analysis_result = <[image-quality.analyze]>->($image_path);
+<[base.log]>->(2, "child.cmd.analyze_image: calling image-quality.analyze");
+my $analysis_result;
+eval {
+    $analysis_result = <[image-quality.analyze]>->($image_path);
+};
+if ($@) {
+    <[base.log]>->(1, sprintf("child.cmd.analyze_image: EXCEPTION in analyze: %s", $@));
+    return {
+        'mode' => qw| false |,
+        'data' => "Exception during analysis: $@"
+    };
+}
+<[base.log]>->(2, sprintf("child.cmd.analyze_image: analyze returned success=%s", $analysis_result->{success} // 'undef'));
 
 # Construct response with metrics
 my $response = {
@@ -53,8 +68,8 @@ return {
     'data' => freeze($response) . "\n"
     }
 
-#,,,,,,,,,,.,,.,,,..,,.,.,...,,,.,,..,,..,.,,,..,,...,,.,,.,.,,,.,..,,...,...,
-#UIKO6MIBRX2FH2NJPCEP6B25DNJNLQLRAWYTDWIOFMPFVRCGKTNFWUO2NNF6ZQZNXAG6KWPI2MBHO
-#\\\|XJY5UQFJ3TFHAFDXSWVXAMP5CJLLOZSKHSZSL34SKHJFYILRWNR \ / AMOS7 \ YOURUM ::
-#\[7]UNPMM2VBLLWRFZYBAJ2XRGJWMYVRAF52HTZ5EJ452CKRGIFDCMAA 7  DATA SIGNATURE ::
+#,,..,,.,,...,..,,..,,,,,,..,,..,,...,..,,,.,,..,,...,...,,,.,,,.,..,,,,,,,..,
+#O57HSDMD5EAPODP3NFRMQUBV3OCSVYLSDGWT7CCIN63AS5IED6KD7EVULIJU6OZUGOISYJYNQ37AO
+#\\\|MOEAQSVWI4HO7TKMR5AZ53NNVPKYLUGNYFUFUTRGP2ZIDPZHY55 \ / AMOS7 \ YOURUM ::
+#\[7]7HBZXAREJ5ZTU2ZK422EPWXGHBRZK6DTLUT7QB64WC2XYGXLUQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
