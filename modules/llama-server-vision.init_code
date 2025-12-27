@@ -10,9 +10,9 @@
 <llama-server-vision.lib_path> = '/data/source/ik_llama.cpp';
 <llama-server-vision.log_file> = '/var/log/protocol-7/llama-server-vision.log';
 
-# Vision model with multimodal support
-<llama-server-vision.vision_model_path> = '/mnt/ext-xfs-data/models-lmstudio/Qwen/Qwen2.5-VL-7B-Instruct-Q4_K_M.gguf';
-<llama-server-vision.vision_mmproj_path> = '/mnt/ext-xfs-data/models-lmstudio/Qwen/mmproj-F16.gguf';
+# Vision model with multimodal support (Qwen3-VL-4B - optimized for memory)
+<llama-server-vision.vision_model_path> = '/mnt/ext-xfs-data/models-lmstudio/lmstudio-community/Qwen3-VL-4B-Instruct-GGUF/Qwen3-VL-4B-Instruct-Q4_K_M.gguf';
+<llama-server-vision.vision_mmproj_path> = '/mnt/ext-xfs-data/models-lmstudio/lmstudio-community/Qwen3-VL-4B-Instruct-GGUF/mmproj-Qwen3-VL-4B-Instruct-F16.gguf';
 
 <[base.logs]>->( 1, "Vision binary: %s", <llama-server-vision.binary> );
 
@@ -33,17 +33,23 @@ unless ( -f $mmproj_path ) {
 <[base.logs]>->( 1, "Multimodal proj: %s", $mmproj_path );
 
 # Initialize job queue for vision analysis tasks
-<llama-server-vision.jobs> = {};
+<llama-server-vision.jobs> //= {};
 
 # Initialize timers hash for process watchers
-<llama-server-vision.timers> = {};
+<llama-server-vision.timers> //= {};
+
+# Initialize batch queue for request batching (amortizes model loading)
+<llama-server-vision.batch_queue> //= [];
+<llama-server-vision.batch_timer> = undef;
+<llama-server-vision.batch_window_ms> = 100;  # Collect requests for 100ms before processing
 
 <[base.logs]>->( 1, "Vision job dispatch system initialized.," );
+<[base.logs]>->( 1, "Batch processing enabled (window: %dms)", <llama-server-vision.batch_window_ms> );
 
 0;  # Return success for module initialization
 
-#,,.,,,.,,...,,..,,,.,,,.,,,.,...,.,,,..,,.,.,..,,...,..,,...,,..,,,.,,.,,.,,,
-#RQAHBQ6RZU7ODN3CVB4C26FATJIJUOWRHEJ3DLW6RPYDFX4UDGK3A27N2B5GXUASVEDPHZS5AMZNS
-#\\\|S76WCSY5MQQSIOODYBA7ZGRTGRY4JABICSQSI243ASP357VBGF3 \ / AMOS7 \ YOURUM ::
-#\[7]DWDWLSHVN43VFFHRL5SKCQBWJHEJJCVYZIBPDYLTTRAOD3K6LMAY 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,,,,..,,...,...,,,,,,.,,...,.,,,..,,...,..,,..,,...,,,,,,.,,,..,
+#RN6O7DHFNKWSALS7CWC3SZDYHKKPGJ3BPHVMTIM4RG3ZSVG5TXTVAGUBNEQQO2QG5KTIFRYWFBVW2
+#\\\|CCNR4VLZX6SAD7GG4QFB6QWBEOZ7RZDTW4NGGWXLCOGCJO7VXM3 \ / AMOS7 \ YOURUM ::
+#\[7]LYI2JSYAWZDD7XCSRMVONSA7C6HUGMD536OB7DFBLP5EMNWXNKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

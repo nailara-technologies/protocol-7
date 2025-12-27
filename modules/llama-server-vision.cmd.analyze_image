@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = llama-server-vision.cmd.analyze_image
-# descr = queue image analysis job with vision model
+# descr = spawn image analysis with vision model (Qwen3-VL-4B optimized)
 
 use IPC::Open3;
 use Symbol qw(gensym);
@@ -17,30 +17,9 @@ unless ( -f $image_path ) {
     return { 'mode' => 'false', 'data' => "image not found: $image_path" };
 }
 
-<[base.logs]>->( 2, "[analyze_image] queueing: image=%s prompt=%s", $image_path, $prompt );
+<[base.logs]>->( 2, "[analyze_image] spawning: image=%s prompt=%s", $image_path, $prompt );
 
-# Generate unique job ID
-my $job_id = <[base.gen_id]>->(<llama-server-vision.jobs>);
-
-# Create job entry with all necessary information
-my $job = {
-    'job_id'      => $job_id,
-    'reply_id'    => $$call{'reply_id'},
-    'image_path'  => $image_path,
-    'prompt'      => $prompt,
-    'status'      => 'queued',
-    'pid'         => undef,
-    'start_time'  => time(),
-    'output'      => '',
-    'error'       => '',
-};
-
-# Store job in queue
-<llama-server-vision.jobs>->{$job_id} = $job;
-
-<[base.logs]>->( 1, "[analyze_image] job queued: id=%s", $job_id );
-
-# Spawn the vision analysis process immediately
+# Spawn vision CLI process immediately (4B model loads fast: 6.5s)
 my $binary = <llama-server-vision.binary>;
 my $model_path = <llama-server-vision.vision_model_path>;
 my $mmproj_path = <llama-server-vision.vision_mmproj_path>;
@@ -50,10 +29,10 @@ my @cmd = (
     '-m', $model_path,
     '--mmproj', $mmproj_path,
     '-ngl', 99,
-    '-c', 2048,
+    '-c', 1024,
     '-t', 4,
     '--image', $image_path,
-    '-n', 50,
+    '-n', 100,
     '-p', $prompt
 );
 
@@ -68,25 +47,32 @@ my $pid = eval { open3($wtr, $rdr, $err, @cmd) };
 
 if ( !$pid || $@ ) {
     <[base.logs]>->( 0, "ERROR: Failed to spawn vision CLI: %s", $@ // 'unknown error' );
-    $job->{'status'} = 'failed';
-    $job->{'error'} = 'CLI spawn failed';
-    <[base.callback.cmd_reply]>->(
-        $$call{'reply_id'},
-        { 'mode' => 'false', 'data' => 'vision CLI spawn failed' }
-    );
-    return { 'mode' => 'deferred' };
+    return { 'mode' => 'false', 'data' => 'vision CLI spawn failed' };
 }
 
 close($wtr);  # We don't send any stdin
 
-# Store process information
-$job->{'pid'} = $pid;
-$job->{'status'} = 'running';
-$job->{'output'} = '';  # Initialize output buffer
-$job->{'rdr_closed'} = 0;
-$job->{'err_closed'} = 0;
+# Generate unique job ID
+my $job_id = <[base.gen_id]>->(<llama-server-vision.jobs>);
 
-<[base.logs]>->( 1, "[analyze_image] process spawned: job=%s pid=%d", $job_id, $pid );
+# Create job entry
+my $job = {
+    'job_id'      => $job_id,
+    'reply_id'    => $$call{'reply_id'},
+    'image_path'  => $image_path,
+    'prompt'      => $prompt,
+    'status'      => qw| running |,
+    'pid'         => $pid,
+    'output'      => '',
+    'rdr_closed'  => 0,
+    'err_closed'  => 0,
+    'start_time'  => <[base.time]>->(3)
+};
+
+# Store job in queue
+<llama-server-vision.jobs>->{$job_id} = $job;
+
+<[base.logs]>->( 1, "[analyze_image] spawned: job=%s pid=%d", $job_id, $pid );
 
 # Register non-blocking I/O handlers for stdout and stderr
 $job->{'rdr_io'} = <[event.add_io]>->(
@@ -116,14 +102,8 @@ $job->{'err_io'} = <[event.add_io]>->(
 
 return { 'mode' => 'deferred' };
 
-#,,..,.,.,.,.,..,,,.,,.,..,,,.,,,,,..,,,..,,,,..,,...,...,.,,,,,.,,.,,,,,,,,,.,,
-#U3VSFBQHGDYXPEXFG2JHBZP7OQ5CPQYG7WXZP2JBHFAQRJVFHCLBBZVQEZVXSNW7PXK7R7LCM73LGI
-#\\\|IXMWSXFTW7XEXPSRWFQBVIXLVKZ4HW3L3XVXPHZ3OW7WVW4LSNMQ \ / AMOS7 \ YOURUM ::
-#\[7]QXLAZJ5WMPBWF6V7UCQFQZPCKP3UXT4BTUMGSL4GLXLKQ34V7VDAQ 7  DATA SIGNATURE ::
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,.,,...,...,.,,,..,,,,.,..,,,..,,..,,..,,,,,..,,...,..,,.,.,..,,.,,,,,,,,..,
-#BIRSACSHLE5GVSEMQXU3CB3RWBXGR7MT3BA5O4WPDLAFEHKMTGMJ2ZKKE7XV4F7QOWYGWAOEN242E
-#\\\|UQGTTW2U3E3OZPDPM6HBTB4QH3LC2KH7WD7VOSKQ6J33WQH3JXN \ / AMOS7 \ YOURUM ::
-#\[7]4DMZ4IDKTLBKLPSZTCUUQZVLDCUJ2IZQ3YC627FBIR7MLB7QQUBA 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,.,.,,.,,,..,,,.,.,.,,.,,..,,.,.,..,,...,...,..,,.,,,,,,,.,.,,,,,
+#QD7WTTAPG7GNT25EVVFWJ6A7CU2FE3MSX66T3Q5ZTTAFNU4YMU54BAEIE2LTC6AD23XJVHGHD2I7M
+#\\\|SFHLSER46ZXYKYBX45BGQPKSOF4EFUXWR7HLXWFEY7UBS2SW2XK \ / AMOS7 \ YOURUM ::
+#\[7]7RH2HL23SD6RKFQUA5RTA3FSOCSFVFQMQI4375PMUQ7DYEJTMEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

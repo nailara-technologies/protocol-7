@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = llama-server-vision.cmd.get_debug_log
+# descr = retrieve debug logs from a vision analysis job
+
+my $job_id = $call->{'args'};
+
+unless ( defined $job_id && length $job_id ) {
+    return { 'mode' => 'false', 'data' => 'job_id required' };
+}
+
+unless ( exists <llama-server-vision.jobs>->{$job_id} ) {
+    return { 'mode' => 'false', 'data' => 'no such job' };
+}
+
+my $job = <llama-server-vision.jobs>->{$job_id};
+
+unless ( defined $job->{'debug_log'} && length $job->{'debug_log'} ) {
+    return { 'mode' => 'false', 'data' => 'no debug log available for this job' };
+}
+
+return {
+    'mode' => qw| size |,
+    'data' => $job->{'debug_log'}
+};
+
+#,,,.,,.,,,,.,,,.,.,,,,,.,,,.,,,,,,..,,,,,,,.,..,,...,...,..,,,..,.,.,,.,,.,.,
+#NMTIKOLPLQHIKERFRYMNGWKZBIJI4YVWHDJUBJTTKVCLEAW6HATDVZOLWXTDE2O67DAOZU6LHTFKQ
+#\\\|OAIX57EFVE63D3JMLUYNPHN3P6MYMNLRYMBUXCGJKYA75BJPEFB \ / AMOS7 \ YOURUM ::
+#\[7]2CLY6B2Z2LKVDWUH7OQ5JL73KBPBLMMVRP3OSOOIOSUROEJ6NOCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
