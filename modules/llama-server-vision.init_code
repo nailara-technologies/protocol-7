@@ -5,6 +5,8 @@
 
 <[base.log]>->( 1, 'llama-server-vision zenka starting.,' );
 
+# Imager module will be loaded in analyze_image command when needed
+
 # Vision model binary and library configuration
 <llama-server-vision.binary> = '/data/source/ik_llama.cpp/llama-mtmd-cli-cuda';
 <llama-server-vision.lib_path> = '/data/source/ik_llama.cpp';
@@ -46,10 +48,15 @@ unless ( -f $mmproj_path ) {
 <[base.logs]>->( 1, "Vision job dispatch system initialized.," );
 <[base.logs]>->( 1, "Batch processing enabled (window: %dms)", <llama-server-vision.batch_window_ms> );
 
+# Image scaling configuration (vision models typically expect 224-1024 range)
+<llama-server-vision.max_image_width> = 1024;  # Scale down if wider
+<llama-server-vision.max_image_height> = 1024;  # Scale down if taller
+# Temp files are managed by base.file.temp with automatic cleanup via end_code callbacks
+
 0;  # Return success for module initialization
 
-#,,..,.,,,.,.,,,,,..,,...,...,,,,,,.,,...,.,,,..,,...,..,,..,,...,,,,,,.,,,..,
-#RN6O7DHFNKWSALS7CWC3SZDYHKKPGJ3BPHVMTIM4RG3ZSVG5TXTVAGUBNEQQO2QG5KTIFRYWFBVW2
-#\\\|CCNR4VLZX6SAD7GG4QFB6QWBEOZ7RZDTW4NGGWXLCOGCJO7VXM3 \ / AMOS7 \ YOURUM ::
-#\[7]LYI2JSYAWZDD7XCSRMVONSA7C6HUGMD536OB7DFBLP5EMNWXNKCI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,.,...,.,,,,,,,,..,.,.,.,.,..,,..,,...,...,...,,..,,,,,.,,,,..,
+#EPGGBT32OLDW2FTBQOBNQV2FOGUN3CRK2JF573ANAZQKDKCWV4H6EBQB6ABLV35YLEHR6R3Q5MU32
+#\\\|WDI22O4MR5NGQXNZX36HNCO4IXA4CPUDXJSCT2LZEBRZQ72EF63 \ / AMOS7 \ YOURUM ::
+#\[7]OBKVMNESF5POS63R7LYVN5Z7T7DFGGAVWHH6LBFCKC3BIMGOLGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
