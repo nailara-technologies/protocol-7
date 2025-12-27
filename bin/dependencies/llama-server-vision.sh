@@ -2,12 +2,14 @@
 
 ## [:< ##
 # name  = llama-server-vision
-# descr = Model server wrapper for GPU-accelerated image analysis (via HTTP API)
+# descr = HTTP server wrapper for GPU-accelerated vision model inference
 #
-# Starts GPU-accelerated llama-mtmd-cli on port 8080 for multimodal inference
-# Primary: Qwen2.5-VL-7B-Instruct (verified working with >90% GPU utilization)
+# Starts GPU-accelerated llama-server on port 8080 with optional vision support
+# Primary Model: Qwen2.5-VL-7B-Instruct (verified working with >90% GPU utilization)
 # Fallback: 4b-opus100-manga, Gemma-3-Glitter-4B for text-only models
 # Build: Upstream-optimized with fused norm kernels, CUDA device improvements
+# HTTP Server: llama-server for API endpoints
+# CLI Analysis: llama-mtmd-cli-cuda available for subprocess image analysis
 # Managed as v7 ext-bin zenka for image-quality dependencies
 
 set -e
@@ -38,22 +40,23 @@ echo "=== Starting Vision Model Server (llama-mtmd-cli) ==="
 echo "Port: $PORT"
 echo ""
 
-# Check for multimodal vision binary (primary)
-if [ -x "$LLAMA_MTMD_CLI" ]; then
-    LLAMA_BIN="$LLAMA_MTMD_CLI"
-    BINARY_TYPE="multimodal vision (llama-mtmd-cli)"
-    echo "✓ Using multimodal vision binary: $LLAMA_MTMD_CLI"
-elif [ -x "$LLAMA_SERVER" ]; then
+# HTTP server uses llama-server (not multimodal CLI)
+# Note: llama-mtmd-cli is for direct image analysis (subprocess), not for HTTP server
+if [ -x "$LLAMA_SERVER" ]; then
     LLAMA_BIN="$LLAMA_SERVER"
-    BINARY_TYPE="text-only server (llama-server)"
-    echo "⚠ Multimodal binary not found, using text-only server: $LLAMA_SERVER"
+    echo "✓ Using llama-server for HTTP endpoint: $LLAMA_SERVER"
 else
-    echo "ERROR: Neither llama-mtmd-cli nor llama-server found"
-    echo "  Expected: $LLAMA_MTMD_CLI or $LLAMA_SERVER"
+    echo "ERROR: llama-server binary not found at $LLAMA_SERVER"
     exit 1
 fi
 
-echo "✓ Binary type: $BINARY_TYPE"
+# Multimodal binary note for subprocess image analysis
+if [ -x "$LLAMA_MTMD_CLI" ]; then
+    echo "✓ Multimodal binary available for subprocess image analysis: $LLAMA_MTMD_CLI"
+else
+    echo "⚠ Multimodal binary not found (will use server for image analysis)"
+fi
+
 echo "✓ Library path: $LLAMA_LIB_PATH"
 
 # Find model - prioritize Qwen2.5-VL vision models
@@ -127,37 +130,33 @@ echo ""
 mkdir -p "$(dirname "$LOG_FILE")"
 
 # Start server in foreground (systemd/v7 will manage lifecycle)
-echo "Starting GPU-accelerated vision model server..."
-echo "[$(date)] Starting llama-server-vision with $BINARY_TYPE" >> "$LOG_FILE"
+echo "Starting GPU-accelerated HTTP server..."
+echo "[$(date)] Starting llama-server-vision" >> "$LOG_FILE"
 
-# Server configuration using GPU-accelerated binary
+# Server configuration using GPU-accelerated llama-server
 # Uses upstream-optimized build with fused norm kernels and CUDA device improvements
 # CUDA 12.5.0 with architecture 86 (RTX 3060) - adjust for your GPU
 # Parameters:
-# - ngl 99: GPU offload all layers (performance optimization)
+# - ngl 99: GPU offload all layers (performance optimization with vision models)
 # - c 1024: Context size suitable for vision analysis
 # - t 4: Thread count for CPU processing
 # - mmproj: Multimodal projection for vision support (if available)
 export LD_LIBRARY_PATH="${LLAMA_LIB_PATH}:${LD_LIBRARY_PATH}"
 
-# Use multimodal binary for vision models, fall back to server binary
-if [[ "$BINARY_TYPE" == *"multimodal"* ]]; then
-    echo "Using multimodal vision binary for enhanced GPU acceleration..."
-    SERVER_CMD="$LLAMA_BIN -m $MODEL_PATH -p $PORT -ngl 99 -c 1024 -t 4"
-else
-    echo "Using text-only server binary..."
-    SERVER_CMD="$LLAMA_BIN -m $MODEL_PATH -p $PORT -ngl 15 -c 1024 -t 4"
-fi
+# Build server command
+SERVER_CMD="$LLAMA_BIN -m $MODEL_PATH -p $PORT -ngl 99 -c 1024 -t 4"
 
 if [ -n "$MMPROJ_PATH" ]; then
     SERVER_CMD="$SERVER_CMD --mmproj $MMPROJ_PATH"
-    echo "Launching with vision support (mmproj)..."
+    echo "Launching HTTP server with vision support (mmproj)..."
+else
+    echo "Launching HTTP server (text-only model)..."
 fi
 
 eval "$SERVER_CMD >> $LOG_FILE 2>&1"
 
-#,,,.,..,,,,.,.,.,..,,.,,,..,,..,,,,.,,,,,,..,..,,...,...,...,,..,..,,.,,,...,
-#3IHJL7QGEOZMJ4P5RPE2IVWFHSPNOG7OCR6FC3JJPPPC5BPNZZODK67IWUUEMPI2E6XMLIUQRXVKY
-#\\\|P2RINVLHFIRMN6ARKGRXITA3ZPXC4JN5BJQPACOYRXN3DNJ7WLU \ / AMOS7 \ YOURUM ::
-#\[7]7NRQT2RNQZN3L74XL5AAHEWUN2MUZC2M2DPCBUO2MCIIOOSNUGDA 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,,,,..,,,..,...,,,.,,,.,,..,.,.,..,,...,..,,.,.,,.,,.,.,,..,,..,
+#RP7SXUFT3QLYRQM3BYYJMSI6EHWJVNMNEZ4WXQLOMSE7LBE55HBBZZZEPLNWIZAW6SS6LEYLRHVPA
+#\\\|DFYQ2XYKCY4D4WQJBEJC6YF6BX42T5ITZC4K7U7LIWMUKHISP3B \ / AMOS7 \ YOURUM ::
+#\[7]YYPJNMMLQGZFRAOEXBNMUWVZFNU27CQTZ4NHSMSRH32BAQXY3OBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
