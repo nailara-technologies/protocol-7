@@ -15,9 +15,10 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Vision model configuration
-# Using 4b-opus100-manga (verified working, smallest vision model with mmproj)
-# Falls back to Gemma-3-Glitter if manga model unavailable
+# Using Qwen2.5-VL (verified working vision model with GPU acceleration)
+# Falls back to 4b-opus100-manga and Gemma-3-Glitter if Qwen unavailable
 MODEL_SEARCH_PATHS=(
+    "/mnt/ext-xfs-data/models-lmstudio/Qwen"
     "/mnt/m/mradermacher/4b-opus100-manga-GGUF"
     "/mnt/ext-xfs-data/models-lmstudio/mradermacher/4b-opus100-manga-GGUF"
     "/mnt/ext-xfs-data/models-lmstudio/mradermacher/Gemma-3-Glitter-4B-Uncensored-GGUF"
@@ -103,8 +104,8 @@ fi
 
 eval "$SERVER_CMD >> $LOG_FILE 2>&1"
 
-#,,..,,,,,,..,.,,,,,.,...,,,.,.,,,..,,.,,,,..,..,,...,...,,..,.,.,.,,,...,,..,
-#4KOAWLISLYDMGX5KX53DBIMPKFY3SR3NTEHEL3GPYMA36TVE52ITL2GVWTW5RDVJ73FVHQEOD3JOO
-#\\\|UJPE5XD3TCFW5PWZCQKSGTHQQUUQ7377AIBS6PGCB6LI5AFWBCS \ / AMOS7 \ YOURUM ::
-#\[7]YIXMUDYAU6S3X5NNKIJZ5ODW72LBYPCXPFQGJJSZZGQLBHTPK4DY 7  DATA SIGNATURE ::
+#,,,.,...,..,,.,,,.,,,,,.,,..,,.,,..,,,.,,,,.,..,,...,.,.,,.,,,,.,,,.,.,,,.,,,
+#E2ZJ55XHVEXHQL25JBO5OS3UMBLBNEEIVLXGKP7VYYGHOX4JHVPB54KTWCMJTEIXLU2IMHTJD25I6
+#\\\|6F4SML4VINDRQWFE5ZAN4RGE44RBSUSPEE4IBHPV425GPJK3PLT \ / AMOS7 \ YOURUM ::
+#\[7]YOCZXVKI7VFLL65NTQ3TXCWR27ZTCGHNCVWB67ILHVLMQE7NQSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
