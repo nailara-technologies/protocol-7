@@ -28,21 +28,56 @@ return unless $both_closed;
 $watcher->cancel if $watcher->is_active;
 delete <llama-server-vision.timers>->{$job_id};
 
-# Trim whitespace
-$vision_job->{'output'} =~ s/^\s+|\s+$//g;
+# Extract debug logs and payload using offset-based approach
+my $full_output = $vision_job->{'output'};
+my $marker_pos = index($full_output, '[generate_response]');
+my $payload = '';
+my $debug_log = '';
 
-if ( length $vision_job->{'output'} ) {
+if ( $marker_pos >= 0 ) {
+    # Store everything before the marker as debug logs
+    $debug_log = substr($full_output, 0, $marker_pos);
+
+    # Find the newline after the marker to start from the next line
+    my $newline_pos = index($full_output, "\n", $marker_pos);
+    if ( $newline_pos >= 0 ) {
+        # Extract from after the newline to the end
+        my $analysis = substr($full_output, $newline_pos + 1);
+
+        # Remove timing section if present (starts with \nllama_print_timings:)
+        my $timing_pos = index($analysis, "\nllama_print_timings:");
+        if ( $timing_pos >= 0 ) {
+            $payload = substr($analysis, 0, $timing_pos);
+        } else {
+            $payload = $analysis;
+        }
+    } else {
+        # No newline after marker, use from marker onwards
+        $payload = substr($full_output, $marker_pos);
+    }
+} else {
+    # No marker found, use entire output as payload
+    $payload = $full_output;
+}
+
+# Trim whitespace from payload
+$payload =~ s/^\s+|\s+$//g;
+
+# Store debug log for diagnostic retrieval
+$vision_job->{'debug_log'} = $debug_log;
+
+if ( length $payload ) {
     $vision_job->{'status'} = 'completed';
-    <[base.logs]>->( 1, "[check_completion] success: job=%s bytes=%d", 
-                     $job_id, length($vision_job->{'output'}) );
+    <[base.logs]>->( 1, "[check_completion] success: job=%s payload_bytes=%d debug_bytes=%d",
+                     $job_id, length($payload), length($debug_log) );
     <[base.callback.cmd_reply]>->(
         $vision_job->{'reply_id'},
-        { 'mode' => 'true', 'data' => $vision_job->{'output'} }
+        { 'mode' => 'true', 'data' => $payload }
     );
 } else {
     $vision_job->{'status'} = 'failed';
     $vision_job->{'error'} = 'no response from vision model';
-    <[base.logs]>->( 0, "ERROR: No output from vision CLI: job=%s", $job_id );
+    <[base.logs]>->( 0, "ERROR: No analysis output from vision CLI: job=%s", $job_id );
     <[base.callback.cmd_reply]>->(
         $vision_job->{'reply_id'},
         { 'mode' => 'false', 'data' => 'no response from vision model' }
@@ -58,14 +93,8 @@ if ( length $vision_job->{'output'} ) {
     }
 );
 
-#,,..,.,.,.,.,..,,,.,,.,..,,,.,,,,,..,,,..,,,,..,,...,...,.,,,,,.,,.,,,,,,,,,.,,
-#W3KQZM7LP9XNBVCXZASDFGHJKLPOIUYTREWQAZXCVBNMQWERTYUIOPASDFGHJKLZXCVBNM1234567
-#\\\|QWERTYUIOPASDFGHJKLZXCVBNM1234567890QWERTYUIOPASDFGHJKLZXCVBNM \ / AMOS7 \ YOURUM ::
-#\[7]ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ 7  DATA SIGNATURE ::
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,.,,.,,,..,,...,,,,,.,,,,,.,,.,,..,,.,.,,,.,..,,...,..,,,..,...,...,,.,,,..,
-#GX2OIARKSED53A4HFTHQMYLAQ4ROEKEZPW37TB2YXEMOAHIGIV7W6ETZCMCCPSRDEBBFRKSOZT7AQ
-#\\\|XFGSKF3K2F5JFQQLLHRM5V4YKWJBGVBESD242NUVHU2KQTRWJ2N \ / AMOS7 \ YOURUM ::
-#\[7]2S4FGVFGWCFVAAHE3T642LH4Y2TQGQZ27KO33X6TCUWTSQEWGCCA 7  DATA SIGNATURE ::
+#,,..,,,,,...,..,,,,,,,..,,.,,.,,,.,.,,,.,,..,..,,...,...,..,,...,.,.,,,.,,,,,
+#UUQNPL7TF2WI2UKHJQ3LCEMRG2HO2SDDUUH2SYJ7MOPXE47BYMLJYXUDMDMG5BPXHDCNEULRM33NE
+#\\\|E36RL7AYCC6M7S6JDIHUEEWAVDELCSHA55IYTIMN3J5HZTB6RSD \ / AMOS7 \ YOURUM ::
+#\[7]TRZNSDEOW7YSSJW5DPCOHTOQYXKWR6EKGLSBGIQSOMFAJUBBNGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

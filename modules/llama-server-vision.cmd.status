@@ -45,23 +45,20 @@ if ( $job->{'status'} eq 'completed' ) {
     my $output = $job->{'output'};
     $output = substr($output, 0, 100) . '...' if length($output) > 100;
     $status_str .= " | output: $output";
+    if ( defined $job->{'debug_log'} && length $job->{'debug_log'} ) {
+        $status_str .= " | debug_log: " . length($job->{'debug_log'}) . " bytes";
+    }
 } elsif ( $job->{'status'} eq 'failed' ) {
     $status_str .= " | error: " . $job->{'error'};
 }
 
 return {
-    'mode' => 'true',
+    'mode' => 'size',
     'data' => $status_str
 };
 
-#,,..,.,.,.,.,..,,,.,,.,..,,,.,,,,,..,,,..,,,,..,,...,...,.,,,,,.,,.,,,,,,,,,.,,
-#N7TRGVIVVSQRK6K4KCVHDDXCW46FMJYNZBIFBYP4XAFQAKPJ4VVT46RJAHGJXRSHZSYQKLTQEOGZZI
-#\\\|JHWBCNQVYKTMZWSX5UZ4CH76J4HVNDPZL6OKUMGZ6YRQTWWV3XP \ / AMOS7 \ YOURUM ::
-#\[7]VBQD7X7FVUVQTQTQBICSVMUMQPFQHSXH2MLUGKJ3K3EOQNRUHXLQ 7  DATA SIGNATURE ::
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,,.,..,,.,,,...,...,,,.,...,.,,,,..,...,,.,,..,,...,...,.,,,...,,.,,,.,,,,,,
-#ABXRS2GHU5AEFQKRRLVMDEKSQHAMUCEMUTA2SZGZEMNLEEX4NWYMUYHCWG7ASIUKRV5ZN6FWYNTEK
-#\\\|ZFLHATAKZ6CH4T7K75HQHVUOB5W7ZPBFIA6CWKXOBEPSXQF5LRL \ / AMOS7 \ YOURUM ::
-#\[7]SSB7HKDMCMVFECBXNEMCVQMYAFBQO2B4CAYOI6CB2ZB5KABYR4AY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,,.,,,,,.,,,.,.,..,,,..,,,,,,,,,..,,...,...,,..,.,,,.,,,,..,,,.,
+#JB5GZ7Z64J65CLJHRTTS73X6OSH74JSSE2FHHSLOM5EL6VAIL7IA3RL4HXJHGGOFEUY4W3MDDWGOK
+#\\\|4YAUG2VEA474WSWAVH45JLVIVYBA6KGZZ2IT7JWNPPQ45A65IDK \ / AMOS7 \ YOURUM ::
+#\[7]Z3RI3LPTSIHQV7Z7KYBB23BBENSZNPSIMIDNZEQZJBT6E3Z25QDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

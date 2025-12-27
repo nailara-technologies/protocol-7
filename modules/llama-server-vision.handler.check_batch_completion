@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = llama-server-vision.handler.check_batch_completion
+# descr = check if batched vision job is complete and route responses to individual requests
+
+my $watcher = shift->w;
+my $batch_id = $watcher->data;
+
+my $batch_job = <llama-server-vision.jobs>->{$batch_id};
+
+unless ( defined $batch_job ) {
+    $watcher->cancel if $watcher->is_active;
+    return;
+}
+
+# Check if process has exited
+my $pid = $batch_job->{'pid'};
+my $wait_res = <[base.waitpid]>->($pid);
+
+# Process still running
+return if !defined $wait_res or $wait_res == 0;
+
+# Process has exited - check if both streams closed
+my $both_closed = $batch_job->{'rdr_closed'} && $batch_job->{'err_closed'};
+return unless $both_closed;
+
+# Process exited AND all data read - now send responses
+$watcher->cancel if $watcher->is_active;
+delete <llama-server-vision.timers>->{$batch_id};
+
+# Trim whitespace
+$batch_job->{'output'} =~ s/^\s+|\s+$//g;
+
+<[base.logs]>->( 1, "[check_batch_completion] batch complete: id=%s requests=%d bytes=%d",
+                 $batch_id, scalar(@{$batch_job->{'requests'}}), length($batch_job->{'output'}) );
+
+# For now, send the same output to all requests in the batch
+# TODO: Parse output to extract individual image results
+if ( length $batch_job->{'output'} ) {
+    $batch_job->{'status'} = 'completed';
+
+    foreach my $req (@{$batch_job->{'requests'}}) {
+        <[base.callback.cmd_reply]>->(
+            $req->{'reply_id'},
+            { 'mode' => 'true', 'data' => $batch_job->{'output'} }
+        );
+    }
+} else {
+    $batch_job->{'status'} = 'failed';
+    $batch_job->{'error'} = 'no response from vision model';
+
+    <[base.logs]>->( 0, "ERROR: No output from batch: id=%s", $batch_id );
+
+    foreach my $req (@{$batch_job->{'requests'}}) {
+        <[base.callback.cmd_reply]>->(
+            $req->{'reply_id'},
+            { 'mode' => 'false', 'data' => 'no response from vision model' }
+        );
+    }
+}
+
+# Schedule cleanup after 60 seconds
+<[event.add_timer]>->(
+    {
+        'after'   => 60,
+        'handler' => 'llama-server-vision.handler.job_cleanup',
+        'data'    => $batch_id
+    }
+);
+
+#,,,.,...,.,.,,.,,,..,..,,,.,,...,,.,,.,,,.,.,..,,...,..,,.,.,,.,,.,.,,..,...,
+#HSKXSSNOOB47BYPPYFPJD652NIM42WK5U6OTBHP6AJVFA3XRVXC3KAXKEEI3WJSEM4JJWRA6KCZFO
+#\\\|UM4ACJC5ZVDF5SVMXXCFGF7DMY2GOBGC5SQP4PYHBNIVYCDJTRL \ / AMOS7 \ YOURUM ::
+#\[7]TFRGLYNLHJMXZNNZFB6J5NTI5UAMC3XHIGK7FCARDJUXDD2D2CDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
