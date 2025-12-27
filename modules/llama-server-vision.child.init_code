@@ -6,57 +6,49 @@
 use IPC::Open3;
 use Symbol qw(gensym);
 
-<llama-server-vision.binary> = '/data/source/ik_llama.cpp/llama-server-cuda';
+<llama-server-vision.binary> = '/data/source/ik_llama.cpp/llama-mtmd-cli-cuda';
 <llama-server-vision.lib_path> = '/data/source/ik_llama.cpp';
-<llama-server-vision.port> = 8080;
 <llama-server-vision.log_file> = '/var/log/protocol-7/llama-server-vision.log';
 
-# Model search paths (text-only models preferred)
-<llama-server-vision.model_search_paths> = [
-    '/mnt/m/mradermacher/4b-opus100-manga-GGUF',
-    '/mnt/ext-xfs-data/models-lmstudio/mradermacher',
-];
+# Vision model with multimodal support
+<llama-server-vision.vision_model_path> = '/mnt/ext-xfs-data/models-lmstudio/Qwen/Qwen2.5-VL-7B-Instruct-Q4_K_M.gguf';
+<llama-server-vision.vision_mmproj_path> = '/mnt/ext-xfs-data/models-lmstudio/Qwen/mmproj-F16.gguf';
 
-<[base.log]>->( 1, 'llama-server child process starting.,' );
+<[base.log]>->( 1, 'llama-server vision child process starting.,' );
 
-# Find a text-only model
-my $model_path = '';
-foreach my $search_path ( @{<llama-server-vision.model_search_paths>} ) {
-    next unless -d $search_path;
-
-    # Find .gguf files without mmproj
-    my @gguf_files = glob "$search_path/*.gguf";
-    foreach my $file (@gguf_files) {
-        next if $file =~ /mmproj/;
-        $model_path = $file;
-        last;
-    }
-    last if $model_path;
-}
-
-unless ( $model_path ) {
-    <[base.logs]>->( 0, "ERROR: No text-only model found" );
+# Verify model exists
+my $model_path = <llama-server-vision.vision_model_path>;
+unless ( -f $model_path ) {
+    <[base.logs]>->( 0, "ERROR: Vision model not found: %s", $model_path );
     <[base.exit]>->(qw| 0001 |);
 }
 
-<[base.logs]>->( 1, "Found model: %s", $model_path );
+my $mmproj_path = <llama-server-vision.vision_mmproj_path>;
+unless ( -f $mmproj_path ) {
+    <[base.logs]>->( 0, "ERROR: Multimodal projection not found: %s", $mmproj_path );
+    <[base.exit]>->(qw| 0002 |);
+}
+
+<[base.logs]>->( 1, "Vision model: %s", $model_path );
+<[base.logs]>->( 1, "Multimodal proj: %s", $mmproj_path );
 
 # Set up environment
 $ENV{'LD_LIBRARY_PATH'} = <llama-server-vision.lib_path> . ':' . ($ENV{'LD_LIBRARY_PATH'} // '');
 
-# Build command
+# Build command for vision CLI with stdin/stdout pipes
 my $binary = <llama-server-vision.binary>;
-my $port = <llama-server-vision.port>;
 my @cmd = (
     $binary,
     '-m', $model_path,
-    '-p', $port,
+    '--mmproj', $mmproj_path,
     '-ngl', 99,
-    '-c', 1024,
+    '-c', 2048,
     '-t', 4,
+    '--interactive-first',
+    '--interactive',
 );
 
-<[base.logs]>->( 1, "Spawning llama-server: %s", join(' ', @cmd) );
+<[base.logs]>->( 1, "Spawning llama vision subprocess: %s", join(' ', @cmd) );
 
 # Spawn llama-server with pipes
 my ($wtr, $rdr, $err);
@@ -103,8 +95,8 @@ binmode($log_fh);
 
 <[base.logs]>->( 1, 'llama-server event handlers registered.,' );
 
-#,,,,,,.,,..,,,,.,,,,,,,,,,.,,,,,,,,.,.,.,,.,,..,,...,.,.,.,,,.,,,,,,,,,.,.,.,
-#KPZQSFI2H2O2BINDVI7NUIKVYOK24CLHQOMBFAP3AQIZFXWNMI2IKPQPO5A73SCIB7JAQHDDWJH3Q
-#\\\|CB5RPR7HUW2ETWTXLOZEZD7L7BAETCTJI6ZQLX2BWQUVWGWMEGY \ / AMOS7 \ YOURUM ::
-#\[7]XY44GHR6AZJTJKTZTJML5UC7T4UOS7VEENCVF7Y6WQZH5LIDRYBY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,.,,,..,..,,...,,,,,..,,...,,..,..,,...,.,.,..,,,..,,,,,,.,,...,
+#PBH3C2M46SOQLLTI4M6DAE4WKPT5W6YZVGYCBCKVNWZ553N5I2SKNOZIUWZ6XUJQLSPS3JRQWSUKI
+#\\\|HA64DICA2DH4SGLCWPDVV7YS45ZPTSCCELYVZBOCHFRV2Y7R3NB \ / AMOS7 \ YOURUM ::
+#\[7]WRR553Z6F64R2M34R73M6NQ6TS3PBKOAHI3O4QGGTBP6J5LK3UDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
