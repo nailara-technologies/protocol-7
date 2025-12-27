@@ -144,19 +144,26 @@ echo "[$(date)] Starting llama-server-vision" >> "$LOG_FILE"
 export LD_LIBRARY_PATH="${LLAMA_LIB_PATH}:${LD_LIBRARY_PATH}"
 
 # Build server command
-SERVER_CMD="$LLAMA_BIN -m $MODEL_PATH -p $PORT -ngl 99 -c 1024 -t 4"
+# Note: Vision models use subprocess (llama-mtmd-cli) for actual analysis
+# HTTP server provides text inference endpoints only (no vision support in llama-server)
+# For vision models, disable GPU offload to avoid segfaults with llama-server
 
 if [ -n "$MMPROJ_PATH" ]; then
-    SERVER_CMD="$SERVER_CMD --mmproj $MMPROJ_PATH"
-    echo "Launching HTTP server with vision support (mmproj)..."
+    # Vision model: llama-server cannot safely handle mmproj
+    # Vision analysis happens via subprocess (image-quality.vision.subprocess)
+    echo "Note: Vision model detected - image analysis via subprocess (llama-mtmd-cli)"
+    echo "Starting HTTP server in CPU-only mode to avoid compatibility issues..."
+    SERVER_CMD="$LLAMA_BIN -m $MODEL_PATH -p $PORT -ngl 0 -c 1024 -t 4"
 else
-    echo "Launching HTTP server (text-only model)..."
+    # Text-only model: use GPU acceleration
+    echo "Launching HTTP server with GPU acceleration..."
+    SERVER_CMD="$LLAMA_BIN -m $MODEL_PATH -p $PORT -ngl 99 -c 1024 -t 4"
 fi
 
 eval "$SERVER_CMD >> $LOG_FILE 2>&1"
 
-#,,.,,..,,.,.,,,,,..,,,..,...,,,.,,,.,,..,.,.,..,,...,..,,.,.,,.,,.,.,,..,,..,
-#RP7SXUFT3QLYRQM3BYYJMSI6EHWJVNMNEZ4WXQLOMSE7LBE55HBBZZZEPLNWIZAW6SS6LEYLRHVPA
-#\\\|DFYQ2XYKCY4D4WQJBEJC6YF6BX42T5ITZC4K7U7LIWMUKHISP3B \ / AMOS7 \ YOURUM ::
-#\[7]YYPJNMMLQGZFRAOEXBNMUWVZFNU27CQTZ4NHSMSRH32BAQXY3OBQ 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,..,,.,,,,.,,,,,,.,,,,,,...,,..,..,,...,...,.,.,,,,,..,,,,,,..,,
+#5JCJLYQM4ZULQFAMFQFMD7MCEM2M4M2TWARLO6P26CF23VMEFJ4FV5WQ2M23ZUITVXKJ5UXBGD342
+#\\\|EU3D2SO7NZQY2ASKIUWW2WWOIM37NGKQMTIYQIVVY5OVENLAUOV \ / AMOS7 \ YOURUM ::
+#\[7]VZEIIMDKDPE2AY6QS6SAJCBMGECIYW3J4TAWSWVMWVEOKHA6AKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
