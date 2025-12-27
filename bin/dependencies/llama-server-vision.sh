@@ -98,15 +98,28 @@ if [ ! -f "$MODEL_PATH" ]; then
 fi
 
 # Auto-detect mmproj file in same directory
+# Matches: mmproj-*.gguf, *mmproj*.gguf, etc.
 MODEL_DIR=$(dirname "$MODEL_PATH")
-MMPROJ_PATH=$(find "$MODEL_DIR" -maxdepth 1 -name "*.mmproj*.gguf" 2>/dev/null | head -1)
+MMPROJ_PATH=$(find "$MODEL_DIR" -maxdepth 1 -name "*mmproj*.gguf" 2>/dev/null | head -1)
 
 MODEL_SIZE=$(du -h "$MODEL_PATH" | cut -f1)
 echo "✓ Model type: $MODEL_TYPE"
 echo "✓ Model found: $(basename "$MODEL_PATH") ($MODEL_SIZE)"
-if [ -n "$MMPROJ_PATH" ]; then
+
+# For vision models, mmproj is required
+if [[ "$MODEL_TYPE" == *"vision"* ]]; then
+    if [ -n "$MMPROJ_PATH" ]; then
+        MMPROJ_SIZE=$(du -h "$MMPROJ_PATH" | cut -f1)
+        echo "✓ Multimodal projection: $(basename "$MMPROJ_PATH") ($MMPROJ_SIZE)"
+    else
+        echo "ERROR: Vision model requires mmproj file but none found in: $MODEL_DIR"
+        echo "Expected file patterns: mmproj-*.gguf, *mmproj*.gguf"
+        exit 1
+    fi
+elif [ -n "$MMPROJ_PATH" ]; then
+    # Text-only model but mmproj available - will be used if provided
     MMPROJ_SIZE=$(du -h "$MMPROJ_PATH" | cut -f1)
-    echo "✓ Multimodal projection: $(basename "$MMPROJ_PATH") ($MMPROJ_SIZE)"
+    echo "✓ Multimodal projection available: $(basename "$MMPROJ_PATH") ($MMPROJ_SIZE)"
 fi
 echo ""
 
@@ -143,8 +156,8 @@ fi
 
 eval "$SERVER_CMD >> $LOG_FILE 2>&1"
 
-#,,,,,...,,..,.,,,,..,,.,,.,.,...,.,.,,,.,,,.,..,,...,...,,,,,.,,,,..,...,,,.,
-#BV2KRVFB7OKFGFPFBMCPU5WETSKGNRO3ELO25BBASERWSNBNJP3T436OSMD7E6X3QLDFWGF2B2V7C
-#\\\|DB7PUFDAQOHKXHE73WFHVXXELX7ITGXMZPZFYSOSVETHIULHA2T \ / AMOS7 \ YOURUM ::
-#\[7]JQAWJDCWXYFQKCIOY7NIA7S7KCVUK74Z3EUKEBDGQGUQ6P5H6QCQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,.,.,..,,.,,,..,,..,,,,.,,,,,,..,..,,...,...,...,,..,..,,.,,,...,
+#3IHJL7QGEOZMJ4P5RPE2IVWFHSPNOG7OCR6FC3JJPPPC5BPNZZODK67IWUUEMPI2E6XMLIUQRXVKY
+#\\\|P2RINVLHFIRMN6ARKGRXITA3ZPXC4JN5BJQPACOYRXN3DNJ7WLU \ / AMOS7 \ YOURUM ::
+#\[7]7NRQT2RNQZN3L74XL5AAHEWUN2MUZC2M2DPCBUO2MCIIOOSNUGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
