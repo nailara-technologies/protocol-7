@@ -1,46 +1,16 @@
 ## [:< ##
 
 # name  = llama-server-vision.cmd.analyze_image
-# descr = analyze image with vision model and return analysis result
+# descr = alias - use llama-server-vision.child.analyze_image instead
 
-my ($image_path, $prompt) = split( m| +|, $$call{'args'}, 2 );
-$prompt //= 'Describe this image';
+# This command exists only as documentation
+# Callers should use: llama-server-vision.child.analyze_image /path/to/image "prompt"
+# The child zenka's analyze_image command handles the actual vision analysis
 
-unless ( defined $image_path && length $image_path ) {
-    return { 'mode' => 'false', 'data' => 'image_path required' };
-}
+return { 'mode' => 'false', 'data' => 'Use llama-server-vision.child.analyze_image instead' };
 
-unless ( -f $image_path ) {
-    return { 'mode' => 'false', 'data' => "image not found: $image_path" };
-}
-
-# Get parent pipe for sending commands to child
-my $parent_pipe = <llama-server-vision.pipe.child>;
-unless ( defined $parent_pipe ) {
-    return { 'mode' => 'false', 'data' => 'vision server not available' };
-}
-
-# Generate unique request ID
-<llama-server-vision.request_counter> += 1;
-my $request_id = <llama-server-vision.request_counter>;
-
-# Track reply for this request
-push( @{<llama-server-vision.reply_ids>}, $call->{'reply_id'} );
-
-# Store pending request info
-<llama-server-vision.pending_requests>->{$request_id} = {
-    'reply_id' => $call->{'reply_id'},
-    'image_path' => $image_path,
-    'prompt' => $prompt,
-};
-
-# Send request to child via pipe
-print $parent_pipe "REQUEST|$request_id|$image_path|$prompt\n" if defined $parent_pipe;
-
-return { 'mode' => 'deferred' };
-
-#,,,,,,.,,..,,.,.,,,,,...,...,..,,,..,..,,.,,,..,,...,..,,,.,,.,.,...,,,,,.,.,
-#IOY4U2I2CI7I4UJWXTZXJLKWS526OWJZQTXQMBU357IIGB4MXMEJJEQNKUBUGHDTVDRUSFNRDRQFM
-#\\\|LEBRLJMJQ55WOBZVS6FFFPZ5S52AUNCCEZUKCAEODVZEFDDIMOW \ / AMOS7 \ YOURUM ::
-#\[7]KF3K3FAETKGGDPV5GUHU4OJOKZVIINWPIVCDBGTJAWRVIZLGJMCY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,.,,,,..,,.,,.,,,...,,,.,.,,,,,,,..,,...,...,,.,,.,.,,,,,,,,,...,
+#UN7CTXJY3LXME7HVDSAOOBGZ6NDSOGPFPANU5KC6JPM2OYA43JQYZGQ63M3YYJM5NIOQFCM7523BO
+#\\\|YC7XM3KHEMDW7T3KMZFYLTNOPWWO2XNTYD5GRJQAMH7JQCC2JKJ \ / AMOS7 \ YOURUM ::
+#\[7]JSPBEKJQY5JO6J6DBLTTMRFCM35BKSJYUO6P3GETSO4Y7QRMPCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

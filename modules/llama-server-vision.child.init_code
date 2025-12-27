@@ -85,8 +85,8 @@ binmode($log_fh);
 <llama-server-vision.server_log_fh> = $log_fh;
 <llama-server-vision.server_input_fh> = $wtr;
 
-# Get parent pipe for receiving commands
-my $parent_pipe = <llama-server-vision.pipe.parent>;
+# Initialize reply_ids tracking for routing responses back to callers
+<llama-server-vision.reply_ids> = [];
 
 # Set up non-blocking I/O handler for server output
 <[event.add_io]>->(
@@ -97,19 +97,10 @@ my $parent_pipe = <llama-server-vision.pipe.parent>;
     }
 );
 
-# Set up non-blocking I/O handler for parent input (incoming requests)
-<[event.add_io]>->(
-    {
-        'fd'      => $parent_pipe,
-        'handler' => qw| llama-server-vision.handler.parent_request |,
-        'data'    => { 'type' => 'request' }
-    }
-);
-
 <[base.logs]>->( 1, 'llama-server event handlers registered.,' );
 
-#,,..,,,.,.,,,.,.,,,.,...,,..,,.,,,..,,..,,,,,..,,...,...,..,,,,.,,,.,,.,,,.,,
-#VKK4TWQFJ7UJNZARVLWGPXDA2PDLARORBAGFGEKGABDSZRPN3LFP3RYTD2CB6II5TDU4OEPXVXBVK
-#\\\|ORJCHZ7SKA6OKLZDTBRTQUYGIXE7ZDLSHI6FHF36EWHTA3FO7NN \ / AMOS7 \ YOURUM ::
-#\[7]4RGQEFVVURMUQZNO7WABQEHABYFV6KGY3YUBQYPHAQPLS74UBECQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,.,,..,,,.,,...,,.,,..,,.,.,,..,..,,...,...,.,.,.,,,,,,,,.,,,,,,
+#DGRUNK6UAJYAQ7GMAARS7KMJRTGCXBRQ42QOTKIOL6QQWHI3DVW3LWQUTPP2Y7PYF4TR54AN7LDXA
+#\\\|H33KRDQH2V24W2M3BBZCX2JHWBHGP3XFYF7ERDBENFMRPE5PLRB \ / AMOS7 \ YOURUM ::
+#\[7]WFDJX4M2YAKI3CJDKMCGO6Y57VUCYVET43HGIOHXRQOUKBV24WDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
