@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = llama-server-vision.handler.read_output
+# descr = non-blocking I/O handler - read output chunks from vision CLI
+
+my $event = shift->w;
+my $read_fh = $event->fd;
+my $io_data = $event->data;
+
+my $job_id = $io_data->{'job_id'};
+my $stream = $io_data->{'stream'};
+
+my $vision_job = <llama-server-vision.jobs>->{$job_id};
+
+unless ( defined $vision_job ) {
+    $event->cancel if $event->is_active;
+    return;
+}
+
+# Read available data (non-blocking)
+my $bytes = <[base.s_read]>->(
+    $read_fh,
+    \$vision_job->{'output'},
+    8 * 1024  # Read up to 8KB at a time
+) // 0;
+
+<[base.logs]>->( 2, "[read_output] job=%s stream=%s bytes=%d", $job_id, $stream, $bytes )
+    if $bytes > 0;
+
+# Check for EOF
+if ( $bytes <= 0 ) {
+    # EOF reached on this stream
+    $vision_job->{ $stream eq 'stdout' ? 'rdr_closed' : 'err_closed' } = 1;
+    close($read_fh);
+    $event->cancel if $event->is_active;
+    <[base.logs]>->( 2, "[read_output] EOF: job=%s stream=%s", $job_id, $stream );
+}
+
+#,,..,.,.,.,.,..,,,.,,.,..,,,.,,,,,..,,,..,,,,..,,...,...,.,,,,,.,,.,,,,,,,,,.,,
+#XQVB2L7NJ3YDBXZW2NTJXRSQGQ5R5YGXQ3QDTJBQSYXQ3GZWMNJBFQ4XYGWJZPHDLXZQ5YZNQJX3CXL
+#\\\|ZMNTWZXQP3B4C5D6E7F8G9H0I1J2K3L4M5N6O7P8 \ / AMOS7 \ YOURUM ::
+#\[7]Q9R0S1T2U3V4W5X6Y7Z8A9B0C1D2E3F4G5H6I7J8 7  DATA SIGNATURE ::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,.,,,.,,,,,,.,,,,.,.,,,..,,,,.,...,..,,,.,,..,,...,...,..,,.,,,.,.,,.,,..,,
+#HNQKOPQ57L7FGCSIFCXSJPNPTIBD2SMN56LLYFKZ4I5EPJNFAMD6N7VZ5KUEKN6UWSHTNDTHK6SXY
+#\\\|7F2QG7EQVKLF3F63LZ5QPGEOFFJQZROZA3XWJRQ4DSZ22ZAQIHQ \ / AMOS7 \ YOURUM ::
+#\[7]JBK7Y452GOGKO3LT32Y3KTTLWXWVNJXZ27Z6UXMR54YYSSGUGKCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

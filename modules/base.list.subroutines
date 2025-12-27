@@ -1269,7 +1269,6 @@ return [ qw[
         mpv.handler.cmd_prop.pause
         mpv.callback.abort_startup
         llm.service.consensus_vote
-        llama-server-vision.parent
         letsencr.parent.cmd.status
         letsencr.child.acme_revoke
         keys.console.split-keypair
@@ -1480,7 +1479,6 @@ return [ qw[
         mpv.callback.start_reenc_msg
         mod-test.cmd.erase-blacklist
         mod-test.cmd.blacklisted-add
-        llama-server-vision.is_alive
         letsencr.dns.inwx_delete_txt
         letsencr.dns.inwx_create_txt
         keys.console.list-upgradable
@@ -1574,6 +1572,7 @@ return [ qw[
         nodes.cmd.update-protocol-elf
         mpv.handler.event.file-loaded
         mod-test.cmd.list-blacklisted
+        llama-server-vision.init_code
         letsencr.parent.send_to_child
         letsencr.child.send_to_parent
         keys.select_archive_path.curs
@@ -1758,7 +1757,6 @@ return [ qw[
         mod-test.write-mem-list-to-disk
         mod-test.cmd.clear-success-list
         mod-test.cmd.blacklisted-remove
-        llama-server-vision.fork_server
         letsencr.parent.send_from_child
         letsencr.parent.activity_logger
         letsencr.cmd.show-cipher-suites
@@ -2002,7 +2000,6 @@ return [ qw[
         osd-logo.handler.colortoalpha_reply
         mod-test.scan_INC_chksum_collisions
         mod-test.callback.reload-test.start
-        llama-server-vision.child.init_code
         letsencr.parent.process_pending_ops
         letsencr.parent.handler_child_ready
         letsencr.child.respond_to_challenge
@@ -2119,6 +2116,8 @@ return [ qw[
         sourcecode.console.verify-p7-signatures
         sourcecode.console.test-sign-and-verify
         mpv.handler.event.property-change.width
+        llama-server-vision.handler.read_output
+        llama-server-vision.handler.job_cleanup
         letsencr.parent.cmd.request-certificate
         letsencr.parent.cmd.install-certificate
         discover.callback.resend_interval_reset
@@ -2153,7 +2152,6 @@ return [ qw[
         pdf.html.parent.handler.convert_pdf_reply
         nodes.callback.local_network.offline-node
         mod-test.callback.reload-test.remove-link
-        llama-server-vision.handler.server_output
         letsencr.parent.load_certificate_registry
         letsencr.parent.handler_httpd_vhost_reply
         letsencr.parent.handler_httpd_vhost_error
@@ -2167,7 +2165,6 @@ return [ qw[
         sourcecode.console.test-restore-signatures
         sourcecode.console.regen-checksum-symlinks
         protocol.protocol-7.link-upgrade.handshake
-        llama-server-vision.handler.parent_request
         letsencr.parent.handler_httpd_reload_reply
         X-11.background.chksum-cache.write_to_disk
         web-browser.handler.request_starting_signal
@@ -2179,7 +2176,6 @@ return [ qw[
         tile-groups.tile_activity.change_poll_timer
         mpv.handler.event.property-change.core-idle
         mod-test.callback.reload-test.is_registered
-        llama-server-vision.child.cmd.analyze_image
         letsencr.parent.handler_challenge_validated
         httpd.handler.download_transfer.test-broken
         debian.parent.callback.register_deb_package
@@ -2188,6 +2184,7 @@ return [ qw[
         weather.parent.handler.update_forecast_reply
         system.process.handler.pid-instance_response
         sourcecode.console.test-verify-with-temp-key
+        llama-server-vision.handler.check_completion
         letsencr.parent.check_certificate_expiration
         debian.parent.callback.check_module_loadable
         coding.learning.analyze_model_specialization
@@ -2207,8 +2204,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,,,,,,,.,..,,,.,,.,,,,.,,,..,.,,,..,,,..,..,,...,...,..,,,.,,.,.,...,.,,,
-#PMVTFASBSXZ66CTWR7XWLLVUQEGRZLLB7DJKBYCB7JECPFWEDELIYPQLEBJLWIXQSIY624SK3ATUE
-#\\\|4A3BVNR575QRI4PI4GBBJONPAIG7NV55GNGXO4QDB7I27TAVBMS \ / AMOS7 \ YOURUM ::
-#\[7]FSGQRFZDFS6GGOMPN36H2NMW6NXROJROOLDRXATOFKBVIIH67IDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,.,.,,.,,...,,.,,..,,..,,,.,,.,.,..,,...,...,,..,...,...,...,..,,
+#CJCHWLSQK2AW44I4CKBOSP4WI2LIPD75LGZNDGRGI74SC3TWIYQBLA3ZCK3GQWRA7LKRG24WPPFCM
+#\\\|VLTCVDXJZXJGY5DZSFSX7IVPYA6Y4YZVAHNS2VJIOIG7JOX4PQX \ / AMOS7 \ YOURUM ::
+#\[7]SA5K4KF3WRS7WNORAOHQMHKXF3OKB5AZC4JR6C42OROKD6MRSYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

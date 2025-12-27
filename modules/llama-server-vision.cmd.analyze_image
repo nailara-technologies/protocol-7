@@ -1,16 +1,129 @@
 ## [:< ##
 
 # name  = llama-server-vision.cmd.analyze_image
-# descr = alias - use llama-server-vision.child.analyze_image instead
+# descr = queue image analysis job with vision model
 
-# This command exists only as documentation
-# Callers should use: llama-server-vision.child.analyze_image /path/to/image "prompt"
-# The child zenka's analyze_image command handles the actual vision analysis
+use IPC::Open3;
+use Symbol qw(gensym);
 
-return { 'mode' => 'false', 'data' => 'Use llama-server-vision.child.analyze_image instead' };
+my ($image_path, $prompt) = split( m| +|, $$call{'args'}, 2 );
+$prompt //= 'Describe this image';
 
-#,,,,,...,.,,,.,,,,..,,.,,.,,,...,,,.,.,,,,,,,..,,...,...,,.,,.,.,,,,,,,,,...,
-#UN7CTXJY3LXME7HVDSAOOBGZ6NDSOGPFPANU5KC6JPM2OYA43JQYZGQ63M3YYJM5NIOQFCM7523BO
-#\\\|YC7XM3KHEMDW7T3KMZFYLTNOPWWO2XNTYD5GRJQAMH7JQCC2JKJ \ / AMOS7 \ YOURUM ::
-#\[7]JSPBEKJQY5JO6J6DBLTTMRFCM35BKSJYUO6P3GETSO4Y7QRMPCAA 7  DATA SIGNATURE ::
+unless ( defined $image_path && length $image_path ) {
+    return { 'mode' => 'false', 'data' => 'image_path required' };
+}
+
+unless ( -f $image_path ) {
+    return { 'mode' => 'false', 'data' => "image not found: $image_path" };
+}
+
+<[base.logs]>->( 2, "[analyze_image] queueing: image=%s prompt=%s", $image_path, $prompt );
+
+# Generate unique job ID
+my $job_id = <[base.gen_id]>->();
+
+# Create job entry with all necessary information
+my $job = {
+    'job_id'      => $job_id,
+    'reply_id'    => $$call{'reply_id'},
+    'image_path'  => $image_path,
+    'prompt'      => $prompt,
+    'status'      => 'queued',
+    'pid'         => undef,
+    'start_time'  => time(),
+    'output'      => '',
+    'error'       => '',
+};
+
+# Store job in queue
+<llama-server-vision.jobs>->{$job_id} = $job;
+
+<[base.logs]>->( 1, "[analyze_image] job queued: id=%s", $job_id );
+
+# Spawn the vision analysis process immediately
+my $binary = <llama-server-vision.binary>;
+my $model_path = <llama-server-vision.vision_model_path>;
+my $mmproj_path = <llama-server-vision.vision_mmproj_path>;
+
+my @cmd = (
+    $binary,
+    '-m', $model_path,
+    '--mmproj', $mmproj_path,
+    '-ngl', 99,
+    '-c', 2048,
+    '-t', 4,
+    '--image', $image_path,
+    '-n', 50,
+    '-p', $prompt
+);
+
+# Set up environment for vision model
+local $ENV{'LD_LIBRARY_PATH'} = <llama-server-vision.lib_path> . ':' . ($ENV{'LD_LIBRARY_PATH'} // '');
+
+# Spawn vision CLI process
+my ($wtr, $rdr, $err);
+$err = gensym;
+
+my $pid = eval { open3($wtr, $rdr, $err, @cmd) };
+
+if ( !$pid || $@ ) {
+    <[base.logs]>->( 0, "ERROR: Failed to spawn vision CLI: %s", $@ // 'unknown error' );
+    $job->{'status'} = 'failed';
+    $job->{'error'} = 'CLI spawn failed';
+    <[base.callback.cmd_reply]>->(
+        $$call{'reply_id'},
+        { 'mode' => 'false', 'data' => 'vision CLI spawn failed' }
+    );
+    return { 'mode' => 'deferred' };
+}
+
+close($wtr);  # We don't send any stdin
+
+# Store process information
+$job->{'pid'} = $pid;
+$job->{'status'} = 'running';
+$job->{'output'} = '';  # Initialize output buffer
+$job->{'rdr_closed'} = 0;
+$job->{'err_closed'} = 0;
+
+<[base.logs]>->( 1, "[analyze_image] process spawned: job=%s pid=%d", $job_id, $pid );
+
+# Register non-blocking I/O handlers for stdout and stderr
+$job->{'rdr_io'} = <[event.add_io]>->(
+    {
+        'fd'      => $rdr,
+        'handler' => 'llama-server-vision.handler.read_output',
+        'data'    => { 'job_id' => $job_id, 'stream' => 'stdout' }
+    }
+);
+
+$job->{'err_io'} = <[event.add_io]>->(
+    {
+        'fd'      => $err,
+        'handler' => 'llama-server-vision.handler.read_output',
+        'data'    => { 'job_id' => $job_id, 'stream' => 'stderr' }
+    }
+);
+
+# Register completion checker timer
+<llama-server-vision.timers>->{$job_id} = <[event.add_timer]>->(
+    {
+        'interval' => 0.2,
+        'handler'  => 'llama-server-vision.handler.check_completion',
+        'data'     => $job_id
+    }
+);
+
+return { 'mode' => 'deferred' };
+
+#,,..,.,.,.,.,..,,,.,,.,..,,,.,,,,,..,,,..,,,,..,,...,...,.,,,,,.,,.,,,,,,,,,.,,
+#U3VSFBQHGDYXPEXFG2JHBZP7OQ5CPQYG7WXZP2JBHFAQRJVFHCLBBZVQEZVXSNW7PXK7R7LCM73LGI
+#\\\|IXMWSXFTW7XEXPSRWFQBVIXLVKZ4HW3L3XVXPHZ3OW7WVW4LSNMQ \ / AMOS7 \ YOURUM ::
+#\[7]QXLAZJ5WMPBWF6V7UCQFQZPCKP3UXT4BTUMGSL4GLXLKQ34V7VDAQ 7  DATA SIGNATURE ::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,.,,,,,.,,,..,,,,.,,..,...,,.,,.,.,,,.,,.,,..,,...,...,,.,,.,,,,,.,,,,,..,,
+#NGLKMYYES37SHSHUFYRDLL3QWM36G4GNQ2VZH3ER24VP5IPHKRQLWWCLDDD7JLLONNFQHQCPXYRH6
+#\\\|XE433R6ORI453CXXRKOFAEWKAUWBVXCGQS5VHELKOAPVXXTSTMR \ / AMOS7 \ YOURUM ::
+#\[7]HL3IOIPU6G2HGO5UA27EI5OKXR3U6TQJ4VRZ7VQUYXSYWT3FOSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
