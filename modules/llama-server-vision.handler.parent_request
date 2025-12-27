@@ -14,15 +14,15 @@ unless ( defined $line ) {
 }
 
 chomp($line);
-<[base.logs]>->( 2, "[child-request] received: %s", $line );
 
 # Parse REQUEST format: REQUEST|request_id|image_path|prompt
+# Ignore non-REQUEST lines (routed commands come through same pipe)
 if ( $line =~ /^REQUEST\|(\d+)\|(.+?)\|(.+)$/ ) {
     my $request_id = $1;
     my $image_path = $2;
     my $prompt = $3;
 
-    <[base.logs]>->( 1, "[child-request] processing request %d: image=%s", $request_id, $image_path );
+    <[base.logs]>->( 2, "[child-request] processing request %d: image=%s", $request_id, $image_path );
 
     unless ( -f $image_path ) {
         <[base.logs]>->( 0, "ERROR: Image file not found: %s", $image_path );
@@ -47,12 +47,10 @@ if ( $line =~ /^REQUEST\|(\d+)\|(.+?)\|(.+)$/ ) {
     print $vision_stdin "$vision_request" if defined $vision_stdin;
 
     <[base.logs]>->( 2, "[child-request] sent to vision model: %s", $prompt );
-} else {
-    <[base.logs]>->( 0, "Invalid REQUEST format: %s", $line );
 }
 
-#,,.,,..,,,..,,.,,,..,,.,,...,.,,,..,,,.,,..,,..,,...,...,,,.,.,,,.,,,,.,,...,
-#V4AXIUZRBXS5NZEMJASYPG3DZTAC6BHREQE7DQNQR6XKKPTXPW62GJOTDHUNC4APUQSAQFKCNDIAW
-#\\\|M2FY7L67BPACIFZ5BXAUZXCJZSCXRK4Y242A2UQMYPMPVQPK4FG \ / AMOS7 \ YOURUM ::
-#\[7]EWQJTSPXZ72DEW2BGAU5VFEFISDV2ENQSSBDMKC7SVWAAEHWRKCY 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,..,,.,,,,,,..,,...,,..,,..,...,..,,...,.,,,.,.,,.,,,,.,,,,,.,,,
+#7ZIL2I53G7PBNLAJRH6PDMSOMHQE2ZQVI2RDKIXXHEWXLYQAFFJVOOLI5Q7Z3WW3VHBXCYHG4LMIM
+#\\\|QMCNPDW72XKBQNDXMVEQU7LVEXQA6F2FI3JYZZOOWV2G65LSJ6P \ / AMOS7 \ YOURUM ::
+#\[7]SVGXO7Z7VWIK7TL3PGDTH7SZSTPW46VPZDY4OMU623ROAYKTO6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
