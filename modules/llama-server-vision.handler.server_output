@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = llama-server-vision.handler.server_output
+# descr = event handler for non-blocking llama-server output
+
+# Get file handles from global storage
+my $fh = <llama-server-vision.server_output_fh>;
+my $log_fh = <llama-server-vision.server_log_fh>;
+
+unless ( defined $fh ) {
+    <[base.logs]>->( 0, "ERROR: server output file handle not found" );
+    return;
+}
+
+# Try reading a line from the file handle
+my $line = readline($fh);
+
+unless ( defined $line ) {
+    # EOF on this read - don't exit the child process
+    # The server might still be running, just no output right now
+    # Or the process might have exited but we shouldn't kill the child zenka
+    return;
+}
+
+chomp($line);
+
+# Write to log file
+if ( defined $log_fh ) {
+    print { $log_fh } "[llama-server] $line\n";
+    $log_fh->flush() if $log_fh->can('flush');
+}
+
+<[base.logs]>->( 2, "[llama-server] %s", $line );
+
+#,,,...,,...,..,...,,.,,...,...,..,,,,,..,...,...,.,..,,,..,...,...,,,..,,,..,.,,
+#3XYEQ3O74S63RWJVJQPKWDZ3PJMHVKQ5TT77SGRX6J7MSWLQ7YLXL33H2TQZQRGKGVSNXBVQC54LFEU
+#\\\|XHZQHQ6RD7P63J5OXZJUWSSVSVJQ5PZXZ52JDSTFXXJ35GFCDY \ / AMOS7 \ YOURUM ::
+#\[7]5HYY44FKXD4TNFIXZN2GFMHF3IOHPZZGTJ4MQGHUFWZ2LGM46PSA 7  DATA SIGNATURE ::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,..,,..,...,,,,,.,,,..,,...,.,.,.,,,...,,.,,..,,...,..,,,..,...,,..,,.,,.,.,
+#3GXXTGNJFAQOQQERZ5UVDNNIXNKIEOSL5EMAWROFOZIMVRMT3WQFGKNL6Q2RXM57NCQPMZNOOVMRK
+#\\\|VVBO6MY4GBURLEUKB7WXYM3B5VPCJGVMQGSTLB2ULE34MMBD6SW \ / AMOS7 \ YOURUM ::
+#\[7]6CAS4CBN4WGA4MHMXMC4M3HH7JQW7PGSPBPI6PSJFLXHVKSLFYDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

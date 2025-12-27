@@ -37,8 +37,9 @@ if ( !<llama-server-vision.child.pid> ) {    ## child ##
     <system.zenka.subname> = sprintf 'child%s', $sn_str;
     $PROGRAM_NAME = sprintf '%s[child%s]', <system.zenka.name>, $sn_str;
 
-    <[base.load_modules]>->('llama-server-vision.child');
-    <[base.init_modules]>->('llama-server-vision.child');
+    ## Load and initialize child modules
+    <[base.load_modules]>->('llama-server-vision.child.init_code');
+    <[base.init_modules]>->('llama-server-vision.child.init_code');
 
     ## Mark parent session for shutdown when last session closes
     <[base.log]>->( 1, 'preparing to close cube session of child .,' );
@@ -52,8 +53,8 @@ if ( !<llama-server-vision.child.pid> ) {    ## child ##
     $data{'session'}{$id}->{'input'}->{'handler'}
         = qw| base.handler.command |;
 
-    # Child process confirms initialization
-    <[base.async.get_session_id]>;
+    # Child process returns control to event loop for server management
+    # No session confirmation - just let the server run in the background
 
 } else {    ## parent ##
     close($parent_pipe);
@@ -74,13 +75,13 @@ if ( !<llama-server-vision.child.pid> ) {    ## child ##
         = qw| base.handler.command |;
     $data{'session'}{$id}->{'authenticated'} = qw| yes |;
 
-    # Retrieve session ID to confirm initialization complete
+    # Parent confirms initialization to v7
     <[base.async.get_session_id]>;
 
 }
 
-#,,.,,,.,,..,,,,.,,,,,...,,..,,,,,..,,,,,,..,,..,,...,...,...,,..,.,.,..,,,.,,
-#SE3GAS5GZF4CO5A5K3SEVFBEZONWBT62UMMEDAFP4JYWGQ4MQ5MXCUF2FELFDVOHUXNQLKXR274J2
-#\\\|2HKVFUKX4SFEYDKNQ2FZB5U7BFQK3UFJMLOWVCLNRHNG5XHRBAJ \ / AMOS7 \ YOURUM ::
-#\[7]AEK5AVK227XNM67NEMWFSTLKC7CUKGVGPDUJ5YXZLUXCVKJD72CI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,,,..,,,,.,..,,,,.,.,,,,,.,...,..,,...,...,.,,,.,.,,,,,,..,.,,,
+#EHM3CMR7MEE4XVOCTOJFXAAIOZ4MS4EWP3WZZAUFNCCGPPGOFBCWDLXGPKMTLDCGLNVQMSVQRAILQ
+#\\\|CHCBJEZ6U2TSWMDLOT2QOJBMOJUX7674F3WY46H3VSBWQH677NO \ / AMOS7 \ YOURUM ::
+#\[7]6G44HC6EINVZFYKSPBWL4KYLHDGFT46MGNK3ZEYSSTPGDIOGYADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
