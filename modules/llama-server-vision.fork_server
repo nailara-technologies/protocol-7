@@ -1,0 +1,86 @@
+## [:< ##
+
+# name  = llama-server-vision.fork_server
+# descr = fork child process for GPU-accelerated llama-server (text inference)
+
+use Socket;
+
+( my $session_id ) = keys <user.cube.session>->%*;
+
+<llama-server-vision.pipe> = { 'child' => {}, 'parent' => {} };
+
+<[base.log]>->( 1, 'forking llama-server child.,' );
+
+<[base.enable_list]>->('sessions');
+
+socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
+    || die "can't create socketpair. [ \l$OS_ERROR ]";
+map { $data{'handle'}{$ARG}{'link'} = qw| ipc.pipe | }
+    ( $child_pipe, $parent_pipe );
+
+<llama-server-vision.child.pid> = <[base.fork]>;
+
+if ( !<llama-server-vision.child.pid> ) {    ## child ##
+
+    ## making base.s_read() and base.s_write() work after fork ., ##
+    IO::AIO::reinit();
+
+    close($child_pipe);
+    delete <llama-server-vision.pipe.child> if exists <llama-server-vision.pipe.child>;
+
+    <llama-server-vision.pipe.parent> = $parent_pipe;
+    <log.file.system.retry_timer>->cancel
+        if exists <log.file.system.retry_timer>;
+
+    my $subname = <system.zenka.subname>;
+    my $sn_str  = defined $subname ? ':' . $subname : '';
+    <system.zenka.subname> = sprintf 'child%s', $sn_str;
+    $PROGRAM_NAME = sprintf '%s[child%s]', <system.zenka.name>, $sn_str;
+
+    <[base.load_modules]>->('llama-server-vision.child');
+    <[base.init_modules]>->('llama-server-vision.child');
+
+    ## Mark parent session for shutdown when last session closes
+    <[base.log]>->( 1, 'preparing to close cube session of child .,' );
+    $data{'session'}{$session_id}{'shutdown'} = 1;
+
+    $data{'handle'}{$parent_pipe}{'mode'} = qw| out |;
+    my $id = <[base.session.init]>->(
+        $parent_pipe, qw| protocol-7 client parent |
+    );
+
+    $data{'session'}{$id}->{'input'}->{'handler'}
+        = qw| base.handler.command |;
+
+    # Child process confirms initialization
+    <[base.async.get_session_id]>;
+
+} else {    ## parent ##
+    close($parent_pipe);
+    delete <llama-server-vision.pipe.parent> if exists <llama-server-vision.pipe.parent>;
+    <llama-server-vision.pipe.child> = $child_pipe;
+
+    my $child_pid = <llama-server-vision.child.pid>;
+    <[base.logs]>->( 1, ":. reporting child PID %d.,", $child_pid );
+    <[base.zenki.report_child_pid]>->($child_pid);
+
+    <[base.load_modules]>->('llama-server-vision.parent');
+    <[base.init_modules]>->('llama-server-vision.parent');
+
+    $data{'handle'}{$child_pipe}{'mode'} = qw| out |;
+    my $id = <[base.session.init]>
+        ->( $child_pipe, qw| protocol-7 client child | );
+    $data{'session'}{$id}->{'input'}->{'handler'}
+        = qw| base.handler.command |;
+    $data{'session'}{$id}->{'authenticated'} = qw| yes |;
+
+    # Retrieve session ID to confirm initialization complete
+    <[base.async.get_session_id]>;
+
+}
+
+#,,.,,,.,,..,,,,.,,,,,...,,..,,,,,..,,,,,,..,,..,,...,...,...,,..,.,.,..,,,.,,
+#SE3GAS5GZF4CO5A5K3SEVFBEZONWBT62UMMEDAFP4JYWGQ4MQ5MXCUF2FELFDVOHUXNQLKXR274J2
+#\\\|2HKVFUKX4SFEYDKNQ2FZB5U7BFQK3UFJMLOWVCLNRHNG5XHRBAJ \ / AMOS7 \ YOURUM ::
+#\[7]AEK5AVK227XNM67NEMWFSTLKC7CUKGVGPDUJ5YXZLUXCVKJD72CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

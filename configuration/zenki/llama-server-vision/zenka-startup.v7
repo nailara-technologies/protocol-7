@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = zenka-startup.v7
+# descr = 'llama-server-vision' zenka startup configuration used by 'v7' zenka
+
+dependencies = cube
+start.on-demand    = 1
+restart.disabled   = 1
+heartbeat.disabled = 1
+
+# Access control for parent and child commands
+access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
+                      buffer-erase status info child.*
+
+access.cmd.usr.parent = commands reload show-buffer status info *
+
+: v7-init :
+  start_mode = stdin-zenka
+  llama-server-vision.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<llama-server-vision.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{llama-server-vision.key}>']
+  [base.zenki.set_ondemand_timeout:3600]
+
+#,,.,,..,,,.,,,.,,,,.,,,,,,,,,...,,,.,,.,,.,.,..,,...,...,.,,,,,,,,,,,,,.,.,,,
+#MAFJAZ74WKUFXHVZRCVTDQ2EVXFSALUGPDJK632KJLJKTWONBD5LT25S3PGOALYNCYDJKWDML557W
+#\\\|6W665SZJ6ZNPCW6X7X6C3HESAA5IPCIOPYARY6JNU5ZWYO7BPPJ \ / AMOS7 \ YOURUM ::
+#\[7]5LHQFVFQHTISD57E6Q5WK5RQBOVL7ZQ66SCZRBCZK773UEVJTKCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

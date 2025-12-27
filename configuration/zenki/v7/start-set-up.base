@@ -3,7 +3,11 @@
 
 .: globals :.
 
-  zenki.enabled  =  cube p7-log  coding image-quality image-batch  # httpd httpsd letsencr web
+  zenki.enabled  =  cube p7-log \
+                    coding \
+                    image-quality image-batch \
+                    llama-server-vision \
+                    system # httpd httpsd letsencr web
 
 # zenki.disabled =
 
@@ -23,17 +27,6 @@
 
 ### external program example ###    [ supports '<AMOS-user>' from X11-vars ]
 
-  - llama-server-vision
-
-      max_concurrency  = 1
-      restart.disabled = 1
-      idle_timeout = 3600  # Keep running for image-quality analysis
-
-      : v7-init :
-        start_mode = exec-external
-        exec_bin = llama-server-vision.sh
-        exec_usr = protocol-7
-
   - namesrv
 
       max_concurrency = 1
@@ -44,8 +37,8 @@
         exec_bin = /usr/local/bin/namesrv
         exec_usr = root
 
-#,,,,,...,.,,,,,,,,.,,...,,,,,,,.,..,,,..,.,,,..,,...,...,.,.,...,,.,,,,.,,,,,
-#5GMXWUFYBJFTBEYMKDWER7AQBTLOE5K6VCOA2NPXNGY4EB5ZWZWEMFCGTDYZYA4GJKQQRJNFWZ44E
-#\\\|3HT2QPBVWYKERCOT4B5AUREW72KCWI4RP6HGFRGY5BLIMKYB645 \ / AMOS7 \ YOURUM ::
-#\[7]UWDBLT4ANIQXJAB74ZA4TWY63CZSUS42YXGYYA6FZUQHRJ5UVWAQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,..,,.,.,.,,,.,,,,,.,,,,,..,,.,,,..,,...,...,.,,,.,.,...,,.,,...,
+#WTOGGKVQJ3XR3P5KTKVL2LS5X35U6EQIJ7EUIE4D25FDT7AAWBA4F4XR5YKL5S5LQFHI2QSTFOAVC
+#\\\|IV7NQMIMMQ2VU4OYYIVGIUSEPAUSZY5GK4Z6NZWFWLGDY3OZ2QS \ / AMOS7 \ YOURUM ::
+#\[7]ZDWHD5DKNITX2UWW347FYFJHVIRPGUQSAGIE5XN7W5WPCHMOGGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

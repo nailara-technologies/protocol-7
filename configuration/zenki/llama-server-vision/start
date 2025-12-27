@@ -1,0 +1,42 @@
+
+ .:[ protocol-7 llama-server-vision - GPU-accelerated text inference with child process ]:.
+
+[load_config_file:'shared-params']
+
+### access control ###
+access.cmd.usr.cube = commands heart reload verify-instance \
+                      list show-buffer buffer-erase \
+                      status info child.* *
+
+access.cmd.usr.parent = commands reload list show-buffer heart *
+
+## Module loading ##
+## llama-server-vision.fork_server handles forking and pipe setup
+## Parent and child modules are loaded selectively to maintain isolation
+modules.load = auth net protocol io.unix io.ip crypt.C25519 \
+               llama-server-vision.fork_server \
+               llama-server-vision.is_alive \
+               devmod
+
+[load_modules:<modules.load>]
+
+system.verbosity.zenka_buffer  = 1
+system.verbosity.console       = 1
+system.verbosity.zenka_logfile = 1
+
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+# Fork child process to spawn and manage llama-server
+[llama-server-vision.fork_server]
+
+[zenka.loop]
+
+#,,,,,,,,,,,.,..,,...,...,,,,,,,,,.,,,,,.,,.,,..,,...,...,...,..,,..,,..,,,..,
+#2K5Y5AMPXJJ3IBMREAQIMXTUG6GVITASJO4LQAX4I7PABY3NCYUO72S4GNPU3YFUTRNDZZ7ZZ52PM
+#\\\|NVQV6M3JYYV7N57QH2V6AL66IEMXE6MPSPR42JH2G2KZR4JG6N5 \ / AMOS7 \ YOURUM ::
+#\[7]VC3PK4HGSVIQ6D4E3JXAIKREVCWCOWS7N47BC4AJPW3GHCLZPKDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,97 @@
+## [:< ##
+
+# name  = llama-server-vision.child
+# descr = child process subprocess - spawns llama-server with text model
+
+use IPC::Open3;
+use Symbol qw(gensym);
+
+<llama-server-vision.binary> = '/data/source/ik_llama.cpp/llama-server-cuda';
+<llama-server-vision.lib_path> = '/data/source/ik_llama.cpp';
+<llama-server-vision.port> = 8080;
+<llama-server-vision.log_file> = '/var/log/protocol-7/llama-server-vision.log';
+
+# Model search paths (text-only models preferred)
+<llama-server-vision.model_search_paths> = [
+    '/mnt/m/mradermacher/4b-opus100-manga-GGUF',
+    '/mnt/ext-xfs-data/models-lmstudio/mradermacher',
+];
+
+<[base.log]>->( 1, 'llama-server child process starting.,' );
+
+# Find a text-only model
+my $model_path = '';
+foreach my $search_path ( @{<llama-server-vision.model_search_paths>} ) {
+    next unless -d $search_path;
+
+    # Find .gguf files without mmproj
+    my @gguf_files = glob "$search_path/*.gguf";
+    foreach my $file (@gguf_files) {
+        next if $file =~ /mmproj/;
+        $model_path = $file;
+        last;
+    }
+    last if $model_path;
+}
+
+unless ( $model_path ) {
+    <[base.logs]>->( 0, "ERROR: No text-only model found" );
+    <[base.exit]>->(qw| 0001 |);
+}
+
+<[base.logs]>->( 1, "Found model: %s", $model_path );
+
+# Set up environment
+$ENV{'LD_LIBRARY_PATH'} = <llama-server-vision.lib_path> . ':' . ($ENV{'LD_LIBRARY_PATH'} // '');
+
+# Build command
+my $binary = <llama-server-vision.binary>;
+my $port = <llama-server-vision.port>;
+my @cmd = (
+    $binary,
+    '-m', $model_path,
+    '-p', $port,
+    '-ngl', 99,
+    '-c', 1024,
+    '-t', 4,
+);
+
+<[base.logs]>->( 1, "Spawning llama-server: %s", join(' ', @cmd) );
+
+# Spawn llama-server with pipes
+my ($wtr, $rdr, $err);
+$err = gensym;
+
+my $pid = eval { open3($wtr, $rdr, $err, @cmd) };
+
+if ( !$pid || $@ ) {
+    <[base.logs]>->( 0, "ERROR: Failed to spawn llama-server: %s", $@ // 'unknown error' );
+    <[base.exit]>->(qw| 0002 |);
+}
+
+<llama-server-vision.server_pid> = $pid;
+<[base.logs]>->( 1, "llama-server spawned with PID %d", $pid );
+
+# Set up I/O watchers for output
+my $parent_pipe = <llama-server-vision.pipe.parent>;
+
+# Redirect llama-server output to log file
+open my $log_fh, '>>', <llama-server-vision.log_file> or die "Can't open log: $!";
+binmode($log_fh);
+
+while ( my $line = <$rdr> ) {
+    chomp($line);
+    print $log_fh "[llama-server] $line\n";
+    <[base.logs]>->( 2, "[llama-server] %s", $line );
+}
+
+# Server exited
+<[base.logs]>->( 0, "llama-server process exited" );
+close($log_fh);
+<[base.exit]>->(qw| 0000 |);
+
+#,,,.,..,,,,,,.,,,.,.,...,.,,,.,,,,,,,,.,,,..,..,,...,...,...,,..,,,,,,..,.,,,
+#6NK7BV2WLWJSOLSHXUBXEJ22UH6R6WPTRQIF56MJN7NM4VCD43TWP3LFS7XEVATTUIHDZIXTPEH6M
+#\\\|NA2SPVAT4JXXMIHNORNK7AQBX64M7PQXHEGKLKGTIRCNNS4DN6O \ / AMOS7 \ YOURUM ::
+#\[7]EFNM6UOOICHXXMAGHAC4L57SWOWX4MJN6CBRVWQBGICAD4LE7GCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

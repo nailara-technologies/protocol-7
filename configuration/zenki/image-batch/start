@@ -21,9 +21,16 @@ access.cmd.usr.parent = commands reload list show-buffer heart * # <- same here
 ## Fork_child and other parent modules load in parent scope after fork
 modules.load = auth net protocol io.unix io.ip crypt.C25519 jobqueue \
                                          image-batch.parent.init_code \
-                                         image-batch.parent.fork_child
+                                         image-batch.parent.fork_child \
+                                         devmod ## <-- developement only
 [load_modules:<modules.load>]
-[init_modules]
+
+system.verbosity.zenka_buffer  = 2  ## increasing verbosity for development
+system.verbosity.console       = 2  ##                       and testing ..
+system.verbosity.zenka_logfile = 2
+
+
+[init_modules] ## initializes the modules from modules.load
 
 [root.drop_privs:<system.amos-zenka-user>]
 
@@ -36,8 +43,8 @@ modules.load = auth net protocol io.unix io.ip crypt.C25519 jobqueue \
 
 [zenka.loop]
 
-#,,..,.,.,,,,,,.,,,..,,,.,...,..,,.,,,.,.,,,,,..,,...,..,,...,,..,...,,,,,,,.,
-#TL5J3PYACO67PKVCOBFPIXF6C4NDCUFCVSLZ7VX6OP3QLE7JN3R2YL7XO2ZQ2ORDG5GQ3PYUI66D2
-#\\\|YQPTJWQJKQ4UV65GGYSJJATUX2UNSMVJRZJUAOTXMRR2ZAVODSP \ / AMOS7 \ YOURUM ::
-#\[7]UIWQQWIEPOGOQAW7IIM42PWFXK7WJJW2KVF3KOISKT3C3GS2F4CA 7  DATA SIGNATURE ::
+#,,..,..,,...,.,,,,..,,.,,,,.,.,.,.,.,,..,..,,..,,...,...,...,,,,,.,.,.,,,..,,
+#MANC6ENT3P3XMNVXSWC4X7XTC4FPTWJLJYIOXZYK2DWHJGOAIS2JIURSB66QNYBGUCOQEU2P6QHTK
+#\\\|6ZSV44WCH3EVKNXB4I3O3AB7WXS26I765KVCTCS2ZK4JKZFOYO6 \ / AMOS7 \ YOURUM ::
+#\[7]QES7IQQY5XOGNJGDWIH43GISNTMHQAMPJP24EL7Y2XYNBFLN3ABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
