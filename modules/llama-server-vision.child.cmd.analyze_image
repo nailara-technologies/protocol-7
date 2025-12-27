@@ -57,13 +57,17 @@ if ( !$pid || $@ ) {
 
 close($wtr);  # We don't send any stdin
 
-# Read output from vision model
+# Read output from both stdout and stderr (model output can be on either)
 my $output = '';
 while ( my $line = <$rdr> ) {
     $output .= $line;
 }
+while ( my $line = <$err> ) {
+    $output .= $line;
+}
 
 close($rdr);
+close($err);
 waitpid($pid, 0);
 
 # Trim whitespace
@@ -89,10 +93,10 @@ my $reply_id = pop @{<llama-server-vision.reply_ids>};
     }
 );
 
-return undef;  # Response already sent via callback
+return { 'mode' => 'deferred' };  # Response already sent via callback
 
-#,,,,,,,.,,,.,,,.,,,.,...,...,.,,,,,,,,..,.,,,..,,...,...,.,.,,,.,,.,,..,,,,,,
-#24H7GUN32BUU326ACD3PZAHPNBKRL6XIBQYVUBVD4BXRDLODZP5JRYD6MLU4627KCA2ZN3GOVI7JS
-#\\\|XGH67PHQNKBHMROM2H6DOM4XCWMN2YWM4NSZLLDB2M24MPEND6Y \ / AMOS7 \ YOURUM ::
-#\[7]HFYGJUZ3RMM5ASCRKDEANKG3GE2HXQD47YWGZCBLDCUCPCZS46DA 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,...,.,.,,..,,,.,..,,.,,,,..,,,.,..,,...,...,...,...,...,,.,,,,.,
+#EKITROAGZ4FINZM3HAQKDE53CXQ5CNHKYNLZTX6RQONQEJI5XMI3ZL4FJIGQ55IWIWK5TNRF6IRIO
+#\\\|SYJ4JS6JEEVWTRQBTNJ2YE32TKIDMHWY6H27OPUTL464XKYM2BD \ / AMOS7 \ YOURUM ::
+#\[7]SWLMPCWWP5TMDGJHCZXI4YT5OTORLJ5DFCPM5AN2ASWOFIJXRAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
