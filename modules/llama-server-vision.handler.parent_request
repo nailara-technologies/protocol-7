@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = llama-server-vision.handler.parent_request
+# descr = event handler for incoming requests from parent process (image analysis requests)
+
+# Read incoming request line from parent
+my $parent_pipe = <llama-server-vision.pipe.parent>;
+my $line = readline($parent_pipe);
+
+unless ( defined $line ) {
+    # EOF on parent pipe - exit child process gracefully
+    <[base.logs]>->( 0, "Parent pipe closed - shutting down" );
+    <[base.exit]>->(qw| 0000 |);
+}
+
+chomp($line);
+<[base.logs]>->( 2, "[child-request] received: %s", $line );
+
+# Parse REQUEST format: REQUEST|request_id|image_path|prompt
+if ( $line =~ /^REQUEST\|(\d+)\|(.+?)\|(.+)$/ ) {
+    my $request_id = $1;
+    my $image_path = $2;
+    my $prompt = $3;
+
+    <[base.logs]>->( 1, "[child-request] processing request %d: image=%s", $request_id, $image_path );
+
+    unless ( -f $image_path ) {
+        <[base.logs]>->( 0, "ERROR: Image file not found: %s", $image_path );
+        return;
+    }
+
+    # Get write handle to vision model's stdin
+    my $vision_stdin = <llama-server-vision.server_input_fh>;
+    unless ( defined $vision_stdin ) {
+        <[base.logs]>->( 0, "ERROR: vision stdin handle not available" );
+        return;
+    }
+
+    # Format request for interactive vision model
+    # Send image path as context followed by the prompt
+    # The vision model should be able to read the image file
+    my $vision_request = "$prompt\n";
+
+    # Try to send with image path reference
+    # Format: image_path on first line, then prompt
+    print $vision_stdin "-img $image_path\n" if defined $vision_stdin;
+    print $vision_stdin "$vision_request" if defined $vision_stdin;
+
+    <[base.logs]>->( 2, "[child-request] sent to vision model: %s", $prompt );
+} else {
+    <[base.logs]>->( 0, "Invalid REQUEST format: %s", $line );
+}
+
+#,,.,,..,,,..,,.,,,..,,.,,...,.,,,..,,,.,,..,,..,,...,...,,,.,.,,,.,,,,.,,...,
+#V4AXIUZRBXS5NZEMJASYPG3DZTAC6BHREQE7DQNQR6XKKPTXPW62GJOTDHUNC4APUQSAQFKCNDIAW
+#\\\|M2FY7L67BPACIFZ5BXAUZXCJZSCXRK4Y242A2UQMYPMPVQPK4FG \ / AMOS7 \ YOURUM ::
+#\[7]EWQJTSPXZ72DEW2BGAU5VFEFISDV2ENQSSBDMKC7SVWAAEHWRKCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = llama-server-vision.handler.server_output
-# descr = event handler for non-blocking llama-server output
+# descr = event handler for non-blocking vision subprocess output with reply correlation
 
 # Get file handles from global storage
 my $fh = <llama-server-vision.server_output_fh>;
@@ -17,8 +17,6 @@ my $line = readline($fh);
 
 unless ( defined $line ) {
     # EOF on this read - don't exit the child process
-    # The server might still be running, just no output right now
-    # Or the process might have exited but we shouldn't kill the child zenka
     return;
 }
 
@@ -26,11 +24,42 @@ chomp($line);
 
 # Write to log file
 if ( defined $log_fh ) {
-    print { $log_fh } "[llama-server] $line\n";
+    print { $log_fh } "[vision] $line\n";
     $log_fh->flush() if $log_fh->can('flush');
 }
 
-<[base.logs]>->( 2, "[llama-server] %s", $line );
+# Check if this is a response line that should be correlated with a request
+if ( my $reply_id = shift <llama-server-vision.reply_ids>->@* ) {
+    # Pop pending request info
+    my $pending = <llama-server-vision.pending_requests>;
+    my $request_data;
+
+    # Find and remove the matching request (responses might come in order)
+    foreach my $req_id ( sort keys $pending->%* ) {
+        if ( $pending->{$req_id}->{'reply_id'} == $reply_id ) {
+            $request_data = delete $pending->{$req_id};
+            last;
+        }
+    }
+
+    if ( $request_data ) {
+        # Send correlated response back to caller
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            {
+                'mode' => 'true',
+                'data' => {
+                    'image' => $request_data->{'image_path'},
+                    'prompt' => $request_data->{'prompt'},
+                    'response' => $line,
+                }
+            }
+        );
+    }
+} else {
+    # Not a correlated response, just log it
+    <[base.logs]>->( 2, "[vision] %s", $line );
+}
 
 #,,,...,,...,..,...,,.,,...,...,..,,,,,..,...,...,.,..,,,..,...,...,,,..,,,..,.,,
 #3XYEQ3O74S63RWJVJQPKWDZ3PJMHVKQ5TT77SGRX6J7MSWLQ7YLXL33H2TQZQRGKGVSNXBVQC54LFEU
@@ -38,8 +67,8 @@ if ( defined $log_fh ) {
 #\[7]5HYY44FKXD4TNFIXZN2GFMHF3IOHPZZGTJ4MQGHUFWZ2LGM46PSA 7  DATA SIGNATURE ::
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,..,,..,...,,,,,.,,,..,,...,.,.,.,,,...,,.,,..,,...,..,,,..,...,,..,,.,,.,.,
-#3GXXTGNJFAQOQQERZ5UVDNNIXNKIEOSL5EMAWROFOZIMVRMT3WQFGKNL6Q2RXM57NCQPMZNOOVMRK
-#\\\|VVBO6MY4GBURLEUKB7WXYM3B5VPCJGVMQGSTLB2ULE34MMBD6SW \ / AMOS7 \ YOURUM ::
-#\[7]6CAS4CBN4WGA4MHMXMC4M3HH7JQW7PGSPBPI6PSJFLXHVKSLFYDY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,..,..,,,..,..,,,..,.,,,...,..,,..,,...,...,..,,...,..,,.,.,...,
+#CYFLUYHJRQQ2OVGAXJMO23VT62YETZ44SVKWIJYNJ6T7DYXA4WPND75HEI3E5QCLO3ANJQW2RBSNE
+#\\\|X6UYIJ24TRSXLQEKQ6HY4JXSY5HKR37PRTI6CK25KYTHFWRE6VL \ / AMOS7 \ YOURUM ::
+#\[7]CSUPBT6PZSN26I4XL35VNLTCVIUX3GQHHII5YV2HWLHZR5QFJSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
