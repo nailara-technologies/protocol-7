@@ -1,7 +1,7 @@
 ## [:< ##
 
-# name  = llama-server-vision.child
-# descr = child process subprocess - spawns llama-server with text model
+# name  = llama-server-vision.child.init_code
+# descr = child process initialization - spawns llama-server with text model
 
 use IPC::Open3;
 use Symbol qw(gensym);
@@ -72,26 +72,39 @@ if ( !$pid || $@ ) {
 <llama-server-vision.server_pid> = $pid;
 <[base.logs]>->( 1, "llama-server spawned with PID %d", $pid );
 
-# Set up I/O watchers for output
-my $parent_pipe = <llama-server-vision.pipe.parent>;
+# Check process immediately with WNOHANG to detect immediate failures
+my $wait_res = <[base.waitpid]>->($pid);
 
-# Redirect llama-server output to log file
+if ( defined $wait_res && $wait_res == $pid ) {
+    <[base.logs]>->( 0, "ERROR: llama-server exited immediately" );
+    <[base.exit]>->(qw| 0003 |);
+}
+
+# Register server PID with v7 for lifecycle management
+push( <system.kill_list>->@*, $pid );
+<[base.zenki.report_child_pid]>->($pid);
+
+# Open log file for writing
 open my $log_fh, '>>', <llama-server-vision.log_file> or die "Can't open log: $!";
 binmode($log_fh);
 
-while ( my $line = <$rdr> ) {
-    chomp($line);
-    print $log_fh "[llama-server] $line\n";
-    <[base.logs]>->( 2, "[llama-server] %s", $line );
-}
+# Store file handles in global data for handler access
+<llama-server-vision.server_output_fh> = $rdr;
+<llama-server-vision.server_log_fh> = $log_fh;
 
-# Server exited
-<[base.logs]>->( 0, "llama-server process exited" );
-close($log_fh);
-<[base.exit]>->(qw| 0000 |);
+# Set up non-blocking I/O handler for server output
+<[event.add_io]>->(
+    {
+        'fd'      => $rdr,
+        'handler' => qw| llama-server-vision.handler.server_output |,
+        'data'    => { 'pid' => $pid }
+    }
+);
 
-#,,,.,..,,,,,,.,,,.,.,...,.,,,.,,,,,,,,.,,,..,..,,...,...,...,,..,,,,,,..,.,,,
-#6NK7BV2WLWJSOLSHXUBXEJ22UH6R6WPTRQIF56MJN7NM4VCD43TWP3LFS7XEVATTUIHDZIXTPEH6M
-#\\\|NA2SPVAT4JXXMIHNORNK7AQBX64M7PQXHEGKLKGTIRCNNS4DN6O \ / AMOS7 \ YOURUM ::
-#\[7]EFNM6UOOICHXXMAGHAC4L57SWOWX4MJN6CBRVWQBGICAD4LE7GCA 7  DATA SIGNATURE ::
+<[base.logs]>->( 1, 'llama-server event handlers registered.,' );
+
+#,,,,,,.,,..,,,,.,,,,,,,,,,.,,,,,,,,.,.,.,,.,,..,,...,.,.,.,,,.,,,,,,,,,.,.,.,
+#KPZQSFI2H2O2BINDVI7NUIKVYOK24CLHQOMBFAP3AQIZFXWNMI2IKPQPO5A73SCIB7JAQHDDWJH3Q
+#\\\|CB5RPR7HUW2ETWTXLOZEZD7L7BAETCTJI6ZQLX2BWQUVWGWMEGY \ / AMOS7 \ YOURUM ::
+#\[7]XY44GHR6AZJTJKTZTJML5UC7T4UOS7VEENCVF7Y6WQZH5LIDRYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
