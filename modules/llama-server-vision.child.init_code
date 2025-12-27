@@ -1,11 +1,9 @@
 ## [:< ##
 
 # name  = llama-server-vision.child.init_code
-# descr = child process initialization - spawns llama-server with text model
+# descr = child process initialization - configure vision model parameters
 
-use IPC::Open3;
-use Symbol qw(gensym);
-
+# Vision model configuration
 <llama-server-vision.binary> = '/data/source/ik_llama.cpp/llama-mtmd-cli-cuda';
 <llama-server-vision.lib_path> = '/data/source/ik_llama.cpp';
 <llama-server-vision.log_file> = '/var/log/protocol-7/llama-server-vision.log';
@@ -14,7 +12,7 @@ use Symbol qw(gensym);
 <llama-server-vision.vision_model_path> = '/mnt/ext-xfs-data/models-lmstudio/Qwen/Qwen2.5-VL-7B-Instruct-Q4_K_M.gguf';
 <llama-server-vision.vision_mmproj_path> = '/mnt/ext-xfs-data/models-lmstudio/Qwen/mmproj-F16.gguf';
 
-<[base.log]>->( 1, 'llama-server vision child process starting.,' );
+<[base.log]>->( 1, 'llama-server vision child process initialized.,' );
 
 # Verify model exists
 my $model_path = <llama-server-vision.vision_model_path>;
@@ -32,75 +30,13 @@ unless ( -f $mmproj_path ) {
 <[base.logs]>->( 1, "Vision model: %s", $model_path );
 <[base.logs]>->( 1, "Multimodal proj: %s", $mmproj_path );
 
-# Set up environment
-$ENV{'LD_LIBRARY_PATH'} = <llama-server-vision.lib_path> . ':' . ($ENV{'LD_LIBRARY_PATH'} // '');
-
-# Build command for vision CLI with stdin/stdout pipes
-my $binary = <llama-server-vision.binary>;
-my @cmd = (
-    $binary,
-    '-m', $model_path,
-    '--mmproj', $mmproj_path,
-    '-ngl', 99,
-    '-c', 2048,
-    '-t', 4,
-    '--interactive-first',
-    '--interactive',
-);
-
-<[base.logs]>->( 1, "Spawning llama vision subprocess: %s", join(' ', @cmd) );
-
-# Spawn llama-server with pipes
-my ($wtr, $rdr, $err);
-$err = gensym;
-
-my $pid = eval { open3($wtr, $rdr, $err, @cmd) };
-
-if ( !$pid || $@ ) {
-    <[base.logs]>->( 0, "ERROR: Failed to spawn llama-server: %s", $@ // 'unknown error' );
-    <[base.exit]>->(qw| 0002 |);
-}
-
-<llama-server-vision.server_pid> = $pid;
-<[base.logs]>->( 1, "llama-server spawned with PID %d", $pid );
-
-# Check process immediately with WNOHANG to detect immediate failures
-my $wait_res = <[base.waitpid]>->($pid);
-
-if ( defined $wait_res && $wait_res == $pid ) {
-    <[base.logs]>->( 0, "ERROR: llama-server exited immediately" );
-    <[base.exit]>->(qw| 0003 |);
-}
-
-# Register server PID with v7 for lifecycle management
-push( <system.kill_list>->@*, $pid );
-<[base.zenki.report_child_pid]>->($pid);
-
-# Open log file for writing
-open my $log_fh, '>>', <llama-server-vision.log_file> or die "Can't open log: $!";
-binmode($log_fh);
-
-# Store file handles in global data for handler access
-<llama-server-vision.server_output_fh> = $rdr;
-<llama-server-vision.server_log_fh> = $log_fh;
-<llama-server-vision.server_input_fh> = $wtr;
-
 # Initialize reply_ids tracking for routing responses back to callers
 <llama-server-vision.reply_ids> = [];
 
-# Set up non-blocking I/O handler for server output
-<[event.add_io]>->(
-    {
-        'fd'      => $rdr,
-        'handler' => qw| llama-server-vision.handler.server_output |,
-        'data'    => { 'pid' => $pid }
-    }
-);
+0;  # Return success for module initialization
 
-<[base.logs]>->( 1, 'llama-server event handlers registered.,' );
-
-#,,.,,,,.,.,.,,.,,..,,,.,,...,,.,,..,,.,.,,..,..,,...,...,.,.,.,,,,,,,,.,,,,,,
-#DGRUNK6UAJYAQ7GMAARS7KMJRTGCXBRQ42QOTKIOL6QQWHI3DVW3LWQUTPP2Y7PYF4TR54AN7LDXA
-#\\\|H33KRDQH2V24W2M3BBZCX2JHWBHGP3XFYF7ERDBENFMRPE5PLRB \ / AMOS7 \ YOURUM ::
-#\[7]WFDJX4M2YAKI3CJDKMCGO6Y57VUCYVET43HGIOHXRQOUKBV24WDI 7  DATA SIGNATURE ::
+#,,..,,..,,..,..,,.,.,...,,,.,.,.,,,.,.,,,,,,,..,,...,...,.,,,,.,,,.,,,,.,,,,,
+#F6ZXWTOHNHIZSKR6KVM3MJTQNG5427P2XU3ZQCJGD5QFUVYILLF6S3X2YLKFP3KCQCMS2EJXUG6FE
+#\\\|QV2CVJ4WD7LJV2BPOR5YRZUCZY26X2UR2UVEHFGA7BFM5QEDOZQ \ / AMOS7 \ YOURUM ::
+#\[7]SJUKBT6RWU2DXYHBLFR7MEJZWSV3AXMXLIVK2Z577TWWSXLLZUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
