@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = llama-server-vision.cmd.status
+# descr = get llama-vision server status
+
+my $is_alive = <[llama-server-vision.is_alive]>->();
+my $status = $is_alive ? 'online' : 'offline';
+my $child_pid = <llama-server-vision.child.pid>;
+my $pending = scalar keys <llama-server-vision.pending_requests>->%*;
+
+my $response = "status: $status\n";
+$response .= "child_pid: $child_pid\n";
+$response .= "pending_requests: $pending\n";
+
+return {
+    'mode' => 'true',
+    'data' => $response
+};
+
+#,,,,,,,.,,,,,,,,,,..,,,,,...,..,,,,,,,.,,...,..,,...,...,...,.,.,,.,,.,,,...,
+#P5X4J4IQUFJVO5ZFQ42O22A4ZV2P7KRERFSA2K5NIIXYHIFO6CIN7IWZFTHKUD2JHQMU42HBM5GXC
+#\\\|BYOOLJ64EES7SHBOYQ5MHZGHDA7PEDQHJBMS6U5SJ5AUOQFURKY \ / AMOS7 \ YOURUM ::
+#\[7]3PMJNJCFKQHDVV5PF3VXJFSLPLEUDYBGCJ7G2KR4IP4B7SZ2QWDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
