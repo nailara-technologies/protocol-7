@@ -202,7 +202,7 @@ my $make_routing_decision = sub {
         unless ref($task) eq 'HASH';
 
     # Check cache first (Rule 1)
-    my $cache_check = check_cache_first->($task);
+    my $cache_check = <[coding.routing.check_cache_first]>->($task);
     if ( $cache_check->{found} ) {
         return {
             success => TRUE,
@@ -233,8 +233,8 @@ my $make_routing_decision = sub {
     }
 
     # Determine primary service (Rule 3)
-    my $primary  = determine_service->($task);
-    my $fallback = determine_fallback->( $task, $primary );
+    my $primary  = <[coding.routing.determine_service]>->($task);
+    my $fallback = <[coding.routing.determine_fallback]>->( $task, $primary );
 
     # Update task with routing information
     $task->{analysis}->{routed_to}         = $primary->{service};
@@ -272,16 +272,16 @@ my $cmd  = shift @ARG // qw| route |;
 my $task = shift @ARG;
 
 if ( $cmd eq 'route' ) {
-    return make_routing_decision->($task);
+    return <[coding.routing.make_routing_decision]>->($task);
 } elsif ( $cmd eq 'check-cache' ) {
-    return check_cache_first->($task);
+    return <[coding.routing.check_cache_first]>->($task);
 } elsif ( $cmd eq 'determine-service' ) {
-    return determine_service->($task);
+    return <[coding.routing.determine_service]>->($task);
 } elsif ( $cmd eq 'determine-fallback' ) {
     my $primary = shift @ARG;
-    return $determine_fallback->( $task, $primary );
+    return <[coding.routing.determine_fallback]>->( $task, $primary );
 } elsif ( $cmd eq 'stats' ) {
-    return get_routing_stats->();
+    return <[coding.routing.get_routing_stats]>->();
 } else {
     return {
         success   => FALSE,
@@ -294,8 +294,8 @@ if ( $cmd eq 'route' ) {
     };
 }
 
-#,,.,,..,,.,,,.,.,...,,.,,,.,,..,,..,,,,,,,.,,..,,...,...,,.,,,..,...,.,.,.,,,
-#SWG6XVHGFIPEJR6MICGS2UNBZURFM266PN43MS6K4IB4I476TUSAOUBLTPKTR4ZCWWNHVI2P7OXLQ
-#\\\|KGDJ3GER2653LW7EC4RWMFSH62GDFAWBWWODZP7R3R3BCJEGRXB \ / AMOS7 \ YOURUM ::
-#\[7]3666C27THARCBR62BAN63DA2WIEOI5H6GJB5HURKOKWRA4T43ECY 7  DATA SIGNATURE ::
+#,,..,...,..,,,,,,..,,,.,,..,,.,.,..,,.,.,,,.,..,,...,...,..,,.,,,,..,,,,,,,.,
+#NTPRTD2I67FJ5RN63H3PFEWXANGNRWPQRSAOFYOJ2PL7NH2P6DMYOHIA5CRJGAQZQT6YB6WSMJAV6
+#\\\|W2GMCIJSJLBLCERLXLW3OQ6ZJEWBHTIIWRK77RKBMIT7OLT6OPE \ / AMOS7 \ YOURUM ::
+#\[7]ZJ5Z6RU3DGUZUEQYEPHZWV4THIHZRNLQ4IZQ4NL36UNJOZLY4CDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

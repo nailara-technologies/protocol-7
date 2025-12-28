@@ -10,6 +10,70 @@ use JSON::XS;
 use Time::HiRes qw(time);
 use Digest::SHA qw(sha256_hex);
 
+# Parse command-line style strings into structured requests
+my $parse_command_string = sub {
+    my ($cmd) = @ARG;
+
+    # Simple command parsing: "type: description | constraints"
+    # Example: "code-generation: Create Whisper module | Protocol-7 compatible, cache results"
+
+    if ( $cmd =~ /^([\w-]+):\s*(.+?)(?:\s*\|\s*(.+))?$/ ) {
+        my ( $type, $desc, $constraints_str ) = ( $1, $2, $3 );
+
+        my @constraints = ();
+        if ($constraints_str) {
+            @constraints = split( /\s*,\s*/, $constraints_str );
+        }
+
+        return {
+            type        => $type,
+            description => $desc,
+            constraints => \@constraints,
+            source      => 'console'
+        };
+    }
+
+    # Fallback: treat entire string as description
+    return {
+        type        => 'analysis',
+        description => $cmd,
+        source      => 'console'
+    };
+};
+
+# Validate task has required fields
+my $validate_task = sub {
+    my ($task) = @ARG;
+
+    my @errors = ();
+
+    push @errors, "Missing task.request.description"
+        unless $task->{request}->{description};
+    push @errors, "Missing task.type" unless $task->{type};
+
+    return {
+        valid  => scalar(@errors) == 0,
+        errors => \@errors
+    };
+};
+
+# Normalize task data (handle defaults, cleanup)
+my $normalize_task = sub {
+    my ($task) = @ARG;
+
+    # Ensure all required fields exist with sensible defaults
+    $task->{type}                = lc( $task->{type} // 'analysis' );
+    $task->{priority}            = $task->{request}->{priority} // 'normal';
+    $task->{execution}->{status} = 'pending';
+
+    # Normalize priority values
+    if ( $task->{priority} !~ /^(critical|high|normal|low)$/ ) {
+        $task->{priority} = 'normal';
+    }
+
+    return $task;
+};
+
 # Main task intake function
 my $intake_work = sub {
     my ($request) = @ARG;
@@ -22,7 +86,7 @@ my $intake_work = sub {
     } elsif ( ref($request) eq '' ) {
 
         # Plain string - parse as command
-        $request = _parse_command_string($request);
+        $request = $parse_command_string->($request);
     } else {
         return {
             success => FALSE,
@@ -92,70 +156,6 @@ my $intake_work = sub {
     };
 };
 
-# Parse command-line style strings into structured requests
-my $parse_command_string = sub {
-    my ($cmd) = @ARG;
-
-# Simple command parsing: "type: description | constraints"
-# Example: "code-generation: Create Whisper module | Protocol-7 compatible, cache results"
-
-    if ( $cmd =~ /^([\w-]+):\s*(.+?)(?:\s*\|\s*(.+))?$/ ) {
-        my ( $type, $desc, $constraints_str ) = ( $1, $2, $3 );
-
-        my @constraints = ();
-        if ($constraints_str) {
-            @constraints = split( /\s*,\s*/, $constraints_str );
-        }
-
-        return {
-            type        => $type,
-            description => $desc,
-            constraints => \@constraints,
-            source      => 'console'
-        };
-    }
-
-    # Fallback: treat entire string as description
-    return {
-        type        => 'analysis',
-        description => $cmd,
-        source      => 'console'
-    };
-};
-
-# Validate task has required fields
-my $validate_task = sub {
-    my ($task) = @ARG;
-
-    my @errors = ();
-
-    push @errors, "Missing task.request.description"
-        unless $task->{request}->{description};
-    push @errors, "Missing task.type" unless $task->{type};
-
-    return {
-        valid  => scalar(@errors) == 0,
-        errors => \@errors
-    };
-};
-
-# Normalize task data (handle defaults, cleanup)
-my $normalize_task = sub {
-    my ($task) = @ARG;
-
-    # Ensure all required fields exist with sensible defaults
-    $task->{type}                = lc( $task->{type} // 'analysis' );
-    $task->{priority}            = $task->{request}->{priority} // 'normal';
-    $task->{execution}->{status} = 'pending';
-
-    # Normalize priority values
-    if ( $task->{priority} !~ /^(critical|high|normal|low)$/ ) {
-        $task->{priority} = 'normal';
-    }
-
-    return $task;
-};
-
 # Main entry point
 {
     my $result = $intake_work->(@_);
@@ -187,8 +187,8 @@ my $normalize_task = sub {
 
 # AMOS7::TEMPLATE::signature_placeholder
 
-#,,.,,...,.,,,.,,,,,.,,,,,,,,,...,,.,,,..,,..,..,,...,...,,..,,,,,,.,,,,,,.,.,
-#MAUCHX3ERDQZEU4HSEX4K4HYNGKDE7NI54OU7P65EYJQR3UJFKEFGOXYAYRXFEPMEEQGHYK6PZ6FC
-#\\\|AEPRQ3PZDIPLHLMTCOOZMH4PSWTBUJYH3RORESS3REV6GQSXK46 \ / AMOS7 \ YOURUM ::
-#\[7]6ZD7JR6Y423JGOYXFVP535QFNVB2M5HRR5Q2HG3MOLATTLFZLSCI 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,,.,.,.,,,,,.,,,.,,,.,,,..,,.,.,..,,...,...,,..,..,,,.,,...,,.,,
+#EXUIESCBFCTIONU2LXZFJHVNGASUWE3J7GPPNJMGEXAPQYKOLE2LF6ZXHFQR4G3NFTZJRUGTQBWGO
+#\\\|OR3GJKD4BBGOKV4PYMQKDHL773Z4QSC53T5OTO5YB4Q5V3THQTS \ / AMOS7 \ YOURUM ::
+#\[7]KGO6Q75RLD527LXPBYYC25PETTHEQSHSWWTCCZPFO4GUHEG53MAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

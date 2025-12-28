@@ -5,10 +5,50 @@
 # param = <request_string>
 # example = work submit "code-generation: Create whisper module"
 
-return { 'mode' => qw| false |, 'data' => 'work request required' }
-    if !length( $$call{'args'} );
+# Handle both single-line and multiline modes
+my $request_str;
 
-my $request_str = $$call{'args'};
+if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+    # Multiline mode - parameters are in $call->{'param'}
+    # For now, we'll use the 'request' or 'question' parameter as the request
+    $request_str = $call->{'param'}->{'request'}
+                || $call->{'param'}->{'question'}
+                || $call->{'param'}->{'description'}
+                || '';
+
+    # Auto-detect and decode BASE32-encoded parameters (pattern: ^[2-7A-Z]+$)
+    if ( $request_str =~ /^[2-7A-Z]+$/ ) {
+        my $decoded = <[base.util.base32.decode]>->($request_str);
+        if ( defined $decoded && length $decoded ) {
+            $request_str = $decoded;
+        }
+    }
+
+    # Unescape literal \n in parameters
+    $request_str =~ s/\\n/\n/g;
+
+    # If we have body data, append it to the request
+    if ( defined $call->{'data'} && length $call->{'data'} ) {
+        # Auto-detect and decode BASE32-encoded body data
+        my $body = $call->{'data'};
+        if ( $body =~ /^[2-7A-Z]+$/ ) {
+            my $decoded = <[base.util.base32.decode]>->($body);
+            if ( defined $decoded && length $decoded ) {
+                $body = $decoded;
+            }
+        }
+
+        # Unescape literal \n in body data
+        $body =~ s/\\n/\n/g;
+        $request_str .= "\nContext:\n" . $body;
+    }
+} else {
+    # Single-line mode - request is in args
+    $request_str = $call->{'args'} // '';
+}
+
+return { 'mode' => qw| false |, 'data' => "work request required\n" }
+    if !length($request_str);
 
 # Parse the work request using task intake module
 my $intake_result = <[coding.task.intake]>->($request_str);
@@ -17,7 +57,7 @@ if ( !$intake_result->{success} ) {
     return {
         'mode' => qw| false |,
         'data' => "Failed to parse request: "
-            . ( $intake_result->{error} // 'unknown error' )
+            . ( $intake_result->{error} // 'unknown error' ) . "\n"
     };
 }
 
@@ -30,7 +70,7 @@ if ( !$analysis->{success} ) {
     return {
         'mode' => qw| false |,
         'data' => "Failed to analyze task: "
-            . ( $analysis->{error} // 'unknown error' )
+            . ( $analysis->{error} // 'unknown error' ) . "\n"
     };
 }
 
@@ -43,7 +83,7 @@ if ( !$routing->{success} ) {
     return {
         'mode' => qw| false |,
         'data' => "Failed to determine routing: "
-            . ( $routing->{error} // 'unknown error' )
+            . ( $routing->{error} // 'unknown error' ) . "\n"
     };
 }
 
@@ -56,26 +96,23 @@ if ( !$queue_result->{success} ) {
     return {
         'mode' => qw| false |,
         'data' => "Failed to enqueue task: "
-            . ( $queue_result->{error} // 'unknown error' )
+            . ( $queue_result->{error} // 'unknown error' ) . "\n"
     };
 }
 
+my $response = "task:" . $routed_task->{id}
+    . "|type:" . $routed_task->{type}
+    . "|complexity:" . $routed_task->{analysis}->{complexity}
+    . "|routed:" . $routed_task->{analysis}->{routed_to}
+    . "|tokens:" . $routed_task->{analysis}->{estimated_tokens} . "\n";
+
 return {
     'mode' => qw| size |,
-    'data' => "Task submitted: "
-        . $routed_task->{id} . "\n"
-        . "  Type: "
-        . $routed_task->{type} . "\n"
-        . "  Complexity: "
-        . $routed_task->{analysis}->{complexity} . "\n"
-        . "  Routed to: "
-        . $routed_task->{analysis}->{routed_to} . "\n"
-        . "  Est. tokens: "
-        . $routed_task->{analysis}->{estimated_tokens}
+    'data' => $response
 };
 
-#,,.,,..,,,,.,..,,.,.,,.,,,,,,,..,..,,.,.,,,.,..,,...,...,.,.,,,.,..,,.,.,,,.,
-#BLSSZDI7KOUE7WAVADY6XBTM3ASDGHQP6JKTDD5KO4W3NXXEGV45IZ4AAJJP2UKOWFMSOSS3MED4Y
-#\\\|235G753KXJ5G7OVDCXB7SD7SQWVC5U7UDJKZ2HNTDKRUHP7VUNS \ / AMOS7 \ YOURUM ::
-#\[7]B2F3LVXJHRI4NLAFCKPEFFDBNHJRN2MENU4VUVGPD6ICTPFLUMBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,.,.,,,.,,,.,,,,,,,.,.,.,.,,,,.,,..,,...,...,,,.,.,.,.,.,,,,,..,,
+#ABVFQCA7LC555YLM2ZFBUM7D5EDDYPPHJXD7ACM4XY6UGYQXXGDILYD3SJYWVTVBVVMWWWQ2AOI3I
+#\\\|QJRGWUM6QBPPZPLPA5TVCV6LLN7A4GZZNTB43RRNL2COTOVJPMW \ / AMOS7 \ YOURUM ::
+#\[7]FFXZW2OQCCTDCDOXA5XMTORK2WVXRQ2OP3QDYKK3TFARN4UBZWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

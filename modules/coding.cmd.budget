@@ -13,27 +13,27 @@ if ( $subcommand eq 'status' ) {
 
     return {
         'mode' => qw| size |,
-        'data' => "Token Budget Status:\n"
-            . "  Total Allocated: "
+        'data' => "token budget status:\n"
+            . "  total allocated: "
             . $budget->{total_allocated}
             . " tokens\n"
-            . "  Total Used: "
+            . "  total used: "
             . $budget->{total_used}
             . " tokens\n"
-            . "  Remaining: "
+            . "  remaining: "
             . $budget->{remaining}
             . " tokens\n"
-            . "  Percentage Used: "
+            . "  percentage used: "
             . $budget->{percentage_used} . "%\n"
-            . "  Percentage Remaining: "
+            . "  percentage remaining: "
             . $budget->{percentage_remaining} . "%\n"
-            . "  Status: "
+            . "  status: "
             . $budget->{status} . "\n"
-            . "  Session Duration: "
+            . "  session duration: "
             . $budget->{session_duration} . "\n"
-            . "  Avg per Transaction: "
+            . "  avg per transaction: "
             . $budget->{average_per_transaction}
-            . " tokens"
+            . " tokens\n"
     };
 
 } elsif ( $subcommand eq 'history' ) {
@@ -41,16 +41,16 @@ if ( $subcommand eq 'status' ) {
     # Show transaction history
     my $history = <[coding.budget.track_tokens]>->( 'history', 10 );
 
-    my $output = "Recent Token Transactions (last 10):\n";
+    my $output = "recent token transactions (last 10):\n";
     $output
-        .= "  Total Transactions: " . $history->{transaction_count} . "\n";
+        .= "  total transactions: " . $history->{transaction_count} . "\n";
     $output
-        .= "  Avg per Transaction: "
+        .= "  avg per transaction: "
         . $history->{summary}->{avg_tokens_per_transaction}
         . " tokens\n";
-    $output .= "  Successful: " . $history->{summary}->{successful} . "\n";
-    $output .= "  Failed: " . $history->{summary}->{failed} . "\n";
-    $output .= "\n  Recent Transactions:\n";
+    $output .= "  successful: " . $history->{summary}->{successful} . "\n";
+    $output .= "  failed: " . $history->{summary}->{failed} . "\n";
+    $output .= "\n  recent transactions:\n";
 
     foreach my $txn ( @{ $history->{recent} } ) {
         $output .= sprintf(
@@ -97,8 +97,8 @@ if ( $subcommand eq 'status' ) {
     };
 }
 
-#,,.,,..,,,,,,,,,,,,,,,..,.,,,.,.,,..,,.,,.,.,..,,...,...,..,,,..,..,,.,.,,,.,
-#U5ROY37GIH6R2HN34NTY5A6322ANRBUEVZBH3X2BPNSG2WIJGRXHVCMVMHPLK2QCD5VX3VSDNC5VC
-#\\\|LLVUML6YYDYNJ6ETDMTEIHAI66VH6C2YY6527TBWAXN4BKE5NTM \ / AMOS7 \ YOURUM ::
-#\[7]3OPRA6L6HACMATANQXFILAVMVG2K7BXRVGV72ZG5XU7YLKNQJ2DA 7  DATA SIGNATURE ::
+#,,..,...,.,,,,..,,.,,..,,.,.,,..,.,,,.,.,,.,,..,,...,...,,..,,..,...,..,,.,,,
+#5LSEIEWRC7BVY4GDKBGPOESAW6MJXGLSCKGKZ3DUTAZDYG5BRHEPY67X3B2XVAWVWF6UE3CM6UIK6
+#\\\|OFXYKUN5KLE2Y2ZR232HHGLIYMKEMUMLZQFP6Z4ZSQ3VG5E3FJG \ / AMOS7 \ YOURUM ::
+#\[7]Q7VFRQ543D2SS3VIK6UDOMGJIMWL6265L5LC77UWEGF46XDQJEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
