@@ -106,9 +106,17 @@ my @cmd = (
     '-c', 4096,  # Context for vision encoder tokens (image scaled to 1024x1024, ~500-600 encoder tokens)
     '-t', 4,
     '--image', $working_image_path,
-    '-n', 512,   # Allow longer responses
-    # '--log-disable',  # TESTING: disabled to check if model generates without it
-    '-p', $prompt
+    '-n', 247,   # Allow longer responses
+##  '--log-disable',  # TESTING: disabled to check if model generates without it
+    '--no-warmup',
+    '-mli',
+    '-sp',
+    '-j', '{"type":"object","properties":{"answer":{"type":"string"}}}',
+    '--prompt', $prompt,
+#    '--temp', 0.2,
+#    '--top-k', 20,
+#    '--top-p', 0.95,
+#    '--min-p', 0.05
 );
 
 # Set up environment for vision model
@@ -136,14 +144,21 @@ if ( !$pid || $@ ) {
 <[base.log]>->( 1, ".: reporting server process id :." );
 <[base.zenki.report_child_pid]>->($pid);
 
-# Enable autoflush on read filehandles for non-blocking I/O
+# Enable autoflush and set non-blocking mode on read filehandles
 $rdr->autoflush(1);
 $err->autoflush(1);
+
+# Set filehandles to non-blocking mode using fcntl
+use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
+foreach my $fh ($rdr, $err) {
+    my $flags = fcntl($fh, F_GETFL, 0) or die "can't get flags: $!";
+    fcntl($fh, F_SETFL, $flags | O_NONBLOCK) or die "can't set non-blocking: $!";
+}
 
 # Generate unique job ID
 my $job_id = <[base.gen_id]>->(<llama-server-vision.jobs>);
 
-# Create job entry
+# Create job entry with filehandles and output buffers
 my $job = {
     'job_id'      => $job_id,
     'reply_id'    => $$call{'reply_id'},
@@ -151,10 +166,10 @@ my $job = {
     'prompt'      => $prompt,
     'status'      => qw| running |,
     'pid'         => $pid,
+    'rdr'         => $rdr,
+    'err'         => $err,
     'output'      => '',
     'stderr'      => '',
-    'rdr_closed'  => 0,
-    'err_closed'  => 0,
     'start_time'  => <[base.time]>->(3)
 };
 
@@ -163,36 +178,20 @@ my $job = {
 
 <[base.logs]>->( 1, "[analyze_image] spawned: job=%s pid=%d", $job_id, $pid );
 
-# Register non-blocking I/O handlers for stdout and stderr
-$job->{'rdr_io'} = <[event.add_io]>->(
-    {
-        'fd'      => $rdr,
-        'handler' => qw| llama-server-vision.handler.read_output |,
-        'data'    => { 'job_id' => $job_id, 'stream' => 'stdout' }
-    }
-);
-
-$job->{'err_io'} = <[event.add_io]>->(
-    {
-        'fd'      => $err,
-        'handler' => qw| llama-server-vision.handler.read_output |,
-        'data'    => { 'job_id' => $job_id, 'stream' => 'stderr' }
-    }
-);
-
-# Register completion checker timer
+# Register completion timer (polls for process exit with non-blocking waitpid)
 <llama-server-vision.timers>->{$job_id} = <[event.add_timer]>->(
     {
-        'interval' => 0.47,
+        'interval' => 0.5,
         'handler'  => qw| llama-server-vision.handler.check_completion |,
         'data'     => $job_id
     }
 );
 
+<[base.logs]>->( 1, "[analyze_image] returning deferred: reply_id=%s", $$call{'reply_id'} );
 return { 'mode' => 'deferred' };
 
-#,,..,.,,,..,,,,,,,..,..,,.,.,,..,.,.,..,,..,,..,,...,...,.,,,,,,,.,,,,,,,.,.,
-#OR2ISHWCZA3TVTZF2NO73WXLRR7DFTPQ63JBOHTZFEJPEJ5C5HSABBYUTRKHH7MQFGW6ZCIS7NHO4
-#\\\|D5IADAOP5KMVCEWPBKNHJTMCW4CNHJWAJ2SJTJM5RJMDN6SIS64 \ / AMOS7 \ YOURUM ::
-#\[7]JFUH4THUNQUF6Y3RXGQHKV7NSDV2GVBAGYBZNLAAPA3GRQ6HMWBI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,,,,,.,,,,,,.,.,,,.,,,,,,.,,...,..,,...,...,.,.,.,,,.,.,...,.,,,
+#HZMQEMXHIDSYMRMX63DVTV6HJLZHKTF6MYPYGZOSC4PVPMP4RIQIJPEWN5WALSZF5CWQQVJPUVAV4
+#\\\|P2TRJPAA2SWGGTLU2KAPKU5W5JDNPCVFXJJ5XJOSTEI5BZ7H5X7 \ / AMOS7 \ YOURUM ::
+#\[7]KY73ROFMXEPNLKTCGNLBR5YDYFMSHSNKDLGZHJLL7FWZZRUMXODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
