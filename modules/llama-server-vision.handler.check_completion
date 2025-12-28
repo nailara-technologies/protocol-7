@@ -6,33 +6,82 @@
 my $watcher = shift->w;
 my $job_id = $watcher->data;
 
+<[base.logs]>->( 2, "[check_completion] timer fired for job=%s", $job_id );
+
 my $vision_job = <llama-server-vision.jobs>->{$job_id};
 
 unless ( defined $vision_job ) {
+    <[base.logs]>->( 1, "[check_completion] job not found: %s", $job_id );
     $watcher->cancel if $watcher->is_active;
     return;
 }
 
-# Check if process has exited
+# If already processed, return
+if ( $vision_job->{'processed'} ) {
+    <[base.logs]>->( 2, "[check_completion] already processed, returning" );
+    return;
+}
+
+# Try to read any pending output from filehandles (non-blocking)
+my $rdr_bytes = 0;
+if ( defined $vision_job->{'rdr'} ) {
+    while ( sysread($vision_job->{'rdr'}, my $buf, 4096) ) {
+        $vision_job->{'output'} .= $buf;
+        $rdr_bytes += length($buf);
+    }
+    <[base.logs]>->( 2, "[check_completion] read %d bytes from stdout", $rdr_bytes ) if $rdr_bytes > 0;
+}
+my $err_bytes = 0;
+if ( defined $vision_job->{'err'} ) {
+    while ( sysread($vision_job->{'err'}, my $buf, 4096) ) {
+        $vision_job->{'stderr'} .= $buf;
+        $err_bytes += length($buf);
+    }
+    <[base.logs]>->( 2, "[check_completion] read %d bytes from stderr", $err_bytes ) if $err_bytes > 0;
+}
+
+# Check if vision process has exited (non-blocking waitpid)
+# Note: waitpid might return -1 if process already reaped, or 0 if still running
 my $pid = $vision_job->{'pid'};
-my $wait_res = <[base.waitpid]>->($pid);
+<[base.logs]>->( 2, "[check_completion] checking process status: pid=%d", $pid );
 
-<[base.logs]>->( 1, "[check_completion] process exit check: pid=%d, wait_res=%s", $pid, (defined $wait_res ? $wait_res : 'undef') );
+# Check if process is still alive using kill(0, ...)
+my $proc_alive = kill(0, $pid);
+<[base.logs]>->( 2, "[check_completion] process alive check: %d", $proc_alive );
 
-# Process still running
-return if !defined $wait_res or $wait_res == 0;
+if ( $proc_alive ) {
+    # Process still running, wait longer
+    <[base.logs]>->( 2, "[check_completion] process still alive" );
+    return;
+}
+<[base.logs]>->( 1, "[check_completion] process has exited" );
 
-# Process has exited - check if both streams closed
-my $both_closed = $vision_job->{'rdr_closed'} && $vision_job->{'err_closed'};
-return unless $both_closed;
+# Process has exited - read any remaining output
+if ( defined $vision_job->{'rdr'} ) {
+    while ( sysread($vision_job->{'rdr'}, my $buf, 4096) ) {
+        $vision_job->{'output'} .= $buf;
+    }
+}
+if ( defined $vision_job->{'err'} ) {
+    while ( sysread($vision_job->{'err'}, my $buf, 4096) ) {
+        $vision_job->{'stderr'} .= $buf;
+    }
+}
 
-# Process exited AND all data read - now we can send response
+# Close filehandles
+close($vision_job->{'rdr'}) if defined $vision_job->{'rdr'};
+close($vision_job->{'err'}) if defined $vision_job->{'err'};
+
+# Mark as processed
+$vision_job->{'processed'} = 1;
+
+# Cancel the timer
 $watcher->cancel if $watcher->is_active;
 delete <llama-server-vision.timers>->{$job_id};
 
-# Extract output - using --json-schema for structured output
-# Note: init logs are mixed inside the JSON output, so we can't parse directly
-# We'll extract the description field using regex pattern matching
+<[base.logs]>->( 1, "[check_completion] process exited, processing output" );
+
+# Extract output
 my $full_stdout = $vision_job->{'output'};
 my $full_stderr = $vision_job->{'stderr'};
 my $payload = '';
@@ -53,6 +102,11 @@ if ( length $full_output > 0 ) {
 # Extract model response - output contains token-by-token debug logs interspersed
 # Pattern: TEXT[TIMESTAMP] [/path:LINE][FUNCTION] TEXT[TIMESTAMP]...
 # We need to aggressively strip ALL debug patterns and keep only the generated text
+
+# Remove "Resampling because..." debug messages (grammar constraint issues)
+# These are interspersed with the JSON output and look like:
+# "Resampling because token NNN:'text' does not meet grammar rules"
+$full_output =~ s/Resampling\s+because\s+token\s+\d+:[^}]*?does\s+not\s+meet\s+grammar\s+rules\s*//g;
 
 # Remove all timestamp patterns: [10 digits]
 $full_output =~ s/\[\d{10}\]\s*//g;
@@ -96,29 +150,18 @@ if ( $timing_pos > 0 ) {
     $full_output = substr($full_output, 0, $timing_pos);
 }
 
-# Find where the actual vision analysis text starts
-# Look for common starting patterns: "This", "The", "A ", "An " followed by image/scene/photo descriptors
-# These typically mark the start of the actual analysis (not init/debug messages)
-my $analysis_start = -1;
-
-# Try to find "This image", "The image", "A highly", etc. - common vision analysis starts
-if ( $full_output =~ m/(This|The|A|An)\s+[a-z]/i ) {
-    $analysis_start = index($full_output, $&);
-}
-
-# If not found with that pattern, look for "This" anywhere (case insensitive)
-if ( $analysis_start < 0 && $full_output =~ m/\bThis\b/i ) {
-    $analysis_start = index($full_output, 'This');
-}
-
-# Extract from the analysis start
-if ( $analysis_start > 0 ) {
-    $full_output = substr($full_output, $analysis_start);
-}
+# Skip analysis_start detection - it's causing hangs with large outputs
+# The init marker removal should be sufficient to clean up the output
 
 # Trim and clean up
 $full_output =~ s/\s+/ /g;  # Collapse multiple spaces/newlines
 $full_output =~ s/^\s+|\s+$//g;  # Trim edges
+
+# Remove spaces after opening braces and brackets
+$full_output =~ s/([{\[\"])\s+/$1/g;
+
+# Remove spaces before closing braces and brackets
+$full_output =~ s/\s+([}\]"])/$1/g;
 
 # Remove spaces before punctuation (tokenization artifact cleanup)
 $full_output =~ s/\s+([,.!?;:'")])/$1/g;
@@ -131,20 +174,25 @@ if ( length $full_output > 20 ) {  # Sanity check - should be at least somewhat 
     <[base.logs]>->( 1, "[check_completion] output too short or empty: '%s'", $full_output );
 }
 
+$payload .= "\n" if $payload !~ m|\n$|; ## make sure payload has endline ##
+
 # Store stderr for diagnostic access
 $vision_job->{'debug_log'} = $vision_job->{'stderr'};
 $vision_job->{'raw_payload_sample'} = $payload;
 
 if ( length $payload ) {
-    $vision_job->{'status'} = 'completed';
+    $vision_job->{'status'} = qw| completed |;
     <[base.logs]>->( 1, "[check_completion] success: job=%s payload_bytes=%d",
                      $job_id, length($payload) );
-    <[base.callback.cmd_reply]>->(
+    <[base.logs]>->( 1, "[check_completion] cleaned payload: %s", substr($payload, 0, 200) );
+    <[base.logs]>->( 1, "[check_completion] sending deferred response: reply_id=%s", $vision_job->{'reply_id'} );
+    my $cb_result = <[base.callback.cmd_reply]>->(
         $vision_job->{'reply_id'},
         { 'mode' => 'size', 'data' => $payload }
     );
+    <[base.logs]>->( 1, "[check_completion] callback returned: %s", $cb_result // 'undef' );
 } else {
-    $vision_job->{'status'} = 'failed';
+    $vision_job->{'status'} = qw| failed |;
     $vision_job->{'error'} = 'no response from vision model';
     <[base.logs]>->( 0, "ERROR: No analysis output from vision CLI: job=%s", $job_id );
     <[base.callback.cmd_reply]>->(
@@ -153,17 +201,17 @@ if ( length $payload ) {
     );
 }
 
-# Schedule cleanup after 60 seconds
+# Schedule cleanup after 70 seconds
 <[event.add_timer]>->(
     {
-        'after'   => 60,
-        'handler' => 'llama-server-vision.handler.job_cleanup',
+        'after'   => 70,
+        'handler' => qw| llama-server-vision.handler.job_cleanup |,
         'data'    => $job_id
     }
 );
 
-#,,,,,...,,.,,.,,,.,,,,.,,,.,,..,,,,,,.,,,,,,,..,,...,..,,..,,...,,,.,..,,,.,,
-#PGEJT3REILKJSZVS6NST27CCHIU7PHA574WKPU5MAVAR6FRW4X2L32Y6SRNCZ7OALPCOW7XOADJJ2
-#\\\|OLYYLQGZJEPXO3TADYFI4BD7GMT575JE4QTRLGUMX2VTYZTYU6N \ / AMOS7 \ YOURUM ::
-#\[7]VGZY4WA24THK7X3OMD6WK5HYQQICIZPZZDAZ4KX3EYRDJNHN3KAI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,.,,,,.,,...,.,,,,..,.,.,...,,,.,..,,...,...,,.,,...,.,.,.,,,,,,,
+#LFANC67T3SETV3CSJQ5CVB3DLRZQVOMUI5FA7Y5LCHQFMOZZUDKJ3ETTJBALGMY6TCNDPSF5ZLECE
+#\\\|JELGYFENJNIQOM3I3VN7ANFHSKTVN5SLAZQY4ULM6WKIBGULCT4 \ / AMOS7 \ YOURUM ::
+#\[7]QJUMC7S7OPGY6DEU4OCFCC46OFHOYADOFM65T5TTWGMZGF4F6KAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
