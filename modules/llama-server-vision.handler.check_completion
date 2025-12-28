@@ -50,24 +50,85 @@ if ( length $full_output > 0 ) {
                      length($primary_buffer), substr($full_output, 0, 300) );
 }
 
-# Extract model response - with --log-disable, output should be clean JSON-like format
-# Look for "description": "..." pattern and extract the text
+# Extract model response - output contains token-by-token debug logs interspersed
+# Pattern: TEXT[TIMESTAMP] [/path:LINE][FUNCTION] TEXT[TIMESTAMP]...
+# We need to aggressively strip ALL debug patterns and keep only the generated text
 
-# Simple pattern: "description": "TEXT" where TEXT extends until closing quote
-if ( $full_output =~ m/"description"\s*:\s*"((?:[^"\\]|\\.)*)"/ ) {
-    $payload = $1;
+# Remove all timestamp patterns: [10 digits]
+$full_output =~ s/\[\d{10}\]\s*//g;
 
-    # Unescape JSON escapes just in case
-    $payload =~ s/\\"/"/g;
-    $payload =~ s/\\\\/\\/g;
+# Remove all file path patterns: [/path: digits]
+$full_output =~ s/\[\/[^\]]*\]\s*//g;
 
-    # Collapse multiple spaces/newlines
-    $payload =~ s/\s+/ /g;
-    $payload =~ s/^\s+|\s+$//g;
+# Replace all function/label patterns with spaces: [generate_response], [   main   ], etc.
+# Handle spaces inside brackets: \[\s*[a-z_]+\s*\]
+# Use space replacement to prevent word merging
+$full_output =~ s/\[\s*[a-z_]+\s*\]/ /g;
 
+# Find and skip the initialization section - everything before model loading completes
+# The "main: loading model:" marker indicates the end of initialization
+my $init_marker = 'main: loading model:';
+my $init_end_pos = index($full_output, $init_marker);
+
+<[base.logs]>->( 1, "[check_completion] init marker search: looking for '%s'", $init_marker );
+
+if ( $init_end_pos >= 0 ) {
+    # Find the end of the model loading line (next newline after the model path)
+    my $line_end = index($full_output, "\n", $init_end_pos);
+    if ( $line_end > $init_end_pos ) {
+        # Skip to the character after the newline
+        $full_output = substr($full_output, $line_end + 1);
+        <[base.logs]>->( 1, "[check_completion] found init marker at %d, skipped %d bytes of init output",
+                         $init_end_pos, $line_end + 1 );
+    } else {
+        # No newline found, might be at end of buffer - skip from marker onwards
+        $full_output = substr($full_output, $init_end_pos);
+        <[base.logs]>->( 1, "[check_completion] found init marker at %d, skipped to marker location",
+                         $init_end_pos );
+    }
+} else {
+    <[base.logs]>->( 1, "[check_completion] init marker not found in cleaned output, continuing with pattern matching" );
+}
+
+# Remove llama_print_timings section and everything after it
+my $timing_pos = index($full_output, 'llama_print_timings');
+if ( $timing_pos > 0 ) {
+    $full_output = substr($full_output, 0, $timing_pos);
+}
+
+# Find where the actual vision analysis text starts
+# Look for common starting patterns: "This", "The", "A ", "An " followed by image/scene/photo descriptors
+# These typically mark the start of the actual analysis (not init/debug messages)
+my $analysis_start = -1;
+
+# Try to find "This image", "The image", "A highly", etc. - common vision analysis starts
+if ( $full_output =~ m/(This|The|A|An)\s+[a-z]/i ) {
+    $analysis_start = index($full_output, $&);
+}
+
+# If not found with that pattern, look for "This" anywhere (case insensitive)
+if ( $analysis_start < 0 && $full_output =~ m/\bThis\b/i ) {
+    $analysis_start = index($full_output, 'This');
+}
+
+# Extract from the analysis start
+if ( $analysis_start > 0 ) {
+    $full_output = substr($full_output, $analysis_start);
+}
+
+# Trim and clean up
+$full_output =~ s/\s+/ /g;  # Collapse multiple spaces/newlines
+$full_output =~ s/^\s+|\s+$//g;  # Trim edges
+
+# Remove spaces before punctuation (tokenization artifact cleanup)
+$full_output =~ s/\s+([,.!?;:'")])/$1/g;
+
+# The cleaned output should now be the vision analysis text
+if ( length $full_output > 20 ) {  # Sanity check - should be at least somewhat substantial
+    $payload = $full_output;
     <[base.logs]>->( 1, "[check_completion] extracted model response, length: %d bytes", length($payload) );
 } else {
-    <[base.logs]>->( 1, "[check_completion] could not find 'description' field in output" );
+    <[base.logs]>->( 1, "[check_completion] output too short or empty: '%s'", $full_output );
 }
 
 # Store stderr for diagnostic access
@@ -101,8 +162,8 @@ if ( length $payload ) {
     }
 );
 
-#,,,.,,.,,..,,...,...,..,,,,,,..,,,,.,,,.,,,.,..,,...,...,...,...,.,.,..,,.,,,
-#FSNOESGBUUCFVBCJV5WUF3KKPR675G3YC4CNA3U2MHWKGFJFPA4IKIE5I3EJZ2IIZPRHU4EKTMYEE
-#\\\|2ZDOWNQQ7CLFOFR7PCEGZ3MNM4LVW376TWNHTOGETHNW5MSXPQV \ / AMOS7 \ YOURUM ::
-#\[7]4756DW7N2DYJB67RSOQTOIDFD3LHIIQXS4JL3SWU4QGAUISAN6BA 7  DATA SIGNATURE ::
+#,,,,,...,,.,,.,,,.,,,,.,,,.,,..,,,,,,.,,,,,,,..,,...,..,,..,,...,,,.,..,,,.,,
+#PGEJT3REILKJSZVS6NST27CCHIU7PHA574WKPU5MAVAR6FRW4X2L32Y6SRNCZ7OALPCOW7XOADJJ2
+#\\\|OLYYLQGZJEPXO3TADYFI4BD7GMT575JE4QTRLGUMX2VTYZTYU6N \ / AMOS7 \ YOURUM ::
+#\[7]VGZY4WA24THK7X3OMD6WK5HYQQICIZPZZDAZ4KX3EYRDJNHN3KAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
