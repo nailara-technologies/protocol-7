@@ -106,25 +106,39 @@ my @cmd = (
     '-c', 4096,  # Context for vision encoder tokens (image scaled to 1024x1024, ~500-600 encoder tokens)
     '-t', 4,
     '--image', $working_image_path,
-    '-n', 100,
+    '-n', 512,   # Allow longer responses
+    '--log-disable',  # Disable token-by-token debug logging, keeps model output clean
     '-p', $prompt
 );
 
 # Set up environment for vision model
 local $ENV{'LD_LIBRARY_PATH'} = <llama-server-vision.lib_path> . ':' . ($ENV{'LD_LIBRARY_PATH'} // '');
 
-# Spawn vision CLI process
+# Spawn vision CLI process with stdin redirected from /dev/null
+# This prevents the model from waiting for stdin input
 my ($wtr, $rdr, $err);
 $err = gensym;
 
-my $pid = eval { open3($wtr, $rdr, $err, @cmd) };
+# Open /dev/null for stdin
+open(my $null_in, '<', '/dev/null') or do {
+    <[base.logs]>->( 0, "ERROR: Failed to open /dev/null for stdin" );
+    return { 'mode' => 'false', 'data' => 'failed to open /dev/null' };
+};
+
+my $pid = eval { open3($null_in, $rdr, $err, @cmd) };
 
 if ( !$pid || $@ ) {
     <[base.logs]>->( 0, "ERROR: Failed to spawn vision CLI: %s", $@ // 'unknown error' );
     return { 'mode' => 'false', 'data' => 'vision CLI spawn failed' };
 }
 
-close($wtr);  # We don't send any stdin
+## report child pid to v7 zenka for correlated termination .. ##
+<[base.log]>->( 1, ".: reporting server process id :." );
+<[base.zenki.report_child_pid]>->($pid);
+
+# Enable autoflush on read filehandles for non-blocking I/O
+$rdr->autoflush(1);
+$err->autoflush(1);
 
 # Generate unique job ID
 my $job_id = <[base.gen_id]>->(<llama-server-vision.jobs>);
@@ -138,6 +152,7 @@ my $job = {
     'status'      => qw| running |,
     'pid'         => $pid,
     'output'      => '',
+    'stderr'      => '',
     'rdr_closed'  => 0,
     'err_closed'  => 0,
     'start_time'  => <[base.time]>->(3)
@@ -152,7 +167,7 @@ my $job = {
 $job->{'rdr_io'} = <[event.add_io]>->(
     {
         'fd'      => $rdr,
-        'handler' => 'llama-server-vision.handler.read_output',
+        'handler' => qw| llama-server-vision.handler.read_output |,
         'data'    => { 'job_id' => $job_id, 'stream' => 'stdout' }
     }
 );
@@ -160,7 +175,7 @@ $job->{'rdr_io'} = <[event.add_io]>->(
 $job->{'err_io'} = <[event.add_io]>->(
     {
         'fd'      => $err,
-        'handler' => 'llama-server-vision.handler.read_output',
+        'handler' => qw| llama-server-vision.handler.read_output |,
         'data'    => { 'job_id' => $job_id, 'stream' => 'stderr' }
     }
 );
@@ -168,16 +183,16 @@ $job->{'err_io'} = <[event.add_io]>->(
 # Register completion checker timer
 <llama-server-vision.timers>->{$job_id} = <[event.add_timer]>->(
     {
-        'interval' => 0.2,
-        'handler'  => 'llama-server-vision.handler.check_completion',
+        'interval' => 0.47,
+        'handler'  => qw| llama-server-vision.handler.check_completion |,
         'data'     => $job_id
     }
 );
 
 return { 'mode' => 'deferred' };
 
-#,,,.,...,..,,,..,,,.,..,,.,,,.,,,,,.,..,,...,..,,...,...,,.,,,.,,,,,,,..,...,
-#DJ35IKNLRDL6ARJ7W6DD7LVKLHQTZSFCIQME7HIWO26NZRTCX4WCPYCWY2IVYAN245TET72W6YHT4
-#\\\|OPXLSQNT63RYVNNU3BCYBUFEBKHLQLROS2UPJHLIES53VSYMKWC \ / AMOS7 \ YOURUM ::
-#\[7]NLCN43MNS5UDNPBG75THW7TMQSOOIXJQB6BDPBHADX3XXDK6MECY 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,,,,,,.,,,,,...,...,...,,,.,,,,,..,,...,..,,,..,,..,..,,,..,...,
+#7NTGSHJNLCZ3DN3GJJHEA7TO4OVAN3PMLNUA6LXDCZK7HWZ7J7XPMRRSW7BJZPZ3JJVQXMB55GHNA
+#\\\|SORJSR7MEVMFNUAKHXTOXFF6KMBR4OX43E5D2NYSDJJTDS7IDSP \ / AMOS7 \ YOURUM ::
+#\[7]BWZ2KP4X6Z6WQFUALCQ4ZVCAAW7GJZAUNBEMSOZUIHXH4JUA7UDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
