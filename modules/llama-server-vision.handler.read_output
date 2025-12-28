@@ -18,14 +18,27 @@ unless ( defined $vision_job ) {
 }
 
 # Read available data (non-blocking)
+# Keep stdout and stderr separate - we only want stdout for the payload
+my $output_buffer = $stream eq 'stdout' ? \$vision_job->{'output'} : \$vision_job->{'stderr'};
 my $bytes = <[base.s_read]>->(
     $read_fh,
-    \$vision_job->{'output'},
+    $output_buffer,
     8 * 1024  # Read up to 8KB at a time
 ) // 0;
 
-<[base.logs]>->( 2, "[read_output] job=%s stream=%s bytes=%d", $job_id, $stream, $bytes )
-    if $bytes > 0;
+if ( $bytes > 0 ) {
+    my $total_stdout = length($vision_job->{'output'});
+    my $total_stderr = length($vision_job->{'stderr'});
+    <[base.logs]>->( 2, "[read_output] job=%s stream=%s bytes=%d (accumulated: stdout=%d, stderr=%d)",
+                     $job_id, $stream, $bytes, $total_stdout, $total_stderr );
+} elsif ( $bytes == 0 ) {
+    my $total_stdout = length($vision_job->{'output'});
+    my $total_stderr = length($vision_job->{'stderr'});
+    <[base.logs]>->( 2, "[read_output] job=%s stream=%s EOF detected (final: stdout=%d, stderr=%d)",
+                     $job_id, $stream, $total_stdout, $total_stderr );
+} else {
+    <[base.logs]>->( 2, "[read_output] job=%s stream=%s error: %s", $job_id, $stream, $! );
+}
 
 # Check for EOF
 if ( $bytes <= 0 ) {
@@ -36,8 +49,8 @@ if ( $bytes <= 0 ) {
     <[base.logs]>->( 2, "[read_output] EOF: job=%s stream=%s", $job_id, $stream );
 }
 
-#,,,.,,,,,.,,,.,.,.,,,,..,,..,..,,,.,,,..,..,,..,,...,...,,,.,,..,,,,,,,.,,,,,
-#56G3DLYHB7KL5EWNATRN7YFV5V46BXBWXPOOBYCSDFSSBBSIDBM6MJS5J55LCTFKBET7XIESZDEH6
-#\\\|M6JTJNWASUXITBDANEXKHYQHRCTGLGZBYLY6UBPYKJFAHEXCY2L \ / AMOS7 \ YOURUM ::
-#\[7]V5VP3HZ5KVJ3CB5FATPGX7XCWMQP7JF2TMPBYIQCSILXYUMXZWDI 7  DATA SIGNATURE ::
+#,,..,..,,,,,,..,,,,,,,..,...,.,.,,,,,,..,,,.,..,,...,...,..,,,,.,,.,,,.,,,,,,
+#C5DNM62NU5I4S7BJYMWSGMLFTMAQW6W6SDRPPPBACDYKYK5SZFYZ5XXTZEETFT3C2ZOVFFX7OR3PG
+#\\\|Q7RPJTFVIQDZRX4E5RWPT3N6KEEXR74L7FPO6OPCK6XC7VWT7IZ \ / AMOS7 \ YOURUM ::
+#\[7]I6SD2DL3BEII37O34UNA327LXQQTD7CXQGRVX56AFOX4AAM5QMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = llama-server-vision.cmd.get_full_output
+# descr = retrieve both stdout and stderr buffers for debugging
+
+my $job_id = $call->{'args'};
+
+unless ( defined $job_id && length $job_id ) {
+    return { 'mode' => 'false', 'data' => 'job_id required' };
+}
+
+unless ( exists <llama-server-vision.jobs>->{$job_id} ) {
+    return { 'mode' => 'false', 'data' => 'no such job' };
+}
+
+my $job = <llama-server-vision.jobs>->{$job_id};
+
+my $output_str = "=== STDOUT (" . length($job->{'output'}) . " bytes) ===\n";
+$output_str .= $job->{'output'} . "\n\n";
+
+$output_str .= "=== STDERR (" . length($job->{'stderr'}) . " bytes) ===\n";
+$output_str .= $job->{'stderr'} . "\n\n";
+
+$output_str .= "=== COMBINED (" . (length($job->{'output'}) + length($job->{'stderr'})) . " bytes) ===\n";
+$output_str .= $job->{'output'} . $job->{'stderr'};
+
+return {
+    'mode' => 'size',
+    'data' => $output_str
+};
+
+#,,.,,.,,,,,.,,.,,,,.,...,,..,...,,,,,..,,,.,,..,,...,..,,,..,...,.,,,,.,,...,
+#4MQLT2YI6GKNO5VOTMUTI4X6LSLL5P4NBCZ65CH47XSBXIUNBKTBFF2IESTWLK5NE6FF7GZSLEBNQ
+#\\\|UZC4U5YBOJYHFN6OW3JVX2CJ2UEGYXA6NXHC6TWNUIFEP5MIMPA \ / AMOS7 \ YOURUM ::
+#\[7]UJSEJ5VLJISAYDMSNWGTXFLEUWFFTGJPSHBHWXGGKX4E2CV7K6DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
