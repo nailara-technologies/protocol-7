@@ -9,45 +9,46 @@
 # DATA STRUCTURES - Initialize in %data hash
 # =============================================================================
 
-# Initialize operation logs for audit trail
-$data{operation_log} = [];
-$data{error_log} = [];
-$data{action_log} = [];
+# Initialize operation logs for audit trail in models namespace
+$data{models} //= {};
+$data{models}{operation_log} = [];
+$data{models}{error_log} = [];
+$data{models}{action_log} = [];
 
 # Statistics aggregation state
-$data{stats_aggregation_pending} = 0;
-$data{last_stats_aggregation} = 0;
-$data{maintenance_time_available} = 0;
+$data{models}{stats_aggregation_pending} = 0;
+$data{models}{last_stats_aggregation} = 0;
+$data{models}{maintenance_time_available} = 0;
 
 # Cache for frequently accessed registry
-$data{registry_cache} = {};
-$data{cache_last_updated} = 0;
-$data{cache_ttl_seconds} = 300;
+$data{models}{registry_cache} = {};
+$data{models}{cache_last_updated} = 0;
+$data{models}{cache_ttl_seconds} = 300;
 
 # =============================================================================
 # LIST DEFINITIONS FOR VISIBILITY
 # =============================================================================
 
 # List definition for operation log
-$data{list}{operation_log} = {
+$data{list}{models_operation_log} = {
   'var' => 'data',
-  'key' => 'operation_log',
+  'key' => 'models-operation_log',
   'mask' => 'timestamp:time action:op status:state details:info',
   'descr' => '[operations] models zenka action history',
 };
 
 # List definition for error log
-$data{list}{error_log} = {
+$data{list}{models_error_log} = {
   'var' => 'data',
-  'key' => 'error_log',
+  'key' => 'models-error_log',
   'mask' => 'timestamp:time error:err model:info details:info',
   'descr' => '[errors] models zenka error log',
 };
 
 # List definition for action log
-$data{list}{action_log} = {
+$data{list}{models_action_log} = {
   'var' => 'data',
-  'key' => 'action_log',
+  'key' => 'models-action_log',
   'mask' => 'timestamp:time actor:usr action:op status:state',
   'descr' => '[actions] admin/parent actions on models zenka',
 };
@@ -66,8 +67,8 @@ $data{list}{action_log} = {
     return 0;  # Module initialization successful (0 means success)
   }
 
-  # Log action
-  push @{$data{action_log}}, {
+  # Log action in models namespace
+  push @{$data{models}{action_log}}, {
     timestamp => time(),
     actor => 'system',
     action => $cmd,
@@ -86,16 +87,16 @@ $data{list}{action_log} = {
       'success' => TRUE,
       'zenka' => 'models',
       'status' => 'running',
-      'operation_log_entries' => scalar(@{$data{operation_log}}),
-      'error_log_entries' => scalar(@{$data{error_log}}),
-      'action_log_entries' => scalar(@{$data{action_log}}),
+      'operation_log_entries' => scalar(@{$data{models}{operation_log}}),
+      'error_log_entries' => scalar(@{$data{models}{error_log}}),
+      'action_log_entries' => scalar(@{$data{models}{action_log}}),
       'timestamp' => time(),
     };
   } elsif ($cmd eq 'reload') {
     # Reload command
-    $data{registry_cache} = {};
-    $data{cache_last_updated} = 0;
-    push @{$data{operation_log}}, {
+    $data{models}{registry_cache} = {};
+    $data{models}{cache_last_updated} = 0;
+    push @{$data{models}{operation_log}}, {
       timestamp => time(),
       action => 'reload',
       status => 'completed',
@@ -110,7 +111,7 @@ $data{list}{action_log} = {
     # Maintenance command
     my $start_time = time();
     my $elapsed = time() - $start_time;
-    push @{$data{operation_log}}, {
+    push @{$data{models}{operation_log}}, {
       timestamp => time(),
       action => 'maintenance',
       status => 'completed',
@@ -148,14 +149,14 @@ $data{list}{action_log} = {
     };
   }
 
-  # Update action log
-  if (@{$data{action_log}}) {
-    my $last_action = $data{action_log}->[-1];
+  # Update action log in models namespace
+  if (@{$data{models}{action_log}}) {
+    my $last_action = $data{models}{action_log}->[-1];
     $last_action->{status} = $result->{success} ? 'completed' : 'failed';
   }
 
-  # Log operation
-  push @{$data{operation_log}}, {
+  # Log operation in models namespace
+  push @{$data{models}{operation_log}}, {
     timestamp => time(),
     action => $cmd // 'status',
     status => $result->{success} ? 'success' : 'failure',
@@ -165,8 +166,8 @@ $data{list}{action_log} = {
   return $result;
 };
 
-#,,,,,,.,,,.,,,..,..,,...,.,.,...,.,.,.,.,,..,..,,...,..,,.,,,,.,,...,...,,.,,
-#HJN4GKJV5F2DYKLCOUXGBM5QT77XRWF3OVZRDH6MUH5ORC6OKPASG6SC2YCCD67EHPP5O7PYSFB5Q
-#\\\|PWGVLNUH5FWS42XGLPNELDU26FCEZKJF2HDUSUNZBM4GDPV7OJO \ / AMOS7 \ YOURUM ::
-#\[7]G4CTT6YVJT7WVS3LGN46KN2ZBEKKK7FVFNX2OEQSW7E23UY4WWBQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,...,,.,,..,,,..,.,.,.,,,.,,,,,,,..,,...,..,,,,.,.,.,,..,,..,..,,
+#G7FQQQ56HE4VVL27F6AMPGH5A5BJT5O43MON4SWVV5XLQS76J3YBECXZLFXNUWJTN2IZY7BZEONN4
+#\\\|FHDTTREE3PI3TXJANUP62PCHIJ7XKDDEH2ICRIKYMGVF3BONWTL \ / AMOS7 \ YOURUM ::
+#\[7]5EBYP6L2ZLMWP2GYJIDZGRHLJILMG5API6QFM3QGRUFKGS464EDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

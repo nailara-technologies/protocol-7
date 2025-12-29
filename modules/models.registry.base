@@ -11,14 +11,15 @@ make_path('/var/protocol-7/models') unless -d '/var/protocol-7/models';
 # Get registry path
 sub get_registry_path { return '/var/protocol-7/models/registry.json'; }
 
-# Get or load registry (uses $data{} for persistence)
+# Get or load registry (uses $data{models}{registry} for persistence)
 sub get_registry {
-  return $data{models_registry} if defined $data{models_registry};
+  $data{models} //= {};
+  return $data{models}{registry} if defined $data{models}{registry};
 
   # Load from disk if not in memory
   my $loader = <[models.registry.load]>;
-  $data{models_registry} = $loader->{'load_registry'}->();
-  return $data{models_registry};
+  $data{models}{registry} = $loader->{'load_registry'}->();
+  return $data{models}{registry};
 }
 
 # Save registry to disk
@@ -41,8 +42,8 @@ sub save_registry_internal {
 #\[7]REGISTRY_BASE_HASH 7  DATA SIGNATURE ::
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,...,...,,,,,,.,,,,,,,,.,.,,,,,,,,.,,,.,,..,,...,..,,,..,.,.,...,.,,,,,.,
-#6E6YR4TKMZJLDJMR7HK5ZG2BFQAW4UZ2U43F7WAFXKMZ2AHW6MAYQNYEEKRSL7TUC237BEP4URUTI
-#\\\|IRFFQ6VJKARHKOR3SGZG4E2J5KGR7DILNYOLOXNWLVO35ESVKO6 \ / AMOS7 \ YOURUM ::
-#\[7]MQMVZ5B2RYQNA7NFFTNME62P2MOZGPJRGPM73PZFZKAJSJ2ID2AI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,.,,,.,,,,..,,..,.,,,.,,,,,.,,.,,..,,...,..,,..,,,.,,,,,,...,...,
+#N6WABHYNG5FE6ATZ6RS5R5HFY7I2HGZL25UCQPR2ERBVJA4WBL36ZFTVCQ5IP6J36CDC4CQEIBAL6
+#\\\|PMZM6VKUJJ6XGXX2G7IYJFGAAYZ6MVWRZFSBUL2XSXQRYT2P4SN \ / AMOS7 \ YOURUM ::
+#\[7]QFE4JNTSIRW4RJBHYOGUUGZCFYPTRO6SR5JBUDCGN7M5JQO3BQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
