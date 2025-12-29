@@ -1,148 +1,127 @@
 ---
 task_id: signature_oscillation_new_files
 category: signature_system
-status: deferred
-priority: low
+status: completed
+priority: high
 discovered_session: 2C
+resolved_session: Current
 
-title: "Signature system oscillation when file has no prior signature"
+title: "Signature system oscillation when file has no prior signature [RESOLVED]"
 
 description: |
-  When the signature system processes a file that previously had no signature,
-  it triggers an oscillation that requires additional resign cycles. This occurs
-  only once per file and appears to be related to the initial signature generation
-  and verification cycle.
+  Signature oscillation issue has been successfully resolved. Files no longer require
+  multiple signing passes to stabilize. The system now produces deterministic signatures
+  on the first pass, with automatic repair of files missing separator endlines.
 
-symptoms:
-  - File gets signed
-  - Signature verification shows mismatch
-  - Requires second resign to stabilize
-  - Only happens on first signature generation for a file
-  - Subsequent changes to the file work normally
+symptoms_resolved:
+  - ✓ Files sign correctly on first pass
+  - ✓ No signature verification mismatches
+  - ✓ No oscillation between states
+  - ✓ Automatic repair of missing separator endlines
+  - ✓ Single signing pass required (no double-signing workaround needed)
 
-impact:
-  - Minor inconvenience during initial zenka creation
-  - Requires extra resign pass when new modules/files are added
-  - Does not affect system stability or functionality
-  - Workaround: Run `update-signatures` twice for new files
+impact_resolved:
+  - ✓ Cleaner workflow - no need to watch for oscillation trap
+  - ✓ Files with missing separator endlines auto-repaired during signing
+  - ✓ Update-sub-list and other bulk operations now stable
+  - ✓ No extra passes required when adding new modules/files
 
 affected_files:
   - configuration/protocol-7.src-ver (observed during Session 2C)
   - Any newly created module files getting signatures for first time
 
-root_causes:
-  - issue_1: |
+root_causes_and_fixes:
+  - issue_1_FIXED: |
       CRITICAL: needs_separator_endline flag never cleared (source.cmd.get-code-signed:138)
+      STATUS: ✓ FIXED
 
-      The flag is set during signature extraction when separator endline is missing.
-      However, after the separator is added during signing, the flag is NEVER RESET.
-      This causes verification to always see the flag as set, triggering re-sign on every cycle.
+      Root cause: Flag set during extraction but never reset after separator added during signing.
+      This caused verification to always trigger re-sign on every cycle.
 
-      Location: modules/source.cmd.get-code-signed line 138
-      Impact: Direct cause of oscillation loop
-      Fix: Clear flag after separator endline is successfully added
+      Location: modules/source.cmd.get-code-signed line 161-163
+      Fix applied: Clear flag immediately after separator endline is successfully added
+      Result: Flag no longer causes re-signing oscillation
 
-  - issue_2: |
-      CRITICAL: Inverted endline restoration logic (source.extract_sig_body:627-632)
+  - issue_2_FIXED: |
+      CRITICAL: Inverted endline restoration logic (source.extract_sig_body:640-654)
+      STATUS: ✓ FIXED
 
-      The condition for skipping endline restoration is backwards:
-      - Current: skip restoration ONLY if separator was PRESENT
-      - Correct: skip restoration ONLY if separator was ABSENT
+      Root cause: Restoration condition was handling separator logic backwards.
+      This caused content endlines to be modified in opposite directions.
 
-      This causes content endlines to be modified in opposite directions on successive cycles.
+      Location: modules/source.extract_sig_body lines 640-654
+      Fix applied: Correct condition: if separator_absent { skip } else { restore }
+      Result: Restoration now correctly reverses harmonization based on state
 
-      Location: modules/source.extract_sig_body lines 627-632
-      Impact: Causes signatures to change on every cycle
-      Logic: if ($seperator_endline_absent) { # condition backwards, should be: if ($seperator_endline_present) {
+  - issue_3_FIXED: |
+      CRITICAL: State-dependent endline harmonization (source.harmonize_payload_line_feed:35-71)
+      STATUS: ✓ FIXED
 
-  - issue_3: |
-      HIGH: Inconsistent endline harmonization (source.harmonize_payload_line_feed:36-55)
+      Root cause: Function used $mod_offset (state parameter) making it state-dependent.
+      This prevented convergence and caused oscillation between different states.
 
-      Function only removes extra endlines if 3+ present, but adds if less than 2.
-      Creates asymmetry where:
-      - Files with 1 endline → adds to 2
-      - Same file on next cycle sees 2 → keeps 2
-      - But state calculation differs → signature changes
+      Location: modules/source.harmonize_payload_line_feed lines 35-71
+      Fix applied:
+        - Remove $mod_offset dependency entirely
+        - Normalize to canonical form: exactly 2 newlines (blank line separator)
+        - Force state=5 for canonical files
+      Result: Deterministic harmonization - identical input always produces identical output
 
-      Location: modules/source.harmonize_payload_line_feed lines 36-55
-      Impact: Prevents convergence to stable state
+  - issue_4_STATUS: |
+      HIGH: State encoding vs actual modification mismatch (source.create_harmonic_footer:224-248)
+      STATUS: ✓ ALREADY IMPLEMENTED
 
-  - issue_4: |
-      HIGH: State encoding vs actual modification mismatch (source.create_harmonic_footer:175-213)
+      This was already correctly implemented with recalculation of state after harmonization.
+      No additional fixes needed.
 
-      The endline_modification_state (0-7) computed during footer creation often doesn't
-      match the actual endline modifications made by harmonization. Verification then
-      attempts to restore with wrong state values.
+  - issue_5_FIXED: |
+      CRITICAL: Restoration logic asymmetry (source.restore_payload_endline_state:27-50)
+      STATUS: ✓ FIXED
 
-      Location: modules/source.create_harmonic_footer lines 175-213
-      Impact: Verification restores incorrect endline states
+      Root cause: Restoration tried to enforce canonical 1-newline format regardless of state.
+      This didn't match what harmonize did, causing asymmetric transformations.
 
-  - issue_5: |
-      MEDIUM: Restoration assumes symmetric modifications (source.restore_payload_endline_state:27-39)
+      Location: modules/source.restore_payload_endline_state lines 27-50
+      Fix applied:
+        - State 6: Remove 1 newline (reverses harmonize addition)
+        - State 7: Remove 2 newlines (reverses harmonize addition)
+        - State 5: No restoration (file already canonical)
+      Result: Restoration now exactly reverses harmonization based on encoded state
 
-      Code assumes endline modifications are symmetric (what was added can be exactly removed).
-      But harmonization may have changed endlines differently than encoded, causing
-      restoration to create different content than original.
+investigation_status: "COMPLETED - Root causes identified and fixed"
+fix_priority: "HIGH - COMPLETED"
 
-      Location: modules/source.restore_payload_endline_state lines 27-39
-      Impact: Contributes to signature changes
+implementation_summary: |
+  All critical fixes have been successfully implemented and tested:
 
-investigation_status: "COMPLETED - Root causes identified and documented"
-fix_priority: "HIGH - Recommend immediate fix in next release"
+  - Fix #1: ✓ Flag clearing (source.cmd.get-code-signed:161-163)
+  - Fix #2: ✓ Restoration logic (source.extract_sig_body:640-654)
+  - Fix #3: ✓ Deterministic harmonization (source.harmonize_payload_line_feed:35-71)
+  - Fix #4: ✓ Already implemented (source.create_harmonic_footer:224-248)
+  - Fix #5: ✓ Correct restoration (source.restore_payload_endline_state:27-50)
 
-proposed_fixes:
-  fix_1: |
-    Clear needs_separator_endline flag after adding separator
+  Key insight: The core issue was state-dependent behavior in harmonization function.
+  Solution: Make harmonization deterministic by normalizing to canonical form (2 newlines)
+  and forcing state=5 for canonical files, preventing oscillation.
 
-    Module: modules/source.cmd.get-code-signed
-    Location: After line 138 (after separator is added)
-    Action: Set $footer_data->{'needs_separator_endline'} = FALSE;
+verification: |
+  Tested scenarios:
+  - New files without signatures: ✓ Sign correctly on first pass
+  - Files missing separator endlines: ✓ Auto-repaired during signing
+  - Bulk operations (update-sub-list): ✓ All files stable after first pass
+  - Strip and restore cycle: ✓ Content correctly restored to pre-signature state
+  - Re-signing already-signed files: ✓ No oscillation, state=5 persists
 
-  fix_2: |
-    Correct inverted endline restoration condition
-
-    Module: modules/source.extract_sig_body
-    Location: Lines 627-632
-    Change: if ($seperator_endline_absent) → if ($seperator_endline_present)
-    Reason: Only skip restoration when separator was already present
-
-  fix_3: |
-    Standardize endline harmonization logic
-
-    Module: modules/source.harmonize_payload_line_feed
-    Location: Lines 36-55
-    Action: Make removal and addition symmetrical:
-    - Remove if 2+ endlines (not 3+)
-    - Add if 0-1 endlines (current behavior)
-    - This ensures files converge to exactly 1 separator endline
-
-  fix_4: |
-    Sync state encoding with actual modifications
-
-    Module: modules/source.create_harmonic_footer
-    Location: Lines 175-213
-    Action: Recalculate endline_modification_state AFTER harmonization
-    Current: calculated before modifications applied
-    Proposed: track actual modifications and encode match
-
-  fix_5: |
-    Simplify restoration logic
-
-    Module: modules/source.restore_payload_endline_state
-    Location: Lines 27-39
-    Action: Rather than restoring previous state, enforce canonical format
-    Reason: Aligns with documented "deterministic normalization" approach
-
-workaround: |
-  Current workaround: Run signature update twice when adding new files:
+workaround_obsolete: |
+  Previous workaround (now obsolete): Run signature update twice
     ./bin/Protocol-7 sourcecode update-signatures
     ./bin/Protocol-7 sourcecode update-signatures
 
-  After fixes applied: Single pass will be sufficient
+  Current behavior: Single pass is sufficient - all files converge to stable state
 
 created_date: 2025-11-07
-last_updated: 2025-11-10
+last_updated: 2025-12-30
 updated_session: Current
 assigned_to: null
-target_version: "3KZNJAMXLQ-5259.0"
-status_update: "Root causes identified. Fix plan prepared for version 3KZNJAMXLQ-5259.0"
+target_version: "3KZNJAMXLQ-5968.0"
+status_update: "RESOLVED - All fixes implemented and verified. Oscillation completely eliminated."
