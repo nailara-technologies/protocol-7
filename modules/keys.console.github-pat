@@ -35,7 +35,7 @@ if ( not defined $github_token or length($github_token) < 10 ) {
 }
 
 # Validate token format (should start with ghp_ or github_pat_)
-if ( $github_token !~ m|^(ghp_|github_pat_)| ) {
+if ( $github_token !~ m/^(?:ghp_|github_pat_)/ ) {
     say '';
     say '⚠ Warning: Token doesn\'t match expected GitHub PAT format.';
     print 'Continue anyway? [y/N] ';
@@ -149,8 +149,8 @@ if ( $test_result == 0 ) {
     say '';
 }
 
-#,,,.,.,.,.,.,..,,..,,...,,..,,,.,..,,,,.,...,..,,...,...,,..,...,.,.,..,,,.,,
-#3ZO2ZJ5FWSWVJU36LR4X5VZATU6ESMRF46GFOYPC7OLLL5JM2CDCDZZM24OTH4LKTDDKLQ2DVTWCS
-#\\\|3V6IPS6VOLLFBBPDMEHG3PWYSDMLMK7PVQSFK7FX2SZPAJMRN3P \ / AMOS7 \ YOURUM ::
-#\[7]QRUUB2HMSZE7APJJJN4G5CMEF3YZUWEGTJGGXQS3KYBVPCENJCDI 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,..,,,..,,..,.,,,...,,.,,.,.,..,,..,,...,.,.,..,,,.,,,,,,,.,,..,,
+#HRSLXLP7FCLMBWNGOR6RYKPK3C6T6HHVQ7F4XI2AAJMP4Q7SKXJIJTQVVOUW6LBEE22VIRBBG37PI
+#\\\|LFS7WLTSBMCXVJCRUTEFSWO2OCQR2O7IXHB47MWU7M3E3Y7HXKT \ / AMOS7 \ YOURUM ::
+#\[7]RJI5UCIFDSL6PC3YHFOGUBBQ2UNXERNFZQJTBFW4NTKWHPHTCWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
