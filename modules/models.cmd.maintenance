@@ -3,38 +3,25 @@
 # name = models.cmd.maintenance
 # descr = Handle maintenance command - perform system maintenance operations
 
-sub execute_maintenance {
-  my $start_time = time();
+$data{models} //= {};
 
-  # Log maintenance completion
-  my $elapsed = time() - $start_time;
-  push @{$data{operation_log}}, {
-    timestamp => time(),
-    action => 'maintenance',
-    status => 'completed',
-    details => "maintenance completed in ${elapsed}s",
-  };
+my $start_time = time();
 
-  return {
-    'success' => TRUE,
-    'maintenance_completed' => 1,
-    'elapsed_seconds' => $elapsed,
-  };
-}
-
-# Entry point
-{
-  my $cmd = shift @ARG;
-
-  if ($cmd eq 'maintenance') {
-    return execute_maintenance();
-  }
-
-  return {
-    'success' => FALSE,
-    'error' => "unknown command: $cmd",
-  };
+# Log maintenance completion
+my $elapsed = time() - $start_time;
+push @{$data{models}{operation_log} // []}, {
+  timestamp => time(),
+  action => 'maintenance',
+  status => 'completed',
+  details => "maintenance completed in ${elapsed}s",
 };
+
+my $reply_str = '';
+$reply_str .= "maintenance_completed: 1\n";
+$reply_str .= "elapsed_seconds: $elapsed\n";
+$reply_str .= "timestamp: " . time() . "\n";
+
+return { 'mode' => qw| size |, 'data' => $reply_str };
 
 #,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
 #MAINTENANCE_CMD_SIGNATURE_PLACEHOLDER
@@ -42,8 +29,8 @@ sub execute_maintenance {
 #\[7]MAINTENANCE_CMD_HASH 7  DATA SIGNATURE ::
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,.,.,,,...,.,.,,,,,,,.,,,.,...,..,,,,.,,..,..,,...,...,...,.,.,,..,,..,.,,,
-#2DVEYXU2W3ZZR5TNIO46ILSZVJAHFN6LVTCGKWOG2J7AE27SG6HFTSVQF3BX3W6L3ZF3YNOVDAIFG
-#\\\|PCW6ZP4R4DDFQHK3WCGWWJRGDKUXGGLYEM7WBWI72Q4LCOVJT6V \ / AMOS7 \ YOURUM ::
-#\[7]4FHJZQDWW45UUZA7FHZUR2YAN2W75ROH2QLJY7OUE2TTH5IFNEBI 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,.,,.,,..,,...,..,,,..,,..,.,.,..,,...,...,,.,,...,,.,,...,,,,,
+#SI3Q3BIIOQ6X4RFQXTQ5W4EVTRWUCMJXO7JAWHR3O4UVOUTYV3WPNV32CTJVR7UGDCJFHIRDWP6OM
+#\\\|P3SSFYGC6BIMVRL2ZBK774EPXFFRE5UGT2S53JYARYGNXHOLWW4 \ / AMOS7 \ YOURUM ::
+#\[7]BOQZFVWLCD2VJC5MPHKL4EZIEY4UPGABTXMIDJVUJHXH23DFEUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

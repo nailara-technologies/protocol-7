@@ -3,92 +3,69 @@
 # name = models.cmd.recommend
 # descr = Get intelligent model recommendations for a specific context
 
-# Command: models.recommend <context> [constraints_json]
-# Returns: { best_choice, alternatives, reasoning }
-
 use JSON::PP;
 
-sub execute_recommend {
-  my ($context, $constraints_json) = @_;
+my ($context, $constraints_json) = @ARG;
 
-  return {
-    'success' => FALSE,
-    'error' => 'context name required',
-  } unless $context;
-
-  # Parse constraints if provided
-  my $constraints = {};
-  if ($constraints_json) {
-    eval {
-      $constraints = decode_json($constraints_json);
-    };
-    if ($@) {
-      return {
-        'success' => FALSE,
-        'error' => "invalid constraints JSON: $@",
-      };
-    }
-  }
-
-  # Load registry
-  my $registry_funcs = <[models.registry.init]>;
-  my $all_models = $registry_funcs->{'list_all_models'}->();
-
-  # Load recommendation engine
-  my $rec_engine = <[models.decision.recommendation_engine]>;
-
-  # Get recommendations
-  my $recommendations = $rec_engine->{'get_model_recommendations'}->(
-    $context,
-    $constraints,
-    $all_models
-  );
-
-  return {
-    'success' => 1,
-    'context' => $context,
-    'best_choice' => {
-      'amos' => $recommendations->{best_choice}->{model_amos},
-      'name' => $recommendations->{best_choice}->{name},
-      'success_rate' => $recommendations->{best_choice}->{success_rate},
-      'margin' => sprintf('%.1f%%', ($recommendations->{best_choice}->{margin_vs_alt} // 0) * 100),
-      'available_locally' => $recommendations->{best_choice}->{available_locally},
-      'initialization_ms' => $recommendations->{best_choice}->{initialization_ms},
-      'reasoning' => $recommendations->{best_choice}->{reasoning},
-    },
-    'alternatives' => [
-      map {
-        {
-          'amos' => $_->{model_amos},
-          'name' => $_->{name},
-          'success_rate' => $_->{success_rate},
-          'margin_vs_best' => sprintf('%.1f%%', ($_->{margin_vs_alt} // 0) * 100),
-          'available_locally' => $_->{available_locally},
-          'reasoning' => $_->{reasoning},
-        }
-      } @{$recommendations->{alternatives} // []}
-    ],
-    'overall_reasoning' => $recommendations->{reasoning},
-  };
+if (!$context) {
+  return { 'mode' => qw| size |, 'data' => "error: context name required\n" };
 }
 
-# Entry point
-{
-  my $cmd = shift @ARG;
-  my @args = @ARG;
-
-  if ($cmd eq 'recommend' || $cmd eq 'rec') {
-    return execute_recommend(@args);
-  }
-
-  return {
-    'success' => FALSE,
-    'error' => "unknown command: $cmd",
+# Parse constraints if provided
+my $constraints = {};
+if ($constraints_json) {
+  eval {
+    $constraints = decode_json($constraints_json);
   };
-};
+  if ($@) {
+    return { 'mode' => qw| size |, 'data' => "error: invalid constraints JSON: $@\n" };
+  }
+}
 
-#,,.,,.,,,.,,,,,.,,,.,,,.,,..,...,,,.,,,,,..,,..,,...,...,.,.,,,,,.,.,.,.,,..,
-#27SIF2PTDNJEBV3Y7B6RN7TGPRECHBKKDLSMVOFZE3QCIEPOYMG4YK7LT6GLHCMGCNTHPJG3ZBSMA
-#\\\|PYPMVSOFXNAI4SIZPXCTSQIKZLVJEYTNVW6Y4UKBNP4II23ZEWM \ / AMOS7 \ YOURUM ::
-#\[7]Z7HNCPGW33TP6UV4OL3GD7V7AI37GSV5Q77J2BRVD7VADP5VFMBA 7  DATA SIGNATURE ::
+# Load registry
+my $registry_funcs = <[models.registry.init]>;
+my $all_models = $registry_funcs->{'list_all_models'}->();
+
+# Load recommendation engine
+my $rec_engine = <[models.decision.recommendation_engine]>;
+
+# Get recommendations
+my $recommendations = $rec_engine->{'get_model_recommendations'}->(
+  $context,
+  $constraints,
+  $all_models
+);
+
+my $reply_str = '';
+$reply_str .= "context: $context\n";
+$reply_str .= "\nbest_choice:\n";
+$reply_str .= "  amos: " . ($recommendations->{best_choice}->{model_amos} // 'unknown') . "\n";
+$reply_str .= "  name: " . ($recommendations->{best_choice}->{name} // 'unknown') . "\n";
+$reply_str .= "  success_rate: " . sprintf('%.2f', $recommendations->{best_choice}->{success_rate} // 0) . "\n";
+$reply_str .= "  margin: " . sprintf('%.1f%%', ($recommendations->{best_choice}->{margin_vs_alt} // 0) * 100) . "\n";
+$reply_str .= "  available_locally: " . ($recommendations->{best_choice}->{available_locally} ? 'yes' : 'no') . "\n";
+$reply_str .= "  initialization_ms: " . ($recommendations->{best_choice}->{initialization_ms} // 0) . "\n";
+$reply_str .= "  reasoning: " . ($recommendations->{best_choice}->{reasoning} // 'none') . "\n";
+
+if ($recommendations->{alternatives} && @{$recommendations->{alternatives}}) {
+  $reply_str .= "\nalternatives:\n";
+  foreach my $alt (@{$recommendations->{alternatives}}) {
+    $reply_str .= "  amos: " . ($alt->{model_amos} // 'unknown') . "\n";
+    $reply_str .= "    name: " . ($alt->{name} // 'unknown') . "\n";
+    $reply_str .= "    success_rate: " . sprintf('%.2f', $alt->{success_rate} // 0) . "\n";
+    $reply_str .= "    margin_vs_best: " . sprintf('%.1f%%', ($alt->{margin_vs_alt} // 0) * 100) . "\n";
+    $reply_str .= "    available_locally: " . ($alt->{available_locally} ? 'yes' : 'no') . "\n";
+    $reply_str .= "    reasoning: " . ($alt->{reasoning} // 'none') . "\n";
+    $reply_str .= "\n";
+  }
+}
+
+$reply_str .= "overall_reasoning: " . ($recommendations->{reasoning} // 'none') . "\n";
+
+return { 'mode' => qw| size |, 'data' => $reply_str };
+
+#,,,,,,.,,,.,,,..,,,.,,,,,.,,,,,,,...,,,,,,.,,..,,...,...,...,.,,,,,.,,,,,,.,,
+#2TJYHFLDB73YGNO7B2G4WY7MZAOC2KO7HG6B456FFON3LAFVACOYBH3BZRZPZK27Q6GPJ4IBYXNZK
+#\\\|JCFSBAZC4YZDN6DKIH3ZATHDSOFJAGZW43NA5MCYJEU64E42MQM \ / AMOS7 \ YOURUM ::
+#\[7]Q4BUZYZE6PT2IAMPB6UK6DA7VWUZAYWFTXTR3NGQZQLTJIKEFUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

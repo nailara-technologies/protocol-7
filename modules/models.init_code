@@ -76,45 +76,24 @@ $data{list}{models_action_log} = {
   };
 
   # Route to command handlers via module loading
-  my $result = {
-    'success' => FALSE,
-    'error' => "unknown command: $cmd",
-  };
+  my $result;
 
   if ($cmd eq 'status') {
-    # Status command - directly return status
-    $result = {
-      'success' => TRUE,
-      'zenka' => 'models',
-      'status' => 'running',
-      'operation_log_entries' => scalar(@{$data{models}{operation_log}}),
-      'error_log_entries' => scalar(@{$data{models}{error_log}}),
-      'action_log_entries' => scalar(@{$data{models}{action_log}}),
-      'timestamp' => time(),
-    };
+    # Status command - delegate to command module
+    unshift @ARG, $cmd, @args;
+    $result = <[models.cmd.status]>;
   } elsif ($cmd eq 'reload') {
     # Reload command - delegate to base handler which returns proper format
     unshift @ARG, $cmd, @args;
     $result = <[base.cmd.reload]> // {
-      'success' => FALSE,
-      'error' => 'base.cmd.reload not available',
+      'mode' => qw| size |,
+      'data' => "error: base.cmd.reload not available\n",
     };
     return $result;
   } elsif ($cmd eq 'maintenance') {
-    # Maintenance command
-    my $start_time = time();
-    my $elapsed = time() - $start_time;
-    push @{$data{models}{operation_log}}, {
-      timestamp => time(),
-      action => 'maintenance',
-      status => 'completed',
-      details => "maintenance completed in ${elapsed}s",
-    };
-    $result = {
-      'success' => TRUE,
-      'maintenance_completed' => 1,
-      'elapsed_seconds' => $elapsed,
-    };
+    # Maintenance command - delegate to command module
+    unshift @ARG, $cmd, @args;
+    $result = <[models.cmd.maintenance]>;
   } elsif ($cmd =~ /^(get|find|recommend|record|stats|cost|discover|list)/) {
     # Route to command modules
     my $module;
@@ -137,30 +116,38 @@ $data{list}{models_action_log} = {
     # Load and execute the module
     unshift @ARG, $cmd, @args;  # Restore @ARG for the module
     $result = <[$module]> // {
-      'success' => FALSE,
-      'error' => "module not found: $module",
+      'mode' => qw| size |,
+      'data' => "error: module not found: $module\n",
+    };
+  } else {
+    # Unknown command
+    $result = {
+      'mode' => qw| size |,
+      'data' => "error: unknown command: $cmd\n",
     };
   }
 
   # Update action log in models namespace
-  if (@{$data{models}{action_log}}) {
+  if (@{$data{models}{action_log}} && $result) {
     my $last_action = $data{models}{action_log}->[-1];
-    $last_action->{status} = $result->{success} ? 'completed' : 'failed';
+    my $is_success = $result->{data} && $result->{data} !~ /^error:/;
+    $last_action->{status} = $is_success ? 'completed' : 'failed';
   }
 
   # Log operation in models namespace
+  my $is_success = $result && $result->{data} && $result->{data} !~ /^error:/;
   push @{$data{models}{operation_log}}, {
     timestamp => time(),
     action => $cmd // 'status',
-    status => $result->{success} ? 'success' : 'failure',
-    details => $result->{error} // 'completed',
+    status => $is_success ? 'success' : 'failure',
+    details => ($result && $result->{data}) ? substr($result->{data}, 0, 100) : 'no response',
   };
 
   return $result;
 };
 
-#,,,.,,.,,..,,,.,,.,,,,,,,...,,,.,,..,.,,,.,.,..,,...,...,,..,..,,...,.,.,,..,
-#DXN5PBZHQ5SCD254BCZ6BDWS5EWO5CTSKZDV2QXIOWDDFKNYBYQISAT7LUO4OD3BGOXLESJOQA62Q
-#\\\|UFLY5HOSNUROJW6FBZ3EJZRD42VI7KSOPTBP5LZ2GLZMV4ZF55A \ / AMOS7 \ YOURUM ::
-#\[7]PWL6RM2J74LSSG47VSWL46RYQHQTDMKV2KBRSAEVDGO7DX4JAIBY 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,,.,,,.,...,..,,,..,.,.,,.,,,..,..,,...,...,.,.,,..,...,...,.,,,
+#CZQXIRPDRABKVZGOCJZLFTECIEOQMT6IGHD57CRIT3GCWZRB7B655E42JRJDRGHM4YPL7HNF4FV7W
+#\\\|6LYYDJPH6EDTDQDAGPEUSBBND5DNJN76W2VBBTODNY6HJ5AO42T \ / AMOS7 \ YOURUM ::
+#\[7]SYDVVQ267C7WSBGSOUBJ3UY3NZHHGOYH75B3WX3BB2PXVRXZNOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
