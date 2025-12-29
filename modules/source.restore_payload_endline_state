@@ -24,21 +24,33 @@ return FALSE if $endline_state_oct == 5;
 
 my $previous_payload_length = length $payload_sref->$*;
 
-# Fix #5: Simplify restoration - enforce canonical format instead of trying to restore
-# The delta encoding documents what transformation was applied, but for verification
-# and extraction, we should enforce canonical format (exactly 1 separator endline)
-# rather than attempting to reverse transformations that may not be symmetric.
+# Fix #5: Correctly reverse the harmonization based on recorded state
+# The state tells us how many newlines were ADDED during harmonization
+# We must reverse that by removing the same number of newlines
+# State 5 = no change (already handled by early return above)
+# State 6 = 1 newline was added  → remove 1 newline
+# State 7 = 2 newlines were added → remove 2 newlines
+# State 4,3,2,1,0 = newlines were removed → we can't add them back, keep as-is
 
-# Ensure file ends with exactly 1 newline (canonical format)
-# First remove all trailing newlines, then add exactly 1
-$payload_sref->$* =~ s|\n*$||s;
-$payload_sref->$* .= "\n";
+# First remove ALL trailing newlines to get to the base
+$payload_sref->$* =~ s|\n+$||s;
+
+# Now add back the appropriate number based on the state
+# State 6: was missing separator, had 1 endline added
+# State 7: was incomplete (no endline), had 2 endlines added
+if ( $endline_state_oct == 6 ) {
+    $payload_sref->$* .= "\n";    # Add back the 1 newline
+} elsif ( $endline_state_oct == 7 ) {
+    $payload_sref->$* .= "\n\n";  # Add back the 2 newlines
+}
+# For states 0-4: newlines were removed, can't restore those
+# Keep file as-is (no trailing newlines)
 
 ##  return length difference [ representing change in trailing endlines ]  ##
 return length( $payload_sref->$* ) - $previous_payload_length;
 
-#,,.,,,,,,,.,,.,.,,.,,...,,.,,.,.,.,,,,.,,,,.,..,,...,..,,,,.,,.,,.,.,..,,.,,,
-#WEXEH6W7Q662QQ5WG7Q2VYNESYCMIRXN3EU6COQA2SJARJDV7U52V4HLFYME3CKTSDNIYQNGOSCRU
-#\\\|NI6JQLRNPVTWQSBLWQG63I7MTJQR5V2UUON63GQYC52RJY7KADJ \ / AMOS7 \ YOURUM ::
-#\[7]FVXPN34RKBGBRGSXD5K3PHX2UBC5U7FBNXHEPPG63FEVAURC6ADQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,.,.,.,,,,..,,..,,,.,,,,,...,,,,,..,,...,...,..,,.,.,,..,,,.,.,.,
+#AMCZ2HSZRNKANIHZFETIRWB4IG32KTTX7T2CMSRHQM2BZSWEMM2HJCYT6EVFTIUVN5JVO3CY67R3I
+#\\\|CHSYY5E7LEYM6OEJZPERU2QFZWWJGGH3GZKCE7BAXZ7TVPAZI34 \ / AMOS7 \ YOURUM ::
+#\[7]NSPLZOPSZBDM4NDYXMLHY3MOOYI7NDP2F7ULCSMJSSU2V3STQSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
