@@ -8,8 +8,9 @@ use File::Copy qw| copy |;
 use File::Path qw| make_path remove_tree |;
 use Digest::SHA qw| sha384_hex |;
 
-# Tier definitions with priority order - stored in $data{} for persistence
-$data{tiers} ||= {
+# Tier definitions with priority order - stored in $data{models} namespace
+$data{models} //= {};
+$data{models}{tiers} ||= {
   3 => {
     name => 'var_run',
     base_path => '/var/run/protocol-7/models',
@@ -62,8 +63,8 @@ $data{tiers} ||= {
 #\[7]STORAGE_INIT_HASH 7  DATA SIGNATURE ::
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,..,,.,,,,.,...,..,,.,.,,,.,.,.,,,,,..,,.,,,..,,...,...,,,.,.,,,.,.,,.,,,..,
-#A3TK3LXPEAZHI7X4DFQQM5D6WXEPWEFUTMYN5DMHM3KPNMSLMGIDBF7TPJ6XI2LDZNDXAXLOGOR4A
-#\\\|XUBOLE6FR7HG4S42UKQTVDZQFQKMRYQLBG5A2W5HDOA4NWQQA4I \ / AMOS7 \ YOURUM ::
-#\[7]4Y5WNUDSDYZYRYGVDRROJ5DYXHHSYJ5N3LYECVXEATG336FM6KBI 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,,.,,.,,,..,.,,,..,,...,,,.,.,,,..,,...,...,..,,,,.,.,,,.,,,,,,,
+#MSFOOYJFGSYZ4UFMBSR7HXRVJY7F73SF5BDMW2EARI4HYWRF2XRPO3YGHJTYJ7IZNYKYFEAIWC2LE
+#\\\|AGLDC6ALWIOPNXFWUTB6UGJEQMKNAXNV6HLV5YAHJA3U2M5C3L3 \ / AMOS7 \ YOURUM ::
+#\[7]37NKC6MGBBZGGUV4DJHIT5HXX7V36IMKOQGAWVPPLYKE6P5QOYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

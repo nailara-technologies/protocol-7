@@ -7,9 +7,10 @@ use JSON::PP;
 use File::Path qw| make_path |;
 use Time::Piece;
 
-# Initialize invocations directory path in $data{} for persistence
-$data{invocations_dir} ||= '/var/protocol-7/models/invocations';
-make_path($data{invocations_dir}) unless -d $data{invocations_dir};
+# Initialize invocations directory path in $data{models} namespace
+$data{models} //= {};
+$data{models}{invocations_dir} ||= '/var/protocol-7/models/invocations';
+make_path($data{models}{invocations_dir}) unless -d $data{models}{invocations_dir};
 
 # Record a single invocation
 sub record_invocation {
@@ -17,7 +18,7 @@ sub record_invocation {
 
   my $timestamp = time();
   my $date = localtime($timestamp)->strftime('%Y%m%d');
-  my $invocations_dir = $data{invocations_dir};
+  my $invocations_dir = $data{models}{invocations_dir};
   my $invocations_file = "$invocations_dir/$date.json";
 
   # Load existing invocations for this day
@@ -142,7 +143,7 @@ sub aggregate_statistics {
 # Load all invocations for a model in a context
 sub load_all_invocations {
   my ($model_amos, $context) = @_;
-  my $invocations_dir = $data{invocations_dir};
+  my $invocations_dir = $data{models}{invocations_dir};
 
   my @invocations;
 
@@ -210,7 +211,7 @@ sub get_context_statistics {
 sub cleanup_old_logs {
   my ($days_to_keep) = @_;
   $days_to_keep //= 90;
-  my $invocations_dir = $data{invocations_dir};
+  my $invocations_dir = $data{models}{invocations_dir};
 
   my $cutoff_timestamp = time() - ($days_to_keep * 24 * 3600);
   my $cutoff_date = localtime($cutoff_timestamp)->strftime('%Y%m%d');
@@ -249,8 +250,8 @@ sub cleanup_old_logs {
   'cleanup_old_logs' => \&cleanup_old_logs,
 };
 
-#,,,.,,.,,,,.,,.,,.,,,..,,.,,,.,,,,,,,,.,,.,.,..,,...,...,,,,,..,,,..,..,,,,.,
-#ZFX2TWNHPS3VIOXEC46F74BP3RJ4GDWN3JI7WGEDOZKFXCCG374UJFRBLUNT47NTMTJFGE745P2B4
-#\\\|56SYN5OYKS6XSBOT4WD7V4THW7DVLCSL34JMKCZVB7JXF2NAJHL \ / AMOS7 \ YOURUM ::
-#\[7]E3GJPT5RVT5DKT52BS3J6ZSQ7HBTJBRHVNJ3763UH6PNL6T7HUCA 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,,.,,,.,,.,,,,.,,.,,,.,,,..,...,..,,...,...,...,,..,,,.,..,,,,.,
+#C44VVIBFOYA2VAMML4QRDX3CKKPPAXLCPNWSQLFKVYMQV6YVVJEVRDYIFWMWVSQBMJAKY5WV4Y65E
+#\\\|NQC3YOLWGFAOVKSSG5KAJPZWD3GLIO7UG72IHMPO7XFQQRAEZBQ \ / AMOS7 \ YOURUM ::
+#\[7]KLXYQDOQNI53MZUIQASIAUMERQ7XMOHP4HEDFESOJRIJBOJPGYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
