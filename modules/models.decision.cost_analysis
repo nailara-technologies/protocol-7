@@ -1,0 +1,313 @@
+## [:< ##
+
+# name = models.decision.cost_analysis
+# descr = Analyze storage vs bandwidth costs and determine optimal presence strategy
+
+# Determine if model should be kept locally
+sub should_keep_model_local {
+  my ($model, $context) = @_;
+
+  # Get statistics for this context
+  my $stats = $model->{statistics}->{by_context}->{$context};
+  return { 'decision' => 'UNKNOWN', 'confidence' => 0 } unless $stats;
+
+  my $success = $stats->{success_rate} // 0;
+  my $margin = $stats->{margin_vs_best_alt} // 0;
+
+  # Get cost profile
+  my $storage_cost = $model->{resource_profile}->{storage}->{storage_cost_per_month_usd} // 0;
+  my $download_cost = $model->{resource_profile}->{bandwidth}->{download_cost_per_retrieval_usd} // 0;
+
+  # Estimate usage frequency (simplified - can be enhanced with real usage patterns)
+  my $usage_per_month = estimate_usage_frequency($model, $context);
+
+  # Calculate cumulative download cost
+  my $cumulative_download_cost = $usage_per_month * $download_cost;
+
+  # Decision criteria
+  my @reasons;
+  my $decision = 'KEEP_LOCAL_DEFAULT';
+  my $confidence = 0.5;
+
+  # Criterion 1: Cost break-even
+  if ($cumulative_download_cost > $storage_cost * 3) {
+    $decision = 'KEEP_LOCAL_COST_JUSTIFIED';
+    push @reasons, sprintf('cost: downloading would cost %.2f x more than storage', $cumulative_download_cost / $storage_cost);
+    $confidence = 0.85;
+    return {
+      'decision' => $decision,
+      'confidence' => $confidence,
+      'reasons' => \@reasons,
+      'cost_analysis' => {
+        'storage_cost_monthly' => $storage_cost,
+        'download_cost_monthly' => $cumulative_download_cost,
+        'monthly_savings' => $cumulative_download_cost - $storage_cost,
+      },
+    };
+  }
+
+  # Criterion 2: Margin of optimum (high margin + frequent use)
+  if ($margin > 0.15 && $usage_per_month > 1.0) {
+    $decision = 'KEEP_LOCAL_HIGH_MARGIN';
+    push @reasons, sprintf('margin: %.1f%% better than alternatives', $margin * 100);
+    push @reasons, sprintf('usage: %.1f times/month (above threshold)', $usage_per_month);
+    $confidence = 0.80;
+    return {
+      'decision' => $decision,
+      'confidence' => $confidence,
+      'reasons' => \@reasons,
+    };
+  }
+
+  # Criterion 3: Latency sensitivity
+  if (is_latency_sensitive($context) && $usage_per_month > 2.0) {
+    $decision = 'KEEP_LOCAL_LATENCY_CRITICAL';
+    push @reasons, 'latency-critical context with frequent use';
+    $confidence = 0.75;
+    return {
+      'decision' => $decision,
+      'confidence' => $confidence,
+      'reasons' => \@reasons,
+    };
+  }
+
+  # Criterion 5: Marginal model with alternatives available
+  if ($margin < 0.05 && has_available_alternative($model, $context)) {
+    $decision = 'FETCH_ONDEMAND_ALT_AVAILABLE';
+    push @reasons, 'barely better than alternatives with better options available';
+    $confidence = 0.70;
+    return {
+      'decision' => $decision,
+      'confidence' => $confidence,
+      'reasons' => \@reasons,
+    };
+  }
+
+  # Criterion 6: Unused or declining
+  if ($usage_per_month < 0.5 && $margin < 0.20) {
+    $decision = 'CONSIDER_REMOVAL';
+    push @reasons, 'rarely used and not significantly better than alternatives';
+    $confidence = 0.65;
+    return {
+      'decision' => $decision,
+      'confidence' => $confidence,
+      'reasons' => \@reasons,
+    };
+  }
+
+  # Default decision
+  push @reasons, 'no strong criteria met, using safe default';
+  return {
+    'decision' => $decision,
+    'confidence' => $confidence,
+    'reasons' => \@reasons,
+  };
+}
+
+# Determine which tier model should reside in
+sub where_should_model_reside {
+  my ($model, $context) = @_;
+
+  my $usage = estimate_usage_frequency($model, $context);
+  my $latency_importance = get_latency_importance($context);
+  my $success_margin = $model->{statistics}->{by_context}->{$context}->{margin_vs_best_alt} // 0;
+
+  # Tier 3: /var/run/ (fastest) - for high-priority models
+  if ($usage > 10 && $latency_importance > 0.8 && $success_margin > 0.10) {
+    return {
+      'tier' => 3,
+      'path' => '/var/run/protocol-7/models/',
+      'name' => 'var_run',
+      'reasoning' => 'high usage + latency-critical + strong margin',
+      'confidence' => 0.9,
+    };
+  }
+
+  # Tier 2: /var/protocol-7/ (normal) - standard placement
+  if (should_keep_model_local($model, $context)->{decision} =~ /^KEEP/) {
+    return {
+      'tier' => 2,
+      'path' => '/var/protocol-7/models/',
+      'name' => 'var_protocol7',
+      'reasoning' => 'cost-justified local storage',
+      'confidence' => 0.8,
+    };
+  }
+
+  # Tier 4: Group-specific - if available
+  if (can_link_to_group_storage($model)) {
+    return {
+      'tier' => 4,
+      'path' => get_group_path($model),
+      'name' => 'group_specific',
+      'reasoning' => 'compatible with group storage',
+      'confidence' => 0.7,
+    };
+  }
+
+  # On-demand: Fetch when needed
+  if ($usage < 1.0) {
+    return {
+      'tier' => 0,
+      'path' => undef,
+      'name' => 'ondemand',
+      'reasoning' => 'rarely used - fetch on demand',
+      'confidence' => 0.75,
+    };
+  }
+
+  # Default: Tier 2
+  return {
+    'tier' => 2,
+    'path' => '/var/protocol-7/models/',
+    'name' => 'var_protocol7',
+    'reasoning' => 'default placement',
+    'confidence' => 0.6,
+  };
+}
+
+# Analyze complete cost picture for a model
+sub cost_analysis {
+  my ($model, $context) = @_;
+
+  my $storage_cost = $model->{resource_profile}->{storage}->{storage_cost_per_month_usd} // 0;
+  my $download_cost = $model->{resource_profile}->{bandwidth}->{download_cost_per_retrieval_usd} // 0;
+  my $init_latency = $model->{resource_profile}->{latency}->{initialization_ms} // 0;
+
+  my $usage = estimate_usage_frequency($model, $context);
+  my $monthly_download_cost = $usage * $download_cost;
+
+  return {
+    'model_amos' => $model->{amos_checksum},
+    'context' => $context,
+
+    'storage_cost' => {
+      'monthly_usd' => $storage_cost,
+      'annual_usd' => $storage_cost * 12,
+    },
+
+    'bandwidth_cost' => {
+      'per_download_usd' => $download_cost,
+      'estimated_monthly_usd' => $monthly_download_cost,
+      'estimated_annual_usd' => $monthly_download_cost * 12,
+    },
+
+    'latency_cost' => {
+      'initialization_ms' => $init_latency,
+      'cost_per_cold_start' => $init_latency > 0 ? 1 : 0,
+    },
+
+    'break_even_analysis' => {
+      'keep_local_monthly' => $storage_cost,
+      'fetch_ondemand_monthly' => $monthly_download_cost,
+      'delta_monthly' => $monthly_download_cost - $storage_cost,
+      'recommendation' => $monthly_download_cost > $storage_cost * 1.5 ? 'KEEP_LOCAL' : 'FETCH_ONDEMAND',
+    },
+
+    'usage_frequency' => {
+      'per_month' => $usage,
+      'per_day' => $usage / 30,
+    },
+  };
+}
+
+# Helper functions
+sub estimate_usage_frequency {
+  my ($model, $context) = @_;
+
+  my $stats = $model->{statistics}->{by_context}->{$context};
+  return 0 unless $stats;
+
+  my $last_invocation = $model->{statistics}->{last_invocation} // 0;
+  my $days_active = ($last_invocation > 0) ? int((time() - $model->{statistics}->{first_invocation}) / (24*3600)) : 0;
+
+  return 0 unless $days_active > 0;
+
+  my $invocations_per_day = $stats->{invocations} / $days_active;
+  return $invocations_per_day * 30;  # Extrapolate to monthly
+}
+
+sub is_latency_sensitive {
+  my ($context) = @_;
+
+  my %latency_sensitive = (
+    'code-security' => 1,
+    'real-time-analysis' => 1,
+    'interactive' => 1,
+  );
+
+  return $latency_sensitive{$context} // 0;
+}
+
+sub get_latency_importance {
+  my ($context) = @_;
+
+  my %importance = (
+    'code-security' => 0.9,
+    'real-time-analysis' => 0.95,
+    'interactive' => 0.85,
+    'batch-processing' => 0.1,
+    'offline-analysis' => 0.05,
+  );
+
+  return $importance{$context} // 0.5;
+}
+
+sub has_available_alternative {
+  my ($model, $context) = @_;
+
+  my $alternatives = $model->{statistics}->{alternatives};
+  return 0 unless $alternatives && ref($alternatives) eq 'ARRAY';
+
+  foreach my $alt (@$alternatives) {
+    # Check if alternative is available (in any tier)
+    return 1 if $alt->{available};
+  }
+
+  return 0;
+}
+
+sub can_link_to_group_storage {
+  my ($model) = @_;
+
+  my $locations = $model->{storage_locations};
+  return 0 unless $locations && ref($locations) eq 'ARRAY';
+
+  foreach my $loc (@$locations) {
+    return 1 if $loc->{tier} == 4 && $loc->{available};
+  }
+
+  return 0;
+}
+
+sub get_group_path {
+  my ($model) = @_;
+
+  my $locations = $model->{storage_locations};
+  return undef unless $locations;
+
+  foreach my $loc (@$locations) {
+    return $loc->{path} if $loc->{tier} == 4 && $loc->{available};
+  }
+
+  return undef;
+}
+
+# Return cost analysis interface
+{
+  'should_keep_model_local' => \&should_keep_model_local,
+  'where_should_model_reside' => \&where_should_model_reside,
+  'cost_analysis' => \&cost_analysis,
+  'estimate_usage_frequency' => \&estimate_usage_frequency,
+  'is_latency_sensitive' => \&is_latency_sensitive,
+  'get_latency_importance' => \&get_latency_importance,
+  'has_available_alternative' => \&has_available_alternative,
+  'can_link_to_group_storage' => \&can_link_to_group_storage,
+  'get_group_path' => \&get_group_path,
+};
+
+#,,..,,.,,,,,,,..,..,,,,.,.,,,...,...,..,,,.,,..,,...,...,,,.,..,,.,.,..,,.,,,
+#EDOQDJVK7XPNWWDNA2LPWMG7XAZISTPPDB2HW4IVSMGZXKAPU4IKXC2VH7YEY4KQP6Y537KPHAIPK
+#\\\|JRLORNRLJ4G323ERBY7N5WINW4YG64KOXETMUQ37UC4WOTUSMXJ \ / AMOS7 \ YOURUM ::
+#\[7]PAMHIODEU2CC5OXDL3OR6RST7LVSZ7MK5HZCTWUONCWYOEL6H6DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,69 @@
+## [:< ##
+
+# name = models.cmd.find_models
+# descr = Find models available for a specific context
+
+# Command: models.find_models <context>
+# Returns: [{ amos, name, success_rate, margin, available }, ...]
+
+sub execute_find_models {
+  my ($context) = @_;
+
+  return {
+    'success' => FALSE,
+    'error' => 'context name required',
+  } unless $context;
+
+  # Load registry
+  my $registry_funcs = <[models.registry.init]>;
+  my $all_models = $registry_funcs->{list_all_models}->();
+
+  # Find models for this context
+  my @matching;
+  foreach my $model (@$all_models) {
+    next unless $model->{statistics}->{by_context}->{$context};
+
+    my $stats = $model->{statistics}->{by_context}->{$context};
+    push @matching, {
+      'amos' => $model->{amos_checksum},
+      'name' => $model->{metadata}->{name},
+      'version' => $model->{metadata}->{version},
+      'success_rate' => $stats->{success_rate},
+      'margin_vs_alt' => $stats->{margin_vs_best_alt} // 0,
+      'available' => $model->{presence_decision}->{currently_present},
+      'category' => $model->{metadata}->{category},
+      'invocations' => $stats->{invocations},
+    };
+  }
+
+  # Sort by success rate
+  @matching = sort { $b->{success_rate} <=> $a->{success_rate} } @matching;
+
+  return {
+    'success' => 1,
+    'context' => $context,
+    'count' => scalar(@matching),
+    'models' => \@matching,
+  };
+}
+
+# Entry point
+{
+  my $cmd = shift @ARG;
+  my @args = @ARG;
+
+  if ($cmd eq 'find_models' || $cmd eq 'find') {
+    return execute_find_models(@args);
+  }
+
+  return {
+    'success' => FALSE,
+    'error' => "unknown command: $cmd",
+  };
+};
+
+#,,..,,,,,.,,,.,.,,..,,,,,,,,,,..,..,,,..,...,..,,...,...,..,,.,.,,,,,,..,..,,
+#VMGSGPCPFMWIVUPTDJBU2ANQYLC3CG4PUT7B27EIQWMYQTRYLIGWVU3ESHFC4OWUBHZWZKRMITI6U
+#\\\|DEES5ICF533X3EOPFYCTDVP6CPEQXKFLIYKHMXHE7DMH5EFWTZK \ / AMOS7 \ YOURUM ::
+#\[7]PWHCNTA7RIVHQNS5752SE3DMBCMH5JBWG2KWMZ4GQCIERCZTUEBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

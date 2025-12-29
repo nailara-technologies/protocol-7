@@ -1,0 +1,87 @@
+## [:< ##
+
+# name = models.cmd.cost_analysis
+# descr = Analyze storage vs bandwidth costs for a model
+
+# Command: models.cost_analysis <amos> <context>
+# Returns: { storage_cost, bandwidth_cost, break_even_analysis, recommendation }
+
+sub execute_cost_analysis {
+  my ($model_amos, $context) = @_;
+
+  return {
+    'success' => FALSE,
+    'error' => 'model AMOS and context required',
+  } unless $model_amos && $context;
+
+  # Load registry
+  my $registry_funcs = <[models.registry.init]>;
+  my $model_entry = $registry_funcs->{get_model_entry}->($model_amos);
+
+  return {
+    'success' => FALSE,
+    'error' => "model not found: $model_amos",
+  } if $model_entry->{not_found};
+
+  # Load cost analysis engine
+  my $cost_engine = <[models.decision.cost_analysis]>;
+
+  # Perform cost analysis
+  my $analysis = $cost_engine->{cost_analysis}->($model_entry, $context);
+
+  return {
+    'success' => 1,
+    'model_amos' => $model_amos,
+    'model_name' => $model_entry->{metadata}->{name},
+    'context' => $context,
+
+    'storage_cost' => {
+      'monthly_usd' => sprintf('%.2f', $analysis->{storage_cost}->{monthly_usd}),
+      'annual_usd' => sprintf('%.2f', $analysis->{storage_cost}->{annual_usd}),
+    },
+
+    'bandwidth_cost' => {
+      'per_download_usd' => sprintf('%.2f', $analysis->{bandwidth_cost}->{per_download_usd}),
+      'estimated_monthly_usd' => sprintf('%.2f', $analysis->{bandwidth_cost}->{estimated_monthly_usd}),
+      'estimated_annual_usd' => sprintf('%.2f', $analysis->{bandwidth_cost}->{estimated_annual_usd}),
+    },
+
+    'latency_cost' => {
+      'initialization_ms' => $analysis->{latency_cost}->{initialization_ms},
+      'cost_per_cold_start' => $analysis->{latency_cost}->{cost_per_cold_start},
+    },
+
+    'break_even_analysis' => {
+      'keep_local_monthly' => sprintf('%.2f', $analysis->{break_even_analysis}->{keep_local_monthly}),
+      'fetch_ondemand_monthly' => sprintf('%.2f', $analysis->{break_even_analysis}->{fetch_ondemand_monthly}),
+      'monthly_delta' => sprintf('%.2f', $analysis->{break_even_analysis}->{delta_monthly}),
+      'recommendation' => $analysis->{break_even_analysis}->{recommendation},
+    },
+
+    'usage_frequency' => {
+      'per_month' => sprintf('%.2f', $analysis->{usage_frequency}->{per_month}),
+      'per_day' => sprintf('%.2f', $analysis->{usage_frequency}->{per_day}),
+    },
+  };
+}
+
+# Entry point
+{
+  my $cmd = shift @ARG;
+  my @args = @ARG;
+
+  if ($cmd eq 'cost_analysis' || $cmd eq 'cost') {
+    return execute_cost_analysis(@args);
+  }
+
+  return {
+    'success' => FALSE,
+    'error' => "unknown command: $cmd",
+  };
+};
+
+#,,,.,...,.,,,...,,.,,...,,,.,.,.,,,,,,..,,.,,..,,...,.,.,.,,,,.,,.,,,,..,..,,
+#5W5DTZ4IQCITXOG6HTKQLIV3HG6WRLXOXCJJUGFYWJ54VKARD4E4VWPUKSPEZ3C3XKWKEOYLN2BYA
+#\\\|O3NDWYEROSFQMU6WK3XMKMWMFSJ5ZJMMCMEZIOGKHVIZRFPXPOV \ / AMOS7 \ YOURUM ::
+#\[7]SHVKIAVIVCME6UDQRS2MBKTSGGKMMFA42BRTOIIXQVZBP63XJABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

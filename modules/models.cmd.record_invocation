@@ -1,0 +1,73 @@
+## [:< ##
+
+# name = models.cmd.record_invocation
+# descr = Record a model invocation for statistics tracking
+
+# Command: models.record_invocation <amos> <context> <json_data>
+# JSON data: { success, failure_mode, latency_ms, tokens_processed, etc }
+# Returns: { recorded, timestamp }
+
+use JSON::PP;
+
+sub execute_record_invocation {
+  my ($model_amos, $context, $data_json) = @_;
+
+  return {
+    'success' => FALSE,
+    'error' => 'model AMOS and context required',
+  } unless $model_amos && $context;
+
+  # Parse invocation data
+  my $invocation_data = {};
+  if ($data_json) {
+    eval {
+      $invocation_data = decode_json($data_json);
+    };
+    if ($@) {
+      return {
+        'success' => FALSE,
+        'error' => "invalid invocation data JSON: $@",
+      };
+    }
+  }
+
+  # Load statistics tracker
+  my $stats_funcs = <[models.statistics.invocation_tracking]>;
+
+  # Record invocation
+  my $result = $stats_funcs->{record_invocation}->(
+    $model_amos,
+    $context,
+    $invocation_data
+  );
+
+  return {
+    'success' => 1,
+    'model_amos' => $model_amos,
+    'context' => $context,
+    'recorded' => 1,
+    'timestamp' => $result->{timestamp},
+    'date' => $result->{date},
+  };
+}
+
+# Entry point
+{
+  my $cmd = shift @ARG;
+  my @args = @ARG;
+
+  if ($cmd eq 'record_invocation' || $cmd eq 'record') {
+    return execute_record_invocation(@args);
+  }
+
+  return {
+    'success' => FALSE,
+    'error' => "unknown command: $cmd",
+  };
+};
+
+#,,..,,,,,,..,,,.,...,,,,,,,,,,.,,,.,,,,.,...,..,,...,.,.,.,.,,,,,,.,,...,...,
+#FQL3O2W3RSZDBHXAUQWUENNEOPZROGDU3CMQUTPXER5NBPHAKNKMJPIB73MXQOHRXFFPVIVH32QH6
+#\\\|HNGVCIZF345HZWRJN6ZAJMAGNWGLYP5NTQGOLX66WAG7GUQQBRB \ / AMOS7 \ YOURUM ::
+#\[7]JQYZTSWP2Q2H5ZBGI6FY6KOBTC74F2ZVKP553MF4SCBEXH77BACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,94 @@
+## [:< ##
+
+# name = models.cmd.recommend
+# descr = Get intelligent model recommendations for a specific context
+
+# Command: models.recommend <context> [constraints_json]
+# Returns: { best_choice, alternatives, reasoning }
+
+use JSON::PP;
+
+sub execute_recommend {
+  my ($context, $constraints_json) = @_;
+
+  return {
+    'success' => FALSE,
+    'error' => 'context name required',
+  } unless $context;
+
+  # Parse constraints if provided
+  my $constraints = {};
+  if ($constraints_json) {
+    eval {
+      $constraints = decode_json($constraints_json);
+    };
+    if ($@) {
+      return {
+        'success' => FALSE,
+        'error' => "invalid constraints JSON: $@",
+      };
+    }
+  }
+
+  # Load registry
+  my $registry_funcs = <[models.registry.init]>;
+  my $all_models = $registry_funcs->{list_all_models]->();
+
+  # Load recommendation engine
+  my $rec_engine = <[models.decision.recommendation_engine]>;
+
+  # Get recommendations
+  my $recommendations = $rec_engine->{get_model_recommendations}->(
+    $context,
+    $constraints,
+    $all_models
+  );
+
+  return {
+    'success' => 1,
+    'context' => $context,
+    'best_choice' => {
+      'amos' => $recommendations->{best_choice}->{model_amos},
+      'name' => $recommendations->{best_choice}->{name},
+      'success_rate' => $recommendations->{best_choice}->{success_rate},
+      'margin' => sprintf('%.1f%%', ($recommendations->{best_choice}->{margin_vs_alt} // 0) * 100),
+      'available_locally' => $recommendations->{best_choice}->{available_locally},
+      'initialization_ms' => $recommendations->{best_choice}->{initialization_ms},
+      'reasoning' => $recommendations->{best_choice}->{reasoning},
+    },
+    'alternatives' => [
+      map {
+        {
+          'amos' => $_->{model_amos},
+          'name' => $_->{name},
+          'success_rate' => $_->{success_rate},
+          'margin_vs_best' => sprintf('%.1f%%', ($_->{margin_vs_alt} // 0) * 100),
+          'available_locally' => $_->{available_locally},
+          'reasoning' => $_->{reasoning},
+        }
+      } @{$recommendations->{alternatives} // []}
+    ],
+    'overall_reasoning' => $recommendations->{reasoning},
+  };
+}
+
+# Entry point
+{
+  my $cmd = shift @ARG;
+  my @args = @ARG;
+
+  if ($cmd eq 'recommend' || $cmd eq 'rec') {
+    return execute_recommend(@args);
+  }
+
+  return {
+    'success' => FALSE,
+    'error' => "unknown command: $cmd",
+  };
+};
+
+#,,,,,...,,,,,,,.,,,.,,,,,,..,,,.,..,,.,,,.,,,..,,...,...,.,,,,,.,,.,,,,,,..,,
+#3KKWKRSKY5EWZ4L3R5IVHLFBS7IPEFWTCIV5P33EMY5FZTB4ENRS45YRHRPW37UTJXF54I4QIXDXG
+#\\\|XJM5TUV6FGAWCEJT7WUOIJP56UCSPURFZ6HYIM76QMGQ27PKDWU \ / AMOS7 \ YOURUM ::
+#\[7]YWWUMPYPKZGTEPQFWV5IPVGKMPWDEYQTM7CSNTDI2ADXNU6PFWAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
