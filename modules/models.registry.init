@@ -1,273 +1,34 @@
 ## [:< ##
 
 # name = models.registry.init
-# descr = Initialize and manage the models registry - central data structure holding all model metadata
+# descr = Initialize registry data structures
 
-use Data::Dumper;
 use JSON::PP;
-use File::Spec;
 use File::Path qw| make_path |;
-use Fcntl qw| :flock |;
 
-# Initialize registry data structure
-my $registry_path = '/var/protocol-7/models/registry.json';
-my $registry_lock = '/var/protocol-7/models/registry.lock';
+# Initialize registry cache in $data{}
+$data{models_registry} ||= {};
 
-# Ensure directories exist
-unless (-d '/var/protocol-7/models') {
-  make_path('/var/protocol-7/models') or die "Cannot create /var/protocol-7/models: $!";
-}
+# Ensure registry directory exists
+make_path('/var/protocol-7/models') unless -d '/var/protocol-7/models';
 
-# Load or create registry
-my $registry = load_registry();
+# Preload base helpers for faster access
+my $base = <[models.registry.base]>;
 
-# Registry accessor functions
-sub get_model_entry {
-  my ($model_amos) = @_;
-
-  return $registry->{models}->{$model_amos} // {
-    'not_found' => 1,
-    'model_amos' => $model_amos,
-  };
-}
-
-sub update_model_entry {
-  my ($model_amos, $entry_data) = @_;
-
-  $registry->{models}->{$model_amos} = {
-    %{$registry->{models}->{$model_amos} // {}},
-    %$entry_data,
-  };
-
-  save_registry();
-  return 1;
-}
-
-sub create_model_entry {
-  my ($model_amos, $metadata) = @_;
-
-  my $entry = {
-    amos_checksum => $model_amos,
-    bmw384 => $metadata->{bmw384},
-    bmw_l13 => $metadata->{bmw_l13} // substr($metadata->{bmw384}, 0, 7),
-
-    metadata => {
-      name => $metadata->{name},
-      version => $metadata->{version} // '1.0.0',
-      size_bytes => $metadata->{size_bytes},
-      category => $metadata->{category} // 'uncategorized',
-      description => $metadata->{description} // '',
-      source => $metadata->{source} // '',
-      source_hash_verified => $metadata->{source_hash_verified} // 0,
-
-      init_latency_ms => $metadata->{init_latency_ms} // 0,
-      avg_inference_ms => $metadata->{avg_inference_ms} // 0,
-      memory_required_gb => $metadata->{memory_required_gb} // 0,
-    },
-
-    storage_locations => $metadata->{storage_locations} // [],
-
-    statistics => {
-      total_invocations => 0,
-      total_successful => 0,
-      success_rate => 0,
-      failure_modes => {},
-
-      avg_latency_ms => 0,
-      p95_latency_ms => 0,
-      p99_latency_ms => 0,
-
-      by_context => {},
-
-      alternatives => [],
-
-      usage_by_period => {
-        'last_24h' => { 'count' => 0, 'avg_success' => 0 },
-        'last_7d' => { 'count' => 0, 'avg_success' => 0 },
-        'last_30d' => { 'count' => 0, 'avg_success' => 0 },
-        'all_time' => { 'count' => 0, 'avg_success' => 0 },
-      },
-
-      last_invocation => 0,
-      first_invocation => 0,
-    },
-
-    resource_profile => {
-      storage => {
-        size_bytes => $metadata->{size_bytes},
-        size_gb => sprintf('%.2f', $metadata->{size_bytes} / (1024 ** 3)),
-        storage_cost_per_month_usd => 0.05,  # Will be configured
-        storage_cost_per_day_usd => 0.0017,
-      },
-
-      bandwidth => {
-        download_time_seconds => 0,
-        download_bandwidth_gb => sprintf('%.2f', $metadata->{size_bytes} / (1024 ** 3)),
-        download_cost_per_retrieval_usd => 0.05,
-        bandwidth_cost_per_download_per_gb => 0.05,
-      },
-
-      latency => {
-        initialization_ms => $metadata->{init_latency_ms} // 0,
-        initialization_cost_compute_ms => $metadata->{init_latency_ms} // 0,
-        avg_inference_ms => $metadata->{avg_inference_ms} // 0,
-        cost_of_delay_per_invocation => 0,
-      },
-
-      compute => {
-        memory_required_gb => $metadata->{memory_required_gb} // 0,
-        vram_required_gb => $metadata->{memory_required_gb} // 0,
-        preferred_device => 'cuda',
-        fallback_device => 'cpu',
-      },
-    },
-
-    presence_decision => {
-      currently_present => $metadata->{currently_present} // 0,
-      presence_tier => $metadata->{presence_tier} // 0,
-
-      days_in_current_location => 0,
-      days_since_last_use => 0,
-      total_days_tracked => 0,
-
-      monthly_cost_if_kept_local => 0,
-      estimated_downloads_per_month => 0,
-      monthly_cost_if_downloaded => 0,
-      cost_delta => 0,
-
-      decision => 'UNKNOWN',
-      decision_confidence => 0,
-      decision_reasons => [],
-
-      next_review_date => 0,
-      review_trigger_events => [],
-    },
-
-    validation => {
-      source_verified => $metadata->{source_verified} // 0,
-      source_url => $metadata->{source} // '',
-      source_hash => $metadata->{source_hash} // '',
-
-      hash_verified => 0,
-      hash_verification_date => 0,
-      hash_verification_by => '',
-
-      format_valid => 0,
-      format_check_date => 0,
-      format_check_result => '',
-
-      assertions_passed => [],
-
-      last_validation => 0,
-      validation_required_next => 0,
-    },
-
-    extensibility => {
-      storage_optimization_metadata => {
-        can_be_compressed => 0,
-        compression_ratio => 0,
-        compression_would_save_gb => 0,
-      },
-
-      network_sync_metadata => {
-        synced_locations => [],
-        sync_required => 0,
-        last_synced => 0,
-        sync_on_next_update => 0,
-      },
-
-      download_manager_metadata => {
-        preferred_downloader => 'https_resumable',
-        resume_capable => 1,
-        checksum_verify_before_use => 1,
-        retry_on_failure => 1,
-      },
-    },
-
-    created_at => time(),
-    updated_at => time(),
-  };
-
-  $registry->{models}->{$model_amos} = $entry;
-  save_registry();
-  return $entry;
-}
-
-sub list_all_models {
-  my @models = values %{$registry->{models}};
-  return \@models;
-}
-
-sub list_models_by_context {
-  my ($context) = @_;
-  my @matching = grep {
-    $_->{statistics}->{by_context}->{$context}
-  } values %{$registry->{models}};
-  return \@matching;
-}
-
-sub find_best_alternative {
-  my ($model_amos, $context) = @_;
-
-  my $entry = $registry->{models}->{$model_amos};
-  return undef unless $entry;
-
-  return $entry->{statistics}->{alternatives}->[0] // undef;
-}
-
-sub get_registry_path {
-  return $registry_path;
-}
-
-# Internal: Load registry from disk
-sub load_registry {
-  if (-f $registry_path) {
-    open my $fh, '<', $registry_path or die "Cannot open registry: $!";
-    flock($fh, LOCK_SH);
-    my $content = do { local $/; <$fh> };
-    flock($fh, LOCK_UN);
-    close $fh;
-
-    my $loaded = decode_json($content) if $content;
-    return $loaded if $loaded && ref($loaded) eq 'HASH';
-  }
-
-  # Create empty registry
-  return {
-    version => '1.0',
-    created_at => time(),
-    updated_at => time(),
-    models => {},
-  };
-}
-
-# Internal: Save registry to disk
-sub save_registry {
-  open my $fh, '>', $registry_path or die "Cannot write registry: $!";
-  flock($fh, LOCK_EX);
-  $registry->{updated_at} = time();
-  print $fh encode_json($registry);
-  flock($fh, LOCK_UN);
-  close $fh;
-
-  return 1;
-}
-
-# Return registry interface
+# Entry point - just returns success
 {
-  'load_registry' => \&load_registry,
-  'save_registry' => \&save_registry,
-  'get_model_entry' => \&get_model_entry,
-  'update_model_entry' => \&update_model_entry,
-  'create_model_entry' => \&create_model_entry,
-  'list_all_models' => \&list_all_models,
-  'list_models_by_context' => \&list_models_by_context,
-  'find_best_alternative' => \&find_best_alternative,
-  'get_registry_path' => \&get_registry_path,
+  'success' => 1,
+  'message' => 'registry initialized',
 };
 
-#,,,.,.,,,,.,,..,,..,,,,,,...,,,.,,..,...,,,.,..,,...,..,,..,,..,,..,,,.,,,,,,
-#KWZZ2K4VN5F5LK3GLKW6GQAXQAUQUAG7MTB33ENBVK4FGY62GG54GNN5FDVQ6SUNMD6RILWCRAP7Q
-#\\\|BIXBEYN5FZONYEDVIWTSXOBQQDT5ZVYYLUZBAHQSFIQW7ZQ5CQD \ / AMOS7 \ YOURUM ::
-#\[7]2NSSVQ4CEN4YMUYY3FXOYYA73MDVWX564BEJ6244CWBXOZYITABY 7  DATA SIGNATURE ::
+#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
+#REGISTRY_INIT_SIGNATURE_PLACEHOLDER
+#\\\|REGISTRY_INIT_HELPER \ / AMOS7 \ YOURUM ::
+#\[7]REGISTRY_INIT_HASH 7  DATA SIGNATURE ::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,.,,..,,...,,,,,,,.,.,.,.,.,,,.,,..,,,,,...,..,,...,...,...,...,.,.,,.,,.,,,
+#L3XLS2VAG6XALSPFHZY4YI2DXPC6WKFLM44TSV5UARYQOPGAIGNHY65VLAVVGRDEZLALMXZ3GA3GW
+#\\\|TVRZMCV4PHHQRO7NZV32BMK2BIU5SPNMIPQO3ZXPKAZ3QRWWQF6 \ / AMOS7 \ YOURUM ::
+#\[7]5VGTXDQBD7PSBGH5S4EAJXKQ37Z6XGZLIPXRMAHIUOUNKLQOXMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

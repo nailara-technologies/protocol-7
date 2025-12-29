@@ -1,0 +1,50 @@
+## [:< ##
+
+# name = models.cmd.reload
+# descr = Handle reload command - reload configuration and registry
+
+sub execute_reload {
+  # Clear caches
+  $data{registry_cache} = {};
+  $data{cache_last_updated} = 0;
+
+  # Log reload
+  push @{$data{operation_log}}, {
+    timestamp => time(),
+    action => 'reload',
+    status => 'completed',
+    details => 'configuration and registry reloaded',
+  };
+
+  return {
+    'success' => TRUE,
+    'reloaded' => 1,
+    'timestamp' => time(),
+  };
+}
+
+# Entry point
+{
+  my $cmd = shift @ARG;
+
+  if ($cmd eq 'reload') {
+    return execute_reload();
+  }
+
+  return {
+    'success' => FALSE,
+    'error' => "unknown command: $cmd",
+  };
+};
+
+#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
+#RELOAD_CMD_SIGNATURE_PLACEHOLDER
+#\\\|RELOAD_CMD_HELPER \ / AMOS7 \ YOURUM ::
+#\[7]RELOAD_CMD_HASH 7  DATA SIGNATURE ::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,.,,.,,,,,.,,,.,...,,,,,...,..,,,,,,,,.,,.,,..,,...,...,..,,.,.,..,,.,,,,,.,
+#5BL47TURMGNFIQYUDVJ2O3NZ3CRKTUEEQQ6ADQNHO2ZEJJO2RTI56QXG74GZB4GVRLECSRZPXGGFO
+#\\\|AKNURYMUT3VD63Q2XZWG74NZLYNA5FUIIAM3GVJ3SPGGLFGLKOU \ / AMOS7 \ YOURUM ::
+#\[7]OHMQLDUL2MUTKM5NNNYJNW3OSSFQ457NFWBQVUKCFH36UWEGSOAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

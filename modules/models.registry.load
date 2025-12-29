@@ -1,0 +1,44 @@
+## [:< ##
+
+# name = models.registry.load
+# descr = Load registry from disk or return empty registry
+
+use JSON::PP;
+use Fcntl qw| :flock |;
+
+# Initialize registry path in $data{} for persistence
+$data{registry_path} ||= '/var/protocol-7/models/registry.json';
+
+sub load_registry {
+  my $path = $data{registry_path};
+  if (-f $path) {
+    open my $fh, '<', $path or goto EMPTY;
+    flock($fh, 1);  # LOCK_SH
+    my $content = do { local $/; <$fh> };
+    flock($fh, 8);  # LOCK_UN
+    close $fh;
+
+    my $loaded = decode_json($content) if $content;
+    return $loaded if $loaded && ref($loaded) eq 'HASH';
+  }
+
+  EMPTY:
+  return <[models.registry.empty]>->{'create_empty_registry'}->();
+}
+
+# Return registry interface
+{
+  'load_registry' => \&load_registry,
+};
+
+#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
+#REGISTRY_LOAD_SIGNATURE_PLACEHOLDER
+#\\\|REGISTRY_LOAD_HELPER \ / AMOS7 \ YOURUM ::
+#\[7]REGISTRY_LOAD_HASH 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,.,,,..,,..,...,..,,.,.,.,,,...,.,.,,,.,,.,,..,,...,..,,...,.,.,.,,,,.,,,,,,
+#M6OGRE2NAEOJBI6O6LPFSWT7V5SOGWXPVJJM5B35TCREMBAHNNQMSV3APS3TQXZRGOFJTKJMHK754
+#\\\|DDXPE6EQHJJWAAN7WS5PUWZ5FMWGFWDNERRIO2U4ESJMSHRGLCX \ / AMOS7 \ YOURUM ::
+#\[7]JQEI67CR3X3SX4P3COWDA235IRVIONCAN3X67KZCCQGXJWXKLQDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

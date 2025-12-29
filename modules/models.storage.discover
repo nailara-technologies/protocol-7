@@ -1,0 +1,58 @@
+## [:< ##
+
+# name = models.storage.discover
+# descr = List all models across all tiers
+
+# List all models across all tiers
+sub discover_models {
+  my @discovered;
+  my %seen;
+
+  # Scan each tier
+  my $tiers = $data{tiers};
+  foreach my $tier (sort keys %$tiers) {
+    my $tier_def = $tiers->{$tier};
+    my $base = $tier_def->{base_path};
+
+    next unless $base && -d $base;
+
+    opendir(my $dh, $base) or next;
+    while (my $file = readdir($dh)) {
+      next if $file =~ /^\\./;
+      next unless $file =~ /\\.gguf$/i || $file =~ /\\.meta$/;
+
+      my $model_amos = $file;
+      $model_amos =~ s/\\.(gguf|meta)$//i;
+
+      next if $seen{$model_amos}++;
+
+      push @discovered, {
+        amos => $model_amos,
+        filename => $file,
+        tier => $tier,
+        path => File::Spec->catfile($base, $file),
+      };
+    }
+    closedir($dh);
+  }
+
+  return \\@discovered;
+}
+
+# Entry point
+{
+  my @args = @ARG;
+  return discover_models(@args);
+};
+
+#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
+#STORAGE_DISCOVER_SIGNATURE_PLACEHOLDER
+#\\\|STORAGE_DISCOVER_HELPER \ / AMOS7 \ YOURUM ::
+#\[7]STORAGE_DISCOVER_HASH 7  DATA SIGNATURE ::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,.,,,.,,..,,..,.,,,,.,,...,,,,,,..,..,,.,,,..,,...,...,...,..,,,,.,...,..,,
+#LYNC745SNVCKCVCHCDINDOB3J4FHVPZQSSK6UMZKB6VXJ66SSKHGHJE6J5FDNCQTF7W6MZ5PJLYKE
+#\\\|J7VYWL2DRMO6JRUFR7ZK7SZXXEP4AALTYLOITY7BUKL2MJGB3BY \ / AMOS7 \ YOURUM ::
+#\[7]ZQ3KN5M7VKRJSSXSVD2G7FXIQUSLO2RKQYEUMZ6YGSW5LQ7TEQCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

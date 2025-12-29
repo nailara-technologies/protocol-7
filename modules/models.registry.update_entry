@@ -1,0 +1,36 @@
+## [:< ##
+
+# name = models.registry.update_entry
+# descr = Update registry entry for a model
+
+sub update_model_entry {
+  my ($model_amos, $entry_data) = @_;
+  my $base = <[models.registry.base]>;
+  my $registry = $base->{get_registry}->();
+
+  $registry->{models}->{$model_amos} = {
+    %{$registry->{models}->{$model_amos} // {}},
+    %$entry_data,
+  };
+
+  $base->{save_registry_internal}->();
+  return 1;
+}
+
+# Entry point
+{
+  my @args = @ARG;
+  return update_model_entry(@args);
+};
+
+#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
+#REGISTRY_UPDATE_ENTRY_SIGNATURE_PLACEHOLDER
+#\\\|REGISTRY_UPDATE_ENTRY_HELPER \ / AMOS7 \ YOURUM ::
+#\[7]REGISTRY_UPDATE_ENTRY_HASH 7  DATA SIGNATURE ::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,.,...,,,.,,..,.,.,,.,,,,,,..,,,,,,.,.,,.,,..,,...,..,,..,,..,,.,,,..,,.,.,
+#6WHQQSMMZ6RRF3O3PDYSE3AY4QBQNRPMFV3BKQG2VXEQYWIVQOKGURD22S564EPOINA3LZXCRLGOK
+#\\\|7BFIPBLBSEEYQNFEMQSCV43FF345TVFINRGLYFXFL4XRR25DHGF \ / AMOS7 \ YOURUM ::
+#\[7]YFZ5NH6FDH2IDUFFXR3GKHTVVY2MTG6B3NOUZG36EIILIEP6PABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,53 @@
+## [:< ##
+
+# name = models.storage.check_space
+# descr = Check available space in tier
+
+# Check available space in tier
+sub check_tier_space {
+  my ($tier) = @_;
+
+  my $base = $data{tiers}->{$tier}->{base_path};
+  return undef unless $base && -d $base;
+
+  # Simple check - count files and estimate space
+  my @files;
+  opendir(my $dh, $base) or return undef;
+  while (my $file = readdir($dh)) {
+    next if $file =~ /^\\./;
+    push @files, {
+      'name' => $file,
+      'size' => -s File::Spec->catfile($base, $file),
+    };
+  }
+  closedir($dh);
+
+  my $total_size = 0;
+  $total_size += $_->{size} for @files;
+
+  return {
+    'tier' => $tier,
+    'path' => $base,
+    'file_count' => scalar(@files),
+    'total_size_bytes' => $total_size,
+    'total_size_gb' => sprintf('%.2f', $total_size / (1024 ** 3)),
+  };
+}
+
+# Entry point
+{
+  my @args = @ARG;
+  return check_tier_space(@args);
+};
+
+#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
+#STORAGE_CHECK_SPACE_SIGNATURE_PLACEHOLDER
+#\\\|STORAGE_CHECK_SPACE_HELPER \ / AMOS7 \ YOURUM ::
+#\[7]STORAGE_CHECK_SPACE_HASH 7  DATA SIGNATURE ::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,.,.,,,,..,,..,...,,,.,..,,..,,.,,,,..,.,,,..,,...,...,..,,.,,,,..,.,.,,,,,
+#JRLXMZZWDSUQRTAEQYVIRMT7UIPH7PJ624WY6XTFLQKXCE6FGTWOCKYOQHLDGAHDA6RR7BBKFPRMM
+#\\\|IBBX5CK42KRQUEQMQ5TRMVBQXW2P3RIOMPPOTDHC65YI7GTC6R5 \ / AMOS7 \ YOURUM ::
+#\[7]V3YJR5727COTY5TOP5HXSYDHOJ4J5ZNYWJ5JJAXN5OEP6DD2IEAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

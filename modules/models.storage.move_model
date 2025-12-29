@@ -1,0 +1,76 @@
+## [:< ##
+
+# name = models.storage.move_model
+# descr = Move model between storage tiers
+
+use File::Copy qw| copy |;
+use File::Path qw| make_path |;
+use Digest::SHA qw| sha384_hex |;
+
+# Move model between tiers
+sub move_model {
+  my ($model_amos, $from_tier, $to_tier, $verify_hash) = @_;
+
+  my $storage_funcs = <[models.storage.get_tier_path]>;
+  my $from_path = $storage_funcs->($model_amos, $from_tier);
+  my $to_path = $storage_funcs->($model_amos, $to_tier);
+
+  return {
+    'success' => 0,
+    'error' => "Source path undefined",
+  } unless $from_path && -f $from_path;
+
+  # Create target directory if needed
+  my $to_dir = substr($to_path, 0, rindex($to_path, '/'));
+  make_path($to_dir) unless -d $to_dir;
+
+  # Copy file
+  copy($from_path, $to_path) or return {
+    'success' => 0,
+    'error' => "Copy failed: $!",
+  };
+
+  # Verify hash if requested
+  if ($verify_hash) {
+    open my $fh, '<', $to_path or return {
+      'success' => 0,
+      'error' => "Cannot verify hash",
+    };
+    my $hash = sha384_hex(do { local $/; <$fh> });
+    close $fh;
+
+    return {
+      'success' => 0,
+      'error' => "Hash mismatch after move",
+    } if $hash ne $verify_hash;
+  }
+
+  # Remove source (only if not Tier 1)
+  unlink($from_path) unless $from_tier == 1;
+
+  return {
+    'success' => 1,
+    'from_path' => $from_path,
+    'to_path' => $to_path,
+    'from_tier' => $from_tier,
+    'to_tier' => $to_tier,
+  };
+}
+
+# Entry point
+{
+  my @args = @ARG;
+  return move_model(@args);
+};
+
+#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
+#STORAGE_MOVE_MODEL_SIGNATURE_PLACEHOLDER
+#\\\|STORAGE_MOVE_MODEL_HELPER \ / AMOS7 \ YOURUM ::
+#\[7]STORAGE_MOVE_MODEL_HASH 7  DATA SIGNATURE ::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,..,,,.,...,,.,,,..,...,...,.,,,..,,,.,,.,.,..,,...,...,.,.,,..,.,,,..,,...,
+#C3PHOTKUS3HNBJK62GTVUW5IIHVHCLGB33HGKAWXZIMAPFHLCXTM6ROFMJLDB7DY7Q5KFJBVQUQ4G
+#\\\|L24VULVQDMGOWXXRWKZYGNTAUOLI7NJMNRSSF5RL7PACKNIP5BA \ / AMOS7 \ YOURUM ::
+#\[7]CRJT4JVFARAIVXTHXNCZGVSCK47OVJJOSLBBSOXPYKQGXQ53HAAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

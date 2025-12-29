@@ -14,9 +14,9 @@ sub execute_get_model {
     'error' => 'model AMOS checksum required',
   } unless $model_amos;
 
-  # Load registry
-  my $registry_funcs = <[models.registry.init]>;
-  my $model_entry = $registry_funcs->{get_model_entry}->($model_amos);
+  # Get model entry
+  my $registry_funcs = <[models.registry.get_entry]>;
+  my $model_entry = $registry_funcs->($model_amos);
 
   return {
     'success' => FALSE,
@@ -24,11 +24,8 @@ sub execute_get_model {
   } if $model_entry->{not_found};
 
   # Resolve through fallback chain
-  my $storage_funcs = <[models.storage.tier_management]>;
-  my $resolved = $storage_funcs->{resolve_model_path}->(
-    $model_amos,
-    $model_entry->{storage_locations}
-  );
+  my $storage_funcs = <[models.storage.resolve_model]>;
+  my $resolved = $storage_funcs->($model_amos, $model_entry->{storage_locations});
 
   return {
     'success' => 1,
@@ -57,8 +54,8 @@ sub execute_get_model {
   };
 };
 
-#,,,,,..,,,,,,..,,,..,..,,,,.,...,.,.,,,.,,.,,..,,...,...,..,,..,,,,.,..,,,..,
-#3F2KTXXGWW3FKYRPSB2P2JT22SXDXW2QFEJJFQXNGMD7NI2XB4BU46A65525SL7TT2TRCQ7SNXNDU
-#\\\|GYXHPWNGLI2UEULFAHB26ZE7PZWWPLMPYXAZD6KOLEFHGELL7BI \ / AMOS7 \ YOURUM ::
-#\[7]NWR5Y74MKAO4U364CAPPTPJWHAUU4PA6DUNV5B2R6KJ7LCNYE4DI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,..,,..,..,,,.,,,,.,,,.,.,,,,.,,..,,...,...,.,.,...,,,,,,..,.,.,
+#JII7RPQ2FTY6HXKQJMSQMJ7IHBLJMNGRDTTWCKFGJMCOLNOTL4FA2JRDTVBHGJAU6VB6B725K3M7A
+#\\\|6AO6OEXVS5GS5TKFJRQRCV5DGQFRSKXCTA3Q2IZ45KGJH7J5U3B \ / AMOS7 \ YOURUM ::
+#\[7]ZD7UHVHW3OTP37RNER7ESBFAIVJORVTAKHLO6MHJI5BHSUNRACAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

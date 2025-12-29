@@ -9,7 +9,8 @@ use List::Util qw| max |;
 sub get_model_recommendations {
   my ($context, $constraints, $all_models) = @_;
 
-  my @candidates = find_models_for_context($context, $all_models);
+  my $base = <[models.decision.recommendation_base]>;
+  my @candidates = $base->{find_models_for_context}->($context, $all_models);
 
   return {
     'context' => $context,
@@ -18,7 +19,6 @@ sub get_model_recommendations {
     'error' => 'No models found for context',
   } unless @candidates;
 
-  # Score each candidate
   my @scored = map {
     my $model = $_;
     my $stats = $model->{statistics}->{by_context}->{$context} // {};
@@ -32,217 +32,36 @@ sub get_model_recommendations {
       available_locally => $model->{presence_decision}->{currently_present} // 0,
       initialization_ms => $model->{metadata}->{init_latency_ms} // 0,
       avg_inference_ms => $model->{metadata}->{avg_inference_ms} // 0,
-
-      # Calculate composite score
-      composite_score => calculate_composite_score($model, $context, $constraints),
-
-      # Generate reasoning
-      reasoning => generate_reasoning($model, $context),
+      composite_score => $base->{calculate_composite_score}->($model, $context, $constraints),
+      reasoning => $base->{generate_reasoning}->($model, $context),
     };
-
     $score;
   } @candidates;
 
-  # Sort by composite score
   @scored = sort { $b->{composite_score} <=> $a->{composite_score} } @scored;
-
-  # Apply constraints filtering
-  @scored = filter_by_constraints(@scored, $constraints);
-
-  # Return top N recommendations
-  my $top_count = 5;
-  my @top = splice(@scored, 0, $top_count);
+  @scored = $base->{filter_by_constraints}->(\@scored, $constraints);
 
   return {
     'context' => $context,
-    'recommendations' => \@top,
-    'best_choice' => $top[0],
-    'alternatives' => [splice(@top, 1)],
-    'reasoning' => {
-      'primary_winner' => explain_winner($top[0]),
-      'why_not_others' => explain_alternatives(@{[splice(@top, 1)]}),
-    },
+    'recommendations' => \@scored,
+    'best_choice' => $scored[0] // undef,
+    'alternatives' => [@scored[1..$#scored]],
+    'count' => scalar(@scored),
   };
 }
 
-# Calculate composite score for a model in context
-sub calculate_composite_score {
-  my ($model, $context, $constraints) = @_;
-
-  my $stats = $model->{statistics}->{by_context}->{$context} // {};
-  my $success = $stats->{success_rate} // 0;
-  my $margin = $stats->{margin_vs_best_alt} // 0;
-  my $available = $model->{presence_decision}->{currently_present} ? 1 : 0;
-
-  # Weighted scoring
-  my $success_weight = 0.50;        # Success matters most
-  my $margin_weight = 0.20;         # But distinctiveness matters
-  my $availability_weight = 0.15;   # Local availability helps
-  my $latency_weight = 0.15;        # Latency matters for some contexts
-
-  # Latency factor (1 second init = 0.5 score reduction)
-  my $init_latency = $model->{metadata}->{init_latency_ms} // 1000;
-  my $latency_factor = max(0.1, 1.0 / (1.0 + $init_latency / 2000));
-
-  my $score = ($success * $success_weight) +
-              (max(0, $margin) * $margin_weight) +
-              ($available * $availability_weight) +
-              ($latency_factor * $latency_weight);
-
-  return $score;
-}
-
-# Find all models that can work in a context
-sub find_models_for_context {
-  my ($context, $all_models) = @_;
-
-  return [] unless $all_models && ref($all_models) eq 'ARRAY';
-
-  my @candidates = grep {
-    my $model = $_;
-    # Check if model has statistics for this context
-    exists $model->{statistics}->{by_context}->{$context} ||
-    $model->{metadata}->{category} eq 'general-reasoning'  # Fallback category
-  } @$all_models;
-
-  return \@candidates;
-}
-
-# Apply constraint filtering
-sub filter_by_constraints {
-  my (@scored) = @_;
-
-  my $constraints = pop @scored;  # Last arg is constraints hash
-  @scored = @_;
-
-  return @scored unless $constraints && ref($constraints) eq 'HASH';
-
-  my @filtered = @scored;
-
-  # Filter by minimum success rate
-  if (defined $constraints->{min_success_rate}) {
-    @filtered = grep {
-      $_->{success_rate} >= $constraints->{min_success_rate}
-    } @filtered;
-  }
-
-  # Filter by minimum margin
-  if (defined $constraints->{min_margin}) {
-    @filtered = grep {
-      $_->{margin_vs_alt} >= $constraints->{min_margin}
-    } @filtered;
-  }
-
-  # Filter by maximum latency
-  if (defined $constraints->{max_latency_ms}) {
-    @filtered = grep {
-      $_->{initialization_ms} <= $constraints->{max_latency_ms}
-    } @filtered;
-  }
-
-  # Filter by availability
-  if ($constraints->{must_be_available}) {
-    @filtered = grep {
-      $_->{available_locally}
-    } @filtered;
-  }
-
-  # Filter by memory requirement
-  if (defined $constraints->{max_memory_gb}) {
-    @filtered = grep {
-      $_->{memory_required_gb} <= $constraints->{max_memory_gb}
-    } @filtered;
-  }
-
-  return @filtered;
-}
-
-# Generate explanatory reasoning for a model
-sub generate_reasoning {
-  my ($model, $context) = @_;
-
-  my $stats = $model->{statistics}->{by_context}->{$context} // {};
-  my @reasons;
-
-  # Success rate reasoning
-  if ($stats->{success_rate} && $stats->{success_rate} > 0.95) {
-    push @reasons, sprintf('very high success: %.1f%%', $stats->{success_rate} * 100);
-  } elsif ($stats->{success_rate} && $stats->{success_rate} > 0.90) {
-    push @reasons, sprintf('high success: %.1f%%', $stats->{success_rate} * 100);
-  } elsif ($stats->{success_rate}) {
-    push @reasons, sprintf('success: %.1f%%', $stats->{success_rate} * 100);
-  }
-
-  # Margin reasoning
-  if ($stats->{margin_vs_best_alt} && $stats->{margin_vs_best_alt} > 0.15) {
-    push @reasons, sprintf('strong margin over alternatives: +%.1f%%', $stats->{margin_vs_best_alt} * 100);
-  } elsif ($stats->{margin_vs_best_alt} && $stats->{margin_vs_best_alt} > 0) {
-    push @reasons, sprintf('margin over alternatives: +%.1f%%', $stats->{margin_vs_best_alt} * 100);
-  }
-
-  # Availability reasoning
-  if ($model->{presence_decision}->{currently_present}) {
-    push @reasons, 'locally available (no download delay)';
-  } else {
-    push @reasons, 'would require download';
-  }
-
-  # Latency reasoning
-  my $init_latency = $model->{metadata}->{init_latency_ms} // 0;
-  if ($init_latency < 1000) {
-    push @reasons, sprintf('fast initialization: %dms', $init_latency);
-  } elsif ($init_latency > 5000) {
-    push @reasons, sprintf('high initialization latency: %dms', $init_latency);
-  }
-
-  return \@reasons;
-}
-
-# Explain why the best choice won
-sub explain_winner {
-  my ($best_choice) = @_;
-
-  return undef unless $best_choice;
-
-  return {
-    'model' => $best_choice->{name},
-    'success_rate' => $best_choice->{success_rate},
-    'margin' => sprintf('%.1f%%', ($best_choice->{margin_vs_alt} // 0) * 100),
-    'available' => $best_choice->{available_locally} ? 'yes' : 'no',
-    'key_strengths' => $best_choice->{reasoning},
-  };
-}
-
-# Explain why alternatives were not chosen
-sub explain_alternatives {
-  my (@alternatives) = @_;
-
-  my @explanations;
-  foreach my $alt (@alternatives) {
-    push @explanations, {
-      'model' => $alt->{name},
-      'success_rate' => $alt->{success_rate},
-      'vs_winner' => sprintf('%.1f%% lower', abs($alt->{margin_vs_alt} // 0) * 100),
-      'reason_not_chosen' => $alt->{reasoning},
-    };
-  }
-
-  return \@explanations;
-}
-
-# Return recommendation interface
 {
   'get_model_recommendations' => \&get_model_recommendations,
-  'calculate_composite_score' => \&calculate_composite_score,
-  'find_models_for_context' => \&find_models_for_context,
-  'filter_by_constraints' => \&filter_by_constraints,
-  'generate_reasoning' => \&generate_reasoning,
-  'explain_winner' => \&explain_winner,
-  'explain_alternatives' => \&explain_alternatives,
 };
 
-#,,.,,.,.,,,,,,.,,...,,,,,,,,,,..,...,,,,,,,.,..,,...,..,,..,,,.,,,,,,.,,,,,.,
-#DYFESJGC2NWHACCO2BQ4E5A2PKREDSBU4GCB62T2J2VUE7VS3QJSX6JQYEIU2BSUAT5RVTPJR375Y
-#\\\|757MSVCBU3DJ4WMX7QZF2MUPPJ6Y72IWXG2DPDQ4GA7ATEYDFR7 \ / AMOS7 \ YOURUM ::
-#\[7]BOOAYAZ3JP3T6C5TRMAXTKVK44EUNS7CNZJRBGLCSVDOBSSO6MCI 7  DATA SIGNATURE ::
+#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
+#DECISION_REC_ENGINE_SIGNATURE_PLACEHOLDER
+#\\\|DECISION_REC_ENGINE_HELPER \ / AMOS7 \ YOURUM ::
+#\[7]DECISION_REC_ENGINE_HASH 7  DATA SIGNATURE ::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,.,,...,,,.,,,,,...,.,.,,..,.,.,,,,,..,,,..,..,,...,...,...,...,,,.,.,,,,,.,
+#UKTDFN2J27UQB3XPA2EWMQ63IULDOKHLKS5LJZX7BT7TECDO5HEWD4BKOCBJCS27YRPNF2BT7BXRS
+#\\\|66UGAYQX6VVT64UD7UJBLAXNYLQ4KONVSXE2FBEF3CC3MWU4NQO \ / AMOS7 \ YOURUM ::
+#\[7]JZUCALTN3CPKXD62I43ZE7Q6ZUNDUXLPIXGRZKFFZ3HPD6VUHGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
