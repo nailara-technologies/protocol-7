@@ -10,21 +10,26 @@
 
 <crypt.C25519.autocreate-user-key> //= FALSE;
 
-## Determine key owner user: use smart logic for v7 contexts
+## Determine key owner user: use smart logic for privilege dropping contexts
 ## Security: each process keeps its own keys in its own home directory
+## Note: Invalidate key_vars cache at start of init to ensure fresh computation
+##       for this process, since each zenka process has different user context
+delete <crypt.C25519.key_vars>;
+
 my $current_user = $ENV{'USER'} // getpwuid($EUID);
 
-## In v7-started zenka that will drop privileges, use the target drop_privs user.
-## In other contexts (console commands, etc.), use current user.
+## If a drop_privs target user is configured and differs from current user,
+## use the target user for keys. This handles v7-started zenka and other contexts.
+## In other contexts (console, no privilege drop), use current user.
+## Note: Some zenka (e.g., discover) may set this in pre_init before init_code runs
 if (not defined <crypt.C25519.usr_name>) {
-    my $is_v7_started = <[base.zenka.is_v7_started]>->();
     my $drop_target_user = <system.amos-zenka-user> // '';
 
-    if ($is_v7_started and length($drop_target_user) and $drop_target_user ne $current_user) {
-        ## v7 zenka context with different drop target: use drop target for keys
+    if (length($drop_target_user) and $drop_target_user ne $current_user) {
+        ## Will drop privileges to different user: store keys for target user
         <crypt.C25519.usr_name> = $drop_target_user;
     } else {
-        ## Console/other context or no privilege drop: use current user
+        ## No privilege drop configured: use current user
         <crypt.C25519.usr_name> = $current_user;
     }
 }
@@ -234,8 +239,8 @@ const <crypt.C25519.keys.sizetype> => {    ## <- will be read-only [again]. ##
 
 0;
 
-#,,.,,.,.,,.,,...,,..,,..,,,.,,..,.,.,.,.,.,,,..,,...,..,,.,.,..,,..,,.,.,.,,,
-#AKMWS7CDHG27MU2I5NR5262POR4N7N5L2R4UFOBE5AC47U4QRM3JS7VOPR5IM3IW2GOG54IOUCAZA
-#\\\|XIHHQE27C5V5VVN6M2XEHUR4EOLRFOMNH4PN474VKN2XMSZJ6OQ \ / AMOS7 \ YOURUM ::
-#\[7]TQOCACZKELBCFUDTGRF4SUBABYOWOHSM65IMS3T7FLRBTJIK5IDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,..,,,.,,.,.,...,,,.,,,,,..,,,,.,..,,...,...,.,,,.,,,...,...,.,.,
+#27Y34OH54CGXJ5RPHJULZ4NAXWCRMFPB2YL3EFKZEQ6Z26ZHO23XYLX2DP2DXLYLYEY37NJP7FQGW
+#\\\|7QSAZ4ZPCZM4QRE456C7HGAGN2HXLJE25CII7YOAD2H267HZOYU \ / AMOS7 \ YOURUM ::
+#\[7]QXI5VUR3Z6COPYE2U4CF4DQ6A6ZU42GGBNH4IUBL3K272QNGLEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

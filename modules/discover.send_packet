@@ -26,15 +26,20 @@ if ( not defined <discover.mcast.obj.sock>->mcast_dest ) {
     <discover.counter.send_error>++;
     return undef;
 }
-
 my $packet_str    ##  compose signed packet payload string  ##
     = <[discover.format_discover_mcast_packet]>->( $type, $payload_str );
 
-if ( not <discover.mcast.obj.sock>->mcast_send($packet_str) ) {  ## sending ##
+if ( not length $packet_str ) {    ## nothing to send, signature failure? ##
+    <[base.log]>->( 0, 'not sending to mcast addr [composed empty payload]' );
+    ##  counting errors for interval resets  ##
+    <discover.counter.send_error>++;
+    return undef;
+} elsif ( not <discover.mcast.obj.sock>->mcast_send($packet_str) ) # sending #
+{
     <[base.logs]>->( $log_level, "error sending '%s' packet", $type );
     <[base.logs]>->( $log_level, ':. [  %s  ]', <[base.str.os_err]> );
     ##  counting errors for interval resets  ##
-    <discover.counter.send_error>++;
+    <discover.counter.send_error> += 77; # count faster for longer intervals #
 } else {
     <discover.counter.send_error> = 0;   ## reset error count after success ##
 }
@@ -54,8 +59,8 @@ if ( <[base.cfg_bool]>->(<discover.cfg.log-packets.outgoing>) ) {
 
 return TRUE;
 
-#,,,,,,..,,,.,,,,,,.,,...,.,,,.,.,,,,,,,.,,,.,..,,...,...,,,,,.,.,,,.,...,...,
-#MXBBSZMNQF6EOGSBGSHHBF2W6DRYVUW2L5OCBGWRR3VKQHDF6AJEI6OQEXV6AO2UPM7DKJEF5DYZI
-#\\\|XMO5QYII566CVX3UKUC7OHEXVUACMQRA2MI27AQXQCIDOLWWZMZ \ / AMOS7 \ YOURUM ::
-#\[7]GYX3WT6C5Y2AI76XG5TN2JDS4RLH3ENJ6DK44LCN445XYPVMDCDI 7  DATA SIGNATURE ::
+#,,..,,.,,...,,..,,.,,.,,,.,.,.,.,,,,,.,.,..,,..,,...,...,.,.,...,.,.,,,,,..,,
+#YXTBFUVOGW4CERVLSMSWSXCFDOEW4R32J6PKNC7DIW6RW35D4V6DLHVIINSCZJP6MQELMA7HK4W54
+#\\\|MMNNOX27W4TCE6QWDCUJQUYHKEYYNSSVU7U4ENVTUNPC2CRE36N \ / AMOS7 \ YOURUM ::
+#\[7]7YGAFUQPOC7EZX2VFXZTTB3TJPXJCT2GVF33P5F5VCHSNS5O5KDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

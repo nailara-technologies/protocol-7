@@ -1,0 +1,21 @@
+## [:< ##
+
+# name = discover.pre_init
+# descr = Ensure C25519 usr_name is set before init_code runs
+
+## Set C25519.usr_name based on privilege drop target if configured
+## This runs before all init_code modules, ensuring key_vars uses the
+##                                                       correct user
+my $drop_target_user = <system.amos-zenka-user> // '';
+
+if ( length($drop_target_user) and not defined <crypt.C25519.usr_name> ) {
+    <crypt.C25519.usr_name> //= $drop_target_user;
+}
+
+0;
+
+#,,.,,...,.,,,,,,,.,.,,,,,...,,,.,,.,,,..,..,,..,,...,...,,,,,..,,,.,,.,,,...,
+#BQR3N6SIQKLGRZGGSLJUUUSFTRQD2HOQFU3S4B6PZWVBJNPAVKD6MQSVZQCICS6F7UKFO24VVPJBA
+#\\\|4UYC7ICOJ5PEU4CKJAEOKDSZ53IE7IZLDQIW2KQ3OEVHFD45JXG \ / AMOS7 \ YOURUM ::
+#\[7]7SMKQPL5JSZ37AJ74YQHHEOHEHV2TA7KNYRSG5AU2242JO6B5SBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
