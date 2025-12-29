@@ -4,76 +4,70 @@
 # descr = Retrieve aggregated success statistics for a model in a context
 
 # Command: models.statistics <amos> [context]
-# Returns: { total_invocations, success_rate, avg_latency, by_context, ... }
+# Returns: formatted response with statistics
 
-sub execute_get_statistics {
-  my ($model_amos, $context) = @_;
+use JSON::PP;
 
-  return {
-    'success' => FALSE,
-    'error' => 'model AMOS required',
-  } unless $model_amos;
+my ($model_amos, $context) = @ARG;
 
-  # Load registry
-  my $registry_funcs = <[models.registry.init]>;
-  my $model_entry = $registry_funcs->{get_model_entry}->($model_amos);
-
-  return {
-    'success' => FALSE,
-    'error' => "model not found: $model_amos",
-  } if $model_entry->{not_found};
-
-  # If context specified, return context-specific stats
-  if ($context) {
-    my $context_stats = $model_entry->{statistics}->{by_context}->{$context};
-    return {
-      'success' => 1,
-      'model_amos' => $model_amos,
-      'model_name' => $model_entry->{metadata}->{name},
-      'context' => $context,
-      'invocations' => $context_stats->{invocations} // 0,
-      'success_rate' => $context_stats->{success_rate} // 0,
-      'avg_latency_ms' => $context_stats->{avg_latency_ms} // 0,
-      'margin_vs_best_alt' => $context_stats->{margin_vs_best_alt} // 0,
-      'ranking' => $context_stats->{ranking} // 0,
-    };
-  }
-
-  # Return overall statistics
-  return {
-    'success' => 1,
-    'model_amos' => $model_amos,
-    'model_name' => $model_entry->{metadata}->{name},
-    'total_invocations' => $model_entry->{statistics}->{total_invocations},
-    'total_successful' => $model_entry->{statistics}->{total_successful},
-    'success_rate' => $model_entry->{statistics}->{success_rate},
-    'avg_latency_ms' => $model_entry->{statistics}->{avg_latency_ms},
-    'p95_latency_ms' => $model_entry->{statistics}->{p95_latency_ms},
-    'p99_latency_ms' => $model_entry->{statistics}->{p99_latency_ms},
-    'failure_modes' => $model_entry->{statistics}->{failure_modes},
-    'usage_by_period' => $model_entry->{statistics}->{usage_by_period},
-    'first_invocation' => $model_entry->{statistics}->{first_invocation},
-    'last_invocation' => $model_entry->{statistics}->{last_invocation},
-  };
+if (!$model_amos) {
+  return { 'mode' => qw| size |, 'data' => "error: model AMOS required\n" };
 }
 
-# Entry point
-{
-  my $cmd = shift @ARG;
-  my @args = @ARG;
+# Load registry
+my $registry_funcs = <[models.registry.init]>;
+my $model_entry = $registry_funcs->{get_model_entry}->($model_amos);
 
-  if ($cmd eq 'statistics' || $cmd eq 'stats') {
-    return execute_get_statistics(@args);
+if ($model_entry->{not_found}) {
+  return { 'mode' => qw| size |, 'data' => "error: model not found: $model_amos\n" };
+}
+
+my $reply_str = '';
+$reply_str .= "model_amos: $model_amos\n";
+$reply_str .= "model_name: " . ($model_entry->{metadata}->{name} // 'unknown') . "\n";
+
+# If context specified, return context-specific stats
+if ($context) {
+  my $context_stats = $model_entry->{statistics}->{by_context}->{$context} // {};
+  $reply_str .= "\ncontext: $context\n";
+  $reply_str .= "invocations: " . ($context_stats->{invocations} // 0) . "\n";
+  $reply_str .= "success_rate: " . sprintf('%.2f', $context_stats->{success_rate} // 0) . "\n";
+  $reply_str .= "avg_latency_ms: " . ($context_stats->{avg_latency_ms} // 0) . "\n";
+  $reply_str .= "margin_vs_best_alt: " . sprintf('%.2f', $context_stats->{margin_vs_best_alt} // 0) . "\n";
+  $reply_str .= "ranking: " . ($context_stats->{ranking} // 0) . "\n";
+} else {
+  # Return overall statistics
+  my $stats = $model_entry->{statistics} // {};
+  $reply_str .= "\noverall_statistics:\n";
+  $reply_str .= "total_invocations: " . ($stats->{total_invocations} // 0) . "\n";
+  $reply_str .= "total_successful: " . ($stats->{total_successful} // 0) . "\n";
+  $reply_str .= "success_rate: " . sprintf('%.2f', $stats->{success_rate} // 0) . "\n";
+  $reply_str .= "avg_latency_ms: " . ($stats->{avg_latency_ms} // 0) . "\n";
+  $reply_str .= "p95_latency_ms: " . ($stats->{p95_latency_ms} // 0) . "\n";
+  $reply_str .= "p99_latency_ms: " . ($stats->{p99_latency_ms} // 0) . "\n";
+  $reply_str .= "first_invocation: " . ($stats->{first_invocation} // 0) . "\n";
+  $reply_str .= "last_invocation: " . ($stats->{last_invocation} // 0) . "\n";
+
+  if ($stats->{failure_modes} && ref($stats->{failure_modes}) eq 'HASH') {
+    $reply_str .= "\nfailure_modes:\n";
+    foreach my $mode (keys %{$stats->{failure_modes}}) {
+      $reply_str .= "  $mode: " . $stats->{failure_modes}->{$mode} . "\n";
+    }
   }
 
-  return {
-    'success' => FALSE,
-    'error' => "unknown command: $cmd",
-  };
-};
+  if ($stats->{usage_by_period} && ref($stats->{usage_by_period}) eq 'HASH') {
+    $reply_str .= "\nusage_by_period:\n";
+    foreach my $period (sort keys %{$stats->{usage_by_period}}) {
+      my $period_data = $stats->{usage_by_period}->{$period};
+      $reply_str .= "  $period: count=" . ($period_data->{count} // 0) . ", success=" . sprintf('%.2f', $period_data->{avg_success} // 0) . "\n";
+    }
+  }
+}
 
-#,,,,,,..,..,,,,,,,,.,.,,,.,,,,..,..,,,,.,...,..,,...,...,.,.,..,,,,,,,..,,,.,
-#EXFJOYZP5ZD77D3322EWBFKLJJ2CLB54XNY3NVW3BZ7HAXA6OONSA2PCGZMQJOHV2TEDW463PY6QA
-#\\\|U3YSY3PM7SA7EYQ76LCBOVNOTYU4A5TPKLGNKKYHOK6GCCSWUJ2 \ / AMOS7 \ YOURUM ::
-#\[7]LBJOBFXHCZILEOCBFVVO6OBMH6TRLMQ66QNTE2GDVJDVJV2S34AI 7  DATA SIGNATURE ::
+return { 'mode' => qw| size |, 'data' => $reply_str };
+
+#,,..,,,,,,.,,...,.,.,,.,,,,.,.,.,,,,,..,,,..,..,,...,...,,.,,,,,,.,.,...,,,.,
+#PGMZFCULILJVVATULAIJ5VS4ILUPMFURYTM72M6NY6WEXLS4QVUEHIFE5S3XJBJWCTCB3GV2ZCHIY
+#\\\|UUKSO7O2PC54DHEFWHA6N5DDPBQFZTMAFEX4NH2GYPNZ7MKE766 \ / AMOS7 \ YOURUM ::
+#\[7]VJXBDO2KNGOSVEQCQLU3PZBTE76HBQ6TCX2VJX7VPH3GKOEPMICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

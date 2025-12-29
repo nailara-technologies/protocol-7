@@ -3,67 +3,59 @@
 # name = models.cmd.discover
 # descr = Discover all available models in registry
 
-# Command: models.discover [filter]
-# Filter options: available, unavailable, all (default: all)
-# Returns: [{ amos, name, available, size_gb, success_rate }, ...]
+my ($filter) = @ARG;
+$filter //= 'all';
 
-sub execute_discover {
-  my ($filter) = @_;
-  $filter //= 'all';
+# Load registry
+my $registry_funcs = <[models.registry.init]>;
+my $all_models = $registry_funcs->{'list_all_models'}->();
 
-  # Load registry
-  my $registry_funcs = <[models.registry.init]>;
-  my $all_models = $registry_funcs->{'list_all_models'}->();
+# Apply filter
+my @discovered;
+foreach my $model (@$all_models) {
+  next if $filter eq 'available' && !$model->{presence_decision}->{currently_present};
+  next if $filter eq 'unavailable' && $model->{presence_decision}->{currently_present};
 
-  # Apply filter
-  my @discovered;
-  foreach my $model (@$all_models) {
-    next if $filter eq 'available' && !$model->{presence_decision}->{currently_present};
-    next if $filter eq 'unavailable' && $model->{presence_decision}->{currently_present};
-
-    push @discovered, {
-      'amos' => $model->{amos_checksum},
-      'name' => $model->{metadata}->{name},
-      'version' => $model->{metadata}->{version},
-      'category' => $model->{metadata}->{category},
-      'available' => $model->{presence_decision}->{currently_present},
-      'size_gb' => $model->{resource_profile}->{storage}->{size_gb},
-      'success_rate' => $model->{statistics}->{success_rate},
-      'total_invocations' => $model->{statistics}->{total_invocations},
-      'presence_tier' => $model->{presence_decision}->{presence_tier},
-    };
-  }
-
-  # Sort by success rate
-  @discovered = sort {
-    $b->{success_rate} <=> $a->{success_rate}
-  } @discovered;
-
-  return {
-    'success' => 1,
-    'filter' => $filter,
-    'count' => scalar(@discovered),
-    'models' => \@discovered,
+  push @discovered, {
+    'amos' => $model->{amos_checksum},
+    'name' => $model->{metadata}->{name},
+    'version' => $model->{metadata}->{version},
+    'category' => $model->{metadata}->{category},
+    'available' => $model->{presence_decision}->{currently_present},
+    'size_gb' => $model->{resource_profile}->{storage}->{size_gb},
+    'success_rate' => $model->{statistics}->{success_rate},
+    'total_invocations' => $model->{statistics}->{total_invocations},
+    'presence_tier' => $model->{presence_decision}->{presence_tier},
   };
 }
 
-# Entry point
-{
-  my $cmd = shift @ARG;
-  my @args = @ARG;
+# Sort by success rate
+@discovered = sort {
+  $b->{success_rate} <=> $a->{success_rate}
+} @discovered;
 
-  if ($cmd eq 'discover' || $cmd eq 'list') {
-    return execute_discover(@args);
-  }
+my $reply_str = '';
+$reply_str .= "filter: $filter\n";
+$reply_str .= "count: " . scalar(@discovered) . "\n";
+$reply_str .= "\n";
 
-  return {
-    'success' => FALSE,
-    'error' => "unknown command: $cmd",
-  };
-};
+foreach my $model (@discovered) {
+  $reply_str .= "amos: " . $model->{amos} . "\n";
+  $reply_str .= "  name: " . $model->{name} . "\n";
+  $reply_str .= "  version: " . ($model->{version} // 'unknown') . "\n";
+  $reply_str .= "  category: " . ($model->{category} // 'uncategorized') . "\n";
+  $reply_str .= "  available: " . ($model->{available} ? 'yes' : 'no') . "\n";
+  $reply_str .= "  size_gb: " . ($model->{size_gb} // 'unknown') . "\n";
+  $reply_str .= "  success_rate: " . sprintf('%.2f', $model->{success_rate} // 0) . "\n";
+  $reply_str .= "  total_invocations: " . ($model->{total_invocations} // 0) . "\n";
+  $reply_str .= "  presence_tier: " . ($model->{presence_tier} // 'unknown') . "\n";
+  $reply_str .= "\n";
+}
 
-#,,,.,,,.,,,.,,..,,,.,..,,,,.,,.,,,,.,..,,...,..,,...,...,.,.,,,,,.,.,.,,,,.,,
-#INGXFGDTWWWOKKJGJ7DAZ22MHTT4YXCXVATPNRJAMU55H7C275WH2KI2BBIQ5G3VZONJSBXQODEUC
-#\\\|TWBGE42EM73ZCIGNB3HW233ZHTJTJY4RZGFBPQJSKQ6HHQIDQI7 \ / AMOS7 \ YOURUM ::
-#\[7]WOEZXGS6BFQVHZRKVPURFLFXKC7IO3LUBLCC77AO5IZTEWQ33ABI 7  DATA SIGNATURE ::
+return { 'mode' => qw| size |, 'data' => $reply_str };
+
+#,,,.,..,,,..,,..,,.,,,.,,..,,..,,.,.,.,.,,,.,..,,...,...,..,,,,,,,,,,.,,,...,
+#G4BQSIP3GYVRG6HMUSDMUWHXVJ3HG3CMWMXDH6FWVNW6FYVRJ7ETPXJHU2O3WERHXDVCZQQWAS5BA
+#\\\|FRILQE6KJSPOP3IXUIBRZP6ABAA46W72OOZLBVHXWQCJKLI6MYD \ / AMOS7 \ YOURUM ::
+#\[7]YDYDOKCNK6DFLXPPMSYWZEEWPBHWB6OESQP45UZZSE23OR2YSWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

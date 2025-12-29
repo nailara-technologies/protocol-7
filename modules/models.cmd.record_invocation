@@ -5,69 +5,48 @@
 
 # Command: models.record_invocation <amos> <context> <json_data>
 # JSON data: { success, failure_mode, latency_ms, tokens_processed, etc }
-# Returns: { recorded, timestamp }
+# Returns: formatted response with timestamp
 
 use JSON::PP;
 
-sub execute_record_invocation {
-  my ($model_amos, $context, $data_json) = @_;
+my ($model_amos, $context, $data_json) = @ARG;
 
-  return {
-    'success' => FALSE,
-    'error' => 'model AMOS and context required',
-  } unless $model_amos && $context;
-
-  # Parse invocation data
-  my $invocation_data = {};
-  if ($data_json) {
-    eval {
-      $invocation_data = decode_json($data_json);
-    };
-    if ($@) {
-      return {
-        'success' => FALSE,
-        'error' => "invalid invocation data JSON: $@",
-      };
-    }
-  }
-
-  # Load statistics tracker
-  my $stats_funcs = <[models.statistics.invocation_tracking]>;
-
-  # Record invocation
-  my $result = $stats_funcs->{record_invocation}->(
-    $model_amos,
-    $context,
-    $invocation_data
-  );
-
-  return {
-    'success' => 1,
-    'model_amos' => $model_amos,
-    'context' => $context,
-    'recorded' => 1,
-    'timestamp' => $result->{timestamp},
-    'date' => $result->{date},
-  };
+if (!$model_amos || !$context) {
+  return { 'mode' => qw| size |, 'data' => "error: model AMOS and context required\n" };
 }
 
-# Entry point
-{
-  my $cmd = shift @ARG;
-  my @args = @ARG;
-
-  if ($cmd eq 'record_invocation' || $cmd eq 'record') {
-    return execute_record_invocation(@args);
-  }
-
-  return {
-    'success' => FALSE,
-    'error' => "unknown command: $cmd",
+# Parse invocation data
+my $invocation_data = {};
+if ($data_json) {
+  eval {
+    $invocation_data = decode_json($data_json);
   };
-};
+  if ($@) {
+    return { 'mode' => qw| size |, 'data' => "error: invalid invocation data JSON: $@\n" };
+  }
+}
 
-#,,..,,,,,,..,,,.,...,,,,,,,,,,.,,,.,,,,.,...,..,,...,.,.,.,.,,,,,,.,,...,...,
-#FQL3O2W3RSZDBHXAUQWUENNEOPZROGDU3CMQUTPXER5NBPHAKNKMJPIB73MXQOHRXFFPVIVH32QH6
-#\\\|HNGVCIZF345HZWRJN6ZAJMAGNWGLYP5NTQGOLX66WAG7GUQQBRB \ / AMOS7 \ YOURUM ::
-#\[7]JQYZTSWP2Q2H5ZBGI6FY6KOBTC74F2ZVKP553MF4SCBEXH77BACI 7  DATA SIGNATURE ::
+# Load statistics tracker
+my $stats_funcs = <[models.statistics.invocation_tracking]>;
+
+# Record invocation
+my $result = $stats_funcs->{record_invocation}->(
+  $model_amos,
+  $context,
+  $invocation_data
+);
+
+my $reply_str = '';
+$reply_str .= "model_amos: $model_amos\n";
+$reply_str .= "context: $context\n";
+$reply_str .= "recorded: 1\n";
+$reply_str .= "timestamp: " . ($result->{timestamp} // time()) . "\n";
+$reply_str .= "date: " . ($result->{date} // 'unknown') . "\n";
+
+return { 'mode' => qw| size |, 'data' => $reply_str };
+
+#,,,.,.,.,...,...,,,,,,..,,,.,.,.,.,.,..,,..,,..,,...,...,,..,,..,.,,,,.,,,,,,
+#PADT7PI7ZHRUIMURSYVR4BE5ZPYWQF64EZWELIDJFDV6VRABCJDBR4YM7UXSBHAPTKKQHLENPHKDE
+#\\\|FZD67LB2YJCZQJLZ6SSUUVI3V6YZP6ZLQAFBDVGYRJTSK2IJBDF \ / AMOS7 \ YOURUM ::
+#\[7]I2IVHSXKF6TK6TA45XJ3GHEBDLD4V3PBMKOD4443JSY5ILQQXADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

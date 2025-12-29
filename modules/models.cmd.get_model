@@ -3,59 +3,37 @@
 # name = models.cmd.get_model
 # descr = Retrieve a model by AMOS checksum with automatic fallback chain resolution
 
-# Command: models.get_model <amos_checksum>
-# Returns: { path, tier, available, success, error }
+my ($model_amos) = @ARG;
 
-sub execute_get_model {
-  my ($model_amos) = @_;
-
-  return {
-    'success' => FALSE,
-    'error' => 'model AMOS checksum required',
-  } unless $model_amos;
-
-  # Get model entry
-  my $registry_funcs = <[models.registry.get_entry]>;
-  my $model_entry = $registry_funcs->($model_amos);
-
-  return {
-    'success' => FALSE,
-    'error' => "model not found: $model_amos",
-  } if $model_entry->{not_found};
-
-  # Resolve through fallback chain
-  my $storage_funcs = <[models.storage.resolve_model]>;
-  my $resolved = $storage_funcs->($model_amos, $model_entry->{storage_locations});
-
-  return {
-    'success' => 1,
-    'model_amos' => $model_amos,
-    'path' => $resolved->{path},
-    'tier' => $resolved->{tier},
-    'available' => $resolved->{available},
-    'name' => $model_entry->{metadata}->{name},
-    'version' => $model_entry->{metadata}->{version},
-    'is_metadata_only' => $resolved->{is_metadata_only} // 0,
-  };
+if (!$model_amos) {
+  return { 'mode' => qw| size |, 'data' => "error: model AMOS checksum required\n" };
 }
 
-# Entry point
-{
-  my $cmd = shift @ARG;
-  my @args = @ARG;
+# Get model entry
+my $registry_funcs = <[models.registry.get_entry]>;
+my $model_entry = $registry_funcs->($model_amos);
 
-  if ($cmd eq 'get_model' || $cmd eq 'get') {
-    return execute_get_model(@args);
-  }
+if ($model_entry->{not_found}) {
+  return { 'mode' => qw| size |, 'data' => "error: model not found: $model_amos\n" };
+}
 
-  return {
-    'success' => FALSE,
-    'error' => "unknown command: $cmd",
-  };
-};
+# Resolve through fallback chain
+my $storage_funcs = <[models.storage.resolve_model]>;
+my $resolved = $storage_funcs->($model_amos, $model_entry->{storage_locations});
 
-#,,.,,...,,.,,,..,,..,..,,,.,,,,.,,,.,.,,,,.,,..,,...,...,.,.,...,,,,,,..,.,.,
-#JII7RPQ2FTY6HXKQJMSQMJ7IHBLJMNGRDTTWCKFGJMCOLNOTL4FA2JRDTVBHGJAU6VB6B725K3M7A
-#\\\|6AO6OEXVS5GS5TKFJRQRCV5DGQFRSKXCTA3Q2IZ45KGJH7J5U3B \ / AMOS7 \ YOURUM ::
-#\[7]ZD7UHVHW3OTP37RNER7ESBFAIVJORVTAKHLO6MHJI5BHSUNRACAA 7  DATA SIGNATURE ::
+my $reply_str = '';
+$reply_str .= "model_amos: $model_amos\n";
+$reply_str .= "path: " . ($resolved->{path} // 'not found') . "\n";
+$reply_str .= "tier: " . ($resolved->{tier} // 'unknown') . "\n";
+$reply_str .= "available: " . ($resolved->{available} ? 'yes' : 'no') . "\n";
+$reply_str .= "name: " . ($model_entry->{metadata}->{name} // 'unknown') . "\n";
+$reply_str .= "version: " . ($model_entry->{metadata}->{version} // 'unknown') . "\n";
+$reply_str .= "is_metadata_only: " . (($resolved->{is_metadata_only} // 0) ? 'yes' : 'no') . "\n";
+
+return { 'mode' => qw| size |, 'data' => $reply_str };
+
+#,,..,,,.,..,,,.,,.,.,..,,.,.,..,,.,,,.,,,,..,..,,...,...,...,.,,,.,,,.,,,,..,
+#63CS5JLVLGJ3FJLQFC64UDFSD27MQVCAIGYXCSBQAK3ZYLNDXIIYS2BUDYVP4HAWZ32K23RPWRKSW
+#\\\|XMUTP5Y24IGZXP4Y7XVL2CEHGAQPEYQSUHTTCFBEYSYQVWZSDLY \ / AMOS7 \ YOURUM ::
+#\[7]M7RQGO6XXSHD6AHOAATXI546ZVQWPPXSK34PYJFBFL67ABU2OABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

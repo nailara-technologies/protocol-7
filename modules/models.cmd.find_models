@@ -3,67 +3,58 @@
 # name = models.cmd.find_models
 # descr = Find models available for a specific context
 
-# Command: models.find_models <context>
-# Returns: [{ amos, name, success_rate, margin, available }, ...]
+my ($context) = @ARG;
 
-sub execute_find_models {
-  my ($context) = @_;
+if (!$context) {
+  return { 'mode' => qw| size |, 'data' => "error: context name required\n" };
+}
 
-  return {
-    'success' => FALSE,
-    'error' => 'context name required',
-  } unless $context;
+# Load registry
+my $registry_funcs = <[models.registry.init]>;
+my $all_models = $registry_funcs->{'list_all_models'}->();
 
-  # Load registry
-  my $registry_funcs = <[models.registry.init]>;
-  my $all_models = $registry_funcs->{'list_all_models'}->();
+# Find models for this context
+my @matching;
+foreach my $model (@$all_models) {
+  next unless $model->{statistics}->{by_context}->{$context};
 
-  # Find models for this context
-  my @matching;
-  foreach my $model (@$all_models) {
-    next unless $model->{statistics}->{by_context}->{$context};
-
-    my $stats = $model->{statistics}->{by_context}->{$context};
-    push @matching, {
-      'amos' => $model->{amos_checksum},
-      'name' => $model->{metadata}->{name},
-      'version' => $model->{metadata}->{version},
-      'success_rate' => $stats->{success_rate},
-      'margin_vs_alt' => $stats->{margin_vs_best_alt} // 0,
-      'available' => $model->{presence_decision}->{currently_present},
-      'category' => $model->{metadata}->{category},
-      'invocations' => $stats->{invocations},
-    };
-  }
-
-  # Sort by success rate
-  @matching = sort { $b->{success_rate} <=> $a->{success_rate} } @matching;
-
-  return {
-    'success' => 1,
-    'context' => $context,
-    'count' => scalar(@matching),
-    'models' => \@matching,
+  my $stats = $model->{statistics}->{by_context}->{$context};
+  push @matching, {
+    'amos' => $model->{amos_checksum},
+    'name' => $model->{metadata}->{name},
+    'version' => $model->{metadata}->{version},
+    'success_rate' => $stats->{success_rate},
+    'margin_vs_alt' => $stats->{margin_vs_best_alt} // 0,
+    'available' => $model->{presence_decision}->{currently_present},
+    'category' => $model->{metadata}->{category},
+    'invocations' => $stats->{invocations},
   };
 }
 
-# Entry point
-{
-  my $cmd = shift @ARG;
-  my @args = @ARG;
+# Sort by success rate
+@matching = sort { $b->{success_rate} <=> $a->{success_rate} } @matching;
 
-  if ($cmd eq 'find_models' || $cmd eq 'find') {
-    return execute_find_models(@args);
-  }
+my $reply_str = '';
+$reply_str .= "context: $context\n";
+$reply_str .= "count: " . scalar(@matching) . "\n";
+$reply_str .= "\n";
 
-  return {
-    'success' => FALSE,
-    'error' => "unknown command: $cmd",
-  };
-};
+foreach my $model (@matching) {
+  $reply_str .= "amos: " . $model->{amos} . "\n";
+  $reply_str .= "  name: " . $model->{name} . "\n";
+  $reply_str .= "  version: " . $model->{version} . "\n";
+  $reply_str .= "  success_rate: " . sprintf('%.2f', $model->{success_rate}) . "\n";
+  $reply_str .= "  margin_vs_alt: " . sprintf('%.2f', $model->{margin_vs_alt}) . "\n";
+  $reply_str .= "  available: " . ($model->{available} ? 'yes' : 'no') . "\n";
+  $reply_str .= "  category: " . ($model->{category} // 'unknown') . "\n";
+  $reply_str .= "  invocations: " . ($model->{invocations} // 0) . "\n";
+  $reply_str .= "\n";
+}
 
-#,,,,,,..,,,,,...,,..,...,..,,.,.,,..,.,,,,..,..,,...,...,,,,,..,,,,.,,,,,,,,,
-#JAZZLQXOR7NJIM6CUGKBHT6Q4VNFALIZ6FJTZ3YBUV7FML4KZLFH7NMELQXGIRLOEUMYJYKXINZSY
-#\\\|BWWAYNMSQA4LKUQNNMOSSCYUVFZOUEZ5A3SOATOL6OCITX2B36G \ / AMOS7 \ YOURUM ::
-#\[7]YA7FDPGLIG7PBHLQGMBYS35IIOMTYVFJD3MP4HYVV6FMI24LHWCY 7  DATA SIGNATURE ::
+return { 'mode' => qw| size |, 'data' => $reply_str };
+
+#,,,,,,,.,,.,,,..,,,.,,.,,.,,,,..,..,,.,.,,,,,..,,...,..,,.,,,.,,,,.,,,,.,,,.,
+#IPZ4PUYJXS75UNFNHQAO4FOSKBUXVTRBI7PZVVQXT7ASF6GO2Q3CCGJ3IU2Q4ZG6PZGGNWPRX5E5E
+#\\\|ZFLBI2JJZ3PHBEVLFDRKH5QGNEUM5CEIDVZDVE3Z4K2WMAVABWA \ / AMOS7 \ YOURUM ::
+#\[7]OFV56FV26XZEHTJOV3HERRIV7VLOF4PSQBWM6RL2JAS7EHLKBKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
