@@ -32,25 +32,25 @@ my $endline_state_oct       = $cur_endline_state;         ##  unmodified  ##
 my $payload_size_delta      = 0;
 my $previous_payload_length = length $payload_sref->$*;
 
-##  Fix #3: Standardize endline harmonization - make removal/addition symmetrical
-##  removing too many training LFs  ##
-if ( $payload_sref->$* =~ m|\n{2}$|s ) {
+##  Fix #3: CRITICAL - Remove state-dependent behavior for idempotence
+##  The canonical form is: [non-newline]\n\n (exactly 2 newlines as separator)
+##  MUST NOT use $mod_offset here - it causes oscillation!
+##
+if ( $payload_sref->$* =~ m|\n{2,}$|s ) {
 
-    my $limit = 3 + $mod_offset;
-
-    ##  leaving one between data and footer  ##
-    $payload_sref->$* =~ s{([^\n]\n|)\n\n{1,$limit}$}{$1\n}s;
+    ##  Too many trailing newlines - reduce to exactly 2 (canonical separator)  ##
+    ##  This removes trailing newlines and adds back exactly 2 for canonical form
+    $payload_sref->$* =~ s/\n+$/\n\n/s;
 
 } else {
 
-    # ## amend empty line between payload data and footer [ if missing ] ##
+    ##  Not enough trailing newlines - add to reach exactly 2 (canonical separator)  ##
+    ##  Keep adding newlines until we have exactly 2 at the end
 
     while ( $previous_payload_length > 0
-        and $payload_sref->$* !~ m|[^\n]\n\n$|s
-        and $payload_sref->$* !~ m|(*nlb:[^\n])\n$|s ) {
+        and $payload_sref->$* !~ m|\n\n$|s ) {
 
         $payload_sref->$* .= "\n";
-        last if $mod_offset != 0;
     }
 
 }
@@ -59,10 +59,19 @@ $payload_size_delta = length( $payload_sref->$* ) - $previous_payload_length;
 
 $endline_state_oct = 5 + $payload_size_delta;
 
+##  Fix #3 CRITICAL: Ensure deterministic state for canonical form
+##  If file is in canonical form (ends with exactly 2 newlines after harmonization),
+##  ALWAYS return state=5 to signal "normalized, no further changes needed"
+##  This prevents oscillation where successive signings toggle between states
+##
+if ( $payload_sref->$* =~ m|\n\n$|s ) {
+    $endline_state_oct = 5;
+}
+
 return $endline_state_oct;
 
-#,,,,,..,,,..,,..,,,,,,,.,.,.,,.,,,,.,,.,,,,,,..,,...,...,,.,,,,.,.,.,...,,,,,
-#U5O3Z47KCSFX32LXMTXFHDN2GG7YQQG7H2DK4SJDRSHYWBRC5HTPTHNTAYLRN3O526VU7ARH54OQI
-#\\\|SMENWMMFA55NBIWTIC75QRHNXZBSSUWZVIE5CTGRJYNA5IDOQEU \ / AMOS7 \ YOURUM ::
-#\[7]EVMX7YBXO4RPEF5F47DAX554BMCFW36ZHWETWO6ZBXDCYE2KIMCI 7  DATA SIGNATURE ::
+#,,,,,..,,,..,.,.,..,,,,.,..,,,,.,.,,,.,,,,.,,..,,...,...,..,,,.,,,..,,,,,..,,
+#IHEMGWZHBHWOH5FQJUKSAJJSNSNKIDW5BMAU73JBVNHZH4R6GC3TPC2VUYYTI6HVAKFG6QZ5JTLTS
+#\\\|YNUYK7ANK2CC37GQVTIM3JWEL6UWBUVE6R42RL6BYDDGRXVPFDR \ / AMOS7 \ YOURUM ::
+#\[7]DRI2FNSZ2NYZHIGY65YMRH4AZJRPQCXFZNYIXVLZ5JAFACAC42AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
