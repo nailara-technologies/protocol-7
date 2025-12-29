@@ -50,6 +50,7 @@ if ( index( <system.zenka.name>, qw| source |, 0 ) == -1 ) {
             0, "generating C25519 'base' key pair for '%s' ..,", $key_usr
         );
         if (<[crypt.C25519.gen_keys]>) {
+            <crypt.C25519.usr_name> //= $key_usr;    ## write key as user ##
             <[crypt.C25519.write_keys]>->( undef, undef, FALSE );
         }
         ## <[crypt.C25519.sign_keys]>;  ## <-- rewritten, to be adjusted.., ##
@@ -97,8 +98,8 @@ if ( defined <system.zenka.type>
 
 0;
 
-#,,..,.,,,,.,,,,,,.,.,,..,..,,..,,,,.,...,.,,,..,,...,.,,,,..,,,,,...,,..,,,.,
-#QHWEEWBBYWWVVYF22324JSLJPBQQEZICAFVLJMQG2ZIALZ5XYIAHNUHFS7CDLSDM3QUH2IQQR3DWM
-#\\\|MLW2DMBENOK4NH5DGTNMGN65HAQZFSSK7DGTXAXBFS3GY7QD55I \ / AMOS7 \ YOURUM ::
-#\[7]ST2QGVWICWQJPZ3RJEIEN2QEBIVAPUWIPGXLJJ7TBU52UEFONWBQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,,.,,,,,.,.,...,,,.,.,,,,,,,,,,,..,,...,..,,..,,,,.,...,.,.,,.,,
+#5GFEUEU53N6VIRULOMVT7CZQ26SCUE4ZFKSDJRBSJK7EC5RSAP5CCAXFYAH4HKFELLUHDNVVGLVDS
+#\\\|4YH6LL5BAGXWIFLUWUXPEMHKIZ7XMCIOXP2MMMKEUSCQV7SOSLK \ / AMOS7 \ YOURUM ::
+#\[7]EUJHV76ZU5C34GHTIMVVWXHJG5B3LE6T24KXVWKPY6AG7GRL6OAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

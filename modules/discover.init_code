@@ -4,9 +4,11 @@
 
 <[base.perlmod.autoload]>->('IO::Interface::Simple');
 
-my $key_path_owner = <crypt.C25519.usr_name> // <system.amos-zenka-user>;
+my $key_path_owner = <system.amos-zenka-user> // <crypt.C25519.usr_name>;
 <discover.crypt.key_user> //= $key_path_owner;
-<discover.crypt.key_name> = <[crypt.C25519.key_vars]>->{'key_name'};
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>;
+<discover.crypt.key_name> = $key_vars_ref->{'key_name'};
 
 my $max_nodes_entries = <discover.cfg.max_entries.nodes> //= 4200;
 
@@ -123,8 +125,8 @@ if ( not exists <buffer.host-status> ) {
 
 0;
 
-#,,,,,,,,,,,.,.,,,...,,,,,,,.,.,.,.,,,,.,,.,.,..,,...,...,.,.,.,,,,..,.,,,..,,
-#L3TPWHEEXALWCMKUAZ2SOTXCY7VUO7WYD6B5GQMOWZJTLL5X7XVJCL3FDTGSA65Q5YEDOSMOPRAVI
-#\\\|XK4FUOFLOQGUVCJPAFL7S7HE5ALSRUNM6VP2HSLRPQIQVY2P5BG \ / AMOS7 \ YOURUM ::
-#\[7]GJKVEVJ6DUOZI6V5RZWQYX5T2N7QC52AD66SE5EGOXIP6ABUBOBI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,.,.,.,.,...,.,.,..,,,.,,,..,...,..,,...,...,.,,,,..,...,.,,,,,,,
+#E4CMMNQWW7RM5WEYUPM4FU2IPU3EWB6JOBCJLYOAYRV34BUULYW52LHXJW3A77FSU65WFE42SGONQ
+#\\\|DTG5HARMD6YOUDT2ZK53VW7INOJ5YXS3NPVUQOENV4VNJVWWGP2 \ / AMOS7 \ YOURUM ::
+#\[7]LSKRZSID7L6B5GFUKZFP7UC2Y73LGXAXYYPM4CGXA7KWW7WJTQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
