@@ -26,52 +26,7 @@ $data{models}{cache_last_updated} = 0;
 $data{models}{cache_ttl_seconds} = 300;
 
 # =============================================================================
-# CUSTOM LISTS - Define visibility list structures (data stored as arrays)
-# =============================================================================
-
-# Operation log list definition
-<list.models-operation> = {
-  'var' => 'data',
-  'key' => 'models:operation_log',
-  'sort_key' => 'timestamp',
-  'mask' => 'timestamp:time action:op status:state details:info',
-  'align' => {
-    'action' => 'left+2',
-    'status' => 'center',
-    'timestamp' => 'right-1',
-  },
-  'descr' => '[operations] models zenka action history',
-};
-
-# Error log list definition
-<list.models-error> = {
-  'var' => 'data',
-  'key' => 'models:error_log',
-  'sort_key' => 'timestamp',
-  'mask' => 'timestamp:time error:err model:info details:info',
-  'align' => {
-    'error' => 'left+2',
-    'timestamp' => 'right-1',
-  },
-  'descr' => '[errors] models zenka error log',
-};
-
-# Action log list definition
-<list.models-action> = {
-  'var' => 'data',
-  'key' => 'models:action_log',
-  'sort_key' => 'timestamp',
-  'mask' => 'timestamp:time actor:usr action:op status:state',
-  'align' => {
-    'action' => 'left+2',
-    'status' => 'center',
-    'actor' => 'right-1',
-  },
-  'descr' => '[actions] admin/parent actions on models zenka',
-};
-
-# =============================================================================
-# LOG BUFFERS - Named log buffers for detailed output
+# LOG BUFFERS - Named log buffers for audit trail and operation tracking
 # =============================================================================
 
 # Initialize operation log buffer if not already created
@@ -224,8 +179,8 @@ if (not exists <buffer.models-action>) {
   return $result;
 };
 
-#,,..,,,,,.,,,...,..,,.,.,,.,,..,,..,,.,.,,,,,..,,...,...,...,,..,,..,,,.,.,.,
-#7ZBA4ZN4H4KZEQMYGLNNMIVCANOOERJU7L7IBMHEIK7BMIPS4NP3STIXWXEWD3XL2GZJQNA65FICO
-#\\\|NMI3XQGWFL72P5OSGQWNZSEEPMAKIR54VNHXFXW5RVKT66YCCEX \ / AMOS7 \ YOURUM ::
-#\[7]CM4JLU6OYO45IVXOKDSL73IZ3RPJ77GWRQ7C53X563LIT3M7GGCY 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,.,,...,..,,,.,,..,,.,.,...,.,.,..,,...,..,,.,,,...,,,,,,,,,,.,,
+#QWQU3PDGQ52R7ASCSK6INZTI5NIZDTHFJDA5YCA7OLHMQOZ5G5NOXN7PCIEMGVAAUFG347DFHYZDE
+#\\\|DGNCM3XVKLUQSTYCB73KRWFPSHEBFRL4G2TO27K4R33QZR2CA6V \ / AMOS7 \ YOURUM ::
+#\[7]HPSDVEQPCBCZJLVFAIQO7K6MIHZHY3GTR25LXSYHSHSXZBWAI4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
