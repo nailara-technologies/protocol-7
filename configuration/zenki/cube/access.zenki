@@ -24,7 +24,9 @@
                access.cmd.usr.v7  =  heart *.heart session-key \
                                      ondemand-zenka set-initialized \
                                      *.verify-instance \
-                                     system.report-X-11-error
+                                     system.report-X-11-error \
+                                     models.discover models.statistics \
+                                     models.get_model models.recommend
 
             access.cmd.usr.nodes  =  discover.host_details
 
@@ -158,9 +160,12 @@
                                      close exit
 
   access.cmd.usr.llama-server-vision = whoami present timestamp ntime-dec \
+                                     models.record_invocation models.statistics \
                                      v7.register_child close exit analyze_image
 
        access.cmd.usr.coding  =      llama-server-vision.analyze_image \
+                                     models.get_model models.recommend \
+                                     models.record_invocation models.statistics \
                                      v7.register_child
 
            access.cmd.usr.models  =  get_model find_models recommend \
@@ -169,8 +174,9 @@
                                      v7.register_child
 
        access.cmd.usr.image-batch = whoami present timestamp ntime-dec \
-                                     image-quality.analyze v7.register_child \
-                                     close exit
+                                     image-quality.analyze models.recommend \
+                                     models.record_invocation models.statistics \
+                                     v7.register_child close exit
 
        access.cmd.usr.impressive  =  v7.start_once content.get_list \
                                      v7.notify_online v7.stop_implicit \
@@ -188,8 +194,8 @@
                                      tile-groups.get_subconfig \
                                      rss-ticker.resend_update
 
-#,,.,,,,,,.,,,,,,,.,.,,..,,.,,,.,,,..,.,,,,,.,..,,...,..,,...,,,.,..,,...,,,,,
-#VZRSOTQP2IBX3NWQURCJ5LHBYKZVBV3MSNTOE6AU3PIORY673YCH5UH2F7AUQCQCB6MIP7V2XJEXG
-#\\\|JAEEYYH6KVUXZQ6SVNP2E2NMYZVPF3GZEOL73ZBOHFBDIIDX75V \ / AMOS7 \ YOURUM ::
-#\[7]XSC5RJFCRR5D5OVSM5VVPDJCZGEMBOEJCJZXX5EGWPXC4DWJJ4AQ 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,...,.,,,,,.,,,,,,..,.,.,..,,,.,,..,,...,...,,.,,..,,.,,,,.,,.,,,
+#VGUEKFQYPF3Q2LRELZJZOOQA6TDLZMNMEJMKAON2HH3RB5D7RVSDY3CQNTUPJJOZ2NWJAN5FZX5VE
+#\\\|SEWHV5CCUDJ2JSX3PHJVJW3HJZISUWVC7HUDNFOTMFSTIPLDVXJ \ / AMOS7 \ YOURUM ::
+#\[7]5JD3I377P7TDTCOIAUE7FQNTJ56F7IIZXFTYSK2MGGHQ6YDSVYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
