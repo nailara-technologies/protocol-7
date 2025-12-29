@@ -93,20 +93,13 @@ $data{list}{models_action_log} = {
       'timestamp' => time(),
     };
   } elsif ($cmd eq 'reload') {
-    # Reload command
-    $data{models}{registry_cache} = {};
-    $data{models}{cache_last_updated} = 0;
-    push @{$data{models}{operation_log}}, {
-      timestamp => time(),
-      action => 'reload',
-      status => 'completed',
-      details => 'configuration and registry reloaded',
+    # Reload command - delegate to base handler which returns proper format
+    unshift @ARG, $cmd, @args;
+    $result = <[base.cmd.reload]> // {
+      'success' => FALSE,
+      'error' => 'base.cmd.reload not available',
     };
-    $result = {
-      'success' => TRUE,
-      'reloaded' => 1,
-      'timestamp' => time(),
-    };
+    return $result;
   } elsif ($cmd eq 'maintenance') {
     # Maintenance command
     my $start_time = time();
@@ -166,8 +159,8 @@ $data{list}{models_action_log} = {
   return $result;
 };
 
-#,,,.,,,.,.,,,...,,.,,..,,,..,.,.,.,,,.,,,,,,,..,,...,..,,,,.,.,.,,..,,..,..,,
-#G7FQQQ56HE4VVL27F6AMPGH5A5BJT5O43MON4SWVV5XLQS76J3YBECXZLFXNUWJTN2IZY7BZEONN4
-#\\\|FHDTTREE3PI3TXJANUP62PCHIJ7XKDDEH2ICRIKYMGVF3BONWTL \ / AMOS7 \ YOURUM ::
-#\[7]5EBYP6L2ZLMWP2GYJIDZGRHLJILMG5API6QFM3QGRUFKGS464EDI 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,.,,.,,,,,,,...,,,.,,..,.,,,.,.,..,,...,...,,..,..,,...,.,.,,..,
+#DXN5PBZHQ5SCD254BCZ6BDWS5EWO5CTSKZDV2QXIOWDDFKNYBYQISAT7LUO4OD3BGOXLESJOQA62Q
+#\\\|UFLY5HOSNUROJW6FBZ3EJZRD42VI7KSOPTBP5LZ2GLZMV4ZF55A \ / AMOS7 \ YOURUM ::
+#\[7]PWL6RM2J74LSSG47VSWL46RYQHQTDMKV2KBRSAEVDGO7DX4JAIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
