@@ -1,0 +1,1 @@
+../asc/what-AI-thinks/markdown-form/protocol7/theory/pattern-repository-and-authentic-agency.md
