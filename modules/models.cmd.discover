@@ -1,0 +1,69 @@
+## [:< ##
+
+# name = models.cmd.discover
+# descr = Discover all available models in registry
+
+# Command: models.discover [filter]
+# Filter options: available, unavailable, all (default: all)
+# Returns: [{ amos, name, available, size_gb, success_rate }, ...]
+
+sub execute_discover {
+  my ($filter) = @_;
+  $filter //= 'all';
+
+  # Load registry
+  my $registry_funcs = <[models.registry.init]>;
+  my $all_models = $registry_funcs->{list_all_models]->();
+
+  # Apply filter
+  my @discovered;
+  foreach my $model (@$all_models) {
+    next if $filter eq 'available' && !$model->{presence_decision}->{currently_present};
+    next if $filter eq 'unavailable' && $model->{presence_decision}->{currently_present};
+
+    push @discovered, {
+      'amos' => $model->{amos_checksum},
+      'name' => $model->{metadata}->{name},
+      'version' => $model->{metadata}->{version},
+      'category' => $model->{metadata}->{category},
+      'available' => $model->{presence_decision}->{currently_present},
+      'size_gb' => $model->{resource_profile}->{storage}->{size_gb},
+      'success_rate' => $model->{statistics}->{success_rate},
+      'total_invocations' => $model->{statistics}->{total_invocations},
+      'presence_tier' => $model->{presence_decision}->{presence_tier},
+    };
+  }
+
+  # Sort by success rate
+  @discovered = sort {
+    $b->{success_rate} <=> $a->{success_rate}
+  } @discovered;
+
+  return {
+    'success' => 1,
+    'filter' => $filter,
+    'count' => scalar(@discovered),
+    'models' => \@discovered,
+  };
+}
+
+# Entry point
+{
+  my $cmd = shift @ARG;
+  my @args = @ARG;
+
+  if ($cmd eq 'discover' || $cmd eq 'list') {
+    return execute_discover(@args);
+  }
+
+  return {
+    'success' => FALSE,
+    'error' => "unknown command: $cmd",
+  };
+};
+
+#,,,.,,..,.,.,.,,,,,,,,,,,,,,,..,,,,,,,,.,...,..,,...,...,...,,..,,,.,.,.,,,.,
+#OM4CKTVXM3CTQ7YYGUUFG2YMEUNTK6LCPXYMFETS567NGSZJ4AS77GR27JT3QFIJSSGT7OREC3VPI
+#\\\|KSUE52HIP54BVBS72LKFZR5XEZTSGYY2U3UPOKABOWXSHRAMYQL \ / AMOS7 \ YOURUM ::
+#\[7]NNJX63QHHIEWED65ZDBLUOMMLKLNELQJSD77ZHTBAFDAXP3AXWDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

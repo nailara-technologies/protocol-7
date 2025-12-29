@@ -1,0 +1,291 @@
+## [:< ##
+
+# name = models.storage.tier_management
+# descr = Manage multi-tier storage architecture with fallback resolution
+
+use File::Spec;
+use File::Copy qw| copy |;
+use File::Path qw| make_path remove_tree |;
+use Digest::SHA qw| sha384_hex |;
+
+# Tier definitions with priority order
+my %tiers = (
+  3 => {
+    name => 'var_run',
+    base_path => '/var/run/protocol-7/models',
+    priority => 1,
+    is_symlink => 1,
+    purpose => 'Fast access for frequently used models',
+  },
+  2 => {
+    name => 'var_protocol7',
+    base_path => '/var/protocol-7/models',
+    priority => 2,
+    is_symlink => 0,
+    purpose => 'Primary storage for active models',
+  },
+  4 => {
+    name => 'group_specific',
+    base_paths => {
+      'invoke-models' => '/data/invoke-models',
+      'lmstudio-models' => '/data/lmstudio-models',
+    },
+    priority => 3,
+    is_symlink => 1,
+    purpose => 'Compatibility with external model managers',
+  },
+  5 => {
+    name => 'external',
+    base_path => undef,  # Dynamically configured
+    priority => 4,
+    is_symlink => 0,
+    purpose => 'Expansion when internal space limited',
+  },
+  1 => {
+    name => 'repo',
+    base_path => 'data/models',
+    priority => 100,  # Last resort
+    is_metadata_only => 1,
+    purpose => 'Repository baseline and metadata',
+  },
+);
+
+# Get path for model in specific tier
+sub get_tier_path {
+  my ($model_amos, $tier, $filename) = @_;
+
+  return undef unless defined $tier && $tiers{$tier};
+
+  my $tier_def = $tiers{$tier};
+  my $base = $tier_def->{base_path};
+
+  return undef unless $base;
+
+  my $path = File::Spec->catfile($base, "$model_amos.gguf");
+  $path = "$filename" if $filename;
+
+  return $path;
+}
+
+# Resolve model through fallback chain: Tier 3 → Tier 2 → Tier 4 → Tier 5 → Tier 1
+sub resolve_model_path {
+  my ($model_amos, $storage_locations) = @_;
+
+  # Default fallback order if no locations provided
+  my @fallback_tiers = (3, 2, 4, 5, 1);
+
+  foreach my $tier (@fallback_tiers) {
+    my $location = find_location_at_tier($model_amos, $storage_locations, $tier);
+
+    if ($location) {
+      my $path = $location->{path};
+      if (-f $path || -l $path) {
+        return {
+          'path' => $path,
+          'tier' => $tier,
+          'available' => 1,
+          'location' => $location,
+        };
+      }
+    }
+  }
+
+  # Not found anywhere - return metadata location
+  my $metadata_path = File::Spec->catfile('data/models', "$model_amos.meta");
+  return {
+    'path' => $metadata_path,
+    'tier' => 1,
+    'available' => 0,
+    'is_metadata_only' => 1,
+  };
+}
+
+# Check if model exists at specific tier
+sub check_tier {
+  my ($model_amos, $tier) = @_;
+
+  my $path = get_tier_path($model_amos, $tier);
+  return 0 unless $path && (-f $path || -l $path);
+
+  return {
+    'exists' => 1,
+    'path' => $path,
+    'is_symlink' => -l $path ? 1 : 0,
+    'size' => -s $path,
+    'accessible' => -r $path ? 1 : 0,
+  };
+}
+
+# List all models across all tiers
+sub discover_models {
+  my @discovered;
+  my %seen;
+
+  # Scan each tier
+  foreach my $tier (sort keys %tiers) {
+    my $tier_def = $tiers{$tier};
+    my $base = $tier_def->{base_path};
+
+    next unless $base && -d $base;
+
+    opendir(my $dh, $base) or next;
+    while (my $file = readdir($dh)) {
+      next if $file =~ /^\./;
+      next unless $file =~ /\.gguf$/i || $file =~ /\.meta$/;
+
+      my $model_amos = $file;
+      $model_amos =~ s/\.(gguf|meta)$//i;
+
+      next if $seen{$model_amos}++;
+
+      push @discovered, {
+        amos => $model_amos,
+        filename => $file,
+        tier => $tier,
+        path => File::Spec->catfile($base, $file),
+      };
+    }
+    closedir($dh);
+  }
+
+  return \@discovered;
+}
+
+# Create symlink in Tier 3 pointing to Tier 2
+sub create_fast_symlink {
+  my ($model_amos, $tier2_path) = @_;
+
+  my $tier3_base = $tiers{3}->{base_path};
+  my $tier3_path = File::Spec->catfile($tier3_base, "$model_amos.gguf");
+
+  # Ensure Tier 3 directory exists
+  make_path($tier3_base) unless -d $tier3_base;
+
+  # Remove existing symlink if present
+  unlink($tier3_path) if -l $tier3_path;
+
+  # Create new symlink
+  symlink($tier2_path, $tier3_path) or return {
+    'success' => 0,
+    'error' => "Cannot create symlink: $!",
+  };
+
+  return {
+    'success' => 1,
+    'symlink' => $tier3_path,
+    'target' => $tier2_path,
+  };
+}
+
+# Move model between tiers
+sub move_model {
+  my ($model_amos, $from_tier, $to_tier, $verify_hash) = @_;
+
+  my $from_path = get_tier_path($model_amos, $from_tier);
+  my $to_path = get_tier_path($model_amos, $to_tier);
+
+  return {
+    'success' => 0,
+    'error' => "Source path undefined",
+  } unless $from_path && -f $from_path;
+
+  # Create target directory if needed
+  my $to_dir = File::Spec->catdir(split('/', $to_path));
+  $to_dir = substr($to_path, 0, rindex($to_path, '/'));
+  make_path($to_dir) unless -d $to_dir;
+
+  # Copy file
+  copy($from_path, $to_path) or return {
+    'success' => 0,
+    'error' => "Copy failed: $!",
+  };
+
+  # Verify hash if requested
+  if ($verify_hash) {
+    open my $fh, '<', $to_path or return {
+      'success' => 0,
+      'error' => "Cannot verify hash",
+    };
+    my $hash = sha384_hex(do { local $/; <$fh> });
+    close $fh;
+
+    return {
+      'success' => 0,
+      'error' => "Hash mismatch after move",
+    } if $hash ne $verify_hash;
+  }
+
+  # Remove source (only if not Tier 1)
+  unlink($from_path) unless $from_tier == 1;
+
+  return {
+    'success' => 1,
+    'from_path' => $from_path,
+    'to_path' => $to_path,
+    'from_tier' => $from_tier,
+    'to_tier' => $to_tier,
+  };
+}
+
+# Check available space in tier
+sub check_tier_space {
+  my ($tier) = @_;
+
+  my $base = $tiers{$tier}->{base_path};
+  return undef unless $base && -d $base;
+
+  # Simple check - count files and estimate space
+  my @files;
+  opendir(my $dh, $base) or return undef;
+  while (my $file = readdir($dh)) {
+    next if $file =~ /^\./;
+    push @files, {
+      'name' => $file,
+      'size' => -s File::Spec->catfile($base, $file),
+    };
+  }
+  closedir($dh);
+
+  my $total_size = 0;
+  $total_size += $_->{size} for @files;
+
+  return {
+    'tier' => $tier,
+    'path' => $base,
+    'file_count' => scalar(@files),
+    'total_size_bytes' => $total_size,
+    'total_size_gb' => sprintf('%.2f', $total_size / (1024 ** 3)),
+  };
+}
+
+# Find location within storage_locations array
+sub find_location_at_tier {
+  my ($model_amos, $storage_locations, $target_tier) = @_;
+
+  return undef unless $storage_locations && ref($storage_locations) eq 'ARRAY';
+
+  foreach my $loc (@$storage_locations) {
+    next unless $loc->{tier} == $target_tier;
+    return $loc;
+  }
+
+  return undef;
+}
+
+# Return storage management interface
+{
+  'get_tier_path' => \&get_tier_path,
+  'resolve_model_path' => \&resolve_model_path,
+  'check_tier' => \&check_tier,
+  'discover_models' => \&discover_models,
+  'create_fast_symlink' => \&create_fast_symlink,
+  'move_model' => \&move_model,
+  'check_tier_space' => \&check_tier_space,
+  'find_location_at_tier' => \&find_location_at_tier,
+};
+
+#,,,,,,..,...,,.,,...,..,,,,.,,,,,,.,,.,.,,,.,..,,...,...,.,,,..,,,..,,,.,,,,,
+#AEA45OVH5LW2J7SHUUL75YYV6NVOR3X6ZSSEEWEA5HWRAF5NPBXEDWC7ZWQRGQUHNOM4UBK7N7LIA
+#\\\|3KI2WJFOGYF7ADFG5GHB5U3JDXXCZSASIQK7RJ2LTXGKB2M5Y6E \ / AMOS7 \ YOURUM ::
+#\[7]ZMHHIDBSINE224UGKWR23VOHAREESUS3QODOUFDCGZOK3R4C3SCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

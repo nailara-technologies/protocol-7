@@ -1,0 +1,252 @@
+## [:< ##
+
+# name = models.init_code
+# descr = Models zenka initialization: registries, lists, operation logs, command dispatcher
+
+use JSON::PP;
+
+# =============================================================================
+# DATA STRUCTURES
+# =============================================================================
+
+# Initialize operation logs for audit trail
+<operation_log> = [];
+<error_log> = [];
+<action_log> = [];
+
+# Statistics aggregation state
+<stats_aggregation_pending> = 0;
+<last_stats_aggregation> = 0;
+<maintenance_time_available> = 0;
+
+# Cache for frequently accessed registry
+<registry_cache> = {};
+<cache_last_updated> = 0;
+<cache_ttl_seconds> = 300;
+
+# =============================================================================
+# LIST DEFINITIONS FOR VISIBILITY
+# =============================================================================
+
+# List definition for operation log
+<list.operation_log> = {
+  'var' => 'data',
+  'key' => 'operation_log',
+  'mask' => 'timestamp:time action:op status:state details:info',
+  'descr' => '[operations] models zenka action history',
+};
+
+# List definition for error log
+<list.error_log> = {
+  'var' => 'data',
+  'key' => 'error_log',
+  'mask' => 'timestamp:time error:err model:info details:info',
+  'descr' => '[errors] models zenka error log',
+};
+
+# List definition for action log
+<list.action_log> = {
+  'var' => 'data',
+  'key' => 'action_log',
+  'mask' => 'timestamp:time actor:usr action:op status:state',
+  'descr' => '[actions] admin/parent actions on models zenka',
+};
+
+# =============================================================================
+# COMMAND DISPATCHER
+# =============================================================================
+
+# Main command dispatcher
+sub dispatch_command {
+  my $cmd = shift @ARG;
+  my @args = @ARG;
+
+  # Log action
+  push @{<action_log>}, {
+    timestamp => time(),
+    actor => 'system',
+    action => $cmd,
+    status => 'pending',
+  };
+
+  # Route to command handlers
+  my $result;
+
+  if ($cmd =~ /^(get|find|recommend|record|stats|cost|discover|list)/) {
+    $result = route_command($cmd, @args);
+  } elsif ($cmd eq 'status') {
+    $result = handle_status();
+  } elsif ($cmd eq 'reload') {
+    $result = handle_reload();
+  } elsif ($cmd eq 'maintenance') {
+    $result = handle_maintenance();
+  } else {
+    $result = {
+      'success' => FALSE,
+      'error' => "unknown command: $cmd",
+    };
+  }
+
+  # Update action log
+  if (@{<action_log>}) {
+    my $last_action = <action_log>->[-1];
+    $last_action->{status} = $result->{success} ? 'completed' : 'failed';
+  }
+
+  # Log operation
+  push @{<operation_log>}, {
+    timestamp => time(),
+    action => $cmd,
+    status => $result->{success} ? 'success' : 'failure',
+    details => $result->{error} // 'completed',
+  };
+
+  return $result;
+}
+
+# Route to specific command modules
+sub route_command {
+  my $cmd = shift @ARG;
+  my @args = @ARG;
+
+  # Determine which command handler to call
+  my $module;
+  if ($cmd eq 'get') {
+    $module = 'models.cmd.get_model';
+  } elsif ($cmd eq 'find') {
+    $module = 'models.cmd.find_models';
+  } elsif ($cmd eq 'recommend' || $cmd eq 'rec') {
+    $module = 'models.cmd.recommend';
+  } elsif ($cmd eq 'record') {
+    $module = 'models.cmd.record_invocation';
+  } elsif ($cmd eq 'stats') {
+    $module = 'models.cmd.statistics';
+  } elsif ($cmd eq 'cost') {
+    $module = 'models.cmd.cost_analysis';
+  } elsif ($cmd eq 'discover' || $cmd eq 'list') {
+    $module = 'models.cmd.discover';
+  } else {
+    return {
+      'success' => FALSE,
+      'error' => "no handler for: $cmd",
+    };
+  }
+
+  # Call module
+  my $handler = <[$module]>;
+  return $handler->($cmd, @args) if $handler;
+
+  return {
+    'success' => FALSE,
+    'error' => "module not found: $module",
+  };
+}
+
+# =============================================================================
+# COMMAND HANDLERS
+# =============================================================================
+
+# Status command - return current zenka state
+sub handle_status {
+  return {
+    'success' => TRUE,
+    'zenka' => 'models',
+    'status' => 'running',
+    'operation_log_entries' => scalar(@{<operation_log>}),
+    'error_log_entries' => scalar(@{<error_log>}),
+    'action_log_entries' => scalar(@{<action_log>}),
+    'registry_path' => <[models.registry.init]>->{get_registry_path}->(),
+    'timestamp' => time(),
+  };
+}
+
+# Reload configuration and registry
+sub handle_reload {
+  # Clear caches
+  <registry_cache> = {};
+  <cache_last_updated> = 0;
+
+  # Log reload
+  push @{<operation_log>}, {
+    timestamp => time(),
+    action => 'reload',
+    status => 'completed',
+    details => 'configuration and registry reloaded',
+  };
+
+  return {
+    'success' => TRUE,
+    'reloaded' => 1,
+    'timestamp' => time(),
+  };
+}
+
+# Maintenance operations
+sub handle_maintenance {
+  my $start_time = time();
+
+  # 1. Load registry and aggregate statistics
+  my $registry_funcs = <[models.registry.init]>;
+  my $all_models = $registry_funcs->{list_all_models]->();
+
+  my $aggregated = 0;
+  foreach my $model (@$all_models) {
+    my $stats_funcs = <[models.statistics.invocation_tracking]>;
+    my $model_amos = $model->{amos_checksum};
+
+    # Aggregate for each context
+    foreach my $context (keys %{$model->{statistics}->{by_context}}) {
+      my $stats = $stats_funcs->{aggregate_statistics}->($model_amos, $context);
+      $aggregated++;
+    }
+  }
+
+  # 2. Analyze presence decisions
+  my $cost_engine = <[models.decision.cost_analysis]>;
+  my $decisions = 0;
+  foreach my $model (@$all_models) {
+    foreach my $context (keys %{$model->{statistics}->{by_context}}) {
+      my $decision = $cost_engine->{should_keep_model_local}->($model, $context);
+      $decisions++;
+    }
+  }
+
+  # 3. Log maintenance completion
+  my $elapsed = time() - $start_time;
+  push @{<operation_log>}, {
+    timestamp => time(),
+    action => 'maintenance',
+    status => 'completed',
+    details => "aggregated $aggregated stats, analyzed $decisions decisions in ${elapsed}s",
+  };
+
+  return {
+    'success' => TRUE,
+    'maintenance_completed' => 1,
+    'statistics_aggregated' => $aggregated,
+    'decisions_analyzed' => $decisions,
+    'elapsed_seconds' => $elapsed,
+  };
+}
+
+# =============================================================================
+# MAIN COMMAND ENTRY POINT
+# =============================================================================
+
+# Parse command and dispatch
+{
+  my $cmd = shift @ARG;
+
+  # Handle null command (status request)
+  if (!$cmd) {
+    dispatch_command('status');
+  } else {
+    dispatch_command($cmd, @ARG);
+  }
+};
+
+#,,,.,..,,...,..,,,..,,,.,,..,...,..,,.,.,,.,,..,,...,...,,..,,,,,,..,,,.,,..,
+#H23GMUIBVOIEWVFI4BVJROJJVKMBNTJDTSWZUV3UH2KMJ4OUM34VUL4ZG7GZPIQJYAFPTLSBFYKGY
+#\\\|PGEKZWMZCVCYRK3LYK4KXWNMQQIPZVDHLZWQENODNBPS63QBRQM \ / AMOS7 \ YOURUM ::
+#\[7]CSPUUOY3YWLVYO5JGVNABI3BRO4NTPSSZKD7EAHOFYLYAH2WTGBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,64 @@
+## [:< ##
+
+# name = models.cmd.get_model
+# descr = Retrieve a model by AMOS checksum with automatic fallback chain resolution
+
+# Command: models.get_model <amos_checksum>
+# Returns: { path, tier, available, success, error }
+
+sub execute_get_model {
+  my ($model_amos) = @_;
+
+  return {
+    'success' => FALSE,
+    'error' => 'model AMOS checksum required',
+  } unless $model_amos;
+
+  # Load registry
+  my $registry_funcs = <[models.registry.init]>;
+  my $model_entry = $registry_funcs->{get_model_entry}->($model_amos);
+
+  return {
+    'success' => FALSE,
+    'error' => "model not found: $model_amos",
+  } if $model_entry->{not_found};
+
+  # Resolve through fallback chain
+  my $storage_funcs = <[models.storage.tier_management]>;
+  my $resolved = $storage_funcs->{resolve_model_path}->(
+    $model_amos,
+    $model_entry->{storage_locations}
+  );
+
+  return {
+    'success' => 1,
+    'model_amos' => $model_amos,
+    'path' => $resolved->{path},
+    'tier' => $resolved->{tier},
+    'available' => $resolved->{available},
+    'name' => $model_entry->{metadata}->{name},
+    'version' => $model_entry->{metadata}->{version},
+    'is_metadata_only' => $resolved->{is_metadata_only} // 0,
+  };
+}
+
+# Entry point
+{
+  my $cmd = shift @ARG;
+  my @args = @ARG;
+
+  if ($cmd eq 'get_model' || $cmd eq 'get') {
+    return execute_get_model(@args);
+  }
+
+  return {
+    'success' => FALSE,
+    'error' => "unknown command: $cmd",
+  };
+};
+
+#,,,,,..,,,,,,..,,,..,..,,,,.,...,.,.,,,.,,.,,..,,...,...,..,,..,,,,.,..,,,..,
+#3F2KTXXGWW3FKYRPSB2P2JT22SXDXW2QFEJJFQXNGMD7NI2XB4BU46A65525SL7TT2TRCQ7SNXNDU
+#\\\|GYXHPWNGLI2UEULFAHB26ZE7PZWWPLMPYXAZD6KOLEFHGELL7BI \ / AMOS7 \ YOURUM ::
+#\[7]NWR5Y74MKAO4U364CAPPTPJWHAUU4PA6DUNV5B2R6KJ7LCNYE4DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
