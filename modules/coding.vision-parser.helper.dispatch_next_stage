@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = coding.vision-parser.helper.dispatch_next_stage
+# descr = orchestrate pipeline stages: spawn vision analysis or text extraction, register completion monitoring
+
+my ( $job_id, $stage ) = @ARG;
+
+my $job = <coding.vision-parser.jobs>->{$job_id};
+
+unless ( defined $job ) {
+    <[base.logs]>->( 0, '[vision-parser] dispatch_next_stage: job not found: %s', $job_id );
+    return;
+}
+
+if ( $stage eq 'analyzing' ) {
+    # STAGE 1: Spawn vision analysis via Protocol-7 routing (inter-zenka call)
+    <[base.logs]>->( 1, '[vision-parser] STAGE 1: routing vision analysis to llama-server-vision job=%s', $job_id );
+
+    # Call vision zenka via Protocol-7 command routing (through cube)
+    my $vision_result = <[base.protocol-7.command.send.local]>->(
+        {
+            'command'   => 'cube.llama-server-vision.analyze_image',
+            'call_args' => {
+                'args' => "$job->{'image_path'} $job->{'vision_prompt'}"
+            }
+        }
+    );
+
+    my $vision_output = $vision_result->{'data'} // '';
+
+    if ( !defined $vision_output || length $vision_output == 0 ) {
+        <[base.logs]>->( 0, '[vision-parser] vision analysis returned no output' );
+        $job->{'error'} = 'vision analysis returned no output';
+        <coding.vision-parser.state> = 'failed';
+        return;
+    }
+
+    <[base.logs]>->( 1, '[vision-parser] vision analysis result: %d bytes', length($vision_output) );
+
+    # Store vision result
+    $job->{'vision_result'} = $vision_output;
+
+    # Advance to next stage
+    <coding.vision-parser.state> = 'analyzing_done';
+    <[base.logs]>->( 2, '[vision-parser] state transition: analyzing_done (job=%s)', $job_id );
+
+} elsif ( $stage eq 'extracting' ) {
+    # STAGE 2: Text extraction using simple prompt + vision context
+    <[base.logs]>->( 1, '[vision-parser] STAGE 2: text extraction job=%s', $job_id );
+
+    unless ( defined $job->{'vision_result'} ) {
+        <[base.logs]>->( 0, '[vision-parser] no vision result available for extraction' );
+        $job->{'error'} = 'vision result not available';
+        <coding.vision-parser.state> = 'failed';
+        return;
+    }
+
+    # For v1, just return the vision result as-is
+    # Later versions can add real text extraction/structuring
+    <[base.logs]>->( 1, '[vision-parser] returning vision result as text extraction output' );
+
+    $job->{'extraction_result'} = $job->{'vision_result'};
+
+    # Advance to final response stage
+    <coding.vision-parser.state> = 'extracting_done';
+    <[base.logs]>->( 2, '[vision-parser] state transition: extracting_done (job=%s)', $job_id );
+}
+
+return;
+
+#,,.,,.,.,...,,.,,,,.,,,.,..,,..,,.,,,,.,,,,.,..,,...,...,..,,,.,,..,,,..,,,.,
+#ARODHRRCP3ATKXGW5L2AR6M2PUJHQB34WBSQYIPUCYTWNYZNH47CSQXZ7EEX2S7CWSM3YTAWLCFSS
+#\\\|IHXZP5XEUHGPAYL46756GWVZ6AAO6ESMRDUJSPY4RPAD7LDC4EK \ / AMOS7 \ YOURUM ::
+#\[7]HNBDHCXL7HUYLJFIK4MS3L6XYKNDKV33PEGO732KCIWDYPIH7KBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

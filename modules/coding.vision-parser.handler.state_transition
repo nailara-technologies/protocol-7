@@ -1,0 +1,81 @@
+## [:< ##
+
+# name  = coding.vision-parser.handler.state_transition
+# descr = triggered by variable watcher, dispatches next pipeline stage based on state
+
+# Get watcher object (passed by event system)
+my $watcher = shift->w if @ARG;
+
+<[base.logs]>->( 1, '[vision-parser] **HANDLER FIRED** state_transition triggered' );
+
+my $current_state = <coding.vision-parser.state>;
+my $job_id = <coding.vision-parser.current_job_id>;
+
+<[base.logs]>->( 1, '[vision-parser] state_transition: state=%s job_id=%s', $current_state // 'undef', $job_id // 'undef' );
+
+unless ( defined $job_id && defined <coding.vision-parser.jobs>->{$job_id} ) {
+    <[base.logs]>->( 0, '[vision-parser] state_transition: no active job, ignoring state=%s', $current_state );
+    return;
+}
+
+my $job = <coding.vision-parser.jobs>->{$job_id};
+
+<[base.logs]>->( 2, '[vision-parser] state_transition: processing state=%s job=%s', $current_state, $job_id );
+
+if ( $current_state eq 'analyzing' ) {
+    # Dispatch vision analysis stage
+    <[base.logs]>->( 1, '[vision-parser] starting stage 1: vision analysis' );
+    my $dispatch = <[coding.vision-parser.helper.dispatch_next_stage]>;
+    $dispatch->( $job_id, 'analyzing' );
+
+} elsif ( $current_state eq 'analyzing_done' ) {
+    # Vision analysis complete, dispatch text extraction stage
+    <[base.logs]>->( 1, '[vision-parser] starting stage 2: text extraction' );
+    my $dispatch = <[coding.vision-parser.helper.dispatch_next_stage]>;
+    $dispatch->( $job_id, 'extracting' );
+
+} elsif ( $current_state eq 'extracting_done' ) {
+    # Text extraction complete, prepare for final response
+    <[base.logs]>->( 1, '[vision-parser] extraction complete, finalizing response' );
+    <coding.vision-parser.state> = 'completed';
+    <[base.logs]>->( 2, '[vision-parser] state transition: completed' );
+
+} elsif ( $current_state eq 'completed' ) {
+    # Final response - send callback with extraction result
+    <[base.logs]>->( 1, '[vision-parser] sending deferred response: reply_id=%s', $job->{'reply_id'} );
+
+    my $final_response = $job->{'extraction_result'} // 'No extraction result';
+
+    my $cb_result = <[base.callback.cmd_reply]>->(
+        $job->{'reply_id'},
+        { 'mode' => 'size', 'data' => $final_response }
+    );
+
+    <[base.logs]>->( 1, '[vision-parser] callback sent, result=%s', $cb_result // 'undef' );
+
+    # Mark job as processed to prevent re-triggering
+    $job->{'processed'} = 1;
+    <coding.vision-parser.state> = 'pending';  # Reset for next job
+
+} elsif ( $current_state eq 'failed' ) {
+    # Error occurred - send failure callback
+    <[base.logs]>->( 0, '[vision-parser] pipeline failed: error=%s', $job->{'error'} // 'unknown' );
+
+    my $error_msg = "Vision-text extraction failed: " . ( $job->{'error'} // 'unknown error' ) . "\n";
+
+    <[base.callback.cmd_reply]>->(
+        $job->{'reply_id'},
+        { 'mode' => 'false', 'data' => $error_msg }
+    );
+
+    $job->{'processed'} = 1;
+    <coding.vision-parser.state> = 'pending';  # Reset for next job
+}
+
+return;
+
+#,,,.,,..,,,,,,,,,,.,,,.,,,,.,...,,..,,..,.,.,..,,...,..,,..,,,.,,,.,,,.,,,.,,
+#EGBWPYJDNJRK7EIOOK3RFGX5UG5C537QIFNOLX6434WPOIQP7W47V3Y55DDDROOUKBD6ZS7GUGIZS
+#\\\|QWQQ6K7YVCLZCAXGYB7XZXNAAA4PAM3WM76KBKCHRHH44QCFPWD \ / AMOS7 \ YOURUM ::
+#\[7]ZICLLOOLRQFRXJTW4HORWEHHPGYJLX4KLFL7XNLI57VVISJ3CWDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

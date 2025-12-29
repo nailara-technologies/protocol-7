@@ -5,7 +5,9 @@
 
 access.cmd.usr.cube = commands heart reload verify-instance \
                       list show-buffer buffer-erase buffer-erase-level \
-                      budget status submit infer query test-inference ## <-- coding zenka comands ##
+                      budget status submit analyze_and_extract \
+                      infer query test-inference \ ## ^ <- coding zenka comands ##
+                      get set dump ## <-- development commands to access %data. ##
 
 system.verbosity.zenka_buffer = 2  ##  memory ring buffer verbosity  ##
 
@@ -35,7 +37,9 @@ inference.model.context_length = 2048
 inference.model.max_tokens = 256
 inference.model.temperature = 0.7
 
-modules.load = auth net protocol io.unix io.ip jobqueue crypt.C25519 coding ## devmod
+modules.load = auth net protocol io.unix io.ip jobqueue \
+               crypt.C25519 coding coding.vision-parser \
+               devmod ## <-- enabled for development, unload later [LLL]
 [load_modules:<modules.load>]
 [init_modules]
 
@@ -46,8 +50,8 @@ modules.load = auth net protocol io.unix io.ip jobqueue crypt.C25519 coding ## d
 
 [zenka.loop]
 
-#,,..,,,,,.,.,,,,,,,,,.,,,,,.,...,,.,,,,.,...,..,,...,...,...,..,,,,,,,,,,,..,
-#PZ4FEDXWHF6II6ZK5MM3PL72GQ5H3NYGUJOL7BMYSS63AUFL7JG5PVVORLIZ73QM5FZHIJJZWLDE6
-#\\\|YLVWQVO3A7LNPROVKXX6JANVVB7KHRGFZTNLJ4CENKV7ZCPDPL3 \ / AMOS7 \ YOURUM ::
-#\[7]DHED2GHO7UVUJDIWTFH6KEJF4YXW47VUHMBJCUF7H7J3TZIKPMDY 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,,,,.,,,...,,..,.,.,,.,,,..,,.,,..,,...,...,,.,,.,.,..,,,,,,,,,,
+#JPA4Q5I5B6TWIRANNIVNCZZ7Y6EZS7TIWSURG7W3QAOHA34VEKVHD2WCNXSK3MZPBCM3SHH5JEWQA
+#\\\|K7BR7UTIGHVYXQ3HUFAIKJPJC54R3S7WZQNT6GST3VJM3LDFEV6 \ / AMOS7 \ YOURUM ::
+#\[7]VFGG5DFQ6V22B5AHPVLQLH4234ZLTUT4MIVAQGOUT2P4DSRMK6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

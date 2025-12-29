@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = coding.vision-parser.handler.vision_reply
+# descr = receive vision analysis result and send deferred response callback
+
+my $reply = shift;
+
+my $job_id = $reply->{'params'}->{'job_id'};
+
+unless ( defined $job_id && defined <coding.vision-parser.jobs>->{$job_id} ) {
+    <[base.logs]>->( 0, '[vision-parser] vision_reply: job not found: %s', $job_id // 'undef' );
+    return;
+}
+
+my $job = <coding.vision-parser.jobs>->{$job_id};
+
+<[base.logs]>->( 1, '[vision-parser] vision_reply: received result for job=%s data_len=%d',
+                 $job_id, length($reply->{'data'} // '') );
+
+# Extract vision result from reply
+my $vision_output = $reply->{'data'} // '';
+
+unless ( length $vision_output > 0 ) {
+    <[base.logs]>->( 0, '[vision-parser] vision analysis returned no data' );
+    <[base.callback.cmd_reply]>->(
+        $job->{'reply_id'},
+        { 'mode' => 'false', 'data' => "Vision analysis returned no data\n" }
+    );
+    return;
+}
+
+<[base.logs]>->( 1, '[vision-parser] vision analysis complete: %d bytes', length($vision_output) );
+$job->{'vision_result'} = $vision_output;
+
+# STAGE 2: Text extraction (for v1, just return vision result as-is)
+<[base.logs]>->( 1, '[vision-parser] STAGE 2: text extraction (v1: passthrough)' );
+$job->{'extraction_result'} = $vision_output;
+
+# Send final response via deferred callback
+<[base.logs]>->( 1, '[vision-parser] sending response: reply_id=%s bytes=%d',
+                 $job->{'reply_id'}, length($vision_output) );
+
+my $cb_result = <[base.callback.cmd_reply]>->(
+    $job->{'reply_id'},
+    { 'mode' => 'size', 'data' => $job->{'extraction_result'} }
+);
+
+<[base.logs]>->( 1, '[vision-parser] callback complete: result=%s', $cb_result // 'undef' );
+
+return;
+
+#,,,,,,,.,,,,,..,,,,.,,..,,.,,,.,,,,.,..,,,..,..,,...,...,..,,,,.,,,.,,,,,...,
+#CFHLA26Q3XMYOJHKRQPX4M4IUV5T5CEDCVY2UOQ5VCR33MVSSEY5FWTGQSPX3SJIPLOH4RCKTT32C
+#\\\|SAJP2Q6JFX2EMM32GJVR4S6VLDP3VHXR77CIKBKBWZ3J6UMOAKX \ / AMOS7 \ YOURUM ::
+#\[7]EARTTDQTZCHFE6IPPA62K2BLXRF6IU3TUZ3NHTUAPOC3KF72UUBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

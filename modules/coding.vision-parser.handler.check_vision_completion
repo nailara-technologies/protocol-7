@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = coding.vision-parser.handler.check_vision_completion
+# descr = polling handler for vision analysis completion - triggered by timer until result available
+
+my $watcher = shift->w if @ARG;
+my $job_id = shift;
+
+my $job = <coding.vision-parser.jobs>->{$job_id};
+
+unless ( defined $job && $job->{'vision_pending'} ) {
+    # Job not found or not waiting for vision, cancel timer
+    $watcher->cancel if defined $watcher && $watcher->is_active;
+    return;
+}
+
+<[base.logs]>->( 2, '[vision-parser] checking vision completion: job=%s', $job_id );
+
+# Check if vision result has been populated by the vision zenka callback
+if ( defined $job->{'vision_result'} && length $job->{'vision_result'} > 0 ) {
+    # Vision analysis complete!
+    <[base.logs]>->( 1, '[vision-parser] vision analysis complete: job=%s bytes=%d',
+                     $job_id, length( $job->{'vision_result'} ) );
+
+    # Cancel timer
+    $watcher->cancel if defined $watcher && $watcher->is_active;
+    delete <coding.vision-parser.timers>->{$job_id . '_vision'};
+
+    # Clear pending flag
+    $job->{'vision_pending'} = 0;
+
+    # Transition state to trigger next stage
+    <coding.vision-parser.state> = 'analyzing_done';
+    <[base.logs]>->( 2, '[vision-parser] state transition: analyzing_done (job=%s)', $job_id );
+}
+
+return;
+
+#,,.,,.,,,,.,,...,,.,,.,,,..,,..,,.,,,.,,,,,,,..,,...,...,..,,,..,..,,,,.,..,,
+#UD6K63VZNSAJ3JHD7U4GYHR4BZIHRQCUZPJ5HOYDTXIMLKJUL6ZKBKCDTX6KZEUCPHVX7CUZYP74I
+#\\\|DKZPCSEKCGL45OITKI664NHG4BS2ENFZ7YX7UCQ5TDO3VG2UTHY \ / AMOS7 \ YOURUM ::
+#\[7]TK2R3V5AGPXCG7OILEPBH45OWA62N5AVWXZNZZV25XTRHKHGZWDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
