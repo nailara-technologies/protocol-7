@@ -216,6 +216,7 @@ return [ qw[
         mpv.json.command
         mpv.get_playlist
         mpv.cmd.add_file
+        models.init_code
         jobqueue.add_job
         httpsd.init_code
         httpd.serve_file
@@ -292,6 +293,8 @@ return [ qw[
         mpv.handler.event
         mpv.cmd.set_speed
         mpv.cmd.get_speed
+        models.cmd.status
+        models.cmd.reload
         keys.get_keyfiles
         keys.console.path
         keys.console.list
@@ -463,6 +466,8 @@ return [ qw[
         openbox.cmd.version
         openbox.cmd.get_pid
         nodes.cmd.add-trunc
+        models.storage.init
+        models.cmd.discover
         mediainfo.init_code
         letsencr.cmd.revoke
         letsencr.cmd.enroll
@@ -559,6 +564,13 @@ return [ qw[
         mpv.cmd.drop_buffers
         mpv.cmd.current-file
         mpv.callback.fade_in
+        models.registry.save
+        models.registry.path
+        models.registry.load
+        models.registry.init
+        models.registry.base
+        models.cmd.recommend
+        models.cmd.get_model
         keys.console.enc-key
         keys.console.dec-key
         io.ip.tcp.input.open
@@ -671,6 +683,8 @@ return [ qw[
         mpv.cmd.show_playlist
         mpv.cmd.current-hwdec
         mpv.callback.silenced
+        models.registry.empty
+        models.cmd.statistics
         keys.read_key_archive
         keys.console.sign-key
         jobqueue.get_next_job
@@ -797,6 +811,8 @@ return [ qw[
         mpv.cmd.change_subname
         mpv.check_rescale_path
         mpv.callback.play_next
+        models.cmd.maintenance
+        models.cmd.find_models
         melt.cmd.extract_frame
         mediainfo.cmd.get_info
         logo-display.init_code
@@ -916,6 +932,7 @@ return [ qw[
         mpv.handler.event.pause
         mpv.cmd.reload_playlist
         mpv.cmd.playlist_update
+        models.storage.discover
         letsencr.child.acme_new
         letsencr.base.post_init
         letsencr.base.init_code
@@ -1036,6 +1053,8 @@ return [ qw[
         mpv.handler.error_output
         mpv.cmd.shuffle-playlist
         mpv.callback.init_volume
+        models.registry.list_all
+        models.cmd.cost_analysis
         mod-test.cmd.list-loaded
         letsencr.child.init_code
         letsencr.base.check_dirs
@@ -1149,6 +1168,10 @@ return [ qw[
         mpv.handler.event.unpause
         mpv.cmd.autoskip_interval
         mpv.await_window_presence
+        models.storage.move_model
+        models.storage.check_tier
+        models.registry.get_entry
+        models.decision.cost_base
         melt.trigger.auto_cleanup
         letsencr.parent.init_code
         letsencr.child.create_jws
@@ -1268,6 +1291,7 @@ return [ qw[
         mpv.handler.get_list_reply
         mpv.handler.cmd_prop.pause
         mpv.callback.abort_startup
+        models.storage.check_space
         llm.service.consensus_vote
         letsencr.parent.cmd.status
         letsencr.child.acme_revoke
@@ -1477,6 +1501,11 @@ return [ qw[
         mpv.handler.pipe.val_percent
         mpv.handler.pipe.single_line
         mpv.callback.start_reenc_msg
+        models.storage.resolve_model
+        models.storage.get_tier_path
+        models.registry.update_entry
+        models.registry.create_entry
+        models.cmd.record_invocation
         mod-test.cmd.erase-blacklist
         mod-test.cmd.blacklisted-add
         letsencr.dns.inwx_delete_txt
@@ -1571,6 +1600,8 @@ return [ qw[
         pdf.html.base.fork_conv_child
         nodes.cmd.update-protocol-elf
         mpv.handler.event.file-loaded
+        models.storage.create_symlink
+        models.decision.cost_analysis
         mod-test.cmd.list-blacklisted
         llama-server-vision.init_code
         letsencr.parent.send_to_child
@@ -1676,6 +1707,7 @@ return [ qw[
         mpv.handler.scan_encoded_timer
         mpv.handler.reenc_notify_reply
         mpv.callback.check_parent_dirs
+        models.storage.tier_management
         mod-test.update_blacklist_aref
         melt.handler.frame_count_reply
         llm.service.subprocess_wrapper
@@ -1755,6 +1787,7 @@ return [ qw[
         osd-logo.handler.download_reply
         nodes.send_host_details_request
         mpv.handler.rescale_video_reply
+        models.registry.list_by_context
         mod-test.write-mem-list-to-disk
         mod-test.cmd.clear-success-list
         mod-test.cmd.blacklisted-remove
@@ -1824,6 +1857,7 @@ return [ qw[
         pdf.html.parent.cmd.check_format
         osd-logo.callback.download_image
         openbox.callback.already_running
+        models.registry.find_alternative
         mod-test.perlmod.run_reload_test
         letsencr.parent.save_certificate
         letsencr.parent.cmd.query-vhosts
@@ -1999,6 +2033,7 @@ return [ qw[
         protocol.amos-chksum.ext-cmd.select
         protocol-7-menu.cmd.get-action-keys
         osd-logo.handler.colortoalpha_reply
+        models.decision.recommendation_base
         mod-test.scan_INC_chksum_collisions
         mod-test.callback.reload-test.start
         letsencr.parent.process_pending_ops
@@ -2069,6 +2104,8 @@ return [ qw[
         protocol.protocol-7.link-upgrade.init
         protocol.amos-chksum.ext-cmd.commands
         protocol.amos-chksum.connect_callback
+        models.statistics.invocation_tracking
+        models.decision.recommendation_engine
         llama-server-vision.cmd.get_debug_log
         llama-server-vision.cmd.analyze_image
         letsencr.parent.handler_renewal_retry
@@ -2218,8 +2255,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,,,.,,.,,,.,,,.,,,..,.,.,,.,,,.,,,,,,,.,,..,,...,...,,,,,,..,.,,,,..,,.,,
-#NPS2ASIOYXDNETXSBLCRM5FEYNZIN5IROPRLFPWT7AK3E6B6OES3EFWF72XRV4HAD5XC5BSHWPIQQ
-#\\\|TKBSKF6V4IFWBG6P47ZKN5IMXJX3PLVDYUVMFZZBT3JAGSON6T7 \ / AMOS7 \ YOURUM ::
-#\[7]6BFBEXRAZS4IU6XKHLKTDU5Y42KZZC2J66P2RA3VLR6FOPI3P6DY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,..,,,.,.,.,...,,..,,,.,,,,,.,.,..,,...,..,,.,.,.,,,,..,..,,,..,
+#A2BSR4YCAS3GL53VHE7ZHNIPZTISG2QWBZ4VU4JLQQS27JFKO5KBHTIA7BKSSETFBWZXKIVIGWQUK
+#\\\|B3AAO45ATZD6ETWVOTNUFUSRA436CRZF7N7P5KVRVMBNUPY4U57 \ / AMOS7 \ YOURUM ::
+#\[7]4TPJ2VXNU72XQCCSWRLKL422BZD7HCFUZU7G2OWGCMHINJ2IBOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

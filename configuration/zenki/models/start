@@ -1,67 +1,46 @@
-# Models Zenka Startup Configuration
-# Manages model registry, statistics, and recommendations
 
 .:[ resource-aware model management and recommendation zenka ]:.
 
-##
-## Module Loading
-##
-modules.load = \
-    models.registry.init \
-    models.storage.tier_management \
-    models.statistics.invocation_tracking \
-    models.decision.cost_analysis \
-    models.decision.recommendation_engine \
-    models.cmd.get_model \
-    models.cmd.find_models \
-    models.cmd.recommend \
-    models.cmd.record_invocation \
-    models.cmd.statistics \
-    models.cmd.cost_analysis \
-    models.cmd.discover \
-    models.init_code
+## loading local network parameters
+#
+[load_config_file:'shared-params']
 
-##
+
+## Module Loading
+#
+modules.load = auth net protocol io.unix models
+
+## Access Control - Commands This Zenka Exposes
+#
+access.cmd.usr.cube = heart verify-instance commands reload list show-buffer \
+                      get_model find_models recommend record_invocation \
+                      statistics cost_analysis discover status maintenance \
+                      get find rec record stats cost
+
+
 ## Module Initialization
-##
+#
 [load_modules:<modules.load>]
 [init_modules]
 
-##
-## Zenka Configuration
-##
-zenka.name = models
-zenka.description = Model Registry and Recommendation Engine
-zenka.type = service
-zenka.version = 1.0.0
-
-##
-## Deployment Options
-##
-start.on_demand = 0
-heartbeat.enabled = 1
-restart.enabled = 1
-
-##
-## Access Control
-##
-access.cmd.usr.cube = \
-    get_model find_models recommend record_invocation \
-    statistics cost_analysis discover \
-    status reload maintenance
-
-##
 ## Drop Privileges
-##
-[root.drop_privs:protocol7]
+#
+[root.drop_privs:<system.amos-zenka-user>]
 
-##
+## Connect to Network
+#
+[base.net.connect:'unix']
+
+## Register with Network as initialized
+#
+[get_session_id]
+
 ## Enter Event Loop
-##
+#
 [zenka.loop]
 
-#,,,.,.,,,..,,,,,,..,,,..,...,..,,.,.,.,,,..,,..,,...,...,,,,,.,.,,..,,,.,.,.,
-#I5QM574FXUSDJTJETAVC3E6OGTD43HIEHDXLPIVMV7ZX5EXFKQCKR65Y7ITP7VJLF2Q7AJ4I6SNGC
-#\\\|MSF354IWSLNLTXLLTAX7AE2ZAF63PNBZTVXK4GDBFL4MTDMHFL7 \ / AMOS7 \ YOURUM ::
-#\[7]GVX5TL4MPYWLXNLSKWVTGH43MRC52LOXFRYD4OCI4K37OY7ULSAI 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,..,,,,,.,.,.,.,...,.,,,,,,,...,..,,...,...,..,,.,,,.,,,.,,,,,,,
+#KWDLZUY6FRG45YBAERJ4HSZDQH4I47GHW235IY3Z6RWAB7I3RRY7GGTGXDGZP6FQPK2FZDYJ76LXK
+#\\\|6NFPT7NF4UI7BTX2JUATFQ6YJ2CNIWFD5JJYHDBXCJ4E4CVDDXQ \ / AMOS7 \ YOURUM ::
+#\[7]WI6G56AIAEMLO4VPEET22DGNQ3YAH4FCALWVURMEAZVPPWUKN2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,69 @@
+## [:< ##
+
+# name = models.storage.init
+# descr = Storage tier management initialization
+
+use File::Spec;
+use File::Copy qw| copy |;
+use File::Path qw| make_path remove_tree |;
+use Digest::SHA qw| sha384_hex |;
+
+# Tier definitions with priority order - stored in $data{} for persistence
+$data{tiers} ||= {
+  3 => {
+    name => 'var_run',
+    base_path => '/var/run/protocol-7/models',
+    priority => 1,
+    is_symlink => 1,
+    purpose => 'Fast access for frequently used models',
+  },
+  2 => {
+    name => 'var_protocol7',
+    base_path => '/var/protocol-7/models',
+    priority => 2,
+    is_symlink => 0,
+    purpose => 'Primary storage for active models',
+  },
+  4 => {
+    name => 'group_specific',
+    base_paths => {
+      'invoke-models' => '/data/invoke-models',
+      'lmstudio-models' => '/data/lmstudio-models',
+    },
+    priority => 3,
+    is_symlink => 1,
+    purpose => 'Compatibility with external model managers',
+  },
+  5 => {
+    name => 'external',
+    base_path => undef,  # Dynamically configured
+    priority => 4,
+    is_symlink => 0,
+    purpose => 'Expansion when internal space limited',
+  },
+  1 => {
+    name => 'repo',
+    base_path => 'data/models',
+    priority => 100,  # Last resort
+    is_metadata_only => 1,
+    purpose => 'Repository baseline and metadata',
+  },
+};
+
+# Entry point
+{
+  'success' => 1,
+  'message' => 'storage tiers initialized',
+};
+
+#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
+#STORAGE_INIT_SIGNATURE_PLACEHOLDER
+#\\\|STORAGE_INIT_HELPER \ / AMOS7 \ YOURUM ::
+#\[7]STORAGE_INIT_HASH 7  DATA SIGNATURE ::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,..,,.,,,,.,...,..,,.,.,,,.,.,.,,,,,..,,.,,,..,,...,...,,,.,.,,,.,.,,.,,,..,
+#A3TK3LXPEAZHI7X4DFQQM5D6WXEPWEFUTMYN5DMHM3KPNMSLMGIDBF7TPJ6XI2LDZNDXAXLOGOR4A
+#\\\|XUBOLE6FR7HG4S42UKQTVDZQFQKMRYQLBG5A2W5HDOA4NWQQA4I \ / AMOS7 \ YOURUM ::
+#\[7]4Y5WNUDSDYZYRYGVDRROJ5DYXHHSYJ5N3LYECVXEATG336FM6KBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

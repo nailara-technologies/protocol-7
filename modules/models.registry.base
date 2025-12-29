@@ -1,0 +1,48 @@
+## [:< ##
+
+# name = models.registry.base
+# descr = Registry base functionality - internal helpers for registry management
+
+use File::Path qw| make_path |;
+
+# Ensure registry directory exists
+make_path('/var/protocol-7/models') unless -d '/var/protocol-7/models';
+
+# Get registry path
+sub get_registry_path { return '/var/protocol-7/models/registry.json'; }
+
+# Get or load registry (uses $data{} for persistence)
+sub get_registry {
+  return $data{models_registry} if defined $data{models_registry};
+
+  # Load from disk if not in memory
+  my $loader = <[models.registry.load]>;
+  $data{models_registry} = $loader->{'load_registry'}->();
+  return $data{models_registry};
+}
+
+# Save registry to disk
+sub save_registry_internal {
+  my $registry = get_registry();
+  my $saver = <[models.registry.save]>;
+  return $saver->{'save_registry'}->($registry);
+}
+
+# Return helpers interface
+{
+  'get_registry_path' => \&get_registry_path,
+  'get_registry' => \&get_registry,
+  'save_registry_internal' => \&save_registry_internal,
+};
+
+#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
+#REGISTRY_BASE_SIGNATURE_PLACEHOLDER
+#\\\|REGISTRY_BASE_HELPER \ / AMOS7 \ YOURUM ::
+#\[7]REGISTRY_BASE_HASH 7  DATA SIGNATURE ::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,.,,...,...,,,,,,.,,,,,,,,.,.,,,,,,,,.,,,.,,..,,...,..,,,..,.,.,...,.,,,,,.,
+#6E6YR4TKMZJLDJMR7HK5ZG2BFQAW4UZ2U43F7WAFXKMZ2AHW6MAYQNYEEKRSL7TUC237BEP4URUTI
+#\\\|IRFFQ6VJKARHKOR3SGZG4E2J5KGR7DILNYOLOXNWLVO35ESVKO6 \ / AMOS7 \ YOURUM ::
+#\[7]MQMVZ5B2RYQNA7NFFTNME62P2MOZGPJRGPM73PZFZKAJSJ2ID2AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

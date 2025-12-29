@@ -1,141 +1,26 @@
-# Models Zenka Runtime Configuration
-# Version: 1.0.0
+## [:< ##
 
-##
-## Lifecycle Management
-##
-restart.disabled = 0
-restart.on_failure = 1
-restart.max_attempts = 3
-restart.backoff_seconds = 5
+# name  = zenka-startup.v7
+# descr = 'models' zenka startup configuration used by 'v7' zenka
 
-heartbeat.disabled = 0
-heartbeat.interval_seconds = 30
-heartbeat.timeout_seconds = 5
+dependencies = cube
 
-##
-## Resource Limits
-##
-resource.memory_limit_mb = 512
-resource.cpu_priority = normal
-resource.max_open_files = 1024
+## Deployment Options
+#
+start.on_demand   = 0
+heartbeat.enabled = 1
+restart.enabled   = 1
 
-##
-## Registry Configuration
-##
-registry.path = /var/protocol-7/models/registry.json
-registry.backup.enabled = 1
-registry.backup.interval_hours = 24
-registry.backup.retention_days = 7
+: v7-init :
+  start_mode = stdin-zenka
+  models.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<models.key>]
 
-##
-## Statistics Configuration
-##
-statistics.invocations_dir = /var/protocol-7/models/invocations
-statistics.daily_aggregation.enabled = 1
-statistics.daily_aggregation.time = 02:00  # 2 AM daily
-statistics.cleanup_old_logs.enabled = 1
-statistics.cleanup_old_logs.days_to_keep = 90
+: zenka-init :
+  [base.auth.set_zenka_key:'<{models.key}>']
 
-##
-## Storage Tier Configuration
-##
-storage.tier_1.enabled = 1
-storage.tier_1.path = data/models
-storage.tier_1.type = repository
-
-storage.tier_2.enabled = 1
-storage.tier_2.path = /var/protocol-7/models
-storage.tier_2.type = local
-storage.tier_2.max_size_gb = 100
-
-storage.tier_3.enabled = 1
-storage.tier_3.path = /var/run/protocol-7/models
-storage.tier_3.type = cache
-storage.tier_3.max_size_gb = 20
-
-storage.tier_4.enabled = 1
-storage.tier_4.paths = /data/invoke-models /data/lmstudio-models
-storage.tier_4.type = group_specific
-
-##
-## Cost Configuration
-##
-cost.storage_per_gb_per_month_usd = 0.05
-cost.bandwidth_per_gb_usd = 0.05
-cost.compute_cost_per_ms_usd = 0.000001
-
-##
-## Decision Engine Configuration
-##
-decision.margin_threshold_high = 0.15
-decision.margin_threshold_medium = 0.05
-decision.margin_threshold_low = 0.00
-
-decision.usage_threshold_frequent = 2.0    # times per month
-decision.usage_threshold_moderate = 1.0
-decision.usage_threshold_rare = 0.5
-
-decision.latency_importance.code_security = 0.9
-decision.latency_importance.real_time = 0.95
-decision.latency_importance.interactive = 0.85
-decision.latency_importance.batch = 0.1
-
-##
-## Recommendation Engine Configuration
-##
-recommendation.top_count = 5
-recommendation.weight.success = 0.50
-recommendation.weight.margin = 0.20
-recommendation.weight.availability = 0.15
-recommendation.weight.latency = 0.15
-
-##
-## Maintenance Configuration
-##
-maintenance.enabled = 1
-maintenance.schedule = daily
-maintenance.time = 02:00  # 2 AM
-maintenance.duration_minutes = 60
-maintenance.tasks = aggregation analysis optimization communication
-
-##
-## Logging Configuration
-##
-logging.operation_log.enabled = 1
-logging.operation_log.max_entries = 10000
-
-logging.error_log.enabled = 1
-logging.error_log.max_entries = 5000
-
-logging.action_log.enabled = 1
-logging.action_log.max_entries = 5000
-
-##
-## Monitoring Configuration
-##
-monitoring.enabled = 1
-monitoring.health_check_interval_seconds = 60
-monitoring.alert_on_error_rate = 0.10  # Alert if >10% of operations fail
-
-##
-## Communication
-##
-communication.parent_updates.enabled = 1
-communication.parent_updates.interval_minutes = 5
-communication.alerts.enabled = 1
-communication.alerts.critical_only = 0
-
-##
-## Debug Configuration
-##
-debug.enabled = 0
-debug.log_all_commands = 0
-debug.log_registry_changes = 0
-debug.log_statistics = 0
-
-#,,,,,,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
-#3NS4ZOFKRZCTPFI27T5AUAF6NGRVN4TIT6VG5OIQCDLXDDMKNWS2AG3BQ3ZG75RTPYXOFK3JS7UOW
-#\\\|QU2SQ5CLC7UIWSNONXKBIN7N4EDGEFNCU6QJODRGXPP7UECHZYB \ / AMOS7 \ YOURUM ::
-#\[7]YEHLH7ISBJMWYYVJPCRYJHYFIGQM3JJMWD43AM3FDXBWNLYRD4AQ 7  DATA SIGNATURE ::
+#,,..,...,...,,,.,,,.,...,,,,,.,,,..,,,,.,...,..,,...,...,...,.,,,...,.,.,.,,,
+#JE2K45LTMUTUQ5SXT55BHMSR3E3TZIIVFEYD4FQ2G2M4B4MHFEGXHNI6ELXICYNLMHFPMX2PFAOKU
+#\\\|Q4JSP6AN5PX43M7ODAOZZYXOR26FU55BC5AHOTGE66PGP6U6FEW \ / AMOS7 \ YOURUM ::
+#\[7]YRH2IY7YBH2OPVVBEF2LCCQOYDZ6EC6XGKCHNQZ6E6G2ID2W46AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

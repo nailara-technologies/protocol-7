@@ -1,0 +1,42 @@
+## [:< ##
+
+# name = models.cmd.status
+# descr = Handle status command - return current zenka state
+
+sub execute_status {
+  return {
+    'success' => TRUE,
+    'zenka' => 'models',
+    'status' => 'running',
+    'operation_log_entries' => scalar(@{$data{operation_log}}),
+    'error_log_entries' => scalar(@{$data{error_log}}),
+    'action_log_entries' => scalar(@{$data{action_log}}),
+    'timestamp' => time(),
+  };
+}
+
+# Entry point
+{
+  my $cmd = shift @ARG;
+
+  if ($cmd eq 'status') {
+    return execute_status();
+  }
+
+  return {
+    'success' => FALSE,
+    'error' => "unknown command: $cmd",
+  };
+};
+
+#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
+#STATUS_CMD_SIGNATURE_PLACEHOLDER
+#\\\|STATUS_CMD_HELPER \ / AMOS7 \ YOURUM ::
+#\[7]STATUS_CMD_HASH 7  DATA SIGNATURE ::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,.,,,,.,...,.,,,,,.,..,,.,.,.,.,.,.,..,,,,.,..,,...,...,,,,,.,.,,.,,.,,,,,,,
+#N5VE74S4WINHJQCZ6NMSKQVNUV3RX4KBC3IC36I3HZN7WWA3PLNKKLNLYXC3SL5K5AZS6PP7MB4KI
+#\\\|WGQKQUC2HV2KPVHA6WJHTOTRUG2DXAVBRUDGVE73O5B53BN3GAV \ / AMOS7 \ YOURUM ::
+#\[7]NHP3VWJZKU5VCDOAULNI6LA2GPGLN4TM4OA6V2WIDRS2XNPGLMAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

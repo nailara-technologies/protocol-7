@@ -1,0 +1,33 @@
+## [:< ##
+
+# name = models.registry.find_alternative
+# descr = Find best alternative model in registry
+
+sub find_best_alternative {
+  my ($model_amos, $context) = @_;
+  my $base = <[models.registry.base]>;
+  my $registry = $base->{get_registry}->();
+
+  my $entry = $registry->{models}->{$model_amos};
+  return undef unless $entry;
+
+  return $entry->{statistics}->{alternatives}->[0] // undef;
+}
+
+# Entry point
+{
+  my @args = @ARG;
+  return find_best_alternative(@args);
+};
+
+#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
+#REGISTRY_FIND_ALT_SIGNATURE_PLACEHOLDER
+#\\\|REGISTRY_FIND_ALT_HELPER \ / AMOS7 \ YOURUM ::
+#\[7]REGISTRY_FIND_ALT_HASH 7  DATA SIGNATURE ::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,,,...,...,.,,,...,.,.,,..,...,,,.,,,,,.,.,..,,...,...,...,,,.,,.,,,,.,.,.,
+#RPTNLYOH6AODI7MTYA4UFCIOLSSR6DB4OP76C56KFGE6YABV3UNPSEY574VVA5PGGY7MJJWT5T2Q2
+#\\\|M2ZEII7QIRHI2UWIHI5OHER6X7P3CYDNEDTBAT2JAVIS2DRAZ6A \ / AMOS7 \ YOURUM ::
+#\[7]J6XYGVIVMTKTZIWGQAKYOWGXME5PH26CDND3YTFHMGSUIBYQEACY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,65 @@
+## [:< ##
+
+# name = models.decision.cost_base
+# descr = Base helpers for cost analysis
+
+sub should_keep_model_local {
+  my ($model, $monthly_cost_local, $monthly_cost_download) = @_;
+  return $monthly_cost_local < $monthly_cost_download;
+}
+
+sub estimate_usage_frequency {
+  my ($model) = @_;
+  my $invocations = $model->{statistics}->{total_invocations} // 0;
+  return $invocations > 10 ? $invocations / 30 : 1;  # Per day estimate
+}
+
+sub is_latency_sensitive {
+  my ($model) = @_;
+  return ($model->{metadata}->{init_latency_ms} // 0) < 5000;
+}
+
+sub get_latency_importance {
+  my ($model) = @_;
+  return is_latency_sensitive($model) ? 0.8 : 0.2;
+}
+
+sub has_available_alternative {
+  my ($model) = @_;
+  my $alternatives = $model->{statistics}->{alternatives} // [];
+  return scalar(@$alternatives) > 0;
+}
+
+sub can_link_to_group_storage {
+  my ($model) = @_;
+  return $model->{presence_decision}->{currently_present} ? 1 : 0;
+}
+
+sub get_group_path {
+  my ($model) = @_;
+  return '/data/invoke-models' if $model->{category} eq 'invoke';
+  return '/data/lmstudio-models' if $model->{category} eq 'lmstudio';
+  return '/data/models';
+}
+
+{
+  'should_keep_model_local' => \&should_keep_model_local,
+  'estimate_usage_frequency' => \&estimate_usage_frequency,
+  'is_latency_sensitive' => \&is_latency_sensitive,
+  'get_latency_importance' => \&get_latency_importance,
+  'has_available_alternative' => \&has_available_alternative,
+  'can_link_to_group_storage' => \&can_link_to_group_storage,
+  'get_group_path' => \&get_group_path,
+};
+
+#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
+#DECISION_COST_BASE_SIGNATURE_PLACEHOLDER
+#\\\|DECISION_COST_BASE_HELPER \ / AMOS7 \ YOURUM ::
+#\[7]DECISION_COST_BASE_HASH 7  DATA SIGNATURE ::
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,..,,..,..,,,,,,..,,,..,.,,,...,,..,...,,,.,..,,...,...,.,,,,..,,,,,,,,,.,.,
+#YGYIP7OWWHOQVML5PMAQDH5O676MYEWHNNISPSWK3P7GBH6G46R3GOUS2NEQOAAHTZDL3VGCRDV2I
+#\\\|M2IJDFELIFYIFLTVGIGK65IZYOJPNLQUTTWJHGV2B6VSEGOTIDR \ / AMOS7 \ YOURUM ::
+#\[7]IAUF6XDH6CB3REOXBMN6FRKPUW47644WPNXKKVWNB7TX2ZUCQYAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

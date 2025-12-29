@@ -32,13 +32,13 @@ sub execute_recommend {
 
   # Load registry
   my $registry_funcs = <[models.registry.init]>;
-  my $all_models = $registry_funcs->{list_all_models]->();
+  my $all_models = $registry_funcs->{'list_all_models'}->();
 
   # Load recommendation engine
   my $rec_engine = <[models.decision.recommendation_engine]>;
 
   # Get recommendations
-  my $recommendations = $rec_engine->{get_model_recommendations}->(
+  my $recommendations = $rec_engine->{'get_model_recommendations'}->(
     $context,
     $constraints,
     $all_models
@@ -87,8 +87,8 @@ sub execute_recommend {
   };
 };
 
-#,,,,,...,,,,,,,.,,,.,,,,,,..,,,.,..,,.,,,.,,,..,,...,...,.,,,,,.,,.,,,,,,..,,
-#3KKWKRSKY5EWZ4L3R5IVHLFBS7IPEFWTCIV5P33EMY5FZTB4ENRS45YRHRPW37UTJXF54I4QIXDXG
-#\\\|XJM5TUV6FGAWCEJT7WUOIJP56UCSPURFZ6HYIM76QMGQ27PKDWU \ / AMOS7 \ YOURUM ::
-#\[7]YWWUMPYPKZGTEPQFWV5IPVGKMPWDEYQTM7CSNTDI2ADXNU6PFWAY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,.,,,.,,,.,,..,...,,,.,,,,,..,,..,,...,...,.,.,,,,,.,.,.,.,,..,
+#27SIF2PTDNJEBV3Y7B6RN7TGPRECHBKKDLSMVOFZE3QCIEPOYMG4YK7LT6GLHCMGCNTHPJG3ZBSMA
+#\\\|PYPMVSOFXNAI4SIZPXCTSQIKZLVJEYTNVW6Y4UKBNP4II23ZEWM \ / AMOS7 \ YOURUM ::
+#\[7]Z7HNCPGW33TP6UV4OL3GD7V7AI37GSV5Q77J2BRVD7VADP5VFMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
