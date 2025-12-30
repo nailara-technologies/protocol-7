@@ -30,28 +30,37 @@ unless ( defined $analysis_prompt ) {
     return { success => FALSE, error => 'Analysis prompt required' };
 }
 
-# Fetch model configuration from models zenka
-<[base.perlmod.autoload]>->(qw| JSON::PP |);
+# Load model configuration from centralized models.yaml
+<[base.perlmod.autoload]>->(qw| YAML::Tiny |);
 
-my $response = <[base.protocol-7.command.send.local]>->(
-    {   'command'   => "models.get_model_path",
-        'call_args' => { 'model_id' => $model_identifier }
+my $config_file = <system.conf_path> . '/zenki/models/models.yaml';
+
+my $model_data = undef;
+
+if ( -f $config_file ) {
+    my $yaml_content = <[file.slurp]>->($config_file);
+
+    if ($yaml_content) {
+        my $yaml = YAML::Tiny::Load($$yaml_content);
+
+        if ( $yaml && exists $yaml->{models}{$model_identifier} ) {
+            $model_data = $yaml->{models}{$model_identifier};
+        } else {
+            <[base.logs]>->(
+                0, "[image-quality] Error: Model %s not found in models.yaml",
+                $model_identifier
+            );
+        }
     }
-);
+} else {
+    <[base.log]>->(
+        0, "[image-quality] Error: models.yaml not found at $config_file"
+    );
+}
 
 return {
     success => FALSE,
-    error   => "Failed to fetch model configuration: $model_identifier",
-    method  => 'subprocess'
-    }
-    unless $response && ref($response) eq 'HASH' && $response->{data};
-
-my $model_data;
-eval { $model_data = JSON::PP::decode_json( $response->{data} ); };
-
-return {
-    success => FALSE,
-    error   => "Failed to parse model configuration",
+    error   => "Failed to load model configuration: $model_identifier",
     method  => 'subprocess'
     }
     unless $model_data && ref($model_data) eq 'HASH';
@@ -149,8 +158,8 @@ return {
     model_used => $model_identifier
 };
 
-#,,..,,,.,,.,,,,.,,,,,,,,,...,.,,,,,,,..,,..,,..,,...,..,,.,,,.,.,.,.,...,,,,,
-#SLAHP26ABD233QFA3QNKKSA5TEBE5F4DYRDMGRER6P63BCUBYOIHRIVDWZWN6NVXSUJRDH3RQ7D76
-#\\\|HXQLMVW6XT7BJYUERSB422ZVQL6KVN5MV5DGX6JPYOELSIYRAON \ / AMOS7 \ YOURUM ::
-#\[7]H6BF56EIBQW2ZT33NUEYZEIPP5PN6VVPH62OVEC57NMD7LKBMICY 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,,,,,.,.,,.,,.,,,,..,,,,,..,,...,..,,...,...,,.,,..,,,.,,,,,,.,.,
+#FUM3ONRE5EQ3YEAK47O4ZDFD2KPCTZT3OIXAJAM5MFXX3Q3QSP6IHI57QCWZED6RIHPHA2ZRGD3AS
+#\\\|ORRTZMYOCC4YHGMB2YLCAH23UT5MOO5TURJLYPDMFR3VOFK7SXP \ / AMOS7 \ YOURUM ::
+#\[7]JI4TQR2SGTZ753GUFB7AW5HH5DSLMBTKJEEJGNROSR6JJL266QBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

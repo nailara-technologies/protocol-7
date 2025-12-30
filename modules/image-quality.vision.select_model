@@ -3,67 +3,70 @@
 # name = image-quality.vision.select_model
 # descr = Select appropriate vision model from registry
 
-<[base.perlmod.load]>->( 'YAML::XS', qw| LoadFile | );
+# Get vision models from centralized init_code loading
+my $vision_models = <image-quality.vision_models> || [];
 
-my $registry_path
-    = '/data/projects/protocol-7/data/yaml/vision-models-registry.yaml';
+return { success => FALSE, error => 'No vision models available' }
+    unless @$vision_models > 0;
 
-# Load registry
-my $registry;
-eval { $registry = LoadFile($registry_path); };
-return { success => FALSE, error => "Cannot load registry: $@" } if $@;
+<[base.logs]>->(
+    1,
+    "[image-quality.vision.select_model] Selecting from %d available models",
+    scalar(@$vision_models)
+);
 
-return { success => FALSE, error => 'Invalid registry format' }
-    unless ref $registry eq 'HASH';
-return { success => FALSE, error => 'No categories in registry' }
-    unless $registry->{categories};
+# Preferred order (based on tested reliability with llama-mtmd-cli)
+my @preferred_ids = (
+    'qwen2.5-vl-7b-instruct', 'qwen3-vl-4b-instruct',
+    'opus-100-manga',         'gemma3-4b-it-uncensored',
+    'gemma3-glitter-4b'
+);
 
-# Get stable_production models (highest priority)
-my $stable_models = $registry->{categories}{stable_production}{models};
-return { success => FALSE, error => 'No stable production models available' }
-    unless $stable_models && ref $stable_models eq 'ARRAY';
+# Try to find a preferred model
+foreach my $preferred_id (@preferred_ids) {
+    foreach my $model (@$vision_models) {
+        if ( $model->{id} eq $preferred_id ) {
+            <[base.logs]>->(
+                1, "[image-quality.vision.select_model] Selected: %s",
+                $model->{name}
+            );
 
-# Try each stable model in preferred_order
-my $preferred_order = $registry->{preferred_order} || [];
-foreach my $model_path (@$preferred_order) {
-
-    # Find this model in the registry
-    foreach my $model (@$stable_models) {
-        if ( $model->{model_path} eq $model_path ) {
             return {
                 success        => TRUE,
-                model_path     => $model_path,
+                model_id       => $model->{id},
+                model_path     => $model->{path},
                 model_name     => $model->{name},
-                params         => $model->{params},
-                capabilities   => $model->{capabilities},
-                max_resolution => $model->{max_resolution} || 4096,
-                category       => 'stable_production'
+                mmproj         => $model->{mmproj},
+                context_size   => $model->{context_size},
+                batch_size     => $model->{batch_size},
+                tokens_per_sec => $model->{tokens_per_sec},
+                max_resolution => 4096
             };
         }
     }
 }
 
-# Fallback: return first stable model
-if (@$stable_models) {
-    my $first = $stable_models->[0];
-    return {
-        success        => TRUE,
-        model_path     => $first->{model_path},
-        model_name     => $first->{name},
-        params         => $first->{params},
-        capabilities   => $first->{capabilities},
-        max_resolution => $first->{max_resolution} || 4096,
-        category       => 'stable_production'
-    };
-}
+# Fallback: return first available vision model
+my $first = $vision_models->[0];
+<[base.logs]>->(
+    1, "[image-quality.vision.select_model] Using fallback: %s",
+    $first->{name}
+);
 
 return {
-    success => FALSE,
-    error   => 'No suitable vision models available in registry'
+    success        => TRUE,
+    model_id       => $first->{id},
+    model_path     => $first->{path},
+    model_name     => $first->{name},
+    mmproj         => $first->{mmproj},
+    context_size   => $first->{context_size},
+    batch_size     => $first->{batch_size},
+    tokens_per_sec => $first->{tokens_per_sec},
+    max_resolution => 4096
 };
 
-#,,,,,,.,,,.,,,.,,,.,,.,,,.,,,...,...,,,,,,,.,..,,...,...,..,,,..,,..,,,,,,,,,
-#JT7E2PXMNZSGMVB4OI4ZKP5WSZT5VKESGA332VV4U45HPPJ6QUG4CVIDP3IZ6NUQJ6FLUPFUK42Q2
-#\\\|47I56263GVNW3TAA35YO2FNJTI6DFSWSWW7TKDS35WAUC23KWE5 \ / AMOS7 \ YOURUM ::
-#\[7]QZ56NFZ7DNR6AVN74DKKRDGUHSZPXSF37LOPCI77C7ZCM6D3Z6DY 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,..,,,,,,,,.,,.,,.,,,.,.,,.,,.,.,..,,...,...,...,,.,,,.,,...,,,.,
+#JKGSJAGP4S2VAJB47JBDMMKWJMRQ734QWEMQJM5D6YRA4HABNXEQGAUXEICSWCEFNPDITGCQYELCM
+#\\\|I5U32MWXBE5ER4TMCGB2LNFBKPZJW7J5KMLPQMOB7CTTJSDHJF6 \ / AMOS7 \ YOURUM ::
+#\[7]ACEFUNVT64GI62KJTJRXZX6O5B4XIKE4RUGGS6KDZME2KY42Q2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

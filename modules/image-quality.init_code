@@ -3,6 +3,62 @@
 # name = image-quality.init_code
 # descr = Image quality analyzer initialization with infrastructure
 
+## Load vision model configuration from centralized models.yaml
+<[base.logs]>
+    ->( 1, "[image-quality] Loading vision models from models.yaml" );
+
+<[base.perlmod.autoload]>->(qw| YAML::Tiny |);
+
+my $config_file = <system.conf_path> . '/zenki/models/models.yaml';
+
+my @vision_models = ();
+
+if ( -f $config_file ) {
+    my $yaml_content = <[file.slurp]>->($config_file);
+
+    if ($yaml_content) {
+        my $yaml = YAML::Tiny::Load($$yaml_content);
+
+        if ( $yaml && exists $yaml->{models} ) {
+            foreach my $model_id ( sort keys %{ $yaml->{models} } ) {
+                my $model_def = $yaml->{models}->{$model_id};
+                next unless $model_def->{is_vision};
+
+                push @vision_models,
+                    {
+                    id           => $model_id,
+                    name         => $model_def->{name},
+                    path         => $model_def->{path},
+                    mmproj       => $model_def->{mmproj},
+                    quantization => $model_def->{quantization},
+                    context_size => $model_def->{metadata}->{context_size}
+                        // 4096,
+                    batch_size => $model_def->{metadata}->{batch_size} // 64,
+                    threads    => $model_def->{metadata}->{threads}    // 2,
+                    tokens_per_sec => $model_def->{metadata}->{tokens_per_sec}
+                        // 3
+                    };
+            }
+        } else {
+            <[base.log]>->(
+                0, "[image-quality] Error: No models found in models.yaml"
+            );
+        }
+    }
+} else {
+    <[base.log]>->(
+        0, "[image-quality] Error: models.yaml not found at $config_file"
+    );
+}
+
+# Cache vision models in zenka data
+<image-quality.vision_models> = \@vision_models;
+
+<[base.logs]>->(
+    1, "[image-quality] Vision models initialized: %d models loaded",
+    scalar(@vision_models)
+);
+
 ## Initialize data structures for image quality analyzer
 ## Note: Data structures are created on-demand by modules
 
@@ -28,8 +84,8 @@
 
 return TRUE;
 
-#,,,.,.,,,,,.,.,.,.,.,.,.,.,.,...,,,.,,,.,.,,,..,,...,...,..,,..,,,,,,...,,,.,
-#WQ4MWESUK6JNGSXS7FQYUPHPGVYYAOTME3GNMLMLWLBERXW6QMYDUU5D7OB7I7XKO37REYS4RYLGQ
-#\\\|HHQCGRICSKC3NZLM57AOAYIEPJJ5CVSJ4HMZ2XSRI3BORY5YTUU \ / AMOS7 \ YOURUM ::
-#\[7]CCXMMD4GYIEGSEW7K4Q3WULV6OEYFC72P3TBS5OBXU2SRONHISAA 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,,.,,..,...,,,.,,..,.,.,,,.,,,.,..,,...,.,.,.,,,...,...,,..,.,,,
+#JND5C2UUAGAAADELKKPOER6SNVA5GE2TZB5W33OTUIFJHABN5HBGHDOD23KSVUVDZDUDTL4TPZXBA
+#\\\|YAK622YY6XZ6OLRCR5OTKP4CUUMLYQOH4PL5VEYRSAIAFU5CGYB \ / AMOS7 \ YOURUM ::
+#\[7]KM2K6WHQ6QKPOI5PBP7LDIM2PO5NJGUWAU62B2Z4MGJ7AHOGZSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -15,50 +15,40 @@
     = '/var/log/protocol-7/llama-server-vision.log';
 
 # Load vision model configuration from centralized models.yaml
-<[base.logs]>->( 1, "[llama-server-vision] Loading vision model config from models.yaml" );
+<[base.logs]>->(
+    1, "[llama-server-vision] Loading vision model config from models.yaml"
+);
 
 <[base.perlmod.autoload]>->(qw| YAML::Tiny |);
 
-my $config_root = $ENV{PROTOCOL_7_CONFIG_ROOT}
-    || '/data/projects/protocol-7/configuration';
-my $config_file = $config_root . '/zenki/models/models.yaml';
+my $config_file = <system.conf_path> . '/zenki/models/models.yaml';
 
 my $model_path  = undef;
 my $mmproj_path = undef;
 
 if ( -f $config_file ) {
-    my $yaml_content;
-    {
-        open my $fh, '<', $config_file or do {
+    my $yaml_content = <[file.slurp]>->($config_file);
+
+    if ($yaml_content) {
+        my $yaml = YAML::Tiny::Load($$yaml_content);
+
+        if (   $yaml
+            && exists $yaml->{models}
+            && exists $yaml->{models}->{'qwen3-vl-4b-instruct'} ) {
+            my $model_def = $yaml->{models}->{'qwen3-vl-4b-instruct'};
+            $model_path  = $model_def->{path};
+            $mmproj_path = $model_def->{mmproj};
+        } else {
             <[base.log]>->(
-                0, "[llama-server-vision] Cannot read models.yaml: $!"
+                0,
+                "[llama-server-vision] Error: qwen3-vl-4b-instruct not found in models.yaml"
             );
-        };
-
-        if ($fh) {
-            local $/;
-            $yaml_content = <$fh>;
-            close $fh;
-
-            my $yaml = YAML::Tiny::Load($yaml_content);
-
-            if ($yaml
-                && exists $yaml->{models}
-                && exists $yaml->{models}->{'qwen3-vl-4b-instruct'} ) {
-                my $model_def = $yaml->{models}->{'qwen3-vl-4b-instruct'};
-                $model_path  = $model_def->{path};
-                $mmproj_path = $model_def->{mmproj};
-            } else {
-                <[base.log]>->(
-                    0,
-                    "[llama-server-vision] Error: qwen3-vl-4b-instruct not found in models.yaml"
-                );
-            }
         }
     }
 } else {
     <[base.log]>->(
-        0, "[llama-server-vision] Error: models.yaml not found at $config_file"
+        0,
+        "[llama-server-vision] Error: models.yaml not found at $config_file"
     );
 }
 
@@ -67,9 +57,7 @@ if ( $model_path && $mmproj_path && -f $model_path && -f $mmproj_path ) {
     <llama-server-vision.vision_mmproj_path> = $mmproj_path;
 
     <[base.logs]>->(
-        1,
-        "[llama-server-vision] Vision model initialized: %s",
-        $model_path
+        1, "[llama-server-vision] Vision model initialized: %s", $model_path
     );
 } else {
     <[base.log]>->(
@@ -113,8 +101,8 @@ if ( $model_path && $mmproj_path && -f $model_path && -f $mmproj_path ) {
 
 0;    # Return success for module initialization
 
-#,,.,,.,,,,,.,,,.,,,,,,..,,,,,,..,..,,..,,...,..,,...,..,,.,.,..,,..,,..,,..,,
-#LHL66BR3HBPX67E3OPWVGJW5JAF5C75Z3ZJFXTPSX66RDOYY7RKST2GGRBORUBSJYWAIGOEF2ETL6
-#\\\|Z6N74XKHEKB4VKJ3Y6AGMOUR4WUSGSC5E2ZP4EXRWFT22MJYFQ3 \ / AMOS7 \ YOURUM ::
-#\[7]VXMG4MFVFZVFGM7QJV2UKITOM65M3FURTED2GDKJ6WUGGCYEUQBI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,..,,,.,,,.,,,.,.,,,.,,,..,,,.,,..,,...,..,,.,.,.,,,.,.,..,,,.,,
+#XCJKWRTYADPNU5UE3NNIDITZQYVIG7EHQRA6HCJHXGNYXXSINWV2UOWR5X6KO25P64M7ZGA6RVBUO
+#\\\|TRDXATZG4IPVTZBJVHCQ5RCPXME2BLJ7WL5MZL3ZYC4WUTKTIKD \ / AMOS7 \ YOURUM ::
+#\[7]JYU5AZSMV2WUIZPGWJXL3RITN7BNN6GMSMEJZNVJTRENNAJ4CIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
