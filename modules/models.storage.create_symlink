@@ -6,30 +6,6 @@
 use File::Path qw| make_path |;
 
 # Create symlink in Tier 3 pointing to Tier 2
-sub create_fast_symlink {
-  my ($model_amos, $tier2_path) = @_;
-
-  my $tier3_base = $data{models}{tiers}->{3}->{base_path};
-  my $tier3_path = File::Spec->catfile($tier3_base, "$model_amos.gguf");
-
-  # Ensure Tier 3 directory exists
-  make_path($tier3_base) unless -d $tier3_base;
-
-  # Remove existing symlink if present
-  unlink($tier3_path) if -l $tier3_path;
-
-  # Create new symlink
-  symlink($tier2_path, $tier3_path) or return {
-    'success' => 0,
-    'error' => "Cannot create symlink: $!",
-  };
-
-  return {
-    'success' => 1,
-    'symlink' => $tier3_path,
-    'target' => $tier2_path,
-  };
-}
 
 # Entry point
 {
@@ -37,14 +13,8 @@ sub create_fast_symlink {
   return create_fast_symlink(@args);
 };
 
-#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
-#STORAGE_CREATE_SYMLINK_SIGNATURE_PLACEHOLDER
-#\\\|STORAGE_CREATE_SYMLINK_HELPER \ / AMOS7 \ YOURUM ::
-#\[7]STORAGE_CREATE_SYMLINK_HASH 7  DATA SIGNATURE ::
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,..,,..,,,.,.,.,,..,.,.,.,,,.,,,,..,,..,...,..,,...,...,..,,,.,,.,.,.,.,...,
-#4J3UOWGP5VXQJQOQPD3ZJM23IT2CNMP6WFT7EYZUQUZGJBELUI5NXSH3F3W434OJ5M4HYBQCM3TYI
-#\\\|UKMUIYATC5ZMTMIDV6EDKDGOXITTAQNIFVSIGQ7MQQ3ZPKWFUDE \ / AMOS7 \ YOURUM ::
-#\[7]XCKNQP5UX7JYK2KRZMQ5S2DYUZ4HAEY64OKONUEAMAVBDG6XBKDY 7  DATA SIGNATURE ::
+#,,,.,...,...,,..,..,,,..,...,,,.,,.,,.,.,.,.,..,,...,...,,.,,..,,.,,,,..,...,
+#QAC4XFTDGIZU5YVQKK24VGEWLJH4XBFDNVHUKSUR2XQ5RSKCBD4FC4V4AHOQQ6IC5NFELRNV6YBKY
+#\\\|72AOAWPSSDLUNLAQQSCVBUX33B3ZCS5VFMYJYOBXEYBYS2FQ3KN \ / AMOS7 \ YOURUM ::
+#\[7]KAPEG7PCGIEBOXRLG57PYAH67BLFCK5KDOSRVV4B7IOJB5RKVKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

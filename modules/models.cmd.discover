@@ -3,12 +3,12 @@
 # name = models.cmd.discover
 # descr = Discover all available models in registry
 
+my $cmd = shift @ARG;  # Remove command name from @ARG
 my ($filter) = @ARG;
 $filter //= 'all';
 
-# Load registry
-my $registry_funcs = <[models.registry.init]>;
-my $all_models = $registry_funcs->{'list_all_models'}->();
+# Load registry - call extracted module directly
+my $all_models = <[models.registry.list_all.list_all_models]>->();
 
 # Apply filter
 my @discovered;
@@ -54,8 +54,8 @@ foreach my $model (@discovered) {
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,,.,..,,,..,,..,,.,,,.,,..,,..,,.,.,.,.,,,.,..,,...,...,..,,,,,,,,,,.,,,...,
-#G4BQSIP3GYVRG6HMUSDMUWHXVJ3HG3CMWMXDH6FWVNW6FYVRJ7ETPXJHU2O3WERHXDVCZQQWAS5BA
-#\\\|FRILQE6KJSPOP3IXUIBRZP6ABAA46W72OOZLBVHXWQCJKLI6MYD \ / AMOS7 \ YOURUM ::
-#\[7]YDYDOKCNK6DFLXPPMSYWZEEWPBHWB6OESQP45UZZSE23OR2YSWDQ 7  DATA SIGNATURE ::
+#,,,,,,..,,..,.,.,,,,,.,.,,,.,.,,,.,.,,,,,,,.,..,,...,...,.,.,.,.,..,,..,,..,,
+#4SHYZIGR57GONXXW53U2NW52EPVXGFX3NBT6ZA4YIWXOUJSLBDXN4MXCNUENWTKN56C7KYHIYY4BI
+#\\\|VGOVG6MRQ2RCCYSPSHPLKIE77X7X3EDLHSTF7IRZLXHGTSCHY7A \ / AMOS7 \ YOURUM ::
+#\[7]SXHONRXVO6CECBYS5VAA6RTQONLBMSQQQJAMIY6MA3OJODYUM2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

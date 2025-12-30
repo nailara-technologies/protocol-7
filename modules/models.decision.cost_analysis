@@ -4,91 +4,9 @@
 # descr = Analyze storage vs bandwidth costs and determine optimal presence strategy
 
 # Cost analysis main function
-sub cost_analysis {
-  my ($model, $context) = @_;
-  my $base = <[models.decision.cost_base]>;
 
-  my $stats = $model->{statistics}->{by_context}->{$context};
-  return { 'decision' => 'UNKNOWN', 'confidence' => 0 } unless $stats;
-
-  my $success = $stats->{success_rate} // 0;
-  my $margin = $stats->{margin_vs_best_alt} // 0;
-  my $storage_cost = $model->{resource_profile}->{storage}->{storage_cost_per_month_usd} // 0;
-  my $download_cost = $model->{resource_profile}->{bandwidth}->{download_cost_per_retrieval_usd} // 0;
-  my $usage_per_month = $base->{estimate_usage_frequency}->($model);
-
-  my $cumulative_download_cost = $usage_per_month * $download_cost;
-
-  my @reasons;
-  my $decision = 'KEEP_LOCAL_DEFAULT';
-  my $confidence = 0.5;
-
-  if ($cumulative_download_cost > $storage_cost * 3) {
-    $decision = 'KEEP_LOCAL_COST_JUSTIFIED';
-    push @reasons, sprintf('cost: downloading would cost %.2f x more than storage', $cumulative_download_cost / $storage_cost);
-    $confidence = 0.85;
-  } elsif ($margin > 0.15 && $usage_per_month > 1.0) {
-    $decision = 'KEEP_LOCAL_HIGH_MARGIN';
-    push @reasons, sprintf('margin: %.1f%% better than alternatives', $margin * 100);
-    $confidence = 0.80;
-  } elsif ($base->{is_latency_sensitive}->($model) && $usage_per_month > 2.0) {
-    $decision = 'KEEP_LOCAL_LATENCY_CRITICAL';
-    push @reasons, 'latency-critical model with frequent use';
-    $confidence = 0.75;
-  } elsif ($margin < 0.05 && $base->{has_available_alternative}->($model)) {
-    $decision = 'FETCH_ONDEMAND_ALT_AVAILABLE';
-    push @reasons, 'barely better than alternatives';
-    $confidence = 0.70;
-  } elsif ($usage_per_month < 0.5 && $margin < 0.20) {
-    $decision = 'CONSIDER_REMOVAL';
-    push @reasons, 'rarely used and not significantly better';
-    $confidence = 0.65;
-  } else {
-    push @reasons, 'no strong criteria met, using safe default';
-  }
-
-  return {
-    'decision' => $decision,
-    'confidence' => $confidence,
-    'reasons' => \@reasons,
-    'cost_summary' => {
-      'storage_monthly' => $storage_cost,
-      'download_monthly' => $cumulative_download_cost,
-      'usage_frequency' => $usage_per_month,
-    },
-  };
-}
-
-# Where model should reside
-sub where_should_model_reside {
-  my ($model, $context) = @_;
-  my $base = <[models.decision.cost_base]>;
-
-  my $analysis = cost_analysis($model, $context);
-  my $decision = $analysis->{decision};
-
-  if ($decision =~ /KEEP_LOCAL/) {
-    return { 'tier' => 2, 'should_cache' => 1, 'path' => '/var/protocol-7/models' };
-  } elsif ($decision eq 'FETCH_ONDEMAND_ALT_AVAILABLE') {
-    return { 'tier' => 5, 'should_cache' => 0, 'path' => '/mnt/external' };
-  } else {
-    return { 'tier' => 1, 'should_cache' => 0, 'path' => 'data/models' };
-  }
-}
-
-{
-  'cost_analysis' => \&cost_analysis,
-  'where_should_model_reside' => \&where_should_model_reside,
-};
-
-#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
-#DECISION_COST_ANALYSIS_SIGNATURE_PLACEHOLDER
-#\\\|DECISION_COST_ANALYSIS_HELPER \ / AMOS7 \ YOURUM ::
-#\[7]DECISION_COST_ANALYSIS_HASH 7  DATA SIGNATURE ::
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,.,,.,,,.,,,,..,...,,.,,.,.,,.,,,,,,,..,,,,,..,,...,..,,.,,,,,.,.,,,,.,,...,
-#IBXHDGIAKOD5HFHFAG4R35CZEBUWMTLZQW2TAK45TAKMRHU5HANOLQFOSV5SMZJI4XTV6CTTUBEJI
-#\\\|Z4EU67CEK7ABLKNGXMC47OXCT6QE5X4W7CHA7QGPZYJCTBL5FH4 \ / AMOS7 \ YOURUM ::
-#\[7]WEZWBPEE5HWMAYAVKB2LVZM64G4FZY4LXT7YGHV2JIBVN6LCYABA 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,,,,,..,,.,,,.,,...,,,.,,.,,.,.,..,,...,...,..,,.,.,..,,..,,,..,
+#5MBNLMM27IGDDUOATLTTN56OITAZJELQURNZXHCP5YHGM456PT5BBVP2A76IWGVPEXFTIGWO3K2MW
+#\\\|DVO7XT3PKGESVADJGUOMMLG76NEVDNCV7MAGOQOQCAYGI5UM6UF \ / AMOS7 \ YOURUM ::
+#\[7]AJHXO444ZZZZVPOSG5H747E5ZPJ5BGFFUMOXB6D7JWBUSCEPFICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

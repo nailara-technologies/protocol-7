@@ -66,13 +66,19 @@ if (not exists <buffer.models-action>) {
 # MAIN COMMAND ENTRY POINT
 # =============================================================================
 
+# During initialization, always return 0 (success)
+if (!@ARG || $ARG[0] eq 'init') {
+  return 0;  # Module initialization successful
+}
+
 # Parse command and dispatch - this block runs when a command is received
+my $cmd_result;
 {
   my $cmd = shift @ARG;
   my @args = @ARG;
 
-  # If no command, this is module initialization - return success
-  if (!$cmd) {
+  # Should not reach here for init, but safety check anyway
+  if (!$cmd || $cmd eq 'init') {
     return 0;  # Module initialization successful (0 means success)
   }
 
@@ -176,11 +182,15 @@ if (not exists <buffer.models-action>) {
     $log_level
   );
 
-  return $result;
+  $cmd_result = $result;
 };
 
-#,,..,,.,,.,,,,.,,...,..,,,.,,..,,.,.,...,.,.,..,,...,..,,.,,,...,,,,,,,,,,.,,
-#QWQU3PDGQ52R7ASCSK6INZTI5NIZDTHFJDA5YCA7OLHMQOZ5G5NOXN7PCIEMGVAAUFG347DFHYZDE
-#\\\|DGNCM3XVKLUQSTYCB73KRWFPSHEBFRL4G2TO27K4R33QZR2CA6V \ / AMOS7 \ YOURUM ::
-#\[7]HPSDVEQPCBCZJLVFAIQO7K6MIHZHY3GTR25LXSYHSHSXZBWAI4DY 7  DATA SIGNATURE ::
+# The block above handles command processing, but for initialization
+# we always return 0 or TRUE to indicate success
+return 0;
+
+#,,.,,.,.,..,,,..,.,.,.,.,.,,,..,,,,,,,,.,,.,,..,,...,...,...,,,,,,.,,,.,,..,,
+#ZSUCEFXPPJROSI7FJ7MZFLT743JSBZHLEIXYXYG4XWCEQY3Z6HSGG7Q3JKOQTWNGKEK3RMZBW5EEW
+#\\\|ZARIRB5EEPXWDYY7JNDDJWZJW3GQBLEYYKRX6VHKGONBOPPPO4H \ / AMOS7 \ YOURUM ::
+#\[7]2QPAQJHQOVUZD2FYXSP4CYSASL56BOCP7P37S65ZAAEIL4ZUVSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

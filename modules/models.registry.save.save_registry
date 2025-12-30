@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = models.registry.save.save_registry
+# descr = Save registry to disk with file locking
+
+use JSON::PP;
+use Fcntl qw| :flock |;
+
+my ($registry) = @ARG;
+
+return 0 unless $registry && ref($registry) eq 'HASH';
+
+my $path = <[models.registry.base.get_registry_path]>->();
+open my $fh, '>', $path or return 0;
+flock($fh, 2);  # LOCK_EX
+$registry->{updated_at} = time();
+print $fh encode_json($registry);
+flock($fh, 8);  # LOCK_UN
+close $fh;
+
+return 1;
+
+#,,,.,...,..,,.,,,,..,..,,,..,.,.,,..,,..,,.,,..,,...,...,,..,.,.,.,.,,..,,.,,
+#PCV76GDK4TU5UUP5GO73GI5UYTT6I6KWGJZUOQD6O5QHC6AMF6CXRLZ3NLZWKTMMC73VVTMGMSJGI
+#\\\|ODR5W6WYEBZJAWSNL2THOJ4KTDEE6PXGJZ6LH3MUXFKOMB5QRZN \ / AMOS7 \ YOURUM ::
+#\[7]IP62HM7TFON6P3TPI3TN6SBUCGBXQANYKGOBPAXHMC6KXB75MMAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

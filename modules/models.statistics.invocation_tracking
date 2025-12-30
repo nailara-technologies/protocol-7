@@ -13,245 +13,29 @@ $data{models}{invocations_dir} ||= '/var/protocol-7/models/invocations';
 make_path($data{models}{invocations_dir}) unless -d $data{models}{invocations_dir};
 
 # Record a single invocation
-sub record_invocation {
-  my ($model_amos, $context, $invocation_data) = @_;
-
-  my $timestamp = time();
-  my $date = localtime($timestamp)->strftime('%Y%m%d');
-  my $invocations_dir = $data{models}{invocations_dir};
-  my $invocations_file = "$invocations_dir/$date.json";
-
-  # Load existing invocations for this day
-  my @invocations;
-  if (-f $invocations_file) {
-    open my $fh, '<', $invocations_file or die "Cannot read invocations: $!";
-    my $content = do { local $/; <$fh> };
-    @invocations = @{decode_json($content) || []};
-    close $fh;
-  }
-
-  # Add new invocation
-  push @invocations, {
-    timestamp => $timestamp,
-    model_amos => $model_amos,
-    context => $context,
-    success => $invocation_data->{success} // 0,
-    failure_mode => $invocation_data->{failure_mode} // undef,
-    latency_ms => $invocation_data->{latency_ms} // 0,
-    tokens_processed => $invocation_data->{tokens_processed} // 0,
-    memory_used_gb => $invocation_data->{memory_used_gb} // 0,
-    wall_time_ms => $invocation_data->{wall_time_ms} // 0,
-
-    storage_tier_used => $invocation_data->{storage_tier_used} // 0,
-    device_used => $invocation_data->{device_used} // 'cpu',
-    batch_size => $invocation_data->{batch_size} // 1,
-    concurrent_requests => $invocation_data->{concurrent_requests} // 1,
-
-    alternative_available => $invocation_data->{alternative_available} // undef,
-  };
-
-  # Save updated invocations
-  open my $fh, '>', $invocations_file or die "Cannot write invocations: $!";
-  print $fh encode_json(\@invocations);
-  close $fh;
-
-  return {
-    'recorded' => 1,
-    'timestamp' => $timestamp,
-    'date' => $date,
-  };
-}
 
 # Aggregate statistics from invocations
-sub aggregate_statistics {
-  my ($model_amos, $context) = @_;
-
-  my @invocations = load_all_invocations($model_amos, $context);
-
-  return {
-    'total_invocations' => 0,
-    'total_successful' => 0,
-    'success_rate' => 0,
-    'failure_modes' => {},
-    'avg_latency_ms' => 0,
-    'p95_latency_ms' => 0,
-    'p99_latency_ms' => 0,
-  } unless @invocations;
-
-  my $total = scalar(@invocations);
-  my @successful = grep { $_->{success} } @invocations;
-  my $success_count = scalar(@successful);
-  my $success_rate = $total > 0 ? $success_count / $total : 0;
-
-  # Aggregate failure modes
-  my %failure_modes;
-  foreach my $inv (@invocations) {
-    next if $inv->{success};
-    my $mode = $inv->{failure_mode} // 'unknown';
-    $failure_modes{$mode}++;
-  }
-
-  # Calculate latencies
-  my @latencies = map { $_->{latency_ms} } @invocations;
-  @latencies = sort { $a <=> $b } @latencies;
-  my $avg_latency = 0;
-  $avg_latency = (scalar(@latencies) > 0) ? (eval { my $sum = 0; $sum += $_ for @latencies; $sum / scalar(@latencies) }) : 0;
-
-  my $p95_index = int(0.95 * scalar(@latencies));
-  my $p99_index = int(0.99 * scalar(@latencies));
-  my $p95_latency = $latencies[$p95_index] // 0;
-  my $p99_latency = $latencies[$p99_index] // 0;
-
-  # Usage by period
-  my %period_stats;
-  my $now = time();
-  foreach my $period (['last_24h', 24*3600], ['last_7d', 7*24*3600], ['last_30d', 30*24*3600], ['all_time', 0]) {
-    my ($name, $seconds) = @$period;
-    my $cutoff = $seconds > 0 ? $now - $seconds : 0;
-
-    my @period_invocations = grep {
-      $seconds == 0 || $_->{timestamp} >= $cutoff
-    } @invocations;
-
-    my $period_count = scalar(@period_invocations);
-    my $period_successful = scalar(grep { $_->{success} } @period_invocations);
-    my $period_success_rate = $period_count > 0 ? $period_successful / $period_count : 0;
-
-    $period_stats{$name} = {
-      'count' => $period_count,
-      'avg_success' => $period_success_rate,
-    };
-  }
-
-  return {
-    'total_invocations' => $total,
-    'total_successful' => $success_count,
-    'success_rate' => $success_rate,
-    'failure_modes' => \%failure_modes,
-
-    'avg_latency_ms' => $avg_latency,
-    'p95_latency_ms' => $p95_latency,
-    'p99_latency_ms' => $p99_latency,
-
-    'usage_by_period' => \%period_stats,
-
-    'last_invocation' => scalar(@invocations) > 0 ? $invocations[-1]->{timestamp} : 0,
-    'first_invocation' => scalar(@invocations) > 0 ? $invocations[0]->{timestamp} : 0,
-  };
-}
 
 # Load all invocations for a model in a context
-sub load_all_invocations {
-  my ($model_amos, $context) = @_;
-  my $invocations_dir = $data{models}{invocations_dir};
-
-  my @invocations;
-
-  opendir(my $dh, $invocations_dir) or return ();
-  while (my $file = readdir($dh)) {
-    next unless $file =~ /\.json$/;
-
-    open my $fh, '<', "$invocations_dir/$file" or next;
-    my $content = do { local $/; <$fh> };
-    my $day_invocations = decode_json($content) || [];
-    close $fh;
-
-    foreach my $inv (@$day_invocations) {
-      next unless $inv->{model_amos} eq $model_amos;
-      next if $context && $inv->{context} ne $context;
-      push @invocations, $inv;
-    }
-  }
-  closedir($dh);
-
-  return @invocations;
-}
 
 # Calculate margin vs best alternative
-sub calculate_margin_vs_alternative {
-  my ($model_success_rate, $alt_success_rate) = @_;
-
-  return 0 unless defined $model_success_rate && defined $alt_success_rate;
-  return $model_success_rate - $alt_success_rate;
-}
 
 # Get context-specific statistics
-sub get_context_statistics {
-  my ($model_amos, $context) = @_;
-
-  my @invocations = load_all_invocations($model_amos, $context);
-
-  return {
-    'context' => $context,
-    'invocations' => 0,
-    'success_rate' => 0,
-    'avg_latency_ms' => 0,
-    'margin_vs_best_alt' => 0,
-    'ranking' => 0,
-  } unless @invocations;
-
-  my $total = scalar(@invocations);
-  my $successful = scalar(grep { $_->{success} } @invocations);
-  my $success_rate = $total > 0 ? $successful / $total : 0;
-
-  my @latencies = sort { $a <=> $b } map { $_->{latency_ms} } @invocations;
-  my $avg_latency = scalar(@latencies) > 0 ? (eval { my $sum = 0; $sum += $_ for @latencies; $sum / scalar(@latencies) }) : 0;
-
-  return {
-    'context' => $context,
-    'invocations' => $total,
-    'success_rate' => $success_rate,
-    'avg_latency_ms' => $avg_latency,
-    'margin_vs_best_alt' => 0,  # Will be calculated elsewhere
-    'ranking' => 0,  # Will be calculated elsewhere
-  };
-}
 
 # Clean up old invocation logs
-sub cleanup_old_logs {
-  my ($days_to_keep) = @_;
-  $days_to_keep //= 90;
-  my $invocations_dir = $data{models}{invocations_dir};
-
-  my $cutoff_timestamp = time() - ($days_to_keep * 24 * 3600);
-  my $cutoff_date = localtime($cutoff_timestamp)->strftime('%Y%m%d');
-
-  opendir(my $dh, $invocations_dir) or return {
-    'success' => 0,
-    'error' => "Cannot open invocations directory",
-  };
-
-  my @deleted;
-  while (my $file = readdir($dh)) {
-    next unless $file =~ /^(\d{8})\.json$/;
-    my $date = $1;
-
-    if ($date lt $cutoff_date) {
-      unlink("$invocations_dir/$file");
-      push @deleted, $file;
-    }
-  }
-  closedir($dh);
-
-  return {
-    'success' => 1,
-    'files_deleted' => scalar(@deleted),
-    'deleted_files' => \@deleted,
-  };
-}
 
 # Return statistics interface
 {
-  'record_invocation' => \&record_invocation,
-  'aggregate_statistics' => \&aggregate_statistics,
-  'load_all_invocations' => \&load_all_invocations,
-  'calculate_margin_vs_alternative' => \&calculate_margin_vs_alternative,
-  'get_context_statistics' => \&get_context_statistics,
-  'cleanup_old_logs' => \&cleanup_old_logs,
 };
 
 #,,..,,..,,.,,,,.,,,.,,.,,,,.,,.,,,.,,,..,...,..,,...,...,...,,..,,,.,..,,,,.,
 #C44VVIBFOYA2VAMML4QRDX3CKKPPAXLCPNWSQLFKVYMQV6YVVJEVRDYIFWMWVSQBMJAKY5WV4Y65E
 #\\\|NQC3YOLWGFAOVKSSG5KAJPZWD3GLIO7UG72IHMPO7XFQQRAEZBQ \ / AMOS7 \ YOURUM ::
 #\[7]KLXYQDOQNI53MZUIQASIAUMERQ7XMOHP4HEDFESOJRIJBOJPGYDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,,,..,,,.,,,,.,,,,,,..,,.,,..,,..,,.,.,,,,,...,...,...,,,,,..,,...,,..,.,,,
+#IKF4URJ6EUP2PZQGQM46LAL653MJZDW6PIIA7DUC62G6A2CXLBHXIMMHN4FL26B3UD4MFSBY45CVI
+#\\\|SG3GLBBBV5RVOGXM6YPDK7HUPVI7D6GKAFRK5TSYBBCKYRHSMCG \ / AMOS7 \ YOURUM ::
+#\[7]LTF5LGDGUG2MANMGQR3SJVIMGYBDYDIQCGTJOQGRMUOOBJESOQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

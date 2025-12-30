@@ -6,51 +6,8 @@
 use File::Spec;
 
 # Resolve model through fallback chain: Tier 3 → Tier 2 → Tier 4 → Tier 5 → Tier 1
-sub resolve_model_path {
-  my ($model_amos, $storage_locations) = @_;
-
-  # Default fallback order if no locations provided
-  my @fallback_tiers = (3, 2, 4, 5, 1);
-
-  foreach my $tier (@fallback_tiers) {
-    my $location = find_location_at_tier($model_amos, $storage_locations, $tier);
-
-    if ($location) {
-      my $path = $location->{path};
-      if (-f $path || -l $path) {
-        return {
-          'path' => $path,
-          'tier' => $tier,
-          'available' => 1,
-          'location' => $location,
-        };
-      }
-    }
-  }
-
-  # Not found anywhere - return metadata location
-  my $metadata_path = File::Spec->catfile('data/models', "$model_amos.meta");
-  return {
-    'path' => $metadata_path,
-    'tier' => 1,
-    'available' => 0,
-    'is_metadata_only' => 1,
-  };
-}
 
 # Find location within storage_locations array
-sub find_location_at_tier {
-  my ($model_amos, $storage_locations, $target_tier) = @_;
-
-  return undef unless $storage_locations && ref($storage_locations) eq 'ARRAY';
-
-  foreach my $loc (@$storage_locations) {
-    next unless $loc->{tier} == $target_tier;
-    return $loc;
-  }
-
-  return undef;
-}
 
 # Entry point
 {
@@ -58,14 +15,8 @@ sub find_location_at_tier {
   return resolve_model_path(@args);
 };
 
-#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
-#STORAGE_RESOLVE_MODEL_SIGNATURE_PLACEHOLDER
-#\\\|STORAGE_RESOLVE_MODEL_HELPER \ / AMOS7 \ YOURUM ::
-#\[7]STORAGE_RESOLVE_MODEL_HASH 7  DATA SIGNATURE ::
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,,,,..,,,,,,,.,,.,,,,,,,...,,,,,,,.,...,...,..,,...,...,,..,,.,,...,.,.,,.,,
-#FYSGHFX3SOAS2G6C6HXYNG6U3OXWPXRK33ASDUZ5UCRMVSZVN5GF4IIYQBEULQPSA74GBXOQO6IAU
-#\\\|XHAHGO5HJBOHPA3KCS3K7TX2BHY6XKXALG6G5FDDBEHXH3NR6ZL \ / AMOS7 \ YOURUM ::
-#\[7]6IDLEMHOQ2GYJRGXS6HV6N3SC2B5UAWOWUUDK3ZDAF7YG7DJY4AY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,,.,...,..,,..,,,..,...,,.,,.,.,..,,...,...,...,..,,.,,,.,,,,.,,
+#NO3UFA5FAPMWTZZFE2ONMPNGGBAUGDUCEZL3WDW3QKFLMBHVVYBKU56BJBKOIB5WVEEAE6FUAAJM4
+#\\\|WP66YWXPY7YVTMEWJMZGG5IRDXVGG7FJI6Z4OBO2WSPIAWAM67S \ / AMOS7 \ YOURUM ::
+#\[7]TWHE335YMYFI7TDU45KQF4V6UPXHYB7R2J4CC57OHPU2WRWRQCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = models.registry.load.load_registry
+# descr = Load registry from disk
+
+use JSON::PP;
+use Fcntl qw| :flock |;
+
+my $path = <[models.registry.base.get_registry_path]>->();
+if (-f $path) {
+  open my $fh, '<', $path or goto EMPTY;
+  flock($fh, 1);  # LOCK_SH
+  my $content = do { local $/; <$fh> };
+  flock($fh, 8);  # LOCK_UN
+  close $fh;
+
+  my $loaded = decode_json($content) if $content;
+  return $loaded if $loaded && ref($loaded) eq 'HASH';
+}
+
+EMPTY:
+return <[models.registry.empty.create_empty_registry]>->();
+
+#,,,,,...,,..,,,.,.,.,.,.,,,,,..,,.,.,,..,..,,..,,...,...,.,.,,.,,..,,,..,,..,
+#KEG5KHTPNFZ5O2BQLJRXGJGZQ4XTERAHNSE7HE4UEK2RSXV4U3M4YHW5WDSQAHC7HII6PQVACRHFE
+#\\\|KRXZZDWGUKIINDX44B2BFAMWGD3CTTXJYOGRPX6DPWTZICPHSKS \ / AMOS7 \ YOURUM ::
+#\[7]VD63OVNK4J6YQ32MZNGLQYVG66LDFHVZ7NOSL4HCQKRHE3XFYWCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

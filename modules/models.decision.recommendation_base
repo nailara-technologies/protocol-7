@@ -5,51 +5,17 @@
 
 use List::Util qw| max |;
 
-sub calculate_composite_score {
-  my ($model, $context, $constraints) = @_;
-  my $stats = $model->{statistics}->{by_context}->{$context} // {};
-  my $success_rate = $stats->{success_rate} // 0;
-  my $is_local = $model->{presence_decision}->{currently_present} // 0;
-  my $init_time = $model->{metadata}->{init_latency_ms} // 0;
-
-  return ($success_rate * 100) + ($is_local * 50) - ($init_time / 100);
-}
-
-sub find_models_for_context {
-  my ($context, $all_models) = @_;
-  return grep { $_->{statistics}->{by_context}->{$context} } @$all_models;
-}
-
-sub filter_by_constraints {
-  my ($scored_models, $constraints) = @_;
-  return @$scored_models unless $constraints;
-  return grep {
-    (!$constraints->{min_success_rate} || $_->{success_rate} >= $constraints->{min_success_rate}) &&
-    (!$constraints->{require_local} || $_->{available_locally})
-  } @$scored_models;
-}
-
-sub generate_reasoning {
-  my ($model, $context) = @_;
-  my $stats = $model->{statistics}->{by_context}->{$context} // {};
-  return "Success rate: " . ($stats->{success_rate} // 0) . ", Margin: " . ($stats->{margin_vs_best_alt} // 0);
-}
-
 {
-  'calculate_composite_score' => \&calculate_composite_score,
-  'find_models_for_context' => \&find_models_for_context,
-  'filter_by_constraints' => \&filter_by_constraints,
-  'generate_reasoning' => \&generate_reasoning,
 };
-
-#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
-#DECISION_REC_BASE_SIGNATURE_PLACEHOLDER
-#\\\|DECISION_REC_BASE_HELPER \ / AMOS7 \ YOURUM ::
-#\[7]DECISION_REC_BASE_HASH 7  DATA SIGNATURE ::
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 #,,..,,.,,,.,,.,.,,..,..,,.,.,.,.,..,,,,,,,..,..,,...,...,,..,...,...,,,.,.,,,
 #G373I3IYOKBKUREN6JQYUVDB4ZI4KLFBBUI2FVH7IXJQ2DJXLHXGMWMDR3PLTOUER7GHRHSBFBTES
 #\\\|DIZUNB7QB4R465E4JYHOTLGFNIVV5J7AOFHHGGRO3BQ5DWLUK2J \ / AMOS7 \ YOURUM ::
 #\[7]MMVLG5KQC5IJU3VWEN6FIIZQWNIDDTIB3DB46MP2WLKN3EGLMAAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,.,,,.,...,.,.,.,,,.,,,.,,,.,.,,..,..,,,,,,...,...,..,,..,,,.,,,,,,,.,,.,,,
+#FFOPM76EG4YOO7D7LNVFLK6GOUH6PPTVHQESJ4TNNXIODSPHASZ4GYLVNYXIQC3I625MSQT6BS3BU
+#\\\|SSYOSXBSX5LO72TXNL4ZKHNTXDLRTD2CE7KP5QRKMLE72ENXTEF \ / AMOS7 \ YOURUM ::
+#\[7]LNH4R2VBNZDEWTDAGL2P66TPF62MLQQRCBH4PQACESAGVR74ZACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
