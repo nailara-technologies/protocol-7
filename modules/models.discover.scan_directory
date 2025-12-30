@@ -1,0 +1,45 @@
+## [:< ##
+
+# name = models.discover.scan_directory
+# args = $directory_path, $recursive (default: TRUE)
+# descr = Recursively scan directory for .gguf model files
+
+my $dir       = shift @ARG;
+my $do_recurse = shift @ARG // TRUE;
+my @models;
+
+opendir(my $dh, $dir) or return \@models;
+
+while (my $entry = readdir($dh)) {
+    next if $entry =~ /^\./;
+    my $full_path = "$dir/$entry";
+
+    if (-f $full_path && $entry =~ /\.gguf$/) {
+        my $size_bytes = -s $full_path;
+        my $size_gb    = $size_bytes / (1024**3);
+        my ($model_name) = $entry =~ /^(.+)\.gguf$/;
+
+        push @models, {
+            path    => $full_path,
+            name    => $model_name,
+            size_gb => sprintf('%.2f', $size_gb),
+            source  => 'discovered'
+        };
+    } elsif (-d $full_path && $do_recurse) {
+        # Skip system directories
+        next if $entry =~ /^(System|\.)/i;
+        # Recursive scan
+        @ARG = ($full_path, TRUE);
+        my $sub_models = <[models.discover.scan_directory]>;
+        push @models, @$sub_models if $sub_models;
+    }
+}
+closedir($dh);
+
+return \@models;
+
+#,,,,,,..,,,,,..,,,.,,.,,,...,.,.,,.,,.,.,,.,,..,,...,...,...,,,.,,..,,,,,,.,,
+#IPGNXCBXNYVQ5NIZL3PBMTV2HUC3E7ZVOQZQ32F2C5FWKYQXKG4J6CKXOQ5ALZUM5ZOCBH6KCFD4W
+#\\\|LPT7G3S4FVZ57AUYD7IUBYKRUUHNKVDXG2QQM3SIFVJVKBVZYRX \ / AMOS7 \ YOURUM ::
+#\[7]5ZKOJ2XR5AXA63EMIVNCCVE3OSQPZEU5K2NLQAPK32Z5KV3VXCCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

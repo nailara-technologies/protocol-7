@@ -1,10 +1,19 @@
 ## [:< ##
 
 # name  = models.registry.populate_from_discovery
+# args  = $discovered_models_arrayref (optional - if not provided, will discover from paths)
 # descr = Add discovered .gguf files to registry
 
-my $discovered = <[models.storage.discover.discover_models]> ();
-my $registry   = <models.registry> // {};
+my $discovered = shift @ARG;
+
+# If no discovered models provided, discover them
+unless ( $discovered && ref($discovered) eq 'ARRAY' ) {
+    $discovered = <[models.storage.discover_directory]>->(
+        '/mnt/ext-xfs-data/models-lmstudio', 1
+    ) // [];
+}
+
+my $registry = <models.registry> // {};
 
 my $added_count = 0;
 
@@ -20,24 +29,19 @@ foreach my $model (@$discovered) {
     }
     next if $already_exists;
 
-    # Calculate checksums
-    my $checksums = <[models.checksum.calculate_all]>->( $model->{path} );
-    next unless $checksums && $checksums->{success};
-
-    # Use BMW-L13 as model_id for discovered models
-    my $model_id = $checksums->{bmw_l13};
+    # Use path as temporary model_id (will calculate checksums on-demand)
+    my $model_id = $model->{path};
 
     $registry->{$model_id} = {
         model_id      => $model_id,
-        amos_7        => $checksums->{amos_7},
-        bmw_l13       => $checksums->{bmw_l13},
-        bmw_base32    => $checksums->{bmw_base32},
         name          => $model->{name},
         path          => $model->{path},
         size_gb       => $model->{size_gb},
         tier          => $model->{tier},
         source        => 'discovered',
         registered_at => time()
+
+        # Checksums calculated on-demand, not during discovery
     };
 
     $added_count++;
@@ -47,8 +51,8 @@ foreach my $model (@$discovered) {
 
 return { success => TRUE, added => $added_count };
 
-#,,..,,,.,,,.,,,.,,,,,.,,,,.,,..,,,,.,,,,,,.,,..,,...,...,,.,,..,,...,.,.,...,
-#SOATM2A5BXQAMVI73V7P5ZLQGEKDIQWDLOH4LARVA2RR7AWRGY4ZUIMRG5FKWUWYFA3CHXFJ3LNJY
-#\\\|6NXS4THSFQKRO6PPYKZZADC6VZOZ3DDIUQF6WK2PN6Q5GMKEYEO \ / AMOS7 \ YOURUM ::
-#\[7]LWORNOKTE6ZGGJI4GWVY53ABVRM2PJBKJOSJS2GNF6AFBXUIEQDY 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,..,,..,,...,...,,.,,,,,,,..,,..,..,,...,...,,.,,,,,,,.,,...,,,.,
+#24T6TVGKPAAII2ASYQNV4QEROSOCSAWQB3HUAIESMQOO6EJX4NZZK7B625NLQTY7DCR5TO6GPWCNK
+#\\\|NHQTTUPAKW5XFYD7RVPD72CIW6B776O2NRLNZ6V5NKI3RAYL4ZW \ / AMOS7 \ YOURUM ::
+#\[7]5KBNRB4KLXW4SVQMJQTZZTFXP6R4X2JD7KYEWPT4ZYVZTPV3FMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,36 +9,14 @@ my $recursive      = shift // TRUE;
 
 return [] unless -d $directory_path;
 
-my @found_models;
-my $find_pattern = $recursive ? '**/*.gguf' : '*.gguf';
+# Use extracted scan_directory module for recursive scanning
+@ARG = ($directory_path, $recursive);
+my $found_models = <[models.discover.scan_directory]>;
 
-# Use glob to find models
-my $files = [];    ## preparing result array reference ##
-<[file.match_files]>->( $files, $directory_path, $find_pattern );
+return $found_models;
 
-foreach my $model_path ( $files->@* ) {
-    next unless -f $model_path;
-
-    # Get file size
-    my $size_bytes = -s $model_path;
-    my $size_gb    = $size_bytes / ( 1024**3 );
-
-    # Extract model name from filename
-    my ($model_name) = $model_path =~ m|/([^/]+)\.gguf$|;
-
-    push @found_models,
-        {
-        path    => $model_path,
-        name    => $model_name,
-        size_gb => sprintf( '%.2f', $size_gb ),
-        source  => 'discovered'
-        };
-}
-
-return \@found_models;
-
-#,,,,,..,,,,.,.,.,,,.,.,.,,.,,.,,,.,,,.,,,,,,,..,,...,...,,.,,,,.,,.,,,,,,.,,,
-#EBUHJ47RZZOTASQBGQGRUKBVPYQ4VBK2DBYAQ45EHM37L6R7GVIDYYDO3IUYKBJ3R2FO4FKARF3K4
-#\\\|2JII2P3U2UH2VY5FK2R34RYBXZQSANYKANADLSKNFBHPSDJ3ZQZ \ / AMOS7 \ YOURUM ::
-#\[7]PR7MZVLUAGPHITZETOZ3GDXBX2KQD5MED7YHRUGGR5F4FZYFKUDY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,...,...,..,,.,.,,,,,,..,.,.,..,,..,,...,...,..,,.,.,,.,,,,.,...,
+#2JFWJDQZMTTQ3NR6KOEG3SPWFY3Z2JQAKZG4IXRUWN2JW66IW7IZBGGEF7G37YUTWB4SXSVIQVQEQ
+#\\\|D4HVALNI73DS2PALAHVBRPRRGPNSI5RIZ6IVGOEFP3MGI4K7XFU \ / AMOS7 \ YOURUM ::
+#\[7]E4C2KJSMY2J3SKG7CSY5AI2STWLV2BVU3J4S4XWZL3JZ3MN2JCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

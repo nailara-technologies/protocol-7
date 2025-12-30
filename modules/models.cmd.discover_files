@@ -1,0 +1,46 @@
+## [:< ##
+
+# name = models.cmd.discover_files
+# descr = Discover .gguf model files from configured search paths
+
+my $cmd = shift @ARG;    # Remove command name from @ARG
+
+# Discover models from filesystem
+my @discovered;
+
+# Try to scan each search path
+my $search_paths = <models.storage.search_paths> // [];
+foreach my $path_config (@$search_paths) {
+    next unless $path_config->{enabled};
+    next unless -d $path_config->{path};
+
+    @ARG = ( $path_config->{path}, $path_config->{recursive} );
+    my $result = <[models.storage.discover_directory]>;
+    push @discovered, @$result if $result;
+}
+
+my $discovered = \@discovered;
+
+# Populate registry with discovered models
+@ARG = ($discovered);
+my $result = <[models.registry.populate_from_discovery]>;
+
+my $reply_str = '';
+$reply_str .= "discovered: " . scalar(@$discovered) . " models\n";
+$reply_str .= "added_to_registry: " . $result->{added} . " new models\n";
+
+if (@$discovered) {
+    $reply_str .= "\nModels found:\n";
+    foreach my $model (@$discovered) {
+        $reply_str
+            .= "  - " . $model->{name} . " (" . $model->{size_gb} . " GB)\n";
+    }
+}
+
+return { 'mode' => qw| size |, 'data' => $reply_str };
+
+#,,.,,..,,,..,,..,,,,,.,.,,.,,.,,,,..,,,.,.,.,..,,...,...,,..,...,.,,,,,.,,.,,
+#NCDYZ5QJYOZMI3OU5SDRW5FILQCM4WBBU4X4S7RYNB7MAOCGDGPCDLT4YLE7XOLV4KMLNBS2SFUN6
+#\\\|TK2FMTXFWKZADCWHY36NEF7HBPBZBCQXYPXA6TFGGMM5SV2TDFH \ / AMOS7 \ YOURUM ::
+#\[7]HCW4IPBJHQ7NWMM27S2TULQOYLT56YXIIG4DXZMXTSQRXEZP5ICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
