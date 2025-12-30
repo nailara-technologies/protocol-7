@@ -3,7 +3,7 @@
 # name  = llama-server-vision.handler.read_output
 # descr = non-blocking I/O handler - read output chunks from vision CLI
 
-my $event = shift->w;
+my $event   = shift->w;
 my $read_fh = $event->fd;
 my $io_data = $event->data;
 
@@ -19,38 +19,61 @@ unless ( defined $vision_job ) {
 
 # Read available data (non-blocking)
 # Keep stdout and stderr separate - we only want stdout for the payload
-my $output_buffer = $stream eq 'stdout' ? \$vision_job->{'output'} : \$vision_job->{'stderr'};
+my $output_buffer
+    = $stream eq 'stdout'
+    ? \$vision_job->{'output'}
+    : \$vision_job->{'stderr'};
 my $bytes = <[base.s_read]>->(
     $read_fh,
     $output_buffer,
-    8 * 1024  # Read up to 8KB at a time
+    8 * 1024    # Read up to 8KB at a time
 ) // 0;
 
 if ( $bytes > 0 ) {
-    my $total_stdout = length($vision_job->{'output'});
-    my $total_stderr = length($vision_job->{'stderr'});
-    <[base.logs]>->( 2, "[read_output] job=%s stream=%s bytes=%d (accumulated: stdout=%d, stderr=%d)",
-                     $job_id, $stream, $bytes, $total_stdout, $total_stderr );
+    my $total_stdout = length( $vision_job->{'output'} );
+    my $total_stderr = length( $vision_job->{'stderr'} );
+    <[base.logs]>->(
+        2,
+        "[read_output] job=%s stream=%s bytes=%d (accumulated: stdout=%d, stderr=%d)",
+        $job_id,
+        $stream,
+        $bytes,
+        $total_stdout,
+        $total_stderr
+    );
 } elsif ( $bytes == 0 ) {
-    my $total_stdout = length($vision_job->{'output'});
-    my $total_stderr = length($vision_job->{'stderr'});
-    <[base.logs]>->( 2, "[read_output] job=%s stream=%s EOF detected (final: stdout=%d, stderr=%d)",
-                     $job_id, $stream, $total_stdout, $total_stderr );
+    my $total_stdout = length( $vision_job->{'output'} );
+    my $total_stderr = length( $vision_job->{'stderr'} );
+    <[base.logs]>->(
+        2,
+        "[read_output] job=%s stream=%s EOF detected (final: stdout=%d, stderr=%d)",
+        $job_id,
+        $stream,
+        $total_stdout,
+        $total_stderr
+    );
 } else {
-    <[base.logs]>->( 2, "[read_output] job=%s stream=%s error: %s", $job_id, $stream, $! );
+    <[base.logs]>->(
+        2, "[read_output] job=%s stream=%s error: %s",
+        $job_id, $stream, $!
+    );
 }
 
 # Check for EOF
 if ( $bytes <= 0 ) {
+
     # EOF reached on this stream
     $vision_job->{ $stream eq 'stdout' ? 'rdr_closed' : 'err_closed' } = 1;
     close($read_fh);
     $event->cancel if $event->is_active;
-    <[base.logs]>->( 2, "[read_output] EOF: job=%s stream=%s", $job_id, $stream );
+    <[base.logs]>->(
+        2,       "[read_output] EOF: job=%s stream=%s",
+        $job_id, $stream
+    );
 }
 
-#,,..,..,,,,,,..,,,,,,,..,...,.,.,,,,,,..,,,.,..,,...,...,..,,,,.,,.,,,.,,,,,,
-#C5DNM62NU5I4S7BJYMWSGMLFTMAQW6W6SDRPPPBACDYKYK5SZFYZ5XXTZEETFT3C2ZOVFFX7OR3PG
-#\\\|Q7RPJTFVIQDZRX4E5RWPT3N6KEEXR74L7FPO6OPCK6XC7VWT7IZ \ / AMOS7 \ YOURUM ::
-#\[7]I6SD2DL3BEII37O34UNA327LXQQTD7CXQGRVX56AFOX4AAM5QMDA 7  DATA SIGNATURE ::
+#,,,,,...,,..,..,,...,.,.,..,,..,,,..,,,,,...,..,,...,..,,,,,,.,,,,,.,,..,...,
+#4PL2CBFPAC7HSSHFC5PUKJC6SMGH3QXS42A2IILLF4HP5CCGQ47VCOJYDIM3LDXPC33TFN5FBHEEC
+#\\\|ARA33X56A3CMDALO6NJDG4WBG2DUDN3ZLAYDPEW2V26MG7RCSOX \ / AMOS7 \ YOURUM ::
+#\[7]S5XPDEDTS6N6QVBP5FXMOEPKIXX37PKWRTNBTA75Q3NKSOCPRYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

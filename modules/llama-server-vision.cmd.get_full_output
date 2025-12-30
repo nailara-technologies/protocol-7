@@ -15,13 +15,17 @@ unless ( exists <llama-server-vision.jobs>->{$job_id} ) {
 
 my $job = <llama-server-vision.jobs>->{$job_id};
 
-my $output_str = "=== STDOUT (" . length($job->{'output'}) . " bytes) ===\n";
+my $output_str
+    = "=== STDOUT (" . length( $job->{'output'} ) . " bytes) ===\n";
 $output_str .= $job->{'output'} . "\n\n";
 
-$output_str .= "=== STDERR (" . length($job->{'stderr'}) . " bytes) ===\n";
+$output_str .= "=== STDERR (" . length( $job->{'stderr'} ) . " bytes) ===\n";
 $output_str .= $job->{'stderr'} . "\n\n";
 
-$output_str .= "=== COMBINED (" . (length($job->{'output'}) + length($job->{'stderr'})) . " bytes) ===\n";
+$output_str
+    .= "=== COMBINED ("
+    . ( length( $job->{'output'} ) + length( $job->{'stderr'} ) )
+    . " bytes) ===\n";
 $output_str .= $job->{'output'} . $job->{'stderr'};
 
 return {
@@ -29,8 +33,8 @@ return {
     'data' => $output_str
 };
 
-#,,.,,.,,,,,.,,.,,,,.,...,,..,...,,,,,..,,,.,,..,,...,..,,,..,...,.,,,,.,,...,
-#4MQLT2YI6GKNO5VOTMUTI4X6LSLL5P4NBCZ65CH47XSBXIUNBKTBFF2IESTWLK5NE6FF7GZSLEBNQ
-#\\\|UZC4U5YBOJYHFN6OW3JVX2CJ2UEGYXA6NXHC6TWNUIFEP5MIMPA \ / AMOS7 \ YOURUM ::
-#\[7]UJSEJ5VLJISAYDMSNWGTXFLEUWFFTGJPSHBHWXGGKX4E2CV7K6DY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,.,..,,.,.,.,,,.,,,.,,,.,.,.,,,..,,...,...,..,,,..,.,,,...,..,,
+#KFBMSCJSZNYD7PKL7BPMYPGQ5JCLXL2FZ34T3WY4YKNVQ5FM6CBAO52TVJS5OTXSE7ZPNYVSOEDWA
+#\\\|QSGYBVXTXBKMBRZK4FQAVFLUQTBXUPFDNO3C6363BWQOEEJ3OJK \ / AMOS7 \ YOURUM ::
+#\[7]N4JJESKCG3Z4JZEZGZPR5TNPQNGA35UKHC5LDRVJTYZGXBBMHUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

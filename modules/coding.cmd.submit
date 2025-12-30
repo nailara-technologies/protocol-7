@@ -9,12 +9,14 @@
 my $request_str;
 
 if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+
     # Multiline mode - parameters are in $call->{'param'}
     # For now, we'll use the 'request' or 'question' parameter as the request
-    $request_str = $call->{'param'}->{'request'}
-                || $call->{'param'}->{'question'}
-                || $call->{'param'}->{'description'}
-                || '';
+    $request_str
+        = $call->{'param'}->{'request'}
+        || $call->{'param'}->{'question'}
+        || $call->{'param'}->{'description'}
+        || '';
 
     # Auto-detect and decode BASE32-encoded parameters (pattern: ^[2-7A-Z]+$)
     if ( $request_str =~ /^[2-7A-Z]+$/ ) {
@@ -29,6 +31,7 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
 
     # If we have body data, append it to the request
     if ( defined $call->{'data'} && length $call->{'data'} ) {
+
         # Auto-detect and decode BASE32-encoded body data
         my $body = $call->{'data'};
         if ( $body =~ /^[2-7A-Z]+$/ ) {
@@ -43,6 +46,7 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
         $request_str .= "\nContext:\n" . $body;
     }
 } else {
+
     # Single-line mode - request is in args
     $request_str = $call->{'args'} // '';
 }
@@ -100,19 +104,25 @@ if ( !$queue_result->{success} ) {
     };
 }
 
-my $response = "task:" . $routed_task->{id}
-    . "|type:" . $routed_task->{type}
-    . "|complexity:" . $routed_task->{analysis}->{complexity}
-    . "|routed:" . $routed_task->{analysis}->{routed_to}
-    . "|tokens:" . $routed_task->{analysis}->{estimated_tokens} . "\n";
+my $response
+    = "task:"
+    . $routed_task->{id}
+    . "|type:"
+    . $routed_task->{type}
+    . "|complexity:"
+    . $routed_task->{analysis}->{complexity}
+    . "|routed:"
+    . $routed_task->{analysis}->{routed_to}
+    . "|tokens:"
+    . $routed_task->{analysis}->{estimated_tokens} . "\n";
 
 return {
     'mode' => qw| size |,
     'data' => $response
 };
 
-#,,,,,,,,,,,,,..,,,,.,,.,,.,,,..,,,,,,.,,,..,,..,,...,...,.,,,,,.,...,,,.,,..,
-#I5YFWBR4S6LAAZKEINSLYSHHRSZEQIKOYBRLU7SUO3CZOTJKOBA3DP3V4ERTZHGYFHRAS4PJJWX32
-#\\\|ICXAIIU3CS32F3R4DCB6D5ZYZAUHUDUYZVICHM3OH6GDSTHSSRE \ / AMOS7 \ YOURUM ::
-#\[7]WDAL7HN5ITHG2DSFZVXJPGMXMZ3VXXZP6KFGWAAPQLBFFEOROWBQ 7  DATA SIGNATURE ::
+#,,..,,..,.,.,.,,,,.,,.,.,,,.,,,.,.,.,.,.,...,..,,...,...,..,,.,,,,,.,,,,,.,,,
+#4BWB2TX3X6MFNWW3YTUGHGZABOF3XJHV7GKNPV5HQOFCI7KSWYG2I2UCSEIDQCKBV76CIJGASGLZC
+#\\\|O57SRKAEUTXYXUASGINW757SGB2TC2272NWXSBZZIGETX6F5ZU6 \ / AMOS7 \ YOURUM ::
+#\[7]57LBTF4HGJ4QXNECUAL327SDAGXFBBE2S2MT747EPKSQJHGOGQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

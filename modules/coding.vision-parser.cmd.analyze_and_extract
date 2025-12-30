@@ -5,19 +5,23 @@
 
 # Extract parameters from call object
 my $image_path;
-my $vision_prompt = 'Analyze this image';
+my $vision_prompt     = 'Analyze this image';
 my $extraction_prompt = 'Extract and structure the key information';
 
 if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+
     # Multiline mode - parameters as hash
-    $image_path = $call->{'param'}->{'image_path'} || $call->{'param'}->{'image'};
+    $image_path
+        = $call->{'param'}->{'image_path'} || $call->{'param'}->{'image'};
     $vision_prompt = $call->{'param'}->{'vision_prompt'} || $vision_prompt;
-    $extraction_prompt = $call->{'param'}->{'extraction_prompt'} || $extraction_prompt;
+    $extraction_prompt
+        = $call->{'param'}->{'extraction_prompt'} || $extraction_prompt;
 } elsif ( defined $call->{'args'} && length $call->{'args'} ) {
+
     # Single-line mode - parse space-separated arguments
     my @args = split( /\s+/, $call->{'args'}, 3 );
-    $image_path = $args[0];
-    $vision_prompt = $args[1] // $vision_prompt;
+    $image_path        = $args[0];
+    $vision_prompt     = $args[1] // $vision_prompt;
     $extraction_prompt = $args[2] // $extraction_prompt;
 }
 
@@ -47,35 +51,40 @@ my $job = {
 # Store job in global registry
 <coding.vision-parser.jobs>->{$job_id} = $job;
 
-<[base.logs]>->( 1, '[vision-parser] job created: id=%s image=%s reply_id=%s',
-                 $job_id, $image_path, $$call{'reply_id'} );
+<[base.logs]>->(
+    1, '[vision-parser] job created: id=%s image=%s reply_id=%s',
+    $job_id, $image_path, $$call{'reply_id'}
+);
 
 # For v1, queue vision analysis asynchronously - response comes via handler
-<[base.logs]>->( 1, '[vision-parser] starting pipeline execution: job=%s', $job_id );
+<[base.logs]>->(
+    1, '[vision-parser] starting pipeline execution: job=%s', $job_id
+);
 
 # STAGE 1: Queue vision analysis (asynchronous via Protocol-7 API)
 <[base.logs]>->( 1, '[vision-parser] STAGE 1: queuing vision analysis' );
 
 my $queue_result = <[base.protocol-7.command.send.local]>->(
-    {
-        'command'   => 'cube.llama-server-vision.analyze_image',
-        'call_args' => {
-            'args' => "$image_path $vision_prompt"
-        },
-        'reply' => {
+    {   'command'   => 'cube.llama-server-vision.analyze_image',
+        'call_args' => { 'args' => "$image_path $vision_prompt" },
+        'reply'     => {
             'params'  => { 'job_id' => $job_id },
             'handler' => 'coding.vision-parser.handler.vision_reply'
         }
     }
 );
 
-<[base.logs]>->( 1, '[vision-parser] vision analysis queued: queue_result=%s job_id=%s', $queue_result // 'undef', $job_id );
+<[base.logs]>->(
+    1,
+    '[vision-parser] vision analysis queued: queue_result=%s job_id=%s',
+    $queue_result // 'undef', $job_id
+);
 
 # Return deferred response - actual result will come via reply handler
 return { 'mode' => 'deferred', 'data' => "Vision analysis queued\n" };
 
-#,,,,,...,,..,..,,...,.,.,...,...,,,,,,,.,.,,,..,,...,...,,,.,.,.,..,,,,,,,,,,
-#B43BRV642PMAERURRXXBGJM4BSYKLIQSUDBWZGWXKALVXHOV24QQ2EWDZIBD6SMRBELP2W7SENNBY
-#\\\|PU6YEX4UMRLUZZMLNCKBVKQ6M7ZIZPLKLEO46UUB6JJHIHV6TFT \ / AMOS7 \ YOURUM ::
-#\[7]FTE7AE4ZP6U3XF7TJHWQWM7HRASZ2BY3E7F7SER5G5HHPQELOEBA 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,...,.,.,.,.,,..,..,,,,,,,,.,,.,,..,,...,..,,,.,,.,,,,..,,..,,,.,
+#CYTVLKA3TRJNDZCR6KRAVNOGLS3QSYHOR3H35DLXAG5FZY34IONVB3JNYS773LNZENDSA4BBDY63Y
+#\\\|T5T6XZ7U7BUKZXOWOI44CEK62DZSLAHYVYQJPXJB3FEOAPHLT67 \ / AMOS7 \ YOURUM ::
+#\[7]HVP4PHMS64JEWLQ7V7VOCTTVDPBKRVHDCHPTZJTV3OS642G6EGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

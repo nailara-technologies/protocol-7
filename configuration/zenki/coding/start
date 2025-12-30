@@ -17,13 +17,13 @@ crypt.C25519.autocreate-user-key = yes
 ## GPU+CPU Dual Inference Configuration ##
 inference.backend.gpu.enabled = yes
 inference.backend.gpu.binary = /data/source/ik_llama.cpp/llama-server-cuda
-inference.backend.gpu.model = /mnt/m/lmstudio-community/Qwen2.5-7B-Instruct-1M-GGUF/Qwen2.5-7B-Instruct-1M-Q4_K_M.gguf
+inference.backend.gpu.model_id = qwen2.5-7b-instruct-1m  ## Fetched from models zenka during init ##
 inference.backend.gpu.vram_threshold = 8589934592  ## 8GB in bytes ##
 inference.backend.gpu.gpu_layers = 33  ## Full offload for RTX 3060 ##
 
 inference.backend.cpu.enabled = yes
 inference.backend.cpu.binary = /data/source/ik_llama.cpp/llama-server-cpu
-inference.backend.cpu.model = /mnt/m/lmstudio-community/Qwen2.5-7B-Instruct-1M-GGUF/Qwen2.5-7B-Instruct-1M-Q4_K_M.gguf
+inference.backend.cpu.model_id = qwen2.5-7b-instruct-1m  ## Fetched from models zenka during init ##
 inference.backend.cpu.threads = 8  ## Use system thread count ##
 
 ## Routing Configuration ##
@@ -37,13 +37,8 @@ inference.model.context_length = 2048
 inference.model.max_tokens = 256
 inference.model.temperature = 0.7
 
-modules.load = auth net protocol io.unix io.ip jobqueue \
-               crypt.C25519 coding coding.vision-parser \
-               coding.test.models_async coding.handler.models_list_all_reply \
-               coding.handler.models_get_entry_reply coding.handler.models_resolve_path_reply \
-               coding.handler.models_recommendations_reply coding.handler.models_record_invocation_reply \
-               coding.handler.models_find_alternative_reply \
-               devmod ## <-- enabled for development, unload later [LLL]
+modules.load = auth net protocol io.unix io.ip jobqueue crypt.C25519 coding \
+                                   devmod ## <-- enabled for development [LLL]
 [load_modules:<modules.load>]
 [init_modules]
 
@@ -54,8 +49,8 @@ modules.load = auth net protocol io.unix io.ip jobqueue \
 
 [zenka.loop]
 
-#,,..,,..,,..,,.,,.,,,,,.,..,,,.,,,,,,,.,,,..,..,,...,...,..,,,.,,.,,,..,,,.,,
-#YWXCPHUR3PHNRDTWJ4LVBPYNOKLA7PJZKQOIVTYRXDNZAL64GGAPZHRU3IPSEA47FWI2LVOXBWK74
-#\\\|YC535PZG45D6EN6KUVICUYNSMXLY7EELJDAB2NGSPLF6E7XJE3S \ / AMOS7 \ YOURUM ::
-#\[7]43VF2J3NNRHC75MY7OREX4SVTUYO7NROGEMGT65QH4KSJVRKEUAI 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,.,,..,,..,,..,,,.,,,,,,..,,,,.,..,,...,...,...,...,.,,,,.,,.,.,
+#KKLFR66Q4K6CRB3HYM2WCMP7C3OZCW6N7GC7IPKRUCCESYRZKRDJSIAQP2CBLZQC6TQ7BVIMM6V3E
+#\\\|F6JCYZBNKQXILH4ICYDTDS4NNTXKCJSTGLENYJRCFAIFE37NXW7 \ / AMOS7 \ YOURUM ::
+#\[7]KNPC7R3KKKTJXCAZ337H7Y2IEOEZTZBHZ3QA6A5VHSSEWKKSRGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

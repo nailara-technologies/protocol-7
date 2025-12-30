@@ -9,7 +9,8 @@ my ($job_id) = @ARG;
 return {
     success => FALSE,
     error   => 'job id required'
-} unless defined $job_id;
+    }
+    unless defined $job_id;
 
 # get job data from jobqueue
 my $job_data = <[jobqueue.get_job_data]>->($job_id);
@@ -17,16 +18,17 @@ my $job_data = <[jobqueue.get_job_data]>->($job_id);
 return {
     success => FALSE,
     error   => "task not found : $job_id"
-} unless defined $job_data;
+    }
+    unless defined $job_data;
 
 # map jobqueue status to coding task format
 my %status_map = (
-    queued      => 'pending',
-    running     => 'in_progress',
-    completed   => 'completed',
-    error       => 'failed',
-    aborted     => 'failed',
-    paused      => 'paused',
+    queued    => 'pending',
+    running   => 'in_progress',
+    completed => 'completed',
+    error     => 'failed',
+    aborted   => 'failed',
+    paused    => 'paused',
 );
 
 my $task_status = $status_map{ $job_data->{status} } // $job_data->{status};
@@ -42,8 +44,8 @@ return {
     completed => $job_data->{tstamp}->{completed},
 };
 
-#,,..,,.,,,.,,...,...,...,...,...,..,,,.,,...,..,,...,...,.,,,,.,,,..,.,.,,,.,
-#RNPU5J4ZSBDEMKJXGLFEY7UOS3QE7RW2FH65JIZUVKQSBBXS6LAWWB4QN2OX2H7GSNO3NTXLQTAEK
-#\\\|MLL7NWE7N34QBGQWTRPRMWUOXLZ6CQVVIFPMI65IUZEH7TWJSPG \ / AMOS7 \ YOURUM ::
-#\[7]HDKHDWQFBFDEX4ZETMI3RKKQ7IELZ3OO4LZU56ZYIXMDD74I5QCI 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,,.,..,,..,,,.,,,,.,.,.,,..,,,,,..,,...,..,,,,,,..,,,.,,,.,,.,.,
+#O6T7A22NYLSDB5UKMAG2LQV2U2D43SUNYD3FPQHN26TKPIMHG72GBHI46DEY3VVDGCO6LANKASIRE
+#\\\|U2NGM7CNHMDQUKASOWZFXX53IUWV6SY6IILYME3IVW67SUNRAOK \ / AMOS7 \ YOURUM ::
+#\[7]KJNXV6CJQWD4ZC2Z7QSGVOBAHOOAPR2MMY3XA22R46T6RAAUH4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

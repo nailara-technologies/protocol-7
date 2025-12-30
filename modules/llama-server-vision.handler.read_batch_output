@@ -3,12 +3,12 @@
 # name  = llama-server-vision.handler.read_batch_output
 # descr = non-blocking I/O handler - read output chunks from batched vision CLI
 
-my $event = shift->w;
+my $event   = shift->w;
 my $read_fh = $event->fd;
 my $io_data = $event->data;
 
 my $batch_id = $io_data->{'batch_id'};
-my $stream = $io_data->{'stream'};
+my $stream   = $io_data->{'stream'};
 
 my $batch_job = <llama-server-vision.jobs>->{$batch_id};
 
@@ -21,23 +21,29 @@ unless ( defined $batch_job ) {
 my $bytes = <[base.s_read]>->(
     $read_fh,
     \$batch_job->{'output'},
-    8 * 1024  # Read up to 8KB at a time
+    8 * 1024    # Read up to 8KB at a time
 ) // 0;
 
-<[base.logs]>->( 2, "[read_batch_output] batch=%s stream=%s bytes=%d", $batch_id, $stream, $bytes )
-    if $bytes > 0;
+<[base.logs]>->(
+    2, "[read_batch_output] batch=%s stream=%s bytes=%d",
+    $batch_id, $stream, $bytes
+) if $bytes > 0;
 
 # Check for EOF
 if ( $bytes <= 0 ) {
+
     # EOF reached on this stream
     $batch_job->{ $stream eq 'stdout' ? 'rdr_closed' : 'err_closed' } = 1;
     close($read_fh);
     $event->cancel if $event->is_active;
-    <[base.logs]>->( 2, "[read_batch_output] EOF: batch=%s stream=%s", $batch_id, $stream );
+    <[base.logs]>->(
+        2,         "[read_batch_output] EOF: batch=%s stream=%s",
+        $batch_id, $stream
+    );
 }
 
-#,,.,,.,.,,..,,.,,..,,,,,,.,,,,,,,.,.,,,,,,,.,..,,...,...,,..,.,.,.,,,.,,,.,,,
-#MNYLI5DYQ76NXRQK5V2Y6PYF3DM6AYNFTAYYM4OWQ4BA63QWSHFS3UBGRG5DULR2GWRE24C4MJSEE
-#\\\|W4SN6XGHSHAMIO7EUG5EZNJE7XZU3W62QL5LWCL5KTIZJZ4VSL7 \ / AMOS7 \ YOURUM ::
-#\[7]7CE3DHRQ3HTKMLQJMUJ5NNYA5DJFWAU7TQEMUEKWKD3JINKA2MAA 7  DATA SIGNATURE ::
+#,,,.,,,,,...,.,.,,,.,,,,,..,,...,..,,...,.,,,..,,...,..,,.,,,,,,,,..,,.,,,.,,
+#HGNQGUQ5OH3RIOKI6STQYB7CRE4TIDQKIT4GFDCU55W2FCUNTMNLFCZBMXXUPVA6NDGEANN6DXRBQ
+#\\\|4XUTPTTXRESRFDKQMETQ4N7SX3DM6AEFRT4NQVPV5UWQEYOWZPL \ / AMOS7 \ YOURUM ::
+#\[7]PJXCWFZZEASG7BI6KQFBMXGRU22ZXXFQS5FZGYPRXRN6HA4WBGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

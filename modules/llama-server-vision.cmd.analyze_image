@@ -9,7 +9,7 @@ use Symbol qw(gensym);
 # Load Imager module for image scaling
 require Imager;
 
-my ($image_path, $prompt) = split( m| +|, $$call{'args'}, 2 );
+my ( $image_path, $prompt ) = split( m| +|, $$call{'args'}, 2 );
 $prompt //= 'Describe this image';
 
 unless ( defined $image_path && length $image_path ) {
@@ -22,29 +22,40 @@ unless ( -f $image_path ) {
 
 # Check and scale image if it exceeds max dimensions
 my $working_image_path = $image_path;
-my $img = Imager->new(file => $image_path);
+my $img                = Imager->new( file => $image_path );
 if ( !$img ) {
-    return { 'mode' => 'false', 'data' => "failed to load image: " . Imager->errstr };
+    return {
+        'mode' => 'false',
+        'data' => "failed to load image: " . Imager->errstr
+    };
 }
 
-my $img_width = $img->getwidth;
+my $img_width  = $img->getwidth;
 my $img_height = $img->getheight;
-my $max_width = <llama-server-vision.max_image_width> // 1024;
+my $max_width  = <llama-server-vision.max_image_width>  // 1024;
 my $max_height = <llama-server-vision.max_image_height> // 1024;
 
-<[base.logs]>->( 1, "[analyze_image] image dimensions: %dx%d (max: %dx%d)", $img_width, $img_height, $max_width, $max_height );
+<[base.logs]>->(
+    1, "[analyze_image] image dimensions: %dx%d (max: %dx%d)",
+    $img_width, $img_height, $max_width, $max_height
+);
 
 if ( $img_width > $max_width || $img_height > $max_height ) {
+
     # Calculate scaled dimensions (maintain aspect ratio)
     my $scale_ratio = 1.0;
     $scale_ratio = $max_width / $img_width if $img_width > $max_width;
     my $height_ratio = $max_height / $img_height if $img_height > $max_height;
-    $scale_ratio = $height_ratio if defined $height_ratio && $height_ratio < $scale_ratio;
+    $scale_ratio = $height_ratio
+        if defined $height_ratio && $height_ratio < $scale_ratio;
 
-    my $new_width = int($img_width * $scale_ratio);
-    my $new_height = int($img_height * $scale_ratio);
+    my $new_width  = int( $img_width * $scale_ratio );
+    my $new_height = int( $img_height * $scale_ratio );
 
-    <[base.logs]>->( 1, "[analyze_image] scaling: %dx%d -> %dx%d (ratio: %.2f)", $img_width, $img_height, $new_width, $new_height, $scale_ratio );
+    <[base.logs]>->(
+        1, "[analyze_image] scaling: %dx%d -> %dx%d (ratio: %.2f)",
+        $img_width, $img_height, $new_width, $new_height, $scale_ratio
+    );
 
     # Scale the image
     my $scaled_img = $img->scale(
@@ -54,89 +65,117 @@ if ( $img_width > $max_width || $img_height > $max_height ) {
         'type'    => 'nonprop'
     );
 
-    unless ( $scaled_img ) {
-        return { 'mode' => 'false', 'data' => "failed to scale image: " . Imager->errstr };
+    unless ($scaled_img) {
+        return {
+            'mode' => 'false',
+            'data' => "failed to scale image: " . Imager->errstr
+        };
     }
 
     # Save scaled image to temp file (registered with v7 for cleanup)
-    my ($temp_fh, $temp_path) = <[file.temp]>->(
+    my ( $temp_fh, $temp_path ) = <[file.temp]>->(
         'llama-vision-XXXXXXXXXXXXXXX.png',
-        undef,   # check_dirs (use default)
-        FALSE,   # unlink (don't auto-cleanup on end_code, keep for reading)
-        TRUE     # register (v7 tracks this for cleanup)
+        undef,    # check_dirs (use default)
+        FALSE,    # unlink (don't auto-cleanup on end_code, keep for reading)
+        TRUE      # register (v7 tracks this for cleanup)
     );
 
     unless ( $temp_fh && $temp_path ) {
-        return { 'mode' => 'false', 'data' => "failed to create temp file for scaled image" };
+        return {
+            'mode' => 'false',
+            'data' => "failed to create temp file for scaled image"
+        };
     }
 
     # Write to temp file - flush and close properly
-    unless ( $scaled_img->write(file => $temp_path, type => 'png') ) {
-        return { 'mode' => 'false', 'data' => "failed to write scaled image: " . Imager->errstr };
+    unless ( $scaled_img->write( file => $temp_path, type => 'png' ) ) {
+        return {
+            'mode' => 'false',
+            'data' => "failed to write scaled image: " . Imager->errstr
+        };
     }
 
     close($temp_fh) if $temp_fh;
 
     # Verify temp file was created and has content
     unless ( -f $temp_path ) {
-        return { 'mode' => 'false', 'data' => "scaled image temp file not created: $temp_path" };
+        return {
+            'mode' => 'false',
+            'data' => "scaled image temp file not created: $temp_path"
+        };
     }
 
     my $temp_size = -s $temp_path;
     unless ( $temp_size > 0 ) {
-        return { 'mode' => 'false', 'data' => "scaled image temp file is empty (0 bytes)" };
+        return {
+            'mode' => 'false',
+            'data' => "scaled image temp file is empty (0 bytes)"
+        };
     }
 
     $working_image_path = $temp_path;
-    <[base.logs]>->( 1, "[analyze_image] using scaled image: %s (size: %d bytes)", $temp_path, $temp_size );
+    <[base.logs]>->(
+        1,          "[analyze_image] using scaled image: %s (size: %d bytes)",
+        $temp_path, $temp_size
+    );
 }
 
-<[base.logs]>->( 2, "[analyze_image] spawning: image=%s prompt=%s", $working_image_path, $prompt );
+<[base.logs]>->(
+    2,                   "[analyze_image] spawning: image=%s prompt=%s",
+    $working_image_path, $prompt
+);
 
 # Spawn vision CLI process immediately (4B model loads fast: 6.5s)
-my $binary = <llama-server-vision.binary>;
-my $model_path = <llama-server-vision.vision_model_path>;
+my $binary      = <llama-server-vision.binary>;
+my $model_path  = <llama-server-vision.vision_model_path>;
 my $mmproj_path = <llama-server-vision.vision_mmproj_path>;
 
 my @cmd = (
     $binary,
-    '-m', $model_path,
+    '-m',       $model_path,
     '--mmproj', $mmproj_path,
-    '-ngl', 99,
-    '-c', 4096,  # Context for vision encoder tokens (image scaled to 1024x1024, ~500-600 encoder tokens)
-    '-t', 4,
+    '-ngl',     99,
+    '-c',       4096
+    , # Context for vision encoder tokens (image scaled to 1024x1024, ~500-600 encoder tokens)
+    '-t',      4,
     '--image', $working_image_path,
-    '-n', 247,   # Allow longer responses
+    '-n',      247,                   # Allow longer responses
 ##  '--log-disable',  # TESTING: disabled to check if model generates without it
     '--no-warmup',
     '-mli',
     '-sp',
-    '-j', '{"type":"object","properties":{"answer":{"type":"string"}}}',
+    '-j',       '{"type":"object","properties":{"answer":{"type":"string"}}}',
     '--prompt', $prompt,
-#    '--temp', 0.2,
-#    '--top-k', 20,
-#    '--top-p', 0.95,
-#    '--min-p', 0.05
+
+    #    '--temp', 0.2,
+    #    '--top-k', 20,
+    #    '--top-p', 0.95,
+    #    '--min-p', 0.05
 );
 
 # Set up environment for vision model
-local $ENV{'LD_LIBRARY_PATH'} = <llama-server-vision.lib_path> . ':' . ($ENV{'LD_LIBRARY_PATH'} // '');
+local $ENV{'LD_LIBRARY_PATH'} = <llama-server-vision.lib_path> . ':'
+    . ( $ENV{'LD_LIBRARY_PATH'} // '' );
 
 # Spawn vision CLI process with stdin redirected from /dev/null
 # This prevents the model from waiting for stdin input
-my ($wtr, $rdr, $err);
+my ( $wtr, $rdr, $err );
 $err = gensym;
 
 # Open /dev/null for stdin
-open(my $null_in, '<', '/dev/null') or do {
+open( my $null_in, '<', '/dev/null' ) or do {
     <[base.logs]>->( 0, "ERROR: Failed to open /dev/null for stdin" );
     return { 'mode' => 'false', 'data' => 'failed to open /dev/null' };
 };
 
-my $pid = eval { open3($null_in, $rdr, $err, @cmd) };
+my $pid = eval { open3( $null_in, $rdr, $err, @cmd ) };
 
 if ( !$pid || $@ ) {
-    <[base.logs]>->( 0, "ERROR: Failed to spawn vision CLI: %s", $@ // 'unknown error' );
+    <[base.logs]>->(
+        0,
+        "ERROR: Failed to spawn vision CLI: %s",
+        $@ // 'unknown error'
+    );
     return { 'mode' => 'false', 'data' => 'vision CLI spawn failed' };
 }
 
@@ -150,9 +189,10 @@ $err->autoflush(1);
 
 # Set filehandles to non-blocking mode using fcntl
 use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
-foreach my $fh ($rdr, $err) {
-    my $flags = fcntl($fh, F_GETFL, 0) or die "can't get flags: $!";
-    fcntl($fh, F_SETFL, $flags | O_NONBLOCK) or die "can't set non-blocking: $!";
+foreach my $fh ( $rdr, $err ) {
+    my $flags = fcntl( $fh, F_GETFL, 0 ) or die "can't get flags: $!";
+    fcntl( $fh, F_SETFL, $flags | O_NONBLOCK )
+        or die "can't set non-blocking: $!";
 }
 
 # Generate unique job ID
@@ -160,17 +200,17 @@ my $job_id = <[base.gen_id]>->(<llama-server-vision.jobs>);
 
 # Create job entry with filehandles and output buffers
 my $job = {
-    'job_id'      => $job_id,
-    'reply_id'    => $$call{'reply_id'},
-    'image_path'  => $image_path,
-    'prompt'      => $prompt,
-    'status'      => qw| running |,
-    'pid'         => $pid,
-    'rdr'         => $rdr,
-    'err'         => $err,
-    'output'      => '',
-    'stderr'      => '',
-    'start_time'  => <[base.time]>->(3)
+    'job_id'     => $job_id,
+    'reply_id'   => $$call{'reply_id'},
+    'image_path' => $image_path,
+    'prompt'     => $prompt,
+    'status'     => qw| running |,
+    'pid'        => $pid,
+    'rdr'        => $rdr,
+    'err'        => $err,
+    'output'     => '',
+    'stderr'     => '',
+    'start_time' => <[base.time]>->(3)
 };
 
 # Store job in queue
@@ -180,18 +220,20 @@ my $job = {
 
 # Register completion timer (polls for process exit with non-blocking waitpid)
 <llama-server-vision.timers>->{$job_id} = <[event.add_timer]>->(
-    {
-        'interval' => 0.5,
+    {   'interval' => 0.5,
         'handler'  => qw| llama-server-vision.handler.check_completion |,
         'data'     => $job_id
     }
 );
 
-<[base.logs]>->( 1, "[analyze_image] returning deferred: reply_id=%s", $$call{'reply_id'} );
+<[base.logs]>->(
+    1, "[analyze_image] returning deferred: reply_id=%s",
+    $$call{'reply_id'}
+);
 return { 'mode' => 'deferred' };
 
-#,,,,,.,,,.,,,,,,,,.,,,,,,.,.,,,.,,,,,,.,,...,..,,...,...,.,.,.,,,.,.,...,.,,,
-#HZMQEMXHIDSYMRMX63DVTV6HJLZHKTF6MYPYGZOSC4PVPMP4RIQIJPEWN5WALSZF5CWQQVJPUVAV4
-#\\\|P2TRJPAA2SWGGTLU2KAPKU5W5JDNPCVFXJJ5XJOSTEI5BZ7H5X7 \ / AMOS7 \ YOURUM ::
-#\[7]KY73ROFMXEPNLKTCGNLBR5YDYFMSHSNKDLGZHJLL7FWZZRUMXODA 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,..,,,.,..,,,..,,,,,.,,,,,.,,,.,..,,...,...,,,,,...,...,,,.,,,,,
+#XOFWI7HDFGZOUS5KIVQT73OZ6GRYRIZUTYDTVTR72423CPI3W5YEXFZPBBP54J4AO36JKL6ZXRCTI
+#\\\|C4MFOVPWCELGAN3XOTYASSZ2C4S6WS2SX7VYCIQY6K6N3PZJP7D \ / AMOS7 \ YOURUM ::
+#\[7]ZWPMNQNWJMFHVAWVCQL3MYZ5HMCTSPOW4CCE5RGWT2RBLFWZEWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

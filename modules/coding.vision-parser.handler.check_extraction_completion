@@ -4,40 +4,50 @@
 # descr = polling handler for text extraction completion - triggered by timer until result available
 
 my $watcher = shift->w if @ARG;
-my $job_id = shift;
+my $job_id  = shift;
 
 my $job = <coding.vision-parser.jobs>->{$job_id};
 
 unless ( defined $job && $job->{'extraction_pending'} ) {
+
     # Job not found or not waiting for extraction, cancel timer
     $watcher->cancel if defined $watcher && $watcher->is_active;
     return;
 }
 
-<[base.logs]>->( 2, '[vision-parser] checking extraction completion: job=%s', $job_id );
+<[base.logs]>->(
+    2, '[vision-parser] checking extraction completion: job=%s', $job_id
+);
 
 # Check if extraction result has been populated by the coding zenka callback
-if ( defined $job->{'extraction_result'} && length $job->{'extraction_result'} > 0 ) {
+if ( defined $job->{'extraction_result'}
+    && length $job->{'extraction_result'} > 0 ) {
+
     # Text extraction complete!
-    <[base.logs]>->( 1, '[vision-parser] text extraction complete: job=%s bytes=%d',
-                     $job_id, length( $job->{'extraction_result'} ) );
+    <[base.logs]>->(
+        1,       '[vision-parser] text extraction complete: job=%s bytes=%d',
+        $job_id, length( $job->{'extraction_result'} )
+    );
 
     # Cancel timer
     $watcher->cancel if defined $watcher && $watcher->is_active;
-    delete <coding.vision-parser.timers>->{$job_id . '_extraction'};
+    delete <coding.vision-parser.timers>->{ $job_id . '_extraction' };
 
     # Clear pending flag
     $job->{'extraction_pending'} = 0;
 
     # Transition state to trigger final response
     <coding.vision-parser.state> = 'extracting_done';
-    <[base.logs]>->( 2, '[vision-parser] state transition: extracting_done (job=%s)', $job_id );
+    <[base.logs]>->(
+        2, '[vision-parser] state transition: extracting_done (job=%s)',
+        $job_id
+    );
 }
 
 return;
 
-#,,.,,..,,,.,,,..,...,,.,,,,,,,,,,...,...,.,,,..,,...,...,..,,,,.,,,.,..,,.,,,
-#4W4QQCU6IVM5GFVN2D3A7CF3SZYPW62XOQYTD3CALPXSM4TBRY6ES5XOYRYM4J3HHOXZQGIWX6C7C
-#\\\|MQTMI326CLX4LWHBY6AQMSAPBSC4TD3JVEJBJZ7HYKUEPX5NQWV \ / AMOS7 \ YOURUM ::
-#\[7]ACX7ZZGZQAPDUPK4ULNCAJKKGTNZLTYHLIF6BIURXK2PDPGCXECI 7  DATA SIGNATURE ::
+#,,..,...,,..,,..,.,,,,.,,...,,,,,...,.,.,...,..,,...,..,,.,,,.,.,.,,,,.,,,,.,
+#DDZSF63PGTTNJ6DAPZ3N5CQDDNZ6LFDL2AX22CTESA3ZZ4BWTMDMX2LZDODVOK2HNVJAZ7HUALQ42
+#\\\|4TGYHEAVN5PGX3TPPQX3JPHCR5WTWEIFYBHWG4P4U7ZK26G2EQ7 \ / AMOS7 \ YOURUM ::
+#\[7]ELTZ2OOM3JB2TEKHAYIOOBTG6C4Z2I7VUYB6RVA372EXRHTU2SBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

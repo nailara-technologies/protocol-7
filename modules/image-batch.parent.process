@@ -45,17 +45,19 @@ my $batch_state = <image-batch.batch_state>;
 # jobqueue.add_job handles job infrastructure, dependency resolution, and execution
 my @job_ids;
 foreach my $image_path (@$image_paths) {
-    my $job_id = <[jobqueue.add_job]>->({
-        'name'             => "Analyze image: $image_path",
-        'priority'         => 0,
-        'object_id'        => 0,  # Virtual object_id 0: no dependencies, no priorities
-        'target_queue'     => 'queued',
-        'job_callback'     => 'image-batch.parent.execute_job',
-        'callback_params'  => {
-            'image_path' => $image_path,
-            'batch_id'   => $batch_id
+    my $job_id = <[jobqueue.add_job]>->(
+        {   'name'      => "Analyze image: $image_path",
+            'priority'  => 0,
+            'object_id' =>
+                0,    # Virtual object_id 0: no dependencies, no priorities
+            'target_queue'    => 'queued',
+            'job_callback'    => 'image-batch.parent.execute_job',
+            'callback_params' => {
+                'image_path' => $image_path,
+                'batch_id'   => $batch_id
+            }
         }
-    });
+    );
     push @job_ids, $job_id;
 }
 
@@ -72,48 +74,48 @@ foreach my $image_path (@$image_paths) {
 # - jobqueue.handler.queue_counter checks dependencies and auto-executes
 # - job_callback (image-batch.parent.execute_job) is invoked automatically
 
-    # Update batch state to running
-    $batch_state->{status} = qw| running |;
+# Update batch state to running
+$batch_state->{status} = qw| running |;
 
-    # Persist batch state to disk
-    <[base.perlmod.load]>->( 'JSON::XS', qw| encode_json | );
+# Persist batch state to disk
+<[base.perlmod.load]>->( 'JSON::XS', qw| encode_json | );
 
-    my $persist_data = {
-        batch_id     => $batch_state->{batch_id},
-        batch_name   => $batch_state->{batch_name},
-        status       => $batch_state->{status},
-        started_at   => $batch_state->{started_at},
-        total_images => $batch_state->{total_images},
-        statistics   => $batch_state->{statistics}
-    };
+my $persist_data = {
+    batch_id     => $batch_state->{batch_id},
+    batch_name   => $batch_state->{batch_name},
+    status       => $batch_state->{status},
+    started_at   => $batch_state->{started_at},
+    total_images => $batch_state->{total_images},
+    statistics   => $batch_state->{statistics}
+};
 
-    my $batch_file_path    = "$batch_id.json";
-    my $batch_file_content = JSON::XS::encode_json($persist_data);
+my $batch_file_path    = "$batch_id.json";
+my $batch_file_content = JSON::XS::encode_json($persist_data);
 
-    if (<[file.zenka_dir.write]>->(
-            $batch_file_path, \$batch_file_content, undef, 0660
-        )
-    ) {
-        <[base.log]>->( 2, "Batch state persisted: $batch_file_path" );
-    } else {
-        <[base.log]>->(
-            1, "WARNING: Failed to persist batch state to $batch_file_path"
-        );
-    }
+if (<[file.zenka_dir.write]>->(
+        $batch_file_path, \$batch_file_content, undef, 0660
+    )
+) {
+    <[base.log]>->( 2, "Batch state persisted: $batch_file_path" );
+} else {
+    <[base.log]>->(
+        1, "WARNING: Failed to persist batch state to $batch_file_path"
+    );
+}
 
-    # Return immediately with batch_id (non-blocking)
-    return {
-        success      => TRUE,
-        batch_id     => $batch_id,
-        batch_name   => $batch_name,
-        status       => qw| running |,
-        total_images => $batch_state->{total_images},
-        message => sprintf( 'Batch %s processing started with single child',
-            $batch_id )
-    };
+# Return immediately with batch_id (non-blocking)
+return {
+    success      => TRUE,
+    batch_id     => $batch_id,
+    batch_name   => $batch_name,
+    status       => qw| running |,
+    total_images => $batch_state->{total_images},
+    message      =>
+        sprintf( 'Batch %s processing started with single child', $batch_id )
+};
 
-#,,..,,,.,..,,...,..,,,.,,..,,.,,,,..,,,,,..,,..,,...,.,.,,,,,,,,,,..,..,,...,
-#WNMNSCZ27FQ5RNPTKEZPFMO6QC2KI6CI3HT5HKDSWGBJTADACIA2SCF2V227TS7FEAAEUL6OU37U6
-#\\\|I2NLIWLOCGGHBP5PU4R4USTYIQSZXQZHZLZCKPRTN57ZRFHQFGG \ / AMOS7 \ YOURUM ::
-#\[7]K734QXTVFUBRIP3KF5272DKF4P4OOIYSTGJ3SWKXUVUW4OSY2SAY 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,.,,.,,,,..,,..,..,,.,,,.,.,...,..,,...,..,,.,.,,.,,,.,,,,.,,.,,
+#6QCA54M2H6NBJGA2HXJXUTV4S7G5J6IJ7KDALKNCQFOIU2ACEQETWMZB6OLVCFCVZ5DVMWSRUX2TS
+#\\\|CWTXFFVTN73DHFEZUACEAWVNNKI4ZLF4ZXU5337ZBUD7HVHNXN3 \ / AMOS7 \ YOURUM ::
+#\[7]H5TCHPCJXNU2S7AWRKACYLAWQNYLY3ZFGU25CT442BKJUA7VYQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

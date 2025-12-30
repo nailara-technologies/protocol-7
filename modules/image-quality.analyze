@@ -3,14 +3,16 @@
 # name = image-quality.analyze
 # descr = Analyze image quality using vision models (hybrid HTTP/subprocess)
 
-<[base.perlmod.load]>->('Time::HiRes', qw| time |);
+<[base.perlmod.load]>->( 'Time::HiRes', qw| time | );
 
 my $image_path = shift;
 my $start_time = Time::HiRes::time();
 
 # Validate input
-return { success => FALSE, error => 'Image path required' } unless defined $image_path;
-return { success => FALSE, error => "File not found: $image_path" } unless -f $image_path;
+return { success => FALSE, error => 'Image path required' }
+    unless defined $image_path;
+return { success => FALSE, error => "File not found: $image_path" }
+    unless -f $image_path;
 
 # Select vision model from registry
 my $model_selection = <[image-quality.vision.select_model]>;
@@ -30,17 +32,18 @@ Respond in JSON format with scores and brief reasoning.
 
 # Try HTTP API first (primary method)
 my $result = <[image-quality.vision.http_api]>->(
-    $image_path,
-    $model_selection->{model_path},
+    $image_path, $model_selection->{model_path},
     $analysis_prompt
 );
 
 # Fallback to subprocess if HTTP failed
-if (!$result->{success}) {
-    <[base.logs]>->(1, "HTTP API failed, trying subprocess: %s", $result->{error});
+if ( !$result->{success} ) {
+    <[base.logs]>->(
+        1, "HTTP API failed, trying subprocess: %s",
+        $result->{error}
+    );
     $result = <[image-quality.vision.subprocess]>->(
-        $image_path,
-        $model_selection->{model_path},
+        $image_path, $model_selection->{model_path},
         $analysis_prompt
     );
 }
@@ -48,31 +51,32 @@ if (!$result->{success}) {
 return $result unless $result->{success};
 
 # Parse vision model response into structured metrics
-my $metrics = <[image-quality.vision.parse_response]>->($result->{response});
+my $metrics
+    = <[image-quality.vision.parse_response]>->( $result->{response} );
 return $metrics unless $metrics->{success};
 
 # Calculate duration
-my $duration_ms = int((Time::HiRes::time() - $start_time) * 1000);
+my $duration_ms = int( ( Time::HiRes::time() - $start_time ) * 1000 );
 
 # TODO: Implement operation_log and analysis_cache using Protocol-7 data structures
 # These require proper angle-bracket syntax support for hash operations
 
 return {
-    success => TRUE,
-    image_path => $image_path,
-    composition => $metrics->{composition},
-    lighting => $metrics->{lighting},
-    technical => $metrics->{technical},
-    relevance => $metrics->{relevance},
+    success       => TRUE,
+    image_path    => $image_path,
+    composition   => $metrics->{composition},
+    lighting      => $metrics->{lighting},
+    technical     => $metrics->{technical},
+    relevance     => $metrics->{relevance},
     overall_grade => $metrics->{overall_grade},
-    model_used => $model_selection->{model_path},
-    duration_ms => $duration_ms,
-    method => $result->{method} // 'http',
-    analyzed_at => time()
+    model_used    => $model_selection->{model_path},
+    duration_ms   => $duration_ms,
+    method        => $result->{method} // 'http',
+    analyzed_at   => time()
 };
 
-#,,..,,,,,,,,,.,.,...,.,,,,,,,.,.,.,.,.,,,,..,..,,...,...,,,,,..,,.,,,,..,..,,
-#KEO23UUNSBIM4C2HOQIUI3SADRTTZPQ44V7STEKWE6PJITNY6CVU73JVNWIYV3AJHGGHRBOP53JKY
-#\\\|DWH7I6GDPOAY75S5J7LLA6U5JDMNZVRPUG73PJ4FNDTYO47U25F \ / AMOS7 \ YOURUM ::
-#\[7]375OLY55FTJ7TEZ4TBWW7HQYTOHBTZZ2ZGZQL5LNIB7I4YEXKEAA 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,..,..,,,..,,,.,...,,,,,,.,,.,.,..,,...,...,.,.,..,,...,,,,,,,,,
+#W4VCGPHQ4JAV6UZ5JAD5DUG4BPB4ZZHK4CRXZUK256WWVKSFPCS6QAK6Z5CLH2VXNQXYGX6ITVA4M
+#\\\|T35WF5MKLJPFZO4MQ5FETUP4J7S6BK33OJJJ7PKKE5T3X7CBZLQ \ / AMOS7 \ YOURUM ::
+#\[7]XV7FD5AROCUVTNMPKUGWB5O5XH7ZEGQ4MTKWHYS2D6VPDMCNC2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,8 +6,14 @@
 
 my ( $image_path, $job_id ) = split( / +/, $$call{'args'}, 2 );
 
-<[base.log]>->(2, "child.cmd.analyze_image: received command for job_id=$job_id");
-<[base.log]>->(2, sprintf("child.cmd.analyze_image: image_path=%s", $image_path // 'undefined'));
+<[base.log]>->(
+    2, "child.cmd.analyze_image: received command for job_id=$job_id"
+);
+<[base.log]>->(
+    2,
+    sprintf( "child.cmd.analyze_image: image_path=%s",
+        $image_path // 'undefined' )
+);
 
 return {
     'mode' => qw| false |,
@@ -29,19 +35,23 @@ return {
     if !-r $image_path;
 
 # Call Phase 2 vision analysis (non-blocking image quality analyzer)
-<[base.log]>->(2, "child.cmd.analyze_image: calling image-quality.analyze");
+<[base.log]>->( 2, "child.cmd.analyze_image: calling image-quality.analyze" );
 my $analysis_result;
-eval {
-    $analysis_result = <[image-quality.analyze]>->($image_path);
-};
+eval { $analysis_result = <[image-quality.analyze]>->($image_path); };
 if ($@) {
-    <[base.log]>->(1, sprintf("child.cmd.analyze_image: EXCEPTION in analyze: %s", $@));
+    <[base.log]>->(
+        1, sprintf( "child.cmd.analyze_image: EXCEPTION in analyze: %s", $@ )
+    );
     return {
         'mode' => qw| false |,
         'data' => "Exception during analysis: $@"
     };
 }
-<[base.log]>->(2, sprintf("child.cmd.analyze_image: analyze returned success=%s", $analysis_result->{success} // 'undef'));
+<[base.log]>->(
+    2,
+    sprintf( "child.cmd.analyze_image: analyze returned success=%s",
+        $analysis_result->{success} // 'undef' )
+);
 
 # Construct response with metrics
 my $response = {
@@ -68,8 +78,8 @@ return {
     'data' => freeze($response) . "\n"
     }
 
-#,,..,,.,,...,..,,..,,,,,,..,,..,,...,..,,,.,,..,,...,...,,,.,,,.,..,,,,,,,..,
-#O57HSDMD5EAPODP3NFRMQUBV3OCSVYLSDGWT7CCIN63AS5IED6KD7EVULIJU6OZUGOISYJYNQ37AO
-#\\\|MOEAQSVWI4HO7TKMR5AZ53NNVPKYLUGNYFUFUTRGP2ZIDPZHY55 \ / AMOS7 \ YOURUM ::
-#\[7]7HBZXAREJ5ZTU2ZK422EPWXGHBRZK6DTLUT7QB64WC2XYGXLUQDY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,.,..,,.,.,...,,..,,,,,.,.,.,,,..,,...,..,,.,,,.,.,...,,,.,...,
+#P6Y2DJZ5JGRSUAFGPFCDIV4CUOKXZIHFCNVZTNVRCYDPJIYJKSUGPQU4U52STIT4YPIP2ZCSN4JH4
+#\\\|DLAHPY24RNNCTHUYONJXQDFGORBYOE7PFT6ZK7YL2IMLG7EEO2A \ / AMOS7 \ YOURUM ::
+#\[7]4RAGZC64FNONAVISVBNPQ6JJCDDGGZMPNTZRBRNJ3RYEO65SZ2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

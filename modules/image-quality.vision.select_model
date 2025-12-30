@@ -3,38 +3,41 @@
 # name = image-quality.vision.select_model
 # descr = Select appropriate vision model from registry
 
-<[base.perlmod.load]>->('YAML::XS', qw| LoadFile |);
+<[base.perlmod.load]>->( 'YAML::XS', qw| LoadFile | );
 
-my $registry_path = '/data/projects/protocol-7/data/yaml/vision-models-registry.yaml';
+my $registry_path
+    = '/data/projects/protocol-7/data/yaml/vision-models-registry.yaml';
 
 # Load registry
 my $registry;
-eval {
-    $registry = LoadFile($registry_path);
-};
+eval { $registry = LoadFile($registry_path); };
 return { success => FALSE, error => "Cannot load registry: $@" } if $@;
 
-return { success => FALSE, error => 'Invalid registry format' } unless ref $registry eq 'HASH';
-return { success => FALSE, error => 'No categories in registry' } unless $registry->{categories};
+return { success => FALSE, error => 'Invalid registry format' }
+    unless ref $registry eq 'HASH';
+return { success => FALSE, error => 'No categories in registry' }
+    unless $registry->{categories};
 
 # Get stable_production models (highest priority)
 my $stable_models = $registry->{categories}{stable_production}{models};
-return { success => FALSE, error => 'No stable production models available' } unless $stable_models && ref $stable_models eq 'ARRAY';
+return { success => FALSE, error => 'No stable production models available' }
+    unless $stable_models && ref $stable_models eq 'ARRAY';
 
 # Try each stable model in preferred_order
 my $preferred_order = $registry->{preferred_order} || [];
 foreach my $model_path (@$preferred_order) {
+
     # Find this model in the registry
     foreach my $model (@$stable_models) {
-        if ($model->{model_path} eq $model_path) {
+        if ( $model->{model_path} eq $model_path ) {
             return {
-                success => TRUE,
-                model_path => $model_path,
-                model_name => $model->{name},
-                params => $model->{params},
-                capabilities => $model->{capabilities},
+                success        => TRUE,
+                model_path     => $model_path,
+                model_name     => $model->{name},
+                params         => $model->{params},
+                capabilities   => $model->{capabilities},
                 max_resolution => $model->{max_resolution} || 4096,
-                category => 'stable_production'
+                category       => 'stable_production'
             };
         }
     }
@@ -44,20 +47,23 @@ foreach my $model_path (@$preferred_order) {
 if (@$stable_models) {
     my $first = $stable_models->[0];
     return {
-        success => TRUE,
-        model_path => $first->{model_path},
-        model_name => $first->{name},
-        params => $first->{params},
-        capabilities => $first->{capabilities},
+        success        => TRUE,
+        model_path     => $first->{model_path},
+        model_name     => $first->{name},
+        params         => $first->{params},
+        capabilities   => $first->{capabilities},
         max_resolution => $first->{max_resolution} || 4096,
-        category => 'stable_production'
+        category       => 'stable_production'
     };
 }
 
-return { success => FALSE, error => 'No suitable vision models available in registry' };
+return {
+    success => FALSE,
+    error   => 'No suitable vision models available in registry'
+};
 
-#,,..,,.,,.,.,,,,,,,,,.,.,...,...,.,.,.,.,,,.,..,,...,...,.,,,..,,.,,,,..,,.,,
-#LR32BW5BUN4CUM74IZB7R54TN6HMZFRMCCRAQQNRKW3ICDQCGLU6TQR4PR7KJO5YDF5EQ746KRRO4
-#\\\|N5ASCGITWP5VXKJV4HFVGERLVQ572TTIRMD6UZ6MJCXRJCUNNOH \ / AMOS7 \ YOURUM ::
-#\[7]4DQLHP2W7VIIJL7LP6FXO2FPET7MRH4DDN5CL52CFJM3X4BLOKCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,.,,,.,,.,,,.,,,...,...,,,,,,,.,..,,...,...,..,,,..,,..,,,,,,,,,
+#JT7E2PXMNZSGMVB4OI4ZKP5WSZT5VKESGA332VV4U45HPPJ6QUG4CVIDP3IZ6NUQJ6FLUPFUK42Q2
+#\\\|47I56263GVNW3TAA35YO2FNJTI6DFSWSWW7TKDS35WAUC23KWE5 \ / AMOS7 \ YOURUM ::
+#\[7]QZ56NFZ7DNR6AVN74DKKRDGUHSZPXSF37LOPCI77C7ZCM6D3Z6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
