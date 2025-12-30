@@ -4,7 +4,7 @@
 # descr = check if vision job is complete (process exited AND all data read)
 
 my $watcher = shift->w;
-my $job_id = $watcher->data;
+my $job_id  = $watcher->data;
 
 <[base.logs]>->( 2, "[check_completion] timer fired for job=%s", $job_id );
 
@@ -25,31 +25,40 @@ if ( $vision_job->{'processed'} ) {
 # Try to read any pending output from filehandles (non-blocking)
 my $rdr_bytes = 0;
 if ( defined $vision_job->{'rdr'} ) {
-    while ( sysread($vision_job->{'rdr'}, my $buf, 4096) ) {
+    while ( sysread( $vision_job->{'rdr'}, my $buf, 4096 ) ) {
         $vision_job->{'output'} .= $buf;
         $rdr_bytes += length($buf);
     }
-    <[base.logs]>->( 2, "[check_completion] read %d bytes from stdout", $rdr_bytes ) if $rdr_bytes > 0;
+    <[base.logs]>->(
+        2, "[check_completion] read %d bytes from stdout", $rdr_bytes
+    ) if $rdr_bytes > 0;
 }
 my $err_bytes = 0;
 if ( defined $vision_job->{'err'} ) {
-    while ( sysread($vision_job->{'err'}, my $buf, 4096) ) {
+    while ( sysread( $vision_job->{'err'}, my $buf, 4096 ) ) {
         $vision_job->{'stderr'} .= $buf;
         $err_bytes += length($buf);
     }
-    <[base.logs]>->( 2, "[check_completion] read %d bytes from stderr", $err_bytes ) if $err_bytes > 0;
+    <[base.logs]>->(
+        2, "[check_completion] read %d bytes from stderr", $err_bytes
+    ) if $err_bytes > 0;
 }
 
 # Check if vision process has exited (non-blocking waitpid)
 # Note: waitpid might return -1 if process already reaped, or 0 if still running
 my $pid = $vision_job->{'pid'};
-<[base.logs]>->( 2, "[check_completion] checking process status: pid=%d", $pid );
+<[base.logs]>->(
+    2, "[check_completion] checking process status: pid=%d", $pid
+);
 
 # Check if process is still alive using kill(0, ...)
-my $proc_alive = kill(0, $pid);
-<[base.logs]>->( 2, "[check_completion] process alive check: %d", $proc_alive );
+my $proc_alive = kill( 0, $pid );
+<[base.logs]>->(
+    2, "[check_completion] process alive check: %d", $proc_alive
+);
 
-if ( $proc_alive ) {
+if ($proc_alive) {
+
     # Process still running, wait longer
     <[base.logs]>->( 2, "[check_completion] process still alive" );
     return;
@@ -58,19 +67,19 @@ if ( $proc_alive ) {
 
 # Process has exited - read any remaining output
 if ( defined $vision_job->{'rdr'} ) {
-    while ( sysread($vision_job->{'rdr'}, my $buf, 4096) ) {
+    while ( sysread( $vision_job->{'rdr'}, my $buf, 4096 ) ) {
         $vision_job->{'output'} .= $buf;
     }
 }
 if ( defined $vision_job->{'err'} ) {
-    while ( sysread($vision_job->{'err'}, my $buf, 4096) ) {
+    while ( sysread( $vision_job->{'err'}, my $buf, 4096 ) ) {
         $vision_job->{'stderr'} .= $buf;
     }
 }
 
 # Close filehandles
-close($vision_job->{'rdr'}) if defined $vision_job->{'rdr'};
-close($vision_job->{'err'}) if defined $vision_job->{'err'};
+close( $vision_job->{'rdr'} ) if defined $vision_job->{'rdr'};
+close( $vision_job->{'err'} ) if defined $vision_job->{'err'};
 
 # Mark as processed
 $vision_job->{'processed'} = 1;
@@ -84,19 +93,31 @@ delete <llama-server-vision.timers>->{$job_id};
 # Extract output
 my $full_stdout = $vision_job->{'output'};
 my $full_stderr = $vision_job->{'stderr'};
-my $payload = '';
+my $payload     = '';
 
-<[base.logs]>->( 1, "[check_completion] raw stdout length: %d bytes, stderr length: %d bytes",
-                 length($full_stdout), length($full_stderr) );
+<[base.logs]>->(
+    1,
+    "[check_completion] raw stdout length: %d bytes, stderr length: %d bytes",
+    length($full_stdout),
+    length($full_stderr)
+);
 
 # Determine which buffer has more content (model response is likely in the larger one)
-my $primary_buffer = length($full_stderr) > length($full_stdout) ? $full_stderr : $full_stdout;
-my $full_output = $full_stdout . $full_stderr;  # Still combine both for pattern search
+my $primary_buffer
+    = length($full_stderr) > length($full_stdout)
+    ? $full_stderr
+    : $full_stdout;
+my $full_output
+    = $full_stdout . $full_stderr;    # Still combine both for pattern search
 
 # Log first 300 chars for debugging
 if ( length $full_output > 0 ) {
-    <[base.logs]>->( 1, "[check_completion] primary buffer has %d bytes, combined first 300 chars: %s",
-                     length($primary_buffer), substr($full_output, 0, 300) );
+    <[base.logs]>->(
+        1,
+        "[check_completion] primary buffer has %d bytes, combined first 300 chars: %s",
+        length($primary_buffer),
+        substr( $full_output, 0, 300 )
+    );
 }
 
 # Extract model response - output contains token-by-token debug logs interspersed
@@ -106,7 +127,8 @@ if ( length $full_output > 0 ) {
 # Remove "Resampling because..." debug messages (grammar constraint issues)
 # These are interspersed with the JSON output and look like:
 # "Resampling because token NNN:'text' does not meet grammar rules"
-$full_output =~ s/Resampling\s+because\s+token\s+\d+:[^}]*?does\s+not\s+meet\s+grammar\s+rules\s*//g;
+$full_output
+    =~ s/Resampling\s+because\s+token\s+\d+:[^}]*?does\s+not\s+meet\s+grammar\s+rules\s*//g;
 
 # Remove all timestamp patterns: [10 digits]
 $full_output =~ s/\[\d{10}\]\s*//g;
@@ -121,41 +143,56 @@ $full_output =~ s/\[\s*[a-z_]+\s*\]/ /g;
 
 # Find and skip the initialization section - everything before model loading completes
 # The "main: loading model:" marker indicates the end of initialization
-my $init_marker = 'main: loading model:';
-my $init_end_pos = index($full_output, $init_marker);
+my $init_marker  = 'main: loading model:';
+my $init_end_pos = index( $full_output, $init_marker );
 
-<[base.logs]>->( 1, "[check_completion] init marker search: looking for '%s'", $init_marker );
+<[base.logs]>->(
+    1, "[check_completion] init marker search: looking for '%s'", $init_marker
+);
 
 if ( $init_end_pos >= 0 ) {
-    # Find the end of the model loading line (next newline after the model path)
-    my $line_end = index($full_output, "\n", $init_end_pos);
+
+  # Find the end of the model loading line (next newline after the model path)
+    my $line_end = index( $full_output, "\n", $init_end_pos );
     if ( $line_end > $init_end_pos ) {
+
         # Skip to the character after the newline
-        $full_output = substr($full_output, $line_end + 1);
-        <[base.logs]>->( 1, "[check_completion] found init marker at %d, skipped %d bytes of init output",
-                         $init_end_pos, $line_end + 1 );
+        $full_output = substr( $full_output, $line_end + 1 );
+        <[base.logs]>->(
+            1,
+            "[check_completion] found init marker at %d, skipped %d bytes of init output",
+            $init_end_pos,
+            $line_end + 1
+        );
     } else {
-        # No newline found, might be at end of buffer - skip from marker onwards
-        $full_output = substr($full_output, $init_end_pos);
-        <[base.logs]>->( 1, "[check_completion] found init marker at %d, skipped to marker location",
-                         $init_end_pos );
+
+      # No newline found, might be at end of buffer - skip from marker onwards
+        $full_output = substr( $full_output, $init_end_pos );
+        <[base.logs]>->(
+            1,
+            "[check_completion] found init marker at %d, skipped to marker location",
+            $init_end_pos
+        );
     }
 } else {
-    <[base.logs]>->( 1, "[check_completion] init marker not found in cleaned output, continuing with pattern matching" );
+    <[base.logs]>->(
+        1,
+        "[check_completion] init marker not found in cleaned output, continuing with pattern matching"
+    );
 }
 
 # Remove llama_print_timings section and everything after it
-my $timing_pos = index($full_output, 'llama_print_timings');
+my $timing_pos = index( $full_output, 'llama_print_timings' );
 if ( $timing_pos > 0 ) {
-    $full_output = substr($full_output, 0, $timing_pos);
+    $full_output = substr( $full_output, 0, $timing_pos );
 }
 
 # Skip analysis_start detection - it's causing hangs with large outputs
 # The init marker removal should be sufficient to clean up the output
 
 # Trim and clean up
-$full_output =~ s/\s+/ /g;  # Collapse multiple spaces/newlines
-$full_output =~ s/^\s+|\s+$//g;  # Trim edges
+$full_output =~ s/\s+/ /g;         # Collapse multiple spaces/newlines
+$full_output =~ s/^\s+|\s+$//g;    # Trim edges
 
 # Remove spaces after opening braces and brackets
 $full_output =~ s/([{\[\"])\s+/$1/g;
@@ -167,34 +204,56 @@ $full_output =~ s/\s+([}\]"])/$1/g;
 $full_output =~ s/\s+([,.!?;:'")])/$1/g;
 
 # The cleaned output should now be the vision analysis text
-if ( length $full_output > 20 ) {  # Sanity check - should be at least somewhat substantial
+if ( length $full_output > 20 )
+{    # Sanity check - should be at least somewhat substantial
     $payload = $full_output;
-    <[base.logs]>->( 1, "[check_completion] extracted model response, length: %d bytes", length($payload) );
+    <[base.logs]>->(
+        1, "[check_completion] extracted model response, length: %d bytes",
+        length($payload)
+    );
 } else {
-    <[base.logs]>->( 1, "[check_completion] output too short or empty: '%s'", $full_output );
+    <[base.logs]>->(
+        1, "[check_completion] output too short or empty: '%s'", $full_output
+    );
 }
 
-$payload .= "\n" if $payload !~ m|\n$|; ## make sure payload has endline ##
+$payload .= "\n" if $payload !~ m|\n$|;    ## make sure payload has endline ##
 
 # Store stderr for diagnostic access
-$vision_job->{'debug_log'} = $vision_job->{'stderr'};
+$vision_job->{'debug_log'}          = $vision_job->{'stderr'};
 $vision_job->{'raw_payload_sample'} = $payload;
 
 if ( length $payload ) {
     $vision_job->{'status'} = qw| completed |;
-    <[base.logs]>->( 1, "[check_completion] success: job=%s payload_bytes=%d",
-                     $job_id, length($payload) );
-    <[base.logs]>->( 1, "[check_completion] cleaned payload: %s", substr($payload, 0, 200) );
-    <[base.logs]>->( 1, "[check_completion] sending deferred response: reply_id=%s", $vision_job->{'reply_id'} );
+    <[base.logs]>->(
+        1,       "[check_completion] success: job=%s payload_bytes=%d",
+        $job_id, length($payload)
+    );
+    <[base.logs]>->(
+        1,
+        "[check_completion] cleaned payload: %s",
+        substr( $payload, 0, 200 )
+    );
+    <[base.logs]>->(
+        1,
+        "[check_completion] sending deferred response: reply_id=%s",
+        $vision_job->{'reply_id'}
+    );
     my $cb_result = <[base.callback.cmd_reply]>->(
         $vision_job->{'reply_id'},
         { 'mode' => 'size', 'data' => $payload }
     );
-    <[base.logs]>->( 1, "[check_completion] callback returned: %s", $cb_result // 'undef' );
+    <[base.logs]>->(
+        1,
+        "[check_completion] callback returned: %s",
+        $cb_result // 'undef'
+    );
 } else {
     $vision_job->{'status'} = qw| failed |;
-    $vision_job->{'error'} = 'no response from vision model';
-    <[base.logs]>->( 0, "ERROR: No analysis output from vision CLI: job=%s", $job_id );
+    $vision_job->{'error'}  = 'no response from vision model';
+    <[base.logs]>->(
+        0, "ERROR: No analysis output from vision CLI: job=%s", $job_id
+    );
     <[base.callback.cmd_reply]>->(
         $vision_job->{'reply_id'},
         { 'mode' => 'false', 'data' => 'no response from vision model' }
@@ -203,15 +262,14 @@ if ( length $payload ) {
 
 # Schedule cleanup after 70 seconds
 <[event.add_timer]>->(
-    {
-        'after'   => 70,
+    {   'after'   => 70,
         'handler' => qw| llama-server-vision.handler.job_cleanup |,
         'data'    => $job_id
     }
 );
 
-#,,,.,.,.,,..,.,,,,.,,...,.,,,,..,.,.,...,,,.,..,,...,...,,.,,...,.,.,.,,,,,,,
-#LFANC67T3SETV3CSJQ5CVB3DLRZQVOMUI5FA7Y5LCHQFMOZZUDKJ3ETTJBALGMY6TCNDPSF5ZLECE
-#\\\|JELGYFENJNIQOM3I3VN7ANFHSKTVN5SLAZQY4ULM6WKIBGULCT4 \ / AMOS7 \ YOURUM ::
-#\[7]QJUMC7S7OPGY6DEU4OCFCC46OFHOYADOFM65T5TTWGMZGF4F6KAQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,,.,,..,,,,,.,.,,..,..,,,,.,,,.,..,,...,...,.,,,.,.,..,,,,,,,.,,
+#SX3EB4F54VZYSWEWTKZQACUESIJTV4XF6YD7KGL43DEGU7ZWH4LPHYDYJJAJNTAJUFTFQVJOCNHSC
+#\\\|HI75LR3G7HV4II2JZPIJZSJAMX3CASAVNJC6A633ZAA4BI2BY3E \ / AMOS7 \ YOURUM ::
+#\[7]FHGM7G4RYTSQMKVFQSNUOGDOTE44O4GHVIBWCGX6RTHDZDJJZSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

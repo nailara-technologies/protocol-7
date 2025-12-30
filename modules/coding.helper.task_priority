@@ -4,20 +4,20 @@
 # descr = calculate priority for coding task based on task type and requirements
 # purpose = helper : map task types and characteristics to jobqueue priority values
 
-my ($task_type, $params) = @ARG;
+my ( $task_type, $params ) = @ARG;
 
 $task_type //= 'general';
 $params    //= {};
 
 # map task types to base priority scores
 my %type_priority = (
-    'critical'       => -3,
-    'high'           => -1,
-    'code_gen'       => 0,
-    'analysis'       => 0,
-    'review'         => 1,
-    'general'        => 0,
-    'low'            => 2,
+    'critical' => -3,
+    'high'     => -1,
+    'code_gen' =>  0,
+    'analysis' =>  0,
+    'review'   =>  1,
+    'general'  =>  0,
+    'low'      =>  2,
 );
 
 my $priority = $type_priority{$task_type} // 0;
@@ -33,8 +33,8 @@ if ( exists $params->{size} && $params->{size} eq 'large' ) {
 
 return $priority;
 
-#,,.,,...,,,.,.,,,,.,,,,.,..,,,,.,,,.,,.,,.,,,..,,...,...,,,.,,,,,.,,,..,,,.,,
-#5TOO7ATAK4BWGCVWV3JOPZJXJLPTAZLDVGHSWW2KOOU2DEQ72L67ZDJ5S2XORJ3E5TXTMSFNNUGZS
-#\\\|5BG3KXS63NC4GGS6C6FN5H4PBB453NGRZZP7OHGCFBZWTSFHN3L \ / AMOS7 \ YOURUM ::
-#\[7]ULO6NI25D7KNVUKMXVSEF2CWTIWZUDIPKDQELEDDK3PKSGKSTSDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,,.,,,,,,.,,,..,.,.,...,,,.,,.,,..,,...,...,,,.,...,,..,,..,,..,
+#5JHVCQ5O2UGOBFA56HFGHEZ3QMLLFGQBMYWNN37QZB2RRVTG4BW3543ZRLPFWIHAD23WEUTWZM2CI
+#\\\|D7K7OOBW3RNV2GQFAVT7MAODIUTNF6TLZ7RYYYXNV6Y6HXGEHTD \ / AMOS7 \ YOURUM ::
+#\[7]MCXCCVT6AT6FOXNJU5AT77GLCX4MWB2B5XRBFNJQUWJ35CJ4XCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

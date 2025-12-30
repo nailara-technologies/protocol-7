@@ -6,55 +6,60 @@
 my $image_path = shift;
 
 # Validate input
-return { success => FALSE, error => 'Image path required' } unless defined $image_path;
-return { success => FALSE, error => "File not found: $image_path" } unless -f $image_path;
+return { success => FALSE, error => 'Image path required' }
+    unless defined $image_path;
+return { success => FALSE, error => "File not found: $image_path" }
+    unless -f $image_path;
 
 # Check file size (limit to 20MB for vision models)
 my $file_size = -s $image_path;
-return { success => FALSE, error => 'File too large (max 20MB)' } if $file_size > 20_000_000;
+return { success => FALSE, error => 'File too large (max 20MB)' }
+    if $file_size > 20_000_000;
 return { success => FALSE, error => 'File is empty' } if $file_size == 0;
 
 # Load MIME::Base64
-<[base.perlmod.load]>->('MIME::Base64', qw| encode_base64 |);
+<[base.perlmod.load]>->( 'MIME::Base64', qw| encode_base64 | );
 
 # Read image file as binary
-open my $fh, '<:raw', $image_path or return { success => FALSE, error => "Cannot open file: $!" };
+open my $fh, '<:raw', $image_path
+    or return { success => FALSE, error => "Cannot open file: $!" };
 my $image_data = do { local $/; <$fh> };
 close $fh;
 
-return { success => FALSE, error => 'File read failed' } unless defined $image_data;
+return { success => FALSE, error => 'File read failed' }
+    unless defined $image_data;
 
 # Detect MIME type from magic bytes
 my $mime_type = 'application/octet-stream';
-if ($image_data =~ /^\x89PNG/) {
+if ( $image_data =~ /^\x89PNG/ ) {
     $mime_type = 'image/png';
-} elsif ($image_data =~ /^\xFF\xD8\xFF/) {
+} elsif ( $image_data =~ /^\xFF\xD8\xFF/ ) {
     $mime_type = 'image/jpeg';
-} elsif ($image_data =~ /^GIF8[79]a/) {
+} elsif ( $image_data =~ /^GIF8[79]a/ ) {
     $mime_type = 'image/gif';
-} elsif ($image_data =~ /^RIFF.*WEBP/s) {
+} elsif ( $image_data =~ /^RIFF.*WEBP/s ) {
     $mime_type = 'image/webp';
-} elsif ($image_data =~ /^BM/) {
+} elsif ( $image_data =~ /^BM/ ) {
     $mime_type = 'image/bmp';
-} elsif ($image_data =~ /^\x00\x00\x01\x00/) {
+} elsif ( $image_data =~ /^\x00\x00\x01\x00/ ) {
     $mime_type = 'image/x-icon';
-} elsif ($image_data =~ /^MM\x00\x2a|II\x2a\x00/) {
+} elsif ( $image_data =~ /^MM\x00\x2a|II\x2a\x00/ ) {
     $mime_type = 'image/tiff';
 }
 
 # Encode as base64 (no line breaks for JSON compatibility)
-my $base64_data = encode_base64($image_data, '');
+my $base64_data = encode_base64( $image_data, '' );
 
 return {
-    success => TRUE,
-    base64 => $base64_data,
-    mime_type => $mime_type,
+    success    => TRUE,
+    base64     => $base64_data,
+    mime_type  => $mime_type,
     size_bytes => $file_size,
-    file_path => $image_path
+    file_path  => $image_path
 };
 
-#,,,,,,.,,...,,,,,.,.,.,.,..,,..,,,.,,.,.,.,.,..,,...,...,.,,,.,,,,,,,...,.,,,
-#NXJ7UIHZLCITUOKWQNN6YLXPWRNHWDIMEXYD3XIWXYXWLYNXYOZOA432ADQCUHBBWDB2TCFXFAMWW
-#\\\|OZAUAYP6WXI36GFPTNGM7567TUGZNIMJNVPWDAVWUJAKN6QHKU2 \ / AMOS7 \ YOURUM ::
-#\[7]3MY6IVOQUEYD2E36F7UN7WJSUPSQ5FMRMDM7KWO4PV6KMCYB3CCA 7  DATA SIGNATURE ::
+#,,,,,.,.,...,...,...,...,..,,..,,.,.,,..,,,.,..,,...,...,,.,,..,,.,.,..,,.,,,
+#L6SYZO7UXP6SN3VRXIQO2BS6D23L64DHZTQWM36RLV3YXWMCE7WCM6ODO5RGEKYVGYSXHDUE5QGBK
+#\\\|WBLEZRDIPCPBJE7UDGE73CUTSXFTSE53SJOOU2VXTPNKE26B63Y \ / AMOS7 \ YOURUM ::
+#\[7]NISOAOMFWESYCDXE46DVM23EHUK3EGIG4TN3N5I2BA2TVNNUPUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

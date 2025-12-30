@@ -53,20 +53,22 @@ if ( $type eq 'code-generation' ) {
 
 # Reasoning/analysis tasks
 if ( $type eq 'reasoning' || $type eq 'analysis' ) {
-    if ( $complexity >= 7 || ( grep { lc($_) =~ /consensus|verify/ } @$constraints ) ) {
+    if ( $complexity >= 7
+        || ( grep { lc($_) =~ /consensus|verify/ } @$constraints ) ) {
         return {
-            service    => 'consensus-voting',
-            models     => [ 'qwen', 'mathstral', 'aya' ],
-            reason     => "Complex reasoning (complexity: $complexity) needs consensus",
+            service => 'consensus-voting',
+            models  => [ 'qwen', 'mathstral', 'aya' ],
+            reason  =>
+                "Complex reasoning (complexity: $complexity) needs consensus",
             token_cost => 600,
             priority   => 'consensus'
         };
     }
     if ( $complexity >= 4 ) {
         return {
-            service    => 'single-llm',
-            model      => 'qwen',
-            reason     => "Medium complexity reasoning (complexity: $complexity)",
+            service => 'single-llm',
+            model   => 'qwen',
+            reason => "Medium complexity reasoning (complexity: $complexity)",
             token_cost => 250,
             priority   => 'reasoning'
         };
@@ -100,8 +102,8 @@ return {
     priority   => 'default'
 };
 
-#,,..,.,,,,..,...,.,,,,..,.,.,..,,,.,,.,.,.,,,..,,...,...,.,,,,,.,.,,,,,.,.,.,
-#T2PF5KQ65NJNWYESJ2BLIP5IQERKJSNLOOHH7AFKYPH7HPTJUFJLOKNBYLID3Y5PJGXUEGBYMT57M
-#\\\|3RXRJVYJCE7DXHBQUHHMI4EZXZKCQ5JPKIHKFDW3DIXPPKPGAXC \ / AMOS7 \ YOURUM ::
-#\[7]KMBZVZHSBID24NGOGKM3MFG42ERHQWFQRUSXZ6BRLHMDG7OTW4BA 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,.,.,..,,,,,,,.,,,,,,,..,.,.,..,,..,,...,...,.,,,,,,,,,,,..,,,,.,
+#KJZR7OWNMPYVWT24435ZFN4TI4E2XJ3ECTWPBJNLTBX6AYCP7EL4WXYPSMTA4BR7LKIZ5ZO2CNCXW
+#\\\|QIBASU2B2ESXR6VR7J5YJGP5ELJHABL5BJSAMYAFPO7XWZ4UFFC \ / AMOS7 \ YOURUM ::
+#\[7]RT7QVGC4QU37G6OLBC5JLZCSX7DDGNXYCDGOFL2FFQ7NSKYES2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,30 +10,28 @@ use JSON::XS;
 use IPC::Run    qw(run);
 use Time::HiRes qw(time);
 
-# Configuration for models at /mnt/m/ - LM Studio community quantizations
-my %MODEL_CONFIG = (
-    'qwen' => {
-        name       => 'Qwen2.5-7B-Instruct-1M',
-        model_path =>
-            '/mnt/m/lmstudio-community/Qwen2.5-7B-Instruct-1M-GGUF/Qwen2.5-7B-Instruct-1M-Q4_K_M.gguf',
+# Model aliases for subprocess API compatibility
+my %MODEL_ALIASES = (
+    'qwen'      => 'qwen2.5-7b-instruct-1m',
+    'mathstral' => 'mathstral-7b-v0.1',
+    'aya'       => 'aya-23-8b'
+);
+
+# Model metadata (will be fetched from models zenka)
+my %MODEL_METADATA = (
+    'qwen2.5-7b-instruct-1m' => {
         context_size   => 2048,
         batch_size     => 256,
         threads        => 4,
         tokens_per_sec => 6
     },
-    'mathstral' => {
-        name       => 'Mathstral-7B-v0.1',
-        model_path =>
-            '/mnt/m/lmstudio-community/mathstral-7B-v0.1-GGUF/mathstral-7B-v0.1-Q4_K_M.gguf',
+    'mathstral-7b-v0.1' => {
         context_size   => 2048,
         batch_size     => 256,
         threads        => 4,
         tokens_per_sec => 5
     },
-    'aya' => {
-        name       => 'Aya-23-8B',
-        model_path =>
-            '/mnt/m/lmstudio-community/aya-23-8B-GGUF/aya-23-8B-Q4_K_M.gguf',
+    'aya-23-8b' => {
         context_size   => 2048,
         batch_size     => 256,
         threads        => 4,
@@ -41,15 +39,49 @@ my %MODEL_CONFIG = (
     }
 );
 
+# Helper to fetch model config from models zenka
+<[base.perlmod.autoload]>->(qw| JSON::PP |);
+
+my $get_model_config = sub {
+    my ($model_alias) = @_;
+
+    # Resolve alias to model ID
+    my $model_id = $MODEL_ALIASES{$model_alias} || $model_alias;
+
+    # Fetch from models zenka
+    my $response = <[base.protocol-7.command.send.local]>->(
+        {   'command'   => "models.get_model_path",
+            'call_args' => { 'model_id' => $model_id }
+        }
+    );
+
+    return undef
+        unless $response && ref($response) eq 'HASH' && $response->{data};
+
+    my $model_data;
+    eval { $model_data = JSON::PP::decode_json( $response->{data} ); };
+    return undef unless $model_data && ref($model_data) eq 'HASH';
+
+    # Merge with metadata
+    my $metadata = $MODEL_METADATA{$model_id} || {};
+    return {
+        name       => $model_data->{name},
+        model_path => $model_data->{path},
+        mmproj     => $model_data->{mmproj},
+        %$metadata
+    };
+};
+
 # Query a model via subprocess
 my $query_subprocess = sub {
     my ( $model, $prompt ) = @_;
 
+    my $config = $get_model_config->($model);
     return {
         success => FALSE,
-        error   => "Unknown model: $model"
+        error   => "Unknown model or unable to fetch config: $model"
         }
-        unless exists $MODEL_CONFIG{$model};
+        unless $config;
 
     return {
         success => FALSE,
@@ -57,15 +89,11 @@ my $query_subprocess = sub {
         }
         unless defined $prompt && length($prompt) > 0;
 
-    my $config = $MODEL_CONFIG{$model};
-
     # Verify model file exists
     if ( !-f $config->{model_path} ) {
         return {
             success => FALSE,
-            error   => "Model file not found: " . $config->{model_path},
-            available_models => [ keys %MODEL_CONFIG ],
-            search_path      => '/mnt/m/'
+            error   => "Model file not found: " . $config->{model_path}
         };
     }
 
@@ -232,8 +260,8 @@ if ( $cmd eq 'query' ) {
 
 # AMOS7::TEMPLATE::signature_placeholder
 
-#,,.,,..,,,,.,.,.,..,,,,,,.,,,,,.,.,,,..,,.,,,..,,...,..,,.,.,..,,...,,,.,.,.,
-#7SO2NA3LT655UHPX7EFRIBJ2S2CFWLU5SGR42CEZ7SIBWREHAYLPNCVHUKLHKGIDMPTM5M2RFKZIU
-#\\\|WFNUKZFLHVHDHCDAXBAJARGW3XSFESPKJQB4ZTACEQWUFH5VNDG \ / AMOS7 \ YOURUM ::
-#\[7]U52XWYN7UHCSIIHJE3AKQVYEXIVT2QUG2BOMWZZASR2P26YO4GDY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,,,,,,,,.,,,.,,...,,,.,...,...,..,,..,,...,..,,.,.,,,,,,..,.,,,,..,
+#4ZQFSXXK5QWVB5VR2XK6CMLAD5AAPUWIX6ID6AYYSX6KVBMXQ4BE5MW7UNZHEXJ6KTSUDDXANTOJO
+#\\\|H5GNKQZUZQSIDSUGAEERZN4ZPOGJLOMG2KDSRG7HOLNKZ7MJQW7 \ / AMOS7 \ YOURUM ::
+#\[7]5QDQOA5ZXJ34UQ2BOWFGD52T77DLPWRWLTAJLHNYFPVB2KPUPCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

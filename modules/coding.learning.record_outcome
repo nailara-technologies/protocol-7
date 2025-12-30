@@ -4,12 +4,15 @@
 # descr = record task outcome with metrics and efficiency data
 # purpose = learning : store task success|failure with performance metrics
 
-my ($task_id, $task_type, $service_used, $success, $tokens_used, $duration_ms) = @ARG;
+my ($task_id, $task_type,   $service_used,
+    $success, $tokens_used, $duration_ms
+) = @ARG;
 
 return {
     success => FALSE,
     error   => 'missing required parameters'
-} unless defined $task_id && defined $service_used && defined $success;
+    }
+    unless defined $task_id && defined $service_used && defined $success;
 
 # Record outcome with computed efficiency metrics
 my $outcome = {
@@ -34,8 +37,8 @@ return {
     message => sprintf( "recorded outcome for task : %s", $task_id )
 };
 
-#,,.,,,,,,..,,.,,,.,,,...,.,,,,.,,.,.,...,...,..,,...,...,..,,,,,,,.,,..,,.,,,
-#BOPQ5OGQSVNBTKA43DFZGZHQ2QR4P5IHQ2J6WHRWOOPQMKOD2E2JDX7LUKCV62TFZIBP6TVQ2OKI2
-#\\\|5OOHPGWWWOJUCJQY2X2R5ODDJ7I3N6VQATMK3JK5ZSFFKRHLCHE \ / AMOS7 \ YOURUM ::
-#\[7]IW2ZKUQMRMK6GV4D2TPBE36MKM5J74TLDA6EIGSA2FPI5FS6TWAA 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,,.,,,.,,,,,..,,.,.,...,,,,,,.,,..,,...,...,,.,,,..,,,.,,,.,,,.,
+#HS43UAAN2CHTTIXRJF6PD3DOHOVKI3YZ7TYRVSXYNYGBC4ELQRVBV2SOF7QTIOYI7C6SWX4DUW5UY
+#\\\|KKDIDPBMHVZFXP7SDB2ERHBLQEFWL4WSKBPAUCLSZZYYJGEDXF7 \ / AMOS7 \ YOURUM ::
+#\[7]IUIVXGLC2PSPCM65BZYGAZWPSMKKAL6EBYQHTQQB5M7F3RIXWSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,16 +6,17 @@
 my $job_id = $call->{'args'};
 
 if ( !defined $job_id || !length $job_id ) {
+
     # Return overall status
     my $job_count = scalar keys %{<llama-server-vision.jobs>};
-    my $active = 0;
+    my $active    = 0;
     my $completed = 0;
-    my $failed = 0;
+    my $failed    = 0;
 
     foreach my $job ( values %{<llama-server-vision.jobs>} ) {
-        $active++ if $job->{'status'} eq 'running';
+        $active++    if $job->{'status'} eq 'running';
         $completed++ if $job->{'status'} eq 'completed';
-        $failed++ if $job->{'status'} eq 'failed';
+        $failed++    if $job->{'status'} eq 'failed';
     }
 
     return {
@@ -35,18 +36,18 @@ my $job = <llama-server-vision.jobs>->{$job_id};
 
 my $status_str = sprintf(
     'Job %s: status=%s pid=%s runtime=%d sec',
-    $job_id,
-    $job->{'status'},
+    $job_id, $job->{'status'},
     ( defined $job->{'pid'} ? $job->{'pid'} : 'N/A' ),
     ( time() - $job->{'start_time'} )
 );
 
 if ( $job->{'status'} eq 'completed' ) {
     my $output = $job->{'output'};
-    $output = substr($output, 0, 100) . '...' if length($output) > 100;
+    $output = substr( $output, 0, 100 ) . '...' if length($output) > 100;
     $status_str .= " | output: $output";
     if ( defined $job->{'debug_log'} && length $job->{'debug_log'} ) {
-        $status_str .= " | debug_log: " . length($job->{'debug_log'}) . " bytes";
+        $status_str
+            .= " | debug_log: " . length( $job->{'debug_log'} ) . " bytes";
     }
 } elsif ( $job->{'status'} eq 'failed' ) {
     $status_str .= " | error: " . $job->{'error'};
@@ -57,8 +58,8 @@ return {
     'data' => $status_str
 };
 
-#,,,,,.,.,,,,,,,.,,,,,.,,,.,.,..,,,..,,,,,,,,,..,,...,...,,..,.,,,.,,,,..,,,.,
-#JB5GZ7Z64J65CLJHRTTS73X6OSH74JSSE2FHHSLOM5EL6VAIL7IA3RL4HXJHGGOFEUY4W3MDDWGOK
-#\\\|4YAUG2VEA474WSWAVH45JLVIVYBA6KGZZ2IT7JWNPPQ45A65IDK \ / AMOS7 \ YOURUM ::
-#\[7]Z3RI3LPTSIHQV7Z7KYBB23BBENSZNPSIMIDNZEQZJBT6E3Z25QDA 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,..,..,,...,,.,,,.,,,,.,,,,,.,.,..,,...,...,.,.,,,.,,,.,,,,,.,.,
+#XIUIPINPCFILITMLDTUPAFEY7RTO6TD66FQKN6IKO6ZLQYDPZCNSSJOEUGESIE2JPKB5LKV5FJMGE
+#\\\|LGKQEXF7AKSHSKSEJLXFNAL6SPMG5AXIXE2KSEFLXTXNUWENMFL \ / AMOS7 \ YOURUM ::
+#\[7]GFJ4FS2EQAWIAJ7GQBMIZLBJW7UKDGMQOG5KCS63QJBJ4JBRNABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

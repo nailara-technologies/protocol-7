@@ -4,12 +4,13 @@
 # descr = mark coding task as completed
 # purpose = coding task management : wrapper around jobqueue.move_job to mark job complete
 
-my ($job_id, $result) = @ARG;
+my ( $job_id, $result ) = @ARG;
 
 return {
     success => FALSE,
     error   => 'job_id required'
-} unless defined $job_id;
+    }
+    unless defined $job_id;
 
 # Get job data before moving to verify it exists
 my $job_data = <[jobqueue.get_job_data]>->($job_id);
@@ -17,21 +18,22 @@ my $job_data = <[jobqueue.get_job_data]>->($job_id);
 return {
     success => FALSE,
     error   => "task not found : $job_id"
-} unless defined $job_data;
+    }
+    unless defined $job_data;
 
 # Move job to completed queue
-<[jobqueue.move_job]>->($job_id, 'completed');
+<[jobqueue.move_job]>->( $job_id, 'completed' );
 
 return {
-    success   => TRUE,
-    job_id    => $job_id,
-    task_id   => $job_data->{object_id},
-    result    => $result,
-    message   => "task completed : $job_id"
+    success => TRUE,
+    job_id  => $job_id,
+    task_id => $job_data->{object_id},
+    result  => $result,
+    message => "task completed : $job_id"
 };
 
-#,,.,,,.,,,,,,,..,,,.,.,.,,,,,,..,,,,,.,.,,,.,..,,...,...,,,.,,,.,.,.,.,,,.,,,
-#YBQ46MQB35B663RJ6QSKMHXV2QBPFEMAIPRBPAAOSIQKODDAWFSTK7B2IXTZACP5FIVV67OC3FHCK
-#\\\|ZQESASXT5AKZDBKCDCB3X37VAJR2JVKNZURM4OWWPJH3C5EUJ35 \ / AMOS7 \ YOURUM ::
-#\[7]HIHALOEACOAR47UQW64E77BQTRTXCHB3KEPPBDZABR5ZWOJAGSDY 7  DATA SIGNATURE ::
+#,,..,..,,...,..,,.,,,,,,,,.,,,,,,,,.,.,,,.,,,..,,...,...,,..,.,,,,,,,,,,,,..,
+#7HRWFQ75IEGHJE3KGADIX3TWTE7IODQ4OLW4P3YG3GOVLMPVCORKDW3PLQ6ZGAA6WMYJG27P6DQPC
+#\\\|FADRROU7V7V6JRF6SQYHDU6CCF4FQWRWK3H6HVTHAYJDOD4MCOF \ / AMOS7 \ YOURUM ::
+#\[7]ZGXSMKREI5NUNRPX3AAAN4RA5CHZV3A5C6T6NRPZTGITYBQM3UBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

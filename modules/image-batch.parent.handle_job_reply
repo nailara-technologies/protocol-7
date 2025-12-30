@@ -18,8 +18,8 @@ my $batch_state = <image-batch.batch_state>;
 
 # Update job result in jobqueue and log to operation_log
 my $operation_log = <image-batch.operation_log>;
-my $error_log = <image-batch.error_log>;
-my $timestamp = <[base.time]>->(3);
+my $error_log     = <image-batch.error_log>;
+my $timestamp     = <[base.time]>->(3);
 
 if ( $reply_data->{success} ) {
     <[jobqueue.move_job]>->( $job_id, 'completed' );
@@ -84,8 +84,8 @@ if ( $completed + $errored == $total ) {
 
 return { success => TRUE, message => "Job result processed: $job_id" };
 
-#,,,.,...,,..,,,.,.,,,,.,,..,,,.,,,.,,,,.,,,,,..,,...,...,,,.,,,,,,,,,,,,,,,.,
-#FHVEYF2EGLXFXI6FOXJTX5EVINVBX3NDULGA6D3XEZ2RVKD6YNFYTEKADDYPL6DYNGFYF42DKEI7W
-#\\\|5QOB7FYRE6N7ZBGJRIQ7I4R7DN2CA6J4OCV5LLVDUDOZ6R6D223 \ / AMOS7 \ YOURUM ::
-#\[7]P5GT7KWBBXMTFB5EZ63PWWKZ2N2YEPIIZBUWCZZEAA4CFH4O4IAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,,,,,.,,.,,,,.,,,,,,,,.,...,,.,,..,,...,..,,,,,,,..,,.,,.,,,,,,,
+#TU6UOUYEGFAS3W4UEURUR7L7UU7JW57UP5VCNQ45LOEQC7QXYQTPOJJIEP2HFLRXNMAYQP45IRAO2
+#\\\|RD5HDB4AOB25TDLCPYQKSWJZB5C26RFNVJSTRVOEWT5JXJLPZWF \ / AMOS7 \ YOURUM ::
+#\[7]RMHP7RZMIQZJ4J55ILFQXQTQZILIIBV2OSMTOLX7G7HUXMFJRWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

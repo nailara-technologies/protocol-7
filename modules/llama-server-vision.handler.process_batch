@@ -6,16 +6,20 @@
 my $batch = <llama-server-vision.batch_queue>;
 return unless scalar @$batch > 0;
 
-<[base.logs]>->( 1, "[process_batch] processing %d queued requests", scalar @$batch );
+<[base.logs]>->(
+    1,
+    "[process_batch] processing %d queued requests",
+    scalar @$batch
+);
 
 # Clear batch timer reference - we'll store it in a scalar
 my $batch_timer_ref;
 $batch_timer_ref = <llama-server-vision.batch_timer>;
 
 # Extract first request to use for model loading
-my $first_req = $batch->[0];
-my $binary = <llama-server-vision.binary>;
-my $model_path = <llama-server-vision.vision_model_path>;
+my $first_req   = $batch->[0];
+my $binary      = <llama-server-vision.binary>;
+my $model_path  = <llama-server-vision.vision_model_path>;
 my $mmproj_path = <llama-server-vision.vision_mmproj_path>;
 
 use IPC::Open3;
@@ -24,27 +28,32 @@ use Symbol qw(gensym);
 # Build command with first image - optimized for 4B model
 my @cmd = (
     $binary,
-    '-m', $model_path,
+    '-m',       $model_path,
     '--mmproj', $mmproj_path,
-    '-ngl', 99,
-    '-c', 1024,        # Reduced context for better memory usage
-    '-t', 4,
-    '--image', $first_req->{'image_path'},
-    '-n', 50,
-    '-p', $first_req->{'prompt'}
+    '-ngl',     99,
+    '-c',       1024,           # Reduced context for better memory usage
+    '-t',       4,
+    '--image',  $first_req->{'image_path'},
+    '-n',       50,
+    '-p',       $first_req->{'prompt'}
 );
 
 # Set up environment for vision model
-local $ENV{'LD_LIBRARY_PATH'} = <llama-server-vision.lib_path> . ':' . ($ENV{'LD_LIBRARY_PATH'} // '');
+local $ENV{'LD_LIBRARY_PATH'} = <llama-server-vision.lib_path> . ':'
+    . ( $ENV{'LD_LIBRARY_PATH'} // '' );
 
 # Spawn vision CLI process
-my ($wtr, $rdr, $err);
+my ( $wtr, $rdr, $err );
 $err = gensym;
 
-my $pid = eval { open3($wtr, $rdr, $err, @cmd) };
+my $pid = eval { open3( $wtr, $rdr, $err, @cmd ) };
 
 if ( !$pid || $@ ) {
-    <[base.logs]>->( 0, "ERROR: Failed to spawn vision CLI: %s", $@ // 'unknown error' );
+    <[base.logs]>->(
+        0,
+        "ERROR: Failed to spawn vision CLI: %s",
+        $@ // 'unknown error'
+    );
 
     # Mark all requests in batch as failed
     foreach my $req (@$batch) {
@@ -59,37 +68,38 @@ if ( !$pid || $@ ) {
     return;
 }
 
-close($wtr);  # We don't send any stdin
+close($wtr);    # We don't send any stdin
 
-<[base.logs]>->( 1, "[process_batch] batch spawned: pid=%d requests=%d", $pid, scalar @$batch );
+<[base.logs]>->(
+    1,    "[process_batch] batch spawned: pid=%d requests=%d",
+    $pid, scalar @$batch
+);
 
 # Create batch job entry with COPY of requests (not reference to queue)
-my $batch_id = <[base.gen_id]>->(<llama-server-vision.jobs>);
+my $batch_id  = <[base.gen_id]>->(<llama-server-vision.jobs>);
 my $batch_job = {
-    'batch_id'     => $batch_id,
-    'pid'          => $pid,
-    'status'       => 'running',
-    'output'       => '',
-    'error'        => '',
-    'rdr_closed'   => 0,
-    'err_closed'   => 0,
-    'requests'     => [ @$batch ],  # Store COPY of requests for response routing
+    'batch_id'   => $batch_id,
+    'pid'        => $pid,
+    'status'     => 'running',
+    'output'     => '',
+    'error'      => '',
+    'rdr_closed' => 0,
+    'err_closed' => 0,
+    'requests'   => [@$batch],   # Store COPY of requests for response routing
 };
 
 <llama-server-vision.jobs>->{$batch_id} = $batch_job;
 
 # Register non-blocking I/O handlers for stdout and stderr
 $batch_job->{'rdr_io'} = <[event.add_io]>->(
-    {
-        'fd'      => $rdr,
+    {   'fd'      => $rdr,
         'handler' => 'llama-server-vision.handler.read_batch_output',
         'data'    => { 'batch_id' => $batch_id, 'stream' => 'stdout' }
     }
 );
 
 $batch_job->{'err_io'} = <[event.add_io]>->(
-    {
-        'fd'      => $err,
+    {   'fd'      => $err,
         'handler' => 'llama-server-vision.handler.read_batch_output',
         'data'    => { 'batch_id' => $batch_id, 'stream' => 'stderr' }
     }
@@ -97,8 +107,7 @@ $batch_job->{'err_io'} = <[event.add_io]>->(
 
 # Register completion checker timer
 <llama-server-vision.timers>->{$batch_id} = <[event.add_timer]>->(
-    {
-        'interval' => 0.2,
+    {   'interval' => 0.2,
         'handler'  => 'llama-server-vision.handler.check_batch_completion',
         'data'     => $batch_id
     }
@@ -107,8 +116,8 @@ $batch_job->{'err_io'} = <[event.add_io]>->(
 # Clear batch queue for next batch
 @$batch = ();
 
-#,,,,,,.,,,,.,...,,.,,,,.,...,..,,,..,..,,,..,..,,...,...,,.,,..,,,,,,.,,,,.,,
-#W5IFEFD6I5AMUUBRMNMKFGA3WU3GRAF2PPFELPDASD62BLR5GG2SNFVZ2EER3ZIW62P7ZSMMHN6BW
-#\\\|TZFSDN7AKYOFYHYPIUT7N4YL4H6SNOLJAUIMMZIPGZTSTRXOHIU \ / AMOS7 \ YOURUM ::
-#\[7]UE3WZIZWEAFM2GKV2K2ESV7NASCNZAGG4EULJVHQCGYJZEDXWEDY 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,,,,,,,,.,,,...,,..,...,,,,,...,..,,...,...,.,.,...,.,,,.,,,.,.,
+#7QUFQ6WGPHQBMV7RLEV2R66MJ5WV57DYP2BC5I6UYKD2U5JP7G2UL7YMWZ452ZBUW2CJB6GDCIBVU
+#\\\|2F5CJYQ4WLBOAISHKS5VWD4V6MHTEGZ7IHBSFIS32CLMWXHJRZT \ / AMOS7 \ YOURUM ::
+#\[7]KU2MTEWSGAED7YDZU4SEM4KBUDHS53MME3IKHFTRMDSNX3GANKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

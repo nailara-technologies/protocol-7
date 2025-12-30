@@ -3,61 +3,74 @@
 # name = image-quality.vision.subprocess
 # descr = Subprocess for GPU-accelerated vision analysis using llama-mtmd-cli (multimodal)
 
-my ($image_path, $model_identifier, $analysis_prompt) = @_;
+my ( $image_path, $model_identifier, $analysis_prompt ) = @_;
 
 # Validate inputs
-return { success => FALSE, error => 'Image path required' } unless defined $image_path;
-return { success => FALSE, error => 'Image file not found' } unless -f $image_path;
-return { success => FALSE, error => 'Model identifier required' } unless defined $model_identifier;
-return { success => FALSE, error => 'Analysis prompt required' } unless defined $analysis_prompt;
+return { success => FALSE, error => 'Image path required' }
+    unless defined $image_path;
+return { success => FALSE, error => 'Image file not found' }
+    unless -f $image_path;
+return { success => FALSE, error => 'Model identifier required' }
+    unless defined $model_identifier;
+return { success => FALSE, error => 'Analysis prompt required' }
+    unless defined $analysis_prompt;
 
-# Map model identifiers to actual filesystem paths with mmproj support
-my %model_paths = (
-    '4b-opus100-manga' => {
-        model => '/mnt/m/mradermacher/4b-opus100-manga-GGUF/4b-opus100-manga.Q4_K_S.gguf',
-        mmproj => '/mnt/m/mradermacher/4b-opus100-manga-GGUF/4b-opus100-manga.mmproj-f16.gguf'
-    },
-    'gemma-3-4b-it-uncensored-dbl-x' => {
-        model => '/mnt/m/mradermacher/Gemma-3-4b-it-Uncensored-DBL-X-GGUF/Gemma-3-4b-it-Uncensored-DBL-X.Q4_K_S.gguf',
-        mmproj => '/mnt/m/mradermacher/Gemma-3-4b-it-Uncensored-DBL-X-GGUF/Gemma-3-4b-it-Uncensored-DBL-X.mmproj-f16.gguf'
-    },
-    'gemma-3-glitter-4b-uncensored' => {
-        model => '/mnt/m/mradermacher/Gemma-3-Glitter-4B-Uncensored-GGUF/Gemma-3-Glitter-4B-Uncensored.Q4_K_S.gguf',
-        mmproj => '/mnt/m/mradermacher/Gemma-3-Glitter-4B-Uncensored-GGUF/Gemma-3-Glitter-mmproj-f16.gguf'
-    },
-    'minicpm-v-2.6' => {
-        model => '/mnt/ext-xfs-data/models-lmstudio/openbmb/ggml-model-Q4_K_M.gguf',
-        mmproj => '/mnt/ext-xfs-data/models-lmstudio/openbmb/mmproj-model-f16.gguf'
-    },
-    'qwen2.5-vl-7b-instruct' => {
-        model => '/mnt/ext-xfs-data/models-lmstudio/Qwen/Qwen2.5-VL-7B-Instruct-Q4_K_M.gguf',
-        mmproj => '/mnt/ext-xfs-data/models-lmstudio/Qwen/mmproj-F16.gguf'
+# Fetch model configuration from models zenka
+<[base.perlmod.autoload]>->(qw| JSON::PP |);
+
+my $response = <[base.protocol-7.command.send.local]>->(
+    {   'command'   => "models.get_model_path",
+        'call_args' => { 'model_id' => $model_identifier }
     }
 );
 
-# Check if model identifier maps to actual paths
-return { success => FALSE, error => "Unknown model identifier: $model_identifier", method => 'subprocess' }
-    unless exists $model_paths{$model_identifier};
+return {
+    success => FALSE,
+    error   => "Failed to fetch model configuration: $model_identifier",
+    method  => 'subprocess'
+    }
+    unless $response && ref($response) eq 'HASH' && $response->{data};
 
-my $model_config = $model_paths{$model_identifier};
-my $model_file = $model_config->{model};
-my $mmproj_file = $model_config->{mmproj};
+my $model_data;
+eval { $model_data = JSON::PP::decode_json( $response->{data} ); };
+
+return {
+    success => FALSE,
+    error   => "Failed to parse model configuration",
+    method  => 'subprocess'
+    }
+    unless $model_data && ref($model_data) eq 'HASH';
+
+my $model_file  = $model_data->{path};
+my $mmproj_file = $model_data->{mmproj};
 
 # Verify model files exist
-return { success => FALSE, error => "Model file not found: $model_file", method => 'subprocess' }
+return {
+    success => FALSE,
+    error   => "Model file not found: $model_file",
+    method  => 'subprocess'
+    }
     unless -f $model_file;
-return { success => FALSE, error => "Mmproj file not found: $mmproj_file", method => 'subprocess' }
+return {
+    success => FALSE,
+    error   => "Mmproj file not found: $mmproj_file",
+    method  => 'subprocess'
+    }
     unless -f $mmproj_file;
 
 # Use llama-mtmd-cli (multimodal-enabled binary) for vision analysis
 my $llama_mtmd_cli = '/data/source/ik_llama.cpp/llama-mtmd-cli-cuda';
-return { success => FALSE, error => "llama-mtmd-cli-cuda not found at $llama_mtmd_cli", method => 'subprocess' }
+return {
+    success => FALSE,
+    error   => "llama-mtmd-cli-cuda not found at $llama_mtmd_cli",
+    method  => 'subprocess'
+    }
     unless -x $llama_mtmd_cli;
 
 # Escape paths for shell execution
-my $escaped_model = quotemeta($model_file);
+my $escaped_model  = quotemeta($model_file);
 my $escaped_mmproj = quotemeta($mmproj_file);
-my $escaped_image = quotemeta($image_path);
+my $escaped_image  = quotemeta($image_path);
 my $escaped_prompt = quotemeta($analysis_prompt);
 
 # Build command: use llama-mtmd-cli with multimodal vision support (GPU-accelerated)
@@ -72,46 +85,57 @@ my $escaped_prompt = quotemeta($analysis_prompt);
 # Wrap in sh -c to ensure LD_LIBRARY_PATH is properly propagated
 my $cmd = sprintf(
     'sh -c %s',
-    quotemeta(sprintf(
-        'export LD_LIBRARY_PATH=/data/source/ik_llama.cpp:$LD_LIBRARY_PATH && %s -m %s --mmproj %s --image %s -n 100 -c 8192 -e --prompt %s 2>&1',
-        $llama_mtmd_cli,
-        $escaped_model,
-        $escaped_mmproj,
-        $escaped_image,
-        $escaped_prompt
-    ))
+    quotemeta(
+        sprintf(
+            'export LD_LIBRARY_PATH=/data/source/ik_llama.cpp:$LD_LIBRARY_PATH && %s -m %s --mmproj %s --image %s -n 100 -c 8192 -e --prompt %s 2>&1',
+            $llama_mtmd_cli, $escaped_model, $escaped_mmproj,
+            $escaped_image,  $escaped_prompt
+        )
+    )
 );
 
 # Execute with timeout
 my $out = '';
 eval {
     local $SIG{ALRM} = sub { die "timeout\n" };
-    alarm(90);  # 90 second timeout for image analysis
+    alarm(90);    # 90 second timeout for image analysis
     $out = `$cmd`;
     alarm(0);
 };
 
 if ($@) {
-    return { success => FALSE, error => "Subprocess timeout or error: $@", method => 'subprocess' };
+    return {
+        success => FALSE,
+        error   => "Subprocess timeout or error: $@",
+        method  => 'subprocess'
+    };
 }
 
-if ($? != 0) {
-    return { success => FALSE, error => "llama-mtmd-cli-cuda exited with error code $?", method => 'subprocess' };
+if ( $? != 0 ) {
+    return {
+        success => FALSE,
+        error   => "llama-mtmd-cli-cuda exited with error code $?",
+        method  => 'subprocess'
+    };
 }
 
-if (!$out || length($out) == 0) {
-    return { success => FALSE, error => "No output from llama-mtmd-cli-cuda subprocess", method => 'subprocess' };
+if ( !$out || length($out) == 0 ) {
+    return {
+        success => FALSE,
+        error   => "No output from llama-mtmd-cli-cuda subprocess",
+        method  => 'subprocess'
+    };
 }
 
 return {
-    success => TRUE,
-    response => $out,
-    method => 'subprocess',
+    success    => TRUE,
+    response   => $out,
+    method     => 'subprocess',
     model_used => $model_identifier
 };
 
-#,,,.,..,,.,,,.,.,..,,...,,,,,,,,,,,,,.,.,.,.,..,,...,...,,,,,..,,,,.,,,.,.,.,
-#LRZXFIOPTAVZPNSYJTAGIK5WYOULSDFUDLKHD3QCP5UOTRQEY2LUZ55FT7MU2PBNASMTDCUB6V4YQ
-#\\\|PSIVRCILSKYRCRZRGBOGKWGYUGSBJVTPUWWG6ZNSZT6FWQRWPSH \ / AMOS7 \ YOURUM ::
-#\[7]7MYXPXY3UHEWOJ5YP3JO63RVHI3FHC4BBYEX32CCEWCYXEM4WSBI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,..,,.,,,...,,..,.,,,,,.,,.,,,.,,..,,...,...,..,,...,,.,,.,,,...,
+#WFI2HPGNCQXKEDEJPODVBQH6RPYWQUI5QE6QUL2WBJM7KTMFCTFELSZJYO2NTZ6VJTKXWFFFGHR6I
+#\\\|53ZZP7XLKRVSDQQVY3PRLRG55C6QYQAEWFZHHPW5ALQAFCMNCAS \ / AMOS7 \ YOURUM ::
+#\[7]VK6JPFNZNOVMZEVTUNNM55GD42FHJWIMS2LXJV5L7ZK5JTZVCODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

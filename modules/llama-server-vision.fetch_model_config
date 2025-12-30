@@ -1,0 +1,62 @@
+## [:< ##
+
+# name = llama-server-vision.fetch_model_config
+# descr = Handle async response from models.get_model_path for vision config
+
+<[base.perlmod.autoload]>->(qw| JSON::PP |);
+
+my $reply = shift;
+
+my $sid        = $reply->{'sid'};
+my $cmd_status = $reply->{'cmd'};
+my $call_args  = $reply->{'call_args'};
+
+<[base.log]>->(
+    1, "[llama-server-vision] fetch_model_config: status=%s", $cmd_status
+);
+
+# Parse model configuration from response
+if ( $cmd_status && $call_args ) {
+    my $model_data;
+    eval { $model_data = JSON::PP::decode_json($call_args); };
+
+    if ( $model_data && ref($model_data) eq 'HASH' ) {
+        my $model_path  = $model_data->{path};
+        my $mmproj_path = $model_data->{mmproj};
+
+        if ( -f $model_path && -f $mmproj_path ) {
+            <llama-server-vision.vision_model_path>  = $model_path;
+            <llama-server-vision.vision_mmproj_path> = $mmproj_path;
+
+            <[base.log]>->(
+                1, "[llama-server-vision] Vision model loaded: %s",
+                $model_path
+            );
+            <[base.log]>->(
+                1, "[llama-server-vision] Multimodal proj: %s", $mmproj_path
+            );
+
+            return 1;
+        } else {
+            <[base.log]>
+                ->( 2, "[llama-server-vision] Model files not found" );
+        }
+    } else {
+        <[base.log]>->(
+            2, "[llama-server-vision] Failed to parse model configuration"
+        );
+    }
+} else {
+    <[base.log]>->(
+        2,
+        "[llama-server-vision] Failed to fetch model configuration from models zenka"
+    );
+}
+
+return 0;
+
+#,,,,,..,,,.,,..,,.,,,.,,,,.,,...,.,,,.,,,.,,,..,,...,...,..,,..,,.,,,,.,,.,.,
+#BLJUYOWVZY5L6SXEXA2ZG4NQY4Z2TKRKTEBTX5EXS5XJ2LXDXYXZHS6W3BZYXKHFMRG5Q3FOX3SIM
+#\\\|M7RUR2U75OOUUEP22XB3S7JCTCAR2JLU2RU3JVS4V6ADXRJW5F5 \ / AMOS7 \ YOURUM ::
+#\[7]32ZDQV4GKSOEX6PRA2WEJFY67UUZPUW5GBU3DR45EKR46ZLNM2AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

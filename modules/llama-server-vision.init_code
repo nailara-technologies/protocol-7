@@ -8,31 +8,45 @@
 # Imager module will be loaded in analyze_image command when needed
 
 # Vision model binary and library configuration
-<llama-server-vision.binary> = '/data/source/ik_llama.cpp/llama-mtmd-cli-cuda';
+<llama-server-vision.binary>
+    = '/data/source/ik_llama.cpp/llama-mtmd-cli-cuda';
 <llama-server-vision.lib_path> = '/data/source/ik_llama.cpp';
-<llama-server-vision.log_file> = '/var/log/protocol-7/llama-server-vision.log';
+<llama-server-vision.log_file>
+    = '/var/log/protocol-7/llama-server-vision.log';
 
-# Vision model with multimodal support (Qwen3-VL-4B - optimized for memory)
-<llama-server-vision.vision_model_path> = '/mnt/ext-xfs-data/models-lmstudio/lmstudio-community/Qwen3-VL-4B-Instruct-GGUF/Qwen3-VL-4B-Instruct-Q4_K_M.gguf';
-<llama-server-vision.vision_mmproj_path> = '/mnt/ext-xfs-data/models-lmstudio/lmstudio-community/Qwen3-VL-4B-Instruct-GGUF/mmproj-Qwen3-VL-4B-Instruct-F16.gguf';
+# Vision model paths will be fetched from models zenka on first use
+# (deferred to runtime to avoid circular dependency during initialization)
+<llama-server-vision.vision_model_path>  = undef;
+<llama-server-vision.vision_mmproj_path> = undef;
+<llama-server-vision.model_fetch_handler>
+    = 'llama-server-vision.fetch_model_config';
+
+my $fetch_model_config = sub {
+    return if <llama-server-vision.vision_model_path>;    # Already loaded
+
+    <[base.perlmod.autoload]>->(qw| JSON::PP |);
+
+    my $result = <[base.protocol-7.command.send.local]>->(
+        {   'command'   => "models.get_model_path",
+            'call_args' => { 'model_id' => 'qwen3-vl-4b-instruct' },
+            'reply'     => {
+                'handler' => 'llama-server-vision.fetch_model_config',
+                'params'  => {}
+            }
+        }
+    );
+
+    return $result;
+};
+
+# Store the helper for later use
+<llama-server-vision.fetch_model_helper> = $fetch_model_config;
 
 <[base.logs]>->( 1, "Vision binary: %s", <llama-server-vision.binary> );
-
-# Verify model files exist
-my $model_path = <llama-server-vision.vision_model_path>;
-unless ( -f $model_path ) {
-    <[base.logs]>->( 0, "ERROR: Vision model not found: %s", $model_path );
-    return 0;
-}
-
-my $mmproj_path = <llama-server-vision.vision_mmproj_path>;
-unless ( -f $mmproj_path ) {
-    <[base.logs]>->( 0, "ERROR: Multimodal projection not found: %s", $mmproj_path );
-    return 0;
-}
-
-<[base.logs]>->( 1, "Vision model: %s", $model_path );
-<[base.logs]>->( 1, "Multimodal proj: %s", $mmproj_path );
+<[base.logs]>->(
+    1,
+    "Vision model configuration will be fetched from models zenka at runtime"
+);
 
 # Initialize job queue for vision analysis tasks
 <llama-server-vision.jobs> //= {};
@@ -43,20 +57,26 @@ unless ( -f $mmproj_path ) {
 # Initialize batch queue for request batching (amortizes model loading)
 <llama-server-vision.batch_queue> //= [];
 <llama-server-vision.batch_timer> = undef;
-<llama-server-vision.batch_window_ms> = 100;  # Collect requests for 100ms before processing
+<llama-server-vision.batch_window_ms>
+    = 100;    # Collect requests for 100ms before processing
 
 <[base.logs]>->( 1, "Vision job dispatch system initialized.," );
-<[base.logs]>->( 1, "Batch processing enabled (window: %dms)", <llama-server-vision.batch_window_ms> );
+<[base.logs]>->(
+    1,
+    "Batch processing enabled (window: %dms)",
+    <llama-server-vision.batch_window_ms>
+);
 
 # Image scaling configuration (vision models typically expect 224-1024 range)
-<llama-server-vision.max_image_width> = 1024;  # Scale down if wider
-<llama-server-vision.max_image_height> = 1024;  # Scale down if taller
+<llama-server-vision.max_image_width>  = 1024;    # Scale down if wider
+<llama-server-vision.max_image_height> = 1024;    # Scale down if taller
+
 # Temp files are managed by base.file.temp with automatic cleanup via end_code callbacks
 
-0;  # Return success for module initialization
+0;    # Return success for module initialization
 
-#,,,,,.,,,.,.,.,.,...,.,,,,,,,,..,.,.,.,.,..,,..,,...,...,...,,..,,,,,.,,,,..,
-#EPGGBT32OLDW2FTBQOBNQV2FOGUN3CRK2JF573ANAZQKDKCWV4H6EBQB6ABLV35YLEHR6R3Q5MU32
-#\\\|WDI22O4MR5NGQXNZX36HNCO4IXA4CPUDXJSCT2LZEBRZQ72EF63 \ / AMOS7 \ YOURUM ::
-#\[7]OBKVMNESF5POS63R7LYVN5Z7T7DFGGAVWHH6LBFCKC3BIMGOLGCA 7  DATA SIGNATURE ::
+#,,,.,...,.,,,..,,,.,,,,,,..,,,.,,..,,,,,,,,,,..,,...,...,.,,,.,.,..,,.,,,,.,,
+#PEGP6IAHK66343SDWVUYBQID6YVMM4BAE5TJD2X4DUJWB5WPM3JB32CZIT3E54QNJIEUWXE5PMUK4
+#\\\|2VU2YZ6XERDPFXZSGKDCEADYQIBWOTI5NU52ZROUMJYDNIOXL65 \ / AMOS7 \ YOURUM ::
+#\[7]ULSFWCR37DT5WQ4LFY3E2EVUJNG5SUDYEEW74Z3GVN32V75FSACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

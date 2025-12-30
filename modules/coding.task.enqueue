@@ -9,24 +9,27 @@ my ($task) = @ARG;
 return {
     success => FALSE,
     error   => 'task must be a hashref'
-} unless ref($task) eq 'HASH';
+    }
+    unless ref($task) eq 'HASH';
 
 return {
     success => FALSE,
     error   => 'task must have id'
-} unless exists $task->{id};
+    }
+    unless exists $task->{id};
 
 # calculate priority based on task type
-my $priority = <[coding.helper.task_priority]>->( $task->{type} // 'general', $task );
+my $priority
+    = <[coding.helper.task_priority]>->( $task->{type} // 'general', $task );
 
 # prepare job params for jobqueue
 my $job_params = {
-    name             => $task->{id},
-    priority         => $priority,
-    object_id        => $task->{id},
-    target_queue     => 'queued',
-    job_callback     => 'coding.task.execute',
-    callback_params  => $task,
+    name            => $task->{id},
+    priority        => $priority,
+    object_id       => $task->{id},
+    target_queue    => 'queued',
+    job_callback    => 'coding.task.execute',
+    callback_params => $task,
 };
 
 # add to jobqueue
@@ -39,8 +42,8 @@ return {
     message => "task enqueued : $task->{id}"
 };
 
-#,,.,,,.,,...,,,,,...,.,.,...,...,,,,,,..,,.,,..,,...,...,...,.,.,,,.,...,.,.,
-#EAA3Z3DGBQAAW3DDQDWHZ5A4543BMMMEOCIPUICWJPBGI5K3QFE3NW737TIRJ4TXMKMYM3TZ6BELQ
-#\\\|THCNR3ENKE2A4KYCBLM2N73T2D6EA4TMS2BCLYXBS7QJ5J47C64 \ / AMOS7 \ YOURUM ::
-#\[7]3WVJG7IP24JXM6EGH5FJA4FLSJ2JXN5HNMTGADN5TASKMDARWKDI 7  DATA SIGNATURE ::
+#,,.,,,.,,...,...,.,,,,,.,.,.,.,,,.,,,,,,,.,.,..,,...,...,,..,,,,,,,,,,.,,.,,,
+#7VUL7IDNOIB7ZOH7WS2LDJEIQIGDIDBNLM5B5PJTEXGGWXETWS3VUJ6KMCH3DDUCK5O5M4P2R5YUE
+#\\\|5NAP6LOBCAI5M6RLUSVI5MJ2UI7G2BP4IGV7AFHXZOZFBTTWX67 \ / AMOS7 \ YOURUM ::
+#\[7]2MDRLNMXGHLTS3D4UVMDOEL3LBQE6I46DGRZPKVNMNKVDKDONIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
