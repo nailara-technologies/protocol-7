@@ -3,7 +3,17 @@
 # name = models.cmd.get_model_path
 # descr = Retrieve model path by model ID or alias
 
-my ( $cmd, $model_id ) = @ARG;
+# Extract model_id from call parameters
+# $call is provided in scope by command framework
+my $model_id
+    = $call->{'param'}->{'model_id'} || $call->{'call_args'}->{'model_id'};
+
+# If not in param/call_args, try parsing from args string (for p7 command line)
+unless ($model_id) {
+    if ( $call->{'args'} && length( $call->{'args'} ) ) {
+        ($model_id) = split( /\s+/, $call->{'args'} );
+    }
+}
 
 <[base.logs]>->( 1, "[models.cmd] get_model_path: %s", $model_id // 'NONE' );
 
@@ -53,8 +63,8 @@ return {
     'data' => $json . "\n",
 };
 
-#,,.,,.,.,,.,,.,,,.,.,,..,.,,,,,,,,,,,,..,.,,,..,,...,...,...,,,,,,.,,,,.,,.,,
-#F72MCN4HYZIRFRURATPERHEGYWPX6WMKYADZCZVV73XSRC5IIAG5AWSR5D7KTJQJS6ZVGT3B75WLA
-#\\\|7HGAQRLG2HHHCPQOWT3DZZIWQLDSFH5KZHNJSOXXOBPUJ3KXEOP \ / AMOS7 \ YOURUM ::
-#\[7]PNGZ7ZKO27L32TRFLZRUOR63XAIORVI3HJXP4TQDPVTOYTVWWOAY 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,,,,,,,,...,,,,,,.,,.,.,,,,,,..,..,,...,...,..,,.,,,,,,,.,,,.,.,
+#5JY6YQX7FGEC2HW4FWY5UJ7SSTHGGXAJSC7RWRYFBWCIMNZH6KDB54GVYGV3KMRXCF74TAUSSD6NS
+#\\\|K52ZOR5DTSEBZAUGYUY47SLHDOHVPQBY7PURELA7ZEUBTKZCYD3 \ / AMOS7 \ YOURUM ::
+#\[7]2R6NG5CKQL6G75OB2H4QLSJLIHZF3S2POE6YDIOMUR3GZ4IPVCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
