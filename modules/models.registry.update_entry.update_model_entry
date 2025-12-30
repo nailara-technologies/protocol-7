@@ -1,11 +1,31 @@
 ## [:< ##
 
 # name  = models.registry.update_entry.update_model_entry
+# descr = Update a model entry in the registry
 
-0;
+my ($model_amos, $updates) = @ARG;
 
-#,,,,,,,.,,.,,,,.,,,,,,..,...,,..,..,,,..,,,.,..,,...,...,...,...,,.,,...,,.,,
-#M3RW3OQQBGQCDU3HT555EXNG2LANUOW4ECCP6FYMTGEK2IJN7FUY6LZN7FAT3GAP77JIXNABFZSMW
-#\\\|5INBPFHT4DBJYAECTGOJKYTO52CUT2NFD7X3JPRBTBUB5NK2JND \ / AMOS7 \ YOURUM ::
-#\[7]ZIJ4422RW32PKH4USS6HQYNQECNMYAFSBGUEHO7SU2AZMUPIZACI 7  DATA SIGNATURE ::
+return 0 unless $model_amos && $updates;
+
+my $registry = <[models.registry.base.get_registry]>;
+my $entry = $registry->{models}->{$model_amos};
+
+return 0 unless $entry;
+
+# Update allowed fields
+foreach my $key (keys %$updates) {
+  $entry->{$key} = $updates->{$key};
+}
+
+$entry->{updated_at} = time();
+
+# Save registry
+<[models.registry.base.save_registry_internal]>->($registry);
+
+return 1;
+
+#,,.,,,.,,.,.,,..,,,,,,,.,...,...,,,,,,,,,,.,,..,,...,...,...,..,,,.,,..,,,,,,
+#4P4VJGJM34EQ5H2CB6ZGFRLVDV3YUVAD7PYTWZZNMSLWNYUJEXC7JDUQJ6CUXQ4A6N4IDLRYNIOVW
+#\\\|KCNPWISVJPVW3BTM2AUJCMSMRAX5JLQCETCFR73CVXYDFIF73GG \ / AMOS7 \ YOURUM ::
+#\[7]7DFMEXCHXJ23K5RLFMUO3L4GHLGEOEH4ZQGEFX6G6SB42JJPZQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

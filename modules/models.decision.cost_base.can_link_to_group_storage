@@ -1,11 +1,18 @@
 ## [:< ##
 
 # name  = models.decision.cost_base.can_link_to_group_storage
+# descr = Check if model can be linked to shared group storage
 
-0;
+my ($model_entry) = @ARG;
 
-#,,.,,.,.,.,.,,,.,,,.,,.,,,,,,.,.,.,,,.,,,,..,..,,...,...,.,,,,..,,..,..,,,,.,
-#NX3FNARBPUYUVYWVXYYWKGZ6MPI3SJA6HJHCCGL6OW7WZ5MPSWAOXN3DDO7PXGLAEZWTEFA3N2AHU
-#\\\|QY6AR4XOZ4TO5VMS45PRRPGAMVNNVTOWRO3KKTATMUENRTGOSDH \ / AMOS7 \ YOURUM ::
-#\[7]JPULBB4ENX37YCFOVE5UXLPMCU32PJCXBHZSDEGODYSV4LUMEQBI 7  DATA SIGNATURE ::
+return 0 unless $model_entry && ref($model_entry) eq 'HASH';
+
+my $metadata = $model_entry->{metadata} // {};
+
+return $metadata->{shareable} // 1;
+
+#,,..,..,,,,.,.,,,...,,.,,.,.,,.,,.,.,,,.,.,,,..,,...,..,,,,,,.,,,.,.,,,,,..,,
+#PO22SNBTBCVLLUFIAWSV5GOADALR6QEIV7T24XF2MMLLTWWPBQE4L2Y2MJTV3EYZMZ3RWWXJ6DQ6E
+#\\\|CFIR2JW6NVTEL6OIE6ATRPYZRVG2JNKBKCQB3JWJR2XUSUG2EY6 \ / AMOS7 \ YOURUM ::
+#\[7]HXYRWQ4SEI5LGGVGI5VUEAV6UFO2DPKEXMA4MJKU4TDPN7N67GAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

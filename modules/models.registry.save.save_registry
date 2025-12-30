@@ -10,7 +10,7 @@ my ($registry) = @ARG;
 
 return 0 unless $registry && ref($registry) eq 'HASH';
 
-my $path = <[models.registry.base.get_registry_path]>->();
+my $path = <[models.registry.base.get_registry_path]>;
 open my $fh, '>', $path or return 0;
 flock($fh, 2);  # LOCK_EX
 $registry->{updated_at} = time();
@@ -20,8 +20,8 @@ close $fh;
 
 return 1;
 
-#,,,.,...,..,,.,,,,..,..,,,..,.,.,,..,,..,,.,,..,,...,...,,..,.,.,.,.,,..,,.,,
-#PCV76GDK4TU5UUP5GO73GI5UYTT6I6KWGJZUOQD6O5QHC6AMF6CXRLZ3NLZWKTMMC73VVTMGMSJGI
-#\\\|ODR5W6WYEBZJAWSNL2THOJ4KTDEE6PXGJZ6LH3MUXFKOMB5QRZN \ / AMOS7 \ YOURUM ::
-#\[7]IP62HM7TFON6P3TPI3TN6SBUCGBXQANYKGOBPAXHMC6KXB75MMAY 7  DATA SIGNATURE ::
+#,,,,,,..,...,,.,,,,,,..,,,,.,,,,,,..,...,.,.,..,,...,...,.,,,...,,..,,..,,.,,
+#O4G2S2DPRXKP7KRUEYFAKUXWQQHBHLRTJHN6GK4DPOTRA34QWYFCK7EE4WPF3BBPNCWLZOIFL7V7K
+#\\\|M3REJF27BHCRRUOL4ODAPU6OKGWWAL633VE3ANHKXBCVJVLH2PT \ / AMOS7 \ YOURUM ::
+#\[7]BG6OAJIYYFTYDSKSMRDFHZ5B7U3INS7U7NQLIQYSZWE2GBLD74CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

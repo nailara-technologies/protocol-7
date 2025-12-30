@@ -1,11 +1,21 @@
 ## [:< ##
 
 # name  = models.statistics.invocation_tracking.record_invocation
+# descr = Record model invocation for statistics
 
-0;
+my ($model_amos, $context, $success) = @ARG;
 
-#,,.,,,.,,..,,,..,,..,,..,...,,,.,,,,,,,,,,.,,..,,...,...,,..,.,.,,.,,,,,,.,.,
-#6QAUO7SSU7E2YZMMMIP35MIVDS6JFOZRC3DLDMCD43OLXJX2RZ6N53H32GDFRADDNJYFHAG5VDZTK
-#\\\|M3C63OKUOTJNHKMJQ63PYBMGGCAG33BYWGP2QTEXCX5X4EMZHQJ \ / AMOS7 \ YOURUM ::
-#\[7]EPKQMKILYK5RI6P3TPTRMG24KMS35RW6U2263TQTZ5ZOPRDDGUBA 7  DATA SIGNATURE ::
+push @{$data{models}{operation_log}}, {
+  timestamp => time(),
+  model => $model_amos,
+  context => $context,
+  success => $success,
+};
+
+return 1;
+
+#,,.,,..,,.,.,,.,,...,,,,,.,,,...,,.,,,.,,,.,,..,,...,...,.,.,..,,,,.,..,,,.,,
+#XTU66AWRPE5QYL6ONHINU7WA2LWYAQBM4QW56D236DI6UG6ASG6XFA2JSHVJROM7ZVZD2CLS6GHOA
+#\\\|T7ROBZDTRTXIN4WWR5UN7XMLPEB45BZJ43AF6NUKLYNDJLXPQP2 \ / AMOS7 \ YOURUM ::
+#\[7]GJN7CMIN2MBMRAH4EAESZKV76I3QBZND2Y3DIQW6CQ5ZBTE2KQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

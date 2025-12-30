@@ -1,11 +1,17 @@
 ## [:< ##
 
 # name  = models.decision.cost_base.get_group_path
+# descr = Get the storage path for a model group
 
-0;
+my ($model_entry) = @ARG;
 
-#,,.,,,.,,,,.,.,.,,,,,,,,,..,,,,,,,,,,.,.,...,..,,...,...,..,,..,,.,.,.,.,,,.,
-#EQH2D7PKYJQS5DWT7I2VFKZH2LA674DHSYBRHRKZP7APU7F2AP6VAWSU5U2UFKPJRSJXJWBAKS66E
-#\\\|Y7CE62EPN3SXZKQPC3TCYLACWXQ63U4QSBBGR3EFZ244YJXCHS7 \ / AMOS7 \ YOURUM ::
-#\[7]ESRT3BE3EF6ZUTCFVLXTZCEDMTMBGHCMQOD3KAJMKRW45AFYF4BQ 7  DATA SIGNATURE ::
+my $metadata = $model_entry->{metadata} // {};
+my $group = $metadata->{group} // 'default';
+
+return "/models/groups/$group";
+
+#,,.,,.,.,,..,,..,,.,,,,,,.,.,,,,,,,,,.,,,.,.,..,,...,...,,,,,,,.,...,,,.,,.,,
+#EVXXDBHPCA6FGL7AOHN5JHBWIZEAIRDYAPOWIOODL364MMZ7CUTVFVPGLYUFDZZYX6AF3EKN72NVO
+#\\\|M5RAGCCONNI2ZOASFH6FXV5XPSETF6VKKMBEAAPUQM2WFBP4O3V \ / AMOS7 \ YOURUM ::
+#\[7]XNQQRQMP7YUI35OBRVC5ML54SLELHCENRLYHJGBQASFWHULFFWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

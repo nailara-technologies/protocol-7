@@ -1,11 +1,17 @@
 ## [:< ##
 
 # name  = models.decision.cost_base.has_available_alternative
+# descr = Check if model has available alternative models
 
-0;
+my ($model_entry) = @ARG;
 
-#,,..,.,,,..,,.,,,.,,,.,,,,,,,,.,,,,.,...,,.,,..,,...,...,..,,,,.,,..,,,.,..,,
-#JUK724R32UAWFJSIYIC3QIX5S6KIWJ4M7RBCRFOBSXFWPLUXT5MFHR6MOE77BHKASEER2QPIVBTYK
-#\\\|MTHV3GRGSNCWQ2YPEOCBDZM2FDKNI2NO6ECTJNFGFFCIRNCIG3X \ / AMOS7 \ YOURUM ::
-#\[7]SQVTKJ447HXW5XHGBOVWZICGEE6XIE43VMQ3VF2VVIO3SGZKDOCA 7  DATA SIGNATURE ::
+return 0 unless $model_entry && ref($model_entry) eq 'HASH';
+
+my $alternatives = $model_entry->{alternatives} // [];
+return scalar(@$alternatives) > 0;
+
+#,,,,,,,,,,,,,..,,..,,..,,...,...,,..,,..,,,,,..,,...,...,.,,,...,..,,.,.,.,,,
+#QL6HZI3GYJCKOFPAKCGOABVRBV27JSVTB2JUC555XQTJH7VAGOG2NEBK33FW76DD27JEOYONQ3VC2
+#\\\|FFSJ6FLVPSWZU6SANLFS6IWME2GMVBZKCWPBCAD67INLH3EJC5K \ / AMOS7 \ YOURUM ::
+#\[7]HDGDD4W3FHASO6RME2TVDAEMB2FIMBG5A5DXURJZA6C43QINDABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

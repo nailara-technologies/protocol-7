@@ -24,7 +24,7 @@ unless ($finalize_url) {
 }
 
 ## Get fresh nonce
-my $nonce = <[letsencr.child.get_fresh_nonce]>->();
+my $nonce = <[letsencr.child.get_fresh_nonce]>;
 unless ($nonce) {
     <[base.log]>->( 1, 'error: failed to get fresh nonce' );
     return undef;
@@ -79,7 +79,7 @@ while ( $poll_count < $max_polls ) {
     $poll_count++;
 
     ## Get fresh nonce
-    $nonce = <[letsencr.child.get_fresh_nonce]>->();
+    $nonce = <[letsencr.child.get_fresh_nonce]>;
     unless ($nonce) {
         <[base.log]>->( 1, 'error: failed to get fresh nonce' );
         last;
@@ -149,7 +149,7 @@ my $cert_response = <[letsencr.child.acme_http_request]>->(
     'POST',
     $cert_url,
     '',    # empty payload for POST-as-GET
-    <[letsencr.child.get_fresh_nonce]>->(),
+    <[letsencr.child.get_fresh_nonce]>,
     <letsencr.child.acme_client> {account_url}
 );
 
@@ -175,8 +175,8 @@ return {
     poll_attempts => $poll_count,
 };
 
-#,,,.,...,,,.,,.,,.,,,,,,,.,.,,..,...,.,,,,.,,..,,...,...,...,.,.,..,,,,.,..,,
-#NZAJVHKIHKXZVTOUNIHOIZSPHAPBU2BAMTKEA2TT2MBFH4WXCMCS3V3IWSK6WISMQEXEDYQJ7LCO2
-#\\\|PAPG6MF3HXF26NXQGPL2GQVMMMJWMJNB3V5J5P4RZF45D4CH7EB \ / AMOS7 \ YOURUM ::
-#\[7]6GHVHQPD3UH3XRK5DCOA4LJPIEMSPJJKJAZRP3PSJIMI2EME3KDQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,.,,,.,,,..,.,.,,,.,,,,,..,,.,.,..,,...,...,,,,,..,,..,,.,,,.,.,
+#CKX4NMRBI45ACJ6IKRKCHK5VZ4EV2PYXUNIS3UCEFGZPSQVQ2GAOWOCNZBQQJW4QJLUBUUE3QKBOC
+#\\\|VTMXI32KYYXV5AFE63BR2IVLUFAF2IWVCXLD3FL5OK6HOF7WAI7 \ / AMOS7 \ YOURUM ::
+#\[7]EDHXKHEIT2GC3CG46LF22GMBVYXO34KD6FJIJ7MARS45AIX65GBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

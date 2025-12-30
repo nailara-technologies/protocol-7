@@ -1,11 +1,34 @@
 ## [:< ##
 
 # name  = models.decision.recommendation_engine.get_model_recommendations
+# descr = Get top model recommendations for a context
 
-0;
+my ($context, $max_results) = @ARG;
 
-#,,,,,.,,,..,,,..,.,,,,,.,,..,,,,,,..,.,,,,.,,..,,...,...,,..,.,.,,..,.,.,...,
-#G252CQWOWTIUZ6SYE6XZQSTZGP2NEKNRHA3I4KT6LYRCESCW3F754VNAYKV7V5MQBQK73HEMEVXAQ
-#\\\|W5PZ5FYLG6E57GR7PYURZINRASXAZGBCFQFUWB6JLX7VOM34B7L \ / AMOS7 \ YOURUM ::
-#\[7]RC2G5SITGRB2LFRHWPBECSX37HPMN7VEWHYLD2227K4AJJUNAMBI 7  DATA SIGNATURE ::
+$max_results //= 3;
+
+# Load all models
+my $all_models = <[models.registry.list_all.list_all_models]>;
+return [] unless $all_models && @$all_models;
+
+# Find models for context
+my $candidates = <[models.decision.recommendation_base.find_models_for_context]>->($all_models, $context);
+
+# Score each candidate
+my @scored = map {
+  my $score = <[models.decision.recommendation_base.calculate_composite_score]>->($_, {});
+  { model => $_, score => $score };
+} @$candidates;
+
+# Sort by score
+@scored = sort { $b->{score} <=> $a->{score} } @scored;
+
+# Return top N
+my @top = splice(@scored, 0, $max_results);
+return [map { $_->{model} } @top];
+
+#,,,.,,.,,.,.,.,.,..,,,,,,...,,.,,,..,,.,,,,.,..,,...,...,,,,,,.,,,,.,,,.,.,.,
+#IMJWCDSRELFWJIQ5R7D5LUF27TJ4BYT5JKZCEF3Z3OOG2ULW6BEWZK2OFD37MZ5G4VUDEKMIRRVR6
+#\\\|FX65GDNHQBREYRMUWZP55NKZPLDMNCRJUXNS56XBMPTQBSVDUDP \ / AMOS7 \ YOURUM ::
+#\[7]236V5JO4YZEYOIQ5YKFRRQWHZWSMKXKP226HKG6AC3SKMN6LQYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

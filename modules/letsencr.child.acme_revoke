@@ -53,7 +53,7 @@ my $cert_b64u = <[letsencr.child.encode_base64url]>->($cert_der);
 <[base.log]>->( 2, 'step 2: verifying ACME account' );
 
 unless ( <letsencr.child.acme_client> {directory} ) {
-    my $dir_info = <[letsencr.child.fetch_acme_directory]>->();
+    my $dir_info = <[letsencr.child.fetch_acme_directory]>;
     unless ($dir_info) {
         return {
             status => qw| error |,
@@ -141,8 +141,8 @@ my $result = {
 
 return $result;
 
-#,,.,,...,..,,,.,,...,,..,..,,..,,,.,,.,.,,,,,..,,...,...,...,,.,,,.,,,,.,,..,
-#G5JM6QENDBHOMBXKT7LWUHH4VHXDKCXBVJVR4LD3GCHQQ6RY65IKXZ3D5HVW2GY6FKA5LQCJHWP2W
-#\\\|QM25PNKPVNHV5T2YCUGSPWSDXAJQJAAUV557R2SXCH2M37PGHXY \ / AMOS7 \ YOURUM ::
-#\[7]V74AHHF4GSTIIWX3NMFJVPVUDHMHA43IHEWVWDDCUUXUT7ABPACI 7  DATA SIGNATURE ::
+#,,..,...,,,.,..,,,,.,.,,,.,.,,.,,.,.,,..,...,..,,...,...,..,,,,.,,.,,,.,,,,,,
+#2V3FMOTH3BVQPCVBSNSLRUQEOU5IFAESMC4E5I6ZNYKP7QYUOQZNFECYDSKMXPMGQAB4ZLZUYJZSC
+#\\\|YW6VR2VLBITCBCFNNBC4XOOXEYASAURL267COD5WA3MK6UW2QS2 \ / AMOS7 \ YOURUM ::
+#\[7]2Q56BJNVYSG5OB24ATJRLQTCW6NYUVMMA6BNO47A4DAEN2ZADCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

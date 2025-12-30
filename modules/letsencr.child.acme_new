@@ -24,7 +24,7 @@ my $primary_domain = $domains->[0];
 ## STEP 1: Fetch ACME directory (if not already cached)
 unless ( <letsencr.child.acme_client> {directory} ) {
     <[base.log]>->( 2, 'step 1: fetching ACME directory' );
-    my $dir_info = <[letsencr.child.fetch_acme_directory]>->();
+    my $dir_info = <[letsencr.child.fetch_acme_directory]>;
     unless ($dir_info) {
         return {
             status => 'error',
@@ -35,9 +35,9 @@ unless ( <letsencr.child.acme_client> {directory} ) {
 
 ## STEP 2: Load or generate account key
 <[base.log]>->( 2, 'step 2: loading or generating account key' );
-my $account_key = <[letsencr.child.load_account_key]>->();
+my $account_key = <[letsencr.child.load_account_key]>;
 unless ($account_key) {
-    $account_key = <[letsencr.child.generate_account_key]>->();
+    $account_key = <[letsencr.child.generate_account_key]>;
     unless ($account_key) {
         return {
             status => 'error',
@@ -49,10 +49,10 @@ unless ($account_key) {
 ## STEP 3: Register ACME account (or retrieve existing)
 unless ( <letsencr.child.acme_client> {account_url} ) {
     <[base.log]>->( 2, 'step 3: registering ACME account' );
-    my $account_info = <[letsencr.child.acme_register_account]>->();
+    my $account_info = <[letsencr.child.acme_register_account]>;
     unless ($account_info) {
         ## Try checking if account already exists
-        my $existing = <[letsencr.child.acme_check_account]>->();
+        my $existing = <[letsencr.child.acme_check_account]>;
         unless ($existing) {
             return {
                 status => 'error',
@@ -229,7 +229,7 @@ unless ($csr) {
 
 ## STEP 8: Finalize order and download certificate
 <[base.log]>->( 2, 'step 8: finalizing order and downloading certificate' );
-my $cert_result = <[letsencr.child.acme_finalize_order]>->();
+my $cert_result = <[letsencr.child.acme_finalize_order]>;
 unless ($cert_result) {
     return {
         status => 'error',
@@ -268,8 +268,8 @@ return {
     cert_url    => $cert_result->{cert_url},
 };
 
-#,,,,,...,,,.,.,.,...,,..,,,,,,.,,.,,,.,.,,..,..,,...,...,.,.,,..,.,.,,,,,,,.,
-#LDR2DQ5L7WX27PQVWXJSU27CGWEMYDYPOO5FUJHXKZCD4HR5JL23OHHT4TYJJMOUSZWLPNYYJHVKY
-#\\\|JIKHPX73BWC5N3NIA3LPJLKNFDQY6MRKDUCSYCHD2IBTAMNJR4E \ / AMOS7 \ YOURUM ::
-#\[7]HN4PROUH5LQCU2CFL6DKRBR2RCVWL4JBFGHYFTRBH6G3KMHQXOAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,..,,.,.,..,,...,.,.,,,.,,,.,,.,,..,,...,..,,..,,,.,,,,,,.,.,.,.,
+#DX5BNWPIVL5HE2PI2LVJ62ABFDTQMZIBFNQAWA5274NX3HOTAN32PWLZF2KFLXVMTF3O2IPJXCY6M
+#\\\|DGXKTQE7LGSFZWHDPRMIMQXJDSBWG7TCKASQA67EH7CWONPDF6Y \ / AMOS7 \ YOURUM ::
+#\[7]PC6I3ZUP7TE7AGLCWHALEVXJYJU3Z2HKDD54NE2W345O3K6FL2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

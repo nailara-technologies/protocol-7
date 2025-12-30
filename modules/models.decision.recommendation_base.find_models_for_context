@@ -1,11 +1,33 @@
 ## [:< ##
 
 # name  = models.decision.recommendation_base.find_models_for_context
+# descr = Find models suitable for a specific context
 
-0;
+my ($all_models, $context) = @ARG;
 
-#,,..,.,.,..,,,,.,.,.,.,,,...,...,.,,,.,.,,..,..,,...,...,.,.,,,.,.,,,,..,...,
-#6SQ2VLV4CTMUUXGPQWSUT3T4UKUS4KDISWGSR4MGHY22OVC23F2G3FOZZ2O3TZN2PVTZ34FX5SNIY
-#\\\|2S4QAJIQH7LMTWBOEG3YSOZRGE3JACIMU6FH46H7HXERWGKUSYO \ / AMOS7 \ YOURUM ::
-#\[7]IQG27TNOU54CDYCED3IRLVTYIJIBJUUL2QH5LQ676PDHPZUDXSBA 7  DATA SIGNATURE ::
+return [] unless $all_models && ref($all_models) eq 'ARRAY';
+
+# Context to category mapping
+my %context_categories = (
+  real_time => [qw| vision real_time |],
+  interactive => [qw| vision reasoning |],
+  streaming => [qw| streaming video |],
+  batch => [qw| analysis reasoning |],
+  default => [qw| general |],
+);
+
+my $target_categories = $context_categories{$context} // $context_categories{default};
+
+my @matching = grep {
+  my $model = $_;
+  my $category = $model->{metadata}->{category} // '';
+  grep { $_ eq $category } @$target_categories;
+} @$all_models;
+
+return \@matching;
+
+#,,,.,.,.,...,.,,,,,.,...,,.,,.,,,.,,,..,,,.,,..,,...,...,.,.,,..,.,.,..,,,,,,
+#4S6AGZBKEPK3TPAIVMRPJW2VQZAKZZLOBMN5GRJYXCUVN5O2POSMY3ZFKHE37OEZO43OBCZQB7XRK
+#\\\|7GERJN5XYHLMLS3XISZAMQIW3GLLRI3TGEZK2IWWHSNQSN7HV7Y \ / AMOS7 \ YOURUM ::
+#\[7]4OMH2FVPR6CNTDWP4JHN4OVWV3BZAVZWWZHIUL3SE24KZWXK7YAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

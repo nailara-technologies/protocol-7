@@ -20,7 +20,7 @@ my $now = time();
 ## 5. Queue renewal requests for child
 
 ## Step 1: Query HTTPd for vhost list
-my $vhost_result = <[letsencr.parent.query_httpd_vhosts]>->();
+my $vhost_result = <[letsencr.parent.query_httpd_vhosts]>;
 unless ( $vhost_result && $vhost_result->{status} eq 'success' ) {
     <[base.log]>->(
         1, "error: cannot query vhosts from httpd - skipping renewal check"
@@ -48,7 +48,7 @@ my %domains_map = %{ $domain_result->{domains} // {} };
 );
 
 ## Step 3: Refresh registry (load from disk in case of external updates)
-my $refresh_result = <[letsencr.parent.load_certificate_registry]>->();
+my $refresh_result = <[letsencr.parent.load_certificate_registry]>;
 if ( !$refresh_result || $refresh_result->{status} eq 'error' ) {
     <[base.log]>->(
         2, "note: no stored certificates yet (first renewal check)"
@@ -104,8 +104,8 @@ if ( @new_domains > 0 ) {
 
 return FALSE;
 
-#,,,.,,..,.,,,,,.,..,,.,.,,,.,.,.,.,,,,.,,...,..,,...,...,..,,,.,,...,.,,,.,.,
-#6236FO3ACB4YNJINOUA267OG47QSVXOGAWZQH4S4UPOMV52I7IZLIU6I4TVGBHW3JMMDYPH4XAKYQ
-#\\\|LRYQQXVHKTBACE6OOQQFCJR2U7TZKACP7LF7UHRGR22DRYLGHIN \ / AMOS7 \ YOURUM ::
-#\[7]4JLESL6YUFBJNIPPUXTSIBKHJQ7I2364N4SOKOGACHN4J7L37WDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,.,,,,.,,..,.,.,,..,..,,,,,,,,,,..,,...,...,...,,,.,,,,,,,,,.,.,
+#6GKWOPW3TIYAVO4ROS4Y56IBCTIFLQOG47A56YDPJBENIAPXU7INPTHPRIZHWM6QJAL2K73UBONFW
+#\\\|LIK3HYGQUHG25UANZIDA2C7RJSPVLEP5ZDUXR2EO2IAGIZKONWZ \ / AMOS7 \ YOURUM ::
+#\[7]ETC37OCL6C65WLLFNGTGUZEEZF2TYUCMAU5I6BUYC2Y7RCZ6VKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
