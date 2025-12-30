@@ -41,118 +41,6 @@ my $can_use_local_rules = sub {
     return { applicable => 0 };
 };
 
-# Rule 3: Determine optimal service
-my $determine_service = sub {
-    my ($task) = @ARG;
-
-    my $type        = $task->{type}                   // 'analysis';
-    my $complexity  = $task->{analysis}->{complexity} // 5;
-    my $constraints = $task->{request}->{constraints} // [];
-
-    # Transcription → Whisper (no tokens)
-    if ( $type eq 'transcription' ) {
-        return {
-            service    => 'whisper',
-            reason     => 'Task is audio transcription',
-            token_cost => 0,
-            priority   => 'direct'
-        };
-    }
-
-    # Image generation → Invoke AI (no tokens)
-    if ( $type eq 'image-generation' ) {
-        return {
-            service    => 'invoke-ai',
-            reason     => 'Task is image generation',
-            token_cost => 0,
-            priority   => 'direct'
-        };
-    }
-
-    # Code generation → Code specialist model
-    if ( $type eq 'code-generation' ) {
-
-        # Check for consensus requirement
-        my $needs_consensus
-            = grep { lc($_) =~ /consensus|verify/ } @$constraints;
-
-        if ($needs_consensus) {
-            return {
-                service    => 'consensus-voting',
-                models     => [ 'mathstral', 'qwen', 'aya' ],
-                reason     => 'Code generation with consensus verification',
-                token_cost => 500,
-                priority   => 'consensus'
-            };
-        }
-
-        return {
-            service    => 'single-llm',
-            model      => 'mathstral',
-            reason     => 'Code generation specialist',
-            token_cost => 300,
-            priority   => 'code-specialist'
-        };
-    }
-
-    # Reasoning tasks
-    if ( $type eq 'reasoning' || $type eq 'analysis' ) {
-
-        # High complexity or explicit consensus requirement → voting
-        if ( $complexity >= 7
-            || ( grep { lc($_) =~ /consensus|verify/ } @$constraints ) ) {
-            return {
-                service => 'consensus-voting',
-                models  => [ 'qwen', 'mathstral', 'aya' ],
-                reason  =>
-                    "Complex reasoning (complexity: $complexity) needs consensus",
-                token_cost => 600,
-                priority   => 'consensus'
-            };
-        }
-
-        # Medium complexity → single model
-        if ( $complexity >= 4 ) {
-            return {
-                service => 'single-llm',
-                model   => 'qwen',
-                reason  =>
-                    "Medium complexity reasoning (complexity: $complexity)",
-                token_cost => 250,
-                priority   => 'reasoning'
-            };
-        }
-
-        # Simple → basic model
-        return {
-            service    => 'single-llm',
-            model      => 'qwen',
-            reason     => "Simple analysis (complexity: $complexity)",
-            token_cost => 100,
-            priority   => 'simple'
-        };
-    }
-
-    # Creative/brainstorming → diverse consensus
-    if ( $type eq 'brainstorming' ) {
-        return {
-            service    => 'consensus-voting',
-            models     => [ 'qwen', 'aya', 'mathstral' ],
-            reason     => 'Creative task needs multiple perspectives',
-            token_cost => 400,
-            priority   => 'diverse'
-        };
-    }
-
-    # Default fallback
-    return {
-        service    => 'single-llm',
-        model      => 'qwen',
-        reason     => "Default routing for type: $type",
-        token_cost => 200,
-        priority   => 'default'
-    };
-};
 
 # Determine fallback service
 my $determine_fallback = sub {
@@ -233,7 +121,7 @@ my $make_routing_decision = sub {
     }
 
     # Determine primary service (Rule 3)
-    my $primary  = <[coding.routing.determine_service]>->($task);
+    my $primary  = <[coding.routing.determine_service_impl]>->($task);
     my $fallback = <[coding.routing.determine_fallback]>->( $task, $primary );
 
     # Update task with routing information
@@ -276,7 +164,7 @@ if ( $cmd eq 'route' ) {
 } elsif ( $cmd eq 'check-cache' ) {
     return <[coding.routing.check_cache_first]>->($task);
 } elsif ( $cmd eq 'determine-service' ) {
-    return <[coding.routing.determine_service]>->($task);
+    return <[coding.routing.determine_service_impl]>->($task);
 } elsif ( $cmd eq 'determine-fallback' ) {
     my $primary = shift @ARG;
     return <[coding.routing.determine_fallback]>->( $task, $primary );
@@ -294,8 +182,8 @@ if ( $cmd eq 'route' ) {
     };
 }
 
-#,,.,,,,,,..,,..,,..,,...,,..,,..,.,,,,,,,..,,..,,...,...,...,...,...,.,,,,,.,
-#5JDTKWDJRFUSBDV7TCDBQQ2TF646JTTKGX2L5LPQ2VKFQTSVHRNFR6IASST3ENQSHECOXDYOL63MU
-#\\\|6JXQILBYVBX4WX7DWUOUWEAVLAX3YGEBPLBVYZ3JYXSAIUQBOYT \ / AMOS7 \ YOURUM ::
-#\[7]ESVNOPTCRSS62U7UFP5GHCMMRMAMYAEIHEJZSKJBMVOHYYNWJOCA 7  DATA SIGNATURE ::
+#,,,.,...,...,,..,.,,,,.,,,.,,,.,,...,..,,..,,..,,...,...,.,.,.,.,,.,,,..,..,,
+#6PVQSEV44QL7EULXYHMCGA54OIRKFZVSMWTF2LT4ZJDAEEJ2M6XITCTDMSCSORUPTNWK23RTDKIBO
+#\\\|46FN5G4IUJGJQAZCLYZCY4QAEW743MNCWJM6ZZOV74SBNBCQFGG \ / AMOS7 \ YOURUM ::
+#\[7]I6NC65HUTWU63SI6CYNGM27YUH6ZAT655S4EWAKOYBPUBNLNQEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
