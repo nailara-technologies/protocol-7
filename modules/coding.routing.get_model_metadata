@@ -1,0 +1,34 @@
+## [:< ##
+
+# name = coding.routing.get_model_metadata
+# descr = Fetch model metadata from models zenka for routing decisions
+
+my ($model_alias) = @ARG;
+
+<[base.perlmod.autoload]>->(qw| JSON::PP |);
+
+my $response = <[base.protocol-7.command.send.local]>->(
+    {   'command'   => "models.get_model_path",
+        'call_args' => { 'model_id' => $model_alias }
+    }
+);
+
+return undef unless $response && ref($response) eq 'HASH' && $response->{data};
+
+my $model_data;
+eval { $model_data = JSON::PP::decode_json( $response->{data} ); };
+return undef unless $model_data && ref($model_data) eq 'HASH';
+
+return $model_data;
+
+#,,.,.,,,.,,,,.,,,.,,..,,..,,..,...,...,,.,,..,,...,...,..,,,..,,..,,.,,,,.,
+#7H4VLMQ5AJZZXQSOXGDZDGXJ47CNDSM5D2TJWZXVGFLVL7XMGPKPGBXFGFZ7G4QFVUBT47JIJM3GU
+#\\\|V5Q5TYZP2UAYT5XPQM5UQJX2DSSOVXC2FBCLZVCJCX2FB6ZYZB \ / AMOS7 \ YOURUM ::
+#\[7]4YYLVBJ6XVMTMCYAFRGGXHBLVJZQPLWKGX7C4ZVXQRXNHSM6GFXI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,,,,,,,,..,,..,.,.,.,,,...,...,.,,,,,.,,,,,..,,...,..,,.,.,.,.,,,,,.,,,,,.,
+#FESIQNYEASS46TCXAYSQXVKECNGLMQQ6HBIK44LT7BKAXNPREZKXM3AYSHNA662JMYFYAK4RZSSYI
+#\\\|4HZK2XM4W6NCJSCCIN7M75PQHUSBVWGDYDSZJESXOJA2ETUE2HJ \ / AMOS7 \ YOURUM ::
+#\[7]KHZ3JHH7KCLGEVJZBRLHOJV3XS5SHDPOR45KIJFUQEXHDY3JAWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,6 +13,11 @@ models:
     backends:
       - gpu
       - cpu
+    metadata:
+      context_size: 2048
+      batch_size: 256
+      threads: 4
+      tokens_per_sec: 6
 
   # Vision Models with Multimodal Projections
   qwen3-vl-4b-instruct:
@@ -25,6 +30,11 @@ models:
     is_vision: true
     backends:
       - gpu
+    metadata:
+      context_size: 4096
+      batch_size: 64
+      threads: 2
+      tokens_per_sec: 3
 
   qwen2.5-vl-7b-instruct:
     name: "Qwen2.5 VL 7B Instruct"
@@ -36,6 +46,11 @@ models:
     is_vision: true
     backends:
       - gpu
+    metadata:
+      context_size: 8192
+      batch_size: 64
+      threads: 2
+      tokens_per_sec: 3
 
   opus-100-manga:
     name: "4B Opus 100 Manga"
@@ -47,6 +62,11 @@ models:
     is_vision: true
     backends:
       - gpu
+    metadata:
+      context_size: 4096
+      batch_size: 64
+      threads: 2
+      tokens_per_sec: 3
 
   gemma3-4b-it-uncensored:
     name: "Gemma 3 4B IT Uncensored"
@@ -58,6 +78,11 @@ models:
     is_vision: true
     backends:
       - gpu
+    metadata:
+      context_size: 8192
+      batch_size: 64
+      threads: 2
+      tokens_per_sec: 3
 
   gemma3-glitter-4b:
     name: "Gemma 3 Glitter 4B"
@@ -69,6 +94,11 @@ models:
     is_vision: true
     backends:
       - gpu
+    metadata:
+      context_size: 8192
+      batch_size: 64
+      threads: 2
+      tokens_per_sec: 3
 
   openbmb-vision:
     name: "OpenBMB Vision Model"
@@ -80,6 +110,11 @@ models:
     is_vision: true
     backends:
       - gpu
+    metadata:
+      context_size: 8192
+      batch_size: 64
+      threads: 2
+      tokens_per_sec: 3
 
   # Text-only inference models
   mathstral-7b-v0.1:
@@ -91,6 +126,11 @@ models:
     is_vision: false
     backends:
       - cpu
+    metadata:
+      context_size: 2048
+      batch_size: 256
+      threads: 4
+      tokens_per_sec: 5
 
   aya-23-8b:
     name: "Aya 23 8B"
@@ -101,6 +141,11 @@ models:
     is_vision: false
     backends:
       - cpu
+    metadata:
+      context_size: 2048
+      batch_size: 256
+      threads: 4
+      tokens_per_sec: 4
 
 # Model aliases for convenient access
 aliases:
@@ -109,8 +154,8 @@ aliases:
   default-vision: qwen3-vl-4b-instruct
   manga-vision: opus-100-manga
 
-#,,.,,,.,,.,,,.,.,...,,..,.,,,,,.,,,,,...,...,..,,...,...,...,,,,,,,.,..,,.,.,
-#7PRZM2QOTLYUNSV2DUKLO43F4WURWI5CJW7RVWWIUZ7ULWYLYXA5JRYHF6UQGMOJL4ZXPZYXRTAV4
-#\\\|G75BVE4IVSLECNL6BMGCDF5GEATVAON5HEFHFWIODZNJMERBI2Q \ / AMOS7 \ YOURUM ::
-#\[7]5WBDPYOLV7KDMJYSNMO55MOFOBPTOP55U6OCHBHBM6ECQF76GWCI 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,.,,.,,,.,.,...,.,.,,.,,.,,,,,,,..,,...,...,,..,,..,..,,.,.,,..,
+#6ET3AHBBQX22VFDOLES7OLVLIVQZ7TYT73FUHQCZNZI3TMTTKCP3M6SCKPJPK2TEG4MLNORYIX2QK
+#\\\|PTVVQQRSWNHC2GYDZOVAOQX2MUIZFV7FRRMBSQY7CZA36JCDK7Z \ / AMOS7 \ YOURUM ::
+#\[7]75ZEHX7T7MKIA4X3LC2CUU5NOALSY3K2P2QAJQF5RNNFIMC7HECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

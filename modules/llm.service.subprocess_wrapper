@@ -17,28 +17,6 @@ my %MODEL_ALIASES = (
     'aya'       => 'aya-23-8b'
 );
 
-# Model metadata (will be fetched from models zenka)
-my %MODEL_METADATA = (
-    'qwen2.5-7b-instruct-1m' => {
-        context_size   => 2048,
-        batch_size     => 256,
-        threads        => 4,
-        tokens_per_sec => 6
-    },
-    'mathstral-7b-v0.1' => {
-        context_size   => 2048,
-        batch_size     => 256,
-        threads        => 4,
-        tokens_per_sec => 5
-    },
-    'aya-23-8b' => {
-        context_size   => 2048,
-        batch_size     => 256,
-        threads        => 4,
-        tokens_per_sec => 4
-    }
-);
-
 # Helper to fetch model config from models zenka
 <[base.perlmod.autoload]>->(qw| JSON::PP |);
 
@@ -48,7 +26,7 @@ my $get_model_config = sub {
     # Resolve alias to model ID
     my $model_id = $MODEL_ALIASES{$model_alias} || $model_alias;
 
-    # Fetch from models zenka
+    # Fetch from models zenka (now includes metadata)
     my $response = <[base.protocol-7.command.send.local]>->(
         {   'command'   => "models.get_model_path",
             'call_args' => { 'model_id' => $model_id }
@@ -62,13 +40,15 @@ my $get_model_config = sub {
     eval { $model_data = JSON::PP::decode_json( $response->{data} ); };
     return undef unless $model_data && ref($model_data) eq 'HASH';
 
-    # Merge with metadata
-    my $metadata = $MODEL_METADATA{$model_id} || {};
+    # Return complete config with metadata from models zenka
     return {
-        name       => $model_data->{name},
-        model_path => $model_data->{path},
-        mmproj     => $model_data->{mmproj},
-        %$metadata
+        name           => $model_data->{name},
+        model_path     => $model_data->{path},
+        mmproj         => $model_data->{mmproj},
+        context_size   => $model_data->{context_size},
+        batch_size     => $model_data->{batch_size},
+        threads        => $model_data->{threads},
+        tokens_per_sec => $model_data->{tokens_per_sec}
     };
 };
 
@@ -260,8 +240,8 @@ if ( $cmd eq 'query' ) {
 
 # AMOS7::TEMPLATE::signature_placeholder
 
-#,,,.,,,,,,,,,,,,,,.,,,.,,...,,,.,...,...,..,,..,,...,..,,.,.,,,,,,..,.,,,,..,
-#4ZQFSXXK5QWVB5VR2XK6CMLAD5AAPUWIX6ID6AYYSX6KVBMXQ4BE5MW7UNZHEXJ6KTSUDDXANTOJO
-#\\\|H5GNKQZUZQSIDSUGAEERZN4ZPOGJLOMG2KDSRG7HOLNKZ7MJQW7 \ / AMOS7 \ YOURUM ::
-#\[7]5QDQOA5ZXJ34UQ2BOWFGD52T77DLPWRWLTAJLHNYFPVB2KPUPCDY 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,.,,,,,,,,.,,...,,.,,...,...,,,.,..,,...,...,,..,.,,,,,,,.,.,,,.,
+#VJAVCKKWL3Y4HSVIRLXNPSK666V4FSCAZTCNI3TS7ZDX5SG4H3XGFZBVCFSOWEFAKMYOTCSYAXKXI
+#\\\|PYUQF5ZNKKKD37TMMABRWNLEHI6EHKMPTCJXX2NSZ3S4ACWKC6T \ / AMOS7 \ YOURUM ::
+#\[7]JHJRHFDVFO2MR7YWUULDYQW6JPKXYHEHVPISA2IAWJ3JQTFMKSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -569,6 +569,7 @@ return [ qw[
         models.registry.load
         models.registry.init
         models.registry.base
+        models.config.loader
         models.cmd.recommend
         models.cmd.get_model
         keys.console.enc-key
@@ -1084,6 +1085,7 @@ return [ qw[
         crypt.C25519.load_single
         crypt.C25519.get_keyname
         crypt.C25519.chk_key_dir
+        coding.test.models_async
         coding.task.analyze_full
         base.zenka.is_v7_started
         base.time.year_utc_float
@@ -1172,6 +1174,7 @@ return [ qw[
         models.storage.check_tier
         models.registry.get_entry
         models.decision.cost_base
+        models.cmd.get_model_path
         melt.trigger.auto_cleanup
         letsencr.parent.init_code
         letsencr.child.create_jws
@@ -1949,6 +1952,7 @@ return [ qw[
         events.callback.object.date_frame
         crypt.C25519.verify_key_signature
         content.update.send_notifications
+        coding.routing.get_model_metadata
         coding.routing.determine_fallback
         coding.learning.identify_patterns
         base.sourcecode.in-mem.sub-source
@@ -2089,6 +2093,7 @@ return [ qw[
         debian.parent.resolve_cpan_to_debian
         crypt.C25519.cmd.register-master-key
         coding.routing.make_routing_decision
+        coding.handler.models_list_all_reply
         base.warnings.compact_diff_to_pragma
         base.warnings.compact_diff_from_bits
         base.perlmod.manual_reload_blacklist
@@ -2124,7 +2129,9 @@ return [ qw[
         crypt.C25519.list_key_signature_names
         crypt.C25519.generate_session_keypair
         crypt.C25519.create_signature_request
+        coding.routing.determine_service_impl
         coding.helper.get_transaction_history
+        coding.handler.models_get_entry_reply
         base.perlmods.reload.chksum_blacklist
         base.perlmod.unregister_loaded_module
         base.handler.write.encryption-wrapper
@@ -2139,6 +2146,7 @@ return [ qw[
         mpv.handler.event.property-change.path
         models.registry.base.get_registry_path
         mod-test.callback.reload-test.add-link
+        llama-server-vision.fetch_model_config
         llama-server-vision.cmd.get_raw_sample
         letsencr.parent.send_httpd_vhost_query
         letsencr.parent.queue_renewal_requests
@@ -2192,6 +2200,7 @@ return [ qw[
         letsencr.parent.handler_enrollment_reply
         letsencr.parent.handler_challenge_needed
         coding.learning.generate_recommendations
+        coding.handler.models_resolve_path_reply
         base.log.send-buffer.idle-callback-clear
         web-browser.callback.scroll_start_js_exec
         tile-groups.handler.poll_tile_color_reply
@@ -2235,6 +2244,7 @@ return [ qw[
         httpd.handler.download_transfer.test-broken
         debian.parent.callback.register_deb_package
         debian.parent.callback.register_cpan_module
+        coding.handler.models_recommendations_reply
         base.referenced_subroutines.clear_from_disk
         weather.parent.handler.update_forecast_reply
         system.process.handler.pid-instance_response
@@ -2244,6 +2254,7 @@ return [ qw[
         debian.parent.callback.check_module_loadable
         coding.vision-parser.cmd.analyze_and_extract
         coding.learning.analyze_model_specialization
+        coding.handler.models_find_alternative_reply
         models.registry.path.get_registry_path_public
         llama-server-vision.handler.read_batch_output
         letsencr.parent.install_certificate_to_httpsd
@@ -2251,6 +2262,7 @@ return [ qw[
         image2html.parent.handler.convert_image_reply
         coding.vision-parser.handler.state_transition
         coding.learning.update_routing_recommendation
+        coding.handler.models_record_invocation_reply
         base.log.send-buffer.reply-handler.send-reply
         X-11.background.chksum-cache.reload_from_file
         models.decision.cost_base.is_latency_sensitive
@@ -2292,8 +2304,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,,,,,..,,,..,,..,...,,,.,.,,,.,,,,,,,...,.,.,...,...,..,,,..,..,,...,.,,,
-#3GOVTWAOWNL2AOQMG2FVBCA4MN2RIKD6I3JJ4PWZWTF5XVWKU77C53V6Z6NPWJBHIDYTSDVU4OHEE
-#\\\|DN24UPFOF7M6YIYP67TXH3BMAEJLS6MSQGL3JLSXN7CFGPBCYGW \ / AMOS7 \ YOURUM ::
-#\[7]M7PKOQWYP2VDCJ6WX2AKK7IY2KBSP2GQ4PRCRC5QKMUY4MQCE4AQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,..,..,,.,,,,.,,,..,..,,,,.,,,,,.,.,...,...,,,,,,,,,...,.,,,.,.,
+#RZH5WQMDLOVV55A26AYZKM254DCRIRUIFVJOXT4SLEV74B4H4QS7CXUEG37IDFE4ILMMV22UURS72
+#\\\|N5L3HSNAIEYMM77IY6U2BL2X6QDMJYEJRFM6OOGFTX6FKCHWQTA \ / AMOS7 \ YOURUM ::
+#\[7]JEZMDYZJSWBXJHU25W6PPZ3TJRSDAZ3QH464NKHNIX3MC3HBNWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
