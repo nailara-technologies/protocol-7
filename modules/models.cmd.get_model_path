@@ -1,0 +1,52 @@
+## [:< ##
+
+# name = models.cmd.get_model_path
+# descr = Retrieve model path by model ID or alias
+
+my ( $cmd, $model_id ) = @ARG;
+
+unless ($model_id) {
+    return {
+        'mode' => 'size',
+        'data' => "error: model_id required\n",
+    };
+}
+
+# Check aliases first
+if ( exists $data{models}{aliases}{$model_id} ) {
+    $model_id = $data{models}{aliases}{$model_id};
+}
+
+# Look up model definition
+my $model_def = $data{models}{definitions}{$model_id};
+
+unless ($model_def) {
+    return {
+        'mode' => 'size',
+        'data' => "error: model not found: $model_id\n",
+    };
+}
+
+# Return model metadata
+my $response = {
+    model_id     => $model_id,
+    name         => $model_def->{name},
+    description  => $model_def->{description},
+    path         => $model_def->{path},
+    mmproj       => $model_def->{mmproj} // '',
+    quantization => $model_def->{quantization},
+    is_vision    => $model_def->{is_vision} ? 1 : 0,
+};
+
+my $json = JSON::PP::encode_json($response);
+
+return {
+    'mode' => 'size',
+    'data' => $json . "\n",
+};
+
+#,,..,,.,,,..,.,,,..,,,..,,,.,..,,...,..,,,.,,..,,...,...,..,,.,.,,,,,,,.,..,,
+#BDIK34H4I6JVO2H54BC2EHOIB7GEBGVQCNOL5FM3UAHNSFFBF2XXFWTA3FFTDE4LLPLAWR6ATYLO4
+#\\\|JWDWYYOCIN4JEF6CUGBVA4A3RDRF3NK7PWRY3W4QOEFSVUFAOOH \ / AMOS7 \ YOURUM ::
+#\[7]6PZU3H5UYLXXCRJHBFFVQDUY7YCTHFNHRJ52224I2BQ7ATLFVKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

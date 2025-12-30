@@ -1,0 +1,56 @@
+## [:< ##
+
+# name = coding.handler.models_list_all_reply
+# descr = Handle async response from models.list_all command
+
+my $reply = shift;
+
+my $sid        = $reply->{'sid'};
+my $cmd_status = $reply->{'cmd'};
+my $call_args  = $reply->{'call_args'};
+my $context    = $reply->{'params'}->{'context'};
+
+<[base.log]>->(
+    2, "[coding] models_list_all_reply: status=%s context=%s sid=%s",
+    $cmd_status, $context, $sid
+);
+
+# Log call_args structure for debugging
+if ( ref($call_args) eq 'HASH' ) {
+    my @keys = keys %$call_args;
+    <[base.log]>->(
+        2,
+        "[coding] models_list_all: call_args keys: %s",
+        join( ", ", @keys )
+    );
+    foreach my $key (@keys) {
+        my $val = $call_args->{$key};
+        if ( ref($val) eq 'ARRAY' ) {
+            <[base.log]>->(
+                2,    "[coding] models_list_all: %s = ARRAY[%d]",
+                $key, scalar(@$val)
+            );
+        } elsif ( ref($val) ) {
+            <[base.log]>->(
+                2,    "[coding] models_list_all: %s = %s",
+                $key, ref($val)
+            );
+        } else {
+            <[base.log]>->(
+                2,    "[coding] models_list_all: %s = %s",
+                $key, $val
+            );
+        }
+    }
+}
+
+# TODO: Process models list from $call_args
+# TODO: Continue routing logic with available models
+
+return 1;
+
+#,,.,,.,.,..,,..,,..,,,,,,.,,,...,,,,,,,.,...,..,,...,...,.,,,...,,..,.,.,...,
+#VHTHVJTCVK3UQ3QVBKRTDCD2OUZ7ROWGN4PO7NH3Z4TS77HRKAAWU6X4FC43N4UTBLQNXNMPORDHU
+#\\\|R6ULDMOQGG3FQHWKBQRHL7SYFY7VQADVE5FSYBA5OH6XNPMRFN4 \ / AMOS7 \ YOURUM ::
+#\[7]N4W7G4GHPAYUYVF7BYOKSZZ35HOM67RWIQYM6G4C7KP5TOZSO4AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

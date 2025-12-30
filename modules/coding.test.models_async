@@ -1,0 +1,120 @@
+## [:< ##
+
+# name = coding.test.models_async
+# descr = Test async communication with models zenka
+
+my $test_results = {};
+
+# Test 1: models.list_all
+<[base.log]>->( 2, "[coding.test] Sending async request to models.list_all" );
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "models.list_all",
+        'call_args' => { 'args' => "" },
+        'reply'     => {
+            'handler' => 'coding.handler.models_list_all_reply',
+            'params'  => { 'context' => 'test_batch' }
+        }
+    }
+);
+
+# Test 2: models.get_entry
+<[base.log]>
+    ->( 2, "[coding.test] Sending async request to models.get_entry" );
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "models.get_entry",
+        'call_args' => {
+            'model_amos' => 'llama-3.1-8b-instruct',
+            'task_id'    => 'test_001'
+        },
+        'reply' => {
+            'handler' => 'coding.handler.models_get_entry_reply',
+            'params'  => {
+                'model_amos' => 'llama-3.1-8b-instruct',
+                'task_id'    => 'test_001'
+            }
+        }
+    }
+);
+
+# Test 3: models.resolve_model_path
+<[base.log]>->(
+    2, "[coding.test] Sending async request to models.resolve_model_path"
+);
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "models.resolve_model_path",
+        'call_args' =>
+            { 'model_amos' => 'gpt-3.5', 'context' => 'inference' },
+        'reply' => {
+            'handler' => 'coding.handler.models_resolve_path_reply',
+            'params'  =>
+                { 'model_amos' => 'gpt-3.5', 'context' => 'inference' }
+        }
+    }
+);
+
+# Test 4: models.get_model_recommendations
+<[base.log]>->(
+    2,
+    "[coding.test] Sending async request to models.get_model_recommendations"
+);
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "models.get_model_recommendations",
+        'call_args' =>
+            { 'context' => 'batch_processing', 'task_id' => 'test_002' },
+        'reply' => {
+            'handler' => 'coding.handler.models_recommendations_reply',
+            'params'  =>
+                { 'context' => 'batch_processing', 'task_id' => 'test_002' }
+        }
+    }
+);
+
+# Test 5: models.record_invocation
+<[base.log]>->(
+    2, "[coding.test] Sending async request to models.record_invocation"
+);
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "models.record_invocation",
+        'call_args' => {
+            'model_amos' => 'llama-3.1-8b-instruct',
+            'context'    => 'interactive',
+            'success'    => 1
+        },
+        'reply' => {
+            'handler' => 'coding.handler.models_record_invocation_reply',
+            'params'  => {
+                'model_amos' => 'llama-3.1-8b-instruct',
+                'context'    => 'interactive',
+                'success'    => 1
+            }
+        }
+    }
+);
+
+# Test 6: models.find_best_alternative
+<[base.log]>->(
+    2, "[coding.test] Sending async request to models.find_best_alternative"
+);
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "models.find_best_alternative",
+        'call_args' =>
+            { 'primary_model_amos' => 'gpt-4', 'context' => 'streaming' },
+        'reply' => {
+            'handler' => 'coding.handler.models_find_alternative_reply',
+            'params'  =>
+                { 'primary_model_amos' => 'gpt-4', 'context' => 'streaming' }
+        }
+    }
+);
+
+<[base.log]>->(
+    2, "[coding.test] All async requests sent, waiting for replies..."
+);
+
+return 1;
+
+#,,,,,...,,,.,.,.,.,,,.,,,...,..,,.,.,,.,,..,,..,,...,...,,..,...,..,,,.,,,..,
+#3EOYLFIAM223C6ITUZCZH3E3O77BC2YUGUIPJSFJN2HVNARMPL2SF2VXHZHZQV4IH2MAIEI23BRZ4
+#\\\|X7CRQ6D3I4BHK2KC4Q556K54S64B4QG4WYIRY3SCEAPSPRHE4X5 \ / AMOS7 \ YOURUM ::
+#\[7]POLPBBLO74VLKHMWNGSQ7YWUELCYOUO5BBTMBI63OXWG6AMK7WCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,66 @@
+## [:< ##
+
+# name = models.config.loader
+# descr = Load model configuration from YAML file into models data structure
+
+<[base.perlmod.autoload]>->(qw| YAML::Tiny |);
+
+my $config_root = $ENV{PROTOCOL_7_CONFIG_ROOT}
+    || '/data/projects/protocol-7/configuration';
+my $config_file = $config_root . '/zenki/models/models.yaml';
+
+unless ( -f $config_file ) {
+    <[base.log]>->(
+        2, "[models.config] Config file not found: %s", $config_file
+    );
+    return 0;
+}
+
+my $yaml_content;
+{
+    open my $fh, '<', $config_file or do {
+        <[base.log]>->(
+            2,            "[models.config] Cannot open: %s: %s",
+            $config_file, $!
+        );
+        return 0;
+    };
+    local $/;
+    $yaml_content = <$fh>;
+    close $fh;
+}
+
+my $yaml = YAML::Tiny::Load($yaml_content);
+
+unless ($yaml) {
+    <[base.log]>->(
+        2, "[models.config] Failed to parse YAML: %s", $config_file
+    );
+    return 0;
+}
+
+# Load model definitions into data structure
+if ( exists $yaml->{models} && ref( $yaml->{models} ) eq 'HASH' ) {
+    $data{models}{definitions} = $yaml->{models};
+    my $count = scalar( keys %{ $yaml->{models} } );
+    <[base.log]>
+        ->( 1, "[models.config] Loaded %d model definitions", $count );
+}
+
+# Load aliases into data structure
+if ( exists $yaml->{aliases} && ref( $yaml->{aliases} ) eq 'HASH' ) {
+    $data{models}{aliases} = $yaml->{aliases};
+    my $count = scalar( keys %{ $yaml->{aliases} } );
+    <[base.log]>->( 1, "[models.config] Loaded %d model aliases", $count );
+}
+
+<[base.log]>
+    ->( 1, "[models.config] Model configuration loaded successfully" );
+
+return 0;
+
+#,,,,,,,.,.,,,,..,.,.,,,,,.,,,,,.,,,,,,..,.,.,..,,...,...,,..,,,,,,,.,.,.,,.,,
+#WCJ5C4R6TDLC55ZAT3V3E5SZF2DXP7V4NYSAWXNLVNCLAEUL3QR2NOWVQ5AUCGUP4OWQD6FDQSRZY
+#\\\|TOZUU2XN3PGGMYGO5UPIX5UERPAZKHVG5RFJLTLBSWVPYUKQA6S \ / AMOS7 \ YOURUM ::
+#\[7]QLWJFBRWX3MDHKS5TILYTIDGAYSMNX54572YJ7FDG7263L5TZACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

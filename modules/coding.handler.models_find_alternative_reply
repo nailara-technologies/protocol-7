@@ -1,0 +1,68 @@
+## [:< ##
+
+# name = coding.handler.models_find_alternative_reply
+# descr = Handle async response from models.find_best_alternative command
+
+my $reply = shift;
+
+my $sid                = $reply->{'sid'};
+my $cmd_status         = $reply->{'cmd'};
+my $call_args          = $reply->{'call_args'};
+my $primary_model_amos = $reply->{'params'}->{'primary_model_amos'};
+my $context            = $reply->{'params'}->{'context'};
+
+<[base.log]>->(
+    2,
+    "[coding] models_find_alternative_reply: status=%s primary=%s context=%s sid=%s",
+    $cmd_status,
+    $primary_model_amos,
+    $context,
+    $sid
+);
+
+# Log call_args structure for debugging
+if ( ref($call_args) eq 'HASH' ) {
+    my @keys = keys %$call_args;
+    <[base.log]>->(
+        2,
+        "[coding] models_find_alternative: call_args keys: %s",
+        join( ", ", @keys )
+    );
+    foreach my $key (@keys) {
+        my $val = $call_args->{$key};
+        if ( ref($val) eq 'ARRAY' ) {
+            <[base.log]>->(
+                2,    "[coding] models_find_alternative: %s = ARRAY[%d]",
+                $key, scalar(@$val)
+            );
+        } elsif ( ref($val) ) {
+            <[base.log]>->(
+                2,    "[coding] models_find_alternative: %s = %s",
+                $key, ref($val)
+            );
+        } else {
+            <[base.log]>->(
+                2,    "[coding] models_find_alternative: %s = %s",
+                $key, defined($val) ? $val : 'undef'
+            );
+        }
+    }
+} else {
+    <[base.log]>->(
+        2,
+        "[coding] models_find_alternative: call_args type = %s",
+        ref($call_args) || 'SCALAR'
+    );
+}
+
+# TODO: Extract alternative model from $call_args
+# TODO: Verify alternative is available
+# TODO: Fallback to alternative model for task retry
+
+return 1;
+
+#,,,.,,.,,...,,,.,,,,,,,.,.,.,.,.,,,,,,,,,,.,,..,,...,...,.,,,..,,...,.,.,..,,
+#XISO3MK2Z4YK4IUZIYGRYGT6AAKGR3IEB3M732ZVKAN3IQKRTJ3TPZ2ZNLUJPDIIKI7KWKXHKJAMG
+#\\\|S6I5VJIK74WAM6GZLTPZ5IQZMG74MUVQ554RNPDRO5ME55SEBYX \ / AMOS7 \ YOURUM ::
+#\[7]HX423DQ4BDF6NK7DD3B5IWI7CE2PQST5QE5P6F6GI4BWKO56W2BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

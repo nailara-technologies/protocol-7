@@ -14,6 +14,11 @@ $data{models}                //= {};
 $data{models}{operation_log} //= [];
 $data{models}{error_log}     //= [];
 $data{models}{action_log}    //= [];
+$data{models}{definitions}   //= {};    # Will be loaded from YAML
+$data{models}{aliases}       //= {};    # Will be loaded from YAML
+
+# Load model configuration from YAML
+<[models.config.loader]>;
 
 # Statistics aggregation state
 $data{models}{stats_aggregation_pending}  = 0;
@@ -102,6 +107,11 @@ my $cmd_result;
         # Status command - delegate to command module
         unshift @ARG, $cmd, @args;
         $result = <[models.cmd.status]>;
+    } elsif ( $cmd eq 'get_model_path' || $cmd eq 'get_path' ) {
+
+        # Get model path command
+        unshift @ARG, $cmd, @args;
+        $result = <[models.cmd.get_model_path]>;
     } elsif ( $cmd eq 'reload' ) {
 
        # Reload command - delegate to base handler which returns proper format
@@ -192,8 +202,8 @@ my $cmd_result;
 # we always return 0 or TRUE to indicate success
 return 0;
 
-#,,.,,,,,,,..,,,.,,,,,.,,,,,,,,..,.,.,,,,,.,,,..,,...,...,...,,.,,,..,,,,,,.,,
-#FD4YEGKF24SID33NAK26DDP2WR5BPGSJI46TDPCUEQCXY2J5O6JCTN3ETAQE6IQQRIQZLITRZR4I4
-#\\\|JJOROTHTXAF6A3PRWGPD6C5GG7ZUH4R7CGMV2BZEIHVSF6TWZR2 \ / AMOS7 \ YOURUM ::
-#\[7]BKL3BSVJZHP5EIN4XWCYXNCOV4EESS2Z5D2CUMGLQA2G4MVHTWBQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,..,,,.,,.,.,,.,,,,,,...,.,,,,,.,..,,...,...,...,,,,,,,,,...,,,.,
+#VMCACFMAKO5MPSGB7MPS5YGMIICSCYP3ZTCKSSYCTNRTOHTCYHGTJD5ML7ABV24C4RDZRSKAKYRHW
+#\\\|WCYO6TT3ID47VDLBOMKPQ7QEC2XHHFS7REE3KPNDB63BCIBFCZ3 \ / AMOS7 \ YOURUM ::
+#\[7]EXFIN22JOMWHZOB43RJCJJ3UPWMHYO2MMJDVTQZNGJCWKPZ42UBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
