@@ -1,0 +1,32 @@
+## [:< ##
+
+# name  = models.checksum.calculate_bmw_base32
+# args  = $file_path, $bit_size (default: 384)
+# descr = Calculate BASE32-encoded BMW checksum (uses centralized encode_digest)
+
+my $file_path = shift;
+my $bit_size  = shift // 384;    # Default to BMW-384
+
+return undef unless -f $file_path;
+
+my $content_sref = <[file.slurp]>->( $file_path, ':raw' );
+return undef unless $content_sref;
+
+# Get initialized BMW context via Protocol-7 infrastructure
+my $bmw_ctx = <[chk-sum.bmw.ctx]>->($bit_size);
+
+# Open file and add content to BMW context
+my $fh = <[file.open]>->($file_path);
+return undef unless defined $fh;
+
+$bmw_ctx->addfile($fh);
+close($fh);
+
+# Use centralized encoding function
+return <[chk-sum.bmw.encode_digest]>->($bmw_ctx);
+
+#,,..,...,.,.,.,,,.,,,,,,,,.,,,,.,.,,,,..,.,.,..,,...,...,...,.,.,.,.,.,,,.,,,
+#2WHKCW7EZPEIAOYKPJAZC3424SXJGXQJ6YFBZDNEHDXHF3VND63TGNI5IIJJI4ZXTN46QZZTQKN3Q
+#\\\|BD3SOQKKKEN2SUV55PSTIWBJIROHFDNUGH5TZLNBVLWQRM2SV76 \ / AMOS7 \ YOURUM ::
+#\[7]MCISRV7VJKGWTVE5UEE4BZEQLK4JRTXPD34BBGMYOKWXOGHAZSAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

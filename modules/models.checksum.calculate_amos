@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = models.checksum.calculate_amos
+# args  = $file_path
+# descr = Calculate 7-character AMOS checksum for model file
+
+my $file_path = shift;
+return undef unless -f $file_path;
+
+my $content_sref = <[file.slurp]>->( $file_path, ':raw' );
+return undef unless $content_sref;
+
+# Use Protocol-7 chk-sum.amos wrapper (delegates to AMOS7::CHKSUM)
+my $amos_checksum = <[chk-sum.amos]>->($content_sref);
+return $amos_checksum;    # 7-character BASE32
+
+#,,.,,.,,,,.,,,,.,..,,.,,,,.,,.,.,...,..,,.,.,..,,...,...,.,.,..,,,,.,,..,,.,,
+#AKNMSZRCFGWGXBQKSV6WNLTPMJ33RIQJEHGKO7Y2MW662HHDDBZPMEYNZT3PGETJC4RP6TMCDR6AM
+#\\\|UW56OUW6WI7KS7F2MDUNF7FXOO33EI4IV76QP6L2YC4OH3J6LCP \ / AMOS7 \ YOURUM ::
+#\[7]NX3FAQPRYPFLRUPJDE6BGSAJMZNIBHBACZBJSOY7WEH4PXH2XGDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

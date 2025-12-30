@@ -466,8 +466,7 @@ $bmw_start_ctx->add( sprintf '%s#',
     $signature_footer_data->{'footer-start-line'} );
 
 ##  calculating footer BMW checksum  ##
-my $footer_bmw_bin = $bmw_start_ctx->digest;
-$footer_bmw = encode_b32r($footer_bmw_bin);
+$footer_bmw = <[chk-sum.bmw.encode_digest]>->($bmw_start_ctx);
 
 if ( $footer_bmw eq $signature_footer_data->{'bmw-chksum'} ) {
     $truth_status_report->{'bmw-chksum-matches'} = TRUE;    ## true ##
@@ -524,8 +523,7 @@ if ( $footer_bmw eq $signature_footer_data->{'bmw-chksum'} ) {
             my $test_bmw_ctx = $bmw_start_ctx->clone;
             $test_bmw_ctx->add( sprintf '%s#',
                 $signature_footer_data->{'footer-start-line'} );
-            my $test_bmw_bin = $test_bmw_ctx->digest;
-            my $test_bmw     = encode_b32r($test_bmw_bin);
+            my $test_bmw = <[chk-sum.bmw.encode_digest]>->($test_bmw_ctx);
 
             <[base.logs]>->( 2, ': state %d BMW: %s', $try_state, $test_bmw )
                 if $mode eq 'repair';
@@ -720,8 +718,7 @@ sub _verify_signature_with_data {
     # Calculate footer BMW checksum
     $test_bmw_start->add( sprintf '%s#',
         $test_footer_data->{'footer-start-line'} );
-    my $test_footer_bmw_bin = $test_bmw_start->digest;
-    my $test_bmw_result     = encode_b32r($test_footer_bmw_bin);
+    my $test_bmw_result = <[chk-sum.bmw.encode_digest]>->($test_bmw_start);
 
     # Verify BMW checksum
     if ( $test_bmw_result ne $test_footer_data->{'bmw-chksum'} ) {
@@ -766,8 +763,8 @@ sub _verify_signature_with_data {
     return TRUE;
 }
 
-#,,,,,,,,,.,.,,,.,,,.,,.,,,..,..,,,,.,,,.,,.,,..,,...,.,.,..,,,..,...,..,,.,.,
-#3DZIUNLHECUO6ZAB4J6TLL7F375OZTCBFH63RA2WNTDUII5AAJTIT4L5KYWSZTEMC4TNBRVYVPM64
-#\\\|REL7LVS74ZB3RAQQFABAUUOYICMO32EYAWPHTVNALIGOIKL4XAW \ / AMOS7 \ YOURUM ::
-#\[7]WP4U54OA3D7MVD5RP6FUHEPL273XHYTD5QVZYWQIP22OFDMK42DA 7  DATA SIGNATURE ::
+#,,.,,...,,.,,.,,,,,,,,,.,.,,,,.,,.,,,,,,,,..,..,,...,...,.,.,,..,.,.,.,,,,..,
+#J7WBTV4USULDF7LQUJXA4XX6P63ZBW6XLCLP3RJXCE4I6LCJJGC7RSBG3C7F7WMEJWZSZ2TNF67AO
+#\\\|D466T7RIOOAGKVVGD2VQWGH53ORXBMZZPSEX2VNWW3QUMERRGRB \ / AMOS7 \ YOURUM ::
+#\[7]UV27Z4LG3EZDT6LM7CYQVLXD3GUX57A253NO2CDLTTNIHWFNSSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,12 +1,33 @@
 ## [:< ##
 
 # name  = models.storage.discover.discover_models
+# descr = Discover all models from configured search paths
 
-my @tiers = qw| local cache remote |;
-return { tiers => \@tiers };
+my @all_discovered;
+my $search_paths = <models.storage.search_paths>;
 
-#,,..,,,,,.,.,,,,,...,.,.,,..,..,,...,,.,,..,,..,,...,...,,,.,...,.,,,,.,,...,
-#SSVBYGWSH53LPOSIJ77ZUFDNXNZX446UI7RCXV6LZUTO5LYDT3R6XTLV7N5UMPUUGGKBEZE2DC2O2
-#\\\|F7G22ET37DOLLGTH5CXM75D2R3KR5QWGA7AT4HSMDC36Z7B5GJL \ / AMOS7 \ YOURUM ::
-#\[7]SX4IM5TIZQ2PF5QK5SD2G7QPFZ7ZHGNRIUOUP4XX44OBGT6MACDA 7  DATA SIGNATURE ::
+return [] unless $search_paths && ref($search_paths) eq 'ARRAY';
+
+foreach my $path_config (@$search_paths) {
+    next unless $path_config->{enabled};
+    next unless -d $path_config->{path};
+
+    my $found = <[models.storage.discover_directory]>->(
+        $path_config->{path}, $path_config->{recursive}
+    );
+
+    # Add tier info
+    foreach my $model (@$found) {
+        $model->{tier} = $path_config->{tier};
+    }
+
+    push @all_discovered, @$found;
+}
+
+return \@all_discovered;
+
+#,,.,,...,,..,.,,,.,.,...,,..,,.,,.,,,,..,,..,..,,...,...,.,.,,,,,,..,...,.,,,
+#GXFDYBRLKBEJQL2GVMHRAD6ANHSP2BHC2RLXOMIL75G3HDGCXW5X7PRSVSPUVIHJV5GCLTT4UWQEO
+#\\\|Q42GHENSLI654PAIZ2MOYTFIOY4Z7PQ53GL65I5VTC5F7OCEPEJ \ / AMOS7 \ YOURUM ::
+#\[7]AARJVTNOGAGCRHTRS4QYD3H4IM5GMBRM4CNIWTXD46HGZFOLSOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -358,7 +358,7 @@ while ( not $asserted_true and $iterations_left ) {
     my $footer_bmw_chksum_data = sprintf '%s#', $first_header_line;
 
     $bmw_ctx->add($footer_bmw_chksum_data);
-    my $encoded_footer_BMW = encode_b32r( $bmw_ctx->digest );
+    my $encoded_footer_BMW = <[chk-sum.bmw.encode_digest]>->($bmw_ctx);
 
     $asserted_true = FALSE    ##  asserting new BMW checksum for elf truth  ##
         if $check_encoded_BMW_chksum
@@ -485,8 +485,8 @@ if ( not $iterations_left ) {    ## warn about failed harmonization ##
 
 return $calc_result_href;        ##  return harmonized result data href  ##
 
-#,,.,,,,,,.,.,..,,,,.,,,.,,,.,...,,.,,.,.,,..,...,...,..,,,..,,.,,..,,,,,,..,,
-#Z6C6TZADWQLEB2O4FIMSM2VMRPIMBCMCR3ZBSL5ZDH3BSFZUHEA5WORJ2LZA3WAAB57TYNDSRJ6Y2
-#\\\|APGAOWCMAFA4WF76KR6PUJPV2K2M7CYVOCAYIPM3MPPWYWRDQGO \ / AMOS7 \ YOURUM ::
-#\[7]MV7STMLMENFH66I5BA3Y6V3MXHFYEJQTCJ3IHZGLCESLWMOXHWDY 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,.,,,,,,,,,,,.,,,,..,,..,,..,,..,...,...,..,,..,,.,.,,,.,..,,..,,
+#BYVMK7C2GLHT2UGL62UPPJ346EMUM3PXSQJKT6ATQGLJWWT536ZQ7RYENXJ2XS4M4CSZX4MDGWJIU
+#\\\|6TX6WWLBRHRS2AISNCWI7UFLNY663DRPZ7VLF5SY4CBMBB7B3KI \ / AMOS7 \ YOURUM ::
+#\[7]M24FTRNMXHJ65II226PCDYRDFYSUKGOBGJC4IHPPTR7AVGJTPSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
