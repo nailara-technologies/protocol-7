@@ -1,0 +1,116 @@
+# Models Configuration - Centralized model path management
+# This file defines all model paths used by vision, inference, and batch processing
+
+models:
+  # Qwen2.5 7B Instruct (GPU/CPU Dual Inference)
+  qwen2.5-7b-instruct-1m:
+    name: "Qwen2.5 7B Instruct (1M context)"
+    description: "7B parameter instruction-tuned model with 1M context window"
+    path: /mnt/m/lmstudio-community/Qwen2.5-7B-Instruct-1M-GGUF/Qwen2.5-7B-Instruct-1M-Q4_K_M.gguf
+    quantization: Q4_K_M
+    context_length: 1000000
+    is_vision: false
+    backends:
+      - gpu
+      - cpu
+
+  # Vision Models with Multimodal Projections
+  qwen3-vl-4b-instruct:
+    name: "Qwen3 VL 4B Instruct"
+    description: "4B vision-language model with visual understanding"
+    path: /mnt/ext-xfs-data/models-lmstudio/lmstudio-community/Qwen3-VL-4B-Instruct-GGUF/Qwen3-VL-4B-Instruct-Q4_K_M.gguf
+    mmproj: /mnt/ext-xfs-data/models-lmstudio/lmstudio-community/Qwen3-VL-4B-Instruct-GGUF/mmproj-Qwen3-VL-4B-Instruct-F16.gguf
+    quantization: Q4_K_M
+    context_length: 4096
+    is_vision: true
+    backends:
+      - gpu
+
+  qwen2.5-vl-7b-instruct:
+    name: "Qwen2.5 VL 7B Instruct"
+    description: "7B vision-language model"
+    path: /mnt/ext-xfs-data/models-lmstudio/Qwen/Qwen2.5-VL-7B-Instruct-Q4_K_M.gguf
+    mmproj: /mnt/ext-xfs-data/models-lmstudio/Qwen/mmproj-F16.gguf
+    quantization: Q4_K_M
+    context_length: 8192
+    is_vision: true
+    backends:
+      - gpu
+
+  opus-100-manga:
+    name: "4B Opus 100 Manga"
+    description: "Specialized model for manga/comic image understanding"
+    path: /mnt/m/mradermacher/4b-opus100-manga-GGUF/4b-opus100-manga.Q4_K_S.gguf
+    mmproj: /mnt/m/mradermacher/4b-opus100-manga-GGUF/4b-opus100-manga.mmproj-f16.gguf
+    quantization: Q4_K_S
+    context_length: 4096
+    is_vision: true
+    backends:
+      - gpu
+
+  gemma3-4b-it-uncensored:
+    name: "Gemma 3 4B IT Uncensored"
+    description: "4B instruction-tuned Gemma variant"
+    path: /mnt/m/mradermacher/Gemma-3-4b-it-Uncensored-DBL-X-GGUF/Gemma-3-4b-it-Uncensored-DBL-X.Q4_K_S.gguf
+    mmproj: /mnt/m/mradermacher/Gemma-3-4b-it-Uncensored-DBL-X-GGUF/Gemma-3-4b-it-Uncensored-DBL-X.mmproj-f16.gguf
+    quantization: Q4_K_S
+    context_length: 8192
+    is_vision: true
+    backends:
+      - gpu
+
+  gemma3-glitter-4b:
+    name: "Gemma 3 Glitter 4B"
+    description: "4B uncensored Gemma variant"
+    path: /mnt/m/mradermacher/Gemma-3-Glitter-4B-Uncensored-GGUF/Gemma-3-Glitter-4B-Uncensored.Q4_K_S.gguf
+    mmproj: /mnt/m/mradermacher/Gemma-3-Glitter-4B-Uncensored-GGUF/Gemma-3-Glitter-mmproj-f16.gguf
+    quantization: Q4_K_S
+    context_length: 8192
+    is_vision: true
+    backends:
+      - gpu
+
+  openbmb-vision:
+    name: "OpenBMB Vision Model"
+    description: "OpenBMB multimodal vision model"
+    path: /mnt/ext-xfs-data/models-lmstudio/openbmb/ggml-model-Q4_K_M.gguf
+    mmproj: /mnt/ext-xfs-data/models-lmstudio/openbmb/mmproj-model-f16.gguf
+    quantization: Q4_K_M
+    context_length: 8192
+    is_vision: true
+    backends:
+      - gpu
+
+  # Text-only inference models
+  mathstral-7b-v0.1:
+    name: "Mathstral 7B v0.1"
+    description: "7B model specialized for mathematical reasoning"
+    path: /mnt/m/lmstudio-community/mathstral-7B-v0.1-GGUF/mathstral-7B-v0.1-Q4_K_M.gguf
+    quantization: Q4_K_M
+    context_length: 32768
+    is_vision: false
+    backends:
+      - cpu
+
+  aya-23-8b:
+    name: "Aya 23 8B"
+    description: "8B multilingual model"
+    path: /mnt/m/lmstudio-community/aya-23-8B-GGUF/aya-23-8B-Q4_K_M.gguf
+    quantization: Q4_K_M
+    context_length: 8192
+    is_vision: false
+    backends:
+      - cpu
+
+# Model aliases for convenient access
+aliases:
+  default-gpu: qwen2.5-7b-instruct-1m
+  default-cpu: qwen2.5-7b-instruct-1m
+  default-vision: qwen3-vl-4b-instruct
+  manga-vision: opus-100-manga
+
+#,,.,,,.,,.,,,.,.,...,,..,.,,,,,.,,,,,...,...,..,,...,...,...,,,,,,,.,..,,.,.,
+#7PRZM2QOTLYUNSV2DUKLO43F4WURWI5CJW7RVWWIUZ7ULWYLYXA5JRYHF6UQGMOJL4ZXPZYXRTAV4
+#\\\|G75BVE4IVSLECNL6BMGCDF5GEATVAON5HEFHFWIODZNJMERBI2Q \ / AMOS7 \ YOURUM ::
+#\[7]5WBDPYOLV7KDMJYSNMO55MOFOBPTOP55U6OCHBHBM6ECQF76GWCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

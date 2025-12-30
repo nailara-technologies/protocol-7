@@ -1,0 +1,67 @@
+## [:< ##
+
+# name = coding.handler.models_record_invocation_reply
+# descr = Handle async response from models.record_invocation command
+
+my $reply = shift;
+
+my $sid        = $reply->{'sid'};
+my $cmd_status = $reply->{'cmd'};
+my $call_args  = $reply->{'call_args'};
+my $model_amos = $reply->{'params'}->{'model_amos'};
+my $context    = $reply->{'params'}->{'context'};
+my $success    = $reply->{'params'}->{'success'};
+
+<[base.log]>->(
+    2,
+    "[coding] models_record_invocation_reply: status=%s model=%s context=%s success=%s sid=%s",
+    $cmd_status,
+    $model_amos,
+    $context,
+    $success,
+    $sid
+);
+
+# Log call_args structure for debugging
+if ( defined($call_args) ) {
+    if ( ref($call_args) eq 'HASH' ) {
+        my @keys = keys %$call_args;
+        <[base.log]>->(
+            2,
+            "[coding] models_record_invocation: call_args keys: %s",
+            join( ", ", @keys )
+        );
+        foreach my $key (@keys) {
+            my $val = $call_args->{$key};
+            if ( ref($val) ) {
+                <[base.log]>->(
+                    2,    "[coding] models_record_invocation: %s = %s",
+                    $key, ref($val)
+                );
+            } else {
+                <[base.log]>->(
+                    2,    "[coding] models_record_invocation: %s = %s",
+                    $key, defined($val) ? $val : 'undef'
+                );
+            }
+        }
+    } else {
+        <[base.log]>->(
+            2,
+            "[coding] models_record_invocation: call_args = %s",
+            ref($call_args) || $call_args
+        );
+    }
+}
+
+# TODO: Verify invocation was recorded
+# TODO: Handle any recording failures
+# TODO: Update local statistics cache if needed
+
+return 1;
+
+#,,..,..,,,,.,,.,,,.,,.,,,.,,,,,.,...,.,.,.,,,..,,...,...,.,.,,..,...,..,,,,,,
+#7JDG6BVDYGS5VETGUPSOPVSHLJFMFTKPFS645SNO6VGW5ESD4D7VEKDTGK5JBHUVQ7VO6KG7EPETQ
+#\\\|CVPF7MUQU4AOTCRCHZFOT62IJB3365234QN2IG255NNBJGCRAWZ \ / AMOS7 \ YOURUM ::
+#\[7]QOFQ5SLGY5ET4AISA2FWUICQOI4BINN65ZPDLR36TSHBCIBTTECY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

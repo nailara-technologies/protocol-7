@@ -1,0 +1,65 @@
+## [:< ##
+
+# name = coding.handler.models_resolve_path_reply
+# descr = Handle async response from models.resolve_model_path command
+
+my $reply = shift;
+
+my $sid        = $reply->{'sid'};
+my $cmd_status = $reply->{'cmd'};
+my $call_args  = $reply->{'call_args'};
+my $model_amos = $reply->{'params'}->{'model_amos'};
+my $context    = $reply->{'params'}->{'context'};
+
+<[base.log]>->(
+    2,
+    "[coding] models_resolve_path_reply: status=%s model=%s context=%s sid=%s",
+    $cmd_status,
+    $model_amos,
+    $context,
+    $sid
+);
+
+# Log call_args structure for debugging
+if ( defined($call_args) ) {
+    if ( ref($call_args) eq 'HASH' ) {
+        my @keys = keys %$call_args;
+        <[base.log]>->(
+            2,
+            "[coding] models_resolve_path: call_args keys: %s",
+            join( ", ", @keys )
+        );
+        foreach my $key (@keys) {
+            my $val = $call_args->{$key};
+            if ( ref($val) ) {
+                <[base.log]>->(
+                    2,    "[coding] models_resolve_path: %s = %s",
+                    $key, ref($val)
+                );
+            } else {
+                <[base.log]>->(
+                    2,    "[coding] models_resolve_path: %s = %s",
+                    $key, defined($val) ? $val : 'undef'
+                );
+            }
+        }
+    } else {
+        <[base.log]>->(
+            2,
+            "[coding] models_resolve_path: call_args = %s",
+            ref($call_args) || $call_args
+        );
+    }
+}
+
+# TODO: Extract model file path from $call_args
+# TODO: Validate path exists and is accessible
+# TODO: Setup inference backend with resolved path
+
+return 1;
+
+#,,,,,,,,,...,..,,,,,,,,,,..,,..,,.,,,...,,..,..,,...,...,..,,..,,..,,..,,,,,,
+#GK3B44MFRU6CVD7VE4JIULWEH6T4FRE77FQ3DER5FFKONQ7N4H43LFTQ2GEOVMBLK3Q2Z3XQSQEXC
+#\\\|JU4HURBALTAR4VWLDEXIG7UAPAL3V6YRJIC7YVZCELDKWHJ2XEH \ / AMOS7 \ YOURUM ::
+#\[7]BX4RJOQRRH7QTYLLD7ELVHU4XDXBZSSK7LS2HSHSEV5Y222ZOMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

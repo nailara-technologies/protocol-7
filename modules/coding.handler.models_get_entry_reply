@@ -1,0 +1,64 @@
+## [:< ##
+
+# name = coding.handler.models_get_entry_reply
+# descr = Handle async response from models.get_entry command
+
+my $reply = shift;
+
+my $sid        = $reply->{'sid'};
+my $cmd_status = $reply->{'cmd'};
+my $call_args  = $reply->{'call_args'};
+my $model_amos = $reply->{'params'}->{'model_amos'};
+my $task_id    = $reply->{'params'}->{'task_id'};
+
+<[base.log]>->(
+    2, "[coding] models_get_entry_reply: status=%s model=%s task=%s sid=%s",
+    $cmd_status, $model_amos, $task_id, $sid
+);
+
+# Log call_args structure for debugging
+if ( ref($call_args) eq 'HASH' ) {
+    my @keys = keys %$call_args;
+    <[base.log]>->(
+        2,
+        "[coding] models_get_entry: call_args keys: %s",
+        join( ", ", @keys )
+    );
+    foreach my $key (@keys) {
+        my $val = $call_args->{$key};
+        if ( ref($val) eq 'HASH' ) {
+            my @subkeys = keys %$val;
+            <[base.log]>->(
+                2,    "[coding] models_get_entry: %s = HASH with keys: %s",
+                $key, join( ", ", @subkeys )
+            );
+        } elsif ( ref($val) eq 'ARRAY' ) {
+            <[base.log]>->(
+                2,    "[coding] models_get_entry: %s = ARRAY[%d]",
+                $key, scalar(@$val)
+            );
+        } elsif ( ref($val) ) {
+            <[base.log]>->(
+                2,    "[coding] models_get_entry: %s = %s",
+                $key, ref($val)
+            );
+        } else {
+            <[base.log]>->(
+                2,    "[coding] models_get_entry: %s = %s",
+                $key, $val
+            );
+        }
+    }
+}
+
+# TODO: Process model entry metadata from $call_args
+# TODO: Validate model exists and is available
+# TODO: Continue task with model metadata
+
+return 1;
+
+#,,.,,...,,.,,,..,,,.,,,,,,..,..,,,,,,,,.,,,,,..,,...,...,,.,,.,.,,,.,,.,,,..,
+#6FAGWVOP2WVWH7SAWN3KC2WOYA6Z652IEY4HL54PZP6INYWLDWVGABOAYD3SA4F4E77QTQ6YMNFGU
+#\\\|SUMJLLWQ3FLDUGHHCMOBNZLRG7F3KS3ZJFRL4BTCTJKAWHB26MB \ / AMOS7 \ YOURUM ::
+#\[7]2RHJD4V6OCIJMKMLFIHQ3GGGYI6BWEADZ6ZOFAUWWMOMBFNJFWAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

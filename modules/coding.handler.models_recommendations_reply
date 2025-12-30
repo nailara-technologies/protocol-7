@@ -1,0 +1,62 @@
+## [:< ##
+
+# name = coding.handler.models_recommendations_reply
+# descr = Handle async response from models.get_model_recommendations command
+
+my $reply = shift;
+
+my $sid        = $reply->{'sid'};
+my $cmd_status = $reply->{'cmd'};
+my $call_args  = $reply->{'call_args'};
+my $context    = $reply->{'params'}->{'context'};
+my $task_id    = $reply->{'params'}->{'task_id'};
+
+<[base.log]>->(
+    2,
+    "[coding] models_recommendations_reply: status=%s context=%s task=%s sid=%s",
+    $cmd_status,
+    $context,
+    $task_id,
+    $sid
+);
+
+# Log call_args structure for debugging
+if ( ref($call_args) eq 'ARRAY' ) {
+    <[base.log]>->(
+        2, "[coding] models_recommendations: call_args = ARRAY[%d]",
+        scalar(@$call_args)
+    );
+    if ( scalar(@$call_args) > 0 && ref( $call_args->[0] ) eq 'HASH' ) {
+        my @keys = keys %{ $call_args->[0] };
+        <[base.log]>->(
+            2,
+            "[coding] models_recommendations: first element keys: %s",
+            join( ", ", @keys )
+        );
+    }
+} elsif ( ref($call_args) eq 'HASH' ) {
+    my @keys = keys %$call_args;
+    <[base.log]>->(
+        2,
+        "[coding] models_recommendations: call_args keys: %s",
+        join( ", ", @keys )
+    );
+} else {
+    <[base.log]>->(
+        2,
+        "[coding] models_recommendations: call_args type = %s",
+        ref($call_args) || 'SCALAR'
+    );
+}
+
+# TODO: Extract top recommendations from $call_args
+# TODO: Select best model based on scoring
+# TODO: Continue task with selected model
+
+return 1;
+
+#,,.,,..,,...,.,,,..,,,..,...,,,,,..,,,,,,,,.,..,,...,.,.,,..,,,,,,.,,,..,.,.,
+#Y4OWMAZY62GYT3ZKHF2TXDCLGDHWLPM7QZJ5BBFPGO26XG3FP7ZRUQNVFVBZ7N323M2HZ4SEJWUFO
+#\\\|CSGOO3L7XEZR2VYESYPJN2EPBBZLSPKH2I56KVCP72SIP3RMRNV \ / AMOS7 \ YOURUM ::
+#\[7]WPRIN5USVYQZZJIAYACDU75VZXAWVFR33WT5MOCAUECMXDLZMACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
