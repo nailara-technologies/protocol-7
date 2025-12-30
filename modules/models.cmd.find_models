@@ -3,15 +3,15 @@
 # name = models.cmd.find_models
 # descr = Find models available for a specific context
 
+my $cmd = shift @ARG;  # Remove command name from @ARG
 my ($context) = @ARG;
 
 if (!$context) {
   return { 'mode' => qw| size |, 'data' => "error: context name required\n" };
 }
 
-# Load registry
-my $registry_funcs = <[models.registry.init]>;
-my $all_models = $registry_funcs->{'list_all_models'}->();
+# Load registry - call extracted module directly
+my $all_models = <[models.registry.list_all.list_all_models]>->();
 
 # Find models for this context
 my @matching;
@@ -53,8 +53,8 @@ foreach my $model (@matching) {
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,,,,,,.,,.,,,..,,,.,,.,,.,,,,..,..,,.,.,,,,,..,,...,..,,.,,,.,,,,.,,,,.,,,.,
-#IPZ4PUYJXS75UNFNHQAO4FOSKBUXVTRBI7PZVVQXT7ASF6GO2Q3CCGJ3IU2Q4ZG6PZGGNWPRX5E5E
-#\\\|ZFLBI2JJZ3PHBEVLFDRKH5QGNEUM5CEIDVZDVE3Z4K2WMAVABWA \ / AMOS7 \ YOURUM ::
-#\[7]OFV56FV26XZEHTJOV3HERRIV7VLOF4PSQBWM6RL2JAS7EHLKBKDI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,..,,..,..,,.,.,.,,,,.,,.,.,,,.,..,,...,...,..,,,.,,..,,.,.,.,.,
+#WO4KYYZXXJDB27QEFCQEQRZDRYJ7TLDW5CCCS7VY6M5UJHZRKCSZ4Q7H3GY4F4S3CAOQYODTPZSE6
+#\\\|Q7VM7VGXW5TRU7A6UL3QATBOTPJ7PMJSPS6IMWBMGDUHWLKDQH5 \ / AMOS7 \ YOURUM ::
+#\[7]KWIWVR3TGBCSZDXIIE3VYKSCJH2DC2NJO7VBDLDGFUXTEJ5OZMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

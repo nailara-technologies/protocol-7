@@ -9,6 +9,7 @@
 
 use JSON::PP;
 
+my $cmd = shift @ARG;
 my ($model_amos, $context, $data_json) = @ARG;
 
 if (!$model_amos || !$context) {
@@ -26,11 +27,8 @@ if ($data_json) {
   }
 }
 
-# Load statistics tracker
-my $stats_funcs = <[models.statistics.invocation_tracking]>;
-
-# Record invocation
-my $result = $stats_funcs->{record_invocation}->(
+# Record invocation - call extracted module directly
+my $result = <[models.statistics.invocation_tracking.record_invocation]>->(
   $model_amos,
   $context,
   $invocation_data
@@ -45,8 +43,8 @@ $reply_str .= "date: " . ($result->{date} // 'unknown') . "\n";
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,,.,.,.,...,...,,,,,,..,,,.,.,.,.,.,..,,..,,..,,...,...,,..,,..,.,,,,.,,,,,,
-#PADT7PI7ZHRUIMURSYVR4BE5ZPYWQF64EZWELIDJFDV6VRABCJDBR4YM7UXSBHAPTKKQHLENPHKDE
-#\\\|FZD67LB2YJCZQJLZ6SSUUVI3V6YZP6ZLQAFBDVGYRJTSK2IJBDF \ / AMOS7 \ YOURUM ::
-#\[7]I2IVHSXKF6TK6TA45XJ3GHEBDLD4V3PBMKOD4443JSY5ILQQXADY 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,...,.,,,...,,,.,.,.,,,.,..,,...,..,,...,...,...,,..,...,...,...,
+#6A4EXTAR4ZRT4GPUPDMADD7VYNWMR4IACXGEADFN6IIM2PU66KXQWQE6YRLM7MF6TN362KA4F2WGG
+#\\\|4JXOYKMLBNDUQEIUTADUDM5BOQTJPIU754ROI3DLID7UYED4C3L \ / AMOS7 \ YOURUM ::
+#\[7]EKXDZJVNN4JEJL6PLOB5XKBQDI2WDZ24LH5S2VUAQSEPUJIYWYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

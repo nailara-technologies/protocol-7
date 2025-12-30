@@ -3,30 +3,14 @@
 # name = models.registry.list_by_context
 # descr = List models by context from registry
 
-sub list_models_by_context {
-  my ($context) = @_;
-  my $base = <[models.registry.base]>;
-  my $registry = $base->{get_registry}->();
-  my @matching = grep {
-    $_->{statistics}->{by_context}->{$context}
-  } values %{$registry->{models}};
-  return \@matching;
-}
-
 # Entry point
 {
   my @args = @ARG;
   return list_models_by_context(@args);
 };
 
-#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
-#REGISTRY_LIST_CONTEXT_SIGNATURE_PLACEHOLDER
-#\\\|REGISTRY_LIST_CONTEXT_HELPER \ / AMOS7 \ YOURUM ::
-#\[7]REGISTRY_LIST_CONTEXT_HASH 7  DATA SIGNATURE ::
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,,.,,,.,,..,,..,.,.,.,,,...,,,,,,..,,..,,..,..,,...,..,,,..,,,.,,.,,,.,,,,,,
-#IS554PKC252WC4EFYHBWPIEO4MH7MGW5JXEAP6YTQMNGAXGO5RYTXFZVHX7CAIH3G4ZHLACMYPSMM
-#\\\|6JJFCZWOC4I5DNM7ZBDU5T7AEHB52KPM2FGPQXHZRDCCO3TXR42 \ / AMOS7 \ YOURUM ::
-#\[7]JLT3RSFKD32B7ZLGW4KC777VN5DPXRK6RJV6UIKJJFGB22CPLMBI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,,,,,.,,,.,,.,,,.,.,,.,,..,,,..,..,,...,...,,..,,,,,..,,,,,,...,
+#7NAO2CBWHVXHNSX6OAJ7KPNCYLZGHETXCL7CRKYHW7H4PQ6LGWODKHKKE4L3JGDNT565IQTITZRHS
+#\\\|XZSONSVRFGK5KJ7G5Z2JIIJU3767UDQ5YGWS3AR2NSVZPI47NNJ \ / AMOS7 \ YOURUM ::
+#\[7]FAWDHIS45QQGC2WEF6SUYIDWROFPKRTL67FHBRL4QRWTKQEHEKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

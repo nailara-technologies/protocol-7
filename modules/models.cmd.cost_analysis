@@ -3,25 +3,22 @@
 # name = models.cmd.cost_analysis
 # descr = Analyze storage vs bandwidth costs for a model
 
+my $cmd = shift @ARG;
 my ($model_amos, $context) = @ARG;
 
 if (!$model_amos || !$context) {
   return { 'mode' => qw| size |, 'data' => "error: model AMOS and context required\n" };
 }
 
-# Load registry
-my $registry_funcs = <[models.registry.init]>;
-my $model_entry = $registry_funcs->{get_model_entry}->($model_amos);
+# Load registry - call extracted module directly
+my $model_entry = <[models.registry.get_entry.get_model_entry]>->($model_amos);
 
 if ($model_entry->{not_found}) {
   return { 'mode' => qw| size |, 'data' => "error: model not found: $model_amos\n" };
 }
 
-# Load cost analysis engine
-my $cost_engine = <[models.decision.cost_analysis]>;
-
-# Perform cost analysis
-my $analysis = $cost_engine->{cost_analysis}->($model_entry, $context);
+# Perform cost analysis - call extracted module directly
+my $analysis = <[models.decision.cost_analysis.where_should_model_reside]>->($model_entry, $context);
 
 my $reply_str = '';
 $reply_str .= "model_amos: $model_amos\n";
@@ -58,8 +55,8 @@ $reply_str .= "  per_day: " . sprintf('%.2f', $analysis->{usage_frequency}->{per
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,..,,..,,.,,.,,,,.,,,,.,.,.,.,,,..,,.,,,,.,,..,,...,..,,.,,,...,,.,,,,,,,.,,
-#JFVGYYUT7DQGMGOSVEYGMG6XNJX6GAIHGOHWCG3ERIJXPBTXUI3N7XNCFIYXJMY44EYLEDMOZHYSO
-#\\\|YY44DP55MK3H2ZTLQBS5XLDEUYVXA2WGPVXSDRV76W6SXEUIYND \ / AMOS7 \ YOURUM ::
-#\[7]CBDZERD7PQ25VTL4RNRFNMBCFCRPRGMWOALSYDZMC3SEHCRZ3KCA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,,,..,,.,.,,..,...,,.,,,..,,,.,..,,...,...,.,.,,,,,,.,,,,,,,.,,
+#2FRPYUDG5W3ZJMISHY5CDNQX3DXWYRGSONRV4KRDUXNPVZXXCIZNDWGKPXWRJIXAOLP4XVQDCNV3W
+#\\\|LJLPV6CAK55FDG63S4OTOASHTEUJOO7RQN4AT6BX4ITIHSVKDYS \ / AMOS7 \ YOURUM ::
+#\[7]Q5VXX6KZXLUXMATQOO362U4L6OP27LTIL3G2SNXGR3BSW544TSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

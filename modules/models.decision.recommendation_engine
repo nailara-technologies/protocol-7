@@ -6,62 +6,18 @@
 use List::Util qw| max |;
 
 # Main recommendation engine
-sub get_model_recommendations {
-  my ($context, $constraints, $all_models) = @_;
-
-  my $base = <[models.decision.recommendation_base]>;
-  my @candidates = $base->{find_models_for_context}->($context, $all_models);
-
-  return {
-    'context' => $context,
-    'recommendations' => [],
-    'best_choice' => undef,
-    'error' => 'No models found for context',
-  } unless @candidates;
-
-  my @scored = map {
-    my $model = $_;
-    my $stats = $model->{statistics}->{by_context}->{$context} // {};
-
-    my $score = {
-      model_amos => $model->{amos_checksum},
-      name => $model->{metadata}->{name},
-      version => $model->{metadata}->{version},
-      success_rate => $stats->{success_rate} // 0,
-      margin_vs_alt => $stats->{margin_vs_best_alt} // 0,
-      available_locally => $model->{presence_decision}->{currently_present} // 0,
-      initialization_ms => $model->{metadata}->{init_latency_ms} // 0,
-      avg_inference_ms => $model->{metadata}->{avg_inference_ms} // 0,
-      composite_score => $base->{calculate_composite_score}->($model, $context, $constraints),
-      reasoning => $base->{generate_reasoning}->($model, $context),
-    };
-    $score;
-  } @candidates;
-
-  @scored = sort { $b->{composite_score} <=> $a->{composite_score} } @scored;
-  @scored = $base->{filter_by_constraints}->(\@scored, $constraints);
-
-  return {
-    'context' => $context,
-    'recommendations' => \@scored,
-    'best_choice' => $scored[0] // undef,
-    'alternatives' => [@scored[1..$#scored]],
-    'count' => scalar(@scored),
-  };
-}
 
 {
-  'get_model_recommendations' => \&get_model_recommendations,
 };
-
-#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
-#DECISION_REC_ENGINE_SIGNATURE_PLACEHOLDER
-#\\\|DECISION_REC_ENGINE_HELPER \ / AMOS7 \ YOURUM ::
-#\[7]DECISION_REC_ENGINE_HASH 7  DATA SIGNATURE ::
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 #,,.,,...,,,.,,,,,...,.,.,,..,.,.,,,,,..,,,..,..,,...,...,...,...,,,.,.,,,,,.,
 #UKTDFN2J27UQB3XPA2EWMQ63IULDOKHLKS5LJZX7BT7TECDO5HEWD4BKOCBJCS27YRPNF2BT7BXRS
 #\\\|66UGAYQX6VVT64UD7UJBLAXNYLQ4KONVSXE2FBEF3CC3MWU4NQO \ / AMOS7 \ YOURUM ::
 #\[7]JZUCALTN3CPKXD62I43ZE7Q6ZUNDUXLPIXGRZKFFZ3HPD6VUHGBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,..,.,.,,..,.,,,,..,,.,,,..,,,.,..,,,..,,,,,...,...,...,.,,,...,,.,,..,,..,,
+#HNYOYMGEMZSH6KRL2DOYFYWVPAGBP65QLNQXJXTTKLAHFYPR434S7HXJOFCEAIBB3MEZDEEI3APPE
+#\\\|3P4SR2ACCWG5SBS5HO4MI24BGZEY7AYAUIXIPYKBOOZGTUGI4IG \ / AMOS7 \ YOURUM ::
+#\[7]GJXCHKMZXIYHHGLKCOLVRMHANQB2B5UXOIMQ4AKFQUKOH2D3RYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,23 +3,22 @@
 # name = models.cmd.get_model
 # descr = Retrieve a model by AMOS checksum with automatic fallback chain resolution
 
+my $cmd = shift @ARG;
 my ($model_amos) = @ARG;
 
 if (!$model_amos) {
   return { 'mode' => qw| size |, 'data' => "error: model AMOS checksum required\n" };
 }
 
-# Get model entry
-my $registry_funcs = <[models.registry.get_entry]>;
-my $model_entry = $registry_funcs->($model_amos);
+# Get model entry - call extracted module directly
+my $model_entry = <[models.registry.get_entry.get_model_entry]>->($model_amos);
 
 if ($model_entry->{not_found}) {
   return { 'mode' => qw| size |, 'data' => "error: model not found: $model_amos\n" };
 }
 
-# Resolve through fallback chain
-my $storage_funcs = <[models.storage.resolve_model]>;
-my $resolved = $storage_funcs->($model_amos, $model_entry->{storage_locations});
+# Resolve through fallback chain - call extracted module directly
+my $resolved = <[models.storage.resolve_model.resolve_model_path]>->($model_amos, $model_entry->{storage_locations});
 
 my $reply_str = '';
 $reply_str .= "model_amos: $model_amos\n";
@@ -32,8 +31,8 @@ $reply_str .= "is_metadata_only: " . (($resolved->{is_metadata_only} // 0) ? 'ye
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,..,,,.,..,,,.,,.,.,..,,.,.,..,,.,,,.,,,,..,..,,...,...,...,.,,,.,,,.,,,,..,
-#63CS5JLVLGJ3FJLQFC64UDFSD27MQVCAIGYXCSBQAK3ZYLNDXIIYS2BUDYVP4HAWZ32K23RPWRKSW
-#\\\|XMUTP5Y24IGZXP4Y7XVL2CEHGAQPEYQSUHTTCFBEYSYQVWZSDLY \ / AMOS7 \ YOURUM ::
-#\[7]M7RQGO6XXSHD6AHOAATXI546ZVQWPPXSK34PYJFBFL67ABU2OABI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,..,,,,,,,..,,.,,..,,,.,,,.,,,..,..,,...,...,..,,.,.,,..,.,,,,,,,
+#AX2KEWGKNANPZXT4BAAREEX45WABRGDTJGW5EDIBGS3REUXL34FAECABCFIPEXC7LRF4DPTNRP7GG
+#\\\|AVUWDE4HWDCTFDN4RPVHGG72YUWUS64KPZ6AXKJDZLLT54EO65R \ / AMOS7 \ YOURUM ::
+#\[7]AST22GLFUREUMPKI2A5BMADJG5Q3244KOG3EYZU5KXJEZYRI4UCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

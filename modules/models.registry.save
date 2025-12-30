@@ -9,35 +9,18 @@ use Fcntl qw| :flock |;
 # Initialize registry path in $data{} for persistence
 $data{registry_path} ||= '/var/protocol-7/models/registry.json';
 
-sub save_registry {
-  my ($registry) = @_;
-
-  return 0 unless $registry && ref($registry) eq 'HASH';
-
-  my $path = $data{registry_path};
-  open my $fh, '>', $path or return 0;
-  flock($fh, 2);  # LOCK_EX
-  $registry->{updated_at} = time();
-  print $fh encode_json($registry);
-  flock($fh, 8);  # LOCK_UN
-  close $fh;
-
-  return 1;
-}
-
 # Return registry interface
 {
-  'save_registry' => \&save_registry,
 };
-
-#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
-#REGISTRY_SAVE_SIGNATURE_PLACEHOLDER
-#\\\|REGISTRY_SAVE_HELPER \ / AMOS7 \ YOURUM ::
-#\[7]REGISTRY_SAVE_HASH 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 #,,,.,,..,,,.,..,,,.,,,,.,.,,,...,,,,,...,,..,..,,...,...,.,,,.,.,,..,,..,.,,,
 #NDZZEF4M2G4D53LZCL4OXM3KKDELBEEZNVDPZXYMBE7565L5NVEARJ5BPPJFW72ZKGNQZSW2VOJ4A
 #\\\|EGGXUZMFSJFJQ5PKYRQFGGXKNCUCBIDJLVQF5PKNCFMFG3VNHY3 \ / AMOS7 \ YOURUM ::
 #\[7]IMANCDSF5PWNEMGZ5HA6CIJLBJCNOMVRS2LFJLHAIGQKZOE4LQCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,..,...,.,.,,,.,...,,.,,...,..,,..,,,,.,,,,,...,...,...,..,,,,,,,.,,...,...,
+#4SKGAE7JUIRVE4UCB3FXJMKCUZUFC3VDIU6QQCXXP7BV47ATFYUQPK26WGVCLPCCCSPXDSTLQAMZW
+#\\\|OH6V2H3ZGGE5IDAMU44RRCXGKYR4665GLFIPYTNJRTH2RSLM5EA \ / AMOS7 \ YOURUM ::
+#\[7]L56CHFGH53WZL3HCNNLFFXKOQLHMH4KDVHTXM57EXF2VCMRRYQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

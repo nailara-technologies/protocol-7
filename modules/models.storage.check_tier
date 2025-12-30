@@ -5,36 +5,8 @@
 
 use File::Spec;
 
-sub check_tier {
-  my ($model_amos, $tier) = @_;
-
-  my $storage_funcs = <[models.storage.get_tier_path]>;
-  my $path = $storage_funcs->($model_amos, $tier);
-  return 0 unless $path && (-f $path || -l $path);
-
-  return {
-    'exists' => 1,
-    'path' => $path,
-    'is_symlink' => -l $path ? 1 : 0,
-    'size' => -s $path,
-    'accessible' => -r $path ? 1 : 0,
-  };
-}
-
-# Entry point
-{
-  my @args = @ARG;
-  return check_tier(@args);
-};
-
-#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
-#STORAGE_CHECK_TIER_SIGNATURE_PLACEHOLDER
-#\\\|STORAGE_CHECK_TIER_HELPER \ / AMOS7 \ YOURUM ::
-#\[7]STORAGE_CHECK_TIER_HASH 7  DATA SIGNATURE ::
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,,,,,,,,...,..,,,.,,,,.,,..,..,,...,,,.,..,,..,,...,...,.,,,.,,,,.,,,,,,,,,,
-#TFFNL2KHSSWABJLX6BC6GTOSE345YYKSSBOYMEYJ23ZBZ6RH4DF26THJ3PZ73K7OX4Q5JZTKOGFUE
-#\\\|X7F456CO4YY2HVBH3KXCMAJ34EXM4M2JQNJU4ZDZ46FZZ4TDKLR \ / AMOS7 \ YOURUM ::
-#\[7]T6IRAY2G6GTKQO4KYVOEWFGVMU57C3PR2VCTMUGUQ4XSZQL44KBI 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,.,,,..,.,.,...,.,,,...,,.,,,,,,..,,...,...,.,.,,,,,,,,,,..,,,.,
+#KTG3B436QKVMRYNBOOXR2ZE6F3C34BR3NV6JKSCQQ75ERRSWTDOUNOIEAJFCRUYZ3RQBRT2ZZR2HW
+#\\\|RRUDUMXJTHM3HKBCLSHE63SRJ2LRCYYCNDNRY2RNRZEGHCDDC36 \ / AMOS7 \ YOURUM ::
+#\[7]F272FTCS34ARVABSLUP5XTL6JPCT6EWTZHJMQ6TXQOT63XYQ5CCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

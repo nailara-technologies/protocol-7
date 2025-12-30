@@ -4,35 +4,6 @@
 # descr = Check available space in tier
 
 # Check available space in tier
-sub check_tier_space {
-  my ($tier) = @_;
-
-  my $base = $data{models}{tiers}->{$tier}->{base_path};
-  return undef unless $base && -d $base;
-
-  # Simple check - count files and estimate space
-  my @files;
-  opendir(my $dh, $base) or return undef;
-  while (my $file = readdir($dh)) {
-    next if $file =~ /^\\./;
-    push @files, {
-      'name' => $file,
-      'size' => -s File::Spec->catfile($base, $file),
-    };
-  }
-  closedir($dh);
-
-  my $total_size = 0;
-  $total_size += $_->{size} for @files;
-
-  return {
-    'tier' => $tier,
-    'path' => $base,
-    'file_count' => scalar(@files),
-    'total_size_bytes' => $total_size,
-    'total_size_gb' => sprintf('%.2f', $total_size / (1024 ** 3)),
-  };
-}
 
 # Entry point
 {
@@ -40,14 +11,8 @@ sub check_tier_space {
   return check_tier_space(@args);
 };
 
-#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
-#STORAGE_CHECK_SPACE_SIGNATURE_PLACEHOLDER
-#\\\|STORAGE_CHECK_SPACE_HELPER \ / AMOS7 \ YOURUM ::
-#\[7]STORAGE_CHECK_SPACE_HASH 7  DATA SIGNATURE ::
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,,,,,.,,.,,,.,,,,.,,..,,,,.,,..,,..,,..,,,,,..,,...,...,,..,,,.,...,.,.,.,.,
-#4C44WUP5L7K6CQNQ5NYHVRR32LLHRZYPAOLUQDW3G6DFADW2IQXA5INBSVAK7HD47QLCQW5QJYY3K
-#\\\|6BCKK2C5DCCMVYLSZ4TKDSPFKAT6TU7DMBQNRSWZWLZJKUFH6IP \ / AMOS7 \ YOURUM ::
-#\[7]K572JPNCGVAFRXSS6CRUCSFXUHQWIXTWKXG3AWF6RT4X3EN7ZOAQ 7  DATA SIGNATURE ::
+#,,..,,..,...,,,,,.,,,..,,,,.,,,,,..,,...,.,.,..,,...,...,.,.,,..,.,.,...,.,.,
+#6WHNLMH3SQ7FSMT7LFMF6FQHZEWAWENLDNLWH3Y77FHZNILUV2OH5KCELLNABF6QT3N5MPK3DPP22
+#\\\|7S7LP25LZNRGO3TTOGEFHZQKL7OHUXPGSQ2AO3O6Y7OSVYHN25I \ / AMOS7 \ YOURUM ::
+#\[7]YV7ED7T3LQZDI3AQC3WL5UUBKCZITL6X5QMMB3BSFR3IRXZSKGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -5,6 +5,7 @@
 
 use JSON::PP;
 
+my $cmd = shift @ARG;
 my ($context, $constraints_json) = @ARG;
 
 if (!$context) {
@@ -22,15 +23,11 @@ if ($constraints_json) {
   }
 }
 
-# Load registry
-my $registry_funcs = <[models.registry.init]>;
-my $all_models = $registry_funcs->{'list_all_models'}->();
+# Load registry - call extracted module directly
+my $all_models = <[models.registry.list_all.list_all_models]>->();
 
-# Load recommendation engine
-my $rec_engine = <[models.decision.recommendation_engine]>;
-
-# Get recommendations
-my $recommendations = $rec_engine->{'get_model_recommendations'}->(
+# Get recommendations - call extracted module directly
+my $recommendations = <[models.decision.recommendation_engine.get_model_recommendations]>->(
   $context,
   $constraints,
   $all_models
@@ -64,8 +61,8 @@ $reply_str .= "overall_reasoning: " . ($recommendations->{reasoning} // 'none') 
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,,,,,.,,,.,,,..,,,.,,,,,.,,,,,,,...,,,,,,.,,..,,...,...,...,.,,,,,.,,,,,,.,,
-#2TJYHFLDB73YGNO7B2G4WY7MZAOC2KO7HG6B456FFON3LAFVACOYBH3BZRZPZK27Q6GPJ4IBYXNZK
-#\\\|JCFSBAZC4YZDN6DKIH3ZATHDSOFJAGZW43NA5MCYJEU64E42MQM \ / AMOS7 \ YOURUM ::
-#\[7]Q4BUZYZE6PT2IAMPB6UK6DA7VWUZAYWFTXTR3NGQZQLTJIKEFUBA 7  DATA SIGNATURE ::
+#,,..,,..,...,,,,,,,,,,.,,,.,,.,.,.,,,.,,,,..,..,,...,...,,,.,.,.,.,.,..,,.,,,
+#JDOQ5DUDKO43ZZ2D3W3E7WHJLCH4BRU3RGSDL3JHNHTFNWE2TXETW5B5IDVW2IIODLOVJLMGTTJ5S
+#\\\|L33IRHF4LZ7OPW2CI5RUUK3JFQ3D2BZR6WRHUTDMIV72SQSN3CZ \ / AMOS7 \ YOURUM ::
+#\[7]ODFUBKNXMCTUT4I7P7LBRP4JBPA3OT4WSBRRDFXSGUXW3ZSP7KAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

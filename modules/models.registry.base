@@ -9,41 +9,23 @@ use File::Path qw| make_path |;
 make_path('/var/protocol-7/models') unless -d '/var/protocol-7/models';
 
 # Get registry path
-sub get_registry_path { return '/var/protocol-7/models/registry.json'; }
 
 # Get or load registry (uses $data{models}{registry} for persistence)
-sub get_registry {
-  $data{models} //= {};
-  return $data{models}{registry} if defined $data{models}{registry};
-
-  # Load from disk if not in memory
-  my $loader = <[models.registry.load]>;
-  $data{models}{registry} = $loader->{'load_registry'}->();
-  return $data{models}{registry};
-}
 
 # Save registry to disk
-sub save_registry_internal {
-  my $registry = get_registry();
-  my $saver = <[models.registry.save]>;
-  return $saver->{'save_registry'}->($registry);
-}
 
 # Return helpers interface
 {
-  'get_registry_path' => \&get_registry_path,
-  'get_registry' => \&get_registry,
-  'save_registry_internal' => \&save_registry_internal,
 };
-
-#,,,,.,,.,.,,,..,,.,,,...,.,.,,..,,,.,,.,,..,,..,,...,...,...,,,,,,..,.,,,,,,,
-#REGISTRY_BASE_SIGNATURE_PLACEHOLDER
-#\\\|REGISTRY_BASE_HELPER \ / AMOS7 \ YOURUM ::
-#\[7]REGISTRY_BASE_HASH 7  DATA SIGNATURE ::
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 #,,.,,,,,,.,.,.,,,.,,,,..,,..,.,,,.,,,,,.,,.,,..,,...,..,,..,,,.,,,,,,...,...,
 #N6WABHYNG5FE6ATZ6RS5R5HFY7I2HGZL25UCQPR2ERBVJA4WBL36ZFTVCQ5IP6J36CDC4CQEIBAL6
 #\\\|PMZM6VKUJJ6XGXX2G7IYJFGAAYZ6MVWRZFSBUL2XSXQRYT2P4SN \ / AMOS7 \ YOURUM ::
 #\[7]QFE4JNTSIRW4RJBHYOGUUGZCFYPTRO6SR5JBUDCGN7M5JQO3BQAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,,,,...,,.,,...,,.,,...,.,,,...,...,..,,,,.,...,...,...,...,,,,,..,,,.,,.,.,
+#HGY37ATMQJOVYPX3LGP3LCSEEQTS2K4V23DQ7CAWS3HSY3EI4E4SNZBJJRONHI2ZZF26XDKI6QPPW
+#\\\|QWR7NIAYVTG4AIQ3XSIS44O4E57NF4ENJHHPYK4F2FBTNP2LJCC \ / AMOS7 \ YOURUM ::
+#\[7]NYYL4DLRJRPI6BVMYBDJOTC5FYY7RRQUREEB3SDSDG4OWWUBP6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

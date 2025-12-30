@@ -8,15 +8,15 @@
 
 use JSON::PP;
 
+my $cmd = shift @ARG;
 my ($model_amos, $context) = @ARG;
 
 if (!$model_amos) {
   return { 'mode' => qw| size |, 'data' => "error: model AMOS required\n" };
 }
 
-# Load registry
-my $registry_funcs = <[models.registry.init]>;
-my $model_entry = $registry_funcs->{get_model_entry}->($model_amos);
+# Load registry - call extracted module directly
+my $model_entry = <[models.registry.get_entry.get_model_entry]>->($model_amos);
 
 if ($model_entry->{not_found}) {
   return { 'mode' => qw| size |, 'data' => "error: model not found: $model_amos\n" };
@@ -66,8 +66,8 @@ if ($context) {
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,..,,,,,,.,,...,.,.,,.,,,,.,.,.,,,,,..,,,..,..,,...,...,,.,,,,,,.,.,...,,,.,
-#PGMZFCULILJVVATULAIJ5VS4ILUPMFURYTM72M6NY6WEXLS4QVUEHIFE5S3XJBJWCTCB3GV2ZCHIY
-#\\\|UUKSO7O2PC54DHEFWHA6N5DDPBQFZTMAFEX4NH2GYPNZ7MKE766 \ / AMOS7 \ YOURUM ::
-#\[7]VJXBDO2KNGOSVEQCQLU3PZBTE76HBQ6TCX2VJX7VPH3GKOEPMICY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,,,,,.,,,.,,..,,.,,,,.,,.,,,.,,,..,,...,...,,,.,,,.,.,,,.,.,,,,,
+#NSBTFCZVIRVGW5Z7J5VEFHV22MVVH3FSX4BUHF52G5NEJGNT35D2JDALMEBSYSP66VZLKG6KWE4NY
+#\\\|QZZ2L42WNHNR6F2ZZ4O333FZ5WN2GUARNHHJG7DEOKGGWYWEZHC \ / AMOS7 \ YOURUM ::
+#\[7]3F3XHH2RMUDYI5CP5CSX2S2QNDUIXTM5MZOEXUM5Y2DEM72CC4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
