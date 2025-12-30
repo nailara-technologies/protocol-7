@@ -23,10 +23,10 @@ say "$blacklight .:[ ${TRUE_blue}WORKFLOW OVERVIEW${blacklight} ]:.$reset";
 say '';
 
 ## Load suggestions configuration ##
-<[workflow.load_suggestions]>->();
+<[workflow.load_suggestions]>;
 
 ## Check dependencies ##
-my $dep_status = <[workflow.check_dependencies]>->();
+my $dep_status = <[workflow.check_dependencies]>;
 
 ## Get git context ##
 my $branch = `git branch --show-current 2>/dev/null`;
@@ -90,7 +90,7 @@ say "${blacklight}├─[ ${neon_green}CURRENT TASKS${blacklight} ]$reset";
 say "${blacklight}│$reset";
 
 ## Get todo stats if available ##
-my $todo_stats = eval { <[workflow.get_todo_stats]>->() };
+my $todo_stats = eval { <[workflow.get_todo_stats]> };
 if ( $todo_stats && ref $todo_stats eq 'HASH' ) {
     my $total       = $todo_stats->{total}       // 0;
     my $open        = $todo_stats->{open}        // 0;
@@ -109,7 +109,7 @@ if ( $todo_stats && ref $todo_stats eq 'HASH' ) {
 }
 
 ## Get bug stats if available ##
-my $bugs = eval { <[workflow.aggregate_bugs]>->() };
+my $bugs = eval { <[workflow.aggregate_bugs]> };
 if ( $bugs && ref $bugs eq 'ARRAY' && @$bugs ) {
     my $bug_count = scalar @$bugs;
     say "${blacklight}│$reset  Bugs: ${neon_red}$bug_count open$reset";
@@ -253,8 +253,8 @@ say '';
 
 return FALSE;
 
-#,,,,,,.,,.,.,,,,,,..,...,...,...,,.,,.,.,.,,,..,,...,..,,..,,,.,,.,,,.,.,,.,,
-#XCOFAGGJNEA4JWTIQDF5LOT6IDRGGHYKRBTHQYE3XT2HKI3NMPIG2BJIXGBDFE6LMFAFW6L5BQQGM
-#\\\|4HXBD2DKH7Q43CYGBGJ5SGARP7DAGHF6J52QEH5AZ5FR34PUQXC \ / AMOS7 \ YOURUM ::
-#\[7]ASF26LBP7TVWYCA3QQINZYXLU6SNLMLM4VBGLJR5YBO6H6ZNU6CY 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,.,,.,.,,..,,.,,...,,.,,.,.,,,.,..,,...,.,.,...,.,.,,,.,,,.,,,,,
+#D5LO2WFHONKFXOIVEQJGEK6C5SDZ6ZMBUYNAJG7SMW3YWZJNVEHKK6K6RMOMNZDCY4IUYP7XVXDXY
+#\\\|2Y2ZFMWVX3NKBNRFQVMAYE2JZILUX2GDVJ4U5O522IVXXKBCLUY \ / AMOS7 \ YOURUM ::
+#\[7]WTYANP6NTUG5OFYV7AYAEDWJE4IXQUDVGO6C7IFJNSNG5FJVCSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

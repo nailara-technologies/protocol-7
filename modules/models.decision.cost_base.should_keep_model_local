@@ -1,11 +1,17 @@
 ## [:< ##
 
 # name  = models.decision.cost_base.should_keep_model_local
+# descr = Determine if model should be kept locally based on usage
 
-0;
+my ($model_entry, $context) = @ARG;
 
-#,,.,,,.,,..,,.,,,,.,,.,.,.,.,,,,,,,,,.,,,,.,,..,,...,...,.,,,...,.,.,...,,,.,
-#RNX54QFL5GKMPHZ77AMUK6KOPBKWLERSETGEZ45HA4VDYRUAKEQQYUPLASK3QBRPOBOS7R4F6DM5S
-#\\\|VXK7LCHMRJAU2YA5SSMBPEVXWCHEVIRDMPDMHPLCDQWSXKF4T4L \ / AMOS7 \ YOURUM ::
-#\[7]ELSOWA3N5NBE7I4GC3XXUTUJDRE4H2RFYGITPLWQTDOM7EGHLYBI 7  DATA SIGNATURE ::
+return 0 unless $model_entry && ref($model_entry) eq 'HASH';
+
+my $access_freq = <[models.decision.cost_base.estimate_usage_frequency]>->($model_entry, $context);
+return $access_freq->{per_month} > 10;  # Keep local if used >10x/month
+
+#,,.,,,,.,,,.,...,,,.,.,,,...,,..,.,,,...,,,.,..,,...,...,,.,,,..,...,..,,...,
+#HROSAJSXAMGHRFPCAFOR2EXLHGU674KXJ4EOWAVCMUPFOTJ7PPGMD5XJPJW7ZKXGG3V7DGRO76ZVY
+#\\\|R7PJFZR2DFDGQRHA54IS25FYUAGQNCRBDI2FLPCBDGEURYJCGRV \ / AMOS7 \ YOURUM ::
+#\[7]KVTTV54P6T56ND6QX2FLQTJHQR2KMLRDE24LTVZA3NG4HURWEQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

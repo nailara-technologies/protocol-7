@@ -1,11 +1,31 @@
 ## [:< ##
 
 # name  = models.decision.recommendation_base.generate_reasoning
+# descr = Generate human-readable reasoning for model recommendation
 
-0;
+my ($model, $decision) = @ARG;
 
-#,,,,,,,,,,,.,,,,,,,.,,,,,,,.,,..,,.,,,,,,,,.,..,,...,...,,,,,,,.,,..,.,.,,..,
-#LY3SGM5RGZEPIYGUWDVB7R3UP54ILZPLJPRB7FLPOLLDHP3LKLVLOAJFIWKZXQLBC2PEJAVMYS3AS
-#\\\|Y5PB562773NABVCTA375IAN5RNZLIQG5LEZC6AHUSYWK524FYJV \ / AMOS7 \ YOURUM ::
-#\[7]A5BKIZOEF4VQNE3Q3ECMDCHI5HRO23AJHOWOYR4A4XDNERHPOCBQ 7  DATA SIGNATURE ::
+return '' unless $model && ref($model) eq 'HASH';
+
+my @reasons;
+
+push @reasons, "Model: " . ($model->{metadata}->{name} // 'Unknown');
+push @reasons, "Success rate: " . ($model->{statistics}->{success_rate} // 0) . "%";
+
+if ($model->{presence_decision}->{currently_present}) {
+  push @reasons, "Status: Available locally";
+} else {
+  push @reasons, "Status: Available via remote fetch";
+}
+
+if ($decision->{reason}) {
+  push @reasons, "Reason: " . $decision->{reason};
+}
+
+return join("\n", @reasons);
+
+#,,..,,..,.,,,,..,.,,,,,,,,..,,..,.,,,.,.,...,..,,...,...,..,,.,.,.,.,...,..,,
+#XYQDFYW53XARXA7F5CHNQ6JFH4DPLLCLR4E2UJHPWHMTB5AE3NR4HTBUQ6VXCD7M5YWOMRTJ5QCBS
+#\\\|WJO25OVSLDU3FYS45GCT4BWVIN7N4XTBZJV3RK57SZFBSDKWPZS \ / AMOS7 \ YOURUM ::
+#\[7]X27JFNRS2IJ44UIACR3XKYQRAYSFKAVGOO33XOY75FCSOL22AGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

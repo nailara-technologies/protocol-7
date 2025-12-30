@@ -2,10 +2,12 @@
 
 # name  = models.statistics.invocation_tracking.cleanup_old_logs
 
-0;
+my $cutoff = time() - (90 * 86400); 
+@{$data{models}{operation_log}} = grep { $_->{timestamp} > $cutoff } @{$data{models}{operation_log} // []}; 
+return 1;
 
-#,,..,.,.,,.,,,,.,...,,,,,.,.,,,.,...,.,.,.,.,..,,...,...,..,,,,,,,.,,,,,,...,
-#J7V46UIWYE3DFSJNYRA5XXMBQM4C4JEAKKW7VNBPVVXPIO55HGQTO5O4RMTEW6NJID2GKLQ7SOEH6
-#\\\|B744SBRYRHH5WPFWXD2WTI2AWEUYREAZPSKXF6KTZNFEQFYHMEA \ / AMOS7 \ YOURUM ::
-#\[7]3MS5XKXAWNZPWDCUNIEIHKWC7U2JKDO7YAJMQUAA5ZB5AXMN32DQ 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,..,,,,,,.,,,..,,.,,,,.,..,,,.,,..,,...,...,...,,.,,,..,,.,,..,,
+#HG46GBRQV52SZIGG5NAQOCOIBEOTTPWVE45JLG6O4MSSTZACOTJ2OQ42VJFWURW7SK6U3JNLLEZJK
+#\\\|CQBR4W3IYH5DYWCNGST7SL6JD6WZ3KCWOFYS26HE2KXQ4KYP2X4 \ / AMOS7 \ YOURUM ::
+#\[7]BAEPHH55NOWWMZ3ALAI4RHFJLAXO4VKAQ5VXXV5LNUXOQ5COL2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,11 +1,17 @@
 ## [:< ##
 
 # name  = models.registry.list_by_context.list_models_by_context
+# descr = List models filtered by context
 
-0;
+my ($context) = @ARG;
 
-#,,..,,,,,,..,.,.,,..,..,,,,.,,.,,,..,.,,,,,.,..,,...,...,.,,,,,.,,..,.,,,,.,,
-#F3KXHDXR6ZWTO6UQI34KF5YLQ4PUQIXZTIOHVGSG4WX2GP6CDUYASXDN6E4O24FYJE3J2M75H3MDI
-#\\\|XU4HRCX36I3EWQM2VHWRQNBNBWA2URIZVJBSM2MSYI3YA33LH3F \ / AMOS7 \ YOURUM ::
-#\[7]VZRI2NIXKNBHNECYXCUMGQJ7ASQUE2RN4POPB2R33R6G3CC72MDY 7  DATA SIGNATURE ::
+my $all_models = <[models.registry.list_all.list_all_models]>;
+my $context_matches = <[models.decision.recommendation_base.find_models_for_context]>->($all_models, $context);
+
+return $context_matches // [];
+
+#,,.,,,.,,..,,,.,,.,,,.,,,..,,..,,,..,.,.,.,.,..,,...,...,..,,.,,,.,.,,,,,..,,
+#VGUDWKWYAF3BS2MJVQZMIM7TSCH7SJKPLLX6R42DYLSD53FTQK7JZI2M4NN4UEXJWFI4VJK77XIPC
+#\\\|C3D5LDZCP2B7SBQ5O7R4P7KLIJ7JMVCVRATB42HYMYRL4ZAZU35 \ / AMOS7 \ YOURUM ::
+#\[7]IHNLSCAKAIYNKXMNVAR5I5LJ7YQB3L5WGBRPZD72TTPZJES77UBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

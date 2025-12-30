@@ -6,7 +6,7 @@
 use JSON::PP;
 use Fcntl qw| :flock |;
 
-my $path = <[models.registry.base.get_registry_path]>->();
+my $path = <[models.registry.base.get_registry_path]>;
 if (-f $path) {
   open my $fh, '<', $path or goto EMPTY;
   flock($fh, 1);  # LOCK_SH
@@ -19,10 +19,10 @@ if (-f $path) {
 }
 
 EMPTY:
-return <[models.registry.empty.create_empty_registry]>->();
+return <[models.registry.empty.create_empty_registry]>;
 
-#,,,,,...,,..,,,.,.,.,.,.,,,,,..,,.,.,,..,..,,..,,...,...,.,.,,.,,..,,,..,,..,
-#KEG5KHTPNFZ5O2BQLJRXGJGZQ4XTERAHNSE7HE4UEK2RSXV4U3M4YHW5WDSQAHC7HII6PQVACRHFE
-#\\\|KRXZZDWGUKIINDX44B2BFAMWGD3CTTXJYOGRPX6DPWTZICPHSKS \ / AMOS7 \ YOURUM ::
-#\[7]VD63OVNK4J6YQ32MZNGLQYVG66LDFHVZ7NOSL4HCQKRHE3XFYWCA 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,.,,,,,,,.,,,,,,,,,,,..,,...,.,,,..,,...,...,,..,..,,,.,,.,,,.,,,
+#XJCBASVZLOKNU2X4K3HBUTUO2XGY7F2TAYYULDHSFTUCD4IFJRKOQZDFCU5A6LDYWEODIMZDELYEI
+#\\\|KENABEWUX6XEZXPF32DAYYADC5YJZ3QQKDJRNE6D4CFHHF34ANN \ / AMOS7 \ YOURUM ::
+#\[7]UNEP2U5BRRAULEUDWAUAFP7DPTPWZF2CHHH2TUX64CLVR5JOSYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

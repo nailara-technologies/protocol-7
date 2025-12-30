@@ -1,11 +1,27 @@
 ## [:< ##
 
 # name  = models.registry.find_alternative.find_best_alternative
+# descr = Find best alternative model if primary is unavailable
 
-0;
+my ($model_amos, $context) = @ARG;
 
-#,,,,,,.,,,..,...,,..,,,,,,,,,,,.,.,.,,,.,,,,,..,,...,...,..,,.,.,,..,,,,,,,,,
-#MZNSTFXJW6K35FBOPQ7HHDWS622QT52GDOAAXQLNN6WSXIG5ZEMYRHWQFTH7NZNGJUIFOI3RHI2SW
-#\\\|YRBQMX6FWY7JSUA6ZVKB6RJYXAFH5M7E7EJXAIW4TA624H6B2FZ \ / AMOS7 \ YOURUM ::
-#\[7]S7CCQOF6PDRF2A7UKA5PP3AVD5P44ODI2EZYQKX4CHWNCXARJ4CA 7  DATA SIGNATURE ::
+my $all_models = <[models.registry.list_all.list_all_models]>;
+return {} unless $all_models && @$all_models;
+
+my $current = <[models.registry.get_entry.get_model_entry]>->($model_amos);
+my $current_cat = $current->{metadata}->{category} // '';
+
+# Find alternatives in same category
+my @alternatives = grep {
+  $_->{metadata}->{category} eq $current_cat &&
+  $_->{amos_checksum} ne $model_amos
+} @$all_models;
+
+# Return best by success rate
+return (sort { $b->{statistics}->{success_rate} <=> $a->{statistics}->{success_rate} } @alternatives)[0] // {};
+
+#,,,.,.,,,.,,,,.,,,..,...,.,.,,,,,..,,.,,,,,.,..,,...,...,..,,...,.,.,..,,,..,
+#IGNHDHQZNWXEM4L6B2CRTS23MED3FUR7ZUJ377NCXM5VRBOL7EG32WBLXTMFWEGHFJI5VNIKJCZVI
+#\\\|HJA5YNDIFJK6D2HDBMKY7Q7MPYHNEBVBAYF3GJ355TEDAV7FR3I \ / AMOS7 \ YOURUM ::
+#\[7]TKBA64ILLCY74IK2CQITJU7IJZMHSY6FEZPUHIBCIYQ66LLF4MAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

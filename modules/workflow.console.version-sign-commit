@@ -52,7 +52,7 @@ my $sig_key_name  = qw| proto-7.sourcecode |;
 my $test_key_name = qw| test-proto7-sourcecode |;
 
 # Attempt to load user's base key if not already loaded
-my $base_key_name = <[crypt.C25519.key_vars]>->()->{'key_name'};
+my $base_key_name = <[crypt.C25519.key_vars]>->{'key_name'};
 if ( $base_key_name && !exists $keys{'C25519'}{$base_key_name} ) {
     if ( <[crypt.C25519.key_exists]>->($base_key_name) ) {
         <[crypt.C25519.load_keypair]>->($base_key_name);
@@ -346,8 +346,8 @@ say '';
 
 return FALSE;
 
-#,,.,,.,.,,,,,..,,..,,,.,,,..,,,,,..,,.,,,,.,,..,,...,.,.,,.,,,.,,,,,,...,,,,,
-#NHKJM44GDUHSFXSBGMXQ4FM5UZWG2WXWU32GLJ2QZPT2ZFDZL3RTR5GVA4FS5GIUYE6IWVHJUCEFI
-#\\\|N3M25STDFWEYX5LLDRQZEEGUP75MR4U5U5YC42GNEZ77RFLWELH \ / AMOS7 \ YOURUM ::
-#\[7]3XICFSLE6E24COSMVXXNRWGCWNCB2I4K2DI4IRFB6YR25N3262BI 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,,,.,,,,,.,.,,,.,,,,,.,...,.,.,..,,...,...,...,...,,..,..,,,..,
+#TTPSD65YXSW3KPZAA6PGARZQWLI4GYKZB2YZATJYGQJAU3BM3FRNCTCUTSIVXY4LT7RZYJOEYIHP4
+#\\\|3O3WY7R5VJN3FZBPTLQBRIZCHV6WKQTSIX3F5D6XUHVOZH3KP2Q \ / AMOS7 \ YOURUM ::
+#\[7]66ARV2ZPBCCNTH5Z56ILT62PJ5J7MDGWGLSC6RLE3WJ76Z2NMGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

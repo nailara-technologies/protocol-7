@@ -12,7 +12,7 @@ my $cert_info = $msg->{cert_info};
 
 ## Initialize ACME protocol if needed
 unless ( <letsencr.child.acme_client> {account_key} ) {
-    my $dir_info = <[letsencr.child.fetch_acme_directory]>->();
+    my $dir_info = <[letsencr.child.fetch_acme_directory]>;
     unless ($dir_info) {
         <[letsencr.child.send_to_parent]>->(
             {   command    => 'renewal_failed',
@@ -25,13 +25,13 @@ unless ( <letsencr.child.acme_client> {account_key} ) {
     }
 
     ## Load or generate account key
-    unless ( <[letsencr.child.load_account_key]>->() ) {
-        <[letsencr.child.generate_account_key]>->();
+    unless ( <[letsencr.child.load_account_key]> ) {
+        <[letsencr.child.generate_account_key]>;
     }
 
     ## Register account if needed
     unless ( <letsencr.child.acme_client> {account_url} ) {
-        my $account = <[letsencr.child.acme_register_account]>->();
+        my $account = <[letsencr.child.acme_register_account]>;
         unless ($account) {
             <[letsencr.child.send_to_parent]>->(
                 {   command    => 'renewal_failed',
@@ -145,7 +145,7 @@ unless ($csr_info) {
 }
 
 ## Finalize order and download certificate
-my $cert_result = <[letsencr.child.acme_finalize_order]>->();
+my $cert_result = <[letsencr.child.acme_finalize_order]>;
 unless ($cert_result) {
     <[letsencr.child.send_to_parent]>->(
         {   command    => 'renewal_failed',
@@ -175,8 +175,8 @@ unless ($cert_result) {
     }
 );
 
-#,,,,,,..,.,.,,,,,.,,,.,,,...,.,,,...,...,,..,..,,...,..,,,,.,.,,,..,,..,,...,
-#EYU2BLOLYUFZ4IUARVYSQOFUSUQFNHVIXFUEYZEJFVRCY3LR332Y3MJSLPD5K4WNSOXEXTRZ2RPKW
-#\\\|REIBW3NWMXU3XNVNN3XIGBDCRMEZ4JCASVXIES7RBYCFJOICPSE \ / AMOS7 \ YOURUM ::
-#\[7]QRUPVKANAN6DVUYF2ABDLTNYUZFORWHPVVGV7ZKITNKOUI3TNMCQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,..,..,,...,,..,,,,,,..,,,,,...,..,,...,..,,..,,,,,,.,,,,.,,,.,,
+#BB7MSSFQR6KZ3RHYF2ND6B6HKZODB5ZG4L423UFS6TIQA65TB5BX33W3RD552IQ2SZKWPUNZPPJZO
+#\\\|A6FUPJOD6LZ2RF5KYOYRC4EVXPZFYUJV5WLNVSNZ6BISCGJQGQZ \ / AMOS7 \ YOURUM ::
+#\[7]KIDNW4SO3TSJK7PNFQ7R2QILHYIZ6OHMAFQN6CMBYF4GCLKJNWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

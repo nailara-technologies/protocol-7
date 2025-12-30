@@ -21,7 +21,7 @@ unless ( <letsencr.child.acme_client> {account_url} ) {
 }
 
 ## Get fresh nonce
-my $nonce = <[letsencr.child.get_fresh_nonce]>->();
+my $nonce = <[letsencr.child.get_fresh_nonce]>;
 unless ($nonce) {
     <[base.log]>->( 1, 'error: failed to get fresh nonce' );
     return undef;
@@ -105,8 +105,8 @@ return {
     finalize_url   => $order_data->{finalize},
 };
 
-#,,,.,,,.,..,,..,,...,,,.,..,,,,,,,,.,..,,...,..,,...,...,...,...,.,.,...,,.,,
-#SE5C2GDDDMVBBLGABEUHO4EQ2BXEZQLDM3RLEGU5HFJYIX2HLTUD5YEPGOEPQWIGF5OF4L2HMCR5E
-#\\\|4A5BRQ5EJIEZ4G4HBIHJNGGESMKJ3G35ZQGMKXBYTUCEGXIGWDP \ / AMOS7 \ YOURUM ::
-#\[7]BF2XQF6EFXQEQIEXBED56SVDNBCFMSNNIARBL2UXYXMPDDSWVQAY 7  DATA SIGNATURE ::
+#,,..,...,...,,,.,,..,,,.,...,..,,.,.,.,,,...,..,,...,...,.,.,.,.,,..,,..,,..,
+#2Y2OQZELOSJYNCQ3YPRKJH75TBJEARS6POGVK35AS26OOPC4YX2Z2D465KOODHMEPKPP6YFTT5SYY
+#\\\|7TPPG3IF5AFFTTH3JKVW2WXNDKF4R3GJHM5IC6MGEHBCUGWGDV7 \ / AMOS7 \ YOURUM ::
+#\[7]JD5KVCUMVQ3NELUL3HFBNVH7MJ4HR3JUOCVJP72L6YH4YJ367CBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

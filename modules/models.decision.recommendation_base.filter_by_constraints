@@ -1,11 +1,35 @@
 ## [:< ##
 
 # name  = models.decision.recommendation_base.filter_by_constraints
+# descr = Filter models by constraint criteria
 
-0;
+my ($models, $constraints) = @ARG;
 
-#,,.,,..,,.,.,,.,,...,.,,,.,.,,.,,,,.,,.,,...,..,,...,...,.,.,,,,,,,.,,.,,,.,,
-#CPT7VD3P3STDPMKJOQIIMV54K4DG4K5COMADKDTC4HIKCGXQ4SLQPSOMMMFHB24XMS352YY2FSLEM
-#\\\|7X4WE6KTBWANH4QQXEAIWCFDVSHHYABYTGVFQ7JEBNZO73DPAFA \ / AMOS7 \ YOURUM ::
-#\[7]FG7RKLNLAV6VJEXJZ3HF55IHTZAN6YBKQHXOR44S7U6VQR5HN6DA 7  DATA SIGNATURE ::
+return [] unless $models && ref($models) eq 'ARRAY';
+
+my @filtered = grep {
+  my $model = $_;
+  my $pass = 1;
+
+  # Check capability requirements
+  if ($constraints->{required_capability}) {
+    my $caps = $model->{capabilities} // {};
+    $pass = 0 unless $caps->{$constraints->{required_capability}};
+  }
+
+  # Check size constraints
+  if ($constraints->{max_size_gb}) {
+    my $size = $model->{resource_profile}->{storage}->{size_gb} // 0;
+    $pass = 0 if $size > $constraints->{max_size_gb};
+  }
+
+  $pass;
+} @$models;
+
+return \@filtered;
+
+#,,..,..,,...,.,,,,,.,.,,,,,,,,,.,,.,,..,,...,..,,...,...,...,,,,,,..,..,,,..,
+#4ICYED4NWFD2T75IOMLIY5TCWJEIORF7IVYZDOAPBYJEYYCDAEVBWGAN7E623OEWXTZY3TJTB7SIM
+#\\\|Y5LVMHJ4QWURZB5AELWL2IE363KPYDEEEX2EAWHDMW57O2J4PBJ \ / AMOS7 \ YOURUM ::
+#\[7]SMDG4YJYFTUIFKF6YW7PZVM5K7B6UELZU7H4LNXTBSNQUZH7TCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

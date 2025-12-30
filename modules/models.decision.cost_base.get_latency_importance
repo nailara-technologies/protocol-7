@@ -1,11 +1,22 @@
 ## [:< ##
 
 # name  = models.decision.cost_base.get_latency_importance
+# descr = Get latency importance score for a context (1-10)
 
-0;
+my ($model_entry, $context) = @ARG;
 
-#,,..,.,,,.,,,...,..,,,,.,.,.,...,,,.,,,,,,.,,..,,...,...,,.,,,,,,..,,.,,,..,,
-#BU72EGFQFRNKP3YVUINOLOSVLKUYISVMXPLQ4EJADCZC3JUL5QLTQPHRVGDJCXLUBMXTJK2L2TYTS
-#\\\|DQIILQU33YXJZSFOC4VVTEXKJH5K7TUZSPQJIVOQWXADLXHVFGE \ / AMOS7 \ YOURUM ::
-#\[7]VTHHVCT25FVKEN2PNFZUM6GAVNHCXIUOK5ZRMXMMA4FKQPI4ZMBQ 7  DATA SIGNATURE ::
+my $latency_scores = {
+  real_time => 10,
+  interactive => 8,
+  streaming => 9,
+  batch => 2,
+  analysis => 3
+};
+
+return $latency_scores->{$context} // 5;
+
+#,,.,,,,.,,,.,.,.,,,.,...,,,.,..,,,.,,...,,.,,..,,...,..,,.,,,.,.,,.,,.,,,,,,,
+#2ARMUSAWDGX7RS4RKBJPYFHNA2LT3CITERMWD3QECD32RI2TGUGED5LPWDBDOIHJJ3F5EKV4VADBI
+#\\\|573L3IQLACHR3PRSHLANMZCYQZ4ZWOCJWJ6OCQI72PWU5YGFCYE \ / AMOS7 \ YOURUM ::
+#\[7]NVGM4QDYFUZVJHOFI3DUCRCH6GZ2LT3V4YOBFSARMIP35CRF2CCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,7 +13,7 @@ return undef unless $challenge_url && $token;
 <[base.log]>->( 2, "responding to challenge: $token" );
 
 ## Get fresh nonce
-my $nonce = <[letsencr.child.get_fresh_nonce]>->();
+my $nonce = <[letsencr.child.get_fresh_nonce]>;
 unless ($nonce) {
     <[base.log]>->( 1, 'error: failed to get fresh nonce' );
     return undef;
@@ -63,8 +63,8 @@ return {
     processing => $response->{data}{status} eq 'processing',
 };
 
-#,,,,,.,,,.,,,,..,..,,,,.,.,.,.,,,.,,,.,,,.,.,..,,...,..,,.,,,,,,,.,,,,.,,.,,,
-#QUKJC5MZXKRKKTBSPNB675IUQF2NGXOOPCIRAWINWKWETF66UQFEJPZMSJMOXRKL324RC2LMINH4O
-#\\\|2QB73XU37CEJYGTD74N5RPM3I55UGHXRLDGFIHZQUOKHSYDFEBZ \ / AMOS7 \ YOURUM ::
-#\[7]N74S5YT53MF322FEGYM2Q5PWQVUS6P5RSZLFBGU4D7XGSTMX6YDI 7  DATA SIGNATURE ::
+#,,.,,.,,,...,.,.,,,.,,.,,,,,,..,,.,.,..,,.,,,..,,...,...,,..,,.,,..,,,,,,,..,
+#VA64HD46MSOZMDIKG2JBN2A4CCW6NIN3ES4QGUAZEFQ6PBQ5DORZ5KBT6KZQRYQLI4EV6TXHXQAJE
+#\\\|76EDRMJMNLSTN454ZN7S3WS2TH6IE4DAEHKNLOV2GSEE5VU34XT \ / AMOS7 \ YOURUM ::
+#\[7]BJQD27ISDBEWILSSAMTZVVGLSQAECHWRRLLZI6SMP5ILJ3XPBQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
