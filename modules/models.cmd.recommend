@@ -6,63 +6,86 @@
 use JSON::PP;
 
 my $cmd = shift @ARG;
-my ($context, $constraints_json) = @ARG;
+my ( $context, $constraints_json ) = @ARG;
 
-if (!$context) {
-  return { 'mode' => qw| size |, 'data' => "error: context name required\n" };
+if ( !$context ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "error: context name required\n"
+    };
 }
 
 # Parse constraints if provided
 my $constraints = {};
 if ($constraints_json) {
-  eval {
-    $constraints = decode_json($constraints_json);
-  };
-  if ($@) {
-    return { 'mode' => qw| size |, 'data' => "error: invalid constraints JSON: $@\n" };
-  }
+    eval { $constraints = decode_json($constraints_json); };
+    if ($@) {
+        return {
+            'mode' => qw| size |,
+            'data' => "error: invalid constraints JSON: $@\n"
+        };
+    }
 }
 
 # Load registry - call extracted module directly
 my $all_models = <[models.registry.list_all.list_all_models]>;
 
 # Get recommendations - call extracted module directly
-my $recommendations = <[models.decision.recommendation_engine.get_model_recommendations]>->(
-  $context,
-  $constraints,
-  $all_models
-);
+my $recommendations
+    = <[models.decision.recommendation_engine.get_model_recommendations]>->(
+    $context, $constraints, $all_models
+    );
 
 my $reply_str = '';
 $reply_str .= "context: $context\n";
 $reply_str .= "\nbest_choice:\n";
-$reply_str .= "  amos: " . ($recommendations->{best_choice}->{model_amos} // 'unknown') . "\n";
-$reply_str .= "  name: " . ($recommendations->{best_choice}->{name} // 'unknown') . "\n";
-$reply_str .= "  success_rate: " . sprintf('%.2f', $recommendations->{best_choice}->{success_rate} // 0) . "\n";
-$reply_str .= "  margin: " . sprintf('%.1f%%', ($recommendations->{best_choice}->{margin_vs_alt} // 0) * 100) . "\n";
-$reply_str .= "  available_locally: " . ($recommendations->{best_choice}->{available_locally} ? 'yes' : 'no') . "\n";
-$reply_str .= "  initialization_ms: " . ($recommendations->{best_choice}->{initialization_ms} // 0) . "\n";
-$reply_str .= "  reasoning: " . ($recommendations->{best_choice}->{reasoning} // 'none') . "\n";
+$reply_str .= "  amos: "
+    . ( $recommendations->{best_choice}->{model_amos} // 'unknown' ) . "\n";
+$reply_str .= "  name: "
+    . ( $recommendations->{best_choice}->{name} // 'unknown' ) . "\n";
+$reply_str
+    .= "  success_rate: "
+    . sprintf( '%.2f', $recommendations->{best_choice}->{success_rate} // 0 )
+    . "\n";
+$reply_str .= "  margin: "
+    . sprintf( '%.1f%%',
+    ( $recommendations->{best_choice}->{margin_vs_alt} // 0 ) * 100 ) . "\n";
+$reply_str
+    .= "  available_locally: "
+    . ( $recommendations->{best_choice}->{available_locally} ? 'yes' : 'no' )
+    . "\n";
+$reply_str .= "  initialization_ms: "
+    . ( $recommendations->{best_choice}->{initialization_ms} // 0 ) . "\n";
+$reply_str .= "  reasoning: "
+    . ( $recommendations->{best_choice}->{reasoning} // 'none' ) . "\n";
 
-if ($recommendations->{alternatives} && @{$recommendations->{alternatives}}) {
-  $reply_str .= "\nalternatives:\n";
-  foreach my $alt (@{$recommendations->{alternatives}}) {
-    $reply_str .= "  amos: " . ($alt->{model_amos} // 'unknown') . "\n";
-    $reply_str .= "    name: " . ($alt->{name} // 'unknown') . "\n";
-    $reply_str .= "    success_rate: " . sprintf('%.2f', $alt->{success_rate} // 0) . "\n";
-    $reply_str .= "    margin_vs_best: " . sprintf('%.1f%%', ($alt->{margin_vs_alt} // 0) * 100) . "\n";
-    $reply_str .= "    available_locally: " . ($alt->{available_locally} ? 'yes' : 'no') . "\n";
-    $reply_str .= "    reasoning: " . ($alt->{reasoning} // 'none') . "\n";
-    $reply_str .= "\n";
-  }
+if ( $recommendations->{alternatives}
+    && @{ $recommendations->{alternatives} } ) {
+    $reply_str .= "\nalternatives:\n";
+    foreach my $alt ( @{ $recommendations->{alternatives} } ) {
+        $reply_str .= "  amos: " . ( $alt->{model_amos} // 'unknown' ) . "\n";
+        $reply_str .= "    name: " . ( $alt->{name} // 'unknown' ) . "\n";
+        $reply_str .= "    success_rate: "
+            . sprintf( '%.2f', $alt->{success_rate} // 0 ) . "\n";
+        $reply_str
+            .= "    margin_vs_best: "
+            . sprintf( '%.1f%%', ( $alt->{margin_vs_alt} // 0 ) * 100 )
+            . "\n";
+        $reply_str .= "    available_locally: "
+            . ( $alt->{available_locally} ? 'yes' : 'no' ) . "\n";
+        $reply_str
+            .= "    reasoning: " . ( $alt->{reasoning} // 'none' ) . "\n";
+        $reply_str .= "\n";
+    }
 }
 
-$reply_str .= "overall_reasoning: " . ($recommendations->{reasoning} // 'none') . "\n";
+$reply_str .= "overall_reasoning: "
+    . ( $recommendations->{reasoning} // 'none' ) . "\n";
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,,,,.,.,,..,.,,,,..,,,.,,.,,.,,,,.,,,.,,.,.,..,,...,..,,...,,,.,.,.,..,,,,,,
-#7R4SCYFQOWAWIFWCDUQZ2XH2ESZA55RG7HG5XYRNDC3S5ZQ6QLH77UWLB4KM7GBOJKHFIJEFCWYQA
-#\\\|6MKRARGHRXUKL6EBYZZAR2KCXD3FR7TDQ55HYY5ZC5LR4QVYMYC \ / AMOS7 \ YOURUM ::
-#\[7]QSZUF5RZJINDRVWSC7ISHIKTZCWAU4GM74SC4HL6OME75FXCD4DY 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,...,..,,.,.,...,,..,,..,,,,,.,.,..,,...,...,..,,,,,,,..,,.,,...,
+#U74FO47Q5LHQTIKEE6VYRG6O6TQLW7BGYMATDYGY4OBESOFFMAMFAID4N7MY3JHPXK56LRHVJG2V6
+#\\\|VLON2Z6JKBT6QGVJ2TJ6VDNIAUMFKRHAT6M6LXZE63FIBEOQK7G \ / AMOS7 \ YOURUM ::
+#\[7]X75Z2MRFZUMLFK7NNBG77OX5RSX5NOWISF7MU2SKU72G5TDRL2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,12 +9,13 @@ my $start_time = time();
 
 # Log maintenance completion
 my $elapsed = time() - $start_time;
-push @{$data{models}{operation_log} // []}, {
-  timestamp => time(),
-  action => 'maintenance',
-  status => 'completed',
-  details => "maintenance completed in ${elapsed}s",
-};
+push @{ $data{models}{operation_log} // [] },
+    {
+    timestamp => time(),
+    action    => 'maintenance',
+    status    => 'completed',
+    details   => "maintenance completed in ${elapsed}s",
+    };
 
 my $reply_str = '';
 $reply_str .= "maintenance_completed: 1\n";
@@ -23,8 +24,8 @@ $reply_str .= "timestamp: " . time() . "\n";
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,..,.,.,,.,,,,.,...,,,.,..,,,,,,,,,,,,,,,..,..,,...,..,,,,,,,.,,,.,,.,.,,,.,
-#QDRAJIAZ7NJH4HBOPUDR3QQLBKHIHTO5JJOGSZK3XRAD3PMSC3NRC7F5WF6F6RFK7WSDLTBRZWZMA
-#\\\|ICWFGKIPSMUG2SA64QAQRKQ4RQHEFEI7LVFTMSM6G3DMB4XTX7K \ / AMOS7 \ YOURUM ::
-#\[7]RGYBXFAGMQ3PKZBPROUPCYR5N6NUUWLP4Z3FCZXZF2ZEX52Q7OBQ 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,..,...,.,,,,,.,,.,,...,,,.,,..,..,,...,...,.,,,,.,,..,,,,,,.,,,
+#EOJWLXALBQQDYOFQ4X34BVTEGYYD3XCIH5WQZSNECXQMF3BB3HYIV66O3LUQW4CAYIORQ4ELQ4YFK
+#\\\|5AP4SPTI55365ECSEJINZLVFHZCZZI7XGIZ22Y7SZRM24NG4KSP \ / AMOS7 \ YOURUM ::
+#\[7]DQE64AZ5O6KPQO6HYGNUPQCOLJFJSIOTLNCDKFCZGNL27YBHIOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

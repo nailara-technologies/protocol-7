@@ -3,7 +3,7 @@
 # name  = models.decision.cost_base.is_latency_sensitive
 # descr = Check if a model is sensitive to latency based on context and type
 
-my ($model_entry, $context) = @ARG;
+my ( $model_entry, $context ) = @ARG;
 
 return 0 unless $model_entry && ref($model_entry) eq 'HASH';
 
@@ -13,11 +13,12 @@ return 1 if $latency_contexts->{$context};
 
 # Check model metadata for latency-sensitive categories
 my $category = $model_entry->{metadata}->{category} // '';
-my $latency_categories = { vision => 1, multimodal => 1, reasoning => 0, analysis => 0 };
+my $latency_categories
+    = { vision => 1, multimodal => 1, reasoning => 0, analysis => 0 };
 return $latency_categories->{$category} // 0;
 
-#,,,.,,.,,..,,...,.,,,.,.,,,,,,,.,.,,,.,.,.,,,..,,...,...,,.,,...,..,,.,,,,.,,
-#FQ26NXR2QDH4OJC2RMGICDG2WJMHXVRM37EHN67QPMKHU4TS5HNJW4DJIS5KIU7FUVIELQQYPG4JI
-#\\\|IS2G3ERW2VP5OAP5MCF6JQ2ULXKYDZKXFWQKSBK6D3Q6IIQRH5U \ / AMOS7 \ YOURUM ::
-#\[7]SSG7G42EJZJNRF3JDIBXY3WU67XTPB4ZVX2RFT6UTC5WBJGZNCAY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,.,,.,,,,,,,,..,.,,,,,,,..,,...,..,,...,...,,..,,.,,,,.,,.,,,,.,
+#EBFULWPJBFHFE4Y65NDGQDDE7S54FXGHBDFCX6XNADJUPMJID7G6BCFVRTJ2J23UQ7EGAGJWMKX42
+#\\\|4MXVNQGZNKU7YRJPTB7TMBPO4ENE7VQTP2VXEM3S32O5AXZEPLJ \ / AMOS7 \ YOURUM ::
+#\[7]YW6TMUAOMDOEQNJ4H7UKJL3ESUUYGVDWWYGXTIJLYF3OJNBJNIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

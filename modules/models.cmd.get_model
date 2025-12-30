@@ -6,33 +6,46 @@
 my $cmd = shift @ARG;
 my ($model_amos) = @ARG;
 
-if (!$model_amos) {
-  return { 'mode' => qw| size |, 'data' => "error: model AMOS checksum required\n" };
+if ( !$model_amos ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "error: model AMOS checksum required\n"
+    };
 }
 
 # Get model entry - call extracted module directly
-my $model_entry = <[models.registry.get_entry.get_model_entry]>->($model_amos);
+my $model_entry
+    = <[models.registry.get_entry.get_model_entry]>->($model_amos);
 
-if ($model_entry->{not_found}) {
-  return { 'mode' => qw| size |, 'data' => "error: model not found: $model_amos\n" };
+if ( $model_entry->{not_found} ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "error: model not found: $model_amos\n"
+    };
 }
 
 # Resolve through fallback chain - call extracted module directly
-my $resolved = <[models.storage.resolve_model.resolve_model_path]>->($model_amos, $model_entry->{storage_locations});
+my $resolved = <[models.storage.resolve_model.resolve_model_path]>->(
+    $model_amos, $model_entry->{storage_locations}
+);
 
 my $reply_str = '';
 $reply_str .= "model_amos: $model_amos\n";
-$reply_str .= "path: " . ($resolved->{path} // 'not found') . "\n";
-$reply_str .= "tier: " . ($resolved->{tier} // 'unknown') . "\n";
-$reply_str .= "available: " . ($resolved->{available} ? 'yes' : 'no') . "\n";
-$reply_str .= "name: " . ($model_entry->{metadata}->{name} // 'unknown') . "\n";
-$reply_str .= "version: " . ($model_entry->{metadata}->{version} // 'unknown') . "\n";
-$reply_str .= "is_metadata_only: " . (($resolved->{is_metadata_only} // 0) ? 'yes' : 'no') . "\n";
+$reply_str .= "path: " . ( $resolved->{path} // 'not found' ) . "\n";
+$reply_str .= "tier: " . ( $resolved->{tier} // 'unknown' ) . "\n";
+$reply_str
+    .= "available: " . ( $resolved->{available} ? 'yes' : 'no' ) . "\n";
+$reply_str
+    .= "name: " . ( $model_entry->{metadata}->{name} // 'unknown' ) . "\n";
+$reply_str .= "version: "
+    . ( $model_entry->{metadata}->{version} // 'unknown' ) . "\n";
+$reply_str .= "is_metadata_only: "
+    . ( ( $resolved->{is_metadata_only} // 0 ) ? 'yes' : 'no' ) . "\n";
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,.,,,..,,,,,..,,,,,,,..,,.,,..,,,.,,,.,,,..,..,,...,...,..,,.,.,,..,.,,,,,,,
-#AX2KEWGKNANPZXT4BAAREEX45WABRGDTJGW5EDIBGS3REUXL34FAECABCFIPEXC7LRF4DPTNRP7GG
-#\\\|AVUWDE4HWDCTFDN4RPVHGG72YUWUS64KPZ6AXKJDZLLT54EO65R \ / AMOS7 \ YOURUM ::
-#\[7]AST22GLFUREUMPKI2A5BMADJG5Q3244KOG3EYZU5KXJEZYRI4UCQ 7  DATA SIGNATURE ::
+#,,..,...,.,.,,.,,..,,.,.,..,,,..,,.,,.,.,,.,,..,,...,..,,..,,.,,,,,,,..,,,.,,
+#G5AKYIUMBJZHG6I4EZY76XWGHYK3YP2235GICQ7ZQWHZ4CXUFHZENZKIV5HRAEVLCBMOAROTWLM2U
+#\\\|VSHDWEHHPED6DCEY3STYUHLTF35UVKWVLC7G4RAHL4CMF5U6XTO \ / AMOS7 \ YOURUM ::
+#\[7]3FLPHLAIRSYJJRQBJQXYOP2DD6OSOP6HKN6FYABWRMEEIH2MNQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

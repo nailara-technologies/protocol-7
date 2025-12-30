@@ -3,18 +3,18 @@
 # name  = models.registry.update_entry.update_model_entry
 # descr = Update a model entry in the registry
 
-my ($model_amos, $updates) = @ARG;
+my ( $model_amos, $updates ) = @ARG;
 
 return 0 unless $model_amos && $updates;
 
 my $registry = <[models.registry.base.get_registry]>;
-my $entry = $registry->{models}->{$model_amos};
+my $entry    = $registry->{models}->{$model_amos};
 
 return 0 unless $entry;
 
 # Update allowed fields
-foreach my $key (keys %$updates) {
-  $entry->{$key} = $updates->{$key};
+foreach my $key ( keys %$updates ) {
+    $entry->{$key} = $updates->{$key};
 }
 
 $entry->{updated_at} = time();
@@ -24,8 +24,8 @@ $entry->{updated_at} = time();
 
 return 1;
 
-#,,.,,,.,,.,.,,..,,,,,,,.,...,...,,,,,,,,,,.,,..,,...,...,...,..,,,.,,..,,,,,,
-#4P4VJGJM34EQ5H2CB6ZGFRLVDV3YUVAD7PYTWZZNMSLWNYUJEXC7JDUQJ6CUXQ4A6N4IDLRYNIOVW
-#\\\|KCNPWISVJPVW3BTM2AUJCMSMRAX5JLQCETCFR73CVXYDFIF73GG \ / AMOS7 \ YOURUM ::
-#\[7]7DFMEXCHXJ23K5RLFMUO3L4GHLGEOEH4ZQGEFX6G6SB42JJPZQAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,.,,,,.,,,,,,,,.,,.,,,,,,..,,,,,,..,,...,...,,,.,..,,.,,,.,.,..,,
+#H6AHGPLWZ6K3C5S67D5LI6F5WKRCVSQ5GGUFTNSZK5OMOY6TZ7EARTZMU7FHO444GHHZ5CBLNSOEA
+#\\\|XYUW22WVNHOCOO7T4OG4HWS3HQLONNQBYQJ4E5E6PFJMSBCBN2R \ / AMOS7 \ YOURUM ::
+#\[7]P4PNQMRDZGUIZNGYE5QGDXUMQYCPFDCPWNBZJKPV6KUSLC6PNADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

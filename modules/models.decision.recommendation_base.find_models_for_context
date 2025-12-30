@@ -3,31 +3,32 @@
 # name  = models.decision.recommendation_base.find_models_for_context
 # descr = Find models suitable for a specific context
 
-my ($all_models, $context) = @ARG;
+my ( $all_models, $context ) = @ARG;
 
 return [] unless $all_models && ref($all_models) eq 'ARRAY';
 
 # Context to category mapping
 my %context_categories = (
-  real_time => [qw| vision real_time |],
-  interactive => [qw| vision reasoning |],
-  streaming => [qw| streaming video |],
-  batch => [qw| analysis reasoning |],
-  default => [qw| general |],
+    real_time   => [qw| vision real_time |],
+    interactive => [qw| vision reasoning |],
+    streaming   => [qw| streaming video |],
+    batch       => [qw| analysis reasoning |],
+    default     => [qw| general |],
 );
 
-my $target_categories = $context_categories{$context} // $context_categories{default};
+my $target_categories = $context_categories{$context}
+    // $context_categories{default};
 
 my @matching = grep {
-  my $model = $_;
-  my $category = $model->{metadata}->{category} // '';
-  grep { $_ eq $category } @$target_categories;
+    my $model    = $_;
+    my $category = $model->{metadata}->{category} // '';
+    grep { $_ eq $category } @$target_categories;
 } @$all_models;
 
 return \@matching;
 
-#,,,.,.,.,...,.,,,,,.,...,,.,,.,,,.,,,..,,,.,,..,,...,...,.,.,,..,.,.,..,,,,,,
-#4S6AGZBKEPK3TPAIVMRPJW2VQZAKZZLOBMN5GRJYXCUVN5O2POSMY3ZFKHE37OEZO43OBCZQB7XRK
-#\\\|7GERJN5XYHLMLS3XISZAMQIW3GLLRI3TGEZK2IWWHSNQSN7HV7Y \ / AMOS7 \ YOURUM ::
-#\[7]4OMH2FVPR6CNTDWP4JHN4OVWV3BZAVZWWZHIUL3SE24KZWXK7YAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,,.,..,,.,.,,..,,,,,,,,,,..,.,,,..,,...,...,,,.,,,,,.,.,,.,,,.,,
+#UD556LSQVDWWTZSOEGJBWQFWNSX7G7SIKAV3WFAIACKWXNVYB3A2ILONZQOUJCZ5TPGL7CAKDK6YW
+#\\\|YY7VEQADXIYBZXRWI3D2EP6TQIPOWOHIXQ2IFI3KX2QNZY52SCI \ / AMOS7 \ YOURUM ::
+#\[7]JZLHM7FAEVUXVUKLT3P5HZHF6D23QBPITBAMAOX7JJD6CKS2TQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
