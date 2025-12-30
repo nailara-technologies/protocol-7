@@ -14,33 +14,71 @@
 <llama-server-vision.log_file>
     = '/var/log/protocol-7/llama-server-vision.log';
 
-# Vision model paths will be fetched from models zenka on first use
-# (deferred to runtime to avoid circular dependency during initialization)
-<llama-server-vision.vision_model_path>  = undef;
-<llama-server-vision.vision_mmproj_path> = undef;
-<llama-server-vision.model_fetch_handler>
-    = 'llama-server-vision.fetch_model_config';
+# Load vision model configuration from centralized models.yaml
+<[base.logs]>->( 1, "[llama-server-vision] Loading vision model config from models.yaml" );
 
-my $fetch_model_config = sub {
-    return if <llama-server-vision.vision_model_path>;    # Already loaded
+<[base.perlmod.autoload]>->(qw| YAML::Tiny |);
 
-    <[base.perlmod.autoload]>->(qw| JSON::PP |);
+my $config_root = $ENV{PROTOCOL_7_CONFIG_ROOT}
+    || '/data/projects/protocol-7/configuration';
+my $config_file = $config_root . '/zenki/models/models.yaml';
 
-    my $result = <[base.protocol-7.command.send.local]>->(
-        {   'command'   => "models.get_model_path",
-            'call_args' => { 'model_id' => 'qwen3-vl-4b-instruct' },
-            'reply'     => {
-                'handler' => 'llama-server-vision.fetch_model_config',
-                'params'  => {}
+my $model_path  = undef;
+my $mmproj_path = undef;
+
+if ( -f $config_file ) {
+    my $yaml_content;
+    {
+        open my $fh, '<', $config_file or do {
+            <[base.log]>->(
+                0, "[llama-server-vision] Cannot read models.yaml: $!"
+            );
+        };
+
+        if ($fh) {
+            local $/;
+            $yaml_content = <$fh>;
+            close $fh;
+
+            my $yaml = YAML::Tiny::Load($yaml_content);
+
+            if ($yaml
+                && exists $yaml->{models}
+                && exists $yaml->{models}->{'qwen3-vl-4b-instruct'} ) {
+                my $model_def = $yaml->{models}->{'qwen3-vl-4b-instruct'};
+                $model_path  = $model_def->{path};
+                $mmproj_path = $model_def->{mmproj};
+            } else {
+                <[base.log]>->(
+                    0,
+                    "[llama-server-vision] Error: qwen3-vl-4b-instruct not found in models.yaml"
+                );
             }
         }
+    }
+} else {
+    <[base.log]>->(
+        0, "[llama-server-vision] Error: models.yaml not found at $config_file"
     );
+}
 
-    return $result;
-};
+if ( $model_path && $mmproj_path && -f $model_path && -f $mmproj_path ) {
+    <llama-server-vision.vision_model_path>  = $model_path;
+    <llama-server-vision.vision_mmproj_path> = $mmproj_path;
 
-# Store the helper for later use
-<llama-server-vision.fetch_model_helper> = $fetch_model_config;
+    <[base.logs]>->(
+        1,
+        "[llama-server-vision] Vision model initialized: %s",
+        $model_path
+    );
+} else {
+    <[base.log]>->(
+        0,
+        "[llama-server-vision] Error: Vision model configuration incomplete or files not found"
+    );
+    <llama-server-vision.vision_model_path>  = undef;
+    <llama-server-vision.vision_mmproj_path> = undef;
+}
 
 <[base.logs]>->( 1, "Vision binary: %s", <llama-server-vision.binary> );
 <[base.logs]>->(
@@ -75,8 +113,8 @@ my $fetch_model_config = sub {
 
 0;    # Return success for module initialization
 
-#,,,.,...,.,,,..,,,.,,,,,,..,,,.,,..,,,,,,,,,,..,,...,...,.,,,.,.,..,,.,,,,.,,
-#PEGP6IAHK66343SDWVUYBQID6YVMM4BAE5TJD2X4DUJWB5WPM3JB32CZIT3E54QNJIEUWXE5PMUK4
-#\\\|2VU2YZ6XERDPFXZSGKDCEADYQIBWOTI5NU52ZROUMJYDNIOXL65 \ / AMOS7 \ YOURUM ::
-#\[7]ULSFWCR37DT5WQ4LFY3E2EVUJNG5SUDYEEW74Z3GVN32V75FSACQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,,,.,,,,,,..,,,,,,..,..,,..,,...,..,,...,..,,.,.,..,,..,,..,,..,,
+#LHL66BR3HBPX67E3OPWVGJW5JAF5C75Z3ZJFXTPSX66RDOYY7RKST2GGRBORUBSJYWAIGOEF2ETL6
+#\\\|Z6N74XKHEKB4VKJ3Y6AGMOUR4WUSGSC5E2ZP4EXRWFT22MJYFQ3 \ / AMOS7 \ YOURUM ::
+#\[7]VXMG4MFVFZVFGM7QJV2UKITOM65M3FURTED2GDKJ6WUGGCYEUQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
