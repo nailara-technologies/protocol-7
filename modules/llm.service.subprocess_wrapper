@@ -56,21 +56,31 @@ my $get_model_config = sub {
 my $query_subprocess = sub {
     my ( $model, $prompt ) = @_;
 
-    my $config = $get_model_config->($model);
-    return {
-        success => FALSE,
-        error   => "Unknown model or unable to fetch config: $model"
-        }
-        unless $config;
+    <[base.log]>->( 1, "[llm.service] query_subprocess: model=%s", $model );
 
-    return {
-        success => FALSE,
-        error   => "Prompt required"
-        }
-        unless defined $prompt && length($prompt) > 0;
+    my $config = $get_model_config->($model);
+    unless ($config) {
+        <[base.log]>->( 0, "[llm.service] Error: Unknown model: %s", $model );
+        return {
+            success => FALSE,
+            error   => "Unknown model or unable to fetch config: $model"
+        };
+    }
+
+    unless ( defined $prompt && length($prompt) > 0 ) {
+        <[base.log]>->( 0, "[llm.service] Error: Prompt required" );
+        return {
+            success => FALSE,
+            error   => "Prompt required"
+        };
+    }
 
     # Verify model file exists
     if ( !-f $config->{model_path} ) {
+        <[base.log]>->(
+            0, "[llm.service] Error: Model file not found: %s",
+            $config->{model_path}
+        );
         return {
             success => FALSE,
             error   => "Model file not found: " . $config->{model_path}
@@ -240,8 +250,8 @@ if ( $cmd eq 'query' ) {
 
 # AMOS7::TEMPLATE::signature_placeholder
 
-#,,..,.,,,,,,,.,,,,,,,,.,,...,,.,,...,...,,,.,..,,...,...,,..,.,,,,,,,.,.,,,.,
-#VJAVCKKWL3Y4HSVIRLXNPSK666V4FSCAZTCNI3TS7ZDX5SG4H3XGFZBVCFSOWEFAKMYOTCSYAXKXI
-#\\\|PYUQF5ZNKKKD37TMMABRWNLEHI6EHKMPTCJXX2NSZ3S4ACWKC6T \ / AMOS7 \ YOURUM ::
-#\[7]JHJRHFDVFO2MR7YWUULDYQW6JPKXYHEHVPISA2IAWJ3JQTFMKSDI 7  DATA SIGNATURE ::
+#,,..,.,.,,..,..,,..,,,.,,,,,,,.,,...,,.,,,..,..,,...,...,,,.,,..,,,.,..,,.,.,
+#2VFEMMDQWJCRFRBXJZKFP2JI5VUCKC6FGY2TW3CWXCJQMYCMJV7J7F6JLRJ3KWXKNYYHETMJIH3UU
+#\\\|J4NBWT4JPWUP2BEWFNSWSCVXIZBEG5J25JL2SVG7GG5YYVMRWY2 \ / AMOS7 \ YOURUM ::
+#\[7]QNOOEBM6FWG62S5I7BMX7CDKIMPDDYBUR5G4NY7WUY262S5WAKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

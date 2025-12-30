@@ -5,6 +5,8 @@
 
 my ($model_alias) = @ARG;
 
+<[base.log]>->( 1, "[coding.routing] get_model_metadata: %s", $model_alias );
+
 <[base.perlmod.autoload]>->(qw| JSON::PP |);
 
 my $response = <[base.protocol-7.command.send.local]>->(
@@ -13,7 +15,8 @@ my $response = <[base.protocol-7.command.send.local]>->(
     }
 );
 
-return undef unless $response && ref($response) eq 'HASH' && $response->{data};
+return undef
+    unless $response && ref($response) eq 'HASH' && $response->{data};
 
 my $model_data;
 eval { $model_data = JSON::PP::decode_json( $response->{data} ); };
@@ -27,8 +30,8 @@ return $model_data;
 #\[7]4YYLVBJ6XVMTMCYAFRGGXHBLVJZQPLWKGX7C4ZVXQRXNHSM6GFXI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,,,,,,..,,..,.,.,.,,,...,...,.,,,,,.,,,,,..,,...,..,,.,.,.,.,,,,,.,,,,,.,
-#FESIQNYEASS46TCXAYSQXVKECNGLMQQ6HBIK44LT7BKAXNPREZKXM3AYSHNA662JMYFYAK4RZSSYI
-#\\\|4HZK2XM4W6NCJSCCIN7M75PQHUSBVWGDYDSZJESXOJA2ETUE2HJ \ / AMOS7 \ YOURUM ::
-#\[7]KHZ3JHH7KCLGEVJZBRLHOJV3XS5SHDPOR45KIJFUQEXHDY3JAWBA 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,,.,..,,..,,,,.,,..,,,,,.,,,,,.,..,,...,...,..,,,,.,,,.,,.,,,..,
+#5SQP5URN3JOPTEIM6NIMS4A7UQTGLRP4FI3AOZLBBWCDITOIGMUJSWC6SCE2EZJX4YN44RDNR4ER4
+#\\\|KKQPXFZL7POMCUAQ2C2LVDGDYFS6TACYPRINHKO4J73CV4Y5DHM \ / AMOS7 \ YOURUM ::
+#\[7]ME5AME733HOFE7BTXRPGREZEYGWJWIXFUQEBPENGT7RLF62522AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

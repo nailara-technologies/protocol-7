@@ -9,6 +9,11 @@ my $type        = $task->{type}                   // 'analysis';
 my $complexity  = $task->{analysis}->{complexity} // 5;
 my $constraints = $task->{request}->{constraints} // [];
 
+<[base.log]>->(
+    1,     "[coding.routing] determine_service: type=%s complexity=%d",
+    $type, $complexity
+);
+
 # Transcription → Whisper (no tokens)
 if ( $type eq 'transcription' ) {
     return {
@@ -33,24 +38,25 @@ if ( $type eq 'image-generation' ) {
 if ( $type eq 'code-generation' ) {
 
     # Check for consensus requirement
-    my $needs_consensus
-        = grep { lc($_) =~ /consensus|verify/ } @$constraints;
+    my $needs_consensus = grep { lc($_) =~ /consensus|verify/ } @$constraints;
 
     if ($needs_consensus) {
         my @models = qw(mathstral-7b-v0.1 qwen2.5-7b-instruct-1m aya-23-8b);
-        my @model_metadata = map { <[coding.routing.get_model_metadata]>->($_) } @models;
+        my @model_metadata
+            = map { <[coding.routing.get_model_metadata]>->($_) } @models;
 
         return {
-            service         => 'consensus-voting',
-            models          => \@models,
-            model_metadata  => \@model_metadata,
-            reason          => 'Code generation with consensus verification',
-            token_cost      => 500,
-            priority        => 'consensus'
+            service        => 'consensus-voting',
+            models         => \@models,
+            model_metadata => \@model_metadata,
+            reason         => 'Code generation with consensus verification',
+            token_cost     => 500,
+            priority       => 'consensus'
         };
     }
 
-    my $model_metadata = <[coding.routing.get_model_metadata]>->('mathstral-7b-v0.1');
+    my $model_metadata
+        = <[coding.routing.get_model_metadata]>->('mathstral-7b-v0.1');
     return {
         service        => 'single-llm',
         model          => 'mathstral-7b-v0.1',
@@ -69,7 +75,8 @@ if ( $type eq 'reasoning' || $type eq 'analysis' ) {
         || ( grep { lc($_) =~ /consensus|verify/ } @$constraints ) ) {
 
         my @models = qw(qwen2.5-7b-instruct-1m mathstral-7b-v0.1 aya-23-8b);
-        my @model_metadata = map { <[coding.routing.get_model_metadata]>->($_) } @models;
+        my @model_metadata
+            = map { <[coding.routing.get_model_metadata]>->($_) } @models;
 
         return {
             service        => 'consensus-voting',
@@ -84,20 +91,21 @@ if ( $type eq 'reasoning' || $type eq 'analysis' ) {
 
     # Medium complexity → single model (qwen)
     if ( $complexity >= 4 ) {
-        my $model_metadata = <[coding.routing.get_model_metadata]>->('qwen2.5-7b-instruct-1m');
+        my $model_metadata = <[coding.routing.get_model_metadata]>
+            ->('qwen2.5-7b-instruct-1m');
         return {
             service        => 'single-llm',
             model          => 'qwen2.5-7b-instruct-1m',
             model_metadata => $model_metadata,
-            reason         =>
-                "Medium complexity reasoning (complexity: $complexity)",
+            reason => "Medium complexity reasoning (complexity: $complexity)",
             token_cost => 250,
             priority   => 'reasoning'
         };
     }
 
     # Simple → basic model (qwen)
-    my $model_metadata = <[coding.routing.get_model_metadata]>->('qwen2.5-7b-instruct-1m');
+    my $model_metadata
+        = <[coding.routing.get_model_metadata]>->('qwen2.5-7b-instruct-1m');
     return {
         service        => 'single-llm',
         model          => 'qwen2.5-7b-instruct-1m',
@@ -111,20 +119,22 @@ if ( $type eq 'reasoning' || $type eq 'analysis' ) {
 # Creative/brainstorming → diverse consensus
 if ( $type eq 'brainstorming' ) {
     my @models = qw(qwen2.5-7b-instruct-1m aya-23-8b mathstral-7b-v0.1);
-    my @model_metadata = map { <[coding.routing.get_model_metadata]>->($_) } @models;
+    my @model_metadata
+        = map { <[coding.routing.get_model_metadata]>->($_) } @models;
 
     return {
-        service         => 'consensus-voting',
-        models          => \@models,
-        model_metadata  => \@model_metadata,
-        reason          => 'Creative task needs multiple perspectives',
-        token_cost      => 400,
-        priority        => 'diverse'
+        service        => 'consensus-voting',
+        models         => \@models,
+        model_metadata => \@model_metadata,
+        reason         => 'Creative task needs multiple perspectives',
+        token_cost     => 400,
+        priority       => 'diverse'
     };
 }
 
 # Default fallback
-my $model_metadata = <[coding.routing.get_model_metadata]>->('qwen2.5-7b-instruct-1m');
+my $model_metadata
+    = <[coding.routing.get_model_metadata]>->('qwen2.5-7b-instruct-1m');
 return {
     service        => 'single-llm',
     model          => 'qwen2.5-7b-instruct-1m',
@@ -134,8 +144,8 @@ return {
     priority       => 'default'
 };
 
-#,,..,,,.,,,.,,..,..,,.,,,,.,,...,,,,,,.,,.,,,.,.,...,...,...,,..,...,..,,..,,
-#52UYSUK7BUXAKKXZTHFYTO7BKCFFONSZ6S4GJNC4A2SD4OVLKAIE5UUINKWRY3UGOPVBXYWR6U6JO
-#\\\|UFCY33224IPTEWMXY55ZHKEWRSSN54HH3YPLLZA6HJUSGQEW2LU \ / AMOS7 \ YOURUM ::
-#\[7]LWFFEC3OFAEPLSRR7DUGE5CCOGSAMRTZKXH3RDAZVBITNA72IGBQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,..,,...,.,.,.,,,.,.,,.,,,,.,..,,.,.,...,...,.,.,.,,,,.,,.,.,.,,,
+#6FGDZZWFRFKGX5WCIC5ECCPPFLXIQE5PUDIM3A3IRMKOFBIYLRIRTQG4UEXTJUP5RG4VNPWRYLPM2
+#\\\|ESMVOI47G3T54TSOIQR3UM2T2LSVLRU2OODHZW6F3PDLJLAEZ3W \ / AMOS7 \ YOURUM ::
+#\[7]O75L7MSYIKS7DJQVWUJD2TBKUSSX35MNJIRTIXUOFJDJYBMJ2EAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

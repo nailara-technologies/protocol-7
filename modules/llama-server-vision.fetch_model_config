@@ -12,7 +12,9 @@ my $cmd_status = $reply->{'cmd'};
 my $call_args  = $reply->{'call_args'};
 
 <[base.log]>->(
-    1, "[llama-server-vision] fetch_model_config: status=%s", $cmd_status
+    1,
+    "[llama-server-vision] fetch_model_config: status=%s",
+    $cmd_status // 'UNKNOWN'
 );
 
 # Parse model configuration from response
@@ -38,25 +40,27 @@ if ( $cmd_status && $call_args ) {
 
             return 1;
         } else {
-            <[base.log]>
-                ->( 2, "[llama-server-vision] Model files not found" );
+            <[base.log]>->(
+                0, "[llama-server-vision] Error: Model files not found"
+            );
         }
     } else {
         <[base.log]>->(
-            2, "[llama-server-vision] Failed to parse model configuration"
+            0,
+            "[llama-server-vision] Error: Failed to parse model configuration"
         );
     }
 } else {
     <[base.log]>->(
-        2,
-        "[llama-server-vision] Failed to fetch model configuration from models zenka"
+        0,
+        "[llama-server-vision] Error: Failed to fetch model configuration from models zenka"
     );
 }
 
 return 0;
 
-#,,,,,..,,,.,,..,,.,,,.,,,,.,,...,.,,,.,,,.,,,..,,...,...,..,,..,,.,,,,.,,.,.,
-#BLJUYOWVZY5L6SXEXA2ZG4NQY4Z2TKRKTEBTX5EXS5XJ2LXDXYXZHS6W3BZYXKHFMRG5Q3FOX3SIM
-#\\\|M7RUR2U75OOUUEP22XB3S7JCTCAR2JLU2RU3JVS4V6ADXRJW5F5 \ / AMOS7 \ YOURUM ::
-#\[7]32ZDQV4GKSOEX6PRA2WEJFY67UUZPUW5GBU3DR45EKR46ZLNM2AQ 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,.,,.,,,.,,,,,.,.,.,,..,.,,,..,,..,,...,...,.,,,,,,,...,,.,,..,,
+#GURFHOLLKRIMIH4WFJP66PYYQBLDHSIKTKQ3SEJHDV5B4YKUVIF2TPA5IC5PCLQV4BC7GYB6CHYLW
+#\\\|ELHT7O2TUSMPKUPBCDXZIHVADBHFCAK3U3LEX4IYOEJCOK2IT2G \ / AMOS7 \ YOURUM ::
+#\[7]UBYIJPE7I4X3RHZFP34AJCOT455LNRNPUT2UYY2AL5F3WGOIMECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

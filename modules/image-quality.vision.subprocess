@@ -5,15 +5,30 @@
 
 my ( $image_path, $model_identifier, $analysis_prompt ) = @_;
 
+<[base.log]>->(
+    1, "[image-quality] vision.subprocess: model=%s",
+    $model_identifier
+);
+
 # Validate inputs
-return { success => FALSE, error => 'Image path required' }
-    unless defined $image_path;
-return { success => FALSE, error => 'Image file not found' }
-    unless -f $image_path;
-return { success => FALSE, error => 'Model identifier required' }
-    unless defined $model_identifier;
-return { success => FALSE, error => 'Analysis prompt required' }
-    unless defined $analysis_prompt;
+unless ( defined $image_path ) {
+    <[base.log]>->( 0, "[image-quality] Error: Image path required" );
+    return { success => FALSE, error => 'Image path required' };
+}
+unless ( -f $image_path ) {
+    <[base.log]>->(
+        0, "[image-quality] Error: Image file not found: %s", $image_path
+    );
+    return { success => FALSE, error => 'Image file not found' };
+}
+unless ( defined $model_identifier ) {
+    <[base.log]>->( 0, "[image-quality] Error: Model identifier required" );
+    return { success => FALSE, error => 'Model identifier required' };
+}
+unless ( defined $analysis_prompt ) {
+    <[base.log]>->( 0, "[image-quality] Error: Analysis prompt required" );
+    return { success => FALSE, error => 'Analysis prompt required' };
+}
 
 # Fetch model configuration from models zenka
 <[base.perlmod.autoload]>->(qw| JSON::PP |);
@@ -134,8 +149,8 @@ return {
     model_used => $model_identifier
 };
 
-#,,,.,,.,,,,,,..,,.,,,...,,..,.,,,,,.,,.,,,.,,..,,...,...,..,,...,,.,,.,,,...,
-#WFI2HPGNCQXKEDEJPODVBQH6RPYWQUI5QE6QUL2WBJM7KTMFCTFELSZJYO2NTZ6VJTKXWFFFGHR6I
-#\\\|53ZZP7XLKRVSDQQVY3PRLRG55C6QYQAEWFZHHPW5ALQAFCMNCAS \ / AMOS7 \ YOURUM ::
-#\[7]VK6JPFNZNOVMZEVTUNNM55GD42FHJWIMS2LXJV5L7ZK5JTZVCODI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,,,,,,,,,,,,.,.,.,,,,.,,,.,,,..,..,,...,..,,,.,,...,,..,..,,.,.,
+#LIGZECL36AICYJD3CSRROFBK4YKXNTFWVQ6D2PG4BF3QI26DQMZ5LMMVF56PW7PLZGGS4SANTQMQO
+#\\\|2NJTJFKNMRM5MC5VMIEUUQUOJX7KSZONURWUCYITEBHM4U674IS \ / AMOS7 \ YOURUM ::
+#\[7]PDPP4D7CDMOCCPTRGQLGLFUUFVZREGY3HYMGQHS33VHS6RCZHIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
