@@ -3,7 +3,7 @@
 # name  = models.decision.recommendation_engine.get_model_recommendations
 # descr = Get top model recommendations for a context
 
-my ($context, $max_results) = @ARG;
+my ( $context, $max_results ) = @ARG;
 
 $max_results //= 3;
 
@@ -12,23 +12,29 @@ my $all_models = <[models.registry.list_all.list_all_models]>;
 return [] unless $all_models && @$all_models;
 
 # Find models for context
-my $candidates = <[models.decision.recommendation_base.find_models_for_context]>->($all_models, $context);
+my $candidates
+    = <[models.decision.recommendation_base.find_models_for_context]>->(
+    $all_models, $context
+    );
 
 # Score each candidate
 my @scored = map {
-  my $score = <[models.decision.recommendation_base.calculate_composite_score]>->($_, {});
-  { model => $_, score => $score };
+    my $score
+        = <[models.decision.recommendation_base.calculate_composite_score]>->(
+        $_, {}
+        );
+    { model => $_, score => $score };
 } @$candidates;
 
 # Sort by score
 @scored = sort { $b->{score} <=> $a->{score} } @scored;
 
 # Return top N
-my @top = splice(@scored, 0, $max_results);
-return [map { $_->{model} } @top];
+my @top = splice( @scored, 0, $max_results );
+return [ map { $_->{model} } @top ];
 
-#,,,.,,.,,.,.,.,.,..,,,,,,...,,.,,,..,,.,,,,.,..,,...,...,,,,,,.,,,,.,,,.,.,.,
-#IMJWCDSRELFWJIQ5R7D5LUF27TJ4BYT5JKZCEF3Z3OOG2ULW6BEWZK2OFD37MZ5G4VUDEKMIRRVR6
-#\\\|FX65GDNHQBREYRMUWZP55NKZPLDMNCRJUXNS56XBMPTQBSVDUDP \ / AMOS7 \ YOURUM ::
-#\[7]236V5JO4YZEYOIQ5YKFRRQWHZWSMKXKP226HKG6AC3SKMN6LQYAA 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,,.,...,...,.,,,.,.,,.,,,.,,,..,..,,...,...,.,,,,,,,.,,,...,...,
+#5P5PJBFBYX6KZ46UU7LRDO26E6Q4YKTJGHIQRPS2SNCWTPIGYMXNOFQB7JFUHJZSBRAWOZDIZEQVU
+#\\\|2X777MGD7KOR5ZBBXGFRSDVSPKP7OJOD4VKHKCQ6WOM7UZKYU5H \ / AMOS7 \ YOURUM ::
+#\[7]5FOXZJPUER5BYYRRXOACYLZPWD5ET3TUC5T734IOWYCLPPSMPEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

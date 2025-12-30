@@ -10,41 +10,43 @@
 use JSON::PP;
 
 my $cmd = shift @ARG;
-my ($model_amos, $context, $data_json) = @ARG;
+my ( $model_amos, $context, $data_json ) = @ARG;
 
-if (!$model_amos || !$context) {
-  return { 'mode' => qw| size |, 'data' => "error: model AMOS and context required\n" };
+if ( !$model_amos || !$context ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "error: model AMOS and context required\n"
+    };
 }
 
 # Parse invocation data
 my $invocation_data = {};
 if ($data_json) {
-  eval {
-    $invocation_data = decode_json($data_json);
-  };
-  if ($@) {
-    return { 'mode' => qw| size |, 'data' => "error: invalid invocation data JSON: $@\n" };
-  }
+    eval { $invocation_data = decode_json($data_json); };
+    if ($@) {
+        return {
+            'mode' => qw| size |,
+            'data' => "error: invalid invocation data JSON: $@\n"
+        };
+    }
 }
 
 # Record invocation - call extracted module directly
 my $result = <[models.statistics.invocation_tracking.record_invocation]>->(
-  $model_amos,
-  $context,
-  $invocation_data
+    $model_amos, $context, $invocation_data
 );
 
 my $reply_str = '';
 $reply_str .= "model_amos: $model_amos\n";
 $reply_str .= "context: $context\n";
 $reply_str .= "recorded: 1\n";
-$reply_str .= "timestamp: " . ($result->{timestamp} // time()) . "\n";
-$reply_str .= "date: " . ($result->{date} // 'unknown') . "\n";
+$reply_str .= "timestamp: " . ( $result->{timestamp} // time() ) . "\n";
+$reply_str .= "date: " .      ( $result->{date}      // 'unknown' ) . "\n";
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,.,,..,,,,,,...,.,,,...,,,.,.,.,,,.,..,,...,..,,...,...,...,,..,...,...,...,
-#6A4EXTAR4ZRT4GPUPDMADD7VYNWMR4IACXGEADFN6IIM2PU66KXQWQE6YRLM7MF6TN362KA4F2WGG
-#\\\|4JXOYKMLBNDUQEIUTADUDM5BOQTJPIU754ROI3DLID7UYED4C3L \ / AMOS7 \ YOURUM ::
-#\[7]EKXDZJVNN4JEJL6PLOB5XKBQDI2WDZ24LH5S2VUAQSEPUJIYWYDY 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,..,,..,.,,,,.,,..,,.,,,.,.,,.,,..,,...,..,,.,.,,,.,.,.,.,,,.,.,
+#6YWWLCUY5L75V33ORHI5BEEFXTYIXRT4HCIIXM5QLC3YFTI7WZSABX7H43LNVG4U3RHANHTKTUBX2
+#\\\|ETHSOT5P3ADM2VLMB4A4G3ICDZCYNEDE32S4W6HKWI3ZYTRCIMH \ / AMOS7 \ YOURUM ::
+#\[7]3STCLKMLKMH4VV47P2LRSCTONKX3TUDEGR5H7LVPYAWDBUZMV6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

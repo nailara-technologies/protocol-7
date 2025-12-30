@@ -7,22 +7,22 @@ use JSON::PP;
 use Fcntl qw| :flock |;
 
 my $path = <[models.registry.base.get_registry_path]>;
-if (-f $path) {
-  open my $fh, '<', $path or goto EMPTY;
-  flock($fh, 1);  # LOCK_SH
-  my $content = do { local $/; <$fh> };
-  flock($fh, 8);  # LOCK_UN
-  close $fh;
+if ( -f $path ) {
+    open my $fh, '<', $path or goto EMPTY;
+    flock( $fh, 1 );    # LOCK_SH
+    my $content = do { local $/; <$fh> };
+    flock( $fh, 8 );    # LOCK_UN
+    close $fh;
 
-  my $loaded = decode_json($content) if $content;
-  return $loaded if $loaded && ref($loaded) eq 'HASH';
+    my $loaded = decode_json($content) if $content;
+    return $loaded                     if $loaded && ref($loaded) eq 'HASH';
 }
 
 EMPTY:
 return <[models.registry.empty.create_empty_registry]>;
 
-#,,,,,,.,,..,,.,,,,,,,.,,,,,,,,,,,..,,...,.,,,..,,...,...,,..,..,,,.,,.,,,.,,,
-#XJCBASVZLOKNU2X4K3HBUTUO2XGY7F2TAYYULDHSFTUCD4IFJRKOQZDFCU5A6LDYWEODIMZDELYEI
-#\\\|KENABEWUX6XEZXPF32DAYYADC5YJZ3QQKDJRNE6D4CFHHF34ANN \ / AMOS7 \ YOURUM ::
-#\[7]UNEP2U5BRRAULEUDWAUAFP7DPTPWZF2CHHH2TUX64CLVR5JOSYBY 7  DATA SIGNATURE ::
+#,,..,..,,..,,.,.,,,.,.,.,...,.,,,,,,,,,,,,,.,..,,...,...,,.,,,,,,,..,,,.,,..,
+#KA32IXSZMBSFNYADVUJDST7OO2UJDKAFIOPW3W3HVW4VMYF4CKVBME4VQZKDCGKJBT4ROMKHGNSNS
+#\\\|PZ4TPEY4AD7JEJUXIOHE4EYICSKEMD4RDS4HD67XGPOSLL3KHYB \ / AMOS7 \ YOURUM ::
+#\[7]I54EANGPMOUPMEFYEP5WFHZJDPCNCTJCL57373FPQUFPYJ7S3EDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,32 +3,31 @@
 # name  = models.registry.create_entry.create_model_entry
 # descr = Create a new model entry in the registry
 
-my ($model_amos, $metadata) = @ARG;
+my ( $model_amos, $metadata ) = @ARG;
 
 return {} unless $model_amos && $metadata;
 
 my $entry = {
-  amos_checksum => $model_amos,
-  metadata => $metadata // {},
-  statistics => {
-    total_invocations => 0,
-    success_rate => 100,
-    days_active => 0,
-  },
-  resource_profile => {
-    storage => { size_gb => $metadata->{size_gb} // 10 },
-  },
-  presence_decision => {
-    currently_present => 1,
-    presence_tier => 'local',
-  },
-  created_at => time(),
+    amos_checksum => $model_amos,
+    metadata      => $metadata // {},
+    statistics    => {
+        total_invocations => 0,
+        success_rate      => 100,
+        days_active       => 0,
+    },
+    resource_profile =>
+        { storage => { size_gb => $metadata->{size_gb} // 10 }, },
+    presence_decision => {
+        currently_present => 1,
+        presence_tier     => 'local',
+    },
+    created_at => time(),
 };
 
 return $entry;
 
-#,,,.,,.,,..,,..,,.,,,.,,,,,.,...,.,.,,,,,...,..,,...,...,,,.,...,,,.,,,.,..,,
-#JSMV7LJ2NJDYQZJ35TBOVZYA26ADML2V6LJMXAJN3LKFV2DRPHUKGKWM3XHZKOMDT7TQQAAXZORP2
-#\\\|THLW5KUL4EGQNR3DUNKVDIWP2M42SC2UVQFCG6DTYZFGFSOCZ3P \ / AMOS7 \ YOURUM ::
-#\[7]HIACNFC4UXRLMTRQMZUJE76ZE3WOK6JB262KTFI7PKUQ45U466AI 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,,.,.,.,,,,,,,.,.,,,,,.,,.,,...,..,,...,...,,.,,,,,,,,.,...,,,,,
+#IBWPZJES2KLNYO4UA42G2OE5CADOXCZ3VDXTNPYU3JSXLTPHPB7AW32YBLKDWNN5YPLDDOUEDCEKG
+#\\\|QS3MZ3DPD3J6XHZENMVLNYYQ7M2VMG4UIQU7YHEGRYDY535E5WB \ / AMOS7 \ YOURUM ::
+#\[7]ADVOX4IYFVZPLIK6FHXL5AWWOZOOBAYWZZYBBM7YBZP6APXFXGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

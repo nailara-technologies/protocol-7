@@ -9,65 +9,91 @@
 use JSON::PP;
 
 my $cmd = shift @ARG;
-my ($model_amos, $context) = @ARG;
+my ( $model_amos, $context ) = @ARG;
 
-if (!$model_amos) {
-  return { 'mode' => qw| size |, 'data' => "error: model AMOS required\n" };
+if ( !$model_amos ) {
+    return { 'mode' => qw| size |, 'data' => "error: model AMOS required\n" };
 }
 
 # Load registry - call extracted module directly
-my $model_entry = <[models.registry.get_entry.get_model_entry]>->($model_amos);
+my $model_entry
+    = <[models.registry.get_entry.get_model_entry]>->($model_amos);
 
-if ($model_entry->{not_found}) {
-  return { 'mode' => qw| size |, 'data' => "error: model not found: $model_amos\n" };
+if ( $model_entry->{not_found} ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "error: model not found: $model_amos\n"
+    };
 }
 
 my $reply_str = '';
 $reply_str .= "model_amos: $model_amos\n";
-$reply_str .= "model_name: " . ($model_entry->{metadata}->{name} // 'unknown') . "\n";
+$reply_str .= "model_name: "
+    . ( $model_entry->{metadata}->{name} // 'unknown' ) . "\n";
 
 # If context specified, return context-specific stats
 if ($context) {
-  my $context_stats = $model_entry->{statistics}->{by_context}->{$context} // {};
-  $reply_str .= "\ncontext: $context\n";
-  $reply_str .= "invocations: " . ($context_stats->{invocations} // 0) . "\n";
-  $reply_str .= "success_rate: " . sprintf('%.2f', $context_stats->{success_rate} // 0) . "\n";
-  $reply_str .= "avg_latency_ms: " . ($context_stats->{avg_latency_ms} // 0) . "\n";
-  $reply_str .= "margin_vs_best_alt: " . sprintf('%.2f', $context_stats->{margin_vs_best_alt} // 0) . "\n";
-  $reply_str .= "ranking: " . ($context_stats->{ranking} // 0) . "\n";
+    my $context_stats = $model_entry->{statistics}->{by_context}->{$context}
+        // {};
+    $reply_str .= "\ncontext: $context\n";
+    $reply_str
+        .= "invocations: " . ( $context_stats->{invocations} // 0 ) . "\n";
+    $reply_str .= "success_rate: "
+        . sprintf( '%.2f', $context_stats->{success_rate} // 0 ) . "\n";
+    $reply_str .= "avg_latency_ms: "
+        . ( $context_stats->{avg_latency_ms} // 0 ) . "\n";
+    $reply_str .= "margin_vs_best_alt: "
+        . sprintf( '%.2f', $context_stats->{margin_vs_best_alt} // 0 ) . "\n";
+    $reply_str .= "ranking: " . ( $context_stats->{ranking} // 0 ) . "\n";
 } else {
-  # Return overall statistics
-  my $stats = $model_entry->{statistics} // {};
-  $reply_str .= "\noverall_statistics:\n";
-  $reply_str .= "total_invocations: " . ($stats->{total_invocations} // 0) . "\n";
-  $reply_str .= "total_successful: " . ($stats->{total_successful} // 0) . "\n";
-  $reply_str .= "success_rate: " . sprintf('%.2f', $stats->{success_rate} // 0) . "\n";
-  $reply_str .= "avg_latency_ms: " . ($stats->{avg_latency_ms} // 0) . "\n";
-  $reply_str .= "p95_latency_ms: " . ($stats->{p95_latency_ms} // 0) . "\n";
-  $reply_str .= "p99_latency_ms: " . ($stats->{p99_latency_ms} // 0) . "\n";
-  $reply_str .= "first_invocation: " . ($stats->{first_invocation} // 0) . "\n";
-  $reply_str .= "last_invocation: " . ($stats->{last_invocation} // 0) . "\n";
 
-  if ($stats->{failure_modes} && ref($stats->{failure_modes}) eq 'HASH') {
-    $reply_str .= "\nfailure_modes:\n";
-    foreach my $mode (keys %{$stats->{failure_modes}}) {
-      $reply_str .= "  $mode: " . $stats->{failure_modes}->{$mode} . "\n";
-    }
-  }
+    # Return overall statistics
+    my $stats = $model_entry->{statistics} // {};
+    $reply_str .= "\noverall_statistics:\n";
+    $reply_str .= "total_invocations: "
+        . ( $stats->{total_invocations} // 0 ) . "\n";
+    $reply_str
+        .= "total_successful: " . ( $stats->{total_successful} // 0 ) . "\n";
+    $reply_str .= "success_rate: "
+        . sprintf( '%.2f', $stats->{success_rate} // 0 ) . "\n";
+    $reply_str
+        .= "avg_latency_ms: " . ( $stats->{avg_latency_ms} // 0 ) . "\n";
+    $reply_str
+        .= "p95_latency_ms: " . ( $stats->{p95_latency_ms} // 0 ) . "\n";
+    $reply_str
+        .= "p99_latency_ms: " . ( $stats->{p99_latency_ms} // 0 ) . "\n";
+    $reply_str
+        .= "first_invocation: " . ( $stats->{first_invocation} // 0 ) . "\n";
+    $reply_str
+        .= "last_invocation: " . ( $stats->{last_invocation} // 0 ) . "\n";
 
-  if ($stats->{usage_by_period} && ref($stats->{usage_by_period}) eq 'HASH') {
-    $reply_str .= "\nusage_by_period:\n";
-    foreach my $period (sort keys %{$stats->{usage_by_period}}) {
-      my $period_data = $stats->{usage_by_period}->{$period};
-      $reply_str .= "  $period: count=" . ($period_data->{count} // 0) . ", success=" . sprintf('%.2f', $period_data->{avg_success} // 0) . "\n";
+    if ( $stats->{failure_modes} && ref( $stats->{failure_modes} ) eq 'HASH' )
+    {
+        $reply_str .= "\nfailure_modes:\n";
+        foreach my $mode ( keys %{ $stats->{failure_modes} } ) {
+            $reply_str
+                .= "  $mode: " . $stats->{failure_modes}->{$mode} . "\n";
+        }
     }
-  }
+
+    if ( $stats->{usage_by_period}
+        && ref( $stats->{usage_by_period} ) eq 'HASH' ) {
+        $reply_str .= "\nusage_by_period:\n";
+        foreach my $period ( sort keys %{ $stats->{usage_by_period} } ) {
+            my $period_data = $stats->{usage_by_period}->{$period};
+            $reply_str
+                .= "  $period: count="
+                . ( $period_data->{count} // 0 )
+                . ", success="
+                . sprintf( '%.2f', $period_data->{avg_success} // 0 ) . "\n";
+        }
+    }
 }
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,.,,,..,,,,,,,,,,.,,,.,,..,,.,,,,.,,.,,,.,,,..,,...,...,,,.,,,.,.,,,.,.,,,,,
-#NSBTFCZVIRVGW5Z7J5VEFHV22MVVH3FSX4BUHF52G5NEJGNT35D2JDALMEBSYSP66VZLKG6KWE4NY
-#\\\|QZZ2L42WNHNR6F2ZZ4O333FZ5WN2GUARNHHJG7DEOKGGWYWEZHC \ / AMOS7 \ YOURUM ::
-#\[7]3F3XHH2RMUDYI5CP5CSX2S2QNDUIXTM5MZOEXUM5Y2DEM72CC4DI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,...,,,.,,.,,.,.,.,.,,.,,,,,,..,,..,,...,...,,..,,.,,..,,.,,,,,,,
+#3XZMPNYM2X46PLUOJAWWJG5BPXB5AB435IY3JSZBVWX5AVBXRQU2HBRXFVKF3LNEERUEN4PQ3XG2U
+#\\\|UIHBOP4H6NTRTJ6ROQ5ECQFL5W6HECKY7ZLG2WX63TUHNFWADWW \ / AMOS7 \ YOURUM ::
+#\[7]NAFYXX3ZIZ5SMVLAOGY6MUOUZGEIHTKQIHPMY6YBTEAUKJNE6OBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

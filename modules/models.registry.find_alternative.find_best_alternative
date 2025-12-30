@@ -3,7 +3,7 @@
 # name  = models.registry.find_alternative.find_best_alternative
 # descr = Find best alternative model if primary is unavailable
 
-my ($model_amos, $context) = @ARG;
+my ( $model_amos, $context ) = @ARG;
 
 my $all_models = <[models.registry.list_all.list_all_models]>;
 return {} unless $all_models && @$all_models;
@@ -13,15 +13,19 @@ my $current_cat = $current->{metadata}->{category} // '';
 
 # Find alternatives in same category
 my @alternatives = grep {
-  $_->{metadata}->{category} eq $current_cat &&
-  $_->{amos_checksum} ne $model_amos
+           $_->{metadata}->{category} eq $current_cat
+        && $_->{amos_checksum} ne $model_amos
 } @$all_models;
 
 # Return best by success rate
-return (sort { $b->{statistics}->{success_rate} <=> $a->{statistics}->{success_rate} } @alternatives)[0] // {};
+return (
+    sort {
+        $b->{statistics}->{success_rate} <=> $a->{statistics}->{success_rate}
+    } @alternatives
+)[0] // {};
 
-#,,,.,.,,,.,,,,.,,,..,...,.,.,,,,,..,,.,,,,,.,..,,...,...,..,,...,.,.,..,,,..,
-#IGNHDHQZNWXEM4L6B2CRTS23MED3FUR7ZUJ377NCXM5VRBOL7EG32WBLXTMFWEGHFJI5VNIKJCZVI
-#\\\|HJA5YNDIFJK6D2HDBMKY7Q7MPYHNEBVBAYF3GJ355TEDAV7FR3I \ / AMOS7 \ YOURUM ::
-#\[7]TKBA64ILLCY74IK2CQITJU7IJZMHSY6FEZPUHIBCIYQ66LLF4MAI 7  DATA SIGNATURE ::
+#,,..,,..,,..,,..,,,.,...,..,,,,,,..,,,..,,,.,..,,...,..,,.,.,..,,..,,,.,,,.,,
+#WKXCSGMJ6QO2KH2BM5AJANTUMJPKAURSWNAUK6UX7F4LBH2B5S7GC4IOXGLSXZDGCJLAR45M3QDZG
+#\\\|5YIDGR23QWE4LYHEXRV2PWESNJEHNCHIDZT42LCES7ZKM4FLMP2 \ / AMOS7 \ YOURUM ::
+#\[7]BFSXWVXDAGCUQXSPHKFJUZMMZWPRDG6W3HP5MO7X2OUKA3DDW2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

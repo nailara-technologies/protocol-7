@@ -3,19 +3,20 @@
 # name  = models.statistics.invocation_tracking.record_invocation
 # descr = Record model invocation for statistics
 
-my ($model_amos, $context, $success) = @ARG;
+my ( $model_amos, $context, $success ) = @ARG;
 
-push @{$data{models}{operation_log}}, {
-  timestamp => time(),
-  model => $model_amos,
-  context => $context,
-  success => $success,
-};
+push @{ $data{models}{operation_log} },
+    {
+    timestamp => time(),
+    model     => $model_amos,
+    context   => $context,
+    success   => $success,
+    };
 
 return 1;
 
-#,,.,,..,,.,.,,.,,...,,,,,.,,,...,,.,,,.,,,.,,..,,...,...,.,.,..,,,,.,..,,,.,,
-#XTU66AWRPE5QYL6ONHINU7WA2LWYAQBM4QW56D236DI6UG6ASG6XFA2JSHVJROM7ZVZD2CLS6GHOA
-#\\\|T7ROBZDTRTXIN4WWR5UN7XMLPEB45BZJ43AF6NUKLYNDJLXPQP2 \ / AMOS7 \ YOURUM ::
-#\[7]GJN7CMIN2MBMRAH4EAESZKV76I3QBZND2Y3DIQW6CQ5ZBTE2KQAA 7  DATA SIGNATURE ::
+#,,..,..,,..,,,,,,..,,,.,,,,.,,.,,...,,..,.,,,..,,...,...,.,.,,.,,,.,,.,,,.,.,
+#YKQRI72R5ZO3I4HM2EQR7IV7IA3HMD4OSAVLOTJMGWBWRKW52IUF4BSUJKJGCUN3CWCDSC3K5JJBK
+#\\\|5PYNM2JKQN3F2CGJZKSKIKBXOQ3B4Y7YNLAGXEHPY6KSDVND7AL \ / AMOS7 \ YOURUM ::
+#\[7]5H3OG2NL5DL7K6RF6HNMQIMESTZN45JEC5JCMHVIMCVVD4AKXQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

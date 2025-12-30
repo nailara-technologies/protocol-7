@@ -3,59 +3,72 @@
 # name  = models.decision.cost_analysis.where_should_model_reside
 # descr = Analyze where model should reside based on cost/latency tradeoffs
 
-my ($model_entry, $context) = @ARG;
+my ( $model_entry, $context ) = @ARG;
 
 return {} unless $model_entry && ref($model_entry) eq 'HASH';
 
 my $size_gb = $model_entry->{resource_profile}->{storage}->{size_gb} // 10;
-my $access_freq = <[models.decision.cost_base.estimate_usage_frequency]>->($model_entry, $context);
-my $is_latency_sensitive = <[models.decision.cost_base.is_latency_sensitive]>->($model_entry, $context);
+my $access_freq = <[models.decision.cost_base.estimate_usage_frequency]>->(
+    $model_entry, $context
+);
+my $is_latency_sensitive
+    = <[models.decision.cost_base.is_latency_sensitive]>->(
+    $model_entry, $context
+    );
 
 # Storage costs (monthly baseline)
-my $local_storage_cost = $size_gb * 0.10;  # $0.10/GB/month local
-my $remote_storage_cost = $size_gb * 0.023;  # AWS S3 pricing
+my $local_storage_cost  = $size_gb * 0.10;     # $0.10/GB/month local
+my $remote_storage_cost = $size_gb * 0.023;    # AWS S3 pricing
 
 # Bandwidth costs
-my $per_download_cost = ($size_gb * 1024) * 0.09 / 1024;  # $0.09/GB download
+my $per_download_cost = ( $size_gb * 1024 ) * 0.09 / 1024; # $0.09/GB download
 my $monthly_bandwidth_downloads = $access_freq->{per_month} // 5;
-my $monthly_bandwidth_cost = $per_download_cost * $monthly_bandwidth_downloads;
+my $monthly_bandwidth_cost
+    = $per_download_cost * $monthly_bandwidth_downloads;
 
 # Latency costs
-my $cold_start_latency_ms = $is_latency_sensitive ? 5000 : 1000;  # seconds to fetch + decompress
+my $cold_start_latency_ms
+    = $is_latency_sensitive ? 5000 : 1000;    # seconds to fetch + decompress
 my $cost_per_cold_start = $is_latency_sensitive ? 2.50 : 0.50;
 
 # Break-even analysis
-my $keep_local = $local_storage_cost + ($access_freq->{per_month} * 0.01);  # small per-use cost
-my $fetch_ondemand = $remote_storage_cost + $monthly_bandwidth_cost + ($cost_per_cold_start * $access_freq->{per_month});
+my $keep_local = $local_storage_cost
+    + ( $access_freq->{per_month} * 0.01 );    # small per-use cost
+my $fetch_ondemand
+    = $remote_storage_cost
+    + $monthly_bandwidth_cost
+    + ( $cost_per_cold_start * $access_freq->{per_month} );
 
 return {
-  storage_cost => {
-    monthly_usd => $local_storage_cost,
-    annual_usd => $local_storage_cost * 12,
-  },
-  bandwidth_cost => {
-    per_download_usd => $per_download_cost,
-    estimated_monthly_usd => $monthly_bandwidth_cost,
-    estimated_annual_usd => $monthly_bandwidth_cost * 12,
-  },
-  latency_cost => {
-    initialization_ms => $cold_start_latency_ms,
-    cost_per_cold_start => $cost_per_cold_start,
-  },
-  break_even_analysis => {
-    keep_local_monthly => $keep_local,
-    fetch_ondemand_monthly => $fetch_ondemand,
-    delta_monthly => $fetch_ondemand - $keep_local,
-    recommendation => $keep_local < $fetch_ondemand ? 'keep_local' : 'fetch_ondemand',
-  },
-  usage_frequency => {
-    per_month => $access_freq->{per_month} // 5,
-    per_day => $access_freq->{per_day} // 0.17,
-  },
+    storage_cost => {
+        monthly_usd => $local_storage_cost,
+        annual_usd  => $local_storage_cost * 12,
+    },
+    bandwidth_cost => {
+        per_download_usd      => $per_download_cost,
+        estimated_monthly_usd => $monthly_bandwidth_cost,
+        estimated_annual_usd  => $monthly_bandwidth_cost * 12,
+    },
+    latency_cost => {
+        initialization_ms   => $cold_start_latency_ms,
+        cost_per_cold_start => $cost_per_cold_start,
+    },
+    break_even_analysis => {
+        keep_local_monthly     => $keep_local,
+        fetch_ondemand_monthly => $fetch_ondemand,
+        delta_monthly          => $fetch_ondemand - $keep_local,
+        recommendation         => $keep_local < $fetch_ondemand
+        ? 'keep_local'
+        : 'fetch_ondemand',
+    },
+    usage_frequency => {
+        per_month => $access_freq->{per_month} // 5,
+        per_day   => $access_freq->{per_day}   // 0.17,
+    },
 };
 
-#,,,.,...,,..,..,,...,,.,,...,.,.,,.,,.,.,,.,,..,,...,...,,..,...,,,.,...,...,
-#JOJ3VYCVFJUPIVM3GIW5TZ7FX3SXKTJ6FWTEL4RHVWJVK6SEBIBCHHESTCW2KW4VGQV7FYEABJPE2
-#\\\|H7KS2C2DD466TWAE3D2MXUVWKE6NFE42NYODPUBPSETTNGZBA6M \ / AMOS7 \ YOURUM ::
-#\[7]XOL3JHA4TMWMHZ66VJPZMIMENMFG34WKJYRB36OACD7YQV5JGWBY 7  DATA SIGNATURE ::
+#,,.,,,,.,...,...,.,.,,..,..,,,,.,,.,,..,,.,,,..,,...,...,.,,,,..,,,,,,,,,,.,,
+#WI5GNT7EU7JTIUMGCJUX6S7K3OEGI237UYB7EUVKLELVEQB2ZUQRRFBT62JT3KYHDNPVII5MMJYMQ
+#\\\|BGTFYLDQZQJEQX23DOBVFKP6MXUAD6XQGH6L3NTWHK3VQXRS326 \ / AMOS7 \ YOURUM ::
+#\[7]MD4R26SSYDEXERKAPEIZSBC4UZ5IKR5XLRJFHGDM3Z7BGQIFRMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

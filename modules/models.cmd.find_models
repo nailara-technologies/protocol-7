@@ -3,11 +3,14 @@
 # name = models.cmd.find_models
 # descr = Find models available for a specific context
 
-my $cmd = shift @ARG;  # Remove command name from @ARG
+my $cmd = shift @ARG;          # Remove command name from @ARG
 my ($context) = @ARG;
 
-if (!$context) {
-  return { 'mode' => qw| size |, 'data' => "error: context name required\n" };
+if ( !$context ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "error: context name required\n"
+    };
 }
 
 # Load registry - call extracted module directly
@@ -16,19 +19,20 @@ my $all_models = <[models.registry.list_all.list_all_models]>;
 # Find models for this context
 my @matching;
 foreach my $model (@$all_models) {
-  next unless $model->{statistics}->{by_context}->{$context};
+    next unless $model->{statistics}->{by_context}->{$context};
 
-  my $stats = $model->{statistics}->{by_context}->{$context};
-  push @matching, {
-    'amos' => $model->{amos_checksum},
-    'name' => $model->{metadata}->{name},
-    'version' => $model->{metadata}->{version},
-    'success_rate' => $stats->{success_rate},
-    'margin_vs_alt' => $stats->{margin_vs_best_alt} // 0,
-    'available' => $model->{presence_decision}->{currently_present},
-    'category' => $model->{metadata}->{category},
-    'invocations' => $stats->{invocations},
-  };
+    my $stats = $model->{statistics}->{by_context}->{$context};
+    push @matching,
+        {
+        'amos'          => $model->{amos_checksum},
+        'name'          => $model->{metadata}->{name},
+        'version'       => $model->{metadata}->{version},
+        'success_rate'  => $stats->{success_rate},
+        'margin_vs_alt' => $stats->{margin_vs_best_alt} // 0,
+        'available'     => $model->{presence_decision}->{currently_present},
+        'category'      => $model->{metadata}->{category},
+        'invocations'   => $stats->{invocations},
+        };
 }
 
 # Sort by success rate
@@ -40,21 +44,24 @@ $reply_str .= "count: " . scalar(@matching) . "\n";
 $reply_str .= "\n";
 
 foreach my $model (@matching) {
-  $reply_str .= "amos: " . $model->{amos} . "\n";
-  $reply_str .= "  name: " . $model->{name} . "\n";
-  $reply_str .= "  version: " . $model->{version} . "\n";
-  $reply_str .= "  success_rate: " . sprintf('%.2f', $model->{success_rate}) . "\n";
-  $reply_str .= "  margin_vs_alt: " . sprintf('%.2f', $model->{margin_vs_alt}) . "\n";
-  $reply_str .= "  available: " . ($model->{available} ? 'yes' : 'no') . "\n";
-  $reply_str .= "  category: " . ($model->{category} // 'unknown') . "\n";
-  $reply_str .= "  invocations: " . ($model->{invocations} // 0) . "\n";
-  $reply_str .= "\n";
+    $reply_str .= "amos: " . $model->{amos} . "\n";
+    $reply_str .= "  name: " . $model->{name} . "\n";
+    $reply_str .= "  version: " . $model->{version} . "\n";
+    $reply_str .= "  success_rate: "
+        . sprintf( '%.2f', $model->{success_rate} ) . "\n";
+    $reply_str .= "  margin_vs_alt: "
+        . sprintf( '%.2f', $model->{margin_vs_alt} ) . "\n";
+    $reply_str
+        .= "  available: " . ( $model->{available} ? 'yes' : 'no' ) . "\n";
+    $reply_str .= "  category: " . ( $model->{category} // 'unknown' ) . "\n";
+    $reply_str .= "  invocations: " . ( $model->{invocations} // 0 ) . "\n";
+    $reply_str .= "\n";
 }
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,..,,,,,,,,,..,,,..,,,.,.,.,,,,,.,,,,,.,..,,..,,...,...,,,.,,,.,,..,,..,.,.,
-#NSOOKJF2TSHZ3EQAUZ6GOLU7KVGHAY5HBZYIVMPEF7B6QZMCPBRD56G4UCFEV7THZBXICI4PQNXRS
-#\\\|V5USGRE62RWH6LJAV6SUXLNUNWC4ID47KPUHQ4JSC42BUR5O2VL \ / AMOS7 \ YOURUM ::
-#\[7]UPGYCFGCJ7UHKH33KKXTFYG3XFXX5JELDHZ2UINORGYI4U3RMCDI 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,...,,,,,.,.,..,,,,.,,..,,..,..,,..,,...,...,,.,,,,.,..,,.,,,..,,
+#46KWXWRZ3JFXZ6JV5MFI2RRCKK7YQVQW2VWIPWLKTTDS65OYQEKI53GVKEEHAGCOKHWXTPVZOOPB4
+#\\\|SG4HETBIDYCZHVEEP52A3IG7V6XQIIE5LUBGLWYTXPCILOI4MPN \ / AMOS7 \ YOURUM ::
+#\[7]43YOAFYM7NFPPEHLNWFHSCKGLLRRSRFELDVWDW6F6NJDWJY3EGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

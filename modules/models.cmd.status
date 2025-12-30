@@ -9,14 +9,17 @@ my $reply_str = '';
 $reply_str .= 'status: running' . "\n";
 $reply_str .= 'zenka: models' . "\n";
 $reply_str .= 'timestamp: ' . time() . "\n";
-$reply_str .= 'operation_log_entries: ' . scalar(@{$data{models}{operation_log} // []}) . "\n";
-$reply_str .= 'error_log_entries: ' . scalar(@{$data{models}{error_log} // []}) . "\n";
-$reply_str .= 'action_log_entries: ' . scalar(@{$data{models}{action_log} // []}) . "\n";
+$reply_str .= 'operation_log_entries: '
+    . scalar( @{ $data{models}{operation_log} // [] } ) . "\n";
+$reply_str .= 'error_log_entries: '
+    . scalar( @{ $data{models}{error_log} // [] } ) . "\n";
+$reply_str .= 'action_log_entries: '
+    . scalar( @{ $data{models}{action_log} // [] } ) . "\n";
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,.,,.,,,,,,,,,.,.,,,,..,.,,,,.,,.,.,,,,,,,.,..,,...,...,.,,,.,,,...,.,,,.,.,
-#VCSSJKHF7ITYEEODMD6PGJETJSPGE7NNVIMGPLFNBIXD6PNI2KF6OMEA4URZM5EOWI3YODOGUM4S2
-#\\\|2QEOGM6SFFQZZ352WE3LEJ4PAN6OXKDUEXH544NG63BMIV5UP3P \ / AMOS7 \ YOURUM ::
-#\[7]IG3MKTVXWMK3D2BVFRW2Y7PAS6YVB3XZEBCZYLK3NAQTS5VEZADI 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,,.,.,,,.,,,,.,,,..,,.,,,,,,,,.,..,,...,...,,..,,..,,,.,.,.,.,.,
+#XIWCSZQK4FTRUZFYRG3FZFKBH3YWHIHXIWOKOCHJRILLWC4LFRR76TP26O4DKBTOVRAQ7H7NBCUCC
+#\\\|M2EX5UIVWLVFGJNIQMJ3YKBISJOLEDYV245W7HBNVUZNGORYLHN \ / AMOS7 \ YOURUM ::
+#\[7]W5JSHOHKVAF2ZXL2GM6QBUJYS4USFLHMNNSO62NOHFRBFANSSYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

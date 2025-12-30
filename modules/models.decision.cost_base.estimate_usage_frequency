@@ -3,39 +3,39 @@
 # name  = models.decision.cost_base.estimate_usage_frequency
 # descr = Estimate how often a model is used based on context and history
 
-my ($model_entry, $context) = @ARG;
+my ( $model_entry, $context ) = @ARG;
 
-my $stats = $model_entry->{statistics} // {};
+my $stats             = $model_entry->{statistics}  // {};
 my $total_invocations = $stats->{total_invocations} // 0;
 
 # Base frequency estimates by context
 my %context_freq = (
-  batch => { per_month => 2, per_day => 0.067 },
-  real_time => { per_month => 50, per_day => 1.67 },
-  interactive => { per_month => 30, per_day => 1.0 },
-  streaming => { per_month => 100, per_day => 3.33 },
-  analysis => { per_month => 5, per_day => 0.167 },
+    batch       => { per_month => 2,   per_day => 0.067 },
+    real_time   => { per_month => 50,  per_day => 1.67 },
+    interactive => { per_month => 30,  per_day => 1.0 },
+    streaming   => { per_month => 100, per_day => 3.33 },
+    analysis    => { per_month => 5,   per_day => 0.167 },
 );
 
 my $freq = $context_freq{$context} // { per_month => 5, per_day => 0.167 };
 
 # Scale by invocation history if available
-if ($total_invocations > 0) {
-  my $days_active = $stats->{days_active} // 30;
-  my $actual_per_day = $total_invocations / max(1, $days_active);
-  $freq->{per_day} = $actual_per_day;
-  $freq->{per_month} = $actual_per_day * 30;
+if ( $total_invocations > 0 ) {
+    my $days_active    = $stats->{days_active} // 30;
+    my $actual_per_day = $total_invocations / max( 1, $days_active );
+    $freq->{per_day}   = $actual_per_day;
+    $freq->{per_month} = $actual_per_day * 30;
 }
 
 return $freq;
 
 sub max {
-  my ($a, $b) = @_;
-  return $a > $b ? $a : $b;
+    my ( $a, $b ) = @_;
+    return $a > $b ? $a : $b;
 }
 
-#,,..,,.,,,..,...,,,,,..,,.,,,,..,,.,,,.,,..,,..,,...,...,..,,...,.,.,..,,..,,
-#RIHVQMA36VPL54YU6DP25J4FYBL77LOE5S2U5EQKOTQ4JNU7EWIHQJNKUK62V5DV3CJNWI7RK3I3M
-#\\\|6ZVU7U2T3WLL6LLPIS2NP7MGA4MF5RQM2ANGQWM7BSI2XQPBNJV \ / AMOS7 \ YOURUM ::
-#\[7]XFWWTJMRY77O3AGDIH2JMDFNDZ5UV67VJYLABOG2WG3QNUO7BWAI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,.,,...,,.,,,,.,...,..,,.,,,...,..,,...,...,...,.,,,,,,,,..,,.,,
+#72SYBAG7RT7MKDQ6HOVVS7UOKVYYLQMQF44YAD4XWKNWCQNALV4COVDUCUVGWHV5SQZOTB3LRUFVA
+#\\\|42Y2RYQNK2P3QXBNBAE4EQSRU7NPRW6WOGMHSVAZIUH5X4MDALG \ / AMOS7 \ YOURUM ::
+#\[7]GL7EKAI4LIYOUUW5VSGKQHZFXBCMKKFFYP4D4BDJOZJDS6GLXKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

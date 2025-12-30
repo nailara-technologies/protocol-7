@@ -10,56 +10,53 @@
 # =============================================================================
 
 # Initialize models namespace
-$data{models} //= {};
+$data{models}                //= {};
 $data{models}{operation_log} //= [];
-$data{models}{error_log} //= [];
-$data{models}{action_log} //= [];
+$data{models}{error_log}     //= [];
+$data{models}{action_log}    //= [];
 
 # Statistics aggregation state
-$data{models}{stats_aggregation_pending} = 0;
-$data{models}{last_stats_aggregation} = 0;
+$data{models}{stats_aggregation_pending}  = 0;
+$data{models}{last_stats_aggregation}     = 0;
 $data{models}{maintenance_time_available} = 0;
 
 # Cache for frequently accessed registry
-$data{models}{registry_cache} = {};
+$data{models}{registry_cache}     = {};
 $data{models}{cache_last_updated} = 0;
-$data{models}{cache_ttl_seconds} = 300;
+$data{models}{cache_ttl_seconds}  = 300;
 
 # =============================================================================
 # LOG BUFFERS - Named log buffers for audit trail and operation tracking
 # =============================================================================
 
 # Initialize operation log buffer if not already created
-if (not exists <buffer.models-operation>) {
-  <buffer.models-operation.max_size> = 64 * 1024;  # 64K buffer
-  my $time_stamp = <[base.anum_log_time]>->(5, TRUE);
-  <[base.buffer.add_line]>->(
-    'models-operation',
-    join(' ', $time_stamp, 0, 'operation log buffer initialized'),
-    0
-  );
+if ( not exists <buffer.models-operation> ) {
+    <buffer.models-operation.max_size> = 64 * 1024;    # 64K buffer
+    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+    <[base.buffer.add_line]>->(
+        'models-operation',
+        join( ' ', $time_stamp, 0, 'operation log buffer initialized' ), 0
+    );
 }
 
 # Initialize error log buffer
-if (not exists <buffer.models-error>) {
-  <buffer.models-error.max_size> = 32 * 1024;  # 32K buffer
-  my $time_stamp = <[base.anum_log_time]>->(5, TRUE);
-  <[base.buffer.add_line]>->(
-    'models-error',
-    join(' ', $time_stamp, 0, 'error log buffer initialized'),
-    0
-  );
+if ( not exists <buffer.models-error> ) {
+    <buffer.models-error.max_size> = 32 * 1024;        # 32K buffer
+    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+    <[base.buffer.add_line]>->(
+        'models-error',
+        join( ' ', $time_stamp, 0, 'error log buffer initialized' ), 0
+    );
 }
 
 # Initialize action log buffer
-if (not exists <buffer.models-action>) {
-  <buffer.models-action.max_size> = 48 * 1024;  # 48K buffer
-  my $time_stamp = <[base.anum_log_time]>->(5, TRUE);
-  <[base.buffer.add_line]>->(
-    'models-action',
-    join(' ', $time_stamp, 0, 'action log buffer initialized'),
-    0
-  );
+if ( not exists <buffer.models-action> ) {
+    <buffer.models-action.max_size> = 48 * 1024;       # 48K buffer
+    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+    <[base.buffer.add_line]>->(
+        'models-action',
+        join( ' ', $time_stamp, 0, 'action log buffer initialized' ), 0
+    );
 }
 
 # =============================================================================
@@ -67,130 +64,136 @@ if (not exists <buffer.models-action>) {
 # =============================================================================
 
 # During initialization, always return 0 (success)
-if (!@ARG || $ARG[0] eq 'init') {
-  return 0;  # Module initialization successful
+if ( !@ARG || $ARG[0] eq 'init' ) {
+    return 0;    # Module initialization successful
 }
 
 # Parse command and dispatch - this block runs when a command is received
 my $cmd_result;
 {
-  my $cmd = shift @ARG;
-  my @args = @ARG;
+    my $cmd  = shift @ARG;
+    my @args = @ARG;
 
-  # Should not reach here for init, but safety check anyway
-  if (!$cmd || $cmd eq 'init') {
-    return 0;  # Module initialization successful (0 means success)
-  }
-
-  # Log action in models namespace
-  my $action_entry = {
-    timestamp => time(),
-    actor => 'system',
-    action => $cmd,
-    status => 'pending',
-  };
-  push @{$data{models}{action_log}}, $action_entry;
-
-  my $time_stamp = <[base.anum_log_time]>->(5, TRUE);
-  <[base.buffer.add_line]>->(
-    'models-action',
-    join(' ', $time_stamp, 1, 'system', $cmd, 'pending'),
-    1
-  );
-
-  # Route to command handlers via module loading
-  my $result;
-
-  if ($cmd eq 'status') {
-    # Status command - delegate to command module
-    unshift @ARG, $cmd, @args;
-    $result = <[models.cmd.status]>;
-  } elsif ($cmd eq 'reload') {
-    # Reload command - delegate to base handler which returns proper format
-    unshift @ARG, $cmd, @args;
-    $result = <[base.cmd.reload]> // {
-      'mode' => qw| size |,
-      'data' => "error: base.cmd.reload not available\n",
-    };
-    return $result;
-  } elsif ($cmd eq 'maintenance') {
-    # Maintenance command - delegate to command module
-    unshift @ARG, $cmd, @args;
-    $result = <[models.cmd.maintenance]>;
-  } elsif ($cmd =~ /^(get|find|recommend|record|stats|cost|discover|list)/) {
-    # Route to command modules
-    my $module;
-    if ($cmd eq 'get') {
-      $module = 'models.cmd.get_model';
-    } elsif ($cmd eq 'find') {
-      $module = 'models.cmd.find_models';
-    } elsif ($cmd eq 'recommend' || $cmd eq 'rec') {
-      $module = 'models.cmd.recommend';
-    } elsif ($cmd eq 'record') {
-      $module = 'models.cmd.record_invocation';
-    } elsif ($cmd eq 'stats') {
-      $module = 'models.cmd.statistics';
-    } elsif ($cmd eq 'cost') {
-      $module = 'models.cmd.cost_analysis';
-    } elsif ($cmd eq 'discover' || $cmd eq 'list') {
-      $module = 'models.cmd.discover';
+    # Should not reach here for init, but safety check anyway
+    if ( !$cmd || $cmd eq 'init' ) {
+        return 0;    # Module initialization successful (0 means success)
     }
 
-    # Load and execute the module
-    unshift @ARG, $cmd, @args;  # Restore @ARG for the module
-    $result = <[$module]> // {
-      'mode' => qw| size |,
-      'data' => "error: module not found: $module\n",
+    # Log action in models namespace
+    my $action_entry = {
+        timestamp => time(),
+        actor     => 'system',
+        action    => $cmd,
+        status    => 'pending',
     };
-  } else {
-    # Unknown command
-    $result = {
-      'mode' => qw| size |,
-      'data' => "error: unknown command: $cmd\n",
+    push @{ $data{models}{action_log} }, $action_entry;
+
+    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+    <[base.buffer.add_line]>->(
+        'models-action',
+        join( ' ', $time_stamp, 1, 'system', $cmd, 'pending' ), 1
+    );
+
+    # Route to command handlers via module loading
+    my $result;
+
+    if ( $cmd eq 'status' ) {
+
+        # Status command - delegate to command module
+        unshift @ARG, $cmd, @args;
+        $result = <[models.cmd.status]>;
+    } elsif ( $cmd eq 'reload' ) {
+
+       # Reload command - delegate to base handler which returns proper format
+        unshift @ARG, $cmd, @args;
+        $result = <[base.cmd.reload]> // {
+            'mode' => qw| size |,
+            'data' => "error: base.cmd.reload not available\n",
+        };
+        return $result;
+    } elsif ( $cmd eq 'maintenance' ) {
+
+        # Maintenance command - delegate to command module
+        unshift @ARG, $cmd, @args;
+        $result = <[models.cmd.maintenance]>;
+    } elsif (
+        $cmd =~ /^(get|find|recommend|record|stats|cost|discover|list)/ ) {
+
+        # Route to command modules
+        my $module;
+        if ( $cmd eq 'get' ) {
+            $module = 'models.cmd.get_model';
+        } elsif ( $cmd eq 'find' ) {
+            $module = 'models.cmd.find_models';
+        } elsif ( $cmd eq 'recommend' || $cmd eq 'rec' ) {
+            $module = 'models.cmd.recommend';
+        } elsif ( $cmd eq 'record' ) {
+            $module = 'models.cmd.record_invocation';
+        } elsif ( $cmd eq 'stats' ) {
+            $module = 'models.cmd.statistics';
+        } elsif ( $cmd eq 'cost' ) {
+            $module = 'models.cmd.cost_analysis';
+        } elsif ( $cmd eq 'discover' || $cmd eq 'list' ) {
+            $module = 'models.cmd.discover';
+        }
+
+        # Load and execute the module
+        unshift @ARG, $cmd, @args;    # Restore @ARG for the module
+        $result = <[$module]> // {
+            'mode' => qw| size |,
+            'data' => "error: module not found: $module\n",
+        };
+    } else {
+
+        # Unknown command
+        $result = {
+            'mode' => qw| size |,
+            'data' => "error: unknown command: $cmd\n",
+        };
+    }
+
+    # Determine success/failure status
+    my $is_success
+        = $result && $result->{data} && $result->{data} !~ /^error:/;
+    my $status    = $is_success ? 'completed' : 'failed';
+    my $log_level = $is_success ? 0           : 2;
+
+    # Update action log in models namespace
+    if ( @{ $data{models}{action_log} } ) {
+        my $last_action = $data{models}{action_log}->[-1];
+        $last_action->{status} = $status;
+    }
+
+    # Log operation in models namespace
+    my $operation_entry = {
+        timestamp => time(),
+        action    => $cmd // 'status',
+        status    => $is_success ? 'success' : 'failure',
+        details   => ( $result && $result->{data} )
+        ? substr( $result->{data}, 0, 100 )
+        : 'no response',
     };
-  }
+    push @{ $data{models}{operation_log} }, $operation_entry;
 
-  # Determine success/failure status
-  my $is_success = $result && $result->{data} && $result->{data} !~ /^error:/;
-  my $status = $is_success ? 'completed' : 'failed';
-  my $log_level = $is_success ? 0 : 2;
+    my $operation_msg = sprintf( '%s %s %s',
+        $operation_entry->{action},
+        $operation_entry->{status},
+        $operation_entry->{details} );
+    my $op_timestamp = <[base.anum_log_time]>->( 5, TRUE );
+    <[base.buffer.add_line]>->(
+        'models-operation',
+        join( ' ', $op_timestamp, $log_level, $operation_msg ), $log_level
+    );
 
-  # Update action log in models namespace
-  if (@{$data{models}{action_log}}) {
-    my $last_action = $data{models}{action_log}->[-1];
-    $last_action->{status} = $status;
-  }
-
-  # Log operation in models namespace
-  my $operation_entry = {
-    timestamp => time(),
-    action => $cmd // 'status',
-    status => $is_success ? 'success' : 'failure',
-    details => ($result && $result->{data}) ? substr($result->{data}, 0, 100) : 'no response',
-  };
-  push @{$data{models}{operation_log}}, $operation_entry;
-
-  my $operation_msg = sprintf('%s %s %s',
-    $operation_entry->{action},
-    $operation_entry->{status},
-    $operation_entry->{details}
-  );
-  my $op_timestamp = <[base.anum_log_time]>->(5, TRUE);
-  <[base.buffer.add_line]>->(
-    'models-operation',
-    join(' ', $op_timestamp, $log_level, $operation_msg),
-    $log_level
-  );
-
-  $cmd_result = $result;
+    $cmd_result = $result;
 };
 
 # The block above handles command processing, but for initialization
 # we always return 0 or TRUE to indicate success
 return 0;
 
-#,,.,,.,.,..,,,..,.,.,.,.,.,,,..,,,,,,,,.,,.,,..,,...,...,...,,,,,,.,,,.,,..,,
-#ZSUCEFXPPJROSI7FJ7MZFLT743JSBZHLEIXYXYG4XWCEQY3Z6HSGG7Q3JKOQTWNGKEK3RMZBW5EEW
-#\\\|ZARIRB5EEPXWDYY7JNDDJWZJW3GQBLEYYKRX6VHKGONBOPPPO4H \ / AMOS7 \ YOURUM ::
-#\[7]2QPAQJHQOVUZD2FYXSP4CYSASL56BOCP7P37S65ZAAEIL4ZUVSDQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,,.,,,,,.,,,,,,,,..,.,.,,,,,.,,,..,,...,...,...,,.,,,..,,,,,,.,,
+#FD4YEGKF24SID33NAK26DDP2WR5BPGSJI46TDPCUEQCXY2J5O6JCTN3ETAQE6IQQRIQZLITRZR4I4
+#\\\|JJOROTHTXAF6A3PRWGPD6C5GG7ZUH4R7CGMV2BZEIHVSF6TWZR2 \ / AMOS7 \ YOURUM ::
+#\[7]BKL3BSVJZHP5EIN4XWCYXNCOV4EESS2Z5D2CUMGLQA2G4MVHTWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,12 +2,13 @@
 
 # name  = models.statistics.invocation_tracking.get_context_statistics
 
-my ($context) = @ARG; 
-my @logs = grep { $_->{context} eq $context } @{$data{models}{operation_log} // []}; 
+my ($context) = @ARG;
+my @logs = grep { $_->{context} eq $context }
+    @{ $data{models}{operation_log} // [] };
 return { count => scalar(@logs), context => $context };
 
-#,,,,,..,,,..,..,,.,.,,,.,,..,,..,,.,,...,...,..,,...,...,...,,,.,.,,,...,,..,
-#KOP4R7PXS7EMJJL43K2YBK3E7BYGDINB5FAGNW7VWGZ7UGF3CXVC5BCRVOCUMYIAHTOWHA34HVJJE
-#\\\|Q2YN2F22E5ATT62O6PORK3VBQ7K3QUIHBNFLWPGTEJWY4AMU3YP \ / AMOS7 \ YOURUM ::
-#\[7]XDCBO7FSZDMXT5NQU4X6H5UX5FX63LDSOHTNXBR6DFE5NEZJBYDA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,,.,.,.,.,.,...,.,.,,..,,,.,..,,..,,...,...,.,.,,..,...,..,,.,,,
+#UX5SXWLOFQPXUJWJD75TCE2NU26EEYPSLBKN2TRAWJJQER2IURJSFSRTDUI4PB3NXQB7YLSX237CA
+#\\\|OKLMN7T4YY7PPL4GBE5OPTPOG7ELTUKISLPPTAORX6N33BDAEBX \ / AMOS7 \ YOURUM ::
+#\[7]NPC5M3U2EF6E7Z7ZXSW6LDUCTNV6BH7HJFMM27ERF2YX7GD66QCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

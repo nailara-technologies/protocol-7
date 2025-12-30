@@ -4,59 +4,96 @@
 # descr = Analyze storage vs bandwidth costs for a model
 
 my $cmd = shift @ARG;
-my ($model_amos, $context) = @ARG;
+my ( $model_amos, $context ) = @ARG;
 
-if (!$model_amos || !$context) {
-  return { 'mode' => qw| size |, 'data' => "error: model AMOS and context required\n" };
+if ( !$model_amos || !$context ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "error: model AMOS and context required\n"
+    };
 }
 
 # Load registry - call extracted module directly
-my $model_entry = <[models.registry.get_entry.get_model_entry]>->($model_amos);
+my $model_entry
+    = <[models.registry.get_entry.get_model_entry]>->($model_amos);
 
-if ($model_entry->{not_found}) {
-  return { 'mode' => qw| size |, 'data' => "error: model not found: $model_amos\n" };
+if ( $model_entry->{not_found} ) {
+    return {
+        'mode' => qw| size |,
+        'data' => "error: model not found: $model_amos\n"
+    };
 }
 
 # Perform cost analysis - call extracted module directly
-my $analysis = <[models.decision.cost_analysis.where_should_model_reside]>->($model_entry, $context);
+my $analysis = <[models.decision.cost_analysis.where_should_model_reside]>->(
+    $model_entry, $context
+);
 
 my $reply_str = '';
 $reply_str .= "model_amos: $model_amos\n";
-$reply_str .= "model_name: " . ($model_entry->{metadata}->{name} // 'unknown') . "\n";
+$reply_str .= "model_name: "
+    . ( $model_entry->{metadata}->{name} // 'unknown' ) . "\n";
 $reply_str .= "context: $context\n";
 
 # Storage cost
 $reply_str .= "\nstorage_cost:\n";
-$reply_str .= "  monthly_usd: " . sprintf('%.2f', $analysis->{storage_cost}->{monthly_usd} // 0) . "\n";
-$reply_str .= "  annual_usd: " . sprintf('%.2f', $analysis->{storage_cost}->{annual_usd} // 0) . "\n";
+$reply_str .= "  monthly_usd: "
+    . sprintf( '%.2f', $analysis->{storage_cost}->{monthly_usd} // 0 ) . "\n";
+$reply_str .= "  annual_usd: "
+    . sprintf( '%.2f', $analysis->{storage_cost}->{annual_usd} // 0 ) . "\n";
 
 # Bandwidth cost
 $reply_str .= "\nbandwidth_cost:\n";
-$reply_str .= "  per_download_usd: " . sprintf('%.2f', $analysis->{bandwidth_cost}->{per_download_usd} // 0) . "\n";
-$reply_str .= "  estimated_monthly_usd: " . sprintf('%.2f', $analysis->{bandwidth_cost}->{estimated_monthly_usd} // 0) . "\n";
-$reply_str .= "  estimated_annual_usd: " . sprintf('%.2f', $analysis->{bandwidth_cost}->{estimated_annual_usd} // 0) . "\n";
+$reply_str
+    .= "  per_download_usd: "
+    . sprintf( '%.2f', $analysis->{bandwidth_cost}->{per_download_usd} // 0 )
+    . "\n";
+$reply_str .= "  estimated_monthly_usd: "
+    . sprintf( '%.2f',
+    $analysis->{bandwidth_cost}->{estimated_monthly_usd} // 0 ) . "\n";
+$reply_str .= "  estimated_annual_usd: "
+    . sprintf( '%.2f',
+    $analysis->{bandwidth_cost}->{estimated_annual_usd} // 0 ) . "\n";
 
 # Latency cost
 $reply_str .= "\nlatency_cost:\n";
-$reply_str .= "  initialization_ms: " . ($analysis->{latency_cost}->{initialization_ms} // 0) . "\n";
-$reply_str .= "  cost_per_cold_start: " . sprintf('%.2f', $analysis->{latency_cost}->{cost_per_cold_start} // 0) . "\n";
+$reply_str .= "  initialization_ms: "
+    . ( $analysis->{latency_cost}->{initialization_ms} // 0 ) . "\n";
+$reply_str
+    .= "  cost_per_cold_start: "
+    . sprintf( '%.2f', $analysis->{latency_cost}->{cost_per_cold_start} // 0 )
+    . "\n";
 
 # Break-even analysis
 $reply_str .= "\nbreak_even_analysis:\n";
-$reply_str .= "  keep_local_monthly: " . sprintf('%.2f', $analysis->{break_even_analysis}->{keep_local_monthly} // 0) . "\n";
-$reply_str .= "  fetch_ondemand_monthly: " . sprintf('%.2f', $analysis->{break_even_analysis}->{fetch_ondemand_monthly} // 0) . "\n";
-$reply_str .= "  monthly_delta: " . sprintf('%.2f', $analysis->{break_even_analysis}->{delta_monthly} // 0) . "\n";
-$reply_str .= "  recommendation: " . ($analysis->{break_even_analysis}->{recommendation} // 'unknown') . "\n";
+$reply_str .= "  keep_local_monthly: "
+    . sprintf( '%.2f',
+    $analysis->{break_even_analysis}->{keep_local_monthly} // 0 ) . "\n";
+$reply_str .= "  fetch_ondemand_monthly: "
+    . sprintf( '%.2f',
+    $analysis->{break_even_analysis}->{fetch_ondemand_monthly} // 0 ) . "\n";
+$reply_str
+    .= "  monthly_delta: "
+    . sprintf( '%.2f',
+    $analysis->{break_even_analysis}->{delta_monthly} // 0 ) . "\n";
+$reply_str
+    .= "  recommendation: "
+    . ( $analysis->{break_even_analysis}->{recommendation} // 'unknown' )
+    . "\n";
 
 # Usage frequency
 $reply_str .= "\nusage_frequency:\n";
-$reply_str .= "  per_month: " . sprintf('%.2f', $analysis->{usage_frequency}->{per_month} // 0) . "\n";
-$reply_str .= "  per_day: " . sprintf('%.2f', $analysis->{usage_frequency}->{per_day} // 0) . "\n";
+$reply_str
+    .= "  per_month: "
+    . sprintf( '%.2f', $analysis->{usage_frequency}->{per_month} // 0 )
+    . "\n";
+$reply_str .= "  per_day: "
+    . sprintf( '%.2f', $analysis->{usage_frequency}->{per_day} // 0 ) . "\n";
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,.,,,,,,,.,,.,,,..,,.,.,,..,...,,.,,,..,,,.,..,,...,...,.,.,,,,,,.,,,,,,,.,,
-#2FRPYUDG5W3ZJMISHY5CDNQX3DXWYRGSONRV4KRDUXNPVZXXCIZNDWGKPXWRJIXAOLP4XVQDCNV3W
-#\\\|LJLPV6CAK55FDG63S4OTOASHTEUJOO7RQN4AT6BX4ITIHSVKDYS \ / AMOS7 \ YOURUM ::
-#\[7]Q5VXX6KZXLUXMATQOO362U4L6OP27LTIL3G2SNXGR3BSW544TSBA 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,.,,.,.,,..,,,,,.,.,.,.,,..,...,..,,...,...,.,,,,,.,,..,.,.,,.,,
+#ZLBMWR6JBFH3G6K6YUFJAR5BE7OY4VVPPOCNIMTF26PEWXWNFRKEIF4RBZBPQUM6IWOPLXA5TRGYC
+#\\\|QLRH4ZDPGQXXIFQUERE3MOLDP6QA7IYBMY5AVODG5LJZPJ266OC \ / AMOS7 \ YOURUM ::
+#\[7]DL5IMNETWTTGNG7JWDMKXLPVHCIDIDSTOZ7LCY2ZNFTI5Y4M54BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

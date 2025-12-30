@@ -4,60 +4,60 @@
 # descr = Storage tier management initialization - deprecated, use models.storage.* modules instead
 
 use File::Spec;
-use File::Copy qw| copy |;
-use File::Path qw| make_path remove_tree |;
+use File::Copy  qw| copy |;
+use File::Path  qw| make_path remove_tree |;
 use Digest::SHA qw| sha384_hex |;
 
 # Tier definitions with priority order - stored in $data{} for persistence
 $data{tiers} ||= {
-  3 => {
-    name => 'var_run',
-    base_path => '/var/run/protocol-7/models',
-    priority => 1,
-    is_symlink => 1,
-    purpose => 'Fast access for frequently used models',
-  },
-  2 => {
-    name => 'var_protocol7',
-    base_path => '/var/protocol-7/models',
-    priority => 2,
-    is_symlink => 0,
-    purpose => 'Primary storage for active models',
-  },
-  4 => {
-    name => 'group_specific',
-    base_paths => {
-      'invoke-models' => '/data/invoke-models',
-      'lmstudio-models' => '/data/lmstudio-models',
+    3 => {
+        name       => 'var_run',
+        base_path  => '/var/run/protocol-7/models',
+        priority   => 1,
+        is_symlink => 1,
+        purpose    => 'Fast access for frequently used models',
     },
-    priority => 3,
-    is_symlink => 1,
-    purpose => 'Compatibility with external model managers',
-  },
-  5 => {
-    name => 'external',
-    base_path => undef,  # Dynamically configured
-    priority => 4,
-    is_symlink => 0,
-    purpose => 'Expansion when internal space limited',
-  },
-  1 => {
-    name => 'repo',
-    base_path => 'data/models',
-    priority => 100,  # Last resort
-    is_metadata_only => 1,
-    purpose => 'Repository baseline and metadata',
-  },
+    2 => {
+        name       => 'var_protocol7',
+        base_path  => '/var/protocol-7/models',
+        priority   => 2,
+        is_symlink => 0,
+        purpose    => 'Primary storage for active models',
+    },
+    4 => {
+        name       => 'group_specific',
+        base_paths => {
+            'invoke-models'   => '/data/invoke-models',
+            'lmstudio-models' => '/data/lmstudio-models',
+        },
+        priority   => 3,
+        is_symlink => 1,
+        purpose    => 'Compatibility with external model managers',
+    },
+    5 => {
+        name       => 'external',
+        base_path  => undef,        # Dynamically configured
+        priority   => 4,
+        is_symlink => 0,
+        purpose    => 'Expansion when internal space limited',
+    },
+    1 => {
+        name             => 'repo',
+        base_path        => 'data/models',
+        priority         => 100,                                 # Last resort
+        is_metadata_only => 1,
+        purpose          => 'Repository baseline and metadata',
+    },
 };
 
 # Entry point
-{
-  'success' => 1,
-  'message' => 'storage tiers initialized (use models.storage.* modules for operations)',
+{   'success' => 1,
+    'message' =>
+        'storage tiers initialized (use models.storage.* modules for operations)',
 };
 
-#,,,,,..,,,,,,.,,,.,,,,,,,.,.,.,,,..,,.,.,...,..,,...,..,,,,.,...,,,,,,..,...,
-#GQDQMYDHBLONKAAZMGIVUYBIQZ5DGTSCPIO52FYICM2TLXSGMOMZQGSEWNJU6MIQVDFL7YKYLLFNY
-#\\\|THQPE2JDYI5RY2YWQIERTDHBJKA55OCGCEAOP54UVPJ7KO3UD3Q \ / AMOS7 \ YOURUM ::
-#\[7]H23W724K3BT73DPLUKYBUND6QS7EXXUIDIRID7IRL43FPORBTGBA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,..,,.,,,...,,,.,,..,,,.,...,.,,,..,,...,.,.,,.,,,..,.,,,,.,,,,,,
+#T2EKGHK3PV2T4TWTYI2L7JE3VMNM74VEMI7FXX33XJOKLYQ3BSZSL47SUR2NS6A4J3SF4MXZYWX7O
+#\\\|5QU56LQSFRGEM7EH24KNX4APQ7HQ5U4UJUBSTH3T3HA2L2BF725 \ / AMOS7 \ YOURUM ::
+#\[7]HJL532JMPHGXEXOSHSOJU3QNNMHAOL6LQLB6MVJ5BITMKJ3NC4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

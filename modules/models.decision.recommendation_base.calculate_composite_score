@@ -3,34 +3,37 @@
 # name  = models.decision.recommendation_base.calculate_composite_score
 # descr = Calculate composite recommendation score for a model
 
-my ($model, $weights) = @ARG;
+my ( $model, $weights ) = @ARG;
 
 return 0 unless $model && ref($model) eq 'HASH';
 
 $weights //= {};
 
 # Default weights for scoring
-my $w_quality = $weights->{quality} // 0.4;
-my $w_speed = $weights->{speed} // 0.3;
-my $w_cost = $weights->{cost} // 0.2;
+my $w_quality      = $weights->{quality}      // 0.4;
+my $w_speed        = $weights->{speed}        // 0.3;
+my $w_cost         = $weights->{cost}         // 0.2;
 my $w_availability = $weights->{availability} // 0.1;
 
 # Get metrics (normalized 0-1)
-my $success_rate = ($model->{statistics}->{success_rate} // 0) / 100;
-my $speed_score = 1 - (($model->{latency}->{p99_ms} // 1000) / 10000);  # Normalize latency
-my $cost_score = 1 - (($model->{cost}->{monthly} // 100) / 1000);  # Normalize cost
+my $success_rate = ( $model->{statistics}->{success_rate} // 0 ) / 100;
+my $speed_score  = 1
+    - ( ( $model->{latency}->{p99_ms} // 1000 ) / 10000 ); # Normalize latency
+my $cost_score
+    = 1 - ( ( $model->{cost}->{monthly} // 100 ) / 1000 );    # Normalize cost
 my $availability = $model->{presence_decision}->{currently_present} ? 1 : 0.5;
 
 # Calculate composite
-my $composite = ($success_rate * $w_quality) +
-                ($speed_score * $w_speed) +
-                ($cost_score * $w_cost) +
-                ($availability * $w_availability);
+my $composite
+    = ( $success_rate * $w_quality )
+    + ( $speed_score * $w_speed )
+    + ( $cost_score * $w_cost )
+    + ( $availability * $w_availability );
 
 return $composite;
 
-#,,,.,.,.,,..,.,.,..,,.,,,...,.,.,..,,...,,,.,..,,...,...,..,,..,,,.,,,,,,,..,
-#R3RDOIDKPAZLOFKMGQKU2LGG5OZVXJ5XISDSPHL47YS77JHBGZ5FYRHGM63RHZOKUK4HLPHXPO2AQ
-#\\\|HBWB2FEACQEP63PQXQOVJIHKZD6YFTW2XIKFLL7OZYZEMOIZPMD \ / AMOS7 \ YOURUM ::
-#\[7]HZNUM7ZIZXEUENTC5HJ5CWKCK75WWG2IEFD5CK73HLFKU6DDDQBI 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,..,,.,.,.,,,.,,,,.,,..,,...,.,.,..,,...,...,.,,,.,.,,.,,.,,,.,.,
+#SLSNKTL2LWJROKXQNXNZ5WWC7X76QKUCS4JZWG54PX7ZRYLLRQKWRQZRDTP5JVKV2JN6DMFQ6QM26
+#\\\|Z2DQ6MW2UL3ZK5D3YOBVGMUAOICKL6SPE3RBHBC23EMDHVP7FOA \ / AMOS7 \ YOURUM ::
+#\[7]7V5GFUEKUH4QMLPU63X5ZQNEV46JNQT47WPN6D4MVCEGCFXIK4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

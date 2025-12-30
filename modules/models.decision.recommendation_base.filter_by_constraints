@@ -3,33 +3,33 @@
 # name  = models.decision.recommendation_base.filter_by_constraints
 # descr = Filter models by constraint criteria
 
-my ($models, $constraints) = @ARG;
+my ( $models, $constraints ) = @ARG;
 
 return [] unless $models && ref($models) eq 'ARRAY';
 
 my @filtered = grep {
-  my $model = $_;
-  my $pass = 1;
+    my $model = $_;
+    my $pass  = 1;
 
-  # Check capability requirements
-  if ($constraints->{required_capability}) {
-    my $caps = $model->{capabilities} // {};
-    $pass = 0 unless $caps->{$constraints->{required_capability}};
-  }
+    # Check capability requirements
+    if ( $constraints->{required_capability} ) {
+        my $caps = $model->{capabilities} // {};
+        $pass = 0 unless $caps->{ $constraints->{required_capability} };
+    }
 
-  # Check size constraints
-  if ($constraints->{max_size_gb}) {
-    my $size = $model->{resource_profile}->{storage}->{size_gb} // 0;
-    $pass = 0 if $size > $constraints->{max_size_gb};
-  }
+    # Check size constraints
+    if ( $constraints->{max_size_gb} ) {
+        my $size = $model->{resource_profile}->{storage}->{size_gb} // 0;
+        $pass = 0 if $size > $constraints->{max_size_gb};
+    }
 
-  $pass;
+    $pass;
 } @$models;
 
 return \@filtered;
 
-#,,..,..,,...,.,,,,,.,.,,,,,,,,,.,,.,,..,,...,..,,...,...,...,,,,,,..,..,,,..,
-#4ICYED4NWFD2T75IOMLIY5TCWJEIORF7IVYZDOAPBYJEYYCDAEVBWGAN7E623OEWXTZY3TJTB7SIM
-#\\\|Y5LVMHJ4QWURZB5AELWL2IE363KPYDEEEX2EAWHDMW57O2J4PBJ \ / AMOS7 \ YOURUM ::
-#\[7]SMDG4YJYFTUIFKF6YW7PZVM5K7B6UELZU7H4LNXTBSNQUZH7TCAA 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,,..,,,.,...,.,,,,,.,,,,,...,.,.,..,,...,...,.,,,...,...,,,,,,,,,
+#NEQHJEBWL7YWF4LTAV4YXXAMLGP5ZWH52NVUEVECTOCII6I2UTJSKOIGH4N3JKVX7YP6G2GNMDIS2
+#\\\|7DUN4FEYP4SIE666PX4B6QF3Y4OVZTGZLIMPT4WR7WXAPAJ7GNC \ / AMOS7 \ YOURUM ::
+#\[7]6ZTHTU53GVQV4IFC23JBPVLBTPHSV2AVKBIPS4OJFEEO2HFNWKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
