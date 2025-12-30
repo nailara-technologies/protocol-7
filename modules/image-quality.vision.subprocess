@@ -5,7 +5,7 @@
 
 my ( $image_path, $model_identifier, $analysis_prompt ) = @_;
 
-<[base.log]>->(
+<[base.logs]>->(
     1, "[image-quality] vision.subprocess: model=%s",
     $model_identifier
 );
@@ -16,7 +16,7 @@ unless ( defined $image_path ) {
     return { success => FALSE, error => 'Image path required' };
 }
 unless ( -f $image_path ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         0, "[image-quality] Error: Image file not found: %s", $image_path
     );
     return { success => FALSE, error => 'Image file not found' };
@@ -149,8 +149,8 @@ return {
     model_used => $model_identifier
 };
 
-#,,,,,,,,,,.,,,,,,,,,,,,,,.,.,.,,,,.,,,.,,,..,..,,...,..,,,.,,...,,..,..,,.,.,
-#LIGZECL36AICYJD3CSRROFBK4YKXNTFWVQ6D2PG4BF3QI26DQMZ5LMMVF56PW7PLZGGS4SANTQMQO
-#\\\|2NJTJFKNMRM5MC5VMIEUUQUOJX7KSZONURWUCYITEBHM4U674IS \ / AMOS7 \ YOURUM ::
-#\[7]PDPP4D7CDMOCCPTRGQLGLFUUFVZREGY3HYMGQHS33VHS6RCZHIAY 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,,.,,,,,,,,,...,.,,,,,,,..,,..,,..,,...,..,,.,,,.,.,.,.,...,,,,,
+#SLAHP26ABD233QFA3QNKKSA5TEBE5F4DYRDMGRER6P63BCUBYOIHRIVDWZWN6NVXSUJRDH3RQ7D76
+#\\\|HXQLMVW6XT7BJYUERSB422ZVQL6KVN5MV5DGX6JPYOELSIYRAON \ / AMOS7 \ YOURUM ::
+#\[7]H6BF56EIBQW2ZT33NUEYZEIPP5PN6VVPH62OVEC57NMD7LKBMICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

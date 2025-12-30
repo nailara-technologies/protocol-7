@@ -56,11 +56,11 @@ my $get_model_config = sub {
 my $query_subprocess = sub {
     my ( $model, $prompt ) = @_;
 
-    <[base.log]>->( 1, "[llm.service] query_subprocess: model=%s", $model );
+    <[base.logs]>->( 1, "[llm.service] query_subprocess: model=%s", $model );
 
     my $config = $get_model_config->($model);
     unless ($config) {
-        <[base.log]>->( 0, "[llm.service] Error: Unknown model: %s", $model );
+        <[base.logs]>->( 0, "[llm.service] Error: Unknown model: %s", $model );
         return {
             success => FALSE,
             error   => "Unknown model or unable to fetch config: $model"
@@ -77,7 +77,7 @@ my $query_subprocess = sub {
 
     # Verify model file exists
     if ( !-f $config->{model_path} ) {
-        <[base.log]>->(
+        <[base.logs]>->(
             0, "[llm.service] Error: Model file not found: %s",
             $config->{model_path}
         );
@@ -250,8 +250,8 @@ if ( $cmd eq 'query' ) {
 
 # AMOS7::TEMPLATE::signature_placeholder
 
-#,,..,.,.,,..,..,,..,,,.,,,,,,,.,,...,,.,,,..,..,,...,...,,,.,,..,,,.,..,,.,.,
-#2VFEMMDQWJCRFRBXJZKFP2JI5VUCKC6FGY2TW3CWXCJQMYCMJV7J7F6JLRJ3KWXKNYYHETMJIH3UU
-#\\\|J4NBWT4JPWUP2BEWFNSWSCVXIZBEG5J25JL2SVG7GG5YYVMRWY2 \ / AMOS7 \ YOURUM ::
-#\[7]QNOOEBM6FWG62S5I7BMX7CDKIMPDDYBUR5G4NY7WUY262S5WAKBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,.,,,.,..,,.,,,.,,,,..,..,,..,,..,,...,...,.,.,,,,,.,.,,,.,.,,,
+#APT5HJE4YPATRBWPODOJYHELEZOCWQ7RXN4IP7UWKK7JB7BHRUCZDIKSVPTBIUYQEETWYQGHPVXAK
+#\\\|6O63IXJJTI2B3BTJWV3632JVNN4HIK3Z7G43KHRDSG6ZUQZTR2R \ / AMOS7 \ YOURUM ::
+#\[7]TN2QJKXAIRZ3YAVKDPUHYEW7JFSBHY3MLWANMCSH5MFXQEUGC2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
