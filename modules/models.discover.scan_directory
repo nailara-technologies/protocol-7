@@ -4,32 +4,35 @@
 # args = $directory_path, $recursive (default: TRUE)
 # descr = Recursively scan directory for .gguf model files
 
-my $dir       = shift @ARG;
+my $dir        = shift @ARG;
 my $do_recurse = shift @ARG // TRUE;
 my @models;
 
-opendir(my $dh, $dir) or return \@models;
+opendir( my $dh, $dir ) or return \@models;
 
-while (my $entry = readdir($dh)) {
-    next if $entry =~ /^\./;
-    my $full_path = "$dir/$entry";
+while ( my $entry = readdir($dh) ) {
+    next if $entry =~ m|^\.|;
+    my $full_path = cat_file( $dir, $entry );
 
-    if (-f $full_path && $entry =~ /\.gguf$/) {
-        my $size_bytes = -s $full_path;
-        my $size_gb    = $size_bytes / (1024**3);
-        my ($model_name) = $entry =~ /^(.+)\.gguf$/;
+    if ( -f $full_path && $entry =~ m|\.gguf$| ) {
+        my $size_bytes   = -s $full_path;
+        my $size_gb      = $size_bytes / ( 1024**3 );
+        my ($model_name) = $entry =~ m|^(.+)\.gguf$/|;
 
-        push @models, {
+        push @models,
+            {
             path    => $full_path,
             name    => $model_name,
-            size_gb => sprintf('%.2f', $size_gb),
-            source  => 'discovered'
-        };
-    } elsif (-d $full_path && $do_recurse) {
+            size_gb => sprintf( qw| %.2f |, $size_gb ),
+            source  => qw| discovered |
+            };
+    } elsif ( -d $full_path && $do_recurse ) {
+
         # Skip system directories
-        next if $entry =~ /^(System|\.)/i;
+        next if $entry =~ m{^(System|\.)}i;
+
         # Recursive scan
-        @ARG = ($full_path, TRUE);
+        @ARG = ( $full_path, TRUE );
         my $sub_models = <[models.discover.scan_directory]>;
         push @models, @$sub_models if $sub_models;
     }
@@ -38,8 +41,8 @@ closedir($dh);
 
 return \@models;
 
-#,,,,,,..,,,,,..,,,.,,.,,,...,.,.,,.,,.,.,,.,,..,,...,...,...,,,.,,..,,,,,,.,,
-#IPGNXCBXNYVQ5NIZL3PBMTV2HUC3E7ZVOQZQ32F2C5FWKYQXKG4J6CKXOQ5ALZUM5ZOCBH6KCFD4W
-#\\\|LPT7G3S4FVZ57AUYD7IUBYKRUUHNKVDXG2QQM3SIFVJVKBVZYRX \ / AMOS7 \ YOURUM ::
-#\[7]5ZKOJ2XR5AXA63EMIVNCCVE3OSQPZEU5K2NLQAPK32Z5KV3VXCCI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,..,,,,,,..,,,,,,,..,,.,,,,,,,,,,..,,...,...,...,,.,,,,,,,.,,,,.,
+#H37DBYWS6QTIPDQZIKZWHR7YMVNB3K7FXC2CJVR7I3QI3SFOLHVZSI2UDSWAD2DUBLXPBSC7F6CJ4
+#\\\|KNZQCTWRG3SXZWKFPPSY7CEKX6GJUM2TA7R7YDWUQULCX7POAVR \ / AMOS7 \ YOURUM ::
+#\[7]OTVKNEEEYSQ6Q2NQEOQRIOJ2UNIRVQKFDXJQMCMJPNL4UZBNGQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
