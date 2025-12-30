@@ -7,20 +7,19 @@
 
 my $reply = shift;
 
-my $sid        = $reply->{'sid'};
-my $cmd_status = $reply->{'cmd'};
-my $call_args  = $reply->{'call_args'};
+# Extract response data from reply
+my $response_data = $reply->{'data'} // '';
 
-<[base.log]>->(
+<[base.logs]>->(
     1,
-    "[llama-server-vision] fetch_model_config: status=%s",
-    $cmd_status // 'UNKNOWN'
+    "[llama-server-vision] fetch_model_config: received %d bytes",
+    length($response_data)
 );
 
 # Parse model configuration from response
-if ( $cmd_status && $call_args ) {
+if ( $response_data && length($response_data) > 0 ) {
     my $model_data;
-    eval { $model_data = JSON::PP::decode_json($call_args); };
+    eval { $model_data = JSON::PP::decode_json($response_data); };
 
     if ( $model_data && ref($model_data) eq 'HASH' ) {
         my $model_path  = $model_data->{path};
@@ -47,20 +46,20 @@ if ( $cmd_status && $call_args ) {
     } else {
         <[base.log]>->(
             0,
-            "[llama-server-vision] Error: Failed to parse model configuration"
+            "[llama-server-vision] Error: Failed to parse model configuration JSON"
         );
     }
 } else {
     <[base.log]>->(
         0,
-        "[llama-server-vision] Error: Failed to fetch model configuration from models zenka"
+        "[llama-server-vision] Error: Empty or missing response data from models zenka"
     );
 }
 
 return 0;
 
-#,,.,,...,.,.,,.,,.,,,.,,,,,.,.,.,,..,.,,,..,,..,,...,...,.,,,,,,,...,,.,,..,,
-#GURFHOLLKRIMIH4WFJP66PYYQBLDHSIKTKQ3SEJHDV5B4YKUVIF2TPA5IC5PCLQV4BC7GYB6CHYLW
-#\\\|ELHT7O2TUSMPKUPBCDXZIHVADBHFCAK3U3LEX4IYOEJCOK2IT2G \ / AMOS7 \ YOURUM ::
-#\[7]UBYIJPE7I4X3RHZFP34AJCOT455LNRNPUT2UYY2AL5F3WGOIMECI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,,.,...,,,.,.,,,,.,,..,,..,,.,.,..,,...,...,.,,,.,,,,..,,..,.,.,
+#HZ5O4Q6JQKABJZWZURX44XIKBEPD2X3XKNNLRUWKHRCQVLBYBBDSYGACV4SWGANV3T66T22YRGKD6
+#\\\|AQG7KFPJVOLR7MKRRFXOJ6XYC5E2F6LMKJ76QCRRPS3A5ZJ2CVB \ / AMOS7 \ YOURUM ::
+#\[7]2LCZE366MMB2DNWFQ2ZSPVEXES7GDWSYUZ4BRDA3XHER5Z7YQSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

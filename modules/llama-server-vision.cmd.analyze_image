@@ -130,6 +130,18 @@ my $binary      = <llama-server-vision.binary>;
 my $model_path  = <llama-server-vision.vision_model_path>;
 my $mmproj_path = <llama-server-vision.vision_mmproj_path>;
 
+# Verify model paths were initialized by init_code
+unless ( $model_path && $mmproj_path ) {
+    <[base.logs]>->(
+        0,
+        "[analyze_image] Error: Vision model not initialized (waiting for async model fetch from models zenka)"
+    );
+    return {
+        'mode' => 'false',
+        'data' => 'vision model initialization in progress - try again'
+    };
+}
+
 my @cmd = (
     $binary,
     '-m',       $model_path,
@@ -232,8 +244,8 @@ my $job = {
 );
 return { 'mode' => 'deferred' };
 
-#,,,,,,.,,...,,..,,,.,..,,,..,,,,,.,,,,,.,,,.,..,,...,...,,,,,...,...,,,.,,,,,
-#XOFWI7HDFGZOUS5KIVQT73OZ6GRYRIZUTYDTVTR72423CPI3W5YEXFZPBBP54J4AO36JKL6ZXRCTI
-#\\\|C4MFOVPWCELGAN3XOTYASSZ2C4S6WS2SX7VYCIQY6K6N3PZJP7D \ / AMOS7 \ YOURUM ::
-#\[7]ZWPMNQNWJMFHVAWVCQL3MYZ5HMCTSPOW4CCE5RGWT2RBLFWZEWAI 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,..,..,,,.,,.,,,,..,..,,...,.,,,..,,...,..,,,,.,..,,..,,,,,,.,,,
+#ZRM3PPCFDGQIMRORCNQACERXCYYPDGJAMSONRLENCJ7UTA4BV4YVLC2BSRAN3NS2P62IQI7NF6V4Q
+#\\\|RXVDYNPP67J7ILEYR3UX6NJKJY4SBLAJZE2HFSBWNBCGZRBV2NQ \ / AMOS7 \ YOURUM ::
+#\[7]E4RSXLMDOQALLKBUD7GN2VU3LQGK23YT4PRXCWEJDOTROCTHZ4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
