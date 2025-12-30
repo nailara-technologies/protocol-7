@@ -5,10 +5,10 @@
 
 my ( $cmd, $model_id ) = @ARG;
 
-<[base.log]>->( 1, "[models.cmd] get_model_path: %s", $model_id // 'NONE' );
+<[base.logs]>->( 1, "[models.cmd] get_model_path: %s", $model_id // 'NONE' );
 
 unless ($model_id) {
-    <[base.log]>->( 2, "[models.cmd] Error: model_id required" );
+    <[base.log]>->( 0, "[models.cmd] Error: model_id required" );
     return {
         'mode' => 'size',
         'data' => "error: model_id required\n",
@@ -53,8 +53,8 @@ return {
     'data' => $json . "\n",
 };
 
-#,,,.,.,.,,,,,.,.,,..,.,.,.,.,.,.,.,.,..,,,..,..,,...,..,,.,.,,..,..,,,,.,...,
-#4F3ORIAVAMN5SAJQ4W73Y7DTQO6OAGYTSJEH7MGG567ECIPBOE3EEBQYBLFWKDS34WVWSV7JD2FS6
-#\\\|2PDS26DX45XBGUWPZZ7CNP4GRWVM2AUXZ5GEAQU4NKO5IBOJLTS \ / AMOS7 \ YOURUM ::
-#\[7]4GOBPX7467FRYMGNICLPDPAKAFD4H42SLPCJQTU2JF5CXFCCZYCY 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,.,,,.,.,,..,.,,,,,,,,,,,,..,.,,,..,,...,...,...,,,,,,.,,,,.,,.,,
+#F72MCN4HYZIRFRURATPERHEGYWPX6WMKYADZCZVV73XSRC5IIAG5AWSR5D7KTJQJS6ZVGT3B75WLA
+#\\\|7HGAQRLG2HHHCPQOWT3DZZIWQLDSFH5KZHNJSOXXOBPUJ3KXEOP \ / AMOS7 \ YOURUM ::
+#\[7]PNGZ7ZKO27L32TRFLZRUOR63XAIORVI3HJXP4TQDPVTOYTVWWOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
