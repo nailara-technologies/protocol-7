@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = models.checksum.calculate_bmw_l13
+# args  = $file_path
+# descr = Calculate 13-character harmonized BMW-L13 checksum
+
+my $file_path = shift;
+return undef unless -f $file_path;
+
+my $content_sref = <[file.slurp]>->( $file_path, ':raw' );
+return undef unless $content_sref;
+
+# Calculate BMW-512 checksum via auto-loaded Digest::BMW from base.chk-sum.bmw.pre_init
+my $bmw_512_bin = Digest::BMW::bmw_512($$content_sref);
+
+# Convert to 13-character harmonized ID using existing Protocol-7 function
+my $bmw_l13 = <[chk-sum.bmw.calculate_L13_sum]>->($bmw_512_bin);
+return $bmw_l13;
+
+#,,.,,.,.,.,,,,.,,,.,,,,,,.,.,..,,...,,,,,...,..,,...,...,,.,,,.,,...,,..,.,,,
+#6UJKZMNQXNWPDGELFP7ARYFS4HDXMXDLFIPXBFY5BLE4KEDXHQRZPVIN2K74BWNN7MUDCJPSAXFZ4
+#\\\|RUNXNPQWHLE5AGTPKK2ZGQ2XYR3QBTDIKLC6CTEDATNHUTDAGJZ \ / AMOS7 \ YOURUM ::
+#\[7]K637KCA74FJRXT3KFVZJAWRAVQHT4YPUI3K2MLJ67NKEUSFKJ4BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

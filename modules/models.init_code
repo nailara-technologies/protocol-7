@@ -31,6 +31,41 @@ $data{models}{cache_last_updated} = 0;
 $data{models}{cache_ttl_seconds}  = 300;
 
 # =============================================================================
+# REGISTRY POPULATION - Initialize empty registry (populated on-demand via discover command)
+# =============================================================================
+
+# Initialize empty registry - registry population happens on-demand
+# to avoid blocking on checksum calculations during initialization
+unless ( exists <models.registry> ) {
+    <models.registry> = {};
+}
+
+# =============================================================================
+# LIST DEFINITIONS - Register with Protocol-7 list system
+# =============================================================================
+
+<list.models> = {
+    'var'  => 'data',
+    'key'  => 'models.registry',
+    'mask' =>
+        '<key>:id name quantization:quant size_gb:size is_vision:vision source',
+    'align' => {
+        'id'           => 'left+1',
+        'name'         => 'left+2',
+        'quantization' => 'center',
+        'size_gb'      => 'right-3',
+        'is_vision'    => 'center-1',
+        'source'       => 'center'
+    },
+    'filters' => {
+        'is_vision' => 'models.parser.yes_no',
+        'size_gb'   => 'models.parser.size_gb'
+    },
+    'sort_key' => 'alpha:name',
+    'descr'    => 'registered models with checksums and metadata'
+};
+
+# =============================================================================
 # LOG BUFFERS - Named log buffers for audit trail and operation tracking
 # =============================================================================
 
@@ -126,8 +161,7 @@ my $cmd_result;
         # Maintenance command - delegate to command module
         unshift @ARG, $cmd, @args;
         $result = <[models.cmd.maintenance]>;
-    } elsif (
-        $cmd =~ /^(get|find|recommend|record|stats|cost|discover|list)/ ) {
+    } elsif ( $cmd =~ /^(get|find|recommend|record|stats|cost|discover)/ ) {
 
         # Route to command modules
         my $module;
@@ -143,7 +177,7 @@ my $cmd_result;
             $module = 'models.cmd.statistics';
         } elsif ( $cmd eq 'cost' ) {
             $module = 'models.cmd.cost_analysis';
-        } elsif ( $cmd eq 'discover' || $cmd eq 'list' ) {
+        } elsif ( $cmd eq 'discover' ) {
             $module = 'models.cmd.discover';
         }
 
@@ -198,12 +232,11 @@ my $cmd_result;
     $cmd_result = $result;
 };
 
-# The block above handles command processing, but for initialization
-# we always return 0 or TRUE to indicate success
+# Return indicates successful initialization
 return 0;
 
-#,,..,,.,,,,,,..,,,.,,.,.,,.,,,,,,...,.,,,,,.,..,,...,...,...,,,,,,,,,...,,,.,
-#VMCACFMAKO5MPSGB7MPS5YGMIICSCYP3ZTCKSSYCTNRTOHTCYHGTJD5ML7ABV24C4RDZRSKAKYRHW
-#\\\|WCYO6TT3ID47VDLBOMKPQ7QEC2XHHFS7REE3KPNDB63BCIBFCZ3 \ / AMOS7 \ YOURUM ::
-#\[7]EXFIN22JOMWHZOB43RJCJJ3UPWMHYO2MMJDVTQZNGJCWKPZ42UBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,,,,..,,..,,,,,,.,.,...,...,,..,..,,...,..,,..,,,,.,.,.,..,,.,,,
+#7IJYNTP3ZJ67FQ72MVGDBYY6ERXVOM77TWRXOW5CTOWE3ZV6QQMUQO3OPXPUHQN4EC2VSG4KTJNOU
+#\\\|M4TZTEEZGP77TXAV6CEP54QT3SB5O7VLLJP5GPZK7RF5QRGNA6W \ / AMOS7 \ YOURUM ::
+#\[7]IDH5AX2OIVHWWD4424POQHYUHTZXKM77FLACBY2W6GECU7HWMAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

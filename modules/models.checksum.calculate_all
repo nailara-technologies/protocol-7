@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = models.checksum.calculate_all
+# args  = $file_path
+# descr = Calculate AMOS, BMW-L13, and BMW-BASE32 checksums concurrently
+
+my $file_path = shift;
+
+return {
+    success => FALSE,
+    error   => 'File not found'
+} unless -f $file_path;
+
+my $amos    = <[models.checksum.calculate_amos]>->($file_path);
+my $bmw_l13 = <[models.checksum.calculate_bmw_l13]>->($file_path);
+my $bmw_base32
+    = <[models.checksum.calculate_bmw_base32]>->( $file_path, 384 );
+
+return {
+    success    => TRUE,
+    amos_7     => $amos,
+    bmw_l13    => $bmw_l13,
+    bmw_base32 => $bmw_base32,
+    file_path  => $file_path
+};
+
+#,,..,..,,.,.,.,,,,..,.,,,..,,.,,,..,,..,,.,,,..,,...,...,.,.,..,,,..,...,...,
+#XJWXYTKWQVPJKJ7AKUE3RRCKRBPFVVXUXG4VSSY6PUVDHAWCJGVQORX2VANAA22Z4PKQFVI62LO7M
+#\\\|FKY32EO7YURTLQ7XASK5JP7GMQOXPYNRYPQIGG45GDTOFQOZFEC \ / AMOS7 \ YOURUM ::
+#\[7]4M3NI4B7GBIO5AXZJVUJIY3YDS2C4E22XEF65T6CDXL3N56H6EDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
