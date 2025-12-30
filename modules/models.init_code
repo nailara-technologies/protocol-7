@@ -20,6 +20,27 @@ $data{models}{aliases}       //= {};    # Will be loaded from YAML
 # Load model configuration from YAML
 <[models.config.loader]>;
 
+# Initialize model search paths for discovery
+unless ( exists <models.storage.search_paths> ) {
+    <models.storage.search_paths> = [
+        {   path      => qw| /mnt/ext-xfs-data/models-lmstudio |,
+            enabled   => 1,
+            recursive => 1,
+            tier      => 2
+        },
+        {   path      => qw| /mnt/ext-xfs-data/models-invoke |,
+            enabled   => 1,
+            recursive => 1,
+            tier      => 4
+        },
+        {   path      => '/data/models',
+            enabled   => 1,
+            recursive => 0,
+            tier      => 5
+        }
+    ];
+}
+
 # Statistics aggregation state
 $data{models}{stats_aggregation_pending}  = 0;
 $data{models}{last_stats_aggregation}     = 0;
@@ -31,7 +52,7 @@ $data{models}{cache_last_updated} = 0;
 $data{models}{cache_ttl_seconds}  = 300;
 
 # =============================================================================
-# REGISTRY POPULATION - Initialize empty registry (populated on-demand via discover command)
+# REGISTRY POPULATION - Initialize empty registry [ populated by discover cmd ]
 # =============================================================================
 
 # Initialize empty registry - registry population happens on-demand
@@ -161,7 +182,9 @@ my $cmd_result;
         # Maintenance command - delegate to command module
         unshift @ARG, $cmd, @args;
         $result = <[models.cmd.maintenance]>;
-    } elsif ( $cmd =~ /^(get|find|recommend|record|stats|cost|discover)/ ) {
+    } elsif ( $cmd
+        =~ /^(get|find|recommend|record|stats|cost|discover|discover_files)/ )
+    {
 
         # Route to command modules
         my $module;
@@ -179,6 +202,8 @@ my $cmd_result;
             $module = 'models.cmd.cost_analysis';
         } elsif ( $cmd eq 'discover' ) {
             $module = 'models.cmd.discover';
+        } elsif ( $cmd eq 'discover_files' ) {
+            $module = 'models.cmd.discover_files';
         }
 
         # Load and execute the module
@@ -235,8 +260,8 @@ my $cmd_result;
 # Return indicates successful initialization
 return 0;
 
-#,,,,,,,,,..,,,,,,..,,..,,,,,,.,.,...,...,,..,..,,...,..,,..,,,,.,.,.,..,,.,,,
-#7IJYNTP3ZJ67FQ72MVGDBYY6ERXVOM77TWRXOW5CTOWE3ZV6QQMUQO3OPXPUHQN4EC2VSG4KTJNOU
-#\\\|M4TZTEEZGP77TXAV6CEP54QT3SB5O7VLLJP5GPZK7RF5QRGNA6W \ / AMOS7 \ YOURUM ::
-#\[7]IDH5AX2OIVHWWD4424POQHYUHTZXKM77FLACBY2W6GECU7HWMAAA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,,,,...,,..,...,,.,,...,,,.,,,,,..,,...,...,.,.,,,.,.,,,.,.,..,,
+#K2YVLZO3OKZDCWWGDEMSAVWDKFFWI3D5TGGGZKLGRLZ247HIOAMH6IXDNP2RW2RVSMX72J65HXCKK
+#\\\|3OI7EGU4UZQ53N7MFUSW55DKPZYHY3QFMCWB5YSZFTEIYEF63XE \ / AMOS7 \ YOURUM ::
+#\[7]MF3LVCQWFZLCPYYCSUIU6HBJS2KGHK35RMA2C4B4OGV7ZTE2F2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

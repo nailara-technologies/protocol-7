@@ -569,6 +569,7 @@ return [ qw[
         models.registry.load
         models.registry.init
         models.registry.base
+        models.parser.yes_no
         models.config.loader
         models.cmd.recommend
         models.cmd.get_model
@@ -685,6 +686,7 @@ return [ qw[
         mpv.cmd.current-hwdec
         mpv.callback.silenced
         models.registry.empty
+        models.parser.size_gb
         models.cmd.statistics
         keys.read_key_archive
         keys.console.sign-key
@@ -1055,6 +1057,7 @@ return [ qw[
         mpv.cmd.shuffle-playlist
         mpv.callback.init_volume
         models.registry.list_all
+        models.cmd.test_discover
         models.cmd.cost_analysis
         mod-test.cmd.list-loaded
         letsencr.child.init_code
@@ -1175,6 +1178,7 @@ return [ qw[
         models.registry.get_entry
         models.decision.cost_base
         models.cmd.get_model_path
+        models.cmd.discover_files
         melt.trigger.auto_cleanup
         letsencr.parent.init_code
         letsencr.child.create_jws
@@ -1605,6 +1609,7 @@ return [ qw[
         mpv.handler.event.file-loaded
         models.storage.create_symlink
         models.decision.cost_analysis
+        models.checksum.calculate_all
         mod-test.cmd.list-blacklisted
         llama-server-vision.init_code
         letsencr.parent.send_to_child
@@ -1711,6 +1716,7 @@ return [ qw[
         mpv.handler.reenc_notify_reply
         mpv.callback.check_parent_dirs
         models.storage.tier_management
+        models.checksum.calculate_amos
         mod-test.update_blacklist_aref
         melt.handler.frame_count_reply
         llm.service.subprocess_wrapper
@@ -1755,6 +1761,7 @@ return [ qw[
         base.handler.link-upgrade.init
         base.ensure_zenka_dependencies
         base.comp-int.decode_to_buffer
+        base.chk-sum.bmw.encode_digest
         base.chk-sum.amos.calc_version
         base.cache.refaddr-prefix.init
         X-11.start-up.show-screen-size
@@ -1935,7 +1942,9 @@ return [ qw[
         pdf.html.child.handler.conversion
         mpv.initialize.observe_properties
         mpv.handler.event.property-change
+        models.storage.discover_directory
         models.registry.base.get_registry
+        models.checksum.calculate_bmw_l13
         mod-test.mem_blacklist.remove_mod
         mod-test.cmd.write-blacklist-code
         mod-test.cmd.list-loaded-matching
@@ -1998,6 +2007,7 @@ return [ qw[
         protocol-7-menu.cmd.gfx-action-key
         pdf.html.child.check_cache_timeout
         models.registry.save.save_registry
+        models.registry.populate_from_yaml
         models.registry.load.load_registry
         mod-test.write_out_blacklist_pcode
         letsencr.parent.query_httpd_vhosts
@@ -2079,6 +2089,7 @@ return [ qw[
         protocol.amos-chksum.ext-cmd.version
         protocol.amos-chksum.command-handler
         nodes.handler.discover_details_reply
+        models.checksum.calculate_bmw_base32
         mod-test.cmd.blacklisted-add-matches
         letsencr.child.poll_challenge_status
         letsencr.child.cmd.renew-certificate
@@ -2169,6 +2180,7 @@ return [ qw[
         sourcecode.console.test-sign-and-verify
         mpv.handler.event.property-change.width
         models.storage.discover.discover_models
+        models.registry.populate_from_discovery
         llama-server-vision.handler.read_output
         llama-server-vision.handler.job_cleanup
         llama-server-vision.cmd.get_full_stderr
@@ -2304,8 +2316,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,.,.,,.,,,..,..,,.,,,,.,,,..,..,,,,.,,,,,.,.,...,...,,,,,,,,,...,.,,,.,.,
-#RZH5WQMDLOVV55A26AYZKM254DCRIRUIFVJOXT4SLEV74B4H4QS7CXUEG37IDFE4ILMMV22UURS72
-#\\\|N5L3HSNAIEYMM77IY6U2BL2X6QDMJYEJRFM6OOGFTX6FKCHWQTA \ / AMOS7 \ YOURUM ::
-#\[7]JEZMDYZJSWBXJHU25W6PPZ3TJRSDAZ3QH464NKHNIX3MC3HBNWAY 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,.,,,..,,..,,,.,,,.,.,,,.,,,.,.,.,.,...,...,,,,,,..,..,,..,,.,,,
+#5Y3LDMLRIWD674TFZVMGCQ4POROXO5B6FEOPXUZKXAKPOVXD52T2IDQYFFEN334DB5YAUIE5KGOQE
+#\\\|LX3ZHOFB6TNYDKGAKX7Y7GBPZMNOLSBUJPU3OC4T24WENIG73AM \ / AMOS7 \ YOURUM ::
+#\[7]VFHCFG6K3OSQ3LQBUM56ALXKONFQT3GPCVMVMATJF2COODVTEOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
