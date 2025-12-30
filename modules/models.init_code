@@ -55,10 +55,10 @@ $data{models}{cache_ttl_seconds}  = 300;
 # REGISTRY POPULATION - Initialize empty registry [ populated by discover cmd ]
 # =============================================================================
 
-# Initialize empty registry - registry population happens on-demand
-# to avoid blocking on checksum calculations during initialization
+# Initialize registry from pre-configured definitions
+# Discovered models will be added on-demand via discover_files command
 unless ( exists <models.registry> ) {
-    <models.registry> = {};
+    <[models.registry.init_from_definitions]>;
 }
 
 # =============================================================================
@@ -82,7 +82,7 @@ unless ( exists <models.registry> ) {
         'is_vision' => 'models.parser.yes_no',
         'size_gb'   => 'models.parser.size_gb'
     },
-    'sort_key' => 'alpha:name',
+    'sort_key' => 'reverse-num:size_gb',
     'descr'    => 'registered models with checksums and metadata'
 };
 
@@ -257,11 +257,22 @@ my $cmd_result;
     $cmd_result = $result;
 };
 
+# =============================================================================
+# INITIALIZATION COMPLETION - Perform discovery before registration
+# =============================================================================
+
+# Scan for models during initialization (local filesystem, no network required)
+# This ensures models are available when zenka registers as initialized
+unless ( <system.zenka.initialized> ) {
+    @ARG = ();
+    <[models.cmd.discover_files]>;
+}
+
 # Return indicates successful initialization
 return 0;
 
-#,,,,,,,.,.,,,,,,,...,,..,...,,.,,...,,,.,,,,,..,,...,...,.,.,,,.,.,,,.,.,..,,
-#K2YVLZO3OKZDCWWGDEMSAVWDKFFWI3D5TGGGZKLGRLZ247HIOAMH6IXDNP2RW2RVSMX72J65HXCKK
-#\\\|3OI7EGU4UZQ53N7MFUSW55DKPZYHY3QFMCWB5YSZFTEIYEF63XE \ / AMOS7 \ YOURUM ::
-#\[7]MF3LVCQWFZLCPYYCSUIU6HBJS2KGHK35RMA2C4B4OGV7ZTE2F2DA 7  DATA SIGNATURE ::
+#,,,.,,..,...,,..,,.,,.,.,,,,,,.,,,.,,.,.,.,.,..,,...,...,..,,..,,,..,..,,.,.,
+#T64FKWV445DWMDY7VSA4SU4PM7BODXMM4ZARM57XFNC54IUNKZBYL65QAAJEKA32IO7FVX67O2I6U
+#\\\|KJTYVXV7DKVI3JG5JD5FH5QNSSCS7SEB7MVNEACZBKNOK252RVP \ / AMOS7 \ YOURUM ::
+#\[7]45Z3FABBFF7NO7GEEWUJLGUAYB4VAUE5Q4AUVEWFBMNFTET4FKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

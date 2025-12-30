@@ -3,12 +3,12 @@
 # name = models.cmd.test_discover
 # descr = Test discover_directory module
 
-my $test_path = '/mnt/ext-xfs-data/models-lmstudio';
+my $test_path = qw| /mnt/ext-xfs-data/models-lmstudio |;
 
 # Test 1: Check if path exists
-my $exists = -d $test_path;
-my $reply  = "Test Results:\n";
-$reply .= "Path exists: " . ( $exists ? "YES" : "NO" ) . "\n";
+my $exists    = -d $test_path;
+my $reply_str = "Test Results:\n";
+$reply_str .= "Path exists: " . ( $exists ? "YES" : "NO" ) . "\n";
 
 if ($exists) {
 
@@ -17,25 +17,25 @@ if ($exists) {
     my $result = <[models.storage.discover_directory]>;
 
     if ( defined $result ) {
-        $reply .= "discover_directory returned: " . ref($result) . "\n";
+        $reply_str .= "discover_directory returned: " . ref($result) . "\n";
         if ( ref($result) eq 'ARRAY' ) {
-            $reply .= "Array contains " . scalar(@$result) . " items\n";
+            $reply_str .= "Array contains " . scalar(@$result) . " items\n";
             if ( @$result > 0 ) {
-                $reply .= "First item keys: "
+                $reply_str .= "First item keys: "
                     . join( ", ", keys %{ $result->[0] } ) . "\n";
             }
         }
     } else {
-        $reply .= "discover_directory returned undef\n";
+        $reply_str .= "discover_directory returned undef\n";
     }
 } else {
-    $reply .= "Cannot test - path doesn't exist\n";
+    $reply_str .= "Cannot test - path doesn't exist\n";
 }
 
-return { 'mode' => qw| size |, 'data' => $reply };
+return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,,,,,.,,,..,.,,,..,,,,.,,.,,,.,,,..,,,.,.,.,..,,...,..,,,,.,.,.,..,,.,,,.,.,
-#IQJ4C4FONJDL4YRMEWHHVT4CMVD5GQQRXWM6RYBDOOI62TTT5C6TFROA452LBUQVBVZREC3WTKMU2
-#\\\|VN5Z46ARWL3CCZ7B7BT6PQ2LRDYOHJVTAN5HZHD3Z67TKR6EGKF \ / AMOS7 \ YOURUM ::
-#\[7]PVX6JSSTBQMN3XLRVIXCRPP2YBRFFBRCD6YQNQVC3GCLQRB2MUDI 7  DATA SIGNATURE ::
+#,,.,,...,.,.,.,,,...,,,.,...,..,,...,,,.,.,,,..,,...,...,...,...,..,,..,,,,.,
+#S2VRC3F2B3FFPHZDX3F72CC3CNA3MJRYPNRHFQL4V7KOY3R33GQ5UZSN272QEFIUMTAMCMDXABNA4
+#\\\|BEF4H46MW5VIO5P2KJ7ML2PYXFW2UJHFJGQGZS4MCSNCCIJ4G5X \ / AMOS7 \ YOURUM ::
+#\[7]O2XBKQ7ZA6VSUFTQZFJP6XWARBXZAJ4V2E2FBPV3443MZUXSYYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

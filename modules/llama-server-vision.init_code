@@ -60,10 +60,8 @@ if ( $model_path && $mmproj_path && -f $model_path && -f $mmproj_path ) {
         1, "[llama-server-vision] Vision model initialized: %s", $model_path
     );
 } else {
-    <[base.log]>->(
-        0,
-        "[llama-server-vision] Error: Vision model configuration incomplete or files not found"
-    );
+    # Model files not immediately accessible at init time
+    # This is expected - configuration will be fetched from models zenka at runtime
     <llama-server-vision.vision_model_path>  = undef;
     <llama-server-vision.vision_mmproj_path> = undef;
 }
@@ -101,8 +99,8 @@ if ( $model_path && $mmproj_path && -f $model_path && -f $mmproj_path ) {
 
 0;    # Return success for module initialization
 
-#,,.,,,,.,.,,,,..,,,.,,,.,,,.,.,,,.,,,..,,,.,,..,,...,..,,.,.,.,,,.,.,..,,,.,,
-#XCJKWRTYADPNU5UE3NNIDITZQYVIG7EHQRA6HCJHXGNYXXSINWV2UOWR5X6KO25P64M7ZGA6RVBUO
-#\\\|TRDXATZG4IPVTZBJVHCQ5RCPXME2BLJ7WL5MZL3ZYC4WUTKTIKD \ / AMOS7 \ YOURUM ::
-#\[7]JYU5AZSMV2WUIZPGWJXL3RITN7BNN6GMSMEJZNVJTRENNAJ4CIBI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,..,.,,,..,,..,,.,,,..,,...,,.,,..,,...,...,,.,,,,,,,.,,...,,.,,
+#PP4ORZT2TTC46BYPPZYARY2PY2NZQHMKNRBE75KLUWSEQPXHOVWYTVX24I3NP66EBLJ6RDCFPRHSE
+#\\\|GW4WEVSJE5WKKRHNPBOLXFV2JPNLIHMXXQSRMLKW2RNDFYMOJD6 \ / AMOS7 \ YOURUM ::
+#\[7]U3XMUXWLJ2YN7Q5PUNEIVMHSCZ7GRVBKVKGIZ6FLNGPC47G7NECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
