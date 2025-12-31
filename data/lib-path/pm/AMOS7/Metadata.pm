@@ -443,16 +443,14 @@ sub registry_to_yaml {
 ##[ END OF MODULE ]###########################################################
 
 1;
-
-#,,,.,.,,,...,,,,,...,...,,..,.,.,.,,,...,,,,,..,,...,...,,,.,...,,.,,,,.,,.,,
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:
 #PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
 #\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
 #\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,.,,,,.,,,.,.,,,,.,,,,.,...,,,,,,,,,...,..,,..,,...,..,,..,,.,.,,.,,.,,,.,.,
-#AAGUO7QZBYDCYLAI3LEMB6LX37JEKUACJHNPBIA4ZCWFYY552XML6BDZOVSVVL7V5EDVT7N4M4T7M
-#\\\|NIWNV2MK3PDMEIZX2EKEMXCJG3I4TRAFDFZZOZQQFRAGVOTRPB5 \ / AMOS7 \ YOURUM ::
-#\[7]UCUVU3NXLSFAQF3EBXF7W4UUXUXGLN6VO2AEPVZWKSJBB3TV3QAQ 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,.,,,,..,,,.,..,,..,,,,,,,,.,,,,,..,,...,...,,,.,,,,,,..,,..,,,.,
+#LA7F522D54MWKKODZ7Q6EUJJ7OSWSFKLOWKAQ7Q2NNLJNN2FCWVJWMBPSM63RXSVJ3SYI7DXNMDUO
+#\\\|FLHW4OEEODKEKS2CERR5DMYIR6OZSG56ZEQAMPSCRFTZ64OKF2X \ / AMOS7 \ YOURUM ::
+#\[7]ZEMS6NZBRQ6XN7OQGLIBGT7AQYWCND5UJXFGH3SPEWH355GXO6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

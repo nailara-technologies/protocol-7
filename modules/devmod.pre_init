@@ -3,7 +3,13 @@
 # name  = devmod.pre_init
 # descr = loads Data::Dumper for devmod purposes
 
-<[base.log]>->( 0, '<< devmod module enabled in configuration >>' )
+my $dev_level
+    = exists $data{'devmod'}->{qw| reduce-devmod-loglevel |}
+    and <[base.cfg_bool]>->(<devmod.reduce-devmod-loglevel>)
+    ? 1
+    : 0;
+
+<[base.log]>->( $dev_level, '<< devmod module enabled in configuration >>' )
     if not exists <system.reload>;  ## <-- logged seperately in reload command
 
 <[base.perlmod.autoload]>->( 'Data::Dumper', qw| Dumper | );
@@ -13,8 +19,8 @@ utf8::encode( <devmod.unicode>->{'HoTeYum-AsURum'} = '호테윰 앗우룸' );
 
 0;
 
-#,,..,.,,,,,,,.,.,,,.,,.,,.,,,,,,,..,,..,,...,..,,...,...,,,.,..,,...,,..,...,
-#4FDPL3ZP67FRXEBVNUU4EPDTG2PL3BHDE5GX6IXFZNNIQWYG7SHCH4ELMEBCZE6DR67O2N5NNX324
-#\\\|IYNSLOKQXK3AMABJLGC4VKIWPWKRPDDXAANSZNMSTDFMQ3V5ATF \ / AMOS7 \ YOURUM ::
-#\[7]OCFBE7D75SVGUR3OYJ2TNIF53Y4L7HNQYM56TBQVZSVTKFMLZIAI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,.,.,..,,,.,,,,.,,,.,..,,..,,.,.,..,,...,..,,,,,,,,.,..,,.,.,,.,,
+#RILGH343T2OLZVX7J6DTMZMEEV65IUH477CVXAC62UPKCD6K2NIDNZI6RIQKIF6PX3IWVCCUYEKLS
+#\\\|VSFULAWXDH5YDS7VFZAV3GLNZPZE5TLU24XDOPMXF4FNF4EI7PH \ / AMOS7 \ YOURUM ::
+#\[7]4B2ED67KRA3XBE4AQQW7A3P3GOM4PQSNJ73FENWUTFVMP4I46IDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
