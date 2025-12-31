@@ -210,18 +210,35 @@ my $cmd_result;
         unshift @ARG, $cmd, @args;
         my $module_result = <[models.cmd.substitute_template]>;
         $result = {
-            'mode' => 'json',
-            'data' => JSON::PP::encode_json($module_result)
+            'mode' => 'size',
+            'data' => JSON::PP::encode_json($module_result) . "\n"
         };
-    } elsif ( $cmd =~ /^conversation_/ ) {
+    } elsif ( $cmd eq 'conversation_create' ) {
 
-        # Conversation subcommands: conversation_create, conversation_add_turn, conversation_get_context
-        my $module = 'models.cmd.' . $cmd;
+        # Create conversation
         unshift @ARG, $cmd, @args;
-        my $module_result = <[$module]>;
+        my $module_result = <[models.cmd.conversation_create]>;
         $result = {
-            'mode' => 'json',
-            'data' => JSON::PP::encode_json($module_result)
+            'mode' => 'size',
+            'data' => JSON::PP::encode_json($module_result) . "\n"
+        };
+    } elsif ( $cmd eq 'conversation_add_turn' ) {
+
+        # Add turn to conversation
+        unshift @ARG, $cmd, @args;
+        my $module_result = <[models.cmd.conversation_add_turn]>;
+        $result = {
+            'mode' => 'size',
+            'data' => JSON::PP::encode_json($module_result) . "\n"
+        };
+    } elsif ( $cmd eq 'conversation_get_context' ) {
+
+        # Get conversation context
+        unshift @ARG, $cmd, @args;
+        my $module_result = <[models.cmd.conversation_get_context]>;
+        $result = {
+            'mode' => 'size',
+            'data' => JSON::PP::encode_json($module_result) . "\n"
         };
     } elsif ( $cmd
         =~ /^(get|find|recommend|record|stats|cost|discover|discover_files)/ )
@@ -309,8 +326,8 @@ my $cmd_result;
 # Return indicates successful initialization
 return 0;
 
-#,,..,,.,,,..,...,...,,,,,,.,,,..,,,.,..,,,.,,..,,...,...,,,.,,..,.,,,,,.,.,,,
-#6HRLBC3IGJWUILWB3MD3U246HVZLBKRNEG5WTSOU3TY2J46BR75BYPQU5DUMWGT5WYDO7PJ2XA7M6
-#\\\|7NIFU7PVY5U7QH3IK3ZY77TPFWHEHXVU5EGS2THFAYU42BV4M6F \ / AMOS7 \ YOURUM ::
-#\[7]ACL7JIQDOTDO7FXVY7OSF2FVJH3U7OE4FPKNXSGF7G7KOY4GFEAI 7  DATA SIGNATURE ::
+#,,.,,..,,...,,.,,...,,,.,.,,,,..,..,,.,.,.,.,..,,...,.,.,...,,..,,,.,.,.,,,,,
+#KRG2CMPY2376TZO6GBSH7UPTYYNDKXVJ7BTUYJQOKUCPJUULKIOHBMNEDO6BBTPMBRKGVIDNK6M4S
+#\\\|TVTHZINBMVXQ3RD5ANLLLK6BAA3VS77EMNYPUCWGQE5JQRDLBWK \ / AMOS7 \ YOURUM ::
+#\[7]6NB45AKA2JUH5W4L7LW25WTLZTANOMUJZ7DEJGMHFQRHJ4TLV4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
