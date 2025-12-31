@@ -1,0 +1,84 @@
+## [:< ##
+
+# name = models.cmd.conversation_get_context
+# descr = retrieve conversation history with optional compaction
+
+my $params = shift;
+
+my $job_id        = $params->{'job_id'}  // '';
+my $depth         = $params->{'depth'}   // undef;
+my $compact_mode  = $params->{'compact'} // undef;
+my $context_label = $params->{'context'} // 'conversation';
+
+return {
+    'success' => FALSE,
+    'error'   => 'job_id required'
+    }
+    unless length($job_id);
+
+<models.conversations> //= {};
+
+unless ( exists <models.conversations>->{$job_id} ) {
+    return {
+        'success' => FALSE,
+        'error'   => "conversation not found: $job_id",
+        'job_id'  => $job_id
+    };
+}
+
+my $conversation = <models.conversations>->{$job_id};
+my $start_time   = <[base.time]>->(4);
+my @context_turns;
+
+## If depth specified, take last N turns
+if ( defined $depth && $depth > 0 ) {
+    my $turn_count = scalar( @{ $conversation->{'turns'} } );
+    my $start_idx  = $turn_count - $depth;
+    $start_idx = 0 if $start_idx < 0;
+    @context_turns
+        = @{ $conversation->{'turns'} }[ $start_idx .. $turn_count - 1 ];
+} else {
+    @context_turns = @{ $conversation->{'turns'} };
+}
+
+<[base.log]>->(
+    2, "[$context_label] retrieving %d turns from %d total",
+    scalar(@context_turns), scalar( @{ $conversation->{'turns'} } )
+);
+
+## Build context string from turns
+my $context_text   = '';
+my $context_tokens = 0;
+
+foreach my $turn (@context_turns) {
+    my $role    = $turn->{'role'}    // 'unknown';
+    my $content = $turn->{'content'} // '';
+    my $tokens  = $turn->{'tokens'}  // 0;
+
+    $context_text .= "$role: $content\n";
+    $context_tokens += $tokens;
+}
+
+<[base.log]>->(
+    2, "[$context_label] context ready: %d turns %d tokens",
+    scalar(@context_turns), $context_tokens
+);
+
+my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
+
+return {
+    'success'        => TRUE,
+    'job_id'         => $job_id,
+    'turns'          => \@context_turns,
+    'turn_count'     => scalar(@context_turns),
+    'context_text'   => $context_text,
+    'context_tokens' => $context_tokens,
+    'depth'          => $depth,
+    'elapsed_ms'     => $elapsed_ms
+};
+
+#,,,.,,,,,..,,...,.,.,.,.,,..,,,,,,.,,,,.,,.,,.,.,...,...,...,,,,,.,.,,.,,,,.,
+#JDA4JVQRUXUQ25EPSL5WCBEVELUNQ7FGLFTYMCCSBE64U4YLQ2C6B4UFFA4ZYCAHUSOJ3ABFBFEDO
+#\\\|MSGGVZDRIMPXXGATCMBES7A3RU5UBFRQ3GXSQARPT2YEQ34ZWZH \ / AMOS7 \ YOURUM ::
+#\[7]EHUID4CWXVZAR3TG5FILADAFNTK7BJJYHBIO4J4WCWCRUYKI6WBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

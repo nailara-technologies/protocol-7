@@ -1,0 +1,111 @@
+## [:< ##
+
+# name = models.cmd.conversation_add_turn
+# descr = add message turn to conversation with token tracking
+
+my $params = shift;
+
+my $job_id  = $params->{'job_id'}  // '';
+my $role    = $params->{'role'}    // '';
+my $content = $params->{'content'} // '';
+my $tokens  = $params->{'tokens'}  // 0;
+my $context = $params->{'context'} // 'conversation';
+
+return {
+    'success' => FALSE,
+    'error'   => 'job_id required'
+    }
+    unless length($job_id);
+
+return {
+    'success' => FALSE,
+    'error'   => 'role required (system, user, assistant)'
+    }
+    unless length($role);
+
+return {
+    'success' => FALSE,
+    'error'   => 'content required'
+    }
+    unless length($content);
+
+<models.conversations> //= {};
+
+unless ( exists <models.conversations>->{$job_id} ) {
+    return {
+        'success' => FALSE,
+        'error'   => "conversation not found: $job_id",
+        'job_id'  => $job_id
+    };
+}
+
+my $conversation = <models.conversations>->{$job_id};
+my $start_time   = <[base.time]>->(4);
+
+## Check if adding this turn would exceed token budget
+my $new_total    = $conversation->{'tokens_used'} + $tokens;
+my $would_exceed = $new_total > $conversation->{'token_budget'};
+
+## Estimate token count if not provided
+unless ($tokens) {
+    ## Rough estimate: ~4 chars per token
+    $tokens = int( length($content) / 4 ) + 1;
+    $tokens = 1 if $tokens < 1;
+}
+
+$new_total    = $conversation->{'tokens_used'} + $tokens;
+$would_exceed = $new_total > $conversation->{'token_budget'};
+
+## Create turn object
+my $turn = {
+    'role'      => $role,
+    'content'   => $content,
+    'tokens'    => $tokens,
+    'timestamp' => time(),
+};
+
+## Add turn to conversation
+push @{ $conversation->{'turns'} }, $turn;
+$conversation->{'turn_count'}++;
+$conversation->{'tokens_used'} = $new_total;
+
+<[base.log]>->(
+    2,
+    "[$context] turn %d: role=%s tokens=%d (total=%d/%d)",
+    $conversation->{'turn_count'},
+    $role,
+    $tokens,
+    $new_total,
+    $conversation->{'token_budget'}
+);
+
+my $result_warning = undef;
+
+## Check if over budget
+if ($would_exceed) {
+    $result_warning = 'token_budget_exceeded';
+    <[base.log]>->(
+        1,          "[$context] warning: tokens %d exceed budget %d",
+        $new_total, $conversation->{'token_budget'}
+    );
+}
+
+my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
+
+return {
+    'success'    => TRUE,
+    'job_id'     => $job_id,
+    'turn_num'   => $conversation->{'turn_count'},
+    'role'       => $role,
+    'tokens'     => $tokens,
+    'total_used' => $new_total,
+    'budget'     => $conversation->{'token_budget'},
+    'warning'    => $result_warning,
+    'elapsed_ms' => $elapsed_ms
+};
+
+#,,.,,..,,...,.,,,,,,,..,,...,..,,.,,,...,..,,.,.,...,...,,,.,...,...,,,,,,,.,
+#KF2XRUWIVBR6CIW6FJ5DPBCQTKDOZS34CVRY2IRHYK4TCDZCQRXEFKJ4AABJXRCMRCTG2I7IFCUY2
+#\\\|TOGLUFS2YVKJ5XUQYWU4KOVP6RBYOHNO4VV3AF7SS5J2ZVUHHEU \ / AMOS7 \ YOURUM ::
+#\[7]5FHLVHEAGYZHBD4MSSN2GGZGKVWD7GPCSYGU2DZPMZTG7NOLEIAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
