@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = work.console.sig-cycle
+# param = [file-pattern]
+# descr = test signature cycle (backup/update/verify/restore)
+
+my $pattern = shift // 'modules/*';
+
+$pattern =~ s,^ *| *$,,;
+
+say '';
+say ' .:[ WORKFLOW: FULL SIGNATURE TEST CYCLE ]:.';
+say '';
+say sprintf ' : Pattern: %s', $pattern;
+say '';
+
+system('./bin/Protocol-7', 'sourcecode', 'test-cycle', $pattern);
+my $exit_code = $? >> 8;
+
+say '';
+if ( $exit_code == 0 ) {
+    say ' : ✓ Test cycle completed successfully';
+} else {
+    say sprintf ' : ✗ Test cycle failed (exit code: %d)', $exit_code;
+}
+say '';
+
+return $exit_code;
+
+#,,.,,,..,.,.,...,,,.,,,,,,,.,.,.,,,,,,.,,...,..,,...,...,...,,..,,,.,...,..,,
+#O5EUPZMY6BLMIIR4P56KHV327LSTAP4AGEUDXPDFP72RWTOCQSACDAPL53A45V2EK5SU4I7ZW7TCC
+#\\\|TW3AM2PZNZT357BGBKRI7RBU2D55PPB4HVXHC3O7TF4CSUD643I \ / AMOS7 \ YOURUM ::
+#\[7]NSUINHXE6KWVSFCVSABGOJHVB2KKQJMDQCI65ABYISVZOUUZMQCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

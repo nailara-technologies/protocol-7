@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = work.console.shortcuts
+# descr = display available workflow shorthand aliases and usage patterns
+
+my $reset       = $colors{'reset'};
+my $blacklight  = $colors{'p7_fg_0000'};
+my $TRUE_blue   = $colors{'p7_fg_0004'};
+my $neon_orange = $colors{'p7_fg_0002'};
+my $neon_green  = $colors{'p7_fg_0003'};
+my $dim_blue    = $colors{'p7_fg_0005'};
+
+say '';
+say "$blacklight .:[ ${TRUE_blue}WORKFLOW SHORTCUTS${blacklight} ]:.$reset";
+say '';
+
+## Common workflow shortcuts
+my %shortcuts = (
+    'w'      => 'Quick access to workflow commands',
+    'wo'     => 'Show workflow overview',
+    'wt'     => 'Show todo list',
+    'ws'     => 'Commit changes with auto-signing (workflow commit)',
+    'src'    => 'Access sourcecode verification tools',
+    'srcd'   => 'Verify dev signatures (sourcecode verify-dev-signatures)',
+    'srcu'   => 'Update signatures (sourcecode update-signatures)',
+    'h'      => 'Access httpd (HTTP server) commands',
+);
+
+say "${TRUE_blue}📋 Available Shortcuts:$reset";
+say '';
+
+foreach my $short ( sort keys %shortcuts ) {
+    my $desc = $shortcuts{$short};
+    say sprintf "   ${neon_green}p7.%s${reset}  ${dim_blue}→${reset}  %s", $short, $desc;
+}
+
+say '';
+say "${TRUE_blue}💡 Usage Examples:$reset";
+say '';
+say "   # Show workflow overview";
+say "   ${neon_orange}p7.wo$reset";
+say '';
+say "   # Commit with auto-signing";
+say "   ${neon_orange}p7.ws${reset} \"feat: Add new feature\"";
+say '';
+say "   # Verify dev signatures";
+say "   ${neon_orange}p7.srcd$reset";
+say '';
+say "   # Update signatures to production";
+say "   ${neon_orange}p7.srcu$reset";
+say '';
+
+say "${TRUE_blue}🔗 How Shortcuts Work:$reset";
+say '';
+say "   Shortcuts are symlinks created by Protocol-7 during startup.";
+say "   When you run 'p7.shortcut', the Protocol-7 binary recognizes";
+say "   the symlink name and routes the command accordingly.";
+say '';
+say "   To create custom shortcuts, add them to:";
+say "   ${dim_blue}modules/v7.install_workflow_shortcuts${reset}";
+say '';
+
+#,,.,,,,.,.,,,,.,...,,,,.,.,,,..,,,.,.,,,,,....,,,..,,,,,,.,,,.,,,,..,,.,,,,,,,,.
+#RCPXMFHZVCJLGJ2Z5YXOXWVQKC5KKOKX4RHN5NGYCVQX2RQELB63NJKWYSMZQZ537KKPXU3HHKFV2DM
+#\\\|XKEKJ4JPIQCZ7BFIAMWZ6LBPKCJAGVKFQPFHJMH2EQBHFYAIQSI \ / AMOS7 \ YOURUM ::
+#\[7]DCJRNPWHFR7V4CFMBTG2JQCMJVQV2JXYDLV3JDQNPJVMYCCWQWX3I 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,..,.,,,...,,,,,.,,,...,.,.,,,.,.,,,,..,..,,..,,...,...,,,.,,,.,.,,,...,...,
+#W4ZG42XRX7PDAKNK445NBNIJUWAT3Q3NF2KZ3WSWKS4A2NICLXMLO6RPJX7GRYAEBAXBE6HKVEDU2
+#\\\|S2HGKIXKPZQ6K3TXE3SL2DIT2J2NALISGBEQQKMWQHSFFC35Y5L \ / AMOS7 \ YOURUM ::
+#\[7]2ZVS2QLF6ABZYRUJJ5HVOZDM36AXMWLQATV5BNMEME34PWLNVCDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

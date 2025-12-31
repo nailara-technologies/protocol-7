@@ -1,0 +1,119 @@
+## [:< ##
+
+# name  = work.console.todo-list
+# descr = aggregate todos with Protocol-7 styled console output
+
+## Protocol-7 color scheme ##
+my $reset       = "\e[0m";
+my $nailara_bg  = "\e[48;2;9;5;42m";
+my $blacklight  = "\e[38;2;68;39;172m";
+my $TRUE_blue   = "\e[38;2;6;71;195m";
+my $neon_orange = "\e[38;2;197;141;7m";
+my $neon_green  = "\e[38;2;71;195;6m";
+my $neon_red    = "\e[38;2;195;6;71m";
+
+my $stats = <[work.get_todo_stats]>;
+my $todos = <[work.aggregate_todos]>;
+
+say "";
+say "$blacklight" . "=" x 70 . "$reset";
+say "$blacklight .:[ ${TRUE_blue}TODO AGGREGATION${blacklight} ]:.$reset";
+say "$blacklight" . "=" x 70 . "$reset";
+say "";
+
+# Show statistics
+say "${TRUE_blue}📊 Statistics$reset";
+say sprintf "   ${blacklight}Generated:$reset %s", $stats->{generated_at};
+say sprintf "   ${blacklight}Total todos:$reset ${neon_orange}%d$reset",
+    $stats->{total};
+say "";
+
+# Show by source
+if ( $stats->{by_source} ) {
+    say "   ${TRUE_blue}By Source:$reset";
+    foreach my $source ( sort keys %{ $stats->{by_source} } ) {
+        say sprintf "      ${neon_green}•$reset %s: ${neon_orange}%d$reset",
+            $source, $stats->{by_source}{$source};
+    }
+    say "";
+}
+
+# Show by priority
+if ( $stats->{by_priority} ) {
+    say "   ${TRUE_blue}By Priority:$reset";
+    foreach my $priority ( sort keys %{ $stats->{by_priority} } ) {
+        my $color
+            = $priority eq 'high'   ? $neon_red
+            : $priority eq 'medium' ? $neon_orange
+            :                         $blacklight;
+        say sprintf "      ${neon_green}•$reset %s: ${color}%d$reset",
+            $priority, $stats->{by_priority}{$priority};
+    }
+    say "";
+}
+
+say "$blacklight" . "=" x 70 . "$reset";
+say "";
+
+# Group by source
+my %by_source;
+foreach my $todo (@$todos) {
+    my $source = $todo->{source};
+    push @{ $by_source{$source} }, $todo;
+}
+
+# Display todos by source
+foreach my $source ( sort keys %by_source ) {
+    my $items = $by_source{$source};
+
+    say "${TRUE_blue}📋 Source: ${neon_orange}$source$reset "
+        . "${blacklight}(${\scalar @$items} items)$reset";
+    say "";
+
+    foreach my $todo (@$items) {
+
+        # Status indicator
+        my $status_icon
+            = $todo->{status} =~ m|completed|i ? "${neon_green}✓$reset"
+            : $todo->{status} =~ m|progress|i  ? "${neon_orange}●$reset"
+            : $todo->{status} =~ m|blocked|i   ? "${neon_red}✗$reset"
+            :                                    "${TRUE_blue}☐$reset";
+
+        # Priority color
+        my $priority_color
+            = $todo->{priority} eq qw| high |   ? $neon_red
+            : $todo->{priority} eq qw| medium | ? $neon_orange
+            :                                     $blacklight;
+
+        say sprintf "  %s ${priority_color}[%s]$reset %s",
+            $status_icon, $todo->{priority}, $todo->{title};
+
+        # Additional info
+        if ( $todo->{repo} ) {
+            say sprintf "     ${blacklight}→ Repo:$reset %s", $todo->{repo};
+        }
+        if ( $todo->{file} ) {
+            say sprintf "     ${blacklight}→ File:$reset %s", $todo->{file};
+        }
+        if ( $todo->{category} ) {
+            say sprintf "     ${blacklight}→ Category:$reset %s",
+                $todo->{category};
+        }
+        say "";
+    }
+
+    say "$blacklight" . "-" x 70 . "$reset";
+    say "";
+}
+
+say "$blacklight" . "=" x 70 . "$reset";
+say sprintf "$neon_green✓$reset ${TRUE_blue}Total:$reset "
+    . "${neon_orange}%d todos aggregated$reset", scalar @$todos;
+say "$blacklight" . "=" x 70 . "$reset";
+say "";
+
+#,,,.,,..,.,,,,,.,.,,,,,,,,,.,..,,.,,,,,.,.,,,..,,...,...,.,,,,,.,,.,,,.,,,,.,
+#JCTVOZRWMOETEUAWTZQD4CSMI5NVGIA2IR6OEVFYESKRX7I7OSART7EA2YELRCNAUTMCRGOTGEHPW
+#\\\|QQE2KMZWNDPYZMAXYXA4DHLNG3UYEUHQTB73BWN2GRD66CFRJHF \ / AMOS7 \ YOURUM ::
+#\[7]YT5QTBF5PWY7LROZZP4GIIBTLTMG2M357LSGWKSPOYNDGBHFDQAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

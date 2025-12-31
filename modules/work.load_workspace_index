@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = work.load_workspace_index
+# descr = load or generate workspace-transfer index
+
+my $workspace_index = <work.index.workspace>;
+
+if (<[work.index_needs_regeneration]>->($workspace_index)) {
+    return <[work.generate_workspace_index]>;
+}
+
+my $index_data;
+eval {
+    $index_data = YAML::XS::LoadFile($workspace_index);
+};
+
+if ($@) {
+    # If load fails, regenerate
+    return <[work.generate_workspace_index]>;
+}
+
+return $index_data;
+
+#,,,,,..,,.,.,,,,,,..,.,,,,.,,,.,,,..,.,.,.,,,..,,...,..,,.,.,.,.,,,.,..,,,.,,
+#GXBAPRVMETKAPCLTWT5AV6O2KJYDRB2L5OLNWNGV3HVIPQP7STP3UYSCYTE5CYHHJ5YNYSADWEVYI
+#\\\|BDFZWETRJXJEDUXFIXLGC2VRLIIV6BJWJFQ6Z7D44KR27BLQSH2 \ / AMOS7 \ YOURUM ::
+#\[7]CA2QNGAKLSC7NCNAGQNZRUA3HFTBPXVY364EJYQ5VLE2IT33IAAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

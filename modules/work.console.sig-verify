@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = work.console.sig-verify
+# descr = verify all source code signatures
+
+say '';
+say ' .:[ WORKFLOW: VERIFY ALL SIGNATURES ]:.';
+say '';
+
+system('./bin/Protocol-7', 'sourcecode', 'verify-p7-signatures');
+my $exit_code = $? >> 8;
+
+say '';
+if ( $exit_code == 0 ) {
+    say ' : ✓ All signatures valid';
+} else {
+    say sprintf ' : ✗ %d signature(s) invalid', $exit_code;
+}
+say '';
+
+return $exit_code;
+
+#,,..,.,.,,,,,,,,,..,,.,.,,.,,,..,.,.,,,,,,..,..,,...,...,,..,,,,,,,,,,,,,...,
+#3VH42B7TM2VX4PNOFXBPMJOOMQQPWTZTIJOMVZZNKH4T3TSVJ7JN2G3E73HNENYTSJIYJETFXFJUQ
+#\\\|NTNGB7XUX5PPH4MSV2J3HBHMZMYTBOOIQEM3CUUOSAD2VWFUNEJ \ / AMOS7 \ YOURUM ::
+#\[7]B6OWL5GTIAG3S63XSXOX7TUCH3FUPRPYMJHKDBQRBK3ARYRT6SDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

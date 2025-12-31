@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = work.lib.detect-environment
+# descr = environment detection logic (saved for future reference)
+# note  = not currently used - replaced with key-presence detection
+
+## Detect environment and select signing workflow
+my $is_llm_env = 0;
+my $detected_context = 'unknown';
+
+# Check for LLM environment indicators
+if ( $ENV{'ANTHROPIC_API_KEY'} || $ENV{'CLAUDE_API_KEY'} ) {
+    $is_llm_env = 1;
+    $detected_context = 'anthropic-llm';
+} elsif ( $ENV{'OPENAI_API_KEY'} ) {
+    $is_llm_env = 1;
+    $detected_context = 'openai-llm';
+} elsif ( $ENV{'USER'} && $ENV{'USER'} =~ /^(user|claude|assistant)$/ ) {
+    $is_llm_env = 1;
+    $detected_context = 'llm-user';
+} elsif ( -d '/home/user/workspace-transfer' ) {
+    # Likely in Claude Code environment
+    $is_llm_env = 1;
+    $detected_context = 'claude-code';
+}
+
+return ( $is_llm_env, $detected_context );
+
+#,,.,,..,,,.,,,.,,.,.,,,,,...,,.,,...,...,,,,,..,,...,...,.,,,.,,,,..,,,,,,,.,
+#TDHJYCGWN5ROJZXNSFNSSOLFIVGGPFM6PJNV7MGSK3ZMZR5VLWRPRPS6NYCFJY2RZFXMVWS7BMCLI
+#\\\|TJPJIS3G7O63PY4S4L65CSW2WELXYTVYVGTZ4Z5G55GX2INA5QK \ / AMOS7 \ YOURUM ::
+#\[7]S7PUSTYHYYAZFUUWL655XJXXHFYX2WGOL6DJWUROEUIVKY4SLCBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
