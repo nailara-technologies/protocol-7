@@ -208,13 +208,21 @@ my $cmd_result;
 
         # Template substitution command
         unshift @ARG, $cmd, @args;
-        $result = <[models.cmd.substitute_template]>;
+        my $module_result = <[models.cmd.substitute_template]>;
+        $result = {
+            'mode' => 'json',
+            'data' => JSON::PP::encode_json($module_result)
+        };
     } elsif ( $cmd =~ /^conversation_/ ) {
 
         # Conversation subcommands: conversation_create, conversation_add_turn, conversation_get_context
         my $module = 'models.cmd.' . $cmd;
         unshift @ARG, $cmd, @args;
-        $result = <[$module]>;
+        my $module_result = <[$module]>;
+        $result = {
+            'mode' => 'json',
+            'data' => JSON::PP::encode_json($module_result)
+        };
     } elsif ( $cmd
         =~ /^(get|find|recommend|record|stats|cost|discover|discover_files)/ )
     {
@@ -301,8 +309,8 @@ my $cmd_result;
 # Return indicates successful initialization
 return 0;
 
-#,,.,,,,.,.,.,.,,,...,,,,,.,.,.,.,,.,,,,.,...,..,,...,...,,..,,..,..,,,,,,,,.,
-#AHUVPKQCYQAWWFC7BR2NQLKUD6W5IDYAPEVRBFIPKB3DMB5F744MEJGRX25HBKY3NIYTOC3AQJY32
-#\\\|A2H2EKMAP3NTUUJ6752UECRFQXANX3JC25RDDBBBFT562YEH35W \ / AMOS7 \ YOURUM ::
-#\[7]G4MIKCKFOJOEG7SK7D3LKCPIKMINO5VC42GISEGLL5PZWOOLOYCI 7  DATA SIGNATURE ::
+#,,..,,.,,,..,...,...,,,,,,.,,,..,,,.,..,,,.,,..,,...,...,,,.,,..,.,,,,,.,.,,,
+#6HRLBC3IGJWUILWB3MD3U246HVZLBKRNEG5WTSOU3TY2J46BR75BYPQU5DUMWGT5WYDO7PJ2XA7M6
+#\\\|7NIFU7PVY5U7QH3IK3ZY77TPFWHEHXVU5EGS2THFAYU42BV4M6F \ / AMOS7 \ YOURUM ::
+#\[7]ACL7JIQDOTDO7FXVY7OSF2FVJH3U7OE4FPKNXSGF7G7KOY4GFEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
