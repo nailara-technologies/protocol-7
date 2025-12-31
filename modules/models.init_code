@@ -204,6 +204,17 @@ my $cmd_result;
         # Maintenance command - delegate to command module
         unshift @ARG, $cmd, @args;
         $result = <[models.cmd.maintenance]>;
+    } elsif ( $cmd eq 'substitute_template' ) {
+
+        # Template substitution command
+        unshift @ARG, $cmd, @args;
+        $result = <[models.cmd.substitute_template]>;
+    } elsif ( $cmd =~ /^conversation_/ ) {
+
+        # Conversation subcommands: conversation_create, conversation_add_turn, conversation_get_context
+        my $module = 'models.cmd.' . $cmd;
+        unshift @ARG, $cmd, @args;
+        $result = <[$module]>;
     } elsif ( $cmd
         =~ /^(get|find|recommend|record|stats|cost|discover|discover_files)/ )
     {
@@ -290,8 +301,8 @@ my $cmd_result;
 # Return indicates successful initialization
 return 0;
 
-#,,,,,,,.,.,,,,,,,.,.,,.,,,..,,,.,..,,,.,,.,.,..,,...,...,..,,.,,,.,.,..,,.,,,
-#NVXDN4JJ2VN4OPB5BRFBZJEQSKHKKTT46Y35RNIQRIV2Q6LI4AA6DW4R2SPXOGJPIX6TDIMQBBZCQ
-#\\\|JTDX3T6ED2YFHYWURBEVSEO2NFNWH4FKKVMJ455XTMXFYJYBMCB \ / AMOS7 \ YOURUM ::
-#\[7]AJKURZ6CER3YCZ7AZ2HS3O6JRKSLUXONCWDDOIHFSNVLTKMPBIDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,.,,,...,,,,,.,.,.,.,,.,,,,.,...,..,,...,...,,..,,..,..,,,,,,,,.,
+#AHUVPKQCYQAWWFC7BR2NQLKUD6W5IDYAPEVRBFIPKB3DMB5F744MEJGRX25HBKY3NIYTOC3AQJY32
+#\\\|A2H2EKMAP3NTUUJ6752UECRFQXANX3JC25RDDBBBFT562YEH35W \ / AMOS7 \ YOURUM ::
+#\[7]G4MIKCKFOJOEG7SK7D3LKCPIKMINO5VC42GISEGLL5PZWOOLOYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

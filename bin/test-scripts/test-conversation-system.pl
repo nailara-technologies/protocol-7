@@ -13,7 +13,7 @@ print "\n=== Testing Conversation System ===\n\n";
 
 ## Test 1: Create conversation
 print "[TEST 1] Creating conversation...\n";
-my $create_cmd = qq[p7 models conversation create ];
+my $create_cmd = qq[p7 models.conversation_create ];
 $create_cmd .= qq['{"job_id":"test_conv_1","token_budget":4096}'];
 
 my $create_output = `$create_cmd 2>&1`;
@@ -28,7 +28,7 @@ if ($create_output =~ /success/) {
 
 ## Test 2: Add turn to conversation
 print "[TEST 2] Adding turn to conversation...\n";
-my $add_turn_cmd = qq[p7 models conversation add_turn ];
+my $add_turn_cmd = qq[p7 models.conversation_add_turn ];
 $add_turn_cmd .= qq['{"job_id":"test_conv_1","role":"user","content":"Hello"}'];
 
 my $add_output = `$add_turn_cmd 2>&1`;
@@ -42,7 +42,7 @@ if ($add_output =~ /success|turn/) {
 
 ## Test 3: Get conversation context
 print "[TEST 3] Retrieving conversation context...\n";
-my $get_cmd = qq[p7 models conversation get_context ];
+my $get_cmd = qq[p7 models.conversation_get_context ];
 $get_cmd .= qq['{"job_id":"test_conv_1"}'];
 
 my $get_output = `$get_cmd 2>&1`;
@@ -56,7 +56,7 @@ if ($get_output =~ /success|turns/) {
 
 ## Test 4: List conversations
 print "[TEST 4] Listing conversations...\n";
-my $list_cmd = 'p7 models conversation list';
+my $list_cmd = 'p7 models.conversation_list';
 
 my $list_output = `$list_cmd 2>&1`;
 print "Output:\n$list_output\n";
@@ -69,7 +69,7 @@ if ($list_output =~ /test_conv/) {
 
 ## Test 5: Status check
 print "[TEST 5] Checking conversation metrics...\n";
-my $status_cmd = 'p7 models conversation status';
+my $status_cmd = 'p7 models.conversation_status';
 
 my $status_output = `$status_cmd 2>&1`;
 print "Output:\n$status_output\n";
@@ -82,7 +82,7 @@ if ($status_output =~ /active|completed/) {
 
 ## Test 6: Clear conversation
 print "[TEST 6] Clearing conversation...\n";
-my $clear_cmd = 'p7 models conversation clear test_conv_1';
+my $clear_cmd = 'p7 models.conversation_clear test_conv_1';
 
 my $clear_output = `$clear_cmd 2>&1`;
 print "Output:\n$clear_output\n";
