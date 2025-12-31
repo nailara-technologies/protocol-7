@@ -1,0 +1,293 @@
+task:
+  id: "signature-endline-oscillation-investigation"
+  title: "Investigate and Fix Signature Endline Oscillation Bug"
+  created: "2025-12-31"
+  priority: "HIGH"
+  context: "Phase 1-3 of template + conversation system implementation complete. Documentation created but signature system has critical oscillation bug preventing file commitment."
+  token_budget: "Full investigation deferred due to insufficient context budget. Task created for next session resumption."
+
+problem_statement:
+  summary: "Files ending with 2+ newlines create invalid endline-state=0 during signature creation, causing oscillation that prevents commitment"
+
+  symptom:
+    - "File SELF-IMPROVING-AGENT-ECOSYSTEM.md successfully signed once"
+    - "Verification marked signature as NOT-VALID with message: 'endline-state-encoded = 0 [ temporarely disallowed ]'"
+    - "Re-signing generates same invalid state, creating infinite oscillation"
+    - "File never commits successfully despite valid signature footer present"
+
+  trigger_condition: "File written with 2 or more trailing newlines instead of canonical 1 newline"
+
+  affected_file: "/data/projects/protocol-7/data/yaml/SELF-IMPROVING-AGENT-ECOSYSTEM.md"
+
+  secondary_issue: "Verification command did not catch unsigned files in data/yaml/ path despite data/yaml being in sourcecode.source_path_set_up checklist"
+
+root_cause_analysis:
+
+  hypothesis_1_incomplete_harmonization:
+    description: "harmonize_payload_line_feed creates state based on delta between original and harmonized size"
+    mechanism:
+      - "Original file: N bytes, ending with 2+ newlines"
+      - "Harmonize normalizes to canonical form (2 trailing newlines for separator per architecture)"
+      - "Delta calculation: size_before - size_after"
+      - "State encoding: 5 (default) + delta"
+      - "When delta = -5, creates state = 0"
+    issue: "State 0 is explicitly rejected by decoder with '[temporarely disallowed]' comment"
+    location: "modules/source.harmonize_payload_line_feed"
+
+  decoder_rejection:
+    description: "amos7.decode_octal_bit_header explicitly rejects state=0 (lines 60-68)"
+    code_reference: |
+      if ( $header_params->{'endline-state-encoded'} == 0 ) {
+          $header_params->{'encountered-error'}
+              = sprintf
+              'value of endline-state-encoded = %d [ temporarely disallowed ]',
+              $header_params->{'endline-state-encoded'};
+          $header_params->{'endline-state-encoded'} = undef;
+          return $header_params;
+      }
+    question: "Why is state=0 marked as '[temporarely disallowed]'? What was the intent?"
+
+  encoder_state_assignment:
+    description: "amos7.encode_octal_header converts numeric state to binary representation"
+    location: "modules/amos7.encode_octal_header"
+    question: "Does encoder correctly handle state=0? Should it be treated specially?"
+
+affected_modules:
+
+  - name: "source.harmonize_payload_line_feed"
+    role: "Normalizes file endlines to canonical form"
+    action: "Calculates state delta between original and harmonized versions"
+    investigation: "Add debug logging for state calculation when input has 2+ newlines"
+
+  - name: "source.create_harmonic_footer"
+    role: "Creates signature footer by calling harmonize"
+    action: "Encodes state from harmonize result"
+    investigation: "Log harmonize return value and calculated state"
+
+  - name: "amos7.encode_octal_header"
+    role: "Converts numeric state to binary representation"
+    action: "Encodes state value for footer"
+    investigation: "Verify encoding for state=0 vs other states"
+
+  - name: "amos7.decode_octal_bit_header"
+    role: "Decodes binary state from footer during verification"
+    action: "Explicitly rejects state=0 (lines 60-68)"
+    investigation: "Determine if rejection is correct or should allow state=0"
+
+  - name: "source.extract_sig_body"
+    role: "Extracts footer signature from file"
+    status: "FIXED in earlier session"
+    fix_applied: "Flexible regex {70,85} instead of strict {77}"
+
+  - name: "sourcecode.console.verify-p7-signatures"
+    role: "Verification command for entire codebase"
+    secondary_issue: "Did not catch unsigned files in data/yaml/ initially"
+    investigation: "Why data/yaml files not verified if path in checklist"
+
+investigation_questions:
+
+  - question: "Why does harmonize create state=0?"
+    context: "When file has 2 trailing newlines, delta calculation results in state 0"
+    needed_for: "Understanding if this is encoder bug or harmonization bug"
+
+  - question: "What does endline-state=0 represent?"
+    context: "Other states (1-7?) represent different endline modifications"
+    needed_for: "Deciding if state=0 should be valid or if it indicates an error"
+
+  - question: "Why is state=0 '[temporarely disallowed]'?"
+    context: "Comment suggests temporary disabling, with note to 'remove this state after resigning all code'"
+    needed_for: "Understanding if this is intentional protection or incomplete work"
+
+  - question: "Is this the reason harmonize writes 2 newlines as canonical?"
+    context: "Architecture specifies 2 trailing newlines as separator format"
+    needed_for: "Understanding if multiple newlines cause state=0 by design"
+
+  - question: "Should verify catch unsigned data/yaml files?"
+    context: "data/yaml path is in sourcecode.source_path_set_up checklist"
+    needed_for: "Ensuring all files are signed consistently"
+
+investigation_path:
+
+  step_1_test_with_temp_key:
+    action: "Use sourcecode test-sign-and-verify to test files with temporary key"
+    command: "./bin/Protocol-7 sourcecode test-sign-and-verify <file-pattern>"
+    rationale: "Avoid breaking production signatures while diagnosing"
+    discovery_from_testing: "Files signed with temp key VERIFY successfully in CYCLE 1 but fail mysteriously in CYCLE 2"
+    next_step: "Investigate why CYCLE 2 fails even though CYCLE 1 succeeds"
+
+  step_2_debug_state_calculation:
+    action: "Add logging to source.create_harmonic_footer"
+    code_change: |
+      Add before return:
+        warn "[HARMONIZE_DEBUG] state_delta=$delta, original=$size_before, harmonized=$size_after, final_state=$state\n";
+    target_files: ["modules/source.create_harmonic_footer"]
+    test_with: "SELF-IMPROVING-AGENT-ECOSYSTEM.md (current problem file)"
+    expected_output: "Log shows state=0 is calculated when file has 2+ newlines"
+
+  step_3_trace_harmonize_logic:
+    action: "Study source.harmonize_payload_line_feed implementation"
+    questions:
+      - "What is the 'canonical form' it normalizes to?"
+      - "Why does 2 trailing newlines cause delta=-5?"
+      - "What are valid delta ranges?"
+    target_files: ["modules/source.harmonize_payload_line_feed"]
+
+  step_4_understand_state_meaning:
+    action: "Research what each state (0-7) represents"
+    questions:
+      - "Is state=0 'no modification'?"
+      - "Are states 1-7 different types of endline changes?"
+      - "Why would we disallow 'no modification' state?"
+    target_files: ["modules/amos7.encode_octal_header", "modules/amos7.decode_octal_bit_header"]
+
+  step_5_examine_decoder_rejection:
+    action: "Analyze why state=0 is rejected"
+    code_location: "amos7.decode_octal_bit_header lines 60-68"
+    questions:
+      - "Is there actual danger with state=0 or just incomplete work?"
+      - "Should decoder allow state=0 with special handling?"
+      - "Is there a related comment about 'resigning all code'?"
+    decision_point: "Fix encoder to avoid state=0 OR fix decoder to accept state=0"
+
+  step_6_test_fix_candidates:
+    action: "Try potential fixes and verify with SELF-IMPROVING-AGENT-ECOSYSTEM.md"
+    candidate_1_avoid_state_0:
+      description: "Modify harmonize to ensure delta never results in state=0"
+      location: "source.harmonize_payload_line_feed"
+      pro: "Prevents invalid state from being created"
+      con: "May mask underlying issue with canonical form definition"
+
+    candidate_2_allow_state_0:
+      description: "Remove rejection in decoder, allow state=0 to represent no modification"
+      location: "amos7.decode_octal_bit_header"
+      pro: "More semantically complete (0-7 covers all states)"
+      con: "Need to understand why it was disallowed initially"
+
+    candidate_3_fix_canonicalization:
+      description: "Adjust what 'canonical form' means to avoid state=0"
+      location: "source.harmonize_payload_line_feed"
+      pro: "Fixes root cause if canonicalization is wrong"
+      con: "May have broad impact on other files"
+
+  step_7_investigate_cycle_2_failure:
+    action: "Focus on test-diagnose result showing CYCLE 2 verification failure"
+    observations:
+      - "CYCLE 1: File signs and verifies successfully (1 valid)"
+      - "CYCLE 2: Re-signing happens but verification shows 0 valid, 0 invalid"
+      - "Zero invalid means file disappeared or verification can't find it"
+    questions:
+      - "Does CYCLE 2 signing corrupt or truncate the file?"
+      - "Does CYCLE 2 verification look in wrong location?"
+      - "Is there a state transition that breaks between cycles?"
+    impact: "If CYCLE 2 fails consistently, signing is oscillating (even if CYCLE 1 works)"
+
+workaround_for_current_work:
+  description: "Temporary workaround to unblock current session"
+  instruction: "For all new files written in this session, ensure they end with exactly ONE newline"
+  rationale: "Files with 2+ newlines trigger the state=0 oscillation. Single newline avoids the condition."
+  caveat: "This does NOT fix the underlying bug, only avoids triggering it"
+  implementation: "When writing files, strip any trailing newlines and add exactly one: s/\n+$/\n/g"
+
+files_deferred_from_commit:
+
+  - file: "/data/projects/protocol-7/data/yaml/SELF-IMPROVING-AGENT-ECOSYSTEM.md"
+    status: "SIGNED but FAILS VERIFICATION (endline-state=0)"
+    size: "~570 lines documentation"
+    content: "Critical architecture doc on self-improving agent ecosystem with complaint/request feedback loops"
+    action: "DO NOT attempt to commit in next session until signature issue resolved"
+    instead: "First fix signature oscillation, then re-write file with single trailing newline"
+
+next_session_priorities:
+
+  priority_1_use_test_interface:
+    description: "Use test-diagnose to safely test files without breaking production signatures"
+    commands:
+      - "./bin/Protocol-7 sourcecode test-diagnose <file-pattern> # diagnose oscillation"
+      - "./bin/Protocol-7 sourcecode test-cycle <file-pattern> # test and restore"
+    benefit: "Safe testing without affecting production key"
+
+  priority_2_fix_cycle_2_failure:
+    description: "Resolve the issue where CYCLE 2 verification fails in test-diagnose"
+    effort: "1-2 hours"
+    blocker: "Understanding this will reveal the oscillation root cause"
+
+  priority_3_fix_signature_oscillation:
+    description: "Resolve endline-state=0 oscillation bug once cycle 2 issue understood"
+    effort: "2-3 hours with focused investigation"
+    blocker: "Cannot complete Phase 1-3 work until files can be committed"
+    success_criteria:
+      - "SELF-IMPROVING-AGENT-ECOSYSTEM.md commits successfully"
+      - "No oscillation on re-verification"
+      - "All files ending with 1 newline verify correctly"
+
+  priority_4_run_test_suite:
+    description: "Execute complete test suite to verify Phases 1-3"
+    command: "perl /data/projects/protocol-7/bin/test-scripts/run-all-tests.pl"
+    blocker: "Optional but recommended after signature fix"
+    estimated_time: "30 minutes"
+
+context_for_resumption:
+
+  git_status: |
+    Branch: base
+    Modified files: configuration/zenki/models/start, modules/models.*, etc.
+    New files: bin/test-scripts/*, data/yaml/*.md
+    Not committed: SELF-IMPROVING-AGENT-ECOSYSTEM.md (signature issue)
+
+  current_session_work_summary:
+    - "Phase 1-3: Template substitution, conversation management, vision-parser integration - COMPLETE"
+    - "Test suite: 5 test scripts + testing guide - WRITTEN, not run"
+    - "Documentation: 4 architecture docs - WRITTEN, 1 has signature issue"
+    - "Status: Ready to test and commit, blocked by signature oscillation"
+
+  test_interface_discovery:
+    - "User found test-sign-and-verify and related test commands"
+    - "This provides safe way to diagnose without breaking production keys"
+    - "Test results show CYCLE 1 works but CYCLE 2 fails mysteriously"
+    - "This is the key to understanding the oscillation"
+
+  architectural_decisions_made:
+    - "Use <{variable}> syntax for templates (simple for models)"
+    - "Conversation = shared context space (precursor to consensus)"
+    - "YAML tool calling = Phase 4 implementation (better than MCP)"
+    - "Failures = requests for help (not errors to hide)"
+
+  what_works_already:
+    - "Template substitution module with metrics"
+    - "Conversation system with token budgets"
+    - "Vision-parser integration"
+    - "All test infrastructure"
+    - "Complete architecture documentation"
+    - "Test signature interface (test-sign-and-verify, test-diagnose, etc.)"
+
+  what_needs_next:
+    - "Investigate CYCLE 2 verification failure in test-diagnose output"
+    - "Fix signature endline oscillation (blocking current session)"
+    - "Run and pass test suite (validates phases 1-3)"
+    - "Implement Phase 4 YAML tool calling (4-week plan documented)"
+    - "Implement Phase 5+ self-improving agent ecosystem"
+
+reference_documentation:
+
+  created_in_this_session:
+    - "/data/projects/protocol-7/data/yaml/template-markup-syntax.yaml"
+    - "/data/projects/protocol-7/data/yaml/ARCHITECTURE-NOTES.md"
+    - "/data/projects/protocol-7/data/yaml/yaml-tool-calling-system.md"
+    - "/data/projects/protocol-7/data/yaml/PHASE-4-YAML-TOOL-CALLING.md"
+    - "/data/projects/protocol-7/data/yaml/SELF-IMPROVING-AGENT-ECOSYSTEM.md (signature issue)"
+    - "/data/projects/protocol-7/bin/test-scripts/ (entire test suite)"
+
+  test_interface_commands:
+    - "test-cycle: backup signatures, update with temp key, verify, restore"
+    - "test-diagnose: test cycle without restoration - diagnose oscillation"
+    - "test-restore-signatures: restore original signatures from backup"
+    - "test-sign-and-verify: test sign files + verify in one operation"
+    - "test-sign-with-temp-key: sign with temporary key (creates if needed)"
+    - "test-verify-with-temp-key: verify signatures with temporary key"
+
+  user_feedback_on_architecture:
+    - "conversation system is precursor to consensus groups"
+    - "YAML tool calling more natural than MCP for models"
+    - "Breaking requested output format = valuable feedback (complaint turn)"
+    - "Failures in conversation visible to admin groups for improvement"
+    - "Test interface available to safely diagnose signature issues"
