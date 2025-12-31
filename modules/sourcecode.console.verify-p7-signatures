@@ -105,7 +105,10 @@ foreach my $path_rel (@source_paths) {
 
     # Check if signature exists
     if ( not $footer_data->{'was-present'} ) {
-        <[base.log]>->( 1, ':E: no signature found' );
+        <[base.logs]>->(
+            0, ':E: no signature present :: %s',
+            <[base.parser.ellipse_center]>->( $path_rel, 44 )
+        );
         $invalid_count++;
         next;
     }
@@ -114,8 +117,8 @@ foreach my $path_rel (@source_paths) {
     if ( not $footer_data->{'structure-was-valid'} ) {
         my $footer_error = $footer_data->{'encountered-error'};
         <[base.logs]>->(
-            0, ':E: %s',
-            $footer_error // 'unspecified error in footer structure'
+            0, ':E: invalid signature structure :: %s',
+            <[base.parser.ellipse_center]>->( $path_rel, 44 )
         );
         $invalid_count++;
         next;
@@ -200,9 +203,9 @@ foreach my $path_rel (@source_paths) {
             if <system.verbosity.console> == 1;
     } else {
         $invalid_count++;
-        <[base.log]>->( 0, ':!: NOT-VALID ::' );
         <[base.logs]>->(
-            0, ' : %s', <[base.parser.ellipse_center]>->( $path_rel, 47 )
+            0, ':E: signature validation failed :: %s',
+            <[base.parser.ellipse_center]>->( $path_rel, 44 )
         );
 
         # Provide detailed error report in higher verbosity
@@ -284,8 +287,8 @@ if ( $verify_mode eq 'repair' ) {
 # Exit with count of invalid signatures (0 = success)
 <[base.exit]>->( sprintf( '%04d', $invalid_count ) );
 
-#,,.,,.,.,..,,..,,,,,,..,,.,,,.,,,,.,,,,,,,,.,..,,...,...,.,,,..,,,,,,,,,,.,,,
-#3VNVXDW6GB4ZWGJRBTFXY563HWGS3CZG6GFJPDOER227AOGQRWEJAVROVGCHVZA5UE4PCMLSU4VVA
-#\\\|WKSLISMK3PJBVLV4T4UQUU7Z2XOMWLHOA42CPLNO2EK24XWWA3G \ / AMOS7 \ YOURUM ::
-#\[7]RU2WVV7EQIRVSFVL6SC2ZLVIG4H6QXYGAYH2J7TNKSH36PRPPYBA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,...,...,,..,,.,,...,,..,,..,.,,,..,,...,...,...,,,.,...,,,,,,..,
+#ZUYE4VGDTITHU277LRFLUV4RPAGRLNAYZOG3ST2EBHJFD7VSSYKJVGRMPDLTWOHS7EHVNIYV5PRW2
+#\\\|SIVFMVG6WTLMTO72ALBZ3WG3VJOZAPBNBQFHUZLXGTMDGWWOOKM \ / AMOS7 \ YOURUM ::
+#\[7]FWCXUFETWBEAWJFIZFMFJFXEYDHAHWMSF5SWT6HHLGQ3C5UTSIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
