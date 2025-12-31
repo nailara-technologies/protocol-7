@@ -41,8 +41,9 @@ my $bit_size = <source.chksum_bitsize>;
 ### extract [ optionally strip ] code signature footer #######################
 my $footer_body;
 my $footer_start;
-my $footer_start_regex = qr|#[\.,]{77}|;    #.......,.......,......., [..,]
-my $footer_start_regex_length = 78;         ##  manually acquired  ##
+## Flexible regex to handle footer lines that exceed template length
+my $footer_start_regex        = qr|#[\.,]{70,85}|;    ## Allow 70-85 chars ##
+my $footer_start_regex_length = 78;                   ## Default length ##
 
 <[base.logs]>->(
     3,     ': source.extract_sig_body called with mode: %s, strip: %s',
@@ -60,7 +61,7 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
 # Stubs look like real footers but contain PLACEHOLDER text instead of signatures
 # By removing them upfront, we prevent them from being matched before real signatures
     if ( $$src_ref
-        =~ s|\n?#[\.,]{77}\n(?:#[^\n]*PLACEHOLDER[^\n]*\n)+#[:]{70,80}\n?||sg
+        =~ s|\n?#[\.,]{70,85}\n(?:#[^\n]*PLACEHOLDER[^\n]*\n)+#[:]{70,80}\n?||sg
     ) {
         <[base.logs]>->( 3, ': stripped PLACEHOLDER stub footers from file' );
     }
@@ -717,8 +718,8 @@ if ( $mode eq 'repair' ) {
 
 return $footer_data;
 
-#,,.,,,,,,,,.,.,.,,.,,,,.,.,,,,.,,.,,,..,,,,.,...,...,...,.,,,,,,,,.,,.,,,..,,
-#KPDIODJYBMWT2QR7Y2SLIDMVVHLYTW35DBRPL5FRNIWCWP5PT5MD7D5PNNHE6TLHGHSRG43IAPP7I
-#\\\|4I4VMXEYDMDIPMCDWABLIG75MNNCR422ZBGO5V7L427DWHRGBC3 \ / AMOS7 \ YOURUM ::
-#\[7]UP3JLZH7EPUV2V3NLMPEVGOMOA4NH5URL4SHZYEYA5NG665CQ2AY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,..,..,,,.,,.,,,...,.,,,,,.,.,.,...,...,...,,,.,,..,...,...,...,
+#MT6D6BE7322VEFKYUH4MJGBPDI3WH6LDR3I6XQXS2JBY6N7E62NZZ5G7D7W65FUFPOTC7WY3KLEAY
+#\\\|6UZNU2OGLR73RDKKKJHJAOFY6JRDVL4HF5YOQ4AQICBRB6QT67S \ / AMOS7 \ YOURUM ::
+#\[7]PCPLVBUG7GWANOC4I7O6CYFFBQRLBYPBUIIUMUOJLEJSMV2YCMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
