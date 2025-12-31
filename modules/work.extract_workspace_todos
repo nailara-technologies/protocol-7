@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = work.extract_workspace_todos
+# descr = extract todos from workspace-transfer TODO.md files
+
+my @todos;
+my $repos = <[work.scan_workspace_repos]>;
+
+foreach my $repo (@$repos) {
+    my $absolute_todo_file = "$repo->{path}/TODO.md";
+    next unless -f $absolute_todo_file;
+
+    my $keyword_todo_file = <[base.path.to_keywords]>->($absolute_todo_file);
+
+    open my $fh, '<', $absolute_todo_file or next;
+    while (<$fh>) {
+        if (/^- \[ \](.*)/) {
+            my $desc = $1;
+            $desc =~ s|^\s+||;
+
+            push @todos,
+                {
+                title    => $desc,
+                priority => 'medium',
+                category => 'workspace-todo',
+                status   => 'pending',
+                repo     => $repo->{name},
+                path     => $keyword_todo_file,
+                source   => 'workspace-transfer-todo'
+                };
+        }
+    }
+    close $fh;
+}
+
+return \@todos;
+
+#,,..,,..,..,,,,,,,,.,,..,,.,,,,.,,,.,,..,.,.,..,,...,...,...,,.,,,,,,,,,,,.,,
+#6CBKVYQGX6UKKKHQYVFL2JLZW43AZRDX3WTV2YFSXUL6FD3FQ76RRHG3KMTBST4KLKG4BN2OOEHPY
+#\\\|A7X6O52NAT6EP57OTAI4KJOJFH6SL7GXSHRGRLMXTRP7EO3LDMV \ / AMOS7 \ YOURUM ::
+#\[7]RLFSIK7B674ZJPNBLE3LSUQWQ3F55DE4Q6YGB2HHNUBFTNGRQGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

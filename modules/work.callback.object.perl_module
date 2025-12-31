@@ -1,0 +1,26 @@
+## [:< ##
+
+# name = work.callback.object.perl_module
+# descr = callback to check if a perl module dependency is fulfilled
+
+my $object_id = shift;
+
+## Get the dependency object ##
+my $object = <dependency.object>->{$object_id};
+return FALSE unless defined $object;
+
+my $module_name = $object->{module_name};
+return FALSE unless defined $module_name;
+
+## Check if perl module can be loaded ##
+my $is_available = eval "require $module_name; 1";
+
+return $is_available ? 1 : 0;
+
+0;
+
+#,,..,,..,.,.,.,,,,..,,..,.,,,...,..,,.,,,.,.,..,,...,...,,..,...,.,,,,.,,,..,
+#FMXX4Q56DY5TVZWQIWQ4NMV64VCU6EJ6LVVC3Z7YBTZB5FKZQA2ULCUUZYIOY5JSDJQEGO6DUNYZG
+#\\\|2PQNLUN4N73WZE2DOJ7W3FD7ZZZ6YLGJT5JKRMZD35WEUWBSD7N \ / AMOS7 \ YOURUM ::
+#\[7]6XL5LQOZXNP5EKIDXCZNVSET2SELUBK2LCO3A6KHLH7NX4D3OOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

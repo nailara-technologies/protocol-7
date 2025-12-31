@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = work.extract_yaml_todos
+# descr = extract todos from yaml task files
+
+my $tasks = <[work.scan_yaml_tasks]>;
+my @todos;
+
+foreach my $file (sort keys %$tasks) {
+    my $task = $tasks->{$file};
+    my $task_data = $task->{data};
+
+    # Check task status
+    my $status = $task_data->{status} || $task_data->{task_metadata}{status} || 'unknown';
+    next if $status =~ /completed/i;
+
+    # Extract task info
+    my $title = $task_data->{title} || $task_data->{task_metadata}{title} || $file;
+    my $priority = $task_data->{priority} || $task_data->{task_metadata}{priority} || 'medium';
+    my $category = $task_data->{category} || $task_data->{task_metadata}{category} || 'task';
+
+    push @todos, {
+        title => $title,
+        priority => $priority,
+        category => $category,
+        status => $status,
+        file => $file,
+        path => $task->{path},
+        type => $task->{type},
+        source => 'protocol-7-yaml'
+    };
+
+    # Extract phase tasks if present
+    if ($task_data->{phases}) {
+        foreach my $phase_key (sort keys %{$task_data->{phases}}) {
+            my $phase = $task_data->{phases}{$phase_key};
+            next unless $phase->{tasks};
+
+            foreach my $phase_task (@{$phase->{tasks}}) {
+                my $task_status = $phase_task->{status} || 'pending';
+                next if $task_status =~ /completed/i;
+
+                push @todos, {
+                    title => "[$phase->{title}] " . $phase_task->{name},
+                    priority => $priority,
+                    category => $category,
+                    status => $task_status,
+                    file => $file,
+                    phase => $phase_key,
+                    type => 'phase-task',
+                    source => 'protocol-7-yaml'
+                };
+            }
+        }
+    }
+}
+
+return \@todos;
+
+#,,,,,.,,,,.,,,,,,...,,,.,,.,,..,,,.,,,.,,.,.,..,,...,...,,.,,...,...,,,,,...,
+#45ICUUITBTH7DYR3BV6NGSTJ4ZRPS5N5OUGVMKXLLFF3NC2GEEUTEPVYIVIOWDI7VD3GRBBS65B6E
+#\\\|YYIIQUUGMFAAFZ2R3COLPLVLUNHYEFIDMZMVPZF7KH6JGQ5LIUU \ / AMOS7 \ YOURUM ::
+#\[7]DP4KPRT3JBARAQQUJITAZ4RIQGWC7MXN2EOAMQ4H426R6PIOOSBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -87,6 +87,7 @@ return [ qw[
         base.cmd.exit
         base.cfg_bool
         X-11.grab_key
+        work.init_code
         web.cmd.assets
         web.assets.get
         v7.zenka.start
@@ -268,6 +269,8 @@ return [ qw[
         X-11.connect_X11
         X-11.cmd.rand-bg
         X-11.check-mouse
+        work.console.scan
+        work.cmd.bug-list
         web.skin_resolver
         v7.zenka.pre_init
         v7.zenka.cmd.stop
@@ -349,7 +352,10 @@ return [ qw[
         X-11.cmd.bg_color
         USR.lain.base-key
         zenki.parent.start
-        workflow.init_code
+        work.console.stats
+        work.cmd.todo-list
+        work.cmd.sig-cycle
+        work.cmd.run-tests
         web.scan_directory
         web.menu_generator
         weather.cmd.widget
@@ -441,6 +447,12 @@ return [ qw[
         X-11.start_gpu_top
         USR.taeki.base-key
         zenki.console.start
+        work.get_todo_stats
+        work.console.search
+        work.console.commit
+        work.cmd.sig-verify
+        work.cmd.sig-update
+        work.aggregate_bugs
         web.assets.registry
         web.assets.register
         web-browser.js_call
@@ -528,6 +540,9 @@ return [ qw[
         X-11.cmd.get_params
         X-11.cmd.get_driver
         zenki.console.status
+        work.scan_yaml_tasks
+        work.console.release
+        work.aggregate_todos
         web.assets.by_status
         web-browser.load_uri
         weather.cmd.forecast
@@ -651,8 +666,11 @@ return [ qw[
         X-11.cmd.get_display
         X-11.cmd.dpms-status
         X-11.cmd.dpms-enable
-        workflow.console.scan
-        workflow.cmd.bug-list
+        work.parent.init_code
+        work.load_todos_index
+        work.load_suggestions
+        work.console.overview
+        work.console.bug-list
         web-browser.post_init
         web-browser.init_view
         web-browser.init_code
@@ -766,10 +784,10 @@ return [ qw[
         X-11.cmd.dpms-disable
         zenki.parent.init_code
         zenki.parent.ensure_v7
-        workflow.console.stats
-        workflow.cmd.todo-list
-        workflow.cmd.sig-cycle
-        workflow.cmd.run-tests
+        work.console.todo-list
+        work.console.sig-cycle
+        work.console.shortcuts
+        work.console.run-tests
         web.template_cache.set
         web.template_cache.get
         web.assets.by_template
@@ -882,12 +900,10 @@ return [ qw[
         X-11.cmd.dpms-force-on
         X-11-pointer.init_code
         AMOS7.key-32-safeguard
-        workflow.get_todo_stats
-        workflow.console.search
-        workflow.console.commit
-        workflow.cmd.sig-verify
-        workflow.cmd.sig-update
-        workflow.aggregate_bugs
+        work.extract_yaml_todos
+        work.console.sig-verify
+        work.console.sig-update
+        work.check_dependencies
         web-browser.proxy_setup
         web-browser.open_window
         web-browser.cmd.iconify
@@ -1008,9 +1024,8 @@ return [ qw[
         X-11.cmd.get_window_ids
         X-11.cmd.dpms-force-off
         zenki.parent.ensure_cube
-        workflow.scan_yaml_tasks
-        workflow.console.release
-        workflow.aggregate_todos
+        work.parent.scan_history
+        work.parent.fix_versions
         web.process_template_ipc
         web.process-template-ipc
         web.cmd.process-template
@@ -1128,11 +1143,11 @@ return [ qw[
         zenki.parent.start_via_v7
         zenki.parent.ensure_zenka
         zenki.console.attach-logs
-        workflow.parent.init_code
-        workflow.load_todos_index
-        workflow.load_suggestions
-        workflow.console.overview
-        workflow.console.bug-list
+        work.scan_workspace_repos
+        work.load_workspace_index
+        work.generate_todos_index
+        work.console.fix-versions
+        work.cmd.test-oscillation
         web-browser.disable_proxy
         web-browser.cmd.slow_down
         web-browser.cmd.fg_insert
@@ -1248,10 +1263,8 @@ return [ qw[
         X-11.bg-image.clear-cache
         zenki.parent.check_running
         workspace-transfer.cmd.bug
-        workflow.console.todo-list
-        workflow.console.sig-cycle
-        workflow.console.shortcuts
-        workflow.console.run-tests
+        work.parent.fix_signatures
+        work.parent.create_release
         web.render_skinned_content
         web-browser.set_properties
         web-browser.process_subcfg
@@ -1300,7 +1313,9 @@ return [ qw[
         mpv.handler.cmd_prop.pause
         mpv.callback.abort_startup
         models.template.substitute
+        models.substitute_template
         models.storage.check_space
+        models.conversation_create
         models.conversation.create
         llm.service.consensus_vote
         letsencr.parent.cmd.status
@@ -1359,10 +1374,11 @@ return [ qw[
         X-11.background-image-list
         workspace-transfer.pre_init
         workspace-transfer.cmd.todo
-        workflow.extract_yaml_todos
-        workflow.console.sig-verify
-        workflow.console.sig-update
-        workflow.check_dependencies
+        work.lib.detect-environment
+        work.extract_workspace_bugs
+        work.console.import-dev-key
+        work.console.fix-signatures
+        work.cmd.regenerate-indexes
         web-browser.wait_for_window
         web-browser.start_slideshow
         web-browser.cmd.scroll_stop
@@ -1474,8 +1490,10 @@ return [ qw[
         X-11.cmd.screen_size_ranges
         zenki.handler.v7_start_reply
         workspace-transfer.init_code
-        workflow.parent.scan_history
-        workflow.parent.fix_versions
+        work.parent.load_signing_key
+        work.parent.harmonize_emails
+        work.extract_workspace_todos
+        work.cmd.version-sign-commit
         web.scan_content_directories
         web.execute_template_command
         web.cmd.process_template_ipc
@@ -1516,6 +1534,7 @@ return [ qw[
         models.storage.get_tier_path
         models.registry.update_entry
         models.registry.create_entry
+        models.conversation_add_turn
         models.conversation.add_turn
         models.cmd.record_invocation
         mod-test.cmd.erase-blacklist
@@ -1566,11 +1585,10 @@ return [ qw[
         X-11.handler.fade_out_window
         X-11.bg-image.clean-up-cache
         zenki.parent.request_v7_start
-        workflow.scan_workspace_repos
-        workflow.load_workspace_index
-        workflow.generate_todos_index
-        workflow.console.fix-versions
-        workflow.cmd.test-oscillation
+        work.index_needs_regeneration
+        work.generate_workspace_index
+        work.console.test-oscillation
+        work.console.harmonize-emails
         web-browser.process_url_flags
         web-browser.handler.slideshow
         web-browser.enable_javascript
@@ -1680,8 +1698,7 @@ return [ qw[
         X-11.bg-image.cached-path.add
         X-11-pointer.cmd.blank-cursor
         workspace-transfer.console.bug
-        workflow.parent.fix_signatures
-        workflow.parent.create_release
+        work.setup_module_dependencies
         web.process_template_recursive
         web-browser.handler.swap_views
         web-browser.disable_javascript
@@ -1777,11 +1794,6 @@ return [ qw[
         X-11.cmd.dpms-blanking-disable
         X-11.background.next-rnd-index
         workspace-transfer.console.todo
-        workflow.lib.detect-environment
-        workflow.extract_workspace_bugs
-        workflow.console.import-dev-key
-        workflow.console.fix-signatures
-        workflow.cmd.regenerate-indexes
         web-browser.set-up.import_rules
         web-browser.handler.auto_scroll
         web-browser.handler.2html_reply
@@ -1806,6 +1818,7 @@ return [ qw[
         nodes.send_host_details_request
         mpv.handler.rescale_video_reply
         models.registry.list_by_context
+        models.conversation_get_context
         models.conversation.get_context
         mod-test.write-mem-list-to-disk
         mod-test.cmd.clear-success-list
@@ -1844,10 +1857,8 @@ return [ qw[
         X-11.cancel_wait_visible_timers
         X-11.callback.display_connected
         X-11-pointer.cmd.restore-cursor
-        workflow.parent.load_signing_key
-        workflow.parent.harmonize_emails
-        workflow.extract_workspace_todos
-        workflow.cmd.version-sign-commit
+        work.console.version-sign-commit
+        work.callback.object.perl_module
         web-browser.handler.load_timeout
         web-browser.handler.load_changed
         web-browser.handler.fade_in_view
@@ -1927,10 +1938,6 @@ return [ qw[
         zenki.parent.resolve_dependencies
         workspace-transfer.cmd.checkpoint
         workspace-transfer.cmd.bug-commit
-        workflow.index_needs_regeneration
-        workflow.generate_workspace_index
-        workflow.console.test-oscillation
-        workflow.console.harmonize-emails
         web-browser.start-up.raise_window
         web-browser.handler.size_allocate
         web-browser.handler.quit_fade_out
@@ -1991,7 +1998,6 @@ return [ qw[
         X-11.backgrounds.set_random_image
         X-11.autoconfigure.non-root-start
         workspace-transfer.cmd.todo-commit
-        workflow.setup_module_dependencies
         web-browser.handler.url_list_reply
         web-browser.handler.gpu_load_reply
         web-browser.cmd.disable_javascript
@@ -2049,6 +2055,7 @@ return [ qw[
         USR.AMOS7-admin.sourcecode-pub-key
         workspace-transfer.env.detect_paths
         workspace-transfer.cmd.status-check
+        work.calculate_suggestion_relevance
         web-browser.callback.load_fail_page
         weather.parent.handler.update_timer
         v7.zenka.instance.cmd.change-status
@@ -2085,8 +2092,6 @@ return [ qw[
         base.handler.write.encoding-wrapper
         base.handler.counter_overflow_reset
         base.event.callback.io-idle-restart
-        workflow.console.version-sign-commit
-        workflow.callback.object.perl_module
         web-browser.process_crash_mitigation
         web-browser.handler.progress_changed
         weather.parent.cache.read_station_id
@@ -2186,7 +2191,6 @@ return [ qw[
         base.log.send-buffer.idle-callback-set
         base.file.path.make-relative-from-list
         workspace-transfer.console.status-check
-        workflow.calculate_suggestion_relevance
         weather.parent.handler.station_id_reply
         sourcecode.console.verify-p7-signatures
         sourcecode.console.test-sign-and-verify
@@ -2330,8 +2334,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,,..,,,.,...,.,.,,..,..,,,,,,,..,...,,.,,.,.,...,...,.,.,,,.,,,.,,.,,,.,,
-#6R5U2DZ2P26L2RGZLKTOTYJHLXSY3BODLPPG65NLHV6IACOSGA7WUFRCOMJCLFTPYFYLLQCMLSKOS
-#\\\|56X3F3NVBVEMFTEA7NMB6RSYBOKUNPP7TVOZBO66B7YUDA5LMBX \ / AMOS7 \ YOURUM ::
-#\[7]MUTF4P7KTZQOAH74M6C7LNGAUQNDHC3RXYDNFC55LA6KWA2UDKAI 7  DATA SIGNATURE ::
+#,,,.,...,...,,.,,...,,.,,.,,,,..,.,.,..,,.,.,.,.,...,...,.,.,,,.,,.,,,..,..,,
+#YRSWVX5NMBVPQACFABMXPGMZSCKACRZZSM7INJW4P4FSXUH2ITLSJIBMF2DNMB4NFMMPX7FQRY5BW
+#\\\|S5KQGO6AXVHFUNRBS7WN46ESPPPPM5P4LDQI4XQLQASWDRDVLRD \ / AMOS7 \ YOURUM ::
+#\[7]CB7PJPZRGL5WBFHHLBNB7LZAM4TTUR23ULUVW5KHP3SCJV5BPYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

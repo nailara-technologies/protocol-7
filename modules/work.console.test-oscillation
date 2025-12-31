@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = work.console.test-oscillation
+# param = [file-pattern]
+# descr = run signature oscillation tests
+
+my $pattern = shift // 'modules/*';
+
+$pattern =~ s,^ *| *$,,;
+
+say '';
+say ' .:[ WORKFLOW: OSCILLATION TEST SUITE ]:.';
+say '';
+say sprintf ' : Pattern: %s', $pattern;
+say '';
+
+# Run simple oscillation test
+say ' .:[ RUNNING: test-oscillation-simple ]:.';
+say '';
+system( './bin/dev/test-oscillation-simple', $pattern );
+my $simple_exit = $? >> 8;
+
+say '';
+say ' .:[ RUNNING: test-oscillation-sequence ]:.';
+say '';
+system( './bin/dev/test-oscillation-sequence', $pattern );
+my $sequence_exit = $? >> 8;
+
+say '';
+say ' .:[ TEST SUITE COMPLETE ]:.';
+say '';
+
+if ( $simple_exit == 0 && $sequence_exit == 0 ) {
+    say ' : ✓ All oscillation tests passed';
+} else {
+    say sprintf ' : ✗ Tests failed (simple:%d, sequence:%d)', $simple_exit, $sequence_exit;
+}
+say '';
+
+return $simple_exit == 0 && $sequence_exit == 0 ? 0 : 1;
+
+#,,,,,,..,..,,..,,.,.,,..,,.,,,..,,,,,,,,,,,,,..,,...,...,..,,.,,,.,,,,,,,.,,,
+#T4VXWLAZZHGJXCZLUGTVTHQGWVKILN73PPU3SJLTJJW62ACMNGPJ2JXRRYGI76WT2WEMJV3MD43SI
+#\\\|L4TT6ZUEPWTUT4WYI3WFDQX7TXCTJ3PWK6UJJ7MDPR2CGCTLE42 \ / AMOS7 \ YOURUM ::
+#\[7]EHHHQ7VMO656DAOV75CIOA6OUER6OJRNO3URMJQOXRHXVGUSE4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

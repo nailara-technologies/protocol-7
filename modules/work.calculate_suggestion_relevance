@@ -1,0 +1,106 @@
+## [:< ##
+
+# name = work.calculate_suggestion_relevance
+# descr = calculate relevance scores for suggestions based on context
+
+my $context = shift || {};
+my $limit   = shift || 8;    ## Default: show top 8 suggestions
+
+my $suggestions_data = <work.suggestions> // {};
+my @all_suggestions  = ();
+
+## Helper: Evaluate condition ##
+my $evaluate_condition = sub {
+    my $condition = shift;
+    return TRUE unless defined $condition;    ## No condition = always true
+
+    ## Map conditions to context ##
+    return TRUE
+        if $condition eq 'uncommitted_changes'
+        && $context->{has_uncommitted_changes};
+    return TRUE if $condition eq 'open_todos'  && $context->{has_open_todos};
+    return TRUE if $condition eq 'open_bugs'   && $context->{has_open_bugs};
+    return TRUE if $condition eq 'has_remotes' && $context->{has_remotes};
+    return TRUE if $condition eq 'no_activity' && $context->{no_activity};
+    return TRUE
+        if $condition eq 'missing_dependencies'
+        && $context->{has_missing_dependencies};
+    return TRUE
+        if $condition eq 'crypto_key_issues' && $context->{has_crypto_issues};
+
+    return 0;    ## Condition not met
+};
+
+## Process critical suggestions ##
+my $critical = $suggestions_data->{suggestions}{critical} // [];
+foreach my $sugg (@$critical) {
+    next unless $evaluate_condition->( $sugg->{condition} );
+
+    ## Critical suggestions get boosted relevance ##
+    my $relevance = 100 + ( $sugg->{priority} // 0 );
+
+    ## Interpolate variables in text ##
+    my $text = $sugg->{text};
+    $text =~ s/\{command\}/$context->{install_command} || 'N\/A'/ge;
+
+    push @all_suggestions,
+        {
+        text      => $text,
+        relevance => $relevance,
+        type      => 'critical'
+        };
+}
+
+## Process default suggestions ##
+my $default = $suggestions_data->{suggestions}{default} // [];
+foreach my $sugg (@$default) {
+    my $relevance = 50 + ( 10 - ( $sugg->{priority} // 5 ) );
+
+    push @all_suggestions,
+        {
+        text      => $sugg->{text},
+        relevance => $relevance,
+        type      => 'default'
+        };
+}
+
+## Process contextual suggestions ##
+my $contextual = $suggestions_data->{suggestions}{contextual} // [];
+foreach my $sugg (@$contextual) {
+    next unless $evaluate_condition->( $sugg->{condition} );
+
+    ## Contextual relevance based on priority ##
+    my $relevance = 60 + ( 10 - ( $sugg->{priority} // 5 ) );
+
+    push @all_suggestions,
+        {
+        text      => $sugg->{text},
+        relevance => $relevance,
+        type      => 'contextual'
+        };
+}
+
+## Sort by relevance (descending) ##
+@all_suggestions
+    = sort { $b->{relevance} <=> $a->{relevance} } @all_suggestions;
+
+## Apply limit ##
+if ( $limit > 0 && @all_suggestions > $limit ) {
+    @all_suggestions = @all_suggestions[ 0 .. ( $limit - 1 ) ];
+}
+
+<[base.log]>->(
+    3,
+    'calculated relevance for %d suggestions, showing top %d',
+    scalar(@all_suggestions), $limit
+);
+
+return \@all_suggestions;
+
+0;
+
+#,,..,,,.,.,,,...,.,.,..,,,,.,...,.,,,..,,,,,,..,,...,..,,.,.,.,,,,..,.,,,,.,,
+#LPMC2CC5REQ67DP7KN6CUTASSF2IGX2OEXNTRIQI6WVTL7K7TOYBVQ2R7AWVIXKDFDET5CMU53UE2
+#\\\|EE4LL2XZGWRXMQ7OQIE37MZU7RCVH7IF7DBXCUM65MKMJ2TKWPF \ / AMOS7 \ YOURUM ::
+#\[7]N2KCXLKFFVWKJE4C3GTF7LLROREFP666T2J5R4BXFEDPOBVHYABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = work.index_needs_regeneration
+# descr = check if index needs regeneration based on TTL
+
+my ($index_file) = @ARG;
+
+return TRUE unless -f $index_file;
+
+my $mtime = ( stat($index_file) )[9];
+return TRUE unless defined $mtime;
+
+my $age       = time() - $mtime;
+my $index_ttl = <work.cfg.index_ttl>;
+
+return $age > $index_ttl;
+
+#,,,.,,,,,.,.,,.,,,.,,,.,,..,,,.,,,,,,,,,,,..,..,,...,...,...,,..,.,.,,,,,,.,,
+#7UE27ESRCISNXR4IIZHDBRLUUOHWRL7UVHSPAUWE65UAHQ2JDBBLXK47YQHWI2EAKPQV5ZQZ4FLIG
+#\\\|NPGKIXMAN6J77DDRGIIACY4XFU52TPUQYAYWISNDULZUH4OF2BQ \ / AMOS7 \ YOURUM ::
+#\[7]LGWMCEIVOSFY756D3F3QJ5E3M3AONBSTAJO4R753A2XWFTS2DEBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

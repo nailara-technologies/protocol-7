@@ -1,0 +1,80 @@
+## [:< ##
+
+# name = work.check_dependencies
+# descr = check for missing dependencies using Protocol-7 dependency system
+
+## Setup dependencies if not already done ##
+unless (<work.dependencies.initialized>) {
+    <[work.setup_module_dependencies]>;
+    <work.dependencies.initialized> = 1;
+}
+
+my %status = (
+    essential_missing => [],
+    optional_missing  => [],
+    essential_present => [],
+    optional_present  => [],
+    total_tracked     => 0,
+    total_installed   => 0
+);
+
+## Check essential modules ##
+my $essential_modules = <work.dependencies.essential> // {};
+foreach my $module_name (keys %$essential_modules) {
+    my $object_id = $essential_modules->{$module_name};
+    my $object = <dependency.object>->{$object_id};
+    next unless $object;
+
+    $status{total_tracked}++;
+
+    ## Use dependency.ok to check if module is available ##
+    if (<[dependency.ok]>->($object_id)) {
+        push @{$status{essential_present}}, {
+            name => $module_name,
+            install => $object->{install_cmd} // ''
+        };
+        $status{total_installed}++;
+    } else {
+        push @{$status{essential_missing}}, {
+            name => $module_name,
+            install => $object->{install_cmd} // ''
+        };
+    }
+}
+
+## Check optional modules ##
+my $optional_modules = <work.dependencies.optional> // {};
+foreach my $module_name (keys %$optional_modules) {
+    my $object_id = $optional_modules->{$module_name};
+    my $object = <dependency.object>->{$object_id};
+    next unless $object;
+
+    $status{total_tracked}++;
+
+    ## Use dependency.ok to check if module is available ##
+    if (<[dependency.ok]>->($object_id)) {
+        push @{$status{optional_present}}, {
+            name => $module_name,
+            install => $object->{install_cmd} // ''
+        };
+        $status{total_installed}++;
+    } else {
+        push @{$status{optional_missing}}, {
+            name => $module_name,
+            install => $object->{install_cmd} // ''
+        };
+    }
+}
+
+## Store in workflow data ##
+<work.dependencies.status> = \%status;
+
+return \%status;
+
+0;
+
+#,,..,..,,,.,,..,,..,,,..,.,.,,,,,.,,,.,.,...,..,,...,.,.,.,.,,,,,.,,,,,,,,,,,
+#QYWMUSKYFZCQPJB77FGO6YOGOX4BVNF4AOKIN6GTZ26H4XRSJ4JAFXKOWZYMTO4IV4O6QSZP4S75S
+#\\\|7HFDOAYJGFOVYMDBJMADDXHYACNEKZHPJX6Z4V3PH2MIHZMKWSC \ / AMOS7 \ YOURUM ::
+#\[7]MRYYNDVJ36CJ27IDEHV6DW4J3OKTEQECJW64EAUVF72YA3NDVYDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
