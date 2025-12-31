@@ -25,7 +25,7 @@ print "Using test image: $test_image\n\n";
 
 ## Test 1: Queue vision analysis (async, returns deferred)
 print "[TEST 1] Queueing vision analysis...\n";
-my $analyze_cmd = qq[./bin/Protocol-7 coding.vision-parser.cmd.analyze_and_extract ];
+my $analyze_cmd = qq[p7 coding.vision-parser.analyze_and_extract ];
 $analyze_cmd .= qq['{"image_path":"$test_image","vision_prompt":"Describe"}'];
 
 my $analyze_output = `$analyze_cmd 2>&1`;
@@ -65,7 +65,7 @@ if ($status_output =~ /active|completed|conversations/) {
 
 ## Test 4: Check vision-parser job registry
 print "[TEST 4] Checking vision-parser job registry...\n";
-my $jobs_cmd = './bin/Protocol-7 coding.vision-parser.cmd.status 2>&1';
+my $jobs_cmd = 'p7 coding.vision-parser.status 2>&1';
 
 my $jobs_output = `$jobs_cmd 2>&1`;
 print "Vision-parser status:\n$jobs_output\n";
