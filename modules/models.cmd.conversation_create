@@ -3,24 +3,38 @@
 # name = models.cmd.conversation_create
 # descr = initialize conversation with token budget and template context
 
-my $params = shift;
+<[base.perlmod.autoload]>->(qw| JSON::PP |);
+
+# Extract params - $call is set by code header
+my $params = {};
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+    $params = $call->{'param'};
+} elsif ( defined $call->{'args'} && length $call->{'args'} ) {
+
+    # Parse JSON from args
+    eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
+    $params = {} if $@;
+}
 
 my $job_id       = $params->{'job_id'}        // '';
 my $token_budget = $params->{'token_budget'}  // 4096;
 my $template     = $params->{'template_name'} // 'default';
 my $context      = $params->{'context'}       // 'conversation';
 
-return {
-    'success' => FALSE,
-    'error'   => 'job_id required'
-    }
-    unless length($job_id);
+if ( !length($job_id) ) {
+    return {
+        'mode' => 'false',
+        'data' => "error: job_id required\n"
+    };
+}
 
-return {
-    'success' => FALSE,
-    'error'   => 'token_budget must be positive'
-    }
-    unless $token_budget > 0;
+if ( $token_budget <= 0 ) {
+    return {
+        'mode' => 'false',
+        'data' => "error: token_budget must be positive\n"
+    };
+}
 
 # Initialize conversations registry if needed
 <models.conversations> //= {};
@@ -29,9 +43,8 @@ return {
 if ( exists <models.conversations>->{$job_id} ) {
     <[base.log]>->( 2, "[$context] conversation exists: %s", $job_id );
     return {
-        'success' => FALSE,
-        'error'   => "conversation exists: $job_id",
-        'job_id'  => $job_id
+        'mode' => 'false',
+        'data' => "error: conversation exists: $job_id\n"
     };
 }
 
@@ -63,7 +76,7 @@ my $conversation = {
 
 my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
 
-return {
+my $response = {
     'success'       => TRUE,
     'job_id'        => $job_id,
     'token_budget'  => $token_budget,
@@ -73,8 +86,15 @@ return {
     'elapsed_ms'    => $elapsed_ms
 };
 
-#,,,.,.,,,,,,,...,.,,,,.,,..,,.,.,,,.,..,,,.,,.,.,...,...,,,.,...,,,,,,,,,...,
-#OY3XBQMZCDAMJTUNFXIIMWZMQELGFGC5CXLX3ZM3R66MPLF6UXTQGOJDFPQNPKMMKFFE2GPBBIED4
-#\\\|7MQSKOMNM2XOJCPNN2ET37NOVDRWKRSKNV4AAZDXPN5NPNME65V \ / AMOS7 \ YOURUM ::
-#\[7]XJVHDHSAMYQJIXKEGXB4BNO6DBMUTCAC2HP6X4ZW566YE734DCCY 7  DATA SIGNATURE ::
+my $json_data    = JSON::PP::encode_json($response);
+my $is_multiline = $json_data =~ /\n/ ? 1 : 0;
+return {
+    'mode' => $is_multiline ? 'size' : 'true',
+    'data' => $json_data . "\n"
+};
+
+#,,,,,,..,.,,,,..,,.,,..,,.,,,,,.,,.,,,..,.,.,.,.,...,.,.,...,,..,,..,,,,,...,
+#MANQ7LOEGGVUKJOSAWNHHU6HYCIPTX45XDS6CYEWFXIK4UOOJDPVU6AWMLMNSVOL7ARJO6R72FSWS
+#\\\|CJHMQLZYSEURXNXW24JUWGX5DA4WTPK2MG564JQR7XTX64AZP55 \ / AMOS7 \ YOURUM ::
+#\[7]I4WRS2P5HHW5727YPAGHP6UFBVBCLMGLG5V27OZETOELY5AZLKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

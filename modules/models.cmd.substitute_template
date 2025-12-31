@@ -3,17 +3,30 @@
 # name = models.cmd.substitute_template
 # descr = substitute variables in template string using meta variables hash
 
-my $params = shift;
+<[base.perlmod.autoload]>->(qw| JSON::PP |);
+
+# Extract params - $call is set by code header
+my $params = {};
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+    $params = $call->{'param'};
+} elsif ( defined $call->{'args'} && length $call->{'args'} ) {
+
+    # Parse JSON from args
+    eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
+    $params = {} if $@;
+}
 
 my $template = $params->{'template'} // '';
 my $vars     = $params->{'vars'}     // {};
 my $context  = $params->{'context'}  // 'template';   ## logging context label
 
-return {
-    'success' => FALSE,
-    'error'   => 'template required'
-    }
-    unless length($template);
+if ( !length($template) ) {
+    return {
+        'mode' => 'false',
+        'data' => "error: template required\n"
+    };
+}
 
 ## Track substitution metrics
 <models.metrics.substitutions_total>++;
@@ -72,7 +85,7 @@ my $prev_avg = <models.metrics.avg_substitution_time_ms>;
     $elapsed_ms
 );
 
-return {
+my $response = {
     'success'     => TRUE,
     'result'      => $result,
     'substituted' => \%substituted,
@@ -84,8 +97,15 @@ return {
     ]
 };
 
-#,,.,,,,.,...,,..,.,.,...,,,,,,..,.,.,.,.,,,.,..,,...,...,,,,,,.,,.,.,,..,,.,,
-#B5PMXJPY67QI66SBWHUKHDNAJJED3R732ESFKUWB5VVNQXEVC52C6LWCSHNQJRJJFNM3ZJKZWYOII
-#\\\|IOVTRAG5PIOFQH74CCOIBXNHRX6TC4ZK2LUIX6K4NUC4PHIMSV4 \ / AMOS7 \ YOURUM ::
-#\[7]KQY2DCJSZAQ76P5BSGBGPTBPPR2NLA6RLJZMSEVMJEA6U4RTOKBY 7  DATA SIGNATURE ::
+my $json_data    = JSON::PP::encode_json($response);
+my $is_multiline = $json_data =~ /\n/ ? 1 : 0;
+return {
+    'mode' => $is_multiline ? 'size' : 'true',
+    'data' => $json_data . "\n"
+};
+
+#,,..,...,,.,,.,.,.,.,.,,,.,.,,..,,,.,,.,,...,..,,...,..,,,,.,.,.,.,.,,,.,,,.,
+#QKJ7HRMFJSHCKXKQKR7JX5R3PVC57UHGYYMBZ3IS7JOZ5NPAB6FBIKRQZWX4QLUFLOK355UBDHF7K
+#\\\|7Z4HNQZ7XNLYOQAQJEGB2HVVI3TFURWVIIPHNY6TLD3ANVCJQPD \ / AMOS7 \ YOURUM ::
+#\[7]IYZOB7QG3NKHKXD45PA7WQYS7HUREPQIIDH44PNZ4S6NZ5QMPIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

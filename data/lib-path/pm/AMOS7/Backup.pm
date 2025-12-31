@@ -554,16 +554,14 @@ sub _add_path {
 ##[ END OF MODULE ]###########################################################
 
 1;
-
-#,,,.,.,,,...,,,,,...,...,,..,.,.,.,,,...,,,,,..,,...,...,,,.,...,,.,,,,.,,.,,
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+:
 #PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
 #\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
 #\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,.,,.,,,,.,...,...,.,,,.,.,.,,,.,.,...,.,,,..,,...,...,.,,,,,.,..,,,,,,..,,
-#3HUWYOPRCC4YT2XCPYDNZTJXLORDIJYYUNVHECUXKQBFJIEPVPDBV5NZREKL5PMB37AHJOSHEY3VO
-#\\\|EB5BDLQMRO3ZFR67I7BS2VIBIS2V4D62EXAAUHSY2L75TVQ4J2R \ / AMOS7 \ YOURUM ::
-#\[7]BTCLB5WWDJ7EBVGNTJNBVNMUHREHO6BPQ7I2RMWUGDGAKP2DOGBI 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,...,,..,,.,,,,,,,,.,.,.,,.,,...,..,,...,..,,.,,,,.,,.,.,.,,,.,,,
+#GH3WTQ4SPATCD75LSGQU35SIKZXECUGYJI2M2M6CIZ4DHXULP7S52FZUV327GZP6U5QKABENFKLGI
+#\\\|UN7O25KEYQKACU6A3EIDUSYUHUXLP6ZUH4PSC4TR4EHYHNRVJX5 \ / AMOS7 \ YOURUM ::
+#\[7]LTVIS5USE325IXRJ6SKORDZHVGY7AYEQAROPY2C33TGQN6M46GBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

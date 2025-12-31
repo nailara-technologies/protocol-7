@@ -209,36 +209,44 @@ my $cmd_result;
         # Template substitution command
         unshift @ARG, $cmd, @args;
         my $module_result = <[models.cmd.substitute_template]>;
+        my $json_data     = JSON::PP::encode_json($module_result);
+        my $is_multiline  = $json_data =~ /\n/ ? 1 : 0;
         $result = {
-            'mode' => 'size',
-            'data' => JSON::PP::encode_json($module_result) . "\n"
+            'mode' => $is_multiline ? 'size' : 'true',
+            'data' => $json_data . "\n"
         };
     } elsif ( $cmd eq 'conversation_create' ) {
 
         # Create conversation
         unshift @ARG, $cmd, @args;
         my $module_result = <[models.cmd.conversation_create]>;
+        my $json_data     = JSON::PP::encode_json($module_result);
+        my $is_multiline  = $json_data =~ /\n/ ? 1 : 0;
         $result = {
-            'mode' => 'size',
-            'data' => JSON::PP::encode_json($module_result) . "\n"
+            'mode' => $is_multiline ? 'size' : 'true',
+            'data' => $json_data . "\n"
         };
     } elsif ( $cmd eq 'conversation_add_turn' ) {
 
         # Add turn to conversation
         unshift @ARG, $cmd, @args;
         my $module_result = <[models.cmd.conversation_add_turn]>;
+        my $json_data     = JSON::PP::encode_json($module_result);
+        my $is_multiline  = $json_data =~ /\n/ ? 1 : 0;
         $result = {
-            'mode' => 'size',
-            'data' => JSON::PP::encode_json($module_result) . "\n"
+            'mode' => $is_multiline ? 'size' : 'true',
+            'data' => $json_data . "\n"
         };
     } elsif ( $cmd eq 'conversation_get_context' ) {
 
         # Get conversation context
         unshift @ARG, $cmd, @args;
         my $module_result = <[models.cmd.conversation_get_context]>;
+        my $json_data     = JSON::PP::encode_json($module_result);
+        my $is_multiline  = $json_data =~ /\n/ ? 1 : 0;
         $result = {
-            'mode' => 'size',
-            'data' => JSON::PP::encode_json($module_result) . "\n"
+            'mode' => $is_multiline ? 'size' : 'true',
+            'data' => $json_data . "\n"
         };
     } elsif ( $cmd
         =~ /^(get|find|recommend|record|stats|cost|discover|discover_files)/ )
@@ -326,8 +334,8 @@ my $cmd_result;
 # Return indicates successful initialization
 return 0;
 
-#,,.,,..,,...,,.,,...,,,.,.,,,,..,..,,.,.,.,.,..,,...,.,.,...,,..,,,.,.,.,,,,,
-#KRG2CMPY2376TZO6GBSH7UPTYYNDKXVJ7BTUYJQOKUCPJUULKIOHBMNEDO6BBTPMBRKGVIDNK6M4S
-#\\\|TVTHZINBMVXQ3RD5ANLLLK6BAA3VS77EMNYPUCWGQE5JQRDLBWK \ / AMOS7 \ YOURUM ::
-#\[7]6NB45AKA2JUH5W4L7LW25WTLZTANOMUJZ7DEJGMHFQRHJ4TLV4BY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,,,,...,...,..,,...,.,,,,.,,,..,..,,...,...,...,,,,,,..,.,.,.,,,
+#5P362DH2XUAY7QFAXCT6C5LHZMQ4YEGPTDXDKXZCSHYB4IBANE4VTLSL3TMRO33TBJZ2X36SEFRII
+#\\\|QO5UUZCJVJUXVIC2XQIDF7PBWY76G7IPGPXAREUY33YS43SRXGD \ / AMOS7 \ YOURUM ::
+#\[7]A2IUB23PWXC6AGOMPC3SAG3KXSLP5A3O6SMCXPI5OYOFBJ3QMGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

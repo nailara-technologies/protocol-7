@@ -3,7 +3,19 @@
 # name = models.cmd.conversation_get_context
 # descr = retrieve conversation history with optional compaction
 
-my $params = shift;
+<[base.perlmod.autoload]>->(qw| JSON::PP |);
+
+# Extract params - $call is set by code header
+my $params = {};
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+    $params = $call->{'param'};
+} elsif ( defined $call->{'args'} && length $call->{'args'} ) {
+
+    # Parse JSON from args
+    eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
+    $params = {} if $@;
+}
 
 my $job_id        = $params->{'job_id'}  // '';
 my $depth         = $params->{'depth'}   // undef;
@@ -11,8 +23,8 @@ my $compact_mode  = $params->{'compact'} // undef;
 my $context_label = $params->{'context'} // 'conversation';
 
 return {
-    'success' => FALSE,
-    'error'   => 'job_id required'
+    'mode' => qw| false |,
+    'data' => "error: job_id required\n"
     }
     unless length($job_id);
 
@@ -20,9 +32,8 @@ return {
 
 unless ( exists <models.conversations>->{$job_id} ) {
     return {
-        'success' => FALSE,
-        'error'   => "conversation not found: $job_id",
-        'job_id'  => $job_id
+        'mode' => qw| false |,
+        'data' => "error: conversation not found: $job_id\n"
     };
 }
 
@@ -66,7 +77,7 @@ foreach my $turn (@context_turns) {
 
 my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
 
-return {
+my $response = {
     'success'        => TRUE,
     'job_id'         => $job_id,
     'turns'          => \@context_turns,
@@ -77,8 +88,15 @@ return {
     'elapsed_ms'     => $elapsed_ms
 };
 
-#,,,.,,,,,..,,...,.,.,.,.,,..,,,,,,.,,,,.,,.,,.,.,...,...,...,,,,,.,.,,.,,,,.,
-#JDA4JVQRUXUQ25EPSL5WCBEVELUNQ7FGLFTYMCCSBE64U4YLQ2C6B4UFFA4ZYCAHUSOJ3ABFBFEDO
-#\\\|MSGGVZDRIMPXXGATCMBES7A3RU5UBFRQ3GXSQARPT2YEQ34ZWZH \ / AMOS7 \ YOURUM ::
-#\[7]EHUID4CWXVZAR3TG5FILADAFNTK7BJJYHBIO4J4WCWCRUYKI6WBI 7  DATA SIGNATURE ::
+my $json_data    = JSON::PP::encode_json($response);
+my $is_multiline = $json_data =~ /\n/ ? 1 : 0;
+return {
+    'mode' => $is_multiline ? qw| size | : qw| true |,
+    'data' => $json_data . "\n"
+};
+
+#,,.,,...,.,,,.,,,..,,.,,,..,,...,,,.,,.,,,..,.,.,...,..,,...,.,.,...,,..,.,,,
+#E2Y7ZUFA4R775LZKZ23GBV6TDVAQJP2DNU43MATLVP2OU2MV6SDUOFAB3DFKK2DRWTAXNCQFTBSKK
+#\\\|NZ4ENZ7PE5ZQF4HDQUHQCACUIXVT34QORUEYKTZ4KVXWCVFS6YZ \ / AMOS7 \ YOURUM ::
+#\[7]5PDZ6TWAOUJIXYAFJO2XNR6UQT2GKE7XFKU6IHVPKZGXYKUSEOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,7 +3,19 @@
 # name = models.cmd.conversation_add_turn
 # descr = add message turn to conversation with token tracking
 
-my $params = shift;
+<[base.perlmod.autoload]>->(qw| JSON::PP |);
+
+# Extract params - $call is set by code header
+my $params = {};
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+    $params = $call->{'param'};
+} elsif ( defined $call->{'args'} && length $call->{'args'} ) {
+
+    # Parse JSON from args
+    eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
+    $params = {} if $@;
+}
 
 my $job_id  = $params->{'job_id'}  // '';
 my $role    = $params->{'role'}    // '';
@@ -12,20 +24,20 @@ my $tokens  = $params->{'tokens'}  // 0;
 my $context = $params->{'context'} // 'conversation';
 
 return {
-    'success' => FALSE,
-    'error'   => 'job_id required'
+    'mode' => 'false',
+    'data' => "error: job_id required\n"
     }
     unless length($job_id);
 
 return {
-    'success' => FALSE,
-    'error'   => 'role required (system, user, assistant)'
+    'mode' => 'false',
+    'data' => "error: role required (system, user, assistant)\n"
     }
     unless length($role);
 
 return {
-    'success' => FALSE,
-    'error'   => 'content required'
+    'mode' => 'false',
+    'data' => "error: content required\n"
     }
     unless length($content);
 
@@ -33,9 +45,8 @@ return {
 
 unless ( exists <models.conversations>->{$job_id} ) {
     return {
-        'success' => FALSE,
-        'error'   => "conversation not found: $job_id",
-        'job_id'  => $job_id
+        'mode' => 'false',
+        'data' => "error: conversation not found: $job_id\n"
     };
 }
 
@@ -92,7 +103,7 @@ if ($would_exceed) {
 
 my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
 
-return {
+my $response = {
     'success'    => TRUE,
     'job_id'     => $job_id,
     'turn_num'   => $conversation->{'turn_count'},
@@ -104,8 +115,15 @@ return {
     'elapsed_ms' => $elapsed_ms
 };
 
-#,,.,,..,,...,.,,,,,,,..,,...,..,,.,,,...,..,,.,.,...,...,,,.,...,...,,,,,,,.,
-#KF2XRUWIVBR6CIW6FJ5DPBCQTKDOZS34CVRY2IRHYK4TCDZCQRXEFKJ4AABJXRCMRCTG2I7IFCUY2
-#\\\|TOGLUFS2YVKJ5XUQYWU4KOVP6RBYOHNO4VV3AF7SS5J2ZVUHHEU \ / AMOS7 \ YOURUM ::
-#\[7]5FHLVHEAGYZHBD4MSSN2GGZGKVWD7GPCSYGU2DZPMZTG7NOLEIAY 7  DATA SIGNATURE ::
+my $json_data    = JSON::PP::encode_json($response);
+my $is_multiline = $json_data =~ /\n/ ? 1 : 0;
+return {
+    'mode' => $is_multiline ? 'size' : 'true',
+    'data' => $json_data . "\n"
+};
+
+#,,..,..,,.,,,,.,,.,.,...,.,,,,.,,,..,.,,,,,.,.,.,...,...,.,.,...,...,.,.,,,,,
+#REA32M2QJKWEGI2V24I5S35SHOK2G6PHVYNGUWES6BTDMPHOEQJ5AHAUJCE2WPVSRP7L3UFPQIPTA
+#\\\|MQXXAHCG2BZC6BLENZAJ3FG6R22J6ODWPYZOEADCUIOH7SRPWRE \ / AMOS7 \ YOURUM ::
+#\[7]PDICAA223GJID7L4KQHCWUZSEWLTBETBV4US7HNNTHAGYAOULKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
