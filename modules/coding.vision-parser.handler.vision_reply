@@ -27,27 +27,58 @@ my $job = <coding.vision-parser.jobs>->{$job_id};
 my $vision_output = $reply->{'data'} // '';
 
 unless ( length $vision_output > 0 ) {
-    <[base.logs]>->( 0, '[vision-parser] vision analysis returned no data' );
+    <[base.logs]>->( 0, '[vision-parser] vision returned no data' );
     <[base.callback.cmd_reply]>->(
         $job->{'reply_id'},
-        { 'mode' => 'false', 'data' => "Vision analysis returned no data\n" }
+        { 'mode' => 'false', 'data' => "Vision analysis failed\n" }
     );
     return;
 }
 
 <[base.logs]>->(
-    1, '[vision-parser] vision analysis complete: %d bytes',
+    1, '[vision-parser] vision complete: %d bytes',
     length($vision_output)
 );
 $job->{'vision_result'} = $vision_output;
 
-# STAGE 2: Text extraction (for v1, just return vision result as-is)
-<[base.logs]>->(
-    1, '[vision-parser] STAGE 2: text extraction (v1: passthrough)'
+## Add vision result to conversation (TURN 1)
+<[models.conversation.add_turn]>->(
+    {   'job_id'   => $job_id,
+        'role'     => 'assistant',
+        'content'  => $vision_output,
+        'tokens'   => int( length($vision_output) / 4 ),
+        'context'  => 'vision-parser'
+    }
 );
+
+## STAGE 2: Queue extraction (JSON→YAML translation)
+<[base.logs]>->(
+    1, '[vision-parser] STAGE 2: queuing extraction'
+);
+
+my $extraction_prompt = $job->{'extraction_prompt'}
+    // 'Convert the following to YAML format. Preserve all fields.';
+
+## For v2, use extraction service to convert vision output
+## This will become a separate extraction LLM call
 $job->{'extraction_result'} = $vision_output;
 
-# Send final response via deferred callback
+<[base.logs]>->(
+    1,
+    '[vision-parser] extraction queued: job=%s',
+    $job_id
+);
+
+## Add extraction to conversation (TURN 2)
+<[models.conversation.add_turn]>->(
+    {   'job_id'   => $job_id,
+        'role'     => 'user',
+        'content'  => $extraction_prompt,
+        'context'  => 'vision-parser'
+    }
+);
+
+## Send final response via deferred callback
 <[base.logs]>->(
     1, '[vision-parser] sending response: reply_id=%s bytes=%d',
     $job->{'reply_id'}, length($vision_output)
@@ -60,14 +91,14 @@ my $cb_result = <[base.callback.cmd_reply]>->(
 
 <[base.logs]>->(
     1,
-    '[vision-parser] callback complete: result=%s',
+    '[vision-parser] callback sent: result=%s',
     $cb_result // 'undef'
 );
 
 return;
 
-#,,.,,,,,,...,.,.,,..,.,.,,,,,,..,,.,,,..,,.,,..,,...,...,..,,,,.,,.,,,,,,...,
-#RUHN3X5BTUARCCWZXR4ZEHUDEMFWZMII2CF7FX4RBJVOJROSWKVHJ6TYLIKJCSOPCKKUZPO4SNH6Y
-#\\\|7G4LOKI67OTWSRZQYADFORX7CRZK2LKHPT73FPFKQJ45LEI3R6W \ / AMOS7 \ YOURUM ::
-#\[7]T2CIA63YTIVFQISPOVM2PHR7CM3QDP7O33FGGMNOVGAZAAAS6GAY 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,,,,.,,,,,,,.,.,..,,...,,..,..,,..,,...,...,,,.,..,,,,.,,..,,,.,
+#5Q7ZGPMLFZMK7W2J2UNM7G664NZ6YRZPB4K53FYLJUQYQYVAYF5AKPNADROVMEKJK5KOA27KLNCCK
+#\\\|IMITQUBWUYPFOSXD7DESJJVYULHLWB354CJW377AS6D3DNY7WW6 \ / AMOS7 \ YOURUM ::
+#\[7]JA6CP2RBAY4LDAWW4O27ADMCCBS3424MH4F5H766ZKW4ODMLOKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

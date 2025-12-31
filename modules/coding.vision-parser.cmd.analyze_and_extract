@@ -33,6 +33,27 @@ unless ( -f $image_path ) {
 # Generate job ID
 my $job_id = <[base.gen_id]>->(<coding.vision-parser.jobs>);
 
+## Initialize conversation for multi-turn interaction
+my $conv_result = <[models.conversation.create]>->(
+    {   'job_id'       => $job_id,
+        'token_budget' => 8192,
+        'template_name' => 'vision_extraction',
+        'context'       => 'vision-parser'
+    }
+);
+
+unless ( $conv_result->{'success'} ) {
+    <[base.logs]>->(
+        0,
+        '[vision-parser] failed to create conversation: %s',
+        $conv_result->{'error'}
+    );
+    return {
+        'mode' => 'false',
+        'data' => "Failed to initialize conversation\n"
+    };
+}
+
 # Create job entry - save reply_id for later callback
 my $job = {
     'job_id'            => $job_id,
@@ -45,15 +66,18 @@ my $job = {
     'extraction_result' => undef,
     'error'             => undef,
     'start_time'        => <[base.time]>->(3),
-    'processed'         => 0
+    'processed'         => 0,
+    'conversation_id'   => $job_id
 };
 
 # Store job in global registry
 <coding.vision-parser.jobs>->{$job_id} = $job;
 
 <[base.logs]>->(
-    1, '[vision-parser] job created: id=%s image=%s reply_id=%s',
-    $job_id, $image_path, $$call{'reply_id'}
+    1,
+    '[vision-parser] job created: id=%s image=%s',
+    $job_id,
+    $image_path
 );
 
 # For v1, queue vision analysis asynchronously - response comes via handler
@@ -83,8 +107,8 @@ my $queue_result = <[base.protocol-7.command.send.local]>->(
 # Return deferred response - actual result will come via reply handler
 return { 'mode' => 'deferred', 'data' => "Vision analysis queued\n" };
 
-#,,.,,.,,,..,,...,.,.,.,.,,..,..,,,,,,,,.,,.,,..,,...,..,,,.,,.,,,,..,,..,,,.,
-#CYTVLKA3TRJNDZCR6KRAVNOGLS3QSYHOR3H35DLXAG5FZY34IONVB3JNYS773LNZENDSA4BBDY63Y
-#\\\|T5T6XZ7U7BUKZXOWOI44CEK62DZSLAHYVYQJPXJB3FEOAPHLT67 \ / AMOS7 \ YOURUM ::
-#\[7]HVP4PHMS64JEWLQ7V7VOCTTVDPBKRVHDCHPTZJTV3OS642G6EGBY 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,,.,,..,,.,.,.,.,,,.,..,,...,..,,..,,...,..,,..,,..,,,,,,.,.,,..,
+#YVLUTHSDBZ5YFA55XRGJI2ABMSDDCQHWNVUIEHZ3DVP4RTCMIZHZEYDOLX7PS7FDHS7JE2MJAMHKE
+#\\\|4FKUAIDDAQS6Q5EARS4NPIR36C4ABBL44CVMOHXYI2LAXBYR2OI \ / AMOS7 \ YOURUM ::
+#\[7]KQMETULTEMGRHIHXVAGFQE7USI565TYHO3MU4KGW7ONLKIT2WMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
