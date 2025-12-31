@@ -10,11 +10,12 @@ my $registry    = <models.registry> // {};
 foreach my $model_id ( keys %$models_defs ) {
     my $model = $models_defs->{$model_id};
 
-    next unless -f $model->{'path'};
+    # Include YAML-defined models even if files not immediately accessible
+    # (may be on inaccessible mount or have permission restrictions)
 
-    # Calculate size from file
+    # Calculate size from file if accessible, otherwise use 0
     my $size_bytes = -s $model->{'path'};
-    my $size_gb    = $size_bytes / ( 1024**3 );
+    my $size_gb    = $size_bytes ? $size_bytes / ( 1024**3 ) : 0;
 
     # Store model in registry without calculating checksums
     # Checksums will be calculated on-demand if needed
@@ -36,8 +37,8 @@ foreach my $model_id ( keys %$models_defs ) {
 
 return { success => TRUE, loaded => scalar( keys $registry->%* ) };
 
-#,,,,,..,,,,.,..,,.,.,.,.,..,,,.,,..,,.,,,...,..,,...,...,.,.,,,.,,..,.,.,...,
-#DW2TSVXKR3SLEEZPJDXVSJOZ2323BICZ2XXRPPGHV4NWQDSDDZDXRIG4DNLN3IHGMLZIHCL5PYJWK
-#\\\|JBRES6IJKY74X55ECMYGLB62ZHX2O4GM4CX6JHQ65XQ76N5VAA2 \ / AMOS7 \ YOURUM ::
-#\[7]IEXCZVO2XPFUIA6WLGDZ3RALENMXMR4YA2OKFF3S4WJ5WXQWOEBA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,..,.,,,,..,..,,.,,,,,.,,,.,.,.,..,,...,.,.,...,.,,,,..,,,,,...,
+#CNN6HIWLH3VPOYT4LEJADN3XB5YYUB2CEJPK7N5U2GLXW3MHUWM6U2JXFAHWJPPJ4YP4WFWGNBEB2
+#\\\|JI32KENFTQCGHQO7PXW725OZCIZTHIMC4HMZFLDRHOPO3EGQSLY \ / AMOS7 \ YOURUM ::
+#\[7]2ES7BGTB5CRI5JRPASEPODE7CRTYQJCS2SWFSDHNSG6TX2FXBGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -258,21 +258,18 @@ my $cmd_result;
 };
 
 # =============================================================================
-# INITIALIZATION COMPLETION - Perform discovery before registration
+# INITIALIZATION COMPLETION - Discovery available on-demand
 # =============================================================================
 
-# Scan for models during initialization (local filesystem, no network required)
-# This ensures models are available when zenka registers as initialized
-unless ( <system.zenka.initialized> ) {
-    @ARG = ();
-    <[models.cmd.discover_files]>;
-}
+# Note: Model discovery via discover_files is available on-demand
+# YAML-configured models are loaded and ready via init_from_definitions
+# Discovery can be triggered manually: p7 models.discover_files
 
 # Return indicates successful initialization
 return 0;
 
-#,,,.,,..,...,,..,,.,,.,.,,,,,,.,,,.,,.,.,.,.,..,,...,...,..,,..,,,..,..,,.,.,
-#T64FKWV445DWMDY7VSA4SU4PM7BODXMM4ZARM57XFNC54IUNKZBYL65QAAJEKA32IO7FVX67O2I6U
-#\\\|KJTYVXV7DKVI3JG5JD5FH5QNSSCS7SEB7MVNEACZBKNOK252RVP \ / AMOS7 \ YOURUM ::
-#\[7]45Z3FABBFF7NO7GEEWUJLGUAYB4VAUE5Q4AUVEWFBMNFTET4FKDA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,..,,.,,...,..,,.,,,,,.,..,,,.,,..,,...,...,.,.,,,,,,,.,,.,,,,.,
+#F3FXMFGJR5KWGRPJVFB5SP44SDN2UJIKX4W3TDSXASQRL25OHFWJT6QFSM4GFAELRMUSIWQDGO67A
+#\\\|ZPVX7IXNVJUUEQSDFP6WC2YQM5ZIYQHABS5VFURXL5EERAPOVZ4 \ / AMOS7 \ YOURUM ::
+#\[7]ARIU37SZL4SSVJ5KLL2V2BOE6ZYUYDUPSBQ2WGPA7W25BGI74QBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
