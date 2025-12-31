@@ -1,0 +1,80 @@
+## [:< ##
+
+# name = models.conversation.create
+# descr = initialize conversation with token budget and template context
+
+my $params = shift;
+
+my $job_id       = $params->{'job_id'}        // '';
+my $token_budget = $params->{'token_budget'}  // 4096;
+my $template     = $params->{'template_name'} // 'default';
+my $context      = $params->{'context'}       // 'conversation';
+
+return {
+    'success' => FALSE,
+    'error'   => 'job_id required'
+    }
+    unless length($job_id);
+
+return {
+    'success' => FALSE,
+    'error'   => 'token_budget must be positive'
+    }
+    unless $token_budget > 0;
+
+# Initialize conversations registry if needed
+<models.conversations> //= {};
+
+# Check if conversation already exists
+if ( exists <models.conversations>->{$job_id} ) {
+    <[base.log]>->( 2, "[$context] conversation exists: %s", $job_id );
+    return {
+        'success' => FALSE,
+        'error'   => "conversation exists: $job_id",
+        'job_id'  => $job_id
+    };
+}
+
+my $start_time = <[base.time]>->(4);
+
+## Initialize conversation structure
+my $conversation = {
+    'job_id'           => $job_id,
+    'template_name'    => $template,
+    'token_budget'     => $token_budget,
+    'tokens_used'      => 0,
+    'created_at'       => time(),
+    'turns'            => [],
+    'turn_count'       => 0,
+    'last_compaction'  => 0,
+    'compaction_count' => 0,
+};
+
+<models.conversations>->{$job_id} = $conversation;
+
+<[base.log]>->(
+    1,       "[$context] created: job_id=%s budget=%d",
+    $job_id, $token_budget
+);
+
+## Update metrics
+<models.metrics.conversations_active>++;
+<models.metrics.conversations_completed> //= 0;
+
+my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
+
+return {
+    'success'       => TRUE,
+    'job_id'        => $job_id,
+    'token_budget'  => $token_budget,
+    'tokens_used'   => 0,
+    'template_name' => $template,
+    'created_at'    => $conversation->{'created_at'},
+    'elapsed_ms'    => $elapsed_ms
+};
+
+#,,,,,...,,,.,,..,.,,,.,,,..,,..,,.,.,...,,.,,.,.,...,...,.,,,,.,,,,.,.,.,...,
+#2EG7SM2XZUAMMMDRI4UFYWDQF2H4XHMICE2JTYMJZF3EXX2FEYDAUOGVRFRHZKAN6IWKMMNNOHPVS
+#\\\|JYLYNCOCYTJ3OMWFKNIDEWA7B3FGCFXFNBWDBOJTGAAEPCRGFPQ \ / AMOS7 \ YOURUM ::
+#\[7]DDM5PSKFCLZLKFYY44SZOMJWTRUCYSOY5C2EJTMWBLDNSX5KGODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,78 @@
+## [:< ##
+
+# name = models.conversation
+# descr = dispatcher for conversation management operations
+
+my $cmd = shift @ARG // 'status';
+
+if ( $cmd eq 'create' ) {
+    my $params = shift @ARG;
+    return <[models.conversation.create]>->($params);
+
+} elsif ( $cmd eq 'add_turn' || $cmd eq 'add' ) {
+    my $params = shift @ARG;
+    return <[models.conversation.add_turn]>->($params);
+
+} elsif ( $cmd eq 'get_context' || $cmd eq 'context' ) {
+    my $params = shift @ARG;
+    return <[models.conversation.get_context]>->($params);
+
+} elsif ( $cmd eq 'list' ) {
+    <models.conversations> //= {};
+    my @job_ids = sort keys %{<models.conversations>};
+    return {
+        'success'            => TRUE,
+        'conversation_count' => scalar(@job_ids),
+        'conversations'      => \@job_ids
+    };
+
+} elsif ( $cmd eq 'status' ) {
+    <models.conversations> //= {};
+    my $active      = <models.metrics.conversations_active>    // 0;
+    my $completed   = <models.metrics.conversations_completed> // 0;
+    my $compactions = <models.metrics.context_compactions>     // 0;
+
+    return {
+        'success'     => TRUE,
+        'active'      => $active,
+        'completed'   => $completed,
+        'total'       => $active + $completed,
+        'compactions' => $compactions,
+        'registry'    => scalar( keys %{<models.conversations>} )
+    };
+
+} elsif ( $cmd eq 'clear' ) {
+    my $job_id = shift @ARG;
+    <models.conversations> //= {};
+
+    unless ( exists <models.conversations>->{$job_id} ) {
+        return {
+            'success' => FALSE,
+            'error'   => "conversation not found: $job_id"
+        };
+    }
+
+    delete <models.conversations>->{$job_id};
+    <models.metrics.conversations_active>--;
+
+    return {
+        'success' => TRUE,
+        'cleared' => $job_id
+    };
+
+} else {
+    return {
+        'success'   => FALSE,
+        'error'     => "unknown command: $cmd",
+        'available' => [
+            qw| create add_turn get_context
+                list status clear |
+        ]
+    };
+}
+
+#,,,,,.,.,,..,,,,,,.,,.,.,..,,.,,,,.,,,,.,.,,,.,.,...,..,,.,.,..,,..,,,,,,,..,
+#XEJDYBWBNCFGPF4VPWO5ODO2IJ4WKOB7XEQCXLFJVQ5AUYIK6Z2EBTOS4GCGF34BL6B5UVHGQJD6A
+#\\\|ERHF7ENJKKI75IL32CAAPB7DKGBZ445YVHZTCLDG2EQ65GPYEE3 \ / AMOS7 \ YOURUM ::
+#\[7]46RWMYLHEUR5WZITFKF52THADQ2DK5JZNQ2WU5T6T36Y3UNVRADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
