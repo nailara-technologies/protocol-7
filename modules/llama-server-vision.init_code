@@ -13,6 +13,21 @@
 <llama-server-vision.lib_path> = '/data/source/ik_llama.cpp';
 <llama-server-vision.log_file>
     = '/var/log/protocol-7/llama-server-vision.log';
+<llama-server-vision.log_dir>  = '/var/log/protocol-7';
+<llama-server-vision.log_mask> = 0750;
+
+# Ensure log directory exists with proper permissions (only if running as root)
+if ( $EUID == 0 ) {
+    <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
+    <[file.make_path]>->(
+        <llama-server-vision.log_dir>, <llama-server-vision.log_mask>,
+        <system.amos-zenka-user>
+        )
+        and <[base.logs]>->(
+        1, "[llama-server-vision] Created log directory [%s/]",
+        <llama-server-vision.log_dir>
+        ) if !-d <llama-server-vision.log_dir>;
+}
 
 # Load vision model configuration from centralized models.yaml
 <[base.logs]>->(
@@ -52,18 +67,23 @@ if ( -f $config_file ) {
     );
 }
 
-if ( $model_path && $mmproj_path && -f $model_path && -f $mmproj_path ) {
+if ( $model_path && $mmproj_path ) {
+
+    # Trust YAML-defined model paths from models registry
     <llama-server-vision.vision_model_path>  = $model_path;
     <llama-server-vision.vision_mmproj_path> = $mmproj_path;
 
     <[base.logs]>->(
-        1, "[llama-server-vision] Vision model initialized: %s", $model_path
+        1, "[llama-server-vision] Vision model configured: %s", $model_path
     );
 } else {
-    # Model files not immediately accessible at init time
-    # This is expected - configuration will be fetched from models zenka at runtime
     <llama-server-vision.vision_model_path>  = undef;
     <llama-server-vision.vision_mmproj_path> = undef;
+
+    <[base.log]>->(
+        0,
+        "[llama-server-vision] Error: Vision model configuration incomplete - check models.yaml"
+    );
 }
 
 <[base.logs]>->( 1, "Vision binary: %s", <llama-server-vision.binary> );
@@ -99,8 +119,8 @@ if ( $model_path && $mmproj_path && -f $model_path && -f $mmproj_path ) {
 
 0;    # Return success for module initialization
 
-#,,,.,.,.,,,.,,..,.,,,..,,..,,.,,,..,,...,,.,,..,,...,...,,.,,,,,,,.,,...,,.,,
-#PP4ORZT2TTC46BYPPZYARY2PY2NZQHMKNRBE75KLUWSEQPXHOVWYTVX24I3NP66EBLJ6RDCFPRHSE
-#\\\|GW4WEVSJE5WKKRHNPBOLXFV2JPNLIHMXXQSRMLKW2RNDFYMOJD6 \ / AMOS7 \ YOURUM ::
-#\[7]U3XMUXWLJ2YN7Q5PUNEIVMHSCZ7GRVBKVKGIZ6FLNGPC47G7NECQ 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,..,,,.,.,,,,..,..,,..,,,..,..,,..,,...,...,.,,,...,,,.,,..,..,,
+#7XOZ54L5TRRLFTPTDAZIZ4LXZ2AXQ52NOAQLF5X5FRCOXQ6CEK6PC4U2S47LDFIFHMK5LPNYY53Q6
+#\\\|JUPAPOWPPOEC2WK4RE7RBITKD3WFKRPDBDQC7BKY3F2TOJJ4PMY \ / AMOS7 \ YOURUM ::
+#\[7]GTHBSXQNG4OL4LO4RXEVA6SJ4PPIPXIWMFDIRI5AURXKMV6LOIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
