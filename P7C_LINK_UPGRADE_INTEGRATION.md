@@ -333,17 +333,17 @@ This approach is simple but slow due to temp file I/O.
 
 1. **Without encryption**: Test p7.c normally (baseline)
    ```bash
-   p7.c 'echo hello'
+   p7 'echo hello'
    ```
 
 2. **With encryption disabled**: Set PROTOCOL_7_LINK_UPGRADE=no
    ```bash
-   PROTOCOL_7_LINK_UPGRADE=no p7.c 'echo hello'
+   PROTOCOL_7_LINK_UPGRADE=no p7 'echo hello'
    ```
 
 3. **With encryption enabled**: Set PROTOCOL_7_LINK_UPGRADE=yes
    ```bash
-   PROTOCOL_7_LINK_UPGRADE=yes p7.c 'echo hello'
+   PROTOCOL_7_LINK_UPGRADE=yes p7 'echo hello'
    ```
 
 4. **Compare outputs**: Should be identical regardless of encryption
@@ -377,7 +377,7 @@ The nshell implementation is more valuable since it's the primary interactive cl
 ## Files Modified
 
 When implemented:
-- `/home/user/protocol-7/bin/c_src/p7.c` - Add ~200-300 lines for encryption support
+- `protocol-7/bin/c_src/p7.c` - Add ~200-300 lines for encryption support
 
 ## Dependencies
 
