@@ -1,0 +1,91 @@
+## [:< ##
+
+# name  = models.template.substitute
+# descr = substitute variables in template string using meta variables hash
+
+my $params = shift;
+
+my $template = $params->{'template'} // '';
+my $vars     = $params->{'vars'}     // {};
+my $context  = $params->{'context'}  // 'template';   ## logging context label
+
+return {
+    'success' => FALSE,
+    'error'   => 'template required'
+    }
+    unless length($template);
+
+## Track substitution metrics
+<models.metrics.substitutions_total>++;
+my $start_time = <[base.time]>->(4);
+
+<[base.log]>->(
+    3, "[$context] substituting variables in %d byte template",
+    length($template)
+);
+
+## Pattern: <{variable_name}>
+## Matches alphanumeric, dash, underscore, dot
+my $var_pattern = qr/<\{([\w\-_.]+)\}>/;
+
+my $result = $template;
+my %substituted;
+my $sub_count = 0;
+
+## Perform substitution with undefined handling
+$result =~ s/$var_pattern/{
+    my $var_name = $1;
+    if ( exists $vars->{$var_name} ) {
+        $substituted{$var_name}++;
+        $sub_count++;
+        <[base.log]>->(
+            3,
+            "[$context] substituted \$var_name (${\ length($vars->{$var_name})} bytes)"
+        );
+        $vars->{$var_name};
+    } else {
+        <[base.log]>->(
+            2,
+            "[$context] undefined variable: $var_name"
+        );
+        "<{$var_name}>";  ## Leave unchanged if undefined
+    }
+}/ge;
+
+my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
+
+## Update metrics
+<models.metrics.substitutions_completed>++;
+<models.metrics.avg_substitution_time_ms> //= 0;
+my $prev_avg = <models.metrics.avg_substitution_time_ms>;
+<models.metrics.avg_substitution_time_ms>
+    = (   $prev_avg * ( <models.metrics.substitutions_completed> - 1 )
+        + $elapsed_ms ) /
+    <models.metrics.substitutions_completed>;
+
+<[base.log]>->(
+    1,
+    "[$context] substitution complete: %d variables, %d bytes -> %d bytes, %.2fms",
+    $sub_count,
+    length($template),
+    length($result),
+    $elapsed_ms
+);
+
+return {
+    'success'     => TRUE,
+    'result'      => $result,
+    'substituted' => \%substituted,
+    'count'       => $sub_count,
+    'elapsed_ms'  => $elapsed_ms,
+    'undefined'   => [
+        grep { !exists $vars->{$_} }
+            keys %{ { map { $_ => 1 } $template =~ /$var_pattern/g } }
+    ]
+};
+
+#,,,.,,..,,..,,..,,.,,.,.,,.,,,,.,.,.,...,..,,..,,...,...,,,.,..,,,,,,.,,,,.,,
+#55Z4AFXRMH7JQDDQVECKQE7TMMKKJF3JFK52XHI22AFGBDPZ2M55JHMXGMD7M56IAHN64IX4JAAHQ
+#\\\|R7IBWENCHGLMB5ZFQSH67IVQ3OGYE7S7O4HOYYGXTMPEWNBDSIJ \ / AMOS7 \ YOURUM ::
+#\[7]XMNTWSGWJOWXI7HGCACYCQMQJXRFNOHT3JZSXXPIMGBFN7VQFSCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = coding.vision-parser.extract.clean_json
+# descr = extract and normalize JSON from vision model output (removes spurious spaces)
+
+my $raw_vision_output = shift;
+
+return { 'success' => FALSE, 'error' => 'No input provided' }
+    unless defined $raw_vision_output;
+
+<[base.logs]>->(
+    1,
+    '[extract.clean_json] processing %d bytes of raw vision output',
+    length($raw_vision_output)
+);
+
+# Step 1: Extract JSON portion (handle {"answer": "..." } format)
+my $json_text = $raw_vision_output;
+
+# If the output looks like {key:value}, try to extract just that
+if ( $json_text =~ /^{.*}$/s ) {
+
+    # Already looks like JSON
+} elsif ( $json_text =~ /({.*})/ ) {
+
+    # JSON is embedded in other text
+    $json_text = $1;
+}
+
+<[base.logs]>->(
+    1, '[extract.clean_json] extracted JSON: %d bytes',
+    length($json_text)
+);
+
+# Step 2: Clean spurious spaces within words
+# Pattern: lowercase+space+lowercase (most common artifact from streaming)
+# Examples: "neb ula" -> "nebula", "vast ness" -> "vastness"
+$json_text =~ s/([a-z])\s([a-z])/$1$2/g;
+$json_text =~ s/([a-z0-9])\s([a-z])/$1$2/g;
+
+<[base.logs]>->( 1, '[extract.clean_json] cleaned spurious spaces' );
+
+# Step 3: Attempt JSON parsing to validate
+<[base.perlmod.load]>->('JSON::PP');
+my $json_parser = JSON::PP->new->utf8;
+my $parsed;
+
+eval { $parsed = $json_parser->decode($json_text); };
+
+if ($@) {
+    <[base.logs]>->( 0, '[extract.clean_json] JSON parse failed: %s', $@ );
+    return {
+        'success'       => FALSE,
+        'error'         => "JSON parse failed: $@",
+        'raw_output'    => $raw_vision_output,
+        'cleaned_text'  => $json_text,
+        'parse_attempt' => 'failed'
+    };
+}
+
+<[base.logs]>->(
+    1,
+    '[extract.clean_json] JSON parsed successfully, %d keys',
+    scalar( keys %$parsed )
+);
+
+return {
+    'success' => TRUE,
+    'parsed'  => $parsed,
+    'raw'     => $raw_vision_output,
+    'cleaned' => $json_text
+};
+
+#,,.,,...,,,.,,,,,,..,..,,,..,..,,,.,,.,,,..,,..,,...,...,...,,,.,,.,,.,,,...,
+#BKWSI6NH4SEXRH766ZYWBIUIS2YS7QCLNSYDWT43AD73ZPBPAMK2GFPCI3WBHLW5RKY7QDJFCALW6
+#\\\|XOHDWTCEF2JEJSPRC6EGUPBJULOMVZB74GBUAJBCXOZAO4C3DUE \ / AMOS7 \ YOURUM ::
+#\[7]G6TQSW5WIR7LDQKOMV424ZG3R5NH27ZFH6ESWEEX6E62OIVYQIDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

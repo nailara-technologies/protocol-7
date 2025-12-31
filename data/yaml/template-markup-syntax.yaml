@@ -1,0 +1,241 @@
+# Template Markup Syntax Reference
+# Unified syntax for HTML templates (httpd) and prompt templates (models/conversation)
+# Last updated: 2025-12-31
+
+---
+overview: |
+  Protocol-7 uses a consistent template syntax across all zenka:
+  - HTML templates (httpd for dynamic dashboards)
+  - Prompt templates (models zenka for conversation context)
+  - Configuration templates (system setup)
+
+  The syntax supports variable substitution, nested content, and recursive processing
+  with recursion depth limits and metadata variable injection.
+
+---
+syntax_elements:
+
+  variable_substitution:
+    pattern: "<{variable_name}>"
+    description: "Simple meta variable substitution"
+    scope: "Within meta_vars hash passed to template processor"
+    example: |
+      Template: "Current temperature in <{city}> is <{temp}>°C"
+      Meta vars: {city: "Berlin", temp: "15"}
+      Result: "Current temperature in Berlin is 15°C"
+    notes: |
+      - Variable name must be alphanumeric, dash, underscore, dot
+      - Undefined variables left unchanged: <{unknown}> stays as-is
+      - Logged at debug level when undefined
+
+  command_execution:
+    pattern: "<[module.name:arg1:arg2:...]>"
+    description: "Execute module and inject result into template"
+    scope: "Calls actual Protocol-7 modules with arguments"
+    example: |
+      Template: "Weather data: <[weather.get_summary:Berlin]>"
+      Execution: Calls weather.get_summary with arg "Berlin"
+      Result: Inline content returned by module
+    notes: |
+      - Module name: alphanumeric, dots, dashes, underscores
+      - Arguments separated by colons within brackets
+      - Result can be string, array of strings, or scalar ref
+      - Arrays auto-joined into single string
+      - Scalar refs dereferenced automatically
+      - Recursive processing if result contains <[...]> or <{...}>
+
+  namespace_lookup:
+    pattern: "<[NS:key]>" or "<[PREFIX:key]>"
+    description: "Lookup value from named namespace"
+    scope: "Extends command syntax for common data sources"
+    examples:
+      text_lookup: |
+        <[TXT:welcome_message]>
+        Looks up key in text localization table
+      metadata_lookup: |
+        <[META:job_id]>
+        Looks up value in session/conversation metadata
+      context_lookup: |
+        <[CTX:turn_2]>
+        Retrieves specific turn from conversation history
+      previous_field: |
+        <[PREV:extracted_json]>
+        References field from previous response
+    notes: |
+      - Namespace determines where lookup happens
+      - TXT: for localization/static strings
+      - META: for session/conversation metadata
+      - CTX: for conversation history (vision-parser)
+      - PREV: for previous LLM output fields
+
+  template_inclusion:
+    pattern: "<[INCLUDE:template_path]>"
+    description: "Include and process another template file"
+    scope: "Modular template composition"
+    example: |
+      Main: "Header: <[INCLUDE:/templates/header.html]> ... Footer: <[INCLUDE:/templates/footer.html]>"
+      Result: Header and footer files inserted and processed recursively
+    notes: |
+      - Path relative to template root or absolute
+      - Included template is processed with same meta_vars
+      - Recursion depth applies to included templates
+      - Each inclusion has own command tracking
+
+  conditional_expression:
+    pattern: "{{CONDITION ? TRUE_VALUE : FALSE_VALUE}}"
+    status: "PLANNED - Not yet implemented"
+    description: "Conditional substitution based on expressions"
+    example: |
+      {{<{is_admin}> ? "Show admin controls" : "Standard interface"}}
+    notes: |
+      - Future enhancement for dynamic conditional logic
+      - Will support variable comparison and boolean operations
+
+---
+recursion_and_safety:
+
+  recursion_depth_limit:
+    default: 8
+    configurable: "<web.cfg.recursion_depth_max> (or models equivalent)"
+    behavior: |
+      - Prevents infinite recursive templates
+      - Returns error when depth exceeded
+      - Logs warning at level 1 with template_id and current depth
+      - Template left in partially processed state
+    example: |
+      Depth 0: Main template calls <[cmd1]>
+      Depth 1: cmd1 result contains <[cmd2]>
+      Depth 2: cmd2 result contains <[cmd3]>
+      ...
+      Depth 8: Limit reached, processing stops with error
+
+  variable_naming:
+    allowed_characters: "[a-zA-Z0-9_.-]"
+    pattern: "^[\\w\\-_.]+$"
+    notes: |
+      - Must start with alphanumeric or underscore
+      - Dashes and dots allowed for namespaced names
+      - Example: "job_id", "ctx-turn-1", "meta.user.name"
+
+  escaping:
+    line_continuation: "Backslash before <[ prevents processing: \\<[command]>"
+    behavior: "Escaped markers treated as literal text"
+    notes: |
+      - Use when template contains actual <[ that should not execute
+      - Rare in practice but documented for completeness
+
+---
+metrics_and_logging:
+
+  logging_levels:
+    level_0: "Errors and critical events"
+    level_1: "Important milestones (depth limits, processing started)"
+    level_2: "Template structure (commands extracted, substitutions)"
+    level_3: "Detailed processing (each variable, nested processing)"
+
+  session_context:
+    format: "[$session_id] or [$conversation_id]"
+    usage: "All log messages include session context for tracing"
+    example: "[vision_job_1] processing template at depth 2 (id: template_abc_cmd_001)"
+
+  metrics_tracked:
+    "metrics.commands_executed": "Total commands run across all templates"
+    "metrics.commands_nested": "Count of recursive command executions"
+    "metrics.recursion_depth_max_hit": "Times depth limit was reached"
+    "metrics.avg_processing_time_ms": "Running average of template processing time"
+    "metrics.templates_processed": "Cumulative templates completed"
+
+---
+best_practices:
+
+  for_html_templates:
+    - Use <{variable}> for safe meta variable substitution (UI text, config values)
+    - Use <[module]> for dynamic content that changes per request
+    - Keep templates clean - complex logic belongs in modules
+    - Use INCLUDE for reusable components (headers, footers, sidebars)
+
+  for_prompt_templates:
+    - Use <{variable}> for fixed parts of prompt (instruction text, schema definitions)
+    - Use <[CTX:turn_N]> to reference conversation history
+    - Use <[PREV:field]> to reference previous model output
+    - Include compaction strategy in context parameters
+    - Document expected schema/format clearly
+
+  for_both:
+    - Avoid deeply nested templates (depth > 4) - consider splitting
+    - Meaningful variable names help with debugging and logging
+    - Test with undefined variables to ensure graceful fallback
+    - Monitor metrics.recursion_depth_max_hit for template complexity issues
+
+---
+implementation_notes:
+
+  phase_1_core:
+    modules:
+      - "models.template.substitute"
+      - "models.template.process"
+    features:
+      - Variable substitution with undefined handling
+      - Logging with session context
+      - Metrics tracking
+
+  phase_2_conversation:
+    modules:
+      - "models.conversation.create"
+      - "models.conversation.add_turn"
+      - "models.conversation.get_context"
+    features:
+      - History management with token budgets
+      - Context compaction strategies
+      - Turn-based message storage
+
+  phase_3_integration:
+    modules:
+      - "coding.vision-parser.extract.with_context"
+      - "coding.vision-parser.validate.yaml_structure"
+    features:
+      - Iterative extraction using conversation context
+      - Multi-turn refinement with clarification prompts
+      - Model self-correction via previous output references
+
+---
+examples:
+
+  example_html_template:
+    file: "/data/html/templates/weather/body.html"
+    syntax: |
+      <title>Weather in <{city}></title>
+      <div class="clouds">
+        Width: <[INCLUDE:/templates/weather/clouds.html]>%
+      </div>
+
+  example_prompt_template:
+    name: "vision_extraction_stage2"
+    content: |
+      Your task: Convert the following JSON to YAML format.
+
+      First attempt (turn 1):
+      <{prev_json}>
+
+      Requirements:
+      - Valid YAML syntax
+      - Preserve all fields and values
+      - Maintain data types where possible
+
+      Convert now:
+
+  example_conversation_flow:
+    description: "Vision analysis with iterative refinement"
+    stages: |
+      Turn 1 (Vision):    Image → raw analysis
+      Turn 2 (Extract):   <[CTX:turn_1]> → JSON
+      Turn 3 (Translate): <[CTX:turn_2]> → YAML
+      Turn 4 (Validate):  Check YAML structure
+      Turn 5 (Clarify):   <[CTX:turn_1]> + missing_fields → refined
+      Repeat until valid & complete
+
+#,,..,,,.,,..,,.,,.,.,..,,,,.,...,.,,,.,,,.,.,..,,...,...,..,,..,,,..,,,,,,,.,
+#FHP5U4YJK6EYIMBBWNPXYEZDYNV7I5OXEEGLMOVLTLEJ6NSYDX37YBZBDSJPG77SYTFTADED4H6GC
+#\\\|PLCPGTCVHHECHH7PTC7DH4FAINBTSOSKYMS7DI5ZTWV5X3H6KG2 \ / AMOS7 \ YOURUM ::
+#\[7]UJXNPDDAT6EQ3NFRYXS3SBYCPJBTI3NAJUWKZ7N4VL7ZENNU5MCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

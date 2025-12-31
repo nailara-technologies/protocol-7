@@ -52,6 +52,21 @@ $data{models}{cache_last_updated} = 0;
 $data{models}{cache_ttl_seconds}  = 300;
 
 # =============================================================================
+# TEMPLATE & CONVERSATION METRICS
+# =============================================================================
+
+# Template processing metrics
+$data{models}{metrics}                    //= {};
+<models.metrics.substitutions_total>      //= 0;
+<models.metrics.substitutions_completed>  //= 0;
+<models.metrics.avg_substitution_time_ms> //= 0;
+
+# Conversation metrics (for multi-turn interactions)
+<models.metrics.conversations_active>    //= 0;
+<models.metrics.conversations_completed> //= 0;
+<models.metrics.context_compactions>     //= 0;
+
+# =============================================================================
 # REGISTRY POPULATION - Initialize empty registry [ populated by discover cmd ]
 # =============================================================================
 
@@ -268,8 +283,8 @@ my $cmd_result;
 # Return indicates successful initialization
 return 0;
 
-#,,,,,.,,,,,.,,..,,.,,...,..,,.,,,,,.,..,,,.,,..,,...,...,.,.,,,,,,,.,,.,,,,.,
-#F3FXMFGJR5KWGRPJVFB5SP44SDN2UJIKX4W3TDSXASQRL25OHFWJT6QFSM4GFAELRMUSIWQDGO67A
-#\\\|ZPVX7IXNVJUUEQSDFP6WC2YQM5ZIYQHABS5VFURXL5EERAPOVZ4 \ / AMOS7 \ YOURUM ::
-#\[7]ARIU37SZL4SSVJ5KLL2V2BOE6ZYUYDUPSBQ2WGPA7W25BGI74QBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,,.,...,,.,,.,.,,.,,.,.,,,,,...,..,,...,...,...,,,,,,..,.,,,...,
+#ZJARI5PPFHDPL475ZXOODCYVCPX2RRGM26KCUDOZPYVZP5IBL7EASLSOS2BBZ4O6TZUNBGLLZ2YGU
+#\\\|EX3MWDDQ227HMWO5L3LX423MQLP76S6LGBDLFKTWXWPPOSDMHSK \ / AMOS7 \ YOURUM ::
+#\[7]OYL5XS75PAPUZIMF7XWBOO3KL675FKCTWK3BPDP7HWCHKVNRFGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
