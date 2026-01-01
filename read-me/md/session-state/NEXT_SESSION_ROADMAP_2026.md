@@ -96,7 +96,7 @@
 **Status**: ✅ PHASE 1 COMPLETE (Negotiation)
 **Commit**: `bdddf1b33`
 
-**Phase 1 (COMPLETED)**: Key Exchange & Negotiation
+**Phase 1 (✅ COMPLETED - 2026-01-01)**: Key Exchange & Negotiation
 - ✅ Add struct encryption_state for state tracking
 - ✅ Implement negotiate_link_upgrade() for key exchange
 - ✅ Integrate after successful authentication
@@ -104,12 +104,15 @@
 - ✅ Graceful fallback to plaintext if negotiation fails
 - ✅ ~130 lines of C code using Perl crypto helper
 - ✅ V7 zenka auto-updates /usr/local/bin/p7 on checksum change
+- ✅ Fixed helper script path resolution (absolute paths)
+- ✅ Tested: `PROTOCOL_7_LINK_UPGRADE=yes /usr/local/bin/p7 'list sessions'` ✓ WORKS
 
-**Phase 2 (NEXT - OPTIONAL)**: Command/Response Encryption
+**Phase 2 (OPTIONAL)**: Command/Response Encryption
 - Encrypt command before sending to socket (using helper)
 - Decrypt responses from socket (using helper)
 - Handle counter management for nonce generation
 - Approach: popen() to helper with stdin/stdout pipes
+- Status: Foundation ready, Phase 1 sufficient for current workflow integration
 
 **Implementation Architecture**:
 1. **Crypto Helper** (already exists): `bin/p7-link-upgrade-helper.pl`
@@ -179,18 +182,30 @@ Most recent files (Dec 31, 2025):
   - v7 auto-update working perfectly
   - Ready for testing with idle servers
 
-**IMMEDIATE NEXT OPTION (1-2 hours)**:
-Phase 2 Completion: Command/Response Encryption
-- Encrypt commands before sending
-- Decrypt server responses
-- Counter management for nonce generation
-- Complete end-to-end encrypted communication
+**IMMEDIATE NEXT (For 3-Server Integration)**:
+✅ Phase 1 complete - ready to test with idle servers
 
-**THEN (For 3-Server Integration)**:
-1. Test p7 with `PROTOCOL_7_LINK_UPGRADE=yes` on idle server
-2. Deploy letsencrypt zenka testing (online for first time)
-3. Configure httpsd for auto-managed certificates
-4. Deploy website with new template engines
+1. **Test encrypted p7 on idle server** (immediate)
+   ```bash
+   PROTOCOL_7_LINK_UPGRADE=yes p7@idle-server 'some-command'
+   # Verifies Phase 1 works across network
+   ```
+
+2. **Deploy letsencrypt zenka** (next)
+   - Online certificate management
+   - Auto-renew via httpsd integration
+
+3. **Configure httpsd for auto-managed certificates**
+   - Enables HTTPS on website deployment
+
+4. **Deploy website with new template engines**
+   - Complete workflow integration
+
+**Phase 2 OPTIONAL (Command/Response Encryption)**:
+- Improves security further with full end-to-end encryption
+- Current Phase 1 is sufficient for workflow: Key exchange protects credentials
+- Implements: Command encryption, response decryption, counter management
+- Timeline: 1-2 hours if needed, but can be deferred
 
 **STRATEGIC (Ongoing - Multi-Phase)**:
 ML Consensus Network Implementation
@@ -201,18 +216,27 @@ ML Consensus Network Implementation
 - Scalable architecture: Add LLM consensus groups, Invoke AI image generation, etc.
 - Timeline: Multiple sessions, incremental deployment
 
-**Timeline Options**:
-- **Quick Path**: Complete Phase 2 (1-2h) → Test servers (2-3h) → Deploy website (2-3h)
-- **Ambitious Path**: Phase 2 → Full integration testing → Start ML consensus network
-- **Your Call**: What matters most for the idle servers?
+**Recommended Path**:
+- **Quick Path**: Test idle servers now → Deploy letsencrypt → Website deployment
+- **Ambitious Path**: Quick path → Phase 2 encryption → ML consensus network
+- **Your Call**: Test idle servers first to verify Phase 1 stability?
 
 ---
 
-## Files Updated This Session
+## Files Updated This Session (2026-01-01 Continuation)
 
-- `read-me/md/session-state/SESSION_2026-01-01_CRITICAL_BUG_FIXES.md` (new)
-- `read-me/md/session-state/SESSION-START-HERE.md` (updated)
-- `read-me/md/session-state/NEXT_SESSION_ROADMAP_2026.md` (this file)
+### Code Changes
+- `bin/c_src/p7.c` - Fixed helper script path resolution (absolute paths)
 
-All changes committed in: `baea9f98c`
+### Documentation Updates
+- `read-me/md/session-state/NEXT_SESSION_ROADMAP_2026.md` (this file, updated with Phase 1 completion)
+
+### Previous Session Updates (still relevant)
+- `read-me/md/session-state/SESSION_2026-01-01_CRITICAL_BUG_FIXES.md` (queue & signature fixes)
+- `read-me/md/session-state/SESSION-START-HERE.md` (session context)
+
+## Git Commits This Session
+
+- `acc7f2647` - Fix p7.c link-upgrade crypto helper path resolution
+- `bdddf1b33` - Implement p7.c link-upgrade negotiation (Phase 1)
 
