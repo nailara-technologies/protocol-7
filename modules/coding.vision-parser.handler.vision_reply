@@ -43,18 +43,16 @@ $job->{'vision_result'} = $vision_output;
 
 ## Add vision result to conversation (TURN 1)
 <[models.conversation.add_turn]>->(
-    {   'job_id'   => $job_id,
-        'role'     => 'assistant',
-        'content'  => $vision_output,
-        'tokens'   => int( length($vision_output) / 4 ),
-        'context'  => 'vision-parser'
+    {   'job_id'  => $job_id,
+        'role'    => 'assistant',
+        'content' => $vision_output,
+        'tokens'  => int( length($vision_output) / 4 ),
+        'context' => 'vision-parser'
     }
 );
 
 ## STAGE 2: Queue extraction (JSON→YAML translation)
-<[base.logs]>->(
-    1, '[vision-parser] STAGE 2: queuing extraction'
-);
+<[base.logs]>->( 1, '[vision-parser] STAGE 2: queuing extraction' );
 
 my $extraction_prompt = $job->{'extraction_prompt'}
     // 'Convert the following to YAML format. Preserve all fields.';
@@ -63,18 +61,14 @@ my $extraction_prompt = $job->{'extraction_prompt'}
 ## This will become a separate extraction LLM call
 $job->{'extraction_result'} = $vision_output;
 
-<[base.logs]>->(
-    1,
-    '[vision-parser] extraction queued: job=%s',
-    $job_id
-);
+<[base.logs]>->( 1, '[vision-parser] extraction queued: job=%s', $job_id );
 
 ## Add extraction to conversation (TURN 2)
 <[models.conversation.add_turn]>->(
-    {   'job_id'   => $job_id,
-        'role'     => 'user',
-        'content'  => $extraction_prompt,
-        'context'  => 'vision-parser'
+    {   'job_id'  => $job_id,
+        'role'    => 'user',
+        'content' => $extraction_prompt,
+        'context' => 'vision-parser'
     }
 );
 
@@ -97,8 +91,8 @@ my $cb_result = <[base.callback.cmd_reply]>->(
 
 return;
 
-#,,,.,.,.,,..,,,,,.,,,,,,,.,.,..,,...,,..,..,,..,,...,...,,,.,..,,,,.,,..,,,.,
-#5Q7ZGPMLFZMK7W2J2UNM7G664NZ6YRZPB4K53FYLJUQYQYVAYF5AKPNADROVMEKJK5KOA27KLNCCK
-#\\\|IMITQUBWUYPFOSXD7DESJJVYULHLWB354CJW377AS6D3DNY7WW6 \ / AMOS7 \ YOURUM ::
-#\[7]JA6CP2RBAY4LDAWW4O27ADMCCBS3424MH4F5H766ZKW4ODMLOKDQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,.,,,,,,,,..,,..,,.,,...,...,.,.,..,,...,...,..,,,,,,,..,,,,,,.,,
+#6GC6T7GJM63KRMNCFGA37LNBXWBB2GRQTD4LLSSTA5YHDIO4CO2MA5FR6ZFWFTCIZ7RWJMG3TZPOU
+#\\\|UZLDYZ5PPCUN6QOKLYVERCTRBKD32YSJNJ5E5ZEPL6BKB546CB4 \ / AMOS7 \ YOURUM ::
+#\[7]G3UK7BXZ3IV2COLHMVEVL6AARVVXPJV4ITY235JSZSFZMHYQFUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

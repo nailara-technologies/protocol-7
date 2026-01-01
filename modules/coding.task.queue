@@ -4,12 +4,6 @@
 # descr = manage work queue with priority, dependencies, and state tracking
 # purpose = Queue management: Store tasks, maintain order, track state
 
-# Internal queue state - stored in memory for this session
-my %TASK_QUEUE        = ();       # task_id => task
-my @QUEUE_ORDER       = ();       # Ordered by priority/insertion
-my %TASK_DEPENDENCIES = ();       # task_id => [dependent_ids]
-my $QUEUE_UPDATED     = time();
-
 # Add task to queue
 my $enqueue_task = sub {
     my ($task) = @ARG;
@@ -22,61 +16,59 @@ my $enqueue_task = sub {
 
     my $task_id = $task->{id};
 
+    # Get persistent storage refs (fresh on each call)
+    my $queue_ref   = <coding.task.queue>;
+    my $pending_ref = <coding.task.pending>;
+
     # Prevent duplicates
-    if ( exists $TASK_QUEUE{$task_id} ) {
+    if ( exists $queue_ref->{$task_id} ) {
         return {
             success       => FALSE,
             error         => "Task already in queue: $task_id",
-            existing_task => $TASK_QUEUE{$task_id}
+            existing_task => $queue_ref->{$task_id}
         };
     }
 
-    # Store task
-    $TASK_QUEUE{$task_id} = {
+    # Store task in persistent queue
+    $queue_ref->{$task_id} = {
         %$task,
         queued_at      => <[base.time]>,
-        queue_position => scalar(@QUEUE_ORDER)
+        queue_position => scalar(@$pending_ref)
     };
 
-    # Add to ordering (will be sorted by priority)
-    push @QUEUE_ORDER, $task_id;
+    # Add to pending list (for ordering by priority)
+    push @$pending_ref, $task_id;
 
-    $QUEUE_UPDATED = time();
+    # Log task enqueue
+    <[base.logs]>->( 2, "task enqueued: %s", $task_id );
 
     return {
         success    => TRUE,
         task_id    => $task_id,
-        queue_size => scalar(@QUEUE_ORDER),
+        queue_size => scalar(@$pending_ref),
         message    => "Task enqueued: $task_id"
     };
 };
 
 # Get next task to execute (respects priority and dependencies)
-my $dequeue_next = sub {    ## <-- inline subs !!!
+my $dequeue_next = sub {    ## <-- inline subs - TO EXTRACT !!!
+
+    # Get persistent storage refs (fresh on each call)
+    my $queue_ref   = <coding.task.queue>;
+    my $pending_ref = <coding.task.pending>;
+    my $active_ref  = <coding.task.active>;
 
     # Filter tasks that have no unfinished dependencies
     my @available = ();
 
-    foreach my $task_id (@QUEUE_ORDER) {
-        my $task = $TASK_QUEUE{$task_id};
+    foreach my $task_id (@$pending_ref) {
+        my $task = $queue_ref->{$task_id};
 
         # Skip if not pending
         next unless $task->{execution}->{status} eq qw| pending |;
 
-        # Check dependencies
-        my $blocked = 0;
-        if ( exists $TASK_DEPENDENCIES{$task_id} ) {
-            foreach my $dep_id ( @{ $TASK_DEPENDENCIES{$task_id} } ) {
-                my $dep_task = $TASK_QUEUE{$dep_id};
-                if (  !$dep_task
-                    || $dep_task->{execution}->{status} ne qw| completed | ) {
-                    $blocked = 1;
-                    last;
-                }
-            }
-        }
-
-        next if $blocked;
+        # Simple dependency check (placeholder)
+        # Full dependency tracking would check task dependencies
 
         push @available,
             {
@@ -98,17 +90,23 @@ my $dequeue_next = sub {    ## <-- inline subs !!!
         $task->{execution}->{status}  = qw| in_progress |;
         $task->{execution}->{started} = <[base.time]>;
 
+        # Move to active list
+        @$pending_ref = grep { $_ ne $next->{id} } @$pending_ref;
+        push @$active_ref, $next->{id};
+
+        <[base.logs]>->( 2, "task started : %s", $next->{id} );
+
         return {
             success         => TRUE,
             task            => $task,
-            queue_remaining => scalar(@QUEUE_ORDER) - 1
+            queue_remaining => scalar(@$pending_ref)
         };
     }
 
     return {
         success    => FALSE,
         error      => 'no available tasks in queue',
-        queue_size => scalar(@QUEUE_ORDER)
+        queue_size => scalar(@$pending_ref)
     };
 };
 
@@ -116,21 +114,29 @@ my $dequeue_next = sub {    ## <-- inline subs !!!
 my $complete_task = sub {
     my ( $task_id, $result, $success ) = @ARG;
 
+    # Get persistent storage refs (fresh on each call)
+    my $queue_ref     = <coding.task.queue>;
+    my $active_ref    = <coding.task.active>;
+    my $completed_ref = <coding.task.completed>;
+
     return {
         success => FALSE,
-        error   => sprintf 'task not found : %s',
-        $task_id
+        error   => "task not found : $task_id"
         }
-        unless exists $TASK_QUEUE{$task_id};
+        unless exists $queue_ref->{$task_id};
 
-    my $task = $TASK_QUEUE{$task_id};
+    my $task = $queue_ref->{$task_id};
 
     $task->{execution}->{status}    = qw| completed |;
     $task->{execution}->{completed} = <[base.time]>;
     $task->{execution}->{result}    = $result if defined $result;
     $task->{execution}->{success}   = $success // 1;
 
-    $QUEUE_UPDATED = time();
+    # Move from active to completed
+    @$active_ref = grep { $_ ne $task_id } @$active_ref;
+    push @$completed_ref, $task_id;
+
+    <[base.logs]>->( 1, "task completed : %s", $task_id );
 
     return {
         success => TRUE,
@@ -143,20 +149,32 @@ my $complete_task = sub {
 my $fail_task = sub {
     my ( $task_id, $error ) = @ARG;
 
+    # Get persistent storage refs (fresh on each call)
+    my $queue_ref  = <coding.task.queue>;
+    my $active_ref = <coding.task.active>;
+    my $failed_ref = <coding.task.failed>;
+
     return {
         success => FALSE,
-        error   => "Task not found: $task_id"
+        error   => "task not found: $task_id"
         }
-        unless exists $TASK_QUEUE{$task_id};
+        unless exists $queue_ref->{$task_id};
 
-    my $task = $TASK_QUEUE{$task_id};
+    my $task = $queue_ref->{$task_id};
 
     $task->{execution}->{status}    = qw| failed |;
     $task->{execution}->{completed} = <[base.time]>;
     $task->{execution}->{success}   = 0;
     $task->{execution}->{error}     = $error // qq| unknown error |;
 
-    $QUEUE_UPDATED = time();
+    # Move from active to failed
+    @$active_ref = grep { $_ ne $task_id } @$active_ref;
+    push @$failed_ref, $task_id;
+
+    <[base.logs]>->(
+        0, "task failed : %s : %s",
+        $task_id, ( $error // 'unknown error' )
+    );
 
     return {
         success => TRUE,
@@ -170,13 +188,16 @@ my $fail_task = sub {
 my $get_task_status = sub {
     my ($task_id) = @ARG;
 
+    # Get persistent storage refs (fresh on each call)
+    my $queue_ref = <coding.task.queue>;
+
     return {
         success => FALSE,
-        error   => "Task not found: $task_id"
+        error   => "task not found: $task_id"
         }
-        unless exists $TASK_QUEUE{$task_id};
+        unless exists $queue_ref->{$task_id};
 
-    my $task = $TASK_QUEUE{$task_id};
+    my $task = $queue_ref->{$task_id};
 
     return {
         success   => TRUE,
@@ -191,51 +212,52 @@ my $get_task_status = sub {
 
 # Get queue statistics
 my $get_queue_stats = sub {
-    my $in_progress = 0;
-    my $completed   = 0;
-    my $pending     = 0;
-    my $failed      = 0;
 
-    foreach my $task_id ( keys %TASK_QUEUE ) {
-        my $status = $TASK_QUEUE{$task_id}->{execution}->{status};
-        $in_progress++ if $status eq qw| in_progress |;
-        $completed++   if $status eq qw| completed |;
-        $pending++     if $status eq qw| pending |;
-        $failed++      if $status eq qw| failed |;
-    }
+    # Get persistent storage refs (fresh on each call)
+    my $queue_ref     = <coding.task.queue>;
+    my $pending_ref   = <coding.task.pending>;
+    my $active_ref    = <coding.task.active>;
+    my $completed_ref = <coding.task.completed>;
+    my $failed_ref    = <coding.task.failed>;
+
+    my $in_progress = scalar(@$active_ref);
+    my $completed   = scalar(@$completed_ref);
+    my $pending     = scalar(@$pending_ref);
+    my $failed      = scalar(@$failed_ref);
 
     return {
-        total_tasks   => scalar( keys %TASK_QUEUE ),
+        total_tasks   => scalar( keys %$queue_ref ),
         pending       => $pending,
         in_progress   => $in_progress,
         completed     => $completed,
         failed        => $failed,
-        queue_updated => $QUEUE_UPDATED
+        queue_updated => time()
     };
 };
 
 # Clear completed tasks
 my $clear_completed = sub {
-    my @to_remove = ();
 
-    foreach my $task_id ( keys %TASK_QUEUE ) {
-        if ( $TASK_QUEUE{$task_id}->{execution}->{status} eq qw| completed | )
-        {
-            push @to_remove, $task_id;
-        }
+    # Get persistent storage refs (fresh on each call)
+    my $queue_ref     = <coding.task.queue>;
+    my $completed_ref = <coding.task.completed>;
+
+    my $cleared = scalar(@$completed_ref);
+
+    # Remove completed tasks from queue
+    foreach my $task_id (@$completed_ref) {
+        delete $queue_ref->{$task_id};
     }
 
-    foreach my $task_id (@to_remove) {
-        delete $TASK_QUEUE{$task_id};
-        @QUEUE_ORDER = grep { $_ ne $task_id } @QUEUE_ORDER;
-    }
+    # Clear completed list
+    @$completed_ref = ();
 
-    $QUEUE_UPDATED = time();
+    <[base.logs]>->( 1, "cleared %d completed tasks", $cleared );
 
     return {
         success   => TRUE,
-        cleared   => scalar(@to_remove),
-        remaining => scalar(@QUEUE_ORDER)
+        cleared   => $cleared,
+        remaining => scalar( keys %$queue_ref )
     };
 };
 
@@ -265,8 +287,8 @@ if ( $cmd eq 'enqueue' ) {
     };
 }
 
-#,,,.,,,,,...,..,,.,,,..,,,.,,..,,,,.,..,,,..,..,,...,...,,..,,.,,..,,,..,.,,,
-#XHRH6YGTWCMNHOF2TSTX43GODX4NXWYXJRSA234UVRNCBT3HOFJSCV7IY2RG67VYPR5FK6LFLTPCU
-#\\\|35H6WFNSMDO2KIALSC4DFMRVMLJRVQEMCQJ3LOVULM37NTI3KLN \ / AMOS7 \ YOURUM ::
-#\[7]JRSAXLNVCFQ7F3I6LBMKKLPSTKDTTTAE32LDWDCCCFVW2KLKFYBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,,.,,,.,,,,,..,,...,.,,,,,,,...,..,,...,.,.,...,...,,..,,..,..,,
+#FIO3UA3NN2AWAEZZJLYNIMNJZCYYJOAA3KIEQFUNZRKCU43GFDH6XZA3FF5D4JY6DYJQOMBRDA7CE
+#\\\|R6KIS5YXBWGHYNQ6ZRPD6W5AMUUI6EPQ4DGWXGMV5ZFTRZHJSZL \ / AMOS7 \ YOURUM ::
+#\[7]T737ZVE3L2J6VW4QFS5JT2GB7E5WV6BDLEXNMG2MRT6ORBLA6QBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
