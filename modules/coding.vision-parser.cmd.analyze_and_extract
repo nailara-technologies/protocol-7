@@ -35,8 +35,8 @@ my $job_id = <[base.gen_id]>->(<coding.vision-parser.jobs>);
 
 ## Initialize conversation for multi-turn interaction
 my $conv_result = <[models.conversation.create]>->(
-    {   'job_id'       => $job_id,
-        'token_budget' => 8192,
+    {   'job_id'        => $job_id,
+        'token_budget'  => 8192,
         'template_name' => 'vision_extraction',
         'context'       => 'vision-parser'
     }
@@ -74,10 +74,8 @@ my $job = {
 <coding.vision-parser.jobs>->{$job_id} = $job;
 
 <[base.logs]>->(
-    1,
-    '[vision-parser] job created: id=%s image=%s',
-    $job_id,
-    $image_path
+    1,       '[vision-parser] job created: id=%s image=%s',
+    $job_id, $image_path
 );
 
 # For v1, queue vision analysis asynchronously - response comes via handler
@@ -107,8 +105,8 @@ my $queue_result = <[base.protocol-7.command.send.local]>->(
 # Return deferred response - actual result will come via reply handler
 return { 'mode' => 'deferred', 'data' => "Vision analysis queued\n" };
 
-#,,,,,,..,.,,,,,,,..,,,,,,,,.,.,,,.,.,.,.,..,,..,,...,...,..,,...,,.,,,.,,,.,,
-#Y2BA2645MVCHQE3XL4EG7KIFL275MAEEOSIRT5UBXNLN6TFQQLN4LZZHH26B7TEC2SNQJNPOUZSGE
-#\\\|ZTLTGHPCKJBNR22RDSBCXWQO2HNRJHMDDOMNCQIRUH2YKTJ3ZFL \ / AMOS7 \ YOURUM ::
-#\[7]OUHNSRUZJZ3ZAELXKRMHVRZ4CVS2YITILSW7XMQ5MJIQKBC5BGDY 7  DATA SIGNATURE ::
+#,,..,,..,...,...,..,,,..,..,,..,,.,,,,..,,,,,..,,...,...,.,,,..,,.,,,...,.,,,
+#KZDFKNLLB56ET322WGABFWJEJHWV2VDYU6KALUFUOQDH56TUHMVJYW4SIUDP3DRJWHOJIDBRBE4RU
+#\\\|ZNQCCLTICDB5CBK2YKSYEXRPWR45UZVADLVTAUE622ZD3U5CEJU \ / AMOS7 \ YOURUM ::
+#\[7]UADOFES2EGYFDXSHYCDI7IKAHQPKO6HRHU34SP5GYOCGQYBCYKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

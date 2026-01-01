@@ -9,14 +9,11 @@ my $task_id = length( $$call{'args'} ) ? $call->{'args'} : undef;
 # Get queue statistics
 my $queue_stats = <[coding.task.queue]>->( 'status', $task_id );
 
-if ( !$queue_stats->{'success'} && not defined $task_id ) {
-
-    # General status
+# If requesting specific task status but not found
+if ( defined $task_id && !$queue_stats->{'success'} ) {
     return {
-        'mode' => qw| size |,
-        'data' => "\n:: coding zenka status ::\n\n"
-            . ": status : ready\n"
-            . ":  queue : empty or no data available\n"
+        'mode' => qw| false |,
+        'data' => "task not found : $task_id"
     };
 }
 
@@ -89,8 +86,8 @@ return {
         . " tokens"
 };
 
-#,,..,...,,.,,,..,,,.,,,,,,,,,..,,,,,,,,,,,..,..,,...,.,.,.,.,,,,,.,,,...,..,,
-#DQMYPXKYI62WR2APZ3BHF4SBOKSQQABI7VY7PXCYKA2XNI7XCIPAYRVZSKEBBEBINSDHO25QSORFA
-#\\\|OLREZTUM2S2O23H4IPW6PA75TPNNXGAB3TS6VKAQVVP4YJ34F77 \ / AMOS7 \ YOURUM ::
-#\[7]6FQ5NQ7M2RQ4IFLTG2LTPRGGNJ2SCXKZWCKXOM2FBISK2S47YODI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,.,,,...,..,,,..,...,..,,.,.,,,,,..,,...,...,..,,,.,,,,,,..,,,.,,
+#F6IHTOTEB3WCZ4CUPITVPUREWW4OLJQKPZMX6QX3QRZSOHXSYDFNU2Q7QXGE35M53RXTC7SDYGRUW
+#\\\|PRHUCNET5YEYFRNFJNN4OBSXIMTWP2OYQ662ZFNY7FSXTMJAOVI \ / AMOS7 \ YOURUM ::
+#\[7]IK443DXVRSTOR5N3X3JDN63GZFZAUDLOUITJOHAZHSJH26NQAMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
