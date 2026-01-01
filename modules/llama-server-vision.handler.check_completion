@@ -204,7 +204,7 @@ $full_output =~ s/\s+([}\]"])/$1/g;
 $full_output =~ s/\s+([,.!?;:'")])/$1/g;
 
 # The cleaned output should now be the vision analysis text
-if ( length $full_output > 20 )
+if ( length $full_output )
 {    # Sanity check - should be at least somewhat substantial
     $payload = $full_output;
     <[base.logs]>->(
@@ -213,7 +213,7 @@ if ( length $full_output > 20 )
     );
 } else {
     <[base.logs]>->(
-        1, "[check_completion] output too short or empty: '%s'", $full_output
+        1, "[check_completion] output empty: '%s'", $full_output
     );
 }
 
@@ -268,8 +268,8 @@ if ( length $payload ) {
     }
 );
 
-#,,,.,..,,.,,,,,.,,..,,,,,.,.,,..,..,,,,.,,,.,..,,...,...,.,,,.,.,..,,,,,,,.,,
-#SX3EB4F54VZYSWEWTKZQACUESIJTV4XF6YD7KGL43DEGU7ZWH4LPHYDYJJAJNTAJUFTFQVJOCNHSC
-#\\\|HI75LR3G7HV4II2JZPIJZSJAMX3CASAVNJC6A633ZAA4BI2BY3E \ / AMOS7 \ YOURUM ::
-#\[7]FHGM7G4RYTSQMKVFQSNUOGDOTE44O4GHVIBWCGX6RTHDZDJJZSBY 7  DATA SIGNATURE ::
+#,,..,,,.,..,,..,,,.,,..,,.,,,..,,...,.,.,,.,,..,,...,...,,..,...,,.,,,,.,..,,
+#JTTKJWO4GIMNIMPZQJPVITQJ3EVJCWSFIG7O7WYJJ2ENNNAGW2ITJDL2ERQJO2GWUXHJC3FJ3H5J2
+#\\\|TMBR7S6KCUS5U5EJA42JKBO6VKZNI3PFYMIAM7YWLNYRRC5THSW \ / AMOS7 \ YOURUM ::
+#\[7]4RZNYJJ4B2JZY7XVGMDTXXHCIUYZOAADFYFLTHWDGPIY5HRPJSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
