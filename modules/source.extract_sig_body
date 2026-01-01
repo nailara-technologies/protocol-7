@@ -41,8 +41,9 @@ my $bit_size = <source.chksum_bitsize>;
 ### extract [ optionally strip ] code signature footer #######################
 my $footer_body;
 my $footer_start;
-my $footer_start_regex = qr|#[\.,]{77}|;    #.......,.......,......., [..,]
-my $footer_start_regex_length = 78;         ##  manually acquired  ##
+## Flexible regex to handle footer lines that exceed template length
+my $footer_start_regex        = qr|#[\.,]{70,85}|;    ## Allow 70-85 chars ##
+my $footer_start_regex_length = 78;                   ## Default length ##
 
 <[base.logs]>->(
     3,     ': source.extract_sig_body called with mode: %s, strip: %s',
@@ -56,13 +57,13 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
        # Match blank line separator: just a newline before the signature start
        # This represents the blank line between content and signature
 
-# Strip malformed signature stubs - ALL lines must be exactly 78 chars (# + 77 chars)
-# If ANY line is NOT 78 chars, the entire block is invalid
-# This catches PLACEHOLDER stubs with structure like: 78-81-78-78-78
+# CRITICAL: Strip all PLACEHOLDER stub footers FIRST - they cause oscillation
+# Stubs look like real footers but contain PLACEHOLDER text instead of signatures
+# By removing them upfront, we prevent them from being matched before real signatures
     if ( $$src_ref
-        =~ s{\n?#[\.,]{77}\n(?!#[^\n]{77}\n)(?:#[^\n]+\n)*?#[:]{77}\n?}{}sg
+        =~ s|\n?#[\.,]{70,85}\n(?:#[^\n]*PLACEHOLDER[^\n]*\n)+#[:]{70,80}\n?||sg
     ) {
-        <[base.logs]>->( 3, ': stripped malformed signature blocks (line length validation)' );
+        <[base.logs]>->( 3, ': stripped PLACEHOLDER stub footers from file' );
     }
 
     # Define signature patterns for standard extraction
@@ -151,7 +152,8 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
             qr|SIGNATURE|                 # Generic signature
         );
 
-        my $start_marker = qr|#[\.,]{77}|;    # Start marker line
+        my $start_marker = qr|#[\s\.,_]{70,80}|
+            ;    # More flexible start marker for start line
         my $end_marker
             = qr|#[:\.]+[\s\n]*|;    # End line pattern (colons or periods)
 
@@ -716,8 +718,8 @@ if ( $mode eq 'repair' ) {
 
 return $footer_data;
 
-#,,,,,,,.,..,,...,.,.,.,.,.,.,,,,,.,,,.,.,,..,...,...,..,,.,.,...,,..,,,.,,,.,
-#3A4AZNSF5BMJB4MAGMBARHMTNNFFVMHBS2GWUOWASPSM2EWVBRLBZMJ7QZUACKN5MYRJMRHDPOTTO
-#\\\|F2BA455UPKI5NYM7GWSEL3XWGTWJXENMIWPF5Y34OCLNVXVU6GW \ / AMOS7 \ YOURUM ::
-#\[7]LYB4PSF7P425SWECXJ5FPLXINT3R4J7WVSOECSA4UGVQBJ5WU2BI 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,..,..,,,.,,.,,,...,.,,,,,.,.,.,...,...,...,,,.,,..,...,...,...,
+#MT6D6BE7322VEFKYUH4MJGBPDI3WH6LDR3I6XQXS2JBY6N7E62NZZ5G7D7W65FUFPOTC7WY3KLEAY
+#\\\|6UZNU2OGLR73RDKKKJHJAOFY6JRDVL4HF5YOQ4AQICBRB6QT67S \ / AMOS7 \ YOURUM ::
+#\[7]PCPLVBUG7GWANOC4I7O6CYFFBQRLBYPBUIIUMUOJLEJSMV2YCMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,47 @@
+## [:< ##
+
+# name = coding.task.queue_fail
+# descr = mark task as failed and move to failed list
+# purpose = Queue operation: Record task failure with error
+
+my ( $task_id, $error ) = @ARG;
+
+# Get persistent storage refs
+my $queue_ref  = <coding.task.queue>;
+my $active_ref = <coding.task.active>;
+my $failed_ref = <coding.task.failed>;
+
+return {
+    success => FALSE,
+    error   => "task not found: $task_id"
+    }
+    unless exists $queue_ref->{$task_id};
+
+my $task = $queue_ref->{$task_id};
+
+$task->{execution}->{status}    = qw| failed |;
+$task->{execution}->{completed} = <[base.time]>;
+$task->{execution}->{success}   = 0;
+$task->{execution}->{error}     = $error // qq| unknown error |;
+
+# Move from active to failed
+@$active_ref = grep { $_ ne $task_id } @$active_ref;
+push @$failed_ref, $task_id;
+
+<[base.logs]>->(
+    0, "task failed : %s : %s",
+    $task_id, ( $error // 'unknown error' )
+);
+
+return {
+    success => TRUE,
+    task_id => $task_id,
+    error   => $error,
+    message => "Task failed: $task_id"
+};
+
+#,,,.,,,,,...,..,,,,.,...,,,,,,,,,.,,,.,.,,,.,..,,...,...,...,.,.,,.,,...,,,,,
+#A3BI6RQEBNUXOXJ2ILBRIKMSQDVTS4WISTMURBTIXLLQ3PTW2VQQKHS23OGFODY77UDKIOBVO24L6
+#\\\|JXBHIHC4WAGHPSM274NJUL46AL5CPZUIWG63JL2FT6F7OGQLLOS \ / AMOS7 \ YOURUM ::
+#\[7]MYROVPXKVHKESZC7V62V47K354H6IIMJ4QETAB5VSTJYYYWCGCCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

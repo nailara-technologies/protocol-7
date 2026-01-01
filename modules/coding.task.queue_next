@@ -1,0 +1,67 @@
+## [:< ##
+
+# name = coding.task.queue_next
+# descr = get next task from queue respecting priority and dependencies
+# purpose = Queue operation: Retrieve work in priority order
+
+# Get persistent storage refs
+my $queue_ref   = <coding.task.queue>;
+my $pending_ref = <coding.task.pending>;
+my $active_ref  = <coding.task.active>;
+
+# Filter tasks that have no unfinished dependencies
+my @available = ();
+
+foreach my $task_id ( @$pending_ref ) {
+    my $task = $queue_ref->{$task_id};
+
+    # Skip if not pending
+    next unless $task->{execution}->{status} eq qw| pending |;
+
+    # Simple dependency check (placeholder)
+    # Full dependency tracking would check task dependencies
+
+    push @available,
+        {
+        id             => $task_id,
+        task           => $task,
+        priority_score => <[coding.helper.priority_scorer]>->($task)
+        };
+}
+
+# Sort by priority (highest first)
+my @sorted
+    = sort { $b->{priority_score} <=> $a->{priority_score} } @available;
+
+if (@sorted) {
+    my $next = $sorted[0];
+    my $task = $next->{task};
+
+    # Mark as being worked on (don't remove yet)
+    $task->{execution}->{status}  = qw| in_progress |;
+    $task->{execution}->{started} = <[base.time]>;
+
+    # Move to active list
+    @$pending_ref = grep { $_ ne $next->{id} } @$pending_ref;
+    push @$active_ref, $next->{id};
+
+    <[base.logs]>->( 2, "task started : %s", $next->{id} );
+
+    return {
+        success         => TRUE,
+        task            => $task,
+        queue_remaining => scalar( @$pending_ref )
+    };
+}
+
+return {
+    success    => FALSE,
+    error      => 'no available tasks in queue',
+    queue_size => scalar( @$pending_ref )
+};
+
+#,,,.,,..,.,,,.,,,,.,,,,,,,,.,.,,,,,.,,..,,.,,..,,...,...,.,,,.,.,,,,,,..,,.,,
+#CVTM6GFS7ZCIYHPKMNAOWCRTPFORXU2DXFDMX36D36JHWPC7CJLHG4EIULIUHQSSV5NWGQQ64WMOO
+#\\\|JNUHNK2O7D2FOUTXPO3IKXWISKHXRW65JELJPSGJD4QLVXX6PPF \ / AMOS7 \ YOURUM ::
+#\[7]CVZPVY2DNPRPW6XCACXN2DO3EK37UUQQW5MVREFENYJTEJIDGMAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,56 @@
+## [:< ##
+
+# name = coding.task.queue_status
+# descr = get status of specific task or queue statistics
+# purpose = Queue operation: Report task/queue state
+
+my ($task_id) = @ARG;
+
+# Get persistent storage refs
+my $queue_ref     = <coding.task.queue>;
+my $pending_ref   = <coding.task.pending>;
+my $active_ref    = <coding.task.active>;
+my $completed_ref = <coding.task.completed>;
+my $failed_ref    = <coding.task.failed>;
+
+# If specific task requested
+if ( defined $task_id ) {
+    return {
+        success => FALSE,
+        error   => "task not found: $task_id"
+        }
+        unless exists $queue_ref->{$task_id};
+
+    my $task = $queue_ref->{$task_id};
+
+    return {
+        success   => TRUE,
+        task_id   => $task_id,
+        status    => $task->{execution}->{status},
+        started   => $task->{execution}->{started},
+        completed => $task->{execution}->{completed},
+        result    => $task->{execution}->{result},
+        success   => $task->{execution}->{success}
+    };
+}
+
+# Return general queue statistics
+my $in_progress = scalar( @$active_ref );
+my $completed   = scalar( @$completed_ref );
+my $pending     = scalar( @$pending_ref );
+my $failed      = scalar( @$failed_ref );
+
+return {
+    total_tasks   => scalar( keys %$queue_ref ),
+    pending       => $pending,
+    in_progress   => $in_progress,
+    completed     => $completed,
+    failed        => $failed,
+    queue_updated => time()
+};
+
+#,,.,,.,.,..,,,,,,,..,,,,,.,.,..,,...,,,.,,,.,.,.,...,...,...,,..,,.,,,,,,..,,
+#VQCVHJO3AVVNSYZQ74JXADDTCIV2KUB2MTLGGRHYZX3GVEA5W4FH6RWTNSKEBMWKE4OAULGL7TBLG
+#\\\|EFSBIQKLC446YKVV7TBUEQW4BB5JEIXQU5ZBR2TL3JKUVQYS2KN \ / AMOS7 \ YOURUM ::
+#\[7]37BDNZOJGP7MVYUYGUVJ67Z3GFQEZ7DNJIHDA4DNZYUSILH6NOAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,54 @@
+## [:< ##
+
+# name = coding.task.queue_enqueue
+# descr = add task to queue with duplicate detection
+# purpose = Queue operation: Store and track new work
+
+my ($task) = @ARG;
+
+return {
+    success => FALSE,
+    error   => "Task must be a hashref"
+    }
+    unless ref($task) eq 'HASH';
+
+my $task_id = $task->{id};
+
+# Get persistent storage refs
+my $queue_ref   = <coding.task.queue>;
+my $pending_ref = <coding.task.pending>;
+
+# Prevent duplicates
+if ( exists $queue_ref->{$task_id} ) {
+    return {
+        success       => FALSE,
+        error         => "Task already in queue: $task_id",
+        existing_task => $queue_ref->{$task_id}
+    };
+}
+
+# Store task in persistent queue
+$queue_ref->{$task_id} = {
+    %$task,
+    queued_at      => <[base.time]>,
+    queue_position => scalar( @$pending_ref )
+};
+
+# Add to pending list (for ordering by priority)
+push @$pending_ref, $task_id;
+
+# Log task enqueue
+<[base.logs]>->( 2, "task enqueued: %s", $task_id );
+
+return {
+    success    => TRUE,
+    task_id    => $task_id,
+    queue_size => scalar( @$pending_ref ),
+    message    => "Task enqueued: $task_id"
+};
+
+#,,.,,,,.,..,,.,,,.,,,,,.,,..,,,.,,,.,,..,.,,,..,,...,...,,,.,,..,..,,,,,,.,,,
+#32ZFQQABDWLHKUBEAH52P7DXN6AZXP2QCI4T5CN6O4QS4XT7RBLGMVZCG4I2YWWHI24M76ZE6XIPU
+#\\\|BT6BQCWG35XWTYZG5SUS5Q2GDIE7YMHXUYH5LCOQJWHPJMYHYC5 \ / AMOS7 \ YOURUM ::
+#\[7]MOJFEKSUTSGXCHR5ZH54MZBNFBPHYHJCO4HZF5QULMM2JKVELUBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

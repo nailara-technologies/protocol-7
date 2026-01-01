@@ -165,7 +165,7 @@ foreach my $path_rel (@source_paths) {
             ': writing %s file: %s',
             $was_reconstructed ? 'reconstructed' : 'repaired', $path_abs
         );
-        <[file.put]>->( $path_abs, \$src_str, ':raw' );
+        <[file.put_bin]>->( $path_abs, \$src_str );
         $footer_data->{'repaired'}
             = TRUE;    # Mark as repaired in the footer data
         $footer_data->{'reconstructed'} = TRUE if $was_reconstructed;
@@ -287,8 +287,8 @@ if ( $verify_mode eq 'repair' ) {
 # Exit with count of invalid signatures (0 = success)
 <[base.exit]>->( sprintf( '%04d', $invalid_count ) );
 
-#,,,,,,,,,,,.,...,...,,..,,.,,...,,..,,..,.,,,..,,...,...,...,,,.,...,,,,,,..,
-#ZUYE4VGDTITHU277LRFLUV4RPAGRLNAYZOG3ST2EBHJFD7VSSYKJVGRMPDLTWOHS7EHVNIYV5PRW2
-#\\\|SIVFMVG6WTLMTO72ALBZ3WG3VJOZAPBNBQFHUZLXGTMDGWWOOKM \ / AMOS7 \ YOURUM ::
-#\[7]FWCXUFETWBEAWJFIZFMFJFXEYDHAHWMSF5SWT6HHLGQ3C5UTSIBI 7  DATA SIGNATURE ::
+#,,..,...,...,,,,,.,.,,,,,,,,,..,,..,,.,,,..,,..,,...,...,..,,.,.,.,.,.,.,,.,,
+#7DJM75VDWUUZJTPN52E2XDXP5DFLTQINFW2YZZ3K7XHE7GRJRLX2A26LUVKGNSNBU7WJWLXH5J3M4
+#\\\|T2PH5OKRSKQYXCKMOGELOH6RILWYYBVMFDVH6JAZJ72QQO62B3W \ / AMOS7 \ YOURUM ::
+#\[7]YHSPEYUD4PM5FTKI5NFX7KZQKSKYWJGE3FDO724SQZPOJ6BC2MCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
