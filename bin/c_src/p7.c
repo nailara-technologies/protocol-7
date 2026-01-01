@@ -76,13 +76,23 @@ int negotiate_link_upgrade(int socket_fd, struct encryption_state *state)
     if (write(socket_fd, "link-upgrade\n", 13) < 0)
         return -1;
 
-    /* 2. Read server ephemeral pubkey */
-    if (read_line(socket_fd, server_pubkey, sizeof(server_pubkey)) < 0)
+    /* 2. Read server response: "TRUE link-upgrade OK <pubkey_base32>" */
+    char response_line[512] = {0};
+    if (read_line(socket_fd, response_line, sizeof(response_line)) < 0)
         return -1;
-    strip_newline(server_pubkey);
+    strip_newline(response_line);
+
+    /* Extract pubkey from "TRUE link-upgrade OK <pubkey>" */
+    char *pubkey_start = strstr(response_line, "OK ");
+    if (!pubkey_start) {
+        fprintf(stderr, ":: invalid server response during link-upgrade ::\n");
+        return -1;
+    }
+    pubkey_start += 3;  /* Skip "OK " */
+    strncpy(server_pubkey, pubkey_start, sizeof(server_pubkey) - 1);
 
     /* 3. Generate client ephemeral keypair via helper */
-    f = popen("p7-link-upgrade-helper.pl gen-ephemeral 2>/dev/null", "r");
+    f = popen("/data/projects/protocol-7/bin/p7-link-upgrade-helper.pl gen-ephemeral 2>/dev/null", "r");
     if (!f) {
         fprintf(stderr, ":: failed to spawn crypto helper ::\n");
         return -1;
@@ -109,7 +119,7 @@ int negotiate_link_upgrade(int socket_fd, struct encryption_state *state)
 
     /* 6. Compute DH shared secret via helper */
     snprintf(cmd, sizeof(cmd),
-             "p7-link-upgrade-helper.pl compute-dh %s %s 2>/dev/null",
+             "/data/projects/protocol-7/bin/p7-link-upgrade-helper.pl compute-dh %s %s 2>/dev/null",
              client_secret, server_pubkey);
     f = popen(cmd, "r");
     if (!f) {
@@ -127,7 +137,7 @@ int negotiate_link_upgrade(int socket_fd, struct encryption_state *state)
     /* 7. Derive encryption key via helper */
     state->session_id = (unsigned int)time(NULL);
     snprintf(cmd, sizeof(cmd),
-             "p7-link-upgrade-helper.pl derive-key %s %u 2>/dev/null",
+             "/data/projects/protocol-7/bin/p7-link-upgrade-helper.pl derive-key %s %u 2>/dev/null",
              shared_secret, state->session_id);
     f = popen(cmd, "r");
     if (!f) {
@@ -143,12 +153,16 @@ int negotiate_link_upgrade(int socket_fd, struct encryption_state *state)
     pclose(f);
     strip_newline(state->key);
 
-    /* 8. Send confirm and complete */
-    if (write(socket_fd, "link-confirm-encoding\n", 22) < 0)
+    /* 8. Send encoding confirmation (none = no transport encoding) */
+    char enc_cmd[256] = {0};
+    snprintf(enc_cmd, sizeof(enc_cmd), "link-confirm-encoding none\n");
+    if (write(socket_fd, enc_cmd, strlen(enc_cmd)) < 0)
         return -1;
 
     if (read_line(socket_fd, confirm, sizeof(confirm)) < 0)
         return -1;
+    strip_newline(confirm);
+    /* Expect: "encoding-confirmed" or similar success response */
 
     if (write(socket_fd, "link-complete\n", 14) < 0)
         return -1;
