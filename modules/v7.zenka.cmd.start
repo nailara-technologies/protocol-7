@@ -47,25 +47,38 @@ my $zenka_config = <v7.start_setup.zenki.config>->{$zenka_name};
 
 if ( not defined $zenka_config ) {
     ## Check if zenka directory exists but zenka-startup.v7 is missing
-    my $zenka_dir = <system.conf_path> . "/zenki/$zenka_name";
+    my $zenka_dir    = <system.conf_path> . "/zenki/$zenka_name";
     my $startup_file = "$zenka_dir/zenka-startup.v7";
 
     if ( -d $zenka_dir and not -f $startup_file ) {
+        my $root_path = <system.root_path>;
+        ( my $startup_file_rel = $startup_file ) =~ s{^$root_path/*}{};
+        map { <[base.logs]>->( 0, ': %s', $ARG ) }
+            ( split( m{\n}s, <<~"EOL" ), '' );
+
+        ::[ attempted to start '$zenka_name' zenka from 'v7' zenka ]:.
+
+        . . not configured for v7 start-up . .
+
+        . . required file 'zenka-startup.v7' not present
+        .   :. $startup_file_rel
+        . . . see 'p7 v7.list available' for zenki-examples
+
+        EOL
         return {
             'mode' => qw| false |,
             'data' => sprintf(
-                "zenka '%s' missing required zenka-startup.v7 file\n" .
-                "  Expected: %s\n" .
-                "  This file is required for v7 to configure authentication and dependencies.\n" .
-                "  See existing zenki (e.g., web, system) for examples.",
-                $zenka_name, $startup_file
+                "zenka '%s' not configured for "
+                    . "'v7'-managed start-up, see log-buffer.,",
+                $zenka_name
             )
         };
     }
 
     return {
         'mode' => qw| false |,
-        'data' => sprintf( "zenka %s not found in start set-up ..,", $zenka_name )
+        'data' =>
+            sprintf( "zenka %s not found in start set-up ..,", $zenka_name )
     };
 }
 
@@ -193,8 +206,8 @@ return {
     'data' => sprintf( "job queued [ID=%d]", $job_id )
     }
 
-#,,,.,,.,,.,,,...,,,.,...,,.,,,,,,,..,.,.,,.,,..,,...,...,..,,...,,.,,,..,.,,,
-#NBGDDPKYEFKRF2UH45SBMAHHJUI7U77PZQHUO2JPFY7HCLP7PXV4E2XLG5XWXLNNYIL7G2JD3T3SG
-#\\\|FTMK6RAX75OHRXJIIK6MTEZYI7JUQEUUZHCWOVIRTHNMFUBHG63 \ / AMOS7 \ YOURUM ::
-#\[7]GX6CC6OURDXWEH75BEQQG35V7ZZ44NPCCL75HUGP2LFVNCU2UKCQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,.,,,.,...,,,.,,.,,.,,,,..,,,.,..,,...,..,,...,,..,..,,.,,,,.,,
+#4FEGFC4ADVQC2GQ2FYRFHUX3LFPTO54QPAENDQ32ZKBZF2HTV2KFMVFGEI2JYL63PETSYN2MOIBII
+#\\\|NZH7UQRBFVEZNXDTI3O7DZXDM6SAY7ASHCEGTWBWYW32WKFNZ3I \ / AMOS7 \ YOURUM ::
+#\[7]KSQLSG35JQ36VFAYHDA53WCA6PO6BTAUD2URECZHPCOUTHIYUWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

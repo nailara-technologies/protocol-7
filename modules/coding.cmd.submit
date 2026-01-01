@@ -13,10 +13,10 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
     # Multiline mode - parameters are in $call->{'param'}
     # For now, we'll use the 'request' or 'question' parameter as the request
     $request_str
-        = $call->{'param'}->{'request'}
-        || $call->{'param'}->{'question'}
-        || $call->{'param'}->{'description'}
-        || '';
+        //= $call->{'param'}->{'request'}
+        // $call->{'param'}->{'question'}
+        // $call->{'param'}->{'description'}
+        // '';
 
     # Auto-detect and decode BASE32-encoded parameters (pattern: ^[2-7A-Z]+$)
     if ( $request_str =~ /^[2-7A-Z]+$/ ) {
@@ -121,8 +121,8 @@ return {
     'data' => $response
 };
 
-#,,..,,..,.,.,.,,,,.,,.,.,,,.,,,.,.,.,.,.,...,..,,...,...,..,,.,,,,,.,,,,,.,,,
-#4BWB2TX3X6MFNWW3YTUGHGZABOF3XJHV7GKNPV5HQOFCI7KSWYG2I2UCSEIDQCKBV76CIJGASGLZC
-#\\\|O57SRKAEUTXYXUASGINW757SGB2TC2272NWXSBZZIGETX6F5ZU6 \ / AMOS7 \ YOURUM ::
-#\[7]57LBTF4HGJ4QXNECUAL327SDAGXFBBE2S2MT747EPKSQJHGOGQCY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,..,.,,,,.,,...,,,.,...,,,,,.,,,..,,...,...,.,.,,,,,.,.,..,,,.,,
+#EQ5AMM25VEGTYDT2CPDFDZRO3DKHPHO6IRUYN5CQELBHJ6ASQCCWVLN2OP64SUB2TMZVDMMLXUQY4
+#\\\|Z6RLENHUIU3RLHVAKFLPPU3JJ3FKZUWV5ICIR5EIX7KDY5GL4EQ \ / AMOS7 \ YOURUM ::
+#\[7]X5T32ISCNYNJTC7DUYT7LZUG7W3XQVBUBJZX3BUTF4P22AJB2QDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

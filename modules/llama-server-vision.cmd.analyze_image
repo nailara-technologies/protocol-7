@@ -10,7 +10,7 @@ use Symbol qw(gensym);
 require Imager;
 
 my ( $image_path, $prompt ) = split( m| +|, $$call{'args'}, 2 );
-$prompt //= 'Describe this image';
+$prompt //= 'describe this image';
 
 unless ( defined $image_path && length $image_path ) {
     return { 'mode' => 'false', 'data' => 'image_path required' };
@@ -25,7 +25,7 @@ my $working_image_path = $image_path;
 my $img                = Imager->new( file => $image_path );
 if ( !$img ) {
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' => "failed to load image: " . Imager->errstr
     };
 }
@@ -67,7 +67,7 @@ if ( $img_width > $max_width || $img_height > $max_height ) {
 
     unless ($scaled_img) {
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => "failed to scale image: " . Imager->errstr
         };
     }
@@ -82,7 +82,7 @@ if ( $img_width > $max_width || $img_height > $max_height ) {
 
     unless ( $temp_fh && $temp_path ) {
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => "failed to create temp file for scaled image"
         };
     }
@@ -100,7 +100,7 @@ if ( $img_width > $max_width || $img_height > $max_height ) {
     # Verify temp file was created and has content
     unless ( -f $temp_path ) {
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => "scaled image temp file not created: $temp_path"
         };
     }
@@ -108,7 +108,7 @@ if ( $img_width > $max_width || $img_height > $max_height ) {
     my $temp_size = -s $temp_path;
     unless ( $temp_size > 0 ) {
         return {
-            'mode' => 'false',
+            'mode' => qw| false |,
             'data' => "scaled image temp file is empty (0 bytes)"
         };
     }
@@ -130,12 +130,60 @@ my $binary      = <llama-server-vision.binary>;
 my $model_path  = <llama-server-vision.vision_model_path>;
 my $mmproj_path = <llama-server-vision.vision_mmproj_path>;
 
+## minimal prompt template set-up : extract later..
+#
+
+my $PROMPTS = {
+    qw| content-filter | => join(
+        ' ',
+        'The task is being a layer in a transit-filter in a peer to peer'
+            . ' network processing a publicly accessible data-pool [route].: can'
+            . ' you assert if the image is safe for work [public networks from'
+            . ' private devices by users of unknown age], as a yaml structured'
+            . ' response? the keys expected are safe-for-any-age => true or false'
+            . ' [ or error => true or false ] and reason => reason_string'
+    ),
+
+    qw| safe-for-any | => join(
+        ' ', qw{ as a content-filter for public networks : please return TRUE
+            in case the image is safe for all audiences or FALSE in
+            case it contains nudity or other age-inappropriate parts.  }
+    ),
+
+    qw| cats | => join(
+        ' ', qw{
+            Can reply 'cats = TRUE' or 'cats = FALSE' depending on wether one
+            or more elves are in the image? }
+    ),
+
+    qw| elves | => join(
+        ' ', qw{
+            Can reply 'elves = TRUE' or 'elves = FALSE' depending on wether one
+            or more elves are in the image? }
+    ),
+
+    qw| kittens | => join(
+        ' ', qw{
+            please reply 'TRUE' or 'FALSE' depending on wether one or more
+            kittens are in the image.  kittens specifically and not matching
+            cats if cats only but no kittens.
+        }
+    ),
+
+};
+
+$prompt = $PROMPTS->{'cats'}           if $prompt eq qw| :cats: |;
+$prompt = $PROMPTS->{'elves'}          if $prompt eq qw| :elves: |;
+$prompt = $PROMPTS->{'kittens'}        if $prompt eq qw| :kittens: |;
+$prompt = $PROMPTS->{'safe-for-any'}   if $prompt eq qw| :safe-for-any: |;
+$prompt = $PROMPTS->{'content-filter'} if $prompt eq qw| :content-filter: |;
+
 # Verify model paths were initialized by init_code
 unless ( $model_path && $mmproj_path ) {
     <[base.logs]>
         ->( 0, "[analyze_image] Error: Vision model not configured" );
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
         'data' =>
             'vision model not configured - check llama-server-vision initialization'
     };
@@ -146,22 +194,24 @@ my @cmd = (
     '-m',       $model_path,
     '--mmproj', $mmproj_path,
     '-ngl',     99,
-    '-c',       4096
+    '-c',       5777
     , # Context for vision encoder tokens (image scaled to 1024x1024, ~500-600 encoder tokens)
     '-t',      4,
     '--image', $working_image_path,
     '-n',      247,                   # Allow longer responses
-##  '--log-disable',  # TESTING: disabled to check if model generates without it
     '--no-warmup',
     '-mli',
     '-sp',
-    '-j',       '{"type":"object","properties":{"answer":{"type":"string"}}}',
+    ## request prompt ##
     '--prompt', $prompt,
 
-    #    '--temp', 0.2,
+    #    '--temp', 1.0,
     #    '--top-k', 20,
     #    '--top-p', 0.95,
-    #    '--min-p', 0.05
+    #    '--min-p', 0.05,
+
+#    '-j',       '{"type":"object","properties":{"answer":{"type":"string"}}}',
+##  '--log-disable',  # TESTING: disabled to check if model generates without it
 );
 
 # Set up environment for vision model
@@ -243,8 +293,8 @@ my $job = {
 );
 return { 'mode' => 'deferred' };
 
-#,,.,,,..,...,.,.,,.,,...,,,,,..,,...,...,..,,..,,...,...,..,,,,.,,..,,.,,.,,,
-#ISOMRMLLQMTUZS7I72XFUBGQ7JTPSEX6RRKHHMUPGCRCTDGX3PTMBW2RN34PUEZ4YHJFPCGD7HGZU
-#\\\|NMAMUMLWXI6INNL56DLONLNYN7HRE2SA44LHJ2TZSRBYPODKPTV \ / AMOS7 \ YOURUM ::
-#\[7]F7NH54GS7NLU6RXRORAJMVBUVYNMZXU6R6XBRDFXAMQOSVK5HYAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,...,..,,,,.,,,.,...,.,.,...,...,..,,..,,...,...,,.,,...,,..,,..,,.,,
+#A6UK72CSDL57XJGN3GBKXQPV7OVKW6BN7OKSCU2GGOL6CUSYLAH6FG5Q2JLUIW7S3DGM3DBEOYQGE
+#\\\|TNSIWHWRB3HGDGIZUDJHRW2AZCWXANREP3JMO3SKTQRJNDOAEQB \ / AMOS7 \ YOURUM ::
+#\[7]GSVWTULMFBKWKPNDIPMT55PMXE5HY7KDEXTZHNMT3PUFHIEGZWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
