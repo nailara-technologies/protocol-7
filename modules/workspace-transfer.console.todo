@@ -4,22 +4,28 @@
 # descr = todo list management (Protocol-7 styled console output)
 
 ## Protocol-7 color scheme ##
-my $reset       = "\e[0m";
+## my $reset    = "\e[0m"; ## prev.
 my $nailara_bg  = "\e[48;2;9;5;42m";
 my $blacklight  = "\e[38;2;68;39;172m";
 my $TRUE_blue   = "\e[38;2;6;71;195m";
 my $neon_orange = "\e[38;2;197;141;7m";
 my $neon_green  = "\e[38;2;71;195;6m";
+my $reset       = "\e[0m" . $TRUE_blue;
 
-my $cmd  = shift || 'list';
-my @args = @_;
+my $cmd  = shift // qw| list |;
+my @args = @ARG;
 
-my $ws_dir = workspace_transfer::chdir_workspace();
+## my $ws_dir = workspace_transfer::chdir_workspace(); ## [LLL] fix
+
+my $ws_dir = qw| /data/projects/workspace-transfer |; ## fix [LLL]
+chdir($ws_dir) or warn <[base.str.os_err]>;
+
+
 <[base.exit]>->(qw| 0110 |) unless defined $ws_dir;
 
-my $todo_file = 'TODO.md';
+my $todo_file = qw| TODO.md |;
 
-if ( $cmd eq 'list' ) {
+if ( $cmd eq qw| list | ) {
     unless ( -f $todo_file ) {
         say "";
         say "$blacklight .:[ ${TRUE_blue}TODO LIST${blacklight} ]:.$reset";
@@ -65,7 +71,7 @@ if ( $cmd eq 'list' ) {
     say "$blacklight" . "=" x 60 . "$reset";
     say "";
 
-} elsif ( $cmd eq 'add' ) {
+} elsif ( $cmd eq qw| add | ) {
     die "Usage: todo add <description>\n" unless @args;
 
     my $desc      = join( ' ', @args );
@@ -84,7 +90,7 @@ if ( $cmd eq 'list' ) {
         "$neon_green✓$reset ${TRUE_blue}Todo added:$reset $neon_orange$desc$reset";
     say "";
 
-} elsif ( $cmd eq 'done' ) {
+} elsif ( $cmd eq qw| done | ) {
     my ($item_num) = @args;
     die "Usage: todo done <item_number>\n" unless defined $item_num;
 
@@ -129,7 +135,7 @@ if ( $cmd eq 'list' ) {
     say "$neon_orange⚠$reset Item $item_num not found";
     say "";
 
-} elsif ( $cmd eq 'help' ) {
+} elsif ( $cmd eq qw| help | ) {
     say "";
     say
         "$blacklight .:[ ${TRUE_blue}TODO LIST MANAGEMENT${blacklight} ]:.$reset";
@@ -151,8 +157,8 @@ if ( $cmd eq 'list' ) {
     say "";
 }
 
-#,,,,,.,.,...,...,,,.,.,.,..,,.,,,..,,,,,,.,,,..,,...,...,.,.,...,,..,,.,,.,,,
-#4GVQZSKVTNYOK3ZUMDTSRDOSJ4KRG3FCJ6TZSPAV6TWHLUUVASPP7O5II47ANWTJ7TUEU6WWCIQKW
-#\\\|ZDDK47B535HKS7BKTU2DLZEZVVY5LHWDZUTEE7BIGE5JOYH6WCM \ / AMOS7 \ YOURUM ::
-#\[7]YR5FF7NR3FLBBM6QWAFDWKJYE22NIT2OYLYX62EW25N3BQSRQOBQ 7  DATA SIGNATURE ::
+#,,..,...,,..,,..,..,,,,,,,,,,..,,,,,,...,...,..,,...,...,..,,,.,,,..,.,,,..,,
+#BHR22OXCFUGTMPOOS6JH5AHBJFCU3TUKLDFPNATJFRVU2OAU3BHGVYEQHCXGNU6HXHOYFK7JNEUKM
+#\\\|UWXGR22E6EKFPFR6RZMVILBDDIXJMKNP7FPDHCNQ322E3QTD26K \ / AMOS7 \ YOURUM ::
+#\[7]OV4ON3JNG5YPNZN72UCMBM3TPPNP2BHOGFZYWSODB2ODLT7W3KBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
