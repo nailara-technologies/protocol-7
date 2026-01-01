@@ -18,6 +18,8 @@ my $neon_red    = $colors{'wf_neon_red'};
 my $dim_blue    = $colors{'wf_dim_blue'};
 my $nailara_bg  = $colors{'B02'};
 
+$reset .= $TRUE_blue;    ## reset to terminal blue [workaround] ##
+
 say '';
 say "$blacklight .:[ ${TRUE_blue}WORKFLOW OVERVIEW${blacklight} ]:.$reset";
 say '';
@@ -90,7 +92,7 @@ say "${blacklight}├─[ ${neon_green}CURRENT TASKS${blacklight} ]$reset";
 say "${blacklight}│$reset";
 
 ## Get todo stats if available ##
-my $todo_stats = eval { <[work.get_todo_stats]> };
+my $todo_stats = eval {<[work.get_todo_stats]>};
 if ( $todo_stats && ref $todo_stats eq 'HASH' ) {
     my $total       = $todo_stats->{total}       // 0;
     my $open        = $todo_stats->{open}        // 0;
@@ -109,7 +111,7 @@ if ( $todo_stats && ref $todo_stats eq 'HASH' ) {
 }
 
 ## Get bug stats if available ##
-my $bugs = eval { <[work.aggregate_bugs]> };
+my $bugs = eval {<[work.aggregate_bugs]>};
 if ( $bugs && ref $bugs eq 'ARRAY' && @$bugs ) {
     my $bug_count = scalar @$bugs;
     say "${blacklight}│$reset  Bugs: ${neon_red}$bug_count open$reset";
@@ -198,8 +200,7 @@ my %context = (
 );
 
 ## Calculate relevance and get top suggestions ##
-my $suggestions
-    = <[work.calculate_suggestion_relevance]>->( \%context, 8 );
+my $suggestions = <[work.calculate_suggestion_relevance]>->( \%context, 8 );
 
 ## Apply color formatting to suggestions ##
 my @formatted_suggestions;
@@ -253,8 +254,8 @@ say '';
 
 return FALSE;
 
-#,,.,,,.,,,,,,..,,.,.,.,,,,,.,,,.,.,,,,,,,,,,,..,,...,...,,,,,,,,,,.,,.,,,..,,
-#PFKRNFA52IJFY5WFCGAC5ARMM44EDJC4K3RVFQJVF37VUSNYS6JJ46HOWCCIXCVI7ZTONGWLQFFWU
-#\\\|YDPL2BSEMWB62TJQ5OC6X2R3ZDDKMM7F2PTX4OUKAS7J7VSAI6R \ / AMOS7 \ YOURUM ::
-#\[7]SW6RY77YV3XVL6UIIN6VVUMBSSYC2Q3LGF7PMQN3SGLUNFRRUKCY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,..,,,,,,,,,,..,..,,.,.,...,,,,,..,,...,...,...,,.,,.,.,,,,,..,,
+#M4EHM52HEOH6QFYWIEP6EQASU2ZW2OXWYDA4HP7VNPQ3LUOBFI7MUDG6GEK5RXRJFYYUULPJULSE4
+#\\\|OTNF6JXPEAX4HZIZNAKC2LMXAGS4PXHS2UBGNNWKEK5IMTMHADS \ / AMOS7 \ YOURUM ::
+#\[7]UUM75AN7XD6NX3DTGHB3KX4L2NOMGOHCMAFW3I2TRGP7OOH3GCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
