@@ -1,0 +1,43 @@
+## [:< ##
+
+# name = coding.task.queue_complete
+# descr = mark task as completed and move to completed list
+# purpose = Queue operation: Finalize successful work
+
+my ( $task_id, $result, $success ) = @ARG;
+
+# Get persistent storage refs
+my $queue_ref     = <coding.task.queue>;
+my $active_ref    = <coding.task.active>;
+my $completed_ref = <coding.task.completed>;
+
+return {
+    success => FALSE,
+    error   => "task not found : $task_id"
+    }
+    unless exists $queue_ref->{$task_id};
+
+my $task = $queue_ref->{$task_id};
+
+$task->{execution}->{status}    = qw| completed |;
+$task->{execution}->{completed} = <[base.time]>;
+$task->{execution}->{result}    = $result if defined $result;
+$task->{execution}->{success}   = $success // 1;
+
+# Move from active to completed
+@$active_ref = grep { $_ ne $task_id } @$active_ref;
+push @$completed_ref, $task_id;
+
+<[base.logs]>->( 1, "task completed : %s", $task_id );
+
+return {
+    success => TRUE,
+    task_id => $task_id,
+    message => "Task completed: $task_id"
+};
+
+#,,.,,,,,,,.,,.,.,,,,,,.,,.,,,,,.,...,,,.,...,.,.,...,...,,..,,..,.,.,..,,,,.,
+#BNRCWJDIC7SFZKUNHFAI2D2QIE7AR3STD6LYV4MIQWOEWJYFOUTS5VOHFKQWEIYIVTPELYBIJ56XO
+#\\\|FK7RA7FAIC42P47HGT4LKXTSX4N43MCSURRJDPXZNSOTU5QMQUC \ / AMOS7 \ YOURUM ::
+#\[7]PLQRFYKG4AA5YACEGME2SNM4ZKDWISIMOVPWROMNS5XNKHTCHQDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
