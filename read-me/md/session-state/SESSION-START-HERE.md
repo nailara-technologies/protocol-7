@@ -1,22 +1,16 @@
 # 🚀 New Session? Start Here!
 
-**Quick Start Command:**
-**Alternative: Check `.env.session` for environment-based context**
-
-```bash
-cd /data/projects/protocol-7 && ./bin/Protocol-7 workflow overview
-```
-
-**Then Read:**
-1. `data/yaml/project-context/next-session-start.yaml` - Complete startup guide
-2. `data/yaml/project-context/session-2025-11-12-workflow-enhancements.yaml` - Latest session summary
-3. `data/yaml/project-context/workflow-zenka-patterns.yaml` - All Protocol-7 patterns
+**Latest Session (2026-01-01):**
+Fixed critical bugs in queue system and signature verification/repair
 
 **Current Branch:**
-`claude/access-frozen-chat-context-011CV3grn6V9wWuKmDAwQYFU`
+`base`
 
 **Repository:**
 `/data/projects/protocol-7`
+
+**Latest Commit:**
+`05007bc60` - Fix critical bugs: Queue persistence, file reference handling, and signature validation
 
 ---
 
