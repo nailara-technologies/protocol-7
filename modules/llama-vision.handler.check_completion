@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = llama-server-vision.handler.check_completion
+# name  = llama-vision.handler.check_completion
 # descr = check if vision job is complete (process exited AND all data read)
 
 my $watcher = shift->w;
@@ -8,7 +8,7 @@ my $job_id  = $watcher->data;
 
 <[base.logs]>->( 2, "[check_completion] timer fired for job=%s", $job_id );
 
-my $vision_job = <llama-server-vision.jobs>->{$job_id};
+my $vision_job = <llama-vision.jobs>->{$job_id};
 
 unless ( defined $vision_job ) {
     <[base.logs]>->( 1, "[check_completion] job not found: %s", $job_id );
@@ -86,7 +86,7 @@ $vision_job->{'processed'} = 1;
 
 # Cancel the timer
 $watcher->cancel if $watcher->is_active;
-delete <llama-server-vision.timers>->{$job_id};
+delete <llama-vision.timers>->{$job_id};
 
 <[base.logs]>->( 1, "[check_completion] process exited, processing output" );
 
@@ -263,13 +263,13 @@ if ( length $payload ) {
 # Schedule cleanup after 70 seconds
 <[event.add_timer]>->(
     {   'after'   => 70,
-        'handler' => qw| llama-server-vision.handler.job_cleanup |,
+        'handler' => qw| llama-vision.handler.job_cleanup |,
         'data'    => $job_id
     }
 );
 
-#,,..,,,.,..,,..,,,.,,..,,.,,,..,,...,.,.,,.,,..,,...,...,,..,...,,.,,,,.,..,,
-#JTTKJWO4GIMNIMPZQJPVITQJ3EVJCWSFIG7O7WYJJ2ENNNAGW2ITJDL2ERQJO2GWUXHJC3FJ3H5J2
-#\\\|TMBR7S6KCUS5U5EJA42JKBO6VKZNI3PFYMIAM7YWLNYRRC5THSW \ / AMOS7 \ YOURUM ::
-#\[7]4RZNYJJ4B2JZY7XVGMDTXXHCIUYZOAADFYFLTHWDGPIY5HRPJSCQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,,.,.,,,.,,,,..,...,,,.,,..,..,,..,,...,...,.,.,..,,.,.,,,,,.,,,
+#QOLIN7JPAA3E32F4ROULBZD3GJJ5CIG2KSPMJWE4YOK5RCM5YHGDGP75HKVX7M6OQMKTKCWB2GTOG
+#\\\|SY35BFM7RWYQ7CVVVXQ75NP5UCB7SWLHOSCYSH2OCPA34LV3TNL \ / AMOS7 \ YOURUM ::
+#\[7]JBBQGE3O5F7P4Q4NMOVW2FYNO25LNPCQ7O7XELH7UQOWJ26L72AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

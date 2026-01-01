@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = llama-server-vision.cmd.get_full_output
+# name  = llama-vision.cmd.get_full_output
 # descr = retrieve both stdout and stderr buffers for debugging
 
 my $job_id = $call->{'args'};
@@ -9,11 +9,11 @@ unless ( defined $job_id && length $job_id ) {
     return { 'mode' => 'false', 'data' => 'job_id required' };
 }
 
-unless ( exists <llama-server-vision.jobs>->{$job_id} ) {
+unless ( exists <llama-vision.jobs>->{$job_id} ) {
     return { 'mode' => 'false', 'data' => 'no such job' };
 }
 
-my $job = <llama-server-vision.jobs>->{$job_id};
+my $job = <llama-vision.jobs>->{$job_id};
 
 my $output_str
     = "=== STDOUT (" . length( $job->{'output'} ) . " bytes) ===\n";
@@ -33,8 +33,8 @@ return {
     'data' => $output_str
 };
 
-#,,.,,.,.,,,,,,,.,..,,.,.,.,,,.,,,.,,,.,.,.,,,..,,...,...,..,,,..,.,,,...,..,,
-#KFBMSCJSZNYD7PKL7BPMYPGQ5JCLXL2FZ34T3WY4YKNVQ5FM6CBAO52TVJS5OTXSE7ZPNYVSOEDWA
-#\\\|QSGYBVXTXBKMBRZK4FQAVFLUQTBXUPFDNO3C6363BWQOEEJ3OJK \ / AMOS7 \ YOURUM ::
-#\[7]N4JJESKCG3Z4JZEZGZPR5TNPQNGA35UKHC5LDRVJTYZGXBBMHUDQ 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,.,.,.,,,..,,..,,...,.,.,,.,,.,,,..,,...,...,...,,,.,..,,..,,.,,,
+#JC6DYJD4IYMFAWB3R5FRUOSKSKNCX4LFJECWSFLP74G42Y545ORKU5NXSKJ45IQJISDSTDI67CEQE
+#\\\|RPH3XIMDUQTN6ZAJ2ORUJGMNRLS4JOMTXU6G3GFEP5ENEA76MM2 \ / AMOS7 \ YOURUM ::
+#\[7]RIGAYB4OOF6B45TEWLRIJN4TZYQLHTH3QTCKEDXUM2C5RZTK5GAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

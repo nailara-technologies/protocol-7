@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = llama-server-vision.cmd.get_full_stderr
+# name  = llama-vision.cmd.get_full_stderr
 # descr = retrieve full stderr output for debugging
 
 my $job_id = $call->{'args'};
@@ -9,11 +9,11 @@ unless ( defined $job_id && length $job_id ) {
     return { 'mode' => 'false', 'data' => 'job_id required' };
 }
 
-unless ( exists <llama-server-vision.jobs>->{$job_id} ) {
+unless ( exists <llama-vision.jobs>->{$job_id} ) {
     return { 'mode' => 'false', 'data' => 'no such job' };
 }
 
-my $job = <llama-server-vision.jobs>->{$job_id};
+my $job = <llama-vision.jobs>->{$job_id};
 
 unless ( defined $job->{'stderr'} && length $job->{'stderr'} ) {
     return { 'mode' => 'false', 'data' => 'no stderr captured for this job' };
@@ -24,8 +24,8 @@ return {
     'data' => $job->{'stderr'}
 };
 
-#,,.,,.,,,...,,,,,.,.,,,,,,.,,,..,,.,,,,,,,..,..,,...,...,,..,.,.,,,,,...,.,,,
-#62WL6LX2OQL6TYXERICKMWW3GIZUOVYJPG2S76UABPIB3QM7JJTHVBYLFPCNYUDZCF6D7LEG6NLOE
-#\\\|PI5OGDDGOSYHPXB7UTG6PBUFBXKSKSI3GFJFPFN4MVWBTUSC754 \ / AMOS7 \ YOURUM ::
-#\[7]CVSD4ZGOT4KRBN27WGA7DXU4JWAG2K6ZOLY3MWIPFOG3RUA7OKBY 7  DATA SIGNATURE ::
+#,,,,,..,,...,..,,,.,,,..,...,...,,,.,,,,,..,,..,,...,...,.,,,,,,,,..,,,.,.,,,
+#NAPFMN6BKQZT3ZBSIFYJYIHRUVIADWTD7FZGWRWI3APLU4SFDGVYUQAU4Q6GVUR6BZCZ5EEPQHHMI
+#\\\|KL74CEMWRIAOWKTRYSUG2TMAG3Z52OLRMIP7Z2MKEQRPGR732KZ \ / AMOS7 \ YOURUM ::
+#\[7]2KSYCEMOIWHJ6FXRXQVFOQ5ZOEOJEE5WDVUHGRLGZOWKE2PJFQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

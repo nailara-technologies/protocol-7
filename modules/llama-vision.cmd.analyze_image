@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = llama-server-vision.cmd.analyze_image
+# name  = llama-vision.cmd.analyze_image
 # descr = spawn image analysis with vision model (Qwen3-VL-4B optimized)
 
 use IPC::Open3;
@@ -32,8 +32,8 @@ if ( !$img ) {
 
 my $img_width  = $img->getwidth;
 my $img_height = $img->getheight;
-my $max_width  = <llama-server-vision.max_image_width>  // 1024;
-my $max_height = <llama-server-vision.max_image_height> // 1024;
+my $max_width  = <llama-vision.max_image_width>  // 1024;
+my $max_height = <llama-vision.max_image_height> // 1024;
 
 <[base.logs]>->(
     1, "[analyze_image] image dimensions: %dx%d (max: %dx%d)",
@@ -126,23 +126,21 @@ if ( $img_width > $max_width || $img_height > $max_height ) {
 );
 
 # Spawn vision CLI process immediately (4B model loads fast: 6.5s)
-my $binary      = <llama-server-vision.binary>;
-my $model_path  = <llama-server-vision.vision_model_path>;
-my $mmproj_path = <llama-server-vision.vision_mmproj_path>;
+my $binary      = <llama-vision.binary>;
+my $model_path  = <llama-vision.vision_model_path>;
+my $mmproj_path = <llama-vision.vision_mmproj_path>;
 
 ## minimal prompt template set-up : extract later..
 #
 
 my $PROMPTS = {
-    qw| content-filter | => join(
-        ' ',
+    qw| content-filter | => join( ' ',
         'The task is being a layer in a transit-filter in a peer to peer'
             . ' network processing a publicly accessible data-pool [route].: can'
             . ' you assert if the image is safe for work [public networks from'
             . ' private devices by users of unknown age], as a yaml structured'
             . ' response? the keys expected are safe-for-any-age => true or false'
-            . ' [ or error => true or false ] and reason => reason_string'
-    ),
+            . ' [ or error => true or false ] and reason => reason_string' ),
 
     qw| safe-for-any | => join(
         ' ', qw{ as a content-filter for public networks : please return TRUE
@@ -185,7 +183,7 @@ unless ( $model_path && $mmproj_path ) {
     return {
         'mode' => qw| false |,
         'data' =>
-            'vision model not configured - check llama-server-vision initialization'
+            'vision model not configured - check llama-vision initialization'
     };
 }
 
@@ -215,8 +213,8 @@ my @cmd = (
 );
 
 # Set up environment for vision model
-local $ENV{'LD_LIBRARY_PATH'} = <llama-server-vision.lib_path> . ':'
-    . ( $ENV{'LD_LIBRARY_PATH'} // '' );
+local $ENV{'LD_LIBRARY_PATH'}
+    = <llama-vision.lib_path> . ':' . ( $ENV{'LD_LIBRARY_PATH'} // '' );
 
 # Spawn vision CLI process with stdin redirected from /dev/null
 # This prevents the model from waiting for stdin input
@@ -257,7 +255,7 @@ foreach my $fh ( $rdr, $err ) {
 }
 
 # Generate unique job ID
-my $job_id = <[base.gen_id]>->(<llama-server-vision.jobs>);
+my $job_id = <[base.gen_id]>->(<llama-vision.jobs>);
 
 # Create job entry with filehandles and output buffers
 my $job = {
@@ -275,14 +273,14 @@ my $job = {
 };
 
 # Store job in queue
-<llama-server-vision.jobs>->{$job_id} = $job;
+<llama-vision.jobs>->{$job_id} = $job;
 
 <[base.logs]>->( 1, "[analyze_image] spawned: job=%s pid=%d", $job_id, $pid );
 
 # Register completion timer (polls for process exit with non-blocking waitpid)
-<llama-server-vision.timers>->{$job_id} = <[event.add_timer]>->(
+<llama-vision.timers>->{$job_id} = <[event.add_timer]>->(
     {   'interval' => 0.5,
-        'handler'  => qw| llama-server-vision.handler.check_completion |,
+        'handler'  => qw| llama-vision.handler.check_completion |,
         'data'     => $job_id
     }
 );
@@ -293,8 +291,8 @@ my $job = {
 );
 return { 'mode' => 'deferred' };
 
-#,,,.,.,,,...,..,,,,.,,,.,...,.,.,...,...,..,,..,,...,...,,.,,...,,..,,..,,.,,
-#A6UK72CSDL57XJGN3GBKXQPV7OVKW6BN7OKSCU2GGOL6CUSYLAH6FG5Q2JLUIW7S3DGM3DBEOYQGE
-#\\\|TNSIWHWRB3HGDGIZUDJHRW2AZCWXANREP3JMO3SKTQRJNDOAEQB \ / AMOS7 \ YOURUM ::
-#\[7]GSVWTULMFBKWKPNDIPMT55PMXE5HY7KDEXTZHNMT3PUFHIEGZWCQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,..,,,..,,.,,...,.,,,..,,..,,..,,..,,...,...,,..,.,,,.,.,.,.,,..,
+#BD44B3N72AOKAZC2Y6OP7ARJPHKO2EGTHTMVW3YOBASAYK4B5KAYEG67RNO57UNZHCYJTW3SJCAVI
+#\\\|33B6CWR5DYTC3R7AXEFXU2NGAVD3NV3RXZUR7T4TKJC5CUP2GZ5 \ / AMOS7 \ YOURUM ::
+#\[7]WZBSOFNQMIV4FVELZTAVMUOJQQ5MZOH3EDKJFMFLWKYKI27FUIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

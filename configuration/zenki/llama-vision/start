@@ -1,0 +1,37 @@
+
+ .:[ protocol-7 llama-vision - GPU-accelerated vision analysis with job dispatch ]:.
+
+[load_config_file:'shared-params']
+
+### access control ###
+access.cmd.usr.cube = commands heart reload verify-instance \
+                      list show-buffer buffer-erase \
+                      status info * ## <-- restrict some later
+
+access.cmd.usr.parent = commands reload list show-buffer heart *
+
+## Module loading ##
+## Job-dispatch architecture: all llama-vision.* modules auto-loaded
+modules.load = auth net protocol io.unix io.ip crypt.C25519 llama-vision \
+                                                            devmod  ## <-- development.., ##
+[load_modules:<modules.load>]
+
+system.verbosity.zenka_buffer  = 2
+system.verbosity.console       = 2
+system.verbosity.zenka_logfile = 2
+
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[base.get_session_id]
+
+[zenka.loop]
+
+#,,.,,,..,,..,.,.,,.,,,.,,.,,,,.,,,..,..,,,,.,..,,...,...,...,,,,,,..,,,.,...,
+#YA2GT2G42LQCC4WLBWRIUCPRHNJYSIW3WLSFNJXEQGXSCV46IKFI63VCHPY4BK2RDCNMJP77M4GLS
+#\\\|KINQ2CA7X2JH4PS2MBV24PZ5KTF2TAVTDN3GFML6JMOA5UBCD65 \ / AMOS7 \ YOURUM ::
+#\[7]NZCUEJMX7C7DNORMNBL2LLOQWD7U4WAYY6NHBP4GMOJ7IYTJFIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

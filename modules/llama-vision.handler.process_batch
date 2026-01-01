@@ -1,9 +1,9 @@
 ## [:< ##
 
-# name  = llama-server-vision.handler.process_batch
+# name  = llama-vision.handler.process_batch
 # descr = process batched image analysis requests with single model load
 
-my $batch = <llama-server-vision.batch_queue>;
+my $batch = <llama-vision.batch_queue>;
 return unless scalar @$batch > 0;
 
 <[base.logs]>->(
@@ -14,13 +14,13 @@ return unless scalar @$batch > 0;
 
 # Clear batch timer reference - we'll store it in a scalar
 my $batch_timer_ref;
-$batch_timer_ref = <llama-server-vision.batch_timer>;
+$batch_timer_ref = <llama-vision.batch_timer>;
 
 # Extract first request to use for model loading
 my $first_req   = $batch->[0];
-my $binary      = <llama-server-vision.binary>;
-my $model_path  = <llama-server-vision.vision_model_path>;
-my $mmproj_path = <llama-server-vision.vision_mmproj_path>;
+my $binary      = <llama-vision.binary>;
+my $model_path  = <llama-vision.vision_model_path>;
+my $mmproj_path = <llama-vision.vision_mmproj_path>;
 
 use IPC::Open3;
 use Symbol qw(gensym);
@@ -39,8 +39,8 @@ my @cmd = (
 );
 
 # Set up environment for vision model
-local $ENV{'LD_LIBRARY_PATH'} = <llama-server-vision.lib_path> . ':'
-    . ( $ENV{'LD_LIBRARY_PATH'} // '' );
+local $ENV{'LD_LIBRARY_PATH'}
+    = <llama-vision.lib_path> . ':' . ( $ENV{'LD_LIBRARY_PATH'} // '' );
 
 # Spawn vision CLI process
 my ( $wtr, $rdr, $err );
@@ -76,7 +76,7 @@ close($wtr);    # We don't send any stdin
 );
 
 # Create batch job entry with COPY of requests (not reference to queue)
-my $batch_id  = <[base.gen_id]>->(<llama-server-vision.jobs>);
+my $batch_id  = <[base.gen_id]>->(<llama-vision.jobs>);
 my $batch_job = {
     'batch_id'   => $batch_id,
     'pid'        => $pid,
@@ -88,27 +88,27 @@ my $batch_job = {
     'requests'   => [@$batch],   # Store COPY of requests for response routing
 };
 
-<llama-server-vision.jobs>->{$batch_id} = $batch_job;
+<llama-vision.jobs>->{$batch_id} = $batch_job;
 
 # Register non-blocking I/O handlers for stdout and stderr
 $batch_job->{'rdr_io'} = <[event.add_io]>->(
     {   'fd'      => $rdr,
-        'handler' => 'llama-server-vision.handler.read_batch_output',
+        'handler' => 'llama-vision.handler.read_batch_output',
         'data'    => { 'batch_id' => $batch_id, 'stream' => 'stdout' }
     }
 );
 
 $batch_job->{'err_io'} = <[event.add_io]>->(
     {   'fd'      => $err,
-        'handler' => 'llama-server-vision.handler.read_batch_output',
+        'handler' => 'llama-vision.handler.read_batch_output',
         'data'    => { 'batch_id' => $batch_id, 'stream' => 'stderr' }
     }
 );
 
 # Register completion checker timer
-<llama-server-vision.timers>->{$batch_id} = <[event.add_timer]>->(
+<llama-vision.timers>->{$batch_id} = <[event.add_timer]>->(
     {   'interval' => 0.2,
-        'handler'  => 'llama-server-vision.handler.check_batch_completion',
+        'handler'  => 'llama-vision.handler.check_batch_completion',
         'data'     => $batch_id
     }
 );
@@ -116,8 +116,8 @@ $batch_job->{'err_io'} = <[event.add_io]>->(
 # Clear batch queue for next batch
 @$batch = ();
 
-#,,.,,,..,,.,,,,,,,,,,.,,,...,,..,...,,,,,...,..,,...,...,.,.,...,.,,,.,,,.,.,
-#7QUFQ6WGPHQBMV7RLEV2R66MJ5WV57DYP2BC5I6UYKD2U5JP7G2UL7YMWZ452ZBUW2CJB6GDCIBVU
-#\\\|2F5CJYQ4WLBOAISHKS5VWD4V6MHTEGZ7IHBSFIS32CLMWXHJRZT \ / AMOS7 \ YOURUM ::
-#\[7]KU2MTEWSGAED7YDZU4SEM4KBUDHS53MME3IKHFTRMDSNX3GANKAQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,..,,,,.,.,,,.,,,..,,,,.,,,.,...,..,,...,...,.,,,.,.,..,,..,,...,
+#IKNVXOSGCSD7DU3BUIK7CJNOC2P6EU7ASWT4XV3OI5V3FQ4SPHMWSNTU4AWDUQMFNCQP4NKZZ3JU4
+#\\\|I7NA7IBBHB4PFC33BCFZEXPX55TDAC2PD56WYME6P57ZWA5I6H3 \ / AMOS7 \ YOURUM ::
+#\[7]AT476KI43SMLRZYT2ZZBJMONKET7NZBI3BNUUNCBALGLZVSKGSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
