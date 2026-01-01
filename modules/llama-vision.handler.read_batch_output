@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = llama-server-vision.handler.read_batch_output
+# name  = llama-vision.handler.read_batch_output
 # descr = non-blocking I/O handler - read output chunks from batched vision CLI
 
 my $event   = shift->w;
@@ -10,7 +10,7 @@ my $io_data = $event->data;
 my $batch_id = $io_data->{'batch_id'};
 my $stream   = $io_data->{'stream'};
 
-my $batch_job = <llama-server-vision.jobs>->{$batch_id};
+my $batch_job = <llama-vision.jobs>->{$batch_id};
 
 unless ( defined $batch_job ) {
     $event->cancel if $event->is_active;
@@ -42,8 +42,8 @@ if ( $bytes <= 0 ) {
     );
 }
 
-#,,,.,,,,,...,.,.,,,.,,,,,..,,...,..,,...,.,,,..,,...,..,,.,,,,,,,,..,,.,,,.,,
-#HGNQGUQ5OH3RIOKI6STQYB7CRE4TIDQKIT4GFDCU55W2FCUNTMNLFCZBMXXUPVA6NDGEANN6DXRBQ
-#\\\|4XUTPTTXRESRFDKQMETQ4N7SX3DM6AEFRT4NQVPV5UWQEYOWZPL \ / AMOS7 \ YOURUM ::
-#\[7]PJXCWFZZEASG7BI6KQFBMXGRU22ZXXFQS5FZGYPRXRN6HA4WBGDI 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,,,,.,,,.,,,...,,,,,,,.,,.,,,,,,..,,...,...,.,.,,..,.,.,,,.,.,,,
+#FPO73C6KE34F72T7TE7P2FQGOUFCF2KG7QNLHTJ2BEZTYHQ6VLEAAWF2BBG37TM2HO5CNRPSWHJB6
+#\\\|P4KABAWHKKODUWIEMA2APQDPTREKWFMGQSQRQXSHQDRBCVXFILP \ / AMOS7 \ YOURUM ::
+#\[7]TKHARLDG6QA5MKMLF5MRRPLAVFCU3TNRL7HUJ5KRYLTVTGDXXUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

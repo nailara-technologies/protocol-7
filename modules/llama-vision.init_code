@@ -1,37 +1,35 @@
 ## [:< ##
 
-# name  = llama-server-vision.init_code
+# name  = llama-vision.init_code
 # descr = GPU-accelerated vision analysis with job dispatch architecture
 
-<[base.log]>->( 1, 'llama-server-vision zenka starting.,' );
+<[base.log]>->( 1, 'llama-vision zenka starting.,' );
 
 # Imager module will be loaded in analyze_image command when needed
 
 # Vision model binary and library configuration
-<llama-server-vision.binary>
-    = '/data/source/ik_llama.cpp/llama-mtmd-cli-cuda';
-<llama-server-vision.lib_path> = '/data/source/ik_llama.cpp';
-<llama-server-vision.log_file>
-    = '/var/log/protocol-7/llama-server-vision.log';
-<llama-server-vision.log_dir>  = '/var/log/protocol-7';
-<llama-server-vision.log_mask> = 0750;
+<llama-vision.binary>   = '/data/source/ik_llama.cpp/llama-mtmd-cli-cuda';
+<llama-vision.lib_path> = '/data/source/ik_llama.cpp';
+<llama-vision.log_file> = '/var/log/protocol-7/llama-vision.log';
+<llama-vision.log_dir>  = '/var/log/protocol-7';
+<llama-vision.log_mask> = 0750;
 
 # Ensure log directory exists with proper permissions (only if running as root)
 if ( $EUID == 0 ) {
     <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
     <[file.make_path]>->(
-        <llama-server-vision.log_dir>, <llama-server-vision.log_mask>,
+        <llama-vision.log_dir>, <llama-vision.log_mask>,
         <system.amos-zenka-user>
         )
         and <[base.logs]>->(
-        1, "[llama-server-vision] Created log directory [%s/]",
-        <llama-server-vision.log_dir>
-        ) if !-d <llama-server-vision.log_dir>;
+        1, "[llama-vision] Created log directory [%s/]",
+        <llama-vision.log_dir>
+        ) if !-d <llama-vision.log_dir>;
 }
 
 # Load vision model configuration from centralized models.yaml
 <[base.logs]>->(
-    1, "[llama-server-vision] Loading vision model config from models.yaml"
+    1, "[llama-vision] Loading vision model config from models.yaml"
 );
 
 <[base.perlmod.autoload]>->(qw| YAML::Tiny |);
@@ -56,71 +54,70 @@ if ( -f $config_file ) {
         } else {
             <[base.log]>->(
                 0,
-                "[llama-server-vision] Error: qwen3-vl-4b-instruct not found in models.yaml"
+                "[llama-vision] Error: qwen3-vl-4b-instruct not found in models.yaml"
             );
         }
     }
 } else {
     <[base.log]>->(
-        0,
-        "[llama-server-vision] Error: models.yaml not found at $config_file"
+        0, "[llama-vision] Error: models.yaml not found at $config_file"
     );
 }
 
 if ( $model_path && $mmproj_path ) {
 
     # Trust YAML-defined model paths from models registry
-    <llama-server-vision.vision_model_path>  = $model_path;
-    <llama-server-vision.vision_mmproj_path> = $mmproj_path;
+    <llama-vision.vision_model_path>  = $model_path;
+    <llama-vision.vision_mmproj_path> = $mmproj_path;
 
     <[base.logs]>->(
-        1, "[llama-server-vision] Vision model configured: %s", $model_path
+        1, "[llama-vision] Vision model configured: %s", $model_path
     );
 } else {
-    <llama-server-vision.vision_model_path>  = undef;
-    <llama-server-vision.vision_mmproj_path> = undef;
+    <llama-vision.vision_model_path>  = undef;
+    <llama-vision.vision_mmproj_path> = undef;
 
     <[base.log]>->(
         0,
-        "[llama-server-vision] Error: Vision model configuration incomplete - check models.yaml"
+        "[llama-vision] Error: Vision model configuration incomplete - check models.yaml"
     );
 }
 
-<[base.logs]>->( 1, "Vision binary: %s", <llama-server-vision.binary> );
+<[base.logs]>->( 1, "Vision binary: %s", <llama-vision.binary> );
 <[base.logs]>->(
     1,
     "Vision model configuration will be fetched from models zenka at runtime"
 );
 
 # Initialize job queue for vision analysis tasks
-<llama-server-vision.jobs> //= {};
+<llama-vision.jobs> //= {};
 
 # Initialize timers hash for process watchers
-<llama-server-vision.timers> //= {};
+<llama-vision.timers> //= {};
 
 # Initialize batch queue for request batching (amortizes model loading)
-<llama-server-vision.batch_queue> //= [];
-<llama-server-vision.batch_timer> = undef;
-<llama-server-vision.batch_window_ms>
+<llama-vision.batch_queue> //= [];
+<llama-vision.batch_timer> = undef;
+<llama-vision.batch_window_ms>
     = 100;    # Collect requests for 100ms before processing
 
 <[base.logs]>->( 1, "Vision job dispatch system initialized.," );
 <[base.logs]>->(
     1,
     "Batch processing enabled (window: %dms)",
-    <llama-server-vision.batch_window_ms>
+    <llama-vision.batch_window_ms>
 );
 
 # Image scaling configuration (vision models typically expect 224-1024 range)
-<llama-server-vision.max_image_width>  = 1024;    # Scale down if wider
-<llama-server-vision.max_image_height> = 1024;    # Scale down if taller
+<llama-vision.max_image_width>  = 1024;    # Scale down if wider
+<llama-vision.max_image_height> = 1024;    # Scale down if taller
 
 # Temp files are managed by base.file.temp with automatic cleanup via end_code callbacks
 
 0;    # Return success for module initialization
 
-#,,.,,...,.,.,,..,,,.,.,,,,..,..,,..,,,..,..,,..,,...,...,.,,,...,,,.,,..,..,,
-#7XOZ54L5TRRLFTPTDAZIZ4LXZ2AXQ52NOAQLF5X5FRCOXQ6CEK6PC4U2S47LDFIFHMK5LPNYY53Q6
-#\\\|JUPAPOWPPOEC2WK4RE7RBITKD3WFKRPDBDQC7BKY3F2TOJJ4PMY \ / AMOS7 \ YOURUM ::
-#\[7]GTHBSXQNG4OL4LO4RXEVA6SJ4PPIPXIWMFDIRI5AURXKMV6LOIBQ 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,..,,,,,,,,,,..,,,.,,,.,,,,,,.,,..,,...,...,,,,,.,.,...,.,,,,.,,
+#QO6QGYXUVSC3IMC2XSQNFI6SS7XRNX6OOPWESU6AFYK4PZF3UHXKBUNKZR6K72FMHL6NBJCXJFGIM
+#\\\|PY4NUICUDZA4J733MPYF54CALU3EOLQG3KUBZZJYQ7VBBFPTW2D \ / AMOS7 \ YOURUM ::
+#\[7]VAT6GGJ6D36TRPQDV63VREE2QKFAETRXFEC6SDVHNS7O72D3IUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

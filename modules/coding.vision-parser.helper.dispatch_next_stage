@@ -19,13 +19,13 @@ if ( $stage eq 'analyzing' ) {
     # STAGE 1: Spawn vision analysis via Protocol-7 routing (inter-zenka call)
     <[base.logs]>->(
         1,
-        '[vision-parser] STAGE 1: routing vision analysis to llama-server-vision job=%s',
+        '[vision-parser] STAGE 1: routing vision analysis to llama-vision job=%s',
         $job_id
     );
 
     # Call vision zenka via Protocol-7 command routing (through cube)
     my $vision_result = <[base.protocol-7.command.send.local]>->(
-        {   'command'   => 'cube.llama-server-vision.analyze_image',
+        {   'command'   => 'cube.llama-vision.analyze_image',
             'call_args' =>
                 { 'args' => "$job->{'image_path'} $job->{'vision_prompt'}" }
         }
@@ -91,8 +91,8 @@ if ( $stage eq 'analyzing' ) {
 
 return;
 
-#,,..,..,,,..,..,,,.,,,.,,...,.,,,.,,,,,,,,,,,..,,...,...,..,,...,...,.,,,,,,,
-#HM6Q4MQH2E3SQBLPB32KLXYYPB7GVOBW55M6C2ANXXKCS62I3HKOQPGGY7IPBY3BS6UGJPBLI5YE6
-#\\\|5QWAHUANJWGRUDD6AEUT7IUXVT7BDSQZG3PSQ5CRMHRINUNOXLA \ / AMOS7 \ YOURUM ::
-#\[7]R65IAVPRAQFZP6YNIGAUSYSFEXZ3DD2E3HGPJCKP42NAQP7BZQDQ 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,,,,,,,,,.,,,.,...,..,,,,.,,.,,..,,...,...,...,.,.,.,,,...,.,.,
+#XBV6DDVDU6LX2MAE7NUQZD4MBZH3M2XRKIONNQEUM3XZFZJ4U5XNICJJYR6WP6HYNRYFLBBTS6OMU
+#\\\|O35M2BFT4L3JMSJFO7NAMPDQT6KVSGRVOSBYOHG7E4AC6QR4GXI \ / AMOS7 \ YOURUM ::
+#\[7]5ARSO5WENGUZXKJTLNX6ZKDY5IVQHSWJEGNRU2KKTH45ZXCCNKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

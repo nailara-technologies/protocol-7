@@ -1,12 +1,12 @@
 ## [:< ##
 
-# name  = llama-server-vision.handler.check_batch_completion
+# name  = llama-vision.handler.check_batch_completion
 # descr = check if batched vision job is complete and route responses to individual requests
 
 my $watcher  = shift->w;
 my $batch_id = $watcher->data;
 
-my $batch_job = <llama-server-vision.jobs>->{$batch_id};
+my $batch_job = <llama-vision.jobs>->{$batch_id};
 
 unless ( defined $batch_job ) {
     $watcher->cancel if $watcher->is_active;
@@ -26,7 +26,7 @@ return unless $both_closed;
 
 # Process exited AND all data read - now send responses
 $watcher->cancel if $watcher->is_active;
-delete <llama-server-vision.timers>->{$batch_id};
+delete <llama-vision.timers>->{$batch_id};
 
 # Trim whitespace
 $batch_job->{'output'} =~ s/^\s+|\s+$//g;
@@ -67,13 +67,13 @@ if ( length $batch_job->{'output'} ) {
 # Schedule cleanup after 60 seconds
 <[event.add_timer]>->(
     {   'after'   => 60,
-        'handler' => 'llama-server-vision.handler.job_cleanup',
+        'handler' => 'llama-vision.handler.job_cleanup',
         'data'    => $batch_id
     }
 );
 
-#,,.,,,,.,,.,,,,.,,,.,...,,,.,,,.,.,,,..,,..,,..,,...,...,,..,..,,,..,,,,,...,
-#FHS3KRUVVPNEIRDYOJT25HG22FWV5YG4J6HEFDGGZALSARL2XS3KPJWN7D7BXTGLR6TWATRJ5PMAS
-#\\\|YR6FEZ2HVLLFHXY4NQPICDQTWCKWXTLBLSG6Y7K6ZYXECAWM4TK \ / AMOS7 \ YOURUM ::
-#\[7]OGUG7H24FCV2TADQ5CKPT2JYR7DA4MQ2MSBD3PNHEE3YPNHRZAAA 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,..,,,,,,,,.,...,,,.,..,,.,,,..,,..,,...,...,..,,..,,.,.,.,,,,,.,
+#O52R675EWAZNM4J5KVFVCCB7HYCFMYUL4W2COZ2P2DUVNGDNMIVFUGCVRE6L3U6JEFVZEPZG6OKCC
+#\\\|H4NDI2MXTXDEUBH3TSRXCTFJ63U5KQ726ARZLUJNH7NBOSJPAVM \ / AMOS7 \ YOURUM ::
+#\[7]SVXCMWFXHGM6NRBIFQHWNVQ577G7IDLXEO6JWMB3D32OMEAVWSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = llama-server-vision.cmd.get_raw_sample
+# name  = llama-vision.cmd.get_raw_sample
 # descr = retrieve raw payload sample (first 500 chars before token extraction)
 
 my $job_id = $call->{'args'};
@@ -9,11 +9,11 @@ unless ( defined $job_id && length $job_id ) {
     return { 'mode' => 'false', 'data' => 'job_id required' };
 }
 
-unless ( exists <llama-server-vision.jobs>->{$job_id} ) {
+unless ( exists <llama-vision.jobs>->{$job_id} ) {
     return { 'mode' => 'false', 'data' => 'no such job' };
 }
 
-my $job = <llama-server-vision.jobs>->{$job_id};
+my $job = <llama-vision.jobs>->{$job_id};
 
 unless ( defined $job->{'raw_payload_sample'}
     && length $job->{'raw_payload_sample'} ) {
@@ -28,8 +28,8 @@ return {
     'data' => $job->{'raw_payload_sample'}
 };
 
-#,,,.,..,,..,,,.,,..,,..,,,..,,,.,,,.,,..,,,,,..,,...,...,,,,,.,,,,..,,,.,,.,,
-#AOG43IOYXXFFJWQ5ZOXOU2W3K5LFOUMPQVWERNOYX5Z53SNZNKVSU3FDLVJBY4XH6XFWANCXHSTZU
-#\\\|KGOT3QHWSG6OIM3HS6R4QJI45RAXCPIWCNBT4QOYG3RTUMRKK67 \ / AMOS7 \ YOURUM ::
-#\[7]UPAT2L2AGKGU56IEGWUKEOQNDGCJOZ6OJPL4BVYSZRDXZNEZXABI 7  DATA SIGNATURE ::
+#,,..,,.,,...,.,,,...,.,.,.,,,.,,,,,.,..,,,,.,..,,...,...,...,,.,,,.,,,,.,,,,,
+#OGPXLUXRBPI7XUGIZIGMLYYW36LLDPA5QFFHHTKVSHIPL33BSON3GP376J7EGMQKQ6GOBPJ5XLSUE
+#\\\|BGGEVEBQFSSVHCJC75IXJA65PD2B6TFQSVALX65IWLD5FWOUGGE \ / AMOS7 \ YOURUM ::
+#\[7]UXYTYF4WLIWCXPNLTEISPJ4E4J5XYHBTQROXRCWYVDMYZQNA6UBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
