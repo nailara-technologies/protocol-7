@@ -1,0 +1,91 @@
+## [:< ##
+
+# name  = channels.subscription.mapping
+# descr = Parse and validate channel subscription/mapping declarations
+# args  = str(mapping_declaration)
+# return = hash { valid => 0/1, mapping => config, error => message }
+
+my $mapping_decl = shift;
+return { 'valid' => 0, 'error' => 'no mapping declaration provided' }
+    unless defined $mapping_decl and length $mapping_decl;
+
+##  Mapping syntax:
+##  DECLARE CHANNEL <channel-path> SUBSCRIBE-TO <source-channel> [MAP <json-path> TO <var-name>]
+##  Example: DECLARE CHANNEL security.events SUBSCRIBE-TO security.tofu-requests MAP .username TO tofu_user
+##
+##  Validation: paths must match [a-z0-9._-]+ pattern
+##
+
+my $mapping = {};
+
+##  Parse declarative syntax (simple space-delimited for MVP)  ##
+my @tokens = split( m|\s+|, $mapping_decl );
+return { 'valid' => 0, 'error' => 'incomplete mapping declaration' }
+    unless @tokens >= 4;
+
+##  Validate keyword sequence  ##
+return { 'valid' => 0, 'error' => 'expected DECLARE CHANNEL' }
+    unless $tokens[0] eq 'DECLARE' and $tokens[1] eq 'CHANNEL';
+
+my $channel_path = $tokens[2];
+return { 'valid' => 0, 'error' => 'invalid channel path syntax' }
+    unless $channel_path =~ m|^[a-z0-9._-]+$|i;
+
+return { 'valid' => 0, 'error' => 'expected SUBSCRIBE-TO' }
+    unless $tokens[3] eq 'SUBSCRIBE-TO';
+
+return { 'valid' => 0, 'error' => 'no source channel specified' }
+    unless defined $tokens[4];
+
+my $source_channel = $tokens[4];
+return { 'valid' => 0, 'error' => 'invalid source channel syntax' }
+    unless $source_channel =~ m|^[a-z0-9._-]+$|i;
+
+##  Build mapping configuration  ##
+$mapping = {
+    'channel_path'    => $channel_path,
+    'source_channel'  => $source_channel,
+    'map_rules'       => [],
+    'valid'           => 1
+};
+
+##  Parse optional MAP rules  ##
+my $idx = 5;
+while ( $idx < @tokens ) {
+    if ( $tokens[$idx] eq 'MAP' ) {
+        return { 'valid' => 0, 'error' => 'incomplete MAP rule' }
+            unless $idx + 3 < @tokens;
+
+        my $json_path = $tokens[ $idx + 1 ];
+        my $to_var = $tokens[ $idx + 3 ];
+
+        return { 'valid' => 0, 'error' => 'expected TO in MAP rule' }
+            unless $tokens[ $idx + 2 ] eq 'TO';
+
+        ##  JSON path validation (simple check: must start with .)  ##
+        return { 'valid' => 0, 'error' => 'invalid JSON path (must start with .)' }
+            unless $json_path =~ m|^\.[\w._-]*$|;
+
+        push @{$mapping->{'map_rules'}}, {
+            'json_path' => $json_path,
+            'to_var'    => $to_var
+        };
+
+        $idx += 4;
+    } else {
+        return { 'valid' => 0, 'error' => "unexpected token: $tokens[$idx]" };
+    }
+}
+
+return {
+    'valid'   => 1,
+    'mapping' => $mapping
+};
+
+1;
+
+#,,,,,.,,,,,.,.,.,,..,,,,,,..,...,..,,.,,,.,.,...,...,...,.,.,...,.,.,,,.,,.,,
+#V4F6WI2H4FLIGXH3T2EBXOEKPNTTOZM7AQUELC4J3WHKKWKRXSORIYHLRF6JWQKQKT3FSAI3T5HT4
+#\\\|AW5DK22SKJJY5SAODU2GKGGTNGCDDFGCE6HDUXGC7TNCTEBBTEW \ / AMOS7 \ YOURUM ::
+#\[7]7S2BEV5EUZWEASLR46NSTX5XMV5D2WDJLJGKX7ZUO3LZKH6FQOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

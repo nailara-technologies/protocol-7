@@ -1,0 +1,93 @@
+## [:< ##
+
+# name  = channels.mapping.apply
+# descr = Apply mapping rules to channel data (JSON path extraction and variable assignment)
+# args  = hash { source_data, map_rules, target_ref }
+# return = hash { success => 0/1, mapped_vars => {...}, errors => [...] }
+
+my $args_ref = shift;
+return { 'success' => 0, 'errors' => ['no arguments provided'] }
+    unless defined $args_ref and ref $args_ref eq 'HASH';
+
+my $source_data = $args_ref->{'source_data'};
+my $map_rules = $args_ref->{'map_rules'} // [];
+my $target_ref = $args_ref->{'target_ref'};
+
+return { 'success' => 0, 'errors' => ['source data is not a hash'] }
+    unless ref $source_data eq 'HASH';
+
+return { 'success' => 0, 'errors' => ['map rules is not an array'] }
+    unless ref $map_rules eq 'ARRAY';
+
+my %mapped_vars;
+my @errors;
+
+##  Apply each mapping rule  ##
+foreach my $rule ( @{$map_rules} ) {
+    next unless defined $rule and ref $rule eq 'HASH';
+
+    my $json_path = $rule->{'json_path'};
+    my $to_var = $rule->{'to_var'};
+
+    next unless length $json_path and length $to_var;
+
+    ##  JSON path parsing (simple dot notation: .key.subkey.array[0])  ##
+    my $value = _extract_json_path( $source_data, $json_path );
+
+    if ( defined $value ) {
+        $mapped_vars{$to_var} = $value;
+
+        ##  Assign to target reference if provided  ##
+        if ( defined $target_ref and ref $target_ref eq 'HASH' ) {
+            $target_ref->{$to_var} = $value;
+        }
+    } else {
+        push @errors, "unable to extract path '$json_path'";
+    }
+}
+
+<[base.logs]>->(
+    2,
+    "channels: applied %d mapping rules (%d successful, %d errors)",
+    scalar @{$map_rules},
+    scalar keys %mapped_vars,
+    scalar @errors
+);
+
+return {
+    'success'      => scalar @errors ? 0 : 1,
+    'mapped_vars'  => \%mapped_vars,
+    'errors'       => @errors ? \@errors : undef
+};
+
+##  Helper: Extract value from hash using dot notation JSON path  ##
+sub _extract_json_path {
+    my ( $data, $path ) = @_;
+    return undef unless defined $data and defined $path;
+
+    ##  Strip leading dot  ##
+    $path =~ s|^\.||;
+    return undef unless length $path;
+
+    ##  Split on dots (simple case, no array index support yet)  ##
+    my @keys = split( m|\.| , $path );
+
+    my $current = $data;
+    foreach my $key (@keys) {
+        return undef unless defined $current;
+        return undef unless ref $current eq 'HASH';
+        return undef unless defined $current->{$key};
+
+        $current = $current->{$key};
+    }
+
+    return $current;
+}
+
+1;
+
+#,,..,,,.,..,,,,,,.,.,.,,,,,.,.,.,.,.,,.,,,..,...,...,...,,..,,..,...,,.,,,.,,
+#QO5KLRBRRSKFKTAXYCIUXG2MKLEG6AD26W7FOPTBXP5FC6EZIACU426XBMCRXGC26QPMED4IROSXM
+#\\\|QI7AYFPNQABRDRCCN4A74YSGM2VY3KF55NICG23WYIYVRA5H2KH \ / AMOS7 \ YOURUM ::
+#\[7]6WZDGK3LG5MICG4ZWFZTC5GAIMR2NKLSHJL36HLTEQRQEOCYNGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
