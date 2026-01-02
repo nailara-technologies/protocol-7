@@ -6,7 +6,7 @@
 # return = int(count) of channels updated
 
 my $current_time = <[base.time]>->(2);
-my $current_ts_b32 = <[base.encode_base32]>->(pack('Q>', $current_time));
+my $current_ts_b32 = encode_b32r(pack('Q>', $current_time));
 
 my $heartbeat_interval = <channels.cfg.heartbeat_interval_seconds> // 3600;
 my $inactive_timeout = <channels.cfg.inactive_timeout_seconds> // 86400;
@@ -64,8 +64,8 @@ return $channels_updated;
 
 1;
 
-#,,,.,,,.,,.,,...,...,,,,,.,.,.,.,..,,,.,,,,.,.,.,...,..,,...,,,.,,,.,,,.,..,,
-#S7NELY4SUQSE52YDLVZINEF56SHRHWLGQ4XQGMTHTTQFICJ7T736IJEHW5K34ONAYDEZE27ZJLCSY
-#\\\|6OECH3XE7NHG4SDU47746C6CQZYUANMG7KWL3T2MZDGJUPLHDK6 \ / AMOS7 \ YOURUM ::
-#\[7]HBYRLJGK7PF5GTKJHOKP3QF2I4JCAEWKEK6DLVACCIMLRFVPOMCY 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,,.,.,.,...,.,,,,,,,.,.,,..,,,.,.,.,...,...,,,,,,.,,,..,,.,,.,.,
+#HJI7KRUTEUSHGXERSKCNUMT47VOIEBI4I27B7HOO5Q3W2RGBLIZMXYC47UWFYSMP57DONHIV52DPM
+#\\\|FUJHAA4DTTH23QJ7NRMOTQALJJYLRKA3FDWBIQTFAO7KYMDQ36R \ / AMOS7 \ YOURUM ::
+#\[7]3MN6E62BW3E72TP2HBK75UV6KFKLD2RKI3WDAK2WF5CUR7RPEQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,7 +10,7 @@ my $channel_path = $args;
 $channel_path =~ s|^\s+|\s*$||;  ## trim whitespace ##
 
 my $current_time = <[base.time]>->(3);  ## unix timestamp with subseconds ##
-my $current_ts_b32 = <[base.encode_base32]>->(pack('Q>', int($current_time)));
+my $current_ts_b32 = encode_b32r(pack('Q>', int($current_time)));
 
 ##  If no specific channel requested, return global timestamp  ##
 unless ( length $channel_path ) {
@@ -38,8 +38,8 @@ return {
 
 1;
 
-#,,,,,,.,,,..,,.,,,.,,...,,,.,,,,,,,,,..,,.,.,.,.,...,...,...,.,.,,,,,.,.,,,,,
-#5KAR6V5CJDNJRSR7QS23NXNECQMCIGO6WIQPGPLNDQQHDQHLURCYSTH5R6GF5KQUYS3F3LAWLWPD4
-#\\\|BCSSOO7B7F5ZR3WHBVO35KCO7T5ZGC2XXRQB5ATQ63N6Z6KL4KL \ / AMOS7 \ YOURUM ::
-#\[7]QSZ6RTYEWOGXN3EGZSOUC7QHHCHNESHU4W7QIZOBQXXU3L255YDI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,.,,,,,,,..,,.,,,,,,,,.,..,,...,.,.,...,...,...,,..,.,,,...,,,,,
+#ZYHWSSETGNZSLKIM7JG7SS34DVMU2TENJONLTBOP6XRURM575JKN4YSAD3FQGSMMKWFVZHRMVAQUC
+#\\\|P2H6RY267KZPSNNPRDAEKVCXCN2KMJUU3BZSUXENO6JMHCLHVOR \ / AMOS7 \ YOURUM ::
+#\[7]MSRH6GD6GH25XVKQY4XAKD2DCYGDTNSGKFFOL56JFCT6EHJCH4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
