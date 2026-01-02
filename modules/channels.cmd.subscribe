@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = channels.cmd.subscribe
+# descr = Subscribe to channel (lazy activation of pub/sub)
+# param = <channel-path>
+# return = { mode => 'true', data => 'subscribed to <channel-path>' }
+
+my $args = $$call{'args'} // '';
+my $channel_path = $args;
+$channel_path =~ s|^\s+|\s*$||;  ## trim whitespace ##
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected <channel-path> parameter'
+} unless length $channel_path;
+
+##  Validate channel path  ##
+unless ( $channel_path =~ m|^[a-z0-9\.\-_]+$|i ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'invalid channel path'
+    };
+}
+
+##  Create subscription entry (lazy activation)  ##
+my $session_id = $$call{'session_id'} // 'unknown';
+
+##  If channel doesn't exist yet, create it  ##
+<channels.subscriptions>->{$channel_path} //= {};
+
+##  Record this subscription  ##
+my $subscriber_id = "${session_id}_" . <[base.gen_id]>->({});
+<channels.subscriptions>->{$channel_path}->{$subscriber_id} = {
+    'session_id' => $session_id,
+    'subscribed_at' => <[base.time]>->(2),
+    'status' => 'ACTIVE'
+};
+
+##  Initialize channel data if not present  ##
+<channels.data>->{$channel_path} //= {};
+<channels.timestamps>->{$channel_path} //= <[base.encode_base32]>->(pack('Q>', <[base.time]>->(2)));
+
+<[base.logs]>->(
+    1,
+    "channels: session %s subscribed to '%s'",
+    $session_id,
+    $channel_path
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => "subscribed to '$channel_path'"
+};
+
+1;
+
+#,,,,,..,,,,.,.,.,,,,,,.,,...,,.,,.,.,.,.,,..,.,.,...,...,...,..,,...,,,,,,.,,
+#5Q7Q5EPIVZ7DBK7S6ZGCKFYDC5JHSJAKC2AWJLSI3HXRHFDE7JMBT6BCWIVUXB4MMCN5R3PG37GHI
+#\\\|DYUZGMWNLXK7CUSAIMBJXTEHHLE4DZ4O26UVQIAEOJGTM3C3BYJ \ / AMOS7 \ YOURUM ::
+#\[7]KDTHVK3MUYP7LYRJX5USSUJCVCK4CNRHFPKT2Y2WOC73SU4RZYCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

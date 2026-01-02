@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = channels.cmd.unsubscribe
+# descr = Unsubscribe from channel (lazy deactivation)
+# param = <channel-path>
+# return = { mode => 'true', data => 'unsubscribed from <channel-path>' }
+
+my $args = $$call{'args'} // '';
+my $channel_path = $args;
+$channel_path =~ s|^\s+|\s*$||;  ## trim whitespace ##
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected <channel-path> parameter'
+} unless length $channel_path;
+
+##  Find and remove this session's subscription  ##
+my $session_id = $$call{'session_id'} // 'unknown';
+my $found = FALSE;
+
+if ( defined <channels.subscriptions>->{$channel_path} ) {
+    foreach my $subscriber_id ( keys %{<channels.subscriptions>->{$channel_path}} ) {
+        my $sub = <channels.subscriptions>->{$channel_path}->{$subscriber_id};
+        next unless $sub->{'session_id'} eq $session_id;
+
+        delete <channels.subscriptions>->{$channel_path}->{$subscriber_id};
+        $found = TRUE;
+        last;
+    }
+
+    ##  If no subscribers remain, mark channel as SUSPENDED  ##
+    unless ( keys %{<channels.subscriptions>->{$channel_path}} ) {
+        <channels.subscriptions>->{$channel_path}->{'status'} = 'SUSPENDED';
+        <channels.subscriptions>->{$channel_path}->{'suspended_at'} = <[base.time]>->(2);
+
+        <[base.logs]>->(
+            1,
+            "channels: no more subscribers for '%s', marking SUSPENDED",
+            $channel_path
+        );
+    }
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => $found
+        ? "unsubscribed from '$channel_path'"
+        : "was not subscribed to '$channel_path'"
+};
+
+1;
+
+#,,,.,...,..,,..,,,,.,,,,,...,.,,,.,,,...,,,,,.,.,...,...,..,,.,.,.,,,...,,.,,
+#Q3AN5N5IRK336VXWXN5UMBGWQV3KVYO232ARLXF27MASJMVJLQCANRLFBCJ7PLV2FGLYW52JP463W
+#\\\|USYMPOLE74ZXDYN76VHSPR7XGE3N7PFVQRGWSKDEQRD4M2XMN7I \ / AMOS7 \ YOURUM ::
+#\[7]IQVUL3N7EMCGPTKF75CYWZYIGN6WTWR23OU3O77SFOF53CCP5QBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

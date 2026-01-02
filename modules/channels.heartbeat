@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = channels.heartbeat
+# descr = Generate heartbeat and manage channel status transitions
+# args  = none
+# return = int(count) of channels updated
+
+my $current_time = <[base.time]>->(2);
+my $current_ts_b32 = <[base.encode_base32]>->(pack('Q>', $current_time));
+
+my $heartbeat_interval = <channels.cfg.heartbeat_interval_seconds> // 3600;
+my $inactive_timeout = <channels.cfg.inactive_timeout_seconds> // 86400;
+
+my $channels_updated = 0;
+
+##  Process each active channel  ##
+foreach my $channel_path ( keys %{<channels.subscriptions>} ) {
+    next unless defined <channels.subscriptions>->{$channel_path};
+
+    my $channel_entry = <channels.subscriptions>->{$channel_path};
+    my $last_heartbeat = $channel_entry->{'last_heartbeat'} // 0;
+    my $status = $channel_entry->{'status'} // 'ACTIVE';
+
+    ##  Check if heartbeat is due  ##
+    my $time_since_heartbeat = $current_time - $last_heartbeat;
+
+    if ( $time_since_heartbeat >= $heartbeat_interval ) {
+        ##  Emit heartbeat timestamp (even if no data changed)  ##
+        <channels.timestamps>->{$channel_path} = $current_ts_b32
+            unless defined <channels.timestamps>->{$channel_path};
+
+        $channel_entry->{'last_heartbeat'} = $current_time;
+        $channels_updated++;
+
+        <[base.logs]>->(
+            2,
+            "channels: heartbeat for '%s' (age: %.1f hours)",
+            $channel_path,
+            $time_since_heartbeat / 3600
+        );
+    }
+
+    ##  Check for timeout and transition to IDLE  ##
+    if ( $status eq 'ACTIVE' and $time_since_heartbeat >= $inactive_timeout ) {
+        $channel_entry->{'status'} = 'IDLE';
+        $channel_entry->{'idle_since'} = $current_time;
+
+        <[base.logs]>->(
+            1,
+            "channels: transitioned '%s' to IDLE (inactive for %.1f hours)",
+            $channel_path,
+            $time_since_heartbeat / 3600
+        );
+    }
+}
+
+<[base.logs]>->(
+    2,
+    "channels: heartbeat cycle completed (%d channels updated)",
+    $channels_updated
+);
+
+return $channels_updated;
+
+1;
+
+#,,,.,,,.,,.,,...,...,,,,,.,.,.,.,..,,,.,,,,.,.,.,...,..,,...,,,.,,,.,,,.,..,,
+#S7NELY4SUQSE52YDLVZINEF56SHRHWLGQ4XQGMTHTTQFICJ7T736IJEHW5K34ONAYDEZE27ZJLCSY
+#\\\|6OECH3XE7NHG4SDU47746C6CQZYUANMG7KWL3T2MZDGJUPLHDK6 \ / AMOS7 \ YOURUM ::
+#\[7]HBYRLJGK7PF5GTKJHOKP3QF2I4JCAEWKEK6DLVACCIMLRFVPOMCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
