@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = channels.cmd.last-data-timestamp
+# descr = Query current state timestamp synchronously (always replies immediately)
+# param = [<channel-path>]  (optional; no path returns entire remote timestamp)
+# return = { mode => 'timestamp', data => 'BASE32_ENCODED_TIMESTAMP' }
+
+my $args = $$call{'args'} // '';
+my $channel_path = $args;
+$channel_path =~ s|^\s+|\s*$||;  ## trim whitespace ##
+
+my $current_time = <[base.time]>->(3);  ## unix timestamp with subseconds ##
+my $current_ts_b32 = <[base.encode_base32]>->(pack('Q>', int($current_time)));
+
+##  If no specific channel requested, return global timestamp  ##
+unless ( length $channel_path ) {
+    ##  Return single timestamp for entire remote  ##
+    return {
+        'mode' => qw| timestamp |,
+        'data' => $current_ts_b32
+    };
+}
+
+##  Validate channel path syntax  ##
+##  Absolute syntax: /channel.name (single key only)  ##
+##  Implicit tree: channel.name (includes subtree)  ##
+
+my $is_absolute = $channel_path =~ m|^/|;
+$channel_path =~ s|^/||;  ## strip leading / for processing ##
+
+##  For now, return same timestamp regardless of path  ##
+##  (Route-dependent dedup happens at routing layer)  ##
+
+return {
+    'mode' => qw| timestamp |,
+    'data' => $current_ts_b32
+};
+
+1;
+
+#,,,,,,.,,,..,,.,,,.,,...,,,.,,,,,,,,,..,,.,.,.,.,...,...,...,.,.,,,,,.,.,,,,,
+#5KAR6V5CJDNJRSR7QS23NXNECQMCIGO6WIQPGPLNDQQHDQHLURCYSTH5R6GF5KQUYS3F3LAWLWPD4
+#\\\|BCSSOO7B7F5ZR3WHBVO35KCO7T5ZGC2XXRQB5ATQ63N6Z6KL4KL \ / AMOS7 \ YOURUM ::
+#\[7]QSZ6RTYEWOGXN3EGZSOUC7QHHCHNESHU4W7QIZOBQXXU3L255YDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

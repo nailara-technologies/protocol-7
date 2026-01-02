@@ -1,0 +1,41 @@
+## [:< ##
+
+# name  = channels.cmd.list
+# descr = List active channels with status and subscription count
+# param = none
+# return = Protocol-7 table format
+
+my $current_time = <[base.time]>->(2);
+
+return {
+    'mode' => qw| false |,
+    'data' => 'no channels active'
+} unless keys %{<channels.subscriptions>};
+
+##  Build subscriptions with metadata  ##
+foreach my $channel_path ( keys %{<channels.subscriptions>} ) {
+    my $sub_count = scalar keys %{<channels.subscriptions>->{$channel_path}};
+    my $last_update = <channels.timestamps>->{$channel_path} // '(never)';
+
+    ##  Determine status based on idle time  ##
+    ##  (If we had timestamps as unix time, we could calculate)  ##
+    my $status = 'ACTIVE';
+
+    ##  Add computed fields for display  ##
+    <channels.subscriptions>->{$channel_path}->{'_display'} = {
+        'channel_path' => $channel_path,
+        'status'       => $status,
+        'last_update'  => $last_update,
+        'sub_count'    => $sub_count
+    };
+}
+
+return <[base.cmd.list]>->( 'channels' );
+
+1;
+
+#,,,.,,,.,.,,,...,.,,,,,.,...,,..,..,,,..,,,.,.,.,...,...,,..,.,.,,..,.,,,,,,,
+#YSQWN6TZU7Y5R6A52XLU6S5YJECCPBOQYZDONTME6LI6NSHJ6PJEG6F2QQBMY6IRH7JPO4MFLANIU
+#\\\|VJOBIMCDQ55N3B7NTOVAQ4LWJOVWMBQIKPQNASR6L5FXDYQBH5A \ / AMOS7 \ YOURUM ::
+#\[7]RFHVEA52THRCYJNCSDQTYEV4Q4QBX4YBW4DILMAPSTGTQTRD72AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

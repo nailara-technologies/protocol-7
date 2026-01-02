@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = channels.cmd.channels-since
+# descr = Query which channels changed since timestamp (delta discovery)
+# param = <last-synchronized-timestamp_b32>
+# return = { mode => 'size', data => "channel.path1\nchannel.path2\nCHECKSUM <checksum_b32>" }
+
+my $args = $$call{'args'} // '';
+my $since_ts_b32 = $args;
+$since_ts_b32 =~ s|^\s+|\s*$||;  ## trim whitespace ##
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected <timestamp_b32> parameter'
+} unless length $since_ts_b32;
+
+##  For MVP: return list of all channels with any data  ##
+##  (In future, track per-channel timestamps for real deltas)  ##
+
+my @changed_channels;
+foreach my $channel_path ( keys %{<channels.data>} ) {
+    ##  Skip empty channels  ##
+    next unless defined <channels.data>->{$channel_path};
+    next unless ref <channels.data>->{$channel_path} eq 'HASH';
+    next unless keys %{<channels.data>->{$channel_path}};
+
+    push @changed_channels, $channel_path;
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => 'no channels changed since timestamp'
+} unless @changed_channels;
+
+##  Calculate harmonic checksum of changed channels tree  ##
+##  (Simple SHA256 of sorted channel names for now)  ##
+my $checksum_input = join( '|', sort @changed_channels );
+my $checksum_hash = Digest::SHA::sha256($checksum_input);
+my $checksum_b32 = <[base.encode_base32]>->($checksum_hash);
+$checksum_b32 =~ s|=+$||;  ## remove padding ##
+$checksum_b32 = substr( $checksum_b32, 0, 52 );  ## standard b32 length ##
+
+my $reply_data = join( "\n", @changed_channels );
+$reply_data .= "\nCHECKSUM $checksum_b32\n";
+
+return {
+    'mode' => qw| size |,
+    'data' => $reply_data
+};
+
+1;
+
+#,,,,,,.,,,,,,,..,.,,,,.,,...,,,.,.,.,..,,..,,.,.,...,...,.,.,.,,,,.,,,.,,...,
+#CJQB5QDM5GFC2NXA4FLSZBYZ6HUQZ65WROZVNPVDXZO4JSF5J4D7UED532EHEER5UJF5FSBDV37SQ
+#\\\|NPCOP6OLREXTPKMQLSEA7CP2SDAUB6NP23J67IYJKEBMRHMVQN4 \ / AMOS7 \ YOURUM ::
+#\[7]5LXWZSNZASK5MXCKTSGCMWSKGQYYWRNIFC4QPDQJSOQ5TJXAVWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
