@@ -152,13 +152,30 @@ if ( defined $incoming_file ) {
         $peerhost,
         $peerport
     );
+
+    ##  Send notification to admins via channels  ##
+    my $notify_result = <[plugin.auth.auth-keypair.tofu-notification]>->(
+        $username,
+        $peerhost,
+        $peerport
+    );
+
+    if ( $notify_result != 0 ) {
+        <[base.logs]>->(
+            1,
+            '[%d] auth-keypair TOFU: notification failed (code %d), but key pinned',
+            $id,
+            $notify_result
+        );
+    }
+
     return 1;    ## first-time pin - awaiting authorization ##
 }
 
 1;
 
-#,,,,,,..,,..,,,.,...,.,.,...,...,..,,,,.,..,,.,.,...,...,..,,.,,,..,,,..,...,
-#AIG5OFZFVNYXLN4S5FEC3QIDBYVSASKJTHSIUW6QOYIBCP6MUOS3535SQJSDYKMUUEXBV3Y7EHM5Q
-#\\\|PIRMX5XBJAAY5TOTUPQTOWLLVEQZE5KH3TBSA5PZRT5GPENWEK6 \ / AMOS7 \ YOURUM ::
-#\[7]HZK6GHQXIYJRXJZLQRP74H7DEQ3LZZZ4NDPWXC4OCIVINKNI42DA 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,,,,,,,,,.,,,..,.,,,...,.,.,..,,.,.,...,...,,..,.,.,,.,,,.,,,.,,
+#NHCLQGLC3RHDDL757PQXUSS5LHOKYQLQ6GCCRENVB7C54RRMIN66NXDLIJQ45Y3NMVIJX3ZNMBDFY
+#\\\|67F32GA6O5BZ4CM4VERWRFQADC2NEY43GXXLL34WSLQQNHM4SVT \ / AMOS7 \ YOURUM ::
+#\[7]2XPRMA45KUBDW4HD3UXCOMYV7YZ45KJRP5N5D36GBEXENQ3DFIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

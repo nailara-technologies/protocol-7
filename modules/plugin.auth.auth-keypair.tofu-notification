@@ -1,0 +1,66 @@
+## [:< ##
+
+# name  = plugin.auth.auth-keypair.tofu-notification
+# descr = Callback handler for TOFU events - publishes to security channel
+# args  = str(username), str(peerhost), str(peerport)
+# return = int(result) 0=success, 1=channel_error, 2=network_error
+
+my ( $username, $peerhost, $peerport ) = @_;
+
+return 2 unless defined $username and defined $peerhost and defined $peerport;
+
+##  Determine notification type based on TOFU status  ##
+##  This is called from validate-incoming-tofu callback  ##
+##  Build notification data  ##
+
+my $notification_data = {
+    'event'      => 'tofu-client-pinned',
+    'username'   => $username,
+    'host'       => $peerhost,
+    'port'       => $peerport,
+    'timestamp'  => <[base.time]>->(3),
+    'action'     => 'awaiting authorization',
+    'zenka'      => <system.zenka.name> // 'unknown'
+};
+
+##  Publish to security channel  ##
+##  Format: channel.path + JSON data  ##
+
+my $json_module = <[base.perlmod.load]>->('JSON::PP');
+my $json_str = eval { JSON::PP::encode_json($notification_data) };
+
+return 1 if length $EVAL_ERROR;
+
+##  Call channels.cmd.update to publish  ##
+my $update_result = <[channels.cmd.update]>->(
+    {
+        'args' => "security.tofu-requests $json_str"
+    }
+);
+
+unless ( $update_result->{'mode'} eq qw| timestamp | ) {
+    <[base.logs]>->(
+        0,
+        "auth-keypair: failed to publish TOFU notification to channel: %s",
+        $update_result->{'data'}
+    );
+    return 1;
+}
+
+<[base.logs]>->(
+    1,
+    "auth-keypair: published TOFU pinning notification for user '%s' from %s:%s",
+    $username,
+    $peerhost,
+    $peerport
+);
+
+return 0;
+
+1;
+
+#,,,,,..,,,..,.,.,...,,,.,,,.,.,,,,.,,..,,..,,.,.,...,...,.,.,,..,.,.,...,...,
+#2MIPZ6HMD64WNVRPGZ6KLOIE6DN3EKNJV6JUQALYPALDB2L3ZG3DAY4DBIFEANWPA2VLAM4TFWWH6
+#\\\|MBCV7IFWQ2QGMN3UAIBZPMV6DCS7BSSCKCWUXFDZDA3JVT3APWF \ / AMOS7 \ YOURUM ::
+#\[7]TM6L7PTWDBEYTFWSJ7TBBS3EL3H4JLYF2YWGQNWHGMZFULKYUSCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
