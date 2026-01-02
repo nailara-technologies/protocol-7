@@ -1,0 +1,101 @@
+## [:< ##
+
+# name    = plugin.auth.auth-keypair.cleanup-incoming-keys
+# descr   = Clean up unpinned incoming client keys with configurable timeout
+# args    = none (called periodically or on-demand)
+# return  = int(count) number of keys cleaned up, or undef on error
+
+##  Configuration for cleanup behavior  ##
+my $cleanup_ttl_seconds = <plugin.auth.auth-keypair.cleanup_ttl_seconds> //= 86400;  ## 24 hours default ##
+my $cleanup_enabled     = <plugin.auth.auth-keypair.cleanup_enabled> //= TRUE;
+
+return 0 unless $cleanup_enabled;
+
+##  Get home directory and verify remote-keys structure  ##
+my $home_dir = <[base.get_homedir]>->();
+return undef unless defined $home_dir and -d $home_dir;
+
+my $remote_keys_base = catfile( $home_dir,         qw| .n remote-keys | );
+my $incoming_dir     = catfile( $remote_keys_base, qw| incoming | );
+my $authorized_base  = catfile( $remote_keys_base, qw| authorized | );
+
+return 0 unless -d $incoming_dir;
+
+##  Scan incoming directory for unpinned keys  ##
+my @incoming_files = <[file.all_files]>->($incoming_dir)->@*;
+
+my $cleanup_count = 0;
+my $now_time      = time();
+
+##  Process each incoming file  ##
+foreach my $file_path (@incoming_files) {
+    next if !-f $file_path or !-r $file_path;
+
+    my $file_name = basename($file_path);
+    next if $file_name =~ m|^\.|;    ## skip hidden files ##
+
+    ##  Extract username from filename  ##
+    ##  Format: username.public or username.host_port.public  ##
+    my ($username) = $file_name =~ m|^([^\.]+)\.(?:[0-9a-z_]+_\d+\.)?public$|;
+
+    next unless defined $username and length $username;
+
+    ##  Check if this key is authorized by any zenka  ##
+    ##  An authorized key has a symlink in authorized/<zenka>/username.public  ##
+    my $is_authorized = FALSE;
+
+    if ( -d $authorized_base ) {
+        ##  Scan all zenka authorization directories  ##
+        foreach my $zenka_dir ( glob "$authorized_base/*" ) {
+            next unless -d $zenka_dir;
+
+            my $auth_link = catfile( $zenka_dir, "${username}.public" );
+
+            if ( -l $auth_link and -f $auth_link ) {
+                $is_authorized = TRUE;
+                last;
+            }
+        }
+    }
+
+    ##  If authorized, skip (keep it)  ##
+    if ($is_authorized) {
+        next;
+    }
+
+    ##  Unpinned key - check age and remove if expired  ##
+    my $file_mtime = ( stat($file_path) )[9];
+    my $file_age   = $now_time - $file_mtime;
+
+    if ( $file_age >= $cleanup_ttl_seconds ) {
+        ##  Key has expired, remove it  ##
+        unless ( unlink($file_path) ) {
+            <[base.logs]>->(
+                0,
+                "auth-keypair cleanup: failed to remove %s: %s",
+                $file_name,
+                $!
+            );
+            next;
+        }
+
+        $cleanup_count++;
+
+        <[base.logs]>->(
+            1,
+            "auth-keypair cleanup: removed unpinned key %s (age: %d hours)",
+            $file_name,
+            int( $file_age / 3600 )
+        );
+    }
+}
+
+return $cleanup_count;
+
+1;
+
+#,,,.,.,.,,.,,,.,,,,.,,..,.,,,,..,...,.,.,..,,.,.,...,..,,,.,,,.,,.,,,..,,.,,,
+#6JSTSZJTMA34HPGKTN5UV6RLK2B5KUCVJ6ABFLNBUWQSFIK3AMXA65LXUG6QJPJUXAH5RMCZKJWBW
+#\\\|C57P2LOSUBQ4EEJITG5WCIZN5OD54DMCO6MKBHCBNMXKMRTFUEF \ / AMOS7 \ YOURUM ::
+#\[7]CMXLCRXIRJHBBLKRJCFWTYBI7YU3HIOEQEY7EVKBP3HEOGKZDCAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
