@@ -9,14 +9,14 @@ my $key_dir      = $key_vars_ref->{'key_dir'};
 
 return {} if not -d $key_dir;
 
-##  Scan for remote.*.public files  ##
+##  Scan for remote-host.*.public files  ##
 
 my %remote_keys;
 
 foreach my $file ( <[file.all_files]>->($key_dir)->@* ) {
-    next if $file !~ m|^.*\/remote\.(.+)\.public$|;
+    next if $file !~ m|^.*\/remote-host\.(.+)\.public$|;
 
-    my $key_name = $1;    ## e.g., "server_42" from "remote.server_42.public"
+    my $key_name = $1;    ## e.g., "localhost_42" from "remote-host.localhost_42.public"
 
     ##  Read key file  ##
     next if not -f $file or not -r $file;
@@ -36,7 +36,8 @@ foreach my $file ( <[file.all_files]>->($key_dir)->@* ) {
         or not length $pubkey_b32;
 
     ##  Extract hostname and port from key_name  ##
-    ##  Format: safe_hostname_port (e.g., "server_42")
+    ##  Format: hostname_safe_port (e.g., "localhost_42", "fe80__1_42" for IPv6)
+    ##  From remote-host.hostname_port.public, extract hostname_port part
 
     my ( $safe_hostname, $port ) = $key_name =~ m|^(.+)_(\d+)$|;
 
@@ -44,10 +45,14 @@ foreach my $file ( <[file.all_files]>->($key_dir)->@* ) {
 
     ##  Restore original hostname (reverse the unsafe char replacement)  ##
     my $hostname = $safe_hostname;
-    $hostname =~ tr|_|:|;    ## primary restore (colons)
+    $hostname =~ tr|_|:|;    ## primary restore (colons for IPv6 and unsafe chars)
 
-    ##  Store remote key info  ##
-    my $display_name = sprintf '%s:%d', $hostname, $port;
+    ##  Store remote key info with smart display name  ##
+    ##  Hide port if it matches default (42) to reduce clutter  ##
+    my $DEFAULT_PORT = 42;
+    my $display_name = ( $port == $DEFAULT_PORT )
+        ? $hostname
+        : sprintf( '%s:%d', $hostname, $port );
 
     $remote_keys{$display_name} = {
         'hostname'   => $hostname,
@@ -61,8 +66,8 @@ foreach my $file ( <[file.all_files]>->($key_dir)->@* ) {
 
 return \%remote_keys;
 
-#,,.,,,..,,..,..,,,..,,.,,.,.,,..,,,,,,.,,,,,,..,,...,...,.,,,,,.,.,,,,,.,.,.,
-#MHUGMEBXVIWQT66U2TOTQJLNYP37LFGWC2OJ3VKVRJETOAU7JYM6GQW7X67UUA3PQBHAIL3QPPQFQ
-#\\\|I4U235BGWTCYJWRFQXQTV22RX27ZCQBMQMPKBRWCP25OIUSUGBU \ / AMOS7 \ YOURUM ::
-#\[7]IAX5AEHCUYRPQC6USHGOKG6LTXJCK3OBHFJO7LF7JBE7BLMKFKDI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,.,.,.,,,..,,,.,,,..,,,.,...,,.,,..,,...,.,.,.,.,,..,,.,,.,,,,,.,
+#LWWHSVMWIM7MYZU6NL2QLRBKKGM2Q5TACILWRZGM3CPA4KDZVHOJSRX5SONHWVGOMCU5QENF4XPPI
+#\\\|2JSYWEUDTB3BQQBAD4TAWHVYYGAVRD5OYISBRSSMJHLW4NP4H7M \ / AMOS7 \ YOURUM ::
+#\[7]RN5PN5T4U5OPROLXKALTZKK3TMVF2FXEZA5KQX3N23ZKVYJLXECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -55,8 +55,8 @@ my @key_types = qw| private public secret |;    # virtual #
 
 my $re_keyfiles = sprintf qw| (%s) |, join( '|', @key_ext );
 
-## lowercase names ##
-my $name_regex = qr|[0-9a-z\.\-]+|;
+## lowercase names with underscore support (for TOFU hostkeys like remote.host_port) ##
+my $name_regex = qr|[0-9a-z\.\-_]+|;
 
 ## uppercase names ##
 my $uc_name_regex = qr|[0-9A-Z_\-]+|;
@@ -75,6 +75,7 @@ const <crypt.C25519.regex> => {    ## requires Const::Fast to be loaded ##
     },
     qw| key_file | => {
         qw| virtual | => qr|^($name_regex):\Qseed-phrase\E$|,
+        qw| tofu_hostkey | => qr|^(remote-host\.[0-9a-z\.\-_]+)\.public$|,  ## TOFU pinned remote server hostkey ##
         map { $ARG => qr|^($name_regex)\.$ARG$| } @key_types
     },
     qw| key_files | => qr|$re_keyfiles|
@@ -234,13 +235,26 @@ const <crypt.C25519.keys.sizetype> => {    ## <- will be read-only [again]. ##
         qw| encrypted |   => FALSE,
         qw| virtual-key | => TRUE,
         qw| seed-phrase | => TRUE
+    },
+
+    ##  TOFU pinned server hostkeys [ NTIME:PUBKEY format ]  ##
+    ##
+    60 => {
+        qw| type |        => qw| tofu_hostkey |,
+        qw| encoding |    => qw| b32 |,
+        qw| prefixed |    => FALSE,
+        qw| linefeed |    => FALSE,
+        qw| old-form |    => FALSE,
+        qw| encrypted |   => FALSE,
+        qw| virtual-key | => FALSE,
+        qw| seed-phrase | => FALSE
     }
 };
 
 0;
 
-#,,,.,.,,,.,,,..,,,.,,.,.,...,,,.,,,,,..,,,,.,..,,...,...,.,,,.,,,...,...,.,.,
-#27Y34OH54CGXJ5RPHJULZ4NAXWCRMFPB2YL3EFKZEQ6Z26ZHO23XYLX2DP2DXLYLYEY37NJP7FQGW
-#\\\|7QSAZ4ZPCZM4QRE456C7HGAGN2HXLJE25CII7YOAD2H267HZOYU \ / AMOS7 \ YOURUM ::
-#\[7]QXI5VUR3Z6COPYE2U4CF4DQ6A6ZU42GGBNH4IUBL3K272QNGLEBA 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,..,,,.,.,.,...,.,,,,..,,,,,,..,..,,...,...,,,,,.,.,...,,,,,...,
+#ERKMCWI4HCPF4OJO2WT76VTPVBTKO5R54BHFWOUJ3AR7VVK6AE2KHUVJUMPLEHEGXFN4UFN37HUII
+#\\\|7LPFYB53EUIFFSGKJNXGKGNDYEQTRI57HKD7FQDF6CKFELZEA4I \ / AMOS7 \ YOURUM ::
+#\[7]QF3CH7WMZ4MLHZS2QUZ5SDRIQB4MW6F5JYQLNGMS5T7YYCJXOQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

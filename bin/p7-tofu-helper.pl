@@ -55,10 +55,15 @@ sub op_validate_tofu {
     my $key_dir = "$ENV{HOME}/.n/user-keys";
     mkdir($key_dir, 0700) unless -d $key_dir;
 
-    # Normalize hostname:port for filename
-    my $filename_base = "$hostname:$port";
-    $filename_base =~ tr/:\//__/;  # Replace unsafe chars
-    my $key_file = catfile( $key_dir, "remote.$filename_base.public" );
+    # Use default port (42) if not provided or empty
+    $port = 42 if !defined $port || $port eq '' || $port == 0;
+
+    # Normalize hostname for filename - replace colons (IPv6, unsafe chars) with underscores
+    # Format: remote-host.<hostname>_<port>.public
+    my $hostname_safe = $hostname;
+    $hostname_safe =~ tr/:\//__/;  # Replace unsafe chars
+    my $filename_base = "${hostname_safe}_${port}";
+    my $key_file = catfile( $key_dir, "remote-host.$filename_base.public" );
 
     # Validate server pubkey format
     my $server_pubkey_bin = eval { Crypt::Misc::decode_b32r($server_pubkey_b32) };
@@ -100,8 +105,8 @@ sub op_validate_tofu {
     }
 }
 
-#,,,,,,,.,,,,,,..,...,.,.,,,,,,,,,.,.,,..,,..,..,,...,...,...,,,,,,.,,,.,,,,.,
-#57TLV7XT474KVUIMMMIDDKB77CLOSGK55MNUJBB2O7D7BJ6V5VEA6WSZAWQHZQIK54WRWMDLQBGPO
-#\\\|2NY7SBXFQQBHA2ONREBQSZNTBM2DN36YIERFITSIUFGCHVH52H6 \ / AMOS7 \ YOURUM ::
-#\[7]FGBSEPQ7CMCL3VJ2CGJ2C7HAOB4BS7BCJDODYY2GHMUCSAIX7KCA 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,.,,,,,,,,.,.,.,,,,,...,...,...,..,,...,...,,.,,.,.,.,,,,..,,..,
+#YEP7SAG7F5Z456HECL2AW7N2P7U2NQVNPOYGRZIOTD7ZTGQ4KAM6DYVCBHG5L3BYXX4O37Y5QSU3A
+#\\\|F2ET4CGAHE7FSP32WZUUL2D4R5KCRSM43KIBSOLDAV37WYW2MV3 \ / AMOS7 \ YOURUM ::
+#\[7]LVVOY4STRUQ3VY7FFDGLULVJSNQOC3DPBRSDT3YRWO462D73MEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
