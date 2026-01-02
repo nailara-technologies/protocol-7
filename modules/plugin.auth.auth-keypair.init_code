@@ -1,0 +1,33 @@
+## [:< ##
+
+# name = plugin.auth.auth-keypair.init_code
+# descr = Initialize auth-keypair plugin, set up cleanup routine
+
+##  Run initial cleanup of expired unpinned keys  ##
+my $initial_cleanup = <[plugin.auth.auth-keypair.cleanup-incoming-keys]>;
+if ( defined $initial_cleanup ) {
+    <[base.logs]>->(
+        1,
+        "auth-keypair: initial cleanup removed %d expired keys",
+        $initial_cleanup
+    );
+}
+
+##  Set up periodic cleanup via event system  ##
+##  Cleanup runs every 6 hours by default  ##
+my $cleanup_interval = <plugin.auth.auth-keypair.cleanup_interval_seconds> //= 21600;  ## 6 hours ##
+
+<[base.logs]>->(
+    1,
+    "auth-keypair: cleanup interval set to %d seconds (%.1f hours)",
+    $cleanup_interval,
+    $cleanup_interval / 3600
+);
+
+0;
+
+#,,.,,...,..,,.,,,.,,,.,,,...,,,.,..,,,.,,.,.,.,.,...,...,..,,,,.,,..,.,,,...,
+#OTVW2QD55PQVMY2OPKYYVZZSYFVYOOQQPTTXNDDXSRVY2VYOM6YVWN6EOCDFEVDVXMBZPFA4RGIZY
+#\\\|25UGFC3DTAYTJOUBAIZKPRGAZ4X7WSOFMIDCETQTO7SUZGYC25P \ / AMOS7 \ YOURUM ::
+#\[7]YZTOQ5CK4EQXBIIPTCCNKDYUVGBSNBY3PUCERUYQX3FTTYSECYDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
