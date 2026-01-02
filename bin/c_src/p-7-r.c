@@ -197,15 +197,32 @@ int main( int argc, char * argv[] ) {
         p7_unix_user = root_usr; // try unix user root as a fallback user
 
     if ( argc < 3 ) {
-        fprintf( stderr, "\n < usage : %s <hostname> <port|command> [args] >\n", argv[0] );
+        fprintf( stderr, "\n < usage : %s <hostname[:port]> <command> [args] >\n", argv[0] );
         fprintf( stderr, "   examples:\n" );
-        fprintf( stderr, "     %s relay.internal 42 list sessions\n", argv[0] );
-        fprintf( stderr, "     %s compute-node.lan 171 v7.list zenki\n\n", argv[0] );
+        fprintf( stderr, "     %s relay.internal list sessions\n", argv[0] );
+        fprintf( stderr, "     %s compute-node.lan:47 v7.list zenki\n\n", argv[0] );
         exit(2);
     }
 
-    remote_host = argv[1];
-    remote_port = argv[2];
+    /* Parse hostname[:port] format */
+    char * hostname_arg = argv[1];
+    char * port_sep = strchr(hostname_arg, ':');
+
+    if ( port_sep != NULL ) {
+        /* Port specified in hostname:port format */
+        remote_port = port_sep + 1;
+        remote_host = (char *)malloc(port_sep - hostname_arg + 1);
+        if ( remote_host == NULL ) {
+            fprintf(stderr, "< malloc [hostname] > out of memory\n");
+            exit(4);
+        }
+        strncpy(remote_host, hostname_arg, port_sep - hostname_arg);
+        remote_host[port_sep - hostname_arg] = '\0';
+    } else {
+        /* No port specified, use default (from config or 42) */
+        remote_host = hostname_arg;
+        remote_port = "42";  /* Default port - would use config in full implementation */
+    }
 
     for (int i = 1; i < argc; i++) {
         if (argv[i][0] == '-') {
@@ -230,10 +247,10 @@ int main( int argc, char * argv[] ) {
     /* prepare authentication - use auth-keypair for remote connections */
     asprintf( &auth_str, "select auth-keypair\nauth %s\n", p7_unix_user );
 
-    /* prepare command string - skip hostname and port */
+    /* prepare command string - skip hostname[:port] */
     int i;
     int arglen = 2;
-    for ( i = 3; i < argc; ++i ) {
+    for ( i = 2; i < argc; ++i ) {
         arglen += strlen( argv[i] ) + 1;
     }
     char * cmd_str = (char *) malloc( sizeof(char) * arglen );
@@ -242,8 +259,8 @@ int main( int argc, char * argv[] ) {
         exit(4);
     }
 
-    strcpy( cmd_str, argv[3] );
-    for ( i = 4; i < argc; ++i ) {
+    strcpy( cmd_str, argv[2] );
+    for ( i = 3; i < argc; ++i ) {
         strcat( cmd_str, " " );
         strcat( cmd_str, argv[i] );
     }
