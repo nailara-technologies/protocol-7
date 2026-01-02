@@ -63,7 +63,7 @@ void strip_newline(char *str)
 }
 
 /* TOFU validation helper */
-int validate_tofu_key(const char *remote_host, const char *remote_port, const char *server_pubkey_b32)
+int validate_tofu_key(const char *remote_host, const char *remote_port, const char *server_pubkey_b32, int verbose, int strict)
 {
     FILE *f;
     char cmd[1024];
@@ -76,13 +76,15 @@ int validate_tofu_key(const char *remote_host, const char *remote_port, const ch
 
     f = popen(cmd, "r");
     if (!f) {
-        fprintf(stderr, ":: failed to spawn TOFU helper ::\n");
+        if (verbose)
+            fprintf(stderr, ":: failed to spawn TOFU helper ::\n");
         return -1;
     }
 
     if (fgets(result_line, sizeof(result_line), f) == NULL) {
         pclose(f);
-        fprintf(stderr, ":: TOFU helper returned no output ::\n");
+        if (verbose)
+            fprintf(stderr, ":: TOFU helper returned no output ::\n");
         return -1;
     }
     int exit_code = pclose(f);
@@ -90,18 +92,33 @@ int validate_tofu_key(const char *remote_host, const char *remote_port, const ch
 
     /* Check result */
     if (strcmp(result_line, "TOFU_VALID") == 0) {
-        fprintf(stderr, ":: TOFU validation successful (key matches) ::\n");
-        return 0;  /* Success */
+        if (verbose)
+            fprintf(stderr, ":: TOFU validation successful (key matches) ::\n");
+        return 0;  /* Success - key already pinned and matches */
     } else if (strcmp(result_line, "TOFU_PINNED") == 0) {
-        fprintf(stderr, ":: TOFU key pinned on first connection ::\n");
-        return 0;  /* Success */
+        if (strict) {
+            /* In strict mode, reject new unpinned keys */
+            fprintf(stderr, ":\n");
+            fprintf(stderr, ": strict mode: server key not yet pinned\n");
+            fprintf(stderr, ": use -v flag to pin: p-7-r -v %s:%s <command>\n",
+                    remote_host, remote_port);
+            fprintf(stderr, ":\n");
+            return 5;  /* Key not pinned yet - strict mode rejects */
+        }
+        if (verbose)
+            fprintf(stderr, ":: TOFU key pinned on first connection ::\n");
+        return 0;  /* Success - key pinned now, connection allowed */
     } else if (strcmp(result_line, "TOFU_MISMATCH") == 0) {
-        fprintf(stderr, "\n<< SECURITY WARNING: TOFU key mismatch detected >>\n");
-        fprintf(stderr, "<< Possible MITM attack - server pubkey does not match pinned key >>\n");
-        fprintf(stderr, "<< Connection rejected >>\n\n");
-        return 1;  /* MITM detected */
+        /* Always print MITM warning - security is more important than silence */
+        fprintf(stderr, ":\n");
+        fprintf(stderr, ": << SECURITY WARNING >> TOFU key mismatch detected\n");
+        fprintf(stderr, ": possible MITM attack - server pubkey does not match pinned key\n");
+        fprintf(stderr, ": connection rejected\n");
+        fprintf(stderr, ":\n");
+        return 6;  /* MITM/hijacking detected - serious issue */
     } else {
-        fprintf(stderr, ":: unknown TOFU result: %s ::\n", result_line);
+        if (verbose)
+            fprintf(stderr, ":: unknown TOFU result: %s ::\n", result_line);
         return -1;
     }
 }
@@ -223,6 +240,8 @@ int main( int argc, char * argv[] ) {
 
     char * auth_str  = '\0';
     char * root_usr  = "root";    // fallback user
+    int verbose = 0;  // verbose flag for debug output
+    int strict = 0;   // strict mode: abort if key not already pinned
 
     int socket_fd;
     struct addrinfo hints, *result, *rp;
@@ -270,18 +289,29 @@ int main( int argc, char * argv[] ) {
 
     for (int i = 1; i < argc; i++) {
         if (argv[i][0] == '-') {
-           if (argv[i][1] == 'd')
-           {
+           if (argv[i][1] == 'v' && argv[i][2] == '\0') {
+                verbose = 1;
+                /* Remove -v from argv by shifting */
+                for (int j = i; j < argc - 1; j++)
+                    argv[j] = argv[j + 1];
+                argc--;
+                i--;  // Recheck this position
+           } else if (strncmp(argv[i], "-strict", 7) == 0 && argv[i][7] == '\0') {
+                strict = 1;
+                /* Remove -strict from argv by shifting */
+                for (int j = i; j < argc - 1; j++)
+                    argv[j] = argv[j + 1];
+                argc--;
+                i--;  // Recheck this position
+           } else if (argv[i][1] == 'd') {
                 if (argv[i][2] == 'q') // -dq == checksum only
                     printf( "%s\n", src_bmw_b32 );
                 else
                     printf( ":\n: %s.c :. %s .:\n:\n", argv[0], src_bmw_b32 );
                 return 0;
-           }
-           else
-           {
+           } else {
                 fprintf( stderr,
-                  "\n  << option not valid >>  [ -d[q] for BMW checksum ]\n\n"
+                  "\n  << option not valid >>  [ -v for verbose, -strict for strict mode, -d[q] for BMW checksum ]\n\n"
                 );
                 return 2;
            }
@@ -407,12 +437,15 @@ int main( int argc, char * argv[] ) {
     }
 
     /* Stage 3: TOFU validation before proceeding with auth */
-    fprintf(stderr, ":: validating server key via TOFU ::\n");
-    int tofu_result = validate_tofu_key(remote_host, remote_port, server_pubkey_b32);
+    if (verbose)
+        fprintf(stderr, ":: validating server key via TOFU ::\n");
+    int tofu_result = validate_tofu_key(remote_host, remote_port, server_pubkey_b32, verbose, strict);
     if (tofu_result != 0) {
         close(socket_fd);
-        if (tofu_result == 1) {
-            return 5;  /* MITM detected */
+        if (tofu_result == 5) {
+            return 5;  /* Strict mode: key not yet pinned (recoverable) */
+        } else if (tofu_result == 6) {
+            return 6;  /* MITM/hijacking detected (serious) */
         } else {
             return 4;  /* TOFU validation error */
         }
