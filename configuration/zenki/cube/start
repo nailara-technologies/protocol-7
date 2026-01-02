@@ -27,11 +27,11 @@ system.access.log-permission-masks = 0
 ## Enable automatic user key creation for cube zenka ##
 crypt.C25519.autocreate-user-key = yes
 
-modules.load                    =    auth net protocol cube io.unix \ ## debian io.ip
-                                     crypt.C25519                     ## devmod
+modules.load                    =    auth net protocol cube crypt.C25519 \
+                                      io.unix io.ip              ## devmod
 
 plugins.load                    =    plugin.auth
-auth.supported_methods          =    zenka unix twofish pwd
+auth.supported_methods          =    zenka unix twofish c25519   ## pwd ##
 
 ## load protocol 7 cmd alias configuration
 [load_config_file:'zenki/cube/command_aliases']
@@ -46,14 +46,14 @@ auth.supported_methods          =    zenka unix twofish pwd
 net.auth.timeout = 13
 
 ##  which sockets to launch ##
-cube.set-up.use_ip_socket   = no      ## requires above io.ip module ##
-cube.set-up.use_unix_socket = yes
+cube.set-up.use_unix_socket = yes  ## unix socket: local authenticaed access ##
+cube.set-up.use_ip_socket   = yes  ## ip enabled for encrypted remote access ##
 
 ## calculated network address \ port set in <protocol-7.network.internal> ##
 
 # load and initialize modules
 [load_modules:<modules.load>]
-[init_modules]                   ##  sockets launched in 'cube.post_init'  ##
+[init_modules]                    ##  sockets launched in 'cube.post_init'  ##
 
 # drop root priviledges [ now 'online' ]
 [root.drop_privs:<system.amos-zenka-user>]
@@ -61,8 +61,8 @@ cube.set-up.use_unix_socket = yes
 # run zenka
 [zenka.loop]
 
-#,,,.,..,,.,.,.,,,..,,.,,,,..,,,,,..,,...,,..,..,,...,...,.,,,...,.,.,.,.,..,,
-#XF4GMT2KKBA6BIRSDLIFBGB7AFUX6SFKLZAPLFN7ZBZ7VNXDVDIFDWKGP7EXDL2LMQEYYPCRGXHMW
-#\\\|75PM2UB43H6MWEEYNCZDTOOBXWWPWZPFNR2DUFUKOU76CRXSMXW \ / AMOS7 \ YOURUM ::
-#\[7]3XESQHSSDRS4LKR67COJEBELQONVRXJUVABB6AJORJVFHA22YQAA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,...,...,,,,,,,.,.,.,,,.,,,.,,..,..,,...,.,.,,,,,..,,,..,,.,,.,.,
+#4N37TEE2ZLXNZJ2NAYDLOXEMIYZWNJ43BZ4IT6MQ5IZPGVIGJWLM2BAJ4Q67GKEXJDO2G24PNYP2S
+#\\\|6MN42LRM7BG7ZVSXLGCMN7SFWK2YIJZA2XYROHXMPDPY7IZ6SQT \ / AMOS7 \ YOURUM ::
+#\[7]ONZOCCR3WA6NMCIZSC7XAWCO32PC7D67JHK7JAYXHZZIIJAXVCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
