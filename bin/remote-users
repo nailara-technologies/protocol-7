@@ -1,0 +1,204 @@
+#!/usr/bin/env perl
+## admin console for Protocol-7 authorized remote user visibility and management
+
+use strict;
+use warnings;
+use File::Spec;
+use Cwd;
+
+my $p7_bin = '/usr/local/bin/p7';
+
+# Get home directory - follow Protocol-7 conventions
+my $home_dir = $ENV{HOME} || (getpwuid($<))[7];
+my $auth_base_dir = File::Spec->catdir($home_dir, '.n', 'remote-keys', 'authorized');
+
+# ============================================================================
+# List authorized remote users
+# ============================================================================
+sub list_authorized_users {
+    my ($zenka_filter) = @_;
+
+    my %users_by_zenka;
+
+    # Scan authorized-remote-keys structure
+    if (-d $auth_base_dir) {
+        opendir(my $auth_dh, $auth_base_dir) or return;
+        while (my $zenka = readdir($auth_dh)) {
+            next if $zenka =~ /^\./;
+            next if defined $zenka_filter && $zenka ne $zenka_filter;
+
+            my $zenka_path = File::Spec->catdir($auth_base_dir, $zenka);
+            next unless -d $zenka_path;
+
+            opendir(my $users_dh, $zenka_path) or next;
+            while (my $file = readdir($users_dh)) {
+                next if $file =~ /^\./;
+                next unless $file =~ /\.public$/;
+
+                my $username = $file;
+                $username =~ s/\.public$//;
+
+                push @{$users_by_zenka{$zenka}}, $username;
+            }
+            closedir($users_dh);
+        }
+        closedir($auth_dh);
+    }
+
+    # Build display string following keys.console.list style
+    my $names_len = 16;
+    my $display_count = 0;
+
+    my $list_string = "\n";
+    $list_string .= sprintf( "%40s\r :: authorized remote users :.\n", '' );
+
+    # Display zenki and their users
+    foreach my $zenka (sort keys %users_by_zenka) {
+        my @users = sort @{$users_by_zenka{$zenka}};
+
+        $list_string .= sprintf " : %*s .\n", $names_len, '';
+        $list_string .= sprintf " : %*s .\n", $names_len,
+            sprintf( "'%s'", $zenka );
+
+        foreach my $user (@users) {
+            $display_count++;
+            $list_string .= sprintf " : %*s : %s\n", $names_len, '', $user;
+        }
+    }
+
+    # If no users found
+    if (!$display_count) {
+        $list_string .= sprintf " : %*s\n", $names_len, '';
+        $list_string .= sprintf " : %*s\n", $names_len,
+            '[ no authorized users ]';
+    } else {
+        $list_string .= sprintf " : %*s .\n", $names_len, '';
+    }
+
+    $list_string .= "::\n";
+
+    print $list_string;
+}
+
+# ============================================================================
+# Show detailed info about a remote user
+# ============================================================================
+sub show_user_info {
+    my ($zenka, $username) = @_;
+
+    die "usage: remote-users show <zenka> <username>\n" unless $zenka && $username;
+
+    my $keyfile = File::Spec->catfile($auth_base_dir, $zenka, "$username.public");
+
+    unless (-f $keyfile) {
+        print ":\n: user '$username' not authorized for '$zenka'\n:\n";
+        return;
+    }
+
+    print ":\n: User: $username @ $zenka\n";
+    print ": Path: $keyfile\n";
+
+    # Show key details
+    if (open(my $fh, '<', $keyfile)) {
+        my $pubkey = <$fh>;
+        chomp($pubkey);
+        close($fh);
+
+        my $key_short = substr($pubkey, 0, 16) . '...';
+        print ": Key:  $key_short\n";
+
+        # Try to get key status from keys zenka
+        my $status = `$p7_bin keys.cmd.list-pubkeys 2>/dev/null | grep -i '$username'`;
+        if ($status) {
+            print ": Status: [pinned]\n";
+        } else {
+            print ": Status: [managed]\n";
+        }
+    }
+    print ":\n";
+}
+
+# ============================================================================
+# Broadcast message to active sessions
+# ============================================================================
+sub broadcast_message {
+    my ($message) = @_;
+
+    die "usage: remote-users broadcast '<message>'\n" unless $message;
+
+    # Use Protocol-7 wall-like functionality
+    system("$p7_bin cube.system.admin_broadcast_warning '$message' 2>/dev/null");
+
+    print ":\n: message broadcast\n:\n";
+}
+
+# ============================================================================
+# Remove authorized user
+# ============================================================================
+sub remove_user {
+    my ($zenka, $username) = @_;
+
+    die "usage: remote-users remove <zenka> <username>\n" unless $zenka && $username;
+
+    my $keyfile = File::Spec->catfile($auth_base_dir, $zenka, "$username.public");
+
+    unless (-f $keyfile) {
+        print ":\n: user '$username' not found in '$zenka'\n:\n";
+        return;
+    }
+
+    unlink($keyfile) or die "Cannot remove $keyfile: $!\n";
+
+    # Clean up empty directories
+    my $zenka_dir = File::Spec->catdir($auth_base_dir, $zenka);
+    if (opendir(my $dh, $zenka_dir)) {
+        my @entries = grep { !/^\./ } readdir($dh);
+        closedir($dh);
+
+        if (!@entries) {
+            rmdir($zenka_dir);
+        }
+    }
+
+    print ":\n: removed user '$username' from '$zenka'\n:\n";
+}
+
+# ============================================================================
+# Main dispatcher
+# ============================================================================
+sub main {
+    my $command = shift @ARGV || 'list';
+
+    if ($command eq 'list') {
+        my $zenka = shift @ARGV;
+        list_authorized_users($zenka);
+    } elsif ($command eq 'show') {
+        my $zenka = shift @ARGV;
+        my $user = shift @ARGV;
+        show_user_info($zenka, $user);
+    } elsif ($command eq 'broadcast') {
+        my $msg = shift @ARGV;
+        broadcast_message($msg);
+    } elsif ($command eq 'remove') {
+        my $zenka = shift @ARGV;
+        my $user = shift @ARGV;
+        remove_user($zenka, $user);
+    } else {
+        print ":\n: unknown command: $command\n";
+        print ": usage:\n";
+        print ":   remote-users list [zenka]\n";
+        print ":   remote-users show <zenka> <username>\n";
+        print ":   remote-users remove <zenka> <username>\n";
+        print ":   remote-users broadcast '<message>'\n";
+        print ":\n";
+        exit(2);
+    }
+}
+
+main() unless caller();
+
+#,,..,...,.,.,,.,,.,.,,,,,,..,.,.,..,,..,,,.,,.,.,...,...,,,.,,.,,.,.,,.,,..,,
+#F5WXUXFUTYJB5ADTNW7CBMHOXFFESH34LWISQ3SF42MZI6GM6GB5RHKLNIBDZ7NWATMY5HJXXEKDA
+#\\\|HRKFA4G5RINWZERILRHVKZTOPL2AAKKMY66FQLOQCQDNCLIAJW2 \ / AMOS7 \ YOURUM ::
+#\[7]V3VDWJFAHMVJ77YQQ6M4SNNNJLAESPCZOGT6GRY2YLTZ724GCACQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

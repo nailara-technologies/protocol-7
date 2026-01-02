@@ -73,6 +73,9 @@ foreach my $file (    ## collect signatures ##
 
 my @display_kfiles;
 foreach my $file (@k_files) {
+    ## skip TOFU pinned hostkey files - handled separately in remote_keys section ##
+    next if $file =~ m|remote-host\.[0-9a-z\.\-_]+\.public$|;
+
     push @display_kfiles, $file;
     if ( $file =~ m|([^/]+):seed-phrase$| ) { ## : todo :  add single keys  ##
         push @display_kfiles,
@@ -88,7 +91,7 @@ foreach my $file (@display_kfiles) {
 }
 
 my $names_len = 2 + max( map {length} keys %key_files );
-$names_len = max( $names_len, map {length} values %key_chksums );
+$names_len = max( $names_len, map {length( $_ // '' )} values %key_chksums );
 
 <[base.logs]>->( "listing key files ['%s']", $key_dir );
 
@@ -131,7 +134,7 @@ foreach my $name ( <[base.sort]>->( \%key_files ) ) {
             ? ( $file =~ $key_re_public and exists $key_signed_by{$name} )
                 ? ': signed :'
                 : ''
-            : $key_chksums{$name};
+            : $key_chksums{$name} // '';
 
         $key_list_string .= sprintf " : %*s : %s\n", $names_len,
             $chksum_line, $file;
@@ -155,11 +158,13 @@ if ( keys %{$remote_keys_ref} and not $display_sigs ) {
         $key_list_string .= sprintf " : %*s .\n", $names_len,
             sprintf( "'%s' [hostkey]", $display_name );
 
-        ##  Display with ntime_b32 as the timestamp  ##
+        ##  Display with ntime_b32 as the timestamp and full filename  ##
         my $ntime_display = $remote_info->{'ntime_b32'};
+        my $key_filename = $remote_info->{'file_path'};
+        $key_filename =~ s|^.*/||;    ## extract just the filename ##
 
         $key_list_string .= sprintf " : %*s : %s\n", $names_len,
-            $ntime_display, 'public';
+            $ntime_display, $key_filename;
 
     }
 }
@@ -205,8 +210,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $key_list_string;
 
-#,,.,,.,.,...,.,,,,.,,,..,.,.,,,,,.,,,..,,,,,,..,,...,...,...,,,,,...,,,,,,,.,
-#DUSEXIL7FXM2WBP7U7KKJOXUZ4URDUQLLJA3CCAOWDG76WNMQJIMV36EBAVKFBJIWALR4QVBFZUXS
-#\\\|BOQ24XWFLOOCSFRSLE5VFQUXPMCLP6QFSTLJXHFSQXRNMYAITNQ \ / AMOS7 \ YOURUM ::
-#\[7]MA2W7DV222QZTMGXGQI4ZSGTKJ2SKJ4M2LBH336W55DVRKLO2QAY 7  DATA SIGNATURE ::
+#,,..,.,,,...,...,.,,,,.,,.,,,,.,,,,.,.,,,.,,,..,,...,..,,..,,.,.,,.,,,..,,,,,
+#ITHYTFGQG7QZXR5ZUE5URRHXSEF5BVVKD4IUQBCLSSVHPYUZ4VD7ESM2JX43CU6QTPRTR37CYSDKY
+#\\\|EFO2I54U5OL2RYSSB6QEPNAXIJFVDZVT7BLPU672AITTQ37YICL \ / AMOS7 \ YOURUM ::
+#\[7]AXCE2FJPJRCEYKSGU3RNEDJ2ONMSLQ4BMJXI5MMJUSRJOHX6YEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
