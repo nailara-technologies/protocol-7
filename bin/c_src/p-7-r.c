@@ -245,7 +245,33 @@ int main( int argc, char * argv[] ) {
     }
 
     /* prepare authentication - use auth-keypair for remote connections */
-    asprintf( &auth_str, "select auth-keypair\nauth %s\n", p7_unix_user );
+    FILE *f;
+    char cmd[1024];
+    char c25519_pubkey[256] = {0};
+    char ed25519_sig[256] = {0};
+
+    /* Get local user's C25519 pubkey and Ed25519 signature */
+    snprintf(cmd, sizeof(cmd),
+             "/data/projects/protocol-7/bin/p7-auth-keypair-helper.pl gen-auth %s 2>/dev/null",
+             p7_unix_user);
+    f = popen(cmd, "r");
+    if (!f) {
+        fprintf(stderr, ":: failed to spawn auth helper ::\n");
+        return 4;
+    }
+
+    if (fgets(c25519_pubkey, sizeof(c25519_pubkey), f) == NULL ||
+        fgets(ed25519_sig, sizeof(ed25519_sig), f) == NULL) {
+        pclose(f);
+        fprintf(stderr, ":: failed to read auth credentials ::\n");
+        return 4;
+    }
+    pclose(f);
+    strip_newline(c25519_pubkey);
+    strip_newline(ed25519_sig);
+
+    asprintf( &auth_str, "select auth-keypair\nauth %s %s %s\n",
+              p7_unix_user, c25519_pubkey, ed25519_sig );
 
     /* prepare command string - skip hostname[:port] */
     int i;
