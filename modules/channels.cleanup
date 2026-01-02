@@ -1,0 +1,80 @@
+## [:< ##
+
+# name  = channels.cleanup
+# descr = Clean up suspended channels and expired blocking client entries
+# args  = none
+# return = hash { channels_removed => count, clients_removed => count }
+
+my $current_time = <[base.time]>->(2);
+my $suspended_timeout = <channels.cfg.inactive_timeout_seconds> // 86400;
+
+my $channels_removed = 0;
+my $clients_removed = 0;
+
+##  Clean up SUSPENDED channels (no subscribers)  ##
+foreach my $channel_path ( keys %{<channels.subscriptions>} ) {
+    my $channel = <channels.subscriptions>->{$channel_path};
+    next unless $channel->{'status'} eq 'SUSPENDED';
+
+    my $suspended_at = $channel->{'suspended_at'} // $current_time;
+    my $time_suspended = $current_time - $suspended_at;
+
+    if ( $time_suspended >= $suspended_timeout ) {
+        ##  Remove channel (no subscribers for timeout period)  ##
+        delete <channels.subscriptions>->{$channel_path};
+        delete <channels.data>->{$channel_path};
+        delete <channels.timestamps>->{$channel_path};
+        delete <channels.checksums>->{$channel_path};
+
+        $channels_removed++;
+
+        <[base.logs]>->(
+            1,
+            "channels: removed suspended channel '%s' (no subscribers for %.1f hours)",
+            $channel_path,
+            $time_suspended / 3600
+        );
+    }
+}
+
+##  Clean up expired blocking clients (stale requests)  ##
+foreach my $request_id ( keys %{<channels.blocking_clients>} ) {
+    my $client = <channels.blocking_clients>->{$request_id};
+    next unless defined $client;
+
+    my $request_time = $client->{'timestamp'} // $current_time;
+    my $time_waiting = $current_time - $request_time;
+
+    ##  Remove if waiting for more than 24 hours (should have reconnected)  ##
+    if ( $time_waiting > ( 24 * 3600 ) ) {
+        delete <channels.blocking_clients>->{$request_id};
+        $clients_removed++;
+
+        <[base.logs]>->(
+            2,
+            "channels: removed stale blocking client %s (waited %.1f hours)",
+            $request_id,
+            $time_waiting / 3600
+        );
+    }
+}
+
+<[base.logs]>->(
+    2,
+    "channels: cleanup completed (removed %d channels, %d stale clients)",
+    $channels_removed,
+    $clients_removed
+);
+
+return {
+    'channels_removed' => $channels_removed,
+    'clients_removed'  => $clients_removed
+};
+
+1;
+
+#,,.,,..,,...,..,,,..,,,.,...,,,.,,.,,,,.,.,.,.,.,...,...,.,.,.,,,...,,.,,..,,
+#D7OJO7ZA3OJX2ZNKCTFJF5O5M46SVVYZEMF2YM6VR5SREKIVLNTSIRHEEDOZCGQTUQ4QQGFJEOAQI
+#\\\|QGHGR52AZUKXGEMPGA56UQ33O7GXRTW56JAIU4HWLARLOYGENO3 \ / AMOS7 \ YOURUM ::
+#\[7]PWM6VCBIMWSQLWG5MT3SUOSMPZONP5ACN5IYFUAIWBGUTGFAVOAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
