@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = nodes.handler.discover_node_online
+# descr = Process discover notification of node coming online; track TOFU status
+# args  = hash: { host, pkey, ip_addr, iface, hwaddr, ... }
+# return = int result code
+
+my $node_info = shift;
+return 4 unless ref $node_info eq 'HASH';
+
+my $node_name  = $node_info->{'host'};
+my $node_pkey  = $node_info->{'pkey'};
+my $node_addr  = $node_info->{'ip_addr'};
+my $node_iface = $node_info->{'iface'};
+my $hwaddr     = $node_info->{'hwaddr'};
+
+return 4 unless defined $node_name and defined $node_pkey and defined $node_addr;
+
+##  Check if remote node is already in our remote-nodes table  ##
+my $remote_node_entry;
+foreach my $id ( keys %{<nodes.remote-nodes>} ) {
+    if ( <nodes.remote-nodes>->{$id}->{'node_name'} eq $node_name ) {
+        $remote_node_entry = <nodes.remote-nodes>->{$id};
+        last;
+    }
+}
+
+##  If not found, create new entry  ##
+unless ( defined $remote_node_entry ) {
+    my $node_id = <[base.gen_id]>->(<nodes.remote-nodes>);
+
+    $remote_node_entry = {
+        'node_name'   => $node_name,
+        'remote_host' => $node_addr,
+        'node_port'   => 42,              ## default Protocol-7 port ##
+        'hwaddr'      => $hwaddr,
+        'pkey'        => $node_pkey,
+        'pinning_status' => 'unpinned',   ## initial status ##
+        'auth_status' => 'pending',       ## not yet authorized ##
+        'timestamp_pinned'   => undef,
+        'timestamp_authed'   => undef,
+        'iface'       => $node_iface,
+    };
+
+    <nodes.remote-nodes>->{$node_id} = $remote_node_entry;
+
+    <[base.logs]>->(
+        1,
+        'nodes: discovered remote node \'%s\' at %s (hwaddr: %s)',
+        $node_name,
+        $node_addr,
+        $hwaddr
+    );
+} else {
+    ##  Update existing entry if info changed  ##
+    $remote_node_entry->{'remote_host'} = $node_addr if $node_addr;
+    $remote_node_entry->{'hwaddr'} = $hwaddr if $hwaddr;
+    $remote_node_entry->{'pkey'} = $node_pkey if $node_pkey;
+    $remote_node_entry->{'iface'} = $node_iface if $node_iface;
+
+    <[base.logs]>->(
+        2,
+        'nodes: updated remote node \'%s\' status (still online)',
+        $node_name
+    );
+}
+
+return 0;
+
+1;
+
+#,,,,,...,.,,,.,.,..,,.,.,,.,,...,...,.,,,...,.,.,...,..,,.,.,.,,,,,,,...,.,,,
+#3USGKWFWWOF77NWFR7XSTVEMFGQLT4APDFYNYU5VFR7F2FURW5EM5DDZF4HWUK4XYOESUM2C2OBHW
+#\\\|6YDH66GBPKLZBCQVAKPKHK7YR3KHIN5XZPBQ6OAB2B7CYTEVWZS \ / AMOS7 \ YOURUM ::
+#\[7]ZCH64JCD7MCLD5526FDKNG6TIUSZCO6FQMAFKTGIBOGUCV2YQYBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
