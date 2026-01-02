@@ -25,16 +25,16 @@ auth.setup.usr.notify-warn  = :unix:protocol-7,<unix-AMOS-user>
 auth.setup.usr.notify-info  = :unix:protocol-7,<unix-AMOS-user>
 auth.setup.usr.power-x11    = :unix:<unix-admin>,<unix-AMOS-user>
 
-## [ C25519 key-based authentication - Phase 1 ]
+## [ auth-keypair authentication - Ed25519 signature verification ]
 ## Format: auth <username> <c25519_pubkey_b32> <ed25519_signature_b32>
 ## Master key registered via: register-master-key <username> <ed25519_pubkey_b32>
-auth.setup.usr.taeki        = :unix:taeki,:c25519:
-auth.setup.usr.test-c25519  = :c25519:
+auth.setup.usr.taeki              = :unix:taeki,:auth-keypair:
+auth.setup.usr.test-auth-keypair  = :auth-keypair:
 
 ##  use './bin/mk.usr' to create users with password hashes  ##
 
-#,,,,,,,.,.,,,.,.,.,,,,,.,...,.,,,,.,,,,,,,,.,..,,...,...,..,,.,.,,,.,.,,,,,,,
-#I236JLFSQ5AR4ZODQRDXX2IPN3RVGHMOUF4OAT6ZCCKOVABWKQJ3WZGZIVL6ZRU446QKWKT25MO3W
-#\\\|O4GKVDKXHZBVT3NHFF5YNO3CSD7P54J5TKJPKEBKE77GUA63BGS \ / AMOS7 \ YOURUM ::
-#\[7]6M3MDBR6ZYF6BX33CPGEA4PAB3G5I7WOBDBQLUZAMX3OR4OWJ4AY 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,.,,,,.,.,.,...,,..,,,,,.,.,,.,,..,,...,...,,,,,.,,,,..,.,.,.,,,
+#ZJRVXGGALADVRDBQE557MEWVBQM3OCJMZLSQA4WKPDZWFD7S7VPTYGWPMGROSAMFDVXV4V5G25UUA
+#\\\|Y45VC66OBYVNEICIRGMIRLLAONIYHFLBRHKBLL2XINDNDP2YWOG \ / AMOS7 \ YOURUM ::
+#\[7]XNPRI4FBANCJTZVREPXMRUZKISJ4KA6BHCLVUSRIIDT6RDPRZICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
