@@ -25,7 +25,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
     ## Username must be in authorized-remote registry with public key
     my $authorized_user_ref = $keys{'authorized-remote'}{$username};
 
-    unless ( defined $authorized_user_ref and ref $authorized_user_ref eq 'HASH' ) {
+    unless ( defined $authorized_user_ref
+        and ref $authorized_user_ref eq 'HASH' ) {
         $output->$* .= "AUTH_ERROR user not authorized\n";
         <[base.logs]>->(
             0,   '[%d] auth-keypair failed: user \'%s\' not authorized',
@@ -69,7 +70,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
     unless ( defined $signature_bin and length($signature_bin) == 64 ) {
         $output->$* .= "AUTH_ERROR invalid signature format\n";
         <[base.logs]>->(
-            0,   '[%d] auth-keypair failed: invalid signature for user \'%s\'',
+            0, '[%d] auth-keypair failed: invalid signature for user \'%s\'',
             $id, $username
         );
         return 2;    ## access denied - invalid signature ##
@@ -97,7 +98,65 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
     }
 
     if ($signature_valid) {
-        ## Signature verified - authenticate user with C25519 session key
+        ## Signature verified - validate/pin incoming client TOFU key
+        my $client_sock_fd = $data{'session'}{$id}{'handle'};
+        my $tofu_result    = 0;
+
+        ##  Validate TOFU for TCP connections (not for unix domain sockets)  ##
+        if (    defined $client_sock_fd
+            and defined $data{'handle'}{$client_sock_fd}
+            and $data{'handle'}{$client_sock_fd}{'link'} eq 'ip.tcp' ) {
+
+            my $peerhost   = $data{'handle'}{$client_sock_fd}{'peerhost'};
+            my $peerport   = $data{'handle'}{$client_sock_fd}{'peerport'};
+            my $zenka_name = <system.zenka.name> // 'unknown';
+
+            $tofu_result
+                = <[plugin.auth.auth-keypair.validate-incoming-tofu]>->(
+                $id, $zenka_name, $username, $master_pubkey_b32, $peerhost,
+                $peerport
+                );
+
+            if ( $tofu_result == 0 ) {
+                ##  TOFU validated and authorized - allow access  ##
+            } elsif ( $tofu_result == 1 ) {
+                ##  TOFU pinned but awaiting authorization  ##
+                $output->$*
+                    .= "AUTH_ERROR TOFU: key pinned, awaiting authorization\n";
+                <[base.logs]>->(
+                    1,
+                    '[%d] auth-keypair: TOFU awaiting auth for \'%s\' from %s:%s',
+                    $id,
+                    $username,
+                    $peerhost,
+                    $peerport
+                );
+                return 2;    ## access denied - not yet authorized ##
+            } elsif ( $tofu_result == 2 ) {
+                ##  TOFU mismatch - key compromise suspected!  ##
+                $output->$*
+                    .= "AUTH_ERROR TOFU mismatch - key compromise suspected\n";
+                <[base.logs]>->(
+                    0,
+                    '[%d] auth-keypair: TOFU violation for \'%s\' from %s:%s',
+                    $id,
+                    $username,
+                    $peerhost,
+                    $peerport
+                );
+                return 2;    ## access denied - TOFU violation ##
+            } elsif ( $tofu_result == 4 ) {
+                ##  TOFU processing error  ##
+                $output->$* .= "AUTH_ERROR TOFU processing failed\n";
+                <[base.logs]>->(
+                    0,   '[%d] auth-keypair: TOFU error for \'%s\'',
+                    $id, $username
+                );
+                return 2;    ## access denied - TOFU error ##
+            }
+        }
+
+        ## Signature verified and TOFU validated - authenticate user with C25519 session key
         $output->$* .= "AUTH_TRUE =)\n";
 
         ## Store C25519 session key for this user
@@ -109,8 +168,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
         };
 
         <[base.logs]>->(
-            1,   '[remote] user \'%s\' session authorized.',
-            $username
+            1, '[remote] user \'%s\' session authorized.', $username
         );
         return ( 0, $username );    ## success with username ##
     } else {
@@ -134,8 +192,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
 
 1;
 
-#,,,,,.,,,.,,,.,,,,,.,,,,,,,.,..,,,,.,,,,,,,,,..,,...,..,,..,,.,.,,,,,,.,,,,.,
-#AM5P3T7PLJVSMEOCDKRSYJ5WTOTPRC5ZKUDQD3KBFUX652FZLY77VT4EPNG35NIQ4LYVKJBGFJF2K
-#\\\|5QUXYHO7F7R76LE7JZ47ILLTG32AMAAIXX4RSGJ7LDYMSCAIVNE \ / AMOS7 \ YOURUM ::
-#\[7]6SZPMZJ6BL5XCYKBJ3VQMYONYW2HDKS7MTFMHBS6GZPZUK3SVEDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,..,..,,,.,,.,.,.,,,,,.,,,.,.,,,..,,...,...,..,,,..,,.,,,..,.,,,
+#6BMKRQPU4LADGQ4UZMWUUVHD2WH7CDAPVQTWKI7P4NO5ZMIBEGR3MIH3FWVODY7BTCYTHDEPIKW4U
+#\\\|BYT46NP5YVBJWLZZKXP7VY36WTQCNSKGD22NN3DXCAN3RSBTSAN \ / AMOS7 \ YOURUM ::
+#\[7]IBP6TEJRIUTARMBWAS3PQ27HFHGT2MQ6JGJYMDAUKUXOHTY67EDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
