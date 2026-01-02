@@ -1,0 +1,89 @@
+## [:< ##
+
+# name  = crypt.C25519.get_remote_key
+# descr = retrieve stored remote server Ed25519 key by hostname[:port]
+# param = <hostname> [port]
+# return = {ntime_b32, pubkey_b32, pubkey_bin} or undef if not found
+# note  = port defaults to configuration value or 42
+
+my $hostname = shift;    ## remote hostname
+my $port     = shift;    ## remote port (optional)
+
+$port //= <protocol-7.remote.default-port> // 42;
+
+##  Validate inputs  ##
+
+return undef
+    if not defined $hostname
+    or not length $hostname
+    or $port !~ m|^\d+$|;
+
+##  Get key directory  ##
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>;
+
+return undef if not defined $key_vars_ref;
+
+my $key_dir = $key_vars_ref->{'key_dir'};
+
+##  Create normalized filename (must match storage format)  ##
+
+my $safe_hostname = $hostname;
+$safe_hostname =~ tr|:|_|;                 ## replace colons with underscores
+$safe_hostname =~ tr|/|_|;                 ## replace slashes with underscores
+$safe_hostname =~ s|[^a-zA-Z0-9._-]||g;    ## remove unsafe chars
+
+my $key_name  = sprintf 'remote.%s_%d', $safe_hostname, $port;
+my $file_path = catfile( $key_dir, sprintf '%s.public', $key_name );
+
+##  Check if key file exists  ##
+
+return undef if not -f $file_path or not -r $file_path;
+
+##  Read key file  ##
+
+my $key_content = <[file.slurp]>->($file_path)->$*;
+
+return undef if not defined $key_content or not length $key_content;
+
+chomp $key_content;
+
+##  Parse format: NTIME_B32:PUBKEY_B32  ##
+
+my ( $ntime_b32, $pubkey_b32 ) = split m|:|, $key_content, 2;
+
+return undef
+    if not defined $ntime_b32
+    or not defined $pubkey_b32
+    or not length $ntime_b32
+    or not length $pubkey_b32;
+
+##  Validate pubkey_b32 format  ##
+
+return undef
+    if length $pubkey_b32 != 52
+    or $pubkey_b32 !~ m|^[A-Z0-9]+$|;
+
+##  Decode pubkey_b32 to binary  ##
+
+my $pubkey_bin = Crypt::Misc::decode_b32r($pubkey_b32);
+
+return undef
+    if not defined $pubkey_bin
+    or length $pubkey_bin != 32;    ## C25519 keys are 32 bytes
+
+##  Return structured result  ##
+
+return {
+    'ntime_b32'  => $ntime_b32,
+    'pubkey_b32' => $pubkey_b32,
+    'pubkey_bin' => $pubkey_bin,
+    'hostname'   => $hostname,
+    'port'       => $port
+};
+
+#,,,,,,.,,,,.,,.,,.,.,.,,,,,,,,..,..,,.,,,,,.,..,,...,...,,.,,,,,,.,,,,..,,,,,
+#ZOZTXEOWAQDSGXVRF54ITPUSKVLH3S6C5RMNDUCUKYZEUTE5TW47BGYSKK5FWT5Z7YZ3GM7HFOE3E
+#\\\|AONTKA2GTPRJKEI4BPMPPQPCC5V37AMA6K3ZIR3GEL6UNWXUFQA \ / AMOS7 \ YOURUM ::
+#\[7]H2EBHOYJQZP5WLLPHFMGJI4HI54QKUPQ2YPDGYJD33NU6OCPKEDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

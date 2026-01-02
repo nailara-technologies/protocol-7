@@ -29,6 +29,9 @@ my $key_re_sig     = $keys_re->{'key_sig'}->{'signature'};
 my @k_files = grep {s|^.+/||} <[base.reverse-sort]>->(<[keys.get_keyfiles]>)
     or return;
 
+##  Load remote [hostkey] entries  ##
+my $remote_keys_ref = <[keys.list_remote_keys]>->();
+
 my %key_chksums;
 if ($display_checksums) {    ## calculating key checksums ##
     my $calculating_message = 'calculating C25519 key checksums ..,';
@@ -47,6 +50,12 @@ if ($display_checksums) {    ## calculating key checksums ##
     foreach my $name ( <[base.sort]>->( \%key_chksums ) ) {
         <[base.logs]>->( 0, "failed to acquire checksum for key '%s'", $name )
             if not defined $key_chksums{$name};
+    }
+
+    ##  Add remote key timestamps to checksums display  ##
+    foreach my $display_name ( keys %{$remote_keys_ref} ) {
+        my $remote_info = $remote_keys_ref->{$display_name};
+        $key_chksums{$display_name} = $remote_info->{'ntime_b32'};
     }
 }
 
@@ -132,6 +141,29 @@ foreach my $name ( <[base.sort]>->( \%key_files ) ) {
 
 }
 
+##  Display remote [hostkey] entries  ##
+if ( keys %{$remote_keys_ref} and not $display_sigs ) {
+
+    foreach
+        my $display_name ( <[base.sort]>->( [ keys %{$remote_keys_ref} ] ) ) {
+        my $remote_info = $remote_keys_ref->{$display_name};
+
+        $displayed_files_count++;
+
+        $key_list_string .= sprintf " : %*s .\n", $names_len, '';
+
+        $key_list_string .= sprintf " : %*s .\n", $names_len,
+            sprintf qw| '%s' [hostkey] |, $display_name;
+
+        ##  Display with ntime_b32 as the timestamp  ##
+        my $ntime_display = $remote_info->{'ntime_b32'};
+
+        $key_list_string .= sprintf " : %*s : %s\n", $names_len,
+            $ntime_display, 'public';
+
+    }
+}
+
 if ( not $displayed_files_count ) {
     $key_list_string .= sprintf " : %*s\n", $names_len, '';
     $key_list_string .= sprintf " : %*s\n", $names_len,
@@ -158,6 +190,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
     $key_list_string =~ s<(\S+)  (\[incomplete\])>
                          <$C{0}$C{b}$1$C{R}  $C{o}$2$C{R}>mg;
     $key_list_string =~ s|: signed \e\S+|$C{G}: signed :$C{T}|mg;
+    $key_list_string
+        =~ s|(\[hostkey\])|$C{G}$C{b}$1$C{R}|mg;    ##[ remote key marker ]##
     $key_list_string =~ s|(\[ [^\]]+ \])|$C{G}$1$C{R}|mg;    ##[ no match ]##
     $key_list_string =~ s|'(.+)'|$C{G}'$C{T}$C{B}$1$C{R}$C{G}'$C{T}|mg;
     $key_list_string =~ s|(*plb:user)( \S+ )|$C{B}$C{b}$1$C{R}$C{T}|mg;
@@ -171,8 +205,8 @@ if ( <system.ansi_color> or <system.force_colors> ) {
 
 return say $key_list_string;
 
-#,,,,,,..,.,,,.,.,,.,,...,.,,,,,,,.,.,.,.,.,,,..,,...,.,.,,.,,,.,,,.,,,,.,,..,
-#BVEFEJ2KABSRM2C7PMRUIZHIHXROIQ5TJM43KGZ344IQNKRDSBBKXGP2ZGJCYIAOO26BYZO6DCO6U
-#\\\|VAQGDFKYDWWCNUGQG2MK3KH6JVA3ZH63CGSTVBKQYSQ3VLBWCLJ \ / AMOS7 \ YOURUM ::
-#\[7]J7E73SUT6XAH6J3XFO6VA5BPV6SKQHFNIJGGZQMC7JUIW6GODKAY 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,..,.,.,...,,,,,,.,,,..,,.,,,..,..,,...,...,,,.,...,,,,,.,,,,,,,
+#CB54TAWXDPYF6YHNSPRVNUBXVC22AOG3NS75DBJG5ORCO7WQ2FXP64LIYORU7VDU2PYBWUCRD47MK
+#\\\|5LAS5E6NFUFQRUFNAVGITVGDF2NF2J5H7QL7TEO5DOZZE674DGF \ / AMOS7 \ YOURUM ::
+#\[7]ACEFVAN6Y67HFRVVVKWLUBBLE6MBZRTUPWV27NFMGNAD5UZZDMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
