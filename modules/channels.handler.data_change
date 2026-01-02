@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = channels.handler.data_change
+# descr = Process channel data change and notify blocking clients
+# args  = str(channel_path)
+# return = int(count) clients notified
+
+my $channel_path = shift;
+return 0 unless defined $channel_path and length $channel_path;
+
+my $current_time = <[base.time]>->(3);
+my $current_ts_b32 = <[base.encode_base32]>->(pack('Q>', int($current_time)));
+
+my $clients_notified = 0;
+
+##  Find all blocking clients waiting for this channel  ##
+foreach my $request_id ( keys %{<channels.blocking_clients>} ) {
+    my $client = <channels.blocking_clients>->{$request_id};
+    next unless defined $client;
+
+    ##  Check if client is waiting for this channel  ##
+    my $matches = FALSE;
+
+    if ( !length $client->{'channel_path'} ) {
+        ##  Client waiting for any channel  ##
+        $matches = TRUE;
+    } elsif ( $client->{'channel_path'} eq $channel_path ) {
+        ##  Exact channel match  ##
+        $matches = TRUE;
+    } elsif ( $client->{'channel_path'} =~ m|^([^\.]+\.)*|
+        and $channel_path =~ m|^\Q$client->{'channel_path'}\E| ) {
+        ##  Hierarchical match (subtree subscription)  ##
+        $matches = TRUE;
+    }
+
+    next unless $matches;
+
+    ##  Send push notification with new timestamp  ##
+    ##  (In production, this routes via cube to client's session)  ##
+
+    <[base.logs]>->(
+        2,
+        "channels: notifying client %s of change in '%s'",
+        $request_id,
+        $channel_path
+    );
+
+    ##  Mark this blocking client as handled  ##
+    $client->{'notified_at'} = $current_time;
+    $client->{'notification_ts'} = $current_ts_b32;
+
+    $clients_notified++;
+
+    ##  In real implementation, send response to client via cube/routing  ##
+    ##  Response format: TRUE <timestamp_b32>  ##
+}
+
+<[base.logs]>->(
+    2,
+    "channels: notified %d blocking clients of change in '%s'",
+    $clients_notified,
+    $channel_path
+);
+
+return $clients_notified;
+
+1;
+
+#,,..,,.,,,,,,.,,,..,,,,.,.,,,.,.,,.,,,.,,.,.,.,.,...,..,,.,,,...,..,,,,.,,..,
+#GL6KYLJ2IBMFVRWMXXQRMSQWQL42YDMMDNYTL2ULLQVQTPCZJCHYMJ22XSBXOLXL3QZ52KYIAO5OO
+#\\\|7GIXLVGZYR72EBID6QIOIW7YYILFOZZZAAVSREKTLHSWEWQH23U \ / AMOS7 \ YOURUM ::
+#\[7]OTA5P6SJDW6Q5KZ4FZ2JN3CMF7J2MQ4EFM44ZYCP3OVNLH3KG2AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
