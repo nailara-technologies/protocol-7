@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = channels.cmd.update
+# descr = Update channel data (used by applications to publish to channels)
+# param = <channel-path> <json_data>
+# return = { mode => 'timestamp', data => 'BASE32_ENCODED_NEW_TIMESTAMP' }
+
+my $args = $$call{'args'} // '';
+my ( $channel_path, $json_data_str ) = split( m| +|, $args, 2 );
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected <channel-path> and <json_data> parameters'
+} unless length $channel_path and defined $json_data_str;
+
+##  Validate channel path  ##
+unless ( $channel_path =~ m|^[a-z0-9\.\-_]+$|i ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'invalid channel path (use lowercase alphanumeric, dots, dashes, underscores)'
+    };
+}
+
+##  Parse JSON data  ##
+my $data_ref;
+eval {
+    my $json_module = <[base.perlmod.load]>->('JSON::PP');
+    $data_ref = JSON::PP::decode_json($json_data_str);
+};
+
+if ( length $EVAL_ERROR ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "invalid JSON: $EVAL_ERROR"
+    };
+}
+
+return {
+    'mode' => qw| false |,
+    'data' => 'data must be a JSON object (hash)'
+} unless ref $data_ref eq 'HASH';
+
+##  Update channel data  ##
+<channels.data>->{$channel_path} = $data_ref;
+
+##  Update timestamp (for this channel)  ##
+my $current_time = <[base.time]>->(3);
+my $current_ts_b32 = <[base.encode_base32]>->(pack('Q>', int($current_time)));
+<channels.timestamps>->{$channel_path} = $current_ts_b32;
+
+##  Invalidate global timestamp (any channel changed)  ##
+delete <channels.checksums>;  ## reset all checksums ##
+
+<[base.logs]>->(
+    1,
+    "channels: updated channel '%s' with %d fields",
+    $channel_path,
+    scalar keys %{$data_ref}
+);
+
+return {
+    'mode' => qw| timestamp |,
+    'data' => $current_ts_b32
+};
+
+1;
+
+#,,,,,,,.,.,.,,..,.,.,.,,,.,.,...,,..,..,,,..,.,.,...,...,,.,,,..,.,.,..,,,,,,
+#DUDNEWZ56IPSLO4HEJPQEXI5MN4UA2NDBQ3U5U7SFK2CEFILUYOMDQOSCN5V46KZVQB26CMDJEVXI
+#\\\|DC4V6XIR33TYKNB3XKEF43HAT5RU6R2G2SHGZOW3QKWBTO4LUI4 \ / AMOS7 \ YOURUM ::
+#\[7]IDQXMGZRAF46THMIPMYANOOMJ3RFNY45HPJKQBFZXR6EYH3GROCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

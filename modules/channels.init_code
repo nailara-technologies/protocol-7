@@ -1,0 +1,63 @@
+## [:< ##
+
+# name = channels.init_code
+# descr = Initialize channels infrastructure: subscriptions, timestamps, heartbeat
+
+<[base.perlmod.autoload]>->('Time::HiRes', qw| gettimeofday tv_interval |);
+<[base.perlmod.autoload]>->('Digest::SHA', qw| sha256 |);
+
+##  Channel subscription and state tracking  ##
+<channels.subscriptions>      //= {};    ## { channel_path => { subscriber_id => timestamp } } ##
+<channels.data>              //= {};    ## { channel_path => { name => value, ... } } ##
+<channels.timestamps>        //= {};    ## { channel_path => base32_timestamp } ##
+<channels.checksums>         //= {};    ## { channel_path => base32_checksum } ##
+<channels.blocking_clients>  //= {};    ## { request_id => { client_info, since_ts, ... } } ##
+<channels.cleanup_enabled>   //= TRUE;
+
+##  Configuration defaults  ##
+<channels.cfg.heartbeat_interval_seconds>  //= 3600;   ## 1 hour ##
+<channels.cfg.cleanup_interval_seconds>    //= 21600;  ## 6 hours ##
+<channels.cfg.inactive_timeout_seconds>    //= 86400;  ## 24 hours ##
+<channels.cfg.max_subscriptions>           //= 4097;
+<channels.cfg.max_data_per_channel>        //= 1048576;  ## 1 MB per channel ##
+
+##  Initialize base list structure for base.cmd.list channels  ##
+<list.channels> = {
+    'var'      => qw| data |,
+    'key'      => qw| channels.subscriptions |,
+    'sort_key' => 'alpha-len:channel_path',
+    'descr'    => 'active channels with subscription status and heartbeat tracking',
+    'mask'     => 'channel:channel_path status:status updated:last_update subscribers:sub_count',
+    'align'    => {
+        'channel'    => 'left+2',
+        'status'     => 'center',
+        'updated'    => 'left+1',
+        'subscribers' => 'center-1'
+    },
+    'filters' => {
+        'status'  => qw| base.parser.channel_status |,
+        'updated' => qw| base.parser.timestamp_short |,
+    }
+};
+
+<[base.list.init]>->(
+    {   'name'         => qw| channels |,
+        'key_ref'      => \$data{'channels'}{'subscriptions'},
+        'max_elements' => <channels.cfg.max_subscriptions>
+    }
+);
+
+<[base.logs]>->(
+    1,
+    "channels: initialized with heartbeat interval %.1f hours, cleanup every %.1f hours",
+    <channels.cfg.heartbeat_interval_seconds> / 3600,
+    <channels.cfg.cleanup_interval_seconds> / 3600
+);
+
+0;
+
+#,,.,,...,..,,..,,,.,,,.,,.,,,.,.,.,.,.,,,,..,.,.,...,...,.,,,,.,,.,,,.,,,.,.,
+#5JV3LE5H7S7IVILTJMAAHYE6OOY3G5XQLIU23XH7HI24VCLT4U457MAYDIE2HEZWB3KPCU7RDW2V2
+#\\\|MSMFOCWL5XAMRATUPR5REPB6NCBMKBD6BOS3E2FVSLSUG6UOJY2 \ / AMOS7 \ YOURUM ::
+#\[7]ARDNUAUTXTXNNJP5P2TFZZBZEG2ZH5PZ5AC4RREEVQAMF7M4BGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
