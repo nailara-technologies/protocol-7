@@ -277,7 +277,6 @@ return [ qw[
         v7.post_init_code
         v7.instance_count
         v7.find-AMOS-user
-        v7.compile_bin_p7
         universal.startup
         udev.reload_rules
         ticker.parse_text
@@ -363,6 +362,8 @@ return [ qw[
         v7.zenka.init_code
         v7.zenka.cmd.start
         v7.parser.children
+        v7.compile_bin_p7r
+        v7.compile_bin_p7c
         v7.cmd.host-reboot
         v7.available_zenki
         v7.autostart_zenki
@@ -372,7 +373,6 @@ return [ qw[
         template.init_code
         ssl.client_handler
         power.cmd.show_all
-        plugin.auth.c25519
         osd-logo.init_code
         notify.cmd.message
         notify-osd.startup
@@ -682,7 +682,6 @@ return [ qw[
         v7.cmd.reboot-warning
         v7.cleanup_temp_paths
         v7.cleanup_temp_files
-        v7.bin_p7_comp_chksum
         universal.start_zenka
         universal.hide_except
         tile-groups.init_code
@@ -708,6 +707,7 @@ return [ qw[
         models.parser.size_gb
         models.cmd.statistics
         keys.read_key_archive
+        keys.list_remote_keys
         keys.console.sign-key
         jobqueue.get_next_job
         jobqueue.get_job_data
@@ -806,6 +806,8 @@ return [ qw[
         v7.cmd.system-poweroff
         v7.cmd.drop-dependency
         v7.calc_prefix_lengths
+        v7.bin_p7r_comp_chksum
+        v7.bin_p7c_comp_chksum
         universal.switch_child
         universal.self_restart
         universal.lower_except
@@ -863,6 +865,8 @@ return [ qw[
         crypt.C25519.post_init
         crypt.C25519.init_code
         content.http.init_code
+        coding.task.queue_next
+        coding.task.queue_fail
         coding.queue.fail_task
         coding.analyze.process
         base.utf8.decode_clean
@@ -982,6 +986,7 @@ return [ qw[
         content.cmd.clear_flags
         content.check_exclusive
         coding.task.queue_stats
+        coding.task.queue_clear
         coding.analyze.classify
         chk-sum.skein.init_code
         bench.key-32-iterations
@@ -1045,7 +1050,6 @@ return [ qw[
         v7.handler.children_left
         v7.cmd.forced-mod-reload
         v7.callback.object.zenka
-        v7.bin_p7_chksum_current
         universal.cmd.dump_state
         udev.set-up.import_rules
         udev.set-up.export_rules
@@ -1064,6 +1068,7 @@ return [ qw[
         protocol.https.init_code
         power.cmd.get_device_ids
         power-x11.cmd.set_states
+        plugin.auth.auth-keypair
         pdf.html.child.init_code
         p7-log.handler.close_log
         notify-warn.send_message
@@ -1107,6 +1112,7 @@ return [ qw[
         crypt.C25519.get_keyname
         crypt.C25519.chk_key_dir
         coding.test.models_async
+        coding.task.queue_status
         coding.task.analyze_full
         base.zenka.is_v7_started
         base.time.year_utc_float
@@ -1169,6 +1175,8 @@ return [ qw[
         v7.handler.start-time-out
         v7.enable_heartbeat_timer
         v7.cancel_instance_timers
+        v7.bin_p7r_chksum_current
+        v7.bin_p7c_chksum_current
         universal.stop_start-anim
         tile-groups.cmd.get-layer
         ticker.set_default_values
@@ -1221,6 +1229,7 @@ return [ qw[
         crypt.C25519.load_keypair
         content.cmd.resolve_b32id
         content.cmd.clear-entries
+        coding.task.queue_enqueue
         coding.task.classify_type
         coding.task.check_history
         coding.queue.enqueue_task
@@ -1343,6 +1352,7 @@ return [ qw[
         content.http.get_mime_type
         content.cmd.get_list_types
         content.callback.load_file
+        coding.task.queue_complete
         coding.queue.complete_task
         coding.helper.reset_budget
         coding.helper.check_budget
@@ -1426,6 +1436,7 @@ return [ qw[
         pdf.html.base.get_page_size
         pdf.html.base.get_html_path
         pdf.html.base.download_file
+        nshell.tofu_validate_pubkey
         net.read_linewise_estimated
         mpv.callback.reenc_finished
         models.conversation.compact
@@ -1453,6 +1464,7 @@ return [ qw[
         cube.chk-sum.cmd.elf-chksum
         crypt.C25519.sign_file_list
         crypt.C25519.key_is_virtual
+        crypt.C25519.get_remote_key
         crypt.C25519.gen_keys_typed
         crypt.C25519.compute_shared
         content.set-up.import_rules
@@ -1663,6 +1675,7 @@ return [ qw[
         debian.parent.install_missing
         debian.parent.check_installed
         crypt.C25519.validate_keyname
+        crypt.C25519.store_remote_key
         crypt.C25519.signature_exists
         crypt.C25519.load_from_string
         crypt.C25519.key_name_to_skey
@@ -1733,6 +1746,7 @@ return [ qw[
         protocol-7-menu.load-menu-tree
         pdf.html.child.cmd.convert_pdf
         pdf.html.base.write_error_page
+        nshell.check_remote_connection
         nodes.parser.connection_target
         nodes.parser.connection_status
         mpv.handler.scan_encoded_timer
@@ -2249,6 +2263,7 @@ return [ qw[
         letsencr.parent.handler_httpd_vhost_error
         letsencr.parent.handler_challenge_timeout
         letsencr.parent.handler.vhost_query_reply
+        crypt.C25519.validate_remote_key_checksum
         coding.vision-parser.handler.vision_reply
         base.zenki.ondemand.handler.startup_reply
         base.agent_code.handler.sig_warn.end_proc
@@ -2334,8 +2349,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,,..,..,,,.,,,.,,,.,,..,,,..,,,.,..,,,.,,.,.,...,...,,.,,..,,..,,..,,,..,
-#PFB77O675KQ3HNTZASTLBLCV7NBGUZMLPKQJU4NBFBDN6UNY56VPC7GFDT2UCJJKALTBBKW7562EO
-#\\\|JJFMUJJHNYSKAUNGPR5HMZWABPAFFEUJRNBKYRCF3C4B4BLNYSN \ / AMOS7 \ YOURUM ::
-#\[7]TYTG6N4NTYONZZ7HG52TBPK7BZQFNK53PYBNRPSNK5CK7BNBY2DA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,.,,...,.,.,...,.,.,,..,,.,,.,.,.,.,...,...,.,.,,..,,.,,...,.,.,
+#3KQQWFZHD3KXIU6C2DMHWGH24DMN7BF3CZEY6UOEUZ5KRNDFII7ISF52A2WCLPZ7R3PDPPOIIDN5Y
+#\\\|FTWKMJT7U72TEVF756CGDJ7B3WSYGRYP3OEBGJ2QBMLZP3SXJIY \ / AMOS7 \ YOURUM ::
+#\[7]XJKQNTCAL67YZE6OWGQIPKUOBKYZ3VOGHDMBSC2MU4S7OYZOECCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

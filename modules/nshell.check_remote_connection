@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = nshell.check_remote_connection
+# descr = check if nshell connection is to remote server and if TOFU validation is needed
+# param = <hostname> <port>
+# return = TRUE (remote, validation needed), FALSE (local/no validation needed)
+
+my $hostname = shift;    ## connection hostname
+my $port     = shift;    ## connection port
+
+##  Check if this is a remote connection requiring TOFU  ##
+
+return FALSE
+    if not defined $hostname
+    or not length $hostname;
+
+##  Localhost addresses don't need TOFU validation  ##
+
+return FALSE if $hostname =~ m{^(127\.0\.0\.1|localhost|::1|\[::1\])$}i;
+
+##  Any other hostname is considered remote  ##
+
+return TRUE;
+
+#,,,.,,..,..,,.,,,.,,,,.,,..,,..,,,..,,,.,,.,,..,,...,..,,,..,,..,...,...,.,.,
+#I4XBFMAZOESHS7TIXDI372DY7MAIVN7UR6P3J52GAHMKCCBTE7UIVF3OUPEJNZKCBGZQL4A6YVOBQ
+#\\\|UZX3QSPKHXG4ODZ2E3R2BCEPFQDCSLTNGGUDGFRWLP5AQQTQBKQ \ / AMOS7 \ YOURUM ::
+#\[7]FRPUEGV5APNF6SCWYTDBATUPZVNGRNYT7B7NFO3FT7GEHN7LOYDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

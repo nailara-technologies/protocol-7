@@ -62,21 +62,33 @@ if ( <system.verbosity.console> > 1 ) {
 ##
 
 <v7.gcc_bin> = <v7.cfg.bin_override.gcc> // qw| /usr/bin/gcc |;
-<v7.cfg.install_bin_p7> //= $UID == 0 ? qw| yes | : qw| no |;  ## when root ##
-<v7.cfg.p7_bin_path>    //= qw| /usr/local/bin/p7 |;
+<v7.cfg.install_bin_p7c> //= $UID == 0 ? qw| yes | : qw| no |;  ## when root ##
+<v7.cfg.p7c_bin_path>   //= qw| /usr/local/bin/p7c |;
 
-## gcc \ bin/p7 ##
+<v7.cfg.install_bin_p7r> //= $UID == 0 ? qw| yes | : qw| no |;  ## when root ##
+<v7.cfg.p7r_bin_path>   //= qw| /usr/local/bin/p-7-r |;
+
+## gcc \ bin/p7c & bin/p-7-r ##
 <v7.gcc_bin> = <[base.required_bin_path]>->('gcc');
 if ( !-x <v7.gcc_bin> ) {
     <v7.gcc_bin> = undef;
 
     <[base.log]>->( 0, "<< 'gcc' binary not found >>" )
-        if <[base.cfg_bool]>->(<v7.cfg.install_bin_p7>);
+        if <[base.cfg_bool]>->(<v7.cfg.install_bin_p7c>)
+        or <[base.cfg_bool]>->(<v7.cfg.install_bin_p7r>);
 
-} elsif ( <[base.cfg_bool]>->(<v7.cfg.install_bin_p7>)
-    and not <[v7.bin_p7_chksum_current]> ) {
+} else {
+    ## Compile p7c (local) binary ##
+    if ( <[base.cfg_bool]>->(<v7.cfg.install_bin_p7c>)
+        and not <[v7.bin_p7c_chksum_current]> ) {
+        <[v7.compile_bin_p7c]>;
+    }
 
-    <[v7.compile_bin_p7]>;
+    ## Compile p-7-r (remote) binary ##
+    if ( <[base.cfg_bool]>->(<v7.cfg.install_bin_p7r>)
+        and not <[v7.bin_p7r_chksum_current]> ) {
+        <[v7.compile_bin_p7r]>;
+    }
 }
 
 ## Install p7.<zenka> symlinks for console-only zenki access ##
@@ -262,8 +274,8 @@ delete <list.users>;
 
 return FALSE;
 
-#,,,.,,,,,,.,,.,,,..,,,..,.,,,,.,,.,,,.,.,,.,,..,,...,...,...,...,..,,..,,.,.,
-#2M75FLBMN4QWFJYBBKE2PDV55CZBZE5COZFWDSX4FYVFCBOQ3ATAHX6PKLLTT4Z7HIV4JIR3XKWH4
-#\\\|ORKSQOWKNIY2RADBSDLBCJPTEMGVYZPID6BBJSSMPTQSRYMDRAM \ / AMOS7 \ YOURUM ::
-#\[7]VIKHEUQ44O3NYL76WE7PUCIV6CZOBFBJH5TDIAPTQNCN2D2XCWDA 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,..,,,,,.,,,,.,,.,.,,.,,..,,,,,,..,,...,...,.,.,,,,,..,,,..,.,,,
+#E2FYNRDDIMEWY3KZIPB4Y4FORA5DO3PDAV66JNFA4LWDILSZH52AMEPXPBVLKT6H64LDBWCWWDAUY
+#\\\|DJMMKZDFL5KNNWVUYOJJW3OKMI75BJAWI5QDF6NU6NJHLFCY547 \ / AMOS7 \ YOURUM ::
+#\[7]ZTTJ64DAVPUDE3GVBEJ6OTV2DNRQTRBT66MXW3CMWDKVFH73EOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
