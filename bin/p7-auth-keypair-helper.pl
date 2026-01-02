@@ -29,6 +29,7 @@ use Crypt::Misc qw(encode_b32r decode_b32r);
 use Crypt::PRNG::Fortuna;
 use Crypt::Curve25519 qw(curve25519_public_key);
 use Crypt::Ed25519;
+use IO::AIO;
 
 ##[ Main Entry Point ]##########################################################
 
@@ -53,33 +54,43 @@ sub op_gen_auth {
     my $key_dir = "$ENV{HOME}/.n/user-keys";
     die "Key directory not found: $key_dir\n" unless -d $key_dir;
 
-    # Load user's Ed25519 private key
-    my $ed25519_private_file = "$key_dir/$username.base.private";
-    die "Ed25519 private key not found: $ed25519_private_file\n" unless -f $ed25519_private_file;
+    # Load user's Ed25519 secret key
+    my $ed25519_secret_file = "$key_dir/$username.base.secret";
+    die "Ed25519 secret not found: $ed25519_secret_file\n" unless -f $ed25519_secret_file;
 
-    open my $fh, '<', $ed25519_private_file or die "Cannot read private key: $!\n";
-    my $ed25519_private_b32 = <$fh>;
-    chomp $ed25519_private_b32;
+    open my $fh, '<', $ed25519_secret_file or die "Cannot read secret key: $!\n";
+    my $ed25519_secret_b32 = <$fh>;
+    chomp $ed25519_secret_b32;
     close $fh;
 
-    # Decode base32 private key to binary
-    my $ed25519_private_bin = decode_b32r($ed25519_private_b32);
-    die "Failed to decode Ed25519 private key\n" unless defined $ed25519_private_bin && length($ed25519_private_bin) >= 66;
+    # Decode base32 secret to binary
+    my $ed25519_secret_bin = decode_b32r($ed25519_secret_b32);
+    die "Failed to decode Ed25519 secret\n" unless defined $ed25519_secret_bin && length($ed25519_secret_bin) >= 34;
 
-    # Strip the 2-byte format prefix (format marker)
-    substr( $ed25519_private_bin, 0, 2, '' );
-    die "Failed to strip format prefix\n" unless length($ed25519_private_bin) == 64;
+    # Strip the 2-byte format prefix
+    substr( $ed25519_secret_bin, 0, 2, '' );
+    die "Failed to strip format prefix\n" unless length($ed25519_secret_bin) == 32;
+
+    # Generate Ed25519 keypair from secret (same as load_keys_from_secret does)
+    my ( $ed25519_pubkey_bin, $ed25519_private_bin ) = Crypt::Ed25519::generate_keypair($ed25519_secret_bin);
+    die "Failed to generate Ed25519 keypair from secret\n" unless defined $ed25519_pubkey_bin && defined $ed25519_private_bin;
+    die "Invalid public key length\n" unless length($ed25519_pubkey_bin) == 32;
+    die "Invalid private key length\n" unless length($ed25519_private_bin) == 64;
+
+    # Lock Ed25519 secret and private key in memory to prevent swapping
+    IO::AIO::aio_mlock( $ed25519_secret_bin, 0, 32 );
+    IO::AIO::aio_mlock( $ed25519_private_bin, 0, 64 );
 
     # Generate ephemeral C25519 keypair for session (new random secret)
     my $prng = Crypt::PRNG::Fortuna->new();
     my $c25519_secret = $prng->bytes(32);
     my $c25519_pubkey_bin = curve25519_public_key($c25519_secret);
     die "Failed to generate C25519 keypair\n" unless defined $c25519_pubkey_bin && length($c25519_pubkey_bin) == 32;
-    my $c25519_pubkey_b32 = encode_b32r($c25519_pubkey_bin);
 
-    # Derive Ed25519 public key from private key
-    my $ed25519_pubkey_bin = Crypt::Ed25519::eddsa_public_key(substr($ed25519_private_bin, 0, 32));
-    die "Failed to derive Ed25519 public key\n" unless defined $ed25519_pubkey_bin && length($ed25519_pubkey_bin) == 32;
+    # Lock C25519 secret in memory
+    IO::AIO::aio_mlock( $c25519_secret, 0, 32 );
+
+    my $c25519_pubkey_b32 = encode_b32r($c25519_pubkey_bin);
 
     # Create signature: sign the C25519 pubkey as proof of possession
     # Using Ed25519: sign(message, pubkey, privkey)
@@ -95,11 +106,38 @@ sub op_gen_auth {
     print "$c25519_pubkey_b32\n";
     print "$ed25519_sig_b32\n";
 
+    # Securely wipe sensitive key material from memory before exit
+    # Overwrite with random data to prevent key recovery from memory dumps
+    erase_buffer_secure( \$ed25519_secret_bin );
+    erase_buffer_secure( \$ed25519_private_bin );
+    erase_buffer_secure( \$c25519_secret );
+
     exit 0;
 }
 
-#,,,,,.,,,,.,,...,,..,,,,,,..,,..,.,,,,,,,.,.,..,,...,...,...,.,,,,,,,.,.,,,.,
-#Y5O6EGKTLKAAUMLELIMKPBMLVBWSLNPVTIPB656U4GKGWUUE7ZLGXAQILUO5N32O6RMGZYNDX7M34
-#\\\|CIXPNXMLT6ZDIX7LPGKOEHNKIA7TUEF3FW4JLTRMXFQTXWRMILA \ / AMOS7 \ YOURUM ::
-#\[7]GGYKFXN225CG5VXXTL6O2XGBXHJSPFEO5CVJUITJTQMSQMDBJADQ 7  DATA SIGNATURE ::
+##[ Helper: Secure buffer erasure ]###########################################
+
+sub erase_buffer_secure {
+    my ($buffer_sref) = @_;
+    return 0 unless ref $buffer_sref eq 'SCALAR';
+    return 0 unless defined $buffer_sref->$*;
+
+    my $len = length( $buffer_sref->$* );
+    return 0 if $len == 0;
+
+    # Overwrite with random data multiple times for security
+    my $prng = Crypt::PRNG::Fortuna->new();
+    substr( $buffer_sref->$*, 0, $len, $prng->bytes($len) );
+    substr( $buffer_sref->$*, 0, $len, $prng->bytes($len) );
+
+    # Truncate to zero
+    $buffer_sref->$* = '';
+
+    return $len;
+}
+
+#,,,.,.,,,..,,,..,..,,.,.,,..,.,.,,..,..,,,.,,..,,...,...,.,,,..,,,,.,,,.,,.,,
+#WN4FC4CDZWHY7GMHCHG23TFEKA7PORBMGF4A565XBELPS4UQN57JA2HK3M4IL47WKIMD2ZAU5TDKI
+#\\\|UBPSMNACO3FKVHXZHH43F2VD5VWXFIL2YW5T42SSO57FJM7EUEC \ / AMOS7 \ YOURUM ::
+#\[7]LIIKZZ4UQLYYG7NRFGYPMD5X6POYQDSMBQ2FTJWRDRXXLOC7TCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
