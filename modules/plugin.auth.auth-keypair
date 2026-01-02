@@ -1,7 +1,7 @@
 ## [:< ##
 
-# name    = plugin.auth.c25519
-# descr   = C25519 key-based authentication (ephemeral session key signed by Ed25519 master key)
+# name    = plugin.auth.auth-keypair
+# descr   = auth-keypair authentication (ephemeral session key signed by Ed25519 master key)
 # args    = int(session id)
 # return  = str(user name) (success), undef [error]
 #
@@ -27,7 +27,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
     unless ( defined $master_key_ref and ref $master_key_ref eq 'HASH' ) {
         $output->$* .= "AUTH_ERROR master key not registered\n";
         <[base.logs]>->(
-            0,   '[%d] c25519 auth failed: no master key for user \'%s\'',
+            0,   '[%d] auth-keypair failed: no master key for user \'%s\'',
             $id, $username
         );
         return 2;    ## access denied - no master key ##
@@ -42,7 +42,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
     {
         $output->$* .= "AUTH_ERROR invalid master key format\n";
         <[base.logs]>->(
-            0, '[%d] c25519 auth failed: invalid master key for user \'%s\'',
+            0, '[%d] auth-keypair failed: invalid master key for user \'%s\'',
             $id, $username
         );
         return 2;    ## access denied - invalid master key ##
@@ -57,7 +57,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
         $output->$* .= "AUTH_ERROR invalid session pubkey format\n";
         <[base.logs]>->(
             0,
-            '[%d] c25519 auth failed: invalid session pubkey for user \'%s\'',
+            '[%d] auth-keypair failed: invalid session pubkey for user \'%s\'',
             $id,
             $username
         );
@@ -70,7 +70,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
     unless ( defined $signature_bin and length($signature_bin) == 64 ) {
         $output->$* .= "AUTH_ERROR invalid signature format\n";
         <[base.logs]>->(
-            0,   '[%d] c25519 auth failed: invalid signature for user \'%s\'',
+            0,   '[%d] auth-keypair failed: invalid signature for user \'%s\'',
             $id, $username
         );
         return 2;    ## access denied - invalid signature ##
@@ -90,7 +90,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
 
     if ( length $EVAL_ERROR ) {
         <[base.logs]>->(
-            0,   '[%d] c25519 auth failed: signature verification error: %s',
+            0,   '[%d] auth-keypair failed: signature verification error: %s',
             $id, <[base.str.eval_error]>
         );
         $output->$* .= "AUTH_ERROR signature verification error\n";
@@ -110,14 +110,14 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
         };
 
         <[base.logs]>->(
-            1,   '[%d] user session authorized to \'%s\' via C25519 key',
+            1,   '[%d] user session authorized to \'%s\' via auth-keypair',
             $id, $username
         );
         return ( 0, $username );    ## success with username ##
     } else {
         $output->$* .= "AUTH_ERROR signature verification failed\n";
         <[base.logs]>->(
-            0, '[%d] c25519 auth : signature verification failed for \'%s\'',
+            0, '[%d] auth-keypair : signature verification failed for \'%s\'',
             $id, $username
         );
         return 2;    ## access denied - signature verification failed ##
@@ -126,7 +126,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
 } elsif ( $input->$* =~ m|\n| ) {
     $output->$* .= ">:[\n";
     <[base.logs]>->(
-        0, '[%d] authentication protocol mismatch [ c25519 ] >:[', $id
+        0, '[%d] authentication protocol mismatch [ auth-keypair ] >:[', $id
     );
     return 2;    ## no access [ protocol error ] ##
 } else {
@@ -135,8 +135,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
 
 1;
 
-#,,.,,..,,,,.,,,.,,.,,..,,,,.,,.,,,..,,..,,.,,..,,...,...,,,,,,,.,,.,,...,...,
-#TFFUHMX2UP4JQE4RJ43NVSPD36576I3OSFGLZONWZOM7NSXDLAJQRP3NBNGO44UK6WUWCRZBL6JKG
-#\\\|6GDWA6SDQWOLA47JOGPXYTLZKIOW3PIFQCTGCB6H3UN56WASJ3J \ / AMOS7 \ YOURUM ::
-#\[7]4F2Y3B7TCZ7MRDZILJNCQKLMMGVMSAEX67UDMQGRQC2BP7YPPUAY 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,,,,,,.,,,,,.,.,.,.,...,.,.,,..,..,,...,..,,.,.,.,,,...,.,,,,.,,
+#QXMQFCDMNTGYHOD7QFGSG5X5RZQHBDBBBDCIBYFFOFQP76M4X6NK3L4YNZXTGRBFN4MREALUWHTLS
+#\\\|4G4UMR2EJKNPVYLRDQ533F5K67DKUNXHGGIOHDZZLRAHIVDZYJ5 \ / AMOS7 \ YOURUM ::
+#\[7]SUXUTS4ZIJRGGYWQVE3NSUH7UI6FPT5YAYMW5CLQKGXOBELKYACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
