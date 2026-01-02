@@ -1,0 +1,164 @@
+## [:< ##
+
+# name    = plugin.auth.auth-keypair.validate-incoming-tofu
+# descr   = Validate/pin incoming remote client TOFU keys with symlink authorization
+# args    = int(session_id), str(zenka_name), str(username), str(pubkey_b32), str(peerhost), int(peerport)
+# return  = int(result) [ 0=authorized+valid, 1=pinned+awaiting_auth, 2=mismatch, 3=not_authorized, 4=error ]
+
+my ( $id, $zenka_name, $username, $pubkey_b32, $peerhost, $peerport ) = @_;
+
+return 4
+    unless defined $id
+    and defined $zenka_name
+    and defined $username
+    and defined $pubkey_b32;
+return 4 unless defined $peerhost and defined $peerport;
+
+##  Get home directory for remote-keys structure  ##
+my $home_dir = <[base.get_homedir]>->();
+return 4 unless defined $home_dir and -d $home_dir;
+
+my $remote_keys_base = catfile( $home_dir,         qw| .n remote-keys | );
+my $incoming_dir     = catfile( $remote_keys_base, qw| incoming | );
+my $authorized_dir
+    = catfile( $remote_keys_base, qw| authorized |, $zenka_name );
+
+##  Ensure directories exist  ##
+unless ( -d $incoming_dir ) {
+    mkdir( $incoming_dir, 0700 ) or return 4;
+}
+
+##  Normalize peerhost for filename (replace colons with underscores for IPv6)  ##
+my $host_safe = $peerhost;
+$host_safe =~ tr/:\//__/;
+my $hostname_port = "${host_safe}_${peerport}";
+
+##  Try host-restricted first: incoming/<user>.<host>_<port>.public  ##
+my $restricted_file = catfile( $incoming_dir,
+    "incoming.${username}.${hostname_port}.public" );
+
+##  Fall back to unrestricted: incoming/<user>.public  ##
+my $unrestricted_file
+    = catfile( $incoming_dir, "incoming.${username}.public" );
+
+##  Check for authorized symlink in authorized/<zenka>/<user>.public  ##
+my $authorized_link = catfile( $authorized_dir, "${username}.public" );
+
+##  Determine which incoming file would be used  ##
+my $incoming_file;
+if ( -f $restricted_file and -r $restricted_file ) {
+    $incoming_file = $restricted_file;
+} elsif ( -f $unrestricted_file and -r $unrestricted_file ) {
+    $incoming_file = $unrestricted_file;
+}
+
+if ( defined $incoming_file ) {
+    ##  Key pinned - validate it matches  ##
+    my $stored_pubkey_b32 = <[file.slurp]>->($incoming_file)->$*;
+
+    unless ( defined $stored_pubkey_b32 and length $stored_pubkey_b32 > 0 ) {
+        <[base.logs]>->(
+            0,   '[%d] auth-keypair TOFU: cannot read pinned key for \'%s\'',
+            $id, $username
+        );
+        return 4;    ## error reading key ##
+    }
+
+    chomp $stored_pubkey_b32;
+
+    if ( $stored_pubkey_b32 ne $pubkey_b32 ) {
+        ##  Key mismatch - potential compromise/hijacking!  ##
+        <[base.logs]>->(
+            0,   '[%d] auth-keypair TOFU: MISMATCH for \'%s\' from %s:%s',
+            $id, $username, $peerhost, $peerport
+        );
+        return 2;    ## key mismatch - TOFU violation ##
+    }
+
+    ##  Key matches - check if authorized  ##
+    if ( -l $authorized_link and -f $authorized_link ) {
+        ##  Authorized symlink exists - key is valid and authorized  ##
+        <[base.logs]>->(
+            1,
+            '[%d] auth-keypair TOFU: incoming client \'%s\' authorized from %s:%s',
+            $id,
+            $username,
+            $peerhost,
+            $peerport
+        );
+
+        ##  Callback hook for authorized client (future expansion: AI callback, notifications)  ##
+        ##  When events module is loaded, callback handlers can be registered in:  ##
+        ##    <plugin.auth.auth-keypair.tofu-client-authorized.callbacks>  ##
+        ##  For now, simple hook point remains reserved for future expansion  ##
+        if (defined
+            <plugin.auth.auth-keypair.tofu-client-authorized.callbacks>
+            and ref
+            <plugin.auth.auth-keypair.tofu-client-authorized.callbacks> eq
+            'ARRAY' ) {
+            foreach my $callback (
+                @{<plugin.auth.auth-keypair.tofu-client-authorized.callbacks>}
+            ) {
+                eval { $callback->( $username, $peerhost, $peerport ) };
+                if ( length $EVAL_ERROR ) {
+                    <[base.logs]>->(
+                        1, "TOFU callback error: %s",
+                        <[base.str.eval_error]>
+                    );
+                }
+            }
+        }
+
+        return 0;    ## authorized and validated ##
+    } else {
+        ##  Key pinned but not yet authorized  ##
+        <[base.logs]>->(
+            1,
+            '[%d] auth-keypair TOFU: incoming client \'%s\' pinned, awaiting authorization from %s:%s',
+            $id,
+            $username,
+            $peerhost,
+            $peerport
+        );
+        return 1;    ## pinned but awaiting authorization ##
+    }
+} else {
+    ##  First-time pinning of this client  ##
+    ##  Auto-pin to unrestricted file (admin can create host-restricted later)  ##
+
+    my $pin_file = $unrestricted_file;
+
+    ##  Write client's Ed25519 public key  ##
+    unless ( open my $fh, '>', $pin_file ) {
+        <[base.logs]>->(
+            0,
+            '[%d] auth-keypair TOFU: cannot pin incoming key for \'%s\': %s',
+            $id,
+            $username,
+            $!
+        );
+        return 4;    ## error pinning key ##
+    }
+
+    chmod( 0600, $pin_file );
+    print $fh "$pubkey_b32\n";
+    close $fh;
+
+    <[base.logs]>->(
+        1,
+        '[%d] auth-keypair TOFU: pinned incoming client \'%s\' from %s:%s - awaiting authorization',
+        $id,
+        $username,
+        $peerhost,
+        $peerport
+    );
+    return 1;    ## first-time pin - awaiting authorization ##
+}
+
+1;
+
+#,,,.,,.,,,.,,,..,,,.,.,,,...,,,.,,..,.,.,,..,.,.,...,...,..,,,.,,,,,,,.,,...,
+#UBZFORK2W67RGM5NN7MUNINO3CY6XMG4DEAWZASYQYKYRX5FYCAWLGPSL2DMMP42XAPKDV6NSYD5S
+#\\\|NDYCFRGXKCYCGKGSCUABNTN36GM3SDIBOVAGVOPJ4PXENIU5GTN \ / AMOS7 \ YOURUM ::
+#\[7]Y2IPOSYLO2WIGJX74E5BCFZOQ2VOMQMNDE7CQF76HQZYLBVOWGAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
