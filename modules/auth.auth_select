@@ -22,7 +22,26 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
     }
 
     $data{'session'}{$id}{'auth'}{'method'} = $method;
-    <[base.net.send_to_socket]>->( $client_sock_fd, "TRUE continue\n" );
+
+    # For auth-keypair, send server's public key for TOFU validation
+    if ( $method eq 'auth-keypair' ) {
+        my $pubkey_response = <[crypt.C25519.cmd.get-public-key]>->();
+        my $server_pubkey_b32;
+
+        if ( ref $pubkey_response eq 'HASH' and $pubkey_response->{'mode'} eq 'true' ) {
+            # Extract just the pubkey from format "[protocol-7.base] PUBKEY_B32"
+            ( $server_pubkey_b32 ) = $pubkey_response->{'data'} =~ m/]\s+(\S+)$/;
+        }
+
+        if ( defined $server_pubkey_b32 and length $server_pubkey_b32 ) {
+            <[base.net.send_to_socket]>->( $client_sock_fd, "TRUE $server_pubkey_b32\n" );
+        } else {
+            <[base.net.send_to_socket]>->( $client_sock_fd, "FALSE server key not available\n" );
+            return FALSE;
+        }
+    } else {
+        <[base.net.send_to_socket]>->( $client_sock_fd, "TRUE continue\n" );
+    }
     <[base.log]>->( 1, "[$id] selected auth method '$method'.," );
     return TRUE;
 } else {
@@ -47,8 +66,8 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
     return FALSE;
 }
 
-#,,..,,,,,.,,,,.,,,.,,,.,,...,.,.,,,,,,,,,,,.,..,,...,...,..,,,,.,,,,,...,...,
-#RFE5IPSTS6ITPYB26VT54K2LUG6KQUIUSMJXMOQAAGJH77FZGOZK6UOTZOXW6HMTQHYEIT76HXNN6
-#\\\|MYVAMTHRFSWGHDC4AXWHA7RJZO7M2O4DCXH2PMOKADNN6CG632O \ / AMOS7 \ YOURUM ::
-#\[7]I6JSDVYU4CS3QVYWJCLQ2CAK7VWZVUVUTXF3V574NKW3N4KX3MBI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,.,.,...,...,...,...,.,.,,.,,,,,,..,,...,...,.,.,...,,,,,,,,,,,,,
+#ODCPHW3THBNYB2F4Y6I3EOEG7STSDW3CPO3S4H2DZFYP3OG57JPVR4AIAEYT3PXJ7Y34C6VASPC4M
+#\\\|QEVMWIS63UYX7UP4ZYLJKTPVYHDKU2A4L3DTZCAQC23SV4FR75X \ / AMOS7 \ YOURUM ::
+#\[7]HCCHDAER6COMLNGNRO7QAV7DWHO23YFYPFLGQX45O66PY3NEQSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
