@@ -62,6 +62,50 @@ void strip_newline(char *str)
         str[len - 1] = '\0';
 }
 
+/* TOFU validation helper */
+int validate_tofu_key(const char *remote_host, const char *remote_port, const char *server_pubkey_b32)
+{
+    FILE *f;
+    char cmd[1024];
+    char result_line[256] = {0};
+
+    /* Call TOFU helper: p7-tofu-helper.pl validate <hostname> <port> <pubkey> */
+    snprintf(cmd, sizeof(cmd),
+             "/data/projects/protocol-7/bin/p7-tofu-helper.pl validate %s %s %s 2>/dev/null",
+             remote_host, remote_port, server_pubkey_b32);
+
+    f = popen(cmd, "r");
+    if (!f) {
+        fprintf(stderr, ":: failed to spawn TOFU helper ::\n");
+        return -1;
+    }
+
+    if (fgets(result_line, sizeof(result_line), f) == NULL) {
+        pclose(f);
+        fprintf(stderr, ":: TOFU helper returned no output ::\n");
+        return -1;
+    }
+    int exit_code = pclose(f);
+    strip_newline(result_line);
+
+    /* Check result */
+    if (strcmp(result_line, "TOFU_VALID") == 0) {
+        fprintf(stderr, ":: TOFU validation successful (key matches) ::\n");
+        return 0;  /* Success */
+    } else if (strcmp(result_line, "TOFU_PINNED") == 0) {
+        fprintf(stderr, ":: TOFU key pinned on first connection ::\n");
+        return 0;  /* Success */
+    } else if (strcmp(result_line, "TOFU_MISMATCH") == 0) {
+        fprintf(stderr, "\n<< SECURITY WARNING: TOFU key mismatch detected >>\n");
+        fprintf(stderr, "<< Possible MITM attack - server pubkey does not match pinned key >>\n");
+        fprintf(stderr, "<< Connection rejected >>\n\n");
+        return 1;  /* MITM detected */
+    } else {
+        fprintf(stderr, ":: unknown TOFU result: %s ::\n", result_line);
+        return -1;
+    }
+}
+
 /* Link-upgrade negotiation */
 int negotiate_link_upgrade(int socket_fd, struct encryption_state *state)
 {
@@ -270,9 +314,6 @@ int main( int argc, char * argv[] ) {
     strip_newline(c25519_pubkey);
     strip_newline(ed25519_sig);
 
-    asprintf( &auth_str, "select auth-keypair\nauth %s %s %s\n",
-              p7_unix_user, c25519_pubkey, ed25519_sig );
-
     /* prepare command string - skip hostname[:port] */
     int i;
     int arglen = 2;
@@ -325,32 +366,84 @@ int main( int argc, char * argv[] ) {
         return 3;
     }
 
-    /* authenticate to remote protocol-7 server */
-    write( socket_fd, auth_str, strlen(auth_str) );
-    unsigned int line = 0;
-    int result_code;
-    char byte = ' ';
-    while ( line <= 2 ) {   // 3 lines expected
+    /* Read protocol banner first */
+    char protocol_banner[512] = {0};
+    if (read_line(socket_fd, protocol_banner, sizeof(protocol_banner)) < 0) {
+        fprintf(stderr, "<< error reading protocol banner >>\n");
+        return 4;
+    }
+    strip_newline(protocol_banner);
 
-        result_code = recv( socket_fd, &byte, 1, 0 );
+    /* Verify protocol banner matches expected format: \\PROTOCOL-7-VERSION\\<VERSION>\\ */
+    if (strncmp(protocol_banner, "\\\\PROTOCOL-7-VERSION\\\\", 22) != 0) {
+        fprintf(stderr, "<< protocol mismatch: %s >>\n", protocol_banner);
+        return 4;
+    }
 
-        if ( result_code < 0 ) {
-            fprintf( stderr,
-                "<< error during authentication sequence : %s >>\n",
-                strerror(errno)
-            );
-            return 4;
-        } else if ( byte == '\n' ) {
-            line++;
-        }
+    /* Two-stage authentication: select auth method, then TOFU validation, then credentials */
 
-        if ( line == 2 && byte == 'O' ) {  // AUTH_ERR[O]R in third reply line
-            fprintf( stderr,
-                "<< authentication not successful [ user '%s' ] >>\n",
-                p7_unix_user );
-            return 3;
+    /* Stage 1: Send auth method selection */
+    if (write(socket_fd, "select auth-keypair\n", 20) < 0) {
+        fprintf(stderr, "<< error sending auth method selection >>\n");
+        return 4;
+    }
+
+    /* Stage 2: Read server response with pubkey announcement */
+    char select_response[512] = {0};
+    if (read_line(socket_fd, select_response, sizeof(select_response)) < 0) {
+        fprintf(stderr, "<< error reading auth method response ::\n");
+        return 4;
+    }
+    strip_newline(select_response);
+
+    /* Extract server pubkey from "TRUE <pubkey_b32>" */
+    char server_pubkey_b32[256] = {0};
+    if (strncmp(select_response, "TRUE ", 5) == 0) {
+        strncpy(server_pubkey_b32, select_response + 5, sizeof(server_pubkey_b32) - 1);
+        strip_newline(server_pubkey_b32);  /* Remove any trailing whitespace */
+    } else {
+        fprintf(stderr, "<< unexpected auth method response: %s >>\n", select_response);
+        return 4;
+    }
+
+    /* Stage 3: TOFU validation before proceeding with auth */
+    fprintf(stderr, ":: validating server key via TOFU ::\n");
+    int tofu_result = validate_tofu_key(remote_host, remote_port, server_pubkey_b32);
+    if (tofu_result != 0) {
+        close(socket_fd);
+        if (tofu_result == 1) {
+            return 5;  /* MITM detected */
+        } else {
+            return 4;  /* TOFU validation error */
         }
     }
+
+    /* Stage 4: Send auth credentials after TOFU success */
+    asprintf( &auth_str, "auth %s %s %s\n",
+              p7_unix_user, c25519_pubkey, ed25519_sig );
+
+    if (write(socket_fd, auth_str, strlen(auth_str)) < 0) {
+        fprintf(stderr, "<< error sending auth credentials >>\n");
+        return 4;
+    }
+    free(auth_str);
+
+    /* Stage 5: Read auth response (expecting AUTH_TRUE or AUTH_ERROR) */
+    char auth_response[256] = {0};
+    if (read_line(socket_fd, auth_response, sizeof(auth_response)) < 0) {
+        fprintf(stderr, "<< error reading auth response >>\n");
+        return 4;
+    }
+    strip_newline(auth_response);
+
+    if (strncmp(auth_response, "AUTH_TRUE", 9) != 0) {
+        fprintf(stderr, "<< authentication not successful [ user '%s' ] >>\n", p7_unix_user);
+        return 3;
+    }
+
+    /* Pre-declare byte and result_code for command response reading */
+    char byte = ' ';
+    int result_code = 0;
 
     /* Link-upgrade encryption negotiation (optional) */
     struct encryption_state enc_state = {0, NULL, 0, 0, 0};
@@ -380,6 +473,7 @@ int main( int argc, char * argv[] ) {
     int space_seen = 0;
     int utf8_char_count = 0;    // Track UTF-8 characters read (CHRSIZE mode only)
     int bytes_read = 0;         // Track raw bytes read
+
     while ( continue_read ) {
         result_code = recv( socket_fd, &byte, 1, MSG_WAITALL );
         if ( result_code < 1 ) {

@@ -42,6 +42,9 @@ my $home_dir = <crypt.C25519.key_usr_home>
 my $key_dir = <crypt.C25519.key_dir>
     //= sprintf( qw| %s/.n/user-keys |, $home_dir );
 
+my $auth_dir = <crypt.C25519.auth_dir>
+    //= sprintf( qw| %s/.n/remote-keys/authorized |, $home_dir );
+
 ## When running as root from console, allow non-existent key directories
 ## The directory will be created by chk_key_dir if needed
 ## Only enforce readability if directory already exists
@@ -86,6 +89,7 @@ my $key_vars_ref = {
     'usr_name'     => $key_usr,
     'usr_home'     => $home_dir,
     'key_dir'      => $key_dir,
+    'auth_dir'     => $auth_dir,
     'key_name'     => $key_name,
     'key_basepath' => $key_basepath,
     'key_file_ext' => $key_file_ext,
@@ -100,8 +104,8 @@ my $key_vars_ref = {
 
 return $key_vars_ref;
 
-#,,,,,.,,,,,.,.,.,,..,.,,,..,,...,...,,,.,..,,..,,...,...,...,,,,,..,,,,,,.,,,
-#ZF7HOC25B3JSL6FEBSBVCNXUQ36BDITD4DDYGUFYVULQIT7JBSIX4XUQ6J2N4SNFNAQ55QRPZYDDG
-#\\\|PJCHROOK3E2RJ5QCU65MP6KXPHFV6QZQK7IJOPTWNQY77BUIJPL \ / AMOS7 \ YOURUM ::
-#\[7]UZ5PUKTSXKQRWVWNSI435P66UHVRXOY47CWLXXRZ427J6VGZLYAY 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,.,...,.,.,,,.,.,.,.,,,.,.,,..,..,,...,..,,,..,..,,..,,.,,,..,,
+#LCX25B5FBRMGBYZFVSMAWY6SCJKZ5VGCTX2C6KFOS3WWLJJ7P6Y72IMSLHP5RTJQWXDFIDKC3DEX2
+#\\\|42ANSLDXDXEZ4MLNJMPTEOQXVVTMO224NPU2RAMRWUL6JGQEUZK \ / AMOS7 \ YOURUM ::
+#\[7]OV2UWI5DQGQLD3JLBLEOR6PTFFTCV47WNBGYGLBNQY6ARUZRZOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

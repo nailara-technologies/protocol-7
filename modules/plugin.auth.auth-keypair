@@ -21,22 +21,21 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
     my ( $username, $pubkey_b32, $sig_b32 )
         = ( ${^CAPTURE}[0], ${^CAPTURE}[1], ${^CAPTURE}[2] );
 
-    ## Load user's Ed25519 master public key from auth store
-    my $master_key_ref = $keys{'auth'}{'c25519-master'}{$username};
+    ## Get authorized remote user's Ed25519 public key for signature verification
+    ## Username must be in authorized-remote registry with public key
+    my $authorized_user_ref = $keys{'authorized-remote'}{$username};
 
-    unless ( defined $master_key_ref and ref $master_key_ref eq 'HASH' ) {
-        $output->$* .= "AUTH_ERROR master key not registered\n";
+    unless ( defined $authorized_user_ref and ref $authorized_user_ref eq 'HASH' ) {
+        $output->$* .= "AUTH_ERROR user not authorized\n";
         <[base.logs]>->(
-            0,   '[%d] auth-keypair failed: no master key for user \'%s\'',
+            0,   '[%d] auth-keypair failed: user \'%s\' not authorized',
             $id, $username
         );
-        return 2;    ## access denied - no master key ##
+        return 2;    ## access denied - user not authorized ##
     }
 
-    my $master_pubkey_b32 = $master_key_ref->{'public_b32'}
-        // $master_key_ref->{'pubkey_b32'};
-    my $master_pubkey_bin
-        = eval { Crypt::Misc::decode_b32r($master_pubkey_b32) } // undef;
+    my $master_pubkey_b32 = $authorized_user_ref->{'public_b32'};
+    my $master_pubkey_bin = $authorized_user_ref->{'public'};
 
     unless ( defined $master_pubkey_bin and length($master_pubkey_bin) == 32 )
     {
@@ -110,8 +109,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
         };
 
         <[base.logs]>->(
-            1,   '[%d] user session authorized to \'%s\' via auth-keypair',
-            $id, $username
+            1,   '[remote] user \'%s\' session authorized.',
+            $username
         );
         return ( 0, $username );    ## success with username ##
     } else {
@@ -135,8 +134,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
 
 1;
 
-#,,,.,.,,,,.,,,,,,,,.,,,,,.,.,.,.,...,.,.,,..,..,,...,..,,.,.,.,,,...,.,,,,.,,
-#QXMQFCDMNTGYHOD7QFGSG5X5RZQHBDBBBDCIBYFFOFQP76M4X6NK3L4YNZXTGRBFN4MREALUWHTLS
-#\\\|4G4UMR2EJKNPVYLRDQ533F5K67DKUNXHGGIOHDZZLRAHIVDZYJ5 \ / AMOS7 \ YOURUM ::
-#\[7]SUXUTS4ZIJRGGYWQVE3NSUH7UI6FPT5YAYMW5CLQKGXOBELKYACQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,.,,,,,.,,,,,,,.,..,,,,.,,,,,,,,,..,,...,..,,..,,.,.,,,,,,.,,,,.,
+#AM5P3T7PLJVSMEOCDKRSYJ5WTOTPRC5ZKUDQD3KBFUX652FZLY77VT4EPNG35NIQ4LYVKJBGFJF2K
+#\\\|5QUXYHO7F7R76LE7JZ47ILLTG32AMAAIXX4RSGJ7LDYMSCAIVNE \ / AMOS7 \ YOURUM ::
+#\[7]6SZPMZJ6BL5XCYKBJ3VQMYONYW2HDKS7MTFMHBS6GZPZUK3SVEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
