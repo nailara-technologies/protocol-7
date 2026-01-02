@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = crypt.C25519.validate_remote_key_checksum
+# descr = validate announced remote key matches pinned TOFU key
+# param = <hostname> [port] <announced_pubkey_b32>
+# return = TRUE if valid, FALSE if mismatch, undef if no pinned key
+# note  = port defaults to configuration value or 42
+
+my $hostname             = shift;    ## remote hostname
+my $port                 = shift;    ## remote port (optional)
+my $announced_pubkey_b32 = shift;    ## key announced by remote server
+
+##  Get default port from configuration or fallback  ##
+my $default_port = <protocol-7.remote.default-port> // 42;
+
+##  Handle optional port parameter  ##
+##  If announced_pubkey_b32 looks like a port number, shift everything  ##
+
+if ( defined $port and $port =~ m|^[A-Z0-9]+$| and length $port == 52 ) {
+    ##  Port was actually the pubkey - shift back  ##
+    $announced_pubkey_b32 = $port;
+    $port                 = $default_port;
+}
+
+$port //= $default_port;
+
+##  Validate inputs  ##
+
+return undef
+    if not defined $hostname
+    or not length $hostname
+    or $port !~ m|^\d+$|
+    or not defined $announced_pubkey_b32
+    or not length $announced_pubkey_b32;
+
+##  Get pinned key from storage  ##
+
+my $pinned_key_ref = <[crypt.C25519.get_remote_key]>->( $hostname, $port );
+
+##  No pinned key yet (first use) - this is not an error, caller may pin it  ##
+
+return undef if not defined $pinned_key_ref;
+
+##  Extract pinned pubkey  ##
+
+my $pinned_pubkey_b32 = $pinned_key_ref->{'pubkey_b32'};
+
+##  Compare base32 representations (case-sensitive)  ##
+
+if ( $announced_pubkey_b32 eq $pinned_pubkey_b32 ) {
+    <[base.logs]>->( 2, "remote key validated for %s:%s", $hostname, $port );
+    return TRUE;
+} else {
+    ##  Key mismatch - potential MITM or key change  ##
+
+    <[base.logs]>->(
+        0,         "SECURITY: remote key mismatch for %s:%s",
+        $hostname, $port
+    );
+    <[base.logs]>->( 0, "  pinned:    %s", $pinned_pubkey_b32 );
+    <[base.logs]>->( 0, "  announced: %s", $announced_pubkey_b32 );
+
+    return FALSE;
+}
+
+#,,.,,,..,.,,,,..,,.,,.,.,,.,,.,,,,,.,..,,,..,.,.,...,...,.,,,,,.,,.,,,,,,,..,
+#43YU3ANQGZZ2VNSVAMOPCOU4C6KHK4NL6TVC2NZRN6YLJAM43SPO5PB3R6ZASPT4YKGIVDOIHCHCY
+#\\\|HLPXUNYLH62QGQQMA2P5UPVXBOFR7HO2P3YHPT4UQHFZHI7DJPX \ / AMOS7 \ YOURUM ::
+#\[7]RSWIO4NP5SCV4PRVJ36UL7UTEFCZQQH6KNW6DAY7Z6H323OO7YBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

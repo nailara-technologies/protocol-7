@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = keys.list_remote_keys
+# descr = collect and structure remote [hostkey] entries for display
+# return = hash of remote key info organized by hostname:port
+
+my $key_vars_ref = <[crypt.C25519.key_vars]>;
+my $key_dir      = $key_vars_ref->{'key_dir'};
+
+return {} if not -d $key_dir;
+
+##  Scan for remote.*.public files  ##
+
+my %remote_keys;
+
+foreach my $file ( <[file.all_files]>->($key_dir)->@* ) {
+    next if $file !~ m|^.*\/remote\.(.+)\.public$|;
+
+    my $key_name = $1;    ## e.g., "server_42" from "remote.server_42.public"
+
+    ##  Read key file  ##
+    next if not -f $file or not -r $file;
+
+    my $key_content = <[file.slurp]>->($file)->$*;
+    next if not defined $key_content or not length $key_content;
+
+    chomp $key_content;
+
+    ##  Parse format: NTIME_B32:PUBKEY_B32  ##
+    my ( $ntime_b32, $pubkey_b32 ) = split m|:|, $key_content, 2;
+
+    next
+        if not defined $ntime_b32
+        or not defined $pubkey_b32
+        or not length $ntime_b32
+        or not length $pubkey_b32;
+
+    ##  Extract hostname and port from key_name  ##
+    ##  Format: safe_hostname_port (e.g., "server_42")
+
+    my ( $safe_hostname, $port ) = $key_name =~ m|^(.+)_(\d+)$|;
+
+    next if not defined $safe_hostname or not defined $port;
+
+    ##  Restore original hostname (reverse the unsafe char replacement)  ##
+    my $hostname = $safe_hostname;
+    $hostname =~ tr|_|:|;    ## primary restore (colons)
+
+    ##  Store remote key info  ##
+    my $display_name = sprintf '%s:%d', $hostname, $port;
+
+    $remote_keys{$display_name} = {
+        'hostname'   => $hostname,
+        'port'       => $port,
+        'pubkey_b32' => $pubkey_b32,
+        'ntime_b32'  => $ntime_b32,
+        'file_path'  => $file,
+        'type'       => 'hostkey'
+    };
+}
+
+return \%remote_keys;
+
+#,,.,,,..,,..,..,,,..,,.,,.,.,,..,,,,,,.,,,,,,..,,...,...,.,,,,,.,.,,,,,.,.,.,
+#MHUGMEBXVIWQT66U2TOTQJLNYP37LFGWC2OJ3VKVRJETOAU7JYM6GQW7X67UUA3PQBHAIL3QPPQFQ
+#\\\|I4U235BGWTCYJWRFQXQTV22RX27ZCQBMQMPKBRWCP25OIUSUGBU \ / AMOS7 \ YOURUM ::
+#\[7]IAX5AEHCUYRPQC6USHGOKG6LTXJCK3OBHFJO7LF7JBE7BLMKFKDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
