@@ -36,7 +36,7 @@ return {
 ##  (Simple SHA256 of sorted channel names for now)  ##
 my $checksum_input = join( '|', sort @changed_channels );
 my $checksum_hash = Digest::SHA::sha256($checksum_input);
-my $checksum_b32 = <[base.encode_base32]>->($checksum_hash);
+my $checksum_b32 = encode_b32r($checksum_hash);
 $checksum_b32 =~ s|=+$||;  ## remove padding ##
 $checksum_b32 = substr( $checksum_b32, 0, 52 );  ## standard b32 length ##
 
@@ -50,8 +50,8 @@ return {
 
 1;
 
-#,,,,,,.,,,,,,,..,.,,,,.,,...,,,.,.,.,..,,..,,.,.,...,...,.,.,.,,,,.,,,.,,...,
-#CJQB5QDM5GFC2NXA4FLSZBYZ6HUQZ65WROZVNPVDXZO4JSF5J4D7UED532EHEER5UJF5FSBDV37SQ
-#\\\|NPCOP6OLREXTPKMQLSEA7CP2SDAUB6NP23J67IYJKEBMRHMVQN4 \ / AMOS7 \ YOURUM ::
-#\[7]5LXWZSNZASK5MXCKTSGCMWSKGQYYWRNIFC4QPDQJSOQ5TJXAVWBA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,...,.,.,..,,...,.,.,,,.,...,,,,,.,.,...,..,,,.,,...,,..,..,,...,
+#UANGNVWG4ZZGLPIMIMRTNAN5XHTAABW4R5MHCFT2NODNLK6UKXVVTDRL7347L4NY6BKX4MWNIVPEQ
+#\\\|HVTOM7KFQSZZFKYBPXHQWUECJQNDM3SPHSB2RPJ5SJ4IOLOS3FL \ / AMOS7 \ YOURUM ::
+#\[7]R344ZH3JDDCX5JRRK7OTXWF6KIKUKXESYIY3O5JBAS7RDKLEGWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

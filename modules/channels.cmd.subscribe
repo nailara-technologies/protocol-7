@@ -38,7 +38,7 @@ my $subscriber_id = "${session_id}_" . <[base.gen_id]>->({});
 
 ##  Initialize channel data if not present  ##
 <channels.data>->{$channel_path} //= {};
-<channels.timestamps>->{$channel_path} //= <[base.encode_base32]>->(pack('Q>', <[base.time]>->(2)));
+<channels.timestamps>->{$channel_path} //= encode_b32r(pack('Q>', <[base.time]>->(2)));
 
 <[base.logs]>->(
     1,
@@ -54,8 +54,8 @@ return {
 
 1;
 
-#,,,,,..,,,,.,.,.,,,,,,.,,...,,.,,.,.,.,.,,..,.,.,...,...,...,..,,...,,,,,,.,,
-#5Q7Q5EPIVZ7DBK7S6ZGCKFYDC5JHSJAKC2AWJLSI3HXRHFDE7JMBT6BCWIVUXB4MMCN5R3PG37GHI
-#\\\|DYUZGMWNLXK7CUSAIMBJXTEHHLE4DZ4O26UVQIAEOJGTM3C3BYJ \ / AMOS7 \ YOURUM ::
-#\[7]KDTHVK3MUYP7LYRJX5USSUJCVCK4CNRHFPKT2Y2WOC73SU4RZYCI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,..,,,.,,,,,,.,,.,,,.,.,,..,,,,,.,.,...,...,...,,,,,..,,,.,,,..,
+#TGJC6DDTHDC66THO2LLFDOLJ42HW5WAH7FN74WNF3YTMPLXUPCQRD73YQLHF3J3MKKLG7MEVPYLEY
+#\\\|3J4BIVSMLUIIOBLV4CCPSGSC6IIT5CHPEY377D5U54EREZ6ZXQE \ / AMOS7 \ YOURUM ::
+#\[7]Z4EAKLNHNGQUXZFH53GH5YOHSZEO7XQX2PC6M3WZDDL2JQ7CXOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

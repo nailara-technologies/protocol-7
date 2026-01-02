@@ -9,7 +9,7 @@ my $channel_path = shift;
 return 0 unless defined $channel_path and length $channel_path;
 
 my $current_time = <[base.time]>->(3);
-my $current_ts_b32 = <[base.encode_base32]>->(pack('Q>', int($current_time)));
+my $current_ts_b32 = encode_b32r(pack('Q>', int($current_time)));
 
 my $clients_notified = 0;
 
@@ -66,8 +66,8 @@ return $clients_notified;
 
 1;
 
-#,,..,,.,,,,,,.,,,..,,,,.,.,,,.,.,,.,,,.,,.,.,.,.,...,..,,.,,,...,..,,,,.,,..,
-#GL6KYLJ2IBMFVRWMXXQRMSQWQL42YDMMDNYTL2ULLQVQTPCZJCHYMJ22XSBXOLXL3QZ52KYIAO5OO
-#\\\|7GIXLVGZYR72EBID6QIOIW7YYILFOZZZAAVSREKTLHSWEWQH23U \ / AMOS7 \ YOURUM ::
-#\[7]OTA5P6SJDW6Q5KZ4FZ2JN3CMF7J2MQ4EFM44ZYCP3OVNLH3KG2AY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,..,,..,,,.,...,.,,,,..,.,.,,,,,.,.,...,...,.,.,..,,.,.,,..,,.,,
+#BJY6763YGA3T4ZRBSMUZBGAH7HORB4G7AL4FFPXKZTQP2GBUKJSPJZWHDFGBUS5AFSIFQCRUBHW6M
+#\\\|VVHSHAPGX6ZTLSB42DE3QGIT6RHNMOYFAG5U2PGJVAJ43D6JJWH \ / AMOS7 \ YOURUM ::
+#\[7]ZW3DJ7GKUAYSWFZFUWEXDPAKKFB5S5OUQYYUTQ4LFBTFJNA3HUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
