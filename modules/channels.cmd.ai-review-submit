@@ -1,0 +1,95 @@
+## [:< ##
+
+# name  = channels.cmd.ai-review-submit
+# descr = Submit code diff for AI review, post feedback to developer channel
+# param = <json: { branch, diff, message, urgency }>
+# return = { mode => 'timestamp', data => 'review_id' }
+
+my $args_ref = $$call{'args'} // '';
+
+my $data_ref;
+eval {
+    my $json = <[base.perlmod.load]>->('JSON::PP');
+    $data_ref = JSON::PP::decode_json($args_ref);
+};
+
+return {
+    'mode' => qw| false |,
+    'data' => "invalid JSON: $EVAL_ERROR"
+} if length $EVAL_ERROR;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected branch, diff, and message'
+} unless $data_ref->{'branch'} and $data_ref->{'diff'} and $data_ref->{'message'};
+
+##  Generate review ID  ##
+my $review_id = 'review_' . <[base.gen_id]>->({});
+
+##  Store review submission  ##
+<channels.ai_reviews> //= {};
+<channels.ai_reviews>->{$review_id} = {
+    'developer'      => $$call{'session_id'} // 'unknown',
+    'branch'         => $data_ref->{'branch'},
+    'diff'           => $data_ref->{'diff'},
+    'message'        => $data_ref->{'message'},
+    'urgency'        => $data_ref->{'urgency'} // 'normal',
+    'submitted_at'   => <[base.time]>->(2),
+    'ai_feedback'    => undef,
+    'ai_approved'    => FALSE,
+    'developer_approved' => FALSE,
+    'auto_committed' => FALSE
+};
+
+##  Post to AI review channel for processing  ##
+my $submission_payload = {
+    'review_id'      => $review_id,
+    'developer'      => $$call{'session_id'},
+    'branch'         => $data_ref->{'branch'},
+    'diff'           => $data_ref->{'diff'},
+    'message'        => $data_ref->{'message'},
+    'urgency'        => $data_ref->{'urgency'},
+    'submitted_at'   => <[base.time]>->(2)
+};
+
+my $json_str = do {
+    my $json = <[base.perlmod.load]>->('JSON::PP');
+    eval { JSON::PP::encode_json($submission_payload) };
+};
+
+if ( length $EVAL_ERROR ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "JSON encoding error: $EVAL_ERROR"
+    };
+}
+
+##  Update review channel with submission  ##
+<[channels.cmd.update]>->({
+    'call' => {
+        'args'       => "code-review.ai-submissions $json_str",
+        'session_id' => $$call{'session_id'}
+    }
+});
+
+<[base.logs]>->(
+    1,
+    "channels: submitted code review %s from %s on branch '%s' (urgency: %s)",
+    $review_id,
+    $$call{'session_id'},
+    $data_ref->{'branch'},
+    $data_ref->{'urgency'}
+);
+
+return {
+    'mode' => qw| timestamp |,
+    'data' => $review_id
+};
+
+1;
+
+#,,.,,,.,,..,,,..,.,,,,,.,,..,...,.,,,.,,,.,,,...,...,...,.,.,,,.,.,.,...,..,,
+#VGGERGG7BZRTN5KPYQKBOE7RLNZS35GTP7F6Q3PHMYZVYWB4WI6ZBZF3KDG4YIQH5AKINZWHYGQLS
+#\\\|GAOIDQNDGEB6HYKEA52HR6I37H4K2QDSGJMR2IEXZXQ24CZWEIE \ / AMOS7 \ YOURUM ::
+#\[7]UF3ZU3OSKXJNDHHYQ4MU3WG66EEPTXHQ4DBL4TARAL3CIC7JGWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

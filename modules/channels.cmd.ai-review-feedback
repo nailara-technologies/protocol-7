@@ -1,0 +1,111 @@
+## [:< ##
+
+# name  = channels.cmd.ai-review-feedback
+# descr = Post AI review feedback to developer channel (called by AI/LLM agent)
+# param = <json: { review_id, status, feedback, issues, suggestions }>
+# return = { mode => 'true', data => 'feedback posted' }
+
+my $args_ref = $$call{'args'} // '';
+
+my $feedback_ref;
+eval {
+    my $json = <[base.perlmod.load]>->('JSON::PP');
+    $feedback_ref = JSON::PP::decode_json($args_ref);
+};
+
+return {
+    'mode' => qw| false |,
+    'data' => "invalid JSON: $EVAL_ERROR"
+} if length $EVAL_ERROR;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected review_id and status'
+} unless $feedback_ref->{'review_id'} and $feedback_ref->{'status'};
+
+my $review_id = $feedback_ref->{'review_id'};
+my $status = $feedback_ref->{'status'};  ## 'approved', 'needs-changes', 'blocked' ##
+
+##  Validate status  ##
+my %valid_statuses = ( 'approved' => 1, 'needs-changes' => 1, 'blocked' => 1, 'error' => 1 );
+return {
+    'mode' => qw| false |,
+    'data' => "invalid status: $status"
+} unless $valid_statuses{$status};
+
+##  Update review record  ##
+<channels.ai_reviews> //= {};
+my $review = <channels.ai_reviews>->{$review_id};
+
+return {
+    'mode' => qw| false |,
+    'data' => "review $review_id not found"
+} unless defined $review;
+
+##  Store AI feedback  ##
+$review->{'ai_feedback'} = {
+    'status'        => $status,
+    'feedback'      => $feedback_ref->{'feedback'} // '',
+    'issues'        => $feedback_ref->{'issues'} // [],
+    'suggestions'   => $feedback_ref->{'suggestions'} // [],
+    'reviewed_at'   => <[base.time]>->(2)
+};
+
+##  Mark as approved if status is 'approved'  ##
+$review->{'ai_approved'} = ( $status eq 'approved' ) ? TRUE : FALSE;
+
+##  Build notification for developer  ##
+my $notification = {
+    'review_id'      => $review_id,
+    'status'         => $status,
+    'feedback'       => $feedback_ref->{'feedback'},
+    'issues'         => $feedback_ref->{'issues'},
+    'suggestions'    => $feedback_ref->{'suggestions'},
+    'branch'         => $review->{'branch'},
+    'developer'      => $review->{'developer'},
+    'reviewed_at'    => <[base.time]>->(2),
+    'message'        => $status eq 'approved'
+                        ? 'AI approved your changes - ready to commit'
+                        : "AI feedback: $feedback_ref->{'feedback'}"
+};
+
+##  Post feedback to developer-notifications channel  ##
+my $json_str = do {
+    my $json = <[base.perlmod.load]>->('JSON::PP');
+    eval { JSON::PP::encode_json($notification) };
+};
+
+if ( length $EVAL_ERROR ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "JSON encoding error: $EVAL_ERROR"
+    };
+}
+
+<[channels.cmd.update]>->({
+    'call' => {
+        'args'       => "code-review.developer-feedback $json_str",
+        'session_id' => 'ai-reviewer'
+    }
+});
+
+<[base.logs]>->(
+    1,
+    "channels: posted AI review feedback for %s (status: %s, issues: %d)",
+    $review_id,
+    $status,
+    scalar @{$feedback_ref->{'issues'} // []}
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => "feedback posted for review $review_id (status: $status)"
+};
+
+1;
+
+#,,,,,,.,,,,,,...,,,,,,..,,.,,.,.,...,...,,,,,...,...,..,,...,.,.,,,.,,..,.,.,
+#N64T6W5RQRWOI375LKTDLQZBNYJIGTZFUNSH5R5O553SY7YJTIGGZFZB2PG4MDVRZITUYYIECCDEA
+#\\\|GUCYDEYUR72VIIZHUI2VUPS44OHGLKXERDIXAI2MRPEXABYHWPX \ / AMOS7 \ YOURUM ::
+#\[7]6A43KGBPNQLOLRPFW7PCNJOXZKRLKOBACWAPQMJVSXAFS6FK6GBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
