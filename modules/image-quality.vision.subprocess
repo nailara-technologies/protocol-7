@@ -5,28 +5,23 @@
 
 my ( $image_path, $model_identifier, $analysis_prompt ) = @_;
 
-<[base.logs]>->(
-    1, "[image-quality] vision.subprocess: model=%s",
-    $model_identifier
-);
+<[base.logs]>->( 1, "vision.subprocess: model=%s", $model_identifier );
 
 # Validate inputs
 unless ( defined $image_path ) {
-    <[base.log]>->( 0, "[image-quality] Error: Image path required" );
+    <[base.log]>->( 0, "Error: Image path required" );
     return { success => FALSE, error => 'Image path required' };
 }
 unless ( -f $image_path ) {
-    <[base.logs]>->(
-        0, "[image-quality] Error: Image file not found: %s", $image_path
-    );
+    <[base.logs]>->( 0, "Error: Image file not found: %s", $image_path );
     return { success => FALSE, error => 'Image file not found' };
 }
 unless ( defined $model_identifier ) {
-    <[base.log]>->( 0, "[image-quality] Error: Model identifier required" );
+    <[base.log]>->( 0, "Error: Model identifier required" );
     return { success => FALSE, error => 'Model identifier required' };
 }
 unless ( defined $analysis_prompt ) {
-    <[base.log]>->( 0, "[image-quality] Error: Analysis prompt required" );
+    <[base.log]>->( 0, "Error: Analysis prompt required" );
     return { success => FALSE, error => 'Analysis prompt required' };
 }
 
@@ -47,15 +42,13 @@ if ( -f $config_file ) {
             $model_data = $yaml->{models}{$model_identifier};
         } else {
             <[base.logs]>->(
-                0, "[image-quality] Error: Model %s not found in models.yaml",
+                0, "Error: Model %s not found in models.yaml",
                 $model_identifier
             );
         }
     }
 } else {
-    <[base.log]>->(
-        0, "[image-quality] Error: models.yaml not found at $config_file"
-    );
+    <[base.log]>->( 0, "Error: models.yaml not found at $config_file" );
 }
 
 return {
@@ -158,8 +151,8 @@ return {
     model_used => $model_identifier
 };
 
-#,,,.,,,.,..,,,,,,.,.,,.,,.,,,,..,,,,,..,,...,..,,...,...,,.,,..,,,.,,,,,,.,.,
-#FUM3ONRE5EQ3YEAK47O4ZDFD2KPCTZT3OIXAJAM5MFXX3Q3QSP6IHI57QCWZED6RIHPHA2ZRGD3AS
-#\\\|ORRTZMYOCC4YHGMB2YLCAH23UT5MOO5TURJLYPDMFR3VOFK7SXP \ / AMOS7 \ YOURUM ::
-#\[7]JI4TQR2SGTZ753GUFB7AW5HH5DSLMBTKJEEJGNROSR6JJL266QBY 7  DATA SIGNATURE ::
+#,,..,...,,..,,.,,.,,,.,,,,,.,..,,,,.,,,,,.,,,..,,...,..,,...,,.,,..,,,.,,.,,,
+#33U7PIQUPTCVBF3PPOLLNXKKK2DTADDTHCVWSWDCLCSWQAOL3TPSKXBN45YCXVSQFILE6FFJ26QGC
+#\\\|RB5MAXRJJJ5AAIVWQ4H5UNB53YKSQTWXKKYVVZL3S7OYWU64C4Y \ / AMOS7 \ YOURUM ::
+#\[7]GRGAQIYVURN34XES6OUGAL2HH6BWZVP7DXXCEJFG553PPAONZMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

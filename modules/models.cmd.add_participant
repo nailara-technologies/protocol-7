@@ -1,0 +1,148 @@
+## [:< ##
+
+# name = models.cmd.conversation_add_participant
+# descr = register participant model in conversation with role assignment
+
+<[base.perlmod.autoload]>->(qw| JSON::PP |);
+<[base.perlmod.autoload]>->(qw| YAML::XS |);
+
+# Extract params - $call is set by code header
+my $params = {};
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+    $params = $call->{'param'};
+} elsif ( defined $call->{'args'} && length $call->{'args'} ) {
+
+    # Try parsing as JSON first, fall back to YAML
+    eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
+    if ($@) {
+        eval { $params = YAML::XS::Load( $call->{'args'} ); };
+    }
+    $params = {} if $@;
+}
+
+my $job_id         = $params->{'job_id'}         // '';
+my $participant_id = $params->{'participant_id'} // '';
+my $backend_type   = $params->{'backend_type'}   // 'api';
+my $model_id       = $params->{'model_id'}       // '';
+my $role           = $params->{'role'}           // 'coder';
+my $context        = $params->{'context'}        // 'conversation';
+
+if ( !length($job_id) ) {
+    return {
+        'mode' => 'false',
+        'data' => "error: job_id required\n"
+    };
+}
+
+if ( !length($participant_id) ) {
+    return {
+        'mode' => 'false',
+        'data' => "error: participant_id required\n"
+    };
+}
+
+if ( !length($model_id) ) {
+    return {
+        'mode' => 'false',
+        'data' => "error: model_id required\n"
+    };
+}
+
+unless ( $backend_type =~ m{^(api|local)$} ) {
+    return {
+        'mode' => 'false',
+        'data' => "error: backend_type must be api or local\n"
+    };
+}
+
+unless ( $role =~ m{^(architect|analyst|coder|summarizer)$} ) {
+    return {
+        'mode' => 'false',
+        'data' =>
+            "error: role must be architect, analyst, coder, or summarizer\n"
+    };
+}
+
+<models.conversations> //= {};
+
+unless ( exists <models.conversations>->{$job_id} ) {
+    return {
+        'mode' => 'false',
+        'data' => "error: conversation not found: $job_id\n"
+    };
+}
+
+my $conversation = <models.conversations>->{$job_id};
+my $start_time   = <[base.time]>->(4);
+
+## Initialize participants hash if needed
+<models.conversations>->{$job_id}->{'participants'} //= {};
+
+## Check if participant already exists
+if (exists
+    <models.conversations>->{$job_id}->{'participants'}->{$participant_id} ) {
+    <[base.log]>->(
+        2, "[$context] participant already exists: job_id=%s participant=%s",
+        $job_id, $participant_id
+    );
+    return {
+        'mode' => 'false',
+        'data' => "error: participant already exists: $participant_id\n"
+    };
+}
+
+## Create participant structure
+my $participant = {
+    'backend_type' => $backend_type,
+    'model_id'     => $model_id,
+    'role'         => $role,
+    'turn_count'   => 0,
+    'tokens_used'  => 0,
+    'enabled'      => 1,
+    'added_at'     => time(),
+};
+
+<models.conversations>->{$job_id}->{'participants'}->{$participant_id}
+    = $participant;
+
+<[base.log]>->(
+    1,
+    "[$context] participant added: job_id=%s id=%s role=%s model=%s backend=%s",
+    $job_id,
+    $participant_id,
+    $role,
+    $model_id,
+    $backend_type
+);
+
+## Initialize routing strategy if not already set
+<models.conversations>->{$job_id}->{'routing_strategy'} //= 'role-based';
+<models.conversations>->{$job_id}->{'fallback_enabled'} //= 1;
+<models.conversations>->{$job_id}->{'api_limit_hit'}    //= 0;
+
+my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
+
+my $response = {
+    'success'        => TRUE,
+    'job_id'         => $job_id,
+    'participant_id' => $participant_id,
+    'backend_type'   => $backend_type,
+    'model_id'       => $model_id,
+    'role'           => $role,
+    'enabled'        => 1,
+    'added_at'       => $participant->{'added_at'},
+    'elapsed_ms'     => $elapsed_ms
+};
+
+my $yaml_data = YAML::XS::Dump($response);
+return {
+    'mode' => 'size',
+    'data' => $yaml_data
+};
+
+#,,.,,.,.,...,,,.,,.,,.,,,,..,.,.,.,.,,,,,..,,..,,...,...,...,.,,,,,,,,,.,.,.,
+#KZDBVG6SILNOOFMP522TFCRKNMEC3GTT3NXQXJ24IVTFZUJM45YUU2LQAXGOWBGHPVHHHSX2KNXJ2
+#\\\|F7I5ZBJCNPJTSTLYX2FWJO2PDVRAEROJTA3VQRDNK6UDEXBXJSO \ / AMOS7 \ YOURUM ::
+#\[7]SZECO3NGMPCVAXIK3PWQBFUZMQSZP3RJTWQEFAWMHGH3Q2J33MBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

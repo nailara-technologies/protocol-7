@@ -1,0 +1,69 @@
+## [:< ##
+
+# name = models.list_attachments
+# descr = list all attachments in conversation
+
+my $params = shift;
+
+my $job_id  = $params->{'job_id'}  // '';
+my $context = $params->{'context'} // 'conversation';
+
+return {
+    'success' => FALSE,
+    'error'   => 'job_id required'
+    }
+    unless length($job_id);
+
+<models.conversations> //= {};
+
+unless ( exists <models.conversations>->{$job_id} ) {
+    return {
+        'success' => FALSE,
+        'error'   => "conversation not found: $job_id",
+        'job_id'  => $job_id
+    };
+}
+
+my $conversation = <models.conversations>->{$job_id};
+my $start_time   = <[base.time]>->(4);
+
+## Build attachments list without file data
+my @attachments = ();
+
+if ( defined $conversation->{'attachments'}
+    && ref $conversation->{'attachments'} eq 'HASH' ) {
+    foreach my $file_id ( sort keys %{ $conversation->{'attachments'} } ) {
+        my $attachment = $conversation->{'attachments'}->{$file_id};
+        push @attachments,
+            {
+            'file_id'     => $file_id,
+            'filename'    => $attachment->{'filename'},
+            'size_bytes'  => $attachment->{'size_bytes'},
+            'checksum'    => $attachment->{'checksum'},
+            'attached_at' => $attachment->{'attached_at'},
+            };
+    }
+}
+
+<[base.log]>->(
+    2,       "[$context] attachments listed: job_id=%s count=%d",
+    $job_id, scalar(@attachments)
+);
+
+my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
+
+return {
+    'success'     => TRUE,
+    'job_id'      => $job_id,
+    'attachments' => \@attachments,
+    'count'       => scalar(@attachments),
+    'total_bytes' =>
+        scalar( grep {defined} map { $_->{'size_bytes'} } @attachments ),
+    'elapsed_ms' => $elapsed_ms
+};
+
+#,,..,,,.,...,,,.,.,,,.,.,,,,,,..,.,,,.,.,...,..,,...,...,,,,,..,,,.,,.,,,...,
+#ITSSDUUYYL5ZNC4WUDZBKEKCJZQW3GG6YZSWZKRM4LUMADVWNTJZWMTDVOWEJ3NKWOOK4PQR2I7ZA
+#\\\|CZXVV4ODLA273772GY7TYHKCUI4EIO5Q7QBPPBAN3D462QXOZLR \ / AMOS7 \ YOURUM ::
+#\[7]UGVR2QHZ5A2NLOEQ3RP73O4EMNFAVL6GAV24EYWQ647GUISDZABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,72 @@
+## [:< ##
+
+# name = models.backend.api.invoke
+# descr = API backend for remote LLM models (Claude, etc) with rate limit detection
+
+my $params = shift;
+
+my $participant_id = $params->{'participant_id'}  // '';
+my $job_id         = $params->{'job_id'}          // '';
+my $model_id       = $params->{'model_id'}        // '';
+my $system_prompt  = $params->{'system_prompt'}   // '';
+my $messages       = $params->{'messages'}        // [];
+my $temperature    = $params->{'temperature'}     // 0.7;
+my $max_tokens     = $params->{'max_tokens'}      // 4096;
+my $timeout_secs   = $params->{'timeout_seconds'} // 30;
+my $context        = $params->{'context'}         // 'backend';
+
+return {
+    'success' => FALSE,
+    'error'   => 'participant_id required'
+    }
+    unless length($participant_id);
+
+return {
+    'success' => FALSE,
+    'error'   => 'model_id required'
+    }
+    unless length($model_id);
+
+unless ( ref($messages) eq 'ARRAY' && scalar( @{$messages} ) > 0 ) {
+    return {
+        'success' => FALSE,
+        'error'   => 'messages must be non-empty array'
+    };
+}
+
+my $start_time = <[base.time]>->(4);
+
+# Phase 1 Stub: API backend implementation deferred to Phase 5
+# This stub provides the interface for rate limit detection and fallback routing
+#
+# TODO (Phase 5): Implement actual API invocation:
+# 1. Build HTTP request to API endpoint
+# 2. Send request with authentication
+# 3. Parse response and extract generated text
+# 4. Detect rate limit (429 status or quota exceeded message)
+# 5. If rate limit detected:
+#    - Mark conversation.api_limit_hit = 1
+#    - Trigger fallback to local backend
+#    - Record fallback_from field
+# 6. Return response in backend interface format
+
+<[base.log]>->(
+    2, "[$context] api.invoke stub: participant=%s model=%s messages=%d",
+    $participant_id, $model_id, scalar( @{$messages} )
+);
+
+my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
+
+return {
+    'success'        => FALSE,
+    'model_id'       => $model_id,
+    'participant_id' => $participant_id,
+    'error'          => 'API backend not yet implemented (Phase 5)',
+    'elapsed_ms'     => $elapsed_ms
+};
+
+#,,..,,,,,,,.,...,.,,,.,.,,,,,,,.,..,,,.,,,,,,..,,...,...,.,.,,,,,...,,,.,,,.,
+#JZJ4NORADCC4SSUNWUONAJUTDIEWFZGTYHABPLQAHCCJIW7IMIYY4MBOEYGFAOKPC7TMD7B7KLS64
+#\\\|NAV6CUGSRTVYOTD6IPVMBZNEFWQZQVYMGD5BXFBYTULS4RYQXTE \ / AMOS7 \ YOURUM ::
+#\[7]ZPOAC4VHJJQG7TVKTZ2YH5HCZU4MNXXALN2GEX3FRNANWNMVTUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,80 @@
+## [:< ##
+
+# name = models.cmd.extract_file
+# descr = extract file from conversation with automatic STRM-SIZE
+
+<[base.perlmod.autoload]>->(qw| JSON::PP |);
+<[base.perlmod.autoload]>->(qw| YAML::XS |);
+
+# Extract params - $call is set by code header
+my $params = {};
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+    $params = $call->{'param'};
+} elsif ( defined $call->{'args'} && length $call->{'args'} ) {
+
+    # Try parsing as JSON first, fall back to YAML
+    eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
+    if ($@) {
+        eval { $params = YAML::XS::Load( $call->{'args'} ); };
+    }
+    $params = {} if $@;
+}
+
+my $job_id  = $params->{'job_id'}  // '';
+my $file_id = $params->{'file_id'} // '';
+my $context = $params->{'context'} // 'conversation';
+
+if ( !length($job_id) ) {
+    return {
+        'mode' => 'false',
+        'data' => "error: job_id required\n"
+    };
+}
+
+if ( !length($file_id) ) {
+    return {
+        'mode' => 'false',
+        'data' => "error: file_id required\n"
+    };
+}
+
+my $result = <[models.extract_file]>->(
+    {   'job_id'  => $job_id,
+        'file_id' => $file_id,
+        'context' => $context,
+    }
+);
+
+if ( !$result->{'success'} ) {
+    return {
+        'mode' => 'false',
+        'data' => "error: "
+            . ( $result->{'error'} // 'unknown error' ) . "\n"
+    };
+}
+
+## Extract file data and metadata separately
+my $file_data      = delete $result->{'file_data'};
+my $size_bytes     = length($file_data);
+my $strm_threshold = <protocol.strm.size_threshold> // 65536;
+
+## Use STRM-SIZE for large files, SIZE for smaller ones
+if ( $size_bytes > $strm_threshold ) {
+    return {
+        'mode' => 'strm-size',
+        'data' => $file_data,
+        'meta' => YAML::XS::Dump($result),
+    };
+} else {
+    return {
+        'mode' => 'size',
+        'data' => YAML::XS::Dump( { %{$result}, 'file_data' => $file_data } ),
+    };
+}
+
+#,,,.,.,,,.,.,..,,.,,,.,,,,.,,..,,,,,,,,,,,.,,..,,...,...,,,.,,,,,,,,,,,,,,..,
+#AQ4IZK3T4MOJRAMGJO46DRHK2LZFIB6VONQP6XHK5LMZALT3BQL7T6WBDOH7A4ROOAJTIBTYGFHCW
+#\\\|D5453BPTQQTMNGDNGLMVH5M3KMKQHEQBEJIGYSXDDXD6BZGFMVN \ / AMOS7 \ YOURUM ::
+#\[7]INO52V33UE7VHME675GHAQ7ZHKOJUEMY64RIWIGFJ4GXRTHZXQCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

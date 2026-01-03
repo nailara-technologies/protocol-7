@@ -1,0 +1,100 @@
+## [:< ##
+
+# name = models.attach_file
+# descr = attach file to conversation using STRM protocol
+
+my $params = shift;
+
+my $job_id   = $params->{'job_id'}   // '';
+my $filepath = $params->{'filepath'} // '';
+my $checksum = $params->{'checksum'} // '';
+my $context  = $params->{'context'}  // 'conversation';
+
+return {
+    'success' => FALSE,
+    'error'   => 'job_id required'
+    }
+    unless length($job_id);
+
+return {
+    'success' => FALSE,
+    'error'   => 'filepath required'
+    }
+    unless length($filepath);
+
+## Read file from disk
+my $file_data_ref = <[file.slurp]>->($filepath);
+
+return {
+    'success' => FALSE,
+    'error'   => "cannot read file: $filepath"
+    }
+    unless defined $file_data_ref;
+
+## Dereference if needed
+my $file_data = ref($file_data_ref) ? ${$file_data_ref} : $file_data_ref;
+
+## Extract filename from path
+my $filename = $filepath;
+$filename =~ s{.*/}{};
+
+<models.conversations> //= {};
+
+unless ( exists <models.conversations>->{$job_id} ) {
+    return {
+        'success' => FALSE,
+        'error'   => "conversation not found: $job_id",
+        'job_id'  => $job_id
+    };
+}
+
+my $conversation = <models.conversations>->{$job_id};
+my $start_time   = <[base.time]>->(4);
+
+## Initialize attachments hash if needed
+<models.conversations>->{$job_id}->{'attachments'} //= {};
+
+## Generate file ID
+my $file_id = sprintf 'file_%03d',
+    scalar( keys %{ <models.conversations>->{$job_id}->{'attachments'} } )
+    + 1;
+
+## Calculate checksum if not provided
+unless ( length($checksum) ) {
+    $checksum = <[chk-sum.amos]>->($file_data) // 'UNKNOWN';
+}
+
+## Store file attachment
+my $attachment = {
+    'filename'    => $filename,
+    'size_bytes'  => length($file_data),
+    'checksum'    => $checksum,
+    'attached_at' => time(),
+    'data'        => $file_data,
+};
+
+<models.conversations>->{$job_id}->{'attachments'}->{$file_id} = $attachment;
+
+<[base.log]>->(
+    1, "[$context] file attached: job_id=%s file_id=%s filename=%s size=%d",
+    $job_id, $file_id, $filename, $attachment->{'size_bytes'}
+);
+
+my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
+
+return {
+    'success'     => TRUE,
+    'job_id'      => $job_id,
+    'file_id'     => $file_id,
+    'filename'    => $filename,
+    'size_bytes'  => $attachment->{'size_bytes'},
+    'checksum'    => $checksum,
+    'attached_at' => $attachment->{'attached_at'},
+    'elapsed_ms'  => $elapsed_ms
+};
+
+#,,,.,,,,,,,.,...,,.,,,,.,..,,,.,,.,.,...,,..,..,,...,..,,,.,,...,,..,,,,,...,
+#3IV7PVDU42PMT6WD2T2MLF3D7JJWZHHBD7PJNUTSVXVBQ2BWVJCXTRM35UB3PBRJQU4XGY3XY57BQ
+#\\\|RVD6SWPSNIC5WPL2EJ36DVBQVWH3G72MLSIVQEM3UNXKS7MHK7N \ / AMOS7 \ YOURUM ::
+#\[7]G7CNFZKUATJ6VOXKQAK2GQOUPEZCZZHORTJR5KMVQAUPUOJHAMCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

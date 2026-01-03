@@ -320,7 +320,6 @@ return [ qw[
         coding.cmd.status
         coding.cmd.budget
         chk-sum.init_code
-        channels.cmd.list
         c-trade.init_code
         base.session.init
         base.reverse-sort
@@ -384,6 +383,7 @@ return [ qw[
         mpv.cmd.get_volume
         mpv.cmd.current-vo
         mpv.cmd.current-ao
+        models.attach_file
         mod-test.post_init
         letsencr.init_code
         keys.checksum_href
@@ -411,6 +411,7 @@ return [ qw[
         devmod.cmd.b32-elf
         debian.cmd.install
         cube.cmd.unix-path
+        cube.cmd.test-strm
         cube.cmd.b32-ntime
         content.cmd.update
         coding.task.status
@@ -483,6 +484,7 @@ return [ qw[
         openbox.cmd.get_pid
         nodes.cmd.add-trunc
         models.storage.init
+        models.extract_file
         models.conversation
         models.cmd.discover
         mediainfo.init_code
@@ -843,6 +845,7 @@ return [ qw[
         mpv.callback.play_next
         models.cmd.maintenance
         models.cmd.find_models
+        models.cmd.attach_file
         melt.cmd.extract_frame
         mediainfo.cmd.get_info
         logo-display.init_code
@@ -876,6 +879,7 @@ return [ qw[
         coding.queue.fail_task
         coding.analyze.process
         channels.mapping.apply
+        channels.cmd.test-strm
         channels.cmd.subscribe
         base.utf8.decode_clean
         base.time.is_leap_year
@@ -966,6 +970,8 @@ return [ qw[
         mpv.cmd.reload_playlist
         mpv.cmd.playlist_update
         models.storage.discover
+        models.list_attachments
+        models.cmd.extract_file
         llama-vision.cmd.status
         letsencr.child.acme_new
         letsencr.base.post_init
@@ -985,6 +991,7 @@ return [ qw[
         decoder.zenka.init_code
         debian.parent.init_code
         dbus.cmd.socket_address
+        cube.cmd.test-strm-size
         cube.cmd.present-p7-log
         crypt.C25519.write_keys
         crypt.C25519.unload_key
@@ -1090,6 +1097,7 @@ return [ qw[
         models.registry.list_all
         models.cmd.test_discover
         models.cmd.cost_analysis
+        models.backend.interface
         mod-test.cmd.list-loaded
         letsencr.child.init_code
         letsencr.base.check_dirs
@@ -1214,6 +1222,7 @@ return [ qw[
         models.decision.cost_base
         models.cmd.get_model_path
         models.cmd.discover_files
+        models.backend.api.invoke
         melt.trigger.auto_cleanup
         letsencr.parent.init_code
         letsencr.child.create_jws
@@ -1235,6 +1244,7 @@ return [ qw[
         discover.cmd.host_details
         debian.console.list-zenki
         debian.console.check-deps
+        cube.cmd.select-strm-mode
         crypt.C25519.load_keypair
         content.cmd.resolve_b32id
         content.cmd.clear-entries
@@ -1245,6 +1255,9 @@ return [ qw[
         coding.queue.dequeue_next
         coding.event.on_task_fail
         coding.analyze.complexity
+        channels.util.yaml_encode
+        channels.util.yaml_decode
+        channels.test-oscillation
         channels.memory-sync.init
         base.sourcecode.init_code
         base.session.cancel_route
@@ -1338,6 +1351,7 @@ return [ qw[
         models.storage.check_space
         models.conversation_create
         models.conversation.create
+        models.cmd.add_participant
         llm.service.consensus_vote
         letsencr.parent.cmd.status
         letsencr.child.acme_revoke
@@ -1450,6 +1464,8 @@ return [ qw[
         net.read_linewise_estimated
         mpv.callback.reenc_finished
         models.conversation.compact
+        models.cmd.list_attachments
+        models.backend.local.invoke
         mod-test.cmd.list-successes
         mod-test.blacklist_perlcode
         letsencr.child.generate_csr
@@ -1484,6 +1500,7 @@ return [ qw[
         coding.helper.task_priority
         coding.helper.refund_tokens
         coding.helper.budget_status
+        channels.cmd.test-strm-size
         channels.cmd.channels-since
         base.zenki.report_child_pid
         base.yaml.load_keyword_path
@@ -1809,6 +1826,7 @@ return [ qw[
         coding.learning.get_statistics
         coding.helper.subtype_detector
         coding.analyze.estimate_tokens
+        channels.util.get_review_stage
         channels.cmd.ai-review-approve
         base.zenki.ondemand_registered
         base.session.send_init_reports
@@ -1879,6 +1897,7 @@ return [ qw[
         content.callback.check_mimetype
         compton.callback.not_composited
         coding.helper.task_id_generator
+        channels.util.extract_json_path
         channels.memory-sync.batch-send
         channels.content-discovery.init
         channels.cmd.ai-review-feedback
@@ -2119,6 +2138,7 @@ return [ qw[
         protocol-7-menu.cmd.get-action-keys
         osd-logo.handler.colortoalpha_reply
         models.decision.recommendation_base
+        models.conversation.add_participant
         models.cmd.conversation_get_context
         mod-test.scan_INC_chksum_collisions
         mod-test.callback.reload-test.start
@@ -2385,8 +2405,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,,,,,.,,,,,,,,.,,,..,..,,.,,,,,.,,,,,.,,,.,.,...,...,,,,,,,,,.,,,,,.,.,,,
-#XCS67EIQTKGQGSJJ6IBD3K37Y76A33FQDFIYBFNQJHDVUHV7UNJMJ5E7AMJEQ43K4FLUP5FBBPHLA
-#\\\|C2FBITSSQ26EP2SXHC4KG5DFVIMN262MFEVBQECJRIRL7MD6B2B \ / AMOS7 \ YOURUM ::
-#\[7]4T7CC3HFHY24VQWSPE6ZO6MCKFD33H7L3QHLIFIZUU3LS6ID6GBI 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,.,.,.,,,,,.,,.,,,,.,,,,,.,.,.,.,.,.,...,...,.,.,...,.,,,...,..,,
+#6IWC6IUXNJKX5WAGRZCKXBVVJJSYR2QMDL2PBT5VJDC2OT4FZM6YA4QXEH3YE6VBMKHAVF6MBFRXI
+#\\\|MJB6NBGH5MLKFOH44MC7GPXCWROCXI7SZDQLD7XOQFV4JQPBJ7Q \ / AMOS7 \ YOURUM ::
+#\[7]MIK2L2SC7CIF4BNAWBBBJOTJ5KUFGOQXYKWRNPBM2JHIS6K6PUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

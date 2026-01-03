@@ -8,10 +8,10 @@
 # Imager module will be loaded in analyze_image command when needed
 
 # Vision model binary and library configuration
-<llama-vision.binary>   = '/data/source/ik_llama.cpp/llama-mtmd-cli-cuda';
-<llama-vision.lib_path> = '/data/source/ik_llama.cpp';
-<llama-vision.log_file> = '/var/log/protocol-7/llama-vision.log';
-<llama-vision.log_dir>  = '/var/log/protocol-7';
+<llama-vision.binary>   = qw{/data/source/ik_llama.cpp/llama-mtmd-cli-cuda};
+<llama-vision.lib_path> = qw| /data/source/ik_llama.cpp |;
+<llama-vision.log_file> = qw| /var/log/protocol-7/llama-vision.log |;
+<llama-vision.log_dir>  = qw| /var/log/protocol-7 |;
 <llama-vision.log_mask> = 0750;
 
 # Ensure log directory exists with proper permissions (only if running as root)
@@ -22,46 +22,41 @@ if ( $EUID == 0 ) {
         <system.amos-zenka-user>
         )
         and <[base.logs]>->(
-        1, "[llama-vision] Created log directory [%s/]",
+        1, "created log directory [%s/]",
         <llama-vision.log_dir>
         ) if !-d <llama-vision.log_dir>;
 }
 
 # Load vision model configuration from centralized models.yaml
-<[base.logs]>->(
-    1, "[llama-vision] Loading vision model config from models.yaml"
-);
+<[base.logs]>->( 1, "loading vision model config from models.yaml" );
 
 <[base.perlmod.autoload]>->(qw| YAML::Tiny |);
 
-my $config_file = <system.conf_path> . '/zenki/models/models.yaml';
+my $config_file = catfile( <system.conf_path>, qw|zenki/models/models.yaml| );
 
 my $model_path  = undef;
 my $mmproj_path = undef;
 
 if ( -f $config_file ) {
-    my $yaml_content = <[file.slurp]>->($config_file);
+    my $yaml_content_sref = <[file.slurp]>->($config_file);
 
-    if ($yaml_content) {
-        my $yaml = YAML::Tiny::Load($$yaml_content);
+    if ( ref $yaml_content_sref eq qw| SCALAR | ) {
+        my $yaml = YAML::Tiny::Load( $yaml_content_sref->$* );
 
         if (   $yaml
-            && exists $yaml->{models}
-            && exists $yaml->{models}->{'qwen3-vl-4b-instruct'} ) {
-            my $model_def = $yaml->{models}->{'qwen3-vl-4b-instruct'};
-            $model_path  = $model_def->{path};
-            $mmproj_path = $model_def->{mmproj};
+            && exists $yaml->{'models'}
+            && exists $yaml->{'models'}->{'qwen3-vl-4b-instruct'} ) {
+            my $model_def = $yaml->{'models'}->{'qwen3-vl-4b-instruct'};
+            $model_path  = $model_def->{'path'};
+            $mmproj_path = $model_def->{'mmproj'};
         } else {
             <[base.log]>->(
-                0,
-                "[llama-vision] Error: qwen3-vl-4b-instruct not found in models.yaml"
+                0, " Error: qwen3-vl-4b-instruct not found in models.yaml"
             );
         }
     }
 } else {
-    <[base.log]>->(
-        0, "[llama-vision] Error: models.yaml not found at $config_file"
-    );
+    <[base.log]>->( 0, " Error: models.yaml not found at $config_file" );
 }
 
 if ( $model_path && $mmproj_path ) {
@@ -71,7 +66,9 @@ if ( $model_path && $mmproj_path ) {
     <llama-vision.vision_mmproj_path> = $mmproj_path;
 
     <[base.logs]>->(
-        1, "[llama-vision] Vision model configured: %s", $model_path
+        1,
+        "vision model configured : %s",
+        <[base.parser.ellipse_center]>->( $model_path, 28 )
     );
 } else {
     <llama-vision.vision_model_path>  = undef;
@@ -79,14 +76,18 @@ if ( $model_path && $mmproj_path ) {
 
     <[base.log]>->(
         0,
-        "[llama-vision] Error: Vision model configuration incomplete - check models.yaml"
+        "[error] vision model configuration"
+            . " incomplete [check:models.yaml]"
     );
 }
 
-<[base.logs]>->( 1, "Vision binary: %s", <llama-vision.binary> );
 <[base.logs]>->(
     1,
-    "Vision model configuration will be fetched from models zenka at runtime"
+    "vision binary : %s",
+    <[base.parser.ellipse_center]>->( <llama-vision.binary>, 28 )
+);
+<[base.logs]>->(
+    1, "vision model configuration will be fetched from models zenka"
 );
 
 # Initialize job queue for vision analysis tasks
@@ -95,20 +96,20 @@ if ( $model_path && $mmproj_path ) {
 # Initialize timers hash for process watchers
 <llama-vision.timers> //= {};
 
-# Initialize batch queue for request batching (amortizes model loading)
+# Initialize batch queue for request batching [amortizes model loading]
 <llama-vision.batch_queue> //= [];
 <llama-vision.batch_timer> = undef;
 <llama-vision.batch_window_ms>
     = 100;    # Collect requests for 100ms before processing
 
-<[base.logs]>->( 1, "Vision job dispatch system initialized.," );
+<[base.logs]>->( 1, "vision job dispatch system initialized.," );
 <[base.logs]>->(
     1,
-    "Batch processing enabled (window: %dms)",
+    "batch processing enabled [window: %dms]",
     <llama-vision.batch_window_ms>
 );
 
-# Image scaling configuration (vision models typically expect 224-1024 range)
+# Image scaling configuration [vision models typically expect 224-1024 range]
 <llama-vision.max_image_width>  = 1024;    # Scale down if wider
 <llama-vision.max_image_height> = 1024;    # Scale down if taller
 
@@ -116,8 +117,8 @@ if ( $model_path && $mmproj_path ) {
 
 0;    # Return success for module initialization
 
-#,,..,,..,.,.,,..,,,,,,,,,,..,,,.,,,.,,,,,,.,,..,,...,...,,,,,.,.,...,.,,,,.,,
-#QO6QGYXUVSC3IMC2XSQNFI6SS7XRNX6OOPWESU6AFYK4PZF3UHXKBUNKZR6K72FMHL6NBJCXJFGIM
-#\\\|PY4NUICUDZA4J733MPYF54CALU3EOLQG3KUBZZJYQ7VBBFPTW2D \ / AMOS7 \ YOURUM ::
-#\[7]VAT6GGJ6D36TRPQDV63VREE2QKFAETRXFEC6SDVHNS7O72D3IUDA 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,.,,,,.,,...,.,,,...,,,,,,,.,,.,,..,,...,...,.,.,..,,...,,..,.,,,
+#G5UEZSC4S7A36EOOQGDTD6OQDP6KMXRP2RBUSB45LSFOOFAQ4KEGHGA5CYFDLVX2GELMCWIY6PQY6
+#\\\|R6DI3K77RAAMFB5LGGISBBEKM3OONMEQB6RI4KPOKH4PAGRNLO7 \ / AMOS7 \ YOURUM ::
+#\[7]AOKU4LURVRETJC74CNTWP7TFYGXI7L3YDKBL345IOF4PTXRPZMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

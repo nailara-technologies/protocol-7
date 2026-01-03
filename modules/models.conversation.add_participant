@@ -1,0 +1,123 @@
+## [:< ##
+
+# name = models.conversation.add_participant
+# descr = register participant model in conversation with role assignment
+
+my $params = shift;
+
+my $job_id         = $params->{'job_id'}         // '';
+my $participant_id = $params->{'participant_id'} // '';
+my $backend_type   = $params->{'backend_type'}   // 'api';
+my $model_id       = $params->{'model_id'}       // '';
+my $role           = $params->{'role'}           // 'coder';
+my $context        = $params->{'context'}        // 'conversation';
+
+return {
+    'success' => FALSE,
+    'error'   => 'job_id required'
+    }
+    unless length($job_id);
+
+return {
+    'success' => FALSE,
+    'error'   => 'participant_id required'
+    }
+    unless length($participant_id);
+
+return {
+    'success' => FALSE,
+    'error'   => 'model_id required'
+    }
+    unless length($model_id);
+
+return {
+    'success' => FALSE,
+    'error'   => 'backend_type must be api or local'
+    }
+    unless $backend_type =~ m{^(api|local)$};
+
+return {
+    'success' => FALSE,
+    'error'   => 'role must be architect, analyst, coder, or summarizer'
+    }
+    unless $role =~ m{^(architect|analyst|coder|summarizer)$};
+
+<models.conversations> //= {};
+
+unless ( exists <models.conversations>->{$job_id} ) {
+    return {
+        'success' => FALSE,
+        'error'   => "conversation not found: $job_id",
+        'job_id'  => $job_id
+    };
+}
+
+my $conversation = <models.conversations>->{$job_id};
+my $start_time   = <[base.time]>->(4);
+
+## Initialize participants hash if needed
+<models.conversations>->{$job_id}->{'participants'} //= {};
+
+## Check if participant already exists
+if (exists
+    <models.conversations>->{$job_id}->{'participants'}->{$participant_id} ) {
+    <[base.log]>->(
+        2, "[$context] participant already exists: job_id=%s participant=%s",
+        $job_id, $participant_id
+    );
+    return {
+        'success'        => FALSE,
+        'error'          => "participant already exists: $participant_id",
+        'job_id'         => $job_id,
+        'participant_id' => $participant_id
+    };
+}
+
+## Create participant structure
+my $participant = {
+    'backend_type' => $backend_type,
+    'model_id'     => $model_id,
+    'role'         => $role,
+    'turn_count'   => 0,
+    'tokens_used'  => 0,
+    'enabled'      => 1,
+    'added_at'     => time(),
+};
+
+<models.conversations>->{$job_id}->{'participants'}->{$participant_id}
+    = $participant;
+
+<[base.log]>->(
+    1,
+    "[$context] participant added: job_id=%s id=%s role=%s model=%s backend=%s",
+    $job_id,
+    $participant_id,
+    $role,
+    $model_id,
+    $backend_type
+);
+
+## Initialize routing strategy if not already set
+<models.conversations>->{$job_id}->{'routing_strategy'} //= 'role-based';
+<models.conversations>->{$job_id}->{'fallback_enabled'} //= 1;
+<models.conversations>->{$job_id}->{'api_limit_hit'}    //= 0;
+
+my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
+
+return {
+    'success'        => TRUE,
+    'job_id'         => $job_id,
+    'participant_id' => $participant_id,
+    'backend_type'   => $backend_type,
+    'model_id'       => $model_id,
+    'role'           => $role,
+    'enabled'        => 1,
+    'added_at'       => $participant->{'added_at'},
+    'elapsed_ms'     => $elapsed_ms
+};
+
+#,,.,,,,,,.,,,,,,,,..,,.,,..,,,..,,,,,..,,,,,,..,,...,...,.,.,..,,,.,,.,,,,,.,
+#MK2R2T6CKULB5DS2FKWIJVC6NWZMBP4QHGBY34FHNOCJY63QBUHEFP5O6RO5ZJXYOTOHHHPMOUFPM
+#\\\|IABB5ZSEPHEIZ6KE46TYIXYTTWGSJ4LQUZAZRRUT4UOOQ4I4TCD \ / AMOS7 \ YOURUM ::
+#\[7]EZOATPVI4MM7U2PLECA6MWRBZ2ZFEKTKKQWJSU3CQ3WWGB4TQSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
