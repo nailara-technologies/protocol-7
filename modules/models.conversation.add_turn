@@ -5,11 +5,16 @@
 
 my $params = shift;
 
-my $job_id  = $params->{'job_id'}  // '';
-my $role    = $params->{'role'}    // '';
-my $content = $params->{'content'} // '';
-my $tokens  = $params->{'tokens'}  // 0;
-my $context = $params->{'context'} // 'conversation';
+my $job_id        = $params->{'job_id'}        // '';
+my $role          = $params->{'role'}          // '';
+my $content       = $params->{'content'}       // '';
+my $tokens        = $params->{'tokens'}        // 0;
+my $model_id      = $params->{'model_id'}      // '';
+my $backend_type  = $params->{'backend_type'}  // '';
+my $model_role    = $params->{'model_role'}    // '';
+my $latency_ms    = $params->{'latency_ms'}    // 0;
+my $fallback_from = $params->{'fallback_from'} // undef;
+my $context       = $params->{'context'}       // 'conversation';
 
 return {
     'success' => FALSE,
@@ -56,13 +61,20 @@ unless ($tokens) {
 $new_total    = $conversation->{'tokens_used'} + $tokens;
 $would_exceed = $new_total > $conversation->{'token_budget'};
 
-## Create turn object
+## Create turn object with optional model attribution
 my $turn = {
     'role'      => $role,
     'content'   => $content,
     'tokens'    => $tokens,
     'timestamp' => time(),
 };
+
+## Add optional model attribution fields if provided
+$turn->{'model_id'}      = $model_id      if length($model_id);
+$turn->{'backend_type'}  = $backend_type  if length($backend_type);
+$turn->{'model_role'}    = $model_role    if length($model_role);
+$turn->{'latency_ms'}    = $latency_ms    if $latency_ms > 0;
+$turn->{'fallback_from'} = $fallback_from if defined $fallback_from;
 
 ## Add turn to conversation
 push @{ $conversation->{'turns'} }, $turn;
@@ -104,8 +116,8 @@ return {
     'elapsed_ms' => $elapsed_ms
 };
 
-#,,,,,...,,..,..,,,,.,.,,,...,,..,...,,,.,..,,.,.,...,...,.,,,.,,,...,,,,,,.,,
-#2BWEXSLNBO4S3EH5ZE4TK4ZWM4CZIHO3VP7M2QK2PSG6DBQP45ID3WEAGBLZND4KZOZHSIKBDPL6O
-#\\\|LAI6BF356BX42VF6H3RGP7O22RWRB4B647KSS3RKUGMX7PADLAN \ / AMOS7 \ YOURUM ::
-#\[7]4OWLQSHJAFGR6C4OLQ2EFDH2EENY35F6CC553D25JBT2B3RDEIBQ 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,,.,,,.,...,,,.,,..,.,.,...,,,.,.,.,...,..,,..,,..,,.,,,.,.,.,.,
+#LRUJI3P6BUWGGFTCWMD2LO3FOIPIFHE42P3ZV6QO5BKHISM3T4EKJ5MQGZMJGSKJB3TJXJHH5GCX2
+#\\\|2IEVKKMXZYU7JUCJ3GBTP67VMVPX7GYLRZGBY5QNDO3MPKGKOIK \ / AMOS7 \ YOURUM ::
+#\[7]WVK3BQACJR44PFRIITPYDWJLXNZA64RGZFPV7XNOKUZUWFLRB6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
