@@ -1,0 +1,36 @@
+## [:< ##
+
+# name = models.backend.api.detect_limit
+# descr = detect API rate limit conditions from response
+
+my $params = shift;
+
+my $api_result = $params->{'api_result'} // {};
+my $context    = $params->{'context'}    // 'backend';
+
+## Check if result indicates rate limiting
+my $is_rate_limited = $api_result->{'rate_limited'} ? 1 : 0;
+
+## Also check error messages for quota patterns
+unless ($is_rate_limited) {
+    my $error_msg = $api_result->{'error'} // '';
+    if ( $error_msg =~ /rate\s+limit|quota|throttle|429/i ) {
+        $is_rate_limited = 1;
+    }
+}
+
+<[base.log]>->(
+    2,                "[$context] rate limit check: limited=%d error=%s",
+    $is_rate_limited, $api_result->{'error'} // 'none'
+);
+
+return {
+    'rate_limited' => $is_rate_limited,
+    'api_result'   => $api_result,
+};
+
+#,,.,,...,,,,,,,.,,,,,..,,..,,,,,,,,.,.,.,.,,,..,,...,.,,,,,,,.,,,..,,...,,,.,
+#MKQOLZGGA7DHD65TZVDHT2MCGUTOVGTMRSIJ7WXS5IYF2GN5JE72ZZBIH2KEK4HA6GK446VDDGU5M
+#\\\|5CHTRDGKTOPBDFGEW46SPMJMOKK5SOLP46SOUQS6DZ4XH4YGCU2 \ / AMOS7 \ YOURUM ::
+#\[7]DOZ7Y7G5CYW5RDNAC3SYJP4CLJGU7CMA43FHBEVWREGOUSQVSABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

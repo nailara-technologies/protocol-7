@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name = models.backend.api.invoke
-# descr = API backend for remote LLM models (Claude, etc) with rate limit detection
+# descr = API backend with rate limit detection for remote LLM models
 
 my $params = shift;
 
@@ -13,7 +13,7 @@ my $messages       = $params->{'messages'}        // [];
 my $temperature    = $params->{'temperature'}     // 0.7;
 my $max_tokens     = $params->{'max_tokens'}      // 4096;
 my $timeout_secs   = $params->{'timeout_seconds'} // 30;
-my $context        = $params->{'context'}         // 'backend';
+my $context        = $params->{'context'}         // qw| backend |;
 
 return {
     'success' => FALSE,
@@ -27,7 +27,7 @@ return {
     }
     unless length($model_id);
 
-unless ( ref($messages) eq 'ARRAY' && scalar( @{$messages} ) > 0 ) {
+unless ( ref($messages) eq qw| ARRAY | && scalar( $messages->@* ) > 0 ) {
     return {
         'success' => FALSE,
         'error'   => 'messages must be non-empty array'
@@ -36,37 +36,157 @@ unless ( ref($messages) eq 'ARRAY' && scalar( @{$messages} ) > 0 ) {
 
 my $start_time = <[base.time]>->(4);
 
-# Phase 1 Stub: API backend implementation deferred to Phase 5
-# This stub provides the interface for rate limit detection and fallback routing
-#
-# TODO (Phase 5): Implement actual API invocation:
-# 1. Build HTTP request to API endpoint
-# 2. Send request with authentication
-# 3. Parse response and extract generated text
-# 4. Detect rate limit (429 status or quota exceeded message)
-# 5. If rate limit detected:
-#    - Mark conversation.api_limit_hit = 1
-#    - Trigger fallback to local backend
-#    - Record fallback_from field
-# 6. Return response in backend interface format
+## Validate API key is configured
+my $api_key = <models.api.key> // '';
 
-<[base.log]>->(
-    2, "[$context] api.invoke stub: participant=%s model=%s messages=%d",
-    $participant_id, $model_id, scalar( @{$messages} )
+unless ( length($api_key) ) {
+    return {
+        'success'        => FALSE,
+        'model_id'       => $model_id,
+        'participant_id' => $participant_id,
+        'error'          => 'API key not configured',
+        'elapsed_ms'     => ( <[base.time]>->(4) - $start_time ) * 1000
+    };
+}
+
+## Build request payload
+my $request_payload = {
+    'model'       => $model_id,
+    'messages'    => $messages,
+    'temperature' => $temperature,
+    'max_tokens'  => $max_tokens,
+};
+
+$request_payload->{'system'} = $system_prompt if length($system_prompt);
+
+## Attempt API call with timeout
+my $response_data = undef;
+my $http_status   = 0;
+my $api_error     = undef;
+
+eval {
+    local $SIG{ALRM} = sub { die "timeout\n" };
+    alarm($timeout_secs);
+
+    ## Make HTTP POST request to Claude API
+    my $ua      = LWP::UserAgent->new();
+    my $request = HTTP::Request->new(
+        POST => 'https://api.anthropic.com/v1/messages',
+        [   'Content-Type'      => 'application/json',
+            'x-api-key'         => $api_key,
+            'anthropic-version' => '2023-06-01',
+        ],
+        JSON::PP::encode_json($request_payload)
+    );
+
+    my $response = $ua->request($request);
+    $http_status = $response->code();
+
+    ## Parse response
+    if ( $response->is_success() ) {
+        $response_data = JSON::PP::decode_json( $response->content() );
+    } else {
+        $api_error = $response->content() // "HTTP $http_status";
+    }
+
+    alarm(0);
+};
+
+if ( length $EVAL_ERROR ) {
+    if ( $EVAL_ERROR =~ m|timeout| ) {
+        return {
+            'success'        => FALSE,
+            'model_id'       => $model_id,
+            'participant_id' => $participant_id,
+            'error'          => 'API request timeout',
+            'elapsed_ms'     => ( <[base.time]>->(4) - $start_time ) * 1000,
+            'rate_limited'   => 0
+        };
+    } else {
+        return {
+            'success'        => FALSE,
+            'model_id'       => $model_id,
+            'participant_id' => $participant_id,
+            'error'          => "API error: $@",
+            'elapsed_ms'     => ( <[base.time]>->(4) - $start_time ) * 1000,
+            'rate_limited'   => 0
+        };
+    }
+}
+
+## Check for rate limit (429 status)
+if ( $http_status == 429 ) {
+    <[base.logs]>->(
+        1,               "[$context] api rate limit: participant=%s model=%s",
+        $participant_id, $model_id
+    );
+    return {
+        'success'        => FALSE,
+        'model_id'       => $model_id,
+        'participant_id' => $participant_id,
+        'error'          => 'API rate limit exceeded',
+        'elapsed_ms'     => ( <[base.time]>->(4) - $start_time ) * 1000,
+        'rate_limited'   => 1,
+    };
+}
+
+## Check for API error
+unless ($response_data) {
+    return {
+        'success'        => FALSE,
+        'model_id'       => $model_id,
+        'participant_id' => $participant_id,
+        'error'          => "API error: $api_error",
+        'elapsed_ms'     => ( <[base.time]>->(4) - $start_time ) * 1000,
+        'rate_limited'   => 0
+    };
+}
+
+## Extract response text from first choice
+my $response_text = '';
+if ( defined $response_data->{'content'}
+    && ref $response_data->{'content'} eq 'ARRAY' ) {
+    my $first_content = $response_data->{'content'}->[0];
+    $response_text = $first_content->{'text'} // '';
+}
+
+unless ( length($response_text) ) {
+    return {
+        'success'        => FALSE,
+        'model_id'       => $model_id,
+        'participant_id' => $participant_id,
+        'error'          => 'No response text in API response',
+        'elapsed_ms'     => ( <[base.time]>->(4) - $start_time ) * 1000,
+        'rate_limited'   => 0
+    };
+}
+
+## Extract usage information if available
+my $tokens_used = 0;
+if ( defined $response_data->{'usage'} ) {
+    $tokens_used = $response_data->{'usage'}->{'output_tokens'} // 0;
+}
+
+<[base.logs]>->(
+    2, "[$context] api response: participant=%s model=%s tokens=%d",
+    $participant_id, $model_id, $tokens_used
 );
 
 my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
 
 return {
-    'success'        => FALSE,
+    'success'        => TRUE,
     'model_id'       => $model_id,
     'participant_id' => $participant_id,
-    'error'          => 'API backend not yet implemented (Phase 5)',
-    'elapsed_ms'     => $elapsed_ms
+    'response'       => $response_text,
+    'tokens_used'    => $tokens_used,
+    'latency_ms'     => $elapsed_ms,
+    'elapsed_ms'     => $elapsed_ms,
+    'rate_limited'   => 0
 };
 
-#,,..,,,,,,,.,...,.,,,.,.,,,,,,,.,..,,,.,,,,,,..,,...,...,.,.,,,,,...,,,.,,,.,
-#JZJ4NORADCC4SSUNWUONAJUTDIEWFZGTYHABPLQAHCCJIW7IMIYY4MBOEYGFAOKPC7TMD7B7KLS64
-#\\\|NAV6CUGSRTVYOTD6IPVMBZNEFWQZQVYMGD5BXFBYTULS4RYQXTE \ / AMOS7 \ YOURUM ::
-#\[7]ZPOAC4VHJJQG7TVKTZ2YH5HCZU4MNXXALN2GEX3FRNANWNMVTUDY 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,.,.,,,,,,.,,..,,...,,,.,..,,...,..,,...,...,..,,...,.,.,.,,,,..,
+#XYI4M7AZOVGT2KTBWKNBPN65RK5JR2FFHZWZS4E3CRGGE6FLOZGKFWDSY4GLTLZS7T3FW6TRYQWM2
+#\\\|ABREVNTW6PM2ZCMES4WYE2EZOQWLFRDR6QMTTJJT2DI623QV52Y \ / AMOS7 \ YOURUM ::
+#\[7]IYQBGMPFV4TLH33JNA4DNHQP27CEHHBXYWCSN2BBGKD3JRQ75OCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

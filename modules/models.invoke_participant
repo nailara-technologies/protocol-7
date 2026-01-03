@@ -1,0 +1,136 @@
+## [:< ##
+
+# name = models.invoke_participant
+# descr = invoke participant with automatic fallback on API rate limit
+
+my $params = shift;
+
+my $job_id         = $params->{'job_id'}         // '';
+my $participant_id = $params->{'participant_id'} // '';
+my $system_prompt  = $params->{'system_prompt'}  // '';
+my $messages       = $params->{'messages'}       // [];
+my $context        = $params->{'context'}        // 'conversation';
+
+return {
+    'success' => FALSE,
+    'error'   => 'job_id required'
+    }
+    unless length($job_id);
+
+return {
+    'success' => FALSE,
+    'error'   => 'participant_id required'
+    }
+    unless length($participant_id);
+
+<models.conversations> //= {};
+
+unless ( exists <models.conversations>->{$job_id} ) {
+    return {
+        'success' => FALSE,
+        'error'   => "conversation not found: $job_id",
+        'job_id'  => $job_id
+    };
+}
+
+my $conversation = <models.conversations>->{$job_id};
+my $start_time   = <[base.time]>->(4);
+
+## Find participant
+unless ( defined $conversation->{'participants'}->{$participant_id} ) {
+    return {
+        'success'        => FALSE,
+        'error'          => "participant not found: $participant_id",
+        'job_id'         => $job_id,
+        'participant_id' => $participant_id
+    };
+}
+
+my $participant = $conversation->{'participants'}->{$participant_id};
+
+## Invoke participant backend
+my $backend_module
+    = 'models.backend.' . $participant->{'backend_type'} . '.invoke';
+my $result = <[$backend_module]>->(
+    {   'participant_id' => $participant_id,
+        'job_id'         => $job_id,
+        'model_id'       => $participant->{'model_id'},
+        'system_prompt'  => $system_prompt,
+        'messages'       => $messages,
+        'context'        => $context,
+    }
+);
+
+my $fallback_from = undef;
+
+## Check for API rate limit and attempt fallback
+if (  !$result->{'success'}
+    && $result->{'rate_limited'}
+    && $participant->{'backend_type'} eq 'api' ) {
+    <[base.logs]>->(
+        1, "[$context] api limit detected, attempting fallback: job_id=%s",
+        $job_id
+    );
+
+    ## Mark conversation as having hit API limit
+    <models.conversations>->{$job_id}->{'api_limit_hit'} = 1;
+
+    ## Find local fallback participant
+    my $fallback_participant_id = undef;
+    foreach my $pid ( keys %{ $conversation->{'participants'} } ) {
+        my $p = $conversation->{'participants'}->{$pid};
+        if ( $p->{'backend_type'} eq 'local' && $p->{'enabled'} ) {
+            $fallback_participant_id = $pid;
+            last;
+        }
+    }
+
+    if ($fallback_participant_id) {
+        <[base.logs]>->(
+            1,               "[$context] using fallback: from=%s to=%s",
+            $participant_id, $fallback_participant_id
+        );
+
+        $fallback_from = $participant_id;
+
+        ## Attempt with fallback participant
+        my $fallback_participant
+            = $conversation->{'participants'}->{$fallback_participant_id};
+        $result = <[models.backend.local.invoke]>->(
+            {   'participant_id' => $fallback_participant_id,
+                'job_id'         => $job_id,
+                'model_id'       => $fallback_participant->{'model_id'},
+                'system_prompt'  => $system_prompt,
+                'messages'       => $messages,
+                'context'        => $context,
+            }
+        );
+    }
+}
+
+## Update participant stats
+if ( $result->{'success'} ) {
+    $participant->{'turn_count'}++;
+    $participant->{'tokens_used'} += $result->{'tokens_used'} // 0;
+}
+
+my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
+
+return {
+    'success'        => $result->{'success'},
+    'job_id'         => $job_id,
+    'participant_id' => $participant_id,
+    'response'       => $result->{'response'},
+    'tokens_used'    => $result->{'tokens_used'} // 0,
+    'model_id'       => $result->{'model_id'},
+    'fallback_from'  => $fallback_from,
+    'latency_ms'     => $result->{'latency_ms'} // $result->{'elapsed_ms'},
+    'error'          => $result->{'error'},
+    'elapsed_ms'     => $elapsed_ms
+};
+
+#,,.,,..,,,,,,.,.,.,.,,.,,,..,..,,.,,,..,,.,,,..,,...,...,,.,,,.,,...,.,.,,.,,
+#43IXEIKRCYYLQZC52KLADP7UV3IGYLGRSP2EVY7Q2MPB773FUDHKCLS5RMDAMV33OLUAMAVZZZWKK
+#\\\|BA4WEP66BUBTUIDORUHW5QVFXRXFJL3DZ2IBP56GC4SM35JCQRD \ / AMOS7 \ YOURUM ::
+#\[7]MKZ3U43NBYWXSRGILIXPMFLKLZKHSM5ND4EYKPFYABL74ATR4QCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
