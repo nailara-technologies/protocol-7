@@ -29,11 +29,11 @@ my $key_name = $key_vars_ref->{'key_name'};
 return Crypt::Ed25519::verify(
     $msg_ref->$*,
     $keys{'C25519'}{$key_name}{'public'},
-    decode_b32r( $signature_data_sref->$* )
+    decode_b32r( $signature_data_sref->$* // '' )
 );
 
-#,,,,,..,,,..,..,,,.,,.,,,,.,,,..,.,,,...,...,..,,...,...,.,.,..,,,,.,,..,.,,,
-#J2BK5ZZKQXOHEJ4CTF7JSBZ25DP2CGMPQX6EVIK2QBBPHIW4IATBOUPWGCDLUJALTDZOBBPLSHZMW
-#\\\|VMVVJTTNPCVFKNTO7ESSEOZTKVQEU76OPWH7NIMB2S3TTQT2SHF \ / AMOS7 \ YOURUM ::
-#\[7]Q2UJAG5VHEZD4J4WAZAFPQAJAGDRLPQ5FYF2KAPDU5ZGTAM3FKBI 7  DATA SIGNATURE ::
+#,,,,,,.,,..,,..,,,,.,.,,,,.,,,,.,..,,,,.,,,.,..,,...,...,..,,,,.,.,,,,,,,.,,,
+#7X2HEYZPZGCSE4XWDQT27TYZ46CR4DI2E5WWB3A5FZKW3VG6OSCHK7N52JOLOK7KZ3JEBWGYL5HEO
+#\\\|JXA3YLKYDHWOD3RHZWFYZUYLZ5FRJBFXXUL63325ZELR2UHPOO2 \ / AMOS7 \ YOURUM ::
+#\[7]TWOU3UB6TO6DOYTA4XJPSLG2ROQ346RMZBMBIZ66LEMS56O2ZSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

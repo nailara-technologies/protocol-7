@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = channels.content-discovery.init
+# descr = Initialize content discovery infrastructure for media extraction and routing
+# args  = none
+# return = int(result) 0=initialized, 1=error
+
+##  Content discovery configuration for detecting and routing new media  ##
+
+<channels.discovered_content> //= {};  ## { content_id => { title, url, type, source, ... } } ##
+<channels.discovery_sources> //= {};   ## { source_name => { enabled, last_check, patterns } } ##
+<channels.discovery_queue> //= {};     ## { queue_id => { content, priority, status } } ##
+
+##  Configuration defaults  ##
+<channels.discovery.cfg.check_interval> //= 3600;     ## 1 hour ##
+<channels.discovery.cfg.max_queue_size> //= 1000;
+<channels.discovery.cfg.enable_auto_routing> //= 1;
+<channels.discovery.cfg.default_priority> //= 5;
+
+##  Supported content types and their channels  ##
+my %content_type_channels = (
+    'video.youtube'     => 'media.youtube',
+    'video.generic'     => 'media.videos',
+    'audio.podcast'     => 'media.podcasts',
+    'audio.music'       => 'media.music',
+    'document.pdf'      => 'media.documents',
+    'document.article'  => 'media.articles'
+);
+
+##  Initialize content type map  ##
+<channels.content_type_map> = \%content_type_channels;
+
+##  Discovery statistics  ##
+<channels.discovery.stats> = {
+    'total_discovered'   => 0,
+    'total_queued'       => 0,
+    'total_routed'       => 0,
+    'last_discovery'     => undef,
+    'error_count'        => 0
+};
+
+<[base.logs]>->(
+    1,
+    "channels content-discovery: initialized with check interval %.1f hours",
+    <channels.discovery.cfg.check_interval> / 3600
+);
+
+0;
+
+#,,,.,,.,,.,.,,..,.,,,...,..,,,..,,..,.,,,,,,,...,...,...,..,,...,..,,...,.,.,
+#RGOOY6IOXKFGWS454LH3TQN7JO5SDYWP4YQFTWERXPD2SJII4MJEWAPPQ4SKGN6XSSDWITPRBZBWA
+#\\\|XPCYU2ZCD3URXL3OGCJBCKVR3UJ54Y5ONE3WYCL5CBHGVIRNDBA \ / AMOS7 \ YOURUM ::
+#\[7]5LPUZCX2QTRSUTRJQBEMCSZMIK5A6X4USP2TUY3NSJW2O6KBGUCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
