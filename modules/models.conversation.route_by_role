@@ -1,0 +1,95 @@
+## [:< ##
+
+# name = models.conversation.route_by_role
+# descr = classify task and route to appropriate participant by role
+
+my $params = shift;
+
+my $job_id       = $params->{'job_id'}       // '';
+my $task_desc    = $params->{'task_desc'}    // '';
+my $default_role = $params->{'default_role'} // qw| coder |;
+my $context      = $params->{'context'}      // qw| conversation |;
+
+return {
+    'success' => FALSE,
+    'error'   => 'job_id required'
+    }
+    unless length($job_id);
+
+return {
+    'success' => FALSE,
+    'error'   => 'task_desc required'
+    }
+    unless length($task_desc);
+
+<models.conversations> //= {};
+
+unless ( exists <models.conversations>->{$job_id} ) {
+    return {
+        'success' => FALSE,
+        'error'   => "conversation not found: $job_id",
+        'job_id'  => $job_id
+    };
+}
+
+my $conversation = <models.conversations>->{$job_id};
+
+## Classify task based on keywords
+my $determined_role = $default_role;
+my $lower_task      = lc($task_desc);
+
+if ( $lower_task =~ m{design|plan|architecture|structure|architect} ) {
+    $determined_role = 'architect';
+} elsif ( $lower_task =~ m{analyze|review|evaluate|examine|assess|audit} ) {
+    $determined_role = 'analyst';
+} elsif ( $lower_task =~ m{implement|code|write|fix|build|develop|refactor} )
+{
+    $determined_role = 'coder';
+} elsif ( $lower_task =~ m{summarize|brief|recap|overview|abstract|digest} ) {
+    $determined_role = 'summarizer';
+}
+
+## Find participant with matching role
+my $matched_participant_id = undef;
+if ( defined $conversation->{'participants'} ) {
+    foreach my $pid ( keys %{ $conversation->{'participants'} } ) {
+        my $p = $conversation->{'participants'}->{$pid};
+        if ( $p->{'role'} eq $determined_role && $p->{'enabled'} ) {
+            $matched_participant_id = $pid;
+            last;
+        }
+    }
+}
+
+## If no matching role, find first enabled participant
+unless ($matched_participant_id) {
+    if ( defined $conversation->{'participants'} ) {
+        foreach my $pid ( keys %{ $conversation->{'participants'} } ) {
+            my $p = $conversation->{'participants'}->{$pid};
+            if ( $p->{'enabled'} ) {
+                $matched_participant_id = $pid;
+                last;
+            }
+        }
+    }
+}
+
+<[base.logs]>->(
+    2,                "[$context] route: task role=%s participant=%s",
+    $determined_role, $matched_participant_id // qw| none |
+);
+
+return {
+    'success'         => TRUE,
+    'job_id'          => $job_id,
+    'task_desc'       => $task_desc,
+    'determined_role' => $determined_role,
+    'participant_id'  => $matched_participant_id,
+    'routed'          => defined $matched_participant_id ? 1 : 0
+};
+
+#,,,.,..,,,,,,..,,.,,,...,.,.,.,,,,,,,...,.,,,..,,...,...,.,,,..,,.,.,,,,,.,,,
+#CU3RUKMTDS6F44RMXLTLWZYAENQGKBSMVPT2SNDIHZBVW6U4O4PBJHURQMHPENAEPC3ZAMUFGXECA
+#\\\|BCPQRZBGFTN3TSTCTRZ5IVPTDIMM6APUYQ5K2RDRP77NMFZU54V \ / AMOS7 \ YOURUM ::
+#\[7]HWEYE7DOKNFSRGLVH4DE5PZGW2KFBN4CF6KC2THJQ2RUKJYWUWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

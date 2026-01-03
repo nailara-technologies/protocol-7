@@ -1,0 +1,53 @@
+## [:< ##
+
+# name = models.cmd.route_by_role
+# descr = command wrapper for task routing by role
+
+my $params = {};
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
+    $params = $call->{'param'};
+} elsif ( defined $call->{'args'} && length $call->{'args'} ) {
+    eval { $params = JSON::PP::decode_json( $call->{'args'} ) };
+    if ( length $EVAL_ERROR ) {
+        eval { $params = YAML::XS::Load( $call->{'args'} ) };
+    }
+    $params = {} if length $EVAL_ERROR;
+}
+
+my $job_id       = $params->{'job_id'}       // '';
+my $task_desc    = $params->{'task_desc'}    // '';
+my $default_role = $params->{'default_role'} // qw| coder |;
+
+if ( !length($job_id) ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "error: job_id required\n"
+    };
+}
+
+if ( !length($task_desc) ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "error: task_desc required\n"
+    };
+}
+
+my $result = <[models.conversation.route_by_role]>->(
+    {   'job_id'       => $job_id,
+        'task_desc'    => $task_desc,
+        'default_role' => $default_role,
+    }
+);
+
+my $yaml_data = YAML::XS::Dump($result);
+return {
+    'mode' => qw| size |,
+    'data' => $yaml_data
+};
+
+#,,..,,,,,..,,,.,,,,.,,,.,.,,,,,.,.,,,,.,,,..,..,,...,...,...,.,,,...,,.,,.,,,
+#HN3NGLS425RZ6AEQLJBPSF2MFB3MY2DAHFEYSP76NMSP32BWZDKXMPLY433PJI7622B3ZK4JC2OIE
+#\\\|5UYITLHEL2NEKSVVBOI3GG4XMZFCV3OIB26LABPENLDR3NTM2W7 \ / AMOS7 \ YOURUM ::
+#\[7]EUQAZKP2VOYES5BGJONKSQSAYSDPN2SXNJQY4GNSA45NWTXQL6BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

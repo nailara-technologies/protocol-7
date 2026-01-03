@@ -1,0 +1,62 @@
+## [:< ##
+
+# name = models.cmd.invoke_participant
+# descr = invoke participant with automatic fallback on rate limit
+
+# Extract params - $call is set by code header
+my $params = {};
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
+    $params = $call->{'param'};
+} elsif ( defined $call->{'args'} && length $call->{'args'} ) {
+
+    # Try parsing as JSON first, fall back to YAML
+    eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
+    if ( length $EVAL_ERROR ) {
+        eval { $params = YAML::XS::Load( $call->{'args'} ); };
+    }
+    $params = {} if length $EVAL_ERROR;
+}
+
+my $job_id         = $params->{'job_id'}         // '';
+my $participant_id = $params->{'participant_id'} // '';
+my $system_prompt  = $params->{'system_prompt'}  // '';
+my $messages       = $params->{'messages'}       // [];
+my $context        = $params->{'context'}        // 'conversation';
+
+if ( !length($job_id) ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "error: job_id required\n"
+    };
+}
+
+if ( !length($participant_id) ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "error: participant_id required\n"
+    };
+}
+
+# Call the actual invoke_participant module
+my $result = <[models.invoke_participant]>->(
+    {   'job_id'         => $job_id,
+        'participant_id' => $participant_id,
+        'system_prompt'  => $system_prompt,
+        'messages'       => $messages,
+        'context'        => $context,
+    }
+);
+
+# Return as YAML
+my $yaml_data = YAML::XS::Dump($result);
+return {
+    'mode' => qw| size |,
+    'data' => $yaml_data
+};
+
+#,,,,,..,,,,,,.,.,,..,.,,,,..,..,,,.,,,.,,...,..,,...,...,,..,.,.,,..,.,.,,,,,
+#WUSBKWPVIWENJQJLB5J3EZAAVPDPRSI7Z3QZ23U7GVDQP3ODUTQKZEZGTGNUOTNCRF7UGNJ6NVET6
+#\\\|IMT3HJQMXJ7PNDAY7PQG4EW72Z3VRXPFT6IEJY4OKDNLPWMUVTW \ / AMOS7 \ YOURUM ::
+#\[7]WFFJY3H643UCFFOSMQWJAYDCZ7Q44MW6KTNU2YYC2TWH3MNVNECQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
