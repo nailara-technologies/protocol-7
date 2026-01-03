@@ -5,11 +5,11 @@
 # args  = none
 # return = int(count) of channels updated
 
-my $current_time = <[base.time]>->(2);
-my $current_ts_b32 = encode_b32r(pack('Q>', $current_time));
+my $current_time   = <[base.time]>->(2);
+my $current_ts_b32 = encode_b32r( pack( 'Q>', $current_time ) );
 
 my $heartbeat_interval = <channels.cfg.heartbeat_interval_seconds> // 3600;
-my $inactive_timeout = <channels.cfg.inactive_timeout_seconds> // 86400;
+my $inactive_timeout   = <channels.cfg.inactive_timeout_seconds>   // 86400;
 
 my $channels_updated = 0;
 
@@ -17,9 +17,9 @@ my $channels_updated = 0;
 foreach my $channel_path ( keys %{<channels.subscriptions>} ) {
     next unless defined <channels.subscriptions>->{$channel_path};
 
-    my $channel_entry = <channels.subscriptions>->{$channel_path};
+    my $channel_entry  = <channels.subscriptions>->{$channel_path};
     my $last_heartbeat = $channel_entry->{'last_heartbeat'} // 0;
-    my $status = $channel_entry->{'status'} // 'ACTIVE';
+    my $status         = $channel_entry->{'status'}         // 'ACTIVE';
 
     ##  Check if heartbeat is due  ##
     my $time_since_heartbeat = $current_time - $last_heartbeat;
@@ -33,30 +33,27 @@ foreach my $channel_path ( keys %{<channels.subscriptions>} ) {
         $channels_updated++;
 
         <[base.logs]>->(
-            2,
-            "channels: heartbeat for '%s' (age: %.1f hours)",
-            $channel_path,
-            $time_since_heartbeat / 3600
+            2,             "channels: heartbeat for '%s' (age: %.1f hours)",
+            $channel_path, $time_since_heartbeat / 3600
         );
     }
 
     ##  Check for timeout and transition to IDLE  ##
-    if ( $status eq 'ACTIVE' and $time_since_heartbeat >= $inactive_timeout ) {
-        $channel_entry->{'status'} = 'IDLE';
+    if ( $status eq 'ACTIVE' and $time_since_heartbeat >= $inactive_timeout )
+    {
+        $channel_entry->{'status'}     = 'IDLE';
         $channel_entry->{'idle_since'} = $current_time;
 
         <[base.logs]>->(
             1,
             "channels: transitioned '%s' to IDLE (inactive for %.1f hours)",
-            $channel_path,
-            $time_since_heartbeat / 3600
+            $channel_path, $time_since_heartbeat / 3600
         );
     }
 }
 
 <[base.logs]>->(
-    2,
-    "channels: heartbeat cycle completed (%d channels updated)",
+    2, "channels: heartbeat cycle completed (%d channels updated)",
     $channels_updated
 );
 
@@ -64,8 +61,8 @@ return $channels_updated;
 
 1;
 
-#,,..,.,,,,,,,,,.,.,.,...,.,,,,,,,.,.,,..,,,.,.,.,...,...,,,,,,.,,,..,,.,,.,.,
-#HJI7KRUTEUSHGXERSKCNUMT47VOIEBI4I27B7HOO5Q3W2RGBLIZMXYC47UWFYSMP57DONHIV52DPM
-#\\\|FUJHAA4DTTH23QJ7NRMOTQALJJYLRKA3FDWBIQTFAO7KYMDQ36R \ / AMOS7 \ YOURUM ::
-#\[7]3MN6E62BW3E72TP2HBK75UV6KFKLD2RKI3WDAK2WF5CUR7RPEQBQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,.,,,.,,..,,,,,,,,,..,,..,,,..,.,.,...,...,...,.,.,.,,,,,.,.,.,
+#AF5CIW3TBM6YCQ2LJI6KE6FFEPZ6VHHAAHOEESVCNG2U7II72457JRESZ5AOOAEKGHYSOSZ54MOMG
+#\\\|HZJHJDAMTLYHGXLWLCLLAPZF7XS4LJCC4YPYQEIQ2KX2XA4CDCP \ / AMOS7 \ YOURUM ::
+#\[7]NQVYVXZVZWLXR55OKA72MFEPXFQXDC7HTZYA2H36IXHKOUZFPQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

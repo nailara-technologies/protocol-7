@@ -3,36 +3,72 @@
 # name = channels.init_code
 # descr = Initialize channels infrastructure: subscriptions, timestamps, heartbeat
 
-<[base.perlmod.autoload]>->('Time::HiRes', qw| gettimeofday tv_interval |);
-<[base.perlmod.autoload]>->('Digest::SHA', qw| sha256 |);
-<[base.perlmod.autoload]>->('Crypt::Misc', qw| encode_b32r decode_b32r |);
+<[base.perlmod.autoload]>->( 'Time::HiRes', qw| gettimeofday tv_interval | );
+<[base.perlmod.autoload]>->( 'Digest::SHA', qw| sha256 | );
+<[base.perlmod.autoload]>->( 'Crypt::Misc', qw| encode_b32r decode_b32r | );
 
 ##  Channel subscription and state tracking  ##
-<channels.subscriptions>      //= {};    ## { channel_path => { subscriber_id => timestamp } } ##
-<channels.data>              //= {};    ## { channel_path => { name => value, ... } } ##
-<channels.timestamps>        //= {};    ## { channel_path => base32_timestamp } ##
-<channels.checksums>         //= {};    ## { channel_path => base32_checksum } ##
-<channels.blocking_clients>  //= {};    ## { request_id => { client_info, since_ts, ... } } ##
-<channels.cleanup_enabled>   //= TRUE;
+<channels.subscriptions> //= {};
+#
+## { channel_path => { subscriber_id => timestamp } } ##
+
+<channels.data>       //= {}; ## { channel_path => { name => value, ... } } ##
+<channels.timestamps> //= {}; ## { channel_path => base32_timestamp } ##
+<channels.checksums>  //= {}; ## { channel_path => base32_checksum } ##
+
+<channels.blocking_clients> //= {};
+#
+## { request_id => { client_info, since_ts, ... } } ##
+<channels.cleanup_enabled> //= TRUE;
 
 ##  Configuration defaults  ##
-<channels.cfg.heartbeat_interval_seconds>  //= 3600;   ## 1 hour ##
-<channels.cfg.cleanup_interval_seconds>    //= 21600;  ## 6 hours ##
-<channels.cfg.inactive_timeout_seconds>    //= 86400;  ## 24 hours ##
-<channels.cfg.max_subscriptions>           //= 4097;
-<channels.cfg.max_data_per_channel>        //= 1048576;  ## 1 MB per channel ##
+<channels.cfg.heartbeat_interval_seconds> //= 3600;     ## 1 hour ##
+<channels.cfg.cleanup_interval_seconds>   //= 21600;    ## 6 hours ##
+<channels.cfg.inactive_timeout_seconds>   //= 86400;    ## 24 hours ##
+<channels.cfg.max_subscriptions>          //= 4097;
+<channels.cfg.max_data_per_channel>       //= 1048576;  ## 1 MB per channel ##
+
+##  Build unified list of all channels from both data and subscriptions  ##
+<channels.all_channels> //= {};
+
+foreach my $channel_path ( keys %{<channels.data>} ) {
+    <channels.all_channels>->{$channel_path} //= {};
+}
+foreach my $channel_path ( keys %{<channels.subscriptions>} ) {
+    <channels.all_channels>->{$channel_path} //= {};
+}
+
+##  Compute display fields for each channel  ##
+foreach my $channel_path ( keys <channels.all_channels>->%* ) {
+    my $sub_count
+        = scalar keys %{ <channels.subscriptions>->{$channel_path} // {} };
+    my $last_update = <channels.timestamps>->{$channel_path} // qw|[never]|;
+    my $status      = qw| ACTIVE |;
+    if ( !defined <channels.data> {$channel_path} && $sub_count == 0 ) {
+        $status = qw| IDLE |;
+    }
+
+    <channels.all_channels>->{$channel_path} = {
+        'channel_path' => $channel_path,
+        'status'       => $status,
+        'last_update'  => $last_update,
+        'sub_count'    => $sub_count
+    };
+}
 
 ##  Initialize base list structure for base.cmd.list channels  ##
 <list.channels> = {
     'var'      => qw| data |,
-    'key'      => qw| channels.subscriptions |,
+    'key'      => qw| channels.all_channels |,
     'sort_key' => 'alpha-len:channel_path',
-    'descr'    => 'active channels with subscription status and heartbeat tracking',
-    'mask'     => 'channel:channel_path status:status updated:last_update subscribers:sub_count',
-    'align'    => {
-        'channel'    => 'left+2',
-        'status'     => 'center',
-        'updated'    => 'left+1',
+    'descr'    =>
+        'active channels with subscription status and heartbeat tracking',
+    'mask' =>
+        '<key>:channel status:status updated:last_update subscribers:sub_count',
+    'align' => {
+        'channel'     => 'left+2',
+        'status'      => 'center',
+        'updated'     => 'left+1',
         'subscribers' => 'center-1'
     },
     'filters' => {
@@ -43,22 +79,27 @@
 
 <[base.list.init]>->(
     {   'name'         => qw| channels |,
-        'key_ref'      => \$data{'channels'}{'subscriptions'},
+        'key_ref'      => \$data{'channels'}{'all_channels'},
         'max_elements' => <channels.cfg.max_subscriptions>
     }
 );
 
+<[base.logs]>->( 2, "channels: initialized" );
 <[base.logs]>->(
-    1,
-    "channels: initialized with heartbeat interval %.1f hours, cleanup every %.1f hours",
-    <channels.cfg.heartbeat_interval_seconds> / 3600,
+    2,
+    "channels: heartbeat interval %.1f hours",
+    <channels.cfg.heartbeat_interval_seconds> / 3600
+);
+<[base.logs]>->(
+    2,
+    "channels: cleanup every %.1f hours",
     <channels.cfg.cleanup_interval_seconds> / 3600
 );
 
 0;
 
-#,,,.,,,,,,.,,,,,,..,,..,,,,,,,,.,,.,,,..,..,,.,.,...,...,...,,..,,..,.,.,,,,,
-#APYOMLS5RPYOHDXJNETKTTSPCFVWJXI72STBHJKYBW2Q4SHZOZ6XJVAWLXY7VMIKOYLNBOC3T3HW6
-#\\\|NOD2GFZ4BH6PU6E37PKCQCDFWNYGR5FUPSXKIAFG36QYCAWMD74 \ / AMOS7 \ YOURUM ::
-#\[7]XXODOU7OWU2QHJCBHEGDHGLTHEJPAQCZZDNHAPVGPWNEQXKWS2DQ 7  DATA SIGNATURE ::
+#,,,,,.,.,...,...,,..,,..,,.,,,,.,.,.,,.,,,.,,.,.,...,...,...,,.,,,,.,.,,,,..,
+#OOFXPFHQFBSRWZKSK7NS4VEJ2H5NQ5HBUG56GEI7OZ45FUJ55G2UVLRKZB5CNQN7IOBQBCXZU6WLS
+#\\\|EWA73CKDID23G3GG7I2WBQUYN36TQ4WAZM5D73VRF264CQFSJCU \ / AMOS7 \ YOURUM ::
+#\[7]KBVH2SFYBVARGNNFBXG3EL4WDMLA52CTJRAFTF3I6DDEWNU47QAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -16,12 +16,14 @@ eval {
 return {
     'mode' => qw| false |,
     'data' => "invalid JSON: $EVAL_ERROR"
-} if length $EVAL_ERROR;
+    }
+    if length $EVAL_ERROR;
 
 return {
     'mode' => qw| false |,
     'data' => 'expected review_id'
-} unless $approval_ref->{'review_id'};
+    }
+    unless $approval_ref->{'review_id'};
 
 my $review_id = $approval_ref->{'review_id'};
 my $developer = $$call{'session_id'} // 'unknown';
@@ -33,20 +35,22 @@ my $review = <channels.ai_reviews>->{$review_id};
 return {
     'mode' => qw| false |,
     'data' => "review $review_id not found"
-} unless defined $review;
+    }
+    unless defined $review;
 
 ##  Verify developer owns this review  ##
 return {
     'mode' => qw| false |,
     'data' => 'unauthorized: this review belongs to another developer'
-} unless $review->{'developer'} eq $developer;
+    }
+    unless $review->{'developer'} eq $developer;
 
 ##  Check AI approval status  ##
 unless ( $review->{'ai_approved'} ) {
     return {
         'mode' => qw| false |,
-        'data' => 'AI has not approved this review (status: ' .
-                  ( $review->{'ai_feedback'}->{'status'} // 'pending' ) . ')'
+        'data' => 'AI has not approved this review (status: '
+            . ( $review->{'ai_feedback'}->{'status'} // 'pending' ) . ')'
     };
 }
 
@@ -54,25 +58,26 @@ unless ( $review->{'ai_approved'} ) {
 return {
     'mode' => qw| false |,
     'data' => 'waiting for AI review feedback'
-} unless defined $review->{'ai_feedback'};
+    }
+    unless defined $review->{'ai_feedback'};
 
 ##  Mark as developer-approved  ##
 $review->{'developer_approved'} = TRUE;
-$review->{'approved_at'} = <[base.time]>->(2);
+$review->{'approved_at'}        = <[base.time]>->(2);
 
 ##  Prepare commit information  ##
-my $commit_msg = $approval_ref->{'commit_message'} //
-                 "Commit approved by $developer after AI review";
+my $commit_msg = $approval_ref->{'commit_message'}
+    // "Commit approved by $developer after AI review";
 
 ##  Post approval notification to channels  ##
 my $approval_notification = {
-    'review_id'           => $review_id,
-    'developer'           => $developer,
-    'branch'              => $review->{'branch'},
-    'ai_approved'         => TRUE,
-    'developer_approved'  => TRUE,
-    'approved_at'         => <[base.time]>->(2),
-    'commit_message'      => $commit_msg
+    'review_id'          => $review_id,
+    'developer'          => $developer,
+    'branch'             => $review->{'branch'},
+    'ai_approved'        => TRUE,
+    'developer_approved' => TRUE,
+    'approved_at'        => <[base.time]>->(2),
+    'commit_message'     => $commit_msg
 };
 
 my $json_str = do {
@@ -88,12 +93,13 @@ if ( length $EVAL_ERROR ) {
 }
 
 ##  Post to audit channel for accountability  ##
-<[channels.cmd.update]>->({
-    'call' => {
-        'args'       => "code-review.approvals $json_str",
-        'session_id' => $developer
+<[channels.cmd.update]>->(
+    {   'call' => {
+            'args'       => "code-review.approvals $json_str",
+            'session_id' => $developer
+        }
     }
-});
+);
 
 <[base.logs]>->(
     1,
@@ -113,8 +119,8 @@ return {
 
 1;
 
-#,,.,,.,.,..,,.,,,..,,,.,,.,.,,,.,,.,,.,,,,..,...,...,...,.,.,..,,.,.,..,,,,,,
-#BXI53XTN73REC7ZNVQFHX7VJDCSPYD6JYZJEPPQOUF6FPLUFUW6S6OW633S3JXWUDJ45Q4VIOWBOM
-#\\\|CUYEQ5DBQBRRJ6MBP7CKXK4HNWLZW6SUO52SFSKFELOUSSH7VRQ \ / AMOS7 \ YOURUM ::
-#\[7]CZQIPZ4PI3E3UJ2FKT3S2XYWDUHJN3PESXPPY3Y4IOVHTNDZB2AY 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,,..,.,.,,,,,.,,,,,.,.,,,,,,,,..,...,...,...,.,.,,,.,..,,,..,...,
+#2ZKCTBMR4GH5YMT3UFFQDYVJYKV6X7SO7TBLDXYI52EVGXB7IRSBHAET6QKK7TVGHS43NYP73IUJG
+#\\\|S3UCESCT2WPLEPN3TYYIUHII6UL25BWZMCB2UWXGB2QPSPVDV6Q \ / AMOS7 \ YOURUM ::
+#\[7]4BTYJ6JYXZQM7G3WWE6AOFZBYLFPYFQ4TWFOCPFUTTMINJWQ5YDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

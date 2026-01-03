@@ -5,15 +5,16 @@
 # param = <channel-path>
 # return = { mode => 'true', data => 'subscribed to <channel-path>' }
 
-my $args = $$call{'args'} // '';
+my $args         = $$call{'args'} // '';
 my $channel_path = $args;
-$channel_path =~ s|^\s+||;        ## trim leading whitespace ##
-$channel_path =~ s|\s+$||;        ## trim trailing whitespace ##
+$channel_path =~ s|^\s+||;    ## trim leading whitespace ##
+$channel_path =~ s|\s+$||;    ## trim trailing whitespace ##
 
 return {
     'mode' => qw| false |,
     'data' => 'expected <channel-path> parameter'
-} unless length $channel_path;
+    }
+    unless length $channel_path;
 
 ##  Validate channel path  ##
 unless ( $channel_path =~ m|^[a-z0-9\.\-_]+$|i ) {
@@ -30,22 +31,21 @@ my $session_id = $$call{'session_id'} // 'unknown';
 <channels.subscriptions>->{$channel_path} //= {};
 
 ##  Record this subscription  ##
-my $subscriber_id = "${session_id}_" . <[base.gen_id]>->({});
+my $subscriber_id = "${session_id}_" . <[base.gen_id]>->( {} );
 <channels.subscriptions>->{$channel_path}->{$subscriber_id} = {
-    'session_id' => $session_id,
+    'session_id'    => $session_id,
     'subscribed_at' => <[base.time]>->(2),
-    'status' => 'ACTIVE'
+    'status'        => 'ACTIVE'
 };
 
 ##  Initialize channel data if not present  ##
 <channels.data>->{$channel_path} //= {};
-<channels.timestamps>->{$channel_path} //= encode_b32r(pack('Q>', <[base.time]>->(2)));
+<channels.timestamps>->{$channel_path}
+    //= encode_b32r( pack( 'Q>', <[base.time]>->(2) ) );
 
 <[base.logs]>->(
-    1,
-    "channels: session %s subscribed to '%s'",
-    $session_id,
-    $channel_path
+    1,           "channels: session %s subscribed to '%s'",
+    $session_id, $channel_path
 );
 
 return {
@@ -55,8 +55,8 @@ return {
 
 1;
 
-#,,.,,,.,,,..,..,,.,,,,,,,,,,,,,.,..,,...,,,.,.,.,...,...,.,,,...,..,,.,,,..,,
-#32NKAYU5PDWA2UX6GVN6IQIMTCIHBRZC7VWYN3FD55KH7HJ4XMCWC5L3EEAYPDTH7UVLILCFDUXJA
-#\\\|MSJKCNXXOWD3MR2MRGVPGQ4VLCDOD342T2PS4M6YYXRZHAM2LTL \ / AMOS7 \ YOURUM ::
-#\[7]FJSDLRBHMEJKYOL5TNNKFOICTJZRWDY27LM73CAAILZEIVBMKGBY 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,..,...,.,,,..,,,,.,.,,,,,.,.,,,.,.,...,...,..,,.,.,,,.,...,,,.,
+#W5NLDOLBO4HGXVABV3YYMGJJY724FAOJ3JUH7ZQ27A63EYLFWZFJKGUBVPUVH646T2CMLK47UQH64
+#\\\|BRED5ILQGNLGHQPNOC5UORZ3BM66OJEZSVYB6D2RGLTUVY5OZSK \ / AMOS7 \ YOURUM ::
+#\[7]LVTMBKRWFC4T7GMWZYX7X7NXEGZSVFGV6WO7XYEREXONYXZWKCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,8 +9,8 @@ my $args_ref = shift;
 return { 'subscribed' => 0, 'errors' => ['no configuration provided'] }
     unless defined $args_ref and ref $args_ref eq 'HASH';
 
-my $zenka_name = $args_ref->{'zenka_name'} // 'unknown';
-my $mappings = $args_ref->{'config_mappings'} // [];
+my $zenka_name = $args_ref->{'zenka_name'}      // 'unknown';
+my $mappings   = $args_ref->{'config_mappings'} // [];
 
 return { 'subscribed' => 0, 'errors' => ['no mappings provided'] }
     unless ref $mappings eq 'ARRAY' and @{$mappings};
@@ -21,10 +21,10 @@ my @errors;
 ##  Initialize zenka subscription table if not present  ##
 <channels.zenka_subscriptions> //= {};
 <channels.zenka_subscriptions>->{$zenka_name} //= {
-    'subscriptions'  => [],
-    'subscribed_at'  => <[base.time]>->(2),
-    'status'         => 'ACTIVE',
-    'error_count'    => 0
+    'subscriptions' => [],
+    'subscribed_at' => <[base.time]>->(2),
+    'status'        => 'ACTIVE',
+    'error_count'   => 0
 };
 
 my $zenka_entry = <channels.zenka_subscriptions>->{$zenka_name};
@@ -33,9 +33,9 @@ my $zenka_entry = <channels.zenka_subscriptions>->{$zenka_name};
 foreach my $mapping ( @{$mappings} ) {
     next unless defined $mapping and ref $mapping eq 'HASH';
 
-    my $channel_path = $mapping->{'channel_path'};
+    my $channel_path   = $mapping->{'channel_path'};
     my $source_channel = $mapping->{'source_channel'};
-    my $map_rules = $mapping->{'map_rules'} // [];
+    my $map_rules      = $mapping->{'map_rules'} // [];
 
     ##  Skip invalid mappings  ##
     unless ( length $channel_path and length $source_channel ) {
@@ -45,28 +45,26 @@ foreach my $mapping ( @{$mappings} ) {
     }
 
     ##  Create subscription entry  ##
-    my $subscription_id = "${zenka_name}_" . <[base.gen_id]>->({});
+    my $subscription_id = "${zenka_name}_" . <[base.gen_id]>->( {} );
 
-    push @{$zenka_entry->{'subscriptions'}}, {
-        'subscription_id'  => $subscription_id,
-        'channel_path'     => $channel_path,
-        'source_channel'   => $source_channel,
-        'map_rules'        => $map_rules,
-        'subscribed_at'    => <[base.time]>->(2),
-        'status'           => 'ACTIVE',
-        'last_sync'        => undef,
-        'last_error'       => undef
-    };
+    push @{ $zenka_entry->{'subscriptions'} },
+        {
+        'subscription_id' => $subscription_id,
+        'channel_path'    => $channel_path,
+        'source_channel'  => $source_channel,
+        'map_rules'       => $map_rules,
+        'subscribed_at'   => <[base.time]>->(2),
+        'status'          => 'ACTIVE',
+        'last_sync'       => undef,
+        'last_error'      => undef
+        };
 
     ##  Subscribe to source channel if not already subscribed  ##
     ##  (In production, routes through cube to channels zenka)  ##
 
     <[base.logs]>->(
-        1,
-        "channels: %s subscribed to '%s' (mapped to '%s')",
-        $zenka_name,
-        $source_channel,
-        $channel_path
+        1, "channels: %s subscribed to '%s' (mapped to '%s')",
+        $zenka_name, $source_channel, $channel_path
     );
 
     $subscribed_count++;
@@ -88,8 +86,8 @@ return {
 
 1;
 
-#,,..,,..,...,,,,,,,,,,.,,,,.,,,.,...,,,.,,..,...,...,...,..,,...,..,,,,.,,.,,
-#UTXJ7MVIJ27PYOBFKPAXUBX33E4HKQTB5SCXQNR2WKKUWJXB5CZTYXK2L6MG7RKHB7K5GLEDBSHY2
-#\\\|EJRJXUBLT54WJGRIICU2GOG2FT63WABO77LELFUZPNUYDDZCY2J \ / AMOS7 \ YOURUM ::
-#\[7]43NA3FYLXTDB4JR664K6HYFYMXULIEP4PKFEZMLIAZSXGNYLSMAI 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,,,,.,,,.,.,...,...,,,.,.,.,...,...,...,.,,,...,,,.,.,,,,,,,,,.,
+#LTFS63HW2QHHPNU236H35KRN43WPWQO2M7E7OMONHZSLM6PCOGSG3TTWNLTHREQUIZ64ZSCZJWLTW
+#\\\|FVRLDR3QFX24MCCELFYTQ3JBT2QDXL32GRVQYRDGJQ2TZLT764V \ / AMOS7 \ YOURUM ::
+#\[7]RVFCDBOGLWBUZ3B23P3SD44DCPYIFQZTYIQPPMCB5HJYQPT654BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

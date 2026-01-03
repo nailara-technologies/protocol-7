@@ -43,10 +43,10 @@ return { 'valid' => 0, 'error' => 'invalid source channel syntax' }
 
 ##  Build mapping configuration  ##
 $mapping = {
-    'channel_path'    => $channel_path,
-    'source_channel'  => $source_channel,
-    'map_rules'       => [],
-    'valid'           => 1
+    'channel_path'   => $channel_path,
+    'source_channel' => $source_channel,
+    'map_rules'      => [],
+    'valid'          => 1
 };
 
 ##  Parse optional MAP rules  ##
@@ -57,19 +57,23 @@ while ( $idx < @tokens ) {
             unless $idx + 3 < @tokens;
 
         my $json_path = $tokens[ $idx + 1 ];
-        my $to_var = $tokens[ $idx + 3 ];
+        my $to_var    = $tokens[ $idx + 3 ];
 
         return { 'valid' => 0, 'error' => 'expected TO in MAP rule' }
             unless $tokens[ $idx + 2 ] eq 'TO';
 
         ##  JSON path validation (simple check: must start with .)  ##
-        return { 'valid' => 0, 'error' => 'invalid JSON path (must start with .)' }
+        return {
+            'valid' => 0,
+            'error' => 'invalid JSON path (must start with .)'
+            }
             unless $json_path =~ m|^\.[\w._-]*$|;
 
-        push @{$mapping->{'map_rules'}}, {
+        push @{ $mapping->{'map_rules'} },
+            {
             'json_path' => $json_path,
             'to_var'    => $to_var
-        };
+            };
 
         $idx += 4;
     } else {
@@ -84,8 +88,8 @@ return {
 
 1;
 
-#,,.,,,,,,,,.,,..,...,..,,,.,,...,.,.,,,.,,.,,...,...,...,...,.,,,.,.,.,.,.,,,
-#WX2XTBWIBZZC54CYGAMKJAOR7M2VHBPZQBVIXYFZCDB6UVO4CN7CACU7L7NOHEOHLY7GXR6PAAFT6
-#\\\|WZRJBXG3JMTRASITGD3KUTMW27PSB2EESQBQJDIH32WTZS32MSA \ / AMOS7 \ YOURUM ::
-#\[7]QJHSVNE3H6SVD3ICY2NVDJ4L7XDHEZVKUDKRETLCHIMBYQOTGUDQ 7  DATA SIGNATURE ::
+#,,..,,.,,...,,,.,,.,,,,,,,,.,,,.,,..,,,,,,,,,...,...,...,...,,,,,,..,.,,,,.,,
+#U72EMVWUX565QU2YQZVD6I7GBDKR4C3FLSZJHELP7G6HBB4QDZNWDDO7MZXBLJ2PKU6D5HYSZ5CI6
+#\\\|GQRH3FGXHWUTHH3YMY7G3AM4W4F4EFULGGIJXZY3AWTY3PIKB3W \ / AMOS7 \ YOURUM ::
+#\[7]4HEOHYGXDJZAXX6XZMZ54GK4ABAETB2MWUN7B377XFWWOLZA4CAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

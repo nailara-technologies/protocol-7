@@ -5,13 +5,13 @@
 # param = [<channel-path>]  (optional; no path returns entire remote timestamp)
 # return = { mode => 'timestamp', data => 'BASE32_ENCODED_TIMESTAMP' }
 
-my $args = $$call{'args'} // '';
+my $args         = $$call{'args'} // '';
 my $channel_path = $args;
-$channel_path =~ s|^\s+||;        ## trim leading whitespace ##
-$channel_path =~ s|\s+$||;        ## trim trailing whitespace ##
+$channel_path =~ s|^\s+||;    ## trim leading whitespace ##
+$channel_path =~ s|\s+$||;    ## trim trailing whitespace ##
 
-my $current_time = <[base.time]>->(3);  ## unix timestamp with subseconds ##
-my $current_ts_b32 = encode_b32r(pack('Q>', int($current_time)));
+my $current_time   = <[base.time]>->(3);  ## unix timestamp with subseconds ##
+my $current_ts_b32 = encode_b32r( pack( 'Q>', int($current_time) ) );
 
 ##  If no specific channel requested, return global timestamp  ##
 unless ( length $channel_path ) {
@@ -27,7 +27,7 @@ unless ( length $channel_path ) {
 ##  Implicit tree: channel.name (includes subtree)  ##
 
 my $is_absolute = $channel_path =~ m|^/|;
-$channel_path =~ s|^/||;  ## strip leading / for processing ##
+$channel_path =~ s|^/||;    ## strip leading / for processing ##
 
 ##  For now, return same timestamp regardless of path  ##
 ##  (Route-dependent dedup happens at routing layer)  ##
@@ -39,8 +39,8 @@ return {
 
 1;
 
-#,,,.,,,,,..,,,,,,..,,.,,,.,.,,,.,.,,,..,,.,,,.,.,...,...,,.,,,,.,..,,,,.,.,.,
-#ZZJD5U7KROD4S25FEDB5QX6NSDF2IYDNRAVYTADWHMACBADBO2YGCZZKE7XPJDUICBLKFBBLGGHME
-#\\\|DDGJSYIEW4YCHH7LIYCJUB2L5WFZXTD7DY34KEOF2KYFS7QKOXT \ / AMOS7 \ YOURUM ::
-#\[7]E35TWTIEZEPPDFSMW3W4YZ56E4N4DB32Q6U772PPUHRHAZ3WMQCI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,..,,,..,,.,,..,,,,.,,..,.,.,,,.,.,.,...,..,,,.,,.,,,,,,,.,.,,,.,
+#3VJULUREFWI5CGJKZQQRPTAYUQKOXA6ODCQZTZM4MAVOHFHEB2LXMBN26FIATVHN3ADR7FRRO2ERU
+#\\\|M3ENKRIDO56KZ2YODD7QVTNGI4NUG3ORC5XJRWH7QW3KS54GZSM \ / AMOS7 \ YOURUM ::
+#\[7]O6MMBDAIGEIYSVUQ7UT6JZMVHKRWVLYX2TZUXNPCVORRUZL6J4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

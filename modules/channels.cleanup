@@ -5,18 +5,18 @@
 # args  = none
 # return = hash { channels_removed => count, clients_removed => count }
 
-my $current_time = <[base.time]>->(2);
+my $current_time      = <[base.time]>->(2);
 my $suspended_timeout = <channels.cfg.inactive_timeout_seconds> // 86400;
 
 my $channels_removed = 0;
-my $clients_removed = 0;
+my $clients_removed  = 0;
 
 ##  Clean up SUSPENDED channels (no subscribers)  ##
 foreach my $channel_path ( keys %{<channels.subscriptions>} ) {
     my $channel = <channels.subscriptions>->{$channel_path};
     next unless $channel->{'status'} eq 'SUSPENDED';
 
-    my $suspended_at = $channel->{'suspended_at'} // $current_time;
+    my $suspended_at   = $channel->{'suspended_at'} // $current_time;
     my $time_suspended = $current_time - $suspended_at;
 
     if ( $time_suspended >= $suspended_timeout ) {
@@ -60,10 +60,8 @@ foreach my $request_id ( keys %{<channels.blocking_clients>} ) {
 }
 
 <[base.logs]>->(
-    2,
-    "channels: cleanup completed (removed %d channels, %d stale clients)",
-    $channels_removed,
-    $clients_removed
+    2, "channels: cleanup completed (removed %d channels, %d stale clients)",
+    $channels_removed, $clients_removed
 );
 
 return {
@@ -73,8 +71,8 @@ return {
 
 1;
 
-#,,.,,..,,...,..,,,..,,,.,...,,,.,,.,,,,.,.,.,.,.,...,...,.,.,.,,,...,,.,,..,,
-#D7OJO7ZA3OJX2ZNKCTFJF5O5M46SVVYZEMF2YM6VR5SREKIVLNTSIRHEEDOZCGQTUQ4QQGFJEOAQI
-#\\\|QGHGR52AZUKXGEMPGA56UQ33O7GXRTW56JAIU4HWLARLOYGENO3 \ / AMOS7 \ YOURUM ::
-#\[7]PWM6VCBIMWSQLWG5MT3SUOSMPZONP5ACN5IYFUAIWBGUTGFAVOAA 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,,.,.,.,..,,.,.,..,,,..,,,.,...,.,.,...,...,.,.,...,.,,,.,.,...,
+#2TX2JZNJFIEWXPLW4UGS5QLUQKXZNUQ4CK25K24Q6IY5ZCB3PWDY6Y7OLTCTNRSGCPLGDN3ZHNMTU
+#\\\|GYY2NYGFJXA7DXHQMP7TV2RJ4C4NC7JUWPIGKYRSGYWIYFB4LZM \ / AMOS7 \ YOURUM ::
+#\[7]2GB6XAYC3LRXYKWNWU626FIM72LNJRFOSRVHZMH4OPTJ7VJN36CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

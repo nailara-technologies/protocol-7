@@ -9,7 +9,7 @@ my $args = shift;
 return { 'synced' => 0, 'errors' => ['no arguments provided'] }
     unless defined $args and ref $args eq 'HASH';
 
-my $local_path = $args->{'local_path'};
+my $local_path    = $args->{'local_path'};
 my $changed_value = $args->{'changed_value'};
 
 return { 'synced' => 0, 'errors' => ['no local_path provided'] }
@@ -27,33 +27,29 @@ foreach my $watch ( @{$watches} ) {
     next unless defined $watch and ref $watch eq 'HASH';
 
     my $mode = $watch->{'mode'} // 'bidirectional';
-    next if $mode eq 'read-only';  ## skip read-only watches ##
+    next if $mode eq 'read-only';    ## skip read-only watches ##
 
     my $remote_zenka = $watch->{'remote_zenka'};
-    my $remote_path = $watch->{'remote_path'};
-    my $watch_id = $watch->{'watch_id'};
+    my $remote_path  = $watch->{'remote_path'};
+    my $watch_id     = $watch->{'watch_id'};
 
     ##  Queue change for batching  ##
     <channels.memory_sync.pending_changes>->{$local_path} = {
-        'watch_id'       => $watch_id,
-        'remote_zenka'   => $remote_zenka,
-        'remote_path'    => $remote_path,
-        'changed_value'  => $changed_value,
-        'queued_at'      => <[base.time]>->(3),
-        'retry_count'    => 0,
-        'max_retries'    => $watch->{'retry'} // 3
+        'watch_id'      => $watch_id,
+        'remote_zenka'  => $remote_zenka,
+        'remote_path'   => $remote_path,
+        'changed_value' => $changed_value,
+        'queued_at'     => <[base.time]>->(3),
+        'retry_count'   => 0,
+        'max_retries'   => $watch->{'retry'} // 3
     };
 
     ##  In production: event system would batch and send periodically
     ##  For now, log the pending change  ##
 
     <[base.logs]>->(
-        2,
-        "channels memory-sync: queued change for watch '%s' (%s -> %s.%s)",
-        $watch_id,
-        $local_path,
-        $remote_zenka,
-        $remote_path
+        2, "channels memory-sync: queued change for watch '%s' (%s -> %s.%s)",
+        $watch_id, $local_path, $remote_zenka, $remote_path
     );
 
     $synced_count++;
@@ -66,8 +62,8 @@ return {
 
 1;
 
-#,,,,,,.,,,,,,,,.,,,,,...,,.,,,.,,.,.,..,,.,,,...,...,..,,.,,,,..,...,...,.,.,
-#LPXGMJTQ2R3464X43VEZJBSINN3UPR2DVERLJCO6K2DA5I4XKVM4IGUQLDP7JTYTPR43EMFUDCRM4
-#\\\|BLIZG5MWHM4B24NIO7UF2IFF77ANADQQHMI335XLWZOAR4HU3NR \ / AMOS7 \ YOURUM ::
-#\[7]6SWUA62J6RZTNEN3WRVNIAL6QAO526HPK4QGEPI2TPFLB2AZPQBY 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,..,.,,,...,.,,,.,.,,.,,.,,,,,.,...,...,..,,...,..,,,..,...,..,,
+#ZMV5CN2MCGJX6KVBCIXRK3IELU547J5FCCYHOED4XCAL5F6O4B6DUJSKQYOMYB2N2NED6763W5PTS
+#\\\|QOSNRZQXLDTNGL7ZZIY4Z4V336TLCCNWMC3XXPHSERXQSZMQXYT \ / AMOS7 \ YOURUM ::
+#\[7]A53L2SBRIDS3UOJQXAJS4HTOSSY5QSYHUNHFAOF2RHD7WKRAZCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

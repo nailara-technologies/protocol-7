@@ -16,40 +16,44 @@ eval {
 return {
     'mode' => qw| false |,
     'data' => "invalid JSON: $EVAL_ERROR"
-} if length $EVAL_ERROR;
+    }
+    if length $EVAL_ERROR;
 
 return {
     'mode' => qw| false |,
     'data' => 'expected branch, diff, and message'
-} unless $data_ref->{'branch'} and $data_ref->{'diff'} and $data_ref->{'message'};
+    }
+    unless $data_ref->{'branch'}
+    and $data_ref->{'diff'}
+    and $data_ref->{'message'};
 
 ##  Generate review ID  ##
-my $review_id = 'review_' . <[base.gen_id]>->({});
+my $review_id = 'review_' . <[base.gen_id]>->( {} );
 
 ##  Store review submission  ##
 <channels.ai_reviews> //= {};
 <channels.ai_reviews>->{$review_id} = {
-    'developer'      => $$call{'session_id'} // 'unknown',
-    'branch'         => $data_ref->{'branch'},
-    'diff'           => $data_ref->{'diff'},
-    'message'        => $data_ref->{'message'},
-    'urgency'        => $data_ref->{'urgency'} // 'normal',
-    'submitted_at'   => <[base.time]>->(2),
-    'ai_feedback'    => undef,
-    'ai_approved'    => FALSE,
+    'developer'          => $$call{'session_id'} // 'unknown',
+    'branch'             => $data_ref->{'branch'},
+    'diff'               => $data_ref->{'diff'},
+    'message'            => $data_ref->{'message'},
+    'urgency'            => $data_ref->{'urgency'} // 'normal',
+    'submitted_at'       => <[base.time]>->(2),
+    'ai_feedback'        => undef,
+    'ai_approved'        => FALSE,
     'developer_approved' => FALSE,
-    'auto_committed' => FALSE
+    'auto_committed'     => FALSE
 };
 
 ##  Post to AI review channel for processing  ##
 my $submission_payload = {
-    'review_id'      => $review_id,
-    'developer'      => $$call{'session_id'},
-    'branch'         => $data_ref->{'branch'},
-    'diff'           => $data_ref->{'diff'},
-    'message'        => $data_ref->{'message'},
-    'urgency'        => $data_ref->{'urgency'},
-    'submitted_at'   => <[base.time]>->(2)
+    'review_id'    => $review_id,
+    'developer'    => $$call{'session_id'},
+    'branch'       => $data_ref->{'branch'},
+    'diff'         => $data_ref->{'diff'},
+    'message'      => $data_ref->{'message'},
+    'urgency'      => $data_ref->{'urgency'},
+    'submitted_at' => <[base.time]>->(2)
 };
 
 my $json_str = do {
@@ -65,12 +69,13 @@ if ( length $EVAL_ERROR ) {
 }
 
 ##  Update review channel with submission  ##
-<[channels.cmd.update]>->({
-    'call' => {
-        'args'       => "code-review.ai-submissions $json_str",
-        'session_id' => $$call{'session_id'}
+<[channels.cmd.update]>->(
+    {   'call' => {
+            'args'       => "code-review.ai-submissions $json_str",
+            'session_id' => $$call{'session_id'}
+        }
     }
-});
+);
 
 <[base.logs]>->(
     1,
@@ -88,8 +93,8 @@ return {
 
 1;
 
-#,,.,,,.,,..,,,..,.,,,,,.,,..,...,.,,,.,,,.,,,...,...,...,.,.,,,.,.,.,...,..,,
-#VGGERGG7BZRTN5KPYQKBOE7RLNZS35GTP7F6Q3PHMYZVYWB4WI6ZBZF3KDG4YIQH5AKINZWHYGQLS
-#\\\|GAOIDQNDGEB6HYKEA52HR6I37H4K2QDSGJMR2IEXZXQ24CZWEIE \ / AMOS7 \ YOURUM ::
-#\[7]UF3ZU3OSKXJNDHHYQ4MU3WG66EEPTXHQ4DBL4TARAL3CIC7JGWBA 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,.,,,.,,,,,,,..,.,.,,,.,,,,,,.,,...,...,...,,,.,,,.,.,,,,.,,,..,
+#QVNGZHUWRAFJT7NCJSOGR3NMXANMDSTKJN3MOWXA5VYLPYFL654WWHIVCZWCCPMBYTJOCXOM4TOHW
+#\\\|QW4ZUBWLUWSMFTEYLNRJI42I2FJTD2QLUV4LUEKDSJNRGG4YSAY \ / AMOS7 \ YOURUM ::
+#\[7]4KOH5ZJQG6ZVXCCAIF3OB6Z7STD2RSLLWGQGCHHE2E3CRAKES4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

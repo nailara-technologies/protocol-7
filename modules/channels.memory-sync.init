@@ -8,9 +8,12 @@
 ##  Memory-sync configuration for bidirectional data synchronization  ##
 ##  Maps local %data branches to remote zenka via channels  ##
 
-<channels.memory_sync> //= {};    ## { local_path => { remote_zenka, remote_path, mode, ... } } ##
-<channels.memory_sync.watches> //= {};  ## { watch_id => { local_path, trigger_fn, ... } } ##
-<channels.memory_sync.channel> //= 'memory-sync';  ## central memory-sync channel ##
+<channels.memory_sync>
+    //= {};   ## { local_path => { remote_zenka, remote_path, mode, ... } } ##
+<channels.memory_sync.watches>
+    //= {};    ## { watch_id => { local_path, trigger_fn, ... } } ##
+<channels.memory_sync.channel>
+    //= 'memory-sync';    ## central memory-sync channel ##
 
 ##  Configuration template for zenka to declare memory-sync mappings:
 ##  Each zenka's start file can declare:
@@ -30,10 +33,13 @@
 ##
 
 ##  Default configuration  ##
-<channels.memory_sync.cfg.max_payload>  //= 2097152;  ## 2 MB per sync ##
-<channels.memory_sync.cfg.compression>  //= 0;        ## enable compression for large payloads ##
-<channels.memory_sync.cfg.batch_window> //= 250;      ## ms, batch changes before sending ##
-<channels.memory_sync.cfg.conflict_resolution> //= 'timestamp';  ## or 'priority', 'local-wins', 'remote-wins' ##
+<channels.memory_sync.cfg.max_payload> //= 2097152;    ## 2 MB per sync ##
+<channels.memory_sync.cfg.compression>
+    //= 0;    ## enable compression for large payloads ##
+<channels.memory_sync.cfg.batch_window>
+    //= 250;    ## ms, batch changes before sending ##
+<channels.memory_sync.cfg.conflict_resolution>
+    //= 'timestamp';    ## or 'priority', 'local-wins', 'remote-wins' ##
 
 ##  Pending changes queue (batched for efficient transmission)  ##
 <channels.memory_sync.pending_changes> //= {};
@@ -48,8 +54,8 @@
 
 1;
 
-#,,.,,,,,,.,,,.,,,.,,,,..,.,.,...,..,,,.,,.,,,...,...,..,,,.,,,..,,..,,,.,.,.,
-#JO5BIZLNGL57XLOOV6SAUNNNXWSIW35DX4QORCJVB4JNDIGVTEMDBRT2WZIYL2TCYAUICTGVTX3KS
-#\\\|PBEQQETBRDQMMIWSTAKDA5MA2KXHJM7LMHWX5VCGBWRN4ZS7O6R \ / AMOS7 \ YOURUM ::
-#\[7]ZTKWHCC7HY7LXQBQ2HTTTB37YSXCKXPZOZSXJQY2PDZTYW6P6SDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,,.,...,,,,,,..,..,,,,.,...,,.,,...,...,...,.,,,,,,,,.,,,..,...,
+#GFX5H4HF6PXMQE36236LPINUC6HUC63KFGKZC6HMPBGM4AO5FJ7R3ZLZVLI6PYOO6X55DBWZ35MH4
+#\\\|XYQFY2IDLQNFJQ2FL6EQWGSDSTZ45657CQISDTHHFS2LGPPKEZD \ / AMOS7 \ YOURUM ::
+#\[7]EO6TR5OIMMIPKUXEJTUTTYG5KC53G7D27RQENF3WLZ4T3JEKGKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

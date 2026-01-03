@@ -8,8 +8,8 @@
 my $channel_path = shift;
 return 0 unless defined $channel_path and length $channel_path;
 
-my $current_time = <[base.time]>->(3);
-my $current_ts_b32 = encode_b32r(pack('Q>', int($current_time)));
+my $current_time   = <[base.time]>->(3);
+my $current_ts_b32 = encode_b32r( pack( 'Q>', int($current_time) ) );
 
 my $clients_notified = 0;
 
@@ -39,14 +39,12 @@ foreach my $request_id ( keys %{<channels.blocking_clients>} ) {
     ##  (In production, this routes via cube to client's session)  ##
 
     <[base.logs]>->(
-        2,
-        "channels: notifying client %s of change in '%s'",
-        $request_id,
-        $channel_path
+        2,           "channels: notifying client %s of change in '%s'",
+        $request_id, $channel_path
     );
 
     ##  Mark this blocking client as handled  ##
-    $client->{'notified_at'} = $current_time;
+    $client->{'notified_at'}     = $current_time;
     $client->{'notification_ts'} = $current_ts_b32;
 
     $clients_notified++;
@@ -56,18 +54,16 @@ foreach my $request_id ( keys %{<channels.blocking_clients>} ) {
 }
 
 <[base.logs]>->(
-    2,
-    "channels: notified %d blocking clients of change in '%s'",
-    $clients_notified,
-    $channel_path
+    2, "channels: notified %d blocking clients of change in '%s'",
+    $clients_notified, $channel_path
 );
 
 return $clients_notified;
 
 1;
 
-#,,,,,,.,,.,,,,..,,..,,,.,...,.,,,,..,.,.,,,,,.,.,...,...,.,.,..,,.,.,,..,,.,,
-#BJY6763YGA3T4ZRBSMUZBGAH7HORB4G7AL4FFPXKZTQP2GBUKJSPJZWHDFGBUS5AFSIFQCRUBHW6M
-#\\\|VVHSHAPGX6ZTLSB42DE3QGIT6RHNMOYFAG5U2PGJVAJ43D6JJWH \ / AMOS7 \ YOURUM ::
-#\[7]ZW3DJ7GKUAYSWFZFUWEXDPAKKFB5S5OUQYYUTQ4LFBTFJNA3HUBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,...,,,.,.,.,...,,..,,,,,,,,,..,,.,.,...,..,,.,,,.,,,,,,,,,,,,,,,
+#4IKYSNYUCQP7HNDRHPUHGQWRVKE2Y7TL647XHBWY27DFNAYG6LB3C2AH2XVS33RYAYL47KLZNTB6Q
+#\\\|DJOIAZ4SVR7VZNEWU5DS532CW5B4775CIUW7M576SJJ556324HG \ / AMOS7 \ YOURUM ::
+#\[7]35MHGH4WSHCKXBWBSALDQ6HAKQ7MVNKGDC3J6LKE2FI4SRS6FSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

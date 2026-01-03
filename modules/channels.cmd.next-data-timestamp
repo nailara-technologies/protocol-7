@@ -6,7 +6,7 @@
 # return = { mode => 'timestamp', data => 'TRUE <timestamp_b32>' } on change
 #          { mode => 'false', data => 'FALSE' } on disconnect/error
 
-my $args = $$call{'args'} // '';
+my $args   = $$call{'args'} // '';
 my %params = ( 'channel' => '', 'since' => '' );
 
 ##  Parse parameters: channel-path and since:timestamp  ##
@@ -19,7 +19,7 @@ foreach my $arg ( split( m|\s+|, $args ) ) {
 }
 
 my $channel_path = $params{'channel'} // '';
-my $since_ts = $params{'since'} // '';
+my $since_ts     = $params{'since'}   // '';
 
 ##  Register blocking client for push notifications  ##
 ##  (In real implementation, this would use event system or select)  ##
@@ -37,7 +37,7 @@ my $request_id = <[base.gen_id]>->(<channels.blocking_clients>);
     2,
     "channels: blocking client registered for channel '%s' since %s (req_id: %s)",
     ( length $channel_path ? $channel_path : '(all)' ),
-    ( length $since_ts ? $since_ts : '(all)' ),
+    ( length $since_ts     ? $since_ts     : '(all)' ),
     $request_id
 );
 
@@ -56,8 +56,8 @@ return {
 
 1;
 
-#,,,.,.,,,..,,,..,.,,,,,,,..,,...,,..,..,,,,.,.,.,...,...,,.,,,,,,,.,,.,,,,..,
-#OZEAL4KLWJG7TJUVZBVGLEUZAYRQSYLDERUZILS2SNL6IJNEZY73XKQKGX6KMNPSJO2QOH76MEK4Q
-#\\\|3WXE5ZQBB6JEY36ZOOTYTWUUYQHMF62EFEFNAYRNX5YG6HP2MSO \ / AMOS7 \ YOURUM ::
-#\[7]5KZQRU7LIFFNKWKG3TBS6MS46UZQZ7JBHF75HJYCFQJNEX6GJKCQ 7  DATA SIGNATURE ::
+#,,,.,,..,,..,.,.,,,.,...,,..,...,.,,,,.,,,,,,.,.,...,...,,.,,.,,,,,,,,,.,..,,
+#VKMKMDLZBXM4ILYNMQX2FW7JZBI656LI6FTKRSPSPHMUFSEFN74GLVBQOTONJPP67TLXRPI4NRK76
+#\\\|MYRNRZHZE3Y7526SEJT6NPLZQGD6JDRI7G47LPGEYOLPBZLCPS2 \ / AMOS7 \ YOURUM ::
+#\[7]ROMFHHRTYF6PN76HMMMDU3YZ34RIGYVLRDWGOMF44PTZYX35N2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

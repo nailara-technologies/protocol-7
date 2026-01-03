@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = channels.util.extract_json_path
+# descr = Extract value from hash using dot notation JSON path
+# args  = hash { data => ref, path => string }
+# return = extracted value or undef
+
+my ( $data, $path ) = ( shift, shift );
+return undef unless defined $data and defined $path;
+
+##  Strip leading dot  ##
+$path =~ s|^\.||;
+return undef unless length $path;
+
+##  Split on dots (simple case, no array index support yet)  ##
+my @keys = split( m|\.|, $path );
+
+my $current = $data;
+foreach my $key (@keys) {
+    return undef unless defined $current;
+    return undef unless ref $current eq qw| HASH |;
+    return undef unless defined $current->{$key};
+
+    $current = $current->{$key};
+}
+
+return $current;
+
+#,,..,..,,,.,,,,,,...,,.,,,,.,..,,,,,,.,,,.,.,...,...,...,.,,,.,.,..,,,..,,..,
+#5U6JKEKL5JS64YSAYMZVGDDSYDRK2UXFKZHOIGBGUX3UF6KC3WFTFWSYP33PO5UIBIUNBYADCGUVO
+#\\\|LR7FCV7O3QRLJKT3ZC5FEJUSZILZQLW5SMSYBMGH4MTITBYFGHL \ / AMOS7 \ YOURUM ::
+#\[7]WPTU3AT4ZWBOE5AZBCGLQKLNLMOCJGLH2PILT2N5HXRLC3DQ4CCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
