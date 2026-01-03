@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = channels.cmd.ai-review-status
+# descr = Check status of AI code review (no credentials required - read-only)
+# param = <review_id>
+# return = { mode => 'size', data => JSON status }
+
+my $args = $$call{'args'} // '';
+my $review_id = $args;
+$review_id =~ s|^\s+|\s*$||;  ## trim ##
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected <review_id> parameter'
+} unless length $review_id;
+
+##  Retrieve review record  ##
+<channels.ai_reviews> //= {};
+my $review = <channels.ai_reviews>->{$review_id};
+
+return {
+    'mode' => qw| false |,
+    'data' => "review $review_id not found"
+} unless defined $review;
+
+##  Build status response  ##
+my $status = {
+    'review_id'          => $review_id,
+    'developer'          => $review->{'developer'},
+    'branch'             => $review->{'branch'},
+    'message'            => $review->{'message'},
+    'urgency'            => $review->{'urgency'},
+    'submitted_at'       => $review->{'submitted_at'},
+    'ai_reviewed'        => defined $review->{'ai_feedback'} ? TRUE : FALSE,
+    'ai_approved'        => $review->{'ai_approved'},
+    'developer_approved' => $review->{'developer_approved'},
+    'stage'              => _get_current_stage($review)
+};
+
+##  Include AI feedback if reviewed  ##
+if ( defined $review->{'ai_feedback'} ) {
+    $status->{'ai_feedback'} = $review->{'ai_feedback'};
+}
+
+##  Serialize to JSON  ##
+my $json_str = do {
+    my $json = <[base.perlmod.load]>->('JSON::PP');
+    eval { JSON::PP::encode_json($status) };
+};
+
+if ( length $EVAL_ERROR ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "error serializing status: $EVAL_ERROR"
+    };
+}
+
+return {
+    'mode' => qw| size |,
+    'data' => $json_str
+};
+
+##  Helper: Determine current review stage  ##
+sub _get_current_stage {
+    my $rev = shift;
+
+    if ( !defined $rev->{'ai_feedback'} ) {
+        return 'awaiting-ai-review';
+    }
+
+    my $ai_status = $rev->{'ai_feedback'}->{'status'};
+
+    if ( $ai_status eq 'approved' and !$rev->{'developer_approved'} ) {
+        return 'awaiting-developer-approval';
+    }
+
+    if ( $rev->{'developer_approved'} and $rev->{'ai_approved'} ) {
+        return 'ready-for-commit';
+    }
+
+    if ( $ai_status eq 'needs-changes' or $ai_status eq 'blocked' ) {
+        return "changes-requested($ai_status)";
+    }
+
+    return 'unknown';
+}
+
+1;
+
+#,,.,,...,.,,,..,,,,,,,.,,.,.,,,.,,..,..,,.,,,...,...,...,,,.,...,,,,,..,,,,.,
+#ENFT2V7X3VJOBKI6OZM3RZYF4T6URSX4C4VAWNYTBDRGPOBARR4HFABLBVJGHP32RP7E56HHGK672
+#\\\|ESJNXRFU43SFP7WSPZ7BZNDWRDXWEMWACYPFIM6PQ6J3F4WHKDF \ / AMOS7 \ YOURUM ::
+#\[7]WTJTY3ZAWFSRAQLME6RZBVJ3EUM3HS2C52ALTMCCMRSFPYIFK4DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

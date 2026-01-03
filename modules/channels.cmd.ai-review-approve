@@ -1,0 +1,120 @@
+## [:< ##
+
+# name  = channels.cmd.ai-review-approve
+# descr = Developer approves AI review and commits without re-entering credentials
+# param = <json: { review_id, commit_message }>
+# return = { mode => 'true'/'false', data => 'status message' }
+
+my $args_ref = $$call{'args'} // '';
+
+my $approval_ref;
+eval {
+    my $json = <[base.perlmod.load]>->('JSON::PP');
+    $approval_ref = JSON::PP::decode_json($args_ref);
+};
+
+return {
+    'mode' => qw| false |,
+    'data' => "invalid JSON: $EVAL_ERROR"
+} if length $EVAL_ERROR;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected review_id'
+} unless $approval_ref->{'review_id'};
+
+my $review_id = $approval_ref->{'review_id'};
+my $developer = $$call{'session_id'} // 'unknown';
+
+##  Retrieve review record  ##
+<channels.ai_reviews> //= {};
+my $review = <channels.ai_reviews>->{$review_id};
+
+return {
+    'mode' => qw| false |,
+    'data' => "review $review_id not found"
+} unless defined $review;
+
+##  Verify developer owns this review  ##
+return {
+    'mode' => qw| false |,
+    'data' => 'unauthorized: this review belongs to another developer'
+} unless $review->{'developer'} eq $developer;
+
+##  Check AI approval status  ##
+unless ( $review->{'ai_approved'} ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'AI has not approved this review (status: ' .
+                  ( $review->{'ai_feedback'}->{'status'} // 'pending' ) . ')'
+    };
+}
+
+##  Check that we have AI feedback  ##
+return {
+    'mode' => qw| false |,
+    'data' => 'waiting for AI review feedback'
+} unless defined $review->{'ai_feedback'};
+
+##  Mark as developer-approved  ##
+$review->{'developer_approved'} = TRUE;
+$review->{'approved_at'} = <[base.time]>->(2);
+
+##  Prepare commit information  ##
+my $commit_msg = $approval_ref->{'commit_message'} //
+                 "Commit approved by $developer after AI review";
+
+##  Post approval notification to channels  ##
+my $approval_notification = {
+    'review_id'           => $review_id,
+    'developer'           => $developer,
+    'branch'              => $review->{'branch'},
+    'ai_approved'         => TRUE,
+    'developer_approved'  => TRUE,
+    'approved_at'         => <[base.time]>->(2),
+    'commit_message'      => $commit_msg
+};
+
+my $json_str = do {
+    my $json = <[base.perlmod.load]>->('JSON::PP');
+    eval { JSON::PP::encode_json($approval_notification) };
+};
+
+if ( length $EVAL_ERROR ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "JSON encoding error: $EVAL_ERROR"
+    };
+}
+
+##  Post to audit channel for accountability  ##
+<[channels.cmd.update]>->({
+    'call' => {
+        'args'       => "code-review.approvals $json_str",
+        'session_id' => $developer
+    }
+});
+
+<[base.logs]>->(
+    1,
+    "channels: developer %s approved review %s on branch '%s' (AI-approved + dev-approved)",
+    $developer,
+    $review_id,
+    $review->{'branch'}
+);
+
+##  Return success - in production, would also trigger automatic commit
+##  via event system or separate admin approval layer
+
+return {
+    'mode' => qw| true |,
+    'data' => "review $review_id approved by developer (ready for commit)"
+};
+
+1;
+
+#,,.,,.,.,..,,.,,,..,,,.,,.,.,,,.,,.,,.,,,,..,...,...,...,.,.,..,,.,.,..,,,,,,
+#BXI53XTN73REC7ZNVQFHX7VJDCSPYD6JYZJEPPQOUF6FPLUFUW6S6OW633S3JXWUDJ45Q4VIOWBOM
+#\\\|CUYEQ5DBQBRRJ6MBP7CKXK4HNWLZW6SUO52SFSKFELOUSSH7VRQ \ / AMOS7 \ YOURUM ::
+#\[7]CZQIPZ4PI3E3UJ2FKT3S2XYWDUHJN3PESXPPY3Y4IOVHTNDZB2AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
