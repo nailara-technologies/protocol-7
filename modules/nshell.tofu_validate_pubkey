@@ -34,14 +34,10 @@ if ( defined $fh and $fh ) {
 
     ##  Try to get pubkey from remote - this may not be implemented yet  ##
     eval {
-        local $SIG{ALRM} = sub { die "timeout\n" };
-        alarm(5);
-
         print {$fh} $pubkey_cmd;
         $fh->flush if defined &$fh->flush;
 
         my $response = <$fh>;
-        alarm(0);
 
         ##  Parse response: expect base32-encoded Ed25519 pubkey (52 chars)  ##
         if ( defined $response and $response =~ m|^([A-Z0-9]{52})| ) {
@@ -131,8 +127,8 @@ if ( defined $validation_result ) {
     }
 }
 
-#,,.,,.,,,.,.,..,,,,,,.,.,,,.,.,,,,,,,,,,,,.,,..,,...,...,.,.,,,,,...,...,.,,,
-#Z5PPUDGCBX7J335N4TQCTQOJ47ZRY5N34JQWIQTG6Q4VB5GHAC7ZBQR5NK5UUPCP3A7I6FMEJ4A7W
-#\\\|QDIRG5CSGCQQX75D42XQGNB3QFONGKHVJ3S3ZS36DBKW72U2VXM \ / AMOS7 \ YOURUM ::
-#\[7]XQCO5JENOUH4T5G3I3LPDMUE2DPA5R5HKNPSXUHLMD5DPTYENQDA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,,..,,,.,...,,,.,..,,,,.,,,,,.,,,..,,...,...,,.,,,..,,.,,...,.,,,
+#44QSCUV43IFYPLI5QIY3CZVPSCSUCEJRY7BRV7NBHXM5HDQWVPXOGEQDCG3DK3LVGLQQOU3F56FQ6
+#\\\|IL5CLP3HRFK74MW3BA4RKFTMEKZJ4YYXPSESIWPMD5VFXFIAR72 \ / AMOS7 \ YOURUM ::
+#\[7]R2XQCBKXVH3C22HOKFP54JJE5SGXHHLYVOLK2BO54J4ESBQPG6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

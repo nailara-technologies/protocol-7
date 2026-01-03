@@ -65,11 +65,9 @@ my $http_status   = 0;
 my $api_error     = undef;
 
 eval {
-    local $SIG{ALRM} = sub { die "timeout\n" };
-    alarm($timeout_secs);
-
     ## Make HTTP POST request to Claude API
-    my $ua      = LWP::UserAgent->new();
+    my $ua = LWP::UserAgent->new();
+    $ua->timeout($timeout_secs);
     my $request = HTTP::Request->new(
         POST => 'https://api.anthropic.com/v1/messages',
         [   'Content-Type'      => 'application/json',
@@ -88,30 +86,17 @@ eval {
     } else {
         $api_error = $response->content() // "HTTP $http_status";
     }
-
-    alarm(0);
 };
 
 if ( length $EVAL_ERROR ) {
-    if ( $EVAL_ERROR =~ m|timeout| ) {
-        return {
-            'success'        => FALSE,
-            'model_id'       => $model_id,
-            'participant_id' => $participant_id,
-            'error'          => 'API request timeout',
-            'elapsed_ms'     => ( <[base.time]>->(4) - $start_time ) * 1000,
-            'rate_limited'   => 0
-        };
-    } else {
-        return {
-            'success'        => FALSE,
-            'model_id'       => $model_id,
-            'participant_id' => $participant_id,
-            'error'          => "API error: $@",
-            'elapsed_ms'     => ( <[base.time]>->(4) - $start_time ) * 1000,
-            'rate_limited'   => 0
-        };
-    }
+    return {
+        'success'        => FALSE,
+        'model_id'       => $model_id,
+        'participant_id' => $participant_id,
+        'error'          => "API error: $EVAL_ERROR",
+        'elapsed_ms'     => ( <[base.time]>->(4) - $start_time ) * 1000,
+        'rate_limited'   => 0
+    };
 }
 
 ## Check for rate limit (429 status)
@@ -185,8 +170,8 @@ return {
     'rate_limited'   => 0
 };
 
-#,,,,,,.,,,.,,.,.,,,,,,.,,..,,...,,,.,..,,...,..,,...,...,..,,...,.,.,.,,,,..,
-#XYI4M7AZOVGT2KTBWKNBPN65RK5JR2FFHZWZS4E3CRGGE6FLOZGKFWDSY4GLTLZS7T3FW6TRYQWM2
-#\\\|ABREVNTW6PM2ZCMES4WYE2EZOQWLFRDR6QMTTJJT2DI623QV52Y \ / AMOS7 \ YOURUM ::
-#\[7]IYQBGMPFV4TLH33JNA4DNHQP27CEHHBXYWCSN2BBGKD3JRQ75OCA 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,.,.,,,,,,..,,,,,,..,...,..,,,..,..,,...,...,...,,,,,,..,...,,..,
+#73NJGYV5SXLVM3PXLCT3O6FMHNVO2GAMIMPMZMMTOC52KWQ2WDPWWBZWUPD7XJXJGXDLAOJJVLJZW
+#\\\|AMLYSQ7THKT2LCAAZBTBYAOR3CQMTNPQXS5A4AXZESCA7MBFASG \ / AMOS7 \ YOURUM ::
+#\[7]VXJA33KSGTGY7OG76MT3LFR7IMB4WBP57M4EHI6BF2HK6UHFU2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

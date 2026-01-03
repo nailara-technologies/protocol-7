@@ -36,36 +36,125 @@ unless ( ref($messages) eq 'ARRAY' && scalar( @{$messages} ) > 0 ) {
 
 my $start_time = <[base.time]>->(4);
 
-# Phase 1 Stub: Local backend implementation deferred to Phase 2
-# This stub provides the interface for local model invocation
-#
-# TODO (Phase 2): Implement local HTTP invocation:
-# 1. Resolve model instance from models registry
-# 2. Find available llama-server instance
-# 3. Build HTTP POST request to /v1/chat/completions endpoint
-# 4. Send request and stream response
-# 5. Parse response and extract generated text
-# 6. Return response in backend interface format
-# 7. Handle timeouts and connection failures
-# 8. Support model fallback if primary instance unavailable
+## Build request payload for llama-server /v1/chat/completions
+my $request_payload = {
+    'model'       => $model_id,
+    'messages'    => $messages,
+    'temperature' => $temperature,
+    'max_tokens'  => $max_tokens,
+};
 
-<[base.log]>->(
-    2, "[$context] local.invoke stub: participant=%s model=%s messages=%d",
-    $participant_id, $model_id, scalar( @{$messages} )
+$request_payload->{'system'} = $system_prompt if length($system_prompt);
+
+## Get llama-server endpoint from configuration
+my $llama_server_url = <models.llama_server_url> // 'http://localhost:8000';
+
+## Attempt HTTP request to llama-server
+my $response_data = undef;
+my $api_error     = undef;
+
+eval {
+    ## Make HTTP POST request to llama-server
+    my $ua = LWP::UserAgent->new();
+    $ua->timeout($timeout_secs);
+    my $request = HTTP::Request->new(
+        POST => $llama_server_url . '/v1/chat/completions',
+        [ 'Content-Type' => 'application/json' ],
+        JSON::PP::encode_json($request_payload)
+    );
+
+    my $response = $ua->request($request);
+
+    if ( $response->is_success() ) {
+        $response_data = JSON::PP::decode_json( $response->content() );
+    } else {
+        $api_error = $response->code() . ': '
+            . ( $response->content() // 'unknown error' );
+    }
+};
+
+if ($@) {
+    <[base.logs]>->(
+        2, "[$context] local error: participant=%s model=%s error=%s",
+        $participant_id, $model_id, $@
+    );
+    return {
+        'success'        => FALSE,
+        'model_id'       => $model_id,
+        'participant_id' => $participant_id,
+        'error'          => "Local model error: $@",
+        'rate_limited'   => 0,
+        'elapsed_ms'     => ( <[base.time]>->(4) - $start_time ) * 1000
+    };
+}
+
+## Check for API error
+unless ($response_data) {
+    <[base.logs]>->(
+        2, "[$context] local error: participant=%s model=%s error=%s",
+        $participant_id, $model_id, $api_error
+    );
+    return {
+        'success'        => FALSE,
+        'model_id'       => $model_id,
+        'participant_id' => $participant_id,
+        'error'          => "Local model error: $api_error",
+        'rate_limited'   => 0,
+        'elapsed_ms'     => ( <[base.time]>->(4) - $start_time ) * 1000
+    };
+}
+
+## Extract response text from first choice
+my $response_text = '';
+if ( defined $response_data->{'choices'}
+    && ref $response_data->{'choices'} eq 'ARRAY' ) {
+    my $first_choice = $response_data->{'choices'}->[0];
+    if ( defined $first_choice->{'message'} ) {
+        $response_text = $first_choice->{'message'}->{'content'} // '';
+    }
+}
+
+unless ( length($response_text) ) {
+    <[base.logs]>->(
+        2, "[$context] local no response: participant=%s model=%s",
+        $participant_id, $model_id
+    );
+    return {
+        'success'        => FALSE,
+        'model_id'       => $model_id,
+        'participant_id' => $participant_id,
+        'error'          => 'No response from local model',
+        'rate_limited'   => 0,
+        'elapsed_ms'     => ( <[base.time]>->(4) - $start_time ) * 1000
+    };
+}
+
+## Extract usage information if available
+my $tokens_used = 0;
+if ( defined $response_data->{'usage'} ) {
+    $tokens_used = $response_data->{'usage'}->{'completion_tokens'} // 0;
+}
+
+<[base.logs]>->(
+    2, "[$context] local response: participant=%s model=%s tokens=%d",
+    $participant_id, $model_id, $tokens_used
 );
 
 my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
 
 return {
-    'success'        => FALSE,
+    'success'        => TRUE,
     'model_id'       => $model_id,
     'participant_id' => $participant_id,
-    'error'          => 'Local backend not yet implemented (Phase 2)',
+    'response'       => $response_text,
+    'tokens_used'    => $tokens_used,
+    'rate_limited'   => 0,
+    'latency_ms'     => $elapsed_ms,
     'elapsed_ms'     => $elapsed_ms
 };
 
-#,,,.,..,,...,.,.,,,,,,..,.,.,,,.,..,,,..,.,,,..,,...,...,.,,,,..,,.,,.,,,..,,
-#E45AOJA2AJUCDLE5TZ62F6YEOIFB3EMFSI4Y2IO2O4RRUDB5RSC4DIWJ6JVEZ6LKBYXVPBNUJ6T3C
-#\\\|ESJPL6PCHHC6XZF6TW3GETO5C2PXSIKAEX5WTTOG2LSJKYXSLDO \ / AMOS7 \ YOURUM ::
-#\[7]HPLSESNE5MQY5PQMI7DA7SET6ZU7KFL6XKUDDM65CN7Y3XTYLIAI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,.,,.,,,,,,.,.,..,,..,,,..,...,..,,...,...,,.,,,.,,,..,,..,.,,,
+#UFSYVIQQZEKBRRYOQYDO3AB77KAFQH6F2NLJSSSB5OIBO6IDU7WGIVRAOWTS4LCSM2VSDDCDAEZV2
+#\\\|WMXI66VZQESDYXOCGRXEDELSJYWTQHGZBOA4LHVTIG7TOWUTWVL \ / AMOS7 \ YOURUM ::
+#\[7]BLAVJ6I2ZSKJIWDPIFIALYZ2ZZJEJABPLIFWWQ534FOML5BCIKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

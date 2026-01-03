@@ -111,14 +111,9 @@ my $cmd = sprintf(
     )
 );
 
-# Execute with timeout
+# Execute subprocess
 my $out = '';
-eval {
-    local $SIG{ALRM} = sub { die "timeout\n" };
-    alarm(90);    # 90 second timeout for image analysis
-    $out = `$cmd`;
-    alarm(0);
-};
+eval { $out = `$cmd`; };
 
 if ($@) {
     return {
@@ -151,8 +146,8 @@ return {
     model_used => $model_identifier
 };
 
-#,,..,...,,..,,.,,.,,,.,,,,,.,..,,,,.,,,,,.,,,..,,...,..,,...,,.,,..,,,.,,.,,,
-#33U7PIQUPTCVBF3PPOLLNXKKK2DTADDTHCVWSWDCLCSWQAOL3TPSKXBN45YCXVSQFILE6FFJ26QGC
-#\\\|RB5MAXRJJJ5AAIVWQ4H5UNB53YKSQTWXKKYVVZL3S7OYWU64C4Y \ / AMOS7 \ YOURUM ::
-#\[7]GRGAQIYVURN34XES6OUGAL2HH6BWZVP7DXXCEJFG553PPAONZMCQ 7  DATA SIGNATURE ::
+#,,.,,..,,...,,,,,,..,..,,,.,,,.,,..,,.,,,,,,,..,,...,...,...,,,.,,,.,...,,,.,
+#PHUCGY6WSHTPA3LJW5Q3FVUBAO6LGUDJC6JYNB6DAHVTHVDESV5K2XTWCCYJIAQTVKG62XVB4X4TK
+#\\\|BDOPR4R7SB6NRNXIJYGOF3YZUO6KVK3CT7JZVBE3NDNQ7MFSYXW \ / AMOS7 \ YOURUM ::
+#\[7]U2BCE2ZJHKDK44TCMQPVVIMP44VGADEFEB7DA3GCEYT5O45EPSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

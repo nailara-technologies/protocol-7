@@ -3,9 +3,6 @@
 # name = models.cmd.conversation_add_participant
 # descr = register participant model in conversation with role assignment
 
-<[base.perlmod.autoload]>->(qw| JSON::PP |);
-<[base.perlmod.autoload]>->(qw| YAML::XS |);
-
 # Extract params - $call is set by code header
 my $params = {};
 
@@ -106,14 +103,9 @@ my $participant = {
 <models.conversations>->{$job_id}->{'participants'}->{$participant_id}
     = $participant;
 
-<[base.log]>->(
-    1,
-    "[$context] participant added: job_id=%s id=%s role=%s model=%s backend=%s",
-    $job_id,
-    $participant_id,
-    $role,
-    $model_id,
-    $backend_type
+<[base.logs]>->(
+    1, "[$context] participant added: id=%s role=%s model=%s",
+    $participant_id, $role, $model_id
 );
 
 ## Initialize routing strategy if not already set
@@ -141,8 +133,8 @@ return {
     'data' => $yaml_data
 };
 
-#,,.,,.,.,...,,,.,,.,,.,,,,..,.,.,.,.,,,,,..,,..,,...,...,...,.,,,,,,,,,.,.,.,
-#KZDBVG6SILNOOFMP522TFCRKNMEC3GTT3NXQXJ24IVTFZUJM45YUU2LQAXGOWBGHPVHHHSX2KNXJ2
-#\\\|F7I5ZBJCNPJTSTLYX2FWJO2PDVRAEROJTA3VQRDNK6UDEXBXJSO \ / AMOS7 \ YOURUM ::
-#\[7]SZECO3NGMPCVAXIK3PWQBFUZMQSZP3RJTWQEFAWMHGH3Q2J33MBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,...,..,,,..,,,.,,,,,,,.,..,,..,,.,,,..,,...,...,...,.,.,..,,.,.,.,.,
+#MMDZXGSX6Q3XGSIQ3GRE5OLIUFHSEOCBWVZ4L35P7KCXKRCOLM3YLMTCNNXLW3BAVFV4S543BAJP2
+#\\\|IP3THFXE4ESJFPSKTY3TJSGDWASCQGKFFU2UIFNFTOPKIWKQ6GM \ / AMOS7 \ YOURUM ::
+#\[7]PV6UYQQJYEQFFNJUNAINFF2QXIKO2ZTOJW2QUJ7636DNSPNGWOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
