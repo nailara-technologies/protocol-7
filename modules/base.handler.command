@@ -622,21 +622,273 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 ##[ PROCESS REPLY \ STRM ]####################################################
 
             } elsif ( $cmd eq qw| STRM | ) {
-                ####
-                if ( $call_args->{'args'} =~ m|^open( (\d+))?$| ) {
-                    my $open_size = ${^CAPTURE}[1] || 0;
 
-                    warn "[ STRM REPLY ] open size : $open_size";
+                if ( $call_args->{'args'} =~ m|^open\s+(\d+)$| ) {
+                    ## STRM open header: initialize streaming buffer ##
+                    my $total_bytes = $1;
 
-                } elsif ( $call_args->{'args'} =~ m|^\d+$| ) {
-                    my $msg_len = $call_args->{'args'};
-                    if ( $buffer_length >= $msg_len ) {
+                    $session->{'streams'}{$cmd_id} = {
+                        'type'           => 'STRM',
+                        'total_bytes'    => $total_bytes,
+                        'received_bytes' => 0,
+                        'buffer'         => '',
+                        'started_at'     => <[base.time]>->(3),
+                        'route_id'       => $session->{'route'}{$cmd_id},
+                    };
 
-                        ## cut out body data ##
-                        my $data_reply = substr $input->$*, 0, $msg_len, '';
+                    <[base.logs]>->(
+                        2,   "[%d] STRM open: %d bytes",
+                        $id, $total_bytes
+                    );
+
+                } elsif ( $call_args->{'args'} =~ m|^(\d+)$| ) {
+                    ## STRM data packet: chunk_size provided in args ##
+                    my $chunk_size = $1;
+
+                    if ( $buffer_length >= $chunk_size ) {
+
+                        ## Extract chunk from input buffer ##
+                        my $chunk_data = substr $input->$*, 0, $chunk_size,
+                            '';
+
+                        ## Append to stream buffer ##
+                        if ( defined $session->{'streams'}{$cmd_id} ) {
+                            $session->{'streams'}{$cmd_id}->{'buffer'}
+                                .= $chunk_data;
+                            $session->{'streams'}{$cmd_id}->{'received_bytes'}
+                                += bytes::length($chunk_data);
+
+                            <[base.logs]>->(
+                                2,
+                                "[%d] STRM pkt: %d/%d bytes",
+                                $id,
+                                $session->{'streams'}{$cmd_id}
+                                    ->{'received_bytes'},
+                                $session->{'streams'}{$cmd_id}
+                                    ->{'total_bytes'}
+                            );
+                        } else {
+                            <[base.logs]>->(
+                                1,   "[%d] STRM pkt no stream [%d]",
+                                $id, $cmd_id
+                            );
+                        }
                     }
+
+                } elsif ( $call_args->{'args'} =~ m|^close$| ) {
+                    ## STRM close: finalize stream ##
+
+                    if ( defined $session->{'streams'}{$cmd_id} ) {
+                        my $stream           = $session->{'streams'}{$cmd_id};
+                        my $accumulated_data = $stream->{'buffer'};
+
+                        <[base.logs]>->(
+                            2, "[%d] STRM closed: %d/%d bytes",
+                            $id,
+                            $stream->{'received_bytes'},
+                            $stream->{'total_bytes'}
+                        );
+
+                        ## Call reply handler with accumulated data ##
+                        if ( defined $route->{'reply'}->{'handler'} ) {
+                            if (defined $code{ $route->{'reply'}->{'handler'}
+                                } ) {
+                                $code{ $route->{'reply'}->{'handler'} }->(
+                                    {   'sid'       => $id,
+                                        'cmd'       => $cmd,
+                                        'call_args' => $call_args,
+                                        'params'    =>
+                                            $route->{'reply'}->{'params'},
+                                        'data' => $accumulated_data
+                                    }
+                                );
+                            } else {
+                                <[base.logs]>->(
+                                    0,
+                                    "[%d] not defined reply handler ['%s']",
+                                    $id,
+                                    $route->{'reply'}->{'handler'}
+                                );
+                            }
+                        } else {
+                            ## Forward to source zenka ##
+                            $data{'session'}{ $route->{'source'}->{'sid'} }
+                                {'buffer'}{'output'} .= <[base.sprint_t]>->(
+                                qw| X3QVAWA |,
+                                $s_cmd_id,
+                                sprintf( qw| %04d |,
+                                    bytes::length($accumulated_data) ),
+                                $accumulated_data
+                                );
+                        }
+
+                        ## Delete route ##
+                        my $src_sid    = $route->{'source'}->{'sid'};
+                        my $src_cmd_id = $route->{'source'}->{'cmd_id'};
+                        delete $data{'session'}{$src_sid}{'route'}
+                            {$src_cmd_id};
+                        delete $data{'route'}
+                            ->{ $session->{'route'}{$cmd_id} }
+                            if defined $session->{'route'}{$cmd_id};
+                        delete $data{'session'}{$src_sid}{'route'}
+                            if not
+                            keys $data{'session'}{$src_sid}{'route'}->%*;
+                        delete $session->{'route'}{$cmd_id};
+                        delete $session->{'route'}
+                            if not keys $session->{'route'}->%*;
+
+                        ## Clean up stream state ##
+                        delete $session->{'streams'}{$cmd_id};
+
+                    } else {
+                        <[base.logs]>->(
+                            1,   "[%d] STRM close no stream [%d]",
+                            $id, $cmd_id
+                        );
+                    }
+                } else {
+                    <[base.logs]>->(
+                        1,   "[%d] STRM bad args [%s]",
+                        $id, $call_args->{'args'}
+                    );
                 }
-                ####
+
+##[ PROCESS REPLY \ STRM-SIZE ]##################################################
+
+            } elsif ( $cmd eq qw| STRM-SIZE | ) {
+
+                if ( $call_args->{'args'} =~ m|^open\s+(\d+)$| ) {
+                    ## STRM-SIZE open header: initialize streaming buffer for SIZE reassembly ##
+                    my $total_bytes = $1;
+
+                    $session->{'streams'}{$cmd_id} = {
+                        'type' => 'SIZE',    ## Reassembly target type ##
+                        'total_bytes'    => $total_bytes,
+                        'received_bytes' => 0,
+                        'buffer'         => '',
+                        'started_at'     => <[base.time]>->(3),
+                        'route_id'       => $session->{'route'}{$cmd_id},
+                    };
+
+                    <[base.logs]>->(
+                        2,   "[%d] STRM-SIZE open: %d bytes",
+                        $id, $total_bytes
+                    );
+
+                } elsif ( $call_args->{'args'} =~ m|^(\d+)$| ) {
+                    ## STRM-SIZE data packet: chunk_size provided in args ##
+                    my $chunk_size = $1;
+
+                    if ( $buffer_length >= $chunk_size ) {
+
+                        ## Extract chunk from input buffer ##
+                        my $chunk_data = substr $input->$*, 0, $chunk_size,
+                            '';
+
+                        ## Append to stream buffer ##
+                        if ( defined $session->{'streams'}{$cmd_id} ) {
+                            $session->{'streams'}{$cmd_id}->{'buffer'}
+                                .= $chunk_data;
+                            $session->{'streams'}{$cmd_id}->{'received_bytes'}
+                                += bytes::length($chunk_data);
+
+                            <[base.logs]>->(
+                                2,
+                                "[%d] STRM-SIZE pkt: %d/%d bytes",
+                                $id,
+                                $session->{'streams'}{$cmd_id}
+                                    ->{'received_bytes'},
+                                $session->{'streams'}{$cmd_id}
+                                    ->{'total_bytes'}
+                            );
+                        } else {
+                            <[base.logs]>->(
+                                1,   "[%d] STRM-SIZE pkt no stream [%d]",
+                                $id, $cmd_id
+                            );
+                        }
+                    }
+
+                } elsif ( $call_args->{'args'} =~ m|^close$| ) {
+                    ## STRM-SIZE close: finalize stream and reassemble as SIZE ##
+
+                    if ( defined $session->{'streams'}{$cmd_id} ) {
+                        my $stream           = $session->{'streams'}{$cmd_id};
+                        my $reassembled_data = $stream->{'buffer'};
+                        my $data_len = bytes::length($reassembled_data);
+
+                        <[base.logs]>->(
+                            2,
+                            "[%d] STRM-SIZE closed: %d/%d bytes",
+                            $id,
+                            $stream->{'received_bytes'},
+                            $stream->{'total_bytes'}
+                        );
+
+                        ## Reassemble: treat as if it were a SIZE reply ##
+                        if ( defined $route->{'reply'}->{'handler'} ) {
+                            if (defined $code{ $route->{'reply'}->{'handler'}
+                                } ) {
+                                $code{ $route->{'reply'}->{'handler'} }->(
+                                    {   'sid' => $id,
+                                        'cmd' => 'SIZE'
+                                        ,    ## Transparent to handler ##
+                                        'call_args' =>
+                                            { 'args' => $data_len },
+                                        'params' =>
+                                            $route->{'reply'}->{'params'},
+                                        'data' => $reassembled_data
+                                    }
+                                );
+                            } else {
+                                <[base.logs]>->(
+                                    0,
+                                    "[%d] not defined reply handler ['%s']",
+                                    $id,
+                                    $route->{'reply'}->{'handler'}
+                                );
+                            }
+                        } else {
+                            ## Forward to source zenka as SIZE reply ##
+                            $data{'session'}{ $route->{'source'}->{'sid'} }
+                                {'buffer'}{'output'} .= <[base.sprint_t]>->(
+                                qw| X3QVAWA |, $s_cmd_id,
+                                sprintf( qw| %04d |, $data_len ),
+                                $reassembled_data
+                                );
+                        }
+
+                        ## Delete route ##
+                        my $src_sid    = $route->{'source'}->{'sid'};
+                        my $src_cmd_id = $route->{'source'}->{'cmd_id'};
+                        delete $data{'session'}{$src_sid}{'route'}
+                            {$src_cmd_id};
+                        delete $data{'route'}
+                            ->{ $session->{'route'}{$cmd_id} }
+                            if defined $session->{'route'}{$cmd_id};
+                        delete $data{'session'}{$src_sid}{'route'}
+                            if not
+                            keys $data{'session'}{$src_sid}{'route'}->%*;
+                        delete $session->{'route'}{$cmd_id};
+                        delete $session->{'route'}
+                            if not keys $session->{'route'}->%*;
+
+                        ## Clean up stream state ##
+                        delete $session->{'streams'}{$cmd_id};
+
+                    } else {
+                        <[base.logs]>->(
+                            1,   "[%d] STRM-SIZE close no stream [%d]",
+                            $id, $cmd_id
+                        );
+                    }
+                } else {
+                    <[base.logs]>->(
+                        1,   "[%d] STRM-SIZE bad args [%s]",
+                        $id, $call_args->{'args'}
+                    );
+                }
+
             } else {
                 <[base.logs]>->(
                     "[%d] called unimplemented answer type ['%s']",
@@ -1385,8 +1637,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 return 0;        ## comand complete ##
 
-#,,.,,,,,,.,,,,,,,.,,,,,.,,.,,,..,.,.,,.,,,..,..,,...,...,.,.,.,,,,..,.,,,.,.,
-#G24YW7B75YGMVSF6JQ7CPFM3ULUNXGDBZY5V4WDTU4C4USBBOER3XUYPJPFBVXXEG5UUH5VMIBD5Y
-#\\\|RIFFGHPUUQPIHTJX6BATBH6ZSNRHEXOLOFMEROMMXWUOJQ6LQKS \ / AMOS7 \ YOURUM ::
-#\[7]RC6PX7ZX2F4JXA2O3MJ4DIH6HN7YIRG24XIBTQAQU4C2HLKKZMDA 7  DATA SIGNATURE ::
+#,,.,,,.,,...,.,.,.,.,,.,,,.,,.,.,.,.,...,,.,,..,,...,...,...,.,,,,,.,.,,,,.,,
+#NXJKPWSCZNR3E4J3M66JBAKWZKDCFVKE4Q3VYAMFBAUYKNGQLWYL3BA7FIYSW65UEMIG7VCF6MJFS
+#\\\|MW4NOBMXQDF5KKCZ32RSBDDGDG4FJ3DEJQ3EUQV35SW7PT2GMVG \ / AMOS7 \ YOURUM ::
+#\[7]HGEOMFB36UVZR6EGOK7VVIMIBARFU4KMEXZWEOBAG35IZ47TIODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

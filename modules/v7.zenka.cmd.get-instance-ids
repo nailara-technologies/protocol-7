@@ -6,7 +6,7 @@
 
 my $names = $$call{'args'} // '';
 return { 'mode' => qw| false |, 'data' => 'expected zenka name[s]' }
-    if !length($names);
+    if not length $names;
 
 my $results = <[v7.zenka-instances.get-ids]>->($names);
 
@@ -24,17 +24,17 @@ return {    ## single name with no matching zenka instance ##
 
 ## multiple names [ including partial results ] ##
 
-if ( scalar @{$instance_ids_ref} ) {
+if ( scalar $instance_ids_ref->@* ) {
     return {
         'mode' => qw| true |,
-        'data' => join( ' ', @{$instance_ids_ref} )
+        'data' => join( ' ', $instance_ids_ref->@* )
     };
 } else {
     return { 'mode' => qw| false |, 'data' => 'no matches found' };
 }
 
-#,,.,,..,,..,,,.,,,..,...,..,,,,,,,,,,,.,,,,,,..,,...,..,,,..,,,.,,.,,,,,,..,,
-#2EVYK3C2SY2OHRRRTW6QYHK357W67UWQRX5KOW7EPKR5M3WNAVRSAANPVOX2OAVG2CZTCANRRNAJ2
-#\\\|X4JD5NVGANGCQ4RQYE5XNUZ5YWDRAMGZXIM62C5S5OXYFJ4GRDP \ / AMOS7 \ YOURUM ::
-#\[7]2DLXCFKS3ZAYKEV2L7UYHJT5GEJQWQGAEFXBBFQM2SAMSYQEZ6AI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,..,,,.,..,,.,,,,,,,...,...,...,..,,...,...,,.,,..,,...,...,,.,,
+#ERP7IBSAXKCCMZ5LMFWODOIYDXWMRL4DBGWUNMPMHWJZ7IGYKUZCK2YU4B73QVELIHUBJCRADHPLW
+#\\\|JDGW7HOXZWNJ2DZ2USJFCXRWSA5EUW7YR3HHFXG2IILY4HZUCOM \ / AMOS7 \ YOURUM ::
+#\[7]MYMAIJ5DH2PVAGDOGMXOMGKXUYY75MHM3TRB5J5MZRIHXUSNVICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
