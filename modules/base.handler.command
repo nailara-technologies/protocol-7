@@ -875,35 +875,125 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         $reply->{'data'}                   ##  <-- message  ##
                     );
 
+                } elsif ( uc( $reply->{'mode'} ) eq qw| STRM | ) {
+
+                    ## STRM mode: Explicit streaming - chunked delivery
+                    my $data_to_send = $reply->{'data'};
+                    my $total_bytes  = bytes::length($data_to_send);
+                    my $chunk_size   = <protocol.strm.packet_size> // 8192;
+
+                    ## Send STRM open header
+                    $output->$* .= sprintf "%sSTRM open %d\n", $cmd_id_str,
+                        $total_bytes;
+
+                    ## Send data in chunks
+                    my $offset = 0;
+                    while ( $offset < $total_bytes ) {
+                        my $chunk_len = $chunk_size;
+                        if ( $offset + $chunk_len > $total_bytes ) {
+                            $chunk_len = $total_bytes - $offset;
+                        }
+
+                        my $chunk = substr $data_to_send, $offset, $chunk_len;
+                        $output->$* .= sprintf "%sSTRM %d\n%s", $cmd_id_str,
+                            $chunk_len, $chunk;
+                        $offset += $chunk_len;
+
+                        <[base.logs]>->(
+                            2,   "[%d] STRM chunk sent: %d/%d bytes",
+                            $id, $offset, $total_bytes
+                        );
+                    }
+
+                    ## Send STRM close marker
+                    $output->$* .= sprintf "%sSTRM close\n", $cmd_id_str;
+
+                    <[base.logs]>->(
+                        1, "[%d] STRM streaming complete: %d bytes in chunks",
+                        $id, $total_bytes
+                    );
+
                 } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
 
                     ## SIZE mode: reports BYTE count (with global 'use bytes;' pragma)
-                    my $data_to_send = $reply->{'data'};
-                    my $session_mode = $session->{'size_mode'} // qw| SIZE |;
-                    my $count;
-                    my $template;
+                    my $data_to_send        = $reply->{'data'};
+                    my $total_bytes         = bytes::length($data_to_send);
+                    my $strm_size_threshold = <protocol.strm_size.threshold>
+                        // 65536;
 
-                    ## Check session preference for response format (default: SIZE/bytes)
-                    if ( $session_mode eq qw| CHRSIZE | ) {
-                        ## Translate to CHRSIZE mode: count UTF-8 characters
-                        my $test_data = $data_to_send;
-                        utf8::upgrade($test_data);
-                        $count = length($test_data);
-                        ## Use SIZE template but send CHRSIZE header ##
-                        $template = qw| X3QVAWA |;
+                    ## Check if we should use STRM-SIZE fragmentation
+                    if ( $total_bytes > $strm_size_threshold ) {
 
-                        ## Send CHRSIZE header instead of SIZE
-                        $output->$* .= sprintf "%sCHRSIZE %04d\n%s",
-                            $cmd_id_str, $count, $data_to_send;
+                        ## STRM-SIZE mode: Transparent SIZE fragmentation
+                        my $chunk_size = <protocol.strm_size.packet_size>
+                            // 8192;
+
+                        ## Send STRM-SIZE open header
+                        $output->$* .= sprintf "%sSTRM-SIZE open %d\n",
+                            $cmd_id_str, $total_bytes;
+
+                        ## Send data in chunks
+                        my $offset = 0;
+                        while ( $offset < $total_bytes ) {
+                            my $chunk_len = $chunk_size;
+                            if ( $offset + $chunk_len > $total_bytes ) {
+                                $chunk_len = $total_bytes - $offset;
+                            }
+
+                            my $chunk = substr $data_to_send, $offset,
+                                $chunk_len;
+                            $output->$* .= sprintf "%sSTRM-SIZE %d\n%s",
+                                $cmd_id_str, $chunk_len, $chunk;
+                            $offset += $chunk_len;
+
+                            <[base.logs]>->(
+                                2,   "[%d] STRM-SIZE chunk sent: %d/%d bytes",
+                                $id, $offset, $total_bytes
+                            );
+                        }
+
+                        ## Send STRM-SIZE close marker
+                        $output->$* .= sprintf "%sSTRM-SIZE close\n",
+                            $cmd_id_str;
+
+                        <[base.logs]>->(
+                            1,
+                            "[%d] STRM-SIZE streaming complete: %d bytes in chunks",
+                            $id,
+                            $total_bytes
+                        );
 
                     } else {
-                        ## SIZE mode [default]: count bytes
-                        $count    = bytes::length($data_to_send);
-                        $template = qw| X3QVAWA |;    ## SIZE template
 
-                        $output->$* .= <[base.sprint_t]>->(
-                            $template, $cmd_id_str, $count, $data_to_send
-                        );
+                        ## Regular SIZE mode (data under threshold)
+                        my $session_mode = $session->{'size_mode'}
+                            // qw| SIZE |;
+                        my $count;
+                        my $template;
+
+                        ## Check session preference for response format (default: SIZE/bytes)
+                        if ( $session_mode eq qw| CHRSIZE | ) {
+                            ## Translate to CHRSIZE mode: count UTF-8 characters
+                            my $test_data = $data_to_send;
+                            utf8::upgrade($test_data);
+                            $count = length($test_data);
+                            ## Use SIZE template but send CHRSIZE header ##
+                            $template = qw| X3QVAWA |;
+
+                            ## Send CHRSIZE header instead of SIZE
+                            $output->$* .= sprintf "%sCHRSIZE %04d\n%s",
+                                $cmd_id_str, $count, $data_to_send;
+
+                        } else {
+                            ## SIZE mode [default]: count bytes
+                            $count    = bytes::length($data_to_send);
+                            $template = qw| X3QVAWA |;    ## SIZE template
+
+                            $output->$* .= <[base.sprint_t]>->(
+                                $template, $cmd_id_str,
+                                $count,    $data_to_send
+                            );
+                        }
                     }
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| CHRSIZE | ) {
@@ -1295,8 +1385,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 return 0;        ## comand complete ##
 
-#,,,,,.,,,...,,.,,,..,,..,,..,.,.,,,.,,,.,.,.,..,,...,...,.,.,,.,,,.,,..,,,,.,
-#WNQXMP6URK7DFI5F2FB3HRMFE3T67Y6JZQSFBVFHSK5ZDZSPNYDCHYN4RVYNGQMG2WY5R2YBUVLXE
-#\\\|LCU4EYMNGCHY3S5ZFGO4M6SA7J4GLVSW4WF7IQ2BSKJ2YJGCXLL \ / AMOS7 \ YOURUM ::
-#\[7]7GUSV2OPUSRQGHUIRQWRGPFRGGEEMMFJINJBVCBYU3DTZCQ3I6BA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,,,,.,,,,,.,,.,,,..,.,.,,.,,,..,..,,...,...,.,.,.,,,,..,.,,,.,.,
+#G24YW7B75YGMVSF6JQ7CPFM3ULUNXGDBZY5V4WDTU4C4USBBOER3XUYPJPFBVXXEG5UUH5VMIBD5Y
+#\\\|RIFFGHPUUQPIHTJX6BATBH6ZSNRHEXOLOFMEROMMXWUOJQ6LQKS \ / AMOS7 \ YOURUM ::
+#\[7]RC6PX7ZX2F4JXA2O3MJ4DIH6HN7YIRG24XIBTQAQU4C2HLKKZMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
