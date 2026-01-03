@@ -7,24 +7,27 @@
 
 ##  Content discovery configuration for detecting and routing new media  ##
 
-<channels.discovered_content> //= {};  ## { content_id => { title, url, type, source, ... } } ##
-<channels.discovery_sources> //= {};   ## { source_name => { enabled, last_check, patterns } } ##
-<channels.discovery_queue> //= {};     ## { queue_id => { content, priority, status } } ##
+<channels.discovered_content>
+    //= {};    ## { content_id => { title, url, type, source, ... } } ##
+<channels.discovery_sources>
+    //= {};    ## { source_name => { enabled, last_check, patterns } } ##
+<channels.discovery_queue>
+    //= {};    ## { queue_id => { content, priority, status } } ##
 
 ##  Configuration defaults  ##
-<channels.discovery.cfg.check_interval> //= 3600;     ## 1 hour ##
-<channels.discovery.cfg.max_queue_size> //= 1000;
+<channels.discovery.cfg.check_interval>      //= 3600;    ## 1 hour ##
+<channels.discovery.cfg.max_queue_size>      //= 1000;
 <channels.discovery.cfg.enable_auto_routing> //= 1;
-<channels.discovery.cfg.default_priority> //= 5;
+<channels.discovery.cfg.default_priority>    //= 5;
 
 ##  Supported content types and their channels  ##
 my %content_type_channels = (
-    'video.youtube'     => 'media.youtube',
-    'video.generic'     => 'media.videos',
-    'audio.podcast'     => 'media.podcasts',
-    'audio.music'       => 'media.music',
-    'document.pdf'      => 'media.documents',
-    'document.article'  => 'media.articles'
+    'video.youtube'    => 'media.youtube',
+    'video.generic'    => 'media.videos',
+    'audio.podcast'    => 'media.podcasts',
+    'audio.music'      => 'media.music',
+    'document.pdf'     => 'media.documents',
+    'document.article' => 'media.articles'
 );
 
 ##  Initialize content type map  ##
@@ -32,11 +35,11 @@ my %content_type_channels = (
 
 ##  Discovery statistics  ##
 <channels.discovery.stats> = {
-    'total_discovered'   => 0,
-    'total_queued'       => 0,
-    'total_routed'       => 0,
-    'last_discovery'     => undef,
-    'error_count'        => 0
+    'total_discovered' => 0,
+    'total_queued'     => 0,
+    'total_routed'     => 0,
+    'last_discovery'   => undef,
+    'error_count'      => 0
 };
 
 <[base.logs]>->(
@@ -47,8 +50,8 @@ my %content_type_channels = (
 
 0;
 
-#,,,.,,.,,.,.,,..,.,,,...,..,,,..,,..,.,,,,,,,...,...,...,..,,...,..,,...,.,.,
-#RGOOY6IOXKFGWS454LH3TQN7JO5SDYWP4YQFTWERXPD2SJII4MJEWAPPQ4SKGN6XSSDWITPRBZBWA
-#\\\|XPCYU2ZCD3URXL3OGCJBCKVR3UJ54Y5ONE3WYCL5CBHGVIRNDBA \ / AMOS7 \ YOURUM ::
-#\[7]5LPUZCX2QTRSUTRJQBEMCSZMIK5A6X4USP2TUY3NSJW2O6KBGUCQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,..,,.,,,.,.,,,,,...,,..,,.,,..,,...,...,...,.,.,,.,,..,,,..,,.,,
+#JNDQO6IDRF6WQZOKFTW3KDCNVOPFBQIOG54UARR7MZIYIAEUGGYRVMIQZZ7OB3EUCUGQQGA5NQTP4
+#\\\|JQO5X5ICMRUHYS3SNAWDZARDLEXNUOKHQPKGJ5YYX7RRGG7MOKD \ / AMOS7 \ YOURUM ::
+#\[7]HOMPETAMCCV4QG2JBPGUUBRH6RH4BQ34SY5WGVC75OD6GXOQ42CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

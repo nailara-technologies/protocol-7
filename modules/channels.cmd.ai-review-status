@@ -5,15 +5,16 @@
 # param = <review_id>
 # return = { mode => 'size', data => JSON status }
 
-my $args = $$call{'args'} // '';
+my $args      = $$call{'args'} // '';
 my $review_id = $args;
-$review_id =~ s|^\s+||;           ## trim leading whitespace ##
-$review_id =~ s|\s+$||;           ## trim trailing whitespace ##
+$review_id =~ s|^\s+||;    ## trim leading whitespace ##
+$review_id =~ s|\s+$||;    ## trim trailing whitespace ##
 
 return {
     'mode' => qw| false |,
     'data' => 'expected <review_id> parameter'
-} unless length $review_id;
+    }
+    unless length $review_id;
 
 ##  Retrieve review record  ##
 <channels.ai_reviews> //= {};
@@ -22,7 +23,8 @@ my $review = <channels.ai_reviews>->{$review_id};
 return {
     'mode' => qw| false |,
     'data' => "review $review_id not found"
-} unless defined $review;
+    }
+    unless defined $review;
 
 ##  Build status response  ##
 my $status = {
@@ -35,7 +37,7 @@ my $status = {
     'ai_reviewed'        => defined $review->{'ai_feedback'} ? TRUE : FALSE,
     'ai_approved'        => $review->{'ai_approved'},
     'developer_approved' => $review->{'developer_approved'},
-    'stage'              => _get_current_stage($review)
+    'stage'              => <[channels.util.get_review_stage]>->($review)
 };
 
 ##  Include AI feedback if reviewed  ##
@@ -61,35 +63,10 @@ return {
     'data' => $json_str
 };
 
-##  Helper: Determine current review stage  ##
-sub _get_current_stage {
-    my $rev = shift;
-
-    if ( !defined $rev->{'ai_feedback'} ) {
-        return 'awaiting-ai-review';
-    }
-
-    my $ai_status = $rev->{'ai_feedback'}->{'status'};
-
-    if ( $ai_status eq 'approved' and !$rev->{'developer_approved'} ) {
-        return 'awaiting-developer-approval';
-    }
-
-    if ( $rev->{'developer_approved'} and $rev->{'ai_approved'} ) {
-        return 'ready-for-commit';
-    }
-
-    if ( $ai_status eq 'needs-changes' or $ai_status eq 'blocked' ) {
-        return "changes-requested($ai_status)";
-    }
-
-    return 'unknown';
-}
-
 1;
 
-#,,,,,,,.,,..,,..,,,.,...,,,.,..,,..,,,..,,,,,...,...,...,.,,,.,.,.,.,...,..,,
-#EVVK26UTHHDXUHSDFDOQM36ACRMPLATMTXSU2LXKK6NLZZ4APONRBP73H3RZ2OSR63SSXLH5VTIPS
-#\\\|M3SKIP632YO7GUKOEQNKTNWQTL7AMLYXFZYX3S4WYKAEIPK3CS2 \ / AMOS7 \ YOURUM ::
-#\[7]RNQ4IC6QYDVXODD2QBY5U4TIC2LQDPUHAVK3ZIG3IUK2JIJI3QCQ 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,,,,,...,..,,...,,,,,.,.,.,,,..,,...,...,...,..,,,.,,,..,,,.,,,,,
+#2VZ5MWNQMYV5MIJNZNDHYNK2DNADOAP5IMQYH77EGUDFRR7OAVLPESCI5GDG6M5R6DMHPKJ7XJPZ2
+#\\\|YYCUKIHEMR4PJJZ6PMOTGMMIVW2HDT3V6PZ624G3H7HYPC525G6 \ / AMOS7 \ YOURUM ::
+#\[7]QF7OEGQ6FR52F46IPCYO2RC2YRTYRLMP4WZWLJV4CAJR765LIQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

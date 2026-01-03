@@ -20,7 +20,7 @@ my $changes = $payload->{'changes'} // [];
 return { 'applied' => 0, 'errors' => ['no changes in payload'] }
     unless ref $changes eq 'ARRAY' and @{$changes};
 
-my $destination = $payload->{'destination'} // {};
+my $destination  = $payload->{'destination'}  // {};
 my $source_zenka = $payload->{'source_zenka'} // 'unknown';
 
 <[base.logs]>->(
@@ -37,8 +37,8 @@ foreach my $change ( @{$changes} ) {
     next unless defined $change and ref $change eq 'HASH';
 
     my $local_path = $change->{'local_path'};
-    my $new_value = $change->{'value'};
-    my $watch_id = $change->{'watch_id'};
+    my $new_value  = $change->{'value'};
+    my $watch_id   = $change->{'watch_id'};
 
     return { 'applied' => 0, 'errors' => ['invalid local_path'] }
         unless defined $local_path and length $local_path;
@@ -77,20 +77,16 @@ foreach my $change ( @{$changes} ) {
     $watch_config->{'sync_count'}++;
 
     <[base.logs]>->(
-        2,
-        "channels memory-sync: applied change for %s (watch: %s)",
-        $local_path,
-        $watch_id
+        2, "channels memory-sync: applied change for %s (watch: %s)",
+        $local_path, $watch_id
     );
 
     $applied_count++;
 }
 
 <[base.logs]>->(
-    1,
-    "channels memory-sync: applied %d changes (errors: %d)",
-    $applied_count,
-    scalar @errors
+    1,              "channels memory-sync: applied %d changes (errors: %d)",
+    $applied_count, scalar @errors
 );
 
 return {
@@ -100,8 +96,8 @@ return {
 
 1;
 
-#,,..,,,,,.,,,.,.,,..,..,,,,,,.,,,,,.,,,,,..,,...,...,...,..,,..,,,.,,,,.,,..,
-#WJ3VEYXO6EV5IULRY62BR6QDWOOJ62IC7UVWIFQOKRBOGX5NKISX7OYLP5FMFEXS3M2AQRA6FA2OU
-#\\\|KIHMMJPV2Z2DQIO7LPO3PMQWC25BRDUUHZ2ETSRQXHADL4JZ7TX \ / AMOS7 \ YOURUM ::
-#\[7]XDWOWFW3NUS7254LPWDOWROQWR4INAXAZIOOT45GRBYVGWIF44AY 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,,,,.,,,..,,..,,..,,.,.,,,,,...,...,...,...,.,,,...,.,,,,,.,,,.,
+#ZBMI3WYFFVPO2II63HHC3LSU252NMYY72ACTK7NI3UPGGCAIQNYAARES76M4PVABPZQNAX2YYNVUY
+#\\\|N2TKSCFWLBGPKTRUM2B64P7VN32SRNNVFJ7ONKZW4MLMBX7QKIU \ / AMOS7 \ YOURUM ::
+#\[7]2M6CECZUX4J3VSFNAZVZCPD2FMHQ5TAI5SJFZ5CH7IXBGNQKQWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

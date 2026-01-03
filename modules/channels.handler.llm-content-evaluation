@@ -29,21 +29,21 @@ my $evaluation = {
     'criteria_scores' => {}
 };
 
-my $total_score = 0;
+my $total_score        = 0;
 my $evaluated_criteria = 0;
 
 ##  Criterion 1: Type relevance  ##
-my $type = $content->{'type'} // '';
+my $type       = $content->{'type'} // '';
 my $type_score = 0;
 
 if ( $type =~ m|audio.podcast|i ) {
-    $type_score = 80;  ## Strong interest in podcasts ##
+    $type_score = 80;    ## Strong interest in podcasts ##
 } elsif ( $type =~ m|document.article|i ) {
-    $type_score = 75;  ## Good interest in technical articles ##
+    $type_score = 75;    ## Good interest in technical articles ##
 } elsif ( $type =~ m|video|i ) {
-    $type_score = 60;  ## Moderate interest in videos ##
+    $type_score = 60;    ## Moderate interest in videos ##
 } elsif ( $type =~ m|audio|i ) {
-    $type_score = 65;  ## Moderate-high audio interest ##
+    $type_score = 65;    ## Moderate-high audio interest ##
 }
 
 $evaluation->{'criteria_scores'}->{'type_relevance'} = $type_score;
@@ -51,16 +51,16 @@ $total_score += $type_score;
 $evaluated_criteria++;
 
 ##  Criterion 2: Source quality  ##
-my $source = $content->{'source'} // '';
-my $source_score = 50;  ## Default neutral score ##
+my $source       = $content->{'source'} // '';
+my $source_score = 50;                           ## Default neutral score ##
 
 my %trusted_sources = (
-    'arxiv'      => 95,
-    'github'     => 90,
-    'hn'         => 80,
-    'youtube'    => 70,
-    'medium'     => 65,
-    'wikipedia'  => 85
+    'arxiv'     => 95,
+    'github'    => 90,
+    'hn'        => 80,
+    'youtube'   => 70,
+    'medium'    => 65,
+    'wikipedia' => 85
 );
 
 if ( $trusted_sources{$source} ) {
@@ -72,8 +72,8 @@ $total_score += $source_score;
 $evaluated_criteria++;
 
 ##  Criterion 3: Title keyword matching  ##
-my $title = $content->{'title'} // '';
-my $keyword_score = 50;  ## Default ##
+my $title         = $content->{'title'} // '';
+my $keyword_score = 50;                          ## Default ##
 
 my @interest_keywords = qw(
     AI machine-learning neural network deep-learning
@@ -95,16 +95,16 @@ $evaluated_criteria++;
 
 ##  Criterion 4: Recency (prefer content < 6 months old)  ##
 my $discovery_ts = $content->{'discovered_at'} // <[base.time]>->(2);
-my $age_seconds = <[base.time]>->(2) - $discovery_ts;
-my $age_days = $age_seconds / 86400;
+my $age_seconds  = <[base.time]>->(2) - $discovery_ts;
+my $age_days     = $age_seconds / 86400;
 
 my $recency_score = 100;
 if ( $age_days > 180 ) {
-    $recency_score = 40;  ## Old content ##
+    $recency_score = 40;    ## Old content ##
 } elsif ( $age_days > 90 ) {
-    $recency_score = 70;  ## Somewhat old ##
+    $recency_score = 70;    ## Somewhat old ##
 } elsif ( $age_days > 30 ) {
-    $recency_score = 90;  ## Moderately fresh ##
+    $recency_score = 90;    ## Moderately fresh ##
 }
 
 $evaluation->{'criteria_scores'}->{'recency'} = $recency_score;
@@ -117,31 +117,30 @@ my $is_relevant = $final_score >= 65 ? TRUE : FALSE;
 
 ##  Store evaluation for auditing  ##
 <channels.content_evaluations> //= {};
-<channels.content_evaluations>->{$content->{'title'}} = {
-    'evaluation' => $evaluation,
+<channels.content_evaluations>->{ $content->{'title'} } = {
+    'evaluation'     => $evaluation,
     'interest_score' => $final_score,
-    'relevant' => $is_relevant,
-    'evaluated_at' => <[base.time]>->(2)
+    'relevant'       => $is_relevant,
+    'evaluated_at'   => <[base.time]>->(2)
 };
 
 <[base.logs]>->(
     2,
     "channels: LLM evaluated '%s' (score: %d, relevant: %s)",
     substr( $content->{'title'}, 0, 50 ),
-    $final_score,
-    $is_relevant ? 'yes' : 'no'
+    $final_score, $is_relevant ? 'yes' : 'no'
 );
 
 return {
-    'interest_score'  => $final_score,
-    'relevant'        => $is_relevant,
-    'evaluation'      => $evaluation
+    'interest_score' => $final_score,
+    'relevant'       => $is_relevant,
+    'evaluation'     => $evaluation
 };
 
 1;
 
-#,,,.,...,.,,,,..,.,.,,,.,,,.,..,,,,.,,,.,.,,,...,...,...,,.,,,..,,,.,..,,,,.,
-#BV2JHY26MHYAIGIZD4XKKOM3J4PPALLBYNEDHDCSKK7GDLA3FEKDXR4CNZR23QXQTDA66WZMQAX56
-#\\\|JTW3LYFVFAAY4A7LHH4SJNZLJWK5O2ABRFD3MGZAG4VC75IXYTO \ / AMOS7 \ YOURUM ::
-#\[7]2XDE5PFHKNHNYOKKVGZ2UAY5SB4VHBCGRLUNV4QLX6RWOKL3YEBA 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,,.,,.,,,.,,,,,,.,.,...,,..,,.,,...,...,...,..,,.,,,,,,,.,,,..,,
+#5ANKBQGX3ABHKYT6UPLFPXORELORW3AYRUU5FE3LIAZ5BZZRPY4FWBQDWORFIPHYL7P2RZQRRKSRM
+#\\\|QVBW3RLYPLSLUA4LMC6NQV7XBRANNILZPL6WUVQMEQUIWHUUKZZ \ / AMOS7 \ YOURUM ::
+#\[7]4IKARENFJYQDSM7UNYZKNTHVULSYQJFBZUOVRMXOJAVI3ASOCYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

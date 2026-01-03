@@ -5,22 +5,24 @@
 # param = <channel-path>
 # return = { mode => 'true', data => 'unsubscribed from <channel-path>' }
 
-my $args = $$call{'args'} // '';
+my $args         = $$call{'args'} // '';
 my $channel_path = $args;
-$channel_path =~ s|^\s+||;        ## trim leading whitespace ##
-$channel_path =~ s|\s+$||;        ## trim trailing whitespace ##
+$channel_path =~ s|^\s+||;    ## trim leading whitespace ##
+$channel_path =~ s|\s+$||;    ## trim trailing whitespace ##
 
 return {
     'mode' => qw| false |,
     'data' => 'expected <channel-path> parameter'
-} unless length $channel_path;
+    }
+    unless length $channel_path;
 
 ##  Find and remove this session's subscription  ##
 my $session_id = $$call{'session_id'} // 'unknown';
-my $found = FALSE;
+my $found      = FALSE;
 
 if ( defined <channels.subscriptions>->{$channel_path} ) {
-    foreach my $subscriber_id ( keys %{<channels.subscriptions>->{$channel_path}} ) {
+    foreach my $subscriber_id (
+        keys %{ <channels.subscriptions>->{$channel_path} } ) {
         my $sub = <channels.subscriptions>->{$channel_path}->{$subscriber_id};
         next unless $sub->{'session_id'} eq $session_id;
 
@@ -30,13 +32,13 @@ if ( defined <channels.subscriptions>->{$channel_path} ) {
     }
 
     ##  If no subscribers remain, mark channel as SUSPENDED  ##
-    unless ( keys %{<channels.subscriptions>->{$channel_path}} ) {
+    unless ( keys %{ <channels.subscriptions>->{$channel_path} } ) {
         <channels.subscriptions>->{$channel_path}->{'status'} = 'SUSPENDED';
-        <channels.subscriptions>->{$channel_path}->{'suspended_at'} = <[base.time]>->(2);
+        <channels.subscriptions>->{$channel_path}->{'suspended_at'}
+            = <[base.time]>->(2);
 
         <[base.logs]>->(
-            1,
-            "channels: no more subscribers for '%s', marking SUSPENDED",
+            1, "channels: no more subscribers for '%s', marking SUSPENDED",
             $channel_path
         );
     }
@@ -45,14 +47,14 @@ if ( defined <channels.subscriptions>->{$channel_path} ) {
 return {
     'mode' => qw| true |,
     'data' => $found
-        ? "unsubscribed from '$channel_path'"
-        : "was not subscribed to '$channel_path'"
+    ? "unsubscribed from '$channel_path'"
+    : "was not subscribed to '$channel_path'"
 };
 
 1;
 
-#,,,,,..,,..,,...,.,,,,,.,..,,.,,,.,,,..,,..,,.,.,...,...,...,,,,,,,,,.,,,.,.,
-#C5U3PA4YVQSORKWZA67ZARA34JNIADRASSDCOABOAMGG5XNVAVDAX2R3E5I3QU2LV2MRUOJRBQE76
-#\\\|L2AIX2UCJ3K72AOJOWNOKLFDIPN2D2EDUH7NMQDDIRLVONTAWTY \ / AMOS7 \ YOURUM ::
-#\[7]KEH35QYN7F7QZHQN6VAP4PP677TNK5GY4GYNSUZ452BFE5G352CY 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,,.,..,,,..,.,.,,..,.,.,,.,,...,.,.,...,...,,,,,,,,,,.,,..,,,.,,
+#XQUIXQZW4GH66PSLINKKVCXINPJYCTSCJEIO366WO3GEFMFLDLIYX3PZ42YZTNP2QNSWYFN3UQ6YO
+#\\\|2T4UERBCCNEFTJA7VOON6NTGYUZI7QMR3GDXQ3BB7355YUF676Q \ / AMOS7 \ YOURUM ::
+#\[7]ZXTQWQGZYDPSVSACQH5TOJUQLF6V63CRDU4DTUKOSTJEF6JQSOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

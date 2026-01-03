@@ -5,15 +5,16 @@
 # param = <last-synchronized-timestamp_b32>
 # return = { mode => 'size', data => "channel.path1\nchannel.path2\nCHECKSUM <checksum_b32>" }
 
-my $args = $$call{'args'} // '';
+my $args         = $$call{'args'} // '';
 my $since_ts_b32 = $args;
-$since_ts_b32 =~ s|^\s+||;        ## trim leading whitespace ##
-$since_ts_b32 =~ s|\s+$||;        ## trim trailing whitespace ##
+$since_ts_b32 =~ s|^\s+||;    ## trim leading whitespace ##
+$since_ts_b32 =~ s|\s+$||;    ## trim trailing whitespace ##
 
 return {
     'mode' => qw| false |,
     'data' => 'expected <timestamp_b32> parameter'
-} unless length $since_ts_b32;
+    }
+    unless length $since_ts_b32;
 
 ##  For MVP: return list of all channels with any data  ##
 ##  (In future, track per-channel timestamps for real deltas)  ##
@@ -23,7 +24,7 @@ foreach my $channel_path ( keys %{<channels.data>} ) {
     ##  Skip empty channels  ##
     next unless defined <channels.data>->{$channel_path};
     next unless ref <channels.data>->{$channel_path} eq 'HASH';
-    next unless keys %{<channels.data>->{$channel_path}};
+    next unless keys %{ <channels.data>->{$channel_path} };
 
     push @changed_channels, $channel_path;
 }
@@ -31,15 +32,16 @@ foreach my $channel_path ( keys %{<channels.data>} ) {
 return {
     'mode' => qw| false |,
     'data' => 'no channels changed since timestamp'
-} unless @changed_channels;
+    }
+    unless @changed_channels;
 
 ##  Calculate harmonic checksum of changed channels tree  ##
 ##  (Simple SHA256 of sorted channel names for now)  ##
 my $checksum_input = join( '|', sort @changed_channels );
-my $checksum_hash = Digest::SHA::sha256($checksum_input);
-my $checksum_b32 = encode_b32r($checksum_hash);
-$checksum_b32 =~ s|=+$||;  ## remove padding ##
-$checksum_b32 = substr( $checksum_b32, 0, 52 );  ## standard b32 length ##
+my $checksum_hash  = Digest::SHA::sha256($checksum_input);
+my $checksum_b32   = encode_b32r($checksum_hash);
+$checksum_b32 =~ s|=+$||;                          ## remove padding ##
+$checksum_b32 = substr( $checksum_b32, 0, 52 );    ## standard b32 length ##
 
 my $reply_data = join( "\n", @changed_channels );
 $reply_data .= "\nCHECKSUM $checksum_b32\n";
@@ -51,8 +53,8 @@ return {
 
 1;
 
-#,,..,,,.,,,.,..,,...,.,,,,,.,...,.,,,,..,,,,,.,.,...,...,...,.,.,.,.,,,.,...,
-#HN4I7HQJVQENB6GTNUMSVHTFJNKLWL452WCOI6GDMG57GYI23IVDUGBYJIO7YTA2EWSHRG5EZBUKU
-#\\\|KFVDCWQFMSUJB2T2RY3JAPKHLUGM52BDYZJKQH6NKYFPJOQV2CW \ / AMOS7 \ YOURUM ::
-#\[7]J4FKMKWRMMEQOGOS7BL453Q2ODUFN3XOHW25ZFGWKLYWCIP3TMBA 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,,,,,.,,..,,,.,,.,.,.,,,...,...,.,.,...,...,.,.,..,,,,.,.,,,,,,,
+#GLVAI34MVZ366JHTYJXAUOOXNRF4I2KNBSGLAC72O4PNCE7NQRKKO4JRHNHNARUE5VR4QDKM6Z6A2
+#\\\|FTP27U5ONG4VL7ERKBM2CV5SUK5D6ASLNXYL4JM53Z2OU476VMF \ / AMOS7 \ YOURUM ::
+#\[7]6YU7WZ54KIKQJL6NNLOW3C7RUJOLZLCZXTEENEKL34Z5YY2Y4WAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,7 +10,7 @@ return { 'processed' => 0, 'errors' => ['no arguments provided'] }
     unless defined $args_ref and ref $args_ref eq 'HASH';
 
 my $channel_path = $args_ref->{'channel_path'};
-my $data = $args_ref->{'data'};
+my $data         = $args_ref->{'data'};
 
 return { 'processed' => 0, 'errors' => ['no channel_path provided'] }
     unless defined $channel_path and length $channel_path;
@@ -25,7 +25,10 @@ my @errors;
 ##  (In production, would be indexed by source_channel for efficiency)  ##
 
 unless ( defined <channels.zenka_subscriptions> ) {
-    return { 'processed' => 0, 'errors' => ['no zenka subscriptions configured'] };
+    return {
+        'processed' => 0,
+        'errors'    => ['no zenka subscriptions configured']
+    };
 }
 
 foreach my $zenka_name ( keys %{<channels.zenka_subscriptions>} ) {
@@ -40,17 +43,18 @@ foreach my $zenka_name ( keys %{<channels.zenka_subscriptions>} ) {
         next unless defined $subscription;
 
         my $source_channel = $subscription->{'source_channel'};
-        my $map_rules = $subscription->{'map_rules'} // [];
-        my $channel_dest = $subscription->{'channel_path'};
+        my $map_rules      = $subscription->{'map_rules'} // [];
+        my $channel_dest   = $subscription->{'channel_path'};
 
         ##  Check if subscription matches incoming data  ##
         next unless $source_channel eq $channel_path;
 
         ##  Apply mapping rules  ##
-        my $mapped = <[channels.mapping.apply]>->({
-            'source_data' => $data,
-            'map_rules'   => $map_rules
-        });
+        my $mapped = <[channels.mapping.apply]>->(
+            {   'source_data' => $data,
+                'map_rules'   => $map_rules
+            }
+        );
 
         if ( $mapped->{'success'} ) {
             ##  Store mapped variables in zenka's data context  ##
@@ -59,26 +63,24 @@ foreach my $zenka_name ( keys %{<channels.zenka_subscriptions>} ) {
             <[base.logs]>->(
                 1,
                 "channels: applied %d mappings from '%s' to '%s'",
-                scalar keys %{$mapped->{'mapped_vars'}},
+                scalar keys %{ $mapped->{'mapped_vars'} },
                 $channel_path,
                 $zenka_name
             );
 
             ##  Update subscription's last_sync timestamp  ##
-            $subscription->{'last_sync'} = <[base.time]>->(2);
+            $subscription->{'last_sync'}  = <[base.time]>->(2);
             $subscription->{'last_error'} = undef;
 
             $processed_count++;
         } else {
-            my $error_msg = join( '; ', @{$mapped->{'errors'}} );
+            my $error_msg = join( '; ', @{ $mapped->{'errors'} } );
             push @errors, "$zenka_name subscription error: $error_msg";
 
             <[base.logs]>->(
                 0,
                 "channels: mapping error for '%s' subscription to '%s': %s",
-                $zenka_name,
-                $channel_path,
-                $error_msg
+                $zenka_name, $channel_path, $error_msg
             );
 
             $subscription->{'last_error'} = $error_msg;
@@ -94,8 +96,8 @@ return {
 
 1;
 
-#,,..,,,,,...,.,,,,.,,...,...,,,.,...,,,,,,,.,...,...,...,,..,..,,,..,.,,,,,,,
-#SO25WS3QKEE42V3EVIPPNWOIZJPYCPUU45XDLPMAJONNKU2FTLA2E2XNSLEXOWVAVG6SFHQ3I74SA
-#\\\|5FQRLL2YBWAW37DDMG2D5CPZYEG6OKSQAQ5JUJXISPJLV4HMQ3Q \ / AMOS7 \ YOURUM ::
-#\[7]C4F5BJA52EVYLWKDIQ5QBUYPOVXH2MM2DGVUOOZTBAEKW673TGCY 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,.,,,,.,,,,.,...,,,.,.,,,,.,,,.,,...,...,...,..,,,.,,,.,,.,,,,..,
+#YBTP4ECDZ5YCNU7KHI52IFRQKMA4BRHUGRBOX4TEWDH4XY5XQUYHUYWYBQ4MCKCC2HWIP3SHW5T5A
+#\\\|H2BL2SFNZTKHY3HIC4L7CPLIYN6KB6ASPXFAVZFNRNJXYJR3MY5 \ / AMOS7 \ YOURUM ::
+#\[7]2AI3OHOGLJVFUKEOHHN7U34VYDQHG6W6NIIP3NB55I2TTXWUNIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

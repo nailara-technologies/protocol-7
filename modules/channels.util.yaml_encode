@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = channels.util.yaml_encode
+# descr = Encode perl data structure to YAML string with error handling
+# args  = data structure reference
+# return = YAML string or empty string on error
+
+my $data_ref = shift;
+
+##  Handle empty input  ##
+unless ( defined $data_ref ) {
+    <[base.logs]>->( 3, 'channels.yaml_encode: no data provided' );
+    return '';
+}
+
+##  Encode to YAML with error handling  ##
+<[base.perlmod.load]>->('YAML::XS');
+
+my $yaml_string;
+eval { $yaml_string = YAML::XS::Dump($data_ref); };
+
+if ($@) {
+    <[base.logs]>->( 1, 'channels.yaml_encode error: %s', $@ );
+    return '';
+}
+
+return defined $yaml_string ? $yaml_string : '';
+
+1;
+
+#,,,.,,.,,...,,,.,,,,,,..,,,,,...,.,,,.,,,,,.,.,.,...,...,..,,,,,,,.,,.,,,...,
+#4XBAS2ZTTT33EK6LZA6XHQDYNJQQHB7KTSY7IWWPPURZMJEJ42QAONKXGY5C3HDM7ULKKPG5OCKDA
+#\\\|J7RDUVR6ALWQ442GDWQPQ77NZQD5DYQE3N43I3SNT6LK6OEGUTZ \ / AMOS7 \ YOURUM ::
+#\[7]I7BI2LEK5DEVPUTQYNJZKGXNAVPSEVDWUY4RSNFPO7CWM2PR62BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

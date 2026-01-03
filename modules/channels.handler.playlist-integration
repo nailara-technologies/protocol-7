@@ -32,17 +32,17 @@ my @errors;
 
 ##  Build playlist entry from discovered content  ##
 my $playlist_entry = {
-    'title'           => $content_data->{'title'} // 'Untitled',
-    'url'             => $content_data->{'url'},
-    'type'            => $content_data->{'type'} // 'generic',
-    'source'          => $content_data->{'source'} // 'discovered',
-    'added_at'        => <[base.time]>->(2),
-    'description'     => $content_data->{'description'} // '',
-    'duration'        => $content_data->{'duration'},
-    'author'          => $content_data->{'author'},
-    'thumbnail_url'   => $content_data->{'thumbnail_url'},
-    'priority'        => $content_data->{'priority'} // 5,
-    'status'          => 'queued'
+    'title'         => $content_data->{'title'} // 'Untitled',
+    'url'           => $content_data->{'url'},
+    'type'          => $content_data->{'type'}   // 'generic',
+    'source'        => $content_data->{'source'} // 'discovered',
+    'added_at'      => <[base.time]>->(2),
+    'description'   => $content_data->{'description'} // '',
+    'duration'      => $content_data->{'duration'},
+    'author'        => $content_data->{'author'},
+    'thumbnail_url' => $content_data->{'thumbnail_url'},
+    'priority'      => $content_data->{'priority'} // 5,
+    'status'        => 'queued'
 };
 
 ##  Serialize playlist entry  ##
@@ -62,12 +62,13 @@ if ( length $EVAL_ERROR ) {
 
 my $playlist_channel = "playlist.$playlist_context.add-item";
 
-my $add_result = <[channels.cmd.update]>->({
-    'call' => {
-        'args'       => "$playlist_channel $json_str",
-        'session_id' => 'content-discovery'
+my $add_result = <[channels.cmd.update]>->(
+    {   'call' => {
+            'args'       => "$playlist_channel $json_str",
+            'session_id' => 'content-discovery'
+        }
     }
-});
+);
 
 unless ( defined $add_result and $add_result->{'mode'} eq 'timestamp' ) {
     push @errors, "failed to post to playlist channel: $playlist_channel";
@@ -95,8 +96,8 @@ return {
 
 1;
 
-#,,,,,,,,,,,.,,.,,.,,,,..,.,.,.,,,,,,,,,.,...,...,...,...,.,.,..,,..,,.,.,,..,
-#HWIXVE5MY64SXXCG4JLHBFLGRGYVIS2O4MS7YXDVO7SWJUL7K4Q4V5NEFIHOY7GN7YFJUMGZWVXOU
-#\\\|UHDU4UY57ANWHGMTAGBQHBM2M6QNJZJ3QQZIBZJGLGQUWM2CFJR \ / AMOS7 \ YOURUM ::
-#\[7]BGFG7SHUGSVEWBYYSGAUOFCYO3IULZTK74XWGMYTY2LH2RP2HWBA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,,,.,,,.,.,.,,,.,.,,..,,,.,...,...,...,...,,,.,,,,,..,,,..,.,,,
+#BVUQ3LSVMMWXXFTLGG2BMEF45OLK6CLKOTDD4W5DT3R7L7HBRV5LLWMAABFYNVD3M4L2SVAIMQVSU
+#\\\|6V6QNMSDBNKQPZ3HRIAAVTUOAIXJW4IQCHPXYPFK5RMGPXF3NSN \ / AMOS7 \ YOURUM ::
+#\[7]QKQYPNEFOQFPOU4WJUBHAESNAUJ7SSNEHD5I4N7XO3WREWJ6SKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

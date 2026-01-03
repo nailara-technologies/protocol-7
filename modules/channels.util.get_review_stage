@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = channels.util.get_review_stage
+# descr = Determine current review stage from review record
+# args  = review_record hash reference
+# return = string stage name
+
+my $rev = shift;
+
+if ( !defined $rev->{'ai_feedback'} ) {
+    return 'awaiting-ai-review';
+}
+
+my $ai_status = $rev->{'ai_feedback'}->{'status'};
+
+if ( $ai_status eq 'approved' and !$rev->{'developer_approved'} ) {
+    return 'awaiting-developer-approval';
+}
+
+if ( $rev->{'developer_approved'} and $rev->{'ai_approved'} ) {
+    return 'ready-for-commit';
+}
+
+if ( $ai_status eq 'needs-changes' or $ai_status eq 'blocked' ) {
+    return "changes-requested($ai_status)";
+}
+
+return 'unknown';
+
+1;
+
+#,,.,,...,..,,..,,.,,,...,,,.,,,,,.,.,,..,,,,,...,...,..,,...,.,,,,,,,.,.,,,,,
+#YCFWXKUQBSQQ6X4YZ5FQQRPEEORPV33LGPUWZZXQOYAH4WE2XWM2BS2Y62SLNOMQEEWSGR43FJN2U
+#\\\|MWXUAQ5GED2N57EALHHFPM7NW5QTEIBRFNFBXPF3ZQJORJWPVRT \ / AMOS7 \ YOURUM ::
+#\[7]4SMKRR6WXRW4BW64PS5PCKICJ7W4TBNRBFR2QDOLJBSFYSVYIUDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

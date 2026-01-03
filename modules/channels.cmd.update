@@ -2,71 +2,113 @@
 
 # name  = channels.cmd.update
 # descr = Update channel data (used by applications to publish to channels)
-# param = <channel-path> <json_data>
-# return = { mode => 'timestamp', data => 'BASE32_ENCODED_NEW_TIMESTAMP' }
+# param = <channel-path> <yaml_data>
+# return = { mode => 'true', data => 'BASE32_ENCODED_TIMESTAMP' }
 
 my $args = $$call{'args'} // '';
-my ( $channel_path, $json_data_str ) = split( m| +|, $args, 2 );
+my ( $channel_path, $yaml_data_str ) = split( m| +|, $args, 2 );
+
+<[base.logs]>->(
+    1,
+    "channels.update: received args for channel '%s'",
+    $channel_path // qw| NONE |
+);
 
 return {
     'mode' => qw| false |,
-    'data' => 'expected <channel-path> and <json_data> parameters'
-} unless length $channel_path and defined $json_data_str;
+    'data' => 'expected <channel-path> and <yaml_data> parameters'
+    }
+    unless length $channel_path and defined $yaml_data_str;
 
 ##  Validate channel path  ##
 unless ( $channel_path =~ m|^[a-z0-9\.\-_]+$|i ) {
     return {
         'mode' => qw| false |,
-        'data' => 'invalid channel path (use lowercase alphanumeric, dots, dashes, underscores)'
+        'data' => 'invalid channel path [use lowercase '
+            . 'alphanumeric, dots, dashes, underscores]'
     };
 }
 
-##  Parse JSON data  ##
-my $data_ref;
-eval {
-    my $json_module = <[base.perlmod.load]>->('JSON::PP');
-    $data_ref = JSON::PP::decode_json($json_data_str);
-};
+##  Parse YAML data  ##
+<[base.logs]>->( 2, "channels.update: parsing YAML data" );
+my $data_ref = <[channels.util.yaml_decode]>->($yaml_data_str);
 
-if ( length $EVAL_ERROR ) {
+unless ( defined $data_ref and ref $data_ref ) {
+    <[base.logs]>->(
+        0, "channels.update: YAML parse error or invalid format"
+    );
     return {
         'mode' => qw| false |,
-        'data' => "invalid JSON: $EVAL_ERROR"
+        'data' => "invalid YAML or empty data"
     };
 }
+<[base.logs]>->( 2, "channels.update: YAML parsed successfully" );
 
 return {
     'mode' => qw| false |,
-    'data' => 'data must be a JSON object (hash)'
-} unless ref $data_ref eq 'HASH';
+    'data' => 'data must be a YAML object (hash)'
+    }
+    unless ref $data_ref eq 'HASH';
 
 ##  Update channel data  ##
+<[base.logs]>->( 2, "channels.update: storing data to channel" );
 <channels.data>->{$channel_path} = $data_ref;
 
+##  Update unified all_channels list for display  ##
+<[base.logs]>->( 2, "channels.update: updating all_channels list entry" );
+my $sub_count
+    = scalar keys %{ <channels.subscriptions> {$channel_path} // {} };
+my $status = 'ACTIVE';
+<channels.all_channels> {$channel_path} = {
+    'channel_path' => $channel_path,
+    'status'       => $status,
+    'last_update'  => '(pending)',
+    'sub_count'    => $sub_count
+};
+
 ##  Update timestamp (for this channel)  ##
-my $current_time = <[base.time]>->(3);
-my $current_ts_b32 = encode_b32r(pack('Q>', int($current_time)));
+<[base.logs]>->( 2, "channels.update: updating timestamp" );
+my $current_time   = <[base.time]>->(3);
+my $current_ts_b32 = encode_b32r( pack( 'Q>', int($current_time) ) );
 <channels.timestamps>->{$channel_path} = $current_ts_b32;
 
+##  Update all_channels list with computed timestamp  ##
+<channels.all_channels> {$channel_path}->{'last_update'} = $current_ts_b32;
+
 ##  Invalidate global timestamp (any channel changed)  ##
-delete <channels.checksums>;  ## reset all checksums ##
+<[base.logs]>->( 2, "channels.update: invalidating checksums" );
+delete <channels.checksums>;    ## reset all checksums ##
 
 <[base.logs]>->(
-    1,
-    "channels: updated channel '%s' with %d fields",
-    $channel_path,
-    scalar keys %{$data_ref}
+    1,             "channels: updated channel '%s' with %d fields",
+    $channel_path, scalar keys %{$data_ref}
 );
 
+##  Notify blocking clients of data change  ##
+<[base.logs]>->( 2, "channels.update: notifying blocking clients" );
+my $clients_notified = <[channels.handler.data_change]>->($channel_path);
+<[base.logs]>->(
+    2, "channels.update: handler returned, %d clients notified",
+    $clients_notified
+);
+if ( $clients_notified > 0 ) {
+    <[base.logs]>->(
+        2, "channels: notified %d blocking clients of update to '%s'",
+        $clients_notified, $channel_path
+    );
+}
+<[base.logs]>->( 2, "channels.update: returning response" );
+
+##  Return timestamp as simple response  ##
 return {
-    'mode' => qw| timestamp |,
+    'mode' => qw| true |,
     'data' => $current_ts_b32
 };
 
 1;
 
-#,,.,,...,.,,,,,,,,,.,,,.,,,,,,,.,,,.,,.,,..,,.,.,...,...,.,,,.,,,,..,,,.,.,.,
-#2HTY437SBJYOOBYLJB6F2G6D3RP3OBKLDHLI5AEKARODHMYSYRTKRV4T3ALIQ2UZONURBUFANMXMM
-#\\\|KTULDGT6AM66GJUOQBTP5IP3L7VS7KBF6Q6WLC5OBAS3L7CSLBS \ / AMOS7 \ YOURUM ::
-#\[7]SIWSWIREJFDS75GA2Z45FMTIPIVW6FXQLCAQHLKARC4LNG42QIBY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,,,,,,.,,..,.,.,,..,,..,..,,,,.,.,.,...,...,.,.,..,,..,,,.,,,,,,
+#SPDTIDDOFLJAJTIYDQSPYJ6UXJSVFSJDNJTDD2CMLFJH64MXQRTETFYN5NCU7U55BCK4JBLH22FTA
+#\\\|73ATVVJ2IKIUJMKPITR4I5IWAXSIQ5DNCKPOZYRNDCOW2UMMTXE \ / AMOS7 \ YOURUM ::
+#\[7]5U77OCKDU364W3IUJFW3DS5UJFTXRHAF7CDC524GE3BLV2HRHGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

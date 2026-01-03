@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = channels.util.yaml_decode
+# descr = Decode YAML string to perl data structure with error handling
+# args  = str(yaml_string)
+# return = data structure or empty hash on error
+
+my $yaml_string = shift;
+
+##  Handle empty input  ##
+unless ( defined $yaml_string && length($yaml_string) > 0 ) {
+    <[base.logs]>->( 3, 'channels.yaml_decode: empty input' );
+    return {};
+}
+
+##  Load YAML with error handling  ##
+<[base.perlmod.load]>->('YAML::XS');
+
+my $parsed_data;
+eval { $parsed_data = YAML::XS::Load($yaml_string); };
+
+if ($@) {
+    <[base.logs]>->(
+        1,  'channels.yaml_decode error: %s [input: %s]',
+        $@, substr( $yaml_string, 0, 100 )
+    );
+    return {};
+}
+
+return defined $parsed_data ? $parsed_data : {};
+
+1;
+
+#,,.,,,,,,.,.,,.,,..,,,..,..,,,,.,.,.,.,.,,..,.,.,...,...,,..,,,.,,.,,..,,.,.,
+#CU75IWAAMM66D775C7U3R4LBAFHRNXJLINEXSL553ODVYGWXU7GPHVCV7OL3WA66CRVIGWFISJVO6
+#\\\|MQDYGF55T4TH2CY76NVS4IW7GPINAKZOIBVX6BHQQAMW47ASHOI \ / AMOS7 \ YOURUM ::
+#\[7]YWLZKJB6OAF6FXWX5ULD5LB4VSNYTSMAAOGKDTWIJOCCEZ7MNGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
