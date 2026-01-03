@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = cube.cmd.test-strm-size
+# descr = Test STRM-SIZE protocol (transparent SIZE fragmentation >64KB)
+# param = [size_kb] (default: 100)
+# return = { mode => 'SIZE', data => 'large_payload' }
+
+my $args    = $$call{'args'} // '100';
+my $size_kb = 0 + $args;
+
+##  Default and bounds  ##
+$size_kb = 100 if $size_kb < 10 or $size_kb > 10000;
+
+##  Generate test data with repeating pattern  ##
+my $pattern      = "SIZE mode data block " . time() . "\n";
+my $repeat_count = int( ( $size_kb * 1024 ) / length($pattern) ) + 1;
+my $test_data    = ( $pattern x $repeat_count );
+$test_data = substr $test_data, 0, $size_kb * 1024;
+
+<[base.logs]>->(
+    1,
+    "cube.test-strm-size: returning %d bytes in SIZE mode (will auto-fragment if >64KB)",
+    bytes::length($test_data)
+);
+
+##  Return as SIZE - protocol auto-fragments if > threshold (65536 bytes)  ##
+return {
+    'mode'  => 'SIZE',
+    'data'  => $test_data
+};
+
+1;
+
+#,,..,.,.,...,...,,..,.,.,.,,,.,.,...,..,,...,..,,...,...,,,,,,.,,.,,,,,.,,.,,
+#ROTIL3SRDVDC3M6YYULJFVKXHHF4CRJAZDOS5YVWB6QQE3AWHIPDVAEOY4GCUWDTJ7O7IPW4M3SDS
+#\\\|KGG6R7XL5MI3ABSTLUTUS42I4DVB4ZBJMTHFUQVUAZSK66L6TK4 \ / AMOS7 \ YOURUM ::
+#\[7]VBXXODHMUJARUQ7QZCBZ6HPNAOSTGYNWW3GPAWL2U2CBGQ7ZWGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

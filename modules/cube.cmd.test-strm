@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = cube.cmd.test-strm
+# descr = Test STRM protocol directly without routing
+# param = [size_kb] (default: 100)
+# return = { mode => 'STRM', data => 'large_payload' }
+
+my $args    = $$call{'args'} // '100';
+my $size_kb = 0 + $args;
+
+##  Default and bounds  ##
+$size_kb = 100 if $size_kb < 10 or $size_kb > 10000;
+
+##  Generate test data with repeating pattern  ##
+my $pattern      = "STRM test block " . time() . "\n";
+my $repeat_count = int( ( $size_kb * 1024 ) / length($pattern) ) + 1;
+my $test_data    = ( $pattern x $repeat_count );
+$test_data = substr $test_data, 0, $size_kb * 1024;
+
+<[base.logs]>->(
+    1,
+    "cube.test-strm: returning %d bytes in STRM mode",
+    bytes::length($test_data)
+);
+
+return {
+    'mode'  => 'STRM',
+    'data'  => $test_data
+};
+
+1;
+
+#,,,,,,,,,,..,...,.,,,,..,.,,,...,,,.,...,,.,,..,,...,...,...,,.,,,..,.,,,,.,,
+#OJ5PVAN6LQSSCHAXQBO44IGTORLWWJBKHEXUWCYUYX6ZCY63ER5CCYMG732SOPN7X6BJXUNJW6F2S
+#\\\|DJCFMMOZSLUUKQRQ5JZPEWYXKM254WO5BBENRL7KCTVSCCJWKJ6 \ / AMOS7 \ YOURUM ::
+#\[7]IM3ZQ5MV76UK2MF2UTPNNVT56SUJSKNLDK6DBQUTOZVPXZOARCCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
