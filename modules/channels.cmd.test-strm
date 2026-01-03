@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = channels.cmd.test-strm
+# descr = Test STRM protocol with large payload (>64KB)
+# param = [size_kb] (default: 100)
+# return = { mode => 'STRM', data => 'large_payload' }
+
+my $args    = $$call{'args'} // '100';
+my $size_kb = 0 + $args;
+
+##  Default and bounds  ##
+$size_kb = 100 if $size_kb < 10 or $size_kb > 10000;
+
+##  Generate test data with repeating pattern  ##
+my $pattern      = "Test STRM data block: " . time() . "\n";
+my $repeat_count = int( ( $size_kb * 1024 ) / length($pattern) ) + 1;
+my $test_data    = ( $pattern x $repeat_count );
+$test_data = substr $test_data, 0, $size_kb * 1024;
+
+<[base.logs]>->(
+    1,
+    "channels.test-strm: returning %d bytes in STRM mode",
+    bytes::length($test_data)
+);
+
+return {
+    'mode' => 'STRM',
+    'data' => $test_data
+};
+
+1;
+
+#,,.,,.,.,.,,,..,,,,.,,.,,,.,,..,,.,.,.,.,.,,,..,,...,...,..,,..,,,,.,.,.,,,,,
+#NTELNASGDLU7CN3VDHONKYB4I4QHCSS25VYQVVHB2X7ZU233IWBXR3BY4D6M4U7RYEO2L66W4PADA
+#\\\|MXR3PIVEFW2HN7UV7RVNHQJRIXI5EIXG4OIOL4DANAYYNK3IX76 \ / AMOS7 \ YOURUM ::
+#\[7]ITZZWTYKTT26KKYFOFODCB5VAXUB27VPAPZMIVYOSF5I3BYAF2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

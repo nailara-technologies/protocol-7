@@ -3,10 +3,11 @@
 # name  = v7.teardown
 # descr = shut down v7 zenka [with an optional error message]
 
-my $reason    = shift // '';
+my $reason  = shift // '';
+my $c_level = shift;      ## modifies caller(<level>) ## [ 'none' for silent ]
 my $exit_code = length($reason) ? 1 : $CHILD_ERROR;
 my $log_level = length($reason) ? 0 : 1;
-my $t_res     = 3;    # <-- time delta float resolution
+my $t_res     = 3;        # <-- time delta float resolution
 
 my $kill_timeout  = <system.kill_timeout> //= 2.1;    # floating seconds
 my $abort_timeout = 2;
@@ -29,8 +30,18 @@ $reason = sprintf( '.. %u sub-process%s .,', $child_count, $es )
     if not length($reason)
     and $child_count;
 my $reason_txt = length($reason) ? sprintf( ' [ %s ]', $reason ) : '';
-my $opt_caller = sprintf ' %s', scalar <[base.caller]>->(2);
-$opt_caller = '' if $opt_caller =~ m{Event\.pm:\d+};
+
+## selecting correct caller level ##
+my $opt_caller = '';
+if ( not defined $c_level or $c_level ne qw| none | ) {
+    $c_level    = 2;    ## starting default value ##
+    $opt_caller = sprintf ' %s', scalar <[base.caller]>->($c_level);
+    $opt_caller = '' if $opt_caller =~ m{Event\.pm:\d+};
+    if ( $opt_caller =~ m{event\.add_var:\d+} ) {
+        $c_level    = 1;
+        $opt_caller = sprintf ' %s', scalar <[base.caller]>->($c_level);
+    }
+}
 
 <[base.logs]>->(
     $log_level,  'v7 zenka shutdown%s%s',
@@ -129,8 +140,8 @@ map {
 <[base.log]>->( 1, ':. done.' );
 exit($exit_code);
 
-#,,.,,.,.,,.,,,..,,..,,..,,.,,,.,,,.,,.,,,...,..,,...,...,...,,..,,,.,..,,.,.,
-#FU5AOG4GMOT4RTPJU3NZPOUPDXZ36RFZMTXUD4BFHLCOR4W4SCIWI2VZR3OC7ZKTRJ2A3QMDRA77S
-#\\\|PTNCOZYW5B6YYYBBLZBNI25433JYRNCLA4UUF37345XNB3SC5R6 \ / AMOS7 \ YOURUM ::
-#\[7]BNRCBJQ7ZLEFF7CBUDHZOYA5ASHK55FD5DT53U6GVHNXFZRBHABA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,.,,,.,.,.,,,,,.,,,,,.,.,...,,,.,..,,...,...,.,.,..,,.,.,,,,,,.,,
+#5GOHJ6K5F2DTVD432Y2IDOC5L4ANLM6OJJT6VHOJNHC4UTE4GFYZTTCXL5XJHP3OJB7RINZSDTNAU
+#\\\|YJQD4VQK7M2LLZIZYCPZTRWAUTEINXCVXNJB4L3Y6RFGLKK5UEV \ / AMOS7 \ YOURUM ::
+#\[7]Q3A3VVREDYI6MOGZWGHRWK43I5WBZU2FAFOMLS4MKEYT37ZWCGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,39 @@
+## [:< ##
+
+# name  = channels.cmd.test-strm-size
+# descr = Test STRM-SIZE protocol (transparent SIZE fragmentation >64KB)
+# param = [size_kb] (default: 100)
+# return = { mode => 'SIZE', data => 'large_payload' }
+#          Protocol auto-selects STRM-SIZE if > threshold
+
+my $args    = $$call{'args'} // '100';
+my $size_kb = 0 + $args;
+
+##  Default and bounds  ##
+$size_kb = 100 if $size_kb < 10 or $size_kb > 10000;
+
+##  Generate test data with repeating pattern  ##
+my $pattern      = "Test STRM-SIZE transparent data: " . time() . "\n";
+my $repeat_count = int( ( $size_kb * 1024 ) / length($pattern) ) + 1;
+my $test_data    = ( $pattern x $repeat_count );
+$test_data = substr $test_data, 0, $size_kb * 1024;
+
+<[base.logs]>->(
+    1,
+    "channels.test-strm-size: returning %d bytes in SIZE mode",
+    bytes::length($test_data)
+);
+
+##  Return as SIZE mode - protocol will auto-fragment if > threshold  ##
+return {
+    'mode' => 'SIZE',
+    'data' => $test_data
+};
+
+1;
+
+#,,..,.,.,,,,,.,.,...,,,.,.,.,,.,,...,,..,,..,..,,...,.,.,..,,,,.,,..,..,,..,,
+#XP37LWMDOBW5RQRFMVOK7X36P3XJXBBTVEUNHSIRILUOY3EHY2DME5ZRFZPYF6AYYKGIYFYM2JZU2
+#\\\|S2PPLM6JJTYLOTVDQICUHLSI5EDONO47AYWAKUPZX4LLTOX4N63 \ / AMOS7 \ YOURUM ::
+#\[7]KR2MRU24POMDDCJIZFRCVHN6OEDDQSOWNA2R2FEYGHREPVFBZCAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

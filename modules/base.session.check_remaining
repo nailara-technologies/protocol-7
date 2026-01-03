@@ -49,7 +49,6 @@ if (    ( $session_count + $exit_count ) == 0
                 $callback_name
             );
         } else {
-
             <[base.log]>->( 2, "executing 'closing_last' callback..," );
             $code{$callback_name}
                 ->( <callback.session.closing_last.params> - @* );
@@ -58,16 +57,17 @@ if (    ( $session_count + $exit_count ) == 0
 }
 
 if ( $session_count == 0 and <system.zenka.name> eq qw| v7 | ) {  #[v7-zenka]#
-    my $check_cmd = qw| v7.zenka.cmd.get-instance-ids |;
+    my $check_cmd = qw| zenka.cmd.get-instance-ids |;
     if ( exists $code{$check_cmd} ) {
-        my $cmd_reply  = $code{$check_cmd}->(qw| cube |);
-        my $reply_mode = $cmd_reply->{'mode'};
-        <[v7.teardown]> if defined $reply_mode and $reply_mode eq qw|false|;
+        my $cmd_reply = $code{$check_cmd}->(qw| cube |);    ## cube zenka? ##
+        ##
+        <[v7.teardown]>->( 'cube zenka shut down intentionally', qw| none | )
+            if $cmd_reply->{'mode'} eq qw| false |;   ## status : shut-down ##
     }
 }
 
-#,,,.,,.,,.,,,..,,.,.,...,,,,,..,,,,.,,.,,,,,,..,,...,..,,...,,,.,.,.,,.,,.,,,
-#U3VRM5246ZUY6YZXPT2QCQGMDTGOPGYXR4KAMVRMMTMMKPQMXDML5LVD2WM3EHPLSWR3COQOBWTRK
-#\\\|UHIWWRBSCAVC6TVC42PZY6Q4NUXABHRMXPRA6QLBURF4NAZRZTN \ / AMOS7 \ YOURUM ::
-#\[7]FPZIRMRIWRQMY4TU7R52773CMMTWJJX5AM4C43Q4RD4HKROPQUAY 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,,.,.,.,.,,,,,,,...,,.,,...,,..,..,,...,...,.,.,,.,,,..,,..,,,,,
+#HQJUKFUGEPOV6RO73XMXM3STNDAWMSJZTGB2L5FA72QQGODVTABU42PBONZQ64SWGTJOZVB3X3F4A
+#\\\|6T6XLAENT7LJ2BI4KAPUNIXZJ64DH3U33C6TIAKFZ5Y4LOMXE72 \ / AMOS7 \ YOURUM ::
+#\[7]X4JLIAF4EMIJ7XJXG6IP2I6GMMLUM3YSQZSJNIYWQNNHOBAE34DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
