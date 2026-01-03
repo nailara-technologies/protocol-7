@@ -38,26 +38,36 @@ if (    ( $session_count + $exit_count ) == 0
         return if <v7.check_remaining.fail_count> < 2;
     }
 
-    if ( defined <callback.session.closing_last.name> ) {
+    my $callback_name = <callback.session.closing_last.name>;
+
+    if ( not defined $callback_name
+        or ref $code{$callback_name} ne qw| CODE | ) {
         my $callback_name = <callback.session.closing_last.name>;
+        if ( not exists $code{$callback_name} ) {
+            <[base.logs]>->(
+                0, ":: callback '%s' not found., [closing_last]",
+                $callback_name
+            );
+        } else {
 
-        <[base.logs]>->(
-            0, "'closing_last' callback '%s' not defined",
-            $callback_name
-        ) if ref $code{$callback_name} ne qw| CODE |;
-
-        <[base.log]>->( 2, "executing 'closing_last' callback..," );
-        $code{$callback_name}->( @{<callback.session.closing_last.params>} );
+            <[base.log]>->( 2, "executing 'closing_last' callback..," );
+            $code{$callback_name}
+                ->( <callback.session.closing_last.params> - @* );
+        }
     }
 }
 
-<[v7.teardown]>
-    if !$session_count
-    and <system.zenka.name> eq qw| v7 |
-    and <[v7.zenka.cmd.get-instance-ids]>->('cube')->{'mode'} eq qw| false |;
+if ( $session_count == 0 and <system.zenka.name> eq qw| v7 | ) {  #[v7-zenka]#
+    my $check_cmd = qw| v7.zenka.cmd.get-instance-ids |;
+    if ( exists $code{$check_cmd} ) {
+        my $cmd_reply  = $code{$check_cmd}->(qw| cube |);
+        my $reply_mode = $cmd_reply->{'mode'};
+        <[v7.teardown]> if defined $reply_mode and $reply_mode eq qw|false|;
+    }
+}
 
-#,,,.,,..,,,.,..,,,..,,..,.,,,,,.,.,.,,.,,,..,..,,...,...,.,.,.,.,,..,,,,,..,,
-#O543FL2UXEPRNI2CJIIZ7ODFP7QON7HNPAVBLSFXDLQ4VIUBSBHXHPQULN5DUTIIJRKQZYHJ7J7WA
-#\\\|MWG7EE5MQXANZVIY7HU4JR5VYDGP7E4WTBI2VWULTENSLVMJAXY \ / AMOS7 \ YOURUM ::
-#\[7]SNHZKBYTZLPRFU6DTBJZLNGHUNQ35VSDIKZDP23LMJIR6KNMQECY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,..,,.,.,...,,,,,..,,,,.,,.,,,,,,..,,...,..,,...,,,.,.,.,,.,,.,,,
+#U3VRM5246ZUY6YZXPT2QCQGMDTGOPGYXR4KAMVRMMTMMKPQMXDML5LVD2WM3EHPLSWR3COQOBWTRK
+#\\\|UHIWWRBSCAVC6TVC42PZY6Q4NUXABHRMXPRA6QLBURF4NAZRZTN \ / AMOS7 \ YOURUM ::
+#\[7]FPZIRMRIWRQMY4TU7R52773CMMTWJJX5AM4C43Q4RD4HKROPQUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
