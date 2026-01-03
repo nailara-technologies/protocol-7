@@ -7,7 +7,8 @@
 
 my $args = $$call{'args'} // '';
 my $review_id = $args;
-$review_id =~ s|^\s+|\s*$||;  ## trim ##
+$review_id =~ s|^\s+||;           ## trim leading whitespace ##
+$review_id =~ s|\s+$||;           ## trim trailing whitespace ##
 
 return {
     'mode' => qw| false |,
@@ -87,8 +88,8 @@ sub _get_current_stage {
 
 1;
 
-#,,.,,...,.,,,..,,,,,,,.,,.,.,,,.,,..,..,,.,,,...,...,...,,,.,...,,,,,..,,,,.,
-#ENFT2V7X3VJOBKI6OZM3RZYF4T6URSX4C4VAWNYTBDRGPOBARR4HFABLBVJGHP32RP7E56HHGK672
-#\\\|ESJNXRFU43SFP7WSPZ7BZNDWRDXWEMWACYPFIM6PQ6J3F4WHKDF \ / AMOS7 \ YOURUM ::
-#\[7]WTJTY3ZAWFSRAQLME6RZBVJ3EUM3HS2C52ALTMCCMRSFPYIFK4DA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,..,,,.,...,,,.,..,,..,,,..,,,,,...,...,...,.,,,.,.,.,.,...,..,,
+#EVVK26UTHHDXUHSDFDOQM36ACRMPLATMTXSU2LXKK6NLZZ4APONRBP73H3RZ2OSR63SSXLH5VTIPS
+#\\\|M3SKIP632YO7GUKOEQNKTNWQTL7AMLYXFZYX3S4WYKAEIPK3CS2 \ / AMOS7 \ YOURUM ::
+#\[7]RNQ4IC6QYDVXODD2QBY5U4TIC2LQDPUHAVK3ZIG3IUK2JIJI3QCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,7 +7,8 @@
 
 my $args = $$call{'args'} // '';
 my $since_ts_b32 = $args;
-$since_ts_b32 =~ s|^\s+|\s*$||;  ## trim whitespace ##
+$since_ts_b32 =~ s|^\s+||;        ## trim leading whitespace ##
+$since_ts_b32 =~ s|\s+$||;        ## trim trailing whitespace ##
 
 return {
     'mode' => qw| false |,
@@ -50,8 +51,8 @@ return {
 
 1;
 
-#,,,,,...,,,,,...,.,.,..,,...,.,.,,,.,...,,,,,.,.,...,..,,,.,,...,,..,..,,...,
-#UANGNVWG4ZZGLPIMIMRTNAN5XHTAABW4R5MHCFT2NODNLK6UKXVVTDRL7347L4NY6BKX4MWNIVPEQ
-#\\\|HVTOM7KFQSZZFKYBPXHQWUECJQNDM3SPHSB2RPJ5SJ4IOLOS3FL \ / AMOS7 \ YOURUM ::
-#\[7]R344ZH3JDDCX5JRRK7OTXWF6KIKUKXESYIY3O5JBAS7RDKLEGWAQ 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,..,,...,.,,,,,.,...,.,,,,..,,,,,.,.,...,...,...,.,.,.,.,,,.,...,
+#HN4I7HQJVQENB6GTNUMSVHTFJNKLWL452WCOI6GDMG57GYI23IVDUGBYJIO7YTA2EWSHRG5EZBUKU
+#\\\|KFVDCWQFMSUJB2T2RY3JAPKHLUGM52BDYZJKQH6NKYFPJOQV2CW \ / AMOS7 \ YOURUM ::
+#\[7]J4FKMKWRMMEQOGOS7BL453Q2ODUFN3XOHW25ZFGWKLYWCIP3TMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
