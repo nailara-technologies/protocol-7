@@ -1,0 +1,121 @@
+## [:< ##
+
+# name  = channels.handler.content-detected
+# descr = Process newly detected content and queue for routing to interested subscribers
+# args  = hash { content_data }
+# return = hash { queued => count, errors => [...] }
+
+my $args = shift;
+return { 'queued' => 0, 'errors' => ['no arguments provided'] }
+    unless defined $args and ref $args eq 'HASH';
+
+my $content_data = $args->{'content_data'};
+return { 'queued' => 0, 'errors' => ['no content_data provided'] }
+    unless defined $content_data and ref $content_data eq 'HASH';
+
+my $queued_count = 0;
+my @errors;
+
+##  Validate required content metadata  ##
+my $title = $content_data->{'title'} // 'Untitled';
+my $url = $content_data->{'url'};
+my $content_type = $content_data->{'type'} // 'generic';
+my $source = $content_data->{'source'} // 'unknown';
+
+return { 'queued' => 0, 'errors' => ['missing content URL'] }
+    unless defined $url and length $url;
+
+##  Generate unique content ID  ##
+my $content_id = "content_" . <[base.gen_id]>->({});
+
+##  Store discovered content metadata  ##
+<channels.discovered_content> //= {};
+<channels.discovered_content>->{$content_id} = {
+    'content_id'     => $content_id,
+    'title'          => $title,
+    'url'            => $url,
+    'type'           => $content_type,
+    'source'         => $source,
+    'discovered_at'  => <[base.time]>->(2),
+    'description'    => $content_data->{'description'} // '',
+    'duration'       => $content_data->{'duration'},
+    'author'         => $content_data->{'author'},
+    'thumbnail_url'  => $content_data->{'thumbnail_url'},
+    'metadata'       => $content_data->{'metadata'} // {}
+};
+
+##  Determine target channel based on content type  ##
+my $type_channels = <channels.content_type_map> // {};
+my $target_channel = $type_channels->{$content_type} // 'media.discovered';
+
+##  Queue for routing to subscribers  ##
+my $queue_id = "queue_" . <[base.gen_id]>->({});
+<channels.discovery_queue> //= {};
+<channels.discovery_queue>->{$queue_id} = {
+    'queue_id'        => $queue_id,
+    'content_id'      => $content_id,
+    'target_channel'  => $target_channel,
+    'priority'        => $content_data->{'priority'} //
+                         (<channels.discovery.cfg.default_priority> // 5),
+    'queued_at'       => <[base.time]>->(2),
+    'status'          => 'pending',
+    'routed_to'       => []
+};
+
+##  Build notification payload for subscribers  ##
+my $discovery_notification = {
+    'content_id'      => $content_id,
+    'title'           => $title,
+    'url'             => $url,
+    'type'            => $content_type,
+    'source'          => $source,
+    'discovered_at'   => <[base.time]>->(2),
+    'description'     => $content_data->{'description'} // '',
+    'thumbnail_url'   => $content_data->{'thumbnail_url'}
+};
+
+##  Serialize and post to content channel  ##
+my $json_str = do {
+    my $json = <[base.perlmod.load]>->('JSON::PP');
+    eval { JSON::PP::encode_json($discovery_notification) };
+};
+
+if ( length $EVAL_ERROR ) {
+    push @errors, "JSON encoding error: $EVAL_ERROR";
+} else {
+    ##  Post to the appropriate media channel  ##
+    <[channels.cmd.update]>->({
+        'call' => {
+            'args'       => "$target_channel $json_str",
+            'session_id' => 'content-discovery'
+        }
+    });
+
+    $queued_count++;
+
+    <[base.logs]>->(
+        1,
+        "channels content-discovery: queued '%s' (type: %s) for routing to %s",
+        $title,
+        $content_type,
+        $target_channel
+    );
+
+    ##  Update statistics  ##
+    <channels.discovery.stats>->{'total_discovered'}++;
+    <channels.discovery.stats>->{'total_queued'}++;
+    <channels.discovery.stats>->{'last_discovery'} = <[base.time]>->(2);
+}
+
+return {
+    'queued' => $queued_count,
+    'errors' => @errors ? \@errors : undef
+};
+
+1;
+
+#,,..,,,.,.,.,,,.,,,.,,,.,,,,,,,.,,,,,,..,..,,...,...,...,.,,,.,.,,.,,,,,,,.,,
+#EEZIHBYYJHTEVZFW7XW2FA4FSUR27ZB2Y4F4Z23UBH6YIAYXTGI37HG6QRFQL63L5VWF4JGMSVMOA
+#\\\|4XFYMQCO7JMFWYMHU2C4ZK5BNC3PHD6NZL56HGMNX6SKYU3VNRI \ / AMOS7 \ YOURUM ::
+#\[7]TBCCJFD45MUPZAMVE736AA6YMLPKNF4HCV5L3FFWAVF7V5CSMSBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

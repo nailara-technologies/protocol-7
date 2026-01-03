@@ -1,0 +1,102 @@
+## [:< ##
+
+# name  = channels.handler.playlist-integration
+# descr = Route discovered content to playlist zenka for addition to queues
+# args  = hash { channel_path, content_data }
+# return = hash { routed => count, errors => [...] }
+
+my $args = shift;
+return { 'routed' => 0, 'errors' => ['no arguments provided'] }
+    unless defined $args and ref $args eq 'HASH';
+
+my $channel_path = $args->{'channel_path'};
+my $content_data = $args->{'content_data'};
+
+return { 'routed' => 0, 'errors' => ['no channel_path or content_data'] }
+    unless defined $channel_path and defined $content_data;
+
+##  Map channel names to playlist contexts  ##
+my %channel_to_playlist = (
+    'media.youtube'    => 'youtube-queue',
+    'media.videos'     => 'video-queue',
+    'media.podcasts'   => 'podcast-queue',
+    'media.music'      => 'music-queue',
+    'media.articles'   => 'articles-queue',
+    'media.discovered' => 'discovered-queue'
+);
+
+my $playlist_context = $channel_to_playlist{$channel_path} // 'general-queue';
+
+my $routed_count = 0;
+my @errors;
+
+##  Build playlist entry from discovered content  ##
+my $playlist_entry = {
+    'title'           => $content_data->{'title'} // 'Untitled',
+    'url'             => $content_data->{'url'},
+    'type'            => $content_data->{'type'} // 'generic',
+    'source'          => $content_data->{'source'} // 'discovered',
+    'added_at'        => <[base.time]>->(2),
+    'description'     => $content_data->{'description'} // '',
+    'duration'        => $content_data->{'duration'},
+    'author'          => $content_data->{'author'},
+    'thumbnail_url'   => $content_data->{'thumbnail_url'},
+    'priority'        => $content_data->{'priority'} // 5,
+    'status'          => 'queued'
+};
+
+##  Serialize playlist entry  ##
+my $json_str = do {
+    my $json = <[base.perlmod.load]>->('JSON::PP');
+    eval { JSON::PP::encode_json($playlist_entry) };
+};
+
+if ( length $EVAL_ERROR ) {
+    push @errors, "JSON encoding error: $EVAL_ERROR";
+    return { 'routed' => 0, 'errors' => \@errors };
+}
+
+##  Route to playlist zenka via channels  ##
+##  Target channel: playlist.${playlist_context}.add-item
+##
+
+my $playlist_channel = "playlist.$playlist_context.add-item";
+
+my $add_result = <[channels.cmd.update]>->({
+    'call' => {
+        'args'       => "$playlist_channel $json_str",
+        'session_id' => 'content-discovery'
+    }
+});
+
+unless ( defined $add_result and $add_result->{'mode'} eq 'timestamp' ) {
+    push @errors, "failed to post to playlist channel: $playlist_channel";
+} else {
+    $routed_count++;
+
+    <[base.logs]>->(
+        1,
+        "channels: routed '%s' to playlist context %s",
+        $content_data->{'title'},
+        $playlist_context
+    );
+
+    ##  Update statistics  ##
+    <channels.discovery.stats>->{'total_routed'}++;
+}
+
+##  Also enable intelligent filtering based on LLM interest evaluation  ##
+##  (Will be evaluated by interested LLM zenka subscribing to these channels)  ##
+
+return {
+    'routed' => $routed_count,
+    'errors' => @errors ? \@errors : undef
+};
+
+1;
+
+#,,,,,,,,,,,.,,.,,.,,,,..,.,.,.,,,,,,,,,.,...,...,...,...,.,.,..,,..,,.,.,,..,
+#HWIXVE5MY64SXXCG4JLHBFLGRGYVIS2O4MS7YXDVO7SWJUL7K4Q4V5NEFIHOY7GN7YFJUMGZWVXOU
+#\\\|UHDU4UY57ANWHGMTAGBQHBM2M6QNJZJ3QQZIBZJGLGQUWM2CFJR \ / AMOS7 \ YOURUM ::
+#\[7]BGFG7SHUGSVEWBYYSGAUOFCYO3IULZTK74XWGMYTY2LH2RP2HWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
