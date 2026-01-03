@@ -1,0 +1,118 @@
+## [:< ##
+
+# name  = channels.memory-sync.conflict-resolver
+# descr = Resolve conflicts when local and remote changes collide on same data path
+# args  = hash { local_path, local_value, remote_value, watch_config }
+# return = hash { resolved => 0/1, winning_value => ..., strategy => ... }
+
+my $args = shift;
+return { 'resolved' => 0, 'error' => 'no arguments provided' }
+    unless defined $args and ref $args eq 'HASH';
+
+my $local_path = $args->{'local_path'};
+my $local_value = $args->{'local_value'};
+my $remote_value = $args->{'remote_value'};
+my $watch_config = $args->{'watch_config'};
+
+return { 'resolved' => 0, 'error' => 'missing required arguments' }
+    unless defined $local_path and defined $watch_config;
+
+##  Determine conflict resolution strategy  ##
+my $strategy = <channels.memory_sync.cfg.conflict_resolution> // 'timestamp';
+
+##  Check for equality first  ##
+if ( defined $local_value and defined $remote_value ) {
+    if ( $local_value eq $remote_value ) {
+        return {
+            'resolved'       => 1,
+            'winning_value'  => $local_value,
+            'strategy'       => 'identical'
+        };
+    }
+}
+
+##  If one side is undefined, use the defined value  ##
+if ( !defined $local_value and defined $remote_value ) {
+    return {
+        'resolved'       => 1,
+        'winning_value'  => $remote_value,
+        'strategy'       => 'remote-defined'
+    };
+}
+
+if ( defined $local_value and !defined $remote_value ) {
+    return {
+        'resolved'       => 1,
+        'winning_value'  => $local_value,
+        'strategy'       => 'local-defined'
+    };
+}
+
+##  Apply configured conflict resolution strategy  ##
+my $winning_value;
+
+if ( $strategy eq 'timestamp' ) {
+    ##  Prefer most recent change  ##
+    my $local_ts = $args->{'local_timestamp'} // 0;
+    my $remote_ts = $args->{'remote_timestamp'} // 0;
+
+    $winning_value = $local_ts >= $remote_ts ? $local_value : $remote_value;
+
+    <[base.logs]>->(
+        1,
+        "channels memory-sync: resolved conflict on '%s' by timestamp (local: %d, remote: %d)",
+        $local_path,
+        $local_ts,
+        $remote_ts
+    );
+
+} elsif ( $strategy eq 'priority' ) {
+    ##  Prefer higher priority watch  ##
+    my $local_priority = $args->{'local_priority'} // 5;
+    my $remote_priority = $args->{'remote_priority'} // 5;
+
+    $winning_value = $local_priority >= $remote_priority ? $local_value : $remote_value;
+
+    <[base.logs]>->(
+        1,
+        "channels memory-sync: resolved conflict on '%s' by priority (local: %d, remote: %d)",
+        $local_path,
+        $local_priority,
+        $remote_priority
+    );
+
+} elsif ( $strategy eq 'local-wins' ) {
+    $winning_value = $local_value;
+
+    <[base.logs]>->(
+        1,
+        "channels memory-sync: resolved conflict on '%s' (local-wins strategy)",
+        $local_path
+    );
+
+} elsif ( $strategy eq 'remote-wins' ) {
+    $winning_value = $remote_value;
+
+    <[base.logs]>->(
+        1,
+        "channels memory-sync: resolved conflict on '%s' (remote-wins strategy)",
+        $local_path
+    );
+
+} else {
+    return { 'resolved' => 0, 'error' => "unknown strategy: $strategy" };
+}
+
+return {
+    'resolved'       => 1,
+    'winning_value'  => $winning_value,
+    'strategy'       => $strategy
+};
+
+1;
+
+#,,..,,,,,,,,,,,.,.,,,..,,,.,,,,.,,.,,,.,,..,,.,,,...,...,,..,.,,,,,.,.,.,,,,,
+#VY2DXW5QR2LUS5ROJEQAIRBB2Q2WCPNVXIJTCMTBYPH4RU4XC5YQ66WVFL4RFYKAVIHOV2GUFEFCS
+#\\\|36UHCOFBJPD5J5NYRZFB55DTU2N7ANBVI5VWIQY3NHLVSCMX7GR \ / AMOS7 \ YOURUM ::
+#\[7]X3AR4IWNOMP26H456HQ6MRLFD3V3K36FE4NX4LEIJFUO7EASTIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
