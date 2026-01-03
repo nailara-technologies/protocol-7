@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = cube.cmd.select-strm-mode
+# descr = Select STRM response mode for session (locked or normal)
+# param = [locked|normal]
+# return = { mode => 'true', data => 'strm-mode [locked|normal]' }
+
+my $sid     = $call->{'session_id'};
+my $mode    = lc( $call->{'args'} // '' );
+my $session = $data{'session'}{$sid};
+
+if ( length $mode and $mode eq qw| locked | ) {
+    $session->{'strm-mode-locking'} = TRUE;
+    <[base.logs]>->( 2, "[%d] strm-mode set to locked", $sid );
+    return { 'mode' => qw| true |, 'data' => 'strm-mode [locking]' };
+
+} elsif ( length $mode and $mode eq qw| permissive | ) {
+    delete $session->{'strm-mode-locking'};    ## cleared \ not set ##
+    <[base.logs]>->( 2, "[%d] strm-mode set to normal", $sid );
+    return { 'mode' => qw| true |, 'data' => 'strm-mode [normal]' };
+
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' => 'expected [locked|normal] to select strm-mode'
+    };
+}
+
+#,,..,.,.,,..,,..,...,...,,..,,..,,,,,,,.,.,.,..,,...,..,,.,.,,,,,,.,,.,.,,,,,
+#7PCIGSCEGFEJEYXIFBFVCB6VD5XAVHORJVWVGBKD3XMNPBBO6ENNVOJR3LF6P2LVU7YS6AUMEKPC6
+#\\\|WLORPQTJ7CQ4B6MJSJGTTCBMN4GLX526EB7HVSA4DZZ6W5GEAOL \ / AMOS7 \ YOURUM ::
+#\[7]IXNT3K6MRLKON23COVPRCFJLPEUMK75XTFYWE6H4S6XH3REHKOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

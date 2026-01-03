@@ -230,7 +230,7 @@ elsif ( $input->$* =~ s|^[ \t\n]+||sg ) {
 elsif ( defined $session->{'blocked_by_stream'} ) {
 
     $event->w->start;    ##  restarting input buffer processing  ##
-    return 1;            ## command not complete (waiting for STRM-SIZE close) ###
+    return 1;    ## command not complete (waiting for STRM-SIZE close) ###
 }
 
 ##[ SINGLE LINE CMD ]#########################################################
@@ -783,25 +783,26 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
                     ## Save handler/params for later delivery on close ##
                     if ( defined $route->{'reply'}->{'handler'} ) {
-                        if ( defined $code{ $route->{'reply'}->{'handler'} } ) {
-                            $session->{'streams'}{$cmd_id}->{'handler'} =
-                                $route->{'reply'}->{'handler'};
-                            $session->{'streams'}{$cmd_id}->{'params'} =
-                                $route->{'reply'}->{'params'};
+                        if ( defined $code{ $route->{'reply'}->{'handler'} } )
+                        {
+                            $session->{'streams'}{$cmd_id}->{'handler'}
+                                = $route->{'reply'}->{'handler'};
+                            $session->{'streams'}{$cmd_id}->{'params'}
+                                = $route->{'reply'}->{'params'};
                         }
                     } else {
                         ## Mark for routing to source (no handler) ##
-                        $session->{'streams'}{$cmd_id}->{'route_source_sid'} =
-                            $route->{'source'}->{'sid'};
-                        $session->{'streams'}{$cmd_id}->{'route_source_cmd_id'} =
-                            $s_cmd_id;
+                        $session->{'streams'}{$cmd_id}->{'route_source_sid'}
+                            = $route->{'source'}->{'sid'};
+                        $session->{'streams'}{$cmd_id}
+                            ->{'route_source_cmd_id'} = $s_cmd_id;
                     }
 
                     ## Block session to STRM-SIZE stream ##
                     $session->{'blocked_by_stream'} = $cmd_id;
 
                     <[base.logs]>->(
-                        2,   "[%d] STRM-SIZE open: %d bytes (session blocked)",
+                        2, "[%d] STRM-SIZE open: %d bytes (session blocked)",
                         $id, $total_bytes
                     );
 
@@ -820,7 +821,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                                 += bytes::length($chunk_data);
 
                             ## Forward raw chunk data to source immediately ##
-                            if ( defined $session->{'streams'}{$cmd_id}
+                            if (defined $session->{'streams'}{$cmd_id}
                                 ->{'handler'} ) {
                                 ## Handler will get data on close ##
                                 $session->{'streams'}{$cmd_id}->{'buffer'}
@@ -829,8 +830,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                                     .= $chunk_data;
                             } else {
                                 ## Forward raw bytes to source zenka output ##
-                                $data{'session'}{ $route->{'source'}->{'sid'} }
-                                    {'buffer'}{'output'} .= $chunk_data;
+                                $data{'session'}
+                                    { $route->{'source'}->{'sid'} }{'buffer'}
+                                    {'output'} .= $chunk_data;
                             }
 
                             <[base.logs]>->(
@@ -860,8 +862,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         my $stream = $session->{'streams'}{$cmd_id};
 
                         ## Validate received bytes match announced total ##
-                        if ( $stream->{'received_bytes'} !=
-                            $stream->{'total_bytes'} ) {
+                        if ( $stream->{'received_bytes'}
+                            != $stream->{'total_bytes'} ) {
                             <[base.logs]>->(
                                 1,
                                 "[%d] STRM-SIZE close mismatch: %d != %d bytes",
@@ -872,7 +874,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
                             ## Send FALSE to source and drop route ##
                             $data{'session'}{ $route->{'source'}->{'sid'} }
-                                {'buffer'}{'output'} .= sprintf
+                                {'buffer'}{'output'}
+                                .= sprintf
                                 "%sFALSE STRM-SIZE incomplete: %d/%d bytes\n",
                                 $s_cmd_id,
                                 $stream->{'received_bytes'},
@@ -883,8 +886,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                             my $accumulated_data = $stream->{'buffer'};
 
                             <[base.logs]>->(
-                                2,
-                                "[%d] STRM-SIZE complete: %d bytes",
+                                2,   "[%d] STRM-SIZE complete: %d bytes",
                                 $id, $stream->{'total_bytes'}
                             );
 
@@ -892,22 +894,23 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                             if ( defined $stream->{'handler'} ) {
                                 if ( defined $code{ $stream->{'handler'} } ) {
                                     $code{ $stream->{'handler'} }->(
-                                        {   'sid' => $id,
-                                            'cmd' => 'SIZE',
-                                            'call_args' =>
-                                                { 'args' =>
-                                                    $stream->{'total_bytes'} },
-                                            'params'    => $stream->{'params'},
-                                            'data'      => $accumulated_data
+                                        {   'sid'       => $id,
+                                            'cmd'       => 'SIZE',
+                                            'call_args' => {
+                                                'args' =>
+                                                    $stream->{'total_bytes'}
+                                            },
+                                            'params' => $stream->{'params'},
+                                            'data'   => $accumulated_data
                                         }
                                     );
                                 }
                             } else {
                                 ## Forward atomic SIZE reply to source ##
-                                $data{'session'}{ $stream
-                                    ->{'route_source_sid'} }
-                                    {'buffer'}{'output'} .=
-                                    <[base.sprint_t]>->(
+                                $data{'session'}
+                                    { $stream->{'route_source_sid'} }
+                                    {'buffer'}{'output'}
+                                    .= <[base.sprint_t]>->(
                                     qw| X3QVAWA |,
                                     $stream->{'route_source_cmd_id'},
                                     sprintf( qw| %04d |,
@@ -1229,13 +1232,16 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
 
-                    ## SIZE mode: reports BYTE count (with global 'use bytes;' pragma)
+                    ## SIZE mode: reports BYTE count
+                    ## [ with global 'use bytes' pragma ]
                     my $data_to_send        = $reply->{'data'};
                     my $total_bytes         = bytes::length($data_to_send);
                     my $strm_size_threshold = <protocol.strm_size.threshold>
                         // 65536;
 
                     ## Check if we should use STRM-SIZE fragmentation
+                    ## Note: strm-mode-locking means client can
+                    ##        handle STRM, but doesn't force it
                     if ( $total_bytes > $strm_size_threshold ) {
 
                         ## STRM-SIZE mode: Transparent SIZE fragmentation
@@ -1285,9 +1291,11 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         my $count;
                         my $template;
 
-                        ## Check session preference for response format (default: SIZE/bytes)
+                        ## Check session preference for response
+                        ##       format [ default : SIZE|bytes ]
                         if ( $session_mode eq qw| CHRSIZE | ) {
-                            ## Translate to CHRSIZE mode: count UTF-8 characters
+                            ## Translate to CHRSIZE mode :
+                            ##    count UTF-8 characters
                             my $test_data = $data_to_send;
                             utf8::upgrade($test_data);
                             $count = length($test_data);
@@ -1377,7 +1385,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
         if ( exists $data{'user'}{ ${^CAPTURE}[0] }{'session'}
             and $data{'user'}{ ${^CAPTURE}[0] }{'mode'} eq qw| link | ) {
 
-       #            <[net.send_command]>->( $id, $command_id, $cmd, @params );
+            #       <[net.send_command]>->( $id, $command_id, $cmd, @params );
         }
         return 0;    ## comand complete ##
     }
@@ -1699,8 +1707,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 return 0;        ## comand complete ##
 
-#,,,,,.,,,.,.,,,.,,,.,.,,,,,,,,..,..,,,,.,,,.,..,,...,...,,,,,.,,,,.,,,.,,,..,
-#DCGF2T2KQR272AD5SK37QB4XHDV5PC3SKOBD2WJSWGNI7XGZH6G4VYBKFXOYWF5766GTN4NABU53C
-#\\\|4URQ4H5Y34IALQ7KU762TKAG64QON5ZMOP44JCQ5H2QZRDWBT7G \ / AMOS7 \ YOURUM ::
-#\[7]SE6EEUUC2YPGGDZXAG2APUVGZSB72TP6P44NMFX6AVLQI3C6QGDI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,,,,,.,.,,,,.,,.,,,,,,,...,...,..,,...,...,..,,,,,,.,.,,.,,..,,
+#P3P7NXZRXOKN7J5RQBLMZ7Z5M3JHW57RAMLKJUHSMIVFH25IPLTFWHMVUDDSTBGRTFC5TVGJLFDII
+#\\\|AHLIDW352SA6NVKISXNJI7ST5BLQ2BNZCKNEGIVGHBWQPYHERJL \ / AMOS7 \ YOURUM ::
+#\[7]YV6T35PGZ3LJX5IGZ4DKGWHYTKKXC5U3ENLSJQLRBKYH5NWBAGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

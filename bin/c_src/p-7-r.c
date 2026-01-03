@@ -22,6 +22,14 @@ struct encryption_state {
     unsigned int write_counter;
 };
 
+/* Stream-locking state for STRM protocol handling */
+struct stream_state {
+    int locking_enabled;     /* 1 if stream-locking true sent */
+    int streaming;           /* 1 if in active STRM stream */
+    long expected_bytes;     /* From STRM open <N> */
+    long received_bytes;     /* Cumulative from STRM chunks */
+};
+
 char* concat(const char *s1, const char *s2)
 {
     const size_t len1 = strlen(s1);
@@ -480,6 +488,11 @@ int main( int argc, char * argv[] ) {
 
     /* Link-upgrade encryption negotiation (optional) */
     struct encryption_state enc_state = {0, NULL, 0, 0, 0};
+
+    /* Stream-locking state initialization */
+    struct stream_state stream = {0, 0, 0, 0};
+    stream.locking_enabled = 1;  /* p-7-r always uses locked mode for STRM safety */
+
     char *link_upgrade_env = secure_getenv("PROTOCOL_7_LINK_UPGRADE");
     if (link_upgrade_env && strcmp(link_upgrade_env, "yes") == 0) {
         if (negotiate_link_upgrade(socket_fd, &enc_state) == 0) {
@@ -490,18 +503,37 @@ int main( int argc, char * argv[] ) {
         }
     }
 
+    /* Send select-strm-mode first and read its response */
+    write( socket_fd, "select-strm-mode locked\n", 24 );
+
+    /* Read select-strm-mode response - should be TRUE */
+    char strm_response_line[256] = {0};
+    if (read_line(socket_fd, strm_response_line, sizeof(strm_response_line)) < 0) {
+        fprintf(stderr, "error reading strm-mode response\n");
+        close(socket_fd);
+        return 4;
+    }
+    if (strncmp(strm_response_line, "TRUE", 4) != 0) {
+        fprintf(stderr, "strm-mode not accepted: %s\n", strm_response_line);
+        /* Continue anyway - not fatal */
+    }
+    if (getenv("DEBUG"))
+        fprintf(stderr, "[select-strm-mode locked] accepted\n");
+
     /* send protocol-7 command string to socket */
     write( socket_fd, cmd_str, strlen(cmd_str) );
     free(cmd_str);
 
     char reply_type[13]   = "\0";
     char size_str_buf[24] = "\0";
+    char strm_arg_buf[64] = "\0";  /* For STRM open/close args */
 
     int output_bytes  = 0;
     int skip_this_one = 0;
     int continue_read = 1;
     int close_at_lf   = 1;
     int reading_size  = 0;
+    int reading_strm_arg = 0;  /* 1 if parsing STRM argument */
     long count_to_read = -1;    // Byte count (SIZE mode) or char count (CHRSIZE mode)
     int space_seen = 0;
     int utf8_char_count = 0;    // Track UTF-8 characters read (CHRSIZE mode only)
@@ -530,6 +562,8 @@ int main( int argc, char * argv[] ) {
 
                     int is_size_response = ( strcmp( reply_type, "SIZE" ) == 0 ||
                                              strcmp( reply_type, "CHRSIZE" ) == 0 );
+
+                    int is_strm_response = ( strcmp( reply_type, "STRM" ) == 0 );
 
                     if ( reading_size || is_size_response ) {
                         size_t sizes_len = strlen(size_str_buf);
@@ -563,6 +597,47 @@ int main( int argc, char * argv[] ) {
                             size_str_buf[sizes_len] = byte;
                         }
                     }
+
+                    /* STRM protocol handling */
+                    if ( is_strm_response && stream.locking_enabled ) {
+                        size_t arg_len = strlen(strm_arg_buf);
+
+                        if ( reading_strm_arg == 0 )
+                            reading_strm_arg = 1;
+
+                        if ( byte == '\n' ) {
+                            strm_arg_buf[arg_len] = '\0';
+
+                            /* Parse STRM argument: "open <bytes>" or "<chunk_size>" or "close" */
+                            if ( strncmp(strm_arg_buf, "open ", 5) == 0 ) {
+                                stream.expected_bytes = atol(strm_arg_buf + 5);
+                                stream.streaming = 1;
+                                stream.received_bytes = 0;
+                                /* Reset state to parse next STRM header fresh */
+                                memset(reply_type, 0, sizeof(reply_type));
+                                space_seen = 0;
+                            } else if ( strcmp(strm_arg_buf, "close") == 0 ) {
+                                /* Validate and exit */
+                                if (stream.received_bytes != stream.expected_bytes) {
+                                    fprintf(stderr, "[STRM] ERROR: incomplete stream %ld/%ld bytes\n",
+                                        stream.received_bytes, stream.expected_bytes);
+                                    return 1;
+                                }
+                                continue_read = 0;
+                            } else {
+                                /* chunk_size for data packet */
+                                count_to_read = atol(strm_arg_buf);
+                                bytes_read = 0;
+                                output_bytes = 1;
+                                skip_this_one = 1;
+                            }
+
+                            reading_strm_arg = 0;
+                            memset(strm_arg_buf, 0, sizeof(strm_arg_buf));
+                        } else {
+                            strm_arg_buf[arg_len] = byte;
+                        }
+                    }
                 }
 
                 if ( continue_read && output_bytes ) {
@@ -573,9 +648,10 @@ int main( int argc, char * argv[] ) {
                         /*  writing payload-data to stdout  */
                         write( STDOUT_FILENO, &byte, result_code );
 
-                        // Handle both SIZE (byte-based) and CHRSIZE (character-based) modes
+                        // Handle SIZE (byte-based), CHRSIZE (character-based), and STRM (byte-based) modes
                         if ( count_to_read > -1 ) {
                             int is_chrsize = ( strcmp( reply_type, "CHRSIZE" ) == 0 );
+                            int is_strm = ( strcmp( reply_type, "STRM" ) == 0 );
 
                             if ( is_chrsize ) {
                                 // CHRSIZE mode: count UTF-8 characters
@@ -586,8 +662,12 @@ int main( int argc, char * argv[] ) {
                                     utf8_char_count++;
                                 }
                             } else {
-                                // SIZE mode: count raw bytes
+                                // SIZE mode and STRM mode: count raw bytes
                                 bytes_read++;
+                                if ( is_strm ) {
+                                    // STRM mode: also track in stream state
+                                    stream.received_bytes++;
+                                }
                             }
                         }
                     }
@@ -597,6 +677,7 @@ int main( int argc, char * argv[] ) {
 
                     else if ( count_to_read > -1 ) {
                         int is_chrsize = ( strcmp( reply_type, "CHRSIZE" ) == 0 );
+                        int is_strm = ( strcmp( reply_type, "STRM" ) == 0 );
 
                         // Check if we've read enough based on response type
                         if ( is_chrsize ) {
@@ -604,9 +685,20 @@ int main( int argc, char * argv[] ) {
                             if ( utf8_char_count >= count_to_read )
                                 continue_read = 0;
                         } else {
-                            // SIZE mode: stop when bytes_read >= count_to_read
-                            if ( bytes_read >= count_to_read )
-                                continue_read = 0;
+                            // SIZE mode and STRM mode: stop when bytes_read >= count_to_read
+                            if ( bytes_read >= count_to_read ) {
+                                if ( is_strm ) {
+                                    // STRM mode: reset parsing state for next STRM header
+                                    count_to_read = -1;
+                                    bytes_read = 0;
+                                    output_bytes = 0;
+                                    memset(reply_type, 0, sizeof(reply_type));
+                                    space_seen = 0;
+                                } else {
+                                    // SIZE mode: normal completion
+                                    continue_read = 0;
+                                }
+                            }
                         }
                     }
                 }
