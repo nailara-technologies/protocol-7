@@ -7,7 +7,8 @@
 
 my $args = $$call{'args'} // '';
 my $channel_path = $args;
-$channel_path =~ s|^\s+|\s*$||;  ## trim whitespace ##
+$channel_path =~ s|^\s+||;        ## trim leading whitespace ##
+$channel_path =~ s|\s+$||;        ## trim trailing whitespace ##
 
 my $current_time = <[base.time]>->(3);  ## unix timestamp with subseconds ##
 my $current_ts_b32 = encode_b32r(pack('Q>', int($current_time)));
@@ -38,8 +39,8 @@ return {
 
 1;
 
-#,,,,,,.,,.,,,,.,,,,,,,..,,.,,,,,,,,.,..,,...,.,.,...,...,...,,..,.,,,...,,,,,
-#ZYHWSSETGNZSLKIM7JG7SS34DVMU2TENJONLTBOP6XRURM575JKN4YSAD3FQGSMMKWFVZHRMVAQUC
-#\\\|P2H6RY267KZPSNNPRDAEKVCXCN2KMJUU3BZSUXENO6JMHCLHVOR \ / AMOS7 \ YOURUM ::
-#\[7]MSRH6GD6GH25XVKQY4XAKD2DCYGDTNSGKFFOL56JFCT6EHJCH4DI 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,,,,..,,.,,,.,.,,,.,.,,,..,,.,,,.,.,...,...,,.,,,,.,..,,,,.,.,.,
+#ZZJD5U7KROD4S25FEDB5QX6NSDF2IYDNRAVYTADWHMACBADBO2YGCZZKE7XPJDUICBLKFBBLGGHME
+#\\\|DDGJSYIEW4YCHH7LIYCJUB2L5WFZXTD7DY34KEOF2KYFS7QKOXT \ / AMOS7 \ YOURUM ::
+#\[7]E35TWTIEZEPPDFSMW3W4YZ56E4N4DB32Q6U772PPUHRHAZ3WMQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
