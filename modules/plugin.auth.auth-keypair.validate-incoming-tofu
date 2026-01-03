@@ -129,7 +129,8 @@ if ( defined $incoming_file ) {
     my $pin_file = $unrestricted_file;
 
     ##  Write client's Ed25519 public key  ##
-    unless ( open my $fh, '>', $pin_file ) {
+    my $fh;
+    unless ( open $fh, '>', $pin_file ) {
         <[base.logs]>->(
             0,
             '[%d] auth-keypair TOFU: cannot pin incoming key for \'%s\': %s',
@@ -174,8 +175,8 @@ if ( defined $incoming_file ) {
 
 1;
 
-#,,.,,..,,.,,,,,,,,,,,,.,,,..,.,,,...,.,.,..,,.,.,...,...,,..,.,.,,.,,,.,,,.,,
-#NHCLQGLC3RHDDL757PQXUSS5LHOKYQLQ6GCCRENVB7C54RRMIN66NXDLIJQ45Y3NMVIJX3ZNMBDFY
-#\\\|67F32GA6O5BZ4CM4VERWRFQADC2NEY43GXXLL34WSLQQNHM4SVT \ / AMOS7 \ YOURUM ::
-#\[7]2XPRMA45KUBDW4HD3UXCOMYV7YZ45KJRP5N5D36GBEXENQ3DFIBQ 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,,.,,.,,,,,.,.,,,,.,,,,,,,,.,...,.,.,...,...,...,...,,,,,,,,,,,.,
+#BBTKYQX7G7BQOLPQLJQQVLI3HJQPO7KNEBNVNVPODLBUHPLZ7LIW33W6XXXVYTBNMFKVUOHB7HMM6
+#\\\|5YNTRSIJWCFG3YHSC646QBPLN4BN6MM5PCLLH65QEQTCYENIF43 \ / AMOS7 \ YOURUM ::
+#\[7]SYKZQUMXYNUALFZRHLGVNL6RWDIEX7BMBSKT3UD2X6BQ6AU2WUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
