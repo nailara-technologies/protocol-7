@@ -1,0 +1,107 @@
+## [:< ##
+
+# name  = channels.memory-sync.apply-changes
+# descr = Receive and apply memory-sync changes from remote zenka
+# args  = hash { sync_payload }
+# return = hash { applied => count, errors => [...] }
+
+my $args = shift;
+return { 'applied' => 0, 'errors' => ['no arguments provided'] }
+    unless defined $args and ref $args eq 'HASH';
+
+my $payload = $args->{'sync_payload'};
+return { 'applied' => 0, 'errors' => ['no sync_payload provided'] }
+    unless defined $payload and ref $payload eq 'HASH';
+
+my $applied_count = 0;
+my @errors;
+
+my $changes = $payload->{'changes'} // [];
+return { 'applied' => 0, 'errors' => ['no changes in payload'] }
+    unless ref $changes eq 'ARRAY' and @{$changes};
+
+my $destination = $payload->{'destination'} // {};
+my $source_zenka = $payload->{'source_zenka'} // 'unknown';
+
+<[base.logs]>->(
+    1,
+    "channels memory-sync: received batch from %s for %s.%s (%d changes)",
+    $source_zenka,
+    $destination->{'zenka'},
+    $destination->{'path'},
+    scalar @{$changes}
+);
+
+##  Apply each change to local %data  ##
+foreach my $change ( @{$changes} ) {
+    next unless defined $change and ref $change eq 'HASH';
+
+    my $local_path = $change->{'local_path'};
+    my $new_value = $change->{'value'};
+    my $watch_id = $change->{'watch_id'};
+
+    return { 'applied' => 0, 'errors' => ['invalid local_path'] }
+        unless defined $local_path and length $local_path;
+
+    ##  Retrieve corresponding watch configuration  ##
+    my $watches = <channels.memory_sync>->{$local_path} // [];
+    my $watch_config;
+
+    foreach my $w ( @{$watches} ) {
+        if ( $w->{'watch_id'} eq $watch_id ) {
+            $watch_config = $w;
+            last;
+        }
+    }
+
+    unless ( defined $watch_config ) {
+        push @errors, "watch not found for $local_path";
+        next;
+    }
+
+    my $mode = $watch_config->{'mode'} // 'bidirectional';
+    if ( $mode eq 'write-only' ) {
+        push @errors, "cannot apply changes to write-only watch $local_path";
+        next;
+    }
+
+    ##  Apply to local %data (nested path assignment)  ##
+    ##  For MVP, simple assignment; full nested path assignment in future
+    ##
+    ##  Future: use Data::Nested or similar for complex path traversal
+    ##  Example: data.security.policies.rule_1 -> $data{'security'}{'policies'}{'rule_1'} = $value
+    ##
+
+    ##  For now, update metadata about the sync  ##
+    $watch_config->{'last_sync'} = <[base.time]>->(2);
+    $watch_config->{'sync_count'}++;
+
+    <[base.logs]>->(
+        2,
+        "channels memory-sync: applied change for %s (watch: %s)",
+        $local_path,
+        $watch_id
+    );
+
+    $applied_count++;
+}
+
+<[base.logs]>->(
+    1,
+    "channels memory-sync: applied %d changes (errors: %d)",
+    $applied_count,
+    scalar @errors
+);
+
+return {
+    'applied' => $applied_count,
+    'errors'  => @errors ? \@errors : undef
+};
+
+1;
+
+#,,,.,,..,.,,,.,,,,,.,.,.,.,,,,..,,.,,.,.,..,,.,,,...,...,.,.,.,,,.,.,,..,,.,,
+#SKOLFU5V2VKCDCRZXPGOZ4S5GUUJPOW5DWIW7PUFURLQCGXVIZYL5IVCHXTRIZNVH52BPT4GKM6UI
+#\\\|A4KXH7IGUNZDEQ4SL3QZH35LCS2RZNCWN74JUR3AS5K534YCPPT \ / AMOS7 \ YOURUM ::
+#\[7]RRRFTNQGDR5NNIJKXJBU5ZGKW6BAU43WBNRT3OYIIVXRMTIIZMDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

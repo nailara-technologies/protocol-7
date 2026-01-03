@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = channels.memory-sync.register-watch
+# descr = Register variable watch for automatic memory-sync on data changes
+# args  = hash { local_path, remote_zenka, remote_path, mode, priority, ... }
+# return = hash { success => 0/1, watch_id => ..., error => ... }
+
+my $config = shift;
+return { 'success' => 0, 'error' => 'no configuration provided' }
+    unless defined $config and ref $config eq 'HASH';
+
+my $local_path = $config->{'local_path'};
+my $remote_zenka = $config->{'remote_zenka'};
+my $remote_path = $config->{'remote_path'};
+my $mode = $config->{'mode'} // 'bidirectional';
+
+return { 'success' => 0, 'error' => 'missing local_path' }
+    unless defined $local_path and length $local_path;
+
+return { 'success' => 0, 'error' => 'missing remote configuration' }
+    unless defined $remote_zenka and length $remote_zenka;
+
+return { 'success' => 0, 'error' => 'missing remote_path' }
+    unless defined $remote_path and length $remote_path;
+
+##  Validate mode  ##
+my %valid_modes = ( 'bidirectional' => 1, 'read-only' => 1, 'write-only' => 1 );
+return { 'success' => 0, 'error' => "invalid mode: $mode" }
+    unless $valid_modes{$mode};
+
+##  Generate unique watch ID  ##
+my $watch_id = "${local_path}_" . <[base.gen_id]>->({});
+
+##  Store mapping in memory-sync configuration  ##
+<channels.memory_sync>->{$local_path} //= [];
+
+push @{<channels.memory_sync>->{$local_path}}, {
+    'watch_id'      => $watch_id,
+    'remote_zenka'  => $remote_zenka,
+    'remote_path'   => $remote_path,
+    'mode'          => $mode,
+    'priority'      => $config->{'priority'} // 5,
+    'compress'      => $config->{'compress'} // 0,
+    'retry'         => $config->{'retry'} // 3,
+    'registered_at' => <[base.time]>->(2),
+    'last_sync'     => undef,
+    'sync_count'    => 0,
+    'error_count'   => 0
+};
+
+##  Register with events system for automatic triggering
+##  (Integration point: events zenka will monitor and trigger on changes)
+
+<[base.logs]>->(
+    1,
+    "channels memory-sync: registered watch '%s' for '%s' -> %s.%s (mode: %s)",
+    $watch_id,
+    $local_path,
+    $remote_zenka,
+    $remote_path,
+    $mode
+);
+
+return {
+    'success'  => 1,
+    'watch_id' => $watch_id
+};
+
+1;
+
+#,,,,,,..,..,,.,,,,,.,,..,,.,,..,,..,,.,,,.,.,.,,,...,...,,,.,,.,,,,.,,,.,,,,,
+#OKAZ23IJOBNSHN3ZT62JJYQW2JODMUYC2AEFU6SD6A5QE7KEXYQGSHJBV5MJ55NU5BEQWG5LLILXG
+#\\\|OCHPH6BCECQ3IIEZVKU5MGGELTFDCRHKMAU5RZZO5KT62LTGKJR \ / AMOS7 \ YOURUM ::
+#\[7]GL6KIA76ZAEYA4XDL5XAUN7SEJ3ETF4FXX4SGJTAR3T2UWECRCAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,103 @@
+## [:< ##
+
+# name  = channels.memory-sync.batch-send
+# descr = Batch pending data changes and send via memory-sync channel
+# args  = none
+# return = hash { sent => count, failed => count, errors => [...] }
+
+my $pending = <channels.memory_sync.pending_changes> // {};
+return { 'sent' => 0, 'failed' => 0 } unless keys %{$pending};
+
+my $sent_count = 0;
+my $failed_count = 0;
+my @errors;
+
+##  Group changes by destination (remote_zenka.remote_path)  ##
+my %grouped_changes;
+
+foreach my $local_path ( keys %{$pending} ) {
+    my $change = $pending->{$local_path};
+    next unless defined $change and ref $change eq 'HASH';
+
+    my $dest_key = "$change->{'remote_zenka'}.$change->{'remote_path'}";
+    $grouped_changes{$dest_key} //= [];
+
+    push @{$grouped_changes{$dest_key}}, {
+        'local_path'  => $local_path,
+        'watch_id'    => $change->{'watch_id'},
+        'value'       => $change->{'changed_value'},
+        'queued_at'   => $change->{'queued_at'}
+    };
+}
+
+##  Send grouped changes  ##
+foreach my $dest_key ( keys %grouped_changes ) {
+    my ( $remote_zenka, $remote_path ) = split( m|\.| , $dest_key, 2 );
+    my $batch = $grouped_changes{$dest_key};
+
+    ##  Build sync payload  ##
+    my $sync_payload = {
+        'memory_sync_batch' => TRUE,
+        'timestamp'         => <[base.time]>->(2),
+        'destination'       => {
+            'zenka' => $remote_zenka,
+            'path'  => $remote_path
+        },
+        'changes'           => $batch
+    };
+
+    ##  Send via memory-sync channel using channels.cmd.update  ##
+    ##  (Routes through cube to memory-sync channel)  ##
+
+    my $json_payload = do {
+        my $json = <[base.perlmod.load]>->('JSON::PP');
+        eval { JSON::PP::encode_json($sync_payload) };
+    };
+
+    if ( length $EVAL_ERROR ) {
+        push @errors, "JSON encoding error for $dest_key: $EVAL_ERROR";
+        $failed_count += scalar @{$batch};
+        next;
+    }
+
+    ##  Update memory-sync channel (in production, routes through cube)  ##
+    my $update_result = <[channels.cmd.update]>->({
+        'call' => {
+            'args'       => <channels.memory_sync.channel> . " $json_payload",
+            'session_id' => 'memory-sync-batch'
+        }
+    });
+
+    unless ( defined $update_result and $update_result->{'mode'} eq 'timestamp' ) {
+        push @errors, "failed to publish to memory-sync channel: $dest_key";
+        $failed_count += scalar @{$batch};
+        next;
+    }
+
+    $sent_count += scalar @{$batch};
+
+    <[base.logs]>->(
+        1,
+        "channels memory-sync: sent batch of %d changes to %s (%d bytes)",
+        scalar @{$batch},
+        $dest_key,
+        length $json_payload
+    );
+}
+
+##  Clear pending changes  ##
+<channels.memory_sync.pending_changes> = {};
+
+return {
+    'sent'   => $sent_count,
+    'failed' => $failed_count,
+    'errors' => @errors ? \@errors : undef
+};
+
+1;
+
+#,,..,.,.,.,.,,,.,,,,,.,,,,,.,,,,,,,,,,..,.,.,.,,,...,...,.,,,.,,,,,.,,,.,.,.,
+#2V46UM6XGUKVEL36SZTXLX27JCS56LJNAFRIC65TFRGMTMCBVUXC2AR2B4FFTFHM4WG2UMVLII2O6
+#\\\|ABGF5IZRWST76UT76RNXW67UBSYZZCI7IOV4LOLOSAZQWPYZ4H2 \ / AMOS7 \ YOURUM ::
+#\[7]5HSJU4P2Q3NFXTKF53EXIZ6HI35XUEOXAQDUZ5RK3MICV3XEZWAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

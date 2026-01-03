@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = channels.memory-sync.sync-handler
+# descr = Trigger synchronization of watched %data branch to remote zenka via channels
+# args  = hash { local_path, changed_value }
+# return = hash { synced => count, errors => [...] }
+
+my $args = shift;
+return { 'synced' => 0, 'errors' => ['no arguments provided'] }
+    unless defined $args and ref $args eq 'HASH';
+
+my $local_path = $args->{'local_path'};
+my $changed_value = $args->{'changed_value'};
+
+return { 'synced' => 0, 'errors' => ['no local_path provided'] }
+    unless defined $local_path and length $local_path;
+
+my $synced_count = 0;
+my @errors;
+
+##  Find all registered watches for this path  ##
+my $watches = <channels.memory_sync>->{$local_path} // [];
+return { 'synced' => 0, 'errors' => ['no watches registered for path'] }
+    unless @{$watches};
+
+foreach my $watch ( @{$watches} ) {
+    next unless defined $watch and ref $watch eq 'HASH';
+
+    my $mode = $watch->{'mode'} // 'bidirectional';
+    next if $mode eq 'read-only';  ## skip read-only watches ##
+
+    my $remote_zenka = $watch->{'remote_zenka'};
+    my $remote_path = $watch->{'remote_path'};
+    my $watch_id = $watch->{'watch_id'};
+
+    ##  Queue change for batching  ##
+    <channels.memory_sync.pending_changes>->{$local_path} = {
+        'watch_id'       => $watch_id,
+        'remote_zenka'   => $remote_zenka,
+        'remote_path'    => $remote_path,
+        'changed_value'  => $changed_value,
+        'queued_at'      => <[base.time]>->(3),
+        'retry_count'    => 0,
+        'max_retries'    => $watch->{'retry'} // 3
+    };
+
+    ##  In production: event system would batch and send periodically
+    ##  For now, log the pending change  ##
+
+    <[base.logs]>->(
+        2,
+        "channels memory-sync: queued change for watch '%s' (%s -> %s.%s)",
+        $watch_id,
+        $local_path,
+        $remote_zenka,
+        $remote_path
+    );
+
+    $synced_count++;
+}
+
+return {
+    'synced' => $synced_count,
+    'errors' => @errors ? \@errors : undef
+};
+
+1;
+
+#,,,,,..,,.,,,...,.,,,.,.,,,,,.,.,,..,...,...,.,,,...,..,,,..,...,.,,,,,,,,.,,
+#AESVBM67V6YIQFM5YXKVSF42SYON4TEMXVWYVBKFH7PKSKV6YO7MIQXY5JWZ4ISSUYCCYOC662SRW
+#\\\|7BDSL26IXXKN4UXWWWEFJY4RRAKM5BDQQTNVN3XLVSMV5XIFCFE \ / AMOS7 \ YOURUM ::
+#\[7]6LC7J3X344SVPO2UYO64CDSDPV4U42NSID5ATTBUYV6Q6XYMZOBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
