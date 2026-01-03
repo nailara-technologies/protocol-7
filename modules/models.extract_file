@@ -1,0 +1,84 @@
+## [:< ##
+
+# name = models.extract_file
+# descr = extract file from conversation using STRM protocol
+
+my $params = shift;
+
+my $job_id  = $params->{'job_id'}  // '';
+my $file_id = $params->{'file_id'} // '';
+my $context = $params->{'context'} // 'conversation';
+
+return {
+    'success' => FALSE,
+    'error'   => 'job_id required'
+    }
+    unless length($job_id);
+
+return {
+    'success' => FALSE,
+    'error'   => 'file_id required'
+    }
+    unless length($file_id);
+
+<models.conversations> //= {};
+
+unless ( exists <models.conversations>->{$job_id} ) {
+    return {
+        'success' => FALSE,
+        'error'   => "conversation not found: $job_id",
+        'job_id'  => $job_id
+    };
+}
+
+my $conversation = <models.conversations>->{$job_id};
+my $start_time   = <[base.time]>->(4);
+
+## Check if attachments exist
+unless ( defined $conversation->{'attachments'}
+    && ref $conversation->{'attachments'} eq 'HASH' ) {
+    return {
+        'success' => FALSE,
+        'error'   => "no attachments in conversation: $job_id",
+        'job_id'  => $job_id
+    };
+}
+
+## Check if file exists
+unless ( exists $conversation->{'attachments'}->{$file_id} ) {
+    return {
+        'success' => FALSE,
+        'error'   => "file not found: $file_id",
+        'job_id'  => $job_id,
+        'file_id' => $file_id
+    };
+}
+
+my $attachment = $conversation->{'attachments'}->{$file_id};
+my $file_data  = $attachment->{'data'} // '';
+
+<[base.log]>->(
+    1, "[$context] file extracted: job_id=%s file_id=%s filename=%s size=%d",
+    $job_id, $file_id, $attachment->{'filename'},
+    length($file_data)
+);
+
+my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
+
+return {
+    'success'    => TRUE,
+    'job_id'     => $job_id,
+    'file_id'    => $file_id,
+    'filename'   => $attachment->{'filename'},
+    'size_bytes' => length($file_data),
+    'checksum'   => $attachment->{'checksum'},
+    'file_data'  => $file_data,
+    'mode'       => 'strm',
+    'elapsed_ms' => $elapsed_ms
+};
+
+#,,,,,.,,,.,.,,..,.,.,...,...,,,.,,,.,...,.,,,..,,...,...,,,,,,..,,,,,.,,,,.,,
+#HP4BXNCLLI475XXAE5XXHF2AO4D3RLESP5KRP7XRNQEFJI7NQDQTTFICDAUP2NFXDWLRVCP4IOD7G
+#\\\|4EMU6XJWDATDFJBWQ2OWGH45UTFBTWGVFK4BACJ5J4LHLOJ33DQ \ / AMOS7 \ YOURUM ::
+#\[7]ADGBO6OS2MWQTWUXUMZNWFS35YYIYVSXKYSYPLTH44MV6MNAPCCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

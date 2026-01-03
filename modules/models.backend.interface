@@ -1,0 +1,47 @@
+## [:< ##
+
+# name = models.backend.interface
+# descr = backend abstraction interface - defines contract for api/local backends
+
+# Backend Interface Pattern:
+# Each backend (api, local) must implement invoke() with consistent contract
+#
+# Input: $params = {
+#     'participant_id'  => 'claude-api',
+#     'job_id'          => 'job123',
+#     'model_id'        => 'claude-opus-4',
+#     'system_prompt'   => '...',
+#     'messages'        => [ { 'role' => 'user', 'content' => '...' } ],
+#     'temperature'     => 0.7,
+#     'max_tokens'      => 4096,
+#     'timeout_seconds' => 30,
+# }
+#
+# Output: {
+#     'success'        => TRUE|FALSE,
+#     'model_id'       => 'claude-opus-4',
+#     'response'       => '...',              # Generated response text
+#     'tokens_used'    => 1234,               # Tokens consumed
+#     'tokens_total'   => 5678,               # Total for conversation
+#     'latency_ms'     => 2345,               # Response latency
+#     'fallback_from'  => undef,              # Set if fallback occurred
+#     'error'          => undef,              # Error message if failed
+# }
+
+my $params = shift;
+
+# This is a stub/documentation module - actual invocation happens via:
+#   <[models.backend.api.invoke]>->($params)
+#   <[models.backend.local.invoke]>->($params)
+
+return {
+    'success' => FALSE,
+    'error'   => 'Backend interface is abstract - use '
+        . 'models.backend.api.invoke or models.backend.local.invoke'
+};
+
+#,,.,,..,,,.,,,,.,,,.,...,,,,,.,,,.,,,,,.,.,.,..,,...,...,..,,..,,,,.,...,,.,,
+#BPSCITDZQPA5GOAYTKZNTHZBWTT7UXMJ3NV7S2YOGEGTFV5TAH7JLDNHJKO74KXY7UX36QJTXA4G2
+#\\\|BCGXM7DB6DFHQRHE6ZWTHFDCYBBBSUTJFAJNGWTTQ5H4ARYR4TJ \ / AMOS7 \ YOURUM ::
+#\[7]2VOECUWIXA374EF3DNIRZZDU2MGAOWTIF7QBIBRRBCIZ6LXY74CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

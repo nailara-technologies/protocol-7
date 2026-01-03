@@ -1,0 +1,58 @@
+## [:< ##
+
+# name = models.cmd.list_attachments
+# descr = list attachments in conversation
+
+<[base.perlmod.autoload]>->(qw| JSON::PP |);
+<[base.perlmod.autoload]>->(qw| YAML::XS |);
+
+# Extract params - $call is set by code header
+my $params = {};
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+    $params = $call->{'param'};
+} elsif ( defined $call->{'args'} && length $call->{'args'} ) {
+
+    # Try parsing as JSON first, fall back to YAML
+    eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
+    if ($@) {
+        eval { $params = YAML::XS::Load( $call->{'args'} ); };
+    }
+    $params = {} if $@;
+}
+
+my $job_id  = $params->{'job_id'}  // '';
+my $context = $params->{'context'} // 'conversation';
+
+if ( !length($job_id) ) {
+    return {
+        'mode' => 'false',
+        'data' => "error: job_id required\n"
+    };
+}
+
+my $result = <[models.list_attachments]>->(
+    {   'job_id'  => $job_id,
+        'context' => $context,
+    }
+);
+
+if ( !$result->{'success'} ) {
+    return {
+        'mode' => 'false',
+        'data' => "error: "
+            . ( $result->{'error'} // 'unknown error' ) . "\n"
+    };
+}
+
+my $yaml_data = YAML::XS::Dump($result);
+return {
+    'mode' => 'size',
+    'data' => $yaml_data
+};
+
+#,,,.,,,,,,.,,,,,,.,,,.,.,,,.,...,,,.,,.,,.,.,..,,...,..,,...,.,.,.,.,.,.,...,
+#6LQWJASSLS6T5ZME7P3ETISYH5IZA2ODMVENIHYA7JOKGXPW6B5FEN2CGLXID2F26HPYS2I5YOAWW
+#\\\|YVWMVIT5JQ5WN4WHLTJCTFY6VMNBW5AQF6VMHHFSRDJWTWZFIVR \ / AMOS7 \ YOURUM ::
+#\[7]45JEOWIEHKN6QOLMXAB5YBXU6O4ANNOVZNKMWXFR6BFNBXPA6SCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

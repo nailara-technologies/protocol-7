@@ -1,0 +1,69 @@
+## [:< ##
+
+# name = models.cmd.attach_file
+# descr = attach file to conversation with STRM-SIZE protocol support
+
+<[base.perlmod.autoload]>->(qw| JSON::PP |);
+<[base.perlmod.autoload]>->(qw| YAML::XS |);
+
+# Extract params - $call is set by code header
+my $params = {};
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+    $params = $call->{'param'};
+} elsif ( defined $call->{'args'} && length $call->{'args'} ) {
+
+    # Try parsing as JSON first, fall back to YAML
+    eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
+    if ($@) {
+        eval { $params = YAML::XS::Load( $call->{'args'} ); };
+    }
+    $params = {} if $@;
+}
+
+my $job_id   = $params->{'job_id'}   // '';
+my $filepath = $params->{'filepath'} // '';
+my $checksum = $params->{'checksum'} // '';
+my $context  = $params->{'context'}  // 'conversation';
+
+if ( !length($job_id) ) {
+    return {
+        'mode' => 'false',
+        'data' => "error: job_id required\n"
+    };
+}
+
+if ( !length($filepath) ) {
+    return {
+        'mode' => 'false',
+        'data' => "error: filepath required\n"
+    };
+}
+
+my $result = <[models.attach_file]>->(
+    {   'job_id'   => $job_id,
+        'filepath' => $filepath,
+        'checksum' => $checksum,
+        'context'  => $context,
+    }
+);
+
+if ( !$result->{'success'} ) {
+    return {
+        'mode' => 'false',
+        'data' => "error: "
+            . ( $result->{'error'} // 'unknown error' ) . "\n"
+    };
+}
+
+my $yaml_data = YAML::XS::Dump($result);
+return {
+    'mode' => 'size',
+    'data' => $yaml_data
+};
+
+#,,..,,.,,...,..,,,..,,,.,..,,.,.,.,,,,,.,..,,..,,...,..,,,,.,.,.,...,,,,,,.,,
+#4S4EW5Y6QBDUMTJZQFK5VIX7VM3Z4H7MF5MV365MC7O5CRISQAIAFBX7F7NPHVALZRYS3KTPZVUFY
+#\\\|YSPY24UDVTLJP2LTMQGHIHL6POOJXL7DMTUSJCNH5IQCRV5LEQE \ / AMOS7 \ YOURUM ::
+#\[7]72ROY5MP5LTDZPEWMETMM2YTDZZXWCAG4VNGEPENVLNE277N4YBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

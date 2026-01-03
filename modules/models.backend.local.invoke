@@ -1,0 +1,71 @@
+## [:< ##
+
+# name = models.backend.local.invoke
+# descr = Local backend for on-device LLM models served via llama-server
+
+my $params = shift;
+
+my $participant_id = $params->{'participant_id'}  // '';
+my $job_id         = $params->{'job_id'}          // '';
+my $model_id       = $params->{'model_id'}        // '';
+my $system_prompt  = $params->{'system_prompt'}   // '';
+my $messages       = $params->{'messages'}        // [];
+my $temperature    = $params->{'temperature'}     // 0.7;
+my $max_tokens     = $params->{'max_tokens'}      // 4096;
+my $timeout_secs   = $params->{'timeout_seconds'} // 30;
+my $context        = $params->{'context'}         // 'backend';
+
+return {
+    'success' => FALSE,
+    'error'   => 'participant_id required'
+    }
+    unless length($participant_id);
+
+return {
+    'success' => FALSE,
+    'error'   => 'model_id required'
+    }
+    unless length($model_id);
+
+unless ( ref($messages) eq 'ARRAY' && scalar( @{$messages} ) > 0 ) {
+    return {
+        'success' => FALSE,
+        'error'   => 'messages must be non-empty array'
+    };
+}
+
+my $start_time = <[base.time]>->(4);
+
+# Phase 1 Stub: Local backend implementation deferred to Phase 2
+# This stub provides the interface for local model invocation
+#
+# TODO (Phase 2): Implement local HTTP invocation:
+# 1. Resolve model instance from models registry
+# 2. Find available llama-server instance
+# 3. Build HTTP POST request to /v1/chat/completions endpoint
+# 4. Send request and stream response
+# 5. Parse response and extract generated text
+# 6. Return response in backend interface format
+# 7. Handle timeouts and connection failures
+# 8. Support model fallback if primary instance unavailable
+
+<[base.log]>->(
+    2, "[$context] local.invoke stub: participant=%s model=%s messages=%d",
+    $participant_id, $model_id, scalar( @{$messages} )
+);
+
+my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
+
+return {
+    'success'        => FALSE,
+    'model_id'       => $model_id,
+    'participant_id' => $participant_id,
+    'error'          => 'Local backend not yet implemented (Phase 2)',
+    'elapsed_ms'     => $elapsed_ms
+};
+
+#,,,.,..,,...,.,.,,,,,,..,.,.,,,.,..,,,..,.,,,..,,...,...,.,,,,..,,.,,.,,,..,,
+#E45AOJA2AJUCDLE5TZ62F6YEOIFB3EMFSI4Y2IO2O4RRUDB5RSC4DIWJ6JVEZ6LKBYXVPBNUJ6T3C
+#\\\|ESJPL6PCHHC6XZF6TW3GETO5C2PXSIKAEX5WTTOG2LSJKYXSLDO \ / AMOS7 \ YOURUM ::
+#\[7]HPLSESNE5MQY5PQMI7DA7SET6ZU7KFL6XKUDDM65CN7Y3XTYLIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

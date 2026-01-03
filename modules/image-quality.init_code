@@ -4,8 +4,7 @@
 # descr = Image quality analyzer initialization with infrastructure
 
 ## Load vision model configuration from centralized models.yaml
-<[base.logs]>
-    ->( 1, "[image-quality] Loading vision models from models.yaml" );
+<[base.logs]>->( 1, "Loading vision models from models.yaml" );
 
 <[base.perlmod.autoload]>->(qw| YAML::Tiny |);
 
@@ -40,22 +39,18 @@ if ( -f $config_file ) {
                     };
             }
         } else {
-            <[base.log]>->(
-                0, "[image-quality] Error: No models found in models.yaml"
-            );
+            <[base.log]>->( 0, "Error: No models found in models.yaml" );
         }
     }
 } else {
-    <[base.log]>->(
-        0, "[image-quality] Error: models.yaml not found at $config_file"
-    );
+    <[base.log]>->( 0, "Error: models.yaml not found at $config_file" );
 }
 
 # Cache vision models in zenka data
 <image-quality.vision_models> = \@vision_models;
 
 <[base.logs]>->(
-    1, "[image-quality] Vision models initialized: %d models loaded",
+    1, "Vision models initialized: %d models loaded",
     scalar(@vision_models)
 );
 
@@ -84,8 +79,8 @@ if ( -f $config_file ) {
 
 return TRUE;
 
-#,,.,,,,.,,.,,,,.,,..,...,,,.,,..,.,.,,,.,,,.,..,,...,.,.,.,,,...,...,,..,.,,,
-#JND5C2UUAGAAADELKKPOER6SNVA5GE2TZB5W33OTUIFJHABN5HBGHDOD23KSVUVDZDUDTL4TPZXBA
-#\\\|YAK622YY6XZ6OLRCR5OTKP4CUUMLYQOH4PL5VEYRSAIAFU5CGYB \ / AMOS7 \ YOURUM ::
-#\[7]KM2K6WHQ6QKPOI5PBP7LDIM2PO5NJGUWAU62B2Z4MGJ7AHOGZSDA 7  DATA SIGNATURE ::
+#,,,,,...,...,.,.,,..,,,,,,.,,...,,,,,.,.,...,..,,...,...,..,,,,,,.,,,,,.,...,
+#XYAO6HX55VSP4XPOKTC3DB2ZRWA7FK2K2ZSV5PLJ3YY3BYJIK25OIWH3EQO36KBI7BR6JHOL7OGXE
+#\\\|R77MEDOPOKDUMXAPDONGHOEFRJT6PA2DWXVUDOPQOSBSUBNCNVU \ / AMOS7 \ YOURUM ::
+#\[7]3NJHBERSHOD2RH35HNRKJOM2T3ZF7EJN3PS24VZVAAJZFWUNLWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
