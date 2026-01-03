@@ -1,13 +1,14 @@
 ## [:< ##
 
 # name    = plugin.auth.auth-keypair.load-authorized-users
-# descr   = load authorized remote user public keys from .n/remote-keys/authorized/<zenka>/
+# descr   = load authorized remote user public keys
+#           from .n/remote-keys/authorized/<zenka>/
 # return  = count of loaded keys, or undef on error
 
-my $zenka_name = <system.zenka.name>;
-my $key_vars_ref = <[crypt.C25519.key_vars]>->();
+my $zenka_name    = <system.zenka.name>;
+my $key_vars_ref  = <[crypt.C25519.key_vars]>;
 my $auth_base_dir = $key_vars_ref->{'auth_dir'};
-my $auth_key_dir = catfile( $auth_base_dir, $zenka_name );
+my $auth_key_dir  = catfile( $auth_base_dir, $zenka_name );
 
 return 0 unless -d $auth_key_dir;
 
@@ -17,14 +18,14 @@ my $loaded_count = 0;
 ## Scan directory for <user>.public files
 if ( opendir( my $dh, $auth_key_dir ) ) {
     foreach my $filename ( sort readdir($dh) ) {
-        next if $filename =~ m/^\./;  ## skip . and ..
-        next unless $filename =~ m/\.public$/;
+        next if $filename     =~ m|^\.|;         ## skip . and ..
+        next unless $filename =~ m|\.public$|;
 
         my $username = $filename;
-        $username =~ s/\.public$//;
+        $username =~ s|\.public$||;
 
         my $pubkey_file = catfile( $auth_key_dir, $filename );
-        my $pubkey_b32 = <[file.slurp]>->($pubkey_file)->$*;
+        my $pubkey_b32  = <[file.slurp]>->($pubkey_file)->$*;
 
         if ( defined $pubkey_b32 and length $pubkey_b32 > 0 ) {
             chomp $pubkey_b32;
@@ -38,9 +39,14 @@ if ( opendir( my $dh, $auth_key_dir ) ) {
                     'loaded_at'  => <[base.time]>->(3),
                 };
                 $loaded_count++;
-                <[base.logs]>->( 2, ": authorized remote user '%s' loaded", $username );
+                <[base.logs]>->(
+                    2, ": authorized remote user '%s' loaded", $username
+                );
             } else {
-                <[base.logs]>->( 1, ": invalid key format for '%s' [ %s ]", $username, $pubkey_file );
+                <[base.logs]>->(
+                    1,         ": key format not valid for '%s' [ %s ]",
+                    $username, $pubkey_file
+                );
             }
         } else {
             <[base.logs]>->( 1, ": empty key file [ %s ]", $filename );
@@ -50,13 +56,16 @@ if ( opendir( my $dh, $auth_key_dir ) ) {
 }
 
 if ( $loaded_count > 0 ) {
-    <[base.logs]>->( 1, ": loaded %d authorized remote user(s) for '%s'", $loaded_count, $zenka_name );
+    <[base.logs]>->(
+        1,             ": loaded %d authorized remote user%s.",
+        $loaded_count, $loaded_count == 1 ? '' : 's'           # , $zenka_name
+    );
 }
 
 return $loaded_count;
 
-#,,..,,.,,,.,,,,.,,.,,..,,...,...,,,,,,..,,,,,.,.,...,...,...,,,.,,.,,.,,,,,,,
-#W7QE5F7P3OYOOMWNKJECZSXS74KJHUBUGVHLHMK7L4DSSNL2GCINNT4F2Z6H5OR4AW5VTZYLZFHIA
-#\\\|S57KRCURMNHD3E7WD7XMETRNO5YS23AHH4Q65PAYB2ZO6BL6BUB \ / AMOS7 \ YOURUM ::
-#\[7]HIGUY62EVY2UBHJVABC4A53236QDP33TYJG6RW6VHZHDUGFHUSAI 7  DATA SIGNATURE ::
+#,,..,..,,,.,,.,.,,..,,..,...,,.,,.,.,,.,,,..,.,.,...,...,...,,.,,,.,,.,.,,,,,
+#7DSXLWI2FBXSR5OEAEF5UF4ABU323SV4L5FJ3VOGF4NZT6KZNE5TSMAL6M47KR2FGK4ILOGQ673WW
+#\\\|DEKVGBXI5XS2BSCSYHZ3S2DWF6TZTW5VLKODVC3PGDBNLUWYSDK \ / AMOS7 \ YOURUM ::
+#\[7]75INF2K6EEA6O4L355NF6UC3UFJATNJIJBBEMSOVY27ICPSMEQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

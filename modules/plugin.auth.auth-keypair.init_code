@@ -7,27 +7,25 @@
 my $initial_cleanup = <[plugin.auth.auth-keypair.cleanup-incoming-keys]>;
 if ( defined $initial_cleanup ) {
     <[base.logs]>->(
-        1,
-        "auth-keypair: initial cleanup removed %d expired keys",
+        2, "auth-keypair: initial cleanup removed %d expired keys",
         $initial_cleanup
     );
 }
 
 ##  Set up periodic cleanup via event system  ##
 ##  Cleanup runs every 6 hours by default  ##
-my $cleanup_interval = <plugin.auth.auth-keypair.cleanup_interval_seconds> //= 21600;  ## 6 hours ##
+my $cleanup_interval = <plugin.auth.auth-keypair.cleanup_interval_seconds>
+    //= 21600;    ## 6 hours ## [LLL] optimize for more 'harmonic' values
 
 <[base.logs]>->(
-    1,
-    "auth-keypair: cleanup interval set to %d seconds (%.1f hours)",
-    $cleanup_interval,
-    $cleanup_interval / 3600
+    2, "auth-keypair: cleanup interval set to %d seconds [%.1fh]",
+    $cleanup_interval, $cleanup_interval / 3600
 );
 
 0;
 
-#,,.,,...,..,,.,,,.,,,.,,,...,,,.,..,,,.,,.,.,.,.,...,...,..,,,,.,,..,.,,,...,
-#OTVW2QD55PQVMY2OPKYYVZZSYFVYOOQQPTTXNDDXSRVY2VYOM6YVWN6EOCDFEVDVXMBZPFA4RGIZY
-#\\\|25UGFC3DTAYTJOUBAIZKPRGAZ4X7WSOFMIDCETQTO7SUZGYC25P \ / AMOS7 \ YOURUM ::
-#\[7]YZTOQ5CK4EQXBIIPTCCNKDYUVGBSNBY3PUCERUYQX3FTTYSECYDI 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,.,,,,,,,..,,.,.,,..,.,,,.,.,,.,,.,.,...,...,.,.,,,.,,.,,,,,,,.,,
+#GOE3YDHJAWDEIOILI7ZTPT7V47XPHUNE63GKPZ3EFER2BLPCTEQWABJWTQRIZZ6KX3OJG3RJSE43G
+#\\\|T2JC5JLFH5MGDIBC5C7CX3LHWT4DZCYDBERZY7VIZ3J4355OE7E \ / AMOS7 \ YOURUM ::
+#\[7]P6N45DEXACEYZSHYXMUWOSSZ5YEKNIRZA673F22KQWGGBZ4DRUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
