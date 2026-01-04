@@ -75,7 +75,7 @@ my $endpoint_check = <[models.get_inference_endpoint]>->(
 );
 
 my $llama_server_url = $endpoint_check->{'endpoint'}
-    // <models.llama_server_url> // 'http://localhost:8000';
+    // <models.llama_server_url> // 'http://127.0.0.1:8000';
 
 ## Attempt HTTP request to llama-server
 my $response_data = undef;
@@ -83,8 +83,16 @@ my $api_error     = undef;
 
 eval {
     ## Make HTTP POST request to llama-server
+    ## Clear proxy env vars for localhost
+    delete $ENV{'http_proxy'};
+    delete $ENV{'https_proxy'};
+    delete $ENV{'HTTP_PROXY'};
+    delete $ENV{'HTTPS_PROXY'};
+    delete $ENV{'ALL_PROXY'};
+    $ENV{'NO_PROXY'} = 'localhost,127.0.0.1';
     my $ua = LWP::UserAgent->new();
     $ua->timeout($timeout_secs);
+    $ua->no_proxy('localhost', '127.0.0.1');
     my $request = HTTP::Request->new(
         POST => $llama_server_url . '/v1/chat/completions',
         [ 'Content-Type' => 'application/json' ],
@@ -181,8 +189,8 @@ return {
     'elapsed_ms'     => $elapsed_ms
 };
 
-#,,,,,.,.,.,,,,,.,,,,,..,,,.,,..,,,..,,.,,...,..,,...,.,.,,.,,,,,,...,..,,,..,
-#7UX3K5FPGFSZADZCBUEG4NTOGE6224VDFW6UGUORJVTFQMAGOIKP4EYTRLK4AZ3DK4IRACDI7GU2U
-#\\\|XIX7LJFKXQZ3YBCE5I7GVPDTOAZAT6SY6MFKJ652W66M2Z75X7J \ / AMOS7 \ YOURUM ::
-#\[7]4YPFUYMC2ZIBJPXYOAXZ35WQ44VC7CMZ3HXK6YF7QITR3RL6BCDA 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,,,..,,..,,.,.,..,,..,,.,.,.,,,..,,...,...,,..,...,,.,,.,,,,..,
+#F3JN4BDDHHKVQGIEVPKAW5QFPCHY2FTS732R7LOP43SUIW6GO4TUYQAQY23LK5IWHZLJ7WPYQ2MMY
+#\\\|647INB6P4W72C5USKAYSUAE4VXTRBYTAGVUBFUIT7KOFIOXD7WX \ / AMOS7 \ YOURUM ::
+#\[7]74CZHZ7ILOHI45YECWFUIYDCTSELCXHHNPABGMDIA34BAKIYTICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
