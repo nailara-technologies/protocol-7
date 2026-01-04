@@ -1,0 +1,207 @@
+## [:< ##
+
+# name = models.local_server_manager
+# descr = manage local llama-server instances from ik_llama.cpp
+
+my $params = shift;
+
+my $action      = $params->{'action'}      // 'status';
+my $server_type = $params->{'server_type'} // 'cpu';
+my $model_path  = $params->{'model_path'}  // '';
+my $port        = $params->{'port'}        // 8000;
+my $context     = $params->{'context'}     // 'local_server';
+
+## Server configuration
+my %server_config = (
+    'cpu' => {
+        'binary'       => '/data/source/ik_llama.cpp/llama-server-cpu',
+        'default_port' => 8000,
+        'threads'      => 8,
+        'ctx_size'     => 2048,
+    },
+    'cuda' => {
+        'binary'       => '/data/source/ik_llama.cpp/llama-server-cuda',
+        'default_port' => 8001,
+        'n_gpu_layers' => 33,
+        'ctx_size'     => 2048,
+    },
+);
+
+my $config = $server_config{$server_type};
+
+return {
+    'success' => FALSE,
+    'error'   => "Unknown server type: $server_type"
+    }
+    unless defined $config;
+
+## Initialize server tracking hash
+<models.local_servers> //= {};
+
+my $server_key = "${server_type}_${port}";
+
+## Handle different actions
+if ( $action eq 'status' ) {
+    ## Check if server is running on this port
+    my $server_info = <models.local_servers>->{$server_key};
+
+    if ( $server_info && $server_info->{'running'} ) {
+        return {
+            'success'     => TRUE,
+            'server_type' => $server_type,
+            'port'        => $port,
+            'model_path'  => $server_info->{'model_path'},
+            'url'         => "http://localhost:$port",
+            'running'     => 1,
+            'pid'         => $server_info->{'pid'},
+            'started_at'  => $server_info->{'started_at'},
+        };
+    } else {
+        return {
+            'success'     => TRUE,
+            'server_type' => $server_type,
+            'port'        => $port,
+            'running'     => 0,
+            'url'         => "http://localhost:$port",
+        };
+    }
+} elsif ( $action eq 'start' ) {
+    ## model_path required for start
+    return {
+        'success' => FALSE,
+        'error'   => 'model_path required to start server'
+        }
+        unless length($model_path) && -f $model_path;
+
+    ## Check if already running
+    my $server_info = <models.local_servers>->{$server_key};
+    if ( $server_info && $server_info->{'running'} ) {
+        return {
+            'success'     => TRUE,
+            'server_type' => $server_type,
+            'port'        => $port,
+            'message'     => 'server already running',
+            'url'         => "http://localhost:$port",
+            'running'     => 1,
+            'pid'         => $server_info->{'pid'},
+        };
+    }
+
+    ## Build command to start server
+    my $binary = $config->{'binary'};
+    return {
+        'success' => FALSE,
+        'error'   => "Binary not found: $binary"
+        }
+        unless -x $binary;
+
+    my $cmd = "$binary";
+    $cmd .= " -m $model_path";
+    $cmd .= " --port $port";
+    $cmd .= " --ctx-size " . $config->{'ctx_size'};
+
+    if ( $server_type eq 'cpu' ) {
+        $cmd .= " --threads " . $config->{'threads'};
+    } elsif ( $server_type eq 'cuda' ) {
+        $cmd .= " -ngl " . $config->{'n_gpu_layers'};
+    }
+
+    $cmd .= " > /tmp/llama-server-${server_type}-${port}.log 2>&1 &";
+
+    <[base.logs]>->(
+        1, "[$context] starting server: type=%s port=%d model=%s",
+        $server_type, $port, $model_path
+    );
+
+    ## Start the server
+    my $pid = undef;
+    eval {
+        system($cmd);
+        sleep(3);    ## Wait for server to start
+        $pid = `pgrep -f "llama-server-.*--port $port"`;
+        chomp($pid);
+        ## If pgrep didn't work, try ps
+        unless ( $pid && $pid =~ /^\d+$/ ) {
+            my $ps_output
+                = `ps aux | grep "llama-server.*--port $port" | grep -v grep`;
+            if ( $ps_output =~ /\s(\d+)\s/ ) {
+                $pid = $1;
+            }
+        }
+    };
+
+    if ( length($pid) && $pid =~ /^\d+$/ ) {
+        <models.local_servers>->{$server_key} = {
+            'server_type' => $server_type,
+            'port'        => $port,
+            'model_path'  => $model_path,
+            'binary'      => $binary,
+            'running'     => 1,
+            'pid'         => $pid,
+            'started_at'  => <[base.time]>->(4),
+        };
+
+        <[base.logs]>->(
+            1, "[$context] server started: type=%s port=%d pid=%s",
+            $server_type, $port, $pid
+        );
+
+        return {
+            'success'     => TRUE,
+            'server_type' => $server_type,
+            'port'        => $port,
+            'url'         => "http://localhost:$port",
+            'running'     => 1,
+            'pid'         => $pid,
+            'model_path'  => $model_path,
+            'started_at'  =>
+                <models.local_servers>->{$server_key}->{'started_at'},
+        };
+    } else {
+        return {
+            'success'     => FALSE,
+            'error'       => "Failed to start server process",
+            'server_type' => $server_type,
+            'port'        => $port,
+        };
+    }
+} elsif ( $action eq 'stop' ) {
+    my $server_info = <models.local_servers>->{$server_key};
+
+    if ( !$server_info || !$server_info->{'running'} ) {
+        return {
+            'success'     => TRUE,
+            'server_type' => $server_type,
+            'port'        => $port,
+            'message'     => 'server not running',
+        };
+    }
+
+    my $pid = $server_info->{'pid'};
+    eval { kill( 15, $pid ); };
+
+    <models.local_servers>->{$server_key}->{'running'} = 0;
+
+    <[base.logs]>->(
+        1, "[$context] server stopped: type=%s port=%d pid=%s",
+        $server_type, $port, $pid
+    );
+
+    return {
+        'success'     => TRUE,
+        'server_type' => $server_type,
+        'port'        => $port,
+        'stopped_pid' => $pid,
+    };
+} else {
+    return {
+        'success' => FALSE,
+        'error'   => "Unknown action: $action"
+    };
+}
+
+#,,.,,,,,,...,,..,..,,...,,,.,,,.,,,,,.,,,.,,,.,.,...,...,..,,..,,,..,..,,,,.,
+#ACPBGPRRFQTZRRKYEJRGOAG5ZMROMSQZIP6QPLE7EZ7LSO3HQCHADO74HW7Z34OFTTU6NTAAIHZ22
+#\\\|JMBBVWEPU7S7NFIKDPXCYCF5NUAZZQ2NZ3ZYJII3XCAC6S2IQPK \ / AMOS7 \ YOURUM ::
+#\[7]PNLAC6TFPOZNBIJYH7IY6SEUMGRYBUI54KZCPQ6OFPEASNXJUIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

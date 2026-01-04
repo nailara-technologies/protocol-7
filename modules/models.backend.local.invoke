@@ -36,7 +36,28 @@ unless ( ref($messages) eq 'ARRAY' && scalar( @{$messages} ) > 0 ) {
 
 my $start_time = <[base.time]>->(4);
 
-## Build request payload for llama-server /v1/chat/completions
+## Check if this is a vision task (has image_path parameter)
+my $image_path = $params->{'image_path'} // '';
+my $model_path = $params->{'model_path'} // '';
+
+if ( length($image_path) && -f $image_path ) {
+    ## Route to vision backend (CLI-based, not HTTP)
+    return <[models.backend.local.vision]>->(
+        {   'participant_id' => $participant_id,
+            'job_id'         => $job_id,
+            'model_id'       => $model_id,
+            'system_prompt'  => $system_prompt,
+            'messages'       => $messages,
+            'image_path'     => $image_path,
+            'model_path'     => $model_path,
+            'temperature'    => $temperature,
+            'max_tokens'     => $max_tokens,
+            'context'        => $context,
+        }
+    );
+}
+
+## Build request payload for llama-server /v1/chat/completions (text/code)
 my $request_payload = {
     'model'       => $model_id,
     'messages'    => $messages,
@@ -46,8 +67,15 @@ my $request_payload = {
 
 $request_payload->{'system'} = $system_prompt if length($system_prompt);
 
-## Get llama-server endpoint from configuration
-my $llama_server_url = <models.llama_server_url> // 'http://localhost:8000';
+## Get llama-server endpoint from coding zenka or fallback to localhost
+my $endpoint_check = <[models.get_inference_endpoint]>->(
+    {   'backend_type' => 'cpu',
+        'context'      => $context,
+    }
+);
+
+my $llama_server_url = $endpoint_check->{'endpoint'}
+    // <models.llama_server_url> // 'http://localhost:8000';
 
 ## Attempt HTTP request to llama-server
 my $response_data = undef;
@@ -153,8 +181,8 @@ return {
     'elapsed_ms'     => $elapsed_ms
 };
 
-#,,..,...,.,.,,.,,,,,,,..,.,.,.,.,,.,,,,.,,,,,..,,...,...,..,,,..,,.,,.,,,.,.,
-#KPFHO3H4XG7DXYIGEXH4L4V7Q2A4SNVH4PSDPPFSW6T4NC673NAP3Y3ARJ4CJJV7ZY24WQUTD52WO
-#\\\|PGBCBNEEQXJYCLQLV6HW763XPI5RVXWFPK5FSHN2G3LYEFVN5MN \ / AMOS7 \ YOURUM ::
-#\[7]4X35RU3HR2EOADGRGVQZKUAD7J3NNC4YNE7CQ6WYDEUXT3Z5IKAY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,,.,,,,,..,,,.,,..,,,..,,.,,...,..,,...,.,.,,.,,,,,,...,..,,,..,
+#7UX3K5FPGFSZADZCBUEG4NTOGE6224VDFW6UGUORJVTFQMAGOIKP4EYTRLK4AZ3DK4IRACDI7GU2U
+#\\\|XIX7LJFKXQZ3YBCE5I7GVPDTOAZAT6SY6MFKJ652W66M2Z75X7J \ / AMOS7 \ YOURUM ::
+#\[7]4YPFUYMC2ZIBJPXYOAXZ35WQ44VC7CMZ3HXK6YF7QITR3RL6BCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

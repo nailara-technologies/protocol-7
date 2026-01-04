@@ -1,0 +1,30 @@
+## [:< ##
+
+# name = models.cmd.local_discover
+# descr = command wrapper for discovering local GGUF models
+
+my $params = {};
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+    $params = $call->{'param'};
+} elsif ( defined $call->{'args'} && length $call->{'args'} ) {
+    eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
+    if ($@) {
+        eval { $params = YAML::XS::Load( $call->{'args'} ); };
+    }
+    $params = {} if $@;
+}
+
+my $result = <[models.local_discover]>->($params);
+
+my $yaml_data = YAML::XS::Dump($result);
+return {
+    'mode' => 'size',
+    'data' => $yaml_data
+};
+
+#,,,.,...,.,.,,.,,,.,,,,,,..,,,,,,,,.,...,...,.,.,...,...,,..,.,.,,,.,,,,,,,,,
+#2COA73MVCFDHKTXP32KILWK3TCEC6S5CCN7AWEJC6GNM7QCT7FECJ6CYWXRJFVHHSH4RWZYUN36TS
+#\\\|TDHSQAHOO44IQUUK5Q5BJNIIJLYTWAUJ4JSRYBXHSYHJQKSVXP6 \ / AMOS7 \ YOURUM ::
+#\[7]PVBNHFLL5FG7XOIWY6RY3C4LDGR354WDJA2LYMGBOUOBKAOBIIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

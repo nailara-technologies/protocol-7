@@ -1,0 +1,141 @@
+## [:< ##
+
+# name = models.test.end_to_end_local
+# descr = end-to-end test with real local model inference via coding zenka
+
+my $params = shift;
+
+my $context = $params->{'context'} // 'e2e_test';
+
+<[base.logs]>->(
+    1, "[$context] starting end-to-end test with local inference"
+);
+
+## Step 1: Check endpoint availability
+my $endpoint_check = <[models.get_inference_endpoint]>->(
+    {   'backend_type' => 'cpu',
+        'context'      => $context,
+    }
+);
+
+unless ( $endpoint_check->{'alive'} ) {
+    return {
+        'success'        => FALSE,
+        'error'          => 'Local inference endpoint not available',
+        'endpoint_check' => $endpoint_check,
+    };
+}
+
+<[base.logs]>->(
+    1,
+    "[$context] inference endpoint ready: %s",
+    $endpoint_check->{'endpoint'}
+);
+
+## Step 2: Create test conversation
+my $job_id = 'e2e-local-' . int( <[base.time]>->(2) );
+<models.conversations> //= {};
+
+<models.conversations>->{$job_id} = {
+    'job_id'        => $job_id,
+    'token_budget'  => 2000,
+    'tokens_used'   => 0,
+    'created_at'    => <[base.time]>->(4),
+    'turns'         => [],
+    'participants'  => {},
+    'template_name' => 'default',
+};
+
+<[base.logs]>->( 1, "[$context] conversation created: job_id=%s", $job_id );
+
+## Step 3: Add local coder participant
+my $add_participant = <[models.conversation.add_participant]>->(
+    {   'job_id'         => $job_id,
+        'participant_id' => 'seed-coder-local',
+        'backend_type'   => 'local',
+        'model_id'       => 'Seed-Coder-8B',
+        'role'           => 'coder',
+        'context'        => $context,
+    }
+);
+
+unless ( $add_participant->{'success'} ) {
+    return {
+        'success'               => FALSE,
+        'error'                 => 'Failed to add participant',
+        'add_participant_error' => $add_participant->{'error'},
+    };
+}
+
+<[base.logs]>->(
+    1,
+    "[$context] participant added: %s role=%s",
+    $add_participant->{'participant_id'},
+    $add_participant->{'role'}
+);
+
+## Step 4: Create test code generation request
+my @messages = (
+    {   'role'    => 'user',
+        'content' =>
+            'Write a simple Perl function that reverses a string and returns it.'
+    }
+);
+
+<[base.logs]>->( 1, "[$context] invoking local coder with test prompt" );
+
+## Step 5: Invoke participant for actual inference
+my $invoke_result = <[models.invoke_participant]>->(
+    {   'job_id'         => $job_id,
+        'participant_id' => 'seed-coder-local',
+        'messages'       => \@messages,
+        'system_prompt'  => 'You are an expert Perl programmer.',
+        'context'        => $context,
+    }
+);
+
+unless ( $invoke_result->{'success'} ) {
+    return {
+        'success'      => FALSE,
+        'error'        => 'Inference failed',
+        'invoke_error' => $invoke_result->{'error'},
+        'job_id'       => $job_id,
+    };
+}
+
+<[base.logs]>->(
+    1,
+    "[$context] inference complete: tokens=%d latency=%dms",
+    $invoke_result->{'tokens_used'},
+    int( $invoke_result->{'latency_ms'} )
+);
+
+## Step 6: Verify response quality
+my $response = $invoke_result->{'response'} // '';
+my $has_code = $response =~ /sub\s+\w+|my\s+\$|return\s+/ ? 1 : 0;
+
+<[base.logs]>->(
+    1, "[$context] response received: length=%d contains_code=%d",
+    length($response), $has_code
+);
+
+return {
+    'success'          => TRUE,
+    'job_id'           => $job_id,
+    'endpoint'         => $endpoint_check->{'endpoint'},
+    'participant_id'   => 'seed-coder-local',
+    'model_id'         => 'Seed-Coder-8B',
+    'request'          => $messages[0]->{'content'},
+    'response_preview' => substr( $response, 0, 500 ),
+    'response_length'  => length($response),
+    'tokens_used'      => $invoke_result->{'tokens_used'},
+    'latency_ms'       => $invoke_result->{'latency_ms'},
+    'contains_code'    => $has_code,
+    'full_response'    => $response,
+};
+
+#,,,.,..,,..,,...,,..,.,,,...,,,.,,,,,,,,,,..,.,.,...,...,...,,.,,...,..,,,,,,
+#73VNBTUHGKW7FRIZU7J4Z4767ONDZLEQMQIKQRZIUVESPBSTFPFPL7R6A4EA7AJ5BK7WKF2RW6DJA
+#\\\|SLDSNVL56756RMNY6ULZNL3WXQLKFKNVNZNALXCLW7LMHYMCI2Q \ / AMOS7 \ YOURUM ::
+#\[7]JL7IMH5IS5O5EMGLPA2PGJVZY4567AJO2LOAOEJ26HRFGYGEVQAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
