@@ -17,32 +17,66 @@ unless ( defined $job ) {
     return;
 }
 
+## Determine which field to read into
+my $output_ref = undef;
+if ( $stream eq 'stdout' ) {
+    $output_ref = \$job->{'output'};
+} elsif ( $stream eq 'stderr' ) {
+    $output_ref = \$job->{'errors'};
+}
+
+unless ( defined $output_ref ) {
+    return;
+}
+
 ## Read available data (non-blocking)
 my $bytes = <[base.s_read]>->(
     $read_fh,
-    \$job->{'output'},
+    $output_ref,
     8 * 1024    # Read up to 8KB at a time
 ) // 0;
 
-<[base.logs]>->(
-    2, "[read_inference] id=%s stream=%s bytes=%d",
-    $inference_id, $stream, $bytes
-) if $bytes > 0;
-
-## Check for EOF
-if ( $bytes <= 0 ) {
-    ## EOF reached on stdout
-    $job->{'rdr_closed'} = 1;
-    close($read_fh);
-    $event->cancel if $event->is_active;
+if ( $bytes > 0 ) {
     <[base.logs]>->(
-        2, "[read_inference] EOF: id=%s stream=%s",
-        $inference_id, $stream
+        1, "[read_inference] id=%s stream=%s bytes=%d",
+        $inference_id, $stream, $bytes
     );
 }
 
-#,,.,,,.,,...,..,,,,,,.,,,.,.,,,,,.,.,,,.,.,.,.,.,...,...,,,.,,..,,..,,.,,...,
-#2TLG7O66MZTJN2LBJTD6GERP2NWF3QGJSODO5BSOBNFACQWQ75NDXFFL7S3IG4OOSCBN7MTEJ4T2W
-#\\\|RMDDUIT3M3MGCDAROEUJZ62KWALPFFISOXBZQJOB5M6BMHQMJHS \ / AMOS7 \ YOURUM ::
-#\[7]O44GEXV4U3S3JU5MYXMN5SHHSUPV57YXX2JQU4F46IM7DIHPTKCY 7  DATA SIGNATURE ::
+## Check for EOF on this stream
+if ( $bytes <= 0 ) {
+    <[base.logs]>->(
+        1, "[read_inference] EOF: id=%s stream=%s",
+        $inference_id, $stream
+    );
+
+    close($read_fh);
+    $event->cancel if $event->is_active;
+
+    ## Mark appropriate stream as closed
+    if ( $stream eq 'stdout' ) {
+        $job->{'rdr_closed'} = 1;
+    } elsif ( $stream eq 'stderr' ) {
+        $job->{'err_closed'} = 1;
+    }
+
+    ## When both streams are closed, process the response
+    ## (Process regardless of which stream closes second)
+    if ( $job->{'rdr_closed'} && $job->{'err_closed'} ) {
+        <[base.logs]>->(
+            1, "[read_inference] both streams closed, processing response: id=%s",
+            $inference_id
+        );
+
+        ## Process response immediately when both streams are closed
+        <[models.handler.process_response]>->(
+            { 'inference_id' => $inference_id, 'job' => $job }
+        );
+    }
+}
+
+#,,,.,,,.,...,..,,,.,,.,,,,..,.,,,,,.,.,,,,,,,.,.,...,...,..,,,,.,.,.,,..,...,
+#BX3CFF6EYGSRELC2IQ4NVLCZTELKQJRR6XI6HQGO7BXLOW76INYDQYA5OIR4MA35QA7WTJZS6KJDU
+#\\\|IFDOJU7JITPJWYALLXZJSWDWEEMDWAXQRORDJGAZPL64AGI76MJ \ / AMOS7 \ YOURUM ::
+#\[7]TCCWSMYZ2ZCAVVEBIMAKZN3KA7HPFBY47ORGOM6H7DHQ7R5I2CCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
