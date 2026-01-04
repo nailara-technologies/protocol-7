@@ -1,0 +1,30 @@
+## [:< ##
+
+# name = models.cmd.test_api_fallback
+# descr = command wrapper for testing API fallback chain
+
+my $params = {};
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+    $params = $call->{'param'};
+} elsif ( defined $call->{'args'} && length $call->{'args'} ) {
+    eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
+    if ($@) {
+        eval { $params = YAML::XS::Load( $call->{'args'} ); };
+    }
+    $params = {} if $@;
+}
+
+my $result = <[models.test.api_fallback_chain]>->($params);
+
+my $yaml_data = YAML::XS::Dump($result);
+return {
+    'mode' => 'size',
+    'data' => $yaml_data
+};
+
+#,,..,..,,,.,,,,.,..,,,..,,,,,,,.,,,.,..,,,,.,.,.,...,...,..,,.,,,,..,,,.,,.,,
+#MXO3EBQIGEKNVWQ2FCFDAYZQY6QKNEBSQH4DNPAPVPW42VYSQTJTT6ROKVBRCFW26Z5MT2KHYI4JE
+#\\\|TCTS5IIVTNNQ7EMGJH43C57PQ7HP4TVCLF6PRIDIENA7QX2KRQL \ / AMOS7 \ YOURUM ::
+#\[7]4OIRBZE3JUBUTQLW5ZDKBWKNYOHQKCFV7YE4EN7DIIW2ODHGOQCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

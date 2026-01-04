@@ -6,31 +6,38 @@
 my $params = shift;
 
 my $api_result = $params->{'api_result'} // {};
-my $context    = $params->{'context'}    // 'backend';
+my $context    = $params->{'context'}    // qw| backend |;
 
 ## Check if result indicates rate limiting
-my $is_rate_limited = $api_result->{'rate_limited'} ? 1 : 0;
+my $is_rate_limited = <[base.cfg_bool]>->( $api_result->{'rate_limited'} );
+my $limit_type      = $api_result->{'limit_type'} // qw| unknown |;
 
-## Also check error messages for quota patterns
+## Also check error messages for quota patterns if not already detected
 unless ($is_rate_limited) {
     my $error_msg = $api_result->{'error'} // '';
-    if ( $error_msg =~ /rate\s+limit|quota|throttle|429/i ) {
+    if ( $error_msg =~ m{rate\s+limit|quota|throttle|429|overload}i ) {
         $is_rate_limited = 1;
+        $limit_type = 'quota'      if $error_msg =~ m{quota|tokens}i;
+        $limit_type = 'overloaded' if $error_msg =~ m{overload|capacity}i;
+        $limit_type = 'rate_limit' unless $limit_type;
     }
 }
 
-<[base.log]>->(
-    2,                "[$context] rate limit check: limited=%d error=%s",
-    $is_rate_limited, $api_result->{'error'} // 'none'
+<[base.logs]>->(
+    2, "[$context] limit detection: limited=%d type=%s status=%s",
+    $is_rate_limited, $limit_type, $api_result->{'http_status'} // 'unknown'
 );
 
 return {
     'rate_limited' => $is_rate_limited,
+    'limit_type'   => $limit_type,
+    'http_status'  => $api_result->{'http_status'},
+    'error'        => $api_result->{'error'},
     'api_result'   => $api_result,
 };
 
-#,,.,,...,,,,,,,.,,,,,..,,..,,,,,,,,.,.,.,.,,,..,,...,.,,,,,,,.,,,..,,...,,,.,
-#MKQOLZGGA7DHD65TZVDHT2MCGUTOVGTMRSIJ7WXS5IYF2GN5JE72ZZBIH2KEK4HA6GK446VDDGU5M
-#\\\|5CHTRDGKTOPBDFGEW46SPMJMOKK5SOLP46SOUQS6DZ4XH4YGCU2 \ / AMOS7 \ YOURUM ::
-#\[7]DOZ7Y7G5CYW5RDNAC3SYJP4CLJGU7CMA43FHBEVWREGOUSQVSABY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,,,,,..,,.,,,,,,,,.,,,,,,.,,.,,,..,,...,...,,..,,.,,,,.,,.,,,,,,
+#46TCUV2OBEEGNWPUFHICPFTK2ZH7WOAUSIOFQ5CLS6SXWN444WDV2ZXIH6EKS7ZGJNMIPSF2VYUY6
+#\\\|5PL4Z7PDKFJKDKDJHZTTKUQSYICTFMZW6S765AYV67MORMO7BSX \ / AMOS7 \ YOURUM ::
+#\[7]JLC2V434TJJR5T62OBSPPNNJDDO33SC3C34OAQZVPJCVF6OIEGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

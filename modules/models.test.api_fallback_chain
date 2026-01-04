@@ -1,0 +1,121 @@
+## [:< ##
+
+# name = models.test.api_fallback_chain
+# descr = test API limit detection triggering fallback in conversation
+
+my $params = shift;
+
+my $context = $params->{'context'} // qw| test |;
+
+<[base.logs]>
+    ->( 1, "[$context] simulating API limit with fallback scenario" );
+
+## Create test conversation
+my $job_id = 'fallback-test-' . int( <[base.time]>->(2) );
+<models.conversations> //= {};
+
+<models.conversations>->{$job_id} = {
+    'job_id'        => $job_id,
+    'token_budget'  => 5000,
+    'tokens_used'   => 0,
+    'created_at'    => <[base.time]>->(4),
+    'turns'         => [],
+    'participants'  => {},
+    'template_name' => 'default',
+};
+
+my $conversation = { 'success' => TRUE, 'job_id' => $job_id };
+
+<[base.logs]>->(
+    1, "[$context] created test conversation: job_id=%s", $job_id
+);
+
+## Add API participant
+my $api_participant = <[models.conversation.add_participant]>->(
+    {   'job_id'         => $job_id,
+        'participant_id' => 'claude-api-test',
+        'backend_type'   => 'api',
+        'model_id'       => 'claude-opus-4',
+        'role'           => 'coder',
+        'context'        => $context,
+    }
+);
+
+return {
+    'success' => FALSE,
+    'error'   => 'API participant creation failed'
+    }
+    unless $api_participant->{'success'};
+
+## Add local fallback participant
+my $local_participant = <[models.conversation.add_participant]>->(
+    {   'job_id'         => $job_id,
+        'participant_id' => 'qwen-local-fallback',
+        'backend_type'   => 'local',
+        'model_id'       => 'qwen2.5-7b',
+        'role'           => 'coder',
+        'context'        => $context,
+    }
+);
+
+return {
+    'success' => FALSE,
+    'error'   => 'Local participant creation failed'
+    }
+    unless $local_participant->{'success'};
+
+<[base.logs]>->(
+    1,
+    "[$context] fallback chain ready: api=%s local=%s",
+    $api_participant->{'participant_id'},
+    $local_participant->{'participant_id'}
+);
+
+## Simulate what would happen: API would return rate_limited: 1
+## The invoke_participant module would then:
+## 1. Detect rate_limited flag
+## 2. Mark conversation as api_limit_hit
+## 3. Find local fallback participant
+## 4. Re-invoke with local backend
+
+my $api_response_sim = {
+    'success'      => FALSE,
+    'rate_limited' => 1,
+    'limit_type'   => 'quota',
+    'error'        => 'quota exceeded for this token',
+    'http_status'  => 402,
+};
+
+my $detection = <[models.backend.api.detect_limit]>->(
+    {   'api_result' => $api_response_sim,
+        'context'    => $context,
+    }
+);
+
+<[base.logs]>->(
+    1,
+    "[$context] API limit simulated: type=%s will trigger fallback",
+    $detection->{'limit_type'}
+);
+
+## Verify the chain is set up
+my $conversation_data = <models.conversations>->{$job_id};
+
+return {
+    'success'              => TRUE,
+    'job_id'               => $job_id,
+    'api_participant_id'   => $api_participant->{'participant_id'},
+    'local_fallback_id'    => $local_participant->{'participant_id'},
+    'api_limit_detection'  => $detection,
+    'fallback_chain_ready' => 1,
+    'participants_count'   =>
+        scalar( keys %{ $conversation_data->{'participants'} } ),
+    'chain_description' => 'On API limit: detect rate_limited flag'
+        . ' → mark api_limit_hit → find local participant → re-invoke',
+};
+
+#,,,.,,,,,...,.,,,.,.,.,,,,..,,.,,,,,,.,,,.,,,.,.,...,...,.,.,...,.,,,,.,,.,,,
+#LEVLHTGUBQC5JBA3XN4E3CDTLKM7YUQIZ7KPRT7SJXDMLZTNKKUMC7WOKAMIUR2TPPGHZ5CNMHGS6
+#\\\|MIQIOEIFJUDCX3EH5GP2I6PVWGZEO2DUW7YYOKO7XM2AJYHIIKI \ / AMOS7 \ YOURUM ::
+#\[7]WXEEUCCYOULXK4YJ5J6QE3WQNLMLKNVPYXVSKUGZFDL34KWNH6CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

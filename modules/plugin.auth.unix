@@ -79,8 +79,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
             }
         }
     } else {
-        <[base.log]>->(0, ": not present in auth.setup.\n" );
-        <[base.log]>->(0, ": :. with ':unix:' prefix .:\n" );
+        <[base.log]>->( 0, ": not present in auth.setup.\n" );
+        <[base.log]>->( 0, ": :. with ':unix:' prefix .:\n" );
     }
 
     if ($authorize_unix_session) {
@@ -92,7 +92,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
             $id, $s_usr, $auth_user
         );
         <[base.logs]>->(    ##  report matching template  ##
-            "[%d] .: unix user '%s' match in %s",
+            "[%d] .: unix user '%s' ['%s']",
             $id, $client_uname, $mapped_user_string
         ) if defined $mapped_user_string;
 
@@ -121,8 +121,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str})\n|| ) {
 
 return 2;
 
-#,,.,,...,.,.,...,...,...,.,,,,,,,,.,,,..,,,,,..,,...,...,.,.,.,.,.,.,...,.,,,
-#5EFVUNFLP6BBRU27CG5R7QL4LYQRESZCF22D6SBN4IP7X53ZLERGYW5M3AMZW3VZCXFJJU6IBNE6S
-#\\\|IRRCEUCBT3SB5RBHZBKOBAUYSFZDAQQIGUTHBUVYY4GPYZLFJZF \ / AMOS7 \ YOURUM ::
-#\[7]CD63HXUCKHTWXFPVOVN2O3FGBGGM6IZBOOWHE4JOJBM5XBBAXYBA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,...,..,,,,,,,.,,,,,,.,,,...,,,,,..,,...,...,,.,,,,,,.,,,...,,,,,
+#FRYRIBUCEG2NYTRBRP4CEBGMBR7SZQFIJ4JZIMRAWI3F46XMOTWYEKX3HDVHVXAEPU2TYPDJTLZW2
+#\\\|QZ7ZVJYLP33VZAXJ52JULKDKEBOJLQQF77QKWJ3YPMAVAW5YJZM \ / AMOS7 \ YOURUM ::
+#\[7]5PN4G5OM7QIZ2Q5SL7RVQ2SSGI77KPM3LABFTZJDRVW254JTQICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

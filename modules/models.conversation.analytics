@@ -23,11 +23,11 @@ if ( length($job_id) ) {
     }
 
     my $conversation = <models.conversations>->{$job_id};
-    my $turns = $conversation->{'turns'} // [];
+    my $turns        = $conversation->{'turns'} // [];
     my @participants
         = keys %{ $conversation->{'participants'} // {} };
 
-    my $turn_count = scalar(@$turns);
+    my $turn_count  = scalar(@$turns);
     my $tokens_used = $conversation->{'tokens_used'} // 0;
 
     ## Analyze by role
@@ -60,14 +60,14 @@ if ( length($job_id) ) {
 }
 
 ## All conversations stats
-my @conversation_ids = keys %{ <models.conversations> };
+my @conversation_ids    = keys %{<models.conversations>};
 my $total_conversations = scalar(@conversation_ids);
-my $total_turns = 0;
-my $total_tokens = 0;
+my $total_turns         = 0;
+my $total_tokens        = 0;
 
 foreach my $cid (@conversation_ids) {
     my $c = <models.conversations>->{$cid};
-    $total_turns += scalar( @{ $c->{'turns'} } );
+    $total_turns  += scalar( @{ $c->{'turns'} } );
     $total_tokens += ( $c->{'tokens_used'} // 0 );
 }
 
@@ -79,24 +79,21 @@ foreach my $cid (@conversation_ids) {
 my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
 
 return {
-    'success'                   => TRUE,
+    'success'                    => TRUE,
     'total_active_conversations' => $total_conversations,
-    'total_turns'               => $total_turns,
-    'total_tokens_used'         => $total_tokens,
-    'average_tokens_per_turn'   => $total_turns > 0
-        ? int( $total_tokens / $total_turns )
-        : 0,
+    'total_turns'                => $total_turns,
+    'total_tokens_used'          => $total_tokens,
+    'average_tokens_per_turn'    => $total_turns > 0
+    ? int( $total_tokens / $total_turns )
+    : 0,
     'average_turns_per_conversation' => $total_conversations > 0
-        ? int( $total_turns / $total_conversations )
-        : 0,
+    ? int( $total_turns / $total_conversations )
+    : 0,
     'elapsed_ms' => $elapsed_ms
 };
 
-#,,.,,..,,,,,,.,.,.,.,,.,,,..,..,,.,,,..,,.,,,..,,...,...,,.,,,.,,...,.,.,,.,,
-#PLACEHOLDER_SIGNATURE
-
-#,,,.,..,,,,,,,,,,,.,,,.,,.,.,.,.,...,,,,,,,.,..,,...,...,...,.,.,,,,,.,,,...,
-#TOYALU6OB533QEP36FFXXNO3RMKLGEU6A3QVZKC7O22X2A6AR3ZRYAPH37DDZ5OITEFSBOLTB6MIG
-#\\\|7CZE634NSE7K7K3K6UJ5TJ2CRO33C3CBLGX3A4GYX5IT3R7UWPP \ / AMOS7 \ YOURUM ::
-#\[7]IWNPSKBCYMXRXXOPROKBNI5VPBF2LSRJ5WW7HVR6BJ5CZB2CGWAA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,.,,.,,,,,.,.,.,.,.,.,.,,.,,...,..,,...,...,,..,,..,...,,.,,.,,,
+#3WPQFYMBREPMY22MHAPPAHMVDUUCT3OOZEQRI6YMLQWZLPYQX2UWYTNOCB5WSJTXLW764NL6VR3MQ
+#\\\|VONJA66QK63ZFC4CJ6ROZL5AJLOH3N3L6ZRVOLKZTFR7DSGZKFS \ / AMOS7 \ YOURUM ::
+#\[7]5JZFCMZODBYALMXRL4HO6GY7SRJ5EEUTQKRDG6FJUMUJ7Q4WMODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

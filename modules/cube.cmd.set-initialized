@@ -4,8 +4,7 @@
 # descr = set zenka session to 'initialized' [0=='own']
 # param = <sid|0>
 
-my $sid
-    = $$call{'args'} || $$call{'session_id'};    # 0 == self [current session]
+my $sid = $$call{'args'} || $call->{'session_id'};    # 0 == self [current s.]
 
 return { 'mode' => qw| false |, 'data' => 'no such session' }
     if not exists $data{'session'}{$sid};
@@ -19,10 +18,7 @@ return { 'mode' => qw| false |, 'data' => 'was already initialized' }
 $data{'session'}{$sid}{'initialized'} = 5;
 
 my $zenka_name = $data{'session'}{$sid}{'user'};
-<[base.logs]>->(
-    "[%s] zenka '%s' reported as 'initialized'",
-    $sid, $zenka_name
-);
+<[base.logs]>->( "[%s] zenka '%s' [initialized]", $sid, $zenka_name );
 
 ##  if v7 zenka, send init reports when available  ##
 <system.timer>->{'send_reports'} = <[event.add_timer]>->(
@@ -34,8 +30,8 @@ my $zenka_name = $data{'session'}{$sid}{'user'};
 
 return { 'mode' => qw| true |, 'data' => qw| initialized | }
 
-#,,,,,,,.,..,,,,,,.,,,,,,,.,.,,..,..,,.,.,..,,..,,...,...,..,,..,,...,.,.,.,.,
-#CFIJL5AJXPRVNHJZAM2VETGHNF24PUZQDNKYJLJ2JHCJNU5MOTG36N3BPQLVHOQGEIGGPQ4QWUPCK
-#\\\|QGGTPETDQDDJVWNWTNEYETAOUYQES5LFIB3E4GKQTEVYBTUP5GN \ / AMOS7 \ YOURUM ::
-#\[7]IJDD43QXSN3QEMS4A3IRKQ4RCKFCKR25H6ZG3YNHHFNAOQAVHQAQ 7  DATA SIGNATURE ::
+#,,,,,...,,..,...,.,.,,..,,,,,,,.,..,,..,,,..,..,,...,...,...,,.,,,,,,,,.,,,.,
+#32BX2MYOHS7KMYZQ4HDEYJRGDPSTTNVMYFOMNTXW4TTNGAWYIXUBEC6F6MX26WKXFN4Q6Q2RVXICG
+#\\\|YMEGC2YBOWK4HGQWE73URYPGEKXVFQR536POAAHTQU67INPAU3X \ / AMOS7 \ YOURUM ::
+#\[7]UHPBM3T2VJN6HDLQFRDIC2I4U4RCSX5DMD6P5QG2MHZQ5GAPLWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
