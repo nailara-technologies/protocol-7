@@ -77,120 +77,123 @@ my $endpoint_check = <[models.get_inference_endpoint]>->(
 my $llama_server_url = $endpoint_check->{'endpoint'}
     // <models.llama_server_url> // 'http://127.0.0.1:8000';
 
-## Attempt HTTP request to llama-server
-my $response_data = undef;
-my $api_error     = undef;
+## Generate unique inference ID
+my $inference_id = "$job_id:$participant_id:" . int(<[base.time]>->(2));
 
-eval {
-    ## Make HTTP POST request to llama-server
-    ## Clear proxy env vars for localhost
+## Prepare JSON payload
+my $json_payload = JSON::PP::encode_json($request_payload);
+
+## Write payload to temp file for curl
+my $temp_file = "/tmp/llama_req_$$.json";
+open( my $payload_fh, '>', $temp_file )
+    or die "Cannot write temp file: $!";
+print $payload_fh $json_payload;
+close($payload_fh);
+
+## Build curl command for async execution
+my @curl_cmd = (
+    'curl', '-s', '-m', $timeout_secs,
+    '-X', 'POST',
+    "$llama_server_url/v1/chat/completions",
+    '-H', 'Content-Type: application/json',
+    '-d', "\@$temp_file"
+);
+
+## Spawn curl process asynchronously with open3
+my ( $curl_in, $curl_out, $curl_err );
+$curl_err = Symbol::gensym();
+
+my $pid = eval {
+    use IPC::Open3;
     delete $ENV{'http_proxy'};
     delete $ENV{'https_proxy'};
     delete $ENV{'HTTP_PROXY'};
     delete $ENV{'HTTPS_PROXY'};
     delete $ENV{'ALL_PROXY'};
     $ENV{'NO_PROXY'} = 'localhost,127.0.0.1';
-    my $ua = LWP::UserAgent->new();
-    $ua->timeout($timeout_secs);
-    $ua->no_proxy('localhost', '127.0.0.1');
-    my $request = HTTP::Request->new(
-        POST => $llama_server_url . '/v1/chat/completions',
-        [ 'Content-Type' => 'application/json' ],
-        JSON::PP::encode_json($request_payload)
-    );
 
-    my $response = $ua->request($request);
-
-    if ( $response->is_success() ) {
-        $response_data = JSON::PP::decode_json( $response->content() );
-    } else {
-        $api_error = $response->code() . ': '
-            . ( $response->content() // 'unknown error' );
-    }
+    IPC::Open3::open3( $curl_in, $curl_out, $curl_err, @curl_cmd );
 };
 
-if ($EVAL_ERROR) {
+if ( !$pid || $EVAL_ERROR ) {
+    unlink($temp_file);
     <[base.logs]>->(
-        2, "[$context] local error: participant=%s model=%s error=%s",
-        $participant_id, $model_id, $EVAL_ERROR
+        2, "[$context] failed to spawn inference: participant=%s error=%s",
+        $participant_id, $EVAL_ERROR // 'unknown error'
     );
     return {
         'success'        => FALSE,
         'model_id'       => $model_id,
         'participant_id' => $participant_id,
-        'error'          => "Local model error: $EVAL_ERROR",
+        'error'          => "Failed to spawn inference: $EVAL_ERROR",
         'rate_limited'   => 0,
         'elapsed_ms'     => ( <[base.time]>->(4) - $start_time ) * 1000
     };
 }
 
-## Check for API error
-unless ($response_data) {
-    <[base.logs]>->(
-        2, "[$context] local error: participant=%s model=%s error=%s",
-        $participant_id, $model_id, $api_error
-    );
-    return {
-        'success'        => FALSE,
-        'model_id'       => $model_id,
-        'participant_id' => $participant_id,
-        'error'          => "Local model error: $api_error",
-        'rate_limited'   => 0,
-        'elapsed_ms'     => ( <[base.time]>->(4) - $start_time ) * 1000
-    };
-}
+## Report child PID to v7 for lifecycle management
+<[base.zenki.report_child_pid]>->($pid);
 
-## Extract response text from first choice
-my $response_text = '';
-if ( defined $response_data->{'choices'}
-    && ref $response_data->{'choices'} eq 'ARRAY' ) {
-    my $first_choice = $response_data->{'choices'}->[0];
-    if ( defined $first_choice->{'message'} ) {
-        $response_text = $first_choice->{'message'}->{'content'} // '';
-    }
-}
-
-unless ( length($response_text) ) {
-    <[base.logs]>->(
-        2, "[$context] local no response: participant=%s model=%s",
-        $participant_id, $model_id
-    );
-    return {
-        'success'        => FALSE,
-        'model_id'       => $model_id,
-        'participant_id' => $participant_id,
-        'error'          => 'No response from local model',
-        'rate_limited'   => 0,
-        'elapsed_ms'     => ( <[base.time]>->(4) - $start_time ) * 1000
-    };
-}
-
-## Extract usage information if available
-my $tokens_used = 0;
-if ( defined $response_data->{'usage'} ) {
-    $tokens_used = $response_data->{'usage'}->{'completion_tokens'} // 0;
-}
+## Store pending inference job
+<models.pending_inferences>->{$inference_id} = {
+    'pid'             => $pid,
+    'job_id'          => $job_id,
+    'participant_id'  => $participant_id,
+    'model_id'        => $model_id,
+    'system_prompt'   => $system_prompt,
+    'messages'        => $messages,
+    'context'         => $context,
+    'start_time'      => $start_time,
+    'timeout_secs'    => $timeout_secs,
+    'output'          => '',
+    'errors'          => '',
+    'curl_out'        => $curl_out,
+    'curl_err'        => $curl_err,
+    'temp_file'       => $temp_file,
+    'rdr_closed'      => 0,
+    'err_closed'      => 0,
+};
 
 <[base.logs]>->(
-    2, "[$context] local response: participant=%s model=%s tokens=%d",
-    $participant_id, $model_id, $tokens_used
+    1, "[$context] inference spawned: id=%s job=%s participant=%s pid=%d",
+    $inference_id, $job_id, $participant_id, $pid
 );
 
-my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
+## Register non-blocking I/O handler for curl stdout
+my $io_handler = <[event.add_io]>->(
+    {   'fd'      => $curl_out,
+        'handler' => 'models.handler.read_inference_response',
+        'data'    => { 'inference_id' => $inference_id, 'stream' => 'stdout' }
+    }
+);
 
+<models.pending_inferences>->{$inference_id}->{'io_handler'} = $io_handler;
+
+## Register completion checker timer (check every 200ms)
+my $timer = <[event.add_timer]>->(
+    {   'interval' => 0.2,
+        'handler'  => 'models.handler.check_inference_completion',
+        'data'     => $inference_id
+    }
+);
+
+<models.pending_inferences>->{$inference_id}->{'timer'} = $timer;
+
+## Return immediately with pending status
+## Response will be delivered asynchronously via event handlers
 return {
-    'success'        => TRUE,
-    'model_id'       => $model_id,
-    'participant_id' => $participant_id,
-    'response'       => $response_text,
-    'tokens_used'    => $tokens_used,
-    'rate_limited'   => 0,
-    'latency_ms'     => $elapsed_ms,
-    'elapsed_ms'     => $elapsed_ms
+    'success'         => TRUE,
+    'pending'         => TRUE,
+    'inference_id'    => $inference_id,
+    'model_id'        => $model_id,
+    'participant_id'  => $participant_id,
+    'job_id'          => $job_id,
+    'message'         => 'inference spawned, response pending',
+    'rate_limited'    => 0,
 };
 
-#,,,.,,,.,...,.,,,..,,..,,.,.,..,,..,,.,.,.,,,..,,...,...,,..,...,,.,,.,,,,..,
-#F3JN4BDDHHKVQGIEVPKAW5QFPCHY2FTS732R7LOP43SUIW6GO4TUYQAQY23LK5IWHZLJ7WPYQ2MMY
-#\\\|647INB6P4W72C5USKAYSUAE4VXTRBYTAGVUBFUIT7KOFIOXD7WX \ / AMOS7 \ YOURUM ::
-#\[7]74CZHZ7ILOHI45YECWFUIYDCTSELCXHHNPABGMDIA34BAKIYTICY 7  DATA SIGNATURE ::
+#,,..,...,.,.,.,.,,,.,,..,,,,,,..,.,,,...,,,.,..,,...,...,,..,.,,,.,.,.,.,...,
+#VBLUUTPVNSUJK4DPGCTVBBZLQWWZDBNWBGHYKO6WIWGPTVQDZSOVMMPILVYFEES4J2GEUMHRPMFFM
+#\\\|36ZRFHOUAVMD5ANZYHFMU6WBUB7IW25C7O25WYEARNXUXLII6PA \ / AMOS7 \ YOURUM ::
+#\[7]G3DQB6PO6VDVXMGOT5OXURX5XW25TH2VULZKDU3AOIVRO463JIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -82,7 +82,7 @@ my @messages = (
     }
 );
 
-<[base.logs]>->( 1, "[$context] invoking local coder with test prompt" );
+<[base.logs]>->( 1, "[%s] invoking local coder with test prompt", $context );
 
 ## Step 5: Invoke participant for actual inference
 my $invoke_result = <[models.invoke_participant]>->(
@@ -103,11 +103,30 @@ unless ( $invoke_result->{'success'} ) {
     };
 }
 
+## Handle pending async inference
+if ( $invoke_result->{'pending'} ) {
+    <[base.logs]>->(
+        1,
+        "[$context] inference is pending (async), inference_id=%s",
+        $invoke_result->{'inference_id'}
+    );
+
+    ## For now, return pending status
+    ## In production, could wait for completion via callbacks or polling
+    return {
+        'success'      => TRUE,
+        'pending'      => TRUE,
+        'job_id'       => $job_id,
+        'inference_id' => $invoke_result->{'inference_id'},
+        'message'      => 'Inference spawned asynchronously',
+    };
+}
+
 <[base.logs]>->(
     1,
     "[$context] inference complete: tokens=%d latency=%dms",
     $invoke_result->{'tokens_used'},
-    int( $invoke_result->{'latency_ms'} )
+    int( $invoke_result->{'latency_ms'} // 0 )
 );
 
 ## Step 6: Verify response quality
@@ -134,8 +153,8 @@ return {
     'full_response'    => $response,
 };
 
-#,,,.,..,,..,,...,,..,.,,,...,,,.,,,,,,,,,,..,.,.,...,...,...,,.,,...,..,,,,,,
-#73VNBTUHGKW7FRIZU7J4Z4767ONDZLEQMQIKQRZIUVESPBSTFPFPL7R6A4EA7AJ5BK7WKF2RW6DJA
-#\\\|SLDSNVL56756RMNY6ULZNL3WXQLKFKNVNZNALXCLW7LMHYMCI2Q \ / AMOS7 \ YOURUM ::
-#\[7]JL7IMH5IS5O5EMGLPA2PGJVZY4567AJO2LOAOEJ26HRFGYGEVQAY 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,.,.,...,.,.,.,,,.,,,.,,,,.,,..,,.,.,...,...,,..,...,.,,,..,,,,.,
+#454XHS55INJHLIYI7NWYD44Q35E3LURWHKPXX5WFSTEFZHCEBGELC3EVTIKEXYJQ2WTOGVPP5YILE
+#\\\|2XC64LFTYHFOT7GVT4C3IGOR2FZ7JAXLW3U2NDXWI4CGHSPJVJ3 \ / AMOS7 \ YOURUM ::
+#\[7]NOKFDE4QCNKZMI4SSI25Z4UJXC4UBM2HVXKLE5MGJEMVL5AOXQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

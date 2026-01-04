@@ -61,7 +61,7 @@ my $start_time   = <[base.time]>->(4);
 ## Check if participant already exists
 if (exists
     <models.conversations>->{$job_id}->{'participants'}->{$participant_id} ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         2, "[$context] participant already exists: job_id=%s participant=%s",
         $job_id, $participant_id
     );
@@ -87,7 +87,7 @@ my $participant = {
 <models.conversations>->{$job_id}->{'participants'}->{$participant_id}
     = $participant;
 
-<[base.log]>->(
+<[base.logs]>->(
     1,
     "[$context] participant added: job_id=%s id=%s role=%s model=%s backend=%s",
     $job_id,
@@ -116,8 +116,8 @@ return {
     'elapsed_ms'     => $elapsed_ms
 };
 
-#,,.,,,,,,.,,,,,,,,..,,.,,..,,,..,,,,,..,,,,,,..,,...,...,.,.,..,,,.,,.,,,,,.,
-#MK2R2T6CKULB5DS2FKWIJVC6NWZMBP4QHGBY34FHNOCJY63QBUHEFP5O6RO5ZJXYOTOHHHPMOUFPM
-#\\\|IABB5ZSEPHEIZ6KE46TYIXYTTWGSJ4LQUZAZRRUT4UOOQ4I4TCD \ / AMOS7 \ YOURUM ::
-#\[7]EZOATPVI4MM7U2PLECA6MWRBZ2ZFEKTKKQWJSU3CQ3WWGB4TQSCI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,.,,,...,,,.,,.,,,,.,,,.,,,.,,..,..,,...,..,,,..,,,.,,,,,,.,,,,.,
+#AWPEFMXCXQHLQW7ZWZYIXOVA46CSS6ZPVUN5BNCEJOARQN6MUZPNO7FN4PD5AXF2KVZ3YRLSWGRAQ
+#\\\|PUSRMEKFR6TN6UVVNEZBIENAF5Y4QHIJE7R2CHQRBEEWQ6MSTIN \ / AMOS7 \ YOURUM ::
+#\[7]KDUMNM2S2QPIFQQRIPH7FJFRS4ZUSJ6VMVN2TQWYNZLMQOQJQ6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

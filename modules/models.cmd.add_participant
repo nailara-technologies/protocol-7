@@ -12,10 +12,10 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
 
     # Try parsing as JSON first, fall back to YAML
     eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
-    if ($EVAL_ERROR) {
+    if (length $EVAL_ERROR) {
         eval { $params = YAML::XS::Load( $call->{'args'} ); };
     }
-    $params = {} if $EVAL_ERROR;
+    $params = {} if length $EVAL_ERROR;
 }
 
 my $job_id         = $params->{'job_id'}         // '';
@@ -79,7 +79,7 @@ my $start_time   = <[base.time]>->(4);
 ## Check if participant already exists
 if (exists
     <models.conversations>->{$job_id}->{'participants'}->{$participant_id} ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         2, "[$context] participant already exists: job_id=%s participant=%s",
         $job_id, $participant_id
     );
@@ -133,8 +133,8 @@ return {
     'data' => $yaml_data
 };
 
-#,,,,,,,,,,.,,.,,,,.,,.,,,,,.,..,,,,.,,..,.,.,..,,...,...,..,,,..,,,.,,,,,,.,,
-#7QU7KQ7OX6YAE2E3ADVO4CTJCUH3UWXLH3AEYKPZNVCAKZMXPX376JAWGYWERCA5UN5MERBBRJNOG
-#\\\|3ZU3TJ62GCBM6VULVEN7TFTCADK2LXXXOSZJLUU54OBYGZC7WFK \ / AMOS7 \ YOURUM ::
-#\[7]XZHIRSYWXMCEIZJS6VA4N3BR6LETDUBZE4KKAEWINTRJZHGGK4CI 7  DATA SIGNATURE ::
+#,,,.,,..,...,,.,,...,,.,,,,.,,,.,,,.,.,,,,..,..,,...,...,...,.,,,,,,,.,,,,.,,
+#F4ZQSOJZ6OUZT6C3HWRMERAUFL5NHO4LFVL4HNUC2ACT7G2KCONTPFBD74JE3MRFZ6KEUSB6CHJLY
+#\\\|2REUAHUUV2OL7FWIWLCOE5Q73AEVIZURJEINB5YA3NNUOERARUA \ / AMOS7 \ YOURUM ::
+#\[7]DXJC3VJZFSI3GFC7XNLM4QPT54K4FGCJJWJAB5QKSYOQ7VL6IYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
