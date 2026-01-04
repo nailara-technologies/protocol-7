@@ -1,0 +1,30 @@
+## [:< ##
+
+# name = models.cmd.test_end_to_end_local
+# descr = command wrapper for end-to-end test with local model inference
+
+my $params = {};
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+    $params = $call->{'param'};
+} elsif ( defined $call->{'args'} && length $call->{'args'} ) {
+    eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
+    if ($@) {
+        eval { $params = YAML::XS::Load( $call->{'args'} ); };
+    }
+    $params = {} if $@;
+}
+
+my $result = <[models.test.end_to_end_local]>->($params);
+
+my $yaml_data = YAML::XS::Dump($result);
+return {
+    'mode' => 'size',
+    'data' => $yaml_data
+};
+
+#,,.,,,..,.,,,,,,,.,.,,,,,,..,.,.,.,,,,,,,...,.,.,...,...,.,.,,..,,,.,,,,,,..,
+#6OX4QY46GNGZS6LPVP2GAEFDTNAE3EMRIUYQBIRXH2OKT7IXGXRRZ7FQOJJCLYRNZXKMZ7IRUWITM
+#\\\|BK34RWIEBBSYAR5MOCM62G5E5RCFPS7MFA3OO7GKMVSTONMHEC7 \ / AMOS7 \ YOURUM ::
+#\[7]2QAUEWMV2SKRM2PXR5ZSAJRLZSM2CFXQFK5DNZQALXHZETQ6LIDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
