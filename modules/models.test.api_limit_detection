@@ -1,0 +1,79 @@
+## [:< ##
+
+# name = models.test.api_limit_detection
+# descr = test API limit detection and fallback logic
+
+my $params = shift;
+
+my $test_type = $params->{'test_type'} // 'rate_limit';
+my $context   = $params->{'context'}   // 'test';
+
+## Simulate different API limit responses
+my %test_responses = (
+    'rate_limit' => {
+        'success'      => FALSE,
+        'error'        => 'API rate limit exceeded',
+        'rate_limited' => 1,
+        'limit_type'   => 'rate_limit',
+        'http_status'  => 429,
+    },
+    'quota' => {
+        'success'      => FALSE,
+        'error'        => 'quota exceeded for this token',
+        'rate_limited' => 1,
+        'limit_type'   => 'quota',
+        'http_status'  => 402,
+    },
+    'overloaded' => {
+        'success'      => FALSE,
+        'error'        => 'server overloaded: at capacity',
+        'rate_limited' => 1,
+        'limit_type'   => 'overloaded',
+        'http_status'  => 503,
+    },
+    'normal_error' => {
+        'success'      => FALSE,
+        'error'        => 'authentication failed',
+        'rate_limited' => 0,
+        'http_status'  => 401,
+    },
+);
+
+my $test_response = $test_responses{$test_type}
+    // $test_responses{'rate_limit'};
+
+<[base.logs]>->(
+    1, "[$context] simulating %s condition: limit=%d status=%d",
+    $test_type,
+    $test_response->{'rate_limited'},
+    $test_response->{'http_status'}
+);
+
+## Test detection logic
+my $detect_result = <[models.backend.api.detect_limit]>->(
+    {   'api_result' => $test_response,
+        'context'    => $context,
+    }
+);
+
+<[base.logs]>->(
+    1,
+    "[$context] detection result: limited=%d type=%s",
+    $detect_result->{'rate_limited'},
+    $detect_result->{'limit_type'}
+);
+
+return {
+    'success'          => TRUE,
+    'test_type'        => $test_type,
+    'api_response'     => $test_response,
+    'detection_result' => $detect_result,
+    'validated'        => $detect_result->{'rate_limited'}
+        == $test_response->{'rate_limited'} ? 1 : 0,
+};
+
+#,,.,,,.,,,.,,,,,,.,,,...,..,,,,.,.,.,,.,,,,.,.,.,...,...,,,.,,..,,..,,,.,,,.,
+#KOANAWU4JDVTE4CEINLGE6FRCJLF4NUH4IMO7D2JE5ATSGPXXDVYPQGM5BKQRBJB4SOWJNCGUJ4Z6
+#\\\|H72I5DDBVJ4PUFHVAPFR5O2YZ2BKUTKNCS73XKJ7OCDKX5CDLML \ / AMOS7 \ YOURUM ::
+#\[7]5OOUPOXARIFB6GN4GITPSI6EGR52EEZLJIXDHBBPNW4OJ3PSR4AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

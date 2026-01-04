@@ -99,23 +99,45 @@ if ( length $EVAL_ERROR ) {
     };
 }
 
-## Check for rate limit (429 status)
+## Check for rate limit/quota errors (429, 400, 500 with quota patterns)
+my $is_rate_limited = 0;
+my $limit_type      = undef;
+
 if ( $http_status == 429 ) {
+    $is_rate_limited = 1;
+    $limit_type      = 'rate_limit';
+} elsif ( $http_status =~ m{^(400|402|403|500|502|503)$} ) {
+    ## Check error response for quota/overload patterns
+    if ( $api_error =~ m{quota|tokens|limit|overload|capacity|429}i ) {
+        $is_rate_limited = 1;
+        $limit_type = 'quota'      if $api_error =~ m{quota|tokens}i;
+        $limit_type = 'overloaded' if $api_error =~ m{overload|capacity}i;
+        $limit_type = 'rate_limit' unless $limit_type;
+    }
+}
+
+if ($is_rate_limited) {
     <[base.logs]>->(
-        1,               "[$context] api rate limit: participant=%s model=%s",
-        $participant_id, $model_id
+        1,
+        "[$context] api limit detected: participant=%s model=%s type=%s status=%d",
+        $participant_id,
+        $model_id,
+        $limit_type // 'unknown',
+        $http_status
     );
     return {
         'success'        => FALSE,
         'model_id'       => $model_id,
         'participant_id' => $participant_id,
-        'error'          => 'API rate limit exceeded',
+        'error'          => "API $limit_type limit: $api_error",
         'elapsed_ms'     => ( <[base.time]>->(4) - $start_time ) * 1000,
         'rate_limited'   => 1,
+        'limit_type'     => $limit_type,
+        'http_status'    => $http_status,
     };
 }
 
-## Check for API error
+## Check for other API errors (not rate limited)
 unless ($response_data) {
     return {
         'success'        => FALSE,
@@ -123,7 +145,8 @@ unless ($response_data) {
         'participant_id' => $participant_id,
         'error'          => "API error: $api_error",
         'elapsed_ms'     => ( <[base.time]>->(4) - $start_time ) * 1000,
-        'rate_limited'   => 0
+        'rate_limited'   => 0,
+        'http_status'    => $http_status,
     };
 }
 
@@ -170,8 +193,8 @@ return {
     'rate_limited'   => 0
 };
 
-#,,,.,.,.,,..,.,.,,,,,,..,,,,,,..,...,..,,,..,..,,...,...,...,,,,,,..,...,,..,
-#73NJGYV5SXLVM3PXLCT3O6FMHNVO2GAMIMPMZMMTOC52KWQ2WDPWWBZWUPD7XJXJGXDLAOJJVLJZW
-#\\\|AMLYSQ7THKT2LCAAZBTBYAOR3CQMTNPQXS5A4AXZESCA7MBFASG \ / AMOS7 \ YOURUM ::
-#\[7]VXJA33KSGTGY7OG76MT3LFR7IMB4WBP57M4EHI6BF2HK6UHFU2BQ 7  DATA SIGNATURE ::
+#,,.,,...,,,,,,..,...,...,.,.,...,,,,,.,,,.,.,..,,...,..,,...,,..,...,,..,.,.,
+#VKUE6NLRWS7ZZUKRTZVDPCRL3PTWZLZ6D3AWNE52WRQI3QXKN5R3CMUZW5RXIPH4JCP5D3CES3B7C
+#\\\|YPDU3JXXN6EYKUEBGNP6WQMQV5XRHHOKPA3LFQIVSD62HOQPDW7 \ / AMOS7 \ YOURUM ::
+#\[7]LWSJ5CFFWEWE775R5VXXTWDPMXVVPQWVKH7P6BZ7DXB2M6F2QEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

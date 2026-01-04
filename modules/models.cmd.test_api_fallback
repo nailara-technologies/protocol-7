@@ -1,7 +1,7 @@
 ## [:< ##
 
-# name = models.cmd.task_chain
-# descr = command wrapper for executing task chains
+# name = models.cmd.test_api_fallback
+# descr = command wrapper for testing API fallback chain
 
 my $params = {};
 
@@ -15,7 +15,7 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
     $params = {} if $@;
 }
 
-my $result = <[models.conversation.task_chain]>->($params);
+my $result = <[models.test.api_fallback_chain]>->($params);
 
 my $yaml_data = YAML::XS::Dump($result);
 return {
@@ -23,8 +23,8 @@ return {
     'data' => $yaml_data
 };
 
-#,,.,,,,.,.,,,...,.,.,..,,,..,,,.,..,,.,,,,,,,.,.,...,...,...,,,.,,,.,,,.,..,,
-#HBN4FJ4MO3CHOIYYAM4QSGKM2GFRT5QZJ4LYW5TR7MRXVKU6B5WMYWAH6XEP4ZFIZFTFQJTNRNEJQ
-#\\\|IACO4I4JJYMXOFFBYCYJ2CHQZ4GIMNKYLUSCAKJR7QBUXFX7JYN \ / AMOS7 \ YOURUM ::
-#\[7]GI6OR2ZTFQM2EEQHRVHA5R7JCTVXUJO4X6G5XU2B5MJCOLAQH6BI 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,,.,..,,,..,,,,,,,.,,,.,..,,,,.,.,.,...,...,..,,.,,,,..,,,.,,.,,
+#MXO3EBQIGEKNVWQ2FCFDAYZQY6QKNEBSQH4DNPAPVPW42VYSQTJTT6ROKVBRCFW26Z5MT2KHYI4JE
+#\\\|TCTS5IIVTNNQ7EMGJH43C57PQ7HP4TVCLF6PRIDIENA7QX2KRQL \ / AMOS7 \ YOURUM ::
+#\[7]4OIRBZE3JUBUTQLW5ZDKBWKNYOHQKCFV7YE4EN7DIIW2ODHGOQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

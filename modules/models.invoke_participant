@@ -84,12 +84,15 @@ if (  !$result->{'success'}
     && $result->{'rate_limited'}
     && $participant->{'backend_type'} eq 'api' ) {
     <[base.logs]>->(
-        1, "[$context] api limit detected, attempting fallback: job_id=%s",
-        $job_id
+        1,
+        "[$context] api %s limit detected, attempting fallback: job_id=%s",
+        $result->{'limit_type'} // 'rate', $job_id
     );
 
     ## Mark conversation as having hit API limit
     <models.conversations>->{$job_id}->{'api_limit_hit'} = 1;
+    <models.conversations>->{$job_id}->{'api_limit_type'}
+        = $result->{'limit_type'} // 'unknown';
 
     ## Find local fallback participant
     my $fallback_participant_id = undef;
@@ -142,8 +145,8 @@ return {
     'elapsed_ms'     => $elapsed_ms
 };
 
-#,,,.,..,,,..,.,.,.,.,...,,,.,.,,,,..,.,,,,,.,..,,...,...,,,,,,.,,..,,...,,,,,
-#7LWHYUOEQJM24U4N45OK6SZ3K2T4747LJYLZFVLNCDSQFKWK42XCVRPLFGY7JGLF6G43IF73NZCBO
-#\\\|UQSOTK2BONIG4EJPPHDDMEMLYE4DASSDBIJLVWS5ZU6M74GRGAJ \ / AMOS7 \ YOURUM ::
-#\[7]BKIHP52M5TSAWDIZNC5QJNWRNJWG7WRHA7QTTWTU6FPR6WZC5KDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,..,,..,,,..,,,,,,..,,.,,.,,,,,,,..,,...,...,.,.,,..,,,.,.,,,.,,,
+#YNPBINIVYB4D5WRW5U6TZOXHYWRQDRU6FQA4FOA6RVRFRGBUXLDB6XCTOGVRADRULT3AEZPSSCWLM
+#\\\|GJF7YFVRHBX2Q7CCIMPYHSWP3OMUALMI36HRVOYFQOMUVN4AZ2Z \ / AMOS7 \ YOURUM ::
+#\[7]K6W7RDOFZRJ7ONKBK2PZAD5CJJA7HO3PEMDE47U6527R7LXNNCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

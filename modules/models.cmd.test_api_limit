@@ -1,7 +1,7 @@
 ## [:< ##
 
-# name = models.cmd.task_chain
-# descr = command wrapper for executing task chains
+# name = models.cmd.test_api_limit
+# descr = command wrapper for testing API limit detection
 
 my $params = {};
 
@@ -15,7 +15,7 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
     $params = {} if $@;
 }
 
-my $result = <[models.conversation.task_chain]>->($params);
+my $result = <[models.test.api_limit_detection]>->($params);
 
 my $yaml_data = YAML::XS::Dump($result);
 return {
@@ -23,8 +23,8 @@ return {
     'data' => $yaml_data
 };
 
-#,,.,,,,.,.,,,...,.,.,..,,,..,,,.,..,,.,,,,,,,.,.,...,...,...,,,.,,,.,,,.,..,,
-#HBN4FJ4MO3CHOIYYAM4QSGKM2GFRT5QZJ4LYW5TR7MRXVKU6B5WMYWAH6XEP4ZFIZFTFQJTNRNEJQ
-#\\\|IACO4I4JJYMXOFFBYCYJ2CHQZ4GIMNKYLUSCAKJR7QBUXFX7JYN \ / AMOS7 \ YOURUM ::
-#\[7]GI6OR2ZTFQM2EEQHRVHA5R7JCTVXUJO4X6G5XU2B5MJCOLAQH6BI 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,.,,,..,,,..,.,,,,,,,,..,..,,..,,.,.,...,...,...,.,.,,.,,.,.,,..,
+#DF4WY44HYJVNO2X4LCOOJRDSHWSSPAGEDHJOKJWT47UOCGIISNKCZNILH67DRIWCEK3QCR5A3RQXY
+#\\\|IYOIURSILN4KEC5C5Y2632WMAL6T67G5UCSA75G2HTCUOCVMWVU \ / AMOS7 \ YOURUM ::
+#\[7]KHDV7XQYVXXJGI3OV5JASGG7FWHXXB7RYUBIUJ6KQJKH2M23JOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
