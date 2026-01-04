@@ -14,6 +14,7 @@ my $temperature    = $params->{'temperature'}     // 0.7;
 my $max_tokens     = $params->{'max_tokens'}      // 4096;
 my $timeout_secs   = $params->{'timeout_seconds'} // 30;
 my $context        = $params->{'context'}         // 'backend';
+my $reply_id       = $params->{'reply_id'};
 
 return {
     'success' => FALSE,
@@ -152,6 +153,7 @@ if ( !$pid || $EVAL_ERROR ) {
     'temp_file'       => $temp_file,
     'rdr_closed'      => 0,
     'err_closed'      => 0,
+    'reply_id'        => $reply_id,
 };
 
 <[base.logs]>->(
@@ -160,24 +162,24 @@ if ( !$pid || $EVAL_ERROR ) {
 );
 
 ## Register non-blocking I/O handler for curl stdout
-my $io_handler = <[event.add_io]>->(
+my $io_handler_stdout = <[event.add_io]>->(
     {   'fd'      => $curl_out,
         'handler' => 'models.handler.read_inference_response',
         'data'    => { 'inference_id' => $inference_id, 'stream' => 'stdout' }
     }
 );
 
-<models.pending_inferences>->{$inference_id}->{'io_handler'} = $io_handler;
+<models.pending_inferences>->{$inference_id}->{'io_handler_stdout'} = $io_handler_stdout;
 
-## Register completion checker timer (check every 200ms)
-my $timer = <[event.add_timer]>->(
-    {   'interval' => 0.2,
-        'handler'  => 'models.handler.check_inference_completion',
-        'data'     => $inference_id
+## Register non-blocking I/O handler for curl stderr (completion trigger)
+my $io_handler_stderr = <[event.add_io]>->(
+    {   'fd'      => $curl_err,
+        'handler' => 'models.handler.read_inference_response',
+        'data'    => { 'inference_id' => $inference_id, 'stream' => 'stderr' }
     }
 );
 
-<models.pending_inferences>->{$inference_id}->{'timer'} = $timer;
+<models.pending_inferences>->{$inference_id}->{'io_handler_stderr'} = $io_handler_stderr;
 
 ## Return immediately with pending status
 ## Response will be delivered asynchronously via event handlers
@@ -192,8 +194,8 @@ return {
     'rate_limited'    => 0,
 };
 
-#,,..,...,.,.,.,.,,,.,,..,,,,,,..,.,,,...,,,.,..,,...,...,,..,.,,,.,.,.,.,...,
-#VBLUUTPVNSUJK4DPGCTVBBZLQWWZDBNWBGHYKO6WIWGPTVQDZSOVMMPILVYFEES4J2GEUMHRPMFFM
-#\\\|36ZRFHOUAVMD5ANZYHFMU6WBUB7IW25C7O25WYEARNXUXLII6PA \ / AMOS7 \ YOURUM ::
-#\[7]G3DQB6PO6VDVXMGOT5OXURX5XW25TH2VULZKDU3AOIVRO463JIDI 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,...,,.,,,,.,.,.,,.,,,.,,.,.,...,..,,...,...,,,,,...,,,.,,,.,,.,,
+#E7GAS2FJDHAYEHMIMRDFWTXNSVUEM4JG6NAQQTISC53FUIXORIDGL7NYRE4HEUVWWO7OHQKQAINE4
+#\\\|PIR2KHSTJGORHRTFJJRABTDJBUFAORWJISWN6IHTE2FR5TEH7ZP \ / AMOS7 \ YOURUM ::
+#\[7]6UBZGP3BN36NXAB3EDCDOQRIJJ4W5UYBLRYP45BAGMK2XN6GYKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

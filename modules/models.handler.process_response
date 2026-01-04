@@ -1,0 +1,102 @@
+## [:< ##
+
+# name = models.handler.process_response
+# descr = shared response processing for completed inference
+
+my $params = shift;
+
+my $inference_id = $params->{'inference_id'};
+my $job          = $params->{'job'};
+
+unless ( defined $job ) {
+    return { 'success' => FALSE, 'error' => 'job not found' };
+}
+
+
+## Parse JSON response from curl output
+my $response_data = undef;
+my $parse_error   = undef;
+
+eval { $response_data = JSON::PP::decode_json( $job->{'output'} ); };
+if ($@) {
+    $parse_error = $@;
+}
+
+## Extract response text from first choice
+my $response_text = '';
+my $tokens_used   = 0;
+
+if ( defined $response_data && defined $response_data->{'choices'}
+    && ref $response_data->{'choices'} eq 'ARRAY'
+    && scalar @{ $response_data->{'choices'} } > 0 ) {
+    my $first_choice = $response_data->{'choices'}->[0];
+    if ( defined $first_choice->{'message'} ) {
+        $response_text = $first_choice->{'message'}->{'content'} // '';
+    }
+}
+
+if ( defined $response_data && defined $response_data->{'usage'} ) {
+    $tokens_used = $response_data->{'usage'}->{'completion_tokens'} // 0;
+}
+
+## Calculate elapsed time
+my $elapsed_ms = ( <[base.time]>->(4) - $job->{'start_time'} ) * 1000;
+
+## Build complete result
+my $final_result = {
+    'success'         => ( length($response_text) > 0 && !$parse_error ) ? TRUE : FALSE,
+    'inference_id'    => $inference_id,
+    'job_id'          => $job->{'job_id'},
+    'participant_id'  => $job->{'participant_id'},
+    'model_id'        => $job->{'model_id'},
+    'response'        => $response_text,
+    'tokens_used'     => $tokens_used,
+    'latency_ms'      => $elapsed_ms,
+    'elapsed_ms'      => $elapsed_ms,
+    'rate_limited'    => 0,
+};
+
+if ($parse_error) {
+    $final_result->{'success'} = FALSE;
+    $final_result->{'error'}   = "JSON parse error: $parse_error";
+    $final_result->{'raw_output'} = substr( $job->{'output'}, 0, 500 );
+}
+
+<[base.logs]>->(
+    1, "[process_response] completion: id=%s output_len=%d",
+    $inference_id, length($job->{'output'})
+);
+
+<[base.logs]>->(
+    1, "[process_response] result: id=%s success=%d tokens=%d elapsed=%dms",
+    $inference_id, $final_result->{'success'}, $tokens_used, $elapsed_ms
+);
+
+## Store result in job
+$job->{'result'} = $final_result;
+$job->{'completed'} = 1;
+
+## Clean up temp file and close file handles
+unlink( $job->{'temp_file'} ) if defined $job->{'temp_file'};
+close( $job->{'curl_out'} )   if defined $job->{'curl_out'};
+close( $job->{'curl_err'} )   if defined $job->{'curl_err'};
+
+## Signal caller via callback if available
+if ( defined $job->{'reply_id'} ) {
+    my $yaml_data = YAML::XS::Dump($final_result);
+    <[base.logs]>->(
+        1, "[process_response] sending deferred reply: reply_id=%s",
+        $job->{'reply_id'}
+    );
+    <[base.callback.cmd_reply]>->(
+        $job->{'reply_id'}, { 'mode' => 'size', 'data' => $yaml_data }
+    );
+}
+
+return $final_result;
+
+#,,,,,.,.,.,.,...,,..,,..,.,.,,.,,,.,,...,...,..,,...,...,,..,.,.,.,.,,,.,,,.,
+#BGXLOTTWQLUVKWEUQH5TOCNZLPEPJLP75PVF77CJ2ETMXX3YOQRYSKMCXH43G6GBIM5ULKSVP4LQQ
+#\\\|76KKCXN25FTR4YPPVXD4ELOQBRLWM5WLHS7NCBIGPPH3S5MV6YK \ / AMOS7 \ YOURUM ::
+#\[7]4ODY5NM7Z4KWMYQRZ3LWKLKOHMDPQXK7TZEXWADHT67PORUIWCDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

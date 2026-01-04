@@ -6,6 +6,7 @@
 my $params = shift;
 
 my $context = $params->{'context'} // 'e2e_test';
+my $reply_id = $params->{'reply_id'};
 
 <[base.logs]>->(
     1, "[$context] starting end-to-end test with local inference"
@@ -53,7 +54,7 @@ my $add_participant = <[models.conversation.add_participant]>->(
     {   'job_id'         => $job_id,
         'participant_id' => 'seed-coder-local',
         'backend_type'   => 'local',
-        'model_id'       => 'Seed-Coder-8B',
+        'model_id'       => 'gemma3-glitter-4b',
         'role'           => 'coder',
         'context'        => $context,
     }
@@ -91,6 +92,7 @@ my $invoke_result = <[models.invoke_participant]>->(
         'messages'       => \@messages,
         'system_prompt'  => 'You are an expert Perl programmer.',
         'context'        => $context,
+        'reply_id'       => $reply_id,
     }
 );
 
@@ -153,8 +155,8 @@ return {
     'full_response'    => $response,
 };
 
-#,,,,,.,,,,,,,.,.,...,.,.,.,,,.,,,.,,,,.,,..,,.,.,...,...,,..,...,.,,,..,,,,.,
-#454XHS55INJHLIYI7NWYD44Q35E3LURWHKPXX5WFSTEFZHCEBGELC3EVTIKEXYJQ2WTOGVPP5YILE
-#\\\|2XC64LFTYHFOT7GVT4C3IGOR2FZ7JAXLW3U2NDXWI4CGHSPJVJ3 \ / AMOS7 \ YOURUM ::
-#\[7]NOKFDE4QCNKZMI4SSI25Z4UJXC4UBM2HVXKLE5MGJEMVL5AOXQAQ 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,..,,,..,.,.,...,,.,,.,.,...,.,,,.,.,...,...,...,...,.,,,,,.,..,,
+#2TBGNF3XB7Z25DB5BL3RB5PAOLO4TKKINLK3C7UN5MEVZBWAGPIPHO5E4F3LJCPTBRJUFBGYICU2Q
+#\\\|NAXAMRIRWDNNG32OR27UT4F57PUE6PDDZYRFPSOL3VBXWIXFUTW \ / AMOS7 \ YOURUM ::
+#\[7]N3TQTTPNOVI57FIL26KLRKCEGAK57WTALV32RG6Z7VVLXNQ7HAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

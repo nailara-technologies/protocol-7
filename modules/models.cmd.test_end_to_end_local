@@ -15,16 +15,26 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
     $params = {} if $@;
 }
 
+## Store reply_id for async handlers to use later
+my $reply_id = $call->{'reply_id'};
+$params->{'reply_id'} = $reply_id if defined $reply_id;
+
 my $result = <[models.test.end_to_end_local]>->($params);
 
+## If pending (async), return deferred to keep session alive for handlers
+if ( $result->{'pending'} ) {
+    return { 'mode' => 'deferred' };
+}
+
+## If synchronous result, return immediately
 my $yaml_data = YAML::XS::Dump($result);
 return {
     'mode' => 'size',
     'data' => $yaml_data
 };
 
-#,,.,,,..,.,,,,,,,.,.,,,,,,..,.,.,.,,,,,,,...,.,.,...,...,.,.,,..,,,.,,,,,,..,
-#6OX4QY46GNGZS6LPVP2GAEFDTNAE3EMRIUYQBIRXH2OKT7IXGXRRZ7FQOJJCLYRNZXKMZ7IRUWITM
-#\\\|BK34RWIEBBSYAR5MOCM62G5E5RCFPS7MFA3OO7GKMVSTONMHEC7 \ / AMOS7 \ YOURUM ::
-#\[7]2QAUEWMV2SKRM2PXR5ZSAJRLZSM2CFXQFK5DNZQALXHZETQ6LIDY 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,.,,,,,.,,,.,.,,,,.,,,.,,,.,,,,,,.,.,...,..,,.,.,,,,,,.,,,.,,,,.,
+#KFBMOU2PZKTHGHG25LZ5HBLTWLIKRUDNFNO27WDUDBY6AQYCEAN7BVUTJQROB2TRG4QTE3ZPAOORI
+#\\\|7YPV73AELSKCIDO56CSW7P2EKXKSFRVCVUAIZMCA2FZYACVL73R \ / AMOS7 \ YOURUM ::
+#\[7]GAQQ5B5VQK3GLU6RTWRNTVUXKRXTBMD5WSQ7ZWGNYNLDP6SEIECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

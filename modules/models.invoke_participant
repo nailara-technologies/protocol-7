@@ -10,6 +10,7 @@ my $participant_id = $params->{'participant_id'} // '';
 my $system_prompt  = $params->{'system_prompt'}  // '';
 my $messages       = $params->{'messages'}       // [];
 my $context        = $params->{'context'}        // 'conversation';
+my $reply_id       = $params->{'reply_id'};
 
 return {
     'success' => FALSE,
@@ -58,6 +59,7 @@ if ( $participant->{'backend_type'} eq 'api' ) {
             'system_prompt'  => $system_prompt,
             'messages'       => $messages,
             'context'        => $context,
+            'reply_id'       => $reply_id,
         }
     );
 } elsif ( $participant->{'backend_type'} eq 'local' ) {
@@ -68,6 +70,7 @@ if ( $participant->{'backend_type'} eq 'api' ) {
             'system_prompt'  => $system_prompt,
             'messages'       => $messages,
             'context'        => $context,
+            'reply_id'       => $reply_id,
         }
     );
 } else {
@@ -122,6 +125,7 @@ if (  !$result->{'success'}
                 'system_prompt'  => $system_prompt,
                 'messages'       => $messages,
                 'context'        => $context,
+                'reply_id'       => $reply_id,
             }
         );
     }
@@ -147,8 +151,8 @@ return {
     'elapsed_ms'     => $elapsed_ms
 };
 
-#,,..,..,,.,,,...,...,,.,,..,,,..,.,.,.,.,.,.,..,,...,...,,,.,,,,,..,,...,.,,,
-#5R2UV5JDYRZW76N3RF5DR2YJGNJ4DD6X553SS366GPWQZVDM76TUZNUTGERFF3ZD45RSRPEXRJXVO
-#\\\|XQYYP2EG2DONY3QOBSGSBIQBX5KI2MGM4CREVJY35LNBDQNWE6A \ / AMOS7 \ YOURUM ::
-#\[7]UYGF4IQFRQDARXZAF3WHENNE5TZLWGRAU37BLHC3I654ZJBBCSDA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,.,...,..,,..,,.,,,,,,,,,.,,..,..,,...,...,...,..,,..,,,,.,...,
+#53W2CTXSROUVPR3GSDW7BJ6WRUGVPMCOHME5KYZIH6NCAJMG6GU4OZ2EYRFMCZMAZIBEZATWSJ6BG
+#\\\|JYLPXHLXAPMZ2YKRTROOQUHMY4TYOZEK4NJVQM26SXPNK44BWHS \ / AMOS7 \ YOURUM ::
+#\[7]2ZJMAJFIACB55YALZNFQWRREYFTS3TUV46PWUVI3J73TLR4ZHODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

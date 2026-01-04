@@ -713,6 +713,8 @@ return [ qw[
         mpv.callback.silenced
         models.registry.empty
         models.parser.size_gb
+        models.local_discover
+        models.cmd.task_chain
         models.cmd.statistics
         keys.read_key_archive
         keys.list_remote_keys
@@ -971,6 +973,7 @@ return [ qw[
         mpv.cmd.playlist_update
         models.storage.discover
         models.list_attachments
+        models.cmd.local_server
         models.cmd.extract_file
         llama-vision.cmd.status
         letsencr.child.acme_new
@@ -1095,7 +1098,10 @@ return [ qw[
         mpv.cmd.shuffle-playlist
         mpv.callback.init_volume
         models.registry.list_all
+        models.conversation.save
+        models.conversation.load
         models.cmd.test_discover
+        models.cmd.route_by_role
         models.cmd.cost_analysis
         models.backend.interface
         mod-test.cmd.list-loaded
@@ -1219,9 +1225,13 @@ return [ qw[
         models.storage.move_model
         models.storage.check_tier
         models.registry.get_entry
+        models.invoke_participant
         models.decision.cost_base
+        models.cmd.test_api_limit
+        models.cmd.local_discover
         models.cmd.get_model_path
         models.cmd.discover_files
+        models.cmd.consensus_vote
         models.backend.api.invoke
         melt.trigger.auto_cleanup
         letsencr.parent.init_code
@@ -1463,8 +1473,10 @@ return [ qw[
         nshell.tofu_validate_pubkey
         net.read_linewise_estimated
         mpv.callback.reenc_finished
+        models.local_server_manager
         models.conversation.compact
         models.cmd.list_attachments
+        models.backend.local.vision
         models.backend.local.invoke
         mod-test.cmd.list-successes
         mod-test.blacklist_perlcode
@@ -1572,13 +1584,17 @@ return [ qw[
         mpv.handler.pipe.val_percent
         mpv.handler.pipe.single_line
         mpv.callback.start_reenc_msg
+        models.test.end_to_end_local
         models.storage.resolve_model
         models.storage.get_tier_path
         models.registry.update_entry
         models.registry.create_entry
         models.conversation_add_turn
         models.conversation.add_turn
+        models.cmd.test_api_fallback
+        models.cmd.save_conversation
         models.cmd.record_invocation
+        models.cmd.load_conversation
         mod-test.cmd.erase-blacklist
         mod-test.cmd.blacklisted-add
         letsencr.dns.inwx_delete_txt
@@ -1674,7 +1690,11 @@ return [ qw[
         nodes.cmd.update-protocol-elf
         mpv.handler.event.file-loaded
         models.storage.create_symlink
+        models.get_inference_endpoint
         models.decision.cost_analysis
+        models.conversation.analytics
+        models.cmd.list_conversations
+        models.cmd.invoke_participant
         models.checksum.calculate_all
         mod-test.cmd.list-blacklisted
         letsencr.parent.send_to_child
@@ -1785,8 +1805,11 @@ return [ qw[
         mpv.handler.scan_encoded_timer
         mpv.handler.reenc_notify_reply
         mpv.callback.check_parent_dirs
+        models.test.api_fallback_chain
         models.storage.tier_management
         models.discover.scan_directory
+        models.conversation.task_chain
+        models.conversation.list_saved
         models.cmd.substitute_template
         models.cmd.conversation_create
         models.checksum.calculate_amos
@@ -1868,9 +1891,13 @@ return [ qw[
         osd-logo.handler.download_reply
         nodes.send_host_details_request
         mpv.handler.rescale_video_reply
+        models.test.api_limit_detection
         models.registry.list_by_context
+        models.handler.process_response
         models.conversation_get_context
         models.conversation.get_context
+        models.cmd.compact_conversation
+        models.backend.api.detect_limit
         mod-test.write-mem-list-to-disk
         mod-test.cmd.clear-success-list
         mod-test.cmd.blacklisted-remove
@@ -1945,6 +1972,7 @@ return [ qw[
         osd-logo.callback.download_image
         openbox.callback.already_running
         models.registry.find_alternative
+        models.cmd.test_end_to_end_local
         models.cmd.conversation_add_turn
         mod-test.perlmod.run_reload_test
         llama-vision.handler.read_output
@@ -2024,6 +2052,9 @@ return [ qw[
         mpv.handler.event.property-change
         models.storage.discover_directory
         models.registry.base.get_registry
+        models.conversation.route_by_role
+        models.cmd.get_inference_endpoint
+        models.cmd.analytics_conversation
         models.checksum.calculate_bmw_l13
         mod-test.mem_blacklist.remove_mod
         mod-test.cmd.write-blacklist-code
@@ -2092,6 +2123,7 @@ return [ qw[
         models.registry.save.save_registry
         models.registry.populate_from_yaml
         models.registry.load.load_registry
+        models.conversation.consensus_vote
         mod-test.write_out_blacklist_pcode
         llama-vision.handler.process_batch
         letsencr.parent.query_httpd_vhosts
@@ -2245,6 +2277,7 @@ return [ qw[
         protocol.protocol-7.auth.select-method
         mpv.handler.event.property-change.path
         models.registry.base.get_registry_path
+        models.handler.read_inference_response
         mod-test.callback.reload-test.add-link
         llama-vision.handler.read_batch_output
         letsencr.parent.send_httpd_vhost_query
@@ -2309,6 +2342,7 @@ return [ qw[
         pdf.html.parent.handler.convert_pdf_reply
         nodes.callback.local_network.offline-node
         models.registry.get_entry.get_model_entry
+        models.handler.check_inference_completion
         mod-test.callback.reload-test.remove-link
         letsencr.parent.load_certificate_registry
         letsencr.parent.handler_httpd_vhost_reply
@@ -2405,8 +2439,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,,.,,,.,,.,.,.,,,,,.,,.,,,,.,,,,,.,.,.,.,.,.,...,...,.,.,...,.,,,...,..,,
-#6IWC6IUXNJKX5WAGRZCKXBVVJJSYR2QMDL2PBT5VJDC2OT4FZM6YA4QXEH3YE6VBMKHAVF6MBFRXI
-#\\\|MJB6NBGH5MLKFOH44MC7GPXCWROCXI7SZDQLD7XOQFV4JQPBJ7Q \ / AMOS7 \ YOURUM ::
-#\[7]MIK2L2SC7CIF4BNAWBBBJOTJ5KUFGOQXYKWRNPBM2JHIS6K6PUDY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,..,,...,..,,,,.,,.,,,,,,.,.,,..,.,.,...,...,,,,,.,,,,,.,,,,,...,
+#VXKPTD55TI6H4JLUPJM4MHQLNYEJZEZFQBFH57IQF2EZWYKER6RJQOS2P3EKSJISSCCEFFMXYEKYK
+#\\\|CLS5XCFHARPCUH6ISJY6JWC6BKZ4XRXZZO5KWBDNAXPXR77AYGP \ / AMOS7 \ YOURUM ::
+#\[7]VLZMI35UXKP7VFHTFGTCIJNCQH3SPDUZ4C64UMMU3NDM2WZXZWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
