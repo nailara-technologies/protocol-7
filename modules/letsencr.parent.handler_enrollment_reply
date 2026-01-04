@@ -89,13 +89,13 @@ if ( $mode eq 'TRUE' ) {
             = JSON::XS::decode_json( Crypt::Misc::decode_b32r($data) );
     };
 
-    if ($@) {
+    if ($EVAL_ERROR) {
         <[base.log]>->(
-            1, "failed to decode certificate bundle for $domain: $@"
+            1, "failed to decode certificate bundle for $domain: $EVAL_ERROR"
         );
         <[letsencr.parent.activity_logger]>->(
             'enrollment', $domain, 'failed',
-            "failed to decode certificate: $@"
+            "failed to decode certificate: $EVAL_ERROR"
         );
         return FALSE;
     }
@@ -218,8 +218,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,..,,,,,,,,,.,.,,,.,.,,,..,,,,.,,,.,,,,,,,,,..,,...,...,...,,,.,,,,,.,,,,,.,
-#RNMQ6O2I6AVPWL26FORKGMDW7H2LBK4NCSZIIVWJ2WO2XPA3Z6PPPR3MUR4VRWWEKZX3VIXEZHSZA
-#\\\|BCFEV7ELBRE2JTB2JN6VKW2CWWLYDYZCC6LW4HOYPKMRLOGYMH4 \ / AMOS7 \ YOURUM ::
-#\[7]KDUH52JNMHZ4OIOJ2227MQOELBTLRLTOZKUPCD752SA7JF4OEKDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,.,,,,,,..,,,,,,,,,.,.,,..,,,,,..,,...,...,..,,...,,..,...,,,.,
+#YS5D2XROKDWPK7WUXVQ2U54DZM2P7D67BBTE2JNUVMCIQ45YBZCLKK57SCIXEZZHFMMN6QC6ROE4S
+#\\\|JUQZWHWTOGWSF32YBAHFSVUBM3MBTUHXJX4IGVK7JA7OCALX2DF \ / AMOS7 \ YOURUM ::
+#\[7]FMO6RMCU75YDRSBKSQ44T2ALTDOGVESSANIXUHSA5DZHZ5XYZWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

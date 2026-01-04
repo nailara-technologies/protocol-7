@@ -24,9 +24,9 @@ if ( defined $requested_batch_id && $requested_batch_id ne '' ) {
             $batch_state = $loaded;
             $batch_queue = $loaded->{batch_queue};
         };
-        if ($@) {
+        if ($EVAL_ERROR) {
             <[base.log]>->(
-                1, "WARNING: Failed to parse batch state JSON: $@"
+                1, "WARNING: Failed to parse batch state JSON: $EVAL_ERROR"
             );
             $batch_state = undef;
         }
@@ -133,8 +133,8 @@ return {
     : $batch_state->{status}
 };
 
-#,,,,,,,.,,..,...,...,,..,,.,,.,.,..,,...,,..,..,,...,...,..,,..,,...,..,,,,,,
-#EOGUJLOKIJX6JALGXYSKNDO3UKLHU6E2QO33ZQSXB6KLKBRRISLJ7SFWYHPVKUUY5TVU4RTBLNIKC
-#\\\|2CF42LMIMV3LO4AEIYLLFKDXWTRZWF23777L3SGPOIRGHBG5FE4 \ / AMOS7 \ YOURUM ::
-#\[7]JYMEH756NF22PYBE555XZ72MVI2QVIQ72KBKTB2SPK47I4YUEQCQ 7  DATA SIGNATURE ::
+#,,..,...,,,.,,..,.,,,..,,,..,.,,,,,,,,,,,,,,,..,,...,...,...,,,,,..,,...,,.,,
+#OSWTUIG6UCS24MX54XV7QAAECHNZEOCSZAP5VIPS7EPBMZLFMPUTPGCFRVWX4BTMXZNRQCXO76UHA
+#\\\|YRDYVPW2HBNKEVJ7ET24CZYHKLRQKOKBZDJLLUO2YGWARKB5CDS \ / AMOS7 \ YOURUM ::
+#\[7]NCG7S5V57VZB4RJILRYBAOBGZRF3MP2ZD7U36XM3TBT4WIJ2COBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

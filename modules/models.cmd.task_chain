@@ -1,0 +1,33 @@
+## [:< ##
+
+# name = models.cmd.task_chain
+# descr = command wrapper for executing task chains
+
+my $params = {};
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+    $params = $call->{'param'};
+} elsif ( defined $call->{'args'} && length $call->{'args'} ) {
+    eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
+    if ($@) {
+        eval { $params = YAML::XS::Load( $call->{'args'} ); };
+    }
+    $params = {} if $@;
+}
+
+my $result = <[models.conversation.task_chain]>->($params);
+
+my $yaml_data = YAML::XS::Dump($result);
+return {
+    'mode' => 'size',
+    'data' => $yaml_data
+};
+
+#,,.,,..,,,,,,.,.,.,.,,.,,,..,..,,.,,,..,,.,,,..,,...,...,,.,,,.,,...,.,.,,.,,
+#PLACEHOLDER_SIGNATURE
+
+#,,.,,.,,,,.,,...,.,.,..,,.,,,..,,...,.,,,.,.,.,.,...,...,.,,,..,,,,.,.,,,,.,,
+#QNKV2MONHWCGUGOHN4DUQYFE77ONUWPV4TXWXTIXH4CQWNC53H5APFZOYBPEUHCRRFGY6VRIWX5CU
+#\\\|CU5IYHGTXLRV7OM5K5QFZTO4ZYNF5HMHP7RLR4GXKRU2WQ7EHIM \ / AMOS7 \ YOURUM ::
+#\[7]WITP6Y4IQZLFTD2O7AXZAPAL4ZLP5KGGHOGEAVDTYWSKPXVJF2CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

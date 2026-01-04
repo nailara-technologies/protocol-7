@@ -19,10 +19,10 @@ unless ( defined $yaml_string && length($yaml_string) > 0 ) {
 my $parsed_data;
 eval { $parsed_data = YAML::XS::Load($yaml_string); };
 
-if ($@) {
+if ($EVAL_ERROR) {
     <[base.logs]>->(
         1,  'channels.yaml_decode error: %s [input: %s]',
-        $@, substr( $yaml_string, 0, 100 )
+        $EVAL_ERROR, substr( $yaml_string, 0, 100 )
     );
     return {};
 }
@@ -31,8 +31,8 @@ return defined $parsed_data ? $parsed_data : {};
 
 1;
 
-#,,.,,,,,,.,.,,.,,..,,,..,..,,,,.,.,.,.,.,,..,.,.,...,...,,..,,,.,,.,,..,,.,.,
-#CU75IWAAMM66D775C7U3R4LBAFHRNXJLINEXSL553ODVYGWXU7GPHVCV7OL3WA66CRVIGWFISJVO6
-#\\\|MQDYGF55T4TH2CY76NVS4IW7GPINAKZOIBVX6BHQQAMW47ASHOI \ / AMOS7 \ YOURUM ::
-#\[7]YWLZKJB6OAF6FXWX5ULD5LB4VSNYTSMAAOGKDTWIJOCCEZ7MNGDQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,..,,,.,..,,,,,,,.,,.,.,,,,,...,.,.,...,...,,,,,.,,,...,,,.,,,.,
+#VCQEKCBCXMTPNSNF7HQE5SJCGH7IFCYPUODSKCSOY56XFUNAM7CXTRJ3N4BCYP3QTPXYP2EICED4C
+#\\\|5OQVUXSMBJVGVRXTDKT6JARK42VRIWV4LQN3P3MEAXTPYMDD6M3 \ / AMOS7 \ YOURUM ::
+#\[7]COIWLZIDFR54QXVLRW725JDLYHAVC5BMT3SCZEXQNW3ACPSTUQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

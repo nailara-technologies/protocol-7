@@ -12,10 +12,10 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
 
     # Try parsing as JSON first, fall back to YAML
     eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
-    if ($@) {
+    if ($EVAL_ERROR) {
         eval { $params = YAML::XS::Load( $call->{'args'} ); };
     }
-    $params = {} if $@;
+    $params = {} if $EVAL_ERROR;
 }
 
 my $job_id  = $params->{'job_id'}  // '';
@@ -48,8 +48,8 @@ return {
     'data' => $yaml_data
 };
 
-#,,.,,...,.,.,,..,,..,,.,,,,.,.,.,.,.,..,,,.,,..,,...,...,..,,,,.,,,,,...,,..,
-#DG6OMKR2OKKXNTBLQYPV2WGORUNCBUTWBQ7DU72EFRTICWIPXUKN5J4MWLX7CENISPHZFIXNTFDXC
-#\\\|CZTIYWT2TQR3TLTBUGVWQ3U64VRXDT4P2KKWDNJNLOOKDFOHTCC \ / AMOS7 \ YOURUM ::
-#\[7]E7EEURIWRNHDKQZF7AI25Q5SQZ5QOLBFM5TI7BELA3ZBMHIXLUCQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,...,.,.,,,,,,,.,,,,,,.,,,..,.,,,..,,...,...,...,.,,,,.,,..,,.,,,
+#6VW4GPPGJ3LSIR34ITNVZN4B4GG2G6JJOS3BDKFRNVZX2S2IQIHR2BQB5VAQMYKVHDVBW4S6CKZJ2
+#\\\|Q3SD6QO4FIVDI4OFEFVUTNBXNAKOSASYYDHXYMDEE6FFVZGXP5W \ / AMOS7 \ YOURUM ::
+#\[7]ENHM54PC7QKVPBJZCASFI6K647YOXQYPVHAHFAFNGISMTO5SZEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

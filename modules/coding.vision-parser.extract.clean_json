@@ -47,11 +47,11 @@ my $parsed;
 
 eval { $parsed = $json_parser->decode($json_text); };
 
-if ($@) {
-    <[base.logs]>->( 0, '[extract.clean_json] JSON parse failed: %s', $@ );
+if ($EVAL_ERROR) {
+    <[base.logs]>->( 0, '[extract.clean_json] JSON parse failed: %s', $EVAL_ERROR );
     return {
         'success'       => FALSE,
-        'error'         => "JSON parse failed: $@",
+        'error'         => "JSON parse failed: $EVAL_ERROR",
         'raw_output'    => $raw_vision_output,
         'cleaned_text'  => $json_text,
         'parse_attempt' => 'failed'
@@ -71,8 +71,8 @@ return {
     'cleaned' => $json_text
 };
 
-#,,.,,...,,,.,,,,,,..,..,,,..,..,,,.,,.,,,..,,..,,...,...,...,,,.,,.,,.,,,...,
-#BKWSI6NH4SEXRH766ZYWBIUIS2YS7QCLNSYDWT43AD73ZPBPAMK2GFPCI3WBHLW5RKY7QDJFCALW6
-#\\\|XOHDWTCEF2JEJSPRC6EGUPBJULOMVZB74GBUAJBCXOZAO4C3DUE \ / AMOS7 \ YOURUM ::
-#\[7]G6TQSW5WIR7LDQKOMV424ZG3R5NH27ZFH6ESWEEX6E62OIVYQIDY 7  DATA SIGNATURE ::
+#,,.,,...,,..,,..,,,.,,..,.,,,..,,,,,,,..,,..,..,,...,...,,,.,.,.,..,,.,,,,..,
+#4ORSVDSGQIFMGGMNJBDGAPT5G2O6L727JQHZLR6U3EQ5TJMQG3KLW7VUHE5X7CRVSK24T2PZHWB4Q
+#\\\|ALXYWK4LFPZZQM4LUAE4US3NS6C4H6CO33XDOPN5HUJQUFLTO4N \ / AMOS7 \ YOURUM ::
+#\[7]ORX5BRHPM565Y5QAF23HUTHVKVEGJAYYUDN4M656LTSV4WX6TEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

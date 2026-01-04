@@ -64,11 +64,11 @@ if ( exists $code{'letsencr.child.acme_revoke'} ) {
     my $result;
     eval { $result = <[letsencr.child.acme_revoke]>->($revoke_msg); };
 
-    if ($@) {
-        <[base.log]>->( 0, "  Revocation failed: $@" );
+    if ($EVAL_ERROR) {
+        <[base.log]>->( 0, "  Revocation failed: $EVAL_ERROR" );
         return {
             success => FALSE,
-            error   => qq| revocation failed: $@ |
+            error   => qq| revocation failed: $EVAL_ERROR |
         };
     }
 
@@ -116,8 +116,8 @@ if ( exists $code{'letsencr.child.acme_revoke'} ) {
 
 0;
 
-#,,,,,...,,..,,,,,.,.,..,,.,,,..,,.,.,...,,,.,..,,...,...,..,,,..,..,,,,,,,,,,
-#SYRDKLHKVH47R43AG4ZCHBRLRF7ESTAYCIUYLB6PHDIZ4GACM2M2RYTVANGW5EPX6LPPVCX4TEEQU
-#\\\|ZN44HZFUEL663C5DU6OKXV5TJUZZDNSKNS26VJGAX6YJ33LDKRL \ / AMOS7 \ YOURUM ::
-#\[7]F2NLX2TUZDYTHBPYKOQRVHMNLD4OBFLZM5D6UYWPLEH2FSATQ2AA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,..,..,,,,,,.,.,,..,,,,,,,.,..,,..,,...,...,...,.,,,,,.,,,,,..,,
+#BMGA6U3JNKSAZ2QTX4AZFEDK2RPDFT5M5ZQPV247VA7L63EL5W7AUGFFOPYI76QYTOUMAAEPKBG52
+#\\\|VM6BC6ED465DKQFB2FSFO3HYU2ZNVUJHKJQRN73ZFHJY535ODQQ \ / AMOS7 \ YOURUM ::
+#\[7]CT56EOVJXUEXILGGOJ5N553T5YZXP3MZPFPKQ6BPRDNB6GFBQKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

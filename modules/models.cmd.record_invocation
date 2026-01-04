@@ -23,10 +23,10 @@ if ( !$model_amos || !$context ) {
 my $invocation_data = {};
 if ($data_json) {
     eval { $invocation_data = decode_json($data_json); };
-    if ($@) {
+    if ($EVAL_ERROR) {
         return {
             'mode' => qw| size |,
-            'data' => "error: invalid invocation data JSON: $@\n"
+            'data' => "error: invalid invocation data JSON: $EVAL_ERROR\n"
         };
     }
 }
@@ -45,8 +45,8 @@ $reply_str .= "date: " .      ( $result->{date}      // 'unknown' ) . "\n";
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,..,,,.,.,.,,..,,..,.,,,,.,,..,,.,,,.,.,,.,,..,,...,..,,.,.,,,.,.,.,.,,,.,.,
-#6YWWLCUY5L75V33ORHI5BEEFXTYIXRT4HCIIXM5QLC3YFTI7WZSABX7H43LNVG4U3RHANHTKTUBX2
-#\\\|ETHSOT5P3ADM2VLMB4A4G3ICDZCYNEDE32S4W6HKWI3ZYTRCIMH \ / AMOS7 \ YOURUM ::
-#\[7]3STCLKMLKMH4VV47P2LRSCTONKX3TUDEGR5H7LVPYAWDBUZMV6DY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,...,.,.,.,.,...,,,.,.,,,.,,,...,..,,...,...,.,.,,.,,,..,.,.,..,,
+#EJPMUCBQQBD4OM6QLMQSVTIWM2ACIGP4IKPYTHUCQVRMSGNEFH5AVWE7INOC4BOWZSLYGQUEZ6JDS
+#\\\|2Y3JT5G2GIAWUD3TLRQW2JRKLDZMLTA7ZSAHTXVMSK7LHLDLTH4 \ / AMOS7 \ YOURUM ::
+#\[7]7CIVRDVPB2SIIUC6YSG2XDRY2AHNEWY4SVQSIHLHVIXQH5X2SIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

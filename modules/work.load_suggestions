@@ -18,8 +18,8 @@ if (-f $suggestions_file) {
         <[base.log]>->( 3, 'workflow suggestions loaded from yaml' );
     };
 
-    if ($@) {
-        <[base.log]>->( 1, 'failed to load suggestions yaml: %s', $@ );
+    if ($EVAL_ERROR) {
+        <[base.log]>->( 1, 'failed to load suggestions yaml: %s', $EVAL_ERROR );
         return undef;
     }
 } else {
@@ -135,8 +135,8 @@ return <work.suggestions>;
 
 0;
 
-#,,.,,..,,,,,,,,,,,.,,,.,,.,.,,,,,.,,,..,,,,.,..,,...,...,...,.,,,.,.,,.,,...,
-#KOIYU3PC3OP2BOJQHBSDW6HF6T5KXHTXFEJC6RVXJDS5IS6HWXD4LE2FDZJZGDO5D3OAZND4PIT6A
-#\\\|SRKAVZYM4AJKNH42VULJMZCGHTC66YT5K43X7BZZAPWGF56GCZJ \ / AMOS7 \ YOURUM ::
-#\[7]K2CCQAFWURTAZNZJ3RFN753HWMSROLTX257LHWW2GPEYM22HWKBA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,,,,,.,.,,,,.,,,.,,,.,,,,.,...,..,,...,..,,...,.,,,.,.,.,,,.,.,
+#4PQWAV5QJYNYN7RQIY5TU6OK5IS2PMGEGKY3TSZC7BAKRRSL5RX42GUP5ZWYY3GQNZ4SQNXJ7PUAQ
+#\\\|UXGTZH3P4R6USD4GNIDJW65PYMQH74MHVCRQE4YCHGFCI55ZJNS \ / AMOS7 \ YOURUM ::
+#\[7]JSYTOJDL3PP2P5MURQE7SE3Q45D56ARZBQAK7ZJUAL3HEKTMYYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

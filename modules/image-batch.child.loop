@@ -31,12 +31,12 @@ while (1) {
     my $job;
     eval { $job = JSON::XS::decode_json($line); };
 
-    if ($@) {
+    if ($EVAL_ERROR) {
 
         # Invalid JSON, send error and continue
         my $error_response = JSON::XS::encode_json(
             {   cmd   => 'error',
-                error => "Failed to parse JSON: $@"
+                error => "Failed to parse JSON: $EVAL_ERROR"
             }
         );
         print {$parent_pipe} "$error_response\n";
@@ -77,8 +77,8 @@ while (1) {
 close $parent_pipe;
 return TRUE;
 
-#,,,,,.,,,,,.,...,,.,,,..,,.,,,..,,,,,,.,,,,.,..,,...,...,...,...,.,.,,,,,..,,
-#AIEJE7KS37PVPEOOCEKIX2GYJPNKH6KSYUQUWMQSVMEKVG5EPQ4JC2VZWGTYWS2UMM63PBU3NHR72
-#\\\|2LE2DE6QKEGQQSAYNZVTEJTCKLCOQN2FRQG3XDNBCGVPXZ2KM7U \ / AMOS7 \ YOURUM ::
-#\[7]WXMKK7K7LUJSGJVZ3MFLWOFXIZIAFDQM6KSS2NXWSNSJ2IR3J2DQ 7  DATA SIGNATURE ::
+#,,,,,,..,...,.,,,...,,,,,..,,,,,,.,,,..,,.,,,..,,...,...,...,..,,...,.,,,,,.,
+#WIU6UO2HTBE4V77HMEZBQIBSI2476NNLBIF7NATWEC5ATMP5NY7XE3DECN5A4ULW4BRZ5FFCZIJUK
+#\\\|4BNU5SL2LR6FX5DKMNBIY464JHLCTAKRJDV3W2SH7XXFSD44SIG \ / AMOS7 \ YOURUM ::
+#\[7]FO7WAXSPQFBS2YCZ6RLTDZ7RIVAC3D733IX2VI6BRKH2KMX3M6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -47,7 +47,7 @@ if ( $cmd eq 'save' ) {
 
     my $state;
     eval { $state = JSON::XS::decode_json($json_str); };
-    return { success => FALSE, error => "Failed to parse JSON: $@" } if $@;
+    return { success => FALSE, error => "Failed to parse JSON: $EVAL_ERROR" } if $EVAL_ERROR;
 
     return { success => TRUE, state => $state };
 
@@ -88,8 +88,8 @@ if ( $cmd eq 'save' ) {
     return { success => FALSE, error => "Unknown command: $cmd" };
 }
 
-#,,..,...,..,,..,,,..,,,,,.,,,..,,.,,,,,,,,..,..,,...,...,,.,,,,,,.,.,,.,,..,,
-#MKJDOT3S4HS4AF6AAZG253547MSZCST3Z7LR3WYDXGYJZDCDFG42AXKB7NQYE3BH7GFC3SEZ5ZTHC
-#\\\|DW26O3DSUCB5RVN7Z6ZQWIB4VHVRZ6HSATFJEMLUKRQY4IV6BKP \ / AMOS7 \ YOURUM ::
-#\[7]C5QDZL3ZQODLDRS5TBLHN644KSSCL6UIGYPMPFMRZPMYWKTP3YDQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,..,,,,,,,,,,...,,,.,..,,,.,,...,..,,...,...,,.,,,,,,...,,.,,,..,
+#ZHZXUTVNJLPFAFB7CAE2BOTFIBIBO6F4OPZU3DWI4GLWES7F2BJSHSVE44AWFITRMMD3YW2HC556O
+#\\\|KFCYASTAFSRUV6IGUUK5BHIEXRSHBIPHILJL7QDTPIHKC6ACOVB \ / AMOS7 \ YOURUM ::
+#\[7]SHEGKX5JVC6R5BRD3HFZMRPPVN33BQYXOFIXRPUX4PFD5Q4LLSCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,30 @@
+## [:< ##
+
+# name = models.cmd.list_conversations
+# descr = list saved conversations in storage
+
+my $params = {};
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+    $params = $call->{'param'};
+} elsif ( defined $call->{'args'} && length $call->{'args'} ) {
+    eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
+    if ($EVAL_ERROR) {
+        eval { $params = YAML::XS::Load( $call->{'args'} ); };
+    }
+    $params = {} if $EVAL_ERROR;
+}
+
+my $result = <[models.conversation.list_saved]>->($params);
+
+my $yaml_data = YAML::XS::Dump($result);
+return {
+    'mode' => 'size',
+    'data' => $yaml_data
+};
+
+#,,..,,,,,,,.,,..,.,.,..,,...,,,.,..,,,,.,,.,,..,,...,...,..,,,,,,..,,..,,,.,,
+#YJGORPP4ZM5VBXIX4GMYBTMG23VJL42ORZX55NOL5F56AMUY6SGJOXYY24EUZH3VR23VUL3S2MKOO
+#\\\|EZOOVTDELJOX5YIUWC3ZDPLQIWFM6AKUQ5IQM37LM77ZTIINJHN \ / AMOS7 \ YOURUM ::
+#\[7]EYDS77SWUUE5546ZDK6TQJXZRTJT4HRPSL3M77UBISBM6FX45UCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

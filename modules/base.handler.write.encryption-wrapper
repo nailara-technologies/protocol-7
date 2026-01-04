@@ -59,7 +59,7 @@ return sub {
         $cipher->encrypt_done();
     };
 
-    if ( my $error = $@ ) {
+    if ( my $error = $EVAL_ERROR ) {
         <[base.s_warn]>->(
             sprintf 'ChaCha20-Poly1305 encryption failed [session %d]: %s',
             $session_id, $error
@@ -74,8 +74,8 @@ return sub {
 
 1;
 
-#,,.,,...,..,,.,.,.,.,,,,,,..,...,..,,..,,,..,..,,...,...,,,,,.,.,.,,,,.,,,,.,
-#H2JIV5WIYFJKDRPRD4GQQTOQNTY7HMW7WJN4VSQAV3BDNR4M43DNDQY2EB2X6TPD52XLGHAZZ6H56
-#\\\|JC2WKHYGPRCNTCCEEVI2WTAUXLBPCHCJKEBGUMVLSMLCSA3DKFI \ / AMOS7 \ YOURUM ::
-#\[7]FDBVSIQUXIVSIGFVXMDCT4BUELRS7PXEJRJOFHSJUKJPIFTV7GCQ 7  DATA SIGNATURE ::
+#,,,.,..,,...,..,,,.,,,,.,,,,,..,,,,.,...,,,,,..,,...,...,,..,,,.,.,,,...,,.,,
+#PO6FR77YT6BNPM5RCJTCVQNVCKL26IKJNPLWGV4N4J6T273KAJ5BNUDYXQYQZS7XZMRDDRIOSPABS
+#\\\|UMMXXNATYQCHVCKYSMOJCR73GL3IFOOEANL7XX2RJF7VF7V4DNR \ / AMOS7 \ YOURUM ::
+#\[7]UV2X4QCL7QWF7I6U7EURGDDICPTSTO2GIUDOBSP5NOFTXSRJHYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

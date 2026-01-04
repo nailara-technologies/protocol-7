@@ -1,0 +1,45 @@
+## [:< ##
+
+# name = models.cmd.save_conversation
+# descr = save conversation to persistent storage
+
+my $params = {};
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+    $params = $call->{'param'};
+} elsif ( defined $call->{'args'} && length $call->{'args'} ) {
+    eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
+    if ($EVAL_ERROR) {
+        eval { $params = YAML::XS::Load( $call->{'args'} ); };
+    }
+    $params = {} if $EVAL_ERROR;
+}
+
+my $job_id   = $params->{'job_id'}   // '';
+my $filename = $params->{'filename'} // '';
+
+if ( !length($job_id) ) {
+    return {
+        'mode' => 'false',
+        'data' => "error: job_id required\n"
+    };
+}
+
+my $result = <[models.conversation.save]>->(
+    {
+        'job_id'   => $job_id,
+        'filename' => $filename,
+    }
+);
+
+my $yaml_data = YAML::XS::Dump($result);
+return {
+    'mode' => 'size',
+    'data' => $yaml_data
+};
+
+#,,,.,..,,,,,,.,.,.,.,,,,,,..,...,,,.,,,.,.,.,..,,...,...,,,.,...,...,...,...,
+#5SWSBLSBKKREQL2FEF4G6AGZVFG2WHLP4BPDBTNPY4MNCGYU6YRJGXVCYOROR5JOKYYFT34Z2VKIU
+#\\\|WGKDPO7ZRYV3Y6J2NM4EOLD4YA4KYWXBYK3DJBLLWYZFXZNEAUW \ / AMOS7 \ YOURUM ::
+#\[7]R46PWS7U2HPDE47WDNRMUMLTQD3ASAZEVHBARLYTTSC2SZ7KRKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -19,8 +19,8 @@ unless ( defined $data_ref ) {
 my $yaml_string;
 eval { $yaml_string = YAML::XS::Dump($data_ref); };
 
-if ($@) {
-    <[base.logs]>->( 1, 'channels.yaml_encode error: %s', $@ );
+if ($EVAL_ERROR) {
+    <[base.logs]>->( 1, 'channels.yaml_encode error: %s', $EVAL_ERROR );
     return '';
 }
 
@@ -28,8 +28,8 @@ return defined $yaml_string ? $yaml_string : '';
 
 1;
 
-#,,,.,,.,,...,,,.,,,,,,..,,,,,...,.,,,.,,,,,.,.,.,...,...,..,,,,,,,.,,.,,,...,
-#4XBAS2ZTTT33EK6LZA6XHQDYNJQQHB7KTSY7IWWPPURZMJEJ42QAONKXGY5C3HDM7ULKKPG5OCKDA
-#\\\|J7RDUVR6ALWQ442GDWQPQ77NZQD5DYQE3N43I3SNT6LK6OEGUTZ \ / AMOS7 \ YOURUM ::
-#\[7]I7BI2LEK5DEVPUTQYNJZKGXNAVPSEVDWUY4RSNFPO7CWM2PR62BA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,.,,,,,,,,.,,,.,.,,,...,,..,.,.,.,.,...,...,.,,,.,,,,,,,,..,..,,
+#IAK6ZRXYTBS35MOPZ4FAICX5OUTXXEIKK6IXSXRJB4EEC33T7VERBXBPJT226MTV74YPB6LDSKGYW
+#\\\|CTPU5VMS3542DOOWPWC4G2IJ3YXU2KFMLVENZVDJCCJSDUQUKIT \ / AMOS7 \ YOURUM ::
+#\[7]I4PE7UVXFRVG7B5ZGBH67ONYSTHJAK3XNMPQSV5IQKYIXU3MI6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

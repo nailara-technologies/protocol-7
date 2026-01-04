@@ -38,13 +38,13 @@ return {
 <[base.log]>->( 2, "child.cmd.analyze_image: calling image-quality.analyze" );
 my $analysis_result;
 eval { $analysis_result = <[image-quality.analyze]>->($image_path); };
-if ($@) {
+if ($EVAL_ERROR) {
     <[base.log]>->(
-        1, sprintf( "child.cmd.analyze_image: EXCEPTION in analyze: %s", $@ )
+        1, sprintf( "child.cmd.analyze_image: EXCEPTION in analyze: %s", $EVAL_ERROR )
     );
     return {
         'mode' => qw| false |,
-        'data' => "Exception during analysis: $@"
+        'data' => "Exception during analysis: $EVAL_ERROR"
     };
 }
 <[base.log]>->(
@@ -78,8 +78,8 @@ return {
     'data' => freeze($response) . "\n"
     }
 
-#,,,.,,,.,.,.,.,.,..,,.,.,...,,..,,,,,.,.,.,,,..,,...,..,,.,,,.,.,...,,,.,...,
-#P6Y2DJZ5JGRSUAFGPFCDIV4CUOKXZIHFCNVZTNVRCYDPJIYJKSUGPQU4U52STIT4YPIP2ZCSN4JH4
-#\\\|DLAHPY24RNNCTHUYONJXQDFGORBYOE7PFT6ZK7YL2IMLG7EEO2A \ / AMOS7 \ YOURUM ::
-#\[7]4RAGZC64FNONAVISVBNPQ6JJCDDGGZMPNTZRBRNJ3RYEO65SZ2DQ 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,..,.,,,..,,..,,,..,.,.,,,,,,,.,..,,...,..,,...,.,.,.,.,.,,,.,.,
+#5EKZYVORRF3YEMB66VNCVTHWWKNETGJ42H4AJVUWCGQFSRDCALSKZNFZV54D6PIGAYTB4NMFV6LFC
+#\\\|DZPJT5I7NR3FNYUW3OIDFFIHP67L7VMDO45OUM7ZNG2QTCOFTJC \ / AMOS7 \ YOURUM ::
+#\[7]Q7DK35SJTE7MBFVAHP7DUF4EBJLYQ5YNPSUVADZFF7QMKH5K6QBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

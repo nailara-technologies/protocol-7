@@ -57,10 +57,10 @@ eval {
     );
 };
 
-if ($@) {
+if ($EVAL_ERROR) {
     return {
         success => FALSE,
-        error   => "HTTP request failed: $@",
+        error   => "HTTP request failed: $EVAL_ERROR",
         method  => 'http'
     };
 }
@@ -76,10 +76,10 @@ return {
 my $result;
 eval { $result = decode_json( $response->{content} ); };
 
-if ($@) {
+if ($EVAL_ERROR) {
     return {
         success => FALSE,
-        error   => "Invalid JSON response: $@",
+        error   => "Invalid JSON response: $EVAL_ERROR",
         method  => 'http'
     };
 }
@@ -116,8 +116,8 @@ return {
     method      => 'http'
 };
 
-#,,..,.,,,.,.,,,,,,,,,..,,,,,,,,,,,.,,.,,,,..,..,,...,...,,,.,..,,,.,,,,,,,.,,
-#XW5CWF3LMC4NYVSOTZCWOF2DKU2MCU3OV26QUVIU6T5PLYZKS4B22BBV2IMDQ4YO2PGHJJ3O7N23Q
-#\\\|TL54ZVTVXOXH2TD2EEXZH6KYSYIX7EQWMBPHMMVJXU2BF2TRT7M \ / AMOS7 \ YOURUM ::
-#\[7]RSMUUJPCCEZ7ZLFG53PUHW3PQE7IHUAWWFKFI4FDJWYQZVYLHMAQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,..,,,,,,,,,,,.,,..,.,.,,..,,,,,..,,...,...,..,,.,.,,,.,,..,,,.,
+#2HGQ4ULGMYGYHKRMM6GST2VCCS3KTZ6DGLKI3BLS7KXSPXE443BS7RCANHWEOYNZJEC4YIX4ZFDU2
+#\\\|AWFAEXK344VUZDA4XBLTHJHVQHP6IQ26D5PCRV7HFQRRD65XVPR \ / AMOS7 \ YOURUM ::
+#\[7]UM32ODU7INU2CWUEPPB3VKA2AOV3CNWFNDC6J6WRZISQDJV7XOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

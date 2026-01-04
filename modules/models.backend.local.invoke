@@ -73,16 +73,16 @@ eval {
     }
 };
 
-if ($@) {
+if ($EVAL_ERROR) {
     <[base.logs]>->(
         2, "[$context] local error: participant=%s model=%s error=%s",
-        $participant_id, $model_id, $@
+        $participant_id, $model_id, $EVAL_ERROR
     );
     return {
         'success'        => FALSE,
         'model_id'       => $model_id,
         'participant_id' => $participant_id,
-        'error'          => "Local model error: $@",
+        'error'          => "Local model error: $EVAL_ERROR",
         'rate_limited'   => 0,
         'elapsed_ms'     => ( <[base.time]>->(4) - $start_time ) * 1000
     };
@@ -153,8 +153,8 @@ return {
     'elapsed_ms'     => $elapsed_ms
 };
 
-#,,.,,,.,,,,.,,,.,,.,,,,,,.,.,..,,..,,,..,...,..,,...,...,,.,,,.,,,..,,..,.,,,
-#UFSYVIQQZEKBRRYOQYDO3AB77KAFQH6F2NLJSSSB5OIBO6IDU7WGIVRAOWTS4LCSM2VSDDCDAEZV2
-#\\\|WMXI66VZQESDYXOCGRXEDELSJYWTQHGZBOA4LHVTIG7TOWUTWVL \ / AMOS7 \ YOURUM ::
-#\[7]BLAVJ6I2ZSKJIWDPIFIALYZ2ZZJEJABPLIFWWQ534FOML5BCIKBA 7  DATA SIGNATURE ::
+#,,..,...,.,.,,.,,,,,,,..,.,.,.,.,,.,,,,.,,,,,..,,...,...,..,,,..,,.,,.,,,.,.,
+#KPFHO3H4XG7DXYIGEXH4L4V7Q2A4SNVH4PSDPPFSW6T4NC673NAP3Y3ARJ4CJJV7ZY24WQUTD52WO
+#\\\|PGBCBNEEQXJYCLQLV6HW763XPI5RVXWFPK5FSHN2G3LYEFVN5MN \ / AMOS7 \ YOURUM ::
+#\[7]4X35RU3HR2EOADGRGVQZKUAD7J3NNC4YNE7CQ6WYDEUXT3Z5IKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

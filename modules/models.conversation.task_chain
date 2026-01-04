@@ -1,0 +1,227 @@
+## [:< ##
+
+# name = models.conversation.task_chain
+# descr = execute task chain with routing and dependency management
+
+my $params = shift;
+
+my $job_id     = $params->{'job_id'}     // '';
+my $tasks      = $params->{'tasks'}      // [];
+my $context    = $params->{'context'}    // 'conversation';
+
+return {
+    'success' => FALSE,
+    'error'   => 'job_id required'
+    }
+    unless length($job_id);
+
+return {
+    'success' => FALSE,
+    'error'   => 'tasks required (array of task objects)'
+    }
+    unless ref $tasks eq 'ARRAY' && scalar(@$tasks);
+
+<models.conversations> //= {};
+
+unless ( exists <models.conversations>->{$job_id} ) {
+    return {
+        'success' => FALSE,
+        'error'   => "conversation not found: $job_id",
+        'job_id'  => $job_id
+    };
+}
+
+my $conversation = <models.conversations>->{$job_id};
+my $start_time   = <[base.time]>->(4);
+
+## Build task execution plan
+my %task_map;
+my @execution_order;
+my %executed_tasks;
+my %task_results;
+
+## Parse task definitions
+foreach my $task (@$tasks) {
+    my $task_name = $task->{'name'} // '';
+    return {
+        'success' => FALSE,
+        'error'   => 'each task must have a name',
+        'job_id'  => $job_id
+        }
+        unless length($task_name);
+
+    $task_map{$task_name} = $task;
+}
+
+## Build execution order: process tasks in given order, execute when deps done
+my %dep_count;
+
+foreach my $task (@$tasks) {
+    my $name = $task->{'name'};
+    my $deps = $task->{'depends_on'} // [];
+    $dep_count{$name} = scalar(@$deps);
+}
+
+## Queue for tasks ready to execute (0 deps)
+my @ready_queue;
+foreach my $task (@$tasks) {
+    push @ready_queue, $task->{'name'} if $dep_count{ $task->{'name'} } == 0;
+}
+
+## Process ready tasks and mark dependents as ready
+my %processed;
+while ( scalar(@ready_queue) ) {
+    my $task_name = shift @ready_queue;
+    next if $processed{$task_name};
+
+    push @execution_order, $task_name;
+    $processed{$task_name} = 1;
+
+    ## Mark tasks that depend on this one
+    foreach my $other_task (@$tasks) {
+        my $other_name = $other_task->{'name'};
+        next if $processed{$other_name};
+
+        my $deps = $other_task->{'depends_on'} // [];
+        foreach my $dep (@$deps) {
+            $dep_count{$other_name}-- if $dep eq $task_name;
+        }
+
+        if ( $dep_count{$other_name} == 0 ) {
+            push @ready_queue, $other_name;
+        }
+    }
+}
+
+<[base.logs]>->(
+    2,
+    "[$context] task_chain: job_id=%s tasks=%d execution_order=%s",
+    $job_id,
+    scalar(@$tasks),
+    join( ',', @execution_order )
+);
+
+## Execute tasks in order
+foreach my $task_name (@execution_order) {
+    my $task = $task_map{$task_name};
+
+    ## Check dependencies completed
+    my $deps_ok = 1;
+    if ( defined $task->{'depends_on'} && ref $task->{'depends_on'} eq 'ARRAY' ) {
+        foreach my $dep ( @{ $task->{'depends_on'} } ) {
+            unless ( $executed_tasks{$dep} ) {
+                $deps_ok = 0;
+                last;
+            }
+        }
+    }
+
+    unless ($deps_ok) {
+        $task_results{$task_name} = {
+            'success'       => FALSE,
+            'error'         => 'dependency not executed',
+            'task_name'     => $task_name,
+            'depends_on'    => $task->{'depends_on'}
+        };
+        next;
+    }
+
+    ## Route task to appropriate participant
+    my $route_result = <[models.conversation.route_by_role]>->(
+        {   'job_id'    => $job_id,
+            'task_desc' => $task->{'description'} // $task_name,
+            'context'   => $context,
+        }
+    );
+
+    unless ( $route_result->{'routed'} ) {
+        $task_results{$task_name} = {
+            'success'   => FALSE,
+            'error'     => 'no participant available for task',
+            'task_name' => $task_name
+        };
+        next;
+    }
+
+    my $participant_id = $route_result->{'participant_id'};
+
+    ## Build message from task + previous results
+    my $task_message = $task->{'description'} // $task_name;
+    if ( defined $task->{'depends_on'} && ref $task->{'depends_on'} eq 'ARRAY' ) {
+        $task_message .= "\n\n[Previous context]:\n";
+        foreach my $dep ( @{ $task->{'depends_on'} } ) {
+            if ( $task_results{$dep}->{'response'} ) {
+                $task_message .= "- $dep: " . $task_results{$dep}->{'response'} . "\n";
+            }
+        }
+    }
+
+    ## Invoke participant
+    my @messages = ( { 'role' => 'user', 'content' => $task_message } );
+    my $invoke_result = <[models.invoke_participant]>->(
+        {   'job_id'         => $job_id,
+            'participant_id' => $participant_id,
+            'messages'       => \@messages,
+            'context'        => $context,
+        }
+    );
+
+    $task_results{$task_name} = {
+        'success'        => $invoke_result->{'success'},
+        'task_name'      => $task_name,
+        'participant_id' => $participant_id,
+        'model_id'       => $invoke_result->{'model_id'},
+        'response'       => $invoke_result->{'response'},
+        'tokens_used'    => $invoke_result->{'tokens_used'},
+        'latency_ms'     => $invoke_result->{'latency_ms'},
+        'error'          => $invoke_result->{'error'},
+    };
+
+    $executed_tasks{$task_name} = 1;
+}
+
+## Aggregate results
+my @completed_tasks;
+my @failed_tasks;
+my $total_tokens = 0;
+
+foreach my $task_name (@execution_order) {
+    my $result = $task_results{$task_name};
+    $total_tokens += $result->{'tokens_used'} // 0;
+
+    if ( $result->{'success'} ) {
+        push @completed_tasks, $result;
+    } else {
+        push @failed_tasks, $result;
+    }
+}
+
+<[base.logs]>->(
+    1,
+    "[$context] task_chain completed: job_id=%s completed=%d failed=%d tokens=%d",
+    $job_id,
+    scalar(@completed_tasks),
+    scalar(@failed_tasks),
+    $total_tokens
+);
+
+my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
+
+return {
+    'success'          => scalar(@failed_tasks) == 0 ? TRUE : FALSE,
+    'job_id'           => $job_id,
+    'task_count'       => scalar(@$tasks),
+    'completed_count'  => scalar(@completed_tasks),
+    'failed_count'     => scalar(@failed_tasks),
+    'execution_order'  => \@execution_order,
+    'completed_tasks'  => \@completed_tasks,
+    'failed_tasks'     => \@failed_tasks,
+    'total_tokens'     => $total_tokens,
+    'elapsed_ms'       => $elapsed_ms
+};
+
+#,,.,,...,..,,,.,,...,,,.,...,,..,,..,...,.,.,.,.,...,...,,,,,,.,,.,.,,.,,...,
+#GHBNSXHX2QAOTGCZQV44BSR3TECWMUD46SBE2L4SUFUL53B3AUMICDAML7O4CQGN7O5LGU6ANGKJW
+#\\\|HTPR3HBMCUKPNRNGEAZPV7IDMC3ZZF25VPVZWLKDHUUAQ22ASK7 \ / AMOS7 \ YOURUM ::
+#\[7]53KLY7CFR56UYAXQPWGRVFPHUIUUA7WEAABAE56PBNJ2JWYC6GDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

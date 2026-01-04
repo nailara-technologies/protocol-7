@@ -81,8 +81,8 @@ eval {
     alarm(0);
 };
 
-if ($@) {
-    if ( $@ eq "timeout\n" ) {
+if ($EVAL_ERROR) {
+    if ( $EVAL_ERROR eq "timeout\n" ) {
         <[base.log]>->(
             1,
             "[$session_id] command timed out after ${timeout}s: $module_path"
@@ -93,10 +93,10 @@ if ($@) {
         $timed_out    = 1;
     } else {
         <[base.log]>->(
-            1, "[$session_id] command execution error: $module_path - $@"
+            1, "[$session_id] command execution error: $module_path - $EVAL_ERROR"
         );
         $exec_status  = qw| error |;
-        $exec_message = qq| command execution error: $@ |;
+        $exec_message = qq| command execution error: $EVAL_ERROR |;
         $result       = qq| <!-- command error: $module_path --> |;
     }
     alarm(0);
@@ -148,8 +148,8 @@ return {
     result  => $result,
 };
 
-#,,,,,...,,,.,,.,,,..,...,...,.,,,,..,...,,,,,..,,...,..,,,.,,,.,,,,,,.,.,.,,,
-#XPAQDSDD7OWJOZYOPOBUU4DJNI3KAR2NUQFCEKVCFURUKWT6R2N6EV6QHPZEOVU5ZUDDRGIQPM7FQ
-#\\\|I2SCV2G4H5G5FTZA3TZ3HYAUSJJUFNPHU6J6AFVOLAOEGUS6LIK \ / AMOS7 \ YOURUM ::
-#\[7]AAW5YG4IYMMWAUXHHOQEATEDOBHRDT33AXLKBGEABTIJFW7KMSCI 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,.,,.,.,.,,,.,,,...,..,,,,,,,..,..,,...,...,,,.,...,..,,.,.,,.,,
+#QKI6OKKF2AR7IB7IFHPXCLDB33HMW5YDJPD6UKJNYLROC7QWUA2AA4NYYVELZ625B4IMU7ZA54UT2
+#\\\|SXD6JRGZ6SBPZNZ6GTJBXSXZY3KD4CBDQ4VD6TRCOPVHDAUZLOJ \ / AMOS7 \ YOURUM ::
+#\[7]W7CJGQRX5N35247HJOOLFHUPWPG2TDYEHMJ6HFEOQNDJUA3ZS4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

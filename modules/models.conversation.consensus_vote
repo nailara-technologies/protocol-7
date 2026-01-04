@@ -1,0 +1,132 @@
+## [:< ##
+
+# name = models.conversation.consensus_vote
+# descr = get consensus from all conversation participants on a question
+
+my $params = shift;
+
+my $job_id        = $params->{'job_id'}        // '';
+my $question      = $params->{'question'}      // '';
+my $system_prompt = $params->{'system_prompt'} // '';
+my $context       = $params->{'context'}       // 'conversation';
+
+return {
+    'success' => FALSE,
+    'error'   => 'job_id required'
+    }
+    unless length($job_id);
+
+return {
+    'success' => FALSE,
+    'error'   => 'question required'
+    }
+    unless length($question);
+
+<models.conversations> //= {};
+
+unless ( exists <models.conversations>->{$job_id} ) {
+    return {
+        'success' => FALSE,
+        'error'   => "conversation not found: $job_id",
+        'job_id'  => $job_id
+    };
+}
+
+my $conversation = <models.conversations>->{$job_id};
+my $start_time   = <[base.time]>->(4);
+
+## Get all enabled participants
+my @enabled_participants;
+foreach my $pid ( keys %{ $conversation->{'participants'} } ) {
+    my $p = $conversation->{'participants'}->{$pid};
+    if ( $p->{'enabled'} ) {
+        push @enabled_participants, $pid;
+    }
+}
+
+return {
+    'success' => FALSE,
+    'error'   => 'no enabled participants in conversation',
+    'job_id'  => $job_id
+    }
+    unless scalar(@enabled_participants);
+
+## Prepare message format for participants
+my @messages = ( { 'role' => 'user', 'content' => $question } );
+
+## Collect responses from all participants
+my %responses;
+my @participant_results;
+
+foreach my $pid (@enabled_participants) {
+    my $result = <[models.invoke_participant]>->(
+        {   'job_id'         => $job_id,
+            'participant_id' => $pid,
+            'system_prompt'  => $system_prompt,
+            'messages'       => \@messages,
+            'context'        => $context,
+        }
+    );
+
+    if ( $result->{'success'} ) {
+        my $response_text = $result->{'response'} // '';
+        push @{ $responses{$response_text} }, {
+            'participant_id' => $pid,
+            'model_id'       => $result->{'model_id'},
+            'tokens_used'    => $result->{'tokens_used'},
+            'latency_ms'     => $result->{'latency_ms'},
+        };
+    }
+
+    push @participant_results, {
+        'participant_id' => $pid,
+        'success'        => $result->{'success'},
+        'model_id'       => $result->{'model_id'},
+        'response'       => $result->{'response'},
+        'tokens_used'    => $result->{'tokens_used'},
+        'error'          => $result->{'error'},
+    };
+}
+
+## Aggregate consensus
+my @consensus_responses;
+foreach my $response_text ( sort keys %responses ) {
+    push @consensus_responses, {
+        'response'  => $response_text,
+        'vote_count' => scalar( @{ $responses{$response_text} } ),
+        'participants' => $responses{$response_text},
+    };
+}
+
+## Sort by vote count (descending)
+@consensus_responses = sort {
+    $b->{'vote_count'} <=> $a->{'vote_count'}
+} @consensus_responses;
+
+<[base.logs]>->(
+    1,
+    "[$context] consensus vote: job_id=%s participants=%d responses=%d",
+    $job_id,
+    scalar(@enabled_participants),
+    scalar(@consensus_responses)
+);
+
+my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
+
+return {
+    'success'                => TRUE,
+    'job_id'                 => $job_id,
+    'question'               => $question,
+    'total_participants'     => scalar(@enabled_participants),
+    'consensus_responses'    => \@consensus_responses,
+    'participant_results'    => \@participant_results,
+    'dominant_consensus'     => scalar(@consensus_responses) ? $consensus_responses[0]->{'response'} : undef,
+    'consensus_vote_count'   => scalar(@consensus_responses) ? $consensus_responses[0]->{'vote_count'} : 0,
+    'elapsed_ms'             => $elapsed_ms
+};
+
+#,,.,,.,,,,..,...,,,,,.,.,.,.,..,,..,,..,,.,.,.,.,...,...,,..,.,,,,,.,,..,,,,,
+#EBFA4NI36VXSZM3UJH3WXRWJ7FXC3PDXWQSM4LAPGQHNLHE2JQPOL5R47LY42TMZ6KJAMX6TMAZS6
+#\\\|OWFZIRR3RNB7JU5RFF2TFPFZVVUHY6MKMLJFZV7JG7I3RGG4K65 \ / AMOS7 \ YOURUM ::
+#\[7]2WCS3ZFW22DW5KKL4AHHIZDCOKG63HBCCZ42X2DRZHE2EY7OMEBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

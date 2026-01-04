@@ -1,0 +1,74 @@
+## [:< ##
+
+# name = models.conversation.list_saved
+# descr = list saved conversations in storage
+
+my $params = shift;
+
+my $context = $params->{'context'} // 'conversation';
+
+## Determine save directory
+my $save_dir = <models.storage.conversations_dir>
+    // catdir( <system.conf_path>, qw| conversations | );
+
+unless ( -d $save_dir ) {
+    return {
+        'success'         => TRUE,
+        'conversations'   => [],
+        'count'           => 0,
+        'directory'       => $save_dir,
+        'directory_found' => 0
+    };
+}
+
+my $start_time = <[base.time]>->(4);
+
+## Scan for YAML files
+my @saved = ();
+if ( opendir my $dh, $save_dir ) {
+    my @files = grep { /\.yaml$/ } readdir $dh;
+    closedir $dh;
+
+    foreach my $file ( sort @files ) {
+        my $file_path = catfile( $save_dir, $file );
+        if ( -f $file_path ) {
+            my @stat = stat($file_path);
+            my $size = $stat[7] // 0;
+            my $mtime = $stat[9] // 0;
+
+            push @saved, {
+                'filename'      => $file,
+                'size_bytes'    => $size,
+                'modified_time' => $mtime
+            };
+        }
+    }
+} else {
+    return {
+        'success'   => FALSE,
+        'error'     => "cannot open directory: $save_dir",
+        'directory' => $save_dir
+    };
+}
+
+<[base.logs]>->(
+    2, "[$context] list saved conversations: count=%d",
+    scalar(@saved)
+);
+
+my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
+
+return {
+    'success'           => TRUE,
+    'conversations'     => \@saved,
+    'count'             => scalar(@saved),
+    'directory'         => $save_dir,
+    'directory_found'   => 1,
+    'elapsed_ms'        => $elapsed_ms
+};
+
+#,,,,,,.,,.,.,,,,,..,,,.,,.,.,.,.,,.,,.,,,,,,,..,,...,...,,..,,..,...,.,.,,,.,
+#R4ISR5TJLRBU6JJVNFD4ZC5XWBWWBFEX3HWCN47E3MOOCSNOPPFNNKBLOQBYFBT3UDO5LBQVGDFXI
+#\\\|QP37CY5BBM6F7PDH5BQYSW7DAPFLPJGZTUNBZDMX74W3ACLWD2K \ / AMOS7 \ YOURUM ::
+#\[7]O32WQO7GJX3F66FL7CM2JI4SYZMTF7XNIPIOHWKBPGNJB4PAMIAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -610,7 +610,7 @@ my $amos7_header;
 eval { $amos7_header = <[amos7.decode_octal_bit_header]>->($footer_start); };
 
 # Check for errors or invalid structure
-if (   defined $@ && length($@)
+if (   defined $EVAL_ERROR && length($EVAL_ERROR)
     || !defined $amos7_header
     || ( defined $amos7_header && !$amos7_header->{'structure-was-valid'} ) )
 {
@@ -718,8 +718,8 @@ if ( $mode eq 'repair' ) {
 
 return $footer_data;
 
-#,,.,,,,,,.,.,,..,..,,,.,,.,,,...,.,,,,,.,.,.,...,...,...,,,.,,..,...,...,...,
-#MT6D6BE7322VEFKYUH4MJGBPDI3WH6LDR3I6XQXS2JBY6N7E62NZZ5G7D7W65FUFPOTC7WY3KLEAY
-#\\\|6UZNU2OGLR73RDKKKJHJAOFY6JRDVL4HF5YOQ4AQICBRB6QT67S \ / AMOS7 \ YOURUM ::
-#\[7]PCPLVBUG7GWANOC4I7O6CYFFBQRLBYPBUIIUMUOJLEJSMV2YCMCA 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,.,,...,.,.,.,.,,,.,...,,.,,.,.,...,...,...,...,..,,,,.,,,.,.,,,
+#U6AK3SVCOC4O7U3YKDGTG5A67ZRFAJD7R73P2UU2ONMH27FV5DE3RDKFGJR5BRRS56R3ISSOW7HH6
+#\\\|F5SXHUVLZ4KXR5GQTE7CBEZ2NMHTXI6U3EHHZXKUNSCXGZZCC3F \ / AMOS7 \ YOURUM ::
+#\[7]DBTRC2J4AZMA3K7D4EC62N34WTUGSM5I2S5AHTQVCAACZMWUFEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

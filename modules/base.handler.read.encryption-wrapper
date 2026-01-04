@@ -74,7 +74,7 @@ if ( defined $$input_ref and length $$input_ref ) {
             $cipher->decrypt_done($auth_tag);
         };
 
-        if ( my $error = $@ ) {
+        if ( my $error = $EVAL_ERROR ) {
             <[base.s_warn]>->(
                 sprintf
                     'ChaCha20-Poly1305 decryption failed [session %d]: %s',
@@ -100,8 +100,8 @@ return $ret_code;
 
 1;
 
-#,,,,,..,,...,,.,,.,,,...,,,.,.,.,.,.,,..,...,..,,...,...,.,,,.,.,,..,.,.,.,,,
-#WRRSNNVEXWMTWUKBL6QOUTHZCYVFS3NVDPTMOKPQ7K2P2LZMFY5H4U6OKCU4VZGIV3WAUW3PCTFXO
-#\\\|CRDVSUPBJ47UW2NWKGOGOM2S4FOJPTVEME4AH2BPYAHBS2X2DKF \ / AMOS7 \ YOURUM ::
-#\[7]AEEIU5GETYUKVSNNMRPC2UC7DSHDV4JZ5GJ3HJZB2TGHGSRHQGCI 7  DATA SIGNATURE ::
+#,,.,,...,...,...,,..,.,,,,.,,,.,,...,,,.,...,..,,...,...,..,,...,,,,,,,.,..,,
+#YNQU5EJCK4PE2AFFAINB63GCSZR4ZRF23MWFQ3VWVPYCCQEBUZK3VTQX4OJCTHYNMINSQSDF5TTXC
+#\\\|S4S7XZOCDZSFZ3MSTMSNC7TBR6IGV52AGPE52CK2NT4QDJWHX72 \ / AMOS7 \ YOURUM ::
+#\[7]5LVQTD4GAGOZCUFOCU5L44SWAAKYV5775DKD7TTCHFPW4JYUIOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

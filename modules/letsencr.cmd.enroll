@@ -71,11 +71,11 @@ if ( exists $code{'letsencr.parent.enroll_domain'} ) {
 
     eval { $result = <[letsencr.parent.enroll_domain]>->($domain); };
 
-    if ($@) {
-        <[base.log]>->( 0, "  Enrollment failed: $@" );
+    if ($EVAL_ERROR) {
+        <[base.log]>->( 0, "  Enrollment failed: $EVAL_ERROR" );
         return {
             success => FALSE,
-            error   => qq| enrollment failed: $@ |
+            error   => qq| enrollment failed: $EVAL_ERROR |
         };
     }
 
@@ -102,9 +102,9 @@ if ( exists $code{'letsencr.parent.enroll_domain'} ) {
                 ->($domain);
         };
 
-        if ( $@ || !$install_result || !$install_result->{success} ) {
+        if ( $EVAL_ERROR || !$install_result || !$install_result->{success} ) {
             my $error
-                = $@
+                = $EVAL_ERROR
                 || $install_result->{error}
                 || qw| unknown install error |;
             <[base.log]>->( 0, "  Certificate installation failed: $error" );
@@ -152,8 +152,8 @@ if ( exists $code{'letsencr.parent.enroll_domain'} ) {
 
 0;
 
-#,,,.,.,.,...,.,.,.,,,...,...,.,.,...,,..,,..,..,,...,...,.,.,.,.,,..,...,,,.,
-#X6FHWYBPPZCNITCFIIP7JCFXVF5QL3BQNB4FP6YBQNLUGMOJHAZAKHL3KRLQCGORHP5JAA56YV4EG
-#\\\|4WJY23PMCWCTYEQYRDLTBBOFVFX25I75SZ3QDCJU5CQYC32O2E2 \ / AMOS7 \ YOURUM ::
-#\[7]YMGG7RT6QIDFINGWDOOT4XO2X5Y76LDYZCRH6UVN3SAKQ2IXPKCQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,.,.,,..,,..,..,,.,.,.,.,.,.,,..,..,,...,...,.,,,..,,,..,...,...,
+#CQRCJJCOUZ522SDGPZ2F25F56OBQ4W6ADBLWASVYLNTG7X6KV522GTGHAZYXIJNIF2EFVMO6TFVDI
+#\\\|R3T6TTETXOAX37IMIMHD44CTONOLPKTGHM3VEOJNB6L3DYGY6Q6 \ / AMOS7 \ YOURUM ::
+#\[7]XUBPOS3NPVUETYTXL2EOP32TES4RORERJKLN32IWESUC274TQUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

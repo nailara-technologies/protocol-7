@@ -12,7 +12,7 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
 
     # Parse JSON from args
     eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
-    $params = {} if $@;
+    $params = {} if $EVAL_ERROR;
 }
 
 my $job_id       = $params->{'job_id'}        // '';
@@ -91,8 +91,8 @@ return {
     'data' => $json_data . "\n"
 };
 
-#,,,.,,,,,.,.,..,,,.,,.,,,..,,,.,,.,.,.,,,.,.,.,.,...,...,..,,,,.,,.,,,,,,,..,
-#YMEHP6FIF7UNCWPSCQIC7J4UDNXUP43YWQVIGNEUA52NCQ5FDCUL33UIFQYZWRPR65GB4TWOYKILY
-#\\\|MQRK7XTHLMQN67FRWN2T42YCFJYGYRTURZ2RO6PSIB4NCU3EPUY \ / AMOS7 \ YOURUM ::
-#\[7]QHE2NLN4HQIWIHD7YHOPHZUUOSSF7ZBO3ER2J2GXV2CNOQ7KB2DI 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,.,.,,.,,...,,,,,...,.,.,,,,,..,,.,.,...,...,...,..,,...,,,,,,,.,
+#CKQE4JLPL54QLKFFJ4T5RXY6V6W5DWU7LXHVVI4TXZU3RNDZGOGCJYWHNJL3BXLG6QLOAD3MZFLMO
+#\\\|BTB47DQNNKCCNDELQUEZCG2AWPBHMBBDH2STI5HEHGDE73XSIB7 \ / AMOS7 \ YOURUM ::
+#\[7]MCROFST2YX6BGLNYLU65S2UETEUA26MRRMIE73EZYSWYHU6IUECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

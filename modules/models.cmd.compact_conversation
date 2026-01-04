@@ -1,0 +1,45 @@
+## [:< ##
+
+# name = models.cmd.compact_conversation
+# descr = compact conversation by summarizing old turns
+
+my $params = {};
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+    $params = $call->{'param'};
+} elsif ( defined $call->{'args'} && length $call->{'args'} ) {
+    eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
+    if ($EVAL_ERROR) {
+        eval { $params = YAML::XS::Load( $call->{'args'} ); };
+    }
+    $params = {} if $EVAL_ERROR;
+}
+
+my $job_id     = $params->{'job_id'}     // '';
+my $keep_turns = $params->{'keep_turns'} // 5;
+
+if ( !length($job_id) ) {
+    return {
+        'mode' => 'false',
+        'data' => "error: job_id required\n"
+    };
+}
+
+my $result = <[models.conversation.compact]>->(
+    {
+        'job_id'     => $job_id,
+        'keep_turns' => $keep_turns,
+    }
+);
+
+my $yaml_data = YAML::XS::Dump($result);
+return {
+    'mode' => 'size',
+    'data' => $yaml_data
+};
+
+#,,.,,..,,,.,,,.,,..,,.,,,..,,,,.,...,...,.,.,..,,...,..,,...,,..,,,,,,.,,,,.,
+#27KCFEMMMWJ4FQVCYRUNPH4DZFS3ODYIW33LMJMQH3UP2CFJT5WVQFEY2MVO4DNIPANTQJXBZ6WME
+#\\\|PN6IN4X75KHDLRESBKYME4GA3YK73LEEL2AD5XMSR6NZD76NNKM \ / AMOS7 \ YOURUM ::
+#\[7]TAW5F3EVRKVOYLQEFCG5VPT6SNGFBFNQ2D3FOEZI3ZS4WGFWL2DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -19,10 +19,10 @@ if ( !$context ) {
 my $constraints = {};
 if ($constraints_json) {
     eval { $constraints = decode_json($constraints_json); };
-    if ($@) {
+    if ($EVAL_ERROR) {
         return {
             'mode' => qw| size |,
-            'data' => "error: invalid constraints JSON: $@\n"
+            'data' => "error: invalid constraints JSON: $EVAL_ERROR\n"
         };
     }
 }
@@ -84,8 +84,8 @@ $reply_str .= "overall_reasoning: "
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,,.,.,,,..,,...,..,,.,.,...,,..,,..,,,,,.,.,..,,...,...,..,,,,,,,..,,.,,...,
-#U74FO47Q5LHQTIKEE6VYRG6O6TQLW7BGYMATDYGY4OBESOFFMAMFAID4N7MY3JHPXK56LRHVJG2V6
-#\\\|VLON2Z6JKBT6QGVJ2TJ6VDNIAUMFKRHAT6M6LXZE63FIBEOQK7G \ / AMOS7 \ YOURUM ::
-#\[7]X75Z2MRFZUMLFK7NNBG77OX5RSX5NOWISF7MU2SKU72G5TDRL2AI 7  DATA SIGNATURE ::
+#,,,.,,,.,...,,,.,.,,,,,.,.,,,.,.,,,,,,,,,,.,,..,,...,...,.,.,,,,,.,,,...,,,.,
+#GCPGY24D47OW5KK4ZVEL7CSGZYK5DHLUOXNCQ3LYT6AOZRZL4N7TON2QI5SVHP7IRLXIEKKJG7ZY4
+#\\\|BT6UF42TH5L7VG4MYSPYAB63C7FJDIGFULUGB7H3OU7MME2IVA3 \ / AMOS7 \ YOURUM ::
+#\[7]6IUM2OOS2R6RZQSXMICFTLL2I6U673WGCIBLCKVZTE6Q6LT6EMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
