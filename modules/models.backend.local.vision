@@ -1,0 +1,101 @@
+## [:< ##
+
+# name = models.backend.local.vision
+# descr = vision/image inference using ik_llama.cpp CLI (no HTTP endpoint)
+
+my $params = shift;
+
+my $participant_id = $params->{'participant_id'} // '';
+my $job_id         = $params->{'job_id'}         // '';
+my $model_id       = $params->{'model_id'}       // '';
+my $system_prompt  = $params->{'system_prompt'}  // '';
+my $messages       = $params->{'messages'}       // [];
+my $image_path     = $params->{'image_path'}     // '';
+my $temperature    = $params->{'temperature'}    // 0.7;
+my $max_tokens     = $params->{'max_tokens'}     // 256;
+my $context        = $params->{'context'}        // 'backend';
+
+return {
+    'success' => FALSE,
+    'error'   => 'image_path required for vision'
+    }
+    unless length($image_path) && -f $image_path;
+
+my $start_time = <[base.time]>->(4);
+
+## Build user message from messages array (image-focused)
+my $prompt_text = '';
+if ( ref($messages) eq 'ARRAY' && scalar(@$messages) > 0 ) {
+    my $last_msg = $messages->[-1];
+    $prompt_text = $last_msg->{'content'} // 'analyze this image';
+}
+
+## Use llama-server CPU binary for vision via CLI
+my $binary     = '/data/source/ik_llama.cpp/llama-server-cpu';
+my $model_path = $params->{'model_path'} // '';
+
+return {
+    'success' => FALSE,
+    'error'   => 'model_path required'
+    }
+    unless length($model_path) && -f $model_path;
+
+## Build CLI command for vision inference
+## Format: llama-server-cpu -m model.gguf --image image.png -p "prompt"
+my $cmd = "$binary";
+$cmd .= " -m $model_path";
+$cmd .= " --image $image_path";
+$cmd .= " -n $max_tokens";
+$cmd .= qq{ -p "$prompt_text"};
+
+<[base.logs]>->(
+    2, "[$context] vision inference: participant=%s model=%s image=%s",
+    $participant_id, $model_id, $image_path
+);
+
+my $response_text = '';
+
+eval {
+    $response_text = `$cmd`;
+    chomp($response_text);
+};
+
+if ( $EVAL_ERROR || !length($response_text) ) {
+    <[base.logs]>->(
+        2, "[$context] vision error: participant=%s model=%s error=%s",
+        $participant_id, $model_id, $EVAL_ERROR // 'no response'
+    );
+    return {
+        'success'        => FALSE,
+        'model_id'       => $model_id,
+        'participant_id' => $participant_id,
+        'error'          => "Vision inference error: $EVAL_ERROR",
+        'rate_limited'   => 0,
+        'elapsed_ms'     => ( <[base.time]>->(4) - $start_time ) * 1000
+    };
+}
+
+<[base.logs]>->(
+    2, "[$context] vision response: participant=%s model=%s length=%d",
+    $participant_id, $model_id, length($response_text)
+);
+
+my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
+
+return {
+    'success'        => TRUE,
+    'model_id'       => $model_id,
+    'participant_id' => $participant_id,
+    'response'       => $response_text,
+    'tokens_used'    => int( length($response_text) / 4 ),
+    'rate_limited'   => 0,
+    'latency_ms'     => $elapsed_ms,
+    'elapsed_ms'     => $elapsed_ms,
+    'image_analyzed' => 1,
+};
+
+#,,,.,...,,,,,.,.,,,,,...,...,...,.,,,,.,,,..,.,.,...,...,.,.,.,.,,,,,,,,,,..,
+#WOVFZN2YZ5RVY6QQAZLPCSH5GHYRZJ2FEAN2PF2C3K7I7PWKHM5W55KG6KJ2422YQ457HBAC2R6X4
+#\\\|GOWLOKPAXIMYKOG3WJHTYEFCBO3OH42WIJI3OYFLGJ5BYUZ43GD \ / AMOS7 \ YOURUM ::
+#\[7]F6F35AKQAXDBS3XP7773PCKHVHTJYM5MI5TJAL5H3TXBBKT67MAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

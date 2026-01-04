@@ -1,0 +1,30 @@
+## [:< ##
+
+# name = models.cmd.local_server
+# descr = command wrapper for managing local llama-server instances
+
+my $params = {};
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+    $params = $call->{'param'};
+} elsif ( defined $call->{'args'} && length $call->{'args'} ) {
+    eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
+    if ($@) {
+        eval { $params = YAML::XS::Load( $call->{'args'} ); };
+    }
+    $params = {} if $@;
+}
+
+my $result = <[models.local_server_manager]>->($params);
+
+my $yaml_data = YAML::XS::Dump($result);
+return {
+    'mode' => 'size',
+    'data' => $yaml_data
+};
+
+#,,,,,,..,.,,,,,,,.,.,.,.,.,.,.,.,,,,,,..,..,,.,.,...,...,..,,,,.,...,.,,,.,.,
+#2VW2LYUVJKLWASLXLCP37Q57PIHZBUT7UC7DDQ3AO434A5NLBQMAGP42FFMBIVUFFTX65RRVKLJFC
+#\\\|IG44DXXGI5ESE4QTJGZWMKV5UFZERJMHYKAUSPUDRBS3TL5J7AJ \ / AMOS7 \ YOURUM ::
+#\[7]FMW3S34IMUWNN27AXGAEUF5X2ZNYDRUZG7MGRWWXU2D65Q2BFAAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

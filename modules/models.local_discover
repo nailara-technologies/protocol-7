@@ -1,0 +1,104 @@
+## [:< ##
+
+# name = models.local_discover
+# descr = auto-scan and discover available local GGUF models
+
+my $params = shift;
+
+my $scan_paths = $params->{'scan_paths'}
+    // ['/mnt/ext-xfs-data/models-lmstudio'];
+my $context = $params->{'context'} // 'discover';
+
+## Initialize cache
+<models.local_models_cache> //= {};
+my $cache_time = <models.local_cache_time> // 0;
+my $now        = <[base.time]>->(2);
+
+## Return cached models if recent (30 min cache TTL)
+if ( $now - $cache_time < 1800
+    && scalar( keys %{<models.local_models_cache>} ) > 0 ) {
+    <[base.logs]>->(
+        2,
+        "[$context] using cached models: count=%d",
+        scalar( keys %{<models.local_models_cache>} )
+    );
+    return {
+        'success'    => TRUE,
+        'models'     => <models.local_models_cache>,
+        'count'      => scalar( keys %{<models.local_models_cache>} ),
+        'from_cache' => 1,
+    };
+}
+
+## Scan directories for GGUF files
+my %discovered;
+
+foreach my $scan_dir (@$scan_paths) {
+    next unless -d $scan_dir;
+
+    <[base.logs]>->( 2, "[$context] scanning directory: path=%s", $scan_dir );
+
+    eval {
+        opendir( my $dh, $scan_dir ) or die "Cannot open $scan_dir: $!";
+        my @entries = readdir($dh);
+        closedir($dh);
+
+        foreach my $entry (@entries) {
+            next if $entry =~ /^\./ || !-d "$scan_dir/$entry";
+
+            ## Recursively search for .gguf files
+            my @find_results
+                = `find "$scan_dir/$entry" -maxdepth 3 -name "*.gguf" -type f 2>/dev/null`;
+
+            foreach my $file_path (@find_results) {
+                chomp($file_path);
+                next unless -f $file_path && length($file_path);
+
+                ## Extract model name from path and filename
+                my $filename = $file_path;
+                $filename =~ s|.*/||;
+                $filename =~ s/\.gguf$//;
+
+                ## Extract model family from path
+                my $family = 'local';
+                $family = 'qwen'   if $file_path =~ /qwen/i;
+                $family = 'llama'  if $file_path =~ /llama/i;
+                $family = 'coder'  if $file_path =~ /coder/i;
+                $family = 'vision' if $file_path =~ /vision|vl|vit/i;
+
+                ## Get file size
+                my $size_bytes = -s $file_path;
+
+                $discovered{$filename} = {
+                    'path'     => $file_path,
+                    'family'   => $family,
+                    'size'     => $size_bytes,
+                    'found_at' => $now,
+                };
+            }
+        }
+    };
+}
+
+## Cache the results
+<models.local_models_cache> = \%discovered;
+<models.local_cache_time>   = $now;
+
+<[base.logs]>->(
+    1,
+    "[$context] discovery complete: found=%d models",
+    scalar( keys %discovered )
+);
+
+return {
+    'success'       => TRUE,
+    'models'        => \%discovered,
+    'count'         => scalar( keys %discovered ),
+    'scanned_paths' => $scan_paths,
+};
+
+#,,,.,..,,,,.,..,,,,.,.,.,..,,...,.,.,,,,,,,.,.,.,...,...,.,,,.,,,...,,.,,.,,,
+#5UMVHE2IXJX57FXCQGX3IP4XDOQJZ5VJNUDDS7GV2WVF2PR7FJHJBTRYUYXFACBBF3267HF3KB7E4
+#\\\|53LQ5H3DVDSWU6EMDCB2IIRBO6DEOQPDNZ3ORJMKF4RIFZESDJO \ / AMOS7 \ YOURUM ::
+#\[7]FVBGNQ6DKTP3QGCNGJSZDSC3KEH4M5PDLSSK4TJR7XRX7YNGO2CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

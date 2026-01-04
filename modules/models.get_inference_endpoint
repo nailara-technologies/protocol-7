@@ -1,0 +1,50 @@
+## [:< ##
+
+# name = models.get_inference_endpoint
+# descr = get active inference endpoint from coding zenka
+
+my $params = shift;
+
+my $backend_type = $params->{'backend_type'} // 'cpu';
+my $context      = $params->{'context'}      // 'inference';
+
+## Query coding zenka for its inference status
+my $coding_status = `p7 coding.status 2>/dev/null`;
+
+## Parse response for inference endpoint
+my $endpoint = undef;
+
+if ( $backend_type eq 'cpu' ) {
+    ## CPU backend runs on localhost:8000 (or configured port)
+    $endpoint = 'http://localhost:8000';
+} elsif ( $backend_type eq 'gpu' ) {
+    ## GPU backend runs on localhost:8001 (or configured port)
+    $endpoint = 'http://localhost:8001';
+}
+
+## Test if endpoint is reachable
+my $test_cmd    = "curl -s -m 2 $endpoint/v1/models 2>/dev/null";
+my $test_result = `$test_cmd`;
+
+my $is_alive = length($test_result) ? 1 : 0;
+
+<[base.logs]>->(
+    2, "[$context] endpoint check: type=%s url=%s alive=%d",
+    $backend_type, $endpoint, $is_alive
+);
+
+return {
+    'success'         => $is_alive,
+    'backend_type'    => $backend_type,
+    'endpoint'        => $endpoint,
+    'url'             => $endpoint,
+    'alive'           => $is_alive,
+    'models_url'      => "$endpoint/v1/models",
+    'completions_url' => "$endpoint/v1/chat/completions",
+};
+
+#,,,.,,..,,..,...,.,,,...,...,,.,,,,.,.,,,..,,.,.,...,...,..,,..,,,,,,,,.,..,,
+#523M4LYD76GLR7UOCMBTF4TTJQKINEYJK6PQJQUADYFPOUAL34FAZ75KCCYX2P5XXPMYJNWX5NASG
+#\\\|T654HHTNDMWWLMB5DN7CF6QPT7UTKHRALIVDP23XMEFRXDAKSVM \ / AMOS7 \ YOURUM ::
+#\[7]AXFYERX62TRPANKQYSJ23DQJJICZWMB5DLRMIQUFP2LH47KXEEBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
