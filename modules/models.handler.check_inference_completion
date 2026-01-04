@@ -1,0 +1,108 @@
+## [:< ##
+
+# name = models.handler.check_inference_completion
+# descr = timer handler - check if inference is complete and process response
+
+my $event         = shift->w;
+my $inference_id  = $event->data;
+my $job           = <models.pending_inferences>->{$inference_id};
+
+unless ( defined $job ) {
+    $event->cancel if $event->is_active;
+    return;
+}
+
+## Check if both streams are closed and process is done
+my $process_done = 0;
+eval {
+    use POSIX ':sys_wait_h';
+    my $wpid = waitpid( $job->{'pid'}, WNOHANG );
+    if ( $wpid == $job->{'pid'} ) {
+        $process_done = 1;
+    }
+};
+
+## If both streams closed and process done, parse response
+if ( $job->{'rdr_closed'} && $process_done ) {
+    <[base.logs]>->(
+        1, "[check_inference] completion: id=%s output_len=%d",
+        $inference_id, length($job->{'output'})
+    );
+
+    ## Parse JSON response from curl output
+    my $response_data = undef;
+    my $parse_error   = undef;
+
+    eval { $response_data = JSON::PP::decode_json( $job->{'output'} ); };
+    if ($@) {
+        $parse_error = $@;
+    }
+
+    ## Extract response text from first choice
+    my $response_text = '';
+    my $tokens_used   = 0;
+
+    if ( defined $response_data && defined $response_data->{'choices'}
+        && ref $response_data->{'choices'} eq 'ARRAY'
+        && scalar @{ $response_data->{'choices'} } > 0 ) {
+        my $first_choice = $response_data->{'choices'}->[0];
+        if ( defined $first_choice->{'message'} ) {
+            $response_text = $first_choice->{'message'}->{'content'} // '';
+        }
+    }
+
+    if ( defined $response_data && defined $response_data->{'usage'} ) {
+        $tokens_used = $response_data->{'usage'}->{'completion_tokens'} // 0;
+    }
+
+    ## Calculate elapsed time
+    my $elapsed_ms = ( <[base.time]>->(4) - $job->{'start_time'} ) * 1000;
+
+    ## Build complete result
+    my $final_result = {
+        'success'         => ( length($response_text) > 0 && !$parse_error ) ? TRUE : FALSE,
+        'inference_id'    => $inference_id,
+        'job_id'          => $job->{'job_id'},
+        'participant_id'  => $job->{'participant_id'},
+        'model_id'        => $job->{'model_id'},
+        'response'        => $response_text,
+        'tokens_used'     => $tokens_used,
+        'latency_ms'      => $elapsed_ms,
+        'elapsed_ms'      => $elapsed_ms,
+        'rate_limited'    => 0,
+    };
+
+    if ($parse_error) {
+        $final_result->{'success'} = FALSE;
+        $final_result->{'error'}   = "JSON parse error: $parse_error";
+        $final_result->{'raw_output'} = substr( $job->{'output'}, 0, 500 );
+    }
+
+    <[base.logs]>->(
+        1, "[check_inference] result: id=%s success=%d tokens=%d elapsed=%dms",
+        $inference_id, $final_result->{'success'}, $tokens_used, $elapsed_ms
+    );
+
+    ## Store result in job
+    $job->{'result'} = $final_result;
+    $job->{'completed'} = 1;
+
+    ## Clean up temp file and close file handles
+    unlink( $job->{'temp_file'} ) if defined $job->{'temp_file'};
+    close( $job->{'curl_out'} )   if defined $job->{'curl_out'};
+    close( $job->{'curl_err'} )   if defined $job->{'curl_err'};
+
+    ## Cancel timer
+    $event->cancel if $event->is_active;
+
+    ## Signal caller via callback if available
+    if ( defined $job->{'reply_id'} ) {
+        <[base.callback.cmd_reply]>->( $job->{'reply_id'}, { 'mode' => 'size', 'data' => YAML::XS::Dump($final_result) } );
+    }
+}
+
+#,,..,...,,.,,.,.,...,,,.,,,.,.,.,,,,,..,,,..,.,.,...,...,,..,,.,,..,,,..,..,,
+#3T5GVPPRYZ5SUILC5RBC7TTTXPIQGFERGLYKV427BT4QGX2Y5M3W4OAYXKJ6QM3HUI46XOFWGLUXI
+#\\\|NGZFAD6JCXBHIPMNXIZNUDB5RKL3DO6BSMZ7NP62ITJVTZJV3GJ \ / AMOS7 \ YOURUM ::
+#\[7]OJX3A4AFVIPWFX2BLPJJQGBPU2QPBMLLXDK3U3G2OOCCDO3TQWAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
