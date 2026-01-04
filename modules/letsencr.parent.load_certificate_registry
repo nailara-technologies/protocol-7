@@ -59,7 +59,7 @@ foreach my $meta_file ( sort @meta_files ) {
     ## Parse JSON metadata
     my $metadata;
     unless ( eval { $metadata = JSON::XS::decode_json($meta_content); 1 } ) {
-        <[base.log]>->( 1, "warning: invalid JSON in $meta_path: $@" );
+        <[base.log]>->( 1, "warning: invalid JSON in $meta_path: $EVAL_ERROR" );
         $error_count++;
         next;
     }
@@ -120,8 +120,8 @@ return {
     error_msg => $error_count > 0 ? "$error_count errors during load" : undef
 };
 
-#,,,,,...,,,.,..,,.,,,,..,,.,,,,,,,,.,,,.,...,..,,...,...,,,.,,.,,,.,,.,,,..,,
-#3OZEUZWXGZOG3USVWOD74CO22DFMM2OH63DU5OHNFYQ7YQVZZROCXEI3VUGPBG5QGTSWOV34D5BRK
-#\\\|HWT7IJDOTSTX45AJZM2CW5W4KZJQU3X2V3QGJK367Q2PDHJHLFP \ / AMOS7 \ YOURUM ::
-#\[7]CE3W6LASU5BD4JYDYDDXEWXMQJQOKAJLQ2JBPT5BSFUT4WP5CEDA 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,,,..,,..,,.,,,,,.,...,..,,,,.,..,,...,...,.,.,,.,,,,,,.,,,,,.,
+#OAPPF4VMMKLYZTCMMAVLKWLAUL6G4COJDIEGNA4IWYUGTAATXGGCWBWY3WAZKVR42ZNEUQBEZEG34
+#\\\|RGPOR4KD23BN3LFN5DTYCNQTSTSBW7LFW4OV2G6TQSRBLYFIYYF \ / AMOS7 \ YOURUM ::
+#\[7]6GMYTND7SJHXGZYN266AKZNVSEIQDSUKSTRAMDTBENXCLHP54QDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

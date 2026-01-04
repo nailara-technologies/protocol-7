@@ -1,0 +1,33 @@
+## [:< ##
+
+# name = models.cmd.consensus_vote
+# descr = command wrapper for consensus voting from participants
+
+my $params = {};
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+    $params = $call->{'param'};
+} elsif ( defined $call->{'args'} && length $call->{'args'} ) {
+    eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
+    if ($@) {
+        eval { $params = YAML::XS::Load( $call->{'args'} ); };
+    }
+    $params = {} if $@;
+}
+
+my $result = <[models.conversation.consensus_vote]>->($params);
+
+my $yaml_data = YAML::XS::Dump($result);
+return {
+    'mode' => 'size',
+    'data' => $yaml_data
+};
+
+#,,.,,..,,,,,,.,.,.,.,,.,,,..,..,,.,,,..,,.,,,..,,...,...,,.,,,.,,...,.,.,,.,,
+#PLACEHOLDER_SIGNATURE
+
+#,,,,,.,,,,.,,..,,...,,.,,,,,,..,,,,.,..,,,,.,.,.,...,...,.,.,.,.,.,.,..,,,,,,
+#GY4E7NB6MGN7MVZAZFDGG3WSG3TOKLHSKEYKKOTSUHC7Y7IS5BKHXYMNNWCUK2IOOXXCPQFU4ODOI
+#\\\|ICBUWT66D32C5T6PVTP7JKGBGCK3URO2GADCNHQXKAUI5ZSOU4W \ / AMOS7 \ YOURUM ::
+#\[7]OLQ4OE7HULS3GQQ7NTW6ELIBYZPTP4SKX66PSPIQBZVBCLQSKWDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

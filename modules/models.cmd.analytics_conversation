@@ -1,0 +1,35 @@
+## [:< ##
+
+# name = models.cmd.analytics_conversation
+# descr = compute analytics for conversation or all conversations
+
+my $params = {};
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+    $params = $call->{'param'};
+} elsif ( defined $call->{'args'} && length $call->{'args'} ) {
+    eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
+    if ($@) {
+        eval { $params = YAML::XS::Load( $call->{'args'} ); };
+    }
+    $params = {} if $@;
+}
+
+my $job_id = $params->{'job_id'} // '';
+
+my $result = <[models.conversation.analytics]>->($params);
+
+my $yaml_data = YAML::XS::Dump($result);
+return {
+    'mode' => 'size',
+    'data' => $yaml_data
+};
+
+#,,.,,..,,,,,,.,.,.,.,,.,,,..,..,,.,,,..,,.,,,..,,...,...,,.,,,.,,...,.,.,,.,,
+#PLACEHOLDER_SIGNATURE
+
+#,,,,,,.,,.,,,...,.,.,,,.,,.,,.,,,,..,..,,,..,..,,...,...,...,,,,,,.,,.,,,.,,,
+#7VCNH64UKHNRN275GNDIATBXWRNG52RTANWTZFP76Q5WWYIM2ARTLKFBHWRVP7NON4CZ5HW4QF7WS
+#\\\|SZMKKOBDCBVFGXYI6AIRSR5UZDKMQPREMHU3LPDMS2ILETEBOKZ \ / AMOS7 \ YOURUM ::
+#\[7]VLCU773I646KMAWLGPVMA36XNUMRHTLYAD5S3OEZSRBNES4XJUBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

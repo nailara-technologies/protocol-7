@@ -1,14 +1,13 @@
 ## [:< ##
 
 # name = models.conversation.compact
-# descr = compact conversation history using various strategies
+# descr = compact conversation by summarizing old turns
 
 my $params = shift;
 
-my $job_id        = $params->{'job_id'}        // '';
-my $strategy      = $params->{'strategy'}      // 'drop_oldest';
-my $target_tokens = $params->{'target_tokens'} // 2048;
-my $context_label = $params->{'context'}       // 'conversation';
+my $job_id     = $params->{'job_id'}     // '';
+my $keep_turns = $params->{'keep_turns'} // 5;
+my $context    = $params->{'context'}    // 'conversation';
 
 return {
     'success' => FALSE,
@@ -16,119 +15,98 @@ return {
     }
     unless length($job_id);
 
+return {
+    'success' => FALSE,
+    'error'   => 'keep_turns must be >= 1'
+    }
+    unless $keep_turns >= 1;
+
 <models.conversations> //= {};
 
 unless ( exists <models.conversations>->{$job_id} ) {
     return {
         'success' => FALSE,
-        'error'   => "conversation not found: $job_id"
+        'error'   => "conversation not found: $job_id",
+        'job_id'  => $job_id
     };
 }
 
 my $conversation = <models.conversations>->{$job_id};
 my $start_time   = <[base.time]>->(4);
-my $turns_ref    = $conversation->{'turns'};
-my $turn_count   = scalar( @{$turns_ref} );
 
-<[base.log]>->(
-    1,         "[$context_label] compact: strategy=%s target=%d",
-    $strategy, $target_tokens
-);
-
-my @compacted_turns;
-my $removed_tokens = 0;
-
-if ( $strategy eq 'drop_oldest' ) {
-
-    ## Keep dropping oldest turns until under target
-    for ( my $i = 0; $i < $turn_count; $i++ ) {
-        my $turn       = $turns_ref->[$i];
-        my $test_total = $conversation->{'tokens_used'} - $removed_tokens;
-
-        if ( $test_total <= $target_tokens ) {
-            push @compacted_turns, @{$turns_ref}[ $i .. $turn_count - 1 ];
-            last;
-        }
-        $removed_tokens += $turn->{'tokens'} // 0;
-    }
-
-} elsif ( $strategy eq 'token_sample' ) {
-
-    ## Keep first N, drop middle, keep last N
-    my $keep_per_side = int( $target_tokens / 4 );
-    my $keep_recent   = int( $target_tokens / 2 );
-
-    if ( $turn_count > 10 ) {
-        push @compacted_turns, @{$turns_ref}[ 0 .. $keep_per_side - 1 ];
-
-        ## Add placeholder for dropped turns
-        push @compacted_turns,
-            {
-            'role'    => 'system',
-            'content' => '[... conversation history compacted ...]',
-            'tokens'  => 0
-            };
-
-        push @compacted_turns,
-            @{$turns_ref}[ $turn_count - $keep_recent .. $turn_count - 1 ];
-    } else {
-        @compacted_turns = @{$turns_ref};
-    }
-
-    $removed_tokens = $conversation->{'tokens_used'} - $target_tokens;
-
-} elsif ( $strategy eq 'extract_critical' ) {
-
-    ## Keep system and error turns, sample others
-    foreach my $turn ( @{$turns_ref} ) {
-        my $role    = $turn->{'role'}    // '';
-        my $content = $turn->{'content'} // '';
-
-        if (   $role eq 'system'
-            || $content =~ /error|missing|fail|invalid/i ) {
-            push @compacted_turns, $turn;
-        }
-    }
-
-} else {
+## Check if compaction is needed
+my $turn_count = scalar( @{ $conversation->{'turns'} } );
+unless ( $turn_count > $keep_turns ) {
     return {
-        'success'    => FALSE,
-        'error'      => "unknown strategy: $strategy",
-        'strategies' => [qw| drop_oldest token_sample extract_critical |]
+        'success'    => TRUE,
+        'job_id'     => $job_id,
+        'turn_count' => $turn_count,
+        'compacted'  => 0,
+        'summary'    => 'no compaction needed'
     };
 }
 
-## Apply compaction
-$conversation->{'turns'} = \@compacted_turns;
-$conversation->{'tokens_used'} -= $removed_tokens;
+## Calculate how many turns to summarize
+my $summarize_count = $turn_count - $keep_turns;
+
+## Build summary of removed turns
+my @summarized_turns
+    = @{ $conversation->{'turns'} }[ 0 .. ( $summarize_count - 1 ) ];
+
+## Create summary text
+my $summary = '';
+foreach my $turn (@summarized_turns) {
+    my $role    = $turn->{'role'}    // 'unknown';
+    my $content = $turn->{'content'} // '';
+    substr( $content, 50 ) = '...' if length($content) > 50;
+    $summary .= "[$role] $content\n";
+}
+
+## Remove old turns and add summary
+my @remaining_turns
+    = @{ $conversation->{'turns'} }
+    [ $summarize_count .. $#{ $conversation->{'turns'} } ];
+
+my $summary_tokens = int( length($summary) / 4 ) + 1;
+
+## Create summary turn
+my $summary_turn = {
+    'role'    => 'system',
+    'content' =>
+        "Summary of conversation (turns 1-$summarize_count):\n$summary",
+    'tokens'     => $summary_tokens,
+    'timestamp'  => time(),
+    'is_summary' => 1
+};
+
+## Replace old turns with summary
+unshift @remaining_turns, $summary_turn;
+$conversation->{'turns'} = \@remaining_turns;
+
+## Update compaction tracking
 $conversation->{'compaction_count'}++;
 $conversation->{'last_compaction'} = time();
 
-<[base.log]>->(
-    1,
-    "[$context_label] compacted: removed %d turns %d tokens",
-    $turn_count - scalar(@compacted_turns),
-    $removed_tokens
+<[base.logs]>->(
+    1, "[$context] conversation compacted: job_id=%s turns=%d->%d",
+    $job_id, $turn_count, scalar(@remaining_turns)
 );
-
-<models.metrics.context_compactions>++;
 
 my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
 
 return {
-    'success'          => TRUE,
-    'job_id'           => $job_id,
-    'strategy'         => $strategy,
-    'turns_before'     => $turn_count,
-    'turns_after'      => scalar(@compacted_turns),
-    'turns_removed'    => $turn_count - scalar(@compacted_turns),
-    'tokens_removed'   => $removed_tokens,
-    'tokens_remaining' => $conversation->{'tokens_used'},
-    'elapsed_ms'       => $elapsed_ms
+    'success'              => TRUE,
+    'job_id'               => $job_id,
+    'original_turn_count'  => $turn_count,
+    'compacted_turn_count' => scalar(@remaining_turns),
+    'summarized_turns'     => $summarize_count,
+    'summary_tokens'       => $summary_tokens,
+    'compaction_count'     => $conversation->{'compaction_count'},
+    'elapsed_ms'           => $elapsed_ms
 };
 
-#,,..,,,.,,,,,,.,,.,.,,..,,,.,,..,,,,,...,,,,,.,.,...,...,...,.,,,...,,,.,.,,,
-#FH4OH5W6CYLBSRZ6DBHC5AMMNOPGXRLG254JEGPYANGZ4JYQZ26N645VL234NHBUS7WV7AKFXTA3K
-#\\\|MP7ORDSCCNIQKO4SM27VQVOVKD5GHGEO7MSJFEHKLLTWW6DUBSU \ / AMOS7 \ YOURUM ::
-#\[7]4DN3X25J6FPG57KHDJ7RTNVCOLCQJGEHPLB73YVCWP5KMCT7TMCY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,..,,,.,,,.,,,,.,,,,,..,,,,,,..,,..,,...,...,.,,,,,.,,..,,,,,.,,,
+#ACZ5Z377N7HK3EAJGMDRO22DATPIZFPBGFDMDAW54YPRPIHDFSF6OD3O5JYCFZAIPHR5MR7M5BWR2
+#\\\|RIW3N6WFHZRQE5JWNDZSKORG423LDFEDHQEYCJISLYF2NNANX5T \ / AMOS7 \ YOURUM ::
+#\[7]BIFFUWPS6BENUT74FBSGFR67BBIVQ2ZQ7DLHX77C4MVBEC7AV6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

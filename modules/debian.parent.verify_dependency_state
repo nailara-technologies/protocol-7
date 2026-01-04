@@ -20,8 +20,8 @@ if ( $dep_type eq 'pm_module' ) {
         require Module::Load;
         Module::Load::load($dep_name);
     };
-    if ($@) {
-        $result{error} = "Failed to load Perl module '$dep_name': $@";
+    if ($EVAL_ERROR) {
+        $result{error} = "Failed to load Perl module '$dep_name': $EVAL_ERROR";
         return \%result;
     }
     $result{available} = 1;
@@ -63,8 +63,8 @@ else {
     return \%result;
 }
 
-#,,,,,,,.,,,.,..,,.,.,,,,,,..,..,,.,,,,.,,...,..,,...,.,.,.,.,,.,,,,.,,..,...,
-#DIKBAUQAU7GVCYBRF4WNISLYTLR6DACEJM3J4ERB54O2SQZG55CQAU6O3BBRIZ4URF4DISNRCETYS
-#\\\|6DF6ENA6NC6BUDZUIUP4J45SOLRF3XTXN3V7SGEOJK3JMPFI5O7 \ / AMOS7 \ YOURUM ::
-#\[7]RTWUOGOMMA3JFXPANFMXDKSDWAM4W2S7AP5ZDWVVB2BFB3VNBSAI 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,,,,..,,...,..,,...,,..,.,,,..,,..,,...,...,..,,,.,,,,,,,.,,...,
+#ACWHIL36RLIS5NSUCG7EUBXFTU6QQ6FVRRMVCQRZXSGWJJ33DTNMCEXTA2PMYOZHX5BNYKXHVA5QW
+#\\\|2RTSFKWDTS2SLPCQCBWCYKPSKSG56QLPUBVG7JDJ77IWS2CIL6V \ / AMOS7 \ YOURUM ::
+#\[7]ZHVFWSRCOOJ74QG7ZUXT3DXISWDPNIJYXMNCCR5MIQJTVDKIRKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

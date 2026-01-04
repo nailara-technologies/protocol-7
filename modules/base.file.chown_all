@@ -67,7 +67,7 @@ eval {
 };
 
 my $err_str;
-( $err_str = $@ ) =~ s| at .+$|| if $@;
+( $err_str = $EVAL_ERROR ) =~ s| at .+$|| if $EVAL_ERROR;
 warn $err_str                    if defined $err_str;
 
 my $time_end   = 1000 * <[base.time]>->(3);
@@ -91,8 +91,8 @@ map { <[base.log]>->( $log_lvl, $ARG ) } (
 
 return $change_count;
 
-#,,..,,,,,,,,,.,,,.,.,,,.,,.,,.,.,.,,,,..,.,.,..,,...,...,.,.,...,,,.,,,,,.,.,
-#ZEWB4SQWGBJLNAM2H7ZPD5553Y3JSKDEM43ZYUNX4IK6QGSLVASKZT2QYOPLG2VWRHAOSMLDXYOXK
-#\\\|S4YZPU77OKNGVNJZWV3SKHVIRI272XBIQLGM4YGZCLTFW6Q5M5K \ / AMOS7 \ YOURUM ::
-#\[7]NCL2PPCN4WENKVLWPSUQLTC4YSZ36DWOZC42AE6EJU3JJU3ZUABY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,.,,,...,..,,,,.,,.,,..,,..,,,,,,..,,...,..,,.,.,...,,,,,,,.,..,,
+#CLRE7FPEKKILO5GCSCIIWUAX2QLKUBG2YZUCXVFBY4S3V2HXKG4LV5RMBYVA2NYFE7GBBOMMFONHM
+#\\\|XYYAAJQUYNTUBFCQXA6QXVRHNEFC4OACH6XWIHUBW2IW644YZI7 \ / AMOS7 \ YOURUM ::
+#\[7]4QBGAP6PIUPLPQCTIKKZWNRCIA5ZHZUWNTBN6MFNISWLG2I644DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

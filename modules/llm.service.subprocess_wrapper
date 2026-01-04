@@ -109,10 +109,10 @@ my $query_subprocess = sub {
 
     my $elapsed = time() - $start_time;
 
-    if ($@) {
+    if ($EVAL_ERROR) {
         return {
             success => FALSE,
-            error   => "Subprocess execution failed: $@",
+            error   => "Subprocess execution failed: $EVAL_ERROR",
             command => join( ' ', @cmd ),
             stderr  => $err
         };
@@ -250,8 +250,8 @@ if ( $cmd eq 'query' ) {
 
 # AMOS7::TEMPLATE::signature_placeholder
 
-#,,,.,,.,,..,,,,.,,,.,..,,.,,,.,,,,..,..,,..,,..,,...,...,.,.,,,,,.,.,,,.,.,,,
-#APT5HJE4YPATRBWPODOJYHELEZOCWQ7RXN4IP7UWKK7JB7BHRUCZDIKSVPTBIUYQEETWYQGHPVXAK
-#\\\|6O63IXJJTI2B3BTJWV3632JVNN4HIK3Z7G43KHRDSG6ZUQZTR2R \ / AMOS7 \ YOURUM ::
-#\[7]TN2QJKXAIRZ3YAVKDPUHYEW7JFSBHY3MLWANMCSH5MFXQEUGC2CI 7  DATA SIGNATURE ::
+#,,,,,..,,,..,...,,,,,..,,,,,,,..,..,,...,,,.,..,,...,...,,,,,.,.,,.,,..,,,,,,
+#BFQA3QYBJSDXG7NXPSGCABGYONLDD7TELW4KVU42DNTVSRTMGAZXIUUIWPMWO4AM5KF7B52ZZVWSU
+#\\\|AP5H5RSUE2TBIIZRC4B2SNUVHBIMKQPRVVZKVGKFSJSXKWYSAGS \ / AMOS7 \ YOURUM ::
+#\[7]NNYWHH2D5CRZBZKHUAFC6WT5PE2ACY7BP7TSWLSUPNARYHKYGWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

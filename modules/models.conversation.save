@@ -1,0 +1,97 @@
+## [:< ##
+
+# name = models.conversation.save
+# descr = save conversation to persistent storage
+
+my $params = shift;
+
+my $job_id   = $params->{'job_id'}   // '';
+my $filename = $params->{'filename'} // $params->{'job_id'};
+my $context  = $params->{'context'}  // 'conversation';
+
+return {
+    'success' => FALSE,
+    'error'   => 'job_id required'
+    }
+    unless length($job_id);
+
+<models.conversations> //= {};
+
+unless ( exists <models.conversations>->{$job_id} ) {
+    return {
+        'success' => FALSE,
+        'error'   => "conversation not found: $job_id",
+        'job_id'  => $job_id
+    };
+}
+
+my $conversation = <models.conversations>->{$job_id};
+my $start_time   = <[base.time]>->(4);
+
+## Determine save path
+my $save_dir = <models.storage.conversations_dir>
+    // catdir( <system.conf_path>, qw| conversations | );
+
+unless ( -d $save_dir ) {
+    return {
+        'success' => FALSE,
+        'error'   => "conversations directory not found: $save_dir",
+        'job_id'  => $job_id
+    };
+}
+
+## Sanitize filename
+$filename =~ s{[^a-zA-Z0-9._-]}{_}g;
+my $file_path = catfile( $save_dir, "$filename.yaml" );
+
+## Serialize conversation to YAML
+my $yaml_data;
+eval {
+    $yaml_data = YAML::XS::Dump($conversation);
+};
+
+if ($EVAL_ERROR) {
+    return {
+        'success' => FALSE,
+        'error'   => "serialization error: $EVAL_ERROR",
+        'job_id'  => $job_id
+    };
+}
+
+## Write to file
+eval {
+    open my $fh, '>', $file_path
+        or die "cannot open $file_path: $!";
+    print $fh $yaml_data;
+    close $fh;
+};
+
+if ($EVAL_ERROR) {
+    return {
+        'success' => FALSE,
+        'error'   => "write error: $EVAL_ERROR",
+        'job_id'  => $job_id
+    };
+}
+
+<[base.logs]>->(
+    1, "[$context] conversation saved: job_id=%s path=%s",
+    $job_id, $file_path
+);
+
+my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
+
+return {
+    'success'    => TRUE,
+    'job_id'     => $job_id,
+    'filename'   => "$filename.yaml",
+    'file_path'  => $file_path,
+    'size_bytes' => length($yaml_data),
+    'elapsed_ms' => $elapsed_ms
+};
+
+#,,..,,,.,.,,,...,,,,,,,.,.,.,,,,,,,.,.,.,,..,..,,...,...,.,,,..,,,.,,,..,..,,
+#PGRIDNARZXO25WQQOKEPBQPYGKQI6HF27BLH7KS2JOTZMVSH3ESLKNKAVQP4JRIPALG2GYMJNDY6W
+#\\\|RVYB5JMQVKWTSSE5JLETHUNLXMAN6ZLLBWUHCR67M3VKWDLXEP3 \ / AMOS7 \ YOURUM ::
+#\[7]6FD2S6LRACIONT2JHFWCWSN73ID7OP6LJWQDCBNZWBRMQIH6OEDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

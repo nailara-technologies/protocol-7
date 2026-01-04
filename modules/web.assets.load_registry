@@ -24,8 +24,8 @@ unless ( -f $registry_file ) {
 ## Load YAML ##
 my $yaml = eval { YAML::Tiny->read($registry_file) };
 
-if ($@) {
-    <[base.log]>->( 0, "web.assets.load_registry: YAML parse error: $@" );
+if ($EVAL_ERROR) {
+    <[base.log]>->( 0, "web.assets.load_registry: YAML parse error: $EVAL_ERROR" );
     return FALSE;
 }
 
@@ -80,8 +80,8 @@ if ( $data->{assets} ) {
 
 return TRUE;
 
-#,,,,,,,,,,,,,...,..,,.,.,,.,,,..,..,,,,.,,..,..,,...,...,..,,,..,,,.,..,,,,.,
-#B47C2Y6I2FC4RP6S246VQKPARHEZIEE54UFVRBKB6NYCAHAGNIB2RUOSZFOLBWM4JMLB7PW2WZBEI
-#\\\|HUSLFDAOGANFXAQ5U6UJX6FHMXI5QRGMAOGVAMROF4DH3YPI4WD \ / AMOS7 \ YOURUM ::
-#\[7]SN6MIJSA5SKBOQWM2IT6C4ABB7HYVBIHSTSJ3GTYLR7LNXYS24DQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,,,,,,,,,.,,,.,,,..,.,.,.,.,,..,..,,...,...,,,,,..,,,.,,...,,..,
+#AFERTKB573HEZMYHSQTMX2GPGKIP5R2GYFQC5OHDOD45R3424PZDLMATLME5PXDRCN2S2TIAQBJ4Y
+#\\\|IRVWJGMGORCEGE76RHGQ6SPARDFXRTKGUXDLXOGBGRXYJHYPRQN \ / AMOS7 \ YOURUM ::
+#\[7]ULUJCATAUCNGEI3LNNVTDCVSMHZ6M2A76QGGJYETKMMTV6BJSODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

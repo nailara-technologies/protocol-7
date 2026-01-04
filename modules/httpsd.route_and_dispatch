@@ -38,8 +38,8 @@ my $route = eval {
     <[httpsd.route_template_request]>->( $method, $uri, $vhost, $id );
 };
 
-if ($@) {
-    <[base.logs]>->( 0, "[$id]: Router error: $@" );
+if ($EVAL_ERROR) {
+    <[base.logs]>->( 0, "[$id]: Router error: $EVAL_ERROR" );
     <[httpd.send_error_page]>->( $id, 500 );
     return 2;
 }
@@ -78,8 +78,8 @@ if ( exists $code{$handler_name} ) {
 
 return TRUE;
 
-#,,.,,,.,,,..,,,,,.,.,..,,..,,.,,,..,,,.,,,.,,..,,...,...,...,.,,,...,,..,...,
-#6PWUETBUC3IZHGHOYB7X4FKVCP6UUPIE3XME5US2IJTBQW3QF4DIFQHJNEW6IPDWZAX6DFBBL6EKM
-#\\\|BQFK3CDHOCEDSSIO35A5FMUIG23PLXPIFIXGSMF5QAWH2BP5XDV \ / AMOS7 \ YOURUM ::
-#\[7]7GZ7XF6GGZF3ZBACOY5IIPESX7WUEMEWKJ4YZOOJFPBLNQZJUGAA 7  DATA SIGNATURE ::
+#,,..,...,,..,,,,,,.,,..,,...,...,,,,,,.,,...,..,,...,...,,..,.,.,.,,,.,.,..,,
+#Z2NE3E42HQNMWWUBVK5CGCFM7LBAPN3N5UOXNTZF4T54LXKQQHTKXFGAWALK7SRB4FGWBYRSFDX6S
+#\\\|73G2WKUWGPDOJUVYWY2CUIROECX5AZGUNL3PUGM772I53WODTQ3 \ / AMOS7 \ YOURUM ::
+#\[7]25K2F234FOWN72EZEVSLUBC3NSC3KGK5WCGLHM2ATSBTYLMQRUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

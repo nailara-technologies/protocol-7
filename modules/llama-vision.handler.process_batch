@@ -48,11 +48,11 @@ $err = gensym;
 
 my $pid = eval { open3( $wtr, $rdr, $err, @cmd ) };
 
-if ( !$pid || $@ ) {
+if ( !$pid || $EVAL_ERROR ) {
     <[base.logs]>->(
         0,
         "ERROR: Failed to spawn vision CLI: %s",
-        $@ // 'unknown error'
+        $EVAL_ERROR // 'unknown error'
     );
 
     # Mark all requests in batch as failed
@@ -116,8 +116,8 @@ $batch_job->{'err_io'} = <[event.add_io]>->(
 # Clear batch queue for next batch
 @$batch = ();
 
-#,,,,,,,,,,..,..,,,,.,.,,,.,,,..,,,,.,,,.,...,..,,...,...,.,,,.,.,..,,..,,...,
-#IKNVXOSGCSD7DU3BUIK7CJNOC2P6EU7ASWT4XV3OI5V3FQ4SPHMWSNTU4AWDUQMFNCQP4NKZZ3JU4
-#\\\|I7NA7IBBHB4PFC33BCFZEXPX55TDAC2PD56WYME6P57ZWA5I6H3 \ / AMOS7 \ YOURUM ::
-#\[7]AT476KI43SMLRZYT2ZZBJMONKET7NZBI3BNUUNCBALGLZVSKGSAA 7  DATA SIGNATURE ::
+#,,..,.,,,..,,.,,,.,,,.,.,,,.,,..,,..,,.,,,..,..,,...,...,...,,,,,.,,,.,.,.,.,
+#EOWVDY45RBB7OUKJNZ35RI3GYO2ERX5E3QUAZ6Q45AU3MVF2JG5DFEYQ2KGXPDWWMTUE3YSTZTD46
+#\\\|A7BQ73WIX5Y3FFYN4GGRRS6RC7RXZIJJ7HMOWCEYKXPF3ORI6D2 \ / AMOS7 \ YOURUM ::
+#\[7]GXLWIEEUD3CPJ4HQVMI7WJFZTOXG6Q5V2PIB5UXZJWW7JFWVHODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -43,6 +43,10 @@ unless ( exists <models.storage.search_paths> ) {
     ];
 }
 
+## Initialize conversations storage directory
+<models.storage.conversations_dir>
+    //= catdir( <system.conf_path>, qw| conversations | );
+
 # Statistics aggregation state
 $data{models}{stats_aggregation_pending}  = 0;
 $data{models}{last_stats_aggregation}     = 0;
@@ -336,8 +340,8 @@ my $cmd_result;
 # Return indicates successful initialization
 return 0;
 
-#,,.,,...,,.,,...,,,,,.,,,.,.,,,.,,..,.,,,.,.,..,,...,...,.,.,.,,,,..,..,,,,.,
-#6TCJAMMNM3HREK6TND4SKGLZCFHT4ABLJHS6LHB4S6OVEAKHQEVYUXTY4YLVJ7JV5GGQALQLYRDFG
-#\\\|GZLV7Z3JIK6BT6P54ISKG67YRV6NXA7QRFMVTV7QMHGFGTZJWLP \ / AMOS7 \ YOURUM ::
-#\[7]LFV6HI6J6XG66UUJLRNQ5MRAXSKLIB5LTPPBMNFMLTEC5WOTH4CA 7  DATA SIGNATURE ::
+#,,..,...,,..,,,,,,.,,,..,,,.,,..,..,,,.,,.,.,..,,...,...,.,,,...,,..,,,.,.,.,
+#MTRIN7HS4PPA5KSMO2NCAVME2OLMAOFII66AMHSZE3DJ4TBLEV2RG6ODHISQK5RDFZREDLHLW6ASK
+#\\\|PYER7UH2S4S7ACZHCXEWI7M7CIGPUZD6WTVPHCLQT7PXS3BHN3Q \ / AMOS7 \ YOURUM ::
+#\[7]I7QVUQL4X5EFVBX6OUVR5ETPFB2HG75HS2GACFB6MMM3MLONUOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -65,8 +65,8 @@ my $body = $response->decoded_content();
 my $data;
 
 eval { $data = JSON::XS::decode_json($body); };
-if ($@) {
-    <[base.log]>->( 1, "error parsing ACME response: $@" );
+if ($EVAL_ERROR) {
+    <[base.log]>->( 1, "error parsing ACME response: $EVAL_ERROR" );
     return undef;
 }
 
@@ -78,8 +78,8 @@ return {
     headers => $response->headers,
 };
 
-#,,,,,..,,..,,.,,,,,,,,.,,,,.,.,,,...,,,.,.,.,..,,...,...,..,,.,.,,.,,.,.,,,,,
-#KOL3MYYRSS544QRMT5FWWQU3A6TVNGQIXRBAYK7S7IOFBW34GDXIBH2TO4TDQWPHDVELT3DOR2DVS
-#\\\|RN7WREZNXEXAYUF4RLT62I2GK3RTSXUTTKV7KZM7PSD2UPTWXHN \ / AMOS7 \ YOURUM ::
-#\[7]SWDOX4IQEHOT3XSCVWYRU5OGB7HHXDYQUF7OS4MZ7FV6CLFI4QBY 7  DATA SIGNATURE ::
+#,,..,,..,..,,,,.,,,,,,.,,,,.,,,,,.,,,..,,,..,..,,...,...,.,,,,,,,.,,,,,.,..,,
+#FH567CQT3IOGMOPMXQNOFJUUIXAHBYUF2AVLGNUIIP6AI4VYCGEW4KUQ3ITAMR2TJGVRTL263GKDO
+#\\\|DX7W6ZWYAVI6Z5I6PRRQVMK52RYFBZ6YP3TSM52OLN4AIIMOHBK \ / AMOS7 \ YOURUM ::
+#\[7]O6KD6ZH76IWBEECCWF36VWGZ7TB57XVJJAF5UHOF6WXL2RM4EYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

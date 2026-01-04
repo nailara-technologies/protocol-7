@@ -18,7 +18,7 @@ return { success => FALSE, error => "File not found: $yaml_path" }
 my $spec;
 eval { $spec = LoadFile($yaml_path); };
 
-return { success => FALSE, error => "Failed to parse YAML: $@" } if $@;
+return { success => FALSE, error => "Failed to parse YAML: $EVAL_ERROR" } if $EVAL_ERROR;
 return { success => FALSE, error => 'YAML did not parse to valid structure' }
     unless ref $spec eq 'HASH';
 
@@ -97,8 +97,8 @@ return {
     yaml_path         => $yaml_path
 };
 
-#,,.,,..,,..,,,..,..,,,,.,..,,.,.,,,,,.,.,.,.,..,,...,...,.,,,..,,,.,,,.,,.,.,
-#A3BH3ER2QNSICPOKQXICEFWHNHSCZDB44FITE25Q4RTJVQ4JF2H7HNUZGJVWEQGNWVT6LPZO2PHSW
-#\\\|WZZQV4DUN2FCJEKPD2MEAJBUJZSCK2DEK7WZKJL2GKS6E2OQHC6 \ / AMOS7 \ YOURUM ::
-#\[7]3SA24DWCBL3LQEMJEETHLQDYUNBGWJ2G3VOUENBQ3A24IW74CICI 7  DATA SIGNATURE ::
+#,,.,,...,,..,,..,.,.,,..,,,,,,,.,,,.,.,,,.,.,..,,...,...,,,,,.,.,,.,,,,,,,.,,
+#3MGOI4VLPL5Y2UXLQXLO6DCX6D2MUFPZZXYLTS5WL53TQ4ATKQOK2JPMZZNVA2ZLHE5LSW32YM5OW
+#\\\|BWTLTYARGHO2HVWRCD4CTOGBCLWY3M67DJERZZ7OGVYMXLFIFHX \ / AMOS7 \ YOURUM ::
+#\[7]23ZQTBUDZ3J6HOUV7ZK4AO34ERYBWW3HZCMLWTBQNUKOS4EZ4OBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

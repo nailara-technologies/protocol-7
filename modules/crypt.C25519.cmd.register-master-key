@@ -39,7 +39,7 @@ unless ( $username =~ m|^[a-zA-Z0-9._-]+$| ) {
 use Crypt::Misc;
 my $pubkey_bin = eval { Crypt::Misc::decode_b32r($pubkey_b32) };
 
-if ( $@ or not defined $pubkey_bin ) {
+if ( $EVAL_ERROR or not defined $pubkey_bin ) {
     return {
         'mode' => qw| false |,
         'data' => 'invalid base32 encoding of public key'
@@ -86,8 +86,8 @@ return {
 #\[7]TEST1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890ABCDEFGHIJKLMNO 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,,,,,,.,..,,.,.,,,.,,,,,.,.,.,,,..,,.,.,...,..,,...,...,.,.,.,.,,.,,.,,,.,.,
-#LAXINRB7LFLJ2OVN6CCIDSOCQ6VFIZZCGURDAA4PICP4RLGRH7CNVG6WZRNP3WGLUGI6A2OQ5UDFQ
-#\\\|AEBBBHXAMBXLHZQM53ICTRT3NQL3VKBXATEC2F4C7C725KXBC2X \ / AMOS7 \ YOURUM ::
-#\[7]QHXEMXQX667PUNTCHMIVA6K73KBHJ3SOLQOMSFPPFOP5PSEYYCBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,...,,,,,..,,,..,,..,.,,,.,,,,,,,..,,...,...,...,,.,,.,.,.,.,,,,,
+#AW2SSWXNPBVO4NL337FGGIESRVICEFAQQH4BNFCWR4JMI5H5AJHMTVO34IECTR7N5LOHXYHTDB2QG
+#\\\|LAZ26NHQDE5JENAAEQULJX6CO5UBHMMUV5XJTZWEEUGJZBUB4RV \ / AMOS7 \ YOURUM ::
+#\[7]G5PMJXKPDSAYYTVHRBOIZUR4OF3FGTPUM7OHMFT5Z56PIXMKWGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

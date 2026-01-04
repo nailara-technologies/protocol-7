@@ -1,0 +1,88 @@
+## [:< ##
+
+# name = models.conversation.load
+# descr = load conversation from persistent storage
+
+my $params = shift;
+
+my $filename = $params->{'filename'} // '';
+my $job_id   = $params->{'job_id'}   // '';
+my $context  = $params->{'context'}  // 'conversation';
+
+return {
+    'success' => FALSE,
+    'error'   => 'filename or job_id required'
+    }
+    unless length($filename) || length($job_id);
+
+## If only job_id provided, use it as filename
+$filename = $job_id unless length($filename);
+
+## Determine load path
+my $save_dir = <models.storage.conversations_dir>
+    // catdir( <system.conf_path>, qw| conversations | );
+
+unless ( -d $save_dir ) {
+    return {
+        'success' => FALSE,
+        'error'   => "conversations directory not found: $save_dir"
+    };
+}
+
+## Sanitize filename
+$filename =~ s{[^a-zA-Z0-9._-]}{_}g;
+my $file_path = catfile( $save_dir, "$filename.yaml" );
+
+unless ( -f $file_path ) {
+    return {
+        'success' => FALSE,
+        'error'   => "conversation file not found: $file_path"
+    };
+}
+
+my $start_time = <[base.time]>->(4);
+
+## Read and parse YAML file
+my $conversation;
+eval {
+    open my $fh, '<', $file_path
+        or die "cannot open $file_path: $!";
+    my $yaml_data = do { local $/; <$fh> };
+    close $fh;
+    $conversation = YAML::XS::Load($yaml_data);
+};
+
+if ($EVAL_ERROR) {
+    return {
+        'success' => FALSE,
+        'error'   => "parse error: $EVAL_ERROR"
+    };
+}
+
+## Register in active conversations
+my $loaded_job_id = $conversation->{'job_id'} // $job_id;
+<models.conversations> //= {};
+<models.conversations>->{$loaded_job_id} = $conversation;
+
+<[base.logs]>->(
+    1, "[$context] conversation loaded: job_id=%s file=%s",
+    $loaded_job_id, $file_path
+);
+
+my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
+
+return {
+    'success'      => TRUE,
+    'job_id'       => $loaded_job_id,
+    'filename'     => "$filename.yaml",
+    'turns'        => scalar( @{ $conversation->{'turns'} } ),
+    'tokens_used'  => $conversation->{'tokens_used'} // 0,
+    'participants' => scalar( keys %{ $conversation->{'participants'} } ),
+    'elapsed_ms'   => $elapsed_ms
+};
+
+#,,.,,.,.,,..,,,.,...,...,,..,.,.,...,.,.,,.,,..,,...,...,...,.,,,,..,.,.,,,,,
+#A2TXV7SUFPYD55R2QKR2PIKTI6R5VZOEXWKUZPY2R6H4UVY74WDOQ7AT7ANF7MNOLUUB55MAOZK5O
+#\\\|OQQHL7UZYY5XH732UCQB2RZX7U46NMDQHEJDWKXCWMUBZ442ZQO \ / AMOS7 \ YOURUM ::
+#\[7]TTIZC3FOBNKT3NNGU4HWOFGYH2KAALZZMZLJGTV7RGW42DI5KMDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
