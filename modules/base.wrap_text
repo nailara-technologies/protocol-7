@@ -2,8 +2,8 @@
 
 # name  = base.wrap_text
 
-my $l_prefix  = shift // '';
-my $max_len   = shift;
+my $l_prefix  = shift             // '';
+my $max_len   = shift             // 27;    ## [LLL] .. fine-tune .. ##
 my $text_line = join( ' ', @ARG ) // '';
 
 if ( index( $l_prefix, "\e", 0 ) != -1 ) {    ## adjust for ansi color ##
@@ -18,8 +18,8 @@ local $Text::Wrap::huge      = qw| overflow |;
 
 return Text::Wrap::wrap( '', $l_prefix, $text_line );
 
-#,,..,.,.,.,.,...,.,,,.,.,.,,,.,,,.,,,.,.,,.,,..,,...,...,.,,,...,..,,...,,.,,
-#K6JUO5PH3Q7ULYDYPZMMPKPYT26GZFVSVE2M3IQ2BRQWY5LDQISVEPIFINJHI2KKWNZAXVVJ3HEEQ
-#\\\|SO4H2LL237UUF5TLMOZDR724GWX7BQ375S34ZG6I5VRKLDF4IKY \ / AMOS7 \ YOURUM ::
-#\[7]PPPZTZ5GNRGKWN4FJE26YRWP7G7VW4CR27Z7AYUO2NAST4SXUSAA 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,..,,,,,,,.,,..,,.,,,,,,,,.,,.,,..,,...,...,,..,,.,,.,,,,,.,...,
+#XX6V4KBIF2U6DRMX3LQKXAM2GMQ7BLGTXG3EGUQGWUPARLOW6S2THG6TF22TS7Z3GH3FEEMFSYN7E
+#\\\|NVU7ZMV6HURIHAQJOPKKIQM5AS4XONBX6PIG4NPOLAV3XXK2OWO \ / AMOS7 \ YOURUM ::
+#\[7]KFIQ5T2UNFXZ2QIERD5CTOKGGEGJ6LSBBJBLP6COLCQBFXHB3WBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -112,12 +112,18 @@ my $full_output
 
 # Log first 300 chars for debugging
 if ( length $full_output > 0 ) {
-    <[base.logs]>->(
-        1,
-        "[check_completion] primary buffer has %d bytes, combined first 300 chars: %s",
-        length($primary_buffer),
-        substr( $full_output, 0, 300 )
-    );
+    map { <[base.logs]>->( 1, $ARG ) } split "\n",
+        sprintf(
+        "[check_completion] %s",
+        <[base.wrap_text]>->(
+            '', 42,
+            sprintf(
+                'primary buffer has %d bytes,'
+                    . ' combined first 300 chars : %s',
+                length($primary_buffer), substr( $full_output, 0, 30 )
+            )
+        )
+        );
 }
 
 # Extract model response - output contains token-by-token debug logs interspersed
@@ -268,8 +274,8 @@ if ( length $payload ) {
     }
 );
 
-#,,..,,,.,.,.,,,.,.,,,.,,,,..,...,,,.,,..,..,,..,,...,...,.,.,..,,.,.,,,,,.,,,
-#QOLIN7JPAA3E32F4ROULBZD3GJJ5CIG2KSPMJWE4YOK5RCM5YHGDGP75HKVX7M6OQMKTKCWB2GTOG
-#\\\|SY35BFM7RWYQ7CVVVXQ75NP5UCB7SWLHOSCYSH2OCPA34LV3TNL \ / AMOS7 \ YOURUM ::
-#\[7]JBBQGE3O5F7P4Q4NMOVW2FYNO25LNPCQ7O7XELH7UQOWJ26L72AI 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,.,,.,,...,,..,,,,,,..,,,,,,..,..,,...,..,,..,,,,,,.,.,,,,,,.,,
+#RGCQDT2LWMAEKBB7ZVSFELIBFMXDL6VL2SQWCNGSXMK4V2NXIQT4ABEHIWM3EYSX2UDTPFTAXCLDY
+#\\\|UKTMMHEOXCCRWLDCXUZLWPOLU6Y3AY5HTJUG2FT4WCCCEW5FGLA \ / AMOS7 \ YOURUM ::
+#\[7]C7AHM5AWF7LDSRNWNVLNHPLSD4SPMHDV3OS52CAUOVP55AAP5MAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
