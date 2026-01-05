@@ -13,20 +13,23 @@ unless ( defined $batch_job ) {
     return;
 }
 
-# Check if process has exited
-my $pid      = $batch_job->{'pid'};
-my $wait_res = <[base.waitpid]>->($pid);
+# If already processed, cancel both handlers and return
+if ( $batch_job->{'processed'} ) {
+    $watcher->cancel if $watcher->is_active;
+    # Also cancel the read handler to prevent warnings
+    if ( defined $batch_job->{'rdr_io'} ) {
+        $batch_job->{'rdr_io'}->cancel if $batch_job->{'rdr_io'}->is_active;
+    }
+    return;
+}
 
-# Process still running
-return if !defined $wait_res or $wait_res == 0;
-
-# Process has exited - check if both streams closed
-my $both_closed = $batch_job->{'rdr_closed'} && $batch_job->{'err_closed'};
-return unless $both_closed;
-
-# Process exited AND all data read - now send responses
+# Exception event on stderr indicates process has exited - now send responses
+# Cancel both event handlers first
 $watcher->cancel if $watcher->is_active;
-delete <llama-vision.timers>->{$batch_id};
+if ( defined $batch_job->{'rdr_io'} ) {
+    $batch_job->{'rdr_io'}->cancel if $batch_job->{'rdr_io'}->is_active;
+}
+$batch_job->{'processed'} = 1;
 
 # Trim whitespace
 $batch_job->{'output'} =~ s/^\s+|\s+$//g;
@@ -72,8 +75,8 @@ if ( length $batch_job->{'output'} ) {
     }
 );
 
-#,,,,,.,.,,..,..,,,,,,,,.,...,,,.,..,,.,,,..,,..,,...,...,..,,..,,.,.,.,,,,,.,
-#O52R675EWAZNM4J5KVFVCCB7HYCFMYUL4W2COZ2P2DUVNGDNMIVFUGCVRE6L3U6JEFVZEPZG6OKCC
-#\\\|H4NDI2MXTXDEUBH3TSRXCTFJ63U5KQ726ARZLUJNH7NBOSJPAVM \ / AMOS7 \ YOURUM ::
-#\[7]SVXCMWFXHGM6NRBIFQHWNVQ577G7IDLXEO6JWMB3D32OMEAVWSAI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,,,...,,,,,..,,,,,,,.,,,..,.,,,..,,...,...,.,.,,,.,.,.,...,,,,,
+#L3KWRURQQR7THPRBK4LXQAMMU4BJAYBMXJ4KFPTCO6IUCB2RCHFQUSRAMZCQQJFO6LRBKVPRKTXT6
+#\\\|AV76BFWRCDLLEPPIGORAOINSMN5MGVSEGPLM56OOWQ4GER45KSB \ / AMOS7 \ YOURUM ::
+#\[7]4LIQV6QP2HVNVTVSBHYS4IZZ6QAYFYRVSEJSYGHDXZKIEIKVUSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

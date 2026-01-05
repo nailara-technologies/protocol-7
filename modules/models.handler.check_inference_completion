@@ -13,28 +13,36 @@ unless ( defined $job ) {
     return;
 }
 
-## Skip if already completed (read handler may have already processed)
+## Skip if already completed
 if ( $job->{'completed'} ) {
+    <[base.logs]>->( 2, "[check_inference] already completed, cancelling: id=%s", $inference_id );
     $event->cancel if $event->is_active;
+    # Also cancel the read handler to prevent warnings
+    if ( defined $job->{'io_handler_stdout'} ) {
+        $job->{'io_handler_stdout'}->cancel if $job->{'io_handler_stdout'}->is_active;
+    }
     return;
 }
 
-## Fallback: if both streams closed but process_response not called yet, call it now
-if ( $job->{'rdr_closed'} && $job->{'err_closed'} && !$job->{'completed'} ) {
-    <[base.logs]>->(
-        1, "[check_inference] fallback completion: id=%s",
-        $inference_id
-    );
+## Exception event on stderr indicates curl has finished
+<[base.logs]>->(
+    1, "[check_inference] exception event (curl finished): id=%s",
+    $inference_id
+);
 
-    <[models.handler.process_response]>->(
-        { 'inference_id' => $inference_id, 'job' => $job }
-    );
-
-    $event->cancel if $event->is_active;
+## Cancel both handlers
+$event->cancel if $event->is_active;
+if ( defined $job->{'io_handler_stdout'} ) {
+    $job->{'io_handler_stdout'}->cancel if $job->{'io_handler_stdout'}->is_active;
 }
 
-#,,,.,,,,,...,,.,,...,.,.,,.,,...,,,.,,..,,,.,.,.,...,...,...,..,,,..,.,,,..,,
-#SWHRSPYNLVM6F7KYGIT2DCDT24UBDNTZN6775RZUTQZRRKTGWJISNYMISAQW6PQ7SRSGZLJTOWABW
-#\\\|USMPY4CIND5EMUYO4PBUC5WKW5KS53ABJN63A4NBLJEW2SXMHPV \ / AMOS7 \ YOURUM ::
-#\[7]X76MPB3AJKZ4FCL6KHOI2N466ZKGRXIIDKDVDNLZICMCXEKZEADQ 7  DATA SIGNATURE ::
+## Process the response
+<[models.handler.process_response]>->(
+    { 'inference_id' => $inference_id, 'job' => $job }
+);
+
+#,,,,,,.,,,,.,,,.,.,.,,,,,.,.,.,,,,..,..,,,.,,.,.,...,...,..,,.,,,..,,.,,,..,,
+#D2N7DMQBYR4QXL324KLZVKNJGFPG4Z7EAGYZMOPBWR4AKYGTX4VLV6X3RUL2YOIVBKZID7G6LHSSK
+#\\\|CVUVHEE3D5C7BMILTUA3I74333BJ5XANENLNZYEUKKUZ6I3SO43 \ / AMOS7 \ YOURUM ::
+#\[7]SCS6WNGYIPLGZ76STOOVTJE6BR5PK73OHH3JBZHLNL3I7HJNLAAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,7 +6,7 @@
 my $watcher = shift->w;
 my $job_id  = $watcher->data;
 
-<[base.logs]>->( 2, "[check_completion] timer fired for job=%s", $job_id );
+<[base.logs]>->( 2, "[check_completion] exception event for job=%s", $job_id );
 
 my $vision_job = <llama-vision.jobs>->{$job_id};
 
@@ -16,53 +16,17 @@ unless ( defined $vision_job ) {
     return;
 }
 
-# If already processed, return
+# If already processed, cancel this handler and return
 if ( $vision_job->{'processed'} ) {
-    <[base.logs]>->( 2, "[check_completion] already processed, returning" );
+    <[base.logs]>->( 2, "[check_completion] already processed, cancelling" );
+    $watcher->cancel if $watcher->is_active;
+    # Also cancel the read handler to prevent warnings
+    if ( defined $vision_job->{'rdr_io'} ) {
+        $vision_job->{'rdr_io'}->cancel if $vision_job->{'rdr_io'}->is_active;
+    }
     return;
 }
 
-# Try to read any pending output from filehandles (non-blocking)
-my $rdr_bytes = 0;
-if ( defined $vision_job->{'rdr'} ) {
-    while ( sysread( $vision_job->{'rdr'}, my $buf, 4096 ) ) {
-        $vision_job->{'output'} .= $buf;
-        $rdr_bytes += length($buf);
-    }
-    <[base.logs]>->(
-        2, "[check_completion] read %d bytes from stdout", $rdr_bytes
-    ) if $rdr_bytes > 0;
-}
-my $err_bytes = 0;
-if ( defined $vision_job->{'err'} ) {
-    while ( sysread( $vision_job->{'err'}, my $buf, 4096 ) ) {
-        $vision_job->{'stderr'} .= $buf;
-        $err_bytes += length($buf);
-    }
-    <[base.logs]>->(
-        2, "[check_completion] read %d bytes from stderr", $err_bytes
-    ) if $err_bytes > 0;
-}
-
-# Check if vision process has exited (non-blocking waitpid)
-# Note: waitpid might return -1 if process already reaped, or 0 if still running
-my $pid = $vision_job->{'pid'};
-<[base.logs]>->(
-    2, "[check_completion] checking process status: pid=%d", $pid
-);
-
-# Check if process is still alive using kill(0, ...)
-my $proc_alive = kill( 0, $pid );
-<[base.logs]>->(
-    2, "[check_completion] process alive check: %d", $proc_alive
-);
-
-if ($proc_alive) {
-
-    # Process still running, wait longer
-    <[base.logs]>->( 2, "[check_completion] process still alive" );
-    return;
-}
 <[base.logs]>->( 1, "[check_completion] process has exited" );
 
 # Process has exited - read any remaining output
@@ -84,9 +48,11 @@ close( $vision_job->{'err'} ) if defined $vision_job->{'err'};
 # Mark as processed
 $vision_job->{'processed'} = 1;
 
-# Cancel the timer
+# Cancel both event handlers to prevent warnings
 $watcher->cancel if $watcher->is_active;
-delete <llama-vision.timers>->{$job_id};
+if ( defined $vision_job->{'rdr_io'} ) {
+    $vision_job->{'rdr_io'}->cancel if $vision_job->{'rdr_io'}->is_active;
+}
 
 <[base.logs]>->( 1, "[check_completion] process exited, processing output" );
 
@@ -296,8 +262,8 @@ if ( length $payload ) {
     }
 );
 
-#,,.,,..,,..,,,,,,,,,,...,,..,.,.,...,.,,,,,,,..,,...,...,.,,,.,,,...,...,,,.,
-#HSMFEHQVPYCT7O7YTMTES65KDRK6FSWKIV3CANSVLTD35I4SGPMPKPQGJ2THGFD6Y2BL34O43N33I
-#\\\|VG2OOSQJPNMODSVYQHEO4YH77NOGBHVYNTRFZC4R2SPHAYUBJUX \ / AMOS7 \ YOURUM ::
-#\[7]ACJT5QPQ55CSULJRRQM27UBDMRIB3QBAMW5R5CBJPL2X5IPTHADY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,,,,,,,,...,,.,,,,.,,.,,,,.,,,,,..,,...,..,,,.,,..,,.,,,.,.,,,,,
+#75WP73LRM27E4QXY2AWS5ZXWBZN4PBV6MTUWZ25CII6AFXSAE4OFAFIO2SMJJH7CCNJS6XDAAMKT4
+#\\\|U4J2YPPDSFOLFXRPRMBYHUGVGYUTT3DFPZBR2UE4SEYVHGYLIIX \ / AMOS7 \ YOURUM ::
+#\[7]VXD2KCJWQKFXJ7V54GJF3VKSDHGNTFA4VEFNDTZUAU6T677CD6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
