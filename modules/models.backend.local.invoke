@@ -161,21 +161,23 @@ if ( !$pid || $EVAL_ERROR ) {
     $inference_id, $job_id, $participant_id, $pid
 );
 
-## Register non-blocking I/O handler for curl stdout
+## Register non-blocking I/O handler for curl stdout (data reading - lightweight)
 my $io_handler_stdout = <[event.add_io]>->(
     {   'fd'      => $curl_out,
         'handler' => 'models.handler.read_inference_response',
-        'data'    => { 'inference_id' => $inference_id, 'stream' => 'stdout' }
+        'data'    => $inference_id,
+        'poll'    => qw| r |
     }
 );
 
 <models.pending_inferences>->{$inference_id}->{'io_handler_stdout'} = $io_handler_stdout;
 
-## Register non-blocking I/O handler for curl stderr (completion trigger)
+## Register non-blocking I/O handler for curl stderr (completion trigger via exception)
 my $io_handler_stderr = <[event.add_io]>->(
     {   'fd'      => $curl_err,
-        'handler' => 'models.handler.read_inference_response',
-        'data'    => { 'inference_id' => $inference_id, 'stream' => 'stderr' }
+        'handler' => 'models.handler.check_inference_completion',
+        'data'    => $inference_id,
+        'poll'    => qw| e |
     }
 );
 
@@ -194,8 +196,8 @@ return {
     'rate_limited'    => 0,
 };
 
-#,,,.,,..,.,,,...,,.,,,,.,.,.,,.,,,.,,.,.,...,..,,...,...,,,,,...,,,.,,,.,,.,,
-#E7GAS2FJDHAYEHMIMRDFWTXNSVUEM4JG6NAQQTISC53FUIXORIDGL7NYRE4HEUVWWO7OHQKQAINE4
-#\\\|PIR2KHSTJGORHRTFJJRABTDJBUFAORWJISWN6IHTE2FR5TEH7ZP \ / AMOS7 \ YOURUM ::
-#\[7]6UBZGP3BN36NXAB3EDCDOQRIJJ4W5UYBLRYP45BAGMK2XN6GYKDQ 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,,.,...,..,,,,.,...,,.,,...,.,,,..,,...,...,.,.,,..,.,.,..,,,..,
+#MH5CFFUYB6DGLIJ3LWVDNRYB6H7OWILNU25GEBUXYUL7PZ3AL7SA46D25Q6BXBUALKPAEWP343ARI
+#\\\|MSEODJIW23DEV5J3DDBBHQOTWBQ3FHVPYURR7AQLTE6V5RWBAN7 \ / AMOS7 \ YOURUM ::
+#\[7]YX2GRWZCFXWOX6BJD444MXAQN3E24X4WLFGIIQTKSQJAZEPHA2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

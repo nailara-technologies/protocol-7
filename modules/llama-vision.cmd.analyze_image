@@ -277,11 +277,21 @@ my $job = {
 
 <[base.logs]>->( 1, "[analyze_image] spawned: job=%s pid=%d", $job_id, $pid );
 
-# Register completion timer (polls for process exit with non-blocking waitpid)
-<llama-vision.timers>->{$job_id} = <[event.add_timer]>->(
-    {   'interval' => 0.5,
-        'handler'  => qw| llama-vision.handler.check_completion |,
-        'data'     => $job_id
+# Register non-blocking I/O handler for stdout (data reading - lightweight)
+$job->{'rdr_io'} = <[event.add_io]>->(
+    {   'fd'      => $rdr,
+        'handler' => 'llama-vision.handler.read_output',
+        'data'    => $job_id,
+        'poll'    => qw| r |
+    }
+);
+
+# Register non-blocking I/O handler for stderr (completion trigger via exception/EOF)
+$job->{'err_io'} = <[event.add_io]>->(
+    {   'fd'      => $err,
+        'handler' => 'llama-vision.handler.check_completion',
+        'data'    => $job_id,
+        'poll'    => qw| e |
     }
 );
 
@@ -291,8 +301,8 @@ my $job = {
 );
 return { 'mode' => 'deferred' };
 
-#,,,.,...,...,...,.,,,,,.,,..,,,.,,,,,.,.,,.,,..,,...,...,,..,...,.,.,..,,.,,,
-#BNBNVASA3V2WTMDSFPYB5AQX7IVP4YGU6PWOPD4JGYXDNZXTPR57EZABU3PU6JPMUR44RRVD7BUBM
-#\\\|NUKR5DCPHHRRZBIDBQCB7OVGVTZYOTOR2NOKJK7F4THOZNBA6TU \ / AMOS7 \ YOURUM ::
-#\[7]HYPAF7WTFRE3GNZM2CASDE5R5PMIJK5UTAN2FRZHQP3RJIUFFSBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,.,.,.,.,,,.,..,,,..,,,.,,..,.,.,..,,...,...,.,,,,,.,...,,..,,..,
+#3MJ6DLOKEDT47LAVL2IIHXSYCKOQSNEFI66XNNI6DQWB5XRXX33ZVCYO7MJFH2BKMGNOBDKVV6MVM
+#\\\|OQ4X2MYCWDRADSJCBJI5IZSPREBP7ETKZRQOYHKZX3VTJVQK7A2 \ / AMOS7 \ YOURUM ::
+#\[7]X3A5FLIHMLZPH7H6WDOZH5FYUKPJHOCDMCUWMYUSDFKXGGWSWCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

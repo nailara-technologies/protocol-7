@@ -5,10 +5,7 @@
 
 my $event   = shift->w;
 my $read_fh = $event->fd;
-my $io_data = $event->data;
-
-my $batch_id = $io_data->{'batch_id'};
-my $stream   = $io_data->{'stream'};
+my $batch_id = $event->data;
 
 my $batch_job = <llama-vision.jobs>->{$batch_id};
 
@@ -17,7 +14,7 @@ unless ( defined $batch_job ) {
     return;
 }
 
-# Read available data (non-blocking)
+# Read available data from stdout (non-blocking)
 my $bytes = <[base.s_read]>->(
     $read_fh,
     \$batch_job->{'output'},
@@ -25,25 +22,27 @@ my $bytes = <[base.s_read]>->(
 ) // 0;
 
 <[base.logs]>->(
-    2, "[read_batch_output] batch=%s stream=%s bytes=%d",
-    $batch_id, $stream, $bytes
+    2, "[read_batch_output] batch=%s bytes=%d",
+    $batch_id, $bytes
 ) if $bytes > 0;
 
-# Check for EOF
+# Check for EOF - when stdout closes, vision CLI is done
 if ( $bytes <= 0 ) {
-
-    # EOF reached on this stream
-    $batch_job->{ $stream eq 'stdout' ? 'rdr_closed' : 'err_closed' } = 1;
     close($read_fh);
     $event->cancel if $event->is_active;
     <[base.logs]>->(
-        2,         "[read_batch_output] EOF: batch=%s stream=%s",
-        $batch_id, $stream
+        1, "[read_batch_output] EOF: batch=%s - triggering completion",
+        $batch_id
+    );
+
+    # Trigger completion handler
+    <[llama-vision.handler.check_batch_completion]>->(
+        { 'w' => { 'data' => $batch_id, 'is_active' => sub { 0 } } }
     );
 }
 
-#,,,.,,..,,..,,,,,.,,,.,,,...,,,,,,,.,,.,,,,,,..,,...,...,.,.,,..,.,.,,,.,.,,,
-#FPO73C6KE34F72T7TE7P2FQGOUFCF2KG7QNLHTJ2BEZTYHQ6VLEAAWF2BBG37TM2HO5CNRPSWHJB6
-#\\\|P4KABAWHKKODUWIEMA2APQDPTREKWFMGQSQRQXSHQDRBCVXFILP \ / AMOS7 \ YOURUM ::
-#\[7]TKHARLDG6QA5MKMLF5MRRPLAVFCU3TNRL7HUJ5KRYLTVTGDXXUBA 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,...,,.,,.,.,.,.,,,.,.,,,.,,,.,.,..,,...,...,,.,,.,,,.,,,,..,,,,,
+#VKFYCUVFDCIN7SLPHYUO6TIRJC4L4M4ZKIWL7TUARFVCADDF4TTOF4FJMBSINXRV5QK6RWNB5EVXO
+#\\\|OSN7RMVOH2UDKSW7CTEBPQJMNJSI5LJ6GCKIPPXRLG2VBF5LBXF \ / AMOS7 \ YOURUM ::
+#\[7]VZCHE5LVUGJYROLT5OEH5N4336543H2QQIMDMUCXVPOHREMSKWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

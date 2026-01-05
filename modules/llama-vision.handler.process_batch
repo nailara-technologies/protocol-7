@@ -90,34 +90,29 @@ my $batch_job = {
 
 <llama-vision.jobs>->{$batch_id} = $batch_job;
 
-# Register non-blocking I/O handlers for stdout and stderr
+# Register non-blocking I/O handler for stdout (data reading - lightweight)
 $batch_job->{'rdr_io'} = <[event.add_io]>->(
     {   'fd'      => $rdr,
         'handler' => 'llama-vision.handler.read_batch_output',
-        'data'    => { 'batch_id' => $batch_id, 'stream' => 'stdout' }
+        'data'    => $batch_id,
+        'poll'    => qw| r |
     }
 );
 
+# Register non-blocking I/O handler for stderr (completion trigger via exception)
 $batch_job->{'err_io'} = <[event.add_io]>->(
     {   'fd'      => $err,
-        'handler' => 'llama-vision.handler.read_batch_output',
-        'data'    => { 'batch_id' => $batch_id, 'stream' => 'stderr' }
-    }
-);
-
-# Register completion checker timer
-<llama-vision.timers>->{$batch_id} = <[event.add_timer]>->(
-    {   'interval' => 0.2,
-        'handler'  => 'llama-vision.handler.check_batch_completion',
-        'data'     => $batch_id
+        'handler' => 'llama-vision.handler.check_batch_completion',
+        'data'    => $batch_id,
+        'poll'    => qw| e |
     }
 );
 
 # Clear batch queue for next batch
 @$batch = ();
 
-#,,..,.,,,..,,.,,,.,,,.,.,,,.,,..,,..,,.,,,..,..,,...,...,...,,,,,.,,,.,.,.,.,
-#EOWVDY45RBB7OUKJNZ35RI3GYO2ERX5E3QUAZ6Q45AU3MVF2JG5DFEYQ2KGXPDWWMTUE3YSTZTD46
-#\\\|A7BQ73WIX5Y3FFYN4GGRRS6RC7RXZIJJ7HMOWCEYKXPF3ORI6D2 \ / AMOS7 \ YOURUM ::
-#\[7]GXLWIEEUD3CPJ4HQVMI7WJFZTOXG6Q5V2PIB5UXZJWW7JFWVHODQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,..,,,,,,,,,,...,...,...,,..,,.,,..,,...,...,...,.,.,,,.,...,.,,,
+#NWVQJGYQBJ5JSBVB4EMLROZUSDP5SB3IMKZ245HWJAOZ7OLBHZCP5KYOIKCCEYLKBEWDBPEBW2OC6
+#\\\|D3MKBMKJTE6EX2BHWDJI5AEHOLSNIZPYAUV4BSS6QXNXYQRSYCU \ / AMOS7 \ YOURUM ::
+#\[7]MZ7EWPRJ2PCCVRNXB4SSMCT3MWQDLZF2TQA5BWPGV62FE5YTYCBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

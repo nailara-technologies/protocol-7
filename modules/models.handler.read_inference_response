@@ -5,10 +5,7 @@
 
 my $event   = shift->w;
 my $read_fh = $event->fd;
-my $io_data = $event->data;
-
-my $inference_id = $io_data->{'inference_id'};
-my $stream       = $io_data->{'stream'};
+my $inference_id = $event->data;
 
 my $job = <models.pending_inferences>->{$inference_id};
 
@@ -17,66 +14,27 @@ unless ( defined $job ) {
     return;
 }
 
-## Determine which field to read into
-my $output_ref = undef;
-if ( $stream eq 'stdout' ) {
-    $output_ref = \$job->{'output'};
-} elsif ( $stream eq 'stderr' ) {
-    $output_ref = \$job->{'errors'};
-}
-
-unless ( defined $output_ref ) {
-    return;
-}
-
-## Read available data (non-blocking)
+## Read available data from curl stdout (non-blocking)
 my $bytes = <[base.s_read]>->(
     $read_fh,
-    $output_ref,
+    \$job->{'output'},
     8 * 1024    # Read up to 8KB at a time
 ) // 0;
 
 if ( $bytes > 0 ) {
     <[base.logs]>->(
-        1, "[read_inference] id=%s stream=%s bytes=%d",
-        $inference_id, $stream, $bytes
+        1, "[read_inference] id=%s bytes=%d",
+        $inference_id, $bytes
     );
 }
 
-## Check for EOF on this stream
-if ( $bytes <= 0 ) {
-    <[base.logs]>->(
-        1, "[read_inference] EOF: id=%s stream=%s",
-        $inference_id, $stream
-    );
-
-    close($read_fh);
-    $event->cancel if $event->is_active;
-
-    ## Mark appropriate stream as closed
-    if ( $stream eq 'stdout' ) {
-        $job->{'rdr_closed'} = 1;
-    } elsif ( $stream eq 'stderr' ) {
-        $job->{'err_closed'} = 1;
-    }
-
-    ## When both streams are closed, process the response
-    ## (Process regardless of which stream closes second)
-    if ( $job->{'rdr_closed'} && $job->{'err_closed'} ) {
-        <[base.logs]>->(
-            1, "[read_inference] both streams closed, processing response: id=%s",
-            $inference_id
-        );
-
-        ## Process response immediately when both streams are closed
-        <[models.handler.process_response]>->(
-            { 'inference_id' => $inference_id, 'job' => $job }
-        );
-    }
+## If already processed, skip
+if ( $job->{'completed'} ) {
+    return;
 }
 
-#,,,.,,,.,...,..,,,.,,.,,,,..,.,,,,,.,.,,,,,,,.,.,...,...,..,,,,.,.,.,,..,...,
-#BX3CFF6EYGSRELC2IQ4NVLCZTELKQJRR6XI6HQGO7BXLOW76INYDQYA5OIR4MA35QA7WTJZS6KJDU
-#\\\|IFDOJU7JITPJWYALLXZJSWDWEEMDWAXQRORDJGAZPL64AGI76MJ \ / AMOS7 \ YOURUM ::
-#\[7]TCCWSMYZ2ZCAVVEBIMAKZN3KA7HPFBY47ORGOM6H7DHQ7R5I2CCA 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,..,,,,.,,.,,,..,,..,,.,,,..,.,.,.,.,...,...,,,.,,,.,.,.,,.,,,,,,
+#JTAAHFGPVNNWOVELOMK7XRDMO7JJYJYAUZIGCCZBGCW7FWCO23CKGLMLE5CZC6EJCSL2KGBUK6KGU
+#\\\|OJJYYDMD77BDSVFZBEOOO4MJCS45JYGD2VCW3W7UUZGJLBEMQ5G \ / AMOS7 \ YOURUM ::
+#\[7]DMH5PXUAPJIBTEBZJW7FQZA3TZYRY5STPUXH74ZDR44BOTN7HCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
