@@ -1,0 +1,72 @@
+## [:< ##
+
+# name = models.get_inference_endpoint
+# descr = get active inference endpoint from coding zenka
+
+my $params = shift;
+
+my $backend_type = $params->{'backend_type'} // 'cpu';
+my $context      = $params->{'context'}      // 'inference';
+
+## Query coding zenka for its inference status
+my $coding_status = `p7 coding.status 2>/dev/null`;
+
+## Parse response for inference endpoint
+my $endpoint = undef;
+
+if ( $backend_type eq 'cpu' ) {
+    ## CPU backend runs on 127.0.0.1:8000 (or configured port)
+    $endpoint = 'http://127.0.0.1:8000';
+} elsif ( $backend_type eq 'gpu' ) {
+    ## GPU backend runs on 127.0.0.1:8001 (or configured port)
+    $endpoint = 'http://127.0.0.1:8001';
+}
+
+## Test if endpoint is reachable using direct socket
+my $is_alive = 0;
+my $endpoint_error = undef;
+eval {
+    use IO::Socket::INET;
+    my ($host, $port) = $endpoint =~ m{http://([^:]+):(\d+)};
+    my $socket = IO::Socket::INET->new(
+        PeerHost => $host,
+        PeerPort => $port,
+        Timeout  => 2,
+    ) or die "Cannot connect to $host:$port: $!";
+
+    ## Send HTTP GET request to verify endpoint
+    print $socket "GET /v1/models HTTP/1.0\r\nHost: $host:$port\r\nConnection: close\r\n\r\n";
+    my $response = <$socket>;
+    if ($response && $response =~ /200/) {
+        $is_alive = 1;
+    } else {
+        $endpoint_error = "HTTP: " . (defined $response ? $response : 'no response');
+    }
+    close($socket);
+};
+if ($@) {
+    $endpoint_error = "Socket: $@";
+    $is_alive = 0;
+}
+
+<[base.logs]>->(
+    2, "[$context] endpoint check: type=%s url=%s alive=%d",
+    $backend_type, $endpoint, $is_alive
+);
+
+return {
+    'success'         => $is_alive,
+    'backend_type'    => $backend_type,
+    'endpoint'        => $endpoint,
+    'url'             => $endpoint,
+    'alive'           => $is_alive,
+    'models_url'      => "$endpoint/v1/models",
+    'completions_url' => "$endpoint/v1/chat/completions",
+    'endpoint_error'  => $endpoint_error,
+};
+
+#,,,.,.,,,.,.,...,,.,,.,,,,..,,,.,,,,,.,,,,.,,.,.,...,...,,..,.,.,.,.,...,,,.,
+#EPPOEZ54OE2JEJMWQ46O43PKMPFXQJOVOLXXNMZCHFA5G2G653LJG5B5T2UV7IPDTU5XCBBLCAXBS
+#\\\|QQFCJ4FPTIAHN4YRPMX6M27PGDHJWGHZUWBX7DMV3AIVONVZPYD \ / AMOS7 \ YOURUM ::
+#\[7]3LIFEJOVQETG2ZNPBI5VDR7O3KSNZWRZOXROLSTYJY3NZ3K4JABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
