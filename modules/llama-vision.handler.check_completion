@@ -164,27 +164,43 @@ if ( $init_end_pos >= 0 ) {
 
         # Skip to the character after the newline
         $full_output = substr( $full_output, $line_end + 1 );
-        <[base.logs]>->(
-            1,
-            "[check_completion] found init marker at %d, skipped %d bytes of init output",
-            $init_end_pos,
-            $line_end + 1
-        );
+        map { <[base.logs]>->( 1, $ARG ) } split "\n",
+            sprintf(
+                "[check_completion] %s",
+                <[base.wrap_text]>->(
+                    '', 42,
+                    sprintf(
+                        'found init marker at %d, skipped %d bytes of init output',
+                        $init_end_pos,
+                        $line_end + 1
+                    )
+                )
+            );
     } else {
 
       # No newline found, might be at end of buffer - skip from marker onwards
         $full_output = substr( $full_output, $init_end_pos );
-        <[base.logs]>->(
-            1,
-            "[check_completion] found init marker at %d, skipped to marker location",
-            $init_end_pos
-        );
+        map { <[base.logs]>->( 1, $ARG ) } split "\n",
+            sprintf(
+                "[check_completion] %s",
+                <[base.wrap_text]>->(
+                    '', 42,
+                    sprintf(
+                        'found init marker at %d, skipped to marker location',
+                        $init_end_pos
+                    )
+                )
+            );
     }
 } else {
-    <[base.logs]>->(
-        1,
-        "[check_completion] init marker not found in cleaned output, continuing with pattern matching"
-    );
+    map { <[base.logs]>->( 1, $ARG ) } split "\n",
+        sprintf(
+            "[check_completion] %s",
+            <[base.wrap_text]>->(
+                '', 42,
+                'init marker not found in cleaned output, continuing with pattern matching'
+            )
+        );
 }
 
 # Remove llama_print_timings section and everything after it
@@ -235,11 +251,17 @@ if ( length $payload ) {
         1,       "[check_completion] success: job=%s payload_bytes=%d",
         $job_id, length($payload)
     );
-    <[base.logs]>->(
-        1,
-        "[check_completion] cleaned payload: %s",
-        substr( $payload, 0, 200 )
-    );
+    map { <[base.logs]>->( 1, $ARG ) } split "\n",
+        sprintf(
+            "[check_completion] %s",
+            <[base.wrap_text]>->(
+                '', 42,
+                sprintf(
+                    'cleaned payload: %s',
+                    substr( $payload, 0, 200 )
+                )
+            )
+        );
     <[base.logs]>->(
         1,
         "[check_completion] sending deferred response: reply_id=%s",
@@ -274,8 +296,8 @@ if ( length $payload ) {
     }
 );
 
-#,,.,,...,,..,,,.,,.,,...,,..,,,,,,..,,,,,,..,..,,...,..,,..,,,,,,.,.,,,,,,.,,
-#RGCQDT2LWMAEKBB7ZVSFELIBFMXDL6VL2SQWCNGSXMK4V2NXIQT4ABEHIWM3EYSX2UDTPFTAXCLDY
-#\\\|UKTMMHEOXCCRWLDCXUZLWPOLU6Y3AY5HTJUG2FT4WCCCEW5FGLA \ / AMOS7 \ YOURUM ::
-#\[7]C7AHM5AWF7LDSRNWNVLNHPLSD4SPMHDV3OS52CAUOVP55AAP5MAA 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,,,,,,,,...,,..,.,.,...,.,,,,,,,..,,...,...,.,,,.,,,...,...,,,.,
+#HSMFEHQVPYCT7O7YTMTES65KDRK6FSWKIV3CANSVLTD35I4SGPMPKPQGJ2THGFD6Y2BL34O43N33I
+#\\\|VG2OOSQJPNMODSVYQHEO4YH77NOGBHVYNTRFZC4R2SPHAYUBJUX \ / AMOS7 \ YOURUM ::
+#\[7]ACJT5QPQ55CSULJRRQM27UBDMRIB3QBAMW5R5CBJPL2X5IPTHADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
