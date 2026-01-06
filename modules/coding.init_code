@@ -7,63 +7,24 @@
 # Load required Perl modules
 <[base.perlmod.autoload]>->('JSON::XS');
 
-# Load model metadata for routing decisions from centralized models.yaml
-<[base.logs]>->( 1, "[coding] Loading model metadata from models.yaml" );
-
-<[base.perlmod.autoload]>->(qw| YAML::Tiny |);
-
-my $config_file = <system.conf_path> . '/zenki/models/models.yaml';
-
-my %model_metadata = ();
-
-if ( -f $config_file ) {
-    my $yaml_content = <[file.slurp]>->($config_file);
-
-    if ($yaml_content) {
-        my $yaml = YAML::Tiny::Load($$yaml_content);
-
-        if ( $yaml && exists $yaml->{models} ) {
-            foreach my $model_id ( keys %{ $yaml->{models} } ) {
-                my $model_def = $yaml->{models}->{$model_id};
-                $model_metadata{$model_id} = {
-                    name         => $model_def->{name},
-                    path         => $model_def->{path},
-                    quantization => $model_def->{quantization},
-                    context_size => $model_def->{metadata}->{context_size}
-                        // 2048,
-                    batch_size => $model_def->{metadata}->{batch_size} // 256,
-                    threads    => $model_def->{metadata}->{threads}    // 4,
-                    tokens_per_sec => $model_def->{metadata}->{tokens_per_sec}
-                        // 5
-                };
-            }
-        } else {
-            <[base.log]>->(
-                0, "[coding] Error: No models found in models.yaml"
-            );
-        }
-    }
-} else {
-    <[base.log]>->(
-        0, "[coding] Error: models.yaml not found at $config_file"
-    );
-}
-
-# Cache model metadata in zenka data
-<coding.model_metadata> = \%model_metadata;
-
+# Defer model metadata loading to async handler to keep init fast
 <[base.logs]>->(
-    1,
-    "[coding] Model metadata initialized: %d models loaded",
-    scalar( keys %model_metadata )
+    1, "[coding] deferring model metadata loading to async handler"
 );
+<coding.model_metadata> //= {};
+
+# Set library path for llama-server binaries (CPU and GPU backends)
+<coding.lib_path> = qw| /data/source/ik_llama.cpp |;
+
+# Initialize inference servers storage
+<coding.inference_servers> //= {};
 
 # Initialize coding zenka data structure
 <coding.state> = {
     initialized => 1,
     start_time  => <[base.time]>->(5),
-    version     => '1.0.0',
-    status      => 'ready'
+    version     => qw| 1.0.0 |,
+    status      => qw| ready |
 };
 
 # Initialize task queue
@@ -77,7 +38,7 @@ if ( -f $config_file ) {
 <coding.budget.allocated>          = 12000;
 <coding.budget.used>               = 0;
 <coding.budget.transactions>       = [];
-<coding.budget.session_start>      = <[base.time]>;
+<coding.budget.session_start>      = <[base.time]>->(3);
 <coding.budget.warnings_at_levels> = [ 0.75, 0.90, 0.95 ];
 
 # Initialize routing statistics
@@ -92,6 +53,27 @@ if ( -f $config_file ) {
 <coding.learning.success_rate>          = {};
 <coding.learning.model_specializations> = {};
 
+# Schedule inference server spawning asynchronously (don't block init)
+<[base.log]>->( 1, "[coding] scheduling inference server spawning" );
+
+# Store spawn parameters for async spawning [LLL] fix hardcoding issue
+<coding.spawn_params> //= {};
+<coding.spawn_params>->{'cpu_binary'} = <inference.backend.cpu.binary>
+    // '/data/source/ik_llama.cpp/llama-server-cpu';
+<coding.spawn_params>->{'gpu_binary'} = <inference.backend.gpu.binary>
+    // '/data/source/ik_llama.cpp/llama-server-cuda';
+<coding.spawn_params>->{'gpu_enabled'} = <inference.backend.gpu.enabled> // 0;
+<coding.spawn_params>->{'cpu_model_id'} = <inference.backend.cpu.model_id>
+    // 'qwen2.5-7b-instruct-1m';
+<coding.spawn_params>->{'gpu_model_id'} = <inference.backend.gpu.model_id>
+    // 'qwen2.5-7b-instruct-1m';
+<coding.spawn_params>->{'cpu_threads'} = <inference.backend.cpu.threads> // 8;
+<coding.spawn_params>->{'gpu_layers'}  = <inference.backend.gpu.gpu_layers>
+    // 33;
+
+# Register timer to spawn servers after init completes (non-blocking)
+<[coding.async_spawn_inference_servers]>;
+
 # Event handlers are now loaded from separate modules:
 # - coding.event.on_task_complete
 # - coding.event.on_task_fail
@@ -100,10 +82,10 @@ if ( -f $config_file ) {
 # Register with event system
 <watcher_list.coding.task_processor> = TRUE;
 
-return TRUE;
+return 0;
 
-#,,..,.,.,,.,,,..,.,.,.,,,,,.,.,,,,,,,,,.,,.,,..,,...,...,...,..,,...,.,.,.,.,
-#5HVMW6EKWJLG6OYT2XYD33GPT6BVTCKXMADA2FHJNYIY5DKIU4NJTSTBQE2GCB6OSUGSAORA6Q3ZO
-#\\\|QY5RKLBVTR6UJJWQE5UFIUJXSAT3MNIE47ZMGCC6DYSDR6JAFE3 \ / AMOS7 \ YOURUM ::
-#\[7]6C7NRLAILMXIZKLTHENIDLUD4PM5F23TJTIYBRLLC3KPFNIJSEDI 7  DATA SIGNATURE ::
+#,,..,,..,..,,..,,,,.,..,,,..,..,,,,.,..,,.,,,..,,...,..,,,.,,..,,,.,,.,.,.,.,
+#3QNVLQCZFAHDQS7C3LROOHLNT67TLLO7GLL2ZPRYJEZTEVEKTJBX77D5YR4OGAZ4Y3WJ2PS35LCNO
+#\\\|PPMUPHZIA7WOQMTTQPW4FFFR7ZTNALNKWJI2ZYWDOK23HK73CBC \ / AMOS7 \ YOURUM ::
+#\[7]YDW33WNHRNHKPLDR3S5FSHUSVV2SUREJODJZUI3K6XTDX74WKADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,84 @@
+## [:< ##
+
+# name  = coding.async_spawn_inference_servers
+# descr = spawn inference servers asynchronously after init completes
+
+<[base.logs]>->( 1, "[async_spawn] starting inference server spawning" );
+
+# Guard: only spawn once per zenka instance
+if (<coding.servers_spawned>) {
+    <[base.logs]>->( 2, "[async_spawn] servers already spawned, skipping" );
+    return;
+}
+<coding.servers_spawned> = TRUE;
+
+my $params = <coding.spawn_params>;
+
+unless ( defined $params ) {
+    <[base.logs]>->( 0, "[async_spawn] no spawn parameters available" );
+    return;
+}
+
+# Get parameters
+my $cpu_binary   = $params->{'cpu_binary'};
+my $gpu_binary   = $params->{'gpu_binary'};
+my $gpu_enabled  = $params->{'gpu_enabled'};
+my $cpu_model_id = $params->{'cpu_model_id'};
+my $gpu_model_id = $params->{'gpu_model_id'};
+
+# Resolve model paths from fallback mapping [LLL] fix hardcoding issue
+my %model_path_fallbacks
+    = ( 'qwen2.5-7b-instruct-1m' =>
+          '/mnt/ext-xfs-data/models-lmstudio/lmstudio-community'
+        . '/Qwen2.5-7B-Instruct-1M-GGUF/Qwen2.5-7B-Instruct-1M-Q4_K_M.gguf',
+    );
+
+my $cpu_model_path = $model_path_fallbacks{$cpu_model_id} // '';
+my $gpu_model_path = $model_path_fallbacks{$gpu_model_id} // '';
+
+<[base.logs]>->(
+    2,
+    "[async_spawn] resolved paths: cpu=%s gpu=%s",
+    substr( $cpu_model_path, -40 ),
+    substr( $gpu_model_path, -40 )
+);
+
+# Spawn CPU backend on port 8000
+if ( -x $cpu_binary ) {
+    <[coding.spawn_inference_server]>->(
+        {   'backend'    => qw| cpu |,
+            'binary'     => $cpu_binary,
+            'port'       => 8000,
+            'model_path' => $cpu_model_path,
+            'threads'    => $params->{'cpu_threads'} // 8,
+        }
+    );
+} else {
+    <[base.logs]>->(
+        0, "[async_spawn] CPU binary not executable: %s", $cpu_binary
+    );
+}
+
+# Spawn GPU backend on port 8001 if enabled
+if ( $gpu_enabled && -x $gpu_binary ) {
+    <[coding.spawn_inference_server]>->(
+        {   'backend'    => qw| gpu |,
+            'binary'     => $gpu_binary,
+            'port'       => 8001,
+            'model_path' => $gpu_model_path,
+            'gpu_layers' => $params->{'gpu_layers'} // 33,
+        }
+    );
+} else {
+    <[base.logs]>->(
+        1, "[async_spawn] GPU backend disabled or not executable"
+    ) if !$gpu_enabled;
+}
+
+<[base.logs]>->( 1, "[async_spawn] inference server spawning complete" );
+
+#,,,.,,.,,.,.,,,,,,,,,,,.,,.,,.,.,,..,,..,...,..,,...,...,...,.,.,...,...,.,,,
+#4XSGX2Z5DDSO4YLGZG2ZUDOIGYSLQ4T6NAEFG3Q6OBQ5CCHMSULTIJYDLLTCY2SPXUSSCCJVPGU6Y
+#\\\|EJKY26JUVFZZVM2BAPYG6RN6K2CXR44OKAZ4HSFAFYWECQPOQEL \ / AMOS7 \ YOURUM ::
+#\[7]USDQW2L3UA72G5CPQ4DTB3L5GG6ALTAJOKRGHFFTZMZVPOB7QCBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

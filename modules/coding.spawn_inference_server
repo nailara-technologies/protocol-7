@@ -1,0 +1,150 @@
+## [:< ##
+
+# name  = coding.spawn_inference_server
+# descr = spawn llama-server HTTP backend asynchronously for text inference
+
+my $params = shift;
+
+my $backend    = $params->{'backend'}    // qw| cpu |;
+my $binary     = $params->{'binary'}     // '';
+my $port       = $params->{'port'}       // 8000;
+my $threads    = $params->{'threads'}    // 8;
+my $gpu_layers = $params->{'gpu_layers'} // 33;
+my $model_path = $params->{'model_path'} // '';
+
+<[base.logs]>->(
+    1, "[spawn_inference_server] backend=%s port=%d model=%s",
+    $backend, $port, $model_path
+);
+
+unless ( -x $binary ) {
+    <[base.logs]>->(
+        0, "[spawn_inference_server] binary not executable: %s", $binary
+    );
+    return { 'success' => FALSE, 'error' => 'binary not executable' };
+}
+
+# Verify model file exists if provided
+if ( length($model_path) && !-f $model_path ) {
+    <[base.logs]>->(
+        0, "[spawn_inference_server] model not found: %s", $model_path
+    );
+    return { 'success' => FALSE, 'error' => "model not found: $model_path" };
+}
+
+## Build llama-server command
+my @cmd = ( $binary, '-p', $port, qw|  --host  127.0.0.1  | );
+
+# Add model path if provided
+push @cmd, '-m', $model_path if length($model_path);
+
+# Add context and other parameters
+push @cmd, '-c', 4096;    # Context size for text inference
+push @cmd, '-n', 2048;    # Default max tokens
+
+# Backend-specific settings
+if ( $backend eq 'cpu' ) {
+    push @cmd, '-t', $threads;    # Number of threads
+} elsif ( $backend eq 'gpu' ) {
+    push @cmd, '-ngl', $gpu_layers;    # GPU layers
+}
+
+# No warmup to start faster
+push @cmd, qw| --no-warmup |;
+
+## Spawn llama-server with open3
+my ( $server_in, $server_out, $server_err );
+$server_err = Symbol::gensym;
+
+# Set up environment for llama-server (same as llama-vision does)
+local $ENV{'LD_LIBRARY_PATH'}
+    = <coding.lib_path> . ':' . ( $ENV{'LD_LIBRARY_PATH'} // '' );
+
+my $pid = eval {
+    use IPC::Open3;
+    open( my $null_in, qw| < /dev/null | ) or die "cannot open /dev/null: $!";
+    IPC::Open3::open3( $null_in, $server_out, $server_err, @cmd );
+};
+
+if ( !$pid || $EVAL_ERROR ) {
+    <[base.logs]>->(
+        0, "[spawn_inference_server] failed to spawn: backend=%s error=%s",
+        $backend, $EVAL_ERROR // 'unknown error'
+    );
+    return { 'success' => FALSE, 'error' => $EVAL_ERROR // 'spawn failed' };
+}
+
+<[base.logs]>->(
+    1, "[spawn_inference_server] spawned: backend=%s pid=%d port=%d",
+    $backend, $pid, $port
+);
+
+## Report child PID to v7 for lifecycle management
+<[base.zenki.report_child_pid]>->($pid);
+
+## Store server metadata (initialize if needed)
+<coding.inference_servers> = {} unless defined <coding.inference_servers>;
+<coding.inference_servers>->{$backend} = {
+    'backend'    => $backend,
+    'port'       => $port,
+    'pid'        => $pid,
+    'binary'     => $binary,
+    'status'     => qw| starting |,
+    'start_time' => <[base.time]>->(3),
+    'stdout'     => $server_out,
+    'stderr'     => $server_err,
+};
+
+## Register I/O handlers to monitor startup
+my $io_stdout = <[event.add_io]>->(
+    {   'fd'      => $server_out,
+        'handler' => qw| coding.handler.monitor_inference_startup |,
+        'data'    => {
+            'backend'       => $backend,
+            'log_whitelist' => [qw| INFO |]
+        },
+        'poll' => qw| r |
+    }
+);
+
+my $io_stderr = <[event.add_io]>->(
+    {   'fd'      => $server_err,
+        'handler' => qw| coding.handler.monitor_inference_startup |,
+        'data'    => {
+            'backend'       => $backend,
+            'log_whitelist' => [           ## [LLL] INFO already matches
+                'INFO',
+                'build info',
+                'system info',
+                'Model loaded',
+                'listening on',
+                'ready to accept',
+                'uvicorn',
+                'loading model',
+                'tokenizer loaded',
+                'use_mmap',
+                'use_mlock',
+                'n_parts',
+                'tokens per',
+                'GiB free memory'
+            ]
+        },
+        'poll' => qw| r |
+    }
+);
+
+<coding.inference_servers>->{$backend}->{'io_stdout'} = $io_stdout;
+<coding.inference_servers>->{$backend}->{'io_stderr'} = $io_stderr;
+
+return {
+    'success' => TRUE,
+    'backend' => $backend,
+    'pid'     => $pid,
+    'port'    => $port
+};
+
+#,,.,,,,,,.,,,.,.,,.,,,.,,..,,...,..,,...,,,,,..,,...,..,,..,,,,.,.,.,,,.,,.,,
+#VP5PS5MZO3DB5TFB7X54UZT5CCHSWWXIEKUKIU5YAIN6R4QLH5JPXESPB4JW5HVHIGVL6XH2JV3KO
+#\\\|AFW2SHDAYXEHZPKUMPDIKVFM3ZKRJPI3LY5CFZRE5G2MYOQS4KV \ / AMOS7 \ YOURUM ::
+#\[7]3GKN5DMFAMP62LQVRZ6PZZIQEI7PKQV53DRXXUP2ERSZYESDMQBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
