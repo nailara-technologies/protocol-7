@@ -29,9 +29,10 @@ $src_path = abs_path($src_path);
 <[file.slurp]>->( $src_path, \my $src_str, qw| :raw | );
 
 return { 'mode' => qw| false |, 'data' => 'no success reading source file' }
-    if not defined $src_path;
-## checking source header ##
+    if not defined $src_path or not defined $src_str;
 
+## checking source header ##
+#
 return {
     'mode' => qw| false |,
     'data' => "requested code file has no '[:<' header"
@@ -158,8 +159,8 @@ if (   not defined $present_checksum
     # Just append the signature footer
     $src_str .= $recalc_data->{'signature-footer-str'};
 
-    # Fix #1: Clear the separator endline flag after successfully adding it
-    # This prevents oscillation where the flag causes re-signing on every cycle
+   # Fix #1: Clear the separator endline flag after successfully adding it
+   # This prevents oscillation where the flag causes re-signing on every cycle
     $footer_data->{'needs_separator_endline'} = FALSE;
 
     <[base.log]>->( 2, ':' );
@@ -201,8 +202,8 @@ if (   not defined $present_checksum
 ##  current \ updated source  ##
 return { 'mode' => qw| size |, 'data' => $src_str }
 
-#,,.,,,,,,,,,,.,,,...,..,,,.,,,..,,,.,,,.,,,.,..,,...,...,,,,,,..,...,,,.,.,,,
-#ECNMVFVWS3HMPG4YPT22LDC5SGAEE7Q3XHIQR43GPT7S4YSFDDQTCKMMQFTV5XXTHNGPNJ3DLEORI
-#\\\|3QAMDZ2YIGZ3M6LDL6I6GRFM5JIM3WCMXRFEKHFSXNXFHDVMKBE \ / AMOS7 \ YOURUM ::
-#\[7]2CH3JSUNM74DCD62E2AZYE4QPBO5BNZG3K7M65UDOMJ77LF5UOAQ 7  DATA SIGNATURE ::
+#,,..,..,,,,,,.,.,.,,,,..,,.,,...,,,,,.,.,,,,,..,,...,...,.,.,.,,,...,...,,,.,
+#QSXWHIMFFXUOF3RJRTUXETVR2RRHGJIRHTJ6L6ZIV2UWC2UJLKCOLZGQVLLLSPWDVL2FQCJDV2FDG
+#\\\|ZHIABNML7WME4UT52WNR7K2OMTMVW5QQMQUVXZDJANNWDNZCNUU \ / AMOS7 \ YOURUM ::
+#\[7]JUCSIWT4IU66ZSCMVHAR2AIWUOQUSOKH6NR5PPM5QG6LNS4MJCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
