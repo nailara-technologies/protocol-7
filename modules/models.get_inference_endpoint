@@ -8,10 +8,7 @@ my $params = shift;
 my $backend_type = $params->{'backend_type'} // 'cpu';
 my $context      = $params->{'context'}      // 'inference';
 
-## Query coding zenka for its inference status
-my $coding_status = `p7 coding.status 2>/dev/null`;
-
-## Parse response for inference endpoint
+## Determine endpoint based on backend type
 my $endpoint = undef;
 
 if ( $backend_type eq 'cpu' ) {
@@ -65,8 +62,8 @@ return {
     'endpoint_error'  => $endpoint_error,
 };
 
-#,,,.,.,,,.,.,...,,.,,.,,,,..,,,.,,,,,.,,,,.,,.,.,...,...,,..,.,.,.,.,...,,,.,
-#EPPOEZ54OE2JEJMWQ46O43PKMPFXQJOVOLXXNMZCHFA5G2G653LJG5B5T2UV7IPDTU5XCBBLCAXBS
-#\\\|QQFCJ4FPTIAHN4YRPMX6M27PGDHJWGHZUWBX7DMV3AIVONVZPYD \ / AMOS7 \ YOURUM ::
-#\[7]3LIFEJOVQETG2ZNPBI5VDR7O3KSNZWRZOXROLSTYJY3NZ3K4JABI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,..,,,.,.,.,,.,,,,,,.,.,,.,,.,,,.,.,...,..,,,.,,...,.,.,,,,,.,.,
+#SLYBV3STVZ3KORNRD65JAEHK5YT42GCV7J67SETLWNY7HB6MQFBSFZFM4JONGM6ICBPPOOSALKH5S
+#\\\|N4RNRDAV56J6VA2GZCDTLOXWF5CPBN4U5XECWJYL2UFCGQTNWA7 \ / AMOS7 \ YOURUM ::
+#\[7]EUE7GWM23S5FDL3LZ6S4MGTETXE5FWZXX7OBQDAXWUFAUIBUWWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

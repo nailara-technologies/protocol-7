@@ -1,0 +1,90 @@
+## [:< ##
+
+# name  = coding.handler.monitor_inference_startup
+# descr = monitor llama-server startup output and confirm readiness
+
+my $event        = shift->w;
+my $handler_data = $event->data;
+my $backend      = $handler_data->{'backend'};
+my $whitelist    = $handler_data->{'log_whitelist'} // [];
+
+my $server = <coding.inference_servers>->{$backend};
+
+unless ( defined $server ) {
+    $event->cancel if $event->is_active;
+    return;
+}
+
+# Read available output [non-blocking]
+my $read_fh = $event->fd;
+my $bytes   = 0;
+if ( defined $read_fh ) {
+    while ( sysread( $read_fh, my $buf, 4096 ) ) {
+        $server->{'output'} .= $buf;
+        $bytes += length($buf);
+    }
+}
+
+if ( $bytes > 0 ) {
+    <[base.logs]>->(
+        2,        "[monitor_startup] backend=%s bytes=%d",
+        $backend, $bytes
+    );
+}
+
+# Check for readiness indicators in output
+my $output = $server->{'output'} // '';
+
+# Check for actual errors [ not whitelisted ones ]
+unless ( $server->{'error_checked'} ) {
+    my $has_real_error = FALSE;
+    for my $line ( split "\n", $output ) {
+        next if !length $line;
+
+        # Check if line matches whitelist [LLL] not required [base.log filter]
+        my $is_whitelisted = FALSE;
+        for my $pattern ( $whitelist->@* ) {
+            if ( $line =~ m|$pattern|i ) {
+                $is_whitelisted = TRUE;
+                last;
+            }
+        }
+
+        # Only flag as error if it's NOT whitelisted and matches error pattern
+        if (  !$is_whitelisted
+            && $line =~ m{error|failed|cannot|refused|exception}i ) {
+            $has_real_error = TRUE;
+            <[base.logs]>->(
+                0,        "[monitor_startup] backend=%s ERROR: %s",
+                $backend, substr( $line, 0, 200 )
+            );
+            last;
+        }
+    }
+    $server->{'error_checked'} = TRUE;
+}
+
+# llama-server indicates readiness with "Server listening on"
+if ( $output =~ m{listening on|ready to accept|Model loaded|uvicorn running}i )
+{
+    unless ( $server->{'ready_logged'} ) {
+        <[base.logs]>->(
+            1, "[monitor_startup] backend=%s is ready", $backend
+        );
+        $server->{'status'}       = 'ready';
+        $server->{'ready_logged'} = 1;
+    }
+}
+
+# If EOF, close the handler
+if ( $bytes <= 0 ) {
+    close($read_fh);
+    $event->cancel if $event->is_active;
+    <[base.logs]>->( 2, "[monitor_startup] EOF: backend=%s", $backend );
+}
+
+#,,.,,,.,,..,,,.,,,..,..,,..,,,.,,..,,,,.,,,,,..,,...,...,,,.,,..,,,,,.,,,,.,,
+#FDMLS2PA5AYRPCAGBX7PWPITVZXO62EJ24K4VPQIFT4G4HIMZ2W63QLXIXW6D6VTFA6GZGVXD2M4S
+#\\\|MZWUO2EJ27CY2NW4WGJ55NPX44WEIM5H6UXTMQE5735V6LB5ANT \ / AMOS7 \ YOURUM ::
+#\[7]BVQFATH5ZZEDF5H4INPWFKT7W36M334JHHAOBXBTSSKLUJJRN6AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
