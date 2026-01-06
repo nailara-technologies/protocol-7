@@ -4,7 +4,7 @@
 
 my $src_ref = shift;
 my $strip   = shift // '';
-my $mode    = shift // 'strict';    # Options: 'strict', 'repair', 'info'
+my $mode    = shift // qw| strict |;    # Options: 'strict', 'repair', 'info'
 
 warn 'expected source_str scalar reference <{C1}>' and return undef
     if not length ref $src_ref;
@@ -12,6 +12,10 @@ warn 'expected source_str scalar reference <{C1}>' and return undef
 <[base.s_warn]>->( 'got ref-type %s , want SCALAR <{C1}>', ref $src_ref )
     and return undef
     if ref $src_ref ne qw| SCALAR |;
+
+<[base.s_warn]>->( 'scalar ref content was undefined [mode:%s]<{C1}>', $mode )
+    and return undef
+    if not defined $src_ref->$*;
 
 my $footer_data = {
     qw| was-present               | =>  0,
@@ -50,7 +54,7 @@ my $footer_start_regex_length = 78;                   ## Default length ##
     $mode, $strip ? 'TRUE' : 'FALSE'
 );
 
-my $seperator_endline_absent = 0;
+my $seperator_endline_absent = FALSE;
 
 if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
        # Try the standard pattern first (for backward compatibility)
@@ -60,7 +64,7 @@ if ($strip) {    ##  NOTE :  also matches\strips old type \ multiple  ##
 # CRITICAL: Strip all PLACEHOLDER stub footers FIRST - they cause oscillation
 # Stubs look like real footers but contain PLACEHOLDER text instead of signatures
 # By removing them upfront, we prevent them from being matched before real signatures
-    if ( $$src_ref
+    if ( $src_ref->$*
         =~ s|\n?#[\.,]{70,85}\n(?:#[^\n]*PLACEHOLDER[^\n]*\n)+#[:]{70,80}\n?||sg
     ) {
         <[base.logs]>->( 3, ': stripped PLACEHOLDER stub footers from file' );
@@ -718,8 +722,8 @@ if ( $mode eq 'repair' ) {
 
 return $footer_data;
 
-#,,..,,,.,,,,,,.,,...,.,.,.,.,,,.,...,,.,,.,.,...,...,...,...,..,,,,.,,,.,.,,,
-#U6AK3SVCOC4O7U3YKDGTG5A67ZRFAJD7R73P2UU2ONMH27FV5DE3RDKFGJR5BRRS56R3ISSOW7HH6
-#\\\|F5SXHUVLZ4KXR5GQTE7CBEZ2NMHTXI6U3EHHZXKUNSCXGZZCC3F \ / AMOS7 \ YOURUM ::
-#\[7]DBTRC2J4AZMA3K7D4EC62N34WTUGSM5I2S5AHTQVCAACZMWUFEAY 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,..,...,,,,,..,,.,.,,.,,,.,,,,,,...,...,...,,..,,,.,..,,..,,,.,,
+#2ZSLQWC3HP6IPQN2V3PYCOIX6DLV7B6QQTZHPWMLU36UFVRRDQOWKFP2BP4DDJUZYKQ7KQCYYOEN4
+#\\\|2QZ73G4MP7H5DC5KI7KQWFOPV7OWB3HS36A7B7OIIMEGBPXW6Q7 \ / AMOS7 \ YOURUM ::
+#\[7]ZVSBHMB2AWUFBV6E4FGEQ2CYLWLNS77VGXSBLB3CTZFV3KRBH4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
