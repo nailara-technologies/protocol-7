@@ -1,10 +1,10 @@
 ## [:< ##
 
-# name = image-batch.child.loop
+# name = vision-batch.child.loop
 # descr = Child worker event loop for job processing
 
-my $parent_pipe = <image-batch.child.parent_pipe>;
-my $worker_id   = <image-batch.child.worker_id>;
+my $parent_pipe = <vision-batch.child.parent_pipe>;
+my $worker_id   = <vision-batch.child.worker_id>;
 
 return { success => FALSE, error => 'Parent pipe not initialized' }
     unless defined $parent_pipe;
@@ -47,7 +47,7 @@ while (1) {
     if ( $job->{cmd} eq 'analyze' ) {
 
         # Process image analysis job
-        my $result = <[image-batch.child.analyze_job]>->($job);
+        my $result = <[vision-batch.child.analyze_job]>->($job);
 
         # Send result back to parent
         my $response = JSON::XS::encode_json($result);
@@ -77,8 +77,8 @@ while (1) {
 close $parent_pipe;
 return TRUE;
 
-#,,,,,,..,...,.,,,...,,,,,..,,,,,,.,,,..,,.,,,..,,...,...,...,..,,...,.,,,,,.,
-#WIU6UO2HTBE4V77HMEZBQIBSI2476NNLBIF7NATWEC5ATMP5NY7XE3DECN5A4ULW4BRZ5FFCZIJUK
-#\\\|4BNU5SL2LR6FX5DKMNBIY464JHLCTAKRJDV3W2SH7XXFSD44SIG \ / AMOS7 \ YOURUM ::
-#\[7]FO7WAXSPQFBS2YCZ6RLTDZ7RIVAC3D733IX2VI6BRKH2KMX3M6BY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,,,.,.,..,,,..,.,.,,,,,,,.,,..,..,,...,...,,,.,,,.,,,,,,,,,,,,,
+#3OL4GSHGHV3SLUKDPP3QFYRGM6FEZHOUEU2ZBZA4CMF2DV6XHE56IBXNSNFJP3KFRXGH47TFNUTEG
+#\\\|6KYDGSR5UCF3Z3HRSDLVYWX4RHTP55FLPJX5TZH5FGVFFIM2MIX \ / AMOS7 \ YOURUM ::
+#\[7]YKWRWSUXVMRIMKBZHCNN6LASDBJ55MHUWKEEW6WRVN4P3WG66ADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

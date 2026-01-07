@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name = image-batch.parent.handle_job_reply
+# name = vision-batch.parent.handle_job_reply
 # descr = Handle analysis results from child and update job/batch state
 
 my $reply_data     = shift;
@@ -14,11 +14,11 @@ return { success => FALSE, error => 'job_id required' }
 return { success => FALSE, error => 'batch_id required' }
     unless defined $batch_id;
 
-my $batch_state = <image-batch.batch_state>;
+my $batch_state = <vision-batch.batch_state>;
 
 # Update job result in jobqueue and log to operation_log
-my $operation_log = <image-batch.operation_log>;
-my $error_log     = <image-batch.error_log>;
+my $operation_log = <vision-batch.operation_log>;
+my $error_log     = <vision-batch.error_log>;
 my $timestamp     = <[base.time]>->(3);
 
 if ( $reply_data->{success} ) {
@@ -84,8 +84,8 @@ if ( $completed + $errored == $total ) {
 
 return { success => TRUE, message => "Job result processed: $job_id" };
 
-#,,,,,,,.,,.,,,,,,,.,,.,,,,.,,,,,,,,.,...,,.,,..,,...,..,,,,,,,..,,.,,.,,,,,,,
-#TU6UOUYEGFAS3W4UEURUR7L7UU7JW57UP5VCNQ45LOEQC7QXYQTPOJJIEP2HFLRXNMAYQP45IRAO2
-#\\\|RD5HDB4AOB25TDLCPYQKSWJZB5C26RFNVJSTRVOEWT5JXJLPZWF \ / AMOS7 \ YOURUM ::
-#\[7]RMHP7RZMIQZJ4J55ILFQXQTQZILIIBV2OSMTOLX7G7HUXMFJRWBY 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,..,,.,,,.,.,.,.,.,,,,,.,...,,.,,..,,...,...,..,,,..,,..,.,,,...,
+#L52NFWXNCYTWSCFWND3UIRJ7MR5524GQMSU6HLJ2FN6XZG3RVYFKVQPC6RIOMDAI6TNB2PSDRN3FI
+#\\\|KZVUKPMJFA7V422IELAQJ33BYZ2DGAON6SHSD5FGKDOLXZLIGMY \ / AMOS7 \ YOURUM ::
+#\[7]UW5XY23BFOCQ2MDK4LR752VIKS4LJEZNDD4ESBV3TJTJOMZ4GMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

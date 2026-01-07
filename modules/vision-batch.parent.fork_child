@@ -1,15 +1,15 @@
 ## [:< ##
 
-# name = image-batch.parent.fork_child
+# name = vision-batch.parent.fork_child
 # descr = Fork single child process for blocking image analysis operations
 
 use Socket;
 
 ( my $session_id ) = keys <user.cube.session>->%*;
 
-<image-batch.pipe> = { 'child' => {}, 'parent' => {} };
+<vision-batch.pipe> = { 'child' => {}, 'parent' => {} };
 
-<[base.log]>->( 1, 'forking image-batch child.,' );
+<[base.log]>->( 1, 'forking vision-batch child.,' );
 
 socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
     || die "can't create socketpair. [ \l$OS_ERROR ]";
@@ -20,19 +20,19 @@ map { $data{'handle'}{$ARG}{'link'} = qw| ipc.pipe | }
 # Child process doesn't fork further, so CHLD handling not needed
 # And CHLD signal handlers in this context cause "expected numerical reply_id" error in v7
 
-<image-batch.child.pid> = <[base.fork]>;
+<vision-batch.child.pid> = <[base.fork]>;
 
-if ( !<image-batch.child.pid> ) {
+if ( !<vision-batch.child.pid> ) {
 
     # CHILD PROCESS
 
     close($child_pipe);
-    delete <image-batch.pipe.child> if exists <image-batch.pipe.child>;
+    delete <vision-batch.pipe.child> if exists <vision-batch.pipe.child>;
 
     # Reinitialize IO::AIO after fork
     IO::AIO::reinit();
 
-    <image-batch.pipe.parent> = $parent_pipe;
+    <vision-batch.pipe.parent> = $parent_pipe;
     <log.file.system.retry_timer>->cancel
         if exists <log.file.system.retry_timer>;
 
@@ -61,9 +61,9 @@ if ( !<image-batch.child.pid> ) {
 
 # Load child-specific modules ONLY in child process (not inherited from parent)
 # Include image-quality modules for image analysis
-    <[base.load_modules]>->('image-batch.child');
+    <[base.load_modules]>->('vision-batch.child');
     <[base.load_modules]>->('image-quality');
-    <[base.init_modules]>->('image-batch.child');
+    <[base.init_modules]>->('vision-batch.child');
     <[base.init_modules]>->('image-quality');
 
 } else {
@@ -71,12 +71,12 @@ if ( !<image-batch.child.pid> ) {
     # PARENT PROCESS
 
     close($parent_pipe);
-    delete <image-batch.pipe.parent> if exists <image-batch.pipe.parent>;
-    <image-batch.pipe.child> = $child_pipe;
+    delete <vision-batch.pipe.parent> if exists <vision-batch.pipe.parent>;
+    <vision-batch.pipe.child> = $child_pipe;
 
 # Load parent-specific modules ONLY in parent process [not inherited by child]
-    <[base.load_modules]>->('image-batch.parent');
-    <[base.init_modules]>->('image-batch.parent');
+    <[base.load_modules]>->('vision-batch.parent');
+    <[base.init_modules]>->('vision-batch.parent');
 
     # Initialize Protocol-7 session over socketpair
     $data{'handle'}{$child_pipe}{'mode'} = qw| out |;
@@ -89,10 +89,10 @@ if ( !<image-batch.child.pid> ) {
     $data{'session'}{$id}->{'authenticated'} = qw| yes |; # enabling  commands
 
     # Store child process and session info
-    <image-batch.child.session_id> = $id;
+    <vision-batch.child.session_id> = $id;
 
     ## reporting child PID to v7 zenka so it is able to terminate it ##
-    <[base.zenki.report_child_pid]>->(<image-batch.child.pid>);
+    <[base.zenki.report_child_pid]>->(<vision-batch.child.pid>);
 
     # Mark zenka as online (following weather pattern)
     <[base.async.get_session_id]>;                        ## --> 'online' ##
@@ -100,8 +100,8 @@ if ( !<image-batch.child.pid> ) {
     <[base.log]>->( 1, 'child process forked and ready for commands.,' );
 }
 
-#,,..,,,,,,,.,.,.,.,,,.,,,,,,,,.,,.,.,..,,.,.,..,,...,..,,.,.,.,,,...,,..,,,,,
-#GVGKMAT4CC4AVL3INIJASR5KE622GV323CK4PIDXH63RX6YSWIQ7BPCY2ZGPOP26M62JORZXBBINO
-#\\\|XN4AG63YR44B7EMP2YIOO3IYQGR3A4JM4SPO5P4GLZ2G2Q4CPXZ \ / AMOS7 \ YOURUM ::
-#\[7]W5PUNLOKK4URWBBADBDDCZNZSWKESRLG4ZKFBO3G7H4OZ4JVEUBA 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,.,,.,,..,,..,,.,,,,.,,,..,.,,,..,,...,...,.,,,.,,,,..,.,,,.,.,
+#BU7K2RTUSS5BHIK7E4AQWXGJJNAY4IJPNV6VVSZ2VULXT6QMBVV7JPPOJZJ4ORDSTGYDEPMM2FMIO
+#\\\|TS4THKOJ3HIL56GTE43HS5KMHUQ56I2ZTLH5RB7XJ5MCY54GJEL \ / AMOS7 \ YOURUM ::
+#\[7]NBDYIOGSM7B5524HMKV3QUSOYQZ3QR4NLRTKO2BUQBWOJD7C6GAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

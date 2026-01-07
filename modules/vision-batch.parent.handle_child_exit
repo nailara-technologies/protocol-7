@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name = image-batch.parent.handle_child_exit
+# name = vision-batch.parent.handle_child_exit
 # descr = CHLD signal handler for reaping exited child workers
 
 use POSIX qw( WNOHANG );
@@ -20,7 +20,7 @@ while (1) {
     my $exit_status = $?;
 
     # Get batch state to access child_pids and current jobs
-    my $batch_state = <image-batch.batch_state>;
+    my $batch_state = <vision-batch.batch_state>;
     my $child_pids  = $batch_state->{child_pids};
 
     return { success => FALSE, error => 'No batch_state available' }
@@ -41,7 +41,7 @@ while (1) {
         if ( exists $child_info->{current_job_id}
             && defined $child_info->{current_job_id} ) {
             my $job_id      = $child_info->{current_job_id};
-            my $batch_queue = <image-batch.batch_queue>;
+            my $batch_queue = <vision-batch.batch_queue>;
 
             # Find and update the job in the queue
             foreach my $job (@$batch_queue) {
@@ -56,7 +56,7 @@ while (1) {
                     $stats->{processed}++;
 
                     # Log to error_log
-                    my $error_log = <image-batch.error_log>;
+                    my $error_log = <vision-batch.error_log>;
                     push @$error_log,
                         {
                         job_id     => $job_id,
@@ -77,8 +77,8 @@ while (1) {
 
 return { success => TRUE, reaped_count => $reaped_count };
 
-#,,..,,.,,,.,,..,,,.,,.,.,,,.,,,.,,,.,,.,,.,.,..,,...,...,,..,.,.,,.,,.,.,.,,,
-#4PLGQCABRMDJQGFOOO5ULC57AMADTBC44K5UV4HSAS6UAQBW5KYYFZPZ3C7AKRR34TANQGU6WGANY
-#\\\|IMI3536VLTQUPIZQ7DWKPN3TMYNALMOW3JPIDMWSDO6IUAZ5HW3 \ / AMOS7 \ YOURUM ::
-#\[7]AXE7QY5BVUIK5WCPU2HYIJJLWYN4QRSAR3VVDN4CZKYKHDTBBKCY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,,.,,.,,.,,,..,,.,,,..,,.,.,,..,..,,...,...,,..,...,,..,..,,.,.,
+#55CO4NENWQBGQQ6Q7Y66GGEOGRIYYGF7DTFXYZE4WT4VGLXRHSZIEWLCQPOH3AWKPKVYFT2ENQJO2
+#\\\|X2SO5ITJ7ZCF2BRPWOPPIWK4JO4YCJ3VAGNS56WSFEE43P7II3I \ / AMOS7 \ YOURUM ::
+#\[7]UAIUW6YNDLIFCNY7NJDWYRJMXNYYNXS35GRQFEIGREM2OLBBFQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

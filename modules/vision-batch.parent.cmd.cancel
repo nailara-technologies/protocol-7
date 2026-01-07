@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name = image-batch.parent.cmd.cancel
+# name = vision-batch.parent.cmd.cancel
 # descr = Cancel batch processing
 
 # Extract batch_id from command args
@@ -18,14 +18,14 @@ return { 'mode' => qw| FALSE |, 'data' => 'Batch ID required' }
     unless defined $batch_id;
 
 # Get batch_state to find the batch
-my $batch_state = <image-batch.batch_state>;
+my $batch_state = <vision-batch.batch_state>;
 return { 'mode' => qw| FALSE |, 'data' => 'No active batch found' }
     unless defined $batch_state;
 return { 'mode' => qw| FALSE |, 'data' => "Batch $batch_id not found" }
     if $batch_state->{batch_id} ne $batch_id;
 
 # Trigger shutdown of batch
-my $shutdown_result = <[image-batch.parent.shutdown]>;
+my $shutdown_result = <[vision-batch.parent.shutdown]>;
 
 if ( $shutdown_result->{success} ) {
     $batch_state->{status}       = 'cancelled';
@@ -48,8 +48,8 @@ if ( $shutdown_result->{success} ) {
     return { 'mode' => qw| false |, 'data' => $shutdown_result->{error} };
 }
 
-#,,,.,.,.,,..,,..,.,,,.,,,...,,,,,,,.,,,,,..,,..,,...,...,,..,,,.,,,.,...,,.,,
-#JVOQLFWYBHLVT2LR5JOLLV6N2M3CSCQO3VH3S2HUOB7DII5SB2LK57UQF4CIPLZGMZIV5MNJNMGUI
-#\\\|7OSEBCM52KRLH2AYPQWQAHY76M3FTZ2OAHERAB2WQD5EYXVRKF3 \ / AMOS7 \ YOURUM ::
-#\[7]ST2BVIPJ2UBW3WTNOUFGWEGGLPH5DKIQZ4S6TNBSW4SJJQJVDWCA 7  DATA SIGNATURE ::
+#,,.,,...,..,,..,,,.,,.,.,,,,,...,,,.,,,.,.,,,..,,...,...,...,...,.,.,,.,,,..,
+#QWB3HFEW334TC7WYHVQNSIKGU7PERTINOS3DGSFRQTJZYBXAP35FOVWNMUGZRAEPCWIZZ57RNS5ZO
+#\\\|NTF2VDGPLKXIFVJFGHNOUSVJVEWHEUTRCEKN5ERKGEUDQJWMZV3 \ / AMOS7 \ YOURUM ::
+#\[7]RXDOCKVPVT2KF4ZD7YHLGB4V2YGFZR4I263BDIPTC2XTEF5RJSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

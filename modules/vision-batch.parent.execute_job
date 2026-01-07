@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name = image-batch.parent.execute_job
+# name = vision-batch.parent.execute_job
 # descr = Execute job by dispatching image analysis to child process
 # param = { job_id => job_id, params => { image_path => ..., batch_id => ... } }
 
@@ -22,9 +22,9 @@ return { success => FALSE, error => 'batch_id required' }
     unless defined $batch_id;
 
 # Fork a child process if one doesn't exist yet
-unless ( defined <image-batch.child.pid> && <image-batch.child.pid> > 0 ) {
+unless ( defined <vision-batch.child.pid> && <vision-batch.child.pid> > 0 ) {
     <[base.log]>->( 2, 'Forking child process for image analysis' );
-    <[image-batch.parent.fork_child]>;
+    <[vision-batch.parent.fork_child]>;
 }
 
 <[base.log]>->(
@@ -41,7 +41,7 @@ my $cmd = qw| child.analyze_image |;
     {   'command'   => $cmd,
         'call_args' => { 'args' => join( ' ', $image_path, $job_id ) },
         'reply'     => {
-            'handler' => qw| image-batch.parent.handle_job_reply |,
+            'handler' => qw| vision-batch.parent.handle_job_reply |,
             'params'  => { 'job_id' => $job_id, 'batch_id' => $batch_id }
         }
     }
@@ -49,8 +49,8 @@ my $cmd = qw| child.analyze_image |;
 
 return { success => TRUE, message => "Job $job_id dispatched to child" };
 
-#,,.,,..,,,,.,.,,,,,.,.,.,...,.,,,...,...,,.,,..,,...,...,...,,..,,,,,,.,,,.,,
-#5ZEJSPCXGEFZXEKTROILDGPIO6FLME7FZSFQ667QJAHWNCMMH5SOL7CQTTJYBSNE3JY36XLUFEXWW
-#\\\|LVX5DJ4JOS4U663TZXKNHBW32E5ACHNMBMCKFL5TL6JDZTMHBCR \ / AMOS7 \ YOURUM ::
-#\[7]64B63PPWTQ2SLX6PDRM2SJ3YL6DE7U2HQGCIEQ52QTVBRBGUCMAY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,.,,,..,,...,,.,,,.,,,,.,,.,,,..,..,,...,...,..,,...,.,.,...,,.,,
+#MXTCSC6LNWPIF2Y5JIG5EYCQPVBSBQF64I2FTDZQN4OODSPPSLTXF35KRPLMEINAOH3TM5IX4L5A4
+#\\\|6UOKY6WR5NQN6LKEK3JOUAMGG3A5M55EMPFTHQ7VJTFX4T24NSQ \ / AMOS7 \ YOURUM ::
+#\[7]OCIOM2F7F3TRISTJ7M63CTJFMAO7YIKLS4F3TIEVOUNBKVUQBSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

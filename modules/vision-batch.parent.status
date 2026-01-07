@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name = image-batch.parent.status
+# name = vision-batch.parent.status
 # descr = Return current batch processing status
 
 my $requested_batch_id = shift;
@@ -14,7 +14,7 @@ my $batch_queue;
 if ( defined $requested_batch_id && $requested_batch_id ne '' ) {
 
     # Load specific batch from disk using Protocol-7 file infrastructure
-    # (zenka name is automatically prepended to /var/protocol-7/image-batch/)
+    # (zenka name is automatically prepended to /var/protocol-7/vision-batch/)
     my $batch_file_path  = "$requested_batch_id.json";
     my $file_content_ref = <[file.zenka_dir.load]>->($batch_file_path);
 
@@ -35,8 +35,8 @@ if ( defined $requested_batch_id && $requested_batch_id ne '' ) {
 
 # Fall back to in-memory state if file not loaded
 if ( !defined $batch_state ) {
-    $batch_state = <image-batch.batch_state>;
-    $batch_queue = <image-batch.batch_queue>;
+    $batch_state = <vision-batch.batch_state>;
+    $batch_queue = <vision-batch.batch_queue>;
 }
 
 # If no active batch, return idle status
@@ -83,7 +83,7 @@ foreach my $pid ( keys %$child_pids ) {
 }
 
 # Calculate ETA
-my $eta_info = <[image-batch.parent.calculate_eta]>;
+my $eta_info = <[vision-batch.parent.calculate_eta]>;
 my $eta_seconds
     = ( defined $eta_info && $eta_info->{success} )
     ? $eta_info->{eta_seconds}
@@ -133,8 +133,8 @@ return {
     : $batch_state->{status}
 };
 
-#,,..,...,,,.,,..,.,,,..,,,..,.,,,,,,,,,,,,,,,..,,...,...,...,,,,,..,,...,,.,,
-#OSWTUIG6UCS24MX54XV7QAAECHNZEOCSZAP5VIPS7EPBMZLFMPUTPGCFRVWX4BTMXZNRQCXO76UHA
-#\\\|YRDYVPW2HBNKEVJ7ET24CZYHKLRQKOKBZDJLLUO2YGWARKB5CDS \ / AMOS7 \ YOURUM ::
-#\[7]NCG7S5V57VZB4RJILRYBAOBGZRF3MP2ZD7U36XM3TBT4WIJ2COBY 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,...,...,..,,,,,,.,.,,,,,,.,,..,,..,,...,..,,..,,,,.,,,,,,.,,,,,,
+#AAOIHUI3LYS4AX4V6B5TQ3XMA26ZJKR4OKMZFYOH75YJPO6Q5CEKV46E3MA3MCRJWDXZWW5LMDQ54
+#\\\|YFXIQJQ7XGVX7JXNGK2ZP2XMMNJL5NINQTYHUJRP5TAK5ZKQ5IA \ / AMOS7 \ YOURUM ::
+#\[7]UQ3NDVUVJ7B7E2NFMSI4JMRR75R4SMZCHRUFCXS27ERKM4OUWIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

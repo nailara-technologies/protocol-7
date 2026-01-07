@@ -860,7 +860,6 @@ return [ qw[
         index.cmd.add-wordlist
         impressive.open_window
         impressive.cmd.version
-        image-batch.child.loop
         httpsd.request_handler
         httpsd.register_socket
         httpd.system.cpu_usage
@@ -1008,6 +1007,7 @@ return [ qw[
         coding.analyze.classify
         chk-sum.skein.init_code
         bench.key-32-iterations
+        vision-batch.child.loop
         base.templates.pre_init
         base.strip_chksum_lines
         base.start.unlink_child
@@ -1111,7 +1111,6 @@ return [ qw[
         keys.console.remove-type
         io.unix.socket.init_code
         impressive.check_tmp_dir
-        image-batch.parent.pause
         httpsd.create_ssl_socket
         httpd.system.memory_free
         httpd.parse_range_header
@@ -1242,9 +1241,6 @@ return [ qw[
         io.unix.socket.input.open
         impressive.process_subcfg
         image2html.base.init_code
-        image-batch.parent.status
-        image-batch.parent.resume
-        image-batch.parent.cancel
         httpsd.route_and_dispatch
         httpd.system.memory_stats
         httpd.base.size.normalize
@@ -1269,6 +1265,7 @@ return [ qw[
         channels.util.yaml_decode
         channels.test-oscillation
         channels.memory-sync.init
+        vision-batch.parent.pause
         base.sourcecode.init_code
         base.session.cancel_route
         base.register_p7_mod_load
@@ -1371,8 +1368,6 @@ return [ qw[
         io.unix.socket.output.open
         io.unix.socket.input.close
         image2html.child.init_code
-        image-batch.parent.process
-        image-batch.parent.persist
         httpsd.reload_certificates
         httpd.handler.acme_request
         events.set-up.import_rules
@@ -1391,6 +1386,9 @@ return [ qw[
         coding.helper.reset_budget
         coding.helper.check_budget
         coding.budget.track_tokens
+        vision-batch.parent.status
+        vision-batch.parent.resume
+        vision-batch.parent.cancel
         base.warnings.from_bitmask
         base.session.check.flushed
         base.reverse-sort.key-name
@@ -1489,8 +1487,6 @@ return [ qw[
         jobqueue.check_dependencies
         io.unix.socket.output.close
         image2html.parent.init_code
-        image-batch.parent.shutdown
-        image-batch.child.init_code
         httpd.update_download_count
         httpd.benchmark.end_request
         httpd.base.file.nonblocking
@@ -1516,6 +1512,8 @@ return [ qw[
         coding.helper.budget_status
         channels.cmd.test-strm-size
         channels.cmd.channels-since
+        vision-batch.parent.process
+        vision-batch.parent.persist
         base.zenki.report_child_pid
         base.yaml.load_keyword_path
         base.templates.register_add
@@ -1610,8 +1608,6 @@ return [ qw[
         keys.console.create-stub-key
         io.unix.socket.input.connect
         impressive.autoinstall_check
-        image-batch.parent.init_code
-        image-batch.parent.cmd.pause
         httpd.handler.template_reply
         graphics-matrix.filter.alpha
         download.set-up.import_rules
@@ -1629,6 +1625,8 @@ return [ qw[
         coding.intake.normalize_task
         coding.analyze.check_history
         channels.handler.data_change
+        vision-batch.parent.shutdown
+        vision-batch.child.init_code
         base.validate.composite_name
         base.session.check_remaining
         base.run_if_not.load_perlmod
@@ -1714,11 +1712,6 @@ return [ qw[
         image2html.base.get_html_path
         image2html.base.download_file
         image-quality.vision.http_api
-        image-batch.parent.fork_child
-        image-batch.parent.cmd.status
-        image-batch.parent.cmd.resume
-        image-batch.parent.cmd.cancel
-        image-batch.child.analyze_job
         httpsd.route_template_request
         httpd.vhost_template_resolver
         httpd.benchmark.start_request
@@ -1750,6 +1743,8 @@ return [ qw[
         channels.subscription.manager
         channels.cmd.ai-review-submit
         channels.cmd.ai-review-status
+        vision-batch.parent.init_code
+        vision-batch.parent.cmd.pause
         base.validate.data_key_syntax
         base.source.collect_file_list
         base.parser.human.fsize_fixed
@@ -1831,8 +1826,6 @@ return [ qw[
         index.callback.wordlist-import
         impressive.cmd.playlist_update
         image2html.base.get_image_size
-        image-batch.parent.execute_job
-        image-batch.parent.cmd.process
         httpd.diagnostic.end_operation
         httpd.cmd.setup-acme-challenge
         graphics-matrix.guess_bg_color
@@ -1858,6 +1851,11 @@ return [ qw[
         coding.analyze.estimate_tokens
         channels.util.get_review_stage
         channels.cmd.ai-review-approve
+        vision-batch.parent.fork_child
+        vision-batch.parent.cmd.status
+        vision-batch.parent.cmd.resume
+        vision-batch.parent.cmd.cancel
+        vision-batch.child.analyze_job
         base.zenki.ondemand_registered
         base.session.send_init_reports
         base.p7refs.get_refaddr_prefix
@@ -1934,6 +1932,8 @@ return [ qw[
         channels.memory-sync.batch-send
         channels.content-discovery.init
         channels.cmd.ai-review-feedback
+        vision-batch.parent.execute_job
+        vision-batch.parent.cmd.process
         base.zenki.set_ondemand_timeout
         base.warnings.compact_statehash
         base.perlmods.reload.disk_times
@@ -1989,7 +1989,6 @@ return [ qw[
         keys.console.keys-backup-archive
         image2html.base.write_image_html
         image2html.base.write_error_page
-        image-batch.parent.calculate_eta
         httpd.handler.web_template_reply
         httpd.diagnostic.track_operation
         discover.process_incoming_packet
@@ -2069,7 +2068,6 @@ return [ qw[
         impressive.handler.get_list_reply
         image-quality.vision.select_model
         image-quality.vision.encode_image
-        image-batch.parent.load_yaml_spec
         events.cmd.get_playlist_exclusive
         events.callback.object.date_frame
         crypt.C25519.verify_key_signature
@@ -2079,6 +2077,7 @@ return [ qw[
         coding.learning.identify_patterns
         channels.memory-sync.sync-handler
         channels.handler.content-detected
+        vision-batch.parent.calculate_eta
         base.sourcecode.in-mem.sub-source
         base.perlmod.init_install_buffers
         base.perlmod.get_loaded_INC_names
@@ -2139,7 +2138,6 @@ return [ qw[
         keys.select_archive_path.term_Clui
         jobqueue.event.register_job_queues
         image2html.child.cmd.convert_image
-        image-batch.parent.collect_results
         graphics-matrix.cmd.filter-rep-col
         discover.handler.anounce_host_addr
         discover.cmd.reset-broadcast-timer
@@ -2150,6 +2148,7 @@ return [ qw[
         coding.intake.parse_command_string
         channels.memory-sync.apply-changes
         channels.handler.subscription_data
+        vision-batch.parent.load_yaml_spec
         base.protocol-7.command.send.local
         base.path-set-up.zenka-directories
         base.path-set-up.check-zenka-paths
@@ -2188,13 +2187,12 @@ return [ qw[
         impressive.callback.stop_start-anim
         image2html.child.handler.conversion
         image-quality.vision.parse_response
-        image-batch.parent.handle_job_reply
-        image-batch.child.cmd.analyze_image
         httpd.benchmark.sample_memory_usage
         content.handler.get_exclusive_reply
         coding.learning.update_success_rate
         coding.helper.get_service_breakdown
         channels.memory-sync.register-watch
+        vision-batch.parent.collect_results
         base.perlmod.register_loaded_module
         base.number-cache.is_valid_template
         base.handler.write.encoding-wrapper
@@ -2221,8 +2219,6 @@ return [ qw[
         letsencr.child.acme_verify_challenge
         letsencr.child.acme_register_account
         image2html.child.check_cache_timeout
-        image-batch.parent.handle_child_exit
-        image-batch.parent.generate_batch_id
         httpsd.startup.validate_certificates
         httpd.handler.download_transfer.test
         debian.parent.resolve_cpan_to_debian
@@ -2230,6 +2226,8 @@ return [ qw[
         coding.routing.make_routing_decision
         coding.handler.models_list_all_reply
         coding.async_spawn_inference_servers
+        vision-batch.parent.handle_job_reply
+        vision-batch.child.cmd.analyze_image
         base.warnings.compact_diff_to_pragma
         base.warnings.compact_diff_from_bits
         base.perlmod.manual_reload_blacklist
@@ -2268,6 +2266,8 @@ return [ qw[
         coding.helper.get_transaction_history
         coding.handler.models_get_entry_reply
         channels.handler.playlist-integration
+        vision-batch.parent.handle_child_exit
+        vision-batch.parent.generate_batch_id
         base.perlmods.reload.chksum_blacklist
         base.perlmod.unregister_loaded_module
         base.handler.write.encryption-wrapper
@@ -2443,8 +2443,8 @@ return [ qw[
     ]
 ];
 
-#,,..,,,.,,,.,.,,,,,,,..,,.,.,.,.,,,.,..,,,,,,.,.,...,...,..,,,,.,,,,,,.,,,,.,
-#2AG3EU5KYG4GA6N737CVRYS665GFO7KFMFUNH3JV5EUO65MLXW5NCSCTVMO7E73MQFXAFHSUPCCI2
-#\\\|KBZLZNTLPGS5XGS36OOXBV5YNDVBMPBL22O2BPO75N6S45PSP6L \ / AMOS7 \ YOURUM ::
-#\[7]QG73YFOBBSUEGEPMTQKIG4KO22QC4OSDRZLTB36XAU56XO33CICA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,,,,..,,.,,,.,,,,.,...,,,,,,,,,.,.,...,..,,..,,,,,,,.,,,..,,,,,
+#SAFNDIMKX7VQ2U7NJU4KB4776C6VQSBGE5N3RHBGQCEEXUHUI74IMC665MBL2TLHYPT6OOQE4XB4M
+#\\\|L3UI4UYPA4QG3NI6KUUSLIHRIR3ULMQS25RZ2PUR5NSO55MYDTO \ / AMOS7 \ YOURUM ::
+#\[7]G2ID7VRTFNB4ZWZ7VRRGLG37OI4MLRT752PHHJB4IHXR4O55PUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
