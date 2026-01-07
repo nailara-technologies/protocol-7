@@ -1,11 +1,11 @@
 ## [:< ##
 
-# name = image-batch.parent.shutdown
+# name = vision-batch.parent.shutdown
 # descr = Graceful shutdown of worker pool with signal delivery
 
 <[base.perlmod.load]>->( 'JSON::XS', qw| encode_json | );
 
-my $batch_state = <image-batch.batch_state>;
+my $batch_state = <vision-batch.batch_state>;
 my $child_pids  = $batch_state->{child_pids};
 
 return { success => FALSE, error => 'No batch_state available' }
@@ -50,8 +50,8 @@ return {
     message       => "Shutdown signal sent to $sent_count children"
 };
 
-#,,.,,...,,,.,.,,,.,,,,..,,,,,.,,,,.,,.,.,,,.,..,,...,...,..,,.,,,,..,.,.,.,,,
-#HYVEUCES3EISRCM27Y2QNOWCIZ2ENCABQ2KS4KDU5IELCXNTZ72HS43JSJ7ZLFTYZ5PND7CC5KCL6
-#\\\|LIV7VEUYX3YC5Q7USR4UNXLWOKBJ52QNSYOT7E3B6YS2HREHQ3O \ / AMOS7 \ YOURUM ::
-#\[7]BROSH7TSZFJ4PAO4BK74XMJSDWFJTRMXX7IDL5KJMBYZB5GQMADA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,,.,,..,,.,,,,.,,,,,..,,,..,,,.,..,,...,...,.,.,,,.,,,.,...,,,.,
+#3OTHFKX6NTCTTSTVAJHZ4GNDLC2PKYTANFEZ6SLEAJNOWXLSNZHLU723GU3PR6DTFQXRDJCBRIHPC
+#\\\|UIFI5L3KBLXFAEW3SSFUQHKQINLFR74Z45ALFUDD3GHFIUDTIFC \ / AMOS7 \ YOURUM ::
+#\[7]HGAFJLJOQOY4WYIR62THETCLNANMMCMFCVDYD7OPHC4B6PQDGKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

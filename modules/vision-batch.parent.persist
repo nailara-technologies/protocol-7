@@ -1,7 +1,7 @@
 ## [:< ##
 
-# name = image-batch.parent.persist
-# descr = File-based persistence for batch state (stores in /tmp/image-batch/)
+# name = vision-batch.parent.persist
+# descr = File-based persistence for batch state (stores in /tmp/vision-batch/)
 
 <[base.perlmod.load]>->( 'JSON::XS',   qw| encode_json decode_json | );
 <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
@@ -10,7 +10,7 @@ my $cmd      = shift;
 my $batch_id = shift;
 my $data     = shift;
 
-my $persist_dir = '/tmp/image-batch';
+my $persist_dir = '/tmp/vision-batch';
 make_path($persist_dir) unless -d $persist_dir;
 my $batch_file = "$persist_dir/$batch_id.json";
 
@@ -88,8 +88,8 @@ if ( $cmd eq 'save' ) {
     return { success => FALSE, error => "Unknown command: $cmd" };
 }
 
-#,,..,.,.,,,,,..,,,,,,,,,,...,,,.,..,,,.,,...,..,,...,...,,.,,,,,,...,,.,,,..,
-#ZHZXUTVNJLPFAFB7CAE2BOTFIBIBO6F4OPZU3DWI4GLWES7F2BJSHSVE44AWFITRMMD3YW2HC556O
-#\\\|KFCYASTAFSRUV6IGUUK5BHIEXRSHBIPHILJL7QDTPIHKC6ACOVB \ / AMOS7 \ YOURUM ::
-#\[7]SHEGKX5JVC6R5BRD3HFZMRPPVN33BQYXOFIXRPUX4PFD5Q4LLSCY 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,,,,,..,,.,,,,.,,,..,...,...,,,,,..,,...,...,..,,,.,,.,.,,,,,,,.,
+#ELS3YCTWP2IAFVCPELJN6RMRZNGLE7QW3BIPFQQ6MRNLJJ7DYMUZ7O4XZ4M5NTT43BU5NRZ4IS23U
+#\\\|VF4ZPT6SQ6LKHFCDYBA6IZ5APRN4KZT6XE5I6RJ3JSECXAJHK7N \ / AMOS7 \ YOURUM ::
+#\[7]BVAPQJWAU74WXUQHEADFUASP3GSBC2XNSBUYIOYP5ADMNSIOCSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

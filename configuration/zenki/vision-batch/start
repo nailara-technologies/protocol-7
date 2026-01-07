@@ -1,5 +1,5 @@
 
- .:[ protocol-7 image-batch - on-demand batch processing orchestrator ]:.
+ .:[ protocol-7 vision-batch - on-demand batch processing orchestrator ]:.
 
 [load_config_file:'shared-params']
 
@@ -15,13 +15,13 @@ access.cmd.usr.parent = commands reload list show-buffer heart * # <- same here
 ###
 
 ## Module loading ##
-## Note: image-batch.parent and image-batch.child are loaded selectively
+## Note: vision-batch.parent and vision-batch.child are loaded selectively
 ##       in fork_child to maintain module isolation (parent != child)
 ## Load parent init_code here for global state initialization
 ## Fork_child and other parent modules load in parent scope after fork
 modules.load = auth net protocol io.unix io.ip crypt.C25519 jobqueue \
-                                         image-batch.parent.init_code \
-                                         image-batch.parent.fork_child \
+                                         vision-batch.parent.init_code \
+                                         vision-batch.parent.fork_child \
                                          devmod ## <-- developement only
 [load_modules:<modules.load>]
 
@@ -39,12 +39,12 @@ system.verbosity.zenka_logfile = 2
 # Fork single child process for blocking operations
 # Parent and child modules are loaded in their respective scopes
 # Session ID is obtained inside fork_child to avoid timeout
-[image-batch.parent.fork_child]
+[vision-batch.parent.fork_child]
 
 [zenka.loop]
 
-#,,..,..,,...,.,,,,..,,.,,,,.,.,.,.,.,,..,..,,..,,...,...,...,,,,,.,.,.,,,..,,
-#MANC6ENT3P3XMNVXSWC4X7XTC4FPTWJLJYIOXZYK2DWHJGOAIS2JIURSB66QNYBGUCOQEU2P6QHTK
-#\\\|6ZSV44WCH3EVKNXB4I3O3AB7WXS26I765KVCTCS2ZK4JKZFOYO6 \ / AMOS7 \ YOURUM ::
-#\[7]QES7IQQY5XOGNJGDWIH43GISNTMHQAMPJP24EL7Y2XYNBFLN3ABQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,,,,,,,,,.,,,,,,..,,,,.,,,.,..,,..,,...,...,..,,...,,,,,..,,,.,,
+#4DQVTH5GKGGTWBHGDNSZ6SOUIJA3WIHIC3IZNSS6SOQ5XP7M5AB5GXDPKACGX73SZCOENVW76CL56
+#\\\|BDIMAQ2HFEWEVSMUWDMGLTMAZ7HDJDCSHJ7BKD577VWBKMQ4EKT \ / AMOS7 \ YOURUM ::
+#\[7]RLOWEXCOPILTYT7YHJ6Q4W23GROTFTIAXOTXZJR3CN7Q5JXTP2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

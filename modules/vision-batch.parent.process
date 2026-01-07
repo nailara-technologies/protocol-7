@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name = image-batch.parent.process
+# name = vision-batch.parent.process
 # descr = Batch processing orchestrator using jobqueue for concurrency control
 
 my $yaml_path = shift;
@@ -12,7 +12,7 @@ return { success => FALSE, error => "YAML file not found: $yaml_path" }
     unless -f $yaml_path;
 
 # Load and validate YAML batch specification
-my $spec_result = <[image-batch.parent.load_yaml_spec]>->($yaml_path);
+my $spec_result = <[vision-batch.parent.load_yaml_spec]>->($yaml_path);
 return $spec_result unless $spec_result->{success};
 
 my $spec = $spec_result->{batch_name} ? $spec_result : $spec_result->{spec};
@@ -20,13 +20,13 @@ my $image_paths = $spec->{images};
 my $batch_name  = $spec->{batch_name} // 'Untitled Batch';
 
 # Generate unique batch ID
-my $batch_id_result = <[image-batch.parent.generate_batch_id]>;
+my $batch_id_result = <[vision-batch.parent.generate_batch_id]>;
 return $batch_id_result unless $batch_id_result->{success};
 
 my $batch_id = $batch_id_result->{batch_id};
 
 # Initialize batch_state with simplified structure (no child_pids array)
-<image-batch.batch_state> = {
+<vision-batch.batch_state> = {
     batch_id     => $batch_id,
     batch_name   => $batch_name,
     status       => qw| initializing |,
@@ -39,7 +39,7 @@ my $batch_id = $batch_id_result->{batch_id};
     }
 };
 
-my $batch_state = <image-batch.batch_state>;
+my $batch_state = <vision-batch.batch_state>;
 
 # Populate jobqueue with all image analysis tasks
 # jobqueue.add_job handles job infrastructure, dependency resolution, and execution
@@ -51,7 +51,7 @@ foreach my $image_path (@$image_paths) {
             'object_id' =>
                 0,    # Virtual object_id 0: no dependencies, no priorities
             'target_queue'    => 'queued',
-            'job_callback'    => 'image-batch.parent.execute_job',
+            'job_callback'    => 'vision-batch.parent.execute_job',
             'callback_params' => {
                 'image_path' => $image_path,
                 'batch_id'   => $batch_id
@@ -72,7 +72,7 @@ foreach my $image_path (@$image_paths) {
 # jobqueue infrastructure handles the rest:
 # - event.add_var watcher detects queue counter changes
 # - jobqueue.handler.queue_counter checks dependencies and auto-executes
-# - job_callback (image-batch.parent.execute_job) is invoked automatically
+# - job_callback (vision-batch.parent.execute_job) is invoked automatically
 
 # Update batch state to running
 $batch_state->{status} = qw| running |;
@@ -114,8 +114,8 @@ return {
         sprintf( 'Batch %s processing started with single child', $batch_id )
 };
 
-#,,,.,...,,,.,,.,,.,,,,..,,..,..,,.,,,.,.,...,..,,...,..,,.,.,,.,,,.,,,,.,,.,,
-#6QCA54M2H6NBJGA2HXJXUTV4S7G5J6IJ7KDALKNCQFOIU2ACEQETWMZB6OLVCFCVZ5DVMWSRUX2TS
-#\\\|CWTXFFVTN73DHFEZUACEAWVNNKI4ZLF4ZXU5337ZBUD7HVHNXN3 \ / AMOS7 \ YOURUM ::
-#\[7]H5TCHPCJXNU2S7AWRKACYLAWQNYLY3ZFGU25CT442BKJUA7VYQDI 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,,,,..,,,,,,.,,,,.,.,,,.,,,,..,..,,...,...,,,.,.,.,...,...,,,.,
+#GPNJ5O5UQKZRN6L5UOVRJMU22AISEQ3LKHQF3SPKBT3MGYWH4NLFW6HQ5AJNKELV2CRSORPF36QCM
+#\\\|4HEOYG4S6HMAYXBON3SWLPWYVZVOSS6IQJPPRE336ASUCXTSUDT \ / AMOS7 \ YOURUM ::
+#\[7]H4X5NRNK6NK35XUEDX7VJHBENOL6EBZBXFGOR3DRXJ2PTXDVFCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
