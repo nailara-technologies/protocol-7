@@ -1242,17 +1242,21 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     ## Check if we should use STRM-SIZE fragmentation
                     ## Note: strm-mode-locking means client can
                     ##        handle STRM, but doesn't force it
-                    if ( $total_bytes > $strm_size_threshold ) {
+                    ##                                 [LLL] disabled [broken]
+                    if ( $total_bytes > $strm_size_threshold  and 0 ) {
 
                         ## STRM-SIZE mode: Transparent SIZE fragmentation
                         my $chunk_size = <protocol.strm_size.packet_size>
                             // 8192;
 
-                        ## Send STRM-SIZE open header
+                        ## Send STRM-SIZE open header [LLL] CAUSING ERRORS
                         $output->$* .= sprintf "%sSTRM-SIZE open %d\n",
                             $cmd_id_str, $total_bytes;
+                        #
+                        ## :. cube : [2757773] reply type 'STRM-SIZE' not valid
 
-                        ## Send data in chunks
+                        ## Send data in chunks 
+                        ##                    [LLL] requires non-blocking design
                         my $offset = 0;
                         while ( $offset < $total_bytes ) {
                             my $chunk_len = $chunk_size;
@@ -1707,8 +1711,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 return 0;        ## comand complete ##
 
-#,,,.,,,.,...,.,,,,,.,.,,,,.,,.,,,,,,,...,...,..,,...,...,..,,,,,,.,.,,.,,..,,
-#P3P7NXZRXOKN7J5RQBLMZ7Z5M3JHW57RAMLKJUHSMIVFH25IPLTFWHMVUDDSTBGRTFC5TVGJLFDII
-#\\\|AHLIDW352SA6NVKISXNJI7ST5BLQ2BNZCKNEGIVGHBWQPYHERJL \ / AMOS7 \ YOURUM ::
-#\[7]YV6T35PGZ3LJX5IGZ4DKGWHYTKKXC5U3ENLSJQLRBKYH5NWBAGCA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,..,.,,,..,,,..,,.,,..,,...,...,..,,...,...,,,,,,,,,,.,,,,.,,.,,
+#5GOWNKTVJAZBYDMI7B6HQUNW43JC2JXVBWUJTMWC4LVYQGVDR22EZ3ID2NWU24IVBFTQOECEAEH52
+#\\\|WXDRWX4OY3TTJFDVDOG5JM7GM2XHVYFTWTK2ZFBNDRCPTQKZODF \ / AMOS7 \ YOURUM ::
+#\[7]JL2TYTOCTCO7T2LVBVD7S4ZX33F73SYFXB7BQW4N7MWHNSN7G4CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
