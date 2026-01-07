@@ -42,14 +42,14 @@ push @cmd, '-m', $model_path if length($model_path);
 push @cmd, qw| --log-disable --log-file /dev/null |;
 
 # Add context and other parameters
-push @cmd, '-c', 4096;    # Context size for text inference
-push @cmd, '-n', 2048;    # Default max tokens
+push @cmd, qw| -c 7777 |;    # Context size for text inference
+push @cmd, qw| -n 3000 |;    # Default max tokens
 
 # Backend-specific settings
 if ( $backend eq qw| cpu | ) {
     push @cmd, '-t', $threads;    # Number of threads
-} elsif ( $backend eq 'gpu' ) {
-    push @cmd, '-ngl', $gpu_layers;    # GPU layers
+} elsif ( $backend eq qw| gpu | ) {
+    push @cmd, qw| -ngl |, $gpu_layers;    # GPU layers
 }
 
 # No warmup to start faster
@@ -59,7 +59,7 @@ push @cmd, qw| --no-warmup |;
 my ( $server_in, $server_out, $server_err );
 $server_err = Symbol::gensym;
 
-# Set up environment for llama-server (same as llama-vision does)
+# Set up environment for llama-server (same as lm-vision does)
 local $ENV{'LD_LIBRARY_PATH'}
     = <coding.lib_path> . ':' . ( $ENV{'LD_LIBRARY_PATH'} // '' );
 
@@ -127,8 +127,8 @@ return {
     'port'    => $port
 };
 
-#,,..,...,...,...,.,,,.,,,.,,,,..,,,,,,,.,.,,,..,,...,...,,.,,,..,.,,,...,,,,,
-#HPKRDMVMSNR6ZCCHTJLHARLIBP7C6PYOEMACZC33FGPJFPEZ52LNWEFPHCRYHYTJ7ZR37E436TDB4
-#\\\|Q7HBZ5GKJYPNJRQ7KUNM74RXBCPFFYI6DDYUA5IKWETXG42XIX2 \ / AMOS7 \ YOURUM ::
-#\[7]OIYJZZJR76FRTV44KONESJDJUMPD6F52CPLF5MSSAUPXQGP52ACQ 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,.,,,,,,,,.,,,,,,..,,,.,...,...,..,,...,..,,.,.,,..,,..,,,.,,,.,
+#6BTXFFSWCPLMA3MJCCZXRCHF5T55UL36ALQJOHOCO5BDKFQB2SUYE3KFFTVIS74LDLHIJZIBAKULA
+#\\\|Y3KXF7RKSWPGGCDXR5NEWS7KQW4PE5OHLYSHMFFVJUEGSWB3HCS \ / AMOS7 \ YOURUM ::
+#\[7]AXMPRU3KCIDZOKHBNRYCKRXAAQF3OTQVBR5HPV3MNXUQDYMEWUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

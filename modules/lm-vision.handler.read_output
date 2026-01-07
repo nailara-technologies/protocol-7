@@ -1,13 +1,13 @@
 ## [:< ##
 
-# name  = llama-vision.handler.read_output
+# name  = lm-vision.handler.read_output
 # descr = non-blocking I/O handler - read output chunks from vision CLI
 
 my $event   = shift->w;
 my $read_fh = $event->fd;
 my $job_id  = $event->data;
 
-my $vision_job = <llama-vision.jobs>->{$job_id};
+my $vision_job = <lm-vision.jobs>->{$job_id};
 
 unless ( defined $vision_job ) {
     $event->cancel if $event->is_active;
@@ -28,13 +28,11 @@ if ( defined $vision_job->{'rdr'} ) {
     }
 }
 
-<[base.logs]>->(
-    2, "[read_output] job=%s bytes=%d",
-    $job_id, $bytes
-) if $bytes > 0;
+<[base.logs]>->( 2, "[read_output] job=%s bytes=%d", $job_id, $bytes )
+    if $bytes > 0;
 
-#,,,.,..,,,,,,..,,.,.,..,,.,,,.,,,,,,,,,,,..,,..,,...,..,,..,,,,.,,,,,,,,,.,.,
-#CHQB7SH4KU3CB3JA5JYIWRKLRTU4V22TXW5BC5RB66BMP6QS6RETRTK6OD222OHDJK64PE7PZ6YZY
-#\\\|2JL2WPPXM7CGU2JTGVJNCFLQG5W6EB6JFGKMLZJKZIFZP7R5WCT \ / AMOS7 \ YOURUM ::
-#\[7]XTTHDBOO5DIXBYARJ7IIL2HNQ2C7UELL62H4S6JT6TZ4X6ZFM2AY 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,,,.,.,.,.,..,,,,.,...,,..,.,.,..,,...,...,,,,,,,,,,,,,.,,,,.,,
+#AI72E3QJCCKZEZBWGTXDRLUQ5UR554UBHKAO3Q3C3MOBVMMUCP34TOPNHXOJ4M64EFKJVJG7ZDFF4
+#\\\|M5LNUCTBNEHP6O7HYVNRUBQIFAHJ52QVBIIY7TZT5FWW6QXVFQA \ / AMOS7 \ YOURUM ::
+#\[7]G2RDHJINRI5LJXX4Q5XFJTBYDXBIONXC24KXQC3DO5JKQISX4SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

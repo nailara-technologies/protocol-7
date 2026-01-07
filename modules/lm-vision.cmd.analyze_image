@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = llama-vision.cmd.analyze_image
+# name  = lm-vision.cmd.analyze_image
 # descr = spawn image analysis with vision model (Qwen3-VL-4B optimized)
 
 use IPC::Open3;
@@ -32,8 +32,8 @@ if ( !$img ) {
 
 my $img_width  = $img->getwidth;
 my $img_height = $img->getheight;
-my $max_width  = <llama-vision.max_image_width>  // 1024;
-my $max_height = <llama-vision.max_image_height> // 1024;
+my $max_width  = <lm-vision.max_image_width>  // 1024;
+my $max_height = <lm-vision.max_image_height> // 1024;
 
 <[base.logs]>->(
     1, "[analyze_image] image dimensions: %dx%d (max: %dx%d)",
@@ -74,7 +74,7 @@ if ( $img_width > $max_width || $img_height > $max_height ) {
 
     # Save scaled image to temp file (registered with v7 for cleanup)
     my ( $temp_fh, $temp_path ) = <[file.temp]>->(
-        'llama-vision-XXXXXXXXXXXXXXX.png',
+        'lm-vision-XXXXXXXXXXXXXXX.png',
         undef,    # check_dirs (use default)
         FALSE,    # unlink (don't auto-cleanup on end_code, keep for reading)
         TRUE      # register (v7 tracks this for cleanup)
@@ -126,9 +126,9 @@ if ( $img_width > $max_width || $img_height > $max_height ) {
 );
 
 # Spawn vision CLI process immediately (4B model loads fast: 6.5s)
-my $binary      = <llama-vision.binary>;
-my $model_path  = <llama-vision.vision_model_path>;
-my $mmproj_path = <llama-vision.vision_mmproj_path>;
+my $binary      = <lm-vision.binary>;
+my $model_path  = <lm-vision.vision_model_path>;
+my $mmproj_path = <lm-vision.vision_mmproj_path>;
 
 ## minimal prompt template set-up : extract later..
 #
@@ -183,7 +183,7 @@ unless ( $model_path && $mmproj_path ) {
     return {
         'mode' => qw| false |,
         'data' =>
-            'vision model not configured - check llama-vision initialization'
+            'vision model not configured - check lm-vision initialization'
     };
 }
 
@@ -214,7 +214,7 @@ my @cmd = (
 
 # Set up environment for vision model
 local $ENV{'LD_LIBRARY_PATH'}
-    = <llama-vision.lib_path> . ':' . ( $ENV{'LD_LIBRARY_PATH'} // '' );
+    = <lm-vision.lib_path> . ':' . ( $ENV{'LD_LIBRARY_PATH'} // '' );
 
 # Spawn vision CLI process with stdin redirected from /dev/null
 # This prevents the model from waiting for stdin input
@@ -255,7 +255,7 @@ foreach my $fh ( $rdr, $err ) {
 }
 
 # Generate unique job ID
-my $job_id = <[base.gen_id]>->(<llama-vision.jobs>);
+my $job_id = <[base.gen_id]>->(<lm-vision.jobs>);
 
 # Create job entry with filehandles and output buffers
 my $job = {
@@ -273,14 +273,14 @@ my $job = {
 };
 
 # Store job in queue
-<llama-vision.jobs>->{$job_id} = $job;
+<lm-vision.jobs>->{$job_id} = $job;
 
 <[base.logs]>->( 1, "[analyze_image] spawned: job=%s pid=%d", $job_id, $pid );
 
 # Register non-blocking I/O handler for stdout (data reading - lightweight)
 $job->{'rdr_io'} = <[event.add_io]>->(
     {   'fd'      => $rdr,
-        'handler' => 'llama-vision.handler.read_output',
+        'handler' => 'lm-vision.handler.read_output',
         'data'    => $job_id,
         'poll'    => qw| r |
     }
@@ -289,7 +289,7 @@ $job->{'rdr_io'} = <[event.add_io]>->(
 # Register non-blocking I/O handler for stderr (completion trigger via exception/EOF)
 $job->{'err_io'} = <[event.add_io]>->(
     {   'fd'      => $err,
-        'handler' => 'llama-vision.handler.check_completion',
+        'handler' => 'lm-vision.handler.check_completion',
         'data'    => $job_id,
         'poll'    => qw| e |
     }
@@ -301,8 +301,8 @@ $job->{'err_io'} = <[event.add_io]>->(
 );
 return { 'mode' => 'deferred' };
 
-#,,,.,.,,,,,.,.,.,.,.,,,.,..,,,..,,,.,,..,.,.,..,,...,...,.,,,,,.,...,,..,,..,
-#3MJ6DLOKEDT47LAVL2IIHXSYCKOQSNEFI66XNNI6DQWB5XRXX33ZVCYO7MJFH2BKMGNOBDKVV6MVM
-#\\\|OQ4X2MYCWDRADSJCBJI5IZSPREBP7ETKZRQOYHKZX3VTJVQK7A2 \ / AMOS7 \ YOURUM ::
-#\[7]X3A5FLIHMLZPH7H6WDOZH5FYUKPJHOCDMCUWMYUSDFKXGGWSWCAY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,..,,.,,,,..,...,,.,,,..,...,.,,,..,,...,...,...,.,.,,,.,..,,,,,,
+#KJHW2RFICJNZ4U3NOJMJV7NCCWQ5FYXFKMIIQSV72I43YKR6ZZAOFWMKY6P4L4AFLI3P7MAC443TO
+#\\\|ACKGQVZVEVN3ZOSEK427P6TRMQ33FJTYBESKCPIQR2MACD64U57 \ / AMOS7 \ YOURUM ::
+#\[7]ON6TIYPTVCFDNE72GDY2Z6L6WSTKX2OPVL4CVAXJ2FAYHXB3CAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

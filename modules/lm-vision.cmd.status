@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = llama-vision.cmd.status
+# name  = lm-vision.cmd.status
 # descr = query vision analysis job status
 
 my $job_id = $call->{'args'};
@@ -8,12 +8,12 @@ my $job_id = $call->{'args'};
 if ( !defined $job_id || !length $job_id ) {
 
     # Return overall status
-    my $job_count = scalar keys %{<llama-vision.jobs>};
+    my $job_count = scalar keys %{<lm-vision.jobs>};
     my $active    = 0;
     my $completed = 0;
     my $failed    = 0;
 
-    foreach my $job ( values %{<llama-vision.jobs>} ) {
+    foreach my $job ( values %{<lm-vision.jobs>} ) {
         $active++    if $job->{'status'} eq 'running';
         $completed++ if $job->{'status'} eq 'completed';
         $failed++    if $job->{'status'} eq 'failed';
@@ -30,9 +30,9 @@ if ( !defined $job_id || !length $job_id ) {
 
 # Query specific job
 return { 'mode' => 'false', 'data' => 'no such job' }
-    unless exists <llama-vision.jobs>->{$job_id};
+    unless exists <lm-vision.jobs>->{$job_id};
 
-my $job = <llama-vision.jobs>->{$job_id};
+my $job = <lm-vision.jobs>->{$job_id};
 
 my $status_str = sprintf(
     'Job %s: status=%s pid=%s runtime=%d sec',
@@ -58,8 +58,8 @@ return {
     'data' => $status_str
 };
 
-#,,..,...,.,,,,.,,,..,...,,,,,,,.,,.,,,.,,..,,..,,...,...,,,.,.,.,,..,,,,,.,,,
-#XWH2TGPYPSSLL76BBVUHZGQ5FNPY3KWABX6Y65XXTEMVCF3IWH2UGMOXUBYYDJOIHTWSRRSFAAVM4
-#\\\|6ZA2Q3JIFX7SA54BRGF657NSHAYLNMJ54GEXEGYH3DBMFXKK57B \ / AMOS7 \ YOURUM ::
-#\[7]TJRJRCXDSNPS777P57NAG32QAJQLFME5BRFVEUJNT4FZJA2EJ2DA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,,.,,..,,,,.,,..,,,.,,,.,.,,,,,.,..,,...,..,,,,.,,,,,..,,,,,,..,,
+#5GKBVYXC6JW22J2BSBHDV5QIYXB5Z6QXJCA7GLVGKMML7FIZIQ7IDANGBKABBRHVC2FWPSOQLLKAK
+#\\\|4R6JYHPEVAQANF7Q7M5ETKWFZIMRP5INGKJNWQPM3GFVBMIUJZ3 \ / AMOS7 \ YOURUM ::
+#\[7]J4733AMLFHGDQ45B4RED5B2DO2KE7VMPT7T7GXQAIKDWP7M6CCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

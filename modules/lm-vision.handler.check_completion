@@ -1,14 +1,15 @@
 ## [:< ##
 
-# name  = llama-vision.handler.check_completion
+# name  = lm-vision.handler.check_completion
 # descr = check if vision job is complete (process exited AND all data read)
 
 my $watcher = shift->w;
 my $job_id  = $watcher->data;
 
-<[base.logs]>->( 2, "[check_completion] exception event for job=%s", $job_id );
+<[base.logs]>
+    ->( 2, "[check_completion] exception event for job=%s", $job_id );
 
-my $vision_job = <llama-vision.jobs>->{$job_id};
+my $vision_job = <lm-vision.jobs>->{$job_id};
 
 unless ( defined $vision_job ) {
     <[base.logs]>->( 1, "[check_completion] job not found: %s", $job_id );
@@ -20,6 +21,7 @@ unless ( defined $vision_job ) {
 if ( $vision_job->{'processed'} ) {
     <[base.logs]>->( 2, "[check_completion] already processed, cancelling" );
     $watcher->cancel if $watcher->is_active;
+
     # Also cancel the read handler to prevent warnings
     if ( defined $vision_job->{'rdr_io'} ) {
         $vision_job->{'rdr_io'}->cancel if $vision_job->{'rdr_io'}->is_active;
@@ -132,15 +134,14 @@ if ( $init_end_pos >= 0 ) {
         $full_output = substr( $full_output, $line_end + 1 );
         map { <[base.logs]>->( 1, $ARG ) } split "\n",
             sprintf(
-                "[check_completion] %s",
-                <[base.wrap_text]>->(
-                    '', 42,
-                    sprintf(
-                        'found init marker at %d, skipped %d bytes of init output',
-                        $init_end_pos,
-                        $line_end + 1
-                    )
+            "[check_completion] %s",
+            <[base.wrap_text]>->(
+                '', 42,
+                sprintf(
+                    'found init marker at %d, skipped %d bytes of init output',
+                    $init_end_pos, $line_end + 1
                 )
+            )
             );
     } else {
 
@@ -148,24 +149,24 @@ if ( $init_end_pos >= 0 ) {
         $full_output = substr( $full_output, $init_end_pos );
         map { <[base.logs]>->( 1, $ARG ) } split "\n",
             sprintf(
-                "[check_completion] %s",
-                <[base.wrap_text]>->(
-                    '', 42,
-                    sprintf(
-                        'found init marker at %d, skipped to marker location',
-                        $init_end_pos
-                    )
-                )
+            "[check_completion] %s",
+            <[base.wrap_text]>->(
+                '', 42,
+                sprintf(
+                    'found init marker at %d, skipped to marker location',
+                    $init_end_pos )
+            )
             );
     }
 } else {
     map { <[base.logs]>->( 1, $ARG ) } split "\n",
         sprintf(
-            "[check_completion] %s",
-            <[base.wrap_text]>->(
-                '', 42,
-                'init marker not found in cleaned output, continuing with pattern matching'
-            )
+        "[check_completion] %s",
+        <[base.wrap_text]>->(
+            '',
+            42,
+            'init marker not found in cleaned output, continuing with pattern matching'
+        )
         );
 }
 
@@ -219,14 +220,11 @@ if ( length $payload ) {
     );
     map { <[base.logs]>->( 1, $ARG ) } split "\n",
         sprintf(
-            "[check_completion] %s",
-            <[base.wrap_text]>->(
-                '', 42,
-                sprintf(
-                    'cleaned payload: %s',
-                    substr( $payload, 0, 200 )
-                )
-            )
+        "[check_completion] %s",
+        <[base.wrap_text]>->(
+            '', 42,
+            sprintf( 'cleaned payload: %s', substr( $payload, 0, 200 ) )
+        )
         );
     <[base.logs]>->(
         1,
@@ -257,13 +255,13 @@ if ( length $payload ) {
 # Schedule cleanup after 70 seconds
 <[event.add_timer]>->(
     {   'after'   => 70,
-        'handler' => qw| llama-vision.handler.job_cleanup |,
+        'handler' => qw| lm-vision.handler.job_cleanup |,
         'data'    => $job_id
     }
 );
 
-#,,.,,,..,,,,,,,,,,,,,...,,.,,,,.,,.,,,,.,,,,,..,,...,..,,,.,,..,,.,,,.,.,,,,,
-#75WP73LRM27E4QXY2AWS5ZXWBZN4PBV6MTUWZ25CII6AFXSAE4OFAFIO2SMJJH7CCNJS6XDAAMKT4
-#\\\|U4J2YPPDSFOLFXRPRMBYHUGVGYUTT3DFPZBR2UE4SEYVHGYLIIX \ / AMOS7 \ YOURUM ::
-#\[7]VXD2KCJWQKFXJ7V54GJF3VKSDHGNTFA4VEFNDTZUAU6T677CD6DQ 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,.,.,,..,,,.,.,.,,,.,,,.,.,.,.,.,..,,...,...,...,..,,...,.,.,..,,
+#VKNKJ6TBMDZKIZXI3WFDXD4M3KYS4PSEVQEBV3DHSBJ7DJZVOVIQUJPJRLHQUMJ3A6AFEKZOGYFQQ
+#\\\|ULNIXTJUPSWHNYEDD7SOUG5VEVQS76WVWCJK2VBFMAZZ3F2XMTN \ / AMOS7 \ YOURUM ::
+#\[7]45YIPIHQADZY3MDZDDOZVJ4ZXCPW2K3N6G7NJXUOQVFPNYPJ6OAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

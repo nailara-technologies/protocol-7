@@ -1,12 +1,12 @@
 ## [:< ##
 
-# name  = llama-vision.handler.check_batch_completion
+# name  = lm-vision.handler.check_batch_completion
 # descr = check if batched vision job is complete and route responses to individual requests
 
 my $watcher  = shift->w;
 my $batch_id = $watcher->data;
 
-my $batch_job = <llama-vision.jobs>->{$batch_id};
+my $batch_job = <lm-vision.jobs>->{$batch_id};
 
 unless ( defined $batch_job ) {
     $watcher->cancel if $watcher->is_active;
@@ -16,6 +16,7 @@ unless ( defined $batch_job ) {
 # If already processed, cancel both handlers and return
 if ( $batch_job->{'processed'} ) {
     $watcher->cancel if $watcher->is_active;
+
     # Also cancel the read handler to prevent warnings
     if ( defined $batch_job->{'rdr_io'} ) {
         $batch_job->{'rdr_io'}->cancel if $batch_job->{'rdr_io'}->is_active;
@@ -70,13 +71,13 @@ if ( length $batch_job->{'output'} ) {
 # Schedule cleanup after 60 seconds
 <[event.add_timer]>->(
     {   'after'   => 60,
-        'handler' => 'llama-vision.handler.job_cleanup',
+        'handler' => 'lm-vision.handler.job_cleanup',
         'data'    => $batch_id
     }
 );
 
-#,,.,,,,.,..,,.,,,...,,,,,..,,,,,,,.,,,..,.,,,..,,...,...,.,.,,,.,.,.,...,,,,,
-#L3KWRURQQR7THPRBK4LXQAMMU4BJAYBMXJ4KFPTCO6IUCB2RCHFQUSRAMZCQQJFO6LRBKVPRKTXT6
-#\\\|AV76BFWRCDLLEPPIGORAOINSMN5MGVSEGPLM56OOWQ4GER45KSB \ / AMOS7 \ YOURUM ::
-#\[7]4LIQV6QP2HVNVTVSBHYS4IZZ6QAYFYRVSEJSYGHDXZKIEIKVUSDA 7  DATA SIGNATURE ::
+#,,..,..,,,.,,...,,.,,,,,,...,,,.,..,,.,,,...,..,,...,...,...,...,,.,,,,.,,,.,
+#NAMFIWLKK43AJ5S67KNQBOQSDS2FJ2GWS3NF35ZEVRS4SEEDY7NYLPLBAAH2Y57QNIDK7BFBZ6Y5U
+#\\\|LRXROGCHPVNR37RNALON43CUCVJDSKRDSISFVLDGBMJFNFLBHOK \ / AMOS7 \ YOURUM ::
+#\[7]F3TVFFME5AJO5XPC23JLEOYQY5PHO2MZN6N6V35FOJZRYW4GQYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

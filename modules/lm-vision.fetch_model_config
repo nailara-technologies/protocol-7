@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name = llama-vision.fetch_model_config
+# name = lm-vision.fetch_model_config
 # descr = Handle async response from models.get_model_path for vision config
 
 <[base.perlmod.autoload]>->(qw| JSON::PP |);
@@ -11,7 +11,7 @@ my $reply = shift;
 my $response_data = $reply->{'data'} // '';
 
 <[base.logs]>->(
-    1, "[llama-vision] fetch_model_config: received %d bytes",
+    1, "[lm-vision] fetch_model_config: received %d bytes",
     length($response_data)
 );
 
@@ -25,38 +25,36 @@ if ( $response_data && length($response_data) > 0 ) {
         my $mmproj_path = $model_data->{mmproj};
 
         if ( -f $model_path && -f $mmproj_path ) {
-            <llama-vision.vision_model_path>  = $model_path;
-            <llama-vision.vision_mmproj_path> = $mmproj_path;
+            <lm-vision.vision_model_path>  = $model_path;
+            <lm-vision.vision_mmproj_path> = $mmproj_path;
 
             <[base.log]>->(
-                1, "[llama-vision] Vision model loaded: %s", $model_path
+                1, "[lm-vision] Vision model loaded: %s", $model_path
             );
             <[base.log]>->(
-                1, "[llama-vision] Multimodal proj: %s", $mmproj_path
+                1, "[lm-vision] Multimodal proj: %s", $mmproj_path
             );
 
             return 1;
         } else {
-            <[base.log]>
-                ->( 0, "[llama-vision] Error: Model files not found" );
+            <[base.log]>->( 0, "[lm-vision] Error: Model files not found" );
         }
     } else {
         <[base.log]>->(
-            0,
-            "[llama-vision] Error: Failed to parse model configuration JSON"
+            0, "[lm-vision] Error: Failed to parse model configuration JSON"
         );
     }
 } else {
     <[base.log]>->(
         0,
-        "[llama-vision] Error: Empty or missing response data from models zenka"
+        "[lm-vision] Error: Empty or missing response data from models zenka"
     );
 }
 
 return 0;
 
-#,,,.,...,,,.,...,,.,,,,.,,,,,.,.,..,,...,.,.,..,,...,...,...,,,,,,,.,.,,,,..,
-#KLIZMORXKW7XUAILWEBRBZWJDPNU7FH4HIJZTHJSSTO2WWFX2BZ6VJXSTO6E7FKR4LJ33LOOKRCG4
-#\\\|PC7AEQTJIFVQABNE7P37SZG5T6DPQ53YKGSZDYDANLCQLMURZDS \ / AMOS7 \ YOURUM ::
-#\[7]MEUSYTP4FK3QUHHNMIRU425UGYMIUMSFLJ5JHBYZUV3TFUZV7MDQ 7  DATA SIGNATURE ::
+#,,,.,..,,,..,.,,,,,.,..,,,.,,..,,,..,..,,..,,..,,...,...,,..,,,.,.,,,,,,,,,,,
+#GXQS7ALCFTHRJESQCP7TKSH6DKWBHDWOCO62J3QCJ3JSUGQ7VSMKG55ENLA5WYSXWY6UYMHSNBA4W
+#\\\|CR3NJDORPZYPTRMXXTFZ7QS2F747E3H6R3EKXOHU676GAASPV5D \ / AMOS7 \ YOURUM ::
+#\[7]APLN5M6E3HHSU6YQZB6FEPTYCJQ2BL6WU3CDJPX4DSCAE66FEOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

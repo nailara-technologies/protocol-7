@@ -1,0 +1,18 @@
+## [:< ##
+
+# name  = lm-vision.handler.job_cleanup
+# descr = clean up completed job data from memory
+
+my $watcher = shift->w;
+my $job_id  = $watcher->data;
+
+if ( exists <lm-vision.jobs>->{$job_id} ) {
+    <[base.logs]>->( 2, "[job_cleanup] removing: job=%s", $job_id );
+    delete <lm-vision.jobs>->{$job_id};
+}
+
+#,,,,,...,,,,,,,,,,,,,,,,,,,,,.,,,...,.,,,.,.,..,,...,...,..,,..,,.,,,,..,.,.,
+#KFHUW2QKID372XLQ5UD4OQAYOWQA2YB7SSAROEJ4SRCU46UJOUF753Q344OQJQQFPYSUV745TKKEW
+#\\\|K6ARBBKAF64GFUNXV4DMYKTYMOZPKAJN5HJLVJ2LP7FMAIMI4U3 \ / AMOS7 \ YOURUM ::
+#\[7]ICG3WQFXFQZBVVFIIDQKVDNGGVAVUQQPT53KWILKGFSTWPRDKWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

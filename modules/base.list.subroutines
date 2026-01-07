@@ -488,6 +488,7 @@ return [ qw[
         models.conversation
         models.cmd.discover
         mediainfo.init_code
+        lm-vision.init_code
         letsencr.cmd.revoke
         letsencr.cmd.enroll
         keys.console.rename
@@ -596,6 +597,7 @@ return [ qw[
         models.config.loader
         models.cmd.recommend
         models.cmd.get_model
+        lm-vision.cmd.status
         keys.console.enc-key
         keys.console.dec-key
         io.ip.tcp.input.open
@@ -851,7 +853,6 @@ return [ qw[
         melt.cmd.extract_frame
         mediainfo.cmd.get_info
         logo-display.init_code
-        llama-vision.init_code
         letsencr.child.get_jwk
         letsencr.base.pre_init
         keys.console.duplicate
@@ -975,7 +976,6 @@ return [ qw[
         models.list_attachments
         models.cmd.local_server
         models.cmd.extract_file
-        llama-vision.cmd.status
         letsencr.child.acme_new
         letsencr.base.post_init
         letsencr.base.init_code
@@ -1480,6 +1480,8 @@ return [ qw[
         models.backend.local.invoke
         mod-test.cmd.list-successes
         mod-test.blacklist_perlcode
+        lm-vision.cmd.get_debug_log
+        lm-vision.cmd.analyze_image
         letsencr.child.generate_csr
         keys.write_key_archive_file
         keys.console.get-sp-pub-key
@@ -1597,6 +1599,8 @@ return [ qw[
         models.cmd.load_conversation
         mod-test.cmd.erase-blacklist
         mod-test.cmd.blacklisted-add
+        lm-vision.fetch_model_config
+        lm-vision.cmd.get_raw_sample
         letsencr.dns.inwx_delete_txt
         letsencr.dns.inwx_create_txt
         keys.console.list-upgradable
@@ -1697,6 +1701,10 @@ return [ qw[
         models.cmd.invoke_participant
         models.checksum.calculate_all
         mod-test.cmd.list-blacklisted
+        lm-vision.handler.read_output
+        lm-vision.handler.job_cleanup
+        lm-vision.cmd.get_full_stderr
+        lm-vision.cmd.get_full_output
         letsencr.parent.send_to_child
         letsencr.child.send_to_parent
         keys.select_archive_path.curs
@@ -1817,8 +1825,6 @@ return [ qw[
         mod-test.update_blacklist_aref
         melt.handler.frame_count_reply
         llm.service.subprocess_wrapper
-        llama-vision.cmd.get_debug_log
-        llama-vision.cmd.analyze_image
         letsencr.child.get_fresh_nonce
         keys.console.gen-file-seed-key
         jobqueue.handler.queue_counter
@@ -1902,8 +1908,7 @@ return [ qw[
         mod-test.write-mem-list-to-disk
         mod-test.cmd.clear-success-list
         mod-test.cmd.blacklisted-remove
-        llama-vision.fetch_model_config
-        llama-vision.cmd.get_raw_sample
+        lm-vision.handler.process_batch
         letsencr.parent.send_from_child
         letsencr.parent.activity_logger
         letsencr.cmd.show-cipher-suites
@@ -1976,10 +1981,6 @@ return [ qw[
         models.cmd.test_end_to_end_local
         models.cmd.conversation_add_turn
         mod-test.perlmod.run_reload_test
-        llama-vision.handler.read_output
-        llama-vision.handler.job_cleanup
-        llama-vision.cmd.get_full_stderr
-        llama-vision.cmd.get_full_output
         letsencr.parent.save_certificate
         letsencr.parent.cmd.query-vhosts
         letsencr.parent.cmd.activity-log
@@ -2127,7 +2128,7 @@ return [ qw[
         models.conversation.consensus_vote
         models.callback.inference_endpoint
         mod-test.write_out_blacklist_pcode
-        llama-vision.handler.process_batch
+        lm-vision.handler.check_completion
         letsencr.parent.query_httpd_vhosts
         letsencr.parent.handler_cert_ready
         letsencr.dns.cloudflare_delete_txt
@@ -2176,6 +2177,7 @@ return [ qw[
         models.cmd.conversation_get_context
         mod-test.scan_INC_chksum_collisions
         mod-test.callback.reload-test.start
+        lm-vision.handler.read_batch_output
         letsencr.parent.process_pending_ops
         letsencr.parent.handler_child_ready
         letsencr.child.respond_to_challenge
@@ -2249,7 +2251,6 @@ return [ qw[
         models.statistics.invocation_tracking
         models.registry.init_from_definitions
         models.decision.recommendation_engine
-        llama-vision.handler.check_completion
         letsencr.parent.handler_renewal_retry
         letsencr.parent.handler_renewal_reply
         letsencr.parent.handler_renewal_check
@@ -2282,7 +2283,6 @@ return [ qw[
         models.registry.base.get_registry_path
         models.handler.read_inference_response
         mod-test.callback.reload-test.add-link
-        llama-vision.handler.read_batch_output
         letsencr.parent.send_httpd_vhost_query
         letsencr.parent.queue_renewal_requests
         letsencr.parent.notify_httpd_challenge
@@ -2329,6 +2329,7 @@ return [ qw[
         mpv.handler.event.property-change.height
         models.registry.list_all.list_all_models
         models.decision.cost_base.get_group_path
+        lm-vision.handler.check_batch_completion
         letsencr.parent.handler_revocation_reply
         letsencr.parent.handler_enrollment_retry
         letsencr.parent.handler_enrollment_reply
@@ -2378,7 +2379,6 @@ return [ qw[
         models.registry.empty.create_empty_registry
         models.registry.base.save_registry_internal
         mod-test.callback.reload-test.is_registered
-        llama-vision.handler.check_batch_completion
         letsencr.parent.handler_challenge_validated
         httpd.handler.download_transfer.test-broken
         debian.parent.callback.register_deb_package
@@ -2443,8 +2443,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,,.,,,,,,,,.,...,,.,,.,.,..,,..,,,,,,,.,,.,.,...,..,,,,,,..,,,,,,...,...,
-#IT6IWXZYFUOTKRQM7N5OJJJHWCZGGFVHXR33FSSV2FWAFNB2ER4TOWETXVIGXTD5IQWCPKJ5QMYYE
-#\\\|66HDQW2XK2SVB6TZLADVYXL77LVVIOTHSCBRFHPMFYMIAMSG3WO \ / AMOS7 \ YOURUM ::
-#\[7]UQT4YKU7SQ44PGAJYKDXYHNESJSA6KNFO76T27Q2TDUGGSH34SDI 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,.,,,,,,,..,,.,.,.,.,,,.,..,,,,,,.,.,...,...,..,,,,.,,,,,,.,,,,.,
+#2AG3EU5KYG4GA6N737CVRYS665GFO7KFMFUNH3JV5EUO65MLXW5NCSCTVMO7E73MQFXAFHSUPCCI2
+#\\\|KBZLZNTLPGS5XGS36OOXBV5YNDVBMPBL22O2BPO75N6S45PSP6L \ / AMOS7 \ YOURUM ::
+#\[7]QG73YFOBBSUEGEPMTQKIG4KO22QC4OSDRZLTB36XAU56XO33CICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
