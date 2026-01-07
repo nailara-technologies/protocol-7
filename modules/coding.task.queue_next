@@ -12,7 +12,7 @@ my $active_ref  = <coding.task.active>;
 # Filter tasks that have no unfinished dependencies
 my @available = ();
 
-foreach my $task_id ( @$pending_ref ) {
+foreach my $task_id (@$pending_ref) {
     my $task = $queue_ref->{$task_id};
 
     # Skip if not pending
@@ -50,18 +50,18 @@ if (@sorted) {
     return {
         success         => TRUE,
         task            => $task,
-        queue_remaining => scalar( @$pending_ref )
+        queue_remaining => scalar(@$pending_ref)
     };
 }
 
 return {
     success    => FALSE,
     error      => 'no available tasks in queue',
-    queue_size => scalar( @$pending_ref )
+    queue_size => scalar(@$pending_ref)
 };
 
-#,,,.,,..,.,,,.,,,,.,,,,,,,,.,.,,,,,.,,..,,.,,..,,...,...,.,,,.,.,,,,,,..,,.,,
-#CVTM6GFS7ZCIYHPKMNAOWCRTPFORXU2DXFDMX36D36JHWPC7CJLHG4EIULIUHQSSV5NWGQQ64WMOO
-#\\\|JNUHNK2O7D2FOUTXPO3IKXWISKHXRW65JELJPSGJD4QLVXX6PPF \ / AMOS7 \ YOURUM ::
-#\[7]CVZPVY2DNPRPW6XCACXN2DO3EK37UUQQW5MVREFENYJTEJIDGMAY 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,.,.,,,..,,,,.,,,,,...,.,.,,..,..,,...,..,,,.,,,,.,.,.,..,,,.,,
+#E3NBTVQF3WEOH5XG6KLEB6SND24IHXMTLECDPJTJUVAPGLLBWGDSSWFIE7FIAJKSWZBEX4YY733TS
+#\\\|XYPPZZRUSMLJ6KP5V5S2LTHJNVWPQOWVT3V46HCISBPCXCFGBYN \ / AMOS7 \ YOURUM ::
+#\[7]AC5WU5VJEFNPOWWTDTON2DVJYVHGGJKZNGRZWMGXCR5XNTAXWODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

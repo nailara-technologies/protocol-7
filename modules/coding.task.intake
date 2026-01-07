@@ -4,40 +4,34 @@
 # descr = parse and ingest work requests from various sources
 # purpose = Foundation layer: Accept, parse, and structure incoming work
 
-use strict;
-use warnings;
-use JSON::XS;
-use Time::HiRes qw(time);
-use Digest::SHA qw(sha256_hex);
-
 # Parse command-line style strings into structured requests
-my $parse_command_string = sub {
+my $parse_command_string = sub {   ## [LLL] extract into seperate subroutine!!
     my ($cmd) = @ARG;
 
 # Simple command parsing: "type: description | constraints"
 # Example: "code-generation: Create Whisper module | Protocol-7 compatible, cache results"
 
-    if ( $cmd =~ /^([\w-]+):\s*(.+?)(?:\s*\|\s*(.+))?$/ ) {
+    if ( $cmd =~ m{^([\w-]+):\s*(.+?)(?:\s*\|\s*(.+))?$} ) {
         my ( $type, $desc, $constraints_str ) = ( $1, $2, $3 );
 
         my @constraints = ();
         if ($constraints_str) {
-            @constraints = split( /\s*,\s*/, $constraints_str );
+            @constraints = split( m{\s*,\s*}, $constraints_str );
         }
 
         return {
             type        => $type,
             description => $desc,
             constraints => \@constraints,
-            source      => 'console'
+            source      => qw| console |
         };
     }
 
     # Fallback: treat entire string as description
     return {
-        type        => 'analysis',
-        description => $cmd,
-        source      => 'console'
+        type        => qw| analysis |,
+        source      => qw|  console |,
+        description => $cmd
     };
 };
 
@@ -62,13 +56,13 @@ my $normalize_task = sub {
     my ($task) = @ARG;
 
     # Ensure all required fields exist with sensible defaults
-    $task->{type}                = lc( $task->{type} // 'analysis' );
-    $task->{priority}            = $task->{request}->{priority} // 'normal';
-    $task->{execution}->{status} = 'pending';
+    $task->{type}                = lc( $task->{type} // qw| analysis | );
+    $task->{priority}            = $task->{request}->{priority} // qw|normal|;
+    $task->{execution}->{status} = qw| pending |;
 
     # Normalize priority values
-    if ( $task->{priority} !~ /^(critical|high|normal|low)$/ ) {
-        $task->{priority} = 'normal';
+    if ( $task->{priority} !~ m{^(critical|high|normal|low)$} ) {
+        $task->{priority} = qw| normal |;
     }
 
     return $task;
@@ -79,11 +73,11 @@ my $intake_work = sub {
     my ($request) = @ARG;
 
     # Support multiple input formats
-    if ( ref($request) eq 'HASH' ) {
+    if ( ref($request) eq qw| HASH | ) {
 
         # Already structured as hash
-        return $request if exists $request->{id};
-    } elsif ( ref($request) eq '' ) {
+        return $request if exists $request->{'id'};
+    } elsif ( not length ref $request ) {
 
         # Plain string - parse as command
         $request = $parse_command_string->($request);
@@ -98,34 +92,34 @@ my $intake_work = sub {
     # Validate and structure the work request
     my $task = {
         id => $request->{id} // <[coding.helper.task_id_generator]>->(
-            $request->{type}, $request->{description}
+            $request->{type}, $request->{'description'}
         ),
-        type    => $request->{type}    // 'analysis',
-        subtype => $request->{subtype} // '',
-        source  => $request->{source}  // 'api',
+        type    => $request->{'type'}    // qw| analysis |,
+        subtype => $request->{'subtype'} // '',
+        source  => $request->{'source'}  // qw| api |,
 
         request => {
-            description => $request->{description} // '',
-            language    => $request->{language}    // 'en',
-            target      => $request->{target}      // 'auto',
-            constraints => ref( $request->{constraints} ) eq 'ARRAY'
-            ? $request->{constraints}
+            description => $request->{'description'} // '',
+            language    => $request->{'language'}    // qw| en |,
+            target      => $request->{'target'}      // qw| auto |,
+            constraints => ref( $request->{'constraints'} ) eq qw| ARRAY |
+            ? $request->{'constraints'}
             : [],
-            deadline => $request->{deadline} // 'flexible',
-            priority => $request->{priority} // 'normal'
+            deadline => $request->{'deadline'} // qw| flexible |,
+            priority => $request->{'priority'} // qw| normal |
         },
 
         analysis => {
-            complexity       => undef,      # Will be calculated
-            estimated_tokens => undef,      # Will be estimated
-            routed_to        => undef,      # Will be decided
-            fallback         => undef,      # Will be determined
-            cache_priority   => 'normal',
+            complexity       => undef,          # Will be calculated
+            estimated_tokens => undef,          # Will be estimated
+            routed_to        => undef,          # Will be decided
+            fallback         => undef,          # Will be determined
+            cache_priority   => qw| normal |,
             success_history  => { similar_tasks => 0, success_rate => 0 }
         },
 
         execution => {
-            status      => 'pending',
+            status      => qw| pending |,
             started     => undef,
             completed   => undef,
             model_used  => undef,
@@ -137,14 +131,14 @@ my $intake_work = sub {
 
         learning => {
             approach_effectiveness => undef,
-            should_cache           => 1,
+            should_cache           => TRUE,
             pattern_id             => undef,
             next_improvement       => undef
         },
 
         metadata => {
-            ingested_at => time(),
-            ingested_by => $request->{source} // 'unknown',
+            ingested_at => <[base.time]>->(3),
+            ingested_by => $request->{'source'} // qw| unknown |,
             raw_request => $request
         }
     };
@@ -152,33 +146,33 @@ my $intake_work = sub {
     return {
         success => TRUE,
         task    => $task,
-        message => "Task ingested: " . $task->{id}
+        message => sprintf( "Task ingested: %s", $task->{'id'} )
     };
 };
 
 # Main entry point
 {
-    my $result = $intake_work->(@_);
+    my $result = $intake_work->(@ARG);
 
-    if ( $result->{success} && $result->{task} ) {
+    if ( $result->{'success'} && $result->{'task'} ) {
 
         # Validate the structured task
-        my $validation = $validate_task->( $result->{task} );
-        if ( !$validation->{valid} ) {
+        my $validation = $validate_task->( $result->{'task'} );
+        if ( !$validation->{'valid'} ) {
             return {
                 success => FALSE,
-                error   => "Task validation failed: "
-                    . join( ", ", @{ $validation->{errors} } )
+                error   => sprintf( "Task validation failed: %s",
+                    join( ", ", $validation->{'errors'}->@* ) )
             };
         }
 
         # Normalize the task
-        my $normalized = $normalize_task->( $result->{task} );
+        my $normalized = $normalize_task->( $result->{'task'} );
 
         return {
             success => TRUE,
             task    => $normalized,
-            message => $result->{message}
+            message => $result->{'message'}
         };
     }
 
@@ -187,8 +181,8 @@ my $intake_work = sub {
 
 # AMOS7::TEMPLATE::signature_placeholder
 
-#,,..,.,,,,,,,,,,,.,.,,..,,..,,,,,,,,,,..,.,.,..,,...,...,,..,,,.,,,.,...,.,,,
-#CQP36CKRJJIEDLPCNCT5EKSS4JQDGSIYODMGICJY4QRIV7BDHLEPL5VXO3D6CQT4W7HINIO6ZYYIU
-#\\\|HZZVABSPIA5B5GMK2EHMZE7EOBYNIYYLZYYBNOYYDTDREKQLP46 \ / AMOS7 \ YOURUM ::
-#\[7]WPOZVC3AIMPJVEKSTIPP6FC63MCNUI3XPUOAEVCNWKGGGR32OUBY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,.,.,...,.,.,.,,,...,,..,.,.,.,,,..,,...,...,,..,,,,,,,.,,,,,.,.,
+#BADGX2CEFHTQXVZU6NQPRITR6RWUKGIVVJ57ZBYPO354BSXHP4UJUCWJ4TFOOYGHQCZABCCFEGLDY
+#\\\|K4DQ7XJRSIINK4ZGCCHCMLMAAVWW5KK2XEDJCDDSCJV2LWJ6Y3M \ / AMOS7 \ YOURUM ::
+#\[7]46CUIUJYESFFFUQTWFVFWKH3PVYJPP7VWRTELXJE25VBCAMEEOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

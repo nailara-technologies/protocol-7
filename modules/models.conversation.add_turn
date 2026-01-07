@@ -14,7 +14,7 @@ my $backend_type  = $params->{'backend_type'}  // '';
 my $model_role    = $params->{'model_role'}    // '';
 my $latency_ms    = $params->{'latency_ms'}    // 0;
 my $fallback_from = $params->{'fallback_from'} // undef;
-my $context       = $params->{'context'}       // 'conversation';
+my $context       = $params->{'context'}       // qw| conversation |;
 
 return {
     'success' => FALSE,
@@ -24,7 +24,7 @@ return {
 
 return {
     'success' => FALSE,
-    'error'   => 'role required (system, user, assistant)'
+    'error'   => 'role required [system, user, assistant]'
     }
     unless length($role);
 
@@ -66,7 +66,7 @@ my $turn = {
     'role'      => $role,
     'content'   => $content,
     'tokens'    => $tokens,
-    'timestamp' => time(),
+    'timestamp' => <[base.time]>->(4)
 };
 
 ## Add optional model attribution fields if provided
@@ -116,8 +116,8 @@ return {
     'elapsed_ms' => $elapsed_ms
 };
 
-#,,.,,,..,..,,,,.,,,.,...,,,.,,..,.,.,...,,,.,.,.,...,..,,..,,..,,.,,,.,.,.,.,
-#LRUJI3P6BUWGGFTCWMD2LO3FOIPIFHE42P3ZV6QO5BKHISM3T4EKJ5MQGZMJGSKJB3TJXJHH5GCX2
-#\\\|2IEVKKMXZYU7JUCJ3GBTP67VMVPX7GYLRZGBY5QNDO3MPKGKOIK \ / AMOS7 \ YOURUM ::
-#\[7]WVK3BQACJR44PFRIITPYDWJLXNZA64RGZFPV7XNOKUZUWFLRB6AI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,.,.,..,,,,.,...,..,,...,,.,,..,,.,.,...,..,,,,.,...,.,,,,..,...,
+#R3C6BVFFTATLUUZIHSBD53YQCRZREB7P2DZN7DT45JQ4NWVS2OOJX5HV6DU3XJMTPKYNCD52ZNZ3E
+#\\\|VDXWEWWMNUDTGSMZY5MTZFWGFL7U2VJ7ZLOHBRTKV27W4NOYE5I \ / AMOS7 \ YOURUM ::
+#\[7]XVHXSNNJP5WBHKUJMIV5FVRORQSZG4CS2P463J7FMFGZUUUDOWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
