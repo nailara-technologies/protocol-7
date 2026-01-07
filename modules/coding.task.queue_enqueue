@@ -31,7 +31,7 @@ if ( exists $queue_ref->{$task_id} ) {
 $queue_ref->{$task_id} = {
     %$task,
     queued_at      => <[base.time]>,
-    queue_position => scalar( @$pending_ref )
+    queue_position => scalar(@$pending_ref)
 };
 
 # Add to pending list (for ordering by priority)
@@ -43,12 +43,12 @@ push @$pending_ref, $task_id;
 return {
     success    => TRUE,
     task_id    => $task_id,
-    queue_size => scalar( @$pending_ref ),
+    queue_size => scalar(@$pending_ref),
     message    => "Task enqueued: $task_id"
 };
 
-#,,.,,,,.,..,,.,,,.,,,,,.,,..,,,.,,,.,,..,.,,,..,,...,...,,,.,,..,..,,,,,,.,,,
-#32ZFQQABDWLHKUBEAH52P7DXN6AZXP2QCI4T5CN6O4QS4XT7RBLGMVZCG4I2YWWHI24M76ZE6XIPU
-#\\\|BT6BQCWG35XWTYZG5SUS5Q2GDIE7YMHXUYH5LCOQJWHPJMYHYC5 \ / AMOS7 \ YOURUM ::
-#\[7]MOJFEKSUTSGXCHR5ZH54MZBNFBPHYHJCO4HZF5QULMM2JKVELUBY 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,.,.,,..,,..,,,,,,,.,.,.,,,,,.,.,..,,...,.,.,..,,..,,,,,,...,.,,,
+#CYAXA2OOONXVWV5OHMZ3IROTS2NOJPJSU5JDVSBENNWOTMDVABET7637RSLYLFJ3MNBSPFVNLCARE
+#\\\|G25EK26SHIOULZ5WSX3YN2IZ6LJWVFC5G3O7Q7X2PUWTEJA2VR7 \ / AMOS7 \ YOURUM ::
+#\[7]JJOJNQ4TOWN6NVH67LY4NRERBJ757P45ZPQS3YIWUEX5FHMQ5UBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

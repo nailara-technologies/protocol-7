@@ -38,12 +38,15 @@ my @cmd = ( $binary, '-p', $port, qw|  --host  127.0.0.1  | );
 # Add model path if provided
 push @cmd, '-m', $model_path if length($model_path);
 
+# disable log file for now [LLL] fix location and permissions [owner]
+push @cmd, qw| --log-disable --log-file /dev/null |;
+
 # Add context and other parameters
 push @cmd, '-c', 4096;    # Context size for text inference
 push @cmd, '-n', 2048;    # Default max tokens
 
 # Backend-specific settings
-if ( $backend eq 'cpu' ) {
+if ( $backend eq qw| cpu | ) {
     push @cmd, '-t', $threads;    # Number of threads
 } elsif ( $backend eq 'gpu' ) {
     push @cmd, '-ngl', $gpu_layers;    # GPU layers
@@ -60,11 +63,7 @@ $server_err = Symbol::gensym;
 local $ENV{'LD_LIBRARY_PATH'}
     = <coding.lib_path> . ':' . ( $ENV{'LD_LIBRARY_PATH'} // '' );
 
-my $pid = eval {
-    use IPC::Open3;
-    open( my $null_in, qw| < /dev/null | ) or die "cannot open /dev/null: $!";
-    IPC::Open3::open3( $null_in, $server_out, $server_err, @cmd );
-};
+my $pid = eval { IPC::Open3::open3( undef, $server_out, $server_err, @cmd ) };
 
 if ( !$pid || $EVAL_ERROR ) {
     <[base.logs]>->(
@@ -96,45 +95,30 @@ if ( !$pid || $EVAL_ERROR ) {
 };
 
 ## Register I/O handlers to monitor startup
-my $io_stdout = <[event.add_io]>->(
+<[event.add_io]>->(
     {   'fd'      => $server_out,
         'handler' => qw| coding.handler.monitor_inference_startup |,
         'data'    => {
             'backend'       => $backend,
             'log_whitelist' => [qw| INFO |]
         },
-        'poll' => qw| r |
+        'poll' => qw| re |
     }
 );
 
-my $io_stderr = <[event.add_io]>->(
+<[event.add_io]>->(
     {   'fd'      => $server_err,
         'handler' => qw| coding.handler.monitor_inference_startup |,
         'data'    => {
             'backend'       => $backend,
-            'log_whitelist' => [           ## [LLL] INFO already matches
-                'INFO',
-                'build info',
-                'system info',
-                'Model loaded',
-                'listening on',
-                'ready to accept',
-                'uvicorn',
-                'loading model',
-                'tokenizer loaded',
-                'use_mmap',
-                'use_mlock',
-                'n_parts',
-                'tokens per',
-                'GiB free memory'
-            ]
+            'log_whitelist' => [qw| INFO |]
         },
-        'poll' => qw| r |
+        'poll' => qw| re |
     }
 );
 
-<coding.inference_servers>->{$backend}->{'io_stdout'} = $io_stdout;
-<coding.inference_servers>->{$backend}->{'io_stderr'} = $io_stderr;
+<coding.inference_servers>->{$backend}->{'io_stdout'} = $server_out;
+<coding.inference_servers>->{$backend}->{'io_stderr'} = $server_err;
 
 return {
     'success' => TRUE,
@@ -143,8 +127,8 @@ return {
     'port'    => $port
 };
 
-#,,.,,,,,,.,,,.,.,,.,,,.,,..,,...,..,,...,,,,,..,,...,..,,..,,,,.,.,.,,,.,,.,,
-#VP5PS5MZO3DB5TFB7X54UZT5CCHSWWXIEKUKIU5YAIN6R4QLH5JPXESPB4JW5HVHIGVL6XH2JV3KO
-#\\\|AFW2SHDAYXEHZPKUMPDIKVFM3ZKRJPI3LY5CFZRE5G2MYOQS4KV \ / AMOS7 \ YOURUM ::
-#\[7]3GKN5DMFAMP62LQVRZ6PZZIQEI7PKQV53DRXXUP2ERSZYESDMQBY 7  DATA SIGNATURE ::
+#,,..,...,...,...,.,,,.,,,.,,,,..,,,,,,,.,.,,,..,,...,...,,.,,,..,.,,,...,,,,,
+#HPKRDMVMSNR6ZCCHTJLHARLIBP7C6PYOEMACZC33FGPJFPEZ52LNWEFPHCRYHYTJ7ZR37E436TDB4
+#\\\|Q7HBZ5GKJYPNJRQ7KUNM74RXBCPFFYI6DDYUA5IKWETXG42XIX2 \ / AMOS7 \ YOURUM ::
+#\[7]OIYJZZJR76FRTV44KONESJDJUMPD6F52CPLF5MSSAUPXQGP52ACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
