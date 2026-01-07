@@ -159,21 +159,20 @@
 
        access.cmd.usr.image2html  =  X-11.bg_color
 
-       access.cmd.usr.image-quality = whoami present timestamp ntime-dec \
-                                     close exit
+       access.cmd.usr.image-quality = whoami present timestamp ntime-dec
 
-       access.cmd.usr.llama-vision = whoami present timestamp ntime-dec \
+          access.cmd.usr.lm-vision = whoami present timestamp ntime-dec \
                                      models.get_model_path models.discover models.get_entry \
                                      models.find_alternative models.record_invocation \
                                      models.statistics v7.register_child close exit
 
-            access.cmd.usr.coding  = llama-vision.analyze_image \
-                                     models.get_model_path models.list_all models.get_model \
-                                     models.recommend models.get_entry models.find_alternative \
+            access.cmd.usr.coding  = lm-vision.analyze_image \
+                                     models.get_model_path models.list_all \
+                                     models.recommend models.get_entry models.get_model \
                                      models.record_invocation models.statistics \
                                      models.substitute_template models.conversation_create \
-                                     models.conversation_add_turn models.conversation_get_context \
-                                     v7.register_child
+                                     models.conversation_add_turn models.find_alternative \
+                                     models.conversation_get_context v7.register_child
 
            access.cmd.usr.models  =  get_model get_model_path find_models recommend \
                                      record_invocation statistics cost_analysis \
@@ -182,10 +181,10 @@
                                      template.substitute v7.register_child
 
        access.cmd.usr.image-batch = whoami present timestamp ntime-dec \
-                                     image-quality.analyze models.get_model_path models.discover \
-                                     models.get_entry models.recommend \
-                                     models.record_invocation models.statistics \
-                                     v7.register_child close exit
+                                     image-quality.analyze models.get_entry \
+                                     models.get_model_path models.discover \
+                                     models.record_invocation models.recommend \
+                                     models.statistics v7.register_child
 
        access.cmd.usr.impressive  =  v7.start_once content.get_list \
                                      v7.notify_online v7.stop_implicit \
@@ -203,8 +202,8 @@
                                      tile-groups.get_subconfig \
                                      rss-ticker.resend_update
 
-#,,,.,,..,,,.,.,.,.,.,.,.,.,.,,,.,.,.,..,,..,,..,,...,...,,.,,,..,.,,,,.,,,.,,
-#X6762XUMFVY42TFGRL5QAGE4KALM36YPZA6RVCWWUU3AMGKEEAHK5DMZNM6MWCLDLUA6E5XOI4TQ2
-#\\\|7GLPXYIWHLP2KXA3JXRHTYO6KSBSPD36PH7ZVBUGE64UMY3IZOL \ / AMOS7 \ YOURUM ::
-#\[7]GBL2X22EPJXDY5VTEBTGTKB3UGZ4KWEW753YJAB56ADBO2QYTCAI 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,.,,,..,,,.,,,..,,,.,,,.,.,,,..,,..,,...,..,,...,.,,,,,.,,,.,,.,,
+#FQYZKOTHELA5M3LSAK7FOSFNWY5NUQHWXSU6NRQ5KIQJ2VP4WTWQG6TDUYGB2NAPWGDYLHARPZYYQ
+#\\\|ULQYB6EURZOSU3XM7YDRRWDJXEGTEHXBQVLDNEUIOPSHLU5FPNB \ / AMOS7 \ YOURUM ::
+#\[7]KQHJ5XLHBMMNYFEHTTVAWH4TI564AZI6AUU7G3CCUMKRHCIOI2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

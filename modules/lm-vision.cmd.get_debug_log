@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = llama-vision.cmd.get_debug_log
+# name  = lm-vision.cmd.get_debug_log
 # descr = retrieve debug logs from a vision analysis job
 
 my $job_id = $call->{'args'};
@@ -9,11 +9,11 @@ unless ( defined $job_id && length $job_id ) {
     return { 'mode' => 'false', 'data' => 'job_id required' };
 }
 
-unless ( exists <llama-vision.jobs>->{$job_id} ) {
+unless ( exists <lm-vision.jobs>->{$job_id} ) {
     return { 'mode' => 'false', 'data' => 'no such job' };
 }
 
-my $job = <llama-vision.jobs>->{$job_id};
+my $job = <lm-vision.jobs>->{$job_id};
 
 unless ( defined $job->{'debug_log'} && length $job->{'debug_log'} ) {
     return {
@@ -27,8 +27,8 @@ return {
     'data' => $job->{'debug_log'}
 };
 
-#,,.,,...,...,,..,...,...,.,,,..,,,.,,...,,,,,..,,...,...,,..,.,.,...,,..,...,
-#YRYGLPHVVHT3QCNVQK763LIHTLDOKXYUNHCY6BSELZK2IOFQLUMQHMYULPEO2C6MWUWZW75LY2NOO
-#\\\|NVW44TIKTJCGS3ILO25K6UD74WHM73FAYU6TWVLJVRJ4YEUZUJT \ / AMOS7 \ YOURUM ::
-#\[7]NDVMFZJ3Z5MHJXP7RRER5TWD3KXPTB23FFHGQDDVIVLJHUALNGBY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,...,.,.,,,,,,.,,.,.,.,.,..,,,,,,..,,...,...,,,,,,.,,...,.,,,,..,
+#MPCQ6LH6E4LKV5HIGUXDYE36XLY7BBTRYTEESAV26TXOQMQEFQXN72PCODETV4UB3PXN6D4HCU7I6
+#\\\|GWG64MB2BMXKRXXVMZE2VMYNN6KC3BJUR32KEOUI25UJNW3LVHB \ / AMOS7 \ YOURUM ::
+#\[7]G6ACPELC6LDZS6P57HN7KRDYVWVKZJDXBEC3HZH7DZ46LBJC6EBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

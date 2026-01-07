@@ -1,30 +1,29 @@
 ## [:< ##
 
-# name  = llama-vision.init_code
+# name  = lm-vision.init_code
 # descr = GPU-accelerated vision analysis with job dispatch architecture
 
-<[base.log]>->( 1, 'llama-vision zenka starting.,' );
+<[base.log]>->( 1, 'lm-vision zenka starting.,' );
 
 # Imager module will be loaded in analyze_image command when needed
 
 # Vision model binary and library configuration
-<llama-vision.binary>   = qw{/data/source/ik_llama.cpp/llama-mtmd-cli-cuda};
-<llama-vision.lib_path> = qw| /data/source/ik_llama.cpp |;
-<llama-vision.log_file> = qw| /var/log/protocol-7/llama-vision.log |;
-<llama-vision.log_dir>  = qw| /var/log/protocol-7 |;
-<llama-vision.log_mask> = 0750;
+<lm-vision.binary>   = qw{/data/source/ik_llama.cpp/llama-mtmd-cli-cuda};
+<lm-vision.lib_path> = qw| /data/source/ik_llama.cpp |;
+<lm-vision.log_file> = qw| /var/log/protocol-7/lm-vision.log |;
+<lm-vision.log_dir>  = qw| /var/log/protocol-7 |;
+<lm-vision.log_mask> = 0750;
 
 # Ensure log directory exists with proper permissions (only if running as root)
 if ( $EUID == 0 ) {
     <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
     <[file.make_path]>->(
-        <llama-vision.log_dir>, <llama-vision.log_mask>,
-        <system.amos-zenka-user>
+        <lm-vision.log_dir>, <lm-vision.log_mask>, <system.amos-zenka-user>
         )
         and <[base.logs]>->(
         1, "created log directory [%s/]",
-        <llama-vision.log_dir>
-        ) if !-d <llama-vision.log_dir>;
+        <lm-vision.log_dir>
+        ) if !-d <lm-vision.log_dir>;
 }
 
 # Load vision model configuration from centralized models.yaml
@@ -62,8 +61,8 @@ if ( -f $config_file ) {
 if ( $model_path && $mmproj_path ) {
 
     # Trust YAML-defined model paths from models registry
-    <llama-vision.vision_model_path>  = $model_path;
-    <llama-vision.vision_mmproj_path> = $mmproj_path;
+    <lm-vision.vision_model_path>  = $model_path;
+    <lm-vision.vision_mmproj_path> = $mmproj_path;
 
     <[base.logs]>->(
         1,
@@ -71,8 +70,8 @@ if ( $model_path && $mmproj_path ) {
         <[base.parser.ellipse_center]>->( $model_path, 28 )
     );
 } else {
-    <llama-vision.vision_model_path>  = undef;
-    <llama-vision.vision_mmproj_path> = undef;
+    <lm-vision.vision_model_path>  = undef;
+    <lm-vision.vision_mmproj_path> = undef;
 
     <[base.log]>->(
         0,
@@ -84,39 +83,38 @@ if ( $model_path && $mmproj_path ) {
 <[base.logs]>->(
     1,
     "vision binary : %s",
-    <[base.parser.ellipse_center]>->( <llama-vision.binary>, 28 )
+    <[base.parser.ellipse_center]>->( <lm-vision.binary>, 28 )
 );
 <[base.logs]>->( 1, "will fetch config on-demand from models zenka" );
 
 # Initialize job queue for vision analysis tasks
-<llama-vision.jobs> //= {};
+<lm-vision.jobs> //= {};
 
 # Initialize timers hash for process watchers
-<llama-vision.timers> //= {};
+<lm-vision.timers> //= {};
 
 # Initialize batch queue for request batching [amortizes model loading]
-<llama-vision.batch_queue> //= [];
-<llama-vision.batch_timer> = undef;
-<llama-vision.batch_window_ms>
+<lm-vision.batch_queue> //= [];
+<lm-vision.batch_timer> = undef;
+<lm-vision.batch_window_ms>
     = 100;    # Collect requests for 100ms before processing
 
 <[base.logs]>->( 1, "vision job dispatch system initialized.," );
 <[base.logs]>->(
-    1,
-    "batch processing enabled [window: %dms]",
-    <llama-vision.batch_window_ms>
+    1, "batch processing enabled [window: %dms]",
+    <lm-vision.batch_window_ms>
 );
 
 # Image scaling configuration [vision models typically expect 224-1024 range]
-<llama-vision.max_image_width>  = 1024;    # Scale down if wider
-<llama-vision.max_image_height> = 1024;    # Scale down if taller
+<lm-vision.max_image_width>  = 1024;    # Scale down if wider
+<lm-vision.max_image_height> = 1024;    # Scale down if taller
 
 # Temp files are managed by base.file.temp with automatic cleanup via end_code callbacks
 
 0;    # Return success for module initialization
 
-#,,.,,,,.,...,,,,,,,,,.,.,,..,,.,,,..,...,..,,..,,...,...,,,,,.,.,.,.,,.,,.,.,
-#O3CCT564OKUSYRNY5I65EFAPBJBZ627NCQQA7OJLV5FKZP3HEDU6DNF7KY2NZ3QKL5APQS3T7HSVC
-#\\\|5HQ7YGLHSNV3KYSMOPSZ2OJ3LMOJZX6B24S54WENMQ3KG6W26FS \ / AMOS7 \ YOURUM ::
-#\[7]U6SHFPZNH7UMLYW23L57MMCJTFYEDWKBYPX6FGFDT4C5YISQ5CBI 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,.,.,,.,,,..,,,.,,,.,.,,,..,,,,.,..,,...,...,.,.,,,,,..,,.,,,...,
+#3EAROHXC52KW6WMUE25QY2JBCVCA6FF3OIQPHIMTAPMXBVN2A4H5NKOZ27EGWVQUO6SGDWSKFBCN6
+#\\\|NULVCK6PUL4BS4XQZGN2VQX5HIGOKR7TOHXKW2INYI4S7JRVRJL \ / AMOS7 \ YOURUM ::
+#\[7]QAMD4QRXZZ5LRW5N3H6F3F553ODCIDRD6OIVFEAOUQN7UXJK2WDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

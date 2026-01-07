@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = zenka-startup.v7
-# descr = 'llama-vision' zenka startup configuration used by 'v7' zenka
+# descr = 'lm-vision' zenka startup configuration used by 'v7' zenka
 
 dependencies = cube models coding
 start.on-demand    = 1
@@ -17,15 +17,15 @@ access.cmd.usr.parent = commands reload show-buffer status info *
 
 : v7-init :
   start_mode = stdin-zenka
-  llama-vision.key = [base.prng.chars-anum:44]
-  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<llama-vision.key>]
+  lm-vision.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<lm-vision.key>]
 
 : zenka-init :
-  [base.auth.set_zenka_key:'<{llama-vision.key}>']
+  [base.auth.set_zenka_key:'<{lm-vision.key}>']
   [base.zenki.set_ondemand_timeout:3600]
 
-#,,.,,,,,,,,.,.,,,..,,..,,,..,.,.,,.,,,,.,,,.,..,,...,...,,.,,.,,,...,.,,,...,
-#BCN6UDCEP2CAMK7L5ZAYMBJDAF6SUFEXVRXQZ3ZWX4QG3W6HEB2EBDAO4PKPFYQI6LGKODAVA2JR6
-#\\\|N33O3NQSWHVBOZTT33TYAU4ONZIKCOLNMOCI3I63CZXOIUKGUDG \ / AMOS7 \ YOURUM ::
-#\[7]CE4ZWKGNAZSM7LJLTYR7H2LILXMRQFPEOE4DJLVHMYUIHSEJESDA 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,.,,,,,.,.,..,,.,,,,.,,...,.,.,..,,...,...,,,.,,,,,..,,.,,,,,,,
+#4N4OSB4PGD44SJX6D3N7X3XJ3O42HYZJPWUTSCMYSZYH6OSOPOKZT7MORU4BRW6X6YWQVXO7JX564
+#\\\|SOMO66QNEZRCDZNE45YIMGCL3VDXU5V5R2V75RBOKWBGYLIFA5N \ / AMOS7 \ YOURUM ::
+#\[7]DJT5PRIHFSEECUGZGLATPNA4VOOEVIUHNWBCHL3POX3NJ7AWBSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
