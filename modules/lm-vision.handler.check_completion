@@ -34,11 +34,17 @@ if ( $vision_job->{'processed'} ) {
 # Process has exited - read any remaining output
 if ( defined $vision_job->{'rdr'} ) {
     while ( sysread( $vision_job->{'rdr'}, my $buf, 4096 ) ) {
+
+        <[lm-vision.parser.process_chunk]>->( \$buf );
+
         $vision_job->{'output'} .= $buf;
     }
 }
 if ( defined $vision_job->{'err'} ) {
     while ( sysread( $vision_job->{'err'}, my $buf, 4096 ) ) {
+
+        <[lm-vision.parser.process_chunk]>->( \$buf );
+
         $vision_job->{'stderr'} .= $buf;
     }
 }
@@ -48,7 +54,7 @@ close( $vision_job->{'rdr'} ) if defined $vision_job->{'rdr'};
 close( $vision_job->{'err'} ) if defined $vision_job->{'err'};
 
 # Mark as processed
-$vision_job->{'processed'} = 1;
+$vision_job->{'processed'} = TRUE;
 
 # Cancel both event handlers to prevent warnings
 $watcher->cancel if $watcher->is_active;
@@ -102,18 +108,18 @@ if ( length $full_output > 0 ) {
 # These are interspersed with the JSON output and look like:
 # "Resampling because token NNN:'text' does not meet grammar rules"
 $full_output
-    =~ s/Resampling\s+because\s+token\s+\d+:[^}]*?does\s+not\s+meet\s+grammar\s+rules\s*//g;
+    =~ s,Resampling\s+because\s+token\s+\d+:[^}]*?does\s+not\s+meet\s+grammar\s+rules\s*,,g;
 
 # Remove all timestamp patterns: [10 digits]
-$full_output =~ s/\[\d{10}\]\s*//g;
+$full_output =~ s,\[\d{10}\]\s*,,g;
 
 # Remove all file path patterns: [/path: digits]
-$full_output =~ s/\[\/[^\]]*\]\s*//g;
+$full_output =~ s{\[\/[^\]]*\]\s*}{}g;
 
 # Replace all function/label patterns with spaces: [generate_response], [   main   ], etc.
 # Handle spaces inside brackets: \[\s*[a-z_]+\s*\]
 # Use space replacement to prevent word merging
-$full_output =~ s/\[\s*[a-z_]+\s*\]/ /g;
+$full_output =~ s{\[\s*[a-z_]+\s*\]}{}g;
 
 # Find and skip the initialization section - everything before model loading completes
 # The "main: loading model:" marker indicates the end of initialization
@@ -192,6 +198,9 @@ $full_output =~ s/\s+([}\]"])/$1/g;
 # Remove spaces before punctuation (tokenization artifact cleanup)
 $full_output =~ s/\s+([,.!?;:'")])/$1/g;
 
+## fix intermixed spaces ##
+# <[lm-vision.parser.process_chunk]>->( \$full_output ); #[LLL] for each token
+
 # The cleaned output should now be the vision analysis text
 if ( length $full_output )
 {    # Sanity check - should be at least somewhat substantial
@@ -218,7 +227,7 @@ if ( length $payload ) {
         1,       "[check_completion] success: job=%s payload_bytes=%d",
         $job_id, length($payload)
     );
-    map { <[base.logs]>->( 1, $ARG ) } split "\n",
+    map { <[base.log]>->( 1, $ARG ) } split "\n",
         sprintf(
         "[check_completion] %s",
         <[base.wrap_text]>->(
@@ -260,8 +269,8 @@ if ( length $payload ) {
     }
 );
 
-#,,..,,,.,,.,,.,.,,..,,,.,.,.,,,.,,,.,.,.,.,.,..,,...,...,...,..,,...,.,.,..,,
-#VKNKJ6TBMDZKIZXI3WFDXD4M3KYS4PSEVQEBV3DHSBJ7DJZVOVIQUJPJRLHQUMJ3A6AFEKZOGYFQQ
-#\\\|ULNIXTJUPSWHNYEDD7SOUG5VEVQS76WVWCJK2VBFMAZZ3F2XMTN \ / AMOS7 \ YOURUM ::
-#\[7]45YIPIHQADZY3MDZDDOZVJ4ZXCPW2K3N6G7NJXUOQVFPNYPJ6OAQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,,,,,..,,,,,,,.,..,,,,.,..,,,,.,..,,...,...,...,..,,,..,,..,...,
+#3ULFW7SN27T6KL2NF5JW6JRXK62HDZFKZ36KAOX6YM44NMMV7XVJSX76NTV5TJWOGKL2GO5QHG6NC
+#\\\|KZV6ZC5EEEO7IHHPTFLYOCNMQRBZLEJP4OTPM4R4XYAFGZ4YQ7N \ / AMOS7 \ YOURUM ::
+#\[7]N5ITA3LI3T7W42MSVGNNV34L52DS2733VA2EWLKTNST73Y6WMWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
