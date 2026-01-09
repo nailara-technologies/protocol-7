@@ -936,6 +936,7 @@ return [ qw[
         weather.child.query_api
         weather.child.init_code
         weather.base.check_dirs
+        vision-batch.child.loop
         v7.zenka.cmd.start_once
         v7.zenka.cmd.gone_child
         v7.sub-process.get_ppid
@@ -1007,7 +1008,6 @@ return [ qw[
         coding.analyze.classify
         chk-sum.skein.init_code
         bench.key-32-iterations
-        vision-batch.child.loop
         base.templates.pre_init
         base.strip_chksum_lines
         base.start.unlink_child
@@ -1186,6 +1186,7 @@ return [ qw[
         weather.parent.icon_setup
         weather.parent.cmd.clouds
         weather.parent.apply_zoom
+        vision-batch.parent.pause
         v7.zenka.instance.restart
         v7.zenka.instance.get_ids
         v7.zenka.get_dependencies
@@ -1265,7 +1266,6 @@ return [ qw[
         channels.util.yaml_decode
         channels.test-oscillation
         channels.memory-sync.init
-        vision-batch.parent.pause
         base.sourcecode.init_code
         base.session.cancel_route
         base.register_p7_mod_load
@@ -1313,6 +1313,9 @@ return [ qw[
         web-browser.cmd.get_bg_uri
         weather.parent.write_pages
         weather.base.tomorrow_unix
+        vision-batch.parent.status
+        vision-batch.parent.resume
+        vision-batch.parent.cancel
         v7.zenka.cmd.stop_implicit
         v7.zenka.cmd.notify_online
         v7.zenka.cmd.instance_pids
@@ -1386,9 +1389,6 @@ return [ qw[
         coding.helper.reset_budget
         coding.helper.check_budget
         coding.budget.track_tokens
-        vision-batch.parent.status
-        vision-batch.parent.resume
-        vision-batch.parent.cancel
         base.warnings.from_bitmask
         base.session.check.flushed
         base.reverse-sort.key-name
@@ -1433,6 +1433,8 @@ return [ qw[
         weather.parent.get_url_list
         weather.parent.cmd.location
         weather.parent.cmd.get-urls
+        vision-batch.parent.process
+        vision-batch.parent.persist
         v7.zenka.cmd.register_child
         v7.zenka.cmd.pause-instance
         v7.zenka.cmd.notify_offline
@@ -1512,8 +1514,6 @@ return [ qw[
         coding.helper.budget_status
         channels.cmd.test-strm-size
         channels.cmd.channels-since
-        vision-batch.parent.process
-        vision-batch.parent.persist
         base.zenki.report_child_pid
         base.yaml.load_keyword_path
         base.templates.register_add
@@ -1556,6 +1556,8 @@ return [ qw[
         web-browser.cmd.scroll_start
         web-browser.cmd.get_progress
         weather.base.calc_zoom_level
+        vision-batch.parent.shutdown
+        vision-batch.child.init_code
         v7.zenka.cmd.resume-instance
         v7.tmp-paths.global.register
         v7.tmp-paths.global.clean-up
@@ -1625,8 +1627,6 @@ return [ qw[
         coding.intake.normalize_task
         coding.analyze.check_history
         channels.handler.data_change
-        vision-batch.parent.shutdown
-        vision-batch.child.init_code
         base.validate.composite_name
         base.session.check_remaining
         base.run_if_not.load_perlmod
@@ -1660,6 +1660,8 @@ return [ qw[
         weather.parent.update_current
         weather.parent.get_station_id
         weather.parent.cmd.station-id
+        vision-batch.parent.init_code
+        vision-batch.parent.cmd.pause
         v7.zenka.cmd.report-temp-path
         v7.zenka.cmd.get-instance-ids
         v7.report_collected_child_pid
@@ -1743,8 +1745,6 @@ return [ qw[
         channels.subscription.manager
         channels.cmd.ai-review-submit
         channels.cmd.ai-review-status
-        vision-batch.parent.init_code
-        vision-batch.parent.cmd.pause
         base.validate.data_key_syntax
         base.source.collect_file_list
         base.parser.human.fsize_fixed
@@ -1779,6 +1779,11 @@ return [ qw[
         weather.parent.extract_current
         weather.parent.cmd.clean-cache
         weather.child.cmd.request-data
+        vision-batch.parent.fork_child
+        vision-batch.parent.cmd.status
+        vision-batch.parent.cmd.resume
+        vision-batch.parent.cmd.cancel
+        vision-batch.child.analyze_job
         v7.tmp-paths.global.unregister
         v7.handler.reset_restart_delay
         v7.handler.process_output_line
@@ -1819,6 +1824,7 @@ return [ qw[
         models.checksum.calculate_amos
         mod-test.update_blacklist_aref
         melt.handler.frame_count_reply
+        lm-vision.parser.process_chunk
         llm.service.subprocess_wrapper
         letsencr.child.get_fresh_nonce
         keys.console.gen-file-seed-key
@@ -1851,11 +1857,6 @@ return [ qw[
         coding.analyze.estimate_tokens
         channels.util.get_review_stage
         channels.cmd.ai-review-approve
-        vision-batch.parent.fork_child
-        vision-batch.parent.cmd.status
-        vision-batch.parent.cmd.resume
-        vision-batch.parent.cmd.cancel
-        vision-batch.child.analyze_job
         base.zenki.ondemand_registered
         base.session.send_init_reports
         base.p7refs.get_refaddr_prefix
@@ -1883,6 +1884,8 @@ return [ qw[
         weather.parent.extract_forecast
         weather.parent.cache.write_data
         weather.base.fork_weather_child
+        vision-batch.parent.execute_job
+        vision-batch.parent.cmd.process
         v7.callback.object.root.session
         universal.handler.cur-pid_reply
         tile-groups.set-up.import_rules
@@ -1932,8 +1935,6 @@ return [ qw[
         channels.memory-sync.batch-send
         channels.content-discovery.init
         channels.cmd.ai-review-feedback
-        vision-batch.parent.execute_job
-        vision-batch.parent.cmd.process
         base.zenki.set_ondemand_timeout
         base.warnings.compact_statehash
         base.perlmods.reload.disk_times
@@ -2036,6 +2037,7 @@ return [ qw[
         web-browser.handler.auto_slowdown
         web-browser.cmd.enable_javascript
         weather.parent.cmd.clear-location
+        vision-batch.parent.calculate_eta
         v7.parser.manually_stopped_tstamp
         v7.callback.delete_instance_cache
         universal.callback.mpv_idle_check
@@ -2077,7 +2079,6 @@ return [ qw[
         coding.learning.identify_patterns
         channels.memory-sync.sync-handler
         channels.handler.content-detected
-        vision-batch.parent.calculate_eta
         base.sourcecode.in-mem.sub-source
         base.perlmod.init_install_buffers
         base.perlmod.get_loaded_INC_names
@@ -2101,6 +2102,7 @@ return [ qw[
         web-browser.callback.load_finished
         weather.parent.write_updating_page
         weather.parent.cache.read_forecast
+        vision-batch.parent.load_yaml_spec
         v7.sub-process.retrieve_cached_iid
         v7.handler.verify_instance_timeout
         v7.callback.cleanup_instance_cache
@@ -2148,7 +2150,6 @@ return [ qw[
         coding.intake.parse_command_string
         channels.memory-sync.apply-changes
         channels.handler.subscription_data
-        vision-batch.parent.load_yaml_spec
         base.protocol-7.command.send.local
         base.path-set-up.zenka-directories
         base.path-set-up.check-zenka-paths
@@ -2162,6 +2163,7 @@ return [ qw[
         work.calculate_suggestion_relevance
         web-browser.callback.load_fail_page
         weather.parent.handler.update_timer
+        vision-batch.parent.collect_results
         v7.zenka.instance.cmd.change-status
         v7.handler.heartbeat_timer_response
         tile-groups.callback.start_osd_logo
@@ -2192,7 +2194,6 @@ return [ qw[
         coding.learning.update_success_rate
         coding.helper.get_service_breakdown
         channels.memory-sync.register-watch
-        vision-batch.parent.collect_results
         base.perlmod.register_loaded_module
         base.number-cache.is_valid_template
         base.handler.write.encoding-wrapper
@@ -2202,6 +2203,8 @@ return [ qw[
         web-browser.handler.progress_changed
         weather.parent.cache.read_station_id
         weather.parent.cache.read_cache_data
+        vision-batch.parent.handle_job_reply
+        vision-batch.child.cmd.analyze_image
         universal.handler.start-anim_timeout
         universal.handler.start-anim_started
         tile-groups.callback.poll_tile_color
@@ -2226,8 +2229,6 @@ return [ qw[
         coding.routing.make_routing_decision
         coding.handler.models_list_all_reply
         coding.async_spawn_inference_servers
-        vision-batch.parent.handle_job_reply
-        vision-batch.child.cmd.analyze_image
         base.warnings.compact_diff_to_pragma
         base.warnings.compact_diff_from_bits
         base.perlmod.manual_reload_blacklist
@@ -2237,6 +2238,8 @@ return [ qw[
         workspace-transfer.console.checkpoint
         workspace-transfer.console.bug-commit
         weather.parent.cache.write_station_id
+        vision-batch.parent.handle_child_exit
+        vision-batch.parent.generate_batch_id
         v7.handler.heartbeat_response_timeout
         universal.handler.extract_frame_reply
         tile-groups.handler.stack_order_reply
@@ -2266,8 +2269,6 @@ return [ qw[
         coding.helper.get_transaction_history
         coding.handler.models_get_entry_reply
         channels.handler.playlist-integration
-        vision-batch.parent.handle_child_exit
-        vision-batch.parent.generate_batch_id
         base.perlmods.reload.chksum_blacklist
         base.perlmod.unregister_loaded_module
         base.handler.write.encryption-wrapper
@@ -2443,8 +2444,8 @@ return [ qw[
     ]
 ];
 
-#,,.,,,.,,.,.,,,,,,..,,.,,,.,,,,.,...,,,,,,,,,.,.,...,..,,..,,,,,,,.,,,..,,,,,
-#SAFNDIMKX7VQ2U7NJU4KB4776C6VQSBGE5N3RHBGQCEEXUHUI74IMC665MBL2TLHYPT6OOQE4XB4M
-#\\\|L3UI4UYPA4QG3NI6KUUSLIHRIR3ULMQS25RZ2PUR5NSO55MYDTO \ / AMOS7 \ YOURUM ::
-#\[7]G2ID7VRTFNB4ZWZ7VRRGLG37OI4MLRT752PHHJB4IHXR4O55PUCI 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,..,,...,,..,,,,,,,.,,,,,,,.,...,.,.,...,...,,,,,,,,,.,,,,..,,.,,
+#5SOBPHR3PTEMQRZYRB7HGVEUJRQST3AYVJXRFSBEDIPJO6OQ72SJKL2QH7JJMQGP7DWH2F62D7IFQ
+#\\\|D2CCXOPMGDQYG55BPFN2CVHR57FA7EIAGIJNO33OXNLNHBIMU6B \ / AMOS7 \ YOURUM ::
+#\[7]QZLZK7VLQEUBX5YS3JDJDGCWEAIPGKHQHJXH4UPH7PWXNMKGUGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

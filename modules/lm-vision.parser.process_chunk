@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = lm-vision.parser.process_chunk
+
+# $ARRG[0];  ref eq qw| SCALAR |    ## [LLL] validate ##
+
+# Qwen3-VL specific cleanup
+# BPE tokens with leading space indicate word boundaries
+# No leading space = subword continuation
+# Fix common BPE artifacts
+$ARG[0]->$* =~ s/\s{2,}/ /g;
+
+# Multiple spaces to single
+# Fix punctuation (BPE often separates these)
+$ARG[0]->$* =~ s/\s+([.,!?;:])/$1/g;
+
+# Remove space before punctuation
+$ARG[0]->$* =~ s/([.,!?;:])\s*([A-Z])/$1 $2/g;
+
+# Ensure space after sentence punctuation
+# Fix quotes and brackets
+$ARG[0]->$* =~ s/\s*"\s*/"/g;
+
+# Normalize quotes
+$ARG[0]->$* =~ s/\(\s+/(/g;
+
+# Fix opening paren
+$ARG[0]->$* =~ s/\s+\)/)/g;
+
+# Fix closing paren
+$ARG[0]->$* =~ s/\[\s+/[/g;
+$ARG[0]->$* =~ s/\s+$$/]/g;
+
+# Fix contractions (Qwen tokenizer handles these specially)
+$ARG[0]->$* =~ s/(\w)\s+'(t|s|re|ve|ll|d|m)\b/\$1'\$2/g;
+
+# Fix n't contractions
+$ARG[0]->$*
+    =~ s/\b(can|wo|do|is|are|was|were|has|have|had|did|does|would|could|should)\s+n\s*'\s*t\b/$1n't/g;
+
+# Fix hyphenated words
+$ARG[0]->$* =~ s/(\w+)\s+\-\s+(\w+)/$1-$2/g;
+
+# Fix numbers with commas/decimals (Qwen sometimes splits these)
+$ARG[0]->$* =~ s/(\d+)\s+,\s+(\d{3})/$1,$2/g;
+$ARG[0]->$* =~ s/(\d+)\s+\.\s+(\d+)/$1.$2/g;
+
+# Fix ellipsis
+$ARG[0]->$* =~ s/\.\s*\.\s*\./.../g;
+
+# Fix possessives
+$ARG[0]->$* =~ s/(\w+)\s+'\s*s\b/$1's/g;
+
+# Remove Qwen vision control tokens if any leaked through
+$ARG[0]->$*
+    =~ s/<\|(?:vision_start|vision_end|image_pad|im_start|im_end|endoftext)\|>//g;
+
+# Trim
+$ARG[0]->$* =~ s/^\s+|\s+$//g;
+
+# $ARG[0]->$* =~ s|  ||g;
+
+# intermixed spaces
+$ARG[0]->$* =~ s|(?!\ )\ ||g;
+
+# endlines
+$ARG[0]->$* =~ s|\n||g;
+
+#,,,.,,,,,.,,,,,,,..,,,.,,,..,,..,,,,,..,,..,,..,,...,...,..,,,,.,,,,,...,,.,,
+#4FJWTZTAFEVDBSP37RVTVXEIJZ77QBLYQIHMW6ATB4OZ2ICTF54D7Q3DH6H24IOKSVXF4P4AY3XJ6
+#\\\|QPIQGVBGP67SQ625QVTM2ED6ORC5SIBHNBIHTSVUPUFSGGUN3ME \ / AMOS7 \ YOURUM ::
+#\[7]GJFQNMJJHQ5A33IBN67Q4HVDDF2JBG64ZUOCZT22NUE7YRNKKABQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
