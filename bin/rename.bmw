@@ -1,0 +1,114 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Digest::BMW;
+use Crypt::Misc qw| encode_b32r |;
+use File::Spec;
+
+## color codes for output
+my %C = (
+    '0' => "\e[0m",
+    'R' => "\e[0m",
+    'T' => "\e[38;2;6;71;195m",
+    'b' => "\e[1m",
+);
+
+## show usage and exit
+sub show_usage {
+    say "$C{0}:";
+    say ":$C{b} $C{T}usage:$C{0} rename.bmw [file|directory] [file|directory] ...$C{R}";
+    say "$C{0}:";
+    say ":";
+    say ": $C{T}Renames files to their BMW 384 base32-encoded checksums.$C{0}";
+    say ": $C{T}File extensions are preserved (but lowercased).$C{0}";
+    say ":$C{R}";
+    say "$C{0}:$C{R}";
+    exit(1);
+}
+
+show_usage() if not @ARGV;
+
+my $bmw = Digest::BMW->new(224);
+my $rename_count = 0;
+my @files_to_process;
+
+## collect all files to process
+foreach my $arg (@ARGV) {
+    if ( -f $arg ) {
+        push @files_to_process, $arg;
+    } elsif ( -d $arg ) {
+        opendir( my $dh, $arg ) or do {
+            warn "\n: error opening directory '$arg': $!\n";
+            next;
+        };
+        my @dir_files = grep { -f File::Spec->catfile( $arg, $_ ) }
+            grep { $_ ne '.' and $_ ne '..' } readdir($dh);
+        closedir($dh);
+
+        foreach my $file (@dir_files) {
+            push @files_to_process, File::Spec->catfile( $arg, $file );
+        }
+    } else {
+        warn "\n: warning: not found: '$arg'\n";
+    }
+}
+
+if ( not @files_to_process ) {
+    say "\n$C{0}:";
+    say ": no files to process";
+    say "$C{0}:$C{R}\n";
+    exit(0);
+}
+
+say "$C{0}:";
+
+## process each file
+foreach my $file_path (@files_to_process) {
+    ## calculate BMW 384 checksum
+    my $fh;
+    if ( not open( $fh, '<', $file_path ) ) {
+        warn "\n: error reading '$file_path': $!\n";
+        next;
+    }
+
+    my $checksum = encode_b32r( $bmw->addfile($fh)->digest );
+    close($fh);
+
+    ## extract directory and filename
+    my ($volume, $dir, $filename) = File::Spec->splitpath($file_path);
+
+    ## extract extension (lowercased)
+    my $ext = '';
+    if ( $filename =~ m|\.([^.]+)$| ) {
+        $ext = lc($1);
+        $ext = ".$ext";
+    }
+
+    ## new filename = checksum + extension
+    my $new_filename = $checksum . $ext;
+    my $new_path = File::Spec->catpath( $volume, $dir, $new_filename );
+
+    ## rename file if names differ
+    if ( $file_path ne $new_path ) {
+        if ( rename( $file_path, $new_path ) ) {
+            $rename_count++;
+            say ":$C{b} $C{T}$filename$C{0}";
+            say ": $C{T}  -> $new_filename$C{0}$C{R}";
+        } else {
+            warn "\n: error renaming '$file_path' to '$new_path': $!\n";
+        }
+    }
+}
+
+say "$C{0}:";
+say ":$C{b} $C{T}files renamed: $rename_count$C{0}$C{R}";
+say "$C{0}:$C{R}";
+exit(0);
+
+#,,,.,.,,,,.,,.,.,,,,,...,,..,,,.,,,.,,,,,.,,,..,,...,...,,,,,,,,,..,,.,,,,..,
+#2NOFCUSC55KUO5VAI5UDKM6GPY2T2IDAX32UIZ6C2QS2YKNOPXIEBWL4X44CJQ4HGAUS7E4ZT2FCU
+#\\\|UQJ2NQDRO5SWUYJOYSLO7GRKQGXSNSQN2KNYO4SHWGZDZGVI6VZ \ / AMOS7 \ YOURUM ::
+#\[7]6SF6X7AKVNXOO3LYTVKD6RZKMOCYSXTXQIICQKWC5F7WKGKOYEBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
