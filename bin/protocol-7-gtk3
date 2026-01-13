@@ -5,11 +5,11 @@ use warnings;
 
 use English;
 use Module::Load;
-use Cwd 'abs_path';
 use File::Spec;
+use Cwd qw| abs_path |;
 use File::Spec::Functions;
 use FindBin qw| $RealBin $RealScript |;
-eval { load 'File::Which', 'which' };
+eval { load 'File::Which', qw| which | };
 my $which_loaded = $EVAL_ERROR ? 0 : 1;
 
 ### wrapper code to load Gtk3 module at compile time ###
@@ -18,6 +18,7 @@ BEGIN {
     ( my $local_lib_path = $PROGRAM_NAME )
         =~ s|/[^/]+/[^/]+$|/data/lib-path/pm|;
     unshift( @INC, $local_lib_path ) if -d $local_lib_path;
+    $ENV{'P7_GTK3_INIT'} = qw| true |;
 }
 
 my $zenkaname;
@@ -32,7 +33,7 @@ my $perl_path;
 eval {
     use Config;
     $perl_path = $Config{'perlpath'};
-    if ( $^O ne 'VMS' ) {
+    if ( $OSNAME ne qw| VMS | ) {
         $perl_path .= $Config{'_exe'}
             unless $perl_path =~ m|\Q$Config{_exe}\E$|i;
     }
@@ -48,12 +49,12 @@ if ( -l File::Spec->rel2abs($PROGRAM_NAME) ) {
     $zenkaname =~ s{^.*protocol-7\.|[\. ]$}{};
     @call_args = ( $zenkaname, @ARGV );
 }
-$zenkaname //= 'protocol-7';
-exec( $perl_path, '-C31', '-MGtk3', $protocol_7_path, @call_args )
+$zenkaname //= qw| protocol-7 |;
+exec( $perl_path, qw| -C31 -MGtk3 |, $protocol_7_path, @call_args )
     or die "failed to start $zenkaname zenka [ \l$OS_ERROR ]";
 
-#,,,,,,..,,.,,,.,,.,.,,,,,.,.,.,.,,..,,,.,,,.,..,,...,...,...,,,,,...,..,,,..,
-#5OIJJNL4O56BETMTYGLQZ2ZFTNYLTX43YWQ7F7WXNLT5PMNIKIGG544JTB7PKTMNTDJ6WBO5E4RUE
-#\\\|6GQZHA6OMECG5BS66ITG7LMUMAM2ALVN32B6DHQTJ7JAWPPK6HN \ / AMOS7 \ YOURUM ::
-#\[7]WWF6M6HISMMPITQ54BLJYDLZW4ERIIQ6U5CAKY7RJYQTSH43MWAI 7  DATA SIGNATURE ::
+#,,..,,,.,...,...,..,,,.,,.,.,..,,,,.,..,,.,,,..,,...,...,...,.,,,...,,,,,,..,
+#ZAPZNRKYV7GISWNTNM2WTNM3W4D6BQDDEVWKLDVRLJBFPRG6TOKIXWXIBTB32BQWKAHNFYCM5SGRY
+#\\\|I5IF7O7TZKSSCH5L7CP33OL3IDFEP5M46ZHJA4WLO27XXCU3IR6 \ / AMOS7 \ YOURUM ::
+#\[7]NZYEF5KCGQJBUHXBV63QETJNMAKTFIX5RSPDWHQYT33Q5RHUGKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

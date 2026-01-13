@@ -2,8 +2,12 @@
 
 # name = protocol-7-menu.init_code
 
+### early '-MGtk3' loading from ./bin/protocol-7 [gui] wrapper script
+##
+my $init_gtk3 = <[base.cfg_bool]>->( $ENV{'P7_GTK3_INIT'} //= FALSE );
+
 <protocol-7-menu.init-console>   //= FALSE;
-<protocol-7-menu.init-graphical> //= FALSE;
+<protocol-7-menu.init-graphical> //= $init_gtk3 ? TRUE : FALSE;
 
 <protocol-7-menu.menu-tree>
     //= { 'character-console' => {}, 'graphical' => {} };
@@ -41,8 +45,8 @@ if (<protocol-7-menu.init-graphical>) {
 
 0;
 
-#,,..,.,,,,..,,,.,...,,.,,...,...,,.,,,,.,.,,,..,,...,...,,..,.,.,,,,,.,,,,,.,
-#HIICFLUNXBRTOHT5D3ASQJNXFYNRUJZQE5PRS4T4P66KN6CCQAKBQGKL2GDHWOUKHA2W3YJJUEG5Y
-#\\\|SF67N2V2LZHQ7RYPUGVI7WYR3DKVI5B6BJTLP42EW6ANBXFEEYR \ / AMOS7 \ YOURUM ::
-#\[7]6G2UPUMUEIWMDV7OSAX4YTWJN6EOUADZO533KPY6VOBO2MMXIABY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,..,,..,,.,.,,..,.,,,,,,,,..,..,,..,,...,...,..,,.,.,.,.,,..,.,,,
+#OVYCZINKVBCWCGE6CBGHPJ674GIOJGOTPJXEPX4K6WO63MIL2M5UXHFLLGNYIQWCHIGNZDWH7XJK6
+#\\\|QK2CEQP4IDWPMHLSWG53K3PX57E5F77ZDZOPKZDLJ23TFVZ4EGS \ / AMOS7 \ YOURUM ::
+#\[7]PB4U7TNCUFYXS37KJLACSHELVQ6ETYIKGGFO2UYD55GAMTOE3WAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
