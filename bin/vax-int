@@ -17,9 +17,9 @@ my $ng  = "\e[38;2;71;195;6m";
 my $ec  = "\e[38;2;197;141;7m";
 
 $SIG{'__WARN__'} = \&error_exit;
-use warnings FATAL => 'all';
+use warnings FATAL => qw| all |;
 
-getopts( 'dq', \my %option );
+getopts( qw| dq |, \my %option );
 warn "expected numerical or encoded input string [ integer VAX encoding ]\n"
     if not @ARGV;
 
@@ -61,6 +61,9 @@ if ( $option{'d'}
 
     my $vax_int_encoded = encode_b32r( pack $pack_template, $num_str );
 
+    $vax_int_encoded =~ s|A+$||;    ## renoving zero padding ##
+    $vax_int_encoded = qw| A | if not length $vax_int_encoded;
+
     say $vax_int_encoded and exit if $option{'q'};
 
     say sprintf "$fg:\n: $bg $ng%s$fg $rst$fg\n:$rst", $vax_int_encoded;
@@ -76,8 +79,8 @@ sub error_exit {
     exit(110);
 }
 
-#,,,.,..,,,,,,..,,,..,.,,,...,.,.,.,,,...,...,..,,...,...,,.,,...,.,,,.,.,,,,,
-#I3OHBSAYRB6R4X2MS4UCC3QCFIYVEL52ABOFOTHJQXNXO6OSCJMIOQJNQ4P3TEHZ53UMMUGPEAAH4
-#\\\|5HZONOYPX3LV2OUPK5UKRN7B2WUHBIHL2FBS3DRYNSXOJJ55JWB \ / AMOS7 \ YOURUM ::
-#\[7]PFR35UAIXY2YFHB2AT6BMJ4LQFFYCGRBOYMYYRHI2YA7ID6W6WDA 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,,,,,,,,,.,,,,,.,,,,,,,,,,,,..,..,,...,...,...,,.,,,,.,,.,,,,.,
+#HOXWYSHQNQ7R7QGTCGODPT5RNL3CJPSZ2RHAGNLI25F542NXFOBAIV4X3E35ZRK64WDIFBODCEOXY
+#\\\|WWCE3G2YJWEZ2IUXN45O4ATKUETDDFAS7AWOZ5ITCD6HGH2BCP6 \ / AMOS7 \ YOURUM ::
+#\[7]Z4FSBJ2HWK54YBMS7IN5OSSUNBMO7DQXDR23TMCRT6NQ3DQ5CACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
