@@ -1,0 +1,33 @@
+## [:< ##
+
+# name = nshell.execute_cube_command
+# descr = Execute Protocol-7 command through cube and return result
+
+my ($command) = @ARG;
+
+return undef unless defined $command && length($command);
+
+## Command execution returns a closure
+## This will be called when actually needed
+
+return sub {
+    my $cmd = shift // $command;
+
+    ## Within a zenka, commands are executed via the cube routing
+    ## This is a placeholder showing the pattern
+
+    ## In full implementation, would:
+    ## 1. Send command to cube via <[base.net.cube_send]>
+    ## 2. Receive response
+    ## 3. Apply AMOS7 colors to output
+    ## 4. Return formatted result
+
+    ## For now, echo the command
+    return "executing: $cmd";
+};
+
+#,,.,,..,,.,,,..,,,,,,,,,,...,.,.,,,,,.,,,.,,,.,.,...,...,.,.,,..,...,..,,,..,
+#24YMW7JVT4BXWNXMGZQOL7VKAACWLYKCDDPBHVCYAUTR6REOG2FK4XO7O2S3WJX4K5XUEBGN4MCYI
+#\\\|C5WSNB6J6YJ7TAMEKHQRVFF7A6QGGQYB73LFABUVUQ3HU5NNVFD \ / AMOS7 \ YOURUM ::
+#\[7]PSO4BSSV44HVL2FECBWRWNSK4QG7C4TP55V4DFC7T5TFCMR2PWDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

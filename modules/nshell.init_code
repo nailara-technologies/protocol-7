@@ -1,0 +1,35 @@
+## [:< ##
+
+# name = nshell.init_code
+# descr = Protocol-7 native shell as first-class zenka with buffer I/O
+
+## Load AMOS7 for colors and protocol utilities
+<[base.perlmod.load]>->('AMOS7');
+<[base.perlmod.load]>->('AMOS7::TERM');
+<[base.perlmod.load]>->(
+    'AMOS7::Protocol::P7', qw| calc_port calc_unix_path |
+);
+
+## Configure AMOS7 output
+$AMOS7::TERM::title_prefix         = ' .:';
+$AMOS7::mesg_prefix_string         = ' ::';
+$AMOS7::TERM::prompt_prefix_string = ' ::';
+
+## Initialize nshell state
+<nshell.buffer_id>       //= 'nshell-001';
+<nshell.command_history> //= [];
+<nshell.connected>       //= FALSE;
+<nshell.session_id>      //= undef;
+
+## Display configuration
+<nshell.prompt_newline> //= TRUE;
+<nshell.show_timestamp> //= FALSE;
+<nshell.history_size>   //= 256;
+
+return 0;
+
+#,,,.,...,...,.,,,,.,,,,,,,,,,,.,,,,.,,.,,...,..,,...,...,..,,...,.,.,.,,,.,.,
+#3KM7UQIYXVYJAC53UICN4OGRYY7O4VKUWM6C2T4MA6UEU764TSICYGH5ANPLM5ZX5A4FZQIDPMPXW
+#\\\|3FSV7BTUUIRY2DWYPHLIBUOSVV7SCFF2O4QSFOACQ5MRKC3HTRX \ / AMOS7 \ YOURUM ::
+#\[7]RDYLAQSK72YRM3NQL3BCDNWMAPD57WPALAYFG3RIASX2BS4SUCBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
