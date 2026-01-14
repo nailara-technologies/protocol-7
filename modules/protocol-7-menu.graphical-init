@@ -1,0 +1,29 @@
+## [:< ##
+
+# name = protocol-7-menu.graphical-init
+# descr = Initialize graphical window and menu if in graphical mode
+
+## Return early if not in graphical mode
+return 0 unless <protocol-7-menu.init-graphical>;
+
+## Set display for GTK (like web-browser does)
+$ENV{'DISPLAY'} = <x11.display> if defined <x11.display>;
+
+## Initialize GTK display context
+Gtk3::init() unless Gtk3::get_major_version();
+
+## Create window
+<[protocol-7-menu.graphical-window-init]>;
+
+## Create menu
+<[protocol-7-menu.graphical-menu-init]>;
+
+<[base.log]>->( 1, 'graphical menu initialized' );
+
+return 0;
+
+#,,,,,.,.,,..,,,,,,,,,.,.,.,.,,..,..,,.,,,..,,.,.,...,...,,.,,...,..,,,.,,..,,
+#PR6YI6ZKNLJNQU2R4NC3LXXBXCWJGXCHZUXEH222XUPFIV37BLURREDU2IDDID6R7SWBDT2YUV75C
+#\\\|DGL3J5UAUK2YJGOSSDV3KPCDH6C3G225SWPHAK6BZGPPHFGKKIN \ / AMOS7 \ YOURUM ::
+#\[7]3K53GKCPFUCYLNFXKTDS6OSQ2K5WEXYIURACYOVKVYASAFJH72AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
