@@ -3,8 +3,6 @@
 
 [load_config_file:'shared-params']
 
-[root.drop_privs:<system.AMOS-user>]
-
 access.cmd.usr.cube = commands heart verify-instance \
                       reload src-age src-ver rel-ver \
                       list show-buffer buffer-erase buffer-erase-level \
@@ -16,14 +14,19 @@ modules.load = auth net protocol io.unix nshell
 [load_modules:<modules.load>]
 [init_modules]
 
+## Set authentication user to current Unix user (not zenka name)
+system.auth-user = <nshell.unix_user>
+
 [base.net.connect:'unix']
 
-[base.get_session_id]
+## nshell authenticates as Unix user, not as zenka
+## so it doesn't need/use cube session IDs
+## [base.get_session_id]
 
 [zenka.loop]
 
-#,,,,,..,,,.,,..,,,..,..,,,.,,...,,,,,,..,,,.,..,,...,...,..,,.,,,.,.,...,,.,,
-#J5P5KXRXVWN77SN42EUBKQOADSUYF7DC5APHCEK2OTQL3WFDESJ2QH5D2ADPZCD325WBMS3WP3KTS
-#\\\|WJDTDOBOXWLRTKNPRZRO2I35MP7N67YGRMQJPMKTZZMYJUPR6MJ \ / AMOS7 \ YOURUM ::
-#\[7]U3E2K6PWNTRYTOSWK2U4VX3IFOAKO3TTX64F7DLYTCBSPSDLLADI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,,.,,,,,,,.,...,.,.,,..,,.,,.,.,..,,...,...,.,.,,..,,,,,.,,,,.,,
+#KGXCWMGZDNJOZ3IAPL6VC5HSB7X6UGISM4EJBCMREFX4PKDVGJC55QZRHM72LEMRECJZTSVPTQE7A
+#\\\|PUKFRVA26XRUGLWQQLCDNMJGXJRBXFA3FGLETUED5H6XFTQ5GCC \ / AMOS7 \ YOURUM ::
+#\[7]PX3TBQWU4BCIXRDYU7FHJG4YQLKV4NPWT63DX44TTISNOHZO3IDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
