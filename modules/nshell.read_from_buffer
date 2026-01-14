@@ -15,10 +15,11 @@ my $key = Term::ReadKey::ReadKey(-1);
 return undef if not defined $key;  ## No input available
 
 if ( $key eq "\n" or $key eq "\r" ) {
-    print "\n" if length $command_buffer;
+    print "\n";    ## Always echo newline for visual spacing
     my $result = $command_buffer;
     $command_buffer = '';
-    return $result;
+    return $result if length $result;  ## Return command only if not empty
+    return undef;  ## Empty line - return undef so no command is sent
 } elsif ( $key eq "\x03" ) {  ## Ctrl-C
     print "^C\n";
     $command_buffer = '';
@@ -37,8 +38,8 @@ if ( $key eq "\n" or $key eq "\r" ) {
 
 return undef;  ## Partial input, keep accumulating
 
-#,,.,,..,,..,,...,,.,,.,,,,.,,,.,,,..,,..,,,.,.,.,...,.,.,...,,..,,,.,.,,,,.,,
-#335A7GOYWQOTQHLW2DQ4ZQTW7NPQ6ISINPCKHT4367HIKJJSXEUE6TWX6LPM3MG4G36N4YXFASP2M
-#\\\|WEBBDFAWGIXJIRIP4BCY5PINHD6T76EN5B4EUAXMRJVDTJPFBCR \ / AMOS7 \ YOURUM ::
-#\[7]SHYFMJIAGDUCEH3JNB2MKJTM6GK2AZMRPRWPLSPZX3DXMLLU4SDA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,..,,.,,,.,,,,,,.,.,.,,,,..,,.,,.,.,...,...,...,,..,,,,,,.,,,.,,
+#RYQ7GUVSWLMOXDRQ2ZFXU24276Q2CMCTQ25KP7T3SUSYXOW37YT2MI4NFDZ4UB5B7IN54DMAFGWXM
+#\\\|6SF42NHMDYN32OIKUBPACPZRN3JBFDZ54NWPRHT3KEEPGKLV3S5 \ / AMOS7 \ YOURUM ::
+#\[7]XRIUMZQDZBNJQ4ESRTSBMQXOLJ7K5JKKVVL6CEAFSB2VQXE32KCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

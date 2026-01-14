@@ -974,7 +974,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
         if ( <[base.handler.hooks]>->( 'has', $id, 'unknown-reply-route' ) ) {
             my $hook_result = <[base.handler.hooks]>->(
                 'call', $id, 'unknown-reply-route',
-                { cmd => $cmd, cmd_id => $cmd_id, args => $call_args }
+                { cmd => $cmd, cmd_id => $cmd_id, args => $call_args, session_id => $id }
             );
             ## If hook returns TRUE, it handled the message, skip normal processing
             goto UNKNOWN_ROUTE_HANDLED
@@ -1408,13 +1408,12 @@ UNKNOWN_TYPE_HANDLED:
                 ## If hook returns TRUE, it handled the message, skip normal processing
                 goto UNKNOWN_CMD_HANDLED
                     if defined $hook_result and $hook_result == TRUE;
-            } else {
-                ## No hook, do normal error logging
-                <[base.logt]>->( qw| 4W6K5SY |, $id, $cmd );
             }
-        }
 
-        $output->$* .= <[base.sprint_t]>->( qw| VPB3EKI |, $cmd_id_str );
+            ## Only send error response if hook didn't handle it
+            $output->$* .= <[base.sprint_t]>->( qw| VPB3EKI |, $cmd_id_str );
+            <[base.logt]>->( qw| 4W6K5SY |, $id, $cmd );
+        }
 
     UNKNOWN_CMD_HANDLED:
 
@@ -1757,11 +1756,11 @@ UNKNOWN_TYPE_HANDLED:
         ## If hook returns TRUE, it handled the message, skip normal processing
         goto UNKNOWN_CMD_GLOBAL_HANDLED
             if defined $hook_result and $hook_result == TRUE;
-    } else {
-        ## No hook, do normal error logging
-        $output->$* .= <[base.sprint_t]>->( qw| VPB3EKI |, $cmd_id_str );
-        <[base.logt]>->( qw| V4DWTWA |, $id, $user, $cmd );
     }
+
+    ## Only send error response if hook didn't handle it
+    $output->$* .= <[base.sprint_t]>->( qw| VPB3EKI |, $cmd_id_str );
+    <[base.logt]>->( qw| V4DWTWA |, $id, $user, $cmd );
 
 UNKNOWN_CMD_GLOBAL_HANDLED:
 
@@ -1778,8 +1777,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,..,,..,.,,,...,,,.,,,,,,,,,...,,.,,,,.,..,,..,,...,...,,..,..,,...,,,,,,,.,
-#C3Q3KQSWQANNP3JNOUYNFDU6KXR3TH33VSEJYGNDSIZLES5S6A43HRXZ3W5RU7W7HFKWZFURLI6KW
-#\\\|X6EKKWVWEXVVUAT32XQEZPCPHLMYJNK3TIRACVB6BWVBI6XRX23 \ / AMOS7 \ YOURUM ::
-#\[7]LETB2WC327C2MZFWWSBMEVFSPDJV73SVIGFPB623IQCEBOX2GEAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,..,.,,,,.,,.,.,,..,,,.,..,,,.,,..,,...,..,,,..,,,,,,.,,,..,,,,,
+#E42ZDKYIDP7PWCUHR2QSQMLHTZ4MTCYL33KMH7PDBLSU3XTVYLNNLHEWZSKANZTNASHJVDO4H3YGY
+#\\\|LB2OKKXQ4AY7SXTPA2ZBBUY45YV53KDLEHNXFAHM6VHOE2OEJI4 \ / AMOS7 \ YOURUM ::
+#\[7]YCT4OQZXU5K7ZOHA46LTFTNNRCLO6QFEMUD6RGJLMERSFF7FY4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
