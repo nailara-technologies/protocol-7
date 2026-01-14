@@ -81,6 +81,7 @@ sub error_exit {
                 : 'redundant error_exit argument <{C2}>';
 
         } elsif ( length $EVAL_ERROR ) {
+            $err_str //= $EVAL_ERROR;
             $err_str =~ s| at \S+. line \d+.+$| <{C1}>|;
         }
         $err_str //= 'error_exit sprintf error <{C1}>';
@@ -264,8 +265,8 @@ sub p7_root_dir {
 
 return TRUE ##################################################################
 
-#,,,.,,.,,...,,,.,...,,,.,,,,,.,.,,.,,,,,,..,,..,,...,...,,,.,.,.,,.,,.,.,,,.,
-#C3TCXENNFUPNW6T2IPCALTS6ZCT3P7JJ7QNVBDEIIHKJQ762IGOCGXLZNIHQ2CQVCVATRL4J53NJ6
-#\\\|G4YP2SKV4FAPDOYJGRCLGK53UJASWGWMJ6JPH6FSTSJQTCJFKXQ \ / AMOS7 \ YOURUM ::
-#\[7]AHWDZBYHXKKW5GT5JOZNAT47VX7ZUSQW32PCNXW2F2OZWLGYWYCY 7  DATA SIGNATURE ::
+#,,..,.,.,..,,.,,,,,.,,..,,,.,..,,..,,.,.,...,..,,...,...,.,,,,,,,,..,..,,.,.,
+#GWGWRY2DU2OLMTM67P3BHA6WLUW45IC2TXIC5NF3AWKZZQ6SLUGW3WIP6ZIPVGCQYKKNBIDUXVHWU
+#\\\|ZUDGBMANFXFAU5SFCRIR7DXMHY2RCY5IBWNBCJXXW56WYY6JWPF \ / AMOS7 \ YOURUM ::
+#\[7]5ZWH753LPS55LGPHSM6TNQPIYURVE5UMXWXZZJOGPR4QSG6AEOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
