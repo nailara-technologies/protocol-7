@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3OFLLZ7ZBA-6096.0 :::
+::: SOURCE-CODE VERSION :: 3OFLN5VNBA-6097.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -321,8 +321,8 @@ The full vision document explores Protocol-7's unique approach to
 distributed computing, network participation, and the metaphorical framework
 of resource sharing.
 
-#,,..,,,,,,..,,..,,..,,..,,,.,,.,,,..,..,,..,,..,,...,..,,.,.,.,,,..,,.,,,,,,,
-#ECWENJM2KZSKSTEXFAKTIB3FMX2AZGZHBL26TJRGNKCHPRY53UG6YA33JIWVZNJTTOOJAV43BI6ZM
-#\\\|XBSCPFFCBJZSXD2P5CIJK4Z7V5XWEOEKCXMN2CB6SC6WMAWB3OX \ / AMOS7 \ YOURUM ::
-#\[7]GJ6BQGWTTODSJVNEU5KMGJTRPAOINIDQ2KQSF2NJZ24HHANFO2BY 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,,,,,.,,..,,.,.,.,.,,,,,,.,,.,.,..,,...,.,.,.,.,,,.,,..,,,,,.,,,
+#IJDC2WFU5SMWFOCYI37EHYY3IQI6VKGWM3XDEE66QF7SOYQRQZZ3GNWXEEBWYWG5PIGKQ4BOEAOHY
+#\\\|525U5J2JQNW4XZESBTHZK3QPEN3PJHPZ4KJESLBO3KMBLBV63KB \ / AMOS7 \ YOURUM ::
+#\[7]VLPMINAYZQATBY22O6IWXJDT6WWSP6CBZTFUBBSDCBCGA7ZC5KCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
