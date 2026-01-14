@@ -31,22 +31,22 @@ Term::ReadKey::ReadMode(3);
 $code{'base.handler.end_code'} = sub {
     <[base.log]>->( 2, ': restoring terminal mode ..,' );
     eval { Term::ReadKey::ReadMode(0) };
-    <[base.exit]>->( ':. [ terminal restored ].', 0 );
+    <[base.exit]>->( '[ terminal restored ]', 1 );
 };
 
 ## Initialize nshell state
-<nshell.buffer_id>           //= 'nshell-001';
-<nshell.unix_user>           //= $current_user;
-<nshell.authenticated>       //= FALSE;
-<nshell.passthrough_mode>    //= FALSE;  ## After auth: transparent pass-through
+<nshell.buffer_id>        //= 'nshell-001';
+<nshell.unix_user>        //= $current_user;
+<nshell.authenticated>    //= FALSE;
+<nshell.passthrough_mode> //= FALSE;   ## After auth: transparent pass-through
 
 ## nshell doesn't manage history - that's on session side now
 ## Just relay raw input/output to/from session buffers
 
 return 0;
 
-#,,,.,.,.,,,.,.,.,,,,,..,,,.,,,..,,,.,..,,,,,,..,,...,...,,.,,,,.,.,.,.,,,...,
-#LIHBPJ4KIPXWGT25GO3MIAKQAXRUPLUKIVA4QLDBNEAQLAWASZTVBVJVVAKPFPOVZCJNU3J4D2MU2
-#\\\|LNOUINE5OM6P4QYO7V4Y52V7E7RREGWGFLAHBNI5C3SWGO4CSBC \ / AMOS7 \ YOURUM ::
-#\[7]MHZVSFODM453MENPEIH7UR6ZAYRBSFOTOYIPDKWSFPSRLQNLOKCI 7  DATA SIGNATURE ::
+#,,..,..,,,.,,.,.,.,.,.,.,,..,.,.,...,,.,,.,.,..,,...,...,.,,,,,,,,,,,,..,..,,
+#VWI3JSH33S5PTCNERWVBOLJX4LPP6Q527OHDTH4XOXKYB4SL773V4ADL5QPHTUTHGDYCHRYOJPCHG
+#\\\|IHP2XVLC7MJLROKNGJQRIOS64IV4GX23ANWLKAB224FC5COPNMG \ / AMOS7 \ YOURUM ::
+#\[7]4ZFNSN7N23AAHCSC6GMSAE4DPUDWVEVYMPWK2YS67WYELRKH7GCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

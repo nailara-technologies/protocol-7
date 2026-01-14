@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = nshell.setup_stdin_watcher
+# descr = Register STDIN as an I/O watcher to read keyboard input
+
+## Get the cube session
+my ($session_id) = keys <user.cube.session>->%*;
+
+unless ( defined $session_id and defined $data{'session'}{$session_id} ) {
+    <[base.log]>->( 0, 'nshell.setup_stdin_watcher: no cube session found' );
+    return FALSE;
+}
+
+my $session = $data{'session'}{$session_id};
+
+## Register STDIN (file descriptor 0) as an I/O watcher
+## This will trigger nshell.shell_loop whenever user types
+$session->{'watcher'}->{'stdin_handler'} = <[event.add_io]>->(
+    {   'fd'      => 0,                         ## STDIN file descriptor
+        'poll'    => qw| r |,                   ## read mode
+        'handler' => qw| nshell.shell_loop |,
+        'prio'    => 2,
+        'repeat'  => TRUE,                      ## repeat indefinitely
+        'data'    => $session_id,
+        'desc'    => sprintf( '[%d] nshell STDIN handler', $session_id )
+    }
+);
+
+<[base.logs]>->( 2, 'nshell: registered STDIN watcher on fd 0' );
+
+## change message and log level for terminating on session close ##
+#
+<callback.session.closing_last.params>
+    = [ 'terminating, remote session closed..', 1 ];
+
+return TRUE;
+
+#,,..,,,,,,.,,,..,,,,,..,,,,.,.,.,.,,,.,,,..,,..,,...,..,,,,.,..,,,,.,,,,,.,.,
+#ESJMUHX5NHVMUZS4EHFPTH2LHFAVNDZZG6NNU7UXGYDGRNQKMTRDGUXPTINASMWISLWFMEJTVQTOI
+#\\\|UBUMCZYQBFW543FSO2G6KH6N6BPH3C4ICSAMWAPSM7ZVEQ3MRJ2 \ / AMOS7 \ YOURUM ::
+#\[7]Y4MDDUYZRCNTUO4SQPJCT2FQIKHLYEKG6TRVRDHBQFCLA7B47GCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
