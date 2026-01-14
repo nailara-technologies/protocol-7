@@ -1,25 +1,19 @@
 ## [:< ##
 
 # name = nshell.write_to_buffer
-# descr = Write command output to amos-term buffer Layer 0
+# descr = Write command output to STDOUT
 
 my ($output) = @ARG;
 
-return 0 unless defined $output;
+return FALSE unless defined $output and length $output;
 
-## For now, write to stdout to maintain visible shell output
-## When amos-term buffer integration is ready, this will:
-##   - Write to amos-term Layer 0 (shell output content)
-##   - Write to amos-term Layer 1 (AMOS7 colors)
-##   - Write to amos-term Layer 6 (semantic type: shell_output)
-##   - Flush buffer for Byzantine consensus across 7 nodes
-
+## Write directly to STDOUT
 print $output;
 
-return 0;
+return TRUE;
 
-#,,..,...,.,,,,.,,.,,,...,,,.,,,.,,,.,..,,.,.,.,.,...,...,..,,.,,,,.,,..,,...,
-#IALBJJAE6D7XA2JLP7NPKB6OXAO4ZDWHQ2Z4UMNMN2LUTIVNHH7FUOVH4XY3QH7RAOW342KVNVK7M
-#\\\|QBT7L6ORPQXV4VTMORQPKE335HG4KOPJ46KVB6EIXGUQ3A2YQ5B \ / AMOS7 \ YOURUM ::
-#\[7]DKP4XGF7NTZTM7AP2CASZ447GNE5CQFHL6H6OVSKU2E3P7T6SSCI 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,,,.,,.,,...,,.,,,,,,...,,..,.,.,.,.,...,...,.,,,.,,,,,,,.,,,.,.,
+#2W4ZZSSGVLSMWWGRB6L64LAXJ3OEI25HD4CFI62PEVW7UDZ6DRI2SAFKM456YLQ5EILY32SOP72RQ
+#\\\|HHGN2I6SXEGLJSRDZHL57TJUJPZJDXE4WTRV7A4X63A4AEGHZID \ / AMOS7 \ YOURUM ::
+#\[7]CP37PUCGEARGVGOJI4CT2CJZZM5SUVHIFMWXTUAKMKNRMGUH3GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,6 +18,19 @@ $AMOS7::TERM::prompt_prefix_string = ' ::';
 ## Get current Unix user for authentication
 my $current_user = $ENV{'USER'} // getpwuid($EUID) // 'taeki';
 
+## Load terminal control module
+<[base.perlmod.load]>->('Term::ReadKey');
+
+## Set terminal to cbreak mode (immediate character input, no line buffering)
+Term::ReadKey::ReadMode(3);
+
+## Set end_code callback to restore terminal mode before exit
+$code{'base.handler.end_code'} = sub {
+    <[base.log]>->( 2, ': restoring terminal mode ..,' );
+    eval { Term::ReadKey::ReadMode(0) };
+    <[base.exit]>->( ':. [ terminal restored ].', 0 );
+};
+
 ## Initialize nshell state
 <nshell.buffer_id>       //= 'nshell-001';
 <nshell.command_history> //= [];
@@ -32,8 +45,8 @@ my $current_user = $ENV{'USER'} // getpwuid($EUID) // 'taeki';
 
 return 0;
 
-#,,.,,...,,..,,..,,..,,..,,..,,..,,..,.,.,,..,..,,...,...,...,,..,.,.,,.,,,..,
-#VFJP4QORA45KZ5Q3FWMJTWWYUBVHCO7XEQWEYVQIGUGPSBMT24XMR26HJCBWPQXBAAEGI5AOIPY5U
-#\\\|PAKUQEY6PKO26FDHYUM3PA7BAUX74UMFDEUQXCUL46WENJAEO3D \ / AMOS7 \ YOURUM ::
-#\[7]OLOU5VOEAGNFH5OFGHKEYHUWSGR43PO34E3WGVZTNMC7VLMHSYCY 7  DATA SIGNATURE ::
+#,,..,...,.,,,,.,,,,.,.,.,..,,,,.,,..,..,,.,.,..,,...,...,,..,,,,,,.,,,..,,.,,
+#7YFY7SZ5OL2OGQ57CJ53R232KQSVNLYDIHEHZ7SQ3TUOYF7TRO6XJOXN3ETQSHRCKW3P5MRM7Y3V4
+#\\\|OIEBCXKLXTWXT6FUJV5QY7FKIBJOGRYATG3SZB6RJYYRUCYZSBD \ / AMOS7 \ YOURUM ::
+#\[7]SJ5W6ZLQVDIG46RBZTYIGCUS7TTSF7YVZ4ECTEIDEYU5B673W2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
