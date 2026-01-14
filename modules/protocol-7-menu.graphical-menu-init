@@ -1,0 +1,61 @@
+## [:< ##
+
+# name = protocol-7-menu.graphical-menu-init
+# descr = Initialize Gtk3 menu with action items
+
+return 0 unless <protocol-7-menu.init-graphical>;
+
+my $menu = Gtk3::Menu->new();
+
+## Add menu items based on action configuration
+my $actions           = <protocol-7-menu.action-keys> //= { graphical => {} };
+my $graphical_actions = $actions->{graphical}         //= {};
+
+## Default action items if none configured
+unless ( scalar keys %{$graphical_actions} ) {
+    $graphical_actions->{startup_x11} = {
+        label   => 'start-up X-11 zenka',
+        command => 'p7c v7.start_once X-11',
+    };
+    $graphical_actions->{dpms_off} = {
+        label   => 'OFF ( backlight )',
+        command => 'p7c X-11.dpms_force_off',
+    };
+    $graphical_actions->{exit} = {
+        label    => 'exit p7 menu',
+        callback => sub { Gtk3->main_quit },
+    };
+}
+
+## Create menu items from configuration
+foreach my $action_key ( sort keys %{$graphical_actions} ) {
+    my $action_config = $graphical_actions->{$action_key};
+    my $label         = $action_config->{label} // $action_key;
+
+    my $menu_item = Gtk3::MenuItem->new_with_label($label);
+
+    if ( defined $action_config->{callback}
+        && ref $action_config->{callback} eq 'CODE' ) {
+        $menu_item->signal_connect(
+            'activate' => $action_config->{callback} );
+    } elsif ( defined $action_config->{command} ) {
+        my $cmd = $action_config->{command};
+        $menu_item->signal_connect( 'activate' => sub {qx| $cmd |} );
+    }
+
+    $menu->append($menu_item);
+}
+
+$menu->set_property( qw| rect-anchor-dx |, -42 );
+$menu->show_all;
+
+## Store menu reference
+<protocol-7-menu.graphical-menu> = $menu;
+
+return 0;
+
+#,,,,,,..,,..,...,,,.,.,.,.,.,,..,...,..,,,,,,.,.,...,...,,..,.,,,...,,,,,,.,,
+#3V2TEPZYZJMDTJP6MYGGV3B5US5QOWIS6PURUDFNLCZTQ7BBN334MI4QV62E4IXB2KDBJHKJS4PMG
+#\\\|K6ACXJ65NDW3MYG5WO35FHIEQV7W6246WXGLOQQ6H4DFB25BJKT \ / AMOS7 \ YOURUM ::
+#\[7]XNFMZKJANK3W3ZUN5CSHDGCONDVDSNC3J7TUIUDN3CNJCU4VBICA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
