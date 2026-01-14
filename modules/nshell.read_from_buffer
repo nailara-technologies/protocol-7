@@ -1,21 +1,44 @@
 ## [:< ##
 
 # name = nshell.read_from_buffer
-# descr = Read command input from amos-term buffer Layer 0
+# descr = Non-blocking keyboard input with line accumulation
 
-## Placeholder implementation for future buffer integration
-## Returns command from buffer keyboard input layer
+## Reads one character at a time with very short timeout
+## Returns complete line when user presses Enter
+## Persists buffer across calls (static variable)
 
-## For now, returns undef (zenka event loop will call periodically)
-## When amos-term buffer integration is ready, this will:
-##   - Read from amos-term Layer 0 (keyboard input)
-##   - Return line when newline received
-##   - Clear buffer after reading
+state $command_buffer = '';
 
-return undef;    ## No command available yet
+## Non-blocking read with 0 timeout (immediate)
+my $key = Term::ReadKey::ReadKey(-1);
 
-#,,..,,..,,,.,.,,,,,.,..,,,,.,...,,,,,,,.,,..,.,.,...,...,..,,,,.,,.,,.,.,,.,,
-#C3YNWSI7TS45ALHKVJO3LBIWSRLHIL5KVAWSCBZ3I6HPFF5LXN5QGAQ665TXDS3J25BNQL3AE22JQ
-#\\\|M3XCLIOZ37CDAZCTO5YKX23KVGGGEG3OHXGPVSPM3MIBRJTQEO7 \ / AMOS7 \ YOURUM ::
-#\[7]DBGJFR6WGNGEAUPWNWAVJAKOAF56NNOJ4GPCWC6OHCPE5EMDP4CI 7  DATA SIGNATURE ::
+return undef if not defined $key;  ## No input available
+
+if ( $key eq "\n" or $key eq "\r" ) {
+    print "\n" if length $command_buffer;
+    my $result = $command_buffer;
+    $command_buffer = '';
+    return $result;
+} elsif ( $key eq "\x03" ) {  ## Ctrl-C
+    print "^C\n";
+    $command_buffer = '';
+    return undef;
+} elsif ( $key eq "\x04" ) {  ## Ctrl-D (EOF)
+    return undef;
+} elsif ( $key eq "\x08" or $key eq "\x7f" ) {  ## Backspace/Delete
+    if ( length $command_buffer ) {
+        chop($command_buffer);
+        print "\x08 \x08";
+    }
+} elsif ( length $key and ord($key) >= 32 ) {  ## Printable
+    $command_buffer .= $key;
+    print $key;  ## Echo
+}
+
+return undef;  ## Partial input, keep accumulating
+
+#,,.,,..,,..,,...,,.,,.,,,,.,,,.,,,..,,..,,,.,.,.,...,.,.,...,,..,,,.,.,,,,.,,
+#335A7GOYWQOTQHLW2DQ4ZQTW7NPQ6ISINPCKHT4367HIKJJSXEUE6TWX6LPM3MG4G36N4YXFASP2M
+#\\\|WEBBDFAWGIXJIRIP4BCY5PINHD6T76EN5B4EUAXMRJVDTJPFBCR \ / AMOS7 \ YOURUM ::
+#\[7]SHYFMJIAGDUCEH3JNB2MKJTM6GK2AZMRPRWPLSPZX3DXMLLU4SDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

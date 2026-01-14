@@ -3,8 +3,9 @@
 # name = nshell.shell_loop
 # descr = Main nshell command processing loop
 
-## This module runs as part of zenka.loop and processes commands
-## Read from buffer Layer 0, execute via cube, write results back
+## This module runs as part of zenka.loop
+## Reads keyboard input from STDIN, processes commands, writes output to STDOUT
+## Uses simple TTY I/O (future: migrate to amos-term buffer for distributed consensus)
 
 use AMOS7::TERM;
 
@@ -13,16 +14,13 @@ my $history   = <nshell.command_history> //= [];
 
 ## Display prompt
 my $prompt = sprintf '%s [nshell]: ', ( <nshell.prompt_newline> ? "\n" : '' );
+print $prompt;
+$| = 1;  ## Flush stdout
 
-## Try to read command from buffer
+## Try to read command
 my $cmd_input = <[nshell.read_from_buffer]>;
 
 return 0 unless defined $cmd_input && length($cmd_input);
-
-## Clean up input
-chomp($cmd_input);
-
-return 0 if $cmd_input eq '';
 
 ## Add to history (keep last N commands)
 push( @{$history}, $cmd_input );
@@ -40,12 +38,13 @@ if ( $cmd_input =~ m|^\.(.+)$| ) {
 
 ## Handle special commands
 if ( $cmd_input eq '[quit]' || $cmd_input eq 'exit' ) {
-    <[nshell.write_to_buffer]>->("nshell session terminated\n");
+    <[nshell.write_to_buffer]>->("session terminated\n");
+    <[base.exit]>->(0);
     return 0;
 }
 
 if ( $cmd_input eq '[reset]' ) {
-    system(qw| reset |);
+    system(qw| clear |);
     return 0;
 }
 
@@ -59,8 +58,8 @@ my $result           = <[nshell.execute_cube_command]>->($cmd_with_newline);
 
 return 0;
 
-#,,,,,,..,..,,.,,,,.,,...,,..,.,.,,..,,,.,.,,,.,.,...,..,,...,,,.,,,.,.,.,,..,
-#KTFXJRYF3CWOGYNILRRWV3S24GGIZKLCBZ7HVLGV6BM3QA6MBHJMRR5TMPIMC5HDB2G2S4Z37VYY2
-#\\\|4S3AFE7ISEBN6MEYL3GBH5LVD73IUT5IAJXZBWYQMRXEDSY22VI \ / AMOS7 \ YOURUM ::
-#\[7]DZDTUUWAPZR74EGXO77H47JYAFM5NGJ6RHQVFP3FT4DGXMM3ZQBQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,..,.,,,,,.,.,.,..,,,,.,.,,,.,,,.,.,...,..,,.,.,.,.,.,,,.,,,,..,
+#FZ4N2UZUES5LCCUXX43WI46BICJYUK4OCBHZ5NZQGWRY4YKSJZNAPVE3DXDIPB53A4VE3CN7KTPHO
+#\\\|TH3A7ZD33DHX6NBPMO5NALMP7F2AXRMZ55RSBXRC5AZPZRXMRZV \ / AMOS7 \ YOURUM ::
+#\[7]JKDBGQQPSGMCM7EA3QS56BX6VF6BZAYZ6RQ74CIOJEAGQTWGEWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
