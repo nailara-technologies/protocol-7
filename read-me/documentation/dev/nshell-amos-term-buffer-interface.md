@@ -328,6 +328,43 @@ Session is stored as:
 
 ---
 
+## Terminal Control and Signal Handling
+
+### Input Capture Strategy
+
+nshell **grabs keyboard input directly** using `Term::ReadKey` in non-blocking mode:
+
+```
+User types Ctrl-C
+    ↓
+nshell.read_from_buffer captures it immediately
+    ↓
+nshell decides what to do (currently: graceful shutdown)
+    ↓
+Terminal mode restored, process exits cleanly
+```
+
+This is safer than letting signals through blindly because:
+- nshell controls cleanup (terminal restoration)
+- Frontend always gets consistent, predictable behavior
+- Can route signals appropriately based on downstream client capabilities
+
+### Future Signal Routing
+
+When bash/zsh/other shells integrate as child zenka:
+```
+User types Ctrl-C
+    ↓
+nshell.read_from_buffer sees it
+    ↓
+If client understands signals: forward via protocol
+If client doesn't: nshell handles locally
+```
+
+This allows gradual migration without breaking compatibility.
+
+---
+
 ## Error Handling and Recovery
 
 ### Consensus Failure
