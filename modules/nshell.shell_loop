@@ -3,50 +3,29 @@
 # name = nshell.shell_loop
 # descr = Terminal pass-through relay loop
 
-## After authentication, nshell operates in transparent pass-through mode:
-##   STDIN/keyboard → session input buffer → [cube/shell processes]
-##   [cube output] → session output buffer → STDOUT/terminal
-##
-## History, cooked mode, line editing: handled on session side (cube)
-## nshell just relays raw bytes in both directions
+## nshell main loop: read user input and relay directly to cube's input buffer
 
-## Get current session (created during authentication)
-my $session_id = <system.session_id>;
-return 0 unless defined $session_id;
+## Read one complete command from keyboard (accumulated by read_from_buffer)
+my $cmd = <[nshell.read_from_buffer]>;
 
-my $session = $data{'session'}{$session_id};
-return 0 unless defined $session;
+return 0 unless defined $cmd and length $cmd;
 
-## Register hooks on first pass (check if already registered)
-if ( !<nshell.hooks_registered> ) {
-    ## Register input-pre hook to write shell output FROM cube to STDOUT
-    ## instead of parsing it as protocol-7 commands
-    <[base.handler.hooks]>->(
-        'register', $session_id, 'input-pre', 'nshell.hook.input_passthrough'
-    );
+## Pass command directly to cube's input buffer
+## This is transparent relay - cube sees it as local input
+my ($cube_sid) = keys <user.cube.session>->%*;
 
-    <nshell.hooks_registered> = TRUE;
+if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
+    ## Append command directly to cube's output buffer (cube's input stream)
+    ## Cube's watcher will automatically process it
+    $data{'session'}{$cube_sid}{'buffer'}{'output'} .= $cmd . "\n";
+} else {
+    <[base.log]>->( 0, 'nshell.shell_loop: cube session not available' );
 }
-
-## Get session output buffer (for sending STDIN to cube)
-my $output_buf = \$session->{'buffer'}->{'output'};
-return 0 unless defined $output_buf;
-
-## Read one keystroke from terminal STDIN
-my $key = <[nshell.read_from_buffer]>;
-
-if ( defined $key ) {
-    ## Send keystroke TO cube (output buffer gets transmitted automatically)
-    ${$output_buf} .= $key;
-}
-
-## Note: Shell output from cube arrives in input buffer → triggers base.handler.input →
-## input-pre hook intercepts and writes to STDOUT → normal protocol handler is skipped
 
 return 0;
 
-#,,..,..,,..,,,,,,...,,,.,,,.,,,,,,..,..,,.,,,.,.,...,..,,.,.,,,.,,.,,..,,,.,,
-#2VIWDCOGCLCKFPETRS3IIECUERZD25CARAMPLZ3STT7V64YAKOG7VSLG2PJ63N364MFLA7DTHOZKE
-#\\\|VFRWFIH45F7NZHFFCY6M2DGRIFNKYKVCD2ZA7SIGH2IQNQEMHY6 \ / AMOS7 \ YOURUM ::
-#\[7]LDHX75ZTGWGIH4JYERNOQ5MK6U6R57ZB7Y5KR7CHEP63KSWY2OBA 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,..,,,,.,.,,,..,,.,,,..,,..,,,.,,.,.,...,...,.,.,...,,,.,.,.,...,
+#O3R64AP2SU3K5VJFG2PIXZ6YT5LTA3B3TZ3DMEEB7NM3GCXUZ7T3ELYCFKBXWEYUXXSTVY57QDYFU
+#\\\|D63A5H2JXS5USQBG5KSLWYAUBED4OR3UKPFD5R2M6RHHWYIOT4Y \ / AMOS7 \ YOURUM ::
+#\[7]5BKRGHH2AM4VPX6YO4WOGHYLM7VWLI4ASMH3UDRYHYVLCDHBZQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

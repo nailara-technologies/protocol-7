@@ -21,6 +21,9 @@ my $current_user = $ENV{'USER'} // getpwuid($EUID) // 'taeki';
 ## Load terminal control module
 <[base.perlmod.load]>->('Term::ReadKey');
 
+## Initialize terminal output color to TRUE blue (p7_fg_0004) so first command echoes in correct color
+printf "%s\r", $colors{'p7_fg_0004'} // '';
+
 ## Set terminal to cbreak mode (immediate character input, no line buffering)
 Term::ReadKey::ReadMode(3);
 
@@ -42,8 +45,8 @@ $code{'base.handler.end_code'} = sub {
 
 return 0;
 
-#,,.,,,.,,.,,,,,.,.,.,..,,...,,..,,..,...,...,..,,...,...,,,,,...,.,.,.,.,.,,,
-#NRLRHGJSLNO4YLQHP4XHBV72O37BZ4MIWWML6ZIRBSSRFBVGQYX5NX4QX5CUOMMIG5ZFYF5RWPCXM
-#\\\|D5QZVOYTUTVFP7SDZJSLQYARQX2HH4EUOIILN7TJGQM7NFTCA6Z \ / AMOS7 \ YOURUM ::
-#\[7]IRWWOXGKWSSK6EUE5DVSO325WLGDOMKY7Z72LA45AUIAJKCM7MAI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,.,.,,,,,..,,,.,,,..,,,.,..,,,,,,..,,...,...,,.,,,,.,.,.,.,,,...,
+#LIHBPJ4KIPXWGT25GO3MIAKQAXRUPLUKIVA4QLDBNEAQLAWASZTVBVJVVAKPFPOVZCJNU3J4D2MU2
+#\\\|LNOUINE5OM6P4QYO7V4Y52V7E7RREGWGFLAHBNI5C3SWGO4CSBC \ / AMOS7 \ YOURUM ::
+#\[7]MHZVSFODM453MENPEIH7UR6ZAYRBSFOTOYIPDKWSFPSRLQNLOKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

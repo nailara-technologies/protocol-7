@@ -7,22 +7,77 @@ my ($msg_data) = @ARG;
 
 return FALSE unless defined $msg_data;
 
-my $cmd    = $msg_data->{'cmd'};
-my $cmd_id = $msg_data->{'cmd_id'};
+my $cmd         = $msg_data->{'cmd'};
+my $color_start = $colors{'p7_fg_0004'} // '';
+my $color_end   = $colors{'rst'}        // '';
 
-## Format and display the unknown reply to user
-my $output
-    = sprintf(
-    "\n[nshell: unknown reply] %s-reply to unknown route id [%d]\n",
-    $cmd, $cmd_id );
+## Handle SIZE replies - read the data payload
+if ( $cmd eq 'SIZE' ) {
+    my $session_id = $msg_data->{'session_id'};
+    my $size       = 0;
 
-print $output;
-$| = 1;    ## flush immediately
+    ## Parse SIZE value from args (format: "SIZE 274" -> args='274')
+    if ( ref( $msg_data->{'args'} ) eq 'HASH' ) {
+        $size = $msg_data->{'args'}->{'args'} // 0;
+    } else {
+        $size = $msg_data->{'args'} // 0;
+    }
 
-return TRUE;    ## we handled it
+    if (    defined $session_id
+        and $size > 0
+        and exists $data{'session'}{$session_id} ) {
+        my $input_buf = \$data{'session'}{$session_id}{'buffer'}->{'input'};
 
-#,,.,,...,,,,,,.,,,.,,,,.,.,.,..,,.,,,.,,,.,,,.,.,...,...,.,,,,..,,,.,.,.,,..,
-#R4N7RS6OHK3I6KMC436GQLFPSXHITYKNARAF5QC5F5MF4YMAIAIIENW4KURVTJEVE5AFU3L4BTEP2
-#\\\|YS6P6RR3QPBSOFE7ZUMIZXAEA5ACUDJ7K4QPKSHPGFCBFO33MV6 \ / AMOS7 \ YOURUM ::
-#\[7]752PU3J4N6QH2QZR4BFWY4Z2BRKQZE4LW4X2EG7EATGOJHGQYEBY 7  DATA SIGNATURE ::
+        ## Extract SIZE bytes from input buffer
+        if ( bytes::length( $input_buf->$* ) >= $size ) {
+            my $output_data = substr $input_buf->$*, 0, $size, '';
+            print $color_start . $output_data . $color_end;
+            $| = 1;    ## flush immediately
+            return TRUE;
+        }
+    }
+
+    ## Not enough data yet, let protocol layer continue
+    return FALSE;
+}
+
+## Handle TRUE/FALSE replies - may have content in args
+if ( $cmd eq 'TRUE' or $cmd eq 'FALSE' ) {
+    my $output = '';
+    my $reply_color
+        = $cmd eq 'TRUE'
+        ? ( $colors{'p7_fg_0004'} // '' )
+        : ( $colors{'p7_fg_0003'} // '' );
+    my $color_reset = $colors{'rst'} // '';
+
+    ## Check if there's content in args
+    if ( ref( $msg_data->{'args'} ) eq 'HASH'
+        and defined $msg_data->{'args'}->{'args'} ) {
+        $output = $msg_data->{'args'}->{'args'};
+    } elsif ( !ref( $msg_data->{'args'} ) and defined $msg_data->{'args'} ) {
+        $output = $msg_data->{'args'};
+    }
+
+    ## Display with newline prefix and suffix for visual spacing
+    print "\n";    ## Prefix newline
+    if ( length $output ) {
+        print $reply_color . '  ' . $output . $color_reset . "\n";
+    } else {
+        print $reply_color . '  ' . $cmd . $color_reset . "\n";
+    }
+    print "\n";    ## Suffix newline for spacing
+    $| = 1;    ## flush immediately
+    return TRUE;
+}
+
+## Display message transparently to user
+print $color_start . '  ' . $cmd . $color_end . "\n";
+$| = 1;        ## flush immediately
+
+return TRUE;   ## we handled it
+
+#,,,.,.,.,...,.,.,,.,,,.,,.,,,.,,,.,.,,..,,.,,.,.,...,...,.,.,...,.,.,..,,,..,
+#EPPRUQOICQBZXW7HMEETOFVBSCFDWWWWDF33ILYTBGONSLCSR5PQHF3N7JKL6XVQO6FVDVJXEDV4M
+#\\\|525FRXZP5GCNL7HOBTPM6KKILDNUI3J5AJ4DFN7KEXVLIYMWZFF \ / AMOS7 \ YOURUM ::
+#\[7]2QJ3XEYD7LBRGW7BA4PRP7U52MLRILOUBPYVIB5YSILIXGLHBICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
