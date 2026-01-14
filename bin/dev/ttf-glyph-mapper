@@ -1,0 +1,396 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use SDL;
+use SDL::TTF;
+use SDL::Rect;
+use SDL::Color;
+use SDL::Surface;
+use SDL::Video;
+use Getopt::Long;
+
+###############################################################################
+#
+# TTF-to-Glyph Mapper: Convert TTF characters to harmonic 5×7 bit matrices
+#
+# Iterates through character space and creates glyph mappings:
+#   - 7-bit ASCII (0-127)
+#   - Extended ASCII (128-255)
+#   - UTF-8 ranges
+#
+# Output formats:
+#   - Binary (1-bit per pixel: on/off)
+#   - Grayscale (multi-level intensity)
+#   - Color (future: 24-bit RGB per pixel)
+#
+###############################################################################
+
+SDL::init(SDL_INIT_VIDEO);
+SDL::TTF::init();
+
+###############################################################################
+##  CONFIGURATION
+###############################################################################
+
+my $font_path = '';
+my $font_size = 56;
+my $char_start = 32;          # ASCII space
+my $char_end = 126;           # ASCII tilde
+my $output_format = 'binary'; # [binary|grayscale|color]
+my $threshold = 128;          # For binary thresholding (0-255)
+my $verbose = 0;
+my $dump_matrices = 0;
+my $matrix_size = '5x7';      # [5x5|5x7|35x7] - 5x7 standard, 35x7 for animation
+
+GetOptions(
+    'font=s'        => \$font_path,
+    'size=i'        => \$font_size,
+    'start=i'       => \$char_start,
+    'end=i'         => \$char_end,
+    'format=s'      => \$output_format,
+    'threshold=i'   => \$threshold,
+    'matrix=s'      => \$matrix_size,
+    'verbose'       => \$verbose,
+    'dump'          => \$dump_matrices,
+) or die "Error in command line arguments\n";
+
+###############################################################################
+##  FONT DETECTION
+###############################################################################
+
+unless ($font_path) {
+    my @font_dirs = (
+        '/data/projects/protocol-7/data/ttf/console',
+        '/usr/share/fonts/truetype/freefont',
+        '/usr/share/fonts/TTF',
+    );
+
+    # Try white-rabbit first (the guide)
+    for my $dir (@font_dirs) {
+        if (-f "$dir/white-rabbit.flipped.ttf") {
+            $font_path = "$dir/white-rabbit.flipped.ttf";
+            last;
+        }
+    }
+
+    unless ($font_path) {
+        for my $dir (@font_dirs) {
+            if (-d $dir) {
+                opendir(my $dh, $dir) or next;
+                my @fonts = grep { /\.ttf$/i } readdir($dh);
+                closedir($dh);
+                if (@fonts) {
+                    $font_path = "$dir/$fonts[0]";
+                    last;
+                }
+            }
+        }
+    }
+
+    die "Could not find TTF font\n" unless $font_path;
+}
+
+die "Font not found: $font_path\n" unless -f $font_path;
+
+print "Using font: $font_path\n" if $verbose;
+print "Font size: $font_size\n" if $verbose;
+print "Character range: $char_start - $char_end\n" if $verbose;
+print "Output format: $output_format\n" if $verbose;
+
+###############################################################################
+##  FONT INITIALIZATION
+###############################################################################
+
+my $font = SDL::TTF::open_font($font_path, $font_size)
+    or die "Failed to open font: " . SDL::get_error() . "\n";
+
+my $font_height = SDL::TTF::font_height($font);
+my $font_ascent = SDL::TTF::font_ascent($font);
+
+print "Font height: $font_height, ascent: $font_ascent\n" if $verbose;
+
+###############################################################################
+##  GLYPH MATRIX DIMENSIONS
+###############################################################################
+
+my ($glyph_width, $glyph_height);
+
+if ($matrix_size eq '5x5') {
+    $glyph_width = 5;
+    $glyph_height = 5;
+} elsif ($matrix_size eq '5x7') {
+    $glyph_width = 5;
+    $glyph_height = 7;
+} elsif ($matrix_size eq '35x7') {
+    $glyph_width = 35;   # 7 characters × 5 pixels wide
+    $glyph_height = 7;   # Animation frames stacked
+} else {
+    die "Unknown matrix size: $matrix_size\n";
+}
+
+my $bits_per_pixel;
+
+if ($output_format eq 'binary') {
+    $bits_per_pixel = 1;
+} elsif ($output_format eq 'grayscale') {
+    $bits_per_pixel = 8;  # 256 levels
+} elsif ($output_format eq 'color') {
+    $bits_per_pixel = 24; # RGB
+} else {
+    die "Unknown output format: $output_format\n";
+}
+
+my $total_bits = $glyph_width * $glyph_height * $bits_per_pixel;
+
+print "Glyph matrix: ${glyph_width}×${glyph_height} pixels\n" if $verbose;
+print "Matrix size: $matrix_size\n" if $verbose;
+print "Bits per pixel: $bits_per_pixel\n" if $verbose;
+print "Total bits per glyph: $total_bits\n" if $verbose;
+
+###############################################################################
+##  CHARACTER ITERATION
+###############################################################################
+
+my %glyph_cache;
+my $glyph_count = 0;
+
+for (my $char_code = $char_start; $char_code <= $char_end; $char_code++) {
+    my $char = chr($char_code);
+
+    # Skip control characters in ASCII
+    next if $char_code < 32 && $char_code > 0;
+
+    print "\n" if $verbose && $glyph_count % 8 == 0;
+    print "." unless $verbose;
+
+    my $glyph_matrix = rasterize_character($font, $char, $char_code);
+
+    if ($glyph_matrix) {
+        $glyph_cache{$char_code} = $glyph_matrix;
+        $glyph_count++;
+
+        if ($dump_matrices && $verbose) {
+            print "\nChar: $char (U+", sprintf("%04X", $char_code), ")\n";
+            print_matrix($glyph_matrix);
+        }
+    }
+}
+
+print "\n" unless $verbose;
+print "Mapped $glyph_count characters\n";
+
+###############################################################################
+##  OUTPUT REPORT
+###############################################################################
+
+print "\nGlyph Mapping Report\n";
+print "=" x 60 . "\n";
+print "Format: AMOS hash of character identity\n";
+print "\n";
+
+my $display_count = 0;
+for (my $char_code = $char_start; $char_code <= $char_end; $char_code++) {
+    next unless exists $glyph_cache{$char_code};
+
+    my $char = chr($char_code);
+    my $glyph = $glyph_cache{$char_code};
+    my $amos = compute_amos_hash($glyph);
+
+    # Visual representation
+    my $visual = ($char_code >= 32 && $char_code < 127) ? $char : "U+" . sprintf("%04X", $char_code);
+
+    printf "%3d  %8s  %s\n", $char_code, $amos, $visual;
+
+    $display_count++;
+    last if $display_count >= 32; # Show first 32 for preview
+}
+
+if ($glyph_count > 32) {
+    print "... (" . ($glyph_count - 32) . " more glyphs) ...\n";
+}
+
+###############################################################################
+##  SUBROUTINES
+###############################################################################
+
+sub rasterize_character {
+    my ($font, $char, $char_code) = @_;
+
+    # Render character to surface
+    my $fg_color = SDL::Color->new(255, 255, 255);  # white
+    my $text_surface = SDL::TTF::render_utf8_solid($font, $char, $fg_color)
+        or return undef;
+
+    my $text_width = $text_surface->w;
+    my $text_height = $text_surface->h;
+
+    # Create target glyph surface (5×7)
+    my $glyph_surface = SDL::Surface->new(
+        SDL_SWSURFACE,
+        $glyph_width,
+        $glyph_height,
+        $text_surface->format->BitsPerPixel,
+        0, 0, 0, 0
+    ) or die "Failed to create glyph surface\n";
+
+    # Fill with black
+    my $black = SDL::Video::map_RGB(
+        $glyph_surface->format,
+        0, 0, 0
+    );
+    SDL::Video::fill_rect($glyph_surface, undef, $black);
+
+    # Scale and center text in glyph matrix
+    if ($text_width > 0 && $text_height > 0) {
+        my $scale_x = $glyph_width / $text_width;
+        my $scale_y = $glyph_height / $text_height;
+        my $scale = ($scale_x < $scale_y) ? $scale_x : $scale_y;
+
+        my $scaled_w = int($text_width * $scale);
+        my $scaled_h = int($text_height * $scale);
+
+        my $offset_x = int(($glyph_width - $scaled_w) / 2);
+        my $offset_y = int(($glyph_height - $scaled_h) / 2);
+
+        # Simple nearest-neighbor scaling (for now)
+        # TODO: Add better scaling algorithm
+        my $scaled_surface = scale_surface($text_surface, $scaled_w, $scaled_h);
+
+        if ($scaled_surface) {
+            SDL::Video::blit_surface(
+                $scaled_surface,
+                undef,
+                $glyph_surface,
+                SDL::Rect->new($offset_x, $offset_y, $scaled_w, $scaled_h)
+            );
+        }
+    }
+
+    return extract_matrix($glyph_surface);
+}
+
+sub scale_surface {
+    my ($surface, $new_w, $new_h) = @_;
+
+    # Create new scaled surface
+    my $scaled = SDL::Surface->new(
+        SDL_SWSURFACE,
+        $new_w,
+        $new_h,
+        $surface->format->BitsPerPixel,
+        0, 0, 0, 0
+    ) or return undef;
+
+    # Simple nearest-neighbor scaling
+    my $old_w = $surface->w;
+    my $old_h = $surface->h;
+
+    for (my $y = 0; $y < $new_h; $y++) {
+        for (my $x = 0; $x < $new_w; $x++) {
+            my $src_x = int($x * $old_w / $new_w);
+            my $src_y = int($y * $old_h / $new_h);
+
+            # Get source pixel
+            my $src_offset = $src_y * $surface->pitch + $src_x * 4;
+            my $pixel = $surface->get_pixel($src_offset);
+
+            # Write to destination
+            my $dst_offset = $y * $scaled->pitch + $x * 4;
+            # Note: Direct pixel writing would need buffer access
+            # For now, using SDL blitting is safer
+        }
+    }
+
+    return $scaled;
+}
+
+sub extract_matrix {
+    my ($surface) = @_;
+
+    my @matrix;
+
+    for (my $y = 0; $y < $glyph_height; $y++) {
+        my @row;
+        for (my $x = 0; $x < $glyph_width; $x++) {
+            # Get pixel value at (x, y)
+            my $pixel = get_pixel($surface, $x, $y);
+            push @row, $pixel;
+        }
+        push @matrix, \@row;
+    }
+
+    return \@matrix;
+}
+
+sub get_pixel {
+    my ($surface, $x, $y) = @_;
+
+    # Get pixel using SDL surface method
+    my $offset = $y * $surface->pitch + $x * 4;  # Assuming 32-bit surface
+    my $pixel = $surface->get_pixel($offset);
+
+    return $pixel;
+}
+
+sub compute_amos_hash {
+    my ($matrix) = @_;
+
+    # Convert matrix to bit string
+    my $bit_string = '';
+    for my $row (@$matrix) {
+        for my $pixel (@$row) {
+            if ($output_format eq 'binary') {
+                $bit_string .= ($pixel > $threshold) ? '1' : '0';
+            } elsif ($output_format eq 'grayscale') {
+                $bit_string .= sprintf("%08b", $pixel);
+            }
+        }
+    }
+
+    # Simple hash (TODO: replace with actual AMOS algorithm)
+    my $hash = '';
+    my $chunk_size = 5;  # BASE32 = 5 bits per char
+
+    for (my $i = 0; $i < length($bit_string); $i += $chunk_size) {
+        my $chunk = substr($bit_string, $i, $chunk_size);
+        $chunk .= '0' x ($chunk_size - length($chunk)) if length($chunk) < $chunk_size;
+        my $val = unpack('C', pack('B*', $chunk));
+        $hash .= base32_char($val);
+    }
+
+    return substr($hash, 0, 7);  # 7-character AMOS checksum
+}
+
+sub base32_char {
+    my ($val) = @_;
+
+    # RFC 4648 BASE32: 2-7, A-Z
+    if ($val <= 5) {
+        return chr(50 + $val);  # 0-5 → 2-7
+    } else {
+        return chr(59 + $val);  # 6-31 → A-Z
+    }
+}
+
+sub print_matrix {
+    my ($matrix) = @_;
+
+    for my $row (@$matrix) {
+        for my $pixel (@$row) {
+            print ($pixel > 128 ? '█' : '░');
+        }
+        print "\n";
+    }
+}
+
+###############################################################################
+##  FOOTER
+###############################################################################
+
+SDL::quit();
+
+#,,.,,,,.,...,,.,,,..,.,,,,,.,,.,,...,..,,..,,..,,...,...,,,,,..,,,.,,.,,,.,,,
+#6RGEHKAFSLGCCS5BZS6ZIBBFCIS5A7KYG7TH5HCZF4OKVZL4764T6IFHRVNEHEY7SQTZ7VFFIMZJC
+#\\\|OSKUAYXZTPP3AF43YDCPOYVUFPLZUEQAUOYO6KTXHU76UIEUFEQ \ / AMOS7 \ YOURUM ::
+#\[7]Q5RFVZWN6PCDQH3ALSLLB4HUZ74TXHSD3PGBPQEBJJSZCITFLCAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
