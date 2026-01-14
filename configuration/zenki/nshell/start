@@ -7,9 +7,10 @@ access.cmd.usr.cube = commands heart verify-instance \
                       reload src-age src-ver rel-ver \
                       list show-buffer buffer-erase buffer-erase-level \
                       history get-history clear-history \
-                      eval execute
+                      eval execute \
+                      * # <-- all enabled temp. for devmod debug commands
 
-modules.load = auth net protocol io.unix nshell
+modules.load = auth net protocol io.unix nshell devmod
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -23,10 +24,16 @@ system.auth-user = <nshell.unix_user>
 ## so it doesn't need/use cube session IDs
 ## [base.get_session_id]
 
+## Register hooks to intercept unknown messages from cube\other zenki
+# [ These hooks allow nshell to display messages to the user instead of
+# silently dropping them ]
+#
+[nshell.register_hooks]
+
 [zenka.loop]
 
-#,,,.,,.,,...,,,.,,,,,,,.,...,.,.,,..,,.,,.,.,..,,...,...,.,.,,..,,,,,.,,,,.,,
-#KGXCWMGZDNJOZ3IAPL6VC5HSB7X6UGISM4EJBCMREFX4PKDVGJC55QZRHM72LEMRECJZTSVPTQE7A
-#\\\|PUKFRVA26XRUGLWQQLCDNMJGXJRBXFA3FGLETUED5H6XFTQ5GCC \ / AMOS7 \ YOURUM ::
-#\[7]PX3TBQWU4BCIXRDYU7FHJG4YQLKV4NPWT63DX44TTISNOHZO3IDQ 7  DATA SIGNATURE ::
+#,,,.,...,,,.,...,..,,...,,,,,.,.,,..,,..,..,,..,,...,...,...,,,.,.,,,.,.,.,.,
+#4SUAJAAZPTLTNTIHMMJPKJMWZCPG5RA3BTWLYQY6COYH5MFS3WYNMQVQMBSOEF7BEGU4CU2ACTPSO
+#\\\|RHYLX2K6Z2AVNTJDYFFIYOB6VUNXAIEMVWSRISAREMEHXSALW3X \ / AMOS7 \ YOURUM ::
+#\[7]E7H73IRCAXUL5FTPZJO5H3QNAUBSAGS4TYCAGWW2EUNN6PEE5YAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

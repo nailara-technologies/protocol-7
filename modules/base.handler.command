@@ -969,6 +969,18 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 ##[ PROCESS REPLY \ UNKNOWN ROUTE ID ]########################################
 
     } else {
+        ## [ HOOK POINT: unknown-reply-route ]
+        ## Hook can intercept replies with unknown route IDs
+        if ( <[base.handler.hooks]>->( 'has', $id, 'unknown-reply-route' ) ) {
+            my $hook_result = <[base.handler.hooks]>->(
+                'call', $id, 'unknown-reply-route',
+                { cmd => $cmd, cmd_id => $cmd_id, args => $call_args }
+            );
+            ## If hook returns TRUE, it handled the message, skip normal processing
+            goto UNKNOWN_ROUTE_HANDLED
+                if defined $hook_result and $hook_result == TRUE;
+        }
+
         my $ignore_log_level = 1;
 
         $ignore_log_level = 2
@@ -1030,13 +1042,29 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
         return 1;                   ## command not complete ###
     }
 
+UNKNOWN_ROUTE_HANDLED:
+
 ##[ PROCESS REPLY \ UNKNOWN TYPE ]############################################
 
 } elsif ( $cmd eq uc $cmd ) {
+    ## [ HOOK POINT: unknown-reply-type ]
+    ## Hook can intercept replies with unknown/invalid types
+    if ( <[base.handler.hooks]>->( 'has', $id, 'unknown-reply-type' ) ) {
+        my $hook_result = <[base.handler.hooks]>->(
+            'call', $id, 'unknown-reply-type',
+            { cmd => $cmd, cmd_id => $cmd_id, args => $call_args }
+        );
+        ## If hook returns TRUE, it handled the message, skip normal processing
+        goto UNKNOWN_TYPE_HANDLED
+            if defined $hook_result and $hook_result == TRUE;
+    }
+
     <[base.logs]>->( "[%d] reply type '%s' not valid", $id, $cmd );
     $output->$*
         .= sprintf "%sFALSE protocol error [ reply type not valid ]\n",
         $cmd_id_str;
+
+UNKNOWN_TYPE_HANDLED:
 
 ##[ PROCESSING \ LOCAL COMMAND ]##############################################
 
@@ -1243,7 +1271,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     ## Note: strm-mode-locking means client can
                     ##        handle STRM, but doesn't force it
                     ##                                 [LLL] disabled [broken]
-                    if ( $total_bytes > $strm_size_threshold  and 0 ) {
+                    if ( $total_bytes > $strm_size_threshold and 0 ) {
 
                         ## STRM-SIZE mode: Transparent SIZE fragmentation
                         my $chunk_size = <protocol.strm_size.packet_size>
@@ -1255,7 +1283,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         #
                         ## :. cube : [2757773] reply type 'STRM-SIZE' not valid
 
-                        ## Send data in chunks 
+                        ## Send data in chunks
                         ##                    [LLL] requires non-blocking design
                         my $offset = 0;
                         while ( $offset < $total_bytes ) {
@@ -1365,10 +1393,30 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 ##[ LOCAL COMMAND \ UNKNOWN COMMAND ]#########################################
 
         } else {    ## command does not exist ##
-            <[base.logt]>->( qw| 4W6K5SY |, $id, $cmd );
+            ## [ HOOK POINT: unknown-command ]
+            ## Hook can intercept unknown commands user tried to execute
+            if ( <[base.handler.hooks]>->( 'has', $id, 'unknown-command' ) ) {
+                my $hook_result = <[base.handler.hooks]>->(
+                    'call', $id,
+                    'unknown-command',
+                    {   cmd     => $cmd,
+                        cmd_id  => $cmd_id,
+                        args    => $call_args,
+                        context => 'local'
+                    }
+                );
+                ## If hook returns TRUE, it handled the message, skip normal processing
+                goto UNKNOWN_CMD_HANDLED
+                    if defined $hook_result and $hook_result == TRUE;
+            } else {
+                ## No hook, do normal error logging
+                <[base.logt]>->( qw| 4W6K5SY |, $id, $cmd );
+            }
         }
 
         $output->$* .= <[base.sprint_t]>->( qw| VPB3EKI |, $cmd_id_str );
+
+    UNKNOWN_CMD_HANDLED:
 
         return 0;    ## comand complete ##
     }
@@ -1536,7 +1584,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                 $llvl, qw| HMNXQRY |, $id, $target_name, $command_str
             );
 
-            return 0;           ## comand complete ###
+            return 0;           ## command complete ###
         }
 
 ##[ CHECK INITIALIZED ]#######################################################
@@ -1694,9 +1742,28 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 ##[ PROCESS \ COMMAND UNKNOWN ]###############################################
 
-    ## command does not exist ##
-    $output->$* .= <[base.sprint_t]>->( qw| VPB3EKI |, $cmd_id_str );
-    <[base.logt]>->( qw| V4DWTWA |, $id, $user, $cmd );
+    ## [ HOOK POINT: unknown-command-global ]
+    ## Hook can intercept commands that don't exist or user lacks access
+    if ( <[base.handler.hooks]>->( 'has', $id, 'unknown-command-global' ) ) {
+        my $hook_result = <[base.handler.hooks]>->(
+            'call', $id,
+            'unknown-command-global',
+            {   cmd    => $cmd,
+                cmd_id => $cmd_id,
+                args   => $call_args,
+                user   => $user
+            }
+        );
+        ## If hook returns TRUE, it handled the message, skip normal processing
+        goto UNKNOWN_CMD_GLOBAL_HANDLED
+            if defined $hook_result and $hook_result == TRUE;
+    } else {
+        ## No hook, do normal error logging
+        $output->$* .= <[base.sprint_t]>->( qw| VPB3EKI |, $cmd_id_str );
+        <[base.logt]>->( qw| V4DWTWA |, $id, $user, $cmd );
+    }
+
+UNKNOWN_CMD_GLOBAL_HANDLED:
 
 } else {    ## insufficient access permissions ##
 
@@ -1711,8 +1778,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
 return 0;        ## comand complete ##
 
-#,,,.,..,,,,,,,..,.,,,..,,,..,,.,,..,,...,...,..,,...,...,,,,,,,,,,.,,,,.,,.,,
-#5GOWNKTVJAZBYDMI7B6HQUNW43JC2JXVBWUJTMWC4LVYQGVDR22EZ3ID2NWU24IVBFTQOECEAEH52
-#\\\|WXDRWX4OY3TTJFDVDOG5JM7GM2XHVYFTWTK2ZFBNDRCPTQKZODF \ / AMOS7 \ YOURUM ::
-#\[7]JL2TYTOCTCO7T2LVBVD7S4ZX33F73SYFXB7BQW4N7MWHNSN7G4CA 7  DATA SIGNATURE ::
+#,,..,,..,.,,,...,,,.,,,,,,,,,...,,.,,,,.,..,,..,,...,...,,..,..,,...,,,,,,,.,
+#C3Q3KQSWQANNP3JNOUYNFDU6KXR3TH33VSEJYGNDSIZLES5S6A43HRXZ3W5RU7W7HFKWZFURLI6KW
+#\\\|X6EKKWVWEXVVUAT32XQEZPCPHLMYJNK3TIRACVB6BWVBI6XRX23 \ / AMOS7 \ YOURUM ::
+#\[7]LETB2WC327C2MZFWWSBMEVFSPDJV73SVIGFPB623IQCEBOX2GEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

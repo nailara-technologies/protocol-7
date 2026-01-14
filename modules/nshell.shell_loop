@@ -17,34 +17,36 @@ return 0 unless defined $session_id;
 my $session = $data{'session'}{$session_id};
 return 0 unless defined $session;
 
-## Get session I/O buffers (already set up by auth handlers)
-my $input_buf  = \$session->{'buffer'}->{'input'};
+## Register hooks on first pass (check if already registered)
+if ( !<nshell.hooks_registered> ) {
+    ## Register input-pre hook to write shell output FROM cube to STDOUT
+    ## instead of parsing it as protocol-7 commands
+    <[base.handler.hooks]>->(
+        'register', $session_id, 'input-pre', 'nshell.hook.input_passthrough'
+    );
+
+    <nshell.hooks_registered> = TRUE;
+}
+
+## Get session output buffer (for sending STDIN to cube)
 my $output_buf = \$session->{'buffer'}->{'output'};
+return 0 unless defined $output_buf;
 
-return 0 unless defined $input_buf && defined $output_buf;
-
-## Read one keystroke from terminal
+## Read one keystroke from terminal STDIN
 my $key = <[nshell.read_from_buffer]>;
 
 if ( defined $key ) {
-    ## Relay keystroke to session input buffer
-    ## (session and connected shell will process it)
-    ${$input_buf} .= $key;
+    ## Send keystroke TO cube (output buffer gets transmitted automatically)
+    ${$output_buf} .= $key;
 }
 
-## Check if session has output for us
-if ( defined ${$output_buf} && length ${$output_buf} ) {
-    my $output = ${$output_buf};
-    ${$output_buf} = '';  ## Clear after reading
-
-    ## Relay session output to terminal
-    <[nshell.write_to_buffer]>->($output);
-}
+## Note: Shell output from cube arrives in input buffer → triggers base.handler.input →
+## input-pre hook intercepts and writes to STDOUT → normal protocol handler is skipped
 
 return 0;
 
-#,,.,,,,.,.,,,.,.,,.,,,,,,.,,,,,,,...,.,.,,.,,.,.,...,...,,.,,,.,,,.,,,,.,,.,,
-#7A4VSNPCPB5GBBBUYM6YFPYYKYONB2IE2XPD3NFSMKFLQTO2BTAFNC5VANTS4NCVZJ3X2XMMG2NWC
-#\\\|W2E6DRNPLYRJ73EA34TFBYZ2ZIRDZPBF45GWFL6M5IPFQBJW5IR \ / AMOS7 \ YOURUM ::
-#\[7]QEHVEK5DCFE2CPGDGIDANNGWDOR47K7VTAQJEI5XOKEDQUT6KUBI 7  DATA SIGNATURE ::
+#,,..,..,,..,,,,,,...,,,.,,,.,,,,,,..,..,,.,,,.,.,...,..,,.,.,,,.,,.,,..,,,.,,
+#2VIWDCOGCLCKFPETRS3IIECUERZD25CARAMPLZ3STT7V64YAKOG7VSLG2PJ63N364MFLA7DTHOZKE
+#\\\|VFRWFIH45F7NZHFFCY6M2DGRIFNKYKVCD2ZA7SIGH2IQNQEMHY6 \ / AMOS7 \ YOURUM ::
+#\[7]LDHX75ZTGWGIH4JYERNOQ5MK6U6R57ZB7Y5KR7CHEP63KSWY2OBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = nshell.register_hooks
+# descr = Register hooks on nshell session to intercept unknown messages
+
+## Get the current session ID from cube user's sessions
+## From nshell's perspective, it communicates with cube user
+my ($session_id) = keys <user.cube.session>->%*;
+
+unless ( defined $session_id and defined $data{'session'}{$session_id} ) {
+    <[base.log]>->(
+        0,
+        'nshell.register_hooks: no cube session found, cannot register hooks'
+    );
+    return FALSE;
+}
+
+## Register hooks to intercept unknown messages from cube/other zenki
+## These are called by base.handler.command when it encounters unknown messages
+
+## Hook for replies with unknown route IDs
+<[base.handler.hooks]>->(
+    'register', $session_id, 'unknown-reply-route',
+    'nshell.hook.unknown_reply_route'
+);
+
+## Hook for replies with unknown/invalid types
+<[base.handler.hooks]>->(
+    'register', $session_id, 'unknown-reply-type',
+    'nshell.hook.unknown_reply_type'
+);
+
+## Hook for unknown commands (user has local access but command doesn't exist)
+<[base.handler.hooks]>->(
+    'register', $session_id, 'unknown-command', 'nshell.hook.unknown_command'
+);
+
+## Hook for globally unknown commands (command doesn't exist for any user)
+<[base.handler.hooks]>->(
+    'register', $session_id, 'unknown-command-global',
+    'nshell.hook.unknown_command_global'
+);
+
+<[base.log]>->( 2, 'nshell: registered 4 message interception hooks' );
+
+return TRUE;
+
+#,,.,,.,.,...,,.,,..,,...,,..,.,.,...,.,.,.,.,.,.,...,...,..,,,,,,,,.,,.,,..,,
+#7DS2UPSXRP7IADMRBC4WKTTXNMGYYX6LWLQZB7YYMKKD2H6Z5MQM7F3SMJ3BLFYVNJTMJKVF26RXE
+#\\\|2RVAVU5FX2ZWTSYRLPW5NR7ALAQVQNO2OJ6OVRJVULWTDCHQD44 \ / AMOS7 \ YOURUM ::
+#\[7]AVMSGZGSYEEMIYS5DFABE23F6QFTTIHD5D7S6FMVHAJWUVEYL4BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
