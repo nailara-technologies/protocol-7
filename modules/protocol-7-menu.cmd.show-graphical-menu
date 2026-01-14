@@ -1,30 +1,33 @@
 ## [:< ##
 
 # name = protocol-7-menu.cmd.show-graphical-menu
-# descr = Command: Spawn standalone graphical menu (X11 GTK interface)
+# descr = Command: Initialize (if needed) and show graphical menu window
 
 return 0 unless <protocol-7-menu.init-graphical>;
 
-## Spawn the standalone GTK menu script as subprocess
-## (GTK needs its own event loop, can't run inside zenka event loop)
-my $prototype_script = File::Spec->catfile( <system.root_path>,
-    qw| bin dev script-scratchpad protocol-7-menu | );
+## Lazy initialization - only create window when actually requested
+unless ( <protocol-7-menu.graphical-initialized> ) {
+    <[base.log]>->( 1, "initializing graphical menu on-demand" );
+    <[protocol-7-menu.graphical-init]>;
+    <protocol-7-menu.graphical-initialized> = TRUE;
+}
 
-unless ( -x $prototype_script ) {
-    <[base.logs]>->(
-        2, "graphical menu script not found or not executable: %s",
-        $prototype_script
-    );
+my $window = <protocol-7-menu.graphical-window>;
+unless ( defined $window ) {
+    <[base.log]>->( 2, "graphical window initialization failed" );
     return 0;
 }
 
-## Spawn in background, non-blocking
-system("$prototype_script &");
+## Present window to user
+$window->present;
+$window->set_keep_below(0) if <protocol-7-menu.cfg.raise_on_request>;
 
-return 1;
+<[base.log]>->( 1, "graphical menu shown" );
 
-#,,.,,,,,,,,.,,.,,,,.,,.,,...,,,.,,,.,,..,,,.,.,.,...,...,,,,,,..,.,,,.,.,,..,
-#ORC4WLLB3CPHFB2IBBY6AKH7F2L6PEJDWVUURF3MLISJW4LB26ESWHZ7WUBNKSDOYURPPXYYZ464E
-#\\\|CQTYG57BQ5JRHXAAR5P2Y2JPZ3N7SRC6TEVKHTLDNJWIDTRT2VL \ / AMOS7 \ YOURUM ::
-#\[7]SIQHLGADBJZ52T53KXZQTMNGE63VFXD27LP2SE55E3CI4CFWB2DY 7  DATA SIGNATURE ::
+return 0;
+
+#,,,.,,,.,..,,..,,.,.,.,.,,.,,.,,,,..,...,,,.,.,.,...,...,...,...,,..,,,.,...,
+#WZAZOKS3DXOAVDM6RZMZCNLNDBGVNB7HLVD37ACQQYBPW3R4QXVRCRSZGNU5QHNAQKZHMJT4PJ4PW
+#\\\|KTESJPEQHLIHEUU5X7QD6737KJHS2DDXO7BTMQVDLHZFETCR4QI \ / AMOS7 \ YOURUM ::
+#\[7]THC3XKXEXG6JI2U3ZH2JT2ZP32CD2DIA5GJPXAAIAGGQJJT7MODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
