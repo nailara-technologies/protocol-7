@@ -25,26 +25,44 @@ Screen/Tmux:
   └─────────────────┘
 
 Byzantine Terminal (amos-term):
-  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐
-  │ xterm-1  │  │ xterm-2  │  │ xterm-3  │  │ native-4 │
-  │(client)  │  │(client)  │  │(client)  │  │(client)  │
-  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘
-       │ network     │ network     │ network     │ network
-       └─────────────┼─────────────┼─────────────┘
-                     │
-     ┌───────────────┼───────────────┐
-     │               │               │
- ┌───▼────┐     ┌────▼───┐     ┌────▼───┐
- │node-A  │     │ node-B │     │ node-C │
- │ amos-tm │     │ amos-tm │     │ amos-tm │
- │[buffer] │     │[buffer] │     │[buffer] │
- └─────────┘     └─────────┘     └─────────┘
+  With Child Zenka Architecture:
 
- If 5 of 7 nodes agree on buffer state:
-   buffer_A + buffer_B + buffer_C + buffer_D + buffer_E = AGREED_STATE
+  ┌────────────────────────────────────────────────────────────┐
+  │ Node-A: amos-term (parent)                                 │
+  │  ├─ [Buffer Service - Stable, Protected]                  │
+  │  ├─ Buffer management & sync                              │
+  │  ├─ Byzantine consensus validation                        │
+  │  │                                                         │
+  │  ├─ Child: xterm-frontend-1                              │
+  │  │  ├─ Displays buffer: shell-001                        │
+  │  │  └─ Can crash safely                                  │
+  │  │                                                         │
+  │  └─ Child: xterm-frontend-2                              │
+  │     ├─ Displays buffer: shell-001 (same!)               │
+  │     └─ Both frontends see consensus in sync              │
+  └────────────────────────────────────────────────────────────┘
 
- Translucency overlay of 5 buffers = perfect overlap = CRYPTOGRAPHIC PROOF
- (no separate signature needed)
+  ┌────────────────────────────────────────────────────────────┐
+  │ Node-B: amos-term (parent)                                 │
+  │  ├─ [Buffer Service - Stable, Protected]                  │
+  │  └─ Child: holographic-display-1                         │
+  │     └─ Renders 5×7 glyphs + consensus viz               │
+  └────────────────────────────────────────────────────────────┘
+
+  ┌────────────────────────────────────────────────────────────┐
+  │ Node-C: amos-term (parent)                                 │
+  │  ├─ [Buffer Service - Stable, Protected]                  │
+  │  └─ Child: native-client-1                               │
+  │     └─ Custom renderer or protocol gateway               │
+  └────────────────────────────────────────────────────────────┘
+
+  All three nodes synchronize buffers:
+     buffer_A + buffer_B + buffer_C = AGREED_STATE
+     (if 5 of 7 total nodes agree)
+
+  Translucency overlay = perfect overlap = CRYPTOGRAPHIC PROOF
+  Each node's child frontends render with consensus visualization
+  (parent buffer service continues unaffected by frontend crashes)
 ```
 
 ## Architecture: Frontend/Backend Separation
@@ -107,24 +125,69 @@ amos-term-zenka (backend):
      └─ Detect Byzantine conflicts
 ```
 
-### Frontend: XTerm or Native Client
+### Frontend: Child Zenki or External Clients
 
-Lightweight client that connects to remote buffer:
+**Key Architecture Decision**: Frontend processes are optionally spawned as **child zenki** of the amos-term parent zenka, protecting the stable buffer service from frontend crashes.
+
+#### Option 1: Child Zenka Frontends (Recommended)
+
+```
+amos-term (parent zenka)
+  ├─ Buffer management (stable, protected)
+  ├─ Network sync (stable, protected)
+  ├─ Byzantine validation (stable, protected)
+  │
+  ├─ Child: xterm-frontend-1 (spawned on demand)
+  │  ├─ Attached to buffer: shell-001
+  │  ├─ Renders with consensus visualization
+  │  └─ If crashes: parent unaffected, can respawn
+  │
+  ├─ Child: xterm-frontend-2 (spawned on demand)
+  │  ├─ Attached to buffer: shell-001 (same buffer!)
+  │  ├─ Renders with same consensus state
+  │  └─ Multiple frontends can view same buffer
+  │
+  └─ Child: native-client-1 (custom renderer)
+     ├─ Attached to buffer: shell-002
+     ├─ Holographic display mode
+     └─ Protocol integration
+
+Parent commands:
+  p7 amos-term.spawn-frontend type=xterm buffer=shell-001
+  p7 amos-term.spawn-frontend type=holographic buffer=shell-001
+  p7 amos-term.list-children
+  p7 amos-term.kill-child child-id
+```
+
+**Benefits of Child Zenka Architecture**:
+- Parent zenka remains stable (buffer service never crashes due to frontend)
+- Multiple frontends can attach to same buffer (shared view)
+- Frontend crashes don't affect other frontends or buffer state
+- Easy to spawn/destroy frontends dynamically
+- Nested routing: `p7 amos-term.xterm-1.command` for frontend-specific ops
+- Resources isolated per frontend
+- Fault containment: Byzantine validation continues even if all frontends crash
+
+#### Option 2: External Clients (Lower Overhead)
+
+For lightweight access or remote terminals:
 
 ```
 Client Types:
-  1. XTerm over SSH
-     └─ xterm → local amos-term socket → remote amos-term zenka
+  1. XTerm over SSH (external)
+     └─ xterm → SSH → local socket → amos-term zenka
 
-  2. Native Client (Perl/Rust/etc)
+  2. Native Client (Perl/Rust/etc, external)
      └─ Direct connection to amos-term network socket
 
-  3. Web Terminal
+  3. Web Terminal (external)
      └─ Web frontend → WebSocket → amos-term network
 
-  4. Holographic Display
+  4. Holographic Display (external)
      └─ Render buffer as 5×7 glyphs + Byzantine consensus visualization
 ```
+
+**Use Case**: When frontend needs independent lifecycle (SSH session, web browser, etc.)
 
 ## Data Model: Terminal as Consensus Layer
 
@@ -294,7 +357,8 @@ User experience: Terminal as protocol visualization
 ### Module Structure
 
 ```
-amos-term/
+amos-term/ (parent zenka)
+│
 ├─ amos-term.init-code
 │  └─ Initialize buffer store, network subscription
 │
@@ -317,19 +381,57 @@ amos-term/
 │  ├─ Mark consensus levels (opaque/translucent/conflict)
 │  └─ Generate visual hints (opacity, glitch indicators)
 │
+├─ amos-term.child-frontend-manager
+│  ├─ Spawn child zenka frontends on demand
+│  │  ├─ amos-term.spawn-frontend type=xterm buffer=shell-001
+│  │  └─ amos-term.spawn-frontend type=holographic buffer=shell-002
+│  ├─ Track child processes and their attached buffers
+│  ├─ Handle child lifecycle (restart, cleanup)
+│  ├─ Isolate child crashes from parent
+│  ├─ Support multiple frontends on same buffer
+│  └─ Route commands to specific children
+│
+├─ amos-term.frontend-xterm (child zenka template)
+│  ├─ Load VTerm backend (or fallback to ANSI)
+│  ├─ Connect to parent's buffer service
+│  ├─ Subscribe to buffer updates
+│  ├─ Render with consensus visualization
+│  └─ Handle terminal input/output
+│
+├─ amos-term.frontend-holographic (child zenka template)
+│  ├─ Load TTF-to-Glyph mapper
+│  ├─ Connect to parent's buffer service
+│  ├─ Render each character as 5×7 glyph
+│  ├─ Encode consensus as color/opacity
+│  └─ Display network path as position
+│
 ├─ amos-term.vterm-local-backend
 │  ├─ Maintain local VTerm instance
 │  ├─ Convert consensus data to renderable output
 │  ├─ Handle translucency rendering
-│  └─ Emit to client (xterm, web, holographic)
+│  └─ Emit to frontend (xterm, holographic, web)
 │
 └─ amos-term.command-interface
    ├─ Expose via cube: amos-term.* commands
-   ├─ attach/detach buffer
-   ├─ write-character with Byzantine validation
-   ├─ scroll with consensus tracking
-   └─ query consensus state
+   ├─ Buffer management
+   │  ├─ attach/detach buffer
+   │  ├─ write-character with Byzantine validation
+   │  ├─ scroll with consensus tracking
+   │  └─ query consensus state
+   │
+   └─ Child frontend management
+      ├─ spawn-frontend type buffer
+      ├─ list-children
+      ├─ kill-child
+      └─ get-frontend-status
 ```
+
+**Child Zenka Architecture**:
+- Each child frontend is a separate zenka process
+- Child can be restarted without affecting parent or other children
+- Multiple children can attach to same buffer (shared view)
+- Nested routing: `p7 amos-term.xterm-1.command` addresses specific child
+- Parent remains pure buffer service (never crashes due to frontend)
 
 ### State Management
 
@@ -457,6 +559,92 @@ p7 amos-term.show-conflicts buffer=shell-001
 p7 amos-term.force-resync buffer=shell-001
 ```
 
+## Child Zenka Frontend Architecture
+
+### Fault Isolation Through Process Separation
+
+The key innovation of child zenka frontends:
+
+```
+Traditional Terminal (screen/tmux):
+  ┌────────────────────────────────┐
+  │ Multiplexer (tmux server)      │
+  │  ├─ Buffer management          │ ← Single point of failure
+  │  ├─ Rendering for client 1     │ ← All in one process
+  │  ├─ Rendering for client 2     │
+  │  └─ Rendering for client 3     │
+  └────────────────────────────────┘
+  (If rendering crashes, whole session lost)
+
+Byzantine Terminal with Child Zenki:
+  ┌─────────────────────────────────────────────────┐
+  │ amos-term (parent)                              │
+  │  ├─ Buffer management (protected)               │
+  │  ├─ Network sync (protected)                    │
+  │  └─ Byzantine consensus (protected)             │
+  └──┬────────┬──────────────┬───────────────────────┘
+     │        │              │
+  ┌──▼──┐  ┌──▼──┐  ┌──────▼────┐
+  │ xterm-1 │  │ xterm-2 │  │ holographic-1 │
+  │(child)  │  │(child)  │  │   (child)     │
+  └─────┘  └─────┘  └───────────┘
+  (If any child crashes, parent and other children unaffected)
+```
+
+### Isolation Properties
+
+When a child frontend crashes:
+
+```
+1. Parent zenka continues running
+   ├─ Buffer state preserved
+   ├─ Network sync continues
+   ├─ Byzantine validation continues
+   └─ All other child frontends unaffected
+
+2. User experience
+   ├─ Other terminals connected to same buffer still work
+   ├─ Can respawn crashed frontend
+   ├─ No data loss (buffer persisted)
+   └─ Seamless recovery
+
+3. System health
+   ├─ One bad rendering algorithm doesn't crash all terminals
+   ├─ Experimental frontends can be tested safely
+   ├─ Performance issues isolated to specific child
+   └─ Load balancing across children possible
+```
+
+### Multiple Frontends on Same Buffer
+
+The architecture enables shared buffer viewing:
+
+```
+Same Buffer (shell-001):
+  │
+  ├─ Child: xterm-frontend-1
+  │  └─ Renders in traditional mode (no Byzantine hints)
+  │
+  ├─ Child: xterm-frontend-2
+  │  └─ Renders with translucency (Byzantine observable)
+  │
+  └─ Child: holographic-frontend-1
+     └─ Renders as 5×7 glyphs + consensus visualization
+
+All three frontends show same buffer state
+But can render it differently:
+  - Frontend 1: Traditional opaque terminal
+  - Frontend 2: Consensus forming (translucency visible)
+  - Frontend 3: Protocol network visualization
+
+When buffer updates:
+  All three frontends receive same update
+  Each renders according to its mode
+  User on frontend 1 sees simple shell
+  User on frontend 3 sees glyphs morphing
+  Same underlying Byzantine consensus validates all
+```
+
 ## Benefits of This Architecture
 
 ### For Terminal Users
@@ -464,12 +652,15 @@ p7 amos-term.force-resync buffer=shell-001
 - **Zero buffer loss** (persisted in zenka)
 - **Automatic synchronization** (no manual syncing)
 - **Byzantine fault tolerance** (survives up to 2 node failures in 7)
+- **Multiple viewing modes** (traditional, observable, holographic on same buffer)
 
 ### For System Administrators
 - **Distributed terminal multiplexing** (better than screen/tmux)
 - **Flexible buffer layering** (easy to add new dimensions)
 - **Cryptographic validation** (agreement proven visually)
 - **Upgrade path** from xterm → Byzantine → Holographic
+- **Fault isolation** (frontend crashes don't affect parent or other frontends)
+- **Independent lifecycle** (can restart/update children without stopping parent)
 
 ### For Protocol-7 System
 - **Demonstrates Byzantine consensus** in real-time
