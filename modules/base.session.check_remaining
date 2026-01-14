@@ -7,6 +7,7 @@ my $exit_count    = shift // 0;
 my $session_count = 0;
 
 $session_count = scalar keys $data{'session'}->%* if defined $data{'session'};
+
 if ($session_count) {
     my $single_server_session = 0;
     if ( $session_count == 1 ) {
@@ -38,21 +39,16 @@ if (    ( $session_count + $exit_count ) == 0
         return if <v7.check_remaining.fail_count> < 2;
     }
 
-    my $callback_name = <callback.session.closing_last.name>;
+    my $callback_name = <callback.session.closing_last.name> // '';
 
-    if ( not defined $callback_name
-        or ref $code{$callback_name} ne qw| CODE | ) {
-        my $callback_name = <callback.session.closing_last.name>;
-        if ( not exists $code{$callback_name} ) {
-            <[base.logs]>->(
-                0, ":: callback '%s' not found., [closing_last]",
-                $callback_name
-            );
-        } else {
-            <[base.log]>->( 2, "executing 'closing_last' callback..," );
-            $code{$callback_name}
-                ->( <callback.session.closing_last.params> - @* );
-        }
+    if ( not exists $code{$callback_name} ) {
+        <[base.logs]>->(
+            0, ":: callback '%s' not found., [closing_last]",
+            $callback_name
+        );
+    } else {
+        <[base.log]>->( 2, "executing 'closing_last' callback..," );
+        $code{$callback_name}->( <callback.session.closing_last.params>->@* );
     }
 }
 
@@ -66,8 +62,8 @@ if ( $session_count == 0 and <system.zenka.name> eq qw| v7 | ) {  #[v7-zenka]#
     }
 }
 
-#,,,.,,.,,..,,,,.,.,.,.,,,,,,,...,,.,,...,,..,..,,...,...,.,.,,.,,,..,,..,,,,,
-#HQJUKFUGEPOV6RO73XMXM3STNDAWMSJZTGB2L5FA72QQGODVTABU42PBONZQ64SWGTJOZVB3X3F4A
-#\\\|6T6XLAENT7LJ2BI4KAPUNIXZJ64DH3U33C6TIAKFZ5Y4LOMXE72 \ / AMOS7 \ YOURUM ::
-#\[7]X4JLIAF4EMIJ7XJXG6IP2I6GMMLUM3YSQZSJNIYWQNNHOBAE34DQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,.,,,,..,...,,,.,,,,,,..,...,..,,..,,...,...,...,.,.,,,.,..,,,..,
+#HTE6JNBTX6LHMCND3HRUUPKNWIXMYK3H5FWCWM3O3SG7ZHV2LUGT4PUDYZCYAIJ4PHFGO6QXSW6LC
+#\\\|YM5C75G5ZR5AZZGWGPRZLFGNPDMDCD5TNO5LQK464TRAE3THZA6 \ / AMOS7 \ YOURUM ::
+#\[7]ZGOSTH56727PJSATOUQKPX4GHU6F5L4LZPLNVB6GNYLUUUVTWKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
