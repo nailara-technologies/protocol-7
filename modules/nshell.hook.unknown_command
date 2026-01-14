@@ -7,22 +7,16 @@ my ($msg_data) = @ARG;
 
 return FALSE unless defined $msg_data;
 
-my $cmd     = $msg_data->{'cmd'};
-my $cmd_id  = $msg_data->{'cmd_id'};
-my $context = $msg_data->{'context'} // 'unknown';
+my $cmd = $msg_data->{'cmd'};
 
-## Format and display the unknown command to user
-my $output
-    = sprintf( "\n[nshell: command not found] '%s' (context: %s, id: %d)\n",
-    $cmd, $context, $cmd_id );
-
-print $output;
+## Display message transparently to user
+print $cmd . ": command not found\n";
 $| = 1;    ## flush immediately
 
 return TRUE;    ## we handled it
 
-#,,,.,.,.,.,.,...,,,.,,,.,..,,,..,,.,,,.,,,,.,.,.,...,...,..,,,,,,.,,,,..,...,
-#BZNUGRINDJSNGZUIGOVMOEWAN3OZRTWZKWWL3YCYZKXFOPLXVV3X7YCXOP25WLAO5Y7GLRIROSJVW
-#\\\|WPUBE7VKAUI25MIO5376DLKOWBALJSWOA3SJ7VT36GULCKTMFLJ \ / AMOS7 \ YOURUM ::
-#\[7]BFOWMPMWEUPYIWZDPIDEJFK7GMXPHFPR5TQZAVIQ62UMQATLQWDA 7  DATA SIGNATURE ::
+#,,,,,,.,,...,,,.,,.,,.,,,..,,,,,,..,,,..,...,.,.,...,...,...,..,,.,.,,,,,.,,,
+#ILLFKWGQKMOVLUMTBTMRKSZLIV2YTEUXUOY3PR27KAKR4NCSVH4S42ENSYSPBBK6Q7FORFOAJ6KDM
+#\\\|NDROUJ53JQKFD6JPAABE4WHJA4CDUYS7O545S7MHNRSYJMMAOSF \ / AMOS7 \ YOURUM ::
+#\[7]TB45T2K7FX76SNFJ37E7FQDOLSJN5AXEHOJQE4S5S3WVIA256EAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

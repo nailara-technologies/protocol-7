@@ -7,22 +7,16 @@ my ($msg_data) = @ARG;
 
 return FALSE unless defined $msg_data;
 
-my $cmd    = $msg_data->{'cmd'};
-my $cmd_id = $msg_data->{'cmd_id'};
+my $cmd = $msg_data->{'cmd'};
 
-## Format and display the unknown reply to user
-my $output
-    = sprintf(
-    "\n[nshell: invalid reply type] reply type '%s' not valid (id: %d)\n",
-    $cmd, $cmd_id );
-
-print $output;
+## Display message transparently to user
+print $cmd . "\n";
 $| = 1;    ## flush immediately
 
 return TRUE;    ## we handled it
 
-#,,..,...,,.,,,.,,,,.,,..,..,,.,,,,,.,,,,,.,,,.,.,...,..,,.,.,,,,,...,,,,,...,
-#GINP2JLHOAZDBOEETN7SZY3HDAKOPB7F6BVGD3ZLNYZKVG2JQSOQKXAAPLLHCCSZ77OGY5KUXBAVI
-#\\\|BP5UU4BRLFV5YF45QG5RW476I2EAULFOHFV7WZA6E7JVBJRJMFT \ / AMOS7 \ YOURUM ::
-#\[7]RKHQXB23KL22ZMJ74CE7BBCZFKPZ3I4G6NZEACNSN7G5CH4WJQCI 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,.,,,..,,..,,,,,,..,,..,,,.,,,,,,.,.,...,...,.,.,,,.,..,,,..,,..,
+#BWG6DR3F2WLG4E73EMN5UBY4I6Y6KFD343LI76P6UYESSTJJC36FEH5F5LH543MCOXLUAJPZOEKCA
+#\\\|LISQ4764AZ3NRGDYOD3CAMCL7JJGM6WAMHJXTQXDIIBEOK4B7I2 \ / AMOS7 \ YOURUM ::
+#\[7]M5LQEGHPX52XROHCWOB7UB4AQKOPCANC5PDHOSQJBNF23SSQ7QBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
