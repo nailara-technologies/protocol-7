@@ -103,8 +103,10 @@ foreach my $c_type (@connection_types) {
 
             } else {    ## authentication set-up :unix:.., ##
 
+                ## Use system.auth-user if set, otherwise use zenka name
+                my $auth_user = <system.auth-user> // $zenka_name;
                 $cube_sock  ## authenticate without key [ unix uname only ] ##
-                    = <[auth.unix.authenticate]>->( $cube_sock, $zenka_name );
+                    = <[auth.unix.authenticate]>->( $cube_sock, $auth_user );
             }
         } else {
             $cube_sock = undef;
@@ -157,8 +159,8 @@ if ( not defined $cube_sock ) {
     <[base.exit]>->(4);
 }
 
-#,,,.,.,.,...,,.,,,.,,,..,.,.,..,,..,,...,,,,,..,,...,...,,..,...,,..,,.,,,.,,
-#RXOCTB3WTGKQK2BHCSG6FB3GF4XLCCIOCNOOUNKHLQVDZHIA4TCB7LV5FO3WQ3KLK7YUEB7L6IJRK
-#\\\|ZTMVDHDQHSCAKJH63Q5FYAPUN25DQKXH2LNZY4LCBWQULHXCP77 \ / AMOS7 \ YOURUM ::
-#\[7]WDN2ESM3L4QU6UBIH2AFD6GMJWAZFNCHWRPZY27ZXAS77FMQNQCI 7  DATA SIGNATURE ::
+#,,,,,..,,...,.,.,.,.,.,.,,..,,,.,.,,,,,,,,..,..,,...,...,.,,,,,.,,..,..,,.,.,
+#X7BS6YW5IAA4DERPW4JXILK6MDQUWQ53RFULNWL3DQKGU4WG4DFOGPNYUV6JVHHWCNT3KTC3LYYFW
+#\\\|526HXKNMXUTXXSEK2KGVQV7XIWWBMDABIZJM7FQ6ZT6AHK24XXC \ / AMOS7 \ YOURUM ::
+#\[7]5HZKVRMQAB5YWTSZEQZF22DOA7LI36RJQYGUPUBO7LK47DZGY4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

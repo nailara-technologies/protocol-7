@@ -15,11 +15,15 @@ $AMOS7::TERM::title_prefix         = ' .:';
 $AMOS7::mesg_prefix_string         = ' ::';
 $AMOS7::TERM::prompt_prefix_string = ' ::';
 
+## Get current Unix user for authentication
+my $current_user = $ENV{'USER'} // getpwuid($EUID) // 'taeki';
+
 ## Initialize nshell state
 <nshell.buffer_id>       //= 'nshell-001';
 <nshell.command_history> //= [];
 <nshell.connected>       //= FALSE;
 <nshell.session_id>      //= undef;
+<nshell.unix_user>       //= $current_user;
 
 ## Display configuration
 <nshell.prompt_newline> //= TRUE;
@@ -28,8 +32,8 @@ $AMOS7::TERM::prompt_prefix_string = ' ::';
 
 return 0;
 
-#,,,.,...,...,.,,,,.,,,,,,,,,,,.,,,,.,,.,,...,..,,...,...,..,,...,.,.,.,,,.,.,
-#3KM7UQIYXVYJAC53UICN4OGRYY7O4VKUWM6C2T4MA6UEU764TSICYGH5ANPLM5ZX5A4FZQIDPMPXW
-#\\\|3FSV7BTUUIRY2DWYPHLIBUOSVV7SCFF2O4QSFOACQ5MRKC3HTRX \ / AMOS7 \ YOURUM ::
-#\[7]RDYLAQSK72YRM3NQL3BCDNWMAPD57WPALAYFG3RIASX2BS4SUCBA 7  DATA SIGNATURE ::
+#,,.,,...,,..,,..,,..,,..,,..,,..,,..,.,.,,..,..,,...,...,...,,..,.,.,,.,,,..,
+#VFJP4QORA45KZ5Q3FWMJTWWYUBVHCO7XEQWEYVQIGUGPSBMT24XMR26HJCBWPQXBAAEGI5AOIPY5U
+#\\\|PAKUQEY6PKO26FDHYUM3PA7BAUX74UMFDEUQXCUL46WENJAEO3D \ / AMOS7 \ YOURUM ::
+#\[7]OLOU5VOEAGNFH5OFGHKEYHUWSGR43PO34E3WGVZTNMC7VLMHSYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
