@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = nshell.hook.unknown_reply_route
+# descr = Intercept replies with unknown route IDs and display to user
+
+my ($msg_data) = @ARG;
+
+return FALSE unless defined $msg_data;
+
+my $cmd    = $msg_data->{'cmd'};
+my $cmd_id = $msg_data->{'cmd_id'};
+
+## Format and display the unknown reply to user
+my $output
+    = sprintf(
+    "\n[nshell: unknown reply] %s-reply to unknown route id [%d]\n",
+    $cmd, $cmd_id );
+
+print $output;
+$| = 1;    ## flush immediately
+
+return TRUE;    ## we handled it
+
+#,,.,,...,,,,,,.,,,.,,,,.,.,.,..,,.,,,.,,,.,,,.,.,...,...,.,,,,..,,,.,.,.,,..,
+#R4N7RS6OHK3I6KMC436GQLFPSXHITYKNARAF5QC5F5MF4YMAIAIIENW4KURVTJEVE5AFU3L4BTEP2
+#\\\|YS6P6RR3QPBSOFE7ZUMIZXAEA5ACUDJ7K4QPKSHPGFCBFO33MV6 \ / AMOS7 \ YOURUM ::
+#\[7]752PU3J4N6QH2QZR4BFWY4Z2BRKQZE4LW4X2EG7EATGOJHGQYEBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

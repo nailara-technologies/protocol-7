@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = nshell.hook.unknown_reply_type
+# descr = Intercept replies with unknown/invalid types and display to user
+
+my ($msg_data) = @ARG;
+
+return FALSE unless defined $msg_data;
+
+my $cmd    = $msg_data->{'cmd'};
+my $cmd_id = $msg_data->{'cmd_id'};
+
+## Format and display the unknown reply to user
+my $output
+    = sprintf(
+    "\n[nshell: invalid reply type] reply type '%s' not valid (id: %d)\n",
+    $cmd, $cmd_id );
+
+print $output;
+$| = 1;    ## flush immediately
+
+return TRUE;    ## we handled it
+
+#,,..,...,,.,,,.,,,,.,,..,..,,.,,,,,.,,,,,.,,,.,.,...,..,,.,.,,,,,...,,,,,...,
+#GINP2JLHOAZDBOEETN7SZY3HDAKOPB7F6BVGD3ZLNYZKVG2JQSOQKXAAPLLHCCSZ77OGY5KUXBAVI
+#\\\|BP5UU4BRLFV5YF45QG5RW476I2EAULFOHFV7WZA6E7JVBJRJMFT \ / AMOS7 \ YOURUM ::
+#\[7]RKHQXB23KL22ZMJ74CE7BBCZFKPZ3I4G6NZEACNSN7G5CH4WJQCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
