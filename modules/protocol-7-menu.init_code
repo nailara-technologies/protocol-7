@@ -15,27 +15,24 @@ my $init_gtk3 = <[base.cfg_bool]>->( $ENV{'P7_GTK3_INIT'} //= FALSE );
 <protocol-7-menu.action-keys>
     //= { 'character-console' => {}, 'graphical' => {} };
 
-## load generic module deps ##
-## <[base.perlmod.load]>->('AMOS');
-<[base.perlmod.load]>->('File::Spec');
-
 ##  load menu structure and action keys  ##
 <[protocol-7-menu.load-menu-tree]>;
 <[protocol-7-menu.load-action-keys]>;
 
-##  load console module dependencies  ##
-if (<protocol-7-menu.init-graphical>) {
+##  load console mode dependencies  ##
+if (<protocol-7-menu.init-console>) {
     <[base.perlmod.autoload]>->('Curses::UI');
 }
 
-##  load graphical [X-11] module dependencies  ##
+##  load graphical [X-11] mode dependencies  ##
 if (<protocol-7-menu.init-graphical>) {
 
     <[base.perlmod.autoload]>->('Gtk3');
     <[base.gtk.attempt_load.glib_event]>;
 
     my $logo_image_path = <protocol-7-menu.image_path>
-        //= catfile( <system.root_path>, qw| data/gfx/logos/nailara.png | );
+        //= File::Spec->catfile( <system.root_path>,
+        qw| data/gfx/logos/nailara.png | );
     <[base.logs]>->( 0, "[ not found ] image file '%s'", $logo_image_path )
         if not -f <protocol-7-menu.image_path>;
 }
@@ -43,10 +40,14 @@ if (<protocol-7-menu.init-graphical>) {
 ##  silence stderr console output  ##
 <[base.stderr_redir]>;
 
-0;
+## Defer graphical initialization until zenka loop runs
+## This ensures display context is available before creating Gtk3 widgets
+<protocol-7-menu.graphical-initialized> //= FALSE;
 
-#,,,,,...,.,,,..,,..,,.,.,,..,.,,,,,,,,..,..,,..,,...,...,..,,.,.,.,.,,..,.,,,
-#OVYCZINKVBCWCGE6CBGHPJ674GIOJGOTPJXEPX4K6WO63MIL2M5UXHFLLGNYIQWCHIGNZDWH7XJK6
-#\\\|QK2CEQP4IDWPMHLSWG53K3PX57E5F77ZDZOPKZDLJ23TFVZ4EGS \ / AMOS7 \ YOURUM ::
-#\[7]PB4U7TNCUFYXS37KJLACSHELVQ6ETYIKGGFO2UYD55GAMTOE3WAA 7  DATA SIGNATURE ::
+return 0;
+
+#,,.,,..,,..,,,,.,,.,,.,,,,.,,,,.,,..,...,,,.,..,,...,...,..,,,,.,.,.,,..,.,,,
+#FSUKMG2SGAYBGDPRKEJRVPFMMQVN7NQUWJ2BSFNGOA6BYSUFZK6CQUSLKQPEPSDMETHUCNEY2HJKU
+#\\\|HMSGM4EYBMHP2HXR7KVW43X462XNKY5BVNGXESWFM7QIQZDXM5S \ / AMOS7 \ YOURUM ::
+#\[7]NTXJYNG7BGNRVTAH5I5O2C7Z6S66WVKIVZMCIJCNKK4OSNN3YIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

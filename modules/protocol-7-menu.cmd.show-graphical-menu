@@ -1,0 +1,30 @@
+## [:< ##
+
+# name = protocol-7-menu.cmd.show-graphical-menu
+# descr = Command: Spawn standalone graphical menu (X11 GTK interface)
+
+return 0 unless <protocol-7-menu.init-graphical>;
+
+## Spawn the standalone GTK menu script as subprocess
+## (GTK needs its own event loop, can't run inside zenka event loop)
+my $prototype_script = File::Spec->catfile( <system.root_path>,
+    qw| bin dev script-scratchpad protocol-7-menu | );
+
+unless ( -x $prototype_script ) {
+    <[base.logs]>->(
+        2, "graphical menu script not found or not executable: %s",
+        $prototype_script
+    );
+    return 0;
+}
+
+## Spawn in background, non-blocking
+system("$prototype_script &");
+
+return 1;
+
+#,,.,,,,,,,,.,,.,,,,.,,.,,...,,,.,,,.,,..,,,.,.,.,...,...,,,,,,..,.,,,.,.,,..,
+#ORC4WLLB3CPHFB2IBBY6AKH7F2L6PEJDWVUURF3MLISJW4LB26ESWHZ7WUBNKSDOYURPPXYYZ464E
+#\\\|CQTYG57BQ5JRHXAAR5P2Y2JPZ3N7SRC6TEVKHTLDNJWIDTRT2VL \ / AMOS7 \ YOURUM ::
+#\[7]SIQHLGADBJZ52T53KXZQTMNGE63VFXD27LP2SE55E3CI4CFWB2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
