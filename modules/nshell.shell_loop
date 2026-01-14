@@ -1,65 +1,50 @@
 ## [:< ##
 
 # name = nshell.shell_loop
-# descr = Main nshell command processing loop
+# descr = Terminal pass-through relay loop
 
-## This module runs as part of zenka.loop
-## Reads keyboard input from STDIN, processes commands, writes output to STDOUT
-## Uses simple TTY I/O (future: migrate to amos-term buffer for distributed consensus)
+## After authentication, nshell operates in transparent pass-through mode:
+##   STDIN/keyboard → session input buffer → [cube/shell processes]
+##   [cube output] → session output buffer → STDOUT/terminal
+##
+## History, cooked mode, line editing: handled on session side (cube)
+## nshell just relays raw bytes in both directions
 
-use AMOS7::TERM;
+## Get current session (created during authentication)
+my $session_id = <system.session_id>;
+return 0 unless defined $session_id;
 
-my $buffer_id = <nshell.buffer_id>;
-my $history   = <nshell.command_history> //= [];
+my $session = $data{'session'}{$session_id};
+return 0 unless defined $session;
 
-## Display prompt
-my $prompt = sprintf '%s [nshell]: ', ( <nshell.prompt_newline> ? "\n" : '' );
-print $prompt;
-$| = 1;  ## Flush stdout
+## Get session I/O buffers (already set up by auth handlers)
+my $input_buf  = \$session->{'buffer'}->{'input'};
+my $output_buf = \$session->{'buffer'}->{'output'};
 
-## Try to read command
-my $cmd_input = <[nshell.read_from_buffer]>;
+return 0 unless defined $input_buf && defined $output_buf;
 
-return 0 unless defined $cmd_input && length($cmd_input);
+## Read one keystroke from terminal
+my $key = <[nshell.read_from_buffer]>;
 
-## Add to history (keep last N commands)
-push( @{$history}, $cmd_input );
-splice( @{$history}, 0, @{$history} - <nshell.history_size> )
-    if @{$history} > <nshell.history_size>;
-
-## Handle local commands (prefix with .)
-if ( $cmd_input =~ m|^\.(.+)$| ) {
-    ## Local shell command execution
-    my $shell_cmd = $1;
-    my $result    = qx| $shell_cmd 2>&1 |;
-    <[nshell.write_to_buffer]>->($result);
-    return 0;
+if ( defined $key ) {
+    ## Relay keystroke to session input buffer
+    ## (session and connected shell will process it)
+    ${$input_buf} .= $key;
 }
 
-## Handle special commands
-if ( $cmd_input eq '[quit]' || $cmd_input eq 'exit' ) {
-    <[nshell.write_to_buffer]>->("session terminated\n");
-    <[base.exit]>->(0);
-    return 0;
+## Check if session has output for us
+if ( defined ${$output_buf} && length ${$output_buf} ) {
+    my $output = ${$output_buf};
+    ${$output_buf} = '';  ## Clear after reading
+
+    ## Relay session output to terminal
+    <[nshell.write_to_buffer]>->($output);
 }
-
-if ( $cmd_input eq '[reset]' ) {
-    system(qw| clear |);
-    return 0;
-}
-
-## Process as Protocol-7 cube command
-## Send command and get response
-my $cmd_with_newline = $cmd_input . "\n";
-my $result           = <[nshell.execute_cube_command]>->($cmd_with_newline);
-
-## Write result to buffer with colors
-<[nshell.write_to_buffer]>->($result) if defined $result;
 
 return 0;
 
-#,,,.,,..,,,,,,..,.,,,,,.,.,.,..,,,,.,.,,,.,,,.,.,...,..,,.,.,.,.,.,,,.,,,,..,
-#FZ4N2UZUES5LCCUXX43WI46BICJYUK4OCBHZ5NZQGWRY4YKSJZNAPVE3DXDIPB53A4VE3CN7KTPHO
-#\\\|TH3A7ZD33DHX6NBPMO5NALMP7F2AXRMZ55RSBXRC5AZPZRXMRZV \ / AMOS7 \ YOURUM ::
-#\[7]JKDBGQQPSGMCM7EA3QS56BX6VF6BZAYZ6RQ74CIOJEAGQTWGEWBA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,.,,.,,,,,,.,,,,,,,...,.,.,,.,,.,.,...,...,,.,,,.,,,.,,,,.,,.,,
+#7A4VSNPCPB5GBBBUYM6YFPYYKYONB2IE2XPD3NFSMKFLQTO2BTAFNC5VANTS4NCVZJ3X2XMMG2NWC
+#\\\|W2E6DRNPLYRJ73EA34TFBYZ2ZIRDZPBF45GWFL6M5IPFQBJW5IR \ / AMOS7 \ YOURUM ::
+#\[7]QEHVEK5DCFE2CPGDGIDANNGWDOR47K7VTAQJEI5XOKEDQUT6KUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

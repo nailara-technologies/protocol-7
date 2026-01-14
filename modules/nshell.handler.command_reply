@@ -1,0 +1,20 @@
+## [:< ##
+
+# name = nshell.handler.command_reply
+# descr = Handle cube command replies and output to terminal
+
+my $reply_data = shift // return FALSE;
+
+## Extract command result from reply
+my $result = ref($reply_data) eq 'HASH' ? $reply_data->{'result'} : $reply_data;
+
+## Write result to terminal
+<[nshell.write_to_buffer]>->($result) if defined $result && length $result;
+
+return TRUE;
+
+#,,..,,,.,..,,,.,,...,..,,,.,,.,.,,,,,,.,,.,,,.,.,...,...,..,,,.,,,,,,..,,..,,
+#EKDG3E376YG2VNXDHWN4VSP23ILWB3456HFKVOZ5Y2OVOKMXHXNYUBEM4IDGJQ2CQ6BB5NREPWAVK
+#\\\|TB547MAGMPSXQDPTD2HI3X3Z4KP7ODYCPTFHGLIQHCHOJCZYN4A \ / AMOS7 \ YOURUM ::
+#\[7]N6AMBRBF5SAT6AOZPJDP3744NTGZ6OGRDFVC6A7JZWS3JKESJECY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

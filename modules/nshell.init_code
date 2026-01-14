@@ -32,21 +32,18 @@ $code{'base.handler.end_code'} = sub {
 };
 
 ## Initialize nshell state
-<nshell.buffer_id>       //= 'nshell-001';
-<nshell.command_history> //= [];
-<nshell.connected>       //= FALSE;
-<nshell.session_id>      //= undef;
-<nshell.unix_user>       //= $current_user;
+<nshell.buffer_id>           //= 'nshell-001';
+<nshell.unix_user>           //= $current_user;
+<nshell.authenticated>       //= FALSE;
+<nshell.passthrough_mode>    //= FALSE;  ## After auth: transparent pass-through
 
-## Display configuration
-<nshell.prompt_newline> //= TRUE;
-<nshell.show_timestamp> //= FALSE;
-<nshell.history_size>   //= 256;
+## nshell doesn't manage history - that's on session side now
+## Just relay raw input/output to/from session buffers
 
 return 0;
 
-#,,..,...,.,,,,.,,,,.,.,.,..,,,,.,,..,..,,.,.,..,,...,...,,..,,,,,,.,,,..,,.,,
-#7YFY7SZ5OL2OGQ57CJ53R232KQSVNLYDIHEHZ7SQ3TUOYF7TRO6XJOXN3ETQSHRCKW3P5MRM7Y3V4
-#\\\|OIEBCXKLXTWXT6FUJV5QY7FKIBJOGRYATG3SZB6RJYYRUCYZSBD \ / AMOS7 \ YOURUM ::
-#\[7]SJ5W6ZLQVDIG46RBZTYIGCUS7TTSF7YVZ4ECTEIDEYU5B673W2AA 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,,.,.,.,..,,...,,..,,..,...,...,..,,...,...,,,,,...,.,.,.,.,.,,,
+#NRLRHGJSLNO4YLQHP4XHBV72O37BZ4MIWWML6ZIRBSSRFBVGQYX5NX4QX5CUOMMIG5ZFYF5RWPCXM
+#\\\|D5QZVOYTUTVFP7SDZJSLQYARQX2HH4EUOIILN7TJGQM7NFTCA6Z \ / AMOS7 \ YOURUM ::
+#\[7]IRWWOXGKWSSK6EUE5DVSO325WLGDOMKY7Z72LA45AUIAJKCM7MAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
