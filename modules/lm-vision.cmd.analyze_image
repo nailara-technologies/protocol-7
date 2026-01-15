@@ -280,7 +280,7 @@ my $job = {
 # Register non-blocking I/O handler for stdout (data reading - lightweight)
 $job->{'rdr_io'} = <[event.add_io]>->(
     {   'fd'      => $rdr,
-        'handler' => 'lm-vision.handler.read_output',
+        'handler' => qw| lm-vision.handler.read_output |,
         'data'    => $job_id,
         'poll'    => qw| r |
     }
@@ -289,7 +289,7 @@ $job->{'rdr_io'} = <[event.add_io]>->(
 # Register non-blocking I/O handler for stderr (completion trigger via exception/EOF)
 $job->{'err_io'} = <[event.add_io]>->(
     {   'fd'      => $err,
-        'handler' => 'lm-vision.handler.check_completion',
+        'handler' => qw| lm-vision.handler.check_completion |,
         'data'    => $job_id,
         'poll'    => qw| e |
     }
@@ -301,8 +301,8 @@ $job->{'err_io'} = <[event.add_io]>->(
 );
 return { 'mode' => 'deferred' };
 
-#,,..,..,,,.,,..,,.,,,,..,...,,.,,,..,...,.,,,..,,...,...,...,.,.,,,.,..,,,,,,
-#KJHW2RFICJNZ4U3NOJMJV7NCCWQ5FYXFKMIIQSV72I43YKR6ZZAOFWMKY6P4L4AFLI3P7MAC443TO
-#\\\|ACKGQVZVEVN3ZOSEK427P6TRMQ33FJTYBESKCPIQR2MACD64U57 \ / AMOS7 \ YOURUM ::
-#\[7]ON6TIYPTVCFDNE72GDY2Z6L6WSTKX2OPVL4CVAXJ2FAYHXB3CAAY 7  DATA SIGNATURE ::
+#,,,,,,..,.,.,.,,,,..,,,.,,,,,..,,,,.,.,.,,.,,..,,...,...,...,,..,,,.,,,.,,.,,
+#JKKFSXVKKJ5WYYTSJAYFHSAIZWRFTA6TXMGJY7FAUCZND3N5HKYICQS5IXYQVCPBKFEZ2LEVOSRV6
+#\\\|F43C3SEFZMUMM6UNNOBFPOWPAN7QFEJI3HZN563PLCNT4XGSMVO \ / AMOS7 \ YOURUM ::
+#\[7]DKBZW2MK7DMA4TBJGSKTMCXNRJKBA67XUSZO3AA25Q4SJ7HKQSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

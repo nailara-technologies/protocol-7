@@ -67,7 +67,7 @@ if ( $mode eq 'http-01' ) {
         ## Set timeout to clean up challenge if validation doesn't complete
         <[event.add_timer]>->(
             {   'delay'   => 300,
-                'handler' => 'letsencr.parent.handler_challenge_timeout',
+                'handler' => qw| letsencr.parent.handler_challenge_timeout |,
                 'data'    => {
                     'token'  => $token,
                     'domain' => $domain,
@@ -129,8 +129,8 @@ if ( $mode eq 'http-01' ) {
 
 return FALSE;
 
-#,,.,,.,,,...,,..,,.,,,..,..,,,.,,.,.,.,.,,,,,..,,...,...,.,,,..,,,,,,.,,,,.,,
-#BFLZZ34CQ57FO4SHXX6JQCCWNPLITIHMQFHP64C2SVIXFRMTAEO6ZSC2GNZW6MSASGWOZIQMXSORU
-#\\\|YVQIFGVEJVIFM6RMZSLYTOKLXVLQEJ7A6DOM4ECEB6H2FIOMF3F \ / AMOS7 \ YOURUM ::
-#\[7]IRJL6OBI6NHRDSX3KMQOCI73F7QW7QT6TDDN3UR6VKTT54OOHEAY 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,..,,.,,,,,,.,,,,,,,,.,,.,.,.,,,..,,...,...,.,.,.,.,,..,...,,.,,
+#EL7FLKCS2Q5SIM7ECVLYTHMMUMN7TIKNLFEJY5ZHOSPOICNZRADJZ6ISP347F3S7ABL5RQMC6YSMA
+#\\\|BTHAWXZFW32NC5O5ZS2C6NJCZEWR6D2JYUTJ4GV7JVRV64UZSYJ \ / AMOS7 \ YOURUM ::
+#\[7]FD5CUGWICH2KI4TDOHRWVGPKJPBES2NGZH5VFBUZ434MLV7WWWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

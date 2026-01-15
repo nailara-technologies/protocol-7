@@ -22,7 +22,7 @@ if ( $zenka_name ne 'mpv' and exists <universal.timer.mpv_idle_timer> ) {
 
 <universal.timer.switch_timeout> = <[event.add_timer]>->(
     {   'after'   => <universal.switch_timeout>,
-        'handler' => 'universal.handler.switch_timeout',
+        'handler' => qw| universal.handler.switch_timeout |,
         'data'    => { 'zenka' => $zenka_name }
     }
 );
@@ -55,7 +55,7 @@ if (    <universal.cfg.fade_on_switch>
     <universal.timer.switch>->{$window_id}->{'fade'} = <[event.add_timer]>->(
         {   'after'    => <universal.cfg.fade_step_interval>,
             'interval' => <universal.cfg.fade_step_interval>,
-            'handler'  => 'universal.handler.switch_fade',
+            'handler'  => qw| universal.handler.switch_fade |,
             'data'     =>
                 { 'zenka_name' => $zenka_name, 'window_id' => $window_id }
         }
@@ -99,7 +99,7 @@ if (<universal.start-anim_running>) {
 <[base.protocol-7.command.send.local]>->(
     {   'command' => "$zenka_name.resume",
         'reply'   => {
-            'handler' => 'universal.handler.resume_reply',
+            'handler' => qw| universal.handler.resume_reply |,
             'params'  => { 'zenka' => $zenka_name }
         }
     }
@@ -114,8 +114,8 @@ if ( $zenka_name eq 'mpv' ) {    # check if mpv actually resumed playing
 
 }
 
-#,,..,...,..,,.,,,...,,.,,,.,,..,,,,,,.,,,..,,..,,...,...,.,.,.,.,,.,,.,,,.,,,
-#OR2GJLGXUW337HRBTZK3KRO5OKBPUFXFIS4L7EVXE65HKNBWQCFNOCPLCLSZ6T6TA5LZHQR7ZHN4O
-#\\\|BNVQQZXU2ATNNK6USQLXLLGBR3QEHCLA4QLIQKM62K5RBE4RQ6Y \ / AMOS7 \ YOURUM ::
-#\[7]IQGGDNOF6Y6K56EQ7VWRD5IYWBARRXLBPD3ATUUDTRK6WHXB2KAA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,,.,,,,,,,,,.,,,..,,,.,,.,.,...,..,,...,..,,.,.,.,,,..,,.,,,.,.,
+#DAMIMXSWHLWXXMLZ4RWDEQ6JVRFQUFDDMQRRCUY6KUA2V7RYWNO7JKHAKJT5QSU7N3TOCKBGLD3R4
+#\\\|QDA6N2EQ3NRILBS35GK6MTKZXHI3357UCWJ7JUAUINYZCNWDORA \ / AMOS7 \ YOURUM ::
+#\[7]E3J3JJKVWUBVXFD2FHWHSQM2T4P5BERQLW4UI6JN2CNRRLJNTMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -45,7 +45,7 @@ if ( $reply->{'cmd'} eq qw| FALSE | ) {
 
     <content.mime_type.retry_timer>->{$url} = <[event.add_timer]>->(
         {   'after'   => $retry_delay,
-            'handler' => 'content.callback.check_mimetype',
+            'handler' => qw| content.callback.check_mimetype |,
             'data'    => {
                 'check_url'   => $url,
                 'retry_delay' => $next_delay
@@ -82,8 +82,8 @@ if ( $type eq 'unknown' ) {
 
 <[content.update.send_notifications]>;
 
-#,,.,,,.,,.,,,,,,,.,.,,,,,...,,,.,...,,,.,,.,,..,,...,...,.,.,.,,,,.,,..,,.,.,
-#YAMIHCS3MTWKKODAGYR5CX5ELTBEHJVSLTWPWCXSUDYUY2PUJQ6L5WJTXPTNK7VKFKB73MUCLIOCU
-#\\\|XELT25B7QD5GW6PTOJWRFHQPRPHC5M5ZZ6Q7OFRGFZWZWJWFFW5 \ / AMOS7 \ YOURUM ::
-#\[7]PKPRETUTXO652NKNTIBUSOSXHFTZACYNDZL32O34ZGHXTEMQYOAY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,..,.,.,...,,..,.,.,.,.,,.,,,,.,..,,...,...,,.,,,.,,..,,,,.,.,,,
+#V5LXXDGAUJASMFCDI6LSXJH7OH476CKWVFHBJSEWS67AIWEC7EAIWLEALF3JW74LSAWTGI7UXLHIA
+#\\\|BCRRW6L52Y2IDPHBHJIQ5RLTTDBOU2XXYYBTBB5LIRZMBKRPODY \ / AMOS7 \ YOURUM ::
+#\[7]V25VLSR5S7G3IRWC3A3SSTCXZKABC36DX6PDVHOUUHZDUARNU2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

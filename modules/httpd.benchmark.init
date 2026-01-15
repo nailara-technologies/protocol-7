@@ -42,7 +42,7 @@ $data{'httpd'}{'benchmark'}{'metrics'}{'memory_usage'} = [];
 # Schedule initial metrics collection
 if ( $config->{'enabled'} ) {
     <[event.add_timer]>->(
-        {   'handler'  => 'httpd.benchmark.collect_metrics',
+        {   'handler'  => qw| httpd.benchmark.collect_metrics |,
             'data'     => {},
             'interval' => $config->{'interval'},
             'repeat'   => 1
@@ -51,7 +51,7 @@ if ( $config->{'enabled'} ) {
 
     # Start memory usage sampling at regular intervals
     <[event.add_timer]>->(
-        {   'handler'  => 'httpd.benchmark.sample_memory_usage',
+        {   'handler'  => qw| httpd.benchmark.sample_memory_usage |,
             'data'     => {},
             'interval' => 5,
             'repeat'   => 1
@@ -66,8 +66,8 @@ if ( $config->{'enabled'} ) {
 
 return TRUE;
 
-#,,,.,,..,,.,,,,,,,..,.,,,,.,,,,.,,.,,.,,,.,.,...,...,...,..,,...,,,,,,,,,..,,
-#7PNKZR23YW2G2PZIQJMNY3SO6ZNUSJ5U7KBREVPYQPGITBDGKSSQDVNSM5CPUG3OWKX6BX4A3GNDQ
-#\\\|UBSK4O353NLV2GQZFJWZPFUPITHPVCUAZJPXCTAXIRW52W22A4L \ / AMOS7 \ YOURUM ::
-#\[7]Q75CT3BH6Z6K5WEG26QBZZ5XQJ25IPOCYK6CJGEBZCK45UBDDICA 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,...,...,..,,..,,,,.,.,.,,,,,.,.,...,...,...,..,,.,,,,.,,..,,,,.,
+#SVZ2XLDKZNBVD3Y7NR5VS4QGJTHBQ264HFSD5RCD5DFEDDLCYT726OD6JBC3VAQVVTGOJR2HSBMKQ
+#\\\|H5DEZC6IMWBYTG63AQN7KNSOGVIIGMGE6ZPMOBUOHQQDTUATSPT \ / AMOS7 \ YOURUM ::
+#\[7]NONAODGK5TCPDVQJ3BBRSOJITG22WWGVI65DRLWEUMJAG3R5OIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

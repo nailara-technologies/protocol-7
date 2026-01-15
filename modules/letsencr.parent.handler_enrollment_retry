@@ -39,7 +39,7 @@ my $result = <[base.protocol-7.command.send.local]>->(
             }
         },
         'reply' => {
-            'handler' => 'letsencr.parent.handler_enrollment_reply',
+            'handler' => qw| letsencr.parent.handler_enrollment_reply |,
             'params'  => { 'domain' => $domain, 'attempt' => $attempt }
         }
     }
@@ -62,8 +62,8 @@ delete <letsencr.parent.pending_retry>->{$domain};
 
 return FALSE;
 
-#,,.,,,,,,,..,,,,,.,.,..,,,,,,,..,,,.,.,.,,,.,..,,...,...,..,,,,.,,.,,.,.,...,
-#IXBEBFNEERJVWCID2MUJXX24YDNH7GCE6BL3QEIEISRN3FUZYZOJ7EZ6SQIDWVO5EDCSTIPRILBZE
-#\\\|A3R55EO2OABVEL6B5LF4RNHLBRFA7ALHZFVCEWPSXCOOJEMQFTV \ / AMOS7 \ YOURUM ::
-#\[7]H5L3ZI4TAX7PYAJ7CXXFK4L27LSWYHO36XNGBASJDSIMN6L2YMDY 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,,.,.,,,.,.,..,,..,,,..,,.,,.,,,..,,...,...,..,,,,,,..,,..,,,.,,
+#YFIHVEPWIOF4NPKII2HIWFXBA6LOFK6TXX6ER3MVCKCDFQU7WUXZTPBAQV6H4Y72UWNDA23TIMKOU
+#\\\|VNUBX4QT2PD6ZGO6BNP5776M2VATJOBJV6R7W37DVOJV3MCX2MS \ / AMOS7 \ YOURUM ::
+#\[7]FH7RLZKP2M46Q3RYUHTEDMVSJSWB575VX6UHXMN3KWTT2KSAGQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
