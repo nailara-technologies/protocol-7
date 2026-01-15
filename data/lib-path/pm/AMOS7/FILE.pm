@@ -341,7 +341,7 @@ sub append_timestamped_multiline {
 
     ## Construct entry: timestamp, line count, then all lines
     my $line_count = scalar @lines;
-    my $entry      = sprintf "%s %d\n", $network_time, $line_count;
+    my $entry      = sprintf "%s:%d\n", $network_time, $line_count;
     $entry .= join "\n", @lines;
     $entry .= "\n";
 
@@ -431,12 +431,12 @@ sub read_all_timestamped_multiline {
     my $pos     = 0;
 
     while ( $pos < length($file_content) ) {
-        ## Parse header line: "timestamp linecount\n"
+        ## Parse header line: "timestamp:linecount\n"
         my $header_end = index( $file_content, "\n", $pos );
         last if $header_end < 0;
 
         my $header = substr( $file_content, $pos, $header_end - $pos );
-        my ( $timestamp, $line_count ) = split ' ', $header;
+        my ( $timestamp, $line_count ) = split ':', $header;
 
         if ( not defined $timestamp or not defined $line_count ) {
             warn_err( 'invalid history entry header at position %d <{C1}>',
@@ -486,8 +486,8 @@ sub read_timestamped_multiline_recent {
 
 return TRUE ##################################################################
 
-#,,,.,..,,,,,,.,.,..,,,,.,,..,.,,,,,,,,,.,.,,,..,,...,...,...,,,.,,.,,...,,,,,
-#SH7ZKSH6YLV5HBS5VTDBFYP4EXRUN6QMLFDHJNMOCBJC2MCLMTAJDJBAPEUM4HCSCE5FJOPLMYEMM
-#\\\|HT5FWZN5V45SFZLSJVMEWP4F77OQD22VUUJYFVSL5KBVN5XG5IK \ / AMOS7 \ YOURUM ::
-#\[7]K33UX2BBJ4RX7IX2QQMSOMULPZIBDITZ77YLLWEPBCBLLXVPW2AY 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,.,,,,.,..,,,,.,..,,,,.,,,,,...,..,,...,...,.,.,...,.,.,.,.,.,.,
+#ZOOMNGMR4SPE4RHRB5HPH2RDC3T6QETRWJ6VN277NTUIF6PL7PCC5TTRTRVPMJVITKA6IQQBYXQMQ
+#\\\|ZL56SFK2NLAC6CTKARUY5IKQLJYKTRADPWCRCVIPVSK5YA5TWBE \ / AMOS7 \ YOURUM ::
+#\[7]GSNLPSQLMDJEIPVBUMUNYQS52IHUHYIIP4GI7OIR4HFQCBPFRIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
