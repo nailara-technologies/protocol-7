@@ -21,6 +21,12 @@ my $current_user = $ENV{'USER'} // getpwuid($EUID) // 'taeki';
 ## Load terminal control module
 <[base.perlmod.load]>->('Term::ReadKey');
 
+## Initialize command history
+## Load previous history entries from ~/.protocol-7/nshell.history
+my $history_count = AMOS7::TERM::history_init( 'nshell.history', 1000, 300 );
+<[base.log]>->( 2, "loaded %d history entries", $history_count )
+    if $history_count;
+
 ## Initialize terminal output color to TRUE blue (p7_fg_0004) so first command echoes in correct color
 printf "%s\r", $colors{'p7_fg_0004'} // '';
 
@@ -40,13 +46,10 @@ $code{'base.handler.end_code'} = sub {
 <nshell.authenticated>    //= FALSE;
 <nshell.passthrough_mode> //= FALSE;   ## After auth: transparent pass-through
 
-## nshell doesn't manage history - that's on session side now
-## Just relay raw input/output to/from session buffers
-
 return 0;
 
-#,,..,..,,,.,,.,.,.,.,.,.,,..,.,.,...,,.,,.,.,..,,...,...,.,,,,,,,,,,,,..,..,,
-#VWI3JSH33S5PTCNERWVBOLJX4LPP6Q527OHDTH4XOXKYB4SL773V4ADL5QPHTUTHGDYCHRYOJPCHG
-#\\\|IHP2XVLC7MJLROKNGJQRIOS64IV4GX23ANWLKAB224FC5COPNMG \ / AMOS7 \ YOURUM ::
-#\[7]4ZFNSN7N23AAHCSC6GMSAE4DPUDWVEVYMPWK2YS67WYELRKH7GCY 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,..,,.,,.,,,,..,.,.,..,,,.,,.,,,..,,...,...,..,,,,,,,..,...,,..,
+#3F6JHJ6MY5PBK5QHDCLE552NJGOK77FNDR72Y6M5KU7UBXBWWN5U7HYYE6FC5BIEUCOZ5IDKFKUPQ
+#\\\|GTRHQPUCVEFD6Z2GDHWE4VBEDDWU7Y6ZS2HROHNJSBWKBHGMDRR \ / AMOS7 \ YOURUM ::
+#\[7]22FAUMER5TZLFJKXIW5UFZ6WPHI6N7IYKXMRSQYZVY3B77TWO4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

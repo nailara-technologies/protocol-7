@@ -28,7 +28,8 @@ use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
 my $VERSION = qw| AMOS7::TERM-VERSION.7OT2XVQ |;
 
-@EXPORT_OK = qw| terminal_title |;
+@EXPORT_OK
+    = qw| terminal_title history_init history_add history_up history_down history_page_up history_page_down |;
 
 @EXPORT = qw| terminal_size read_password_single read_password_repeated |;
 
@@ -72,6 +73,157 @@ our $prompt_prefix_string //= qw| : |;
 our $title_prefix         //= qw| . |;
 
 our @rnd_count;
+
+##[ HISTORY MANAGEMENT ]######################################################
+
+our @history_entries;
+our $history_current_index
+    = -1;    ##  Current position in history (-1 = new)  ##
+our $history_filename    = 'nshell.history';
+our $history_max_size    = 1000;    ##  Maximum history entries to keep  ##
+our $history_session_gap = 300;     ##  Session gap in seconds (5 min)  ##
+
+sub history_init {
+
+    my $filename    = shift // $history_filename;
+    my $max_size    = shift // $history_max_size;
+    my $session_gap = shift // $history_session_gap;
+
+    $history_filename    = $filename;
+    $history_max_size    = $max_size;
+    $history_session_gap = $session_gap;
+
+    ## Try to load existing history
+    if ( eval { require AMOS7::FILE } ) {
+        my @entries = AMOS7::FILE::read_all_timestamped_multiline($filename);
+        if (@entries) {
+            @history_entries       = @entries;
+            $history_current_index = -1;    ## Reset to 'new command' position
+            return scalar @history_entries;
+        }
+    }
+
+    return 0;
+}
+
+sub history_add {
+
+    my @lines = @ARG;
+    return undef if not @lines;
+
+    if ( eval { require AMOS7::FILE } ) {
+        my $timestamp
+            = AMOS7::FILE::append_timestamped_multiline( $history_filename,
+            @lines );
+        if ( defined $timestamp ) {
+            push @history_entries, [ $timestamp, \@lines ];
+
+            ## Trim history if exceeds max size
+            if ( @history_entries > $history_max_size ) {
+                shift @history_entries;
+            }
+
+            $history_current_index = -1;    ## Reset to 'new' position
+            return $timestamp;
+        }
+    }
+
+    return undef;
+}
+
+sub history_up {
+
+    return undef if not @history_entries;
+
+    ## Moving up in history (towards older entries)
+    if ( $history_current_index < 0 ) {
+        ## First time: start at newest
+        $history_current_index = $#history_entries;
+    } elsif ( $history_current_index > 0 ) {
+        $history_current_index--;
+    }
+
+    if (    $history_current_index >= 0
+        and $history_current_index <= $#history_entries ) {
+        return $history_entries[$history_current_index]->[1];
+    }
+
+    return undef;
+}
+
+sub history_down {
+
+    return undef if not @history_entries;
+    return undef if $history_current_index < 0;
+
+    ## Moving down in history (towards newer entries)
+    if ( $history_current_index < $#history_entries ) {
+        $history_current_index++;
+        if ( $history_current_index <= $#history_entries ) {
+            return $history_entries[$history_current_index]->[1];
+        }
+    }
+
+    ## Reached the end, return to 'new command' position
+    $history_current_index = -1;
+    return undef;
+}
+
+sub history_page_up {
+
+    return undef if not @history_entries;
+    return undef if $history_current_index < 0;
+
+    ## Page up: jump to previous session boundary
+    my $current_ts = $history_entries[$history_current_index]->[0];
+    my $target_idx = $history_current_index;
+
+    ## Search backwards for session boundary
+    for ( my $i = $history_current_index - 1; $i >= 0; $i-- ) {
+        my $prev_ts = $history_entries[$i]->[0];
+        my $gap     = $current_ts - $prev_ts;
+        if ( $gap > $history_session_gap ) {
+            $target_idx = $i;
+            last;
+        }
+    }
+
+    $history_current_index = $target_idx;
+    return $history_entries[$history_current_index]->[1]
+        if $history_current_index >= 0;
+
+    return undef;
+}
+
+sub history_page_down {
+
+    return undef if not @history_entries;
+    return undef if $history_current_index < 0;
+
+    ## Page down: jump to next session boundary
+    my $current_ts = $history_entries[$history_current_index]->[0];
+    my $target_idx = $history_current_index;
+
+    ## Search forwards for session boundary
+    for ( my $i = $history_current_index + 1; $i <= $#history_entries; $i++ )
+    {
+        my $next_ts = $history_entries[$i]->[0];
+        my $gap     = $next_ts - $current_ts;
+        if ( $gap > $history_session_gap ) {
+            $target_idx = $i;
+            last;
+        }
+    }
+
+    if ( $target_idx > $history_current_index ) {
+        $history_current_index = $target_idx;
+        return $history_entries[$history_current_index]->[1];
+    }
+
+    ## Reached the end, return to 'new command' position
+    $history_current_index = -1;
+    return undef;
+}
 
 ##[ USER-INTERACTION ]########################################################
 
@@ -887,8 +1039,8 @@ sub exit_user_passwd {
 
 return TRUE ##################################################################
 
-#,,,,,.,,,.,.,..,,,..,,.,,,,,,,,.,,,,,,,,,..,,..,,...,...,.,.,..,,.,,,,,.,,.,,
-#5ODGALDCZ5JMFUMPQO6QKKYWW3PH3A2OP4D4IGKHEE4YOHBQNAGTTHWCE7TCG5UW2BBRLA5TDB44U
-#\\\|FJOSFBYAQDRKLBIT6UYD6LZQFCIHSOPPVIZXNZ2HPSVHMEJSUND \ / AMOS7 \ YOURUM ::
-#\[7]UHH7LDB7O3BOKDMQEYJWZF3UVFMDNGKOGW3XF4LL2EFDQOOWRCAA 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,.,,,,..,,..,,,.,...,,..,,,.,,,,,..,,...,..,,,,.,...,,.,,,..,.,,,
+#EKSMIHZGFBJNLJWEOW2IDYLPP5UILOSYAOOGCDZBX7YDI5STHSSWARQASN3APZIQKMCGYN53KJCGG
+#\\\|735DSDDVZRVJSQNHYB2MH4OHC75OVTDEU7IDQEY27S7M65N3MRY \ / AMOS7 \ YOURUM ::
+#\[7]C5GMABNOXRYTUUCD4KSNNB5GLBB2XZ4ZKVL2XNLCPLR2RW6DHADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
