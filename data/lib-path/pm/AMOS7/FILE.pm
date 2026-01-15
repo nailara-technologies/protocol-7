@@ -356,7 +356,7 @@ sub append_timestamped_multiline {
                 'cannot determine home directory for history file <{C1}>');
             return undef;
         }
-        my $history_dir = catfile( $homedir, '.protocol-7' );
+        my $history_dir = catfile( $homedir, '.n' );
         if ( not -d $history_dir ) {
             if ( not mkdir( $history_dir, 0700 ) ) {
                 warn_err( 'cannot create history directory %s [ %s ]',
@@ -407,7 +407,7 @@ sub read_all_timestamped_multiline {
                 'cannot determine home directory for history file <{C1}>');
             return undef;
         }
-        $file_path = catfile( $homedir, '.protocol-7', $filename );
+        $file_path = catfile( $homedir, '.n', $filename );
     }
 
     return undef if not -e $file_path;
@@ -486,8 +486,8 @@ sub read_timestamped_multiline_recent {
 
 return TRUE ##################################################################
 
-#,,.,,,,,,..,,,,,,...,,.,,..,,,,.,,,,,...,,,,,..,,...,..,,,.,,,.,,,,.,.,,,,,,,
-#AFF4UGUCJJHE3PKZIZPB6VHJ4LIVHTWY2PGSFZKYYJC6L2YAPE7DM5NCCRL4X2ZLFR6LNXDRAEMIM
-#\\\|W7BGU744EYJFVZAKQRHTBVI4DT5ACJKVFP6IAX6OFWGMRZQWOIS \ / AMOS7 \ YOURUM ::
-#\[7]LNSRHVZANTU4JJ5BQRVMXXBYGWNPDJUIOWT7FSOYW4JLOYZZQGBY 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,.,.,..,,,,.,,..,.,,,,,,,,,.,.,,,..,,...,...,...,,,.,,.,,...,,,,,
+#SH7ZKSH6YLV5HBS5VTDBFYP4EXRUN6QMLFDHJNMOCBJC2MCLMTAJDJBAPEUM4HCSCE5FJOPLMYEMM
+#\\\|HT5FWZN5V45SFZLSJVMEWP4F77OQD22VUUJYFVSL5KBVN5XG5IK \ / AMOS7 \ YOURUM ::
+#\[7]K33UX2BBJ4RX7IX2QQMSOMULPZIBDITZ77YLLWEPBCBLLXVPW2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

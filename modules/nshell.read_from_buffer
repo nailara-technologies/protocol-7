@@ -11,83 +11,149 @@
 state $command_buffer = '';
 state $escape_buffer  = '';
 state $display_buffer = '';    ## Current display (may be from history)
+state $debug_cmd_buffer = '';  ## Accumulate potential debug command [CMD:N]
 
-## Non-blocking read with 0 timeout (immediate)
-my $key = Term::ReadKey::ReadKey(-1);
+## Persistent input buffer for piped mode
+state $input_chars = '';
 
-return undef if not defined $key;    ## No input available
+## Non-blocking read: use Term::ReadKey for TTY, read STDIN for piped
+my $key;
+if ( -t STDIN ) {
+    $key = Term::ReadKey::ReadKey(-1);
+    return undef if not defined $key;
 
-## Handle escape sequences for arrow keys and page up/down
-if ( $key eq "\e" ) {
-    ## Start of escape sequence
-    $escape_buffer = $key;
-    return undef;
-} elsif ( length $escape_buffer ) {
-    ## Accumulating escape sequence
-    $escape_buffer .= $key;
+    ## If we got ESC, keep reading to complete the escape sequence
+    if ( $key eq "\e" ) {
+        $escape_buffer = $key;
 
-    ## Check for complete sequences
-    if ( $escape_buffer eq "\e[A" ) {
-        ## Up arrow - load previous history entry
-        my $lines_ref = AMOS7::TERM::history_up();
-        if ( defined $lines_ref ) {
-            $display_buffer = join "\n", $lines_ref->@*;
-            $command_buffer = $display_buffer;
-            ## Redraw the line
-            _redraw_command_line( $command_buffer, $display_buffer );
+        ## Read next characters with timeout, accumulating until sequence completes
+        my $seq_complete = 0;
+        for ( my $i = 0; $i < 10 && !$seq_complete; $i++ ) {
+            my $next_key = Term::ReadKey::ReadKey(0.05);
+            last if not defined $next_key;
+
+            $escape_buffer .= $next_key;
+
+            ## Check if sequence is complete
+            $seq_complete = 1 if $escape_buffer =~ m/\e\[[A-Z]|\e\[\d~$/;
         }
+
+        ## Now process the complete escape sequence
+        if ( $escape_buffer eq "\e[A" ) {
+            my $lines_ref = AMOS7::TERM::history_up();
+            if ( defined $lines_ref ) {
+                $display_buffer = join "\n", $lines_ref->@*;
+                $command_buffer = $display_buffer;
+                _redraw_command_line( $command_buffer, $display_buffer );
+            }
+        } elsif ( $escape_buffer eq "\e[B" ) {
+            my $lines_ref = AMOS7::TERM::history_down();
+            if ( defined $lines_ref ) {
+                $display_buffer = join "\n", $lines_ref->@*;
+                $command_buffer = $display_buffer;
+                _redraw_command_line( $command_buffer, $display_buffer );
+            } else {
+                my $clear_len = length($display_buffer) + 5;
+                print "\r" . ( ' ' x $clear_len ) . "\r";
+                $display_buffer = '';
+                $command_buffer = '';
+            }
+        } elsif ( $escape_buffer eq "\e[5~" ) {
+            my $lines_ref = AMOS7::TERM::history_page_up();
+            if ( defined $lines_ref ) {
+                $display_buffer = join "\n", $lines_ref->@*;
+                $command_buffer = $display_buffer;
+                _redraw_command_line( $command_buffer, $display_buffer );
+            }
+        } elsif ( $escape_buffer eq "\e[6~" ) {
+            my $lines_ref = AMOS7::TERM::history_page_down();
+            if ( defined $lines_ref ) {
+                $display_buffer = join "\n", $lines_ref->@*;
+                $command_buffer = $display_buffer;
+                _redraw_command_line( $command_buffer, $display_buffer );
+            } else {
+                my $clear_len = length($display_buffer) + 5;
+                print "\r" . ( ' ' x $clear_len ) . "\r";
+                $display_buffer = '';
+                $command_buffer = '';
+            }
+        }
+
         $escape_buffer = '';
         return undef;
-    } elsif ( $escape_buffer eq "\e[B" ) {
-        ## Down arrow - load next history entry
-        my $lines_ref = AMOS7::TERM::history_down();
-        if ( defined $lines_ref ) {
-            $display_buffer = join "\n", $lines_ref->@*;
-            $command_buffer = $display_buffer;
-            ## Redraw the line
-            _redraw_command_line( $command_buffer, $display_buffer );
-        } else {
-            ## Returned to new command position - clear the space from previous display
-            my $clear_len
-                = length($display_buffer) + 5;    ## Add padding for prompt
-            print "\r" . ( ' ' x $clear_len ) . "\r";
-            $display_buffer = '';
-            $command_buffer = '';
-        }
-        $escape_buffer = '';
-        return undef;
-    } elsif ( $escape_buffer eq "\e[5~" ) {
-        ## Page Up - jump to previous session boundary
-        my $lines_ref = AMOS7::TERM::history_page_up();
-        if ( defined $lines_ref ) {
-            $display_buffer = join "\n", $lines_ref->@*;
-            $command_buffer = $display_buffer;
-            _redraw_command_line( $command_buffer, $display_buffer );
-        }
-        $escape_buffer = '';
-        return undef;
-    } elsif ( $escape_buffer eq "\e[6~" ) {
-        ## Page Down - jump to next session boundary
-        my $lines_ref = AMOS7::TERM::history_page_down();
-        if ( defined $lines_ref ) {
-            $display_buffer = join "\n", $lines_ref->@*;
-            $command_buffer = $display_buffer;
-            _redraw_command_line( $command_buffer, $display_buffer );
-        } else {
-            ## Returned to new command position - clear the space from previous display
-            my $clear_len
-                = length($display_buffer) + 5;    ## Add padding for prompt
-            print "\r" . ( ' ' x $clear_len ) . "\r";
-            $display_buffer = '';
-            $command_buffer = '';
-        }
-        $escape_buffer = '';
-        return undef;
-    } elsif ( length $escape_buffer >= 4 ) {
-        ## Unknown sequence, discard
-        $escape_buffer = '';
     }
-    return undef;
+} else {
+    ## Piped input: read and buffer from STDIN
+    if ( !length $input_chars ) {
+        my $line = <STDIN>;
+        $input_chars = $line // '';
+        return undef if !length $input_chars;
+    }
+
+    $key = substr( $input_chars, 0, 1, '' );
+}
+
+## Handle potential debug command: [COMMAND] or [COMMAND:N]
+## Accumulate into separate buffer until we know if it's a valid pattern
+## Only start if we're NOT in an escape sequence
+if ( $key eq '[' && !length $escape_buffer ) {
+    $debug_cmd_buffer = '[';
+    return undef;  ## Don't echo the opening bracket yet
+} elsif ( length $debug_cmd_buffer ) {
+    $debug_cmd_buffer .= $key;
+
+    if ( $key eq ']' ) {
+        ## Try to parse as debug command
+        if ( $debug_cmd_buffer =~ m/^\[([A-Z_]+(?::\d+)?)\]$/ ) {
+            my $cmd_with_count = $1;
+            my ( $cmd, $repeat_count ) = $cmd_with_count =~ m/^([A-Z_]+)(?::(\d+))?$/;
+            $repeat_count //= 1;
+
+            ## Check if this is a valid debug command
+            if ( defined $cmd && $cmd =~ m/^(UP|DOWN|PAGE_UP|PAGE_DOWN)$/ ) {
+                ## Valid debug command - execute without echoing
+                my $history_result;
+                for ( my $i = 0; $i < $repeat_count; $i++ ) {
+                    if ( $cmd eq 'UP' ) {
+                        $history_result = AMOS7::TERM::history_up();
+                    } elsif ( $cmd eq 'DOWN' ) {
+                        $history_result = AMOS7::TERM::history_down();
+                    } elsif ( $cmd eq 'PAGE_UP' ) {
+                        $history_result = AMOS7::TERM::history_page_up();
+                    } elsif ( $cmd eq 'PAGE_DOWN' ) {
+                        $history_result = AMOS7::TERM::history_page_down();
+                    }
+                    ## Don't continue looping if we hit a boundary (undef result)
+                    last if !defined $history_result;
+                }
+
+                ## Replace command_buffer with history result
+                if ( defined $history_result ) {
+                    $command_buffer = join "\n", $history_result->@*;
+                    $display_buffer = $command_buffer;
+                }
+
+                $debug_cmd_buffer = '';
+                return undef;  ## Don't echo anything
+            }
+        }
+
+        ## Not a valid debug command - echo the whole accumulated buffer
+        print $debug_cmd_buffer;
+        $command_buffer .= $debug_cmd_buffer;
+        $debug_cmd_buffer = '';
+        $display_buffer = '';
+        return undef;
+    } elsif ( length $debug_cmd_buffer > 20 ) {
+        ## Too long to be a debug command, flush it
+        print $debug_cmd_buffer;
+        $command_buffer .= $debug_cmd_buffer;
+        $debug_cmd_buffer = '';
+        $display_buffer = '';
+        return undef;
+    }
+
+    return undef;  ## Still accumulating potential debug command
 }
 
 if ( $key eq "\n" or $key eq "\r" ) {
@@ -95,6 +161,7 @@ if ( $key eq "\n" or $key eq "\r" ) {
     my $result = $command_buffer;
     $command_buffer = '';
     $display_buffer = '';
+    $debug_cmd_buffer = '';    ## Clear any partial debug command
 
     ## Save to history if not empty
     if ( length $result ) {
@@ -108,6 +175,7 @@ if ( $key eq "\n" or $key eq "\r" ) {
     print "^C\n";
     $command_buffer = '';
     $display_buffer = '';
+    $debug_cmd_buffer = '';    ## Clear any partial debug command
     return undef;
 } elsif ( $key eq "\x04" ) {    ## Ctrl-D (EOF)
     return undef;
@@ -136,8 +204,8 @@ sub _redraw_command_line {
     print "\r" . ( ' ' x $clear_len ) . "\r" . $display;
 }
 
-#,,,,,,..,,.,,,.,,.,,,..,,,,.,,.,,,..,.,,,,.,,.,.,...,...,...,,.,,,.,,,,,,.,.,
-#ANFO6IC6DAWSYUILQGVDJ7IYMXYXRXHGT2PZYOFDPWGGMSZDJPAAR7KIC57TWPEL3VX6AQPXIUNXE
-#\\\|WVUWAT7D3JJHTKAYMSN3U265JMZ3GCPJMVGZFEJ3UKZOT3GJRVJ \ / AMOS7 \ YOURUM ::
-#\[7]B7B5DLTVTN6Q5HHJLJHYGBVDAXXNVUEM2ZZSTDREC4KRZCKRXWCA 7  DATA SIGNATURE ::
+#,,,.,,,.,...,.,.,,,,,.,,,,..,,..,,.,,.,.,.,.,.,.,...,...,,.,,,,,,...,.,.,,,.,
+#MK7VN7YNXYZRHFW4OZ4WMZ3G2MEHJGS5KM7MUYM2DEYQHXQAXM73YP4NIULWEMVIENP35WZEZEC5M
+#\\\|D33HPRMTONRJ37HZQWZKLXM4XLR3C5PWOTT2ZCGB7AKGL2NOGGX \ / AMOS7 \ YOURUM ::
+#\[7]O3CCHEEIROEURSXMBSOFBHOUGOTBTOGMOCWCHK6HXSD73UPA3MDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

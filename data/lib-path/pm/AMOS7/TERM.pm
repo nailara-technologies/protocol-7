@@ -78,7 +78,7 @@ our @rnd_count;
 
 our @history_entries;
 our $history_current_index
-    = -1;    ##  Current position in history (-1 = new)  ##
+    = 0;     ##  Current position in history (scalar @history_entries = new)  ##
 our $history_filename    = 'nshell.history';
 our $history_max_size    = 1000;    ##  Maximum history entries to keep  ##
 our $history_session_gap = 300;     ##  Session gap in seconds (5 min)  ##
@@ -98,11 +98,12 @@ sub history_init {
         my @entries = AMOS7::FILE::read_all_timestamped_multiline($filename);
         if (@entries) {
             @history_entries       = @entries;
-            $history_current_index = -1;    ## Reset to 'new command' position
+            $history_current_index = $#history_entries + 1;    ## New command position
             return scalar @history_entries;
         }
     }
 
+    $history_current_index = 0;
     return 0;
 }
 
@@ -123,7 +124,7 @@ sub history_add {
                 shift @history_entries;
             }
 
-            $history_current_index = -1;    ## Reset to 'new' position
+            $history_current_index = $#history_entries + 1;    ## Reset to 'new' position
             return $timestamp;
         }
     }
@@ -136,10 +137,11 @@ sub history_up {
     return undef if not @history_entries;
 
     ## Moving up in history (towards older entries)
-    if ( $history_current_index < 0 ) {
-        ## First time: start at newest
+    if ( $history_current_index > $#history_entries ) {
+        ## First time from new position: jump to last entry
         $history_current_index = $#history_entries;
     } elsif ( $history_current_index > 0 ) {
+        ## Continue going back
         $history_current_index--;
     }
 
@@ -154,7 +156,7 @@ sub history_up {
 sub history_down {
 
     return undef if not @history_entries;
-    return undef if $history_current_index < 0;
+    return undef if $history_current_index > $#history_entries;    ## Already at new position
 
     ## Moving down in history (towards newer entries)
     if ( $history_current_index < $#history_entries ) {
@@ -165,23 +167,30 @@ sub history_down {
     }
 
     ## Reached the end, return to 'new command' position
-    $history_current_index = -1;
+    $history_current_index = $#history_entries + 1;
     return undef;
 }
 
 sub history_page_up {
 
     return undef if not @history_entries;
-    return undef if $history_current_index < 0;
+    return undef if $history_current_index > $#history_entries;    ## Already at new position
 
     ## Page up: jump to previous session boundary
     my $current_ts = $history_entries[$history_current_index]->[0];
     my $target_idx = $history_current_index;
 
+    ## Convert current timestamp to numeric seconds
+    my $current_delta = _timestamp_to_delta($current_ts);
+    return undef if not defined $current_delta;
+
     ## Search backwards for session boundary
     for ( my $i = $history_current_index - 1; $i >= 0; $i-- ) {
-        my $prev_ts = $history_entries[$i]->[0];
-        my $gap     = $current_ts - $prev_ts;
+        my $prev_ts    = $history_entries[$i]->[0];
+        my $prev_delta = _timestamp_to_delta($prev_ts);
+        next if not defined $prev_delta;
+
+        my $gap = $current_delta - $prev_delta;
         if ( $gap > $history_session_gap ) {
             $target_idx = $i;
             last;
@@ -198,17 +207,23 @@ sub history_page_up {
 sub history_page_down {
 
     return undef if not @history_entries;
-    return undef if $history_current_index < 0;
+    return undef if $history_current_index > $#history_entries;    ## Already at new position
 
     ## Page down: jump to next session boundary
     my $current_ts = $history_entries[$history_current_index]->[0];
     my $target_idx = $history_current_index;
 
+    ## Convert current timestamp to numeric seconds
+    my $current_delta = _timestamp_to_delta($current_ts);
+    return undef if not defined $current_delta;
+
     ## Search forwards for session boundary
-    for ( my $i = $history_current_index + 1; $i <= $#history_entries; $i++ )
-    {
-        my $next_ts = $history_entries[$i]->[0];
-        my $gap     = $next_ts - $current_ts;
+    for ( my $i = $history_current_index + 1; $i <= $#history_entries; $i++ ) {
+        my $next_ts    = $history_entries[$i]->[0];
+        my $next_delta = _timestamp_to_delta($next_ts);
+        next if not defined $next_delta;
+
+        my $gap = $next_delta - $current_delta;
         if ( $gap > $history_session_gap ) {
             $target_idx = $i;
             last;
@@ -223,6 +238,43 @@ sub history_page_down {
     ## Reached the end, return to 'new command' position
     $history_current_index = -1;
     return undef;
+}
+
+## Helper function: Convert base32 network timestamp to delta seconds
+sub _timestamp_to_delta {
+
+    my $timestamp = shift // return undef;
+
+    ## Try to use Protocol-7 conversion if available
+    if ( defined $main::code{'base.ntime.delta_seconds'} ) {
+        return $main::code{'base.ntime.delta_seconds'}->($timestamp);
+    }
+
+    ## Fallback: Base32 alphabet for manual conversion
+    ## Protocol-7 uses: 0-9, A-V (22 chars total)
+    my %base32_map = (
+        '0' => 0,  '1' => 1,  '2' => 2,  '3' => 3,  '4' => 4,
+        '5' => 5,  '6' => 6,  '7' => 7,  '8' => 8,  '9' => 9,
+        'A' => 10, 'B' => 11, 'C' => 12, 'D' => 13, 'E' => 14,
+        'F' => 15, 'G' => 16, 'H' => 17, 'I' => 18, 'J' => 19,
+        'K' => 20, 'L' => 21, 'M' => 22, 'N' => 23, 'O' => 24,
+        'P' => 25, 'Q' => 26, 'R' => 27, 'S' => 28, 'T' => 29,
+        'U' => 30, 'V' => 31,
+    );
+
+    ## Convert base32 string to numeric value
+    my $numeric_ts = 0;
+    my @chars      = split //, uc($timestamp);
+
+    foreach my $char (@chars) {
+        return undef if not defined $base32_map{$char};
+        $numeric_ts = $numeric_ts * 32 + $base32_map{$char};
+    }
+
+    ## Calculate delta from current time (rough approximation)
+    ## In seconds from some epoch
+    my $now = time();
+    return $numeric_ts;    ## Return the converted value for comparison
 }
 
 ##[ USER-INTERACTION ]########################################################
@@ -1039,8 +1091,8 @@ sub exit_user_passwd {
 
 return TRUE ##################################################################
 
-#,,.,,,.,,..,,.,,,,..,,..,,,.,...,,..,,,.,,,,,..,,...,..,,,,.,...,,.,,,..,.,,,
-#EKSMIHZGFBJNLJWEOW2IDYLPP5UILOSYAOOGCDZBX7YDI5STHSSWARQASN3APZIQKMCGYN53KJCGG
-#\\\|735DSDDVZRVJSQNHYB2MH4OHC75OVTDEU7IDQEY27S7M65N3MRY \ / AMOS7 \ YOURUM ::
-#\[7]C5GMABNOXRYTUUCD4KSNNB5GLBB2XZ4ZKVL2XNLCPLR2RW6DHADA 7  DATA SIGNATURE ::
+#,,.,,,.,,...,.,.,.,,,,..,,..,.,,,..,,...,.,,,..,,...,...,...,.,.,,,.,.,.,..,,
+#MHV2JZST2TMC3OZWUOZM542VXB3II3NRWDAE77RLDT57NIRTV5R4GRGISFQP5ZRQMVUNNJ56TKPUE
+#\\\|H6ZF2XFJTRA3GPPIKYWNRMMV2AWH4DXWYF3V44TTTRWWQGB4KI7 \ / AMOS7 \ YOURUM ::
+#\[7]B4POOKW3MVMUWSHOLHG46FJYTEQTYGNIE3VHT7OUYKM7J3WNY4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
