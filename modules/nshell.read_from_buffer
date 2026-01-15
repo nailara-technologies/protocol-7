@@ -44,14 +44,14 @@ if ( -t STDIN ) {
             if ( defined $lines_ref ) {
                 $display_buffer = join "\n", $lines_ref->@*;
                 $command_buffer = $display_buffer;
-                _redraw_command_line( $command_buffer, $display_buffer );
+                <[nshell.redraw_command_line]>->( $command_buffer, $display_buffer );
             }
         } elsif ( $escape_buffer eq "\e[B" ) {
             my $lines_ref = AMOS7::TERM::history_down();
             if ( defined $lines_ref ) {
                 $display_buffer = join "\n", $lines_ref->@*;
                 $command_buffer = $display_buffer;
-                _redraw_command_line( $command_buffer, $display_buffer );
+                <[nshell.redraw_command_line]>->( $command_buffer, $display_buffer );
             } else {
                 my $clear_len = length($display_buffer) + 5;
                 print "\r" . ( ' ' x $clear_len ) . "\r";
@@ -63,14 +63,14 @@ if ( -t STDIN ) {
             if ( defined $lines_ref ) {
                 $display_buffer = join "\n", $lines_ref->@*;
                 $command_buffer = $display_buffer;
-                _redraw_command_line( $command_buffer, $display_buffer );
+                <[nshell.redraw_command_line]>->( $command_buffer, $display_buffer );
             }
         } elsif ( $escape_buffer eq "\e[6~" ) {
             my $lines_ref = AMOS7::TERM::history_page_down();
             if ( defined $lines_ref ) {
                 $display_buffer = join "\n", $lines_ref->@*;
                 $command_buffer = $display_buffer;
-                _redraw_command_line( $command_buffer, $display_buffer );
+                <[nshell.redraw_command_line]>->( $command_buffer, $display_buffer );
             } else {
                 my $clear_len = length($display_buffer) + 5;
                 print "\r" . ( ' ' x $clear_len ) . "\r";
@@ -197,19 +197,8 @@ if ( $key eq "\n" or $key eq "\r" ) {
 
 return undef;                ## Partial input, keep accumulating
 
-## Helper function to redraw command line from history
-sub _redraw_command_line {
-    my ( $buffer, $display ) = @_;
-
-    ## Clear current line and redraw
-    ## Use carriage return + spaces to clear, then print new content
-    my $term_width = 80; ## Default, could get from AMOS7::TERM::terminal_size
-    my $clear_len  = length($buffer) + 20;    ## Leave margin
-    print "\r" . ( ' ' x $clear_len ) . "\r" . $display;
-}
-
-#,,.,,.,.,,,.,,..,.,.,...,,..,..,,,.,,,,,,...,.,.,...,...,...,..,,,.,,.,,,,,,,
-#IHPAXDWLI77SUKUEZK4LM4I2NADIQSYKDYQ2SYPKGCRY4D24NAJLKI7EXFLPAZTJOKFHPVSOWRSOA
-#\\\|73SUJIZPVJSNC5XAJTA3S453I6FW2TEC3SJQGE2NXIY62KR34D7 \ / AMOS7 \ YOURUM ::
-#\[7]JUCMM2LR2EV5AHAPBVFZMNLZHL745OT2BAJHZ7XLCNW33SCKZ6AQ 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,.,,,..,,.,,,.,,,,.,,.,,.,,,.,,,.,.,...,...,.,,,.,,,...,.,,,,,,,
+#7BVSW3OBOBLJHAQ3TI3GT3DE23LRLUORQAOBZ6MBVQ3HNCEAXH3PDHHKOYYMPSMI366SZ6ZYY7GI6
+#\\\|IIFSUAXMV47OIDN6NIHMUJK2AKDZFKAN76WDXJJHR446BWFFHAS \ / AMOS7 \ YOURUM ::
+#\[7]7VPVYDUPLCT3AJBZ2W6K4PTJPL6R5WYBL7YR3BTDEXPAXAEQU4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
