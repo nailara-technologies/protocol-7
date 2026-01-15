@@ -10,6 +10,7 @@ use Exporter;
 ##[ abs_path ]##
 use Cwd;
 use File::stat;
+use File::Spec::Functions qw| catfile catdir |;
 
 ##[ global constants ]##
 use constant TRUE  => 5;    ##  TRUE.  ##
@@ -31,10 +32,14 @@ my $VERSION = qw| AMOS7::FILE-VERSION.4HI7Z2Q |;
     file_path_perms
     resolved_path_abs
     last_existing_directory
+    append_timestamped_multiline
+    read_all_timestamped_multiline
+    read_timestamped_multiline_recent
 
 ];
 
-my $usrname_re = qr|^[0-9A-Za-z][0-9A-Za-z\-_]{0,31}$|;  ## Match base.regex usr_str_re (max 32 chars)
+my $usrname_re = qr|^[0-9A-Za-z][0-9A-Za-z\-_]{0,31}$|
+    ;    ## Match base.regex usr_str_re (max 32 chars)
 
 ##[ DIRECTORY PATH CREATION ]#################################################
 
@@ -313,10 +318,176 @@ sub resolved_path_abs {
     return $chkpath_abs;
 }
 
+##[ MULTILINE TIMESTAMPED ENTRIES ]############################################
+
+sub append_timestamped_multiline {
+
+    my $filename = shift;
+    my @lines    = @ARG;
+
+    warn_err('filename required for timestamped multiline append <{C1}>')
+        and return undef
+        if not defined $filename or not length $filename;
+
+    warn_err('at least one line required for multiline append <{C1}>')
+        and return undef
+        if not @lines;
+
+    ## Get current network time - need to call it from main scope
+    my $network_time
+        = defined $main::code{'base.ntime.b32'}
+        ? $main::code{'base.ntime.b32'}->(3)
+        : time();
+
+    ## Construct entry: timestamp, line count, then all lines
+    my $line_count = scalar @lines;
+    my $entry      = sprintf "%s %d\n", $network_time, $line_count;
+    $entry .= join "\n", @lines;
+    $entry .= "\n";
+
+    ## Resolve file path
+    my $file_path;
+    if ( $filename =~ m|/| ) {
+        $file_path = $filename;
+    } else {
+        my $homedir = get_homepath();
+        if ( not defined $homedir ) {
+            warn_err(
+                'cannot determine home directory for history file <{C1}>');
+            return undef;
+        }
+        my $history_dir = catfile( $homedir, '.protocol-7' );
+        if ( not -d $history_dir ) {
+            if ( not mkdir( $history_dir, 0700 ) ) {
+                warn_err( 'cannot create history directory %s [ %s ]',
+                    1, $history_dir, lcfirst($OS_ERROR) );
+                return undef;
+            }
+        }
+        $file_path = catfile( $history_dir, $filename );
+    }
+
+    ## Append to file
+    my $fh;
+    if ( not open( $fh, '>>', $file_path ) ) {
+        warn_err( 'cannot open history file for append %s [ %s ]',
+            1, $file_path, lcfirst($OS_ERROR) );
+        return undef;
+    }
+
+    if ( not print {$fh} $entry ) {
+        warn_err( 'cannot write to history file %s [ %s ]',
+            1, $file_path, lcfirst($OS_ERROR) );
+        close($fh);
+        return undef;
+    }
+
+    close($fh)
+        or warn_err( 'cannot close history file %s [ %s ]',
+        1, $file_path, lcfirst($OS_ERROR) );
+
+    return $network_time;
+}
+
+sub read_all_timestamped_multiline {
+
+    my $filename = shift;
+
+    warn_err('filename required for read multiline <{C1}>') and return undef
+        if not defined $filename or not length $filename;
+
+    ## Resolve file path
+    my $file_path;
+    if ( $filename =~ m|/| ) {
+        $file_path = $filename;
+    } else {
+        my $homedir = get_homepath();
+        if ( not defined $homedir ) {
+            warn_err(
+                'cannot determine home directory for history file <{C1}>');
+            return undef;
+        }
+        $file_path = catfile( $homedir, '.protocol-7', $filename );
+    }
+
+    return undef if not -e $file_path;
+
+    ## Read entire file
+    my $file_content;
+    my $fh;
+    if ( not open( $fh, '<', $file_path ) ) {
+        warn_err( 'cannot open history file %s [ %s ]',
+            1, $file_path, lcfirst($OS_ERROR) );
+        return undef;
+    }
+
+    $file_content = do { local $/; <$fh> };
+    close($fh) or warn_err( 'cannot close history file %s', 1, $file_path );
+
+    return undef if not defined $file_content;
+
+    ## Parse entries: timestamp linecount
+    my @entries = ();
+    my $pos     = 0;
+
+    while ( $pos < length($file_content) ) {
+        ## Parse header line: "timestamp linecount\n"
+        my $header_end = index( $file_content, "\n", $pos );
+        last if $header_end < 0;
+
+        my $header = substr( $file_content, $pos, $header_end - $pos );
+        my ( $timestamp, $line_count ) = split ' ', $header;
+
+        if ( not defined $timestamp or not defined $line_count ) {
+            warn_err( 'invalid history entry header at position %d <{C1}>',
+                1, $pos );
+            last;
+        }
+
+        $pos = $header_end + 1;
+
+        ## Read line_count lines
+        my @entry_lines = ();
+        for ( 1 .. $line_count ) {
+            my $next_newline = index( $file_content, "\n", $pos );
+            if ( $next_newline < 0 ) {
+                ## Unexpected EOF, read to end
+                push @entry_lines, substr( $file_content, $pos );
+                $pos = length($file_content);
+                last;
+            }
+
+            push @entry_lines,
+                substr( $file_content, $pos, $next_newline - $pos );
+            $pos = $next_newline + 1;
+        }
+
+        push @entries, [ $timestamp, \@entry_lines ];
+    }
+
+    return @entries if wantarray;
+    return \@entries;
+}
+
+sub read_timestamped_multiline_recent {
+
+    my $filename    = shift;
+    my $max_count   = shift // 50;
+    my @all_entries = read_all_timestamped_multiline($filename);
+
+    return undef if not @all_entries;
+
+    ## Return only last max_count entries
+    my $start_idx
+        = ( @all_entries > $max_count ) ? @all_entries - $max_count : 0;
+    return @all_entries[ $start_idx .. $#all_entries ] if wantarray;
+    return [ @all_entries[ $start_idx .. $#all_entries ] ];
+}
+
 return TRUE ##################################################################
 
-#,,,.,...,.,.,...,,..,,,.,,.,,.,,,,..,...,,,,,..,,...,...,...,,,,,,,,,,,.,.,,,
-#PYXRMXYYJDSDONBOY4JWZLNCYSTL7UMFY2U7MJUK3VDSIXY5YPVJHKAWDLHAOEAF5WPDX2MKPIKCK
-#\\\|HO4NUFIE3WSLYFSEDSSWJANTAGXGGIDZQPTDNDHYJVZR6M4KHWB \ / AMOS7 \ YOURUM ::
-#\[7]FUTDXFMVSOCNCRHUYK6I2ON2MJCBWP3SPVOOJ7Q3AE66OURT5ACA 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,,,,...,,.,,..,,,,.,,,,,...,,,,,..,,...,..,,,.,,,.,,,,.,.,,,,,,,
+#AFF4UGUCJJHE3PKZIZPB6VHJ4LIVHTWY2PGSFZKYYJC6L2YAPE7DM5NCCRL4X2ZLFR6LNXDRAEMIM
+#\\\|W7BGU744EYJFVZAKQRHTBVI4DT5ACJKVFP6IAX6OFWGMRZQWOIS \ / AMOS7 \ YOURUM ::
+#\[7]LNSRHVZANTU4JJ5BQRVMXXBYGWNPDJUIOWT7FSOYW4JLOYZZQGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

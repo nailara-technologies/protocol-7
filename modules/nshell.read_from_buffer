@@ -6,40 +6,138 @@
 ## Reads one character at a time with very short timeout
 ## Returns complete line when user presses Enter
 ## Persists buffer across calls (static variable)
+## Supports history navigation with arrow keys and Page Up/Down
 
 state $command_buffer = '';
+state $escape_buffer  = '';
+state $display_buffer = '';    ## Current display (may be from history)
 
 ## Non-blocking read with 0 timeout (immediate)
 my $key = Term::ReadKey::ReadKey(-1);
 
-return undef if not defined $key;  ## No input available
+return undef if not defined $key;    ## No input available
+
+## Handle escape sequences for arrow keys and page up/down
+if ( $key eq "\e" ) {
+    ## Start of escape sequence
+    $escape_buffer = $key;
+    return undef;
+} elsif ( length $escape_buffer ) {
+    ## Accumulating escape sequence
+    $escape_buffer .= $key;
+
+    ## Check for complete sequences
+    if ( $escape_buffer eq "\e[A" ) {
+        ## Up arrow - load previous history entry
+        my $lines_ref = AMOS7::TERM::history_up();
+        if ( defined $lines_ref ) {
+            $display_buffer = join "\n", $lines_ref->@*;
+            $command_buffer = $display_buffer;
+            ## Redraw the line
+            _redraw_command_line( $command_buffer, $display_buffer );
+        }
+        $escape_buffer = '';
+        return undef;
+    } elsif ( $escape_buffer eq "\e[B" ) {
+        ## Down arrow - load next history entry
+        my $lines_ref = AMOS7::TERM::history_down();
+        if ( defined $lines_ref ) {
+            $display_buffer = join "\n", $lines_ref->@*;
+            $command_buffer = $display_buffer;
+            ## Redraw the line
+            _redraw_command_line( $command_buffer, $display_buffer );
+        } else {
+            ## Returned to new command position - clear the space from previous display
+            my $clear_len
+                = length($display_buffer) + 5;    ## Add padding for prompt
+            print "\r" . ( ' ' x $clear_len ) . "\r";
+            $display_buffer = '';
+            $command_buffer = '';
+        }
+        $escape_buffer = '';
+        return undef;
+    } elsif ( $escape_buffer eq "\e[5~" ) {
+        ## Page Up - jump to previous session boundary
+        my $lines_ref = AMOS7::TERM::history_page_up();
+        if ( defined $lines_ref ) {
+            $display_buffer = join "\n", $lines_ref->@*;
+            $command_buffer = $display_buffer;
+            _redraw_command_line( $command_buffer, $display_buffer );
+        }
+        $escape_buffer = '';
+        return undef;
+    } elsif ( $escape_buffer eq "\e[6~" ) {
+        ## Page Down - jump to next session boundary
+        my $lines_ref = AMOS7::TERM::history_page_down();
+        if ( defined $lines_ref ) {
+            $display_buffer = join "\n", $lines_ref->@*;
+            $command_buffer = $display_buffer;
+            _redraw_command_line( $command_buffer, $display_buffer );
+        } else {
+            ## Returned to new command position - clear the space from previous display
+            my $clear_len
+                = length($display_buffer) + 5;    ## Add padding for prompt
+            print "\r" . ( ' ' x $clear_len ) . "\r";
+            $display_buffer = '';
+            $command_buffer = '';
+        }
+        $escape_buffer = '';
+        return undef;
+    } elsif ( length $escape_buffer >= 4 ) {
+        ## Unknown sequence, discard
+        $escape_buffer = '';
+    }
+    return undef;
+}
 
 if ( $key eq "\n" or $key eq "\r" ) {
     print "\n";    ## Always echo newline for visual spacing
     my $result = $command_buffer;
     $command_buffer = '';
-    return $result if length $result;  ## Return command only if not empty
-    return undef;  ## Empty line - return undef so no command is sent
-} elsif ( $key eq "\x03" ) {  ## Ctrl-C
+    $display_buffer = '';
+
+    ## Save to history if not empty
+    if ( length $result ) {
+        my @lines = split "\n", $result;
+        AMOS7::TERM::history_add(@lines);
+    }
+
+    return $result if length $result;    ## Return command only if not empty
+    return undef;    ## Empty line - return undef so no command is sent
+} elsif ( $key eq "\x03" ) {    ## Ctrl-C
     print "^C\n";
     $command_buffer = '';
+    $display_buffer = '';
     return undef;
-} elsif ( $key eq "\x04" ) {  ## Ctrl-D (EOF)
+} elsif ( $key eq "\x04" ) {    ## Ctrl-D (EOF)
     return undef;
-} elsif ( $key eq "\x08" or $key eq "\x7f" ) {  ## Backspace/Delete
+} elsif ( $key eq "\x08" or $key eq "\x7f" ) {    ## Backspace/Delete
     if ( length $command_buffer ) {
         chop($command_buffer);
         print "\x08 \x08";
+        $display_buffer = '';    ## User is editing, clear display buffer
     }
-} elsif ( length $key and ord($key) >= 32 ) {  ## Printable
+} elsif ( length $key and ord($key) >= 32 ) {    ## Printable
     $command_buffer .= $key;
-    print $key;  ## Echo
+    print $key;              ## Echo
+    $display_buffer = '';    ## User is editing, clear display buffer
 }
 
-return undef;  ## Partial input, keep accumulating
+return undef;                ## Partial input, keep accumulating
 
-#,,,.,,.,,,,,,,..,,.,,,.,,,,,,.,.,.,,,,..,,.,,.,.,...,...,...,,..,,,,,,.,,,.,,
-#RYQ7GUVSWLMOXDRQ2ZFXU24276Q2CMCTQ25KP7T3SUSYXOW37YT2MI4NFDZ4UB5B7IN54DMAFGWXM
-#\\\|6SF42NHMDYN32OIKUBPACPZRN3JBFDZ54NWPRHT3KEEPGKLV3S5 \ / AMOS7 \ YOURUM ::
-#\[7]XRIUMZQDZBNJQ4ESRTSBMQXOLJ7K5JKKVVL6CEAFSB2VQXE32KCQ 7  DATA SIGNATURE ::
+## Helper function to redraw command line from history
+sub _redraw_command_line {
+    my ( $buffer, $display ) = @_;
+
+    ## Clear current line and redraw
+    ## Use carriage return + spaces to clear, then print new content
+    my $term_width = 80; ## Default, could get from AMOS7::TERM::terminal_size
+    my $clear_len  = length($buffer) + 20;    ## Leave margin
+    print "\r" . ( ' ' x $clear_len ) . "\r" . $display;
+}
+
+#,,,,,,..,,.,,,.,,.,,,..,,,,.,,.,,,..,.,,,,.,,.,.,...,...,...,,.,,,.,,,,,,.,.,
+#ANFO6IC6DAWSYUILQGVDJ7IYMXYXRXHGT2PZYOFDPWGGMSZDJPAAR7KIC57TWPEL3VX6AQPXIUNXE
+#\\\|WVUWAT7D3JJHTKAYMSN3U265JMZ3GCPJMVGZFEJ3UKZOT3GJRVJ \ / AMOS7 \ YOURUM ::
+#\[7]B7B5DLTVTN6Q5HHJLJHYGBVDAXXNVUEM2ZZSTDREC4KRZCKRXWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
