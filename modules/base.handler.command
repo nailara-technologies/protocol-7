@@ -973,8 +973,13 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
         ## Hook can intercept replies with unknown route IDs
         if ( <[base.handler.hooks]>->( 'has', $id, 'unknown-reply-route' ) ) {
             my $hook_result = <[base.handler.hooks]>->(
-                'call', $id, 'unknown-reply-route',
-                { cmd => $cmd, cmd_id => $cmd_id, args => $call_args, session_id => $id }
+                'call', $id,
+                'unknown-reply-route',
+                {   cmd        => $cmd,
+                    cmd_id     => $cmd_id,
+                    args       => $call_args,
+                    session_id => $id
+                }
             );
             ## If hook returns TRUE, it handled the message, skip normal processing
             goto UNKNOWN_ROUTE_HANDLED
@@ -1261,93 +1266,32 @@ UNKNOWN_TYPE_HANDLED:
                 } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
 
                     ## SIZE mode: reports BYTE count
-                    ## [ with global 'use bytes' pragma ]
-                    my $data_to_send        = $reply->{'data'};
-                    my $total_bytes         = bytes::length($data_to_send);
-                    my $strm_size_threshold = <protocol.strm_size.threshold>
-                        // 65536;
+                    ## Direct command responses don't use STRM-SIZE fragmentation.
+                    ## (STRM-SIZE only applies to routed responses with strm-lock.)
+                    ## For large direct responses, use STRM mode instead (lines 1223-1259).
+                    my $data_to_send = $reply->{'data'};
+                    my $session_mode = $session->{'size_mode'} // qw| SIZE |;
+                    my $count;
 
-                    ## Check if we should use STRM-SIZE fragmentation
-                    ## Note: strm-mode-locking means client can
-                    ##        handle STRM, but doesn't force it
-                    ##                                 [LLL] disabled [broken]
-                    if ( $total_bytes > $strm_size_threshold and 0 ) {
+                    ## Check session preference for response format
+                    if ( $session_mode eq qw| CHRSIZE | ) {
+                        ## Translate to CHRSIZE mode: count UTF-8 characters
+                        my $test_data = $data_to_send;
+                        utf8::upgrade($test_data);
+                        $count = length($test_data);
 
-                        ## STRM-SIZE mode: Transparent SIZE fragmentation
-                        my $chunk_size = <protocol.strm_size.packet_size>
-                            // 8192;
-
-                        ## Send STRM-SIZE open header [LLL] CAUSING ERRORS
-                        $output->$* .= sprintf "%sSTRM-SIZE open %d\n",
-                            $cmd_id_str, $total_bytes;
-                        #
-                        ## :. cube : [2757773] reply type 'STRM-SIZE' not valid
-
-                        ## Send data in chunks
-                        ##                    [LLL] requires non-blocking design
-                        my $offset = 0;
-                        while ( $offset < $total_bytes ) {
-                            my $chunk_len = $chunk_size;
-                            if ( $offset + $chunk_len > $total_bytes ) {
-                                $chunk_len = $total_bytes - $offset;
-                            }
-
-                            my $chunk = substr $data_to_send, $offset,
-                                $chunk_len;
-                            $output->$* .= sprintf "%sSTRM-SIZE %d\n%s",
-                                $cmd_id_str, $chunk_len, $chunk;
-                            $offset += $chunk_len;
-
-                            <[base.logs]>->(
-                                2,   "[%d] STRM-SIZE chunk sent: %d/%d bytes",
-                                $id, $offset, $total_bytes
-                            );
-                        }
-
-                        ## Send STRM-SIZE close marker
-                        $output->$* .= sprintf "%sSTRM-SIZE close\n",
-                            $cmd_id_str;
-
-                        <[base.logs]>->(
-                            1,
-                            "[%d] STRM-SIZE streaming complete: %d bytes in chunks",
-                            $id,
-                            $total_bytes
-                        );
+                        ## Send CHRSIZE header instead of SIZE
+                        $output->$* .= sprintf "%sCHRSIZE %04d\n%s",
+                            $cmd_id_str, $count, $data_to_send;
 
                     } else {
+                        ## SIZE mode [default]: count bytes
+                        $count = bytes::length($data_to_send);
 
-                        ## Regular SIZE mode (data under threshold)
-                        my $session_mode = $session->{'size_mode'}
-                            // qw| SIZE |;
-                        my $count;
-                        my $template;
-
-                        ## Check session preference for response
-                        ##       format [ default : SIZE|bytes ]
-                        if ( $session_mode eq qw| CHRSIZE | ) {
-                            ## Translate to CHRSIZE mode :
-                            ##    count UTF-8 characters
-                            my $test_data = $data_to_send;
-                            utf8::upgrade($test_data);
-                            $count = length($test_data);
-                            ## Use SIZE template but send CHRSIZE header ##
-                            $template = qw| X3QVAWA |;
-
-                            ## Send CHRSIZE header instead of SIZE
-                            $output->$* .= sprintf "%sCHRSIZE %04d\n%s",
-                                $cmd_id_str, $count, $data_to_send;
-
-                        } else {
-                            ## SIZE mode [default]: count bytes
-                            $count    = bytes::length($data_to_send);
-                            $template = qw| X3QVAWA |;    ## SIZE template
-
-                            $output->$* .= <[base.sprint_t]>->(
-                                $template, $cmd_id_str,
-                                $count,    $data_to_send
-                            );
-                        }
+                        $output->$* .= <[base.sprint_t]>->(
+                            qw| X3QVAWA |, $cmd_id_str,
+                            $count,        $data_to_send
+                        );
                     }
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| CHRSIZE | ) {
@@ -1777,8 +1721,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,,,,.,,.,.,,..,.,,,,.,,.,.,,..,,,.,..,,,.,,..,,...,..,,,..,,,,,,.,,,..,,,,,
-#E42ZDKYIDP7PWCUHR2QSQMLHTZ4MTCYL33KMH7PDBLSU3XTVYLNNLHEWZSKANZTNASHJVDO4H3YGY
-#\\\|LB2OKKXQ4AY7SXTPA2ZBBUY45YV53KDLEHNXFAHM6VHOE2OEJI4 \ / AMOS7 \ YOURUM ::
-#\[7]YCT4OQZXU5K7ZOHA46LTFTNNRCLO6QFEMUD6RGJLMERSFF7FY4CY 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,..,,.,,,.,,,,.,.,.,,.,,.,,,,,,,..,,...,...,,,.,,..,,..,.,.,,.,,
+#AV53DCF6ZYOXBCEOZABMQFCJ2NHIOJE25R2D2LYVFIRK6RAV45RE7X27LHA4H7MJFW6N42TRKMCVY
+#\\\|P7TTPOKL5SCKCBRNAUWIG4L4ZMZJUB55OQHLNDHCWAQZTUTMPYS \ / AMOS7 \ YOURUM ::
+#\[7]YQVYPEQ37ZRTFYX5QEWOCA2QNRGRU47NAV2AC2TKKMBFAQVCIKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
