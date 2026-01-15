@@ -20,10 +20,9 @@ my $signature_key_name = qw| proto-7.sourcecode |;
 if (   not exists $keys{'C25519'}{$signature_key_name}
     or not exists $keys{'C25519'}{$signature_key_name}->{'private'}
     or not exists $keys{'C25519'}{$signature_key_name}->{'public'} ) {
-    <[base.logs]>->(
-        0, "source signature key '%s' not loaded, aborting..,",
-        $signature_key_name
-    );
+    <[base.log]>->( 0, ".: source signature key :." );
+    <[base.logs]>->( 0, ":  : %s", $signature_key_name );
+    <[base.log]>->( 0, ":. not loaded, aborting .:" );
     <[base.exit]>->(qw| 0110 |);
 }
 
@@ -147,8 +146,8 @@ printf( "%s\r", ' ' x 18 ) if <system.verbosity.console> == 1;
 <[base.log]>->( 1, ': : success =)' ) if $file_count == 0;
 #
 
-#,,,,,,..,,,.,..,,..,,,,.,.,.,,..,,,.,,,.,,.,,..,,...,...,..,,.,.,,..,,.,,,,,,
-#5EOYYWAWGLEANAXQ6522OVQX5SOUACDX55ESXWIPVJWNYUEYI7NTQVSEOSELRPENAVYIQHNXBLOF2
-#\\\|LQW3CZDMFDGY7VTHO5HNCS47XINOT57F6INXGZVHIMBPLI5QNDF \ / AMOS7 \ YOURUM ::
-#\[7]MOJUWY54RGYODBF5VRBCPNJREOSK3JDDTD74XKYOQPCMJPFCMABI 7  DATA SIGNATURE ::
+#,,..,...,...,,.,,.,,,,.,,.,,,.,,,..,,.,,,..,,..,,...,...,.,,,,,.,..,,,,,,,.,,
+#JM5YKFPGI5VAU4ZDJFVVTY6XSSASN5IMX7DABMMTENNMMLTKTLJZ5SECE7RQRKC4MU53CR75HSPYO
+#\\\|GHCPWUZKEZLRNDHJH46CXRXLGDDQUOX6JR46LWCPIR6RKMDEVP4 \ / AMOS7 \ YOURUM ::
+#\[7]I3RGJ5X3JA7VGEDQGAGHUTMYVHE4HKJMKGEQKCV2SMKKHX4XHMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
