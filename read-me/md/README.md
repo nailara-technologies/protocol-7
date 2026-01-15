@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3OGPPVVWOA-6127.0 :::
+::: SOURCE-CODE VERSION :: 3OGPVO4RMY-6128.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -280,13 +280,28 @@ Resources in Protocol-7 (especially in the [data/gfx/backgrounds/](data/gfx/back
 
 ## Current Status
 
-Protocol-7 is functional but still under active development. Several key features are being implemented that will make it more useful to the general public. Current capabilities include:
+Protocol-7 is functional and actively evolving with high iteration frequency on core infrastructure and essential zenki. The system is transitioning from foundational components toward feature-rich distributed capabilities.
 
-- Interprocess messaging and routing (via cube)
-- Process management and monitoring (via v7)
-- Interactive shell interface ([nshell](configuration/zenki/nshell/start) - pure-Perl terminal with buffered non-blocking I/O)
-- User interface components ([web-browser](configuration/zenki/web-browser/start), [mpv](configuration/zenki/mpv/start) player control)
-- Basic resource management
+### Established Infrastructure
+
+- **Interprocess Communication**: Message routing via cube zenka with Unix domain and TCP socket support
+- **Process Management**: Lifecycle management and monitoring via v7 zenka with automatic zenka startup, monitoring, and restart capabilities
+- **Interactive Interfaces**:
+  - nshell zenka with buffered non-blocking I/O and full UTF-8 support
+  - p7c (protocol-7 command) and p-7-r (protocol-7 remote) binaries for direct command access
+- **User Interface Components**: Web-browser automation, mpv media player control, desktop integration
+- **Cryptographic Infrastructure**: Curve25519 key management, multiple checksum algorithms (AMOS, BMW, ELF, JHA)
+
+### Recent Developments
+
+- **Basic LLM Integration**: Emerging capabilities for AI-assisted operations and analysis
+- **Link-Level Encryption**: Implementation of encrypted communication channels for enhanced security
+- **Network Enhancements**: Upgrading core transport and protocol layers for improved performance and reliability
+- **Essential Zenki Expansion**: Rapid iteration on new core agents for system capabilities
+
+### Development Pace
+
+The project maintains a high iteration frequency, regularly introducing new zenki modules and system enhancements. The architecture supports easy extension with new agents, and the dependency tracking system automatically manages module requirements across the network.
 
 ## How to Contribute
 
@@ -348,8 +363,8 @@ The full vision document explores Protocol-7's unique approach to
 distributed computing, network participation, and the metaphorical framework
 of resource sharing.
 
-#,,..,,.,,,.,,,.,,...,.,,,...,,.,,,..,,..,.,.,..,,...,...,...,,..,,.,,...,,..,
-#JC3PQFVHPS7LJ6DRBJFI2GIY7UU335AQ7MCIJUPDOG3UQCX2WUAPI4SMD6X7SRO22XSGEY3FD3G5O
-#\\\|FCWODLTAW7PQ34UAV5ELG2JHQQDSG73MJ352D6IYX7C2ISOBZCP \ / AMOS7 \ YOURUM ::
-#\[7]GYOWDRUUVQXGEA5GBXTPN6WJDDHBPBOZFIJ66NJYVISOTVS5YCDQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,..,,.,.,,.,,,,,,,,,,,..,,,.,..,,..,,...,...,...,,,,,...,.,.,.,,,
+#6NTMT3WWB5CPC3K2FDWXSHPJEXENHCVKZAXA53MA5PYSUBCCERCEOZ7LBX46K2PXZUIB3DPGBC724
+#\\\|MKHMOTWVPFLTQDUJ6LSZ2ML3UAQCRFDGMCQHL66OZ6KXUYCOGD5 \ / AMOS7 \ YOURUM ::
+#\[7]4WCD2NPIOOBTPHWVX57ZWNCMZ5M6PKTQZXQDKB5LWBSSCKO6WOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
