@@ -114,19 +114,38 @@ Delete route (reply complete)
 
 ## Implementation Strategy
 
-### Phase 1: Response/Sender Side (Handler Output)
-Location: base.handler.command ~line 878 (SIZE reply handling)
+### Phase 1a: Local Command Response Handler
+Location: base.handler.command ~line 1261 (LOCAL CMD SIZE mode)
 
-**Plain STRM** (explicit streaming):
+**Local SIZE Mode** (direct to caller):
+- If `$reply->{'mode'} eq 'SIZE'`: send directly to output buffer
+  - Send: `<cmd_id> SIZE <byte_count>\n<complete_data>`
+  - **No fragmentation** - session buffers are large enough (128KB+)
+  - **No STRM-SIZE** - would confuse clients expecting SIZE mode
+
+**Local STRM Mode** (direct streaming):
 - If `$reply->{'mode'} eq 'STRM'`: send STRM sequence:
   - Header: `<cmd_id> STRM open <total_bytes>\n`
   - Per chunk: `<cmd_id> STRM <chunk_size>\n<chunk_data>`
   - Closing: `<cmd_id> STRM close\n`
+  - Caller processes packets as they arrive (no reassembly)
 
-**STRM-SIZE** (transparent SIZE fragmentation):
-- If `$reply->{'mode'} eq 'SIZE'` AND `bytes::length($data) > THRESHOLD`:
-  - Send STRM-SIZE sequence (same structure with STRM-SIZE prefix)
-- Else: send regular SIZE
+**Design Decision**: Command implementers returning large data should use STRM mode, not SIZE.
+
+### Phase 1b: Routed Response Handler
+Location: base.handler.command ~line 521+ (routed SIZE replies)
+
+**Routed SIZE Mode** (between zenki, with strm-lock):
+- If response is routed AND `$reply->{'mode'} eq 'SIZE'` AND `bytes::length($data) > THRESHOLD` AND strm-lock enabled:
+  - Can use STRM-SIZE fragmentation: send STRM-SIZE sequence
+    - Header: `<cmd_id> STRM-SIZE open <total_bytes>\n`
+    - Per chunk: `<cmd_id> STRM-SIZE <chunk_size>\n<chunk_data>`
+    - Closing: `<cmd_id> STRM-SIZE close\n`
+  - Intermediate cubes forward fragments as-is
+  - Final destination reassembles transparently
+- Else: send regular SIZE (if fits in buffer)
+
+**Design Decision**: Routed responses prefer explicit STRM mode (non-blocking) over STRM-SIZE with strm-lock.
 
 ### Phase 2: Receiver/Handler Side - Reply Type Matching
 Location: base.handler.command ~line 385 (reply type recognition)
@@ -135,13 +154,15 @@ Extend reply type pattern matching:
 - Add `STRM` and `STRM-SIZE` to recognized reply types
 - Route handling: distinguish based on reply type prefix
 
-### Phase 3: Receiver/Handler Side - Plain STRM Handler
-- STRM open: initialize stream_state in session
-- STRM packets: pass each chunk progressively to handler (if handler supports streaming)
-- STRM close: mark stream complete
-- No reassembly for plain STRM
+### Phase 3: Receiver/Handler Side - Plain STRM Handler (Local)
+Location: base.handler.command ~line 635+ (STRM reply handling)
+- STRM open: initialize stream state
+- STRM packets: accumulate in buffer
+- STRM close: deliver complete data to handler
+- Handler interface: same as SIZE (receives complete payload)
 
-### Phase 4: Receiver/Handler Side - STRM-SIZE Handler
+### Phase 4: Receiver/Handler Side - STRM-SIZE Handler (Routed with strm-lock)
+Location: base.handler.command ~line 635+ (when response is routed)
 - STRM-SIZE open: initialize stream_buffer in `$session->{'streams'}{cmd_id}`
 - STRM-SIZE packets: append chunks to buffer
 - STRM-SIZE close: reassemble complete buffer
@@ -157,6 +178,59 @@ Extend reply type pattern matching:
 - `$config{'protocol.strm_size.packet_size'}` - fragment size (default 8KB)
 - `$config{'protocol.strm.packet_size'}` - explicit STRM fragment size (default 8KB)
 - No session-level preference needed - mode is transparent/explicit
+
+---
+
+## Local vs Routed Responses (Critical Distinction)
+
+### Local Command Responses (Direct to Caller)
+Commands that are executed directly (not routed through other zenki) return responses to the calling session:
+
+```perl
+Command handler running in zenka returns:
+    { mode => 'SIZE', data => '...payload...' }
+        ↓
+Direct handler sends to calling session's output buffer
+        ↓
+Caller receives SIZE mode response
+```
+
+**Important**: Local responses should **NOT** use STRM-SIZE fragmentation because:
+1. Caller expects SIZE mode, not STRM-SIZE packets
+2. Session output buffer (128KB+) is typically large enough
+3. If response exceeds buffer, use STRM mode instead: `{ mode => 'STRM', data => ... }`
+4. STRM mode uses explicit streaming - caller knows to expect multiple packets
+
+**Design rule for command implementers:**
+- Small/medium response? → `{ mode => 'SIZE', data => ... }`
+- Large response (>64KB)? → `{ mode => 'STRM', data => ... }` (not SIZE!)
+
+### Routed Responses (Between Zenki)
+When a command's response is routed through another zenka (inter-zenka communication):
+
+```perl
+Zenka A: Command handler returns
+    { mode => 'SIZE', data => '...large_payload...' }
+        ↓
+Route A → Zenka B (cube) → Route B → Zenka C (destination)
+        ↓
+With strm-lock enabled:
+    - Protocol can fragment SIZE response into STRM-SIZE chunks
+    - Intermediate zenka (B) forwards fragments as-is
+    - Final destination (C) reassembles transparently
+    - Caller sees atomic SIZE response (strm-lock provided clean SIZE interface)
+```
+
+**Design rule for routed responses:**
+- STRM-SIZE fragmentation **only** applies to routed responses with `strm-lock`
+- Local responses never use STRM-SIZE
+- Routed responses prefer explicit STRM mode (non-blocking) over STRM-SIZE with strm-lock
+
+### Buffer Constraints
+- **Local session buffers**: 128KB+ (no fragmentation needed for typical SIZE responses)
+- **Network between cubes**: May have smaller buffers, fragmentation helps
+- **Intermediate cube buffers**: Size varies by configuration
+- **Routed response decision**: Use STRM-SIZE only if cubes are configured with strm-lock AND intermediate buffers are constrained
 
 ---
 
@@ -300,3 +374,44 @@ Each STRM variant includes reassembly type in every packet for transparency.
 6. **Conversation channels**: Test with growing conversation histories
    - Large chat history as STRM-SIZE response
    - Verify blocking notifications work across STRM boundaries
+
+---
+
+## Implementation History & Critical Bugs Fixed
+
+### Issue: STRM-SIZE in Local Command Responses (Commit C9C76584B35B8C7AEE10B250B00ED72A7F48567B)
+
+**Problem:**
+- STRM-SIZE fragmentation was being applied to local command responses (e.g., `dump`)
+- Protocol was trying to send `STRM-SIZE open`, `STRM-SIZE chunk`, `STRM-SIZE close` packets to local callers
+- Clients expect SIZE mode responses, not STRM-SIZE packets
+- Parser rejected STRM-SIZE as invalid reply type → protocol errors
+- Large dump commands that exceeded 65KB threshold would fail
+
+**Root Cause:**
+- Confusion about where STRM-SIZE applies
+- STRM-SIZE fragmentation was incorrectly placed in LOCAL CMD handler (line ~1274)
+- Should only appear in routed response paths with strm-lock enabled
+
+**Solution (Commit e0ec80ce1):**
+- Removed STRM-SIZE fragmentation code from local command response handler
+- Clarified: For local commands with large responses, use STRM mode instead: `{ mode => 'STRM', data => ... }`
+- STRM-SIZE remains available only for routed responses with strm-lock
+- Updated documentation to explain the distinction
+
+**Lesson:**
+- STRM-SIZE is for routed inter-zenka responses (with strm-lock), not local command responses
+- Explicit STRM mode is cleaner and more predictable than transparent STRM-SIZE
+- Session buffers are large enough for typical SIZE responses - no fragmentation needed locally
+- Design principle: Make response mode explicit at command level, not implicit in protocol layer
+
+**Recommendation for Command Implementers:**
+```perl
+# If response < 128KB:
+return { mode => 'SIZE', data => $payload };
+
+# If response > 128KB:
+return { mode => 'STRM', data => $payload };
+
+# Never rely on transparent STRM-SIZE fragmentation for local commands
+```
