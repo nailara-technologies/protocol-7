@@ -36,7 +36,7 @@ if ( not defined <tile-groups.transition.status.waiting.stop>
                 {   'command'   => "cube.v7.get-instance-ids",
                     'call_args' => { 'args' => $zenka },
                     'reply'     => {
-                        'handler' => 'tile-groups.handler.transition',
+                        'handler' => qw| tile-groups.handler.transition |,
                         'params'  => {
                             'event_type' => 'instance_id',
                             'zenka_name' => $zenka
@@ -49,7 +49,7 @@ if ( not defined <tile-groups.transition.status.waiting.stop>
                 {   'command'   => "cube.X-11.get_window_ids",
                     'call_args' => { 'args' => $zenka },
                     'reply'     => {
-                        'handler' => 'tile-groups.handler.transition',
+                        'handler' => qw| tile-groups.handler.transition |,
                         'params'  => {
                             'event_type' => 'window_id',
                             'zenka_name' => $zenka
@@ -82,7 +82,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
             {   'command'   => "cube.v7.notify_offline",
                 'call_args' => { 'args' => $instance_id },
                 'reply'     => {
-                    'handler' => 'tile-groups.handler.transition',
+                    'handler' => qw| tile-groups.handler.transition |,
                     'params'  => {
                         'event_type'  => 'is_offline',
                         'zenka_name'  => $zenka,
@@ -108,7 +108,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
                         'args' => join( ' ', $fade_out_duration, $window_ids )
                     },
                     'reply' => {
-                        'handler' => 'tile-groups.handler.transition',
+                        'handler' => qw| tile-groups.handler.transition |,
                         'params'  => {
                             'event_type'  => 'fade_out',
                             'zenka_name'  => $zenka,
@@ -141,7 +141,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
         {   'command'   => "cube.v7.get-instance-ids",
             'call_args' => { 'args' => $zenka },
             'reply'     => {
-                'handler' => 'tile-groups.handler.transition',
+                'handler' => qw| tile-groups.handler.transition |,
                 'params'  => {
                     'event_type' => 'instance_id',
                     'zenka_name' => $zenka,
@@ -178,7 +178,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
                 {   'command'   => "cube.v7.start",
                     'call_args' => { 'args' => $ARG },
                     'reply'     => {
-                        'handler' => 'tile-groups.handler.transition',
+                        'handler' => qw| tile-groups.handler.transition |,
                         'params'  => {
                             'event_type' => 'start',
                             'zenka_name' => $ARG
@@ -211,7 +211,7 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
             {   'command'   => "cube.v7.notify_online",
                 'call_args' => { 'args' => "job:$job_id" },
                 'reply'     => {
-                    'handler' => 'tile-groups.handler.transition',
+                    'handler' => qw| tile-groups.handler.transition |,
                     'params'  => {
                         'event_type' => 'is_online',
                         'zenka_name' => $zenka
@@ -234,7 +234,7 @@ if (    ( $event_type eq 'instance_id' or $event_type eq 'init' )
             {   'command'   => "cube.v7.start",
                 'call_args' => { 'args' => $zenka },
                 'reply'     => {
-                    'handler' => 'tile-groups.handler.transition',
+                    'handler' => qw| tile-groups.handler.transition |,
                     'params'  => {
                         'event_type' => 'start',
                         'zenka_name' => $zenka
@@ -283,8 +283,8 @@ if ( defined <tile-groups.transition.status.waiting> ) {    ## in progress? ##
 #print STDERR ">---\n" . Dumper( $cube_reply, <tile-groups.transition> ) . "<---\n";
 #     if $event_type eq 'fade_out';
 
-#,,,,,,..,.,.,...,,,.,,.,,,,.,...,,.,,,..,.,,,..,,...,...,.,.,...,.,.,..,,,.,,
-#6JYKYJETKQR3S642DHIAMTFYCNTPAITLGOIY5XDCLO6CJEI6UXVBC3VLFQ4A2TH5DZ7P7RD7IAKS6
-#\\\|7QUMNLJTUXFI53QTPX2DVQRE66S764NMRIMYBPL733W2PNKYAMD \ / AMOS7 \ YOURUM ::
-#\[7]NWXCCUTSENLA3A4PS54YGVR34SYKXYDJ7I32KUNTB7BRVYGGJSCQ 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,..,,,.,,..,,,,,,.,,,,..,,..,...,..,,...,...,...,.,,,..,,,..,.,.,
+#DTBI5YQIKX4CV6MCRAQK46DO3ZAZKFKDYB32PHLDF4I7H2VI6YAXJKMCJYBP4YJXEAL5TNFJ3H7CM
+#\\\|JINWSEBM4NXRSZ6A7BIFAST2QHBDYIN6JTNC4VXV52HXS52IWBC \ / AMOS7 \ YOURUM ::
+#\[7]Q7I3KOWEJRGFXETKRUYBN42A6FPJVMRS4AOQJJ2MEC5DCQ26N4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

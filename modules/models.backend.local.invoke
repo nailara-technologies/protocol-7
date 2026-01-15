@@ -79,7 +79,7 @@ my $llama_server_url = $endpoint_check->{'endpoint'}
     // <models.llama_server_url> // 'http://127.0.0.1:8000';
 
 ## Generate unique inference ID
-my $inference_id = "$job_id:$participant_id:" . int(<[base.time]>->(2));
+my $inference_id = "$job_id:$participant_id:" . int( <[base.time]>->(2) );
 
 ## Prepare JSON payload
 my $json_payload = JSON::PP::encode_json($request_payload);
@@ -93,11 +93,12 @@ close($payload_fh);
 
 ## Build curl command for async execution
 my @curl_cmd = (
-    'curl', '-s', '-m', $timeout_secs,
-    '-X', 'POST',
-    "$llama_server_url/v1/chat/completions",
-    '-H', 'Content-Type: application/json',
-    '-d', "\@$temp_file"
+    'curl',                                  '-s',
+    '-m',                                    $timeout_secs,
+    '-X',                                    'POST',
+    "$llama_server_url/v1/chat/completions", '-H',
+    'Content-Type: application/json',        '-d',
+    "\@$temp_file"
 );
 
 ## Spawn curl process asynchronously with open3
@@ -137,23 +138,23 @@ if ( !$pid || $EVAL_ERROR ) {
 
 ## Store pending inference job
 <models.pending_inferences>->{$inference_id} = {
-    'pid'             => $pid,
-    'job_id'          => $job_id,
-    'participant_id'  => $participant_id,
-    'model_id'        => $model_id,
-    'system_prompt'   => $system_prompt,
-    'messages'        => $messages,
-    'context'         => $context,
-    'start_time'      => $start_time,
-    'timeout_secs'    => $timeout_secs,
-    'output'          => '',
-    'errors'          => '',
-    'curl_out'        => $curl_out,
-    'curl_err'        => $curl_err,
-    'temp_file'       => $temp_file,
-    'rdr_closed'      => 0,
-    'err_closed'      => 0,
-    'reply_id'        => $reply_id,
+    'pid'            => $pid,
+    'job_id'         => $job_id,
+    'participant_id' => $participant_id,
+    'model_id'       => $model_id,
+    'system_prompt'  => $system_prompt,
+    'messages'       => $messages,
+    'context'        => $context,
+    'start_time'     => $start_time,
+    'timeout_secs'   => $timeout_secs,
+    'output'         => '',
+    'errors'         => '',
+    'curl_out'       => $curl_out,
+    'curl_err'       => $curl_err,
+    'temp_file'      => $temp_file,
+    'rdr_closed'     => 0,
+    'err_closed'     => 0,
+    'reply_id'       => $reply_id,
 };
 
 <[base.logs]>->(
@@ -164,40 +165,42 @@ if ( !$pid || $EVAL_ERROR ) {
 ## Register non-blocking I/O handler for curl stdout (data reading - lightweight)
 my $io_handler_stdout = <[event.add_io]>->(
     {   'fd'      => $curl_out,
-        'handler' => 'models.handler.read_inference_response',
+        'handler' => qw| models.handler.read_inference_response |,
         'data'    => $inference_id,
         'poll'    => qw| r |
     }
 );
 
-<models.pending_inferences>->{$inference_id}->{'io_handler_stdout'} = $io_handler_stdout;
+<models.pending_inferences>->{$inference_id}->{'io_handler_stdout'}
+    = $io_handler_stdout;
 
 ## Register non-blocking I/O handler for curl stderr (completion trigger via exception)
 my $io_handler_stderr = <[event.add_io]>->(
     {   'fd'      => $curl_err,
-        'handler' => 'models.handler.check_inference_completion',
+        'handler' => qw| models.handler.check_inference_completion |,
         'data'    => $inference_id,
         'poll'    => qw| e |
     }
 );
 
-<models.pending_inferences>->{$inference_id}->{'io_handler_stderr'} = $io_handler_stderr;
+<models.pending_inferences>->{$inference_id}->{'io_handler_stderr'}
+    = $io_handler_stderr;
 
 ## Return immediately with pending status
 ## Response will be delivered asynchronously via event handlers
 return {
-    'success'         => TRUE,
-    'pending'         => TRUE,
-    'inference_id'    => $inference_id,
-    'model_id'        => $model_id,
-    'participant_id'  => $participant_id,
-    'job_id'          => $job_id,
-    'message'         => 'inference spawned, response pending',
-    'rate_limited'    => 0,
+    'success'        => TRUE,
+    'pending'        => TRUE,
+    'inference_id'   => $inference_id,
+    'model_id'       => $model_id,
+    'participant_id' => $participant_id,
+    'job_id'         => $job_id,
+    'message'        => 'inference spawned, response pending',
+    'rate_limited'   => 0,
 };
 
-#,,,.,,..,..,,,,.,...,..,,,,.,...,,.,,...,.,,,..,,...,...,.,.,,..,.,.,..,,,..,
-#MH5CFFUYB6DGLIJ3LWVDNRYB6H7OWILNU25GEBUXYUL7PZ3AL7SA46D25Q6BXBUALKPAEWP343ARI
-#\\\|MSEODJIW23DEV5J3DDBBHQOTWBQ3FHVPYURR7AQLTE6V5RWBAN7 \ / AMOS7 \ YOURUM ::
-#\[7]YX2GRWZCFXWOX6BJD444MXAQN3E24X4WLFGIIQTKSQJAZEPHA2DA 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,...,...,,,.,,,,,.,.,.,,,,,.,,,.,..,,...,...,,..,...,,,,,,,,,,..,
+#MP3KPNQIFIATMANR2QTLD2A4MNGQAGI2Y5FCIPMSIFVMXZ4EEOHNRVB6UCZXHNW5KVEW772LIOB4Y
+#\\\|QKKMYA3FLIAAGYM3GD4PUATHVESEZFJ32NL73TSZWNTGIDKBQ23 \ / AMOS7 \ YOURUM ::
+#\[7]WKAYBNXJ4O4P3W7UQ5HS677H6TEBAX3DBP5J6E2LMYNCJGE6CYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

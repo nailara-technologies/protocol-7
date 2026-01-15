@@ -26,14 +26,14 @@ if (   not exists <weather.data>->{$station_id}
     {   'command'   => "child.request-data",
         'call_args' => { 'args' => "$station_id current" },
         'reply'     => {
-            'handler' => 'weather.parent.handler.update_current_reply',
+            'handler' => qw| weather.parent.handler.update_current_reply |,
             'params'  => { 'station_id' => $station_id }
         }
     }
 );
 
-#,,,.,,.,,...,.,,,.,.,.,,,.,,,.,,,.,.,,..,.,.,..,,...,.,.,.,,,.,,,.,.,...,.,.,
-#DBBDPDJUYVY2WANHEAWJNRBAKJ3JPSGCCPXTPRUWFK3SG2456WVMNZRZ5OTGVM3EPU36VMRG54D7G
-#\\\|FB7RRUYYMUAAQ7H6LNSDZP6GCHAZLTHO75LL52NZKU22D7PQ6PR \ / AMOS7 \ YOURUM ::
-#\[7]R5ZMPSUJ62PGG5AVD3ONUARCWL6INTPGGDAJSYVV7YGEKN2YLSBQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,...,,..,.,.,,,,,,.,,.,,,,..,,..,..,,...,.,.,...,,,,,.,.,..,,,..,
+#TI46L53R5YJGSCGCQZU4Q2T4TMSWHRSO5ZXMBE2C63PT3CFZXY7EGFZJHBNUGQRNCBGFCRX6JC3TC
+#\\\|ESHDKXNBN7J6YLPAWVTUUVNXIM36PBPNDBU4OLEBUHF5Y6FQJL7 \ / AMOS7 \ YOURUM ::
+#\[7]WNWI7SIWQFBQ7RETWFU53ADYIR5TBCIMQJS3NFPI6LBLO7UUWUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

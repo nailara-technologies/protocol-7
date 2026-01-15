@@ -93,7 +93,7 @@ my $batch_job = {
 # Register non-blocking I/O handler for stdout (data reading - lightweight)
 $batch_job->{'rdr_io'} = <[event.add_io]>->(
     {   'fd'      => $rdr,
-        'handler' => 'lm-vision.handler.read_batch_output',
+        'handler' => qw| lm-vision.handler.read_batch_output |,
         'data'    => $batch_id,
         'poll'    => qw| r |
     }
@@ -102,7 +102,7 @@ $batch_job->{'rdr_io'} = <[event.add_io]>->(
 # Register non-blocking I/O handler for stderr (completion trigger via exception)
 $batch_job->{'err_io'} = <[event.add_io]>->(
     {   'fd'      => $err,
-        'handler' => 'lm-vision.handler.check_batch_completion',
+        'handler' => qw| lm-vision.handler.check_batch_completion |,
         'data'    => $batch_id,
         'poll'    => qw| e |
     }
@@ -111,8 +111,8 @@ $batch_job->{'err_io'} = <[event.add_io]>->(
 # Clear batch queue for next batch
 @$batch = ();
 
-#,,.,,,.,,,..,...,...,..,,,,,,,.,,.,.,...,...,..,,...,...,...,.,,,,..,,,.,..,,
-#D7WXJBT3I2YDUU4QKFFSKN2AV4ASNWGS3GPWASFRQN7IC32ZL2GQD2I7ZY7CH2ZEM5JA3OGJ7BHVC
-#\\\|STQJOGAANQF7DWAVLSYTS6SYR3ATEFVJ67G6CDGFKS6NJJH4TB5 \ / AMOS7 \ YOURUM ::
-#\[7]EJSV5YK2LFGIS53OUH3UWYO46O4MKUDCBWMQFV6ZQIRML2F56EAY 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,.,,...,.,.,,,,,.,.,...,,.,,,,.,..,,...,..,,..,,.,.,,..,.,,,,,.,
+#47G5YB2YMBQUC4SUH2WC56WRGNH3ZDPLSEXZOB7TFS4IPDRAKBUKW6GMUUPOTOPLBZ74QD6EI24EU
+#\\\|VZFMXW2JI3JQUCBZA5KVYU42YDYRKGJO7R2A3VEOMNUZXAK3NTD \ / AMOS7 \ YOURUM ::
+#\[7]ZDSKDQZIMYMUQLC5KF7ASVNSMTQ32FOVXKHT3YQJDD64ZYOOR2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

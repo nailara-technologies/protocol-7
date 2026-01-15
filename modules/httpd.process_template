@@ -16,13 +16,17 @@ $content_type = 'text/html' if $template_path =~ /\.html/;
 
 # LLL: ;charset=...
 
-<[base.log]>->( 1, "[process_template] $template_path (offloading to web zenka)" );
+<[base.log]>->(
+    1, "[process_template] $template_path (offloading to web zenka)"
+);
 
 ## Load template content ##
-my $template_content = <[file.slurp]>->( $template_path );
+my $template_content = <[file.slurp]>->($template_path);
 
 unless ( defined $template_content ) {
-    <[base.log]>->( 0, "[$session_id] failed to read template: $template_path" );
+    <[base.log]>->(
+        0, "[$session_id] failed to read template: $template_path"
+    );
     return <[httpd.send_error_page]>->( $session_id, 500 );
 }
 
@@ -38,11 +42,8 @@ $session->{'content'} = {
 };
 
 ## Generate unique template ID for tracking ##
-my $template_id = sprintf(
-    'httpd_%s_%d',
-    <[chk-sum.elf.vax-BASE32]>->($template_path),
-    time()
-);
+my $template_id = sprintf( 'httpd_%s_%d',
+    <[chk-sum.elf.vax-BASE32]>->($template_path), time() );
 
 ## Prepare meta variables from session ##
 my $meta_vars = $session->{'meta'} // {};
@@ -66,16 +67,11 @@ my $template_b32r = encode_b32r($template_content);
 <[base.protocol-7.command.send.local]>->(
     {   'command'   => qw| cube.web.process_template_ipc |,
         'call_args' => {
-            'args' => join(
-                ':',
-                $template_id,
-                $template_b32r,
-                $meta_b32r,
-                $session_id
-            )
+            'args' => join( ':',
+                $template_id, $template_b32r, $meta_b32r, $session_id )
         },
         'reply' => {
-            'handler' => 'httpd.handler.web_template_reply',
+            'handler' => qw| httpd.handler.web_template_reply |,
             'params'  => {
                 'client_sid'  => $session_id,
                 'template_id' => $template_id,
@@ -91,8 +87,8 @@ my $template_b32r = encode_b32r($template_content);
 
 return 1;    ## Keep connection alive, waiting for web zenka reply ##
 
-#,,,,,,,,,,,.,...,..,,,,,,..,,,..,,.,,.,.,...,..,,...,...,,,,,,.,,.,,,.,,,...,
-#6NJ4ARRWSYZOG67IX5ESWMKBFASFVOTJSM2G4F33DJEOFLWWOJ3WOYYP2P567AWVQYIJ4T45O4FAQ
-#\\\|PFOXKFA3UQJFTHQQOX72I2LG7MZYWWJCBOUDNERBNCRMDPLXWTG \ / AMOS7 \ YOURUM ::
-#\[7]ZEPKTNFB7AYTKBKMB66ZCHC7B2F25I5NHLBQEFJES6ID3LHYFECA 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,,,,..,,,.,,,,.,,,,,.,.,.,,,...,..,,...,..,,.,.,..,,,..,..,,,..,
+#NZ23P7PCKVIBECWZXRSISJE47FSVCTXYGP66QDXRDT6MHW4S6KCKRXPTT3KAPB7EGJVJZSHL3DPZY
+#\\\|EOW4IIVVVFGGOVMQWQWGPMNGGLNZMCSI2XOHDBN43GWKNFFGJHF \ / AMOS7 \ YOURUM ::
+#\[7]CNGEIAMAWZWKBO4KHZPYHXCGI5IIAGNHNHKIOPIRAMRVNX2KQGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
