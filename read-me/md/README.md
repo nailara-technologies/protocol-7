@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3OGPNPNNIY-6126.0 :::
+::: SOURCE-CODE VERSION :: 3OGPPVVWOA-6127.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -172,18 +172,30 @@ Three primary methods for interacting with the Protocol-7 network:
    - Prints full protocol reply strings for debugging
    - Use when you need to see complete protocol details
 
-2. **p7 Binary Command Execution**
+2. **Command Execution Binaries**
+
+   **p7c** (protocol-7 command):
    ```bash
-   p7 <command> [args]
+   p7c <command> [args]
    ```
-   - Automatically installed during v7 zenka startup
+   - Local command execution
+   - Automatically compiled and installed during v7 zenka startup
    - Connects directly to the Protocol-7 network
    - Uses current Unix user for authentication
-   - Installed at: `/usr/local/bin/p7`
+   - Installed at: `/usr/local/bin/p7c`
+
+   **p-7-r** (protocol-7 remote):
+   ```bash
+   p-7-r <command> [args]
+   ```
+   - Remote command execution over network
+   - Automatically compiled and installed during v7 zenka startup
+   - Enables distributed command access
+   - Installed at: `/usr/local/bin/p-7-r`
 
    ### Common Commands
 
-   - `p7 list sessions`: Display active network sessions
+   - `p7c list sessions`: Display active network sessions
      ```
       : usid :.  : protocol :.  : type :.  : mode :.  : uname :.    : since :.
      --------------------------------------------------------------------------
@@ -192,7 +204,7 @@ Three primary methods for interacting with the Protocol-7 network:
        ...
      ```
 
-   - `p7 commands`: List available commands for the current zenka
+   - `p7c commands`: List available commands for the current zenka
 
      - Displays command categories like:
        * Zenka management
@@ -203,13 +215,13 @@ Three primary methods for interacting with the Protocol-7 network:
    ### Command Routing Mechanism
 
    - Local Context Commands:
-     * `p7 commands`: Commands for the currently connected zenka (local cube)
-     * `p7 <zenka>.commands`: Commands for specific zenki
-     * Recursive routing possible: `p7 weather.child.commands`
+     * `p7c commands`: Commands for the currently connected zenka (local cube)
+     * `p7c <zenka>.commands`: Commands for specific zenki
+     * Recursive routing possible: `p7c weather.child.commands`
 
    ### Zenka-Specific Command Discovery
 
-   - `p7 v7.list`: Lists specific to the v7 zenka
+   - `p7c v7.list`: Lists specific to the v7 zenka
      ```
       : list name :.  : description :.
      -----------------------------------------------------
@@ -336,8 +348,8 @@ The full vision document explores Protocol-7's unique approach to
 distributed computing, network participation, and the metaphorical framework
 of resource sharing.
 
-#,,,,,..,,.,,,,,,,,..,.,,,,,,,.,.,,.,,..,,..,,..,,...,...,...,,.,,..,,.,.,,.,,
-#JKRAXKJIVLQEP7OXA3VG6A6NPJPRZ7BOO64664CH3KXXVICQCZWMA6B45CDU5SLAINCN35OVEBTQO
-#\\\|ZCX3RE2STNH2T6HEJXKTB7PLNAWENPJDSJ6UI32X6L2HJCSI2S3 \ / AMOS7 \ YOURUM ::
-#\[7]6TFVT4DJ7E37JO2TWGPMD2JAFXLYODYL7JG5AFDQKSZT3GCZQCAI 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,.,,...,.,,,...,,.,,,..,,..,.,.,..,,...,...,...,,..,,.,,...,,..,
+#JC3PQFVHPS7LJ6DRBJFI2GIY7UU335AQ7MCIJUPDOG3UQCX2WUAPI4SMD6X7SRO22XSGEY3FD3G5O
+#\\\|FCWODLTAW7PQ34UAV5ELG2JHQQDSG73MJ352D6IYX7C2ISOBZCP \ / AMOS7 \ YOURUM ::
+#\[7]GYOWDRUUVQXGEA5GBXTPN6WJDDHBPBOZFIJ66NJYVISOTVS5YCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
