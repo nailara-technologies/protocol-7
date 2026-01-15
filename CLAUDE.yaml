@@ -1,6 +1,6 @@
 # CLAUDE.yaml - Quick Reference for Protocol-7
 # Token-efficient structured guide
-# Last Updated: 2025-11-14
+# Last Updated: 2025-01-15
 
 meta:
   repository: nailara-technologies/protocol-7
@@ -30,8 +30,14 @@ initialization:
 quick_commands:
   overview: ./bin/Protocol-7 workflow overview
   run_zenka: ./bin/Protocol-7 <zenka-name>
-  interactive_shell: ./bin/nshell
-  system_binary: p7 <command> [args]  # Low-latency system-wide access
+
+  interactive_shell:
+    recommended: p7.nshell  # nshell zenka with buffered non-blocking I/O
+    alternative: ./bin/nshell  # Legacy script (prints full protocol replies)
+
+  command_execution:
+    local: p7c <command> [args]  # protocol-7 command (local execution)
+    remote: p-7-r <command> [args]  # protocol-7 remote (network execution)
 
   workflow:
     bug_list: ./bin/Protocol-7 workflow bug-list
@@ -51,8 +57,9 @@ zenki_system:
 
   core_zenki:
     cube: Message router between all zenki (started first)
-    v7: Zenka manager (starts and manages other zenki)
-    httpd: HTTP server agent
+    v7: Zenka manager (starts and manages other zenki, auto-compiles p7c and p-7-r)
+    httpd: HTTP server agent with async file transfer
+    nshell: Interactive shell with buffered non-blocking I/O and UTF-8 support
     workflow: Development workflow automation
     workspace-transfer: Workspace-transfer repo integration
 
@@ -147,6 +154,16 @@ crypto:
   checksums: Multiple algorithms (AMOS, BMW, ELF, JHA)
   user_keys: modules/USR.[username].*
   signatures: AMOS7 signatures for file integrity
+  link_encryption: Encrypted communication channels for enhanced security
+
+# Recent developments (high iteration frequency)
+recent_developments:
+  llm_integration: Basic LLM integration for AI-assisted operations and analysis
+  link_encryption: Encrypted communication channels for enhanced security
+  network_enhancements: Core transport layer upgrades for performance and reliability
+  zenki_expansion: Rapid iteration on new essential agents for system capabilities
+  nshell_portability: Replaced XS dependencies with pure-Perl non-blocking I/O
+  binary_tools: p7c (local) and p-7-r (remote) auto-compiled by v7 zenka
 
 # Workflow zenka integration
 workflow:
@@ -192,13 +209,33 @@ workspace_transfer:
 # Directory structure
 structure:
   bin/: Executables (Protocol-7, nshell, utilities)
+  bin/c_src/: C source for p7c and p-7-r (auto-compiled by v7)
   modules/: All 5270+ functional modules
   configuration/: System and zenka configs
-  data/: Data storage, lib-path, YAML indexes
-  docs/: Documentation
+
+  data/:
+    yaml/: YAML configuration and metadata indexes
+      - project-context/: Session and workflow context
+      - indexes/: Todo and bug tracking indexes
+    md/: Markdown documentation and guides
+    lib-path/: Internal Perl modules (AMOS7, custom libraries)
+    gfx/: Graphics and resources
+    <other>/: Additional data directories
+
+  read-me/: Project documentation and guides
+    md/: Main markdown documentation
+    project-identity/: Licensing, versions, contributions
+
+  docs/: Additional documentation
   scripts/: Additional scripts
   appliances/: Appliance definitions
   var/: Runtime data
+
+  session_management:
+    incoming_symlinks:
+      - session-state.md -> read-me/md/session-state/
+      - context.yaml -> data/yaml/
+    purpose: Organize incoming session data into proper locations
 
 # Git workflow
 git:
