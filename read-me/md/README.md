@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3OGPLQM5BI-6125.0 :::
+::: SOURCE-CODE VERSION :: 3OGPNPNNIY-6126.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -151,12 +151,26 @@ Alternatively, to use systemd:
 
 ### Interacting with the System
 
-Two primary methods for interacting with the Protocol-7 network:
+Three primary methods for interacting with the Protocol-7 network:
 
-1. **nshell Terminal Interface**
+1. **nshell Zenka Terminal Interface** (Recommended)
    ```bash
-   bin/nshell
+   p7.nshell
    ```
+   or equivalently:
+   ```bash
+   ./bin/Protocol-7 nshell
+   ```
+   - Interactive shell for direct Protocol-7 network access
+   - Pure-Perl implementation with non-blocking I/O
+   - Full UTF-8 support with proper character buffering
+   - Supports history navigation, paste operations, and escape sequences
+   - Strips protocol reply strings for cleaner output (similar to p7c and p-7-r)
+
+   **Legacy Alternative:** `bin/nshell`
+   - Still available for compatibility
+   - Prints full protocol reply strings for debugging
+   - Use when you need to see complete protocol details
 
 2. **p7 Binary Command Execution**
    ```bash
@@ -258,6 +272,7 @@ Protocol-7 is functional but still under active development. Several key feature
 
 - Interprocess messaging and routing (via cube)
 - Process management and monitoring (via v7)
+- Interactive shell interface ([nshell](configuration/zenki/nshell/start) - pure-Perl terminal with buffered non-blocking I/O)
 - User interface components ([web-browser](configuration/zenki/web-browser/start), [mpv](configuration/zenki/mpv/start) player control)
 - Basic resource management
 
@@ -321,8 +336,8 @@ The full vision document explores Protocol-7's unique approach to
 distributed computing, network participation, and the metaphorical framework
 of resource sharing.
 
-#,,,.,.,.,.,.,,.,,,.,,.,.,,..,,.,,...,..,,,.,,..,,...,...,,,.,,,.,,,,,...,...,
-#3OZDHH4BFXTEEJJXJQZVVPEJM53QSYESQDMSV6I4YXLOKQZ5GCVJRTE4QMD77BGRHSHMGYCLELX5K
-#\\\|7KRY67HKSZTSWUHQK7IDNMZHOYU3WCV4TIDHKT3SGGWZLTIUG6S \ / AMOS7 \ YOURUM ::
-#\[7]EZOZIOMMWLUBHZ6OUUOUHUWPOSOE5ONABZSXZZSVG7JMQ5IOIQDA 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,,,,,..,.,,,,,,,.,.,,.,,..,,..,,..,,...,...,...,,.,,..,,.,.,,.,,
+#JKRAXKJIVLQEP7OXA3VG6A6NPJPRZ7BOO64664CH3KXXVICQCZWMA6B45CDU5SLAINCN35OVEBTQO
+#\\\|ZCX3RE2STNH2T6HEJXKTB7PLNAWENPJDSJ6UI32X6L2HJCSI2S3 \ / AMOS7 \ YOURUM ::
+#\[7]6TFVT4DJ7E37JO2TWGPMD2JAFXLYODYL7JG5AFDQKSZT3GCZQCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
