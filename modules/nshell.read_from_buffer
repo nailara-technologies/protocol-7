@@ -186,6 +186,10 @@ if ( $key eq "\n" or $key eq "\r" ) {
         $display_buffer = '';    ## User is editing, clear display buffer
     }
 } elsif ( length $key and ord($key) >= 32 ) {    ## Printable
+    ## If buffer was empty (first character), establish color context
+    if ( !length $command_buffer ) {
+        print $colors{'p7_fg_0004'} // '';
+    }
     $command_buffer .= $key;
     print $key;              ## Echo
     $display_buffer = '';    ## User is editing, clear display buffer
@@ -204,8 +208,8 @@ sub _redraw_command_line {
     print "\r" . ( ' ' x $clear_len ) . "\r" . $display;
 }
 
-#,,,.,,,.,...,.,.,,,,,.,,,,..,,..,,.,,.,.,.,.,.,.,...,...,,.,,,,,,...,.,.,,,.,
-#MK7VN7YNXYZRHFW4OZ4WMZ3G2MEHJGS5KM7MUYM2DEYQHXQAXM73YP4NIULWEMVIENP35WZEZEC5M
-#\\\|D33HPRMTONRJ37HZQWZKLXM4XLR3C5PWOTT2ZCGB7AKGL2NOGGX \ / AMOS7 \ YOURUM ::
-#\[7]O3CCHEEIROEURSXMBSOFBHOUGOTBTOGMOCWCHK6HXSD73UPA3MDI 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,..,.,.,...,,..,..,,,.,,,,,,...,.,.,...,...,...,..,,,.,,.,,,,,,,
+#IHPAXDWLI77SUKUEZK4LM4I2NADIQSYKDYQ2SYPKGCRY4D24NAJLKI7EXFLPAZTJOKFHPVSOWRSOA
+#\\\|73SUJIZPVJSNC5XAJTA3S453I6FW2TEC3SJQGE2NXIY62KR34D7 \ / AMOS7 \ YOURUM ::
+#\[7]JUCMM2LR2EV5AHAPBVFZMNLZHL745OT2BAJHZ7XLCNW33SCKZ6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
