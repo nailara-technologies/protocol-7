@@ -6,15 +6,16 @@
 my $reply_data = shift // return FALSE;
 
 ## Extract command result from reply
-my $result = ref($reply_data) eq 'HASH' ? $reply_data->{'result'} : $reply_data;
+my $result
+    = ref($reply_data) eq 'HASH' ? $reply_data->{'result'} : $reply_data;
 
 ## Write result to terminal
 <[nshell.write_to_buffer]>->($result) if defined $result && length $result;
 
 return TRUE;
 
-#,,..,,,.,..,,,.,,...,..,,,.,,.,.,,,,,,.,,.,,,.,.,...,...,..,,,.,,,,,,..,,..,,
-#EKDG3E376YG2VNXDHWN4VSP23ILWB3456HFKVOZ5Y2OVOKMXHXNYUBEM4IDGJQ2CQ6BB5NREPWAVK
-#\\\|TB547MAGMPSXQDPTD2HI3X3Z4KP7ODYCPTFHGLIQHCHOJCZYN4A \ / AMOS7 \ YOURUM ::
-#\[7]N6AMBRBF5SAT6AOZPJDP3744NTGZ6OGRDFVC6A7JZWS3JKESJECY 7  DATA SIGNATURE ::
+#,,,.,...,,.,,.,,,,,.,..,,...,.,.,,..,...,..,,.,.,...,...,...,,.,,.,.,.,.,,..,
+#2AXYMDJN672PNT4J6KX4L6QDX4DA3H26N5N4XAF6FBII6CER64USFJL4WDQ4CGX7MZ3V7UMPLMOBI
+#\\\|T7ODLWI54WFIJLINHBRJEDCVK7AC5RKXQLRAKAQCEBHOHZBKCNJ \ / AMOS7 \ YOURUM ::
+#\[7]B7YKFBAXBTNSNRI2GOSUKTKCGIPRR73YBHAWIQUXHUIRIMJAWIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

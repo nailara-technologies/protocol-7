@@ -1,40 +1,110 @@
 ## [:< ##
 
 # name = nshell.read_from_buffer
-# descr = Non-blocking keyboard input with line accumulation
+# descr = Non-blocking keyboard input with buffered I/O (no XS dependencies)
 
-## Reads one character at a time with very short timeout
+## Reads multiple bytes at once with sysread, processes character by character
 ## Returns complete line when user presses Enter
 ## Persists buffer across calls (static variable)
 ## Supports history navigation with arrow keys and Page Up/Down
 
-state $command_buffer = '';
-state $escape_buffer  = '';
-state $display_buffer = '';    ## Current display (may be from history)
-state $debug_cmd_buffer = '';  ## Accumulate potential debug command [CMD:N]
+state $command_buffer   = '';
+state $escape_buffer    = '';
+state $display_buffer   = ''; ## Current display (may be from history)
+state $debug_cmd_buffer = ''; ## Accumulate potential debug command [CMD:N]
+state $input_chars      = ''; ## Character buffer for both TTY and piped input
 
-## Persistent input buffer for piped mode
-state $input_chars = '';
-
-## Non-blocking read: use Term::ReadKey for TTY, read STDIN for piped
+## Get one character from buffer, refilling via sysread if needed
 my $key;
+
 if ( -t STDIN ) {
-    $key = Term::ReadKey::ReadKey(-1);
-    return undef if not defined $key;
+    ## TTY input: use sysread with non-blocking mode [STDIN in binary mode
+    ## from nshell.init_code]
+    if ( !length $input_chars ) {
+        ## Drain all available data in non-blocking mode using while loop
+        my $read_size  = 1024;
+        my $total_read = 0;
+        while (1) {
+            my $bytes_read = sysread( STDIN, my $chunk, $read_size );
+            if ( defined $bytes_read && $bytes_read > 0 ) {
+                $input_chars .= $chunk;
+                $total_read += $bytes_read;
+            } else {
+                last;    ## No more data available (non-blocking) or EOF
+            }
+        }
+        return undef if !length $input_chars;    ## No data at all
+    }
+} else {
+    ## Piped input: use line-oriented reading
+    if ( !length $input_chars ) {
+        my $line = <STDIN>;
+        $input_chars = $line // '';
+        return undef if !length $input_chars;
+    }
+}
+
+## Process all buffered characters in a loop to prevent event loop starvation
+while ( length $input_chars ) {
+    my $key = _extract_utf8_char( \$input_chars );
+    last if not defined $key; ## Incomplete UTF-8 sequence, wait for more data
+
+## Helper: extract a complete UTF-8 character (may be 1-4 bytes)
+    sub _extract_utf8_char {
+        my ($buf_ref) = @_;
+        return undef if !length($$buf_ref);
+
+        my $first_byte = ord( substr( $$buf_ref, 0, 1 ) );
+        my $seq_len    = 1;
+
+        ## Determine UTF-8 sequence length from first byte
+        if ( ( $first_byte & 0xE0 ) == 0xC0 ) {  ## 110xxxxx - 2 byte sequence
+            $seq_len = 2;
+        } elsif ( ( $first_byte & 0xF0 ) == 0xE0 )
+        {                                        ## 1110xxxx - 3 byte sequence
+            $seq_len = 3;
+        } elsif ( ( $first_byte & 0xF8 ) == 0xF0 )
+        {                                        ## 11110xxx - 4 byte sequence
+            $seq_len = 4;
+        }
+        ## else: 0xxxxxxx (ASCII) - already $seq_len = 1
+
+        ## Extract the complete sequence (or what we have)
+        return substr( $$buf_ref, 0, $seq_len, '' );
+    }
+
+## Helper: write bytes ensuring complete write (syswrite may be partial)
+    sub _syswrite_complete {
+        my ( $fh, $data ) = @_;
+        my $total   = length($data);
+        my $written = 0;
+
+        while ( $written < $total ) {
+            my $n = syswrite( $fh, $data, $total - $written, $written );
+            last if !defined $n or $n <= 0;
+            $written += $n;
+        }
+        return $written;
+    }
 
     ## If we got ESC, keep reading to complete the escape sequence
     if ( $key eq "\e" ) {
         $escape_buffer = $key;
 
-        ## Read next characters with timeout, accumulating until sequence completes
+        ## Accumulate more characters to complete escape sequence
         my $seq_complete = 0;
-        for ( my $i = 0; $i < 10 && !$seq_complete; $i++ ) {
-            my $next_key = Term::ReadKey::ReadKey(0.05);
-            last if not defined $next_key;
+        for ( my $i = 0; $i < 20 && !$seq_complete; $i++ ) {
+            ## Check if we need more input
+            if ( !length $input_chars && -t STDIN ) {
+                my $bytes_read = sysread( STDIN, $input_chars, 64 );
+                last if not defined $bytes_read or $bytes_read <= 0;
+            }
+            last if !length $input_chars;
 
+            my $next_key = substr( $input_chars, 0, 1, '' );
             $escape_buffer .= $next_key;
 
-            ## Check if sequence is complete
+            ## Check if sequence is complete (arrow keys or function keys)
             $seq_complete = 1 if $escape_buffer =~ m/\e\[[A-Z]|\e\[\d~$/;
         }
 
@@ -44,14 +114,18 @@ if ( -t STDIN ) {
             if ( defined $lines_ref ) {
                 $display_buffer = join "\n", $lines_ref->@*;
                 $command_buffer = $display_buffer;
-                <[nshell.redraw_command_line]>->( $command_buffer, $display_buffer );
+                <[nshell.redraw_command_line]>->(
+                    $command_buffer, $display_buffer
+                );
             }
         } elsif ( $escape_buffer eq "\e[B" ) {
             my $lines_ref = AMOS7::TERM::history_down();
             if ( defined $lines_ref ) {
                 $display_buffer = join "\n", $lines_ref->@*;
                 $command_buffer = $display_buffer;
-                <[nshell.redraw_command_line]>->( $command_buffer, $display_buffer );
+                <[nshell.redraw_command_line]>->(
+                    $command_buffer, $display_buffer
+                );
             } else {
                 my $clear_len = length($display_buffer) + 5;
                 print "\r" . ( ' ' x $clear_len ) . "\r";
@@ -63,14 +137,18 @@ if ( -t STDIN ) {
             if ( defined $lines_ref ) {
                 $display_buffer = join "\n", $lines_ref->@*;
                 $command_buffer = $display_buffer;
-                <[nshell.redraw_command_line]>->( $command_buffer, $display_buffer );
+                <[nshell.redraw_command_line]>->(
+                    $command_buffer, $display_buffer
+                );
             }
         } elsif ( $escape_buffer eq "\e[6~" ) {
             my $lines_ref = AMOS7::TERM::history_page_down();
             if ( defined $lines_ref ) {
                 $display_buffer = join "\n", $lines_ref->@*;
                 $command_buffer = $display_buffer;
-                <[nshell.redraw_command_line]>->( $command_buffer, $display_buffer );
+                <[nshell.redraw_command_line]>->(
+                    $command_buffer, $display_buffer
+                );
             } else {
                 my $clear_len = length($display_buffer) + 5;
                 print "\r" . ( ' ' x $clear_len ) . "\r";
@@ -80,125 +158,128 @@ if ( -t STDIN ) {
         }
 
         $escape_buffer = '';
-        return undef;
-    }
-} else {
-    ## Piped input: read and buffer from STDIN
-    if ( !length $input_chars ) {
-        my $line = <STDIN>;
-        $input_chars = $line // '';
-        return undef if !length $input_chars;
+        next;    ## Continue to next buffered character instead of returning
     }
 
-    $key = substr( $input_chars, 0, 1, '' );
-}
+    ## Handle potential debug command: [COMMAND] or [COMMAND:N]
+    ## Accumulate into separate buffer until we know if it's a valid pattern
+    ## Only start if we're NOT in an escape sequence
+    if ( $key eq '[' && !length $escape_buffer ) {
+        $debug_cmd_buffer = '[';
+        ## Don't echo the opening bracket yet, continue to next buffered
+        ## character
+        next;
+## Don't echo the opening bracket yet, continue to next buffered character
+    } elsif ( length $debug_cmd_buffer ) {
+        $debug_cmd_buffer .= $key;
 
-## Handle potential debug command: [COMMAND] or [COMMAND:N]
-## Accumulate into separate buffer until we know if it's a valid pattern
-## Only start if we're NOT in an escape sequence
-if ( $key eq '[' && !length $escape_buffer ) {
-    $debug_cmd_buffer = '[';
-    return undef;  ## Don't echo the opening bracket yet
-} elsif ( length $debug_cmd_buffer ) {
-    $debug_cmd_buffer .= $key;
+        if ( $key eq ']' ) {
+            ## Try to parse as debug command
+            if ( $debug_cmd_buffer =~ m/^\[([A-Z_]+(?::\d+)?)\]$/ ) {
+                my $cmd_with_count = $1;
+                my ( $cmd, $repeat_count )
+                    = $cmd_with_count =~ m/^([A-Z_]+)(?::(\d+))?$/;
+                $repeat_count //= 1;
 
-    if ( $key eq ']' ) {
-        ## Try to parse as debug command
-        if ( $debug_cmd_buffer =~ m/^\[([A-Z_]+(?::\d+)?)\]$/ ) {
-            my $cmd_with_count = $1;
-            my ( $cmd, $repeat_count ) = $cmd_with_count =~ m/^([A-Z_]+)(?::(\d+))?$/;
-            $repeat_count //= 1;
-
-            ## Check if this is a valid debug command
-            if ( defined $cmd && $cmd =~ m/^(UP|DOWN|PAGE_UP|PAGE_DOWN)$/ ) {
-                ## Valid debug command - execute without echoing
-                my $history_result;
-                for ( my $i = 0; $i < $repeat_count; $i++ ) {
-                    if ( $cmd eq 'UP' ) {
-                        $history_result = AMOS7::TERM::history_up();
-                    } elsif ( $cmd eq 'DOWN' ) {
-                        $history_result = AMOS7::TERM::history_down();
-                    } elsif ( $cmd eq 'PAGE_UP' ) {
-                        $history_result = AMOS7::TERM::history_page_up();
-                    } elsif ( $cmd eq 'PAGE_DOWN' ) {
-                        $history_result = AMOS7::TERM::history_page_down();
+                ## Check if this is a valid debug command
+                if ( defined $cmd
+                    && $cmd =~ m/^(UP|DOWN|PAGE_UP|PAGE_DOWN)$/ ) {
+                    ## Valid debug command - execute without echoing
+                    my $history_result;
+                    for ( my $i = 0; $i < $repeat_count; $i++ ) {
+                        if ( $cmd eq 'UP' ) {
+                            $history_result = AMOS7::TERM::history_up();
+                        } elsif ( $cmd eq 'DOWN' ) {
+                            $history_result = AMOS7::TERM::history_down();
+                        } elsif ( $cmd eq 'PAGE_UP' ) {
+                            $history_result = AMOS7::TERM::history_page_up();
+                        } elsif ( $cmd eq 'PAGE_DOWN' ) {
+                            $history_result
+                                = AMOS7::TERM::history_page_down();
+                        }
+                        ## Don't continue looping if we hit a boundary (undef result)
+                        last if !defined $history_result;
                     }
-                    ## Don't continue looping if we hit a boundary (undef result)
-                    last if !defined $history_result;
-                }
 
-                ## Replace command_buffer with history result
-                if ( defined $history_result ) {
-                    $command_buffer = join "\n", $history_result->@*;
-                    $display_buffer = $command_buffer;
-                }
+                    ## Replace command_buffer with history result
+                    if ( defined $history_result ) {
+                        $command_buffer = join "\n", $history_result->@*;
+                        $display_buffer = $command_buffer;
+                    }
 
-                $debug_cmd_buffer = '';
-                return undef;  ## Don't echo anything
+                    $debug_cmd_buffer = '';
+                    ## Don't echo anything, continue to next buffered
+                    ## character
+                    next;
+                }
             }
+
+            ## Not a valid debug command - echo the whole accumulated buffer
+            print $debug_cmd_buffer;
+            $command_buffer .= $debug_cmd_buffer;
+            $debug_cmd_buffer = '';
+            $display_buffer   = '';
+            next;    ## Continue to next buffered character
+        } elsif ( length $debug_cmd_buffer > 20 ) {
+            ## Too long to be a debug command, flush it
+            print $debug_cmd_buffer;
+            $command_buffer .= $debug_cmd_buffer;
+            $debug_cmd_buffer = '';
+            $display_buffer   = '';
+            next;    ## Continue to next buffered character
+        }
+        ## Still accumulating potential debug command, continue to next
+        ## buffered character
+        next;
+    }
+
+    if ( $key eq "\n" or $key eq "\r" ) {
+        print "\n"
+            ; ## Echo newline for visual spacing (key itself was not echoed during read)
+        my $result = $command_buffer;
+        $command_buffer   = '';
+        $display_buffer   = '';
+        $debug_cmd_buffer = '';    ## Clear any partial debug command
+
+        ## Save to history if not empty
+        if ( length $result ) {
+            my @lines = split "\n", $result;
+            AMOS7::TERM::history_add(@lines);
         }
 
-        ## Not a valid debug command - echo the whole accumulated buffer
-        print $debug_cmd_buffer;
-        $command_buffer .= $debug_cmd_buffer;
-        $debug_cmd_buffer = '';
-        $display_buffer = '';
-        return undef;
-    } elsif ( length $debug_cmd_buffer > 20 ) {
-        ## Too long to be a debug command, flush it
-        print $debug_cmd_buffer;
-        $command_buffer .= $debug_cmd_buffer;
-        $debug_cmd_buffer = '';
-        $display_buffer = '';
-        return undef;
-    }
-
-    return undef;  ## Still accumulating potential debug command
-}
-
-if ( $key eq "\n" or $key eq "\r" ) {
-    print "\n";    ## Always echo newline for visual spacing
-    my $result = $command_buffer;
-    $command_buffer = '';
-    $display_buffer = '';
-    $debug_cmd_buffer = '';    ## Clear any partial debug command
-
-    ## Save to history if not empty
-    if ( length $result ) {
-        my @lines = split "\n", $result;
-        AMOS7::TERM::history_add(@lines);
-    }
-
-    return $result if length $result;    ## Return command only if not empty
-    return undef;    ## Empty line - return undef so no command is sent
-} elsif ( $key eq "\x03" ) {    ## Ctrl-C
-    print "^C\n";
-    $command_buffer = '';
-    $display_buffer = '';
-    $debug_cmd_buffer = '';    ## Clear any partial debug command
-    return undef;
-} elsif ( $key eq "\x04" ) {    ## Ctrl-D (EOF)
-    return undef;
-} elsif ( $key eq "\x08" or $key eq "\x7f" ) {    ## Backspace/Delete
-    if ( length $command_buffer ) {
-        chop($command_buffer);
-        print "\x08 \x08";
+        return $result if length $result;  ## Return command only if not empty
+        next;    ## Empty line - continue to next buffered character
+    } elsif ( $key eq "\x03" ) {    ## Ctrl-C
+        ## In raw mode, Ctrl-C is just a byte - send SIGINT to trigger
+        ## base.sig_int handler
+        kill( qw| INT |, $$ );
+        next;                       ## Continue to next buffered character
+    } elsif ( $key eq "\x04" ) {    ## Ctrl-D (EOF)
+        next;                       ## Continue to next buffered character
+    } elsif ( $key eq "\x08" or $key eq "\x7f" ) {    ## Backspace/Delete
+        if ( length $command_buffer ) {
+            chop($command_buffer);
+            print "\x08 \x08";
+            $display_buffer = '';    ## User is editing, clear display buffer
+        }
+        next;                        ## Continue to next buffered character
+    } elsif ( length $key and ord( substr( $key, 0, 1 ) ) >= 32 )
+    {    ## Printable (check first byte of multi-byte UTF-8)
+        ## If buffer was empty (first character), establish color context
+        if ( !length $command_buffer ) {
+            print $colors{'p7_fg_0004'} // '';
+        }
+        $command_buffer .= $key;
+        print $key; ## Echo the character (autoflush ensures immediate output)
         $display_buffer = '';    ## User is editing, clear display buffer
     }
-} elsif ( length $key and ord($key) >= 32 ) {    ## Printable
-    ## If buffer was empty (first character), establish color context
-    if ( !length $command_buffer ) {
-        print $colors{'p7_fg_0004'} // '';
-    }
-    $command_buffer .= $key;
-    print $key;              ## Echo
-    $display_buffer = '';    ## User is editing, clear display buffer
-}
 
-return undef;                ## Partial input, keep accumulating
+}    ## End of while ( length $input_chars ) loop
 
-#,,,.,,.,,...,,.,,,..,,.,,,.,,,,.,,.,,.,,,.,,,.,.,...,...,.,,,.,,,...,.,,,,,,,
-#7BVSW3OBOBLJHAQ3TI3GT3DE23LRLUORQAOBZ6MBVQ3HNCEAXH3PDHHKOYYMPSMI366SZ6ZYY7GI6
-#\\\|IIFSUAXMV47OIDN6NIHMUJK2AKDZFKAN76WDXJJHR446BWFFHAS \ / AMOS7 \ YOURUM ::
-#\[7]7VPVYDUPLCT3AJBZ2W6K4PTJPL6R5WYBL7YR3BTDEXPAXAEQU4BA 7  DATA SIGNATURE ::
+return undef;    ## No complete line yet, buffer exhausted or incomplete UTF-8
+
+#,,,.,,..,..,,,..,..,,,.,,,.,,.,,,..,,,.,,.,.,..,,...,..,,..,,,.,,,,,,,..,.,.,
+#ADPHAO62E424WR7WS33H3MD4Y33HQTLLA47DXI4DH5IQCWDBBJNODY6MDHPDMEVJX33IV4I2SDQTW
+#\\\|OHPD6HLQWJQWVFV3ZRZZ2R6HSA6YN4TVVC35T7GMHDWQBACA7XZ \ / AMOS7 \ YOURUM ::
+#\[7]CBTCUBAE6Q7QZ36MA6GRQ7X4332XHSTT5YFCUZLSOTG7GPVM2OBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

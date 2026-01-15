@@ -3,6 +3,13 @@
 # name = nshell.init_code
 # descr = Protocol-7 native shell as first-class zenka with buffer I/O
 
+## Set both STDIN and STDOUT to binary mode for consistent raw byte handling
+## This allows sysread on STDIN and syswrite on STDOUT without encoding
+## layer interference
+binmode(STDIN);
+binmode(STDOUT);
+STDOUT->autoflush(1);    ## Ensure bytes are sent immediately to terminal
+
 ## Load AMOS7 for colors and protocol utilities
 <[base.perlmod.load]>->('AMOS7');
 <[base.perlmod.load]>->('AMOS7::TERM');
@@ -18,25 +25,23 @@ $AMOS7::TERM::prompt_prefix_string = ' ::';
 ## Get current Unix user for authentication
 my $current_user = $ENV{'USER'} // getpwuid($EUID) // 'taeki';
 
-## Load terminal control module
-<[base.perlmod.load]>->('Term::ReadKey');
-
 ## Initialize command history
 ## Load previous history entries from ~/.protocol-7/nshell.history
 my $history_count = AMOS7::TERM::history_init( 'nshell.history', 1000, 300 );
 <[base.log]>->( 2, "loaded %d history entries", $history_count )
     if $history_count > 0;
 
-## Initialize terminal output color to TRUE blue (p7_fg_0004) so first command echoes in correct color
+## Initialize terminal output color to TRUE blue (p7_fg_0004) so first
+## command echoes in correct color
 printf "%s\r", $colors{'p7_fg_0004'} // '';
 
-## Set terminal to cbreak mode (immediate character input, no line buffering)
-Term::ReadKey::ReadMode(3);
+## Initialize terminal using POSIX::Termios (portable, no XS dependencies)
+<[nshell.term_init]>;
 
 ## Set end_code callback to restore terminal mode before exit
 $code{'base.handler.end_code'} = sub {
     <[base.log]>->( 2, ': restoring terminal mode ..,' );
-    eval { Term::ReadKey::ReadMode(0) };
+    <[nshell.term_restore]>;
     <[base.exit]>->( '[ terminal restored ]', 1 );
 };
 
@@ -48,8 +53,8 @@ $code{'base.handler.end_code'} = sub {
 
 return 0;
 
-#,,,,,..,,,.,,,,.,...,.,.,,,,,,..,,,.,.,,,.,,,..,,...,...,.,.,..,,.,,,,,,,,..,
-#V7HIZDMLTH7R32LLOXE4V2KW3SENDLO6JYO3UW6DHJ2YLPHTNGOI36LV5XYRVYMCC4KHCBWB7BW46
-#\\\|GC6B73PUXWQSLU73QWOAYSORGAMQ44TPH7XVB6IIC3NIRDWYUCQ \ / AMOS7 \ YOURUM ::
-#\[7]HPM5AUFZG256HYBD436UI6JW5JPSARJ2B4LRQ2IIMPZFH4BIEGDY 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,..,,,,,,..,.,,,..,,,.,,...,,,,,..,,...,...,..,,..,,,..,,,,,,,,,
+#O3U4NLDEKYH4DJYD7LBLPOL6D7OE7DLEXLNZH25U53TCJICFJOS6OYQNR5UH27DUHYWM5PJ74ZLYW
+#\\\|BQORKXL6DKN5TVVVFHNEOXXU57ZF3MXQ47FRRSRJ6KSRE4K6WYJ \ / AMOS7 \ YOURUM ::
+#\[7]KYTTWKFLLAQ46WRSSDVA73OXJJNPFKHFJYKAOVV6QN2JFJX7ZYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

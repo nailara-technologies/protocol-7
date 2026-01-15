@@ -1,0 +1,51 @@
+## [:< ##
+
+# name = nshell.term_init
+# descr = Initialize terminal for nshell
+#         using Linux::Termios2 [ Linux-native, no XS build issues ]
+
+use POSIX qw| :termios_h O_NONBLOCK |;
+use Linux::Termios2;
+use Fcntl qw| F_GETFL F_SETFL |;
+
+## Get current terminal file descriptor
+my $tty_fd = fileno(STDIN);
+return FALSE if not defined $tty_fd or $tty_fd < 0;
+
+## Set STDIN to non-blocking mode so sysread doesn't freeze the event loop
+my $flags = fcntl( \*STDIN, F_GETFL, 0 );
+fcntl( \*STDIN, F_SETFL, $flags | O_NONBLOCK ) or return 0;
+
+## Create Termios object and get current settings
+## [ Linux::Termios2 API-compatible with POSIX::Termios ]
+my $orig_termios = Linux::Termios2->new();
+$orig_termios->getattr($tty_fd) or return 0;
+
+## Save to main data for restoration in nshell.term_restore
+$main::data{'nshell'}{'orig_termios'} = $orig_termios;
+$main::data{'nshell'}{'tty_fd'}       = $tty_fd;
+
+## Create working copy for modifications
+my $modified_termios = Linux::Termios2->new();
+$modified_termios->getattr($tty_fd);
+
+## Disable canonical mode and echo: enter raw input mode
+## ISIG = interrupt signals,
+## ECHO = echo input, ICANON = canonical input
+my $orig_flags = $orig_termios->getlflag();
+my $new_flags  = $orig_flags & ~( ISIG | ECHO | ICANON );
+$modified_termios->setlflag($new_flags);
+
+## Apply modified settings immediately
+
+## [ Linux::Termios2 doesn't expose setcc, control character
+##  defaults are sufficient for sysread ]
+$modified_termios->setattr( $tty_fd, TCSAFLUSH );
+
+return TRUE;
+
+#,,,,,.,.,..,,,.,,,..,,,.,,,.,...,,.,,,..,,,,,..,,...,...,,,.,.,.,,.,,,.,,...,
+#J74PNB5MZOMNJJ7YAHUT7Z4JPYARA6QJELMG4GU2F2SAQH3PLH6E5KLJEZC7XZY4BVM5QHPWTDKJY
+#\\\|JTZHKRHXY7OX44DFABQ7WOD7RZ5NRLBKP6T6NBTRDNJYY2EHCOP \ / AMOS7 \ YOURUM ::
+#\[7]GKNKSR7PVERGAMS7VKUCRURNSUJHFEONPDBGIFSFW6KTSGJRS6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
