@@ -5,8 +5,8 @@ use English;
 use warnings;
 use File::Spec;
 use File::Find;
-use Cwd qw| abs_path |;
-use FindBin qw| $RealBin |;
+use Cwd        qw| abs_path |;
+use FindBin    qw| $RealBin |;
 use File::Path qw| make_path |;
 ## SYS_mknod and SYS_lchown ##
 require 'syscall.ph';
@@ -24,9 +24,10 @@ my $work_dir = p7_root_dir();    ## safely determine protocol-7 root path ##
 chdir($work_dir) or die "  :\n  :: \l$OS_ERROR : $work_dir\n\n";
 say "  ::. working on '$work_dir' .,\n  :";
 
-my $changes    = 0;
-my $user_table = {};
-my $perm_table = [];
+my $changes            = 0;
+my $user_table         = {};
+my $perm_table         = [];
+my $file_initial_state = {};     ## Track initial state of each file
 my $perm_file = "$work_dir/.restore_permissions"; # XXX: traverse paths option
 my $cfg_dir   = "$work_dir/configuration";
 my $user_files = [ "$cfg_dir/system-user-map", "$cfg_dir/X11-vars" ];
@@ -55,8 +56,54 @@ foreach my $perm_line ( split "\n", $file_str ) {
     push $perm_table->@*, { $path_str => \@rules };
 }
 
+## First pass: capture initial state of all files (including recursive)
 foreach my $entry ( @{$perm_table} ) {
-    my ( $path, $action_ref ) = each $entry->%*;
+    my ( $path, $action_ref ) = %{$entry};
+    $path =~ s|^/+||;
+
+    if ( $path and -e $path ) {
+        my @stat = lstat($path);
+        $file_initial_state->{$path} = {
+            mode => $stat[2] & 07777,
+            uid  => $stat[4],
+            gid  => $stat[5]
+        };
+
+        ## If recursive flag is set, capture initial state of all files in directory
+        my $is_recursive = 0;
+        foreach my $rule ( @{$action_ref} ) {
+            if ( $rule =~ m|^[RFLDC]+$| and $rule =~ m|R| ) {
+                $is_recursive = 1;
+                last;
+            }
+        }
+
+        if ( $is_recursive and -d $path ) {
+            my $recursive_count = 0;
+            find(
+                {   no_chdir => 1,
+                    wanted   => sub {
+                        my @stat = lstat($File::Find::name);
+                        if ( defined $stat[2] )
+                        {    ## Check that lstat succeeded
+                            $file_initial_state->{$File::Find::name} = {
+                                mode => $stat[2] & 07777,
+                                uid  => $stat[4],
+                                gid  => $stat[5]
+                            };
+                            $recursive_count++;
+                        }
+                    }
+                },
+                $path
+            );
+        }
+    }
+}
+
+## Second pass: apply all changes
+foreach my $entry ( @{$perm_table} ) {
+    my ( $path, $action_ref ) = %{$entry};
     $path =~ s|^/+||;
 
     printf( "\n < %-33s >\t [ %s ]\n\n",
@@ -112,6 +159,35 @@ foreach my $entry ( @{$perm_table} ) {
         }
     }
 }
+
+## Third pass: count only files that actually changed from initial state
+my $files_checked = 0;
+foreach my $filepath ( keys $file_initial_state->%* ) {
+    $files_checked++;
+    if ( -e $filepath ) {
+        my @stat        = lstat($filepath);
+        my $final_state = {
+            mode => $stat[2] & 07777,
+            uid  => $stat[4],
+            gid  => $stat[5]
+        };
+
+        if ($file_initial_state->{$filepath}{'mode'} != $final_state->{'mode'}
+            or $file_initial_state->{$filepath}{'uid'}
+            != $final_state->{'uid'}
+            or $file_initial_state->{$filepath}{'gid'}
+            != $final_state->{'gid'} ) {
+            $changes++;
+            if ($verbose) {
+                printf "  [change detected] %04o->%04o : %s\n  :\n",
+                    $file_initial_state->{$filepath}{'mode'},
+                    $final_state->{'mode'},
+                    $filepath;
+            }
+        }
+    }
+}
+
 print "\n  :\n" if $verbose;
 my $s = $changes == 1 ? '' : 's';
 $changes = sprintf( qw| %03d |, $changes ) if $changes !~ s|^0$|no|;
@@ -132,9 +208,6 @@ sub action {
             or warn sprintf
             "\n:: cannot create synlink :  %s --> %s  [ %s ]\n\n",
             $fname, $params->{'link_target'}, lcfirst($OS_ERROR);
-
-        ##^^^##
-        $changes++ if -l $fname;
     } elsif ( $type eq qw| flags |
         and $params->{'create'}
         and $params->{'restricted'} == 1
@@ -147,19 +220,14 @@ sub action {
                 "\n:: cannot create directory : %s  [ %s ]\n\n",
                 $fname,
                 lcfirst($OS_ERROR);
-            ##^^^^^##
-            $changes++ if -d $fname;
         } elsif ( $params->{'on_files'} ) {
             print "  : creating file '$rel_path'.,\n  :\n";
             if ( open( my $zero_fh, qw| > |, $fname ) ) {
-                ##^^##
                 close($zero_fh);
-                $changes++ if -f $fname;
             } else {
                 warn sprintf
                     "\n:: cannot create file : %s  [ %s ]\n\n",
                     $fname, lcfirst($OS_ERROR);
-
             }
         }
     }
@@ -168,25 +236,18 @@ sub action {
         or $params->{'on_links'} and -l $fname
         or $params->{'on_dirs'}  and -d $fname ) {
         if ( $type eq qw| mode | ) {
-            my @stat = lstat($fname);
-            chmod( $params->{'file_mode'}, $fname );
-            ##^##
-            if ( -e $fname and $stat[2] ne [ lstat($fname) ]->[2] ) {
-                if ($verbose) {
-                    printf "  [%d]   %04o  -->  %04o   [ %s ]\n  :\n",
-                        $changes,
-                        $stat[2] & 07777,
-                        [ lstat($fname) ]->[2] & 07777, $fname;
-                }
-                $changes++;
-            }
+            chmod( $params->{'file_mode'}, $fname )
+                if defined $params->{'file_mode'};
         }
         if ( $type eq qw| user | or $type eq qw| group | ) {
-            my @stat = lstat($fname);
-            my ( $uid, $gid ) = ( $stat[4], $stat[5] );
-            $uid = getpwnam( $params->{'user'} ) if defined $params->{'user'};
+            my $uid = undef;
+            my $gid = undef;
+
+            $uid = getpwnam( $params->{'user'} )
+                if defined $params->{'user'};
             $gid = getgrnam( $params->{'group'} )
                 if defined $params->{'group'};
+
             if ( defined $uid and defined $gid ) {
                 if ( -l $fname ) {    ##  chown link, not target  ##
                     syscall( &SYS_lchown, $fname, $uid, $gid, $fname )
@@ -199,20 +260,6 @@ sub action {
                         "\n:: cannot chown path : %s  [ %s ]\n\n",
                         $fname, lcfirst($OS_ERROR);
                 }
-            }
-            ##^##
-            if (-e $fname
-                and (  $stat[4] ne [ lstat($fname) ]->[4]
-                    or $stat[5] ne [ lstat($fname) ]->[5] )
-            ) {
-                if ($verbose) {
-                    printf "  <%d>  %7s:%-7s  -->  %7s:%-7s   [ %s ]\n  :\n",
-                        $changes,
-                        $stat[4], $stat[5],
-                        [ lstat($fname) ]->[4], [ lstat($fname) ]->[5],
-                        $fname;
-                }
-                $changes++;
             }
         }
     }
@@ -268,8 +315,8 @@ sub read_user_names {
 
 }
 
-#,,,.,,,,,..,,...,.,.,..,,,,,,.,,,,,.,,.,,.,.,..,,...,..,,...,,.,,...,,..,,.,,
-#W47GIIUW5CKY4POB3CBRDQVUS47RVTTWQOBS2FDCSDWUTWZE3BDUGJPBURLI33W2ECFLRVUZU3XFK
-#\\\|REALFKW2WC5W25OJQE2DIXJ2KRH6FXCIAAXHUGU56HD4ZNJPM73 \ / AMOS7 \ YOURUM ::
-#\[7]PRMMT4R7NEYHHJEOQMJP7PI3YDMBSLUSKT2O3XUQO7LY3NNGJSDI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,,.,,,.,,,,,,,,.,.,.,.,,,.,.,,,,,..,,...,...,,.,,,,,,..,,,,,,,,,,
+#JYK5SX7MRHWEPPCJFDOFHXQKVE3L4OCHMT3BI5RNBPGUGC6JEBVDLDKMTRFIC3IJOOEG2RJ7FLLUM
+#\\\|SG7X5E54SWJY34EI73NII7PQYMRZR4QMNY5XYR6S3X6W6Z22TRN \ / AMOS7 \ YOURUM ::
+#\[7]ALJFIUBL2GSLVDWW5VAKZH2WW6WM3TXEK34JN72MDW2B5WSUEQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
