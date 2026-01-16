@@ -5,10 +5,19 @@
 
 my @path_parameter = @ARG;    ##  optional  ##
 
-my $exclude_files = { qw| bin/p7 | => TRUE };  ## <-- expand as required., ###
+### EXCLUSION PATHS ### ..expand as required., ###
+#
+my $exclude_files = { map { $ARG => TRUE } qw|   | };
+#
+#my $exclude_files = { map { $ARG => TRUE } qw| bin/p7c bin/p-7-r | };
+#
+### [ some LLMs compiled to these paths for permission reasons ]
+#   [ NOTE : binaries still work even with added signature footers., =) ]
 
+##                                   ##
 ##  work path set-ups and fallbacks  ##
-##
+##                                   ##
+
 my $paths = <sourcecode.path> // <source.path>
     // { work_tree => <system.root_path> };
 
@@ -98,7 +107,7 @@ push(    ## enabling [non-recursive] wildcard matches ##
             } else {
 
               # No glob matches, return the work_tree itself as fallback for *
-                if ( $original_pattern eq '*' ) {
+                if ( $original_pattern eq qw| * | ) {
                     $work_tree;
                 } else {
                     <[base.logs]>->(
@@ -126,7 +135,7 @@ push(    ## enabling [non-recursive] wildcard matches ##
                 # Special case: pattern ending with /* means scan immediate
                 # files non-recursively This is different from /*/ which
                 # means find subdirectories
-                if ( $original_pattern =~ m|/\*$| and $pattern eq '*' ) {
+                if ( $original_pattern =~ m|/\*$| and $pattern eq qw| * | ) {
 
                     # Add the base directory itself to be scanned for
                     # immediate files only
@@ -230,8 +239,8 @@ NXT_PATH:
 
 return @source_paths;
 
-#,,.,,,.,,,.,,..,,,,,,...,,.,,..,,..,,.,,,.,,,..,,...,...,.,.,,.,,.,,,,,,,.,.,
-#F6MECL53IKLIHQ62YPJM7HWESNKFCAFCTPNWBFDNS4NHLOIIVY4JPPZVOFX5UEBVBI2IUY4UFVX3M
-#\\\|CZSI3KIFCV3OX4LVPO6Z7UYGIJIUXHKX2FQWG7OUT6KNE6C53PW \ / AMOS7 \ YOURUM ::
-#\[7]XARQRDF6RBXUVRHVJGGELA4RZ4THAELZTDXLTMOYN3C643YS36CY 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,.,,,,,,,,,,..,,,,.,...,,..,,..,..,,...,..,,...,,.,,,,,,.,,,...,
+#XEB433BEQ7YOVH3VL7HCRAGYZOJ7JJI2V57GRYYKC6U2GJWCA5PUTGPUTJYT3GDDNBK77IZ53BDIS
+#\\\|RTQB4M7ZWDGGIAEPQMSMAZ56FERGGNUWJURGEV33BGGN2OGG3RL \ / AMOS7 \ YOURUM ::
+#\[7]CAZC7H67DYUUQAZ7ALLUOKZ3XOHXX6X5MMPPTLSDCOMFZUQDW4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
