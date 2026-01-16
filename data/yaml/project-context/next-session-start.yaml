@@ -8,7 +8,7 @@
 ## ═══════════════════════════════════════════════════════════════════════════
 
 quick_start:
-  command: "cd /data/projects/protocol-7 && ./bin/Protocol-7 workflow overview"
+  command: "cd /data/projects/protocol-7 && ./bin/Protocol-7 work overview"
   description: "Displays comprehensive workflow state with contextualized suggestions"
   what_it_shows:
     - "Current branch and uncommitted changes"
@@ -18,7 +18,8 @@ quick_start:
     - "Modified files"
     - "Context-aware suggestions ranked by relevance"
 
-  plain_text_version: "./bin/Protocol-7 -nc workflow overview"
+  plain_text_version: "./bin/Protocol-7 work -nc overview"
+  symlink_access: "p7.work overview"
   benefits: "Single command provides complete session context without reading files"
 
 ## ═══════════════════════════════════════════════════════════════════════════
@@ -26,23 +27,24 @@ quick_start:
 ## ═══════════════════════════════════════════════════════════════════════════
 
 system_message_context: |
-  Add this to system message for optimal Protocol-7 workflow zenka work:
+  Add this to system message for optimal Protocol-7 work zenka development:
 
   ---
 
-  ## Protocol-7 Workflow Zenka Context
+  ## Protocol-7 Work Zenka Context
 
-  You are continuing work on Protocol-7's workflow zenka system. This is a hybrid
-  console zenka for git workflow automation, dependency tracking, and LLM session
-  continuity.
+  You are continuing work on Protocol-7's work zenka system (formerly 'workflow').
+  This is a hybrid console zenka for git workflow automation, dependency tracking,
+  and LLM session continuity.
 
   **Quick Context Recovery:**
-  Run `workflow overview` immediately upon session start for complete state.
+  Run `Protocol-7 work overview` immediately upon session start for complete state.
+  Alternative: `p7.work overview` (via /usr/local/bin/ symlink access)
 
   **Repository Structure:**
   - Root: `/data/projects/protocol-7`
-  - Modules: `modules/workflow.*` and `modules/base.dependency.*`
-  - Config: `configuration/zenki/workflow/start`
+  - Modules: `modules/work.*` and `modules/base.dependency.*`
+  - Config: `configuration/zenki/work/start`
   - Data: `data/yaml/workflow-suggestions.yaml`, `data/yaml/project-context/*.yaml`
 
   **Recent Work (2025-11-12):**
@@ -75,26 +77,27 @@ system_message_context: |
 resume_prompts:
 
   basic_resume: |
-    "This session is continuing from previous work on Protocol-7 workflow zenka.
-    Please run 'workflow overview' to see current state and suggest next steps."
+    "This session is continuing from previous work on Protocol-7 work zenka.
+    Please run 'Protocol-7 work overview' to see current state and suggest next steps.
+    (Alternative: 'p7.work overview' via symlink)"
 
   detailed_resume: |
-    "Continuing Protocol-7 workflow zenka development. Previous session implemented:
+    "Continuing Protocol-7 work zenka development. Previous session implemented:
     - Key phrase filtering and early abort optimization for history tracking
     - Protocol-7 dependency system integration
     - Context-aware suggestion engine with relevance filtering
 
-    Run 'workflow overview' for current state, then review:
+    Run 'Protocol-7 work overview' for current state, then review:
     - data/yaml/project-context/session-2025-11-12-workflow-enhancements.yaml
     - data/yaml/project-context/workflow-zenka-patterns.yaml
 
     Suggest optimizations or next features to implement."
 
   specific_task_resume: |
-    "Continuing Protocol-7 workflow zenka. Current task: [SPECIFIC_TASK]
+    "Continuing Protocol-7 work zenka. Current task: [SPECIFIC_TASK]
 
     Context:
-    - Run 'workflow overview' for repository state
+    - Run 'Protocol-7 work overview' for repository state (or 'p7.work overview')
     - Check data/yaml/project-context/ for documentation
     - Branch: claude/access-frozen-chat-context-011CV3grn6V9wWuKmDAwQYFU
 
@@ -124,36 +127,36 @@ essential_files:
 
   configuration:
     zenka_start:
-      path: "configuration/zenki/workflow/start"
-      purpose: "Workflow zenka startup configuration"
+      path: "configuration/zenki/work/start"
+      purpose: "Work zenka (formerly workflow) startup configuration"
       key_settings:
         - "crypt.C25519.auto_load_keys = no"
         - "git.cfg.repository_path = /data/projects/protocol-7"
-        - "modules.load = auth net protocol io.unix crypt.C25519 git workflow"
+        - "modules.load = auth net protocol io.unix crypt.C25519 git work"
 
   key_modules:
     overview:
-      path: "modules/workflow.console.overview"
+      path: "modules/work.console.overview"
       purpose: "Session context recovery command - THE most important module"
 
     dependency_system:
       paths:
-        - "modules/workflow.setup_module_dependencies"
-        - "modules/workflow.callback.object.perl_module"
-        - "modules/workflow.check_dependencies"
+        - "modules/work.setup_module_dependencies"
+        - "modules/work.callback.object.perl_module"
+        - "modules/work.check_dependencies"
       purpose: "Protocol-7 dependency tracking integration"
 
     suggestion_engine:
       paths:
-        - "modules/workflow.load_suggestions"
-        - "modules/workflow.calculate_suggestion_relevance"
+        - "modules/work.load_suggestions"
+        - "modules/work.calculate_suggestion_relevance"
       purpose: "Context-aware suggestion ranking and filtering"
 
     history_tracking:
       paths:
-        - "modules/workflow.parent.scan_history"
-        - "modules/workflow.console.fix-versions"
-        - "modules/workflow.console.harmonize-emails"
+        - "modules/work.parent.scan_history"
+        - "modules/work.console.fix-versions"
+        - "modules/work.console.harmonize-emails"
       purpose: "Git history analysis with key phrase filtering and early abort"
 
 ## ═══════════════════════════════════════════════════════════════════════════
@@ -169,15 +172,16 @@ current_state:
     last_commit: "docs: Add session summary for handover"
 
   working_features:
-    - "workflow overview - Context-aware dashboard"
-    - "workflow fix-versions [key_phrase] - Version issue analysis (dry-run)"
-    - "workflow harmonize-emails [key_phrase] - Identity analysis (dry-run)"
-    - "workflow version-sign-commit - Complete workflow with explicit key loading"
-    - "workflow search <pattern> - Search workflow data and notes"
-    - "workflow todo-list / bug-list - Task tracking"
+    - "work overview - Context-aware dashboard"
+    - "work fix-versions [key_phrase] - Version issue analysis (dry-run)"
+    - "work harmonize-emails [key_phrase] - Identity analysis (dry-run)"
+    - "work version-sign-commit - Complete workflow with explicit key loading"
+    - "work search <pattern> - Search workflow data and notes"
+    - "work todo-list / bug-list - Task tracking"
     - "Dependency tracking via Protocol-7 dependency system"
     - "Context-aware suggestions with relevance filtering"
     - "Conditional sections (missing deps, dep status)"
+    - "Symlink access via p7.work <command> (via /usr/local/bin/)"
 
   needs_implementation:
     - "Actual git filter-branch rewriting for fix-versions"
@@ -186,9 +190,9 @@ current_state:
     - "Additional conditional sections (issues, warnings, etc.)"
 
   needs_testing:
-    - "workflow overview with missing dependencies"
-    - "fix-versions with key phrase filtering"
-    - "harmonize-emails with author name variants"
+    - "work overview with missing dependencies"
+    - "work fix-versions with key phrase filtering"
+    - "work harmonize-emails with author name variants"
     - "Dependency system integration in production"
 
 ## ═══════════════════════════════════════════════════════════════════════════
@@ -212,7 +216,7 @@ optimizations:
   user_experience:
     - "Add -q/--quiet flag for minimal output"
     - "Add -v/--verbose for detailed debugging"
-    - "Create short aliases (wf instead of workflow)"
+    - "Create short aliases (p7w for p7.work, wk for work)"
     - "Add tab completion support"
 
   documentation:
@@ -253,13 +257,14 @@ common_issues:
 
 startup_checklist:
   1: "Run: cd /data/projects/protocol-7"
-  2: "Run: ./bin/Protocol-7 workflow overview"
+  2: "Run: ./bin/Protocol-7 work overview"
   3: "Read this file: data/yaml/project-context/next-session-start.yaml"
   4: "Review: data/yaml/project-context/session-2025-11-12-workflow-enhancements.yaml"
   5: "Check git status: git status"
   6: "Verify branch: git branch --show-current"
   7: "If issues, read: data/yaml/project-context/workflow-zenka-patterns.yaml"
   8: "Ask user what they'd like to work on"
+  9: "Alternative quick access: p7.work overview (symlink)"
 
 ## ═══════════════════════════════════════════════════════════════════════════
 ## NEXT LOGICAL TASKS (PRIORITIZED)
@@ -272,17 +277,17 @@ next_tasks:
       reason: "Need to verify conditional section behavior works correctly"
       estimate: "15 minutes"
 
-    - task: "Test workflow overview on clean system"
+    - task: "Test work overview on clean system"
       reason: "Ensure suggestions yaml auto-creation works"
       estimate: "10 minutes"
 
   priority_2_important:
-    - task: "Implement actual git filter-branch for fix-versions"
+    - task: "Implement actual git filter-branch for work fix-versions"
       reason: "Currently only dry-run mode works"
       estimate: "1-2 hours"
       complexity: "High - needs careful git history manipulation"
 
-    - task: "Implement actual git filter-branch for harmonize-emails"
+    - task: "Implement actual git filter-branch for work harmonize-emails"
       reason: "Currently only dry-run mode works"
       estimate: "1-2 hours"
       complexity: "High - needs git filter-branch --env-filter"
@@ -301,7 +306,7 @@ next_tasks:
       estimate: "30 minutes"
 
   priority_4_future:
-    - task: "Create 'workflow diagnose' command"
+    - task: "Create 'work diagnose' command"
       reason: "Comprehensive health check"
       estimate: "1 hour"
 
