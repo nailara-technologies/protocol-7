@@ -192,7 +192,26 @@ $payload = $full_output;
     length($payload)
 );
 
-$batch_job->{'payload'} = $payload;
+# Detect if response is complete or truncated
+my $appears_complete = (
+    $payload =~ /\.\s*$/  ||                    # Ends with period
+    $payload =~ /overall\s*$/i ||              # Natural conclusion words
+    $payload =~ /in\s+summary\s*\.?\s*$/i ||
+    $payload =~ /context\s*$/i ||
+    $payload =~ /therefore\s*\.?\s*$/i ||
+    $payload =~ /conclusion\s*$/i ||
+    length($payload) < 100                      # Very short responses are likely complete
+);
+
+<[base.logs]>->(
+    1,
+    "[check_batch_completion] response completeness: %s (length=%d)",
+    $appears_complete ? 'complete' : 'possibly truncated',
+    length($payload)
+);
+
+$batch_job->{'payload'}         = $payload;
+$batch_job->{'appears_complete'} = $appears_complete ? 1 : 0;
 
 # Send the response to all requests in batch
 if ( length $payload ) {
@@ -233,8 +252,8 @@ if ( length $payload ) {
     }
 );
 
-#,,..,,,.,.,,,...,..,,.,.,...,...,...,,,,,,.,,..,,...,...,.,.,..,,.,,,...,,..,
-#Y3ADLRNINPAP46UM5PXCFNIQQEJZEHJ4LXW5QCC2JTDZZLZWXZBULFOCFLYBUQW7VGG6X4G6YH3S6
-#\\\|BNGONJUIQJRSO3Q7DEJGKNNQ57FJE55TVCIDVUPWFXOEMXIYY2T \ / AMOS7 \ YOURUM ::
-#\[7]NS2R7EQMYW24NJJ2YD4MZDRXRKU3XCQQSJTBTYWDOAPTXUPMC4BA 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,,,,,..,,,,,,...,.,,,,..,.,,,,..,..,,...,..,,...,,..,...,,,.,,,,,
+#7OY7NP462B36PWFCSFVPCDH3DPTWXDOB6ZKSVKTLCBFMSNUJXLTLSY65AIJMCXZE3QN7IE7ZQKQSW
+#\\\|VJ4B3FRHIN3VIE2CEETIPDPCJWZUFEQBHCLTU7HNJD2FFW65NEB \ / AMOS7 \ YOURUM ::
+#\[7]K2YNIXHHJOCQOIKCWX73ZOYW5WHODQEE5IXQDCFWD3WKT24H7ICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

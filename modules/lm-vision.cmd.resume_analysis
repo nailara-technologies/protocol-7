@@ -1,0 +1,192 @@
+## [:< ##
+
+# name  = lm-vision.cmd.resume_analysis
+# descr = continue image analysis that was truncated or incomplete
+
+my ( $job_id, $additional_prompt ) = split( m| +|, $$call{'args'}, 2 );
+$additional_prompt //= '';
+
+unless ( defined $job_id && length $job_id ) {
+    return { 'mode' => 'false', 'data' => 'job_id required' };
+}
+
+# Retrieve the previous job
+my $prev_job = <lm-vision.jobs>->{$job_id};
+
+unless ( defined $prev_job && $prev_job->{'status'} eq 'completed' ) {
+    return {
+        'mode' => 'false',
+        'data' => 'job not found or not completed: ' . $job_id
+    };
+}
+
+# Check if response ends with natural markers (complete analysis)
+my $payload = $prev_job->{'payload'} // '';
+my $is_complete = (
+    $payload =~ /\.\s*$/  ||                    # Ends with period
+    $payload =~ /overall\s*$/i ||              # Natural conclusion words
+    $payload =~ /context\s*$/i ||
+    $payload =~ /and\s+therefore\s*\.?\s*$/i
+);
+
+if ( $is_complete && !$additional_prompt ) {
+    return {
+        'mode' => 'true',
+        'data' => $payload . "\n[Analysis complete - no truncation detected]"
+    };
+}
+
+<[base.logs]>->(
+    1, "[resume_analysis] continuing job=%s (previous_length=%d bytes)",
+    $job_id, length($payload)
+);
+
+# Set up for continuation: use same image, append previous response as context
+my $image_path = $prev_job->{'image_path'};
+my $original_prompt = $prev_job->{'prompt'};
+
+unless ( -f $image_path ) {
+    return {
+        'mode' => 'false',
+        'data' => "image file not found for continuation: $image_path"
+    };
+}
+
+use IPC::Open3;
+use Symbol qw(gensym);
+
+# Build continuation prompt
+my $continuation_prompt = $original_prompt . "\n\n[Continue previous analysis]\n" .
+                          $payload . "\n\n[Continue...]";
+
+if ( $additional_prompt ) {
+    $continuation_prompt .= "\n\nAdditional request: " . $additional_prompt;
+}
+
+# Spawn vision CLI process for continuation
+my $binary      = <lm-vision.binary>;
+my $model_path  = <lm-vision.vision_model_path>;
+my $mmproj_path = <lm-vision.vision_mmproj_path>;
+my $log_file    = <system.root_path> . '/llama';
+
+my @cmd = (
+    $binary,
+    '-m',       $model_path,
+    '--mmproj', $mmproj_path,
+    '-ngl',     99,
+    '-c',       8192,                      # Context: previous response + continuation
+    '-t',       4,
+    '--image',  $image_path,
+    '--image-min-tokens', 1024,            # Minimum image tokens for Qwen3-VL
+    '-n',       -1,                        # Unlimited tokens for continuation
+    '--no-warmup',                         # Skip warmup to reduce initialization output
+    '--log-file', $log_file,               # Log redirection via symlink to /dev/null
+    '--prompt', $continuation_prompt,
+
+    # Reverse prompts: stop generation at natural boundaries
+    '--reverse-prompt', 'User:',           # Stop at conversation turn
+    '--reverse-prompt', '###',             # Stop at section separator
+
+    # Qwen3 recommended VL task parameters
+    '--temp',             0.7,             # Moderate temperature for focused VL output
+    '--top-k',            20,              # Top-k sampling (recommended for VL)
+    '--top-p',            0.8,             # Nucleus sampling for VL tasks
+    '--repeat-penalty',   1.0,             # Repetition penalty (default)
+    '--presence-penalty', 1.5,             # Presence penalty to reduce repetition
+);
+
+# Set up environment for vision model
+local $ENV{'LD_LIBRARY_PATH'}
+    = <lm-vision.lib_path> . ':' . ( $ENV{'LD_LIBRARY_PATH'} // '' );
+
+# Spawn vision CLI process with stdin redirected from /dev/null
+my ( $wtr, $rdr, $err );
+$err = gensym;
+
+# Open /dev/null for stdin
+open( my $null_in, '<', '/dev/null' ) or do {
+    <[base.logs]>->( 0, "ERROR: Failed to open /dev/null for stdin" );
+    return { 'mode' => 'false', 'data' => 'failed to open /dev/null' };
+};
+
+my $pid = eval { open3( $null_in, $rdr, $err, @cmd ) };
+
+if ( !$pid || $EVAL_ERROR ) {
+    <[base.logs]>->(
+        0,
+        "ERROR: Failed to spawn vision CLI for continuation: %s",
+        $EVAL_ERROR // 'unknown error'
+    );
+    return { 'mode' => 'false', 'data' => 'vision CLI spawn failed' };
+}
+
+# Enable autoflush and set non-blocking mode on read filehandles
+$rdr->autoflush(1);
+$err->autoflush(1);
+
+# Set filehandles to non-blocking mode using fcntl
+use Fcntl qw(F_GETFL F_SETFL O_NONBLOCK);
+foreach my $fh ( $rdr, $err ) {
+    my $flags = fcntl( $fh, F_GETFL, 0 ) or die "can't get flags: $!";
+    fcntl( $fh, F_SETFL, $flags | O_NONBLOCK )
+        or die "can't set non-blocking: $!";
+}
+
+# Generate unique job ID for continuation
+my $continuation_job_id = <[base.gen_id]>->(<lm-vision.jobs>);
+
+# Create job entry for continuation
+my $job = {
+    'job_id'            => $continuation_job_id,
+    'reply_id'          => $$call{'reply_id'},
+    'image_path'        => $image_path,
+    'prompt'            => $continuation_prompt,
+    'status'            => qw| running |,
+    'pid'               => $pid,
+    'rdr'               => $rdr,
+    'err'               => $err,
+    'output'            => '',
+    'stderr'            => '',
+    'start_time'        => <[base.time]>->(3),
+    'is_continuation'   => 1,
+    'previous_job_id'   => $job_id,
+    'previous_payload'  => $payload,
+};
+
+# Store job in queue
+<lm-vision.jobs>->{$continuation_job_id} = $job;
+
+<[base.logs]>->(
+    1, "[resume_analysis] continuation spawned: job=%s pid=%d",
+    $continuation_job_id, $pid
+);
+
+# Register non-blocking I/O handler for stdout (read data as it arrives)
+$job->{'rdr_io'} = <[event.add_io]>->(
+    {   'fd'      => $rdr,
+        'handler' => qw| lm-vision.handler.read_output |,
+        'data'    => $continuation_job_id,
+        'poll'    => qw| r |
+    }
+);
+
+# Register non-blocking I/O handler for stderr (read data + exception on EOF)
+$job->{'err_io'} = <[event.add_io]>->(
+    {   'fd'      => $err,
+        'handler' => qw| lm-vision.handler.check_completion |,
+        'data'    => $continuation_job_id,
+        'poll'    => qw| re |
+    }
+);
+
+<[base.logs]>->(
+    1, "[resume_analysis] returning deferred: reply_id=%s",
+    $$call{'reply_id'}
+);
+return { 'mode' => 'deferred' };
+
+#,,..,,,,,,,.,..,,.,.,...,..,,.,,,,,.,,.,,,..,..,,...,...,..,,,..,,.,,,,,,,,,,
+#BQAKOVG5GPTWQDMXZ57RHCMRTP3HIMN3COWYC3R2W6WH4RJZEB2LGRI7GRMRH2UEI72JITJ7JHIDI
+#\\\|M26GZ7CRXXFDEKJDOTNRC3Y4T6N6W2VBT3EE46H5PXP3TE3V7DQ \ / AMOS7 \ YOURUM ::
+#\[7]LCKCIIL4WX3SUUSMPUQANQXPLVCKSQUPIM3PPWTVS3SY3UG7AEBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

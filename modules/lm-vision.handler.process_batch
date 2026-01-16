@@ -33,21 +33,25 @@ my @cmd = (
     '-m',       $model_path,
     '--mmproj', $mmproj_path,
     '-ngl',     99,
-    '-c',       8192,              # Context: image tokens (~2000-2500) + prompt + response
+    '-c',       8192,                      # Context: image tokens + prompt + response
     '-t',       4,
     '--image',  $first_req->{'image_path'},
-    '--image-min-tokens', 1024,    # Minimum image tokens for Qwen3-VL functionality
-    '-n',       400,               # Allow longer batch responses (may need multi-call for very long)
-    '--no-warmup',                 # Skip warmup to reduce initialization output
-    '--log-file', $log_file,       # Log redirection via symlink to /dev/null
+    '--image-min-tokens', 1024,            # Minimum image tokens for Qwen3-VL
+    '-n',       -1,                        # Unlimited tokens - model generates until natural stop
+    '--no-warmup',                         # Skip warmup to reduce initialization output
+    '--log-file', $log_file,               # Log redirection via symlink to /dev/null
     '--prompt', $first_req->{'prompt'},
 
+    # Reverse prompts: stop generation at natural boundaries
+    '--reverse-prompt', 'User:',           # Stop at conversation turn
+    '--reverse-prompt', '###',             # Stop at section separator
+
     # Qwen3 recommended VL task parameters from modelcard
-    '--temp',             0.7,     # Moderate temperature for focused VL output
-    '--top-k',            20,      # Top-k sampling (recommended for VL)
-    '--top-p',            0.8,     # Nucleus sampling for VL tasks
-    '--repeat-penalty',   1.0,     # Repetition penalty (default)
-    '--presence-penalty', 1.5,     # Presence penalty to reduce repetition
+    '--temp',             0.7,             # Moderate temperature for focused VL output
+    '--top-k',            20,              # Top-k sampling (recommended for VL)
+    '--top-p',            0.8,             # Nucleus sampling for VL tasks
+    '--repeat-penalty',   1.0,             # Repetition penalty (default)
+    '--presence-penalty', 1.5,             # Presence penalty to reduce repetition
 );
 
 # Set up environment for vision model
@@ -140,8 +144,8 @@ $batch_job->{'err_io'} = <[event.add_io]>->(
 # Clear batch queue for next batch
 @$batch = ();
 
-#,,..,,,.,,.,,,..,.,.,,..,,..,.,,,.,,,..,,.,,,..,,...,...,,..,...,..,,,..,.,.,
-#FL4JHLQOTN2UFQDZGWRDWBB5WVOZ7BEF27T6HT7VWUB3WQ3PI2FZGRLOVDBAGB4XEC3HFQVUFFLKK
-#\\\|OYLMOGXBKX3L4QCROLDPFPFIN5UBXHTTQB7VJ22CPLSCHBX4RIB \ / AMOS7 \ YOURUM ::
-#\[7]LVBK2HPY6MSWV5PJIDBJFX57EMPMQELGZGJ5PI6EQQ2DJATFSGBQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,...,,..,,.,,,.,,.,.,,,,,..,,.,,,..,,...,...,.,,,...,.,.,,.,,,..,
+#XJFEBOWVUE4ONLYIQYRXS5HX7JV4NEJY57Y4HTCEWAK5Q6YBFYB4YBC3W4T64OHJ4752UZKMROLLQ
+#\\\|4YTYRD6SARC6TT2GPOUEIBNUQI3SSC4GKW5GM64VQDUCFRUPCHK \ / AMOS7 \ YOURUM ::
+#\[7]N3B4DTNRIGYMJINRP5NKBEBEXWDJYQ2HSTIHIUCREGHYW3OVYCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
