@@ -20,12 +20,22 @@ Protocol-7 includes intelligent inference capabilities through dual GPU+CPU infe
 #### 1. GPU-Accelerated Build (Docker-based)
 **Location:** `llama-cpp/build-cuda-docker.sh`
 
-Compiles llama-server with full CUDA GPU acceleration using Docker to avoid glibc incompatibilities.
+Compiles llama-mtmd-cli with full CUDA GPU acceleration using Docker to avoid glibc incompatibilities.
+
+**IMPORTANT: Branch Requirement**
+Before building, you must checkout the `fix_cli_log` branch to ensure proper output handling:
+```bash
+cd /data/source/ik_llama.cpp
+git checkout fix_cli_log
+```
+
+This branch disables the broken LOG_TEE macro that was corrupting model output with debug messages. Required for clean vision analysis responses.
 
 **Usage:**
 ```bash
 cd /data/source/ik_llama.cpp
-./bin/build-scripts/llama-cpp/build-cuda-docker.sh
+git checkout fix_cli_log
+/data/projects/protocol-7/bin/build-scripts/llama-cpp/build-cuda-docker.sh
 ```
 
 **Configuration Environment Variables:**
@@ -35,7 +45,7 @@ cd /data/source/ik_llama.cpp
 - `OUTPUT_DIR` - Where to place compiled binary (default: current dir)
 
 **Output:**
-- `llama-server-cuda-{VERSION}` - GPU-accelerated binary
+- `llama-mtmd-cli-cuda-fa-{VERSION}` - GPU-accelerated vision binary with flash attention
 - CUDA runtime libraries required for execution
 
 **System Requirements:**
