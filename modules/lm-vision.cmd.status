@@ -7,23 +7,28 @@ my $job_id = $call->{'args'};
 
 if ( !defined $job_id || !length $job_id ) {
 
-    # Return overall status
+    # Return overall status with job IDs
     my $job_count = scalar keys %{<lm-vision.jobs>};
     my $active    = 0;
     my $completed = 0;
     my $failed    = 0;
+    my @job_ids   = ();
 
-    foreach my $job ( values %{<lm-vision.jobs>} ) {
+    foreach my $jid ( sort keys %{<lm-vision.jobs>} ) {
+        my $job = <lm-vision.jobs>->{$jid};
         $active++    if $job->{'status'} eq 'running';
         $completed++ if $job->{'status'} eq 'completed';
         $failed++    if $job->{'status'} eq 'failed';
+        push @job_ids, "$jid(" . $job->{'status'} . ")";
     }
+
+    my $job_list = @job_ids ? " [" . join(", ", @job_ids) . "]" : "";
 
     return {
         'mode' => 'true',
         'data' => sprintf(
-            'Vision Server Ready | Jobs: %d (active: %d, completed: %d, failed: %d)',
-            $job_count, $active, $completed, $failed
+            'Vision Server Ready | Jobs: %d (active: %d, completed: %d, failed: %d)%s',
+            $job_count, $active, $completed, $failed, $job_list
         )
     };
 }
@@ -58,8 +63,8 @@ return {
     'data' => $status_str
 };
 
-#,,,.,,,.,.,,,,.,,..,,,,.,,..,,,.,,,.,.,,,,,.,..,,...,..,,,,.,,,,,..,,,,,,..,,
-#5GKBVYXC6JW22J2BSBHDV5QIYXB5Z6QXJCA7GLVGKMML7FIZIQ7IDANGBKABBRHVC2FWPSOQLLKAK
-#\\\|4R6JYHPEVAQANF7Q7M5ETKWFZIMRP5INGKJNWQPM3GFVBMIUJZ3 \ / AMOS7 \ YOURUM ::
-#\[7]J4733AMLFHGDQ45B4RED5B2DO2KE7VMPT7T7GXQAIKDWP7M6CCDY 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,...,..,,,,.,...,,,.,,.,,,..,..,,..,,...,...,,..,.,,,..,,.,,,.,,,
+#3VYJNYEM3THEXWJJENRHIORYMBVGEELIMLRLYKJUS4FFJJN2KJKVB4KAES2CCUQMG32GKDH3BG4LC
+#\\\|5QPNFMDBGB65EZ43LDQUOKADWJ2BXXMSGFMPMOX3WZGITSYZ4NO \ / AMOS7 \ YOURUM ::
+#\[7]FMSI4Y6TICUWYNIBN25Y5IUCKY5AL5GM66JVNWNHERNVW5DR7KAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
