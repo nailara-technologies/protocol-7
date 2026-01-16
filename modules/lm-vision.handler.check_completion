@@ -6,8 +6,7 @@
 my $watcher = shift->w;
 my $job_id  = $watcher->data;
 
-<[base.logs]>
-    ->( 2, "[check_completion] exception event for job=%s", $job_id );
+<[base.logs]>->( 2, "[check_completion] I/O event for job=%s", $job_id );
 
 my $vision_job = <lm-vision.jobs>->{$job_id};
 
@@ -29,23 +28,37 @@ if ( $vision_job->{'processed'} ) {
     return;
 }
 
-<[base.logs]>->( 1, "[check_completion] process has exited" );
+# First, try to read any available stderr data
+# Keep reading while data is available
+my $read_bytes = 0;
+if ( defined $vision_job->{'err'} ) {
+    while ( sysread( $vision_job->{'err'}, my $buf, 4096 ) ) {
+        $vision_job->{'stderr'} .= $buf;
+        $read_bytes += length($buf);
+    }
+}
 
-# Process has exited - read any remaining output
+# If we got data, this wasn't EOF yet - just accumulate and return
+if ( $read_bytes > 0 ) {
+    <[base.logs]>->(
+        2, "[check_completion] accumulated %d bytes from stderr, continuing",
+        $read_bytes
+    );
+    return;
+}
+
+# If we reach here, sysread returned 0 (EOF) or undef - process the response
+<[base.logs]>->(
+    1, "[check_completion] process has exited, processing response"
+);
+
+# Process has exited - read any remaining stdout (debug output)
+# stderr was already accumulated by the early read at start of handler
 if ( defined $vision_job->{'rdr'} ) {
     while ( sysread( $vision_job->{'rdr'}, my $buf, 4096 ) ) {
 
-        <[lm-vision.parser.process_chunk]>->( \$buf );
-
+        # Note: stdout is debug/init output, don't parse it
         $vision_job->{'output'} .= $buf;
-    }
-}
-if ( defined $vision_job->{'err'} ) {
-    while ( sysread( $vision_job->{'err'}, my $buf, 4096 ) ) {
-
-        <[lm-vision.parser.process_chunk]>->( \$buf );
-
-        $vision_job->{'stderr'} .= $buf;
     }
 }
 
@@ -65,8 +78,8 @@ if ( defined $vision_job->{'rdr_io'} ) {
 <[base.logs]>->( 1, "[check_completion] process exited, processing output" );
 
 # Extract output
-my $full_stdout = $vision_job->{'output'};
-my $full_stderr = $vision_job->{'stderr'};
+my $full_stdout = $vision_job->{'output'} // '';
+my $full_stderr = $vision_job->{'stderr'} // '';
 my $payload     = '';
 
 <[base.logs]>->(
@@ -76,29 +89,38 @@ my $payload     = '';
     length($full_stderr)
 );
 
-# Determine which buffer has more content (model response is likely in the larger one)
-my $primary_buffer
-    = length($full_stderr) > length($full_stdout)
-    ? $full_stderr
-    : $full_stdout;
-my $full_output
-    = $full_stdout . $full_stderr;    # Still combine both for pattern search
+# Compare stdout vs stderr to see which is cleaner
+# stdout might have model response without debug interleaving
+# stderr has both debug output and response mixed together
+<[base.logs]>->(
+    1, "[check_completion] buffer sizes: stdout_len=%d stderr_len=%d",
+    length($full_stdout), length($full_stderr)
+);
 
-# Log first 300 chars for debugging
-if ( length $full_output > 0 ) {
-    map { <[base.logs]>->( 1, $ARG ) } split "\n",
-        sprintf(
-        "[check_completion] %s",
-        <[base.wrap_text]>->(
-            '', 42,
-            sprintf(
-                'primary buffer has %d bytes,'
-                    . ' combined first 300 chars : %s',
-                length($primary_buffer), substr( $full_output, 0, 30 )
-            )
-        )
-        );
-}
+my $full_output;
+
+# Model response goes to stderr (larger buffer with actual content)
+# stdout has init/debug output (device lines, batch size)
+# Prefer stderr since it has the actual vision analysis response
+$full_output = $full_stderr;
+<[base.logs]>->(
+    1,
+    "[check_completion] using stderr for model response (stdout: %d, stderr: %d bytes)",
+    length($full_stdout),
+    length($full_stderr)
+);
+
+# Log buffer samples for debugging
+<[base.logs]>->(
+    1,
+    "[check_completion] stdout first 80 chars: %s",
+    substr( $full_stdout, 0, 80 )
+) if length($full_stdout) > 0;
+<[base.logs]>->(
+    1,
+    "[check_completion] stderr first 80 chars: %s",
+    substr( $full_stderr, 0, 80 )
+) if length($full_stderr) > 0;
 
 # Extract model response - output contains token-by-token debug logs interspersed
 # Pattern: TEXT[TIMESTAMP] [/path:LINE][FUNCTION] TEXT[TIMESTAMP]...
@@ -107,8 +129,11 @@ if ( length $full_output > 0 ) {
 # Remove "Resampling because..." debug messages (grammar constraint issues)
 # These are interspersed with the JSON output and look like:
 # "Resampling because token NNN:'text' does not meet grammar rules"
-$full_output
-    =~ s,Resampling\s+because\s+token\s+\d+:[^}]*?does\s+not\s+meet\s+grammar\s+rules\s*,,g;
+$full_output =~ s,Resampling\s+because\s+token\s+\d+:[^}]*?does\s+not\s+meet\s+grammar\s+rules\s*,,g;
+
+# First, find where the actual model response starts by looking for known markers
+# The model response typically starts after all "load_hparams:" messages and contains actual text
+# Look for the first substantial text that isn't initialization content
 
 # Remove all timestamp patterns: [10 digits]
 $full_output =~ s,\[\d{10}\]\s*,,g;
@@ -116,65 +141,52 @@ $full_output =~ s,\[\d{10}\]\s*,,g;
 # Remove all file path patterns: [/path: digits]
 $full_output =~ s{\[\/[^\]]*\]\s*}{}g;
 
-# Replace all function/label patterns with spaces: [generate_response], [   main   ], etc.
-# Handle spaces inside brackets: \[\s*[a-z_]+\s*\]
-# Use space replacement to prevent word merging
+# Replace all function/label patterns: [generate_response], [   main   ], etc.
 $full_output =~ s{\[\s*[a-z_]+\s*\]}{}g;
 
-# Find and skip the initialization section - everything before model loading completes
-# The "main: loading model:" marker indicates the end of initialization
-my $init_marker  = 'main: loading model:';
-my $init_end_pos = index( $full_output, $init_marker );
+# After cleanup patterns, we should have mostly model response text
+# But there may still be extra noise - collapse whitespace and trim
 
-<[base.logs]>->(
-    1, "[check_completion] init marker search: looking for '%s'", $init_marker
-);
+# Remove all debug/initialization lines from output (applies to both stdout and stderr)
+# Both buffers may contain debug output interspersed with model response
+# Aggressively strip patterns while preserving the actual response text
 
-if ( $init_end_pos >= 0 ) {
+# Remove build and compiler info
+$full_output =~ s/build:\s+\d+[^\n]+\n?//gm;    # "build: 0 (unknown) with cc ..."
+$full_output =~ s/XXXXXXXXXXXXXXXXXXXXX[^\n]*\n?//gm;  # "XXXXX Setting only active experts offload"
 
-  # Find the end of the model loading line (next newline after the model path)
-    my $line_end = index( $full_output, "\n", $init_end_pos );
-    if ( $line_end > $init_end_pos ) {
+# Remove chat template examples (both paired and orphaned markers)
+$full_output =~ s/<\|im_start\|>.*?<\|im_end\|>\s*//gs;  # Remove <|im_start|>...<|im_end|> blocks
+$full_output =~ s/<\|im_start\|>\s*[a-z]*\s*//gi;         # Remove orphaned <|im_start|> markers
+$full_output =~ s/<\|im_end\|>\s*//gi;                    # Remove orphaned <|im_end|> markers
 
-        # Skip to the character after the newline
-        $full_output = substr( $full_output, $line_end + 1 );
-        map { <[base.logs]>->( 1, $ARG ) } split "\n",
-            sprintf(
-            "[check_completion] %s",
-            <[base.wrap_text]>->(
-                '', 42,
-                sprintf(
-                    'found init marker at %d, skipped %d bytes of init output',
-                    $init_end_pos, $line_end + 1
-                )
-            )
-            );
-    } else {
+# Remove file operation error messages
+$full_output =~ s/Failed to open logfile[^\n]+\n?//gm;  # "Failed to open logfile 'llama.log'..."
 
-      # No newline found, might be at end of buffer - skip from marker onwards
-        $full_output = substr( $full_output, $init_end_pos );
-        map { <[base.logs]>->( 1, $ARG ) } split "\n",
-            sprintf(
-            "[check_completion] %s",
-            <[base.wrap_text]>->(
-                '', 42,
-                sprintf(
-                    'found init marker at %d, skipped to marker location',
-                    $init_end_pos )
-            )
-            );
-    }
-} else {
-    map { <[base.logs]>->( 1, $ARG ) } split "\n",
-        sprintf(
-        "[check_completion] %s",
-        <[base.wrap_text]>->(
-            '',
-            42,
-            'init marker not found in cleaned output, continuing with pattern matching'
-        )
-        );
-}
+# Remove CUDA initialization messages
+$full_output =~ s/ggml_cuda_init:[^\n]+\n?//gm;         # "ggml_cuda_init: ..."
+$full_output =~ s/CUDA\d*:[^\n]+\n?//gm;                # "CUDA0: using device..."
+$full_output =~ s/Device\s+\d+:[^\n]+\n?//gm;           # "Device 0: NVIDIA GeForce..."
+$full_output =~ s/llama_model_loader:[^\n]+\n?//gm;     # "llama_model_loader: ..."
+
+# Remove model loading debug messages
+$full_output =~ s/main:\s+[^\n]+\n?//gm;       # "main: loading model..."
+$full_output =~ s/load:\s+[^\n]+\n?//gm;       # "load: ... cache size"
+$full_output =~ s/llm_load[^\n]+\n?//gm;       # "llm_load_print_meta: ..."
+
+# Remove load_hparams lines
+$full_output =~ s/load_hparams:[^\n]+\n?//gm;  # "load_hparams: ..."
+$full_output =~ s/---\s+vision\s+hparams\s+---[^\n]*\n?//gm;  # "--- vision hparams ---"
+
+# Remove vision/image processing debug messages (including inline)
+$full_output =~ s/Adjust\s+batch\s+[^\n]+\n?//gm;       # "Adjust batch size..."
+$full_output =~ s/encoding\s+image\s+[^\n]+\n?//gm;     # "encoding image..."
+$full_output =~ s/decoding\s+image\s+[^\n]+\n?//gm;     # "decoding image..."
+$full_output =~ s/image\s+(?:decoded|slice)[^\n]*\n?//gm;  # "image decoded...", "image slice..."
+$full_output =~ s/^\s*\d+:\s+(?:CPU|CUDA\d*)[^\n]*\n?//gm;  # "  0: CPU", "  1: CUDA0" with leading spaces
+
+# Remove other common llama.cpp debug prefixes
+$full_output =~ s/^(?:alloc_compute_meta|warmup|print_info|clip_[a-z_]+|mtmd_[a-z_]+|llama_[a-z_]+):[^\n]+\n?//gmi;
 
 # Remove llama_print_timings section and everything after it
 my $timing_pos = index( $full_output, 'llama_print_timings' );
@@ -182,12 +194,15 @@ if ( $timing_pos > 0 ) {
     $full_output = substr( $full_output, 0, $timing_pos );
 }
 
-# Skip analysis_start detection - it's causing hangs with large outputs
-# The init marker removal should be sufficient to clean up the output
-
 # Trim and clean up
 $full_output =~ s/\s+/ /g;         # Collapse multiple spaces/newlines
 $full_output =~ s/^\s+|\s+$//g;    # Trim edges
+
+# Remove debug prefix that appears at the start (preserve token output after it)
+$full_output =~ s/^print_info:\s+vocab\s+type\s+=\s+BPE\s+//i;  # Remove "print_info: vocab type = BPE" only
+
+# Strip leading BPE padding dots (single '.' tokens generated during model initialization)
+$full_output =~ s/^\.+\s*//;  # Remove all leading dots until real content starts
 
 # Remove spaces after opening braces and brackets
 $full_output =~ s/([{\[\"])\s+/$1/g;
@@ -198,8 +213,39 @@ $full_output =~ s/\s+([}\]"])/$1/g;
 # Remove spaces before punctuation (tokenization artifact cleanup)
 $full_output =~ s/\s+([,.!?;:'")])/$1/g;
 
-## fix intermixed spaces ##
-# <[lm-vision.parser.process_chunk]>->( \$full_output ); #[LLL] for each token
+## Fix intermixed spaces from Qwen3 BPE tokenization breaks
+## Tokens starting with space = word boundary, without space = continuation
+## When tokens are output as text with spaces between them, we see: "definit ively"
+## Pattern: lowercase + space + lowercase usually means a tokenization break that should be joined
+
+# Initialize dictionary cache if not already done
+<lm-vision.word_dict> //= do {
+    my %dict;
+    if ( open( my $fh, '<', '/usr/share/dict/words' ) ) {
+        while (<$fh>) {
+            chomp;
+            $dict{ lc($_) } = 1;
+        }
+        close($fh);
+        <[base.logs]>->(
+            1,
+            "[check_completion] loaded %d words from dictionary",
+            scalar keys %dict
+        );
+    } else {
+        <[base.logs]>->(
+            1, "[check_completion] warning: could not load word dictionary"
+        );
+    }
+    \%dict;
+};
+
+my $word_dict = <lm-vision.word_dict>;
+
+# NOTE: The spaces in the output (both intermixed like "styl ized" and missing like "Thiswordis")
+# are generated directly from the Qwen3 BPE vocab strings in the model file.
+# Each token has its exact text as stored in id_to_token[token_id].text from the GGUF vocab.
+# No guessing/heuristics should be applied - the output is truth from the model.
 
 # The cleaned output should now be the vision analysis text
 if ( length $full_output )
@@ -269,8 +315,8 @@ if ( length $payload ) {
     }
 );
 
-#,,,,,,,,,.,,,,,,,,..,,,,,,,.,..,,,,.,..,,,,.,..,,...,...,...,..,,,..,,..,...,
-#3ULFW7SN27T6KL2NF5JW6JRXK62HDZFKZ36KAOX6YM44NMMV7XVJSX76NTV5TJWOGKL2GO5QHG6NC
-#\\\|KZV6ZC5EEEO7IHHPTFLYOCNMQRBZLEJP4OTPM4R4XYAFGZ4YQ7N \ / AMOS7 \ YOURUM ::
-#\[7]N5ITA3LI3T7W42MSVGNNV34L52DS2733VA2EWLKTNST73Y6WMWDQ 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,.,,..,.,,,.,.,...,,,.,.,.,.,,,..,,...,..,,,.,,,,,,.,,,..,,,,,,
+#GHQQAUZ2ZEE7BB5LPMRDNS6GLPEM4MBIRLPAAW4LLFTRFP42DUXFOZG3BQ3QZJKGWFKVVG3CLGPPK
+#\\\|R5BILCTSH7RV6DNABPF6GFYGUCRJ4O6G3AYG7ZVIDRS5F3TS47T \ / AMOS7 \ YOURUM ::
+#\[7]RPXVUZCJ6L2WFCGWOY7BGSOTFBM4BIUDM6BAKVWAPQDAQN2GFGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
