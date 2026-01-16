@@ -195,26 +195,25 @@ my @cmd = (
     '-m',       $model_path,
     '--mmproj', $mmproj_path,
     '-ngl',     99,
-    '-c',       8192
-    , # Context for vision tasks: image tokens (~2000-2500) + prompt + response generation space
-    '-t',      4,
-    '--image', $working_image_path,
-    '--image-min-tokens',
-    1024,             # Minimum image tokens for Qwen3-VL functionality
-    '-n', 247,        # Allow longer responses
-    '--no-warmup',    # Skip warmup to reduce initialization output
-    '--log-file', $log_file_path, # Log to symlink -> /dev/null (appends .log)
-    ## request prompt ##
+    '-c',       8192,                      # Context: image tokens + prompt + response
+    '-t',       4,
+    '--image',  $working_image_path,
+    '--image-min-tokens', 1024,            # Minimum image tokens for Qwen3-VL
+    '-n',       -1,                        # Unlimited tokens - model generates until natural stop
+    '--no-warmup',                         # Skip warmup to reduce initialization output
+    '--log-file', $log_file_path,          # Log via symlink to /dev/null
     '--prompt', $prompt,
 
-    # Qwen3 recommended VL task parameters from modelcard
-    '--temp',             0.7,    # Moderate temperature for focused VL output
-    '--top-k',            20,     # Top-k sampling (recommended for VL)
-    '--top-p',            0.8,    # Nucleus sampling for VL tasks
-    '--repeat-penalty',   1.0,    # Repetition penalty (default)
-    '--presence-penalty', 1.5,    # Presence penalty to reduce repetition
+    # Reverse prompts: stop generation at natural boundaries
+    '--reverse-prompt', 'User:',           # Stop at conversation turn
+    '--reverse-prompt', '###',             # Stop at section separator
 
-#    '-j',       '{"type":"object","properties":{"answer":{"type":"string"}}}',
+    # Qwen3 recommended VL task parameters from modelcard
+    '--temp',             0.7,             # Moderate temperature for focused VL output
+    '--top-k',            20,              # Top-k sampling (recommended for VL)
+    '--top-p',            0.8,             # Nucleus sampling for VL tasks
+    '--repeat-penalty',   1.0,             # Repetition penalty (default)
+    '--presence-penalty', 1.5,             # Presence penalty to reduce repetition
 );
 
 # Set up environment for vision model
@@ -308,8 +307,8 @@ $job->{'err_io'} = <[event.add_io]>->(
 );
 return { 'mode' => 'deferred' };
 
-#,,..,,.,,..,,,,,,...,,..,,.,,.,,,.,.,..,,.,.,..,,...,...,...,..,,..,,.,,,,.,,
-#UIX4WMDYTG5UWTOJOPVJ4LHZWFW6LWZCQXM3WO7SXT3P36JULUJ4VWMKWV6UAMPX3E64PXP2PH7GS
-#\\\|G32NMFGHLCTYOPP7A7VEZVLPBTMKKDRWIAIWYG5AFK7GHZ3NPZL \ / AMOS7 \ YOURUM ::
-#\[7]RQFZHZ6UPETBYI2JW2V3WBNHMZLGATB42KNTYWGIICPL6AYHHOCQ 7  DATA SIGNATURE ::
+#,,.,,...,..,,,,,,..,,.,,,...,..,,,..,,,,,.,.,..,,...,...,...,..,,,..,...,,,.,
+#MHRNMADEPCQWFDNXKSGYFQ6TN4S4SNCRIIWZPSVA63F2UAW4FCNWNYNKMRWQZO5Q5K7DXWRM7K452
+#\\\|IADGUGUFIMNOJXT5BVRAC6VXI7OS3L5HGSVXNZPNIKIZP6EOVVD \ / AMOS7 \ YOURUM ::
+#\[7]GDAQMZ5LHDK2ZW72IYDCM6UQ4KXQSZ47EIKW2K6HC5NYN3MIBIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

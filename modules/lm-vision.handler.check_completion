@@ -263,9 +263,30 @@ if ( length $full_output )
 
 $payload .= "\n" if $payload !~ m|\n$|;    ## make sure payload has endline ##
 
+# Detect if response is complete or truncated
+# Complete: ends with natural punctuation or conclusion markers
+my $appears_complete = (
+    $payload =~ /\.\s*$/  ||                    # Ends with period
+    $payload =~ /overall\s*$/i ||              # Natural conclusion words
+    $payload =~ /in\s+summary\s*\.?\s*$/i ||
+    $payload =~ /context\s*$/i ||
+    $payload =~ /therefore\s*\.?\s*$/i ||
+    $payload =~ /conclusion\s*$/i ||
+    length($payload) < 100                      # Very short responses are likely complete
+);
+
+<[base.logs]>->(
+    1,
+    "[check_completion] response completeness: %s (length=%d bytes, ends_with=%s)",
+    $appears_complete ? 'complete' : 'possibly truncated',
+    length($payload),
+    substr( $payload, -20 )
+);
+
 # Store stderr for diagnostic access
 $vision_job->{'debug_log'}          = $vision_job->{'stderr'};
 $vision_job->{'raw_payload_sample'} = $payload;
+$vision_job->{'appears_complete'}   = $appears_complete ? 1 : 0;
 
 if ( length $payload ) {
     $vision_job->{'status'} = qw| completed |;
@@ -315,8 +336,8 @@ if ( length $payload ) {
     }
 );
 
-#,,..,...,,,.,,,.,,..,.,,,.,.,...,,,.,.,.,.,,,..,,...,..,,,.,,,,,,.,,,..,,,,,,
-#GHQQAUZ2ZEE7BB5LPMRDNS6GLPEM4MBIRLPAAW4LLFTRFP42DUXFOZG3BQ3QZJKGWFKVVG3CLGPPK
-#\\\|R5BILCTSH7RV6DNABPF6GFYGUCRJ4O6G3AYG7ZVIDRS5F3TS47T \ / AMOS7 \ YOURUM ::
-#\[7]RPXVUZCJ6L2WFCGWOY7BGSOTFBM4BIUDM6BAKVWAPQDAQN2GFGBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,.,.,.,.,,,.,..,,.,.,,.,,,..,,,.,..,,...,...,,..,,.,,,.,,.,.,,,.,
+#FKPPEGDLZQ7DUXZ74HRGEJI4ICPX6VGFAOKNZ77O4JJFZVK4FFIEIBENM5NB4L76LSMAC4ZJ3444A
+#\\\|IBW4MPU6S4VDLIIVHYDGRAXFKL75VTMZAICQOCCQLRKY3WF6RUZ \ / AMOS7 \ YOURUM ::
+#\[7]BDZDLID5YOAXCKYFNQKKN4BOIT7GZMMDVSTHTP5VUOCCXOL7CMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
