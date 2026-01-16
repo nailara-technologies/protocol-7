@@ -6,15 +6,19 @@
 my $watcher  = shift->w;
 my $batch_id = $watcher->data;
 
+<[base.logs]>->( 2, "[check_batch_completion] I/O event for batch=%s", $batch_id );
+
 my $batch_job = <lm-vision.jobs>->{$batch_id};
 
 unless ( defined $batch_job ) {
+    <[base.logs]>->( 1, "[check_batch_completion] batch not found: %s", $batch_id );
     $watcher->cancel if $watcher->is_active;
     return;
 }
 
-# If already processed, cancel both handlers and return
+# If already processed, cancel this handler and return
 if ( $batch_job->{'processed'} ) {
+    <[base.logs]>->( 2, "[check_batch_completion] already processed, cancelling" );
     $watcher->cancel if $watcher->is_active;
 
     # Also cancel the read handler to prevent warnings
@@ -24,41 +28,194 @@ if ( $batch_job->{'processed'} ) {
     return;
 }
 
-# Exception event on stderr indicates process has exited - now send responses
-# Cancel both event handlers first
+# First, try to read any available stderr data
+# Keep reading while data is available
+my $read_bytes = 0;
+if ( defined $batch_job->{'err'} ) {
+    while ( sysread( $batch_job->{'err'}, my $buf, 4096 ) ) {
+        $batch_job->{'stderr'} .= $buf;
+        $read_bytes += length($buf);
+    }
+}
+
+# If we got data, this wasn't EOF yet - just accumulate and return
+if ( $read_bytes > 0 ) {
+    <[base.logs]>->(
+        2, "[check_batch_completion] accumulated %d bytes from stderr, continuing",
+        $read_bytes
+    );
+    return;
+}
+
+# If we reach here, sysread returned 0 (EOF) or undef - process the response
+<[base.logs]>->(
+    1, "[check_batch_completion] process has exited, processing response"
+);
+
+# Process has exited - read any remaining stdout (debug output)
+if ( defined $batch_job->{'rdr'} ) {
+    while ( sysread( $batch_job->{'rdr'}, my $buf, 4096 ) ) {
+        $batch_job->{'output'} .= $buf;
+    }
+}
+
+# Close filehandles
+close( $batch_job->{'rdr'} ) if defined $batch_job->{'rdr'};
+close( $batch_job->{'err'} ) if defined $batch_job->{'err'};
+
+# Mark as processed
+$batch_job->{'processed'} = TRUE;
+
+# Cancel both event handlers to prevent warnings
 $watcher->cancel if $watcher->is_active;
 if ( defined $batch_job->{'rdr_io'} ) {
     $batch_job->{'rdr_io'}->cancel if $batch_job->{'rdr_io'}->is_active;
 }
-$batch_job->{'processed'} = 1;
 
-# Trim whitespace
-$batch_job->{'output'} =~ s/^\s+|\s+$//g;
+<[base.logs]>->( 1, "[check_batch_completion] process exited, processing output" );
+
+# Extract output (prefer stderr which has actual response)
+my $full_stdout = $batch_job->{'output'} // '';
+my $full_stderr = $batch_job->{'stderr'} // '';
+my $payload     = '';
 
 <[base.logs]>->(
     1,
-    "[check_batch_completion] batch complete: id=%s requests=%d bytes=%d",
-    $batch_id,
-    scalar( @{ $batch_job->{'requests'} } ),
-    length( $batch_job->{'output'} )
+    "[check_batch_completion] raw stdout length: %d bytes, stderr length: %d bytes",
+    length($full_stdout),
+    length($full_stderr)
 );
 
-# For now, send the same output to all requests in the batch
-# TODO: Parse output to extract individual image results
-if ( length $batch_job->{'output'} ) {
+# Model response goes to stderr (larger buffer with actual content)
+# stdout has init/debug output (device lines, batch size)
+# Prefer stderr since it has the actual vision analysis response
+my $full_output = $full_stderr;
+<[base.logs]>->(
+    1,
+    "[check_batch_completion] using stderr for model response (stdout: %d, stderr: %d bytes)",
+    length($full_stdout),
+    length($full_stderr)
+);
+
+# Log buffer samples for debugging
+<[base.logs]>->(
+    1,
+    "[check_batch_completion] stdout first 80 chars: %s",
+    substr( $full_stdout, 0, 80 )
+) if length($full_stdout) > 0;
+<[base.logs]>->(
+    1,
+    "[check_batch_completion] stderr first 80 chars: %s",
+    substr( $full_stderr, 0, 80 )
+) if length($full_stderr) > 0;
+
+# Apply same debug cleanup as single-image handler
+
+# Remove "Resampling because..." debug messages (grammar constraint issues)
+$full_output =~ s,Resampling\s+because\s+token\s+\d+:[^}]*?does\s+not\s+meet\s+grammar\s+rules\s*,,g;
+
+# Remove all timestamp patterns: [10 digits]
+$full_output =~ s,\[\d{10}\]\s*,,g;
+
+# Remove all file path patterns: [/path: digits]
+$full_output =~ s{\[\/[^\]]*\]\s*}{}g;
+
+# Replace all function/label patterns: [generate_response], [   main   ], etc.
+$full_output =~ s{\[\s*[a-z_]+\s*\]}{}g;
+
+# Remove build and compiler info
+$full_output =~ s/build:\s+\d+[^\n]+\n?//gm;    # "build: 0 (unknown) with cc ..."
+$full_output =~ s/XXXXXXXXXXXXXXXXXXXXX[^\n]*\n?//gm;  # "XXXXX Setting only active experts offload"
+
+# Remove chat template examples (both paired and orphaned markers)
+$full_output =~ s/<\|im_start\|>.*?<\|im_end\|>\s*//gs;  # Remove <|im_start|>...<|im_end|> blocks
+$full_output =~ s/<\|im_start\|>\s*[a-z]*\s*//gi;         # Remove orphaned <|im_start|> markers
+$full_output =~ s/<\|im_end\|>\s*//gi;                    # Remove orphaned <|im_end|> markers
+
+# Remove file operation error messages
+$full_output =~ s/Failed to open logfile[^\n]+\n?//gm;  # "Failed to open logfile 'llama.log'..."
+
+# Remove CUDA initialization messages
+$full_output =~ s/ggml_cuda_init:[^\n]+\n?//gm;         # "ggml_cuda_init: ..."
+$full_output =~ s/CUDA\d*:[^\n]+\n?//gm;                # "CUDA0: using device..."
+$full_output =~ s/Device\s+\d+:[^\n]+\n?//gm;           # "Device 0: NVIDIA GeForce..."
+$full_output =~ s/llama_model_loader:[^\n]+\n?//gm;     # "llama_model_loader: ..."
+
+# Remove model loading debug messages
+$full_output =~ s/main:\s+[^\n]+\n?//gm;       # "main: loading model..."
+$full_output =~ s/load:\s+[^\n]+\n?//gm;       # "load: ... cache size"
+$full_output =~ s/llm_load[^\n]+\n?//gm;       # "llm_load_print_meta: ..."
+
+# Remove load_hparams lines
+$full_output =~ s/load_hparams:[^\n]+\n?//gm;  # "load_hparams: ..."
+$full_output =~ s/---\s+vision\s+hparams\s+---[^\n]*\n?//gm;  # "--- vision hparams ---"
+
+# Remove vision/image processing debug messages (including inline)
+$full_output =~ s/Adjust\s+batch\s+[^\n]+\n?//gm;       # "Adjust batch size..."
+$full_output =~ s/encoding\s+image\s+[^\n]+\n?//gm;     # "encoding image..."
+$full_output =~ s/decoding\s+image\s+[^\n]+\n?//gm;     # "decoding image..."
+$full_output =~ s/image\s+(?:decoded|slice)[^\n]*\n?//gm;  # "image decoded...", "image slice..."
+$full_output =~ s/^\s*\d+:\s+(?:CPU|CUDA\d*)[^\n]*\n?//gm;  # "  0: CPU", "  1: CUDA0" with leading spaces
+
+# Remove other common llama.cpp debug prefixes
+$full_output =~ s/^(?:alloc_compute_meta|warmup|print_info|clip_[a-z_]+|mtmd_[a-z_]+|llama_[a-z_]+):[^\n]+\n?//gmi;
+
+# Remove llama_print_timings section and everything after it
+my $timing_pos = index( $full_output, 'llama_print_timings' );
+if ( $timing_pos > 0 ) {
+    $full_output = substr( $full_output, 0, $timing_pos );
+}
+
+# Trim and clean up
+$full_output =~ s/\s+/ /g;         # Collapse multiple spaces/newlines
+$full_output =~ s/^\s+|\s+$//g;    # Trim edges
+
+# Remove debug prefix that appears at the start (preserve token output after it)
+$full_output =~ s/^print_info:\s+vocab\s+type\s+=\s+BPE\s+//i;  # Remove "print_info: vocab type = BPE" only
+
+# Strip leading BPE padding dots (single '.' tokens generated during model initialization)
+$full_output =~ s/^\.+\s*//;  # Remove all leading dots until real content starts
+
+# Remove spaces after opening braces and brackets
+$full_output =~ s/([{\[\"])\s+/$1/g;
+
+# Remove spaces before closing braces and brackets
+$full_output =~ s/\s+([}\]"])/$1/g;
+
+# Remove spaces before punctuation (tokenization artifact cleanup)
+$full_output =~ s/\s+([,.!?;:'")])/$1/g;
+
+$payload = $full_output;
+
+<[base.logs]>->(
+    1, "[check_batch_completion] extracted model response, length: %d bytes",
+    length($payload)
+);
+
+$batch_job->{'payload'} = $payload;
+
+# Send the response to all requests in batch
+if ( length $payload ) {
     $batch_job->{'status'} = 'completed';
 
     foreach my $req ( @{ $batch_job->{'requests'} } ) {
+        <[base.logs]>->(
+            1,
+            "[check_batch_completion] sending response: reply_id=%s",
+            $req->{'reply_id'}
+        );
         <[base.callback.cmd_reply]>->(
             $req->{'reply_id'},
-            { 'mode' => 'true', 'data' => $batch_job->{'output'} }
+            { 'mode' => 'size', 'data' => $payload }
         );
     }
 } else {
     $batch_job->{'status'} = 'failed';
     $batch_job->{'error'}  = 'no response from vision model';
 
-    <[base.logs]>->( 0, "ERROR: No output from batch: id=%s", $batch_id );
+    <[base.logs]>->(
+        0, "ERROR: No analysis output from vision CLI: batch=%s", $batch_id
+    );
 
     foreach my $req ( @{ $batch_job->{'requests'} } ) {
         <[base.callback.cmd_reply]>->(
@@ -68,16 +225,16 @@ if ( length $batch_job->{'output'} ) {
     }
 }
 
-# Schedule cleanup after 60 seconds
+# Schedule cleanup after 70 seconds
 <[event.add_timer]>->(
-    {   'after'   => 60,
+    {   'after'   => 70,
         'handler' => qw| lm-vision.handler.job_cleanup |,
         'data'    => $batch_id
     }
 );
 
-#,,,.,,,.,,..,,,.,,.,,.,.,.,,,...,,.,,,,.,,,,,..,,...,..,,.,,,,.,,..,,.,,,,,.,
-#HXCOQ2P6QCZUXL3CKXD5FYCM7ZCW6PBDGQDOFRZSPXCF3PWOIVFF4KNGFXHVHBM3GGYZ4CCSMZIFO
-#\\\|Q4BUDL6XEKJRICKK5FLLE2XX7UF43QO5ZTEYUSK4UDMBC2XCBJQ \ / AMOS7 \ YOURUM ::
-#\[7]YMATD572TF37O6K7MUXQB3DKFXA3SWOT4YZEZAWE66RLK3CDTMCA 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,...,..,,.,.,...,...,...,,,,,,.,,..,,...,...,.,.,..,,.,,,...,,..,
+#Y3ADLRNINPAP46UM5PXCFNIQQEJZEHJ4LXW5QCC2JTDZZLZWXZBULFOCFLYBUQW7VGG6X4G6YH3S6
+#\\\|BNGONJUIQJRSO3Q7DEJGKNNQ57FJE55TVCIDVUPWFXOEMXIYY2T \ / AMOS7 \ YOURUM ::
+#\[7]NS2R7EQMYW24NJJ2YD4MZDRXRKU3XCQQSJTBTYWDOAPTXUPMC4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
