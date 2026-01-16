@@ -3,13 +3,7 @@
 # name  = lm-vision.cmd.analyze_image
 # descr = spawn image analysis with vision model (Qwen3-VL-4B optimized)
 
-use IPC::Open3;
-use Symbol qw(gensym);
-
-# Load Imager module for image scaling
-require Imager;
-
-my ( $image_path, $prompt ) = split( m| +|, $$call{'args'}, 2 );
+my ( $image_path, $prompt ) = split( m| +|, $call->{'args'}, 2 );
 $prompt //= 'describe this image';
 
 unless ( defined $image_path && length $image_path ) {
@@ -17,7 +11,7 @@ unless ( defined $image_path && length $image_path ) {
 }
 
 unless ( -f $image_path ) {
-    return { 'mode' => 'false', 'data' => "image not found: $image_path" };
+    return { 'mode' => 'false', 'data' => "image not found : '$image_path'" };
 }
 
 # Check and scale image if it exceeds max dimensions
@@ -195,11 +189,11 @@ my @cmd = (
     '-m',       $model_path,
     '--mmproj', $mmproj_path,
     '-ngl',     99,
-    '-c',       8192,                      # Context: image tokens + prompt + response
+    '-c',       4096,                      # Context: image tokens + prompt + response
     '-t',       4,
     '--image',  $working_image_path,
     '--image-min-tokens', 1024,            # Minimum image tokens for Qwen3-VL
-    '-n',       -1,                        # Unlimited tokens - model generates until natural stop
+    '-n',       -2,                        # Generate until context size full (better streaming than -1)
     '--no-warmup',                         # Skip warmup to reduce initialization output
     '--log-file', $log_file_path,          # Log via symlink to /dev/null
     '--prompt', $prompt,
@@ -223,7 +217,7 @@ local $ENV{'LD_LIBRARY_PATH'}
 # Spawn vision CLI process with stdin redirected from /dev/null
 # This prevents the model from waiting for stdin input
 my ( $wtr, $rdr, $err );
-$err = gensym;
+$err = Symbol::gensym();
 
 # Open /dev/null for stdin
 open( my $null_in, '<', '/dev/null' ) or do {
@@ -263,17 +257,18 @@ my $job_id = <[base.gen_id]>->(<lm-vision.jobs>);
 
 # Create job entry with filehandles and output buffers
 my $job = {
-    'job_id'     => $job_id,
-    'reply_id'   => $$call{'reply_id'},
-    'image_path' => $image_path,
-    'prompt'     => $prompt,
-    'status'     => qw| running |,
-    'pid'        => $pid,
-    'rdr'        => $rdr,
-    'err'        => $err,
-    'output'     => '',
-    'stderr'     => '',
-    'start_time' => <[base.time]>->(3)
+    'job_id'              => $job_id,
+    'reply_id'            => $$call{'reply_id'},
+    'image_path'          => $image_path,
+    'prompt'              => $prompt,
+    'status'              => qw| running |,
+    'pid'                 => $pid,
+    'rdr'                 => $rdr,
+    'err'                 => $err,
+    'output'              => '',
+    'stderr'              => '',
+    'start_time'          => <[base.time]>->(3),
+    'is_completion_chain' => 0                      # Not part of completion chain
 };
 
 # Store job in queue
@@ -283,21 +278,25 @@ my $job = {
 
 # Register non-blocking I/O handler for stdout (read data as it arrives)
 # poll => 'r' means: read data whenever available
+# prio => 1 (higher priority): process all available data first
 $job->{'rdr_io'} = <[event.add_io]>->(
     {   'fd'      => $rdr,
         'handler' => qw| lm-vision.handler.read_output |,
         'data'    => $job_id,
-        'poll'    => qw| r |
+        'poll'    => qw| r |,
+        'prio'    => 1
     }
 );
 
 # Register non-blocking I/O handler for stderr (read data + exception on EOF)
 # poll => 're' means: read data as it arrives, also catch exception/EOF for completion
+# prio => 2 (lower priority): process EOF after all data has been read
 $job->{'err_io'} = <[event.add_io]>->(
     {   'fd'      => $err,
         'handler' => qw| lm-vision.handler.check_completion |,
         'data'    => $job_id,
-        'poll'    => qw| re |
+        'poll'    => qw| re |,
+        'prio'    => 2
     }
 );
 
@@ -307,8 +306,8 @@ $job->{'err_io'} = <[event.add_io]>->(
 );
 return { 'mode' => 'deferred' };
 
-#,,.,,...,..,,,,,,..,,.,,,...,..,,,..,,,,,.,.,..,,...,...,...,..,,,..,...,,,.,
-#MHRNMADEPCQWFDNXKSGYFQ6TN4S4SNCRIIWZPSVA63F2UAW4FCNWNYNKMRWQZO5Q5K7DXWRM7K452
-#\\\|IADGUGUFIMNOJXT5BVRAC6VXI7OS3L5HGSVXNZPNIKIZP6EOVVD \ / AMOS7 \ YOURUM ::
-#\[7]GDAQMZ5LHDK2ZW72IYDCM6UQ4KXQSZ47EIKW2K6HC5NYN3MIBIBI 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,.,,,,.,...,.,.,,.,,,,.,,.,,.,.,..,,...,.,.,,.,,..,,.,.,,,,,.,,,
+#BMY53M2NP6EGJHFCW7Q7X2LHQTSQ5X6VO6MD7CMTJH446U542QTLEP3MAWIZSJ6MQ474LKFHXLX3K
+#\\\|CB3KSPRQN4GI5PJM7H2IBNDQ7K5XOMXGMYJ2T5N5RWKEGDZWETM \ / AMOS7 \ YOURUM ::
+#\[7]ZGTKNKPF2UM5MXMWPWMY6AJ7TQIWR3E5D2HXNNTBSHBISNPX56CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

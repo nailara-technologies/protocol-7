@@ -25,9 +25,20 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
     $extraction_prompt = $args[2] // $extraction_prompt;
 }
 
+## complain if parameter is missing ##
+return {
+    'mode' => 'false',
+    'data' => sprintf "expected image path parameter"
+    }
+    if not defined $image_path;
+
 # Validate image exists
 unless ( -f $image_path ) {
-    return { 'mode' => 'false', 'data' => "Image not found: $image_path\n" };
+    return {
+        'mode' => 'false',
+        'data' => sprintf "image not found : '%s'",
+        $image_path
+    };
 }
 
 # Generate job ID
@@ -105,8 +116,8 @@ my $queue_result = <[base.protocol-7.command.send.local]>->(
 # Return deferred response - actual result will come via reply handler
 return { 'mode' => 'deferred', 'data' => "Vision analysis queued\n" };
 
-#,,.,,,.,,,,,,,,,,..,,,.,,.,.,...,,.,,..,,,,.,..,,...,..,,,,,,,.,,,.,,.,,,.,.,
-#62WZLJIWDVDW2AVHI5W7POIRPBJXJCUPTLB3UB5LMOOYTFYSD7WI5UBUUNDGUN5ANCKCRXGYF3OFQ
-#\\\|35MTYFI4YZYPGLZ4FLZQMDQHETH3JTSUC6ZKOBX4UKH7474GKJB \ / AMOS7 \ YOURUM ::
-#\[7]Q3UILLOA2O35V7526E6UF6OLPXYAHRJDM5YVURJBVMMS2JRYOSAY 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,.,,,,,.,..,,,..,,,,,.,.,,..,,.,,..,,...,...,.,,,,..,..,,,..,...,
+#VXQNG7HYOK7SYPHIYQ7FTFQIRE4KFOVXDHFHMJBT4XGKOZOZC3MCRUOBXYWQDTZBC43L7X72ROLOS
+#\\\|CD4UATR4XF4PDDETPGUX5CZA7BKX2H6BT3BUUEAY4IZUK34CLBI \ / AMOS7 \ YOURUM ::
+#\[7]3OHRR72GFIVW3J66ZTMJGZ5VKG33UUUFNNHRG36VOLSOEECE2WBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

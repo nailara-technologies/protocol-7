@@ -12,17 +12,23 @@ my $batch_job = <lm-vision.jobs>->{$batch_id};
 
 unless ( defined $batch_job ) {
     <[base.logs]>->( 1, "[check_batch_completion] batch not found: %s", $batch_id );
-    $watcher->cancel if $watcher->is_active;
+    # Guard: only cancel if watcher is valid
+    if ( defined $watcher && length ref $watcher && $watcher->can('is_active') ) {
+        $watcher->cancel if $watcher->is_active;
+    }
     return;
 }
 
 # If already processed, cancel this handler and return
 if ( $batch_job->{'processed'} ) {
     <[base.logs]>->( 2, "[check_batch_completion] already processed, cancelling" );
-    $watcher->cancel if $watcher->is_active;
+    # Guard: only cancel if watcher is valid
+    if ( defined $watcher && length ref $watcher && $watcher->can('is_active') ) {
+        $watcher->cancel if $watcher->is_active;
+    }
 
     # Also cancel the read handler to prevent warnings
-    if ( defined $batch_job->{'rdr_io'} ) {
+    if ( defined $batch_job->{'rdr_io'} && length ref $batch_job->{'rdr_io'} && $batch_job->{'rdr_io'}->can('is_active') ) {
         $batch_job->{'rdr_io'}->cancel if $batch_job->{'rdr_io'}->is_active;
     }
     return;
@@ -41,7 +47,7 @@ if ( defined $batch_job->{'err'} ) {
 # If we got data, this wasn't EOF yet - just accumulate and return
 if ( $read_bytes > 0 ) {
     <[base.logs]>->(
-        2, "[check_batch_completion] accumulated %d bytes from stderr, continuing",
+        2, "[check_batch_completion] stderr += %d bytes",
         $read_bytes
     );
     return;
@@ -63,12 +69,20 @@ if ( defined $batch_job->{'rdr'} ) {
 close( $batch_job->{'rdr'} ) if defined $batch_job->{'rdr'};
 close( $batch_job->{'err'} ) if defined $batch_job->{'err'};
 
+# Wait for process to fully terminate and release GPU memory
+# This prevents race conditions when consecutive calls are made
+if ( defined $batch_job->{'pid'} ) {
+    <[base.waitpid]>->( $batch_job->{'pid'}, 0 );  # Wait (blocking) for child to exit
+}
+
 # Mark as processed
 $batch_job->{'processed'} = TRUE;
 
 # Cancel both event handlers to prevent warnings
-$watcher->cancel if $watcher->is_active;
-if ( defined $batch_job->{'rdr_io'} ) {
+if ( defined $watcher && length ref $watcher && $watcher->can('is_active') ) {
+    $watcher->cancel if $watcher->is_active;
+}
+if ( defined $batch_job->{'rdr_io'} && length ref $batch_job->{'rdr_io'} && $batch_job->{'rdr_io'}->can('is_active') ) {
     $batch_job->{'rdr_io'}->cancel if $batch_job->{'rdr_io'}->is_active;
 }
 
@@ -98,16 +112,24 @@ my $full_output = $full_stderr;
 );
 
 # Log buffer samples for debugging
-<[base.logs]>->(
-    1,
-    "[check_batch_completion] stdout first 80 chars: %s",
-    substr( $full_stdout, 0, 80 )
-) if length($full_stdout) > 0;
-<[base.logs]>->(
-    1,
-    "[check_batch_completion] stderr first 80 chars: %s",
-    substr( $full_stderr, 0, 80 )
-) if length($full_stderr) > 0;
+if ( length($full_stdout) > 0 ) {
+    my $stdout_sample = substr( $full_stdout, 0, 80 );
+    $stdout_sample =~ s/\n/<newline>/g;
+    <[base.logs]>->(
+        1,
+        "[check_batch_completion] stdout first 80 chars: %s",
+        <[base.wrap_text]>->( '', 65, $stdout_sample )
+    );
+}
+if ( length($full_stderr) > 0 ) {
+    my $stderr_sample = substr( $full_stderr, 0, 80 );
+    $stderr_sample =~ s/\n/<newline>/g;
+    <[base.logs]>->(
+        1,
+        "[check_batch_completion] stderr first 80 chars: %s",
+        <[base.wrap_text]>->( '', 65, $stderr_sample )
+    );
+}
 
 # Apply same debug cleanup as single-image handler
 
@@ -193,19 +215,15 @@ $payload = $full_output;
 );
 
 # Detect if response is complete or truncated
+# Conservative: only trust period/punctuation or very short responses
 my $appears_complete = (
-    $payload =~ /\.\s*$/  ||                    # Ends with period
-    $payload =~ /overall\s*$/i ||              # Natural conclusion words
-    $payload =~ /in\s+summary\s*\.?\s*$/i ||
-    $payload =~ /context\s*$/i ||
-    $payload =~ /therefore\s*\.?\s*$/i ||
-    $payload =~ /conclusion\s*$/i ||
-    length($payload) < 100                      # Very short responses are likely complete
+    $payload =~ /[\.\!\?]\s*$/  ||              # Ends with period, exclamation, or question mark
+    length($payload) < 80                       # Only short responses without punctuation
 );
 
 <[base.logs]>->(
     1,
-    "[check_batch_completion] response completeness: %s (length=%d)",
+    "[check_batch_completion] response completeness: %s (length=%d bytes)",
     $appears_complete ? 'complete' : 'possibly truncated',
     length($payload)
 );
@@ -252,8 +270,8 @@ if ( length $payload ) {
     }
 );
 
-#,,,,,.,,,,,.,,,,,..,,,,,,...,.,,,,..,.,,,,..,..,,...,..,,...,,..,...,,,.,,,,,
-#7OY7NP462B36PWFCSFVPCDH3DPTWXDOB6ZKSVKTLCBFMSNUJXLTLSY65AIJMCXZE3QN7IE7ZQKQSW
-#\\\|VJ4B3FRHIN3VIE2CEETIPDPCJWZUFEQBHCLTU7HNJD2FFW65NEB \ / AMOS7 \ YOURUM ::
-#\[7]K2YNIXHHJOCQOIKCWX73ZOYW5WHODQEE5IXQDCFWD3WKT24H7ICQ 7  DATA SIGNATURE ::
+#,,.,,...,..,,..,,...,...,,..,..,,,..,...,.,,,..,,...,..,,.,,,..,,,..,,..,,,,,
+#6IPRVIZQHM43XPJ626NIYDC4MT446JQQ3JJN3UWWR3RG6DCW3IECF3MVL4JAJXHRIGBRO7YQZ5NLW
+#\\\|MVKIAFEXXVTFDTNBM24OXBBDKZOMT5PEROJPO2ZBMEL535EBSVH \ / AMOS7 \ YOURUM ::
+#\[7]RXS7ASHZIANBROKTIQFMQHLQ35466TDKJG44LGQSY5TS74MSTYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

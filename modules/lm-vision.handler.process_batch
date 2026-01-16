@@ -22,9 +22,6 @@ my $binary      = <lm-vision.binary>;
 my $model_path  = <lm-vision.vision_model_path>;
 my $mmproj_path = <lm-vision.vision_mmproj_path>;
 
-use IPC::Open3;
-use Symbol qw(gensym);
-
 # Build command with first image - optimized for 4B model with flash attention
 # Note: All requests in batch receive same response; implement parsing if per-request responses needed
 my $log_file = <system.root_path> . '/llama';
@@ -37,7 +34,7 @@ my @cmd = (
     '-t',       4,
     '--image',  $first_req->{'image_path'},
     '--image-min-tokens', 1024,            # Minimum image tokens for Qwen3-VL
-    '-n',       -1,                        # Unlimited tokens - model generates until natural stop
+    '-n',       -2,                        # Generate until context size full (better streaming than -1)
     '--no-warmup',                         # Skip warmup to reduce initialization output
     '--log-file', $log_file,               # Log redirection via symlink to /dev/null
     '--prompt', $first_req->{'prompt'},
@@ -60,7 +57,7 @@ local $ENV{'LD_LIBRARY_PATH'}
 
 # Spawn vision CLI process with stdin redirected from /dev/null
 my ( $wtr, $rdr, $err );
-$err = gensym;
+$err = Symbol::gensym();
 
 # Open /dev/null for stdin
 open( my $null_in, '<', '/dev/null' ) or do {
@@ -124,28 +121,32 @@ my $batch_job = {
 <lm-vision.jobs>->{$batch_id} = $batch_job;
 
 # Register non-blocking I/O handler for stdout (data reading - lightweight)
+# prio => 2 (higher priority): process all available data first
 $batch_job->{'rdr_io'} = <[event.add_io]>->(
     {   'fd'      => $rdr,
         'handler' => qw| lm-vision.handler.read_batch_output |,
         'data'    => $batch_id,
-        'poll'    => qw| r |
+        'poll'    => qw| r |,
+        'prio'    => 2
     }
 );
 
 # Register non-blocking I/O handler for stderr (read + exception for completion)
+# prio => 1 (lower priority): process EOF after all data has been read
 $batch_job->{'err_io'} = <[event.add_io]>->(
     {   'fd'      => $err,
         'handler' => qw| lm-vision.handler.check_batch_completion |,
         'data'    => $batch_id,
-        'poll'    => qw| re |
+        'poll'    => qw| re |,
+        'prio'    => 1
     }
 );
 
 # Clear batch queue for next batch
 @$batch = ();
 
-#,,,.,,..,,,,,...,,..,,.,,,.,,.,.,,,,,..,,.,,,..,,...,...,.,,,...,.,.,,.,,,..,
-#XJFEBOWVUE4ONLYIQYRXS5HX7JV4NEJY57Y4HTCEWAK5Q6YBFYB4YBC3W4T64OHJ4752UZKMROLLQ
-#\\\|4YTYRD6SARC6TT2GPOUEIBNUQI3SSC4GKW5GM64VQDUCFRUPCHK \ / AMOS7 \ YOURUM ::
-#\[7]N3B4DTNRIGYMJINRP5NKBEBEXWDJYQ2HSTIHIUCREGHYW3OVYCAA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,.,,,.,.,,,,,..,,...,,,,,,,.,,..,..,,...,...,.,.,.,.,,,.,,,.,..,,
+#Q7KYKKMT2E7LKS55GFNI7VGHQ55S6HWHSIWS4GB2E3EL4ZBLPO6ADZZUCWL4JS63F6LZOTE2LYNUY
+#\\\|EYH7PVFJ6TUOGBKDTETTXNQYVPDVDLDK5KIGZWPTQVMDNIXCOZO \ / AMOS7 \ YOURUM ::
+#\[7]RWGPT6KRGBR7MGGFOC7N4ZKSOJQIULG7IGDI7R6CN7POQU2PZCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
