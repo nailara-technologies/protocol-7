@@ -23,10 +23,8 @@ unless ( defined $prev_job && $prev_job->{'status'} eq 'completed' ) {
 # Check if response ends with natural markers (complete analysis)
 my $payload = $prev_job->{'payload'} // '';
 my $is_complete = (
-    $payload =~ /\.\s*$/  ||                    # Ends with period
-    $payload =~ /overall\s*$/i ||              # Natural conclusion words
-    $payload =~ /context\s*$/i ||
-    $payload =~ /and\s+therefore\s*\.?\s*$/i
+    $payload =~ /[\.\!\?]\s*$/  ||              # Ends with period, exclamation, or question mark
+    length($payload) < 80                       # Only short responses without punctuation
 );
 
 if ( $is_complete && !$additional_prompt ) {
@@ -52,9 +50,6 @@ unless ( -f $image_path ) {
     };
 }
 
-use IPC::Open3;
-use Symbol qw(gensym);
-
 # Build continuation prompt
 my $continuation_prompt = $original_prompt . "\n\n[Continue previous analysis]\n" .
                           $payload . "\n\n[Continue...]";
@@ -74,11 +69,11 @@ my @cmd = (
     '-m',       $model_path,
     '--mmproj', $mmproj_path,
     '-ngl',     99,
-    '-c',       8192,                      # Context: previous response + continuation
+    '-c',       4096,                      # Context: previous response + continuation
     '-t',       4,
     '--image',  $image_path,
     '--image-min-tokens', 1024,            # Minimum image tokens for Qwen3-VL
-    '-n',       -1,                        # Unlimited tokens for continuation
+    '-n',       -2,                        # Generate until context size full (better streaming than -1)
     '--no-warmup',                         # Skip warmup to reduce initialization output
     '--log-file', $log_file,               # Log redirection via symlink to /dev/null
     '--prompt', $continuation_prompt,
@@ -101,7 +96,7 @@ local $ENV{'LD_LIBRARY_PATH'}
 
 # Spawn vision CLI process with stdin redirected from /dev/null
 my ( $wtr, $rdr, $err );
-$err = gensym;
+$err = Symbol::gensym();
 
 # Open /dev/null for stdin
 open( my $null_in, '<', '/dev/null' ) or do {
@@ -162,20 +157,24 @@ my $job = {
 );
 
 # Register non-blocking I/O handler for stdout (read data as it arrives)
+# prio => 2 (higher priority): process all available data first
 $job->{'rdr_io'} = <[event.add_io]>->(
     {   'fd'      => $rdr,
         'handler' => qw| lm-vision.handler.read_output |,
         'data'    => $continuation_job_id,
-        'poll'    => qw| r |
+        'poll'    => qw| r |,
+        'prio'    => 2
     }
 );
 
 # Register non-blocking I/O handler for stderr (read data + exception on EOF)
+# prio => 1 (lower priority): process EOF after all data has been read
 $job->{'err_io'} = <[event.add_io]>->(
     {   'fd'      => $err,
         'handler' => qw| lm-vision.handler.check_completion |,
         'data'    => $continuation_job_id,
-        'poll'    => qw| re |
+        'poll'    => qw| re |,
+        'prio'    => 1
     }
 );
 
@@ -185,8 +184,8 @@ $job->{'err_io'} = <[event.add_io]>->(
 );
 return { 'mode' => 'deferred' };
 
-#,,..,,,,,,,.,..,,.,.,...,..,,.,,,,,.,,.,,,..,..,,...,...,..,,,..,,.,,,,,,,,,,
-#BQAKOVG5GPTWQDMXZ57RHCMRTP3HIMN3COWYC3R2W6WH4RJZEB2LGRI7GRMRH2UEI72JITJ7JHIDI
-#\\\|M26GZ7CRXXFDEKJDOTNRC3Y4T6N6W2VBT3EE46H5PXP3TE3V7DQ \ / AMOS7 \ YOURUM ::
-#\[7]LCKCIIL4WX3SUUSMPUQANQXPLVCKSQUPIM3PPWTVS3SY3UG7AEBI 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,.,,,,,.,,.,,,.,,..,,,.,,.,,,..,,..,,...,...,...,...,,,.,...,,,,,
+#OMPODQ6CWNVVCYL57K2EKOQRWEHRU55LPWD33O5MW5PA3GW27UKEH72DFHZTJHLF7H3SYRNNNC3IY
+#\\\|4AZ5UWGBDP6KAI2T32QXTIQSPWV6E7OOLFMVPXHCIPTI6BUOOHJ \ / AMOS7 \ YOURUM ::
+#\[7]QIC36NE3EO4MYG6J5D6LISNZQXFHVPYS5I2RCQNLSKS3OQ3DIODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

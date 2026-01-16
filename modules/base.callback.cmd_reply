@@ -8,7 +8,7 @@ my ( $reply_id, $reply ) = @ARG;
 ## 'silent' [no] reply mode ##
 return if defined $reply_id and $reply_id eq qw| silent |;
 
-die 'expected numerical reply_id <{C1}>'
+die sprintf( 'expected numerical reply_id %s', <[base.caller]> )
     if @ARG != 2
     or not defined $reply_id
     or $reply_id !~ m|^\d+$|;
@@ -102,8 +102,8 @@ if ( $reply->{'mode'} =~ m{^(TRUE|FALSE|WAIT)$}io ) {
 
 delete <base.cmd_reply>->{$reply_id};
 
-#,,,.,..,,.,.,..,,,,,,.,.,,..,.,.,,.,,.,,,...,..,,...,...,...,..,,,,.,,..,...,
-#UJDFC4AYE5TEOLQ7OUNEHP2KKOTVAHQJHU65RCX2PWTJXCVAA3UKC3IP2GNBXV34POV62MGCAJ2UQ
-#\\\|4FU4BXAA3XDFIXVZUOE3DABEZCDASCHUFDSLXYL2ECSHEUDR4G3 \ / AMOS7 \ YOURUM ::
-#\[7]6OAB76B7MXNQLVMWBGNKTSAIL4SRM6VVX6PSKKPAVX3CCK2HGUBY 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,,,,..,.,,,...,..,,.,.,,..,.,.,..,,...,..,,...,.,.,,,.,..,,,..,
+#WCXUQZ66MAIZHQUEDEKUGHL2ILCGZ6QQZ5677L4YJEHWVGAKKK4M3AZ7ZHK3REKGAVG656KY7B6QU
+#\\\|XWSGINU7MPODROW7GVWLGJOVPWZLM4TTLKJNTYC26NVHL4KAYEG \ / AMOS7 \ YOURUM ::
+#\[7]LSO3PUC4GX3RY2BBFOFZQGA7PVUQV6IX66K6IH7QIULRNGLGDCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

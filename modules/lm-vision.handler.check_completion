@@ -6,24 +6,32 @@
 my $watcher = shift->w;
 my $job_id  = $watcher->data;
 
-<[base.logs]>->( 2, "[check_completion] I/O event for job=%s", $job_id );
+<[base.logs]>->( 2, '[check_completion] job=%s : I\O-event', $job_id );
 
 my $vision_job = <lm-vision.jobs>->{$job_id};
 
 unless ( defined $vision_job ) {
     <[base.logs]>->( 1, "[check_completion] job not found: %s", $job_id );
-    $watcher->cancel if $watcher->is_active;
+    # Guard: only cancel if watcher is valid
+    if ( defined $watcher && length ref $watcher && $watcher->can('is_active') ) {
+        $watcher->cancel if $watcher->is_active;
+    }
     return;
 }
 
 # If already processed, cancel this handler and return
 if ( $vision_job->{'processed'} ) {
     <[base.logs]>->( 2, "[check_completion] already processed, cancelling" );
-    $watcher->cancel if $watcher->is_active;
+    # Guard: only cancel if watcher is valid
+    if ( defined $watcher && length ref $watcher && $watcher->can('is_active') ) {
+        $watcher->cancel if $watcher->is_active;
+    }
 
     # Also cancel the read handler to prevent warnings
     if ( defined $vision_job->{'rdr_io'} ) {
-        $vision_job->{'rdr_io'}->cancel if $vision_job->{'rdr_io'}->is_active;
+        if ( defined $vision_job->{'rdr_io'} && length ref $vision_job->{'rdr_io'} && $vision_job->{'rdr_io'}->can('is_active') ) {
+            $vision_job->{'rdr_io'}->cancel if $vision_job->{'rdr_io'}->is_active;
+        }
     }
     return;
 }
@@ -41,7 +49,7 @@ if ( defined $vision_job->{'err'} ) {
 # If we got data, this wasn't EOF yet - just accumulate and return
 if ( $read_bytes > 0 ) {
     <[base.logs]>->(
-        2, "[check_completion] accumulated %d bytes from stderr, continuing",
+        2, "[check_batch_completion] stderr += %d bytes",
         $read_bytes
     );
     return;
@@ -66,12 +74,20 @@ if ( defined $vision_job->{'rdr'} ) {
 close( $vision_job->{'rdr'} ) if defined $vision_job->{'rdr'};
 close( $vision_job->{'err'} ) if defined $vision_job->{'err'};
 
+# Wait for process to fully terminate and release GPU memory
+# This prevents race conditions when consecutive calls are made
+if ( defined $vision_job->{'pid'} ) {
+   <[base.waitpid]>->( $vision_job->{'pid'}, 0 );  # Wait (blocking) for child to exit
+}
+
 # Mark as processed
 $vision_job->{'processed'} = TRUE;
 
 # Cancel both event handlers to prevent warnings
-$watcher->cancel if $watcher->is_active;
-if ( defined $vision_job->{'rdr_io'} ) {
+if ( defined $watcher && length ref $watcher && $watcher->can('is_active') ) {
+    $watcher->cancel if $watcher->is_active;
+}
+if ( defined $vision_job->{'rdr_io'} && length ref $vision_job->{'rdr_io'} && $vision_job->{'rdr_io'}->can('is_active') ) {
     $vision_job->{'rdr_io'}->cancel if $vision_job->{'rdr_io'}->is_active;
 }
 
@@ -111,16 +127,24 @@ $full_output = $full_stderr;
 );
 
 # Log buffer samples for debugging
-<[base.logs]>->(
-    1,
-    "[check_completion] stdout first 80 chars: %s",
-    substr( $full_stdout, 0, 80 )
-) if length($full_stdout) > 0;
-<[base.logs]>->(
-    1,
-    "[check_completion] stderr first 80 chars: %s",
-    substr( $full_stderr, 0, 80 )
-) if length($full_stderr) > 0;
+if ( length($full_stdout) > 0 ) {
+    my $stdout_sample = substr( $full_stdout, 0, 80 );
+    $stdout_sample =~ s/\n/<newline>/g;
+    <[base.logs]>->(
+        1,
+        "[check_completion] stdout first 80 chars: %s",
+        <[base.wrap_text]>->( '', 65, $stdout_sample )
+    );
+}
+if ( length($full_stderr) > 0 ) {
+    my $stderr_sample = substr( $full_stderr, 0, 80 );
+    $stderr_sample =~ s/\n/<newline>/g;
+    <[base.logs]>->(
+        1,
+        "[check_completion] stderr first 80 chars: %s",
+        <[base.wrap_text]>->( '', 65, $stderr_sample )
+    );
+}
 
 # Extract model response - output contains token-by-token debug logs interspersed
 # Pattern: TEXT[TIMESTAMP] [/path:LINE][FUNCTION] TEXT[TIMESTAMP]...
@@ -213,40 +237,6 @@ $full_output =~ s/\s+([}\]"])/$1/g;
 # Remove spaces before punctuation (tokenization artifact cleanup)
 $full_output =~ s/\s+([,.!?;:'")])/$1/g;
 
-## Fix intermixed spaces from Qwen3 BPE tokenization breaks
-## Tokens starting with space = word boundary, without space = continuation
-## When tokens are output as text with spaces between them, we see: "definit ively"
-## Pattern: lowercase + space + lowercase usually means a tokenization break that should be joined
-
-# Initialize dictionary cache if not already done
-<lm-vision.word_dict> //= do {
-    my %dict;
-    if ( open( my $fh, '<', '/usr/share/dict/words' ) ) {
-        while (<$fh>) {
-            chomp;
-            $dict{ lc($_) } = 1;
-        }
-        close($fh);
-        <[base.logs]>->(
-            1,
-            "[check_completion] loaded %d words from dictionary",
-            scalar keys %dict
-        );
-    } else {
-        <[base.logs]>->(
-            1, "[check_completion] warning: could not load word dictionary"
-        );
-    }
-    \%dict;
-};
-
-my $word_dict = <lm-vision.word_dict>;
-
-# NOTE: The spaces in the output (both intermixed like "styl ized" and missing like "Thiswordis")
-# are generated directly from the Qwen3 BPE vocab strings in the model file.
-# Each token has its exact text as stored in id_to_token[token_id].text from the GGUF vocab.
-# No guessing/heuristics should be applied - the output is truth from the model.
-
 # The cleaned output should now be the vision analysis text
 if ( length $full_output )
 {    # Sanity check - should be at least somewhat substantial
@@ -264,26 +254,25 @@ if ( length $full_output )
 $payload .= "\n" if $payload !~ m|\n$|;    ## make sure payload has endline ##
 
 # Detect if response is complete or truncated
-# Complete: ends with natural punctuation or conclusion markers
+# Complete: must end with natural punctuation or be very short
+# Very conservative: only trust period+closing, or very short responses
 my $appears_complete = (
-    $payload =~ /\.\s*$/  ||                    # Ends with period
-    $payload =~ /overall\s*$/i ||              # Natural conclusion words
-    $payload =~ /in\s+summary\s*\.?\s*$/i ||
-    $payload =~ /context\s*$/i ||
-    $payload =~ /therefore\s*\.?\s*$/i ||
-    $payload =~ /conclusion\s*$/i ||
-    length($payload) < 100                      # Very short responses are likely complete
+    $payload =~ /[\.\!\?]\s*$/  ||              # Ends with period, exclamation, or question mark
+    length($payload) < 80                       # Only short responses without punctuation
 );
+
+my $payload_tail = length($payload) > 20 ? substr( $payload, -20 ) : substr( $payload, 0 );
+$payload_tail =~ s/\n/<newline>/g;
 
 <[base.logs]>->(
     1,
-    "[check_completion] response completeness: %s (length=%d bytes, ends_with=%s)",
+    "[check_completion] response completeness: %s (length=%d bytes)",
     $appears_complete ? 'complete' : 'possibly truncated',
-    length($payload),
-    substr( $payload, -20 )
+    length($payload)
 );
 
-# Store stderr for diagnostic access
+# Store payload and metadata for downstream handlers (completion chain, etc.)
+$vision_job->{'payload'}            = $payload;
 $vision_job->{'debug_log'}          = $vision_job->{'stderr'};
 $vision_job->{'raw_payload_sample'} = $payload;
 $vision_job->{'appears_complete'}   = $appears_complete ? 1 : 0;
@@ -294,38 +283,41 @@ if ( length $payload ) {
         1,       "[check_completion] success: job=%s payload_bytes=%d",
         $job_id, length($payload)
     );
-    map { <[base.log]>->( 1, $ARG ) } split "\n",
-        sprintf(
-        "[check_completion] %s",
-        <[base.wrap_text]>->(
-            '', 42,
-            sprintf( 'cleaned payload: %s', substr( $payload, 0, 200 ) )
-        )
+    my $payload_sample = substr( $payload, 0, 200 );
+    <[base.logs]>->(
+        1,
+        "[check_completion] cleaned payload (first 200 chars): %s",
+        <[base.wrap_text]>->( '', 65, $payload_sample )
+    );
+
+    # Only send response if this is NOT part of a completion chain
+    if ( !$vision_job->{'is_completion_chain'} && defined $vision_job->{'reply_id'} ) {
+        <[base.logs]>->(
+            1,
+            "[check_completion] sending deferred response: reply_id=%s",
+            $vision_job->{'reply_id'}
         );
-    <[base.logs]>->(
-        1,
-        "[check_completion] sending deferred response: reply_id=%s",
-        $vision_job->{'reply_id'}
-    );
-    my $cb_result = <[base.callback.cmd_reply]>->(
-        $vision_job->{'reply_id'},
-        { 'mode' => 'size', 'data' => $payload }
-    );
-    <[base.logs]>->(
-        1,
-        "[check_completion] callback returned: %s",
-        $cb_result // 'undef'
-    );
+        <[base.callback.cmd_reply]>->(
+            $vision_job->{'reply_id'},
+            { 'mode' => 'size', 'data' => $payload }
+        );
+    } else {
+        <[base.logs]>->( 1, "[check_completion] job complete, response handled by chain" );
+    }
 } else {
     $vision_job->{'status'} = qw| failed |;
     $vision_job->{'error'}  = 'no response from vision model';
     <[base.logs]>->(
         0, "ERROR: No analysis output from vision CLI: job=%s", $job_id
     );
-    <[base.callback.cmd_reply]>->(
-        $vision_job->{'reply_id'},
-        { 'mode' => 'false', 'data' => 'no response from vision model' }
-    );
+
+    # Only send error response if this is NOT part of a completion chain
+    if ( !$vision_job->{'is_completion_chain'} && defined $vision_job->{'reply_id'} ) {
+        <[base.callback.cmd_reply]>->(
+            $vision_job->{'reply_id'},
+            { 'mode' => 'false', 'data' => 'no response from vision model' }
+        );
+    }
 }
 
 # Schedule cleanup after 70 seconds
@@ -336,8 +328,8 @@ if ( length $payload ) {
     }
 );
 
-#,,,.,,.,,,,.,.,.,.,.,,,.,..,,.,.,,.,,,..,,,.,..,,...,...,,..,,.,,,.,,.,.,,,.,
-#FKPPEGDLZQ7DUXZ74HRGEJI4ICPX6VGFAOKNZ77O4JJFZVK4FFIEIBENM5NB4L76LSMAC4ZJ3444A
-#\\\|IBW4MPU6S4VDLIIVHYDGRAXFKL75VTMZAICQOCCQLRKY3WF6RUZ \ / AMOS7 \ YOURUM ::
-#\[7]BDZDLID5YOAXCKYFNQKKN4BOIT7GZMMDVSTHTP5VUOCCXOL7CMDQ 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,,,,,,,,,.,.,..,,,,,,.,.,,.,,,,,,..,,...,...,,..,.,.,,..,,,.,,,.,
+#6M6TO5NSK4XXAYO4PVK7JDQNQN6JATTR34AU2ONFMRJTMDN6J7EHVNFWHCPVDO7QNLQQ47AJQW5OA
+#\\\|NC7K5BJ5LHF6RRENZLWML4PUTOLA7SVPXUI7SBDHZZSRDGVXPE5 \ / AMOS7 \ YOURUM ::
+#\[7]CVI43662OT4KT6WZTM5S5WFWQMS7BVITIRTYSHSGUJOOOQOEACBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

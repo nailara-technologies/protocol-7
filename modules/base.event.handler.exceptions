@@ -13,8 +13,8 @@ my $watcher = $event->w;
 
 return FALSE if $err_str eq qw| ? |;    ##  <--  WEIIIRD and redundant ..,
 
-my $ev_desc = 'not named';
-$ev_desc = $watcher->desc if $event and $watcher;
+my $ev_desc = 'not named event';
+$ev_desc = $watcher->desc if length ref $watcher;
 
 my $file;
 my $line;
@@ -78,9 +78,12 @@ return TRUE
 
 ## detailed event parameters [ devmod log levels ]
 ##
-my @attr_names = <[base.sort]>->( $watcher->attributes );
-my $lvl        = 2;
-my $mlen       = 0;
+my @attr_names
+    = length ref $watcher
+    ? <[base.sort]>->( $watcher->attributes )
+    : ();
+my $lvl  = 2;
+my $mlen = 0;
 map { $mlen = length($ARG) if length($ARG) > $mlen } @attr_names;
 
 <[base.log-delayed]>->( $lvl, '.:[ event ]:.' );
@@ -95,8 +98,8 @@ foreach my $akey (@attr_names) {
 
 return TRUE;
 
-#,,,.,...,...,,.,,,,,,...,.,.,,,,,.,,,,,,,...,..,,...,...,,.,,,..,,..,,.,,,..,
-#OHMVSPTCM5SZFPJ3YG6W4JBMEYCX6OF7C3VZXW3CMZESXGMJ5SDBLTCAFZEGRE6ZL6XNOOUDTCRKY
-#\\\|63V5N7FENFJ5KFJYZS25LGDM4YGA6MBB2QSXYBY7DYBCMNWLA7U \ / AMOS7 \ YOURUM ::
-#\[7]MK5XCHIQ6J765IMYM6PJJI43ZAFFC63P7YU6LX56ZWZHEURP7CCY 7  DATA SIGNATURE ::
+#,,,.,...,.,,,..,,,.,,.,,,,..,,,,,...,,,.,,.,,..,,...,...,.,.,..,,.,.,,,.,,,.,
+#55EHYKG3C5V5YHRZRLZ4MW7P6GHFFDV67UGIWQHANVTASWO4NK27SKNXI2Q3WJ5KTH6H66CVY6A6M
+#\\\|MD6NPCYD7VFMH2BM37CJA3BPIOKWYKGYCWBVTXANIMENGWBDNAB \ / AMOS7 \ YOURUM ::
+#\[7]7FEEU4QQ6TNZWYKSUR7RXBGMNEOA7XEQRJBB2F22OGFNFHDZNSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
