@@ -187,29 +187,34 @@ unless ( $model_path && $mmproj_path ) {
     };
 }
 
+# Build portable log file path using system.root_path
+my $log_file_path = <system.root_path> . '/llama';
+
 my @cmd = (
     $binary,
     '-m',       $model_path,
     '--mmproj', $mmproj_path,
     '-ngl',     99,
-    '-c',       5777
-    , # Context for vision encoder tokens (image scaled to 1024x1024, ~500-600 encoder tokens)
+    '-c',       8192
+    , # Context for vision tasks: image tokens (~2000-2500) + prompt + response generation space
     '-t',      4,
     '--image', $working_image_path,
-    '-n',      247,                   # Allow longer responses
-    '--no-warmup',
-    '-mli',
-    '-sp',
+    '--image-min-tokens',
+    1024,             # Minimum image tokens for Qwen3-VL functionality
+    '-n', 247,        # Allow longer responses
+    '--no-warmup',    # Skip warmup to reduce initialization output
+    '--log-file', $log_file_path, # Log to symlink -> /dev/null (appends .log)
     ## request prompt ##
     '--prompt', $prompt,
 
-    #    '--temp', 1.0,
-    #    '--top-k', 20,
-    #    '--top-p', 0.95,
-    #    '--min-p', 0.05,
+    # Qwen3 recommended VL task parameters from modelcard
+    '--temp',             0.7,    # Moderate temperature for focused VL output
+    '--top-k',            20,     # Top-k sampling (recommended for VL)
+    '--top-p',            0.8,    # Nucleus sampling for VL tasks
+    '--repeat-penalty',   1.0,    # Repetition penalty (default)
+    '--presence-penalty', 1.5,    # Presence penalty to reduce repetition
 
 #    '-j',       '{"type":"object","properties":{"answer":{"type":"string"}}}',
-##  '--log-disable',  # TESTING: disabled to check if model generates without it
 );
 
 # Set up environment for vision model
@@ -277,7 +282,8 @@ my $job = {
 
 <[base.logs]>->( 1, "[analyze_image] spawned: job=%s pid=%d", $job_id, $pid );
 
-# Register non-blocking I/O handler for stdout (data reading - lightweight)
+# Register non-blocking I/O handler for stdout (read data as it arrives)
+# poll => 'r' means: read data whenever available
 $job->{'rdr_io'} = <[event.add_io]>->(
     {   'fd'      => $rdr,
         'handler' => qw| lm-vision.handler.read_output |,
@@ -286,12 +292,13 @@ $job->{'rdr_io'} = <[event.add_io]>->(
     }
 );
 
-# Register non-blocking I/O handler for stderr (completion trigger via exception/EOF)
+# Register non-blocking I/O handler for stderr (read data + exception on EOF)
+# poll => 're' means: read data as it arrives, also catch exception/EOF for completion
 $job->{'err_io'} = <[event.add_io]>->(
     {   'fd'      => $err,
         'handler' => qw| lm-vision.handler.check_completion |,
         'data'    => $job_id,
-        'poll'    => qw| e |
+        'poll'    => qw| re |
     }
 );
 
@@ -301,8 +308,8 @@ $job->{'err_io'} = <[event.add_io]>->(
 );
 return { 'mode' => 'deferred' };
 
-#,,,,,,..,.,.,.,,,,..,,,.,,,,,..,,,,.,.,.,,.,,..,,...,...,...,,..,,,.,,,.,,.,,
-#JKKFSXVKKJ5WYYTSJAYFHSAIZWRFTA6TXMGJY7FAUCZND3N5HKYICQS5IXYQVCPBKFEZ2LEVOSRV6
-#\\\|F43C3SEFZMUMM6UNNOBFPOWPAN7QFEJI3HZN563PLCNT4XGSMVO \ / AMOS7 \ YOURUM ::
-#\[7]DKBZW2MK7DMA4TBJGSKTMCXNRJKBA67XUSZO3AA25Q4SJ7HKQSCI 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,,,,...,,..,,.,,.,,,.,.,..,,.,.,..,,...,...,...,..,,..,,.,,,,.,,
+#UIX4WMDYTG5UWTOJOPVJ4LHZWFW6LWZCQXM3WO7SXT3P36JULUJ4VWMKWV6UAMPX3E64PXP2PH7GS
+#\\\|G32NMFGHLCTYOPP7A7VEZVLPBTMKKDRWIAIWYG5AFK7GHZ3NPZL \ / AMOS7 \ YOURUM ::
+#\[7]RQFZHZ6UPETBYI2JW2V3WBNHMZLGATB42KNTYWGIICPL6AYHHOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -50,6 +50,7 @@ ENV CUDA_ARCHITECTURES=86
 RUN cmake -B build \
     -DCMAKE_BUILD_TYPE=Release \
     -DGGML_CUDA=ON \
+    -DGGML_CUDA_FA=ON \
     -DCMAKE_CUDA_ARCHITECTURES=86 \
     -DBUILD_SHARED_LIBS=ON \
     && cmake --build build --config Release -j$(nproc) --target llama-mtmd-cli
