@@ -108,9 +108,28 @@ p7 v7.list zenki
 # - llama-server-vision (HTTP endpoint)
 ```
 
-## Step 6: Test Batch Vision Processing
+## Step 6: Test Complete-Analysis Vision Processing
 
-Create a test batch:
+Test the new auto-resume vision analysis command:
+
+```bash
+# Single image with auto-completion
+p7 lm-vision.complete-analysis /data/projects/protocol-7/data/gfx/test-image.jpg "describe this in detail"
+
+# Should return complete analysis (may take multiple passes)
+# - First pass: Initial analysis, will resume if truncated
+# - Subsequent passes: Continuation of analysis
+# - Final: Complete response with proper ending
+
+# Check logs for multi-pass processing:
+tail -f /var/log/protocol-7/lm-vision.log | grep -E "check_completion|check-completion-chain"
+```
+
+**Expected output:** Complete image description ending with proper punctuation, no truncation.
+
+## Step 7: Test Batch Vision Processing (Legacy)
+
+For batch processing of multiple images:
 
 ```bash
 p7 image-batch.process "/data/projects/protocol-7/batches/test_vision_batch.yaml"
@@ -128,7 +147,11 @@ p7 image-batch.status "batch-<id>"
 - [ ] Vision model files present in /mnt/ext-xfs-data/models-lmstudio/Qwen/
 - [ ] Direct binary test produces image descriptions
 - [ ] v7 zenka system online
-- [ ] image-quality processes requests
+- [ ] **NEW:** `lm-vision.complete-analysis` returns complete multi-line descriptions
+- [ ] **NEW:** Multi-pass resumption works for truncated responses (check logs)
+- [ ] **NEW:** No GPU out-of-memory errors on consecutive calls
+- [ ] **NEW:** Single-pass completion for typical requests
+- [ ] image-quality processes requests (legacy direct command)
 - [ ] image-batch processes job queues
 - [ ] Batch processing returns results
 
@@ -155,6 +178,23 @@ p7 image-batch.status "batch-<id>"
 
 ## Performance Expectations
 
+### Complete-Analysis Command (New - Jan 2026)
+
+Measured with Qwen3-VL-4B on RTX 3060 (with complete-analysis wrapper):
+- **Single-pass (typical)**: ~5-8 seconds for complete analysis
+- **Two-pass (truncated responses)**: ~10-16 seconds total
+- **Context size**: 4096 tokens (tested without OOM on consecutive calls)
+- **Generator mode**: `-n -2` (fill context efficiently, not granular streaming)
+
+**Response characteristics:**
+- Single-line responses: Returned with `'true'` mode (p7c adds line ending)
+- Multi-line responses: Returned with `'size'` mode (proper newline handling)
+- Completeness: Marked complete only if ends with `.!?` or is <80 chars
+- Max resumes: 5 (configurable) before returning partial result
+- GPU memory: Properly cleaned between passes (no OOM on consecutive calls)
+
+### Legacy Direct Analysis
+
 Measured with Qwen2.5-VL-7B-Instruct on RTX 3060 (optimized build):
 - **Image encoding (GPU-accelerated CLIP)**: ~37.4 seconds
 - **Model inference (Qwen2.5-VL-7B)**: ~2.8 seconds
@@ -165,12 +205,37 @@ Measured with Qwen2.5-VL-7B-Instruct on RTX 3060 (optimized build):
 Performance varies based on:
 - Image resolution and complexity
 - Model quantization (Q4_K_M recommended for VRAM efficiency)
-- Context window size (-c flag, default 1024)
-- Generation length (-n flag, default 25 tokens)
+- Context window size (-c flag, default 4096 for complete-analysis)
+- Generation mode (-n flag: -2 for complete-analysis, -1 for legacy)
 
-## Key Optimizations Applied (Dec 27, 2025)
+## Key Optimizations Applied
 
-### Upstream Integration (49 commits)
+### Complete-Analysis System (Jan 16, 2026)
+1. **Auto-Resume Wrapper** - Transparent multi-turn generation until completion
+   - Monitors response completeness via timer-based handler (100ms checks)
+   - Spawns continuations automatically when truncated
+   - Accumulates across multiple passes (max 5 resumes)
+
+2. **Smart Completeness Detection** - Prevents false completion
+   - Only marks complete if ends with `.!?` or is <80 chars
+   - Previously looser heuristics caused incomplete responses
+
+3. **GPU Memory Management** - Fixes out-of-memory on consecutive calls
+   - Blocking `waitpid()` ensures process termination
+   - GPU memory released before next analysis job
+   - Tested on consecutive calls without OOM
+
+4. **Reply Mode Adaptation** - Proper client formatting
+   - Single-line → `'true'` mode with stripped trailing newline
+   - Multi-line → `'size'` mode with normalized trailing newline
+   - Clients like p7c format output correctly with own line endings
+
+5. **Efficient Token Generation** - Changed from `-n -1` to `-n -2`
+   - Fills context window instead of unlimited streaming
+   - Larger packets (not byte-by-byte granular streaming)
+   - Faster response generation
+
+### Upstream Integration (49 commits, Dec 2025)
 1. **Fused norm kernels** - 5-15% inference speedup
 2. **CUDA device management** - Improved device initialization and memory handling
 3. **Graph parallel optimizations** - Better computation scheduling

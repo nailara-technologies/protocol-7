@@ -1,6 +1,21 @@
 # Vision Model Implementation Status
 
-## Latest Build Update (Dec 27, 2025)
+## Latest Update (Jan 16, 2026)
+
+**Status: ✅ FULLY OPERATIONAL WITH AUTO-RESUME COMPLETE-ANALYSIS PIPELINE**
+
+### Major Addition: Auto-Resuming Vision Analysis
+New `lm-vision.cmd.complete-analysis` wrapper transparently handles truncated model responses by automatically resuming generation until completion. This eliminates partial/incomplete analysis responses that were a problem with simpler direct analysis.
+
+**Key improvements:**
+- ✅ Automatic multi-turn generation until complete (up to 5 resumes, configurable)
+- ✅ Smart response completeness detection (only trusts punctuation or very short responses)
+- ✅ Proper GPU memory cleanup between consecutive calls (blocking waitpid prevents OOM)
+- ✅ Adaptive reply modes based on response content (multiline vs single-line)
+- ✅ Successfully processes long analysis requests without out-of-memory errors
+- ✅ Clean error semantics maintaining workflow trustworthiness
+
+## Previous Build Update (Dec 27, 2025)
 
 **Status: ✅ FULLY OPERATIONAL WITH GPU ACCELERATION OPTIMIZED**
 
@@ -20,6 +35,54 @@ Integrated upstream optimizations from ik_llama.cpp (49 commits, fc3be34ea):
 
 ## Overview
 GPU-accelerated vision model support has been successfully integrated into Protocol-7's image quality analysis system using `llama-mtmd-cli` (multimodal-enabled binary).
+
+## Complete-Analysis Pipeline (New - Jan 16, 2026)
+
+### Command: `lm-vision.cmd.complete-analysis`
+
+Provides transparent multi-turn vision analysis that automatically resumes truncated responses until completion.
+
+**Usage:**
+```
+p7 lm-vision.complete-analysis /path/to/image.jpg "describe in detail"
+```
+
+**Workflow:**
+1. Spawns initial analysis with Qwen3-VL model
+2. Monitors for completion via timer-based handler (100ms checks)
+3. If response is incomplete (doesn't end with `.!?`), spawns continuation
+4. Resumes with previous response as context for continuation
+5. Accumulates across multiple passes (max 5 resumes)
+6. Returns complete response when generation naturally ends
+
+**Smart Features:**
+- **Completeness Detection**: Only marks complete if response ends with proper punctuation (. ! ?) or is very short (<80 chars)
+- **Reply Mode Adaptation**:
+  - Single-line responses (no internal newlines) → `'true'` mode with trailing newline stripped
+  - Multi-line responses → `'size'` mode with normalized trailing newline
+  - Clients like `p7c` will format output correctly with their own line endings
+- **GPU Memory Management**: Blocking `waitpid()` ensures process fully terminates and releases GPU memory before next job starts
+- **Error Handling**: Clean `'false'` mode for errors, maintaining workflow trustworthiness
+
+**Related Components:**
+- `lm-vision.handler.check-completion-chain` - Timer handler monitoring job completion
+- `lm-vision.handler.check_completion` - Extracts and cleans model output
+- `lm-vision.cmd.resume_analysis` - Manual resume command for direct calls
+
+### Completeness Detection Logic
+
+```perl
+# Response is complete if it:
+# - Ends with punctuation (. ! ?), OR
+# - Is very short (< 80 chars)
+
+my $appears_complete = (
+    $payload =~ /[\.\!\?]\s*$/  ||     # Ends with period, exclamation, or question
+    length($payload) < 80              # Very short responses likely complete
+);
+```
+
+This stricter logic prevents false "complete" detection that would skip necessary resumptions.
 
 ## Architecture
 
