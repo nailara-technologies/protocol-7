@@ -22,6 +22,7 @@ my $model_id
     : $data{'inference.backend.cpu.model_id'} // 'gemma3-glitter-4b';
 
 # If model_path not provided, use hardcoded path for known models
+#      [ LLL:fix--> models zenka is the authority + config file ]
 unless ( defined $model_path && length $model_path ) {
     if ( $model_id eq 'gemma3-glitter-4b' ) {
         $model_path
@@ -126,8 +127,9 @@ $data{'inference.fh'}->{$port}          = $out_fh;
     }
 );
 
-# Wait up to 5 seconds for server to listen on port
-my $max_attempts = 50;
+# Wait up to 30 seconds for server to listen on port
+##                                           [ FIX : determine load status ]
+my $max_attempts = 300;
 my $attempt      = 0;
 
 while ( $attempt < $max_attempts ) {
@@ -159,7 +161,7 @@ while ( $attempt < $max_attempts ) {
 }
 
 <[base.logs]>->(
-    0, "[spawn-server] server failed to start listening within 5 seconds"
+    0, "[spawn-server] server failed to start listening within 30 seconds"
 );
 
 return {
@@ -168,8 +170,8 @@ return {
     pid     => $pid
 };
 
-#,,.,,.,.,,.,,...,,,,,.,.,.,.,,..,...,,,,,,,,,..,,...,...,,.,,...,.,,,,,.,.,,,
-#HUFJ6TB4ER7FKXDQMAKSNR66VC5LNA2REJ4HRTSO5S7VCG7PPE5JE7ZATBNEIDPDBXWPYG4BLSER6
-#\\\|ALE6DCHLW6YVCHG46J2277WPSJFBTYENLWTCBHJE6Y7GZTXVKWW \ / AMOS7 \ YOURUM ::
-#\[7]6TRXCVRZB7AJCNOBP54VJI63YLVBWR4SMNG76AT6BPWB24YSXECA 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,..,,..,,.,,,.,,.,.,,,,,.,,,..,,..,,...,...,.,.,.,,,,,.,,.,,.,.,
+#GOUHC3M6VPHRC4CQ7EGBZVFW7ZSOKISMYQAYHKH4KDMUSE6EZL5KWOKWEXPEQHHARTAMXLSGFD2VU
+#\\\|XKXAWOVMF5WBJVYRXOU5XX2UIGS5PGKDZGXIOXUUXAXZQ2X5Z2M \ / AMOS7 \ YOURUM ::
+#\[7]CQKSHALBE6FMHTQS5Q4PY3PPH4H53UXDZQS2PQ6L6QLMYZIXSUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
