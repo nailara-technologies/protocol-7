@@ -5,7 +5,7 @@
 # purpose = Foundation: Set up all internal data structures for orchestration
 
 # Load required Perl modules
-<[base.perlmod.autoload]>->('JSON::XS');
+<[base.perlmod.load]>->('JSON::XS');
 <[base.perlmod.autoload]>->('IPC::Open3');
 
 # Defer model metadata loading to async handler to keep init fast
@@ -15,10 +15,15 @@
 <coding.model_metadata> //= {};
 
 # Set library path for llama-server binaries (CPU and GPU backends)
-<coding.lib_path> = qw| /data/source/ik_llama.cpp |;
+$data{'coding.lib_path'} = '/data/source/ik_llama.cpp';
+
+<[base.logs]>->(
+    1, "[coding] set library path: %s",
+    $data{'coding.lib_path'}
+);
 
 # Initialize inference servers storage
-<coding.inference_servers> //= {};
+$data{'coding.inference_servers'} //= {};
 
 # Initialize coding zenka data structure
 <coding.state> = {
@@ -55,22 +60,23 @@
 <coding.learning.model_specializations> = {};
 
 # Schedule inference server spawning asynchronously (don't block init)
-<[base.log]>->( 1, "[coding] scheduling inference server spawning" );
+<[base.logs]>->( 1, "[coding] scheduling inference server spawning" );
 
-# Store spawn parameters for async spawning [LLL] fix hardcoding issue
-<coding.spawn_params> //= {};
-<coding.spawn_params>->{'cpu_binary'} = <inference.backend.cpu.binary>
+# Store spawn parameters for async spawning
+$data{'coding.spawn_params'} //= {};
+$data{'coding.spawn_params'}->{'cpu_binary'} = $data{'inference.backend.cpu.binary'}
     // '/data/source/ik_llama.cpp/llama-server-cpu';
-<coding.spawn_params>->{'gpu_binary'} = <inference.backend.gpu.binary>
-    // '/data/source/ik_llama.cpp/llama-server-cuda';
-<coding.spawn_params>->{'gpu_enabled'} = <inference.backend.gpu.enabled> // 0;
-<coding.spawn_params>->{'cpu_model_id'} = <inference.backend.cpu.model_id>
-    // 'qwen2.5-7b-instruct-1m';
-<coding.spawn_params>->{'gpu_model_id'} = <inference.backend.gpu.model_id>
-    // 'qwen2.5-7b-instruct-1m';
-<coding.spawn_params>->{'cpu_threads'} = <inference.backend.cpu.threads> // 8;
-<coding.spawn_params>->{'gpu_layers'}  = <inference.backend.gpu.gpu_layers>
+$data{'coding.spawn_params'}->{'gpu_binary'} = $data{'inference.backend.gpu.binary'}
+    // '/data/source/ik_llama.cpp/llama-server-cuda-fa';
+$data{'coding.spawn_params'}->{'gpu_enabled'} = $data{'inference.backend.gpu.enabled'} // 1;
+$data{'coding.spawn_params'}->{'cpu_model_id'} = $data{'inference.backend.cpu.model_id'}
+    // 'gemma3-glitter-4b';
+$data{'coding.spawn_params'}->{'gpu_model_id'} = $data{'inference.backend.gpu.model_id'}
+    // 'gemma3-glitter-4b';
+$data{'coding.spawn_params'}->{'cpu_threads'} = $data{'inference.backend.cpu.threads'} // 8;
+$data{'coding.spawn_params'}->{'gpu_layers'}  = $data{'inference.backend.gpu.gpu_layers'}
     // 33;
+$data{'coding.spawn_params'}->{'lib_path'}  = $data{'coding.lib_path'};
 
 # Register timer to spawn servers after init completes (non-blocking)
 <[coding.async_spawn_inference_servers]>;
@@ -85,8 +91,8 @@
 
 return 0;
 
-#,,,.,,,,,...,.,.,,..,..,,,,.,.,.,..,,,..,,.,,..,,...,..,,...,,.,,.,.,.,.,.,.,
-#VK7QDPPGSK4E5Z4VXELDTJUU563SMO5MLI3QAPYS3NLO22ZANZRZFHLKIX6E5OV45I5EH2BGK5ZAK
-#\\\|BDF23GE6GXW4L57A56VMZSQ6BRPCJPKUWMDMFWL3OLOXDLSAVZ7 \ / AMOS7 \ YOURUM ::
-#\[7]54MWVVU6ZNAKDIYB6RLJMTPP6ZTPBB7VDPHOEBXTEFUB5GKKKECY 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,,.,,,,,,..,,,,,...,.,,,.,,,.,,,..,,...,...,,,.,.,.,,,,,,,.,,..,
+#WDTF4232KJKAGKEICRXM6NXQUISDQT34RQ7FFEMUC2FA4DXXMZ6LJVHBPEGEIV743U7T3OMKSZJ6I
+#\\\|QLQQMOSCVBVW47KSHH3JXC6L7ZQUE36KQLR2JUFS64FCYOO33CJ \ / AMOS7 \ YOURUM ::
+#\[7]RWUZ5BGX7FZ57U5VNZEST34ICRXUZ6DOXUP2266JFXLCZ5OGPOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

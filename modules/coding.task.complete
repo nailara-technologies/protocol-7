@@ -4,36 +4,51 @@
 # descr = mark coding task as completed
 # purpose = coding task management : wrapper around jobqueue.move_job to mark job complete
 
-my ( $job_id, $result ) = @ARG;
+my ( $task_id, $result ) = @ARG;
 
 return {
     success => FALSE,
-    error   => 'job_id required'
+    error   => 'task_id required'
     }
-    unless defined $job_id;
+    unless defined $task_id;
 
-# Get job data before moving to verify it exists
-my $job_data = <[jobqueue.get_job_data]>->($job_id);
+# Get task from coding task queue
+my $queue_ref = <coding.task.queue>;
+my $task      = $queue_ref->{$task_id};
 
 return {
     success => FALSE,
-    error   => "task not found : $job_id"
+    error   => "task not found : $task_id"
     }
-    unless defined $job_data;
+    unless defined $task;
 
-# Move job to completed queue
-<[jobqueue.move_job]>->( $job_id, 'completed' );
+# Update task execution status
+$task->{execution}->{status}  = 'completed';
+$task->{execution}->{result}  = $result;
+$task->{execution}->{success} = TRUE;
+$task->{execution}->{completed} = <[base.time]>->(3);
+
+# Move task to completed list
+my $pending_ref  = <coding.task.pending>;
+my $completed_ref = <coding.task.completed>;
+
+@$pending_ref  = grep { $_ ne $task_id } @$pending_ref;
+push @$completed_ref, $task_id;
+
+<[base.logs]>->( 2, "task completed: %s", $task_id );
+
+# Trigger task completion event handler (checks for auto-resume)
+<[coding.event.on_task_complete]>->( $task_id, $result );
 
 return {
     success => TRUE,
-    job_id  => $job_id,
-    task_id => $job_data->{object_id},
+    task_id => $task_id,
     result  => $result,
-    message => "task completed : $job_id"
+    message => "task completed : $task_id"
 };
 
-#,,..,..,,...,..,,.,,,,,,,,.,,,,,,,,.,.,,,.,,,..,,...,...,,..,.,,,,,,,,,,,,..,
-#7HRWFQ75IEGHJE3KGADIX3TWTE7IODQ4OLW4P3YG3GOVLMPVCORKDW3PLQ6ZGAA6WMYJG27P6DQPC
-#\\\|FADRROU7V7V6JRF6SQYHDU6CCF4FQWRWK3H6HVTHAYJDOD4MCOF \ / AMOS7 \ YOURUM ::
-#\[7]ZGXSMKREI5NUNRPX3AAAN4RA5CHZV3A5C6T6NRPZTGITYBQM3UBA 7  DATA SIGNATURE ::
+#,,.,,,,,,...,..,,..,,.,.,.,,,.,.,,,.,.,.,,,.,..,,...,...,..,,,..,.,,,..,,.,.,
+#EYV55FMWSUDU6V3DG6KI3X54UUPZDTF4KPB6LKBEWAZ4VE7YL6YQSB5NDP6ILCYDZLASEGHQI4Y36
+#\\\|CRWBUYO4GOZ3HPRVNQSD6NCPMJZNY7IFCJ6KHBQJZGSUPBBPJIR \ / AMOS7 \ YOURUM ::
+#\[7]YVNTX5LNYMHQDBXV373XDOEWQIIXXVFNLEWD6L3IVIS5MWPP5QDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

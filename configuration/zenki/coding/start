@@ -6,6 +6,7 @@
 access.cmd.usr.cube = commands heart reload verify-instance \
                       list show-buffer buffer-erase buffer-erase-level \
                       budget status submit analyze_and_extract \
+                      complete-analysis resume-analysis \
                       vision-parser.analyze_and_extract vision-parser.status \
                       infer query test-inference \ ## ^ <- coding zenka comands ##
                       get set dump ## <-- development commands to access %data. ##
@@ -18,14 +19,14 @@ crypt.C25519.autocreate-user-key = yes
 
 ## GPU+CPU Dual Inference Configuration ##
 inference.backend.gpu.enabled = yes
-inference.backend.gpu.binary = /data/source/ik_llama.cpp/llama-server-cuda
-inference.backend.gpu.model_id = qwen2.5-7b-instruct-1m  ## Fetched from models zenka during init ##
-inference.backend.gpu.vram_threshold = 8589934592  ## 8GB in bytes ##
+inference.backend.gpu.binary = /data/source/ik_llama.cpp/llama-server-cuda-fa
+inference.backend.gpu.model_id = gemma3-glitter-4b  ## Fetched from models zenka during init ##
+inference.backend.gpu.vram_threshold = 3221225472  ## 3GB in bytes (Gemma3 Glitter is 2.21GB) ##
 inference.backend.gpu.gpu_layers = 33  ## Full offload for RTX 3060 ##
 
 inference.backend.cpu.enabled = yes
-inference.backend.cpu.binary = /data/source/ik_llama.cpp/llama-server-cpu
-inference.backend.cpu.model_id = qwen2.5-7b-instruct-1m  ## Fetched from models zenka during init ##
+inference.backend.cpu.binary = /data/source/ik_llama.cpp/llama-server-cuda-fa
+inference.backend.cpu.model_id = gemma3-glitter-4b  ## Fetched from models zenka during init ##
 inference.backend.cpu.threads = 8  ## Use system thread count ##
 
 ## Routing Configuration ##
@@ -35,7 +36,7 @@ inference.routing.cpu_timeout = 300000  ## 300 seconds in ms ##
 inference.routing.fallback_on_timeout = yes  ## Try CPU if GPU times out ##
 
 ## Model Configuration ##
-inference.model.context_length = 2048
+inference.model.context_length = 2048  ## Reduced for GPU memory (Gemma3 needs ~16GB at full 131k context) ##
 inference.model.max_tokens = 256
 inference.model.temperature = 0.7
 
@@ -52,8 +53,8 @@ modules.load = auth net protocol io.unix io.ip jobqueue crypt.C25519 coding \
 
 [zenka.loop]
 
-#,,..,...,..,,..,,,..,.,,,.,.,.,,,,..,,,,,.,.,..,,...,...,...,,.,,,..,.,,,,.,,
-#RWGFMML4DW4QZW5XXJW3ZK3W6RTPYFO3CRVLLRIZNXBENUN7TKBMTVJINHG4MPXWD7ZV3TEMWW7QQ
-#\\\|6JEHMILHE6Y7OIKN2IPI3IL76QIA52EQDOZRFCM5COLC2THGZAK \ / AMOS7 \ YOURUM ::
-#\[7]JETJCA3MBGKV7JQHNLVGU5KEU7HM75MEFZGNKIWWXFX5HZGL4WCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,...,.,.,.,.,,.,,,..,.,,,.,.,,.,,..,,...,...,,..,...,.,.,,,.,...,
+#HA5NZ4SOAMPXINJ5NSYFJJQI7I4YMACQCLZABJRCTU5KI67J2GMIHC43NHYHOA22S4BZYJUQUW2ZS
+#\\\|EYR22ZDIWCL3ZY5RE24ZLTGBLJLSHXT7O3UCKRCYMP3BYYPADP4 \ / AMOS7 \ YOURUM ::
+#\[7]BHL2C5AALJ3PWH73AQXO7UCHZLD3EB54TAZJ4JYJBBEO2QOR7ODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
