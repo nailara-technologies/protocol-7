@@ -1,0 +1,175 @@
+## [:< ##
+
+# name  = coding.inference.spawn-server
+# descr = spawn and manage inference server process using proper Protocol-7 pattern
+# purpose = Start llama-server with proper configuration for model loading
+
+my $port       = shift @ARG // 8002;
+my $backend    = shift @ARG // 'gpu';
+my $model_path = shift @ARG;
+
+# Get configuration
+my $binary
+    = $backend eq 'gpu'
+    ? $data{'inference.backend.gpu.binary'}
+    // '/data/source/ik_llama.cpp/llama-server-cuda-fa'
+    : $data{'inference.backend.cpu.binary'}
+    // '/data/source/ik_llama.cpp/llama-server-cuda-fa';
+
+my $model_id
+    = $backend eq 'gpu'
+    ? $data{'inference.backend.gpu.model_id'} // 'gemma3-glitter-4b'
+    : $data{'inference.backend.cpu.model_id'} // 'gemma3-glitter-4b';
+
+# If model_path not provided, use hardcoded path for known models
+unless ( defined $model_path && length $model_path ) {
+    if ( $model_id eq 'gemma3-glitter-4b' ) {
+        $model_path
+            = '/mnt/m/mradermacher/Gemma-3-Glitter-4B-Uncensored-GGUF/Gemma-3-Glitter-4B-Uncensored.Q4_K_S.gguf';
+    } else {
+        <[base.logs]>->(
+            0, "[spawn-server] unknown model_id and no path provided: %s",
+            $model_id
+        );
+        return {
+            success => FALSE,
+            error   => "Model path not provided for model_id: $model_id"
+        };
+    }
+}
+
+my $context_len = $data{'inference.model.context_length'} // 2048;
+my $gpu_layers
+    = $backend eq 'gpu'
+    ? ( $data{'inference.backend.gpu.gpu_layers'} // 33 )
+    : 0;
+my $threads
+    = $backend eq 'gpu' ? 0 : ( $data{'inference.backend.cpu.threads'} // 8 );
+
+<[base.logs]>->(
+    1, "[spawn-server] starting %s inference on port %d (backend=%s)",
+    $model_id, $port, $backend
+);
+
+# Verify model path exists
+unless ( defined $model_path && -f $model_path ) {
+    <[base.logs]>->(
+        0,
+        "[spawn-server] model file not found: %s",
+        $model_path // 'undefined'
+    );
+    return {
+        success => FALSE,
+        error   => "Model file not found: $model_path"
+    };
+}
+
+unless ( -x $binary ) {
+    <[base.logs]>->( 0, "[spawn-server] binary not executable: %s", $binary );
+    return {
+        success => FALSE,
+        error   => "Binary not executable: $binary"
+    };
+}
+
+# Set library path for child process
+$ENV{LD_LIBRARY_PATH}
+    = '/data/source/ik_llama.cpp:' . ( $ENV{LD_LIBRARY_PATH} // '' );
+
+# Build command using open() pipe pattern like openbox.start_wm
+my @cmd = ( $binary, '-m', $model_path, '--port', $port, '-c', $context_len );
+push @cmd, '-ngl', $gpu_layers if $backend eq 'gpu' && $gpu_layers > 0;
+push @cmd, '-t',   $threads    if $backend eq 'cpu' && $threads > 0;
+push @cmd, '--log-disable';
+
+my $cmd_str = join( ' ', @cmd ) . ' 2>&1 |';
+
+$data{'inference.server_pids'} //= {};
+$data{'inference.fh'}          //= {};
+
+my $pid = open( my $out_fh, $cmd_str );
+
+if ( !$pid ) {
+    <[base.logs]>->(
+        0,     "[spawn-server] unable to start server on port %d: %s",
+        $port, $!
+    );
+    return {
+        success => FALSE,
+        error   => "Failed to start server: $!"
+    };
+}
+
+<[base.logs]>->(
+    1,    "[spawn-server] server process started (pid=%d) on port %d",
+    $pid, $port
+);
+
+# Register child process with zenka
+<[base.zenki.report_child_pid]>->($pid);
+
+# Store pid and filehandle for tracking (keep filehandle alive so pipe stays open)
+$data{'inference.server_pids'}->{$port} = $pid;
+$data{'inference.fh'}->{$port}          = $out_fh;
+
+# Register I/O watcher to consume output and prevent pipe buffer from blocking
+# Whitelist entries are patterns that get logged at level 2 (suppressed by default)
+<[event.add_io]>->(
+    {   'fd'      => $out_fh,
+        'handler' => qw| base.handler.child_output.simple |,
+        'data'    => {
+            'bin'           => "llama-server:${port}",
+            'pid'           => $pid,
+            'log_whitelist' =>
+                [qw| . |]    # Match everything - suppress all output
+        }
+    }
+);
+
+# Wait up to 5 seconds for server to listen on port
+my $max_attempts = 50;
+my $attempt      = 0;
+
+while ( $attempt < $max_attempts ) {
+    sleep(0.1);
+    $attempt++;
+
+    # Try to connect to port
+    my $sock = IO::Socket::INET->new(
+        PeerAddr => 'localhost',
+        PeerPort => $port,
+        Proto    => 'tcp',
+        Timeout  => 1
+    );
+
+    if ($sock) {
+        close($sock);
+        <[base.logs]>->(
+            1,
+            "[spawn-server] server listening on port %d after %.1f seconds",
+            $port, $attempt * 0.1
+        );
+        return {
+            success => TRUE,
+            port    => $port,
+            model   => $model_id,
+            pid     => $pid
+        };
+    }
+}
+
+<[base.logs]>->(
+    0, "[spawn-server] server failed to start listening within 5 seconds"
+);
+
+return {
+    success => FALSE,
+    error   => "Server failed to start listening on port $port",
+    pid     => $pid
+};
+
+#,,.,,.,.,,.,,...,,,,,.,.,.,.,,..,...,,,,,,,,,..,,...,...,,.,,...,.,,,,,.,.,,,
+#HUFJ6TB4ER7FKXDQMAKSNR66VC5LNA2REJ4HRTSO5S7VCG7PPE5JE7ZATBNEIDPDBXWPYG4BLSER6
+#\\\|ALE6DCHLW6YVCHG46J2277WPSJFBTYENLWTCBHJE6Y7GZTXVKWW \ / AMOS7 \ YOURUM ::
+#\[7]6TRXCVRZB7AJCNOBP54VJI63YLVBWR4SMNG76AT6BPWB24YSXECA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

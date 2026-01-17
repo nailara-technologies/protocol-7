@@ -6,12 +6,62 @@
 
 my ( $task_id, $result ) = @ARG;
 
+<[base.logs]>->(
+    1, "[on-task-complete] CALLED with task_id=%s result_len=%d",
+    $task_id // 'undef',
+    length($result // '')
+);
+
+unless ( defined $task_id && length $task_id ) {
+    <[base.logs]>->( 0, "[on-task-complete] task_id required" );
+    return TRUE;
+}
+
+# Find the meta job tracking this task (for complete-analysis)
+my $meta_job;
+my $meta_id;
+
+foreach my $mid ( keys %{ <coding.complete_analysis_jobs> // {} } ) {
+    my $mj = <coding.complete_analysis_jobs>->{$mid};
+    if ( defined $mj && $mj->{'task_id'} eq $task_id ) {
+        $meta_job = $mj;
+        $meta_id = $mid;
+        last;
+    }
+}
+
+# If this is part of a complete-analysis chain, check for resumption
+if ( defined $meta_job ) {
+    <[base.logs]>->(
+        1,
+        "[on-task-complete] task completed: %s (meta=%s)",
+        $task_id, $meta_id
+    );
+
+    # Get task result from coding.task.queue
+    my $queue_task = <coding.task.queue>->{ $task_id };
+    my $task_result = $queue_task->{execution}->{result} // '';
+
+    if ( defined $task_result && length $task_result ) {
+        # Store the result in accumulated and trigger completion detection
+        $meta_job->{'accumulated'} = $task_result;
+
+        <[base.logs]>->(
+            1,
+            "[on-task-complete] result stored, triggering completion detection"
+        );
+
+        # Setting this to TRUE triggers the variable watcher which checks completion
+        $meta_job->{'continue_analysis'} = TRUE;
+    }
+}
+
 # Event callback for task completion
-# Will be expanded when learning module is created
+# Learning module will be expanded here
 return TRUE;
 
-#,,,.,.,,,,,.,.,,,.,,,,,,,,..,.,,,,,.,,.,,.,.,..,,...,...,,..,..,,,..,.,,,,,,,
-#PKOPFKBWWWGMWTIIT2QZUIUIRQZH5R2KLIBAZXSK4GKMUNWJKUQ3UKA4TAQ5ZMHF46NPYYVOWWHF2
-#\\\|K6WPLH6PGZDCKW5QSF4MHMTFEOIEKXFDAXCKK63NXVNMLG6QFXP \ / AMOS7 \ YOURUM ::
-#\[7]YY3LAUIAZ6NHPVXMJAO4EZLLW6R62QYWEAOQGRGBJH6LCTEQN2BQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,...,,..,,,,,.,.,..,,,,,,,.,,,,.,..,,...,...,..,,..,,..,,.,,,..,,
+#FFQHFMQG2KDCTLKFBZZYYVBCPSBDXKLM7WBQYJZOS3CYFXGPWXOKHB7YW3DDCWRO4R2KTVGCQD5RE
+#\\\|DZVKWCGLOPOZY2LEDRB2EJPITNXZU3ZCCHB3SIGJIIEQXUNXKM6 \ / AMOS7 \ YOURUM ::
+#\[7]26EFQ4NBA74BTHQEP6W4AUP2CWVLM4KPARTDJHXYQ4REALQC3YAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

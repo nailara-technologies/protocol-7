@@ -1,0 +1,61 @@
+## [:< ##
+
+# name  = coding.cmd.resume-analysis
+# descr = manually resume/continue incomplete code analysis
+# param = <meta_job_id> [additional_instruction]
+
+( my $meta_id, my $additional_instruction ) = split( m| +|, $$call{'args'}, 2 );
+$additional_instruction //= '';
+
+# Parameter validation
+return { 'mode' => qw| false |, 'data' => 'meta_job_id required' }
+    if not defined $meta_id || not length $meta_id;
+
+# Retrieve the meta job
+my $meta_job = <coding.complete_analysis_jobs>->{$meta_id};
+
+unless ( defined $meta_job ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'meta job not found: ' . $meta_id
+    };
+}
+
+unless ( defined $meta_job->{'task_id'} && length $meta_job->{'task_id'} ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'meta job has no active task'
+    };
+}
+
+# Check if we've exceeded max resumes
+if ( $meta_job->{'resume_count'} >= $meta_job->{'max_resumes'} ) {
+    return {
+        'mode' => qw| true |,
+        'data' => "Analysis already at maximum resumes ("
+            . $meta_job->{'max_resumes'}
+            . "). Accumulated result:\n"
+            . $meta_job->{'accumulated'}
+    };
+}
+
+<[base.logs]>->(
+    1, "[resume-analysis] continuing analysis for meta=%s (attempt %d)",
+    $meta_id, $meta_job->{'resume_count'} + 1
+);
+
+# Trigger continuation via variable watcher
+$meta_job->{'resume_count'}++;
+$meta_job->{'continue_analysis'} = TRUE;
+
+<[base.logs]>->(
+    1, "[resume-analysis] triggered continuation, returning deferred"
+);
+
+return { 'mode' => 'deferred' };
+
+#,,..,..,,..,,...,.,.,.,.,.,.,,,.,.,,,...,..,,..,,...,...,.,,,,..,.,.,,..,...,
+#CZHEIAHGY4QXHURSLSYXESQU5GUV5WPIBEJYH54UQNMV56SRFI4CC2NE5WWACK3KFB6I27OUAQGCE
+#\\\|EJ3C6FIG7ZZAJIZRIZ543CFBBTTHDHP3DKQTKNM5EH5WQPKCHEC \ / AMOS7 \ YOURUM ::
+#\[7]G57JG7N5PRS4CX4PSAQCQG4SWP5FLL4SX6N7TB4OEUQCCGCENKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

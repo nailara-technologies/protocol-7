@@ -1,0 +1,153 @@
+## [:< ##
+
+# name  = coding.handler.process-queued-task
+# descr = dequeue and execute a coding task via inference
+# purpose = Event handler to process tasks from job queue after deferred reply
+
+# Extract meta_id from event data (timer/var event handler receives event object)
+my $event   = $_[0];
+my $meta_id = $event->w->data if defined $event && ref $event;
+
+unless ( defined $meta_id && length $meta_id ) {
+    <[base.logs]>->( 0, "[process-queued-task] meta_id required" );
+    return FALSE;
+}
+
+my $meta_job = <coding.complete_analysis_jobs>->{$meta_id};
+
+unless ( defined $meta_job ) {
+    <[base.logs]>->( 0, "[process-queued-task] meta-job not found: %s", $meta_id );
+    return FALSE;
+}
+
+my $task_id = $meta_job->{'task_id'};
+
+<[base.logs]>->(
+    1, "[process-queued-task] processing task=%s (meta=%s)",
+    $task_id, $meta_id
+);
+
+# Get the task from queue
+my $task = <coding.task.queue>->{$task_id};
+
+unless ( defined $task ) {
+    <[base.logs]>->( 0, "[process-queued-task] task not found: %s", $task_id );
+    return FALSE;
+}
+
+# Get inference configuration
+my $model_id = $data{'inference.backend.gpu.model_id'} // 'gemma3-glitter-4b';
+
+# Mark task as in-progress
+$task->{execution}->{status}    = 'in_progress';
+$task->{execution}->{started}   = <[base.time]>->(3);
+$task->{execution}->{model_used} = $model_id;
+
+# Build prompt from task description
+my $prompt = $task->{request}->{description} // '';
+
+<[base.logs]>->(
+    1, "[process-queued-task] executing via inference: %s",
+    substr( $prompt, 0, 50 )
+);
+
+# Call inference API
+my $inference_result = <[coding.routing.decide_service]>->( 'route', $task );
+
+if ( !$inference_result->{success} ) {
+    <[base.logs]>->( 1, "[process-queued-task] routing decision: %s", $inference_result->{error} );
+}
+
+# Get inference configuration (model_id already defined above)
+my $max_tokens = $data{'inference.model.max_tokens'} // 256;
+my $temperature = $data{'inference.model.temperature'} // 0.7;
+my $inference_port = $data{'inference.gpu_port'} // 8002;
+
+<[base.logs]>->(
+    1, "[process-queued-task] using model=%s max_tokens=%d temp=%f port=%d",
+    $model_id, $max_tokens, $temperature, $inference_port
+);
+
+# Make HTTP request to inference server
+my $response_text = '';
+eval {
+    use LWP::UserAgent;
+    use JSON::PP;
+
+    my $ua = LWP::UserAgent->new;
+    $ua->timeout(30);
+
+    # Build inference request
+    my $request_body = {
+        model       => $model_id,
+        messages    => [
+            { role => "user", content => $prompt }
+        ],
+        max_tokens  => $max_tokens,
+        temperature => $temperature,
+    };
+
+    my $json = JSON::PP->new->utf8->canonical;
+    my $body = $json->encode($request_body);
+
+    <[base.logs]>->(
+        2, "[process-queued-task] sending inference request to port %d",
+        $inference_port
+    );
+
+    my $http_response = $ua->post(
+        "http://localhost:${inference_port}/v1/chat/completions",
+        Content_Type => 'application/json',
+        Content      => $body
+    );
+
+    if ( $http_response->is_success ) {
+        my $result = $json->decode( $http_response->content );
+
+        if ( ref($result) eq 'HASH' && $result->{choices} ) {
+            $response_text = $result->{choices}->[0]->{message}->{content} // '';
+
+            <[base.logs]>->(
+                1, "[process-queued-task] inference success, received %d chars",
+                length($response_text)
+            );
+        } else {
+            $response_text = $http_response->content;
+            <[base.logs]>->(
+                1, "[process-queued-task] unexpected response format"
+            );
+        }
+    } else {
+        <[base.logs]>->(
+            0, "[process-queued-task] HTTP error: %s",
+            $http_response->status_line
+        );
+        $response_text = "[Error: " . $http_response->status_line . "]";
+    }
+};
+
+if ( $@ ) {
+    <[base.logs]>->(
+        0, "[process-queued-task] inference error: %s",
+        $@
+    );
+    $response_text = "[Error: $@]";
+}
+
+# Use real response from inference, or error message
+my $final_response = $response_text // "[Error: No response from inference]";
+
+<[base.logs]>->(
+    1, "[process-queued-task] marking task complete with inference response"
+);
+
+# Mark task as complete
+<[coding.task.complete]>->( $task_id, $final_response );
+
+return TRUE;
+
+#,,.,,,,.,,.,,.,.,.,,,..,,,,,,.,,,,..,,.,,,,.,..,,...,...,.,.,...,,..,.,,,.,,,
+#SIPEUXXCHEF4LKH4SXAWUINWLCXDZQNQ6Y7GOW5M3CGK47E7EL53LADW6HIB5ZXDIZFTA6GNUMR74
+#\\\|3H4CK6AHYIY2T5EVSCAEF4IKX7Y6NWCUUDUMFBHMJ7TNWTHZMJC \ / AMOS7 \ YOURUM ::
+#\[7]YRRW4KAPG77JE5LG2HLWBZEQUBWITDKQNG3GQGMDNVRGKRKBVKBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
