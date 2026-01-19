@@ -2,55 +2,55 @@
 
 # name = coding.task.queue_status
 # descr = get status of specific task or queue statistics
-# purpose = Queue operation: Report task/queue state
+# purpose = Queue operation: Report task|queue state
 
-my ($task_id) = @ARG;
+my $task_id = shift;
 
 # Get persistent storage refs
-my $queue_ref     = <coding.task.queue>;
-my $pending_ref   = <coding.task.pending>;
-my $active_ref    = <coding.task.active>;
-my $completed_ref = <coding.task.completed>;
-my $failed_ref    = <coding.task.failed>;
+my $queue_href     = <coding.task.queue>     //= {};
+my $aref_pending   = <coding.task.pending>   //= [];
+my $aref_active    = <coding.task.active>    //= [];
+my $aref_completed = <coding.task.completed> //= [];
+my $aref_failed    = <coding.task.failed>    //= [];
 
 # If specific task requested
 if ( defined $task_id ) {
     return {
         success => FALSE,
-        error   => "task not found: $task_id"
+        error   => "task not found : '$task_id'"
         }
-        unless exists $queue_ref->{$task_id};
+        unless exists $queue_href->{$task_id};
 
-    my $task = $queue_ref->{$task_id};
+    my $task = $queue_href->{$task_id};
 
     return {
         success   => TRUE,
         task_id   => $task_id,
-        status    => $task->{execution}->{status},
-        started   => $task->{execution}->{started},
-        completed => $task->{execution}->{completed},
-        result    => $task->{execution}->{result},
-        success   => $task->{execution}->{success}
+        status    => $task->{'execution'}->{'status'},
+        started   => $task->{'execution'}->{'started'},
+        completed => $task->{'execution'}->{'completed'},
+        result    => $task->{'execution'}->{'result'},
+        success   => $task->{'execution'}->{'success'}
     };
 }
 
 # Return general queue statistics
-my $in_progress = scalar(@$active_ref);
-my $completed   = scalar(@$completed_ref);
-my $pending     = scalar(@$pending_ref);
-my $failed      = scalar(@$failed_ref);
+my $in_progress = scalar( $aref_active->@* );
+my $completed   = scalar( $aref_completed->@* );
+my $pending     = scalar( $aref_pending->@* );
+my $failed      = scalar( $aref_failed->@* );
 
 return {
-    total_tasks   => scalar( keys %$queue_ref ),
+    total_tasks   => scalar( keys $queue_href->%* ),
     pending       => $pending,
     in_progress   => $in_progress,
     completed     => $completed,
     failed        => $failed,
-    queue_updated => time()
+    queue_updated => <[base.time]>->(3)
 };
 
-#,,,.,,,,,,.,,,,.,...,.,.,,.,,.,,,,.,,,,,,,,,,.,.,...,...,.,.,,,,,,.,,.,,,,,.,
-#P2WFEUFYUEZEDHFO43NCG6GZ5UJNWLA3QF6MTAE22ID66YMLAWHKQAHEVAJGYLYZIYESMJGM627IS
-#\\\|NG5YK523OS5O7GCALCFFHXPS6HUHNULUJY4VRS2HJJKA3XI5AJL \ / AMOS7 \ YOURUM ::
-#\[7]7S6VAIB3IZM3ZWLQZ3P4RUMUMLLRXXXC2DOPGEOPTQALKASQDYAY 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,.,.,,,,,.,.,,,,,,,,,,.,,..,,..,,.,.,...,...,..,,..,,,,,,,.,,,..,
+#7K4SENVFB5RMR7CCCWOMFM4ST4ZQTALZVS7JOBQ3GLIDZUQDBHDFEQPKNVEK5XUTUUYKB7ZOOWMLA
+#\\\|S7IAEDZ7FK5FEJCSMRHL64A7CMOPY4HN4LKKBVRXUOCCL2WHURK \ / AMOS7 \ YOURUM ::
+#\[7]YPFHSHCTMHJWTFVTE5VMQIIXXWJ2VOTYLKNC5L3BSV5GFEIGWQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

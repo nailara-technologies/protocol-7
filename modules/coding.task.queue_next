@@ -5,18 +5,18 @@
 # purpose = Queue operation: Retrieve work in priority order
 
 # Get persistent storage refs
-my $queue_ref   = <coding.task.queue>;
-my $pending_ref = <coding.task.pending>;
-my $active_ref  = <coding.task.active>;
+my $queue_href   = <coding.task.queue>;
+my $aref_pending = <coding.task.pending>;
+my $aref_active  = <coding.task.active>;
 
 # Filter tasks that have no unfinished dependencies
 my @available = ();
 
-foreach my $task_id (@$pending_ref) {
-    my $task = $queue_ref->{$task_id};
+foreach my $task_id ( $aref_pending->@* ) {
+    my $task = $queue_href->{$task_id};
 
     # Skip if not pending
-    next unless $task->{execution}->{status} eq qw| pending |;
+    next unless $task->{'execution'}->{'status'} eq qw| pending |;
 
     # Simple dependency check (placeholder)
     # Full dependency tracking would check task dependencies
@@ -38,30 +38,30 @@ if (@sorted) {
     my $task = $next->{task};
 
     # Mark as being worked on (don't remove yet)
-    $task->{execution}->{status}  = qw| in_progress |;
-    $task->{execution}->{started} = <[base.time]>;
+    $task->{'execution'}->{'status'}  = qw| in_progress |;
+    $task->{'execution'}->{'started'} = <[base.time]>;
 
     # Move to active list
-    @$pending_ref = grep { $_ ne $next->{id} } @$pending_ref;
-    push @$active_ref, $next->{id};
+    $aref_pending->@* = grep { $ARG ne $next->{id} } $aref_pending->@*;
+    push $aref_active->@*, $next->{id};
 
     <[base.logs]>->( 2, "task started : %s", $next->{id} );
 
     return {
         success         => TRUE,
         task            => $task,
-        queue_remaining => scalar(@$pending_ref)
+        queue_remaining => scalar( $aref_pending->@* )
     };
 }
 
 return {
     success    => FALSE,
     error      => 'no available tasks in queue',
-    queue_size => scalar(@$pending_ref)
+    queue_size => scalar( $aref_pending->@* )
 };
 
-#,,..,..,,,..,.,.,.,,,..,,,,.,,,,,...,.,.,,..,..,,...,..,,,.,,,,.,.,.,..,,,.,,
-#E3NBTVQF3WEOH5XG6KLEB6SND24IHXMTLECDPJTJUVAPGLLBWGDSSWFIE7FIAJKSWZBEX4YY733TS
-#\\\|XYPPZZRUSMLJ6KP5V5S2LTHJNVWPQOWVT3V46HCISBPCXCFGBYN \ / AMOS7 \ YOURUM ::
-#\[7]AC5WU5VJEFNPOWWTDTON2DVJYVHGGJKZNGRZWMGXCR5XNTAXWODQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,.,,..,,,.,,.,,,.,,,.,,,.,.,,,.,..,,...,...,..,,.,,,.,,,,.,,,,.,
+#GSDDD7HBP6HESE6F3MIVDJFNQLGMAJ6XRRJJEZLQEDYNZEJDXURJAJOCLVZMOPO5QBFC7L6ZVIPKA
+#\\\|BKZCETZGGW6Q4MEKTZQPEZJRRDSXPF5LA3FZSICB7GIIQFACNE3 \ / AMOS7 \ YOURUM ::
+#\[7]CGVGNGG7HGDH7GT63TPZE36A3RQQ7F7RWAPU32MRY3Z2LIJNMQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

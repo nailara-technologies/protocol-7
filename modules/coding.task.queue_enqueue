@@ -15,27 +15,27 @@ return {
 my $task_id = $task->{id};
 
 # Get persistent storage refs
-my $queue_ref   = <coding.task.queue>;
-my $pending_ref = <coding.task.pending>;
+my $queue_href   = <coding.task.queue>;
+my $aref_pending = <coding.task.pending>;
 
 # Prevent duplicates
-if ( exists $queue_ref->{$task_id} ) {
+if ( exists $queue_href->{$task_id} ) {
     return {
         success       => FALSE,
         error         => "Task already in queue: $task_id",
-        existing_task => $queue_ref->{$task_id}
+        existing_task => $queue_href->{$task_id}
     };
 }
 
 # Store task in persistent queue
-$queue_ref->{$task_id} = {
+$queue_href->{$task_id} = {
     %$task,
     queued_at      => <[base.time]>,
-    queue_position => scalar(@$pending_ref)
+    queue_position => scalar( $aref_pending->@* )
 };
 
 # Add to pending list (for ordering by priority)
-push @$pending_ref, $task_id;
+push $aref_pending->@*, $task_id;
 
 # Log task enqueue
 <[base.logs]>->( 2, "task enqueued: %s", $task_id );
@@ -43,12 +43,12 @@ push @$pending_ref, $task_id;
 return {
     success    => TRUE,
     task_id    => $task_id,
-    queue_size => scalar(@$pending_ref),
+    queue_size => scalar( $aref_pending->@* ),
     message    => "Task enqueued: $task_id"
 };
 
-#,,,,,,,,,,..,.,.,,..,,..,,,,,,,.,.,.,,,,,.,.,..,,...,.,.,..,,..,,,,,,...,.,,,
-#CYAXA2OOONXVWV5OHMZ3IROTS2NOJPJSU5JDVSBENNWOTMDVABET7637RSLYLFJ3MNBSPFVNLCARE
-#\\\|G25EK26SHIOULZ5WSX3YN2IZ6LJWVFC5G3O7Q7X2PUWTEJA2VR7 \ / AMOS7 \ YOURUM ::
-#\[7]JJOJNQ4TOWN6NVH67LY4NRERBJ757P45ZPQS3YIWUEX5FHMQ5UBI 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,,,.,,,..,,,,,,,,,,...,,.,,,..,..,,...,...,.,,,...,.,.,.,.,.,.,
+#DVH2NU4XN4SMAENBULN3SI67RL2C4BHLSA3XVIEELNVSHK4ZMMAQ2UAHPIUMHQRYF7CSNRBIEJKTG
+#\\\|CXGJXKJJDVXEWIF54YLYMI2KQEWXWP4F75CR6YJMSVEXBBP7I3X \ / AMOS7 \ YOURUM ::
+#\[7]4NXAFYBX4SUJK2K223U64NJ6AUMLAOOLMPEENUCLGTR2XDNIFKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,9 +4,14 @@
 # descr = initialize coding zenka state, task queue, budget, and event handlers
 # purpose = Foundation: Set up all internal data structures for orchestration
 
-# Load required Perl modules
-<[base.perlmod.load]>->('JSON::XS');
-<[base.perlmod.autoload]>->('IPC::Open3');
+my $reinit = shift // TRUE;   ### provided by 'base.init_modules' [TRUE|FALSE]
+my $already_initialized = $reinit;    ## use for skipping redundant calls.. ##
+my $first_init          = $already_initialized ? FALSE : TRUE; ## ^ inverse ##
+
+## load all additionally used perl modules ##
+#
+<[base.perlmod.load]>->(qw| JSON::XS |);
+<[base.perlmod.autoload]>->(qw| IPC::Open3 |);
 
 # Initialize coding zenka data structure
 <coding.state> //= {
@@ -91,8 +96,8 @@ $params->{'gpu_layers'}  = <inference.backend.gpu.gpu_layers> // 32;
 
 return 0;
 
-#,,,,,,,.,.,,,,..,.,.,..,,,.,,,,,,...,.,,,,.,,..,,...,...,,.,,...,.,.,...,,,.,
-#TS26PPER2VXJFGLCFL6JTUUQUG7AFAH27TIHNCXGXLPQVA5BBET6LX4GEXLDIXSG7FGWSQ4LVUSN6
-#\\\|SZW3VXEMIYPA7FR5A7DRILHPALYDAKBD5G3JYZNCUJITE3VMIHY \ / AMOS7 \ YOURUM ::
-#\[7]A7SEG2KDQE2674DSJU5ANW7BXUQUVQMMYK6GNEKXRLQ774WWK6AY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,.,,...,,,.,...,...,.,.,,..,,,.,..,,...,...,.,.,..,,..,,,..,.,.,
+#ILTUG2QOWVKKCWW2UQR6U2M5BJLQ2NU5LSCNNTUBKTUTZRLLJKKGY3J6N7Y6M3QL2NRBLT4KSDGGU
+#\\\|NIQXOW77XZ7YMZLHFDR7TZHDAZMANL7EDPTGXLPAUOFMG6B6VGK \ / AMOS7 \ YOURUM ::
+#\[7]Z7KJKZASJS6V26MNGFNHX6RH5OZJMU7L4YSQ2UO4ZGIPIMDEJKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

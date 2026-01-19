@@ -7,26 +7,26 @@
 my ( $task_id, $result, $success ) = @ARG;
 
 # Get persistent storage refs
-my $queue_ref     = <coding.task.queue>;
-my $active_ref    = <coding.task.active>;
-my $completed_ref = <coding.task.completed>;
+my $queue_href     = <coding.task.queue>;
+my $aref_active    = <coding.task.active>;
+my $aref_completed = <coding.task.completed>;
 
 return {
     success => FALSE,
     error   => "task not found : $task_id"
     }
-    unless exists $queue_ref->{$task_id};
+    unless exists $queue_href->{$task_id};
 
-my $task = $queue_ref->{$task_id};
+my $task = $queue_href->{$task_id};
 
-$task->{execution}->{status}    = qw| completed |;
-$task->{execution}->{completed} = <[base.time]>;
-$task->{execution}->{result}    = $result if defined $result;
-$task->{execution}->{success}   = $success // 1;
+$task->{'execution'}->{'status'}    = qw| completed |;
+$task->{'execution'}->{'completed'} = <[base.time]>->(3);
+$task->{'execution'}->{'result'}    = $result if defined $result;
+$task->{'execution'}->{'success'}   = $success // TRUE;
 
 # Move from active to completed
-@$active_ref = grep { $_ ne $task_id } @$active_ref;
-push @$completed_ref, $task_id;
+$aref_active->@* = grep { $ARG ne $task_id } $aref_active->@*;
+push $aref_completed->@*, $task_id;
 
 <[base.logs]>->( 1, "task completed : %s", $task_id );
 
@@ -36,8 +36,8 @@ return {
     message => "Task completed: $task_id"
 };
 
-#,,.,,,,,,,.,,.,.,,,,,,.,,.,,,,,.,...,,,.,...,.,.,...,...,,..,,..,.,.,..,,,,.,
-#BNRCWJDIC7SFZKUNHFAI2D2QIE7AR3STD6LYV4MIQWOEWJYFOUTS5VOHFKQWEIYIVTPELYBIJ56XO
-#\\\|FK7RA7FAIC42P47HGT4LKXTSX4N43MCSURRJDPXZNSOTU5QMQUC \ / AMOS7 \ YOURUM ::
-#\[7]PLQRFYKG4AA5YACEGME2SNM4ZKDWISIMOVPWROMNS5XNKHTCHQDA 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,.,,.,.,,.,,,,.,..,,,.,,.,,,,..,.,.,...,...,.,,,,,.,..,,.,,,...,
+#RKGV6ISSGRPLVK7ADQBEJTPTBV5YNLUX6JVXKPQA63QEQEXTQ7P4UOT2DW3K3XXWWITF2T463DFPO
+#\\\|GT3KV7RNYWXHEKBL2YEFCMU2SCS5J7ZLUWBSKIFDRHTRB46PNJB \ / AMOS7 \ YOURUM ::
+#\[7]VN6HERJJU3XJ6JUAWC2XQBNWDRJ3FLQTT7FI5UGG7Q2CO2ZTQEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
