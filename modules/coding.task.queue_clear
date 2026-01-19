@@ -4,30 +4,30 @@
 # descr = remove completed tasks from queue and history
 # purpose = Queue operation: Clean up finished work
 
-# Get persistent storage refs
-my $queue_ref     = <coding.task.queue>;
-my $completed_ref = <coding.task.completed>;
+## persistent storage [array] refs ##
+<coding.task.queue>     //= [];
+<coding.task.completed> //= [];
 
-my $cleared = scalar(@$completed_ref);
+my $cleared = scalar <coding.task.completed>->%*;
 
 # Remove completed tasks from queue
-foreach my $task_id (@$completed_ref) {
-    delete $queue_ref->{$task_id};
+foreach my $task_id ( <coding.task.completed>->@* ) {
+    delete <coding.task.queue>->{$task_id};
 }
 
 # Clear completed list
-@$completed_ref = ();
+<coding.task.completed> = [];
 
 <[base.logs]>->( 1, "cleared %d completed tasks", $cleared );
 
 return {
     success   => TRUE,
     cleared   => $cleared,
-    remaining => scalar( keys %$queue_ref )
+    remaining => scalar( keys <coding.task.queue>->%* )
 };
 
-#,,,.,.,,,,.,,...,.,.,.,.,.,.,..,,.,,,,,.,...,.,.,...,...,..,,,..,.,.,,,,,,,,,
-#WWAFDLOOL5G3BI7VI3UVF73IEQ2EHCLHK3J6645FVMOWHWXOTRFYND67IAUTNBUKJKU3KCUWGDHYM
-#\\\|P4WTGCECGHJRI5JDH7YB2IUDRH36DO6KDRB5Z257HNFYG4VRYGE \ / AMOS7 \ YOURUM ::
-#\[7]57GIG7AO4KN2V66L6CEQQXG2A3WO3VD6EIR5BUQJVLSJ65DEN4AA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,,.,,.,,..,,..,,,,.,.,,,,.,,,..,.,.,...,..,,,..,.,,,..,,,.,,,,.,
+#2DRU5RKRBCBKPCOOCFX4ENPJUXOFPTWTJ65OWXGLE644IIBE3ZPT3L4B7ILZKR75R63QRV4AS3DIO
+#\\\|7HSV2V3LPMXXK7S6JMWC2D62CHDUB6MJRUWN7TVTV3VEH2EC5YC \ / AMOS7 \ YOURUM ::
+#\[7]AFXV6FO2EZMYI2DUE4SYNANH3ISPJJYL7R2L45HX235B5DZUSADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,8 +1,9 @@
 ## [:< ##
 
-# name = coding.task.complete
-# descr = mark coding task as completed
-# purpose = coding task management : wrapper around jobqueue.move_job to mark job complete
+# name    = coding.task.complete
+# descr   = mark coding task as completed
+# purpose = coding task management
+#           [ wrapper around jobqueue.move_job to mark job complete ]
 
 my ( $task_id, $result ) = @ARG;
 
@@ -13,27 +14,27 @@ return {
     unless defined $task_id;
 
 # Get task from coding task queue
-my $queue_ref = <coding.task.queue>;
-my $task      = $queue_ref->{$task_id};
+my $queue_href = <coding.task.queue>;
+my $task       = $queue_href->{$task_id};
 
 return {
     success => FALSE,
-    error   => "task not found : $task_id"
+    error   => "task not found : '$task_id'"
     }
     unless defined $task;
 
 # Update task execution status
-$task->{execution}->{status}  = 'completed';
-$task->{execution}->{result}  = $result;
-$task->{execution}->{success} = TRUE;
-$task->{execution}->{completed} = <[base.time]>->(3);
+$task->{'execution'}->{'status'}    = qw| completed |;
+$task->{'execution'}->{'result'}    = $result;
+$task->{'execution'}->{'success'}   = TRUE;
+$task->{'execution'}->{'completed'} = <[base.time]>->(3);
 
 # Move task to completed list
-my $pending_ref  = <coding.task.pending>;
-my $completed_ref = <coding.task.completed>;
+my $aref_pending   = <coding.task.pending>;
+my $aref_completed = <coding.task.completed>;
 
-@$pending_ref  = grep { $_ ne $task_id } @$pending_ref;
-push @$completed_ref, $task_id;
+$aref_pending->@* = grep { $ARG ne $task_id } $aref_pending->@*;
+push $aref_completed->@*, $task_id;
 
 <[base.logs]>->( 2, "task completed: %s", $task_id );
 
@@ -47,8 +48,8 @@ return {
     message => "task completed : $task_id"
 };
 
-#,,.,,,,,,...,..,,..,,.,.,.,,,.,.,,,.,.,.,,,.,..,,...,...,..,,,..,.,,,..,,.,.,
-#EYV55FMWSUDU6V3DG6KI3X54UUPZDTF4KPB6LKBEWAZ4VE7YL6YQSB5NDP6ILCYDZLASEGHQI4Y36
-#\\\|CRWBUYO4GOZ3HPRVNQSD6NCPMJZNY7IFCJ6KHBQJZGSUPBBPJIR \ / AMOS7 \ YOURUM ::
-#\[7]YVNTX5LNYMHQDBXV373XDOEWQIIXXVFNLEWD6L3IVIS5MWPP5QDQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,.,.,,,.,,,.,.,.,.,,,...,.,.,,,,,..,,...,...,...,...,.,,,,,.,,..,
+#IM4MAYFXN5WRUXJKAGOGNVCTCKYKNARJ2T7CYHTYBLMHEF5WK2MTATC6BZVVMYGLLRYR7FCJHVOBI
+#\\\|IT2BRZFF6UIWSHOZQJLHM2AQNZB4HIT47CG4TS3AXKLCENXAU5U \ / AMOS7 \ YOURUM ::
+#\[7]V5SM4VASGPRMFYOQ4PHJMAPXCYUBFDG5BQ3V5NMRFVEFX655UEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

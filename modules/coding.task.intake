@@ -56,9 +56,9 @@ my $normalize_task = sub {
     my ($task) = @ARG;
 
     # Ensure all required fields exist with sensible defaults
-    $task->{type}                = lc( $task->{type} // qw| analysis | );
-    $task->{priority}            = $task->{request}->{priority} // qw|normal|;
-    $task->{execution}->{status} = qw| pending |;
+    $task->{type}     = lc( $task->{type} // qw| analysis | );
+    $task->{priority} = $task->{request}->{priority} // qw|normal|;
+    $task->{'execution'}->{'status'} = qw| pending |;
 
     # Normalize priority values
     if ( $task->{priority} !~ m{^(critical|high|normal|low)$} ) {
@@ -181,8 +181,8 @@ my $intake_work = sub {
 
 # AMOS7::TEMPLATE::signature_placeholder
 
-#,,,,,,..,,,,,.,.,...,.,.,.,,,...,,..,.,.,.,,,..,,...,...,,..,,,,,,,.,,,,,.,.,
-#BADGX2CEFHTQXVZU6NQPRITR6RWUKGIVVJ57ZBYPO354BSXHP4UJUCWJ4TFOOYGHQCZABCCFEGLDY
-#\\\|K4DQ7XJRSIINK4ZGCCHCMLMAAVWW5KK2XEDJCDDSCJV2LWJ6Y3M \ / AMOS7 \ YOURUM ::
-#\[7]46CUIUJYESFFFUQTWFVFWKH3PVYJPP7VWRTELXJE25VBCAMEEOAY 7  DATA SIGNATURE ::
+#,,,,,...,,,.,.,.,,.,,..,,,.,,.,,,,..,,.,,,,.,..,,...,...,...,,,,,.,,,..,,.,.,
+#UNTG4PBOV3DD2TBYC4H75BRMWH4OF45YVJO75REOS7GA3PKN6UQ4KHQA2TO3TZNZ76MG22FAZ65OM
+#\\\|CLDHQGLUMLNQBMLRDZJ2RSQTFANBMODJXYUGN57VKXQWSMXR3PN \ / AMOS7 \ YOURUM ::
+#\[7]NOK6Z5222PJEXAZ4XBDZFZ3JLGV6LS6X4ACKQIIAJMS5PGPMVCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

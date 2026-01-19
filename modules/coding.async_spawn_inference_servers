@@ -7,7 +7,12 @@
 <[base.logs]>->( 1, ": starting inference servers asynchronously" );
 
 # Get spawn parameters
-my $spawn_params = $data{'coding.spawn_params'} // {};
+my $spawn_params = <coding.spawn_params> // {};
+
+if ( not keys $spawn_params->%* ) {
+    warn 'expected spawn parameters not found [cannot start server]';
+    return FALSE;
+}
 
 # Spawn GPU server if enabled
 if ( $spawn_params->{'gpu_enabled'} ) {
@@ -41,8 +46,8 @@ if ( $spawn_params->{'gpu_enabled'} ) {
 
 return TRUE;
 
-#,,,,,,,.,.,,,.,,,...,,..,,..,..,,,,,,,,,,,.,,..,,...,...,.,,,.,.,,,,,,..,...,
-#XRHNE6DZVPRGOWFSIOQPLWIZDZW6JDH542YMCFLC7PRPZ4Z2T7JZSAKRCLIANZJ3VO32XKDWEP53S
-#\\\|N5SZ5MRBKMCA4DRWXKEOLMWM7FUWES4FQH22YNNBFG2BBRX5PF3 \ / AMOS7 \ YOURUM ::
-#\[7]D7QJKIVAKJ5K6Y2AT7263IIA7JDAFLPZQE2RSFLUO7UE4Z42WSAY 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,,.,,,..,,..,,,,,,.,,.,.,,..,,,.,..,,...,...,..,,,.,,,,.,,,.,...,
+#CSXWVXOT623QZMKBKA2HL3GIBVNXSX3IIJ7TA7NUEY4YAYRCTVG73IXDZUXDT54V7URAU7S6DDUNS
+#\\\|AR4OSN544U5MBQYYVAUPW6M5IY66GYCQBOG4AURTFFN27NMI7KV \ / AMOS7 \ YOURUM ::
+#\[7]JDX3SMP3RR76ULKQOFIALDAO5ITRCPHW5OT56O7VVFOFNEWTU4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
