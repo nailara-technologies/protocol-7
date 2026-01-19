@@ -50,8 +50,8 @@ while ( length $input_chars ) {
     last if not defined $key; ## Incomplete UTF-8 sequence, wait for more data
 
 ## Helper: extract a complete UTF-8 character (may be 1-4 bytes)
-    sub _extract_utf8_char {
-        my ($buf_ref) = @_;
+    sub _extract_utf8_char {  ### extract subroutine ### [LLL]
+        my ($buf_ref) = @ARG;
         return undef if !length($$buf_ref);
 
         my $first_byte = ord( substr( $$buf_ref, 0, 1 ) );
@@ -74,8 +74,8 @@ while ( length $input_chars ) {
     }
 
 ## Helper: write bytes ensuring complete write (syswrite may be partial)
-    sub _syswrite_complete {
-        my ( $fh, $data ) = @_;
+    sub _syswrite_complete {    ### extract subroutine ## [LLL]
+        my ( $fh, $data ) = @ARG;
         my $total   = length($data);
         my $written = 0;
 
@@ -114,6 +114,7 @@ while ( length $input_chars ) {
             if ( defined $lines_ref ) {
                 $display_buffer = join "\n", $lines_ref->@*;
                 $command_buffer = $display_buffer;
+                $display_buffer = $colors{'p7_fg_0004'} . $display_buffer;
                 <[nshell.redraw_command_line]>->(
                     $command_buffer, $display_buffer
                 );
@@ -123,6 +124,7 @@ while ( length $input_chars ) {
             if ( defined $lines_ref ) {
                 $display_buffer = join "\n", $lines_ref->@*;
                 $command_buffer = $display_buffer;
+                $display_buffer = $colors{'p7_fg_0004'} . $display_buffer;
                 <[nshell.redraw_command_line]>->(
                     $command_buffer, $display_buffer
                 );
@@ -253,7 +255,7 @@ while ( length $input_chars ) {
         ## In raw mode, Ctrl-C is just a byte - send SIGINT to trigger
         ## base.sig_int handler
         kill( qw| INT |, $$ );
-        next;                       ## Continue to next buffered character
+        next;    ## Continue to next buffered character
     } elsif ( $key eq "\x04" ) {    ## Ctrl-D (EOF)
         next;                       ## Continue to next buffered character
     } elsif ( $key eq "\x08" or $key eq "\x7f" ) {    ## Backspace/Delete
@@ -278,8 +280,8 @@ while ( length $input_chars ) {
 
 return undef;    ## No complete line yet, buffer exhausted or incomplete UTF-8
 
-#,,,.,,..,..,,,..,..,,,.,,,.,,.,,,..,,,.,,.,.,..,,...,..,,..,,,.,,,,,,,..,.,.,
-#ADPHAO62E424WR7WS33H3MD4Y33HQTLLA47DXI4DH5IQCWDBBJNODY6MDHPDMEVJX33IV4I2SDQTW
-#\\\|OHPD6HLQWJQWVFV3ZRZZ2R6HSA6YN4TVVC35T7GMHDWQBACA7XZ \ / AMOS7 \ YOURUM ::
-#\[7]CBTCUBAE6Q7QZ36MA6GRQ7X4332XHSTT5YFCUZLSOTG7GPVM2OBY 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,.,,...,,,,,,,.,,.,,,,,,,.,,.,.,..,,...,...,.,,,,,.,.,.,.,.,.,.,
+#3T3APS66JP746VFTUWVFAPUIG64LKDKWEUN3KUYQ6JAXWGCYI6YSIYEJFK3CQ6GMVQLDMKIY6DO7S
+#\\\|RATPHBCWGBEY3VOUNIM7G4SG456N6H7XXY7V3TKEJDDKPT7G4EF \ / AMOS7 \ YOURUM ::
+#\[7]VRLV4KBNWV6HSGCLNCJF6BPLQMWXGFXC7F7SDC3UPQH4ZBDLJ2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
