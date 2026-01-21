@@ -160,7 +160,7 @@ close( delete <mpv.fh.stdin> );    # input fd not required
 
 <[mpv.open_control_socket]>;
 
-<[mpv.await_window_presence]> if not <mpv.audio_only>;
+# <[mpv.await_window_presence]> if not <mpv.audio_only>;
 
 <[mpv.callback.fade_in]> if <mpv.fade_in> and not <mpv.audio_only>;
 
@@ -169,7 +169,7 @@ close( delete <mpv.fh.stdin> );    # input fd not required
         'handler' => qw| mpv.handler.stdout |,
         'data'    => {
             qw| pid |           => <mpv.pid>,
-            qw| log_whitelist | => [
+            qw| log_whitelist | => [], 'another'=>[
                 'Creating non-video VO',
                 '\[ipc',
                 '.{5}Video ',
@@ -196,8 +196,8 @@ close( delete <mpv.fh.stdin> );    # input fd not required
 
 <[base.log]>->( 1, 'player startup successful., =)' );
 
-#,,,,,,,.,..,,..,,.,,,.,.,,,,,..,,.,.,.,.,.,,,..,,...,..,,.,,,,.,,..,,,.,,,,,,
-#E4QBGKMYJIWI34PCVXIUQ47SBNDPIFKIGWEKBFT4ZFBJV4M7OUJWA73IIN3LBSLMCKOBU376GQGWS
-#\\\|CB7MUQJ53HHX2ATEF2XENYUJD653JGFHAMTNAHRC7IFKEHQRA5M \ / AMOS7 \ YOURUM ::
-#\[7]ZFQFENV2JSDWASY4G4TBTIXLLALD2VOHFLYPA4SK4TNC7GB57WAA 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,..,,.,,,...,.,.,,..,..,,...,,..,..,,...,..,,,.,,.,,,.,.,,.,,...,
+#FASBQTTC3UHVIGT3VOWQ4CNVTXM5YSUCFA44EQ4JSVKS7ABRPADJHX3PLO4BRJF67TDITTM4EXRZ2
+#\\\|PV7F5TKCIJSBTXWL5EQTTPFFM32D2TNELRIMQYPHB5HQWFYZGB3 \ / AMOS7 \ YOURUM ::
+#\[7]HJ2GAUE4OSWQZFD5QEE63WUHICNIDBH2AMPGXEUUOGTYZDVLPYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

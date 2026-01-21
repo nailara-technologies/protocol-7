@@ -1,27 +1,28 @@
 ## [:< ##
 
 # name = mpv.callback.start_reenc_msg
+# TODO = implement feature-abort when 'refresh' messages fail with FALSE
 
 my $r_name
     = defined <system.zenka.subname>
-    ? 'reenc-msg[' . <system.zenka.subname> . ']'
-    : 'reenc-msg';
+    ? sprintf qw| reenc-msg[%s] |, <system.zenka.subname>
+    : qw| reenc-msg |;
 
 <[base.protocol-7.command.send.local]>->(
-    {   'command'   => "cube.v7.notify_online",
+    {   'command'   => qw| cube.v7.notify_online |,
         'call_args' => { 'args'    => $r_name },
-        'reply'     => { 'handler' => 'mpv.handler.reenc_notify_reply' }
+        'reply'     => { 'handler' => qw| mpv.handler.reenc_notify_reply | }
     }
 );
 
 <[base.protocol-7.command.send.local]>->(
-    {   'command'   => "cube.v7.start_once",
+    {   'command'   => qw| cube.v7.start_once |,
         'call_args' => { 'args' => $r_name }
     }
 );
 
-#,,.,,...,.,,,.,.,,..,.,,,,.,,...,,..,.,.,,.,,..,,...,...,.,.,.,,,.,.,,,,,,,,,
-#6KK7YDP65HD6DQUAFF4WKTWFYAL43XSVUUXJVQSBKQWH7PGLLT4ASXQMHV2Q3DESKA4A5WR5FTV26
-#\\\|MT2EOURXH3QS3GH553BV5V5AOB4NQGNSPHHVEC5JKUA7S27XATO \ / AMOS7 \ YOURUM ::
-#\[7]R5TRYTCOYTXH4IH2JBTLPVHVGTXKKH6Y7J7FBW33SO2NWG66AIAY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,.,.,.,,,.,.,,,,,.,.,.,.,.,,,,,,,..,,...,..,,...,,..,,,.,.,.,,.,,
+#2V65IYU7Y6YO76VQQVJ3YDWNXRWNZNXHLRO47YRKKISEBN2I3APZXZITSYZKDLUSF27ZLKCLKDYTI
+#\\\|Y2BPFMFVY3J2CNOQZ5K6QLDSMFUI45QEVBEITAFZ7ZWXKHPW6V2 \ / AMOS7 \ YOURUM ::
+#\[7]2GRMXF2POM7WA5DKNQSANU5VWZ2XI34O3E7XPTAUZWTBRSZMKWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
