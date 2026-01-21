@@ -18,10 +18,12 @@ my $key_filename = $key_vars_ref->{'key_filename'};
 <[base.logs]>->( 2, "..loading key pair '%s'..", $name );
 <[base.logs]>->( 2, ":... %s ..:.. ..  .",       $key_dir );
 
+### checking if files are readable ###
 foreach my $type ( <[base.sort]>->($key_filename) ) {
-    if ( -f $key_filename->{$type} and not -r $key_filename->{$type} ) {
+    if ( -f $key_filename->{$type} && !-r $key_filename->{$type} ) {
         ( my $file = $key_filename->{$type} ) =~ s|^.*/||;
-        <[base.logs]>->( 0, "no read permission for key '%s'", $file );
+        <[base.logs]>
+            ->( 0, "::: no read permission for key '%s' :::", $file );
         return undef;
     }
 }
@@ -387,8 +389,8 @@ SKIP_SECRET_KEY_LOADING:
     return FALSE;    ##  false  ##
 }
 
-#,,,.,,..,.,.,.,,,,,,,,..,.,.,.,.,,.,,,,.,,,.,..,,...,...,,,,,.,.,,..,,,,,,,,,
-#GFJK4LEF2KGAKPRVNKVZ5AU2AUBLJFDYFHUZ56MJRMKRAWM44MOTUP4EXQFBJPTERLLIKSBTRXLPM
-#\\\|RIRZVM2S7LEUGO4G6DQDFYQHK5FTAVNFFL3AOBL7W6YIRG3EWBN \ / AMOS7 \ YOURUM ::
-#\[7]WKL5TYZJFEBLSYYNIH6EP6UMXWJQZXGH3UBACLP4WOAVFPXKWIAY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,.,,..,,.,,,,.,,..,,..,.,.,.,.,..,,...,..,,,..,...,...,.,.,,,,,
+#G53SNVVHVDBHMKNBWA2PWKFUYMAIWRXZDDO3UUSCHMR3JC232QYWPBGRYIL5PAL3AATC7BMQORMAC
+#\\\|GFI3LHYSQSKXNBPDRQDF47GMGZAAW5O2IXM4QT3KZ6L6GRBU2YO \ / AMOS7 \ YOURUM ::
+#\[7]UXGTJOMQ5AJCNKS6WULAOUXTJP5JM25IL6F4GWQ5A3AUZHSBM6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
