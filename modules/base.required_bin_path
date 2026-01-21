@@ -9,12 +9,16 @@ warn "expected bin_name parameter" if !length($bin_name);
 
 ( my $bin_path ) = <[file.which]>->($bin_name);
 
-<[base.log]>->( 0, "binary '$bin_name' not found" ) if not defined $bin_path;
+<[base.logs]>->( 0, "binary not found [ '%s' ]", $bin_name )
+    if not defined $bin_path;
+
+<[base.log]>->( 0, ": ENV{ PATH } is not defined" )
+    if not defined $ENV{'PATH'};
 
 return $bin_path;
 
-#,,,,,.,,,..,,..,,.,.,...,...,..,,...,,,,,,,.,..,,...,...,,,,,.,,,,,.,,,.,.,,,
-#N2NZLPAX633SULP6USL3MCY5MAWGPYJH5CYIU2H57YVSVE4JRENIW3F6CSCZ4D4LISUTXUZBHFPGA
-#\\\|D3ZT37LODVKLKKBUBOLE7WFKOJI22ILORMJHNC5AFKKQZ7JZ5TH \ / AMOS7 \ YOURUM ::
-#\[7]VEZUDJMWS2VCXKS32LJ5POFIMXK3JPVXNFMW2RJE2MNSKN5GESBY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,.,.,.,.,,.,,.,.,,,.,.,.,,..,..,,..,,...,...,,,.,,..,.,.,..,,..,,
+#SVZPB2LMBCDIDVBHPYJL5XNRBWQ6L4WTXAHM5CBUD4OXNGC4NDWCF555HARVF7Z3U3HUFG7547MEO
+#\\\|SG5ISXDHYKMRU7INQU7SK2DQ6D2OMLU7Z2N2JEPIIC6BXSZA2B4 \ / AMOS7 \ YOURUM ::
+#\[7]FEG63KGWAE6C7AESNMLANEAGI7X45DNH4FJPK4LGAAJKWF6TYADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
