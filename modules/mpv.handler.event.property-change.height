@@ -27,8 +27,8 @@ if ( <mpv.autorescale> and !-f $current_path ) {
     my $target_path;
     my $window_width  = <mpv.current.window_width>;
     my $window_height = <mpv.current.window_height>;
-    my $box_width     = <mpv.current.box_width>;
-    my $box_height    = <mpv.current.box_height>;
+    my $box_width     = <mpv.current.box_width>  // $window_width;
+    my $box_height    = <mpv.current.box_height> // $window_height;
     my $box_size      = "${box_width}x$box_height";
     $target_path = <mpv.file_map.rescaled.target>->{$current_path}
         if defined <mpv.file_map.rescaled.target>->{$current_path};
@@ -44,6 +44,16 @@ if ( <mpv.autorescale> and !-f $current_path ) {
         my $target_height
             = sprintf( '%.0f', $video_height / $video_width * $target_width );
 
+        if (   $target_width == $video_width
+            && $target_height == $video_height ) {
+            <[base.log]>->(
+                0,
+                "[autorescale]--< skipped reencoding >--"
+                    . "[ video size already ${video_width}x$video_height ]"
+            );
+            return FALSE;
+        }
+
         my %check_size;
         foreach my $step ( -1, 1 ) {  # test both directions (smaller, larger)
             $check_size{$step}
@@ -57,10 +67,9 @@ if ( <mpv.autorescale> and !-f $current_path ) {
                     or $check_size{$step}{'height'} == 0;
 
                 $check_size{$step}{'width'} += $step;
-                $check_size{$step}{'height'} = sprintf( '%.0f',
-                          $video_height
-                        / $video_width
-                        * $check_size{$step}{'width'} );
+                $check_size{$step}{'height'} = sprintf qw| %.0f |,
+                    ( $video_height / $video_width )
+                    * $check_size{$step}{'width'};
             }
         }
 
@@ -98,7 +107,7 @@ if ( <mpv.autorescale> and !-f $current_path ) {
                     . $rmsg
             );
             <[mpv.callback.start_reenc_msg]> if !<mpv.disable_reenc_msg>;
-            <[base.protocol-7.command.send.local]>->(
+            return <[base.protocol-7.command.send.local]>->(
                 {   'command'   => 'cube.ffmpeg[mpv].rescale_video',
                     'call_args' => { 'args' => $cmd_args },
                     'reply'     => {
@@ -114,8 +123,8 @@ if ( <mpv.autorescale> and !-f $current_path ) {
     }
 }
 
-#,,,,,,..,,,.,,,.,,,.,...,,,.,.,,,,..,,,,,,,.,..,,...,...,...,,.,,...,.,.,...,
-#7E3UXPZBV4DULPJJGM4XOOHQEAWKWFN2GIDFT64FV64LM42IXPYCJZXDXXWDRTKFG3T3IFC2OLFYG
-#\\\|ZMPJYOTMFSGQBVYI2OOJC6TIUOT5IEE6BW4F2RWU2SIWEVHESND \ / AMOS7 \ YOURUM ::
-#\[7]B46KIILHBZUTX4GNX5SYFXAHOHVETE7LVDUF5XROIC23U3M7IWDI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,,,,.,,.,,,,,,,,,,,..,,,.,,,,,,..,,...,..,,..,,,,.,...,,,,,..,,
+#4FTMNSOJZAPXCQWCHKGPTAIJXE7Z76MGCZRK4RKVODLMFUHC4XW2GGB6XIFM55E2QFHCRYWYXI2KW
+#\\\|H5FIPCJ3OYKAKIJC2JJ2TWPADCOO4YI3L6WO5V7HIRZUMV5R2QF \ / AMOS7 \ YOURUM ::
+#\[7]XUEFMAL23AMKWR3MKVMNMQAJQGVPMQTWMN3ALQVI3667XYIJJGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

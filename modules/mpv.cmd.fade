@@ -10,6 +10,11 @@ my $id       = $call->{'session_id'};
 
 my ( $volume, $speed ) = split( m| +|, $params // '', 2 );
 
+## [LLL] implement async retrieval ##
+#
+<mpv.current_volume> //= <mpv.start_volume> // 0;
+#
+##
 return {
     'mode' => qw| false |,
     'data' => 'expected numerical percent value'
@@ -42,7 +47,10 @@ return {
 my $id_str = defined $id ? sprintf( '[%u] ', $id ) : '';
 
 my $log_level = length($id_str) ? 1 : 2;
-<[base.logs]>->( $log_level, '%sfading volume to %s%%', $id_str, $vol_str );
+<[base.logs]>->(
+    $log_level, '%s[ fading volume to %.1f%% ]',
+    $id_str,    $vol_str
+);
 
 my $min_delay = 0.0064;
 <mpv.current.volume_target> = <mpv.audio_fade.target> = $volume;
@@ -83,8 +91,8 @@ $interval_delay = $min_delay if $interval_delay < $min_delay;
 
 return { 'mode' => qw| deferred | }
 
-#,,,,,,,.,,,,,,,,,,.,,..,,,..,.,.,,..,,.,,,.,,..,,...,..,,,.,,.,.,.,.,,..,.,,,
-#G27QTOOI4JAGQYCQ7WRMRUD5UXJYR6LB3D4LONI4JYAM4AUBXSZL2QQE6S7XWDWEVVSPA7G5WQC4G
-#\\\|XTD32STLW7F3TGMATJIK73JKGJPEDSRJTY7PSFQUPOMBAKDJX5T \ / AMOS7 \ YOURUM ::
-#\[7]DYEVOEEYTKYH3VDYXI6VC5L654Y2OEHUJ3ED6TUFG3W4635SRSDA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,.,.,...,..,,..,,..,,,..,.,,,,,.,..,,...,...,,..,,..,..,,..,,,,.,
+#AOXPQK2XEM5CJKSIKWA5DZZ47S6XKI3P4RAXVEXUBNFQ2AAXMZFR2YNFAXE6AFBJYM7KDBPOHVBLI
+#\\\|KBMT7WKAIQEEKHA5UHXING7RWG4VVN5NOUBAHMPNFVNK64DCD4M \ / AMOS7 \ YOURUM ::
+#\[7]UU3CBUCSDIADYB4ICB4XLSW4JURKX3Z7T2SRAHE5WMIXTW5EJOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
