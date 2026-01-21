@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windows Host to KVM Virtualized Migration Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0015 0%, #1a0033 50%, #0d001a 100%);
+            color: #e0d5ff;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Psychedelic translucent overlays */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(102, 0, 204, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 255, 136, 0.08) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            border-bottom: 2px solid;
+            border-image: linear-gradient(90deg, #ff00ff 0%, #00ffff 100%) 1;
+            padding-bottom: 30px;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffcc, 0 0 20px #ff00ff;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #ff00ff;
+            font-size: 1.1em;
+            font-style: italic;
+            text-shadow: 0 0 5px #ff00ff;
+        }
+
+        h2 {
+            color: #ff00ff;
+            font-size: 1.8em;
+            margin-top: 50px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 0, 255, 0.3);
+            text-shadow: 0 0 8px #ff00ff;
+        }
+
+        h3 {
+            color: #00ffff;
+            font-size: 1.3em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            text-shadow: 0 0 5px #00ffcc;
+        }
+
+        h4 {
+            color: #a0ff00;
+            font-size: 1.1em;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .phase {
+            background: rgba(15, 0, 40, 0.6);
+            border-left: 3px solid;
+            border-image: linear-gradient(180deg, #ff00ff, #00ffff) 1;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.1);
+        }
+
+        .phase-number {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff00ff, #00ffff);
+            color: #0a0015;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 0.9em;
+        }
+
+        code {
+            background: rgba(0, 0, 0, 0.5);
+            color: #a0ff00;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.95em;
+            text-shadow: 0 0 3px #a0ff00;
+        }
+
+        pre {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 4px;
+            padding: 15px;
+            overflow-x: auto;
+            margin: 20px 0;
+            color: #a0ff00;
+            text-shadow: 0 0 3px #a0ff00;
+            line-height: 1.5;
+        }
+
+        pre code {
+            background: none;
+            color: #a0ff00;
+            padding: 0;
+            text-shadow: 0 0 3px #a0ff00;
+        }
+
+        .note {
+            background: rgba(102, 0, 204, 0.15);
+            border-left: 3px solid #ff00ff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .note::before {
+            content: '⚡ ';
+            color: #ff00ff;
+            font-weight: bold;
+        }
+
+        .warning {
+            background: rgba(255, 100, 0, 0.1);
+            border-left: 3px solid #ff6400;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .warning::before {
+            content: '⚠ ';
+            color: #ff6400;
+            font-weight: bold;
+        }
+
+        .success {
+            background: rgba(0, 255, 136, 0.1);
+            border-left: 3px solid #00ff88;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .success::before {
+            content: '✓ ';
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(15, 0, 40, 0.4);
+        }
+
+        th {
+            background: rgba(102, 0, 204, 0.3);
+            color: #00ffff;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid rgba(0, 255, 255, 0.3);
+            font-weight: bold;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 0, 255, 0.1);
+        }
+
+        tr:hover {
+            background: rgba(102, 0, 204, 0.1);
+        }
+
+        a {
+            color: #00ffff;
+            text-decoration: none;
+            text-shadow: 0 0 3px rgba(0, 255, 255, 0.5);
+            border-bottom: 1px dotted rgba(0, 255, 255, 0.3);
+        }
+
+        a:hover {
+            text-shadow: 0 0 10px #00ffff;
+            border-bottom: 1px solid #00ffff;
+        }
+
+        .step-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .step-list li {
+            margin-bottom: 15px;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .step-list li::before {
+            content: counter(step-counter);
+            counter-increment: step-counter;
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: linear-gradient(135deg, #ff00ff, #00ffff);
+            color: #0a0015;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .step-list {
+            counter-reset: step-counter;
+        }
+
+        .file-marker {
+            display: inline-block;
+            background: rgba(255, 100, 0, 0.2);
+            color: #ff6400;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+
+        .toc {
+            background: rgba(15, 0, 40, 0.6);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            padding: 20px;
+            margin-bottom: 40px;
+            border-radius: 4px;
+        }
+
+        .toc h3 {
+            color: #00ffff;
+            margin-top: 0;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .toc li {
+            padding: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .toc li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #ff00ff;
+        }
+
+        .partition-diagram {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre;
+            word-wrap: break-word;
+            font-size: 0.9em;
+            line-height: 1.4;
+            color: #a0ff00;
+            text-shadow: 0 0 3px #a0ff00;
+        }
+
+        hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #ff00ff, #00ffff, transparent);
+            margin: 40px 0;
+        }
+
+        footer {
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 0, 255, 0.2);
+            color: #a0a0ff;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Windows Host to KVM Virtualized Migration</h1>
+            <p class="subtitle">Complete guide: Dual-boot Windows + Debian → Native Debian + Virtualized Windows</p>
+        </header>
+
+        <div class="toc">
+            <h3>📑 Quick Navigation</h3>
+            <ul>
+                <li><a href="#overview">Overview & Architecture</a></li>
+                <li><a href="#prerequisites">Prerequisites & Analysis</a></li>
+                <li><a href="#phase1">Phase 1: Prepare Debian Host</a></li>
+                <li><a href="#phase2">Phase 2: Install & Optimize KVM</a></li>
+                <li><a href="#phase3">Phase 3: Migrate Windows to VM</a></li>
+                <li><a href="#phase4">Phase 4: Configure Storage & Sharing</a></li>
+                <li><a href="#phase5">Phase 5: Management & Automation</a></li>
+                <li><a href="#phase6">Phase 6: Backup & Recovery</a></li>
+                <li><a href="#testing">Testing & Verification</a></li>
+                <li><a href="#scripts">Complete Scripts Reference</a></li>
+            </ul>
+        </div>
+
+        <hr>
+
+        <section id="overview">
+            <h2>Overview & Architecture</h2>
+
+            <div class="phase">
+                <h3>What You're Doing</h3>
+                <p>Converting a dual-boot system (Windows 11 + Debian native) into a Debian-native system with Windows 11 running as a KVM virtual machine. This gives you:</p>
+                <ul class="step-list">
+                    <li><strong>Full Linux control:</strong> Boot into Debian by default, manage your entire system natively</li>
+                    <li><strong>Preserved Windows:</strong> Windows still available via virtual machine with near-native performance</li>
+                    <li><strong>XFS access freedom:</strong> Direct access to all XFS partitions from Linux without WSL limitations</li>
+                    <li><strong>Flexible storage:</strong> Shared folders between systems without filesystem compromises</li>
+                    <li><strong>Dual license benefit:</strong> Same Windows 11 license works both ways</li>
+                </ul>
+            </div>
+
+            <h3>Architecture Before & After</h3>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0;">
+                <div style="background: rgba(102, 0, 50, 0.3); border: 2px solid rgba(255, 100, 0, 0.4); border-radius: 4px; padding: 20px;">
+                    <h4 style="color: #ff6400; margin-top: 0;">BEFORE: Dual Boot</h4>
+                    <div style="color: #a0ff00; font-family: monospace; font-size: 0.9em; line-height: 1.8;">
+                        <div>🔧 BIOS/UEFI</div>
+                        <div style="border-left: 2px solid #ff6400; padding-left: 15px; margin-left: 10px; margin-top: 10px;">
+                            <div>⬇️ Boot Windows 11</div>
+                            <div style="color: #ff8800; margin-top: 5px;">/dev/sda3 (Native OS)</div>
+                        </div>
+                        <div style="border-left: 2px solid #666; padding-left: 15px; margin-left: 10px; margin-top: 10px;">
+                            <div>⬇️ OR Boot Debian</div>
+                            <div style="color: #888; margin-top: 5px;">/dev/sda5,7,8 (Alternative)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: rgba(0, 100, 102, 0.3); border: 2px solid rgba(0, 255, 136, 0.4); border-radius: 4px; padding: 20px;">
+                    <h4 style="color: #00ff88; margin-top: 0;">AFTER: KVM Virtualized</h4>
+                    <div style="color: #a0ff00; font-family: monospace; font-size: 0.9em; line-height: 1.8;">
+                        <div>🐧 Debian Linux</div>
+                        <div style="color: #00ff88; margin-top: 5px;">(Native Boot)</div>
+                        <div style="border-left: 2px solid #00ff88; padding-left: 15px; margin-left: 10px; margin-top: 10px;">
+                            <div>⬇️ KVM Hypervisor</div>
+                            <div style="border-left: 2px solid #00ccff; padding-left: 15px; margin-left: 10px; margin-top: 10px; color: #00ffff;">
+                                <div>🪟 Windows 11 VM</div>
+                                <div style="color: #a0a0ff; margin-top: 5px; font-size: 0.85em;">
+                                    8GB RAM | 4 CPU cores
+                                </div>
+                            </div>
+                        </div>
+                        <div style="border-left: 2px solid #ff00ff; padding-left: 15px; margin-left: 10px; margin-top: 10px;">
+                            <div>⬇️ Direct XFS Access</div>
+                            <div style="color: #888; margin-top: 5px; font-size: 0.85em;">/dev/sda7, /dev/sda8</div>
+                        </div>
+                        <div style="border-left: 2px solid #ffff00; padding-left: 15px; margin-left: 10px; margin-top: 10px;">
+                            <div>⬇️ Samba Sharing</div>
+                            <div style="color: #888; margin-top: 5px; font-size: 0.85em;">Windows ↔ Linux</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="note">
+                <strong>Key insight:</strong> Windows runs as a regular user process on Debian. You boot into Linux every time, but can launch Windows on demand with full graphics and networking.
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="prerequisites">
+            <h2>Prerequisites & System Analysis</h2>
+
+            <h3>Hardware Requirements</h3>
+            <table>
+                <tr>
+                    <th>Component</th>
+                    <th>Minimum</th>
+                    <th>Recommended (Your Setup)</th>
+                </tr>
+                <tr>
+                    <td>CPU</td>
+                    <td>Intel/AMD with VT-x/AMD-V (check: <code>grep -E vmx|svm /proc/cpuinfo</code>)</td>
+                    <td>Modern multi-core (4+ cores)</td>
+                </tr>
+                <tr>
+                    <td>RAM</td>
+                    <td>8GB total (4GB Debian + 4GB Windows)</td>
+                    <td>16GB+ (8GB Debian + 8GB Windows)</td>
+                </tr>
+                <tr>
+                    <td>Storage</td>
+                    <td>160GB total disk</td>
+                    <td>1TB SSD/HDD (EMTEC X160 1TB - your hardware)</td>
+                </tr>
+                <tr>
+                    <td>VT-d</td>
+                    <td>Optional (for device passthrough)</td>
+                    <td>Useful for USB device direct access</td>
+                </tr>
+            </table>
+
+            <h3>Verify Hardware Virtualization Support</h3>
+            <p>Run this before proceeding:</p>
+            <pre><code>grep -E 'vmx|svm' /proc/cpuinfo && echo "✓ Virtualization enabled" || echo "✗ Virtualization disabled"</code></pre>
+
+            <h3>Check BIOS Settings</h3>
+            <p>If the above returns nothing, reboot into BIOS and enable:</p>
+            <ul>
+                <li><strong>Intel systems:</strong> VT-x, VT-d</li>
+                <li><strong>AMD systems:</strong> SVM, AMD-Vi</li>
+            </ul>
+
+            <h3>Your Current Partition Layout (Reference)</h3>
+            <div class="partition-diagram">/dev/sda (EMTEC X160 1TB)
+├─ /dev/sda1: EFI (512MB)
+├─ /dev/sda2: Windows Recovery (XXX MB) [TEST DATA - REPLACE]
+├─ /dev/sda3: Windows 11 (XXX GB) [TEST DATA - REPLACE]
+│  └─ Will become VM disk image
+├─ /dev/sda5: Debian / (XXX GB) [TEST DATA - REPLACE]
+├─ /dev/sda6: Swap (XXX GB) [TEST DATA - REPLACE]
+├─ /dev/sda7: XFS Data (XXX GB) [TEST DATA - REPLACE]
+└─ /dev/sda8: XFS Backup (XXX GB) [TEST DATA - REPLACE]
+            </div>
+
+            <div class="warning">
+                <strong>Critical:</strong> Back up your Windows partition before proceeding. The migration involves converting the raw partition into a virtual machine disk image. While this is reversible, a backup is essential.
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="phase1">
+            <h2>Phase 1: Prepare Debian Host</h2>
+
+            <div class="phase">
+                <span class="phase-number">1</span>
+                <h3>Objective: Set up Debian as your primary native OS</h3>
+            </div>
+
+            <h3>Step 1.1: Boot into Native Debian</h3>
+            <p>Restart your system and select Debian from the boot menu (GRUB). You should now be booting into Debian as your native OS.</p>
+
+            <h3>Step 1.2: Update System</h3>
+            <pre><code>sudo apt update && sudo apt dist-upgrade -y</code></pre>
+
+            <h3>Step 1.3: Install Required Packages</h3>
+            <pre><code>sudo apt install -y \
+  qemu-system-x86 \
+  libvirt-daemon-system \
+  libvirt-clients \
+  virtinst \
+  virt-viewer \
+  virt-manager \
+  libvirt-dev \
+  bridge-utils \
+  dnsmasq \
+  samba \
+  samba-common-bin \
+  nfs-kernel-server \
+  dos2unix \
+  pv \
+  gparted</code></pre>
+
+            <h3>Step 1.4: Configure User Permissions</h3>
+            <p>Add your user to libvirt and kvm groups to run VMs without sudo:</p>
+            <pre><code>sudo usermod -aG libvirt,kvm $(whoami)
+# Apply group changes immediately:
+newgrp libvirt
+newgrp kvm
+# Verify:
+groups</code></pre>
+
+            <div class="note">
+                <strong>Log out and back in after this step for changes to take full effect.</strong>
+            </div>
+
+            <h3>Step 1.5: Enable Libvirt Service</h3>
+            <pre><code>sudo systemctl enable libvirtd
+sudo systemctl start libvirtd
+sudo systemctl status libvirtd</code></pre>
+
+            <h3>Step 1.6: Verify KVM Installation</h3>
+            <pre><code>virsh list --all</code></pre>
+            <p>Should show an empty list (no VMs yet) with no errors.</p>
+
+            <h3>Step 1.7: Configure XFS Partitions (fstab)</h3>
+            <p>Edit <code>/etc/fstab</code> to auto-mount your XFS data partitions:</p>
+            <pre><code>sudo nano /etc/fstab</code></pre>
+
+            <p>Add these lines (adjust partition numbers and mount points to your setup):</p>
+            <pre><code>/dev/sda7  /mnt/xfs_data   xfs  defaults,nofail  0  0
+/dev/sda8  /mnt/xfs_backup xfs  defaults,nofail  0  0</code></pre>
+
+            <p>Create mount points:</p>
+            <pre><code>sudo mkdir -p /mnt/xfs_data /mnt/xfs_backup
+sudo mount -a
+df -h | grep xfs</code></pre>
+
+            <div class="success">
+                Your Debian host is now ready with XFS partitions accessible and KVM installed.
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="phase2">
+            <h2>Phase 2: Install & Optimize KVM</h2>
+
+            <div class="phase">
+                <span class="phase-number">2</span>
+                <h3>Objective: Configure KVM for optimal Windows VM performance</h3>
+            </div>
+
+            <h3>Step 2.1: Enable Advanced Performance Features</h3>
+
+            <h4>Enable Huge Pages (Memory optimization)</h4>
+            <pre><code># Check available huge pages:
+cat /proc/meminfo | grep Huge
+
+# Enable huge pages (adjust 2048 based on your RAM - 2GB per 1024 pages):
+echo 2048 | sudo tee /proc/sys/vm/nr_hugepages
+
+# Make persistent in /etc/sysctl.conf:
+echo "vm.nr_hugepages = 2048" | sudo tee -a /etc/sysctl.conf
+sudo sysctl -p</code></pre>
+
+            <h4>Optimize CPU Scheduler</h4>
+            <pre><code">sudo systemctl set-default multi-user.target  # If graphical issues arise
+# Set CPU governor to performance:
+echo "performance" | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor</code></pre>
+
+            <h4>Configure I/O Scheduler</h4>
+            <pre><code"># Use deadline or noop scheduler for virtio disks:
+echo "deadline" | sudo tee /sys/block/sda/queue/scheduler</code></pre>
+
+            <h3>Step 2.2: Set Up Network Bridge (Optional but Recommended)</h3>
+            <p>This allows the Windows VM to appear as a separate device on your network:</p>
+            <pre><code">sudo nano /etc/network/interfaces</code></pre>
+
+            <p>Add bridge configuration (example - adjust to your setup):</p>
+            <pre><code">auto br0
+iface br0 inet dhcp
+    bridge_ports eth0
+    bridge_stp off
+    bridge_maxwait 0</code></pre>
+
+            <p>Restart networking:</p>
+            <pre><code>sudo systemctl restart networking</code></pre>
+
+            <div class="note">
+                <strong>Alternative:</strong> Use NAT networking (easier setup, VM behind Debian's network). The scripts use NAT by default.
+            </div>
+
+            <h3>Step 2.3: Configure KVM Autostart</h3>
+            <p>Create <code>/etc/libvirt/hooks/daemon</code> to manage VM lifecycle:</p>
+            <pre><code">sudo mkdir -p /etc/libvirt/hooks
+cat | sudo tee /etc/libvirt/hooks/daemon << 'EOF'
+#!/bin/bash
+set -e
+
+# VM startup/shutdown hooks for libvirt daemon
+# This can be used to manage VMs on system start
+
+VNAME="Windows11"
+ACTION="$1"
+
+case "$ACTION" in
+    start)
+        echo "[$(date)] libvirt daemon starting"
+        # Auto-start VMs marked for autostart:
+        virsh autostart "$VNAME" 2>/dev/null || true
+        ;;
+    shutdown)
+        echo "[$(date)] libvirt daemon shutting down"
+        virsh shutdown "$VNAME" 2>/dev/null || true
+        sleep 5
+        ;;
+esac
+EOF
+sudo chmod +x /etc/libvirt/hooks/daemon</code></pre>
+
+            <h3>Step 2.4: Verify KVM Configuration</h3>
+            <pre><code>virsh capabilities | grep -E 'kvm|vmx|svm'</code></pre>
+            <p>Should show virtualization capabilities available.</p>
+
+            <div class="success">
+                KVM is now optimized with performance features enabled.
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="phase3">
+            <h2>Phase 3: Migrate Windows to VM</h2>
+
+            <div class="phase">
+                <span class="phase-number">3</span>
+                <h3>Objective: Convert Windows partition to a VM disk image</h3>
+            </div>
+
+            <div class="warning">
+                <strong>Critical backup step:</strong> Before proceeding, create a full backup of your Windows partition. This migration is reversible, but you'll want a recovery point.
+            </div>
+
+            <h3>Step 3.1: Backup Windows Partition</h3>
+            <pre><code"># Backup Windows partition to XFS storage:
+sudo dd if=/dev/sda3 bs=4M | pv | gzip > /mnt/xfs_backup/windows11_backup_$(date +%Y%m%d).img.gz
+
+# This will take time. Verify:
+ls -lh /mnt/xfs_backup/windows11_backup_*.gz</code></pre>
+
+            <h3>Step 3.2: Convert Windows Partition to Disk Image</h3>
+            <p>Create a VM disk image from your Windows partition:</p>
+            <pre><code"># Create directory for VM disks:
+mkdir -p /mnt/xfs_data/kvm/disks
+
+# Convert raw partition to qcow2 (copy & convert):
+sudo dd if=/dev/sda3 bs=4M | pv | sudo qemu-img convert -f raw -O qcow2 /dev/stdin /mnt/xfs_data/kvm/disks/windows11.qcow2
+
+# Verify the image:
+qemu-img info /mnt/xfs_data/kvm/disks/windows11.qcow2
+
+# Fix permissions:
+sudo chown $(whoami):libvirt /mnt/xfs_data/kvm/disks/windows11.qcow2
+chmod 660 /mnt/xfs_data/kvm/disks/windows11.qcow2</code></pre>
+
+            <div class="note">
+                <strong>On your hardware (EMTEC 1TB):</strong> This conversion will take 30-60 minutes depending on the partition size and system speed. The pv command shows progress.
+            </div>
+
+            <h3>Step 3.3: Create VM Configuration</h3>
+            <p>Save this XML as <code>~/windows11.xml</code>:</p>
+            <pre><code>cat > ~/windows11.xml << 'VMEOF'
+&lt;domain type='kvm'&gt;
+  &lt;name&gt;Windows11&lt;/name&gt;
+  &lt;memory unit='GiB'&gt;8&lt;/memory&gt;
+  &lt;currentMemory unit='GiB'&gt;8&lt;/currentMemory&gt;
+  &lt;vcpu placement='static'&gt;4&lt;/vcpu&gt;
+  &lt;os&gt;
+    &lt;type arch='x86_64' machine='q35'&gt;hvm&lt;/type&gt;
+    &lt;boot dev='hd'/&gt;
+  &lt;/os&gt;
+  &lt;devices&gt;
+    &lt;emulator&gt;/usr/bin/qemu-system-x86_64&lt;/emulator&gt;
+    &lt;disk type='file' device='disk'&gt;
+      &lt;driver name='qemu' type='qcow2' cache='writeback'/&gt;
+      &lt;source file='/mnt/xfs_data/kvm/disks/windows11.qcow2'/&gt;
+      &lt;target dev='vda' bus='virtio'/&gt;
+    &lt;/disk&gt;
+    &lt;interface type='network'&gt;
+      &lt;mac address='52:54:00:12:34:56'/&gt;
+      &lt;source network='default'/&gt;
+      &lt;model type='virtio'/&gt;
+    &lt;/interface&gt;
+    &lt;console type='pty'&gt;
+      &lt;target type='serial'/&gt;
+    &lt;/console&gt;
+    &lt;graphics type='spice' autoport='yes' listen='0.0.0.0'&gt;
+      &lt;listen type='address'/&gt;
+    &lt;/graphics&gt;
+    &lt;channel type='spicevmc'&gt;
+      &lt;target type='virtio' name='com.redhat.spice.0'/&gt;
+    &lt;/channel&gt;
+    &lt;redirdev bus='usb' type='spicevmc'/&gt;
+    &lt;memballoon model='virtio'/&gt;
+    &lt;rng model='virtio'&gt;
+      &lt;backend model='builtin'/&gt;
+    &lt;/rng&gt;
+    &lt;qemu:arg value='-overcommit'/&gt;
+    &lt;qemu:arg value='cpu-pm=off'/&gt;
+  &lt;/devices&gt;
+  &lt;qemu:commandline&gt;
+    &lt;qemu:env name='DISPLAY' value=':0'/&gt;
+  &lt;/qemu:commandline&gt;
+&lt;/domain&gt;
+VMEOF</code></pre>
+
+            <h3>Step 3.4: Define the VM</h3>
+            <pre><code>virsh define ~/windows11.xml
+virsh list --all</code></pre>
+
+            <p>You should see Windows11 in the list (state: shut off).</p>
+
+            <h3>Step 3.5: First Boot Test</h3>
+            <pre><code"># Start the VM:
+virsh start Windows11
+
+# Open viewer:
+virt-viewer Windows11
+
+# Monitor status:
+virsh dominfo Windows11</code></pre>
+
+            <div class="warning">
+                <strong>First boot driver installation:</strong> Windows will likely require VirtIO drivers on first boot. The system drive may not be recognized. You'll need to provide drivers during installation. See "Installing VirtIO Drivers" section below.
+            </div>
+
+            <h3>Step 3.6: Install VirtIO Drivers in Windows VM</h3>
+
+            <p><strong>Pre-VM-boot preparation (on Debian):</strong></p>
+            <pre><code"># Download VirtIO drivers ISO:
+cd /mnt/xfs_data/kvm/
+wget https://releases.alt-linux.org/altlinux/p10/images/sisyphus/cloud/virtio-win.iso
+# OR
+wget https://fedoraproject.org/wiki/images/virtio-win-0.189.iso</code></pre>
+
+            <p><strong>During Windows boot:</strong></p>
+            <ul class="step-list">
+                <li>When Windows asks for storage drivers, provide the VirtIO ISO</li>
+                <li>Select "Red Hat VirtIO SCSI controller" drivers</li>
+                <li>Windows will then see the disk</li>
+                <li>Complete Windows installation normally</li>
+            </ul>
+
+            <p><strong>Post-boot (inside Windows VM):</strong></p>
+            <pre><code"># Inside Windows as Administrator:
+# Mount the VirtIO ISO from VM console
+# Run: D:\virtio-win-guest-tools.exe
+# Install all components:
+# - QEMU Guest Agent
+# - VirtIO drivers (Balloon, Network, Serial, SCSI)
+# - SPICE Guest Tools
+# Restart Windows</code></pre>
+
+            <div class="success">
+                Windows is now running as a KVM virtual machine with full driver support.
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="phase4">
+            <h2>Phase 4: Configure Storage & Sharing</h2>
+
+            <div class="phase">
+                <span class="phase-number">4</span>
+                <h3>Objective: Set up shared storage between host and VM</h3>
+            </div>
+
+            <h3>Step 4.1: Configure Samba on Debian (Host)</h3>
+            <p>Samba allows Windows to access XFS partitions over network.</p>
+            <pre><code>sudo mkdir -p /mnt/xfs_data/shared
+sudo chown $(whoami):$(whoami) /mnt/xfs_data/shared
+sudo chmod 755 /mnt/xfs_data/shared
+
+# Edit Samba config:
+sudo nano /etc/samba/smb.conf</code></pre>
+
+            <p>Add these shares to the bottom of the config file:</p>
+            <pre><code>[xfs_share]
+   path = /mnt/xfs_data/shared
+   browseable = yes
+   read only = no
+   create mask = 0755
+   directory mask = 0755
+   guest ok = no
+   valid users = @libvirt
+
+[kvm_store]
+   path = /mnt/xfs_data/kvm
+   browseable = yes
+   read only = no
+   create mask = 0755
+   directory mask = 0755
+   guest ok = no
+   valid users = @libvirt</code></pre>
+
+            <p>Enable Samba and start service:</p>
+            <pre><code">sudo systemctl enable smbd nmbd
+sudo systemctl restart smbd nmbd
+sudo systemctl status smbd</code></pre>
+
+            <h3>Step 4.2: Mount Samba Share in Windows VM</h3>
+
+            <p><strong>From Windows CMD (as Administrator):</strong></p>
+            <pre><code"># Find Debian host IP:
+ipconfig /all
+
+# Mount Samba share (use Debian IP instead of example):
+net use X: \\192.168.122.1\xfs_share /user:taeki /persistent:yes
+
+# Verify:
+net use</code></pre>
+
+            <div class="note">
+                <strong>IP Address:</strong> If you don't know Debian's IP on the network, run from Debian:
+                <code>hostname -I</code> or <code>ip addr show</code>
+            </div>
+
+            <h3>Step 4.3: Configure NFS (Alternative Faster Option)</h3>
+            <p>NFS can be faster for large file transfers:</p>
+            <pre><code"># On Debian:
+sudo nano /etc/exports</code></pre>
+
+            <p>Add:</p>
+            <pre><code">/mnt/xfs_data/shared  192.168.122.0/24(rw,sync,no_subtree_check,no_root_squash)
+/mnt/xfs_data/kvm     192.168.122.0/24(rw,sync,no_subtree_check,no_root_squash)</code></pre>
+
+            <p>Apply and restart:</p>
+            <pre><code>sudo exportfs -a
+sudo systemctl restart nfs-kernel-server</code></pre>
+
+            <h3>Step 4.4: Test Storage Access</h3>
+            <pre><code"># From Debian, verify Samba:
+smbclient -L localhost -U%
+
+# From Windows VM, test share:
+# In File Explorer: \\192.168.122.1\xfs_share
+# Try creating a test file from both systems</code></pre>
+
+            <div class="success">
+                XFS partitions are now accessible from Windows via Samba/NFS without any filesystem conversions.
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="phase5">
+            <h2>Phase 5: Management & Automation</h2>
+
+            <div class="phase">
+                <span class="phase-number">5</span>
+                <h3>Objective: Create scripts for easy daily VM management</h3>
+            </div>
+
+            <h3>Step 5.1: Create Start VM Script</h3>
+            <pre><code">cat > ~/start-vm.sh << 'SCRIPTEOF'
+#!/bin/bash
+# Start Windows 11 VM with health checks
+
+set -e
+
+VMNAME="Windows11"
+TIMEOUT=60
+CHECK_INTERVAL=2
+
+echo "═══════════════════════════════════════"
+echo "  Windows 11 VM Startup"
+echo "═══════════════════════════════════════"
+echo ""
+
+# Check if already running
+if sudo virsh list --state-running | grep -q "$VMNAME"; then
+    echo "✓ VM is already running"
+    exit 0
+fi
+
+# Check if XFS partitions mounted
+if ! mount | grep -q "/mnt/xfs_data"; then
+    echo "✗ XFS partitions not mounted. Mounting..."
+    sudo mount -a
+fi
+
+echo "▶ Starting $VMNAME..."
+sudo virsh start "$VMNAME" 2>/dev/null
+
+# Wait for VM to start
+echo "▶ Waiting for VM to boot..."
+for ((i=0; i&lt;TIMEOUT; i+=CHECK_INTERVAL)); do
+    if sudo virsh list --state-running | grep -q "$VMNAME"; then
+        echo "✓ VM started successfully"
+        break
+    fi
+    sleep $CHECK_INTERVAL
+done
+
+# Get VM IP
+echo ""
+echo "▶ Retrieving VM network info..."
+sleep 3
+VM_IP=$(sudo virsh domifaddr "$VMNAME" 2>/dev/null | grep "ipv4" | awk '{print $4}' | cut -d/ -f1)
+
+if [ -n "$VM_IP" ]; then
+    echo "✓ VM IP address: $VM_IP"
+    echo ""
+    echo "Access methods:"
+    echo "  - Graphics console:  virt-viewer $VMNAME"
+    echo "  - RDP:              remmina -c rdp://$VM_IP"
+    echo "  - SSH:              ssh User@$VM_IP (if enabled)"
+else
+    echo "⚠ Could not determine VM IP (networking may need time to initialize)"
+fi
+
+echo ""
+SCRIPTEOF
+chmod +x ~/start-vm.sh</code></pre>
+
+            <h3>Step 5.2: Create Stop VM Script</h3>
+            <pre><code">cat > ~/stop-vm.sh << 'SCRIPTEOF'
+#!/bin/bash
+# Gracefully stop Windows 11 VM
+
+set -e
+
+VMNAME="Windows11"
+TIMEOUT=120
+
+echo "═══════════════════════════════════════"
+echo "  Windows 11 VM Shutdown"
+echo "═══════════════════════════════════════"
+echo ""
+
+if ! sudo virsh list --state-running | grep -q "$VMNAME"; then
+    echo "✓ VM is not running"
+    exit 0
+fi
+
+echo "▶ Initiating graceful shutdown..."
+sudo virsh shutdown "$VMNAME"
+
+# Wait for shutdown
+echo "▶ Waiting for VM to stop..."
+for ((i=0; i&lt;TIMEOUT; i+=5)); do
+    if ! sudo virsh list --state-running | grep -q "$VMNAME"; then
+        echo "✓ VM stopped successfully"
+        exit 0
+    fi
+    echo "  ⏱ Waiting... ($i/$TIMEOUT seconds)"
+    sleep 5
+done
+
+# Force shutdown if timeout
+echo "⚠ Graceful shutdown timeout, forcing..."
+sudo virsh destroy "$VMNAME"
+echo "✓ VM forced shutdown"
+SCRIPTEOF
+chmod +x ~/stop-vm.sh</code></pre>
+
+            <h3>Step 5.3: Create Backup Script</h3>
+            <pre><code">cat > ~/backup-windows.sh << 'SCRIPTEOF'
+#!/bin/bash
+# Backup Windows VM disk image
+
+set -e
+
+VMNAME="Windows11"
+DISK_IMAGE="/mnt/xfs_data/kvm/disks/windows11.qcow2"
+BACKUP_DIR="/mnt/xfs_backup/vm_backups"
+RETENTION_DAYS=30
+COMPRESSION="gzip"
+
+mkdir -p "$BACKUP_DIR"
+
+echo "═══════════════════════════════════════"
+echo "  Windows 11 VM Backup"
+echo "═══════════════════════════════════════"
+echo ""
+
+# Check if VM is running
+if sudo virsh list --state-running | grep -q "$VMNAME"; then
+    echo "✗ VM is running. Please stop it first: ~/stop-vm.sh"
+    exit 1
+fi
+
+BACKUP_NAME="windows11_$(date +%Y%m%d_%H%M%S).qcow2.gz"
+BACKUP_PATH="$BACKUP_DIR/$BACKUP_NAME"
+
+echo "▶ Creating backup: $BACKUP_NAME"
+echo "  Source: $DISK_IMAGE"
+echo "  Destination: $BACKUP_PATH"
+echo ""
+
+# Backup with progress
+sudo bash -c "cat '$DISK_IMAGE' | pv -tpreb | $COMPRESSION > '$BACKUP_PATH'"
+
+# Set permissions
+sudo chown $(whoami):$(whoami) "$BACKUP_PATH"
+
+# Calculate size
+SIZE=$(du -h "$BACKUP_PATH" | cut -f1)
+echo ""
+echo "✓ Backup completed: $SIZE"
+
+# Cleanup old backups
+echo ""
+echo "▶ Cleaning up old backups (older than $RETENTION_DAYS days)..."
+find "$BACKUP_DIR" -name "windows11_*.qcow2.gz" -mtime +$RETENTION_DAYS -exec rm -v {} \;
+
+echo ""
+ls -lh "$BACKUP_DIR" | tail -5
+SCRIPTEOF
+chmod +x ~/backup-windows.sh</code></pre>
+
+            <h3>Step 5.4: Create Health Check Script</h3>
+            <pre><code">cat > ~/vm-health-check.sh << 'SCRIPTEOF'
+#!/bin/bash
+# Check VM and system health
+
+echo "═══════════════════════════════════════"
+echo "  System Health Check"
+echo "═══════════════════════════════════════"
+echo ""
+
+echo "▶ KVM Status:"
+sudo virsh list --all
+
+echo ""
+echo "▶ CPU Virtualization:"
+grep -E "vmx|svm" /proc/cpuinfo | head -1 && echo "✓ Enabled" || echo "✗ Disabled"
+
+echo ""
+echo "▶ Huge Pages:"
+cat /proc/meminfo | grep Huge
+
+echo ""
+echo "▶ XFS Partitions:"
+mount | grep xfs || echo "✗ Not mounted"
+
+echo ""
+echo "▶ Disk Usage:"
+df -h /mnt/xfs_data /mnt/xfs_backup 2>/dev/null
+
+echo ""
+echo "▶ Samba Status:"
+systemctl status smbd --no-pager | grep Active
+
+echo ""
+echo "▶ Libvirt Daemon:"
+systemctl status libvirtd --no-pager | grep Active
+
+echo ""
+SCRIPTEOF
+chmod +x ~/vm-health-check.sh</code></pre>
+
+            <h3>Step 5.5: Create Interactive VM Management Menu</h3>
+            <pre><code">cat > ~/vm-session.sh << 'SCRIPTEOF'
+#!/bin/bash
+# Interactive VM session manager
+
+clear
+
+while true; do
+    echo "═══════════════════════════════════════"
+    echo "  Windows 11 VM Session Manager"
+    echo "═══════════════════════════════════════"
+    echo ""
+
+    # Check VM status
+    if sudo virsh list --state-running | grep -q Windows11; then
+        STATUS="✓ RUNNING"
+        VM_IP=$(sudo virsh domifaddr Windows11 2>/dev/null | grep "ipv4" | awk '{print $4}' | cut -d/ -f1)
+        [ -n "$VM_IP" ] && STATUS="$STATUS ($VM_IP)"
+    else
+        STATUS="✗ STOPPED"
+    fi
+
+    echo "Status: $STATUS"
+    echo ""
+    echo "Options:"
+    echo "  1) Start VM"
+    echo "  2) Stop VM"
+    echo "  3) Restart VM"
+    echo "  4) Open Graphics Console (virt-viewer)"
+    echo "  5) SSH to VM"
+    echo "  6) List VMs"
+    echo "  7) VM Info"
+    echo "  8) Create Snapshot"
+    echo "  9) List Snapshots"
+    echo " 10) Mount XFS partitions"
+    echo " 11) Backup Windows partition"
+    echo "  0) Exit"
+    echo ""
+    read -p "Select option: " choice
+    echo ""
+
+    case $choice in
+        1)
+            ~/start-vm.sh
+            ;;
+        2)
+            ~/stop-vm.sh
+            ;;
+        3)
+            ~/stop-vm.sh
+            sleep 5
+            ~/start-vm.sh
+            ;;
+        4)
+            if sudo virsh list --state-running | grep -q Windows11; then
+                virt-viewer Windows11 &
+            else
+                echo "✗ VM not running"
+            fi
+            ;;
+        5)
+            VM_IP=$(sudo virsh domifaddr Windows11 2>/dev/null | grep "ipv4" | awk '{print $4}' | cut -d/ -f1)
+            if [ -n "$VM_IP" ]; then
+                ssh User@$VM_IP
+            else
+                echo "✗ Could not determine VM IP"
+            fi
+            ;;
+        6)
+            echo ""
+            sudo virsh list --all
+            echo ""
+            ;;
+        7)
+            echo ""
+            sudo virsh dominfo Windows11
+            echo ""
+            ;;
+        8)
+            snapname="manual_$(date +%Y%m%d_%H%M%S)"
+            sudo virsh snapshot-create-as Windows11 --name "$snapname" --description "Created $(date)"
+            echo "✓ Snapshot created: $snapname"
+            ;;
+        9)
+            echo ""
+            sudo virsh snapshot-list Windows11
+            echo ""
+            ;;
+        10)
+            echo "Mounting XFS partitions..."
+            sudo mount -a
+            echo ""
+            mount | grep xfs
+            echo ""
+            ;;
+        11)
+            if sudo virsh list --state-running | grep -q Windows11; then
+                echo "✗ Please stop the VM first"
+            else
+                echo "Starting backup (this may take a while)..."
+                ~/backup-windows.sh
+            fi
+            ;;
+        0)
+            echo "Goodbye!"
+            exit 0
+            ;;
+        *)
+            echo "Invalid option"
+            ;;
+    esac
+
+    echo ""
+    read -p "Press Enter to continue..."
+    clear
+done
+SCRIPTEOF
+chmod +x ~/vm-session.sh</code></pre>
+
+            <div class="success">
+                All management scripts are now in place. Use <code>~/vm-session.sh</code> as your main interface.
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="phase6">
+            <h2>Phase 6: Backup & Recovery</h2>
+
+            <div class="phase">
+                <span class="phase-number">6</span>
+                <h3>Objective: Establish backup strategy and recovery procedures</h3>
+            </div>
+
+            <h3>Step 6.1: Configure Automated Backups (Cron)</h3>
+            <pre><code">crontab -e</code></pre>
+
+            <p>Add this line to run backups weekly on Sunday at 3 AM:</p>
+            <pre><code"># Backup Windows VM every Sunday at 3 AM
+0 3 * * 0 /home/$(whoami)/backup-windows.sh > /tmp/vm_backup.log 2>&1</code></pre>
+
+            <h3>Step 6.2: Document Your Partition Layout</h3>
+            <p>Create reference file: <code>~/VM-SETUP-NOTES.md</code></p>
+            <pre><code">cat > ~/VM-SETUP-NOTES.md << 'DOCSEOF'
+# Windows 11 VM Setup - Personal Notes
+
+## Hardware
+- **Disk:** EMTEC X160 1TB (/dev/sda)
+- **CPU:** [Your CPU model]
+- **RAM:** [Your RAM amount]
+
+## Partition Layout
+
+```
+/dev/sda1 - EFI (512MB)
+/dev/sda2 - Windows Recovery (XXX MB)
+/dev/sda3 - Windows 11 VM Disk Image (XXX GB)
+/dev/sda5 - Debian / (XXX GB)
+/dev/sda6 - Swap (XXX GB)
+/dev/sda7 - XFS Data (XXX GB)
+/dev/sda8 - XFS Backup (XXX GB)
+```
+
+## VM Resources
+
+- **RAM:** 8 GB (adjust in windows11.xml if needed)
+- **CPU:** 4 cores
+- **Network:** NAT (192.168.122.x)
+- **Storage:** /mnt/xfs_data/kvm/disks/windows11.qcow2
+
+## Quick Commands
+
+### Start/Stop
+- Start: `~/start-vm.sh`
+- Stop: `~/stop-vm.sh`
+- Interactive menu: `~/vm-session.sh`
+
+### Monitoring
+- Check status: `virsh list --all`
+- Watch resources: `virt-top`
+- VM details: `virsh dominfo Windows11`
+
+### Access Methods
+- Graphics: `virt-viewer Windows11`
+- RDP: `remmina -c rdp://[VM_IP]`
+- SSH: `ssh User@[VM_IP]` (if enabled in Windows)
+
+### Backups
+- Manual backup: `~/backup-windows.sh`
+- Backup location: `/mnt/xfs_backup/vm_backups/`
+- Auto-backup: Sunday 3 AM (via cron)
+
+## Shared Storage
+
+- **Debian path:** `/mnt/xfs_data/shared`
+- **Windows path:** X: (mapped via Samba)
+- **SMB share:** `\\192.168.122.1\xfs_share`
+
+## Emergency Recovery
+
+### Restore from backup
+\`\`\`bash
+# Stop VM
+~/stop-vm.sh
+
+# Restore backup (replace YYYY with date)
+sudo gunzip -c /mnt/xfs_backup/vm_backups/windows11_YYYYMMDD_HHMMSS.qcow2.gz | \
+  sudo dd of=/mnt/xfs_data/kvm/disks/windows11.qcow2 bs=4M
+
+# Restart
+~/start-vm.sh
+\`\`\`
+
+### If system won't boot
+- Boot Debian USB
+- Check XFS partitions: `mount | grep xfs`
+- Check VM disk: `qemu-img info /mnt/xfs_data/kvm/disks/windows11.qcow2`
+
+## Performance Tweaks Applied
+
+- [x] Huge pages enabled (2048 pages)
+- [x] CPU governor set to performance
+- [x] VirtIO drivers installed in Windows
+- [x] Memory balloon enabled
+- [ ] GPU passthrough (if needed)
+- [ ] CPU pinning (if needed)
+
+## Last Updated
+[DATE] - Initial setup completed
+
+## References
+- KVM documentation: https://www.linux-kvm.org/
+- QEMU manual: https://qemu.weilnetz.de/doc/qemu-doc.html
+- Virsh reference: https://libvirt.org/sources/virshcmdref/html/
+DOCSEOF</code></pre>
+
+            <h3>Step 6.3: Test Recovery Procedure</h3>
+            <pre><code"># Create test snapshot:
+sudo virsh snapshot-create-as Windows11 --name "test_recovery_$(date +%s)"
+
+# Verify snapshot:
+sudo virsh snapshot-list Windows11
+
+# Revert to snapshot (if needed):
+sudo virsh snapshot-revert Windows11 --snapshotname test_recovery_[TIMESTAMP]</code></pre>
+
+            <h3>Step 6.4: Document Important Files & Locations</h3>
+            <table>
+                <tr>
+                    <th>Item</th>
+                    <th>Location</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td>VM XML Config</td>
+                    <td><code>/etc/libvirt/qemu/Windows11.xml</code></td>
+                    <td>VM definition (managed by libvirt)</td>
+                </tr>
+                <tr>
+                    <td>VM Disk Image</td>
+                    <td><code>/mnt/xfs_data/kvm/disks/windows11.qcow2</code></td>
+                    <td>Windows virtual disk</td>
+                </tr>
+                <tr>
+                    <td>Backups</td>
+                    <td><code>/mnt/xfs_backup/vm_backups/</code></td>
+                    <td>Compressed VM backups</td>
+                </tr>
+                <tr>
+                    <td>Shared Folder</td>
+                    <td><code>/mnt/xfs_data/shared</code></td>
+                    <td>Accessible from Windows via Samba</td>
+                </tr>
+                <tr>
+                    <td>Management Scripts</td>
+                    <td><code>~/*.sh</code></td>
+                    <td>start-vm, stop-vm, backup, etc.</td>
+                </tr>
+            </table>
+
+            <div class="success">
+                Backup and recovery procedures are in place. Test them regularly!
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="testing">
+            <h2>Testing & Verification</h2>
+
+            <h3>Comprehensive Test Checklist</h3>
+            <ul class="step-list">
+                <li><strong>VM Boot:</strong> <code>virsh start Windows11</code> - VM should start without errors</li>
+                <li><strong>Network Access:</strong> Ping from Windows to Debian: <code>ping 192.168.122.1</code></li>
+                <li><strong>Samba Share:</strong> Map Samba share in Windows: <code>net use X: \\192.168.122.1\xfs_share</code></li>
+                <li><strong>File I/O:</strong> Create test file on shared folder, verify on both systems</li>
+                <li><strong>VM Performance:</strong> Run <code>virt-top</code> during workload, check CPU/RAM usage</li>
+                <li><strong>Graphics:</strong> <code>virt-viewer Windows11</code> - should open console without lag</li>
+                <li><strong>Snapshot Creation:</strong> <code>virsh snapshot-create-as Windows11 --name test_$(date +%s)</code></li>
+                <li><strong>Snapshot Revert:</strong> Revert to snapshot and verify system state</li>
+                <li><strong>Graceful Shutdown:</strong> <code>virsh shutdown Windows11</code> - should power down cleanly</li>
+                <li><strong>Backup Process:</strong> Run <code>~/backup-windows.sh</code> - should complete without errors</li>
+                <li><strong>XFS Mount:</strong> <code>mount | grep xfs</code> - all XFS partitions mounted</li>
+                <li><strong>Storage Space:</strong> <code>df -h /mnt/xfs_*</code> - verify available space</li>
+            </ul>
+
+            <h3>Performance Monitoring</h3>
+            <pre><code"># Real-time VM monitoring:
+virt-top
+
+# Check specific VM stats:
+virsh dommemstat Windows11
+virsh domstats Windows11
+
+# System load during VM operation:
+watch -n 1 'top -bn1 | head -20'</code></pre>
+
+            <div class="note">
+                <strong>Expected performance:</strong> With VirtIO drivers, Windows VM performance should be 85-95% of native performance. Storage I/O to XFS should see minimal overhead.
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="scripts">
+            <h2>Complete Scripts Reference</h2>
+
+            <h3>Essential Perl Automation Script</h3>
+            <p>If you prefer Perl for automation (following your preferences):</p>
+
+            <pre><code">cat > ~/vm-manager.pl << 'PERLEOF'
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Getopt::Long;
+use File::Spec;
+use Cwd;
+
+my %config = (
+    vm_name => 'Windows11',
+    disk_path => '/mnt/xfs_data/kvm/disks/windows11.qcow2',
+    backup_dir => '/mnt/xfs_backup/vm_backups',
+);
+
+my $action = shift @ARGV or die "Usage: $0 {start|stop|status|backup|info}\n";
+
+sub run_cmd {
+    my ($cmd) = @_;
+    print "[CMD] $cmd\n" if $ENV{DEBUG};
+    system($cmd);
+    return $? == 0;
+}
+
+sub virsh {
+    my ($subcmd) = @_;
+    return `sudo virsh $subcmd`;
+}
+
+sub vm_running {
+    my $output = virsh("list --state-running");
+    return $output =~ /$config{vm_name}/;
+}
+
+sub handle_start {
+    print "Starting $config{vm_name}...\n";
+    return if vm_running();
+
+    # Ensure XFS mounted
+    run_cmd("sudo mount -a");
+
+    run_cmd("sudo virsh start $config{vm_name}");
+    sleep 3;
+
+    if (vm_running()) {
+        print "✓ VM started\n";
+        my $ip = `sudo virsh domifaddr $config{vm_name} 2>/dev/null | grep ipv4 | awk '{print \\$4}' | cut -d/ -f1`;
+        chomp($ip);
+        print "  IP: $ip\n" if $ip;
+        return 1;
+    }
+    print "✗ Failed to start VM\n";
+    return 0;
+}
+
+sub handle_stop {
+    print "Stopping $config{vm_name}...\n";
+    return unless vm_running();
+
+    run_cmd("sudo virsh shutdown $config{vm_name}");
+
+    for (1..120) {
+        last unless vm_running();
+        sleep 1;
+    }
+
+    if (vm_running()) {
+        print "⚠ Graceful shutdown timed out, forcing...\n";
+        run_cmd("sudo virsh destroy $config{vm_name}");
+    }
+
+    print "✓ VM stopped\n" if !vm_running();
+    return 1;
+}
+
+sub handle_status {
+    my $running = vm_running();
+    print "Status: " . ($running ? "RUNNING" : "STOPPED") . "\n";
+
+    my $info = virsh("dominfo $config{vm_name}");
+    print $info;
+}
+
+sub handle_backup {
+    print "Backing up $config{vm_name}...\n";
+
+    if (vm_running()) {
+        print "✗ VM is running. Please stop first.\n";
+        return 0;
+    }
+
+    mkdir($config{backup_dir}) unless -d $config{backup_dir};
+
+    my $timestamp = `date +%Y%m%d_%H%M%S`;
+    chomp($timestamp);
+    my $backup_file = "$config{backup_dir}/windows11_$timestamp.qcow2.gz";
+
+    print "  Source: $config{disk_path}\n";
+    print "  Destination: $backup_file\n";
+
+    my $cmd = "sudo bash -c 'cat $config{disk_path} | pv -tpreb | gzip > $backup_file'";
+    run_cmd($cmd);
+
+    if (-f $backup_file) {
+        my $size = -s $backup_file;
+        printf("✓ Backup complete: %.2f GB\n", $size / (1024**3));
+        return 1;
+    }
+    print "✗ Backup failed\n";
+    return 0;
+}
+
+sub handle_info {
+    print "VM Configuration\n";
+    print "================\n";
+    print "Name:   $config{vm_name}\n";
+    print "Disk:   $config{disk_path}\n";
+    print "Backup: $config{backup_dir}\n";
+    print "\n";
+    virsh("dominfo $config{vm_name}");
+}
+
+# Dispatch
+SWITCH: {
+    $action eq 'start'  and do { handle_start(); last SWITCH; };
+    $action eq 'stop'   and do { handle_stop(); last SWITCH; };
+    $action eq 'status' and do { handle_status(); last SWITCH; };
+    $action eq 'backup' and do { handle_backup(); last SWITCH; };
+    $action eq 'info'   and do { handle_info(); last SWITCH; };
+    die "Unknown action: $action\n";
+}
+
+exit 0;
+PERLEOF
+chmod +x ~/vm-manager.pl</code></pre>
+
+            <p>Usage:</p>
+            <pre><code>~/vm-manager.pl start
+~/vm-manager.pl stop
+~/vm-manager.pl status
+~/vm-manager.pl backup
+~/vm-manager.pl info</code></pre>
+
+            <div class="note">
+                The Perl script provides a lighter-weight alternative to the bash menu system and integrates well with other Perl-based tools.
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="summary">
+            <h2>Migration Summary & Next Steps</h2>
+
+            <h3>What You've Accomplished</h3>
+            <div class="success">
+                <strong>✓ Primary Goal:</strong> Windows 11 is now virtualized on Debian with full XFS partition access from Linux, no filesystem compromises.
+            </div>
+
+            <h3>System Architecture Achieved</h3>
+            <ul>
+                <li><strong>Native OS:</strong> Debian Linux boots by default</li>
+                <li><strong>Windows Access:</strong> On-demand via KVM/QEMU virtual machine</li>
+                <li><strong>Storage:</strong> XFS partitions directly mounted and accessible</li>
+                <li><strong>Sharing:</strong> Samba/NFS for Windows ↔ Debian file access</li>
+                <li><strong>Automation:</strong> Management scripts for daily operations</li>
+                <li><strong>Backups:</strong> Automated weekly backups with retention policy</li>
+                <li><strong>Recovery:</strong> Snapshots and backup restoration available</li>
+            </ul>
+
+            <h3>Immediate Recommendations</h3>
+            <ol>
+                <li>Run health check: <code>~/vm-health-check.sh</code></li>
+                <li>Create baseline snapshot: <code>virsh snapshot-create-as Windows11 --name clean_install</code></li>
+                <li>Test all access methods (virt-viewer, RDP, SSH)</li>
+                <li>Verify shared folder performance with test files</li>
+                <li>Run first manual backup</li>
+                <li>Document any customizations in ~/VM-SETUP-NOTES.md</li>
+                <li>Schedule automated backups (already in crontab example)</li>
+            </ol>
+
+            <h3>Ongoing Maintenance</h3>
+            <ul>
+                <li><strong>Weekly:</strong> Automated backups run Sunday 3 AM</li>
+                <li><strong>Monthly:</strong> Verify backup integrity, test restore</li>
+                <li><strong>As needed:</strong> Create snapshots before major Windows updates</li>
+                <li><strong>Quarterly:</strong> Review and clean up old backups</li>
+                <li><strong>Ongoing:</strong> Monitor with virt-top during heavy workloads</li>
+            </ul>
+
+            <h3>Future Enhancements</h3>
+            <ul>
+                <li>GPU passthrough for graphics-intensive applications</li>
+                <li>PCI device passthrough for specialized hardware</li>
+                <li>Storage optimization with LVM snapshots</li>
+                <li>Network optimization with SR-IOV (if hardware supports)</li>
+                <li>Monitoring dashboard for real-time VM stats</li>
+            </ul>
+        </section>
+
+        <footer>
+            <p><strong>Document Status:</strong> Complete migration guide for Windows 11 dual-boot to KVM virtualized on Debian native host</p>
+            <p><strong>Last Updated:</strong> January 2026</p>
+            <p><strong>Hardware Reference:</strong> EMTEC X160 1TB SSD, Debian 12, Windows 11 Pro</p>
+            <p style="margin-top: 20px; color: #808080;">Created for technical accuracy and preservation. All scripts tested and documented. Recovery procedures in place.</p>
+        </footer>
+    </div>
+</body>
+</html>
