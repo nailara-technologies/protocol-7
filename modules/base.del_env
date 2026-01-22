@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = base.del_env
+# param = <key>
+# descr = delete value from ENV hash with level 2 log entry
+# return = [deleted] <value> or undef
+
+my $key = shift;
+
+if ( not length $key // '' ) {
+    <[base.s_warn]>->('key name expected <{C1}>');
+    return undef;
+} elsif ( not exists $ENV{$key} ) {
+    <[base.logs]>->( 2, '[del-env] not present : %s', $key );
+    return undef;
+}
+
+<[base.logs]>->( 2, ": deleting env-key : %s", $key );
+
+return delete $ENV{$key};
+
+#,,,.,,,.,,,.,.,.,..,,,,.,,.,,.,,,,,,,..,,..,,..,,...,...,..,,..,,..,,,..,...,
+#6CTGQOG734WHQC3N3AVGWDHZY5HTNMHJHAWKNDUQWT4FMYLDQVXK5EBJB5STY7NHMCJLSPTJHLNR4
+#\\\|35EQQG7WBX3533WR4PUKUJOLSTDJA24VSJCOFP6EOCDG4K4NBE3 \ / AMOS7 \ YOURUM ::
+#\[7]E77MBCPYCEWOLE6GL24OVRX76S4XNHW33PEZ46IQAF2ZP2OFJYBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
