@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = models.registry.find_by_id
+# param = <model_id>
+# descr = Find model entry in registry by model_id
+# return = model entry hashref or undef if not found
+
+my $model_id = shift;
+
+unless ( defined $model_id && length $model_id ) {
+    <[base.s_warn]>->('model_id required');
+    return undef;
+}
+
+my $registry = <models.registry> // {};
+
+unless ( keys $registry->%* ) {
+    <[base.logs]>->( 2, '[registry.find_by_id] registry is empty' );
+    return undef;
+}
+
+## Search registry for matching model_id
+foreach my $entry ( values $registry->%* ) {
+    if ( ($entry->{'model_id'} // '') eq $model_id ) {
+        <[base.logs]>->(
+            1, '[registry.find_by_id] found model: %s',
+            $model_id
+        );
+        return $entry;
+    }
+}
+
+<[base.logs]>->(
+    2, '[registry.find_by_id] model not found: %s',
+    $model_id
+);
+return undef;
+
+#,,..,...,.,,,..,,.,,,,,,,,,.,.,,,,,,,,,,,,.,,..,,...,...,..,,,..,..,,..,,.,.,
+#POMBKJWSUXMMN3IUJANG4PCLFXWNJ2JFXX4HGBK6U2Y3LZB3QTZBTJZ2LHDXZ4QYRDWH4CE3UNQ3Q
+#\\\|SYN6MWILUVM6OO6XXBWIMV7CJJONIO6FPSLCDSX4WIBSYWNM2ZD \ / AMOS7 \ YOURUM ::
+#\[7]URAQZIHCPKMBT4F2MKEAFOWXV4LT4PB2WX2QVM6OPWOIKL5XROBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
