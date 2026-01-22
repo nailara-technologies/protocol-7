@@ -7,21 +7,26 @@
 use YAML::XS qw| Load |;
 
 ## Load YAML content from zenka directory [ registry/models.yaml ]
-my $yaml_content = <[file.zenka_dir.load]>->('registry/models.yaml');
+my $yaml_content_ref = <[file.zenka_dir.load]>->('registry/models.yaml');
 
 ## If file doesn't exist, return empty registry
-unless ( defined $yaml_content ) {
+unless ( defined $yaml_content_ref ) {
     <[base.logs]>->( 2, '[storage.yaml_load] registry file not found, returning empty registry' );
     return {};
 }
 
+## Dereference the content (file.zenka_dir.load returns scalar reference)
+my $yaml_content = ref($yaml_content_ref) eq qw| SCALAR | ? $$yaml_content_ref : $yaml_content_ref;
+
 ## Parse YAML content
 my $registry = {};
-if ( length $yaml_content ) {
+my $scan_paths_data = {};
+if ( defined $yaml_content && length $yaml_content ) {
     eval {
         my $parsed = Load($yaml_content);
-        if ( ref($parsed) eq qw| HASH | && exists $parsed->{models} ) {
+        if ( ref($parsed) eq qw| HASH | ) {
             $registry = $parsed->{models} // {};
+            $scan_paths_data = $parsed->{scan_paths} // {};
         }
     };
     if ( $EVAL_ERROR ) {
@@ -33,6 +38,15 @@ if ( length $yaml_content ) {
     }
 }
 
+## Restore scan_paths to zenka namespace if data was loaded
+if ( scalar( keys %$scan_paths_data ) > 0 ) {
+    <models.scan_paths> = $scan_paths_data;
+    <[base.logs]>->(
+        1, '[storage.yaml_load] loaded %d scan paths',
+        scalar( keys $scan_paths_data->%* )
+    );
+}
+
 <[base.logs]>->(
     1, '[storage.yaml_load] loaded registry with %d entries',
     scalar( keys $registry->%* )
@@ -40,8 +54,8 @@ if ( length $yaml_content ) {
 
 return $registry;
 
-#,,,.,...,,..,,,,,...,...,.,,,,,.,,,,,.,,,,..,..,,...,...,,..,...,.,,,.,,,...,
-#WTL3B5ATZY2SGKPVQNSRHJPWJIMOCFNE66VODLABC3AVQVFC37CQAJ5CRWR76URVIR73A4CDFZRAS
-#\\\|TBFS6NRSLTQFESOQEUBJXIIOWKC6PJQJRWZHR7RAC3PQC6YVBJL \ / AMOS7 \ YOURUM ::
-#\[7]VSS5AGJ67KY23JQI6Y5A26LCAPLZINLPULZBSDFM7HOJYNMSTIDY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,..,.,,,...,..,,,.,,..,,.,.,...,..,,...,...,...,,,.,.,.,...,,,,,
+#32ULTROAEB3RCVEVVQYQHWZ32O5JY7BAFMARLXIZEPNGWU7FNKQCTTD3TEPH7ZTMA3BUAI2WXOZRW
+#\\\|7U2HGMSAXAGOIN2LQHFRCBWCOGIYLFKK446SSO6KSTK7EARNSBA \ / AMOS7 \ YOURUM ::
+#\[7]C6LHYTFBMTQPCNTXUAUL3QDO32FW6U3NUYPKSKTMGS3DE63P44BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
