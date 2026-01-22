@@ -108,6 +108,17 @@ Recent async implementation includes:
 - **`httpd.diagnostic.*`**: System diagnostic tools
 - **`httpd.http_get/head/options`**: Async HTTP method handlers
 
+#### Coding Zenka (`modules/coding.*`)
+Orchestration engine for ML tasks with async inference spawning:
+- **`coding.init_code`**: Initialize with deferred server spawning
+- **`coding.async_spawn_inference_servers`**: Timer-based async spawner
+- **`coding.spawn_inference_server`**: Core spawning with IPC::Open3
+- **`coding.handler.monitor_inference_startup`**: Non-blocking server readiness monitor
+- **`coding.handler.process-queued-task`**: Task execution via HTTP inference API
+- **`coding.handler.check-completion-chain`**: Auto-resume for incomplete responses
+- **`coding.complete-analysis`**: Multi-turn task submission and resumption
+- **`llm.service.consensus_vote`**: Multi-model voting and response aggregation
+
 #### Module Organization & Dependencies
 - **Zenka-specific modules**: Each zenka has its own namespace (e.g., `cube.*`, `httpd.*`, `weather.*`)
 - **Shared modules**: Generic functionality gets descriptive names for reuse across zenki
@@ -196,6 +207,20 @@ Each zenka is a configured agent instance defined by:
 
 ## Current Development Focus
 
+### Async Inference Spawning (Coding Zenka)
+The coding zenka implements **non-blocking inference server spawning** that prevents init timeout:
+- **Problem**: Spawning and waiting for llama-server during init causes 70+ second timeout
+- **Solution**: Defer spawning to 100ms timer event after init completes
+- **Components**:
+  - Timer-triggered async spawning via `coding.async_spawn_inference_servers`
+  - I/O handlers for non-blocking stdout/stderr monitoring
+  - Log whitelist filtering to suppress benign startup messages
+  - LD_LIBRARY_PATH environment setup for GPU binary symbol resolution
+- **Result**: Coding zenka initializes in < 100ms, servers spawn asynchronously
+- **Status**: ✅ Fully implemented and verified working
+- **Documentation**: `data/md/documentation/ASYNC-SPAWNING-INFRASTRUCTURE-STATUS.md`
+
+### HTTP Server Async Implementation
 The active `dev/httpd-async-implementation` branch is implementing:
 - Non-blocking file operations for HTTP server
 - Event-based I/O handling

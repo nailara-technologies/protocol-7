@@ -3,7 +3,7 @@
 # name  = coding.handler.check-completion-chain
 # descr = variable watcher handler for auto-resume completion detection
 
-my $ev = shift;
+my $ev      = shift;
 my $meta_id = $ev->w->data;
 
 my $meta_job = <coding.complete_analysis_jobs>->{$meta_id};
@@ -16,8 +16,11 @@ my $cancel_watcher = sub {
 };
 
 unless ( defined $meta_job ) {
+
     # Meta job not found, stop monitoring
-    <[base.logs]>->( 1, "[check-completion-chain] meta job not found: %s", $meta_id );
+    <[base.logs]>->(
+        1, "[check-completion-chain] meta job not found: %s", $meta_id
+    );
     return;
 }
 
@@ -26,28 +29,31 @@ $meta_job->{'handler_call_count'} //= 0;
 $meta_job->{'handler_call_count'}++;
 
 <[base.logs]>->(
-    1, "[check-completion-chain] CALLED (call %d, status=%s)",
+    1,
+    "[check-completion-chain] CALLED (call %d, status=%s)",
     $meta_job->{'handler_call_count'},
     $meta_job->{'status'} // 'analyzing'
 );
 
 # Guard: Don't process if we've already sent a reply
 if ( $meta_job->{'status'} =~ /^(complete|error|failed)$/ ) {
-    <[base.logs]>->( 2, "[check-completion-chain] already processed (status=%s), ignoring", $meta_job->{'status'} );
+    <[base.logs]>->(
+        2, "[check-completion-chain] already processed (status=%s), ignoring",
+        $meta_job->{'status'}
+    );
     return;
 }
 
 # Clear the continuation flag immediately (set to FALSE) to prevent re-triggering
 $meta_job->{'continue_analysis'} = FALSE;
-$ev->w->stop;  # Stop watching this variable
+$ev->w->stop;    # Stop watching this variable
 
 # Get the current task
 my $task = $meta_job->{'task'};
 
 unless ( defined $task && length $task->{'id'} ) {
     <[base.logs]>->(
-        0, "[check-completion-chain] task not found for meta=%s",
-        $meta_id
+        0, "[check-completion-chain] task not found for meta=%s", $meta_id
     );
 
     <[base.callback.cmd_reply]>->(
@@ -63,7 +69,9 @@ unless ( defined $task && length $task->{'id'} ) {
 # Check if task has completed (check in coding.task.queue where tasks are stored)
 my $queue_task = <coding.task.queue>->{ $task->{'id'} };
 
-unless ( defined $queue_task && $queue_task->{execution}->{status} eq 'completed' ) {
+unless ( defined $queue_task
+    && $queue_task->{'execution'}->{'status'} eq 'completed' ) {
+
     # Task not yet complete, reschedule and return
     <[base.logs]>->(
         2, "[check-completion-chain] task still processing: %s",
@@ -73,7 +81,7 @@ unless ( defined $queue_task && $queue_task->{execution}->{status} eq 'completed
 }
 
 # Get task result from the completed task
-my $task_result = $queue_task->{execution}->{result} // '';
+my $task_result = $queue_task->{'execution'}->{'result'} // '';
 
 # On first response (resume_count == 0), accumulated is already set by on_task_complete
 # On continuations (resume_count > 0), append the new result to accumulated
@@ -82,16 +90,15 @@ if ( $meta_job->{'resume_count'} > 0 ) {
 }
 
 <[base.logs]>->(
-    1,
-    "[check-completion-chain] task completed: %s (accumulated=%d bytes)",
-    $task->{'id'},
-    length( $meta_job->{'accumulated'} )
+    1, "[check-completion-chain] task completed: %s (accumulated=%d bytes)",
+    $task->{'id'}, length( $meta_job->{'accumulated'} )
 );
 
 # Check if response appears complete (ends with proper punctuation or is short)
 my $appears_complete = (
-    $task_result =~ /[\.\!\?]\s*$/  ||  # Ends with period, exclamation, or question
-    length($task_result) < 100           # Very short responses likely complete
+    $task_result =~ /[\.\!\?]\s*$/
+        ||    # Ends with period, exclamation, or question
+        length($task_result) < 100    # Very short responses likely complete
 );
 
 if ($appears_complete) {
@@ -100,19 +107,19 @@ if ($appears_complete) {
     );
 
     # Determine reply mode based on internal newlines (excluding trailing)
-    my $final_data = $meta_job->{'accumulated'};
+    my $final_data    = $meta_job->{'accumulated'};
     my $stripped_data = $final_data;
-    $stripped_data =~ s/\n$//;  # Remove trailing newline for counting
+    $stripped_data =~ s/\n$//;        # Remove trailing newline for counting
     my $internal_newlines = ( $stripped_data =~ tr/\n// );
 
-    # Single-line (0 internal newlines): strip trailing newline, use 'true' mode
-    # Multi-line (1+ internal newlines): ensure trailing newline, use 'size' mode
+ # Single-line (0 internal newlines): strip trailing newline, use 'true' mode
+ # Multi-line (1+ internal newlines): ensure trailing newline, use 'size' mode
     my $reply_mode;
     if ( $internal_newlines == 0 ) {
-        $final_data =~ s/\n$//;  # Strip trailing newline
+        $final_data =~ s/\n$//;    # Strip trailing newline
         $reply_mode = 'true';
     } else {
-        $final_data .= "\n" if $final_data !~ /\n$/;  # Ensure trailing newline
+        $final_data .= "\n" if $final_data !~ /\n$/; # Ensure trailing newline
         $reply_mode = 'size';
     }
 
@@ -136,7 +143,7 @@ if ( $meta_job->{'resume_count'} >= $meta_job->{'max_resumes'} ) {
     );
 
     # Send accumulated result with size mode (still successful, just capped)
-    my $capped_data = $meta_job->{'accumulated'};
+    my $capped_data     = $meta_job->{'accumulated'};
     my $stripped_capped = $capped_data;
     $stripped_capped =~ s/\n$//;
     my $capped_internal_newlines = ( $stripped_capped =~ tr/\n// );
@@ -177,7 +184,8 @@ if ( $meta_job->{'resume_count'} > 1 ) {
 }
 
 # Append previous response as context for continuation
-$continuation_description .= "\n\n[Previous response (continue from here):\n"
+$continuation_description
+    .= "\n\n[Previous response (continue from here):\n"
     . $meta_job->{'accumulated'} . "\n]\n"
     . "[Continue...]";
 
@@ -221,7 +229,8 @@ if ( !$cont_analysis->{success} ) {
 my $cont_analyzed = $cont_analysis->{task};
 
 # Route continuation task
-my $cont_routing = <[coding.routing.decide_service]>->( 'route', $cont_analyzed );
+my $cont_routing
+    = <[coding.routing.decide_service]>->( 'route', $cont_analyzed );
 
 if ( !$cont_routing->{success} ) {
     <[base.callback.cmd_reply]>->(
@@ -252,15 +261,15 @@ if ( !$cont_queue->{success} ) {
 
 # Update meta job with new task ID
 $meta_job->{'task_id'} = $cont_routed->{id};
-$meta_job->{'task'} = $cont_routed;
+$meta_job->{'task'}    = $cont_routed;
 
 <[base.logs]>->(
     1, "[check-completion-chain] spawned continuation: task=%s",
     $cont_routed->{id}
 );
 
-#,,..,..,,,.,,..,,,,.,.,.,,,.,,,.,.,,,,,.,,.,,..,,...,...,...,...,...,..,,.,,,
-#JGYLF43YJGLUYKD572K5ITXVIGV4QO3REAA3FUSDSMSCPMJTNDAS7DMI57ZQCQNZ7XRKVGRXSKLXS
-#\\\|FYXRDPHJVKQCKCKS4IOVNCRZ7RD77LKWFYXHDIUTRG7YTRKAEEO \ / AMOS7 \ YOURUM ::
-#\[7]GDMMRDAKKBC7ZRKQBY7GPM7O5TYWGE3SUNVN2IZZBJWQQWFK2QDI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,.,,,..,,.,,,,,,,.,,,..,,.,,,..,,..,,...,...,.,.,.,.,.,.,..,,...,
+#XNSQ6QMTBHEZTMYNEPPJP3CYL7WF6UIFOLPMGGLXCLKLIL7RG5M632S55QVJLTRUDPWMMRRLSUMNW
+#\\\|VLDJK34CESBWUOLK2V3OKQLPWV2YRTOZQJUNKRWTOPL2ONG4J6R \ / AMOS7 \ YOURUM ::
+#\[7]D7GJLDJAL2AQDUT52H6I4ENRZJI6NLYKJ3L6VBRBJZIXTMH7EKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
