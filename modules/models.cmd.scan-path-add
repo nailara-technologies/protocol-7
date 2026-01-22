@@ -1,19 +1,173 @@
 ## [:< ##
 
 # name  = models.cmd.scan-path-add
-# param = <dir-path>
+# param = <directory_path>
 # descr = add a model discovery path and scan it
+# return = { mode, data } - success with path-id or error message
+
+my $dir_path = $call->{'args'} // $call->{'param'}->{'dir_path'} // '';
+
+unless ( defined $dir_path && length $dir_path ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'error: directory path parameter required'
+    };
+}
+
+## Validate directory exists and is accessible
+unless ( -d $dir_path ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "error: directory not found: $dir_path"
+    };
+}
+
+unless ( -r $dir_path ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "error: no read permission for directory: $dir_path"
+    };
+}
+
+## Get scan paths registry
+my $scan_paths = <models.scan_paths> // {};
+
+## Check if path already registered
+foreach my $path_id ( keys $scan_paths->%* ) {
+    if ( $scan_paths->{$path_id}->{'path'} eq $dir_path ) {
+        return {
+            'mode' => qw| false |,
+            'data' => "error: path already registered with id: $path_id"
+        };
+    }
+}
+
+## Generate path-id from directory name [ fallback to checksum ]
+my ( $volume, $directories, $filename ) = File::Spec->splitpath($dir_path);
+my $path_id_base = $filename // 'path';
+my $path_id = $path_id_base;
+my $counter = 1;
+
+while ( exists $scan_paths->{$path_id} ) {
+    $path_id = sprintf( '%s-%d', $path_id_base, $counter );
+    $counter++;
+}
+
+<[base.logs]>->(
+    1, '[scan-path-add] adding path: %s with id: %s',
+    $dir_path, $path_id
+);
+
+## Register the scan path
+$scan_paths->{$path_id} = {
+    'path'      => $dir_path,
+    'enabled'   => TRUE,
+    'recursive' => TRUE,
+    'tier'      => 3,           # Default tier for manually added paths
+    'discovered_count' => 0,
+    'added_at'  => <[base.time]>->(3)
+};
+
+<models.scan_paths> = $scan_paths;
+
+## Trigger discovery scan
+<[base.logs]>->( 1, '[scan-path-add] scanning directory for models' );
+my $discovered = <[models.storage.discover_directory]>->($dir_path, TRUE) // [];
+
+<[base.logs]>->(
+    1, '[scan-path-add] found %d model files',
+    scalar( @$discovered )
+);
+
+## Load current registry
+my $registry = <[models.storage.yaml_load]>->();
+
+## Add discovered models to registry
+my $added_count = 0;
+foreach my $model ( $discovered->@* ) {
+    ## Calculate path checksum (for composite key)
+    my $path_checksum = <[models.checksum.from_path]>->($model->{'path'});
+    unless ( defined $path_checksum ) {
+        <[base.logs]>->( 0, '[scan-path-add] failed to calculate checksum for: %s', $model->{'path'} );
+        next;
+    }
+
+    ## Calculate model checksum from metadata
+    my $model_checksum = <[models.checksum.from_metadata]>->({
+        'model_id'     => $model->{'name'},
+        'name'         => $model->{'name'},
+        'quantization' => $model->{'quantization'} // 'unknown',
+        'size_gb'      => $model->{'size_gb'} // 0,
+        'is_vision'    => $model->{'is_vision'} // FALSE
+    });
+    unless ( defined $model_checksum ) {
+        <[base.logs]>->( 0, '[scan-path-add] failed to calculate model checksum for: %s', $model->{'name'} );
+        next;
+    }
+
+    ## Use composite key: path:model
+    my $composite_key = "$path_checksum:$model_checksum";
+
+    ## Check if already in registry (by path)
+    my $already_exists = FALSE;
+    foreach my $entry ( values $registry->%* ) {
+        if ( $entry->{'file_path'} eq $model->{'path'} ) {
+            $already_exists = TRUE;
+            last;
+        }
+    }
+
+    if ( $already_exists ) {
+        <[base.logs]>->( 2, '[scan-path-add] model already registered: %s', $model->{'name'} );
+        next;
+    }
+
+    ## Add to registry
+    $registry->{$composite_key} = {
+        'amos_id'      => $composite_key,
+        'path_checksum'   => $path_checksum,
+        'model_checksum'  => $model_checksum,
+        'model_id'     => $model->{'name'},
+        'name'         => $model->{'name'},
+        'file_path'    => $model->{'path'},
+        'quantization' => $model->{'quantization'} // 'unknown',
+        'size_gb'      => $model->{'size_gb'} // 0,
+        'is_vision'    => $model->{'is_vision'} // FALSE,
+        'source'       => $path_id,
+        'scan_path_id' => $path_id,
+        'discovered'   => <[base.time]>->(3)
+    };
+
+    $added_count++;
+}
+
+## Update scan path with count
+$scan_paths->{$path_id}->{'discovered_count'} = $added_count;
+<models.scan_paths> = $scan_paths;
+
+## Save registry to YAML
+my $bytes_saved = <[models.storage.yaml_save]>->($registry);
+unless ( defined $bytes_saved ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'error: failed to save registry'
+    };
+}
+
+## Log to action buffer
+my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+<[base.buffer.add_line]>->(
+    qw| models-action |,
+    join( ' ', $time_stamp, 1, 'system', 'scan-path-add', $path_id, $added_count, 'completed' ), 1
+);
 
 return {
-    'mode' => qw| false |,
-    'data' => 'expected directory path parameter'
-    }
-    if not length $call->{'args'};
+    'mode' => qw| true |,
+    'data' => "added path [$path_id] with $added_count models"
+};
 
-return { 'mode' => qw| false |, 'data' => 'not implemented yet' }
-
-#,,.,,,,,,,,,,,.,,.,.,...,,.,,...,,,.,,,.,,..,..,,...,...,...,..,,,.,,..,,,..,
-#BCENTA6V5COVFIZW6UKIZQGD3KAZL2XKKPNRCIZ7PGZSRERG4A65JKVTPMQJIC4N7S4TCQ357SKTA
-#\\\|73EQYBZ6555GDUFXX372OTOXZQ4IEEJBG32QAYZ4NLROZDTRGA3 \ / AMOS7 \ YOURUM ::
-#\[7]SG5YS352DGGAIJ3CWCJ2VX7HD2T7P5UI6M3J7C5FPRPMOK6ZDUBQ 7  DATA SIGNATURE ::
+#,,..,.,,,..,,..,,,,,,.,,,.,,,,,,,.,.,,,.,..,,..,,...,...,..,,.,,,.,.,.,.,,.,,
+#RXRK4KDRVUJXMNTLZYYLRBRQUHXSQCJFMBGB3U3LVVI5K4TK2FPB3UIVPDWO6EL7WD7TMLTCXSGI4
+#\\\|GQ7XWTUASCPN5BEU54KJYO2PURWVKROHS63U2LPHJZFCESTZS6F \ / AMOS7 \ YOURUM ::
+#\[7]HSLEGXRKEKF6T7Y336UI34LI2ZSOWPO5OIGOE7ATMZ3BX5WUU2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

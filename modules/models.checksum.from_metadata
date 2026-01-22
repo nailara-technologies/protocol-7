@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = models.checksum.from_metadata
+# param = <metadata_hashref>
+# descr = Calculate 7-character AMOS checksum from model metadata
+# return = checksum string or undef on error
+
+my $metadata = shift;
+
+unless ( defined $metadata && ref($metadata) eq qw| HASH | ) {
+    <[base.s_warn]>->('metadata hash reference required');
+    return undef;
+}
+
+## Extract canonical fields for checksumming [ sorted for deterministic output ]
+my @canonical_fields = qw| model_id name quantization size_gb is_vision |;
+
+my $checksum_input = '';
+foreach my $field ( sort @canonical_fields ) {
+    if ( exists $metadata->{$field} ) {
+        my $value = $metadata->{$field};
+        $value = defined $value ? $value : 'undef';
+        $checksum_input .= sprintf( '%s=%s|', $field, $value );
+    }
+}
+
+unless ( length $checksum_input ) {
+    <[base.s_warn]>->('no canonical fields found in metadata');
+    return undef;
+}
+
+## Calculate AMOS checksum from canonical string representation
+my $checksum = <[chk-sum.amos]>->($checksum_input);
+
+unless ( defined $checksum && length $checksum ) {
+    <[base.s_warn]>->('failed to calculate checksum from metadata');
+    return undef;
+}
+
+return $checksum;
+
+#,,.,,,..,,.,,.,.,,,,,,.,,...,..,,,,.,...,,,.,..,,...,...,.,,,.,.,..,,,,.,,,.,
+#GCPMYHA5HOM2EV5FK7L3VQAEMADK5W3B4XKZ36IP5TUOJPY7JDKT43UYYJ5YKZ5HMTP7OCW67JUFQ
+#\\\|RSHWLLXVOA3EHX2JMGMDLXZWVHZ34ONVMJHNZAZPDSBWZJTM4LN \ / AMOS7 \ YOURUM ::
+#\[7]KEOANMVUOWJPOYXI4ATPPTXN4QK7TYG6PI2M7FS7ITXVG7VIEECI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

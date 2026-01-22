@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = models.storage.yaml_load
+# descr = Load models registry from YAML file in zenka directory
+# return = registry hash reference or empty hash on error
+
+use YAML::XS qw| Load |;
+
+## Load YAML content from zenka directory [ registry/models.yaml ]
+my $yaml_content = <[file.zenka_dir.load]>->('registry/models.yaml');
+
+## If file doesn't exist, return empty registry
+unless ( defined $yaml_content ) {
+    <[base.logs]>->( 2, '[storage.yaml_load] registry file not found, returning empty registry' );
+    return {};
+}
+
+## Parse YAML content
+my $registry = {};
+if ( length $yaml_content ) {
+    eval {
+        my $parsed = Load($yaml_content);
+        if ( ref($parsed) eq qw| HASH | && exists $parsed->{models} ) {
+            $registry = $parsed->{models} // {};
+        }
+    };
+    if ( $EVAL_ERROR ) {
+        <[base.logs]>->(
+            0, '[storage.yaml_load] YAML parse error: %s',
+            <[base.str.eval_error]>
+        );
+        return {};
+    }
+}
+
+<[base.logs]>->(
+    1, '[storage.yaml_load] loaded registry with %d entries',
+    scalar( keys $registry->%* )
+);
+
+return $registry;
+
+#,,,.,...,,..,,,,,...,...,.,,,,,.,,,,,.,,,,..,..,,...,...,,..,...,.,,,.,,,...,
+#WTL3B5ATZY2SGKPVQNSRHJPWJIMOCFNE66VODLABC3AVQVFC37CQAJ5CRWR76URVIR73A4CDFZRAS
+#\\\|TBFS6NRSLTQFESOQEUBJXIIOWKC6PJQJRWZHR7RAC3PQC6YVBJL \ / AMOS7 \ YOURUM ::
+#\[7]VSS5AGJ67KY23JQI6Y5A26LCAPLZINLPULZBSDFM7HOJYNMSTIDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
