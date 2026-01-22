@@ -5,16 +5,16 @@
 # descr = return or change specified mpv setting
 # todo  = understand / deal with quoted strings (containing spaces)
 
-my $reply_id     = $$call{'reply_id'};
+my $reply_id     = $call->{'reply_id'};
 my $settings_map = <mpv.map.settings> // {};
 
-my ( $setting_key, @target_values ) = split( / +/, $$call{'args'} );
+my ( $setting_key, @target_values ) = split m| +|, $call->{'args'} // '';
 
 return {
     'mode' => qw| false |,
     'data' => "expected <key> [value] parameter"
     }
-    if not defined $setting_key or !length($setting_key);
+    if not length $setting_key;
 
 return { 'mode' => qw| false |, 'data' => "unknown setting '$setting_key'" }
     if not defined( my $map_entry = $settings_map->{$setting_key} );
@@ -25,21 +25,21 @@ if ( !@target_values ) {
 
     <mpv.request.property>->{$reply_id} = $mpv_property;
 
-    push( @{<mpv.reply_ids>}, $reply_id );
+    push( <mpv.reply_ids>->@*, $reply_id );
     push(
-        @{<mpv.command.reply>},
-        { 'handler' => 'mpv.handler.pipe.single_line' }
+        <mpv.command.reply>->@*,
+        { 'handler' => qw| mpv.handler.pipe.single_line | }
     );
-    <[mpv.send_command]>->( 'get_property_string', $mpv_property );
+    <[mpv.send_command]>->( qw|get_property_string|, $mpv_property );
 
-    return { 'mode' => 'deferred' };
+    return { 'mode' => qw| deferred | };
 }
 
 my $val_str = join( ' ', @target_values );
 
 return {
     'mode' => qw| false |,
-    'data' => "not implemented yet!"
+    'data' => 'not implemented yet'
     }
     if not defined $mpv_property;
 
@@ -57,7 +57,7 @@ if ( defined $map_entry->{'int'} ) {
             'data' => 'expected integer value' . $opt_str
             }
             if @target_values > 1
-            or $val_str !~ /^-?\d+$/;
+            or $val_str !~ m|^-?\d+$|;
         return {
             'mode' => qw| false |,
             'data' => "out of range ( \"$setting_key\" ["
@@ -77,34 +77,34 @@ if ( defined $map_entry->{'int'} ) {
     if ( !$opt_match ) {
         my $opt_str
             = @options
-            ? " or " . join( ', ', map { "'$ARG'", @options } )
+            ? " or " . join( ', ', map {"'$ARG'"} @options )
             : '';
         return { 'mode' => qw| false |, 'data' => 'expected float value' }
             if @target_values > 1
-            or $val_str !~ /^-?\d+(\.\d+)?$/;
+            or $val_str !~ m|^-?\d+(\.\d+)?$|;
         return {
             'mode' => qw| false |,
             'data' => "out of range ( \"$setting_key\" ["
-                . join( ',', sort @{ $map_entry->{'float'} } ) . '] )'
+                . join( ',', sort $map_entry->{'float'}->@* ) . '] )'
             }
             if $val_str < $map_entry->{'float'}->[0]
             or $val_str > $map_entry->{'float'}->[1];
     }
 }
 
-push( @{<mpv.reply_ids>}, $reply_id );
+push <mpv.reply_ids>->@*, $reply_id;
 
-my $value_str = join( ' ', @target_values );
-<mpv.success_reply_str> = "$setting_key = $value_str";
+my $value_str = join ' ', @target_values;
+$data{'mpv'}->{'success_reply_str'} = join ' = ', $setting_key, $value_str;
 
-<[base.log]>->( 2, "setting : '$setting_key' = '$value_str'" );
+<[base.log]>->( 2, "setting : '%s' = '%s'", $setting_key, $value_str );
 
 <[mpv.send_command]>->( 'set_property_string', $mpv_property, $value_str );
 
-return { 'mode' => 'deferred' };
+return { 'mode' => qw| deferred | };
 
-#,,..,,.,,.,.,.,,,,,,,.,,,,.,,,,.,,..,,.,,..,,..,,...,..,,,,.,.,.,,.,,,,,,,,,,
-#HRIHEFO2VUG5D2GE7W52NKPCBQTBJB2UG2KTK3ZC2XKVZWNHO2LB3SWH6ICGJTZOYRNKEGEPQD4LG
-#\\\|3X2E5VSB6NVJ7HJ4KT5XKZP2QPAENH25L2XA32ORJ6N5O4XKK57 \ / AMOS7 \ YOURUM ::
-#\[7]Y76HAJRH54Y7GSTQ2HNPD4RGYBQA6BTJKMYBFODK5JJMT2FWYGDY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,.,,,,..,,,.,.,,,,..,,,,,..,,.,,,..,,...,...,...,,,,,.,,,.,.,.,.,
+#26JC25K65SDXF2YKDTY7MND5MWWYJUKW6P7IHLJTKAGPKAS2D57XNCYBWKUXKFBTPDQJGEINFWUQY
+#\\\|WUEUCNZRZXQDDQJWV36HJZONZVXOQPQROKQUAYWHGPQWKORFLEW \ / AMOS7 \ YOURUM ::
+#\[7]Y74KKUDXZPB4WKN5WOY4YFRJUHG3KBMZKKT46X5UVU7JYFTCRUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
