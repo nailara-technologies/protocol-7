@@ -1,0 +1,472 @@
+---
+# Multi-Agent Seamless Desktop Framework - Quick Reference & Intake Checklist
+# Purpose: Token-efficient overview for coding sessions
+# Use: Load before session to quickly access options, decisions, and validation criteria
+
+project_metadata:
+  name: Multi-Agent Seamless Desktop Framework
+  source: Duck.ai Claude Sonnet 4.5 (2026-01-22)
+  vision: Eliminate "I need Windows app XYZ" through intelligent cross-platform forwarding
+  status: Integration-Ready
+  primary_language: Perl
+  version: 0.1.0-experimental
+
+architecture_summary:
+  direction: Windows VM (server) → Xpra Forwarding → Linux Host (client) X11/Wayland
+  key_insight: Seamless mode works because Linux client handles window management natively
+  optional_enhancement: X server on Windows for true seamless X11 app forwarding
+
+session_initialization_checklist:
+  □ Check Windows VM running and network accessible
+  □ Verify winsocat listening on port 9000
+  □ Confirm Xpra installed on Windows
+  □ Verify Perl environment on Linux host
+  □ Load application profile for target app
+  □ Check experiment manifest for baseline metrics
+  □ Verify performance monitoring storage available
+
+core_components:
+  display_backends:
+    primary_choice: xpra
+    alternatives:
+      - xvfb  # headless automation
+      - xephyr  # nested testing
+      - host_x11  # native performance
+    xpra_version_minimum: "4.4+"
+    xpra_capabilities:
+      - persistent_sessions
+      - multi_client_support
+      - hardware_encoding_h264_h265
+      - bandwidth_adaptation
+      - runtime_encoding_changes
+
+  communication:
+    protocol: winsocat
+    bootstrap: tcp-l:9000 exec:powershell.exe,pipes
+    port: 9000
+    retry_attempts: 3
+    timeout_seconds: 10
+    backoff_strategy: exponential
+
+quick_decisions:
+  application_category_determines:
+    video_conferencing:
+      encoding: h264
+      quality: 80
+      audio: true
+      microphone: true
+      webcam: true
+      min_bandwidth_kbps: 2000
+    development_tools:
+      encoding: h265
+      quality: 90
+      audio: false
+      optimization: desktop
+      min_bandwidth_kbps: 1000
+    office_applications:
+      encoding: h264
+      quality: 85
+      audio: false
+      optimization: desktop
+      min_bandwidth_kbps: 800
+
+performance_targets:
+  video_conferencing_litmus_test:
+    resolution: 720p30
+    latency_ms: 100  # max, local network
+    bandwidth_kbps: 2000-5000
+    audio_sync: PulseAudio/PipeWire
+    success_criteria:
+      - no_stuttering
+      - clear_audio
+      - video_sync
+      - webcam_functional
+
+agent_framework_layers:
+  layer_1_environment_detection:
+    purpose: Select optimal display backend
+    decision_tree:
+      remote_windows_app: xpra-remote
+      persistent_session: xpra-local
+      nested_testing: xephyr
+      headless: xvfb
+      native_performance: host-x11
+
+  layer_2_dependency_resolution:
+    purpose: Provision missing components
+    capabilities:
+      - detect_installed_backends
+      - provision_via_package_managers
+      - validate_hardware_acceleration
+      - handle_cross_platform_differences
+    package_managers:
+      windows: winget
+      linux_debian: apt
+      linux_arch: pacman
+
+  layer_3_connection_orchestration:
+    purpose: Manage Xpra and window management
+    responsibilities:
+      - xpra_server_lifecycle
+      - winsocat_tunneling
+      - window_management_coordination
+      - layout_policy_application
+      - multi_client_coordination
+
+  layer_4_performance_monitoring:
+    purpose: Adaptive optimization
+    metrics_collected:
+      - latency_ms
+      - framerate_fps
+      - bandwidth_kbps
+      - cpu_usage_percent
+      - gpu_utilization_percent
+
+    adaptive_rules:
+      latency_gt_150: switch_to_jpeg_low_latency
+      high_bandwidth_low_cpu: upgrade_to_rgb_lossless
+      high_network_jitter: downgrade_to_h264_low_bitrate
+      cpu_gt_80: reduce_resolution_or_framerate
+      stable_conditions: maintain_or_upgrade_quality
+    hysteresis_seconds: 30
+
+state_management:
+  experiment_levels:
+    0_sandbox: no_tracking
+    1_tracked: manifest_logged
+    2_validated: tests_pass_reproducible
+    3_staged: available_to_agents
+    4_production: default_all_agents
+
+  promotion_criteria:
+    success_rate_min_percent: 95
+    validation_tests: all_pass
+    performance_metrics: targets_met
+    stability_duration_days: 1
+
+  artifact_storage:
+    experiment_manifests: ./experiments/
+    application_profiles: ./profiles/
+    session_state: ~/.agent-framework/sessions/
+    metrics: ./metrics/
+    logs: ./logs/
+
+networking_checklist:
+  □ VM network mode: bridge (recommended) or NAT
+  □ Use virtio-net for paravirtualization
+  □ MTU: 1500 standard or 9000 jumbo
+  □ Audio: PulseAudio configured
+  □ GPU: virtio-gpu or passthrough if needed
+  □ Firewall: port 10000 open (Xpra)
+  □ SSH tunnel: optional but recommended for security
+
+session_state_tracking:
+  session_attributes:
+    session_id: UUID format
+    connection_handle: active socket
+    capabilities:
+      - powershell: bool
+      - winget: bool
+      - perl: bool
+      - xpra: bool
+    created_at: unix_timestamp
+    last_activity: unix_timestamp
+    health_status: healthy|degraded|failed
+
+  persistence: YAML files
+  location: ~/.agent-framework/sessions/
+  auto_cleanup_hours: 24
+
+application_profile_structure:
+  required_fields:
+    app_name: unique-identifier
+    display_name: human readable
+    category: video-conferencing|development|office|specialized
+
+  platform_definitions:
+    installer:
+      method: winget|apt|pacman
+      package: package-id
+    dependencies: list
+    config_files: list
+    validation:
+      type: executable|service|file
+      path: target-path
+
+  xpra_configuration:
+    encoding: h264|h265|jpeg|rgb|png
+    quality: 1-100
+    speed: 1-100
+    audio: bool
+    microphone: bool
+    webcam: bool
+    optimization: video-conferencing|desktop|low-latency|high-quality
+
+experiment_manifest_checklist:
+  required_sections:
+    □ experiment_id: unique-identifier-NNN
+    □ created_at: iso8601_timestamp
+    □ description: clear hypothesis
+    □ hypothesis: expected outcome
+    □ environment: os, hypervisor, resources
+    □ components: versions, configurations
+    □ test_procedure: steps to execute
+    □ validation_criteria: success metrics
+
+  results_sections:
+    □ status: success|failure|partial
+    □ completed_at: iso8601_timestamp
+    □ metrics: actual measurements
+    □ observations: qualitative notes
+    □ conclusion: what was learned
+    □ integration_recommendation: level_0-4
+    □ artifacts: logs, metrics, screenshots
+
+troubleshooting_matrix:
+  connection_refused:
+    diagnose:
+      - xpra list on Windows VM
+      - netsh firewall check
+      - telnet VM_IP 10000
+      - check firewall rules
+    solutions:
+      - start_xpra_server
+      - open_firewall_port
+      - verify_ip_address
+      - check_xpra_logs
+
+  poor_performance:
+    diagnose:
+      - ping latency and packet loss
+      - top/Task Manager CPU
+      - check current encoding
+      - monitor network bandwidth
+    solutions:
+      - try_different_encoding
+      - enable_hardware_encoding
+      - reduce_quality
+      - lower_resolution
+      - check_network_jitter
+
+  audio_video_desync:
+    causes:
+      - buffering_mismatch
+      - network_jitter
+      - wrong_audio_backend
+    solutions:
+      - use_h264_encoding
+      - adjust_pulseaudio_latency
+      - enable_audio_timestamps
+      - test_local_network_first
+
+  seamless_mode_issues:
+    verify:
+      - windows_is_server_not_client
+      - x11_on_linux_not_windows
+    solutions:
+      - disable_windows_decorations
+      - try_window_manager_mode
+      - check_app_compatibility
+      - test_with_known_good_app
+
+winsocat_session_management:
+  establish_procedure:
+    step_1: connect_with_retry_logic
+    step_2: validate_connection_echo_test
+    step_3: detect_capabilities
+    step_4: register_session_with_uuid
+    step_5: persist_session_state
+
+  capability_commands:
+    powershell: "powershell.exe -Command 'echo test'"
+    winget: "winget --version"
+    perl: "perl --version"
+    xpra: "xpra --version"
+
+  auto_provision_commands:
+    perl: "winget install StrawberryPerl.StrawberryPerl --silent"
+    xpra: "winget install Xpra --silent --accept-package-agreements"
+
+  error_handling:
+    connection_failure: retry_exponential_backoff_max_3
+    command_timeout: kill_hang_at_60s_default
+    provision_failure: mark_unavailable_continue_degraded
+
+quick_command_reference:
+  xpra_server_windows:
+    basic: "xpra start --start='path.exe' --bind-tcp=0.0.0.0:10000"
+    with_video: "xpra start --encoding=h264 --video-encoders=h264 --quality=85"
+    with_audio: "--speaker=on --microphone=on --webcam=yes"
+    info: "xpra info :DISPLAY"
+    control: "xpra control :DISPLAY encoding=h265"
+    stop: "xpra stop :DISPLAY"
+
+  xpra_client_linux:
+    attach: "xpra attach tcp://VM_IP:10000"
+    with_gpu: "--opengl=yes"
+    with_audio: "--speaker=pulse --microphone=pulse"
+    ssh_tunnel: "ssh -L 10000:localhost:10000 user@vm"
+
+  winsocat:
+    listen: "winsocat tcp-l:9000 exec:powershell.exe,pipes"
+    connect: "nc VM_IP 9000"
+
+  diagnostics:
+    test_bandwidth: "iperf3 -s (server) / iperf3 -c VM_IP"
+    capture_traffic: "tcpdump -i eth0 port 10000"
+    verbose_logging: "xpra start --debug=all"
+
+immediate_priorities:
+  priority_1_session_management:
+    components:
+      - WinsocatSessionAgent.pm
+      - connection_retry_exponential_backoff
+      - capability_detection
+      - auto_provisioning_logic
+      - session_state_persistence
+    deliverables: Perl module with full lifecycle
+
+  priority_2_package_management:
+    components:
+      - unified_package_manager_interface
+      - winget_backend
+      - cross_platform_dependency_resolution
+      - fallback_handling
+    deliverables: Extended agent with Windows support
+
+  priority_3_application_profiles:
+    components:
+      - YAML schema definition
+      - profile_parser_validator
+      - example_profiles
+      - repository_structure
+    deliverables: Profile system ready for deployment
+
+  priority_4_configuration_management:
+    components:
+      - template_system
+      - preference_merging
+      - environment_overrides
+      - idempotent_deployment
+    deliverables: Config agent with layer support
+
+  priority_5_experiment_framework:
+    components:
+      - manifest_schema_yaml
+      - state_capture_automation
+      - replay_capability
+      - recipe_generation
+    deliverables: Experiment tracking system
+
+  priority_6_performance_monitoring:
+    components:
+      - metrics_collection_framework
+      - encoding_negotiation
+      - performance_logging
+      - degradation_alerts
+    deliverables: Monitoring agent with adaptivity
+
+encoding_comparison:
+  h264_standard:
+    cpu_usage: low_hardware
+    bandwidth: medium
+    latency: medium_50_100ms
+    quality: good
+    use_cases: [video_conferencing, dynamic_content]
+
+  h264_low_bitrate:
+    cpu_usage: low_hardware
+    bandwidth: low
+    latency: medium
+    quality: acceptable
+    use_cases: [poor_network, bandwidth_constrained]
+
+  h265_high_quality:
+    cpu_usage: medium_hardware
+    bandwidth: medium_reduced
+    latency: medium
+    quality: excellent
+    use_cases: [high_quality_static_content, bandwidth_optimization]
+
+  jpeg_low_latency:
+    cpu_usage: medium_software
+    bandwidth: medium_high
+    latency: low_20_50ms
+    quality: good_static
+    use_cases: [high_latency_need_responsiveness, static_content]
+
+  rgb_lossless:
+    cpu_usage: low
+    bandwidth: very_high
+    latency: low
+    quality: perfect_lossless
+    use_cases: [high_bandwidth_available, professional_work, color_critical]
+
+deployment_progression:
+  phase_1_validate_components:
+    tasks: [setup_vm_network, install_xpra, test_winsocat, verify_frameworks]
+    expected_outcome: all_components_functional
+
+  phase_2_basic_forwarding:
+    tasks: [launch_single_app, monitor_performance, test_seamless_mode, document_baseline]
+    expected_outcome: teams_or_zoom_working_at_target_performance
+
+  phase_3_agent_integration:
+    tasks: [integrate_session_agent, add_package_management, load_profiles, test_provisioning]
+    expected_outcome: automatic_app_installation_and_launch
+
+  phase_4_experiment_tracking:
+    tasks: [create_manifests, run_experiments, track_results, generate_recipes]
+    expected_outcome: reproducible_configurations_documented
+
+  phase_5_monitoring_optimization:
+    tasks: [deploy_monitoring, test_adaptation, benchmark_encodings, optimize_profiles]
+    expected_outcome: adaptive_performance_optimization_active
+
+  phase_6_production_hardening:
+    tasks: [security_audit, load_testing, failure_scenarios, documentation]
+    expected_outcome: production_ready_deployment
+
+documentation_references:
+  xpra_docs: "https://xpra.org/"
+  libvirt_docs: "https://libvirt.org/"
+  winget_docs: "https://learn.microsoft.com/windows/package-manager/winget/"
+  perl_docs: "https://perldoc.perl.org/"
+  kvm_docs: "https://www.linux-kvm.org/"
+
+file_structure:
+  generated_markdown: INTEGRATION_GUIDE.md
+  generated_html: INTEGRATION_GUIDE.html
+  generated_yaml: INTEGRATION_GUIDE.yaml
+  location: knowledge_base/agent-framework/
+  integration_target: before_coding_sessions
+
+session_workflow_template:
+  pre_session:
+    □ Load YAML intake form
+    □ Review current priorities
+    □ Check experiment status
+    □ Verify environment readiness
+    □ Confirm baseline metrics
+
+  during_session:
+    □ Reference quick decisions table
+    □ Check troubleshooting matrix for issues
+    □ Update experiment manifests
+    □ Log decisions and observations
+    □ Test in isolated environment
+
+  post_session:
+    □ Archive session state
+    □ Update experiment results
+    □ Document learnings
+    □ Promote successful experiments
+    □ Generate integration recipes
+
+metadata:
+  document_version: "1.0"
+  created: "2026-01-22"
+  status: "Integration-Ready"
+  next_review: "After Priority 1-4 implementation"
+  generated_from: "Duck.ai Claude Sonnet 4.5 Conversation"
+  tokens_saved_vs_markdown: "~70% reduction for session intake"
