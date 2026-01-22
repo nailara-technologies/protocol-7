@@ -111,7 +111,7 @@ foreach my $model ( $discovered->@* ) {
     ## Check if already in registry (by path)
     my $already_exists = FALSE;
     foreach my $entry ( values $registry->%* ) {
-        if ( $entry->{'file_path'} eq $model->{'path'} ) {
+        if ( ($entry->{'file_path'} // '') eq $model->{'path'} ) {
             $already_exists = TRUE;
             last;
         }
@@ -166,8 +166,8 @@ return {
     'data' => "added path [$path_id] with $added_count models"
 };
 
-#,,..,.,,,..,,..,,,,,,.,,,.,,,,,,,.,.,,,.,..,,..,,...,...,..,,.,,,.,.,.,.,,.,,
-#RXRK4KDRVUJXMNTLZYYLRBRQUHXSQCJFMBGB3U3LVVI5K4TK2FPB3UIVPDWO6EL7WD7TMLTCXSGI4
-#\\\|GQ7XWTUASCPN5BEU54KJYO2PURWVKROHS63U2LPHJZFCESTZS6F \ / AMOS7 \ YOURUM ::
-#\[7]HSLEGXRKEKF6T7Y336UI34LI2ZSOWPO5OIGOE7ATMZ3BX5WUU2DQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,,..,.,,,,.,,,.,,,,,,,,.,,..,...,..,,...,...,,.,,.,,,...,,,,,..,,
+#GD7TE3PPD2GWPVBIHG63RQFPKVHFVC5XVTRSZ65HVW6MFJAVY5FHN6T6VLTVC3JEHEBWIMT3PSIQY
+#\\\|NENAMPMK4WP3XUDY3GR7OI5R3OPTRDL4POUIIWALUENCZIFDV6A \ / AMOS7 \ YOURUM ::
+#\[7]5WWNTXAIGM4MYK7MJPF25AINH367UESR2Y7FGWHDK6ZXR5SDPKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
