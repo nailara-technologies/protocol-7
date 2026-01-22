@@ -36,10 +36,13 @@ $data{'models'}        //= {};
 #
 <models.scan_paths> //= {}; ## initialize ## [ <models.storage.search_paths> ]
 
-## Load persisted scan_paths from YAML on startup
+## Load persisted scan_paths and models from YAML on startup
 my $persisted_registry = <[models.storage.yaml_load]>;
-if ( ref($persisted_registry) eq qw| HASH | ) {
-    ## yaml_load also restores scan_paths during parsing
+if ( ref($persisted_registry) eq qw| HASH | && scalar( keys %$persisted_registry ) ) {
+    <models.registry> = $persisted_registry;
+    <[base.logs]>->( 1, '[init] restored %d models from persistent registry',
+        scalar( keys %$persisted_registry )
+    );
 }
 
 <list.scan-paths> = {
@@ -184,8 +187,8 @@ unless ( exists <models.registry> ) {
 
 return 0;    # Module initialization successful
 
-#,,,,,...,,,.,...,,,,,,.,,,,,,,,.,.,.,.,.,,..,..,,...,...,...,,,,,,,,,...,..,,
-#D23EZIMVELR5JCB2Z6FCYVHDBM4WTBYRYNTXGMGAI63ZGICFZIQVU5HKCLR7ARM6BB4QBXTDQC4MM
-#\\\|IRC5JWGBOBMMY5QBWAZ4KUVSBEEP3ZULNYUDAHI6VICLZICUSYX \ / AMOS7 \ YOURUM ::
-#\[7]BCPF4U2QMT7Y5ESGLGZRW5F46DNOZXIQ46ZX2X45ZMKLETYWV2BY 7  DATA SIGNATURE ::
+#,,..,.,,,,..,..,,.,,,.,.,,.,,...,,,,,,,.,.,.,..,,...,...,.,.,,.,,,..,..,,,,.,
+#TT6VMPWR2CP5LKB6NID5EGG2JE3OJHGHSG5PIQ6LFZSXVWIGQDJPKEXET7LEDM2DK7XK6NZ6LMRM2
+#\\\|DWBHSR6R2WHCLAY4HXZLRQYV5OCUYN76OKGWLB76HWH6OBQCY6Z \ / AMOS7 \ YOURUM ::
+#\[7]7DNRBD3JO72LHTUUE6CKQPHSJZRXP4RFKZH2YVV7QCA5AZD764BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
