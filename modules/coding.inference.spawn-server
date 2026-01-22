@@ -21,33 +21,15 @@ my $model_id
     ? $data{'inference.backend.gpu.model_id'} // 'gemma3-glitter-4b'
     : $data{'inference.backend.cpu.model_id'} // 'gemma3-glitter-4b';
 
-# If model_path not provided, lookup in models registry
+# Model path must be provided (resolved during startup via network request to models zenka)
 unless ( defined $model_path && length $model_path ) {
-    my $model_entry = <[models.registry.find_by_id]>->($model_id);
-
-    unless ( defined $model_entry ) {
-        <[base.logs]>->(
-            0, "[spawn-server] model not found in registry: %s",
-            $model_id
-        );
-        return {
-            success => FALSE,
-            error   => "Model not found in registry: $model_id"
-        };
-    }
-
-    $model_path = $model_entry->{'file_path'};
-
-    unless ( defined $model_path && length $model_path ) {
-        <[base.logs]>->(
-            0, "[spawn-server] model entry has no file_path: %s",
-            $model_id
-        );
-        return {
-            success => FALSE,
-            error   => "Model file path not available: $model_id"
-        };
-    }
+    <[base.logs]>->(
+        0, "[spawn-server] model_path required (should be resolved during init)"
+    );
+    return {
+        success => FALSE,
+        error   => "Model path not provided"
+    };
 }
 
 my $context_len = $data{'inference.model.context_length'} // 2048;
@@ -181,8 +163,8 @@ return {
     pid     => $pid
 };
 
-#,,..,.,,,,.,,,..,,.,,.,,,...,..,,,,,,,,,,.,,,..,,...,...,..,,...,.,,,,.,,.,,,
-#B3VE2KMRC6P7764L657TEARLFC7PG2YFYSPZFNI7Z4HJU5TIVUHP23DRBEZUNAZHO5X343J773ZAI
-#\\\|3RJ3ZP6XYRKFRVE6GATHHS5OZN35XZFMIT4Y7OVB5IHZ3Q6R2JC \ / AMOS7 \ YOURUM ::
-#\[7]EO7AVAEJWPQM44IVDLXNYPD2E3QZKA2HE2BBLOXXYQ5N3EL44EBA 7  DATA SIGNATURE ::
+#,,..,,..,,,.,..,,,,.,..,,,.,,,,.,.,.,.,,,.,,,..,,...,..,,..,,,,.,,..,,,.,.,,,
+#KOBH6FRZQMLH4DFLLH46HFTORVCA324AIWHH2Q346AJKO7WN4HRH6UXL4OZZLEJL3CO457O4EE7M4
+#\\\|BZKM5EAIRMQSC3PPOTGG5RNLROXRTPXA7SJ6AXCP37FEP36P35A \ / AMOS7 \ YOURUM ::
+#\[7]H7IHEHVC4DAIDPS7IA6DC3CMQ24K7WNTPCUVHEDNX3CNE5UDAODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
