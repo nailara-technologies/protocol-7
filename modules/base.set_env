@@ -1,0 +1,27 @@
+## [:< ##
+
+# name   = base.set_env
+# param  = <key> <value>
+# descr  = set a value in ENV hash while logging it
+# return = <value> or undef
+
+my ( $key, $value ) = ( shift, shift );
+
+if ( not length $key // '' ) {
+    <[base.s_warn]>->('key name required <{C1}>');
+    return undef;
+} elsif ( not defined $value ) {
+    <[base.s_warn]>->('value parameter expected <{C1}>');
+    return undef;
+}
+my $mode = exists $ENV{$key} ? qw| updating | : qw| setting |;
+
+<[base.logs]>->( 2, ": %s env-key : %s = '%s'", $mode, $key, $value );
+
+return $ENV{$key} = $value;
+
+#,,.,,.,,,...,,..,,,,,...,.,.,.,.,..,,.,,,,..,..,,...,...,...,,..,,..,,,.,...,
+#7RTNIZWNMYUEDQP7ET7IDDMX7AVDIT7OLSSBHGYJRTQTSDMFNG2RWAXVFCU4A3VG7DTATAJYECJFS
+#\\\|5ZH7ZRQ3WCLKJ562HRMMCCNP5JGYPW6XNGVZFX5XDDKI63ETVLG \ / AMOS7 \ YOURUM ::
+#\[7]5TUVKRUHYPO5U7OSAWJE3HDVM3OGZCHYQXLZU3KZZOLEB55B3ABQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
