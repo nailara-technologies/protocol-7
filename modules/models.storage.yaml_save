@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = models.storage.yaml_save
+# param = <registry_hashref>
+# descr = Save models registry to YAML file in zenka directory
+# return = bytes written or undef on error
+
+use YAML::XS qw| Dump |;
+
+my $registry = shift;
+
+unless ( defined $registry && ref($registry) eq qw| HASH | ) {
+    <[base.s_warn]>->('registry hash reference required');
+    return undef;
+}
+
+## Prepare YAML structure with metadata
+my $yaml_data = {
+    models => $registry,
+    metadata => {
+        saved_at => <[base.time]>->(3),
+        entry_count => scalar( keys $registry->%* )
+    }
+};
+
+## Convert to YAML
+my $yaml_content;
+eval {
+    $yaml_content = Dump($yaml_data);
+};
+if ( $EVAL_ERROR ) {
+    <[base.s_warn]>->(
+        'YAML serialization failed: %s',
+        <[base.str.eval_error]>
+    );
+    return undef;
+}
+
+unless ( defined $yaml_content && length $yaml_content ) {
+    <[base.s_warn]>->('YAML serialization produced empty content');
+    return undef;
+}
+
+## Write to zenka directory using base system [ registry/models.yaml ]
+my $bytes_written = <[file.zenka_dir.write]>->(
+    'registry/models.yaml',
+    \$yaml_content,
+    '>',      # Overwrite mode
+    0600,     # File permissions (owner read/write only)
+    ':utf8'   # UTF-8 encoding
+);
+
+unless ( defined $bytes_written ) {
+    <[base.s_warn]>->('failed to write registry YAML file');
+    return undef;
+}
+
+<[base.logs]>->(
+    1, '[storage.yaml_save] saved %d entries (%d bytes)',
+    scalar( keys $registry->%* ),
+    $bytes_written
+);
+
+return $bytes_written;
+
+#,,,.,...,...,.,.,,.,,..,,..,,...,...,...,,..,..,,...,..,,...,..,,,.,,...,...,
+#OXDTGDUQUJW77HSGJQ6T2E3BE4X673XJ5QQQM2XWXHVPFS5HLDUOTUQ7RPTWN25EUZ27QQK57ZM46
+#\\\|6UQPND7T6KGVPZBPS5IGHS3V5N3KVKSEFQWSP53NTLRKMMIXN45 \ / AMOS7 \ YOURUM ::
+#\[7]JXY3PTG36PVXHR4VE4BCSLVTB3LQECBCF2WJZQMG2LDWXQOP56DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

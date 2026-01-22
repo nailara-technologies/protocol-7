@@ -1,13 +1,92 @@
 ## [:< ##
 
 # name  = models.cmd.scan-path-del
-# param = <path-id>
+# param = <path_id>
 # descr = removes model scan path and its models from registry
+# return = { mode, data } - success with cleanup count or error message
 
-return { 'mode' => qw| false |, 'data' => 'not implemented yet' }
+my $path_id = $call->{'args'} // $call->{'param'}->{'path_id'} // '';
 
-#,,.,,.,,,..,,,.,,,.,,,,,,,..,,..,,,.,.,,,.,.,..,,...,...,,,.,,..,..,,..,,.,,,
-#ORRPQD3ZABICSRXU6DFPILC5EXHGDUIX6LLHH4D7E3XQVRWZXUOHY4DSWAXPTYGNMYEWYJH62CTYO
-#\\\|B7VI5ZXJJMMI4T3NBF575GPRL2ANIP3TET3T5IY7VHAE2PCI7YG \ / AMOS7 \ YOURUM ::
-#\[7]2EQCEK4JVNXVE57MZMAPN224YTNRPOYQ6SMMDGEKRLNUFNVE5QBI 7  DATA SIGNATURE ::
+unless ( defined $path_id && length $path_id ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'error: path-id parameter required'
+    };
+}
+
+## Get scan paths registry
+my $scan_paths = <models.scan_paths> // {};
+
+## Validate path-id exists
+unless ( exists $scan_paths->{$path_id} ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "error: path-id not found: $path_id"
+    };
+}
+
+my $path_dir = $scan_paths->{$path_id}->{'path'};
+
+<[base.logs]>->(
+    1, '[scan-path-del] removing path: %s (id: %s)',
+    $path_dir, $path_id
+);
+
+## Load current registry
+my $registry = <[models.storage.yaml_load]>->();
+
+## Find and remove all models from this scan path
+my $removed_count = 0;
+my @keys_to_remove = ();
+
+foreach my $key ( keys $registry->%* ) {
+    if ( $registry->{$key}->{'scan_path_id'} eq $path_id ) {
+        push @keys_to_remove, $key;
+        $removed_count++;
+    }
+}
+
+## Remove the models
+foreach my $key (@keys_to_remove) {
+    delete $registry->{$key};
+    <[base.logs]>->(
+        2, '[scan-path-del] removed model: %s',
+        $registry->{$key}->{'name'} // 'unknown'
+    );
+}
+
+<[base.logs]>->(
+    1, '[scan-path-del] removed %d models from registry',
+    $removed_count
+);
+
+## Remove the scan path
+delete $scan_paths->{$path_id};
+<models.scan_paths> = $scan_paths;
+
+## Save updated registry
+my $bytes_saved = <[models.storage.yaml_save]>->($registry);
+unless ( defined $bytes_saved ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'error: failed to save registry'
+    };
+}
+
+## Log to action buffer
+my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+<[base.buffer.add_line]>->(
+    qw| models-action |,
+    join( ' ', $time_stamp, 1, 'system', 'scan-path-del', $path_id, $removed_count, 'completed' ), 1
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => "removed path [$path_id] and $removed_count models"
+};
+
+#,,.,,..,,,,.,.,.,.,,,..,,.,,,,..,.,.,...,,..,..,,...,...,..,,...,.,,,.,,,.,.,
+#4R5QPMD36ENVFNINMVC2JY2EWCSK3GV3HA2LTCF6ENY5BDJJAY5BYW5CST2P42MH2CQS33SXR4M72
+#\\\|ZY47CN2RRKPJNJ3UCKQAA56RT2WMIAA3GGTCHMDMJJYV5JKGPU2 \ / AMOS7 \ YOURUM ::
+#\[7]QC5QBI4RRIYIP4QFTL3JK3WKGZMK3XGM2NW23VYZLUDHLWQLDKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

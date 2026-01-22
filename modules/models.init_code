@@ -3,21 +3,106 @@
 # name = models.init_code
 # descr = Models zenka initialization: registries, lists, operation logs, command dispatcher
 
-<[base.perlmod.autoload]>->(qw| JSON::PP |);
-<[base.perlmod.autoload]>->(qw| YAML::XS |);
+my $reinit = shift // TRUE;   ### provided by 'base.init_modules' [TRUE|FALSE]
+my $already_initialized = $reinit;    ## use for skipping redundant calls.. ##
+my $first_init          = $already_initialized ? FALSE : TRUE; ## ^ inverse ##
+
+## load all additionally used perl modules ##
+#
+<[base.perlmod.autoload]>->(qw|  JSON::PP  |);
+<[base.perlmod.autoload]>->(qw|  YAML::XS  |);
 <[base.perlmod.autoload]>->(qw| YAML::Tiny |);
+
+## Ensure zenka directories exist with proper permissions and ownership
+<[base.path-set-up.check-zenka-paths]>->(TRUE);
 
 # =============================================================================
 # DATA STRUCTURES - Initialize in %data hash
 # =============================================================================
 
 # Initialize models namespace
-$data{models}                //= {};
-$data{models}{operation_log} //= [];
-$data{models}{error_log}     //= [];
-$data{models}{action_log}    //= [];
-$data{models}{definitions}   //= {};    # Will be loaded from YAML
-$data{models}{aliases}       //= {};    # Will be loaded from YAML
+$data{'models'}        //= {};
+<models.operation_log> //= [];
+<models.error_log>     //= [];
+<models.action_log>    //= [];
+<models.definitions>   //= {};    # Will be loaded from YAML
+<models.aliases>       //= {};    # Will be loaded from YAML
+
+# =============================================================================
+# LIST DEFINITIONS - Register with Protocol-7 list system
+# =============================================================================
+
+## model discovery scan path registry ##
+#
+<models.scan_paths> //= {}; ## initialize ## [ <models.storage.search_paths> ]
+<list.scan-paths> = {
+    'var'   => qw| data |,
+    'key'   => qw| models.scan_paths |,
+    'mask'  => '<key>:id dir_path:scan-path',
+    'align' => {
+        'id'       => qw| left+1 |,
+        'dir_path' => qw| left+2 |
+    },
+    'descr' => 'model scan paths and their path-ids'
+};
+
+## model path and data registry ##
+#
+<list.models> = {
+    'var'  => qw| data |,
+    'key'  => qw| models.registry |,
+    'mask' =>
+        '<key>:id name quantization:quant size_gb:size_GB is_vision:vision source',
+    'align' => {
+        'id'           => qw|  left+1  |,
+        'name'         => qw|  left+2  |,
+        'quantization' => qw| center-1 |,
+        'size_gb'      => qw|  right-6 |,
+        'is_vision'    => qw| center-1 |,
+        'source'       => qw|  center  |
+    },
+    'filters' => {
+        'is_vision' => qw| models.parser.yes_no |,
+
+#       'size_gb'   => qw| models.parser.size_gb | ## [LLL] update to numerical ##
+    },
+    'sort_key' => qw| reverse-num:size_gb |,
+    'descr'    => 'registered models with checksums and metadata'
+};
+
+# =============================================================================
+# LOG BUFFERS - Named log buffers for audit trail and operation tracking
+# =============================================================================
+
+# Initialize operation log buffer if not already created
+if ( not exists <buffer.models-operation> ) {
+    <buffer.models-operation.max_size> = 64 * 1024;    # 64K buffer
+    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+    <[base.buffer.add_line]>->(
+        qw| models-operation |,
+        join( ' ', $time_stamp, 0, 'operation log buffer initialized' ), 0
+    );
+}
+
+# Initialize error log buffer
+if ( not exists <buffer.models-error> ) {
+    <buffer.models-error.max_size> = 32 * 1024;        # 32K buffer
+    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+    <[base.buffer.add_line]>->(
+        qw| models-error |,
+        join( ' ', $time_stamp, 0, 'error log buffer initialized' ), 0
+    );
+}
+
+# Initialize action log buffer
+if ( not exists <buffer.models-action> ) {
+    <buffer.models-action.max_size> = 48 * 1024;       # 48K buffer
+    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+    <[base.buffer.add_line]>->(
+        qw| models-action |,
+        join( ' ', $time_stamp, 0, 'action log buffer initialized' ), 0
+    );
+}
 
 # Load model configuration from YAML
 <[models.config.loader]>;
@@ -26,18 +111,18 @@ $data{models}{aliases}       //= {};    # Will be loaded from YAML
 unless ( exists <models.storage.search_paths> ) {
     <models.storage.search_paths> = [
         {   path      => qw| /mnt/ext-xfs-data/models-lmstudio |,
-            enabled   => 1,
-            recursive => 1,
+            enabled   => TRUE,
+            recursive => TRUE,
             tier      => 2
         },
         {   path      => qw| /mnt/ext-xfs-data/models-invoke |,
-            enabled   => 1,
-            recursive => 1,
+            enabled   => TRUE,
+            recursive => TRUE,
             tier      => 4
         },
         {   path      => '/data/models',
-            enabled   => 1,
-            recursive => 0,
+            enabled   => TRUE,
+            recursive => FALSE,
             tier      => 5
         }
     ];
@@ -62,7 +147,8 @@ $data{models}{cache_ttl_seconds}  = 300;
 # =============================================================================
 
 # Template processing metrics
-$data{models}{metrics}                    //= {};
+<models.metrics> //= {};
+
 <models.metrics.substitutions_total>      //= 0;
 <models.metrics.substitutions_completed>  //= 0;
 <models.metrics.avg_substitution_time_ms> //= 0;
@@ -89,259 +175,10 @@ unless ( exists <models.registry> ) {
     <[models.registry.init_from_definitions]>;
 }
 
-# =============================================================================
-# LIST DEFINITIONS - Register with Protocol-7 list system
-# =============================================================================
+return 0;    # Module initialization successful
 
-<list.models> = {
-    'var'  => 'data',
-    'key'  => 'models.registry',
-    'mask' =>
-        '<key>:id name quantization:quant size_gb:size is_vision:vision source',
-    'align' => {
-        'id'           => 'left+1',
-        'name'         => 'left+2',
-        'quantization' => 'center',
-        'size_gb'      => 'right-3',
-        'is_vision'    => 'center-1',
-        'source'       => 'center'
-    },
-    'filters' => {
-        'is_vision' => 'models.parser.yes_no',
-        'size_gb'   => 'models.parser.size_gb'
-    },
-    'sort_key' => 'reverse-num:size_gb',
-    'descr'    => 'registered models with checksums and metadata'
-};
-
-# =============================================================================
-# LOG BUFFERS - Named log buffers for audit trail and operation tracking
-# =============================================================================
-
-# Initialize operation log buffer if not already created
-if ( not exists <buffer.models-operation> ) {
-    <buffer.models-operation.max_size> = 64 * 1024;    # 64K buffer
-    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
-    <[base.buffer.add_line]>->(
-        'models-operation',
-        join( ' ', $time_stamp, 0, 'operation log buffer initialized' ), 0
-    );
-}
-
-# Initialize error log buffer
-if ( not exists <buffer.models-error> ) {
-    <buffer.models-error.max_size> = 32 * 1024;        # 32K buffer
-    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
-    <[base.buffer.add_line]>->(
-        'models-error',
-        join( ' ', $time_stamp, 0, 'error log buffer initialized' ), 0
-    );
-}
-
-# Initialize action log buffer
-if ( not exists <buffer.models-action> ) {
-    <buffer.models-action.max_size> = 48 * 1024;       # 48K buffer
-    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
-    <[base.buffer.add_line]>->(
-        'models-action',
-        join( ' ', $time_stamp, 0, 'action log buffer initialized' ), 0
-    );
-}
-
-# =============================================================================
-# MAIN COMMAND ENTRY POINT
-# =============================================================================
-
-# During initialization, always return 0 (success)
-if ( !@ARG || $ARG[0] eq 'init' ) {
-    return 0;    # Module initialization successful
-}
-
-# Parse command and dispatch - this block runs when a command is received
-my $cmd_result;
-{
-    my $cmd  = shift @ARG;
-    my @args = @ARG;
-
-    # Should not reach here for init, but safety check anyway
-    if ( !$cmd || $cmd eq 'init' ) {
-        return 0;    # Module initialization successful (0 means success)
-    }
-
-    # Log action in models namespace
-    my $action_entry = {
-        timestamp => time(),
-        actor     => 'system',
-        action    => $cmd,
-        status    => 'pending',
-    };
-    push @{ $data{models}{action_log} }, $action_entry;
-
-    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
-    <[base.buffer.add_line]>->(
-        'models-action',
-        join( ' ', $time_stamp, 1, 'system', $cmd, 'pending' ), 1
-    );
-
-    # Route to command handlers via module loading
-    my $result;
-
-    if ( $cmd eq 'status' ) {
-
-        # Status command - delegate to command module
-        unshift @ARG, $cmd, @args;
-        $result = <[models.cmd.status]>;
-    } elsif ( $cmd eq 'get_model_path' || $cmd eq 'get_path' ) {
-
-        # Get model path command
-        unshift @ARG, $cmd, @args;
-        $result = <[models.cmd.get_model_path]>;
-    } elsif ( $cmd eq 'reload' ) {
-
-       # Reload command - delegate to base handler which returns proper format
-        unshift @ARG, $cmd, @args;
-        $result = <[base.cmd.reload]> // {
-            'mode' => qw| size |,
-            'data' => "error: base.cmd.reload not available\n",
-        };
-        return $result;
-    } elsif ( $cmd eq 'maintenance' ) {
-
-        # Maintenance command - delegate to command module
-        unshift @ARG, $cmd, @args;
-        $result = <[models.cmd.maintenance]>;
-    } elsif ( $cmd eq 'substitute_template' ) {
-
-        # Template substitution command
-        unshift @ARG, $cmd, @args;
-        my $module_result = <[models.cmd.substitute_template]>;
-        my $json_data     = JSON::PP::encode_json($module_result);
-        my $is_multiline  = $json_data =~ /\n/ ? 1 : 0;
-        $result = {
-            'mode' => $is_multiline ? 'size' : 'true',
-            'data' => $json_data . "\n"
-        };
-    } elsif ( $cmd eq 'conversation_create' ) {
-
-        # Create conversation
-        unshift @ARG, $cmd, @args;
-        my $module_result = <[models.cmd.conversation_create]>;
-        my $json_data     = JSON::PP::encode_json($module_result);
-        my $is_multiline  = $json_data =~ /\n/ ? 1 : 0;
-        $result = {
-            'mode' => $is_multiline ? 'size' : 'true',
-            'data' => $json_data . "\n"
-        };
-    } elsif ( $cmd eq 'conversation_add_turn' ) {
-
-        # Add turn to conversation
-        unshift @ARG, $cmd, @args;
-        my $module_result = <[models.cmd.conversation_add_turn]>;
-        my $json_data     = JSON::PP::encode_json($module_result);
-        my $is_multiline  = $json_data =~ /\n/ ? 1 : 0;
-        $result = {
-            'mode' => $is_multiline ? 'size' : 'true',
-            'data' => $json_data . "\n"
-        };
-    } elsif ( $cmd eq 'conversation_get_context' ) {
-
-        # Get conversation context
-        unshift @ARG, $cmd, @args;
-        my $module_result = <[models.cmd.conversation_get_context]>;
-        my $json_data     = JSON::PP::encode_json($module_result);
-        my $is_multiline  = $json_data =~ /\n/ ? 1 : 0;
-        $result = {
-            'mode' => $is_multiline ? 'size' : 'true',
-            'data' => $json_data . "\n"
-        };
-    } elsif ( $cmd
-        =~ /^(get|find|recommend|record|stats|cost|discover|discover_files)/ )
-    {
-
-        # Route to command modules
-        my $module;
-        if ( $cmd eq 'get' ) {
-            $module = 'models.cmd.get_model';
-        } elsif ( $cmd eq 'find' ) {
-            $module = 'models.cmd.find_models';
-        } elsif ( $cmd eq 'recommend' || $cmd eq 'rec' ) {
-            $module = 'models.cmd.recommend';
-        } elsif ( $cmd eq 'record' ) {
-            $module = 'models.cmd.record_invocation';
-        } elsif ( $cmd eq 'stats' ) {
-            $module = 'models.cmd.statistics';
-        } elsif ( $cmd eq 'cost' ) {
-            $module = 'models.cmd.cost_analysis';
-        } elsif ( $cmd eq 'discover' ) {
-            $module = 'models.cmd.discover';
-        } elsif ( $cmd eq 'discover_files' ) {
-            $module = 'models.cmd.discover_files';
-        }
-
-        # Load and execute the module
-        unshift @ARG, $cmd, @args;    # Restore @ARG for the module
-        $result = <[$module]> // {
-            'mode' => qw| size |,
-            'data' => "error: module not found: $module\n",
-        };
-    } else {
-
-        # Unknown command
-        $result = {
-            'mode' => qw| size |,
-            'data' => "error: unknown command: $cmd\n",
-        };
-    }
-
-    # Determine success/failure status
-    my $is_success
-        = $result && $result->{data} && $result->{data} !~ /^error:/;
-    my $status    = $is_success ? 'completed' : 'failed';
-    my $log_level = $is_success ? 0           : 2;
-
-    # Update action log in models namespace
-    if ( @{ $data{models}{action_log} } ) {
-        my $last_action = $data{models}{action_log}->[-1];
-        $last_action->{status} = $status;
-    }
-
-    # Log operation in models namespace
-    my $operation_entry = {
-        timestamp => time(),
-        action    => $cmd // 'status',
-        status    => $is_success ? 'success' : 'failure',
-        details   => ( $result && $result->{data} )
-        ? substr( $result->{data}, 0, 100 )
-        : 'no response',
-    };
-    push @{ $data{models}{operation_log} }, $operation_entry;
-
-    my $operation_msg = sprintf( '%s %s %s',
-        $operation_entry->{action},
-        $operation_entry->{status},
-        $operation_entry->{details} );
-    my $op_timestamp = <[base.anum_log_time]>->( 5, TRUE );
-    <[base.buffer.add_line]>->(
-        'models-operation',
-        join( ' ', $op_timestamp, $log_level, $operation_msg ), $log_level
-    );
-
-    $cmd_result = $result;
-};
-
-# =============================================================================
-# INITIALIZATION COMPLETION - Discovery available on-demand
-# =============================================================================
-
-# Note: Model discovery via discover_files is available on-demand
-# YAML-configured models are loaded and ready via init_from_definitions
-# Discovery can be triggered manually: p7 models.discover_files
-
-# Return indicates successful initialization
-return 0;
-
-#,,..,...,,..,,,,,,.,,,..,,,.,,..,..,,,.,,.,.,..,,...,...,.,,,...,,..,,,.,.,.,
-#MTRIN7HS4PPA5KSMO2NCAVME2OLMAOFII66AMHSZE3DJ4TBLEV2RG6ODHISQK5RDFZREDLHLW6ASK
-#\\\|PYER7UH2S4S7ACZHCXEWI7M7CIGPUZD6WTVPHCLQT7PXS3BHN3Q \ / AMOS7 \ YOURUM ::
-#\[7]I7QVUQL4X5EFVBX6OUVR5ETPFB2HG75HS2GACFB6MMM3MLONUOCA 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,.,,,.,.,,..,.,,,,.,,.,,,..,,..,,..,,...,...,,..,,,.,,,.,,.,,,,.,
+#YJIN5OU66RZV3WNMCPN6F5CPN6VAN6IEYG7N2JWR6JEZ42E72A4HSZTXJIJFMJ4VL6NY2DESF6HHK
+#\\\|Z2KZZ7RD44LUXMRJZPKOLPTYD6ROOCJQOTAUQUB75TIGWFYSUVE \ / AMOS7 \ YOURUM ::
+#\[7]Z2O3RYCTKDOQ44NX3YJTB5SI7QRWIE4HWPCMEIMO7GQZTCSQDABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
