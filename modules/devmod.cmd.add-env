@@ -17,12 +17,14 @@ return { 'mode' => qw| false |, 'data' => 'value parameter expected' }
 return { 'mode' => qw| false |, 'data' => 'env key is aleady present' }
     if exists $ENV{$key};
 
+<[base.logs]>->( 1, "[ setting env-key : %s = '%s' ]", $key, $value );
+
 $ENV{$key} = $value;
 
 return { 'mode' => qw| true |, 'data' => 'value has been set' };
 
-#,,,,,,,.,.,,,...,,,.,,..,,,,,.,.,...,.,.,...,..,,...,...,,..,.,,,,,,,,.,,...,
-#CCD2RJG2M2AROVMHDKOX2YYCYVHVBUCUFPV6VNNAQKHWZTSTI2BSEKZU7JB6GDNELIO2FKATZTWM2
-#\\\|PQV7JYXRX7J7W3LZMNG4AEAAB24IQHCXGCDMJ4O3YDU4AC4ZVMX \ / AMOS7 \ YOURUM ::
-#\[7]WPK46UZR2JCCWDDATG3IUTA7BE24MLAH6CPDKEH7V6HTFO3ZO4DQ 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,...,,,.,,..,..,,...,,.,,.,,,..,,..,,...,...,.,.,,.,,.,.,.,.,,,.,
+#HE2M4G63NAI2SVCBRNRK7NTNMGLPL4ULJUVLJIDJJDDBBZCP6NFXIVMUWWGOPTGA46OYM6SPEQOIA
+#\\\|5YOY26LJCGREMAFV4Y4OV3335X4F5PYWT3PA5FCMJMEECZMHJ37 \ / AMOS7 \ YOURUM ::
+#\[7]Q2W52XWMFGXJJDU5VK2RTI5ZOHEZTM6RXPKY44DKLF735Y75KGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
