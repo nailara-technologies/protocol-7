@@ -14,12 +14,17 @@ unless ( defined $registry && ref($registry) eq qw| HASH | ) {
     return undef;
 }
 
+## Get scan_paths to include in save
+my $scan_paths = <models.scan_paths> // {};
+
 ## Prepare YAML structure with metadata
 my $yaml_data = {
     models => $registry,
+    scan_paths => $scan_paths,
     metadata => {
         saved_at => <[base.time]>->(3),
-        entry_count => scalar( keys $registry->%* )
+        entry_count => scalar( keys $registry->%* ),
+        scan_path_count => scalar( keys $scan_paths->%* )
     }
 };
 
@@ -56,15 +61,16 @@ unless ( defined $bytes_written ) {
 }
 
 <[base.logs]>->(
-    1, '[storage.yaml_save] saved %d entries (%d bytes)',
+    1, '[storage.yaml_save] saved %d models and %d scan paths (%d bytes)',
     scalar( keys $registry->%* ),
+    scalar( keys $scan_paths->%* ),
     $bytes_written
 );
 
 return $bytes_written;
 
-#,,,.,...,...,.,.,,.,,..,,..,,...,...,...,,..,..,,...,..,,...,..,,,.,,...,...,
-#OXDTGDUQUJW77HSGJQ6T2E3BE4X673XJ5QQQM2XWXHVPFS5HLDUOTUQ7RPTWN25EUZ27QQK57ZM46
-#\\\|6UQPND7T6KGVPZBPS5IGHS3V5N3KVKSEFQWSP53NTLRKMMIXN45 \ / AMOS7 \ YOURUM ::
-#\[7]JXY3PTG36PVXHR4VE4BCSLVTB3LQECBCF2WJZQMG2LDWXQOP56DY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,.,,,..,,..,,,,.,,,.,..,,...,,,.,..,,...,...,.,.,.,.,,..,,,.,...,
+#6BJHHP6GRGGFM2P2QDP56TYAWORVNCG7F3VHEZCENPN4BWS5YDVPYSLQHEPRZRRCOWH4T66FONF52
+#\\\|SR55MKQMEJD5T2WQPZ5VV4Y2GXUI55MO7KXVVMCXICYDSXMQE25 \ / AMOS7 \ YOURUM ::
+#\[7]FUNZI4CZHFBBCXA6PUGRVKWUGAAPF5NNL5HPVHRLU6VJNQ5MPOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
