@@ -11,12 +11,14 @@ return { 'mode' => qw| false |, 'data' => 'key name required' }
 return { 'mode' => qw| false |, 'data' => 'no such key' }
     if not exists $ENV{$key};
 
+<[base.logs]>->( 1, "[ deleting env-key : %s ]", $key );
+
 delete $ENV{$key};
 
-return { 'mode' => qw| true |, 'data' => 'deleted' };
+return { 'mode' => qw| true |, 'data' => qw| deleted | };
 
-#,,,.,..,,.,,,...,.,.,,,,,.,,,,..,,,.,,.,,,.,,..,,...,...,.,.,..,,...,,.,,...,
-#KH64PNIDMX7POZHLTPF3LKXUNS7ALDAKN4J32WTAH5UTSUGXYCEDTQVWYJNY35JUZG5FN4IV6UD7G
-#\\\|QSWCXYHGC43HUQ7IJC7ZJDQVBSVDJ62FN3WKLLUHTFA6NUEYGP7 \ / AMOS7 \ YOURUM ::
-#\[7]7MCOGDCFFJWWYEWRPXCQEFDK6VGME3R5CVHXSQ2US4LFQLC3TQBI 7  DATA SIGNATURE ::
+#,,,,,...,.,.,.,.,...,.,.,,.,,.,.,,,.,.,.,,..,..,,...,...,,.,,,,,,,..,.,.,,.,,
+#JQRISJQ2NJIYATJKAHJ5FUBUV4P5L7ITTWOJ6GBHPA5TZZDZMPIIE2RF3Y456AWXDTTCMFWWQNRAS
+#\\\|KKFMA75I7XQOW5GYGZX4JGHRWME7G7UO473B5OBW2WYBTXN4B6D \ / AMOS7 \ YOURUM ::
+#\[7]WFYMYHEWYYEIO4OLC73EGVI37M5UB3GUZFL3HQFESXYJLBF76CBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
