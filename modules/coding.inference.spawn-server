@@ -21,20 +21,31 @@ my $model_id
     ? $data{'inference.backend.gpu.model_id'} // 'gemma3-glitter-4b'
     : $data{'inference.backend.cpu.model_id'} // 'gemma3-glitter-4b';
 
-# If model_path not provided, use hardcoded path for known models
-#      [ LLL:fix--> models zenka is the authority + config file ]
+# If model_path not provided, lookup in models registry
 unless ( defined $model_path && length $model_path ) {
-    if ( $model_id eq 'gemma3-glitter-4b' ) {
-        $model_path
-            = '/mnt/m/mradermacher/Gemma-3-Glitter-4B-Uncensored-GGUF/Gemma-3-Glitter-4B-Uncensored.Q4_K_S.gguf';
-    } else {
+    my $model_entry = <[models.registry.find_by_id]>->($model_id);
+
+    unless ( defined $model_entry ) {
         <[base.logs]>->(
-            0, "[spawn-server] unknown model_id and no path provided: %s",
+            0, "[spawn-server] model not found in registry: %s",
             $model_id
         );
         return {
             success => FALSE,
-            error   => "Model path not provided for model_id: $model_id"
+            error   => "Model not found in registry: $model_id"
+        };
+    }
+
+    $model_path = $model_entry->{'file_path'};
+
+    unless ( defined $model_path && length $model_path ) {
+        <[base.logs]>->(
+            0, "[spawn-server] model entry has no file_path: %s",
+            $model_id
+        );
+        return {
+            success => FALSE,
+            error   => "Model file path not available: $model_id"
         };
     }
 }
@@ -170,8 +181,8 @@ return {
     pid     => $pid
 };
 
-#,,..,,,.,,,.,,..,,..,,.,,,.,,.,.,,,,,.,,,..,,..,,...,...,.,.,.,,,,,.,,.,,.,.,
-#GOUHC3M6VPHRC4CQ7EGBZVFW7ZSOKISMYQAYHKH4KDMUSE6EZL5KWOKWEXPEQHHARTAMXLSGFD2VU
-#\\\|XKXAWOVMF5WBJVYRXOU5XX2UIGS5PGKDZGXIOXUUXAXZQ2X5Z2M \ / AMOS7 \ YOURUM ::
-#\[7]CQKSHALBE6FMHTQS5Q4PY3PPH4H53UXDZQS2PQ6L6QLMYZIXSUCA 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,..,,.,,.,,,...,..,,,,,,,,,,.,,,..,,...,...,..,,...,.,,,,.,,.,,,
+#B3VE2KMRC6P7764L657TEARLFC7PG2YFYSPZFNI7Z4HJU5TIVUHP23DRBEZUNAZHO5X343J773ZAI
+#\\\|3RJ3ZP6XYRKFRVE6GATHHS5OZN35XZFMIT4Y7OVB5IHZ3Q6R2JC \ / AMOS7 \ YOURUM ::
+#\[7]EO7AVAEJWPQM44IVDLXNYPD2E3QZKA2HE2BBLOXXYQ5N3EL44EBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
