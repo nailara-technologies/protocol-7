@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = devmod.cmd.add-env
+# param = <key>
+# descr = delete value from ENV hash
+
+my $param_str = $call->{'args'};
+
+return { 'mode' => qw| false |, 'data' => 'key name required' }
+    if not defined $param_str;
+
+my ( $key, $value ) = split m| +|, $param_str, 2;
+
+return { 'mode' => qw| false |, 'data' => 'value parameter expected' }
+    if not length $value // '';
+
+return { 'mode' => qw| false |, 'data' => 'env key is aleady present' }
+    if exists $ENV{$key};
+
+$ENV{$key} = $value;
+
+return { 'mode' => qw| true |, 'data' => 'value has been set' };
+
+#,,,,,,,.,.,,,...,,,.,,..,,,,,.,.,...,.,.,...,..,,...,...,,..,.,,,,,,,,.,,...,
+#CCD2RJG2M2AROVMHDKOX2YYCYVHVBUCUFPV6VNNAQKHWZTSTI2BSEKZU7JB6GDNELIO2FKATZTWM2
+#\\\|PQV7JYXRX7J7W3LZMNG4AEAAB24IQHCXGCDMJ4O3YDU4AC4ZVMX \ / AMOS7 \ YOURUM ::
+#\[7]WPK46UZR2JCCWDDATG3IUTA7BE24MLAH6CPDKEH7V6HTFO3ZO4DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
