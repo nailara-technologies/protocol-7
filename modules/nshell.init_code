@@ -17,6 +17,11 @@ STDOUT->autoflush(1);    ## Ensure bytes are sent immediately to terminal
     'AMOS7::Protocol::P7', qw| calc_port calc_unix_path |
 );
 
+## loading required terminal modules ##
+<[base.perlmod.load]>->('Linux::Termios2');
+<[base.perlmod.load]>->( 'Fcntl', qw| F_GETFL F_SETFL | );
+<[base.perlmod.load]>->( 'POSIX', qw| :termios_h O_NONBLOCK | );
+
 ## Configure AMOS7 output
 $AMOS7::TERM::title_prefix         = ' .:';
 $AMOS7::mesg_prefix_string         = ' ::';
@@ -39,6 +44,8 @@ printf "%s\r", $colors{'p7_fg_0004'} // '';
 print "\e[?25l";    ## Hide terminal cursor
 AMOS7::TERM::cursor_enable();
 
+<base.sig_int.log-level> = 1;    ## override default log level 0 for SIGINT ##
+
 ## Initialize terminal using POSIX::Termios [ portable, no XS dependencies ]
 <[nshell.term_init]>;
 
@@ -51,15 +58,15 @@ $code{'base.handler.end_code'} = sub {
 };
 
 ## Initialize nshell state
-<nshell.buffer_id>        //= 'nshell-001';
+<nshell.buffer_id>        //= qw| nshell-001 |;
 <nshell.unix_user>        //= $current_user;
 <nshell.authenticated>    //= FALSE;
 <nshell.passthrough_mode> //= FALSE;   ## After auth: transparent pass-through
 
 return 0;
 
-#,,..,,,.,,,,,,,.,...,,..,..,,,,.,,,,,...,.,,,..,,...,...,,..,.,,,,,,,..,,,,.,
-#DLOMSTGK7W2DE6NYGSAUTHGUMHLOPX3CYZUN7FNEXBYEDJ4PKURG3QFSTOLGZPYE2VZPDGBATDG7Y
-#\\\|G36VKVRTFJ57H7PEQSXGDOWEBYCO2IJHEGW4Z3ZXVDZ5DYPXVWI \ / AMOS7 \ YOURUM ::
-#\[7]5CIMMDZNALICI7L3SSBHYU7LAL52ZQRQ6MO3ZEWMQAXJTAFC6WAY 7  DATA SIGNATURE ::
+#,,..,.,.,..,,..,,,,.,..,,,.,,..,,,,,,..,,,,,,..,,...,...,,,.,.,.,,,,,...,..,,
+#WHTLXKEIPGS32RMYZD4DIIFYK3PXXBKHF3RBOHFC6BJ6IYZHPAXJ4G5RNVDWSWYB6XVLIGNBPPHNI
+#\\\|WJXJ5G4JTUP3MWYF2PA3YEIQNSATJISLLQPOLPTBI4Q6PGIBNV5 \ / AMOS7 \ YOURUM ::
+#\[7]WLCRIPFKN5KGP7R5AAKR3E45I7OBMOIRHN4KRFXZ4X2SO2XT5ABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
