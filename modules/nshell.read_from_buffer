@@ -7,15 +7,18 @@
 ## Returns complete line when user presses Enter
 ## Persists buffer across calls (static variable)
 ## Supports history navigation with arrow keys and Page Up/Down
+## Uses AMOS7::TERM editor for text editing operations
 
-state $command_buffer   = '';
+state $editor           = undef;  ## Editor state reference
 state $escape_buffer    = '';
 state $display_buffer   = ''; ## Current display (may be from history)
-state $debug_cmd_buffer = ''; ## Accumulate potential debug command [CMD:N]
+state $debug_cmd_buffer = ''; ## Accumulate potential debug command :CMD:
 state $input_chars      = ''; ## Character buffer for both TTY and piped input
+state %colors           = ();  ## Color palette (lazily loaded)
 
 ## Get one character from buffer, refilling via sysread if needed
 my $key;
+my $command_buffer;
 
 if ( -t STDIN ) {
     ## TTY input: use sysread with non-blocking mode [STDIN in binary mode
@@ -48,6 +51,13 @@ if ( -t STDIN ) {
 while ( length $input_chars ) {
     my $key = _extract_utf8_char( \$input_chars );
     last if not defined $key; ## Incomplete UTF-8 sequence, wait for more data
+
+    ## Load colors early if not already loaded (needed for all key processing)
+    if ( !%colors ) {
+        ## Try to get colors from Protocol-7 context if available
+        eval { %colors = %{<nshell.colors>} };
+        $colors{p7_fg_0004} //= '';  ## Default to empty if not available
+    }
 
 ## Helper: extract a complete UTF-8 character (may be 1-4 bytes)
     sub _extract_utf8_char {  ### extract subroutine ### [LLL]
@@ -252,11 +262,21 @@ while ( length $input_chars ) {
         next;
     }
 
-    if ( $key eq "\n" or $key eq "\r" ) {
-        print "\n"
-            ; ## Echo newline for visual spacing (key itself was not echoed during read)
-        my $result = $command_buffer;
-        $command_buffer   = '';
+    ## Initialize editor on first key
+    $editor //= AMOS7::TERM::editor_init();
+
+    ## Process key through editor
+    my $edit_result = AMOS7::TERM::editor_process_key( $editor, $key, %colors );
+
+    if ( $edit_result->{action} eq qw| echo | ) {
+        print $edit_result->{output};
+        $display_buffer = '';    ## User is editing, clear display buffer
+    } elsif ( $edit_result->{action} eq qw| backspace | ) {
+        print $edit_result->{output};
+        $display_buffer = '';    ## User is editing, clear display buffer
+    } elsif ( $edit_result->{action} eq qw| newline | ) {
+        print $edit_result->{output};
+        my $result = AMOS7::TERM::editor_submit($editor);
         $display_buffer   = '';
         $debug_cmd_buffer = '';    ## Clear any partial debug command
 
@@ -268,37 +288,21 @@ while ( length $input_chars ) {
 
         return $result if length $result;  ## Return command only if not empty
         next;    ## Empty line - continue to next buffered character
-    } elsif ( $key eq "\x03" ) {    ## Ctrl-C
-        ## In raw mode, Ctrl-C is just a byte - send SIGINT to trigger
-        ## base.sig_int handler
-        kill( qw| INT |, $$ );
+    } elsif ( $edit_result->{action} eq qw| signal | ) {
+        ## Send signal to current process
+        my $sig = $edit_result->{should_signal} // 'INT';
+        kill( $sig, $$ );
         next;    ## Continue to next buffered character
-    } elsif ( $key eq "\x04" ) {    ## Ctrl-D (EOF)
-        next;                       ## Continue to next buffered character
-    } elsif ( $key eq "\x08" or $key eq "\x7f" ) {    ## Backspace/Delete
-        if ( length $command_buffer ) {
-            chop($command_buffer);
-            print "\x08 \x08";
-            $display_buffer = '';    ## User is editing, clear display buffer
-        }
-        next;                        ## Continue to next buffered character
-    } elsif ( length $key and ord( substr( $key, 0, 1 ) ) >= 32 )
-    {    ## Printable (check first byte of multi-byte UTF-8)
-        ## If buffer was empty (first character), establish color context
-        if ( !length $command_buffer ) {
-            print $colors{'p7_fg_0004'} // '';
-        }
-        $command_buffer .= $key;
-        print $key; ## Echo the character (autoflush ensures immediate output)
-        $display_buffer = '';    ## User is editing, clear display buffer
     }
+
+    ## For 'none' action, just continue
 
 }    ## End of while ( length $input_chars ) loop
 
 return undef;    ## No complete line yet, buffer exhausted or incomplete UTF-8
 
-#,,.,,,,.,.,.,,,,,..,,...,...,..,,,..,.,.,..,,..,,...,...,...,...,.,.,,,,,.,,,
-#EDVVO7ZNZ4WNRBGJK4DW3ELPZAO3ENE3W2MOUTBKPKMEN5RPFX6UJLKBOXHI7CRO5YOFZVVWFDHK4
-#\\\|TMPZKPXUETDFU5ZC7HPJ7FEANZF3IKEHN4ZZU4HYRXCRDIZ5FWR \ / AMOS7 \ YOURUM ::
-#\[7]V57LI34YVR3KKZPAFJHT33BGQZ3B7BEQGAEUFJ6LTE4B2YOLTOBI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,,,,..,...,.,.,.,,,,,,,,,,,...,..,,...,...,,..,..,,.,.,,..,,,.,
+#YOOT7AQ46QCTWHXO7BBZXZVYKWVANCYJDS57PHHPYW6R2SFMGDSFYE3MHCMNKMNNEVX6UD5LWQNF4
+#\\\|MA6E2OADK227V5QZQ3KN4ACEGUFBFDWIRXRKEP4MVCWE5X4YW6X \ / AMOS7 \ YOURUM ::
+#\[7]UTG3E6HYBDFLZD23BQRWRCJOIEUMDY4WWIWTJ6QJTSXN5TCIRSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

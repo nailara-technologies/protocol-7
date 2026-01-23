@@ -28,8 +28,9 @@ use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
 my $VERSION = qw| AMOS7::TERM-VERSION.7OT2XVQ |;
 
-@EXPORT_OK
-    = qw| terminal_title history_init history_add history_up history_down history_page_up history_page_down |;
+@EXPORT_OK = qw| terminal_title
+    history_init history_add history_up history_down history_page_up history_page_down
+    editor_init editor_process_key editor_get_buffer editor_submit editor_reset |;
 
 @EXPORT = qw| terminal_size read_password_single read_password_repeated |;
 
@@ -1089,10 +1090,121 @@ sub exit_user_passwd {
     error_exit($exit_message_string);
 }
 
+##[ COMMAND LINE EDITOR ]#####################################################
+
+sub editor_init {
+    ## Initialize and return editor state reference
+    return {
+        buffer       => '',
+        cursor_pos   => 0,
+        kill_buffer  => '',
+        color_set    => FALSE,
+    };
+}
+
+sub editor_process_key {
+    my ( $editor, $key, %colors ) = @ARG;
+
+    return undef if !defined $editor or !defined $key;
+
+    my $result = {
+        action         => 'none',
+        output         => '',
+        complete       => FALSE,
+        should_signal  => undef,
+    };
+
+    ## Newline - command complete
+    if ( $key eq "\n" or $key eq "\r" ) {
+        $result->{action}   = 'newline';
+        $result->{complete} = TRUE;
+        $result->{output}   = "\n";
+        return $result;
+    }
+
+    ## Ctrl-C - send SIGINT
+    if ( $key eq "\x03" ) {
+        $result->{action}        = 'signal';
+        $result->{should_signal} = 'INT';
+        return $result;
+    }
+
+    ## Ctrl-D - EOF
+    if ( $key eq "\x04" ) {
+        $result->{action} = 'none';
+        return $result;
+    }
+
+    ## Backspace or Delete
+    if ( $key eq "\x08" or $key eq "\x7f" ) {
+        if ( length $editor->{buffer} ) {
+            chop( $editor->{buffer} );
+            $result->{action} = 'backspace';
+            $result->{output} = "\x08 \x08";
+        }
+        return $result;
+    }
+
+    ## Printable character (check first byte of multi-byte UTF-8)
+    if ( length $key and ord( substr( $key, 0, 1 ) ) >= 32 ) {
+        ## Set color on first character
+        if ( !length $editor->{buffer} ) {
+            $editor->{color_set} = TRUE;
+            $result->{output} = ( $colors{p7_fg_0004} // '' );
+        }
+
+        $editor->{buffer} .= $key;
+        $result->{action} = 'echo';
+        $result->{output} .= $key;
+        return $result;
+    }
+
+    return $result;
+}
+
+sub editor_get_buffer {
+    my $editor = shift;
+    return undef if !defined $editor;
+    return $editor->{buffer};
+}
+
+sub editor_submit {
+    my $editor = shift;
+    return undef if !defined $editor;
+
+    my $result = $editor->{buffer};
+    editor_reset($editor);
+    return $result;
+}
+
+sub editor_reset {
+    my $editor = shift;
+    return if !defined $editor;
+
+    $editor->{buffer}     = '';
+    $editor->{cursor_pos} = 0;
+    $editor->{kill_buffer} = '';
+    $editor->{color_set}  = FALSE;
+
+    return TRUE;
+}
+
+sub editor_load {
+    my ( $editor, $text ) = @ARG;
+    return if !defined $editor;
+
+    $editor->{buffer}     = $text // '';
+    $editor->{cursor_pos} = length $editor->{buffer};
+    $editor->{kill_buffer} = '';
+    $editor->{color_set}  = ( length $editor->{buffer} ) ? TRUE : FALSE;
+
+    return TRUE;
+}
+
 return TRUE ##################################################################
 
-#,,.,,,.,,...,.,.,.,,,,..,,..,.,,,..,,...,.,,,..,,...,...,...,.,.,,,.,.,.,..,,
-#MHV2JZST2TMC3OZWUOZM542VXB3II3NRWDAE77RLDT57NIRTV5R4GRGISFQP5ZRQMVUNNJ56TKPUE
-#\\\|H6ZF2XFJTRA3GPPIKYWNRMMV2AWH4DXWYF3V44TTTRWWQGB4KI7 \ / AMOS7 \ YOURUM ::
-#\[7]B4POOKW3MVMUWSHOLHG46FJYTEQTYGNIE3VHT7OUYKM7J3WNY4DQ 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,.,,,,.,,..,.,,,,..,,,.,.,.,,.,,..,,...,..,,,..,,,,,.,,,...,.,,,
+#LAWJKD6YVFN5J4AXVPGWIQGA23GIBQEGJKTQ5HTY2I74X46LYR72W5VOOPONZ2HTFSEGEAGSGCSDW
+#\\\|CDLSM2BCSO4BXFLA2KW6OKMN5FOSDSP57NH25KEZGHBMMPN73E5 \ / AMOS7 \ YOURUM ::
+#\[7]CLYO7PV2YT3QLIQAIY336V4SERRCKIJGM4HSCDL3LI3DAX6H2MDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
