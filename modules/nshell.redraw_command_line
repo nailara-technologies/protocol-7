@@ -6,15 +6,15 @@
 my ( $buffer, $display ) = @_;
 
 ## Clear current line and redraw
-## Use carriage return + spaces to clear, then print new content
-my $term_width = 80;    ## Default, could get from AMOS7::TERM::terminal_size
+## Get terminal width for proper clearing (safe fallback for non-TTY contexts)
+my $term_width = eval { AMOS7::TERM::terminal_size() } // 80;
 my $clear_len  = length($buffer) + 20;    ## Leave margin
 print "\r" . ( ' ' x $clear_len ) . "\r" . $display;
 
 return;
 
-#,,..,,,,,,,.,..,,.,,,,,,,,..,...,.,,,.,,,...,.,.,...,..,,.,,,,,,,,..,,,.,,,.,
-#G7ZVPWPNOSMCFRXEXEFN33LZDDLMVAP7SRVQ7MMPYHKYQ67ALBCNILAACPDKELVDEZULKWAERKLWM
-#\\\|UK4R3QSV65BKMTWZZW3RIL5E7XGHB4TWTBRSGSQ7NFYPMNOY4E5 \ / AMOS7 \ YOURUM ::
-#\[7]XXQN3LG2DB3TP3TRP5J4Y2BHR7IAHE2UAEHPOXOQX4WXZTCGE6DQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,..,,.,,,,..,,,.,,,,,,..,,.,,,,,,.,.,...,...,...,,.,,,.,,.,,,...,
+#V5D2LXAJVZTIHWLXNE66G2KJ3ATFKX2IL4WCYKIO3B5YYV43CDPQGKPAWGCUSBXIJAIIOXBZO5L76
+#\\\|6M2YQWXZKEGMPC4TBKEPJOKVC3WSO7GFJBQNVJBBUWF4GE7SQ23 \ / AMOS7 \ YOURUM ::
+#\[7]MR4BRX4YSZSRXF2C26IFGCXI4MMDMUEU7Q475YDVSNOUNIEUDWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -148,7 +148,8 @@ while ( length $input_chars ) {
             $escape_buffer .= $next_key;
 
             ## Check if sequence is complete (arrow keys or function keys)
-            $seq_complete = TRUE if $escape_buffer =~ m{\e\[[A-Z]|\e\[\d~$};
+            ## Matches: \e[A-Z (like arrow keys), \eOA-Z (alternate arrow), \e[...~ (function keys with any modifiers)
+            $seq_complete = TRUE if $escape_buffer =~ m{\e\[[A-Z]|\eO[A-Z]|\e\[[0-9;]*~$};
         }
 
         ## Initialize editor early if needed (before loading history)
@@ -165,6 +166,9 @@ while ( length $input_chars ) {
                 $display_buffer = join "\n", $lines_ref->@*;
                 $command_buffer = $display_buffer;
 
+                ## Store recalled buffer for terminal restore on Ctrl+C
+                $data{'nshell'}{'current_buffer'} = $command_buffer;
+
                 ## Load into editor to sync editor buffer with loaded history
                 AMOS7::TERM::editor_load( $editor, $command_buffer );
 
@@ -172,6 +176,30 @@ while ( length $input_chars ) {
                 <[nshell.redraw_command_line]>->(
                     $command_buffer, $display_buffer
                 );
+
+                ## Render cursor at editor's position
+                ## Terminal is already at end of buffer after redraw_command_line
+                ## Just move back if cursor is not at end, then render cursor
+                my $cursor_pos = $editor->{cursor_pos};
+                my $buffer     = $editor->{buffer};
+                my $buf_len    = length($buffer);
+                my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
+
+                ## Move back to cursor position (if not at end)
+                if ( $cursor_pos < $buf_len ) {
+                    my $moves_back = $buf_len - $cursor_pos;
+                    print "\x08" x $moves_back;
+                }
+
+                ## Render cursor at current position
+                if ( $char_at_cursor eq '' or $char_at_cursor eq ' ' ) {
+                    print $colors{p7_fg_0003} . '_';
+                } else {
+                    print "\e[7m" . $char_at_cursor . "\e[27m";
+                }
+
+                print "\e[0m" . $colors{p7_fg_0004};
+                print "\e[K";
             }
         } elsif ( $escape_buffer eq "\e[B" ) {
             my $lines_ref = AMOS7::TERM::history_down();
@@ -183,6 +211,9 @@ while ( length $input_chars ) {
                 $display_buffer = join "\n", $lines_ref->@*;
                 $command_buffer = $display_buffer;
 
+                ## Store recalled buffer for terminal restore on Ctrl+C
+                $data{'nshell'}{'current_buffer'} = $command_buffer;
+
                 ## Load into editor to sync editor buffer with loaded history
                 AMOS7::TERM::editor_load( $editor, $command_buffer );
 
@@ -190,6 +221,30 @@ while ( length $input_chars ) {
                 <[nshell.redraw_command_line]>->(
                     $command_buffer, $display_buffer
                 );
+
+                ## Render cursor at editor's position
+                ## Terminal is already at end of buffer after redraw_command_line
+                ## Just move back if cursor is not at end, then render cursor
+                my $cursor_pos = $editor->{cursor_pos};
+                my $buffer     = $editor->{buffer};
+                my $buf_len    = length($buffer);
+                my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
+
+                ## Move back to cursor position (if not at end)
+                if ( $cursor_pos < $buf_len ) {
+                    my $moves_back = $buf_len - $cursor_pos;
+                    print "\x08" x $moves_back;
+                }
+
+                ## Render cursor at current position
+                if ( $char_at_cursor eq '' or $char_at_cursor eq ' ' ) {
+                    print $colors{p7_fg_0003} . '_';
+                } else {
+                    print "\e[7m" . $char_at_cursor . "\e[27m";
+                }
+
+                print "\e[0m" . $colors{p7_fg_0004};
+                print "\e[K";
             } else {
                 my $clear_len = length($display_buffer) + 8;
                 print "\r" . ( ' ' x $clear_len ) . "\r";
@@ -198,6 +253,9 @@ while ( length $input_chars ) {
 
                 ## Clear editor when reaching new command position
                 AMOS7::TERM::editor_reset($editor);
+
+                ## Render cursor at start of new empty line
+                print $colors{p7_fg_0003} . '_' . "\e[0m" . $colors{p7_fg_0004};
             }
         } elsif ( $escape_buffer eq "\e[5~" ) {
             my $lines_ref = AMOS7::TERM::history_page_up();
@@ -209,6 +267,9 @@ while ( length $input_chars ) {
                 $display_buffer = join "\n", $lines_ref->@*;
                 $command_buffer = $display_buffer;
 
+                ## Store recalled buffer for terminal restore on Ctrl+C
+                $data{'nshell'}{'current_buffer'} = $command_buffer;
+
                 ## Load into editor to sync editor buffer with loaded history
                 AMOS7::TERM::editor_load( $editor, $command_buffer );
 
@@ -216,6 +277,30 @@ while ( length $input_chars ) {
                 <[nshell.redraw_command_line]>->(
                     $command_buffer, $display_buffer
                 );
+
+                ## Render cursor at editor's position
+                ## Terminal is already at end of buffer after redraw_command_line
+                ## Just move back if cursor is not at end, then render cursor
+                my $cursor_pos = $editor->{cursor_pos};
+                my $buffer     = $editor->{buffer};
+                my $buf_len    = length($buffer);
+                my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
+
+                ## Move back to cursor position (if not at end)
+                if ( $cursor_pos < $buf_len ) {
+                    my $moves_back = $buf_len - $cursor_pos;
+                    print "\x08" x $moves_back;
+                }
+
+                ## Render cursor at current position
+                if ( $char_at_cursor eq '' or $char_at_cursor eq ' ' ) {
+                    print $colors{p7_fg_0003} . '_';
+                } else {
+                    print "\e[7m" . $char_at_cursor . "\e[27m";
+                }
+
+                print "\e[0m" . $colors{p7_fg_0004};
+                print "\e[K";
             }
         } elsif ( $escape_buffer eq "\e[6~" ) {
             my $lines_ref = AMOS7::TERM::history_page_down();
@@ -227,6 +312,9 @@ while ( length $input_chars ) {
                 $display_buffer = join "\n", $lines_ref->@*;
                 $command_buffer = $display_buffer;
 
+                ## Store recalled buffer for terminal restore on Ctrl+C
+                $data{'nshell'}{'current_buffer'} = $command_buffer;
+
                 ## Load into editor to sync editor buffer with loaded history
                 AMOS7::TERM::editor_load( $editor, $command_buffer );
 
@@ -234,6 +322,30 @@ while ( length $input_chars ) {
                 <[nshell.redraw_command_line]>->(
                     $command_buffer, $display_buffer
                 );
+
+                ## Render cursor at editor's position
+                ## Terminal is already at end of buffer after redraw_command_line
+                ## Just move back if cursor is not at end, then render cursor
+                my $cursor_pos = $editor->{cursor_pos};
+                my $buffer     = $editor->{buffer};
+                my $buf_len    = length($buffer);
+                my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
+
+                ## Move back to cursor position (if not at end)
+                if ( $cursor_pos < $buf_len ) {
+                    my $moves_back = $buf_len - $cursor_pos;
+                    print "\x08" x $moves_back;
+                }
+
+                ## Render cursor at current position
+                if ( $char_at_cursor eq '' or $char_at_cursor eq ' ' ) {
+                    print $colors{p7_fg_0003} . '_';
+                } else {
+                    print "\e[7m" . $char_at_cursor . "\e[27m";
+                }
+
+                print "\e[0m" . $colors{p7_fg_0004};
+                print "\e[K";
             } else {
                 my $clear_len = length($display_buffer) + 8;
                 print "\r" . ( ' ' x $clear_len ) . "\r";
@@ -242,7 +354,20 @@ while ( length $input_chars ) {
 
                 ## Clear editor when reaching new command position
                 AMOS7::TERM::editor_reset($editor);
+
+                ## Render cursor at start of new empty line
+                print $colors{p7_fg_0003} . '_' . "\e[0m" . $colors{p7_fg_0004};
             }
+        } elsif ( $escape_buffer eq "\e[H" or $escape_buffer eq "\e[1~" or $escape_buffer eq "\eOH" ) {
+            ## Home key (multiple variants) - map to Ctrl+A (move to start of line)
+            $key           = "\x01";  ## Ctrl+A
+            $escape_buffer = '';
+            ## Fall through to editor processing below
+        } elsif ( $escape_buffer eq "\e[F" or $escape_buffer eq "\e[4~" or $escape_buffer eq "\eOF" ) {
+            ## End key (multiple variants) - map to Ctrl+E (move to end of line)
+            $key           = "\x05";  ## Ctrl+E
+            $escape_buffer = '';
+            ## Fall through to editor processing below
         } elsif ( $escape_buffer eq "\e[C" ) {
             ## Right arrow - pass to editor for cursor movement
             $key           = $escape_buffer;
@@ -358,6 +483,9 @@ while ( length $input_chars ) {
         my $cursor_pos = $editor->{cursor_pos};
         my $buffer     = $editor->{buffer};
 
+        ## Store current buffer in global data for terminal restore on exit
+        $data{'nshell'}{'current_buffer'} = $buffer;
+
         ## Go to start of line
         print "\r";
 
@@ -405,6 +533,9 @@ while ( length $input_chars ) {
         ## Full line redraw for deletion operations - ensures clean rendering
         my $cursor_pos = $editor->{cursor_pos};
         my $buffer     = $editor->{buffer};
+
+        ## Store current buffer in global data for terminal restore on exit
+        $data{'nshell'}{'current_buffer'} = $buffer;
 
         ## Go to start of line
         print "\r";
@@ -455,6 +586,9 @@ while ( length $input_chars ) {
         my $cursor_pos = $editor->{cursor_pos};
         my $buffer     = $editor->{buffer};
 
+        ## Store current buffer in global data for terminal restore on exit
+        $data{'nshell'}{'current_buffer'} = $buffer;
+
         ## Go to start of line
         print "\r";
 
@@ -500,6 +634,9 @@ while ( length $input_chars ) {
         ## Full line redraw for all buffer modifications - ensures clean rendering
         my $cursor_pos = $editor->{cursor_pos};
         my $buffer     = $editor->{buffer};
+
+        ## Store current buffer in global data for terminal restore on exit
+        $data{'nshell'}{'current_buffer'} = $buffer;
 
         ## Go to start of line
         print "\r";
@@ -601,6 +738,20 @@ while ( length $input_chars ) {
 
         next;    ## Continue to next buffered character
     } elsif ( $edit_result->{action} eq qw| signal | ) {
+        ## Clear cursor before sending signal, preserve buffer content
+        ## User may want to exit shell with history command visible for copy-paste
+        my $cursor_pos = $editor->{cursor_pos};
+        my $buffer     = $editor->{buffer};
+        my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
+
+        ## Go to start of line, clear any cursor remnants, then print buffer
+        print "\r\e[K" . $colors{p7_fg_0004} . $buffer . " ";
+        STDOUT->flush();
+
+        ## Clear the buffer flag so term_restore doesn't try to clean up
+        ## We've already printed the buffer on screen for copy-paste
+        delete $data{'nshell'}{'current_buffer'};
+
         ## Send signal to current process
         my $sig = $edit_result->{should_signal} // 'INT';
         kill( $sig, $$ );
@@ -613,8 +764,8 @@ while ( length $input_chars ) {
 
 return undef;    ## No complete line yet, buffer exhausted or incomplete UTF-8
 
-#,,,,,...,...,.,,,...,..,,.,,,,,.,,,,,...,.,,,..,,...,..,,,,,,..,,,.,,,.,,,..,
-#W4QT3R35722C25NHY54N3VQRMOGGC2BNXLECJZUF7AM7EJPCKY57JCYM7YUP4BCCXTDFEWVD4CWCG
-#\\\|6LPBQQ7UJ35QT47MGH2FZIFXU3Z35BJ2VA5TLXTAEPYCPQ4L7HE \ / AMOS7 \ YOURUM ::
-#\[7]WGFA3NY4RPHAFN4RY52RDRWJTJV2U76TLLYSRQ4WTZKGABEMYABQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,,,.,.,,,.,.,,,,,.,..,,,,.,.,.,..,,...,...,,,,,.,.,.,,,,..,,.,,
+#KHETGU4XSWU47AG2C4J74XRSRTPEEZBYL3F2UD2324GHP4KD4TK5FR45MOTX33G3QVZREWZWWESIO
+#\\\|B5WNNUUQCZC6T7YHUBRC2NMT4BLB2HNU7XMKV5XUELVJJKIOJID \ / AMOS7 \ YOURUM ::
+#\[7]74FWEUMJPCPKU5VEIDNCEIDLO44BVWXDRJ5WO2PPAE52WV5FXYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
