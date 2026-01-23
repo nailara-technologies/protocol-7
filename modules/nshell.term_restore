@@ -3,9 +3,13 @@
 # name = nshell.term_restore
 # descr = Restore terminal settings after nshell session
 
-## clear cursor remants on exit ##
-##
-print STDERR "\r  \r";
+## Preserve the command buffer but clear the custom cursor
+## The buffer is already displayed on screen with proper colors
+## Just remove the cursor character without clearing the buffer
+if ( defined $data{'nshell'}{'current_buffer'} && length $data{'nshell'}{'current_buffer'} ) {
+    ## Move back one character and erase just the cursor
+    print "\x08\e[K";
+}
 
 ## Retrieve backed-up terminal settings from nshell.term_init
 return TRUE if not defined $main::data{'nshell'}{'orig_termios'};
@@ -26,8 +30,8 @@ if ( defined $restore_termios ) {
 
 return TRUE;
 
-#,,,.,...,,,.,,,.,,,.,,..,,.,,.,.,,..,,,,,,.,,..,,...,..,,.,.,...,,,.,.,.,.,.,
-#4QYKVO64SFVOGNOFOFMVIRVOSHJ6VXKWO7YBM4DKMFQ3XQ6KHVAFWYK5ROCHGHDFR6XLZFDT2N4GU
-#\\\|SJRF7RZM2VOXTYRXGUNSUFY4A5WE2H6HQ6RDHMF6SG2HHMJ7DMU \ / AMOS7 \ YOURUM ::
-#\[7]C7P5QY7G7LH4I62NI5WK3YYBGXY6MITMBC6WGK3WBFTI2PCGQCAA 7  DATA SIGNATURE ::
+#,,,.,.,,,...,,..,,,.,,,.,,,.,,.,,.,,,,.,,,,,,..,,...,..,,,..,..,,,,.,.,,,...,
+#5NFBVN2VANRYQKCUB4OZNKWLU3K4XKMLQE2PL4DAJGS2EFNGRZZPZE3FYSHPQ4OZUNTGYRKENJQQ6
+#\\\|PWRP43GCNOHPN72RL5V7U5HWYX2AGLVTF5WCGQFJCPTU4HA4OD2 \ / AMOS7 \ YOURUM ::
+#\[7]HK2XJPQPLAXYURIKMOWXXDXVASR56RYTNUDRLIPBBAQECCH2NGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
