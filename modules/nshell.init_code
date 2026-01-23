@@ -36,7 +36,7 @@ my $history_count = AMOS7::TERM::history_init( 'nshell.history', 1000, 300 );
 printf "%s\r", $colors{'p7_fg_0004'} // '';
 
 ## Hide system cursor and enable custom colored cursor
-print "\e[?25l";  ## Hide terminal cursor
+print "\e[?25l";    ## Hide terminal cursor
 AMOS7::TERM::cursor_enable();
 
 ## Initialize terminal using POSIX::Termios [ portable, no XS dependencies ]
@@ -45,7 +45,7 @@ AMOS7::TERM::cursor_enable();
 ## Set end_code callback to restore terminal mode before exit
 $code{'base.handler.end_code'} = sub {
     <[base.log]>->( 2, ': restoring terminal mode ..,' );
-    print "\e[?25h";  ## Show terminal cursor before exit
+    print "\e[?25h";    ## Show terminal cursor before exit
     <[nshell.term_restore]>;
     <[base.exit]>->( '[ terminal restored ]', 1 );
 };
@@ -58,8 +58,8 @@ $code{'base.handler.end_code'} = sub {
 
 return 0;
 
-#,,.,,,.,,.,,,...,,,.,,..,,,.,.,.,,,.,.,,,.,,,..,,...,..,,.,.,..,,..,,,..,.,,,
-#FIMOMZFGLN5VTFVM4OA5ZMV3HLWKNIUGNHT3HTR42DEI4VPKFUAXC75YUPY62TSDC2BDP5UJMQSI2
-#\\\|XID7LDINMB72FMIQA5XZSLBNW5IG2S3A4VOHNLNSR4HLIH6AGXW \ / AMOS7 \ YOURUM ::
-#\[7]AFHHGYTIS27G6JLBBNRFEFV2C4HPL6WEBQQE6WGLMVP26NYN74AY 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,,.,...,,..,..,,,,.,,,,,...,.,,,..,,...,...,,..,.,,,,,,,..,,,,.,
+#DLOMSTGK7W2DE6NYGSAUTHGUMHLOPX3CYZUN7FNEXBYEDJ4PKURG3QFSTOLGZPYE2VZPDGBATDG7Y
+#\\\|G36VKVRTFJ57H7PEQSXGDOWEBYCO2IJHEGW4Z3ZXVDZ5DYPXVWI \ / AMOS7 \ YOURUM ::
+#\[7]5CIMMDZNALICI7L3SSBHYU7LAL52ZQRQ6MO3ZEWMQAXJTAFC6WAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
