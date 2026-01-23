@@ -79,26 +79,26 @@ our @rnd_count;
 ##[ CURSOR RENDERING ]########################################################
 
 our %cursor_state = (
-    enabled     => TRUE,           ##  Display custom cursor  ##
-    color_code  => '',             ##  Current color code (phosphor green)  ##
-    animation   => 'static',       ##  Animation mode for future use  ##
+    enabled    => TRUE,        ##  Display custom cursor  ##
+    color_code => '',          ##  Current color code (phosphor green)  ##
+    animation  => 'static',    ##  Animation mode for future use  ##
 );
 
 ##[ PROTOCOL-7 COLOR PALETTE ]##################################################
 
 our %p7_colors = (
-    'p7_fg_0000'   => "\e[38;2;68;39;172m",   ##  Purple  ##
-    'p7_fg_0001'   => "\e[38;2;38;46;153m",   ##  Blue    ##
-    'p7_fg_0002'   => "\e[38;2;170;94;2m",    ##  Brown   ##
-    'p7_fg_0003'   => "\e[38;2;9;170;94m",    ##  Phosphor green (cursor)  ##
-    'p7_fg_0004'   => "\e[38;2;6;71;195m",    ##  TRUE blue (text)  ##
+    'p7_fg_0000' => "\e[38;2;68;39;172m",    ##  Purple  ##
+    'p7_fg_0001' => "\e[38;2;38;46;153m",    ##  Blue    ##
+    'p7_fg_0002' => "\e[38;2;170;94;2m",     ##  Brown   ##
+    'p7_fg_0003' => "\e[38;2;9;170;94m",     ##  Phosphor green (cursor)  ##
+    'p7_fg_0004' => "\e[38;2;6;71;195m",     ##  TRUE blue (text)  ##
 );
 
 ##[ HISTORY MANAGEMENT ]######################################################
 
 our @history_entries;
 our $history_current_index
-    = 0;     ##  Current position in history (scalar @history_entries = new)  ##
+    = 0;   ##  Current position in history (scalar @history_entries = new)  ##
 our $history_filename    = 'nshell.history';
 our $history_max_size    = 1000;    ##  Maximum history entries to keep  ##
 our $history_session_gap = 300;     ##  Session gap in seconds (5 min)  ##
@@ -117,8 +117,9 @@ sub history_init {
     if ( eval { require AMOS7::FILE } ) {
         my @entries = AMOS7::FILE::read_all_timestamped_multiline($filename);
         if (@entries) {
-            @history_entries       = @entries;
-            $history_current_index = $#history_entries + 1;    ## New command position
+            @history_entries = @entries;
+            $history_current_index
+                = $#history_entries + 1;    ## New command position
             return scalar @history_entries;
         }
     }
@@ -144,7 +145,8 @@ sub history_add {
                 shift @history_entries;
             }
 
-            $history_current_index = $#history_entries + 1;    ## Reset to 'new' position
+            $history_current_index
+                = $#history_entries + 1;    ## Reset to 'new' position
             return $timestamp;
         }
     }
@@ -176,7 +178,9 @@ sub history_up {
 sub history_down {
 
     return undef if not @history_entries;
-    return undef if $history_current_index > $#history_entries;    ## Already at new position
+    return undef
+        if $history_current_index
+        > $#history_entries;    ## Already at new position
 
     ## Moving down in history (towards newer entries)
     if ( $history_current_index < $#history_entries ) {
@@ -194,7 +198,9 @@ sub history_down {
 sub history_page_up {
 
     return undef if not @history_entries;
-    return undef if $history_current_index > $#history_entries;    ## Already at new position
+    return undef
+        if $history_current_index
+        > $#history_entries;    ## Already at new position
 
     ## Page up: jump to previous session boundary
     my $current_ts = $history_entries[$history_current_index]->[0];
@@ -227,7 +233,9 @@ sub history_page_up {
 sub history_page_down {
 
     return undef if not @history_entries;
-    return undef if $history_current_index > $#history_entries;    ## Already at new position
+    return undef
+        if $history_current_index
+        > $#history_entries;    ## Already at new position
 
     ## Page down: jump to next session boundary
     my $current_ts = $history_entries[$history_current_index]->[0];
@@ -238,7 +246,8 @@ sub history_page_down {
     return undef if not defined $current_delta;
 
     ## Search forwards for session boundary
-    for ( my $i = $history_current_index + 1; $i <= $#history_entries; $i++ ) {
+    for ( my $i = $history_current_index + 1; $i <= $#history_entries; $i++ )
+    {
         my $next_ts    = $history_entries[$i]->[0];
         my $next_delta = _timestamp_to_delta($next_ts);
         next if not defined $next_delta;
@@ -272,14 +281,17 @@ sub _timestamp_to_delta {
 
     ## Fallback: Base32 alphabet for manual conversion
     ## Protocol-7 uses: 0-9, A-V (22 chars total)
+    ## Using qw with grouped formatting to preserve alignment
     my %base32_map = (
-        '0' => 0,  '1' => 1,  '2' => 2,  '3' => 3,  '4' => 4,
-        '5' => 5,  '6' => 6,  '7' => 7,  '8' => 8,  '9' => 9,
-        'A' => 10, 'B' => 11, 'C' => 12, 'D' => 13, 'E' => 14,
-        'F' => 15, 'G' => 16, 'H' => 17, 'I' => 18, 'J' => 19,
-        'K' => 20, 'L' => 21, 'M' => 22, 'N' => 23, 'O' => 24,
-        'P' => 25, 'Q' => 26, 'R' => 27, 'S' => 28, 'T' => 29,
-        'U' => 30, 'V' => 31,
+        qw|
+            0 0   1 1   2 2   3 3   4 4
+            5 5   6 6   7 7   8 8   9 9
+            A 10  B 11  C 12  D 13  E 14
+            F 15  G 16  H 17  I 18  J 19
+            K 20  L 21  M 22  N 23  O 24
+            P 25  Q 26  R 27  S 28  T 29
+            U 30  V 31
+            |
     );
 
     ## Convert base32 string to numeric value
@@ -1114,10 +1126,10 @@ sub exit_user_passwd {
 sub editor_init {
     ## Initialize and return editor state reference
     return {
-        buffer       => '',
-        cursor_pos   => 0,
-        kill_buffer  => '',
-        color_set    => FALSE,
+        buffer      => '',
+        cursor_pos  => 0,
+        kill_buffer => '',
+        color_set   => FALSE,
     };
 }
 
@@ -1127,10 +1139,10 @@ sub editor_process_key {
     return undef if !defined $editor or !defined $key;
 
     my $result = {
-        action         => 'none',
-        output         => '',
-        complete       => FALSE,
-        should_signal  => undef,
+        action        => 'none',
+        output        => '',
+        complete      => FALSE,
+        should_signal => undef,
     };
 
     ## Newline - command complete
@@ -1157,7 +1169,8 @@ sub editor_process_key {
 
             ## Output: rest of line + clear to end + reposition
             my $rest = substr( $editor->{buffer}, $editor->{cursor_pos} );
-            $result->{output} = $rest . ' ' . ( "\x08" x ( length($rest) + 1 ) );
+            $result->{output}
+                = $rest . ' ' . ( "\x08" x ( length($rest) + 1 ) );
         }
         return $result;
     }
@@ -1167,8 +1180,8 @@ sub editor_process_key {
         my $steps = $editor->{cursor_pos};
         if ( $steps > 0 ) {
             $editor->{cursor_pos} = 0;
-            $result->{action} = 'cursor_left';
-            $result->{output} = "\x08" x $steps;  ## Backspace N times
+            $result->{action}     = 'cursor_left';
+            $result->{output}     = "\x08" x $steps;    ## Backspace N times
         }
         return $result;
     }
@@ -1176,22 +1189,27 @@ sub editor_process_key {
     ## Ctrl-E - move cursor to end of line
     if ( $key eq "\x05" ) {
         my $end_pos = length $editor->{buffer};
-        my $steps = $end_pos - $editor->{cursor_pos};
+        my $steps   = $end_pos - $editor->{cursor_pos};
         if ( $steps > 0 ) {
             $editor->{cursor_pos} = $end_pos;
-            $result->{action} = 'cursor_right';
-            $result->{output} = substr( $editor->{buffer}, $editor->{cursor_pos} - $steps, $steps );
+            $result->{action}     = 'cursor_right';
+            $result->{output}
+                = substr( $editor->{buffer}, $editor->{cursor_pos} - $steps,
+                $steps );
         }
         return $result;
     }
 
     ## Ctrl-K - kill to end of line (delete from cursor to end, save to kill buffer)
     if ( $key eq "\x0b" ) {
-        my $rest_len = length($editor->{buffer}) - $editor->{cursor_pos};
+        my $rest_len = length( $editor->{buffer} ) - $editor->{cursor_pos};
         if ( $rest_len > 0 ) {
-            $editor->{kill_buffer} = substr( $editor->{buffer}, $editor->{cursor_pos}, $rest_len, '' );
+            $editor->{kill_buffer}
+                = substr( $editor->{buffer}, $editor->{cursor_pos},
+                $rest_len, '' );
             $result->{action} = 'kill_to_end';
-            $result->{output} = ' ' x $rest_len . ( "\x08" x $rest_len );  ## Clear to end
+            $result->{output}
+                = ' ' x $rest_len . ( "\x08" x $rest_len );    ## Clear to end
         }
         return $result;
     }
@@ -1200,14 +1218,19 @@ sub editor_process_key {
     if ( $key eq "\x15" ) {
         if ( $editor->{cursor_pos} > 0 ) {
             my $deleted_len = $editor->{cursor_pos};
-            $editor->{kill_buffer} = substr( $editor->{buffer}, 0, $editor->{cursor_pos}, '' );
+            $editor->{kill_buffer}
+                = substr( $editor->{buffer}, 0, $editor->{cursor_pos}, '' );
             $editor->{cursor_pos} = 0;
-            $result->{action} = 'kill_from_start';
+            $result->{action}     = 'kill_from_start';
 
             ## Output: backspace to start + remaining text + clear rest + reposition
-            my $rest = substr( $editor->{buffer}, 0 );
+            my $rest                = substr( $editor->{buffer}, 0 );
             my $deleted_display_len = $deleted_len;
-            $result->{output} = ( "\x08" x $deleted_len ) . $rest . ( ' ' x $deleted_display_len ) . ( "\x08" x ( $deleted_display_len + length($rest) ) );
+            $result->{output}
+                = ( "\x08" x $deleted_len )
+                . $rest
+                . ( ' ' x $deleted_display_len )
+                . ( "\x08" x ( $deleted_display_len + length($rest) ) );
         }
         return $result;
     }
@@ -1218,22 +1241,25 @@ sub editor_process_key {
             my $start_pos = $editor->{cursor_pos};
 
             ## Skip trailing whitespace
-            while ( $start_pos > 0 && substr( $editor->{buffer}, $start_pos - 1, 1 ) =~ m|\s| ) {
+            while ( $start_pos > 0
+                && substr( $editor->{buffer}, $start_pos - 1, 1 ) =~ m|\s| ) {
                 $start_pos--;
             }
 
             ## Skip word characters (non-whitespace)
-            while ( $start_pos > 0 && substr( $editor->{buffer}, $start_pos - 1, 1 ) !~ m|\s| ) {
+            while ( $start_pos > 0
+                && substr( $editor->{buffer}, $start_pos - 1, 1 ) !~ m|\s| ) {
                 $start_pos--;
             }
 
             if ( $start_pos < $editor->{cursor_pos} ) {
-                $editor->{kill_buffer} = substr( $editor->{buffer}, $start_pos,
+                $editor->{kill_buffer}
+                    = substr( $editor->{buffer}, $start_pos,
                     $editor->{cursor_pos} - $start_pos, '' );
                 my $deleted_len = $editor->{cursor_pos} - $start_pos;
                 $editor->{cursor_pos} = $start_pos;
-                $result->{action} = 'kill_word';
-                $result->{output} = "\x08" x $deleted_len;
+                $result->{action}     = 'kill_word';
+                $result->{output}     = "\x08" x $deleted_len;
             }
         }
         return $result;
@@ -1242,14 +1268,17 @@ sub editor_process_key {
     ## Ctrl-Y - yank (paste kill buffer at cursor position)
     if ( $key eq "\x19" ) {
         if ( length $editor->{kill_buffer} ) {
-            substr( $editor->{buffer}, $editor->{cursor_pos}, 0, $editor->{kill_buffer} );
+            substr( $editor->{buffer}, $editor->{cursor_pos}, 0,
+                $editor->{kill_buffer} );
             $result->{action} = 'yank';
 
             ## Output: yanked text + rest of buffer + reposition cursor
-            my $rest = substr( $editor->{buffer}, $editor->{cursor_pos} + length($editor->{kill_buffer}) );
+            my $rest = substr( $editor->{buffer},
+                $editor->{cursor_pos} + length( $editor->{kill_buffer} ) );
             $result->{output} = $editor->{kill_buffer} . $rest;
             if ( length $rest > 0 ) {
-                $result->{output} .= "\x08" x length($rest);  ## Move cursor back to original position
+                $result->{output} .= "\x08" x length($rest)
+                    ;    ## Move cursor back to original position
             }
             $editor->{cursor_pos} += length $editor->{kill_buffer};
         }
@@ -1261,7 +1290,7 @@ sub editor_process_key {
         if ( $editor->{cursor_pos} > 0 ) {
             $editor->{cursor_pos}--;
             $result->{action} = 'cursor_left';
-            $result->{output} = "\x08";  ## Single backspace
+            $result->{output} = "\x08";          ## Single backspace
         }
         return $result;
     }
@@ -1272,7 +1301,7 @@ sub editor_process_key {
             my $char = substr( $editor->{buffer}, $editor->{cursor_pos}, 1 );
             $editor->{cursor_pos}++;
             $result->{action} = 'cursor_right';
-            $result->{output} = $char;  ## Echo the character under cursor
+            $result->{output} = $char;    ## Echo the character under cursor
         }
         return $result;
     }
@@ -1285,7 +1314,8 @@ sub editor_process_key {
 
             ## Output: rest of line + clear to end + reposition
             my $rest = substr( $editor->{buffer}, $editor->{cursor_pos} );
-            $result->{output} = $rest . ' ' . ( "\x08" x ( length($rest) + 1 ) );
+            $result->{output}
+                = $rest . ' ' . ( "\x08" x ( length($rest) + 1 ) );
         }
         return $result;
     }
@@ -1300,7 +1330,8 @@ sub editor_process_key {
 
             ## Output: rest of line + clear + reposition
             my $rest = substr( $editor->{buffer}, $editor->{cursor_pos} );
-            $result->{output} = "\x08" . $rest . ' ' . ( "\x08" x ( length($rest) + 1 ) );
+            $result->{output}
+                = "\x08" . $rest . ' ' . ( "\x08" x ( length($rest) + 1 ) );
         }
         return $result;
     }
@@ -1310,7 +1341,7 @@ sub editor_process_key {
         ## Set color on first character
         if ( !length $editor->{buffer} ) {
             $editor->{color_set} = TRUE;
-            $result->{output} = ( $colors{p7_fg_0004} // '' );
+            $result->{output}    = ( $colors{p7_fg_0004} // '' );
         }
 
         ## Insert character at cursor position
@@ -1322,7 +1353,8 @@ sub editor_process_key {
         my $rest = substr( $editor->{buffer}, $editor->{cursor_pos} );
         $result->{output} .= $key . $rest;
         if ( length $rest > 0 ) {
-            $result->{output} .= "\x08" x length($rest);  ## Move cursor back to new position
+            $result->{output}
+                .= "\x08" x length($rest); ## Move cursor back to new position
         }
 
         return $result;
@@ -1350,10 +1382,10 @@ sub editor_reset {
     my $editor = shift;
     return if !defined $editor;
 
-    $editor->{buffer}     = '';
-    $editor->{cursor_pos} = 0;
+    $editor->{buffer}      = '';
+    $editor->{cursor_pos}  = 0;
     $editor->{kill_buffer} = '';
-    $editor->{color_set}  = FALSE;
+    $editor->{color_set}   = FALSE;
 
     return TRUE;
 }
@@ -1362,10 +1394,10 @@ sub editor_load {
     my ( $editor, $text ) = @ARG;
     return if !defined $editor;
 
-    $editor->{buffer}     = $text // '';
-    $editor->{cursor_pos} = length $editor->{buffer};
+    $editor->{buffer}      = $text // '';
+    $editor->{cursor_pos}  = length $editor->{buffer};
     $editor->{kill_buffer} = '';
-    $editor->{color_set}  = ( length $editor->{buffer} ) ? TRUE : FALSE;
+    $editor->{color_set}   = ( length $editor->{buffer} ) ? TRUE : FALSE;
 
     return TRUE;
 }
@@ -1381,7 +1413,7 @@ sub cursor_render {
     return '' if !$cursor_state{enabled};
 
     my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
-    my $color = $cursor_state{color_code};
+    my $color          = $cursor_state{color_code};
 
     if ( $char_at_cursor eq '' or $char_at_cursor eq ' ' ) {
         ## At end of buffer or on space: show colored underscore
@@ -1405,7 +1437,7 @@ sub cursor_clear_old {
     return '' if $old_pos >= length($buffer);
 
     my $char_at_old = substr( $buffer, $old_pos, 1 ) // '';
-    my $color = $cursor_state{color_code};
+    my $color       = $cursor_state{color_code};
 
     if ( $char_at_old eq '' or $char_at_old eq ' ' ) {
         ## Was showing underscore: clear with space
@@ -1445,8 +1477,8 @@ sub cursor_disable {
 
 return TRUE ##################################################################
 
-#,,..,.,.,.,.,...,.,.,..,,,,.,..,,,,,,,,,,,,,,..,,...,...,...,.,.,...,.,.,...,
-#FPGYMAHZF75D2Z42FZCDIR4S3KT62TE2JD53PSEREXNAWY6ZFCSZFULPDDO2FUEX6JPK2MMMKWXWI
-#\\\|357MIQS7XDN32WE52JYCJ22NPCYU5CXCQDTKHT2UFNGTGOUYTYZ \ / AMOS7 \ YOURUM ::
-#\[7]KLFLROI5YDSM6RMGDAKOR25VNMWORLFVPA4TCB2UUFKV3YDY4QBI 7  DATA SIGNATURE ::
+#,,.,,.,.,...,...,.,,,,..,...,,,.,,..,,..,,..,..,,...,...,..,,...,.,,,...,..,,
+#AP2QUPDNZ33QFHPHVFPLBI2V52NSSSB5MNLDE4YVWMEAEGNC7NBYIGPLS45Z3NQYZUL6N73E7ZIG4
+#\\\|2N3J25OPUOXVIU6TA4T73DB3KCFQXFNIBBTSH7MDC4UEZ53PL7V \ / AMOS7 \ YOURUM ::
+#\[7]UJT34AR4XTHL6BHE4IYQN7J4N32KYSMUNN5NIHIU5OISLSKCJICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

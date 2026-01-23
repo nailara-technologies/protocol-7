@@ -9,14 +9,16 @@
 ## Supports history navigation with arrow keys and Page Up/Down
 ## Uses AMOS7::TERM editor for text editing operations
 
-state $editor           = undef;  ## Editor state reference
+state $editor           = undef;   ## Editor state reference
 state $escape_buffer    = '';
-state $display_buffer   = ''; ## Current display (may be from history)
-state $debug_cmd_buffer = ''; ## Accumulate potential debug command :CMD:
+state $display_buffer   = '';      ## Current display (may be from history)
+state $debug_cmd_buffer = '';      ## Accumulate potential debug command :CMD:
 state $input_chars      = ''; ## Character buffer for both TTY and piped input
-state %colors           = ();  ## Color palette (lazily loaded)
-state $prev_cursor_pos  = 0;  ## Previous cursor position for clearing old cursor
-state $cursor_initialized = FALSE;  ## Track if cursor has been shown at startup
+state %colors           = (); ## Color palette (lazily loaded)
+state $prev_cursor_pos
+    = 0;    ## Previous cursor position for clearing old cursor
+state $cursor_initialized
+    = FALSE;    ## Track if cursor has been shown at startup
 
 ## Get one character from buffer, refilling via sysread if needed
 my $key;
@@ -80,7 +82,7 @@ while ( length $input_chars ) {
     }
 
 ## Helper: extract a complete UTF-8 character (may be 1-4 bytes)
-    sub _extract_utf8_char {  ### extract subroutine ### [LLL]
+    sub _extract_utf8_char {    ### extract subroutine ### [LLL]
         my ($buf_ref) = @ARG;
         return undef if !length($$buf_ref);
 
@@ -153,7 +155,7 @@ while ( length $input_chars ) {
                 $command_buffer = $display_buffer;
 
                 ## Load into editor to sync editor buffer with loaded history
-                AMOS7::TERM::editor_load($editor, $command_buffer);
+                AMOS7::TERM::editor_load( $editor, $command_buffer );
 
                 $display_buffer = $colors{'p7_fg_0004'} . $display_buffer;
                 <[nshell.redraw_command_line]>->(
@@ -171,7 +173,7 @@ while ( length $input_chars ) {
                 $command_buffer = $display_buffer;
 
                 ## Load into editor to sync editor buffer with loaded history
-                AMOS7::TERM::editor_load($editor, $command_buffer);
+                AMOS7::TERM::editor_load( $editor, $command_buffer );
 
                 $display_buffer = $colors{'p7_fg_0004'} . $display_buffer;
                 <[nshell.redraw_command_line]>->(
@@ -197,7 +199,7 @@ while ( length $input_chars ) {
                 $command_buffer = $display_buffer;
 
                 ## Load into editor to sync editor buffer with loaded history
-                AMOS7::TERM::editor_load($editor, $command_buffer);
+                AMOS7::TERM::editor_load( $editor, $command_buffer );
 
                 $display_buffer = $colors{'p7_fg_0004'} . $display_buffer;
                 <[nshell.redraw_command_line]>->(
@@ -215,7 +217,7 @@ while ( length $input_chars ) {
                 $command_buffer = $display_buffer;
 
                 ## Load into editor to sync editor buffer with loaded history
-                AMOS7::TERM::editor_load($editor, $command_buffer);
+                AMOS7::TERM::editor_load( $editor, $command_buffer );
 
                 $display_buffer = $colors{'p7_fg_0004'} . $display_buffer;
                 <[nshell.redraw_command_line]>->(
@@ -232,17 +234,17 @@ while ( length $input_chars ) {
             }
         } elsif ( $escape_buffer eq "\e[C" ) {
             ## Right arrow - pass to editor for cursor movement
-            $key = $escape_buffer;
+            $key           = $escape_buffer;
             $escape_buffer = '';
             ## Fall through to editor processing below
         } elsif ( $escape_buffer eq "\e[D" ) {
             ## Left arrow - pass to editor for cursor movement
-            $key = $escape_buffer;
+            $key           = $escape_buffer;
             $escape_buffer = '';
             ## Fall through to editor processing below
         } elsif ( $escape_buffer eq "\e[3~" ) {
             ## Delete key - pass to editor for forward delete
-            $key = $escape_buffer;
+            $key           = $escape_buffer;
             $escape_buffer = '';
             ## Fall through to editor processing below
         } else {
@@ -264,7 +266,8 @@ while ( length $input_chars ) {
     ## Handle potential debug command: :COMMAND: or :COMMAND:N:
     ## Accumulate into separate buffer until we know if it's a valid pattern
     ## Only start if we're NOT in an escape sequence
-    if ( $key eq ':' && !length $escape_buffer && !length $debug_cmd_buffer ) {
+    if ( $key eq ':' && !length $escape_buffer && !length $debug_cmd_buffer )
+    {
         $debug_cmd_buffer = ':';
         ## Don't echo the opening colon yet, continue to next buffered
         ## character
@@ -336,12 +339,13 @@ while ( length $input_chars ) {
     $editor //= AMOS7::TERM::editor_init();
 
     ## Process key through editor
-    my $edit_result = AMOS7::TERM::editor_process_key( $editor, $key, %colors );
+    my $edit_result
+        = AMOS7::TERM::editor_process_key( $editor, $key, %colors );
 
     if ( $edit_result->{action} eq qw| echo | ) {
         ## Full line redraw for character insertion - ensures clean rendering
         my $cursor_pos = $editor->{cursor_pos};
-        my $buffer = $editor->{buffer};
+        my $buffer     = $editor->{buffer};
 
         ## Go to start of line
         print "\r";
@@ -384,12 +388,12 @@ while ( length $input_chars ) {
         }
 
         $prev_cursor_pos = $cursor_pos;
-        $display_buffer = '';    ## User is editing, clear display buffer
+        $display_buffer  = '';    ## User is editing, clear display buffer
     } elsif ( $edit_result->{action} eq qw| backspace |
-              or $edit_result->{action} eq qw| delete | ) {
+        or $edit_result->{action} eq qw| delete | ) {
         ## Full line redraw for deletion operations - ensures clean rendering
         my $cursor_pos = $editor->{cursor_pos};
-        my $buffer = $editor->{buffer};
+        my $buffer     = $editor->{buffer};
 
         ## Go to start of line
         print "\r";
@@ -432,13 +436,13 @@ while ( length $input_chars ) {
         }
 
         $prev_cursor_pos = $cursor_pos;
-        $display_buffer = '';    ## User is editing, clear display buffer
+        $display_buffer  = '';    ## User is editing, clear display buffer
     } elsif ( $edit_result->{action} eq qw| cursor_left |
-              or $edit_result->{action} eq qw| cursor_right | ) {
+        or $edit_result->{action} eq qw| cursor_right | ) {
         ## Full line redraw for cursor movement
         ## (no remnants, future-proof for color intensity)
         my $cursor_pos = $editor->{cursor_pos};
-        my $buffer = $editor->{buffer};
+        my $buffer     = $editor->{buffer};
 
         ## Go to start of line
         print "\r";
@@ -479,11 +483,12 @@ while ( length $input_chars ) {
         }
 
         $prev_cursor_pos = $cursor_pos;
-        $display_buffer = '';    ## User is editing, clear display buffer
-    } elsif ( $edit_result->{action} =~ m{^(kill_to_end|kill_from_start|kill_word|yank)$} ) {
+        $display_buffer  = '';    ## User is editing, clear display buffer
+    } elsif ( $edit_result->{action}
+        =~ m{^(kill_to_end|kill_from_start|kill_word|yank)$} ) {
         ## Full line redraw for all buffer modifications - ensures clean rendering
         my $cursor_pos = $editor->{cursor_pos};
-        my $buffer = $editor->{buffer};
+        my $buffer     = $editor->{buffer};
 
         ## Go to start of line
         print "\r";
@@ -526,7 +531,7 @@ while ( length $input_chars ) {
         }
 
         $prev_cursor_pos = $cursor_pos;
-        $display_buffer = '';    ## User is editing, clear display buffer
+        $display_buffer  = '';    ## User is editing, clear display buffer
     } elsif ( $edit_result->{action} eq qw| newline | ) {
         print $edit_result->{output};
         my $result = AMOS7::TERM::editor_submit($editor);
@@ -554,8 +559,8 @@ while ( length $input_chars ) {
 
 return undef;    ## No complete line yet, buffer exhausted or incomplete UTF-8
 
-#,,..,,..,,,,,,.,,,,.,,,.,,.,,.,.,..,,,,.,.,.,..,,...,.,.,...,.,.,,,.,,,.,.,.,
-#6GCWMYNLIU46IWRNAPJRXY62UXDPWGYPPOBFTF36XMWIXEPSAADQABWSSRWIHWFB6RY4N2IIW6MVE
-#\\\|GX4IY566SBFY2OAHPBIW6LPVWVGFOI2YP7FMG7RWKIR2L634IRA \ / AMOS7 \ YOURUM ::
-#\[7]QPS5W7Z45WSFZLZVIEBJL6B2VBKICTPCHCJPRNO4IABZ6IVG6ACA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,.,.,.,,,...,...,.,,,.,.,..,,,.,,..,,...,...,..,,.,,,.,,,,.,,,.,,
+#MTPRFIMMQ3HLHFCQU5JA7UI5HGILJQQPU4L7OS3A3XTFINFLRPBMUN3OI6UGHMMS7EDCBQ442DVMM
+#\\\|JZGLIEFFSUFYSOR4W4MH2SX22XC2ZNTT63PGSCISTCK5F62J7AX \ / AMOS7 \ YOURUM ::
+#\[7]WLW4S2JHY66N6TWHJ55ZIRTHFCSOWDFGCOSPG3ZTE37G45H4KCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
