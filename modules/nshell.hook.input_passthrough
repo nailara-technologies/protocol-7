@@ -23,18 +23,27 @@ my $input   = $session->{'buffer'}->{'input'};
 ## Don't parse it as a protocol-7 command
 if ( defined $input and length $input ) {
     print $input;
-    $| = 1;    ## flush immediately
+    STDOUT->flush();
 
     ## Clear the buffer since we handled it
     $session->{'buffer'}->{'input'} = '';
+
+    ## Trigger input watcher to display cursor after output
+    my ($nshell_sid) = keys <user.cube.session>->%*;
+    if ( defined $nshell_sid and defined $data{'session'}{$nshell_sid} ) {
+        my $nshell_session = $data{'session'}{$nshell_sid};
+        if ( defined $nshell_session->{'watcher'}{'stdin_handler'} ) {
+            $nshell_session->{'watcher'}{'stdin_handler'}->now();
+        }
+    }
 }
 
 ## Return 0 = complete, processed
 ## This prevents base.handler.input from calling the protocol handler
 return 0;
 
-#,,..,...,..,,.,,,,.,,..,,.,,,.,.,...,.,.,,..,.,.,...,...,...,.,.,..,,...,.,,,
-#CFMBZNLGIJYU3PBFF4BYBYEWMOENNOLM2ETPTAHUELUSHH5MP2QR7P6SGKSOMOQTAJPEYVMPYWGN6
-#\\\|AB6SBLF74YTZ25IXIZCQU6F6S4UVVMHKYK47JVJOVYNV5FQWXQU \ / AMOS7 \ YOURUM ::
-#\[7]BE5EHBVFMW34CBL3UMW3J2SLQ3LG3PLYZBDYYJS4BQYE6ZCNFUCI 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,,,,,..,..,,.,.,...,..,,,.,,..,,.,.,...,..,,..,,.,,,...,...,,,,,
+#IVYJMD56MWAHFSKOKD376LASSGFBCHKQKXK7QHMTZM4VZ7ISYFBIZEIDPCXR4PQGQN7UYVWBTTX7K
+#\\\|3M6B6QZ2TPWHOHZSFFYFYKBNQXHY2WWBI7WBQIU74RAUI66BC2P \ / AMOS7 \ YOURUM ::
+#\[7]UMVPFJWQBJ7WC3OQEIYXLRGWHBEBJWPHUYCGTAU5X4FAVWU77KAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

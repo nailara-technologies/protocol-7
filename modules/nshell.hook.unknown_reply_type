@@ -11,12 +11,21 @@ my $cmd = $msg_data->{'cmd'};
 
 ## Display message transparently to user
 print $cmd . "\n";
-$| = 1;    ## flush immediately
+STDOUT->flush();
+
+## Trigger input watcher to display cursor after output
+my ($session_id) = keys <user.cube.session>->%*;
+if ( defined $session_id and defined $data{'session'}{$session_id} ) {
+    my $session = $data{'session'}{$session_id};
+    if ( defined $session->{'watcher'}{'stdin_handler'} ) {
+        $session->{'watcher'}{'stdin_handler'}->now();
+    }
+}
 
 return TRUE;    ## we handled it
 
-#,,,,,,,.,,.,,.,,,..,,..,,,,,,..,,..,,,.,,,,,,.,.,...,...,.,.,,,.,..,,,..,,..,
-#BWG6DR3F2WLG4E73EMN5UBY4I6Y6KFD343LI76P6UYESSTJJC36FEH5F5LH543MCOXLUAJPZOEKCA
-#\\\|LISQ4764AZ3NRGDYOD3CAMCL7JJGM6WAMHJXTQXDIIBEOK4B7I2 \ / AMOS7 \ YOURUM ::
-#\[7]M5LQEGHPX52XROHCWOB7UB4AQKOPCANC5PDHOSQJBNF23SSQ7QBQ 7  DATA SIGNATURE ::
+#,,..,,..,,.,,,..,,.,,...,...,.,,,,..,,.,,,..,.,.,...,...,...,..,,...,.,,,,,,,
+#HXPOFOLDRIEFWWRR6VYSDB3FAG7REZ7BMOH5222DCVCR763BBHZWNOUAEAJJI7URDL75ZUURZPNRA
+#\\\|6JFQ2IJQBFW6HP7CYYT5WI7CUZCDKUDZZM6QPKFTIK3O6NKDTLX \ / AMOS7 \ YOURUM ::
+#\[7]X2AUSMRZ6KTJ6MFDHPIFWF24SY3UZIJB36HRKG3RHZWME2KI6AAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

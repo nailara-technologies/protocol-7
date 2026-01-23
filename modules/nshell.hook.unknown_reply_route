@@ -32,7 +32,17 @@ if ( $cmd eq 'SIZE' ) {
         if ( bytes::length( $input_buf->$* ) >= $size ) {
             my $output_data = substr $input_buf->$*, 0, $size, '';
             print $color_start . $output_data . $color_end;
-            $| = 1;    ## flush immediately
+            STDOUT->flush();
+
+            ## Trigger input watcher to display cursor after output
+            my ($sid) = keys <user.cube.session>->%*;
+            if ( defined $sid and defined $data{'session'}{$sid} ) {
+                my $sess = $data{'session'}{$sid};
+                if ( defined $sess->{'watcher'}{'stdin_handler'} ) {
+                    $sess->{'watcher'}{'stdin_handler'}->now();
+                }
+            }
+
             return TRUE;
         }
     }
@@ -66,18 +76,37 @@ if ( $cmd eq 'TRUE' or $cmd eq 'FALSE' ) {
         print $reply_color . '  ' . $cmd . $color_reset . "\n";
     }
     print "\n";    ## Suffix newline for spacing
-    $| = 1;        ## flush immediately
+    STDOUT->flush();
+
+    ## Trigger input watcher to display cursor after output
+    my ($session_id) = keys <user.cube.session>->%*;
+    if ( defined $session_id and defined $data{'session'}{$session_id} ) {
+        my $session = $data{'session'}{$session_id};
+        if ( defined $session->{'watcher'}{'stdin_handler'} ) {
+            $session->{'watcher'}{'stdin_handler'}->now();
+        }
+    }
+
     return TRUE;
 }
 
 ## Display message transparently to user
 print $color_start . '  ' . $cmd . $color_end . "\n";
-$| = 1;            ## flush immediately
+STDOUT->flush();
+
+## Trigger input watcher to display cursor after output
+my ($session_id) = keys <user.cube.session>->%*;
+if ( defined $session_id and defined $data{'session'}{$session_id} ) {
+    my $session = $data{'session'}{$session_id};
+    if ( defined $session->{'watcher'}{'stdin_handler'} ) {
+        $session->{'watcher'}{'stdin_handler'}->now();
+    }
+}
 
 return TRUE;       ## we handled it
 
-#,,,,,,,,,,,,,..,,,,.,,..,..,,...,..,,,.,,.,.,.,.,...,..,,,,.,,,,,.,,,,.,,..,,
-#3LC6JDBQ6JTKKAUDF63MUWVNPG2TOHHXWRS2IEUX6BXWCVQI2S4HJS4QPR7KQ3VKEUNQRCQHQLI74
-#\\\|URBNNJISOYPRGEKUKQI2DHUFIJJOVDJ45INKBY5MK53SZJILW5E \ / AMOS7 \ YOURUM ::
-#\[7]3F4ILLBSPB4IAG4ZYC4FG7UZNWYFXDXNESLO6W3P46YBY42GIUAY 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,.,,,.,,,,,,,,,,,,.,,...,..,,...,.,.,...,...,,,,,,,,,...,.,.,,,,,
+#3VSDWZYU2RBERXXC2OCMBXVLKXXAPXMMF66JHUBMK6SU43MWX4J6WBB6RJ76QTQTPNNX5QB3N7EKO
+#\\\|LTBSGIPGHBRLRB7JOFDU2M6XE7TDR6R5AP673RVGOOSYMT7APCC \ / AMOS7 \ YOURUM ::
+#\[7]UVQPW4EK6ZL6HRRUCBHVPPKXNMZMAECKKOISPO4L2SK5JNL6QSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

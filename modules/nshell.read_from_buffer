@@ -17,8 +17,27 @@ state $input_chars      = ''; ## Character buffer for both TTY and piped input
 state %colors           = (); ## Color palette (lazily loaded)
 state $prev_cursor_pos
     = 0;    ## Previous cursor position for clearing old cursor
-state $cursor_initialized
-    = FALSE;    ## Track if cursor has been shown at startup
+state $show_cursor_on_call = TRUE;  ## Show cursor at start of each call
+
+## Show cursor at start of each call (after command execution or on first call)
+if ( $show_cursor_on_call ) {
+    $show_cursor_on_call = FALSE;
+
+    ## Load colors if not already loaded
+    if ( !%colors ) {
+        eval { %colors = %{<nshell.colors>} };
+        $colors{p7_fg_0003} //= $AMOS7::TERM::p7_colors{'p7_fg_0003'};
+        $colors{p7_fg_0004} //= $AMOS7::TERM::p7_colors{'p7_fg_0004'};
+        $editor //= AMOS7::TERM::editor_init();
+        AMOS7::TERM::cursor_set_color( $colors{p7_fg_0003} );
+    }
+
+    ## Display cursor
+    print $colors{p7_fg_0003} . '_' . "\e[0m" . $colors{p7_fg_0004};
+    STDOUT->flush();
+
+    return undef;  ## Return to event loop to display cursor before input
+}
 
 ## Get one character from buffer, refilling via sysread if needed
 my $key;
@@ -66,19 +85,11 @@ while ( length $input_chars ) {
         $colors{p7_fg_0004} //= $AMOS7::TERM::p7_colors{'p7_fg_0004'};
         $colors{p7_fg_0003} //= $AMOS7::TERM::p7_colors{'p7_fg_0003'};
 
-        ## Apply TRUE blue to terminal for text output
-        print $colors{p7_fg_0004};
-
         ## Set cursor to phosphor green
         AMOS7::TERM::cursor_set_color( $colors{p7_fg_0003} );
 
-        ## Initialize editor and show cursor for the first time
-        if ( !$cursor_initialized ) {
-            $editor //= AMOS7::TERM::editor_init();
-            ## Render initial cursor as underscore at position 0 (empty buffer)
-            print $colors{p7_fg_0003} . '_' . "\e[0m" . $colors{p7_fg_0004};
-            $cursor_initialized = TRUE;
-        }
+        ## Initialize editor if not already done
+        $editor //= AMOS7::TERM::editor_init();
     }
 
 ## Helper: extract a complete UTF-8 character (may be 1-4 bytes)
@@ -533,7 +544,33 @@ while ( length $input_chars ) {
         $prev_cursor_pos = $cursor_pos;
         $display_buffer  = '';    ## User is editing, clear display buffer
     } elsif ( $edit_result->{action} eq qw| newline | ) {
+        ## Clear cursor before printing newline
+        my $cursor_pos = $editor->{cursor_pos};
+        my $buffer     = $editor->{buffer};
+        my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
+
+        ## Go to start of line, then to cursor position, then clear cursor
+        print "\r";
+        if ( $cursor_pos > 0 ) {
+            print substr( $buffer, 0, $cursor_pos );
+        }
+
+        if ( $char_at_cursor eq '' or $char_at_cursor eq ' ' ) {
+            ## Cursor was rendered as underscore, erase it
+            print "\e[K";
+        } else {
+            ## Cursor was rendered as inverse video character
+            ## Reprint the character without inverse to overwrite the inverted display
+            print $colors{p7_fg_0004} . $char_at_cursor;
+        }
+
+        ## Reset all attributes and apply text color
+        print "\e[0m" . $colors{p7_fg_0004};
+
+        ## Now print the newline
         print $edit_result->{output};
+        STDOUT->flush();
+
         my $result = AMOS7::TERM::editor_submit($editor);
         $display_buffer   = '';
         $debug_cmd_buffer = '';    ## Clear any partial debug command
@@ -544,8 +581,25 @@ while ( length $input_chars ) {
             AMOS7::TERM::history_add(@lines);
         }
 
-        return $result if length $result;  ## Return command only if not empty
-        next;    ## Empty line - continue to next buffered character
+        ## Trigger cursor display after newline (whether command is empty or not)
+        ## This handles both: empty Enter and Enter with command output
+        $show_cursor_on_call = TRUE;
+
+        ## If there's a command result, return it (which will trigger shell_loop -> hook -> cursor)
+        if ( length $result ) {
+            return $result;
+        }
+
+        ## For empty line, trigger watcher immediately to show cursor
+        my ($session_id) = keys <user.cube.session>->%*;
+        if ( defined $session_id and defined $data{'session'}{$session_id} ) {
+            my $session = $data{'session'}{$session_id};
+            if ( defined $session->{'watcher'}{'stdin_handler'} ) {
+                $session->{'watcher'}{'stdin_handler'}->now();
+            }
+        }
+
+        next;    ## Continue to next buffered character
     } elsif ( $edit_result->{action} eq qw| signal | ) {
         ## Send signal to current process
         my $sig = $edit_result->{should_signal} // 'INT';
@@ -559,8 +613,8 @@ while ( length $input_chars ) {
 
 return undef;    ## No complete line yet, buffer exhausted or incomplete UTF-8
 
-#,,,,,,,,,.,.,.,.,.,,,...,...,.,,,.,.,..,,,.,,..,,...,...,..,,.,,,.,,,,.,,,.,,
-#MTPRFIMMQ3HLHFCQU5JA7UI5HGILJQQPU4L7OS3A3XTFINFLRPBMUN3OI6UGHMMS7EDCBQ442DVMM
-#\\\|JZGLIEFFSUFYSOR4W4MH2SX22XC2ZNTT63PGSCISTCK5F62J7AX \ / AMOS7 \ YOURUM ::
-#\[7]WLW4S2JHY66N6TWHJ55ZIRTHFCSOWDFGCOSPG3ZTE37G45H4KCBQ 7  DATA SIGNATURE ::
+#,,,,,...,...,.,,,...,..,,.,,,,,.,,,,,...,.,,,..,,...,..,,,,,,..,,,.,,,.,,,..,
+#W4QT3R35722C25NHY54N3VQRMOGGC2BNXLECJZUF7AM7EJPCKY57JCYM7YUP4BCCXTDFEWVD4CWCG
+#\\\|6LPBQQ7UJ35QT47MGH2FZIFXU3Z35BJ2VA5TLXTAEPYCPQ4L7HE \ / AMOS7 \ YOURUM ::
+#\[7]WGFA3NY4RPHAFN4RY52RDRWJTJV2U76TLLYSRQ4WTZKGABEMYABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

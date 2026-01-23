@@ -11,12 +11,21 @@ my $cmd = $msg_data->{'cmd'};
 
 ## Display message transparently to user
 print $cmd . ": command not found\n";
-$| = 1;    ## flush immediately
+STDOUT->flush();
+
+## Trigger input watcher to display cursor after output
+my ($session_id) = keys <user.cube.session>->%*;
+if ( defined $session_id and defined $data{'session'}{$session_id} ) {
+    my $session = $data{'session'}{$session_id};
+    if ( defined $session->{'watcher'}{'stdin_handler'} ) {
+        $session->{'watcher'}{'stdin_handler'}->now();
+    }
+}
 
 return TRUE;    ## we handled it
 
-#,,.,,.,,,.,,,...,,.,,.,.,..,,...,...,,,.,,.,,.,.,...,...,...,.,,,,,,,,..,..,,
-#MLIVPDTAJQCNXMJTCZEICC3ODA2YLVTPRPWDN2H5OPDDORBVGBWU5UL3FMH5LAKNKJSWTDL4WWMM2
-#\\\|FKEG73PFANH4KL4BW3F3KVUA2ZWJT6FSJ3LXOGZFDTHNETO6CJC \ / AMOS7 \ YOURUM ::
-#\[7]PHGPACID4BXEKNERTKMZBHYWBVPF7U2OSM2V5DRHMESBRIQSRIBY 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,...,,..,,,,,,.,,,.,,,,,,.,.,,.,,.,.,...,...,,,,,,,.,,,.,...,,,,,
+#6KDXZY3MLNJA7R72JMN6EXLLADLSDMJLW266ELD2FAA54357GIV6QSAIMHOTPDYY2YQUMFP6ZJGNC
+#\\\|5EK2U7ZDHOXKFIMNS3B74TZGTKOTNQJ6NSWECZ4R3OBVGL5O44I \ / AMOS7 \ YOURUM ::
+#\[7]C47UBQ73GL3I7GCZ5QGL6BOTYUXP3NVJGJKOPYXRGJCSNLRWDABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

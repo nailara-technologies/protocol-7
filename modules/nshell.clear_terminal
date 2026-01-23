@@ -1,17 +1,20 @@
 ## [:< ##
 
 # name  = nshell.clear_terminal
-# descr = clear terminal screen on successful connection
+# descr = clear terminal screen and initialize cursor on successful connection
 
-## clear screen on connection success ##
-printf STDERR "%s\r", $colors{'clear_screen'};
+## Initialize and display cursor immediately (before interactive input loop)
+## %colors is available from zenka context (initialized in nshell.init_code)
+my $cursor_color = $colors{p7_fg_0003} // $AMOS7::TERM::p7_colors{'p7_fg_0003'};
+my $text_color   = $colors{p7_fg_0004} // $AMOS7::TERM::p7_colors{'p7_fg_0004'};
 
-## Print newline and restore text color
-## Real cursor will be initialized by nshell.read_from_buffer on first call
-say STDERR $colors{'p7_fg_0004'};
+## Set text color and display initial cursor
+print STDOUT $text_color;
+print STDOUT $cursor_color . '_' . "\e[0m" . $text_color;
+STDOUT->flush();
 
-#,,,.,,,,,,..,..,,..,,,,.,..,,,,,,.,.,,.,,..,,..,,...,...,.,.,..,,...,..,,,.,,
-#TK66CRPNA3AIYP4QCXNKQAEZPGH2PVHX5FH64HMVH43YW734CMPUESQZLWCOX6LKDQKYW5GIGHQC6
-#\\\|FZREA6C6WSEKIKEK5VZ2CNVSNTJM7VGGFUIQXAFHVCA6AUJ4CRO \ / AMOS7 \ YOURUM ::
-#\[7]CLIAUOPSMJENKC7BHT7A4FFIA6WRPT3JJTDUNJPB6BPV4HOK2CAA 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,,.,.,,,,,.,.,.,..,,,..,,,,,...,..,,...,...,..,,.,,,.,,,,.,,,..,
+#G7CVRVKAI3MGCCMKFUQVOVPRY5BG52AX5GAS6G4OCUXYUBWE4INHIEX4PU2VBBH2VZHMBWUDU3S6G
+#\\\|J6DQB4H6LLWBRUN5QM7AXELNU6C6BQ47YTQADKBWRUC4VGWLB4T \ / AMOS7 \ YOURUM ::
+#\[7]NSBR4IIVAUXK26T3E6JNFDMBIM5TGOMWDAIOROBDUVGPCP43QWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
