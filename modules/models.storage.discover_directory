@@ -11,12 +11,15 @@ return [] unless -d $directory_path;
 
 # Use extracted scan_directory module for recursive scanning
 @ARG = ( $directory_path, $recursive );
-my $found_models = <[models.discover.scan_directory]>;
+my $found_models
+    = <[models.discover.scan_directory]>->( $directory_path, $recursive );
+
+say STDERR Dumper($found_models);
 
 return $found_models;
 
-#,,,.,...,..,,,,,,...,...,,,,,,.,,...,.,.,,,.,..,,...,...,.,.,,,,,,.,,,,.,,,,,
-#PYVCROBRIJ6SFKMCPQ2RMRR6ZA24VLJYI7VPMU3BDD4HT53HFXDXWISEXEE3UUS4NVBUA445D4UPY
-#\\\|NYFHVQ2YMR7CJV4G5KHJTSJXVFJAS7CWCZL4G3FQSTWJHWR5IEU \ / AMOS7 \ YOURUM ::
-#\[7]CK7DD4ZRWW5URHU3OV4BNJZPJBMQSX3QDLDMRWY4O7MGMFU2GKCQ 7  DATA SIGNATURE ::
+#,,..,...,.,.,..,,,,.,,,,,..,,,.,,.,.,.,.,,..,..,,...,...,,.,,.,.,...,.,.,,.,,
+#CLR2Q2YNJHXAW3CYK242LFQGLMONHQNXMNQG3OWYIQSGLCDDBKEPMTUWRCTXJX3KJSICBYRVFD5HW
+#\\\|QVLRIO25J6LTMRGBRNBNWUI7BOM7ZKHU3FLLK2S4EID5PAHFUJ5 \ / AMOS7 \ YOURUM ::
+#\[7]K2IIFVE2YKJMAYTICDAQRCSW5P2GJSE7NTFTMK7LT3IDT7AMOQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
