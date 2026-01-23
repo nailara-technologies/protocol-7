@@ -30,7 +30,7 @@ my $VERSION = qw| AMOS7::TERM-VERSION.7OT2XVQ |;
 
 @EXPORT_OK = qw| terminal_title
     history_init history_add history_up history_down history_page_up history_page_down
-    editor_init editor_process_key editor_get_buffer editor_submit editor_reset |;
+    editor_init editor_process_key editor_get_buffer editor_submit editor_reset editor_load |;
 
 @EXPORT = qw| terminal_size read_password_single read_password_repeated |;
 
@@ -1129,18 +1129,159 @@ sub editor_process_key {
         return $result;
     }
 
-    ## Ctrl-D - EOF
+    ## Ctrl-D - Delete char at cursor (or EOF if buffer empty)
     if ( $key eq "\x04" ) {
-        $result->{action} = 'none';
+        if ( $editor->{cursor_pos} < length $editor->{buffer} ) {
+            ## Delete character at cursor position
+            substr( $editor->{buffer}, $editor->{cursor_pos}, 1, '' );
+            $result->{action} = 'delete';
+
+            ## Output: rest of line + clear to end + reposition
+            my $rest = substr( $editor->{buffer}, $editor->{cursor_pos} );
+            $result->{output} = $rest . ' ' . ( "\x08" x ( length($rest) + 1 ) );
+        }
         return $result;
     }
 
-    ## Backspace or Delete
+    ## Ctrl-A - move cursor to start of line
+    if ( $key eq "\x01" ) {
+        my $steps = $editor->{cursor_pos};
+        if ( $steps > 0 ) {
+            $editor->{cursor_pos} = 0;
+            $result->{action} = 'cursor_left';
+            $result->{output} = "\x08" x $steps;  ## Backspace N times
+        }
+        return $result;
+    }
+
+    ## Ctrl-E - move cursor to end of line
+    if ( $key eq "\x05" ) {
+        my $end_pos = length $editor->{buffer};
+        my $steps = $end_pos - $editor->{cursor_pos};
+        if ( $steps > 0 ) {
+            $editor->{cursor_pos} = $end_pos;
+            $result->{action} = 'cursor_right';
+            $result->{output} = substr( $editor->{buffer}, $editor->{cursor_pos} - $steps, $steps );
+        }
+        return $result;
+    }
+
+    ## Ctrl-K - kill to end of line (delete from cursor to end, save to kill buffer)
+    if ( $key eq "\x0b" ) {
+        my $rest_len = length($editor->{buffer}) - $editor->{cursor_pos};
+        if ( $rest_len > 0 ) {
+            $editor->{kill_buffer} = substr( $editor->{buffer}, $editor->{cursor_pos}, $rest_len, '' );
+            $result->{action} = 'kill_to_end';
+            $result->{output} = ' ' x $rest_len . ( "\x08" x $rest_len );  ## Clear to end
+        }
+        return $result;
+    }
+
+    ## Ctrl-U - kill from start of line to cursor (delete and save to kill buffer)
+    if ( $key eq "\x15" ) {
+        if ( $editor->{cursor_pos} > 0 ) {
+            my $deleted_len = $editor->{cursor_pos};
+            $editor->{kill_buffer} = substr( $editor->{buffer}, 0, $editor->{cursor_pos}, '' );
+            $editor->{cursor_pos} = 0;
+            $result->{action} = 'kill_from_start';
+
+            ## Output: backspace to start + remaining text + clear rest + reposition
+            my $rest = substr( $editor->{buffer}, 0 );
+            my $deleted_display_len = $deleted_len;
+            $result->{output} = ( "\x08" x $deleted_len ) . $rest . ( ' ' x $deleted_display_len ) . ( "\x08" x ( $deleted_display_len + length($rest) ) );
+        }
+        return $result;
+    }
+
+    ## Ctrl-W - kill word backward (delete previous word, save to kill buffer)
+    if ( $key eq "\x17" ) {
+        if ( $editor->{cursor_pos} > 0 ) {
+            my $start_pos = $editor->{cursor_pos};
+
+            ## Skip trailing whitespace
+            while ( $start_pos > 0 && substr( $editor->{buffer}, $start_pos - 1, 1 ) =~ m|\s| ) {
+                $start_pos--;
+            }
+
+            ## Skip word characters (non-whitespace)
+            while ( $start_pos > 0 && substr( $editor->{buffer}, $start_pos - 1, 1 ) !~ m|\s| ) {
+                $start_pos--;
+            }
+
+            if ( $start_pos < $editor->{cursor_pos} ) {
+                $editor->{kill_buffer} = substr( $editor->{buffer}, $start_pos,
+                    $editor->{cursor_pos} - $start_pos, '' );
+                my $deleted_len = $editor->{cursor_pos} - $start_pos;
+                $editor->{cursor_pos} = $start_pos;
+                $result->{action} = 'kill_word';
+                $result->{output} = "\x08" x $deleted_len;
+            }
+        }
+        return $result;
+    }
+
+    ## Ctrl-Y - yank (paste kill buffer at cursor position)
+    if ( $key eq "\x19" ) {
+        if ( length $editor->{kill_buffer} ) {
+            substr( $editor->{buffer}, $editor->{cursor_pos}, 0, $editor->{kill_buffer} );
+            $result->{action} = 'yank';
+
+            ## Output: yanked text + rest of buffer + reposition cursor
+            my $rest = substr( $editor->{buffer}, $editor->{cursor_pos} + length($editor->{kill_buffer}) );
+            $result->{output} = $editor->{kill_buffer} . $rest;
+            if ( length $rest > 0 ) {
+                $result->{output} .= "\x08" x length($rest);  ## Move cursor back to original position
+            }
+            $editor->{cursor_pos} += length $editor->{kill_buffer};
+        }
+        return $result;
+    }
+
+    ## Left arrow key - move cursor left (ANSI: \e[D)
+    if ( $key eq "\e[D" or $key eq "\x1b[D" ) {
+        if ( $editor->{cursor_pos} > 0 ) {
+            $editor->{cursor_pos}--;
+            $result->{action} = 'cursor_left';
+            $result->{output} = "\x08";  ## Single backspace
+        }
+        return $result;
+    }
+
+    ## Right arrow key - move cursor right (ANSI: \e[C)
+    if ( $key eq "\e[C" or $key eq "\x1b[C" ) {
+        if ( $editor->{cursor_pos} < length $editor->{buffer} ) {
+            my $char = substr( $editor->{buffer}, $editor->{cursor_pos}, 1 );
+            $editor->{cursor_pos}++;
+            $result->{action} = 'cursor_right';
+            $result->{output} = $char;  ## Echo the character under cursor
+        }
+        return $result;
+    }
+
+    ## Delete key escape sequence (ANSI: \e[3~) - delete character at cursor
+    if ( $key eq "\e[3~" or $key eq "\x1b[3~" ) {
+        if ( $editor->{cursor_pos} < length $editor->{buffer} ) {
+            substr( $editor->{buffer}, $editor->{cursor_pos}, 1, '' );
+            $result->{action} = 'delete';
+
+            ## Output: rest of line + clear to end + reposition
+            my $rest = substr( $editor->{buffer}, $editor->{cursor_pos} );
+            $result->{output} = $rest . ' ' . ( "\x08" x ( length($rest) + 1 ) );
+        }
+        return $result;
+    }
+
+    ## Backspace - delete character before cursor
+    ## Both \x08 (Ctrl+H) and \x7f (DEL) are treated as backspace since many terminals send backspace as DEL
     if ( $key eq "\x08" or $key eq "\x7f" ) {
-        if ( length $editor->{buffer} ) {
-            chop( $editor->{buffer} );
+        if ( $editor->{cursor_pos} > 0 ) {
+            $editor->{cursor_pos}--;
+            substr( $editor->{buffer}, $editor->{cursor_pos}, 1, '' );
             $result->{action} = 'backspace';
-            $result->{output} = "\x08 \x08";
+
+            ## Output: rest of line + clear + reposition
+            my $rest = substr( $editor->{buffer}, $editor->{cursor_pos} );
+            $result->{output} = "\x08" . $rest . ' ' . ( "\x08" x ( length($rest) + 1 ) );
         }
         return $result;
     }
@@ -1153,9 +1294,18 @@ sub editor_process_key {
             $result->{output} = ( $colors{p7_fg_0004} // '' );
         }
 
-        $editor->{buffer} .= $key;
+        ## Insert character at cursor position
+        substr( $editor->{buffer}, $editor->{cursor_pos}, 0, $key );
+        $editor->{cursor_pos}++;
         $result->{action} = 'echo';
-        $result->{output} .= $key;
+
+        ## Output: character + rest of line + reposition cursor
+        my $rest = substr( $editor->{buffer}, $editor->{cursor_pos} );
+        $result->{output} .= $key . $rest;
+        if ( length $rest > 0 ) {
+            $result->{output} .= "\x08" x length($rest);  ## Move cursor back to new position
+        }
+
         return $result;
     }
 
@@ -1203,8 +1353,8 @@ sub editor_load {
 
 return TRUE ##################################################################
 
-#,,..,..,,.,.,,.,,,,.,,..,.,,,,..,,,.,.,.,,.,,..,,...,..,,,..,,,,,.,,,...,.,,,
-#LAWJKD6YVFN5J4AXVPGWIQGA23GIBQEGJKTQ5HTY2I74X46LYR72W5VOOPONZ2HTFSEGEAGSGCSDW
-#\\\|CDLSM2BCSO4BXFLA2KW6OKMN5FOSDSP57NH25KEZGHBMMPN73E5 \ / AMOS7 \ YOURUM ::
-#\[7]CLYO7PV2YT3QLIQAIY336V4SERRCKIJGM4HSCDL3LI3DAX6H2MDI 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,..,,.,,,,.,,.,,,.,,,,,,,.,,,,,,,..,,...,...,..,,,.,,...,,,,,.,,,
+#XJJANRHOFZAJ5CUE2L77TWKTFDLA3YGCGAR4KPBM3X2A4KBOUHEJKWIQJKRVKHMQAALWNOUVDNZJA
+#\\\|BDXLIN3YW5MIYZT265WPJG67IG7XJECQEEL7WFAZK36LOCQZDJC \ / AMOS7 \ YOURUM ::
+#\[7]3FBVYHJVGEPD4NRXM5UPS7BUA7Z6FFHM7QJQ2L3VMFVAFBBGRICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
