@@ -19,6 +19,16 @@ state $prev_cursor_pos
     = 0;    ## Previous cursor position for clearing old cursor
 state $show_cursor_on_call = TRUE;  ## Show cursor at start of each call
 
+## History search mode state
+state $search_mode       = FALSE;    ## Whether in Ctrl+R search mode
+state $search_term       = '';       ## Current search term
+state $search_results    = [];       ## Matching history entries
+state $search_index      = 0;        ## Current position in search results
+state $pre_search_buffer = '';       ## Buffer before entering search mode
+state @search_term_history = ();     ## Search term history for Up/Down navigation
+state $search_term_hist_index = -1;  ## Current position in search term history
+state $search_deleted_chars = '';    ## Characters deleted by Left arrow (for Right arrow undo)
+
 ## Show cursor at start of each call (after command execution or on first call)
 if ( $show_cursor_on_call ) {
     $show_cursor_on_call = FALSE;
@@ -90,6 +100,338 @@ while ( length $input_chars ) {
 
         ## Initialize editor if not already done
         $editor //= AMOS7::TERM::editor_init();
+    }
+
+    ## Handle search mode input (Ctrl+R)
+    if ( $search_mode ) {
+        ## Accumulate escape sequences in search mode
+        if ( $key eq "\e" ) {
+            $escape_buffer = $key;
+
+            ## Accumulate more characters to complete escape sequence
+            my $seq_complete = 0;
+            for ( my $i = 0; $i < 20 && !$seq_complete; $i++ ) {
+                ## Check if we need more input
+                if ( !length $input_chars && -t STDIN ) {
+                    my $bytes_read = sysread( STDIN, $input_chars, 64 );
+                    last if not defined $bytes_read or $bytes_read <= 0;
+                }
+                last if not length $input_chars;
+
+                my $next_key = substr( $input_chars, 0, 1, '' );
+                $escape_buffer .= $next_key;
+
+                ## Check if sequence is complete
+                $seq_complete = TRUE if $escape_buffer =~ m{\e\[[A-Z]|\eO[A-Z]|\e\[[0-9;]*~$};
+            }
+
+            $key = $escape_buffer;
+            $escape_buffer = '';
+        }
+
+        if ( $key eq "\x03" or $key eq "\e" ) {
+            ## Ctrl+C or Esc - exit search mode
+            ## If there's a valid search result, load it; otherwise restore original buffer
+            my $exit_buffer;
+
+            if ( @$search_results && $search_index < @$search_results && length($search_term) ) {
+                ## Search result found - load it into buffer
+                $exit_buffer = $search_results->[$search_index];
+            } else {
+                ## No result or cleared search - restore original buffer
+                $exit_buffer = $pre_search_buffer;
+            }
+
+            ## Save search term to history if not empty
+            if ( length($search_term) && (@search_term_history == 0 || $search_term_history[0] ne $search_term) ) {
+                unshift @search_term_history, $search_term;
+                pop @search_term_history if @search_term_history > 50;  ## Keep last 50 searches
+            }
+
+            $search_mode = FALSE;
+            $search_term = '';
+            $search_results = [];
+            $search_index = 0;
+            $search_term_hist_index = -1;
+            $search_deleted_chars = '';
+            AMOS7::TERM::editor_load( $editor, $exit_buffer );
+            $command_buffer = $exit_buffer;
+            $display_buffer = $colors{p7_fg_0004} . $exit_buffer;
+
+            ## Redraw the buffer
+            <[nshell.redraw_command_line]>->(
+                $exit_buffer, $display_buffer
+            );
+
+            ## Render cursor at editor's position
+            my $cursor_pos = $editor->{cursor_pos};
+            my $buffer     = $editor->{buffer};
+            my $buf_len    = length($buffer);
+            my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
+
+            ## Move back to cursor position (if not at end)
+            if ( $cursor_pos < $buf_len ) {
+                my $moves_back = $buf_len - $cursor_pos;
+                print "\x08" x $moves_back;
+            }
+
+            ## Render cursor at current position
+            if ( $char_at_cursor eq '' or $char_at_cursor eq ' ' ) {
+                print $colors{p7_fg_0003} . '_';
+            } else {
+                print "\e[7m" . $char_at_cursor . "\e[27m";
+            }
+
+            print "\e[0m" . $colors{p7_fg_0004};
+            ## Only clear to end of line if cursor is at buffer end
+            print "\e[K" if $cursor_pos >= $buf_len;
+            STDOUT->flush();
+            next;
+        } elsif ( $key eq "\r" or $key eq "\n" ) {
+            ## Enter - select current match and exit search
+            if ( @$search_results && $search_index < @$search_results ) {
+                my $selected = $search_results->[$search_index];
+
+                ## Save search term to history if not empty
+                if ( length($search_term) && (@search_term_history == 0 || $search_term_history[0] ne $search_term) ) {
+                    unshift @search_term_history, $search_term;
+                    pop @search_term_history if @search_term_history > 50;  ## Keep last 50 searches
+                }
+
+                $search_mode = FALSE;
+                $search_term = '';
+                $search_results = [];
+                $search_index = 0;
+                $search_term_hist_index = -1;
+                $search_deleted_chars = '';
+                AMOS7::TERM::editor_load( $editor, $selected );
+                $command_buffer = $selected;
+                $display_buffer = '';
+                print "\n";
+                STDOUT->flush();
+                $show_cursor_on_call = TRUE;
+                return $selected;
+            }
+            next;
+        } elsif ( $key eq "\x17" ) {
+            ## Ctrl+W - clear previous word from search term
+            $search_term =~ s/\s*\S+\s*$//;
+            $search_term_hist_index = -1;
+            $search_deleted_chars = '';
+        } elsif ( $key eq "\x15" ) {
+            ## Ctrl+U - clear entire search term
+            $search_term = '';
+            $search_term_hist_index = -1;
+            $search_deleted_chars = '';
+        } elsif ( $key eq "\x08" or $key eq "\x7f" ) {
+            ## Backspace - remove from search term
+            $search_term = substr( $search_term, 0, -1 ) if length($search_term);
+            $search_deleted_chars = '';  ## Clear any undo buffer
+        } elsif ( $key eq "\e[A" ) {
+            ## Up arrow - cycle to next matching result, skip duplicates
+            if ( @$search_results ) {
+                my $current_result = $search_results->[$search_index] // '';
+                my $attempts = 0;
+                while ( $attempts < @$search_results ) {
+                    $search_index++;
+                    $search_index = 0 if $search_index >= @$search_results;
+
+                    if ( ($search_results->[$search_index] // '') ne $current_result ) {
+                        last;  ## Found a different result
+                    }
+                    $attempts++;
+                }
+            }
+            $search_deleted_chars = '';
+            ## Display updated match
+            print "\r\e[K" . $colors{p7_fg_0003} . "[search: " . $search_term . " ] ";
+            if ( @$search_results && $search_index < @$search_results ) {
+                print $colors{p7_fg_0004} . $search_results->[$search_index];
+            }
+            print "\e[K\e[0m";
+            STDOUT->flush();
+            next;
+        } elsif ( $key eq "\e[B" ) {
+            ## Down arrow - cycle to previous matching result, skip duplicates
+            if ( @$search_results ) {
+                my $current_result = $search_results->[$search_index] // '';
+                my $attempts = 0;
+                while ( $attempts < @$search_results ) {
+                    $search_index--;
+                    $search_index = @$search_results - 1 if $search_index < 0;
+
+                    if ( ($search_results->[$search_index] // '') ne $current_result ) {
+                        last;  ## Found a different result
+                    }
+                    $attempts++;
+                }
+            }
+            $search_deleted_chars = '';
+            ## Display updated match
+            print "\r\e[K" . $colors{p7_fg_0003} . "[search: " . $search_term . " ] ";
+            if ( @$search_results && $search_index < @$search_results ) {
+                print $colors{p7_fg_0004} . $search_results->[$search_index];
+            }
+            print "\e[K\e[0m";
+            STDOUT->flush();
+            next;
+        } elsif ( $key eq "\e[D" or $key eq "\eOD" ) {
+            ## Left arrow - delete last character from search term (like backspace)
+            if ( length($search_term) > 0 ) {
+                $search_deleted_chars = substr( $search_term, -1 ) . $search_deleted_chars;
+                $search_term = substr( $search_term, 0, -1 );
+            }
+            ## Fall through to update display
+        } elsif ( $key eq "\e[C" or $key eq "\eOC" ) {
+            ## Right arrow - restore deleted character
+            if ( length($search_deleted_chars) > 0 ) {
+                $search_term .= substr( $search_deleted_chars, 0, 1 );
+                $search_deleted_chars = substr( $search_deleted_chars, 1 );
+            }
+            ## Fall through to update display
+        } elsif ( $key =~ m{^(\e\[|\eO)} ) {
+            ## Other escape sequences - ignore (don't add to search term)
+            next;
+        } elsif ( $key =~ m{[\x20-\x7e]} ) {
+            ## Printable character - add to search term
+            $search_term .= $key;
+            $search_deleted_chars = '';  ## Clear any undo buffer when typing new chars
+            $search_term_hist_index = -1;  ## Exit history navigation on new input
+        } else {
+            ## Other control characters - ignore
+            next;
+        }
+
+        ## Search history for matching entries
+        ## History entries are [ $timestamp, \@lines ], need to extract and join lines
+        my @matching = ();
+        foreach my $entry ( reverse @AMOS7::TERM::history_entries ) {
+            if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
+                my $cmd = join( "\n", @{$entry->[1]} );
+                push @matching, $cmd if index( $cmd, $search_term ) >= 0;
+            }
+        }
+        $search_results = \@matching;
+        $search_index = 0 if $search_index >= @$search_results;
+
+        ## Display search prompt with current match
+        print "\r\e[K" . $colors{p7_fg_0003} . "[search: " . $search_term . " ] ";
+        if ( @$search_results && $search_index < @$search_results ) {
+            print $colors{p7_fg_0004} . $search_results->[$search_index];
+        }
+        print "\e[K\e[0m";
+        STDOUT->flush();
+        next;
+    }
+
+    ## Check for Ctrl+R to enter search mode or cycle search term history
+    if ( $key eq "\x12" ) {
+        ## Ctrl+R
+        if ( $search_mode ) {
+            ## Already in search mode - cycle through search term history forward
+            if ( @search_term_history ) {
+                if ( $search_term_hist_index == -1 ) {
+                    ## First time, start at most recent search term
+                    $search_term_hist_index = 0;
+                } else {
+                    ## Move to next search term in history
+                    $search_term_hist_index++;
+                    if ( $search_term_hist_index >= @search_term_history ) {
+                        ## Wrap around to empty (user can clear and start new)
+                        $search_term_hist_index = -1;
+                    }
+                }
+
+                ## Load search term from history if on a valid index
+                if ( $search_term_hist_index >= 0 && $search_term_hist_index < @search_term_history ) {
+                    $search_term = $search_term_history[$search_term_hist_index];
+                } elsif ( $search_term_hist_index == -1 ) {
+                    $search_term = '';
+                }
+
+                ## Re-search with loaded term
+                my @matching = ();
+                foreach my $entry ( reverse @AMOS7::TERM::history_entries ) {
+                    if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
+                        my $cmd = join( "\n", @{$entry->[1]} );
+                        push @matching, $cmd if index( $cmd, $search_term ) >= 0;
+                    }
+                }
+                $search_results = \@matching;
+                $search_index = 0;
+
+                ## Display updated search with new term and first matching result
+                print "\r\e[K" . $colors{p7_fg_0003} . "[search: " . $search_term . " ] ";
+                if ( @$search_results && $search_index < @$search_results ) {
+                    print $colors{p7_fg_0004} . $search_results->[$search_index];
+                }
+                print "\e[K\e[0m";
+                STDOUT->flush();
+            }
+        } else {
+            ## Not in search mode - enter history search mode (new search)
+            $search_mode = TRUE;
+            $search_term = '';
+            $pre_search_buffer = $editor->{buffer};
+            $search_results = [];
+            $search_index = 0;
+            $search_term_hist_index = -1;
+            $search_deleted_chars = '';
+
+            ## Display search prompt
+            print "\r\e[K" . $colors{p7_fg_0003} . "[search:  ] ";
+            print "\e[K\e[0m";
+            STDOUT->flush();
+        }
+        next;
+    }
+
+    ## Check for Ctrl+Shift+R to cycle search term history backward
+    if ( $key eq "\e[1;6R" or $key eq "\e[1;2R" ) {
+        ## Ctrl+Shift+R
+        if ( $search_mode ) {
+            ## In search mode - cycle through search term history backward
+            if ( @search_term_history ) {
+                if ( $search_term_hist_index == -1 ) {
+                    ## First time going backward, start at end of history
+                    $search_term_hist_index = @search_term_history - 1;
+                } else {
+                    ## Move to previous search term in history
+                    $search_term_hist_index--;
+                    if ( $search_term_hist_index < 0 ) {
+                        ## Wrap around to empty
+                        $search_term_hist_index = -1;
+                    }
+                }
+
+                ## Load search term from history if on a valid index
+                if ( $search_term_hist_index >= 0 && $search_term_hist_index < @search_term_history ) {
+                    $search_term = $search_term_history[$search_term_hist_index];
+                } elsif ( $search_term_hist_index == -1 ) {
+                    $search_term = '';
+                }
+
+                ## Re-search with loaded term
+                my @matching = ();
+                foreach my $entry ( reverse @AMOS7::TERM::history_entries ) {
+                    if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
+                        my $cmd = join( "\n", @{$entry->[1]} );
+                        push @matching, $cmd if index( $cmd, $search_term ) >= 0;
+                    }
+                }
+                $search_results = \@matching;
+                $search_index = 0;
+
+                ## Display updated search with new term and first matching result
+                print "\r\e[K" . $colors{p7_fg_0003} . "[search: " . $search_term . " ] ";
+                if ( @$search_results && $search_index < @$search_results ) {
+                    print $colors{p7_fg_0004} . $search_results->[$search_index];
+                }
+                print "\e[K\e[0m";
+                STDOUT->flush();
+            }
+        }
+        next;
     }
 
 ## Helper: extract a complete UTF-8 character (may be 1-4 bytes)
@@ -764,8 +1106,8 @@ while ( length $input_chars ) {
 
 return undef;    ## No complete line yet, buffer exhausted or incomplete UTF-8
 
-#,,,,,.,,,.,.,.,,,.,.,,,.,.,,,,,.,..,,,,.,.,.,..,,...,...,,,,,.,.,.,,,,..,,.,,
-#KHETGU4XSWU47AG2C4J74XRSRTPEEZBYL3F2UD2324GHP4KD4TK5FR45MOTX33G3QVZREWZWWESIO
-#\\\|B5WNNUUQCZC6T7YHUBRC2NMT4BLB2HNU7XMKV5XUELVJJKIOJID \ / AMOS7 \ YOURUM ::
-#\[7]74FWEUMJPCPKU5VEIDNCEIDLO44BVWXDRJ5WO2PPAE52WV5FXYBA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,...,..,,..,,,,.,,..,,,.,,,,,,..,..,,...,...,,..,...,,.,,,,.,.,,,
+#BIIKVFN67INRXPI7X75LNIDD54LOQJEZOQGTDYWWVP2Y37QOE7EHPC3NI4DPUT7DYC3HOIKVNFDGA
+#\\\|A6QNLKTTDUXOAONTTPO3HPWR3L5MPE7CZI5DN6ZEPQIPHABCU2C \ / AMOS7 \ YOURUM ::
+#\[7]POW7DLDYGQDZAHXORKI6GYGHOHTS72XB2GKO3UHAC4JIW7CI24DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
