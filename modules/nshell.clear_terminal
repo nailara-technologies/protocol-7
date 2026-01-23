@@ -1,16 +1,17 @@
 ## [:< ##
 
 # name  = nshell.clear_terminal
-# descr = clear terminal screen and print experimental connection cursor
+# descr = clear terminal screen on successful connection
 
 ## clear screen on connection success ##
 printf STDERR "%s\r", $colors{'clear_screen'};
 
-## print blinking phosphor _ + \n in interactive mode when fully connected ##
-say STDERR $colors{'p7_fg_0003'} . "\e[5m_\e[0m" . $colors{'p7_fg_0004'};
+## Print newline and restore text color
+## Real cursor will be initialized by nshell.read_from_buffer on first call
+say STDERR $colors{'p7_fg_0004'};
 
-#,,,.,,..,,..,,..,,,,,,..,,.,,,..,.,,,,,,,.,.,..,,...,...,..,,...,..,,,.,,,,.,
-#DOIXYKGUGZVH6N53N55PRZRHAHNM3WP3LXZF6JENVSG4W7TRI4US3DKFVB5TFQ44NHH3PZDL26MY6
-#\\\|HTBTOINUONM4OLNBBGXYOR4JZ772QOBRI3H64AYBQBRBHUX6BWL \ / AMOS7 \ YOURUM ::
-#\[7]DO5NKMJAUBHC2NUTSJIIMF3OTVIZO76QYAL4MEDMJL62OQOJRICQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,..,,..,,,,.,..,,,,,,.,.,,.,,..,,..,,...,...,.,.,..,,...,..,,,.,,
+#TK66CRPNA3AIYP4QCXNKQAEZPGH2PVHX5FH64HMVH43YW734CMPUESQZLWCOX6LKDQKYW5GIGHQC6
+#\\\|FZREA6C6WSEKIKEK5VZ2CNVSNTJM7VGGFUIQXAFHVCA6AUJ4CRO \ / AMOS7 \ YOURUM ::
+#\[7]CLIAUOPSMJENKC7BHT7A4FFIA6WRPT3JJTDUNJPB6BPV4HOK2CAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

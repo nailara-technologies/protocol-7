@@ -15,6 +15,8 @@ state $display_buffer   = ''; ## Current display (may be from history)
 state $debug_cmd_buffer = ''; ## Accumulate potential debug command :CMD:
 state $input_chars      = ''; ## Character buffer for both TTY and piped input
 state %colors           = ();  ## Color palette (lazily loaded)
+state $prev_cursor_pos  = 0;  ## Previous cursor position for clearing old cursor
+state $cursor_initialized = FALSE;  ## Track if cursor has been shown at startup
 
 ## Get one character from buffer, refilling via sysread if needed
 my $key;
@@ -56,7 +58,25 @@ while ( length $input_chars ) {
     if ( !%colors ) {
         ## Try to get colors from Protocol-7 context if available
         eval { %colors = %{<nshell.colors>} };
-        $colors{p7_fg_0004} //= '';  ## Default to empty if not available
+
+        ## Fallback to Protocol-7 official colors from AMOS7::TERM
+        ## p7_fg_0003 = phosphor green (cursor), p7_fg_0004 = TRUE blue (text)
+        $colors{p7_fg_0004} //= $AMOS7::TERM::p7_colors{'p7_fg_0004'};
+        $colors{p7_fg_0003} //= $AMOS7::TERM::p7_colors{'p7_fg_0003'};
+
+        ## Apply TRUE blue to terminal for text output
+        print $colors{p7_fg_0004};
+
+        ## Set cursor to phosphor green
+        AMOS7::TERM::cursor_set_color( $colors{p7_fg_0003} );
+
+        ## Initialize editor and show cursor for the first time
+        if ( !$cursor_initialized ) {
+            $editor //= AMOS7::TERM::editor_init();
+            ## Render initial cursor as underscore at position 0 (empty buffer)
+            print $colors{p7_fg_0003} . '_' . "\e[0m" . $colors{p7_fg_0004};
+            $cursor_initialized = TRUE;
+        }
     }
 
 ## Helper: extract a complete UTF-8 character (may be 1-4 bytes)
@@ -319,31 +339,193 @@ while ( length $input_chars ) {
     my $edit_result = AMOS7::TERM::editor_process_key( $editor, $key, %colors );
 
     if ( $edit_result->{action} eq qw| echo | ) {
-        print $edit_result->{output};
+        ## Full line redraw for character insertion - ensures clean rendering
+        my $cursor_pos = $editor->{cursor_pos};
+        my $buffer = $editor->{buffer};
+
+        ## Go to start of line
+        print "\r";
+
+        ## Print everything before cursor
+        if ( $cursor_pos > 0 ) {
+            print substr( $buffer, 0, $cursor_pos );
+        }
+
+        ## Render cursor inline without cursor_render's trailing backspace
+        ## This avoids the positioning issues that come from the backspace
+        my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
+
+        if ( $char_at_cursor eq '' or $char_at_cursor eq ' ' ) {
+            ## At end or on space: print colored underscore (terminal cursor advances past it)
+            print $colors{p7_fg_0003} . '_';
+        } else {
+            ## On a character: print with inverse video
+            ## (stands out from both text and cursor color)
+            print "\e[7m" . $char_at_cursor . "\e[27m";
+        }
+
+        ## Reset attributes and reapply text color
+        ## (terminal cursor is now after the cursor character)
+        print "\e[0m" . $colors{p7_fg_0004};
+
+        ## Print everything after cursor (terminal cursor is in the right position now)
+        if ( $cursor_pos < length($buffer) ) {
+            my $after_cursor = substr( $buffer, $cursor_pos + 1 );
+            print $after_cursor if length($after_cursor);
+
+            ## Clear from current position to end of line
+            print "\e[K";
+
+            ## Backspace to position cursor correctly before the next character
+            print "\x08" x length($after_cursor) if length($after_cursor);
+        } else {
+            ## At or past end of buffer
+            print "\e[K";
+        }
+
+        $prev_cursor_pos = $cursor_pos;
         $display_buffer = '';    ## User is editing, clear display buffer
-    } elsif ( $edit_result->{action} eq qw| backspace | ) {
-        print $edit_result->{output};
+    } elsif ( $edit_result->{action} eq qw| backspace |
+              or $edit_result->{action} eq qw| delete | ) {
+        ## Full line redraw for deletion operations - ensures clean rendering
+        my $cursor_pos = $editor->{cursor_pos};
+        my $buffer = $editor->{buffer};
+
+        ## Go to start of line
+        print "\r";
+
+        ## Print everything before cursor
+        if ( $cursor_pos > 0 ) {
+            print substr( $buffer, 0, $cursor_pos );
+        }
+
+        ## Render cursor inline without cursor_render's trailing backspace
+        ## This avoids the positioning issues that come from the backspace
+        my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
+
+        if ( $char_at_cursor eq '' or $char_at_cursor eq ' ' ) {
+            ## At end or on space: print colored underscore (terminal cursor advances past it)
+            print $colors{p7_fg_0003} . '_';
+        } else {
+            ## On a character: print with inverse video
+            ## (stands out from both text and cursor color)
+            print "\e[7m" . $char_at_cursor . "\e[27m";
+        }
+
+        ## Reset attributes and reapply text color
+        ## (terminal cursor is now after the cursor character)
+        print "\e[0m" . $colors{p7_fg_0004};
+
+        ## Print everything after cursor (terminal cursor is in the right position now)
+        if ( $cursor_pos < length($buffer) ) {
+            my $after_cursor = substr( $buffer, $cursor_pos + 1 );
+            print $after_cursor if length($after_cursor);
+
+            ## Clear from current position to end of line
+            print "\e[K";
+
+            ## Backspace to position cursor correctly before the next character
+            print "\x08" x length($after_cursor) if length($after_cursor);
+        } else {
+            ## At or past end of buffer
+            print "\e[K";
+        }
+
+        $prev_cursor_pos = $cursor_pos;
         $display_buffer = '';    ## User is editing, clear display buffer
-    } elsif ( $edit_result->{action} eq qw| delete | ) {
-        print $edit_result->{output};
+    } elsif ( $edit_result->{action} eq qw| cursor_left |
+              or $edit_result->{action} eq qw| cursor_right | ) {
+        ## Full line redraw for cursor movement
+        ## (no remnants, future-proof for color intensity)
+        my $cursor_pos = $editor->{cursor_pos};
+        my $buffer = $editor->{buffer};
+
+        ## Go to start of line
+        print "\r";
+
+        ## Print everything before cursor
+        if ( $cursor_pos > 0 ) {
+            print substr( $buffer, 0, $cursor_pos );
+        }
+
+        ## Render cursor inline without trailing backspace (consistent with echo handler)
+        my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
+
+        if ( $char_at_cursor eq '' or $char_at_cursor eq ' ' ) {
+            ## At end or on space: print colored underscore
+            print $colors{p7_fg_0003} . '_';
+        } else {
+            ## On a character: print with inverse video
+            ## (stands out from both text and cursor color)
+            print "\e[7m" . $char_at_cursor . "\e[27m";
+        }
+
+        ## Reset attributes and reapply text color
+        print "\e[0m" . $colors{p7_fg_0004};
+
+        ## Print everything after cursor with safe bounds check
+        if ( $cursor_pos < length($buffer) ) {
+            my $after_cursor = substr( $buffer, $cursor_pos + 1 );
+            print $after_cursor if length($after_cursor);
+
+            ## Clear from current position to end of line
+            print "\e[K";
+
+            ## Backspace to position cursor correctly
+            print "\x08" x length($after_cursor) if length($after_cursor);
+        } else {
+            ## At or past end of buffer
+            print "\e[K";
+        }
+
+        $prev_cursor_pos = $cursor_pos;
         $display_buffer = '';    ## User is editing, clear display buffer
-    } elsif ( $edit_result->{action} eq qw| cursor_left | ) {
-        print $edit_result->{output};
-        $display_buffer = '';    ## User is editing, clear display buffer
-    } elsif ( $edit_result->{action} eq qw| cursor_right | ) {
-        print $edit_result->{output};
-        $display_buffer = '';    ## User is editing, clear display buffer
-    } elsif ( $edit_result->{action} eq qw| kill_to_end | ) {
-        print $edit_result->{output};
-        $display_buffer = '';    ## User is editing, clear display buffer
-    } elsif ( $edit_result->{action} eq qw| kill_from_start | ) {
-        print $edit_result->{output};
-        $display_buffer = '';    ## User is editing, clear display buffer
-    } elsif ( $edit_result->{action} eq qw| kill_word | ) {
-        print $edit_result->{output};
-        $display_buffer = '';    ## User is editing, clear display buffer
-    } elsif ( $edit_result->{action} eq qw| yank | ) {
-        print $edit_result->{output};
+    } elsif ( $edit_result->{action} =~ m{^(kill_to_end|kill_from_start|kill_word|yank)$} ) {
+        ## Full line redraw for all buffer modifications - ensures clean rendering
+        my $cursor_pos = $editor->{cursor_pos};
+        my $buffer = $editor->{buffer};
+
+        ## Go to start of line
+        print "\r";
+
+        ## Print everything before cursor
+        if ( $cursor_pos > 0 ) {
+            print substr( $buffer, 0, $cursor_pos );
+        }
+
+        ## Render cursor inline without cursor_render's trailing backspace
+        ## This avoids the positioning issues that come from the backspace
+        my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
+
+        if ( $char_at_cursor eq '' or $char_at_cursor eq ' ' ) {
+            ## At end or on space: print colored underscore (terminal cursor advances past it)
+            print $colors{p7_fg_0003} . '_';
+        } else {
+            ## On a character: print with inverse video
+            ## (stands out from both text and cursor color)
+            print "\e[7m" . $char_at_cursor . "\e[27m";
+        }
+
+        ## Reset attributes and reapply text color
+        ## (terminal cursor is now after the cursor character)
+        print "\e[0m" . $colors{p7_fg_0004};
+
+        ## Print everything after cursor (terminal cursor is in the right position now)
+        if ( $cursor_pos < length($buffer) ) {
+            my $after_cursor = substr( $buffer, $cursor_pos + 1 );
+            print $after_cursor if length($after_cursor);
+
+            ## Clear from current position to end of line
+            print "\e[K";
+
+            ## Backspace to position cursor correctly before the next character
+            print "\x08" x length($after_cursor) if length($after_cursor);
+        } else {
+            ## At or past end of buffer
+            print "\e[K";
+        }
+
+        $prev_cursor_pos = $cursor_pos;
         $display_buffer = '';    ## User is editing, clear display buffer
     } elsif ( $edit_result->{action} eq qw| newline | ) {
         print $edit_result->{output};
@@ -372,8 +554,8 @@ while ( length $input_chars ) {
 
 return undef;    ## No complete line yet, buffer exhausted or incomplete UTF-8
 
-#,,..,,,,,,..,.,.,..,,,,,,.,.,..,,,..,..,,,..,..,,...,...,...,,.,,...,...,.,,,
-#SCUFPIPIRRFOX7D7LV4GIYO3V2QDJBEYLIQJ3FTUMBP34QUJZTVXUOR545KVIZD435VYEJNNZKRVO
-#\\\|36H2DREIJHLRHBGRD4SV54NPDM2PRTCF7JI4MXY7SCPGVUI4I66 \ / AMOS7 \ YOURUM ::
-#\[7]VJRIKZ254JFZG2P26R5ITKNUR4PZKA5DTYSC2BX7EGX7JU6HHUDA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,.,,,,.,,,.,,.,,.,.,..,,,,.,.,.,..,,...,.,.,...,.,.,,,.,,,.,.,.,
+#6GCWMYNLIU46IWRNAPJRXY62UXDPWGYPPOBFTF36XMWIXEPSAADQABWSSRWIHWFB6RY4N2IIW6MVE
+#\\\|GX4IY566SBFY2OAHPBIW6LPVWVGFOI2YP7FMG7RWKIR2L634IRA \ / AMOS7 \ YOURUM ::
+#\[7]QPS5W7Z45WSFZLZVIEBJL6B2VBKICTPCHCJPRNO4IABZ6IVG6ACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
