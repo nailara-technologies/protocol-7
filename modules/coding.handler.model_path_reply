@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = coding.handler.model_path_reply
+# descr = Handle async reply from models zenka with resolved model path
+# note  = Called when models.get_path_by_amos command response arrives
+
+my $reply = shift;
+my $model_amos_id = $reply->{'params'}->{'model_amos_id'} // '';
+
+<[base.logs]>->( 1, '[model_path_reply] received response for amos_id=%s', $model_amos_id );
+
+## The reply->{'data'} contains the response text from the command
+## The models.cmd.get_path_by_amos returns mode='size' with file path in data
+my $response_text = $reply->{'data'} // '';
+
+<[base.logs]>->( 2, '[model_path_reply] response data length=%d', length($response_text) );
+
+## Extract file path from first line of response
+my ($model_path) = split( /\n/, $response_text );
+
+## Check if response is an error
+if ( $model_path =~ /^error:/ ) {
+    <[base.logs]>->( 0, '[model_path_reply] model lookup failed: %s', $model_path );
+    return FALSE;
+}
+
+## Verify we got a valid path
+unless ( defined $model_path && length $model_path ) {
+    <[base.logs]>->( 0, '[model_path_reply] no model path in response' );
+    return FALSE;
+}
+
+## Success - store the resolved model path
+<[base.logs]>->( 1, '[model_path_reply] model path resolved: %s', $model_path );
+<inference.model.path> = $model_path;
+
+return TRUE;
+
+#,,..,.,.,..,,,.,,,..,,,.,,.,,,..,.,,,.,.,,,,,..,,...,...,,,.,,..,,.,,,..,..,,
+#3MMK7L45LVKZZVBWA3YZAQUIC3SN7YW77BRPQYNWFYHGLKZCPWXUASI3ID2ZC4VQKDGDHIKQSMQGG
+#\\\|Y45NIZUAVXFQNMW7EJDHLKQHIEZGGVY4PCLRVI2FUP4RR4YY7R7 \ / AMOS7 \ YOURUM ::
+#\[7]TK2UJ6GKKBG5BF3IWMF2LRRRSZJEK4TOUMJX35W54JKBND437QDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

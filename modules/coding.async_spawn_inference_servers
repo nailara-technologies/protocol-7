@@ -14,34 +14,11 @@ if ( not keys $spawn_params->%* ) {
     return FALSE;
 }
 
-## Resolve model path from models zenka for configured AMOS ID
-my $model_amos_id = $data{'inference.model.amos_id'} // '';
-my $model_path = undef;
+# Get model path (resolved earlier in startup after network connect)
+my $model_path = <inference.model.path> // undef;
 
-if ( defined $model_amos_id && length $model_amos_id ) {
-    <[base.logs]>->( 1, ": resolving model path for amos_id=%s", $model_amos_id );
-
-    ## Request model path from models zenka via network (route through cube)
-    my $models_response = <[base.protocol-7.command.send.local]>->(
-        'cube.models.get_model_path_by_checksum', $model_amos_id
-    );
-
-    if ( ref($models_response) eq 'HASH' && $models_response->{'mode'} eq 'true' ) {
-        $model_path = $models_response->{'data'};
-        <[base.logs]>->(
-            1, ": model path resolved: %s",
-            $model_path
-        );
-        $data{'inference.model.path'} = $model_path;
-    } else {
-        <[base.logs]>->(
-            0, ": failed to resolve model path: %s",
-            $models_response->{'data'} // 'unknown error'
-        );
-        return FALSE;
-    }
-} else {
-    <[base.logs]>->( 0, ': no model amos_id configured' );
+unless ( defined $model_path && length $model_path ) {
+    <[base.logs]>->( 0, ": model path not resolved - cannot spawn inference server" );
     return FALSE;
 }
 
@@ -77,8 +54,8 @@ if ( $spawn_params->{'gpu_enabled'} ) {
 
 return TRUE;
 
-#,,..,,..,,..,.,,,.,.,,..,.,.,..,,...,.,,,.,.,..,,...,...,..,,.,,,...,,,.,,.,,
-#RNAIZTDL67GI7YPID46UXQHXGIAPUBJCK3WUOIV2HGH4ZQSXVWVJYIBMUSU2QIET2ZEZX4DL4IGNU
-#\\\|3RTXGJBNPVU2PEWXXAKIPCO64SBP6N6JXDN37IPYPSBSOFUCJU2 \ / AMOS7 \ YOURUM ::
-#\[7]RDQBUFC2JCBTH4PG6LPPZBBMQZKGXFILR2YV7B3VP7P2ZQK5B2CY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,..,,,,.,,.,,,,,,,,,,..,,.,,,,..,..,,...,...,...,...,,..,,,,,,,.,
+#IPZUKAJY22JJC5ROIE4GJBNUNYUKS5R2JTVS3ZA2UOAFR5QMWGMCA6YZYZEH765KU5JCTDGXTZEVC
+#\\\|WLMIKO326YQUOUBINCEBMJLD3RFYJGN73A4PNNEDYCV3GSI6MQ3 \ / AMOS7 \ YOURUM ::
+#\[7]YY3ARX7Y6TR4O5BZWLF4U7MMJTCP6ADELXU3WB73RKOQIJ4FUWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

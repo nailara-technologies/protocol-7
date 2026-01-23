@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = coding.handler.spawn_servers_deferred
+# descr = Timer callback to spawn inference servers after model path resolution
+# purpose = Delay server spawning to allow async model path resolution to complete
+
+my $event = shift;
+
+<[base.logs]>->( 1, 'deferred spawn timer triggered, spawning inference servers' );
+
+# Call the async spawn routine
+<[coding.async_spawn_inference_servers]>;
+
+# Cancel the timer if still active
+$event->w->stop if defined $event->w;
+
+return TRUE;
+
+#,,.,,...,.,,,,,,,..,,.,,,..,,..,,..,,.,,,.,,,..,,...,...,.,,,..,,,,,,,.,,,,.,
+#HXG47Y4RPNMLYU6HTIJ5WEAMDHASQ7PLSMLS7ZCKWWNNFEPEKTALRPRKDOB6XKB7HRFRBS6TNVJJW
+#\\\|VPT7TTGVO2H3EMH3O4TGJNLWYRPJT7RU4XGLTFG5P62D7GGOJMD \ / AMOS7 \ YOURUM ::
+#\[7]HGT7RWNNVINRJXWNVK4YYYQUPGUH665KL7JOFZSGPOBUALSWEYBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
