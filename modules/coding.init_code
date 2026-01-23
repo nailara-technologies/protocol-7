@@ -82,7 +82,14 @@ $params->{'gpu_layers'}  = <inference.backend.gpu.gpu_layers> // 32;
 <coding.spawn_params.lib_path> = <coding.lib_path>;
 
 # Register timer to spawn servers after init completes [non-blocking]
-<[coding.async_spawn_inference_servers]> if not <coding.state.initialized>;
+# Wait 500ms to allow async model path resolution to complete first
+if ( not <coding.state.initialized> ) {
+    <coding.timer.spawn_servers> = <[event.add_timer]>->(
+        {   'after'   => 0.5,
+            'handler' => qw| coding.handler.spawn_servers_deferred |
+        }
+    );
+}
 
 # Event handlers are now loaded from separate modules:
 # - coding.event.on_task_complete
@@ -96,8 +103,8 @@ $params->{'gpu_layers'}  = <inference.backend.gpu.gpu_layers> // 32;
 
 return 0;
 
-#,,,.,..,,,..,,.,,...,,,.,...,...,.,.,,..,,,.,..,,...,...,.,.,..,,..,,,..,.,.,
-#ILTUG2QOWVKKCWW2UQR6U2M5BJLQ2NU5LSCNNTUBKTUTZRLLJKKGY3J6N7Y6M3QL2NRBLT4KSDGGU
-#\\\|NIQXOW77XZ7YMZLHFDR7TZHDAZMANL7EDPTGXLPAUOFMG6B6VGK \ / AMOS7 \ YOURUM ::
-#\[7]Z7KJKZASJS6V26MNGFNHX6RH5OZJMU7L4YSQ2UO4ZGIPIMDEJKCQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,,..,,.,,..,,,,.,,,,,,.,,..,,..,,..,,...,...,.,.,,,.,...,,,,,,..,
+#NLOOHY3RRM4QJJT5E24T5IGNGQTLH4XN6YBF3QVSN72T3C6O7APJ2WZFY2FWCEGA4LLDJXY4XQUM6
+#\\\|KAPBWNJF7M4RPDOCYCIG7UB7XN7MMHO5GJG3KZOQ443AYDJRLUS \ / AMOS7 \ YOURUM ::
+#\[7]ADLNW6XFETF3IUFR6R42EFLFS24GYEQ55NYEQ37T6XUTSVV3J6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

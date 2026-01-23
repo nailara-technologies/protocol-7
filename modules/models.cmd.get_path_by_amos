@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = models.cmd.get_path_by_amos
+# descr = Get model file path from registry by AMOS checksum (composite or single)
+# return = { mode, data } with file_path or error
+
+my $amos_id = $call->{'args'} // '';
+
+unless ( defined $amos_id && length $amos_id ) {
+    return {
+        'mode' => 'size',
+        'data' => "error: amos_id required (checksum or composite key)\n"
+    };
+}
+
+## Look up model in registry
+my $model_entry = <[models.registry.lookup]>->($amos_id);
+
+unless ( defined $model_entry ) {
+    return {
+        'mode' => 'size',
+        'data' => "error: model not found: $amos_id\n"
+    };
+}
+
+## Verify file_path exists
+unless ( defined $model_entry->{'file_path'} && length $model_entry->{'file_path'} ) {
+    return {
+        'mode' => 'size',
+        'data' => "error: no file_path for model: $amos_id\n"
+    };
+}
+
+## Verify file exists on disk
+unless ( -f $model_entry->{'file_path'} ) {
+    return {
+        'mode' => 'size',
+        'data' => "error: model file not found: " . $model_entry->{'file_path'} . "\n"
+    };
+}
+
+## Return success with model metadata and file path
+my $response = $model_entry->{'file_path'} . "\n";
+$response .= "model_id: " . $model_entry->{'model_id'} . "\n";
+$response .= "name: " . $model_entry->{'name'} . "\n";
+$response .= "quantization: " . $model_entry->{'quantization'} . "\n";
+
+return {
+    'mode' => 'size',
+    'data' => $response
+};
+
+#,,,.,.,,,,,.,.,,,.,.,...,,.,,,,,,.,,,...,.,.,..,,...,..,,,..,...,...,,.,,,,,,
+#2LYGGXNJZR4J4T3LMS2HNH3ZBF4JA3SSU7TZV2FIE75GLJ46ZWEXBUTL4EVWTYVLXYIQU2FI2OKOO
+#\\\|SI3MHVS4GDNRPUZI2XTPPXD5KFGMH4735CO3IUW344DEFTV3GI6 \ / AMOS7 \ YOURUM ::
+#\[7]7RRNXMD2GVBVTQRGT3HT6O56T2S55GTIMMOHOOZJS3756YMBIKDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

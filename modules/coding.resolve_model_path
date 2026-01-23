@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = coding.resolve_model_path
+# descr = Request model path resolution from models zenka via async reply handler
+# note  = Called from start file after network connection established
+#         Actual response arrives asynchronously via coding.handler.model_path_reply
+
+my $model_amos_id = <inference.model.amos_id> // '';
+
+<[base.logs]>->( 1, '[resolve_model_path] amos_id from config: [%s] (length=%d)', $model_amos_id, length($model_amos_id) );
+
+unless ( defined $model_amos_id && length $model_amos_id ) {
+    <[base.logs]>->( 0, '[resolve_model_path] no model amos_id configured' );
+    return FALSE;
+}
+
+<[base.logs]>->( 1, '[resolve_model_path] requesting model path for amos_id=%s', $model_amos_id );
+
+## Request model path from models zenka via network (route through cube)
+## Response arrives asynchronously through reply handler
+<[base.logs]>->( 2, '[resolve_model_path] sending call_args with amos_id=[%s]', $model_amos_id );
+
+my $clients_reached = <[base.protocol-7.command.send.local]>->(
+    {   'command'   => 'cube.models.get_path_by_amos',
+        'call_args' => { 'args' => $model_amos_id },
+        'reply'     => {
+            'params'  => { 'model_amos_id' => $model_amos_id },
+            'handler' => 'coding.handler.model_path_reply'
+        }
+    }
+);
+
+## Check if command was successfully sent (1 = reached models zenka)
+unless ( $clients_reached == 1 ) {
+    <[base.logs]>->(
+        0, '[resolve_model_path] failed to reach models zenka (clients=%d)',
+        $clients_reached
+    );
+    return FALSE;
+}
+
+<[base.logs]>->( 1, '[resolve_model_path] model path request sent, awaiting async reply' );
+return TRUE;
+
+#,,..,,,,,.,,,,,.,,.,,,..,,,,,,.,,,,,,.,,,,,.,..,,...,...,...,,,,,.,.,,..,,,.,
+#7BVKR4NCN4AGRC2RJCP3PDGTXUPUBJUMBXDWXPS6PT4FTZKKTROKYMDBRQPIYHY4W6GTWSZ2RCOOO
+#\\\|WMNQ6XUARW7ZKENDEZTLRGCHVLPPGMEZAPJSL5FDJGEDTNEC7KS \ / AMOS7 \ YOURUM ::
+#\[7]RBCHAUPZWIS25MWG3JJO6KR7MZHT4JABDOEIJPHNUUNILNUXVAAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
