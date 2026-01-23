@@ -26,23 +26,34 @@ unless ( defined $model_path && length $model_path ) {
 if ( $spawn_params->{'gpu_enabled'} ) {
     my $gpu_port  = 8002;
     my $gpu_model = $spawn_params->{'gpu_model_id'} // qw|gemma3-glitter-4b|;
+    my $gpu_binary = $spawn_params->{'gpu_binary'} // '/data/source/ik_llama.cpp/llama-server-cuda-fa';
+    my $gpu_layers = $spawn_params->{'gpu_layers'} // 33;
 
     <[base.logs]>->(
         1,         ": spawning GPU server on port %d for %s",
         $gpu_port, $gpu_model
     );
 
-    my $gpu_result = <[coding.inference.spawn-server]>->( $gpu_port, 'gpu', $model_path );
+    # Spawn server asynchronously - don't wait for readiness
+    my $gpu_result = <[coding.spawn_inference_server]>->(
+        {
+            'backend'    => 'gpu',
+            'binary'     => $gpu_binary,
+            'port'       => $gpu_port,
+            'model_path' => $model_path,
+            'gpu_layers' => $gpu_layers
+        }
+    );
 
     if ( $gpu_result->{'success'} ) {
         <[base.logs]>->(
-            1, ": GPU server started [pid=%d]",
+            1, ": GPU server spawned [pid=%d] - monitoring startup",
             $gpu_result->{'pid'}
         );
         $data{'inference.gpu_port'} = $gpu_port;
         $data{'inference.gpu_pid'}  = $gpu_result->{'pid'};
     } else {
-        <[base.logs]>->( 0, 'GPU server failed : %s', $gpu_result->{error} );
+        <[base.logs]>->( 0, 'GPU server spawn failed : %s', $gpu_result->{error} );
         return FALSE;    ## spawning not successful ##
     }
 }
@@ -54,8 +65,8 @@ if ( $spawn_params->{'gpu_enabled'} ) {
 
 return TRUE;
 
-#,,..,.,,,..,,..,,,,.,,.,,,,,,,,,,..,,.,,,,..,..,,...,...,...,...,,..,,,,,,,.,
-#IPZUKAJY22JJC5ROIE4GJBNUNYUKS5R2JTVS3ZA2UOAFR5QMWGMCA6YZYZEH765KU5JCTDGXTZEVC
-#\\\|WLMIKO326YQUOUBINCEBMJLD3RFYJGN73A4PNNEDYCV3GSI6MQ3 \ / AMOS7 \ YOURUM ::
-#\[7]YY3ARX7Y6TR4O5BZWLF4U7MMJTCP6ADELXU3WB73RKOQIJ4FUWBI 7  DATA SIGNATURE ::
+#,,.,,..,,...,,,,,,,.,,..,...,.,.,,,.,...,,,,,..,,...,...,.,,,,..,,.,,.,.,.,.,
+#VAL2BMJK6CUFYKZYBX3XDIY477QPVKN7YT3RJWDE5ZYIN2YZ34ULZMUQGFLC3QM32JEJPBCC3FQAM
+#\\\|SKEUTXP24W4DSIHEHQTGTMH6N5JGGDPJDVQIIJUQK5GBLPWYIBL \ / AMOS7 \ YOURUM ::
+#\[7]7LHL2T6UADFBYY4GBA32LUMRY2PJGDVA5UNUNGUEMJM2LDGXXCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
