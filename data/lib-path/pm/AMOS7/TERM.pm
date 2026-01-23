@@ -30,7 +30,8 @@ my $VERSION = qw| AMOS7::TERM-VERSION.7OT2XVQ |;
 
 @EXPORT_OK = qw| terminal_title
     history_init history_add history_up history_down history_page_up history_page_down
-    editor_init editor_process_key editor_get_buffer editor_submit editor_reset editor_load |;
+    editor_init editor_process_key editor_get_buffer editor_submit editor_reset editor_load
+    cursor_render cursor_clear_old cursor_set_color cursor_set_animation cursor_enable cursor_disable |;
 
 @EXPORT = qw| terminal_size read_password_single read_password_repeated |;
 
@@ -74,6 +75,24 @@ our $prompt_prefix_string //= qw| : |;
 our $title_prefix         //= qw| . |;
 
 our @rnd_count;
+
+##[ CURSOR RENDERING ]########################################################
+
+our %cursor_state = (
+    enabled     => TRUE,           ##  Display custom cursor  ##
+    color_code  => '',             ##  Current color code (phosphor green)  ##
+    animation   => 'static',       ##  Animation mode for future use  ##
+);
+
+##[ PROTOCOL-7 COLOR PALETTE ]##################################################
+
+our %p7_colors = (
+    'p7_fg_0000'   => "\e[38;2;68;39;172m",   ##  Purple  ##
+    'p7_fg_0001'   => "\e[38;2;38;46;153m",   ##  Blue    ##
+    'p7_fg_0002'   => "\e[38;2;170;94;2m",    ##  Brown   ##
+    'p7_fg_0003'   => "\e[38;2;9;170;94m",    ##  Phosphor green (cursor)  ##
+    'p7_fg_0004'   => "\e[38;2;6;71;195m",    ##  TRUE blue (text)  ##
+);
 
 ##[ HISTORY MANAGEMENT ]######################################################
 
@@ -1351,10 +1370,83 @@ sub editor_load {
     return TRUE;
 }
 
+##[ CURSOR RENDERING ]########################################################
+
+sub cursor_render {
+    ## Render custom cursor at current position in editor buffer
+    ## Returns ANSI codes to display cursor with color and optional underline
+    ## IMPORTANT: Does NOT reset at end - color persists for next operation
+    my ( $buffer, $cursor_pos ) = @ARG;
+
+    return '' if !$cursor_state{enabled};
+
+    my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
+    my $color = $cursor_state{color_code};
+
+    if ( $char_at_cursor eq '' or $char_at_cursor eq ' ' ) {
+        ## At end of buffer or on space: show colored underscore
+        ## NO reset at end - preserve color for next render
+        return $color . '_' . "\x08";    ## Colored underscore then backspace
+    } else {
+        ## On a character: show with underline attribute (preserves character)
+        ## Apply color and underline, reset underline only (NOT all attributes)
+        return $color . "\e[4m" . $char_at_cursor . "\e[24m\x08";
+    }
+}
+
+sub cursor_clear_old {
+    ## Clear old cursor position by restoring the character at that position
+    ## Returns ANSI codes to clear and restore
+    my ( $buffer, $old_pos ) = @ARG;
+
+    return '' if !$cursor_state{enabled};
+
+    ## Bounds check: old position might be beyond buffer after deletions
+    return '' if $old_pos >= length($buffer);
+
+    my $char_at_old = substr( $buffer, $old_pos, 1 ) // '';
+    my $color = $cursor_state{color_code};
+
+    if ( $char_at_old eq '' or $char_at_old eq ' ' ) {
+        ## Was showing underscore: clear with space
+        return ' ' . "\x08";
+    } else {
+        ## Was showing underlined character: restore it without underline
+        return $color . $char_at_old . "\e[0m\x08";
+    }
+}
+
+sub cursor_set_color {
+    ## Set cursor color code (e.g., from loaded color palette)
+    my ($color_code) = @ARG;
+    $cursor_state{color_code} = $color_code // '';
+    return TRUE;
+}
+
+sub cursor_set_animation {
+    ## Set cursor animation mode for timer-based updates
+    ## Modes: 'static', 'pulse', 'blink', etc. (implementation later)
+    my ($animation_mode) = @ARG;
+    $cursor_state{animation} = $animation_mode // 'static';
+    return TRUE;
+}
+
+sub cursor_enable {
+    ## Enable custom cursor rendering
+    $cursor_state{enabled} = TRUE;
+    return TRUE;
+}
+
+sub cursor_disable {
+    ## Disable custom cursor rendering
+    $cursor_state{enabled} = FALSE;
+    return TRUE;
+}
+
 return TRUE ##################################################################
 
-#,,,.,,.,,.,,,..,,.,,,,.,,.,,,.,,,,,,,.,,,,,,,..,,...,...,..,,,.,,...,,,,,.,,,
-#XJJANRHOFZAJ5CUE2L77TWKTFDLA3YGCGAR4KPBM3X2A4KBOUHEJKWIQJKRVKHMQAALWNOUVDNZJA
-#\\\|BDXLIN3YW5MIYZT265WPJG67IG7XJECQEEL7WFAZK36LOCQZDJC \ / AMOS7 \ YOURUM ::
-#\[7]3FBVYHJVGEPD4NRXM5UPS7BUA7Z6FFHM7QJQ2L3VMFVAFBBGRICQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,...,.,.,..,,,,.,..,,,,,,,,,,,,,,..,,...,...,...,.,.,...,.,.,...,
+#FPGYMAHZF75D2Z42FZCDIR4S3KT62TE2JD53PSEREXNAWY6ZFCSZFULPDDO2FUEX6JPK2MMMKWXWI
+#\\\|357MIQS7XDN32WE52JYCJ22NPCYU5CXCQDTKHT2UFNGTGOUYTYZ \ / AMOS7 \ YOURUM ::
+#\[7]KLFLROI5YDSM6RMGDAKOR25VNMWORLFVPA4TCB2UUFKV3YDY4QBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
