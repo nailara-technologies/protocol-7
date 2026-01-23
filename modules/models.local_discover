@@ -6,8 +6,8 @@
 my $params = shift;
 
 my $scan_paths = $params->{'scan_paths'}
-    // ['/mnt/ext-xfs-data/models-lmstudio'];
-my $context = $params->{'context'} // 'discover';
+    // ['/mnt/ext-xfs-data/models-lmstudio'];    ## [LLL] fix!!
+my $context = $params->{'context'} // qw| discover |;
 
 ## Initialize cache
 <models.local_models_cache> //= {};
@@ -16,17 +16,17 @@ my $now        = <[base.time]>->(2);
 
 ## Return cached models if recent (30 min cache TTL)
 if ( $now - $cache_time < 1800
-    && scalar( keys %{<models.local_models_cache>} ) > 0 ) {
+    && scalar( keys <models.local_models_cache>->%* ) > 0 ) {
     <[base.logs]>->(
         2,
         "[$context] using cached models: count=%d",
-        scalar( keys %{<models.local_models_cache>} )
+        scalar( keys <models.local_models_cache>->%* )
     );
     return {
         'success'    => TRUE,
         'models'     => <models.local_models_cache>,
-        'count'      => scalar( keys %{<models.local_models_cache>} ),
-        'from_cache' => 1,
+        'count'      => scalar( keys <models.local_models_cache>->%* ),
+        'from_cache' => TRUE,
     };
 }
 
@@ -46,7 +46,7 @@ foreach my $scan_dir (@$scan_paths) {
         foreach my $entry (@entries) {
             next if $entry =~ /^\./ || !-d "$scan_dir/$entry";
 
-            ## Recursively search for .gguf files
+            ## Recursively search for .gguf files [LLL] fix !!!!!
             my @find_results
                 = `find "$scan_dir/$entry" -maxdepth 3 -name "*.gguf" -type f 2>/dev/null`;
 
@@ -58,6 +58,8 @@ foreach my $scan_dir (@$scan_paths) {
                 my $filename = $file_path;
                 $filename =~ s|.*/||;
                 $filename =~ s/\.gguf$//;
+
+                say STDERR $filename;
 
                 ## Extract model family from path
                 my $family = 'local';
@@ -97,8 +99,8 @@ return {
     'scanned_paths' => $scan_paths,
 };
 
-#,,,.,..,,,,.,..,,,,.,.,.,..,,...,.,.,,,,,,,.,.,.,...,...,.,,,.,,,...,,.,,.,,,
-#5UMVHE2IXJX57FXCQGX3IP4XDOQJZ5VJNUDDS7GV2WVF2PR7FJHJBTRYUYXFACBBF3267HF3KB7E4
-#\\\|53LQ5H3DVDSWU6EMDCB2IIRBO6DEOQPDNZ3ORJMKF4RIFZESDJO \ / AMOS7 \ YOURUM ::
-#\[7]FVBGNQ6DKTP3QGCNGJSZDSC3KEH4M5PDLSSK4TJR7XRX7YNGO2CY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,,.,..,,,.,,..,,..,,,,.,...,,.,,.,.,...,...,,..,.,.,,,,,,.,,.,.,
+#O234DYU2QUPU3QTFIPAXQZJCJYXVP5BUF5DXJUS52EOL4FWMG6EMV6EQJDHN7RKHVLXAK6ST7OKUU
+#\\\|ZY5XE6NBNZL4FQC5TMOL4W3HM6XZ2ABMYFREKPPUON6ZCP7CSPQ \ / AMOS7 \ YOURUM ::
+#\[7]Q5ANCZONG7C2DEWHQZKGE6RKJVXJPFFMGFEFILKOJXH7OZWZMOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

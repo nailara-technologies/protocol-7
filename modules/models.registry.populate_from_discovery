@@ -1,15 +1,15 @@
 ## [:< ##
 
 # name  = models.registry.populate_from_discovery
-# args  = $discovered_models_arrayref (optional - if not provided, will discover from paths)
+# args  = $discovered_models_arrayref [optional, by default discover from paths]
 # descr = Add discovered .gguf files to registry
 
-my $discovered = shift @ARG;
+my $discovered = shift;
 
 # If no discovered models provided, discover them
-unless ( $discovered && ref($discovered) eq 'ARRAY' ) {
+unless ( $discovered && ref($discovered) eq qw| ARRAY | ) {
     $discovered = <[models.storage.discover_directory]>->(
-        '/mnt/ext-xfs-data/models-lmstudio', 1
+        qw| /mnt/ext-xfs-data/models-lmstudio |, TRUE    ## [LLL] fix path
     ) // [];
 }
 
@@ -17,29 +17,31 @@ my $registry = <models.registry> // {};
 
 my $added_count = 0;
 
-foreach my $model (@$discovered) {
+foreach my $model ( $discovered->@* ) {
 
     # Check if already in registry by path
-    my $already_exists = 0;
-    foreach my $entry ( values %$registry ) {
-        if ( $entry->{path} eq $model->{path} ) {
-            $already_exists = 1;
+    my $already_exists = FALSE;
+    foreach my $entry ( values $registry->%* ) {
+        if ( $entry->{path} eq $model->{'path'} ) {
+            $already_exists = TRUE;
             last;
         }
     }
     next if $already_exists;
 
-    # Use path as temporary model_id (will calculate checksums on-demand)
-    my $model_id = $model->{path};
+    ## Use path as temporary model_id [ will calculate checksums on-demand ]
+    # my $model_id = $model->{'path'};
+
+    my $model_id = <[chk-sum.amos]>->( $model->{'path'} );   ## chk collisions
 
     $registry->{$model_id} = {
         model_id      => $model_id,
-        name          => $model->{name},
-        path          => $model->{path},
-        size_gb       => $model->{size_gb},
-        tier          => $model->{tier},
-        source        => 'discovered',
-        registered_at => time()
+        name          => $model->{'name'},
+        path          => $model->{'path'},
+        size_gb       => $model->{'size_gb'},
+        tier          => $model->{'tier'},
+        source        => qw| discovered |,
+        registered_at => <[base.time]>->(3)
 
         # Checksums calculated on-demand, not during discovery
     };
@@ -49,10 +51,10 @@ foreach my $model (@$discovered) {
 
 <models.registry> = $registry;
 
-return { success => TRUE, added => $added_count };
+return { 'success' => TRUE, 'added' => $added_count };
 
-#,,,,,,.,,,..,..,,..,,...,...,,.,,,,,,,..,,..,..,,...,...,,.,,,,,,,.,,...,,,.,
-#24T6TVGKPAAII2ASYQNV4QEROSOCSAWQB3HUAIESMQOO6EJX4NZZK7B625NLQTY7DCR5TO6GPWCNK
-#\\\|NHQTTUPAKW5XFYD7RVPD72CIW6B776O2NRLNZ6V5NKI3RAYL4ZW \ / AMOS7 \ YOURUM ::
-#\[7]5KBNRB4KLXW4SVQMJQTZZTFXP6R4X2JD7KYEWPT4ZYVZTPV3FMDY 7  DATA SIGNATURE ::
+#,,..,..,,.,.,.,.,..,,,,.,,,,,,..,..,,.,,,.,,,..,,...,...,...,..,,,,.,,..,,..,
+#YEAAKXGT4VDKYB4HCAZEFHEGAHJACOFAG3VUDCFJXTYWZAF6XD777HLGCC2ALUQL55CBAMO3KFRZU
+#\\\|SGZJO555IYEMWH2MV6544BWNMEUPFY2JCKOA6M3E5XNYZ27X4WU \ / AMOS7 \ YOURUM ::
+#\[7]HYZS6QIDFOMMXDBXMUKC45YKBLRNMFH2H5WR2IZKES6UHIACXGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

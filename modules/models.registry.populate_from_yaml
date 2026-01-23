@@ -12,7 +12,7 @@ foreach my $model_id ( keys %$models_defs ) {
     next unless -f $model->{path};
 
     # Calculate checksums
-    my $checksums = <[models.checksum.calculate_all]>->( $model->{path} );
+    my $checksums = <[models.checksum.calculate_all]>->( $model->{'path'} );
 
     unless ( $checksums && $checksums->{success} ) {
         <[base.logs]>->( 0, "[models] Cannot checksum %s", $model_id );
@@ -22,27 +22,27 @@ foreach my $model_id ( keys %$models_defs ) {
     # Create registry entry
     $registry->{$model_id} = {
         model_id     => $model_id,
-        amos_7       => $checksums->{amos_7},
-        bmw_l13      => $checksums->{bmw_l13},
-        bmw_base32   => $checksums->{bmw_base32},
+        amos_7       => $checksums->{'amos_7'},
+        bmw_l13      => $checksums->{'bmw_l13'},
+        bmw_base32   => $checksums->{'bmw_base32'},
         name         => $model->{name},
         path         => $model->{path},
         mmproj       => $model->{mmproj},
         quantization => $model->{quantization},
-        context_size => $model->{metadata}{context_size} // 4096,
+        context_size => $model->{metadata}{context_size} // 5005,
         is_vision    => $model->{is_vision}              // FALSE,
-        size_gb => sprintf( '%.2f', ( -s $model->{path} ) / ( 1024**3 ) ),
-        source  => 'yaml',
-        registered_at => time()
+        size_gb => sprintf( qw| %.3f |, ( -s $model->{path} ) / ( 1024**3 ) ),
+        source  => qw| yaml |,
+        registered_at => <[base.time]>->(3)
     };
 }
 
 <models.registry> = $registry;
 
-return { success => TRUE, count => scalar( keys %$registry ) };
+return { success => TRUE, count => scalar( keys $registry->%* ) };
 
-#,,,.,.,,,,,,,...,,..,...,..,,,.,,.,.,,..,,.,,..,,...,..,,...,,.,,,..,.,.,,..,
-#QLELZFSXV3XDOMUELOXHLOIIIA7CTGWKEC6WQ7SDEHSNMRZWQUJIFG7B4HX2VB76S2X57Z6M5SKVQ
-#\\\|E2SNPBLRISBTIVHATONCOSK4DQK2STOXB2XRP4V6IU6OCJ56IZL \ / AMOS7 \ YOURUM ::
-#\[7]4NFQLMDO2237EZTN5ZS5LAI4ZV2226NY3G3X4R36O7SJKR4QPUDQ 7  DATA SIGNATURE ::
+#,,,.,,,,,...,.,.,,..,,.,,.,,,,,,,,,,,...,..,,..,,...,...,..,,..,,.,,,,.,,,..,
+#A6Q7W3UUJ4DLOZ372ZEDVKZ4NOAKCBLZZTDL3FKXDFWST5KMCVI2DOZFZOL26GJIOPA2NGWOGWEEE
+#\\\|AHA6QSR7TYAA34WDGWBNTIB3YYK5UMLI7XQDC5XLU75U4FLCG3K \ / AMOS7 \ YOURUM ::
+#\[7]PDW3VL2NJS3PZXCIQPB6UVVSEDXJRUQLNTPCCNDXO3VE34FJQACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
