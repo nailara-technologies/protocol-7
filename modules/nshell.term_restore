@@ -3,9 +3,9 @@
 # name = nshell.term_restore
 # descr = Restore terminal settings after nshell session
 
-use POSIX qw| :termios_h O_NONBLOCK |;
-use Linux::Termios2;
-use Fcntl qw| F_GETFL F_SETFL |;
+## clear cursor remants on exit ##
+##
+print STDERR "\r  \r";
 
 ## Retrieve backed-up terminal settings from nshell.term_init
 return TRUE if not defined $main::data{'nshell'}{'orig_termios'};
@@ -26,8 +26,8 @@ if ( defined $restore_termios ) {
 
 return TRUE;
 
-#,,,.,.,,,.,,,.,,,,,,,,..,...,,,.,,,,,,..,.,,,..,,...,...,,..,.,,,.,.,,.,,,,.,
-#ICOLP5BCAFVRPUEA5CW2NNQODREBELKUQ6E5BJJTYJD4PBMQMIZL5BZVT4MQK64EM6TXLGAAOY3L6
-#\\\|OMCG7RY5HXHR7T253B2QO6GGHISKYJEF7JBDBL34NXGGIHALJ2F \ / AMOS7 \ YOURUM ::
-#\[7]IVVV54TSY642D64A2DVZEHSDXXBUJXLFY6BEQBIP3OS2C65Q5WBA 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,,.,,,.,,..,,.,,.,.,,..,,,,,,.,,..,,...,..,,.,.,...,,,.,.,.,.,.,
+#4QYKVO64SFVOGNOFOFMVIRVOSHJ6VXKWO7YBM4DKMFQ3XQ6KHVAFWYK5ROCHGHDFR6XLZFDT2N4GU
+#\\\|SJRF7RZM2VOXTYRXGUNSUFY4A5WE2H6HQ6RDHMF6SG2HHMJ7DMU \ / AMOS7 \ YOURUM ::
+#\[7]C7P5QY7G7LH4I62NI5WK3YYBGXY6MITMBC6WGK3WBFTI2PCGQCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
