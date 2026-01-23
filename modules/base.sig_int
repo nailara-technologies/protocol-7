@@ -5,13 +5,18 @@
 
 print "\b\b\r" if fileno(STDOUT);    ## removing ^C ##
 
+my $llvl       = <base.sig_int.log-level> //= 0;
 my $zenka_name = <system.zenka.name>;
+
 $PROGRAM_NAME .= " :. shutdown in progress.., one moment ., [$zenka_name]";
-<[base.log]>->( 0, "::: SIGINT ::: stopping '$zenka_name' zenka ..," );
+
+<[base.log]>->( $llvl, "::: SIGINT ::: stopping '$zenka_name' zenka ..," );
 
 $SIG{'INT'} = sub {
+    my $log_level = ( <base.sig_int.log-level> // 1 ) - 1;
+    $log_level = 0 if $log_level < 1;
     print "\b\b" if fileno(STDOUT);    ## removing ^C ##
-    <[base.log]>->( 0, '::: SIGINT ::: emergency shutdown ..,' );
+    <[base.log]>->( $log_level, '::: SIGINT ::: emergency shutdown ..,' );
     CORE::exit(1);
 };
 
@@ -30,8 +35,8 @@ if ( exists <system.kill_list> and ref(<system.kill_list>) eq qw| ARRAY | ) {
 <[base.log]>->( 1, ':. done' );
 exit(130);
 
-#,,,,,.,,,.,.,.,.,,,,,,,,,,..,.,.,...,,.,,,..,..,,...,...,.,.,..,,...,.,.,.,.,
-#3NUII3PIZJUQGGFCAG7D5CLLGWOCLE2IN5KBLI5MWLWWUSKUDDZ5LJYY73YU2VD3O2Z2V2G6POY2Q
-#\\\|P672YXUMLFIIWI4LOM3Z73FEKCMVMPAVWWC5OH53YKV26EKPI3N \ / AMOS7 \ YOURUM ::
-#\[7]T4JJLWHSAIW2AX3WBZUWCRTWP4W32FWZSXWUKZWIP4VAPALWIQBI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,...,,..,,..,,..,.,,,.,.,...,,..,..,,...,...,...,,,.,,,,,,,,,...,
+#CV4OMGJXSLS3BTDTDJESVT2VCUMSCTMZSOETGGG4BBJWBC4OCNJGYZKTPOSYH62VOGIMF4XOXWNK6
+#\\\|SQID4EFVUTMD3WIWIC4NRCVIM6XEVMDACSO46YTMEBKUA77IVCR \ / AMOS7 \ YOURUM ::
+#\[7]OYKYWGFDNYXCHIXROO6AFRNG75YONYX257STZVMJPGV5QW6XIICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
