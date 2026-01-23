@@ -31,13 +31,15 @@ unless ( defined $model_path && length $model_path ) {
 }
 
 ## Success - store the resolved model path
-<[base.logs]>->( 1, '[model_path_reply] model path resolved: %s', $model_path );
+<[base.logs]>->( 1, '[model_path_reply] model path resolved' );
+my $path_display = <[base.parser.ellipse_center]>->( $model_path, 60 );
+<[base.logs]>->( 1, ':. %s', $path_display );
 <inference.model.path> = $model_path;
 
 return TRUE;
 
-#,,..,.,.,..,,,.,,,..,,,.,,.,,,..,.,,,.,.,,,,,..,,...,...,,,.,,..,,.,,,..,..,,
-#3MMK7L45LVKZZVBWA3YZAQUIC3SN7YW77BRPQYNWFYHGLKZCPWXUASI3ID2ZC4VQKDGDHIKQSMQGG
-#\\\|Y45NIZUAVXFQNMW7EJDHLKQHIEZGGVY4PCLRVI2FUP4RR4YY7R7 \ / AMOS7 \ YOURUM ::
-#\[7]TK2UJ6GKKBG5BF3IWMF2LRRRSZJEK4TOUMJX35W54JKBND437QDA 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,.,.,,.,,,,.,,,,,.,.,.,,,..,,.,,,..,,...,...,,,.,,.,,,,.,...,..,,
+#DW4K4F4EGWECVVLTV6WNBJAR4QUNNB6WJQBCNWGJUOIXBBXPLZH4HOFHA3FEUE2PT5RBCR3B7II6I
+#\\\|TNOKAM36XS2MMEUZBC5NZKCRIC2XVR5MPM2BGGWOH6FOLGVPEZ2 \ / AMOS7 \ YOURUM ::
+#\[7]6XM4ARX7VPVBWO52E62ANBYNZHEXBRPOLMVT6RVB6ILXE22UJUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

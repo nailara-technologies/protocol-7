@@ -13,9 +13,13 @@ my $gpu_layers = $params->{'gpu_layers'} // 33;
 my $model_path = $params->{'model_path'} // '';
 
 <[base.logs]>->(
-    1, "[spawn_inference_server] backend=%s port=%d model=%s",
-    $backend, $port, $model_path
+    1, "[spawn_inference_server] backend=%s port=%d",
+    $backend, $port
 );
+if ( length($model_path) ) {
+    my $path_display = <[base.parser.ellipse_center]>->( $model_path, 60 );
+    <[base.logs]>->( 1, ':. %s', $path_display );
+}
 
 unless ( -x $binary ) {
     <[base.logs]>->(
@@ -26,9 +30,9 @@ unless ( -x $binary ) {
 
 # Verify model file exists if provided
 if ( length($model_path) && !-f $model_path ) {
-    <[base.logs]>->(
-        0, "[spawn_inference_server] model not found: %s", $model_path
-    );
+    my $path_display = <[base.parser.ellipse_center]>->( $model_path, 60 );
+    <[base.logs]>->( 0, "[spawn_inference_server] model not found" );
+    <[base.logs]>->( 0, ":. %s", $path_display );
     return { 'success' => FALSE, 'error' => "model not found: $model_path" };
 }
 
@@ -127,8 +131,8 @@ return {
     'port'    => $port
 };
 
-#,,.,,,,,,..,,,.,,,,,,,,.,,,,,,..,,,.,...,...,..,,...,..,,.,.,,..,,..,,,.,,,.,
-#6BTXFFSWCPLMA3MJCCZXRCHF5T55UL36ALQJOHOCO5BDKFQB2SUYE3KFFTVIS74LDLHIJZIBAKULA
-#\\\|Y3KXF7RKSWPGGCDXR5NEWS7KQW4PE5OHLYSHMFFVJUEGSWB3HCS \ / AMOS7 \ YOURUM ::
-#\[7]AXMPRU3KCIDZOKHBNRYCKRXAAQF3OTQVBR5HPV3MNXUQDYMEWUCI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,...,,,.,,,.,,..,,,.,...,,,.,.,,,..,,...,...,...,.,,,,..,,..,,,,,
+#IVYAVKFEYH467CZBUSFY77T254FQE44EZW7O3Q5LX5H5NHDAOL6IEDGHX72X4VPCVGEOE43DVDN4W
+#\\\|NRVIPQIYJNWCXPVFEUCQDK5ZABFDUIEWU7HWXCEEJKCIQKFH4QI \ / AMOS7 \ YOURUM ::
+#\[7]TE3X6JPAD4OIJCXAP7BA5ZGNQ62A4AAI6CYGJ7KSVERKOW6KEMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
