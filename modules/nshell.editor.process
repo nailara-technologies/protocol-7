@@ -77,8 +77,8 @@ if ( $action =~ m{^(kill_to_end|kill_from_start|kill_word|yank)$} ) {
 ## Signal (Ctrl+C, etc.)
 if ( $action eq 'signal' ) {
     ## Clear cursor before sending signal, preserve buffer content
-    my $cursor_pos = $editor->{cursor_pos};
-    my $buffer = $editor->{buffer};
+    my $cursor_pos     = $editor->{cursor_pos};
+    my $buffer         = $editor->{buffer};
     my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
 
     ## Go to start of line, clear any cursor remnants, then print buffer
@@ -89,13 +89,13 @@ if ( $action eq 'signal' ) {
     my $sig = $edit_result->{should_signal} // 'INT';
     kill( $sig, $$ );
 
-    return undef;  ## Continue processing
+    return undef;    ## Continue processing
 }
 
 ## Newline - submit command
 if ( $action eq 'newline' ) {
-    my $cursor_pos = $editor->{cursor_pos};
-    my $buffer     = $editor->{buffer};
+    my $cursor_pos     = $editor->{cursor_pos};
+    my $buffer         = $editor->{buffer};
     my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
 
     ## Go to start of line, then to cursor position, then clear cursor
@@ -133,8 +133,8 @@ if ( $action eq 'newline' ) {
 ## Unknown action - ignore
 return undef;
 
-#,,,,,.,.,.,,,,,.,.,,,,,,,,,,,,..,,,,,,,.,,.,,.,.,...,..,,.,.,..,,,.,,.,.,,,.,
-#DIJV74VUH6S6C3OLIOCCZ4Z4PVR6EECOC3CL62TEGPZLMKHZA65PTGTBU24XTUUANLCLMOEWRLLDM
-#\\\|FQMU5JN5L5QUETGEY7D77SJ34M4FXOWIT3ZRL53AWE3P5MJ3NEL \ / AMOS7 \ YOURUM ::
-#\[7]42VP3DA3SPEJCRF4XCWGFNOQD6ZLVVSXWYCRSHYYW4365Y2BRQBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,...,,,.,,.,,,..,..,,,.,,.,.,,,.,.,.,...,...,.,.,,..,,..,,,.,,,.,
+#IALJEYVLNFR2DERYE6W2E7CRQWG426ULYTQLRY5GEZCCFK5BJSKEAGTBTVPKFALKAIDA5OFS24WE6
+#\\\|NGEVKQ5MDITLPW2WBQFVAY5RN4TJWLCURXY5QBLWHG5ZJYXKSJW \ / AMOS7 \ YOURUM ::
+#\[7]7KBNVPRRNNALV6J4UBFQHZXVAH66J2CDS3FXGAGEDQ4BI3K7GCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
