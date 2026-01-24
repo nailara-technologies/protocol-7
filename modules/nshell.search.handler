@@ -149,6 +149,25 @@ if ( $key eq "\x08" or $key eq "\x7f" ) {
     $state_ref->{search_term} = substr( $state_ref->{search_term}, 0, -1 )
         if length( $state_ref->{search_term} );
     $state_ref->{search_deleted_chars} = '';
+    $state_ref->{search_results}
+        = $search_history->( $state_ref->{search_term} );
+    $state_ref->{search_index} = 0
+        if $state_ref->{search_index} >= @{ $state_ref->{search_results} };
+    $display_search->( $state_ref->{search_term} );
+    return 0;
+}
+
+## Delete key - clear entire search term (practical shortcut in search mode)
+if ( $key eq "\e[3~" ) {
+    $state_ref->{search_term}            = '';
+    $state_ref->{search_term_hist_index} = -1;
+    $state_ref->{search_deleted_chars}   = '';
+    $state_ref->{search_results}
+        = $search_history->( $state_ref->{search_term} );
+    $state_ref->{search_index} = 0
+        if $state_ref->{search_index} >= @{ $state_ref->{search_results} };
+    $display_search->( $state_ref->{search_term} );
+    return 0;
 }
 
 ## Ctrl+W - clear previous word from search term
@@ -156,6 +175,12 @@ if ( $key eq "\x17" ) {
     $state_ref->{search_term} =~ s/\s*\S+\s*$//;
     $state_ref->{search_term_hist_index} = -1;
     $state_ref->{search_deleted_chars}   = '';
+    $state_ref->{search_results}
+        = $search_history->( $state_ref->{search_term} );
+    $state_ref->{search_index} = 0
+        if $state_ref->{search_index} >= @{ $state_ref->{search_results} };
+    $display_search->( $state_ref->{search_term} );
+    return 0;
 }
 
 ## Ctrl+U - clear entire search term
@@ -163,6 +188,12 @@ if ( $key eq "\x15" ) {
     $state_ref->{search_term}            = '';
     $state_ref->{search_term_hist_index} = -1;
     $state_ref->{search_deleted_chars}   = '';
+    $state_ref->{search_results}
+        = $search_history->( $state_ref->{search_term} );
+    $state_ref->{search_index} = 0
+        if $state_ref->{search_index} >= @{ $state_ref->{search_results} };
+    $display_search->( $state_ref->{search_term} );
+    return 0;
 }
 
 ## Up arrow - cycle to next matching result, skip duplicates
@@ -229,6 +260,12 @@ if ( $key eq "\e[D" or $key eq "\eOD" ) {
         $state_ref->{search_term}
             = substr( $state_ref->{search_term}, 0, -1 );
     }
+    $state_ref->{search_results}
+        = $search_history->( $state_ref->{search_term} );
+    $state_ref->{search_index} = 0
+        if $state_ref->{search_index} >= @{ $state_ref->{search_results} };
+    $display_search->( $state_ref->{search_term} );
+    return 0;
 }
 
 ## Right arrow - restore deleted character
@@ -239,6 +276,12 @@ if ( $key eq "\e[C" or $key eq "\eOC" ) {
         $state_ref->{search_deleted_chars}
             = substr( $state_ref->{search_deleted_chars}, 1 );
     }
+    $state_ref->{search_results}
+        = $search_history->( $state_ref->{search_term} );
+    $state_ref->{search_index} = 0
+        if $state_ref->{search_index} >= @{ $state_ref->{search_results} };
+    $display_search->( $state_ref->{search_term} );
+    return 0;
 }
 
 ## Other escape sequences - ignore
@@ -268,8 +311,8 @@ $display_search->( $state_ref->{search_term} );
 
 return 0;    ## Continue in search mode
 
-#,,..,.,,,,,,,...,,,,,.,,,.,,,.,,,,.,,,..,,,.,.,.,...,...,...,.,,,.,,,..,,,..,
-#WXBLYIGXZUCISK6FZ5GXRDH2SMOPUARZDCLAISYMBT5EAWYBGULDCNPCIQXH4HMFNASZUB7BPG6ZQ
-#\\\|4FGHYVGOSIOIBGHB5PVXAO6CNOK5FFGWPSFWDNN2RW3472UN4KF \ / AMOS7 \ YOURUM ::
-#\[7]KL5KK75BSYCE7T2ABSOJGBRN36FAQIAGRK6E67IOQMDRFB2YBUDI 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,,,,,..,.,.,.,,,,.,,,..,,.,,,,,,.,.,...,...,...,.,.,,..,..,,.,,,
+#X5U7ANK3GNCQ3BOVAUN35NOP4RZMDZBLY4UHR72SQOFTKMBQJZKVKJ3RLY7AYUM6EFZ5SIYE42UYI
+#\\\|GIJUYTXRO55RP4CZFTFDQW7P35EKEN3RFAU3VXJJXHVCRWG2LSR \ / AMOS7 \ YOURUM ::
+#\[7]RKXNRHBISSXF25RTT4XBMOPEMNHWXK52I2YNS3KHRBSAFZFC36CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
