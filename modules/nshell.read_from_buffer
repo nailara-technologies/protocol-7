@@ -110,13 +110,29 @@ while ( length $input_chars ) {
         $state_ref->{escape_buffer} = '';
     }
 
+    ## Convert Home/End keys to Ctrl+A/Ctrl+E for editor processing
+    if ( $key eq "\e[H" or $key eq "\e[1~" or $key eq "\eOH" ) {
+        $key = "\x01";    ## Home → Ctrl+A
+    } elsif ( $key eq "\e[F" or $key eq "\e[4~" or $key eq "\eOF" ) {
+        $key = "\x05";    ## End → Ctrl+E
+    }
+
     ## In search mode: delegate to search handler
     if ( $state_ref->{search_mode} ) {
         my $result = <[nshell.search.handler]>->(
             $state_ref, $key, \$input_chars, $state_ref->{editor},
             $state_ref->{colors}
         );
-        return $result if defined $result;
+        ## Handle return codes from search handler
+        if ( $result == 1 ) {
+            ## Exit search mode (Ctrl+C/Esc) - buffer already loaded
+            next;
+        } elsif ( $result == 2 ) {
+            ## Selected command - return it for execution
+            my $selected = $state_ref->{editor}->{buffer} // '';
+            return $selected if length($selected);
+        }
+        ## $result == 0 or any other value: continue in search mode
         next;
     }
 
@@ -198,8 +214,8 @@ while ( length $input_chars ) {
 
 return undef;
 
-#,,,.,,,,,.,.,,,.,,,,,,,,,,.,,,,.,,.,,,,.,..,,.,.,...,...,...,,,,,,,,,.,.,,..,
-#YMFLB53ZKO5IL46ND7WBZWXZDAUGG2G2KVA2PXVDS5S4LUXO5BPZLXPFZAHGXXPCANZXUHPOSFYHM
-#\\\|PLYEFDGZG363QCHNBHF47OUHFYDZXLRFW3KKBZV6DXFAEXYUBUS \ / AMOS7 \ YOURUM ::
-#\[7]TO7BAI7E62S4OCR26RG3C6URJGNVFDKP5BAKTPCMWNZQLGK6YYBY 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,...,...,...,..,,,,,,,,.,,.,,.,.,.,.,...,...,..,,,,.,,.,,,,,,,..,
+#E7DZAUAVIXWHOARBFQY4G4P3R4Z6LVDZOKEFU5SKVIRHMGVHOK6QRQYHLEDDFVQEZJ2ZBHOZV3LTC
+#\\\|OJMFCN4U7EDLWR4VI6FKAVC2AWZAIJ7CW72QXGDOS5W3ALP44N6 \ / AMOS7 \ YOURUM ::
+#\[7]Z7MDOLMEAJMDMLFBWWV5HZQ5DADFJQJQBGG5KYKU3E3TYY5PF4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
