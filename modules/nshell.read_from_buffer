@@ -9,8 +9,8 @@
 ## Persists state across calls (static variables)
 
 ## Initialize refactored state structure on first call
-state $state_ref = undef;
-state $input_chars = '';
+state $state_ref           = undef;
+state $input_chars         = '';
 state $show_cursor_on_call = TRUE;
 
 ## Get state reference (initialize on first call)
@@ -30,16 +30,19 @@ if ($show_cursor_on_call) {
     $show_cursor_on_call = FALSE;
 
     ## Load colors if not already loaded
-    if ( !keys %{$state_ref->{colors}} ) {
-        eval { %{$state_ref->{colors}} = %{<nshell.colors>} };
-        $state_ref->{colors}->{p7_fg_0003} //= $AMOS7::TERM::p7_colors{'p7_fg_0003'};
-        $state_ref->{colors}->{p7_fg_0004} //= $AMOS7::TERM::p7_colors{'p7_fg_0004'};
+    if ( !keys %{ $state_ref->{colors} } ) {
+        eval { %{ $state_ref->{colors} } = %{<nshell.colors>} };
+        $state_ref->{colors}->{p7_fg_0003}
+            //= $AMOS7::TERM::p7_colors{'p7_fg_0003'};
+        $state_ref->{colors}->{p7_fg_0004}
+            //= $AMOS7::TERM::p7_colors{'p7_fg_0004'};
         $state_ref->{editor} //= AMOS7::TERM::editor_init();
         AMOS7::TERM::cursor_set_color( $state_ref->{colors}->{p7_fg_0003} );
     }
 
     ## Display cursor
-    print $state_ref->{colors}->{p7_fg_0003} . '_' . "\e[0m" . $state_ref->{colors}->{p7_fg_0004};
+    print $state_ref->{colors}->{p7_fg_0003} . '_' . "\e[0m"
+        . $state_ref->{colors}->{p7_fg_0004};
     STDOUT->flush();
 
     return undef;    ## Return to event loop to display cursor before input
@@ -70,10 +73,12 @@ if ( -t STDIN ) {
 }
 
 ## Load colors if needed for key processing
-if ( !keys %{$state_ref->{colors}} ) {
-    eval { %{$state_ref->{colors}} = %{<nshell.colors>} };
-    $state_ref->{colors}->{p7_fg_0003} //= $AMOS7::TERM::p7_colors{'p7_fg_0003'};
-    $state_ref->{colors}->{p7_fg_0004} //= $AMOS7::TERM::p7_colors{'p7_fg_0004'};
+if ( !keys %{ $state_ref->{colors} } ) {
+    eval { %{ $state_ref->{colors} } = %{<nshell.colors>} };
+    $state_ref->{colors}->{p7_fg_0003}
+        //= $AMOS7::TERM::p7_colors{'p7_fg_0003'};
+    $state_ref->{colors}->{p7_fg_0004}
+        //= $AMOS7::TERM::p7_colors{'p7_fg_0004'};
     $state_ref->{editor} //= AMOS7::TERM::editor_init();
 }
 
@@ -97,7 +102,9 @@ while ( length $input_chars ) {
             $state_ref->{escape_buffer} .= $next_key;
 
             ## Check if sequence is complete (arrow, page, function keys)
-            last if $state_ref->{escape_buffer} =~ m{\e\[[A-Z]|\eO[A-Z]|\e\[[0-9;]*~$};
+            last
+                if $state_ref->{escape_buffer}
+                =~ m{\e\[[A-Z]|\eO[A-Z]|\e\[[0-9;]*~$};
         }
         $key = $state_ref->{escape_buffer};
         $state_ref->{escape_buffer} = '';
@@ -105,61 +112,83 @@ while ( length $input_chars ) {
 
     ## In search mode: delegate to search handler
     if ( $state_ref->{search_mode} ) {
-        my $result = <[nshell.search.handler]>->( $state_ref, $key, \$input_chars, $state_ref->{editor}, $state_ref->{colors} );
+        my $result = <[nshell.search.handler]>->(
+            $state_ref, $key, \$input_chars, $state_ref->{editor},
+            $state_ref->{colors}
+        );
         return $result if defined $result;
         next;
     }
 
     ## In viewing history mode: handle navigation keys
-    if ( $state_ref->{current_mode} == 2 ) {  # VIEWING_HISTORY
+    if ( $state_ref->{current_mode} == 2 ) {    # VIEWING_HISTORY
         if ( $key eq "\e[A" ) {
-            <[nshell.history.arrow_up]>->( $state_ref, $state_ref->{editor}, $state_ref->{colors} );
+            <[nshell.history.arrow_up]>->(
+                $state_ref, $state_ref->{editor}, $state_ref->{colors}
+            );
             next;
         } elsif ( $key eq "\e[B" ) {
-            <[nshell.history.arrow_down]>->( $state_ref, $state_ref->{editor}, $state_ref->{colors} );
+            <[nshell.history.arrow_down]>->(
+                $state_ref, $state_ref->{editor}, $state_ref->{colors}
+            );
             next;
         } elsif ( $key eq "\e[5~" ) {
-            <[nshell.history.page_up]>->( $state_ref, $state_ref->{editor}, $state_ref->{colors} );
+            <[nshell.history.page_up]>->(
+                $state_ref, $state_ref->{editor}, $state_ref->{colors}
+            );
             next;
         } elsif ( $key eq "\e[6~" ) {
-            <[nshell.history.page_down]>->( $state_ref, $state_ref->{editor}, $state_ref->{colors} );
+            <[nshell.history.page_down]>->(
+                $state_ref, $state_ref->{editor}, $state_ref->{colors}
+            );
             next;
         }
     }
 
     ## In normal mode: special key handling
-    if ( $state_ref->{current_mode} == 0 ) {  # NORMAL
-        if ( $key eq "\x12" ) {  # Ctrl+R
-            $state_ref->{search_mode} = TRUE;
-            $state_ref->{current_mode} = 1;  # SEARCHING
-            $state_ref->{pre_search_buffer} = $state_ref->{editor}->{buffer} // '';
-            $state_ref->{search_term} = '';
+    if ( $state_ref->{current_mode} == 0 ) {    # NORMAL
+        if ( $key eq "\x12" ) {                 # Ctrl+R
+            $state_ref->{search_mode}       = TRUE;
+            $state_ref->{current_mode}      = 1;      # SEARCHING
+            $state_ref->{pre_search_buffer} = $state_ref->{editor}->{buffer}
+                // '';
+            $state_ref->{search_term}    = '';
             $state_ref->{search_results} = [];
-            $state_ref->{search_index} = 0;
+            $state_ref->{search_index}   = 0;
             print "\r\e[K(search) \e[0m";
             STDOUT->flush();
             next;
         } elsif ( $key eq "\e[5~" ) {
-            <[nshell.history.page_up]>->( $state_ref, $state_ref->{editor}, $state_ref->{colors} );
+            <[nshell.history.page_up]>->(
+                $state_ref, $state_ref->{editor}, $state_ref->{colors}
+            );
             next;
         } elsif ( $key eq "\e[6~" ) {
-            <[nshell.history.page_down]>->( $state_ref, $state_ref->{editor}, $state_ref->{colors} );
+            <[nshell.history.page_down]>->(
+                $state_ref, $state_ref->{editor}, $state_ref->{colors}
+            );
             next;
         } elsif ( $key eq "\e[A" ) {
-            <[nshell.history.arrow_up]>->( $state_ref, $state_ref->{editor}, $state_ref->{colors} );
+            <[nshell.history.arrow_up]>->(
+                $state_ref, $state_ref->{editor}, $state_ref->{colors}
+            );
             next;
         } elsif ( $key eq "\e[B" ) {
-            <[nshell.history.arrow_down]>->( $state_ref, $state_ref->{editor}, $state_ref->{colors} );
+            <[nshell.history.arrow_down]>->(
+                $state_ref, $state_ref->{editor}, $state_ref->{colors}
+            );
             next;
         }
     }
 
     ## All other keys: delegate to editor.process
-    my $result = <[nshell.editor.process]>->( $state_ref->{editor}, $key, $state_ref->{colors} );
+    my $result = <[nshell.editor.process]>->(
+        $state_ref->{editor}, $key, $state_ref->{colors}
+    );
 
     ## Check for state change when exiting history mode
     if ( defined $result && $state_ref->{current_mode} == 2 ) {
-        $state_ref->{current_mode} = 0;  # Return to NORMAL
+        $state_ref->{current_mode}          = 0;    # Return to NORMAL
         $state_ref->{current_history_index} = -1;
     }
 
@@ -169,8 +198,8 @@ while ( length $input_chars ) {
 
 return undef;
 
-#,,.,,,..,.,,,.,,,.,,,,,,,...,,.,,...,.,,,...,.,.,...,...,,,.,..,,,,.,,.,,...,
-#QHAZZ4TGU3OYF7SLONZSSCKNNZIJFZ537DEQKKZKHGCG2AEONGEOSCNJB3PTLTDXXF37EHZUP3FKA
-#\\\|3FODYKAEHKXXGBETA6NB3Q6436J5JYFAMFF2XQH3W4LNTKHVYZK \ / AMOS7 \ YOURUM ::
-#\[7]L7HZW2N3UEGD2PNPCW5LUEOBHZNVMU5ACYGAAFWTEXSDNKSDKSAI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,,.,,,,,,,,,,.,,,,.,,.,,,,.,..,,.,.,...,...,...,,,,,,,,,.,.,,..,
+#YMFLB53ZKO5IL46ND7WBZWXZDAUGG2G2KVA2PXVDS5S4LUXO5BPZLXPFZAHGXXPCANZXUHPOSFYHM
+#\\\|PLYEFDGZG363QCHNBHF47OUHFYDZXLRFW3KKBZV6DXFAEXYUBUS \ / AMOS7 \ YOURUM ::
+#\[7]TO7BAI7E62S4OCR26RG3C6URJGNVFDKP5BAKTPCMWNZQLGK6YYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
