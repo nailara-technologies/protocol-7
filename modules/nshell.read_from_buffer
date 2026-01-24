@@ -30,6 +30,7 @@ state $search_deleted_chars = '';    ## Characters deleted by Left arrow
 
 ## History navigation state for Page Up/Down
 state $current_history_index = -1;   ## Track which history entry we're viewing (-1 = none)
+state $current_history_timestamp = '';  ## Track by timestamp since indices change dynamically
 
 ## Sync state to %data for debugging and persistence
 $main::data{'nshell'}{'edit_state'} = {
@@ -93,7 +94,6 @@ if ( -t STDIN ) {
 while ( length $input_chars ) {
     my $key = <[nshell.util.extract_utf8_char]>->( \$input_chars );
     last if not defined $key; ## Incomplete UTF-8 sequence, wait for more data
-
 
     ## Load colors early if not already loaded (needed for all key processing)
     if ( !%colors ) {
@@ -659,6 +659,11 @@ while ( length $input_chars ) {
             }
         } elsif ( $escape_buffer eq "\e[5~" ) {
             ## Page Up - jump to previous session (grouped by temporal proximity)
+            ## Clear line immediately to remove any stray init cursor
+#           print "\r\e[K";
+
+#           print "\r";
+
             <[base.logs]>->( 3, ': PageUp pressed, current_history_index=%d', $current_history_index );
 
             my $session_gap
@@ -670,9 +675,29 @@ while ( length $input_chars ) {
             ## Determine current history position
             my $current_index = -1;
             if ( $current_history_index >= 0 ) {
-                ## Already viewing history - use tracked index
-                $current_index = $current_history_index;
-                <[base.logs]>->( 3, ': PageUp in history, current_index=%d', $current_index );
+                ## Already viewing history - verify index is still valid by timestamp
+                if ( $current_history_timestamp && $current_history_index < @AMOS7::TERM::history_entries
+                     && $AMOS7::TERM::history_entries[$current_history_index]->[0] eq $current_history_timestamp ) {
+                    ## Index still points to same entry
+                    $current_index = $current_history_index;
+                    <[base.logs]>->( 3, ': PageUp in history, current_index=%d (verified)', $current_index );
+                } elsif ( $current_history_timestamp ) {
+                    ## Index shifted, search for entry by timestamp
+                    for ( my $i = 0; $i < @AMOS7::TERM::history_entries; $i++ ) {
+                        if ( $AMOS7::TERM::history_entries[$i]->[0] eq $current_history_timestamp ) {
+                            $current_index = $i;
+                            $current_history_index = $i;  ## Update cached index
+                            <[base.logs]>->( 3, ': PageUp RELOCATED entry to new_index=%d', $current_index );
+                            last;
+                        }
+                    }
+                    if ( $current_index < 0 ) {
+                        <[base.logs]>->( 3, ': PageUp entry NOT FOUND by timestamp' );
+                    }
+                } else {
+                    ## No timestamp saved, use index directly
+                    $current_index = $current_history_index;
+                }
             } else {
                 ## Not viewing history yet - search for current buffer
                 ## If not found, treat as being at the prompt (before any history entry)
@@ -754,7 +779,8 @@ while ( length $input_chars ) {
 
                     ## Track that we're viewing this history entry (Page Up)
                     $current_history_index = $target_index;
-                    <[base.logs]>->( 3, ': PageUp set current_history_index=%d', $current_history_index );
+                    $current_history_timestamp = $entry->[0];  ## Save timestamp to relocate entry if indices shift
+                    <[base.logs]>->( 3, ': PageUp set current_history_index=%d ts=%s', $current_history_index, $current_history_timestamp );
 
                     ## Store recalled buffer for terminal restore on Ctrl+C
                     $data{'nshell'}{'current_buffer'} = $command_buffer;
@@ -793,6 +819,12 @@ while ( length $input_chars ) {
             }
         } elsif ( $escape_buffer eq "\e[6~" ) {
             ## Page Down - jump to next session (mirror of Page Up but searches backward)
+            ## Clear line immediately to remove any stray init cursor
+
+#           print "\r\e[K";
+
+            print "\r";
+
             <[base.logs]>->( 3, ': PageDown pressed, current_history_index=%d', $current_history_index );
 
             my $session_gap
@@ -803,9 +835,29 @@ while ( length $input_chars ) {
             ## Determine current history position
             my $current_index = -1;
             if ( $current_history_index >= 0 ) {
-                ## Already viewing history - use tracked index
-                $current_index = $current_history_index;
-                <[base.logs]>->( 3, ': PageDown in history, current_index=%d', $current_index );
+                ## Already viewing history - verify index is still valid by timestamp
+                if ( $current_history_timestamp && $current_history_index < @AMOS7::TERM::history_entries
+                     && $AMOS7::TERM::history_entries[$current_history_index]->[0] eq $current_history_timestamp ) {
+                    ## Index still points to same entry
+                    $current_index = $current_history_index;
+                    <[base.logs]>->( 3, ': PageDown in history, current_index=%d (verified)', $current_index );
+                } elsif ( $current_history_timestamp ) {
+                    ## Index shifted, search for entry by timestamp
+                    for ( my $i = 0; $i < @AMOS7::TERM::history_entries; $i++ ) {
+                        if ( $AMOS7::TERM::history_entries[$i]->[0] eq $current_history_timestamp ) {
+                            $current_index = $i;
+                            $current_history_index = $i;  ## Update cached index
+                            <[base.logs]>->( 3, ': PageDown RELOCATED entry to new_index=%d', $current_index );
+                            last;
+                        }
+                    }
+                    if ( $current_index < 0 ) {
+                        <[base.logs]>->( 3, ': PageDown entry NOT FOUND by timestamp' );
+                    }
+                } else {
+                    ## No timestamp saved, use index directly
+                    $current_index = $current_history_index;
+                }
             } else {
                 ## Not viewing history yet - search for current buffer
                 ## If not found, treat as being at the prompt (before any history entry)
@@ -878,6 +930,11 @@ while ( length $input_chars ) {
 
             <[base.logs]>->( 3, ': PageDown final target_index=%d', $target_index );
 
+            #
+            ### target_index == -1 when PageDown is
+            ### triggered at the end of the history  [ needs to render cursor ]
+            #
+
             ## Load and display the target entry
             if (   $target_index >= 0
                 && $target_index < @AMOS7::TERM::history_entries ) {
@@ -898,7 +955,8 @@ while ( length $input_chars ) {
 
                     ## Track that we're viewing this history entry (Page Down)
                     $current_history_index = $target_index;
-                    <[base.logs]>->( 3, ': PageDown set current_history_index=%d', $current_history_index );
+                    $current_history_timestamp = $entry->[0];  ## Save timestamp to relocate entry if indices shift
+                    <[base.logs]>->( 3, ': PageDown set current_history_index=%d ts=%s', $current_history_index, $current_history_timestamp );
 
                     ## Store recalled buffer for terminal restore on Ctrl+C
                     $data{'nshell'}{'current_buffer'} = $command_buffer;
@@ -934,6 +992,13 @@ while ( length $input_chars ) {
                     print "\e[0m" . $colors{p7_fg_0004};
                     print "\e[K";
                 }
+            } elsif ( $target_index == -1 ) { ### PageDown at end of history ###
+
+                $current_history_index = -1;
+                $command_buffer = $display_buffer = '';     ## clear buffer ##
+		AMOS7::TERM::editor_load( $editor, $command_buffer );
+                printf "\r%s_%s\e[K", $colors{p7_fg_0003},$colors{p7_fg_0004};
+
             }
             ## No boundary found - stay at current position
             ## If $current_index < 0 (not in history), we're at command prompt - no change needed
@@ -1355,8 +1420,8 @@ while ( length $input_chars ) {
 
 return undef;    ## No complete line yet, buffer exhausted or incomplete UTF-8
 
-#,,.,,,,.,..,,,,.,,,.,.,.,..,,...,,.,,,,.,,,.,..,,...,...,.,.,,..,...,,.,,,,,,
-#42WYI6BNS7VTU5J3BMVBLOX6KKZ5DZ6PKNFLS2OAFQ3ZSRJNBBGGECQGT24EQOLMV7MBR6TKECZZ4
-#\\\|NN2O6IKWYZBGMPO3QJ3QWI6HXVASRJJWXJ74LBHFGM3UPP3RCFF \ / AMOS7 \ YOURUM ::
-#\[7]6NLUSX7SGN6364NMDA7DPVTIOPCD6S3NHPUN5DGK2POME6IMUGDI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,.,,,,,,,,,,,,..,,..,,,,,...,,..,..,,...,...,,..,.,,,,..,...,.,.,
+#JOLDROS5B5WIVYO4JRWQRNHBF7SELGOGYPEV2FGZP2WGO7EIR64MTSTVX4DWODBIDLSUPQRYH36YM
+#\\\|ZFETAOQGQVGY7LDRVFQHYIA57IV4TLJX57IM2YCMBSXTTYVD7TJ \ / AMOS7 \ YOURUM ::
+#\[7]MEEDH6O7FD73CX6DTL2QDUWVKYBT5XEVTTZPAIL4HHETIAI4BUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
