@@ -659,6 +659,8 @@ while ( length $input_chars ) {
             }
         } elsif ( $escape_buffer eq "\e[5~" ) {
             ## Page Up - jump to previous session (grouped by temporal proximity)
+            <[base.logs]>->( 3, ': PageUp pressed, current_history_index=%d', $current_history_index );
+
             my $session_gap
                 = $main::data{'nshell'}{'history'}{'session_gap_minutes'}
                 // 13;
@@ -670,6 +672,7 @@ while ( length $input_chars ) {
             if ( $current_history_index >= 0 ) {
                 ## Already viewing history - use tracked index
                 $current_index = $current_history_index;
+                <[base.logs]>->( 3, ': PageUp in history, current_index=%d', $current_index );
             } else {
                 ## Not viewing history yet - search for current buffer
                 ## If not found, treat as being at the prompt (before any history entry)
@@ -739,6 +742,7 @@ while ( length $input_chars ) {
                 if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
                     my $lines_ref = $entry->[1];
                     my $entry_cmd = join("\n", @{$lines_ref});
+                    <[base.logs]>->( 3, ': PageUp LOADING index=%d: %s', $target_index, $entry_cmd );
 
                     ## Clear previous display before showing new one
                     my $clear_len = length($display_buffer) + 8;
@@ -750,6 +754,7 @@ while ( length $input_chars ) {
 
                     ## Track that we're viewing this history entry (Page Up)
                     $current_history_index = $target_index;
+                    <[base.logs]>->( 3, ': PageUp set current_history_index=%d', $current_history_index );
 
                     ## Store recalled buffer for terminal restore on Ctrl+C
                     $data{'nshell'}{'current_buffer'} = $command_buffer;
@@ -788,6 +793,8 @@ while ( length $input_chars ) {
             }
         } elsif ( $escape_buffer eq "\e[6~" ) {
             ## Page Down - jump to next session (mirror of Page Up but searches backward)
+            <[base.logs]>->( 3, ': PageDown pressed, current_history_index=%d', $current_history_index );
+
             my $session_gap
                 = $main::data{'nshell'}{'history'}{'session_gap_minutes'}
                 // 13;
@@ -798,6 +805,7 @@ while ( length $input_chars ) {
             if ( $current_history_index >= 0 ) {
                 ## Already viewing history - use tracked index
                 $current_index = $current_history_index;
+                <[base.logs]>->( 3, ': PageDown in history, current_index=%d', $current_index );
             } else {
                 ## Not viewing history yet - search for current buffer
                 ## If not found, treat as being at the prompt (before any history entry)
@@ -847,10 +855,13 @@ while ( length $input_chars ) {
                     ## Use absolute value to handle both forward/backward search directions
                     my $time_diff = abs( <[base.ntime.delta_seconds]>->( $entry_time, $prev_time ) // 0 );
 
+                    <[base.logs]>->( 3, ': PageDown scanning i=%d, diff=%.1f, gap=%d', $i, $time_diff, $gap_seconds );
+
                     ## Found session boundary (gap >= session_gap_minutes)
                     if ( $time_diff >= $gap_seconds ) {
                         ## Found first entry of newer (next) session
                         $target_index = $i;  ## Jump to first entry of newer session
+                        <[base.logs]>->( 3, ': PageDown BOUNDARY found at i=%d', $target_index );
                         last;
                     }
                     $prev_time = $entry_time;
@@ -859,8 +870,13 @@ while ( length $input_chars ) {
                 ## If no boundary found, go to newest entry (only if not already near it)
                 if ( $target_index == -1 && $current_index > 0 ) {
                     $target_index = 0;
+                    <[base.logs]>->( 3, ': PageDown no boundary, fallback to index 0' );
+                } elsif ( $target_index == -1 ) {
+                    <[base.logs]>->( 3, ': PageDown no boundary found, current_index=%d, no fallback', $current_index );
                 }
             }
+
+            <[base.logs]>->( 3, ': PageDown final target_index=%d', $target_index );
 
             ## Load and display the target entry
             if (   $target_index >= 0
@@ -869,6 +885,7 @@ while ( length $input_chars ) {
                 if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
                     my $lines_ref = $entry->[1];
                     my $entry_cmd = join("\n", @{$lines_ref});
+                    <[base.logs]>->( 3, ': PageDown LOADING index=%d: %s', $target_index, $entry_cmd );
 
                     ## Clear previous display before showing new one
                     ## Must clear at least cursor width (1) + margin, even if display_buffer is empty
@@ -881,6 +898,7 @@ while ( length $input_chars ) {
 
                     ## Track that we're viewing this history entry (Page Down)
                     $current_history_index = $target_index;
+                    <[base.logs]>->( 3, ': PageDown set current_history_index=%d', $current_history_index );
 
                     ## Store recalled buffer for terminal restore on Ctrl+C
                     $data{'nshell'}{'current_buffer'} = $command_buffer;
@@ -1337,8 +1355,8 @@ while ( length $input_chars ) {
 
 return undef;    ## No complete line yet, buffer exhausted or incomplete UTF-8
 
-#,,,.,.,.,,,,,..,,.,,,,.,,,..,,,,,,,,,.,,,,,.,..,,...,..,,..,,.,.,,,.,.,.,,,.,
-#FSQXXWK3IDKPP6EDUENSYSWZ4FLAV63NV3Z7NVHAX2DJW7XMWUGHCLAW4XMNAMXWVS2OUDTYM4GA4
-#\\\|LDRP446V3WRMWTVYWXUZFLXXBKIHXE5TKUOYDTEC3GJDDTLIPUX \ / AMOS7 \ YOURUM ::
-#\[7]4BEVUFNY6ONS4HJ66XGEKIBJSNJSH6WDUL7JGJKDKVKXAB47D4BY 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,,.,,,.,.,.,..,,...,,.,,,,.,,,.,..,,...,...,.,.,,..,...,,.,,,,,,
+#42WYI6BNS7VTU5J3BMVBLOX6KKZ5DZ6PKNFLS2OAFQ3ZSRJNBBGGECQGT24EQOLMV7MBR6TKECZZ4
+#\\\|NN2O6IKWYZBGMPO3QJ3QWI6HXVASRJJWXJ74LBHFGM3UPP3RCFF \ / AMOS7 \ YOURUM ::
+#\[7]6NLUSX7SGN6364NMDA7DPVTIOPCD6S3NHPUN5DGK2POME6IMUGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
