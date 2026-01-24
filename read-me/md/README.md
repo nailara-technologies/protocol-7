@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3OMPJBHSDI-6205.0 :::
+::: SOURCE-CODE VERSION :: 3OMPJ5GLOY-6206.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -153,7 +153,7 @@ Alternatively, to use systemd:
 
 Three primary methods for interacting with the Protocol-7 network:
 
-1. **nshell Zenka Terminal Interface** (Recommended)
+1. **nshell Zenka Terminal Interface** (Recommended) ✅ Fully Refactored
    ```bash
    p7.nshell
    ```
@@ -164,8 +164,13 @@ Three primary methods for interacting with the Protocol-7 network:
    - Interactive shell for direct Protocol-7 network access
    - Pure-Perl implementation with non-blocking I/O
    - Full UTF-8 support with proper character buffering
-   - Supports history navigation, paste operations, and escape sequences
+   - **Enhanced history navigation**: Session-based Page Up/Down with LIFO symmetry
+   - **Sequential arrow keys**: Up/Down navigate sequentially through history
+   - **Ctrl+R search**: Real-time history search with phosphor-colored search term display
    - Strips protocol reply strings for cleaner output (similar to p7c and p-7-r)
+   - ✅ All navigation features fully tested and production-ready
+
+   See: [`NSHELL_REFACTORING_COMPLETED.md`](./data/md/documentation/NSHELL_REFACTORING_COMPLETED.md) for implementation details
 
    **Legacy Alternative:** `bin/nshell`
    - Still available for compatibility
@@ -363,8 +368,8 @@ The full vision document explores Protocol-7's unique approach to
 distributed computing, network participation, and the metaphorical framework
 of resource sharing.
 
-#,,.,,...,..,,,,.,...,,..,,,.,...,..,,,,.,,..,..,,...,..,,..,,.,,,,,.,,,.,.,,,
-#NC7WN32QVATHBS2ZYHZEZQM7TOVOUCF6PPFTRP7KT3LHCH2NHS5SWJU6MUN7FZ6STBBBMJJQYZFNW
-#\\\|XGKJY5PUSS7IVKTZATWKCT3AHB2FJSFS2WNAP53A7O32P3MOAQO \ / AMOS7 \ YOURUM ::
-#\[7]HBKXCGPNZV3M6EQWCJMO46V7X2FOOE4UY36PYFFX5EP5IZ6HDMCI 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,...,,..,.,,,..,,,..,,,,,..,,,..,..,,...,...,,,.,.,,,,,,,,..,.,.,
+#RDZPATW5KLZ6U4Z246KXRSYAGO3CYMNGQBF66WV6CWF3SC6RC4SWEYBN4VWZVL2HXQORQYGOW5ILG
+#\\\|IOWQBGBAM5NUGXV3U4ECO344JU3OS5WOYUTJC7TJFDA5ZTAS2IP \ / AMOS7 \ YOURUM ::
+#\[7]OPB54DZRITKCO2SHS3OIYRIGGHN6FIN6WXIOHCVB3X4LHDYAIMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
