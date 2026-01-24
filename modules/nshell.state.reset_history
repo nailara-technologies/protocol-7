@@ -8,14 +8,15 @@ my ($state_ref) = @_;
 ## Reset navigation state when user edits in VIEWING_HISTORY mode
 ## This returns us to NORMAL mode for further editing
 if ( $state_ref->{current_mode} == 2 ) {    # VIEWING_HISTORY
-    $state_ref->{current_mode}          = 0;    # NORMAL
+    $state_ref->{current_mode}          = 0;     # NORMAL
     $state_ref->{current_history_index} = -1;
+    $state_ref->{paging_index_stack}    = [];    # Clear paging stack
 }
 
 return;
 
-#,,,,,,,.,..,,,,.,..,,,.,,,,,,,,,,,.,,..,,,..,.,.,...,...,..,,,,,,,,.,...,.,,,
-#GUZME477ANEWCY4D6P7HPGJNLE77P2EFZDDQ7MA2Q2EMDPAKRZQA2T23PSRZ2BCS7UNKCPTI4OHQK
-#\\\|GKK2KK5E5VVUHS5JMNO3TNZMJI33FDE654SJ7ZNTCIQVH26K774 \ / AMOS7 \ YOURUM ::
-#\[7]XUDREYYIFIM5AKAFXVTH6Q3BCQEKEDBQHEL7DWMZWDX7NXNLQAAI 7  DATA SIGNATURE ::
+#,,..,...,.,.,...,.,.,,.,,.,.,,,,,..,,,.,,.,,,.,.,...,..,,...,,.,,.,.,,.,,,,.,
+#HSW7E3VFKAE6W5AYIWRVJV2MHLLRXV5BBK3QLUOFHBM33FG3ECG55GZJH6W5DPRRQXZICH5FKXZL4
+#\\\|55VAKPPZUWOKCX4V5IL2EXHNUPR2T3QJ66JFNKPYJX7GAUE6QYY \ / AMOS7 \ YOURUM ::
+#\[7]6UA77MY376NKCOGWBPYYCZTPRLA7RBN6TGLLMDWC4XUHJHKAMOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
