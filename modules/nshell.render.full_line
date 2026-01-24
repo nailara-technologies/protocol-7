@@ -1,0 +1,43 @@
+## [:< ##
+
+# name = nshell.render.full_line
+# descr = Unified full-line redraw and cursor positioning
+
+my ( $editor, $display_buffer, $colors ) = @_;
+
+## Clear previous display and redraw command line
+## Get terminal width for proper clearing (safe fallback for non-TTY contexts)
+my $buffer = $editor->{buffer};
+my $clear_len = length($buffer) + 20;    ## Leave margin
+print "\r" . ( ' ' x $clear_len ) . "\r" . $display_buffer;
+
+## Render cursor at editor's position
+## Terminal is already at end of buffer after clearing and display
+my $cursor_pos     = $editor->{cursor_pos};
+my $buf_len        = length($buffer);
+my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
+
+## Move back to cursor position (if not at end)
+if ( $cursor_pos < $buf_len ) {
+    my $moves_back = $buf_len - $cursor_pos;
+    print "\x08" x $moves_back;
+}
+
+## Render cursor at current position
+if ( $char_at_cursor eq '' or $char_at_cursor eq ' ' ) {
+    print $colors->{p7_fg_0003} . '_';
+} else {
+    print "\e[7m" . $char_at_cursor . "\e[27m";
+}
+
+print "\e[0m" . $colors->{p7_fg_0004};
+print "\e[K";    ## Clear to end of line
+STDOUT->flush();
+
+return;
+
+#,,.,,...,.,.,...,,..,...,,.,,,.,,,..,...,.,,,.,.,...,...,.,.,,..,..,,,..,,.,,
+#IVQEDQBEZEYHAGO7XX7I4SQAU7WD47HOZKDH4FJ2SQZ6W3ZEUFI4AWVQESHUK2DOSEJ3EAP6NKOVK
+#\\\|QQIEI33YAXUHLC6VTOUTNZNGYAOU6Q75TLVN7Q4KPZ5FL3WCM2Y \ / AMOS7 \ YOURUM ::
+#\[7]A6JXEZRJXSX2RPSWQ7ZJ47OWS77TOIC2UFDVKPMYRQEMNXYQCCBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

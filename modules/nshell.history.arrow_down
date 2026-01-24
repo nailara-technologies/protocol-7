@@ -1,0 +1,59 @@
+## [:< ##
+
+# name = nshell.history.arrow_down
+# descr = Down arrow single entry navigation in history
+
+my ( $state_ref, $editor, $colors ) = @_;
+
+my $target_index = -1;
+my $lines_ref = undef;
+
+if ( $state_ref->{current_history_index} >= 0 ) {
+    ## We're viewing history - navigate relative to current position
+    ## Down = older = higher index
+    $target_index = $state_ref->{current_history_index} + 1;
+    if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
+        my $entry = $AMOS7::TERM::history_entries[$target_index];
+        if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
+            $lines_ref = $entry->[1];
+        }
+    } else {
+        ## Reached end of history - clear buffer and reset
+        $state_ref->{current_history_index} = -1;
+    }
+} else {
+    ## Not in tracked history - use library function
+    $lines_ref = AMOS7::TERM::history_down();
+}
+
+return unless defined $lines_ref;
+
+## Clear previous display before showing new one
+my $clear_len = length( $state_ref->{display_buffer} ) + 8;
+print "\r" . ( ' ' x $clear_len ) . "\r" if $clear_len > 0;
+
+$state_ref->{display_buffer} = join "\n", $lines_ref->@*;
+
+## Update history index if navigating from tracked position
+$state_ref->{current_history_index} = $target_index if $target_index >= 0;
+
+## Load into editor to sync editor buffer
+AMOS7::TERM::editor_load( $editor, $state_ref->{display_buffer} );
+
+my $display_buffer = $colors->{p7_fg_0004} . $state_ref->{display_buffer};
+
+## Redraw full line with cursor
+<[nshell.render.full_line]>->(
+    $editor, $display_buffer, $colors
+);
+
+## Enter VIEWING_HISTORY mode
+$state_ref->{current_mode} = 2;  # VIEWING_HISTORY
+
+return;
+
+#,,.,,,.,,,..,,,.,,..,.,,,.,,,,.,,.,.,,.,,...,.,.,...,...,.,,,.,,,..,,.,,,.,.,
+#TAYFRK3PGIGH7SQIW4ZFRXJWKXQAPTVJPCQTIWJFUVZSQMZKBRAGR3DBTKQZFTQ6BP2HG5FWVLD3Y
+#\\\|6LM5C3EXPLPIVPLHQA7UUFWLEHNNPXL4F6NXNXKXXYIFVXNBEE5 \ / AMOS7 \ YOURUM ::
+#\[7]HXTWI2W423XOIVEXPYRWSVZVO2774D7IJ6YU6NWENZBUXRHSICBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

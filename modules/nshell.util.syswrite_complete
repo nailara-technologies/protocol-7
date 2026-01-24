@@ -1,0 +1,21 @@
+## [:< ##
+
+# name = nshell.util.syswrite_complete
+# descr = Write bytes ensuring complete write (syswrite may be partial)
+
+my ( $fh, $data ) = @ARG;
+my $total   = length($data);
+my $written = 0;
+
+while ( $written < $total ) {
+    my $n = syswrite( $fh, $data, $total - $written, $written );
+    last if !defined $n or $n <= 0;
+    $written += $n;
+}
+return $written;
+
+#,,,.,,.,,,,.,...,.,.,,.,,.,,,.,.,...,,.,,,.,,.,.,...,..,,,.,,,.,,.,.,.,,,,.,,
+#7BGG5OK5WNCW7A46PIEKOYAM2S4EXOH5IPDTCACFSC4NYLFCCO6O472JKJVSH4HK5R637IB4ZBDGY
+#\\\|D2WCHQ4C26OQMHEVBOEMUATOISRIZPXKKMHDZZSDMOUUC2TTSHN \ / AMOS7 \ YOURUM ::
+#\[7]WHYY7ZEOZA6YWEH2RDIKQ7P3V3N5WRJOYACBMXKZAIWUJBHIVWBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

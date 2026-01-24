@@ -1,0 +1,48 @@
+## [:< ##
+
+# name = nshell.state.init
+# descr = Initialize nshell navigation state machine and variables
+
+## Navigation mode constants
+our %nav_mode = (
+    NORMAL          => 0,  # At command prompt, normal editing
+    SEARCHING       => 1,  # Ctrl+R search mode active
+    VIEWING_HISTORY => 2,  # After navigation keys (Page Up/Down, arrows)
+);
+
+## Initialize all state variables
+return {
+    ## Navigation state
+    current_mode            => $nav_mode{NORMAL},
+    current_history_index   => -1,    # Which history entry we're viewing (-1 = none)
+
+    ## Editor and display state
+    editor                  => undef,
+    display_buffer          => '',    # Current display (may be from history)
+    escape_buffer           => '',    # For accumulating escape sequences
+    input_chars             => '',    # Character buffer
+    colors                  => {},    # Color palette (lazily loaded)
+
+    ## Cursor state
+    prev_cursor_pos         => 0,
+    show_cursor_on_call     => 1,     # TRUE - show cursor at start of each call
+
+    ## Search mode state
+    search_mode             => 0,     # FALSE - whether in Ctrl+R search
+    search_term             => '',    # Current search term
+    search_results          => [],    # Matching history entries
+    search_index            => 0,     # Current position in search results
+    pre_search_buffer       => '',    # Buffer before entering search mode
+    search_term_history     => [],    # Search term history for Up/Down nav
+    search_term_hist_index  => -1,    # Position in search term history
+    search_deleted_chars    => '',    # Characters deleted by Left arrow
+
+    ## Editor integration
+    debug_cmd_buffer        => '',    # Accumulate potential debug command :CMD:
+};
+
+#,,,.,,,.,..,,..,,,.,,,,,,,.,,.,.,.,.,,..,,.,,.,.,...,...,,..,.,.,..,,,..,...,
+#44DLEEPVXETFH3S3IQ5RTU23LLZIWCSB7HHPDYAL3UQ3I42QD7ZNM7GWQFBMTVPG4SFBQKOWQCSDC
+#\\\|B5L2ZEQVLBP3N7JXUJVLLSG4MMJXNBJCSG2PVTMAT7KXBT6QMRZ \ / AMOS7 \ YOURUM ::
+#\[7]UGALO24VM4T72432ZKG3PM7LTR7WKUQFBCLPE7TKEJWAAOSYJACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
