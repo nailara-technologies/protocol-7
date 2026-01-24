@@ -17,18 +17,15 @@ STDOUT->autoflush(1);    ## Ensure bytes are sent immediately to terminal
     'AMOS7::Protocol::P7', qw| calc_port calc_unix_path |
 );
 
-## loading required terminal modules ##
+## loading terminal modules ## [ remainder in Protocol-7 and base.init_code ]
 <[base.perlmod.load]>->('Linux::Termios2');
-<[base.perlmod.load]>->( 'Fcntl', qw| F_GETFL F_SETFL | );
-<[base.perlmod.load]>->( 'POSIX', qw| :termios_h O_NONBLOCK | );
 
-## Configure AMOS7 output
 $AMOS7::TERM::title_prefix         = ' .:';
 $AMOS7::mesg_prefix_string         = ' ::';
 $AMOS7::TERM::prompt_prefix_string = ' ::';
 
-## Get current Unix user for authentication
-my $current_user = $ENV{'USER'} // getpwuid($EUID) // 'taeki';
+## current Unix user for authentication [configurable : nshell.login_user ]
+my $current_user = <nshell.login_user> // $ENV{'USER'} // getpwuid($EUID);
 
 ## Initialize command history
 ## Load previous history entries from ~/.protocol-7/nshell.history
@@ -65,8 +62,8 @@ $code{'base.handler.end_code'} = sub {
 
 return 0;
 
-#,,..,.,.,..,,..,,,,.,..,,,.,,..,,,,,,..,,,,,,..,,...,...,,,.,.,.,,,,,...,..,,
-#WHTLXKEIPGS32RMYZD4DIIFYK3PXXBKHF3RBOHFC6BJ6IYZHPAXJ4G5RNVDWSWYB6XVLIGNBPPHNI
-#\\\|WJXJ5G4JTUP3MWYF2PA3YEIQNSATJISLLQPOLPTBI4Q6PGIBNV5 \ / AMOS7 \ YOURUM ::
-#\[7]WLCRIPFKN5KGP7R5AAKR3E45I7OBMOIRHN4KRFXZ4X2SO2XT5ABY 7  DATA SIGNATURE ::
+#,,,.,...,,..,...,,,.,,,,,.,,,.,.,,..,.,,,,,,,..,,...,...,..,,..,,,,,,..,,,.,,
+#PSATRXDMBFAX7AN6Y2NKW4D43IM7YTUXATZI464EVKDRGDFOTJLK7NJPDILC6XPD2WOYLKHQVNKYK
+#\\\|U7PT2GBQVSDYDOYTPL435XIKUJTQOLPHDN7C2BG7VU6P7ZEDD26 \ / AMOS7 \ YOURUM ::
+#\[7]C3QB34536HARNH2DPIUVVD4SITLR6CCQEQXX47SAZDX7ZN2MSSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
