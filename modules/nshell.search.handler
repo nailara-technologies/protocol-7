@@ -134,9 +134,10 @@ if ( $key eq "\r" or $key eq "\n" ) {
         $state_ref->{current_mode}           = 0;    # NORMAL
 
         AMOS7::TERM::editor_load( $editor, $selected );
-        $state_ref->{display_buffer} = '';
-        print "\n";
+        ## Clear search prompt and display selected command
+        print "\r\e[K" . $colors->{p7_fg_0004} . $selected . "\n";
         STDOUT->flush();
+        $state_ref->{display_buffer}      = '';
         $state_ref->{show_cursor_on_call} = 1;       # TRUE
 
         return 2;    ## Signal to return selected command
@@ -311,8 +312,8 @@ $display_search->( $state_ref->{search_term} );
 
 return 0;    ## Continue in search mode
 
-#,,,.,,..,,.,,,,,,,..,.,.,.,,,,.,,,..,,.,,,,,,.,.,...,...,...,.,.,,..,..,,.,,,
-#X5U7ANK3GNCQ3BOVAUN35NOP4RZMDZBLY4UHR72SQOFTKMBQJZKVKJ3RLY7AYUM6EFZ5SIYE42UYI
-#\\\|GIJUYTXRO55RP4CZFTFDQW7P35EKEN3RFAU3VXJJXHVCRWG2LSR \ / AMOS7 \ YOURUM ::
-#\[7]RKXNRHBISSXF25RTT4XBMOPEMNHWXK52I2YNS3KHRBSAFZFC36CA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,,,.,,,.,.,...,.,.,.,,,,..,,,,,.,.,...,...,..,,.,.,,,,,.,.,.,,,
+#XJMO6ADRH42RF44FANFPDGJMDYNNNZMJQT4TIJTEYOARB7JHBYOZHR4IPK5R24MRNIACC7XW5BYTS
+#\\\|W2HMTHKSLFUUPRIEOVRILV7XVQZQ74DYBARBCOKHJUYILMI7F7I \ / AMOS7 \ YOURUM ::
+#\[7]2SKU75DLGT5WAVUILCTRHCNNNI3JFPUZ5KLSJ733BLSAEJLKPIBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

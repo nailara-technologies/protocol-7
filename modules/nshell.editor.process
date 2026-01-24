@@ -125,6 +125,10 @@ if ( $action eq 'newline' ) {
     if ( length $result ) {
         my @lines = split "\n", $result;
         AMOS7::TERM::history_add(@lines);
+    } else {
+        ## Only redraw cursor on next line if prompt was empty
+        print $colors->{p7_fg_0003} . "_";
+        STDOUT->flush();
     }
 
     return $result;    ## Return command (or empty string)
@@ -133,8 +137,8 @@ if ( $action eq 'newline' ) {
 ## Unknown action - ignore
 return undef;
 
-#,,.,,.,,,.,,,...,,,.,,.,,,..,..,,,.,,.,.,,,.,.,.,...,...,.,.,,..,,..,,,.,,,.,
-#IALJEYVLNFR2DERYE6W2E7CRQWG426ULYTQLRY5GEZCCFK5BJSKEAGTBTVPKFALKAIDA5OFS24WE6
-#\\\|NGEVKQ5MDITLPW2WBQFVAY5RN4TJWLCURXY5QBLWHG5ZJYXKSJW \ / AMOS7 \ YOURUM ::
-#\[7]7KBNVPRRNNALV6J4UBFQHZXVAH66J2CDS3FXGAGEDQ4BI3K7GCAY 7  DATA SIGNATURE ::
+#,,,.,,..,...,.,,,,,,,,.,,..,,,,,,,.,,,.,,.,.,.,.,...,..,,...,..,,.,,,.,,,,.,,
+#2D2NMZ6MISQL5N2LF7AKXASBXRMN3HRQZE7S3IXDC2NA6TB5AUNBJO2QNHAHZ4HYPLELBMFS6S7PY
+#\\\|X5WKTI4OBX7WMN3DL7XFMWL7DPYHABHUG7EWXVRZUNOCBMUYLZD \ / AMOS7 \ YOURUM ::
+#\[7]ZOQFHNYWDPW5H6S7WIV5FUQBRTVB24WEY3UBB6MKS2DVMVTIHYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
