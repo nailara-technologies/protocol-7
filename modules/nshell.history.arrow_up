@@ -20,8 +20,14 @@ if ( $state_ref->{current_history_index} >= 0 ) {
         }
     }
 } else {
-    ## Not in tracked history - use library function
-    $lines_ref = AMOS7::TERM::history_up();
+    ## Not in tracked history - start from oldest entry (last in array)
+    if (@AMOS7::TERM::history_entries) {
+        $target_index = @AMOS7::TERM::history_entries - 1;
+        my $entry = $AMOS7::TERM::history_entries[$target_index];
+        if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
+            $lines_ref = $entry->[1];
+        }
+    }
 }
 
 return unless defined $lines_ref;
@@ -48,8 +54,8 @@ $state_ref->{current_mode} = 2;    # VIEWING_HISTORY
 
 return;
 
-#,,.,,,..,,..,...,,,.,.,,,.,,,..,,,..,.,.,.,.,.,.,...,...,.,.,..,,...,.,,,,,.,
-#VYYLURBZIER2RFDZP3D6PGY7NV5E4JYVNQVNLGAC3PNFRTL7AIF3FTUWLL7BFJVWITUKJAEM74KY4
-#\\\|2KOQPQUVRWY4H346GB4PGEX7CEOPY2WP4OJ3IRFEINS22CLXYDK \ / AMOS7 \ YOURUM ::
-#\[7]5KMZV3CO74VWY4AWNI6KSH4Z5RUEJ6PBRXYFMT24X3NDNQBFLOBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,.,.,,,.,,.,,,,.,...,..,,,.,,.,,,.,.,...,...,...,...,..,,..,,,..,
+#J3W3HIZV3QEXWUQVD2OHAK4TLXISIYY3UFKNOTBEOECHQSZPO4H6DVBPIDOTTGZSI4OSMPNYHBO6K
+#\\\|OOFKLSJ7ZG6HJ4TIEYJOA7CSVUT6Q35KRR4B2KPVOETFGX4N3UU \ / AMOS7 \ YOURUM ::
+#\[7]DC4FUXKJJTFQSDHZXPTWK4NCP5SBUVGH7COXL27PN3WLELWJI6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
