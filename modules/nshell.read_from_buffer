@@ -213,13 +213,17 @@ while ( length $input_chars ) {
     }
 
     ## Return command if submitted
-    return $result if defined $result;
+    if ( defined $result ) {
+        ## Set flag to redraw cursor on next call after reply arrives
+        $show_cursor_on_call = TRUE;
+        return $result;
+    }
 }
 
 return undef;
 
-#,,,.,.,,,.,.,.,,,,,,,,.,,,,,,,,.,...,.,.,,,,,.,.,...,.,.,.,,,,,.,,..,.,,,.,.,
-#6YGL3ISFQ2JLQ2TVUVJZCVDA7PFLEKJFFJ76L3MVA6Q77MGNNBYQZ4YJZJJJD7YQWYK5VIDKCKP5G
-#\\\|GVIS3T572MRTXI5UQPHGSBLJYEFOMZPD2D3ZSRVBPQVFAZLDTMI \ / AMOS7 \ YOURUM ::
-#\[7]YESNSMWSVFSUTPYZSMEAUZ24J43AMCNYF4V6L4Q7MVMWKICC6QDA 7  DATA SIGNATURE ::
+#,,,,,..,,...,.,.,...,,,,,,,,,.,,,,..,.,.,..,,.,.,...,..,,.,,,..,,.,.,,..,,.,,
+#I5NOG2HIXCGQDLYKG3LVAR4O25GYXQ7COU6GEXMAPINKFO4CYGSMWRW3ONUBOJAWDVTMGNR3PYKTO
+#\\\|DIOCKBL2TQAXJJZZ5JDQLMYAVF4HRI4XVUUW6ESA7KBCSCPSLWG \ / AMOS7 \ YOURUM ::
+#\[7]OGZN7OV5WMZ3TZ4OZENTMOKSKWOLZI4NJTI3XDIYBYBW4G2R64DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
