@@ -9,37 +9,26 @@ my ( $state_ref, $editor, $colors ) = @_;
 my $session_gap_minutes = 10 // 13;
 my $gap_seconds         = $session_gap_minutes * 60;
 
-## Determine current history position
-my $current_index = -1;
-if ( $state_ref->{current_history_index} >= 0 ) {
-    ## Already viewing history - use tracked index
-    $current_index = $state_ref->{current_history_index};
-} else {
-    ## Not viewing history yet - search for current buffer or start at most recent
-    my $current_cmd = $editor->{buffer} // '';
-    if ( length($current_cmd) ) {
-        for ( my $i = 0; $i < @AMOS7::TERM::history_entries; $i++ ) {
-            my $entry = $AMOS7::TERM::history_entries[$i];
-            if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
-                my $cmd = join( "\n", @{ $entry->[1] } );
-                if ( $cmd eq $current_cmd ) {
-                    $current_index = $i;
-                    last;
-                }
-            }
-        }
-    } else {
-        ## Empty buffer - start from most recent history entry
-        $current_index = 0 if @AMOS7::TERM::history_entries;
-    }
-}
+## At prompt: PageDown should stay at prompt
+return unless $state_ref->{current_history_index} >= 0;
+
+## Already viewing history - use tracked index
+my $current_index = $state_ref->{current_history_index};
 
 ## Find next older session boundary
 my $target_index = <[nshell.history.find_session_boundary]>->(
     $current_index, -1, $gap_seconds
 );
 
-return if $target_index < 0;
+## If no older session found, return to prompt
+if ( $target_index < 0 ) {
+    $state_ref->{current_history_index} = -1;
+    $state_ref->{display_buffer} = '';
+    $state_ref->{current_mode} = 0;  # Return to NORMAL mode
+    print "\r\e[K" . $state_ref->{colors}->{p7_fg_0004};
+    STDOUT->flush();
+    return;
+}
 
 ## Load and display the target entry
 if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
@@ -71,8 +60,8 @@ if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
 
 return;
 
-#,,..,.,,,,,.,.,.,.,,,,..,.,.,...,.,.,,.,,,.,,.,.,...,...,.,,,..,,..,,,,.,,..,
-#2EELWK2ZYFLWQQOUCBKWOD5HTYJC6VM6E573SOKEAAOFZBP64SKVV52QJVEIDMAVDRLAG5MMIIRKY
-#\\\|OVVCF2MMFQNPL6SG527MHZXEVX3TZ43W4ODDWLKWVUU25FOACST \ / AMOS7 \ YOURUM ::
-#\[7]TWKVZB6X4FEXSXPDJB7EXO6SHWCYYZDQO6OWCB2YWASYLNZN5IAA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,,.,,,.,,..,,,,,.,.,...,,..,.,.,.,.,...,...,...,...,,.,,..,,,..,
+#L2ZKKJAJAWQM3JURY56BKAWZXYGBTZCGOKPYRXAX3RTLFLK4S2G5SQ36DP3ULNIHLLUTTQSNQG4BC
+#\\\|KZLGTOENMOJUKHY45P23ZQEOR7NQPU5YA56JGTTKP4AM46DWTWV \ / AMOS7 \ YOURUM ::
+#\[7]FLHS5Y7GIUIMCU473J77YT5QMIFZU7BJT5L4QAIESX7BUDBTWOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

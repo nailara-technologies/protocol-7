@@ -11,38 +11,27 @@ my $gap_seconds         = $session_gap_minutes * 60;
 
 ## Determine current history position
 my $current_index = -1;
+my $target_index = -1;
+
 if ( $state_ref->{current_history_index} >= 0 ) {
     ## Already viewing history - use tracked index
     $current_index = $state_ref->{current_history_index};
-} else {
-    ## Not viewing history yet - search for current buffer or start at most recent
-    my $current_cmd = $editor->{buffer} // '';
-    if ( length($current_cmd) ) {
-        for ( my $i = 0; $i < @AMOS7::TERM::history_entries; $i++ ) {
-            my $entry = $AMOS7::TERM::history_entries[$i];
-            if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
-                my $cmd = join( "\n", @{ $entry->[1] } );
-                if ( $cmd eq $current_cmd ) {
-                    $current_index = $i;
-                    last;
-                }
-            }
-        }
-    } else {
-        ## Empty buffer - start from most recent history entry
-        $current_index = 0 if @AMOS7::TERM::history_entries;
+
+    ## Find next newer session boundary
+    $target_index = <[nshell.history.find_session_boundary]>->(
+        $current_index, 1, $gap_seconds
+    );
+
+    ## If no boundary found, go to oldest entry
+    if (   $target_index == -1
+        && $current_index < @AMOS7::TERM::history_entries - 1 ) {
+        $target_index = @AMOS7::TERM::history_entries - 1;
     }
-}
-
-## Find next newer session boundary
-my $target_index = <[nshell.history.find_session_boundary]>->(
-    $current_index, 1, $gap_seconds
-);
-
-## If no boundary found, go to oldest entry
-if (   $target_index == -1
-    && $current_index < @AMOS7::TERM::history_entries - 1 ) {
-    $target_index = @AMOS7::TERM::history_entries - 1;
+} else {
+    ## At prompt: jump directly to oldest entry
+    if ( @AMOS7::TERM::history_entries ) {
+        $target_index = @AMOS7::TERM::history_entries - 1;
+    }
 }
 
 return if $target_index < 0;
@@ -76,8 +65,8 @@ if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
 
 return;
 
-#,,,.,,..,,.,,.,.,.,,,..,,..,,,.,,,,.,,,,,,,.,.,.,...,...,,..,,,.,.,.,.,.,,,.,
-#M2EKBYXLDVNHJD7B4B2VATMEMZQDPWGRGGDSJEXYEQNEPRB2S7VNIHJ6KGI5ZJTFIDI7PIC4CGJBW
-#\\\|6BITN6ZM6GDRJKU2PFX74V5ZEKP3ELMCAP36O7UP4DPBIZXL5DS \ / AMOS7 \ YOURUM ::
-#\[7]DF7XLVL6GK7PO4LOW4GA6YNDBNLZWY6DHOUZJVOCCAB5T7UHWWCQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,..,,,.,,..,,,.,,,.,,.,,.,.,,,,,.,.,...,...,...,,,,,..,,,,.,...,
+#JIB2ZCKO4YOE5NXYKHAAHVHMSJAJGDZE6N54WXGU43NGCV3BWJJYB7I4DHK7JACVJ5UNKYQPM4WWI
+#\\\|CH5MO3PYSYYHWLZFGNROXNH3LVBUBU23RH37STNVFWIZAL576DJ \ / AMOS7 \ YOURUM ::
+#\[7]DP6CWGRR3DCYM7RU6JCQQDMHRW2PKLHI5FQZ7Q6BBB2TQKHKKWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

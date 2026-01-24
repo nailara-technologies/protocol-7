@@ -52,7 +52,7 @@ my $calc_val_copy = $calc_val;
 if (    not $explicit_unix
     and not $explicit_ntime
     and defined $call->{'args'}
-    and $call->{'args'} =~ m|[A..Z]|
+    and $call->{'args'} =~ m|[2..7A..Z]|
     and length($calc_val) >= 10 ) {
     eval { $ntime_decoded = Crypt::Misc::decode_b32r($calc_val) };
     return {
@@ -126,8 +126,8 @@ return {
     'data' => $ltime_str
     }
 
-#,,.,,...,,,,,,,.,...,,,.,,,.,.,.,,.,,,..,.,,,..,,...,...,..,,,,,,,.,,..,,,,,,
-#QYF6SANPGD5QGY6JF4DPJZ3LRIEHJ3O2KJKR4R4JYKHMWA2KON2JCRHMWNQHSN5QBPWHWPPJ7DQUG
-#\\\|2JEU2YLRVM6AWQOU5SN7UMDJNDWFZLORI7QAX5GMDNGP3NWRRDC \ / AMOS7 \ YOURUM ::
-#\[7]K6L3HKZIHGZJLRTPKAWDKXCV5DBSUAVIMF55JKFX7FA2LQ5LOECA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,.,.,.,,,...,...,..,,,,,,.,.,,,.,..,,...,...,,.,,.,,,,..,...,,,.,
+#BH3NEJFVRWLPXKZX2WKIEGEUEOK4NKFTAXPBYOWJ23UBYFZGWNBILUFWXCWZCYLIQ7UCWMNE7AIR2
+#\\\|2IJLVMKAI5WTUAIQN4BAPO5DQGTNSVDU2QIUZZGB7T7Z5IGSHYX \ / AMOS7 \ YOURUM ::
+#\[7]G26WNRR7STRP4EGXB3G6T4H7PLB3BGU3TSLVL5XUO2W5KKCSP4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
