@@ -7,7 +7,7 @@ my ( $state_ref, $editor, $colors ) = @_;
 
 ## Configuration
 my $session_gap_minutes = 10 // 13;
-my $gap_seconds = $session_gap_minutes * 60;
+my $gap_seconds         = $session_gap_minutes * 60;
 
 ## Determine current history position
 my $current_index = -1;
@@ -40,7 +40,8 @@ my $target_index = <[nshell.history.find_session_boundary]>->(
 );
 
 ## If no boundary found, go to oldest entry
-if ( $target_index == -1 && $current_index < @AMOS7::TERM::history_entries - 1 ) {
+if (   $target_index == -1
+    && $current_index < @AMOS7::TERM::history_entries - 1 ) {
     $target_index = @AMOS7::TERM::history_entries - 1;
 }
 
@@ -56,28 +57,27 @@ if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
         my $clear_len = length( $state_ref->{display_buffer} ) + 8;
         print "\r" . ( ' ' x $clear_len ) . "\r" if $clear_len > 0;
 
-        $state_ref->{display_buffer} = join "\n", $lines_ref->@*;
+        $state_ref->{display_buffer}        = join "\n", $lines_ref->@*;
         $state_ref->{current_history_index} = $target_index;
 
         ## Load into editor to sync editor buffer
         AMOS7::TERM::editor_load( $editor, $state_ref->{display_buffer} );
 
-        my $display_buffer = $colors->{p7_fg_0004} . $state_ref->{display_buffer};
+        my $display_buffer
+            = $colors->{p7_fg_0004} . $state_ref->{display_buffer};
 
         ## Redraw full line with cursor
-        <[nshell.render.full_line]>->(
-            $editor, $display_buffer, $colors
-        );
+        <[nshell.render.full_line]>->( $editor, $display_buffer, $colors );
 
         ## Enter VIEWING_HISTORY mode
-        $state_ref->{current_mode} = 2;  # VIEWING_HISTORY
+        $state_ref->{current_mode} = 2;    # VIEWING_HISTORY
     }
 }
 
 return;
 
-#,,,.,..,,.,.,..,,,.,,,.,,,,.,.,.,..,,,..,,..,.,.,...,...,,,.,,,.,..,,...,,..,
-#ZOS45PA7ARGTPTIB36NTNBYHB3DTTTXZPWFR7R4YNY4ZE2WOHSD4FTKT7ESI2PQMEO373ZMW2O5P4
-#\\\|23ARU6OBJYDH6WA5LWRTWZYTAT2ZIOXMZSFQYEQT7ZBGDWMAF26 \ / AMOS7 \ YOURUM ::
-#\[7]BEJEWOBGVMVUEOWKODJK7JKWLMGSTWSJ72YTURQBZMWBVNK4KCDY 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,.,.,.,,,..,,..,,,.,,,,.,,,,,,,.,.,.,...,...,,..,,,.,.,.,.,.,,,.,
+#M2EKBYXLDVNHJD7B4B2VATMEMZQDPWGRGGDSJEXYEQNEPRB2S7VNIHJ6KGI5ZJTFIDI7PIC4CGJBW
+#\\\|6BITN6ZM6GDRJKU2PFX74V5ZEKP3ELMCAP36O7UP4DPBIZXL5DS \ / AMOS7 \ YOURUM ::
+#\[7]DF7XLVL6GK7PO4LOW4GA6YNDBNLZWY6DHOUZJVOCCAB5T7UHWWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

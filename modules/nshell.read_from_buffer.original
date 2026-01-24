@@ -31,7 +31,8 @@ state $search_deleted_chars
     = '';    ## Characters deleted by Left arrow (for Right arrow undo)
 
 ## History navigation state for Page Up/Down
-state $current_history_index = -1;   ## Track which history entry we're viewing (-1 = none)
+state $current_history_index
+    = -1;    ## Track which history entry we're viewing (-1 = none)
 
 ## Show cursor at start of each call (after command execution or on first call)
 if ($show_cursor_on_call) {
@@ -88,7 +89,6 @@ if ( -t STDIN ) {
 while ( length $input_chars ) {
     my $key = _extract_utf8_char( \$input_chars );
     last if not defined $key; ## Incomplete UTF-8 sequence, wait for more data
-
 
     ## Load colors early if not already loaded (needed for all key processing)
     if ( !%colors ) {
@@ -545,13 +545,14 @@ while ( length $input_chars ) {
         if ( $escape_buffer eq "\e[A" ) {
             ## Up arrow
             my $target_index = -1;
-            my $lines_ref = undef;
+            my $lines_ref    = undef;
 
             if ( $current_history_index >= 0 ) {
                 ## We're viewing history from Page Up/Down - navigate relative to current position
                 ## Up = newer = lower index
                 $target_index = $current_history_index - 1;
-                if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
+                if (   $target_index >= 0
+                    && $target_index < @AMOS7::TERM::history_entries ) {
                     my $entry = $AMOS7::TERM::history_entries[$target_index];
                     if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
                         $lines_ref = $entry->[1];
@@ -611,13 +612,14 @@ while ( length $input_chars ) {
         } elsif ( $escape_buffer eq "\e[B" ) {
             ## Down arrow
             my $target_index = -1;
-            my $lines_ref = undef;
+            my $lines_ref    = undef;
 
             if ( $current_history_index >= 0 ) {
                 ## We're viewing history from Page Up/Down - navigate relative to current position
                 ## Down = older = higher index
                 $target_index = $current_history_index + 1;
-                if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
+                if (   $target_index >= 0
+                    && $target_index < @AMOS7::TERM::history_entries ) {
                     my $entry = $AMOS7::TERM::history_entries[$target_index];
                     if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
                         $lines_ref = $entry->[1];
@@ -696,7 +698,6 @@ while ( length $input_chars ) {
                 // 13;
             my $gap_seconds = $session_gap * 60;
 
-
             ## Determine current history position
             my $current_index = -1;
             if ( $current_history_index >= 0 ) {
@@ -706,7 +707,11 @@ while ( length $input_chars ) {
                 ## Not viewing history yet - search for current buffer or start at most recent
                 my $current_cmd = $command_buffer // '';
                 if ( length($current_cmd) ) {
-                    for ( my $i = 0; $i < @AMOS7::TERM::history_entries; $i++ ) {
+                    for (
+                        my $i = 0;
+                        $i < @AMOS7::TERM::history_entries;
+                        $i++
+                    ) {
                         my $entry = $AMOS7::TERM::history_entries[$i];
                         if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
                             my $cmd = join( "\n", @{ $entry->[1] } );
@@ -729,36 +734,39 @@ while ( length $input_chars ) {
                 my $prev_time_raw
                     = $AMOS7::TERM::history_entries[$current_index]->[0];
                 my $prev_time = $prev_time_raw;
-                $prev_time =~ s/:[\d]+$//;  ## Strip :count suffix
+                $prev_time =~ s/:[\d]+$//;    ## Strip :count suffix
 
                 for (
                     my $i = $current_index + 1;
                     $i < @AMOS7::TERM::history_entries;
                     $i++
                 ) {
-                    my $entry      = $AMOS7::TERM::history_entries[$i];
+                    my $entry          = $AMOS7::TERM::history_entries[$i];
                     my $entry_time_raw = $entry->[0];
-                    my $entry_time = $entry_time_raw;
-                    $entry_time =~ s/:[\d]+$//;  ## Strip :count suffix
+                    my $entry_time     = $entry_time_raw;
+                    $entry_time =~ s/:[\d]+$//;    ## Strip :count suffix
 
                     ## Calculate time difference using base.ntime.delta_seconds
-                    my $time_diff = <[base.ntime.delta_seconds]>->( $prev_time, $entry_time ) // 0;
+                    my $time_diff = <[base.ntime.delta_seconds]>->(
+                        $prev_time, $entry_time
+                    ) // 0;
 
                     ## Found session boundary (gap >= session_gap_minutes)
                     if ( $time_diff >= $gap_seconds ) {
                         ## Found start of previous session, go to it
-                        $target_index = $i;  ## Jump to first entry of previous session
+                        $target_index
+                            = $i;   ## Jump to first entry of previous session
                         last;
                     }
                     $prev_time = $entry_time;
                 }
 
                 ## If no boundary found, go to oldest entry
-                if ( $target_index == -1 && $current_index < @AMOS7::TERM::history_entries - 1 ) {
+                if (   $target_index == -1
+                    && $current_index < @AMOS7::TERM::history_entries - 1 ) {
                     $target_index = @AMOS7::TERM::history_entries - 1;
                 }
             }
-
 
             ## Load and display the target entry
             if (   $target_index >= 0
@@ -829,7 +837,11 @@ while ( length $input_chars ) {
                 ## Not viewing history yet - search for current buffer or start at most recent
                 my $current_cmd = $command_buffer // '';
                 if ( length($current_cmd) ) {
-                    for ( my $i = 0; $i < @AMOS7::TERM::history_entries; $i++ ) {
+                    for (
+                        my $i = 0;
+                        $i < @AMOS7::TERM::history_entries;
+                        $i++
+                    ) {
                         my $entry = $AMOS7::TERM::history_entries[$i];
                         if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
                             my $cmd = join( "\n", @{ $entry->[1] } );
@@ -852,25 +864,24 @@ while ( length $input_chars ) {
                 my $prev_time_raw
                     = $AMOS7::TERM::history_entries[$current_index]->[0];
                 my $prev_time = $prev_time_raw;
-                $prev_time =~ s/:[\d]+$//;  ## Strip :count suffix
+                $prev_time =~ s/:[\d]+$//;    ## Strip :count suffix
 
-                for (
-                    my $i = $current_index - 1;
-                    $i >= 0;
-                    $i--
-                ) {
-                    my $entry      = $AMOS7::TERM::history_entries[$i];
+                for ( my $i = $current_index - 1; $i >= 0; $i-- ) {
+                    my $entry          = $AMOS7::TERM::history_entries[$i];
                     my $entry_time_raw = $entry->[0];
-                    my $entry_time = $entry_time_raw;
-                    $entry_time =~ s/:[\d]+$//;  ## Strip :count suffix
+                    my $entry_time     = $entry_time_raw;
+                    $entry_time =~ s/:[\d]+$//;    ## Strip :count suffix
 
                     ## Calculate time difference using base.ntime.delta_seconds
-                    my $time_diff = <[base.ntime.delta_seconds]>->( $prev_time, $entry_time ) // 0;
+                    my $time_diff = <[base.ntime.delta_seconds]>->(
+                        $prev_time, $entry_time
+                    ) // 0;
 
                     ## Found session boundary (gap >= session_gap_minutes)
                     if ( $time_diff >= $gap_seconds ) {
                         ## Found start of next newer session, go to last entry of it
-                        $target_index = $i + 1;  ## Jump to last entry of next session
+                        $target_index
+                            = $i + 1;    ## Jump to last entry of next session
                         last;
                     }
                     $prev_time = $entry_time;
@@ -1111,9 +1122,9 @@ while ( length $input_chars ) {
             print "\e[K";
         }
 
-        $prev_cursor_pos = $cursor_pos;
-        $display_buffer  = '';    ## User is editing, clear display buffer
-        $current_history_index = -1;  ## Reset history tracking when user types
+        $prev_cursor_pos       = $cursor_pos;
+        $display_buffer        = ''; ## User is editing, clear display buffer
+        $current_history_index = -1; ## Reset history tracking when user types
     } elsif ( $edit_result->{action} eq qw| backspace |
         or $edit_result->{action} eq qw| delete | ) {
         ## Full line redraw for deletion operations - ensures clean rendering
@@ -1353,8 +1364,8 @@ while ( length $input_chars ) {
 
 return undef;    ## No complete line yet, buffer exhausted or incomplete UTF-8
 
-#,,,.,,,,,.,,,,,,,..,,,,,,,,.,,,.,..,,...,,,.,..,,...,...,...,.,.,.,,,,,,,,..,
-#Z6O6JLWCYGDAALJQY7ANVORHALHE3HSGENY2OEU5XN24HLHOAMEPJ6DMJT5AHNOJDR24N5ULOJKQW
-#\\\|XUIT3NKT5WJVUF42JXHE37ZEUMARXK76ITIOJADDKKXHLN4AJI2 \ / AMOS7 \ YOURUM ::
-#\[7]LZHTMU6F75ZHGDM3DG4I7MLGIT6W7VCYZT5Y3OXCVICNLMB77CAQ 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,,.,...,.,.,...,..,,,,,,,,,,,..,..,,...,...,...,,,,,,,,,.,.,.,,,
+#C5MIEUQTLYKKYRJYARH3JABRSXO6JADFUBXSAHUJ5BR54ORHZRJOGXDA5GX4YT7QDJI52XAAMDOYW
+#\\\|M3AMQVEXCCT5TTNYYCIU6UNFHHYUUGKPB2SVZGFOTADBX4IKE2K \ / AMOS7 \ YOURUM ::
+#\[7]5FTMUSQSHDRQFEEIQRMBYWOVVRA6N4AHG5WE7Q6CEM354ICYCQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

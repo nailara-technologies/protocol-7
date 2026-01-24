@@ -10,11 +10,11 @@ my $first_byte = ord( substr( $$buf_ref, 0, 1 ) );
 my $seq_len    = 1;
 
 ## Determine UTF-8 sequence length from first byte
-if ( ( $first_byte & 0xE0 ) == 0xC0 ) {  ## 110xxxxx - 2 byte sequence
+if ( ( $first_byte & 0xE0 ) == 0xC0 ) {    ## 110xxxxx - 2 byte sequence
     $seq_len = 2;
-} elsif ( ( $first_byte & 0xF0 ) == 0xE0 ) {  ## 1110xxxx - 3 byte sequence
+} elsif ( ( $first_byte & 0xF0 ) == 0xE0 ) {    ## 1110xxxx - 3 byte sequence
     $seq_len = 3;
-} elsif ( ( $first_byte & 0xF8 ) == 0xF0 ) {  ## 11110xxx - 4 byte sequence
+} elsif ( ( $first_byte & 0xF8 ) == 0xF0 ) {    ## 11110xxx - 4 byte sequence
     $seq_len = 4;
 }
 ## else: 0xxxxxxx (ASCII) - already $seq_len = 1
@@ -22,8 +22,8 @@ if ( ( $first_byte & 0xE0 ) == 0xC0 ) {  ## 110xxxxx - 2 byte sequence
 ## Extract the complete sequence (or what we have)
 return substr( $$buf_ref, 0, $seq_len, '' );
 
-#,,.,,...,,,.,,,.,...,.,.,,,.,,.,,.,.,,..,,,,,.,.,...,...,.,,,..,,,,,,,,,,,,,,
-#FKS6SYS7VNZTAVU22FDZDOXEZMS2N3CFOACJHTH57ZV2PQSEIGEAI6LYR2XQ4QVTDWQVH3FQSWTNM
-#\\\|O6PWD4G37ZOWFCWLKZM76Z546PVVYZPILBKF74XAPJSXGICX74P \ / AMOS7 \ YOURUM ::
-#\[7]LBERKEDHRU6CYRA6H3V5CNNN7TXHL7FFE2PIYNOPMMDM7XGRQ4BY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,...,.,,,,,,,.,.,,,,,...,.,,,.,.,.,.,...,..,,,.,,,,,,,,,,.,,,,,.,
+#F4CHORUWARP47PG6KKJPRTFRNFYQ5SA6MJ4EWVLJCBHWI47PJWBU3FRH2TFQSXTZWJQ3O4QUHFWRI
+#\\\|5QW4DNRAGRIMXKF6BCIL4YDXCRZJDTR4WD2TWW5733UHF3AYHQJ \ / AMOS7 \ YOURUM ::
+#\[7]KJBHBYGTITN25BLDDLFGMZ6SXNJA3SLGEFW4PEJHHD7LTGDA6CCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

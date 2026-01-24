@@ -7,7 +7,7 @@ my ( $state_ref, $editor, $colors ) = @_;
 
 ## Configuration
 my $session_gap_minutes = 10 // 13;
-my $gap_seconds = $session_gap_minutes * 60;
+my $gap_seconds         = $session_gap_minutes * 60;
 
 ## Determine current history position
 my $current_index = -1;
@@ -52,28 +52,27 @@ if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
         $clear_len = 20 if $clear_len < 20;
         print "\r" . ( ' ' x $clear_len ) . "\r";
 
-        $state_ref->{display_buffer} = join "\n", $lines_ref->@*;
+        $state_ref->{display_buffer}        = join "\n", $lines_ref->@*;
         $state_ref->{current_history_index} = $target_index;
 
         ## Load into editor to sync editor buffer
         AMOS7::TERM::editor_load( $editor, $state_ref->{display_buffer} );
 
-        my $display_buffer = $colors->{p7_fg_0004} . $state_ref->{display_buffer};
+        my $display_buffer
+            = $colors->{p7_fg_0004} . $state_ref->{display_buffer};
 
         ## Redraw full line with cursor
-        <[nshell.render.full_line]>->(
-            $editor, $display_buffer, $colors
-        );
+        <[nshell.render.full_line]>->( $editor, $display_buffer, $colors );
 
         ## Enter VIEWING_HISTORY mode
-        $state_ref->{current_mode} = 2;  # VIEWING_HISTORY
+        $state_ref->{current_mode} = 2;    # VIEWING_HISTORY
     }
 }
 
 return;
 
-#,,,.,.,,,,.,,.,.,,,,,,,.,,,.,...,.,.,...,.,.,.,.,...,...,.,,,.,,,,,.,..,,.,.,
-#HXNSIMVQLOQLDPTLBNSK4NQQ53H6OZK77RWDESFBAWYTSNK2EO2TLOI6WWEJC3DCARNPFZ7FFZZU4
-#\\\|3JMVFNFUCQJGG4NKO7HV27MU3O53LRIUNRH57V5P4BB5H6HOEZ7 \ / AMOS7 \ YOURUM ::
-#\[7]TNZHHKSRMHWPU2Y24IZZR3U3XBMAXEZ3CLB3RVQABDB37AZIR2DY 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,.,.,.,,,,..,.,.,...,.,.,,.,,,.,,.,.,...,...,.,,,..,,..,,,,.,,..,
+#2EELWK2ZYFLWQQOUCBKWOD5HTYJC6VM6E573SOKEAAOFZBP64SKVV52QJVEIDMAVDRLAG5MMIIRKY
+#\\\|OVVCF2MMFQNPL6SG527MHZXEVX3TZ43W4ODDWLKWVUU25FOACST \ / AMOS7 \ YOURUM ::
+#\[7]TWKVZB6X4FEXSXPDJB7EXO6SHWCYYZDQO6OWCB2YWASYLNZN5IAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

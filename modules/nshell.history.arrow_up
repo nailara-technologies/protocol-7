@@ -6,13 +6,14 @@
 my ( $state_ref, $editor, $colors ) = @_;
 
 my $target_index = -1;
-my $lines_ref = undef;
+my $lines_ref    = undef;
 
 if ( $state_ref->{current_history_index} >= 0 ) {
     ## We're viewing history - navigate relative to current position
     ## Up = newer = lower index
     $target_index = $state_ref->{current_history_index} - 1;
-    if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
+    if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries )
+    {
         my $entry = $AMOS7::TERM::history_entries[$target_index];
         if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
             $lines_ref = $entry->[1];
@@ -40,17 +41,15 @@ AMOS7::TERM::editor_load( $editor, $state_ref->{display_buffer} );
 my $display_buffer = $colors->{p7_fg_0004} . $state_ref->{display_buffer};
 
 ## Redraw full line with cursor
-<[nshell.render.full_line]>->(
-    $editor, $display_buffer, $colors
-);
+<[nshell.render.full_line]>->( $editor, $display_buffer, $colors );
 
 ## Enter VIEWING_HISTORY mode
-$state_ref->{current_mode} = 2;  # VIEWING_HISTORY
+$state_ref->{current_mode} = 2;    # VIEWING_HISTORY
 
 return;
 
-#,,,.,,.,,..,,..,,.,.,,,.,...,,.,,,.,,,.,,,,.,.,.,...,...,.,.,,.,,,.,,...,,,,,
-#GKVWQRMWSO7MX3OQWYOO5V4EHKYZXMFRCREDMQGJDFZJ4WQEJOASSBZ43HGGZ26V425GIPVEXA5XQ
-#\\\|ND6YWZSORFIE5DCPFPX4FCQUAO6PDS3BHGY33VNMJWUYIZGEVWG \ / AMOS7 \ YOURUM ::
-#\[7]CVYRMINDDF6NQSNWCK66R3NMGDMAF7Q5KDMO5U2PYY7XYWCVHSDQ 7  DATA SIGNATURE ::
+#,,.,,,..,,..,...,,,.,.,,,.,,,..,,,..,.,.,.,.,.,.,...,...,.,.,..,,...,.,,,,,.,
+#VYYLURBZIER2RFDZP3D6PGY7NV5E4JYVNQVNLGAC3PNFRTL7AIF3FTUWLL7BFJVWITUKJAEM74KY4
+#\\\|2KOQPQUVRWY4H346GB4PGEX7CEOPY2WP4OJ3IRFEINS22CLXYDK \ / AMOS7 \ YOURUM ::
+#\[7]5KMZV3CO74VWY4AWNI6KSH4Z5RUEJ6PBRXYFMT24X3NDNQBFLOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
