@@ -4,9 +4,10 @@
 # descr = Initialize terminal for nshell
 #         using Linux::Termios2 [ Linux-native, no XS build issues ]
 
-use POSIX qw| :termios_h O_NONBLOCK |;
-use Linux::Termios2;
-use Fcntl qw| F_GETFL F_SETFL |;
+## modules laoded in bin/Protocol-7 [ Fcntl ]
+###                       base.init [ POSIX ]
+####          and  nshell.init_code [ Linux::Termios2 ]
+##  [ use SOMECONSTANT() version instead of barewords ]
 
 ## Get current terminal file descriptor
 my $tty_fd = fileno(STDIN);
@@ -33,19 +34,19 @@ $modified_termios->getattr($tty_fd);
 ## ISIG = interrupt signals,
 ## ECHO = echo input, ICANON = canonical input
 my $orig_flags = $orig_termios->getlflag();
-my $new_flags  = $orig_flags & ~( ISIG | ECHO | ICANON );
+my $new_flags  = $orig_flags & ~( ISIG() | ECHO() | ICANON() );
 $modified_termios->setlflag($new_flags);
 
 ## Apply modified settings immediately
 
 ## [ Linux::Termios2 doesn't expose setcc, control character
 ##  defaults are sufficient for sysread ]
-$modified_termios->setattr( $tty_fd, TCSAFLUSH );
+$modified_termios->setattr( $tty_fd, TCSAFLUSH() );
 
 return TRUE;
 
-#,,,,,.,.,..,,,.,,,..,,,.,,,.,...,,.,,,..,,,,,..,,...,...,,,.,.,.,,.,,,.,,...,
-#J74PNB5MZOMNJJ7YAHUT7Z4JPYARA6QJELMG4GU2F2SAQH3PLH6E5KLJEZC7XZY4BVM5QHPWTDKJY
-#\\\|JTZHKRHXY7OX44DFABQ7WOD7RZ5NRLBKP6T6NBTRDNJYY2EHCOP \ / AMOS7 \ YOURUM ::
-#\[7]GKNKSR7PVERGAMS7VKUCRURNSUJHFEONPDBGIFSFW6KTSGJRS6BA 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,,.,..,,,.,,,,.,...,.,,,.,,,,..,..,,...,..,,...,,,,,,,.,.,,,..,,
+#YV7CJQSPJGM3IYYEMZI7XBRBIBDADNYCDCLULWWC624O4IJ6BOTJTZODQFC3U6K75RWXFMLZPYNC4
+#\\\|QU2UP6TM4TW3OXVGGQ4UMI6WG4XWJ3TOOLIPMYN2C6MBSDCCXKT \ / AMOS7 \ YOURUM ::
+#\[7]KUGIRK7TSSCSFYDSAZXAOI56XZWX46ISY4TVZ7IF46KJRF6SJ6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -23,8 +23,12 @@
 use Const::Fast;   ## loading too late causes 'const' to be a syntax error! ##
 <[base.perlmod.register_loaded_module]>->('Const::Fast');
 
-<[base.perlmod.load]>->(
-    'POSIX', qw| strftime uname getcwd setsid sys_wait_h WNOHANG |
+<[base.perlmod.autoload]>->(
+    'POSIX', qw[
+        strftime uname getcwd
+        setsid sys_wait_h WNOHANG
+        :termios_h O_NONBLOCK
+    ]
 );
 
 ##[ AMOS MODULE ]#############################################################
@@ -268,8 +272,8 @@ if ( defined <setup.aliases> ) {
 
 return FALSE;
 
-#,,..,.,,,,..,.,,,,..,..,,,..,..,,,,,,..,,..,,..,,...,...,.,.,...,,,.,.,.,,..,
-#XOM2QBO752ALAVI52IU564K35JT3WJGWLRMAOJU5G4BQAX6DZVDTMHLGWBZVGH5TTKCJ5P6WDCILU
-#\\\|5FESBDPM337X6B2DK3PTEDF5ZAUZRKEYE5WLAM4EJOB66S2LGYL \ / AMOS7 \ YOURUM ::
-#\[7]SFEDO2PJM7TUMA2PFOLW4XCK2Z4O5W5NGBGXHDOPTSEDLFHOCEBA 7  DATA SIGNATURE ::
+#,,,,,...,..,,.,,,,..,.,,,.,,,..,,.,,,,,.,,.,,..,,...,..,,...,,..,..,,,..,,,.,
+#RGZUEYAWOJO4QZ3YX5S4M6OYD3YMMBS6EEFAFDLAGWYYRSN667LXBR3ODNUFEDXMRY2LWM6YCR6SG
+#\\\|KBZ6AHAVTV7H7DBWVXNZJB7MNK3MTQOIKDIBJCF7C5C7AR2ALZZ \ / AMOS7 \ YOURUM ::
+#\[7]B6P5AY26IUDEMWGYUIJRKAVNFMFSF2J4PTDJRMBED4KBZISDD4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
