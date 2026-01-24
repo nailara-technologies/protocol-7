@@ -752,14 +752,15 @@ while ( length $input_chars ) {
             ## Calculate bucket-based jump using distance from newest entry
             ## Bucket = floor(distance_from_newest / 780 seconds)
             ## PageUp jumps to next higher bucket (older entries)
-            my $target_index = -1;
-            my $current_bucket = -1;  ## Virtual bucket -1 when at prompt
+            my $target_index   = -1;
+            my $current_bucket = -1;    ## Virtual bucket -1 when at prompt
 
             if ( $current_index == -1 && @AMOS7::TERM::history_entries ) {
                 ## At prompt: search for first entry in bucket 0 (newest entries)
                 $current_bucket = -1;
                 <[base.logs]>->(
-                    3, ': PageUp at prompt (virtual bucket=-1), searching for bucket >= 0'
+                    3,
+                    ': PageUp at prompt (virtual bucket=-1), searching for bucket >= 0'
                 );
 
                 my $newest_time_raw = $AMOS7::TERM::history_entries[0]->[0];
@@ -767,8 +768,9 @@ while ( length $input_chars ) {
                 $newest_time =~ s/:[\d]+$//;
 
                 for ( my $i = 0; $i < @AMOS7::TERM::history_entries; $i++ ) {
-                    my $entry_time_raw = $AMOS7::TERM::history_entries[$i]->[0];
-                    my $entry_time     = $entry_time_raw;
+                    my $entry_time_raw
+                        = $AMOS7::TERM::history_entries[$i]->[0];
+                    my $entry_time = $entry_time_raw;
                     $entry_time =~ s/:[\d]+$//;
 
                     my $entry_distance = <[base.ntime.delta_seconds]>->(
@@ -782,18 +784,21 @@ while ( length $input_chars ) {
                         <[base.logs]>->(
                             3,
                             ': PageUp found first history entry at index=%d bucket=%d',
-                            $target_index, $entry_bucket
+                            $target_index,
+                            $entry_bucket
                         );
                         last;
                     }
                 }
-            } elsif ( $current_index >= 0 && $current_index < @AMOS7::TERM::history_entries ) {
+            } elsif ( $current_index >= 0
+                && $current_index < @AMOS7::TERM::history_entries ) {
                 my $newest_time_raw = $AMOS7::TERM::history_entries[0]->[0];
                 my $newest_time     = $newest_time_raw;
                 $newest_time =~ s/:[\d]+$//;    ## Strip :count suffix
 
-                my $current_time_raw = $AMOS7::TERM::history_entries[$current_index]->[0];
-                my $current_time     = $current_time_raw;
+                my $current_time_raw
+                    = $AMOS7::TERM::history_entries[$current_index]->[0];
+                my $current_time = $current_time_raw;
                 $current_time =~ s/:[\d]+$//;    ## Strip :count suffix
 
                 my $current_distance = <[base.ntime.delta_seconds]>->(
@@ -802,8 +807,7 @@ while ( length $input_chars ) {
                 $current_bucket = int( $current_distance / $gap_seconds );
 
                 <[base.logs]>->(
-                    3,
-                    ': PageUp current_index=%d bucket=%d distance=%.1f',
+                    3, ': PageUp current_index=%d bucket=%d distance=%.1f',
                     $current_index, $current_bucket, $current_distance
                 );
 
@@ -813,8 +817,9 @@ while ( length $input_chars ) {
                     $i < @AMOS7::TERM::history_entries;
                     $i++
                 ) {
-                    my $entry_time_raw = $AMOS7::TERM::history_entries[$i]->[0];
-                    my $entry_time     = $entry_time_raw;
+                    my $entry_time_raw
+                        = $AMOS7::TERM::history_entries[$i]->[0];
+                    my $entry_time = $entry_time_raw;
                     $entry_time =~ s/:[\d]+$//;
 
                     my $entry_distance = <[base.ntime.delta_seconds]>->(
@@ -828,7 +833,10 @@ while ( length $input_chars ) {
                         <[base.logs]>->(
                             3,
                             ': PageUp found target_index=%d bucket=%d (skipped %d entries in bucket %d)',
-                            $target_index, $entry_bucket, $i - ($current_index + 1), $current_bucket
+                            $target_index,
+                            $entry_bucket,
+                            $i - ( $current_index + 1 ),
+                            $current_bucket
                         );
                         last;
                     }
@@ -837,7 +845,8 @@ while ( length $input_chars ) {
                 ## If no higher bucket found, jump to oldest entry
                 if ( $target_index == -1 ) {
                     ## Only fallback if not already at the very start
-                    if ( $current_index < @AMOS7::TERM::history_entries - 1 ) {
+                    if ( $current_index < @AMOS7::TERM::history_entries - 1 )
+                    {
                         $target_index = @AMOS7::TERM::history_entries - 1;
                         <[base.logs]>->(
                             3, ': PageUp fallback to oldest entry index=%d',
@@ -1012,14 +1021,15 @@ while ( length $input_chars ) {
                 <[base.logs]>->(
                     3, ': PageDown at prompt, no action (stay at -1)'
                 );
-            } elsif (   $current_index >= 0
+            } elsif ( $current_index >= 0
                 && $current_index < @AMOS7::TERM::history_entries ) {
                 my $newest_time_raw = $AMOS7::TERM::history_entries[0]->[0];
                 my $newest_time     = $newest_time_raw;
                 $newest_time =~ s/:[\d]+$//;    ## Strip :count suffix
 
-                my $current_time_raw = $AMOS7::TERM::history_entries[$current_index]->[0];
-                my $current_time     = $current_time_raw;
+                my $current_time_raw
+                    = $AMOS7::TERM::history_entries[$current_index]->[0];
+                my $current_time = $current_time_raw;
                 $current_time =~ s/:[\d]+$//;    ## Strip :count suffix
 
                 my $current_distance = <[base.ntime.delta_seconds]>->(
@@ -1028,16 +1038,16 @@ while ( length $input_chars ) {
                 my $current_bucket = int( $current_distance / $gap_seconds );
 
                 <[base.logs]>->(
-                    3,
-                    ': PageDown current_index=%d bucket=%d distance=%.1f',
+                    3, ': PageDown current_index=%d bucket=%d distance=%.1f',
                     $current_index, $current_bucket, $current_distance
                 );
 
                 ## Find first entry in next lower bucket (skip entries in current bucket)
                 ## When searching backward, first entry found IS the first entry of that bucket
                 for ( my $i = $current_index - 1; $i >= 0; $i-- ) {
-                    my $entry_time_raw = $AMOS7::TERM::history_entries[$i]->[0];
-                    my $entry_time     = $entry_time_raw;
+                    my $entry_time_raw
+                        = $AMOS7::TERM::history_entries[$i]->[0];
+                    my $entry_time = $entry_time_raw;
                     $entry_time =~ s/:[\d]+$//;
 
                     my $entry_distance = <[base.ntime.delta_seconds]>->(
@@ -1051,7 +1061,10 @@ while ( length $input_chars ) {
                         <[base.logs]>->(
                             3,
                             ': PageDown found target_index=%d bucket=%d (skipped %d entries in bucket %d)',
-                            $target_index, $entry_bucket, ($current_index - 1) - $i, $current_bucket
+                            $target_index,
+                            $entry_bucket,
+                            ( $current_index - 1 ) - $i,
+                            $current_bucket
                         );
                         last;
                     }
@@ -1059,9 +1072,11 @@ while ( length $input_chars ) {
 
                 ## If no lower bucket found, jump to prompt (-1)
                 if ( $target_index == -1 ) {
-                    $target_index = -1;    ## Jump back to prompt (end of navigation)
+                    $target_index
+                        = -1;    ## Jump back to prompt (end of navigation)
                     <[base.logs]>->(
-                        3, ': PageDown no lower bucket, fallback to prompt (index -1)'
+                        3,
+                        ': PageDown no lower bucket, fallback to prompt (index -1)'
                     );
                 }
             }
@@ -1570,8 +1585,8 @@ while ( length $input_chars ) {
 
 return undef;    ## No complete line yet, buffer exhausted or incomplete UTF-8
 
-#,,..,,,,,.,,,,.,,,.,,,.,,.,.,..,,.,,,,..,,,,,..,,...,...,..,,,..,.,,,,.,,..,,
-#LROMNGTWVKHT33C2QL76326TZDJNNNZHIP2BLBXFGRWW3ROGOU3BRX2EP42LYFJSFSCAOGRYYKPZA
-#\\\|ZVMPGOIYWCSLA3QKF2ELUJF5555HXNOGE6A5BDTTPZJVZLS46RD \ / AMOS7 \ YOURUM ::
-#\[7]EXPDL5K3LSFSABXS3FJSOCNFSZPCEYROETW6VWUQG3B2XDE2COCI 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,,..,,.,,.,.,,,.,.,.,,,.,.,,,.,,,..,,...,...,..,,,..,,..,.,,,,..,
+#G3E6IJPN5ZYHW27XI35FIM4Z74E5LB7V7BG24JPAXZUUJW37FAVPNSY4XCRAJUQ5BY5HURYSJWNW4
+#\\\|UTVSCFRC6K74KVW7KR5VDDWFX2FQSJM6F7EZM3ZAGVBDAS2J2M7 \ / AMOS7 \ YOURUM ::
+#\[7]YRPYZ2GKWJY3MA6E276FXYJ3OOTY2MY2IPM7SWDLHRYY6SN25ACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

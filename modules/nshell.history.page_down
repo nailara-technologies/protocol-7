@@ -23,8 +23,8 @@ my $target_index = <[nshell.history.find_session_boundary]>->(
 ## If no older session found, return to prompt
 if ( $target_index < 0 ) {
     $state_ref->{current_history_index} = -1;
-    $state_ref->{display_buffer} = '';
-    $state_ref->{current_mode} = 0;  # Return to NORMAL mode
+    $state_ref->{display_buffer}        = '';
+    $state_ref->{current_mode}          = 0;    # Return to NORMAL mode
     print "\r\e[K" . $state_ref->{colors}->{p7_fg_0004};
     STDOUT->flush();
     return;
@@ -60,8 +60,8 @@ if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
 
 return;
 
-#,,..,,..,,,,,,,.,,,.,,..,,,,,.,.,...,,..,.,.,.,.,...,...,...,...,,.,,..,,,..,
-#L2ZKKJAJAWQM3JURY56BKAWZXYGBTZCGOKPYRXAX3RTLFLK4S2G5SQ36DP3ULNIHLLUTTQSNQG4BC
-#\\\|KZLGTOENMOJUKHY45P23ZQEOR7NQPU5YA56JGTTKP4AM46DWTWV \ / AMOS7 \ YOURUM ::
-#\[7]FLHS5Y7GIUIMCU473J77YT5QMIFZU7BJT5L4QAIESX7BUDBTWOBQ 7  DATA SIGNATURE ::
+#,,.,,...,...,.,,,,,.,..,,,..,,,.,,..,,.,,.,.,.,.,...,...,.,,,.,.,.,.,,..,,,.,
+#YX6P6WQMXORW3WBPM72BRVHOCH2BYW6PHWULF7XMTELZO3MNKN6WXZ6S37CNFLUN4FZRTD4PLH4TQ
+#\\\|UE5SWX26XWQQZG4TJUEC6DKCIBJ77QEZW2M5CNLTFKTEYBBLPTU \ / AMOS7 \ YOURUM ::
+#\[7]MZ6BLANXLQ7CEG7XFO4JSH5VG6XPK5IDBFMI3PLSUSA2TOMTUWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
