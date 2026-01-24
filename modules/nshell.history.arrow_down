@@ -19,13 +19,16 @@ if ( $state_ref->{current_history_index} >= 0 ) {
             $lines_ref = $entry->[1];
         }
     } else {
-        ## Reached end of history - clear buffer and reset
+        ## Reached end of history - render empty prompt with cursor
         $state_ref->{current_history_index} = -1;
         $state_ref->{paging_index_stack}    = [];    # Clear paging stack
+        <[nshell.render.empty_prompt]>->( $state_ref, $editor, $colors );
+        return;
     }
 } else {
-    ## Not in tracked history - use library function
-    $lines_ref = AMOS7::TERM::history_down();
+    ## Not in tracked history - clear any stray init cursor
+    <[nshell.render.empty_prompt]>->( $state_ref, $editor, $colors );
+    return;
 }
 
 return unless defined $lines_ref;
@@ -52,8 +55,8 @@ $state_ref->{current_mode} = 2;    # VIEWING_HISTORY
 
 return;
 
-#,,..,..,,..,,,.,,,.,,.,,,...,..,,,..,,..,,,.,.,.,...,...,...,...,,.,,...,,,.,
-#4JB5GHSAVU3RRJCE3TGHY2DTEMRXSWORRASHWYBXIIXUE6LGMMXQRBKVKBPHJUD4DW7FKW7HE6KT4
-#\\\|3GVMPHLX63DKTUUDV5F7ZBYODVZJPOVQVOV3AH5IOWPIYEHQZQO \ / AMOS7 \ YOURUM ::
-#\[7]MSUHMI7EABU7CL3KRTBIAW7DWXY6AKWAU3FBS3FZ4UVS6PZPTMBA 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,.,,,,,.,..,,...,,.,,,.,,.,,,.,,,.,.,...,..,,,..,.,,,.,.,...,,,.,
+#ZWIZMW4U6F4AD4VWDX22GDDCQAEKKOPNRBAT7MFE6KWWPZDVK7MW7GEDSONLRELGVE34LIB6Q6CZA
+#\\\|UAY3W5ZAZHDU6ALZWHEF4B2T3PCXM54PUM37SDGIZZF2LF5QUEI \ / AMOS7 \ YOURUM ::
+#\[7]WQZ26RIFHP3RLNFT3YVETV2ZGRAN6LQOW6AJOKV3YPETHB2YZ4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -171,7 +171,11 @@ while ( length $input_chars ) {
             $state_ref->{search_term}    = '';
             $state_ref->{search_results} = [];
             $state_ref->{search_index}   = 0;
-            print "\r\e[K(search) \e[0m";
+
+            ## Render initial search prompt with correct formatting
+            print "\r\e[K"
+                . $state_ref->{colors}->{p7_fg_0003}
+                . "[search:  ] ";
             STDOUT->flush();
             next;
         } elsif ( $key eq "\e[5~" ) {
@@ -214,8 +218,8 @@ while ( length $input_chars ) {
 
 return undef;
 
-#,,.,,..,,,,,,...,...,...,..,,,,,,,,.,,.,,.,.,.,.,...,...,..,,,,.,,.,,,,,,,..,
-#E7DZAUAVIXWHOARBFQY4G4P3R4Z6LVDZOKEFU5SKVIRHMGVHOK6QRQYHLEDDFVQEZJ2ZBHOZV3LTC
-#\\\|OJMFCN4U7EDLWR4VI6FKAVC2AWZAIJ7CW72QXGDOS5W3ALP44N6 \ / AMOS7 \ YOURUM ::
-#\[7]Z7MDOLMEAJMDMLFBWWV5HZQ5DADFJQJQBGG5KYKU3E3TYY5PF4BI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,.,,,,,,,,.,,,,,,,,.,...,.,.,,,,,.,.,...,.,.,.,,,,,.,,..,.,,,.,.,
+#6YGL3ISFQ2JLQ2TVUVJZCVDA7PFLEKJFFJ76L3MVA6Q77MGNNBYQZ4YJZJJJD7YQWYK5VIDKCKP5G
+#\\\|GVIS3T572MRTXI5UQPHGSBLJYEFOMZPD2D3ZSRVBPQVFAZLDTMI \ / AMOS7 \ YOURUM ::
+#\[7]YESNSMWSVFSUTPYZSMEAUZ24J43AMCNYF4V6L4Q7MVMWKICC6QDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
