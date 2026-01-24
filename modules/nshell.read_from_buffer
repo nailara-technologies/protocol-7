@@ -130,6 +130,14 @@ while ( length $input_chars ) {
         } elsif ( $result == 2 ) {
             ## Selected command - return it for execution
             my $selected = $state_ref->{editor}->{buffer} // '';
+
+            ## Clear editor buffer for next command
+            $state_ref->{editor}->{buffer}    = '';
+            $state_ref->{editor}->{cursor_pos} = 0;
+
+            ## Set flag to redraw cursor on next call after reply arrives
+            $show_cursor_on_call = TRUE;
+
             return $selected if length($selected);
         }
         ## $result == 0 or any other value: continue in search mode
@@ -222,8 +230,8 @@ while ( length $input_chars ) {
 
 return undef;
 
-#,,,,,..,,...,.,.,...,,,,,,,,,.,,,,..,.,.,..,,.,.,...,..,,.,,,..,,.,.,,..,,.,,
-#I5NOG2HIXCGQDLYKG3LVAR4O25GYXQ7COU6GEXMAPINKFO4CYGSMWRW3ONUBOJAWDVTMGNR3PYKTO
-#\\\|DIOCKBL2TQAXJJZZ5JDQLMYAVF4HRI4XVUUW6ESA7KBCSCPSLWG \ / AMOS7 \ YOURUM ::
-#\[7]OGZN7OV5WMZ3TZ4OZENTMOKSKWOLZI4NJTI3XDIYBYBW4G2R64DA 7  DATA SIGNATURE ::
+#,,.,,...,.,.,.,.,,..,..,,.,.,.,,,,.,,,,.,,.,,.,.,...,..,,..,,,,,,.,.,...,,.,,
+#ICJVYMMXJCRWQ2E24HTPW7S36Y6UYOKJSBKWS3DGAJQWZXWJOI45HTRXAMB33DC6KD6EFT4YZFJJY
+#\\\|5G2B7ULL65JKTTOOKGRFPXVFPI6PM24PHRDKMMEZY3JHUYFFZHO \ / AMOS7 \ YOURUM ::
+#\[7]JGTTR4WNJD5JUPBRXYBWFHOVTCLWD3SASMQKFHLCULPTBVYXSSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
