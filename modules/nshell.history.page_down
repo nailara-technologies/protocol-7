@@ -15,10 +15,18 @@ return unless $state_ref->{current_history_index} >= 0;
 ## Already viewing history - use tracked index
 my $current_index = $state_ref->{current_history_index};
 
-## Find next older session boundary
-my $target_index = <[nshell.history.find_session_boundary]>->(
-    $current_index, -1, $gap_seconds
-);
+## Use paging stack if available (set by Page Up)
+## This ensures Page Down follows exact Page Up path in reverse
+my $target_index = -1;
+if ( @{ $state_ref->{paging_index_stack} } ) {
+    ## Stack has indices from Page Up - use them in reverse order (LIFO)
+    $target_index = pop @{ $state_ref->{paging_index_stack} };
+} else {
+    ## No stack entries - find next older session boundary normally
+    $target_index = <[nshell.history.find_session_boundary]>->(
+        $current_index, -1, $gap_seconds
+    );
+}
 
 ## If no older session found, return to prompt
 if ( $target_index < 0 ) {
@@ -60,8 +68,8 @@ if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
 
 return;
 
-#,,.,,...,...,.,,,,,.,..,,,..,,,.,,..,,.,,.,.,.,.,...,...,.,,,.,.,.,.,,..,,,.,
-#YX6P6WQMXORW3WBPM72BRVHOCH2BYW6PHWULF7XMTELZO3MNKN6WXZ6S37CNFLUN4FZRTD4PLH4TQ
-#\\\|UE5SWX26XWQQZG4TJUEC6DKCIBJ77QEZW2M5CNLTFKTEYBBLPTU \ / AMOS7 \ YOURUM ::
-#\[7]MZ6BLANXLQ7CEG7XFO4JSH5VG6XPK5IDBFMI3PLSUSA2TOMTUWBA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,.,.,,.,,..,,...,,,.,,.,,.,.,,..,.,.,...,...,,..,.,,,,.,,,.,,,..,
+#NN3B3RWH2A43FBMRMFFDKH2JWGXNJ32H37JATWTUHLCXFY3FPWIIXFJGK2SLHS6IEMDKWP4RP5L7M
+#\\\|XDI4WFFFIS2EVLSTCCNNYKYZN3BVCSOQYDOSGSP6G5YCX3S3NVG \ / AMOS7 \ YOURUM ::
+#\[7]UXLTFS2GEPLMIME372WLDF464CU5S7PMS4NUOIIVFUO2K6MNBSBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

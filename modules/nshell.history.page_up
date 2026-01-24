@@ -40,14 +40,38 @@ return if $target_index < 0;
 if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
     my $entry = $AMOS7::TERM::history_entries[$target_index];
     if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
-        my $lines_ref = $entry->[1];
+        my $lines_ref     = $entry->[1];
+        my $entry_content = join "\n", $lines_ref->@*;
+
+        ## Skip duplicate commands - if content matches current, search next boundary
+        if ( $entry_content eq $state_ref->{display_buffer} ) {
+            ## Content already displayed, continue search from this boundary
+            my $next_index = <[nshell.history.find_session_boundary]>->(
+                $target_index, 1, $gap_seconds
+            );
+            return if $next_index < 0;
+            $target_index = $next_index;
+            $entry        = $AMOS7::TERM::history_entries[$target_index];
+            if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
+                $lines_ref     = $entry->[1];
+                $entry_content = join "\n", $lines_ref->@*;
+            } else {
+                return;
+            }
+        }
 
         ## Clear previous display
         my $clear_len = length( $state_ref->{display_buffer} ) + 8;
         print "\r" . ( ' ' x $clear_len ) . "\r" if $clear_len > 0;
 
-        $state_ref->{display_buffer}        = join "\n", $lines_ref->@*;
+        ## Save current position before moving (for Page Down to return to)
+        my $prev_index = $state_ref->{current_history_index};
+
+        $state_ref->{display_buffer}        = $entry_content;
         $state_ref->{current_history_index} = $target_index;
+
+        ## Push previous index onto paging stack for Page Down symmetry
+        push @{ $state_ref->{paging_index_stack} }, $prev_index;
 
         ## Load into editor to sync editor buffer
         AMOS7::TERM::editor_load( $editor, $state_ref->{display_buffer} );
@@ -65,8 +89,8 @@ if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
 
 return;
 
-#,,,,,,,,,..,,...,,,.,..,,.,,,,..,,.,,.,.,.,.,.,.,...,...,.,.,,.,,.,.,,,.,.,,,
-#ZAD3SAEMXCKYDCM34WVRSJDPR234BCDYPN4QEMHL7LDMKBA24KEUM75HNP4Z36CCCHG74ZAH7VG2Y
-#\\\|J66SABEBBVMSQSIMQPZNRNFVNDOFXUFLORWSRKSZ5KYE25OXZSD \ / AMOS7 \ YOURUM ::
-#\[7]6PTK4LLVKAMZ7XU6ZIYL5MUV7D2JCTHSFFHCXZ5VPMJ2DKS6YACY 7  DATA SIGNATURE ::
+#,,,.,...,,.,,...,..,,,,.,.,,,,..,...,,,.,.,.,.,.,...,...,...,,,,,..,,..,,,,.,
+#A7XEG7ERLLHD64355LXOZPH3W2TCMGYMZ2O37ACIX7FB6I6VSEJRUE2OH47URMVM5QNSBAJUS3NUO
+#\\\|6CF3YN4N2OI4BFQIKFVB4TWF25VZUB7YRKT5C3KL7LMKY7B4IWW \ / AMOS7 \ YOURUM ::
+#\[7]BLGVE46CFXZVOHD2ZBVWYJPS7TPWV6FIEJBSLTLRQFUWCVT2UICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
