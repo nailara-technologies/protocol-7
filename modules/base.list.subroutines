@@ -296,6 +296,8 @@ return [ qw[
         plugin.auth.zenka
         p7-log.cmd.append
         openbox.init_code
+        nshell.state_init
+        nshell.state.init
         nshell.shell_loop
         net.read_bytewise
         mpv.handler.event
@@ -587,6 +589,7 @@ return [ qw[
         plugin.web.menu.tree
         p7-log.cmd.list-logs
         osd-logo.open_window
+        nshell.render.cursor
         notify-osd.init_code
         mpv.volume.calc_incr
         mpv.loop_plist_param
@@ -714,7 +717,9 @@ return [ qw[
         power-x11.open_window
         pcycle.handler.toggle
         p7-log.cmd.file-sizes
+        nshell.search.handler
         nshell.register_hooks
+        nshell.editor.process
         nshell.clear_terminal
         notify.cmd.msg_reload
         nodes.cmd.host-status
@@ -849,6 +854,7 @@ return [ qw[
         reenc-msg.cmd.finished
         power.add_status_timer
         nshell.write_to_buffer
+        nshell.history.page_up
         nodes.parser.node_pkey
         mpv.handler.pipe.float
         mpv.handler.path_reply
@@ -977,7 +983,9 @@ return [ qw[
         pdf.html.base.init_code
         pcycle.handler.shutdown
         openbox.cleanup_tmp_dir
+        nshell.render.full_line
         nshell.read_from_buffer
+        nshell.history.arrow_up
         mpv.set-up.import_rules
         mpv.set-up.export_rules
         mpv.open_control_socket
@@ -1101,6 +1109,8 @@ return [ qw[
         plugin.auth.auth-keypair
         pdf.html.child.init_code
         p7-log.handler.close_log
+        nshell.render.clear_line
+        nshell.history.page_down
         notify-warn.send_message
         notify-info.send_message
         nodes.cmd.add-group-user
@@ -1231,6 +1241,7 @@ return [ qw[
         power.set-up.export_rules
         power.cmd.get_device_addr
         pdf.html.parent.init_code
+        nshell.history.arrow_down
         notify-loves.send_message
         mpv.update_resc_timestamp
         mpv.handler.reenc_refresh
@@ -1371,6 +1382,7 @@ return [ qw[
         protocol.sftp.read_ssh_env
         power-x11.handler.show_all
         plugin.web.content.dirlist
+        nshell.state.reset_history
         nshell.setup_stdin_watcher
         nshell.redraw_command_line
         mpv.handler.resume_timeout
@@ -1720,6 +1732,8 @@ return [ qw[
         pdf.html.base.write_stub_page
         pdf.html.base.white_page_hash
         pdf.html.base.fork_conv_child
+        nshell.util.syswrite_complete
+        nshell.util.extract_utf8_char
         nshell.hook.input_passthrough
         nodes.cmd.update-protocol-elf
         mpv.handler.event.file-loaded
@@ -2016,6 +2030,7 @@ return [ qw[
         pdf.html.parent.cmd.check_format
         osd-logo.callback.download_image
         openbox.callback.already_running
+        nshell.read_from_buffer.original
         models.registry.find_alternative
         models.cmd.test_end_to_end_local
         models.cmd.conversation_add_turn
@@ -2257,6 +2272,7 @@ return [ qw[
         protocol.amos-chksum.ext-cmd.version
         protocol.amos-chksum.command-handler
         protocol-7-menu.graphical-menu-popup
+        nshell.history.find_session_boundary
         nodes.handler.discover_details_reply
         models.checksum.calculate_bmw_base32
         mod-test.cmd.blacklisted-add-matches
@@ -2494,8 +2510,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,,,,,.,,,,,,,,..,.,.,,,,,.,.,,,,,.,,,,,,,.,.,...,...,,,.,...,,..,.,.,.,.,
-#4SWNH4UE3VYJM6FGLU7JFWXHYHNBDDDZ2CBVR6EGPFN4235EDLGL6BBIPDW73RKKLM73K2J2F523A
-#\\\|6RPFBQ2MYPZ6A3DG7ZIIJ3ELDCP5IG6LUIZO4OJ6RE7DFQUCMLK \ / AMOS7 \ YOURUM ::
-#\[7]UHROTKDLXR4PSTOERW2NBAYYI6K5XC53A7ZIZFS424REKV4NT4CY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,.,.,.,,,,,...,...,,.,,,.,,,,.,.,.,...,.,.,,,,,..,,,..,.,.,,,,,
+#QHEQYA2AQB2SWI5WBBRSPJAO423G5TVUNDZFKREIMI3N3YZTRZIW2OCWQX52TX32VFHYMSEVG54HG
+#\\\|ZNADNB475LUFOA557DQWJZ47IW6N4OONCS4PPTARCRZMEY6XPC2 \ / AMOS7 \ YOURUM ::
+#\[7]27CUC4CRZSUS6R5Y5SJJ22IEWEP23TD37C34VXEFOO4YSORT7MBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

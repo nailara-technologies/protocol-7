@@ -1,0 +1,21 @@
+## [:< ##
+
+# name = nshell.state.reset_history
+# descr = Reset history navigation state when user begins editing
+
+my ( $state_ref ) = @_;
+
+## Reset navigation state when user edits in VIEWING_HISTORY mode
+## This returns us to NORMAL mode for further editing
+if ( $state_ref->{current_mode} == 2 ) {    # VIEWING_HISTORY
+    $state_ref->{current_mode}        = 0;   # NORMAL
+    $state_ref->{current_history_index} = -1;
+}
+
+return;
+
+#,,,,,.,.,,,.,,.,,...,.,.,,.,,.,.,...,,..,,.,,.,.,...,...,..,,,.,,..,,,,,,..,,
+#LFMD3EFJIPV2CUE4EUAIUF2TBNGI4O4KDZF6FKNKCQOUBKQ24D3RWPN5REKNUM5H7AG4YXEV6HX7A
+#\\\|RS6EIUJ5JTDGYL3XRMQ75277GBGSOKNSDZXOA5K2VAUVZY2OLPE \ / AMOS7 \ YOURUM ::
+#\[7]YE67NEE2YH5XWLG7Y4SUNAU27DYBRNZNVEZACWIY6UGMSYNFVGBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

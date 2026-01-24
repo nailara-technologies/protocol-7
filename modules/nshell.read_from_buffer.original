@@ -15,7 +15,8 @@ state $display_buffer   = '';      ## Current display (may be from history)
 state $debug_cmd_buffer = '';      ## Accumulate potential debug command :CMD:
 state $input_chars      = ''; ## Character buffer for both TTY and piped input
 state %colors           = (); ## Color palette (lazily loaded)
-state $prev_cursor_pos  = 0;    ## Previous cursor position for clearing old cursor
+state $prev_cursor_pos
+    = 0;    ## Previous cursor position for clearing old cursor
 state $show_cursor_on_call = TRUE;    ## Show cursor at start of each call
 
 ## History search mode state
@@ -26,17 +27,11 @@ state $search_index        = 0;       ## Current position in search results
 state $pre_search_buffer   = '';      ## Buffer before entering search mode
 state @search_term_history = (); ## Search term history for Up/Down navigation
 state $search_term_hist_index = -1; ## Current position in search term history
-state $search_deleted_chars = '';    ## Characters deleted by Left arrow
+state $search_deleted_chars
+    = '';    ## Characters deleted by Left arrow (for Right arrow undo)
 
 ## History navigation state for Page Up/Down
 state $current_history_index = -1;   ## Track which history entry we're viewing (-1 = none)
-
-## Sync state to %data for debugging and persistence
-$main::data{'nshell'}{'edit_state'} = {
-    current_history_index => $current_history_index,
-    display_buffer => $display_buffer,
-    search_mode => $search_mode,
-};
 
 ## Show cursor at start of each call (after command execution or on first call)
 if ($show_cursor_on_call) {
@@ -91,7 +86,7 @@ if ( -t STDIN ) {
 
 ## Process all buffered characters in a loop to prevent event loop starvation
 while ( length $input_chars ) {
-    my $key = <[nshell.util.extract_utf8_char]>->( \$input_chars );
+    my $key = _extract_utf8_char( \$input_chars );
     last if not defined $key; ## Incomplete UTF-8 sequence, wait for more data
 
 
@@ -482,6 +477,43 @@ while ( length $input_chars ) {
         next;
     }
 
+## Helper: extract a complete UTF-8 character (may be 1-4 bytes)
+    sub _extract_utf8_char {    ### extract subroutine ### [LLL]
+        my ($buf_ref) = @ARG;
+        return undef if !length($$buf_ref);
+
+        my $first_byte = ord( substr( $$buf_ref, 0, 1 ) );
+        my $seq_len    = 1;
+
+        ## Determine UTF-8 sequence length from first byte
+        if ( ( $first_byte & 0xE0 ) == 0xC0 ) {  ## 110xxxxx - 2 byte sequence
+            $seq_len = 2;
+        } elsif ( ( $first_byte & 0xF0 ) == 0xE0 )
+        {                                        ## 1110xxxx - 3 byte sequence
+            $seq_len = 3;
+        } elsif ( ( $first_byte & 0xF8 ) == 0xF0 )
+        {                                        ## 11110xxx - 4 byte sequence
+            $seq_len = 4;
+        }
+        ## else: 0xxxxxxx (ASCII) - already $seq_len = 1
+
+        ## Extract the complete sequence (or what we have)
+        return substr( $$buf_ref, 0, $seq_len, '' );
+    }
+
+## Helper: write bytes ensuring complete write (syswrite may be partial)
+    sub _syswrite_complete {    ### extract subroutine ## [LLL]
+        my ( $fh, $data ) = @ARG;
+        my $total   = length($data);
+        my $written = 0;
+
+        while ( $written < $total ) {
+            my $n = syswrite( $fh, $data, $total - $written, $written );
+            last if !defined $n or $n <= 0;
+            $written += $n;
+        }
+        return $written;
+    }
 
     ## If we got ESC, keep reading to complete the escape sequence
     if ( $key eq "\e" ) {
@@ -671,10 +703,8 @@ while ( length $input_chars ) {
                 ## Already viewing history - use tracked index
                 $current_index = $current_history_index;
             } else {
-                ## Not viewing history yet - search for current buffer
-                ## If not found, treat as being at the prompt (before any history entry)
+                ## Not viewing history yet - search for current buffer or start at most recent
                 my $current_cmd = $command_buffer // '';
-                my $found = 0;
                 if ( length($current_cmd) ) {
                     for ( my $i = 0; $i < @AMOS7::TERM::history_entries; $i++ ) {
                         my $entry = $AMOS7::TERM::history_entries[$i];
@@ -682,15 +712,13 @@ while ( length $input_chars ) {
                             my $cmd = join( "\n", @{ $entry->[1] } );
                             if ( $cmd eq $current_cmd ) {
                                 $current_index = $i;
-                                $found = 1;
                                 last;
                             }
                         }
                     }
-                }
-                ## If we didn't find a matching history entry, set to 0 (most recent)
-                if ( !$found && @AMOS7::TERM::history_entries ) {
-                    $current_index = 0;
+                } else {
+                    ## Empty buffer - start from most recent history entry
+                    $current_index = 0 if @AMOS7::TERM::history_entries;
                 }
             }
 
@@ -738,7 +766,6 @@ while ( length $input_chars ) {
                 my $entry = $AMOS7::TERM::history_entries[$target_index];
                 if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
                     my $lines_ref = $entry->[1];
-                    my $entry_cmd = join("\n", @{$lines_ref});
 
                     ## Clear previous display before showing new one
                     my $clear_len = length($display_buffer) + 8;
@@ -799,10 +826,8 @@ while ( length $input_chars ) {
                 ## Already viewing history - use tracked index
                 $current_index = $current_history_index;
             } else {
-                ## Not viewing history yet - search for current buffer
-                ## If not found, treat as being at the prompt (before any history entry)
+                ## Not viewing history yet - search for current buffer or start at most recent
                 my $current_cmd = $command_buffer // '';
-                my $found = 0;
                 if ( length($current_cmd) ) {
                     for ( my $i = 0; $i < @AMOS7::TERM::history_entries; $i++ ) {
                         my $entry = $AMOS7::TERM::history_entries[$i];
@@ -810,21 +835,17 @@ while ( length $input_chars ) {
                             my $cmd = join( "\n", @{ $entry->[1] } );
                             if ( $cmd eq $current_cmd ) {
                                 $current_index = $i;
-                                $found = 1;
                                 last;
                             }
                         }
                     }
-                }
-                ## If we didn't find a matching history entry, set to 0 (most recent)
-                if ( !$found && @AMOS7::TERM::history_entries ) {
-                    $current_index = 0;
+                } else {
+                    ## Empty buffer - start from most recent history entry
+                    $current_index = 0 if @AMOS7::TERM::history_entries;
                 }
             }
 
-            ## Skip current session (consecutive entries within gap), find next NEWER session (search backward toward lower indices)
-            ## Lower indices = newer entries. Search backward (i--) to find newer sessions
-            my $start_index = $current_index - 1;
+            ## Skip current session (consecutive entries within gap), find next session (search backward toward index 0)
             my $target_index = -1;
             if (   $current_index >= 0
                 && $current_index < @AMOS7::TERM::history_entries ) {
@@ -834,7 +855,7 @@ while ( length $input_chars ) {
                 $prev_time =~ s/:[\d]+$//;  ## Strip :count suffix
 
                 for (
-                    my $i = $start_index;
+                    my $i = $current_index - 1;
                     $i >= 0;
                     $i--
                 ) {
@@ -844,22 +865,18 @@ while ( length $input_chars ) {
                     $entry_time =~ s/:[\d]+$//;  ## Strip :count suffix
 
                     ## Calculate time difference using base.ntime.delta_seconds
-                    ## Use absolute value to handle both forward/backward search directions
-                    my $time_diff = abs( <[base.ntime.delta_seconds]>->( $entry_time, $prev_time ) // 0 );
+                    my $time_diff = <[base.ntime.delta_seconds]>->( $prev_time, $entry_time ) // 0;
 
                     ## Found session boundary (gap >= session_gap_minutes)
                     if ( $time_diff >= $gap_seconds ) {
-                        ## Found first entry of newer (next) session
-                        $target_index = $i;  ## Jump to first entry of newer session
+                        ## Found start of next newer session, go to last entry of it
+                        $target_index = $i + 1;  ## Jump to last entry of next session
                         last;
                     }
                     $prev_time = $entry_time;
                 }
 
-                ## If no boundary found, go to newest entry (only if not already near it)
-                if ( $target_index == -1 && $current_index > 0 ) {
-                    $target_index = 0;
-                }
+                ## If no boundary found, do nothing (stay in current session)
             }
 
             ## Load and display the target entry
@@ -868,7 +885,6 @@ while ( length $input_chars ) {
                 my $entry = $AMOS7::TERM::history_entries[$target_index];
                 if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
                     my $lines_ref = $entry->[1];
-                    my $entry_cmd = join("\n", @{$lines_ref});
 
                     ## Clear previous display before showing new one
                     ## Must clear at least cursor width (1) + margin, even if display_buffer is empty
@@ -1337,8 +1353,8 @@ while ( length $input_chars ) {
 
 return undef;    ## No complete line yet, buffer exhausted or incomplete UTF-8
 
-#,,,.,.,.,,,,,..,,.,,,,.,,,..,,,,,,,,,.,,,,,.,..,,...,..,,..,,.,.,,,.,.,.,,,.,
-#FSQXXWK3IDKPP6EDUENSYSWZ4FLAV63NV3Z7NVHAX2DJW7XMWUGHCLAW4XMNAMXWVS2OUDTYM4GA4
-#\\\|LDRP446V3WRMWTVYWXUZFLXXBKIHXE5TKUOYDTEC3GJDDTLIPUX \ / AMOS7 \ YOURUM ::
-#\[7]4BEVUFNY6ONS4HJ66XGEKIBJSNJSH6WDUL7JGJKDKVKXAB47D4BY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,,,,..,,,,,,,,.,,,.,..,,...,,,.,..,,...,...,...,.,.,.,,,,,,,,..,
+#Z6O6JLWCYGDAALJQY7ANVORHALHE3HSGENY2OEU5XN24HLHOAMEPJ6DMJT5AHNOJDR24N5ULOJKQW
+#\\\|XUIT3NKT5WJVUF42JXHE37ZEUMARXK76ITIOJADDKKXHLN4AJI2 \ / AMOS7 \ YOURUM ::
+#\[7]LZHTMU6F75ZHGDM3DG4I7MLGIT6W7VCYZT5Y3OXCVICNLMB77CAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

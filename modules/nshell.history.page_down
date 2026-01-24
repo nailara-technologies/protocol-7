@@ -1,0 +1,79 @@
+## [:< ##
+
+# name = nshell.history.page_down
+# descr = Session-based page down navigation (older history entries)
+
+my ( $state_ref, $editor, $colors ) = @_;
+
+## Configuration
+my $session_gap_minutes = 10 // 13;
+my $gap_seconds = $session_gap_minutes * 60;
+
+## Determine current history position
+my $current_index = -1;
+if ( $state_ref->{current_history_index} >= 0 ) {
+    ## Already viewing history - use tracked index
+    $current_index = $state_ref->{current_history_index};
+} else {
+    ## Not viewing history yet - search for current buffer or start at most recent
+    my $current_cmd = $editor->{buffer} // '';
+    if ( length($current_cmd) ) {
+        for ( my $i = 0; $i < @AMOS7::TERM::history_entries; $i++ ) {
+            my $entry = $AMOS7::TERM::history_entries[$i];
+            if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
+                my $cmd = join( "\n", @{ $entry->[1] } );
+                if ( $cmd eq $current_cmd ) {
+                    $current_index = $i;
+                    last;
+                }
+            }
+        }
+    } else {
+        ## Empty buffer - start from most recent history entry
+        $current_index = 0 if @AMOS7::TERM::history_entries;
+    }
+}
+
+## Find next older session boundary
+my $target_index = <[nshell.history.find_session_boundary]>->(
+    $current_index, -1, $gap_seconds
+);
+
+return if $target_index < 0;
+
+## Load and display the target entry
+if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
+    my $entry = $AMOS7::TERM::history_entries[$target_index];
+    if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
+        my $lines_ref = $entry->[1];
+
+        ## Clear previous display
+        my $clear_len = length( $state_ref->{display_buffer} ) + 20;
+        $clear_len = 20 if $clear_len < 20;
+        print "\r" . ( ' ' x $clear_len ) . "\r";
+
+        $state_ref->{display_buffer} = join "\n", $lines_ref->@*;
+        $state_ref->{current_history_index} = $target_index;
+
+        ## Load into editor to sync editor buffer
+        AMOS7::TERM::editor_load( $editor, $state_ref->{display_buffer} );
+
+        my $display_buffer = $colors->{p7_fg_0004} . $state_ref->{display_buffer};
+
+        ## Redraw full line with cursor
+        <[nshell.render.full_line]>->(
+            $editor, $display_buffer, $colors
+        );
+
+        ## Enter VIEWING_HISTORY mode
+        $state_ref->{current_mode} = 2;  # VIEWING_HISTORY
+    }
+}
+
+return;
+
+#,,,.,.,,,,.,,.,.,,,,,,,.,,,.,...,.,.,...,.,.,.,.,...,...,.,,,.,,,,,.,..,,.,.,
+#HXNSIMVQLOQLDPTLBNSK4NQQ53H6OZK77RWDESFBAWYTSNK2EO2TLOI6WWEJC3DCARNPFZ7FFZZU4
+#\\\|3JMVFNFUCQJGG4NKO7HV27MU3O53LRIUNRH57V5P4BB5H6HOEZ7 \ / AMOS7 \ YOURUM ::
+#\[7]TNZHHKSRMHWPU2Y24IZZR3U3XBMAXEZ3CLB3RVQABDB37AZIR2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

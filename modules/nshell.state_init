@@ -1,0 +1,38 @@
+## [:< ##
+
+# name = nshell.state_init
+# descr = Initialize clean state machine in nshell %data namespace
+
+my $state = $main::data{'nshell'}{'edit_state'} //= {
+    ## Editor state
+    editor                => undef,
+    buffer_display         => '',
+    buffer_command         => '',
+    escape_buffer          => '',
+    input_chars            => '',
+
+    ## History navigation state
+    current_history_index  => -1,           ## -1 = at prompt, 0+ = viewing history
+    search_mode            => FALSE,        ## Ctrl+R search active
+    search_term            => '',
+    search_results         => [],
+    search_index           => 0,
+    search_term_history    => [],
+    search_term_hist_index => -1,
+    pre_search_buffer      => '',
+    search_deleted_chars   => '',
+
+    ## Session navigation constants
+    session_gap_minutes    => 13,
+
+    ## Terminal state
+    last_line_had_content  => FALSE,
+};
+
+return $state;
+
+#,,,.,,.,,,.,,.,.,..,,,..,,..,.,.,.,.,..,,...,.,.,...,...,,,,,,,,,..,,,.,,..,,
+#NEL4WP7WIDHPGBZAFOR6H2GVV557GCHJGU3ZCA2LIFSNMQTQJP4CYHMUNVZOPEOK5NBEEHBZYXWYC
+#\\\|QOLHTUIB6VUWIVRDWXMLYQ4RSY75SYYLWHZNPKGS65RN77KUXNE \ / AMOS7 \ YOURUM ::
+#\[7]FWSQVMKUBICS5EVGMAQEKBMOVN43T3A2ZSSSNHY6YZM2DNXHIEDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

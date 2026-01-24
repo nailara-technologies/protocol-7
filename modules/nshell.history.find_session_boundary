@@ -1,0 +1,68 @@
+## [:< ##
+
+# name = nshell.history.find_session_boundary
+# descr = Shared temporal gap detection for session navigation
+
+my ( $start_index, $direction, $gap_seconds ) = @_;
+## $direction: -1 = backward (Page Down, older), 1 = forward (Page Up, newer)
+
+return -1 if $start_index < 0 || $start_index >= @AMOS7::TERM::history_entries;
+return -1 if !@AMOS7::TERM::history_entries;
+
+my $target_index = -1;
+my $entry = $AMOS7::TERM::history_entries[$start_index];
+my $prev_time_raw = $entry->[0];
+my $prev_time = $prev_time_raw;
+$prev_time =~ s/:[\d]+$//;  ## Strip :count suffix
+
+if ( $direction == -1 ) {
+    ## Backward search (Page Down - looking for older sessions)
+    ## History indices: 0=newest, N=oldest. To find older, INCREMENT indices.
+    ## Search from $start_index + 1 up to end of array
+    for ( my $i = $start_index + 1; $i < @AMOS7::TERM::history_entries; $i++ ) {
+        my $entry = $AMOS7::TERM::history_entries[$i];
+        my $entry_time_raw = $entry->[0];
+        my $entry_time = $entry_time_raw;
+        $entry_time =~ s/:[\d]+$//;  ## Strip :count suffix
+
+        ## Calculate time difference
+        my $time_diff = <[base.ntime.delta_seconds]>->( $prev_time, $entry_time ) // 0;
+
+        ## Found session boundary (gap >= threshold)
+        if ( $time_diff >= $gap_seconds ) {
+            ## Jump to first entry of newer (older in time) session
+            $target_index = $i;
+            last;
+        }
+        $prev_time = $entry_time;
+    }
+} elsif ( $direction == 1 ) {
+    ## Forward search (Page Up - looking for newer sessions)
+    ## History indices: 0=newest, N=oldest. To find newer, DECREMENT indices.
+    ## Search from $start_index - 1 down to 0
+    for ( my $i = $start_index - 1; $i >= 0; $i-- ) {
+        my $entry = $AMOS7::TERM::history_entries[$i];
+        my $entry_time_raw = $entry->[0];
+        my $entry_time = $entry_time_raw;
+        $entry_time =~ s/:[\d]+$//;  ## Strip :count suffix
+
+        ## Calculate time difference (going backward in time, so times get older)
+        my $time_diff = <[base.ntime.delta_seconds]>->( $entry_time, $prev_time ) // 0;
+
+        ## Found session boundary (gap >= threshold)
+        if ( $time_diff >= $gap_seconds ) {
+            ## Jump to last entry of older (newer in time) session
+            $target_index = $i - 1;
+            last;
+        }
+        $prev_time = $entry_time;
+    }
+}
+
+return $target_index;
+
+#,,.,,.,,,,.,,,..,..,,,,,,,..,..,,...,,..,..,,.,.,...,...,,.,,...,...,,..,.,.,
+#KAFWJF4HZZNQ33YUXME24WLNFTNE2RFEYX66JTEFPHDRSJ73S4LP5IT4PGCJ6ALCZ63WAYNXUE5OM
+#\\\|QWWUGFCL3WLDEP3NEH6LV6N5PGTZSOYODNSVR27LM46RQM6JXAA \ / AMOS7 \ YOURUM ::
+#\[7]IOGIVZOMJMPM6YFUSAA54726EJHOLQ4FIYEPWVRGHJ2QLD6PQYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

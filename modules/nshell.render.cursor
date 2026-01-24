@@ -1,0 +1,38 @@
+## [:< ##
+
+# name = nshell.render.cursor
+# descr = Unified cursor rendering (underscore vs inverse video)
+
+my ( $editor, $colors, $clear_to_eol ) = @_;
+$clear_to_eol //= 0;
+
+my $cursor_pos     = $editor->{cursor_pos};
+my $buffer         = $editor->{buffer};
+my $buf_len        = length($buffer);
+my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
+
+## Move back to cursor position (if not at end)
+if ( $cursor_pos < $buf_len ) {
+    my $moves_back = $buf_len - $cursor_pos;
+    print "\x08" x $moves_back;
+}
+
+## Render cursor at current position
+if ( $char_at_cursor eq '' or $char_at_cursor eq ' ' ) {
+    print $colors->{p7_fg_0003} . '_';
+} else {
+    print "\e[7m" . $char_at_cursor . "\e[27m";
+}
+
+print "\e[0m" . $colors->{p7_fg_0004};
+## Only clear to end of line if requested or cursor is at buffer end
+print "\e[K" if $clear_to_eol || $cursor_pos >= $buf_len;
+STDOUT->flush();
+
+return;
+
+#,,,.,,,,,,,,,...,,,,,.,,,..,,.,,,,.,,,.,,..,,.,.,...,...,,..,,,.,.,.,.,.,,,.,
+#U4BRSOQKRARSB5MJEP3PIWOJSHVAS6H6OPZBC4XBXCZMXR4IS4K32TKBWWT6UVDW5QRKBX5OST46Y
+#\\\|VGEWOBDPNWPC7BA3UWWIOHMDY3WCHW6D2UJ5RUSGKGRZFVPTQAW \ / AMOS7 \ YOURUM ::
+#\[7]O5YLJRMNONUOKGOVZA3AW4RU47HUI4VCILDUMXUO33KM5RK64EAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

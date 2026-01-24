@@ -1,0 +1,140 @@
+## [:< ##
+
+# name = nshell.editor.process
+# descr = Main dispatcher for editor operations (character insertion, deletion, newline)
+
+my ( $editor, $key, $colors ) = @_;
+
+## Initialize editor on first key
+$editor //= AMOS7::TERM::editor_init();
+
+## Process key through editor
+my $edit_result = AMOS7::TERM::editor_process_key( $editor, $key, %$colors );
+
+return unless defined $edit_result;
+
+my $action = $edit_result->{action};
+
+## Helper: inline full-line redraw with cursor
+my $redraw_with_cursor = sub {
+    my $cursor_pos = $editor->{cursor_pos};
+    my $buffer     = $editor->{buffer};
+
+    ## Go to start of line
+    print "\r";
+
+    ## Print everything before cursor
+    if ( $cursor_pos > 0 ) {
+        print substr( $buffer, 0, $cursor_pos );
+    }
+
+    ## Render cursor inline
+    my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
+
+    if ( $char_at_cursor eq '' or $char_at_cursor eq ' ' ) {
+        print $colors->{p7_fg_0003} . '_';
+    } else {
+        print "\e[7m" . $char_at_cursor . "\e[27m";
+    }
+
+    print "\e[0m" . $colors->{p7_fg_0004};
+
+    ## Print everything after cursor
+    if ( $cursor_pos < length($buffer) ) {
+        my $after_cursor = substr( $buffer, $cursor_pos + 1 );
+        print $after_cursor if length($after_cursor);
+        print "\e[K";
+        print "\x08" x length($after_cursor) if length($after_cursor);
+    } else {
+        print "\e[K";
+    }
+};
+
+## Character insertion (echo action)
+if ( $action eq 'echo' ) {
+    $redraw_with_cursor->();
+    return undef;
+}
+
+## Deletion operations
+if ( $action eq 'backspace' or $action eq 'delete' ) {
+    $redraw_with_cursor->();
+    return undef;
+}
+
+## Cursor movement
+if ( $action eq 'cursor_left' or $action eq 'cursor_right' ) {
+    $redraw_with_cursor->();
+    return undef;
+}
+
+## Buffer modifications (kill/yank operations)
+if ( $action =~ m{^(kill_to_end|kill_from_start|kill_word|yank)$} ) {
+    $redraw_with_cursor->();
+    return undef;
+}
+
+## Signal (Ctrl+C, etc.)
+if ( $action eq 'signal' ) {
+    ## Clear cursor before sending signal, preserve buffer content
+    my $cursor_pos = $editor->{cursor_pos};
+    my $buffer = $editor->{buffer};
+    my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
+
+    ## Go to start of line, clear any cursor remnants, then print buffer
+    print "\r\e[K" . $colors->{p7_fg_0004} . $buffer . " ";
+    STDOUT->flush();
+
+    ## Send signal to current process
+    my $sig = $edit_result->{should_signal} // 'INT';
+    kill( $sig, $$ );
+
+    return undef;  ## Continue processing
+}
+
+## Newline - submit command
+if ( $action eq 'newline' ) {
+    my $cursor_pos = $editor->{cursor_pos};
+    my $buffer     = $editor->{buffer};
+    my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
+
+    ## Go to start of line, then to cursor position, then clear cursor
+    print "\r";
+    if ( $cursor_pos > 0 ) {
+        print substr( $buffer, 0, $cursor_pos );
+    }
+
+    if ( $char_at_cursor eq '' or $char_at_cursor eq ' ' ) {
+        ## Cursor was rendered as underscore, erase it
+        print "\e[K";
+    } else {
+        ## Cursor was rendered as inverse video character
+        ## Reprint the character without inverse to overwrite
+        print $colors->{p7_fg_0004} . $char_at_cursor;
+    }
+
+    print "\e[0m" . $colors->{p7_fg_0004};
+
+    ## Print the newline
+    print $edit_result->{output};
+    STDOUT->flush();
+
+    my $result = AMOS7::TERM::editor_submit($editor);
+
+    ## Save to history if not empty
+    if ( length $result ) {
+        my @lines = split "\n", $result;
+        AMOS7::TERM::history_add(@lines);
+    }
+
+    return $result;    ## Return command (or empty string)
+}
+
+## Unknown action - ignore
+return undef;
+
+#,,,,,.,.,.,,,,,.,.,,,,,,,,,,,,..,,,,,,,.,,.,,.,.,...,..,,.,.,..,,,.,,.,.,,,.,
+#DIJV74VUH6S6C3OLIOCCZ4Z4PVR6EECOC3CL62TEGPZLMKHZA65PTGTBU24XTUUANLCLMOEWRLLDM
+#\\\|FQMU5JN5L5QUETGEY7D77SJ34M4FXOWIT3ZRL53AWE3P5MJ3NEL \ / AMOS7 \ YOURUM ::
+#\[7]42VP3DA3SPEJCRF4XCWGFNOQD6ZLVVSXWYCRSHYYW4365Y2BRQBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,20 @@
+## [:< ##
+
+# name = nshell.render.clear_line
+# descr = Clear display line before redraw
+
+my ( $display_length, $min_width ) = @_;
+$min_width //= 20;
+
+my $clear_len = length($display_length) + $min_width;
+$clear_len = $min_width if $clear_len < $min_width;
+print "\r" . ( ' ' x $clear_len ) . "\r";
+STDOUT->flush();
+
+return;
+
+#,,..,...,...,.,,,,,.,.,,,,..,.,,,,,,,,,,,,..,.,.,...,...,..,,.,,,..,,.,.,.,,,
+#Z6SLSS5GJU6IGOZ6K5D3ONK5G5NJWR2SXUMNV6CR2Z57NCK26PTG2YJKNDJ5DXGI2FYAQG5G3HUAQ
+#\\\|ZUCJXZ3QPNZ4OVW36GRFORZNFWOU2KXXCI53AWF6E5YFIGE4LKU \ / AMOS7 \ YOURUM ::
+#\[7]Y2GLTJY3LO3FGDOENNJCBYDUJJ35IKYLT62OCZI7LWQJMNAV22DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
