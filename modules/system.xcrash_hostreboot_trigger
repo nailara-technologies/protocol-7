@@ -36,7 +36,8 @@ if ( defined $reboot_condition_error ) {    ## <-- no system reboot.., ###
     return FALSE;
 }
 my $total_delay = <[system.admin_reboot_warning]>->($admin_delay);
-<[base.log]>->( 0, '<<< HOST SYSTEM REBOOT IN %s SECONDS >>>', $total_delay );
+<[base.logs]>
+    ->( 0, '<<< HOST SYSTEM REBOOT IN %s SECONDS >>>', $total_delay );
 
 <system.timer.host_reboot> = <[event.add_timer]>->(
     {   'after'   => $reboot_delay,
@@ -46,8 +47,8 @@ my $total_delay = <[system.admin_reboot_warning]>->($admin_delay);
 
 return TRUE;    ## <-- reboot is scheduled ###
 
-#,,,.,,,.,,,.,,..,.,,,..,,..,,.,,,,,,,,..,,,,,..,,...,...,,.,,..,,,.,,,.,,,,,,
-#FZKD54EQYRAN5TPN3PQYDSQVVOWD4L24U6XRPZ4RJPNCW2O4XAYZG2YBEWNE2YQTMPC7K4GADSYNE
-#\\\|UDNU326LFVBOIPXDBPA57Z76WVPGBBS45PNOMLOP3FBK5BVZUCQ \ / AMOS7 \ YOURUM ::
-#\[7]OMGZSAU3C7ZQ3UCFYZYN375DV7HATI35Y53TXLGOMON4PLMGMEAQ 7  DATA SIGNATURE ::
+#,,..,,..,.,,,...,,..,...,.,.,,,,,,..,.,,,,..,..,,...,...,,,,,,,.,,.,,.,,,,..,
+#UHBTAGNQOSU2UZPPGLC6N7NH2ZMM7OOJXQNTCHR7ZR2CYIP7IQ6KOWHD4AGN5PV66TDN75XXRS3ZU
+#\\\|W4Y5332BMQP6EUDJP5WBNUENBQD46K2ZGKRQRV7H3W65LL4NSXV \ / AMOS7 \ YOURUM ::
+#\[7]OEK7HFSR3KQJAJ3MHF7NVUFY4UCN6UOYKGBMDHVNODRKHAK7SKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

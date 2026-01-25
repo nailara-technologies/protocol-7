@@ -5,7 +5,11 @@
 # param = <provider-name> [<update-data-yaml-or-json>]
 # formats = YAML (native) or JSON (backward compat)
 
-<[base.log]>->( 1, "menu-update COMMAND CALLED with args length: %d", length($call->{'args'} // '') );
+<[base.log]>->(
+    1,
+    "menu-update COMMAND CALLED with args length: %d",
+    length( $call->{'args'} // '' )
+);
 
 <[base.perlmod.load]>->('YAML::XS');
 
@@ -16,17 +20,23 @@ return { 'mode' => qw| false |, 'data' => 'provider name required' }
     unless defined $provider;
 
 ## Strip surrounding quotes if present (from command-line args)
-if (defined $update_data) {
+if ( defined $update_data ) {
     $update_data =~ s/^['"]//;
     $update_data =~ s/['"]$//;
 }
 
-<[base.log]>->( 1, "menu update from provider '%s' (%d bytes)", $provider, length($update_data // '') );
-<[base.log]>->( 2, "update data length: %d, starts with: [%s]",
-    length($update_data // ''),
-    substr($update_data // '', 0, 50) );
+<[base.logs]>->(
+    1,         "menu update from provider '%s' (%d bytes)",
+    $provider, length( $update_data // '' )
+);
+<[base.logs]>->(
+    2,
+    "update data length: %d, starts with: [%s]",
+    length( $update_data // '' ),
+    substr( $update_data // '', 0, 50 )
+);
 
-if (!defined $update_data) {
+if ( !defined $update_data ) {
     <[base.log]>->( 2, "WARNING: update_data is undefined" );
 }
 
@@ -40,9 +50,7 @@ if ( defined $update_data ) {
 
     ## Try JSON first (backward compatibility)
     if ( $update_data =~ m/^\{/ ) {
-        eval {
-            $provider_data = JSON::decode_json($update_data);
-        };
+        eval { $provider_data = JSON::decode_json($update_data); };
         if ($@) {
             return {
                 'mode' => qw| false |,
@@ -54,7 +62,8 @@ if ( defined $update_data ) {
         ## Parse as YAML (native Protocol-7 format)
         ## Expected: key: value structure (no document marker)
         eval {
-            my $prepended_yaml = "---\n" . $update_data;  # Re-add marker for parser
+            my $prepended_yaml
+                = "---\n" . $update_data;    # Re-add marker for parser
             $provider_data = YAML::XS::Load($prepended_yaml);
         };
         if ($@) {
@@ -66,21 +75,40 @@ if ( defined $update_data ) {
         <[base.log]>->( 2, "parsed provider data as YAML" );
     }
 
-    <[base.log]>->( 2, "provider_data structure - ref: %s, items defined: %s",
+    <[base.logs]>->(
+        2, "provider_data structure - ref: %s, items defined: %s",
         ref($provider_data),
-        (defined $provider_data->{'items'} ? 'YES' : 'NO') );
+        ( defined $provider_data->{'items'} ? 'YES' : 'NO' )
+    );
 
-    if (defined $provider_data->{'items'} && ref($provider_data->{'items'}) eq 'HASH') {
-        <[base.log]>->( 2, "items hash has %d keys", scalar(keys %{$provider_data->{'items'}}) );
-    } elsif (defined $provider_data->{'items'}) {
-        <[base.log]>->( 2, "items is defined but not HASH - type: %s", ref($provider_data->{'items'}) );
+    if ( defined $provider_data->{'items'}
+        && ref( $provider_data->{'items'} ) eq 'HASH' ) {
+        <[base.log]>->(
+            2,
+            "items hash has %d keys",
+            scalar( keys %{ $provider_data->{'items'} } )
+        );
+    } elsif ( defined $provider_data->{'items'} ) {
+        <[base.logs]>->(
+            2,
+            "items is defined but not HASH - type: %s",
+            ref( $provider_data->{'items'} )
+        );
     }
 
     $menu_structure->{providers}{$provider} = $provider_data;
 
-    <[base.log]>->( 2, "stored provider data - items: %s",
-        (defined $menu_structure->{providers}{$provider}->{'items'} ?
-            scalar(keys %{$menu_structure->{providers}{$provider}->{'items'}}) . " items" : "undef") );
+    <[base.logs]>->(
+        2,
+        "stored provider data - items: %s",
+        (   defined $menu_structure->{providers}{$provider}->{'items'}
+            ? scalar(
+                keys %{ $menu_structure->{providers}{$provider}->{'items'} }
+                )
+                . " items"
+            : "undef"
+        )
+    );
 } else {
     ## Simple existence update - remove provider if update_data is empty
     ## (allows zenka to signal it's disconnecting)
@@ -90,15 +118,15 @@ if ( defined $update_data ) {
 ## Mark structure as changed
 $menu_structure->{'last-changed'} = <[base.ntime.b32]>;
 
-<[base.log]>->( 1, "menu structure updated for provider '%s'", $provider );
+<[base.logs]>->( 1, "menu structure updated for provider '%s'", $provider );
 
 return {
     'mode' => qw| true |,
     'data' => "menu updated for provider $provider"
 };
 
-#,,,,,...,,,.,,,,,.,,,,..,,.,,.,,,..,,,.,,,.,,..,,...,...,,..,..,,.,,,.,.,.,.,
-#FUAFELS7OXXYYOLZLKOPPJSCYM46KTNIWW4TZGBTB2F7J2WI5TOVO2WWPNW5KOWYGGWGWTEALKDNW
-#\\\|AZRRFFGWGZKTR2ZLKF2IR3H6JGGU7EYLSZWNPOSLNJXYCZO36UU \ / AMOS7 \ YOURUM ::
-#\[7]AAZKKS3ZAE6AHSN5S2IQIP3NMYDAYPQQ3ZDYCKT5DIE7J6LRIOCI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,.,.,..,,,,,,...,,..,,.,,,..,,,,,..,,...,...,.,,,,,,,.,.,.,.,,.,,
+#7DKV5QPSZ2IOECHKM72QNLWTDWYW5WGF4XX3WM2QJREP6TK4DK2CMHHMAGZZNVBIZQDGCOHOXN2TU
+#\\\|T7YFVFVKTU54X4THTGNVLBCAKKLO7POQW2BTH6EXEZTBA4JHHL3 \ / AMOS7 \ YOURUM ::
+#\[7]VYOUQFXADJAZ7R6KEXGIQCPGZ7JGEXOU5XNLF2PUCKTMCTIWVABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

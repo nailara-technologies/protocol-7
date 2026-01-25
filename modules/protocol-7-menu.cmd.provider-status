@@ -7,7 +7,7 @@ return { 'mode' => qw| false |, 'data' => 'no menu structure initialized' }
     unless defined <protocol-7-menu.menu-structure>;
 
 my $menu_structure = <protocol-7-menu.menu-structure>;
-my $output = '';
+my $output         = '';
 
 ## Header
 $output .= "╔════════════════════════════════════════════════════════════╗\n";
@@ -16,17 +16,19 @@ $output .= "╚═════════════════════�
 $output .= "\n";
 
 ## Summary
-my $total_providers = scalar(keys %{$menu_structure->{'providers'}});
-my $total_items = 0;
-foreach my $provider (keys %{$menu_structure->{'providers'}}) {
+my $total_providers = scalar( keys %{ $menu_structure->{'providers'} } );
+my $total_items     = 0;
+foreach my $provider ( keys %{ $menu_structure->{'providers'} } ) {
     my $pdata = $menu_structure->{'providers'}{$provider};
-    $total_items += scalar(keys %{$pdata->{'items'}}) if defined $pdata->{'items'};
+    $total_items += scalar( keys %{ $pdata->{'items'} } )
+        if defined $pdata->{'items'};
 }
 
 $output .= "Summary:\n";
 $output .= "  Total Providers:  $total_providers\n";
 $output .= "  Total Items:      $total_items\n";
-$output .= "  Last Update:      " . ($menu_structure->{'last-changed'} // 'never') . "\n";
+$output .= "  Last Update:      "
+    . ( $menu_structure->{'last-changed'} // 'never' ) . "\n";
 $output .= "\n";
 
 ## Provider status table
@@ -35,23 +37,24 @@ $output .= "┌─────────────────────�
 $output .= "│ Provider Name           │ Items │ Status   │\n";
 $output .= "├─────────────────────────┼───────┼──────────┤\n";
 
-my @providers = sort keys %{$menu_structure->{'providers'}};
+my @providers = sort keys %{ $menu_structure->{'providers'} };
 foreach my $provider (@providers) {
     my $pdata = $menu_structure->{'providers'}{$provider};
-    my $item_count = defined $pdata->{'items'}
-        ? scalar(keys %{$pdata->{'items'}})
+    my $item_count
+        = defined $pdata->{'items'}
+        ? scalar( keys %{ $pdata->{'items'} } )
         : 0;
 
     ## Status determination
-    my $status = '●';  ## default: active
-    if ($item_count == 0) {
-        $status = '○';  ## inactive (no items)
+    my $status = '●';    ## default: active
+    if ( $item_count == 0 ) {
+        $status = '○';    ## inactive (no items)
     }
 
     ## Format with padding
-    my $name_padded = sprintf("%-25s", $provider);
-    my $count_padded = sprintf("%6d", $item_count);
-    my $status_padded = sprintf("%8s", $status . ' Active');
+    my $name_padded   = sprintf( "%-25s", $provider );
+    my $count_padded  = sprintf( "%6d",   $item_count );
+    my $status_padded = sprintf( "%8s",   $status . ' Active' );
 
     $output .= "│ $name_padded │ $count_padded │ $status_padded │\n";
 }
@@ -72,8 +75,8 @@ return {
     'data' => $output
 };
 
-#,,..,,..,..,,,,,,,.,,..,,.,.,..,,,,.,.,.,,.,,.,.,...,...,..,,...,,..,,,.,,,.,
-#H56ORXUF3LZFL3SV6FNWLVOUZIQVPDBHUQQOPY6PO3ZSTXVHVOV5SDYO2OCW7ZPJOLFYHVCVE2MV6
-#\\\|ZOJIY7OIVVQ2I4WHY3CDN3KWDNKSJXC5IS32TP6ZWBAAFPV4YJI \ / AMOS7 \ YOURUM ::
-#\[7]TAJZZECKYS6QEOAEDDXU2BQXDHSY5NCLKHNL4IJRKPTXZC7AGAAI 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,,.,.,.,,.,,,,,,..,,,,,,.,.,,,,,.,.,...,...,.,,,...,,,,,...,..,,
+#WR26JQI5HPT2E3QFW3FFSMYGMW5S5EFO6RVBDYJ6K4FEKBBJQE45KTHEO2S5GJ2COZRCQZQ6GEOMM
+#\\\|3S6AJHMHQSLTQS5BV2U5P5ECPPF4LTNXXE4JL6SR6V5NHYDXD7H \ / AMOS7 \ YOURUM ::
+#\[7]XHOGHNB2UTN47V3RNWURZLAC374Q4DTFWZ5QE75BRMC552H5Y4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

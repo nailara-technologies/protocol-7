@@ -17,7 +17,8 @@ my $items = $provider_data->{items} // {};
 
 foreach my $item_key ( sort keys %$items ) {
     my $item_config = $items->{$item_key};
-    my $label       = ref $item_config eq 'HASH'
+    my $label
+        = ref $item_config eq 'HASH'
         ? ( $item_config->{label} // $item_key )
         : $item_config;
 
@@ -25,9 +26,10 @@ foreach my $item_key ( sort keys %$items ) {
 
     if ( ref $item_config eq 'HASH' && defined $item_config->{callback} ) {
         $menu_item->signal_connect( 'activate' => $item_config->{callback} );
-    } elsif ( ref $item_config eq 'HASH' && defined $item_config->{command} ) {
+    } elsif ( ref $item_config eq 'HASH' && defined $item_config->{command} )
+    {
         my $cmd = $item_config->{command};
-        $menu_item->signal_connect( 'activate' => sub { qx| $cmd | } );
+        $menu_item->signal_connect( 'activate' => sub {qx| $cmd |} );
     }
 
     $provider_submenu->append($menu_item);
@@ -43,17 +45,17 @@ $menu->append($provider_item);
 $menu->show_all;
 
 ## Store reference for later updates
-<protocol-7-menu.gui-provider-items>{$provider} = {
+<protocol-7-menu.gui-provider-items> {$provider} = {
     'menu_item' => $provider_item,
     'submenu'   => $provider_submenu,
 };
 
-<[base.log]>->( 1, "added menu items for provider '%s'", $provider );
+<[base.logs]>->( 1, "added menu items for provider '%s'", $provider );
 
 return 0;
 
-#,,..,,.,,..,,.,.,,,,,...,,.,,.,.,...,,,,,.,,,..,,...,...,.,.,.,.,,,.,...,,.,,
-#COT5L6RDFVCXMBY3ZDOVFLLXIKAQQO56OQFHGV6OXOLOW2GHSZHOKYVARJZ46GCW3ILF2CKJ4OT3O
-#\\\|7N6L2GE5NZC5RPYZVM5XVKG65IW2UXLIPKAKSFCUSGJDDRK4SEH \ / AMOS7 \ YOURUM ::
-#\[7]CV2GRN2L5WY2MRGFRKMN2C2MSZDWDLTTOR5ZLRIE5HLKMZ6OR6BY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,.,,,..,..,,...,...,,,,,,..,,..,..,,...,..,,..,,,,,,,,.,.,,,..,,
+#KZASQ2ZT6JHSXOM66NNNCUEVMVX6YRCQHHBETR7PETXO2LOH4KFRLBIGLLREJAU7OE42MV467VF6Q
+#\\\|L64QJOYFSRIEWKH7DB3DJAEAPHXRVMOCFYSFZ3I3BNZRMGXCBMV \ / AMOS7 \ YOURUM ::
+#\[7]5LX5LZ3WSR36QUVFQ6F4OT3UAI4SGKJW37DQMSRZ23OER6NJZSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

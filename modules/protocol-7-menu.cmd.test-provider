@@ -7,14 +7,15 @@
 ## This module exercises the complete menu update flow for validation
 
 my $call_args = $call->{'args'} // 'status';
-my ($action, $subaction) = split( m|\s+|, $call_args, 2 );
+my ( $action, $subaction ) = split( m|\s+|, $call_args, 2 );
 
 ## ACTION: status - show current test provider state
 if ( $action eq 'status' ) {
     my $menu_structure = <protocol-7-menu.menu-structure>;
     my $test_data = $menu_structure->{'providers'}{'test-provider'} // {};
-    my $item_count = defined $test_data->{'items'}
-        ? scalar(keys %{$test_data->{'items'}})
+    my $item_count
+        = defined $test_data->{'items'}
+        ? scalar( keys %{ $test_data->{'items'} } )
         : 0;
 
     return {
@@ -47,9 +48,8 @@ elsif ( $action eq 'populate' ) {
 
     ## Use menu-update to push data into structure
     my $json_data = JSON::to_json($update_data);
-    <[protocol-7-menu.cmd.menu-update]>->({
-        'args' => "test-provider $json_data"
-    });
+    <[protocol-7-menu.cmd.menu-update]>
+        ->( { 'args' => "test-provider $json_data" } );
 
     <[base.log]>->( 1, 'test-provider populated with 3 items' );
 
@@ -91,15 +91,13 @@ elsif ( $action eq 'update' ) {
         };
 
         my $json_data = JSON::to_json($update_data);
-        <[protocol-7-menu.cmd.menu-update]>->({
-            'args' => "test-provider $json_data"
-        });
+        <[protocol-7-menu.cmd.menu-update]>
+            ->( { 'args' => "test-provider $json_data" } );
 
         <[base.log]>->( 1, 'test-provider: added item 4' );
         return { 'mode' => qw| true |, 'data' => 'item added' };
-    }
 
-    elsif ( $update_type eq 'remove' ) {
+    } elsif ( $update_type eq 'remove' ) {
         ## Remove an item
         my $update_data = {
             'items' => {
@@ -117,24 +115,23 @@ elsif ( $action eq 'update' ) {
         };
 
         my $json_data = JSON::to_json($update_data);
-        <[protocol-7-menu.cmd.menu-update]>->({
-            'args' => "test-provider $json_data"
-        });
+        <[protocol-7-menu.cmd.menu-update]>
+            ->( { 'args' => "test-provider $json_data" } );
 
         <[base.log]>->( 1, 'test-provider: removed items 3,4' );
         return { 'mode' => qw| true |, 'data' => 'items removed' };
-    }
 
-    elsif ( $update_type eq 'toggle' ) {
+    } elsif ( $update_type eq 'toggle' ) {
         ## Toggle enabled state of item - preserve current structure
         my $menu_structure = <protocol-7-menu.menu-structure>;
-        my $current_items = $menu_structure->{'providers'}{'test-provider'}{'items'} // {};
+        my $current_items
+            = $menu_structure->{'providers'}{'test-provider'}{'items'} // {};
 
         ## Create update preserving all current items but toggling item-1
         my $update_data = { 'items' => {} };
-        foreach my $item_id (keys %$current_items) {
+        foreach my $item_id ( keys %$current_items ) {
             my $item = $current_items->{$item_id};
-            if ($item_id eq 'test-item-1') {
+            if ( $item_id eq 'test-item-1' ) {
                 ## Toggle item-1's enabled state
                 $update_data->{'items'}{$item_id} = {
                     'label'   => $item->{'label'} // 'Test Item 1',
@@ -148,9 +145,8 @@ elsif ( $action eq 'update' ) {
         }
 
         my $json_data = JSON::to_json($update_data);
-        <[protocol-7-menu.cmd.menu-update]>->({
-            'args' => "test-provider $json_data"
-        });
+        <[protocol-7-menu.cmd.menu-update]>
+            ->( { 'args' => "test-provider $json_data" } );
 
         <[base.log]>->( 1, 'test-provider: toggled item 1 enabled state' );
         return { 'mode' => qw| true |, 'data' => 'item state toggled' };
@@ -161,15 +157,15 @@ elsif ( $action eq 'update' ) {
 
 ## ACTION: clear - remove test provider completely
 elsif ( $action eq 'clear' ) {
-    <[protocol-7-menu.cmd.menu-update]>->({
-        'args' => "test-provider"  # empty data removes provider
-    });
+    <[protocol-7-menu.cmd.menu-update]>->(
+        {   'args' => "test-provider"    # empty data removes provider
+        }
+    );
 
     <[base.log]>->( 1, 'test-provider cleared' );
     return { 'mode' => qw| true |, 'data' => 'test-provider cleared' };
-}
 
-else {
+} else {
     return {
         'mode' => qw| size |,
         'data' => "Test Provider Usage:\n"
@@ -182,8 +178,8 @@ else {
     };
 }
 
-#,,,,,...,,,.,.,,,.,.,.,.,,.,,,,.,.,.,,,.,..,,.,.,...,...,.,,,,.,,.,,,,..,...,
-#UWX56VWV3YPBQ47T7OLBRJHP3ABFYHFFAZKH6MYXSIIMMMT2I7PL7IBT2PWA2O3Q5MWP2U7ZNJZRA
-#\\\|3GDU4J7UEAEEQOYLX7TVJVUEK7P5XEDY6YDDICZ672PSKMTSBHC \ / AMOS7 \ YOURUM ::
-#\[7]34WFGGRL4EGIXKJH6V7CYY4DUSHWXQHB2O6CGGAUIA5LGIFSAKAY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,.,,.,,,..,.,,,..,,...,,,.,,,,,.,.,...,...,,..,...,...,,,,,,..,
+#N7GRNRLAARYHW3L7M6HKPHELHZDZ3DCEZKNCGTVFASCBPFOSTJM6A6AGLMTSWQTF4CFB4YOE2LL7I
+#\\\|MPMP5I6BAIKXY3XOIJJR775B3URSLL7ARYE76TUOG4BITKOIBGG \ / AMOS7 \ YOURUM ::
+#\[7]JT5J64OTLVT52ONCUNSKMXHYTOUMID7T5I7SZSEKNY72IBO2PCDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

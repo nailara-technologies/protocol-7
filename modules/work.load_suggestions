@@ -4,14 +4,15 @@
 # descr = load workflow suggestions from yaml file, create with defaults if missing
 
 ## Use Protocol-7 auto-detected root path ##
-my $suggestions_file = <system.root_path> . '/data/yaml/workflow-suggestions.yaml';
+my $suggestions_file
+    = <system.root_path> . '/data/yaml/workflow-suggestions.yaml';
 
 ## Check if suggestions file exists ##
-if (-f $suggestions_file) {
+if ( -f $suggestions_file ) {
     ## Load existing suggestions ##
     eval {
         require YAML::XS;
-        my $yaml_content = <[file.slurp]>->($suggestions_file);
+        my $yaml_content     = <[file.slurp]>->($suggestions_file);
         my $suggestions_data = YAML::XS::Load($$yaml_content);
 
         <work.suggestions> = $suggestions_data;
@@ -19,7 +20,9 @@ if (-f $suggestions_file) {
     };
 
     if ($EVAL_ERROR) {
-        <[base.log]>->( 1, 'failed to load suggestions yaml: %s', $EVAL_ERROR );
+        <[base.logs]>->(
+            1, 'failed to load suggestions yaml: %s', $EVAL_ERROR
+        );
         return undef;
     }
 } else {
@@ -115,7 +118,8 @@ dependencies:
 YAML_END
 
     ## Write default suggestions file ##
-    my $write_result = <[file.put_bin]>->($suggestions_file, \$default_yaml);
+    my $write_result
+        = <[file.put_bin]>->( $suggestions_file, \$default_yaml );
 
     if ($write_result) {
         <[base.log]>->( 2, '  ✓ Created default workflow-suggestions.yaml' );
@@ -135,8 +139,8 @@ return <work.suggestions>;
 
 0;
 
-#,,.,,.,.,.,.,,,,,,,.,.,,,,.,,,.,,,.,,,,.,...,..,,...,..,,...,.,,,.,.,.,,,.,.,
-#4PQWAV5QJYNYN7RQIY5TU6OK5IS2PMGEGKY3TSZC7BAKRRSL5RX42GUP5ZWYY3GQNZ4SQNXJ7PUAQ
-#\\\|UXGTZH3P4R6USD4GNIDJW65PYMQH74MHVCRQE4YCHGFCI55ZJNS \ / AMOS7 \ YOURUM ::
-#\[7]JSYTOJDL3PP2P5MURQE7SE3Q45D56ARZBQAK7ZJUAL3HEKTMYYAA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,..,,.,,,,,.,,,,,,.,,,,.,,,.,.,,,..,,...,...,...,,.,,...,,,.,...,
+#VGNXTTH4ONISZ7FMZKCRJBLMN5AHPEJJM25DAEQPUCB2JQ7BEMGGK7UT5JV4TCCM4DIC5HLXTVO5I
+#\\\|3NQYVZM5PI64EO3CCZVCC25NIY6QLASIZSL4NL23DOIJ7SNFXUE \ / AMOS7 \ YOURUM ::
+#\[7]FD5DIKYTS3Y4ECP4QJRUBO2B62CK4JANQQK6XJZO775EV47TKODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

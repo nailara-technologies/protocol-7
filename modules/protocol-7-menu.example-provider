@@ -16,22 +16,18 @@ my $menu_data = {
             'label'   => 'Weather: Loading...',
             'command' => 'weather.show_detail',
         },
-        'alerts' => {
-            'label' => 'No Alerts',
-        },
+        'alerts' => { 'label' => 'No Alerts', },
     }
 };
 
 <[base.protocol-7.command.send.local]>->(
     {   'command'   => 'protocol-7-menu.menu-update',
-        'call_args' => {
-            'args' => 'weather ' . JSON::encode_json($menu_data)
-        }
+        'call_args' =>
+            { 'args' => 'weather ' . JSON::encode_json($menu_data) }
     }
 );
 
 <[base.log]>->( 1, "registered with protocol-7-menu as 'weather' provider" );
-
 
 ## 2. WHEN DATA CHANGES - Push update via menu-update
 ##    ===================================================
@@ -43,13 +39,14 @@ my $new_forecast = get_weather_data();
 my $updated_menu = {
     'items' => {
         'status' => {
-            'label'   => "Weather: $new_forecast->{temp}°C, $new_forecast->{condition}",
+            'label' =>
+                "Weather: $new_forecast->{temp}°C, $new_forecast->{condition}",
             'command' => 'weather.show_detail',
         },
         'alerts' => {
-            'label' => $new_forecast->{alert_count} > 0
-                ? "Weather Alerts ($new_forecast->{alert_count})"
-                : 'No Alerts',
+              'label' => $new_forecast->{alert_count} > 0
+            ? "Weather Alerts ($new_forecast->{alert_count})"
+            : 'No Alerts',
         },
     }
 };
@@ -57,14 +54,12 @@ my $updated_menu = {
 ## Push the update (reverse route - zenka sends to protocol-7-menu)
 <[base.protocol-7.command.send.local]>->(
     {   'command'   => 'protocol-7-menu.menu-update',
-        'call_args' => {
-            'args' => 'weather ' . JSON::encode_json($updated_menu)
-        }
+        'call_args' =>
+            { 'args' => 'weather ' . JSON::encode_json($updated_menu) }
     }
 );
 
 <[base.log]>->( 1, "pushed weather menu update to protocol-7-menu" );
-
 
 ## 3. ON DISCONNECT/SHUTDOWN - Unregister
 ##    ====================================
@@ -72,12 +67,11 @@ my $updated_menu = {
 ## Remove menu items when zenka shuts down
 <[base.protocol-7.command.send.local]>->(
     {   'command'   => 'protocol-7-menu.menu-update',
-        'call_args' => { 'args' => 'weather' }    ## No data = unregister
+        'call_args' => { 'args' => 'weather' }         ## No data = unregister
     }
 );
 
 <[base.log]>->( 1, "unregistered weather from protocol-7-menu" );
-
 
 ## ============================================================================
 ## HOW IT WORKS
@@ -108,8 +102,8 @@ my $updated_menu = {
 ##
 ## Each layer uses the same timestamp-based .updated pattern or direct hash updates.
 
-#,,,,,,.,,,,.,,,,,...,.,.,...,,.,,.,.,,..,...,..,,...,...,.,.,,,.,..,,..,,,.,,
-#XJXHFJ6PQQDFVQUDSAKXSRP3TCMBHWXZHTIMSWLZA7LQJFSDBXM4CCPRDBEMWPIWFLVBNYMFGH5A2
-#\\\|ZUKDML37MHFLKOD5KBQCCIF3KZ3L66D4QFYBMQVJYLNR5QQOS6G \ / AMOS7 \ YOURUM ::
-#\[7]T54WQZ7IP7U73BF5FWQIRDUCILQDS7P5D3Z43XFNYVL5QFXZ2UDA 7  DATA SIGNATURE ::
+#,,,.,,,,,...,..,,,..,,..,,..,,,.,...,,,.,,,.,..,,...,..,,...,,,.,,,,,,.,,,,.,
+#I43TXHVOMV27T3IBNNZJSINWDXOPKL3OUWY3Y4MOD4WGL4ATO6IDF7Z7BSQSZ2FQHJANJVWX4OTFM
+#\\\|PP5QPPPASHVH3AYYGDEU4GTZJLEO3V65B323TUM6PCWTFQWS2GM \ / AMOS7 \ YOURUM ::
+#\[7]NSLBO4F46M7JD3D2N7FCDUZYK2T7HS2TCPEGT5JA5LRKZRFAM2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
