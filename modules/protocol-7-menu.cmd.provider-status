@@ -1,0 +1,79 @@
+## [:< ##
+
+# name = protocol-7-menu.cmd.provider-status
+# descr = Show provider connection status and update metrics
+
+return { 'mode' => qw| false |, 'data' => 'no menu structure initialized' }
+    unless defined <protocol-7-menu.menu-structure>;
+
+my $menu_structure = <protocol-7-menu.menu-structure>;
+my $output = '';
+
+## Header
+$output .= "╔════════════════════════════════════════════════════════════╗\n";
+$output .= "║           PROTOCOL-7 PROVIDER STATUS DASHBOARD             ║\n";
+$output .= "╚════════════════════════════════════════════════════════════╝\n";
+$output .= "\n";
+
+## Summary
+my $total_providers = scalar(keys %{$menu_structure->{'providers'}});
+my $total_items = 0;
+foreach my $provider (keys %{$menu_structure->{'providers'}}) {
+    my $pdata = $menu_structure->{'providers'}{$provider};
+    $total_items += scalar(keys %{$pdata->{'items'}}) if defined $pdata->{'items'};
+}
+
+$output .= "Summary:\n";
+$output .= "  Total Providers:  $total_providers\n";
+$output .= "  Total Items:      $total_items\n";
+$output .= "  Last Update:      " . ($menu_structure->{'last-changed'} // 'never') . "\n";
+$output .= "\n";
+
+## Provider status table
+$output .= "Provider Status:\n";
+$output .= "┌─────────────────────────┬───────┬──────────┐\n";
+$output .= "│ Provider Name           │ Items │ Status   │\n";
+$output .= "├─────────────────────────┼───────┼──────────┤\n";
+
+my @providers = sort keys %{$menu_structure->{'providers'}};
+foreach my $provider (@providers) {
+    my $pdata = $menu_structure->{'providers'}{$provider};
+    my $item_count = defined $pdata->{'items'}
+        ? scalar(keys %{$pdata->{'items'}})
+        : 0;
+
+    ## Status determination
+    my $status = '●';  ## default: active
+    if ($item_count == 0) {
+        $status = '○';  ## inactive (no items)
+    }
+
+    ## Format with padding
+    my $name_padded = sprintf("%-25s", $provider);
+    my $count_padded = sprintf("%6d", $item_count);
+    my $status_padded = sprintf("%8s", $status . ' Active');
+
+    $output .= "│ $name_padded │ $count_padded │ $status_padded │\n";
+}
+
+$output .= "└─────────────────────────┴───────┴──────────┘\n";
+$output .= "\n";
+
+## Legend
+$output .= "Status Legend:\n";
+$output .= "  ● Active   - Provider has items available\n";
+$output .= "  ○ Inactive - Provider registered but no items\n";
+$output .= "\n";
+
+$output .= "╚════════════════════════════════════════════════════════════╝\n";
+
+return {
+    'mode' => qw| size |,
+    'data' => $output
+};
+
+#,,..,,..,..,,,,,,,.,,..,,.,.,..,,,,.,.,.,,.,,.,.,...,...,..,,...,,..,,,.,,,.,
+#H56ORXUF3LZFL3SV6FNWLVOUZIQVPDBHUQQOPY6PO3ZSTXVHVOV5SDYO2OCW7ZPJOLFYHVCVE2MV6
+#\\\|ZOJIY7OIVVQ2I4WHY3CDN3KWDNKSJXC5IS32TP6ZWBAAFPV4YJI \ / AMOS7 \ YOURUM ::
+#\[7]TAJZZECKYS6QEOAEDDXU2BQXDHSY5NCLKHNL4IJRKPTXZC7AGAAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
