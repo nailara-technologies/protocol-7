@@ -1,58 +1,43 @@
 ## [:< ##
 
 # name = menu-commands.update-menu
-# descr = Push menu updates to protocol-7-menu zenka
+# descr = Notify protocol-7-menu of menu update (handler-based fetch pattern)
 
-<[base.perlmod.load]>->('JSON');
+# Generate timestamp reference for this update
+my $update_timestamp = <[base.ntime.b32]>;
 
-# Build items hash from current mappings
-my $items = {};
-foreach my $mapping_id (keys %{<menu-commands.mappings>}) {
-    my $mapping = <menu-commands.mappings>->{$mapping_id};
-    $items->{$mapping_id} = {
-        'label'    => $mapping->{'label'} // 'Unnamed',
-        'enabled'  => $mapping->{'enabled'} // 1,
-        'action'   => $mapping->{'command'} // '',
-    };
-}
+my $item_count = scalar(keys %{<menu-commands.mappings>});
 
-# Prepare provider data - only items for protocol-7-menu
-my $provider_data = {
-    'items' => $items,
-};
+<[base.log]>->( 1, "notifying protocol-7-menu of %d menu items (ref: %s)", $item_count, $update_timestamp );
 
-# Convert to JSON for protocol-7-menu (menu-update expects JSON format)
-my $json_data = JSON::encode_json($provider_data);
-
-# Send update to protocol-7-menu via cube router
-<[base.log]>->( 1, "sending menu update for %d items to protocol-7-menu", scalar(keys %{$items}) );
-
+# Send notification to protocol-7-menu with:
+# - provider name: menu-commands
+# - reference: timestamp (allows protocol-7-menu to fetch when ready)
+# - reply handler: protocol-7-menu will call get-provider-data to fetch the YAML
 my $response = eval {
     <[base.protocol-7.command.send.local]>->({
-        'command'   => 'cube.protocol-7-menu.menu-update',
+        'command'   => 'cube.protocol-7-menu.menu-update-notify',
         'call_args' => {
-            'args' => "menu-commands " . $json_data
+            'args' => "menu-commands $update_timestamp"
+        },
+        'reply' => {
+            'handler' => 'menu-commands.handler.menu-update-reply'
         }
     });
 };
+
 if ($EVAL_ERROR) {
-    <[base.s_warn]>->('Failed to update protocol-7-menu (exception): %s', $EVAL_ERROR);
-} elsif (!defined $response) {
-    <[base.s_warn]>->('menu-update returned no response');
+    <[base.s_warn]>->('Failed to notify protocol-7-menu (exception): %s', $EVAL_ERROR);
+} elsif (ref($response) eq 'HASH' && $response->{'mode'} =~ /false|error/i) {
+    <[base.s_warn]>->('menu-update-notify failed: %s', $response->{'data'} // 'unknown error');
 } elsif (ref($response) eq 'HASH') {
-    if ($response->{'mode'} =~ /false|error/i) {
-        <[base.s_warn]>->('menu-update failed: %s', $response->{'data'} // 'unknown error');
-    } else {
-        <[base.log]>->( 1, "menu-commands update pushed to protocol-7-menu (%d items)", scalar(keys %{$items}) );
-    }
-} else {
-    <[base.log]>->( 1, "menu-update response: %s", ref($response) ? 'ref' : $response );
+    <[base.log]>->( 2, "protocol-7-menu notified successfully" );
 }
 
 1;
 
-#,,..,,,,,..,,,,.,.,,,.,.,.,.,..,,...,,,.,.,,,..,,...,...,...,...,.,,,,,,,,,.,
-#7ZQ4DYDYYPIA2A765QRWICO2DP7SRI72PABH4LUM7DRFA677VAN5G6FGXPSX3XFB2EAIJTBIO6EZS
-#\\\|VJNWFGD5SP4DRJRHJNWKZJXCMJAOWCQT2V33M2BIYPB7PFLEFDF \ / AMOS7 \ YOURUM ::
-#\[7]H4LZCUPO5CK72PJT3GQPEYPOOF7OYBIQACT6TIDFQDKOWR7X4ECA 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,,.,.,,,.,,,,,.,.,,,.,,,.,,,..,,..,,...,..,,,,.,,,.,..,,,,,,...,
+#MX7GSPG7MP4NK5QVEVVOLIBB7ZWJ26GEPQRCCMOL2BQFPWURRJJ47WRANXFQY65BEP5FYDUO3WN6C
+#\\\|BYVXMPX4P56PREZAHN7WEXI7ITQ67PXVVGSYCF5WLZIHLVRA3TJ \ / AMOS7 \ YOURUM ::
+#\[7]DYORHJC4S3GBGATHZWTDESVY5ESGVAYIXYXLSN2T5UGJKSXLOSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

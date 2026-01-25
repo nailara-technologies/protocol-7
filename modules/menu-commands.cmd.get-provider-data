@@ -1,0 +1,40 @@
+## [:< ##
+
+# name = menu-commands.cmd.get-provider-data
+# descr = Provide YAML provider data on demand (SIZE reply - called by protocol-7-menu)
+
+<[base.perlmod.load]>->('YAML::XS');
+
+# Build items hash from current mappings
+my $items = {};
+foreach my $mapping_id (keys %{<menu-commands.mappings>}) {
+    my $mapping = <menu-commands.mappings>->{$mapping_id};
+    $items->{$mapping_id} = {
+        'label'    => $mapping->{'label'} // 'Unnamed',
+        'enabled'  => $mapping->{'enabled'} // 1,
+        'action'   => $mapping->{'command'} // '',
+    };
+}
+
+# Prepare provider data structure
+my $provider_data = {
+    'items' => $items,
+};
+
+# Format as YAML and strip document marker
+my $yaml_output = YAML::XS::Dump($provider_data);
+$yaml_output =~ s/^---\n//;
+
+<[base.log]>->( 1, "providing %d menu items via SIZE reply (%d bytes)", scalar(keys %{$items}), length($yaml_output) );
+
+# Return via SIZE mode - protocol-7-menu will fetch this when ready
+return {
+    'mode' => qw| size |,
+    'data' => $yaml_output
+};
+
+#,,..,..,,.,,,,,.,,,,,,,.,,,.,,.,,..,,..,,,,,,.,.,...,...,,,,,.,,,,,,,,..,,.,,
+#BTNQLSFKNZZDVM3HS24TX3EM2QKZ23APOD6H457YN3SHGPKQHGVFI74KXPHIQJPLK4YYK26YR4HTW
+#\\\|AB2HKVARHWFTEXEFCEMRBUKUR3MOVW6P3TBR4OFKWCYOLORZL6G \ / AMOS7 \ YOURUM ::
+#\[7]QE4KDK4Q4LHYJY3U7MIKYSFCXCD7JYJCDGWBR76ZNZEQVFNI6SCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
