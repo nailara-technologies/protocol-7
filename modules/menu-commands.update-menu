@@ -3,7 +3,7 @@
 # name = menu-commands.update-menu
 # descr = Push menu updates to protocol-7-menu zenka
 
-use YAML::XS qw| Dump |;
+<[base.perlmod.load]>->('JSON');
 
 # Build items hash from current mappings
 my $items = {};
@@ -13,37 +13,46 @@ foreach my $mapping_id (keys %{<menu-commands.mappings>}) {
         'label'    => $mapping->{'label'} // 'Unnamed',
         'enabled'  => $mapping->{'enabled'} // 1,
         'action'   => $mapping->{'command'} // '',
-        'category' => $mapping->{'category'},
     };
 }
 
-# Prepare provider data
+# Prepare provider data - only items for protocol-7-menu
 my $provider_data = {
-    'items'      => $items,
-    'categories' => <menu-commands.categories>,
-    'version'    => scalar(keys %{<menu-commands.mappings>}),
+    'items' => $items,
 };
 
-# Convert to YAML for passing as argument
-my $yaml_data = Dump($provider_data);
+# Convert to JSON for protocol-7-menu (menu-update expects JSON format)
+my $json_data = JSON::encode_json($provider_data);
 
 # Send update to protocol-7-menu via cube router
-eval {
+<[base.log]>->( 1, "sending menu update for %d items to protocol-7-menu", scalar(keys %{$items}) );
+
+my $response = eval {
     <[base.protocol-7.command.send.local]>->({
-        'command'   => 'protocol-7-menu.menu-update',
+        'command'   => 'cube.protocol-7-menu.menu-update',
         'call_args' => {
-            'args' => "menu-commands " . $yaml_data
+            'args' => "menu-commands " . $json_data
         }
     });
 };
 if ($EVAL_ERROR) {
-    # Don't fail if menu isn't available
+    <[base.s_warn]>->('Failed to update protocol-7-menu (exception): %s', $EVAL_ERROR);
+} elsif (!defined $response) {
+    <[base.s_warn]>->('menu-update returned no response');
+} elsif (ref($response) eq 'HASH') {
+    if ($response->{'mode'} =~ /false|error/i) {
+        <[base.s_warn]>->('menu-update failed: %s', $response->{'data'} // 'unknown error');
+    } else {
+        <[base.log]>->( 1, "menu-commands update pushed to protocol-7-menu (%d items)", scalar(keys %{$items}) );
+    }
+} else {
+    <[base.log]>->( 1, "menu-update response: %s", ref($response) ? 'ref' : $response );
 }
 
 1;
 
-#,,..,...,,.,,,..,..,,..,,,..,,,,,..,,,,.,,.,,..,,...,...,...,.,,,...,,,.,.,.,
-#HXAAT4YDLG3WC4JAVHO2DN76D4XIO4IJGGTYJTPABVAKJE5URTLDJJ3OZWWO36PGWTWAN55IQQSB4
-#\\\|5IWNGIENKWWVS63B43UMZDKACYGLPDZUCKHJOX2K34VK5MT5PQJ \ / AMOS7 \ YOURUM ::
-#\[7]I2JGYFINPHN6NCI23422P3S3BNPL6UCZA5G4QTZSUWBDL5XI6YDI 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,,.,.,,,.,.,.,.,..,,...,,,.,.,,,..,,...,...,...,...,.,,,,,,,,,.,
+#7ZQ4DYDYYPIA2A765QRWICO2DP7SRI72PABH4LUM7DRFA677VAN5G6FGXPSX3XFB2EAIJTBIO6EZS
+#\\\|VJNWFGD5SP4DRJRHJNWKZJXCMJAOWCQT2V33M2BIYPB7PFLEFDF \ / AMOS7 \ YOURUM ::
+#\[7]H4LZCUPO5CK72PJT3GQPEYPOOF7OYBIQACT6TIDFQDKOWR7X4ECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
