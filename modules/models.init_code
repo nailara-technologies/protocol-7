@@ -38,9 +38,12 @@ $data{'models'}        //= {};
 
 ## Load persisted scan_paths and models from YAML on startup
 my $persisted_registry = <[models.storage.yaml_load]>;
-if ( ref($persisted_registry) eq qw| HASH | && scalar( keys %$persisted_registry ) ) {
+if ( ref($persisted_registry) eq qw| HASH |
+    && scalar( keys %$persisted_registry ) ) {
     <models.registry> = $persisted_registry;
-    <[base.logs]>->( 1, '[init] restored %d models from persistent registry',
+    <[base.logs]>->(
+        1,
+        '[init] restored %d models from persistent registry',
         scalar( keys %$persisted_registry )
     );
 }
@@ -73,7 +76,7 @@ if ( ref($persisted_registry) eq qw| HASH | && scalar( keys %$persisted_registry
     },
     'filters' => {
         'name'      => qw| models.parser.ellipse_name |,
-        'is_vision' => qw| models.parser.yes_no |,
+        'is_vision' => qw| base.parser.yes_no_bool |,
 
 #       'size_gb'   => qw| models.parser.size_gb | ## [LLL] update to numerical ##
     },
@@ -188,8 +191,8 @@ unless ( exists <models.registry> ) {
 
 return 0;    # Module initialization successful
 
-#,,..,,,,,...,,,.,...,.,.,,..,,.,,,,.,,..,,.,,..,,...,...,..,,,..,,.,,,,.,..,,
-#5NFWK727ML6C7PQX5H65OIJYMQ2PLTN5ADMS63SXFRIRSQXMVFPOICB5QO3AWJ3RWH63SNTCD7XVQ
-#\\\|6VKR5VCQYOWKR7LHHBHFTFLKU7AHDDS6J7U4EFIDSKJZYGA2WXM \ / AMOS7 \ YOURUM ::
-#\[7]GVX2UHV4B2C2DAD2LUVDDNNDWOUUXWGJUVC57URPLHTEUHSJKCCY 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,.,.,..,,...,.,.,,..,,.,,,,.,.,.,..,,...,...,..,,,.,,,,.,...,...,
+#DZAELJU2ZJXFAAG6ERZD7JYPRFHQ3D5V6K6GX3IYP5M5GWAGFMTNJSPLL24SFUWCZWOUMT2OZ3QBU
+#\\\|7SUS6FOQCFBNP5DSMBEXOXRDLFL5Z6H3OVXPGNMPNQEP2EPCZ4O \ / AMOS7 \ YOURUM ::
+#\[7]724T34ETIJCVJQWSOCUNMH34FBVLX26E3GV4OGXPID2QXZBPHIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
