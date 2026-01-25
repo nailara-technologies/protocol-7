@@ -6,7 +6,26 @@
 my $args = defined $$call{'args'} ? $$call{'args'} : '';
 $args =~ s{^\s+|\s+$}{}g;
 
-my @parts = split(/\s+/, $args, 4);
+# Parse arguments handling quoted strings
+my @parts;
+my $current = '';
+my $in_quote = 0;
+my $quote_char = '';
+
+foreach my $char (split //, $args) {
+    if (($char eq '"' || $char eq "'") && !$in_quote) {
+        $in_quote = 1;
+        $quote_char = $char;
+    } elsif ($char eq $quote_char && $in_quote) {
+        $in_quote = 0;
+    } elsif ($char =~ /\s/ && !$in_quote) {
+        push @parts, $current if $current;
+        $current = '';
+    } else {
+        $current .= $char;
+    }
+}
+push @parts, $current if $current;
 
 unless (@parts >= 3) {
     return {
@@ -55,8 +74,8 @@ return {
     'data' => 'Added mapping: ' . $mapping_id
 };
 
-#,,,,,..,,,..,,,,,,,.,,.,,,..,,,,,.,.,.,,,,,.,..,,...,...,...,,..,,,,,.,,,.,,,
-#6GUIRGW2WZ7PUIT4I6L7GBDUML5C62HFMJNXSZPD6B5L5F2GG6PZCZLXAE5PDQ3QZVDNL42RFTDHO
-#\\\|M7DLPFVKKQXFIRWZLYFTKPQ6YOH7V7HWJBRU7526YTMWOK5MYC2 \ / AMOS7 \ YOURUM ::
-#\[7]MOB6DPYEUQFTT3IHCQLOCQWH5DLRSQACFP7AGHOZROP5ZZPD3AAI 7  DATA SIGNATURE ::
+#,,.,,...,,..,...,...,,.,,,..,,,,,.,,,.,.,.,.,..,,...,...,..,,.,.,...,,..,..,,
+#VFTLVHCJEKO6ISX3XMTSBYEMF3VKAAF6KKF75R4OV7DGH57MCT3LJJKKTSTKSEUNLVB6SGRAKOEFC
+#\\\|5DEUDPWQGGS4EUAZYMZUCCSRAIQ7IPPSSRBUISS4IG6CIROYC54 \ / AMOS7 \ YOURUM ::
+#\[7]ILZXZJURS5AOBWHCHCRQF2KA7CLAYIHIIEZCJSWM6YYBC5H74ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
