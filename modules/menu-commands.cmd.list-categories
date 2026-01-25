@@ -1,0 +1,65 @@
+## [:< ##
+
+# name = menu-commands.cmd.list-categories
+# descr = List all menu categories
+
+my @categories = ();
+
+foreach my $cat_id (sort keys %{<menu-commands.categories>}) {
+    my $cat = <menu-commands.categories>->{$cat_id};
+
+    # Count items in this category
+    my $count = 0;
+    foreach my $m (values %{<menu-commands.mappings>}) {
+        $count++ if ($m->{'category'} // '') eq $cat_id;
+    }
+
+    push @categories, {
+        'id'    => $cat_id,
+        'label' => $cat->{'label'} // 'Unnamed',
+        'order' => $cat->{'order'} // 0,
+        'items' => $count,
+    };
+}
+
+if (!@categories) {
+    return {
+        'mode' => qw| true |,
+        'data' => 'No categories defined. Items can still use category field.',
+    };
+}
+
+# Sort by order field
+@categories = sort { $a->{'order'} <=> $b->{'order'} || $a->{'id'} cmp $b->{'id'} } @categories;
+
+# Build ASCII table
+my $output = '';
+$output .= "\n";
+$output .= sprintf("%-20s %-30s %-10s %s\n",
+    'ID', 'Label', 'Order', 'Items');
+$output .= "-" x 65 . "\n";
+
+foreach my $c (@categories) {
+    my $label = substr($c->{'label'}, 0, 28);
+    $label .= '...' if length($c->{'label'}) > 28;
+
+    $output .= sprintf("%-20s %-30s %-10d %d\n",
+        $c->{'id'},
+        $label,
+        $c->{'order'},
+        $c->{'items'}
+    );
+}
+
+$output .= "\nTotal: " . scalar(@categories) . " categor" . (scalar(@categories) == 1 ? 'y' : 'ies') . "\n";
+
+return {
+    'mode' => qw| true |,
+    'data' => $output,
+};
+
+#,,,.,.,,,,,,,,,.,,.,,...,,.,,.,,,.,.,,..,.,,,..,,...,...,.,,,,..,,..,...,,,.,
+#5AHBOWHAC66DKCAEAT2LP3DK6ZC5FHB5BK2UDKN7JGVDPUBJETAAS3V3NYNHKP4ZX2PVRUMG4XGLO
+#\\\|LKHIYQ55YEVPT3HI5XINCQ2WFWLPCGBWYF6G4CX3SDOHIAKHK5Z \ / AMOS7 \ YOURUM ::
+#\[7]ZN6FHGRQTBU36F3YH2APVB5MJKQAMG45PBVXJMXPVBQXL7GT7KAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

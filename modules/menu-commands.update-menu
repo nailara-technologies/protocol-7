@@ -1,0 +1,49 @@
+## [:< ##
+
+# name = menu-commands.update-menu
+# descr = Push menu updates to protocol-7-menu zenka
+
+use YAML::XS qw| Dump |;
+
+# Build items hash from current mappings
+my $items = {};
+foreach my $mapping_id (keys %{<menu-commands.mappings>}) {
+    my $mapping = <menu-commands.mappings>->{$mapping_id};
+    $items->{$mapping_id} = {
+        'label'    => $mapping->{'label'} // 'Unnamed',
+        'enabled'  => $mapping->{'enabled'} // 1,
+        'action'   => $mapping->{'command'} // '',
+        'category' => $mapping->{'category'},
+    };
+}
+
+# Prepare provider data
+my $provider_data = {
+    'items'      => $items,
+    'categories' => <menu-commands.categories>,
+    'version'    => scalar(keys %{<menu-commands.mappings>}),
+};
+
+# Convert to YAML for passing as argument
+my $yaml_data = Dump($provider_data);
+
+# Send update to protocol-7-menu via cube router
+eval {
+    <[base.protocol-7.command.send.local]>->({
+        'command'   => 'protocol-7-menu.menu-update',
+        'call_args' => {
+            'args' => "menu-commands " . $yaml_data
+        }
+    });
+};
+if ($EVAL_ERROR) {
+    # Don't fail if menu isn't available
+}
+
+1;
+
+#,,..,...,,.,,,..,..,,..,,,..,,,,,..,,,,.,,.,,..,,...,...,...,.,,,...,,,.,.,.,
+#HXAAT4YDLG3WC4JAVHO2DN76D4XIO4IJGGTYJTPABVAKJE5URTLDJJ3OZWWO36PGWTWAN55IQQSB4
+#\\\|5IWNGIENKWWVS63B43UMZDKACYGLPDZUCKHJOX2K34VK5MT5PQJ \ / AMOS7 \ YOURUM ::
+#\[7]I2JGYFINPHN6NCI23422P3S3BNPL6UCZA5G4QTZSUWBDL5XI6YDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

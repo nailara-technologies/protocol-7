@@ -1,0 +1,43 @@
+## [:< ##
+
+# name = menu-commands.cmd.status
+# descr = Show menu-commands zenka status
+
+my $cache_dir = <menu-commands.cache_dir>;
+my $mappings_file = $cache_dir . '/mappings.yaml';
+my $categories_file = $cache_dir . '/categories.yaml';
+
+my $mappings_size = -f $mappings_file ? (stat($mappings_file))[7] : 0;
+my $categories_size = -f $categories_file ? (stat($categories_file))[7] : 0;
+
+my $output = '';
+$output .= "\n";
+$output .= "Menu-Commands Zenka Status\n";
+$output .= "===========================\n";
+$output .= "\n";
+$output .= sprintf("Mappings:          %d\n", scalar(keys %{<menu-commands.mappings>}));
+$output .= sprintf("Categories:        %d\n", scalar(keys %{<menu-commands.categories>}));
+$output .= "\n";
+$output .= "Persistent Storage:\n";
+$output .= sprintf("  Mappings file:   %s (%d bytes)\n", $mappings_file, $mappings_size);
+$output .= sprintf("  Categories file: %s (%d bytes)\n", $categories_file, $categories_size);
+$output .= sprintf("  Cache directory: %s\n", $cache_dir);
+$output .= "\n";
+$output .= "Registration:\n";
+$output .= sprintf("  Protocol-7-Menu: available (updates pushed on change)\n");
+$output .= "\n";
+$output .= "Configuration:\n";
+$output .= sprintf("  On-demand:       enabled (70 minute idle timeout)\n");
+$output .= sprintf("  Auto-restart:    disabled\n");
+$output .= sprintf("  Heartbeat:       disabled\n");
+
+return {
+    'mode' => qw| true |,
+    'data' => $output,
+};
+
+#,,,,,,,,,.,,,,,,,.,.,,..,.,.,,,.,,.,,.,.,.,.,..,,...,...,..,,..,,.,.,...,,.,,
+#23QAFAMVJPUYUSPTH5GGZC34W6MIDRVPYOFFGNCGUUULRXUIOQETQCDAASCCDEZ55WJO2C7NA574C
+#\\\|NTDMZRSFRZYIVYKNDDBERPRDZJH4B7GODZWEABUYRD3XKGYGBHR \ / AMOS7 \ YOURUM ::
+#\[7]5RFPRBBNRJUJOXOFOHGSDVFLYZOY2B4PP7N7IH6T35DKAPI55WBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

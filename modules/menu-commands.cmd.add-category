@@ -1,0 +1,67 @@
+## [:< ##
+
+# name = menu-commands.cmd.add-category
+# descr = Add a new menu category
+
+my $args = defined $$call{'args'} ? $$call{'args'} : '';
+$args =~ s{^\s+|\s+$}{}g;
+
+my @parts = split(/\s+/, $args, 3);
+
+unless (@parts >= 2) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'Usage: add-category <category-id> <label> [order]'
+    };
+}
+
+my $category_id = $parts[0];
+my $label = $parts[1];
+my $order = $parts[2] // 0;
+
+# Validate category-id
+unless ($category_id =~ /^[a-zA-Z0-9_-]+$/) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'Category ID must contain only alphanumeric characters, underscores, and dashes'
+    };
+}
+
+# Check if category already exists
+if (exists <menu-commands.categories>->{$category_id}) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'Category already exists: ' . $category_id
+    };
+}
+
+# Validate order is numeric
+unless ($order =~ /^\d+$/) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'Order must be a non-negative integer'
+    };
+}
+
+# Add to categories hash
+<menu-commands.categories>->{$category_id} = {
+    'label' => $label,
+    'order' => $order,
+};
+
+# Save to disk
+<[menu-commands.save-state]>;
+
+# Push update to protocol-7-menu
+<[menu-commands.update-menu]>;
+
+return {
+    'mode' => qw| true |,
+    'data' => 'Added category: ' . $category_id
+};
+
+#,,,.,...,,,,,...,,.,,,..,,..,,,.,.,,,.,.,,.,,..,,...,...,,..,,,.,.,.,,.,,...,
+#MNS6KLAW45KFPO2JABI643TIW237PGFHUM7CUM4H67E3BISGM5OTEZVUJ26SANXHJFMXW6SGI7W2M
+#\\\|QSUCAWTHPJOT3ZETWDYXNF7NH55GDNG4RWC2PHSA53XXEXYQUSD \ / AMOS7 \ YOURUM ::
+#\[7]L3VCGGWDKFFEQZSICHZS3VCBGGFV76AVBPTQ4GLQQVKL4WGTHYCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

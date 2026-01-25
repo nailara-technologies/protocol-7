@@ -1,0 +1,36 @@
+## [:< ##
+
+# name = menu-commands.init_code
+# descr = Initialize menu-commands zenka with data structures and persistent state
+
+<[base.perlmod.load]>->('YAML::XS', qw| Load Dump |);
+
+# Initialize data structures
+<menu-commands.mappings> = {};
+<menu-commands.categories> = {};
+
+# Set cache directory
+<menu-commands.cache_dir> = '/var/cache/menu-commands';
+
+# Create cache directory if it doesn't exist
+my $cache_dir = <menu-commands.cache_dir>;
+unless (-d $cache_dir) {
+    mkdir($cache_dir, 0755) or do {
+        <[base.s_warn]>->('Failed to create cache directory: ' . $!);
+        return 0;
+    };
+}
+
+# Load persistent state from disk
+<[menu-commands.load-state]>;
+
+# Register with protocol-7-menu as a provider
+<[menu-commands.update-menu]>;
+
+0;
+
+#,,..,,,,,,.,,,..,.,,,,.,,.,.,,,.,.,,,,..,,.,,..,,...,...,.,,,,.,,,,.,,,,,,..,
+#ZIB6ZFYKH5LUVA2X2VZ4GXEWGNU4V5WXG4V77VYQA2H3Y57IQUL7LAP5RQ5CQZ2IMFJVKIGSFUD3E
+#\\\|OMCSCN7WBREOKEHFD3HI7DUDGNUZ2RMCCEYK7X5UBQUQAFF7OVN \ / AMOS7 \ YOURUM ::
+#\[7]K4JRCUC3X2DZVESJIBNT5Z4KVJGEIUY7D7QMHF6NVBGNXJT6MSCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

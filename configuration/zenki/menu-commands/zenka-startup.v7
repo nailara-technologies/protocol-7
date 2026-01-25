@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = zenka-startup.v7
+# descr = 'menu-commands' zenka startup configuration
+
+dependencies = cube
+max_concurrency    = 1
+start.on-demand    = 1
+restart.disabled   = 1
+heartbeat.disabled = 1
+
+: v7-init :
+  start_mode = stdin-zenka
+  cube.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<cube.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{cube.key}>']
+  [base.zenki.set_ondemand_timeout:4200]
+
+#,,.,,...,,.,,,..,,,,,,,.,,.,,,,.,,,,,,.,,.,,,..,,...,..,,...,.,.,,..,,.,,.,.,
+#3G2ICTNHYZPWPPNZ32RDJO5FNHWD3KASYHRMMSAGXXOQCQ5MQK3N4A2ATH46SZFLRVZO3IW3WUUKE
+#\\\|HJ4D6JOB5B6RTU3C5EPAQ6Y3MZNO7JBZDO3QKKJC7PM5TZS5X4J \ / AMOS7 \ YOURUM ::
+#\[7]AOY34BWIOBCW4NX2TBXHC5JU2USCFHNI47MGPBQGECMUBGOTWWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

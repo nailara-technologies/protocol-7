@@ -1,0 +1,55 @@
+## [:< ##
+
+# name = menu-commands.cmd.remove-category
+# descr = Remove a menu category
+
+my $category_id = defined $$call{'args'} ? $$call{'args'} : '';
+$category_id =~ s{^\s+|\s+$}{}g;
+
+unless ($category_id) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'Usage: remove-category <category-id>'
+    };
+}
+
+# Check if category exists
+unless (exists <menu-commands.categories>->{$category_id}) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'Category not found: ' . $category_id
+    };
+}
+
+# Count items using this category
+my $count = 0;
+foreach my $m (values %{<menu-commands.mappings>}) {
+    $count++ if ($m->{'category'} // '') eq $category_id;
+}
+
+if ($count > 0) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'Cannot remove category with ' . $count . ' item(s). Remove items first or update their category.'
+    };
+}
+
+# Remove from categories hash
+delete <menu-commands.categories>->{$category_id};
+
+# Save to disk
+<[menu-commands.save-state]>;
+
+# Push update to protocol-7-menu
+<[menu-commands.update-menu]>;
+
+return {
+    'mode' => qw| true |,
+    'data' => 'Removed category: ' . $category_id
+};
+
+#,,,,,...,,,.,.,,,...,..,,.,.,.,,,.,.,,..,,,.,..,,...,...,.,,,..,,.,,,,..,.,,,
+#RZWPJSVU33JYEHJ6H6YUOWATGEKUP5XDX52RX4MGW4XWNBFST4UB6B2UQCP2GK7BQGS7PRSZKB3PI
+#\\\|XARL7OHWPMGPKD37XI5JPDFMYPGIQZ6ZDFROZGRUZASXCXBP5U2 \ / AMOS7 \ YOURUM ::
+#\[7]VZPMTVU5UGMBNCUOOKNLZOM7N25V67N7FB3WKU5RIFZKZLFX6MDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
