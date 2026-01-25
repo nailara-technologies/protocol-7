@@ -4,9 +4,6 @@
 # descr = Receive menu structure update from provider zenka (push-based)
 # param = <provider-name> [<timestamp>] [<update-data-json>]
 
-return { 'mode' => qw| false |, 'data' => 'graphical mode not enabled' }
-    unless <protocol-7-menu.init-graphical>;
-
 my $call_args = $call->{'args'} // '';
 my ( $provider, $update_data ) = split( m|\s+|, $call_args, 2 );
 
@@ -56,8 +53,8 @@ return {
     'data' => "menu updated for provider $provider"
 };
 
-#,,,,,...,,,,,...,...,,,.,,,.,.,.,,,,,,,,,...,..,,...,...,,,,,.,,,,,,,,..,,..,
-#A7N6YHOSOJTCB5CHN4WNGPPY4MBB2PCJUW34QXNPTY7ZEATKH47YHYJFQRKMX4HM45OPLUSAVUDLG
-#\\\|QEPFDWEZYUP3XK3HOPWXSWUSRNDIKQWXLN4UGCQHMBBFKF4K237 \ / AMOS7 \ YOURUM ::
-#\[7]VYV3RHGPSIEZSVSN3VSXUA3XM4D6G2EWYCPG3PWMJ6XASME3MYDY 7  DATA SIGNATURE ::
+#,,,,,..,,..,,,..,.,.,..,,...,,,,,,.,,,.,,,..,..,,...,...,.,.,.,,,..,,.,.,,..,
+#BJPYCTKH5BNALLUYUDSJ752X27CVEIQBL4IRJ4WGYGTGXX6B6QMM4U4FGCVXULJSGCGNVJTCAUSO6
+#\\\|TLKXRPEUPVJIKSYYZWSKKMTZNXFZX27YYF54WUV6WFQR2PO3RF4 \ / AMOS7 \ YOURUM ::
+#\[7]RQGW5FMTEIF5NIQXI77CHRCLPS6OUT7CWSPKYEB6DEH3HIVXT6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
