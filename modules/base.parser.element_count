@@ -1,13 +1,14 @@
 ## [:< ##
 
-# name = base.parser.element_count
+# name  = base.parser.element_count
+# descr = return element count of referenced hash or array scructures
 
-return 'n/a'                  if ref( $_[0] ) !~ /^ARRAY|HASH$/;
-return scalar @{ $_[0] }      if ref( $_[0] ) eq 'ARRAY';
-return scalar keys %{ $_[0] } if ref( $_[0] ) eq 'HASH';
+return qw| n\\a |              if ref( $_[0] ) !~ m[^ARRAY|HASH$];
+return scalar $ARG[0]->@*      if ref( $ARG[0] ) eq qw| ARRAY |;
+return scalar keys $ARG[0]->%* if ref( $ARG[0] ) eq qw| HASH |;
 
-#,,,,,,.,,...,,,.,,..,,.,,..,,,.,,...,,.,,.,.,..,,...,...,...,.,,,,,.,,,.,.,.,
-#ATP4LUYRX2TIR6K2XHGKLPZWG7XAD3EJYEECJ6ZQHH3RNRDQQ2YZUX77B3J3G6T62UHZ2PB666S3S
-#\\\|J4AFQFUO34UHKOQRI7ONNWSQHT2NABPCFCALCUCSLRI5ZZFLCMU \ / AMOS7 \ YOURUM ::
-#\[7]JN5CK7WW2Y6YATW4CQYWRCRUSNAIJBRFDIJODZIXFL4Z2TQ6IEAQ 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,,,,,.,,,,,,,,,.,.,.,,,,,.,,.,,..,,...,...,..,,.,.,,.,,..,,.,.,
+#LPV54Q3VQMVFBIXVV4CAG4UFN4WU5HC4XM7L4U4SC24CNHGEI5XGW2MHK5OA3MZBKOSXJFBERCDTK
+#\\\|PDITRAGBC7FKODAIYMARCSHJSRMHRU2NAMHHQ3N4FIIEIHRGJD2 \ / AMOS7 \ YOURUM ::
+#\[7]HBLTZSO42MSUS5JQAATTN6JPXO3DBUYJJPZ5TI4YYICBJBG7KEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

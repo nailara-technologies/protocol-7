@@ -4,29 +4,38 @@
 
 my ( $filters, $key, $val, $params ) = ( shift, shift, shift, shift );
 
-if (    defined $filters
-    and exists $filters->{$key}
-    and defined $code{ $filters->{$key} } ) {
+if ( defined $filters and exists $filters->{$key} ) {
 
-    my $filter_param;    ## optional filter parameter ##
-    my $filter_par_name = sprintf qw| %s_param |, $key;
-    $filter_param = $filters->{$filter_par_name}
-        if defined $filters->{$filter_par_name};
+    my $filter_spec = $filters->{$key};
+    my $filter_name = $filter_spec;
+    my $filter_param;
 
-    if ( defined $filter_param ) {   ##  optional param configured in list  ##
-
-        return $code{ $filters->{$key} }->( $val, $filter_param );
-
+    # Check for inline parameter syntax: 'filter_name:param'
+    if ( $filter_spec =~ m|^([^:]+):(.+)$| ) {
+        $filter_name = $1;
+        $filter_param = $2;
     } else {
-        return $code{ $filters->{$key} }->($val);    ## no param defined ##
+        # Fall back to legacy {key}_param convention
+        my $filter_par_name = sprintf qw| %s_param |, $key;
+        $filter_param = $filters->{$filter_par_name}
+            if defined $filters->{$filter_par_name};
+    }
+
+    # Call filter if it exists
+    if ( defined $code{$filter_name} ) {
+        if ( defined $filter_param ) {
+            return $code{$filter_name}->( $val, $filter_param );
+        } else {
+            return $code{$filter_name}->($val);
+        }
     }
 }
 
 # unfiltered
 return $val;
 
-#,,..,,.,,,..,,.,,,..,,.,,,.,,.,,,,,.,.,,,..,,..,,...,..,,...,,,.,,,,,..,,.,.,
-#JT355QYBHHWH7U4UYWETNNI7FMFW4UJMYDCQWV3QGRQWJHPHMFRZFOGMJPAEVBWZBE7K73CDEEOZ6
-#\\\|UQR7K2ZX7WG33UXX3GPGHX6KQXBKWQULNM7YP3GR3AEL3QWMLDB \ / AMOS7 \ YOURUM ::
-#\[7]QAEBF3T6ORHCQEWG6VMR2MQRCBLMTVPWYD7RAVY3NXGCZ3NYZKAA 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,...,,..,,..,,..,,,.,,..,.,.,,.,,..,,...,...,..,,.,,,,,,,...,,,.,
+#KICTZZNHKXBAIE4VZAWXTMN53MA2H4IMHUQOYHEJM5OBS4NX25XD72HUAWE4YPEDVV4676ZMQ3YZA
+#\\\|MS2VNFCGWHAPQBAIUPXEEGIYIAT3WY4ZHSKENLFBIW33XVSWG67 \ / AMOS7 \ YOURUM ::
+#\[7]4AOT7BZUP5QEPEPEUTUNOL34XTM3N35FVTUCGV4FL2KWXA2TZOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
