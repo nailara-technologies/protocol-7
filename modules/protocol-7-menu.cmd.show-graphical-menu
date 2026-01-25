@@ -7,7 +7,7 @@ return { 'mode' => qw| false |, 'data' => 'graphical mode not enabled' }
     unless <protocol-7-menu.init-graphical>;
 
 ## Lazy initialization - only create window when actually requested
-unless ( <protocol-7-menu.graphical-initialized> ) {
+unless (<protocol-7-menu.graphical-initialized>) {
     <[base.log]>->( 1, "initializing graphical menu on-demand" );
     <[protocol-7-menu.graphical-init]>;
     <protocol-7-menu.graphical-initialized> = TRUE;
@@ -16,7 +16,10 @@ unless ( <protocol-7-menu.graphical-initialized> ) {
 my $window = <protocol-7-menu.graphical-window>;
 unless ( defined $window ) {
     <[base.log]>->( 2, "graphical window initialization failed" );
-    return { 'mode' => qw| false |, 'data' => 'window initialization failed' };
+    return {
+        'mode' => qw| false |,
+        'data' => 'window initialization failed'
+    };
 }
 
 ## Present window to user
@@ -27,8 +30,8 @@ $window->set_keep_below(0) if <protocol-7-menu.cfg.raise_on_request>;
 
 return { 'mode' => qw| true |, 'data' => 'graphical menu displayed' };
 
-#,,,,,,..,,,,,..,,,.,,,,,,.,.,,..,,,.,,,,,,.,,.,.,...,...,.,.,.,,,..,,.,.,.,.,
-#6QUGCWMHVAMAQVK2LNKNHCK5O456HNKOCIKPD3FRUIFCWNXM7HW3FANKF5CPJMZDTLSZII2XVU5VS
-#\\\|KENI5AMZNELZ6CY4XYC3PU6O34F6USBAR34VTOJ5FBKNID5QFRK \ / AMOS7 \ YOURUM ::
-#\[7]WDDEWGENJPYMV73VLAC3U4RBY5PDEZK3E4ENQ2UW2LZ5PYTMJ4AY 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,,.,..,,,.,,...,...,.,.,,.,,...,.,.,...,...,.,.,,..,,,,,,,.,.,,,
+#HIUNQ33JCR4D3MIBWPCZTA7SHYWVO7DEIONRIBLRBEUG7WTJ3FIVWDK7AGSK4RZFQDP4PYSQIAHWY
+#\\\|2CV6ULCE675TFK5WJUFTVABQ2PBU7FAWWDQH3MQKCR6FNTB7E6O \ / AMOS7 \ YOURUM ::
+#\[7]DVLEEU557K33DQJ3AINFI4QZOPJZKICWZQWCFJRJOQTO7VLCVUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

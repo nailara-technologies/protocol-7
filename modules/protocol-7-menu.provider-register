@@ -10,7 +10,8 @@ $operation //= 'register';
 return {
     'mode' => qw| false |,
     'data' => 'provider name required'
-} unless defined $provider_name;
+    }
+    unless defined $provider_name;
 
 if ( $operation eq 'register' ) {
     ## Register provider with menu system
@@ -19,13 +20,16 @@ if ( $operation eq 'register' ) {
     my $response = <[base.protocol-7.command.send.local]>->(
         {   'command'   => 'protocol-7-menu.menu-update',
             'call_args' => {
-                'args' => "$provider_name " . JSON::encode_json($provider_data)
+                'args' => "$provider_name "
+                    . JSON::encode_json($provider_data)
             }
         }
     );
 
-    <[base.log]>->( 1, "registered provider '%s' with menu system",
-        $provider_name );
+    <[base.logs]>->(
+        1, "registered provider '%s' with menu system",
+        $provider_name
+    );
 
     return $response;
 } elsif ( $operation eq 'unregister' ) {
@@ -36,8 +40,10 @@ if ( $operation eq 'register' ) {
         }
     );
 
-    <[base.log]>->( 1, "unregistered provider '%s' from menu system",
-        $provider_name );
+    <[base.logs]>->(
+        1, "unregistered provider '%s' from menu system",
+        $provider_name
+    );
 
     return $response;
 } elsif ( $operation eq 'update' ) {
@@ -47,7 +53,8 @@ if ( $operation eq 'register' ) {
     my $response = <[base.protocol-7.command.send.local]>->(
         {   'command'   => 'protocol-7-menu.menu-update',
             'call_args' => {
-                'args' => "$provider_name " . JSON::encode_json($provider_data)
+                'args' => "$provider_name "
+                    . JSON::encode_json($provider_data)
             }
         }
     );
@@ -56,12 +63,13 @@ if ( $operation eq 'register' ) {
 } else {
     return {
         'mode' => qw| false |,
-        'data' => "unknown operation '$operation' (use: register|update|unregister)"
+        'data' =>
+            "unknown operation '$operation' (use: register|update|unregister)"
     };
 }
 
-#,,.,,,,.,...,.,,,,.,,,,.,..,,.,.,.,,,.,,,,,.,..,,...,...,..,,,,,,.,.,...,,,.,
-#2WGXFWVJQRJ2MFWETVLR6WETKY4FEOBZVRIM3E3G2GRHA6HCNN5OLMPBFZJYK3YQGKR5OCTYT25TC
-#\\\|PZ5R67OR5HVC4LFHUOK7NHCO3NK4I4JEQOXSODZBHQOJDAIK7Y2 \ / AMOS7 \ YOURUM ::
-#\[7]GUPS552NEYEC26UYI3N3F3KNUFDMUCSX4J7JBTCCYETXE72UYMDY 7  DATA SIGNATURE ::
+#,,.,,,..,..,,..,,...,..,,,,,,,.,,..,,,..,,,.,..,,...,...,...,,,.,,.,,,.,,,,,,
+#RWKV7Y5SFSM2IYWD3UCQAGRNHLLFIYM34HXJ7DPI2AT4353Z5XW4N7KGBXXXU5CLJISBKSHAAGCHY
+#\\\|3JL5EOCDKX7VSSC4XLEIPIMUNL3DOQBHIBXYOIXYPZJNBLUCVOM \ / AMOS7 \ YOURUM ::
+#\[7]TIRZT4D5ANSKHAGSIDPTER57V4I67M3SCKXYB3KE4FZBMBAEIMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

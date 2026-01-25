@@ -7,7 +7,7 @@ my ($provider) = @ARG;
 
 return 0 unless <protocol-7-menu.init-graphical>;
 
-my $gui_items = <protocol-7-menu.gui-provider-items> //= {};
+my $gui_items     = <protocol-7-menu.gui-provider-items> //= {};
 my $provider_refs = $gui_items->{$provider};
 
 return 0 unless defined $provider_refs;
@@ -26,12 +26,12 @@ if ( defined $parent_menu ) {
 ## Clean up references
 delete $gui_items->{$provider};
 
-<[base.log]>->( 1, "removed menu items for provider '%s'", $provider );
+<[base.logs]>->( 1, "removed menu items for provider '%s'", $provider );
 
 return 0;
 
-#,,..,,,,,...,...,,.,,.,.,..,,.,,,.,,,,,.,,..,..,,...,..,,,.,,.,,,,..,,,,,...,
-#GOT2ZVTUZQ4FALEMD74LNDQIRQUFQI2P6DYRHQL4IMRTEZWPD5TOTJ2CXNME4QFEEC7Z6DQJ3HQNY
-#\\\|OR4TUANWDONF7KPT3FS7LAK2233N552ODHZ6OCW25ENG6EEVYD2 \ / AMOS7 \ YOURUM ::
-#\[7]OIOB4PI4SHGU7ML53V6SQBVOSIQWKC2AN5FMLTO6ZRWXZHFBXAAI 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,.,,.,.,.,.,.,.,,..,,.,,,,,,,.,,..,,...,...,...,,,.,,..,,,,,,.,,
+#2US4SWGOVJHSJVOTGUGOBKWBLSKSEYKG4VD7YR6CUTDYD7OIAEGB74XOGHSUZZYJ5RUY3EYMJ7DVS
+#\\\|JPKTBY7IV72S7ORHQTUG7QPKITGU62AXLG3WFLQ4LFQHIRS4LF7 \ / AMOS7 \ YOURUM ::
+#\[7]6W5JAMIGCFPEGAAMHFAPX3A2ODD2UPRNVILBKYSIVFG3VQFHWEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,22 +7,17 @@ my ( $provider, $prev_data, $curr_data ) = @ARG;
 
 return 0 unless <protocol-7-menu.init-graphical>;
 
-my $gui_items = <protocol-7-menu.gui-provider-items> //= {};
+my $gui_items     = <protocol-7-menu.gui-provider-items> //= {};
 my $provider_refs = $gui_items->{$provider};
 
 return 0 unless defined $provider_refs;
 
-my $submenu     = $provider_refs->{submenu};
-my $prev_items  = $prev_data->{items} //= {};
-my $curr_items  = $curr_data->{items} //= {};
+my $submenu    = $provider_refs->{submenu};
+my $prev_items = $prev_data->{items} //= {};
+my $curr_items = $curr_data->{items} //= {};
 
 ## Find added/removed/changed items
-my %all_keys = (
-    map { $_ => 1 } (
-        keys %$prev_items,
-        keys %$curr_items
-    )
-);
+my %all_keys = ( map { $_ => 1 } ( keys %$prev_items, keys %$curr_items ) );
 
 foreach my $item_key ( keys %all_keys ) {
     my $prev_item = $prev_items->{$item_key};
@@ -39,17 +34,20 @@ foreach my $item_key ( keys %all_keys ) {
         }
     } elsif ( !defined $prev_item ) {
         ## Item added - create and append
-        my $label = ref $curr_item eq 'HASH'
+        my $label
+            = ref $curr_item eq 'HASH'
             ? ( $curr_item->{label} // $item_key )
             : $curr_item;
 
         my $menu_item = Gtk3::MenuItem->new_with_label($label);
 
         if ( ref $curr_item eq 'HASH' && defined $curr_item->{callback} ) {
-            $menu_item->signal_connect( 'activate' => $curr_item->{callback} );
-        } elsif ( ref $curr_item eq 'HASH' && defined $curr_item->{command} ) {
+            $menu_item->signal_connect(
+                'activate' => $curr_item->{callback} );
+        } elsif ( ref $curr_item eq 'HASH' && defined $curr_item->{command} )
+        {
             my $cmd = $curr_item->{command};
-            $menu_item->signal_connect( 'activate' => sub { qx| $cmd | } );
+            $menu_item->signal_connect( 'activate' => sub {qx| $cmd |} );
         }
 
         $submenu->append($menu_item);
@@ -74,12 +72,12 @@ foreach my $item_key ( keys %all_keys ) {
 
 $submenu->show_all;
 
-<[base.log]>->( 1, "updated menu items for provider '%s'", $provider );
+<[base.logs]>->( 1, "updated menu items for provider '%s'", $provider );
 
 return 0;
 
-#,,.,,,.,,,.,,,,,,...,...,...,,,.,...,,,.,.,.,..,,...,..,,..,,,..,,.,,,,.,,..,
-#2LHC5JLZSFA7WLEJMVP2FXLBKIMDXNGNBL3GB563FT4VTD5XUAD3OZPWYYNMT5GPLX5O4GZ5O77SA
-#\\\|PTLV3GQ62NHT4SEB27IZZLQQJ52FUPEMVSGOLBE6HCEGEBKNACF \ / AMOS7 \ YOURUM ::
-#\[7]YQIBPWFE2YVVO6FPMEMUYLETPTAOXFGLZALPPS7SMENDEPVH3SAI 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,..,,.,,,,..,..,,,..,..,,.,.,.,,,..,,...,...,.,,,,.,,,.,,,,,,...,
+#FU3AFEG65LXTC2NGBSZ4AWDS47JYU7YK2JWKHMFBW666BNAVIOZRWINTYKXELZXBB6WXS22PM4UUO
+#\\\|4H5KCDFUT2E4ZG54B2QV6GH4Q5OKCYWJT3PQRCAFXVN7TS4IC6H \ / AMOS7 \ YOURUM ::
+#\[7]F5LHTPEHVPBOWAC5QSPROMKWODCD6SZP2BKSKY6V3YXD767VXGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

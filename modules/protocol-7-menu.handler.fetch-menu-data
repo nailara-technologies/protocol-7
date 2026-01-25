@@ -5,12 +5,15 @@
 
 <[base.perlmod.load]>->('YAML::XS');
 
-my $params = shift;
-my $provider = $params->{'params'}->{'provider'};
-my $update_ref = $params->{'params'}->{'update_ref'};
+my $params      = shift;
+my $provider    = $params->{'params'}->{'provider'};
+my $update_ref  = $params->{'params'}->{'update_ref'};
 my $yaml_string = $params->{'data'};
 
-<[base.log]>->( 1, "received menu data from provider '%s' (%d bytes)", $provider, length($yaml_string // '') );
+<[base.logs]>->(
+    1,         "received menu data from provider '%s' (%d bytes)",
+    $provider, length( $yaml_string // '' )
+);
 
 return unless defined $yaml_string && length($yaml_string) > 0;
 
@@ -22,13 +25,19 @@ eval {
 };
 
 if ($@) {
-    <[base.s_warn]>->('Failed to parse provider data from %s: %s', $provider, $@);
+    <[base.s_warn]>->(
+        'Failed to parse provider data from %s: %s',
+        $provider, $@
+    );
     return;
 }
 
 # Validate structure
-unless (ref($provider_data) eq 'HASH' && defined $provider_data->{'items'}) {
-    <[base.s_warn]>->('Provider data invalid - no items hash from %s', $provider);
+unless ( ref($provider_data) eq 'HASH' && defined $provider_data->{'items'} )
+{
+    <[base.s_warn]>->(
+        'Provider data invalid - no items hash from %s', $provider
+    );
     return;
 }
 
@@ -39,13 +48,15 @@ $menu_structure->{providers}{$provider} = $provider_data;
 # Mark structure as changed (triggers watcher)
 $menu_structure->{'last-changed'} = <[base.ntime.b32]>;
 
-<[base.log]>->( 1, "menu structure updated from provider '%s' with %d items",
-    $provider, scalar(keys %{$provider_data->{'items'}}) );
+<[base.logs]>->(
+    1,         "menu structure updated from provider '%s' with %d items",
+    $provider, scalar( keys %{ $provider_data->{'items'} } )
+);
 
 0;
 
-#,,,,,..,,..,,.,.,...,..,,...,,,,,,,.,...,,.,,.,.,...,...,,,.,,.,,.,.,,.,,,.,,
-#CTTMAMMTBZLYYNLJAZW7W2YZV5ZXS6B7ZOK2HX7KIW7JGT5ITOL3UM3IFHF3JUYPLG7TWK4ANEOR2
-#\\\|XDZ4RIFFZJPUZYNBSQTZHEIVPIQN7BU2223B4HG6LVW6CU47PH4 \ / AMOS7 \ YOURUM ::
-#\[7]NSJ6VV3GLSGKFU2SNRC4A6YCCL7IPZA6FJJB4YW62KKPH3A54CBI 7  DATA SIGNATURE ::
+#,,..,.,.,,..,...,...,,,,,.,,,..,,,,,,,,.,...,.,.,...,...,.,,,,,,,..,,.,,,,..,
+#RC64UKSCV24PPOTII7OKOW7F7IWEDSFT6L36GVHGQLJCIKQBNGHLQK47F5KOVX4AXGLAQX44OVGZC
+#\\\|E5UF35SMRA6SMRIIURJKI3ABEQLAFNGLHZXFR7UZ7PXEUUJSXRO \ / AMOS7 \ YOURUM ::
+#\[7]ELZ6LB4TTGSTY3KJYVJJLD7VZKY6CDH3F6U6T6BPHU34ZZZPNECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

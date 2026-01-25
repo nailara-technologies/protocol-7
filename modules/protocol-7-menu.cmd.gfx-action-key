@@ -43,17 +43,24 @@ if ( defined $action_config->{callback}
 } elsif ( defined $action_config->{command} ) {
     my $cmd = $action_config->{command};
     qx| $cmd |;
-    return { 'mode' => qw| false |, 'data' => "command execution failed: $?" } if $?;
+    return {
+        'mode' => qw| false |,
+        'data' => "command execution failed: $?"
+        }
+        if $?;
 } else {
     return { 'mode' => qw| false |, 'data' => 'action not configured' };
 }
 
-<[base.log]>->( 1, "executed action for key %d with mod %d", $key_code, $MOD_code );
+<[base.log]>->(
+    1,         "executed action for key %d with mod %d",
+    $key_code, $MOD_code
+);
 
 return { 'mode' => qw| true |, 'data' => 'action executed' };
 
-#,,.,,.,,,,,.,..,,,..,..,,,,.,,,.,,,,,,,,,...,..,,...,...,..,,.,.,..,,..,,...,
-#I7GSEQPWNKYNNUVFCESND5NWVO2KAOB4LZAM3U4MJICDSROCLHY2W6NDOSPTYZ7MT4V7M7YOSQ6WC
-#\\\|IB6YEMPGTPOLQ3DLFZBNHDSTMBPAI2XICLUDJXF2DVHPSF5T6UG \ / AMOS7 \ YOURUM ::
-#\[7]5ABHJM5YLZZY5IXKD2EDYSZ2MME6KZUOIA7ZYMNHZ3I4PJV4HUDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,..,,..,,,,.,,,,,,,,,,,,,...,,,,,..,,...,...,..,,,,,,.,,,.,.,...,
+#5XSAMXYAOM4PG3KFRYOJD4XFNHSN32SKFRNC77XKR7L4IXX7MN4RH4EMXOB3KEKDATXWIUNNNXDUC
+#\\\|FIRJXU4KKZ3F3B5RB2NMYXRP7UU6C7OTCZ6Z6JSQIKFCCNNZOZM \ / AMOS7 \ YOURUM ::
+#\[7]BMAURBXTLMT2K263TQ47AIBR7M5J5ZQ4P6TF4JL5MDFDCFTJPCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

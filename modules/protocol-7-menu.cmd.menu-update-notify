@@ -10,35 +10,44 @@ my ( $provider, $update_ref ) = split( m|\s+|, $call_args, 2 );
 return { 'mode' => qw| false |, 'data' => 'provider name required' }
     unless defined $provider;
 
-<[base.log]>->( 1, "menu update notification from provider '%s' (ref: %s)", $provider, $update_ref // 'none' );
+<[base.logs]>->(
+    1,         "menu update notification from provider '%s' (ref: %s)",
+    $provider, $update_ref // 'none'
+);
 
 # Set up handler to fetch the data when protocol-7-menu is ready
 # This is triggered by protocol-7-menu voluntarily, not forced by the notification
 my $response = eval {
-    <[base.protocol-7.command.send.local]>->({
-        'command'   => "cube.$provider.get-provider-data",
-        'call_args' => { 'args' => '' },
-        'reply' => {
-            'params'  => { 'provider' => $provider, 'update_ref' => $update_ref },
-            'handler' => 'protocol-7-menu.handler.fetch-menu-data'
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => "cube.$provider.get-provider-data",
+            'call_args' => { 'args' => '' },
+            'reply'     => {
+                'params' =>
+                    { 'provider' => $provider, 'update_ref' => $update_ref },
+                'handler' => 'protocol-7-menu.handler.fetch-menu-data'
+            }
         }
-    });
+    );
 };
 
 if ($EVAL_ERROR) {
-    <[base.s_warn]>->('Failed to fetch provider data (exception): %s', $EVAL_ERROR);
+    <[base.s_warn]>->(
+        'Failed to fetch provider data (exception): %s', $EVAL_ERROR
+    );
     return { 'mode' => qw| false |, 'data' => "fetch failed: $EVAL_ERROR" };
 }
 
-<[base.log]>->( 1, "initiated fetch of menu data from provider '%s'", $provider );
+<[base.logs]>->(
+    1, "initiated fetch of menu data from provider '%s'", $provider
+);
 
 return {
     'mode' => qw| true |,
     'data' => "menu update notification acknowledged, data fetch initiated"
 };
 
-#,,,.,.,,,,.,,,,,,,.,,..,,...,.,,,..,,,..,,,.,.,.,...,...,..,,,,.,,,,,.,,,.,,,
-#SURRAQ2ZKLF4BQPQINEKPSAPGMI6S4YMZBF26EIN3QGET36AJ37CKTLZMUKKQ7S2NNU3BQKYOOXKM
-#\\\|BBPD2UWZRBBYSESWOSJY7LZLTCTWYMZLZ2AF7XOAYKLUUUGRGDA \ / AMOS7 \ YOURUM ::
-#\[7]CRPPNUAZWEZKLST5CLEMYJWH7SU6X7EZCHJADO56G5HLEJ7RMCBQ 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,.,,...,,,,,,,,,,.,,,.,,.,.,,.,,.,.,...,...,..,,,..,...,,.,,,.,,
+#RCWYQPGSDWC42P3W4ZUGTUBLHHOCZDVWXLXJNJKCMVPYACTWWOH3R2DH2YNOXATMRV3U5IJQGUDCE
+#\\\|UGRKWWJ4WX7OENHPO5QM2TKOSQ3GGKB7U7CNHW4V5NJUUMOFWTV \ / AMOS7 \ YOURUM ::
+#\[7]BABIQSH32Z4JSQA5BLWQDS5HQ7THAAHZYSSIFDC3OCJ3RPG556CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

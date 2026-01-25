@@ -17,50 +17,55 @@ $output .= "\n";
 
 ## Metadata
 $output .= "Metadata:\n";
-$output .= "  Last Changed: " . ($menu_structure->{'last-changed'} // 'unset') . "\n";
-$output .= "  Total Providers: " . scalar(keys %{$menu_structure->{'providers'}}) . "\n";
+$output .= "  Last Changed: "
+    . ( $menu_structure->{'last-changed'} // 'unset' ) . "\n";
+$output .= "  Total Providers: "
+    . scalar( keys %{ $menu_structure->{'providers'} } ) . "\n";
 $output .= "\n";
 
 ## Provider tree
-if (scalar(keys %{$menu_structure->{'providers'}}) == 0) {
+if ( scalar( keys %{ $menu_structure->{'providers'} } ) == 0 ) {
     $output .= "Providers: [none]\n";
 } else {
     $output .= "Providers:\n";
 
-    my @providers = sort keys %{$menu_structure->{'providers'}};
-    foreach my $idx (0..$#providers) {
-        my $provider = $providers[$idx];
-        my $is_last = ($idx == $#providers);
-        my $prefix = $is_last ? '└── ' : '├── ';
+    my @providers = sort keys %{ $menu_structure->{'providers'} };
+    foreach my $idx ( 0 .. $#providers ) {
+        my $provider     = $providers[$idx];
+        my $is_last      = ( $idx == $#providers );
+        my $prefix       = $is_last ? '└── ' : '├── ';
         my $child_prefix = $is_last ? '    ' : '│   ';
 
         my $provider_data = $menu_structure->{'providers'}{$provider};
-        my $item_count = defined $provider_data->{'items'}
-            ? scalar(keys %{$provider_data->{'items'}})
+        my $item_count
+            = defined $provider_data->{'items'}
+            ? scalar( keys %{ $provider_data->{'items'} } )
             : 0;
 
         $output .= $prefix . "[$provider] (" . $item_count . " items)\n";
 
         ## Items under provider
-        if (defined $provider_data->{'items'} && scalar(keys %{$provider_data->{'items'}}) > 0) {
-            my @items = sort keys %{$provider_data->{'items'}};
-            foreach my $item_idx (0..$#items) {
-                my $item = $items[$item_idx];
-                my $item_is_last = ($item_idx == $#items);
-                my $item_prefix = $item_is_last ? '└── ' : '├── ';
-                my $full_prefix = $child_prefix . $item_prefix;
+        if ( defined $provider_data->{'items'}
+            && scalar( keys %{ $provider_data->{'items'} } ) > 0 ) {
+            my @items = sort keys %{ $provider_data->{'items'} };
+            foreach my $item_idx ( 0 .. $#items ) {
+                my $item         = $items[$item_idx];
+                my $item_is_last = ( $item_idx == $#items );
+                my $item_prefix  = $item_is_last ? '└── ' : '├── ';
+                my $full_prefix  = $child_prefix . $item_prefix;
 
                 my $item_data = $provider_data->{'items'}{$item};
                 my $item_info = '';
 
                 ## Display item info if it's a hash
-                if (ref $item_data eq 'HASH') {
-                    my $label = $item_data->{'label'} // $item;
-                    my $enabled = $item_data->{'enabled'} // 1;
+                if ( ref $item_data eq 'HASH' ) {
+                    my $label       = $item_data->{'label'}   // $item;
+                    my $enabled     = $item_data->{'enabled'} // 1;
                     my $status_mark = $enabled ? '✓' : '✗';
                     $item_info = " [$status_mark] $label";
                 } else {
-                    $item_info = " → " . (ref $item_data ? ref($item_data) : $item_data);
+                    $item_info = " → "
+                        . ( ref $item_data ? ref($item_data) : $item_data );
                 }
 
                 $output .= $full_prefix . $item . $item_info . "\n";
@@ -77,8 +82,8 @@ return {
     'data' => $output
 };
 
-#,,..,,,,,.,,,.,,,,.,,,..,,,.,...,.,,,,..,.,.,.,.,...,...,,,.,,,,,,,,,,,,,,..,
-#A5RKDJD6USWXKM434EBLKCOF777PXI7HNK3PIGTNVYQW4AOIOBVDNHUHQTP5EG66WXOLOKYNVSNGM
-#\\\|GPGFJAWTCA57TP2LF5QUUTPLZ4ZDG74X2N7RBQ6Z6DUVHM3XA7W \ / AMOS7 \ YOURUM ::
-#\[7]CRZ4I7FQ5KJHGSRGKL24T6KOI4WYW42TRXCC65KID6VGTX64BKDI 7  DATA SIGNATURE ::
+#,,..,,,,,,..,,.,,...,.,,,,..,,,,,,..,,.,,,,.,.,.,...,...,,,.,,..,..,,.,.,.,,,
+#KAQVJDC27WR5CTD3C7RZP6SD7X7WNDEKF6I7CDWBFMZ76Y4PCYPKRMYSHXMEF6TSYE3RA45TN2BLE
+#\\\|IFS33NZREHGLLNHXQXXRYQS62YQOH3KGTVPBR2PTMNIMGBBOPW4 \ / AMOS7 \ YOURUM ::
+#\[7]V5JO3ZN2JKCRK76ZBLYJII5NIAZ5V2UERXXFRUOPDDA4556NE6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
