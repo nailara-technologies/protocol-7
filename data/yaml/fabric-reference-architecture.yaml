@@ -1,0 +1,681 @@
+# Protocol-7 Data Synchronization Fabric - Reference Architecture
+# This document defines the canonical layers, patterns, and deployment modes
+
+---
+
+# ============================================================================
+# INFRASTRUCTURE LAYER (Generic - provided by system)
+# ============================================================================
+
+Infrastructure:
+
+  # -----------------------------------------------
+  # Hash Watchers & Events
+  # -----------------------------------------------
+  hash_watchers:
+    description: >
+      Synchronous event propagation on hash mutations.
+      Key-level granularity with callback handlers.
+
+    usage:
+      - name: "Install watcher on hash key"
+        module: base.event.add_var
+        signature: >
+          <[event.add_var]>->(
+            { var_path => 'namespace.hash',
+              var_key  => 'last-changed',
+              event_type => 'write',
+              callback => \&handler
+            }
+          )
+
+      - name: "Watcher fires when key is written"
+        trigger: "SET <namespace.hash>{'last-changed'} = NEW_VALUE"
+        result: "&handler($event_info) called immediately"
+
+    guarantees:
+      - "Synchronous (change → callback is immediate)"
+      - "Key-level granularity (watch only what matters)"
+      - "Integrated with event loop (non-blocking)"
+      - "Works with mounted remote branches"
+
+  # -----------------------------------------------
+  # Timestamp Indexing
+  # -----------------------------------------------
+  timestamp_indexing:
+    description: >
+      Base32-encoded high-resolution network timestamps on all mutations.
+      Timestamps are comparable, queryable, and enable optimization.
+
+    format: "3OMY5G5IPO6VW (base32, ~100ns resolution, 13 chars)"
+
+    properties:
+      - "Monotonically increasing (older < newer always)"
+      - "Globally unique (collision resistance)"
+      - "Compact (13 chars, embeddable)"
+      - "Sortable (lexicographic order = temporal order)"
+
+    query_patterns:
+      current_status:
+        query: "> service.updated"
+        response: "< TRUE 3OMY5G5IPO6VW"
+        meaning: "Service is alive, current timestamp is T"
+
+      delta_query:
+        query: "> service.updated 3OMY5G3ABCDE1"
+        response: |
+          < SIZE ...
+            service.data.forecast = 3OMY5G5IPO6VW
+            service.cache = 3OMY5G3ABCDE1
+        meaning: "Since timestamp T1, what changed?"
+
+      branch_status:
+        query: "> service.updated service.data"
+        response: "< TRUE 3OMY5G5IPO6VW"
+        meaning: "Status of specific branch"
+
+  # -----------------------------------------------
+  # Remote Branch Mounting
+  # -----------------------------------------------
+  remote_mounting:
+    description: >
+      Subscribe to another zenka's hash subtree. Mounted branches
+      stay synchronized automatically without polling.
+
+    usage:
+      - name: "Mount remote branch"
+        module: base.event.mount_remote_branch
+        signature: >
+          <[event.mount_remote_branch]>->(
+            'source.zenka.data',
+            'local.namespace.data',
+          )
+
+      - name: "Mounted branch is now local"
+        result: >
+          <local.namespace.data> automatically syncs with
+          source.zenka.data over network
+
+    properties:
+      - "Transparent (looks like local hash)"
+      - "Automatic sync (no polling)"
+      - "Hierarchical (mount at any depth)"
+      - "Network-aware (works across hosts)"
+      - "Reference counted (cleanup on disconnect)"
+      - "Watchers fire on remote changes"
+
+---
+
+# ============================================================================
+# APPLICATION LAYER (Polymorphic - zenka-specific)
+# ============================================================================
+
+Applications:
+
+  # -----------------------------------------------
+  # Use Case 1: Menu Aggregation
+  # -----------------------------------------------
+  protocol_7_menu:
+    name: "Protocol-7-Menu: Dynamic Menu System"
+    purpose: >
+      Display a menu aggregated from multiple provider zenki.
+      Menu updates in real-time as providers' data changes.
+
+    hash_structure:
+      namespace: "protocol-7-menu.menu-structure"
+      schema:
+        last_changed: "Timestamp (triggers watcher)"
+        providers:
+          <provider_name>:
+            items:
+              <item_id>:
+                label: "Display text"
+                command: "Command to execute"
+                callback: "Perl code reference (optional)"
+
+    infrastructure_used:
+      - hash_watchers: "Watch menu-structure['last-changed']"
+      - timestamps: "Recorded on each update"
+      - remote_mounting: "N/A (pushed directly)"
+
+    zenka_behavior:
+      provider:
+        startup: "Push initial menu items via menu-update command"
+        on_change: "Push updated items when data changes"
+        shutdown: "Send empty update to unregister"
+
+      renderer:
+        init: "Install watcher on menu-structure"
+        on_change: "Diff old vs new structure"
+        action: "Add/remove/update GUI menu items"
+
+    data_flow: |
+      Weather Provider (push)
+        ↓ protocol-7-menu.menu-update
+      Menu Structure Hash
+        ↓ Hash watcher fires
+      Structure Changed Handler (diff logic)
+        ↓ GUI update (add/remove/modify items)
+      Screen
+
+  # -----------------------------------------------
+  # Use Case 2: Data Channels (Future)
+  # -----------------------------------------------
+  channels:
+    name: "Channels: Topic-Based Pub/Sub"
+    purpose: >
+      Route data from publishers to subscribers via topics.
+      Multi-host aware, with automatic discovery.
+
+    hash_structure:
+      namespace: "channels.topic.<topic_name>"
+      schema:
+        last_changed: "Timestamp of latest update"
+        <data_key>: "Topic-specific data"
+        metadata:
+          publisher: "Source zenka name"
+          created: "Initial timestamp"
+
+    infrastructure_used:
+      - hash_watchers: "Watch each topic for changes"
+      - timestamps: "Enable early-abort queries"
+      - remote_mounting: "Subscribe to remote topics"
+      - multicast: "Discover topics on LAN (via discover zenka)"
+
+    zenka_behavior:
+      publisher:
+        action: "Write to channels.topic.<topic_name>"
+        result: "Watcher fires → subscribers notified"
+        optional: "Emit .updated timestamp for status"
+
+      subscriber:
+        action: "Mount channels.topic.<topic_name>"
+        result: "Local watchers fire on updates"
+        optional: "Query .updated for delta info"
+
+    data_flow: |
+      Weather Publisher (write)
+        ↓ <channels.topic.weather.raw>
+      Hash Watcher Fires
+        ├→ Local consumer watcher (if mounted)
+        ├→ Remote subscriber (if mounted)
+        └→ Channels router (if subscribed)
+      All stay in sync
+
+  # -----------------------------------------------
+  # Use Case 3: System Metrics (Future)
+  # -----------------------------------------------
+  monitoring:
+    name: "Monitoring: Real-Time Metrics"
+    purpose: >
+      Collect metrics from multiple hosts/services.
+      Aggregate, alert, and visualize in real-time.
+
+    hash_structure:
+      namespace: "system.metrics.<metric_name>"
+      schema:
+        last_changed: "Timestamp of latest measurement"
+        value: "Current value"
+        timestamp: "When measured"
+        host: "Source host"
+        historical:
+          <older_timestamp>: "Previous value"
+
+    infrastructure_used:
+      - hash_watchers: "Watch metrics for changes"
+      - timestamps: "Determine metric freshness"
+      - remote_mounting: "Subscribe to metrics from other hosts"
+      - timestamps_as_keys: "Time-series ordering"
+
+    zenka_behavior:
+      collector:
+        action: "Measure, write to system.metrics.<name>"
+        result: "Timestamp recorded, watcher fires"
+
+      analyzer:
+        action: "Mount metrics, install watchers"
+        on_change: "Check thresholds, trigger alerts"
+
+    data_flow: |
+      CPU Collector (Host A)
+        ↓ <system.metrics.cpu>
+      Hash Watcher Fires
+        ↓
+      Alert Analyzer (Central)
+        ├→ Check threshold
+        ├→ Log alert
+        └→ Notify operator
+
+  # -----------------------------------------------
+  # Use Case 4: Event Logs (Future)
+  # -----------------------------------------------
+  logging:
+    name: "Centralized Event Logging"
+    purpose: >
+      Aggregate logs from multiple sources with filtering,
+      search, and real-time monitoring.
+
+    hash_structure:
+      namespace: "logs.<facility>.<severity>"
+      schema:
+        last_changed: "Timestamp of latest event"
+        events:
+          <timestamp>:
+            message: "Log message"
+            host: "Source host"
+            facility: "syslog facility"
+            severity: "error|warning|info|debug"
+
+    infrastructure_used:
+      - hash_watchers: "Watch critical/error events"
+      - timestamps: "Natural log ordering"
+      - remote_mounting: "Subscribe to remote logs"
+      - partitioning: "Separate by severity/facility"
+
+    zenka_behavior:
+      logger:
+        action: "Write to logs.<facility>.<severity>"
+        result: "Watcher fires for critical events"
+
+      aggregator:
+        action: "Mount logs, filter watchers"
+        on_change: "Store, index, alert"
+
+    data_flow: |
+      Service Error (Host A)
+        ↓ <logs.app.error>
+      Hash Watcher Fires (critical events only)
+        ↓
+      Log Aggregator
+        ├→ Persist to database
+        ├→ Update search index
+        └→ Alert operator
+
+---
+
+# ============================================================================
+# DEPLOYMENT PATTERNS
+# ============================================================================
+
+Deployments:
+
+  single_host_multiple_displays:
+    description: "One service, multiple consumers on same host"
+    scenario:
+      providers:
+        - "Weather Service (one instance)"
+      consumers:
+        - "Protocol-7-Menu (:13)"
+        - "Protocol-7-Menu (:7)"
+        - "Terminal UI"
+        - "System Tray Widget"
+
+    synchronization: "Local hash mounting (no network)"
+    latency: "Sub-millisecond"
+    example: |
+      <weather.data> (canonical)
+        ↓ Local mounting
+        ├→ <protocol-7-menu.data.weather>
+        ├→ <terminal-ui.data.weather>
+        └→ <system-tray.data.weather>
+
+      All fire watchers immediately on change
+
+  multi_host_network:
+    description: "Services distributed across network"
+    scenario:
+      host_a:
+        role: "Data Provider"
+        services: ["Weather", "Traffic", "News"]
+
+      host_b:
+        role: "Router/Aggregator"
+        services: ["Channels Router", "Discovery Beacon"]
+
+      host_c:
+        role: "Consumer"
+        services: ["Protocol-7-Menu", "Monitoring"]
+
+      host_d:
+        role: "Consumer (other subnet)"
+        services: ["Terminal UI", "Logging"]
+
+    synchronization: >
+      Discover announces services on LAN.
+      Consumers mount from best source.
+      Timestamp queries enable selective fetch.
+
+    example: |
+      Host A: <weather.observations> (canonical)
+        ↓ Announce via multicast
+      Host B: Discovers, mounts, caches
+        ↓ <channels.topic.weather.raw>
+      Host C & D: Mount from Host B
+        ↓ <monitoring.weather>, <menu.weather>
+
+      All synchronized via timestamps and watchers
+
+  hierarchical_aggregation:
+    description: "Multi-level aggregation (leaf to root)"
+    scenario:
+      servers: "Collect local metrics"
+      regional: "Aggregate server metrics"
+      central: "Global dashboard"
+
+    synchronization: >
+      Each level mounts from previous.
+      Changes propagate upward automatically.
+      Query patterns allow selective sync.
+
+    example: |
+      Servers (Leaf)
+        ↓ Mount to Regional Aggregator
+      Regional (Middle)
+        ↓ Roll up metrics (CPU = avg(servers))
+        ↓ Mount to Central Dashboard
+      Central (Root)
+        ↓ Display unified view
+
+      All levels stay fresh via timestamps
+
+---
+
+# ============================================================================
+# REFERENCE PATTERNS
+# ============================================================================
+
+Patterns:
+
+  simple_timestamped_value:
+    description: "Single value with freshness metadata"
+    structure: |
+      <service.data> = {
+        'value'        => 42,
+        'last-changed' => '3OMY5G5IPO6VW',
+        'unit'         => 'degrees_celsius',
+        'source'       => 'sensor-1',
+      };
+    use_cases:
+      - "Current temperature"
+      - "Latest stock price"
+      - "System load"
+
+    watcher: |
+      <[event.add_var]>->({
+        'var_path' => 'service.data',
+        'var_key'  => 'last-changed',
+        'callback' => \&on_value_changed,
+      });
+
+  provider_registry:
+    description: "Multiple providers with dynamic registration"
+    structure: |
+      <registry.providers> = {
+        'last-changed' => '3OMY5G5IPO6VW',
+        'providers' => {
+          'weather'   => { 'items' => {...} },
+          'traffic'   => { 'items' => {...} },
+          'calendar'  => { 'items' => {...} },
+        }
+      };
+    use_cases:
+      - "Menu aggregation (protocol-7-menu)"
+      - "Service registry"
+      - "Plugin system"
+
+    provider_behavior: |
+      1. Register: Push initial data
+      2. Update: Push changed items
+      3. Unregister: Send empty update
+
+  hierarchical_topics:
+    description: "Topic structure with sub-topics"
+    structure: |
+      <channels.topic> = {
+        'weather' => {
+          'raw'       => { 'observations' => {...} },
+          'formatted' => { 'html' => '...' },
+          'archived'  => { '3OMY5G3ABCD' => {...} },
+        },
+        'alerts' => {
+          'critical'  => { 'items' => [...] },
+          'warning'   => { 'items' => [...] },
+        },
+      };
+    use_cases:
+      - "Topic-based pub/sub"
+      - "Event channels"
+      - "Notification systems"
+
+    query_patterns: |
+      Updated topics?
+        > channels.updated
+        < TRUE 3OMY5G5IPO6VW
+
+      Updated in weather?
+        > channels.updated weather
+        < SIZE... weather.raw, weather.formatted
+
+      Updated weather.raw?
+        > channels.updated weather.raw
+        < TRUE 3OMY5G5IPO6VW
+
+  time_series:
+    description: "Historical data indexed by timestamp"
+    structure: |
+      <metrics.cpu> = {
+        'last-changed' => '3OMY5G5IPO6VW',
+        '3OMY5G5IPO6VW' => { 'value' => 45, 'host' => 'srv1' },
+        '3OMY5G5IPO6VT' => { 'value' => 42, 'host' => 'srv1' },
+        '3OMY5G5IPO6VS' => { 'value' => 48, 'host' => 'srv1' },
+      };
+    use_cases:
+      - "Metrics history"
+      - "Time-series logs"
+      - "Sensor data"
+
+    query_patterns: |
+      Latest value?
+        <metrics.cpu>{'last-changed'} points to latest timestamp
+
+      Values since T?
+        Query timestamps >= T from hash keys
+
+      Range query?
+        Iterate <metrics.cpu> keys within timestamp range
+
+---
+
+# ============================================================================
+# IMPLEMENTATION CHECKLIST (for new zenka)
+# ============================================================================
+
+ImplementationChecklist:
+
+  design_phase:
+    - name: "Define hash structure & namespace"
+      description: "What data does this zenka own?"
+      example: "<my-service.data>, <my-service.cache>"
+
+    - name: "Identify watch points"
+      description: "Which keys should trigger handlers?"
+      example: "<my-service.data>['last-changed']"
+
+    - name: "Document schema"
+      description: "What fields exist and their types?"
+      example: |
+        {
+          'last-changed' => '3OMY5...',
+          'items' => {...},
+          'metadata' => {...},
+        }
+
+  implementation_phase:
+    - name: "Install watchers"
+      module: "base.event.add_var"
+      code: |
+        <[event.add_var]>->({
+          'var_path' => 'my-service.data',
+          'var_key'  => 'last-changed',
+          'callback' => \&on_data_changed,
+        });
+
+    - name: "Implement change handler"
+      responsibility: "Compute deltas, trigger actions"
+      example: "Diff old vs new, emit events, update consumers"
+
+    - name: "Define remote subscriptions"
+      description: "What data do you depend on?"
+      code: |
+        <[event.mount_remote_branch]>->(
+          'upstream.service.data',
+          'my-service.upstream',
+        );
+
+    - name: "Implement .updated command (optional)"
+      description: "Status queries for consumers"
+      code: |
+        <my-service.cmd.updated> => returns TRUE <timestamp>
+                                    or SIZE tree if parameterized
+
+  testing_phase:
+    - name: "Single-host testing"
+      test: "Mount hash, verify watchers fire"
+
+    - name: "Remote mounting"
+      test: "Mount from other zenka, verify sync"
+
+    - name: "Multi-host deployment"
+      test: "Deploy across hosts, verify consistency"
+
+    - name: "Performance testing"
+      test: "Rapid updates, check watcher latency"
+
+---
+
+# ============================================================================
+# FUTURE EXTENSIONS (Without Core Changes)
+# ============================================================================
+
+FutureExtensions:
+
+  schema_validation:
+    description: "Validate hash structure against schema"
+    example: |
+      <[event.set_schema_validator]>->({
+        'var_path' => 'service.data',
+        'schema' => {
+          'value' => 'number',
+          'timestamp' => 'string',
+          'source' => 'string',
+        }
+      });
+
+  access_control:
+    description: "Permission system for sensitive branches"
+    example: |
+      <[event.set_access_control]>->({
+        'var_path' => 'system.secrets.passwords',
+        'read' => ['admin', 'root'],
+        'write' => ['admin'],
+      });
+
+  caching_strategies:
+    description: "LRU, TTL, or persistent caching for mounts"
+    example: |
+      <[event.set_mount_strategy]>->({
+        'remote' => 'large.dataset',
+        'local' => 'my-service.cache',
+        'strategy' => { 'cache' => 'lru:1000', 'ttl' => 3600 },
+      });
+
+  merge_strategies:
+    description: "Conflict resolution for collaborative data"
+    example: |
+      <[event.set_merge_strategy]>->({
+        'var_path' => 'shared.config',
+        'merge' => 'last-write-wins',  # or 'three-way', 'custom'
+      });
+
+  persistence:
+    description: "Automatic snapshots and restore"
+    example: |
+      <[event.set_persistence]>->({
+        'var_path' => 'important.data',
+        'snapshot' => '/var/db/important-data.db',
+        'interval' => 300,  # seconds
+      });
+
+---
+
+# ============================================================================
+# Related Zenka in Protocol-7 (Reference Implementations)
+# ============================================================================
+
+ReferenceImplementations:
+
+  - name: "protocol-7-menu"
+    pattern: "Provider registry + diff renderer"
+    location: "modules/protocol-7-menu.*"
+    demonstrates:
+      - "Hash watchers for rendering"
+      - "Push update pattern"
+      - "Fine-grained diff logic"
+
+  - name: "channels (future)"
+    pattern: "Topic-based pub/sub"
+    location: "modules/channels.*"
+    demonstrates:
+      - "Hierarchical hash structures"
+      - "Remote mounting"
+      - "Multicast integration"
+
+  - name: "rss-ticker"
+    pattern: "Push update pattern (precursor)"
+    location: "modules/rss.ticker.*"
+    demonstrates:
+      - "Reverse route updates"
+      - "Daemon-style push"
+
+  - name: "discover (future)"
+    pattern: "Multicast announcement"
+    location: "modules/discover.*"
+    demonstrates:
+      - "LAN service discovery"
+      - "Timestamp-based freshness"
+      - "Auto-registration"
+
+---
+
+# ============================================================================
+# Evolution Notes
+# ============================================================================
+
+Evolution:
+
+  philosophy: >
+    Infrastructure stays stable (watchers, timestamps, mounting).
+    Applications innovate on top.
+    Patterns emerge and get documented here.
+
+  contribution_guide: |
+    When building a new zenka using this fabric:
+
+    1. Document your hash structure
+    2. Explain which infrastructure primitives you use
+    3. Add a data flow diagram
+    4. Contribute example code
+    5. Update this document if you find new patterns
+
+  stability_commitment: |
+    Core infrastructure (watchers, timestamps, mounting) will
+    not break. New features added without breaking compatibility.
+
+    Applications may refactor internally without affecting
+    the infrastructure layer.
+
+#,,.,,.,,,,.,,.,.,,..,..,,,.,,,..,,.,,.,.,.,.,..,,...,.,,,.,,,.,.,,,,,,.,,,.,,
+#5F4HST7APB6M53TDVKKL266EALEP7THOA6A3NHNJKDJ5IH3VRLNBDOK6J4BWS7T7KMFZQYLSXE3AA
+#\\\|RG4VPS7IJK3DXO5DXEOWZWQIKBOMZAY3JWSCCHAENPT3FVOCUML \ / AMOS7 \ YOURUM ::
+#\[7]GU3CMALG5NZIZVLK7OALJLICB7LXLEDXFPZJJPMEXBB4AOYWBSCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
