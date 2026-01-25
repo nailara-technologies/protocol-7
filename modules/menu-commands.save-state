@@ -5,48 +5,38 @@
 
 use YAML::XS qw| Dump |;
 
-my $cache_dir = <menu-commands.cache_dir>;
-my $mappings_file = $cache_dir . '/mappings.yaml';
-my $categories_file = $cache_dir . '/categories.yaml';
-
 # Save mappings
-eval {
-    my $mappings_data = {
-        'mappings' => <menu-commands.mappings>,
-        'metadata' => {
-            'saved_at' => <[base.time]>->(3),
-            'count' => scalar(keys %{<menu-commands.mappings>})
-        }
-    };
-    my $yaml_content = Dump($mappings_data);
-    <[base.file.put]>->($mappings_file, $yaml_content);
+my $mappings_data = {
+    'mappings' => <menu-commands.mappings>,
+    'metadata' => {
+        'saved_at' => <[base.time]>->(3),
+        'count' => scalar(keys %{<menu-commands.mappings>})
+    }
 };
-if ($EVAL_ERROR) {
-    <[base.s_warn]>->('Error saving mappings: ' . $EVAL_ERROR);
+my $yaml_content = Dump($mappings_data);
+my $mappings_ref = \$yaml_content;
+unless (<[file.zenka_dir.write]>->('data/mappings.yaml', $mappings_ref, '>', 0600, ':utf8')) {
     return 0;
 }
 
 # Save categories
-eval {
-    my $categories_data = {
-        'categories' => <menu-commands.categories>,
-        'metadata' => {
-            'saved_at' => <[base.time]>->(3),
-            'count' => scalar(keys %{<menu-commands.categories>})
-        }
-    };
-    my $yaml_content = Dump($categories_data);
-    <[base.file.put]>->($categories_file, $yaml_content);
+my $categories_data = {
+    'categories' => <menu-commands.categories>,
+    'metadata' => {
+        'saved_at' => <[base.time]>->(3),
+        'count' => scalar(keys %{<menu-commands.categories>})
+    }
 };
-if ($EVAL_ERROR) {
-    <[base.s_warn]>->('Error saving categories: ' . $EVAL_ERROR);
+my $yaml_content_cats = Dump($categories_data);
+my $categories_ref = \$yaml_content_cats;
+unless (<[file.zenka_dir.write]>->('data/categories.yaml', $categories_ref, '>', 0600, ':utf8')) {
     return 0;
 }
 
 1;
 
-#,,,,,..,,,..,,,.,.,,,,,.,.,.,..,,.,,,,..,,.,,..,,...,...,,..,,,,,,,,,,..,.,,,
-#S3IXVYLPKGGUN53FTYDEYRNGBHPYWN2MDLXWL5JEW36WYD2LSJAW36JPVIBTM7NXE3NPMLOG6H5HI
-#\\\|VMC5G5K4CRPGOXE6R35GWVN2QYOUC5G7MD34FYKZYLXK2OMFNSS \ / AMOS7 \ YOURUM ::
-#\[7]MGVIURNHJOFSQTNS4WOF6QJDAOHNMJX7UMSZD53OLO7YPBVWPKDY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,.,,..,,..,,..,,.,,,.,.,..,,,,,,..,,...,...,,..,.,.,..,,.,,,,,,,
+#PGLDF2ZPIZZE2VGEF6FOQYMUXCAL4IME7EURYSCYO6ZMQYUVIL5BCHHRDBB2CJVNEEBJKAK554UYU
+#\\\|GGTXWOCTGDZ2UOBHATAJJJWXB4EI2UOSUXG37WK42QJLOLAKHJY \ / AMOS7 \ YOURUM ::
+#\[7]TCV6PWU2JGFB4NRUBI77YBA2LRIDK5CXC77MIV72N2VI4MQIYWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

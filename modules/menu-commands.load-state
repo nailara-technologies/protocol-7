@@ -5,38 +5,34 @@
 
 use YAML::XS qw| Load |;
 
-my $cache_dir = <menu-commands.cache_dir>;
-my $mappings_file = $cache_dir . '/mappings.yaml';
-my $categories_file = $cache_dir . '/categories.yaml';
-
 # Load mappings
-if (-f $mappings_file) {
+my $mappings_content_ref = <[file.zenka_dir.load]>->('data/mappings.yaml');
+if (defined $mappings_content_ref) {
     eval {
-        my $content_ref = <[base.file.slurp]>->($mappings_file);
-        my $yaml_data = Load($$content_ref);
+        my $yaml_data = Load($$mappings_content_ref);
         <menu-commands.mappings> = $yaml_data->{'mappings'} // {} if ref($yaml_data) eq 'HASH';
     };
     if ($EVAL_ERROR) {
-        <[base.s_warn]>->('Error loading mappings: ' . $EVAL_ERROR);
+        <[base.s_warn]>->('Error loading mappings: %s', $EVAL_ERROR);
     }
 }
 
 # Load categories
-if (-f $categories_file) {
+my $categories_content_ref = <[file.zenka_dir.load]>->('data/categories.yaml');
+if (defined $categories_content_ref) {
     eval {
-        my $content_ref = <[base.file.slurp]>->($categories_file);
-        my $yaml_data = Load($$content_ref);
+        my $yaml_data = Load($$categories_content_ref);
         <menu-commands.categories> = $yaml_data->{'categories'} // {} if ref($yaml_data) eq 'HASH';
     };
     if ($EVAL_ERROR) {
-        <[base.s_warn]>->('Error loading categories: ' . $EVAL_ERROR);
+        <[base.s_warn]>->('Error loading categories: %s', $EVAL_ERROR);
     }
 }
 
 1;
 
-#,,,.,,..,...,,.,,,..,,.,,,..,...,,..,...,,,.,..,,...,...,,..,..,,,..,...,,,.,
-#NNBWR7TTIERHVS2MSEHD7Y4USCTVDXOVI5OKJZQ64QIIZGJLHDX5RCABYEEILHZGSFGKIVBWLQSUS
-#\\\|YMKFV6ZW72VVE2YNYRJTIHKBIT6TQ6J5XG4XO7OPSJAD4SMK2IJ \ / AMOS7 \ YOURUM ::
-#\[7]SBIMGZB7IRGZV2BFQX7DRLWG2FPKYFBE6RDUN6N7SRTEYL5DNYAQ 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,,,..,,.,,,,.,,.,.,.,.,,.,,...,..,,...,...,..,,,,.,...,,..,..,,
+#4UETU7I6FYYYCO6VZTTGWT6LZP5NBAORXUA2WHSCLK7ZGRDMU4HPQLGDG3TNFQ63A6U4KWHYN35HK
+#\\\|PL2ZGODDJ7JHXW5ZDLPMYVGAVG4VR4OQO62TJBJYG7J3BLZNP54 \ / AMOS7 \ YOURUM ::
+#\[7]ZASNWQI4GQ7YB5SJVWSYIYOJAD7VIWN22KT5ANG7YPCT4DEKYABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
