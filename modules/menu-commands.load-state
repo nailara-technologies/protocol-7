@@ -1,0 +1,42 @@
+## [:< ##
+
+# name = menu-commands.load-state
+# descr = Load menu-commands persistent state from disk
+
+use YAML::XS qw| Load |;
+
+my $cache_dir = <menu-commands.cache_dir>;
+my $mappings_file = $cache_dir . '/mappings.yaml';
+my $categories_file = $cache_dir . '/categories.yaml';
+
+# Load mappings
+if (-f $mappings_file) {
+    eval {
+        my $content_ref = <[base.file.slurp]>->($mappings_file);
+        my $yaml_data = Load($$content_ref);
+        <menu-commands.mappings> = $yaml_data->{'mappings'} // {} if ref($yaml_data) eq 'HASH';
+    };
+    if ($EVAL_ERROR) {
+        <[base.s_warn]>->('Error loading mappings: ' . $EVAL_ERROR);
+    }
+}
+
+# Load categories
+if (-f $categories_file) {
+    eval {
+        my $content_ref = <[base.file.slurp]>->($categories_file);
+        my $yaml_data = Load($$content_ref);
+        <menu-commands.categories> = $yaml_data->{'categories'} // {} if ref($yaml_data) eq 'HASH';
+    };
+    if ($EVAL_ERROR) {
+        <[base.s_warn]>->('Error loading categories: ' . $EVAL_ERROR);
+    }
+}
+
+1;
+
+#,,,.,,..,...,,.,,,..,,.,,,..,...,,..,...,,,.,..,,...,...,,..,..,,,..,...,,,.,
+#NNBWR7TTIERHVS2MSEHD7Y4USCTVDXOVI5OKJZQ64QIIZGJLHDX5RCABYEEILHZGSFGKIVBWLQSUS
+#\\\|YMKFV6ZW72VVE2YNYRJTIHKBIT6TQ6J5XG4XO7OPSJAD4SMK2IJ \ / AMOS7 \ YOURUM ::
+#\[7]SBIMGZB7IRGZV2BFQX7DRLWG2FPKYFBE6RDUN6N7SRTEYL5DNYAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,62 @@
+## [:< ##
+
+# name = menu-commands.cmd.update
+# descr = Update a field in a menu command mapping
+
+my $args = defined $$call{'args'} ? $$call{'args'} : '';
+$args =~ s{^\s+|\s+$}{}g;
+
+my @parts = split(/\s+/, $args, 3);
+
+unless (@parts >= 3) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'Usage: update <mapping-id> <field> <value>'
+    };
+}
+
+my $mapping_id = $parts[0];
+my $field = $parts[1];
+my $value = $parts[2];
+
+# Check if mapping exists
+unless (exists <menu-commands.mappings>->{$mapping_id}) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'Mapping not found: ' . $mapping_id
+    };
+}
+
+# Validate field
+my %valid_fields = ( 'label' => 1, 'command' => 1, 'category' => 1, 'enabled' => 1 );
+unless ($valid_fields{$field}) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'Invalid field: ' . $field . '. Valid: label, command, category, enabled'
+    };
+}
+
+# Handle enabled field specially
+if ($field eq 'enabled') {
+    $value = ($value =~ /^(1|true|yes|on)$/i) ? 1 : 0;
+}
+
+# Update mapping
+<menu-commands.mappings>->{$mapping_id}->{$field} = $value;
+
+# Save to disk
+<[menu-commands.save-state]>;
+
+# Push update to protocol-7-menu
+<[menu-commands.update-menu]>;
+
+return {
+    'mode' => qw| true |,
+    'data' => 'Updated ' . $mapping_id . ' - ' . $field . ': ' . $value
+};
+
+#,,,.,...,,.,,..,,.,,,.,,,.,.,.,.,,..,.,.,.,.,..,,...,...,.,.,,,,,.,,,...,,,.,
+#AKM6ZV2BGMP6M26EKOTKQTOPK6JADIVEQPM3VASWQP4AP4JDQYIXHEIS6WFGGHQPRMOQRCXPHFWNQ
+#\\\|RKKADF67HGPTQ7PTJK35DNO4T6TSRCGV7NAR7VQJ2MBCDUX342A \ / AMOS7 \ YOURUM ::
+#\[7]YLJDWMWLS4DKOLHU55KECAAU6HMXULZ2D7VU7LSDHU5LRY4XFCDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

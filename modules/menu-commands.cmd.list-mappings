@@ -1,0 +1,70 @@
+## [:< ##
+
+# name = menu-commands.cmd.list-mappings
+# descr = List all menu command mappings
+
+my $category_filter = defined $$call{'args'} ? $$call{'args'} : '';
+$category_filter =~ s{^\s+|\s+$}{}g;
+
+my @mappings = ();
+
+foreach my $mapping_id (sort keys %{<menu-commands.mappings>}) {
+    my $m = <menu-commands.mappings>->{$mapping_id};
+
+    # Apply category filter if provided
+    if ($category_filter && ($m->{'category'} // '') ne $category_filter) {
+        next;
+    }
+
+    push @mappings, {
+        'id'       => $mapping_id,
+        'label'    => $m->{'label'} // 'Unnamed',
+        'command'  => $m->{'command'} // '',
+        'category' => $m->{'category'} // '(none)',
+        'enabled'  => $m->{'enabled'} ? 'Yes' : 'No',
+    };
+}
+
+if (!@mappings) {
+    return {
+        'mode' => qw| true |,
+        'data' => 'No mappings found',
+    };
+}
+
+# Build ASCII table
+my $output = '';
+$output .= "\n";
+$output .= sprintf("%-20s %-30s %-40s %-20s %s\n",
+    'ID', 'Label', 'Command', 'Category', 'Enabled');
+$output .= "-" x 115 . "\n";
+
+foreach my $m (@mappings) {
+    # Truncate long fields for display
+    my $cmd = substr($m->{'command'}, 0, 38);
+    $cmd .= '...' if length($m->{'command'}) > 38;
+
+    my $label = substr($m->{'label'}, 0, 28);
+    $label .= '...' if length($m->{'label'}) > 28;
+
+    $output .= sprintf("%-20s %-30s %-40s %-20s %s\n",
+        $m->{'id'},
+        $label,
+        $cmd,
+        $m->{'category'},
+        $m->{'enabled'}
+    );
+}
+
+$output .= "\nTotal: " . scalar(@mappings) . " mapping(s)\n";
+
+return {
+    'mode' => qw| true |,
+    'data' => $output,
+};
+
+#,,,.,...,,,.,.,,,.,,,,..,...,...,...,.,.,,..,..,,...,...,.,.,,,.,..,,.,,,,.,,
+#UZMV4JWNZCCCSJKYAN7GLPLLQPR5YSQ5UDXXLPODSNAHJO77VOFP4AIOIEVV4DAI5BRUBRMEQVXF4
+#\\\|QYDVCYUKGU7EYFEFRAE4SLUJAXQ5Q3NOHUAZUTHMRPSTN5CQVMX \ / AMOS7 \ YOURUM ::
+#\[7]B3PYHYUDW3HLAQJPYR72IA5YCOSGZNKLZ4K4EM7RK4KPX2X32SDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
