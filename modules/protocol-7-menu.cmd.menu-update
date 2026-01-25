@@ -1,0 +1,63 @@
+## [:< ##
+
+# name = protocol-7-menu.cmd.menu-update
+# descr = Receive menu structure update from provider zenka (push-based)
+# param = <provider-name> [<timestamp>] [<update-data-json>]
+
+return { 'mode' => qw| false |, 'data' => 'graphical mode not enabled' }
+    unless <protocol-7-menu.init-graphical>;
+
+my $call_args = $call->{'args'} // '';
+my ( $provider, $update_data ) = split( m|\s+|, $call_args, 2 );
+
+return { 'mode' => qw| false |, 'data' => 'provider name required' }
+    unless defined $provider;
+
+<[base.log]>->( 1, "menu update from provider '%s'", $provider );
+
+my $menu_structure = <protocol-7-menu.menu-structure>;
+
+## Update or create provider section
+if ( defined $update_data ) {
+    ## Update with provided data structure
+    ## Could be JSON or serialized Perl structure
+    my $provider_data;
+
+    ## Attempt to parse as JSON first
+    if ( $update_data =~ m/^\{/ ) {
+        eval {
+            $provider_data = JSON::decode_json($update_data);
+        };
+        if ($@) {
+            return {
+                'mode' => qw| false |,
+                'data' => "failed to parse provider data: $@"
+            };
+        }
+    } else {
+        ## Treat as raw hash data
+        $provider_data = { 'items' => { $update_data => 1 } };
+    }
+
+    $menu_structure->{providers}{$provider} = $provider_data;
+} else {
+    ## Simple existence update - remove provider if update_data is empty
+    ## (allows zenka to signal it's disconnecting)
+    delete $menu_structure->{providers}{$provider};
+}
+
+## Mark structure as changed
+$menu_structure->{'last-changed'} = <[base.ntime.b32]>;
+
+<[base.log]>->( 1, "menu structure updated for provider '%s'", $provider );
+
+return {
+    'mode' => qw| true |,
+    'data' => "menu updated for provider $provider"
+};
+
+#,,,,,...,,,,,...,...,,,.,,,.,.,.,,,,,,,,,...,..,,...,...,,,,,.,,,,,,,,..,,..,
+#A7N6YHOSOJTCB5CHN4WNGPPY4MBB2PCJUW34QXNPTY7ZEATKH47YHYJFQRKMX4HM45OPLUSAVUDLG
+#\\\|QEPFDWEZYUP3XK3HOPWXSWUSRNDIKQWXLN4UGCQHMBBFKF4K237 \ / AMOS7 \ YOURUM ::
+#\[7]VYV3RHGPSIEZSVSN3VSXUA3XM4D6G2EWYCPG3PWMJ6XASME3MYDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

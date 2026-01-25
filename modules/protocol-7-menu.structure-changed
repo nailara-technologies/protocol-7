@@ -1,0 +1,49 @@
+## [:< ##
+
+# name = protocol-7-menu.structure-changed
+# descr = Handle menu structure changes - diffs old vs new and updates GUI
+
+my ($event_info) = @ARG;
+
+<[base.log]>->( 1, "menu structure changed, computing diff" );
+
+## Get previous and current structure
+my $prev_structure = <protocol-7-menu.prev-structure> //= {};
+my $curr_structure = <protocol-7-menu.menu-structure>;
+
+## Compute diff: added/updated/removed providers
+my %all_providers = (
+    map { $_ => 1 } (
+        keys %{ $curr_structure->{providers} // {} },
+        keys %{ $prev_structure->{providers} // {} }
+    )
+);
+
+foreach my $provider ( keys %all_providers ) {
+    my $prev_provider = $prev_structure->{providers}{$provider};
+    my $curr_provider = $curr_structure->{providers}{$provider};
+
+    if ( !defined $curr_provider ) {
+        ## Provider removed - remove from GUI
+        <[base.log]>->( 1, "removing menu items for provider '%s'", $provider );
+        <[protocol-7-menu.remove-provider-items]>->($provider);
+    } elsif ( !defined $prev_provider ) {
+        ## Provider added - add to GUI
+        <[base.log]>->( 1, "adding menu items for provider '%s'", $provider );
+        <[protocol-7-menu.add-provider-items]>->( $provider, $curr_provider );
+    } else {
+        ## Provider updated - compute fine-grained diff
+        <[protocol-7-menu.update-provider-items]>->( $provider, $prev_provider, $curr_provider );
+    }
+}
+
+## Store current as previous for next change
+<protocol-7-menu.prev-structure> = $curr_structure;
+
+return 0;
+
+#,,.,,,,,,..,,,,,,,,.,,..,,..,,,,,,,.,..,,..,,..,,...,...,...,,.,,,.,,..,,.,.,
+#KD5JSFRCYBRAESAJQNM6O5XI4VB6B6ST5HQ77TJUWLBVWCNCDJ32YN2NKS37BWT5HHQ47ECFRMT5S
+#\\\|CFWGHV54AJQCATCV5ZK3X7CFMBCVGM4LUXG3XZY6NFCI4LJ4RQC \ / AMOS7 \ YOURUM ::
+#\[7]ZHMUQOG4JBWWETKZJKSAALMPD6X2JX33F4WLPB2EDVGIF5H5EYDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

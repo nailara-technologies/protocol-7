@@ -1,0 +1,59 @@
+## [:< ##
+
+# name = protocol-7-menu.add-provider-items
+# descr = Add menu items for new provider to GUI
+
+my ( $provider, $provider_data ) = @ARG;
+
+return 0 unless <protocol-7-menu.init-graphical>;
+
+my $menu = <protocol-7-menu.graphical-menu>;
+return 0 unless defined $menu;
+
+## Create submenu for this provider
+my $provider_submenu = Gtk3::Menu->new();
+
+my $items = $provider_data->{items} // {};
+
+foreach my $item_key ( sort keys %$items ) {
+    my $item_config = $items->{$item_key};
+    my $label       = ref $item_config eq 'HASH'
+        ? ( $item_config->{label} // $item_key )
+        : $item_config;
+
+    my $menu_item = Gtk3::MenuItem->new_with_label($label);
+
+    if ( ref $item_config eq 'HASH' && defined $item_config->{callback} ) {
+        $menu_item->signal_connect( 'activate' => $item_config->{callback} );
+    } elsif ( ref $item_config eq 'HASH' && defined $item_config->{command} ) {
+        my $cmd = $item_config->{command};
+        $menu_item->signal_connect( 'activate' => sub { qx| $cmd | } );
+    }
+
+    $provider_submenu->append($menu_item);
+}
+
+$provider_submenu->show_all;
+
+## Create provider menu item with submenu
+my $provider_item = Gtk3::MenuItem->new_with_label($provider);
+$provider_item->set_submenu($provider_submenu);
+
+$menu->append($provider_item);
+$menu->show_all;
+
+## Store reference for later updates
+<protocol-7-menu.gui-provider-items>{$provider} = {
+    'menu_item' => $provider_item,
+    'submenu'   => $provider_submenu,
+};
+
+<[base.log]>->( 1, "added menu items for provider '%s'", $provider );
+
+return 0;
+
+#,,..,,.,,..,,.,.,,,,,...,,.,,.,.,...,,,,,.,,,..,,...,...,.,.,.,.,,,.,...,,.,,
+#COT5L6RDFVCXMBY3ZDOVFLLXIKAQQO56OQFHGV6OXOLOW2GHSZHOKYVARJZ46GCW3ILF2CKJ4OT3O
+#\\\|7N6L2GE5NZC5RPYZVM5XVKG65IW2UXLIPKAKSFCUSGJDDRK4SEH \ / AMOS7 \ YOURUM ::
+#\[7]CV2GRN2L5WY2MRGFRKMN2C2MSZDWDLTTOR5ZLRIE5HLKMZ6OR6BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
