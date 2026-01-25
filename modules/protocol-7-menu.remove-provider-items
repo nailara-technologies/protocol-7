@@ -1,0 +1,37 @@
+## [:< ##
+
+# name = protocol-7-menu.remove-provider-items
+# descr = Remove all menu items for provider from GUI
+
+my ($provider) = @ARG;
+
+return 0 unless <protocol-7-menu.init-graphical>;
+
+my $gui_items = <protocol-7-menu.gui-provider-items> //= {};
+my $provider_refs = $gui_items->{$provider};
+
+return 0 unless defined $provider_refs;
+
+## Get the provider's menu item
+my $provider_item = $provider_refs->{menu_item};
+return 0 unless defined $provider_item;
+
+## Get parent menu and remove the item
+my $parent_menu = $provider_item->get_parent();
+if ( defined $parent_menu ) {
+    $parent_menu->remove($provider_item);
+    $parent_menu->show_all;
+}
+
+## Clean up references
+delete $gui_items->{$provider};
+
+<[base.log]>->( 1, "removed menu items for provider '%s'", $provider );
+
+return 0;
+
+#,,..,,,,,...,...,,.,,.,.,..,,.,,,.,,,,,.,,..,..,,...,..,,,.,,.,,,,..,,,,,...,
+#GOT2ZVTUZQ4FALEMD74LNDQIRQUFQI2P6DYRHQL4IMRTEZWPD5TOTJ2CXNME4QFEEC7Z6DQJ3HQNY
+#\\\|OR4TUANWDONF7KPT3FS7LAK2233N552ODHZ6OCW25ENG6EEVYD2 \ / AMOS7 \ YOURUM ::
+#\[7]OIOB4PI4SHGU7ML53V6SQBVOSIQWKC2AN5FMLTO6ZRWXZHFBXAAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

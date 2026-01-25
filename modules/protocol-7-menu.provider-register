@@ -1,0 +1,67 @@
+## [:< ##
+
+# name = protocol-7-menu.provider-register
+# descr = Helper for external zenka to register and unregister from menu
+
+my ( $provider_name, $provider_data, $operation ) = @ARG;
+
+$operation //= 'register';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'provider name required'
+} unless defined $provider_name;
+
+if ( $operation eq 'register' ) {
+    ## Register provider with menu system
+    $provider_data //= { 'items' => {} };
+
+    my $response = <[base.protocol-7.command.send.local]>->(
+        {   'command'   => 'protocol-7-menu.menu-update',
+            'call_args' => {
+                'args' => "$provider_name " . JSON::encode_json($provider_data)
+            }
+        }
+    );
+
+    <[base.log]>->( 1, "registered provider '%s' with menu system",
+        $provider_name );
+
+    return $response;
+} elsif ( $operation eq 'unregister' ) {
+    ## Unregister provider (removes from menu)
+    my $response = <[base.protocol-7.command.send.local]>->(
+        {   'command'   => 'protocol-7-menu.menu-update',
+            'call_args' => { 'args' => $provider_name }
+        }
+    );
+
+    <[base.log]>->( 1, "unregistered provider '%s' from menu system",
+        $provider_name );
+
+    return $response;
+} elsif ( $operation eq 'update' ) {
+    ## Update provider menu items
+    $provider_data //= {};
+
+    my $response = <[base.protocol-7.command.send.local]>->(
+        {   'command'   => 'protocol-7-menu.menu-update',
+            'call_args' => {
+                'args' => "$provider_name " . JSON::encode_json($provider_data)
+            }
+        }
+    );
+
+    return $response;
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' => "unknown operation '$operation' (use: register|update|unregister)"
+    };
+}
+
+#,,.,,,,.,...,.,,,,.,,,,.,..,,.,.,.,,,.,,,,,.,..,,...,...,..,,,,,,.,.,...,,,.,
+#2WGXFWVJQRJ2MFWETVLR6WETKY4FEOBZVRIM3E3G2GRHA6HCNN5OLMPBFZJYK3YQGKR5OCTYT25TC
+#\\\|PZ5R67OR5HVC4LFHUOK7NHCO3NK4I4JEQOXSODZBHQOJDAIK7Y2 \ / AMOS7 \ YOURUM ::
+#\[7]GUPS552NEYEC26UYI3N3F3KNUFDMUCSX4J7JBTCCYETXE72UYMDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

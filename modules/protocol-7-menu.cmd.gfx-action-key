@@ -32,10 +32,28 @@ return { 'mode' => qw| false |, 'data' => 'no such key configured' }
     if not exists $action_key_href->{$MOD_code}
     or not exists $action_key_href->{$MOD_code}->{$key_code};
 
-return { 'mode' => qw| false |, 'data' => 'key actions not implemented yet' };
+## Execute the configured action for this key
+my $action_config = $action_key_href->{$MOD_code}->{$key_code};
+my $action_result;
 
-#,,,,,...,,,,,,..,...,..,,...,.,.,.,,,,..,,,,,..,,...,...,.,.,.,,,,.,,...,...,
-#5C5YATQEQ7N574WQZBKILTVO5JCK3A4O24DNE7IMCRC77RAE3ZEGNBV65RAMRXSWBL2CGYKGPLRB4
-#\\\|6SLQLLC6O7V25A5RFDL3Z6QZ6ZVG4CPH26MMHKHUGIH2UY6LGZS \ / AMOS7 \ YOURUM ::
-#\[7]SWBWVVEO5PQKUIEFI76CRZKBCYA4NEFWUFDD63OMFXIVRW3AWQAI 7  DATA SIGNATURE ::
+if ( defined $action_config->{callback}
+    && ref $action_config->{callback} eq 'CODE' ) {
+    eval { $action_config->{callback}->(); };
+    return { 'mode' => qw| false |, 'data' => "callback error: $@" } if $@;
+} elsif ( defined $action_config->{command} ) {
+    my $cmd = $action_config->{command};
+    qx| $cmd |;
+    return { 'mode' => qw| false |, 'data' => "command execution failed: $?" } if $?;
+} else {
+    return { 'mode' => qw| false |, 'data' => 'action not configured' };
+}
+
+<[base.log]>->( 1, "executed action for key %d with mod %d", $key_code, $MOD_code );
+
+return { 'mode' => qw| true |, 'data' => 'action executed' };
+
+#,,.,,.,,,,,.,..,,,..,..,,,,.,,,.,,,,,,,,,...,..,,...,...,..,,.,.,..,,..,,...,
+#I7GSEQPWNKYNNUVFCESND5NWVO2KAOB4LZAM3U4MJICDSROCLHY2W6NDOSPTYZ7MT4V7M7YOSQ6WC
+#\\\|IB6YEMPGTPOLQ3DLFZBNHDSTMBPAI2XICLUDJXF2DVHPSF5T6UG \ / AMOS7 \ YOURUM ::
+#\[7]5ABHJM5YLZZY5IXKD2EDYSZ2MME6KZUOIA7ZYMNHZ3I4PJV4HUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -10,12 +10,21 @@ return { 'mode' => qw| false |, 'data' => 'no keys configured' }
 
 my @key_list;
 
-##  $action_key_href->{$MOD_code}->{$key_code}  ##
+##  Build list of configured keys: MOD_code:KEY_code  ##
+foreach my $MOD_code ( sort { $a <=> $b } keys %$action_key_href ) {
+    my $mod_keys = $action_key_href->{$MOD_code};
+    foreach my $key_code ( sort { $a <=> $b } keys %$mod_keys ) {
+        push @key_list, "${MOD_code}:${key_code}";
+    }
+}
 
-return { 'mode' => qw| true |, 'data' => join( '', @key_list ) }
+return { 'mode' => qw| false |, 'data' => 'no keys configured' }
+    if not scalar @key_list;
 
-#,,.,,..,,,,.,..,,..,,,,.,...,...,,,.,,,,,.,,,..,,...,...,.,.,,,,,...,...,,,.,
-#5L36ZEYAEYTXO2CMIOBHCFRBNWWBSZ5PM3U4N2EWVAQZ3UIAUNT5RGA3FP6ZUTEZJ2LYD2CKREGHA
-#\\\|7QS6O2I4JU7WFY7ZDKIT6XCBT4IXCGWMDXG7KFCZ3W6IVUSMNWB \ / AMOS7 \ YOURUM ::
-#\[7]XQKQNSSUHIWRNQOBS76NI2UW5U3OCWBEDOHYJNYQKSUDOW34H2AI 7  DATA SIGNATURE ::
+return { 'mode' => qw| true |, 'data' => join( ' ', @key_list ) }
+
+#,,,.,.,.,,,,,.,,,,.,,.,.,.,,,.,.,,,,,,,,,.,,,..,,...,..,,.,.,..,,,.,,.,.,,,,,
+#KLMETRDFJRBLNX7WO3LFFVEN42DTSHWD2MLPFMLRXH24WVAW6RCX3NJ4XN6SXYXHQY2VQSP5X3IEG
+#\\\|3TBZG6S5YLCMRZHRZTVXENYWYNEL7SIGDLHRV6C2ARVEDNJQDKJ \ / AMOS7 \ YOURUM ::
+#\[7]G2E2YMOZBL3OLPV2OWWKNXPO25TFPCWWTOIATTXEUDC6KISFDOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
