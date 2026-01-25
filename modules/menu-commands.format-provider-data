@@ -1,0 +1,38 @@
+## [:< ##
+
+# name = menu-commands.format-provider-data
+# descr = Format provider data for menu-update (swappable encoding strategy)
+# param = $provider_data_hashref
+# return = formatted string suitable for menu-update args
+
+my $provider_data = shift @ARG;
+
+return '' unless defined $provider_data && ref($provider_data) eq 'HASH';
+
+<[base.perlmod.load]>->('YAML::XS');
+
+## Current implementation: YAML (native Protocol-7 format)
+## Future: Upgrade path to base32-encoded YAML for untrusted sources
+## Strategy: Keep this wrapper to easily swap encoding without changing callers
+
+## Use native YAML with pretty printing (protocol-safe via SIZE transmission)
+my $yaml_output = YAML::XS::Dump($provider_data);
+
+## Remove document marker (---)  - YAML parser will add it back if needed
+$yaml_output =~ s/^---\n//;
+
+<[base.log]>->( 2, "format-provider-data: YAML %d bytes", length($yaml_output) );
+
+## Return pretty-printed YAML (SIZE mode transmission handles multiline safely)
+## The protocol's SIZE reply mechanism preserves newlines/formatting
+## Future: For base32 encoding of untrusted sources:
+##   my $encoded = <[base.b32.encode]>->($yaml_output);
+##   Would add format header to signal encoding to protocol-7-menu
+
+return $yaml_output;
+
+#,,,,,.,.,...,,,.,..,,..,,,,.,,,.,.,,,,,,,,.,,.,.,...,...,,,.,.,,,,.,,.,.,.,,,
+#GBEXROPXSV57M336GGQWM3FXUXWQRQF5LQQRDBHI3VGLKBXGVLSHSXMJXPHOMVXI5GRXSQQZHLXJQ
+#\\\|ISRN6NKYEFKXUP3ZELCP7PBDVNRY34TWVZCYQRLAFEZYJ4POBGY \ / AMOS7 \ YOURUM ::
+#\[7]FLZO2TYYRU3NBMKGUJRJR454YIHOXONMPE4M66NS3IXGLJJSO2BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -2,7 +2,12 @@
 
 # name = protocol-7-menu.cmd.menu-update
 # descr = Receive menu structure update from provider zenka (push-based)
-# param = <provider-name> [<timestamp>] [<update-data-json>]
+# param = <provider-name> [<update-data-yaml-or-json>]
+# formats = YAML (native) or JSON (backward compat)
+
+<[base.log]>->( 1, "menu-update COMMAND CALLED with args length: %d", length($call->{'args'} // '') );
+
+<[base.perlmod.load]>->('YAML::XS');
 
 my $call_args = $call->{'args'} // '';
 my ( $provider, $update_data ) = split( m|\s+|, $call_args, 2 );
@@ -10,17 +15,30 @@ my ( $provider, $update_data ) = split( m|\s+|, $call_args, 2 );
 return { 'mode' => qw| false |, 'data' => 'provider name required' }
     unless defined $provider;
 
-<[base.log]>->( 1, "menu update from provider '%s'", $provider );
+## Strip surrounding quotes if present (from command-line args)
+if (defined $update_data) {
+    $update_data =~ s/^['"]//;
+    $update_data =~ s/['"]$//;
+}
+
+<[base.log]>->( 1, "menu update from provider '%s' (%d bytes)", $provider, length($update_data // '') );
+<[base.log]>->( 2, "update data length: %d, starts with: [%s]",
+    length($update_data // ''),
+    substr($update_data // '', 0, 50) );
+
+if (!defined $update_data) {
+    <[base.log]>->( 2, "WARNING: update_data is undefined" );
+}
 
 my $menu_structure = <protocol-7-menu.menu-structure>;
 
 ## Update or create provider section
 if ( defined $update_data ) {
     ## Update with provided data structure
-    ## Could be JSON or serialized Perl structure
+    ## Auto-detect: JSON (starts with '{') or YAML (native format, starts with 'items:' or other key)
     my $provider_data;
 
-    ## Attempt to parse as JSON first
+    ## Try JSON first (backward compatibility)
     if ( $update_data =~ m/^\{/ ) {
         eval {
             $provider_data = JSON::decode_json($update_data);
@@ -28,15 +46,41 @@ if ( defined $update_data ) {
         if ($@) {
             return {
                 'mode' => qw| false |,
-                'data' => "failed to parse provider data: $@"
+                'data' => "failed to parse JSON provider data: $@"
             };
         }
+        <[base.log]>->( 2, "parsed provider data as JSON" );
     } else {
-        ## Treat as raw hash data
-        $provider_data = { 'items' => { $update_data => 1 } };
+        ## Parse as YAML (native Protocol-7 format)
+        ## Expected: key: value structure (no document marker)
+        eval {
+            my $prepended_yaml = "---\n" . $update_data;  # Re-add marker for parser
+            $provider_data = YAML::XS::Load($prepended_yaml);
+        };
+        if ($@) {
+            return {
+                'mode' => qw| false |,
+                'data' => "failed to parse YAML provider data: $@"
+            };
+        }
+        <[base.log]>->( 2, "parsed provider data as YAML" );
+    }
+
+    <[base.log]>->( 2, "provider_data structure - ref: %s, items defined: %s",
+        ref($provider_data),
+        (defined $provider_data->{'items'} ? 'YES' : 'NO') );
+
+    if (defined $provider_data->{'items'} && ref($provider_data->{'items'}) eq 'HASH') {
+        <[base.log]>->( 2, "items hash has %d keys", scalar(keys %{$provider_data->{'items'}}) );
+    } elsif (defined $provider_data->{'items'}) {
+        <[base.log]>->( 2, "items is defined but not HASH - type: %s", ref($provider_data->{'items'}) );
     }
 
     $menu_structure->{providers}{$provider} = $provider_data;
+
+    <[base.log]>->( 2, "stored provider data - items: %s",
+        (defined $menu_structure->{providers}{$provider}->{'items'} ?
+            scalar(keys %{$menu_structure->{providers}{$provider}->{'items'}}) . " items" : "undef") );
 } else {
     ## Simple existence update - remove provider if update_data is empty
     ## (allows zenka to signal it's disconnecting)
@@ -53,8 +97,8 @@ return {
     'data' => "menu updated for provider $provider"
 };
 
-#,,,,,..,,..,,,..,.,.,..,,...,,,,,,.,,,.,,,..,..,,...,...,.,.,.,,,..,,.,.,,..,
-#BJPYCTKH5BNALLUYUDSJ752X27CVEIQBL4IRJ4WGYGTGXX6B6QMM4U4FGCVXULJSGCGNVJTCAUSO6
-#\\\|TLKXRPEUPVJIKSYYZWSKKMTZNXFZX27YYF54WUV6WFQR2PO3RF4 \ / AMOS7 \ YOURUM ::
-#\[7]RQGW5FMTEIF5NIQXI77CHRCLPS6OUT7CWSPKYEB6DEH3HIVXT6DI 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,,,,.,,,,..,,.,,.,,,..,,,.,,,.,,..,,...,...,,..,..,,.,,,.,.,.,.,
+#FUAFELS7OXXYYOLZLKOPPJSCYM46KTNIWW4TZGBTB2F7J2WI5TOVO2WWPNW5KOWYGGWGWTEALKDNW
+#\\\|AZRRFFGWGZKTR2ZLKF2IR3H6JGGU7EYLSZWNPOSLNJXYCZO36UU \ / AMOS7 \ YOURUM ::
+#\[7]AAZKKS3ZAE6AHSN5S2IQIP3NMYDAYPQQ3ZDYCKT5DIE7J6LRIOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

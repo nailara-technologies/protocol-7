@@ -1,0 +1,24 @@
+## [:< ##
+
+# name = protocol-7-menu.cmd.debug-structure
+# descr = Debug command to inspect actual menu structure content
+
+use Data::Dumper;
+
+my $menu_structure = <protocol-7-menu.menu-structure>;
+my $output = '';
+
+$output .= "DEBUG: Full menu-structure contents\n";
+$output .= "====================================\n\n";
+$output .= Dumper($menu_structure);
+
+return {
+    'mode' => qw| size |,
+    'data' => $output
+};
+
+#,,.,,...,,,.,,,,,...,,..,.,.,,.,,,..,,..,,.,,.,.,...,...,..,,,,.,..,,.,.,,,.,
+#FBUM7NS3VMPFR5OEOX2PPMN3MNYMMZYCEDYJRA4C4VLNOQOUTJUL74T65QWZHWR6A35OYMFWU6FPY
+#\\\|N5KIXPEZB5TARRMN7X6XHMLNLXWET4A2JLXBB2E4HXPU64NYYRT \ / AMOS7 \ YOURUM ::
+#\[7]TGL4M2QEIBWWJIJJRHRCWSIF2RO7CQ657H2DRE33LQZBFX2P6GAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

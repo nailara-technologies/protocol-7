@@ -1,0 +1,44 @@
+## [:< ##
+
+# name = protocol-7-menu.cmd.menu-update-notify
+# descr = Receive menu update notification from provider zenka (voluntary fetch pattern)
+# param = <provider-name> <update-reference-timestamp>
+
+my $call_args = $call->{'args'} // '';
+my ( $provider, $update_ref ) = split( m|\s+|, $call_args, 2 );
+
+return { 'mode' => qw| false |, 'data' => 'provider name required' }
+    unless defined $provider;
+
+<[base.log]>->( 1, "menu update notification from provider '%s' (ref: %s)", $provider, $update_ref // 'none' );
+
+# Set up handler to fetch the data when protocol-7-menu is ready
+# This is triggered by protocol-7-menu voluntarily, not forced by the notification
+my $response = eval {
+    <[base.protocol-7.command.send.local]>->({
+        'command'   => "cube.$provider.get-provider-data",
+        'call_args' => { 'args' => '' },
+        'reply' => {
+            'params'  => { 'provider' => $provider, 'update_ref' => $update_ref },
+            'handler' => 'protocol-7-menu.handler.fetch-menu-data'
+        }
+    });
+};
+
+if ($EVAL_ERROR) {
+    <[base.s_warn]>->('Failed to fetch provider data (exception): %s', $EVAL_ERROR);
+    return { 'mode' => qw| false |, 'data' => "fetch failed: $EVAL_ERROR" };
+}
+
+<[base.log]>->( 1, "initiated fetch of menu data from provider '%s'", $provider );
+
+return {
+    'mode' => qw| true |,
+    'data' => "menu update notification acknowledged, data fetch initiated"
+};
+
+#,,,.,.,,,,.,,,,,,,.,,..,,...,.,,,..,,,..,,,.,.,.,...,...,..,,,,.,,,,,.,,,.,,,
+#SURRAQ2ZKLF4BQPQINEKPSAPGMI6S4YMZBF26EIN3QGET36AJ37CKTLZMUKKQ7S2NNU3BQKYOOXKM
+#\\\|BBPD2UWZRBBYSESWOSJY7LZLTCTWYMZLZ2AF7XOAYKLUUUGRGDA \ / AMOS7 \ YOURUM ::
+#\[7]CRPPNUAZWEZKLST5CLEMYJWH7SU6X7EZCHJADO56G5HLEJ7RMCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

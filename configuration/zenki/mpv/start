@@ -3,8 +3,8 @@
 
 [load_config_file:'shared-params']
 
-system.verbosity.zenka_buffer  = 1
-# system.verbosity.console     = 2
+system.verbosity.zenka_buffer  = 2
+system.verbosity.console       = 1
 
 [load_config_file:'X11-vars']  ##  <-- <system.AMOS-user>  ##
 
@@ -26,25 +26,33 @@ access.cmd.usr.cube = name commands heart subname reload verify-instance play \
 modules.load = auth net protocol io.unix io.ip set-up.json chk-sum mpv
 [load_modules:<modules.load>]
 
+mpv.network.skip_proxy = yes      ## ignore proxy variables from %ENV ? ##
+
 mpv.log_played = 0   # seperately log which files or urls have been played ..,
 
 mpv.fade_in    = 0   # disabled [ now done using the compton fade in option ]
-mpv.auto_fs    = 1   # start in fullscreen mode in case no geometry was received
-mpv.autoresize = 1   # autoresize player window to get rid of black borders
+mpv.auto_fs    = 0   # start in fullscreen mode in case no geometry was received
+mpv.autoresize = 0   # autoresize player window to get rid of black borders
 
-mpv.autorescale = 0  # rescale video automatically in the background [ ffmpeg ]
-
-mpv.rescale_max_width = 1920 # limit ffmpeg reencoding video size
-
-mpv.resume_timeout = 8         # universal-child resume timeout [ in seconds ]
+mpv.autorescale = 0  # [ffmpeg] re-encode video automatically in the background
+                     #        [ used by some kiosk-appliances for optimization ]
+mpv.rescale_max_width = 720   # <-- max. limit of ffmpeg reencoding video size
 mpv.cleanup_rescaled_after = 8 # days [removes converted videos if not played.,]
+mpv.resume_timeout = 8         # 'universal'-child resume timeout [ in seconds ]
 
-mpv.fade_idle_volume = 1  # silence / fade-in on mpv player 'core-idle' state
+  mpv.fade_idle_volume = 0
+# mpv.fade_idle_volume = 1  # silence / fade-in on mpv player 'core-idle' state
+
 mpv.audio.fade_speed = 24 # <-- audio volume fade speed [ 0..100 ]  [default]
-mpv.start_volume  = 63  # % <-- volume at startup ; fading to after 'core-idle'
+mpv.start_volume  = 77 # % <-- volume at startup ; fading to after 'core-idle'
 
 mpv.vo_backend = gpu#,sdl # [gpu-hq|gpu|sdl|...]   [ see mpv -vo help for list ]
-mpv.hwdec      = auto     # [no|auto|gpu|...]   [ ..more with mpv --hwdec=help ]
+# mpv.hwdec    = auto     # [no|auto|gpu|...]   [ ..more with mpv --hwdec=help ]
+
+mpv.hwdec = nvdec
+mpv.ao = pulse,sdl
+
+[set_env:'PULSE_SERVER','tcp:10.0.110.7']  ## <-- current local config [improve]
 
 mpv.xmode.xephyr.vo = sdl # [sdl|xv] <-- override if SDL is broken [dev.feature]
 mpv.xmode.xnest.vo  = x11
@@ -52,7 +60,7 @@ mpv.xmode.nxagent.vo = sdl
 
 mpv.playlist_type = video # <-- changed to audio if started with 'audio' subname
 
-mpv.fade_start_geom = 1x1--0--0
+mpv.fade_start_geom = 1x1--0--0 ## opening window size to hide X11-flickering ..
 #mpv.fade_start_geom = 31x31--0--0 # use this if above geometry fails at startup
 
 [init_modules]
@@ -65,22 +73,32 @@ mpv.loop_plist_param = [mpv.loop_plist_param]
 #            --loop-playlist=yes # for 'kiosk' mode
 #            --idle=once # with start on demand ..,
 
-mpv.params = --idle --force-window --keep-open=yes <mpv.loop_plist_param> \
-              --no-config --no-window-dragging --no-border \
-              --no-input-terminal --no-input-cursor --input-vo-keyboard \
-              --no-input-default-bindings --osc=no --osd-level=0 --quiet
+mpv.preset = wsl-pulse   ##  <--  <kiosk|linux|wsl-nv-sdl|wsl-nv-pusle|...>
 
-mpv.audio_params = -vo null --idle=yes <mpv.loop_plist_param> \
+# mpv.params = [mpv.retrieve_params:<mpv.preset>] ## [LLL] implement ..,.
+
+mpv.params =  -idle -force-window -keep-open=yes \ #<mpv.loop_plist_param> \
+              -no-config -vo=gpu \ # --no-window-dragging --no-border \
+              -no-border -ytdl-format=hls-1058 -ao=<mpv.ao> -gpu-api=opengl \
+              -hwdec=nvdec -gpu-context=x11egl -ao=<mpv.ao> \
+##            --ytdl-raw-options='--cookies=/data/video/cookies.yt'
+              # -audio-wait-open=3.0 \
+              -audio-client-name=mpv-wsl
+              # --no-input-terminal --no-input-cursor --input-vo-keyboard
+
+mpv.audio_params = -vo null -ao=<mpv.ao> --idle=yes <mpv.loop_plist_param> \
                    --no-config --really-quiet
 
 [base.net.connect:'unix']
 
 [base.X-11.get_mode]
 [base.X-11.get_display]
-mpv.geometry = [base.X-11.get_geometry]
-mpv.coordinates = [base.X-11.get_coordinates]
+# mpv.geometry = [base.X-11.get_geometry]
+# mpv.coordinates = [base.X-11.get_coordinates]
 
-[set-up.json.import_file:'mpv.set-up.json'] # ..from /etc/protocol-7/import/..,
+# [set-up.json.import_file:'mpv.set-up.json'] # ..from /etc/protocol-7/import/..,
+
+mpv.geometry = 1280x720+0+0
 
 [mpv.open_player]
 # [base.X-11.keep_below:<x11.id>]
@@ -95,8 +113,8 @@ mpv.coordinates = [base.X-11.get_coordinates]
 
 [zenka.loop]
 
-#,,..,,,,,.,,,...,.,.,.,.,,..,,,.,,,.,,.,,.,.,..,,...,...,.,.,..,,,..,,.,,,,,,
-#E5ZB6KJVJ5HDUJ6PYKLUKPPY2ZIASTO7FN6FUTH3ENVIQYAEM7B5LKRUWGIGN6IMSBMPTTBYEHOHW
-#\\\|GPC7MLVI653IJOQHNX64SXMBXF3QY3FPTSOXS2G6CFV75NVPXVB \ / AMOS7 \ YOURUM ::
-#\[7]B2UK2YEGC252LVENMXKP63GLKPJCZWGDJ45AAZTGAEFWMO4X7YDA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,...,,.,,,.,,,.,,,,,,,..,.,,,.,.,..,,...,...,.,.,,.,,,,.,...,,,,,
+#BH63SPYWIYNRAFPC2VHYE4ZGJQSZR55NW5E7QSAZPKXJDMCLWWYECZ3TQDSV4XF4QIFNDBL4VUK52
+#\\\|FNFSZRIWUK5GO3BLPQPY2LW54QFYORCOXMCYSIJEYGOEWK3FLAK \ / AMOS7 \ YOURUM ::
+#\[7]BIZEXVLZKSGROSHZUVOLOJNEA2OHZMXINSSECIJEZADBRMRZCSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
