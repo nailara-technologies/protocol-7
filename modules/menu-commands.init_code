@@ -3,11 +3,46 @@
 # name = menu-commands.init_code
 # descr = Initialize menu-commands zenka with data structures and persistent state
 
-<[base.perlmod.load]>->('YAML::XS', qw| Load Dump |);
+<[base.perlmod.load]>->( 'YAML::XS', qw| Load Dump | );
 
 # Initialize data structures
-<menu-commands.mappings> = {};
-<menu-commands.categories> = {};
+<menu-commands.mappings>   //= {};
+<menu-commands.categories> //= {};
+
+<list.mappings> = {
+    'var'   => qw| data |,
+    'key'   => qw| menu-commands.mappings |,
+    'mask'  => '<key>:name label command category enabled',
+    'align' => {
+        qw| name     | => qw| left+1  |,
+        qw| label    | => qw| left+2  |,
+        qw| command  | => qw| left+3  |,
+        qw| category | => qw| left+1  |,
+        qw| enabled  | => qw| center-1 |,
+    },
+    'filters' => {
+        'label'    => qw| base.parser.center_ellipse_string:18 |,
+        'command'  => qw| base.parser.center_ellipse_string:22 |,
+        'category' => qw| base.parser.center_ellipse_string:12 |,
+        'enabled'  => qw| base.parser.yes_no_bool |
+    },
+    'descr' => 'menu-commands mapping definitions'
+};
+
+<list.categories> = {
+    'var'   => qw| data |,
+    'key'   => qw| menu-commands.categories |,
+    'mask'  => '<key>:name label order items',
+    'align' => {
+        qw| name  | => qw| left+1  |,
+        qw| label | => qw| left+3  |,
+        qw| order | => qw| center-2  |,
+        qw| items | => qw| center-1  |
+    },
+    'sort_key' => qw| num:order |,
+    'filters'  => { qw| items | => qw| menu-commands.parser.element_count | },
+    'descr'    => 'menu-commands categories'
+};
 
 # Load persistent state from disk
 <[menu-commands.load-state]>;
@@ -17,8 +52,8 @@
 
 0;
 
-#,,,,,,.,,.,.,...,,,,,,.,,.,.,,,,,.,,,,.,,...,..,,...,...,,.,,.,,,.,.,,..,,,.,
-#GIGBGQ2ARRNAB6BQIHO6PY4OVIEUDTE2VY2BFKSZPLQJSUMGAWMJQH55BOT3U2544YVVNHQOUCJPI
-#\\\|6AJ7ABB6LLYR5W6QIEZQFGTEEVN525KV7MVGQ6RPMDC2M6VS5IW \ / AMOS7 \ YOURUM ::
-#\[7]E2LWUFJCFDT5NHDZMPV2CF7L2IHMDBOAPTQ6AUIJZN33E4RQSKCY 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,..,,,.,,,..,...,,,,,.,,,,..,,,.,..,,...,...,,..,...,,.,,,..,...,
+#G7VXTAPUI3QVWBL4MFEJPQWUB7BIWECTWMYGXNUPZ5OMI7G3CDWBQJXKQVGWUQUNFTQKJFJ36R7PC
+#\\\|M25OLUQPFPYTTN24SOK3HGRXD3HUOX6BPPK7HSS5XTNVXX6AYI5 \ / AMOS7 \ YOURUM ::
+#\[7]WU532W5LWZHPRTSEF46G7NR5JU7KA7EJMM3FNX26Y435ZJ5PAYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
