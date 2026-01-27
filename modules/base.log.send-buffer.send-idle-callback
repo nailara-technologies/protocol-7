@@ -78,12 +78,24 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
     ##  target zenka online, sending log request  ##
     my $line_sref = $b_ref->{'data'}->[0];
 
+    if ( index( $line_sref->$*, "\n" ) > 0 ) {    #### catch \n characters ###
+        my $buffer_name = '';
+        if ( $line_sref->$* =~ m{^([^ ]+)} ) {
+            $buffer_name = sprinf( '  [%ss]', $LAST_PAREN_MATCH );
+        }
+        <[base.logs]>->(
+            0, 'endlines not allowed in%s log-msg string <{C1}>', $buffer_name
+        );
+        ### skip not valid entry and remove from queue ###
+        shift $b_ref->{'data'}->@*;    ## remove offending entry line ##
+    }
+
     my @send_line;    ##  composing log message parameters  ##
 
     ##  'source sid' command [ protocol ] mode expected  ##
     if ( <system.zenka.name> eq qw| cube | ) {   ##  manual for cube zenka  ##
         push @send_line,                         ##[ cube has sid 0 ]##
-            join( '.', <system.node.name>, <system.zenka.name> ), 0;
+            join( qw| . |, <system.node.name>, <system.zenka.name> ), 0;
     }
 
     if ( defined $line_sref and defined $line_sref->$* ) {
@@ -114,8 +126,8 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
     }
 }
 
-#,,..,.,.,,.,,,.,,...,,.,,.,.,.,,,.,.,.,.,,,.,..,,...,...,..,,,,,,.,.,,.,,,,.,
-#HZSKNWRQ2ZNUIS6QVAZH3U6EU45C27EKOPRF4I5UQQAYFQUOBJFODDXOQYGEU2XX4QONWGHNXLKME
-#\\\|4I6OUVEI4BLVK2AVN7JOPG7LJQLJ2EQCCCO7QKIJKTFLGUDW3MK \ / AMOS7 \ YOURUM ::
-#\[7]T3OE32KYBWDC6ILDTNY6ENMK5FNDH2WUQ3FTABSC6FDET3L4QEBQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,,,.,,,.,.,.,,..,,,.,,,,,..,,,..,..,,...,...,,.,,,..,.,,,,..,,.,,
+#OUTDNYYM2T5DDLKGEPEVL4RFWJZPNUUFABP2WXI553ROVMA6S6XXN3BXJ75SUNFLZORKLNWXPTBEG
+#\\\|A42325BMHR4HOFSHR5DF4YXKX25CIWZRJW4UDR3ETCQG6DCO2N5 \ / AMOS7 \ YOURUM ::
+#\[7]T2TH7ZZTP6CSHDPTOKMB4EMC4262OICNYHJZXHVZ544DFCLCSMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

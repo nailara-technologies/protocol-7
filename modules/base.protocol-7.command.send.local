@@ -8,8 +8,11 @@ $ARG[0]->{'reply'}   //= {};
 $call_args->{'args'} //= '';
 
 return warn 'expected <command> parameter <{C1}>' if not defined $cmd;
+return warn 'command string contained endlines <{C1}>'
+    if index( $cmd, "\n" ) >= 0;
 
-return FALSE if not exists $data{'session'} or not keys $data{'session'}->%*;
+## no clients in session ##
+return -1 if 0 == scalar keys $data{'session'}->%*; ##  empty session : -1  ##
 
 if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
 
@@ -34,8 +37,8 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
     my $count = 0;
     foreach my $target_sid (@send_sids) {
         my $session;
-        $session = $data{'session'}{$target_sid}
-            if exists $data{'session'}{$target_sid};
+        $session = $data{'session'}->{$target_sid}
+            if exists $data{'session'}->{$target_sid};
         next    ## skip unauthorized connections \ modes ##
             if not defined $session
             or $session->{'mode'} ne qw| client |
@@ -44,8 +47,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
             or defined $session->{'authenticated'}
             and $session->{'authenticated'} ne qw| yes |;
 
-        ## setting up route ##
-
+        ### setting up route ###
         my $route = <[base.route.add]>->(
             {   'source' => { 'sid' => $target_sid, 'cmd_id' => $cmd_id },
                 'reply'  => {
@@ -56,7 +58,7 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
             }
         );
 
-        my $target_cmd_id = $$route{'target'}{'cmd_id'};
+        my $target_cmd_id = $route->{'target'}->{'cmd_id'};
 
         my $src_name = <system.zenka.name>;
         $src_name .= sprintf qw| [%s] |, <system.zenka.subname>
@@ -65,7 +67,6 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
      # [LLL]  implement [devmod] watch and filter patterns for command logging
         if (   <system.verbosity.console> >= 2
             or <system.verbosity.zenka_buffer> >= 2 ) {
-
             if (
                 (      $src_name ne qw| cube |
                     or $target_name ne qw| p7-log |
@@ -135,8 +136,8 @@ if ( $cmd =~ s|^([^\.]+)\.((([^\.]+)\.)*\w[\w\d\_\-\.]*)$|$2|go ) {
     return -2;
 }
 
-#,,..,,.,,,..,..,,,..,...,.,.,,,.,,..,,..,,.,,..,,...,...,.,.,,,.,,..,..,,.,,,
-#VMDH3NFBI3362LLZRFQM6AHGKY4JIXTW7X7TL4TPF2DLJ3X4TRJS7W4ZGKZQB74NFHAYVCXFZHOVY
-#\\\|R5S7I5HFO3PKHYSX2WF3M6EKJG7GD7KHDMALUI2ZIEZFN3OHZN6 \ / AMOS7 \ YOURUM ::
-#\[7]W224FI6NJLM7LTQS7M5UTPPW4XUDZPR4UBUMGP6QEKE7KDS522DI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,.,,..,...,,..,...,.,.,.,.,,..,..,,...,...,...,,,.,.,.,,..,.,,,
+#JIKJKUKROLRYFFUXJALMDBCU2VYPMCWJX6GUZUS7VITNMM6NWBUWVGH6JUUG7XAJKWQ5NIGS4R3ZS
+#\\\|RQZTBI4ATVTYRG2WPTF4ZM2VGGSEATBYMW4R7AW5WPFK33G7Y65 \ / AMOS7 \ YOURUM ::
+#\[7]HGB27X5LYZ7G5YSJDF7ATUUBO37G7QPBC27UCGGHLXYJAPX3VSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
