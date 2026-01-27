@@ -36,7 +36,7 @@ my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 my $reply_string;
 my $matched_reply = FALSE;
 while ( not $matched_reply ) {
-    $reply_string = <$cube_fh>;
+    $reply_string = readline($cube_fh);    ### [LLL] improve ###
     die 'cube handle had an exception!'
         if not defined $reply_string or not length $reply_string;
 
@@ -66,7 +66,8 @@ my $err_msg = sprintf "not expected reply from tile-groups zenka ['%s']",
     $reply_string;
 
 $err_msg = ': coordinates undefined'
-    if $reply_string =~ m|FALSE command |
+    if $reply_string eq
+    <[base.sprint_t]>->( qw| IRW7V6A |, sprintf( qw| (%d) |, $cmd_id ) )
     or $reply_string =~ m|FALSE no coordinates|;
 
 <[base.log]>->( 1, $err_msg );
@@ -129,8 +130,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE (\d+) (\d+)\n$} ) {
     return undef;
 }
 
-#,,..,.,,,..,,,.,,..,,..,,...,,..,,..,..,,,,,,..,,...,...,,.,,,,,,,,.,..,,,,.,
-#OGRYPDB5DYGZ6AKZC33PH2NDAWXQXEIHJKNZCJ4JXN6XEROEZL5HOVYWZGOO5EWUKK2ADXLO6GFSA
-#\\\|35W5WYKCNH2Z533XNYURLQTBNV6SQTO3BSTZWKYRA72CF6TSGCS \ / AMOS7 \ YOURUM ::
-#\[7]KTFZ4HB42XFCSZNQFHBAWG4RXQPJXBGMRJAJZFIQGA6243QMPWCA 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,.,,,,,.,,.,,...,.,.,,.,,...,.,,,..,,...,...,..,,,..,,,.,...,...,
+#FKX3ZMTS2JC3M6DDMOSB4ZNKEXHXOPEIZIAYPMG5QWHY32UQ4QKNGNBORLBPHZONAPIL2VJGLT6VS
+#\\\|6TQVM6P2GYO7DIEOTJYUEFA5DDN4AQ6B5HVRTNGVXFLOQESMT7X \ / AMOS7 \ YOURUM ::
+#\[7]SKUZAHM6TJKC6GOYIDJSDUAYABOPOMNQO5IRCMSCXT3K3WXL6WAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

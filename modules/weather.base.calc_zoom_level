@@ -38,7 +38,7 @@ my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string  = <$cube_fh>;
+    $reply_string  = readline($cube_fh);    ### [LLL] improve ###
     $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
@@ -76,15 +76,17 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE (\d+) (\d+)\n$} ) {
         1, ": recalulated zoom level = " . <weather.zoom_level> . $m_str
     );
     return <weather.zoom_level>;
-} elsif ( $reply_string =~ m|FALSE command | ) {
+
+} elsif ( $reply_string eq
+    <[base.sprint_t]>->( qw| IRW7V6A |, sprintf( qw| (%d) |, $cmd_id ) ) ) {
     <[base.log]>->( 1, 'X-11 zenka unreachable [running?]' );
 } else {
     <[base.log]>->( 0, "not expected X-11 reply ['$reply_string']" );
     return undef;
 }
 
-#,,..,,,.,.,,,,,.,..,,.,,,.,.,,..,.,,,..,,.,.,..,,...,...,..,,,,,,,..,.,,,,,.,
-#SRRJ6OITEHEXYJRG7OGN5KTGGTT23HYOD33NNBYLJ5OEDQNNGDEDHTYYEF5QRJZI5LODLP3AUJPAU
-#\\\|YMTWPMO4XUDXAMI6BFJNCU3LF3U56SNYYQNKYHFY3CTUYVWHSHM \ / AMOS7 \ YOURUM ::
-#\[7]Z43H7FMSPHAEVDF42Q4VX3HCPBG6DBHUGDI5MAYGYLS44W4MJGAQ 7  DATA SIGNATURE ::
+#,,,,,,..,,..,.,.,...,,.,,...,...,,.,,,.,,,,,,..,,...,...,...,.,,,..,,,,.,,,,,
+#642JTVBXQC3GTUWWW6R2KCB3RPQHN37FCCGPWNK6NOUQOOCAKD55CSWDSYGBOEYPBFAYV6S5W2FO2
+#\\\|3LIJWAILOOGNAYNIL2QOK2VNXHDXGT6VPOBNUR2N7UZEW5J7KPM \ / AMOS7 \ YOURUM ::
+#\[7]DUAQ4F7Z56NY6G64AWDNOMGO7TA2Z7DU2LEXYK66ZUTRORAEQOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

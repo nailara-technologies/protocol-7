@@ -27,7 +27,7 @@ my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string = <$cube_fh>;
+    $reply_string = readline($cube_fh);    ### [LLL] improve ###
     die '<< cube handle had an exception >>'
         if not defined $reply_string or !length($reply_string);
 
@@ -48,7 +48,8 @@ my $err_msg = "unexpected reply from tile-groups zenka ['$reply_string']";
 
 $err_msg = sprintf( ': << geometry not defined%s >>', $sn_log_str )
     if $reply_string =~ m|FALSE no geometry|
-    or $reply_string =~ m|FALSE command |;
+    or $reply_string eq
+    <[base.sprint_t]>->( qw| IRW7V6A |, sprintf( qw| (%d) |, $cmd_id ) );
 
 <[base.log]>->( 1, $err_msg );
 
@@ -81,8 +82,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
     return undef;
 }
 
-#,,,,,...,,..,.,.,,..,..,,,,.,...,...,,,,,.,.,..,,...,...,.,.,,.,,,,,,,,,,.,,,
-#3UBFWUAITXBH5JXILFFEPQYT5RLSR37MPGFEEYEABNLV3LRNCBZD2ALGTERFESC7UYHNZ57JRXDW2
-#\\\|5CZELTZO5OIU7K2W263SPOPPDOGJDRUCJE2ZX736G35YCZTRS3T \ / AMOS7 \ YOURUM ::
-#\[7]6AJXKH3PM2PW5NEICJT36KG4LPPNJZPUSTWSIGRS4P2WGZ3FVCDQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,,,,,,.,,,..,,..,.,.,...,,..,,,,,..,,...,...,...,,.,,,,,,,..,,,.,
+#6K2I63YNHHVT5GT4O2IW5Z3O7Z6AMN54LCHMAPZY2AW257VR3MNYEJ6OPN3IBFCA73W3H6BPKGIZK
+#\\\|EYD3LXPGYVCXY7VXFXXHUQ66RD3QMTB6QXDZNL3ZMQS2ZXUC5SO \ / AMOS7 \ YOURUM ::
+#\[7]SARKUNS2JMQ2Z5Z2EBFHPXI3S3FNB5WTZSXTJ3LJLJDTGPNI7IBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
