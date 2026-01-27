@@ -127,20 +127,66 @@ sub inline_elf {    ##[ modified \ expanded elf hash algorithm ]##
 
     EOC
 
+    my $fallback_sub = sub {    ## pure-perl AMOS-13-ELF-7 implementation ##
+        my ( $input_str, $start_sum, $elf_mode, $shift_bits, $overflow_threshold ) = @ARG;
+
+        return warn_err( 'input_str is undefined', 1 )
+            if not defined $input_str;
+
+        ## set defaults matching C implementation ##
+        $start_sum          //= 0;
+        $elf_mode           //= 7;              ## AMOS-13 : left shift bits ##
+        $shift_bits         //= 13;             ## AMOS-13 : right shift bits ##
+        $overflow_threshold //= 0xFE000000;     ## 7-bit overflow threshold ##
+
+        return warn_err( 'overflow_threshold out of range', 1 )
+            if $overflow_threshold > 0xFFFFFFFF;
+        return warn_err( 'shift_bits out of range [1..64]', 1 )
+            if $shift_bits < 1 || $shift_bits > 64;
+
+        my $result = $start_sum & 0xFFFFFFFF;  ## keep 32-bit boundary ##
+        my $shift_reset = 4;
+        my $z_val = 777;                        ## special value for null bytes ##
+
+        ## iterate through string as UTF-8 codepoints ##
+        foreach my $character ( unpack( 'U*', $input_str ) ) {
+
+            ## reset left shift if approaching entropy loss ##
+            my $shift_limit = ~$result >> 4;
+            if ( $elf_mode > $shift_reset && $result >= $shift_limit ) {
+                $elf_mode = $shift_reset;
+            }
+
+            ## substitute null with z_val, use character codepoint otherwise ##
+            my $chr_val = ( $character == 0 ) ? $z_val : $character;
+
+            ## accumulate with left shift ##
+            $result = ( ( $result << $elf_mode ) + $chr_val ) & 0xFFFFFFFF;
+
+            ## handle overflow carryover via XOR ##
+            if ( my $carryover = $result & $overflow_threshold ) {
+                $result ^= ( $carryover >> $shift_bits );
+                $result &= ~$carryover;
+            }
+            $result &= 0xFFFFFFFF;  ## maintain 32-bit boundary ##
+        }
+
+        return $result;
+    };
+
     return {
         qw| source | => $source,
 
         qw| package | => qw| AMOS7::CHKSUM::ELF |,    ## inline_elf ##
 
-        ## pure-perl inline_elf not implemented ##
-        qw| fallback | => sub { warn 'no inline_elf fallback available' }
+        qw| fallback | => $fallback_sub
     };
 }
 
 return 5;    ##  true  ##
 
-#,,.,,,..,.,.,.,,,,,.,,,.,..,,.,.,,,.,.,,,,,.,..,,...,...,.,,,,..,,..,.,.,,,.,
-#6HK6IWWW36B77B34WPIEJ2MFJEDH5ZGZ5WNOYQ4ZNX3EWFRENPGROQOSCKFJSACSWVS5B6QYYGYI2
-#\\\|HXU3HELOLIMY2QDHFLSXHQRQZMTFBSSTUKLNS34WRWH4BCX2MWV \ / AMOS7 \ YOURUM ::
-#\[7]JR7DKG6IWXB3ZZOF3LVV3X5T2BSMFZKHKYNH34UMN2PTD34IN2BA 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,.,,.,,,.,.,,..,...,,..,...,,,,,..,,...,..,,...,,..,...,.,,,...,
+#EXZF43OMHNYNKTGSP6G6SSDLIOFAXWWERKIIKPXHTQRK7GZKD7ZFJY3QTOG7MVL7LJW4DF4VNUO2Y
+#\\\|2FNNUV7D73TSBR27BG4VYWPDRJ26Y5SZFRC2HPM44QMY2CFH5RZ \ / AMOS7 \ YOURUM ::
+#\[7]E2Z232KHVSYZ43GQVNDEKJTTWIVBFIARFY7NS4MJ3APR6TZSPGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
