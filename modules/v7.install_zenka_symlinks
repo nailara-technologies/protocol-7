@@ -2,57 +2,64 @@
 
 # name  = v7.install_zenka_symlinks
 # descr = install p7.<zenka> symlinks for console-only zenki access
+# todo  = use internal base.file routines .,.
 
 my $root_path     = <system.root_path>;
 my $protocol7_bin = sprintf qw| %s/bin/Protocol-7 |, $root_path;    ##[LLL]
 my $symlink_dir   = <v7.cfg.zenka_symlink_dir> || qw| /usr/local/bin |;
-my $enabled = <[base.cfg_bool]>->( <v7.cfg.install_zenka_symlinks> // 'yes' );
+my $enabled = <[base.cfg_bool]>->( <v7.cfg.install_zenka_symlinks> // TRUE );
 
 return FALSE unless $enabled;
-return FALSE unless $UID == 0;                             ## root only ##
 return FALSE unless -x $protocol7_bin;
-return FALSE unless -d $symlink_dir and -w $symlink_dir;
+return FALSE
+    unless -d $symlink_dir and -w $symlink_dir;    ## <- add warning ##
 
-## list of zenki to create symlinks for.. ##
-my @zenka_list = ();
+<[base.log]>->( 1, ': checking zenka symlinks..' );
 
-## match 'console' zenki [ modules directory / *.cmd.* ]
+## list of [symlinked] zenki ##
+my %console_zenki;
+my @zenki_list;
+
+## match 'console' commands, extract module name [ modules/<module>.*.cmd.* ]
 ##
 my $modules_dir = <system.code_path>;
 if ( -d $modules_dir ) {
     opendir( my $mod_dh, $modules_dir ) or return FALSE;
     while ( my $file = readdir($mod_dh) ) {
-        ## Match .console files (work.console.commit, sourcecode.console.*, etc)
+        next if -d $file;    ## skip any present directories ##
+        ## Match .console files like [ work.console.commit ,
+        ##                             sourcecode.console.* .. ]
         if ( $file =~ m|^([^.]+)\.console\.| ) {
-            my $zenka_name = $LAST_PAREN_MATCH;
-            push @zenka_list, $zenka_name
-                unless grep { $ARG eq $zenka_name } @zenka_list;
+            my $module_name = $LAST_PAREN_MATCH;
+            next if exists $console_zenki{$module_name};
+            $console_zenki{$module_name} = TRUE;
         }
     }
     closedir($mod_dh);
 }
+return FALSE unless scalar keys %console_zenki;   ## <- implement warning.. ##
 
-## adding configured zenki from startup configs ##
+## adding existing console-commands-having zenki from startup configs ##
 ##
 my $zenki_dir = sprintf qw| %s/configuration/zenki |, $root_path;
 if ( -d $zenki_dir ) {
     opendir( my $cfg_dh, $zenki_dir ) or return FALSE;
-    while ( my $dir = readdir($cfg_dh) ) {
-        next if $dir =~ m|^\.\.?$|;
-        next unless -d catfile( $zenki_dir, $dir );
-        ## Skip v7 itself and system zenki
-        next if $dir eq qw| v7 | or $dir eq qw| cube |;
-        push @zenka_list, $dir unless grep { $ARG eq $dir } @zenka_list;
+    foreach my $dir_name ( <[base.sort]>->( readdir($cfg_dh) ) )
+    {    ## zenka config directory ##
+        next if $dir_name =~ m|^\.\.?$|;
+        next unless -d catfile( $zenki_dir, $dir_name );
+        push( @zenki_list, $dir_name )  # keep zenka name if has console cmd #
+            if defined delete $console_zenki{$dir_name};
     }
     closedir($cfg_dh);
 }
-
-return FALSE unless @zenka_list;
+return FALSE unless scalar @zenki_list;    ## <- implement warning.. ##
+undef %console_zenki;    ## done with that, moved to @zenki_list ##
 
 my $installed_count = 0;
 my $updated_count   = 0;
 
-foreach my $zenka_name ( sort @zenka_list ) {
+foreach my $zenka_name (@zenki_list) {  # implement zenka symlink skip-list[!]
     my $symlink_path = sprintf qw| %s/p7.%s |, $symlink_dir, $zenka_name;
 
     ## check if symlink already exists and is current
@@ -61,18 +68,8 @@ foreach my $zenka_name ( sort @zenka_list ) {
         my $current_target = readlink($symlink_path);
         if ( $current_target eq $protocol7_bin ) {
             ## already correct, skiping.. ##
+            <[base.logs]>->( 2, ": =) : %s", $symlink_path );
             next;
-
-            ## creating symlink ##
-            if ( symlink( $protocol7_bin, $symlink_path ) ) {
-                $installed_count++;
-            } else {
-                <[base.logs]>->(
-                    0,             ": failed to create symlink : %s [ \l%s ]",
-                    $symlink_path, <[base.str.os_err]>
-                );
-            }
-
         } else {
             ## updating symlink ##
             unlink($symlink_path) or do {
@@ -86,7 +83,20 @@ foreach my $zenka_name ( sort @zenka_list ) {
         }
     }
 
+    ### creating symlink ### [ /usr/local/bin/p7.,. ]
+    ##
+    if ( symlink( $protocol7_bin, $symlink_path ) ) {
+        $installed_count++;
+    } else {
+        <[base.logs]>->(
+            0,             ": failed to create symlink : %s [ \l%s ]",
+            $symlink_path, <[base.str.os_err]>
+        );
+    }
 }
+
+### skip following report when nothing changed : ###
+return FALSE unless $installed_count + $updated_count;
 
 if ( $installed_count > 0 or $updated_count > 0 ) {
     <[base.logs]>->(
@@ -107,8 +117,8 @@ if ( $installed_count > 0 or $updated_count > 0 ) {
 
 return $installed_count + $updated_count;
 
-#,,.,,,..,.,,,,,.,,,.,,.,,.,.,,.,,..,,..,,...,..,,...,...,..,,.,.,.,,,.,,,.,.,
-#TYM5CCSLZNEACIVANSXFY3NCYBYARO5ON4I6HDTYPG5QIPKFXSYZ23FKNQDXO5BVTKEODYSTG26CE
-#\\\|ZG73KHYHTYEF5NTCI265DD5AEBT5CCZDREG6QQLDECMV676Y7ZA \ / AMOS7 \ YOURUM ::
-#\[7]2IUDVXG56YE5ADRPPXI5ALBGMHXW7ENYLVFDUBAZCGIXU2VQN6AA 7  DATA SIGNATURE ::
+#,,..,...,..,,,.,,,,,,,,,,.,,,.,.,,.,,,.,,...,..,,...,...,,.,,.,,,,.,,...,...,
+#NEZLE46PQZ7GP5XCPWGRGU3VEZEACMNLS762UHL6COB6MT5P6A5YSFJBBONTTPVOO2VNX7AUEPVSU
+#\\\|K57EYB7J2XJH7WGVX4BIOPTWOUPYXWWML5AOMCYPITMU5EDKG2O \ / AMOS7 \ YOURUM ::
+#\[7]CHVVD6KOCKNIFJ2RP5VLMBSNMMJ455BRDCVI4ZHP4MTJWFQ7I4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

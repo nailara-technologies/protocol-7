@@ -2,12 +2,20 @@
 
 # name  = v7.install_workflow_shortcuts
 # descr = install common workflow shorthand aliases for faster command access
+#
+##        [[[ .. feature requires completion of implementation .. ]]]
+###
+####
+return warn 'called disabled routine [ requires a second level feature ]';
+####[ THIS FEATURE IS NOT FUNCTIONAL YET, REQUIRES PARAMETER PROPAGATION ]###
+### [ ,.might get merged with the incomind 'aliases' zenka implementation ]##
+##
+#
 
 my $root_path     = <system.root_path>;
 my $protocol7_bin = sprintf( '%s/bin/Protocol-7', $root_path );
 my $symlink_dir   = <v7.cfg.zenka_symlink_dir> || '/usr/local/bin';
-my $enabled
-    = <[base.cfg_bool]>->( <v7.cfg.install_workflow_shortcuts> // 'yes' );
+my $enabled       = <[base.cfg_bool]>->(<v7.cfg.install_workflow_shortcuts>);
 
 return FALSE unless $enabled;
 return FALSE unless $UID == 0;                             ## root only
@@ -92,14 +100,8 @@ if ( $installed_count > 0 or $updated_count > 0 ) {
 
 return $installed_count + $updated_count;
 
-#,,.,,,,,,..,.,.,,..,,,.,..,,.,..,,...,...,...,...,..,,,,...,,,,.,,.,,,..,,,,,.,.
-#QGKX3VQTL7VWP4FVYKVOKIJDTRZ7BUI3J3MGLTQZQUEVVDYPPVK7BWLJZYDSMWLWPVVFXVJ5VVHPNDC
-#\\\|QI4CJZVL4ZEKRQ4IUECQ3FPFZW3KHGNUOZFCXPBFGKRXNNLBQKSY \ / AMOS7 \ YOURUM ::
-#\[7]ZPXS34XKZL4WRMGJGDH2QQBFVW5ZLKRN3UYZDGMKJ3ZYLBDAHOXIQ 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,..,.,.,..,,,,,,.,.,..,,,..,.,,,,.,,..,,,..,..,,...,...,.,,,...,.,,,...,,..,
-#6M4F7UFHMB3NUFZ4VDUHM7RLDLVUYJZAN3MNOQFJDTRDXO2WSW66PWJZDKXL2R7XGN3HAPL3FEEJS
-#\\\|PADXW36ZHXZVQTWYSBP46HJKHPOHDARNVLAFLN5JODEQ4VMT7BE \ / AMOS7 \ YOURUM ::
-#\[7]FYEAHP4CAMFJXDGBNPCT7WZD3KBD563VJIJAOYGLAA3QLOH4SSAI 7  DATA SIGNATURE ::
+#,,.,,,,.,...,.,.,.,,,,.,,,,.,,..,.,.,.,.,,..,..,,...,...,...,.,,,,..,...,,.,,
+#R6IPNWVFZVN4Z4JJNINU6VNALP6FGUQIRET5UG4ZZ4JSYVYDMPXXOS7OFKULSOWOQVZ3WXJ3CQA7E
+#\\\|S5NAK6ZIG3SJMZYS5KS4GRWNLCBZWNGEUNDBLW7JDAOSJOWSWOF \ / AMOS7 \ YOURUM ::
+#\[7]6R4HL5JYJ3LPXIL5MWLGU2EZ2SHJRONBZXAM7JHXXPVO6BJKYECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
