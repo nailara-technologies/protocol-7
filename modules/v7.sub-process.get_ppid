@@ -4,12 +4,16 @@
 # todo = use BSD::Process on xBSD!
 
 my $child_pid = shift // '';
-return undef if $child_pid !~ /^\d+$/ or !-d "/proc/$child_pid";
+return undef if $child_pid !~ m{^\d+$} or !-d sprintf '/proc/%s', $child_pid;
 
-if ( <[file.content]>->("/proc/$child_pid/status") =~ /\nPPid:\s+(\d+)\n/s ) {
-    return $1;
+my $content_sref = <[file.slurp]>->("/proc/$child_pid/status");
+
+if (    defined $content_sref
+    and ref $content_sref eq qw| SCALAR |
+    and $content_sref->$* =~ m|\nPPid:\s+(\d+)\n|s ) {
+    return $LAST_PAREN_MATCH;
 } else {
-    warn "unable to extract ppid value from '/proc/$child_pid/status'";
+    warn "cannot extract ppid value from '/proc/$child_pid/status'";
     return undef;
 }
 
