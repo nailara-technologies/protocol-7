@@ -1,14 +1,15 @@
 ## [:< ##
 
-# name  = work.console.shortcuts
-# descr = display available workflow shorthand aliases and usage patterns
+# name   = work.console.shortcuts
+# descr  = display available workflow shorthand aliases and usage patterns
+# status = not working yet, requires additional parameter propagations .,.
 
 my $reset       = $colors{'reset'};
 my $blacklight  = $colors{'p7_fg_0000'};
 my $TRUE_blue   = $colors{'p7_fg_0004'};
 my $neon_orange = $colors{'p7_fg_0002'};
 my $neon_green  = $colors{'p7_fg_0003'};
-my $dim_blue    = $colors{'p7_fg_0005'};
+my $dim_blue    = $colors{'p7_fg_0001'};
 
 say '';
 say "$blacklight .:[ ${TRUE_blue}WORKFLOW SHORTCUTS${blacklight} ]:.$reset";
@@ -16,14 +17,14 @@ say '';
 
 ## Common workflow shortcuts
 my %shortcuts = (
-    'w'      => 'Quick access to workflow commands',
-    'wo'     => 'Show workflow overview',
-    'wt'     => 'Show todo list',
-    'ws'     => 'Commit changes with auto-signing (workflow commit)',
-    'src'    => 'Access sourcecode verification tools',
-    'srcd'   => 'Verify dev signatures (sourcecode verify-dev-signatures)',
-    'srcu'   => 'Update signatures (sourcecode update-signatures)',
-    'h'      => 'Access httpd (HTTP server) commands',
+    'w'    => 'Quick access to workflow commands',
+    'wo'   => 'Show workflow overview',
+    'wt'   => 'Show todo list',
+    'ws'   => 'Commit changes with auto-signing (workflow commit)',
+    'src'  => 'Access sourcecode verification tools',
+    'srcd' => 'Verify dev signatures (sourcecode verify-dev-signatures)',
+    'srcu' => 'Update signatures (sourcecode update-signatures)',
+    'h'    => 'Access httpd (HTTP server) commands',
 );
 
 say "${TRUE_blue}📋 Available Shortcuts:$reset";
@@ -31,7 +32,8 @@ say '';
 
 foreach my $short ( sort keys %shortcuts ) {
     my $desc = $shortcuts{$short};
-    say sprintf "   ${neon_green}p7.%s${reset}  ${dim_blue}→${reset}  %s", $short, $desc;
+    say sprintf "   ${neon_green}p7.%s${reset}  ${dim_blue}→${reset}  %s",
+        $short, $desc;
 }
 
 say '';
@@ -60,14 +62,8 @@ say "   To create custom shortcuts, add them to:";
 say "   ${dim_blue}modules/v7.install_workflow_shortcuts${reset}";
 say '';
 
-#,,.,,,,.,.,,,,.,...,,,,.,.,,,..,,,.,.,,,,,....,,,..,,,,,,.,,,.,,,,..,,.,,,,,,,,.
-#RCPXMFHZVCJLGJ2Z5YXOXWVQKC5KKOKX4RHN5NGYCVQX2RQELB63NJKWYSMZQZ537KKPXU3HHKFV2DM
-#\\\|XKEKJ4JPIQCZ7BFIAMWZ6LBPKCJAGVKFQPFHJMH2EQBHFYAIQSI \ / AMOS7 \ YOURUM ::
-#\[7]DCJRNPWHFR7V4CFMBTG2JQCMJVQV2JXYDLV3JDQNPJVMYCCWQWX3I 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,..,.,,,...,,,,,.,,,...,.,.,,,.,.,,,,..,..,,..,,...,...,,,.,,,.,.,,,...,...,
-#W4ZG42XRX7PDAKNK445NBNIJUWAT3Q3NF2KZ3WSWKS4A2NICLXMLO6RPJX7GRYAEBAXBE6HKVEDU2
-#\\\|S2HGKIXKPZQ6K3TXE3SL2DIT2J2NALISGBEQQKMWQHSFFC35Y5L \ / AMOS7 \ YOURUM ::
-#\[7]2ZVS2QLF6ABZYRUJJ5HVOZDM36AXMWLQATV5BNMEME34PWLNVCDQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,,,,,,,,,,.,,,,,..,,...,.,.,.,,,..,,...,..,,,..,,,,,,,,,,..,,,,,
+#TSZHWHEMTIBV3J5FNYGQ64TYY2M5QNIOHYNPTMN7XB4HRW4YTJJ6QEH3G2MMNRUZ43PNJ3IFJM634
+#\\\|Q2TFFFMRMPI5KFDWCMD2ACFJMATGEMAKX6MSIUWGO3U7KPFVJJE \ / AMOS7 \ YOURUM ::
+#\[7]NPF4SM2M4LSA43TRML463XRRKP6DEDGYAFOEI3MWQGDNCA7BAWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
