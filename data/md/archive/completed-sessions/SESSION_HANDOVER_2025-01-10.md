@@ -457,22 +457,30 @@ if (time() - <git.cache.log_time> < 300) {
 
 ### Module Naming
 
-- `.parent.init_code` - Module initialization
-- `.parent.*` - Core functionality
-- `.console.*` - Standalone console commands
-- `.cmd.*` - IPC commands (via cube)
+- `base.*`       - Generic base module routines loaded in all zenki
+- `*.init_code`  - Module initialization         [ main init phase ]
+- `*.pre_init`   - Module initialization [ 'pre'-init[_code] phase ]
+- `*.post_init`  - Module initialization  [ post-init[_code] phase ]
+- `zenka-name.*` - Core functionality specific to 'zenka-name'-zenka
+- `*.console.*`  - Standalone console commands [ started without v7 zenka ]
+- `*.cmd.*`      - IPC commands  [via cube]  ( have special return format )
+
+- `<[base.swap_subs]>->('base.session','session')` in *.pre_init routines
+   will migrate `base.session.*` to the shorter `session.*` code namespace!
 
 ### Data Access
 
-- `<data.key.path>` - Only in init_code
-- `$data{'key'}{'path'}` - In regular modules
-- `<module.cfg.setting>` - Configuration values
+- `<data.key.path>`      - gets parsed to $data{'data'}{'key'}{'path'};
+- `$data{'key'}{'path'}` - In regular perl modules not parsed by Protocol-7
+- `<module.cfg.setting>` - Module Configuration values
+- `<zenka_name.cfg.setting>` - Zenka ['zenka_name'] specific Configuration
 
 ### Function Calls
 
-- `<[function]>()` - Call with no args
-- `<[function]>->($arg)` - Call with args
-- `<[function]>` - Get code reference (DON'T FORGET `()` !)
+- `<[function]>`  - Call with no arguments -   equal to <[function]>->()
+- `<[function]>->($arg)` - Call with args, becomes $code{'function'}->()
+- Currently only files in modules/* get parsed for special protocol-7 syntax
+- Code directly in bin/Protocol-7 or the AMOS7 module is in plain perl only!
 
 ### Configuration
 
@@ -671,3 +679,4 @@ Protocol-7 session setup-keys                 # Create key directory
 ✅ Clean module loading (v7 shows 272 subs, 0 warnings)
 ✅ All code follows Protocol-7 patterns
 
+### UPDATE: 'workflow' zenka renamed to 'work', in PATH as 'p7.work' [symlink]
