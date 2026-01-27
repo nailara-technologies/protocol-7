@@ -38,22 +38,14 @@ if (<protocol-7-menu.init-console>) {
 
 # <protocol-7-menu.stderr_capture> = '';
 ##  silence stderr console output  ##
-<[base.stderr_redir]>->( *STDOUT{IO} );
-
-#<[base.stderr_redir]>->( \$data{'protocol-7-menu'}->{'stderr_capture'} );
-
-say STDERR ':: another ::';
+<[base.stderr_redir]>->( *STDOUT{IO} );   ## <-- [LLL] investigate requirement
 
 ##  load graphical [X-11] mode dependencies  ##
 if (<protocol-7-menu.init-graphical>) {
 
-##  silence stderr console output  ##
-    # <[base.stderr_redir]>;
-
-##    <[base.perlmod.autoload]>->( 'Gtk3', qw| -init | );
     <[base.gtk.attempt_load.glib_event]>;
 
-    Gtk3->init;
+    Gtk3->init;    ## initialize explicitly ##
 
     my $logo_image_path = <protocol-7-menu.image_path>
         //= File::Spec->catfile( <system.root_path>,
@@ -73,8 +65,8 @@ if (<protocol-7-menu.init-graphical>) {
 
 return 0;
 
-#,,,,,.,,,,,,,..,,..,,.,.,.,.,..,,...,,,.,.,,,..,,...,...,,,.,,,.,.,.,.,.,...,
-#TSACKJ2EHGKU3RIFZL4DS2SNLBSGPY36P7N7XZ236C7Q34R3EN3LCENDOIQ7NJTMLHBMPJLPOH42C
-#\\\|NC76JADBORNIREORVNFP26AIOCTWCR3PMK2FD6RYEFDSK4PIXPW \ / AMOS7 \ YOURUM ::
-#\[7]FCTRJAQ2LFU5LH6O5QR7NP32GPFJM4Y3TVIPELTO2OL7KLJV6YBI 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,,..,,..,.,.,,,,,..,,..,,...,,..,..,,...,...,.,.,,..,,..,..,,,.,,
+#SWN3WPTTIB4JN2PRZSXTVB3G4VKQEVMLDM4OPOJ543A74FYUH6BEMA7THNJMFSZDTH6V7NIPG5I5E
+#\\\|MEABFTTOEI53N3HFLIDLUQQFIDEZPLCRS6ZB3XIO2YYMXZVQA3U \ / AMOS7 \ YOURUM ::
+#\[7]H6YKO3W77RFBEGPAYCI2ZZ74HWNDMDIUYKB5O5LRC2DR57LUOABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
