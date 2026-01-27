@@ -1,0 +1,235 @@
+# Protocol-7 Symlink Chains Technical Reference
+
+symlink_chains:
+
+  # Basic chain structure
+  chain_resolution:
+    pattern: "user_shortcut → p7.zenka[:parameters] → Protocol-7"
+
+    resolution_order:
+      1: "Follow readlink chain from first to last symlink"
+      2: "Find last link matching p7.* pattern before Protocol-7"
+      3: "Extract zenka name (before :) and parameters (after :)"
+      4: "Execute with extracted components"
+
+    error_handling:
+      colon_present_no_match: "Error - invalid zenka with parameter intent"
+      no_colon_no_match: "Fallback to stdin mode (interactive)"
+      pattern_match: "Execute with parameters"
+
+  # Parameter format specification
+  parameter_format:
+    syntax: "p7.zenka:param1,param2,param3"
+    delimiter: ":"
+    separator: ","
+
+    space_encoding:
+      single_space: "___"
+      escape_pattern:
+        n_underscores: "becomes (n-1) underscores in output"
+        examples:
+          "___": "single space"
+          "____": "literal ___ (3 underscores)"
+          "_____": "literal ____ (4 underscores)"
+          "______": "literal _____ (5 underscores)"
+      rationale: "Filesystem-safe, escaping is logical and predictable"
+
+  # Minimalist shortcuts
+  minimalist_shortcuts:
+    philosophy: "Discover through use, keep what feels natural"
+
+    examples:
+      ":":
+        target: "p7.nshell"
+        purpose: "Interactive shell entry point"
+        usage: ": → start nshell"
+
+      "::":
+        target: "p7c"
+        purpose: "Command execution"
+        usage: ":: → execute command"
+
+      ":.":
+        target: "p7.data-import"
+        purpose: "Data import container"
+        usage: "cat file | :. namespace"
+
+      ":::":
+        target: "p7-r"
+        purpose: "Remote operations"
+        usage: ":: → remote command"
+
+  # Historical naming convention
+  historical_naming:
+    origin: "AmigaOS, DOS drive naming (D:, C:)"
+    pattern: "NAME:"
+
+    examples:
+      "DATA:":
+        context: "data volume"
+        usage: "DATA: → p7.terminal-mount → Protocol-7"
+
+      "DISK_000:":
+        context: "disk pool entry 0"
+        usage: "DISK_000: → p7.data-import → Protocol-7"
+
+      "DISK_NNN:":
+        context: "disk pool entry N"
+        usage: "Scales to arbitrary count via hardlinks"
+
+  # Jailed data import pattern
+  jailed_data_import:
+    components:
+      binary:
+        type: "precompiled p7c"
+        features: "checksummed, hardened, context-aware"
+        location: "network/DATA_IMPORT"
+        access: "jailed environments only"
+
+      socket:
+        type: "unix domain socket"
+        path: "network/DATA_SOCKET"
+        protocol: "custom or standard (SFTP, etc)"
+        features: "no network access required, contextualized"
+
+      endpoint:
+        symlink: "DISK_NNN:"
+        type: "hardlink or symlink to binary"
+        provisioning: "ln network/DATA_IMPORT DISK_NNN:"
+        scaling: "one command per new disk"
+
+    data_flow:
+      step1: "cat file.mkv | DISK_000:"
+      step2: "p7c reads from stdin"
+      step3: "connects to unix socket"
+      step4: "sends data with endpoint context"
+      step5: "backend processes and routes"
+
+    security:
+      no_source_code: "Precompiled binary only"
+      no_network: "Unix socket, no open connections"
+      binary_integrity: "Checksummed before execution"
+      intent_clear: "Structure and context explicit"
+
+  # Operating system socket protocol adapters
+  unix_socket_protocols:
+    opening:
+      syntax: "<[base.open]>->( qw| unix input |, $socket_path, $permissions, $user )"
+      return_value: "socket handle or -3 if failed"
+      configuration:
+        path: "derived from socket_path"
+        permissions: "from storage.permissions.*"
+        owner: "amos-zenka-user or specified user"
+
+    protocol_binding:
+      syntax: "<[base.protocol.bind]>->( $socket, qw| protocol_name | )"
+      protocols:
+        sftp:
+          module: "storage.protocol.SFTP.open_unix_socket"
+          purpose: "Mount SFTP as protocol on socket"
+          features: "filesystem operations → SFTP"
+          protocol_detection:
+            - "SFTP connection (\\0\\0) → accepted"
+            - "SCP connection (\\0) → usage disclaimer"
+            - "SSH shell (no signature) → usage disclaimer"
+            - "Graceful redirection with helpful feedback"
+            - "Guides users to correct usage mode"
+
+        amos_chksum:
+          module: "storage.amos_chksum.open_socket"
+          purpose: "Checksum data on socket"
+          features: "data in → checksum out"
+
+        ssh_tunnel:
+          command: "cat archive_0000.xz | ssh user@storage.local DISK_000:"
+          purpose: "Remote data import via SSH when SFTP unavailable"
+          features: "restrictive network policies → secure remote routing"
+          rationale: "SFTP may be blocked; SSH provides alternative tunnel for symlink chains"
+
+    extensibility:
+      pattern: "Any protocol can be bound to unix socket"
+      implementation: "Write protocol.open_unix_socket module"
+      registration: "<[base.protocol.bind]>->( $socket, qw| custom_protocol | )"
+
+  # Operational patterns
+  operational_scaling:
+    disk_pool_structure:
+      binary: "network/DATA_IMPORT"
+      socket: "network/DATA_SOCKET"
+      endpoints:
+        - "DISK_000: → network/DATA_IMPORT (hardlink)"
+        - "DISK_001: → network/DATA_IMPORT (hardlink)"
+        - "DISK_002: → network/DATA_IMPORT (hardlink)"
+        - "DISK_NNN: → network/DATA_IMPORT (hardlink)"
+
+    provisioning_single:
+      command: "ln network/DATA_IMPORT DISK_003:"
+      effect: "Add one disk to pool"
+      time: "instantaneous"
+
+    provisioning_batch:
+      command: "for i in {0..99}; do ln network/DATA_IMPORT DISK_$i:; done"
+      effect: "Add 100 disks to pool"
+      time: "seconds"
+
+    discovery:
+      command: "ls -l | grep DISK"
+      output: "DISK_000: → network/DATA_IMPORT"
+      information: "Immediately clear what endpoint does and where it points"
+
+  # Parameter routing examples
+  examples:
+    simple_import:
+      command: "cat file.mkv | DISK_000:"
+      parameters: "none"
+      processing: "backend auto-detects type"
+      efficiency: "lower (requires introspection)"
+
+    explicit_namespace:
+      command: "cat file.mkv | DISK_000: video.parties.psytrance"
+      parameters: "video.parties.psytrance"
+      processing: "backend uses explicit routing"
+      efficiency: "higher (direct routing)"
+
+    multiple_parameters:
+      command: "cat data | IMPORT_SERVICE: bucket.category.subcategory"
+      parameters: "bucket.category.subcategory"
+      encoding: "dots as hierarchy, commas for multi-param"
+
+    with_spaces:
+      command: "cat data | SERVICE: my___long___name"
+      parameters: "my long name"
+      encoding: "___ = space, see parameter_format.space_encoding"
+
+    remote_ssh_tunnel:
+      command: "cat archive_0000.xz | ssh user@storage.local DISK_000:"
+      context: "remote storage system"
+      processing: "SSH pipes data to remote p7c binary → local unix socket"
+      use_case: "SFTP blocked or unavailable; SSH provides secure alternative tunnel"
+      security: "Authentication via SSH keys; symlink chain routes to local endpoint"
+
+  # Security model
+  security_model:
+    intent_signaling:
+      colon_syntax: "Signals structured command with parameters"
+      behavior_when_matched: "Execute with parsed parameters"
+      behavior_when_not_matched: "Error instead of fallback to stdin"
+      rationale: "Prevent privilege escalation from structured to raw interpreter"
+
+    access_control:
+      precompiled_binary: "Hardened, checksummed, no source code access"
+      socket_context: "Contextualized connection, endpoint-aware routing"
+      filesystem_identity: "Backend can audit and differentiate by endpoint"
+
+    threat_model:
+      attack_surface_reduced: "Binary verification + socket context"
+      no_code_modification: "Precompiled prevents runtime Perl editing"
+      no_open_network: "Unix socket prevents network attacks"
+
+# See also: data/md/design-patterns/symlink-chains.md for narrative explanation
+
+#,,,,,.,.,.,,,...,,,,,..,,,..,..,,,..,,.,,,.,,..,,...,...,,,.,.,,,,.,,,..,,.,,
+#2OQDTRC7W6POPV5CZCUBOHWCGUXSWOXRTMXLMSLYBEF6YZPEJBN423FZTLFX6ZMTWW74RM3QRI5XS
+#\\\|M733CCD5ZLX2ECKQQVJ2VMKBNQA4MNXYX3XGCCUBTEZTN2DT5GH \ / AMOS7 \ YOURUM ::
+#\[7]UTBSUCIIQ54PEKE6LYCGZGNZWLI36AL5U5TQAZFBIMWDGRFBGWBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
