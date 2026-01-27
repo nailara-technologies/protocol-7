@@ -22,7 +22,6 @@ git/
 │   ├── AMOS7__Assert__Truth
 │   ├── Git__Wrapper
 │   ├── Capture__Tiny
-│   ├── Digest__Elf
 │   ├── Crypt__Misc
 │   ├── Term__ReadLine
 │   ├── Time__HiRes
@@ -63,7 +62,7 @@ Updates version strings using:
 - `AMOS7::Assert::Truth` - Harmonic validation
 - `Git::Wrapper` - Git command interface
 - `Capture::Tiny` - Command output capture
-- `Digest::Elf` - BMW checksums
+- `Digest::BMW` - BMW checksums
 - `Crypt::Misc` - Base32 encoding
 - `Term::ReadLine` - Interactive input
 - `Time::HiRes` - Precise timing
@@ -133,8 +132,8 @@ Blacklight neon aesthetic:
 - [bin/admin/vc_commit](../../../bin/admin/vc_commit) - Interactive commit tool
 - [bin/dev/update-version](../../../bin/dev/update-version) - Version management
 
-#,,,,,...,...,.,,,.,,,,,.,..,,,,,,,,.,,.,,...,..,,...,...,..,,.,,,,..,,,.,..,,
-#RCGEZWC2YTXEBS5XC4JNVLSKU54ACPSMZYZPHKF67BQGTAJ3HIEPYIQR3HXLWODJWNMS6BQZFSFN2
-#\\\|JJTN7M4EUNR2LQXXOPCDB2R7JQCESYNHHDSE3SDGB6MVRNQUZTJ \ / AMOS7 \ YOURUM ::
-#\[7]QEZ5O7HZVHERF4C3EI4UC6JTDVEMQ6V2BU3QWUWGJR3S3XV3YECI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,,.,,,.,.,,,..,,.,.,.,.,,,,,...,..,,...,...,,,,,,,.,.,,,...,.,,,
+#HHT2TE66KKEDEBUT6H5GTKFCBRHIMC2WCOQLWLW4RESUVDL52HU3BPPPMILELQ7CRUZP5BHUVAK24
+#\\\|DMNQZY5F3SBFI6OFDTDA3LEFSC46I3UUCUFHUDOYMAMIBDNXPFZ \ / AMOS7 \ YOURUM ::
+#\[7]EJRF4KZZH3W5K7NXGUVR7PYXX34KL77YSW6NL7UZ625SVE4W4OBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

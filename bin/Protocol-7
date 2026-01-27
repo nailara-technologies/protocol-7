@@ -2111,11 +2111,11 @@ sub p7_devmod_sub {
                         {lc($LAST_PAREN_MATCH)}ge;
     $param_list =~ s{\(0x([a-f0-9]+)\)\'?}{ sprintf( ' :: %s ::',
              substr( encode_b32r(pack("V*",
-              Digest::Elf::elf(${^CAPTURE}[0]))) , 2,3 )
+              Digest::JHash::jhash(${^CAPTURE}[0]))) , 2,3 )
              .'0'. substr(
-              Digest::Elf::elf(pack("H*",${^CAPTURE}[0])), -3, 3 )
+              Digest::JHash::jhash(pack("H*",${^CAPTURE}[0])), -3, 3 )
              )
-        }gxe if defined &{'encode_b32r'} and defined &Digest::Elf::elf;
+        }gxe if defined &{'encode_b32r'} and defined &Digest::JHash::jhash;
     ## [ LLL ] ids need to become resolvable + devmod command ..,
     say sprintf(
         "$colors{p7_fg_0000}. %s$colors{p7_fg_0001} : $colors{p7_fg_0004}%s"
@@ -5308,8 +5308,8 @@ __DATA__
 :
 :.
 
-#,,..,..,,,,,,..,,,..,..,,,.,,,,,,.,,,,.,,,..,...,...,..,,,,.,,..,...,...,.,,,
-#5L7UAXDKWPOUGRI4JZYBUHZTAY2EUAF4W6MD7CEY3ISACA26OX3LWW5OHUNWSIV6KG5PVKM3ULD4U
-#\\\|DKD36W4NIQXRTLXO7QHN7KBWW455LKRLN335WRU36GMY64W6BWE \ / AMOS7 \ YOURUM ::
-#\[7]PSWE65PCKGCAULD6YFBIC5273DIZ6ISXQDYURX7FJOFGZ4FPOUCI 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,..,,..,,,.,,,,,,..,,..,.,.,..,,...,...,...,...,,,,,,,.,...,...,
+#GC5PH7YRKQADV7VSAJOJEETF5F5E6R7LJKDDNRZYOL4YDZ55HAXPDGVO3XBKTA3FB4PAEBAWYVUAU
+#\\\|WRUKVGHTQPMFR4JM7JSESKNEVA4YVIXXYD24NRO2IINX2QR5AIR \ / AMOS7 \ YOURUM ::
+#\[7]L6YEJK2BIKX4CLWXZLI3PFF3EC5S4UVJE36Y25SRXWMQ2CT2RMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,8 +11,6 @@ use warnings;
 use constant TRUE  => 5;      ##  TRUE.  ##
 use constant FALSE => 0;      ##  false  ##
 
-use Digest::Elf;    ##  temporary fallback  [ no longer same algorithm ]  ##
-
 use Exporter;
 use base qw| Exporter |;
 use vars qw| @EXPORT $VERSION |;
@@ -21,7 +19,7 @@ use vars qw| @EXPORT $VERSION |;
 ##
 $VERSION = qw| AMOS-13-ELF-7-SQIG7DQ |;    #  amos-chksum -VL7  #
 
-@EXPORT = qw| elf_chksum $VERSION |;
+@EXPORT = qw| elf_chksum inline_elf $VERSION |;
 
 ## AMOS-13-ELF-7 SETTINGS ##
 ##
@@ -43,7 +41,7 @@ if ( defined &AMOS7::INLINE::compile_inline_source ) {
 }
 ###
 
-## will use rudimentary Digest::Elf fallback if not compiled ##
+## will _no_longer_ use Digest::Elf fallback if not compiled ##
 warn_err('compilation of inline_elf subroutine not successful <{C1}>')
     if not defined &inline_elf;    ##  AMOS7::CHKSUM::ELF::inline_elf()  ##
 
@@ -82,29 +80,6 @@ sub elf_chksum {
         $overflow_threshold = shift @ARG;
     }
 
-    ##  temporary fallback to not break __all__ code  ##
-    state $warned_elf //= 0;
-    if ( not defined &inline_elf ) {
-        if ( $start_chksum == 0 ) {
-
-            ++$warned_elf
-                and warn_err(
-                '<< using Digest::Elf fallback [ incompatible algorithm ] >>')
-                if not $warned_elf
-                and ( $elf_mode != 4
-                or $shift_bits != 24
-                or $overflow_threshold != 0XF0000000 );
-
-            ##  Digest::Elf CHKSUM  ##    no elf mode support   ##
-            return sprintf qw| %09d |, Digest::Elf::elf($$data_ref);
-
-        } else {
-            warn 'start checksum not supported by Digest::Elf fallback';
-            return undef;
-        }
-    }
-    ##
-
     ####                  ####
     ## calculating checksum ##
     ####                  ####
@@ -127,8 +102,8 @@ sub elf_chksum {
 
 return TRUE ##################################################################
 
-#,,..,,.,,,..,.,.,,,,,.,.,,,,,,,.,...,,..,...,..,,...,...,.,.,..,,,.,,,,,,.,,,
-#X43Q2TPYSBIQZEDQ7OORRDWJAMXH3OW76IILIDDDHN2G72UJLOYK3IJGDFEHCDRTCFJZGEVYMWJDC
-#\\\|2MBIX5JEYK2W3NCTKJ2FQVWXDBHAZV5BKTKYSU6CHKJTH6LGD2A \ / AMOS7 \ YOURUM ::
-#\[7]FULGENTJ3DCGOCVR6KDFU24D76JBJFSNBTAHDTJCZFLE4AQEXIDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,...,...,,.,,,,,,.,.,,,.,..,,..,,,,,,..,,...,...,.,.,,..,..,,...,..,,
+#5DIQBSTQ57T7OSBLG36D2ZPX7FPWJLEXWMXBQDCGTTS4L7C47SO2FL5V25GRLAGWSNL45WFGOV5YK
+#\\\|MOLBXIJMMISD545OBIYYGE7HGHNUQBFQPOIWSFKVPL72EXOLDA6 \ / AMOS7 \ YOURUM ::
+#\[7]FTOKQPQVNED6HKID7GKXOD5EF6ZESPMJHBDIAVDKM6XFA7IQFOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
