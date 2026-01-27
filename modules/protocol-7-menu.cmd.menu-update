@@ -51,10 +51,11 @@ if ( defined $update_data ) {
     ## Try JSON first (backward compatibility)
     if ( $update_data =~ m/^\{/ ) {
         eval { $provider_data = JSON::decode_json($update_data); };
-        if ($@) {
+        if ( length $EVAL_ERROR ) {
             return {
                 'mode' => qw| false |,
-                'data' => "failed to parse JSON provider data: $@"
+                'data' => "failed to parse JSON "
+                    . "provider data [details loged]"
             };
         }
         <[base.log]>->( 2, "parsed provider data as JSON" );
@@ -66,10 +67,11 @@ if ( defined $update_data ) {
                 = "---\n" . $update_data;    # Re-add marker for parser
             $provider_data = YAML::XS::Load($prepended_yaml);
         };
-        if ($@) {
+        if ( length $EVAL_ERROR ) {
             return {
                 'mode' => qw| false |,
-                'data' => "failed to parse YAML provider data: $@"
+                'data' => "failed to parse YAML "
+                    . "provider data [details logged]"
             };
         }
         <[base.log]>->( 2, "parsed provider data as YAML" );
@@ -125,8 +127,8 @@ return {
     'data' => "menu updated for provider $provider"
 };
 
-#,,.,,...,,.,,.,.,..,,,,,,...,,..,,.,,,..,,,,,..,,...,...,.,,,,,,,.,.,.,.,,.,,
-#7DKV5QPSZ2IOECHKM72QNLWTDWYW5WGF4XX3WM2QJREP6TK4DK2CMHHMAGZZNVBIZQDGCOHOXN2TU
-#\\\|T7YFVFVKTU54X4THTGNVLBCAKKLO7POQW2BTH6EXEZTBA4JHHL3 \ / AMOS7 \ YOURUM ::
-#\[7]VYOUQFXADJAZ7R6KEXGIQCPGZ7JGEXOU5XNLF2PUCKTMCTIWVABI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,,,,,,.,.,.,,,,,...,...,,,,,,.,,..,,...,...,...,,..,..,,.,.,,..,
+#3CWSOAKP2IEQIDRMMYF376SDHS7QPHHUU5GLS5ZLI34WD7ABBOGK4OPB4LDCLLDBLM2ETZCWSTWOQ
+#\\\|52GA5HD5ADDVHGIJ6CPTH4FOAAY6BCHVB4JL77UHYKLTQEKTNSR \ / AMOS7 \ YOURUM ::
+#\[7]BQP7CKWZI7ZDKZCOUSDS6VGYPCTY4RU34JHUHDMGXP45TLZ34MAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

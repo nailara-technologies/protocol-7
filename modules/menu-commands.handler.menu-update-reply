@@ -3,18 +3,25 @@
 # name = menu-commands.handler.menu-update-reply
 # descr = Handle reply from protocol-7-menu after menu update notification
 
-my $params = shift;
-my $update_ref = $params->{'data'};
+my $reply_mode = $ARG[0]->{'cmd'};
+my $reply_mesg = $ARG[0]->{'call_args'}->{'args'} // "''"; ## verbose mesg. ##
 
-<[base.log]>->( 1, "menu-update notification acknowledged by protocol-7-menu (ref: %s)", $update_ref );
+if ( $reply_mode ne qw| FALSE | ) {    ## success : TRUE | SIZE | .. ##
+    <[base.logs]>->(
+        1, "[menu-update] acknowledged by protocol-7-menu [%s]", $reply_mode
+    );
+} else {
+    <[base.logs]>->(
+        0, "[menu-update]  %s  ['protocol-7-menu']", $reply_mesg
+    );
 
-# Handler doesn't need to do anything special - just log the acknowledgment
-# The actual fetch of data will happen when protocol-7-menu calls get-provider-data
+### [LLL] initiate 'notify-online protocol-7-menu' loop iteration ##
+}
 
-0;
+# Actual fetch of data happens when protocol-7-menu calls get-provider-data.
 
-#,,,,,..,,..,,,,.,,,,,...,...,...,,..,,.,,..,,.,.,...,...,.,.,,.,,.,,,,.,,,.,,
-#FGLIKGNCBUBLWDPX4XBLSFLIE3E7SKOYARRWRITZASP3SBL2P5BVKSGMMHZDTA2LX6PJWK25BHSWW
-#\\\|BXEP5MA5O5H5Q6SSEGCIKRCJEW3YNDS4W3EBSOP7XU5K6YM5OLW \ / AMOS7 \ YOURUM ::
-#\[7]B2Q5GTGTUUBVRCEMGA2INVVWEZPKUSL6MHHIMQF3ZRJNK5V2E4BA 7  DATA SIGNATURE ::
+#,,,.,...,,,.,.,,,..,,.,,,,.,,...,,,,,..,,,,.,.,.,...,..,,...,,,.,.,,,.,,,..,,
+#EPLKRIQPQE36T5LV265W2AEOXRCCKIA5Y5JH45LEIU4W7WYJCVBR2I2YW4B6Y3SVPFPJXHTLJOC26
+#\\\|RCJDETJSDFQQ5KO4EF7VR7H6G6DNPEC33OLMHU6G6OWGLMVO2OM \ / AMOS7 \ YOURUM ::
+#\[7]B44D3UJ3O24THZBCDHTB3QVKYR5HGFEG6QQCZESOA2QB4DWCYWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -11,31 +11,36 @@ return { 'mode' => qw| false |, 'data' => 'provider name required' }
     unless defined $provider;
 
 <[base.logs]>->(
-    1,         "menu update notification from provider '%s' (ref: %s)",
-    $provider, $update_ref // 'none'
+    1,         "[provider:'%s'] update notification [%s]",
+    $provider, $update_ref // qw| init |
 );
 
 # Set up handler to fetch the data when protocol-7-menu is ready
 # This is triggered by protocol-7-menu voluntarily, not forced by the notification
-my $response = eval {
-    <[base.protocol-7.command.send.local]>->(
-        {   'command'   => "cube.$provider.get-provider-data",
-            'call_args' => { 'args' => '' },
-            'reply'     => {
-                'params' =>
-                    { 'provider' => $provider, 'update_ref' => $update_ref },
-                'handler' => 'protocol-7-menu.handler.fetch-menu-data'
-            }
-        }
-    );
-};
 
-if ($EVAL_ERROR) {
-    <[base.s_warn]>->(
-        'Failed to fetch provider data (exception): %s', $EVAL_ERROR
-    );
-    return { 'mode' => qw| false |, 'data' => "fetch failed: $EVAL_ERROR" };
-}
+my $sent_count = <[base.protocol-7.command.send.local]>->(
+    {   'command'   => sprintf( qw| cube.%s.get-provider-data |, $provider ),
+        'call_args' => { 'args' => '' },
+        'reply'     => {
+            'params' =>
+                { 'provider' => $provider, 'update_ref' => $update_ref },
+            'handler' => qw| protocol-7-menu.handler.fetch-menu-data |
+        }
+    }
+);
+
+return {
+    'mode' => qw| false |,
+    'data' => "[fetch] taget client not present"
+    }
+    if $sent_count == 0;    ## no clients reached ##
+
+#if (length $EVAL_ERROR) {
+#    <[base.s_warn]>->(
+#        'Failed to fetch provider data [exception]: %s',<[base.str.eval_error]>
+#    );
+#    return { 'mode' => qw| false |, 'data' => "fetch failed: $EVAL_ERROR" };
+#}
 
 <[base.logs]>->(
     1, "initiated fetch of menu data from provider '%s'", $provider
@@ -46,8 +51,8 @@ return {
     'data' => "menu update notification acknowledged, data fetch initiated"
 };
 
-#,,.,,...,,.,,,.,,...,,,,,,,,,,.,,,.,,.,.,,.,,.,.,...,...,..,,,..,...,,.,,,.,,
-#RCWYQPGSDWC42P3W4ZUGTUBLHHOCZDVWXLXJNJKCMVPYACTWWOH3R2DH2YNOXATMRV3U5IJQGUDCE
-#\\\|UGRKWWJ4WX7OENHPO5QM2TKOSQ3GGKB7U7CNHW4V5NJUUMOFWTV \ / AMOS7 \ YOURUM ::
-#\[7]BABIQSH32Z4JSQA5BLWQDS5HQ7THAAHZYSSIFDC3OCJ3RPG556CI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,,.,,..,..,,,.,,,,,,,,,,.,.,.,,,.,.,...,...,,..,...,,,.,,..,,,.,
+#ND6SL5APCHAPP2WGKSA5IG42ZUU4DJSKC2VYITBVEGGZD62ISFKCWDPIYYYJOTBG3F66ARY4H4MU2
+#\\\|655475AT7H66WXVERFU4F3FZCFPW4PYNI3JDURLXKCHAIT2MMAL \ / AMOS7 \ YOURUM ::
+#\[7]KVLLSXXE4ZDWVN7MW357RQX3ESTZPFBQIDK24ZVT6BLGGMYXUSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

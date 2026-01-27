@@ -6,38 +6,47 @@
 # Generate timestamp reference for this update
 my $update_timestamp = <[base.ntime.b32]>;
 
-my $item_count = scalar(keys %{<menu-commands.mappings>});
+my $item_count = scalar keys <menu-commands.mappings>->%*;   # [LLL] use ->$#*
 
-<[base.log]>->( 1, "notifying protocol-7-menu of %d menu items (ref: %s)", $item_count, $update_timestamp );
+<[base.logs]>->(
+    1,           "[protocol-7-menu] notifying : %d menu items [%s]",
+    $item_count, $update_timestamp
+);
 
-# Send notification to protocol-7-menu with:
+##[ sending notification to protocol-7-menu with : ]##
 # - provider name: menu-commands
-# - reference: timestamp (allows protocol-7-menu to fetch when ready)
+# - reference: timestamp [ allows protocol-7-menu to fetch when ready ]
 # - reply handler: protocol-7-menu will call get-provider-data to fetch the YAML
-my $response = eval {
-    <[base.protocol-7.command.send.local]>->({
-        'command'   => 'cube.protocol-7-menu.menu-update-notify',
-        'call_args' => {
-            'args' => "menu-commands $update_timestamp"
-        },
-        'reply' => {
-            'handler' => 'menu-commands.handler.menu-update-reply'
-        }
-    });
-};
+my $client_count = <[base.protocol-7.command.send.local]>->(
+    {   'command'   => qw| cube.protocol-7-menu.menu-update-notify |,
+        'call_args' =>
+            { 'args' => sprintf( 'menu-commands %s', $update_timestamp ) },
+        'reply' =>
+            { 'handler' => qw| menu-commands.handler.menu-update-reply | }
+    }
+);
 
-if ($EVAL_ERROR) {
-    <[base.s_warn]>->('Failed to notify protocol-7-menu (exception): %s', $EVAL_ERROR);
-} elsif (ref($response) eq 'HASH' && $response->{'mode'} =~ /false|error/i) {
-    <[base.s_warn]>->('menu-update-notify failed: %s', $response->{'data'} // 'unknown error');
-} elsif (ref($response) eq 'HASH') {
-    <[base.log]>->( 2, "protocol-7-menu notified successfully" );
+### evalutate return code ###  [ number of clients notified ]
+##
+if ( $client_count == 0 ) {
+    <[base.log]>->(
+        1, '[[cannot_notify]] protocol-7-menu zenka not present ..'
+    );
+    return FALSE;
+} elsif ( $client_count == -2 ) {
+    <[base.s_warn]>->('[ protocol-7-menu ] protocol mismatch <{C1}>');
+    return undef;
+} elsif ( $client_count > 0 ) {
+    <[base.log]>->( 2, "[protocol-7-menu] notified successfully =)" );
+    return TRUE;
+} else {
+    warn '[ protocol-7-menu ] unexpected return value';
+    return undef;
 }
+##
 
-1;
-
-#,,,,,,,.,,.,,,,.,.,,,.,,,,,.,.,,,.,,,.,,,..,,..,,...,..,,,,.,,,.,..,,,,,,...,
-#MX7GSPG7MP4NK5QVEVVOLIBB7ZWJ26GEPQRCCMOL2BQFPWURRJJ47WRANXFQY65BEP5FYDUO3WN6C
-#\\\|BYVXMPX4P56PREZAHN7WEXI7ITQ67PXVVGSYCF5WLZIHLVRA3TJ \ / AMOS7 \ YOURUM ::
-#\[7]DYORHJC4S3GBGATHZWTDESVY5ESGVAYIXYXLSN2T5UGJKSXLOSAA 7  DATA SIGNATURE ::
+#,,,.,...,.,.,...,..,,,,.,,.,,.,,,.,.,,..,,,,,..,,...,...,,..,,..,.,,,,.,,.,,,
+#HWXDSEIZWR6SOEYSQKZ6DNNJBQATXIVHWBI7V7YC4FZCIVWXN3U33P5AWQSZFPIVYGF5PYTGTZC6S
+#\\\|33MB2ZEBPN6UCN4CRCFUA2CBNG4M7GSJ73LGQ22MCPAUMZL7C7Y \ / AMOS7 \ YOURUM ::
+#\[7]A4UJKOHI6DQ4U6M7CZTDCBU6LJAXTN54M6RKPVIHZQ4PWKH2RKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

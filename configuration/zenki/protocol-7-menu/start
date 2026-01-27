@@ -4,6 +4,8 @@
 [load_config_file:'shared-params']
 [load_config_file:'X11-vars']
 
+# buffer.zenka.log_cmd = ''    ## clear log zenka path [ no remote logging ]
+
 [root.drop_privs:<system.AMOS-user>] # LLL: implement desktop-user auto-discovery
 
 access.cmd.usr.cube = commands heart verify-instance \
@@ -15,8 +17,9 @@ access.cmd.usr.cube = commands heart verify-instance \
                       save-keys-set-up show-X11-menu hide-X11-menu fade-menu \
                       register-action un-register-action enable-action-group \
                       disable-action-group show-graphical-menu show-structure \
-                      provider-status test-provider menu-update-notify debug-structure \
-                      dump set get exec-sub
+                      provider-status test-provider menu-update-notify \
+                      input-text input-password debug-structure \
+                                             dump set get exec-sub ## <-- devmod
 
 
 modules.load = auth net protocol io.unix devmod protocol-7-menu
@@ -36,8 +39,8 @@ modules.load = auth net protocol io.unix devmod protocol-7-menu
 ## Main event loop - GTK if graphical mode, zenka event loop if TTY
 [base.gtk.main_loop]
 
-#,,..,,..,,,.,...,.,,,,,.,,,,,,.,,.,,,..,,,,,,..,,...,...,..,,.,,,.,.,...,...,
-#XPKEH7VSXSJBVMXDI6GXSMFNFVSEOTRVKUJIQO6EKI3WXSPZX3HJGWOKFJQ2HVIFZZAWZTQA6U7Q2
-#\\\|2NFODHL5FVPJHN3S22GW3Z7GSVYPACS34PQZB67K3ZIHOIV6HJT \ / AMOS7 \ YOURUM ::
-#\[7]PVG4FLDDAH7ZUD7WM5FTJFM5IPIZUN4V2W43ZUTCJVHTQY3D4MAY 7  DATA SIGNATURE ::
+#,,,.,,,.,...,..,,.,,,,,,,,..,.,,,...,..,,..,,..,,...,...,,.,,,,.,,.,,...,...,
+#3EYGOEZH4YCD2VAXIEUOP6EDQ2FFPOMX3GXW5RHXRE3UZTZLBFRBLDICCD4KQSZZJZT4TNJKDOCU2
+#\\\|4PF2KMU7KFAL6HU3F54AAAKNJGL5KEU2EMDWJMFSXVAJ4XFVB5E \ / AMOS7 \ YOURUM ::
+#\[7]O7BV65I3C3H775675YKZDXOSEFKOI2TXLYJRELIRM2YPIPRK56DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

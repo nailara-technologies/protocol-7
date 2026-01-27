@@ -1,40 +1,37 @@
 ## [:< ##
 
 # name = menu-commands.cmd.get-provider-data
-# descr = Provide YAML provider data on demand (SIZE reply - called by protocol-7-menu)
+# descr = Provide YAML provider data on demand to protocol-7-menu
 
-<[base.perlmod.load]>->('YAML::XS');
-
-# Build items hash from current mappings
-my $items = {};
-foreach my $mapping_id (keys %{<menu-commands.mappings>}) {
+my $items_href = {};    # building items hash from current mappings #
+foreach my $mapping_id ( keys <menu-commands.mappings>->%* ) {
     my $mapping = <menu-commands.mappings>->{$mapping_id};
-    $items->{$mapping_id} = {
-        'label'    => $mapping->{'label'} // 'Unnamed',
-        'enabled'  => $mapping->{'enabled'} // 1,
-        'action'   => $mapping->{'command'} // '',
+    $items_href->{$mapping_id} = {
+        'label'   => $mapping->{'label'}   // qw| unnamed |,
+        'enabled' => $mapping->{'enabled'} // TRUE,
+        'action'  => $mapping->{'command'} // '',
     };
 }
 
-# Prepare provider data structure
-my $provider_data = {
-    'items' => $items,
-};
+# preparing provider data structure
+my $provider_data = { 'items' => $items_href };
 
-# Format as YAML and strip document marker
+# format it as YAML and strip the document marker
 my $yaml_output = YAML::XS::Dump($provider_data);
-$yaml_output =~ s/^---\n//;
+$yaml_output =~ s|^---\n||;
 
-<[base.log]>->( 1, "providing %d menu items via SIZE reply (%d bytes)", scalar(keys %{$items}), length($yaml_output) );
+<[base.logs]>->(
+    1,    ## log current activity ##
+    "providing %d menu items [bytes:%d]",
+    scalar( keys $items_href->%* ),
+    length $yaml_output
+);
 
-# Return via SIZE mode - protocol-7-menu will fetch this when ready
-return {
-    'mode' => qw| size |,
-    'data' => $yaml_output
-};
+# returning SIZE mode [multiline ]- protocol-7-menu will fetch this when ready
+return { 'mode' => qw| size |, 'data' => $yaml_output };
 
-#,,..,..,,.,,,,,.,,,,,,,.,,,.,,.,,..,,..,,,,,,.,.,...,...,,,,,.,,,,,,,,..,,.,,
-#BTNQLSFKNZZDVM3HS24TX3EM2QKZ23APOD6H457YN3SHGPKQHGVFI74KXPHIQJPLK4YYK26YR4HTW
-#\\\|AB2HKVARHWFTEXEFCEMRBUKUR3MOVW6P3TBR4OFKWCYOLORZL6G \ / AMOS7 \ YOURUM ::
-#\[7]QE4KDK4Q4LHYJY3U7MIKYSFCXCD7JYJCDGWBR76ZNZEQVFNI6SCI 7  DATA SIGNATURE ::
+#,,,.,,..,..,,...,.,,,,.,,,.,,,,.,,.,,,,.,.,,,.,.,...,..,,..,,..,,.,.,...,.,.,
+#BHFWQ4ZVJODEXVZBASTOGE2523TF7BE656MV2IUE7SPRRJANTFUWA3RJ7AN32P5AIRO6LEFTE5BGA
+#\\\|TI5OHK254FQHEEUYUDJQYDCZGIRM5HOVDAB42O3MOR2YSITXMRX \ / AMOS7 \ YOURUM ::
+#\[7]6Q3GBGNGKZEINYPCPBOMH42SMZXMAFWZLHMAR6IJ4JYXUNCTX4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

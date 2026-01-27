@@ -6,6 +6,10 @@
 ##
 my $init_gtk3 = <[base.cfg_bool]>->( $ENV{'P7_GTK3_INIT'} //= FALSE );
 
+<[base.perlmod.load]>->( 'YAML::XS', qw|  Load  Dump  | );
+
+<protocol-7-menu.init-graphical> //= TRUE;    ### testing ###
+
 <protocol-7-menu.init-console>   //= FALSE;
 <protocol-7-menu.init-graphical> //= $init_gtk3 ? TRUE : FALSE;
 
@@ -27,21 +31,41 @@ if (<protocol-7-menu.init-console>) {
     <[base.perlmod.autoload]>->('Curses::UI');
 }
 
+<[base.perlmod.autoload]>->('Gtk3');
+<[base.perlmod.autoload]>->('Glib::Object::Introspection');
+
+<[base.gtk.attempt_load.glib_event]>;  ##  load Glib::Event when installed  ##
+
+# <protocol-7-menu.stderr_capture> = '';
+##  silence stderr console output  ##
+<[base.stderr_redir]>->( *STDOUT{IO} );
+
+#<[base.stderr_redir]>->( \$data{'protocol-7-menu'}->{'stderr_capture'} );
+
+say STDERR ':: another ::';
+
 ##  load graphical [X-11] mode dependencies  ##
 if (<protocol-7-menu.init-graphical>) {
 
-    <[base.perlmod.autoload]>->( 'Gtk3', qw| -init | );
+##  silence stderr console output  ##
+    # <[base.stderr_redir]>;
+
+##    <[base.perlmod.autoload]>->( 'Gtk3', qw| -init | );
     <[base.gtk.attempt_load.glib_event]>;
+
+    Gtk3->init;
 
     my $logo_image_path = <protocol-7-menu.image_path>
         //= File::Spec->catfile( <system.root_path>,
         qw| data/gfx/logos/nailara.png | );
     <[base.logs]>->( 0, "[ not found ] image file '%s'", $logo_image_path )
-        if not -f <protocol-7-menu.image_path>;
+        if not -f $logo_image_path;
 }
 
+# our $EVAL_ERROR = "\nanother world\n";
+
 ##  silence stderr console output  ##
-<[base.stderr_redir]>;
+# <[base.stderr_redir]>;
 
 ## Defer graphical initialization until zenka loop runs
 ## This ensures display context is available before creating Gtk3 widgets
@@ -49,8 +73,8 @@ if (<protocol-7-menu.init-graphical>) {
 
 return 0;
 
-#,,.,,.,,,,..,.,,,,,,,,,,,.,,,.,.,.,.,...,,.,,..,,...,...,...,..,,,..,...,,,,,
-#XVU6LZJFWKSHNH4PWSXYWIVYJTBUV7O6GS7ROXEBLGJSBD2WUGUXVHHLGD5MRMZ5S465U5IBMFQHK
-#\\\|YVK3NQ5HO6DY25ZWXLZQ7HHKV3SXMMHCOWSXONONAXWUBC5GBRY \ / AMOS7 \ YOURUM ::
-#\[7]IXSSM5ZQJUVJ5SEH2IUC6IIUZVIHD2LJ2SRCM7DPZTZBIBWB6MCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,..,,..,,.,.,.,.,..,,...,,,.,.,,,..,,...,...,,,.,,,.,.,.,.,.,...,
+#TSACKJ2EHGKU3RIFZL4DS2SNLBSGPY36P7N7XZ236C7Q34R3EN3LCENDOIQ7NJTMLHBMPJLPOH42C
+#\\\|NC76JADBORNIREORVNFP26AIOCTWCR3PMK2FD6RYEFDSK4PIXPW \ / AMOS7 \ YOURUM ::
+#\[7]FCTRJAQ2LFU5LH6O5QR7NP32GPFJM4Y3TVIPELTO2OL7KLJV6YBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

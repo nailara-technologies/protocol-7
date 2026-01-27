@@ -3,9 +3,9 @@
 # name = protocol-7-menu.structure-changed
 # descr = Handle menu structure changes - diffs old vs new and updates GUI
 
-my ($event_info) = @ARG;
+my $event_info = shift;
 
-<[base.log]>->( 1, "menu structure changed, computing diff" );
+<[base.log]>->( 1, "menu structure changed : computing difference.." );
 
 ## Get previous and current structure
 my $prev_structure = <protocol-7-menu.prev-structure> //= {};
@@ -13,23 +13,23 @@ my $curr_structure = <protocol-7-menu.menu-structure>;
 
 ## Compute diff: added/updated/removed providers
 my %all_providers = (
-    map { $_ => 1 } (
-        keys %{ $curr_structure->{providers} // {} },
-        keys %{ $prev_structure->{providers} // {} }
+    map { $ARG => TRUE } (
+        keys $curr_structure->{'providers'}->%*,
+        keys $prev_structure->{'providers'}->%*
     )
 );
 
 foreach my $provider ( keys %all_providers ) {
-    my $prev_provider = $prev_structure->{providers}{$provider};
-    my $curr_provider = $curr_structure->{providers}{$provider};
+    my $prev_provider = $prev_structure->{'providers'}->{$provider};
+    my $curr_provider = $curr_structure->{'providers'}->{$provider};
 
-    if ( !defined $curr_provider ) {
+    if ( not defined $curr_provider ) {
         ## Provider removed - remove from GUI
         <[base.logs]>->(
             1, "removing menu items for provider '%s'", $provider
         );
         <[protocol-7-menu.remove-provider-items]>->($provider);
-    } elsif ( !defined $prev_provider ) {
+    } elsif ( not defined $prev_provider ) {
         ## Provider added - add to GUI
         <[base.logs]>
             ->( 1, "adding menu items for provider '%s'", $provider );
@@ -45,10 +45,8 @@ foreach my $provider ( keys %all_providers ) {
 ## Store current as previous for next change
 <protocol-7-menu.prev-structure> = $curr_structure;
 
-return 0;
-
-#,,..,..,,,,,,.,.,..,,,,,,,..,.,.,..,,.,,,,,.,..,,...,...,...,.,,,,,,,,..,.,.,
-#EYTQNU5HT2EEG3RGHJGJVZNRORXNTWYE7MU2P4SBAG4UIJVDREIUQHKOQMX67QHTZXXYC5C4AD5RE
-#\\\|HWJ7VDEHVBSWLRXQFH22QMRZ7SJ7XWILXTA7V4GK7RAUCWIJKLG \ / AMOS7 \ YOURUM ::
-#\[7]WFT6NSUVRIOHSJVMDYEZDEDTTLZ67AXRARURRNBGAP4EKBBW76AI 7  DATA SIGNATURE ::
+#,,..,,.,,,..,.,.,.,,,,.,,,,.,,..,,,,,...,.,.,..,,...,...,,,.,...,.,,,.,.,,,,,
+#JRA67OFP3CKVR2JNFZ7CD23DNZWDTXUJBUYAZWRPJ7SJ63JIWDXPQVFGMWJLELHCVL4ZNDV7PAFVY
+#\\\|VDEVRFNU6KQ3ZVRPYN3ZXTC5GWH74TW7EH24QO6EMJUKXTLLQBE \ / AMOS7 \ YOURUM ::
+#\[7]3NWFVV6SMPZHHQPSKSABAKVKYYVO7M5EECRR4DQ5VU7HXVWO6SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
