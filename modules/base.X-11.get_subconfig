@@ -23,7 +23,7 @@ my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string  = <$cube_fh>;
+    $reply_string  = readline($cube_fh);    ### [LLL] improve ###
     $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(SIZE|FALSE) };
     if ( !$matched_reply ) {
         $data{'session'}{$local_sid}{'buffer'}{'input'} .= $reply_string;
@@ -63,7 +63,9 @@ if ( $reply_string =~ m|^\($cmd_id\)SIZE (\d+)\n$| ) {
         ${^CAPTURE}[0]
     );
     return undef;
-} elsif ( $reply_string =~ m|^\($cmd_id\)FALSE command | ) {
+
+} elsif ( $reply_string eq
+    <[base.sprint_t]>->( qw| IRW7V6A |, sprintf( qw| (%d) |, $cmd_id ) ) ) {
     <[base.logs]>->( ": << get_subconfig [ FALSE ] >> for '%s'", $name_str );
     return undef;
 } else {
@@ -76,8 +78,8 @@ if ( $reply_string =~ m|^\($cmd_id\)SIZE (\d+)\n$| ) {
     return undef;
 }
 
-#,,.,,,,,,.,,,,.,,...,,,,,,,,,,,.,.,,,,.,,,.,,..,,...,...,.,.,..,,,..,.,,,,..,
-#EGCCFOQNMOIAM2L723MSAFRQ6PX3LUO22STG7X2GKGC77OW3GM6L7SB3YBNZNKDKJ6JQRDRHIDOYG
-#\\\|5OMGSYTSK3UWSZIMH6MWQDISSWUHSYUEGWEDFTP7VUAOBOQEYPB \ / AMOS7 \ YOURUM ::
-#\[7]R4UAWNFJ5PB4L6EQI5FTXOH5COIITIQPNR3RGLM3EZKJBQUAP4AI 7  DATA SIGNATURE ::
+#,,..,...,,..,,.,,,.,,...,,.,,,.,,.,,,,,,,.,,,..,,...,...,,..,..,,.,.,,,.,,,.,
+#P7WWMM7AAPMURJN6QJ3ATDZHRB5ERDUYGVNILCAQXOHDAZK32TB7WH54AOH5V2YCNXPQTZZY2KCMS
+#\\\|V7F6BCMZH7A6574WQRQGZKO7KPRPWD5KIEQP526JTK232DEOPEB \ / AMOS7 \ YOURUM ::
+#\[7]PMRIJI6LKAIIEW6ERNAWDUH4ZG4UKCTDR24O33F5XJAXW4LDQMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

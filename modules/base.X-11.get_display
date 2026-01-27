@@ -19,7 +19,7 @@ my $cube_fh = $data{'session'}{$local_sid}{'handle'};
 my $reply_string;
 my $matched_reply = 0;
 while ( !$matched_reply ) {
-    $reply_string = <$cube_fh>;
+    $reply_string = readline($cube_fh);    ### [LLL] improve ###
     die 'cube handle exception' if not defined $reply_string;
     $matched_reply = 1 if $reply_string =~ m{^\($cmd_id\)(TRUE|FALSE) };
     if ( !$matched_reply ) {
@@ -31,7 +31,12 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
     <x11.display> = ${^CAPTURE}[0];
     <[base.logs]>->( 'received X display name [%s]', <x11.display> );
     return <x11.display>;
-} elsif ( $reply_string =~ m|^\($cmd_id\)FALSE command | ) {
+
+} elsif (
+    $reply_string eq    ### known protocol reply for no X-11 zenka present ###
+    <[base.sprint_t]>->( qw| IRW7V6A |, sprintf( qw| (%d) |, $cmd_id ) )
+) {
+
     <x11.display> //= qw| :0.0 |;
     <[base.logs]>->(
         'no X-11 zenka found, using default display [%s]',
@@ -47,8 +52,8 @@ if ( $reply_string =~ m{^\($cmd_id\)TRUE ([^\n]+)\n$} ) {
     return undef;
 }
 
-#,,..,.,.,,,.,,,,,,,,,.,.,,.,,,,.,,,,,,,,,,,,,..,,...,.,.,,.,,,,,,,..,,.,,,..,
-#QFYU44PCSRRFYKK6CGL6K5XM7DYIZS6P4DDQM5CPWEBYWLALOCAZTPZPMWZT4EYXP35LAR2YHNRGQ
-#\\\|RIVA53JQTFB3BHFN5PBSYTTQRNCYOIKWQNTAITWRWHK7EPF7ON5 \ / AMOS7 \ YOURUM ::
-#\[7]ZQQWK46GWNCHSZ7E6773XFEOTJNORKGWYRNOUNMBLX756CEG5ICI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,.,..,,...,.,.,,,,,,..,.,.,,.,,..,,...,...,.,,,,,.,..,,.,.,,,.,
+#TJNCVIXAQEWGGJG6G5V3XWZPLBS2H2MK7BPNTIT4E3UHZBOZG3ZSELNACRPBCYSHGE5B5RYSJXQA6
+#\\\|5FS7C2MAPMDOGLGP2M3ZDIRW3YF4YSYFHL6NLC57U6PTCFHZSDX \ / AMOS7 \ YOURUM ::
+#\[7]6TWCPOT7SMYA7H3WPORDRCJYGZJQF6NOMR6ETOMWRZWAZOYQMGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
