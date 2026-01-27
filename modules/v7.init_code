@@ -36,7 +36,7 @@
     {   'var'     => \$data{'v7'}{'process'}{'instance_cache'},
         'poll'    => qw| r |,    ## cache reset after 5s without access ##
         'prio'    => 4,
-        'repeat'  => 1,
+        'repeat'  => TRUE,
         'handler' => qw| v7.callback.cleanup_instance_cache |,
         'desc'    => 'instance_cache auto clean-up'
     }
@@ -62,11 +62,11 @@ if ( <system.verbosity.console> > 1 ) {
 ##
 
 <v7.gcc_bin> = <v7.cfg.bin_override.gcc> // qw| /usr/bin/gcc |;
-<v7.cfg.install_bin_p7c> //= $UID == 0 ? qw| yes | : qw| no |;  ## when root ##
-<v7.cfg.p7c_bin_path>   //= qw| /usr/local/bin/p7c |;
+<v7.cfg.install_bin_p7c> //= $UID == 0 ? qw| yes | : qw| no |; ## when root ##
+<v7.cfg.p7c_bin_path>    //= qw| /usr/local/bin/p7c |;
 
-<v7.cfg.install_bin_p7r> //= $UID == 0 ? qw| yes | : qw| no |;  ## when root ##
-<v7.cfg.p7r_bin_path>   //= qw| /usr/local/bin/p-7-r |;
+<v7.cfg.install_bin_p7r> //= $UID == 0 ? qw| yes | : qw| no |; ## when root ##
+<v7.cfg.p7r_bin_path>    //= qw| /usr/local/bin/p-7-r |;
 
 ## gcc \ bin/p7c & bin/p-7-r ##
 <v7.gcc_bin> = <[base.required_bin_path]>->('gcc');
@@ -92,10 +92,18 @@ if ( !-x <v7.gcc_bin> ) {
 }
 
 ## Install p7.<zenka> symlinks for console-only zenki access ##
-<[v7.install_zenka_symlinks]> if $UID == 0;
+##
+<[v7.install_zenka_symlinks]>;
 
-## Install common workflow shorthand aliases [p7.w, p7.wo, etc.]
-<[v7.install_workflow_shortcuts]> if $UID == 0;
+### Install common workflow shorthand aliases [p7.w, p7.wo, etc.] ###
+## <[v7.install_workflow_shortcuts]> if $UID == 0; ##################
+##
+### This above feature is deactivated until further notice.,
+#### it requires an elegant method for parameter propagation
+##### which symlinks currently do not have yet. additionally
+###### its function in general might be merged \ integrated
+#######  with the incoming 'aliases' zenka [ for performing
+########  protocol-7-specific alias management and registry. ]
 
 ## modprobe ##
 <v7.modprobe_bin> = <[base.required_bin_path]>->(qw| modprobe |);
@@ -114,7 +122,7 @@ if ( !defined <v7.rmmod_bin> || !-x <v7.rmmod_bin> ) {
 <[v7.load_start_setup]>->(<load.start_setup>)
     if defined <load.start_setup>;
 
-## Verify and install dependencies for all registered zenka
+## Verify and install dependencies for all registered zenka [LLL] refine..,
 if ( $UID == 0 && exists $code{'debian.parent.scan_zenki_dependencies'} ) {
     <[base.log]>->( 2, "v7: scanning zenka dependencies..." );
 
@@ -123,11 +131,11 @@ if ( $UID == 0 && exists $code{'debian.parent.scan_zenki_dependencies'} ) {
 
     if ( $scan_result && %$scan_result ) {
         <[base.log]>->(
-            2, "v7: dependency scan complete - verifying and installing..."
+            2, "dependency scan complete" . " - verifying and installing..."
         );
 
         ## Verify and install dependencies for all scanned zenka
-        if ( exists $code{'v7.verify_and_install_zenka_dependencies'} ) {
+        if ( exists $code{'v7.verify_and_install_zenka_dependencies'} ) { #[!]
             my $install_result = <[v7.verify_and_install_zenka_dependencies]>;
 
             if ( $install_result && $install_result->{success} ) {
@@ -142,13 +150,14 @@ if ( $UID == 0 && exists $code{'debian.parent.scan_zenki_dependencies'} ) {
             } else {
                 <[base.log]>->(
                     0,
-                    "v7: ⚠ dependency verification incomplete - continuing anyway"
+                    " ⚠ dependency verification incomplete"
+                        . " - continuing anyway"
                 );
             }
         }
     } else {
         <[base.log]>->(
-            2, "v7: no zenka dependencies found - skipping verification"
+            2, "no zenki dependencies found" . " - skipping verification"
         );
     }
 }
@@ -272,10 +281,10 @@ delete <list.users>;
     }
 };
 
-return FALSE;
+return 0;    ## successful init ##
 
-#,,.,,,,.,,.,,,..,,,,,.,,,,.,,.,.,,.,,..,,,,,,..,,...,...,.,.,,,,,..,,,..,.,,,
-#E2FYNRDDIMEWY3KZIPB4Y4FORA5DO3PDAV66JNFA4LWDILSZH52AMEPXPBVLKT6H64LDBWCWWDAUY
-#\\\|DJMMKZDFL5KNNWVUYOJJW3OKMI75BJAWI5QDF6NU6NJHLFCY547 \ / AMOS7 \ YOURUM ::
-#\[7]ZTTJ64DAVPUDE3GVBEJ6OTV2DNRQTRBT66MXW3CMWDKVFH73EOBI 7  DATA SIGNATURE ::
+#,,..,..,,..,,,.,,.,,,..,,,.,,,..,,,.,,,,,,.,,..,,...,...,..,,...,..,,,,.,,,.,
+#OIPU7KXMDRG7UANRIMZULGUZU4TKL7JT4FVGTM2ZH2ZOGRSPGNCDFJYDY5KWTZEM5YBHG42AEFJXM
+#\\\|DSGOVD34R2OSJZ2O5C6IPJH6EDK2DDL5FPFOCX2YTZBEOA5JMBE \ / AMOS7 \ YOURUM ::
+#\[7]6IOUU2XIQ4SPVINBH5RQN6JZJGHKCCPBRZ5RGCE225XBBKLZOEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
