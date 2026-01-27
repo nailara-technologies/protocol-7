@@ -3,7 +3,9 @@
 # name = menu-commands.init_code
 # descr = Initialize menu-commands zenka with data structures and persistent state
 
-<[base.perlmod.load]>->( 'YAML::XS', qw| Load Dump | );
+my $module_reinit = shift; ## FALSE for start-up condition, TRUE for reinit ##
+
+<[base.perlmod.load]>->( 'YAML::XS', qw| Load  Dump | );
 
 # Initialize data structures
 <menu-commands.mappings>   //= {};
@@ -47,13 +49,13 @@
 # Load persistent state from disk
 <[menu-commands.load-state]>;
 
-# Register with protocol-7-menu as a provider
-<[menu-commands.update-menu]>;
+# registering with protocol-7-menu as a provider
+<[menu-commands.update-menu]> if $module_reinit;
 
 0;
 
-#,,..,,.,,,,,,..,,,.,,,..,...,,,,,.,,,,..,,,.,..,,...,...,,..,...,,.,,,..,...,
-#G7VXTAPUI3QVWBL4MFEJPQWUB7BIWECTWMYGXNUPZ5OMI7G3CDWBQJXKQVGWUQUNFTQKJFJ36R7PC
-#\\\|M25OLUQPFPYTTN24SOK3HGRXD3HUOX6BPPK7HSS5XTNVXX6AYI5 \ / AMOS7 \ YOURUM ::
-#\[7]WU532W5LWZHPRTSEF46G7NR5JU7KA7EJMM3FNX26Y435ZJ5PAYCI 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,.,.,.,,,,,.,..,,..,,..,,...,,,.,..,,...,...,,..,.,,,,,,,..,,,.,,
+#BOPIU3MGRDIUKEN3LTYHBVIP6FITHKRZ7WJ5TLRHGH4YYRZP3PVWZYPTG5JKYSCMFWXZMILJVSQH6
+#\\\|NDLYJNZ6SKLD33O672VF25SA74PGIDBS6FKF57JE6NY4ZRVUJSK \ / AMOS7 \ YOURUM ::
+#\[7]6AMXBP3W7VYTU37VADPCRQCTTIBKNBDA5OGI3HFR3FDOVCI7L4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

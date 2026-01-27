@@ -3,31 +3,30 @@
 # name = protocol-7-menu.handler.fetch-menu-data
 # descr = Handle provider data fetch reply - parse YAML and update menu structure
 
-<[base.perlmod.load]>->('YAML::XS');
-
 my $params      = shift;
 my $provider    = $params->{'params'}->{'provider'};
 my $update_ref  = $params->{'params'}->{'update_ref'};
 my $yaml_string = $params->{'data'};
 
 <[base.logs]>->(
-    1,         "received menu data from provider '%s' (%d bytes)",
+    1,         "[provider:'%s'] received menu data [bytes:%d]",
     $provider, length( $yaml_string // '' )
 );
 
 return unless defined $yaml_string && length($yaml_string) > 0;
 
-# Parse YAML data
+# parse YAML data
 my $provider_data;
+$EVAL_ERROR = '';    ## force reset eval errors ##
 eval {
     my $prepended_yaml = "---\n" . $yaml_string;
     $provider_data = YAML::XS::Load($prepended_yaml);
 };
 
-if ($@) {
+if ( length $EVAL_ERROR ) {
     <[base.s_warn]>->(
-        'Failed to parse provider data from %s: %s',
-        $provider, $@
+        'cannot parse provider data from %s [%s]',
+        $provider, <[base.str.eval_error]>
     );
     return;
 }
@@ -36,27 +35,25 @@ if ($@) {
 unless ( ref($provider_data) eq 'HASH' && defined $provider_data->{'items'} )
 {
     <[base.s_warn]>->(
-        'Provider data invalid - no items hash from %s', $provider
+        'provider data not valid - no items hash from %s', $provider
     );
     return;
 }
 
 # Update menu structure with provider data
 my $menu_structure = <protocol-7-menu.menu-structure>;
-$menu_structure->{providers}{$provider} = $provider_data;
+$menu_structure->{'providers'}->{$provider} = $provider_data;
 
-# Mark structure as changed (triggers watcher)
+# Mark structure as changed [ triggers watcher ]
 $menu_structure->{'last-changed'} = <[base.ntime.b32]>;
 
 <[base.logs]>->(
-    1,         "menu structure updated from provider '%s' with %d items",
-    $provider, scalar( keys %{ $provider_data->{'items'} } )
+    1,         "menu structure updated : provider '%s' : %d items",
+    $provider, scalar( keys $provider_data->{'items'}->%* )
 );
 
-0;
-
-#,,..,.,.,,..,...,...,,,,,.,,,..,,,,,,,,.,...,.,.,...,...,.,,,,,,,..,,.,,,,..,
-#RC64UKSCV24PPOTII7OKOW7F7IWEDSFT6L36GVHGQLJCIKQBNGHLQK47F5KOVX4AXGLAQX44OVGZC
-#\\\|E5UF35SMRA6SMRIIURJKI3ABEQLAFNGLHZXFR7UZ7PXEUUJSXRO \ / AMOS7 \ YOURUM ::
-#\[7]ELZ6LB4TTGSTY3KJYVJJLD7VZKY6CDH3F6U6T6BPHU34ZZZPNECY 7  DATA SIGNATURE ::
+#,,..,.,,,,..,..,,..,,.,.,..,,..,,,,.,...,,,.,.,.,...,...,,,,,,.,,..,,,..,...,
+#GKDUQI3CJWNWP5GRIKBVP5RGU2J47BWYDNBKSFFHNTHNB6XMNIF2AYBCSGAHL6Y7WVLGE4MSNDONU
+#\\\|LVKF3ETYF3RDUABUZUABTQHRG2WFPATKWX3KV6KHQ7UL4R47TSY \ / AMOS7 \ YOURUM ::
+#\[7]OCPT3XMOCQTAQO23VPT46BZOATESCZX5UKFDN4OJSJ45YYWCWQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

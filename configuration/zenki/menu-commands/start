@@ -4,25 +4,30 @@
 [load_config_file:'shared-params']
 
 access.cmd.usr.cube = commands heart verify-instance reload \
-                      list show-buffer buffer-erase buffer-erase-level \
-                      src-age src-ver rel-ver \
+                              list show-buffer buffer-erase \
+                                         buffer-erase-level \
+                                    src-age src-ver rel-ver \
                       add remove update list clear-mappings \
-                      add-category remove-category \
-                      status get-provider-data
+                                add-category remove-category \
+                                    status get-provider-data \
+                        dump get set del exec-sub ## <-- devmod commands.., ##
 
-modules.load = auth net protocol io.unix menu-commands
+modules.load = auth net protocol io.unix menu-commands  devmod ## <-- [LLL] ##
 [load_modules:<modules.load>]
 [init_modules]
 
-[root.drop_privs:<system.amos-zenka-user>]
+[root.drop_privs:<system.amos-zenka-user>]    ###  unix user protocol-7  ###
 
-[base.net.connect:'unix']
-[base.get_session_id]
+[base.net.connect:'unix'] ## connect to local cube.. ##
 
-[zenka.loop]
+## registering with protocol-7-menu as a provider ##
+[menu-commands.update-menu] # sending notidication #
+#
+[get_session_id]       ## register as initialized ##
+[zenka.loop]           ## . .processing events .. ##
 
-#,,,.,,..,,,.,,,,,..,,...,.,,,,..,,,.,,,.,..,,..,,...,...,.,,,...,,,.,..,,.,,,
-#MUHKT5I5GOH5KYD2CNJP7IDBYI5YZI5I2TLB5TPSPFAIX6I6Q3GR5RYMJCC7OVH3DJ4TNGB5SDKWA
-#\\\|6HDTQXV7R2XTMHDGGZ2QUXYG4PDMQWQGC47FHGUC2K2TYAX3A3J \ / AMOS7 \ YOURUM ::
-#\[7]NMN56LUJHEAJMN7SAWAD75YJGZ66TZTROCCC5Y4OERGMKDAJHUBQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,.,,,.,.,,.,,...,.,.,,,,,...,,,.,..,,...,...,,,,,,.,,.,.,,.,,..,,
+#HAR4FDUGSVBEACAI37YZDTHSE72OE5F5AVJ2MTDEDG23F5PUVU6QI5OHQFD5BTPQKR5J34DHAQSNI
+#\\\|OAYVPTAD2B7DG32P3WNITPMCYM5ZPH4URPP5JIZ64OYUYHWKZUS \ / AMOS7 \ YOURUM ::
+#\[7]QJ6ALV7KAZUZTKVQWJ3VPT3SVPDQIOTKPMFJ7I45ZWOVF5Y4IYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
