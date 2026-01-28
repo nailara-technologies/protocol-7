@@ -4,25 +4,30 @@
 [load_config_file:'shared-params']
 [load_config_file:'X11-vars']
 
+# position save offset correction [ empirically determined, root cause unknown ]
+#                      if window jumps on position restore, adjust these values
+protocol-7-menu.cfg.position_save_offset_x = 38
+protocol-7-menu.cfg.position_save_offset_y = 58
+
 # buffer.zenka.log_cmd = ''    ## clear log zenka path [ no remote logging ]
 
 [root.drop_privs:<system.AMOS-user>] # LLL: implement desktop-user auto-discovery
 
 access.cmd.usr.cube = commands heart verify-instance \
-                      reload src-age src-ver rel-ver \
-                      list show-buffer buffer-erase buffer-erase-level \
-                      tty-action-key gfx-action-key get-action-keys \
-                      get-tty-action-keys load-keys-set-up \
-                      add-console-action-key add-gfx-action-key \
-                      save-keys-set-up show-X11-menu hide-X11-menu fade-menu \
-                      register-action un-register-action enable-action-group \
-                      disable-action-group show-graphical-menu show-structure \
-                      provider-status test-provider menu-update-notify \
-                      input-text input-password debug-structure \
-                                             dump set get exec-sub ## <-- devmod
+                     reload src-age src-ver rel-ver \
+                     list show-buffer buffer-erase buffer-erase-level \
+                     tty-action-key gfx-action-key get-action-keys \
+                     get-tty-action-keys load-keys-set-up \
+                     add-console-action-key add-gfx-action-key \
+                     save-keys-set-up show-X11-menu hide-X11-menu fade-menu \
+                     register-action un-register-action enable-action-group \
+                     disable-action-group show-graphical-menu show-structure \
+                     provider-status test-provider menu-update-notify \
+                     input-text input-password debug-structure \
+                                         dump set get exec-sub ## <-- devmod
 
 
-modules.load = auth net protocol io.unix devmod protocol-7-menu
+modules.load = auth net protocol io.unix protocol-7-menu   devmod #####
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -39,8 +44,8 @@ modules.load = auth net protocol io.unix devmod protocol-7-menu
 ## Main event loop - GTK if graphical mode, zenka event loop if TTY
 [base.gtk.main_loop]
 
-#,,,.,,,.,...,..,,.,,,,,,,,..,.,,,...,..,,..,,..,,...,...,,.,,,,.,,.,,...,...,
-#3EYGOEZH4YCD2VAXIEUOP6EDQ2FFPOMX3GXW5RHXRE3UZTZLBFRBLDICCD4KQSZZJZT4TNJKDOCU2
-#\\\|4PF2KMU7KFAL6HU3F54AAAKNJGL5KEU2EMDWJMFSXVAJ4XFVB5E \ / AMOS7 \ YOURUM ::
-#\[7]O7BV65I3C3H775675YKZDXOSEFKOI2TXLYJRELIRM2YPIPRK56DA 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,.,.,..,,...,,,,,,..,,..,,,,,.,,,..,,...,...,.,.,..,,,..,.,.,,,.,
+#ECEVMVT33XLAEA7LGNZCW6CTVOBVYCSWK4F7EL63TVVR2BAIUC5JQRWVHECRGCF5EBIKAF2Q7543W
+#\\\|U4BFXY6IMIUU2M7BVCW4JNXFTGMF5KPLAMTQQOE7MTDEQ2QBMSU \ / AMOS7 \ YOURUM ::
+#\[7]4BVSXMQXWGT2CJXD27MH7MPV2IX75IYSDYOFJAKBBAMNFS3BTICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = protocol-7-menu.position.load
+# descr = Load window position from YAML file in zenka directory
+# return = hash with x,y coordinates or undef on error
+
+use YAML::XS qw| Load |;
+
+## Load YAML content from zenka directory [ window/position.yaml ]
+<[base.log]>->(
+    1,
+    "[position.load] attempting to load window/position.yaml from zenka_dir"
+);
+my $yaml_content_ref = <[file.zenka_dir.load]>->('window/position.yaml');
+
+## If file doesn't exist, return undef (will use default positioning)
+unless ( defined $yaml_content_ref ) {
+    <[base.log]>->( 1, "[position.load] file not found or unreadable" );
+    return undef;
+}
+
+<[base.log]>->( 1, "[position.load] file loaded, parsing YAML" );
+
+## Dereference the content (file.zenka_dir.load returns scalar reference)
+my $yaml_content
+    = ref($yaml_content_ref) eq qw| SCALAR |
+    ? $$yaml_content_ref
+    : $yaml_content_ref;
+
+## Parse YAML content
+my $position = undef;
+if ( defined $yaml_content && length $yaml_content ) {
+    eval {
+        my $parsed = Load($yaml_content);
+        if ( ref($parsed) eq qw| HASH | && exists $parsed->{position} ) {
+            $position = $parsed->{position};
+        }
+    };
+    if ($EVAL_ERROR) {
+        <[base.logs]>->(
+            0, '[position.load] YAML parse error: %s',
+            <[base.str.eval_error]>
+        );
+        return undef;
+    }
+}
+
+if ( defined $position && ref($position) eq qw| HASH | ) {
+    if ( defined $position->{x} && defined $position->{y} ) {
+        <[base.logs]>->(
+            1, '[position.load] successfully loaded position: x=%d y=%d',
+            $position->{x}, $position->{y}
+        );
+        return $position;
+    } else {
+        <[base.log]>->(
+            1, "[position.load] position hash missing x or y coordinates"
+        );
+        return undef;
+    }
+}
+
+<[base.log]>->(
+    1, "[position.load] position data is not a hash or is undefined"
+);
+return undef;
+
+#,,,.,,.,,.,,,,,,,...,,,.,.,.,,,,,,..,.,.,,..,...,...,.,.,,..,,.,,..,,,.,,...,
+#CHALQU6T4E36IQUHGV3LTXSTZ2ITTOYOEZWMRTLCJCZ7STU4MQMEWUR2NWM26HCVAMLNUGMXNETNY
+#\\\|563452CZH4AZFHZLYB5U3O5RYIP5W4UF27YKS2WDJ7DYNXTZME7 \ / AMOS7 \ YOURUM ::
+#\[7]TB24GFBUOO5HUPAK2UE5OLODGSMXSHQQGPLEHTBIOYTE43K43QDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
