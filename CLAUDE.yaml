@@ -11,39 +11,39 @@ meta:
 
 # CRITICAL: Session initialization
 initialization:
-  required_command: ./bin/Protocol-7 workflow overview
-  why: Single command provides complete development context
+  required_command: ./bin/Protocol-7 work overview
+  why: single command provides complete development context
   token_cost: ~800-1000 tokens
   provides:
-    - Current branch and git status
-    - Recent commits (last 5)
-    - Open todos and bugs
-    - Missing dependencies
-    - Context-aware suggestions ranked by relevance
+    - current branch and git status
+    - recent commits [ last 5 ]
+    - open todos and bugs
+    - missing dependencies
+    - context-aware suggestions ranked by relevance
 
   alternative_docs:
     - SESSION-START-HERE.md
     - data/yaml/project-context/next-session-start.yaml
-    - .env.session  # Environment-based context
+    - .env.session  # environment-based context
 
-# Quick commands (most useful)
+# Quick commands [ most useful ]
 quick_commands:
-  overview: ./bin/Protocol-7 workflow overview
+  overview: ./bin/Protocol-7 work overview
   run_zenka: ./bin/Protocol-7 <zenka-name>
 
   interactive_shell:
     recommended: p7.nshell  # nshell zenka with buffered non-blocking I/O
-    alternative: ./bin/nshell  # Legacy script (prints full protocol replies)
+    alternative: ./bin/nshell  # legacy script [ prints full protocol replies ]
 
   command_execution:
-    local: p7c <command> [args]  # protocol-7 command (local execution)
-    remote: p-7-r <command> [args]  # protocol-7 remote (network execution)
+    local: p7c <command> [args]  # protocol-7 command [ local execution ]
+    remote: p-7-r <command> [args]  # protocol-7 remote [ network execution ]
 
-  workflow:
-    bug_list: ./bin/Protocol-7 workflow bug-list
-    todo_list: ./bin/Protocol-7 workflow todo-list
-    commit: ./bin/Protocol-7 workflow version-sign-commit "message"
-    search: ./bin/Protocol-7 workflow search <pattern>
+  work:
+    bug_list: ./bin/Protocol-7 work bug-list
+    todo_list: ./bin/Protocol-7 work todo-list
+    commit: ./bin/Protocol-7 work version-sign-commit "message"
+    search: ./bin/Protocol-7 work search <pattern>
 
   workspace_transfer:
     status: ./bin/Protocol-7 workspace-transfer status-check
@@ -56,12 +56,12 @@ zenki_system:
   core_concept: Each agent (zenka, plural: zenki) is an autonomous process
 
   core_zenki:
-    cube: Message router between all zenki (started first)
-    v7: Zenka manager (starts and manages other zenki, auto-compiles p7c and p-7-r)
+    cube: message router between all zenki [ started first ]
+    v7: zenka manager [ starts and manages other zenki, auto-compiles p7c and p-7-r ]
     httpd: HTTP server agent with async file transfer
-    nshell: Interactive shell with buffered non-blocking I/O and UTF-8 support
-    workflow: Development workflow automation
-    workspace-transfer: Workspace-transfer repo integration
+    nshell: interactive shell with buffered non-blocking I/O and UTF-8 support
+    work: development workflow automation [ via p7.work or symlink ]
+    workspace-transfer: workspace-transfer repo integration
 
   deployment_modes:
     always_on: Listed in configuration/zenki/v7/start-set-up.base
@@ -70,12 +70,12 @@ zenki_system:
     standalone: Runs independently without cube connection
 
   communication:
-    transport: Unix domain sockets or TCP (equivalent after auth)
-    routing: Via cube zenka (message router)
+    transport: Unix domain sockets or TCP [ equivalent after auth ]
+    routing: via cube zenka [ message router ]
     syntax:
-      - Direct: "list users" (no dots)
-      - Routed: "zenka.command" (dot notation)
-      - Example: "workflow.overview" → routes to workflow zenka
+      - direct: "list users" [ no dots ]
+      - routed: "zenka.command" [ dot notation ]
+      - example: "work.overview" → routes to work zenka
 
 # Module system (unique architecture)
 modules:
@@ -165,29 +165,55 @@ recent_developments:
   nshell_portability: Replaced XS dependencies with pure-Perl non-blocking I/O
   binary_tools: p7c (local) and p-7-r (remote) auto-compiled by v7 zenka
 
-# Workflow zenka integration
-workflow:
-  purpose: Development workflow automation with AI assistance
+# work zenka integration
+work:
+  purpose: development workflow automation with AI assistance
+  access: p7.work or symlink to work zenka
 
   features:
-    - Git status and commit management
-    - Todo and bug tracking across workspace repos
-    - Dependency checking and installation
-    - Context-aware suggestions
-    - Signature verification
-    - Email harmonization
+    - git status and commit management
+    - todo and bug tracking across workspace repos
+    - dependency checking and installation
+    - context-aware suggestions
+    - signature verification
+    - email harmonization
 
   commands:
-    overview: Complete development context
-    bug_list: Show tracked bugs
-    todo_list: Show tracked todos
-    commit: Version-sign-commit workflow
-    search: Search workflow data/notes
+    overview: complete development context
+    bug_list: show tracked bugs
+    todo_list: show tracked todos
+    commit: version-sign-commit workflow
+    search: search work data/notes
 
   storage:
     todos: data/yaml/indexes/todos-index.yaml
-    bugs: Aggregated from workspace repos
+    bugs: aggregated from workspace repos
     context: data/yaml/project-context/
+
+# code style and llm integration
+code_style:
+  purpose: maintain visual consistency and support productive llm code generation
+  principles:
+    - lowercase narrative flow [ # read config from file ]
+    - bracket conventions [ use [ word ] not ( word ) ]
+    - holographic consistency [ style at all code levels ]
+    - speed reading support [ smooth visual rhythm ]
+    - quality correlation [ consistent style = higher quality ]
+
+  references:
+    comprehensive_guide: data/md/development/CODE-STYLE-AND-LLM-INTEGRATION.md
+    quick_reference: data/yaml/code-style/CONVENTIONS.yaml
+
+  llm_strategy:
+    - non-blocking correction [ zenki silently fix issues during generation ]
+    - post-feedback [ notify llm after completion ]
+    - contextual learning [ llm adopts conventions through repeated feedback ]
+    - reduced_workload [ future generations need fewer corrections ]
+
+  usage:
+    initialization: include CONVENTIONS.yaml in llm context setup
+    reminders: use CODE-STYLE-AND-LLM-INTEGRATION.md for long multi-turn sessions
+    enforcement: zenki should mentor rather than block
 
 # workspace-transfer integration
 workspace_transfer:
@@ -237,34 +263,34 @@ structure:
       - context.yaml -> data/yaml/
     purpose: Organize incoming session data into proper locations
 
-# Git workflow
+# git workflow
 git:
   default_branch: base
-  commit_workflow: ./bin/Protocol-7 workflow version-sign-commit "message"
+  commit_workflow: ./bin/Protocol-7 work version-sign-commit "message"
   admin_tools:
     - ./bin/admin/vc_commit
     - ./bin/dev/vci
     - ./bin/dev/update-version
 
-  signatures: Commits include AMOS7 signatures for integrity
+  signatures: commits include AMOS7 signatures for integrity
 
-# Development workflow
+# development workflow
 session_pattern:
   start:
-    - cd /data/projects/protocol-7  # Or your path
-    - ./bin/Protocol-7 workflow overview
-    - Read suggested actions
-    - Check data/yaml/project-context/ for context
+    - cd /data/projects/protocol-7  # or your path
+    - ./bin/Protocol-7 work overview
+    - read suggested actions
+    - check data/yaml/project-context/ for context
 
   during:
-    - Work on suggested tasks
-    - Use workflow commands for tracking
-    - Commit with version-sign-commit
+    - work on suggested tasks
+    - use work commands for tracking
+    - commit with version-sign-commit
 
   end:
-    - Ensure all changes committed
-    - Update session documentation in data/yaml/project-context/
-    - Push to remote
+    - ensure all changes committed
+    - update session documentation in data/yaml/project-context/
+    - push to remote
 
 # Common issues
 troubleshooting:
@@ -284,26 +310,28 @@ troubleshooting:
     symptom: Deep recursion error
     fix: Use // 0 or // {} for all %data hash access
 
-# Best practices
+# best practices
 practices:
-  - Always run 'workflow overview' at session start
-  - Use workflow commands for tracking (not manual git)
-  - Follow module naming conventions
-  - Include AMOS7 signatures
-  - Test before committing
-  - Use context-aware suggestions
-  - Update session documentation
+  - always run 'work overview' at session start
+  - use work commands for tracking [ not manual git ]
+  - follow module naming conventions
+  - include AMOS7 signatures
+  - test before committing
+  - use context-aware suggestions
+  - update session documentation
+  - respect code style principles [ see code_style section ]
 
-# Philosophy
+# philosophy
 philosophy: |
-  Protocol-7 is a self-organizing multi-agent system where:
-  - Each zenka is autonomous and resumable
-  - Communication via harmonic message routing
-  - Cryptographic integrity throughout
-  - Code quality via verifiable physics (harmonic resonance)
-  - AI-assisted development via workflow zenka
+  protocol-7 is a self-organizing multi-agent system where:
+  - each zenka is autonomous and resumable
+  - communication via harmonic message routing
+  - cryptographic integrity throughout
+  - code quality via verifiable physics [ harmonic resonance ]
+  - AI-assisted development via work zenka
+  - style consistency supports productive llm code generation
 
-  "Quality emerges from verifiable truth, not authority."
+  "quality emerges from verifiable truth, not authority."
 
 # Related repositories
 related:

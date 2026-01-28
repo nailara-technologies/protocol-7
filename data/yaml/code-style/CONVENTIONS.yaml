@@ -1,0 +1,91 @@
+---
+# protocol-7 code style conventions
+# reference for code generation, review, and consistency enforcement
+
+conventions:
+
+  # comment style
+  comments:
+    description: "maintain lowercase narrative flow in comments"
+    rules:
+      - "start comments lowercase [ ## read config from file ]"
+      - "no capital letters at comment start"
+      - "avoid sentence-like punctuation [ unless essential ]"
+    example:
+      bad:  "## Read the configuration from file"
+      good: "## read configuration from file"
+
+  # bracket and parenthesis usage
+  brackets:
+    description: "use square brackets for annotations and context"
+    rules:
+      - "use [ word ] for annotations"
+      - "use [ word ] in comments for context clarification"
+      - "avoid parentheses in comments [ use brackets instead ]"
+    example:
+      bad:  "## read config (from file)"
+      good: "## read config [ from file ]"
+
+  # lowercase narrative
+  narrative:
+    description: "code should read as continuous lowercase narrative"
+    rules:
+      - "maintain visual consistency"
+      - "no jarring capitals breaking rhythm"
+      - "holographic consistency across all code levels"
+    rationale: "smooth visual flow aids speed reading and comprehension"
+
+  # visual consistency
+  visual_flow:
+    description: "every visual element should support reading flow"
+    rules:
+      - "consistent indentation patterns"
+      - "aligned bracket usage"
+      - "predictable spacing and structure"
+    rationale: "brain recognizes patterns instantly; consistency reduces cognitive load"
+
+  # documentation
+  documentation:
+    description: "keep documentation aligned with code style principles"
+    rules:
+      - "use lowercase narrative in docs"
+      - "use [ brackets ] for context"
+      - "avoid formal academic style in comments"
+    rationale: "code comments are part of the codebase narrative, not separate documentation"
+
+# special protocol-7 conventions [ to be expanded ]
+protocol7_specific:
+
+  module_naming:
+    description: "module names follow zenka.subsystem.function pattern"
+    example: "modules/nshell.search.handler"
+
+  state_variables:
+    description: "state tracking uses consistent naming prefix"
+    pattern: "ctrl_o_* for ctrl-o related state"
+    example: "ctrl_o_start_position, ctrl_o_iteration_count"
+
+  # to be expanded with:
+  # - return value conventions
+  # - error handling patterns
+  # - state machine patterns
+
+llm_integration:
+
+  feedback_style:
+    description: "zenki provide constructive style feedback to llms"
+    format: "corrected N instances of [ issue description ]"
+    example: "corrected 3 capitalized comments for lowercase narrative flow"
+
+  learning_loop:
+    - "corrections are silent during generation [ no disruption ]"
+    - "feedback provided after completion [ learning opportunity ]"
+    - "llm incorporates style into context for future generations"
+    - "repeated corrections decrease as llm learns conventions"
+
+  context_reminders:
+    description: "include style conventions when initializing llm context"
+    use_cases:
+      - "new llm session starting protocol-7 work"
+      - "periodic reminder for long multi-turn conversations"
+      - "explicit style reset if code quality diverges"
