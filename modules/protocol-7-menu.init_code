@@ -37,8 +37,10 @@ if (<protocol-7-menu.init-console>) {
 <[base.gtk.attempt_load.glib_event]>;  ##  load Glib::Event when installed  ##
 
 # <protocol-7-menu.stderr_capture> = '';
+
 ##  silence stderr console output  ##
-<[base.stderr_redir]>->( *STDOUT{IO} );   ## <-- [LLL] investigate requirement
+#
+<[base.stderr_redir]>;
 
 ##  load graphical [X-11] mode dependencies  ##
 if (<protocol-7-menu.init-graphical>) {
@@ -54,19 +56,14 @@ if (<protocol-7-menu.init-graphical>) {
         if not -f $logo_image_path;
 }
 
-# our $EVAL_ERROR = "\nanother world\n";
-
-##  silence stderr console output  ##
-# <[base.stderr_redir]>;
-
 ## Defer graphical initialization until zenka loop runs
 ## This ensures display context is available before creating Gtk3 widgets
 <protocol-7-menu.graphical-initialized> //= FALSE;
 
 return 0;
 
-#,,,.,.,.,,..,,..,,..,.,.,,,,,..,,..,,...,,..,..,,...,...,.,.,,..,,..,..,,,.,,
-#SWN3WPTTIB4JN2PRZSXTVB3G4VKQEVMLDM4OPOJ543A74FYUH6BEMA7THNJMFSZDTH6V7NIPG5I5E
-#\\\|MEABFTTOEI53N3HFLIDLUQQFIDEZPLCRS6ZB3XIO2YYMXZVQA3U \ / AMOS7 \ YOURUM ::
-#\[7]H6YKO3W77RFBEGPAYCI2ZZ74HWNDMDIUYKB5O5LRC2DR57LUOABQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,,,.,.,,,.,..,,.,.,...,.,.,,,.,..,,...,..,,.,,,.,,,,.,,.,.,.,.,
+#JFGBFIQQNA4HJT6JZNC2H3LHOLZ3Y5DILH7TVNURNJMMG5IO6GN6RIKP5UKOUQODHVLL5WWDY2IGI
+#\\\|LFXFDLBFJ7A5CSKIN3JBHOYGVV4ONABDGQWYZ45CIAPSKK6WYJW \ / AMOS7 \ YOURUM ::
+#\[7]6ZKNCMUIRK2VSG2NDJASEZRIFRT7SAF3VEXFKU7SOAN7AKFRCWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

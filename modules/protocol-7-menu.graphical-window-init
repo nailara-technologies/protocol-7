@@ -5,6 +5,8 @@
 
 return 0 unless <protocol-7-menu.init-graphical>;
 
+<[base.log]>->( 1, ":. graphical-window-init : starting window creation" );
+
 ## Make scale factor configurable with default matching prototype
 my $scale_factor = <protocol-7-menu.cfg.scale_factor>
     //= 0.043;    ## nailara icon size [ screen width ] ##
@@ -22,17 +24,24 @@ my $logo_image_path = <protocol-7-menu.image_path>
 die "image file '$logo_image_path' not found" if !-f $logo_image_path;
 
 ## Set up window properties
-$window->signal_connect( qw| touch-event | =>
-        sub { <[protocol-7-menu.graphical-menu-popup]>->( $_[0] ) } );
 $window->signal_connect( qw| delete_event | => sub { Gtk3->main_quit } );
 $window->signal_connect( qw| configure-event | =>
         sub { <[protocol-7-menu.graphical-position-changed]>->( $_[0] ) } );
-$window->signal_connect( qw| button-release-event | =>
-        sub { <[protocol-7-menu.graphical-menu-popup]>->( $_[0] ) } );
+
+## Touch event support (for X220T touchscreen and similar)
+$window->signal_connect(
+    qw| touch-event | => sub {
+        my ( $widget, $event ) = @ARG;
+        <[base.log]>->(
+            1,         "touch-event at x=%.0f y=%.0f",
+            $event->x, $event->y
+        );
+        return 0;    # Let other handlers process
+    }
+);
 
 my $use_transparency = $window->is_composited ? 1 : 0;
 $window->set_opacity(1) if $use_transparency;
-$window->set_position('none');
 $window->set_border_width(0);
 $window->set_keep_below(1);
 $window->set_decorated(0);
@@ -63,19 +72,145 @@ my $img_h = $pbuf->get_height();
 my $scr_w = $screen->get_width();
 my $scr_h = $screen->get_height();
 
+my $win_width = sprintf( qw|%.0f|, $scr_w * $scale_factor );
+my $win_height
+    = sprintf( qw|%.0f|, $img_h * ( ( $scr_w / $img_w ) * $scale_factor ) );
+
 my $image = Gtk3::Image->new_from_pixbuf(
-    $pbuf->scale_simple(
-        sprintf( qw|%.0f|, $scr_w * $scale_factor ),
-        sprintf( qw|%.0f|, $img_h * ( ( $scr_w / $img_w ) * $scale_factor ) ),
-        'hyper'
-    )
+    $pbuf->scale_simple( $win_width, $win_height, 'hyper' ) );
+
+## Enable pointer events on image widget for drag-to-move
+$image->set_events(
+    [qw(button-press-mask button-release-mask pointer-motion-mask)] );
+
+## Button handlers on image widget
+$image->signal_connect(
+    'button-press-event' => sub {
+        <[base.log]>->( 1, "image button-press event" );
+        return 0;
+    }
+);
+
+$image->signal_connect(
+    'button-release-event' => sub {
+        <[base.log]>->( 1, "image button-release event" );
+        return 0;
+    }
 );
 
 $window->add($image);
 
-## Position window (right side of screen, near top)
-$window->move( 1836, -2 ) if `hostname` =~ m|zuluma|;
-$window->move( 1827, -2 );
+## Enable pointer events for drag-to-move on window as well
+$window->set_events(
+    [qw(button-press-mask button-release-mask pointer-motion-mask)] );
+
+## Drag-to-move detection: circular zones based on distance from center
+my $menu_radius = $win_width * 0.35;    # ~35% of window width = menu zone
+my $is_dragging = 0;
+my ( $drag_offset_x, $drag_offset_y, $window_x, $window_y ) = ( 0, 0, 0, 0 );
+my $window_center_x = $win_width / 2;
+my $window_center_y = $win_height / 2;
+
+<[base.log]>->(
+    1, "menu window: size=%.0fx%.0f center=(%.0f,%.0f) radius=%.0f",
+    $win_width, $win_height, $window_center_x, $window_center_y, $menu_radius
+);
+
+## Button press: detect if in drag zone (dark corners) or menu zone (bright center)
+$window->signal_connect(
+    'button-press-event' => sub {
+        my ( $widget, $event ) = @ARG;
+        say STDERR "=== WINDOW BUTTON-PRESS ===";
+        my $click_x = $event->x;
+        my $click_y = $event->y;
+
+        ## Distance from window center
+        my $dist = sqrt( ( $click_x - $window_center_x )**2
+                + ( $click_y - $window_center_y )**2 );
+
+        <[base.log]>->(
+            1,
+            "button-press: x=%.0f y=%.0f dist=%.0f radius=%.0f center=(%.0f,%.0f)",
+            $click_x,
+            $click_y,
+            $dist,
+            $menu_radius,
+            $window_center_x,
+            $window_center_y
+        );
+
+        if ( $dist >= $menu_radius ) {
+            ## In drag zone (dark corners) - start drag
+            $is_dragging = 1;
+            my @win_pos = $widget->get_position();
+            $window_x      = $win_pos[0];
+            $window_y      = $win_pos[1];
+            $drag_offset_x = $click_x;
+            $drag_offset_y = $click_y;
+            <[base.log]>->(
+                1,         "  → drag started at window (%.0f,%.0f)",
+                $window_x, $window_y
+            );
+            return 1;    # Consume event
+        }
+        <[base.log]>->( 1, "  → menu zone" );
+        return 0;        # Let button-release handle menu click
+    }
+);
+
+## Motion notify: move window while dragging
+$window->signal_connect(
+    'motion-notify-event' => sub {
+        my ( $widget, $event ) = @ARG;
+        return 0 unless $is_dragging;
+
+        my $new_x = $window_x + ( $event->x - $drag_offset_x );
+        my $new_y = $window_y + ( $event->y - $drag_offset_y );
+        <[base.log]>->( 1, "motion: moving to (%.0f,%.0f)", $new_x, $new_y );
+        $widget->move( $new_x, $new_y );
+        return 1;    # Consume event
+    }
+);
+
+## Button release: end drag or open menu
+$window->signal_connect(
+    'button-release-event' => sub {
+        my ( $widget, $event ) = @ARG;
+        <[base.log]>->( 1, "button-release: dragging=%d", $is_dragging );
+
+        if ($is_dragging) {
+            $is_dragging = 0;
+            <[base.log]>->( 1, "  → drag ended" );
+            return 1;    # Consume event
+        }
+
+        ## Otherwise, open menu (if click was in center zone)
+        my $click_x = $event->x;
+        my $click_y = $event->y;
+        my $dist    = sqrt( ( $click_x - $window_center_x )**2
+                + ( $click_y - $window_center_y )**2 );
+
+        <[base.log]>->(
+            1,     "  → checking menu open at dist=%.0f radius=%.0f",
+            $dist, $menu_radius
+        );
+        if ( $dist < $menu_radius ) {
+            <[base.log]>->( 1, "  → opening menu" );
+            my $menu = <protocol-7-menu.graphical-menu>;
+            $menu->popup_at_widget( $widget, qw| east east | )
+                if defined $menu;
+            return 1;
+        }
+        return 0;
+    }
+);
+
+## Position at top-right with equal margin BEFORE show_all
+## (must set position before window is mapped to the window manager)
+$window->set_gravity('north-east');
+my $screen_width = $screen->get_width();
+my $margin       = 20;
+$window->move( $screen_width - $margin, $margin );
 
 ## Store window and screen references for later use
 <protocol-7-menu.graphical-window> = $window;
@@ -85,8 +220,8 @@ $window->show_all;
 
 return 0;
 
-#,,..,,.,,,,.,...,...,,..,.,.,,,,,.,,,.,,,.,.,.,.,...,...,.,,,.,,,,,,,.,,,,,,,
-#R65C6245GSKNCF5D7QILESDAS654OAPYIFQWT4WI5ZL33NAFTWEJDVW7BXRDEXW7CAE4NUOQRFW3M
-#\\\|IAMUMSNVXXOH4Z5C726SK42RJAREGW53IHBG3JYGZMPZZH6ANYC \ / AMOS7 \ YOURUM ::
-#\[7]QJGFAGABLHZB4FYNQUUMWASCTRC3LBL72IBAPZQAV5SAGAXNZYDI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,..,,.,,,,.,.,,,,,.,.,.,,.,,,,,,.,.,...,..,,,,,,...,...,,,.,..,,
+#JPN5OXHUK664Q4Q7D752R3ABWHC5MWKXOZI3H2ICZD5FTX6FJNWHIMIAKBVBOZBQMIZZ7RVHSJ2SY
+#\\\|3HRO4UUQBHWHULATU4BGAYZHG5IUCULTUOAZOTAUTN6KPOOFIU6 \ / AMOS7 \ YOURUM ::
+#\[7]ZOJ4EDFHDII4X24CJS6K3RQTASIGG7RMYWJN47FRHFA3BPORU2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
