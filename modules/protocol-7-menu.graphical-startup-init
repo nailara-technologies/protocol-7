@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name = protocol-7-menu.graphical-startup-init
-# descr = Initialize graphical menu during zenka startup (not on-demand)
+# descr = Initialize graphical menu during zenka startup [not on-demand]
 
 return 0 unless <protocol-7-menu.init-graphical>;
 
@@ -39,7 +39,8 @@ if ($use_transparency) {
 # Apply CSS styling
 my $css_prov = Gtk3::CssProvider->new();
 $css_prov->load_from_data(<<'EOT');
-menu { background-color:#000013; border-color:#000042; color:#0055CC; font-size:x-large }
+menu { background-color:#000013; border-color:#000042; color:#0055CC;
+                                                       font-size:x-large }
 menu *:hover { background-color:#000042; color:#0088FF }
 menu *:focus { background-color:#000042; color:#0088FF }
 EOT
@@ -69,11 +70,14 @@ $window->set_events(
 
 # Drag-to-move detection: circular zones based on distance from center
 my $menu_radius = $win_width
-    * 0.35;    # ~35% = menu zone (bright mandala - clickable for menu)
+    * 0.35;    # ~35% = menu zone [ bright mandala - clickable for menu ]
 
 # Anything outside menu_radius is draggable
 my $window_center_x = $win_width / 2;
 my $window_center_y = $win_height / 2;
+
+# Track if we initiated a drag this click
+my $is_dragging = FALSE;
 
 # Button press handler - detect drag or menu zone
 $window->signal_connect(
@@ -93,6 +97,7 @@ $window->signal_connect(
 
             # DRAG ZONE - use GTK3 native drag-to-move
             # This handles all coordinate system issues automatically
+            $is_dragging = TRUE;
             $widget->begin_move_drag(
                 $event->button, $event->x_root,
                 $event->y_root, $event->time
@@ -102,12 +107,43 @@ $window->signal_connect(
     }
 );
 
-# Button release handler - open menu if clicked in menu zone
+# Button release handler - open menu if clicked in menu zone,
+#                           - or save position if drag ended
 $window->signal_connect(
     'button-release-event' => sub {
         my ( $widget, $event ) = @ARG;
 
-        # Check if click was in menu zone
+        # Save position only if we were actually dragging
+        if ($is_dragging) {
+            $is_dragging = FALSE;
+
+            my $cfg_val = <protocol-7-menu.cfg> // {};
+
+       # Apply position save offset correction
+       # NOTE: Root cause of offset unknown. When subtracting from image size:
+       #   128 - 38 = 90, 128 - 58 = 70 (no clear correlation identified yet)
+       # If offset occurs, adjust config values until root cause is determined
+            my $save_offset_x = $cfg_val->{'position_save_offset_x'} //= 38;
+            my $save_offset_y = $cfg_val->{'position_save_offset_y'} //= 58;
+
+            my @pos = $widget->get_position();
+
+            my $save_pos_x = $pos[0] + $save_offset_x;
+            my $save_pos_y = $pos[1] + $save_offset_y;
+
+            if ( @pos && defined $pos[0] && defined $pos[1] ) {
+                <[base.logs]>->(
+                    1, "SAVE: window position on button-release: x=%d y=%d",
+                    $save_pos_x, $save_pos_y
+                );
+                <[protocol-7-menu.position.save]>->(
+                    $save_pos_x, $save_pos_y
+                );
+            }
+            return 1;    # Consume event
+        }
+
+        # Check if click was in menu zone (for non-drag clicks)
         my $click_x = $event->x;
         my $click_y = $event->y;
         my $dist    = sqrt( ( $click_x - $window_center_x )**2
@@ -126,11 +162,39 @@ $window->signal_connect(
     }
 );
 
-# Position at top-right with equal margin BEFORE show_all
-# (must set position before window is mapped to the window manager)
-$window->set_gravity('north-east');
-my $margin = 20;
-$window->move( $scr_w - $margin, $margin );
+# Load saved position or use default
+<[base.log]>->( 1, "attempting to load saved position" );
+my $saved_position = <[protocol-7-menu.position.load]>;
+my ( $pos_x, $pos_y );
+
+if ( defined $saved_position ) {
+    $pos_x = $saved_position->{'x'};
+    $pos_y = $saved_position->{'y'};
+    <[base.logs]>->( 1, "loaded saved position: x=%d y=%d", $pos_x, $pos_y );
+} else {
+
+    # Default: top-right with equal margin
+    my $margin = 20;
+    $pos_x = $scr_w - ( $win_width + $margin );
+    $pos_y = $margin;
+    <[base.logs]>->(
+        1,
+        "no saved position, using default: x=%d y=%d [screen_w=%d win_w=%d]",
+        $pos_x,
+        $pos_y,
+        $scr_w,
+        $win_width
+    );
+}
+
+## Position BEFORE show_all
+# [ must set position before window is mapped to window  manager ]
+$window->set_gravity('north-west');
+<[base.log]>->(
+    1,      "moving window to x=%d y=%d [before show_all]",
+    $pos_x, $pos_y
+);
+$window->move( $pos_x, $pos_y );
 
 $window->show_all;
 
@@ -158,14 +222,14 @@ $menu->show_all;
 # Store references
 <protocol-7-menu.graphical-window>      = $window;
 <protocol-7-menu.graphical-menu>        = $menu;
-<protocol-7-menu.graphical-initialized> = 1;
+<protocol-7-menu.graphical-initialized> = TRUE;
 
 <[base.log]>->( 1, "graphical menu initialized at startup" );
 
 return 0;
 
-#,,.,,,,,,..,,.,.,,..,.,,,...,,,.,,,.,...,,..,.,.,...,...,.,.,...,..,,...,,..,
-#VP4UEIVU3UZ3LLLPM4VTBNNB452BAEECKAMSNK45RJ2JOMYUNFGC77R2EZ4YENIT3ZVPVKUGLCSTE
-#\\\|5NHANCAK42C2LHK2BLO6NLGO3H3F45ODVRZOKQEYNYEV5FHRPIR \ / AMOS7 \ YOURUM ::
-#\[7]JFBMFCPMQZM3NOT7TST4PVS5NLP7K4LKKXIWYR3KCJBQ4S5NXQBA 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,..,,,,,...,,.,,,,.,,..,,,.,.,.,.,.,...,...,...,,.,,,..,,,,,..,,
+#4P4NHMFCJ6UM2AZGTMR7E7JIBX4LZ3TYJDC4TZR2TOEDPL73FWIB5CEISZDCSAVNG6Z5PNEHFA656
+#\\\|XJSRRV262F2NESCYYJU4WOKFCOWSNO446ZVA3HREDNQ6SXG4BZP \ / AMOS7 \ YOURUM ::
+#\[7]V46UTUMDMKKKMGHRITELMG3ISVTBKPZPRF7TYYAUCGUDVJZVCWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -106,7 +106,7 @@ $window->set_events(
 
 ## Drag-to-move detection: circular zones based on distance from center
 my $menu_radius = $win_width * 0.35;    # ~35% of window width = menu zone
-my $is_dragging = 0;
+my $is_dragging = FALSE;
 my ( $drag_offset_x, $drag_offset_y, $window_x, $window_y ) = ( 0, 0, 0, 0 );
 my $window_center_x = $win_width / 2;
 my $window_center_y = $win_height / 2;
@@ -120,7 +120,6 @@ my $window_center_y = $win_height / 2;
 $window->signal_connect(
     'button-press-event' => sub {
         my ( $widget, $event ) = @ARG;
-        say STDERR "=== WINDOW BUTTON-PRESS ===";
         my $click_x = $event->x;
         my $click_y = $event->y;
 
@@ -141,7 +140,7 @@ $window->signal_connect(
 
         if ( $dist >= $menu_radius ) {
             ## In drag zone (dark corners) - start drag
-            $is_dragging = 1;
+            $is_dragging = TRUE;
             my @win_pos = $widget->get_position();
             $window_x      = $win_pos[0];
             $window_y      = $win_pos[1];
@@ -176,10 +175,10 @@ $window->signal_connect(
 $window->signal_connect(
     'button-release-event' => sub {
         my ( $widget, $event ) = @ARG;
-        <[base.log]>->( 1, "button-release: dragging=%d", $is_dragging );
+        <[base.logs]>->( 1, "button-release: dragging=%d", $is_dragging );
 
         if ($is_dragging) {
-            $is_dragging = 0;
+            $is_dragging = FALSE;
             <[base.log]>->( 1, "  → drag ended" );
             return 1;    # Consume event
         }
@@ -220,8 +219,8 @@ $window->show_all;
 
 return 0;
 
-#,,,,,.,.,.,,,,..,,.,,,,.,.,,,,,.,.,.,,.,,,,,,.,.,...,..,,,,,,...,...,,,.,..,,
-#JPN5OXHUK664Q4Q7D752R3ABWHC5MWKXOZI3H2ICZD5FTX6FJNWHIMIAKBVBOZBQMIZZ7RVHSJ2SY
-#\\\|3HRO4UUQBHWHULATU4BGAYZHG5IUCULTUOAZOTAUTN6KPOOFIU6 \ / AMOS7 \ YOURUM ::
-#\[7]ZOJ4EDFHDII4X24CJS6K3RQTASIGG7RMYWJN47FRHFA3BPORU2CA 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,,,,..,,.,,,.,,,.,,,.,,,,..,..,,.,.,...,...,.,,,,,,,..,,.,,,..,,
+#BXWG4S4VXW77GT67TYYA4NAJMK4CTZ2VUMGOWC3QPCHJJHHO5LYKRDEOO5ECMMNRYFM6S22UGAWHW
+#\\\|EXDQSU6FQFJNUIQJSAIOIHJMARQHNHI7RW7FVBUHORFPD3IL3MP \ / AMOS7 \ YOURUM ::
+#\[7]CS6NPQERJFZSEYZP6VHIBZTGX4A47MMDIYVO7ACRQKCHEQIT5EBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

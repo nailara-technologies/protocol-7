@@ -1,0 +1,78 @@
+## [:< ##
+
+# name  = protocol-7-menu.position.save
+# param = $x_coord, $y_coord (window position)
+# descr = Save window position to YAML file in zenka directory
+# return = bytes written or undef on error
+
+use YAML::XS qw| Dump |;
+
+my ( $x, $y ) = @ARG;
+
+unless ( defined $x && defined $y ) {
+    <[base.s_warn]>->('x and y coordinates required');
+    return undef;
+}
+
+# Clamp to valid on-screen bounds: never save negative coordinates [ left \
+# top edge ] Multi-monitor setups may have coordinates beyond single screen
+# width, so allow those
+$x = 0 if $x < 0;
+$y = 0 if $y < 0;
+
+<[base.logs]>->(
+    1,  "[position.save] saving clamped position: x=%d y=%d",
+    $x, $y
+);
+
+## Prepare YAML structure
+my $yaml_data = {
+    position => {
+        'x' => $x,
+        'y' => $y
+    },
+    metadata => { 'saved_at' => <[base.time]>->(3), }
+};
+
+## Convert to YAML
+my $yaml_content;
+eval { $yaml_content = Dump($yaml_data); };
+if ($EVAL_ERROR) {
+    <[base.s_warn]>->(
+        'YAML serialization failed: %s',
+        <[base.str.eval_error]>
+    );
+    return undef;
+}
+
+unless ( defined $yaml_content && length $yaml_content ) {
+    <[base.s_warn]>->('YAML serialization produced empty content');
+    return undef;
+}
+
+## Write to zenka directory using base system [ window/position.yaml ]
+my $bytes_written = <[file.zenka_dir.write]>->(
+    'window/position.yaml',
+    \$yaml_content,
+    '>',       # Overwrite mode
+    0600,      # File permissions (owner read/write only)
+    ':utf8'    # UTF-8 encoding
+);
+
+unless ( defined $bytes_written ) {
+    <[base.s_warn]>->('failed to write position YAML file');
+    return undef;
+}
+
+<[base.logs]>->(
+    1,  '[position.save] saved window position x=%d y=%d [bytes:%d]',
+    $x, $y, $bytes_written
+);
+
+return $bytes_written;
+
+#,,..,,,,,.,,,,.,,..,,,.,,,,.,,,,,,,.,,,.,.,,,...,...,.,.,...,...,..,,,..,..,,
+#IPJYKMLHPODZX4OSPRI65PCYYCFXWX5BAMIKGF62YFMKKUS5MHT6PAAJN3K5Z7GTIV27BOP6OY6HO
+#\\\|55QFPOJPN5TFGMMQVYVPMRAIK4GJMINC764YLM2JZRVZEAITG4E \ / AMOS7 \ YOURUM ::
+#\[7]D4QZPNQTWM6GPZ7AL3RJSB7N5MLMMZIZLGNMW2B2223CZ3II3ACI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
