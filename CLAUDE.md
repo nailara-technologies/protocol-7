@@ -251,6 +251,36 @@ All core async components are implemented per `IMPLEMENTATION-CHECKLIST.md`.
 - **Usage**: Run `./bin/nshell` for interactive Protocol-7 session
 - **Complement to p7**: While `p7` is for scripting, `nshell` is for interactive exploration and administration
 
+## Code Style and LLM Integration
+
+### Core Style Principles
+
+Protocol-7 code follows specific style conventions that maintain visual consistency and support productive code generation:
+
+#### Visual Narrative Flow
+- **lowercase comments**: comments begin lowercase [ `## read config from file` not `## Read config` ]
+- **bracket conventions**: use `[ word ]` for annotations, never `( word )` in comments
+- **holographic consistency**: code reads as a continuous lowercase narrative
+
+#### Why These Principles Matter
+- **speed reading**: lowercase narrative flow eliminates visual disruption; brain scans code patterns faster
+- **quality correlation**: consistent style correlates with higher code quality
+- **llm integration**: consistent style helps llm-generated code integrate seamlessly with existing code
+
+#### LLM Code Generation Strategy
+Rather than strict enforcement, style guidance works through intelligent mentoring:
+
+1. **Non-blocking correction** [ during generation ]: zenki silently fix style issues in generated code
+2. **Post-generation feedback** [ after completion ]: notify llm of corrections and explain principles
+3. **Contextual learning** [ future generations ]: llm naturally adopts conventions through repeated feedback
+4. **Reduced workload**: each generation is progressively more in-style, reducing future corrections
+
+### Style References
+- **Comprehensive guide**: `data/md/development/CODE-STYLE-AND-LLM-INTEGRATION.md`
+- **Quick reference**: `data/yaml/code-style/CONVENTIONS.yaml`
+
+These can be included in llm initialization prompts or used as reminders for long contexts.
+
 ## Important Notes
 
 - This system uses a custom module loading mechanism - standard Perl module practices don't apply
