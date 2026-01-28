@@ -18,17 +18,11 @@ my $logo_path = <protocol-7-menu.image_path>
 die "image file '$logo_path' not found" if !-f $logo_path;
 
 # Set window properties
-$window->signal_connect(
-    qw| button-release-event | => sub {
-        my $menu = <protocol-7-menu.graphical-menu>;
-        $menu->popup_at_widget( $_[0], qw| east east | ) if defined $menu;
-    }
-);
 $window->signal_connect( qw| delete_event | => sub { Gtk3->main_quit } );
 
 $window->set_position('none');
 $window->set_border_width(0);
-$window->set_keep_below(1);
+$window->set_keep_above(1);    # Keep window on top
 $window->set_decorated(0);
 $window->stick;
 $window->set_app_paintable(1);
@@ -56,17 +50,88 @@ my $pbuf  = Gtk3::Gdk::Pixbuf->new_from_file($logo_path);
 my $img_w = $pbuf->get_width();
 my $img_h = $pbuf->get_height();
 my $scr_w = $screen->get_width();
+my $scr_h = $screen->get_height();
+
+my $win_width = sprintf( qw|%.0f|, $scr_w * $scale_factor );
+my $win_height
+    = sprintf( qw|%.0f|, $img_h * ( ( $scr_w / $img_w ) * $scale_factor ) );
 
 my $image = Gtk3::Image->new_from_pixbuf(
-    $pbuf->scale_simple(
-        sprintf( qw|%.0f|, $scr_w * $scale_factor ),
-        sprintf( qw|%.0f|, $img_h * ( ( $scr_w / $img_w ) * $scale_factor ) ),
-        'hyper'
-    )
-);
+    $pbuf->scale_simple( $win_width, $win_height, 'hyper' ) );
 
 $window->add($image);
-$window->move( 1827, -2 );
+
+# Enable pointer events for drag-to-move
+$image->set_events(
+    [qw(button-press-mask button-release-mask pointer-motion-mask)] );
+$window->set_events(
+    [qw(button-press-mask button-release-mask pointer-motion-mask)] );
+
+# Drag-to-move detection: circular zones based on distance from center
+my $menu_radius = $win_width
+    * 0.35;    # ~35% = menu zone (bright mandala - clickable for menu)
+
+# Anything outside menu_radius is draggable
+my $window_center_x = $win_width / 2;
+my $window_center_y = $win_height / 2;
+
+# Button press handler - detect drag or menu zone
+$window->signal_connect(
+    'button-press-event' => sub {
+        my ( $widget, $event ) = @ARG;
+        my $click_x = $event->x;
+        my $click_y = $event->y;
+        my $dist    = sqrt( ( $click_x - $window_center_x )**2
+                + ( $click_y - $window_center_y )**2 );
+
+        if ( $dist < $menu_radius ) {
+
+            # MENU ZONE - bright mandala, allow menu to open on click
+            return 0; # Don't consume - let button-release handle menu opening
+
+        } else {
+
+            # DRAG ZONE - use GTK3 native drag-to-move
+            # This handles all coordinate system issues automatically
+            $widget->begin_move_drag(
+                $event->button, $event->x_root,
+                $event->y_root, $event->time
+            );
+            return 1;    # Consume event - prevent menu open
+        }
+    }
+);
+
+# Button release handler - open menu if clicked in menu zone
+$window->signal_connect(
+    'button-release-event' => sub {
+        my ( $widget, $event ) = @ARG;
+
+        # Check if click was in menu zone
+        my $click_x = $event->x;
+        my $click_y = $event->y;
+        my $dist    = sqrt( ( $click_x - $window_center_x )**2
+                + ( $click_y - $window_center_y )**2 );
+
+        if ( $dist < $menu_radius ) {
+
+            # Menu zone - open menu
+            my $menu = <protocol-7-menu.graphical-menu>;
+            $menu->popup_at_widget( $widget, qw| east east | )
+                if defined $menu;
+            return 1;    # Consume event
+        }
+
+        return 0;        # Not menu zone
+    }
+);
+
+# Position at top-right with equal margin BEFORE show_all
+# (must set position before window is mapped to the window manager)
+$window->set_gravity('north-east');
+my $margin = 20;
+$window->move( $scr_w - $margin, $margin );
+
 $window->show_all;
 
 # Create menu with menu-commands items
@@ -99,8 +164,8 @@ $menu->show_all;
 
 return 0;
 
-#,,,,,...,..,,..,,,,.,,,,,,,.,,,.,...,,,,,...,.,.,...,...,,,,,.,.,...,,,.,.,,,
-#2C2PXEJSA3MHBU5WC64D74HGOYPE3UCXLZSTR53GMKXV2DVEYCZF7AKDH7QVCPHL2M3B4O6ZUL7S2
-#\\\|NQ264SOCHH6Z7XI2KJXNTA2FVW64FN2CP6PRJBUSKINGZPWQBWC \ / AMOS7 \ YOURUM ::
-#\[7]KFDYMDO3ZMMNBFFRXNMRNQXKTWNHLWYRW6BEVPZLOBXTSUBFOGDI 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,.,.,,..,.,,,...,,,.,,,.,...,,..,.,.,...,...,.,.,...,..,,...,,..,
+#VP4UEIVU3UZ3LLLPM4VTBNNB452BAEECKAMSNK45RJ2JOMYUNFGC77R2EZ4YENIT3ZVPVKUGLCSTE
+#\\\|5NHANCAK42C2LHK2BLO6NLGO3H3F45ODVRZOKQEYNYEV5FHRPIR \ / AMOS7 \ YOURUM ::
+#\[7]JFBMFCPMQZM3NOT7TST4PVS5NLP7K4LKKXIWYR3KCJBQ4S5NXQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

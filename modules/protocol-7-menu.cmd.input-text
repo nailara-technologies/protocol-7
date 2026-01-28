@@ -9,22 +9,36 @@ return { 'mode' => qw| false |, 'data' => 'graphical mode not enabled' }
 
 my $label_text = $call->{'args'} // '';
 
+# Disable GTK error beep sounds [ the backspace sound, etc. ]
+my $settings = Gtk3::Settings::get_default();
+$settings->set_property( 'gtk-error-bell', 0 );
+
 # Suppress Gdk warnings during dialog creation
 <[base.stderr_redir]>;
 
-# Create dialog window
-my $dialog = Gtk3::Window->new('popup');
-$dialog->set_modal(1);
-$dialog->set_keep_above(1);
+# Create dialog window - modal to capture input reliably
+my $parent_window = <protocol-7-menu.graphical-window>;
+my $dialog        = Gtk3::Window->new('toplevel');
+$dialog->set_type_hint('dialog');
+$dialog->set_transient_for($parent_window) if $parent_window;
+$dialog->set_modal(1);    # Modal captures all input
 $dialog->set_decorated(0);
 $dialog->set_border_width(8);
 $dialog->set_app_paintable(1);
 
 # Apply styling
-my $screen = $dialog->get_screen;
+my $screen           = $dialog->get_screen;
+my $use_transparency = $dialog->is_composited ? 1 : 0;
+$dialog->set_opacity(1) if $use_transparency;
+
+if ($use_transparency) {
+    my $rgba = $screen->get_rgba_visual();
+    $dialog->set_visual($rgba);
+}
+
 my $css_prov = Gtk3::CssProvider->new();
 $css_prov->load_from_data(<<'EOT');
-window { background-color:#000013; color:#0055CC; font-size:large }
+window { background-color:#000013; color:#0055CC; font-size:large; }
 entry { background-color:#000042; color:#0055CC; padding:4px; }
 entry:focus { background-color:#001066; }
 label { color:#0055CC; }
@@ -32,59 +46,57 @@ EOT
 Gtk3::StyleContext::add_provider_for_screen( $screen, $css_prov, -1 );
 
 # Create container
-my $vbox = Gtk3::Box->new('vertical', 6);
+my $vbox = Gtk3::Box->new( 'vertical', 6 );
 $dialog->add($vbox);
 
 # Add label if provided
 if ($label_text) {
     my $label = Gtk3::Label->new($label_text);
     $label->set_halign('start');
-    $vbox->pack_start($label, 0, 0, 0);
+    $vbox->pack_start( $label, 0, 0, 0 );
 }
 
 # Create entry field
 my $entry = Gtk3::Entry->new();
 $entry->set_placeholder_text('Enter text...');
-$entry->set_size_request(300, -1);
-$vbox->pack_start($entry, 0, 0, 0);
+$entry->set_size_request( 300, -1 );
+$vbox->pack_start( $entry, 0, 0, 0 );
 
 # Store result
-my $result = '';
+my $result          = '';
 my $dialog_finished = 0;
 
-# Handle Enter key
-$entry->signal_connect( 'key-press-event' => sub {
-    my ( $widget, $event ) = @ARG;
-    if ( $event->keyval == 65293 ) {  # Return key
-        $result = $entry->get_text;
+# Handle Enter key [ activate signal is proper GTK3 way ]
+$entry->signal_connect(
+    'activate' => sub {
+        $result          = $entry->get_text;
         $dialog_finished = 1;
         $dialog->destroy;
-        return 1;
     }
-    return 0;
-});
+);
 
-# Handle Escape key
-$entry->signal_connect( 'key-press-event' => sub {
-    my ( $widget, $event ) = @ARG;
-    if ( $event->keyval == 65307 ) {  # Escape key
-        $result = '';
-        $dialog_finished = 1;
-        $dialog->destroy;
-        return 1;
+# Handle Escape key on dialog
+$dialog->signal_connect(
+    'key-press-event' => sub {
+        my ( $widget, $event ) = @ARG;
+        if ( $event->keyval == 65307 ) {    # Escape key
+            $result          = '';
+            $dialog_finished = 1;
+            $dialog->destroy;
+            return 1;
+        }
+        return 0;
     }
-    return 0;
-});
+);
 
-# Position near cursor
-my $display = Gtk3::Gdk::Display::get_default();
-my $seat = $display->get_default_seat();
-my $pointer = $seat->get_pointer();
-my ( $screen_ptr, $x, $y ) = $pointer->get_position();
-$dialog->move( $x - 150, $y + 20 );
+### Center dialog on screen ##
+## [ don't try to center on parent window which might be off-screen ]
+
+$dialog->set_position('center-always');
 
 # Show and focus
 $dialog->show_all;
+$dialog->present;
 $entry->grab_focus;
 
 # Process events until dialog closes
@@ -99,13 +111,13 @@ while ( !$dialog_finished ) {
 # Return result
 if ($result) {
     <[base.logs]>->( 1, "text input: %d chars", length($result) );
-    return { 'mode' => qw| size |, 'data' => $result };
+    return { 'mode' => qw| true |, 'data' => $result };
 } else {
     return { 'mode' => qw| false |, 'data' => 'input cancelled' };
 }
 
-#,,.,,.,,,,..,,.,,...,..,,,..,,.,,..,,..,,..,,.,.,...,..,,,,.,...,,.,,...,,,,,
-#BH3M66ZXSA2FPX2WXBCTH5IYVPH75IOMHZSSXTKO6R3RXBYJHY754YUO6QG7YOUODPZHDEXDQTXTU
-#\\\|ZXA4ECOFUKETXIGW4Z2TR24JTW5OTEJRQTZIF4A2JFFYY3KSAPX \ / AMOS7 \ YOURUM ::
-#\[7]LRJD626E4JTJEWYRWIGZ5MVMS4SQQH3KZMVOZZ2UL7KEYQ2MDABY 7  DATA SIGNATURE ::
+#,,.,,...,..,,...,,.,,,..,..,,.,,,,,,,.,,,...,.,.,...,...,,..,..,,,..,..,,,,,,
+#DML4O4TFBSLPBN75H4GJXBTIO2INCRM2ZMQJXYQVFPEPY4GU3JR4RO3M7S4LXNABVS7674BM4RH2C
+#\\\|GUL4MW3WN5TBYGDYKKIIINQHXLQLF5GYQS4ZAP555SLNR4JVPDP \ / AMOS7 \ YOURUM ::
+#\[7]QRT5CWZ5MCP4GKUX52V6IGXSAJU6VY5KHO2RB5CSVFSP47VMWCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
