@@ -6,9 +6,14 @@
 my ( $state_ref, $key, $input_chars_ref, $editor, $colors ) = @_;
 
 ## Helper to display search prompt and current match
+## Color varies based on add-to-history mode: green when adding, blue when not
 my $display_search = sub {
     my ($term) = @_;
-    print "\r\e[K" . $colors->{p7_fg_0003} . "[search: " . $term . " ] ";
+    my $prompt_color = $state_ref->{search_add_to_history}
+        ? $colors->{p7_fg_0003}     # Green = add to history
+        : $colors->{p7_fg_0004};    # Blue = no-history mode
+
+    print "\r\e[K" . $prompt_color . "[search: " . $term . " ] ";
     if ( @{ $state_ref->{search_results} }
         && $state_ref->{search_index} < @{ $state_ref->{search_results} } ) {
         print $colors->{p7_fg_0004}
@@ -56,6 +61,14 @@ if ( $key eq "\e" ) {
     $key = $escape_buffer;
 }
 
+## Toggle add-to-history mode (Ctrl+R while already in search)
+if ( $key eq "\x12" ) {    # Ctrl+R
+    $state_ref->{search_add_to_history}
+        = !$state_ref->{search_add_to_history};
+    $display_search->( $state_ref->{search_term} );
+    return 0;
+}
+
 ## Exit search mode (Ctrl+C or Esc)
 if ( $key eq "\x03" or $key eq "\e" ) {
     ## If there's a valid search result, load it; otherwise restore original buffer
@@ -90,6 +103,7 @@ if ( $key eq "\x03" or $key eq "\e" ) {
     $state_ref->{search_index}           = 0;
     $state_ref->{search_term_hist_index} = -1;
     $state_ref->{search_deleted_chars}   = '';
+    $state_ref->{search_add_to_history}  = 1;    # TRUE - reset to default
     $state_ref->{current_mode}           = 0;    # NORMAL
 
     AMOS7::TERM::editor_load( $editor, $exit_buffer );
@@ -125,12 +139,19 @@ if ( $key eq "\r" or $key eq "\n" ) {
                 if @{ $state_ref->{search_term_history} } > 50;
         }
 
+        ## Add selected command to history only if not in no-history mode
+        if ( length $selected && $state_ref->{search_add_to_history} ) {
+            my @lines = split "\n", $selected;
+            AMOS7::TERM::history_add(@lines);
+        }
+
         $state_ref->{search_mode}            = 0;    # FALSE
         $state_ref->{search_term}            = '';
         $state_ref->{search_results}         = [];
         $state_ref->{search_index}           = 0;
         $state_ref->{search_term_hist_index} = -1;
         $state_ref->{search_deleted_chars}   = '';
+        $state_ref->{search_add_to_history}  = 1;    # TRUE - reset to default
         $state_ref->{current_mode}           = 0;    # NORMAL
 
         AMOS7::TERM::editor_load( $editor, $selected );
@@ -312,8 +333,8 @@ $display_search->( $state_ref->{search_term} );
 
 return 0;    ## Continue in search mode
 
-#,,.,,,,,,,,,,,,,,.,,,.,.,...,.,.,.,,,,..,,,,,.,.,...,...,..,,.,.,,,,,.,.,.,,,
-#XJMO6ADRH42RF44FANFPDGJMDYNNNZMJQT4TIJTEYOARB7JHBYOZHR4IPK5R24MRNIACC7XW5BYTS
-#\\\|W2HMTHKSLFUUPRIEOVRILV7XVQZQ74DYBARBCOKHJUYILMI7F7I \ / AMOS7 \ YOURUM ::
-#\[7]2SKU75DLGT5WAVUILCTRHCNNNI3JFPUZ5KLSJ733BLSAEJLKPIBA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,.,,,,.,,..,,..,,...,.,.,,,.,,..,.,.,...,...,,,.,..,,.,,,..,,..,,
+#OZQ6U7SPKWGKFIKC2LSMMJSZSHRDVHIVM4BEKQYFVZZBI3T5PDKJ5KNVPEY7SXSR7TKBXPFOPZLAA
+#\\\|MXHYK6KXIHLXOWYO52WAJ33VJVBLZE5FLOCRB6OFE3OYG245TA5 \ / AMOS7 \ YOURUM ::
+#\[7]GVQ2F7A6NQ3QUVTMUNU5MXFJCVVJT6LGWBO4TPZIEUREUUOYVUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

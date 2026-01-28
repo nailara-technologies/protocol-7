@@ -1,31 +1,59 @@
 ## [:< ##
 
 # name = nshell.history.arrow_up
-# descr = Up arrow single entry navigation in history
+# descr = Up arrow navigation with duplicate skipping
 
 my ( $state_ref, $editor, $colors ) = @_;
 
 my $target_index = -1;
 my $lines_ref    = undef;
 
+## Get current entry for duplicate comparison
+my $current_entry_text = $state_ref->{display_buffer} // '';
+
 if ( $state_ref->{current_history_index} >= 0 ) {
     ## We're viewing history - navigate relative to current position
-    ## Up = newer = lower index
-    $target_index = $state_ref->{current_history_index} - 1;
-    if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries )
-    {
-        my $entry = $AMOS7::TERM::history_entries[$target_index];
-        if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
-            $lines_ref = $entry->[1];
+    ## Up = newer = lower index, skip duplicates
+    my $attempts     = 0;
+    my $search_index = $state_ref->{current_history_index} - 1;
+
+    while ( $attempts < @AMOS7::TERM::history_entries ) {
+        if (   $search_index >= 0
+            && $search_index < @AMOS7::TERM::history_entries ) {
+            my $entry = $AMOS7::TERM::history_entries[$search_index];
+            if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
+                my $entry_text = join "\n", @{ $entry->[1] };
+                if ( $entry_text ne $current_entry_text ) {
+                    $target_index = $search_index;
+                    $lines_ref    = $entry->[1];
+                    last;
+                }
+            }
         }
+        $search_index--;
+        $attempts++;
     }
 } else {
     ## Not in tracked history - start from oldest entry (last in array)
     if (@AMOS7::TERM::history_entries) {
-        $target_index = @AMOS7::TERM::history_entries - 1;
-        my $entry = $AMOS7::TERM::history_entries[$target_index];
-        if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
-            $lines_ref = $entry->[1];
+        my $attempts     = 0;
+        my $search_index = @AMOS7::TERM::history_entries - 1;
+
+        while ( $attempts < @AMOS7::TERM::history_entries ) {
+            if (   $search_index >= 0
+                && $search_index < @AMOS7::TERM::history_entries ) {
+                my $entry = $AMOS7::TERM::history_entries[$search_index];
+                if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
+                    my $entry_text = join "\n", @{ $entry->[1] };
+                    if ( $entry_text ne $current_entry_text ) {
+                        $target_index = $search_index;
+                        $lines_ref    = $entry->[1];
+                        last;
+                    }
+                }
+            }
+            $search_index--;
+            $attempts++;
         }
     }
 }
@@ -54,8 +82,8 @@ $state_ref->{current_mode} = 2;    # VIEWING_HISTORY
 
 return;
 
-#,,,.,,.,,..,,.,.,,,.,,.,,,,.,...,..,,,.,,.,,,.,.,...,...,...,...,..,,..,,,..,
-#J3W3HIZV3QEXWUQVD2OHAK4TLXISIYY3UFKNOTBEOECHQSZPO4H6DVBPIDOTTGZSI4OSMPNYHBO6K
-#\\\|OOFKLSJ7ZG6HJ4TIEYJOA7CSVUT6Q35KRR4B2KPVOETFGX4N3UU \ / AMOS7 \ YOURUM ::
-#\[7]DC4FUXKJJTFQSDHZXPTWK4NCP5SBUVGH7COXL27PN3WLELWJI6AI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,.,,,..,.,.,..,,...,.,,,.,.,,,.,.,.,...,..,,..,,.,.,.,,,,..,,..,
+#SHOAUXV3ODQIV3IXYXTRKFV3I5WZGUT6RA6BWNCIZP3IHAZASKS56TJ3XGZMVNVDIBHLF6ZHMZL3I
+#\\\|IBLS4VNKCSUBTNZ3TVYH7YPPLR6FJZ6RSS6TIXEVKQJYPIM6JDV \ / AMOS7 \ YOURUM ::
+#\[7]HLHWA5X367JXW4MSJK6BRXFGR3D4OGBDEYXB2OTOKQFLF2P4XWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
