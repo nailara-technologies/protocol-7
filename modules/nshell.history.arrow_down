@@ -3,26 +3,26 @@
 # name = nshell.history.arrow_down
 # descr = Down arrow navigation with duplicate skipping
 
-my ( $state_ref, $editor, $colors ) = @_;
+my ( $state_ref, $editor, $colors ) = @ARG;
 
 my $target_index = -1;
 my $lines_ref    = undef;
 
 ## Get current entry for duplicate comparison
-my $current_entry_text = $state_ref->{display_buffer} // '';
+my $current_entry_text = $state_ref->{'display_buffer'} // '';
 
-if ( $state_ref->{current_history_index} >= 0 ) {
+if ( $state_ref->{'current_history_index'} >= 0 ) {
     ## We're viewing history - navigate relative to current position
     ## Down = older = higher index, skip duplicates
     my $attempts     = 0;
-    my $search_index = $state_ref->{current_history_index} + 1;
+    my $search_index = $state_ref->{'current_history_index'} + 1;
 
     while ( $attempts < @AMOS7::TERM::history_entries ) {
         if (   $search_index >= 0
             && $search_index < @AMOS7::TERM::history_entries ) {
             my $entry = $AMOS7::TERM::history_entries[$search_index];
             if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
-                my $entry_text = join "\n", @{ $entry->[1] };
+                my $entry_text = join "\n", $entry->[1]->@*;
                 if ( $entry_text ne $current_entry_text ) {
                     $target_index = $search_index;
                     $lines_ref    = $entry->[1];
@@ -36,8 +36,8 @@ if ( $state_ref->{current_history_index} >= 0 ) {
 
     ## If no different entry found going forward, clear history view
     unless ( defined $lines_ref ) {
-        $state_ref->{current_history_index} = -1;
-        $state_ref->{paging_index_stack}    = [];    # Clear paging stack
+        $state_ref->{'current_history_index'} = -1;
+        $state_ref->{'paging_index_stack'}    = [];    # Clear paging stack
         <[nshell.render.empty_prompt]>->( $state_ref, $editor, $colors );
         return;
     }
@@ -48,29 +48,29 @@ if ( $state_ref->{current_history_index} >= 0 ) {
 }
 
 ## Clear previous display before showing new one
-my $clear_len = length( $state_ref->{display_buffer} ) + 8;
+my $clear_len = length( $state_ref->{'display_buffer'} ) + 8;
 print "\r" . ( ' ' x $clear_len ) . "\r" if $clear_len > 0;
 
-$state_ref->{display_buffer} = join "\n", $lines_ref->@*;
+$state_ref->{'display_buffer'} = join "\n", $lines_ref->@*;
 
 ## Update history index if navigating from tracked position
-$state_ref->{current_history_index} = $target_index if $target_index >= 0;
+$state_ref->{'current_history_index'} = $target_index if $target_index >= 0;
 
 ## Load into editor to sync editor buffer
-AMOS7::TERM::editor_load( $editor, $state_ref->{display_buffer} );
+AMOS7::TERM::editor_load( $editor, $state_ref->{'display_buffer'} );
 
-my $display_buffer = $colors->{p7_fg_0004} . $state_ref->{display_buffer};
+my $display_buffer = $colors{'p7_fg_0004'} . $state_ref->{'display_buffer'};
 
 ## Redraw full line with cursor
 <[nshell.render.full_line]>->( $editor, $display_buffer, $colors );
 
 ## Enter VIEWING_HISTORY mode
-$state_ref->{current_mode} = 2;    # VIEWING_HISTORY
+$state_ref->{'current_mode'} = 2;    # VIEWING_HISTORY
 
 return;
 
-#,,,,,.,.,,..,..,,,.,,.,,,..,,,..,,,.,.,,,..,,.,.,...,...,.,.,,..,...,,..,,..,
-#QSPMCATSDOJSH4MAZYPZSZE6WOF6KHS5AAYDNIDIFMP6MTON3EIH5QW7PEFEXJ5JP7B2GHUILZNR4
-#\\\|HAVUXUNWKFJZ5YI6A5B5QZGYZIQWBHC7DYCNLTVYW6JCR5RRD73 \ / AMOS7 \ YOURUM ::
-#\[7]AKJO6HERYOOYHQRKZXTXPUYRFHG3URYVUXNEGBUZNTLDSBU3LMAA 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,.,,,.,,,,,,,.,,..,,.,,,.,,,,,.,.,.,...,...,...,,.,,,,,,...,.,,,
+#KTW3NJJ5G5VKLY6WNXCYHIUDZGJKOKYDTXUALLSLEXLCGYKODGIBPIXBBCJTOWALOELPHHIDPWM42
+#\\\|HOE657Q4GYS3W7IR6M36ONLDDRUQN2WBVT5PLBYJVOXR3NHTPJB \ / AMOS7 \ YOURUM ::
+#\[7]6UURFB75KRXWEINUXK3MFBVB4YQLBJNDBLOBD3HQTFESKQRNEOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,21 +3,23 @@
 # name = nshell.search.handler
 # descr = Complete Ctrl+R search mode implementation for history
 
-my ( $state_ref, $key, $input_chars_ref, $editor, $colors ) = @_;
+my ( $state_ref, $key, $input_chars_ref, $editor, $colors ) = @ARG;
 
-## Helper to display search prompt and current match
-## Color varies based on add-to-history mode: green when adding, blue when not
-my $display_search = sub {
-    my ($term) = @_;
-    my $prompt_color = $state_ref->{search_add_to_history}
-        ? $colors->{p7_fg_0003}     # Green = add to history
-        : $colors->{p7_fg_0004};    # Blue = no-history mode
+## Helper to display search prompt and current match, color varies based on
+##                    add-to-history mode: green when adding, blue when not
+my $display_search = sub {    ### <-- extract subroutine [LLL]
+    my ($term) = @ARG;
+    my $prompt_color = $state_ref->{'search_add_to_history'}
+        ? $colors{'p7_fg_0003'}     # Green = add to history
+        : $colors{'p7_fg_0004'};    # Blue = no-history mode
 
-    print "\r\e[K" . $prompt_color . "[search: " . $term . " ] ";
-    if ( @{ $state_ref->{search_results} }
-        && $state_ref->{search_index} < @{ $state_ref->{search_results} } ) {
-        print $colors->{p7_fg_0004}
-            . $state_ref->{search_results}->[ $state_ref->{search_index} ];
+    printf "\r\e[K%s[search: %s ] ", $prompt_color, $term;
+    if (   $state_ref->{'search_results'}->@*
+        && $state_ref->{'search_index'} < $state_ref->{'search_results'}->@* )
+    {
+        print $colors{'p7_fg_0004'}
+            . $state_ref->{'search_results'}
+            ->[ $state_ref->{'search_index'} ];
     }
     print "\e[K\e[0m";
     STDOUT->flush();
@@ -28,8 +30,8 @@ my $search_history = sub {
     my ($term) = @_;
     my @matching = ();
     foreach my $entry ( reverse @AMOS7::TERM::history_entries ) {
-        if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
-            my $cmd = join( "\n", @{ $entry->[1] } );
+        if ( ref($entry) eq qw| ARRAY | && $entry->[1] ) {
+            my $cmd = join( "\n", $entry->[1]->@* );
             push @matching, $cmd if index( $cmd, $term ) >= 0;
         }
     }
@@ -50,11 +52,11 @@ if ( $key eq "\e" ) {
         }
         last if not length $$input_chars_ref;
 
-        my $next_key = substr( $$input_chars_ref, 0, 1, '' );
+        my $next_key = substr( $input_chars_ref->@*, 0, 1, '' );
         $escape_buffer .= $next_key;
 
         ## Check if sequence is complete
-        $seq_complete = 1
+        $seq_complete = TRUE
             if $escape_buffer =~ m{\e\[[A-Z]|\eO[A-Z]|\e\[[0-9;]*~$};
     }
 
@@ -63,9 +65,73 @@ if ( $key eq "\e" ) {
 
 ## Toggle add-to-history mode (Ctrl+R while already in search)
 if ( $key eq "\x12" ) {    # Ctrl+R
-    $state_ref->{search_add_to_history}
-        = !$state_ref->{search_add_to_history};
-    $display_search->( $state_ref->{search_term} );
+    $state_ref->{'search_add_to_history'}
+        = !$state_ref->{'search_add_to_history'};
+    $display_search->( $state_ref->{'search_term'} );
+    return 0;
+}
+
+## Execute and transition to history viewing mode [Ctrl+O]
+if ( $key eq "\x0f" ) {    # Ctrl+O
+    if (   $state_ref->{'search_results'}->@*
+        && $state_ref->{'search_index'} < $state_ref->{'search_results'}->@* )
+    {
+        my $selected
+            = $state_ref->{'search_results'}
+            ->[ $state_ref->{'search_index'} ];
+
+        ## Add to history based on toggle mode [green\blue]
+        #                    - do this BEFORE finding index
+        if ( length $selected && $state_ref->{'search_add_to_history'} ) {
+            my @lines = split "\n", $selected;
+            AMOS7::TERM::history_add(@lines);
+        }
+
+        ## Find this command's index in main history array
+        my $history_index = -1;
+        for my $i ( 0 .. $#AMOS7::TERM::history_entries ) {
+            my $entry = $AMOS7::TERM::history_entries[$i];
+            if ( ref($entry) eq qw| ARRAY | && $entry->[1] ) {
+                my $entry_text = join "\n", $entry->[1]->@*;
+                if ( $entry_text eq $selected ) {
+                    $history_index = $i;
+                    last;
+                }
+            }
+        }
+
+        ## Exit search and transition to history viewing mode
+        $state_ref->{'search_mode'}            = 0;  # FALSE
+        $state_ref->{'search_term'}            = '';
+        $state_ref->{'search_results'}         = [];
+        $state_ref->{'search_index'}           = 0;
+        $state_ref->{'search_term_hist_index'} = -1;
+        $state_ref->{'search_deleted_chars'}   = '';
+        $state_ref->{'search_add_to_history'}  = 1;  # TRUE - reset to default
+        $state_ref->{'current_mode'}           = 2;  # VIEWING_HISTORY
+        $state_ref->{'current_history_index'} = $history_index; # history pos.
+        $state_ref->{'ctrl_o_start_index'} = $history_index; # Set cycle start
+        $state_ref->{'ctrl_o_start_position'}      = $history_index;
+        $state_ref->{'ctrl_o_last_executed_index'} = $history_index;
+
+        # [ reset for new cycle ]
+        $state_ref->{'ctrl_o_entries_added_in_cycle'} = 0;
+        $state_ref->{'ctrl_o_previous_cycle_count'}   = 0;
+
+        ## Load selected command into editor for execution
+        AMOS7::TERM::editor_load( $editor, $selected );
+
+        ## Print command for execution
+        printf "\r\e[K%s%s\n", $colors{'p7_fg_0004'}, $selected;
+        STDOUT->flush();
+
+        $state_ref->{'display_buffer'}      = '';
+        $state_ref->{'show_cursor_on_call'} = TRUE;
+
+        return
+            2
+            ; ## Signal to execute (next input will be in VIEWING_HISTORY mode)
+    }
     return 0;
 }
 
@@ -74,44 +140,45 @@ if ( $key eq "\x03" or $key eq "\e" ) {
     ## If there's a valid search result, load it; otherwise restore original buffer
     my $exit_buffer;
 
-    if (   @{ $state_ref->{search_results} }
-        && $state_ref->{search_index} < @{ $state_ref->{search_results} }
-        && length( $state_ref->{search_term} ) ) {
+    if (   $state_ref->{'search_results'}->@*
+        && $state_ref->{'search_index'} < $state_ref->{'search_results'}->@*
+        && length( $state_ref->{'search_term'} ) ) {
         ## Search result found - load it into buffer
         $exit_buffer
-            = $state_ref->{search_results}->[ $state_ref->{search_index} ];
+            = $state_ref->{'search_results'}
+            ->[ $state_ref->{'search_index'} ];
     } else {
         ## No result or cleared search - restore original buffer
-        $exit_buffer = $state_ref->{pre_search_buffer};
+        $exit_buffer = $state_ref->{'pre_search_buffer'};
     }
 
     ## Save search term to history if not empty
-    if (length( $state_ref->{search_term} )
-        && ( @{ $state_ref->{search_term_history} } == 0
-            || $state_ref->{search_term_history}->[0] ne
-            $state_ref->{search_term} )
+    if (length( $state_ref->{'search_term'} )
+        && (   $state_ref->{'search_term_history'}->@* == 0
+            || $state_ref->{'search_term_history'}->[0] ne
+            $state_ref->{'search_term'} )
     ) {
-        unshift @{ $state_ref->{search_term_history} },
-            $state_ref->{search_term};
-        pop @{ $state_ref->{search_term_history} }
-            if @{ $state_ref->{search_term_history} } > 50;
+        unshift $state_ref->{'search_term_history'}->@*,
+            $state_ref->{'search_term'};
+        pop $state_ref->{'search_term_history'}->@*
+            if $state_ref->{'search_term_history'}->@* > 50;
     }
 
-    $state_ref->{search_mode}            = 0;    # FALSE
-    $state_ref->{search_term}            = '';
-    $state_ref->{search_results}         = [];
-    $state_ref->{search_index}           = 0;
-    $state_ref->{search_term_hist_index} = -1;
-    $state_ref->{search_deleted_chars}   = '';
-    $state_ref->{search_add_to_history}  = 1;    # TRUE - reset to default
-    $state_ref->{current_mode}           = 0;    # NORMAL
+    $state_ref->{'search_mode'}            = 0;    # FALSE
+    $state_ref->{'search_term'}            = '';
+    $state_ref->{'search_results'}         = [];
+    $state_ref->{'search_index'}           = 0;
+    $state_ref->{'search_term_hist_index'} = -1;
+    $state_ref->{'search_deleted_chars'}   = '';
+    $state_ref->{'search_add_to_history'}  = 1;    # TRUE - reset to default
+    $state_ref->{'current_mode'}           = 0;    # NORMAL
 
     AMOS7::TERM::editor_load( $editor, $exit_buffer );
-    $state_ref->{display_buffer} = $colors->{p7_fg_0004} . $exit_buffer;
+    $state_ref->{'display_buffer'} = $colors{'p7_fg_0004'} . $exit_buffer;
 
     ## Redraw the buffer
     <[nshell.redraw_command_line]>->(
-        $exit_buffer, $state_ref->{display_buffer}
+        $exit_buffer, $state_ref->{'display_buffer'}
     );
 
     ## Render cursor at editor's position
@@ -122,44 +189,46 @@ if ( $key eq "\x03" or $key eq "\e" ) {
 
 ## Select current match and exit search (Enter)
 if ( $key eq "\r" or $key eq "\n" ) {
-    if ( @{ $state_ref->{search_results} }
-        && $state_ref->{search_index} < @{ $state_ref->{search_results} } ) {
+    if (   $state_ref->{'search_results'}->@*
+        && $state_ref->{'search_index'} < $state_ref->{'search_results'}->@* )
+    {
         my $selected
-            = $state_ref->{search_results}->[ $state_ref->{search_index} ];
+            = $state_ref->{'search_results'}
+            ->[ $state_ref->{'search_index'} ];
 
         ## Save search term to history if not empty
-        if (length( $state_ref->{search_term} )
-            && ( @{ $state_ref->{search_term_history} } == 0
-                || $state_ref->{search_term_history}->[0] ne
-                $state_ref->{search_term} )
+        if (length( $state_ref->{'search_term'} )
+            && (   $state_ref->{'search_term_history'}->@* == 0
+                || $state_ref->{'search_term_history'}->[0] ne
+                $state_ref->{'search_term'} )
         ) {
-            unshift @{ $state_ref->{search_term_history} },
-                $state_ref->{search_term};
-            pop @{ $state_ref->{search_term_history} }
-                if @{ $state_ref->{search_term_history} } > 50;
+            unshift $state_ref->{'search_term_history'}->@*,
+                $state_ref->{'search_term'};
+            pop $state_ref->{'search_term_history'}->@*
+                if $state_ref->{'search_term_history'}->@* > 50;
         }
 
         ## Add selected command to history only if not in no-history mode
-        if ( length $selected && $state_ref->{search_add_to_history} ) {
+        if ( length $selected && $state_ref->{'search_add_to_history'} ) {
             my @lines = split "\n", $selected;
             AMOS7::TERM::history_add(@lines);
         }
 
-        $state_ref->{search_mode}            = 0;    # FALSE
-        $state_ref->{search_term}            = '';
-        $state_ref->{search_results}         = [];
-        $state_ref->{search_index}           = 0;
-        $state_ref->{search_term_hist_index} = -1;
-        $state_ref->{search_deleted_chars}   = '';
-        $state_ref->{search_add_to_history}  = 1;    # TRUE - reset to default
-        $state_ref->{current_mode}           = 0;    # NORMAL
+        $state_ref->{'search_mode'}            = 0;  # FALSE
+        $state_ref->{'search_term'}            = '';
+        $state_ref->{'search_results'}         = [];
+        $state_ref->{'search_index'}           = 0;
+        $state_ref->{'search_term_hist_index'} = -1;
+        $state_ref->{'search_deleted_chars'}   = '';
+        $state_ref->{'search_add_to_history'}  = 1;  # TRUE - reset to default
+        $state_ref->{'current_mode'}           = 0;  # NORMAL
 
         AMOS7::TERM::editor_load( $editor, $selected );
         ## Clear search prompt and display selected command
-        print "\r\e[K" . $colors->{p7_fg_0004} . $selected . "\n";
+        printf "\r\e[K%s%s\n", $colors{'p7_fg_0004'}, $selected;
         STDOUT->flush();
-        $state_ref->{display_buffer}      = '';
-        $state_ref->{show_cursor_on_call} = 1;       # TRUE
+        $state_ref->{'display_buffer'}      = '';
+        $state_ref->{'show_cursor_on_call'} = 1;     # TRUE
 
         return 2;    ## Signal to return selected command
     }
@@ -168,72 +237,72 @@ if ( $key eq "\r" or $key eq "\n" ) {
 
 ## Backspace - remove from search term
 if ( $key eq "\x08" or $key eq "\x7f" ) {
-    $state_ref->{search_term} = substr( $state_ref->{search_term}, 0, -1 )
-        if length( $state_ref->{search_term} );
-    $state_ref->{search_deleted_chars} = '';
-    $state_ref->{search_results}
-        = $search_history->( $state_ref->{search_term} );
-    $state_ref->{search_index} = 0
-        if $state_ref->{search_index} >= @{ $state_ref->{search_results} };
-    $display_search->( $state_ref->{search_term} );
+    $state_ref->{'search_term'} = substr( $state_ref->{'search_term'}, 0, -1 )
+        if length( $state_ref->{'search_term'} );
+    $state_ref->{'search_deleted_chars'} = '';
+    $state_ref->{'search_results'}
+        = $search_history->( $state_ref->{'search_term'} );
+    $state_ref->{'search_index'} = 0
+        if $state_ref->{'search_index'} >= $state_ref->{'search_results'}->@*;
+    $display_search->( $state_ref->{'search_term'} );
     return 0;
 }
 
-## Delete key - clear entire search term (practical shortcut in search mode)
+## Delete key - clear entire search term [practical shortcut in search mode]
 if ( $key eq "\e[3~" ) {
-    $state_ref->{search_term}            = '';
-    $state_ref->{search_term_hist_index} = -1;
-    $state_ref->{search_deleted_chars}   = '';
-    $state_ref->{search_results}
-        = $search_history->( $state_ref->{search_term} );
-    $state_ref->{search_index} = 0
-        if $state_ref->{search_index} >= @{ $state_ref->{search_results} };
-    $display_search->( $state_ref->{search_term} );
+    $state_ref->{'search_term'}            = '';
+    $state_ref->{'search_term_hist_index'} = -1;
+    $state_ref->{'search_deleted_chars'}   = '';
+    $state_ref->{'search_results'}
+        = $search_history->( $state_ref->{'search_term'} );
+    $state_ref->{'search_index'} = 0
+        if $state_ref->{'search_index'} >= $state_ref->{'search_results'}->@*;
+    $display_search->( $state_ref->{'search_term'} );
     return 0;
 }
 
 ## Ctrl+W - clear previous word from search term
 if ( $key eq "\x17" ) {
-    $state_ref->{search_term} =~ s/\s*\S+\s*$//;
-    $state_ref->{search_term_hist_index} = -1;
-    $state_ref->{search_deleted_chars}   = '';
-    $state_ref->{search_results}
-        = $search_history->( $state_ref->{search_term} );
-    $state_ref->{search_index} = 0
-        if $state_ref->{search_index} >= @{ $state_ref->{search_results} };
-    $display_search->( $state_ref->{search_term} );
+    $state_ref->{'search_term'} =~ s|\s*\S+\s*$||;
+    $state_ref->{'search_term_hist_index'} = -1;
+    $state_ref->{'search_deleted_chars'}   = '';
+    $state_ref->{'search_results'}
+        = $search_history->( $state_ref->{'search_term'} );
+    $state_ref->{'search_index'} = 0
+        if $state_ref->{'search_index'} >= $state_ref->{'search_results'}->@*;
+    $display_search->( $state_ref->{'search_term'} );
     return 0;
 }
 
 ## Ctrl+U - clear entire search term
 if ( $key eq "\x15" ) {
-    $state_ref->{search_term}            = '';
-    $state_ref->{search_term_hist_index} = -1;
-    $state_ref->{search_deleted_chars}   = '';
-    $state_ref->{search_results}
-        = $search_history->( $state_ref->{search_term} );
-    $state_ref->{search_index} = 0
-        if $state_ref->{search_index} >= @{ $state_ref->{search_results} };
-    $display_search->( $state_ref->{search_term} );
+    $state_ref->{'search_term'}            = '';
+    $state_ref->{'search_term_hist_index'} = -1;
+    $state_ref->{'search_deleted_chars'}   = '';
+    $state_ref->{'search_results'}
+        = $search_history->( $state_ref->{'search_term'} );
+    $state_ref->{'search_index'} = 0
+        if $state_ref->{'search_index'} >= $state_ref->{'search_results'}->@*;
+    $display_search->( $state_ref->{'search_term'} );
     return 0;
 }
 
 ## Up arrow - cycle to next matching result, skip duplicates
 if ( $key eq "\e[A" ) {
-    if ( @{ $state_ref->{search_results} } ) {
+    if ( $state_ref->{'search_results'}->@* ) {
         my $current_result
-            = $state_ref->{search_results}->[ $state_ref->{search_index} ]
+            = $state_ref->{'search_results'}->[ $state_ref->{'search_index'} ]
             // '';
         my $attempts = 0;
-        while ( $attempts < @{ $state_ref->{search_results} } ) {
-            $state_ref->{search_index}++;
-            $state_ref->{search_index} = 0
-                if $state_ref->{search_index}
-                >= @{ $state_ref->{search_results} };
+        while ( $attempts < $state_ref->{'search_results'}->@* ) {
+            $state_ref->{'search_index'}++;
+            $state_ref->{'search_index'} = 0
+                if $state_ref->{'search_index'}
+                >= $state_ref->{'search_results'}->@*;
 
             if (
-                (   $state_ref->{search_results}
-                    ->[ $state_ref->{search_index} ] // ''
+                (   $state_ref->{'search_results'}
+                    ->[ $state_ref->{'search_index'} ] // ''
                 ) ne $current_result
             ) {
                 last;
@@ -241,26 +310,27 @@ if ( $key eq "\e[A" ) {
             $attempts++;
         }
     }
-    $state_ref->{search_deleted_chars} = '';
-    $display_search->( $state_ref->{search_term} );
+    $state_ref->{'search_deleted_chars'} = '';
+    $display_search->( $state_ref->{'search_term'} );
     return 0;
 }
 
 ## Down arrow - cycle to previous matching result, skip duplicates
 if ( $key eq "\e[B" ) {
-    if ( @{ $state_ref->{search_results} } ) {
+    if ( $state_ref->{'search_results'}->@* ) {
         my $current_result
-            = $state_ref->{search_results}->[ $state_ref->{search_index} ]
+            = $state_ref->{'search_results'}->[ $state_ref->{'search_index'} ]
             // '';
         my $attempts = 0;
-        while ( $attempts < @{ $state_ref->{search_results} } ) {
-            $state_ref->{search_index}--;
-            $state_ref->{search_index} = @{ $state_ref->{search_results} } - 1
-                if $state_ref->{search_index} < 0;
+        while ( $attempts < $state_ref->{'search_results'}->@* ) {
+            $state_ref->{'search_index'}--;
+            $state_ref->{'search_index'}
+                = $state_ref->{'search_results'}->@* - 1
+                if $state_ref->{'search_index'} < 0;
 
             if (
-                (   $state_ref->{search_results}
-                    ->[ $state_ref->{search_index} ] // ''
+                (   $state_ref->{'search_results'}
+                    ->[ $state_ref->{'search_index'} ] // ''
                 ) ne $current_result
             ) {
                 last;
@@ -268,41 +338,41 @@ if ( $key eq "\e[B" ) {
             $attempts++;
         }
     }
-    $state_ref->{search_deleted_chars} = '';
-    $display_search->( $state_ref->{search_term} );
+    $state_ref->{'search_deleted_chars'} = '';
+    $display_search->( $state_ref->{'search_term'} );
     return 0;
 }
 
 ## Left arrow - delete last character from search term (like backspace)
 if ( $key eq "\e[D" or $key eq "\eOD" ) {
-    if ( length( $state_ref->{search_term} ) > 0 ) {
-        $state_ref->{search_deleted_chars}
-            = substr( $state_ref->{search_term}, -1 )
-            . $state_ref->{search_deleted_chars};
-        $state_ref->{search_term}
-            = substr( $state_ref->{search_term}, 0, -1 );
+    if ( length( $state_ref->{'search_term'} ) > 0 ) {
+        $state_ref->{'search_deleted_chars'}
+            = substr( $state_ref->{'search_term'}, -1 )
+            . $state_ref->{'search_deleted_chars'};
+        $state_ref->{'search_term'}
+            = substr( $state_ref->{'search_term'}, 0, -1 );
     }
-    $state_ref->{search_results}
-        = $search_history->( $state_ref->{search_term} );
-    $state_ref->{search_index} = 0
-        if $state_ref->{search_index} >= @{ $state_ref->{search_results} };
-    $display_search->( $state_ref->{search_term} );
+    $state_ref->{'search_results'}
+        = $search_history->( $state_ref->{'search_term'} );
+    $state_ref->{'search_index'} = 0
+        if $state_ref->{'search_index'} >= $state_ref->{'search_results'}->@*;
+    $display_search->( $state_ref->{'search_term'} );
     return 0;
 }
 
 ## Right arrow - restore deleted character
 if ( $key eq "\e[C" or $key eq "\eOC" ) {
-    if ( length( $state_ref->{search_deleted_chars} ) > 0 ) {
-        $state_ref->{search_term}
-            .= substr( $state_ref->{search_deleted_chars}, 0, 1 );
-        $state_ref->{search_deleted_chars}
-            = substr( $state_ref->{search_deleted_chars}, 1 );
+    if ( length( $state_ref->{'search_deleted_chars'} ) > 0 ) {
+        $state_ref->{'search_term'}
+            .= substr( $state_ref->{'search_deleted_chars'}, 0, 1 );
+        $state_ref->{'search_deleted_chars'}
+            = substr( $state_ref->{'search_deleted_chars'}, 1 );
     }
-    $state_ref->{search_results}
-        = $search_history->( $state_ref->{search_term} );
-    $state_ref->{search_index} = 0
-        if $state_ref->{search_index} >= @{ $state_ref->{search_results} };
-    $display_search->( $state_ref->{search_term} );
+    $state_ref->{'search_results'}
+        = $search_history->( $state_ref->{'search_term'} );
+    $state_ref->{'search_index'} = 0
+        if $state_ref->{'search_index'} >= $state_ref->{'search_results'}->@*;
+    $display_search->( $state_ref->{'search_term'} );
     return 0;
 }
 
@@ -313,9 +383,9 @@ if ( $key =~ m{^(\e\[|\eO)} ) {
 
 ## Printable character - add to search term
 if ( $key =~ m{[\x20-\x7e]} ) {
-    $state_ref->{search_term} .= $key;
-    $state_ref->{search_deleted_chars}   = '';
-    $state_ref->{search_term_hist_index} = -1;
+    $state_ref->{'search_term'} .= $key;
+    $state_ref->{'search_deleted_chars'}   = '';
+    $state_ref->{'search_term_hist_index'} = -1;
 }
 
 ## Ignore other control characters
@@ -324,17 +394,18 @@ if ( $key !~ m{[\x20-\x7e]} ) {
 }
 
 ## Search history for matching entries
-$state_ref->{search_results} = $search_history->( $state_ref->{search_term} );
-$state_ref->{search_index}   = 0
-    if $state_ref->{search_index} >= @{ $state_ref->{search_results} };
+$state_ref->{'search_results'}
+    = $search_history->( $state_ref->{'search_term'} );
+$state_ref->{'search_index'} = 0
+    if $state_ref->{'search_index'} >= $state_ref->{'search_results'}->@*;
 
 ## Display search prompt with current match
-$display_search->( $state_ref->{search_term} );
+$display_search->( $state_ref->{'search_term'} );
 
 return 0;    ## Continue in search mode
 
-#,,.,,.,.,,,,,.,,,,.,,..,,..,,...,.,.,,,.,,..,.,.,...,...,,,.,..,,.,,,..,,..,,
-#OZQ6U7SPKWGKFIKC2LSMMJSZSHRDVHIVM4BEKQYFVZZBI3T5PDKJ5KNVPEY7SXSR7TKBXPFOPZLAA
-#\\\|MXHYK6KXIHLXOWYO52WAJ33VJVBLZE5FLOCRB6OFE3OYG245TA5 \ / AMOS7 \ YOURUM ::
-#\[7]GVQ2F7A6NQ3QUVTMUNU5MXFJCVVJT6LGWBO4TPZIEUREUUOYVUAY 7  DATA SIGNATURE ::
+#,,,,,,,,,,..,,,,,,,.,.,.,.,.,,,,,,,,,,,.,.,.,.,.,...,...,..,,.,.,,,.,..,,,..,
+#7LNSMVB7A4H4KLUDGF2ICSG2P67WNCGVX7HMUESGATMZ6ZTMEK4GAXH2WXCPJWW5KGZN2PQLVHM6G
+#\\\|B73MQ6QFPSUK4G4PUYTGJD5D3FZYEREL74ZR64J7LLJQXCD7237 \ / AMOS7 \ YOURUM ::
+#\[7]XZN4SJDRFR54II5DAG64U7GAXODW2QGFCXQAZC3A3USLWEDSB6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

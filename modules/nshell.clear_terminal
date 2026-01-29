@@ -5,17 +5,16 @@
 
 ## Initialize and display cursor immediately (before interactive input loop)
 ## %colors is available from zenka context (initialized in nshell.init_code)
-my $cursor_color = $colors{p7_fg_0003}
-    // $AMOS7::TERM::p7_colors{'p7_fg_0003'};
-my $text_color = $colors{p7_fg_0004} // $AMOS7::TERM::p7_colors{'p7_fg_0004'};
+my $cursor_color = $colors{'p7_fg_0003'};
+my $text_color   = $colors{'p7_fg_0004'};
 
 ## Set text color and display initial cursor
 print STDOUT $text_color;
-print STDOUT $cursor_color . '_' . "\e[0m" . $text_color;
+print STDOUT $cursor_color . "\r_\e[K\r" . "\e[0m" . $text_color;
 STDOUT->flush();
 
-#,,.,,,..,,..,,..,.,.,,,,,,..,,,.,.,,,,..,...,..,,...,..,,..,,,,,,,,.,.,.,.,.,
-#JYACZKMWOXZVZ2LJTYZ7NOX3QFTVOHO4MD6FYU2CXTV5GUX2E2LUZ5BYT2JNCG7DWPWEA72AMB5X6
-#\\\|6GPJN6L3OTDKLT2B4AXBL2CVYNSHFP7AGW64NQTDBBFH4UVOD4R \ / AMOS7 \ YOURUM ::
-#\[7]EU6ZCSJJCD72TKZSCDB7BYDDPDXMSNQSUN5XODZJX77X4QKZESBQ 7  DATA SIGNATURE ::
+#,,..,...,.,.,.,,,,,.,.,,,,,,,.,,,...,,.,,.,.,..,,...,...,.,,,...,...,.,,,,.,,
+#EVX7LZEHZBIEPANXKESIPZ72TGT5FVUULIT4FP664YFJAPDTGXR3D6QOBHAWPQVRWC2W6UHCVR5KS
+#\\\|WZL5UQ7HMV46M2KGP2PE5XDCM4INGJ6QEK7JF4A3DKK5N7PD4EZ \ / AMOS7 \ YOURUM ::
+#\[7]R5SUDON5EAQBXQDXNB7F7CP7TMDYSJWDTUSZIEQQK6LJOA6IUQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

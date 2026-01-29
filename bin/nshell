@@ -841,27 +841,28 @@ sub negotiate_link_upgrade {
     print STDERR "[link-upgrade] Negotiation SUCCESS\n" if $ENV{DEBUG};
 
     # 10. Store encryption state
-    $state_ref->{key}           = $encryption_key;
-    $state_ref->{session_id}    = $session_id;
-    $state_ref->{read_counter}  = 0;
-    $state_ref->{write_counter} = 0;
+    $state_ref->{'key'}           = $encryption_key;
+    $state_ref->{'session_id'}    = $session_id;
+    $state_ref->{'read_counter'}  = 0;
+    $state_ref->{'write_counter'} = 0;
 
     return 1;    # Success
 }
 
 sub encrypt_message {
     my ( $plaintext, $state_ref ) = @ARG;
-    return $plaintext unless $state_ref->{enabled};
+    return $plaintext unless $state_ref->{'enabled'};
 
     use Crypt::AuthEnc::ChaCha20Poly1305;
 
     my $nonce
-        = pack( 'N', $state_ref->{session_id} )
-        . pack( 'N', $state_ref->{write_counter} )
+        = pack( 'N', $state_ref->{'session_id'} )
+        . pack( 'N', $state_ref->{'write_counter'} )
         . "\0\0\0\0";
 
     my $cipher
-        = Crypt::AuthEnc::ChaCha20Poly1305->new( $state_ref->{key}, $nonce );
+        = Crypt::AuthEnc::ChaCha20Poly1305->new( $state_ref->{'key'},
+        $nonce );
     my $ciphertext = $cipher->encrypt_add($plaintext);
     my $auth_tag   = $cipher->encrypt_done();
 
@@ -870,28 +871,29 @@ sub encrypt_message {
 
 sub decrypt_message {
     my ( $ciphertext, $state_ref ) = @ARG;
-    return $ciphertext unless $state_ref->{enabled};
+    return $ciphertext unless $state_ref->{'enabled'};
 
     use Crypt::AuthEnc::ChaCha20Poly1305;
 
     my $nonce
-        = pack( 'N', $state_ref->{session_id} )
-        . pack( 'N', $state_ref->{read_counter} )
+        = pack( 'N', $state_ref->{'session_id'} )
+        . pack( 'N', $state_ref->{'read_counter'} )
         . "\0\0\0\0";
 
     my $auth_tag  = substr( $ciphertext, -16 );
     my $encrypted = substr( $ciphertext, 0, -16 );
 
     my $cipher
-        = Crypt::AuthEnc::ChaCha20Poly1305->new( $state_ref->{key}, $nonce );
+        = Crypt::AuthEnc::ChaCha20Poly1305->new( $state_ref->{'key'},
+        $nonce );
     my $plaintext = $cipher->decrypt_add($encrypted);
     my $success   = $cipher->decrypt_done($auth_tag);
 
     return $success ? $plaintext : undef;
 }
 
-#,,..,,,,,,..,..,,,,,,.,,,,,.,...,...,,,,,,.,,...,...,..,,.,.,..,,,,,,.,,,.,.,
-#W4BDKEA5N6BPP4C4PRL4DOJONKKZZUBGSV4NEUKN4X5P7DDGQWP6OU6ZR5CY3IANNPS6KQFICRC7C
-#\\\|CNLQGYUOTDGT4YJ4X6OBRXAYSMAMTFY4WGAOM5PRS2XZN2US6M2 \ / AMOS7 \ YOURUM ::
-#\[7]YOLVZCVINOMMDKQNRF7N2TLFFSPNIBQKZEKIZ7FN62VPXDW3G4CY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,...,,.,,,..,,,,,..,,...,,,.,,,.,...,...,...,,.,,,.,,.,,,..,,..,,
+#CIXJURHQ64IC2Q56ZX46PT5DTWLTIIDAAO4V5JV6PLBQXKBCB6NINVNPJ6GKBFMEIFP2M2TQFGUZY
+#\\\|X5YJZ755HKSTSEQWCLZ55422LCEFKFHKTFXUAQW5TDRYSHEUUEJ \ / AMOS7 \ YOURUM ::
+#\[7]KLIL245GSR6YNAZ7BXDDJTTJJYOWXLDGF5VUVFS2NQF3L5LTC6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
