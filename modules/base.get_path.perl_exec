@@ -1,30 +1,32 @@
 ## [:< ##
 
 # name = base.get_path.perl_exec
-# note = see 'man perlvar' on $EXECUTABLE_NAME for why this subroutine exists =)
+# note = see 'man perlvar' [$EXECUTABLE_NAME] for why this subroutine exists =)
 
 my $perl_path;
 
 eval {
     use Config;
     $perl_path = $Config{'perlpath'};
-    if ( $^O ne 'VMS' ) {
+    if ( $^O ne qw| VMS | ) {
         $perl_path .= $Config{'_exe'}
             unless $perl_path =~ m|\Q$Config{_exe}\E$|i;
     }
 };
 
 if ( not defined $perl_path ) {
-    warn 'failed to avquire perl bin path from Config module';
+    warn 'failed to acquire perl bin path from Config module';
 } elsif ( $perl_path ne <system.perl_execname> ) {
-    warn
-        "< security > \$Config{'perlpath'} and \$EXECUTABLE_NAME differ <<!>>";
+    <[base.s_warn]>->(
+        '< security > %s and %s differ <<!>> <{C1}>',
+        $Config{'perlpath'}, $EXECUTABLE_NAME
+    );
 }
 
 return $perl_path // <system.perl_execname>;
 
-#,,,.,...,..,,.,,,...,..,,,..,,..,.,.,.,,,...,..,,...,...,...,.,.,..,,.,,,,..,
-#DFU3H6INK2CWWZQLHLISP6JZFLL2WJSRTJ2WGP7HVVU2QQWQJ2R65AJWK55WQ33VETVDK6BWPXF5C
-#\\\|K6N7WVNZWXGNN4NDF7HKR5EOMURCIHXK3LXOTFAOWJT4WVB5KOS \ / AMOS7 \ YOURUM ::
-#\[7]IK3SOMQYJO56AAEITUSIOUHYYK3G7ASPM45V2P6EBXPKPLEACIAY 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,,.,...,...,.,.,..,,..,,.,.,.,,,..,,...,..,,,..,...,.,,,...,,,.,
+#ZVV3WLFHWLOQJB5EZKCYMKCVP3JLBRYHQNZVUY7BI76D2PAW3EYWZSDQPMBKJWRZVG4HZ2AHKF3VQ
+#\\\|DT2UBLD5S2II7ZIXN56WD6LL2XJ6E3KLTNSU5CIWKTYUAYNJITX \ / AMOS7 \ YOURUM ::
+#\[7]D73A7TKT4QOYAYNGEW6RN3QKVUPF2N5CKLXJKUY4NN7C25ECDOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

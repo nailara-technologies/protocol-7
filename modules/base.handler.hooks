@@ -14,7 +14,7 @@ my ( $cmd, @args ) = @ARG;
 
 return FALSE unless defined $cmd;
 
-if ( $cmd eq 'register' ) {
+if ( $cmd eq qw| register | ) {
     ## register a hook on a session
     ## Args: session_id, hook_type, handler_code_name, [options]
     ## Hook types: input-pre, input-post, output, command
@@ -30,7 +30,7 @@ if ( $cmd eq 'register' ) {
     $data{'session'}{$sid}{'hooks'} //= {};
     $data{'session'}{$sid}{'hooks'}{$hook_type} //= [];
 
-    push @{ $data{'session'}{$sid}{'hooks'}{$hook_type} },
+    push $data{'session'}{$sid}{'hooks'}{$hook_type}->@*,
         {
         'handler' => $handler_name,
         'options' => $opts // {},
@@ -71,18 +71,20 @@ if ( $cmd eq 'register' ) {
 
     my $hooks = $data{'session'}{$sid}{'hooks'}{$hook_type} // [];
 
-    return undef if @{$hooks} == 0;
+    return undef if $hooks->@* == 0;
 
     ## call each hook in sequence, return first non-undef result
-    foreach my $hook ( @{$hooks} ) {
+    foreach my $hook ( $hooks->@* ) {
         my $handler = $hook->{'handler'};
         next unless defined $handler and exists $code{$handler};
 
         my $result = eval { $code{$handler}->( $event, @hook_args ); };
 
-        if ($@) {
-            <[base.logs]>
-                ->( 0, '[%d] hook %s error: %s', $sid, $handler, $@ );
+        if ( length $EVAL_ERROR ) {
+            <[base.logs]>->(
+                0,    '[%d] hook %s error: %s',
+                $sid, $handler, <[base.str.eval_error]>
+            );
             next;
         }
 
@@ -91,7 +93,7 @@ if ( $cmd eq 'register' ) {
 
     return undef;
 
-} elsif ( $cmd eq 'has' ) {
+} elsif ( $cmd eq qw| has | ) {
     ## check if session has hooks of a given type
     ## Args: session_id, hook_type
     ## Returns: TRUE if hooks exist, FALSE otherwise
@@ -103,7 +105,7 @@ if ( $cmd eq 'register' ) {
     my $hooks = $data{'session'}{$sid}{'hooks'}{$hook_type} // [];
     return @{$hooks} > 0 ? TRUE : FALSE;
 
-} elsif ( $cmd eq 'list' ) {
+} elsif ( $cmd eq qw| list | ) {
     ## list all hooks for a session
     ## Args: session_id
     ## Returns: hash of hook_type => [handlers]
@@ -117,8 +119,8 @@ if ( $cmd eq 'register' ) {
 
 return FALSE;
 
-#,,..,.,,,.,,,,,.,..,,...,.,,,,,.,,.,,,,.,...,...,...,.,,,..,,.,,,..,,,.,,,,,,
-#XAZTJ22FOCV7JGDGWEQDSPFC3WX4SSRDVHTLRV5BAIFSNPNHSYVGMKB7L4NW4HTB6NFCSYVVG664E
-#\\\|K3PFEVNDDQYIVJAWG7MYEIXEVALCK633Y3BIHAT2AYEUEGGLYAW \ / AMOS7 \ YOURUM ::
-#\[7]QPFITVKYET2YDGJYQZCXQOSN5WW7QX734A7NDUWGCOWBBOVIPUDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,,,,,,,,,..,.,.,,..,...,.,,,..,,...,...,..,,,.,,,..,...,,,.,...,
+#LQ5G4FOQZKW7YYT2R4ADGS5DXCDZKWT3KIN66MGWHQ5AYN4YMKE4PTYM4233BHP7MUXFDS6WJ65CA
+#\\\|6U5LU2556T6CFYON65IIWZ27RNGE3EIFCHCMDWD6H67SBUF6WJ5 \ / AMOS7 \ YOURUM ::
+#\[7]ZOG6W75AJKAINRMTOH4W7MMKYZOLT4MIVNHXPR6TES2MNUZJY2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
