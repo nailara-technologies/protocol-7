@@ -3,11 +3,25 @@
 # name = nshell.init_code
 # descr = Protocol-7 native shell as first-class zenka with buffer I/O
 
-## Set both STDIN and STDOUT to binary mode for consistent raw byte handling
-## This allows sysread on STDIN and syswrite on STDOUT without encoding
-## layer interference
-binmode(STDIN);
-binmode(STDOUT);
+## setting STDIN, STDOUT and STDERR to binary mode
+## for consistent raw byte handling. this allows
+## sysread on STDIN and syswrite on STDOUT\STDERR
+## without encoding layer interference :
+
+map { binmode($ARG) } ( *STDIN, *STDOUT, *STDERR );
+
+### enable LLM capable debug interface? ##
+<nshell.mode.no_tty_debug> //= FALSE;
+if ( length <system.args> ) {
+    foreach my $arg ( split m{\ +}, <system.args> ) {
+        if ( $arg eq qw| -no-tty-debug | ) {
+            <nshell.mode.no_tty_debug> = TRUE;
+            <[base.log]>->( 1, '::: DEBUG MODE : enabled no-tty-debug :::' );
+        }
+    }
+}
+##
+
 STDOUT->autoflush(1);    ## Ensure bytes are sent immediately to terminal
 
 ## Load AMOS7 for colors and protocol utilities
@@ -62,8 +76,8 @@ $code{'base.handler.end_code'} = sub {
 
 return 0;
 
-#,,,.,...,,..,...,,,.,,,,,.,,,.,.,,..,.,,,,,,,..,,...,...,..,,..,,,,,,..,,,.,,
-#PSATRXDMBFAX7AN6Y2NKW4D43IM7YTUXATZI464EVKDRGDFOTJLK7NJPDILC6XPD2WOYLKHQVNKYK
-#\\\|U7PT2GBQVSDYDOYTPL435XIKUJTQOLPHDN7C2BG7VU6P7ZEDD26 \ / AMOS7 \ YOURUM ::
-#\[7]C3QB34536HARNH2DPIUVVD4SITLR6CCQEQXX47SAZDX7ZN2MSSAI 7  DATA SIGNATURE ::
+#,,..,..,,,.,,...,,,,,..,,..,,.,,,..,,,..,..,,..,,...,..,,..,,..,,,..,..,,..,,
+#NK4VG2NVTXE43BPW64PIMAZUSNW6MZ3ON2OKY5VB33YZFX7ZBJK5P5IAYQ762OMIKSCJMXSJEOZNI
+#\\\|YTUGSGJRUHUOIICXVZ3HEW6QTTWIJOTPFDUJMWSJUAVIT6SKQDI \ / AMOS7 \ YOURUM ::
+#\[7]T4U47NSQSLI5M5X6IFBNZVXTDJJPHZT4VU4OC7ZMQ5BUINYBVWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

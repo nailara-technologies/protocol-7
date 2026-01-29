@@ -3,7 +3,7 @@
 # name = nshell.history.page_down
 # descr = Session-based page down navigation (older history entries)
 
-my ( $state_ref, $editor, $colors ) = @_;
+my ( $state_ref, $editor, $colors ) = @ARG;
 
 ## Configuration
 my $session_gap_minutes = 10 // 13;
@@ -11,21 +11,21 @@ my $gap_seconds         = $session_gap_minutes * 60;
 
 ## At prompt: PageDown should stay at prompt
 ## But render empty prompt to clear any stray init cursor
-if ( $state_ref->{current_history_index} < 0 ) {
+if ( $state_ref->{'current_history_index'} < 0 ) {
     <[nshell.render.empty_prompt]>->( $state_ref, $editor, $colors );
     return;
 }
 
 ## Already viewing history - use tracked index
-my $current_index = $state_ref->{current_history_index};
+my $current_index = $state_ref->{'current_history_index'};
 
-## Use paging stack if available (set by Page Up)
+## Use paging stack if available [ set by Page Up ]
 ## This ensures Page Down follows exact Page Up path in reverse
 my $target_index;
 
-if ( @{ $state_ref->{paging_index_stack} } ) {
-    ## Stack has indices from Page Up - use them in reverse order (LIFO)
-    $target_index = pop @{ $state_ref->{paging_index_stack} };
+if ( $state_ref->{'paging_index_stack'}->@* ) {
+    ## Stack has indices from Page Up - use them in reverse order [LIFO]
+    $target_index = pop $state_ref->{'paging_index_stack'}->@*;
 } else {
     ## No stack entries - find next older session boundary normally
     $target_index = <[nshell.history.find_session_boundary]>->(
@@ -38,8 +38,8 @@ $target_index = -1 unless defined $target_index;
 
 ## If no older session found, return to empty prompt
 if ( $target_index < 0 ) {
-    $state_ref->{current_history_index} = -1;
-    $state_ref->{paging_index_stack}    = [];    # Clear paging stack
+    $state_ref->{'current_history_index'} = -1;
+    $state_ref->{'paging_index_stack'}    = [];    # Clear paging stack
     <[nshell.render.empty_prompt]>->( $state_ref, $editor, $colors );
     return;
 }
@@ -51,31 +51,31 @@ if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
         my $lines_ref = $entry->[1];
 
         ## Clear previous display
-        my $clear_len = length( $state_ref->{display_buffer} ) + 20;
+        my $clear_len = length( $state_ref->{'display_buffer'} ) + 20;
         $clear_len = 20 if $clear_len < 20;
         print "\r" . ( ' ' x $clear_len ) . "\r";
 
-        $state_ref->{display_buffer}        = join "\n", $lines_ref->@*;
-        $state_ref->{current_history_index} = $target_index;
+        $state_ref->{'display_buffer'}        = join "\n", $lines_ref->@*;
+        $state_ref->{'current_history_index'} = $target_index;
 
         ## Load into editor to sync editor buffer
-        AMOS7::TERM::editor_load( $editor, $state_ref->{display_buffer} );
+        AMOS7::TERM::editor_load( $editor, $state_ref->{'display_buffer'} );
 
         my $display_buffer
-            = $colors->{p7_fg_0004} . $state_ref->{display_buffer};
+            = $colors{'p7_fg_0004'} . $state_ref->{'display_buffer'};
 
         ## Redraw full line with cursor
         <[nshell.render.full_line]>->( $editor, $display_buffer, $colors );
 
         ## Enter VIEWING_HISTORY mode
-        $state_ref->{current_mode} = 2;    # VIEWING_HISTORY
+        $state_ref->{'current_mode'} = 2;    # VIEWING_HISTORY
     }
 }
 
 return;
 
-#,,,,,,.,,,,.,.,,,...,,.,,,,.,.,.,,,.,,.,,,.,,.,.,...,...,,..,,,.,.,.,.,,,,,.,
-#SHMDYCS67AHZNWP7LH2KXJDDPUT6MCFI47M5T46WMDVQX2HXW3T7XT2ITDBHVF4QFA2HVTTKIBHUA
-#\\\|GTZKF36N3ZOB2GQZOJDY7EO3WDLNX73N7TWRQSHC7DQSOO3HBSD \ / AMOS7 \ YOURUM ::
-#\[7]MIH32PKBZMXKC6QJEWUBPXNCSDE7MWCARK6PIDLVWX7OAUYIESDI 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,.,.,,.,,,,,,...,.,.,,.,,...,,..,.,.,...,...,,,.,,.,,,,.,,,.,..,,
+#7JAOXWMVB7HQZ3X2TTTMDRZQ5X5T4VWGSR6DLY266EWEDVH532WJYHUEVSJLZ4MS3MB5WQSIVDVIK
+#\\\|M7M55OTDKJO72EBS3Q24T6J3JBNJKFV5INJP3VDJZ5MC4VU7IAC \ / AMOS7 \ YOURUM ::
+#\[7]S7WY2Q4FQDI2I27AQ2MOBNBMJICRYLMENEL7WKS7DGOJYQUHA6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

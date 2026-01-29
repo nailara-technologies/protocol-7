@@ -3,27 +3,27 @@
 # name = nshell.render.empty_prompt
 # descr = Render empty prompt with cursor - centralized exit point from history
 
-my ( $state_ref, $editor, $colors ) = @_;
+my ( $state_ref, $editor, $colors ) = @ARG;
 
 ## Clear the line completely
 print "\r\e[2K";
 
 ## Reset state to empty
-$state_ref->{display_buffer}        = '';
-$state_ref->{current_mode}          = 0;     # NORMAL mode
-$state_ref->{current_history_index} = -1;    # Not in history mode
+$state_ref->{'display_buffer'}        = '';
+$state_ref->{'current_mode'}          = 0;     # NORMAL mode
+$state_ref->{'current_history_index'} = -1;    # Not in history mode
 
 ## Load empty into editor
 AMOS7::TERM::editor_load( $editor, '' );
 
 ## Render the empty prompt with cursor
-my $display_buffer = $colors->{p7_fg_0004};
+my $display_buffer = $colors{'p7_fg_0004'};
 <[nshell.render.full_line]>->( $editor, $display_buffer, $colors );
 
 return;
 
-#,,,.,.,.,..,,,,,,,.,,,..,..,,..,,,,.,.,,,.,,,.,.,...,...,.,,,.,.,.,.,...,..,,
-#RI65KXTONQPCRNT4VIXMU2NTETBQPSY55ZSY765EXSHCVWNUVY5QFAXXC2TLXILIKYMJOP2FIT25Q
-#\\\|QIVTJTATXXVNFHHHRZQREPSKTMRQITBQZ6QAHC5ACWBCAZ3FYDY \ / AMOS7 \ YOURUM ::
-#\[7]ADBMQB2MKKLUQXPJ3AL5RHXVJJNK43735LXSLYE3B4HEYNNYTGDY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,..,.,,,,.,,,.,,.,,,...,..,,,.,,.,.,...,...,...,,..,,,.,,,,,,.,,
+#E2LSZD3ZC7CMKITMYKZBEUFVVY2CAMB7KBCN2VCPWEAHLTQXKQTVRHXF4Z6XLCKW473CVJZ2NOJXM
+#\\\|TLX3SWAD3NKC3E4FL4BH6OC3FQEOJZZ3Z7QFMWJFKQEA6QAHGL3 \ / AMOS7 \ YOURUM ::
+#\[7]PU7LSA54EXU5DA4P4QLJASO37CTQD5LZ5XWK5YXPX4MTNYD2NIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

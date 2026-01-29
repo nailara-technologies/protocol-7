@@ -15,34 +15,25 @@ state $show_cursor_on_call = TRUE;
 
 ## Get state reference (initialize on first call)
 if ( !defined $state_ref ) {
-    $state_ref = <[nshell.state.init]>->();
+    $state_ref = <[nshell.state.init]>;
 }
 
 ## Sync state to %data for debugging
 $main::data{'nshell'}{'edit_state'} = {
-    current_history_index => $state_ref->{current_history_index},
-    display_buffer        => $state_ref->{display_buffer},
-    search_mode           => $state_ref->{search_mode},
+    current_history_index => $state_ref->{'current_history_index'},
+    display_buffer        => $state_ref->{'display_buffer'},
+    search_mode           => $state_ref->{'search_mode'},
 };
 
 ## Show cursor at start of each call (after command execution or on first call)
 if ($show_cursor_on_call) {
     $show_cursor_on_call = FALSE;
 
-    ## Load colors if not already loaded
-    if ( !keys %{ $state_ref->{colors} } ) {
-        eval { %{ $state_ref->{colors} } = %{<nshell.colors>} };
-        $state_ref->{colors}->{p7_fg_0003}
-            //= $AMOS7::TERM::p7_colors{'p7_fg_0003'};
-        $state_ref->{colors}->{p7_fg_0004}
-            //= $AMOS7::TERM::p7_colors{'p7_fg_0004'};
-        $state_ref->{editor} //= AMOS7::TERM::editor_init();
-        AMOS7::TERM::cursor_set_color( $state_ref->{colors}->{p7_fg_0003} );
-    }
+    $state_ref->{'editor'} //= AMOS7::TERM::editor_init();
+    AMOS7::TERM::cursor_set_color( $colors{'p7_fg_0003'} );
 
     ## Display cursor
-    print $state_ref->{colors}->{p7_fg_0003} . '_' . "\e[0m"
-        . $state_ref->{colors}->{p7_fg_0004};
+    print $colors{'p7_fg_0003'} . '_' . "\e[0m" . $colors{'p7_fg_0004'};
     STDOUT->flush();
 
     return undef;    ## Return to event loop to display cursor before input
@@ -72,15 +63,7 @@ if ( -t STDIN ) {
     }
 }
 
-## Load colors if needed for key processing
-if ( !keys %{ $state_ref->{colors} } ) {
-    eval { %{ $state_ref->{colors} } = %{<nshell.colors>} };
-    $state_ref->{colors}->{p7_fg_0003}
-        //= $AMOS7::TERM::p7_colors{'p7_fg_0003'};
-    $state_ref->{colors}->{p7_fg_0004}
-        //= $AMOS7::TERM::p7_colors{'p7_fg_0004'};
-    $state_ref->{editor} //= AMOS7::TERM::editor_init();
-}
+$state_ref->{'editor'} //= AMOS7::TERM::editor_init();
 
 ## Process all buffered characters
 while ( length $input_chars ) {
@@ -89,7 +72,7 @@ while ( length $input_chars ) {
 
     ## Accumulate escape sequences
     if ( $key eq "\e" ) {
-        $state_ref->{escape_buffer} = $key;
+        $state_ref->{'escape_buffer'} = $key;
         for ( my $i = 0; $i < 20; $i++ ) {
             ## Check if we need more input
             if ( !length $input_chars && -t STDIN ) {
@@ -99,15 +82,15 @@ while ( length $input_chars ) {
             last if not length $input_chars;
 
             my $next_key = substr( $input_chars, 0, 1, '' );
-            $state_ref->{escape_buffer} .= $next_key;
+            $state_ref->{'escape_buffer'} .= $next_key;
 
             ## Check if sequence is complete (arrow, page, function keys)
             last
-                if $state_ref->{escape_buffer}
+                if $state_ref->{'escape_buffer'}
                 =~ m{\e\[[A-Z]|\eO[A-Z]|\e\[[0-9;]*~$};
         }
-        $key = $state_ref->{escape_buffer};
-        $state_ref->{escape_buffer} = '';
+        $key = $state_ref->{'escape_buffer'};
+        $state_ref->{'escape_buffer'} = '';
     }
 
     ## Convert Home/End keys to Ctrl+A/Ctrl+E for editor processing
@@ -118,10 +101,11 @@ while ( length $input_chars ) {
     }
 
     ## In search mode: delegate to search handler
-    if ( $state_ref->{search_mode} ) {
+    if ( $state_ref->{'search_mode'} ) {
         my $result = <[nshell.search.handler]>->(
-            $state_ref, $key, \$input_chars, $state_ref->{editor},
-            $state_ref->{colors}
+            $state_ref, $key, \$input_chars,
+            $state_ref->{'editor'},
+            $state_ref->{'colors'}
         );
         ## Handle return codes from search handler
         if ( $result == 1 ) {
@@ -129,11 +113,11 @@ while ( length $input_chars ) {
             next;
         } elsif ( $result == 2 ) {
             ## Selected command - return it for execution
-            my $selected = $state_ref->{editor}->{buffer} // '';
+            my $selected = $state_ref->{'editor'}->{buffer} // '';
 
             ## Clear editor buffer for next command
-            $state_ref->{editor}->{buffer}     = '';
-            $state_ref->{editor}->{cursor_pos} = 0;
+            $state_ref->{'editor'}->{buffer}     = '';
+            $state_ref->{'editor'}->{cursor_pos} = 0;
 
             ## Set flag to redraw cursor on next call after reply arrives
             $show_cursor_on_call = TRUE;
@@ -145,65 +129,127 @@ while ( length $input_chars ) {
     }
 
     ## In viewing history mode: handle navigation keys
-    if ( $state_ref->{current_mode} == 2 ) {    # VIEWING_HISTORY
+    if ( $state_ref->{'current_mode'} == 2 ) {    # VIEWING_HISTORY
+        ## Execute and advance forward (Ctrl+O)
+        if ( $key eq "\x0f" ) {                   # Ctrl+O
+            if (<nshell.mode.no_tty_debug>) {
+                <[base.logs]>->(
+                    1,
+                    "ctrl_o: key received in VIEWING_HISTORY mode, index=%s",
+                    $state_ref->{'current_history_index'}
+                );
+            }
+
+            ## Only process if we have a valid history entry
+            if ( defined $state_ref->{'current_history_index'}
+                && $state_ref->{'current_history_index'} >= 0 ) {
+
+                my $result = <[nshell.handler.ctrl_o_cycle]>->($state_ref);
+
+                if ( defined $result ) {
+                    if (<nshell.mode.no_tty_debug>) {
+                        <[base.logs]>->(
+                            1, "ctrl_o: handler returned result, length=%s",
+                            length($result)
+                        );
+                    }
+                    $show_cursor_on_call = TRUE;
+                    return $result;
+                }
+            } else {
+                if (<nshell.mode.no_tty_debug>) {
+                    <[base.log]>->(
+                        1, "ctrl_o: skipping - index undefined or negative"
+                    );
+                }
+            }
+            next;
+        }
+
+        ## Reset Ctrl+O cycle on manual navigation
+        if ( $key eq "\e[A" or $key eq "\e[B" ) {    # Up or Down arrow
+            $state_ref->{'ctrl_o_start_position'} = undef;
+            $state_ref->{'ctrl_o_entries_added'}  = 0;
+            ## Fall through to existing arrow handling
+        }
+
         if ( $key eq "\e[A" ) {
             <[nshell.history.arrow_up]>->(
-                $state_ref, $state_ref->{editor}, $state_ref->{colors}
+                $state_ref,
+                $state_ref->{'editor'},
+                $state_ref->{'colors'}
             );
             next;
         } elsif ( $key eq "\e[B" ) {
             <[nshell.history.arrow_down]>->(
-                $state_ref, $state_ref->{editor}, $state_ref->{colors}
+                $state_ref,
+                $state_ref->{'editor'},
+                $state_ref->{'colors'}
             );
             next;
         } elsif ( $key eq "\e[5~" ) {
             <[nshell.history.page_up]>->(
-                $state_ref, $state_ref->{editor}, $state_ref->{colors}
+                $state_ref,
+                $state_ref->{'editor'},
+                $state_ref->{'colors'}
             );
             next;
         } elsif ( $key eq "\e[6~" ) {
             <[nshell.history.page_down]>->(
-                $state_ref, $state_ref->{editor}, $state_ref->{colors}
+                $state_ref,
+                $state_ref->{'editor'},
+                $state_ref->{'colors'}
             );
             next;
         }
     }
 
     ## In normal mode: special key handling
-    if ( $state_ref->{current_mode} == 0 ) {    # NORMAL
-        if ( $key eq "\x12" ) {                 # Ctrl+R
-            $state_ref->{search_mode}       = TRUE;
-            $state_ref->{current_mode}      = 1;      # SEARCHING
-            $state_ref->{pre_search_buffer} = $state_ref->{editor}->{buffer}
-                // '';
-            $state_ref->{search_term}    = '';
-            $state_ref->{search_results} = [];
-            $state_ref->{search_index}   = 0;
+    if ( $state_ref->{'current_mode'} == 0 ) {    # NORMAL
+        ## Ctrl+O in normal mode: ignore [ only works in history mode ]
+        if ( $key eq "\x0f" ) {                   # Ctrl+O
+            next;
+        }
+
+        if ( $key eq "\x12" ) {                   # Ctrl+R
+            $state_ref->{'search_mode'}  = TRUE;
+            $state_ref->{'current_mode'} = 1;      # SEARCHING
+            $state_ref->{'pre_search_buffer'}
+                = $state_ref->{'editor'}->{buffer} // '';
+            $state_ref->{'search_term'}    = '';
+            $state_ref->{'search_results'} = [];
+            $state_ref->{'search_index'}   = 0;
 
             ## Render initial search prompt with correct formatting
-            print "\r\e[K"
-                . $state_ref->{colors}->{p7_fg_0003}
-                . "[search:  ] ";
+            print "\r\e[K" . $colors{'p7_fg_0003'} . "[search:  ] ";
             STDOUT->flush();
             next;
         } elsif ( $key eq "\e[5~" ) {
             <[nshell.history.page_up]>->(
-                $state_ref, $state_ref->{editor}, $state_ref->{colors}
+                $state_ref,
+                $state_ref->{'editor'},
+                $state_ref->{'colors'}
             );
             next;
         } elsif ( $key eq "\e[6~" ) {
             <[nshell.history.page_down]>->(
-                $state_ref, $state_ref->{editor}, $state_ref->{colors}
+                $state_ref,
+                $state_ref->{'editor'},
+                $state_ref->{'colors'}
             );
             next;
         } elsif ( $key eq "\e[A" ) {
             <[nshell.history.arrow_up]>->(
-                $state_ref, $state_ref->{editor}, $state_ref->{colors}
+                $state_ref,
+                $state_ref->{'editor'},
+                $state_ref->{'colors'}
             );
             next;
         } elsif ( $key eq "\e[B" ) {
             <[nshell.history.arrow_down]>->(
-                $state_ref, $state_ref->{editor}, $state_ref->{colors}
+                $state_ref,
+                $state_ref->{'editor'},
+                $state_ref->{'colors'}
             );
             next;
         }
@@ -211,13 +257,16 @@ while ( length $input_chars ) {
 
     ## All other keys: delegate to editor.process
     my $result = <[nshell.editor.process]>->(
-        $state_ref->{editor}, $key, $state_ref->{colors}
+        $state_ref->{'editor'},
+        $key, $state_ref->{'colors'}
     );
 
     ## Check for state change when exiting history mode
-    if ( defined $result && $state_ref->{current_mode} == 2 ) {
-        $state_ref->{current_mode}          = 0;    # Return to NORMAL
-        $state_ref->{current_history_index} = -1;
+    if ( defined $result && $state_ref->{'current_mode'} == 2 ) {
+        $state_ref->{'current_mode'}          = 0;       # Return to NORMAL
+        $state_ref->{'current_history_index'} = -1;
+        $state_ref->{'ctrl_o_start_position'} = undef;
+        $state_ref->{'ctrl_o_entries_added'}  = 0;
     }
 
     ## Return command if submitted
@@ -230,8 +279,8 @@ while ( length $input_chars ) {
 
 return undef;
 
-#,,.,,,..,,.,,.,.,,,.,,..,,,,,,,,,,,.,,,,,,,,,.,.,...,...,..,,,..,.,,,.,,,,,.,
-#HVJEWPYVDSXSNWTP3DU5XKW6PO6426OJQ7JRTDCNAUT6LY4HDEEICNBV7QNPIC2MUEQUS36VWUWOA
-#\\\|HBZABBX33U54VYYUO32ZX4TUFFM7TTVX6IZA66VLNSRGE3YKEW2 \ / AMOS7 \ YOURUM ::
-#\[7]V7FDCIQ5B2UU25KT7Z6AIO2Y4PWCK6L3HFWMDDUDMCHXXONWMUDI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,,.,,,.,.,.,...,.,,,.,.,,,.,.,,,.,.,...,...,..,,,.,,,..,...,,,,,
+#FJW4AC6WBHTLGT7MUOZXDUEEKE2LKE5DNTCZORMQ2QCP4CHTD4IDB3SHSBMLJ5QVWRL456WTGXP3K
+#\\\|AGQQW3BTNYYICGFWO6YGEFMXP4ESPNZMGUE3NNINF7JOSJKDSLL \ / AMOS7 \ YOURUM ::
+#\[7]AFTUX3YCGFICVXQI3GDFFP73DABCWETWDKEWEPMRQCKDOQSNNKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

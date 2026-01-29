@@ -3,7 +3,7 @@
 # name = nshell.editor.process
 # descr = Main dispatcher for editor operations (character insertion, deletion, newline)
 
-my ( $editor, $key, $colors ) = @_;
+my ( $editor, $key, $colors ) = @ARG;
 
 ## Initialize editor on first key
 $editor //= AMOS7::TERM::editor_init();
@@ -32,12 +32,12 @@ my $redraw_with_cursor = sub {
     my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
 
     if ( $char_at_cursor eq '' or $char_at_cursor eq ' ' ) {
-        print $colors->{p7_fg_0003} . '_';
+        print $colors{'p7_fg_0003'} . '_';
     } else {
         print "\e[7m" . $char_at_cursor . "\e[27m";
     }
 
-    print "\e[0m" . $colors->{p7_fg_0004};
+    print "\e[0m" . $colors{'p7_fg_0004'};
 
     ## Print everything after cursor
     if ( $cursor_pos < length($buffer) ) {
@@ -82,7 +82,7 @@ if ( $action eq 'signal' ) {
     my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
 
     ## Go to start of line, clear any cursor remnants, then print buffer
-    print "\r\e[K" . $colors->{p7_fg_0004} . $buffer . " ";
+    print "\r\e[K" . $colors{'p7_fg_0004'} . $buffer . " ";
     STDOUT->flush();
 
     ## Send signal to current process
@@ -110,10 +110,10 @@ if ( $action eq 'newline' ) {
     } else {
         ## Cursor was rendered as inverse video character
         ## Reprint the character without inverse to overwrite
-        print $colors->{p7_fg_0004} . $char_at_cursor;
+        print $colors{'p7_fg_0004'} . $char_at_cursor;
     }
 
-    print "\e[0m" . $colors->{p7_fg_0004};
+    print "\e[0m" . $colors{'p7_fg_0004'};
 
     ## Print the newline
     print $edit_result->{output};
@@ -131,7 +131,7 @@ if ( $action eq 'newline' ) {
         AMOS7::TERM::history_add(@lines);
     } else {
         ## Only redraw cursor on next line if prompt was empty
-        print $colors->{p7_fg_0003} . "_";
+        print $colors{'p7_fg_0003'} . "_";
         STDOUT->flush();
     }
 
@@ -141,8 +141,8 @@ if ( $action eq 'newline' ) {
 ## Unknown action - ignore
 return undef;
 
-#,,,,,,,,,,.,,.,.,,..,.,.,.,.,,,,,,..,...,,..,.,.,...,...,.,,,,,,,,.,,...,.,.,
-#ZT4WMVBXBSWI6M2SEOJNQBR3YRXWY34Y3LEC3MDCG3UR4ZDH75XU4EGHPJ6SPCIGNTUBOIQCD3VYO
-#\\\|Y6JQBZK3FKV64JAGGRE5FBXFOXEUOZ4OFAKNOGZ3GJAM3CJW2U5 \ / AMOS7 \ YOURUM ::
-#\[7]ANRPWQEYQ2OXTSLEZFA4KK3CEAYT7LTQ3JSNUPYRXHIN6CFKLACY 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,,,,,..,,..,,..,,,,.,,..,..,,.,,,.,.,...,...,,..,,.,,,,,,.,.,.,.,
+#DYNR5QQQPYL65ZUEKOXNJHLE3TGOAUKURABZJL2WXD5N7ZFGNM3AMDUDOIIHVZ7APTJPLOI5HTFUQ
+#\\\|KRI6OSBHGBLZFHYRZXJHSA46ACGXEKIGFDYIXLWFICEFCMIZ6YO \ / AMOS7 \ YOURUM ::
+#\[7]VRB5FVT5W752GHB4QWRC2DQ5UZAQF6CDQAOJEEMEU6FBDQCD7IBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
