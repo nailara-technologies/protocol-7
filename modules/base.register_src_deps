@@ -2,28 +2,80 @@
 
 # name = base.register_src_deps
 
-my %np7_src        = map { $ARG => 5 } @ARG;
+my %np7_src        = map { $ARG => TRUE } @ARG;
 my $zenka          = <system.zenka.name>;
 my $cfg_path       = <system.conf_path>;
 my $start_cfg_name = qw| start |;
 
-my $src_deps = <[base.get_path.zenka_cfg]>;
+my $file_perm = 0664;    ## zenka group gets write access ##
 
-if (    $src_deps =~ s|zenki/$zenka/$start_cfg_name|$cfg_path/$zenka/source|
-    and -d $src_deps
-    and -w $src_deps ) {
-    foreach my $mod_name ( sort keys %np7_src ) {
-        next
-            if -e join( qw| / |, $src_deps, $mod_name )
-            or $mod_name eq qw| devmod |;
-        my $fh;    ## use mknod to create empty files ##  [LLL]
-        open( $fh, qw| > |, sprintf qw| %s/%s |, $src_deps, $mod_name )
-            and close($fh);
-    }
+## Determine owner based on execution context
+my $owner;
+if (<[base.zenka.is_v7_started]>) {
+    ## In v7 zenka context: use protocol-7 user
+    $owner = <system.amos-zenka-user> // qw| protocol-7 |;
+} else {
+    ## Console execution: use current user (likely root)
+    $owner = getpwuid($EUID) // qw| root |;
 }
 
-#,,,,,..,,,,.,,.,,,.,,...,.,,,..,,,,,,,.,,,,,,..,,...,...,..,,...,,..,.,,,,,,,
-#BVDXNK22E5S2ORQVWHRFAESROTJHA7HXVZ3A4TIZRZ3S77UKDEOCKZLSOQPAK6EG3KD3NEYTMJDI2
-#\\\|W7J4V4PVLK7EZIDVOTHJPYVCTC6OIOW4XCYE2W4GMWMQW76W6HZ \ / AMOS7 \ YOURUM ::
-#\[7]MFYNCNFKXDBFF3ACA6AWW6GKAEZZOIZEUSOMNBADTTCLEJRELADI 7  DATA SIGNATURE ::
+my $src_deps = <[base.get_path.zenka_cfg]>;
+$src_deps =~ s|zenki/$zenka/$start_cfg_name|$cfg_path/zenki/$zenka/source|;
+
+my ( undef, undef, $owner_uid, $gid ) = getpwnam($owner)
+    or <[base.logs]>->(
+    0, "<< register_src_deps : unix user '%s' not in passwd >>", $owner
+    ) and return undef;
+
+if ( -d $src_deps and -w $src_deps ) {
+    my $src_stat = File::stat::stat($src_deps);
+
+    my $skip_chmod = TRUE;    ## skip chmod if root and standalone ##
+    if ( $EUID == 0 ) {
+        foreach my $start_type (qw| v7-started-zenka cube v7 |) {
+            $skip_chmod = FALSE
+                and last
+                if defined <system.zenka.type>
+                and <system.zenka.type> eq $start_type;
+        }
+    }
+
+    foreach my $mod_name ( sort keys %np7_src ) {
+        my $touch_file = catfile( $src_deps, $mod_name );
+        next if $mod_name eq qw| devmod |;
+
+        ## create file if it doesn't exist ##
+        if ( !-e $touch_file ) {
+            my $fh;    ## use mknod to create empty files ##  [LLL]
+            open( $fh, qw| >> |, $touch_file ) and close($fh);
+        }
+
+        next if $skip_chmod;    ## skip chmod [ root + standalone ] ##
+
+        ( my $relpath = $touch_file ) =~ s|^.*/||;
+
+        ## chmod ##
+        chmod( $file_perm, $touch_file )
+            or <[base.logs]>->(
+            2,        ":. : '%s' : chmod : %s .:",
+            $relpath, <[base.str.os_err]>
+            );
+
+        ## chown ##
+        if ( $EUID == 0 ) {
+            chown( $src_stat->uid, $gid, $touch_file )
+                or <[base.logs]>->(
+                2,        ':. : cannot chown %s : %s .:',
+                $relpath, <[base.str.os_err]>
+                );
+        }
+    }
+} else {
+    <[base.log]>->( 2, "<< no [writable] src-deps directory found >>" );
+}
+
+#,,,,,.,,,,.,,.,.,.,.,,,,,,,,,,,,,,,.,,,.,..,,..,,...,...,.,.,,,.,,,.,,,.,,..,
+#QRLVDX6M4H3BIKDBV5CLI67LR2GEG4QUV6QWIROGJ3QH4FPMN4FHMJ2I5PEQ7AGY4IMAGMFGHEGAG
+#\\\|PQG3ZCBTFIX33ISVHXRYJJHVTHBQAARRQGDGJY4RU23U7OLF43H \ / AMOS7 \ YOURUM ::
+#\[7]6J62JZPNDGP4LLTZE3RZJXRMZJRHF6VN7OCFZ34UTHRQ6LUKYEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

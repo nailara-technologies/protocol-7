@@ -14,13 +14,13 @@ my ( undef, undef, $user_uid, $gid ) = getpwnam($user)
     0, "<< check_dependency_dirs : unix user '%s' not found >>", $user
     ) and return undef;
 
-my @sub_dirs = qw|
+my @sub_dirs = qw[
     os-dep
     os-dep/binary
     os-dep/debian
     pm-dep
     source
-    |;
+];
 
 my $dep_dir = <[base.get_path.zenka_cfg]>;
 
@@ -34,9 +34,9 @@ if (    $dep_dir =~ s|zenki/$zenka/$start_cfg_name$|$cfg_path/zenki/$zenka|
     my $src_stat = File::stat::stat($dep_dir);
 
     foreach my $sub_dir (@sub_dirs) {
-        my $dir_path = sprintf qw| %s/%s |, $dep_dir, $sub_dir;
+        my $dir_path = catfile( $dep_dir, $sub_dir );
         ## create ##
-        if ( not -d $dir_path ) {
+        if ( not -d $dir_path ) {    ## use <[file.make_path]> .. [LLL]
             mkdir($dir_path)
                 or <[base.s_warn]>->(
                 'mkdir[%s] : %s',
@@ -92,8 +92,8 @@ if (    $dep_dir =~ s|zenki/$zenka/$start_cfg_name$|$cfg_path/zenki/$zenka|
     }
 }
 
-#,,,.,,,,,.,,,...,,.,,..,,,,.,,,.,...,,,,,,,,,..,,...,...,.,,,..,,.,.,,,,,...,
-#2ABONUWCC4NU5MREODH7DLNZHHXQ3AHIX64XQFV7D4IAUAHXI5L5HL65LOO6NPDC3LDLZKVGY56YS
-#\\\|WOSEDTFNRH72I6AIUYCOLI7EFGWUGG3RPEU2TFSXO6OBKKL36MV \ / AMOS7 \ YOURUM ::
-#\[7]TBKZG4PO6YVK76POIEDUK623S7WNA74DQNDE2DFB5SWTRMID4KBA 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,.,,..,,...,...,...,..,,.,,,..,,..,,...,...,..,,,,.,,,.,.,,,...,
+#EIKXLWRIBRRJVUNEVRMMWMJE7DNCZRLJ4ADX6T3SVZQQWB4U3VDMT6LN3CBDW6VWWXBMB7IDNQPNQ
+#\\\|LX2RSK7ZLUBGEPHGNKSARQBOBT5LUZHZVIADTBGNPJTTH6KF44D \ / AMOS7 \ YOURUM ::
+#\[7]FOIJT52SIDKZHFVPUOQYO5HGBCODNE7YJI44GV5RIJ2LRTF7BKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

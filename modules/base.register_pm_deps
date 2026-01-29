@@ -11,9 +11,16 @@ state $access_warned = FALSE;
 
 my $file_perm = 0664;    ##  zenka group gets write access  ##
 
+## load Module::CoreList if not present yet ##
+if ( not <[base.perlmod.loaded]>->('Module::CoreList') ) {
+    <[base.perlmod.load]>->(qw[ Module::CoreList ]);
+    $pmods{'Module::CoreList'} = TRUE;    ## adding it to the list ##
+}
+#
+
 ## Determine owner based on execution context
 my $owner;
-if ( <[base.zenka.is_v7_started]> ) {
+if (<[base.zenka.is_v7_started]>) {
     ## In v7 zenka context: use protocol-7 user
     $owner = <system.amos-zenka-user> // qw| protocol-7 |;
 } else {
@@ -37,8 +44,7 @@ if ( $mod_dir
 
     my $src_stat = File::stat::stat($mod_dir);
 
-    if (    -d $mod_dir
-        and -r $mod_dir ) {
+    if ( -d $mod_dir and -r $mod_dir ) {
 
         my $skip_chmod = TRUE;    ## skip chmod if root and standalone ##
         if ( $EUID == 0 ) {
@@ -53,16 +59,17 @@ if ( $mod_dir
         foreach my $mod_name ( <[base.reverse-sort]>->( \%pmods ) ) {
             ## Convert :: to __ for Windows filesystem compatibility
             ( my $mod_name_fs = $mod_name ) =~ s|::|__|g;
-            next if -e catdir( $mod_dir, $mod_name_fs );
-            eval 'use Module::CoreList'
-                if not defined &Module::CoreList::is_core;
-            next if $EVAL_ERROR or Module::CoreList::is_core($mod_name);
+            next if Module::CoreList::is_core($mod_name);
             if ( -w $mod_dir ) {
                 my $path_abs = catfile( $mod_dir, $mod_name_fs );
                 ( my $relpath = $path_abs ) =~ s|^.*/||;
-                my $fh;
-                open( $fh, qw| > |, $path_abs )
-                    and close($fh);
+
+                ## create file if it doesn't exist ##
+                if ( !-e $path_abs ) {
+                    my $fh;
+                    open( $fh, qw| > |, $path_abs )
+                        and close($fh);
+                }
 
                 next if $skip_chmod;    ## skip chmod [ root + standalone ] ##
 
@@ -99,8 +106,8 @@ if ( $mod_dir
     }
 }
 
-#,,.,,,,.,...,,.,,.,,,,..,.,,,,,,,,..,..,,.,.,..,,...,...,,,.,.,.,...,.,.,.,.,
-#2GBM4RIWSBCQGUI3JT2UHWKQQKEHJFZ2FE3IGNMAR2T4762DJAAVUTHX6BQ6JNXPPMP375GV3ICCW
-#\\\|RFUWXEGUL76GCKZDCGEL2NKGOYCKYHV5KOJCG72SEOLVJ7EMT3G \ / AMOS7 \ YOURUM ::
-#\[7]V7GL5ZTJMUUDXDSUI36FRNTIGKVLHE3IGE2CWQQJNOP6PWWEUGDQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,,,,..,,.,,..,,...,,..,,..,,..,..,,...,...,.,,,,,.,.,.,..,,.,.,
+#FLLVMRVVQFGZ6V5IYHQLG2ATMJEXGK4E6L2CVTPNNWR3UQYKRVWLVESTPLKQNEZV45P6ALXBZ4S44
+#\\\|6CO2QAVNYV6BRETUCRIFCQHMXMQP5QLQRNZE3OA45THIAWWQUDD \ / AMOS7 \ YOURUM ::
+#\[7]XHBBRLVFJRFTJH3TW6GEHPSX3UDRUFITGHRIQHJ6DWVDVEXRYUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
