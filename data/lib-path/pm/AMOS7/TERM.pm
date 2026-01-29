@@ -28,10 +28,13 @@ use vars qw| $VERSION @EXPORT @EXPORT_OK |;
 
 my $VERSION = qw| AMOS7::TERM-VERSION.7OT2XVQ |;
 
-@EXPORT_OK = qw| terminal_title
-    history_init history_add history_up history_down history_page_up history_page_down
-    editor_init editor_process_key editor_get_buffer editor_submit editor_reset editor_load
-    cursor_render cursor_clear_old cursor_set_color cursor_set_animation cursor_enable cursor_disable |;
+@EXPORT_OK = qw[
+    terminal_title has_tty history_init history_add history_up
+    history_down history_page_up history_page_down editor_init
+    editor_process_key editor_get_buffer editor_submit editor_reset
+    editor_load cursor_render cursor_clear_old cursor_set_color
+    cursor_set_animation cursor_enable cursor_disable
+];
 
 @EXPORT = qw| terminal_size read_password_single read_password_repeated |;
 
@@ -79,29 +82,30 @@ our @rnd_count;
 ##[ CURSOR RENDERING ]########################################################
 
 our %cursor_state = (
-    enabled    => TRUE,        ##  Display custom cursor  ##
-    color_code => '',          ##  Current color code (phosphor green)  ##
-    animation  => 'static',    ##  Animation mode for future use  ##
+    enabled    => TRUE,          ##  display custom cursor  ##
+    color_code => '',            ##  current color code [ phosphor green ]  ##
+    animation  => qw| static |,  ##  animation mode for future use  ##
 );
 
 ##[ PROTOCOL-7 COLOR PALETTE ]##################################################
 
 our %p7_colors = (
-    'p7_fg_0000' => "\e[38;2;68;39;172m",    ##  Purple  ##
-    'p7_fg_0001' => "\e[38;2;38;46;153m",    ##  Blue    ##
-    'p7_fg_0002' => "\e[38;2;170;94;2m",     ##  Brown   ##
-    'p7_fg_0003' => "\e[38;2;9;170;94m",     ##  Phosphor green (cursor)  ##
-    'p7_fg_0004' => "\e[38;2;6;71;195m",     ##  TRUE blue (text)  ##
+    'p7_fg_0000' => "\e[38;2;68;39;172m",    ##  purple  ##
+    'p7_fg_0001' => "\e[38;2;38;46;153m",    ##    blue  ##
+    'p7_fg_0002' => "\e[38;2;170;94;2m",     ##   brown  ##
+    'p7_fg_0003' => "\e[38;2;9;170;94m",     ##  phosphor green [ cursor ]  ##
+    'p7_fg_0004' => "\e[38;2;6;71;195m",     ##  TRUE blue       [ text ]   ##
 );
 
 ##[ HISTORY MANAGEMENT ]######################################################
 
 our @history_entries;
-our $history_current_index
-    = 0;   ##  Current position in history (scalar @history_entries = new)  ##
+### current position in history [ scalar @history_entries = new ] ##
+our $history_current_index = 0;
+
 our $history_filename    = 'nshell.history';
-our $history_max_size    = 1000;    ##  Maximum history entries to keep  ##
-our $history_session_gap = 300;     ##  Session gap in seconds (5 min)  ##
+our $history_max_size    = 1000;    ##   maximum history entries to keep  ##
+our $history_session_gap = 300;     ##  session gap in seconds [ 5 min ]  ##
 
 sub history_init {
 
@@ -113,13 +117,14 @@ sub history_init {
     $history_max_size    = $max_size;
     $history_session_gap = $session_gap;
 
-    ## Try to load existing history
+    ## try to load existing history
     if ( eval { require AMOS7::FILE } ) {
         my @entries = AMOS7::FILE::read_all_timestamped_multiline($filename);
         if (@entries) {
             @history_entries = @entries;
-            $history_current_index
-                = $#history_entries + 1;    ## New command position
+            ## new command position
+            $history_current_index = $#history_entries + 1;
+
             return scalar @history_entries;
         }
     }
@@ -140,13 +145,13 @@ sub history_add {
         if ( defined $timestamp ) {
             push @history_entries, [ $timestamp, \@lines ];
 
-            ## Trim history if exceeds max size
+            ## trim history if exceeds max size
             if ( @history_entries > $history_max_size ) {
                 shift @history_entries;
             }
+            ## reset to 'new' position
+            $history_current_index = $#history_entries + 1;
 
-            $history_current_index
-                = $#history_entries + 1;    ## Reset to 'new' position
             return $timestamp;
         }
     }
@@ -158,12 +163,12 @@ sub history_up {
 
     return undef if not @history_entries;
 
-    ## Moving up in history (towards older entries)
+    ## moving up in history [ towards older entries ]
     if ( $history_current_index > $#history_entries ) {
-        ## First time from new position: jump to last entry
+        ## first time from new position: jump to last entry
         $history_current_index = $#history_entries;
     } elsif ( $history_current_index > 0 ) {
-        ## Continue going back
+        ## continue going back
         $history_current_index--;
     }
 
@@ -176,13 +181,11 @@ sub history_up {
 }
 
 sub history_down {
-
     return undef if not @history_entries;
-    return undef
-        if $history_current_index
-        > $#history_entries;    ## Already at new position
+    ## already at new position
+    return undef if $history_current_index > $#history_entries;
 
-    ## Moving down in history (towards newer entries)
+    ## moving down in history [ towards newer entries ]
     if ( $history_current_index < $#history_entries ) {
         $history_current_index++;
         if ( $history_current_index <= $#history_entries ) {
@@ -190,27 +193,25 @@ sub history_down {
         }
     }
 
-    ## Reached the end, return to 'new command' position
+    ## reached the end, return to 'new command' position
     $history_current_index = $#history_entries + 1;
     return undef;
 }
 
 sub history_page_up {
-
     return undef if not @history_entries;
-    return undef
-        if $history_current_index
-        > $#history_entries;    ## Already at new position
+    ## already at new position
+    return undef if $history_current_index > $#history_entries;
 
-    ## Page up: jump to previous session boundary
+    ## page up : jump to previous session boundary
     my $current_ts = $history_entries[$history_current_index]->[0];
     my $target_idx = $history_current_index;
 
-    ## Convert current timestamp to numeric seconds
+    ## convert current timestamp to numeric seconds
     my $current_delta = _timestamp_to_delta($current_ts);
     return undef if not defined $current_delta;
 
-    ## Search backwards for session boundary
+    ## search backwards for session boundary
     for ( my $i = $history_current_index - 1; $i >= 0; $i-- ) {
         my $prev_ts    = $history_entries[$i]->[0];
         my $prev_delta = _timestamp_to_delta($prev_ts);
@@ -231,21 +232,19 @@ sub history_page_up {
 }
 
 sub history_page_down {
-
     return undef if not @history_entries;
-    return undef
-        if $history_current_index
-        > $#history_entries;    ## Already at new position
+    ## already at new position
+    return undef if $history_current_index > $#history_entries;
 
-    ## Page down: jump to next session boundary
+    ## page down : jump to next session boundary
     my $current_ts = $history_entries[$history_current_index]->[0];
     my $target_idx = $history_current_index;
 
-    ## Convert current timestamp to numeric seconds
+    ## convert current timestamp to numeric seconds
     my $current_delta = _timestamp_to_delta($current_ts);
     return undef if not defined $current_delta;
 
-    ## Search forwards for session boundary
+    ## search forwards for session boundary
     for ( my $i = $history_current_index + 1; $i <= $#history_entries; $i++ )
     {
         my $next_ts    = $history_entries[$i]->[0];
@@ -264,24 +263,24 @@ sub history_page_down {
         return $history_entries[$history_current_index]->[1];
     }
 
-    ## Reached the end, return to 'new command' position
+    ## reached the end, return to 'new command' position
     $history_current_index = -1;
     return undef;
 }
 
-## Helper function: Convert base32 network timestamp to delta seconds
+## helper function : convert base32 network timestamp to delta seconds
 sub _timestamp_to_delta {
 
     my $timestamp = shift // return undef;
 
-    ## Try to use Protocol-7 conversion if available
+    ## trying to use Protocol-7 conversion if available
     if ( defined $main::code{'base.ntime.delta_seconds'} ) {
         return $main::code{'base.ntime.delta_seconds'}->($timestamp);
     }
 
-    ## Fallback: Base32 alphabet for manual conversion
-    ## Protocol-7 uses: 0-9, A-V (22 chars total)
-    ## Using qw with grouped formatting to preserve alignment
+    ## fallback : Base32 alphabet for manual conversion
+    ## Protocol-7 uses: 0-9, A-V [ 22 chars total ]
+    ## using qw with grouped formatting to preserve alignment
     my %base32_map = (
         qw|
             0 0   1 1   2 2   3 3   4 4
@@ -294,7 +293,7 @@ sub _timestamp_to_delta {
             |
     );
 
-    ## Convert base32 string to numeric value
+    ## convert base32 string to numeric value
     my $numeric_ts = 0;
     my @chars      = split //, uc($timestamp);
 
@@ -303,10 +302,10 @@ sub _timestamp_to_delta {
         $numeric_ts = $numeric_ts * 32 + $base32_map{$char};
     }
 
-    ## Calculate delta from current time (rough approximation)
-    ## In seconds from some epoch
+    ## calculating delta from current time [ rough approximation ]
+    ## in seconds from some epoch
     my $now = time();
-    return $numeric_ts;    ## Return the converted value for comparison
+    return $numeric_ts;    ## returning the converted value for comparison
 }
 
 ##[ USER-INTERACTION ]########################################################
@@ -365,6 +364,23 @@ REREAD_NAME:
     return ( $username, $read_passwd );
 }
 
+sub has_tty {
+    ## check if a TTY is available for interactive I/O
+    ## returns TRUE if any of STDIN, STDOUT, STDERR is connected to a TTY
+    ##              or if Term::ReadLine can find a console
+
+    ## first try Term::ReadLine->findConsole [ finds /dev/tty or similar ]
+    my ( $in, $out ) = Term::ReadLine->findConsole;
+    return TRUE if $in && -t $in;
+
+    ## fall back to checking if any standard stream is a TTY
+    return TRUE if -t *STDIN;
+    return TRUE if -t *STDOUT;
+    return TRUE if -t *STDERR;
+
+    return FALSE;
+}
+
 sub read_password_repeated {
 
     my $password_type_msg = shift // qw| password |;
@@ -373,7 +389,19 @@ sub read_password_repeated {
     my $input_timeout     = shift // $PASSWD_READ_TIMEOUT;
     $output_lines = 0 if $output_lines !~ m|^\d+$|;
 
-    AMOS7::TERM::init_TTY_no_echo( undef, $input_timeout );
+    ## remaining args are options [ e.g. fallback_on_no_tty => 'read_stdin' ]
+    my %options       = @ARG;
+    my $fallback_mode = $options{fallback_on_no_tty} // qw| read_stdin |;
+
+    ## only initialize TTY if we have a TTY available
+    if ( AMOS7::TERM::has_tty() ) {
+        AMOS7::TERM::init_TTY_no_echo( undef, $input_timeout );
+    } elsif ( $fallback_mode eq qw| raise_exception | ) {
+        error_exit('no tty available for password input');
+    } elsif ( $fallback_mode eq qw| return_undef | ) {
+        return undef;
+    }
+    ## else: 'read_stdin' mode - continue without TTY
 
     ( my $password_0, my $password_1 );
 
@@ -383,7 +411,7 @@ sub read_password_repeated {
 
         ( $password_0, my $abort_mode )
             = read_password_single( sprintf( 'enter %s', $password_type_msg ),
-            $term_title );
+            $term_title, $output_lines, $input_timeout, %options );
 
         if ( not defined $password_0 and $abort_mode ne FALSE ) {
             AMOS7::TERM::close_TTY_no_echo(FALSE);
@@ -392,7 +420,8 @@ sub read_password_repeated {
         } else {
             ( $password_1, my $abort_mode )
                 = read_password_single(
-                sprintf( 're-enter %s', $password_type_msg ) );
+                sprintf( 're-enter %s', $password_type_msg ),
+                '', $output_lines, $input_timeout, %options );
 
             if (    defined $password_0
                 and defined $password_1
@@ -439,14 +468,36 @@ sub read_password_repeated {
 }
 
 sub read_password_single {
-    ##  prefix with ':no-enter:' to avoid 'enter ' prefix  ##
+    ## prefix with ':no-enter:' to avoid 'enter ' prefix
     my $message_prompt = sprintf( 'enter %s', shift // qw| password | );
-    $message_prompt =~ s|enter ((re\-)?)enter|$1enter|;  ## allows re-enter ##
-    $message_prompt =~ s|^enter :no-enter: ||;           ##  special case  ##
+    $message_prompt =~ s|enter ((re\-)?)enter|$1enter|;    ## allows re-enter
+    $message_prompt =~ s|^enter :no-enter: ||;             ## special case
     my $term_title    = shift // '';
     my $output_lines  = shift // 1;
     my $input_timeout = shift // $PASSWD_READ_TIMEOUT;
     $output_lines = 0 if $output_lines !~ m|^\d+$|;
+
+    ## remaining args are options [ e.g. fallback_on_no_tty => 'read_stdin' ]
+    my %options       = @ARG;
+    my $fallback_mode = $options{fallback_on_no_tty} // 'read_stdin';
+
+    ## check if we have a TTY available
+    if ( not AMOS7::TERM::has_tty() ) {
+        ## no TTY available - handle fallback
+        if ( $fallback_mode eq 'raise_exception' ) {
+            error_exit('no tty available for password input');
+        } elsif ( $fallback_mode eq 'return_undef' ) {
+            return ( undef, FALSE );
+        } elsif ( $fallback_mode eq 'read_stdin' ) {
+            ## read password directly from STDIN [ no masking, no TTY ]
+            print $message_prompt . " " if length $message_prompt;
+            STDOUT->flush();
+            my $password = <STDIN>;
+            chomp($password) if defined $password;
+            print "\n";
+            return ( $password, FALSE );
+        }
+    }
 
     $currrent_pass_prompt = $message_prompt;
     my $mprompt_length = 8 + length $message_prompt;
@@ -723,6 +774,10 @@ sub terminal_title {
         : "\e[H\e[2J\e[3J";
 
     ( my $term_width, undef ) = AMOS7::TERM::terminal_size();
+    ## guarding against undefined term_width
+    ## [ should not happen with new defaults ]
+    $term_width //= 80;
+
     my $colon_line
         = qw| : | x
         abs(
@@ -830,11 +885,14 @@ sub terminal_size {
 
     my $handle = shift // *STDIN;    ## use *STDOUT for pipe detection ##
 
-    return undef if not -t $handle;
+    ## return safe defaults if not a TTY
+    return ( 80, 24 ) if not -t $handle;
+
     state $size       = "\0" x 8;
     state $TIOCGWINSZ = 21523;
 
-    ioctl( $handle, $TIOCGWINSZ, $size ) or return undef;
+    ## if ioctl fails, return defaults instead of undef
+    ioctl( $handle, $TIOCGWINSZ, $size ) or return ( 80, 24 );
     my $size_aref = [ unpack qw| S!S!S!S! |, $size ];
 
     return ( $size_aref->[1], $size_aref->[0] );
@@ -884,13 +942,14 @@ sub init_TTY_no_echo {    ##  adaptation from Term::ReadPassword  ##
         warn_err('found no available console <{C1}>');
         return undef;
     }
+
     if ( not open $TTY_IN, qw| +< |, $in ) {
         if ( not open $TTY_IN, qw| <& |, *STDIN{IO} ) {
-            warn_err( 'terminal input unavailable (cannot access STDIN): %s',
+            warn_err( 'terminal input unavailable [cannot access STDIN]: %s',
                 1, lcfirst($OS_ERROR) );
             return undef;
         } else {
-            warn_err( 'terminal input unavailable (%s): %s',
+            warn_err( 'terminal input unavailable [%s]: %s',
                 1, $in, lcfirst($OS_ERROR) );
             return undef;
         }
@@ -899,11 +958,11 @@ sub init_TTY_no_echo {    ##  adaptation from Term::ReadPassword  ##
     if ( not open $TTY_OUTPUT, qw| >> |, $out ) {
         if ( not open $TTY_OUTPUT, qw| >>& |, *STDOUT{IO} ) {
             warn_err(
-                'terminal output unavailable (cannot access STDOUT): %s',
+                'terminal output unavailable [cannot access STDOUT]: %s',
                 1, lcfirst($OS_ERROR) );
             return undef;
         } else {
-            warn_err( 'terminal output unavailable (%s): %s',
+            warn_err( 'terminal output unavailable [%s]: %s',
                 1, $out, lcfirst($OS_ERROR) );
             return undef;
         }
@@ -995,7 +1054,7 @@ sub discard_buffered_input {
         $TERM_ios->setattr( $TTY_fd_restore, TCSAFLUSH );
         return 0;    ## input discarded \ no abort ##
     } else {
-        my $restore_time = AMOS7::TERM::get_input_timeout() / 10;
+        my $restore_time = AMOS7::TERM::get_input_timeout() // 13;
         AMOS7::TERM::set_input_timeout($input_timeout);
 
         ## check for interrupt ##
@@ -1124,7 +1183,7 @@ sub exit_user_passwd {
 ##[ COMMAND LINE EDITOR ]#####################################################
 
 sub editor_init {
-    ## Initialize and return editor state reference
+    ## initializing and return editor state reference
     return {
         buffer      => '',
         cursor_pos  => 0,
@@ -1145,7 +1204,7 @@ sub editor_process_key {
         should_signal => undef,
     };
 
-    ## Newline - command complete
+    ## newline - command complete
     if ( $key eq "\n" or $key eq "\r" ) {
         $result->{action}   = 'newline';
         $result->{complete} = TRUE;
@@ -1160,14 +1219,14 @@ sub editor_process_key {
         return $result;
     }
 
-    ## Ctrl-D - Delete char at cursor (or EOF if buffer empty)
+    ## Ctrl-D - Delete char at cursor [ or EOF if buffer empty ]
     if ( $key eq "\x04" ) {
         if ( $editor->{cursor_pos} < length $editor->{buffer} ) {
-            ## Delete character at cursor position
+            ## delete character at cursor position
             substr( $editor->{buffer}, $editor->{cursor_pos}, 1, '' );
             $result->{action} = 'delete';
 
-            ## Output: rest of line + clear to end + reposition
+            ## output : rest of line + clear to end + reposition
             my $rest = substr( $editor->{buffer}, $editor->{cursor_pos} );
             $result->{output}
                 = $rest . ' ' . ( "\x08" x ( length($rest) + 1 ) );
@@ -1181,7 +1240,7 @@ sub editor_process_key {
         if ( $steps > 0 ) {
             $editor->{cursor_pos} = 0;
             $result->{action}     = 'cursor_left';
-            $result->{output}     = "\x08" x $steps;    ## Backspace N times
+            $result->{output}     = "\x08" x $steps;    ## backspace N times
         }
         return $result;
     }
@@ -1200,7 +1259,8 @@ sub editor_process_key {
         return $result;
     }
 
-    ## Ctrl-K - kill to end of line (delete from cursor to end, save to kill buffer)
+    ### Ctrl-K - kill to end of line
+    ##         [ deleting from cursor to end, save to kill buffer ]
     if ( $key eq "\x0b" ) {
         my $rest_len = length( $editor->{buffer} ) - $editor->{cursor_pos};
         if ( $rest_len > 0 ) {
@@ -1209,12 +1269,13 @@ sub editor_process_key {
                 $rest_len, '' );
             $result->{action} = 'kill_to_end';
             $result->{output}
-                = ' ' x $rest_len . ( "\x08" x $rest_len );    ## Clear to end
+                = ' ' x $rest_len . ( "\x08" x $rest_len );    ## clear to end
         }
         return $result;
     }
 
-    ## Ctrl-U - kill from start of line to cursor (delete and save to kill buffer)
+    ### Ctrl-U - kill from start of line to cursor
+    ##         [ deleting and save to kill buffer ]
     if ( $key eq "\x15" ) {
         if ( $editor->{cursor_pos} > 0 ) {
             my $deleted_len = $editor->{cursor_pos};
@@ -1223,7 +1284,8 @@ sub editor_process_key {
             $editor->{cursor_pos} = 0;
             $result->{action}     = 'kill_from_start';
 
-            ## Output: backspace to start + remaining text + clear rest + reposition
+            ## output : backspace to start
+            ##            + remaining text + clear rest + reposition
             my $rest                = substr( $editor->{buffer}, 0 );
             my $deleted_display_len = $deleted_len;
             $result->{output}
@@ -1235,18 +1297,18 @@ sub editor_process_key {
         return $result;
     }
 
-    ## Ctrl-W - kill word backward (delete previous word, save to kill buffer)
+    ## Ctrl-W - kill word backward [ delete previous word, save to kill buffer ]
     if ( $key eq "\x17" ) {
         if ( $editor->{cursor_pos} > 0 ) {
             my $start_pos = $editor->{cursor_pos};
 
-            ## Skip trailing whitespace
+            ## skip trailing whitespace
             while ( $start_pos > 0
                 && substr( $editor->{buffer}, $start_pos - 1, 1 ) =~ m|\s| ) {
                 $start_pos--;
             }
 
-            ## Skip word characters (non-whitespace)
+            ## skip word characters [ non-whitespace ]
             while ( $start_pos > 0
                 && substr( $editor->{buffer}, $start_pos - 1, 1 ) !~ m|\s| ) {
                 $start_pos--;
@@ -1265,54 +1327,54 @@ sub editor_process_key {
         return $result;
     }
 
-    ## Ctrl-Y - yank (paste kill buffer at cursor position)
+    ## Ctrl-Y - yank [ paste kill buffer at cursor position ]
     if ( $key eq "\x19" ) {
         if ( length $editor->{kill_buffer} ) {
             substr( $editor->{buffer}, $editor->{cursor_pos}, 0,
                 $editor->{kill_buffer} );
             $result->{action} = 'yank';
 
-            ## Output: yanked text + rest of buffer + reposition cursor
+            ## output : yanked text + rest of buffer + reposition cursor
             my $rest = substr( $editor->{buffer},
                 $editor->{cursor_pos} + length( $editor->{kill_buffer} ) );
             $result->{output} = $editor->{kill_buffer} . $rest;
             if ( length $rest > 0 ) {
-                $result->{output} .= "\x08" x length($rest)
-                    ;    ## Move cursor back to original position
+                ## noving cursor back to original position
+                $result->{output} .= "\x08" x length($rest);
             }
             $editor->{cursor_pos} += length $editor->{kill_buffer};
         }
         return $result;
     }
 
-    ## Left arrow key - move cursor left (ANSI: \e[D)
+    ## left arrow key - move cursor left [ ANSI: \e[D ]
     if ( $key eq "\e[D" or $key eq "\x1b[D" ) {
         if ( $editor->{cursor_pos} > 0 ) {
             $editor->{cursor_pos}--;
             $result->{action} = 'cursor_left';
-            $result->{output} = "\x08";          ## Single backspace
+            $result->{output} = "\x08";          ## single backspace
         }
         return $result;
     }
 
-    ## Right arrow key - move cursor right (ANSI: \e[C)
+    ## right arrow key - move cursor right [ ANSI: \e[C ]
     if ( $key eq "\e[C" or $key eq "\x1b[C" ) {
         if ( $editor->{cursor_pos} < length $editor->{buffer} ) {
             my $char = substr( $editor->{buffer}, $editor->{cursor_pos}, 1 );
             $editor->{cursor_pos}++;
             $result->{action} = 'cursor_right';
-            $result->{output} = $char;    ## Echo the character under cursor
+            $result->{output} = $char;    ## echo the character under cursor
         }
         return $result;
     }
 
-    ## Delete key escape sequence (ANSI: \e[3~) - delete character at cursor
+    ## delete key escape sequence [ ANSI: \e[3~ ] - delete character at cursor
     if ( $key eq "\e[3~" or $key eq "\x1b[3~" ) {
         if ( $editor->{cursor_pos} < length $editor->{buffer} ) {
             substr( $editor->{buffer}, $editor->{cursor_pos}, 1, '' );
             $result->{action} = 'delete';
 
-            ## Output: rest of line + clear to end + reposition
+            ## output : rest of line + clear to end + reposition
             my $rest = substr( $editor->{buffer}, $editor->{cursor_pos} );
             $result->{output}
                 = $rest . ' ' . ( "\x08" x ( length($rest) + 1 ) );
@@ -1320,15 +1382,16 @@ sub editor_process_key {
         return $result;
     }
 
-    ## Backspace - delete character before cursor
-    ## Both \x08 (Ctrl+H) and \x7f (DEL) are treated as backspace since many terminals send backspace as DEL
+    ## backspace - delete character before cursor
+    ## both \x08 [Ctrl+H] and \x7f [DEL] are treated as backspace since
+    ##                             many terminals send backspace as DEL
     if ( $key eq "\x08" or $key eq "\x7f" ) {
         if ( $editor->{cursor_pos} > 0 ) {
             $editor->{cursor_pos}--;
             substr( $editor->{buffer}, $editor->{cursor_pos}, 1, '' );
             $result->{action} = 'backspace';
 
-            ## Output: rest of line + clear + reposition
+            ## output : rest of line + clear + reposition
             my $rest = substr( $editor->{buffer}, $editor->{cursor_pos} );
             $result->{output}
                 = "\x08" . $rest . ' ' . ( "\x08" x ( length($rest) + 1 ) );
@@ -1336,25 +1399,25 @@ sub editor_process_key {
         return $result;
     }
 
-    ## Printable character (check first byte of multi-byte UTF-8)
+    ## printable character [ check first byte of multi-byte UTF-8 ]
     if ( length $key and ord( substr( $key, 0, 1 ) ) >= 32 ) {
-        ## Set color on first character
+        ## set color on first character
         if ( !length $editor->{buffer} ) {
             $editor->{color_set} = TRUE;
             $result->{output}    = ( $colors{p7_fg_0004} // '' );
         }
 
-        ## Insert character at cursor position
+        ## insert character at cursor position
         substr( $editor->{buffer}, $editor->{cursor_pos}, 0, $key );
         $editor->{cursor_pos}++;
         $result->{action} = 'echo';
 
-        ## Output: character + rest of line + reposition cursor
+        ## output : character + rest of line + reposition cursor
         my $rest = substr( $editor->{buffer}, $editor->{cursor_pos} );
         $result->{output} .= $key . $rest;
         if ( length $rest > 0 ) {
-            $result->{output}
-                .= "\x08" x length($rest); ## Move cursor back to new position
+            ## moving cursor back to new position
+            $result->{output} .= "\x08" x length($rest);
         }
 
         return $result;
@@ -1405,80 +1468,80 @@ sub editor_load {
 ##[ CURSOR RENDERING ]########################################################
 
 sub cursor_render {
-    ## Render custom cursor at current position in editor buffer
-    ## Returns ANSI codes to display cursor with color and optional underline
-    ## IMPORTANT: Does NOT reset at end - color persists for next operation
+    ## render custom cursor at current position in editor buffer
+    ## returns ANSI codes to display cursor with color and optional underline
+    ## important: does NOT reset at end [ color persists for next operation ]
     my ( $buffer, $cursor_pos ) = @ARG;
 
-    return '' if !$cursor_state{enabled};
+    return '' if not $cursor_state{'enabled'};
 
     my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
     my $color          = $cursor_state{color_code};
 
     if ( $char_at_cursor eq '' or $char_at_cursor eq ' ' ) {
-        ## At end of buffer or on space: show colored underscore
-        ## NO reset at end - preserve color for next render
-        return $color . '_' . "\x08";    ## Colored underscore then backspace
+        ## at end of buffer or on space: show colored underscore
+        ##    no reset at end [ preserve color for next render ]
+        return $color . '_' . "\x08";    ## colored underscore then backspace
     } else {
-        ## On a character: show with underline attribute (preserves character)
-        ## Apply color and underline, reset underline only (NOT all attributes)
+        ## on a character : show with underline attribute [preserves character]
+        ## apply color and underline, reset underline only [NOT all attributes]
         return $color . "\e[4m" . $char_at_cursor . "\e[24m\x08";
     }
 }
 
 sub cursor_clear_old {
-    ## Clear old cursor position by restoring the character at that position
-    ## Returns ANSI codes to clear and restore
+    ## clear old cursor position by restoring the character at that position
+    ##                               returns ANSI codes to clear and restore
     my ( $buffer, $old_pos ) = @ARG;
 
-    return '' if !$cursor_state{enabled};
+    return '' if !$cursor_state{'enabled'};
 
-    ## Bounds check: old position might be beyond buffer after deletions
+    ## bounds check : old position might be beyond buffer after deletions
     return '' if $old_pos >= length($buffer);
 
     my $char_at_old = substr( $buffer, $old_pos, 1 ) // '';
-    my $color       = $cursor_state{color_code};
+    my $color       = $cursor_state{'color_code'};
 
     if ( $char_at_old eq '' or $char_at_old eq ' ' ) {
-        ## Was showing underscore: clear with space
+        ## was showing underscore : clear with space
         return ' ' . "\x08";
     } else {
-        ## Was showing underlined character: restore it without underline
+        ## was showing underlined character : restore it without underline
         return $color . $char_at_old . "\e[0m\x08";
     }
 }
 
 sub cursor_set_color {
-    ## Set cursor color code (e.g., from loaded color palette)
+    ## set cursor color code [ e.g. from loaded color palette ]
     my ($color_code) = @ARG;
-    $cursor_state{color_code} = $color_code // '';
+    $cursor_state{'color_code'} = $color_code // '';
     return TRUE;
 }
 
 sub cursor_set_animation {
-    ## Set cursor animation mode for timer-based updates
-    ## Modes: 'static', 'pulse', 'blink', etc. (implementation later)
+    ## setting cursor animation mode for timer-based updates
+    ## modes: 'static', 'pulse', 'blink', etc [ implementation later ]
     my ($animation_mode) = @ARG;
-    $cursor_state{animation} = $animation_mode // 'static';
+    $cursor_state{'animation'} = $animation_mode // qw| static |;
     return TRUE;
 }
 
 sub cursor_enable {
-    ## Enable custom cursor rendering
-    $cursor_state{enabled} = TRUE;
+    ## enable custom cursor rendering
+    $cursor_state{'enabled'} = TRUE;
     return TRUE;
 }
 
 sub cursor_disable {
-    ## Disable custom cursor rendering
-    $cursor_state{enabled} = FALSE;
+    ## disable custom cursor rendering
+    $cursor_state{'enabled'} = FALSE;
     return TRUE;
 }
 
 return TRUE ##################################################################
 
-#,,.,,.,.,...,...,.,,,,..,...,,,.,,..,,..,,..,..,,...,...,..,,...,.,,,...,..,,
-#AP2QUPDNZ33QFHPHVFPLBI2V52NSSSB5MNLDE4YVWMEAEGNC7NBYIGPLS45Z3NQYZUL6N73E7ZIG4
-#\\\|2N3J25OPUOXVIU6TA4T73DB3KCFQXFNIBBTSH7MDC4UEZ53PL7V \ / AMOS7 \ YOURUM ::
-#\[7]UJT34AR4XTHL6BHE4IYQN7J4N32KYSMUNN5NIHIU5OISLSKCJICA 7  DATA SIGNATURE ::
+#,,,,,...,,,.,.,,,,.,,,.,,.,,,,.,,..,,..,,,..,..,,...,...,.,,,,.,,,,.,.,,,.,,,
+#XLXIEDBHB3Q53YXOATBC2YVFSVMX4UJDKHD7OMCI5NAECEXMRDFXBOCUQYHPJOMIKHYN6NWX47XSK
+#\\\|4FL6XABJWLENWZKZQC2VMA7U46YTJVOJR5NLJMGZFJ7K2RJQ7OV \ / AMOS7 \ YOURUM ::
+#\[7]5P3LILD3WJQNC6S36VB3KBBOHTUHRWCP5WPDGV6QGGUBC3YHNQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
