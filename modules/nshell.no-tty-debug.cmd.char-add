@@ -1,0 +1,200 @@
+## [:< ##
+
+# name  = nshell.no-tty-debug.cmd.char-add
+# param = <debug-chars>
+# descr = add character [sequence] in no-tty-debug mode
+
+### [ detect if called by debug-status wrapper ]
+## check caller stack for debug-status in the call chain
+##
+my $is_debug_status_call = 0;
+for ( my $i = 0; $i < 5; $i++ ) {
+    my ( $pkg, $file, $line, $sub ) = caller($i);
+    last unless defined $file;
+    if ( $file =~ m{debug-status} ) {
+        $is_debug_status_call = 1;
+        last;
+    }
+}
+
+my $character_string = '';
+
+unless ($is_debug_status_call) {
+    $character_string = $call->{'args'} // '';  ## receiving command param. ##
+    return {
+        'mode' => qw| false |,
+        'data' => '..no-tty-debug command character [sequence] expected..'
+        }
+        if not length
+        $character_string;   ## paramter presence is mandatory for char-add ##
+}
+
+### [ key mapping for escape sequences ]
+##
+state %chr_map = (
+    'UpArrow'   => "\e[A",
+    'DownArrow' => "\e[B",
+    'Ctrl+o'    => "\x0f",
+    'Ctrl+r'    => "\x12",
+    'Escape'    => "\e",
+    'Enter'     => "\n",
+    'Backspace' => "\x7f",
+);
+
+### [ initialize debug state on first use ]
+##
+<nshell.debug_state> //= {
+    current_mode            =>  0,      # NORMAL
+    current_history_index   => -1,
+    ctrl_o_start_position   => undef,
+    ctrl_o_entries_added    => 0,
+    display_preloaded_entry => 0,
+    mode_names              => {
+        0 => 'NORMAL',
+        1 => 'SEARCHING',
+        2 => 'VIEWING_HISTORY',
+    }
+};
+
+my $debug_state = <nshell.debug_state>;
+
+### [ parse input: extract [KeyName]xN patterns and regular chars ]
+##
+my @tokens = ();
+my $pos    = 0;
+while ( $pos < length $character_string ) {
+    if ( substr( $character_string, $pos, 1 ) eq '[' ) {
+        ## bracketed key name or repetition
+        my $close = index( $character_string, ']', $pos );
+        if ( $close > $pos ) {
+            my $key_spec
+                = substr( $character_string, $pos + 1, $close - $pos - 1 );
+            $pos = $close + 1;
+
+            ## check for xN repetition count
+            my $repeat = 1;
+            if ( $pos < length $character_string
+                && substr( $character_string, $pos, 1 ) eq 'x' ) {
+                $pos++;
+                my $num_str = '';
+                while ( $pos < length $character_string
+                    && substr( $character_string, $pos, 1 ) =~ m{[0-9]} ) {
+                    $num_str .= substr( $character_string, $pos, 1 );
+                    $pos++;
+                }
+                $repeat = int($num_str) if length $num_str;
+            }
+
+            ## map key name to byte sequence
+            if ( exists $chr_map{$key_spec} ) {
+                push @tokens,
+                    {
+                    'type'   => 'key',
+                    'name'   => $key_spec,
+                    'byte'   => $chr_map{$key_spec},
+                    'repeat' => $repeat
+                    };
+            } else {
+                ## unknown key name
+                return {
+                    'mode' => qw| false |,
+                    'data' => "..unknown key name: [$key_spec].."
+                };
+            }
+        } else {
+            ## unclosed bracket
+            return {
+                'mode' => qw| false |,
+                'data' => '..unclosed bracket in input..'
+            };
+        }
+    } elsif ( substr( $character_string, $pos, 1 ) eq ' ' ) {
+        ## whitespace separator - skip it
+        $pos++;
+    } else {
+        ## regular character
+        my $char = substr( $character_string, $pos, 1 );
+        push @tokens, { 'type' => 'char', 'byte' => $char };
+        $pos++;
+    }
+}
+
+### [ append tokens to debug input buffer ]
+##
+foreach my $token (@tokens) {
+    my $byte = $token->{'byte'};
+    my $name
+        = $token->{'type'} eq 'key' ? $token->{'name'} : "'" . $byte . "'";
+    my $repeat = $token->{'repeat'} // 1;
+
+    for ( my $i = 0; $i < $repeat; $i++ ) {
+        ## append to debug input buffer
+        <nshell.buffer.debug_input> .= $byte;
+    }
+}
+
+### [ let event loop process the queued keys ]
+##
+<[event.once]>->(0.07);    ## Event::loop with 0.07s timeout
+
+## manually process debug buffer by repeatedly calling read_from_buffer
+## until buffer is consumed (handles cursor display on first call)
+my $iteration = 0;
+while ( length <nshell.buffer.debug_input> && $iteration < 20 ) {
+    $iteration++;
+    <[nshell.read_from_buffer]>;
+    <[event.once]>->(0.02);    ## brief event processing
+}
+
+STATUS_SECTION:
+
+### [ read current nshell state ]
+##
+my $nshell_state  = <nshell.state>                           // {};
+my $editor        = $nshell_state->{'editor'}                // {};
+my $editor_buffer = $editor->{'buffer'}                      // '';
+my $nav_mode      = $nshell_state->{'current_mode'}          // 0;
+my $hist_idx      = $nshell_state->{'current_history_index'} // -1;
+
+my $mode_name = 'UNKNOWN';
+if ( exists $nshell_state->{'mode_names'}
+    && ref( $nshell_state->{'mode_names'} ) eq 'HASH' ) {
+    $mode_name = $nshell_state->{'mode_names'}->{$nav_mode}
+        if exists $nshell_state->{'mode_names'}->{$nav_mode};
+}
+
+### [ prepare formatted state reply ]
+##
+my $state_transition_reply = sprintf(
+    "\n  : nshell state after processing\n\n"
+        . "  : current_mode        : %s (%d)\n"
+        . "  : current_history_idx : %d\n"
+        . "  : editor_buffer       : %s\n"
+        . "  : ctrl_o_start_pos    : %s\n"
+        . "  : ctrl_o_entries_add  : %d\n"
+        . "  : preload_entry       : %d\n"
+        . "  : .\n",
+    $mode_name,
+    $nav_mode,
+    $hist_idx,
+    (   length $editor_buffer
+        ? "'"
+            . substr( $editor_buffer, 0, 50 )
+            . ( length $editor_buffer > 50 ? "..." : "" ) . "'"
+        : "''"
+    ),
+    (   defined $nshell_state->{'ctrl_o_start_position'}
+        ? $nshell_state->{'ctrl_o_start_position'}
+        : 'undef'
+    ),
+    ( $nshell_state->{'ctrl_o_entries_added'}    // 0 ),
+    ( $nshell_state->{'display_preloaded_entry'} // 0 )
+);
+
+return { 'mode' => qw| size |, 'data' => $state_transition_reply }
+
+#,,,.,.,,,,..,.,.,.,,,.,.,..,,,,.,...,..,,...,..,,...,...,,..,..,,..,,...,,.,,
+#7L6DY42KNZERER3FJ52DBTTWREMAS7C3ILXKLDEAX3UBCFJLKOIHXI64G6AN7WDSUHIRICB676MM4
+#\\\|PIZZBXOWEZ5UV4UT4SHG7UTTNR4U4FHQQMK7YCCQYPBRHUH7AMX \ / AMOS7 \ YOURUM ::
+#\[7]B2PF6TV4BD5GIV2543TUSXRBXVYV2V3VVINHI3DZ5TQBBD7XAMAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,15 +8,10 @@
 ## Returns complete line when user presses Enter
 ## Persists state across calls (static variables)
 
-## Initialize refactored state structure on first call
-state $state_ref           = undef;
+## Get shared nshell state reference (initialized in nshell.init_code)
+state $state_ref           = <nshell.state>;
 state $input_chars         = '';
 state $show_cursor_on_call = TRUE;
-
-## Get state reference (initialize on first call)
-if ( !defined $state_ref ) {
-    $state_ref = <[nshell.state.init]>;
-}
 
 ## Sync state to %data for debugging
 $main::data{'nshell'}{'edit_state'} = {
@@ -39,8 +34,20 @@ if ($show_cursor_on_call) {
     return undef;    ## Return to event loop to display cursor before input
 }
 
-## Input reading: TTY vs piped
-if ( -t STDIN ) {
+## Input reading: debug buffer, TTY, or piped
+if ( <nshell.mode.no_tty_debug> && length <nshell.buffer.debug_input> ) {
+    ## Debug mode: adopt data from alternate debug input buffer
+    if ( !length $input_chars ) {
+        $input_chars = <nshell.buffer.debug_input>;
+
+        ## clear the buffer for next input, pausing watcher to prevent re-triggering
+        <nshell.watcher.buffer.debug_input>->stop;     ## pause watcher ##
+        <nshell.buffer.debug_input> = '';              ## clear buffer ##
+        <nshell.watcher.buffer.debug_input>->start;    ## resume watcher ##
+
+        return undef if !length $input_chars;
+    }
+} elsif ( -t STDIN ) {
     ## TTY input: use sysread with non-blocking mode
     if ( !length $input_chars ) {
         my $read_size = 1024;
@@ -279,8 +286,8 @@ while ( length $input_chars ) {
 
 return undef;
 
-#,,,.,,.,,,,,,,,.,,,.,.,.,...,.,,,.,.,,,.,.,,,.,.,...,...,..,,,.,,,..,...,,,,,
-#FJW4AC6WBHTLGT7MUOZXDUEEKE2LKE5DNTCZORMQ2QCP4CHTD4IDB3SHSBMLJ5QVWRL456WTGXP3K
-#\\\|AGQQW3BTNYYICGFWO6YGEFMXP4ESPNZMGUE3NNINF7JOSJKDSLL \ / AMOS7 \ YOURUM ::
-#\[7]AFTUX3YCGFICVXQI3GDFFP73DABCWETWDKEWEPMRQCKDOQSNNKCA 7  DATA SIGNATURE ::
+#,,.,,..,,,..,.,,,..,,,.,,,..,,.,,,.,,..,,,..,.,.,...,...,...,...,.,,,,,.,.,,,
+#RH3VKHEDFLQFOPE5R3KZEVYX7JGVHOHFUMB5IRTIS5O5SQYTR3GN35DBGKRLXQ23KPPTBJ5JSVZKQ
+#\\\|K3NPKWABDS5OCINIIXSDZP7KIE72V7CTMTACATEFXA4U75GWAHM \ / AMOS7 \ YOURUM ::
+#\[7]EXGFJ362DQN5MRKIVKFKSCK6IW4IXGLO26FDTI5OFTYRTXW4DQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
