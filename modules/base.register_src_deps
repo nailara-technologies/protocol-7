@@ -11,7 +11,7 @@ my $file_perm = 0664;    ## zenka group gets write access ##
 
 ## Determine owner based on execution context
 my $owner;
-if (<[base.zenka.is_v7_started]>) {
+if ( <[base.zenka.is_v7_started]> or <system.zenka.name> eq qw| v7 | ) {
     ## In v7 zenka context: use protocol-7 user
     $owner = <system.amos-zenka-user> // qw| protocol-7 |;
 } else {
@@ -74,8 +74,8 @@ if ( -d $src_deps and -w $src_deps ) {
     <[base.log]>->( 2, "<< no [writable] src-deps directory found >>" );
 }
 
-#,,,,,.,,,,.,,.,.,.,.,,,,,,,,,,,,,,,.,,,.,..,,..,,...,...,.,.,,,.,,,.,,,.,,..,
-#QRLVDX6M4H3BIKDBV5CLI67LR2GEG4QUV6QWIROGJ3QH4FPMN4FHMJ2I5PEQ7AGY4IMAGMFGHEGAG
-#\\\|PQG3ZCBTFIX33ISVHXRYJJHVTHBQAARRQGDGJY4RU23U7OLF43H \ / AMOS7 \ YOURUM ::
-#\[7]6J62JZPNDGP4LLTZE3RZJXRMZJRHF6VN7OCFZ34UTHRQ6LUKYEDA 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,..,.,.,.,.,,,,,,.,,,,,,...,,,,,..,,...,...,.,.,,..,,,,,..,,..,,
+#IDYCYAHRZDMNAHH5EXHC3KUS4Z3C2M6EVD2YRS2GMGA2EBBQRGN5KBNKHE4Q6XFNLX7WORR4XQIWQ
+#\\\|Q53TVUIEIVVT3EOJFPQWIA472FO5QFPRNAFPBLEPK3CEPCHBGUN \ / AMOS7 \ YOURUM ::
+#\[7]AZASJWXP4FWYB3VFDZIF6D3JRWIHZMX5GDM7NW5YBSSW354FN6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
