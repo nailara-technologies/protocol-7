@@ -20,7 +20,7 @@ if ( not <[base.perlmod.loaded]>->('Module::CoreList') ) {
 
 ## Determine owner based on execution context
 my $owner;
-if (<[base.zenka.is_v7_started]>) {
+if ( <[base.zenka.is_v7_started]> or <system.zenka.name> eq qw| v7 | ) {
     ## In v7 zenka context: use protocol-7 user
     $owner = <system.amos-zenka-user> // qw| protocol-7 |;
 } else {
@@ -106,8 +106,8 @@ if ( $mod_dir
     }
 }
 
-#,,.,,..,,,,,,,,,,,..,,.,,..,,...,,..,,..,,..,..,,...,...,.,,,,,.,.,.,..,,.,.,
-#FLLVMRVVQFGZ6V5IYHQLG2ATMJEXGK4E6L2CVTPNNWR3UQYKRVWLVESTPLKQNEZV45P6ALXBZ4S44
-#\\\|6CO2QAVNYV6BRETUCRIFCQHMXMQP5QLQRNZE3OA45THIAWWQUDD \ / AMOS7 \ YOURUM ::
-#\[7]XHBBRLVFJRFTJH3TW6GEHPSX3UDRUFITGHRIQHJ6DWVDVEXRYUCQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,,.,,,.,,,.,,,.,,,.,,,,,..,,,..,..,,...,.,.,,.,,.,.,,..,..,,,,,,
+#FH6MHEZXP6M2Z363PHLTJ7BXWEAEIJ3LB7ATI7GROTJWZGGMYQVQGF6EDHDGYYFWHCVSCFC2PDTE2
+#\\\|GAYSS5TJK5US6LDYS6PS7DEYMI3QYWEAQIIHT5LNUQZCSIWJZJJ \ / AMOS7 \ YOURUM ::
+#\[7]26KZB4SMV7EDTA32IWA444U43MPOI576WYON27QOT2YBLUTIJABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

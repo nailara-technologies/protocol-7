@@ -12,7 +12,7 @@ my $file_perm = 0664;    ## zenka group gets write access ##
 
 ## Determine owner based on execution context
 my $owner;
-if (<[base.zenka.is_v7_started]>) {
+if ( <[base.zenka.is_v7_started]> or <system.zenka.name> eq qw| v7 | ) {
     ## In v7 zenka context: use protocol-7 user
     $owner = <system.amos-zenka-user> // qw| protocol-7 |;
 } else {
@@ -90,8 +90,8 @@ if ( @not_registered and not $warned ) {
     <base.register_bin_deps.warned>++;
 }
 
-#,,..,...,,..,,,.,..,,,,.,,.,,,,.,,.,,,.,,,,.,..,,...,...,,..,.,,,,..,.,.,,.,,
-#7EMB6QBMF6PX76C256XC24Z4VST7O5VAVXRCTTN5WQOUJ7MXTYIYN6DRYRTJOY6RA7FFAVUU33OUA
-#\\\|DD3L4XM2KAZPWAPHS4EGFG3FKBFPUSQM7GE2Y6A7LMHSMXL6SDI \ / AMOS7 \ YOURUM ::
-#\[7]N6AQK4QOM4ENYVAHRTNT7A2X7LOS6F46TCTZT2VH5XTZ3A2DEKAY 7  DATA SIGNATURE ::
+#,,..,...,,.,,.,,,..,,,,,,,..,,..,,.,,,..,,,.,..,,...,...,...,..,,,..,.,,,,,,,
+#DI32R7WDWIFAABOX7QFIMVJN6S7RAVDGRBKJFHCY6Z46PAVZPEH6CMG4XPUH7AL25GGP2NPHKSZZC
+#\\\|GYPXOJVD3OOEFCDULOEVV4XIOWIUWNZG2NBWNZNKNFZDPRUBH4F \ / AMOS7 \ YOURUM ::
+#\[7]V2ZYTHVS4ITOTMJBRG4RY5AAJ3VMBP52V3DNXVGPKHEH6PZBLEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
