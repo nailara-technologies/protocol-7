@@ -52,35 +52,63 @@ User sees output on screen + in terminal-history
 
 #### Cube-Side Temporal Tracking
 
-Cube maintains a **temporal map of recent commands**:
+**Collection point**: When reply is routed (as route is being purged as completed)
+
+**Full lifecycle captured**: Command departure → Reply arrival with exact byte ranges
 
 ```perl
-# In cube's session context
+# Internal cube tracking (log level 2-3, cube-side only)
 $temporal_map = {
-    # Timestamp => { route_id, zenka_name, command, status }
-    1234567890.123 => {
-        route_id => 42,
-        zenka    => 'weather',
-        command  => 'desc',
-        status   => 'sent',
-        expect_reply_by => 1234567895.123,  # reasonable timeout
+    # Reply timestamp as key (when packet arrived)
+    1234567890.650 => {
+        # Command departure (from base.route.add at send time)
+        start_time   => 1234567890.456,
+        start_offset => 10000,           # Where command's output starts
+
+        # Reply arrival (collected when route is routed/purged)
+        reply_time   => 1234567890.650,
+        current_offset => 10300,         # Buffer position when reply arrives
+
+        # Payload
+        reply_packet_size => 300,        # Size of actual reply data
+
+        # Context (stored internally, not exposed externally)
+        session_id   => 'xyz123',        # Internal session tracking
+        username     => 'taeki',         # Authenticated user
+        zenka_name   => 'weather',       # Resolved zenka name
+        command      => 'desc',
+
+        # Supports all offset encoding strategies:
+        # [start_offset, reply_packet_size]
+        # [current_offset - reply_packet_size, reply_packet_size]
+        # negative offsets from current_offset
     },
-    1234567890.456 => {
-        route_id => 43,
-        zenka    => 'calc',
-        command  => '2+2',
-        status   => 'sent',
-        expect_reply_by => 1234567892.456,  # shorter timeout
-    },
-    1234567890.789 => {
-        route_id => 44,
-        zenka    => 'list',
-        command  => 'users',
-        status   => 'sent',
-        expect_reply_by => 1234567900.789,  # longer timeout
+    1234567890.750 => {
+        start_time   => 1234567890.550,
+        start_offset => 10300,
+        reply_time   => 1234567890.750,
+        current_offset => 10550,
+        reply_packet_size => 250,
+        session_id   => 'xyz123',
+        username     => 'taeki',
+        zenka_name   => 'calc',
+        command      => '2+2',
     },
 };
+
+# Privacy-preserving external queries (on-demand resolution):
+# Question: "What happened at timestamp 1234567890.650?"
+# Answer: "Output from user taeki via zenka weather" (no IDs exposed)
+# (Internal cube resolves session_id → zenka, never exposed to external clients)
 ```
+
+**Why this data combination**:
+- `start_time` + `reply_time`: Full latency window and temporal proximity
+- `start_offset` + `current_offset`: Byte range boundaries with flexibility for encoding
+- `reply_packet_size`: Exact response size (no estimation needed)
+- `session_id` + `username`: Internal correlation for cube-side forensics
+- Stored as internal logging only (log level 2-3 events)
+- Available for local analysis, never exposed externally
 
 #### Reply Correlation: Byte-Range Based with Temporal Hints
 
@@ -443,6 +471,48 @@ Output ready for display with full context
 3. **Harmonic signature** — Verifies authenticity
 4. **Topological origin** — Confirms message source
 5. **Security level alignment** — Validates coherence
+
+## Implementation: Collection Points and Data Sources
+
+**Data sources are already available**, collection happens at two points:
+
+### Point 1: Route Creation (base.route.add)
+
+Data available when command is sent:
+```perl
+# From base.route.add (already implemented):
+'start_time' => <[base.time]>->(5),      # Timestamp when route created
+'user'       => <base.session.uname.server>,
+'size'       => {
+    'buffer' => {
+        'input'  => $data{'size'}->{'buffer'}->{'input'},
+        'output' => $data{'size'}->{'buffer'}->{'output'}  # Current offset
+    }
+},
+```
+
+Capture at route creation:
+- `start_time` — Command departure time
+- `start_offset` — Buffer position where output will go (current output buffer position)
+- `session_id` — For internal tracking
+- `username` — From authenticated session
+
+### Point 2: Reply Routing (when route is purged as completed)
+
+Data available when reply arrives:
+- `reply_time` — High-resolution timestamp when reply packet was processed
+- `current_offset` — Current buffer position (how far output buffer advanced)
+- `reply_packet_size` — Actual size of reply payload
+- `zenka_name` — Resolved target zenka
+
+**Implementation approach**:
+1. At route creation: store `start_time`, `start_offset`, session context
+2. At reply routing: add `reply_time`, `current_offset`, `reply_packet_size`
+3. Compute: `reply_packet_size = current_offset - start_offset` (verification)
+4. Store in temporal_map with reply_time as key
+5. Internal logging only (log level 2-3)
+
+**No new data collection needed** — Everything is already available at these two collection points. Just organize into temporal_map structure at reply routing time when route is being purged.
 
 ## Conclusion
 
