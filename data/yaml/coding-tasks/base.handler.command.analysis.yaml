@@ -1,0 +1,241 @@
+## [:< ##
+#
+# name = base.handler.command.analysis
+# descr = Critical analysis: base.handler.command structure and planned enhancements
+#
+
+overview: |
+  base.handler.command is the most critical routine in Protocol-7.
+  It handles ALL command routing, authentication, and response correlation
+  for the distributed system. Size: 1728 lines, 70953 bytes.
+
+  It is not to be modified casually. Changes here cascade system-wide.
+  This document tracks structural understanding and safe modification zones.
+
+criticality: |
+  base.handler.command processes:
+  - Command routing between cube and other zenki (security context)
+  - Inter-zenka communication
+  - Parent-child zenka relationships
+  - Permission validation and access control
+  - Response correlation and routing
+  - Protocol-7 compliance enforcement
+
+  Failure here = system-wide failure (crash or silent corruption).
+  Silent corruption is more dangerous than crashes.
+
+why_refactoring_is_deferred: |
+  Earlier attempts to split base.handler.command into sub-handlers
+  had to be abandoned because:
+
+  1. It is too critical to refactor incrementally
+  2. One subtle mistake cascades through entire system
+  3. Testing cannot catch all edge cases
+  4. Multi-zenka interactions have complex causality
+  5. Security implications of changes are hard to predict
+
+  Therefore: Do NOT attempt major refactoring without
+  - Exhaustive understanding of all paths
+  - Perfect awareness of all protocol states
+  - Comprehensive test coverage for edge cases
+  - Uninterrupted focus (impossible during crisis maintenance)
+
+planned_refactoring_strategy:
+  step_1_structure_cleanup: |
+    FUTURE WORK (not immediate):
+    Before splitting, must clean up and structure internal context
+    and state variables so that sub-handlers can have clean APIs.
+
+    Goal:
+    - Reduce internal state complexity
+    - Create clear scope boundaries
+    - Enable safe splitting with no overhead
+    - Improve security and reliability while clarifying code
+
+    Status: Deferred until critical functionality is stable
+
+  step_2_safe_splitting: |
+    FUTURE WORK (after step 1):
+    Once internal structure is clean, split into logical sub-handlers:
+    - Command parsing and validation
+    - Permission/authorization checking
+    - Routing (local vs. remote vs. zenka)
+    - Response correlation
+    - Protocol-7 compliance
+
+    Each sub-handler would be smaller, easier to understand,
+    safer to modify independently.
+
+current_safe_modification_zones:
+  reply_handling: |
+    Lines 396-1048: Reply processing (TRUE/FALSE/WAIT/SIZE/STRM/STRM-SIZE)
+
+    SAFE to modify:
+    - Specific reply type handling (within that block)
+    - Reply format processing
+    - Timeout and retry logic (if adding)
+    - Hook invocation logic
+
+    DANGEROUS to modify:
+    - Route correlation mechanism (lines 398-406)
+    - Session state transitions
+    - Buffer management across reply types
+    - Hook data structure
+
+  read_modes: |
+    Lines 209, 1273: Session read-mode switching
+
+    SAFE to modify:
+    - Adding new read modes (bytewise, linewise, binary variants)
+    - Mode-specific processing logic
+    - Mode switching conditions
+
+    DANGEROUS to modify:
+    - When modes switch (protocol compliance)
+    - State transitions related to modes
+    - Data buffering assumptions per mode
+
+planned_feature_character_stream_editing:
+  overview: |
+    Enable character-stream editing for nshell and similar clients
+    using \r (carriage return) and \b (backspace) for line editing.
+
+    This is a SAFE feature to add because:
+    - Only affects unterminated command buffering
+    - Isolated to command-building phase
+    - Does not affect protocol routing or replies
+    - Can be gated by session state and permission checks
+
+  scope_limitations: |
+    \r (carriage return) and \b (backspace) are ONLY valid:
+    - On unterminated commands (not yet sent)
+    - Within same line (back to previous \n maximum)
+    - During command assembly phase
+    - Not in multi-line parameter strings
+    - Not in multi-line command bodies (only in body, not params)
+    - Never in reply traffic (uppercase protocol strings)
+
+    Why these limitations:
+    - \r/\b don't make sense once command is committed (sent)
+    - They don't make sense in replies (already-sent data)
+    - Stream-editing mid-protocol is dangerous
+    - Controlling command boundaries prevents confusion
+
+  security_model: |
+    base.handler.command MUST enforce:
+
+    1. Session state gating
+       - \r/\b ONLY in command assembly state
+       - Not in SIZE/STRM/reply blocks
+       - Not when session is locked
+
+    2. Routing context checking
+       - \r/\b blocked if session is in 'cube' mode (forwarding)
+       - \r/\b blocked if session has routed connections
+       - Safe ONLY for isolated client sessions (like nshell)
+
+    3. Reply traffic protection
+       - Never process \r/\b from uppercase (reply) strings
+       - Commands are lowercase, replies are uppercase
+       - This distinction is enforced, not suggested
+
+    4. Parameter protection
+       - \r/\b NOT allowed in multi-line command parameter strings
+       - Parameter strings must not contain raw \r/\b
+       - Could be enforced via UTF-7 or base32 encoding in \r-enabled contexts
+
+    5. Multi-line body handling
+       - \r/\b in multi-line body (POST-like) only with encoding
+       - Recommend base32 encoding for body data in \r-enabled contexts
+       - Prevents body data from confusing protocol parsing
+
+  implementation_zones: |
+    Modify ONLY:
+    - Command buffer accumulation logic (safe zone)
+    - Handle \r: rewind buffer to last \n
+    - Handle \b: remove one byte from buffer
+    - Both respect "previous endline" boundary
+    - Both only apply to pending (unterminated) commands
+
+    Do NOT modify:
+    - Reply processing (different phase)
+    - Routing logic (different context)
+    - Multi-line parameter parsing
+    - State transitions
+    - Permission checking (reuse existing mechanisms)
+
+  session_state_decisions: |
+    base.handler.command decides if \r/\b are safe based on:
+    - Session mode (client vs. cube)
+    - Routing context (isolated vs. forwarding)
+    - Session state (command assembly vs. reply waiting)
+    - Permission masks (does this client allow editing)
+    - Protocol context (which reply type are we in)
+
+    This is the ONLY place where these decisions should be made.
+    No other component should enable/disable \r/\b.
+
+  nshell_context: |
+    nshell is a CLIENT session (not cube mode).
+    It does not forward/route data from other clients.
+    Therefore:
+    - \r/\b are safe for nshell's session
+    - Can be enabled at auth time or session init
+    - Once enabled, cannot be disabled (locked in)
+    - Provides normal terminal line editing experience
+    - Does not affect protocol routing or security
+
+known_issues_and_constraints:
+  session_initialization_lock: |
+    Pattern used elsewhere for safety:
+    - Features can be enabled during auth phase (session state 0)
+    - Once authenticated (session state > 0), auth interface is unreachable
+    - This prevents any routed command from changing feature state
+    - Can optionally allow disable-only commands (no re-enable)
+
+    Apply same pattern to \r/\b enablement:
+    - Enable during auth or session init (state 0)
+    - Once enabled, cannot be changed without new auth
+    - Protects against exploitation through routing
+
+  existing_read_modes: |
+    Protocol-7 already supports different read modes:
+    - linewise (default): line-by-line processing
+    - bytewise (SIZE mode): byte-by-byte reading
+    - binary: binary protocol mode
+
+    \r/\b feature should be read-mode aware:
+    - Make sense only in linewise mode
+    - Not relevant in bytewise or binary modes
+    - Session already tracks read-mode
+    - Leverage existing mode infrastructure
+
+why_full_protocol_compliance_is_not_immediate: |
+  To be fully protocol-compliant, nshell would need to use
+  base.protocol-7.command.send.local and route IDs.
+
+  But nshell is protocol-AGNOSTIC in outward direction:
+  - Doesn't know if sending complete command or continuation
+  - Doesn't know if data is being streamed to non-local buffer
+  - Doesn't know future stream-forwarding use cases
+  - Therefore cannot atomically use routing IDs
+
+  Solution: Keep nshell protocol-agnostic for sends.
+  Use "unknown-reply-route" hook to catch responses.
+  This is the correct architectural choice, not a workaround.
+
+documentation_status: |
+  This analysis was written to clarify:
+  - Why base.handler.command is critical
+  - Why it hasn't been refactored
+  - Where safe modifications can occur
+  - How character stream editing fits safely
+  - What security boundaries must be respected
+
+  Future refactoring (step 1 & 2) should use this as foundation.
+
+#,,,,,,..,.,,,...,,.,,,,.,.,,,,,,,.,,,..,,..,,..,,...,...,..,,.,.,,..,,,.,..,,
+#J45O2BF5ADFQD77EH5ZFKCKNIRYR37NYC57OIKYD4WXU4WTAWLBY6OWITE4ZV2SP4NB6KIPTYBN6Q
+#\\\|WALGJJ56P636YT7QNKNQBVREB6TBVXBQXQA5WKRM2UZXU4NNLFP \ / AMOS7 \ YOURUM ::
+#\[7]4NEGC7AEXB2KCIGTRVMSJXGRFJDDSJUWAJ4SUPJAFEYIGN2XNGAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
