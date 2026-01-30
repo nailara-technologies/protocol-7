@@ -6,11 +6,12 @@
 ## setting STDIN, STDOUT and STDERR to binary mode
 ## for consistent raw byte handling. this allows
 ## sysread on STDIN and syswrite on STDOUT\STDERR
-## without encoding layer interference :
-
+##  without encoding layer interference :
+#
 map { binmode($ARG) } ( *STDIN, *STDOUT, *STDERR );
 
 ### enable LLM capable debug interface? ##
+##
 <nshell.mode.no_tty_debug> //= FALSE;
 if ( length <system.args> ) {
     foreach my $arg ( split m{\ +}, <system.args> ) {
@@ -41,13 +42,56 @@ $AMOS7::TERM::prompt_prefix_string = ' ::';
 ## current Unix user for authentication [configurable : nshell.login_user ]
 my $current_user = <nshell.login_user> // $ENV{'USER'} // getpwuid($EUID);
 
+##  terminal history [ring] buffers  ##
+##
+if ( not exists <buffer.terminal-history> ) {   ## init msg has a timestamp ##
+    <buffer.terminal-history.max_size> = 42 * 1024;    ## 42K buffer size ##
+    my $log_msg    = '.   .  . .:[ terminal buffer initialized ]:. .  .   .';
+    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );   # BASE32 encoded #
+    <[base.buffer.add_line]>->(
+        qw| terminal-history |,  ## gets initialized on zenka start-up only ##
+        sprintf( '%s %s', $time_stamp, $log_msg ) #[timestamp but no loglevel]
+    );
+}
+##
+
+if (<nshell.mode.no_tty_debug>) {    ## present only in no-tty-debug mode ##
+    ## [ debug log buffer ]
+    #
+    if ( not exists <buffer.no-tty-debug> ) {
+        <buffer.no-tty-debug.max_size> = 24 * 1024;    ## 24K buffer size ##
+        my $log_msg    = '::: DEBUG BUFFER INITIALIZED ::.';
+        my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+        <[base.buffer.add_line]>->(
+            qw| no-tty-debug |,   ## initialized whenever mode gets enabled ##
+            sprintf( '%s %s', $time_stamp, $log_msg )    # [ timestamp only ]
+        );
+    }
+
+    ## [ debug input buffer and watcher ]
+    #
+
+    ## alternate input buffer for char-add testing ##
+    <nshell.buffer.debug_input> //= '';
+
+    <nshell.watcher.buffer.debug_input> = <[event.add_var]>->(
+        {   'var'     => \<nshell.buffer.debug_input>,
+            'poll'    => qw| w |,
+            'handler' => qw| nshell.read_from_buffer |,
+            'repeat'  => TRUE,
+            'desc'    => 'alternate [no-tty-debug] input buffer watcher'
+        }
+    );
+} # use: <[base.buffer.add_line]>->( qw[ no-tty-debug ], $debug_message_line );
+##
+
 ## Initialize command history
 ## Load previous history entries from ~/.protocol-7/nshell.history
 my $history_count = AMOS7::TERM::history_init( 'nshell.history', 1000, 300 );
 <[base.log]>->( 2, "loaded %d history entries", $history_count )
     if $history_count > 0;
 
-## Initialize terminal output color to TRUE blue (p7_fg_0004) so first
+## Initialize terminal output color to TRUE blue [p7_fg_0004] so first
 ## command echoes in correct color
 printf "%s\r", $colors{'p7_fg_0004'} // '';
 
@@ -69,6 +113,7 @@ $code{'base.handler.end_code'} = sub {
 };
 
 ## Initialize nshell state
+<nshell.state> //= <[nshell.state.init]>;    ## editor and navigation state ##
 <nshell.buffer_id>        //= qw| nshell-001 |;
 <nshell.unix_user>        //= $current_user;
 <nshell.authenticated>    //= FALSE;
@@ -76,8 +121,8 @@ $code{'base.handler.end_code'} = sub {
 
 return 0;
 
-#,,..,..,,,.,,...,,,,,..,,..,,.,,,..,,,..,..,,..,,...,..,,..,,..,,,..,..,,..,,
-#NK4VG2NVTXE43BPW64PIMAZUSNW6MZ3ON2OKY5VB33YZFX7ZBJK5P5IAYQ762OMIKSCJMXSJEOZNI
-#\\\|YTUGSGJRUHUOIICXVZ3HEW6QTTWIJOTPFDUJMWSJUAVIT6SKQDI \ / AMOS7 \ YOURUM ::
-#\[7]T4U47NSQSLI5M5X6IFBNZVXTDJJPHZT4VU4OC7ZMQ5BUINYBVWDA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,,,,...,,,.,,,,,.,.,,.,,.,.,...,..,,...,...,.,.,,,.,..,,,,,,.,.,
+#U6U37DQA35FJ77GZNSAVB6TLCPMXNI5BONFCFKVT4AG532OGNCIBOBQRVAHCMAVPXYFAMHIXOV5WU
+#\\\|ZDOINXGEAYUJRDPNMH3H3Y452VY73ECKMDUOBEQU277ZCQ7DDOZ \ / AMOS7 \ YOURUM ::
+#\[7]CGV6Z7UTCC2EOBUM7G2HPBRDCJY6VRHDEG2FYJKFLSTQYMUTWKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
