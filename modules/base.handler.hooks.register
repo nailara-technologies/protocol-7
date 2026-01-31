@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = base.handler.hooks.register
+# descr = Register a hook on a session
+
+## register a hook on a session
+## Args: session_id, hook_type, handler_code_name, [options]
+## Hook types: input-pre, input-post, output, command
+
+my ( $sid, $hook_type, $handler_name, $opts ) = @ARG;
+return FALSE
+    unless defined $sid
+    and defined $hook_type
+    and defined $handler_name;
+
+return FALSE unless defined $data{'session'}{$sid};
+
+$data{'session'}{$sid}{'hooks'} //= {};
+$data{'session'}{$sid}{'hooks'}{$hook_type} //= [];
+
+push $data{'session'}{$sid}{'hooks'}{$hook_type}->@*,
+    {
+    'handler' => $handler_name,
+    'options' => $opts // {},
+    };
+
+<[base.logs]>->(
+    2,    '[%d] registered %s hook: %s',
+    $sid, $hook_type, $handler_name
+);
+
+return TRUE;
+
+#,,,.,.,,,...,,.,,,..,...,.,,,,..,,..,,,.,,,,,.,.,...,...,...,,,,,..,,,,,,...,
+#SPL7BWMVR52GBC7RXTAITD2F5CKEDLESUZGXI2EL3ECLSJWP6DWZRUQVCROUIVZBLVSCHWQXPJZSE
+#\\\|ROI6NTYCHHWEP3BWBMWFBNEX7XM6NZBF7ORGYMNCF6RQR2R3OGR \ / AMOS7 \ YOURUM ::
+#\[7]B5QCHYI5TS6IQI4NTUOVP2HKS7DW2BGREESJLIJ634W355OMXEDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

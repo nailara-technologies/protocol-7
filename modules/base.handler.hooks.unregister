@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = base.handler.hooks.unregister
+# descr = Unregister hooks from a session
+
+## unregister hooks from a session
+## Args: session_id, [hook_type]
+## If hook_type not specified, removes all hooks
+
+my ( $sid, $hook_type ) = @ARG;
+return FALSE unless defined $sid;
+return FALSE unless defined $data{'session'}{$sid};
+
+if ( defined $hook_type ) {
+    delete $data{'session'}{$sid}{'hooks'}{$hook_type};
+} else {
+    delete $data{'session'}{$sid}{'hooks'};
+}
+
+return TRUE;
+
+#,,,,,.,.,.,,,.,.,..,,.,.,..,,.,.,.,.,.,,,,,,,.,.,...,...,..,,.,.,...,..,,,..,
+#3UVPNX2OPBCKU2HQDVQGKL3NRX7PIWPCFWMZRWWAPXF3VVEFPSUKDJAPB4F43JVZOUKGE3U66OEV2
+#\\\|KRGKYR32ZCMYHK46UZDMTRGVHRMTJLMMQ5XHBY5ZIR5D5ME7MB4 \ / AMOS7 \ YOURUM ::
+#\[7]MGRFZDPQGL47OQMAYCGZNFDUC2B5HGLXSQSBWPOTVPS64JSCQUDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,126 +1,46 @@
 ## [:< ##
 
 # name  = base.handler.hooks
-# descr = Hook registration and invocation interface for protocol handlers
+# descr = Call hooks of a given type for a session
 
-## This module provides extensibility points for:
-## - Debugging and forensic interfaces
-## - Protocol development and testing
-## - Custom command handling and routing
-## - Light child zenki implementations
-## - Temporary protocol expansions
+## call hooks of a given type for a session
+## Args: hook_type, event_data_hash, [other_data...]
+## Event data must contain 'sid' key for session lookup
+## Returns: hook result or undef if no hooks
 
-my ( $cmd, @args ) = @ARG;
+my ( $hook_type, $event, @hook_args ) = @ARG;
+return undef unless defined $hook_type and defined $event;
 
-return FALSE unless defined $cmd;
+my $sid = $event->{'sid'};
+return undef unless defined $sid;
+return undef unless defined $data{'session'}{$sid};
 
-if ( $cmd eq qw| register | ) {
-    ## register a hook on a session
-    ## Args: session_id, hook_type, handler_code_name, [options]
-    ## Hook types: input-pre, input-post, output, command
+my $hooks = $data{'session'}{$sid}{'hooks'}{$hook_type} // [];
 
-    my ( $sid, $hook_type, $handler_name, $opts ) = @args;
-    return FALSE
-        unless defined $sid
-        and defined $hook_type
-        and defined $handler_name;
+return undef if $hooks->@* == 0;
 
-    return FALSE unless defined $data{'session'}{$sid};
+## call each hook in sequence, return first non-undef result
+foreach my $hook ( $hooks->@* ) {
+    my $handler = $hook->{'handler'};
+    next unless defined $handler and exists $code{$handler};
 
-    $data{'session'}{$sid}{'hooks'} //= {};
-    $data{'session'}{$sid}{'hooks'}{$hook_type} //= [];
+    my $result = eval { $code{$handler}->( $event, @hook_args ); };
 
-    push $data{'session'}{$sid}{'hooks'}{$hook_type}->@*,
-        {
-        'handler' => $handler_name,
-        'options' => $opts // {},
-        };
-
-    <[base.logs]>->(
-        2,    '[%d] registered %s hook: %s',
-        $sid, $hook_type, $handler_name
-    );
-
-    return TRUE;
-
-} elsif ( $cmd eq 'unregister' ) {
-    ## unregister hooks from a session
-    ## Args: session_id, [hook_type]
-    ## If hook_type not specified, removes all hooks
-
-    my ( $sid, $hook_type ) = @args;
-    return FALSE unless defined $sid;
-    return FALSE unless defined $data{'session'}{$sid};
-
-    if ( defined $hook_type ) {
-        delete $data{'session'}{$sid}{'hooks'}{$hook_type};
-    } else {
-        delete $data{'session'}{$sid}{'hooks'};
+    if ( length $EVAL_ERROR ) {
+        <[base.logs]>->(
+            0,    '[%d] hook %s error: %s',
+            $sid, $handler, <[base.str.eval_error]>
+        );
+        next;
     }
 
-    return TRUE;
-
-} elsif ( $cmd eq 'call' ) {
-    ## call hooks of a given type for a session
-    ## Args: session_id, hook_type, event, [other_data...]
-    ## Returns: hook result or undef if no hooks
-
-    my ( $sid, $hook_type, $event, @hook_args ) = @args;
-    return undef unless defined $sid and defined $hook_type;
-    return undef unless defined $data{'session'}{$sid};
-
-    my $hooks = $data{'session'}{$sid}{'hooks'}{$hook_type} // [];
-
-    return undef if $hooks->@* == 0;
-
-    ## call each hook in sequence, return first non-undef result
-    foreach my $hook ( $hooks->@* ) {
-        my $handler = $hook->{'handler'};
-        next unless defined $handler and exists $code{$handler};
-
-        my $result = eval { $code{$handler}->( $event, @hook_args ); };
-
-        if ( length $EVAL_ERROR ) {
-            <[base.logs]>->(
-                0,    '[%d] hook %s error: %s',
-                $sid, $handler, <[base.str.eval_error]>
-            );
-            next;
-        }
-
-        return $result if defined $result;
-    }
-
-    return undef;
-
-} elsif ( $cmd eq qw| has | ) {
-    ## check if session has hooks of a given type
-    ## Args: session_id, hook_type
-    ## Returns: TRUE if hooks exist, FALSE otherwise
-
-    my ( $sid, $hook_type ) = @args;
-    return FALSE unless defined $sid and defined $hook_type;
-    return FALSE unless defined $data{'session'}{$sid};
-
-    my $hooks = $data{'session'}{$sid}{'hooks'}{$hook_type} // [];
-    return @{$hooks} > 0 ? TRUE : FALSE;
-
-} elsif ( $cmd eq qw| list | ) {
-    ## list all hooks for a session
-    ## Args: session_id
-    ## Returns: hash of hook_type => [handlers]
-
-    my ($sid) = @args;
-    return undef unless defined $sid;
-    return undef unless defined $data{'session'}{$sid};
-
-    return $data{'session'}{$sid}{'hooks'} // {};
+    return $result if defined $result;
 }
 
-return FALSE;
+return undef;
 
-#,,.,,,.,,...,,,,,,,,,,..,.,.,,..,...,.,,,..,,...,...,..,,,.,,,..,...,,,.,...,
-#LQ5G4FOQZKW7YYT2R4ADGS5DXCDZKWT3KIN66MGWHQ5AYN4YMKE4PTYM4233BHP7MUXFDS6WJ65CA
-#\\\|6U5LU2556T6CFYON65IIWZ27RNGE3EIFCHCMDWD6H67SBUF6WJ5 \ / AMOS7 \ YOURUM ::
-#\[7]ZOG6W75AJKAINRMTOH4W7MMKYZOLT4MIVNHXPR6TES2MNUZJY2CY 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,,,,.,,,.,.,.,,,.,.,,..,.,,,,,,,...,...,...,.,,,...,..,,...,.,.,
+#LSOZ2OFULBWGCFUJ2NW447YIJZZVDWMVZX7XBMXCJ7CMXFB76JNNSBVSQPVUNS3IEFCW2GWZIVERG
+#\\\|BXIJHSZNE4JUMEKXFBWVKS2647N4ZRBOJHOYN3OMUB4VQK7UIND \ / AMOS7 \ YOURUM ::
+#\[7]S7UH4GKQVVDQKYQA4H2JA47KFH4DJE6VEHOMPGK2VQWHVKDDIKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
