@@ -971,14 +971,16 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
     } else {
         ## [ HOOK POINT: unknown-reply-route ]
         ## Hook can intercept replies with unknown route IDs
-        if ( <[base.handler.hooks]>->( 'has', $id, 'unknown-reply-route' ) ) {
+        if (
+            <[base.handler.hooks.has_hooks]>->( $id, 'unknown-reply-route' ) )
+        {
             my $hook_result = <[base.handler.hooks]>->(
-                'call', $id,
                 'unknown-reply-route',
-                {   cmd        => $cmd,
-                    cmd_id     => $cmd_id,
-                    args       => $call_args,
-                    session_id => $id
+                {   'sid'       => $id,
+                    'cmd'       => $cmd,
+                    'call_args' => $call_args,
+                    'params'    => undef,
+                    'data'      => undef
                 }
             );
             ## If hook returns TRUE, it handled the message, skip normal processing
@@ -1054,10 +1056,15 @@ UNKNOWN_ROUTE_HANDLED:
 } elsif ( $cmd eq uc $cmd ) {
     ## [ HOOK POINT: unknown-reply-type ]
     ## Hook can intercept replies with unknown/invalid types
-    if ( <[base.handler.hooks]>->( 'has', $id, 'unknown-reply-type' ) ) {
+    if ( <[base.handler.hooks.has_hooks]>->( $id, 'unknown-reply-type' ) ) {
         my $hook_result = <[base.handler.hooks]>->(
-            'call', $id, 'unknown-reply-type',
-            { cmd => $cmd, cmd_id => $cmd_id, args => $call_args }
+            'unknown-reply-type',
+            {   'sid'       => $id,
+                'cmd'       => $cmd,
+                'call_args' => $call_args,
+                'params'    => undef,
+                'data'      => undef
+            }
         );
         ## If hook returns TRUE, it handled the message, skip normal processing
         goto UNKNOWN_TYPE_HANDLED
@@ -1339,14 +1346,15 @@ UNKNOWN_TYPE_HANDLED:
         } else {    ## command does not exist ##
             ## [ HOOK POINT: unknown-command ]
             ## Hook can intercept unknown commands user tried to execute
-            if ( <[base.handler.hooks]>->( 'has', $id, 'unknown-command' ) ) {
+            if (
+                <[base.handler.hooks.has_hooks]>->( $id, 'unknown-command' ) )
+            {
                 my $hook_result = <[base.handler.hooks]>->(
-                    'call', $id,
                     'unknown-command',
-                    {   cmd     => $cmd,
-                        cmd_id  => $cmd_id,
-                        args    => $call_args,
-                        context => 'local'
+                    {   'sid'       => $id,
+                        'cmd'       => $cmd,
+                        'call_args' => $call_args,
+                        'context'   => 'local'
                     }
                 );
                 ## If hook returns TRUE, it handled the message, skip normal processing
@@ -1687,14 +1695,14 @@ UNKNOWN_TYPE_HANDLED:
 
     ## [ HOOK POINT: unknown-command-global ]
     ## Hook can intercept commands that don't exist or user lacks access
-    if ( <[base.handler.hooks]>->( 'has', $id, 'unknown-command-global' ) ) {
+    if ( <[base.handler.hooks.has_hooks]>->( $id, 'unknown-command-global' ) )
+    {
         my $hook_result = <[base.handler.hooks]>->(
-            'call', $id,
             'unknown-command-global',
-            {   cmd    => $cmd,
-                cmd_id => $cmd_id,
-                args   => $call_args,
-                user   => $user
+            {   'sid'       => $id,
+                'cmd'       => $cmd,
+                'call_args' => $call_args,
+                'user'      => $user
             }
         );
         ## If hook returns TRUE, it handled the message, skip normal processing
@@ -1721,8 +1729,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,.,,..,,.,,,,..,,.,,,.,,,,.,.,.,,.,,.,,,,,,,..,,...,...,,,.,,..,,..,.,.,,.,,
-#AV53DCF6ZYOXBCEOZABMQFCJ2NHIOJE25R2D2LYVFIRK6RAV45RE7X27LHA4H7MJFW6N42TRKMCVY
-#\\\|P7TTPOKL5SCKCBRNAUWIG4L4ZMZJUB55OQHLNDHCWAQZTUTMPYS \ / AMOS7 \ YOURUM ::
-#\[7]YQVYPEQ37ZRTFYX5QEWOCA2QNRGRU47NAV2AC2TKKMBFAQVCIKBQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,,.,,,,,..,,.,,,.,.,.,,,,,.,,,,,..,,...,...,..,,...,...,...,,,.,
+#MQL5HIQYEZ2DKL4X4CMXYPSAMXUOQTZO3TR5FX42GYLACN7IKC2VKIIP5COM3ODZKX6LGMDYJBTJG
+#\\\|33WEVP3TFSUAMD3TWWCX7MM6OTNTXXY66AGDQPNT6FCXQB4TX2C \ / AMOS7 \ YOURUM ::
+#\[7]IM5NMPGYHDYHDK7AI674ILJUNNFRVTHKFKPXHXM66PZC2N47D2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
