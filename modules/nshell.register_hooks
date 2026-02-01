@@ -19,25 +19,23 @@ unless ( defined $session_id and defined $data{'session'}{$session_id} ) {
 ## These are called by base.handler.command when it encounters unknown messages
 
 ## Hook for replies with unknown route IDs
-<[base.handler.hooks]>->(
-    'register', $session_id, 'unknown-reply-route',
-    'nshell.hook.unknown_reply_route'
+<[base.handler.hooks.register]>->(
+    $session_id, 'unknown-reply-route', 'nshell.hook.unknown_reply_route'
 );
 
 ## Hook for replies with unknown/invalid types
-<[base.handler.hooks]>->(
-    'register', $session_id, 'unknown-reply-type',
-    'nshell.hook.unknown_reply_type'
+<[base.handler.hooks.register]>->(
+    $session_id, 'unknown-reply-type', 'nshell.hook.unknown_reply_type'
 );
 
 ## Hook for unknown commands (user has local access but command doesn't exist)
-<[base.handler.hooks]>->(
-    'register', $session_id, 'unknown-command', 'nshell.hook.unknown_command'
+<[base.handler.hooks.register]>->(
+    $session_id, 'unknown-command', 'nshell.hook.unknown_command'
 );
 
 ## Hook for globally unknown commands (command doesn't exist for any user)
-<[base.handler.hooks]>->(
-    'register', $session_id, 'unknown-command-global',
+<[base.handler.hooks.register]>->(
+    $session_id, 'unknown-command-global',
     'nshell.hook.unknown_command_global'
 );
 
@@ -45,8 +43,8 @@ unless ( defined $session_id and defined $data{'session'}{$session_id} ) {
 
 return TRUE;
 
-#,,.,,.,.,...,,.,,..,,...,,..,.,.,...,.,.,.,.,.,.,...,...,..,,,,,,,,.,,.,,..,,
-#7DS2UPSXRP7IADMRBC4WKTTXNMGYYX6LWLQZB7YYMKKD2H6Z5MQM7F3SMJ3BLFYVNJTMJKVF26RXE
-#\\\|2RVAVU5FX2ZWTSYRLPW5NR7ALAQVQNO2OJ6OVRJVULWTDCHQD44 \ / AMOS7 \ YOURUM ::
-#\[7]AVMSGZGSYEEMIYS5DFABE23F6QFTTIHD5D7S6FMVHAJWUVEYL4BA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,,.,,,.,,,,,.,.,.,,,,,,,.,,,,.,,.,.,...,...,...,.,,,,..,,..,.,.,
+#2JE63DDNOJDUCVSDIOJBDLVOYXUCVC2PTUEPE5XBEPHXSW5DQHT6Z52O2XIE4Q4CNF6EPCFDOYZ2Y
+#\\\|JATFMBLZCN3FC4PZBCEOLT736BZ2C42ZJR657SVNO4L4L5AXDJ2 \ / AMOS7 \ YOURUM ::
+#\[7]NTORPQX3FLBPC4TRDTQM55I2CMFVBNZ6NSXVDKMQGCNFOKXG4GCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

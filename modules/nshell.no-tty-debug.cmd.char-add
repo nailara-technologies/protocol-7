@@ -58,48 +58,39 @@ state %chr_map = (
 
 my $debug_state = <nshell.debug_state>;
 
-### [ parse input: extract [KeyName]xN patterns and regular chars ]
+### [ parse input: extract [Key1,Key2,...] sequences and literal text ]
 ##
 my @tokens = ();
 my $pos    = 0;
 while ( $pos < length $character_string ) {
     if ( substr( $character_string, $pos, 1 ) eq '[' ) {
-        ## bracketed key name or repetition
+        ## bracketed comma-separated key sequence: [Up,Down,Ctrl+o,Enter]
         my $close = index( $character_string, ']', $pos );
         if ( $close > $pos ) {
-            my $key_spec
+            my $key_spec_list
                 = substr( $character_string, $pos + 1, $close - $pos - 1 );
             $pos = $close + 1;
 
-            ## check for xN repetition count
-            my $repeat = 1;
-            if ( $pos < length $character_string
-                && substr( $character_string, $pos, 1 ) eq 'x' ) {
-                $pos++;
-                my $num_str = '';
-                while ( $pos < length $character_string
-                    && substr( $character_string, $pos, 1 ) =~ m{[0-9]} ) {
-                    $num_str .= substr( $character_string, $pos, 1 );
-                    $pos++;
+            ## split by comma and map each key name
+            foreach my $key_spec ( split m{,}, $key_spec_list ) {
+                $key_spec
+                    =~ s{^\s+|\s+$}{}g;    ## trim whitespace around each key
+                if ( length $key_spec ) {
+                    if ( exists $chr_map{$key_spec} ) {
+                        push @tokens,
+                            {
+                            'type' => 'key',
+                            'name' => $key_spec,
+                            'byte' => $chr_map{$key_spec}
+                            };
+                    } else {
+                        ## unknown key name
+                        return {
+                            'mode' => qw| false |,
+                            'data' => "..unknown key name: [$key_spec].."
+                        };
+                    }
                 }
-                $repeat = int($num_str) if length $num_str;
-            }
-
-            ## map key name to byte sequence
-            if ( exists $chr_map{$key_spec} ) {
-                push @tokens,
-                    {
-                    'type'   => 'key',
-                    'name'   => $key_spec,
-                    'byte'   => $chr_map{$key_spec},
-                    'repeat' => $repeat
-                    };
-            } else {
-                ## unknown key name
-                return {
-                    'mode' => qw| false |,
-                    'data' => "..unknown key name: [$key_spec].."
-                };
             }
         } else {
             ## unclosed bracket
@@ -108,11 +99,8 @@ while ( $pos < length $character_string ) {
                 'data' => '..unclosed bracket in input..'
             };
         }
-    } elsif ( substr( $character_string, $pos, 1 ) eq ' ' ) {
-        ## whitespace separator - skip it
-        $pos++;
     } else {
-        ## regular character
+        ## literal text: any characters including spaces, newlines, etc
         my $char = substr( $character_string, $pos, 1 );
         push @tokens, { 'type' => 'char', 'byte' => $char };
         $pos++;
@@ -123,14 +111,8 @@ while ( $pos < length $character_string ) {
 ##
 foreach my $token (@tokens) {
     my $byte = $token->{'byte'};
-    my $name
-        = $token->{'type'} eq 'key' ? $token->{'name'} : "'" . $byte . "'";
-    my $repeat = $token->{'repeat'} // 1;
-
-    for ( my $i = 0; $i < $repeat; $i++ ) {
-        ## append to debug input buffer
-        <nshell.buffer.debug_input> .= $byte;
-    }
+    ## append to debug input buffer (each token once)
+    <nshell.buffer.debug_input> .= $byte;
 }
 
 ### [ let event loop process the queued keys ]
@@ -193,8 +175,8 @@ my $state_transition_reply = sprintf(
 
 return { 'mode' => qw| size |, 'data' => $state_transition_reply }
 
-#,,,.,.,,,,..,.,.,.,,,.,.,..,,,,.,...,..,,...,..,,...,...,,..,..,,..,,...,,.,,
-#7L6DY42KNZERER3FJ52DBTTWREMAS7C3ILXKLDEAX3UBCFJLKOIHXI64G6AN7WDSUHIRICB676MM4
-#\\\|PIZZBXOWEZ5UV4UT4SHG7UTTNR4U4FHQQMK7YCCQYPBRHUH7AMX \ / AMOS7 \ YOURUM ::
-#\[7]B2PF6TV4BD5GIV2543TUSXRBXVYV2V3VVINHI3DZ5TQBBD7XAMAY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,..,,,,,,,.,,.,,,,..,.,,,.,.,,.,,..,,...,..,,.,.,...,.,,,,..,...,
+#CAPQYO7VKW45NRDP6SSQR5BVCEZVDEGDU7O4YIQU4BAXF742NZBAHOXNDF2KJIOKYEV2SPQBB6IVU
+#\\\|JMHRSWZMVVFWHEBYUWXCKUX2A4ZNOSYG2PY3MEILSEJ3FRD3FYM \ / AMOS7 \ YOURUM ::
+#\[7]K5C7HBYNA5TWRAM5MQVJOPHC2GE3LVJMOKC726KFKDJL65HV2CCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

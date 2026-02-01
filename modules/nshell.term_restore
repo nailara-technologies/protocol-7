@@ -5,7 +5,7 @@
 
 ## Clear any stray cursor character before restoring terminal
 ## The cursor \r_\e[K\r sequence positions at line start, so we clear from there
-print "\r\e[K";
+print "\e[0m\r\e[K";
 STDOUT->flush();
 
 ## Retrieve backed-up terminal settings from nshell.term_init
@@ -27,8 +27,8 @@ if ( defined $restore_termios ) {
 
 return TRUE;
 
-#,,,.,,,,,.,.,..,,.,.,.,.,.,,,,.,,.,,,,,,,.,,,..,,...,...,.,,,.,.,,,.,.,,,.,.,
-#YKWEEGTD3XM7E6P6KAO3OEPBGDTW4TJAPPCFOSKBOOFWRG2GQEQB6ZNNF6M72F4L6KR2PA2B4MJSM
-#\\\|4GL7NDQ3ASTGQJSQ3MMGNINJWGKXGH47F2FN5J3MLCDZIKKIK6B \ / AMOS7 \ YOURUM ::
-#\[7]3CDEE724MMSD7HLAR6ZVDZ33OLUA7VLE6COSXJRSJHW6CXEKQOCA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,.,,,,.,,.,.,..,,.,.,.,,,,.,,.,.,..,,...,..,,..,,.,.,,,.,,,,,,,,,
+#KDXXK7USPNDA2YBDDJFZA453UAJPFNHIB3OJEYW6MZE6P7KJIIV2G3UP6MWCI6K5BTGA7S6J2PQCM
+#\\\|CFU6BVKTWEC6L2ITLNAT7SCQK645ADEHO2IOF6IA74HCYL5J4PM \ / AMOS7 \ YOURUM ::
+#\[7]MLBVT7AKLI6EW2JHOVUM3SGJGZ3EWTNFPYSOT736V7JWPNAS4KDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
