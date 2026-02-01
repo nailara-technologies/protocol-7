@@ -28,7 +28,7 @@ if ($show_cursor_on_call) {
     AMOS7::TERM::cursor_set_color( $colors{'p7_fg_0003'} );
 
     ## Display cursor
-    print $colors{'p7_fg_0003'} . '_' . "\e[0m" . $colors{'p7_fg_0004'};
+    print $colors{'p7_fg_0003'} . "_\r" . "\e[0m" . $colors{'p7_fg_0004'};
     STDOUT->flush();
 
     return undef;    ## Return to event loop to display cursor before input
@@ -268,8 +268,23 @@ while ( length $input_chars ) {
         $key, $state_ref->{'colors'}
     );
 
+    if (<nshell.mode.no_tty_debug>) {
+        <[base.buffer.add_line]>->(
+            qw| no-tty-debug |,
+            sprintf(
+                "editor.process key=%s result=%s",
+                ( $key eq "\n"    ? "NEWLINE"     : "'$key'" ),
+                ( defined $result ? "YES:$result" : "UNDEF" )
+            )
+        );
+    }
+
     ## Check for state change when exiting history mode
     if ( defined $result && $state_ref->{'current_mode'} == 2 ) {
+        <[base.buffer.add_line]>->(
+            qw| no-tty-debug |,
+            "exiting VIEWING_HISTORY, returning to NORMAL"
+        ) if <nshell.mode.no_tty_debug>;
         $state_ref->{'current_mode'}          = 0;       # Return to NORMAL
         $state_ref->{'current_history_index'} = -1;
         $state_ref->{'ctrl_o_start_position'} = undef;
@@ -278,6 +293,10 @@ while ( length $input_chars ) {
 
     ## Return command if submitted
     if ( defined $result ) {
+        <[base.buffer.add_line]>->(
+            qw| no-tty-debug |,
+            "COMMAND COMPLETE: returning result=$result"
+        ) if <nshell.mode.no_tty_debug>;
         ## Set flag to redraw cursor on next call after reply arrives
         $show_cursor_on_call = TRUE;
         return $result;
@@ -286,8 +305,8 @@ while ( length $input_chars ) {
 
 return undef;
 
-#,,.,,..,,,..,.,,,..,,,.,,,..,,.,,,.,,..,,,..,.,.,...,...,...,...,.,,,,,.,.,,,
-#RH3VKHEDFLQFOPE5R3KZEVYX7JGVHOHFUMB5IRTIS5O5SQYTR3GN35DBGKRLXQ23KPPTBJ5JSVZKQ
-#\\\|K3NPKWABDS5OCINIIXSDZP7KIE72V7CTMTACATEFXA4U75GWAHM \ / AMOS7 \ YOURUM ::
-#\[7]EXGFJ362DQN5MRKIVKFKSCK6IW4IXGLO26FDTI5OFTYRTXW4DQDY 7  DATA SIGNATURE ::
+#,,..,,.,,,..,,,,,.,,,,,,,.,,,,,.,,,.,,,,,.,,,.,.,...,...,.,,,.,.,,,,,,,,,,.,,
+#RFUTSBNTOFR4DMDY5MZQWUHOIL7FR4IYSETC6O47HK7HRG5YIZ4AF7OJH5ON4OWWCCM3PLOH6PUYA
+#\\\|YGLMRSCDIEUCY4RS7JTVAEVCYCSVOXRM7V3IG7B2PO6BGLES2YW \ / AMOS7 \ YOURUM ::
+#\[7]JXA5JTFEIUJJVXTGBXWI4CCC4BNYHPKNHKY2JSHFPQCC35LEAGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
