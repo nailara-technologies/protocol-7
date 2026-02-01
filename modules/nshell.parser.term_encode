@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = nshell.parser.term_encode
+# descr = Escape control chars in terminal output for safe history storage
+
+my $output = shift // return '';
+
+#### named escape table for common control chars ####
+state %named_escape = (
+    "\a" => '\\a',    ## bell
+    "\b" => '\\b',    ## backspace
+    "\e" => '\\e',    ## ESC - critical for ANSI sequences
+    "\f" => '\\f',    ## form feed
+    "\r" => '\\r',    ## carriage return
+    "\t" => '\\t',    ## tab
+);
+
+#### escape control characters: use named escapes, then octal for rest ####
+## keep printable ASCII (0x20-0x7E), UTF-8 (0x80-0xFF), newline (0x0A) only
+## newline must stay to preserve line structure in terminal-history
+## other control chars get named escapes (\e, \t, etc) or octal (\033, \027)
+#
+$output =~ s|([^\x0A\x20-\x7E\x80-\xFF])|
+             $named_escape{$LAST_PAREN_MATCH} //
+              sprintf '\\%03o', ord($LAST_PAREN_MATCH)
+|ge;
+
+return $output;
+
+#,,.,,.,,,,,.,,,,,..,,,.,,..,,,,,,...,...,,,,,..,,...,...,.,.,.,,,.,.,...,,,,,
+#6KXWNQT3MFQC7DSOKDVOVVKAPIJOIKMGEZIY3RY5DKVX7A5QKF2DBE55DGDSJHJSCMDQ4KNLVPMFE
+#\\\|W3RT3QAOJZFJWCM2IS7OI54PF65FWCO5EJGB7RUNNHLEVYRQWZG \ / AMOS7 \ YOURUM ::
+#\[7]3LJPDCDL5IRA7DNZYHTMKXDC3OLHBWSLD4K6GK2Q2CGBX7262OBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
