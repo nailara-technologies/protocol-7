@@ -999,24 +999,6 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 ##[ PROCESS REPLY \ UNKNOWN ROUTE ID ]########################################
 
     } else {
-        ## [ HOOK POINT: unknown-reply-route ]
-        ## Hook can intercept replies with unknown route IDs
-        if (
-            <[base.handler.hooks.has_hooks]>->( $id, 'unknown-reply-route' ) )
-        {
-            my $hook_result = <[base.handler.hooks]>->(
-                qw| unknown-reply-route |,
-                {   'sid'       => $id,
-                    'cmd'       => $cmd,
-                    'call_args' => $call_args,
-                    'data'      => undef
-                }
-            );
-            ## If hook returns TRUE, it handled the message :
-            goto UNKNOWN_ROUTE_HANDLED    ## skip normal processing
-                if defined $hook_result and $hook_result == TRUE;
-        }
-
         my $ignore_log_level = 1;
 
         $ignore_log_level = 2
@@ -1031,7 +1013,31 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
             $id, $cmd, $cmd_id
         );
 
-        if (
+        ## Handle single-line replies to unknown routes
+        if ( $cmd =~ m,^(TRUE|FALSE|WAIT|GET|TERM)$, ) {
+
+            ## [ HOOK POINT: unknown-reply-route - single-line case ]
+            ## Hook can intercept single-line replies with unknown route IDs
+            if (<[base.handler.hooks.has_hooks]>->(
+                    $id, 'unknown-reply-route'
+                )
+            ) {
+                my $hook_result = <[base.handler.hooks]>->(
+                    qw| unknown-reply-route |,
+                    {   'sid'       => $id,
+                        'cmd'       => $cmd,
+                        'call_args' => $call_args,
+                        'data'      => undef
+                    }
+                );
+                ## If hook returns TRUE, it handled the message :
+                goto UNKNOWN_ROUTE_HANDLED    ## skip normal processing
+                    if defined $hook_result and $hook_result == TRUE;
+            }
+
+            return 0;                         ## command complete ###
+
+        } elsif (
             (      $cmd eq qw| SIZE |
                 or $cmd eq qw| STRM |
                 or $cmd eq qw| CHRSIZE |
@@ -1056,7 +1062,10 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
             }
 
             if ( $buffer_length >= $ignore_count ) {
+                ## Extract payload data before dropping from buffer
+                my $payload_data = substr $input->$*, 0, $ignore_count;
                 substr $input->$*, 0, $ignore_count, '';
+
                 <[base.logs]>->(
                     $ignore_log_level,
                     "[%d] : dropped next %03d byte%s., [ %s body ]",
@@ -1065,7 +1074,27 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     <[base.cnt_s]>->($ignore_count),
                     $cmd
                 );
-                return 0;    ## comand complete ###
+
+                ## [ HOOK POINT: unknown-reply-route - complete case ]
+                ## Hook can intercept complete replies with unknown route IDs
+                if (<[base.handler.hooks.has_hooks]>->(
+                        $id, 'unknown-reply-route'
+                    )
+                ) {
+                    my $hook_result = <[base.handler.hooks]>->(
+                        qw| unknown-reply-route |,
+                        {   'sid'       => $id,
+                            'cmd'       => $cmd,
+                            'call_args' => $call_args,
+                            'data'      => $payload_data
+                        }
+                    );
+                    ## If hook returns TRUE, it handled the message :
+                    goto UNKNOWN_ROUTE_HANDLED    ## skip normal processing
+                        if defined $hook_result and $hook_result == TRUE;
+                }
+
+                return 0;                         ## comand complete ###
 
             } else {
                 <[base.log]>->(
@@ -1088,9 +1117,13 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         = $ignore_bytes - $buffer_length;
                 }
                 $input->$* = '';    ##  truncating buffer to ''  ##
+
+                ## [ ASYNC PROBLEM: incomplete multi-line reply ]
+                ## TODO: defer hook call for incomplete case when next chunk arrives
+                ## For now: incomplete replies to unknown routes don't trigger hooks
             }
         }
-        return 1;                   ## command not complete ###
+        return 1;    ## command not complete ###
     }
 
 UNKNOWN_ROUTE_HANDLED:
@@ -1775,8 +1808,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,.,,.,.,...,,.,,..,,.,.,,.,,..,,..,,,..,,.,,..,,...,...,.,,,,.,,..,,..,,,,,,
-#XJFBWZGJA7B2T7EI43AEJRKQ6D4LZM23GZGLSXK3Z5EJMGRDJQZQXVJOWFKAAK4X66VOJEY4XVLDY
-#\\\|2LCFYBK26MS7HAWZPYU7YPQQK33B3IUF6X76EOYBHHYMBG4F2WR \ / AMOS7 \ YOURUM ::
-#\[7]2PD7XVWVQRZD5YPKNTJMPNEYS7QLOTJPZWBBDZUJKZHR27JXOWAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,.,,,.,,,..,...,,.,,,..,,,,,,,,,..,,...,...,...,.,,,..,,,..,,..,
+#2Q47B73BX4DLB4DC6KNHXLLECCIPP74VRESYVS5SFR6IAXK3DLR3GIZEM3ZEQSQ66E55B3542E5QQ
+#\\\|PJSB6MFLFCVRQCUYMEHCVCIQPXRMJ4HJ3TUYED45HK4WYKPM4GT \ / AMOS7 \ YOURUM ::
+#\[7]LOIA62SGC2YLVJKL2LLX5ZSFDIYTIOQT2A3T72KRNZ3JDR3JEQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
