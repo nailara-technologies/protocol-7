@@ -11,7 +11,7 @@
 my $event = shift;
 my $id    = $event->w->data;
 
-##[ INIT \ VARIABLES ]##########################################################
+##[ INIT \ VARIABLES ]########################################################
 
 my $re = <regex.base>;    # <-- regex cache
 
@@ -41,8 +41,9 @@ if (<system.devmod_capture>) {
     <[base.buffer.add_line]>->( qw| devmod-capture |, $input->$* );
 }
 
-##[ DROP \ SIZE REPLIES ]#####################################################
+##[ DROP \ SIZE + CHRSIZE REPLIES ]###########################################
 
+## Handle incomplete SIZE \ STRM \ STRM-SIZE replies [ tracked by byte count ]
 if ( defined $session->{'ignore_bytes'} ) {    # ..dropped SIZE replies.,
     if ( my $ignore_bytes = $session->{'ignore_bytes'} ) {
         <[base.log]>->(
@@ -63,12 +64,40 @@ if ( defined $session->{'ignore_bytes'} ) {    # ..dropped SIZE replies.,
     }
 }
 
-##[ STOP WATCHER TO MODIFY INPUT BUFFER ]#####################################
+## Handle incomplete CHRSIZE replies [ tracked by character count ]
+if ( defined $session->{'ignore_chars'} ) {
+    if ( my $ignore_chars = $session->{'ignore_chars'} ) {
+        <[base.log]>->(
+            '[%d] dropping %03d [ignore-]char%s.,',
+            $id, $ignore_chars, <[base.cnt_s]>->($ignore_chars)
+        );
+
+        my $chars_available = CORE::length( $input->$* );
+
+        if ( $chars_available >= $ignore_chars ) {
+            ## Extract and remove the specified number of characters
+            my $extracted       = substr $input->$*, 0, $ignore_chars;
+            my $bytes_to_remove = bytes::length($extracted);
+            substr $input->$*, 0, $bytes_to_remove, '';
+            $buffer_length = bytes::length( $input->$* );
+            delete $session->{'ignore_chars'};
+        } else {
+            ## Incomplete - update remaining character count and clear buffer
+            $session->{'ignore_chars'} -= $chars_available;
+            $input->$* = '';        ##  truncating buffer to ''  ##
+            $buffer_length = 0;
+        }
+    } else {
+        delete $session->{'ignore_chars'};
+    }
+}
+
+##[ STOP WATCHER TO MODIFY INPUT BUFFER ##]###################################
 
 ##  stop the watcher to modify buffer without re-triggering  ##
 $event->w->stop;
 
-##[ STOP TIMER \ ONDEMAND TIMEOUT ]###########################################
+##[ STOP TIMER \ ONDEMAND TIMEOUT ]##########################################
 
 # cancel ondemand timeout [ reinstalled in idle watcher ]
 if ( defined <base.timer.ondemand_timeout> ) {
@@ -485,7 +514,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     my $msg_len = 0 + $LAST_PAREN_MATCH;
                     $call_args->{'args'} = $msg_len; ##  removing 0 prefix  ##
 
-                    ## SIZE mode: BYTE count (with global 'use bytes;' pragma active)
+                    ## SIZE mode : BYTE count [ global 'use bytes;' pragma ]
                     my $buffer_len_bytes = bytes::length( $input->$* );
 
                     if ( $buffer_len_bytes >= $msg_len ) {    ##BYTES##
@@ -560,8 +589,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     my $msg_len = 0 + $LAST_PAREN_MATCH;
                     $call_args->{'args'} = $msg_len; ##  removing 0 prefix  ##
 
-                    ## CHRSIZE mode: CHARACTER count (UTF-8 aware)
-                    ## Explicitly upgrade to count UTF-8 character boundaries
+                    ## CHRSIZE mode: CHARACTER count [ UTF-8 aware ]
+                    ## explicitly upgrade to count UTF-8 character boundaries
                     my $test_input = $input->$*;
                     utf8::upgrade($test_input);
                     my $buffer_len_chars = length($test_input);
@@ -639,7 +668,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     my $total_bytes = $1;
 
                     $session->{'streams'}{$cmd_id} = {
-                        'type'           => 'STRM',
+                        'type'           => qw| STRM |,
                         'total_bytes'    => $total_bytes,
                         'received_bytes' => 0,
                         'buffer'         => '',
@@ -648,13 +677,13 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     };
 
                     <[base.logs]>->(
-                        2,   "[%d] STRM open: %d bytes",
+                        2,   "[%d] STRM open : %d bytes",
                         $id, $total_bytes
                     );
 
                 } elsif ( $call_args->{'args'} =~ m|^(\d+)$| ) {
                     ## STRM data packet: chunk_size provided in args ##
-                    my $chunk_size = $1;
+                    my $chunk_size = $LAST_PAREN_MATCH;
 
                     if ( $buffer_length >= $chunk_size ) {
 
@@ -700,7 +729,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                             $stream->{'total_bytes'}
                         );
 
-                        ## Call reply handler with accumulated data ##
+                        ## call reply handler with accumulated data ##
                         if ( defined $route->{'reply'}->{'handler'} ) {
                             if (defined $code{ $route->{'reply'}->{'handler'}
                                 } ) {
@@ -764,7 +793,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     );
                 }
 
-##[ PROCESS REPLY \ STRM-SIZE ]##################################################
+##[ PROCESS REPLY \ STRM-SIZE ]###############################################
 
             } elsif ( $cmd eq qw| STRM-SIZE | ) {
 
@@ -773,7 +802,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     my $total_bytes = $1;
 
                     $session->{'streams'}{$cmd_id} = {
-                        'type'           => 'SIZE',
+                        'type'           => qw| SIZE |,
                         'total_bytes'    => $total_bytes,
                         'received_bytes' => 0,
                         'buffer'         => '',
@@ -781,7 +810,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         'route_id'       => $session->{'route'}{$cmd_id},
                     };
 
-                    ## Save handler/params for later delivery on close ##
+                    ## Save handler and params for later delivery on close ##
                     if ( defined $route->{'reply'}->{'handler'} ) {
                         if ( defined $code{ $route->{'reply'}->{'handler'} } )
                         {
@@ -791,7 +820,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                                 = $route->{'reply'}->{'params'};
                         }
                     } else {
-                        ## Mark for routing to source (no handler) ##
+                        ## Mark for routing to source [ no handler ] ##
                         $session->{'streams'}{$cmd_id}->{'route_source_sid'}
                             = $route->{'source'}->{'sid'};
                         $session->{'streams'}{$cmd_id}
@@ -802,13 +831,13 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     $session->{'blocked_by_stream'} = $cmd_id;
 
                     <[base.logs]>->(
-                        2, "[%d] STRM-SIZE open: %d bytes (session blocked)",
+                        2, "[%d] STRM-SIZE open : %d bytes [session blocked]",
                         $id, $total_bytes
                     );
 
                 } elsif ( $call_args->{'args'} =~ m|^(\d+)$| ) {
                     ## STRM-SIZE data packet: extract and forward raw chunk ##
-                    my $chunk_size = $1;
+                    my $chunk_size = $LAST_PAREN_MATCH;
 
                     if ( $buffer_length >= $chunk_size ) {
 
@@ -866,7 +895,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                             != $stream->{'total_bytes'} ) {
                             <[base.logs]>->(
                                 1,
-                                "[%d] STRM-SIZE close mismatch: %d != %d bytes",
+                                "[%d] STRM-SIZE close mismatch "
+                                    . ": %d != %d bytes",
                                 $id,
                                 $stream->{'received_bytes'},
                                 $stream->{'total_bytes'}
@@ -875,8 +905,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                             ## Send FALSE to source and drop route ##
                             $data{'session'}{ $route->{'source'}->{'sid'} }
                                 {'buffer'}{'output'}
-                                .= sprintf
-                                "%sFALSE STRM-SIZE incomplete: %d/%d bytes\n",
+                                .= sprintf "%sFALSE STRM-SIZE incomplete "
+                                . ": %d/%d bytes\n",
                                 $s_cmd_id,
                                 $stream->{'received_bytes'},
                                 $stream->{'total_bytes'};
@@ -975,16 +1005,15 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
             <[base.handler.hooks.has_hooks]>->( $id, 'unknown-reply-route' ) )
         {
             my $hook_result = <[base.handler.hooks]>->(
-                'unknown-reply-route',
+                qw| unknown-reply-route |,
                 {   'sid'       => $id,
                     'cmd'       => $cmd,
                     'call_args' => $call_args,
-                    'params'    => undef,
                     'data'      => undef
                 }
             );
-            ## If hook returns TRUE, it handled the message, skip normal processing
-            goto UNKNOWN_ROUTE_HANDLED
+            ## If hook returns TRUE, it handled the message :
+            goto UNKNOWN_ROUTE_HANDLED    ## skip normal processing
                 if defined $hook_result and $hook_result == TRUE;
         }
 
@@ -1002,21 +1031,26 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
             $id, $cmd, $cmd_id
         );
 
-        if (    ( $cmd eq qw| SIZE | or $cmd eq qw| CHRSIZE | )
+        if (
+            (      $cmd eq qw| SIZE |
+                or $cmd eq qw| STRM |
+                or $cmd eq qw| CHRSIZE |
+                or $cmd eq qw| STRM-SIZE |
+            )
             and $call_args->{'args'} =~ m|^\d+$|
-            and my $ignore_bytes = $call_args->{'args'} ) {
+            and my $ignore_bytes = $call_args->{'args'}
+        ) {
 
-            ## For SIZE mode: ignore_bytes is BYTE count
-            ## For CHRSIZE mode: need to count characters
-            my $ignore_count = $ignore_bytes;
+            ## For SIZE, STRM, and STRM-SIZE modes: ignore_bytes is BYTE count
+            ## For CHRSIZE mode only: need to convert character count to bytes
+            my $ignore_count    = $ignore_bytes;
+            my $chars_available = 0;               ## For CHRSIZE mode only
             if ( $cmd eq qw| CHRSIZE | ) {
                 ## Convert character count to byte count for buffer operations
-                my $test_input = $input->$*;
-                utf8::upgrade($test_input);
-                my $chars_available = length($test_input);
+                $chars_available = CORE::length( $input->$* );
                 if ( $chars_available >= $ignore_bytes ) {
                     ## Extract the substring by character count
-                    my $extracted = substr $test_input, 0, $ignore_bytes;
+                    my $extracted = substr $input->$*, 0, $ignore_bytes;
                     $ignore_count = bytes::length($extracted);
                 }
             }
@@ -1042,7 +1076,17 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     <[base.cnt_s]>->($ignore_count),
                     $cmd
                 );
-                $session->{'ignore_bytes'} -= $buffer_length;
+                ## Track incomplete payload: use ignore_chars for CHRSIZE,
+                #                                ignore_bytes for others
+                if ( $cmd eq qw| CHRSIZE | ) {
+                    ## For CHRSIZE: track remaining characters to ignore
+                    $session->{'ignore_chars'}
+                        = $ignore_bytes - $chars_available;
+                } else {
+                    ## SIZE, STRM, STRM-SIZE: track remaining bytes to ignore
+                    $session->{'ignore_bytes'}
+                        = $ignore_bytes - $buffer_length;
+                }
                 $input->$* = '';    ##  truncating buffer to ''  ##
             }
         }
@@ -1056,18 +1100,17 @@ UNKNOWN_ROUTE_HANDLED:
 } elsif ( $cmd eq uc $cmd ) {
     ## [ HOOK POINT: unknown-reply-type ]
     ## Hook can intercept replies with unknown/invalid types
-    if ( <[base.handler.hooks.has_hooks]>->( $id, 'unknown-reply-type' ) ) {
+    if ( <[base.handler.hooks.has_hooks]>->( $id, qw|unknown-reply-type| ) ) {
         my $hook_result = <[base.handler.hooks]>->(
-            'unknown-reply-type',
+            qw| unknown-reply-type |,
             {   'sid'       => $id,
                 'cmd'       => $cmd,
                 'call_args' => $call_args,
-                'params'    => undef,
                 'data'      => undef
             }
         );
-        ## If hook returns TRUE, it handled the message, skip normal processing
-        goto UNKNOWN_TYPE_HANDLED
+        ## If hook returns TRUE, it handled the message,
+        goto UNKNOWN_TYPE_HANDLED    ## skip normal processing
             if defined $hook_result and $hook_result == TRUE;
     }
 
@@ -1273,9 +1316,12 @@ UNKNOWN_TYPE_HANDLED:
                 } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
 
                     ## SIZE mode: reports BYTE count
-                    ## Direct command responses don't use STRM-SIZE fragmentation.
-                    ## (STRM-SIZE only applies to routed responses with strm-lock.)
-                    ## For large direct responses, use STRM mode instead (lines 1223-1259).
+
+                    ## Direct command responses don't use STRM-SIZE
+                    ## fragmentation.  [ STRM-SIZE only applies to
+                    ## routed responses with strm-lock. ]
+                    ## For large direct responses, use STRM mode instead
+                    ##                                [ lines 1223-1259 ].
                     my $data_to_send = $reply->{'data'};
                     my $session_mode = $session->{'size_mode'} // qw| SIZE |;
                     my $count;
@@ -1350,15 +1396,15 @@ UNKNOWN_TYPE_HANDLED:
                 <[base.handler.hooks.has_hooks]>->( $id, 'unknown-command' ) )
             {
                 my $hook_result = <[base.handler.hooks]>->(
-                    'unknown-command',
+                    qw| unknown-command |,
                     {   'sid'       => $id,
                         'cmd'       => $cmd,
                         'call_args' => $call_args,
                         'context'   => 'local'
                     }
                 );
-                ## If hook returns TRUE, it handled the message, skip normal processing
-                goto UNKNOWN_CMD_HANDLED
+                ## If hook returns TRUE, it handled the message,
+                goto UNKNOWN_CMD_HANDLED    ## skip normal processing
                     if defined $hook_result and $hook_result == TRUE;
             }
 
@@ -1393,7 +1439,7 @@ UNKNOWN_TYPE_HANDLED:
         return 0;    ## comand complete ##
     }
 
-##[ ABSOLUTE PATH ROUTING ]#####################################################
+##[ ABSOLUTE PATH ROUTING ]###################################################
 
     ## absolute address notation ##
 
@@ -1698,7 +1744,7 @@ UNKNOWN_TYPE_HANDLED:
     if ( <[base.handler.hooks.has_hooks]>->( $id, 'unknown-command-global' ) )
     {
         my $hook_result = <[base.handler.hooks]>->(
-            'unknown-command-global',
+            qw| unknown-command-global |,
             {   'sid'       => $id,
                 'cmd'       => $cmd,
                 'call_args' => $call_args,
@@ -1729,8 +1775,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,.,..,,.,,,,,.,,,,,..,,.,,,.,.,.,,,,,.,,,,,..,,...,...,..,,...,...,...,,,.,
-#MQL5HIQYEZ2DKL4X4CMXYPSAMXUOQTZO3TR5FX42GYLACN7IKC2VKIIP5COM3ODZKX6LGMDYJBTJG
-#\\\|33WEVP3TFSUAMD3TWWCX7MM6OTNTXXY66AGDQPNT6FCXQB4TX2C \ / AMOS7 \ YOURUM ::
-#\[7]IM5NMPGYHDYHDK7AI674ILJUNNFRVTHKFKPXHXM66PZC2N47D2AA 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,.,,..,,.,.,,.,,..,,..,,,..,,.,,..,,...,...,.,,,,.,,..,,..,,,,,,
+#XJFBWZGJA7B2T7EI43AEJRKQ6D4LZM23GZGLSXK3Z5EJMGRDJQZQXVJOWFKAAK4X66VOJEY4XVLDY
+#\\\|2LCFYBK26MS7HAWZPYU7YPQQK33B3IUF6X76EOYBHHYMBG4F2WR \ / AMOS7 \ YOURUM ::
+#\[7]2PD7XVWVQRZD5YPKNTJMPNEYS7QLOTJPZWBBDZUJKZHR27JXOWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
