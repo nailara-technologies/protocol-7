@@ -1,112 +1,16 @@
 ## [:< ##
 
 # name  = nshell.hook.unknown_reply_route
-# descr = Intercept replies with unknown route IDs and display to user
+# descr = Hook wrapper: intercept replies with unknown route IDs
 
-my ($msg_data) = @ARG;
+## Delegate all processing to the handler
+## This keeps the hook thin and minimizes exception state
+## Real implementation is in nshell.handler.command_reply
 
-return FALSE unless defined $msg_data;
+return <[nshell.handler.command_reply]>->(@ARG);
 
-my $cmd         = $msg_data->{'cmd'};
-my $color_start = $colors{'p7_fg_0004'} // '';
-my $color_end   = $colors{'rst'}        // '';
-
-## Handle SIZE replies - read the data payload
-if ( $cmd eq 'SIZE' ) {
-    my $session_id = $msg_data->{'session_id'};
-    my $size       = 0;
-
-    ## Parse SIZE value from args (format: "SIZE 274" -> args='274')
-    if ( ref( $msg_data->{'args'} ) eq 'HASH' ) {
-        $size = $msg_data->{'args'}->{'args'} // 0;
-    } else {
-        $size = $msg_data->{'args'} // 0;
-    }
-
-    if (    defined $session_id
-        and $size > 0
-        and exists $data{'session'}{$session_id} ) {
-        my $input_buf = \$data{'session'}{$session_id}{'buffer'}->{'input'};
-
-        ## Extract SIZE bytes from input buffer
-        if ( bytes::length( $input_buf->$* ) >= $size ) {
-            my $output_data = substr $input_buf->$*, 0, $size, '';
-            print $color_start . $output_data . $color_end;
-            STDOUT->flush();
-
-            ## Trigger input watcher to display cursor after output
-            my ($sid) = keys <user.cube.session>->%*;
-            if ( defined $sid and defined $data{'session'}{$sid} ) {
-                my $sess = $data{'session'}{$sid};
-                if ( defined $sess->{'watcher'}{'stdin_handler'} ) {
-                    $sess->{'watcher'}{'stdin_handler'}->now();
-                }
-            }
-
-            return TRUE;
-        }
-    }
-
-    ## Not enough data yet, let protocol layer continue
-    return FALSE;
-}
-
-## Handle TRUE/FALSE replies - may have content in args
-if ( $cmd eq 'TRUE' or $cmd eq 'FALSE' ) {
-    my $output = '';
-    my $reply_color
-        = $cmd eq 'TRUE'
-        ? ( $colors{'p7_fg_0004'} // '' )
-        : ( $colors{'p7_fg_0003'} // '' );
-    my $color_reset = $colors{'rst'} // '';
-
-    ## Check if there's content in args
-    if ( ref( $msg_data->{'args'} ) eq 'HASH'
-        and defined $msg_data->{'args'}->{'args'} ) {
-        $output = $msg_data->{'args'}->{'args'};
-    } elsif ( !ref( $msg_data->{'args'} ) and defined $msg_data->{'args'} ) {
-        $output = $msg_data->{'args'};
-    }
-
-    ## Display with newline prefix and suffix for visual spacing
-    print "\n";    ## Prefix newline
-    if ( length $output ) {
-        print $reply_color . '  ' . $output . $color_reset . "\n";
-    } else {
-        print $reply_color . '  ' . $cmd . $color_reset . "\n";
-    }
-    print "\n";    ## Suffix newline for spacing
-    STDOUT->flush();
-
-    ## Trigger input watcher to display cursor after output
-    my ($session_id) = keys <user.cube.session>->%*;
-    if ( defined $session_id and defined $data{'session'}{$session_id} ) {
-        my $session = $data{'session'}{$session_id};
-        if ( defined $session->{'watcher'}{'stdin_handler'} ) {
-            $session->{'watcher'}{'stdin_handler'}->now();
-        }
-    }
-
-    return TRUE;
-}
-
-## Display message transparently to user
-print $color_start . '  ' . $cmd . $color_end . "\n";
-STDOUT->flush();
-
-## Trigger input watcher to display cursor after output
-my ($session_id) = keys <user.cube.session>->%*;
-if ( defined $session_id and defined $data{'session'}{$session_id} ) {
-    my $session = $data{'session'}{$session_id};
-    if ( defined $session->{'watcher'}{'stdin_handler'} ) {
-        $session->{'watcher'}{'stdin_handler'}->now();
-    }
-}
-
-return TRUE;    ## we handled it
-
-#,,,.,.,.,,,.,,.,,,,,,...,.,,,,,,,,,.,..,,.,.,.,.,...,...,..,,.,.,..,,..,,..,,
-#4YFBWHGMTCAUQYQRBSQEGYRPJ5SURNHDIANCNWY5CTWZT6PR5X2M2IA4G56RGAGJ7ZSVSCBSE4YNG
-#\\\|UW5XZAA3ZTIWGUOMGGJHDFV5RD62ORBWWZHKK5MMVV2MXACHAOE \ / AMOS7 \ YOURUM ::
-#\[7]FDKX7NQ76SM6WEY374K3UHRCE4VHWUZIIBKEP4JLGWWMCLO4PCDI 7  DATA SIGNATURE ::
+#,,..,,..,,..,,,.,,,.,..,,,.,,,.,,,..,,,.,.,,,.,.,...,...,..,,.,,,,..,,..,,,,,
+#QFJCRJJBBNKPT25A6S6SVMRS2C5XHMY7QSBWAWV5EV2U4ZOLUG6ADYLY244TFQS626UWWPPEYKVQM
+#\\\|TMQ6CJLLJJP3HGXY4CEI4QBT5HAQEBV4PSDZRUHGX4WC67ANEFV \ / AMOS7 \ YOURUM ::
+#\[7]GNNUUG4VL7LKVOUJNRQ5I3QSAGFP2HCPST6ODUVDH7HQTVVYBODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

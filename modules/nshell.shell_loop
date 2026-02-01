@@ -12,13 +12,23 @@ my $cmd = <[nshell.read_from_buffer]>;
 
 return 0 unless defined $cmd and length $cmd;
 
-## Pass command directly to cube's input buffer
-## This is transparent relay - cube sees it as local input
+<[base.buffer.add_line]>->( qw| no-tty-debug |, "shell_loop: cmd=$cmd" )
+    if <nshell.mode.no_tty_debug>;
+
+## Log command to terminal-history with endline padding
+## One blank line before, then command block with : borders, blank line after
+## Encode control characters for safe history storage
+my $encoded_cmd = <[nshell.parser.term_encode]>->($cmd);
+map { <[base.buffer.add_line]>->( qw| terminal-history |, $ARG ) }
+    ( '', ':', sprintf( ':  %s', $encoded_cmd ), ':' );
+
+## pass command directly to cube's input buffer
+## this is transparent relay - cube sees it as local input
 my ($cube_sid) = keys <user.cube.session>->%*;
 
 if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
-    ## Append command directly to cube's output buffer (cube's input stream)
-    ## Cube's watcher will automatically process it
+    ## append command directly to cube's output buffer [ cube input stream ]
+    ## cube zenka session watcher will automatically process it
     $data{'session'}{$cube_sid}{'buffer'}{'output'} .= $cmd . "\n";
 } else {
     <[base.log]>->( 0, 'nshell.shell_loop: cube session not available' );
@@ -26,8 +36,8 @@ if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
 
 return 0;
 
-#,,.,,.,.,,.,,,,.,.,,,,,.,..,,,,,,,.,,..,,,,.,.,.,...,...,.,,,.,.,,,.,.,.,.,,,
-#O3WEJR7RE5XYSZEU2NKJWG32644MRHRY56P6GSOZ4ZKGAUNPQXRYSLPI7NTWY4ZD5T3ZYPNKD2QDE
-#\\\|BNNMJRGT57DNQWZZCZXNQYK3OQZE35RKCQDCQMC6AZIO6BLQVFM \ / AMOS7 \ YOURUM ::
-#\[7]KFU5NQLD4NXOGYBAXLRTRESNNLKW6GZOGIMM4CNVSJPESGXMZIAQ 7  DATA SIGNATURE ::
+#,,.,,,..,...,,,.,..,,.,,,...,...,,.,,.,,,..,,.,.,...,...,..,,,,,,,..,,,,,,.,,
+#AVWY2O4532ALRVSOWVKDV5VG4OMD6NRLLLCAB7LLKGTFAO7UEB2CP26QUVJI66FG3VFHRZXOUSTF6
+#\\\|UL3LCIWMZQBYMIC2Z44ITFOZKCUZDHOZWR2TZRVHSNDIJOE77AB \ / AMOS7 \ YOURUM ::
+#\[7]Z2YLV3XRLNXHPRUE272PCBWHBAPDPQKCPNJ2LQAOBWPKP43CQWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
