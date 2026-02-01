@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = nshell.parser.term_decode
+# descr = Unescape control chars from history storage back to original form
+
+my $output = shift // return '';
+
+#### named escape reverse table ####
+state %reverse_named = (
+    '\\a' => "\a",    ## bell
+    '\\b' => "\b",    ## backspace
+    '\\e' => "\e",    ## ESC
+    '\\f' => "\f",    ## form feed
+    '\\r' => "\r",    ## carriage return
+    '\\t' => "\t",    ## tab
+);
+
+#### unescape control characters: handle named escapes and octal format ####
+## named escapes: \a \b \e \f \r \t \v
+## octal escapes: \NNN [ 3 octal digits ] or \NN or \N
+#
+$output =~ s|(\\[abefrtv])| $reverse_named{$LAST_PAREN_MATCH} |ge;
+$output =~ s|\\([0-7]{1,3})| chr( oct( $LAST_PAREN_MATCH ) ) |ge;
+
+return $output;
+
+#,,,.,,.,,..,,...,,,.,,..,,..,,..,.,,,..,,,,,,..,,...,..,,...,.,.,.,.,,,,,.,,,
+#AFULOFCRLNAN4F5L447RY4WLXTGHG6V5TEFOBSAGNMPCQIHTISHVQJOVSEMZSZQGYGNEZKGP2KR2S
+#\\\|26CYRPVG7O3VB3HKUDL7UFYQ3UU2I565B53KRKFH2UZ5NREF3WT \ / AMOS7 \ YOURUM ::
+#\[7]ZLWP75RSYLXJIXBRIJ73IRD5J7ZELZRNSUWWA7DXRMQWGZKE76DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
