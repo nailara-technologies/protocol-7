@@ -1,21 +1,76 @@
 ## [:< ##
 
 # name = nshell.handler.command_reply
-# descr = Handle cube command replies and output to terminal
+# descr = process and display cube command replies to terminal and history
 
-my $reply_data = shift // return FALSE;
+my $reply = shift // return FALSE;
 
-## Extract command result from reply
-my $result
-    = ref($reply_data) eq 'HASH' ? $reply_data->{'result'} : $reply_data;
+return FALSE unless defined $reply;
 
-## Write result to terminal
-<[nshell.write_to_buffer]>->($result) if defined $result && length $result;
+## extract reply components [ already parsed by base.handler.command ]
+my $cmd  = $reply->{'cmd'};            # reply type [TRUE, FALSE, SIZE, etc.]
+my $args = $reply->{'call_args'}->{'args'} // '';    # content from call_args
+my $payload_str = $reply->{'data'};    # raw payload for multi-line replies
+
+### logging to terminal-history with endline padding ###
+## precede with blank line, log reply type and args with two-space prefix,
+## then payload [if present], then blank line
+
+## encode control characters for safe history storage
+my $encoded_args = <[nshell.parser.term_encode]>->($args);
+my $encoded_payload
+    = defined $payload_str
+    ? <[nshell.parser.term_encode]>->($payload_str)
+    : undef;
+
+## blank line before reply
+<[base.buffer.add_line]>->( qw| terminal-history |, '' );
+
+## reply type and args with two-space prefix
+<[base.buffer.add_line]>->(
+    qw| terminal-history |,
+    sprintf '  %s %s',
+    $cmd, $encoded_args
+);
+
+## log data payload if present [SIZE, STRM, ..] - also with two-space prefix
+if ( defined $encoded_payload ) {
+    map {
+        <[base.buffer.add_line]>->(
+            qw| terminal-history |,
+            sprintf '  %s', $ARG
+        )
+    } split "\n", $encoded_payload;
+}
+## blank line after reply
+<[base.buffer.add_line]>->( qw| terminal-history |, '' );
+
+## print to console [STDOUT] and handle cursor display
+#
+if ( not defined $payload_str ) {
+
+    ## single-line reply : colorize and print to console for immediate display
+    ## TRUE replies  : standard text color
+    ## FALSE replies : emphasis color [p7_fg_0003]
+    my $reply_color = ( $cmd eq 'FALSE' ) ? $colors{'p7_fg_0003'} : '';
+    my $reset_color = ( $cmd eq 'FALSE' ) ? $colors{'p7_fg_0004'} : '';
+
+    printf "\n%s%s%s\n\n", $reply_color, $args, $reset_color;
+
+} else {    ## print multi-line output directly without padding to console
+
+    print $payload_str;
+
+    print "\r"    ## re-display cursor after multi-line output
+        . $colors{'p7_fg_0003'} . "_\e[K\r" . "\e[0m" . $colors{'p7_fg_0004'};
+}
+
+STDOUT->flush();
 
 return TRUE;
 
-#,,,.,...,,.,,.,,,,,.,..,,...,.,.,,..,...,..,,.,.,...,...,...,,.,,.,.,.,.,,..,
-#2AXYMDJN672PNT4J6KX4L6QDX4DA3H26N5N4XAF6FBII6CER64USFJL4WDQ4CGX7MZ3V7UMPLMOBI
-#\\\|T7ODLWI54WFIJLINHBRJEDCVK7AC5RKXQLRAKAQCEBHOHZBKCNJ \ / AMOS7 \ YOURUM ::
-#\[7]B7YKFBAXBTNSNRI2GOSUKTKCGIPRR73YBHAWIQUXHUIRIMJAWIAI 7  DATA SIGNATURE ::
+#,,..,...,,.,,,,,,,,.,,,,,,,,,...,...,,.,,.,,,.,.,...,..,,,,,,..,,,,.,,..,,..,
+#EYMGSVL65JADWF4ZVQII2MFOX657SKGZRFF5WAH6ICMXCYID4DTTMNYV2RQQKLAHNP3QAROLQLE2C
+#\\\|ZRXBDKNQBRFM7S3ZMWHSPENLVDP3HZ5LK65II2MCDWK62DPEKHQ \ / AMOS7 \ YOURUM ::
+#\[7]V4DGXYC3IH73OGHDT5UGLJPN64LUTOPZ2Y3WIDMIMI65POGIZABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
