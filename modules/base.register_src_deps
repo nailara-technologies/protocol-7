@@ -29,18 +29,19 @@ my $gid         = getgrnam($zenka_group)
     0, "<< register_src_deps : unix group '%s' not in passwd >>", $zenka_group
     ) and return undef;
 
+## log the ownership values being used [ log level 3 ] ##
+my $parent_user = getpwuid($parent_uid) // "UID:$parent_uid";
+my $group_name  = getgrgid($gid)        // "GID:$gid";
+<[base.logs]>->(
+    3, "[register_src_deps] owner='%s' [%d] group='%s' [%d]",
+    $parent_user, $parent_uid, $group_name, $gid
+);
+
 if ( -d $src_deps and -w $src_deps ) {
     my $src_stat = File::stat::stat($src_deps);
 
-    my $skip_chmod = TRUE;    ## skip chmod if root and standalone ##
-    if ( $EUID == 0 ) {
-        foreach my $start_type (qw| v7-started-zenka cube v7 |) {
-            $skip_chmod = FALSE
-                and last
-                if defined <system.zenka.type>
-                and <system.zenka.type> eq $start_type;
-        }
-    }
+    ## skip chmod only if not running under v7 control ##
+    my $skip_chmod = !<[base.zenka.is_v7_started]>;
 
     foreach my $mod_name ( sort keys %np7_src ) {
         my $touch_file = catfile( $src_deps, $mod_name );
@@ -57,11 +58,20 @@ if ( -d $src_deps and -w $src_deps ) {
         ## always chown to fix existing root-owned files,
         ## even in standalone zenka mode ##
         if ( $EUID == 0 ) {
+            <[base.logs]>->(
+                3, ": attempting chown[ %d, %d, '%s' ]",
+                $parent_uid, $gid, $relpath
+            );
             chown( $parent_uid, $gid, $touch_file )
                 or <[base.logs]>->(
                 2,        ':. : cannot chown %s : %s .:',
                 $relpath, <[base.str.os_err]>
                 );
+        } else {
+            <[base.logs]>->(
+                2,        ": skipping chown for %s - EUID=%d [not root]",
+                $relpath, $EUID
+            );
         }
 
         next if $skip_chmod;    ## skip chmod only [ root + standalone ] ##
@@ -77,8 +87,8 @@ if ( -d $src_deps and -w $src_deps ) {
     <[base.log]>->( 2, "<< no [writable] src-deps directory found >>" );
 }
 
-#,,,.,..,,...,,,.,,.,,,,,,,..,,.,,.,,,,,.,.,,,..,,...,...,,.,,..,,,,.,,,,,..,,
-#WQYRRMXFSSMAT42QORTR3BMYPIEMPCW6VSJWJ7JQY7LQJ6UGWUQ7PJE24N467LWTX7XM5S7C5734A
-#\\\|DULKMUTGYZBSZRTHZOC5JJWXDCPXMZBULIYVPEKLMXD6A5I5QQU \ / AMOS7 \ YOURUM ::
-#\[7]SQS6V4NB3YJQ5OQG24DJQN5K6BZ3OKD3JPUCZQSXETIPXYOJZQDY 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,,,,,,,,...,,..,,.,,,,,,.,.,.,.,..,,...,...,,..,,,,,,.,,,,,,.,,,
+#5WMHKGPFBV66MWJWLDEOM5XU2VPRW4ZP2IPYS4LM7LAGRQ5NBC4DU6JAPK7ZM2KTO75M7WLIUXVTA
+#\\\|MMCHMG622UC2QYVESNIXVBZAMPOXII4LWPYWE4DWQTZNLTU5RL5 \ / AMOS7 \ YOURUM ::
+#\[7]APM4GKTVRJ6HTWPWYDFVMNXQ34H2DF45FI2SW3ZW272LMYAFCUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

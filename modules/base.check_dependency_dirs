@@ -9,11 +9,6 @@ my $start_cfg_name = qw| start |;
 
 my $subdir_perms = 0775;    ##  zenki group needs write access  ##
 
-my ( undef, undef, $user_uid, $gid ) = getpwnam($user)
-    or <[base.logs]>->(
-    0, "<< check_dependency_dirs : unix user '%s' not found >>", $user
-    ) and return undef;
-
 my @sub_dirs = qw[
     os-dep
     os-dep/binary
@@ -26,74 +21,68 @@ my $dep_dir = <[base.get_path.zenka_cfg]>;
 
 if (    $dep_dir =~ s|zenki/$zenka/$start_cfg_name$|$cfg_path/zenki/$zenka|
     and -d $dep_dir
-    and -w $dep_dir
-    and opendir( my $dir_fh, $dep_dir ) ) {
-    my @dir_names = grep { !m|^\,| } readdir($dir_fh);
-    close($dir_fh);
+    and -w $dep_dir ) {
 
-    my $src_stat = File::stat::stat($dep_dir);
+    ## Get parent directory owner and group ##
+    my $parent_owner = <[base.path_owners]>->($dep_dir);
+    unless ( defined $parent_owner ) {
+        <[base.logs]>->(
+            0,
+            "<< check_dependency_dirs : cannot "
+                . "get parent dir owner for '%s' >>",
+            $dep_dir
+        );
+        return undef;
+    }
+
+    ## Get zenka group ##
+    my $zenka_group = $user;
+    my $gid         = getgrnam($zenka_group)
+        or <[base.logs]>->(
+        0, "<< check_dependency_dirs : unix group '%s' not found >>",
+        $zenka_group
+        ) and return undef;
+
+    ## Get parent owner UID for placeholder chown ##
+    my ( undef, undef, $parent_uid ) = getpwnam($parent_owner)
+        or <[base.logs]>->(
+        0, "<< check_dependency_dirs : cannot get uid for '%s' >>",
+        $parent_owner
+        ) and return undef;
 
     foreach my $sub_dir (@sub_dirs) {
         my $dir_path = catfile( $dep_dir, $sub_dir );
-        ## create ##
-        if ( not -d $dir_path ) {    ## use <[file.make_path]> .. [LLL]
-            mkdir($dir_path)
-                or <[base.s_warn]>->(
-                'mkdir[%s] : %s',
-                $dir_path, <[base.str.os_err]>
-                );
-        }
-        next if not -d $dir_path;
+
+        ## use file.make_path to create\fix directory with ##
+        ##                      parent owner + zenka group ##
+        <[file.make_path]>->(
+            $dir_path, $subdir_perms, $parent_owner, $zenka_group
+        );
 
         ( my $relpath = $dir_path ) =~ s|^.*/||;
 
-        my $dir_stat = File::stat::stat($dir_path);
+        ## create placeholder file ##
+        my $placeholder_path = catfile( $dir_path, qw| .placeholder | );
+        ( my $ph_relpath = $placeholder_path ) =~ s|^.+/zenki/||;
 
-        ## chmod ##
-        if (sprintf( '%#o', $subdir_perms & 07777 ) ne
-            sprintf( '%#o', $dir_stat->mode & 07777 ) ) {
-            <[base.logs]>->(
-                2, "correcting permissions on subdir '%s'..,", $relpath
-            );
-            chmod( $subdir_perms, $dir_path )
-                or <[base.logs]>->(
-                2,        ":. : '%s' : chmod : %s .:",
-                $relpath, <[base.str.os_err]>
-                );
-        }
-
-        if (   $EUID == 0 and $dir_stat->uid != $src_stat->uid
-            or $dir_stat->gid != $gid ) {
-
-            <[base.logs]>->(
-                2, "correcting ownership on subdir '%s'..,", $relpath
-            );
-
-            ## chown ##
-            chown( $src_stat->uid, $gid, $dir_path )
-                or <[base.logs]>->(
-                2,        ":. : cannot chown %s : %s .:",
-                $relpath, <[base.str.os_err]>
-                );
-        }
-        my $placeholder_path = sprintf qw| %s/.placeholder |, $dir_path;
-        ( $relpath = $placeholder_path ) =~ s|^.+/(*pla:zenki/)||;
-
-        ## placeholder ##
         if ( not -e $placeholder_path ) {
-            open( my $fh, qw| > |, $placeholder_path ) or next;   ## use mknod
+            open( my $fh, qw| > |, $placeholder_path ) or next;
             close($fh);
         }
-        chown( $src_stat->uid, $gid, $placeholder_path )
-            or <[base.logs]>->(
-            0,        ":. : cannot chown %s : %s .:",
-            $relpath, <[base.str.os_err]>
-            );
+
+        ## fix placeholder ownership ##
+        if ( $EUID == 0 ) {
+            chown( $parent_uid, $gid, $placeholder_path )
+                or <[base.logs]>->(
+                2,           ":. : cannot chown %s : %s .:",
+                $ph_relpath, <[base.str.os_err]>
+                );
+        }
     }
 }
 
-#,,,,,.,,,,..,,.,,..,,...,...,...,..,,.,,,..,,..,,...,...,..,,,,.,,,.,.,,,...,
-#EIKXLWRIBRRJVUNEVRMMWMJE7DNCZRLJ4ADX6T3SVZQQWB4U3VDMT6LN3CBDW6VWWXBMB7IDNQPNQ
-#\\\|LX2RSK7ZLUBGEPHGNKSARQBOBT5LUZHZVIADTBGNPJTTH6KF44D \ / AMOS7 \ YOURUM ::
-#\[7]FOIJT52SIDKZHFVPUOQYO5HGBCODNE7YJI44GV5RIJ2LRTF7BKCY 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,.,,..,,.,,,...,...,,..,.,.,.,,,..,,...,...,.,,,.,.,.,.,,..,..,,
+#3P25MV5B4B6Z5CCHU5DCWGDVSN5P2TNFUXNABKZFUHMXPJAKHKNYKKVDEKXDKNAXMPYJ4H5DC4K3U
+#\\\|C5MXWC7AHCJN4EGFSM7XGWTPLSJ36EJXUOCCHTVZBUH65SAPBVK \ / AMOS7 \ YOURUM ::
+#\[7]RSYOMR2OY6YK22PK3LH64Y52IOMNX3AXKDOUP5WNZAMYU6HFF4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

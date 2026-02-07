@@ -17,10 +17,11 @@ if ( not defined $path ) {
 $param_mode //= 0700;    # <-- strict default
 $param_mode = oct($param_mode) if $param_mode =~ m|^0|;
 
-## Save current umask and use permissive setting for mkdir
+## saving current umask and use permissive setting for mkdir ##
 my $previous_umask = umask(0);
 my $mkdir_umask = 0;  ## <-- permissive setting for mkdir: 0777 & ~0 = 0777 ##
-umask($previous_umask);  ## Restore original umask before actual mkdir operations ##
+## restoring original umask before actual mkdir operations ##
+umask($previous_umask);
 
 ## optionally recursive mode array [ reference ] ##  <-- expand [owners] [LLL]
 my $modes = ref $param_mode ne qw| ARRAY | ? [$param_mode] : $param_mode;
@@ -85,9 +86,12 @@ if ( -d $path ) {
     my $current_perms = <[base.path_perms]>->($path);
 
     if ( $current_perms ne sprintf '%#o', $param_mode ) {
+        my $install_root = <system.root_path>;
+        ( my $rel_path = $path ) =~ s|^$install_root/?||;
         <[base.logs]>->(
-            0, '<< resetting permissions of %s [ %s --> %04o ] >>',
-            $path, $current_perms, $param_mode
+            2, ":. : resetting perms [ %s --> %04o ] : %s :",
+            $current_perms, $param_mode,
+            <[base.parser.center_ellipse_string]>->($rel_path)
         );
         if ( not chmod( $param_mode, $path ) ) {
             <[base.s_warn]>->(
@@ -106,9 +110,12 @@ if ( -d $path ) {
             my $correction_str = sprintf 'uid %d, gid %d', $uid, $gid;
             $correction_str = sprintf 'uid %d', $uid if $current_gid == $gid;
             $correction_str = sprintf 'gid %d', $gid if $current_uid == $uid;
+            my $install_root = <system.root_path>;
+            ( my $rel_path = $path ) =~ s|^$install_root/?||;
             <[base.logs]>->(
-                0,     'correcting ownership of %s to %s',
-                $path, $correction_str
+                0, "correcting owner [%s] : %s",
+                $correction_str,
+                <[base.parser.center_ellipse_string]>->($rel_path)
             );
             if ( not chown( $uid, $gid, $path ) ) {
                 <[base.s_warn]>->(
@@ -200,8 +207,8 @@ umask $previous_umask if defined $previous_umask;
 
 return $path;
 
-#,,,,,,,,,,.,,..,,.,.,,,,,.,.,..,,,,,,,..,,..,..,,...,...,.,,,...,..,,...,,,,,
-#CVIDJMLM5S7A7H6Z6O2CZPIXGKLMSQV6NZWNFVHPGQJCFR7NXRUFLCRMCYMCURNRMLUXJ3W3SWURA
-#\\\|NDYSFBF7L4DK5UUWHN3YVXGXLTFQLFYJZCH2QTWGCHD3HNRSOW6 \ / AMOS7 \ YOURUM ::
-#\[7]VLVIRLIQOECNZ2OJ2UCMDJQCO24KLOZNQYV2S5J74JTRERTHIUCA 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,,,,,,,,,,.,,.,,,,.,,..,,,,,,.,,..,,...,...,...,..,,,,,,...,..,,
+#JOX42SSUKTHDAB5WTWFMHUBVU2XYQPHNZCAU7OMLC236FJFAMWIT3CMSZ23S742RHZ4UJDD42BVEO
+#\\\|2R6ZY5ZDZZXZX6HNGBKXGHE3D7G72E5XIXLCG27TQLPUNUQ5XKU \ / AMOS7 \ YOURUM ::
+#\[7]ZP3G2Q44NH6U6PTQL3YKXEPJWUZWGGVHDR3Z4OV3LGZYVB5HRMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
