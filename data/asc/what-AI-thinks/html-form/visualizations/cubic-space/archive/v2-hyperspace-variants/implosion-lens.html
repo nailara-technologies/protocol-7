@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Protocol-7 Implosion Lens - Cubic Hyperspace Topology</title>
+    <!--
+    PROTOCOL-7 IMPLOSION LENS
+    
+    The topology IS the rendering optimization:
+    - Information density decreases with distance from observer
+    - Each "shell" reduces detail level (implosion abstraction)
+    - You don't move through the grid - the grid moves around you
+    - Every position can be "center" simultaneously (hyperspace overlap)
+    
+    Color System (unified translucent blue):
+    - All lines: same translucent blue (#4080ff at ~35% opacity)
+    - Glow: same blue, ambient filtering effect
+    - Intensity varies only by distance (implosion lens)
+    - No opaqueness even at scale - maintains readability
+    
+    Scale Shells:
+    - Shell 0 (center): Full 504 subcubes + cutout edges
+    - Shell 1 (near): 8 cubes with cutout geometry, no subcubes
+    - Shell 2+ (far): Simplified cube outlines only
+    -->
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background: #000008;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            color: #80a0ff;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+            cursor: grab;
+        }
+        
+        canvas:active {
+            cursor: grabbing;
+        }
+        
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            gap: 12px;
+            background: rgba(0, 0, 20, 0.85);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(64, 128, 255, 0.3);
+            box-shadow: 0 0 30px rgba(32, 64, 200, 0.3);
+            z-index: 100;
+        }
+        
+        button {
+            background: rgba(0, 0, 30, 0.9);
+            border: 1px solid rgba(64, 128, 255, 0.4);
+            color: #80a0ff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+        
+        button:hover {
+            background: rgba(20, 40, 80, 0.9);
+            border-color: rgba(80, 140, 255, 0.6);
+            box-shadow: 0 0 15px rgba(64, 128, 255, 0.4);
+        }
+        
+        button.active {
+            background: rgba(30, 50, 100, 0.9);
+            border-color: rgba(100, 160, 255, 0.7);
+            box-shadow: 0 0 20px rgba(64, 128, 255, 0.5);
+        }
+        
+        .info-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 20, 0.88);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(64, 128, 255, 0.3);
+            box-shadow: 0 0 40px rgba(32, 64, 200, 0.3);
+            max-width: 320px;
+            z-index: 100;
+            font-size: 12px;
+            line-height: 1.6;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        
+        .info-panel.hidden {
+            opacity: 0;
+            transform: translateX(-100%);
+            pointer-events: none;
+        }
+        
+        .info-panel h3 {
+            margin: 0 0 12px 0;
+            color: #a0c0ff;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(64, 128, 255, 0.3);
+            padding-bottom: 8px;
+        }
+        
+        .info-value {
+            color: #60a0ff;
+            font-weight: bold;
+        }
+        
+        .info-section {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(64, 128, 255, 0.2);
+            font-size: 11px;
+            color: #6080b0;
+        }
+        
+        .toggle-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 20, 0.88);
+            border: 1px solid rgba(64, 128, 255, 0.4);
+            color: #80a0ff;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-family: inherit;
+            z-index: 101;
+            transition: all 0.2s;
+        }
+        
+        .toggle-btn:hover {
+            background: rgba(20, 40, 80, 0.9);
+            box-shadow: 0 0 20px rgba(64, 128, 255, 0.4);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 20, 0.95);
+            color: #a0c0ff;
+            padding: 16px 32px;
+            border-radius: 12px;
+            border: 1px solid rgba(64, 128, 255, 0.5);
+            box-shadow: 0 0 40px rgba(32, 64, 200, 0.5);
+            font-size: 15px;
+            z-index: 1000;
+            pointer-events: none;
+            animation: notifPulse 0.8s ease-in-out;
+        }
+        
+        @keyframes notifPulse {
+            0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+            15%, 85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <button class="toggle-btn" onclick="toggleInfo()">I</button>
+    
+    <div class="info-panel" id="infoPanel">
+        <h3>Protocol-7 Implosion Lens</h3>
+        <p><strong>Center:</strong> <span class="info-value">504 memory cells</span></p>
+        <p><strong>Topology:</strong> <span class="info-value">8×63 subcubes</span></p>
+        <p><strong>Mode:</strong> <span class="info-value" id="modeDisplay">Single + Neighbors</span></p>
+        <p><strong>Grid:</strong> <span class="info-value" id="gridDisplay">0, 0, 0</span></p>
+        <p><strong>Zoom:</strong> <span class="info-value" id="zoomDisplay">100%</span></p>
+        <p><strong>Depth:</strong> <span class="info-value" id="depthDisplay">1</span></p>
+        <p><strong>FPS:</strong> <span class="info-value" id="fpsDisplay">--</span></p>
+        
+        <div class="info-section">
+            <p><strong>Mouse:</strong> Drag=rotate (speed-adaptive)</p>
+            <p><strong>Wheel:</strong> Zoom (into void possible)</p>
+            <p><strong>P:</strong> Propagation mode</p>
+            <p><strong>Arrows/PgUp/Dn:</strong> Navigate grid</p>
+            <p><strong>+/-:</strong> Grid depth (1-5)</p>
+            <p><strong>I:</strong> Toggle panel</p>
+            <p><strong>Space:</strong> Pause rotation</p>
+            <p style="margin-top: 8px; color: #5080a0; font-size: 10px;">
+                Implosion lens: density decreases with distance.<br>
+                You don't move through - grid moves around you.
+            </p>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button onclick="toggleRotation()" id="rotateBtn">Pause</button>
+        <button onclick="resetView()">Reset</button>
+        <button onclick="togglePropagation()" id="propBtn">Propagate</button>
+    </div>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height, centerX, centerY;
+        
+        // === TOPOLOGY CONSTANTS ===
+        const cubeSize = 140;
+        const subSize = cubeSize / 4;
+        const fieldSpacing = cubeSize + (subSize * 2);  // 2 subcube gap
+        const formationSpacing = fieldSpacing * 2;
+        
+        // === UNIFIED COLOR (translucent blue spectrum) ===
+        // All lines are the same color, only intensity varies
+        const baseHue = 220;  // Blue
+        const baseSat = 80;   // Saturation
+        const baseLight = 55; // Lightness
+        const lineAlpha = 0.35;      // Base line transparency
+        const lineIntensity = 1.47;  // Lines are 47% more intense than glow
+        const glowAlpha = 0.25;      // Ambient glow
+        
+        // === VIEW STATE ===
+        let rotX = 0.35, rotY = 0.45, rotZ = 0;
+        let zoom = 1.0;
+        let cameraZ = 600;
+        
+        // Extended zoom range - can zoom INTO the void
+        const minZoom = 0.05;   // Very far out
+        const maxZoom = 8.0;    // Deep inside the core
+        
+        // Animation
+        let isRotating = true;
+        let rotSpeed = 0.0015;
+        let animFrame = null;
+        
+        // Smooth rotation with velocity
+        let targetRotX = rotX, targetRotY = rotY;
+        let velRotX = 0, velRotY = 0;
+        
+        // Mouse with speed-dependent sensitivity
+        let isDragging = false;
+        let lastX = 0, lastY = 0;
+        let lastMoveTime = 0;
+        let mouseSpeed = 0;
+        
+        // Propagation
+        let propagationMode = false;
+        let gridX = 0, gridY = 0, gridZ = 0;
+        let gridDepth = 1;
+        const maxGridDepth = 5;
+        
+        // FPS
+        let lastTime = performance.now();
+        let frameCount = 0;
+        let fps = 0;
+        let fpsTime = lastTime;
+        
+        // Info panel
+        let infoPanelVisible = true;
+        
+        // === 8 CUBE POSITIONS ===
+        const cubePositions = [
+            [-1, -1, -1], [ 1, -1, -1], [-1,  1, -1], [ 1,  1, -1],
+            [-1, -1,  1], [ 1, -1,  1], [-1,  1,  1], [ 1,  1,  1]
+        ];
+        
+        // Missing corners (point toward center)
+        const missingCorners = [
+            { x: 3, y: 3, z: 3 }, { x: 0, y: 3, z: 3 },
+            { x: 3, y: 0, z: 3 }, { x: 0, y: 0, z: 3 },
+            { x: 3, y: 3, z: 0 }, { x: 0, y: 3, z: 0 },
+            { x: 3, y: 0, z: 0 }, { x: 0, y: 0, z: 0 }
+        ];
+        
+        const cutoutVertexIndices = [6, 7, 5, 4, 2, 3, 1, 0];
+        
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            centerX = width / 2;
+            centerY = height / 2;
+        }
+        
+        // === SIMPLE CUBE ===
+        function createSimpleCube(size, cx, cy, cz) {
+            const s = size / 2;
+            return {
+                vertices: [
+                    [cx-s, cy-s, cz-s], [cx+s, cy-s, cz-s],
+                    [cx+s, cy+s, cz-s], [cx-s, cy+s, cz-s],
+                    [cx-s, cy-s, cz+s], [cx+s, cy-s, cz+s],
+                    [cx+s, cy+s, cz+s], [cx-s, cy+s, cz+s]
+                ],
+                edges: [
+                    [0,1], [1,2], [2,3], [3,0],
+                    [4,5], [5,6], [6,7], [7,4],
+                    [0,4], [1,5], [2,6], [3,7]
+                ]
+            };
+        }
+        
+        // === CUBE WITH CUTOUT (full geometry) ===
+        function createCutoutCube(size, cx, cy, cz, cubeIndex) {
+            const s = size / 2;
+            
+            const fullVertices = [
+                [cx-s, cy-s, cz-s], [cx+s, cy-s, cz-s],
+                [cx+s, cy+s, cz-s], [cx-s, cy+s, cz-s],
+                [cx-s, cy-s, cz+s], [cx+s, cy-s, cz+s],
+                [cx+s, cy+s, cz+s], [cx-s, cy+s, cz+s]
+            ];
+            
+            const cutIdx = cutoutVertexIndices[cubeIndex];
+            const cutV = fullVertices[cutIdx];
+            
+            const adjacentMap = {
+                0: [1, 3, 4], 1: [0, 2, 5], 2: [1, 3, 6], 3: [0, 2, 7],
+                4: [0, 5, 7], 5: [1, 4, 6], 6: [2, 5, 7], 7: [3, 4, 6]
+            };
+            const adjIndices = adjacentMap[cutIdx];
+            
+            const vertices = [];
+            const vertexMap = {};
+            
+            for (let i = 0; i < 8; i++) {
+                if (i !== cutIdx) {
+                    vertexMap[i] = vertices.length;
+                    vertices.push([...fullVertices[i]]);
+                }
+            }
+            
+            const edgeVertexIndices = [];
+            adjIndices.forEach(adjIdx => {
+                const adjV = fullVertices[adjIdx];
+                edgeVertexIndices.push(vertices.length);
+                vertices.push([
+                    cutV[0] + (adjV[0] - cutV[0]) * 0.25,
+                    cutV[1] + (adjV[1] - cutV[1]) * 0.25,
+                    cutV[2] + (adjV[2] - cutV[2]) * 0.25
+                ]);
+            });
+            
+            const cornerVertexIndices = [];
+            const v0 = fullVertices[adjIndices[0]];
+            const v1 = fullVertices[adjIndices[1]];
+            const v2 = fullVertices[adjIndices[2]];
+            
+            cornerVertexIndices.push(vertices.length);
+            vertices.push([
+                cutV[0] + (v0[0] - cutV[0]) * 0.25 + (v1[0] - cutV[0]) * 0.25,
+                cutV[1] + (v0[1] - cutV[1]) * 0.25 + (v1[1] - cutV[1]) * 0.25,
+                cutV[2] + (v0[2] - cutV[2]) * 0.25 + (v1[2] - cutV[2]) * 0.25
+            ]);
+            
+            cornerVertexIndices.push(vertices.length);
+            vertices.push([
+                cutV[0] + (v0[0] - cutV[0]) * 0.25 + (v2[0] - cutV[0]) * 0.25,
+                cutV[1] + (v0[1] - cutV[1]) * 0.25 + (v2[1] - cutV[1]) * 0.25,
+                cutV[2] + (v0[2] - cutV[2]) * 0.25 + (v2[2] - cutV[2]) * 0.25
+            ]);
+            
+            cornerVertexIndices.push(vertices.length);
+            vertices.push([
+                cutV[0] + (v1[0] - cutV[0]) * 0.25 + (v2[0] - cutV[0]) * 0.25,
+                cutV[1] + (v1[1] - cutV[1]) * 0.25 + (v2[1] - cutV[1]) * 0.25,
+                cutV[2] + (v1[2] - cutV[2]) * 0.25 + (v2[2] - cutV[2]) * 0.25
+            ]);
+            
+            const innerCornerIdx = vertices.length;
+            vertices.push([
+                cutV[0] + (v0[0] - cutV[0]) * 0.25 + (v1[0] - cutV[0]) * 0.25 + (v2[0] - cutV[0]) * 0.25,
+                cutV[1] + (v0[1] - cutV[1]) * 0.25 + (v1[1] - cutV[1]) * 0.25 + (v2[1] - cutV[1]) * 0.25,
+                cutV[2] + (v0[2] - cutV[2]) * 0.25 + (v1[2] - cutV[2]) * 0.25 + (v2[2] - cutV[2]) * 0.25
+            ]);
+            
+            const edges = [];
+            
+            const cubeEdgePairs = [
+                [0,1], [1,2], [2,3], [3,0],
+                [4,5], [5,6], [6,7], [7,4],
+                [0,4], [1,5], [2,6], [3,7]
+            ];
+            
+            cubeEdgePairs.forEach(([from, to]) => {
+                if (from !== cutIdx && to !== cutIdx) {
+                    edges.push([vertexMap[from], vertexMap[to]]);
+                } else {
+                    const normalVertex = (from === cutIdx) ? to : from;
+                    const edgeIdx = adjIndices.indexOf(normalVertex);
+                    if (edgeIdx !== -1) {
+                        edges.push([vertexMap[normalVertex], edgeVertexIndices[edgeIdx]]);
+                    }
+                }
+            });
+            
+            // Cutout edges
+            edges.push([edgeVertexIndices[0], cornerVertexIndices[0]]);
+            edges.push([edgeVertexIndices[0], cornerVertexIndices[1]]);
+            edges.push([edgeVertexIndices[1], cornerVertexIndices[0]]);
+            edges.push([edgeVertexIndices[1], cornerVertexIndices[2]]);
+            edges.push([edgeVertexIndices[2], cornerVertexIndices[1]]);
+            edges.push([edgeVertexIndices[2], cornerVertexIndices[2]]);
+            edges.push([cornerVertexIndices[0], innerCornerIdx]);
+            edges.push([cornerVertexIndices[1], innerCornerIdx]);
+            edges.push([cornerVertexIndices[2], innerCornerIdx]);
+            
+            return { vertices, edges };
+        }
+        
+        // === GENERATE FORMATION WITH DETAIL LEVEL ===
+        // detailLevel: 0 = full (subcubes), 1 = cutout cubes only, 2 = simple cubes only
+        function generateFormation(offsetX, offsetY, offsetZ, intensity, detailLevel) {
+            const elements = [];
+            
+            cubePositions.forEach((pos, cubeIndex) => {
+                const cx = pos[0] * (fieldSpacing / 2) + offsetX;
+                const cy = pos[1] * (fieldSpacing / 2) + offsetY;
+                const cz = pos[2] * (fieldSpacing / 2) + offsetZ;
+                
+                if (detailLevel <= 1) {
+                    // Full cutout geometry
+                    const cube = createCutoutCube(cubeSize, cx, cy, cz, cubeIndex);
+                    elements.push({ ...cube, intensity, type: 'main' });
+                } else {
+                    // Simplified cube (no cutout detail)
+                    const cube = createSimpleCube(cubeSize, cx, cy, cz);
+                    elements.push({ ...cube, intensity, type: 'simple' });
+                }
+                
+                // Subcubes only at detail level 0
+                if (detailLevel === 0) {
+                    const missingCorner = missingCorners[cubeIndex];
+                    
+                    for (let x = 0; x < 4; x++) {
+                        for (let y = 0; y < 4; y++) {
+                            for (let z = 0; z < 4; z++) {
+                                if (x === missingCorner.x && y === missingCorner.y && z === missingCorner.z) continue;
+                                
+                                const subX = cx + (x - 1.5) * subSize;
+                                const subY = cy + (y - 1.5) * subSize;
+                                const subZ = cz + (z - 1.5) * subSize;
+                                
+                                const cube = createSimpleCube(subSize * 0.92, subX, subY, subZ);
+                                elements.push({ ...cube, intensity, type: 'sub' });
+                            }
+                        }
+                    }
+                }
+            });
+            
+            return elements;
+        }
+        
+        // === GENERATE WITH IMPLOSION LENS ===
+        function generateImplosionField() {
+            const elements = [];
+            
+            if (propagationMode) {
+                // Propagation: multiple formations with distance-based detail
+                for (let x = -gridDepth; x <= gridDepth; x++) {
+                    for (let y = -gridDepth; y <= gridDepth; y++) {
+                        for (let z = -gridDepth; z <= gridDepth; z++) {
+                            const dx = x - gridX;
+                            const dy = y - gridY;
+                            const dz = z - gridZ;
+                            const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                            
+                            // Center formation: full detail
+                            if (x === gridX && y === gridY && z === gridZ) {
+                                elements.push(...generateFormation(0, 0, 0, 1.0, 0));
+                                continue;
+                            }
+                            
+                            // Implosion lens: detail level increases with distance
+                            let detailLevel;
+                            if (dist <= 1.5) {
+                                detailLevel = 1;  // Near: cutout cubes, no subcubes
+                            } else if (dist <= 2.5) {
+                                detailLevel = 2;  // Mid: simple cubes only
+                            } else {
+                                detailLevel = 2;  // Far: simple cubes, lower intensity
+                            }
+                            
+                            // Intensity decreases with distance (implosion)
+                            const intensity = Math.max(0.15, 1.0 / (dist * 0.5 + 1));
+                            
+                            elements.push(...generateFormation(
+                                dx * formationSpacing,
+                                dy * formationSpacing,
+                                dz * formationSpacing,
+                                intensity,
+                                detailLevel
+                            ));
+                        }
+                    }
+                }
+            } else {
+                // Single formation mode: center + 6 face neighbors
+                elements.push(...generateFormation(0, 0, 0, 1.0, 0));
+                
+                const dirs = [[1,0,0], [-1,0,0], [0,1,0], [0,-1,0], [0,0,1], [0,0,-1]];
+                dirs.forEach(([dx, dy, dz]) => {
+                    elements.push(...generateFormation(
+                        dx * formationSpacing,
+                        dy * formationSpacing,
+                        dz * formationSpacing,
+                        0.5,
+                        1  // Neighbors: cutout cubes only
+                    ));
+                });
+            }
+            
+            return elements;
+        }
+        
+        // === 3D ROTATION ===
+        function rotatePoint([x, y, z], rx, ry, rz) {
+            let y1 = y * Math.cos(rx) - z * Math.sin(rx);
+            let z1 = y * Math.sin(rx) + z * Math.cos(rx);
+            let x2 = x * Math.cos(ry) + z1 * Math.sin(ry);
+            let z2 = -x * Math.sin(ry) + z1 * Math.cos(ry);
+            let x3 = x2 * Math.cos(rz) - y1 * Math.sin(rz);
+            let y3 = x2 * Math.sin(rz) + y1 * Math.cos(rz);
+            return [x3, y3, z2];
+        }
+        
+        // === PROJECTION ===
+        function project([x, y, z]) {
+            z += cameraZ;
+            const fov = 500;
+            const scale = fov / (fov + z);
+            return {
+                x: centerX + x * scale * zoom,
+                y: centerY + y * scale * zoom,
+                z: z,
+                scale: scale,
+                visible: z > -400
+            };
+        }
+        
+        // === UNIFIED COLOR FUNCTION ===
+        function getColor(intensity, isLine = true) {
+            const alpha = isLine ? 
+                lineAlpha * intensity * lineIntensity : 
+                glowAlpha * intensity;
+            return `hsla(${baseHue}, ${baseSat}%, ${baseLight}%, ${Math.min(alpha, 0.85)})`;
+        }
+        
+        // === DRAW ===
+        function draw() {
+            // Deep black-blue background
+            ctx.fillStyle = '#000008';
+            ctx.fillRect(0, 0, width, height);
+            
+            const elements = generateImplosionField();
+            
+            // Sort by depth
+            const sorted = elements.map(el => {
+                const rotated = el.vertices.map(v => rotatePoint(v, rotX, rotY, rotZ));
+                const avgZ = rotated.reduce((sum, v) => sum + v[2], 0) / rotated.length;
+                return { element: el, rotated, z: avgZ };
+            }).sort((a, b) => a.z - b.z);
+            
+            // Draw all elements with unified color
+            sorted.forEach(({ element, rotated }) => {
+                const projected = rotated.map(v => project(v));
+                
+                if (!projected.some(p => p.visible)) return;
+                
+                // Depth-based intensity modulation
+                const avgZ = rotated.reduce((sum, v) => sum + v[2], 0) / rotated.length;
+                const depthFactor = Math.max(0.2, Math.min(1.2, 1 - avgZ / 2000));
+                const finalIntensity = element.intensity * depthFactor;
+                
+                // Line properties - unified for all types
+                const lineWidth = element.type === 'sub' ? 0.6 : 
+                                  element.type === 'simple' ? 1.2 : 1.0;
+                const glowSize = element.type === 'sub' ? 4 : 
+                                 element.type === 'simple' ? 6 : 8;
+                
+                ctx.strokeStyle = getColor(finalIntensity, true);
+                ctx.shadowColor = getColor(finalIntensity, false);
+                ctx.shadowBlur = glowSize * finalIntensity;
+                ctx.lineWidth = lineWidth;
+                ctx.lineCap = 'round';
+                
+                element.edges.forEach(([i, j]) => {
+                    if (projected[i].visible && projected[j].visible) {
+                        ctx.beginPath();
+                        ctx.moveTo(projected[i].x, projected[i].y);
+                        ctx.lineTo(projected[j].x, projected[j].y);
+                        ctx.stroke();
+                    }
+                });
+            });
+            
+            ctx.shadowBlur = 0;
+            
+            // FPS counter
+            frameCount++;
+            const now = performance.now();
+            if (now - fpsTime >= 1000) {
+                fps = Math.round(frameCount * 1000 / (now - fpsTime));
+                document.getElementById('fpsDisplay').textContent = fps;
+                frameCount = 0;
+                fpsTime = now;
+            }
+        }
+        
+        // === ANIMATION ===
+        function animate() {
+            // Critically damped smoothing
+            const smoothing = 0.12;
+            const friction = 0.75;
+            
+            velRotX += (targetRotX - rotX) * smoothing;
+            velRotY += (targetRotY - rotY) * smoothing;
+            velRotX *= friction;
+            velRotY *= friction;
+            rotX += velRotX;
+            rotY += velRotY;
+            
+            if (isRotating) {
+                targetRotY += rotSpeed;
+                targetRotX += rotSpeed * 0.25;
+            }
+            
+            draw();
+            animFrame = requestAnimationFrame(animate);
+        }
+        
+        // === CONTROLS ===
+        function toggleRotation() {
+            isRotating = !isRotating;
+            document.getElementById('rotateBtn').textContent = isRotating ? 'Pause' : 'Rotate';
+        }
+        
+        function togglePropagation() {
+            propagationMode = !propagationMode;
+            document.getElementById('propBtn').classList.toggle('active', propagationMode);
+            updateDisplays();
+            showNotif(propagationMode ? 'Propagation: ON' : 'Propagation: OFF');
+        }
+        
+        function resetView() {
+            rotX = targetRotX = 0.35;
+            rotY = targetRotY = 0.45;
+            zoom = 1.0;
+            gridX = gridY = gridZ = 0;
+            gridDepth = 1;
+            velRotX = velRotY = 0;
+            updateDisplays();
+            showNotif('View Reset');
+        }
+        
+        function toggleInfo() {
+            infoPanelVisible = !infoPanelVisible;
+            document.getElementById('infoPanel').classList.toggle('hidden', !infoPanelVisible);
+        }
+        
+        function updateDisplays() {
+            document.getElementById('modeDisplay').textContent = propagationMode ? 
+                'Propagated' : 'Single + 6 Neighbors';
+            document.getElementById('gridDisplay').textContent = `${gridX}, ${gridY}, ${gridZ}`;
+            document.getElementById('zoomDisplay').textContent = Math.round(zoom * 100) + '%';
+            document.getElementById('depthDisplay').textContent = gridDepth;
+        }
+        
+        function showNotif(text) {
+            const notif = document.createElement('div');
+            notif.className = 'notification';
+            notif.textContent = text;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 800);
+        }
+        
+        // === MOUSE EVENTS (speed-dependent sensitivity) ===
+        canvas.addEventListener('mousedown', e => {
+            isDragging = true;
+            lastX = e.clientX;
+            lastY = e.clientY;
+            lastMoveTime = performance.now();
+        });
+        
+        canvas.addEventListener('mousemove', e => {
+            if (!isDragging) return;
+            
+            const now = performance.now();
+            const dt = Math.max(1, now - lastMoveTime);
+            lastMoveTime = now;
+            
+            const dx = e.clientX - lastX;
+            const dy = e.clientY - lastY;
+            
+            // Calculate mouse speed
+            const rawSpeed = Math.sqrt(dx*dx + dy*dy) / dt;
+            mouseSpeed = mouseSpeed * 0.7 + rawSpeed * 0.3;  // Smoothed
+            
+            // Speed-dependent sensitivity:
+            // Slow movement = fine control (0.002)
+            // Fast movement = quick rotation (0.008)
+            const baseSens = 0.002;
+            const maxSens = 0.008;
+            const speedFactor = Math.min(1, mouseSpeed / 2);
+            const sensitivity = baseSens + (maxSens - baseSens) * speedFactor;
+            
+            targetRotY += dx * sensitivity;
+            targetRotX += dy * sensitivity;
+            
+            lastX = e.clientX;
+            lastY = e.clientY;
+        });
+        
+        canvas.addEventListener('mouseup', () => { isDragging = false; mouseSpeed = 0; });
+        canvas.addEventListener('mouseleave', () => { isDragging = false; mouseSpeed = 0; });
+        
+        // === WHEEL (extended zoom range) ===
+        canvas.addEventListener('wheel', e => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? 0.88 : 1.14;
+            zoom = Math.max(minZoom, Math.min(maxZoom, zoom * delta));
+            updateDisplays();
+        });
+        
+        // === KEYBOARD ===
+        document.addEventListener('keydown', e => {
+            switch (e.key) {
+                case ' ':
+                    e.preventDefault();
+                    toggleRotation();
+                    break;
+                case 'i': case 'I':
+                    toggleInfo();
+                    break;
+                case 'p': case 'P':
+                    togglePropagation();
+                    break;
+                case 'r': case 'R':
+                    resetView();
+                    break;
+                    
+                // Grid navigation
+                case 'ArrowUp':
+                    if (propagationMode) { gridY++; updateDisplays(); showNotif(`Grid: ${gridX}, ${gridY}, ${gridZ}`); }
+                    break;
+                case 'ArrowDown':
+                    if (propagationMode) { gridY--; updateDisplays(); showNotif(`Grid: ${gridX}, ${gridY}, ${gridZ}`); }
+                    break;
+                case 'ArrowLeft':
+                    if (propagationMode) { gridX--; updateDisplays(); showNotif(`Grid: ${gridX}, ${gridY}, ${gridZ}`); }
+                    break;
+                case 'ArrowRight':
+                    if (propagationMode) { gridX++; updateDisplays(); showNotif(`Grid: ${gridX}, ${gridY}, ${gridZ}`); }
+                    break;
+                case 'PageUp':
+                    if (propagationMode) { gridZ++; updateDisplays(); showNotif(`Grid: ${gridX}, ${gridY}, ${gridZ}`); }
+                    break;
+                case 'PageDown':
+                    if (propagationMode) { gridZ--; updateDisplays(); showNotif(`Grid: ${gridX}, ${gridY}, ${gridZ}`); }
+                    break;
+                case '+': case '=':
+                    gridDepth = Math.min(maxGridDepth, gridDepth + 1);
+                    updateDisplays();
+                    showNotif(`Depth: ${gridDepth}`);
+                    break;
+                case '-': case '_':
+                    gridDepth = Math.max(1, gridDepth - 1);
+                    updateDisplays();
+                    showNotif(`Depth: ${gridDepth}`);
+                    break;
+            }
+        });
+        
+        // === TOUCH SUPPORT ===
+        let lastTouchDist = 0;
+        
+        canvas.addEventListener('touchstart', e => {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                lastX = e.touches[0].clientX;
+                lastY = e.touches[0].clientY;
+                lastMoveTime = performance.now();
+            } else if (e.touches.length === 2) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                lastTouchDist = Math.sqrt(dx*dx + dy*dy);
+            }
+        });
+        
+        canvas.addEventListener('touchmove', e => {
+            e.preventDefault();
+            if (e.touches.length === 1 && isDragging) {
+                const now = performance.now();
+                const dt = Math.max(1, now - lastMoveTime);
+                lastMoveTime = now;
+                
+                const dx = e.touches[0].clientX - lastX;
+                const dy = e.touches[0].clientY - lastY;
+                
+                const rawSpeed = Math.sqrt(dx*dx + dy*dy) / dt;
+                mouseSpeed = mouseSpeed * 0.7 + rawSpeed * 0.3;
+                
+                const baseSens = 0.003;
+                const maxSens = 0.01;
+                const speedFactor = Math.min(1, mouseSpeed / 2);
+                const sensitivity = baseSens + (maxSens - baseSens) * speedFactor;
+                
+                targetRotY += dx * sensitivity;
+                targetRotX += dy * sensitivity;
+                
+                lastX = e.touches[0].clientX;
+                lastY = e.touches[0].clientY;
+            } else if (e.touches.length === 2) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                if (lastTouchDist > 0) {
+                    const scale = dist / lastTouchDist;
+                    zoom = Math.max(minZoom, Math.min(maxZoom, zoom * scale));
+                    updateDisplays();
+                }
+                lastTouchDist = dist;
+            }
+        });
+        
+        canvas.addEventListener('touchend', () => {
+            isDragging = false;
+            mouseSpeed = 0;
+            lastTouchDist = 0;
+        });
+        
+        // === INIT ===
+        window.addEventListener('resize', resize);
+        resize();
+        updateDisplays();
+        animate();
+    </script>
+</body>
+</html>

@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Protocol-7 Recursive Hyperspace - Infinite Scale Topology</title>
+    <!--
+    PROTOCOL-7 RECURSIVE HYPERSPACE
+    
+    Scale Hierarchy (infinite in both directions):
+    - PARENT: 8×63 structure encompassing entire view (lines only, no glow)
+    - CURRENT: Center formation with full 504 subcubes + ambient glow
+    - NEIGHBORS: Adjacent formations with cutout geometry (no subcubes)
+    - CHILD (future): Starfield projection into the central void
+    
+    The recursion is exact:
+    - Each scale level maintains 2-subcube-width gaps
+    - Current propagation extent fits into parent's cutout corners
+    - Like a ring buffer: zoom out → new parent appears
+    
+    Color System (blacklight fluorescent):
+    - Background: Deep purple-black (#0c0518)
+    - Lines: Translucent blue-violet
+    - Core glow: Ambient blue radiance on center formation
+    - Reserve cyan for future dynamic route activity
+    -->
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            background: #0c0518;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            color: #a0c0ff;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+            cursor: grab;
+        }
+        
+        canvas:active { cursor: grabbing; }
+        
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            gap: 12px;
+            background: rgba(12, 5, 24, 0.85);
+            padding: 12px;
+            border-radius: 15px;
+            border: 1px solid rgba(48, 48, 160, 0.5);
+            box-shadow: 0 0 20px rgba(60, 0, 120, 0.4);
+            z-index: 100;
+        }
+        
+        button {
+            background: rgba(15, 5, 30, 0.8);
+            border: 1px solid #3030a0;
+            color: #a0c0ff;
+            padding: 8px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            text-shadow: 0 0 8px rgba(80, 100, 200, 0.6);
+            transition: all 0.25s ease;
+        }
+        
+        button:hover {
+            background: rgba(20, 10, 50, 0.9);
+            box-shadow: 0 0 15px rgba(60, 20, 200, 0.5);
+        }
+        
+        button.active {
+            background: rgba(30, 15, 60, 0.9);
+            border-color: #5050c0;
+            box-shadow: 0 0 20px rgba(80, 40, 200, 0.6);
+        }
+        
+        .info-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(12, 5, 24, 0.88);
+            padding: 16px;
+            border-radius: 15px;
+            border: 1px solid rgba(48, 48, 160, 0.4);
+            box-shadow: 0 0 25px rgba(60, 0, 120, 0.4);
+            max-width: 300px;
+            z-index: 100;
+            font-size: 12px;
+            line-height: 1.6;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        
+        .info-panel.hidden {
+            opacity: 0;
+            transform: translateX(-100%);
+            pointer-events: none;
+        }
+        
+        .info-panel h3 {
+            margin: 0 0 10px 0;
+            color: #b0c0ff;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(80, 80, 180, 0.3);
+            padding-bottom: 6px;
+        }
+        
+        .info-value {
+            color: #80b0ff;
+            font-weight: bold;
+        }
+        
+        .info-section {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(80, 80, 180, 0.2);
+            font-size: 11px;
+            color: #7090c0;
+        }
+        
+        .toggle-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(12, 5, 24, 0.88);
+            border: 1px solid rgba(48, 48, 160, 0.5);
+            color: #a0c0ff;
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-family: inherit;
+            z-index: 101;
+            transition: all 0.25s;
+        }
+        
+        .toggle-btn:hover {
+            background: rgba(20, 10, 50, 0.9);
+            box-shadow: 0 0 15px rgba(60, 20, 200, 0.5);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(12, 5, 24, 0.95);
+            color: #b0c0ff;
+            padding: 16px 32px;
+            border-radius: 15px;
+            border: 1px solid rgba(48, 48, 160, 0.6);
+            box-shadow: 0 0 30px rgba(60, 20, 200, 0.6);
+            font-size: 15px;
+            z-index: 1000;
+            pointer-events: none;
+            animation: notifPulse 0.8s ease-in-out;
+        }
+        
+        @keyframes notifPulse {
+            0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
+            15%, 85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <button class="toggle-btn" onclick="toggleInfo()">I</button>
+    
+    <div class="info-panel" id="infoPanel">
+        <h3>Protocol-7 Recursive Hyperspace</h3>
+        <p><strong>Core:</strong> <span class="info-value">504 memory cells</span></p>
+        <p><strong>Mode:</strong> <span class="info-value" id="modeDisplay">Single + Neighbors</span></p>
+        <p><strong>Grid:</strong> <span class="info-value" id="gridDisplay">0, 0, 0</span></p>
+        <p><strong>Zoom:</strong> <span class="info-value" id="zoomDisplay">100%</span></p>
+        <p><strong>Depth:</strong> <span class="info-value" id="depthDisplay">1</span></p>
+        <p><strong>FPS:</strong> <span class="info-value" id="fpsDisplay">--</span></p>
+        
+        <div class="info-section">
+            <p><strong>Mouse:</strong> Drag=rotate, Wheel=zoom</p>
+            <p><strong>P:</strong> Propagation mode</p>
+            <p><strong>Arrows/PgUp/Dn:</strong> Navigate</p>
+            <p><strong>+/-:</strong> Depth (1-5)</p>
+            <p><strong>Space:</strong> Pause</p>
+            <p style="margin-top: 6px; color: #6080a0; font-size: 10px;">
+                Recursive: parent contains current,<br>
+                current contains children. Infinite scale.
+            </p>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button onclick="toggleRotation()" id="rotateBtn">Pause</button>
+        <button onclick="resetView()">Reset</button>
+        <button onclick="togglePropagation()" id="propBtn">Propagate</button>
+    </div>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height, centerX, centerY;
+        
+        // === TOPOLOGY CONSTANTS ===
+        const cubeSize = 140;
+        const subSize = cubeSize / 4;
+        const gapSize = subSize * 2;  // 2 subcube widths
+        const fieldSpacing = cubeSize + gapSize;
+        const formationSpacing = fieldSpacing * 2;
+        
+        // Parent scale: encompasses entire propagation field
+        // The parent's subcube size = our entire formation size
+        const parentScale = formationSpacing * 3;  // Parent cube size
+        const parentSubSize = parentScale / 4;
+        const parentFieldSpacing = parentScale + (parentSubSize * 2);
+        
+        // === BLACKLIGHT COLOR SYSTEM (from reference) ===
+        const colors = {
+            background: '#0c0518',
+            // Line colors (translucent blue-violet spectrum)
+            lineBase: { h: 230, s: 70, l: 55 },      // Blue-violet
+            lineGlow: { h: 240, s: 80, l: 50 },      // Deeper blue glow
+            // Ambient core glow
+            coreGlow: { h: 235, s: 85, l: 45 },      // Rich blue
+            // Parent structure (dimmer, more violet)
+            parentLine: { h: 250, s: 60, l: 45 },    // Violet-blue
+        };
+        
+        // === VIEW STATE ===
+        let rotX = 0.35, rotY = 0.45, rotZ = 0;
+        let zoom = 1.0;
+        let cameraZ = 500;
+        
+        // Extended zoom - deep into void
+        const minZoom = 0.03;
+        const maxZoom = 15.0;
+        
+        // Animation
+        let isRotating = true;
+        let rotSpeed = 0.0012;
+        let animFrame = null;
+        
+        // Smooth rotation
+        let targetRotX = rotX, targetRotY = rotY;
+        let velRotX = 0, velRotY = 0;
+        
+        // Mouse
+        let isDragging = false;
+        let lastX = 0, lastY = 0;
+        let lastMoveTime = 0;
+        let mouseSpeed = 0;
+        
+        // Propagation
+        let propagationMode = false;
+        let gridX = 0, gridY = 0, gridZ = 0;
+        let gridDepth = 1;
+        const maxGridDepth = 5;
+        
+        // FPS
+        let frameCount = 0;
+        let fps = 0;
+        let fpsTime = performance.now();
+        
+        let infoPanelVisible = true;
+        
+        // === CUBE POSITIONS ===
+        const cubePositions = [
+            [-1, -1, -1], [ 1, -1, -1], [-1,  1, -1], [ 1,  1, -1],
+            [-1, -1,  1], [ 1, -1,  1], [-1,  1,  1], [ 1,  1,  1]
+        ];
+        
+        const missingCorners = [
+            { x: 3, y: 3, z: 3 }, { x: 0, y: 3, z: 3 },
+            { x: 3, y: 0, z: 3 }, { x: 0, y: 0, z: 3 },
+            { x: 3, y: 3, z: 0 }, { x: 0, y: 3, z: 0 },
+            { x: 3, y: 0, z: 0 }, { x: 0, y: 0, z: 0 }
+        ];
+        
+        const cutoutVertexIndices = [6, 7, 5, 4, 2, 3, 1, 0];
+        
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            centerX = width / 2;
+            centerY = height / 2;
+        }
+        
+        // === SIMPLE CUBE ===
+        function createSimpleCube(size, cx, cy, cz) {
+            const s = size / 2;
+            return {
+                vertices: [
+                    [cx-s, cy-s, cz-s], [cx+s, cy-s, cz-s],
+                    [cx+s, cy+s, cz-s], [cx-s, cy+s, cz-s],
+                    [cx-s, cy-s, cz+s], [cx+s, cy-s, cz+s],
+                    [cx+s, cy+s, cz+s], [cx-s, cy+s, cz+s]
+                ],
+                edges: [
+                    [0,1], [1,2], [2,3], [3,0],
+                    [4,5], [5,6], [6,7], [7,4],
+                    [0,4], [1,5], [2,6], [3,7]
+                ]
+            };
+        }
+        
+        // === CUBE WITH CUTOUT ===
+        function createCutoutCube(size, cx, cy, cz, cubeIndex) {
+            const s = size / 2;
+            
+            const fullVertices = [
+                [cx-s, cy-s, cz-s], [cx+s, cy-s, cz-s],
+                [cx+s, cy+s, cz-s], [cx-s, cy+s, cz-s],
+                [cx-s, cy-s, cz+s], [cx+s, cy-s, cz+s],
+                [cx+s, cy+s, cz+s], [cx-s, cy+s, cz+s]
+            ];
+            
+            const cutIdx = cutoutVertexIndices[cubeIndex];
+            const cutV = fullVertices[cutIdx];
+            
+            const adjacentMap = {
+                0: [1, 3, 4], 1: [0, 2, 5], 2: [1, 3, 6], 3: [0, 2, 7],
+                4: [0, 5, 7], 5: [1, 4, 6], 6: [2, 5, 7], 7: [3, 4, 6]
+            };
+            const adjIndices = adjacentMap[cutIdx];
+            
+            const vertices = [];
+            const vertexMap = {};
+            
+            for (let i = 0; i < 8; i++) {
+                if (i !== cutIdx) {
+                    vertexMap[i] = vertices.length;
+                    vertices.push([...fullVertices[i]]);
+                }
+            }
+            
+            const edgeVertexIndices = [];
+            adjIndices.forEach(adjIdx => {
+                const adjV = fullVertices[adjIdx];
+                edgeVertexIndices.push(vertices.length);
+                vertices.push([
+                    cutV[0] + (adjV[0] - cutV[0]) * 0.25,
+                    cutV[1] + (adjV[1] - cutV[1]) * 0.25,
+                    cutV[2] + (adjV[2] - cutV[2]) * 0.25
+                ]);
+            });
+            
+            const cornerVertexIndices = [];
+            const v0 = fullVertices[adjIndices[0]];
+            const v1 = fullVertices[adjIndices[1]];
+            const v2 = fullVertices[adjIndices[2]];
+            
+            cornerVertexIndices.push(vertices.length);
+            vertices.push([
+                cutV[0] + (v0[0] - cutV[0]) * 0.25 + (v1[0] - cutV[0]) * 0.25,
+                cutV[1] + (v0[1] - cutV[1]) * 0.25 + (v1[1] - cutV[1]) * 0.25,
+                cutV[2] + (v0[2] - cutV[2]) * 0.25 + (v1[2] - cutV[2]) * 0.25
+            ]);
+            
+            cornerVertexIndices.push(vertices.length);
+            vertices.push([
+                cutV[0] + (v0[0] - cutV[0]) * 0.25 + (v2[0] - cutV[0]) * 0.25,
+                cutV[1] + (v0[1] - cutV[1]) * 0.25 + (v2[1] - cutV[1]) * 0.25,
+                cutV[2] + (v0[2] - cutV[2]) * 0.25 + (v2[2] - cutV[2]) * 0.25
+            ]);
+            
+            cornerVertexIndices.push(vertices.length);
+            vertices.push([
+                cutV[0] + (v1[0] - cutV[0]) * 0.25 + (v2[0] - cutV[0]) * 0.25,
+                cutV[1] + (v1[1] - cutV[1]) * 0.25 + (v2[1] - cutV[1]) * 0.25,
+                cutV[2] + (v1[2] - cutV[2]) * 0.25 + (v2[2] - cutV[2]) * 0.25
+            ]);
+            
+            const innerCornerIdx = vertices.length;
+            vertices.push([
+                cutV[0] + (v0[0] - cutV[0]) * 0.25 + (v1[0] - cutV[0]) * 0.25 + (v2[0] - cutV[0]) * 0.25,
+                cutV[1] + (v0[1] - cutV[1]) * 0.25 + (v1[1] - cutV[1]) * 0.25 + (v2[1] - cutV[1]) * 0.25,
+                cutV[2] + (v0[2] - cutV[2]) * 0.25 + (v1[2] - cutV[2]) * 0.25 + (v2[2] - cutV[2]) * 0.25
+            ]);
+            
+            const edges = [];
+            
+            const cubeEdgePairs = [
+                [0,1], [1,2], [2,3], [3,0],
+                [4,5], [5,6], [6,7], [7,4],
+                [0,4], [1,5], [2,6], [3,7]
+            ];
+            
+            cubeEdgePairs.forEach(([from, to]) => {
+                if (from !== cutIdx && to !== cutIdx) {
+                    edges.push([vertexMap[from], vertexMap[to]]);
+                } else {
+                    const normalVertex = (from === cutIdx) ? to : from;
+                    const edgeIdx = adjIndices.indexOf(normalVertex);
+                    if (edgeIdx !== -1) {
+                        edges.push([vertexMap[normalVertex], edgeVertexIndices[edgeIdx]]);
+                    }
+                }
+            });
+            
+            // Cutout edges
+            edges.push([edgeVertexIndices[0], cornerVertexIndices[0]]);
+            edges.push([edgeVertexIndices[0], cornerVertexIndices[1]]);
+            edges.push([edgeVertexIndices[1], cornerVertexIndices[0]]);
+            edges.push([edgeVertexIndices[1], cornerVertexIndices[2]]);
+            edges.push([edgeVertexIndices[2], cornerVertexIndices[1]]);
+            edges.push([edgeVertexIndices[2], cornerVertexIndices[2]]);
+            edges.push([cornerVertexIndices[0], innerCornerIdx]);
+            edges.push([cornerVertexIndices[1], innerCornerIdx]);
+            edges.push([cornerVertexIndices[2], innerCornerIdx]);
+            
+            return { vertices, edges };
+        }
+        
+        // === GENERATE FORMATION ===
+        // scale: 1 = normal, >1 = parent scale
+        // detailLevel: 0=full subcubes, 1=cutout cubes, 2=simple cubes
+        // hasGlow: ambient glow effect
+        function generateFormation(offsetX, offsetY, offsetZ, intensity, detailLevel, hasGlow = false, scale = 1) {
+            const elements = [];
+            const s = scale;
+            const cs = cubeSize * s;
+            const ss = subSize * s;
+            const fs = fieldSpacing * s;
+            
+            cubePositions.forEach((pos, cubeIndex) => {
+                const cx = pos[0] * (fs / 2) + offsetX;
+                const cy = pos[1] * (fs / 2) + offsetY;
+                const cz = pos[2] * (fs / 2) + offsetZ;
+                
+                if (detailLevel <= 1) {
+                    const cube = createCutoutCube(cs, cx, cy, cz, cubeIndex);
+                    elements.push({ ...cube, intensity, type: 'main', hasGlow, scale: s });
+                } else {
+                    const cube = createSimpleCube(cs, cx, cy, cz);
+                    elements.push({ ...cube, intensity, type: 'simple', hasGlow: false, scale: s });
+                }
+                
+                // Subcubes only at detail level 0
+                if (detailLevel === 0) {
+                    const missingCorner = missingCorners[cubeIndex];
+                    
+                    for (let x = 0; x < 4; x++) {
+                        for (let y = 0; y < 4; y++) {
+                            for (let z = 0; z < 4; z++) {
+                                if (x === missingCorner.x && y === missingCorner.y && z === missingCorner.z) continue;
+                                
+                                const subX = cx + (x - 1.5) * ss;
+                                const subY = cy + (y - 1.5) * ss;
+                                const subZ = cz + (z - 1.5) * ss;
+                                
+                                const cube = createSimpleCube(ss * 0.92, subX, subY, subZ);
+                                elements.push({ ...cube, intensity, type: 'sub', hasGlow, scale: s });
+                            }
+                        }
+                    }
+                }
+            });
+            
+            return elements;
+        }
+        
+        // === GENERATE PARENT SCALE (wraps entire field) ===
+        function generateParentFormation() {
+            const elements = [];
+            // Parent scale factor: current propagation extent should fit in parent's cutout
+            const parentScaleFactor = (formationSpacing * (gridDepth * 2 + 1)) / cubeSize * 1.5;
+            
+            // Generate parent 8-cube structure (lines only, no glow)
+            cubePositions.forEach((pos, cubeIndex) => {
+                const ps = cubeSize * parentScaleFactor;
+                const pfs = fieldSpacing * parentScaleFactor;
+                
+                const cx = pos[0] * (pfs / 2);
+                const cy = pos[1] * (pfs / 2);
+                const cz = pos[2] * (pfs / 2);
+                
+                // Only cutout cube geometry, very dim
+                const cube = createCutoutCube(ps, cx, cy, cz, cubeIndex);
+                elements.push({ 
+                    ...cube, 
+                    intensity: 0.25, 
+                    type: 'parent', 
+                    hasGlow: false, 
+                    scale: parentScaleFactor 
+                });
+            });
+            
+            return elements;
+        }
+        
+        // === GENERATE COMPLETE FIELD ===
+        function generateField() {
+            const elements = [];
+            
+            // Always add parent scale (wrapping structure)
+            if (propagationMode) {
+                elements.push(...generateParentFormation());
+            }
+            
+            if (propagationMode) {
+                // Propagation: grid of formations
+                for (let x = -gridDepth; x <= gridDepth; x++) {
+                    for (let y = -gridDepth; y <= gridDepth; y++) {
+                        for (let z = -gridDepth; z <= gridDepth; z++) {
+                            const dx = x - gridX;
+                            const dy = y - gridY;
+                            const dz = z - gridZ;
+                            const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                            
+                            // Center: full detail with glow
+                            if (x === gridX && y === gridY && z === gridZ) {
+                                elements.push(...generateFormation(0, 0, 0, 1.0, 0, true));
+                                continue;
+                            }
+                            
+                            // Detail level by distance
+                            let detailLevel = dist <= 1.5 ? 1 : 2;
+                            const intensity = Math.max(0.2, 1.0 / (dist * 0.4 + 1));
+                            
+                            elements.push(...generateFormation(
+                                dx * formationSpacing,
+                                dy * formationSpacing,
+                                dz * formationSpacing,
+                                intensity,
+                                detailLevel,
+                                false
+                            ));
+                        }
+                    }
+                }
+            } else {
+                // Single mode: center + 6 neighbors
+                elements.push(...generateFormation(0, 0, 0, 1.0, 0, true));
+                
+                const dirs = [[1,0,0], [-1,0,0], [0,1,0], [0,-1,0], [0,0,1], [0,0,-1]];
+                dirs.forEach(([dx, dy, dz]) => {
+                    elements.push(...generateFormation(
+                        dx * formationSpacing,
+                        dy * formationSpacing,
+                        dz * formationSpacing,
+                        0.5,
+                        1,
+                        false
+                    ));
+                });
+            }
+            
+            return elements;
+        }
+        
+        // === 3D TRANSFORMS ===
+        function rotatePoint([x, y, z], rx, ry, rz) {
+            let y1 = y * Math.cos(rx) - z * Math.sin(rx);
+            let z1 = y * Math.sin(rx) + z * Math.cos(rx);
+            let x2 = x * Math.cos(ry) + z1 * Math.sin(ry);
+            let z2 = -x * Math.sin(ry) + z1 * Math.cos(ry);
+            let x3 = x2 * Math.cos(rz) - y1 * Math.sin(rz);
+            let y3 = x2 * Math.sin(rz) + y1 * Math.cos(rz);
+            return [x3, y3, z2];
+        }
+        
+        function project([x, y, z]) {
+            z += cameraZ;
+            const fov = 450;
+            const scale = fov / (fov + z);
+            return {
+                x: centerX + x * scale * zoom,
+                y: centerY + y * scale * zoom,
+                z: z,
+                visible: z > -400
+            };
+        }
+        
+        // === COLOR FUNCTIONS ===
+        function hsl(h, s, l, a) {
+            return `hsla(${h}, ${s}%, ${l}%, ${a})`;
+        }
+        
+        function getLineColor(element, depthFactor) {
+            const intensity = element.intensity * depthFactor;
+            
+            if (element.type === 'parent') {
+                // Parent: violet-blue, very translucent
+                return hsl(250, 55, 50, intensity * 0.3);
+            }
+            
+            // All other elements: blue-violet spectrum
+            const alpha = element.type === 'sub' ? 0.35 : 0.45;
+            return hsl(230, 70, 55, intensity * alpha);
+        }
+        
+        function getGlowColor(element, depthFactor) {
+            const intensity = element.intensity * depthFactor;
+            
+            if (element.type === 'parent') {
+                return hsl(250, 60, 45, intensity * 0.15);
+            }
+            
+            if (element.hasGlow) {
+                // Core glow: stronger blue radiance
+                return hsl(235, 85, 50, intensity * 0.5);
+            }
+            
+            return hsl(240, 75, 45, intensity * 0.25);
+        }
+        
+        // === DRAW ===
+        function draw() {
+            // Blacklight background
+            ctx.fillStyle = colors.background;
+            ctx.fillRect(0, 0, width, height);
+            
+            // Subtle radial glow in center
+            const gradient = ctx.createRadialGradient(
+                centerX, centerY, 0,
+                centerX, centerY, Math.min(width, height) * 0.6
+            );
+            gradient.addColorStop(0, 'rgba(30, 20, 80, 0.15)');
+            gradient.addColorStop(0.5, 'rgba(20, 10, 50, 0.08)');
+            gradient.addColorStop(1, 'rgba(12, 5, 24, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+            
+            const elements = generateField();
+            
+            // Sort by depth (back to front)
+            const sorted = elements.map(el => {
+                const rotated = el.vertices.map(v => rotatePoint(v, rotX, rotY, rotZ));
+                const avgZ = rotated.reduce((sum, v) => sum + v[2], 0) / rotated.length;
+                return { element: el, rotated, z: avgZ };
+            }).sort((a, b) => a.z - b.z);
+            
+            // Draw
+            sorted.forEach(({ element, rotated }) => {
+                const projected = rotated.map(v => project(v));
+                if (!projected.some(p => p.visible)) return;
+                
+                const avgZ = rotated.reduce((sum, v) => sum + v[2], 0) / rotated.length;
+                const depthFactor = Math.max(0.15, Math.min(1.3, 1 - avgZ / 2500));
+                
+                // Line properties
+                let lineWidth;
+                let glowSize;
+                
+                switch (element.type) {
+                    case 'parent':
+                        lineWidth = 0.8;
+                        glowSize = 4;
+                        break;
+                    case 'sub':
+                        lineWidth = element.hasGlow ? 0.7 : 0.5;
+                        glowSize = element.hasGlow ? 12 : 4;
+                        break;
+                    case 'simple':
+                        lineWidth = 1.0;
+                        glowSize = 5;
+                        break;
+                    default: // main
+                        lineWidth = element.hasGlow ? 1.2 : 1.0;
+                        glowSize = element.hasGlow ? 15 : 8;
+                }
+                
+                ctx.strokeStyle = getLineColor(element, depthFactor);
+                ctx.shadowColor = getGlowColor(element, depthFactor);
+                ctx.shadowBlur = glowSize * element.intensity * depthFactor;
+                ctx.lineWidth = lineWidth;
+                ctx.lineCap = 'round';
+                
+                element.edges.forEach(([i, j]) => {
+                    if (projected[i].visible && projected[j].visible) {
+                        ctx.beginPath();
+                        ctx.moveTo(projected[i].x, projected[i].y);
+                        ctx.lineTo(projected[j].x, projected[j].y);
+                        ctx.stroke();
+                    }
+                });
+            });
+            
+            ctx.shadowBlur = 0;
+            
+            // FPS
+            frameCount++;
+            const now = performance.now();
+            if (now - fpsTime >= 1000) {
+                fps = Math.round(frameCount * 1000 / (now - fpsTime));
+                document.getElementById('fpsDisplay').textContent = fps;
+                frameCount = 0;
+                fpsTime = now;
+            }
+        }
+        
+        // === ANIMATION ===
+        function animate() {
+            const smoothing = 0.1;
+            const friction = 0.8;
+            
+            velRotX += (targetRotX - rotX) * smoothing;
+            velRotY += (targetRotY - rotY) * smoothing;
+            velRotX *= friction;
+            velRotY *= friction;
+            rotX += velRotX;
+            rotY += velRotY;
+            
+            if (isRotating) {
+                targetRotY += rotSpeed;
+                targetRotX += rotSpeed * 0.2;
+            }
+            
+            draw();
+            animFrame = requestAnimationFrame(animate);
+        }
+        
+        // === CONTROLS ===
+        function toggleRotation() {
+            isRotating = !isRotating;
+            document.getElementById('rotateBtn').textContent = isRotating ? 'Pause' : 'Rotate';
+        }
+        
+        function togglePropagation() {
+            propagationMode = !propagationMode;
+            document.getElementById('propBtn').classList.toggle('active', propagationMode);
+            updateDisplays();
+            showNotif(propagationMode ? 'Propagation ON' : 'Propagation OFF');
+        }
+        
+        function resetView() {
+            rotX = targetRotX = 0.35;
+            rotY = targetRotY = 0.45;
+            zoom = 1.0;
+            gridX = gridY = gridZ = 0;
+            gridDepth = 1;
+            velRotX = velRotY = 0;
+            updateDisplays();
+            showNotif('View Reset');
+        }
+        
+        function toggleInfo() {
+            infoPanelVisible = !infoPanelVisible;
+            document.getElementById('infoPanel').classList.toggle('hidden', !infoPanelVisible);
+        }
+        
+        function updateDisplays() {
+            document.getElementById('modeDisplay').textContent = propagationMode ? 'Propagated' : 'Single + 6';
+            document.getElementById('gridDisplay').textContent = `${gridX}, ${gridY}, ${gridZ}`;
+            document.getElementById('zoomDisplay').textContent = Math.round(zoom * 100) + '%';
+            document.getElementById('depthDisplay').textContent = gridDepth;
+        }
+        
+        function showNotif(text) {
+            const notif = document.createElement('div');
+            notif.className = 'notification';
+            notif.textContent = text;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 800);
+        }
+        
+        // === MOUSE (speed-dependent) ===
+        canvas.addEventListener('mousedown', e => {
+            isDragging = true;
+            lastX = e.clientX;
+            lastY = e.clientY;
+            lastMoveTime = performance.now();
+        });
+        
+        canvas.addEventListener('mousemove', e => {
+            if (!isDragging) return;
+            
+            const now = performance.now();
+            const dt = Math.max(1, now - lastMoveTime);
+            lastMoveTime = now;
+            
+            const dx = e.clientX - lastX;
+            const dy = e.clientY - lastY;
+            
+            const rawSpeed = Math.sqrt(dx*dx + dy*dy) / dt;
+            mouseSpeed = mouseSpeed * 0.7 + rawSpeed * 0.3;
+            
+            const baseSens = 0.002;
+            const maxSens = 0.01;
+            const speedFactor = Math.min(1, mouseSpeed / 2);
+            const sensitivity = baseSens + (maxSens - baseSens) * speedFactor;
+            
+            targetRotY += dx * sensitivity;
+            targetRotX += dy * sensitivity;
+            
+            lastX = e.clientX;
+            lastY = e.clientY;
+        });
+        
+        canvas.addEventListener('mouseup', () => { isDragging = false; mouseSpeed = 0; });
+        canvas.addEventListener('mouseleave', () => { isDragging = false; mouseSpeed = 0; });
+        
+        // === WHEEL (extended zoom) ===
+        canvas.addEventListener('wheel', e => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? 0.85 : 1.18;
+            zoom = Math.max(minZoom, Math.min(maxZoom, zoom * delta));
+            updateDisplays();
+        });
+        
+        // === KEYBOARD ===
+        document.addEventListener('keydown', e => {
+            switch (e.key) {
+                case ' ':
+                    e.preventDefault();
+                    toggleRotation();
+                    break;
+                case 'i': case 'I':
+                    toggleInfo();
+                    break;
+                case 'p': case 'P':
+                    togglePropagation();
+                    break;
+                case 'r': case 'R':
+                    resetView();
+                    break;
+                case 'ArrowUp':
+                    if (propagationMode) { gridY++; updateDisplays(); showNotif(`Grid: ${gridX}, ${gridY}, ${gridZ}`); }
+                    break;
+                case 'ArrowDown':
+                    if (propagationMode) { gridY--; updateDisplays(); showNotif(`Grid: ${gridX}, ${gridY}, ${gridZ}`); }
+                    break;
+                case 'ArrowLeft':
+                    if (propagationMode) { gridX--; updateDisplays(); showNotif(`Grid: ${gridX}, ${gridY}, ${gridZ}`); }
+                    break;
+                case 'ArrowRight':
+                    if (propagationMode) { gridX++; updateDisplays(); showNotif(`Grid: ${gridX}, ${gridY}, ${gridZ}`); }
+                    break;
+                case 'PageUp':
+                    if (propagationMode) { gridZ++; updateDisplays(); showNotif(`Grid: ${gridX}, ${gridY}, ${gridZ}`); }
+                    break;
+                case 'PageDown':
+                    if (propagationMode) { gridZ--; updateDisplays(); showNotif(`Grid: ${gridX}, ${gridY}, ${gridZ}`); }
+                    break;
+                case '+': case '=':
+                    gridDepth = Math.min(maxGridDepth, gridDepth + 1);
+                    updateDisplays();
+                    showNotif(`Depth: ${gridDepth}`);
+                    break;
+                case '-': case '_':
+                    gridDepth = Math.max(1, gridDepth - 1);
+                    updateDisplays();
+                    showNotif(`Depth: ${gridDepth}`);
+                    break;
+            }
+        });
+        
+        // === TOUCH ===
+        let lastTouchDist = 0;
+        
+        canvas.addEventListener('touchstart', e => {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                lastX = e.touches[0].clientX;
+                lastY = e.touches[0].clientY;
+                lastMoveTime = performance.now();
+            } else if (e.touches.length === 2) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                lastTouchDist = Math.sqrt(dx*dx + dy*dy);
+            }
+        });
+        
+        canvas.addEventListener('touchmove', e => {
+            e.preventDefault();
+            if (e.touches.length === 1 && isDragging) {
+                const now = performance.now();
+                const dt = Math.max(1, now - lastMoveTime);
+                lastMoveTime = now;
+                
+                const dx = e.touches[0].clientX - lastX;
+                const dy = e.touches[0].clientY - lastY;
+                
+                const rawSpeed = Math.sqrt(dx*dx + dy*dy) / dt;
+                mouseSpeed = mouseSpeed * 0.7 + rawSpeed * 0.3;
+                
+                const sensitivity = 0.003 + Math.min(1, mouseSpeed / 2) * 0.007;
+                
+                targetRotY += dx * sensitivity;
+                targetRotX += dy * sensitivity;
+                
+                lastX = e.touches[0].clientX;
+                lastY = e.touches[0].clientY;
+            } else if (e.touches.length === 2) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                if (lastTouchDist > 0) {
+                    zoom = Math.max(minZoom, Math.min(maxZoom, zoom * (dist / lastTouchDist)));
+                    updateDisplays();
+                }
+                lastTouchDist = dist;
+            }
+        });
+        
+        canvas.addEventListener('touchend', () => {
+            isDragging = false;
+            mouseSpeed = 0;
+            lastTouchDist = 0;
+        });
+        
+        // === INIT ===
+        window.addEventListener('resize', resize);
+        resize();
+        updateDisplays();
+        animate();
+    </script>
+</body>
+</html>
