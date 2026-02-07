@@ -5,10 +5,26 @@
 # args  = log_level log_msg [log_buffer] [time-stamp]
 # note  = used routines here need to be registered in protocol-7 [purge_code]
 
-my ( $log_level, $log_msg, $log_buffer, $time_stamp )
-    = ( $ARG[0] || 0, $ARG[1] // '', $ARG[2] // '', $ARG[3] );
+my ( $log_level, $log_msg, $log_buffer, $time_stamp );
+
+## support optional log_level parameter with default to 1 [matching base.logs]
+## if first arg is single digit, treat as log_level; otherwise default to 1
+if ( @ARG > 0 and defined $ARG[0] and $ARG[0] =~ m|^\d$| ) {
+    ## first arg is single digit log level
+    $log_level  = shift @ARG;
+    $log_msg    = shift @ARG // '';
+    $log_buffer = shift @ARG // '';
+    $time_stamp = shift @ARG;
+} else {
+    ## no log level provided, default to 1
+    $log_level  = 1;
+    $log_msg    = shift @ARG // '';
+    $log_buffer = shift @ARG // '';
+    $time_stamp = shift @ARG;
+}
 
 if ( $log_level !~ m|^\d+$| ) {
+    ## log_level is not numerical
     $log_level = 0;
     $log_msg   = sprintf 'LOG-LEVEL not numerical %s', scalar <[base.caller]>;
 }
@@ -117,8 +133,8 @@ if ( length fileno(STDOUT) and $log_level <= <system.verbosity.console> ) {
 
 return TRUE;
 
-#,,..,..,,.,.,.,.,,,.,.,.,,,,,.,,,.,,,,,,,,.,,..,,...,...,,..,.,,,...,,..,...,
-#C3QCJG4W4FPM5Y6QEKMT46AZL3AWZZKHY5KM3IAEKE5BCF3AZIKDLPCOGFKRR3W4QRKA75EZMY2PG
-#\\\|3KH2ZJ5S3N6RFQ6IIRNRQ6TRAC3B42P3ZC5IUQPBO75TQ2LEHXB \ / AMOS7 \ YOURUM ::
-#\[7]DPVITX2OW3J36ASK5DKUEF4ZUW5J24SDEYJSWUEYMZ7GXGHVCGAY 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,.,,,..,..,,,,,,,,,,...,..,,,.,,..,,...,...,,,,,,..,.,.,,..,,,,,
+#776B3DUDWISD5RHLKLJSC5WZTCGGQSKRMF5IHVDCLRVYMSGKYAM3IPL345NNRS2DORCTYZLC6QT3O
+#\\\|I7PXIWKK4H6EDM7SNUTMHXLBLIMVTJQKPN2BQZAHCN7Z7L5V4KR \ / AMOS7 \ YOURUM ::
+#\[7]YZWMVTPGDT4DQMHRCJXOSR6JE54732IOTODQRRD7OWXWTWEBPMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
