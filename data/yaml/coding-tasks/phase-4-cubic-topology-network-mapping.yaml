@@ -1,0 +1,465 @@
+---
+document_title: "Phase 4: Cubic Topology Network Mapping"
+document_date: 2026-02-07
+phase_number: 4
+phase_status: "Pending Phase 2 completion"
+related_roadmap: "protocol-7-transition-roadmap.yaml"
+
+description: |
+  Map checksum-based filesystem onto cubic space topology.
+  Transform abstract file addresses into navigatable network coordinates.
+  Create addressable grid for Protocol-7 nodes.
+
+  This is the "aha moment" where the system transitions from:
+  - Distributed files and services → Topologically organized network
+  - Abstract checksums → Spatial coordinates
+  - Separate nodes → Single navigatable grid
+
+---
+
+## Strategic Context
+
+The cubic topology is not just visualization. It becomes:
+1. **Addressing scheme**: Every file, node, service has topological coordinate
+2. **Routing**: Network packets follow topological paths
+3. **Resilience**: Topology-aware replication and failover
+4. **Discovery**: Finding files/services by topological proximity
+5. **Scaling**: New nodes automatically fit into topology
+
+The v13.7.1 visualization created in Phase 1 becomes a real-time view of the actual network topology.
+
+---
+
+## Task Groups
+
+### Group A: Topology Design & Specification
+**Priority**: CRITICAL
+**Status**: Pending Phase 2
+**Effort**: 8-12 hours
+**Enables**: Group B, Group C
+**Blocker**: Phase 2 (checksum-FS must be addressable)
+
+#### Task A1: Design checksum-to-coordinate mapping
+**Status**: pending
+**Effort**: 4-6 hours
+**Blocker**: Phase 2 completion
+**Dependencies**: Phase 2 (checksum-FS design)
+
+Description:
+  Design mathematical mapping from checksums to cubic coordinates.
+
+Key design decisions:
+  1. Coordinate system
+     - 3D cubic grid? (x, y, z coordinates)
+     - What's the grid size? (8x8x8? 16x16x16? 64x64x64?)
+     - How many dimensions? (3D? Higher-dimensional?)
+
+  2. Mapping algorithm
+     - Deterministic? (same checksum → same coordinate always)
+     - One-to-one? (no collisions)
+     - Preserves locality? (similar checksums → nearby coordinates?)
+
+  3. Checksum to coordinate transformation
+     - Hash checksum to coordinate range?
+     - Use checksum bits directly?
+     - Multiple checksum algorithms? (for consistency checking)
+
+  4. Grid density
+     - One file per coordinate? Or multiple?
+     - Multiple replicas sharing coordinate?
+     - How to handle coordinate conflicts?
+
+  5. Node positioning
+     - Where do nodes sit in topology?
+     - Do nodes have fixed coordinates?
+     - Do nodes move as network scales?
+
+Steps:
+  1. Research cubic topology literature
+     - Hypercube topologies
+     - Space-filling curves (Hilbert, Z-order)
+     - Proximity-preserving hashing
+
+  2. Design mapping algorithm
+     - Document mathematical properties
+     - Create examples (file → checksum → coordinate)
+     - Verify no collisions (or collision strategy)
+
+  3. Design grid structure
+     - Specify grid dimensions
+     - Plan for scalability
+     - Handle partial grids (not all coordinates occupied)
+
+  4. Design node positioning
+     - How are nodes distributed in grid?
+     - How do new nodes find their position?
+     - How does topology self-organize?
+
+  5. Get user feedback and validation
+
+Acceptance criteria:
+  - Mapping algorithm fully specified
+  - Mathematical properties documented
+  - Examples created and verified
+  - Scalability plan clear
+  - Grid structure design complete
+  - Node positioning strategy clear
+  - Ready for implementation
+
+#### Task A2: Validate topology design against v13.7.1 visualization
+**Status**: pending (after A1)
+**Effort**: 2-3 hours
+**Blocker**: Task A1
+**Dependencies**: Task A1, Phase 1 (v13.7.1 available)
+
+Description:
+  Use v13.7.1 visualization to validate the topology design.
+  Does the design match the visual representation?
+
+Steps:
+  1. Extract topology structure from v13.7.1
+     - Identify the 8x63 sub-cube node group
+     - Understand connection patterns
+     - Identify propagation rules
+
+  2. Compare with designed topology
+     - Do checksums map correctly?
+     - Are connections preserved?
+     - Does propagation match design?
+
+  3. Identify discrepancies
+     - What doesn't match?
+     - Is design wrong, or visualization wrong?
+     - How to resolve?
+
+  4. Iterate on design if needed
+     - Fix design issues identified
+     - Update specification
+     - Verify against visualization again
+
+  5. Document validation process
+     - How to continuously validate
+     - What to check during implementation
+
+Acceptance criteria:
+  - Topology design validated against v13.7.1
+  - Discrepancies resolved or documented
+  - Validation process documented
+  - Design locked in for implementation
+
+---
+
+### Group B: Topology Implementation
+**Priority**: CRITICAL
+**Status**: Pending Group A
+**Effort**: 25-35 hours
+**Enables**: Group C
+**Blocker**: Group A (design done)
+
+#### Task B1: Implement checksum-to-coordinate modules
+**Status**: pending (after A1-A2)
+**Effort**: 8-12 hours
+**Blocker**: Group A completion
+**Dependencies**: Group A
+
+Description:
+  Build the coordinate system modules.
+
+New modules:
+  1. base.topology.coordinate-system
+     - Define coordinate representation (x, y, z, etc.)
+     - Implement coordinate math operations
+     - Validate coordinate validity
+
+  2. base.topology.checksum-to-coordinate
+     - Map checksums to coordinates
+     - Ensure deterministic mapping
+     - Handle collisions (if applicable)
+
+  3. base.topology.coordinate-validation
+     - Verify coordinate is in valid grid
+     - Validate topology constraints
+     - Report invalid coordinates
+
+  4. base.topology.proximity
+     - Calculate distance between coordinates
+     - Identify nearby coordinates
+     - Support range queries ("all files near coordinate X")
+
+  5. base.topology.metadata
+     - Store per-coordinate metadata
+     - Track replicas and their locations
+     - Manage coordinate assignment
+
+Steps:
+  1. Implement coordinate-system module
+     - Test coordinate math
+     - Verify operations
+
+  2. Implement checksum-to-coordinate module
+     - Test mapping consistency
+     - Verify determinism
+
+  3. Implement validation module
+     - Test with valid/invalid coordinates
+
+  4. Implement proximity module
+     - Test distance calculations
+     - Test range queries
+
+  5. Implement metadata module
+     - Test metadata operations
+
+  6. Integration testing
+     - Full workflow: file → checksum → coordinate → metadata
+
+Acceptance criteria:
+  - All coordinate modules working
+  - Mapping deterministic and collision-free
+  - Integration tests passing
+  - Ready for node positioning
+
+#### Task B2: Implement node positioning & routing
+**Status**: pending (after B1)
+**Effort**: 10-15 hours
+**Blocker**: Task B1
+**Dependencies**: Task B1
+
+Description:
+  Build node positioning and routing.
+
+New modules:
+  1. base.topology.node-registry
+     - Track all nodes in topology
+     - Store node coordinates
+     - Store node metadata (status, services, replicas)
+
+  2. base.topology.node-discovery
+     - Discover nodes joining topology
+     - Assign coordinates to new nodes
+     - Update registry
+
+  3. base.topology.routing
+     - Route messages between nodes via topology
+     - Use shortest path in cubic space
+     - Handle unavailable nodes (reroute)
+
+  4. base.topology.replica-management
+     - Decide which nodes hold which files
+     - Create replicas for resilience
+     - Manage replica placement
+
+  5. base.topology.healing
+     - Detect missing nodes
+     - Rebalance topology
+     - Repair broken connections
+
+Steps:
+  1. Implement node-registry module
+     - Test node storage/retrieval
+
+  2. Implement node-discovery module
+     - Test new node addition
+     - Verify coordinate assignment
+
+  3. Implement routing module
+     - Test message routing
+     - Test rerouting around failures
+
+  4. Implement replica-management module
+     - Test replica creation/placement
+     - Test replica consistency
+
+  5. Implement healing module
+     - Test failure detection
+     - Test topology repair
+
+  6. Integration testing
+     - Multi-node scenarios
+     - Failure/recovery scenarios
+
+Acceptance criteria:
+  - Node positioning working
+  - Routing operational
+  - Replica management functional
+  - Healing procedures working
+  - Multi-node integration tested
+
+#### Task B3: Integrate with filesystem indexer
+**Status**: pending (after B2)
+**Effort**: 5-8 hours
+**Blocker**: Task B2, Phase 2 (indexer complete)
+**Dependencies**: Task B2, Phase 2
+
+Description:
+  Connect topology system with filesystem and indexer.
+
+Steps:
+  1. Update indexer to use topology coordinates
+     - Index files by coordinate, not just checksum
+     - Support proximity-based queries
+
+  2. Update file storage to reference topology
+     - Store replica locations via topology
+     - Use topology for placement decisions
+
+  3. Create topology-aware file retrieval
+     - Find nearest replica
+     - Use topology-optimized path
+     - Handle replicas on unavailable nodes
+
+  4. Integration testing
+     - Store file, verify topology placement
+     - Retrieve file, verify path
+     - Handle replica unavailability
+
+Acceptance criteria:
+  - Filesystem integrated with topology
+  - File placement topology-aware
+  - Retrieval topology-optimized
+  - Failover working
+
+---
+
+### Group C: Topology Visualization & Validation
+**Priority**: HIGH
+**Status**: Pending Group B
+**Effort**: 8-12 hours
+**Enables**: Phase 5
+
+#### Task C1: Create real-time topology visualization
+**Status**: pending (after B1-B2)
+**Effort**: 6-8 hours
+**Blocker**: Group B (modules working)
+**Dependencies**: Group B
+
+Description:
+  Build a real-time visualization of actual topology state.
+  Compare with v13.7.1 to validate correctness.
+
+New modules:
+  1. httpd.topology-visualizer.state-exporter
+     - Export current topology state
+     - Include: nodes, files, coordinates, replicas
+     - Format for visualization
+
+  2. httpd.topology-visualizer.web-api
+     - REST API for visualization frontend
+     - Return topology data
+     - Support filtering/querying
+
+  3. web interface (HTML/JavaScript)
+     - Use v13.7.1 as template/reference
+     - Display current topology state
+     - Show files at coordinates
+     - Show node status
+     - Show replica locations
+
+Steps:
+  1. Implement state-exporter module
+     - Test with sample topology
+
+  2. Implement web-api module
+     - Test API endpoints
+
+  3. Create web visualization
+     - Adapt v13.7.1 code
+     - Add real-time updates
+     - Add interactive controls
+
+  4. Integration testing
+     - Verify visualization matches actual topology
+     - Check accuracy of coordinates/nodes/files
+
+Acceptance criteria:
+  - Real-time visualization working
+  - Shows actual topology state
+  - Validates against v13.7.1 patterns
+  - Interactive and responsive
+
+#### Task C2: Validate topology against v13.7.1
+**Status**: pending (after C1)
+**Effort**: 2-4 hours
+**Blocker**: Task C1
+**Dependencies**: Task C1
+
+Description:
+  Compare real topology with v13.7.1 visualization.
+  Ensure they match (proof of correct implementation).
+
+Steps:
+  1. Create test scenarios
+     - Known file set with known checksums
+     - Expected coordinates computed
+     - Topology built
+
+  2. Capture real topology state via visualization
+
+  3. Compare with v13.7.1 patterns
+     - Do coordinates match?
+     - Do connections match?
+     - Do replicas place correctly?
+
+  4. Generate validation report
+     - Accuracy metrics
+     - Any discrepancies
+     - Implications
+
+Acceptance criteria:
+  - Validation completed
+  - Topology matches expected patterns
+  - Real-time visualization validated
+  - Ready for Phase 5
+
+---
+
+## Success Criteria - Phase 4 Complete
+
+- [ ] Checksum-to-coordinate mapping designed and validated
+- [ ] Topology coordinate system fully implemented
+- [ ] Node positioning and discovery working
+- [ ] Routing operational across topology
+- [ ] Replica management functional
+- [ ] Topology healing/recovery working
+- [ ] Integrated with filesystem and indexer
+- [ ] Real-time visualization created
+- [ ] Topology validated against v13.7.1
+- [ ] Multi-node scenarios tested
+- [ ] Failure/recovery scenarios tested
+- [ ] All changes committed
+- [ ] Phase 5 pre-requisites satisfied
+
+---
+
+## Risk Mitigation
+
+### Risk: Topology design doesn't match v13.7.1
+**Mitigation**: A2 validation catches this early; iterate quickly on design
+
+### Risk: Coordinate mapping has collisions
+**Mitigation**: A1 design phase proves no collisions mathematically
+
+### Risk: Routing becomes complex/slow
+**Mitigation**: Keep routing algorithm simple initially; optimize if needed
+
+### Risk: Multi-node testing reveals topology problems
+**Mitigation**: Phase 5 deployment is incremental; test as nodes are added
+
+---
+
+## Impact on Subsequent Phases
+
+**Phase 5**: Multi-node deployment uses topology as organizational principle
+**Phase 6**: Reproducible installers configured based on topology coordinates
+**Beyond**: Network becomes topology-aware at all levels
+
+---
+
+metadata:
+  created: 2026-02-07
+  related_phases: [2, 3, 5, 6]
+  critical_path: "Group A design → Group B implementation → Group C validation"
+  estimated_duration: 1-2 weeks
+  effort_hours: 41-61
+  dependencies: [Phase 2 completion, Phase 3 helpful]
+  key_validation: "v13.7.1 visualization matches real topology"

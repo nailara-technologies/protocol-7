@@ -1,0 +1,273 @@
+---
+document_title: "Phase 1: Session Cleanup & nshell ctrl+o Debugging"
+document_date: 2026-02-07
+phase_number: 1
+phase_status: "Ready to start"
+related_roadmap: "protocol-7-transition-roadmap.yaml"
+
+description: |
+  Clear the current Claude Code session by archiving visualization work.
+  Resume debugging nshell ctrl+o functionality in parallel shell.
+  Lock down nshell debug interface improvements.
+  Unblock progression to Phase 2 (filesystem & indexing infrastructure).
+
+---
+
+## Task Groups
+
+### Group A: Visualization Archive (Current Session)
+**Priority**: HIGH
+**Status**: Pending
+**Effort**: 2-4 hours
+**Enables**: Session completion, clears context for transition work
+
+#### Task A1: Import VISUAL_INCOMING files to archive
+**Status**: pending
+**Effort**: 1 hour
+**Blocker**: None
+
+Description:
+  Archive 42 HTML visualization files from VISUAL_INCOMING directory.
+  Move to organized location in data/asc/what-AI-thinks/html-form/visualizations/cubic-space/.
+
+Steps:
+  1. Review file listing and create semantic naming scheme
+     - Use simple, clear names that indicate version/approach
+     - Avoid redundant numbering (remove "(n).html" patterns)
+     - Group by generation/approach (early, hyperspace variants, network-grid series)
+
+  2. Create archive subdirectories by generation:
+     - archive/v1-early-experiments/
+     - archive/v2-hyperspace-variants/
+     - archive/v3-network-grid-series/
+     - current/ (for production version v13.7.1)
+
+  3. Create minimal manifest (YAML):
+     - Maps old names to new canonical names
+     - Tracks visual properties explored (coloring, effects, navigation)
+     - Notes key differences vs v13.7.1
+     - This prepares for eventual template extraction automation
+
+  4. Move/rename files with checksums verified
+
+  5. Test that all archived files are accessible and load correctly
+
+Implementation notes:
+  - Use ccdiff output to identify truly distinct versions
+  - Preserve all files (even intermediate ones) for research value
+  - Focus naming on clarity, not brevity
+  - Manifest format should support future WebKit3 automation
+
+Acceptance criteria:
+  - All 42 files in organized location with clear names
+  - Manifest created with file properties
+  - Original VISUAL_INCOMING directory can be cleared/archived
+  - v13.7.1 marked as current production version
+  - Files remain accessible for web serving
+
+#### Task A2: Prepare v13.7.1 for http://visual.v7.ax/ deployment
+**Status**: pending
+**Effort**: 30 minutes
+**Blocker**: Task A1 completion
+**Dependencies**: Task A1
+
+Description:
+  Copy production-ready v13.7.1 to http://visual.v7.ax/ location.
+  Update README to reference new visualization improvements.
+  Document the topological correctness and new features.
+
+Steps:
+  1. Copy protocol7-network-grid-v13.7.1.html to production location
+     Path: Identify httpd serving location for visual.v7.ax
+
+  2. Create/update README with:
+     - Brief description of 8x63 sub-cube node group topology
+     - Mention topologically correct propagation (vs previous version)
+     - Highlight new features: better mouse navigation, recursive planes
+     - Note "Matrix-like cursor effect" at larger zoom scales
+
+  3. Optionally: Create screenshot for main project README
+     (Can use future WebKit3 automation, or manual screenshot for now)
+
+Acceptance criteria:
+  - v13.7.1 serving at http://visual.v7.ax/
+  - README updated with feature descriptions
+  - Visualization matches cubic topology being implemented in Phase 4
+
+---
+
+### Group B: nshell ctrl+o Debugging (Second Shell)
+**Priority**: HIGH
+**Status**: In parallel with Group A
+**Effort**: 3-5 hours
+**Blocker**: Debug interface improvements available
+**Enables**: Phase 2 work using nshell
+
+#### Task B1: Resume ctrl+o debugging in second Claude Code shell
+**Status**: pending (blocked on context switch)
+**Effort**: 3-5 hours
+**Blocker**: User must switch to second shell
+
+Description:
+  Continue work on nshell ctrl+o functionality using debug commands.
+  Use improvements made to debug interface from recent commits.
+  Identify root cause of ctrl+o malfunction.
+
+Context from git history:
+  - Recent commits added debug commands to nshell access control
+  - Network reply routing was improved (unknown-command hooks disabled)
+  - Cursor display fixes were applied
+
+Steps:
+  1. Switch to second Claude Code shell (already open in neighboring tab)
+
+  2. Review recent nshell changes:
+     - modules/nshell.init_code (recent changes)
+     - modules/nshell.handler.debug_input (newly added)
+     - configuration/zenki/nshell/access.* (debug command permissions)
+
+  3. Identify current ctrl+o behavior:
+     - Does it respond at all?
+     - What error does it produce?
+     - Is it reaching the nshell module, or failing at network layer?
+
+  4. Use debug interface to trace execution:
+     - Enable debug logging for ctrl+o handling
+     - Trace message flow from input → handler → response
+     - Identify which module is failing
+
+  5. Fix identified issues
+
+  6. Test ctrl+o functionality end-to-end
+
+  7. Commit changes with clear message about ctrl+o fix
+
+Key locations:
+  - modules/nshell.init_code
+  - modules/nshell.handler.input
+  - modules/nshell.handler.debug_input (new debug utilities)
+  - modules/nshell.no-tty-debug.cmd.* (debug command implementations)
+  - configuration/zenki/nshell/ (config & access control)
+
+Acceptance criteria:
+  - ctrl+o functionality working in interactive nshell
+  - Debug approach clearly documented
+  - No breaking changes to other nshell features
+  - Commit created with clear message
+
+#### Task B2: Improve debug interface for broader zenka support
+**Status**: pending (after B1)
+**Effort**: 1-2 hours
+**Blocker**: Task B1 completion
+**Dependencies**: Task B1
+
+Description:
+  Use lessons from ctrl+o debugging to improve debug interface.
+  Create reusable patterns for debugging other zenka.
+  Document debug methodology for future troubleshooting.
+
+Steps:
+  1. Review debug patterns used for ctrl+o
+
+  2. Generalize into helper modules for broader zenka:
+     - Message tracing utilities
+     - Handler execution hooks
+     - Response validation tools
+
+  3. Create debug interface documentation:
+     - How to enable debug logging
+     - How to trace message flow
+     - Common debugging patterns
+     - Where to look for errors
+
+  4. Test with another zenka to validate generalized patterns
+
+Acceptance criteria:
+  - Debug utilities generalized for reuse
+  - Documentation created
+  - Tested on at least 2 zenka (nshell + one other)
+
+---
+
+## Parallel Work (Lower Priority, Background)
+
+### Visualization Archive Metadata (While Files Move)
+**Status**: Can run during A1 file movements
+**Effort**: 1-2 hours
+
+Create detailed analysis of visual properties in each version:
+- Color schemes explored
+- Background effects
+- Navigation models
+- Layer/depth representations
+- UI elements used
+
+This feeds future template extraction automation.
+
+---
+
+## Daily Execution Plan
+
+### Day 1: Archive Setup & nshell Context Switch
+- [ ] Move visualization files to archive location (A1 early steps)
+- [ ] Create directory structure for archive
+- [ ] Create manifest template
+- [ ] Switch to second shell for nshell work (B1)
+- [ ] Review recent nshell commits
+
+### Day 2: ctrl+o Debugging & Archive Finalization
+- [ ] Continue ctrl+o debugging (B1)
+- [ ] Complete file archival (A1)
+- [ ] Identify and fix ctrl+o issues
+- [ ] Create initial manifest
+
+### Day 3: Testing & Deployment
+- [ ] Finish ctrl+o fixes and testing (B1)
+- [ ] Prepare v13.7.1 for web deployment (A2)
+- [ ] Update documentation
+- [ ] Test archived visualizations are accessible
+- [ ] Commit all changes
+
+---
+
+## Success Criteria - Phase 1 Complete
+
+- [ ] All 42 visualization files archived with semantic names
+- [ ] Manifest created tracking visual properties
+- [ ] Original VISUAL_INCOMING directory cleared
+- [ ] v13.7.1 deployed to http://visual.v7.ax/
+- [ ] README updated with feature description
+- [ ] ctrl+o functionality working in nshell
+- [ ] Debug interface improved for broader use
+- [ ] Current session cleared, ready for Phase 2 transition work
+- [ ] All changes committed to git
+
+---
+
+## Risk Mitigation
+
+### Risk: ctrl+o debugging takes longer than estimated
+**Mitigation**: Archive work can be completed independently; debug work continues into Phase 2
+
+### Risk: WebKit3 automation not ready for screenshot generation
+**Mitigation**: Manual screenshot acceptable for Phase 1; automate in background work
+
+### Risk: File organization decisions need revision
+**Mitigation**: Manifest-based approach allows renaming/reorganization later without data loss
+
+---
+
+## Notes for Execution
+
+- User is transitioning from Windows to Linux; Phase 1 clears obstacles
+- Second Claude Code shell is already open for nshell work (user context switch needed)
+- Visualization work establishes foundation for Phase 4 (topology validation)
+- ctrl+o fix unblocks Phase 2 work that will use nshell heavily
+- Archive naming should prepare for eventual template extraction automation
+
+metadata:
+  created: 2026-02-07
+  related_phases: [2]
+  background_work: [WebKit3 zenka repair, visualization property analysis]
+  estimated_duration: 2-3 days
+  effort_hours: 8-12

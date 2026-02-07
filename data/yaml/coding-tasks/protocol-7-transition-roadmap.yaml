@@ -1,0 +1,249 @@
+---
+document_title: "Protocol-7 Transition & Infrastructure Roadmap"
+document_type: "Strategic Roadmap & Task Orchestration"
+document_date: 2026-02-07
+document_status: "Active"
+context: "Desktop transition from Windows to native Linux, with infrastructure completion toward reproducible network deployment"
+
+## Vision Summary
+
+Convert 24-year data loss consequences into preventative infrastructure.
+Build resilient, reproducible system that makes accidental data loss technically impossible.
+Focus on: reproducibility → distributed addressable storage → multi-node network deployment → automated resilience.
+
+---
+
+## Phase Overview & Dependencies
+
+### Phase 1: Session Cleanup & Immediate Debugging
+**Status**: Ready to start
+**Duration**: 2-3 days
+**Blocker**: None
+**Enables**: Phase 2
+**Component**: `phase-1-session-cleanup-nshell-debugging.yaml`
+
+Critical path work:
+- Archive visualization work (clears session)
+- Resume ctrl+o nshell debugging (second Claude Code shell)
+- Lock down nshell debug interface for ctrl+o functionality
+
+### Phase 2: Indexer & Checksum Filesystem Foundation
+**Status**: Pending Phase 1 completion
+**Duration**: 1-2 weeks
+**Blocker**: Phase 1 (nshell debug interface)
+**Enables**: Phase 3, Phase 4
+**Component**: `phase-2-indexer-checksum-filesystem.yaml`
+
+Infrastructure cornerstone:
+- Upgrade indexer zenka for rapid file serving
+- Implement checksum-based file system structure
+- Enable LLM-based file analysis and batch processing
+- Build foundation for reproducible file handling across hosts
+
+### Phase 3: Coding Zenka Integration & LLM Adaptation
+**Status**: Pending Phase 2
+**Duration**: 1-2 weeks
+**Blocker**: Phase 2 (filesystem interface)
+**Enables**: Phase 4, Phase 5
+**Component**: `phase-3-coding-zenka-filesystem-integration.yaml`
+
+Hybrid local/remote capability:
+- Coding zenka adapter to checksum filesystem
+- Source data access via distributed storage
+- Copy-on-write output handling
+- Local LLM feature completion & testing
+
+### Phase 4: Cubic Space Network Mapping
+**Status**: Pending Phase 2
+**Duration**: 1-2 weeks
+**Blocker**: Phase 2 (checksum-based paths addressable)
+**Enables**: Phase 5, Phase 6
+**Component**: `phase-4-cubic-topology-network-mapping.yaml`
+
+Network becomes distributed topology:
+- Map checksum-based filesystem onto cubic space coordinates
+- Achieve addressable grid for Protocol-7 nodes
+- Enable routing across topological structure
+- Validate visualization against actual topology
+
+### Phase 5: Multi-Node Deployment & Repair
+**Status**: Pending Phase 4
+**Duration**: 2-3 weeks
+**Blocker**: Phase 4 (topology mapping working)
+**Enables**: Phase 6
+**Component**: `phase-5-multinode-deployment.yaml`
+
+Transcend single-host limitations:
+- Add Raspberry Pi node
+- Add fanless ATOM desktop/server host
+- Repair & integrate 2 corrupted/crashed laptops
+- Establish inter-node communication via cubic topology
+- Test distributed resilience mechanisms
+
+### Phase 6: Reproducible Desktop System & Installers
+**Status**: Pending Phase 5
+**Duration**: 1-2 weeks
+**Blocker**: Phase 5 (multi-node working)
+**Component**: `phase-6-reproducible-desktop-system.yaml`
+
+Turn ephemeral hosts into reproducible infrastructure:
+- Create automated installers for fully configured Protocol-7 desktop
+- Linux base system + all configuration
+- Data migration tooling for existing nodes
+- Desktop environment hardening for reproducibility
+
+---
+
+## Critical Path Analysis
+
+### For Linux Desktop Transition (User's Immediate Need)
+```
+Phase 1 (2-3 days)
+  ↓
+Phase 2 (1-2 weeks) ← Enables file handling on Linux
+  ↓
+Phase 6 (1-2 weeks) ← Desktop reproducibility
+  ↓
+[Successful Linux desktop with distributed file support]
+```
+
+### For Network Deployment (Ultimate Goal)
+```
+Phase 1
+  ↓
+Phase 2 ← Filesystem foundation
+  ├→ Phase 3 ← Coding zenka adaptation
+  ├→ Phase 4 ← Topology mapping
+  ↓
+Phase 5 ← Multi-node deployment
+  ↓
+Phase 6 ← Reproducible installers
+  ↓
+[Fully distributed, resilient, reproducible network]
+```
+
+---
+
+## Phase File References
+
+| Phase | File | Key Focus |
+|-------|------|-----------|
+| 1 | `phase-1-session-cleanup-nshell-debugging.yaml` | Visualization archive + ctrl+o debugging |
+| 2 | `phase-2-indexer-checksum-filesystem.yaml` | Checksum-based FS + indexer zenka |
+| 3 | `phase-3-coding-zenka-filesystem-integration.yaml` | Coding zenka adapter + LLM features |
+| 4 | `phase-4-cubic-topology-network-mapping.yaml` | Topology implementation + validation |
+| 5 | `phase-5-multinode-deployment.yaml` | Multi-host deployment + repair |
+| 6 | `phase-6-reproducible-desktop-system.yaml` | Installers + reproducibility |
+
+---
+
+## Parallel Work Opportunities
+
+While waiting for phase completions:
+
+### WebKit3 Zenka Repair (Background)
+- Fix WebKit2 → WebKit3 transition issues
+- Implement input macro protocol (zoom/pan/screenshot automation)
+- Build visual regression testing pipeline for visualizations
+- **Does NOT block other phases** | **Value-adds visualization workflow**
+
+### Visualization Archive & Documentation
+- Organize 42 incoming HTML files
+- Create semantic naming system
+- Build index/manifest for template extraction
+- **Can proceed during Phase 1** | **Prepares for future automation**
+
+### Desktop Configuration Research
+- Identify Linux configuration choices for transition
+- Plan boot partition strategy (multi-boot to Linux)
+- Document reproducible desktop requirements
+- **Background work during Phase 1-2**
+
+---
+
+## Success Criteria by Phase
+
+### Phase 1: Complete
+- [ ] Visualizations archived and session cleared
+- [ ] ctrl+o debugging completed in nshell
+- [ ] Debug interface working for other zenka features
+
+### Phase 2: Complete
+- [ ] Checksum-based filesystem operational
+- [ ] Indexer zenka serving files rapidly
+- [ ] LLM can analyze files in batch mode
+- [ ] Cross-host file access working
+
+### Phase 3: Complete
+- [ ] Coding zenka connects to filesystem backend
+- [ ] Source data accessible via distributed storage
+- [ ] CoW output handling working
+- [ ] Local LLM features complete and tested
+
+### Phase 4: Complete
+- [ ] Cubic topology mapping implemented
+- [ ] Nodes addressable by topological coordinates
+- [ ] v13.7.1 visualization validated against actual topology
+- [ ] Routing works across topology
+
+### Phase 5: Complete
+- [ ] Raspberry Pi node operational
+- [ ] ATOM host deployed
+- [ ] 2 laptops repaired and integrated
+- [ ] Inter-node communication verified
+- [ ] Distributed resilience mechanisms active
+
+### Phase 6: Complete
+- [ ] Automated installer created
+- [ ] Linux desktop reproducibly deployable
+- [ ] Configuration fully automated
+- [ ] Data migration working
+- [ ] Ready for production deployment
+
+---
+
+## Risk & Mitigation
+
+### Risk: Phase 2 scope creep (filesystem is complex)
+**Mitigation**: Split into minimal viable checksum-FS + phased indexer upgrade
+
+### Risk: Hardware issues during Phase 5 (corrupted drives)
+**Mitigation**: Archive recovered data first, verify checksums, deploy recovery features during integration
+
+### Risk: Linux transition stalls (configuration complexity)
+**Mitigation**: Use Phase 6 installers as "target specification" - drives Phase 2 design decisions
+
+### Risk: Cubic topology mapping assumptions wrong
+**Mitigation**: Use v13.7.1 visualization as real-time validation tool during Phase 4
+
+---
+
+## Timeline & Effort Estimate
+
+| Phase | Estimated Duration | Effort | Team |
+|-------|-------------------|--------|------|
+| 1 | 2-3 days | 8-12 hours | Claude + user |
+| 2 | 1-2 weeks | 40-60 hours | Claude + user |
+| 3 | 1-2 weeks | 40-60 hours | Claude + user |
+| 4 | 1-2 weeks | 30-50 hours | Claude (heavy coding) + user |
+| 5 | 2-3 weeks | 50-80 hours | User (hardware) + Claude (deployment) |
+| 6 | 1-2 weeks | 30-40 hours | Claude (automation) + user (testing) |
+| **Total** | **~10-15 weeks** | **~200-300 hours** | **Iterative collaboration** |
+
+---
+
+## Metadata & Management
+
+created: 2026-02-07
+status: active
+next_review: After Phase 1 completion
+priority_reordering: Enabled (can shift phases based on blockers)
+parallel_work: WebKit3 repair, visualization archival (background)
+coordination: Use phase files for daily task management
+
+**How to use this document**:
+1. Reference this roadmap for high-level strategic decisions
+2. Use individual phase YAML files for detailed task breakdown
+3. Update status as phases complete
+4. Reorder phases if blockers emerge (edit this file)
+5. Track progress in phase-specific files

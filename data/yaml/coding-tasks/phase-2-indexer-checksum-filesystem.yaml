@@ -1,0 +1,624 @@
+---
+document_title: "Phase 2: Indexer & Checksum-Based Filesystem Foundation"
+document_date: 2026-02-07
+phase_number: 2
+phase_status: "Pending Phase 1 completion"
+related_roadmap: "protocol-7-transition-roadmap.yaml"
+
+description: |
+  Build the foundational infrastructure for reproducible, distributed file handling.
+  Implement checksum-based filesystem structure that enables:
+  - Reproducible file addressing across all nodes
+  - LLM-based file analysis and batch processing
+  - Resilience against data loss through addressable deduplication
+  - Fast file serving via upgraded indexer zenka
+
+  This is the cornerstone infrastructure enabling all subsequent phases.
+
+---
+
+## Strategic Context
+
+The checksum-based filesystem is NOT just a storage system. It becomes:
+- The addressing scheme for the cubic topology network (Phase 4)
+- The foundation for distributed resilience (Phase 5)
+- The data layer for reproducible configuration (Phase 6)
+- The target system for all subsequent LLM-assisted development
+
+**Why checksum-based?**
+- Each file has deterministic, content-addressable identity
+- Identical files across nodes automatically deduplicate
+- Enables "copy-on-write" semantics for safe experimentation
+- Creates mathematical foundation for cubic topology mapping
+
+---
+
+## Task Groups
+
+### Group A: Checksum Filesystem Design & Implementation
+**Priority**: CRITICAL
+**Status**: Pending Phase 1
+**Effort**: 40-60 hours
+**Enables**: Phase 3, Phase 4, Phase 5, Phase 6
+
+#### Task A1: Design checksum-based filesystem structure
+**Status**: pending
+**Effort**: 4-6 hours
+**Blocker**: None (design-only task)
+
+Description:
+  Define the filesystem structure that will be implemented.
+  This becomes the specification for phases 2-6.
+
+Deliverables:
+  1. Checksum algorithm selection
+     - Current: Likely AMOS7 checksums (BMW, ELF, JHA)
+     - Confirm: Which algorithms for file identity? directory structure?
+     - Decision: 128-bit, 256-bit, hybrid approach?
+
+  2. Directory structure specification
+     - Root: /checksums/ or similar base location
+     - Level 1: By checksum first N characters? (e.g., /checksums/a7/b3/...)
+     - Level 2: Filename preservation or hash-only?
+     - Metadata: Where is file metadata stored?
+
+  3. Metadata format (YAML? JSON? Binary?)
+     - File attributes (original name, size, permissions, timestamps)
+     - Source tracking (which node created it, when, why)
+     - Usage tracking (which processes/zenka access it)
+     - Integrity verification (multi-algorithm checksums)
+     - Copy-on-write status (is this a CoW copy? of what?)
+
+  4. Deduplication strategy
+     - How to detect identical files across network?
+     - How to consolidate duplicates safely?
+     - How to track which nodes have which file versions?
+     - Transaction semantics for deduplication
+
+  5. Copy-on-write semantics
+     - How to create CoW copies safely?
+     - When does a copy become its own independent file?
+     - How to merge improvements back to shared version?
+
+Steps:
+  1. Review existing Protocol-7 checksum modules:
+     - modules/base.chk-sum.* (current implementations)
+     - modules/crypt.C25519.* (cryptographic foundations)
+     - AMOS7::CHKSUM modules (extended checksums)
+
+  2. Document checksum algorithm properties:
+     - Speed vs security trade-offs
+     - Collision resistance needed for deduplication?
+     - Network transmission overhead?
+
+  3. Design directory structure
+     - Create specification diagram/document
+     - Plan for scalability (billions of files?)
+     - Plan for performance (fast lookups)
+
+  4. Specify metadata format
+     - Create example YAML/JSON schemas
+     - Define required vs optional fields
+     - Plan for metadata versioning/evolution
+
+  5. Document copy-on-write semantics
+     - Create state transition diagrams
+     - Define transaction safety requirements
+     - Plan rollback/recovery procedures
+
+  6. Get user review/approval before implementation
+
+Key design questions:
+  - Should directory structure be hierarchical or flat?
+  - How many levels of indirection (speed vs space)?
+  - How to handle file renames? (are they new files or metadata updates?)
+  - How to handle large files? (streaming? chunking?)
+  - How to handle symlinks/references?
+
+Acceptance criteria:
+  - Written specification document (YAML or markdown)
+  - Directory structure fully specified
+  - Metadata format defined and example files created
+  - Copy-on-write semantics documented
+  - Deduplication strategy clear and documented
+  - User approval of design before implementation begins
+
+#### Task A2: Implement core checksum-based filesystem modules
+**Status**: pending (after A1)
+**Effort**: 15-20 hours
+**Blocker**: Task A1 completion
+**Dependencies**: Task A1
+
+Description:
+  Build the actual filesystem modules based on A1 specification.
+  Create modules for file operations in the checksum-based filesystem.
+
+Modules to create:
+  1. base.checksum-fs.init
+     - Initialize filesystem structure
+     - Check for existing checksums directory
+     - Create necessary base directories
+     - Set up metadata storage
+
+  2. base.checksum-fs.store
+     - Accept incoming file (name, content)
+     - Calculate checksum(s)
+     - Store in checksum directory structure
+     - Create metadata entry
+     - Return content-addressable path
+
+  3. base.checksum-fs.retrieve
+     - Given checksum or path, retrieve file
+     - Validate integrity against stored checksums
+     - Return content
+
+  4. base.checksum-fs.verify
+     - Verify file integrity
+     - Check all stored checksums match
+     - Report discrepancies (potential corruption)
+     - Attempt recovery if metadata available
+
+  5. base.checksum-fs.deduplicate
+     - Scan for duplicate files (by checksum)
+     - Report duplicates found
+     - Optionally consolidate (with safety checks)
+     - Track deduplication metadata
+
+  6. base.checksum-fs.cow-create
+     - Create copy-on-write copy of file
+     - Mark as CoW with parent reference
+     - Track independently for modifications
+
+  7. base.checksum-fs.metadata-update
+     - Update metadata for file (attributes, usage)
+     - Preserve integrity guarantees
+     - Handle metadata versioning
+
+Steps:
+  1. Create base.checksum-fs.init module
+     - Test directory structure creation
+     - Test metadata storage initialization
+
+  2. Create base.checksum-fs.store module
+     - Test checksum calculation
+     - Test file storage in hierarchy
+     - Test metadata creation
+     - Test with various file types/sizes
+
+  3. Create base.checksum-fs.retrieve module
+     - Test retrieval by path
+     - Test retrieval by checksum
+     - Test with missing files (error handling)
+
+  4. Create base.checksum-fs.verify module
+     - Test integrity checking
+     - Test with corrupted files (simulate)
+     - Test recovery attempts
+
+  5. Create remaining modules with integration tests
+
+  6. Create integration test suite
+     - Store, retrieve, verify workflow
+     - Deduplication workflow
+     - CoW workflow
+     - Error recovery workflows
+
+Acceptance criteria:
+  - All 7 core modules implemented
+  - Unit tests for each module passing
+  - Integration tests passing
+  - Error handling comprehensive
+  - Documentation complete (inline comments)
+  - Ready for indexer integration
+
+#### Task A3: Migrate existing important files to checksum-based system
+**Status**: pending (after A2)
+**Effort**: 4-6 hours
+**Blocker**: Task A2 completion
+**Dependencies**: Task A2
+
+Description:
+  Migrate critical system files and data to checksum-based filesystem.
+  Establishes proof-of-concept and validates design assumptions.
+
+Files to migrate:
+  1. Configuration files (configuration/zenki/* and configuration/shared-params)
+  2. Data files (data/asc/what-AI-thinks/ - the 64 directories, 413 files)
+  3. Visualization archive (just created in Phase 1)
+  4. Module source files (selective - start with non-critical ones)
+  5. Logs and diagnostic data
+
+Steps:
+  1. Create migration tool (base.checksum-fs.migrate module)
+     - Batch import files from directories
+     - Preserve original paths in metadata
+     - Create checksums
+     - Report progress/errors
+
+  2. Migrate configuration files first (small, critical)
+     - Verify checksums after migration
+     - Test that config can be accessed/loaded
+     - Create rollback points
+
+  3. Migrate data/asc/what-AI-thinks/ directory
+     - This is 64 dirs, 413 files - good scale test
+     - Perfect opportunity to find duplicates/redundancy
+     - Will validate deduplication logic
+
+  4. Migrate visualization archive
+     - Validates that HTML files work in system
+     - Tests serving from checksum filesystem
+
+  5. Document migration process for Phase 5 (remote nodes)
+
+Acceptance criteria:
+  - All critical files migrated
+  - Checksums verified after migration
+  - Files accessible via checksum paths
+  - Original paths preserved in metadata
+  - Deduplication identified and available
+  - Rollback procedure tested
+  - Migration tooling ready for Phase 5
+
+---
+
+### Group B: Indexer Zenka Upgrade
+**Priority**: HIGH
+**Status**: Pending Phase 1 (or parallel with A1 design)
+**Effort**: 20-30 hours
+**Enables**: Phase 3, Phase 4
+**Dependencies**: Group A checkpoint (after A2 minimally)
+
+#### Task B1: Analyze current indexer zenka capabilities & limitations
+**Status**: pending
+**Effort**: 2-3 hours
+**Blocker**: None (analysis task)
+
+Description:
+  Understand current state of indexer zenka before upgrading.
+  Identify gaps between current and desired capabilities.
+
+Steps:
+  1. Review indexer zenka configuration:
+     - configuration/zenki/indexer/start
+     - Understand what it currently indexes
+     - What optimization exists already?
+
+  2. Review indexer modules:
+     - modules/indexer.* (all indexer-specific modules)
+     - Understand indexing algorithm
+     - Identify bottlenecks
+
+  3. Review indexer performance:
+     - How fast does current indexer search/retrieve?
+     - What scale has it been tested at?
+     - Memory/CPU profile?
+
+  4. Identify desired capabilities:
+     - Integration with checksum-based filesystem
+     - Support for rapid file serving
+     - Batch file analysis support (for LLM)
+     - Cross-node indexing
+
+  5. Document gap analysis:
+     - What new capabilities needed?
+     - What performance improvements needed?
+     - What API changes needed?
+
+Acceptance criteria:
+  - Current indexer capabilities documented
+  - Performance profile established
+  - Gap analysis completed
+  - Upgrade strategy planned
+
+#### Task B2: Design indexer upgrade for checksum-filesystem integration
+**Status**: pending (after B1 and A1)
+**Effort**: 3-4 hours
+**Blocker**: Tasks B1 and A1 completion
+**Dependencies**: Task B1, Task A1
+
+Description:
+  Design how indexer will work with checksum-based filesystem.
+
+Key design decisions:
+  1. Index structure
+     - Should index be hierarchical like filesystem?
+     - Should index be flat key-value?
+     - Should index include metadata?
+
+  2. Update strategy
+     - How often to update index when files change?
+     - Immediate updates or periodic batch?
+     - Transactional consistency requirements?
+
+  3. Search capabilities
+     - Search by filename?
+     - Search by content (checksums)?
+     - Search by metadata?
+     - Full-text search for file contents?
+
+  4. Network capabilities
+     - Should indexer know about files on other nodes?
+     - How to discover new nodes' files?
+     - How to handle index conflicts?
+
+  5. Performance
+     - Target latency for file lookup?
+     - Target throughput for batch analysis?
+     - Caching strategy?
+
+Steps:
+  1. Document new index structure
+  2. Specify update protocol (how files signal index changes)
+  3. Define search API
+  4. Plan for network-aware indexing
+  5. Define performance targets
+
+Acceptance criteria:
+  - New indexer design documented
+  - Integration with checksum-FS clear
+  - API specification written
+  - Network discovery strategy planned
+
+#### Task B3: Implement indexer upgrade
+**Status**: pending (after B2)
+**Effort**: 15-20 hours
+**Blocker**: Task B2 completion
+**Dependencies**: Task B2
+
+Description:
+  Implement the upgraded indexer based on design.
+
+New/upgraded modules:
+  1. indexer.checksum-fs-adapter
+     - Bridge between indexer and checksum-FS
+     - Listen for file changes
+     - Update index accordingly
+
+  2. indexer.search-api (upgrade existing)
+     - Support checksum-based searches
+     - Support metadata-based searches
+     - Support batch queries (for LLM analysis)
+
+  3. indexer.network-discovery (new)
+     - Discover files on remote nodes
+     - Maintain network-aware index
+     - Handle index synchronization
+
+  4. indexer.performance-optimization (new)
+     - Caching layer for frequent searches
+     - Query result streaming
+     - Batch operation support
+
+Steps:
+  1. Implement checksum-FS adapter
+     - Test with small number of files
+     - Verify index stays in sync
+
+  2. Upgrade search API
+     - Test new query types
+     - Verify backward compatibility
+
+  3. Implement network discovery
+     - Test with multiple nodes (simulated first)
+     - Test index consistency
+
+  4. Optimize performance
+     - Profile with large file counts
+     - Implement caching
+     - Optimize hot paths
+
+  5. Create integration tests
+     - Test full workflow: add file → index → search
+     - Test cross-node scenarios (simulated)
+     - Test consistency under load
+
+Acceptance criteria:
+  - All new modules implemented
+  - Integration tests passing
+  - Performance targets met
+  - Backward compatibility maintained
+  - Ready for Phase 3 integration
+
+---
+
+### Group C: LLM File Analysis Integration
+**Priority**: HIGH (parallel with Groups A & B)
+**Status**: Pending Phase 1 or parallel
+**Effort**: 10-15 hours
+**Enables**: Phase 3 (coding zenka uses this for analysis)
+**Dependencies**: Group A (preferably A2), Group B (preferably B3)
+
+#### Task C1: Design LLM-based file analysis system
+**Status**: pending
+**Effort**: 2-3 hours
+**Blocker**: None (design task)
+
+Description:
+  Design how LLMs will analyze files in batch mode.
+
+Key capabilities needed:
+  1. Batch file selection
+     - Select files by pattern (*.yaml, *.md, etc.)
+     - Select files by directory
+     - Select files by metadata (date, size, etc.)
+     - Select files by checksum patterns
+
+  2. Analysis tasks
+     - Summarization (what does this file do?)
+     - Deduplication detection (is this copy of X?)
+     - Quality assessment (is this well-structured?)
+     - Relationship mapping (what files reference this?)
+     - Paragraph-level extraction (for what-AI-thinks)
+
+  3. LLM integration
+     - Which model(s) for which analysis?
+     - How to feed file content to LLM?
+     - How to handle very large files (streaming? chunking?)
+     - How to aggregate results across multiple files?
+
+  4. Result storage
+     - Where to store analysis results?
+     - Should results be checksum-based indexed?
+     - How to update when file changes?
+     - How to share results across nodes?
+
+Steps:
+  1. Document analysis task types
+  2. Design batch selection interface
+  3. Specify LLM integration points
+  4. Plan for large file handling
+  5. Design result storage/retrieval
+
+Acceptance criteria:
+  - Analysis task types documented
+  - Batch selection interface designed
+  - LLM integration strategy clear
+  - Large file handling plan created
+  - Result storage strategy defined
+
+#### Task C2: Implement LLM file analysis modules
+**Status**: pending (after C1, during/after A2 implementation)
+**Effort**: 8-12 hours
+**Blocker**: Task C1 completion, Group A partial completion
+**Dependencies**: Task C1
+
+Description:
+  Build modules for LLM-based file analysis.
+
+New modules:
+  1. llm.file-analyzer.batch-selector
+     - Interface for selecting file batches
+     - Support various selection criteria
+
+  2. llm.file-analyzer.content-feeder
+     - Stream file content to LLM
+     - Handle large files appropriately
+     - Preserve context across multiple files
+
+  3. llm.file-analyzer.task-runner
+     - Run analysis tasks (summarize, deduplicate, etc.)
+     - Aggregate results
+     - Handle LLM failures gracefully
+
+  4. llm.file-analyzer.result-storage
+     - Store analysis results
+     - Index by checksum + analysis type
+     - Enable result retrieval and updates
+
+  5. llm.file-analyzer.quality-assessment
+     - Identify well/poorly structured files
+     - Suggest improvements
+     - Flag potential issues
+
+Steps:
+  1. Implement batch-selector module
+     - Test with various selection criteria
+
+  2. Implement content-feeder module
+     - Test with small, medium, large files
+     - Verify context preservation
+
+  3. Implement task-runner module
+     - Test with actual LLM calls
+     - Test error handling
+
+  4. Implement result-storage module
+     - Verify integration with checksum-FS
+
+  5. Implement quality-assessment module
+     - Test on what-AI-thinks files
+
+  6. Create integration tests
+
+Acceptance criteria:
+  - All modules implemented
+  - Integration tests passing
+  - Tested on real files (what-AI-thinks directory)
+  - Ready for Phase 3 integration
+
+---
+
+## Execution Strategy
+
+### Recommended Sequencing
+
+**Week 1 (after Phase 1):**
+- A1: Design checksum filesystem (4-6 hours)
+- B1: Analyze current indexer (2-3 hours)
+- A2 begin: Start implementing core modules
+
+**Week 2:**
+- A2 continue: Finish core modules (15-20 hours)
+- B2: Design indexer upgrade (3-4 hours)
+- C1: Design LLM analysis (2-3 hours)
+
+**Week 3:**
+- A3: Migrate files to checksum-FS (4-6 hours)
+- B3: Implement indexer upgrade (15-20 hours)
+- C2: Implement LLM analysis modules (8-12 hours)
+
+**Week 4:**
+- B3 finish: Complete indexer implementation
+- C2 finish: Complete LLM analysis
+- Integration testing across all three groups
+- Phase 2 sign-off
+
+### Parallel Work Tracks
+
+Can execute mostly in parallel:
+- Group A: Filesystem (critical path)
+- Group B: Indexer (depends on A, but design phase-shiftable)
+- Group C: LLM analysis (design early, implement alongside)
+
+---
+
+## Success Criteria - Phase 2 Complete
+
+- [ ] Checksum-based filesystem fully specified and implemented
+- [ ] Core filesystem modules working (store, retrieve, verify, deduplicate, CoW)
+- [ ] Critical files migrated to checksum system
+- [ ] Deduplication analysis available for what-AI-thinks (64 dirs, 413 files)
+- [ ] Indexer upgraded and integrated with filesystem
+- [ ] Cross-node indexing capability available
+- [ ] LLM file analysis system working (batch selection, analysis, storage)
+- [ ] what-AI-thinks analyzed and deduplicated (paragraph-level)
+- [ ] Performance targets met
+- [ ] Comprehensive test suite passing
+- [ ] All changes committed to git
+- [ ] Phase 3 pre-requisites satisfied (filesystem & indexer stable)
+
+---
+
+## Risk Mitigation
+
+### Risk: Checksum algorithm selection becomes contentious
+**Mitigation**: Lock in choice early in A1, document rationale, test thoroughly before implementation
+
+### Risk: Filesystem design is wrong, requires rework
+**Mitigation**: Get user feedback on A1 before starting A2; design is cheap to change, implementation is not
+
+### Risk: Migration of 413 files reveals data corruption
+**Mitigation**: Good! Phase 2 is designed to detect corruption; create recovery procedures as we discover issues
+
+### Risk: LLM analysis hits token limits on large files
+**Mitigation**: Design chunking/summarization strategy in C1; implement streaming in C2
+
+---
+
+## Integration with Subsequent Phases
+
+**Phase 3**: Coding zenka will use LLM analysis (Group C) to understand source code
+**Phase 4**: Cubic topology mapping will use checksum-FS paths as coordinates (Group A)
+**Phase 5**: Multi-node deployment will use indexer for cross-node file discovery (Group B)
+**Phase 6**: Installers will use checksum-FS for reproducible system configuration (Group A)
+
+---
+
+metadata:
+  created: 2026-02-07
+  related_phases: [1, 3, 4, 5, 6]
+  critical_path: Group A (filesystem)
+  estimated_duration: 1-2 weeks (concurrent work)
+  effort_hours: 70-110
+  dependencies: [Phase 1 completion]

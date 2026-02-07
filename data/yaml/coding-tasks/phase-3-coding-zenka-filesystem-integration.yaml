@@ -1,0 +1,474 @@
+---
+document_title: "Phase 3: Coding Zenka Filesystem Integration & LLM Features"
+document_date: 2026-02-07
+phase_number: 3
+phase_status: "Pending Phase 2 completion"
+related_roadmap: "protocol-7-transition-roadmap.yaml"
+
+description: |
+  Integrate coding zenka with checksum-based filesystem and LLM capabilities.
+  Enable local LLM-based usecase features with distributed data access.
+  Create adapter layer for source data retrieval and copy-on-write output.
+
+  This enables hybrid local/remote development mode where:
+  - Coding zenka can access source data from distributed filesystem
+  - Output is isolated via copy-on-write semantics
+  - LLM assistance is available for both analysis and generation
+  - Results can be shared back to network safely
+
+---
+
+## Strategic Context
+
+Coding zenka is the LLM-assisted development orchestrator. Phase 3 enables:
+1. **Source data access**: Pull code/docs from checksum-FS for analysis
+2. **LLM-assisted analysis**: Understand what code does via LLM
+3. **Safe experimentation**: CoW outputs for modifications
+4. **Knowledge building**: Store results back to filesystem (Phase 2's LLM analysis)
+5. **Reproducibility**: All operations are reproducible via checksums
+
+This is the foundation for LLM-in-the-loop development across all nodes.
+
+---
+
+## Task Groups
+
+### Group A: Coding Zenka Filesystem Adapter
+**Priority**: CRITICAL
+**Status**: Pending Phase 2
+**Effort**: 20-30 hours
+**Enables**: Group B, Group C
+**Blocker**: Phase 2 (checksum-FS working)
+
+#### Task A1: Design filesystem adapter architecture
+**Status**: pending
+**Effort**: 3-4 hours
+**Blocker**: None (design task)
+
+Description:
+  Design how coding zenka will interface with checksum-based filesystem.
+
+Key design points:
+  1. Adapter interface
+     - Source data retrieval (get file by checksum/path)
+     - Output storage (write with CoW semantics)
+     - Metadata access (understand file context)
+     - Batch operations (load project structure)
+
+  2. Data flow
+     - How does coding zenka request files?
+     - How are files streamed to coding zenka?
+     - How are results written back?
+     - Transaction boundaries?
+
+  3. Copy-on-write semantics
+     - When does an input become mutable output?
+     - How to track input→output relationships?
+     - How to merge successful changes back?
+
+  4. Error handling
+     - What if source file is corrupted?
+     - What if storage fails mid-operation?
+     - Recovery procedures?
+
+  5. Performance considerations
+     - Should commonly-used files be cached locally?
+     - Should access be asynchronous?
+     - How to handle large project structures?
+
+Steps:
+  1. Document adapter interface (API design)
+  2. Design data flow diagrams
+  3. Plan CoW semantics in detail
+  4. Plan error scenarios and recovery
+  5. Get user feedback before implementation
+
+Acceptance criteria:
+  - Adapter interface fully specified
+  - Data flow diagrams created
+  - CoW mechanics documented
+  - Error handling strategy clear
+  - API ready for implementation
+
+#### Task A2: Implement filesystem adapter modules
+**Status**: pending (after A1)
+**Effort**: 15-20 hours
+**Blocker**: Task A1, Phase 2 (checksum-FS complete)
+**Dependencies**: Task A1
+
+Description:
+  Build the adapter modules.
+
+New modules:
+  1. coding.checksum-fs-adapter.retrieve
+     - Load files by checksum/path
+     - Preserve metadata (original name, timestamps)
+     - Stream for large files
+     - Error handling for missing/corrupted files
+
+  2. coding.checksum-fs-adapter.store-output
+     - Write coding results to filesystem
+     - Create as CoW copies
+     - Maintain input→output relationships
+     - Preserve checksums for verification
+
+  3. coding.checksum-fs-adapter.project-loader
+     - Load entire project structure
+     - Understand file organization
+     - Build project dependency graph
+     - Prepare for LLM analysis
+
+  4. coding.checksum-fs-adapter.batch-operations
+     - Load multiple files efficiently
+     - Cache for performance
+     - Transaction support (all-or-nothing)
+
+  5. coding.checksum-fs-adapter.metadata-handler
+     - Extract/update file metadata
+     - Preserve source tracking
+     - Manage CoW metadata
+
+Steps:
+  1. Implement retrieve module
+     - Test with individual files
+     - Test with metadata preservation
+     - Test error handling
+
+  2. Implement store-output module
+     - Test CoW creation
+     - Verify checksums
+     - Test metadata tracking
+
+  3. Implement project-loader module
+     - Test with real projects
+     - Verify dependency detection
+
+  4. Implement batch operations
+     - Test with multi-file projects
+     - Verify performance
+
+  5. Implement metadata handler
+     - Test all metadata operations
+
+  6. Integration testing
+
+Acceptance criteria:
+  - All adapter modules working
+  - Integration tests passing
+  - Performance acceptable
+  - CoW semantics preserved
+  - Ready for LLM integration
+
+#### Task A3: Integrate adapter with existing coding zenka
+**Status**: pending (after A2)
+**Effort**: 4-6 hours
+**Blocker**: Task A2
+**Dependencies**: Task A2
+
+Description:
+  Wire the adapter into the coding zenka workflow.
+
+Steps:
+  1. Review current coding.init_code module
+     - Understand current data sources
+     - Plan adapter integration points
+
+  2. Add filesystem adapter to initialization
+     - Load adapter modules
+     - Configure for checksum-FS
+     - Test initialization
+
+  3. Update coding task handlers to use adapter
+     - Replace current data loading with adapter
+     - Update output handling for CoW
+     - Preserve existing behavior
+
+  4. Create compatibility layer (if needed)
+     - Ensure backward compatibility
+     - Support both old and new data sources (transition)
+
+  5. End-to-end testing
+     - Load project via adapter
+     - Run analysis
+     - Store output
+     - Verify integrity
+
+Acceptance criteria:
+  - Adapter integrated without breaking existing features
+  - Backward compatibility maintained
+  - End-to-end workflow tested
+  - Ready for Phase 4 integration
+
+---
+
+### Group B: Local LLM Features Completion
+**Priority**: HIGH
+**Status**: Pending Phase 2 (can start during A1-A2 design phase)
+**Effort**: 15-20 hours
+**Enables**: Group C
+**Blocker**: None immediately (but Phase 2 helps)
+
+#### Task B1: Identify incomplete LLM features
+**Status**: pending
+**Effort**: 2-3 hours
+**Blocker**: None (analysis task)
+
+Description:
+  Audit coding zenka to identify incomplete LLM-based features.
+  What was started but not finished?
+
+Areas to investigate:
+  1. modules/coding.* - what's implemented, what's stubbed?
+  2. Inference server management - complete?
+  3. LLM prompt engineering - any incomplete approaches?
+  4. Response processing - all use cases covered?
+  5. Error handling - what scenarios not handled?
+  6. Configuration - what settings missing?
+
+Steps:
+  1. Review all coding.* modules
+  2. Check for TODO/FIXME comments
+  3. Review coding zenka configuration
+  4. Identify broken tests or known issues
+  5. Prioritize by user impact
+
+Acceptance criteria:
+  - Comprehensive list of incomplete features
+  - Prioritized by impact
+  - Owners/stakeholders identified
+  - Ready for implementation planning
+
+#### Task B2: Complete critical LLM features
+**Status**: pending (after B1)
+**Effort**: 10-15 hours
+**Blocker**: Task B1
+**Dependencies**: Task B1
+
+Description:
+  Implement identified critical LLM features.
+  Focus on features blocking other work or affecting user experience.
+
+Features likely to need work:
+  1. **Inference server reliability**
+     - Auto-restart on failure?
+     - Health checking?
+     - Graceful degradation?
+
+  2. **Prompt optimization**
+     - Test different prompts for different tasks
+     - Compare response quality
+     - Optimize for speed vs quality
+
+  3. **Response parsing**
+     - Extract structured data from LLM output
+     - Handle various response formats
+     - Validate results
+
+  4. **Context management**
+     - How to feed files to LLM
+     - How to maintain conversation context across files
+     - How to handle large projects
+
+  5. **Error recovery**
+     - What to do if LLM response is invalid?
+     - How to retry intelligently?
+     - User notification?
+
+Steps:
+  1. Prioritize top 3-5 incomplete features
+  2. Implement each with tests
+  3. Integration testing with adapter (from Group A)
+  4. User testing/feedback
+
+Acceptance criteria:
+  - Critical features implemented
+  - Tests passing
+  - Integrated with adapter
+  - Ready for production use
+
+#### Task B3: Create LLM feature testing suite
+**Status**: pending (after B2)
+**Effort**: 3-4 hours
+**Blocker**: Task B2
+**Dependencies**: Task B2
+
+Description:
+  Build automated tests for LLM features.
+  Ensure features stay working as development continues.
+
+Tests needed:
+  1. Inference server startup/health
+  2. Prompt generation quality
+  3. Response parsing accuracy
+  4. Error recovery
+  5. Context preservation
+
+Steps:
+  1. Create test data (sample projects)
+  2. Create test suites for each feature
+  3. Document expected outputs
+  4. Set up CI/CD integration (if applicable)
+
+Acceptance criteria:
+  - Comprehensive test coverage
+  - Tests reproducible
+  - Tests documented
+
+---
+
+### Group C: Hybrid Mode Integration
+**Priority**: HIGH
+**Status**: Pending Phase 2 + Groups A & B
+**Effort**: 10-15 hours
+**Enables**: Phase 4 development
+**Blocker**: Phase 2 (LLM file analysis), Group A (adapter)
+
+#### Task C1: Design hybrid local/remote mode
+**Status**: pending
+**Effort**: 2-3 hours
+**Blocker**: None (design task)
+
+Description:
+  Design how coding zenka operates in hybrid mode:
+  - Local: LLM inference server, fast operations
+  - Remote: Access to distributed filesystem, knowledge base
+  - Hybrid: Uses both transparently
+
+Key design decisions:
+  1. Data sourcing
+     - When to fetch from local filesystem?
+     - When to fetch from distributed filesystem?
+     - Caching strategy?
+
+  2. Operation modes
+     - Fully local (offline, limited data)
+     - Fully remote (full data, higher latency)
+     - Hybrid (best of both)
+
+  3. Synchronization
+     - How to sync local cache with distributed FS?
+     - How to push improvements back?
+     - Conflict resolution?
+
+  4. Failover
+     - What if remote FS is unavailable?
+     - What if local LLM fails?
+     - Graceful degradation?
+
+Steps:
+  1. Document operational modes
+  2. Design data sourcing logic
+  3. Plan synchronization protocol
+  4. Design failover procedures
+  5. Get user feedback
+
+Acceptance criteria:
+  - Hybrid mode clearly defined
+  - Data flow documented
+  - Failover procedures clear
+  - Ready for implementation
+
+#### Task C2: Implement hybrid mode
+**Status**: pending (after C1, Groups A & B)
+**Effort**: 8-12 hours
+**Blocker**: Task C1, Group A (adapter), Group B (LLM features)
+**Dependencies**: Task C1
+
+Description:
+  Build hybrid mode into coding zenka.
+
+New/updated modules:
+  1. coding.hybrid-mode.selector
+     - Decide between local/remote/hybrid for each operation
+     - Based on data availability, network status
+     - User configuration
+
+  2. coding.hybrid-mode.local-cache
+     - Manage local file cache
+     - Sync with distributed FS
+     - Eviction policy for space management
+
+  3. coding.hybrid-mode.sync
+     - Push results back to distributed FS
+     - Update checksums/metadata
+     - Conflict detection and resolution
+
+  4. coding.hybrid-mode.failover
+     - Handle network unavailability
+     - Graceful degradation
+     - User notification
+
+Steps:
+  1. Implement selector module
+     - Test mode selection logic
+
+  2. Implement local-cache module
+     - Test with real projects
+
+  3. Implement sync module
+     - Test push/pull operations
+
+  4. Implement failover module
+     - Test failure scenarios
+     - Test graceful degradation
+
+  5. Integration testing
+     - Test full hybrid workflow
+     - Test across multiple scenarios
+
+Acceptance criteria:
+  - All hybrid mode components working
+  - Integration tests passing
+  - Failover working correctly
+  - Ready for Phase 4
+
+---
+
+## Success Criteria - Phase 3 Complete
+
+- [ ] Filesystem adapter fully implemented and tested
+- [ ] Coding zenka integrated with checksum-FS
+- [ ] All critical LLM features completed
+- [ ] LLM feature testing suite created
+- [ ] Hybrid local/remote mode fully implemented
+- [ ] End-to-end testing across all components
+- [ ] Performance targets met
+- [ ] User testing completed and feedback incorporated
+- [ ] All changes committed
+- [ ] Phase 4 pre-requisites satisfied
+
+---
+
+## Risk Mitigation
+
+### Risk: Adapter design is incompatible with filesystem
+**Mitigation**: Overlap A1 design with Phase 2 implementation; get feedback early
+
+### Risk: LLM features require extensive rework
+**Mitigation**: B1 analysis early; prioritize ruthlessly
+
+### Risk: Hybrid mode complexity becomes overwhelming
+**Mitigation**: Start with simple local-only mode; add remote/hybrid gradually
+
+---
+
+## Dependencies
+
+**Requires Phase 2**:
+- Checksum-FS implementation (Group A depends on)
+- LLM file analysis system (helpful for B2, C2)
+
+**Parallel with Phase 2**:
+- Filesystem adapter design (A1)
+- LLM features analysis (B1)
+- Hybrid mode design (C1)
+
+---
+
+metadata:
+  created: 2026-02-07
+  related_phases: [2, 4]
+  critical_path: "Group A (adapter) → Group C (hybrid mode)"
+  estimated_duration: 1-2 weeks
+  effort_hours: 45-65
+  dependencies: [Phase 2 completion or substantial progress]
