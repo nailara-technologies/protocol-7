@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Protocol-7 Hyperspace - Network Topology Desktop</title>
+    <style>
+        body {
+            background-color: #0c0518;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+            color: #a0c0ff;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100vh;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            gap: 15px;
+            background: rgba(12, 5, 24, 0.85);
+            padding: 12px;
+            border-radius: 15px;
+            border: 1px solid #3030a0;
+            box-shadow: 0 0 20px rgba(60, 0, 120, 0.4);
+            z-index: 100;
+        }
+
+        button {
+            background: rgba(15, 5, 30, 0.7);
+            border: 1px solid #3030a0;
+            color: #a0c0ff;
+            padding: 8px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: rgba(20, 10, 50, 0.9);
+            box-shadow: 0 0 15px rgba(60, 20, 200, 0.5);
+        }
+
+        .info-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(12, 5, 24, 0.85);
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid #3030a0;
+            box-shadow: 0 0 20px rgba(60, 0, 120, 0.4);
+            max-width: 320px;
+            z-index: 100;
+            font-size: 13px;
+            line-height: 1.5;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .info-panel.hidden {
+            opacity: 0;
+            transform: translateX(-100%);
+            pointer-events: none;
+        }
+
+        .info-panel h3 {
+            margin: 0 0 10px 0;
+            color: #b0d0ff;
+            border-bottom: 1px solid rgba(160, 192, 255, 0.3);
+            padding-bottom: 6px;
+            font-size: 15px;
+        }
+
+        .info-value {
+            color: #80c0ff;
+            font-weight: bold;
+        }
+
+        .toggle-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(12, 5, 24, 0.85);
+            border: 1px solid #3030a0;
+            color: #a0c0ff;
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            z-index: 101;
+            transition: all 0.3s;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(20, 10, 50, 0.9);
+            box-shadow: 0 0 15px rgba(60, 20, 200, 0.5);
+            transform: scale(1.1);
+        }
+
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(12, 5, 24, 0.95);
+            color: #a0c0ff;
+            padding: 15px 30px;
+            border-radius: 12px;
+            border: 1px solid #3030a0;
+            box-shadow: 0 0 25px rgba(60, 20, 200, 0.6);
+            font-size: 15px;
+            z-index: 1000;
+            pointer-events: none;
+            animation: fadeInOut 0.8s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            15%, 85% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div class="info-panel hidden" id="infoPanel">
+        <h3>Protocol-7 Network Desktop</h3>
+        <p><strong>Formation:</strong> <span class="info-value">8-Cube + Central Void</span></p>
+        <p><strong>Propagation:</strong> <span class="info-value" id="propDisplay">OFF</span></p>
+        <p><strong>Grid Position:</strong> <span class="info-value" id="gridPosDisplay">0, 0, 0</span></p>
+        <p><strong>Zoom:</strong> <span class="info-value" id="zoomDisplay">100%</span></p>
+        <p><strong>FPS:</strong> <span class="info-value" id="fpsDisplay">--</span></p>
+        
+        <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(160, 192, 255, 0.2); font-size: 12px;">
+            <p><strong>Mouse:</strong> Drag=rotate, Wheel=zoom</p>
+            <p><strong>P:</strong> Toggle propagation mode</p>
+            <p><strong>Arrows:</strong> Navigate grid (when propagated)</p>
+            <p><strong>I:</strong> Toggle this panel</p>
+            <p><strong>Space:</strong> Pause/resume rotation</p>
+        </div>
+    </div>
+
+    <button class="toggle-btn" onclick="toggleInfo()">I</button>
+
+    <div class="controls">
+        <button onclick="toggleRotation()">Pause</button>
+        <button onclick="resetView()">Reset</button>
+        <button onclick="togglePropagation()">Propagate</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height, centerX, centerY;
+        
+        // View state
+        let rotX = 0.3, rotY = 0.4, rotZ = 0;
+        let zoom = 1.0;
+        let offsetX = 0, offsetY = 0;
+        let cameraZ = 800;
+        
+        // Animation
+        let isRotating = true;
+        let rotSpeed = 0.003;
+        let animFrame = null;
+        
+        // Mouse
+        let isDragging = false;
+        let lastX = 0, lastY = 0;
+        
+        // Propagation
+        let propagationMode = false;
+        let gridX = 0, gridY = 0, gridZ = 0; // Current grid position
+        let gridDepth = 1; // How many formations in each direction
+        
+        // FPS
+        let lastTime = performance.now();
+        let frameCount = 0;
+        let fps = 0;
+        let fpsTime = performance.now();
+        
+        // Info panel
+        let infoPanelVisible = false;
+
+        // Cube colors - your perfect blue/violet aesthetic
+        const colors = {
+            primary: '#4050a0',
+            outer: '#5060b0',
+            inner: '#1507C0',
+            cutout: '#6070c0',
+            near: '#4050C0',
+            mid: '#5060b0',
+            far: '#6070c0',
+            background: '#10050F'
+        };
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            centerX = width / 2;
+            centerY = height / 2;
+        }
+
+        // Create cube with vertices and edges
+        function createCube(size, cx, cy, cz) {
+            const s = size / 2;
+            const vertices = [
+                [-s+cx, -s+cy, -s+cz], [s+cx, -s+cy, -s+cz],
+                [s+cx, s+cy, -s+cz], [-s+cx, s+cy, -s+cz],
+                [-s+cx, -s+cy, s+cz], [s+cx, -s+cy, s+cz],
+                [s+cx, s+cy, s+cz], [-s+cx, s+cy, s+cz]
+            ];
+            
+            const edges = [
+                [0,1],[1,2],[2,3],[3,0], // front
+                [4,5],[5,6],[6,7],[7,4], // back
+                [0,4],[1,5],[2,6],[3,7]  // connecting
+            ];
+            
+            return { vertices, edges };
+        }
+
+        // Generate complete formation: 8 cubes with 63-subcube internal structure
+        function generateFormation(offsetX = 0, offsetY = 0, offsetZ = 0, intensity = 1.0) {
+            const cubes = [];
+            const cubeSize = 140;
+            const spacing = cubeSize * 1.5;
+            
+            // 8 positions in 2×2×2 arrangement (central void is 9th position)
+            const positions = [
+                [-1,-1,-1], [1,-1,-1], [-1,1,-1], [1,1,-1],
+                [-1,-1,1], [1,-1,1], [-1,1,1], [1,1,1]
+            ];
+            
+            positions.forEach(([px, py, pz]) => {
+                const cx = px * spacing + offsetX;
+                const cy = py * spacing + offsetY;
+                const cz = pz * spacing + offsetZ;
+                
+                // Main cube
+                cubes.push({
+                    ...createCube(cubeSize, cx, cy, cz),
+                    intensity,
+                    type: 'main'
+                });
+                
+                // Subcubes within each main cube (simplified to 27 for performance)
+                const subSize = cubeSize / 3.5;
+                const subSpacing = subSize * 1.2;
+                
+                for (let sx = -1; sx <= 1; sx++) {
+                    for (let sy = -1; sy <= 1; sy++) {
+                        for (let sz = -1; sz <= 1; sz++) {
+                            // Skip if this would be in the cutout toward center
+                            const towardCenter = (
+                                (px < 0 && sx > 0) || (px > 0 && sx < 0) ||
+                                (py < 0 && sy > 0) || (py > 0 && sy < 0) ||
+                                (pz < 0 && sz > 0) || (pz > 0 && sz < 0)
+                            );
+                            if (towardCenter && sx !== 0 && sy !== 0 && sz !== 0) continue;
+                            
+                            cubes.push({
+                                ...createCube(subSize,
+                                    cx + sx * subSpacing,
+                                    cy + sy * subSpacing,
+                                    cz + sz * subSpacing
+                                ),
+                                intensity: intensity * 0.6,
+                                type: 'sub'
+                            });
+                        }
+                    }
+                }
+            });
+            
+            return cubes;
+        }
+
+        // Generate propagated grid of formations
+        function generatePropagatedFormations() {
+            const formations = [];
+            const formationSpacing = 800;
+            
+            for (let x = -gridDepth; x <= gridDepth; x++) {
+                for (let y = -gridDepth; y <= gridDepth; y++) {
+                    for (let z = -gridDepth; z <= gridDepth; z++) {
+                        // Center formation at full intensity
+                        if (x === gridX && y === gridY && z === gridZ) {
+                            formations.push(...generateFormation(0, 0, 0, 1.0));
+                            continue;
+                        }
+                        
+                        // Calculate relative position from current grid position
+                        const dx = x - gridX;
+                        const dy = y - gridY;
+                        const dz = z - gridZ;
+                        const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                        
+                        // Distance-based intensity falloff
+                        const intensity = Math.max(0.1, 1.0 / (dist * 0.6 + 1));
+                        
+                        formations.push(...generateFormation(
+                            dx * formationSpacing,
+                            dy * formationSpacing,
+                            dz * formationSpacing,
+                            intensity
+                        ));
+                    }
+                }
+            }
+            
+            return formations;
+        }
+
+        // 3D rotation and projection
+        function rotatePoint([x, y, z], rx, ry, rz) {
+            // Rotate X
+            let y1 = y * Math.cos(rx) - z * Math.sin(rx);
+            let z1 = y * Math.sin(rx) + z * Math.cos(rx);
+            
+            // Rotate Y
+            let x2 = x * Math.cos(ry) + z1 * Math.sin(ry);
+            let z2 = -x * Math.sin(ry) + z1 * Math.cos(ry);
+            
+            // Rotate Z
+            let x3 = x2 * Math.cos(rz) - y1 * Math.sin(rz);
+            let y3 = x2 * Math.sin(rz) + y1 * Math.cos(rz);
+            
+            return [x3, y3, z2];
+        }
+
+        function project([x, y, z]) {
+            x += offsetX;
+            y += offsetY;
+            z += cameraZ;
+            
+            const scale = 500 / (500 + z);
+            return {
+                x: centerX + x * scale * zoom,
+                y: centerY + y * scale * zoom,
+                z: z,
+                visible: z > -500
+            };
+        }
+
+        // Draw cube
+        function drawCube(cube) {
+            const rotated = cube.vertices.map(v => rotatePoint(v, rotX, rotY, rotZ));
+            const projected = rotated.map(project);
+            
+            if (!projected.every(p => p.visible)) return;
+            
+            const avgZ = projected.reduce((sum, p) => sum + p.z, 0) / 8;
+            const depthFactor = Math.max(0, Math.min(1, (avgZ + 1000) / 2000));
+            
+            // Color based on depth
+            const color = depthFactor < 0.5 ? colors.near : colors.far;
+            const opacity = 0.3 + 0.4 * cube.intensity;
+            
+            ctx.strokeStyle = color;
+            ctx.globalAlpha = opacity * (cube.type === 'sub' ? 0.4 : 1.0);
+            ctx.lineWidth = cube.type === 'sub' ? 0.8 : 1.5;
+            ctx.shadowBlur = cube.type === 'sub' ? 2 : 4;
+            ctx.shadowColor = color;
+            
+            cube.edges.forEach(([i, j]) => {
+                ctx.beginPath();
+                ctx.moveTo(projected[i].x, projected[i].y);
+                ctx.lineTo(projected[j].x, projected[j].y);
+                ctx.stroke();
+            });
+            
+            ctx.shadowBlur = 0;
+            ctx.globalAlpha = 1;
+            
+            return avgZ;
+        }
+
+        // Main draw loop
+        function draw() {
+            ctx.fillStyle = colors.background;
+            ctx.fillRect(0, 0, width, height);
+            
+            // Generate formations based on mode
+            const cubes = propagationMode 
+                ? generatePropagatedFormations()
+                : generateFormation();
+            
+            // Sort by depth
+            const sorted = cubes.map(cube => ({
+                cube,
+                z: cube.vertices.reduce((sum, v) => {
+                    const [,,z] = rotatePoint(v, rotX, rotY, rotZ);
+                    return sum + z;
+                }, 0) / 8
+            })).sort((a, b) => a.z - b.z);
+            
+            // Draw back to front
+            sorted.forEach(({ cube }) => drawCube(cube));
+            
+            // Update FPS
+            frameCount++;
+            const now = performance.now();
+            if (now - fpsTime >= 1000) {
+                fps = Math.round(frameCount * 1000 / (now - fpsTime));
+                document.getElementById('fpsDisplay').textContent = fps;
+                frameCount = 0;
+                fpsTime = now;
+            }
+        }
+
+        function animate() {
+            if (isRotating) {
+                rotY += rotSpeed;
+                rotX += rotSpeed * 0.5;
+            }
+            draw();
+            animFrame = requestAnimationFrame(animate);
+        }
+
+        function toggleRotation() {
+            isRotating = !isRotating;
+        }
+
+        function togglePropagation() {
+            propagationMode = !propagationMode;
+            updateDisplays();
+            showNotif(propagationMode ? 'Propagation: ON' : 'Propagation: OFF');
+        }
+
+        function resetView() {
+            rotX = 0.3; rotY = 0.4; rotZ = 0;
+            zoom = 1.0;
+            offsetX = 0; offsetY = 0;
+            gridX = 0; gridY = 0; gridZ = 0;
+            gridDepth = 1;
+            updateDisplays();
+            showNotif('View Reset');
+        }
+
+        function toggleInfo() {
+            infoPanelVisible = !infoPanelVisible;
+            document.getElementById('infoPanel').classList.toggle('hidden', !infoPanelVisible);
+        }
+
+        function updateDisplays() {
+            document.getElementById('propDisplay').textContent = propagationMode ? 'ON' : 'OFF';
+            document.getElementById('gridPosDisplay').textContent = `${gridX}, ${gridY}, ${gridZ}`;
+            document.getElementById('zoomDisplay').textContent = Math.round(zoom * 100) + '%';
+        }
+
+        function showNotif(text) {
+            const notif = document.createElement('div');
+            notif.className = 'notification';
+            notif.textContent = text;
+            document.body.appendChild(notif);
+            setTimeout(() => notif.remove(), 800);
+        }
+
+        // Mouse controls
+        canvas.addEventListener('mousedown', e => {
+            isDragging = true;
+            lastX = e.clientX;
+            lastY = e.clientY;
+        });
+
+        canvas.addEventListener('mousemove', e => {
+            if (!isDragging) return;
+            const dx = e.clientX - lastX;
+            const dy = e.clientY - lastY;
+            rotY += dx * 0.005;
+            rotX += dy * 0.005;
+            lastX = e.clientX;
+            lastY = e.clientY;
+        });
+
+        canvas.addEventListener('mouseup', () => isDragging = false);
+
+        canvas.addEventListener('wheel', e => {
+            e.preventDefault();
+            zoom *= e.deltaY > 0 ? 0.9 : 1.1;
+            zoom = Math.max(0.1, Math.min(5, zoom));
+            updateDisplays();
+        });
+
+        // Keyboard controls
+        document.addEventListener('keydown', e => {
+            switch(e.key) {
+                case ' ':
+                    toggleRotation();
+                    break;
+                case 'i':
+                case 'I':
+                    toggleInfo();
+                    break;
+                case 'p':
+                case 'P':
+                    togglePropagation();
+                    break;
+                case 'r':
+                case 'R':
+                    resetView();
+                    break;
+                
+                // Arrow navigation in propagation mode
+                case 'ArrowUp':
+                    if (propagationMode) {
+                        gridY++;
+                        updateDisplays();
+                        showNotif(`Grid: ${gridX}, ${gridY}, ${gridZ}`);
+                    }
+                    break;
+                case 'ArrowDown':
+                    if (propagationMode) {
+                        gridY--;
+                        updateDisplays();
+                        showNotif(`Grid: ${gridX}, ${gridY}, ${gridZ}`);
+                    }
+                    break;
+                case 'ArrowLeft':
+                    if (propagationMode) {
+                        gridX--;
+                        updateDisplays();
+                        showNotif(`Grid: ${gridX}, ${gridY}, ${gridZ}`);
+                    }
+                    break;
+                case 'ArrowRight':
+                    if (propagationMode) {
+                        gridX++;
+                        updateDisplays();
+                        showNotif(`Grid: ${gridX}, ${gridY}, ${gridZ}`);
+                    }
+                    break;
+                case 'PageUp':
+                    if (propagationMode) {
+                        gridZ++;
+                        updateDisplays();
+                        showNotif(`Grid: ${gridX}, ${gridY}, ${gridZ}`);
+                    }
+                    break;
+                case 'PageDown':
+                    if (propagationMode) {
+                        gridZ--;
+                        updateDisplays();
+                        showNotif(`Grid: ${gridX}, ${gridY}, ${gridZ}`);
+                    }
+                    break;
+                case '+':
+                case '=':
+                    if (propagationMode) {
+                        gridDepth = Math.min(3, gridDepth + 1);
+                        showNotif(`Grid depth: ${gridDepth}`);
+                    }
+                    break;
+                case '-':
+                case '_':
+                    if (propagationMode) {
+                        gridDepth = Math.max(1, gridDepth - 1);
+                        showNotif(`Grid depth: ${gridDepth}`);
+                    }
+                    break;
+            }
+        });
+
+        // Initialize
+        window.addEventListener('resize', resize);
+        resize();
+        updateDisplays();
+        animate();
+    </script>
+</body>
+</html>

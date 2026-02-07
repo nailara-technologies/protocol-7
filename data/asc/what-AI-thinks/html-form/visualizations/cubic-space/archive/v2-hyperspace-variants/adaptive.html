@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Protocol-7 Adaptive Hyperspace</title>
+    <!--
+    PROTOCOL-7 ADAPTIVE PERFORMANCE
+    
+    Key optimizations:
+    - Blur OFF by default (main performance killer)
+    - Tight sigma (0.6) for narrow visibility window
+    - Higher alpha threshold (0.05) for aggressive culling
+    - FPS-based adaptive quality system
+    - Mouse/wheel sensitivity coupled with render performance
+    - No dampening by default
+    
+    Infinite zoom via proper scale overlap:
+    - Continuous scale levels (not discrete jumps)
+    - Elements fade smoothly as scale ratio changes
+    - Constant element count at any zoom level
+    -->
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0a0414; overflow: hidden; font-family: 'Courier New', monospace; color: #90a8d0; }
+        canvas { display: block; width: 100%; height: 100vh; cursor: grab; }
+        canvas:active { cursor: grabbing; }
+        
+        .controls {
+            position: fixed;
+            bottom: 15px;
+            left: 15px;
+            display: flex;
+            gap: 8px;
+            background: rgba(10, 4, 20, 0.85);
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(40, 40, 120, 0.4);
+            z-index: 100;
+        }
+        
+        button {
+            background: rgba(12, 5, 25, 0.8);
+            border: 1px solid #2828a0;
+            color: #90a8d0;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 11px;
+            transition: all 0.2s;
+        }
+        
+        button:hover { background: rgba(20, 10, 40, 0.9); }
+        button.active { border-color: #4848c0; background: rgba(30, 15, 50, 0.9); }
+        
+        .info-panel {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background: rgba(10, 4, 20, 0.92);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(40, 40, 120, 0.35);
+            max-width: 220px;
+            z-index: 100;
+            font-size: 10px;
+            line-height: 1.4;
+            transition: opacity 0.25s, transform 0.25s;
+        }
+        
+        .info-panel.hidden { opacity: 0; transform: translateX(-100%); pointer-events: none; }
+        .info-panel h3 { margin: 0 0 6px 0; color: #a0b8e0; font-size: 11px; }
+        .v { color: #70a0e0; }
+        
+        .toggle-btn {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: rgba(10, 4, 20, 0.6);
+            border: 1px solid rgba(40, 40, 120, 0.3);
+            color: #6080a0;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: inherit;
+            z-index: 101;
+        }
+        
+        .toggle-btn:hover { background: rgba(15, 8, 30, 0.8); color: #90a8d0; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <button class="toggle-btn" onclick="toggleInfo()">I</button>
+    
+    <div class="info-panel hidden" id="infoPanel">
+        <h3>Protocol-7 Adaptive</h3>
+        <p>Scale: <span class="v" id="scaleD">1.00</span> | FPS: <span class="v" id="fpsD">--</span></p>
+        <p>Elements: <span class="v" id="elemD">--</span> | Quality: <span class="v" id="qualD">100%</span></p>
+        <p>Grid: <span class="v" id="gridD">0,0,0</span></p>
+        <p style="margin-top:5px;font-size:9px;color:#5070a0;">
+            Wheel=zoom | Drag=rotate | B=blur toggle<br>
+            Arrows=nav | +/-=depth | Space=pause
+        </p>
+    </div>
+    
+    <div class="controls">
+        <button onclick="toggleRotation()" id="rotBtn">Pause</button>
+        <button onclick="resetView()">Reset</button>
+        <button onclick="toggleBlur()" id="blurBtn">Blur: OFF</button>
+    </div>
+    
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height, centerX, centerY;
+        
+        // === TOPOLOGY ===
+        const cubeSize = 140;
+        const subSize = cubeSize / 4;
+        const fieldSpacing = cubeSize + subSize * 2;
+        const formationSpacing = fieldSpacing * 2;
+        
+        // === PERFORMANCE THRESHOLDS ===
+        const ALPHA_THRESHOLD = 0.05;  // Aggressive culling
+        const TARGET_FPS = 30;
+        const MIN_FPS = 15;
+        
+        // === ADAPTIVE QUALITY ===
+        let qualityLevel = 1.0;  // 0.0 to 1.0
+        let blurEnabled = false;  // OFF by default
+        let avgFps = 60;
+        let fpsHistory = [];
+        const FPS_HISTORY_SIZE = 10;
+        
+        // === VIEW STATE ===
+        let viewScale = 1.0;
+        let rotX = 0.25, rotY = 0.35;
+        let targetRotX = rotX, targetRotY = rotY;
+        let velRotX = 0, velRotY = 0;
+        
+        // No dampening by default
+        const smoothing = 0.5;  // Higher = more responsive
+        const friction = 0.5;   // Lower = less dampening
+        
+        const minScale = 0.002;
+        const maxScale = 500;
+        
+        let isRotating = true;
+        let rotSpeed = 0.0006;
+        
+        let isDragging = false;
+        let lastX = 0, lastY = 0;
+        
+        let gridX = 0, gridY = 0, gridZ = 0;
+        let gridDepth = 2;
+        const maxGridDepth = 4;
+        
+        let frameCount = 0, fps = 0, fpsTime = performance.now();
+        let renderedElements = 0;
+        let infoPanelVisible = false;
+        
+        // === COLOR ===
+        const hue = 230;
+        const sat = 70;
+        
+        // === CUBE DATA ===
+        const cubePositions = [[-1,-1,-1],[1,-1,-1],[-1,1,-1],[1,1,-1],[-1,-1,1],[1,-1,1],[-1,1,1],[1,1,1]];
+        const missingCorners = [{x:3,y:3,z:3},{x:0,y:3,z:3},{x:3,y:0,z:3},{x:0,y:0,z:3},{x:3,y:3,z:0},{x:0,y:3,z:0},{x:3,y:0,z:0},{x:0,y:0,z:0}];
+        const cutoutVI = [6,7,5,4,2,3,1,0];
+        
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+            centerX = width / 2;
+            centerY = height / 2;
+        }
+        
+        // === ADAPTIVE QUALITY SYSTEM ===
+        function updateQuality() {
+            fpsHistory.push(fps);
+            if (fpsHistory.length > FPS_HISTORY_SIZE) fpsHistory.shift();
+            avgFps = fpsHistory.reduce((a,b) => a+b, 0) / fpsHistory.length;
+            
+            // Adjust quality based on FPS
+            if (avgFps < MIN_FPS) {
+                qualityLevel = Math.max(0.3, qualityLevel - 0.05);
+            } else if (avgFps < TARGET_FPS) {
+                qualityLevel = Math.max(0.5, qualityLevel - 0.02);
+            } else if (avgFps > TARGET_FPS + 15 && qualityLevel < 1.0) {
+                qualityLevel = Math.min(1.0, qualityLevel + 0.01);
+            }
+        }
+        
+        // Adaptive input sensitivity (smoother when struggling)
+        function getInputSensitivity() {
+            const perfFactor = Math.min(1, avgFps / TARGET_FPS);
+            return 0.5 + perfFactor * 0.5;  // 0.5 to 1.0
+        }
+        
+        // === GEOMETRY ===
+        function simpleCube(s, cx, cy, cz) {
+            const h = s/2;
+            return {
+                v: [[cx-h,cy-h,cz-h],[cx+h,cy-h,cz-h],[cx+h,cy+h,cz-h],[cx-h,cy+h,cz-h],
+                    [cx-h,cy-h,cz+h],[cx+h,cy-h,cz+h],[cx+h,cy+h,cz+h],[cx-h,cy+h,cz+h]],
+                e: [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]]
+            };
+        }
+        
+        function cutoutCube(s, cx, cy, cz, idx) {
+            const h = s/2;
+            const fv = [[cx-h,cy-h,cz-h],[cx+h,cy-h,cz-h],[cx+h,cy+h,cz-h],[cx-h,cy+h,cz-h],
+                        [cx-h,cy-h,cz+h],[cx+h,cy-h,cz+h],[cx+h,cy+h,cz+h],[cx-h,cy+h,cz+h]];
+            const ci = cutoutVI[idx], cv = fv[ci];
+            const am = {0:[1,3,4],1:[0,2,5],2:[1,3,6],3:[0,2,7],4:[0,5,7],5:[1,4,6],6:[2,5,7],7:[3,4,6]};
+            const ai = am[ci];
+            
+            const v = [], vm = {};
+            for (let i = 0; i < 8; i++) if (i !== ci) { vm[i] = v.length; v.push([...fv[i]]); }
+            
+            const evi = [];
+            ai.forEach(a => { evi.push(v.length); const av = fv[a]; v.push([cv[0]+(av[0]-cv[0])*0.25, cv[1]+(av[1]-cv[1])*0.25, cv[2]+(av[2]-cv[2])*0.25]); });
+            
+            const cvi = [], v0=fv[ai[0]], v1=fv[ai[1]], v2=fv[ai[2]];
+            cvi.push(v.length); v.push([cv[0]+(v0[0]-cv[0])*0.25+(v1[0]-cv[0])*0.25, cv[1]+(v0[1]-cv[1])*0.25+(v1[1]-cv[1])*0.25, cv[2]+(v0[2]-cv[2])*0.25+(v1[2]-cv[2])*0.25]);
+            cvi.push(v.length); v.push([cv[0]+(v0[0]-cv[0])*0.25+(v2[0]-cv[0])*0.25, cv[1]+(v0[1]-cv[1])*0.25+(v2[1]-cv[1])*0.25, cv[2]+(v0[2]-cv[2])*0.25+(v2[2]-cv[2])*0.25]);
+            cvi.push(v.length); v.push([cv[0]+(v1[0]-cv[0])*0.25+(v2[0]-cv[0])*0.25, cv[1]+(v1[1]-cv[1])*0.25+(v2[1]-cv[1])*0.25, cv[2]+(v1[2]-cv[2])*0.25+(v2[2]-cv[2])*0.25]);
+            const ici = v.length;
+            v.push([cv[0]+(v0[0]-cv[0])*0.25+(v1[0]-cv[0])*0.25+(v2[0]-cv[0])*0.25, cv[1]+(v0[1]-cv[1])*0.25+(v1[1]-cv[1])*0.25+(v2[1]-cv[1])*0.25, cv[2]+(v0[2]-cv[2])*0.25+(v1[2]-cv[2])*0.25+(v2[2]-cv[2])*0.25]);
+            
+            const e = [];
+            [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]].forEach(([f,t]) => {
+                if (f!==ci && t!==ci) e.push([vm[f],vm[t]]);
+                else { const nv = f===ci?t:f, ei = ai.indexOf(nv); if (ei!==-1) e.push([vm[nv],evi[ei]]); }
+            });
+            e.push([evi[0],cvi[0]],[evi[0],cvi[1]],[evi[1],cvi[0]],[evi[1],cvi[2]],[evi[2],cvi[1]],[evi[2],cvi[2]]);
+            e.push([cvi[0],ici],[cvi[1],ici],[cvi[2],ici]);
+            
+            return { v, e };
+        }
+        
+        // === SCALE-RELATIVE ALPHA (tight sigma for proper overlap) ===
+        function getScaleAlpha(elementScale, baseIntensity) {
+            const ratio = elementScale / viewScale;
+            const logRatio = Math.log(ratio);
+            
+            // Tight sigma = narrow visibility window = fewer elements
+            const sigma = 0.6 * qualityLevel + 0.4;  // 0.4 to 1.0 based on quality
+            const alpha = baseIntensity * Math.exp(-logRatio * logRatio / (2 * sigma * sigma));
+            
+            return alpha;
+        }
+        
+        // === CONTINUOUS SCALE LEVELS ===
+        // Instead of discrete jumps, generate scales based on current viewScale
+        function getActiveScaleLevels() {
+            const levels = [];
+            const scaleRatio = 4;  // Each level is 4x previous
+            
+            // Find the "center" scale level
+            const centerLevel = Math.log(viewScale) / Math.log(scaleRatio);
+            
+            // Generate levels around the center (adaptive based on quality)
+            const range = Math.ceil(2 * qualityLevel) + 1;  // 1 to 3 levels each direction
+            
+            for (let i = -range; i <= range; i++) {
+                const scale = Math.pow(scaleRatio, Math.round(centerLevel) + i);
+                const alpha = getScaleAlpha(scale, 1.0);
+                if (alpha >= ALPHA_THRESHOLD * 0.3) {
+                    levels.push({ scale, alpha });
+                }
+            }
+            
+            return levels;
+        }
+        
+        // === GENERATE FORMATION ===
+        function generateFormation(ox, oy, oz, scale, baseIntensity, detail, isCore) {
+            const elements = [];
+            const testAlpha = getScaleAlpha(scale, baseIntensity);
+            if (testAlpha < ALPHA_THRESHOLD * 0.5) return elements;
+            
+            const cs = cubeSize * scale;
+            const ss = subSize * scale;
+            const fs = fieldSpacing * scale;
+            
+            cubePositions.forEach((pos, idx) => {
+                const cx = pos[0] * (fs/2) + ox;
+                const cy = pos[1] * (fs/2) + oy;
+                const cz = pos[2] * (fs/2) + oz;
+                
+                if (detail <= 1) {
+                    const cube = cutoutCube(cs, cx, cy, cz, idx);
+                    elements.push({ v: cube.v, e: cube.e, scale, baseIntensity, type: 'main', isCore });
+                } else {
+                    const cube = simpleCube(cs, cx, cy, cz);
+                    elements.push({ v: cube.v, e: cube.e, scale, baseIntensity, type: 'simple', isCore: false });
+                }
+                
+                // Subcubes only for core at high quality
+                if (detail === 0 && qualityLevel > 0.5) {
+                    const subScale = scale * 0.25;
+                    const subAlpha = getScaleAlpha(subScale, baseIntensity);
+                    if (subAlpha >= ALPHA_THRESHOLD) {
+                        const mc = missingCorners[idx];
+                        for (let x = 0; x < 4; x++) {
+                            for (let y = 0; y < 4; y++) {
+                                for (let z = 0; z < 4; z++) {
+                                    if (x===mc.x && y===mc.y && z===mc.z) continue;
+                                    const sx = cx + (x-1.5)*ss;
+                                    const sy = cy + (y-1.5)*ss;
+                                    const sz = cz + (z-1.5)*ss;
+                                    const cube = simpleCube(ss*0.85, sx, sy, sz);
+                                    elements.push({ v: cube.v, e: cube.e, scale: subScale, baseIntensity, type: 'sub', isCore });
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            return elements;
+        }
+        
+        // === GENERATE FIELD ===
+        function generateField() {
+            const elements = [];
+            const scaleLevels = getActiveScaleLevels();
+            
+            scaleLevels.forEach(({ scale, alpha: levelAlpha }) => {
+                if (levelAlpha < ALPHA_THRESHOLD) return;
+                
+                const fms = formationSpacing * scale;
+                // Reduce depth at non-primary scales
+                const isPrimary = Math.abs(Math.log(scale / viewScale)) < 0.5;
+                const maxDist = isPrimary ? gridDepth : Math.max(1, Math.floor(gridDepth * 0.5));
+                
+                for (let x = -maxDist; x <= maxDist; x++) {
+                    for (let y = -maxDist; y <= maxDist; y++) {
+                        for (let z = -maxDist; z <= maxDist; z++) {
+                            const dx = x - (isPrimary ? gridX : 0);
+                            const dy = y - (isPrimary ? gridY : 0);
+                            const dz = z - (isPrimary ? gridZ : 0);
+                            const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                            
+                            if (dist > maxDist + 0.5) continue;
+                            
+                            const distFactor = Math.max(0.25, 1.0 / (dist * 0.35 + 1));
+                            const isCore = isPrimary && (x === gridX && y === gridY && z === gridZ);
+                            const baseIntensity = isCore ? 1.0 : distFactor * levelAlpha;
+                            
+                            const detail = isCore ? 0 : (isPrimary ? 1 : 2);
+                            
+                            elements.push(...generateFormation(
+                                dx * fms, dy * fms, dz * fms,
+                                scale, baseIntensity, detail, isCore
+                            ));
+                        }
+                    }
+                }
+            });
+            
+            return elements;
+        }
+        
+        // === TRANSFORMS ===
+        function rotate([x, y, z]) {
+            let y1 = y*Math.cos(rotX) - z*Math.sin(rotX);
+            let z1 = y*Math.sin(rotX) + z*Math.cos(rotX);
+            let x2 = x*Math.cos(rotY) + z1*Math.sin(rotY);
+            let z2 = -x*Math.sin(rotY) + z1*Math.cos(rotY);
+            return [x2, y1, z2];
+        }
+        
+        function project([x, y, z]) {
+            // Dynamic focal based on view scale (prevents star collapse)
+            const focal = 400 * Math.pow(viewScale, 0.25);
+            const clampedFocal = Math.max(150, Math.min(1500, focal));
+            
+            z += clampedFocal * 1.2;
+            if (z < 20) return null;
+            
+            const scale = clampedFocal / z * viewScale;
+            return { x: centerX + x * scale, y: centerY + y * scale, z };
+        }
+        
+        // === DRAW ===
+        function draw() {
+            ctx.fillStyle = '#0a0414';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Subtle center glow
+            const grad = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.min(width,height)*0.5);
+            grad.addColorStop(0, 'rgba(20, 12, 50, 0.08)');
+            grad.addColorStop(1, 'rgba(10, 4, 20, 0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, width, height);
+            
+            const elements = generateField();
+            
+            // Transform and project
+            const projected = [];
+            elements.forEach(el => {
+                const rotated = el.v.map(v => rotate(v));
+                const pts = rotated.map(v => project(v));
+                if (pts.some(p => p === null)) return;
+                
+                const avgZ = pts.reduce((s,p) => s + p.z, 0) / pts.length;
+                projected.push({ el, pts, z: avgZ });
+            });
+            
+            // Sort back to front
+            projected.sort((a,b) => a.z - b.z);
+            
+            renderedElements = 0;
+            ctx.lineCap = 'round';
+            
+            projected.forEach(({ el, pts, z }) => {
+                // Calculate final alpha
+                const scaleAlpha = getScaleAlpha(el.scale, el.baseIntensity);
+                const depthFactor = Math.max(0.15, Math.min(1.0, 1 - z / 3000));
+                let alpha = scaleAlpha * depthFactor;
+                
+                // Core boost
+                if (el.isCore) alpha *= 1.4;
+                
+                // Culling
+                if (alpha < ALPHA_THRESHOLD) return;
+                
+                renderedElements++;
+                
+                // Colors
+                const light = el.isCore ? 55 : (el.type === 'sub' ? 45 : 48);
+                const finalAlpha = Math.min(alpha * 0.8, 0.6);
+                
+                ctx.strokeStyle = `hsla(${hue}, ${sat}%, ${light}%, ${finalAlpha})`;
+                
+                // Blur only if enabled AND for core elements
+                if (blurEnabled && el.isCore) {
+                    ctx.shadowColor = `hsla(${hue}, ${sat+10}%, ${light-10}%, ${finalAlpha * 0.4})`;
+                    ctx.shadowBlur = el.type === 'sub' ? 6 : 10;
+                } else {
+                    ctx.shadowBlur = 0;
+                }
+                
+                ctx.lineWidth = el.type === 'sub' ? 0.4 : 0.6;
+                
+                el.e.forEach(([i, j]) => {
+                    if (pts[i] && pts[j]) {
+                        ctx.beginPath();
+                        ctx.moveTo(pts[i].x, pts[i].y);
+                        ctx.lineTo(pts[j].x, pts[j].y);
+                        ctx.stroke();
+                    }
+                });
+            });
+            
+            ctx.shadowBlur = 0;
+            
+            // FPS and adaptive quality
+            frameCount++;
+            const now = performance.now();
+            if (now - fpsTime >= 500) {  // Update every 0.5s for smoother reading
+                fps = Math.round(frameCount * 1000 / (now - fpsTime));
+                updateQuality();
+                
+                document.getElementById('fpsD').textContent = fps;
+                document.getElementById('elemD').textContent = renderedElements;
+                document.getElementById('qualD').textContent = Math.round(qualityLevel * 100) + '%';
+                
+                frameCount = 0;
+                fpsTime = now;
+            }
+        }
+        
+        // === ANIMATION ===
+        function animate() {
+            // Responsive rotation (minimal dampening)
+            velRotX += (targetRotX - rotX) * smoothing;
+            velRotY += (targetRotY - rotY) * smoothing;
+            velRotX *= friction;
+            velRotY *= friction;
+            rotX += velRotX;
+            rotY += velRotY;
+            
+            if (isRotating) {
+                targetRotY += rotSpeed;
+                targetRotX += rotSpeed * 0.1;
+            }
+            
+            draw();
+            requestAnimationFrame(animate);
+        }
+        
+        // === CONTROLS ===
+        function toggleRotation() {
+            isRotating = !isRotating;
+            document.getElementById('rotBtn').textContent = isRotating ? 'Pause' : 'Rotate';
+        }
+        
+        function toggleBlur() {
+            blurEnabled = !blurEnabled;
+            document.getElementById('blurBtn').textContent = 'Blur: ' + (blurEnabled ? 'ON' : 'OFF');
+            document.getElementById('blurBtn').classList.toggle('active', blurEnabled);
+        }
+        
+        function resetView() {
+            rotX = targetRotX = 0.25;
+            rotY = targetRotY = 0.35;
+            viewScale = 1.0;
+            gridX = gridY = gridZ = 0;
+            gridDepth = 2;
+            velRotX = velRotY = 0;
+            qualityLevel = 1.0;
+            updateDisplays();
+        }
+        
+        function toggleInfo() {
+            infoPanelVisible = !infoPanelVisible;
+            document.getElementById('infoPanel').classList.toggle('hidden', !infoPanelVisible);
+        }
+        
+        function updateDisplays() {
+            document.getElementById('scaleD').textContent = viewScale < 0.01 ? viewScale.toExponential(1) : viewScale.toFixed(2);
+            document.getElementById('gridD').textContent = `${gridX},${gridY},${gridZ}`;
+        }
+        
+        // === INPUT ===
+        canvas.addEventListener('mousedown', e => {
+            isDragging = true;
+            lastX = e.clientX;
+            lastY = e.clientY;
+        });
+        
+        canvas.addEventListener('mousemove', e => {
+            if (!isDragging) return;
+            const dx = e.clientX - lastX;
+            const dy = e.clientY - lastY;
+            
+            // Sensitivity coupled with performance
+            const sens = 0.003 * getInputSensitivity();
+            targetRotY += dx * sens;
+            targetRotX += dy * sens;
+            
+            lastX = e.clientX;
+            lastY = e.clientY;
+        });
+        
+        canvas.addEventListener('mouseup', () => isDragging = false);
+        canvas.addEventListener('mouseleave', () => isDragging = false);
+        
+        canvas.addEventListener('wheel', e => {
+            e.preventDefault();
+            // Smoother zoom coupled with performance
+            const sens = getInputSensitivity();
+            const factor = e.deltaY > 0 ? (0.94 * sens + 0.03) : (1.06 * sens + 0.02);
+            viewScale = Math.max(minScale, Math.min(maxScale, viewScale * factor));
+            updateDisplays();
+        });
+        
+        document.addEventListener('keydown', e => {
+            switch (e.key) {
+                case ' ': e.preventDefault(); toggleRotation(); break;
+                case 'i': case 'I': toggleInfo(); break;
+                case 'b': case 'B': toggleBlur(); break;
+                case 'r': case 'R': resetView(); break;
+                case 'ArrowUp': gridY++; updateDisplays(); break;
+                case 'ArrowDown': gridY--; updateDisplays(); break;
+                case 'ArrowLeft': gridX--; updateDisplays(); break;
+                case 'ArrowRight': gridX++; updateDisplays(); break;
+                case 'PageUp': gridZ++; updateDisplays(); break;
+                case 'PageDown': gridZ--; updateDisplays(); break;
+                case '+': case '=': gridDepth = Math.min(maxGridDepth, gridDepth+1); break;
+                case '-': case '_': gridDepth = Math.max(1, gridDepth-1); break;
+            }
+        });
+        
+        // Touch
+        let lastTouchDist = 0;
+        canvas.addEventListener('touchstart', e => {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                lastX = e.touches[0].clientX;
+                lastY = e.touches[0].clientY;
+            } else if (e.touches.length === 2) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                lastTouchDist = Math.sqrt(dx*dx + dy*dy);
+            }
+        });
+        
+        canvas.addEventListener('touchmove', e => {
+            e.preventDefault();
+            if (e.touches.length === 1 && isDragging) {
+                const dx = e.touches[0].clientX - lastX;
+                const dy = e.touches[0].clientY - lastY;
+                const sens = 0.004 * getInputSensitivity();
+                targetRotY += dx * sens;
+                targetRotX += dy * sens;
+                lastX = e.touches[0].clientX;
+                lastY = e.touches[0].clientY;
+            } else if (e.touches.length === 2) {
+                const dx = e.touches[0].clientX - e.touches[1].clientX;
+                const dy = e.touches[0].clientY - e.touches[1].clientY;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (lastTouchDist > 0) {
+                    viewScale = Math.max(minScale, Math.min(maxScale, viewScale * (dist/lastTouchDist)));
+                    updateDisplays();
+                }
+                lastTouchDist = dist;
+            }
+        });
+        
+        canvas.addEventListener('touchend', () => { isDragging = false; lastTouchDist = 0; });
+        
+        // === INIT ===
+        window.addEventListener('resize', resize);
+        resize();
+        updateDisplays();
+        animate();
+    </script>
+</body>
+</html>

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol-7 Cosmic Network Shell</title>
+    <style>
+        :root {
+            --main-bg-color: rgba(0, 8, 25, 0.5);
+            --shell-bg-color: rgba(5, 12, 35, 0.65);
+            --text-color: rgba(140, 200, 255, 0.85);
+            --neon-purple: rgba(180, 100, 255, 0.24);
+            --neon-cyan: rgba(100, 240, 255, 0.24);
+            --neon-pink: rgba(255, 100, 200, 0.24);
+            --blacklight-violet: rgba(130, 80, 255, 0.3);
+            --prompt-color: rgba(110, 230, 255, 0.85);
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background-color: black;
+            font-family: 'Courier New', monospace;
+            color: var(--text-color);
+        }
+
+        #star-field {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #shell-container {
+            position: relative;
+            width: 90%;
+            height: 80%;
+            margin: 3% auto;
+            background-color: var(--shell-bg-color);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(130, 80, 255, 0.25);
+            padding: 20px;
+            z-index: 2;
+            overflow: hidden;
+            backdrop-filter: blur(3px);
+        }
+
+        #shell-header {
+            border-bottom: 1px solid rgba(140, 150, 255, 0.25);
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: var(--prompt-color);
+        }
+
+        #shell-content {
+            height: calc(100% - 60px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 10px;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+
+        #shell-input-line {
+            display: flex;
+            margin-top: 10px;
+        }
+
+        #shell-prompt {
+            color: var(--prompt-color);
+            margin-right: 8px;
+        }
+
+        #shell-input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-color);
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            flex-grow: 1;
+            caret-color: var(--blacklight-violet);
+        }
+
+        .command-output {
+            margin: 10px 0;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .neon-text-effect {
+            text-shadow: 
+                0 0 5px var(--text-color),
+                0 0 10px var(--blacklight-violet),
+                0 0 15px var(--neon-purple);
+        }
+
+        .previous-command {
+            color: rgba(180, 220, 255, 0.7);
+            margin-bottom: 5px;
+        }
+
+        .entanglement-pulse {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            background: radial-gradient(
+                circle,
+                rgba(130, 80, 255, 0.1) 0%,
+                rgba(100, 150, 255, 0.05) 50%,
+                transparent 70%
+            );
+            animation: pulse 3s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.1; }
+            50% { transform: scale(1.1); opacity: 0.2; }
+            100% { transform: scale(0.8); opacity: 0.1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* For our scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 15, 40, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(130, 150, 255, 0.25);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(130, 180, 255, 0.35);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="star-field"></canvas>
+    <div id="shell-container">
+        <div id="shell-header">
+            .: nailara <[|protocol seven|]> terminal :.
+        </div>
+        <div id="shell-content">
+            <div class="command-output">
+                <p>Initializing protocol-7 network shell...</p>
+                <p>Connected to nailara network. Type 'help' for available commands.</p>
+                <p>Current node: <span class="neon-text-effect">alpha-centauri.p7</span></p>
+                <p>Quantum entropy: <span class="neon-text-effect">-13=5+42=-+0</span></p>
+            </div>
+        </div>
+        <div id="shell-input-line">
+            <div id="shell-prompt">p7 &gt;</div>
+            <input type="text" id="shell-input" autofocus>
+        </div>
+    </div>
+
+    <script>
+        // Star field with character reactivity
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('star-field');
+            const ctx = canvas.getContext('2d');
+            const shellContent = document.getElementById('shell-content');
+            const shellInput = document.getElementById('shell-input');
+            const shellContainer = document.getElementById('shell-container');
+            
+            // Resize canvas to window size
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Star properties
+            const stars = [];
+            const starCount = 800;
+            const maxDepth = 1500;
+            let starSpeed = 0.5;  // Positive means moving away from viewer
+            let rotation = 0;
+            const rotationSpeed = -0.0005; // Counterclockwise rotation
+            
+            // Color palette for stars
+            const starColors = [
+                { r: 255, g: 255, b: 255 },  // White
+                { r: 200, g: 220, b: 255 },  // Light blue
+                { r: 180, g: 180, b: 255 },  // Pale blue
+                { r: 200, g: 180, b: 255 },  // Pale purple
+                { r: 230, g: 200, b: 255 }   // Light violet
+            ];
+            
+            // Generate initial stars
+            for (let i = 0; i < starCount; i++) {
+                // Choose a color from our palette
+                const colorBase = starColors[Math.floor(Math.random() * starColors.length)];
+                
+                stars.push({
+                    x: Math.random() * 2000 - 1000,
+                    y: Math.random() * 2000 - 1000,
+                    z: Math.random() * maxDepth,
+                    brightness: Math.random() * 0.7 + 0.3,
+                    shimmerSpeed: Math.random() * 0.03 + 0.01,
+                    shimmerStrength: Math.random() * 0.3 + 0.1,
+                    shimmerOffset: Math.random() * Math.PI * 2,
+                    colorBase: colorBase,
+                    size: Math.random() * 1.5 + 0.5
+                });
+            }
+            
+            // Text influence map
+            let influenceMap = new Array(canvas.width * canvas.height).fill(0);
+            
+            // Create pulsating entanglement effect
+            function createEntanglementPulse(x, y) {
+                const pulse = document.createElement('div');
+                pulse.className = 'entanglement-pulse';
+                pulse.style.left = x + 'px';
+                pulse.style.top = y + 'px';
+                const size = Math.random() * 200 + 100;
+                pulse.style.width = size + 'px';
+                pulse.style.height = size + 'px';
+                pulse.style.animationDelay = Math.random() * 2 + 's';
+                
+                document.body.appendChild(pulse);
+                
+                // Remove after animation
+                setTimeout(() => {
+                    pulse.remove();
+                }, 10000);
+            }
+            
+            // Occasionally create entanglement pulses
+            setInterval(() => {
+                if (Math.random() > 0.7) {
+                    const x = Math.random() * window.innerWidth;
+                    const y = Math.random() * window.innerHeight;
+                    createEntanglementPulse(x, y);
+                }
+            }, 2000);
+            
+            // Update influence map based on text content
+            function updateInfluenceMap() {
+                // Reset influence map
+                influenceMap = new Array(canvas.width * canvas.height).fill(0);
+                
+                // Get text content
+                const textContent = shellContent.textContent || '';
+                
+                // For each character, create an influence point
+                for (let i = 0; i < textContent.length; i++) {
+                    const char = textContent[i];
+                    if (char.trim() === '') continue;
+                    
+                    // Random position based on character
+                    const x = Math.floor(Math.random() * canvas.width);
+                    const y = Math.floor(Math.random() * canvas.height);
+                    
+                    // Create ripple effect
+                    const charCode = textContent.charCodeAt(i);
+                    const radius = (charCode % 15) + 15;
+                    const strength = (charCode % 7) / 10;
+                    
+                    // Add influence to map
+                    for (let rx = -radius; rx < radius; rx++) {
+                        for (let ry = -radius; ry < radius; ry++) {
+                            const dist = Math.sqrt(rx*rx + ry*ry);
+                            if (dist < radius) {
+                                const ix = x + rx;
+                                const iy = y + ry;
+                                if (ix >= 0 && ix < canvas.width && iy >= 0 && iy < canvas.height) {
+                                    const idx = iy * canvas.width + ix;
+                                    const influence = strength * (1 - dist/radius);
+                                    influenceMap[idx] = Math.max(influenceMap[idx], influence);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Animation loop
+            function animate() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Update rotation
+                rotation += rotationSpeed;
+                
+                // Center of screen
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                
+                // Movement factor
+                const moveFactor = 100;
+                
+                // Current time for shimmer effect
+                const now = Date.now() / 1000;
+                
+                // Render stars
+                stars.forEach((star, i) => {
+                    // Move star away from viewer (z increases)
+                    star.z += starSpeed;
+                    
+                    // Reset star if it's too far
+                    if (star.z >= maxDepth) {
+                        star.z = 0;
+                        star.x = Math.random() * 2000 - 1000;
+                        star.y = Math.random() * 2000 - 1000;
+                    }
+                    
+                    // Apply rotation
+                    const rotatedX = star.x * Math.cos(rotation) - star.y * Math.sin(rotation);
+                    const rotatedY = star.x * Math.sin(rotation) + star.y * Math.cos(rotation);
+                    
+                    // Project 3D position to 2D screen
+                    const scale = moveFactor / (star.z + 1);
+                    const x2d = rotatedX * scale + centerX;
+                    const y2d = rotatedY * scale + centerY;
+                    
+                    // Check if star is visible
+                    if (x2d >= 0 && x2d < canvas.width && y2d >= 0 && y2d < canvas.height) {
+                        // Get influence at this position
+                        const idx = Math.floor(y2d) * canvas.width + Math.floor(x2d);
+                        const influence = idx < influenceMap.length ? influenceMap[idx] : 0;
+                        
+                        // Inverse influence (stars get dimmer when text influence is stronger)
+                        const inverseInfluence = 1 - influence * 2.5;
+                        
+                        // Shimmer effect - subtle pulsing brightness
+                        const shimmer = Math.sin(now * star.shimmerSpeed + star.shimmerOffset) * star.shimmerStrength + 0.8;
+                        
+                        // Combine brightness factors
+                        const finalBrightness = star.brightness * inverseInfluence * shimmer;
+                        
+                        // Star size based on depth with small random variation
+                        const sizeScale = 1 - (star.z / maxDepth);
+                        const size = Math.max(0.1, star.size * sizeScale * scale);
+                        
+                        // Draw star with translucent fluorescent effect
+                        if (finalBrightness > 0.1) {
+                            // Get base color
+                            const c = star.colorBase;
+                            
+                            // Add fluorescent glow
+                            const glowSize = size * (2 + finalBrightness);
+                            const glowAlpha = finalBrightness * 0.15;
+                            
+                            // Outer glow (very subtle)
+                            ctx.beginPath();
+                            ctx.arc(x2d, y2d, glowSize * 2, 0, Math.PI * 2);
+                            ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${glowAlpha * 0.2})`;
+                            ctx.fill();
+                            
+                            // Middle glow
+                            ctx.beginPath();
+                            ctx.arc(x2d, y2d, glowSize, 0, Math.PI * 2);
+                            ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${glowAlpha})`;
+                            ctx.fill();
+                            
+                            // Core of star
+                            ctx.beginPath();
+                            ctx.arc(x2d, y2d, size, 0, Math.PI * 2);
+                            const alpha = Math.min(0.9, finalBrightness);
+                            ctx.fillStyle = `rgba(${c.r}, ${c.g}, ${c.b}, ${alpha})`;
+                            ctx.fill();
+                        }
+                    }
+                });
+                
+                requestAnimationFrame(animate);
+            }
+            
+            // Initialize animation
+            updateInfluenceMap();
+            animate();
+            
+            // Update influence map periodically
+            setInterval(updateInfluenceMap, 1000);
+            
+            // Handle shell input
+            shellInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    const command = this.value.trim();
+                    if (command) {
+                        // Add command to shell content
+                        const previousCommand = document.createElement('div');
+                        previousCommand.className = 'previous-command';
+                        previousCommand.textContent = `p7 > ${command}`;
+                        shellContent.appendChild(previousCommand);
+                        
+                        // Add command output
+                        const output = document.createElement('div');
+                        output.className = 'command-output';
+                        
+                        // Command handling
+                        switch(command.toLowerCase()) {
+                            case 'help':
+                                output.innerHTML = `
+                                    <p>Available commands:</p>
+                                    <p>- <span class="neon-text-effect">help</span>: Show this help message</p>
+                                    <p>- <span class="neon-text-effect">clear</span>: Clear the terminal</p>
+                                    <p>- <span class="neon-text-effect">status</span>: Show network status</p>
+                                    <p>- <span class="neon-text-effect">connect [node]</span>: Connect to a node</p>
+                                    <p>- <span class="neon-text-effect">stars [more|less]</span>: Adjust star density</p>
+                                    <p>- <span class="neon-text-effect">speed [value]</span>: Adjust star speed</p>
+                                    <p>- <span class="neon-text-effect">entropy</span>: Calculate quantum entropy</p>
+                                    <p>- <span class="neon-text-effect">transparency [value]</span>: Adjust shell transparency</p>
+                                    <p>- <span class="neon-text-effect">discover</span>: Search for new nodes</p>
+                                `;
+                                break;
+                            case 'clear':
+                                shellContent.innerHTML = '';
+                                this.value = '';
+                                return;
+                            case 'status':
+                                output.innerHTML = `
+                                    <p>Network Status: <span class="neon-text-effect">ONLINE</span></p>
+                                    <p>Connected Nodes: 13</p>
+                                    <p>Protocol Version: 7.0.42</p>
+                                    <p>Quantum Sync: Stable</p>
+                                    <p>Entropy Level: <span class="neon-text-effect">-13=5+42=-+0</span></p>
+                                    <p>Current Time (UTC): 2025-03-25 09:24:55</p>
+                                    <p>User: nailara-technologies</p>
+                                `;
+                                break;
+                            case 'entropy':
+                                output.innerHTML = `
+                                    <p>Calculating quantum entropy...</p>
+                                    <p>Accessing quantum random number generator...</p>
+                                    <p>Quantum state: <span class="neon-text-effect">entangled</span></p>
+                                    <p>Entropy value: <span class="neon-text-effect">-13=5+42=-+0</span></p>
+                                    <p>Interpretation: The observed paradox reveals the underlying truth of quantum reality.</p>
+                                `;
+                                // Create several entanglement pulses
+                                for (let i = 0; i < 5; i++) {
+                                    setTimeout(() => {
+                                        const x = Math.random() * window.innerWidth;
+                                        const y = Math.random() * window.innerHeight;
+                                        createEntanglementPulse(x, y);
+                                    }, i * 300);
+                                }
+                                break;
+                            case 'stars more':
+                                for (let i = 0; i < 200; i++) {
+                                    const colorBase = starColors[Math.floor(Math.random() * starColors.length)];
+                                    stars.push({
+                                        x: Math.random() * 2000 - 1000,
+                                        y: Math.random() * 2000 - 1000,
+                                        z: Math.random() * maxDepth,
+                                        brightness: Math.random() * 0.7 + 0.3,
+                                        shimmerSpeed: Math.random() * 0.03 + 0.01,
+                                        shimmerStrength: Math.random() * 0.3 + 0.1,
+                                        shimmerOffset: Math.random() * Math.PI * 2,
+                                        colorBase: colorBase,
+                                        size: Math.random() * 1.5 + 0.5
+                                    });
+                                }
+                                output.innerHTML = `<p>Star density increased. Current count: ${stars.length}</p>`;
+                                break;
+                            case 'stars less':
+                                if (stars.length > 400) {
+                                    stars.splice(0, 200);
+                                    output.innerHTML = `<p>Star density decreased. Current count: ${stars.length}</p>`;
+                                } else {
+                                    output.innerHTML = `<p>Cannot decrease further. Minimum star density reached.</p>`;
+                                }
+                                break;
+                            case 'discover':
+                                output.innerHTML = `
+                                    <p>Scanning quantum network for new nodes...</p>
+                                    <p>Discovery pulse sent through entanglement channels...</p>
+                                    <p>Found 3 new potential nodes:</p>
+                                    <p>- <span class="neon-text-effect">sirius.p7</span> (distance: 8.6 light years)</p>
+                                    <p>- <span class="neon-text-effect">epsilon-eridani.p7</span> (distance: 10.5 light years)</p>
+                                    <p>- <span class="neon-text-effect">tau-ceti.p7</span> (distance: 11.9 light years)</p>
+                                    <p>Use 'connect [node]' to establish quantum link.</p>
+                                `;
+                                // Create discovery pulse animations
+                                for (let i = 0; i < 3; i++) {
+                                    setTimeout(() => {
+                                        createEntanglementPulse(window.innerWidth/2, window.innerHeight/2);
+                                    }, i * 700);
+                                }
+                                break;
+                            default:
+                                if (command.toLowerCase().startsWith('connect')) {
+                                    const nodeName = command.split(' ')[1];
+                                    if (nodeName) {
+                                        output.innerHTML = `
+                                            <p>Establishing quantum link to node: <span class="neon-text-effect">${nodeName}</span>...</p>
+                                            <p>Initializing entanglement synchronization...</p>
+                                            <p>Connection established. Welcome to ${nodeName}.</p>
+                                        `;
+                                        // Create entanglement effect at center of screen
+                                        createEntanglementPulse(window.innerWidth/2, window.innerHeight/2);
+                                    } else {
+                                        output.innerHTML = `<p>Please specify a node name to connect.</p>`;
+                                    }
+                                } else if (command.toLowerCase().startsWith('speed')) {
+                                    const speedValue = parseFloat(command.split(' ')[1]);
+                                    if (!isNaN(speedValue) && speedValue >= 0 && speedValue <= 3) {
+                                        starSpeed = speedValue;
+                                        output.innerHTML = `<p>Star flight speed adjusted to: ${speedValue}</p>`;
+                                    } else {
+                                        output.innerHTML = `<p>Please specify a valid speed value between 0 and 3.</p>`;
+                                    }
+                                } else if (command.toLowerCase().startsWith('transparency')) {
+                                    const value = parseFloat(command.split(' ')[1]);
+                                    if (!isNaN(value) && value >= 0.3 && value <= 0.9) {
+                                        shellContainer.style.backgroundColor = `rgba(5, 12, 35, ${value})`;
+                                        output.innerHTML = `<p>Shell transparency adjusted to: ${value}</p>`;
+                                    } else {
+                                        output.innerHTML = `<p>Please specify a valid transparency value between 0.3 and 0.9.</p>`;
+                                    }
+                                } else {
+                                    output.innerHTML = `<p>Unknown command: ${command}</p>
+                                    <p>Type 'help' for available commands.</p>`;
+                                }
+                        }
+                        
+                        shellContent.appendChild(output);
+                        
+                        // Scroll to bottom
+                        shellContent.scrollTop = shellContent.scrollHeight;
+                        
+                        // Update star field based on new text
+                        updateInfluenceMap();
+                        
+                        // Clear input
+                        this.value = '';
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
