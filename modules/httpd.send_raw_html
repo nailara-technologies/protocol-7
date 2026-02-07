@@ -47,7 +47,7 @@ my $before_len = length( $session->{'buffer'}->{'output'} // '' );
 
 my $header_data = <[httpd.new_header]>->(
     $code,
-    {   'Content-Type'   => 'text/html',
+    {   'Content-Type'   => 'text/html; charset=utf-8',
         'Content-Length' => length($html_str),
         'Connection'     => $session->{'http'}->{'close'}
         ? 'close'
@@ -101,8 +101,8 @@ my $after_len = length( $session->{'buffer'}->{'output'} // '' );
 $session->{'flush_shutdown'} = 1 if $session->{'http'}->{'close'};
 return FALSE;
 
-#,,.,,...,.,.,,,,,...,.,.,,.,,.,,,,,,,,..,.,.,..,,...,...,,,,,...,.,,,.,,,,..,
-#42XJ3KTAWMNXRC6YXCJVXNW42MWUF42HJ36ZSTJNAMM4E3PZYAJEBJNIIBDMAO6ZRBNIVCLDR2V2S
-#\\\|K5BG2BBBF6Q5KUD5ZJK252ZZ7QKY6HH3DS6VWAE2M73MOOA6Z3Z \ / AMOS7 \ YOURUM ::
-#\[7]63JFQCPK32UPUUG5CARNX7U3Y4VRDMSW3FZF5E2VQ4BUW5MMYGBI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,,,,,,.,.,.,..,,,,.,..,,.,.,,,.,..,,...,...,..,,..,,,,.,...,,,.,
+#AR6343AMWTQ3NTLOWYEIH4SNBF7226C5RMCJGF6N2KRYOOHJXARC36SHQ6Q7VNDXSNDNPCKE6R2DC
+#\\\|LJ74JBOSRWJCCQVCM34DLHDYEJC7YSXO7DNU2PKQG2ORPZZHGJI \ / AMOS7 \ YOURUM ::
+#\[7]3JVO6NWEZAZEZHQ6DUGDKYFBJ626EUQV6T4I3GMN7KII7QEPQKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
