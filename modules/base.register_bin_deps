@@ -37,15 +37,8 @@ if ( $bin_deps =~ s|zenki/$zenka/start$|$cfg_path/zenki/$zenka/os-dep/binary|
 
     my $bin_stat = File::stat::stat($bin_deps);
 
-    my $skip_chmod = TRUE;    ## skip chmod if root and standalone ##
-    if ( $EUID == 0 ) {
-        foreach my $start_type (qw| v7-started-zenka cube v7 |) {
-            $skip_chmod = FALSE
-                and last
-                if defined <system.zenka.type>
-                and <system.zenka.type> eq $start_type;
-        }
-    }
+    ## skip chmod only if not running under v7 control ##
+    my $skip_chmod = !<[base.zenka.is_v7_started]>;
 
     foreach my $bin_name ( <[base.reverse-sort]>->( \%binaries ) ) {
         my $bin_file = join( qw| / |, $bin_deps, $bin_name );
@@ -95,8 +88,8 @@ if ( @not_registered and not $warned ) {
     <base.register_bin_deps.warned>++;
 }
 
-#,,..,,.,,,,,,,,.,.,.,,.,,,,,,,.,,,..,..,,.,.,..,,...,..,,...,..,,,,.,.,.,,..,
-#HMQ67KFXJO42JI5P7XYKAW5XI6V26TPSNSUQB47M3T4DUM7FR2ABWBIPGWX3NM2GPOPZSBVDO427Y
-#\\\|P2SVQ73LDJP6TOLWCJDLKXASXWRNYOHLERYSIAT7575VQBX3FDS \ / AMOS7 \ YOURUM ::
-#\[7]K6423MO3SCCOTJIU5NH7XBAR2TJTOVS7NKSR6KFQXX56HRIC4ACY 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,,.,,.,,,,,.,,..,,..,.,.,,,.,..,,..,,...,...,...,..,,,,,,,,.,,.,,
+#JI3VXBNTP6TFO42R75OCDKEZHQ42VMOU2XPEM26ZG45OMSZZ77AUYGX2NQFIFETRKGHHIV5JR7W4I
+#\\\|535EKQJJQYZJCYMZFVYLXHRROQVS6P4G6ZUEDZ26XAPYW7R4GL6 \ / AMOS7 \ YOURUM ::
+#\[7]AAPEIEDEZ7FKDAJ6YWQJY5P6V2IMTYMTPSPAQOUTKC5TIANEG6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

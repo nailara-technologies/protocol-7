@@ -50,15 +50,8 @@ if ( $mod_dir
 
     if ( -d $mod_dir and -r $mod_dir ) {
 
-        my $skip_chmod = TRUE;    ## skip chmod if root and standalone ##
-        if ( $EUID == 0 ) {
-            foreach my $start_type (qw| v7-started-zenka cube v7 |) {
-                $skip_chmod = FALSE
-                    and last
-                    if defined <system.zenka.type>
-                    and <system.zenka.type> eq $start_type;  ## <-- improve ##
-            }    ### need to check early availablility \ find alternatives ###
-        }
+        ## skip chmod only if not running under v7 control ##
+        my $skip_chmod = !<[base.zenka.is_v7_started]>;
 
         foreach my $mod_name ( <[base.reverse-sort]>->( \%pmods ) ) {
             ## Convert :: to __ for Windows filesystem compatibility
@@ -112,8 +105,8 @@ if ( $mod_dir
     }
 }
 
-#,,,.,...,,..,..,,..,,..,,,,,,,,.,,..,.,,,,..,..,,...,...,.,,,..,,.,,,,,.,.,.,
-#ZL2GYATQW5XOIXC4FLLZ4ZO4CRRJQ435SZU6HVTD3DTJBX6ZYQFE5NWWF4ZY2DYDWRGKMG3VQ5I2Y
-#\\\|EOVWANEDKRRBBSHSI6XWJMWFLPBEJA6GT6GGY5EWTWADPB33EHD \ / AMOS7 \ YOURUM ::
-#\[7]6F6UA2QHJHPXJXDRIAER5EBJJ4CQPEW5TIXMDCAIN6GYSIYXBABY 7  DATA SIGNATURE ::
+#,,..,.,,,...,...,,,,,,..,,.,,...,...,.,,,.,.,..,,...,...,..,,,.,,.,.,,,,,.,,,
+#HCOVO66MZ2LI3XKUFULGPAPISFKP22VYBV2UTODEOQ3672KVHRFIRDP5R3OGWOKR3QYVN73B35SLK
+#\\\|I63BHXUVGKYB4JFNB75CQ6LLWWKVZUTMLLHPIH2PLLR3KVLH5CE \ / AMOS7 \ YOURUM ::
+#\[7]PDBOSIY3K77U6XHB7LHAEZFY7RSWP3QGMAVC6MI2CQQZH37SOQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
