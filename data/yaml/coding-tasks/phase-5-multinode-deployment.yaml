@@ -1,0 +1,541 @@
+---
+document_title: "Phase 5: Multi-Node Deployment & Hardware Repair"
+document_date: 2026-02-07
+phase_number: 5
+phase_status: "Pending Phase 4 completion"
+related_roadmap: "protocol-7-transition-roadmap.yaml"
+
+description: |
+  Deploy Protocol-7 across multiple physical nodes.
+  Repair and integrate corrupted/crashed hardware.
+  Establish distributed network with topology-aware routing.
+
+  This is where the system transcends single-machine limitations:
+  - Raspberry Pi: Low-power distributed compute node
+  - Fanless ATOM: Server-grade local node
+  - 2 repaired laptops: Increase total network capacity
+  - Main Linux desktop: Central development node
+
+  Result: Actual distributed network with cubic topology, no single point of failure.
+
+---
+
+## Strategic Context
+
+Phase 5 is the practical deployment phase. Everything up to Phase 4 was infrastructure.
+Phase 5 proves the infrastructure works across real hardware diversity.
+
+Key milestones:
+- **Transcend single-host limitations**
+- **Test topology-aware routing in practice**
+- **Validate multi-node resilience**
+- **Repair hardware through software (better than manual recovery)**
+- **Establish network as primary computing platform**
+
+---
+
+## Task Groups
+
+### Group A: Hardware Preparation & Data Recovery
+**Priority**: HIGH
+**Status**: Pending Phase 4 (can start preparation during 4)
+**Effort**: 40-80 hours (highly variable, depends on hardware damage)
+**Enables**: Group B deployment
+**Blocker**: Hardware assessment
+
+#### Task A1: Assess hardware status and plan recovery
+**Status**: pending
+**Effort**: 4-6 hours
+**Blocker**: None (assessment task)
+
+Description:
+  Understand current state of each hardware node.
+  Plan recovery strategy for damaged hardware.
+
+Hardware nodes to assess:
+  1. **Raspberry Pi**
+     - Current state? (working? need setup?)
+     - Storage? (SD card? external?)
+     - Network connectivity? (WiFi? Ethernet?)
+     - Current OS? (Raspbian? Need upgrade?)
+
+  2. **Fanless ATOM desktop/server**
+     - Current state?
+     - Storage capacity and type?
+     - Network setup?
+     - Current OS?
+
+  3. **Laptop 1** (corrupted filesystem)
+     - How corrupted? (won't boot? boot but files missing?)
+     - Storage type/size?
+     - Recovery options? (disk recovery tools? data salvage?)
+     - Plan: fix or reformat?
+
+  4. **Laptop 2** (corrupted/crashed)
+     - Similar assessment as Laptop 1
+
+  5. **Main Linux desktop** (current work machine during transition)
+     - Current state?
+     - Interim? Or permanent node?
+
+Steps:
+  1. Boot each node, assess state
+     - Can it start?
+     - Can it reach network?
+     - Can it access storage?
+
+  2. For damaged hardware:
+     - Attempt recovery if possible
+     - Document filesystem state
+     - Plan data recovery (files worth saving?)
+
+  3. Create hardware manifest
+     - Node names/IDs
+     - Specs (CPU, RAM, Storage)
+     - Current OS version
+     - Network capability
+     - Damage assessment
+     - Recovery plan
+
+  4. Prioritize recovery
+     - Which nodes to fix first?
+     - Which can be deployed immediately?
+     - Which need extensive work?
+
+  5. Get user input on priorities
+
+Acceptance criteria:
+  - All 5 nodes assessed
+  - Hardware manifest created
+  - Damage/recovery documented
+  - Prioritized plan created
+  - User approves recovery strategy
+
+#### Task A2: Perform data recovery on damaged nodes
+**Status**: pending (after A1)
+**Effort**: 20-60 hours (highly variable)
+**Blocker**: Task A1 (plan created)
+**Dependencies**: Task A1
+
+Description:
+  Recover data from corrupted filesystems on laptops.
+
+Steps:
+  1. **For Laptop 1 (corrupted filesystem)**
+     - Assess filesystem damage level
+     - Try filesystem repair tools:
+       - fsck (if on Linux)
+       - chkdsk (if Windows)
+       - Disk Utility (if macOS)
+     - Attempt recovery if repair doesn't work
+     - Extract recoverable files
+     - Document successful/failed recoveries
+
+  2. **For Laptop 2 (crashed filesystem)**
+     - Similar recovery procedure
+     - May require external recovery tools
+     - May require professional recovery service
+       (if user deems critical data at risk)
+
+  3. **Create recovery archive**
+     - Store recovered files safely
+     - Create checksums for verification
+     - Store in checksum-FS (Phase 2)
+     - Document what was recovered
+
+  4. **Plan fresh install**
+     - Once data recovered, can cleanly reinstall OS
+     - Avoids persistent corruption issues
+
+Acceptance criteria:
+  - Data recovery attempted on both laptops
+  - Recoverable data extracted
+  - Recovery success rate documented
+  - Recovered data stored safely (with checksums)
+  - Ready for OS reinstall
+
+#### Task A3: Prepare OS install media
+**Status**: pending (parallel with A2 or after)
+**Effort**: 2-3 hours
+**Blocker**: Task A1 (decision on which OS)
+
+Description:
+  Create install media for fresh OS deployment on all nodes.
+
+Steps:
+  1. **Choose Linux distribution**
+     - Consistent across all nodes? (easier administration)
+     - Debian/Ubuntu? Fedora? Alpine? (consider Raspberry Pi)
+     - Document choice and rationale
+
+  2. **Create install media**
+     - For Raspberry Pi: SD card image
+     - For desktops/laptops: USB boot media
+     - For ATOM: USB or network boot image
+
+  3. **Prepare unattended install config** (if possible)
+     - Preseed/kickstart files for automation
+     - Network configuration
+     - User/password setup
+     - Disk partitioning
+
+  4. **Create node-specific install configs**
+     - Each node may have different:
+       - Hostname
+       - IP address (if static)
+       - Disk partitioning
+       - Services to enable
+
+Acceptance criteria:
+  - Install media ready for all nodes
+  - Unattended config files prepared
+  - Node-specific configs documented
+  - Ready for deployment
+
+---
+
+### Group B: Node Deployment & Network Integration
+**Priority**: CRITICAL
+**Status**: Pending Phase 4 + Group A recovery
+**Effort**: 30-40 hours
+**Enables**: Group C
+**Blocker**: Phase 4 (topology working), Group A (nodes ready)
+
+#### Task B1: Install OS on all nodes
+**Status**: pending (after A2-A3)
+**Effort**: 8-10 hours (includes waiting for installs)
+**Blocker**: Group A (recovery done, media ready)
+**Dependencies**: Group A
+
+Description:
+  Deploy fresh OS on all hardware nodes.
+
+Steps:
+  1. **Raspberry Pi**
+     - Write SD card image
+     - Boot and configure
+     - Connect to network
+     - Verify connectivity
+
+  2. **Fanless ATOM node**
+     - Boot from install media
+     - Run installation
+     - Configure networking
+     - Verify connectivity
+
+  3. **Laptop 1 (recovered)**
+     - Fresh OS install (format disk)
+     - Configure for node operation
+     - Network setup
+
+  4. **Laptop 2 (recovered)**
+     - Fresh OS install
+     - Configure for node operation
+     - Network setup
+
+  5. **Main Linux desktop** (likely already installed during Phase 1)
+     - Verify up-to-date
+     - Configure for node operation
+
+Acceptance criteria:
+  - All 5 nodes have working OS
+  - All nodes can reach network
+  - All nodes can reach each other (ping)
+  - All nodes have working storage
+  - All nodes assigned static IPs (if appropriate)
+
+#### Task B2: Deploy Protocol-7 on all nodes
+**Status**: pending (after B1)
+**Effort**: 10-15 hours
+**Blocker**: Task B1 (OS installed)
+**Dependencies**: Task B1, Phase 6 (likely partially done)
+
+Description:
+  Install and configure Protocol-7 on each node.
+
+Steps:
+  1. **Use installers from Phase 6** (if available)
+     - Automatic deployment
+     - Consistent configuration
+
+  2. **Or manual deployment:**
+     - Clone source from main node
+     - Run dependency installation
+     - Configure local services:
+       - Checksum-FS (Phase 2)
+       - Indexer (Phase 2)
+       - Routing (Phase 4)
+       - Basic zenka (cube, v7, httpd)
+
+  3. **Per-node configuration**
+     - Unique node ID
+     - Position in topology
+     - Network addresses
+     - Services to host
+
+  4. **Start cube zenka** (message router)
+     - All nodes need cube to communicate
+     - Establish initial network mesh
+
+  5. **Verify communication**
+     - Can each node reach cube?
+     - Can cube route messages?
+     - Can nodes discover each other?
+
+Acceptance criteria:
+  - Protocol-7 installed on all nodes
+  - All nodes can communicate via cube
+  - Each node has unique ID and topology position
+  - Basic services starting correctly
+  - Network is operational
+
+#### Task B3: Validate topology across nodes
+**Status**: pending (after B2)
+**Effort**: 4-6 hours
+**Blocker**: Task B2 (nodes networked)
+**Dependencies**: Task B2, Phase 4 (validation)
+
+Description:
+  Verify that actual topology matches design.
+
+Steps:
+  1. **Capture topology state from all nodes**
+     - Each node reports its position
+     - Each node reports known neighbors
+     - Aggregate into global view
+
+  2. **Compare with expected topology**
+     - Does each node have correct position?
+     - Are connections as expected?
+     - Are there unexpected issues?
+
+  3. **Run topology validation from Phase 4**
+     - Use validation tools from Phase 4
+     - Test against real network
+     - Generate validation report
+
+  4. **Fix topology issues if found**
+     - Are positions wrong?
+     - Are routes not optimal?
+     - Are nodes not discovering each other?
+
+Acceptance criteria:
+  - Actual topology validated
+  - Matches expected structure from Phase 4
+  - All nodes in correct positions
+  - All connections established
+  - Topology stable
+
+---
+
+### Group C: Multi-Node Resilience Testing & Optimization
+**Priority**: HIGH
+**Status**: Pending Group B
+**Effort**: 15-20 hours
+**Enables**: Phase 6
+**Blocker**: Group B (network operational)
+
+#### Task C1: Test failure scenarios
+**Status**: pending (after B3)
+**Effort**: 6-8 hours
+**Blocker**: Group B (topology validated)
+**Dependencies**: Group B
+
+Description:
+  Simulate failures and verify recovery.
+
+Failure scenarios to test:
+  1. **Node failure**
+     - Power off one node
+     - Can topology still reach other nodes?
+     - Do replicas failover correctly?
+     - Does topology heal?
+
+  2. **Network partition**
+     - Disconnect node from network
+     - Does rest of topology continue operating?
+     - What happens when reconnected?
+
+  3. **Service failure**
+     - Stop cube on one node
+     - Can v7 restart it?
+     - Can other nodes route around?
+
+  4. **Data corruption**
+     - Corrupt a file checksum
+     - Does verification detect it?
+     - Can replica be used?
+     - Can file be recovered?
+
+  5. **Storage failure**
+     - Simulate full disk
+     - Does system handle gracefully?
+     - What about replicas?
+
+Steps:
+  1. Design test scenarios
+     - What to test?
+     - Expected outcomes?
+     - Success criteria?
+
+  2. Run each scenario
+     - Document what happened
+     - Measure recovery time
+     - Verify resilience
+
+  3. Fix any issues found
+     - Is recovery too slow?
+     - Do replicas not failover?
+     - Does topology not heal?
+
+  4. Create test report
+
+Acceptance criteria:
+  - All scenarios tested
+  - Resilience verified
+  - Issues identified and fixed
+  - Test report created
+
+#### Task C2: Optimize topology routing and caching
+**Status**: pending (after C1)
+**Effort**: 5-8 hours
+**Blocker**: Task C1 (baseline established)
+**Dependencies**: Task C1
+
+Description:
+  Improve performance of topology and caching.
+
+Steps:
+  1. **Profile network traffic**
+     - What are typical access patterns?
+     - What files are accessed frequently?
+     - What nodes are bottlenecks?
+
+  2. **Optimize routing**
+     - Is current routing efficient?
+     - Are packets taking optimal paths?
+     - Can routing be improved?
+
+  3. **Optimize caching**
+     - What should be cached where?
+     - Cache locality to access patterns?
+     - Cache eviction strategy?
+
+  4. **Optimize replica placement**
+     - Are replicas in optimal locations?
+     - Should high-access files have more replicas?
+     - Should critical files be spread wider?
+
+  5. **Measure improvements**
+     - Before/after performance
+     - Latency reduction?
+     - Throughput improvement?
+
+Acceptance criteria:
+  - Performance profiled
+  - Optimizations identified
+  - Optimizations implemented
+  - Performance improvements measured
+  - Ready for production
+
+#### Task C3: Document multi-node operations
+**Status**: pending (after C2)
+**Effort**: 3-4 hours
+**Blocker**: Task C2
+**Dependencies**: Task C2
+
+Description:
+  Create operational documentation for managing distributed network.
+
+Documents to create:
+  1. **Node administration guide**
+     - How to add a new node?
+     - How to remove a node?
+     - How to monitor node health?
+     - How to recover from node failure?
+
+  2. **Network topology reference**
+     - Current topology diagram
+     - Node positions and IDs
+     - Network connectivity map
+     - Service distribution
+
+  3. **Disaster recovery procedures**
+     - What to do if multiple nodes fail?
+     - How to rebuild from checksum-FS?
+     - How to restore services?
+
+  4. **Performance tuning guide**
+     - Common bottlenecks
+     - How to identify them
+     - How to optimize
+
+  5. **Troubleshooting guide**
+     - Common problems
+     - Diagnostic procedures
+     - Recovery steps
+
+Acceptance criteria:
+  - All documentation created
+  - Tested for clarity
+  - Ready for Phase 6 (becomes part of installation docs)
+
+---
+
+## Success Criteria - Phase 5 Complete
+
+- [ ] All hardware nodes assessed and recovered
+- [ ] OS installed on all nodes
+- [ ] Protocol-7 deployed on all nodes
+- [ ] Network topology operational
+- [ ] Topology validated against Phase 4 design
+- [ ] All failure scenarios tested
+- [ ] Resilience mechanisms working
+- [ ] Performance optimized
+- [ ] Multi-node operations documented
+- [ ] Network stable under load
+- [ ] All changes committed
+- [ ] Phase 6 pre-requisites satisfied
+
+---
+
+## Risk Mitigation
+
+### Risk: Hardware damage is beyond repair
+**Mitigation**: A1 assessment early; decide on replacement strategy if needed
+
+### Risk: OS installation is slow/tedious
+**Mitigation**: Automate with unattended install configs
+
+### Risk: Multi-node coordination is complex
+**Mitigation**: Start with 2-3 nodes; add others gradually
+
+### Risk: Topology is unstable with real hardware
+**Mitigation**: Test failures incrementally; fix issues as found
+
+---
+
+## Timeline & Dependencies
+
+**Can start (preparation)**:
+- Group A assessment (Task A1) during Phase 4
+
+**Can run in parallel**:
+- Group A recovery (A2) and media prep (A3) can overlap
+- Group B deployment (B1-B3) can proceed sequentially
+- Group C testing (C1-C3) after B3
+
+**Expected duration**: 2-3 weeks
+**Effort**: 70-130 hours (highly variable due to hardware issues)
+
+---
+
+metadata:
+  created: 2026-02-07
+  related_phases: [4, 6]
+  critical_path: "Assessment → Recovery → OS Install → Protocol-7 Deploy → Validation"
+  estimated_duration: 2-3 weeks
+  effort_hours: 85-145 (includes significant hardware-dependent variability)
+  dependencies: [Phase 4 completion, hardware availability]
+  hardware_nodes: [Raspberry Pi, ATOM desktop/server, 2 laptops, main Linux desktop]
+  key_risk: "Hardware damage extent unknown; recovery time highly variable"

@@ -1,0 +1,671 @@
+---
+document_title: "Phase 6: Reproducible Desktop System & Installers"
+document_date: 2026-02-07
+phase_number: 6
+phase_status: "Pending Phase 5 completion"
+related_roadmap: "protocol-7-transition-roadmap.yaml"
+
+description: |
+  Create fully automated installers for reproducible Protocol-7 systems.
+  Turn ephemeral hardware into persistent, recoverable configurations.
+  Enable rapid deployment of new nodes with standard configuration.
+
+  Result: Reproducible desktop system that can be deployed to any hardware.
+  No more suffering data loss from hardware failures.
+  No more manual configuration of multiple machines.
+
+  "The state for some relief after 24 years of suffering consequences of
+   losing hardware and degrading remainders."
+
+---
+
+## Strategic Context
+
+Phase 6 completes the circle: **Reproducibility becomes the operating system.**
+
+Everything before Phase 6 was building infrastructure. Phase 6 packages that infrastructure
+into reproducible, deployable form.
+
+Once Phase 6 is complete:
+- **New hardware is deployed in minutes, not days**
+- **Configuration is declarative, not manual**
+- **System can be rebuilt from checksums, not fragile backups**
+- **Hardware failure becomes a non-event** (just swap and redeploy)
+
+---
+
+## Task Groups
+
+### Group A: System Configuration Declaratization
+**Priority**: CRITICAL
+**Status**: Pending Phase 5
+**Effort**: 20-30 hours
+**Enables**: Group B (installers)
+**Blocker**: Phase 5 (system operating, stable)
+
+#### Task A1: Capture current system configuration
+**Status**: pending
+**Effort**: 4-6 hours
+**Blocker**: None (capture task)
+
+Description:
+  Document the current state of all nodes.
+  What makes each node work? What needs to be configured?
+
+Capture scope:
+  1. **OS-level configuration**
+     - Linux distribution and version
+     - Kernel version and patches
+     - System libraries and versions
+     - Locale and timezone settings
+     - Network configuration (IPs, DNS, routing)
+
+  2. **User configuration**
+     - User accounts needed
+     - Group membership
+     - SSH keys
+     - Permissions (sudo, etc.)
+
+  3. **Protocol-7 configuration**
+     - Directory structure
+     - Module locations
+     - Zenka definitions
+     - Configuration files
+     - Secrets/keys (how managed?)
+
+  4. **Service configuration**
+     - Which services start on boot?
+     - Service dependencies
+     - Service configuration files
+     - Logging/monitoring configuration
+
+  5. **Storage configuration**
+     - Checksum-FS setup
+     - Data directory structure
+     - Backup/replication setup
+     - Disk partitioning
+
+  6. **Network configuration**
+     - Node positions in topology
+     - Network services (cube, routing)
+     - Firewall rules
+     - DNS/service discovery
+
+Steps:
+  1. **On each node**, document:
+     - `cat /etc/os-release` (OS info)
+     - `uname -a` (kernel)
+     - `ip addr show` (network)
+     - `ps aux` (running services)
+     - Configuration file list
+     - User list and groups
+
+  2. **Review Protocol-7 state**
+     - Directory tree
+     - Module inventory
+     - Configuration inventory
+     - Running zenka list
+
+  3. **Create configuration checklist**
+     - All items to be automated
+     - Dependencies between items
+     - Order of application
+
+  4. **Identify sensitive data**
+     - Keys and secrets
+     - User credentials
+     - Certificates
+     - How to handle in installer?
+
+Acceptance criteria:
+  - Complete configuration captured
+  - All nodes documented
+  - Checklist created
+  - Dependencies identified
+  - Sensitive data strategy planned
+  - Ready for declaratization
+
+#### Task A2: Create Ansible playbooks (or equivalent)
+**Status**: pending (after A1)
+**Effort**: 10-15 hours
+**Blocker**: Task A1
+**Dependencies**: Task A1
+
+Description:
+  Convert captured configuration into automated form.
+  Use Ansible (or equivalent) to make configuration reproducible.
+
+Playbooks needed:
+  1. **base-system.yml**
+     - OS updates
+     - System libraries
+     - Required packages
+     - User accounts
+     - Permissions
+     - Locale/timezone
+
+  2. **network-config.yml**
+     - Network interfaces
+     - IP configuration
+     - DNS setup
+     - Routing
+     - Firewall rules
+
+  3. **protocol7-base.yml**
+     - Directory structure
+     - Source code checkout
+     - Dependency installation (CPAN modules)
+     - Module compilation
+     - Basic zenka setup
+
+  4. **protocol7-services.yml**
+     - Checksum-FS initialization
+     - Indexer setup
+     - Node positioning in topology
+     - Service startup
+
+  5. **node-specific.yml**
+     - Per-node customization
+     - Node ID and position
+     - Storage configuration
+     - Service distribution
+
+Steps:
+  1. **Set up Ansible environment**
+     - Install Ansible
+     - Create playbook structure
+     - Define inventory
+
+  2. **Create base-system playbook**
+     - Test on fresh Ubuntu/Debian VM
+     - Iterate until reproducible
+     - Document any manual steps
+
+  3. **Create network-config playbook**
+     - Configure networking
+     - Verify connectivity
+
+  4. **Create protocol7-base playbook**
+     - Install Protocol-7
+     - Compile modules
+     - Verify installation
+
+  5. **Create protocol7-services playbook**
+     - Start services
+     - Verify they're working
+     - Check topology integration
+
+  6. **Create node-specific playbooks**
+     - One per node type (Pi, ATOM, laptop, desktop)
+     - Hardware-specific configurations
+     - Service distribution
+
+  7. **Integration test**
+     - Deploy to fresh node
+     - Verify full system works
+     - Iterate to fix issues
+
+Acceptance criteria:
+  - All playbooks written
+  - Integration tested
+  - Can deploy fresh system in under 1 hour
+  - All manual steps eliminated (or documented)
+  - Sensitive data handled securely
+
+#### Task A3: Create installer wrapper script
+**Status**: pending (after A2)
+**Effort**: 3-4 hours
+**Blocker**: Task A2
+**Dependencies**: Task A2
+
+Description:
+  Create a single command to deploy new nodes.
+
+Installer should:
+  1. **Detect hardware/OS**
+     - Identify node type
+     - Identify OS
+     - Set configuration accordingly
+
+  2. **Run playbooks in order**
+     - Base system first
+     - Network configuration
+     - Protocol-7 installation
+     - Services startup
+
+  3. **Handle user input**
+     - Which node type? (Pi/ATOM/laptop/desktop)
+     - Node name/ID?
+     - Network configuration?
+     - Topology position?
+
+  4. **Provide progress feedback**
+     - What's being installed
+     - Expected time remaining
+     - Any errors
+
+  5. **Verify success**
+     - System is operational
+     - Services are running
+     - Can reach network
+     - Can reach cube
+
+Example flow:
+```
+./install-protocol7.sh
+  → Select hardware type: [1] Raspberry Pi [2] ATOM [3] Laptop [4] Desktop
+  → Enter node ID: pi-001
+  → Configure network: [1] DHCP [2] Static IP
+  → Running base system configuration...
+  → Running network configuration...
+  → Running Protocol-7 installation...
+  → Running services startup...
+  → Verifying system... ✓ Success
+```
+
+Steps:
+  1. Create installer script
+  2. Test with various inputs
+  3. Add error handling
+  4. Add recovery procedures
+  5. Document usage
+
+Acceptance criteria:
+  - Installer works end-to-end
+  - Can deploy fresh node in 30-60 minutes
+  - Error handling is robust
+  - User feedback is clear
+
+---
+
+### Group B: OS-Level Installer Creation
+**Priority**: HIGH
+**Status**: Pending Group A
+**Effort**: 10-15 hours
+**Enables**: Group C
+**Blocker**: Group A (Ansible playbooks complete)
+
+#### Task B1: Create bootable installer image
+**Status**: pending (after A3)
+**Effort**: 5-8 hours
+**Blocker**: Group A completion
+**Dependencies**: Group A
+
+Description:
+  Create bootable install media that includes Protocol-7 installer.
+
+Deliverables:
+  1. **Debian/Ubuntu installer variant**
+     - Standard installer with preseed configuration
+     - Automatically partitions disk
+     - Automatically configures network
+     - Automatically runs Ansible playbooks
+     - Automatically starts Protocol-7 services
+
+  2. **Raspberry Pi SD card image**
+     - Raspbian with Protocol-7 pre-configured
+     - Boots directly into working system
+     - Network auto-configuration
+     - Just insert SD and boot
+
+  3. **Installation ISO files**
+     - For desktops/laptops/ATOM
+     - Both UEFI and BIOS compatible
+     - Supports both interactive and automated install
+
+  4. **Network boot image** (optional)
+     - For headless servers (ATOM, etc.)
+     - PXE boot support
+     - Enables deployment without USB/CD
+
+Steps:
+  1. **Create Debian preseed file**
+     - Automate OS installation
+     - Partition configuration
+     - Network setup
+     - Post-install script (run Ansible)
+
+  2. **Create Raspberry Pi image**
+     - Use raspios-builder or similar
+     - Include Protocol-7 installation
+     - Pre-configure network (or autodetect)
+
+  3. **Build installer ISO**
+     - Use debian-live or similar
+     - Include preseed file
+     - Include Ansible playbooks
+     - Test on VirtualBox/KVM
+
+  4. **Create documentation**
+     - How to write USB media
+     - How to boot from media
+     - How to configure installation
+     - How to verify installation
+
+Acceptance criteria:
+  - Bootable ISO files created
+  - Raspberry Pi image created
+  - Can deploy fresh system unattended
+  - Installation verified on test hardware
+
+#### Task B2: Create system recovery media
+**Status**: pending (after B1)
+**Effort**: 3-4 hours
+**Blocker**: Task B1
+**Dependencies**: Task B1
+
+Description:
+  Create recovery media for failed systems.
+
+Recovery media should:
+  1. **Boot from USB without installation**
+     - Live system with Protocol-7 tools
+     - Can access local filesystem
+     - Can access network (cube)
+
+  2. **Provide recovery tools**
+     - Checksum-FS repair tools
+     - File integrity verification
+     - Data recovery from cloud backup
+     - Filesystem repair utilities
+
+  3. **Enable system restoration**
+     - Download fresh system from cube
+     - Restore user data from checksums
+     - Re-run Ansible to restore configuration
+     - Boot into recovered system
+
+Steps:
+  1. Create recovery ISO
+     - Based on Debian live
+     - Include recovery tools
+     - Pre-configured to find cube network
+
+  2. Include recovery script
+     - Download and verify system
+     - Restore data from checksums
+     - Run Ansible to restore config
+     - Verify system works
+
+  3. Test recovery
+     - Corrupt filesystem on test node
+     - Boot from recovery media
+     - Run recovery script
+     - Verify system works
+
+Acceptance criteria:
+  - Recovery ISO created
+  - Can recover from corrupted filesystem
+  - Can download fresh system
+  - Can restore user data
+
+---
+
+### Group C: Documentation & Deployment
+**Priority**: HIGH
+**Status**: Pending Phase 5 + Group B
+**Effort**: 10-15 hours
+**Enables**: Beyond Phase 6
+**Blocker**: Group B (installer complete)
+
+#### Task C1: Create installation documentation
+**Status**: pending (after Group A & B)
+**Effort**: 4-6 hours
+**Blocker**: Group B (installer complete)
+**Dependencies**: Group B
+
+Description:
+  Document how to deploy Protocol-7 systems.
+
+Documentation scope:
+  1. **Quick start guide**
+     - Overview of installation process
+     - System requirements
+     - Basic steps (boot, configure, wait)
+     - Expected time (30-60 minutes)
+     - Success verification
+
+  2. **Detailed installation guide**
+     - Step-by-step walkthrough
+     - Screenshots (if GUI)
+     - Hardware-specific instructions
+     - Troubleshooting common issues
+     - Network configuration options
+
+  3. **Configuration reference**
+     - What each Ansible playbook does
+     - How to customize for specific needs
+     - How to add/remove services
+     - How to modify node positioning
+
+  4. **Post-installation procedures**
+     - User account setup
+     - Data restoration
+     - SSH key deployment
+     - Service verification
+     - Network validation
+
+  5. **Troubleshooting guide**
+     - Installation fails at step X
+     - Network not working
+     - Services not starting
+     - How to debug/recover
+
+  6. **Advanced topics**
+     - Building custom installer variants
+     - Modifying Ansible playbooks
+     - Creating node-specific configurations
+     - Scaling to more nodes
+
+Steps:
+  1. Create installation guide (markdown)
+  2. Create screenshots/diagrams
+  3. Write troubleshooting guide
+  4. Test documentation with fresh user
+     (or test deploy to verify accuracy)
+  5. Iterate based on feedback
+
+Acceptance criteria:
+  - Comprehensive documentation created
+  - Tested for clarity and accuracy
+  - Ready for distribution
+
+#### Task C2: Test deployment on all node types
+**Status**: pending (after C1)
+**Effort**: 6-8 hours
+**Blocker**: Group B (installer complete)
+**Dependencies**: Group B
+
+Description:
+  Validate installation works on all hardware types.
+
+Test matrix:
+  1. **Raspberry Pi**
+     - Write SD card image
+     - Boot on actual Raspberry Pi
+     - Verify all services start
+     - Test network connectivity
+     - Test cube communication
+
+  2. **ATOM server**
+     - Boot from USB installer
+     - Complete installation unattended
+     - Verify services
+     - Test topology position
+
+  3. **Laptop 1 (recovered)**
+     - Boot from installer
+     - Fresh system deployment
+     - Verify hardware-specific configs
+     - Test recovery capabilities
+
+  4. **Laptop 2 (recovered)**
+     - Same as Laptop 1
+
+  5. **Desktop** (main Linux development machine)
+     - Deploy to fresh partition or VM
+     - Verify Protocol-7 network integration
+     - Test development workflow
+
+  6. **Mix-and-match testing**
+     - Deploy multiple nodes at once
+     - Verify they discover each other
+     - Test topology formation
+     - Test inter-node communication
+
+Steps:
+  1. Deploy to Raspberry Pi
+  2. Deploy to ATOM
+  3. Deploy to first laptop
+  4. Deploy to second laptop
+  5. Deploy to desktop (or VM)
+  6. Test multi-node scenarios
+  7. Document any issues found
+  8. Fix issues
+  9. Re-test
+
+Acceptance criteria:
+  - All node types deploy successfully
+  - All nodes operational post-install
+  - Multi-node scenarios work
+  - Installation is reproducible (identical results)
+
+#### Task C3: Create distribution package
+**Status**: pending (after C2)
+**Effort**: 2-3 hours
+**Blocker**: Task C2 (verified working)
+**Dependencies**: Task C2
+
+Description:
+  Package everything for easy distribution.
+
+Distribution should include:
+  1. **Installer media**
+     - ISO files (downloadable or bootable)
+     - Raspberry Pi images
+     - USB image writers
+     - SHA256 checksums (verify integrity)
+
+  2. **Documentation**
+     - Installation guide (PDF and HTML)
+     - Configuration reference
+     - Troubleshooting guide
+     - Architecture overview
+
+  3. **License and credits**
+     - Open-source licenses
+     - Dependencies and their licenses
+     - Project credits
+
+  4. **Release notes**
+     - What's new in this version?
+     - Known issues
+     - Performance characteristics
+     - Hardware requirements
+
+Steps:
+  1. Collect all media and docs
+  2. Create checksums
+  3. Package for distribution
+  4. Create README/index
+  5. Upload to distribution point
+     (or prepare for distribution)
+
+Acceptance criteria:
+  - Distribution package ready
+  - Can be deployed to new hardware from single download
+  - Documentation complete
+  - Ready for users/operators
+
+---
+
+## Success Criteria - Phase 6 Complete
+
+- [ ] System configuration fully declaratized
+- [ ] Ansible playbooks comprehensive and tested
+- [ ] Installer wrapper script working
+- [ ] Bootable installer media created
+- [ ] Recovery media created and tested
+- [ ] Installation documentation complete
+- [ ] Deployment tested on all hardware types
+- [ ] Multi-node deployment tested
+- [ ] Installation reproducible (identical every time)
+- [ ] Distribution package ready
+- [ ] All changes committed
+- [ ] **System can be deployed to any hardware in 30-60 minutes**
+- [ ] **No more manual configuration needed**
+- [ ] **Accidental data loss now technically impossible**
+
+---
+
+## Beyond Phase 6
+
+Once Phase 6 is complete:
+
+1. **New hardware**: Deploy in minutes
+2. **Failed hardware**: Swap and redeploy (data never lost)
+3. **Scaling**: Add nodes by running installer
+4. **Reproducibility**: Same config deployed everywhere
+5. **Disaster recovery**: Restore from checksums + reinstall
+6. **DevOps**: Automated deployment like modern systems
+
+The project achieves:
+- **24-year data loss suffering ends**
+- **Accidental data loss technically impossible**
+- **Reproducible infrastructure as foundation for research**
+
+---
+
+## Risk Mitigation
+
+### Risk: Ansible playbooks become overly complex
+**Mitigation**: Keep them simple; only automate what's proven stable
+
+### Risk: Installation fails on some hardware variant
+**Mitigation**: Test on diverse hardware during C2; fix issues immediately
+
+### Risk: User finds installer confusing
+**Mitigation**: Test documentation with non-expert user; iterate based on feedback
+
+### Risk: Recovery doesn't work when actually needed
+**Mitigation**: Test recovery thoroughly during C2; before depending on it in production
+
+---
+
+## Timeline & Dependencies
+
+**Can start (preparation)**:
+- Group A (configuration capture) can start during Phase 5
+
+**Sequencing**:
+- Group A: Capture and create Ansible playbooks (1-2 weeks)
+- Group B: Create installer media (1 week)
+- Group C: Test and document (1-2 weeks)
+
+**Expected total duration**: 3-5 weeks
+**Effort**: 40-60 hours
+
+---
+
+## Final Outcome
+
+After Phase 6:
+- **Self-Explaining Environment Achieved**
+- **Cubic topology network with auto-deployment**
+- **Reproducible infrastructure for future scaling**
+- **Foundation for LLM-assisted development across network**
+
+The 24-year struggle with data loss and hardware failures is over.
+The project is ready for the next phase of research and development.
+
+---
+
+metadata:
+  created: 2026-02-07
+  related_phases: [5]
+  phase_type: "final_phase_of_transition"
+  estimated_duration: 3-5 weeks
+  effort_hours: 40-60
+  dependencies: [Phase 5 completion]
+  success_metric: "Can deploy fresh working node to any hardware in 30-60 minutes"
+  human_impact: "Ends 24-year data loss suffering through technical reproducibility"
