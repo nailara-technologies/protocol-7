@@ -10,26 +10,30 @@ my $bin_deps = <[base.get_path.zenka_cfg]>;
 
 my $file_perm = 0664;    ## zenka group gets write access ##
 
-## Determine owner based on execution context
-my $owner;
-if ( <[base.zenka.is_v7_started]> or <system.zenka.name> eq qw| v7 | ) {
-    ## In v7 zenka context: use protocol-7 user
-    $owner = <system.amos-zenka-user> // qw| protocol-7 |;
-} else {
-    ## Console execution: use current user (likely root)
-    $owner = getpwuid($EUID) // qw| root |;
-}
-
-my ( undef, undef, $owner_uid, $gid ) = getpwnam($owner)
-    or <[base.logs]>->(
-    0, "<< register_bin_deps : unix user '%s' not in passwd >>", $owner
-    ) and return undef;
-
 my @not_registered;
 
 if ( $bin_deps =~ s|zenki/$zenka/start$|$cfg_path/zenki/$zenka/os-dep/binary|
     and -d $bin_deps
     and -r $bin_deps ) {
+
+    ## Get parent directory owner [taeki in dev, root in production] ##
+    my ($parent_uid) = <[base.path_owners]>->($bin_deps);
+    unless ( defined $parent_uid ) {
+        <[base.logs]>->(
+            0,
+            "<< register_bin_deps : cannot get parent dir owner for '%s' >>",
+            $bin_deps
+        );
+        return undef;
+    }
+
+    ## Get zenka group [httpd, httpsd, etc.] ##
+    my $zenka_group = <system.amos-zenka-user> // qw| protocol-7 |;
+    my $gid         = getgrnam($zenka_group)
+        or <[base.logs]>->(
+        0, "<< register_bin_deps : unix group '%s' not in passwd >>",
+        $zenka_group
+        ) and return undef;
 
     my $bin_stat = File::stat::stat($bin_deps);
 
@@ -58,9 +62,19 @@ if ( $bin_deps =~ s|zenki/$zenka/start$|$cfg_path/zenki/$zenka/os-dep/binary|
             }
         }
 
-        next if $skip_chmod;    ## skip chmod [ root + standalone ] ##
-
         ( my $relpath = $bin_file ) =~ s|^.*/||;
+
+        ## always chown to fix existing root-owned files,
+        ## even in standalone zenka mode .., ##
+        if ( $EUID == 0 ) {
+            chown( $parent_uid, $gid, $bin_file )
+                or <[base.logs]>->(
+                2,        ':. : cannot chown %s : %s .:',
+                $relpath, <[base.str.os_err]>
+                );
+        }
+
+        next if $skip_chmod;    ## skip chmod only [ root + standalone ] ##
 
         ## chmod ##
         chmod( $file_perm, $bin_file )
@@ -68,15 +82,6 @@ if ( $bin_deps =~ s|zenki/$zenka/start$|$cfg_path/zenki/$zenka/os-dep/binary|
             2,        ":. : '%s' : chmod : %s .:",
             $relpath, <[base.str.os_err]>
             );
-
-        ## chown ##
-        if ( $EUID == 0 ) {
-            chown( $bin_stat->uid, $gid, $bin_file )
-                or <[base.logs]>->(
-                2,        ':. : cannot chown %s : %s .:',
-                $relpath, <[base.str.os_err]>
-                );
-        }
     }
 }
 
@@ -90,8 +95,8 @@ if ( @not_registered and not $warned ) {
     <base.register_bin_deps.warned>++;
 }
 
-#,,..,...,,.,,.,,,..,,,,,,,..,,..,,.,,,..,,,.,..,,...,...,...,..,,,..,.,,,,,,,
-#DI32R7WDWIFAABOX7QFIMVJN6S7RAVDGRBKJFHCY6Z46PAVZPEH6CMG4XPUH7AL25GGP2NPHKSZZC
-#\\\|GYPXOJVD3OOEFCDULOEVV4XIOWIUWNZG2NBWNZNKNFZDPRUBH4F \ / AMOS7 \ YOURUM ::
-#\[7]V2ZYTHVS4ITOTMJBRG4RY5AAJ3VMBP52V3DNXVGPKHEH6PZBLEBA 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,,.,.,.,,.,,,,,,,.,,,..,..,,.,.,..,,...,..,,...,..,,,,.,.,.,,..,
+#HMQ67KFXJO42JI5P7XYKAW5XI6V26TPSNSUQB47M3T4DUM7FR2ABWBIPGWX3NM2GPOPZSBVDO427Y
+#\\\|P2SVQ73LDJP6TOLWCJDLKXASXWRNYOHLERYSIAT7575VQBX3FDS \ / AMOS7 \ YOURUM ::
+#\[7]K6423MO3SCCOTJIU5NH7XBAR2TJTOVS7NKSR6KFQXX56HRIC4ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

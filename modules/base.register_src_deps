@@ -9,22 +9,24 @@ my $start_cfg_name = qw| start |;
 
 my $file_perm = 0664;    ## zenka group gets write access ##
 
-## Determine owner based on execution context
-my $owner;
-if ( <[base.zenka.is_v7_started]> or <system.zenka.name> eq qw| v7 | ) {
-    ## In v7 zenka context: use protocol-7 user
-    $owner = <system.amos-zenka-user> // qw| protocol-7 |;
-} else {
-    ## Console execution: use current user (likely root)
-    $owner = getpwuid($EUID) // qw| root |;
-}
-
 my $src_deps = <[base.get_path.zenka_cfg]>;
 $src_deps =~ s|zenki/$zenka/$start_cfg_name|$cfg_path/zenki/$zenka/source|;
 
-my ( undef, undef, $owner_uid, $gid ) = getpwnam($owner)
+## Get parent directory owner [taeki in dev, root in production] ##
+my ($parent_uid) = <[base.path_owners]>->($src_deps);
+unless ( defined $parent_uid ) {
+    <[base.logs]>->(
+        0, "<< register_src_deps : cannot get parent dir owner for '%s' >>",
+        $src_deps
+    );
+    return undef;
+}
+
+## Get zenka group [httpd, httpsd, etc.] ##
+my $zenka_group = <system.amos-zenka-user> // qw| protocol-7 |;
+my $gid         = getgrnam($zenka_group)
     or <[base.logs]>->(
-    0, "<< register_src_deps : unix user '%s' not in passwd >>", $owner
+    0, "<< register_src_deps : unix group '%s' not in passwd >>", $zenka_group
     ) and return undef;
 
 if ( -d $src_deps and -w $src_deps ) {
@@ -50,9 +52,19 @@ if ( -d $src_deps and -w $src_deps ) {
             open( $fh, qw| >> |, $touch_file ) and close($fh);
         }
 
-        next if $skip_chmod;    ## skip chmod [ root + standalone ] ##
-
         ( my $relpath = $touch_file ) =~ s|^.*/||;
+
+        ## always chown to fix existing root-owned files,
+        ## even in standalone zenka mode ##
+        if ( $EUID == 0 ) {
+            chown( $parent_uid, $gid, $touch_file )
+                or <[base.logs]>->(
+                2,        ':. : cannot chown %s : %s .:',
+                $relpath, <[base.str.os_err]>
+                );
+        }
+
+        next if $skip_chmod;    ## skip chmod only [ root + standalone ] ##
 
         ## chmod ##
         chmod( $file_perm, $touch_file )
@@ -60,22 +72,13 @@ if ( -d $src_deps and -w $src_deps ) {
             2,        ":. : '%s' : chmod : %s .:",
             $relpath, <[base.str.os_err]>
             );
-
-        ## chown ##
-        if ( $EUID == 0 ) {
-            chown( $src_stat->uid, $gid, $touch_file )
-                or <[base.logs]>->(
-                2,        ':. : cannot chown %s : %s .:',
-                $relpath, <[base.str.os_err]>
-                );
-        }
     }
 } else {
     <[base.log]>->( 2, "<< no [writable] src-deps directory found >>" );
 }
 
-#,,,,,..,,.,.,,..,.,.,.,.,,,,,,.,,,,,,...,,,,,..,,...,...,.,.,,..,,,,,..,,..,,
-#IDYCYAHRZDMNAHH5EXHC3KUS4Z3C2M6EVD2YRS2GMGA2EBBQRGN5KBNKHE4Q6XFNLX7WORR4XQIWQ
-#\\\|Q53TVUIEIVVT3EOJFPQWIA472FO5QFPRNAFPBLEPK3CEPCHBGUN \ / AMOS7 \ YOURUM ::
-#\[7]AZASJWXP4FWYB3VFDZIF6D3JRWIHZMX5GDM7NW5YBSSW354FN6CA 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,.,,.,,,,,,,..,,.,,.,,,,,.,.,,,..,,...,...,,.,,..,,,,.,,,,,..,,
+#WQYRRMXFSSMAT42QORTR3BMYPIEMPCW6VSJWJ7JQY7LQJ6UGWUQ7PJE24N467LWTX7XM5S7C5734A
+#\\\|DULKMUTGYZBSZRTHZOC5JJWXDCPXMZBULIYVPEKLMXD6A5I5QQU \ / AMOS7 \ YOURUM ::
+#\[7]SQS6V4NB3YJQ5OQG24DJQN5K6BZ3OKD3JPUCZQSXETIPXYOJZQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
