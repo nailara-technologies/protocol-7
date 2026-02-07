@@ -1420,7 +1420,7 @@ sub p7_load_code {
             my $src_abs_path;
             my $src_rel = $code{'base.check_bin_p7'}->("modules/$file_name");
             ## tracking readability ##
-            my $source_not_readable = not defined $src_rel;
+            my $source_not_readable = not defined $src_rel ? TRUE : undef;
 
             $src_rel //= sprintf qw| modules/%s |, $file_name;    # <-- warn.
 
@@ -1468,6 +1468,8 @@ sub p7_load_code {
                     $data{'code'}{$file_name}{'source_not_readable'}
                         = $source_not_readable;
                     next;
+                } elsif ( not defined $source_not_readable ) {
+                    delete $data{'code'}{$file_name}->{'source_not_readable'};
                 }
 
                 # <[sub_name]>->(  -->  $code{'sub_name'}->(
@@ -1515,8 +1517,6 @@ sub p7_load_code {
 
                 # register for error \ success tracking #
                 $module_code_map{$file_name} = $code_name;
-                $data{'code'}{$file_name}{'source_not_readable'}
-                    = $source_not_readable;
 
             } elsif ( $file_name =~ m|\.orig$| ) {
                 $code{'log.error'}->(
@@ -1779,7 +1779,7 @@ sub p7_load_code {
 
         $compilation_success = FALSE if $source_len == 0;
         $compilation_success = FALSE
-            if $data{'code'}{$sub_name}{'source_not_readable'};
+            if defined $data{'code'}{$sub_name}{'source_not_readable'};
 
         if ($compilation_success) {
 
@@ -2410,9 +2410,9 @@ sub p7_base_util_base32_decode {
     my $input_string = shift;
     return '' unless defined $input_string && length $input_string;
 
-    my %alphabet
-        = map { substr( join( '', 'A' .. 'Z', '2' .. '7' ), $ARG, 1 ) => $ARG }
-        0 .. 31;
+    my %alphabet = map {
+        substr( join( '', 'A' .. 'Z', '2' .. '7' ), $ARG, 1 ) => $ARG
+    } 0 .. 31;
 
     ##  RFC 4648 base32 without padding [base32r variant]  ##
     ##  No padding removal needed  ##
@@ -5308,8 +5308,8 @@ __DATA__
 :
 :.
 
-#,,,.,...,.,,,,..,,..,,,.,,,,,,..,,..,.,.,..,,...,...,...,...,,,,,,,.,...,...,
-#GC5PH7YRKQADV7VSAJOJEETF5F5E6R7LJKDDNRZYOL4YDZ55HAXPDGVO3XBKTA3FB4PAEBAWYVUAU
-#\\\|WRUKVGHTQPMFR4JM7JSESKNEVA4YVIXXYD24NRO2IINX2QR5AIR \ / AMOS7 \ YOURUM ::
-#\[7]L6YEJK2BIKX4CLWXZLI3PFF3EC5S4UVJE36Y25SRXWMQ2CT2RMBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,...,...,..,,.,.,..,,,,.,..,,,..,...,...,...,.,,,..,,,,.,...,.,.,
+#GA4Q2PCB33G3U7E2KKF24CRS3ZWS2FUZA5PBJEXMCNZZ37NAW7Y77ENPUH2MB26KY3FRUWXZN7Y7C
+#\\\|CIXSDPHFCR333SJ5R4F42LHK3FIJRS4YX73JHO7W7WNJSL2LKYE \ / AMOS7 \ YOURUM ::
+#\[7]OEQN24FF34UYPYCC3GR2JECCDDJI7QPQCZTFGGUNPI5OYAZWPKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
