@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name = httpd.serve_static
-# descr = serve static files (called by route_dispatcher as fallback handler)
+# descr = serve static files [called by route_dispatcher as fallback handler]
 #
 # This handler manages serving static files from the filesystem.
 # It's the fallback route when no template or API match exists.
@@ -11,7 +11,7 @@
 #   $_[1] - Handler args hash with 'path' key
 #
 # Returns:
-#   HTTP status code or deferred (for large files)
+#   HTTP status code or deferred [for large files]
 
 my $session_id   = shift                   // '';
 my $handler_args = shift                   // {};
@@ -27,34 +27,39 @@ my $response  = $session->{'response'};
 my $http_host = $session->{'http_host'};
 my $site_dir  = <httpd.cfg.site_dir> // '/var/httpd';
 
-<[base.log]>->( 1, "[$session_id] serve_static: attempting to serve $path" );
+<[base.logs]>->(
+    1,           "[%s] serve_static: attempting to serve '%s'",
+    $session_id, $path
+);
 
 # Build full file path - look up hostname in hostnames hash to get directory
 my $base_dir = <httpd.cfg.hostnames>->{$http_host};
 <[base.logs]>->(
     2,
-    "[$session_id] serve_static: http_host='%s', base_dir='%s' (defined=%s), path='%s'",
+    "[%s] serve_static: http_host='%s', base_dir='%s' [defined=%s], path='%s'",
+    $session_id,
     $http_host,
     $base_dir // 'UNDEF',
     ( defined $base_dir ? 'yes' : 'no' ),
     $path
 );
 unless ( defined $base_dir ) {
-    <[base.log]>->(
-        0,
-        "[$session_id] serve_static: hostname '$http_host' not found in hostnames config"
+    <[base.logs]>->(
+        0, "[%s] serve_static: hostname '%s' not found in hostnames config",
+        $session_id, $http_host
     );
     return <[httpd.send_error_page]>->( $session_id, 404 );
 }
 
 my $file_path = join( '', $base_dir, $path );
-<[base.logs]>
-    ->( 2, "[$session_id] serve_static: file_path='%s'", $file_path );
+<[base.logs]>->(
+    2,           "[%s] serve_static: file_path='%s'",
+    $session_id, $file_path
+);
 $file_path =~ s|/$||;
 <[base.logs]>->(
-    2,
-    "[$session_id] serve_static: after strip trailing slash: file_path='%s'",
-    $file_path
+    2, "[%s] serve_static: after strip trailing slash: file_path='%s'",
+    $session_id, $file_path
 );
 
 # Check for template file instead (backward compat) using directory listing
@@ -76,17 +81,19 @@ if ( opendir( my $check_fh, $parent_dir ) ) {
 }
 
 if ( !$has_file and $has_tmpl ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         2,
-        "[$session_id] serve_static: found template $file_path.tmpl, redirecting to template processor"
+        "[%s] serve_static: found template %s, redirecting to template processor",
+        $session_id,
+        $file_path . ".tmpl"
     );
 
-    # This shouldn't happen if routing is correct, but handle gracefully
-    return <[httpd.process_template]>->( $session_id, "$file_path.tmpl" );
+    ## this shouldn't happen if routing is correct, but handle gracefully
+    return <[httpd.process_template]>->( $session_id, $file_path . ".tmpl" );
 }
 
-# Check if it's a directory - try index files first
-## Use opendir/readdir instead of -d operator for SSL socket context compatibility
+# Check if it's a directory - try index files first Use opendir/readdir
+## instead of -d operator for SSL socket context compatibility
 my $dir_fh;
 my $is_directory     = 0;
 my $found_index_html = 0;
@@ -108,7 +115,8 @@ if ( opendir( $dir_fh, $file_path ) ) {
 
     <[base.logs]>->(
         2,
-        "[$session_id] directory: found_index.html=%s, found_index.tmpl=%s",
+        "[%s] directory: found_index.html=%s, found_index.tmpl=%s",
+        $session_id,
         ( $found_index_html ? 'YES' : 'NO' ),
         ( $found_index_tmpl ? 'YES' : 'NO' )
     );
@@ -117,18 +125,22 @@ if ( opendir( $dir_fh, $file_path ) ) {
 if ($found_index_html) {
     $file_path = "$file_path/index.html";
     <[base.logs]>->(
-        2, "[$session_id] found index.html in directory, using: $file_path"
+        2,           "[%s] found index.html in directory, using: '%s'",
+        $session_id, $file_path
     );
 } elsif ($found_index_tmpl) {
-    <[base.log]>->(
-        2, "[$session_id] found index.tmpl, redirecting to template processor"
+    <[base.logs]>->(
+        2, "[%s] found index.tmpl, redirecting to template processor",
+        $session_id
     );
-    return
-        <[httpd.process_template]>->( $session_id, "$file_path/index.tmpl" );
+    return <[httpd.process_template]>->(
+        $session_id, $file_path . "/index.tmpl"
+    );
 } elsif ($is_directory) {
-    ## Directory exists but no index files
-    <[base.log]>->(
-        1, "[$session_id] directory listing not allowed: $file_path"
+    ## directory exists but no index files
+    <[base.logs]>->(
+        1,           "[%s] directory listing not allowed: '%s'",
+        $session_id, $file_path
     );
     return <[httpd.send_error_page]>->( $session_id, 403 );
 }
@@ -154,16 +166,20 @@ if ( opendir( my $final_check_fh, $final_parent_dir ) ) {
 
 if ( !$file_exists ) {
     <[base.logs]>->(
-        1, "[$session_id] file not found: $file_path, calling send_error_page"
+        1,           "[%s] file not found: '%s', calling send_error_page",
+        $session_id, $file_path
     );
     my $result = <[httpd.send_error_page]>->( $session_id, 404 );
-    <[base.logs]>->( 2, "[$session_id] send_error_page returned: $result" );
+    <[base.logs]>->(
+        2,           "[%s] send_error_page returned: %s",
+        $session_id, $result
+    );
     return $result;
 }
 
-## Note: Skip -r check as it may fail in SSL socket context
-## File permissions will be checked when we attempt to open the file (line 182+)
-## If file is not readable, open() will fail and we'll return 500 error
+## Note: Skip -r check as it may fail in SSL socket context File permissions
+## will be checked when we attempt to open the file [line 182+] If file is
+## not readable, open() will fail and we'll return 500 error
 
 # Get file metadata
 my $file_stat     = File::stat::stat($file_path);
@@ -171,6 +187,12 @@ my $content_inode = $file_stat->ino;
 my $content_size  = $file_stat->size;
 my $content_date  = time2str( $file_stat->mtime );
 my $content_type  = mimetype($file_path) // 'application/octet-stream';
+
+# add utf-8 charset for text-based content types
+if ( $content_type =~ m{^(?:text|application/(?:json|xml|javascript|xhtml))} )
+{
+    $content_type .= '; charset=utf-8' unless $content_type =~ m{charset};
+}
 
 # Generate ETag
 my $path_etag = <[chk-sum.elf.vax-BASE32]>
@@ -183,14 +205,14 @@ my $reply_code = 200;
 if ( defined $request->{'headers'}->{'if-none-match'}
     and $request->{'headers'}->{'if-none-match'} eq
     $response->{'params'}->{'ETag'} ) {
-    <[base.log]>->(
-        1, "[$session_id] returning 304 Not Modified (ETag match)"
+    <[base.logs]>->(
+        1, "[%s] returning 304 Not Modified [ETag match]", $session_id
     );
     $reply_code = 304;
 } elsif ( defined $request->{'headers'}->{'if-modified-since'}
     and $request->{'headers'}->{'if-modified-since'} eq $content_date ) {
-    <[base.log]>->(
-        1, "[$session_id] returning 304 Not Modified (date match)"
+    <[base.logs]>->(
+        1, "[%s] returning 304 Not Modified [date match]", $session_id
     );
     $reply_code = 304;
 }
@@ -210,21 +232,26 @@ if ( $reply_code != 200 ) {
     $session->{'buffer'}->{'output'}
         .= <[httpd.new_header]>->( $reply_code, $reply_header );
 
-# Set flush_shutdown so base.handler.write will close after flushing the buffer
+    # Set flush_shutdown so base.handler.write will close after
+    # flushing the buffer
     $session->{'flush_shutdown'} = 1 if $session->{'http'}->{'close'};
     return FALSE;
 }
 
 # Serve small files directly
 if ( $content_size <= 16 * 1024 and not exists $request->{'range'} ) {
-    <[base.log]>->(
-        2, "[$session_id] serving small file directly ($content_size bytes)"
+    <[base.logs]>->(
+        2,           "[%s] serving small file directly [%d bytes]",
+        $session_id, $content_size
     );
 
     local $RS = undef;
     open( my $content_fh, '< :raw', $file_path )
         or do {
-        <[base.log]>->( 0, "[$session_id] failed to open $file_path: $!" );
+        <[base.logs]>->(
+            0, "[%s] failed to open '%s': %s",
+            $session_id, $file_path, <[base.str.os_err]>
+        );
         return <[httpd.send_error_page]>->( $session_id, 500 );
         };
 
@@ -233,16 +260,17 @@ if ( $content_size <= 16 * 1024 and not exists $request->{'range'} ) {
         . <$content_fh>;
     close($content_fh);
 
-# Set flush_shutdown so base.handler.write will close after flushing the buffer
-# Don't return 2 immediately - let the write handler finish sending the response
+    # Set flush_shutdown so base.handler.write will close after flushing the
+    # buffer Don't return 2 immediately - let the write handler finish
+    # sending the response
     $session->{'flush_shutdown'} = 1 if $session->{'http'}->{'close'};
     return FALSE;
 }
 
 # For large files, use download transfer mechanism
-<[base.log]>->(
-    2,
-    "[$session_id] serving large file via download handler ($content_size bytes)"
+<[base.logs]>->(
+    2,           "[%s] serving large file via download handler [%d bytes]",
+    $session_id, $content_size
 );
 
 return <[httpd.download_init]>->(
@@ -252,8 +280,8 @@ return <[httpd.download_init]>->(
     }
 );
 
-#,,..,.,,,,..,...,,..,,..,...,,,,,,..,.,.,..,,..,,...,...,...,.,.,.,,,.,.,..,,
-#3X3AYS2CVZN76JHTLWNI4EWF4OQNBXFLYCS3UIAUMIZBWVO6H4EDWBVDLV4GMYGM5CHKVRICDAMMQ
-#\\\|2IWEJ766RES5XNQBP5A2INEONA6PQW5STRZMXRJN2PYECTHCMIN \ / AMOS7 \ YOURUM ::
-#\[7]TN7IHQI4KBR2VODLWAA7BJG5ULHDLXR2C5JC5APMJTT4IUAYZMCI 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,.,,.,,,.,.,,,.,..,,,,.,,.,,...,..,,...,...,...,.,,,.,,,,.,,,.,,
+#JOYSO34R3LLYMR545D4HAXNHNVU5RSR63DERGAJWEYDIKJH3DNENZX5HEEDHGJJ5TFWSL2I3AKN7M
+#\\\|EDZKJH3K7WGQXTFDXSX5TA7MHQMJYGIGO25DILK2EGWMLJHPG6X \ / AMOS7 \ YOURUM ::
+#\[7]NQZEQFEPOIO5P27JPXBJUOCL27MZF2BVGD6U3EXZYAZP4WO2UEBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
