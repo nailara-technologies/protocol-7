@@ -46,8 +46,14 @@ if (<system.devmod_capture>) {
 ## Handle incomplete SIZE \ STRM \ STRM-SIZE replies [ tracked by byte count ]
 if ( defined $session->{'ignore_bytes'} ) {    # ..dropped SIZE replies.,
     if ( my $ignore_bytes = $session->{'ignore_bytes'} ) {
-        <[base.log]>->(
-            '[%d] dropping %03d [ignore-]byte%s.,',
+        my $ignore_log_level = 1;
+        $ignore_log_level = 2
+            if exists <net.silent_ignore>->{$user}
+            and <net.silent_ignore>->{$user}
+            or exists $session->{'silent_ignore'}
+            and $session->{'silent_ignore'};
+        <[base.logs]>->(
+            $ignore_log_level, '[%d] dropping %03d [ignore-]byte%s.,',
             $id, $ignore_bytes, <[base.cnt_s]>->($ignore_bytes)
         );
         if ( $buffer_length >= $ignore_bytes ) {
@@ -67,8 +73,14 @@ if ( defined $session->{'ignore_bytes'} ) {    # ..dropped SIZE replies.,
 ## Handle incomplete CHRSIZE replies [ tracked by character count ]
 if ( defined $session->{'ignore_chars'} ) {
     if ( my $ignore_chars = $session->{'ignore_chars'} ) {
-        <[base.log]>->(
-            '[%d] dropping %03d [ignore-]char%s.,',
+        my $ignore_log_level = 1;
+        $ignore_log_level = 2
+            if exists <net.silent_ignore>->{$user}
+            and <net.silent_ignore>->{$user}
+            or exists $session->{'silent_ignore'}
+            and $session->{'silent_ignore'};
+        <[base.logs]>->(
+            $ignore_log_level, '[%d] dropping %03d [ignore-]char%s.,',
             $id, $ignore_chars, <[base.cnt_s]>->($ignore_chars)
         );
 
@@ -1000,13 +1012,11 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
     } else {
         my $ignore_log_level = 1;
-
         $ignore_log_level = 2
             if exists <net.silent_ignore>->{$user}
             and <net.silent_ignore>->{$user}
             or exists $session->{'silent_ignore'}
             and $session->{'silent_ignore'};
-
         <[base.logs]>->(
             $ignore_log_level,
             "[%d] %s-reply to unknown route id [%d], ignored.",
@@ -1097,7 +1107,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                 return 0;                         ## comand complete ###
 
             } else {
-                <[base.log]>->(
+                <[base.logs]>->(
                     $ignore_log_level,
                     "[%d] : to ignore next %03d byte%s., [ %s ]",
                     $id,
@@ -1808,8 +1818,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,.,,,,,,..,,,.,,,.,,,..,...,,.,,,..,,,,,,,,,..,,...,...,...,.,,,..,,,..,,..,
-#2Q47B73BX4DLB4DC6KNHXLLECCIPP74VRESYVS5SFR6IAXK3DLR3GIZEM3ZEQSQ66E55B3542E5QQ
-#\\\|PJSB6MFLFCVRQCUYMEHCVCIQPXRMJ4HJ3TUYED45HK4WYKPM4GT \ / AMOS7 \ YOURUM ::
-#\[7]LOIA62SGC2YLVJKL2LLX5ZSFDIYTIOQT2A3T72KRNZ3JDR3JEQAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,,,,,..,,,.,.,,,...,,,.,,..,,,,,..,,...,...,.,.,.,.,.,,,,,.,.,.,
+#RQGKOYVAMZIQKFTAJD4CTIPYAXNJLOOK6VHLGIMX63MRTK3CELW4DJMHVCSSM2ZIMVJOVLMWEACDA
+#\\\|QPUT53TIBLZB5BSUAUYSHCXAE7TQ7PAH6RX7OZC23MSL2MKGRLJ \ / AMOS7 \ YOURUM ::
+#\[7]YQQH5IELSJSC54H52TFSK7QVPPUUHLBZZL5YWWVNUPA534FOAYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

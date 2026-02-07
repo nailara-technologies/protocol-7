@@ -16,17 +16,15 @@ if ( not defined $id or not defined $data{'session'}{$id} ) {
     return undef;
 }
 
-my $session = $data{'session'}{$id};
-my $fd      = $session->{'input'}->{'handle'} // $session->{'handle'};
-
-my $type      = $data{'handle'}{$fd}{'link'};
-my $proto     = $session->{'protocol'};
-my $state     = $session->{'state'};
-my $mode      = $data{'handle'}{$fd}{'mode'};
-my $handler   = $session->{'input'}->{'handler'};
-my $start_len = length $session->{'buffer'}->{'input'};
-my $len       = $start_len;
-
+my $session     = $data{'session'}{$id};
+my $fd          = $session->{'input'}->{'handle'} // $session->{'handle'};
+my $type        = $data{'handle'}{$fd}{'link'};
+my $proto       = $session->{'protocol'};
+my $state       = $session->{'state'};
+my $mode        = $data{'handle'}{$fd}{'mode'};
+my $handler     = $session->{'input'}->{'handler'};
+my $start_len   = length $session->{'buffer'}->{'input'};
+my $len         = $start_len;
 my $handle_href = $data{'handle'}{ $session->{'handle'} };
 
 $session->{'shutdown'}       //= FALSE;
@@ -40,8 +38,8 @@ my $ret_code = 0;    ## track handler return code for later decision logic ##
 
 if ( defined $handler and exists $code{$handler} ) {
 
-    $ret_code = $code{$handler}->($event);
-    $len = length $session->{'buffer'}->{'input'};
+    $ret_code = $code{$handler}->($event);    ## call input handler ##
+    $len      = length $session->{'buffer'}->{'input'};
 
     ## return code 0 ## command processed  [ removed from buffer ]
     ## return code 1 ## ..not complete.,   [ more data expected. ]
@@ -139,8 +137,8 @@ if ( $session->{'read-mode'} eq qw| linewise | ) {
         and rindex( $session->{'buffer'}->{'input'}, "\n" ) != -1;
 }
 
-#,,,.,,,.,...,,.,,...,.,.,.,,,...,.,,,,.,,,.,,..,,...,...,.,,,.,,,...,.,.,...,
-#SKONK5VAVUC2SAYCADAQQJSFYNWGJNPLCZBPWSW2HPGFVLQDSIFAKSKUM57NIEC4AI3PRXDXI7WHA
-#\\\|FJANNUDLPDBI5XSZPDEZHNJQGJHTNTRQDO35KA5LT76TPGPIQ6H \ / AMOS7 \ YOURUM ::
-#\[7]35B4766AGBU5AERYBX5YDMZV4JFEC5HFLOU3CQGDBZ4ZVRXNIQDY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,.,,,,,,...,,,,,.,.,...,..,,,.,,..,,...,..,,...,...,,,.,,,.,.,.,
+#KD2KJL77LGRMG5R67PJA7TC5AZ4NCT7JXD4R3AKA7SOJNVCWUNBZCFADHZY4CIXPPE5FEFBBB2FO4
+#\\\|YQMNEIBPDU5KPVG5LTWX7ID3B5DCCLISPGZRLZP6KS4GMXHO5JQ \ / AMOS7 \ YOURUM ::
+#\[7]3ZI5JM3V76WNMT7X2OWGKVJNJA4NVK4DTPORBMXFX6RP77SFSQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
