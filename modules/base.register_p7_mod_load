@@ -2,14 +2,14 @@
 
 # name = base.register_p7_mod_load
 
-my @module_names = grep {defined} @_;
+my @module_names = grep {defined} @ARG;
 
 map { $ARG =~ s|\s+||g } @module_names;
 
-map { <base.p7_mod.loaded>->{$ARG} = 1 } grep {length} @module_names;
+map { <base.p7_mod.loaded>->{$ARG} = TRUE } grep {length} @module_names;
 
-#,,.,,..,,..,,,.,,.,.,,.,,...,..,,...,,.,,..,,..,,...,...,.,.,...,,,.,.,,,,.,,
-#MISEOTCGCRARKUOAU5EHT3TV6IDF773XYEYXBOLY6DCEG3NWCO25LAQT2B6MVHO5HGPFRUZBOAC2S
-#\\\|IXLUIRB6ANKKLSQ7RQJZ4GYINAWQDTVP3ANA3QUFU66N7LE6LKW \ / AMOS7 \ YOURUM ::
-#\[7]NTEKKLASXYSPFIVD6GXLEU3FBPR6LVSHG4IYKN36STRYH2J2MSCY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,,,,,.,.,.,.,,,,,.,,.,,,,.,.,.,..,,...,...,,.,,.,,,,.,,.,.,,..,
+#BKSCLSAYDC6ZA2FWTPVYXLJMLG3GAYYCZKNZIB7K3MN6TYRDWEE7SLOBQARKOPE4V5JZZOLRWKMWS
+#\\\|CAGO553TPH3OYBBNTEOW22JBDULJVAD52VJQWVKUOORVVFP6LYF \ / AMOS7 \ YOURUM ::
+#\[7]6B6WAUDRGXG5SERA3N7NM7DWCMLU2TYZHOCSSZ3TH4CVVM7FDMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
