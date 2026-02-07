@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Protocol-7 Cubic Topology Visualization v13.7.1</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    body {
+      background-color: #0c0518;
+      color: #a0c0ff;
+      font-family: monospace;
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+      display: flex;
+      justify-content: center;
+    }
+    
+    .main-container {
+      width: 100%;
+      max-width: 1000px;
+      padding: 2rem;
+      padding-top: 80px;
+    }
+    
+    h1, h2 {
+      color: #b0c0ff;
+    }
+    
+    a {
+      color: #7080e0;
+      text-decoration: none;
+    }
+    
+    a:hover {
+      text-decoration: underline;
+    }
+    
+    .lang-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 200;
+      display: flex;
+      gap: 8px;
+    }
+    
+    .controls-panel {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 200;
+      display: flex;
+      gap: 10px;
+    }
+    
+    .lang-toggle button,
+    .controls-panel button {
+      background: rgba(15, 5, 30, 0.8);
+      border: 1px solid #3030a0;
+      color: #a0c0ff;
+      padding: 8px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: monospace;
+      font-size: 13px;
+      font-weight: bold;
+      transition: all 0.2s ease;
+    }
+    
+    .lang-toggle button:hover,
+    .controls-panel button:hover {
+      background: rgba(25, 10, 50, 0.95);
+      box-shadow: 0 0 15px rgba(60, 20, 200, 0.6);
+      transform: scale(1.05);
+    }
+    
+    .demo-link {
+      display: inline-block;
+      margin: 1.5rem 0;
+      padding: 1rem 1.8rem;
+      background: rgba(15, 5, 30, 0.8);
+      border: 1px solid #3030a0;
+      border-radius: 12px;
+      color: #a0c0ff;
+      font-weight: bold;
+      box-shadow: 0 0 15px rgba(40, 0, 120, 0.4);
+      transition: all 0.3s ease;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    
+    .demo-link:hover {
+      background: rgba(25, 10, 50, 0.9);
+      box-shadow: 0 0 25px rgba(60, 20, 200, 0.6);
+      transform: scale(1.02);
+    }
+    
+    .screenshot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    
+    .screenshot-card {
+      background: rgba(12, 5, 24, 0.7);
+      border: 1px solid #3030a0;
+      border-radius: 12px;
+      padding: 1.2rem;
+      box-shadow: 0 0 15px rgba(40, 0, 120, 0.3);
+    }
+    
+    .screenshot-placeholder {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: linear-gradient(135deg, #100520, #201040);
+      border: 1px dashed #5050a0;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #7080c0;
+      font-size: 0.9rem;
+      text-align: center;
+      margin-bottom: 0.8rem;
+    }
+    
+    .caption {
+      font-size: 0.95rem;
+      color: #8090d0;
+    }
+    
+    .info-panel {
+      max-width: 100%;
+      margin-top: 2rem;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 1.5rem;
+      background: rgba(12, 5, 24, 0.8);
+      border-radius: 15px;
+      border: 1px solid #3030a0;
+      box-shadow: 0 0 20px rgba(60, 0, 120, 0.4);
+    }
+    
+    .feature-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    .feature-list li {
+      margin-bottom: 0.8rem;
+      padding-left: 1.5rem;
+      position: relative;
+    }
+    
+    .feature-list li:before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: #7080c0;
+    }
+    
+    .visualization-container {
+      display: none;
+      width: 100vw;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 100;
+      background: #0c0518;
+    }
+    
+    .visualization-container.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .visualization-frame {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    
+    .close-button {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 201;
+      background: rgba(15, 5, 30, 0.95);
+      border: 1px solid #e040a0;
+      color: #ff80c0;
+      padding: 10px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: monospace;
+      font-size: 13px;
+      font-weight: bold;
+      display: none;
+      transition: all 0.2s ease;
+    }
+    
+    .close-button.active {
+      display: block;
+    }
+    
+    .close-button:hover {
+      background: rgba(25, 10, 50, 0.95);
+      box-shadow: 0 0 15px rgba(224, 64, 160, 0.6);
+      transform: scale(1.05);
+    }
+    
+    [lang="de"] {
+      display: none;
+    }
+    
+    body.de [lang="de"] {
+      display: block;
+    }
+    
+    body.de [lang="en"] {
+      display: none;
+    }
+    
+    body.fullscreen {
+      padding: 0;
+      overflow: hidden;
+    }
+    
+    body.fullscreen .lang-toggle,
+    body.fullscreen .controls-panel {
+      display: none;
+    }
+    
+    body.fullscreen .main-container {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="controls-panel">
+    <button onclick="toggleFullscreen()" lang="en" title="Launch fullscreen visualization">⛶ Fullscreen</button>
+    <button onclick="toggleFullscreen()" lang="de" title="Visualisierung im Vollbildmodus starten">⛶ Vollbild</button>
+  </div>
+
+  <div class="lang-toggle">
+    <button onclick="setLang('en')">EN</button>
+    <button onclick="setLang('de')">DE</button>
+  </div>
+
+  <div class="close-button" onclick="toggleFullscreen()" lang="en">← Exit Fullscreen</div>
+  <div class="close-button" onclick="toggleFullscreen()" lang="de">← Vollbild beenden</div>
+
+  <div class="visualization-container" id="vizContainer">
+    <iframe class="visualization-frame" id="vizFrame" src="grid-v13-final-baseline.html"></iframe>
+  </div>
+
+  <div class="main-container">
+    <h1 lang="en">Protocol-7 Cubic Topology Visualization v13.7.1</h1>
+    <h1 lang="de">Protocol-7 Kubische Topologie-Visualisierung v13.7.1</h1>
+
+    <p lang="en">
+      An interactive visualization of Protocol-7's cubic grid network topology. This version represents
+      the 8×63 sub-cube node group with topologically correct propagation across the cubic space.
+      Features advanced mouse navigation, recursive plane rendering at larger zoom scales creating a
+      "Matrix-like" hyperspace effect, and intuitive controls for exploring the network structure.
+    </p>
+    <p lang="de">
+      Eine interaktive Visualisierung der kubischen Gitter-Netzwerk-Topologie von Protocol-7. Diese Version stellt
+      die 8×63-Unterwürfel-Knotengruppe mit topologisch korrekter Ausbreitung im kubischen Raum dar.
+      Bietet fortgeschrittene Mausnavigation, rekursive Ebenen-Wiedergabe bei größeren Zoomstufen, die einen
+      "Matrix-ähnlichen" Hyperraum-Effekt erzeugen, sowie intuitive Kontrollen zur Erkundung der Netzwerkstruktur.
+    </p>
+
+    <a onclick="toggleFullscreen()" class="demo-link" lang="en">⛶ Launch Interactive Visualization</a>
+    <a onclick="toggleFullscreen()" class="demo-link" lang="de">⛶ Interaktive Visualisierung starten</a>
+
+    <div class="info-panel">
+      <h2 lang="en">Key Features</h2>
+      <h2 lang="de">Hauptmerkmale</h2>
+      <ul class="feature-list">
+        <li lang="en"><strong>Cubic Topology Visualization</strong>: 8×63 sub-cube node group with topologically correct propagation.</li>
+        <li lang="de"><strong>Kubische Topologie-Visualisierung</strong>: 8×63-Unterwürfel-Knotengruppe mit topologisch korrekter Ausbreitung.</li>
+
+        <li lang="en"><strong>Advanced Mouse Navigation</strong>: Smooth panning, rotation, and zoom with inertia-based physics.</li>
+        <li lang="de"><strong>Fortgeschrittene Mausnavigation</strong>: Sanftes Verschieben, Drehen und Zoomen mit trägheitsbasierter Physik.</li>
+
+        <li lang="en"><strong>Recursive Planes at Zoom Scales</strong>: Multi-layered hyperspace effect creating a "Matrix-like" appearance at larger zoom levels.</li>
+        <li lang="de"><strong>Rekursive Ebenen bei Zoomstufen</strong>: Mehrschichtiger Hyperraum-Effekt mit "Matrix-ähnlichem" Aussehen bei größeren Zoomstufen.</li>
+
+        <li lang="en"><strong>Topologically Correct Propagation</strong>: Network propagation follows actual cubic topology rules, not arbitrary connections.</li>
+        <li lang="de"><strong>Topologisch korrekte Ausbreitung</strong>: Netzwerk-Ausbreitung folgt tatsächlichen kubischen Topologie-Regeln, nicht willkürlichen Verbindungen.</li>
+
+        <li lang="en"><strong>Interactive Node Exploration</strong>: Explore node groups and their relationships within the cubic grid.</li>
+        <li lang="de"><strong>Interaktive Knoten-Erkundung</strong>: Erkunden Sie Knotengruppen und ihre Beziehungen im kubischen Gitter.</li>
+
+        <li lang="en"><strong>Smooth Visual Transitions</strong>: Fluid animations and effects as you navigate through the topology.</li>
+        <li lang="de"><strong>Sanfte visuelle Übergänge</strong>: Fließende Animationen und Effekte während der Navigation durch die Topologie.</li>
+
+        <li lang="en"><strong>Responsive Design</strong>: Works on various screen sizes and devices with optimized rendering.</li>
+        <li lang="de"><strong>Responsives Design</strong>: Funktioniert auf verschiedenen Bildschirmgrößen und Geräten mit optimiertem Rendering.</li>
+
+        <li lang="en"><strong>Research Tool for Network Design</strong>: Validates topology mapping in Protocol-7's cubic space network implementation.</li>
+        <li lang="de"><strong>Forschungswerkzeug für Netzwerk-Design</strong>: Validiert Topologie-Abbildung in der Implementierung von Protocol-7's kubischem Raum-Netzwerk.</li>
+      </ul>
+    </div>
+
+    <h2 lang="en">How to Use</h2>
+    <h2 lang="de">Anleitung zur Verwendung</h2>
+
+    <div class="info-panel">
+      <ul class="feature-list">
+        <li lang="en"><strong>Click "Launch Interactive Visualization"</strong> or press the Fullscreen button to enter the visualization.</li>
+        <li lang="de"><strong>Klicken Sie auf "Interaktive Visualisierung starten"</strong> oder drücken Sie die Vollbild-Schaltfläche.</li>
+
+        <li lang="en"><strong>Mouse Controls</strong>: Drag to pan, scroll to zoom, rotate for perspective.</li>
+        <li lang="de"><strong>Maussteuerung</strong>: Ziehen zum Verschieben, Scrollen zum Zoomen, Drehen für Perspektive.</li>
+
+        <li lang="en"><strong>Keyboard Shortcuts</strong>: Check the visualization interface for keyboard navigation options.</li>
+        <li lang="de"><strong>Tastaturkürzel</strong>: Siehe die Visualisierungsschnittstelle für Navigationsmöglichkeiten.</li>
+
+        <li lang="en"><strong>Exit Fullscreen</strong>: Press the "Exit Fullscreen" button or press ESC to return to this page.</li>
+        <li lang="de"><strong>Vollbild beenden</strong>: Drücken Sie "Vollbild beenden" oder ESC, um zu dieser Seite zurückzukehren.</li>
+      </ul>
+    </div>
+
+    <h2 lang="en">About This Visualization</h2>
+    <h2 lang="de">Über diese Visualisierung</h2>
+
+    <div class="info-panel">
+      <p lang="en">
+        This visualization is part of Protocol-7's research into cubic space topology for distributed network design.
+        The v13.7.1 version represents the current state-of-the-art in representing the cubic topology with correct
+        propagation rules. It serves as a validation tool during network implementation and a research resource for
+        understanding how checksum-based filesystem paths map onto cubic space coordinates.
+      </p>
+      <p lang="de">
+        Diese Visualisierung ist Teil von Protocol-7's Forschung über kubische Raum-Topologie für verteiltes Netzwerk-Design.
+        Die v13.7.1-Version stellt den aktuellen Stand der Technik bei der Darstellung der kubischen Topologie mit korrekten
+        Ausbreitungsregeln dar. Sie dient als Validierungswerkzeug bei der Netzwerk-Implementierung und als Forschungsressource
+        zum Verständnis der Abbildung von Checksum-basierten Dateisystem-Pfaden auf kubische Raum-Koordinaten.
+      </p>
+    </div>
+
+    <p style="margin-top: 3rem; font-size: 0.9rem; color: #6070b0; text-align: center;" lang="en">
+      Visualization v13.7.1 – Topologically Correct Network Grid with Recursive Hyperspace Navigation<br>
+      <a href="docs/ARCHIVE-README.md" target="_blank">View Archive History</a> |
+      <a href="docs/ARCHIVE-MANIFEST.yaml" target="_blank">View Version Manifest</a>
+    </p>
+    <p style="margin-top: 3rem; font-size: 0.9rem; color: #6070b0; text-align: center;" lang="de">
+      Visualisierung v13.7.1 – Topologisch korrektes Netzwerk-Gitter mit rekursiver Hyperraum-Navigation<br>
+      <a href="docs/ARCHIVE-README.md" target="_blank">Archiv-Verlauf anzeigen</a> |
+      <a href="docs/ARCHIVE-MANIFEST.yaml" target="_blank">Versions-Manifest anzeigen</a>
+    </p>
+  </div>
+
+  <script>
+    function setLang(lang) {
+      document.body.className = lang;
+      localStorage.setItem('preferredLang', lang);
+    }
+
+    function toggleFullscreen() {
+      const container = document.getElementById('vizContainer');
+      const closeBtn = document.querySelector('.close-button');
+
+      if (container.classList.contains('active')) {
+        container.classList.remove('active');
+        closeBtn.classList.remove('active');
+        document.body.classList.remove('fullscreen');
+        document.documentElement.style.overflow = 'auto';
+      } else {
+        container.classList.add('active');
+        closeBtn.classList.add('active');
+        document.body.classList.add('fullscreen');
+        document.documentElement.style.overflow = 'hidden';
+      }
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        const container = document.getElementById('vizContainer');
+        if (container.classList.contains('active')) {
+          toggleFullscreen();
+        }
+      }
+    });
+
+    const saved = localStorage.getItem('preferredLang');
+    if (saved === 'de') {
+      document.body.className = 'de';
+    }
+  </script>
+</body>
+</html>
