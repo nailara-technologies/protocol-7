@@ -1,0 +1,39 @@
+
+ .:[  'remote-server' : simple [v7] zenka start-up cfg for web-servers  ]:.
+
+.: globals :.
+
+  zenki.enabled  =  cube p7-log  httpd  web  httpsd  letsencr  system events
+# zenki.disabled =
+
+.: zenki :.
+
+# specific configuration imported : zenki/<zenka_name>/zenka-startup.v7 ###
+
+  - dist-upgrade
+
+      max_concurrency  = 1
+      restart.disabled = 1
+
+      : v7-init :
+        start_mode = exec-external
+        exec_bin = debian_dist_upgrade.sh       # [ ./bin/dependencies/.., ]
+        exec_usr = root
+
+### external program example ###    [ supports '<AMOS-user>' from X11-vars ]
+
+  - namesrv
+
+      max_concurrency = 1
+      dependencies = cube
+
+      : v7-init :
+        start_mode = exec-external
+        exec_bin = /usr/local/bin/namesrv
+        exec_usr = root
+
+#,,.,,.,,,,,,,..,,,.,,...,...,.,,,.,,,,,,,..,,..,,...,...,..,,.,.,,,.,,,,,..,,
+#IYYQWNU2CCKCN4VCO5C46XS6SMSJDT67EWGR3PHEX52UFN2ZATRYRNIGGKRXCCN4QJRPZFSHDCRKM
+#\\\|YVVRKQOXWOOPEBAIKGCSKKUVJH43G7QRDCQQXQIF5ZEI4RIGCDU \ / AMOS7 \ YOURUM ::
+#\[7]WDLU3PHDBUEQHEQTX4CLXMA6M5IC5ABQUHDWFTJLNA2EKFGOCYAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
