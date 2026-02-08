@@ -1,14 +1,9 @@
 
-  .:[  'basic' : defines a basic [v7] zenka start-up configuration ].:
+ .:[  'base' : defines a basic local [v7] zenka start-up configuration ]:.
 
 .: globals :.
 
-  zenki.enabled  =  cube p7-log channels \
-                    models coding \
-                    image-quality vision-batch \
-                    lm-vision \
-                    system # httpd httpsd letsencr web
-
+  zenki.enabled  =  cube p7-log system events channels nodes discover httpd
 # zenki.disabled =
 
 .: zenki :.
@@ -25,20 +20,8 @@
         exec_bin = debian_dist_upgrade.sh       # [ ./bin/dependencies/.., ]
         exec_usr = root
 
-### external program example ###    [ supports '<AMOS-user>' from X11-vars ]
-
-  - namesrv
-
-      max_concurrency = 1
-      dependencies = cube
-
-      : v7-init :
-        start_mode = exec-external
-        exec_bin = /usr/local/bin/namesrv
-        exec_usr = root
-
-#,,,,,,..,,.,,,..,,..,..,,,..,.,,,.,,,,.,,.,,,..,,...,.,.,...,.,.,,,.,...,.,,,
-#ULP6V5W33YV7YWRPY7COXVX3CYNL4K435T3MCFDFSRXZL4IUMHG64OEWDTYC5ZZIN6GUCM7YOLWDO
-#\\\|AEZZPONB2MQIP6AY2TV5AF67LU2LKJDUR7WJ6R3IRSYGDWGRV4F \ / AMOS7 \ YOURUM ::
-#\[7]KY6PKMUBBLWK22QPDMVTYRENZBW6DKECAS2LPVSFM3JNZWELROCA 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,..,,,.,.,,,,,,,.,.,.,,,.,,,..,,..,,...,...,.,.,...,.,,,,.,,..,,
+#REWJGLGS2NFRGTSDRLVHJEEA4MWUTMYPOYJ25RKNQFFRHUERPTD5LQVT2URQTTCP3SR2XWC7YCMFS
+#\\\|AWCSPK2K7E5XVDFS7476FSL4D3TCUWLDRGT2GPX6ZJQPD5MTJAW \ / AMOS7 \ YOURUM ::
+#\[7]7AV5DQPZB5XQMTA4X6KW2UPSKI345P4R5SZX3WI6QZGGPJAEVMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,30 @@
+
+ .:[  'local-models' : defines a test-setup configuration for LLM zenki ]:.
+
+.: globals :.
+
+  zenki.enabled  =  cube p7-log system models coding lm-vision \
+                                                  image-quality \
+                                                    vision-batch \
+                                                     httpd events
+# zenki.disabled =
+
+.: zenki :.
+
+# specific configuration imported : zenki/<zenka_name>/zenka-startup.v7 ###
+
+  - dist-upgrade
+
+      max_concurrency  = 1
+      restart.disabled = 1
+
+      : v7-init :
+        start_mode = exec-external
+        exec_bin = debian_dist_upgrade.sh       # [ ./bin/dependencies/.., ]
+        exec_usr = root
+
+#,,..,..,,,.,,..,,,.,,,,.,.,,,,,,,.,.,,.,,,,.,..,,...,...,.,,,.,.,,,.,,,,,,.,,
+#RHZIHY5KHGR7Z7QOHSCUF4ZEXRNFF4CPYAHZDGTIKLCD5K5YNR4KD64JS7M3TKUEIMKITWZ6E2K3A
+#\\\|ZNDKSQDM6D6FHUHBEWJY7Q362VH73CWBM5JXHZOCYQNCSVTYAL7 \ / AMOS7 \ YOURUM ::
+#\[7]GNUAQESUQK4YJY6KAQ63WZ2B6UDTROMYBVNMMPP5CIVXS2BG3MCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
