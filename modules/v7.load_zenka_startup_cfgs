@@ -4,30 +4,42 @@
 # descr = load zenka directory based start-up configurations into known setup
 
 my $cfg_root_path  = <system.conf_path>;
-my $zenka_cfg_path = "$cfg_root_path/zenki";
+my $zenka_cfg_path = catfile( $cfg_root_path, qw| zenki | );
 my $prepared_cfgs  = <v7.cfg_data.start_setup>->[0] // [];
 
 my $s_cfg_data = <[base.code_section_ref]>->( $prepared_cfgs, qw| zenki | );
 
-## Validate: Find zenki directories missing zenka-startup.v7 files
+## :[ validating ]: Find zenki directories missing zenka-startup.v7 files ##
+##
 if ( -d $zenka_cfg_path ) {
-    opendir( my $dh, $zenka_cfg_path ) or die "Cannot open $zenka_cfg_path: $!";
-    my @zenki_dirs = grep { -d "$zenka_cfg_path/$_" && $_ !~ m|^\.| } readdir($dh);
+    opendir( my $dh, $zenka_cfg_path )
+        or die sprintf "cannot open %s : %s", $zenka_cfg_path,
+        <[base.str.os_err]>;
+    my @zenki_dirs
+        = grep { -d catdir( $zenka_cfg_path, $ARG ) && $ARG !~ m|^\.| }
+        readdir($dh);
     closedir($dh);
 
     foreach my $zenka_name (@zenki_dirs) {
-        my $startup_file = "$zenka_cfg_path/$zenka_name/zenka-startup.v7";
-        my $start_file   = "$zenka_cfg_path/$zenka_name/start";
-	my $warn_level = 2;
+        my $startup_file
+            = catfile( $zenka_cfg_path, $zenka_name, qw|zenka-startup.v7| );
+        my $start_file = catfile( $zenka_cfg_path, $zenka_name, qw|start| );
+        my $warn_level = 2;
 
         if ( -f $start_file && !-f $startup_file ) {
-            <[base.log]>->(
-                $warn_level, "⚠ zenka '$zenka_name' missing zenka-startup.v7 file"
+            ( my $startup_relpath = $startup_file ) =~ s{^$cfg_root_path/}{};
+            <[base.logs]>->(
+                $warn_level, "⚠ zenka '%s' missing zenka-startup.v7 file",
+                $zenka_name
             );
             <[base.log]>->(
-                $warn_level, "  This zenka cannot be started by v7 without it."
+                $warn_level,
+                '..this zenka cannot be started by v7 without it.'
             );
-            <[base.log]>->( $warn_level, "  Expected: $startup_file" );
+            <[base.logs]>->(
+                $warn_level, "  : expected '%s'",
+                $startup_relpath
+            );
         }
     }
 }
@@ -37,28 +49,31 @@ if ( my @start_cfgs
     <[base.sort]>->( <[file.all_files]>->( $zenka_cfg_path, 'recursive' ) ) )
 {
     my $file_count = @start_cfgs;
-    my $s          = $file_count == 1 ? '' : 's';
-    <[base.log]>->(
-        1, ": loading $file_count zenka start-up configuration$s"
+    my $str_s      = $file_count == 1 ? ''      : 's';
+    my $str_z      = $file_count == 1 ? 'zenka' : 'zenki';
+    <[base.logs]>->(
+        ': loading start-up config%s : %d %s ..',
+        $str_s, $file_count, $str_z
     );
 
     foreach my $cfg_path (@start_cfgs) {
         my $zenka_name = $1 if $cfg_path =~ m|/zenki/([^/]+)/[^/]+\.v7$|;
         next                if not defined $zenka_name;
-        <[base.log]>->( 2, ": :. including '$zenka_name' zenka start-up" );
+        <[base.logs]>->( 2, ": :. <+> %s .,", $zenka_name );
         my @ncfg_cfg_lines = ( " .: zenki :.\n\n", "  - $zenka_name\n\n" );
         <[file.slurp]>->( $cfg_path, \@ncfg_cfg_lines );
         chomp(@ncfg_cfg_lines);
-        push( @$s_cfg_data,
+        push
+            $s_cfg_data->@*,
             <[base.parse_ncfg_code]>
-                ->( $zenka_name, @ncfg_cfg_lines )->[0]->{'zenki'}->[0] );
+            ->( $zenka_name, @ncfg_cfg_lines )->[0]->{'zenki'}->[0];
     }
 } else {
     <[base.log]>->( 1, ": :.. no additional start-up configs .," );
 }
 
-#,,.,,,,.,.,,,...,,,.,.,,,,.,,,,.,.,,,,..,...,..,,...,...,..,,.,,,,,,,...,,,.,
-#EI4WNLA67RXOSOWMVGRRO7M6ULP3ZTLEGPBGUMXV432VR6J7T6HG6P5KUKDFPCFOBX3QSBICEAUP4
-#\\\|2IAI6SAA3Z5LGRW7O7VTKRJK5B2EOHQSG3K7MF7D27EVEILXBJC \ / AMOS7 \ YOURUM ::
-#\[7]XXAGOUTNSAUYNYYBNWKFDOKEFLUXJPYK73GMGS4ZXEJPOIBEAMAY 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,...,...,..,,...,.,.,...,,,,,..,,..,,...,...,...,,,,,..,,,,.,.,.,
+#WMOARGWHR4D25YDI657SNDUCWEHRS4CNNVKKGU46HSZ2BZUHF2YLGUXX7A2Q56HZXS75ELV7QIR32
+#\\\|7LGVMOJ77KUSXQRZCPR74HTNHPDKKQYITFQAQVOGKBHDQHJDNYE \ / AMOS7 \ YOURUM ::
+#\[7]G2HCD24D4KBNP33Q5QHKJ67WRGZLVUW2IOBGA4VY4Z2NOYY3UQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,7 +18,10 @@ return <[base.logs]>->(
     $start_setup_pattern
 ) if not -f catfile( $cfg_root_path, $start_setup_pattern );
 
-<[base.logs]>->( ": loading '%s' process start set-up", $config_to_load );
+<[base.logs]>->(
+    ": loading zenki start-profile : ['%s']",
+    $config_to_load
+);
 my $start_setup_data;
 {
     local <system.conf_path> = sprintf qw| %s/zenki/v7 |, $cfg_root_path;
@@ -32,8 +35,8 @@ return <[base.logs]>->(
 
 push <v7.cfg_data.start_setup>->@*, $start_setup_data;
 
-#,,,,,..,,,,.,...,.,,,.,.,.,.,...,.,.,...,.,,,..,,...,...,...,.,.,,,.,...,..,,
-#ZVADGUN6EOSBZVR7TAXJ327TFPVTTYDB7LJEX4I6WAXSDQVGBA5IB7BEEX6TAX7IHANNN2DKMV74Q
-#\\\|IPHHDP7ZG2YZADLTQ3NGZMYFYKR6ZNLPBO6P7TJ6VEXREOEAI3T \ / AMOS7 \ YOURUM ::
-#\[7]4PMLV3AE3HAIUQS5JDAKVUWJ3B4UIUPAK7XZDONO4H2LFDNXISBY 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,.,.,..,,,.,,..,,.,.,.,.,...,..,,..,,...,...,...,,..,,..,,..,,,,,
+#WSF3BDNXU43OEZTKYNRM47XFEDLQQHQFJ7O43EUEFOF4M3D6PAH6DOZJ2PFHA5YAU6VKDEVYGDX7G
+#\\\|QLNCFPCMDBVYT5CHJ5RXR2LKY5L4MGM4FX5JRTV3H6SJUQQ4AZ3 \ / AMOS7 \ YOURUM ::
+#\[7]RTZEQ4IZSKNWIJLABHPJAN6DGGYXFXV3637SVVCBSZ3CR3RVKWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

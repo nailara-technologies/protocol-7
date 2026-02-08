@@ -396,14 +396,15 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
     $instance->{'timer'}->{'reset_restart_delay'} = <[event.add_timer]>->(
         {   'repeat'  => FALSE,
-            'after'   => 4.2,
+            'after'   => 4.2,     ##  <--  time without crashing again..  ##
             'handler' => qw| v7.handler.reset_restart_delay |,
             'data'    => $instance_id
         }
     );
 
-    if ( not exists $zenka_config->{'heartbeat'}->{'disabled'}
-        or !$zenka_config->{'heartbeat'}->{'disabled'} ) {
+    if (   not exists $zenka_config->{'heartbeat'}->{'disabled'}
+        or not
+        <[base.cfg_bool]>->( $zenka_config->{'heartbeat'}->{'disabled'} ) ) {
         <[base.logs]>->(
             2, 'setting up heartbeat response timer < instance %d >',
             $instance_id
@@ -453,8 +454,8 @@ if ( $old_status ne qw| online | and $status eq qw| online | ) { # LLL extbin?
 
 <[jobqueue.check_dependencies]>;
 
-#,,,,,,,,,,,,,,.,,...,,,,,..,,.,.,..,,.,.,,.,,..,,...,...,,.,,.,,,,..,.,,,,..,
-#NG7DR3WD6REY25I4EJDKZSISK3EOTJZ2HWBHQ6DWZ3RLLHCSXOSKVUTEL7AQ5A4SXBRFNY7RKLJ4S
-#\\\|6KHWKCSH6S6HFJAHAICGHGFKJME5Z2CN2HJCSZFPOWGF7KIEXVZ \ / AMOS7 \ YOURUM ::
-#\[7]UVWH457XXTPN35DLKEZKLOIFF27JCUH4CBUE4J3E4IMJXY2RTADA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,,..,,,,,..,,.,,,,,,,.,,,,,,,,.,,..,,...,..,,.,,,..,,,,,,,,.,...,
+#HQ52T4MRYSG6AZLDMBMFVQQRQOCULMGP7JHMVXFPHXZ6VTCQFJUA2GBGURLXV5GVDA3J6PU3GSF7A
+#\\\|YDK4WPT7HL642HZBVSRGBQ2LHYYAZ23Y2JFTFQI3UMXFC2DP5NE \ / AMOS7 \ YOURUM ::
+#\[7]GZDY4K2DIRS6CX76ZGRR3ZBUWCNW4PMI77ABAJRXO62YIWR74QAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

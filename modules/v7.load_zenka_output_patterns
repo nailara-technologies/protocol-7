@@ -2,42 +2,39 @@
 
 # name = v7.load_zenka_output_patterns
 
-my %pattern_handlers;
 my $pattern_file = shift // '';
-my $zenka_name
+my $pattern_data;
+my %pattern_handlers;
+my $cfg_base_path  = <system.conf_path>;
+my $base_file_name = qw| zenka-output.patterns |;    ## <-- < ! >
+my $zenka_name    ##  <--  zenka to load [log] output regex patterns for ##
     = <system.zenka.name> eq qw| <stdin> | ? qw| v7 | : <system.zenka.name>;
 
-my $base_file_name = qw| zenka-output.patterns |;    # <-- << ! >>
-
-<v7.patterns.zenka_output> //= {};
-
-my $pattern_file_txt = $pattern_file;
-$pattern_file_txt = sprintf " '%s'", $pattern_file_txt
-    if length $pattern_file_txt;
-
 my $loading_message
-    = sprintf( ': loading zenka output patterns%s', $pattern_file_txt );
+    = sprintf ': loading zenka output regex patterns%s ..',
+    !length $pattern_file ? $pattern_file : sprintf " '%s'";
 
-( my $pattern_filename = join qw| . |, $base_file_name, $pattern_file )
+<v7.patterns.zenka_output> //= {};    ## initializing pattern list ##
+
+( my $pattern_filename = join '.', $base_file_name, $pattern_file )
     =~ s|\.$||;
 
-my $pattern_data;
-my $cfg_base_path = <system.conf_path>;
-
 {
-    local <system.conf_path>    ## <-- << ! >>
-        = sprintf( qw| %s/zenki/%s |, $cfg_base_path, $zenka_name );
+    local <system.conf_path>          ## <-- < ! >
+        = catfile( $cfg_base_path, qw| zenki |, $zenka_name );
 
-    if ( not -f join qw| / |, <system.conf_path>, $pattern_filename ) {
+    if ( !-f catfile( <system.conf_path>, $pattern_filename ) ) {
         <[base.logs]>->(
-            0, "zenka output-pattern file '%s' not found.",
+            0, ": missing output regex file '%s'",
             $pattern_filename
         );
         return;
 
     } else {
-        <[base.log]>->( 1, $loading_message );
+        <[base.log]>->($loading_message);
     }
+
+    #[ loading output regex trigger patterns ]#
     $pattern_data = <[base.load_section_code]>
         ->($pattern_filename)->[0]->{'output patterns'};
 }
@@ -48,8 +45,8 @@ die "cannot load pattern data"
 
 <v7.pattern_config> = $pattern_data;
 
-#,,.,,,..,,,.,.,,,,.,,.,.,.,.,,..,.,,,..,,,,,,..,,...,...,...,,..,..,,..,,,.,,
-#4F7XNZWVPWP4WXJC3QAKCGENAUH3ZZCVSWUAD2UDMQHQKVZ3UFC7RHMRAC37VHPPYPAYPVI2FLACC
-#\\\|GKWTS7LHBISWPCE7XZFIJYXKUCZZF5EUE3F4SFG4GHSY7CGQGU2 \ / AMOS7 \ YOURUM ::
-#\[7]7YT3LP3WNFXOUPM2MBQJBBIOIEZEMVNH2I5BCRGYO23UAUYBKUBY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,.,,,,,,,..,..,,...,.,,,...,,..,..,,...,...,,,.,.,,,,.,,.,.,,,.,
+#EK5EQ7ZWTV5WTRAJVPBMQAB572KCJPXJVCCYXMJ6X3O3GQSZOQYXXBI3JIOP4VJQX34D6JN6G7FQA
+#\\\|3TK3DIUN5AOCVR6CWXZTSYEJJ462MZENVQP2FSA5BDZEV4XII7X \ / AMOS7 \ YOURUM ::
+#\[7]IIT7NXTR3TWNWNDDLDTWRKXRBPNIJBV6DJRE2FTTJTYVLO6XMCDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
