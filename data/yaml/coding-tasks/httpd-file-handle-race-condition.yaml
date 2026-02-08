@@ -1,0 +1,166 @@
+---
+title: HTTPD File Handle Race Condition - Silent Restart Bug
+description: |
+  Long-standing race condition in httpd causing silent restarts without logging.
+  Manifests under large file transfers with rapid client seeking/skipping.
+  V7 restarts httpd silently while other zenki run for 300+ days without issues.
+  Recently discovered during WordPress bot scanning stress test on startup.
+
+priority: high
+status: investigation-required
+severity: critical
+
+issue_summary: |
+  A race condition in httpd file handle management causes the zenka to crash silently:
+
+  Conditions to trigger:
+  1. Serve large files (2GB+ video files)
+  2. Client rapidly seeks/skips around (mpv player skip forward/backward quickly)
+  3. Race condition in closed file handle detection/cleanup
+  4. httpd crashes with NO logging - v7 simply restarts it
+  5. Other zenki continue running for hundreds of days without restart
+
+  Why it's hard to debug:
+  - No error logs at crash time (logging infrastructure may be blocked)
+  - Race condition only visible under specific load patterns
+  - Reproduces with video seeking, but timing-dependent (not deterministic)
+  - Silent restart means no alert that something is wrong
+  - httpd is otherwise stable, making it harder to spot
+
+root_cause_hypothesis: |
+  Race condition likely in one of these areas:
+
+  1. File handle lifecycle management:
+     - Multiple threads/event handlers closing same fd
+     - Use-after-close on file descriptor
+     - Buffer still referencing closed handle
+
+  2. Connection state tracking:
+     - Session cleanup racing with active I/O operations
+     - File handle in closed state but still in select/poll set
+     - Stale file descriptor numbers being reused
+
+  3. Large file transfer edge cases:
+     - Rapid Range request handling (seek operations)
+     - Buffer management during multiple simultaneous seeks
+     - File position synchronization between threads
+
+investigation_steps: |
+  Phase 1: Crash Capture Infrastructure
+    - Build black box request logging system
+    - Store recent HTTP requests/responses synchronously to disk
+    - Capture state at crash time for replay
+    - Use circular buffer to avoid unbounded growth
+    - Ensure writes survive httpd crash (fsync/O_SYNC)
+
+  Phase 2: Stress Testing
+    - Serve 2GB test video files via httpd
+    - Automated client making rapid Range requests (simulating seek)
+    - Monitor for httpd restarts via v7 heartbeat detection
+    - Capture black box logs when restart detected
+
+  Phase 3: Reproduction
+    - Replay captured request sequence to httpd
+    - Add detailed logging to file handle operations
+    - Trace through file handle lifecycle
+    - Identify exact race condition point
+
+  Phase 4: Fix Implementation
+    - Add proper locking/synchronization
+    - Ensure atomic file handle close operations
+    - Validate all file descriptors before use
+    - Add defensive logging for file handle state
+
+implementation_components: |
+  1. httpd.black_box_logger
+     - Circular buffer of recent requests/responses
+     - Synchronous writes to /tmp or SSD
+     - Triggered on httpd crash detection
+     - Configurable: enabled/disabled, buffer size, retention
+
+  2. httpd.handle_state_tracker
+     - Track file descriptor lifecycle
+     - Log on open/close/reuse
+     - Validate fd before operations
+     - Detect use-after-close patterns
+
+  3. httpd.stress_test_client
+     - Generate random Range requests
+     - Simulate video player seeking behavior
+     - Configurable: file size, seek frequency, concurrency
+
+  4. v7.httpd_crash_detector
+     - Monitor httpd process
+     - Trigger log capture on unexpected restart
+     - Report to operator (email/alert)
+
+test_scenarios: |
+  Scenario 1: Basic Reproduction
+    - Serve 2GB video file via httpd
+    - Use mpv or custom client to seek randomly every 100-500ms
+    - Run for 10-30 minutes or until crash
+    - Capture black box logs
+    - Replay logs in debug environment
+
+  Scenario 2: Concurrent Connections
+    - Multiple clients seeking in same file simultaneously
+    - Increase concurrent connection count gradually
+    - Monitor for crashes at specific connection threshold
+
+  Scenario 3: Rapid Reconnection
+    - Many clients connecting/disconnecting rapidly
+    - Combined with Range request seeking
+    - Stress test file handle allocation/deallocation
+
+related_files: |
+  - modules/httpd.serve_static (file transfer logic)
+  - modules/httpd.file_transfer.* (async file operations)
+  - modules/base.event.* (event loop and fd management)
+  - configuration/zenki/httpd/start
+
+  Potential areas of concern:
+  - File descriptor close operations
+  - Session cleanup handlers
+  - Buffer management in file_transfer
+  - Select/poll event set maintenance
+
+notes: |
+  - This bug has existed for years but was masked by low traffic
+  - WordPress bot scanning provided first practical trigger
+  - Silent restart behavior suggests crash happens in low-level I/O
+  - No memory corruption signs (other zenki run fine)
+  - Likely a logic bug, not a segmentation fault
+
+  Debugging approach differs from typical crashes:
+  - Can't rely on logs (may be blocked at crash point)
+  - Must capture request history to replay
+  - Stress testing essential to reproduce
+  - May need strace/gdb attached to catch at crash point
+
+recent_improvements: |
+  Commits: 945204bc5, b8112789b (Feb 2026)
+
+  Removed direct filehandle interpolation (.<$content_fh>) from httpd.serve_static:
+  - This was identified as a potential race condition vector
+  - Direct interpolation can cause issues when filehandle state changes during read
+  - Especially problematic with UTF-8 content causing connection resets
+
+  Replaced with native <[file.slurp]> routine:
+  - Safer scalar-based file reading (no live filehandle state)
+  - Built-in error handling and UTF-8 support
+  - Consistent with Protocol-7 codebase patterns
+  - Eliminates concurrent access issues on same filehandle
+
+  Impact on race condition:
+  - Removes one known problematic pattern in file serving
+  - May partially mitigate the race condition for small file serves
+  - Large file/Range request path still uses async mechanisms (lower risk)
+  - Full race condition may still exist under specific load patterns
+  - Black box logging and stress testing still recommended for complete diagnosis
+
+priority_justification: |
+  - Production stability: prevents random httpd restarts
+  - User experience: file serving becomes unreliable under load
+  - Operational visibility: currently invisible to monitoring
+  - Video streaming: increasingly common use case
+  - Bot traffic: external pressure makes it reproducible now
