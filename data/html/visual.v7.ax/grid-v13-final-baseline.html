@@ -13,7 +13,6 @@
             position: fixed;
             bottom: 20px;
             left: 20px;
-            display: flex;
             gap: 12px;
             background: rgba(12, 5, 24, 0.8);
             padding: 12px;
@@ -73,11 +72,11 @@
             Drag = rotate | ←→↑↓ = navigate<br>
             PgUp/Dn = vertical | Space = auto-rotate<br>
             F = toggle follow | C = center camera<br>
-            I = toggle info panel
+            I = toggle info panel | B = toggle button panel
         </p>
     </div>
 
-    <div class="controls">
+    <div class="controls" id="controlsPanel">
         <button onclick="toggleRotation()" id="rotBtn">Auto-Rotate</button>
         <button onclick="toggleFollow()" id="followBtn" class="active">Follow</button>
         <button onclick="centerCamera()">Center</button>
@@ -994,8 +993,13 @@
         }
 
         function toggleInfoPanel() {
-            const panel = document.getElementById('infoPanel');
-            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            const panelInfo = document.getElementById('infoPanel');
+            panelInfo.style.display = panelInfo.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function toggleControlsPanel() {
+            const panelControls = document.getElementById('controlsPanel');
+            panelControls.style.display = panelControls.style.display === 'none' ? 'flex' : 'none';
         }
 
         function resetView() {
@@ -1103,6 +1107,10 @@
                 case 'i': case 'I':
                     e.preventDefault();
                     toggleInfoPanel();
+                    break;
+                case 'b': case 'B':
+                    e.preventDefault();
+                    toggleControlsPanel();
                     break;
                 case 'ArrowLeft': e.preventDefault(); moveSelection(-1, 0, 0); break;
                 case 'ArrowRight': e.preventDefault(); moveSelection(1, 0, 0); break;

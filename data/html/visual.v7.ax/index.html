@@ -8,11 +8,11 @@
     * {
       box-sizing: border-box;
     }
-    
+
     html {
       scroll-behavior: smooth;
     }
-    
+
     body {
       background-color: #0c0518;
       color: #a0c0ff;
@@ -23,27 +23,27 @@
       display: flex;
       justify-content: center;
     }
-    
+
     .main-container {
       width: 100%;
       max-width: 1000px;
       padding: 2rem;
       padding-top: 80px;
     }
-    
+
     h1, h2 {
       color: #b0c0ff;
     }
-    
+
     a {
       color: #7080e0;
       text-decoration: none;
     }
-    
+
     a:hover {
       text-decoration: underline;
     }
-    
+
     .lang-toggle {
       position: fixed;
       top: 20px;
@@ -52,22 +52,22 @@
       display: flex;
       gap: 8px;
     }
-    
+
     .controls-panel {
       position: fixed;
       top: 20px;
       left: 20px;
-      z-index: 200;
+      z-index: 114;
       display: flex;
       gap: 10px;
     }
-    
+
     .lang-toggle button,
     .controls-panel button {
       background: rgba(15, 5, 30, 0.8);
       border: 1px solid #3030a0;
       color: #a0c0ff;
-      padding: 8px 14px;
+      padding: 5px 4px;
       border-radius: 10px;
       cursor: pointer;
       font-family: monospace;
@@ -75,14 +75,14 @@
       font-weight: bold;
       transition: all 0.2s ease;
     }
-    
+
     .lang-toggle button:hover,
     .controls-panel button:hover {
       background: rgba(25, 10, 50, 0.95);
       box-shadow: 0 0 15px rgba(60, 20, 200, 0.6);
       transform: scale(1.05);
     }
-    
+
     .demo-link {
       display: inline-block;
       margin: 1.5rem 0;
@@ -97,20 +97,20 @@
       font-size: 1.1rem;
       cursor: pointer;
     }
-    
+
     .demo-link:hover {
       background: rgba(25, 10, 50, 0.9);
       box-shadow: 0 0 25px rgba(60, 20, 200, 0.6);
       transform: scale(1.02);
     }
-    
+
     .screenshot-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 2rem;
       margin-top: 2rem;
     }
-    
+
     .screenshot-card {
       background: rgba(12, 5, 24, 0.7);
       border: 1px solid #3030a0;
@@ -118,7 +118,7 @@
       padding: 1.2rem;
       box-shadow: 0 0 15px rgba(40, 0, 120, 0.3);
     }
-    
+
     .screenshot-placeholder {
       width: 100%;
       aspect-ratio: 16 / 9;
@@ -133,12 +133,12 @@
       text-align: center;
       margin-bottom: 0.8rem;
     }
-    
+
     .caption {
       font-size: 0.95rem;
       color: #8090d0;
     }
-    
+
     .info-panel {
       max-width: 100%;
       margin-top: 2rem;
@@ -150,26 +150,26 @@
       border: 1px solid #3030a0;
       box-shadow: 0 0 20px rgba(60, 0, 120, 0.4);
     }
-    
+
     .feature-list {
       list-style: none;
       padding: 0;
       margin: 0;
     }
-    
+
     .feature-list li {
       margin-bottom: 0.8rem;
       padding-left: 1.5rem;
       position: relative;
     }
-    
+
     .feature-list li:before {
       content: "▸";
       position: absolute;
       left: 0;
       color: #7080c0;
     }
-    
+
     .visualization-container {
       display: none;
       width: 100vw;
@@ -180,69 +180,69 @@
       z-index: 100;
       background: #0c0518;
     }
-    
+
     .visualization-container.active {
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    
+
     .visualization-frame {
       width: 100%;
       height: 100%;
       border: none;
     }
-    
+
     .close-button {
       position: fixed;
       top: 20px;
-      right: 20px;
-      z-index: 201;
-      background: rgba(15, 5, 30, 0.95);
-      border: 1px solid #e040a0;
-      color: #ff80c0;
-      padding: 10px 18px;
-      border-radius: 10px;
+      left: 20px;
+      z-index: 113;
+      background: rgba(25, 00, 50, 0.24);
+      border: 1px solid rgba(100, 150, 200, 0.1);
+      color: rgba(160, 8, 80, 0.1);
+      padding: 4px 8px;
+      border-radius: 4px;
       cursor: pointer;
       font-family: monospace;
-      font-size: 13px;
-      font-weight: bold;
+      font-size: 7px;
+      font-weight: normal;
       display: none;
       transition: all 0.2s ease;
     }
-    
+
     .close-button.active {
       display: block;
     }
-    
+
     .close-button:hover {
-      background: rgba(25, 10, 50, 0.95);
-      box-shadow: 0 0 15px rgba(224, 64, 160, 0.6);
+      background: rgba(15, 0, 50, 0.3);
+      box-shadow: 0 0 4px rgba(127, 0, 63, 0.2);
       transform: scale(1.05);
     }
-    
+
     [lang="de"] {
       display: none;
     }
-    
+
     body.de [lang="de"] {
       display: block;
     }
-    
+
     body.de [lang="en"] {
       display: none;
     }
-    
+
     body.fullscreen {
       padding: 0;
       overflow: hidden;
     }
-    
+
     body.fullscreen .lang-toggle,
     body.fullscreen .controls-panel {
       display: none;
     }
-    
+
     body.fullscreen .main-container {
       display: none;
     }
@@ -333,6 +333,12 @@
 
         <li lang="en"><strong>Exit Fullscreen</strong>: Press the "Exit Fullscreen" button or press ESC to return to this page.</li>
         <li lang="de"><strong>Vollbild beenden</strong>: Drücken Sie "Vollbild beenden" oder ESC, um zu dieser Seite zurückzukehren.</li>
+
+        <li lang="en"><strong>Toggle Info Panel</strong>: Press 'I' [in visualization] to hide|show the information overlay.</li>
+        <li lang="de"><strong>Informationspanel umschalten</strong>: Drücken Sie 'I' [in der Visualisierung], um die Informationsanzeige auszublenden/anzuzeigen.</li>
+
+        <li lang="en"><strong>Toggle Button Panel</strong>: Press 'B' to hide|show the control buttons and language selector.</li>
+        <li lang="de"><strong>Schaltflächenpanel umschalten</strong>: Drücken Sie 'B', um die Steuerungsschaltflächen und Sprachauswahl auszublenden/anzuzeigen.</li>
       </ul>
     </div>
 
