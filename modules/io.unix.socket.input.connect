@@ -5,7 +5,10 @@
 my $fd = $_[0]->w->fd;     ## <-- $data{'session'}{$id}{'handle'} ##
 my $id = $_[0]->w->data;
 
-return undef if not defined $data{'session'}{$id};
+if ( not exists $data{'session'}->{$id} ) {
+    $_[0]->w->cancel if $_[0]->w->is_active;    ## cancel watcher ##
+    return undef;
+}
 
 if ( ref($fd) eq qw| IO::Socket::UNIX | and -S $fd ) {
     my $unix_client;
@@ -51,8 +54,8 @@ if ( ref($fd) eq qw| IO::Socket::UNIX | and -S $fd ) {
     return undef;    ## <-- error connecting ##
 }
 
-#,,..,..,,...,,,,,...,,.,,,..,...,,,,,,.,,...,..,,...,...,.,,,,..,..,,,.,,...,
-#4PWWCGYUDJOVW2OEPZARCUMMI7CL67H77D626RDOHUB46I4DIT5LNUR5DTJKLWXQOHGV6ZNOHVTXC
-#\\\|VD6KEEQ6T4PPDBEAXJQVXXF7N5REEFR7BCAT4LF2PY2R7LICTZB \ / AMOS7 \ YOURUM ::
-#\[7]EXM47SO3EMZ3W5WJKAEPQ26NY2DV6EMQHARPGZRTMMFOKXK6HODQ 7  DATA SIGNATURE ::
+#,,,,,...,.,.,..,,.,,,..,,,,,,.,.,...,..,,,,,,..,,...,...,..,,.,.,.,.,...,,.,,
+#SQSX4BI7BDGQNFQIAWVZI2CL7CHAISFNGKITWOAOH5UFTQHOZBYQSQMJQ5HCNS34SW75SLTQ57V7C
+#\\\|7OAGOW6E56VLLHOURBO5SHY523EATBLWKWCJV55SBZZOHDNVT2Z \ / AMOS7 \ YOURUM ::
+#\[7]ZF3TPCPRAJBRCDERKMPZWC6UUX26SCIHQ7WSQZL5WVAAK35HZGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
