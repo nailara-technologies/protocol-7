@@ -15,12 +15,13 @@
 
     body {
       background-color: #0c0518;
-      color: #a0c0ff;
-      font-family: monospace;
+      color: #7030A7;
+      font-family: monospace-sans;
       margin: 0;
       padding: 0;
       line-height: 1.6;
       display: flex;
+      letter-spacing:0.01em;
       justify-content: center;
     }
 
@@ -32,11 +33,12 @@
     }
 
     h1, h2 {
-      color: #b0c0ff;
+      color: #4020A7;
+      text-align: right;
     }
 
     a {
-      color: #7080e0;
+      color: #5040A0;
       text-decoration: none;
     }
 
@@ -84,24 +86,90 @@
     }
 
     .demo-link {
-      display: inline-block;
+      display: flex;
+      flex-direction: column;
       margin: 1.5rem 0;
-      padding: 1rem 1.8rem;
-      background: rgba(15, 5, 30, 0.8);
+      background: rgba(15, 5, 242, 0.2);
       border: 1px solid #3030a0;
       border-radius: 12px;
       color: #a0c0ff;
       font-weight: bold;
-      box-shadow: 0 0 15px rgba(40, 0, 120, 0.4);
+      box-shadow: 0 0 15px rgba(40, 0, 20, 0.4);
       transition: all 0.3s ease;
-      font-size: 1.1rem;
-      cursor: pointer;
+      cursor: cross-hair;
+      overflow: hidden;
+      text-decoration: none;
     }
 
     .demo-link:hover {
       background: rgba(25, 10, 50, 0.9);
-      box-shadow: 0 0 25px rgba(60, 20, 200, 0.6);
-      transform: scale(1.02);
+      box-shadow: 0 0 25px rgba(60, 20, 20, 0.5);
+      transform: scale(0.9999997);
+    }
+
+    .demo-link-title {
+      padding: 1rem 1.8rem;
+      font-size: 1.1rem;
+    }
+
+    .demo-link-preview {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 150px;
+      background: #000007;
+      border-top: 1px solid #5050a0;
+      position: relative;
+      overflow: hidden;
+      perspective: 1000px;
+    }
+
+    .starfield {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+
+    .star {
+      position: absolute;
+      background: hsla(242, 100%, 30%, 0.7);
+      border-radius: 50%;
+      animation: moveAwayFromCenter 25s linear infinite;
+    }
+
+    @keyframes moveAwayFromCenter {
+      0% {
+        opacity: 0;
+        transform: var(--translate) scale(0.5);
+      }
+      10% {
+        opacity: 0.8;
+      }
+      90% {
+        opacity: 0.8;
+      }
+      100% {
+        opacity: 0;
+        transform: translate(0, 0) scale(1);
+      }
+    }
+
+    .demo-link-preview-text {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: hsla(232, 77%, 13%, 0.007);
+      font-size: 0.70rem;
+      text-align: center;
+      z-index: 3;
+      pointer-events: none;
+      font-weight: normal;
+      width: 90%;
     }
 
     .screenshot-grid {
@@ -193,6 +261,18 @@
       border: none;
     }
 
+    .demo-link-preview-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #7080c0;
+      font-size: 0.9rem;
+      text-align: center;
+      z-index: 1;
+      pointer-events: none;
+    }
+
     .close-button {
       position: fixed;
       top: 20px;
@@ -263,9 +343,7 @@
   <div class="close-button" onclick="toggleFullscreen()" lang="en">← Exit Fullscreen</div>
   <div class="close-button" onclick="toggleFullscreen()" lang="de">← Vollbild beenden</div>
 
-  <div class="visualization-container" id="vizContainer">
-    <iframe class="visualization-frame" id="vizFrame" src="grid-v13-final-baseline.html"></iframe>
-  </div>
+  <div class="visualization-container" id="vizContainer"></div>
 
   <div class="main-container">
     <h1 lang="en">Protocol-7 Cubic Topology Visualization v13.7.1</h1>
@@ -284,8 +362,20 @@
       "Matrix-ähnlichen" Hyperraum-Effekt erzeugen, sowie intuitive Kontrollen zur Erkundung der Netzwerkstruktur.
     </p>
 
-    <a onclick="toggleFullscreen()" class="demo-link" lang="en">⛶ Launch Interactive Visualization</a>
-    <a onclick="toggleFullscreen()" class="demo-link" lang="de">⛶ Interaktive Visualisierung starten</a>
+    <a onclick="toggleFullscreen()" class="demo-link" lang="en">
+      <div class="demo-link-title">⛶ Launch Interactive Visualization</div>
+      <div class="demo-link-preview" id="preview-en">
+        <div class="starfield" id="starfield-en"></div>
+        <div class="demo-link-preview-text">click to explore</div>
+      </div>
+    </a>
+    <a onclick="toggleFullscreen()" class="demo-link" lang="de">
+      <div class="demo-link-title">⛶ Interaktive Visualisierung starten</div>
+      <div class="demo-link-preview" id="preview-de">
+        <div class="starfield" id="starfield-de"></div>
+        <div class="demo-link-preview-text">zum erkunden klicken</div>
+      </div>
+    </a>
 
     <div class="info-panel">
       <h2 lang="en">Key Features</h2>
@@ -373,8 +463,42 @@
   </div>
 
   <script>
+    function generateStarfield(containerId, starCount = 30) {
+      const container = document.getElementById(containerId);
+      const centerX = container.offsetWidth / 2;
+      const centerY = container.offsetHeight / 2;
+
+      for (let i = 0; i < starCount; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+
+        // random angle around center
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 150 + Math.random() * 100;
+
+        const endX = Math.cos(angle) * distance;
+        const endY = Math.sin(angle) * distance;
+
+        const size = 0.5 + Math.random() * 1.5;
+        star.style.width = size + 'px';
+        star.style.height = size + 'px';
+        star.style.left = centerX + 'px';
+        star.style.top = centerY + 'px';
+
+        const delay = Math.random() * 25;
+        star.style.animationDelay = delay + 's';
+        star.style.setProperty('--translate', `translate(${endX}px, ${endY}px)`);
+
+        container.appendChild(star);
+      }
+    }
+
     function setLang(lang) {
-      document.body.className = lang;
+      if (lang === 'en') {
+        document.body.className = '';
+      } else {
+        document.body.className = lang;
+      }
       localStorage.setItem('preferredLang', lang);
     }
 
@@ -383,11 +507,23 @@
       const closeBtn = document.querySelector('.close-button');
 
       if (container.classList.contains('active')) {
+        // exiting fullscreen - destroy iframe to stop background processing
+        const iframe = container.querySelector('iframe');
+        if (iframe) {
+          iframe.remove();
+        }
         container.classList.remove('active');
         closeBtn.classList.remove('active');
         document.body.classList.remove('fullscreen');
         document.documentElement.style.overflow = 'auto';
       } else {
+        // entering fullscreen - lazy load iframe
+        const iframe = document.createElement('iframe');
+        iframe.className = 'visualization-frame';
+        iframe.id = 'vizFrame';
+        iframe.src = 'grid-v13-final-baseline.html';
+        container.appendChild(iframe);
+
         container.classList.add('active');
         closeBtn.classList.add('active');
         document.body.classList.add('fullscreen');
@@ -404,10 +540,16 @@
       }
     });
 
+    // initialize starfields
+    generateStarfield('starfield-en');
+    generateStarfield('starfield-de');
+
+    // set default language to english, allow override from localStorage
     const saved = localStorage.getItem('preferredLang');
     if (saved === 'de') {
       document.body.className = 'de';
     }
+    // english is default (empty className), so no need to set anything if saved is not 'de'
   </script>
 </body>
 </html>
