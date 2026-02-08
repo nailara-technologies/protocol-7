@@ -7,7 +7,10 @@
 my $fd = $_[0]->w->fd;     ## <-- $data{'session'}{$id}{'handle'} ##
 my $id = $_[0]->w->data;
 
-return undef if not defined $data{'session'}{$id};
+if ( not exists $data{'session'}->{$id} ) {
+    $_[0]->w->cancel if $_[0]->w->is_active;    ## cancel watcher ##
+    return undef;
+}
 
 my $client_sock_fd;
 
@@ -86,8 +89,8 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     return undef;              ## <-- connection closed \ error connecting ##
 }
 
-#,,,,,,,,,...,,..,.,,,.,.,,,,,.,,,,,,,,..,.,,,..,,...,...,..,,..,,,,,,.,,,,,,,
-#XCQMKYKYCRBPMK4G3ETMKZXP44HOEO5XXASWISDJY5V2CJQTNJDZUXY7TMUDA5KAJA3AIMFOCR43S
-#\\\|LKKMLCWIQ3YACVHMQMF7VEXSUZ6PTQVHVIGNQDJNOF6PY7D2CBE \ / AMOS7 \ YOURUM ::
-#\[7]PFGAO7S3EAQ5PMOPBOX2XES3IGGUUWRTZQY2RIPIYAV2HQZ5QQDI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,...,,..,,,,,..,,.,.,,..,,,,,.,,,..,,...,..,,.,,,.,.,...,,.,,.,,,
+#D2VDFX2LGNAA3RK62ZPCXEDMUMTF7ZQ4OZCJMTRAFZMQIAM3SDPR6FKAAYVBCBK3SRE3QORKQTNWA
+#\\\|EGAQ24X3WYLQCPAJURZ4EZM3I26P4WTZOIZ5EUF6JYVMCHNN4ZG \ / AMOS7 \ YOURUM ::
+#\[7]54DPX5TUAGVIDRUTUYK622BIH7M5D6GK3WDE7MYV6X742ERPP4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

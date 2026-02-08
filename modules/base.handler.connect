@@ -6,7 +6,7 @@ my $id     = $_[0]->w->data;
 my $fd_srv = $_[0]->w->fd;
 
 ##  closed server session  ##
-if ( not defined $data{'session'}{$id} ) {
+if ( not exists $data{'session'}->{$id} ) {
     ## removing from event management ##
     $_[0]->w->cancel if $_[0]->w->is_active;
     return undef;
@@ -88,7 +88,10 @@ if ( not defined $data{'handle'}{$fd_srv}{'protocol'} ) {
         if ( length($banner_string) and $mode eq qw| input | ) {
             <[base.net.send_to_socket]>->( $fd_client, $banner_string );
         }
-        <[base.logs]>->( 1, '[%d] established %s connection', $cid, $proto );
+        <[base.logs]>->(
+            '[%d] :. %s .: connection established. ::',
+            $cid, $proto
+        );
 
     } else {
         <[base.logs]>->( 1, '[%d] connection was closed [?] .,', $id );
@@ -96,8 +99,8 @@ if ( not defined $data{'handle'}{$fd_srv}{'protocol'} ) {
     }
 }
 
-#,,,,,..,,.,.,,,,,..,,,..,,,,,,.,,.,,,.,.,,,,,..,,...,...,.,.,.,.,.,.,..,,,..,
-#HAYHOAJTHNK346FIYOEDABJKQVCV35SGVS6MF7Z23BEH2YHMGIZQ5W6AKJNPBJJ7RLFMOVP3VLD62
-#\\\|5ZPV2O73WLJYWZHMJPNLD3A27XIJ5PY75TXTOCDWVGLQJTAHFA7 \ / AMOS7 \ YOURUM ::
-#\[7]EFQB2J5EWOEQ2D6JKR32HVJBXXQXDTO6IA4BO7XVZWFAYLLYROAA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,...,.,,,...,...,,..,,,.,..,,,..,..,,...,...,..,,,..,.,,,.,,,...,
+#MIALONDDL56NEKNSRWWN6RE7QYCD7GGUYVIWZZ3Q56P6KYCKI6FU5BGL5KX3STVD4FJO3RFLAAARA
+#\\\|JSVNIDNEBKLZZZCY4UBCYITV2XQMHKTDS2RMNNLX6ZWD3YG37BN \ / AMOS7 \ YOURUM ::
+#\[7]VEVBBVKBQ5VNSJBHP5B6IZ3LLXAY4NHP54NJNGLSSIMDQHO3UKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

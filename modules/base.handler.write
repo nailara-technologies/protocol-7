@@ -9,13 +9,16 @@ my $event;
 if ( ref $ARG[0] ne qw| Event::Event::Io | and $ARG[0] =~ m|^\d+| ) {
     $id = shift;    ##  direct call with session id  ##
 } else {    ## was Event watcher ##
-    $event = shift;
-    $id    = $event->w->data;
+    $event = shift;              ## fetch event ##
+    $id    = $event->w->data;    ## stored session id ##
 }
 
-return <[base.session.check_remaining]> if not defined $data{'session'}{$id};
+if ( not exists $data{'session'}->{$id} ) {    ## session is gone ? ##
+    $event->w->cancel if $event->w->is_active;    ## cancel watcher <- ##
+    return <[base.session.check_remaining]>;
+}
 
-my $session = $data{'session'}{$id};
+my $session = $data{'session'}->{$id};
 my $buf     = $session->{'buffer'}->{'output'};
 
 ## Use bytes::length() to get actual byte count, not character count
@@ -126,8 +129,8 @@ $session->{'shutdown'} = 1 if !$write_size and $session->{'flush_shutdown'};
 
 return FALSE;
 
-#,,,,,,,.,,,,,..,,.,.,,.,,.,.,,,.,,,,,,.,,.,.,..,,...,...,,..,...,,,.,,,.,,.,,
-#IV6DUNCGVY4CDXZCYA32UQ6FGCRMRC6EALORU6QL7J34OQT22ZTQQUUJGQYSZQUXVCF4SOQAHDIZC
-#\\\|P4Y776EKECXE4TKGK752YDZNR6OQA32Z2Q232KX6BGZ25WPUBAD \ / AMOS7 \ YOURUM ::
-#\[7]ELXKJSQH3XEJOXXDA6SYMJL5SWHDSHPU5JOG7NVV7CINOR3WUCBI 7  DATA SIGNATURE ::
+#,,..,,..,,,,,...,..,,,,.,..,,,.,,,,,,,..,.,,,..,,...,...,...,..,,,.,,..,,...,
+#LLXFXUTY2THFTEFLCSSL46FX3JSSOJNYRIZWNWNG4KANQE3AHUTMGS53HKICC2ALAGLUAFN375JVE
+#\\\|ONL2ZRIRYWXXHK6DAYVOR455J65ZGTMPWCVKX2OILNJYTWQVK2I \ / AMOS7 \ YOURUM ::
+#\[7]BOKKKEXTCAEI3D2PJENX2A74NZROMAW5WJZAVW5DLOXRLDLZ72BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

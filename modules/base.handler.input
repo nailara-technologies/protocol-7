@@ -6,7 +6,7 @@
 my $event = shift;
 my $id    = $event->w->data;
 
-if ( not defined $id or not defined $data{'session'}{$id} ) {
+if ( not defined $id or not exists $data{'session'}->{$id} ) {
     my $id = '!!!' if not defined $id;
     $event->w->cancel;
     ## call cleanup handler.., [protocol.,]                              [LLL]
@@ -137,8 +137,8 @@ if ( $session->{'read-mode'} eq qw| linewise | ) {
         and rindex( $session->{'buffer'}->{'input'}, "\n" ) != -1;
 }
 
-#,,.,,,,,,.,.,,.,,,,,,...,,,,,.,.,...,..,,,.,,..,,...,..,,...,...,,,.,,,.,.,.,
-#KD2KJL77LGRMG5R67PJA7TC5AZ4NCT7JXD4R3AKA7SOJNVCWUNBZCFADHZY4CIXPPE5FEFBBB2FO4
-#\\\|YQMNEIBPDU5KPVG5LTWX7ID3B5DCCLISPGZRLZP6KS4GMXHO5JQ \ / AMOS7 \ YOURUM ::
-#\[7]3ZI5JM3V76WNMT7X2OWGKVJNJA4NVK4DTPORBMXFX6RP77SFSQAI 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,...,,,,,.,,,..,,,.,,,,.,,..,,..,..,,...,...,,.,,.,,,..,,,.,,...,
+#VK6VJ42KTN4WMAABNGCWFTXAHTHY3JW2UVDXV6BAZR24RK6NTGH5BOUBEJNWIRN7OSKROVUWDADSO
+#\\\|IG23L7ZU5M3BHYJWFB4L5ASGABBYFIZYW5HRHPWUHJFSTJ2YXHC \ / AMOS7 \ YOURUM ::
+#\[7]BRLGH623W4RFI3BXCPN7733ZCVUXDIDCUOQRVNOFNBSN6ZIQNKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
