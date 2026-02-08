@@ -245,27 +245,19 @@ if ( $content_size <= 16 * 1024 and not exists $request->{'range'} ) {
         $session_id, $content_size
     );
 
-    local $RS = undef;
-    open( my $content_fh, '< :raw', $file_path )
-        or do {
+    ## use native file.slurp for consistent UTF-8 safe handling
+    my $file_content_ref = <[file.slurp]>->($file_path);
+    unless ( defined $file_content_ref ) {
         <[base.logs]>->(
-            0, "[%s] failed to open '%s': %s",
-            $session_id, $file_path, <[base.str.os_err]>
+            0,           "[%s] failed to read '%s'",
+            $session_id, $file_path
         );
         return <[httpd.send_error_page]>->( $session_id, 500 );
-        };
-
-    ## force byte-level operations for UTF-8 safety
-    binmode($content_fh);
-    my $file_content = <$content_fh>;
-    close($content_fh);
-
-    ## ensure content is in byte semantics for buffer operations
-    utf8::downgrade( $file_content, 1 ) if utf8::is_utf8($file_content);
+    }
 
     $session->{'buffer'}->{'output'}
         .= <[httpd.new_header]>->( $reply_code, $reply_header )
-        . $file_content;
+        . $file_content_ref->$*;
 
     # Set flush_shutdown so base.handler.write will close after flushing the
     # buffer Don't return 2 immediately - let the write handler finish
@@ -287,8 +279,8 @@ return <[httpd.download_init]>->(
     }
 );
 
-#,,,.,..,,..,,,,,,,..,...,,,.,,.,,,,,,...,,.,,..,,...,...,.,,,,,,,.,.,.,,,.,.,
-#LE5O5PPC7HIFYHYNPFUD35SDYJ4YYVMHMEVJU3IGF5P3IHWVCQXY4YIA3RMF6IWZLLV42XQZE23MY
-#\\\|325Q54V7UEKCQLSKFVATSFLFO3N24AV4ANBJJZTT2W6SXU5D7ZC \ / AMOS7 \ YOURUM ::
-#\[7]NZ5WGFSOMWOWL2CDOGXBXQG6SVH3PFHTUP3CNYTNKZMJ3UMSKQBI 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,,,..,,.,.,,.,,,,.,...,.,,,...,..,,...,..,,...,,,,,...,...,..,,
+#AYRXN3JZTEAEWLQMSD57QGHUCEDDWASTAWY6UHUGNHTOA6HBWYC23TA4IOVRRD2JZEO5CXHYENFQ2
+#\\\|NAOJ2YGEKYQOSGPVVKXAGDOMJTOMCVHXXYHMBQO2Z75223UBVFQ \ / AMOS7 \ YOURUM ::
+#\[7]IMDXSETSDM36F5GJVACN5TTZNUS6SG6M2TL3HZ7CY5DOOXOPDUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
