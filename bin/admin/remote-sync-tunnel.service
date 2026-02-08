@@ -1,0 +1,37 @@
+[Unit]
+Description=Protocol-7 Remote Sync Tunnel with Auto-Mount
+Documentation=file:///usr/local/protocol-7/bin/admin/remote-sync-tunnel
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/protocol-7/bin/admin/remote-sync-tunnel monitor
+ExecStop=/usr/local/protocol-7/bin/admin/remote-sync-tunnel stop
+Restart=always
+RestartSec=10
+
+## Environment configuration - customize for your deployment
+Environment="REMOTE_P7_HOST=atom.local"
+Environment="REMOTE_P7_USER=taeki"
+
+## Resource limits
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=p7-remote-sync
+
+## User/group for SSH key access
+User=protocol-7
+Group=protocol-7
+
+## Mount point permissions
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target
+
+#,,.,,,,,,..,,,.,,.,,,,..,,,,,,..,...,..,,...,..,,...,...,,,,,..,,,,,,.,.,,..,
+#YJI4VTWS3F5YZPYH64GKCDQUEKHH7UDGB5LWQ6E5O2FAWDWJQDCWZLRXFU3X2KLLFECKY2QO6YGVA
+#\\\|IKTSQS5SB5HDPD6WZCEOSIZNXEJB4ZNJ56WY7GQRG3TXRIYAPTM \ / AMOS7 \ YOURUM ::
+#\[7]SV7VTPAQMEIR2ZCUC5EQN4LAKCPJEPFYUFSCCZQKQ7FNAWGGOICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
