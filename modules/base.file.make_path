@@ -77,10 +77,20 @@ if ( defined $owner_group ) {
 }
 
 ##  checking existing path attributes  ##
-
+##
 if ( -d $path ) {
-    <[base.log]>->( 2, ':. path present =)' );
-    <[base.logs]>->( 2, ': %s', $path );
+    my $rel_path  = $path;                ## log rel. ##
+    my $root_path = <system.root_path>;
+    my $conf_path = <system.conf_path>;
+
+    ##     ,./protocol-7/configuration  ##
+    if ( $rel_path !~ s{^$conf_path/}{./} ) {
+        ## ,./protocol-7                ##
+        $rel_path =~ s{^$root_path/}{./};
+    }
+
+    <[base.log]>->( 2, ':: [ dir path exists ] :.' );
+    <[base.logs]>->( 2, ': %s', $rel_path );
 
     ## check permissions of existing directory .., ##
     my $current_perms = <[base.path_perms]>->($path);
@@ -89,8 +99,10 @@ if ( -d $path ) {
         my $install_root = <system.root_path>;
         ( my $rel_path = $path ) =~ s|^$install_root/?||;
         <[base.logs]>->(
-            2, ":. : resetting perms [ %s --> %04o ] : %s :",
-            $current_perms, $param_mode,
+            2,
+            ":. : resetting perms [ %s --> %04o ] : %s :",
+            $current_perms,
+            $param_mode,
             <[base.parser.center_ellipse_string]>->($rel_path)
         );
         if ( not chmod( $param_mode, $path ) ) {
@@ -207,8 +219,8 @@ umask $previous_umask if defined $previous_umask;
 
 return $path;
 
-#,,,.,,,,,..,,,,,,,,,,,,.,,.,,,,.,,..,,,,,,.,,..,,...,...,...,..,,,,,,...,..,,
-#JOX42SSUKTHDAB5WTWFMHUBVU2XYQPHNZCAU7OMLC236FJFAMWIT3CMSZ23S742RHZ4UJDD42BVEO
-#\\\|2R6ZY5ZDZZXZX6HNGBKXGHE3D7G72E5XIXLCG27TQLPUNUQ5XKU \ / AMOS7 \ YOURUM ::
-#\[7]ZP3G2Q44NH6U6PTQL3YKXEPJWUZWGGVHDR3Z4OV3LGZYVB5HRMBQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,.,,,,,,.,,,..,,..,,.,.,.,.,..,,..,,...,...,.,,,,.,,..,,,,,,,,.,
+#HCRV2CYUHLYF6EYPMKG2HZJFWGVRR6MB2DCK7MGKT32APNHERLW7KRFEVNYRJ2EXDBLED2FWUI4FQ
+#\\\|DRQON4FMM2UYVPAMHAJDSBFETE7EILSNV7CCHE5WQN66VEBUY2Z \ / AMOS7 \ YOURUM ::
+#\[7]S6UYS7NSFGNCQIQVKMJU3MK6P4U5QJAL675X5IK3NNT3S6U44QDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
