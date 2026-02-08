@@ -255,10 +255,17 @@ if ( $content_size <= 16 * 1024 and not exists $request->{'range'} ) {
         return <[httpd.send_error_page]>->( $session_id, 500 );
         };
 
+    ## force byte-level operations for UTF-8 safety
+    binmode($content_fh);
+    my $file_content = <$content_fh>;
+    close($content_fh);
+
+    ## ensure content is in byte semantics for buffer operations
+    utf8::downgrade( $file_content, 1 ) if utf8::is_utf8($file_content);
+
     $session->{'buffer'}->{'output'}
         .= <[httpd.new_header]>->( $reply_code, $reply_header )
-        . <$content_fh>;
-    close($content_fh);
+        . $file_content;
 
     # Set flush_shutdown so base.handler.write will close after flushing the
     # buffer Don't return 2 immediately - let the write handler finish
@@ -280,8 +287,8 @@ return <[httpd.download_init]>->(
     }
 );
 
-#,,.,,..,,,..,,.,,.,,,.,.,,,.,..,,,,.,,.,,...,..,,...,...,...,.,,,.,,,,.,,,.,,
-#JOYSO34R3LLYMR545D4HAXNHNVU5RSR63DERGAJWEYDIKJH3DNENZX5HEEDHGJJ5TFWSL2I3AKN7M
-#\\\|EDZKJH3K7WGQXTFDXSX5TA7MHQMJYGIGO25DILK2EGWMLJHPG6X \ / AMOS7 \ YOURUM ::
-#\[7]NQZEQFEPOIO5P27JPXBJUOCL27MZF2BVGD6U3EXZYAZP4WO2UEBY 7  DATA SIGNATURE ::
+#,,,.,..,,..,,,,,,,..,...,,,.,,.,,,,,,...,,.,,..,,...,...,.,,,,,,,.,.,.,,,.,.,
+#LE5O5PPC7HIFYHYNPFUD35SDYJ4YYVMHMEVJU3IGF5P3IHWVCQXY4YIA3RMF6IWZLLV42XQZE23MY
+#\\\|325Q54V7UEKCQLSKFVATSFLFO3N24AV4ANBJJZTT2W6SXU5D7ZC \ / AMOS7 \ YOURUM ::
+#\[7]NZ5WGFSOMWOWL2CDOGXBXQG6SVH3PFHTUP3CNYTNKZMJ3UMSKQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
