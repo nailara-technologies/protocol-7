@@ -78,10 +78,12 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
     ##  target zenka online : sending log request  ##
     my $line_sref = $b_ref->{'data'}->[0];
 
-    if ( index( $line_sref->$*, "\n" ) > 0 ) {    #### catch \n characters ###
+    if (    ref $line_sref eq qw| SCALAR |
+        and defined $line_sref->$*
+        and index( $line_sref->$*, "\n" ) > 0 ) { #### catch \n characters ###
         my $buffer_name = '';
         if ( $line_sref->$* =~ m{^([^ ]+)} ) {
-            $buffer_name = sprinf( '  [%ss]', $LAST_PAREN_MATCH );
+            $buffer_name = sprintf( ' [%s]', $LAST_PAREN_MATCH );
         }
         <[base.logs]>->(
             0, 'endlines not allowed in%s log-msg string <{C1}>', $buffer_name
@@ -125,8 +127,8 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
     }
 }
 
-#,,..,.,.,,,.,,,,,,..,,,.,...,.,.,...,,,.,,.,,..,,...,...,.,,,,,,,,,,,.,.,,..,
-#CGE2S2BHMXA3Y5JBHA5QYIPTSI64KFQJKOWXSVN7ZRUIVYMGH3FVP5P32LAYTYCFSQ7FA2HBJNJBW
-#\\\|NLQFWW4PMAO2I6QAFCSHH6OVYB3KF2S22OSQPWHURESC73G25GM \ / AMOS7 \ YOURUM ::
-#\[7]OWHI3CSVHQ2SPXR74VGP2QKRAEEEKUF6BY73COKBHXZ67DXXPMCQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,,.,,,.,,,.,..,,.,,,...,,,.,.,.,..,,...,...,,,,,,,.,.,,,..,,...,
+#7BVUFN5TKFCUA2TOFLUCJ5T2RP634TU3EZITLWKO3LVDYIJAMGTFO3VST3GKSSPDY3DEKJUTBW4R4
+#\\\|NI2EWHZLHG7DLHH3SW6L7MN54WH4RPQI2TNIM7XLNL3E2JTEOKS \ / AMOS7 \ YOURUM ::
+#\[7]GUDCK7OE5WAZ6ANCA4H2QWNHWI4OHA5BBXN5AMQ3SDVSC7EGJSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
