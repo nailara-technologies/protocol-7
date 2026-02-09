@@ -15,7 +15,7 @@ if ( ref $ARG[0] ne qw| Event::Event::Io | and $ARG[0] =~ m|^\d+| ) {
 
 if ( not exists $data{'session'}->{$id} ) {    ## session is gone ? ##
     $event->w->cancel if $event->w->is_active;    ## cancel watcher <- ##
-    return <[base.session.check_remaining]>;
+    return <[base.session.check_remaining]>->( 0, TRUE ); ## using silenced ##
 }
 
 my $session = $data{'session'}->{$id};
@@ -129,8 +129,8 @@ $session->{'shutdown'} = 1 if !$write_size and $session->{'flush_shutdown'};
 
 return FALSE;
 
-#,,..,,..,,,,,...,..,,,,.,..,,,.,,,,,,,..,.,,,..,,...,...,...,..,,,.,,..,,...,
-#LLXFXUTY2THFTEFLCSSL46FX3JSSOJNYRIZWNWNG4KANQE3AHUTMGS53HKICC2ALAGLUAFN375JVE
-#\\\|ONL2ZRIRYWXXHK6DAYVOR455J65ZGTMPWCVKX2OILNJYTWQVK2I \ / AMOS7 \ YOURUM ::
-#\[7]BOKKKEXTCAEI3D2PJENX2A74NZROMAW5WJZAVW5DLOXRLDLZ72BY 7  DATA SIGNATURE ::
+#,,..,..,,,,,,..,,..,,,.,,,..,.,.,,,,,,,.,.,,,..,,...,...,,,.,.,,,.,,,.,,,,.,,
+#HFTORW4Q3IONVP4U66G3MUFNH3PADVIUSJZQ2WQVFSWX6B6QCXGNOEGCGL4L3JGUQ43HT34GBIHDI
+#\\\|TLTTU4GY7O2S6G44OHDJFP5W6QPN2QRTI4I6MHPANXMRAUZQBVY \ / AMOS7 \ YOURUM ::
+#\[7]P3NTQ47QEPDMQCBG42V35AZGQMWPRXLG5QGPT7IFKKOHX3GVSIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
