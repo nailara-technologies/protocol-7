@@ -34,7 +34,7 @@ if ( $download->{'eof_reached'}
     } else {
         $session->{'watcher'}->{'input_handler'}->timeout(<httpd.timeout>);
     }
-    return FALSE;
+    return 0;
 }
 
 ## If EOF reached, no more data to read
@@ -118,7 +118,7 @@ if ( $read_size <= 0 and $part_count ) {
             $session->{'watcher'}->{'input_handler'}
                 ->timeout(<httpd.timeout>);
         }
-        return FALSE;
+        return 0;
     }
 }
 
@@ -156,7 +156,7 @@ if ( $download->{'total_bytes_remaining'} == 0 ) {
 
 } else {
     $download->{'part_pos'} += $bytes_read if $part_count > 1;
-    return TRUE;
+    return 1;
 }
 
 ABORT_DOWNLOAD:
@@ -182,10 +182,10 @@ delete $session->{'watcher'}->{'download_handler'};
 delete $session->{'download'};
 <[httpd.update_download_count]>;
 $session->{'flush_shutdown'} = 1;
-return FALSE;
+return 0;
 
-#,,.,,,,.,..,,,..,.,,,,,,,.,,,,.,,,,,,.,,,,.,,..,,...,...,,..,,.,,.,.,..,,,.,,
-#UWIR6S3MGUY7CSGGBZBX64LD2I6GERS54YXXYI45FKTBMZZAZJ7C6WH6E5ALSFGBXOXLBJHGBRRAU
-#\\\|2RDWF2JJ3OI5T6DG6SWWD7SW2CVWF6JORH6F7MCT4OQQSXZPHRP \ / AMOS7 \ YOURUM ::
-#\[7]QB2CA2KVWIWVRYUQWNCIBETI3JRUHD2LK2HFFZXLF5BTAA63LUDI 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,.,,.,,,.,.,,.,,,..,,.,,.,,,,,.,..,,...,..,,...,,.,,,.,,,,,,,,.,
+#IWAAPNP5DKCSSX3SJYL7EEKU3P3VYGUKVTHVTQXGCB3FOLVNZKITUURZPRYQNUTB5WUQSR2ZQOSJS
+#\\\|DBCGN7M5WNYETLXQE2AUBPBDRK7GH2XGSHTFDKSX6WVJJGI5BMQ \ / AMOS7 \ YOURUM ::
+#\[7]NALJPZZVPOS653HNBJNFYJ3VA4BB6CPCKOEFYQOZNN2DUA2H7GCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
