@@ -12,6 +12,16 @@
     'Crypt::OpenSSL::X509', qw| FORMAT_ASN1 FORMAT_PEM |
 );
 
+## Load ACME and cryptographic modules
+<[base.perlmod.load]>->('JSON::XS');
+<[base.perlmod.load]>->('HTTP::Request');
+<[base.perlmod.load]>->( 'Digest::SHA', qw| sha256 | );
+<[base.perlmod.load]>->(
+    'MIME::Base64', qw| encode_base64url encode_base64 |
+);
+<[base.perlmod.autoload]>->('Net::DNS');
+<[base.perlmod.load]>->( 'File::Temp', qw| tempfile | );
+
 ## Initialize ACME client state (child-side)
 <letsencr.child.acme_client> = {
     server           => <letsencr.acme.server>,
@@ -57,8 +67,8 @@ if ( -f $account_key_path ) {
 
 0;
 
-#,,..,,..,,,,,...,.,,,..,,.,,,.,.,,.,,...,,,.,..,,...,...,...,,,,,,..,.,,,,,,,
-#GJ4OQ2IJZM5LGAO73BXPSQF2L7AYZHJF7IJ2UDOQ2A262A6D4W5KYGGZJSKEBG573UUOL6NTQZABA
-#\\\|5M5VIXXQBPEWSJ4VUSBTNYUVFLSROB5KOBWED4TVRKIKVVPNT2M \ / AMOS7 \ YOURUM ::
-#\[7]ZTVE33FD5LRBVJT4OQIZUWTIQM53GPD5UPVZWQT3EMICTTSPU6BQ 7  DATA SIGNATURE ::
+#,,,,,,..,,..,...,,..,,..,,,,,..,,,,,,.,,,,..,..,,...,...,,,,,,,,,,..,,.,,...,
+#PZVOA4ZOTCYPPAWIYWRHKZGXBWMHR74WWEGSHOOKPGF3THEIFDQZA4GUIDMRI4XX2LJMBVCZ2RLMQ
+#\\\|WUOLIR56E7UWN72ZNLD5AQGGFK3NGJ7YGNTNKLA7KPSVNUTIPG7 \ / AMOS7 \ YOURUM ::
+#\[7]PCV57P3XC7UWZLQUKOG6FAR5GK5BPFAY5L7PLOUNH5HJMR7QCYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,9 +4,6 @@
 # param = <domain>
 # descr = renew certificate for domain from Let's Encrypt
 
-use JSON::XS;
-use Crypt::Misc qw(encode_b32r);
-
 ## $call is provided by compiled-in code header
 my $domain = $call->{'args'};
 
@@ -83,8 +80,8 @@ return {
     'data' => $bundle_b32r
 };
 
-#,,..,.,.,..,,,,,,,,,,.,,,,..,.,,,..,,..,,,..,..,,...,..,,.,,,,.,,,..,.,.,,.,,
-#QPFWT23D5S2OROIMYLHGADUAVNKXYO7BHXQAKFVO4VFVQJWCRXWUKGQFMTSZWKEUM534JIIMUZP2A
-#\\\|C7REGQ5VULOGIUJEPD5FMAXLK3O6OEFMKP5OZYVRPWODQTYSMZS \ / AMOS7 \ YOURUM ::
-#\[7]JDZO3UH5JMLLHLCYEO566774U6X5ZB6QN6F3Q3XDXN4N2PI6K4BY 7  DATA SIGNATURE ::
+#,,..,,..,..,,,..,.,,,.,.,...,...,...,,..,..,,..,,...,...,...,,,.,,,,,,..,,,.,
+#6M3GSYQNBIDL7BK73TICZ4LDH4D2D5K2LT4UORGTY5PWG2G443DE27KPQKRUR2753CINU2TQSQWI4
+#\\\|J56TFDCV3RP5FU6HBGL7QJ7FHGAGKYI53QTPZDHPEPT7ZQLCVKU \ / AMOS7 \ YOURUM ::
+#\[7]XIHB4C3RB2CLZ4CSXOXGYZF2X5YWUYOQC5NZWV3WRGHV7F7QKKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

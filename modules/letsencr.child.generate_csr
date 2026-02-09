@@ -3,9 +3,6 @@
 # name  = letsencr.child.generate_csr
 # descr = generate Certificate Signing Request (CSR) for certificate issuance
 
-use File::Temp   qw(tempfile);
-use MIME::Base64 qw(encode_base64);
-
 my $domains = shift;    # arrayref of domains
 
 return undef unless $domains && @$domains;
@@ -106,8 +103,8 @@ return {
     domains    => $domains,
 };
 
-#,,.,,,..,.,,,.,.,...,...,,,.,,..,,.,,.,.,,.,,..,,...,...,.,,,,,,,...,...,,..,
-#KEFO54MLV2CI4O3WSZ2JNNR62TILDF6GBSCBATPDEDJM6NL3NBVDFAAFZ7VUEHHOUZEX3ZYHLRJHE
-#\\\|KBCSBH4RPDIDFEHEY5DWAWPOQQXDVC7XBG4RJGQHO6OAXLLQXAV \ / AMOS7 \ YOURUM ::
-#\[7]6HXD7QJWRXVWH3T2QBQFJTLGRLFNK35KRLRWFNG4LZMTHCFNVGAY 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,.,,,...,.,,,...,,,,,,,.,,,,,,,.,..,,...,...,,.,,...,...,...,...,
+#KPC576YGSU7ZP2Q4TYQRE3YIBRGOEJFGFYIYPE3MTBP4PNNGNQPBAC6NEOEQZRCMXMKRG6SQUUO2G
+#\\\|S7P2WUF32EVGT6QV6AIMJQJNVTVLGSJT54JNI6L6HVJ2V3FHRAR \ / AMOS7 \ YOURUM ::
+#\[7]P36USQQGU35CKEWHVTSWAMR2RRCKCXQHGV6KWZYO6DK2XBK6GYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,9 +3,6 @@
 # name  = letsencr.parent.load_certificate_registry
 # descr = load stored certificates from disk into memory registry
 
-use JSON::XS;
-use File::Spec::Functions qw(catfile);
-
 my $certs_dir = <letsencr.certs.dir>;
 
 <[base.log]>->( 2, "loading certificate registry from: $certs_dir" );
@@ -59,7 +56,9 @@ foreach my $meta_file ( sort @meta_files ) {
     ## Parse JSON metadata
     my $metadata;
     unless ( eval { $metadata = JSON::XS::decode_json($meta_content); 1 } ) {
-        <[base.log]>->( 1, "warning: invalid JSON in $meta_path: $EVAL_ERROR" );
+        <[base.log]>->(
+            1, "warning: invalid JSON in $meta_path: $EVAL_ERROR"
+        );
         $error_count++;
         next;
     }
@@ -120,8 +119,8 @@ return {
     error_msg => $error_count > 0 ? "$error_count errors during load" : undef
 };
 
-#,,..,.,.,..,,,,,,..,,..,,.,,,,,.,...,..,,,,.,..,,...,...,.,.,,.,,,,,,.,,,,,.,
-#OAPPF4VMMKLYZTCMMAVLKWLAUL6G4COJDIEGNA4IWYUGTAATXGGCWBWY3WAZKVR42ZNEUQBEZEG34
-#\\\|RGPOR4KD23BN3LFN5DTYCNQTSTSBW7LFW4OV2G6TQSRBLYFIYYF \ / AMOS7 \ YOURUM ::
-#\[7]6GMYTND7SJHXGZYN266AKZNVSEIQDSUKSTRAMDTBENXCLHP54QDY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,,.,..,,,.,,.,.,.,,,,,.,,..,,.,,..,,...,.,.,.,.,.,.,.,,,.,,,...,
+#J5JJLVVJKGWVRQNL4QU6FSUVLEATBNFNCDLESAPXKFUZE7Z4R5CMMVPPOI2KQQGEJOLKS6ADXLCZG
+#\\\|YJ2UCOZCWTXWUB65JOCT2HT3XMRDFAMKGVYUGG4SWZO7YV3UQXS \ / AMOS7 \ YOURUM ::
+#\[7]QKNB7I3Z6R5EOQF6QCTAPIIAQETCSVHQXL725NI2SLHTWDFTNADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,8 +3,6 @@
 # name  = letsencr.child.acme_create_order
 # descr = create new certificate order with Let's Encrypt
 
-use JSON::XS;
-
 my $domains = shift;    # arrayref of domains
 
 return undef unless $domains && @$domains;
@@ -105,8 +103,8 @@ return {
     finalize_url   => $order_data->{finalize},
 };
 
-#,,..,...,...,,,.,,..,,,.,...,..,,.,.,.,,,...,..,,...,...,.,.,.,.,,..,,..,,..,
-#2Y2OQZELOSJYNCQ3YPRKJH75TBJEARS6POGVK35AS26OOPC4YX2Z2D465KOODHMEPKPP6YFTT5SYY
-#\\\|7TPPG3IF5AFFTTH3JKVW2WXNDKF4R3GJHM5IC6MGEHBCUGWGDV7 \ / AMOS7 \ YOURUM ::
-#\[7]JD5KVCUMVQ3NELUL3HFBNVH7MJ4HR3JUOCVJP72L6YH4YJ367CBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,..,,,,,,,,,,...,.,.,,,.,,,,,..,,..,,...,...,,..,,,,,.,.,,,,,...,
+#HLFCZQR5A6FJL4QRSWWEMBITBRXI4C56SU3Z7SU2RSOTSQKYB6QYNEDGEUZ5J6XOEUUXCLF5DF5RI
+#\\\|FOMYU4DYV7SSRJSCR4DEFQ4LCWW2WGWBYM7AG75N2QOWSOTBODR \ / AMOS7 \ YOURUM ::
+#\[7]5XZ3YNR3PVSD55Q4L4S3IU2FG426SVDGKCNQ2CNF5F32JACAHKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

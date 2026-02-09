@@ -3,8 +3,6 @@
 # name  = letsencr.child.check_dns_propagation
 # descr = verify DNS-01 challenge TXT record has propagated before ACME validation
 
-use Net::DNS;
-
 my $dns_record_name = shift;
 my $expected_value  = shift;
 
@@ -96,8 +94,8 @@ return {
     error      => 'DNS propagation timeout',
 };
 
-#,,,,,,..,.,,,.,,,...,.,.,,,.,,,.,,..,,..,,,.,..,,...,...,...,,,.,,.,,,.,,..,,
-#QYQYKLXMTKXI7CT2MTCEOIBGBEEQBYCXOF6VK6TYH6QISCS22FEUKOOYVE53KG76M6ZA45S6H3WSM
-#\\\|YLJMIKUUPPBJGOPAFAVFWJ2F4JIM3YEWL4I6DIFPIASTDIDBOQP \ / AMOS7 \ YOURUM ::
-#\[7]JXFER2BYY2AV2IN6L4QRK4F2TFILJMK2ZWTK2NY4H2VDT7U3X6AQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,..,,,,,.,,,.,,,,..,.,.,.,,,,.,,..,,...,..,,.,,,...,.,,,..,,.,.,
+#Q373SVOKSM4HHKDMRLWVSKZIBMV4CJEFI3WOLV3BLOITWG3JBUBJOAIFYPGQY3H6NDL7LNQ75KYYQ
+#\\\|FTAONSPLLRYP4RHLOEYYEGZXHJCUQAXFHZBE36LHQKRV6OLXAL2 \ / AMOS7 \ YOURUM ::
+#\[7]RK3H77FU3EZMYBQZUNH5QIVLMFWNNROTPEIGIEQDET6LJKSYDMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

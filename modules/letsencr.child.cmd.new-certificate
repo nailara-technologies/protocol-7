@@ -4,9 +4,6 @@
 # param = <domain>
 # descr = obtain new certificate for domain - performs full ACME enrollment
 
-use JSON::XS;
-use Crypt::Misc qw(encode_b32r);
-
 ## $call is provided by compiled-in code header
 my $domain = $call->{'args'};
 
@@ -73,8 +70,8 @@ return {
     'data' => $bundle_b32r
 };
 
-#,,..,.,.,...,,,.,...,.,,,,,.,,,.,...,,..,,,.,..,,...,...,,..,..,,,..,,..,...,
-#HOCCOB7LJTK4H3PP4E6TRKDUPIRGJ53OFCTIQBHASWRXB2XG2O2FJYTNWFFOMSAXDVSTJFQW5T4KA
-#\\\|CM6WOQNNUXSTKRUHW3URVYGTSJKPSBQGEJHQS5VPRFIDJZQN3P3 \ / AMOS7 \ YOURUM ::
-#\[7]OTSQOEXSWZBAKPH3TENICLD7FYTZ5GP2CHKTJ2JG3UGWYOGJBEBI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,..,,.,.,,..,.,.,.,.,.,,,..,,.,.,..,,...,...,..,,,.,,..,,,,,,..,,
+#3KS4YW3COZLCNXZOOJOMJ43CUZ7IKF6WDBTIM5J4SXHWF35YRDDPEWNMNEE4OKILATENIA37KGC7U
+#\\\|N6LGTXSZ7MEZLNPICD2U4JUZZEFMLQQTR3CNQM2R5KA4GNHGHLC \ / AMOS7 \ YOURUM ::
+#\[7]X3NP736LDSFGDXFMY5Q4ZTDO7CHFRRYWRCHXHXA4AXYABZ55LUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

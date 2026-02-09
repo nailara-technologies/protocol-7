@@ -3,8 +3,6 @@
 # name  = letsencr.child.load_account_key
 # descr = load existing Ed25519 account key from Base32r cache
 
-use Crypt::Misc qw(decode_b32r);
-
 my $key_path = shift || sprintf '%s/account.key', <letsencr.cache.dir>;
 
 return undef unless -f $key_path;
@@ -73,8 +71,8 @@ unless ( $keypair && $key_name ) {
 
 return <letsencr.child.acme_client>->{account_key};
 
-#,,,,,.,.,,,,,..,,.,,,.,,,,,.,...,,..,...,,,.,..,,...,...,,.,,,..,,,.,,..,..,,
-#UXGXGOKNKSHBJ5WM5UUPOPMNNWKHSAWPLDC4VOCCAR4JVSPWYKEBNZLMF2ZYETWDG7PALUAYRC5JG
-#\\\|HBDEENJ5GEWLORDGA36P25JJZP6RJO4VPRHHYNQNRCCLXKPGBTT \ / AMOS7 \ YOURUM ::
-#\[7]POJMVDD2OES26KQUDGKAWKPTOKLUKCRVEEJ6BC7KEC76QNAI7ABA 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,.,,,..,,,.,,..,,.,,.,,,,..,,..,..,,...,..,,..,,.,.,,.,,,.,,,.,,
+#TNTB5GOQ5EY2V7FK4T65ODJKCRKSTQQHKLUGLWP7KQMFORN5FTUKGJBCPK2JVDZOFZ4GCZSEWXZME
+#\\\|STFPAOHASIOWVJFGWOP7YEDROAIHN7N5MYOULQS25HISE5BTUB3 \ / AMOS7 \ YOURUM ::
+#\[7]XTTUE5WVWYNYJY5X2O456PLLFYZOMTZYADEIXKE3ZEP5GKGJRGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
