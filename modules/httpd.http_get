@@ -24,78 +24,88 @@ my $link_target = <httpd.cfg.hostnames>->{$http_host}
     if defined <httpd.cfg.hostnames>->{$http_host};
 
 if (    $link_target =~ m|^\d{3}$|
-    and -l <httpd.site_dir> . '/' . $http_host
-    and !-e <httpd.site_dir> . '/' . $link_target ) {    # special codes
+    and -l catfile( <httpd.site_dir>,  $http_host )
+    and !-e catfile( <httpd.site_dir>, $link_target ) ) {    # special codes
 
     $session->{'watcher'}->{'input_handler'}->cancel;
-    if ( $link_target ne '000' ) {    # n > 000 == HTTP error codes
-        <[base.log]>->(
-            1, "[$id] status '$link_target' for requested host '$req_host'"
+    if ( $link_target ne qw| 000 | ) {    # n > 000 == HTTP error codes
+        <[base.logs]>->(
+            1,   "[%d] status '%s' for requested host '%s'",
+            $id, $link_target, $req_host
         );
         <[httpd.send_error_page]>->( $id, $link_target );
         $session->{'flush_shutdown'} = 1;
     } else {
-        <[base.log]>->( 1, "[$id] (000) dropping host request '$req_host'" );
+        <[base.logs]>->(
+            1,   "[%s] <000> dropping host request '%s'",
+            $id, $req_host
+        );
         $session->{'close'} = 1;
     }
     return 2;
 }
 
-$session->{'http'}{'request'}{'matched_host'} = $http_host;
+$session->{'http'}->{'request'}->{'matched_host'} = $http_host;
 
 ## ============================================================================
-## NEW: Intelligent request routing via route_dispatcher (v2025-11-14)
+## NEW: Intelligent request routing via route_dispatcher [v2025-11-14]
 ## ============================================================================
 ## Extract URI path and delegate to route_dispatcher for intelligent routing
 
 my $uri_obj  = URI->new($http_uri);
 my $uri_path = $uri_obj->path // '/';
 
-<[base.log]>->(2, "[$id] route_dispatcher: GET $uri_path (vhost=$http_host)");
+<[base.logs]>->(
+    2,   "[%d] route_dispatcher : GET %s [vhost=%s]",
+    $id, $uri_path, $http_host
+);
 
 # Call route_dispatcher to determine the appropriate handler
-my $route = <[httpd.route_dispatcher]>->('GET', $uri_path, $http_host, $id);
+my $route = <[httpd.route_dispatcher]>->( 'GET', $uri_path, $http_host, $id );
 
-unless (defined $route and ref($route) eq 'HASH') {
-    <[base.log]>->(0, "[$id] route_dispatcher returned invalid result");
-    return <[httpd.send_error_page]>->($id, 500);
+unless ( ref($route) eq qw| HASH | ) {
+    <[base.logs]>->(
+        0, "[%d] route_dispatcher returned not valid result", $id
+    );
+    return <[httpd.send_error_page]>->( $id, 500 );
 }
 
-my $handler_name = $route->{'handler'} // 'httpd.send_error_page';
+my $handler_name = $route->{'handler'}      // qw| httpd.send_error_page |;
 my $handler_args = $route->{'handler_args'} // {};
 
-<[base.log]>->(
-    2,
-    "[$id] dispatcher selected: $handler_name"
-);
+<[base.logs]>->( 2, "[%d] dispatcher selected: %s", $id, $handler_name );
 
 # Dispatch to the appropriate handler
 # Get the actual code reference from the code hash
-my $handler_ref = $code{$handler_name};
-unless (defined $handler_ref && ref($handler_ref) eq 'CODE') {
-    <[base.log]>->(0, "[$id] handler not found or not a coderef: $handler_name");
-    return <[httpd.send_error_page]>->($id, 500);
+my $handler_ref = $code{$handler_name};    ## <-- improve style [exists]
+unless ( ref($handler_ref) eq qw| CODE | ) {
+    <[base.logs]>->(
+        0,   "[%d] handler not found or not a coderef : %s",
+        $id, $handler_name
+    );
+    return <[httpd.send_error_page]>->( $id, 500 );
 }
 
 # Call the handler with appropriate arguments based on handler type
-if ($handler_name eq 'httpd.process_template') {
-    return $handler_ref->($id, $handler_args->{'template_path'});
-} elsif ($handler_name eq 'httpd.serve_static') {
-    return $handler_ref->($id, $handler_args);
-} elsif ($handler_name eq 'httpd.handler.acme_request') {
-    return $handler_ref->($id, $handler_args->{'token'});
-} elsif ($handler_name eq 'letsencr.http.api_handler') {
-    return $handler_ref->($id, $handler_args->{'endpoint'});
-} elsif ($handler_name eq 'httpd.send_error_page') {
-    return $handler_ref->($id, $handler_args->{'code'} // 500);
+if ( $handler_name eq qw| httpd.process_template | ) {
+    return $handler_ref->( $id, $handler_args->{'template_path'} );
+} elsif ( $handler_name eq qw| httpd.serve_static | ) {
+    return $handler_ref->( $id, $handler_args );
+} elsif ( $handler_name eq qw| httpd.handler.acme_request | ) {
+    return $handler_ref->( $id, $handler_args->{'token'} );
+} elsif ( $handler_name eq qw| letsencr.http.api_handler | ) {
+    return $handler_ref->( $id, $handler_args->{'endpoint'} );
+} elsif ( $handler_name eq qw| httpd.send_error_page | ) {
+    return $handler_ref->( $id, $handler_args->{'code'} // 500 );
 } else {
+
     # Generic handler fallback
-    <[base.log]>->(1, "[$id] calling handler: $handler_name");
-    return $handler_ref->($id, $handler_args);
+    <[base.logs]>->( 1, "[%d] calling handler : %s", $id, $handler_name );
+    return $handler_ref->( $id, $handler_args );
 }
 
 ## Legacy fallback (should not be reached if routing is correct)
-<[base.log]>->(0, "[$id] http_get: unexpected fallthrough");
+<[base.logs]>->( 0, "[%d] http_get : unexpected fallthrough", $id );
 
 if ( exists $headers->{'range'} ) {
     my $bad_req = 0;
@@ -109,16 +119,15 @@ if ( exists $headers->{'range'} ) {
     my $range_reg = qr{(\d+-\d+|-\d+|\d+-\*?)};
     return <[httpd.send_error_page]>->( $id, 400 )    # <-- Bad Request
         if $bad_req
-        or $headers->{'range'} !~ /^$range_reg(,$range_reg)*$/;
+        or $headers->{'range'} !~ m{^$range_reg(,$range_reg)*$};
 }
 
 my $file_path;
 
 if ( defined $http_host and defined $link_target ) {
-    <[base.log]>->(
-        1,
-        sprintf( "[$id] matched Host: '%s' --> '$http_host'",
-            $session->{'http'}{'request'}{'host'} )
+    <[base.logs]>->(
+        1,   "[%d] matched host : '%s' --> '%s'",
+        $id, $session->{'http'}{'request'}{'host'}, $http_host
         )
         if defined $session->{'http'}{'request'}{'host'}
         and $http_host ne $session->{'http'}{'request'}{'host'};
@@ -127,33 +136,34 @@ if ( defined $http_host and defined $link_target ) {
 
     my $uri_obj = URI->new($http_uri);
 
-    $file_path = join( '', $base_dir, $uri_obj->path );
+    $file_path = join '', $base_dir, $uri_obj->path;
     $file_path =~ s|/$||;
 
     return <[httpd.send_error_page]>->( $id, 404 )
-        if $file_path =~ /\.tmpl$/
-        and -f $file_path;    # *.tmpl files are masked.
+        if $file_path =~ m|\.tmpl$|    # *.tmpl files are masked.
+        and -f $file_path;
 
     if ( -d $file_path ) {
-        $file_path .= '/index.html' if -f $file_path . '/index.html';
-        $file_path .= '/index.tmpl' if -f $file_path . '/index.tmpl';
-    } elsif ( -f "$file_path.tmpl" ) {
-        $file_path .= '.tmpl';
-    } elsif ( $file_path =~ /\// ) {
+        $file_path .= qw|/index.html| if -f $file_path . qw| /index.html |;
+        $file_path .= qw|/index.tmpl| if -f $file_path . qw| /index.tmpl |;
+    } elsif ( -f sprintf qw| %s.tmpl |, $file_path ) {
+        $file_path .= qw| .tmpl |;
+    } elsif ( $file_path =~ m,\/, ) {
         my $real_path = $file_path;
         while ( $real_path =~ s|\/+[^\/]*$|| ) {
-            if ( -d $real_path and -f "$real_path/index.tmpl" ) {
-                $file_path = "$real_path/index.tmpl";
+            if ( -d $real_path and -f catfile( $real_path, qw|index.tmpl| ) )
+            {
+                $file_path = catfile( $real_path, qw| index.tmpl | );
                 last;
-            } elsif ( !-d $real_path and -f "$real_path.tmpl" ) {
-                $file_path = "$real_path.tmpl";
+            } elsif ( !-d $real_path and -f sprintf qw|%s.tmpl|, $real_path )
+            {
+                $file_path = sprintf qw| %s.tmpl |, $real_path;
                 last;
             }
         }
     }
 
-    if ( $file_path =~ m|\.tmpl$| and -f $file_path )
-    {    # <-- nailara web template
+    if ( $file_path =~ m|\.tmpl$| and -f $file_path ) { ## <-- native template
         $request->{'query'}
             = { map { $ARG => $uri_obj->query_param($ARG) }
                 $uri_obj->query_param };
@@ -161,12 +171,12 @@ if ( defined $http_host and defined $link_target ) {
     }
 
     if ( -f $file_path and !-r $file_path ) { # LLL: cfg + deal with symlinks.
-        <[base.log]>->(
-            0,
-            "[$id] <<!>> access denied by filesystem permissions [ $file_path ]"
+        <[base.logs]>->(
+            0,   "[%d] <<!>> denied by fs permissions [ %s ]",
+            $id, $file_path
         );
-        return <[httpd.send_error_page]>->( $id, 403 )
-            ;                                 # Permission Denied [FS]
+        ## Permission Denied [FS] ##
+        return <[httpd.send_error_page]>->( $id, 403 );
     } elsif ( -f $file_path ) {
 
         $file_path = readlink($file_path)
@@ -185,7 +195,7 @@ if ( defined $http_host and defined $link_target ) {
         ## caching meta data ..,
         my $meta = <http.meta_cache> //= {};
 
-        foreach my $check_etag ( keys %{$meta} )
+        foreach my $check_etag ( keys $meta->%* )
         {    # use timer once too many ..,
             delete $meta->{$check_etag}
                 if <[base.time]>->(4) - $meta->{$check_etag}->{'cached_since'}
@@ -198,24 +208,22 @@ if ( defined $http_host and defined $link_target ) {
         };
 
         my $content_type = $meta->{$path_etag}->{'content_type'};
-
         ##
-
-        my $reply_code = 200;    # =)
+        my $reply_code = 200;    # status [OK] =)
 
         if ( defined $request->{'headers'}->{'if-none-match'}
             and $request->{'headers'}->{'if-none-match'} eq
             $response->{'params'}->{'ETag'} ) {
             <[base.log]>->( 1, "[if-none-match] returning 304 [$path_etag]" );
-            $reply_code = 304;    # Not Modified
+            $reply_code = 304;    # Not Modified [304]
 
         } elsif ( defined $request->{'headers'}->{'if-modified-since'}
             and $request->{'headers'}->{'if-modified-since'} eq
             $content_date ) {
-            <[base.log]>->(
-                1, "[if-modified-since] returning 304 [$path_etag]"
+            <[base.logs]>->(
+                1, "[if-modified-since] returning 304 [%s]", $path_etag
             );
-            $reply_code = 304;    # Not Modified
+            $reply_code = 304;    # Not Modified [304]
         }
 
         my @byte_ranges;
@@ -224,7 +232,7 @@ if ( defined $http_host and defined $link_target ) {
             or not defined $headers->{'range'};
         $response->{'params'}->{'Content-Range'} = "bytes */$content_size";
 
-        foreach my $range_str ( split /,/, $headers->{'range'} ) {
+        foreach my $range_str ( split ',', $headers->{'range'} ) {
             my ( $start, $end );  ### regular byte range [ <start>-<end> ] ###
             ( $start, $end ) = ( $1, $2 ) if $range_str =~ m{^(\d+)-(\d+)$};
 
@@ -259,34 +267,47 @@ if ( defined $http_host and defined $link_target ) {
             'Last-Modified'  => $content_date,
             'Content-Length' => $content_size,
             'Connection'     => $session->{'http'}->{'close'}
-            ? 'close'
-            : 'keep-alive',
-            'Accept-Ranges' => 'bytes',
-            %{ $response->{'params'} }
+            ? qw| close |
+            : qw| keep-alive |,
+            'Accept-Ranges' => qw| bytes |,
+            $response->{'params'}->%*
         };
 
         $path_etag = <[chk-sum.elf.vax-BASE32]>
             ->("$content_inode.$content_size.$content_date.$file_path");
         $response->{'params'}->{'ETag'} = $path_etag;
 
-        if ( $reply_code != 200 ) {    # <-- 304 Not Modified
+        if ( $reply_code != 200 ) {    # <-- 304 [ Not Modified ]
             $session->{'buffer'}->{'output'}
                 .= <[httpd.new_header]>->( $reply_code, $reply_header );
             return $session->{'http'}->{'close'} ? 2 : 0;
         } elsif ( $content_size <= 16 * 1024
             and not exists $request->{'range'} )
-        {                              # <-- 'small' file, send now
-            local $RS = undef;
-            open( my $content_fh, '< :raw', $file_path )
-                or warn "<< ! >> $file_path : \l$OS_ERROR"
-                ;                      # LLL: needs error handling..,
+        {                              # <-- [ 'small' file, send now.. ]
 
-            $session->{'buffer'}->{'output'}    ## blocking ? ##
-                .= <[httpd.new_header]>->( $reply_code, $reply_header )
-                . <$content_fh>;
-            close($content_fh);
-
-            return $session->{'http'}->{'close'} ? 2 : 0;
+            my $content_sref = <[file.slurp]>->($file_path);  ## blocking ? ##
+            if ( ref($content_sref) ne qw| SCALAR | ) {    ## unknown error ##
+                ## log error \ return 500 ##
+                <[base.s_warn]>->(
+                    '<< ! >> %s : \l%s',
+                    $file_path, <[base.str.os_err]>
+                );
+                ## Internal Error [500] ##
+                return <[httpd.send_error_page]>->( $id, 500 );
+            } elsif ( length( $content_sref->$* ) < $content_size ) {
+                <[base.s_warn]>->(
+                    '<< ! >> %s : file read returned %d less byte[s]',
+                    $file_path, $content_size - length( $content_sref->$* )
+                );
+                return <[httpd.send_error_page]>->( $id, 500 ); ## send ERR ##
+            }
+            ## has content + size matches ##
+            $session->{'buffer'}->{'output'}
+                .= <[httpd.new_header]>->( $reply_code, $reply_header );
+            $session->{'buffer'}->{'output'} .= $content_sref->$*;
+            return $session->{'http'}->{'close'}   # [LLL] check code handling
+                ? 2
+                : 0;
 
         } else {    # 'larger' file, transfer in pieces.,
             return <[httpd.download_init]>->(
@@ -305,8 +326,8 @@ return <[httpd.send_error_page]>->( $id, 404 )         # Not Found
     if not defined $file_path
     or !-f $file_path;
 
-#,,,.,..,,,.,,,,.,..,,,,.,..,,,.,,..,,,,,,.,.,..,,...,...,...,,..,,,.,...,.,,,
-#CD62CPSYMQ35PH5JEJOREO2WSXHO4Z6XADCIMG2C6C4XM2XQBJCHLXIHV43YBVVYVXOZS7VFQNIF2
-#\\\|DIACTIGYMA52BGAE2CUT5LZDGD2OGNRLFUHERPZCMD3IEHU45GZ \ / AMOS7 \ YOURUM ::
-#\[7]6NVXJ4WIFTPRCNPI6J2GFJLMNTYR37RJKAYPRSRU63TOZTGAHIDY 7  DATA SIGNATURE ::
+#,,..,,,.,...,,,,,,,.,...,.,.,,,,,,,,,.,.,,,,,..,,...,...,..,,,..,,..,.,,,.,.,
+#WUVR5NYDSWULXG2WCKDBQEVVRFE5UVE4LR2TJ5C6SI4ID6RRDQWCFIYLUJQX3NYUHJONHOQQAZMDI
+#\\\|LFHU3JTACCSNKD3S33AC7ALYN3W2HRFEBHQTGBFDRBQSWKQOM4D \ / AMOS7 \ YOURUM ::
+#\[7]P74OTQKJ5VEIFFLBQYTO6NDCCQCFHJ6QLKR626JG2IHS22VDGWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
