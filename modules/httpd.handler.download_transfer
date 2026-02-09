@@ -53,7 +53,7 @@ $max_buf_size = <httpd.downloads.max_buffer_size>
 
 my $read_size = $max_buf_size - length $session->{'buffer'}->{'output'};
 
-return TRUE if $read_size < 1;    ## <-- output buffer full ##
+return 1 if $read_size < 1;    ## <-- output buffer full ##
 
 my $content_fh = $download->{'content_fh'};
 my $part_count = $download->{'part_count'};
@@ -184,8 +184,8 @@ delete $session->{'download'};
 $session->{'flush_shutdown'} = 1;
 return 0;
 
-#,,.,,,,,,...,,.,,.,,,.,.,,.,,,..,,.,,.,,,,,.,..,,...,..,,...,,.,,,.,,,,,,,,.,
-#IWAAPNP5DKCSSX3SJYL7EEKU3P3VYGUKVTHVTQXGCB3FOLVNZKITUURZPRYQNUTB5WUQSR2ZQOSJS
-#\\\|DBCGN7M5WNYETLXQE2AUBPBDRK7GH2XGSHTFDKSX6WVJJGI5BMQ \ / AMOS7 \ YOURUM ::
-#\[7]NALJPZZVPOS653HNBJNFYJ3VA4BB6CPCKOEFYQOZNN2DUA2H7GCY 7  DATA SIGNATURE ::
+#,,.,,...,,..,.,.,.,,,,..,,,.,.,.,,.,,,..,,,,,..,,...,...,...,,..,.,.,...,.,,,
+#SDT4C6F5AJJL4U5WAXVNDAKFSCS5KYBGOZFGPTDVWCFPD56UJ7Y7ZWHWJZQY25J7JJQIOD7QYODKA
+#\\\|H5I4XCRT4DJY7HT7ZDYPLVD53BNPY5CDQWQIT5ODJQBWEN2YRIJ \ / AMOS7 \ YOURUM ::
+#\[7]GPCUGSL35SAWHD5FOKO443RIG3ZUFOCQZ4LOKNTIW6WX7ZSVUYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
