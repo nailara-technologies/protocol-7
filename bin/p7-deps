@@ -297,7 +297,8 @@ sub install_profile {
     # Install APT packages
     if (@to_install_apt) {
         print "Installing APT packages: " . join(', ', @to_install_apt) . "\n";
-        system("sudo apt-get install -y " . join(' ', @to_install_apt)) == 0
+        my $sudo = $< == 0 ? '' : 'sudo ';  # skip sudo if running as root
+        system("${sudo}apt-get install -y " . join(' ', @to_install_apt)) == 0
             or die "Failed to install APT packages\n";
     }
 
@@ -757,8 +758,8 @@ ZENKA CONFIGURATION:
 EOF
 }
 
-#,,,,,.,.,,,.,...,,..,.,,,..,,,..,,,.,,.,,,,,,..,,...,.,.,.,.,..,,,..,,.,,..,,
-#LL4JMVZUOFKJGOREDLBW6RQURM36GUN6LHUYPK2B5LZSLTMNCUUWNZMDLT6SSIDBPG32SLUXC6MFW
-#\\\|UIUXQGVCNF5UI43FYBWP2XCFKYV5GXPBUPZNNKOQS2YFNOS6RBM \ / AMOS7 \ YOURUM ::
-#\[7]5BGDHRYXAP4JAAWFKVJBVDO6DFA35WNYPRIWARK6EZAJMFCV7ACQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,,.,...,.,,,,,,,,,.,...,,.,,,..,..,,...,...,.,.,,,.,...,...,.,.,
+#6WOZP6FLUEVOT45WFME7OAMGBA446K4GBVK7ZT7JA2ANMDIOU6PVWPXP7HQCLKMRMYJIYBM5MFWLO
+#\\\|LYFD7D3MN7DA45WTET4AC3CQ7B6G63PJSTHEALHFAXSXWJWNZBQ \ / AMOS7 \ YOURUM ::
+#\[7]KBZQ53Y4QM32UXTJFQ4WQ4DNHL4RDDFBEPBXVDZ7A7UTOYNUCQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
