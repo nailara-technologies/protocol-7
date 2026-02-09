@@ -45,11 +45,11 @@ if ( defined $handler and exists $code{$handler} ) {
     ## return code 1 ## ..not complete.,   [ more data expected. ]
 
     ## call [registered] error handler in next case ##                   [LLL]
-    <[base.s_warn]>->( 'return code of %s not defined', $handler )
+    <[base.s_warn]>->( "the return code from %s was undefined", $handler )
         and $ret_code = 2
         if not defined $ret_code;
     <[base.s_warn]>->(
-        "not expected return code from %s : '%s'",
+        "got non-numerical return value from %s : '%s'",
         $handler, $ret_code
         )
         and $ret_code = 2
@@ -76,6 +76,13 @@ if ( defined $handler and exists $code{$handler} ) {
         );
     }
     ##
+    elsif ( $ret_code > 2 ) {   ## complain when returned value not defined ##
+        <[base.s_warn]>->(
+            "not expected [0..2] return code from %s : '%s'",
+            $handler, $ret_code
+        );
+    }
+
 } else {
 
     ##  stopping variable watcher to modify buffer content  ##
@@ -137,8 +144,8 @@ if ( $session->{'read-mode'} eq qw| linewise | ) {
         and rindex( $session->{'buffer'}->{'input'}, "\n" ) != -1;
 }
 
-#,,,.,,.,,,,,,...,,,,,.,,,..,,,.,,,,.,,..,,..,..,,...,...,,.,,.,,,..,,,.,,...,
-#VK6VJ42KTN4WMAABNGCWFTXAHTHY3JW2UVDXV6BAZR24RK6NTGH5BOUBEJNWIRN7OSKROVUWDADSO
-#\\\|IG23L7ZU5M3BHYJWFB4L5ASGABBYFIZYW5HRHPWUHJFSTJ2YXHC \ / AMOS7 \ YOURUM ::
-#\[7]BRLGH623W4RFI3BXCPN7733ZCVUXDIDCUOQRVNOFNBSN6ZIQNKCI 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,.,,,..,,...,...,.,,,,,.,.,,,,,,,..,,...,...,,..,...,..,,.,,,..,,
+#BZDV5RBN56S74IO6WTBHKFKKZEZLAU2QKCIWNY3G5X4AE7GTSGJ76TC6663DTLTJ2LVORTFD45N5U
+#\\\|CKGKCPQIGM7YRKVLJNEFHTCCRRQK5C4SF5KMND6ASPZV4F2XPU4 \ / AMOS7 \ YOURUM ::
+#\[7]LDIMDRUE4WRZPQRRRVDAZV7UI4T7OQXBXV3W6LR3DGU4Y347ECBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
