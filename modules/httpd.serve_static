@@ -232,7 +232,7 @@ if ( $reply_code != 200 ) {
     # Set flush_shutdown so base.handler.write will close after
     # flushing the buffer
     $session->{'flush_shutdown'} = 1 if $session->{'http'}->{'close'};
-    return FALSE;
+    return 0;
 }
 
 # Serve small files directly
@@ -264,7 +264,7 @@ if ( $content_size <= 16 * 1024 and not exists $request->{'range'} ) {
     # buffer Don't return 2 immediately - let the write handler finish
     # sending the response
     $session->{'flush_shutdown'} = 1 if $session->{'http'}->{'close'};
-    return FALSE;
+    return 0;
 }
 
 # For large files, use download transfer mechanism
@@ -280,8 +280,8 @@ return <[httpd.download_init]>->(
     }
 );
 
-#,,..,,.,,,.,,,,.,.,.,,,,,,..,..,,,.,,...,,.,,..,,...,...,..,,,,.,,..,,,,,...,
-#SBPCYBUT247TXU3ICJMNZ4ROIYNQVCUKX7UFHE2I74ZE53KQWULRAH2CHDMXEPFNJIH3AJ5HZFJE6
-#\\\|H6GNB2QN3JMEKGFSVP5LCYA6ND4UI6MPR56UT5JIMFWXDQFYUIW \ / AMOS7 \ YOURUM ::
-#\[7]UXRVP4BHG5KNNL2TSAOSH6NGSLNGC3GJFD7EVHD7GX3JWRAMHOCY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,..,,,,,...,...,.,.,,.,,.,,,,,,,..,,...,...,.,.,,.,,,,,,..,,...,
+#ONIWWUWJ2XHSI3JPNS64PBUWBKECQEJG2JATLLMIONQJPUCSTIOKAJRISUUS2QUSDWMK77HIUPC64
+#\\\|ABP6TIDPUKRPTD5YJOW5ECDHQKSXZIDJPODKWWCAPBEA23V5AK2 \ / AMOS7 \ YOURUM ::
+#\[7]HRAPHWTXEWGOXOM5G33OFZ3RH52XRSJ3RL57JXDJARBWTZXR3WBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
