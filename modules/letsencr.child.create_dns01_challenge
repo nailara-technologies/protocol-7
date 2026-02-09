@@ -3,10 +3,6 @@
 # name  = letsencr.child.create_dns01_challenge
 # descr = create DNS-01 challenge TXT record for wildcard domain validation
 
-use JSON::XS;
-use Digest::SHA  qw(sha256);
-use MIME::Base64 qw(encode_base64url);
-
 my $challenge = shift;    # challenge data from authorization
 my $domain    = shift;
 
@@ -127,8 +123,8 @@ return {
     provider        => $dns_provider,
 };
 
-#,,..,,..,,,,,,,,,,.,,...,,,.,,,.,...,...,..,,..,,...,..,,..,,.,,,...,.,.,,,,,
-#6ONHB44HUBQEZ2M6EJ7EPSEFWD4STELDQ27DGXEJWZ7NYUMTN4V2QDOSJ7ZHAIZYCR7WAP5UKA3V2
-#\\\|WMDKFWHBLFRWO2BLSUHH74BYDZ7C4QO56HQ5NYAJFVL5CU4LX6B \ / AMOS7 \ YOURUM ::
-#\[7]FVW6CMY6Z77AHD53I6UYJ7BYUZVAXAZANR5OAVSJAJDMA4TFRWBA 7  DATA SIGNATURE ::
+#,,.,,,..,...,,,,,,.,,,..,,.,,.,.,..,,.,.,,..,..,,...,...,...,,,,,,,.,.,.,.,.,
+#43MPOBEPNBWMCQULCORPUAN7QG7JWZ5UA3GEFRFLRITSSPRORWTYVIO72G2KJJCZG7XUVZ5LXGUZI
+#\\\|DGDAEJMTVCWZRAQO3CBJTF2VXVMZB7UEOZFELOBIVJ7GHKFIU4A \ / AMOS7 \ YOURUM ::
+#\[7]MP6TD3FWZFK5HTMYWGV4HC32UIEYL57JCYD3FDIAXEYAGBYAKWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

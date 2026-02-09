@@ -3,10 +3,6 @@
 # name  = letsencr.child.create_http01_challenge
 # descr = create HTTP-01 challenge response and write to well-known directory
 
-use JSON::XS;
-use Digest::SHA  qw(sha256);
-use MIME::Base64 qw(encode_base64url);
-
 my $challenge = shift;    # challenge data from authorization
 my $domain    = shift;
 
@@ -93,8 +89,8 @@ return {
     challenge_url  => $challenge->{url},
 };
 
-#,,,,,,..,,.,,,..,,..,..,,.,,,,,,,,..,...,...,..,,...,..,,.,.,,,.,.,.,,,,,...,
-#NWXF427NP774TBGHEQYZOCDGHZYZB3IQCD4B3HWQARDJMFO7RBFGEQ6LH5376HU245GLL3JIURC3U
-#\\\|6BTEJSBTMGGLO4PPYHK3CT6FXRJ3W3B36JRI5PLATW6URF4Z6RT \ / AMOS7 \ YOURUM ::
-#\[7]EKZT6E5FN6OTPWTJQGYEZ4TSCKSB52QZFFOWKDZLJ5UAKEHLSSCA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,...,.,,,.,.,..,,,..,.,.,.,,,,.,,..,,...,...,.,.,.,,,,..,,.,,..,,
+#UJ4XTA3ABC5HFTTAFQPQGHUG6VDAXQJFP6SA5X4Q5IUHAYTIJVCTMW44MQHSYK5NRQIJU3DCP6UD4
+#\\\|WX57NQNNUMY6PKDJRSCGF7UEEYMQFX5XEM4JR77BB6NJRYMEPPB \ / AMOS7 \ YOURUM ::
+#\[7]KXHJQQ23BOZ75RSUTOP37J5GFFCMSI2VQ6NXN2J7OEN5GZ4VFUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

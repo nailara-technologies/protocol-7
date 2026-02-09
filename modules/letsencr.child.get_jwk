@@ -3,9 +3,6 @@
 # name  = letsencr.child.get_jwk
 # descr = get public key in JWK (JSON Web Key) format for ACME (RFC 8037 - EdDSA)
 
-use JSON::XS;
-use MIME::Base64 qw(encode_base64url);
-
 <[base.log]>->( 3, 'generating JWK from Ed25519 account key (RFC 8037)' );
 
 my $account_key_name = <letsencr.child.acme_client>->{account_key_name};
@@ -46,8 +43,8 @@ my $jwk_json = JSON::XS->new->canonical(1)->encode($jwk);
 
 return JSON::XS::decode_json($jwk_json);
 
-#,,,,,..,,.,.,,,.,.,,,.,,,,.,,..,,.,,,,,,,,..,..,,...,...,.,.,,,.,,,.,,.,,.,.,
-#2HAU6G2DQX53WBQVVD7XXDVCDPRPHZU4FOQIMQWU5AZUXYFO6DDJV7GITNJOPWH72SROTN7ZKTZC4
-#\\\|IAUHCHEQFCA5DZVEQZHIANHCIMX4R53PP76RP7YOGU45V5HTDK3 \ / AMOS7 \ YOURUM ::
-#\[7]CXS33TM3T6DCR4YI36XCN7D2HG5T4QWRNJY4KITDHTEHJBSI6ICQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,..,,..,,,.,...,.,,,,,,,,,,,..,,..,,...,...,.,,,..,,,,.,,..,,.,,
+#WC2DRDBO3Z7GAVENE6NPOWO36TUP5EFLB3MBTZ33L3RU6MK6PFYA57HJODTKGSKSHKW56GNGIGXTY
+#\\\|SXOQGSZ4MYDRRBLUVHNYLIVALSX5V4CQIVICGAN4ITBKM3F5GBL \ / AMOS7 \ YOURUM ::
+#\[7]CWRTE7KLH44DHWC3P5SAZZQ3YI6VWWQJ6FTQSCBHW6BJGMHAQ6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

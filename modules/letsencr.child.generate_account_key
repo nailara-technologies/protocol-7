@@ -1,9 +1,7 @@
 ## [:< ##
 
 # name  = letsencr.child.generate_account_key
-# descr = generate Ed25519 account key for ACME operations using existing C25519 infrastructure
-
-use Crypt::Misc qw(encode_b32r);
+# descr = generate Ed25519 account key for ACME operations
 
 <[base.log]>->(
     2, 'generating new Ed25519 account key for ACME (via C25519)'
@@ -11,11 +9,12 @@ use Crypt::Misc qw(encode_b32r);
 
 my $start_time = time();
 
-## Generate Ed25519 account key using existing Protocol-7 C25519 infrastructure
+## Generate Ed25519 account key using existing Protocol-7 C25519
+## infrastructure.
 ## This reuses proven code from modules/crypt.C25519.gen_keys and includes:
-## - Harmonic key generation (AMOS7::Assert::Truth)
-## - Memory locking (IO::AIO::aio_mlock)
-## - Secure entropy (Crypt::PRNG::Fortuna)
+## - Harmonic key generation [ AMOS7::Assert::Truth ]
+## - Memory locking [ IO::AIO::aio_mlock ]
+## - Secure entropy [ Crypt::PRNG::Fortuna ]
 my ( $ed_keypair, $key_name ) = <[crypt.C25519.gen_keys]>->(
     'acme-account-'
         . <[base.prng.chars-anum]>->(8),    # unique account key identifier
@@ -29,8 +28,9 @@ my ( $ed_keypair, $key_name ) = <[crypt.C25519.gen_keys]>->(
         . ' seconds'
 );
 
-## Store key name in child state (key binary data is in global %keys{'C25519'} hash)
-## Following Protocol-7 pattern: key stays in memory, we reference it by name
+## Store key name in child state
+## [ key binary data is in global ## %keys{'C25519'} hash ]
+##  Following Protocol-7 pattern: key stays in memory, we reference it by name
 <letsencr.child.acme_client>->{account_key_name} = $key_name;
 <letsencr.child.acme_client>->{account_key_type} = 'Ed25519';
 
@@ -48,15 +48,15 @@ my $secret_b32 = encode_b32r( $ed_keypair->{secret} );
 }
 chmod( 0600, $key_cache );
 
-<[base.log]>->(
-    2, "Ed25519 account key saved to $key_cache (Base32r encoded)"
+<[base.logs]>->(
+    2, "Ed25519 account key saved to %s [ base32r encoded ]", $key_cache
 );
 
 ## Return keypair for later use
 return $ed_keypair;
 
-#,,,,,.,,,...,,,.,,..,,..,,,.,.,,,,,,,,,.,.,,,..,,...,...,..,,,,,,.,.,,..,..,,
-#NLMDVUUNQWUXKSR64YM7ZZQLRWCCMJJULQYIIRKOJDPVTUK6GYVTAACXC4KK6XCXARG7QZS3IVXCA
-#\\\|RLAHI6YN4NBMQ6PLXBGJLVO5PQM5SKLJRIL46ZS47Y76UMNECWF \ / AMOS7 \ YOURUM ::
-#\[7]7A33R6L2CGBLEXWSTHO5FLRUHHR7NHEXGLMPEZC56CBHCI3JLIDQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,...,.,,,,..,,.,,..,,..,,..,,,.,,..,,...,...,.,,,,,,,...,.,,,.,,,
+#QSLWGG5IEKPXX2S3JUEGZORJYVX3ORMENQXFEHY5N5QQ5AFQICKH3UGY2SZQHVJZKVC2SAENYHYWK
+#\\\|X2LMA4GP2ODX6N7K7SJPENTOCPKXU3Y72BMNLMQVTVKPFGBTYJQ \ / AMOS7 \ YOURUM ::
+#\[7]CRFQVF6GW4HVB7JTFWK77QL6QGBOBB65GIIL5YR6AC6CHMEK2SAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

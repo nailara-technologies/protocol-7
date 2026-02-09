@@ -3,9 +3,6 @@
 # name  = letsencr.child.create_jws
 # descr = create JSON Web Signature (JWS) for ACME requests (Ed25519/EdDSA signing)
 
-use JSON::XS;
-use MIME::Base64 qw(encode_base64url);
-
 my $payload = shift;  # hashref or JSON string
 my $nonce   = shift;
 my $kid     = shift;  # Key ID (optional, for account requests use thumbprint)
@@ -65,8 +62,8 @@ return {
     signature => $signature_b64,
 };
 
-#,,,,,.,,,,..,..,,.,,,.,,,..,,,,.,.,,,,.,,...,..,,...,...,...,,.,,,.,,.,.,.,,,
-#DP6DQCRQKBTQD7MYV5HGRADGNKGD4TOR4ZMXD42CLDMUPQNHA3VGNCH2R3QR4JALDB7AAAKOGDXRG
-#\\\|5IMNO4W4DJAK2SY4DH57FX6JNF7RLOYGAQGOPHXOX7QTSPSLACW \ / AMOS7 \ YOURUM ::
-#\[7]X3KDJVCFEEKY3W3YNMO5UAQKI2KSS3U5G6LJ2Y7I6WDX6KZAQ4BY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,.,,,..,,,..,.,.,,..,..,,,,.,.,.,..,,...,..,,.,,,,,.,,.,,...,,.,,
+#FNRYKQ5VMK2AWIQV253KEBCH2TPSJ66OBV3NXN3KXX4RELCFMS5IB2YVBANBKFFWXKIQFWMZWF67Q
+#\\\|NUOQUGJOA6TTAVJ4OWVJIFYKKIPBN55L77YRFFIKSFXFNWQ6VVR \ / AMOS7 \ YOURUM ::
+#\[7]LGEDMLNWUNGA2CL53WZKMKDEYUQ47SHHBCQYETLEB4IXQQ7YCYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,10 +3,6 @@
 # name  = letsencr.dns.inwx_create_txt
 # descr = create TXT record in INWX DNS for ACME DNS-01 challenge
 
-use JSON::XS;
-use XMLRPC::Lite;
-use Digest::MD5 qw(md5_hex);
-
 my $dns_record_name = shift;
 my $dns_value       = shift;
 
@@ -141,8 +137,8 @@ return {
     value     => $dns_value,
 };
 
-#,,.,,,,.,,,,,...,.,,,..,,..,,,..,,,.,...,,.,,..,,...,...,,..,,..,..,,,.,,...,
-#CPCXXANZMR77PZ5MZWHDYCTTW4MLRTORKZNJJACFRKYMLADS3DI3OSZKOMIXBYOORPRZUAOSS6T66
-#\\\|OW5JBJ7JTCMRSFEFGQ4AEBRPX64UGFUXUAXCKLXGJFEJQ66JM4Z \ / AMOS7 \ YOURUM ::
-#\[7]SNPV4EJMVI4BXESNEXNAAQA633BQEUCXZRLYNFAVLZZMQJ6TPODA 7  DATA SIGNATURE ::
+#,,,,,..,,...,.,.,..,,,.,,.,,,.,,,..,,,.,,,,.,..,,...,...,..,,..,,,..,..,,..,,
+#GGXEASLBSXYA2UDKWYYU4DMWYJHIEQNVJXTJQT5MC4GXAUMGBSCNBFQT634YD3LMLJDBDLPXUR3GS
+#\\\|BQH5WYW25M7C5GDLJUWIUOPCODQ7QQRTUONUDHESXWOC5YJ5HH2 \ / AMOS7 \ YOURUM ::
+#\[7]BKLD3SPZUTJXHXFZHZWHV5KXMILG62TJ24UUB6RDB6SY22G6ZQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

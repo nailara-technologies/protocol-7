@@ -3,10 +3,6 @@
 # name  = letsencr.dns.inwx_delete_txt
 # descr = delete TXT record from INWX DNS after ACME validation
 
-use JSON::XS;
-use XMLRPC::Lite;
-use Digest::MD5 qw(md5_hex);
-
 my $dns_record_name = shift;
 
 return undef unless $dns_record_name;
@@ -111,8 +107,8 @@ return {
     deleted => 1,
 };
 
-#,,,,,,.,,.,,,,,.,,,,,..,,,,,,..,,.,.,,..,..,,..,,...,..,,,.,,.,.,.,,,.,,,,,,,
-#D4W22MXWBSWFEMOAOD36HME2PTOK534I77UHWAGRRMV4PY67PD433TUVMRUBQOZBLT734PZT5HD4I
-#\\\|DVZO34OMI744IQZN5KVNQ4ZRK3WWGAATLIGFUDU7QHMXYHC37CS \ / AMOS7 \ YOURUM ::
-#\[7]L23F7YLSC27I65NFZQTF34WWQHQQ54U6LJCXKRJGBN3PGKEH5GAQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,,,,,,.,,...,...,,,.,...,..,,,..,..,,...,...,,..,...,...,,.,,.,,,
+#GG26KEN6ZRYVWVAR4WX4A327M7L2ONHLWPTHFI5QVD2UFGZOG7GG5GESIWAGG4LG5UJHGFFLVV4VC
+#\\\|5C26NWOYBXDJISOEJ2XVEUDLTWVXCWLM73Q4FXYCTCDGVWKGDXZ \ / AMOS7 \ YOURUM ::
+#\[7]6NYE5EGB4CDEFYFFT54Q2IKRIZ3WZREK4LV2VYYBYPS6TKVL3UDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

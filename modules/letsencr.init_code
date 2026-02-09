@@ -4,9 +4,13 @@
 # descr = initialize Let's Encrypt certificate manager zenka with ACME support and renewal pipeline
 # todo  = ACME client implementation, challenge handlers, renewal scheduler
 
-<[base.perlmod.autoload]>->('JSON::PP');
-<[base.perlmod.autoload]>->('LWP::UserAgent');
-## CSR certificate key generation [ Ed25519 ECDSA via OpenSSL ]
+<[base.perlmod.load]>->('JSON::XS');
+<[base.perlmod.load]>->('LWP::UserAgent');
+<[base.perlmod.load]>->( 'File::Spec::Functions', qw| catfile | );
+<[base.perlmod.load]>->( 'File::Path',            qw| make_path | );
+<[base.perlmod.load]>->( 'Digest::MD5',           qw| md5_hex | );
+<[base.perlmod.load]>->('Socket');
+<[base.perlmod.autoload]>->('XMLRPC::Lite');
 
 <[base.log]>
     ->( 2, "initializing Let's Encrypt certificate manager zenka..," );
@@ -98,8 +102,8 @@ foreach my $dir ( $cert_dir, $key_dir ) {
 
 0;
 
-#,,,,,.,,,...,,,.,,,.,.,.,,.,,.,,,,,,,,.,,.,,,..,,...,...,.,,,,,.,..,,.,,,..,,
-#ARVRXKO7T6PLYAOFPYBGPOGZ5PIPFUFLKK7IWC7LMSWXXXXGZXKFW4D2ZM5DNIDSZLLGXK63R46DG
-#\\\|KRKCLQUNXIQYRKSENSYBY5ZFEPLHBSVELQLKDLQGTADXG7GPFDI \ / AMOS7 \ YOURUM ::
-#\[7]MLXEEODCXVF7C4JP2FI4ZQIX333PUG56QCCXP433VIQBOOXGTACY 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,.,,,.,,,.,,,.,,,..,,..,,.,,,,,,..,,...,...,..,,,..,,.,,.,.,,,.,
+#73KIBLNETFWQKBQSU7EAMLFAWVF7SDWXTRZWZHLI6WKYFAXZD4THVUKYETFQWN6MAWJJ37WOLOS7A
+#\\\|TUBZVR2NE5GCF6AUNC3HKUCXTW2HXHFFWHLSU4F3MK3DR2NG33A \ / AMOS7 \ YOURUM ::
+#\[7]3ELAHD3RSIBIWQL6LNWJEQN24624FUCAFGW4GJCWDBMU6YFW7MDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

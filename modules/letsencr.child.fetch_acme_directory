@@ -3,9 +3,6 @@
 # name  = letsencr.child.fetch_acme_directory
 # descr = fetch ACME directory from Let's Encrypt server and get initial nonce
 
-use JSON::XS;
-use LWP::UserAgent;
-
 my $server_url = shift || <letsencr.acme.server>;
 
 return undef unless $server_url;
@@ -70,8 +67,8 @@ return {
     },
 };
 
-#,,..,.,.,.,,,..,,.,.,,.,,,,.,.,,,.,,,.,,,.,.,..,,...,...,...,...,,.,,,..,,,,,
-#CD5VZZXEJYUNZ7MU7SWG5EGH3MB5TWWHOVJGC5BOU7VI245OF6M6I3VB3QU3RSYDJAXNRJBVWJROY
-#\\\|YAEFFX7JCNSY6VMW3PXMYBJ5AIALH7G2XVUC7L6IPA2YIQ5AK6H \ / AMOS7 \ YOURUM ::
-#\[7]Q22IDGDSSXPBXUL43Y46WGGA2FUJBPQN3QNWHXOHYUCPVMMQE6AY 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,..,,,,.,,,.,,..,,.,,.,.,.,,,,,,,..,,...,...,,..,,,.,,,.,,..,...,
+#2BYSJEDMAQOUSVSCYLYZYSTBINJQ2B47OK75TRJNVEJ4AJ364STH7YQZNUY2SRAI4LSYF3QHUFCFI
+#\\\|J74MADFAZFHTRROYQ5SBXPWQLTODPUSIXMHLU57C54SANPJ4EKT \ / AMOS7 \ YOURUM ::
+#\[7]UHKCSLQY2CQJ5HKS7W3WXPQULFG4NQJ5L6OWWMUIBIZ7TU7TRGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
