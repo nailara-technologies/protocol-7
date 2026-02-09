@@ -5,37 +5,38 @@
 
 <[base.perlmod.load]>->( 'Crypt::Misc', qw| encode_b32r decode_b32r | );
 <[base.perlmod.autoload]>->('JSON::XS');
+<[base.perlmod.autoload]>->('YAML::Tiny');
 
 <[base.log]>->( 2, 'initializing web (content processing) zenka..,' );
 
 # Content directory configuration
-<web.cfg.base_dir>                //= '/data/web';
-<web.cfg.default_skin>            //= 'default.tmpl';
-<web.cfg.skins_dir>               //= '/var/httpd/skins';
+<web.cfg.base_dir>     //= '/data/web';
+<web.cfg.default_skin> //= 'default.tmpl';
+<web.cfg.skins_dir>    //= '/var/httpd/skins';
 
 # Template processing configuration
-<web.cfg.recursion_depth_max>     //= 8;
-<web.cfg.command_timeout>         //= 15;
-<web.cfg.cache_enabled>           //= 1;
-<web.cfg.cache_ttl>               //= 1800;
-<web.cfg.template_max_size>       //= 1024 * 1024 * 5;  ## 5MB max template
-<web.cfg.parallel_commands_max>   //= 16;
+<web.cfg.recursion_depth_max>   //= 8;
+<web.cfg.command_timeout>       //= 15;
+<web.cfg.cache_enabled>         //= 1;
+<web.cfg.cache_ttl>             //= 1800;
+<web.cfg.template_max_size>     //= 1024 * 1024 * 5;    ## 5MB max template
+<web.cfg.parallel_commands_max> //= 16;
 
 # Template command pattern for base.parser.pattern_split
 # Matches: <[command.name:param1:param2]>
 # Also matches nested: <[outer:<[inner]>]>
-<web.template.command_pattern>    = qr/(?<!\\)<\[([\w\-_.]+[^\]]*)\]>/;
+<web.template.command_pattern> = qr/(?<!\\)<\[([\w\-_.]+[^\]]*)\]>/;
 
 # Meta variable pattern
 # Matches: <{variable_name}>
-<web.template.meta_pattern>       = qr/<\{([\w\-_.]+)\}>/;
+<web.template.meta_pattern> = qr/<\{([\w\-_.]+)\}>/;
 
 # Template processing state
-<web.templates.active>            = {};
-<web.templates.cache>             = {};
-<web.commands.pending>            = {};
-<web.commands.completed>          = 0;
-<web.commands.failed>             = 0;
+<web.templates.active>   = {};
+<web.templates.cache>    = {};
+<web.commands.pending>   = {};
+<web.commands.completed> = 0;
+<web.commands.failed>    = 0;
 
 # Performance metrics
 <web.metrics> = {
@@ -62,9 +63,7 @@
         qw| depth |       => qw| center-1 |,
         qw| started_at |  => qw| center-1 |,
     },
-    qw| filters | => {
-        qw| started_at | => qw| base.parser.timestamp |,
-    }
+    qw| filters | => { qw| started_at | => qw| base.parser.timestamp |, }
 };
 
 # Visibility list for pending commands
@@ -79,19 +78,20 @@
         qw| status |       => qw| center-1 |,
         qw| created_at |   => qw| center-1 |,
     },
-    qw| filters | => {
-        qw| created_at | => qw| base.parser.timestamp |,
-    }
+    qw| filters | => { qw| created_at | => qw| base.parser.timestamp |, }
 };
 
 <[base.log]>->( 2, 'web zenka initialization complete' );
-<[base.log]>->( 2, "  Max recursion depth: " . <web.cfg.recursion_depth_max> );
+<[base.log]>
+    ->( 2, "  Max recursion depth: " . <web.cfg.recursion_depth_max> );
 <[base.log]>->( 2, "  Command timeout: " . <web.cfg.command_timeout> . "s" );
-<[base.log]>->( 2, "  Cache enabled: " . ( <web.cfg.cache_enabled> ? 'yes' : 'no' ) );
+<[base.log]>->(
+    2, "  Cache enabled: " . ( <web.cfg.cache_enabled> ? 'yes' : 'no' )
+);
 
 ## Load asset registry if available ##
 <[base.log]>->( 2, 'loading asset registry...' );
-if ( <[web.assets.load_registry]> ) {
+if (<[web.assets.load_registry]>) {
     <[base.log]>->(
         2,
         "  Asset registry: "
@@ -104,8 +104,8 @@ if ( <[web.assets.load_registry]> ) {
 
 0;
 
-#,,.,,,..,,,,,.,,,,.,,,.,,,.,,,.,,..,,.,.,,,,,..,,...,...,.,.,,,,,,,.,,..,.,,,
-#ONAVYETPB7JS2PQSDTVSJXVEHEAM2KXZ6VUJGZXLPXEG43CP5XDRI5NA3DEETLLIGR2BHDGHDMSFC
-#\\\|4IUCDGFR25YPA4VTB25RSN7L2YVDNMS4333KKOIMWFJT5P7L4UI \ / AMOS7 \ YOURUM ::
-#\[7]KACURLBIWALIUUJYP5EJZEVVUSXHUKK6LQC6IXK3HS4B47OG4MCA 7  DATA SIGNATURE ::
+#,,,.,,,.,...,...,,.,,,,.,,,,,,..,.,,,..,,,..,..,,...,...,.,.,...,,.,,,,,,.,.,
+#DAEVPG4ITNUX2PV5F75CZRUYNUXSSMKXSM7PRJF4BH4C4ASAJR2U3TOM4PRGTXOK35OVWDUUC4HCQ
+#\\\|PHDHXBWCM4RLMRU5SKGL3OIUCXQ4C642DGPV6YRJ3A6WLMDYZKC \ / AMOS7 \ YOURUM ::
+#\[7]72SUHNUB5VGKYSH3COV42ILMHY2S2C5VAPBMURFB4CUDYYGD6ABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
