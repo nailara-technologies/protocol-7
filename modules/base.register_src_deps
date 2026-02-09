@@ -40,8 +40,8 @@ my $group_name  = getgrgid($gid)        // "GID:$gid";
 if ( -d $src_deps and -w $src_deps ) {
     my $src_stat = File::stat::stat($src_deps);
 
-    ## skip chmod only if not running under v7 control ##
-    my $skip_chmod = !<[base.zenka.is_v7_started]>;
+    ## skip chmod if not running under v7 control or not running as root ##
+    my $skip_chmod = !<[base.zenka.is_v7_started]> || $EUID != 0;
 
     foreach my $mod_name ( sort keys %np7_src ) {
         my $touch_file = catfile( $src_deps, $mod_name );
@@ -87,8 +87,8 @@ if ( -d $src_deps and -w $src_deps ) {
     <[base.log]>->( 2, "<< no [writable] src-deps directory found >>" );
 }
 
-#,,..,,,.,,,,,,,,,,,,,...,,..,,.,,,,,,.,.,.,.,..,,...,...,,..,,,,,,.,,,,,,.,,,
-#5WMHKGPFBV66MWJWLDEOM5XU2VPRW4ZP2IPYS4LM7LAGRQ5NBC4DU6JAPK7ZM2KTO75M7WLIUXVTA
-#\\\|MMCHMG622UC2QYVESNIXVBZAMPOXII4LWPYWE4DWQTZNLTU5RL5 \ / AMOS7 \ YOURUM ::
-#\[7]APM4GKTVRJ6HTWPWYDFVMNXQ34H2DF45FI2SW3ZW272LMYAFCUDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,,.,,.,,...,,,.,,..,,,,,,,,,,..,..,,...,...,.,,,..,,,..,,..,,,.,
+#T76XXBAHRCXCFQ2IGNTULOBXSBHWGLCN4UBL4KRGNCC3ZZK3GDSB5DLTYFUMPQYVITIYLF4BHSMZC
+#\\\|NE2TTRJ2UFJUYYAXFHTSBAP5LYMDXOPKYBJVWKF777NH4BYKEZY \ / AMOS7 \ YOURUM ::
+#\[7]LAPU5FVGEBVTBS23WQKNAP2ZBUV5AFKPZDHRZSBXTVHQWHMHP2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

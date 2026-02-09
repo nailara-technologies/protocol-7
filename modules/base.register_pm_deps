@@ -50,8 +50,8 @@ if ( $mod_dir
 
     if ( -d $mod_dir and -r $mod_dir ) {
 
-        ## skip chmod only if not running under v7 control ##
-        my $skip_chmod = !<[base.zenka.is_v7_started]>;
+        ## skip chmod if not running under v7 control or not running as root ##
+        my $skip_chmod = !<[base.zenka.is_v7_started]> || $EUID != 0;
 
         foreach my $mod_name ( <[base.reverse-sort]>->( \%pmods ) ) {
             ## Convert :: to __ for Windows filesystem compatibility
@@ -105,8 +105,8 @@ if ( $mod_dir
     }
 }
 
-#,,..,.,,,...,...,,,,,,..,,.,,...,...,.,,,.,.,..,,...,...,..,,,.,,.,.,,,,,.,,,
-#HCOVO66MZ2LI3XKUFULGPAPISFKP22VYBV2UTODEOQ3672KVHRFIRDP5R3OGWOKR3QYVN73B35SLK
-#\\\|I63BHXUVGKYB4JFNB75CQ6LLWWKVZUTMLLHPIH2PLLR3KVLH5CE \ / AMOS7 \ YOURUM ::
-#\[7]PDBOSIY3K77U6XHB7LHAEZFY7RSWP3QGMAVC6MI2CQQZH37SOQCY 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,,,,,.,,...,,.,,.,,,..,,,,.,.,.,..,,...,...,,..,,.,,.,,,,,,,,,,,
+#PN4YXKAEVVIHWYBWIWQ2MUKGJZJ5GMVRPDWTKYCF7AKN5GF74ICXIGCLYLPLYIMS7SUFJIGACPSG6
+#\\\|5EL3SQGO6XJYYSDGPSAAGBTYAT6BQMYMP7PKDQFTP7TFCBSQVJX \ / AMOS7 \ YOURUM ::
+#\[7]Z3IV3X4Q4HSAAUFE25XKOHIZC3SE34OW2FRGKU2MLUNRZLQ52QCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
