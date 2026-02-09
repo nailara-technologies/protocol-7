@@ -38,9 +38,8 @@ $session->{'http'} //= {
 };
 my $request = $session->{'http'}->{'request'};
 
-return TRUE
-    if $session->{'buffer'}->{'input'}
-    !~ s|^(.+\r?\n\r?\n)||s;    ## incomplete, more data expected ##
+## request complete ? ##  ||  ## more data expected, wait for more ##
+return 1 if $session->{'buffer'}->{'input'} !~ s{^(.+\r?\n\r?\n)}{}s;
 
 $session->{'http'}->{'request'}->{'data'} = $LAST_PAREN_MATCH // '';
 
@@ -152,8 +151,8 @@ if ( defined <http.handler>->{ lc $request->{'method'} } ) {
 
 return 2;        ## <-- disconnecting client ##
 
-#,,,.,,..,.,.,..,,...,.,.,..,,...,,..,,,,,,,.,..,,...,..,,,,,,,..,,,.,.,,,.,.,
-#URNMWAXKZGYS5WMNS56UNJ7XASBNPPHXAAKF4I52JJ3ZZG7VHNRCIFGMTTHWO2OXS2C4X3IBTMGKK
-#\\\|7URHBMZGAY3XAXMREJP3AVDMK7CYB5CC6NR4X2DFOSMIKVRTW2Y \ / AMOS7 \ YOURUM ::
-#\[7]7FZMRNCKZ3GWOUGMH4MP56PDE2OIU2TXSJUFJZKUGXVPIP2V4QBI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,.,,,,,,,,,.,,.,,,,.,.,.,,.,,.,.,..,,...,...,,.,,,,,,.,.,.,,,,,,,
+#CK4ABYQRD224BF5V3UZVWDABKH6FRYLMURQ7MPBPGTO6EEN55LZ3QVTKMVFQUABCIZMW7ZKHJCWNA
+#\\\|MRW3LKSFS3OCJPCWLBWD3XDO7ODMYEDI5Z2YUKRAXO63ASIK7TR \ / AMOS7 \ YOURUM ::
+#\[7]I6JKWSB5XU4M46AOIDIBZXW2KW7SAQOCFCMRLI3V2OA2XLRIGMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
