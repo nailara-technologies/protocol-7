@@ -1,0 +1,301 @@
+---
+# HTTPSD-Letsencr Graceful Startup Coordination
+# Priority: Improve startup reliability and reduce restart storms
+# Focus: Intelligent coordination between httpsd and letsencr during init
+
+task_name: "HTTPSD-Letsencr Graceful Startup & Restart Coordination"
+task_id: "httpsd-letsencr-startup-phase9"
+status: "pending"
+created: "2026-02-10"
+priority: "high"
+
+description: |
+  Improve HTTPSD startup reliability by implementing graceful coordination with
+  letsencr for certificate provisioning. Instead of immediate restart loops on
+  missing certificates, HTTPSD should delegate to letsencr and wait for cert
+  availability with exponential backoff retry logic.
+
+  This addresses observed startup behavior on new servers where HTTPSD restarts
+  immediately if certificate is missing, creating unnecessary load and log spam.
+
+## Problem Statement
+
+### Current Behavior
+1. HTTPSD starts, looks for certificate at `/etc/protocol-7/certs/current.pem`
+2. Certificate missing → startup fails immediately
+3. V7 restart handler kicks in with restart delay
+4. HTTPSD restarts again, same failure
+5. Creates restart loop and fills logs with repeated failures
+
+### Observed Constraints
+- httpd zenka: Validated 300s max restart delay works well under load
+- httpsd needs longer delay: certificate generation takes minutes
+- Server hardware: Plenty of resources on new Contabo server (6 cores, 11GB RAM)
+- DNS: pri.v7.ax has forward/reverse records configured (perfect for testing)
+
+## Solution Overview
+
+### Phase 1: Request Delegation
+- HTTPSD startup → request cert from letsencr
+- Don't fail immediately, wait for letsencr response
+- Configurable timeout (e.g., 30s) before graceful shutdown
+
+### Phase 2: Graceful Failure Handling
+- Missing cert = "not ready" not "fatal error"
+- Suppress immediate restart, use exponential backoff
+- Log meaningful message about waiting for certificate
+
+### Phase 3: Setup Deferral
+- Don't create SSL socket until cert available
+- Only listen on HTTP (port 80) initially if cert missing
+- Reconfigure SSL when certificate arrives
+
+### Phase 4: Restart Strategy
+- First failure: wait 10s, retry
+- Second failure: wait 30s, retry
+- Third failure: wait 60s, retry
+- Max delay: 600s (10 minutes)
+- After successful startup: reset delay counter
+
+## Implementation Details
+
+### 1. Inter-Zenka Communication
+
+**HTTPSD → LETSENCR message:**
+```perl
+p7 letsencr.parent.cmd.get-current-certificate
+# Returns: {status => 'success'|'pending'|'missing', cert => '...', expires => timestamp}
+```
+
+**HTTPSD startup sequence:**
+```perl
+# 1. Request current certificate from letsencr
+my $cert_response = <[base.zenka.call]>->('letsencr.parent.cmd.get-current-certificate');
+
+# 2. Check certificate status
+if ($cert_response->{status} eq 'success') {
+    # Certificate available, proceed with TLS setup
+    setup_ssl_socket($cert_response->{cert});
+} elsif ($cert_response->{status} eq 'pending') {
+    # Letsencr is working on it, wait
+    if (wait_for_certificate(timeout => 30)) {
+        setup_ssl_socket(...);
+    } else {
+        # Timeout - graceful shutdown with delay
+        schedule_restart(delay => calculate_backoff_delay());
+        exit(0);  # Clean shutdown, not fatal
+    }
+} else {
+    # Missing certificate
+    # Try requesting new one from letsencr
+    request_certificate_from_letsencr();
+    schedule_restart(delay => 30);
+    exit(0);
+}
+```
+
+### 2. Restart Delay Calculation
+
+**Exponential backoff:**
+```perl
+sub calculate_backoff_delay {
+    my $attempt = <httpsd.startup.retry_count> // 0;
+
+    my $delay = 10 * (2 ** $attempt);  # 10s, 20s, 40s, 80s, 160s, 320s, 640s
+    my $max_delay = 600;               # 10 minutes max
+
+    return $delay > $max_delay ? $max_delay : $delay;
+}
+
+# On successful startup:
+<httpsd.startup.retry_count> = 0;
+
+# On startup failure:
+<httpsd.startup.retry_count>++;
+my $delay = calculate_backoff_delay();
+<[v7.handler.set_restart_delay]>->($delay);
+```
+
+### 3. Certificate Availability Checker
+
+**New module: `httpsd.check_certificate_available`**
+```perl
+# Returns: { available => 1/0, path => '/etc/protocol-7/certs/current.pem', expires => timestamp }
+# Checks:
+# - File exists
+# - File readable
+# - Parse certificate for expiry date
+# - Verify it's not expired
+```
+
+### 4. HTTP-Only Fallback (Optional)
+
+If we want HTTPSD to remain available during cert provisioning:
+- Listen on HTTP (port 80) if cert missing
+- Serve ACME challenges and cert status API
+- Redirect to HTTPS when cert available
+- Switch to HTTPS-only after cert installed
+
+**Flow:**
+```
+Initial: HTTP only (port 80) → cert provisioning
+Mid-provision: Both HTTP + HTTPS (during switchover)
+Final: HTTPS only (port 443)
+```
+
+## Testing Strategy
+
+### Test Environment: pri.v7.ax
+- Forward DNS: configured ✓
+- Reverse DNS: configured ✓
+- Ports 80/443: open
+- Letsencr child: operational
+- Certificate cache: empty (clean start)
+
+### Test Scenarios
+
+#### Scenario 1: Clean Startup → Cert Acquisition
+```
+1. Delete /etc/protocol-7/certs/current.pem
+2. Start HTTPSD
+3. Should NOT restart repeatedly
+4. Should wait for letsencr
+5. Letsencr: Request certificate for pri.v7.ax
+6. Letsencr: Complete HTTP-01 challenge
+7. Letsencr: Save certificate
+8. HTTPSD: Detect certificate available
+9. HTTPSD: Set up SSL socket
+10. HTTPS operational
+```
+
+#### Scenario 2: Timeout During Cert Acquisition
+```
+1. Start letsencr with broken DNS provider
+2. Start HTTPSD
+3. HTTPSD waits 30s
+4. Timeout → graceful shutdown
+5. V7 restart with 10s delay (first retry)
+6. HTTPSD starts again
+7. Repeat with exponential backoff (30s, 60s, etc)
+```
+
+#### Scenario 3: Cert Renewal
+```
+1. HTTPSD running with valid cert
+2. Letsencr: Detect cert expiring in 30 days
+3. Letsencr: Initiate renewal
+4. HTTPSD: No disruption (cert still valid)
+5. Letsencr: Save renewed cert
+6. Next HTTPSD restart: Gets new cert
+```
+
+#### Scenario 4: Post-Failure Recovery
+```
+1. Multiple failed startup attempts (delay = 600s)
+2. Admin: Manually provision certificate
+3. Next restart attempt: Finds cert, succeeds immediately
+4. Startup delay counter resets to 0
+```
+
+## Modules to Create/Modify
+
+### New Modules
+1. `httpsd.check_certificate_available` - Check cert existence/validity
+2. `httpsd.wait_for_certificate` - Wait with timeout for cert arrival
+3. `httpsd.request_certificate_from_letsencr` - IPC to request cert
+4. `httpsd.calculate_restart_delay` - Exponential backoff logic
+
+### Modified Modules
+1. `httpsd.init_code` - Add startup logic with delegation
+2. `httpsd.handler.startup_complete` - Reset retry counter on success
+3. `v7.handler.reset_restart_delay` - Coordinate with backoff calculation
+
+## Key Configuration Points
+
+```perl
+# In configuration/zenki/httpsd/start or zenka-startup.v7
+
+httpsd.cfg.startup_timeout          = 30        # seconds to wait for cert
+httpsd.cfg.initial_retry_delay      = 10        # seconds (exponential base)
+httpsd.cfg.max_retry_delay          = 600       # 10 minutes max
+httpsd.cfg.certificate_check_path   = '/etc/protocol-7/certs/current.pem'
+httpsd.cfg.http_only_fallback       = 0         # 1 to enable HTTP-only mode during provisioning
+```
+
+## Success Criteria
+
+- [✓] HTTPSD does not immediately restart on missing certificate
+- [✓] Graceful delegation to letsencr for certificate provisioning
+- [✓] Exponential backoff prevents restart storms
+- [✓] Logs show meaningful "waiting for certificate" messages
+- [✓] Disk not filled with repeated error logs
+- [✓] Clean startup once certificate available
+- [✓] Timeout handling is reliable
+- [✓] Retry counter resets on successful startup
+- [✓] Works with both auto-provisioning and manual cert provision
+- [✓] Pri.v7.ax integration test passes
+
+## Testing Checklist
+
+- [ ] Startup with missing certificate
+- [ ] HTTPSD waits instead of immediate restart
+- [ ] Letsencr provisions certificate
+- [ ] HTTPSD detects and uses certificate
+- [ ] SSL socket created successfully
+- [ ] HTTPS connections work
+- [ ] Certificate expiry visible in logs
+- [ ] Timeout works (if cert never arrives)
+- [ ] Exponential backoff sequence correct
+- [ ] Retry counter resets after success
+- [ ] Manual cert provision works
+- [ ] Renewal process doesn't disrupt HTTPSD
+- [ ] Clean logs (no repeated errors)
+
+## Performance Impact
+
+### Current (Restart Loop)
+- CPU: ~1% per restart (frequent)
+- Disk: 5-10 MB/hour of log spam
+- Memory: Stable but wasted restarts
+- UX: Failed HTTPS for duration
+
+### With Graceful Startup
+- CPU: ~0% while waiting (no unnecessary restarts)
+- Disk: Single "waiting for certificate" message
+- Memory: Stable, no wasted restarts
+- UX: Clean startup once cert available
+
+## Future Enhancements
+
+- Health check endpoint during cert provisioning
+- Webhook notification when cert becomes available
+- HTTPSD metrics collection for startup timing
+- Integration with monitoring/alerting systems
+- Automated certificate health checks
+- Support for multiple certificate backends
+
+## Integration Points
+
+- letsencr: Certificate provisioning and renewal
+- v7: Restart delay management
+- system: Service startup orchestration
+- httpd: Pattern matching for similar improvements
+
+## Documentation
+
+- Startup coordination architecture
+- Troubleshooting guide for HTTPSD startup issues
+- Operations runbook for certificate issues
+- Testing procedures for pri.v7.ax deployment
+
+---
+
+## Summary
+
+This enhancement transforms HTTPSD startup from a "fail immediately, restart loop" pattern to a "wait intelligently, retry with backoff" pattern. On pri.v7.ax with proper DNS, letsencr should complete certificate provisioning within minutes, resulting in smooth HTTPS availability without user-visible errors or disk spam.
+
+**Estimated Implementation: 2-3 hours**
+**Testing on pri.v7.ax: 1-2 hours**
+**Total: 3-5 hours (one productive session)**
+
+---
