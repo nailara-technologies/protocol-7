@@ -4,7 +4,10 @@
 # descr = exit zenka in no more sessions
 
 my $exit_count    = shift // 0;
+my $silence       = shift // FALSE;  ## silencing logging when called directly
 my $session_count = 0;
+
+my $log_level = <[base.cfg_bool]>->($silence) ? 3 : 2;    ##[ silenced = 3 ]##
 
 $session_count = scalar keys $data{'session'}->%* if defined $data{'session'};
 
@@ -17,15 +20,15 @@ if ($session_count) {
             if defined $mode and $mode eq qw| server |;
     }
     if ($single_server_session) {
-        <[base.log]>->( 2, 'one active server session ..,' );
+        <[base.log]>->( $log_level, 'one active server session ..,' );
     } else {
         <[base.logs]>->(
-            2,              '%s session%s remaining.,',
+            $log_level,     '%s session%s remaining.,',
             $session_count, <[base.cnt_s]>->($session_count)
         );
     }
 } else {
-    <[base.log]>->( 2, 'no sessions remaining..,' );
+    <[base.log]>->( 2, 'no sessions remaining..,' ); ##  regular log-level  ##
 }
 
 if (    ( $session_count + $exit_count ) == 0
@@ -62,8 +65,8 @@ if ( $session_count == 0 and <system.zenka.name> eq qw| v7 | ) {  #[v7-zenka]#
     }
 }
 
-#,,,,,,,,,,.,,.,,,,..,...,,,.,,,,,,..,...,..,,..,,...,...,...,.,.,,,.,..,,,..,
-#HTE6JNBTX6LHMCND3HRUUPKNWIXMYK3H5FWCWM3O3SG7ZHV2LUGT4PUDYZCYAIJ4PHFGO6QXSW6LC
-#\\\|YM5C75G5ZR5AZZGWGPRZLFGNPDMDCD5TNO5LQK464TRAE3THZA6 \ / AMOS7 \ YOURUM ::
-#\[7]ZGOSTH56727PJSATOUQKPX4GHU6F5L4LZPLNVB6GNYLUUUVTWKBA 7  DATA SIGNATURE ::
+#,,.,,,,.,...,...,.,.,.,.,,.,,...,.,.,.,.,,..,..,,...,...,.,.,.,,,,.,,...,,,,,
+#VYGLF6TKSNNIPGR6XNSDFXYUEWVR7BTU6LYO7BYKBA2ZLYO4QQ7Y4KNZK7EXAYTLY2CXSGMYAH6IE
+#\\\|433VYMMMO5XYXCMDAFVJFLBCHZN66I2VKGE5J6XKPJ22VBRJJES \ / AMOS7 \ YOURUM ::
+#\[7]5HS3KMWHIAFGX6ZXJ7ZJ6QLL2LPRAICA2ZWSKQIROLH742MT22CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
