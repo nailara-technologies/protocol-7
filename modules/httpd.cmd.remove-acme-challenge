@@ -9,7 +9,7 @@ my $domain = shift;
 return { 'mode' => 'false', 'data' => 'domain parameter required' }
     unless defined $domain && length($domain);
 
-<[base.log]>->( 2, "removing ACME challenge file for domain: $domain" );
+<[base.logs]>->( 2, "removing ACME challenge file for domain : %s", $domain );
 
 ## Get challenge token from call context
 my $token = <{call.param.token}>;
@@ -17,43 +17,46 @@ my $token = <{call.param.token}>;
 return { 'mode' => 'false', 'data' => 'token parameter required' }
     unless $token && length($token);
 
-<[base.log]>->( 2, "  token: $token" );
+<[base.logs]>->( 2, "  token : %s", $token );
 
 ## Build challenge file path
-my $httpd_site_dir = <httpd.cfg.site_dir>     // '/var/httpd';
-my $default_site   = <httpd.cfg.default_site> // 'default';
-my $well_known_dir = '/.well-known/acme-challenge';
+my $httpd_site_dir = <httpd.cfg.site_dir>     // qw| /var/httpd |;
+my $default_site   = <httpd.cfg.default_site> // qw| default |;
+my $well_known_dir = qw| /.well-known/acme-challenge |;
 
-my $challenge_file = sprintf '%s/%s%s/%s',
+my $challenge_file = sprintf qw| %s/%s%s/%s |,
     $httpd_site_dir,
     $default_site,
     $well_known_dir,
     $token;
 
-<[base.log]>->( 2, "challenge file path: $challenge_file" );
+<[base.logs]>->( 2, "challenge file path : %s", $challenge_file );
 
 ## Check if file exists
 unless ( -f $challenge_file ) {
     <[base.log]>->(
-        2, "challenge file not found (already removed or never created)"
+        2, "challenge file not found [ already removed or never created ]"
     );
-    return { 'mode' => 'true', 'data' => "challenge file not found (OK)" };
+    return { 'mode' => 'true', 'data' => "challenge file not found [OK]" };
 }
 
 ## Remove the file
 unless ( unlink($challenge_file) ) {
-    <[base.log]>
-        ->( 1, "failed to remove challenge file $challenge_file: $!" );
+    <[base.logs]>->(
+        1,               "failed to remove challenge file %s : %s",
+        $challenge_file, <[base.str.os_err]>
+    );
     return {
-        'mode' => 'false',
-        'data' => "failed to remove challenge file: $!"
+        'mode' => qw| false |,
+        'data' => sprintf( "failed to remove challenge file : %s",
+            <[base.str.os_err]> )
     };
 }
 
 <[base.log]>->( 2, "challenge file removed successfully" );
 
 ## Check if directory is now empty and remove it if so
-my $challenge_dir = sprintf '%s/%s%s',
+my $challenge_dir = sprintf qw| %s/%s%s |,
     $httpd_site_dir,
     $default_site,
     $well_known_dir;
@@ -66,9 +69,11 @@ if ( -d $challenge_dir ) {
         if ( @files == 0 ) {
             <[base.log]>->( 2, "removing empty challenge directory" );
             unless ( rmdir($challenge_dir) ) {
-                <[base.log]>->(
+                <[base.logs]>->(
                     2,
-                    "could not remove empty directory $challenge_dir: $! (non-critical)"
+                    "could not remove empty directory %s : %s [non-critical]",
+                    $challenge_dir,
+                    <[base.str.os_err]>
                 );
             } else {
                 <[base.log]>->( 2, "challenge directory removed" );
@@ -78,12 +83,12 @@ if ( -d $challenge_dir ) {
 }
 
 return {
-    'mode' => 'true',
-    'data' => "ACME challenge file removed for $domain"
+    'mode' => qw| true |,
+    'data' => sprintf( 'ACME challenge file removed for %s', $domain )
 };
 
-#,,,,,.,.,.,.,,,,,,,.,,.,,.,,,,..,,.,,,,,,...,..,,...,...,,,.,.,.,,..,,,.,.,,,
-#SB2DUDNTUF637ZLXS2WLSZZIMTHWQTFLIAQLSKYNFGHUGMLBHSDUWS66DRB5LDBAHUIK5MCTA55OS
-#\\\|UJA46AHTMQR3MDJAFSUKB22QQV2WLTFWGZ2YCB35TC6NZRJW325 \ / AMOS7 \ YOURUM ::
-#\[7]PWRU76DDYF5KXXM6WIRYOODYURY564D2KAKYXQWABFV5KFAG5WAY 7  DATA SIGNATURE ::
+#,,.,,...,,..,.,.,,,.,,..,,,.,..,,...,,,.,,,,,..,,...,...,..,,.,,,..,,..,,...,
+#UHGJIN2ZIA5SITRGDMNWLBA26UPAH3EK7HB53QTIWZDWNKNS624YL6CCJQ4DEJEGT3QCXLUAAHLNA
+#\\\|GJWUXHOQ4YYADYMVMFB2M5UILIHPV7ZOBPQTYVUY7SGGZKJSZXO \ / AMOS7 \ YOURUM ::
+#\[7]KR4PSSVLG4MXHANJFY7AM2CZWNJIAAATCT54GFII5VP2MX2GCODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

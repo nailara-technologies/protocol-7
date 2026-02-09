@@ -77,7 +77,7 @@ if ( $read_size <= 0 ) {
 
     } else {    ## transfer was complete ##
         <[base.log]>->(
-            1, "[$id] download transfer completed (multipart end)"
+            1, "[$id] download transfer completed < multipart end >"
         );
         $event->w->cancel;
         close( $download->{'content_fh'} );
@@ -167,8 +167,8 @@ $session->{'flush_shutdown'} = 1;
 $event->w->stop;    # ✗ BROKEN: Leaves watcher registered!
 return 0;           # ✗ BROKEN: No cleanup!
 
-#,,,,,,..,,..,.,,,,,.,,.,,,,,,,.,,.,.,,,,,,..,..,,...,...,..,,..,,..,,,,,,,.,,
-#2OFTTMPQAOT2TGFRL33F7OUQMTCBOWT34DIVEYCHLZTVIBJBKDKYHYMCDCZDTWI5M6FZDIC3V2QNS
-#\\\|VLAUGHB7RVKB2F4JEKQTNJ7L3NABPPUS72C7WGWVZ4MNVY6MKFX \ / AMOS7 \ YOURUM ::
-#\[7]ZHIK76BWOAIKB5V42A3OMVUUR6AZL5L5ZRYEXC7GEJT3AK2LBIAA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,,.,..,,.,.,,..,,.,,.,,,.,,,,,,,..,,...,...,,.,,...,,.,,,..,,,.,
+#IQH4QVW32L53XUJOPP7KSJVRRMUKCGEWWAMQKNKCW7PYPRDDSQCCXV2ZPVWBFYKZHXILSW5NADUZA
+#\\\|3PONNLFO3WQWSLF5BM63ZIPXATQMCF6IFNIRM6KRKHKK2AW3ZA7 \ / AMOS7 \ YOURUM ::
+#\[7]OYN3QMVEARXAOJ3W2LLWE6UFLOLLG426YSAIOHOEGS47FKPFTQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

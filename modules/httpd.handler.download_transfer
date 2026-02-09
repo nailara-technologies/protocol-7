@@ -4,7 +4,7 @@
 
 my $event    = shift;
 my $id       = $event->w->data->{'id'};
-my $session  = $data{'session'}{$id};
+my $session  = $data{'session'}->{$id};
 my $download = $session->{'download'};
 my $clients  = <httpd.downloads.in_progress> ||= 1;
 
@@ -12,7 +12,7 @@ my $clients  = <httpd.downloads.in_progress> ||= 1;
 if ( $download->{'eof_reached'}
     and length( $session->{'buffer'}->{'output'} ) == 0 ) {
     <[base.logs]>->(
-        '[%d] download transfer completed (buffer fully drained)', $id
+        '[%d] download transfer completed < buffer drained >', $id
     );
     $event->w->cancel;
     close( $download->{'content_fh'} );
@@ -22,7 +22,7 @@ if ( $download->{'eof_reached'}
         and defined $download->{'diagnostic_id'} ) {
         <[httpd.diagnostic.end_operation]>->(
             $download->{'diagnostic_id'},
-            'complete', { 'completion_path' => 'normal' }
+            qw| complete |, { 'completion_path' => qw| normal | }
         );
     }
     delete $session->{'watcher'}->{'download_handler'};
@@ -95,8 +95,8 @@ if ( $read_size <= 0 and $part_count ) {
             if 1 + $part_id == $part_count;    # <-- last multipart segment
 
     } else {    ## transfer was complete ##
-        <[base.log]>->(
-            1, "[$id] download transfer completed (multipart end)"
+        <[base.logs]>->(
+            1, "[%d] download transfer completed < multipart end >", $id
         );
         $event->w->cancel;
         close( $download->{'content_fh'} );
@@ -106,7 +106,7 @@ if ( $read_size <= 0 and $part_count ) {
             and defined $download->{'diagnostic_id'} ) {
             <[httpd.diagnostic.end_operation]>->(
                 $download->{'diagnostic_id'},
-                'complete', { 'completion_path' => 'multipart_end' }
+                qw| complete |, { 'completion_path' => qw| multipart_end | }
             );
         }
         delete $session->{'watcher'}->{'download_handler'};
@@ -123,7 +123,7 @@ if ( $read_size <= 0 and $part_count ) {
 }
 
 if ( $read_size == 0 and $part_count ) {
-    <[base.s_warn]>->('[%d] content read size was zero');
+    <[base.s_warn]>->( '[%d] content read size was zero', $id );
     goto ABORT_DOWNLOAD;
 }
 
@@ -148,7 +148,7 @@ if ( defined $multipart_footer
 if ( $download->{'total_bytes_remaining'} == 0 ) {
     ## File EOF reached - keep handler registered but stop reading
     <[base.logs]>->(
-        '[%d] file EOF reached, waiting for buffer to drain', $id
+        '[%d] reached <EOF> .. waiting for buffer to empty ..', $id
     );
     close( $download->{'content_fh'} );
     $download->{'eof_reached'} = 1;
@@ -160,7 +160,7 @@ if ( $download->{'total_bytes_remaining'} == 0 ) {
 }
 
 ABORT_DOWNLOAD:
-<[base.log]>->( 1, "[$id] aborting download transfer due to error" );
+<[base.logs]>->( 1, "[%d] aborting download transfer due to error", $id );
 $event->w->cancel;
 if ( fileno( $content_fh // '' ) ) {
     close($content_fh);
@@ -171,10 +171,10 @@ if ( exists $code{'httpd.diagnostic.end_operation'}
     and defined $download->{'diagnostic_id'} ) {
     <[httpd.diagnostic.end_operation]>->(
         $download->{'diagnostic_id'},
-        'error',
-        {   'completion_path' => 'abort',
+        qw| error |,
+        {   'completion_path' => qw| abort |,
             'bytes_remaining' => $download->{'total_bytes_remaining'}
-                // 'unknown'
+                // qw| unknown |
         }
     );
 }
@@ -184,8 +184,8 @@ delete $session->{'download'};
 $session->{'flush_shutdown'} = 1;
 return FALSE;
 
-#,,..,..,,..,,,..,...,.,.,.,.,..,,,..,,,.,..,,..,,...,.,.,,,.,.,,,..,,.,,,,,.,
-#DSVQTAS7XL5HNR5ARLFMYMOKDSMOBZ2PHD5JQE3GS34WXXLI6TB76CE5RA2YD77TXDWDOMBOIDYPS
-#\\\|MIS63IXIKMAHEYPUVGAE2S3GGFF5WKTHYNGFD5WG4LJMX6GACSV \ / AMOS7 \ YOURUM ::
-#\[7]4XWVWAP46VBLGA4XJ3M5O6KG2UMRJDYTADNVWYSPFVBNHQQTTGBI 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,..,.,,,,,,,.,,,,.,,,,,,.,,,,.,,..,,...,...,,..,,.,,.,.,..,,,.,,
+#UWIR6S3MGUY7CSGGBZBX64LD2I6GERS54YXXYI45FKTBMZZAZJ7C6WH6E5ALSFGBXOXLBJHGBRRAU
+#\\\|2RDWF2JJ3OI5T6DG6SWWD7SW2CVWF6JORH6F7MCT4OQQSXZPHRP \ / AMOS7 \ YOURUM ::
+#\[7]QB2CA2KVWIWVRYUQWNCIBETI3JRUHD2LK2HFFZXLF5BTAA63LUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
