@@ -43,10 +43,17 @@ unless ( exists $directory->{newAccount} && exists $directory->{newOrder} ) {
 
 ## Get initial nonce from header (HTTP/2) or newNonce endpoint (HTTP/1.1 fallback)
 my $initial_nonce = $response->header('Replay-Nonce');
+
+<[base.logs]>->(
+    3,
+    'nonce from directory response: %s',
+    $initial_nonce // 'UNDEFINED'
+);
+
 unless ($initial_nonce) {
     ## fallback: fetch from newNonce endpoint if not in directory response
     <[base.log]>->(
-        2, "Replay-Nonce not in directory, fetching from newNonce endpoint"
+        2, "Replay-Nonce not in directory, using newNonce endpoint fallback"
     );
 
     unless ( exists $directory->{newNonce} ) {
@@ -54,7 +61,10 @@ unless ($initial_nonce) {
         return undef;
     }
 
-    my $nonce_response = $ua->head( $directory->{newNonce} );
+    my $nonce_url = $directory->{newNonce};
+    <[base.logs]>->( 3, 'fetching nonce from: %s', $nonce_url );
+
+    my $nonce_response = $ua->head($nonce_url);
     unless ( $nonce_response->is_success ) {
         <[base.log]>->(
             1, "error fetching nonce: " . $nonce_response->status_line
@@ -63,6 +73,12 @@ unless ($initial_nonce) {
     }
 
     $initial_nonce = $nonce_response->header('Replay-Nonce');
+    <[base.logs]>->(
+        3,
+        'nonce from newNonce endpoint: %s',
+        $initial_nonce // 'UNDEFINED'
+    );
+
     unless ($initial_nonce) {
         <[base.log]>->( 1, "error: no Replay-Nonce in newNonce response" );
         return undef;
@@ -88,8 +104,8 @@ return {
     },
 };
 
-#,,..,.,,,,,.,,,,,,,.,,.,,..,,.,,,..,,,..,,,,,..,,...,..,,,.,,,.,,,..,.,,,..,,
-#YAE6BLTGZEPKBXZLHWDDIPBKTONVRN5DVQANSLDFRXQ2QX3IBQL7HGTQMQOZK4DVK6FD6FRHI3LNM
-#\\\|2SIX3COW5JLK66FNDIM52EFF6BI6V65R4HH3P4E5CSBJEXCFOJ4 \ / AMOS7 \ YOURUM ::
-#\[7]NQUOXF266PE4OOUWTCWVEVSI5NSVZ2GAYWWMMQMXCHJHUN6QVCAY 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,,,,,,.,.,.,.,,,,,,,,,,,..,,,..,..,,...,..,,,..,...,,..,,,,,..,,
+#SN4DH2HCGDOUX7NTZUKL2SBB2MYFGUIKYBEFQ6W2KS363MSDOFGYZMPC7C5JAE5QUTLPSZAFQTBIG
+#\\\|MJEJWWQPMOY6QEPUAICFCDLZJBW3NP2C3SMQV3DQSGX2KNZICPQ \ / AMOS7 \ YOURUM ::
+#\[7]Q3DNSZCEYL2HXVUZ4A4BGCSFBGAMGFQR7GL4SVKDIJZ3GK4HA4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
