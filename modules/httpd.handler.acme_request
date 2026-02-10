@@ -4,8 +4,15 @@
 # descr = handle ACME/API certificate request endpoints - routes to letsencr commands
 
 my $id       = shift;
+my $http_uri = shift;  ## optional: passed when called directly from http_post
 my $session  = $data{'session'}->{$id};
-my $http_uri = $session->{'http'}->{'request'}->{'uri'};
+
+## Get URI from multiple possible sources
+unless ( defined $http_uri && length $http_uri ) {
+    ## Try session stored URI (set by body_watcher setup)
+    $http_uri = $session->{'http'}->{'acme_request_uri'}
+        // $session->{'http'}->{'request'}->{'uri'};
+}
 
 my $request  = $session->{'http'}->{'request'};
 my $headers  = $request->{'headers'};
@@ -239,8 +246,8 @@ $session->{'buffer'}->{'output'} .= $reply_body;
 
 return $session->{'http'}->{'close'} ? 2 : 0;
 
-#,,..,..,,,,.,,..,,,.,,,,,.,,,,..,,,.,,,,,,.,,..,,...,...,.,.,..,,,..,...,..,,
-#BKD23SE7F4W47Q63N7JC53MCNTTN46JG4URGVYQ2A7UBJWYFUEMJ5RZGXL4UHAGUOGLQSCHHNHB2C
-#\\\|M4X5FKGRWRWCYFHTPXCN3ZE3SP4B44KTVP7NOS4JHFSNMNMARAA \ / AMOS7 \ YOURUM ::
-#\[7]7MVZHAJ2BSOVYMTYTU5LENIXUKEQMDGAZSIVY2QX4V532OVNSSBQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,.,,,.,.,,.,,...,.,.,,,,,.,,,.,,,..,,...,...,,..,,.,,,.,,..,,.,,,
+#K6QDY75RR2ACNEPP5WWYKSKN75YR24TPOL5MC3EWY7OQDA3EW7ESXOIHVUBF42VDHLYPS5D2MDTZI
+#\\\|QUHYAYDRXQJMAGBWQDXDCUFTWP7RSEG6LITCHZ7XHHLEMNROSMQ \ / AMOS7 \ YOURUM ::
+#\[7]QPNGQXVJDIZBWROYLIAPE6ULVPBXX4NR62CMNAYDJERK25WZ6WCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
