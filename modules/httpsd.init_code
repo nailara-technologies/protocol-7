@@ -5,9 +5,7 @@
 
 <[base.logs]>->( 2, 'initializing HTTPSD [HTTPS server] zenka.,' );
 
-# Load HTTPD initialization [core HTTP handling]
-<[httpd.init_code]>;
-
+# HTTPD already initialized via [init_modules] since httpd is in modules.load
 # Ensure timeout values are set for both httpd and httpsd contexts
 <httpd.timeout>  //= 23;
 <httpsd.timeout> //= 23;
@@ -48,8 +46,8 @@ if ( <system.zenka.name> eq qw| httpsd | and $EUID == 0 ) {
 }
 
 # critical fix: ensure httpd.cfg.hostnames has default entries
-# httpd.scan_site_dir initializes httpd.cfg.hostnames as empty, then populates from /var/httpd
-# if no vhosts exist, it remains empty. we must add defaults for localhost/127.0.0.1
+# httpd.scan_site_dir initializes as empty, then populates from /var/httpd
+# if no vhosts exist, we must add defaults for localhost/127.0.0.1
 unless ( defined <httpd.cfg.hostnames> ) {
     <httpd.cfg.hostnames> = {};
 }
@@ -78,7 +76,7 @@ foreach my $hostname (qw| default localhost 127.0.0.1 |) {
 # critical fix: copy HTTPS handler configurations to HTTP namespace
 # httpd.request_handler looks for handlers in <http.handler> namespace,
 # but httpsd config defines them as <https.handler.*>
-# solution: after httpd init, copy https.handler.* to http.handler.* so lookup works
+# solution: copy https.handler.* to http.handler.* so lookup works
 if ( defined <https.handler.get> ) {
     <http.handler.get>     = <https.handler.get>;
     <http.handler.head>    = <https.handler.head>    // <https.handler.get>;
@@ -100,9 +98,9 @@ if ( defined <https.handler.get> ) {
 <httpsd.cfg.hsts_include_subdomains> //= 1;
 
 # protocol state for HTTPS [using 'https' protocol instead of 'http']
-# create HTTPS state with httpsd.request_handler for input [overriding HTTP handler]
-# critical: include read-mode=binary to handle SSL frames properly [16KB chunks]
-# critical: include bytes-to-read=16384 to match SSL frame size limit from IO::Socket::SSL
+# create HTTPS state with httpsd.request_handler for input [overriding HTTP]
+# critical: read-mode=binary to handle SSL frames properly [16KB chunks]
+# critical: bytes-to-read=16384 matches IO::Socket::SSL frame size limit
 <protocol.https.state> = {
     '0' => {
         'read-mode'     => 'binary',
@@ -176,8 +174,8 @@ $data{'protocol'}{'https'} = {
 
 0;
 
-#,,.,,..,,...,,,.,,..,,.,,.,.,..,,,,.,,,,,..,,..,,...,...,..,,.,.,...,,,.,,..,
-#7Z37N7CWOZYH3OR5FKXLCTTF6MRNNAI3PD4IFDICLOGGDVLUIQB6UUDWGZKLZRPP5PXSDJCPNGIGK
-#\\\|YLGGR2NPB7A32T5YEUSSGD4DNWIAZHLDKFWBBXPJLDX44LJBT5Q \ / AMOS7 \ YOURUM ::
-#\[7]H3FOLCSBWRNPYHT5QL7CFJWRN3XRGZ7U4ENWVVSKFUOIC2XO3ABA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,.,.,.,,,.,,,..,,...,..,,..,,,..,..,,...,...,...,,.,,,.,,,,,,.,,,
+#3KBAUCSEADDB43SAJJOL6LOAHODFUU4QY3HRITT2OXNQJ67WMCR63O6E3E7GEJJOPA46C56HN5BMW
+#\\\|5D5BHM7U3UCME3RXIHDPRLFREIR2HU6QNPKBK64HWERNYHYQ7AR \ / AMOS7 \ YOURUM ::
+#\[7]BRXEGNFMUQM2X5YHLKJXI4CRAPJH5EHOVBLFUYAP7THW2HCUR6BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

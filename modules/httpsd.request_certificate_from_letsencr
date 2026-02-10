@@ -1,0 +1,73 @@
+## [:< ##
+
+# name = httpsd.request_certificate_from_letsencr
+# descr = request certificate provisioning from letsencr zenka
+# return = { status => 'pending'|'failed', message => description }
+
+## get the hostname we're provisioning for
+my $hostname = shift // <system.host.hostname> // 'unknown';
+
+<[base.logs]>->(
+    2, 'httpsd: requesting certificate provisioning from letsencr for %s',
+    $hostname
+);
+
+## request certificate from letsencr using zenka IPC
+my $request_result = eval {
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => 'letsencr.parent.cmd.request-certificate',
+            'call_args' => { 'args' => $hostname },
+        }
+    );
+};
+
+if ($EVAL_ERROR) {
+    <[base.logs]>->(
+        2, 'httpsd: error requesting certificate from letsencr: %s',
+        $EVAL_ERROR
+    );
+    return {
+        status  => 'failed',
+        message => "cannot contact letsencr: $EVAL_ERROR"
+    };
+}
+
+unless ( defined $request_result ) {
+    <[base.logs]>->(
+        2, 'httpsd: letsencr returned undef for certificate request'
+    );
+    return {
+        status  => 'failed',
+        message => 'letsencr did not respond to certificate request'
+    };
+}
+
+## interpret letsencr response: { mode => 'true'|'false', data => ... }
+my $mode = $request_result->{mode} // 'false';
+my $data = $request_result->{data} // 'no response data';
+
+if ( $mode eq 'true' ) {
+    ## cert available OR request successfully initiated
+    <[base.logs]>->(
+        2, 'httpsd: certificate available or request initiated: %s', $data
+    );
+    return {
+        status  => 'pending',
+        message => $data
+    };
+} else {
+    ## request failed
+    <[base.logs]>->( 2, 'httpsd: certificate request failed: %s', $data );
+    return {
+        status  => 'failed',
+        message => $data
+    };
+}
+
+0;
+
+#,,..,..,,.,.,.,,,,,.,..,,,..,,,.,,,.,,,,,,,,,..,,...,...,,,.,,..,,,.,,,.,.,.,
+#2B74QZMCLF3SCYE6JUFAMS6LAH45BSXAM4JMO3H276F2J2FQI4VIJVSEUXSMBZDIGO5PF25DODUOC
+#\\\|BYOH4A7FEVDFQOEUNY2TLVMXT7YE3CDXOH5N46U4FMQSVYPKJYW \ / AMOS7 \ YOURUM ::
+#\[7]N4Q2EAVPPKH3KMYVKCZ26QAPZHYFBOAM6XVJUE3ZMFILBVRHWACY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
