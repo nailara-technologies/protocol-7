@@ -4,8 +4,8 @@
 # descr = handle ACME/API certificate request endpoints - routes to letsencr commands
 
 my $id       = shift;
-my $http_uri = shift;
 my $session  = $data{'session'}->{$id};
+my $http_uri = $session->{'http'}->{'request'}->{'uri'};
 
 my $request  = $session->{'http'}->{'request'};
 my $headers  = $request->{'headers'};
@@ -77,10 +77,10 @@ if ( $http_uri =~ m|^/api/certificate/request| ) {
             $cmd_result = <[base.protocol-7.command.send.local]>->($cmd_call);
         };
 
-        if ( $EVAL_ERROR ) {
+        if ( length $EVAL_ERROR ) {
             <[base.logs]>->(
                 1,   '[%d] error calling letsencr: %s',
-                $id, $EVAL_ERROR
+                $id, <[base.str.eval_error]>
             );
             $reply_code = 500;
             $reply_body = <[httpd.json.encode]>->(
@@ -109,7 +109,8 @@ if ( $http_uri =~ m|^/api/certificate/request| ) {
             $reply_body = <[httpd.json.encode]>->(
                 {   'status'  => qw| accepted |,
                     'domain'  => $domain,
-                    'message' => qq| Certificate request submitted for processing |
+                    'message' =>
+                        qq| Certificate request submitted for processing |
                 }
             );
         }
@@ -138,8 +139,11 @@ if ( $http_uri =~ m|^/api/certificate/request| ) {
             );
         };
 
-        if ( $EVAL_ERROR ) {
-            <[base.logs]>->( 1, '[%d] error checking status: %s', $id, $EVAL_ERROR );
+        if ( length $EVAL_ERROR ) {
+            <[base.logs]>->(
+                1,   '[%d] error checking status: %s',
+                $id, <[base.str.eval_error]>
+            );
             $reply_code = 500;
             $reply_body = <[httpd.json.encode]>->(
                 {   'status' => qw| error |,
@@ -151,7 +155,8 @@ if ( $http_uri =~ m|^/api/certificate/request| ) {
             $reply_body = <[httpd.json.encode]>->(
                 {   'status' => qw| success |,
                     'domain' => $domain,
-                    'data'   => $cmd_result->{'data'} // qq| no status available |
+                    'data'   => $cmd_result->{'data'}
+                        // qq| no status available |
                 }
             );
         } else {
@@ -177,8 +182,11 @@ if ( $http_uri =~ m|^/api/certificate/request| ) {
         );
     };
 
-    if ( $EVAL_ERROR ) {
-        <[base.logs]>->( 1, '[%d] error listing certificates: %s', $id, $EVAL_ERROR );
+    if ( length $EVAL_ERROR ) {
+        <[base.logs]>->(
+            1,   '[%d] error listing certificates: %s',
+            $id, <[base.str.eval_error]>
+        );
         $reply_code = 500;
         $reply_body = <[httpd.json.encode]>->(
             {   'status' => qw| error |,
@@ -216,8 +224,8 @@ my $reply_header = {
     'Content-Type'   => $content_type,
     'Content-Length' => length($reply_body),
     'Connection'     => $session->{'http'}->{'close'}
-        ? qw| close |
-        : qw| keep-alive |,
+    ? qw| close |
+    : qw| keep-alive |,
 };
 
 $session->{'buffer'}->{'output'}
@@ -231,8 +239,8 @@ $session->{'buffer'}->{'output'} .= $reply_body;
 
 return $session->{'http'}->{'close'} ? 2 : 0;
 
-#,,,,,.,.,.,.,,,.,..,,,..,,.,,.,,,,..,.,,,,,,,..,,...,...,...,.,.,.,.,,,,,..,,
-#J2QJCUQGZPGO3GVBJBFDZATPUIJW7LGWVBWI3DHNQOBTNPXXL7IX5OYYI6I2SGEXJONCQH2PAH4XO
-#\\\|H3H6O6HPJ7FJUIJT27P7YGTETMOWHZFGHE2WG2UD2U3BHBVOKSK \ / AMOS7 \ YOURUM ::
-#\[7]PTXCGF5NCTBY4UW7PDLRQ55OTM5FUNFBRISF5CUE26S6GMUNNODI 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,..,,,.,,,,,.,,,,..,,,.,,,,,,.,,..,,...,...,.,.,..,,,..,...,..,,
+#BKD23SE7F4W47Q63N7JC53MCNTTN46JG4URGVYQ2A7UBJWYFUEMJ5RZGXL4UHAGUOGLQSCHHNHB2C
+#\\\|M4X5FKGRWRWCYFHTPXCN3ZE3SP4B44KTVP7NOS4JHFSNMNMARAA \ / AMOS7 \ YOURUM ::
+#\[7]7MVZHAJ2BSOVYMTYTU5LENIXUKEQMDGAZSIVY2QX4V532OVNSSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
