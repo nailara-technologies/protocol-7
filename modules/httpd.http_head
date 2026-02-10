@@ -18,43 +18,16 @@ if ( $http_host =~ m|^\d{3}$| ) {    ##  numerical HTTP error code  ##
     return <[httpd.send_error_page]>->( $id, $http_host );
 }
 
-my $http_uri    = $session->{'http'}{'request'}{'uri'};
-my $link_target = <httpd.cfg.hostnames>->{$http_host}
-    if exists <httpd.cfg.hostnames>->{$http_host};
-
-if ($link_target =~ m|^\d{3}$|    ## special codes ###
-    and -l join( qw| / |,  <httpd.site_dir>, $http_host )
-    and !-e join( qw| / |, <httpd.site_dir>, $link_target )
-) {
-
-    $session->{'watcher'}->{'input_handler'}->cancel;
-    if ( $link_target ne qw| 000 | ) {    # n > 000 == HTTP error codes
-        <[base.logs]>->(
-            "[%d] status '%s' for requested host '%s'",
-            $id, $link_target, $req_host
-        );
-        $session->{'buffer'}->{'output'}
-            .= <[httpd.send_error_page]>->( $id, $link_target );
-        $session->{'flush_shutdown'} = 1;
-    } else {
-        <[base.logs]>->(
-            "[%d] <000> dropping host request '%s'",
-            $id, $req_host
-        );
-        $session->{'close'} = 1;
-    }
-    return 2;
-}
+my $http_uri = $session->{'http'}{'request'}{'uri'};
+my $base_dir = <httpd.cfg.hostnames>->{$http_host};
 
 my $file_path;
 
-if ( defined $http_host and defined $link_target ) {
+if ( defined $http_host and defined $base_dir ) {
     <[base.logs]>->(
         "[%d] matched Host: '%s' --> '%s'",    $id,
         $session->{'http'}{'request'}{'host'}, $http_host
     ) if $http_host ne $session->{'http'}{'request'}{'host'};
-
-    my $base_dir = <httpd.cfg.hostnames>->{$http_host};
     $file_path = join( '', $base_dir, $http_uri );
     $file_path =~ s|/$||;
     if ( -d $file_path ) {    # LLL: support !html index
@@ -155,8 +128,8 @@ if ( defined $http_host and defined $link_target ) {
 return <[httpd.send_error_page]>->( $id, 404 )         ## 'Not Found'
     if not defined $file_path or !-f $file_path;
 
-#,,..,,.,,,..,.,,,,,.,,,.,,,.,.,.,,,.,.,,,..,,..,,...,...,..,,...,,.,,.,.,...,
-#5PER2UDHZM3O4PZYZI2E2K2224JMN3I4U6E3W76PCGD4LBF3NULY4PZKFVFRKKZG3ZKAB4ZCWHH5A
-#\\\|EBY6Z35MFG5EXAVVFD3YLLZTN2I6BCMYA4FNGTQOSAC4EAKB6K2 \ / AMOS7 \ YOURUM ::
-#\[7]W7GNHNSL4PTE6IYQVIB7B2Z7P2HYB7TCF5BPFMZCPR2C7SQNM6BI 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,,.,.,,,,,.,,,,,,,,,,..,,.,,..,,..,,...,...,..,,...,,.,,...,..,,
+#DPCWRAO26LELBAPG7A524VMQCWGESNPL7ZM3MSAZSTKXWL4MDTANR3LU3DNJUH3MVD24IXB6FZWWG
+#\\\|BUZ4ZN2NC7V3XPEDGQZXBVVS5BM5LTCLW4JOBVRS5AAT5X6EVAX \ / AMOS7 \ YOURUM ::
+#\[7]QJFY6PI7RRGTSQWPWZUDP6LIIOIIDDO223T5LN2YPR7ERTI7EGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

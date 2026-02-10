@@ -58,8 +58,8 @@ if (   $http_uri =~ m|^/api/certificate|
             ## This will trigger again when more data arrives
             $session->{'http'}->{'body_watcher'} = <[event.add_var]>->(
                 {   'var'     => \$session->{'buffer'}->{'input'},
-                    'handler' => qq| httpd.handler.acme_request |,
-                    'poll'    => qq| w |,
+                    'handler' => qw| httpd.handler.acme_request |,
+                    'poll'    => qw| w |,
                     'repeat'  => TRUE,
                     'data'    => $id,
                     'desc' => sprintf( '[%d] body accumulation watcher', $id )
@@ -105,8 +105,8 @@ if (   $http_uri =~ m|^/api/certificate|
 
 return 2;    ## Should not reach here
 
-#,,,.,.,,,,..,..,,,..,,..,.,,,,..,.,,,,,.,,,.,..,,...,...,,.,,,,,,,.,,.,.,,..,
-#LEUSOGIINKK26S5Y5XYWHXLPORCAEWKB7CDL2JIILWSDTF4AYKX4BR6VJK7OGEFZHDQQM2R6W4RDU
-#\\\|65AVIOKCHC4B6LVI3TH2TB3AO6OLOKGETB2KTB747HPTBVUVUQ4 \ / AMOS7 \ YOURUM ::
-#\[7]YF2GY7BSERB6ZRWHMUFYK2PVG26RP3J64R2NOAEHDVXRTWDKKODY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,...,,,,,,,.,..,,,..,,.,,,..,,,.,..,,...,...,.,,,...,,.,,.,.,,,.,
+#3SIN4R7MADY7ABL2YB5ZZEZHAIGL3RCPRNFA4PUGYUHIKTUZHWQJZCYK3LQRFJK3GKBZFOR3BVRRG
+#\\\|HWCEWZJWI7ZUBTQXRCML3K3LUHM6ZWX7ZF2NQYNPU6PWY4PJ6HW \ / AMOS7 \ YOURUM ::
+#\[7]DGCCCOSPFELCLRVSXWTGU5F27VFM766DJPD3AOBHZKBM45KAX6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
