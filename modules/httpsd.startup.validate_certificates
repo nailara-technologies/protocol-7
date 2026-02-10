@@ -1,84 +1,78 @@
 ## [:< ##
 
 # name  = httpsd.startup.validate_certificates
-# descr = validate certificate files exist before creating SSL socket
-# return = TRUE [5] on success, FALSE [0] on failure
+# descr = validate certificate files with graceful delegation to letsencr
+# return = TRUE [5] on success, FALSE [0] on graceful failure (will retry with backoff)
 
-my $cert_file = <httpsd.cfg.certificate_path>;
-my $key_file  = <httpsd.cfg.key_path>;
+<[base.logs]>->( 2, 'httpsd: validating certificate files before startup' );
 
-<[base.log]>->( 2, "httpsd: validating certificate files before startup" );
-<[base.log]>->( 2, "  checking certificate: $cert_file" );
-<[base.log]>->( 2, "  checking key: $key_file" );
+## initialize retry counter if not already set
+unless ( defined <httpsd.startup.retry_count> ) {
+    <httpsd.startup.retry_count> = 0;
+}
 
-unless ( -f $cert_file ) {
-    <[base.log]>->( 0, "FATAL: Certificate file not found: $cert_file" );
-    <[base.log]>->(
-        0, "HTTPSD cannot start without valid SSL/TLS certificate."
+## phase 1: check if certificate is already available
+my $cert_info = <[httpsd.check_certificate_available]>;
+
+if ( $cert_info->{available} ) {
+    <[base.logs]>->( 2, 'httpsd: certificate files validated successfully' );
+    <httpsd.startup.retry_count> = 0;    ## reset retry counter on success
+    return TRUE;
+}
+
+<[base.logs]>->(
+    2, 'httpsd: certificate not available, requesting from letsencr'
+);
+
+## phase 2: request certificate from letsencr
+my $request_result = <[httpsd.request_certificate_from_letsencr]>;
+
+unless ( defined $request_result ) {
+    <[base.logs]>->(
+        2, 'httpsd: unable to contact letsencr for certificate request'
     );
-    return FALSE;
+    goto GRACEFUL_FAILURE;
 }
 
-unless ( -f $key_file ) {
-    <[base.log]>->( 0, "FATAL: Key file not found: $key_file" );
-    <[base.log]>->( 0, "HTTPSD cannot start without valid SSL/TLS key." );
-    return FALSE;
+## phase 3: wait for certificate with timeout
+if ( $request_result->{status} ne 'failed' ) {
+    ## status is either 'pending' or other (letsencr is working on it)
+    <[base.logs]>->(
+        2, 'httpsd: waiting for certificate availability (up to 30 seconds)'
+    );
+
+    my $cert_available = <[httpsd.wait_for_certificate]>->(30);
+
+    if ($cert_available) {
+        <[base.logs]>->(
+            2, 'httpsd: certificate is now available, proceeding'
+        );
+        <httpsd.startup.retry_count> = 0;    ## reset retry counter on success
+        return TRUE;
+    }
 }
 
-## Validate certificate format ##
-my $cert_fh;
-unless ( open( $cert_fh, '<', $cert_file ) ) {
-    <[base.log]>->( 0, "FATAL: Cannot read certificate file: $cert_file" );
-    return FALSE;
-}
+## graceful failure: certificate not available after timeout
+GRACEFUL_FAILURE:
 
-my $cert_header = <$cert_fh>;
-close($cert_fh);
-chomp($cert_header);
+<[base.logs]>->(
+    1, 'httpsd: certificate not available, will retry periodically'
+);
 
-unless ( $cert_header =~ m/^-----BEGIN CERTIFICATE-----$/ ) {
-    <[base.log]>->( 0, "FATAL: Certificate file has invalid format: $cert_file" );
-    <[base.log]>->( 0, "  Expected: -----BEGIN CERTIFICATE-----" );
-    <[base.log]>->( 0, "  Found:    $cert_header" );
-    <[base.log]>->( 0, "  Certificate must be in PEM format." );
-    return FALSE;
-}
+## increment retry counter for logging
+<httpsd.startup.retry_count>++;
 
-## Validate private key format ##
-my $key_fh;
-unless ( open( $key_fh, '<', $key_file ) ) {
-    <[base.log]>->( 0, "FATAL: Cannot read key file: $key_file" );
-    return FALSE;
-}
+<[base.logs]>->(
+    2, 'httpsd: retry attempt %d - will check for certificate periodically',
+    <httpsd.startup.retry_count>
+);
 
-my $key_header = <$key_fh>;
-close($key_fh);
-chomp($key_header);
+## return FALSE to skip socket creation
+## socket creation will be deferred to a periodic retry handler
+return FALSE;
 
-if ( $key_header =~ m/^-----BEGIN OPENSSH PRIVATE KEY-----$/ ) {
-    <[base.log]>->( 0, "FATAL: Private key is in OpenSSH format: $key_file" );
-    <[base.log]>->( 0, "  Found:    $key_header" );
-    <[base.log]>->( 0, "  IO::Socket::SSL requires PKCS#8 or PEM format." );
-    <[base.log]>->( 0, "  To convert OpenSSH to PKCS#8 format, use:" );
-    <[base.log]>->( 0, "    ssh-keygen -p -N \"\" -m pem -f $key_file" );
-    <[base.log]>->( 0, "  Or regenerate self-signed certificate with:" );
-    <[base.log]>->( 0, "    zenka letsencr.child.cmd.inst-self-signed" );
-    return FALSE;
-}
-
-unless ( $key_header =~ m/^-----BEGIN (?:RSA |EC |)PRIVATE KEY-----$/ ) {
-    <[base.log]>->( 0, "FATAL: Private key has invalid format: $key_file" );
-    <[base.log]>->( 0, "  Expected: -----BEGIN [RSA|EC] PRIVATE KEY-----" );
-    <[base.log]>->( 0, "  Found:    $key_header" );
-    <[base.log]>->( 0, "  Key must be in PEM or PKCS#8 format." );
-    return FALSE;
-}
-
-<[base.log]>->( 2, "httpsd: certificate files validated successfully" );
-return TRUE;
-
-#,,,.,,,.,,,.,.,,,...,..,,,,,,...,..,,..,,.,.,..,,...,...,...,,,,,,,,,.,.,,.,,
-#YYQVZICA73C5EXKQKXOORSMSRXOUAGGTVWXTWO3SH7YYQE4KGE2TPXIFZB7CLRUQCSSVF4PS6VFV6
-#\\\|D22WUO3GTD34CZAVGESEJ6OW5DBPG6SHRBMCP5B2SE5MLFOQZ3U \ / AMOS7 \ YOURUM ::
-#\[7]G36LTWMYKJSU5VIA6IUZQAOWU5VS345TUPL2IO44J5FURVNUEWDI 7  DATA SIGNATURE ::
+#,,..,.,.,...,,,,,,..,,.,,,,,,,,,,,,.,,..,,..,..,,...,...,.,.,,..,,.,,,.,,,,,,
+#R4GHE5N6QPGPRGQGOFOPBAYBTDF2ED2ZGVB6WZ6KLGINIW2WC64KYQ5LYZSEJJAVUIJHPOSITEEMM
+#\\\|VUHEJOYH2LEXA3E6JLUDN5Q7CS4GHWC3QQV3UUVBWYXRVM37L6G \ / AMOS7 \ YOURUM ::
+#\[7]FLVMVMO465BEE26UGHPHI5DTM4KDINF6BATFAWJZ7QEVJHQZ62DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

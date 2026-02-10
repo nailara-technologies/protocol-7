@@ -223,6 +223,7 @@ return [ qw[
         mpv.cmd.add_file
         models.init_code
         jobqueue.add_job
+        httpsd.post_init
         httpsd.init_code
         httpd.serve_file
         httpd.new_header
@@ -1147,6 +1148,7 @@ return [ qw[
         io.unix.socket.init_code
         impressive.check_tmp_dir
         httpsd.create_ssl_socket
+        httpsd.cmd.socket-status
         httpd.system.memory_free
         httpd.parse_range_header
         httpd.event.remove_timer
@@ -1398,6 +1400,7 @@ return [ qw[
         nshell.setup_stdin_watcher
         nshell.render.empty_prompt
         nshell.redraw_command_line
+        nshell.handler.debug_input
         mpv.handler.resume_timeout
         mpv.handler.get_list_reply
         mpv.handler.cmd_prop.pause
@@ -1541,6 +1544,7 @@ return [ qw[
         jobqueue.check_dependencies
         io.unix.socket.output.close
         image2html.parent.init_code
+        httpsd.wait_for_certificate
         httpd.update_download_count
         httpd.benchmark.end_request
         httpd.base.file.nonblocking
@@ -1900,6 +1904,7 @@ return [ qw[
         index.callback.wordlist-import
         impressive.cmd.playlist_update
         image2html.base.get_image_size
+        httpsd.calculate_restart_delay
         httpd.diagnostic.end_operation
         httpd.cmd.setup-acme-challenge
         graphics-matrix.guess_bg_color
@@ -2225,6 +2230,7 @@ return [ qw[
         keys.select_archive_path.term_Clui
         jobqueue.event.register_job_queues
         image2html.child.cmd.convert_image
+        httpsd.check_certificate_available
         graphics-matrix.cmd.filter-rep-col
         discover.handler.anounce_host_addr
         discover.cmd.reset-broadcast-timer
@@ -2442,6 +2448,7 @@ return [ qw[
         letsencr.parent.handler_enrollment_retry
         letsencr.parent.handler_enrollment_reply
         letsencr.parent.handler_challenge_needed
+        httpsd.request_certificate_from_letsencr
         coding.vision-parser.extraction.workflow
         coding.learning.generate_recommendations
         coding.handler.monitor_inference_startup
@@ -2552,8 +2559,8 @@ return [ qw[
     ]
 ];
 
-#,,..,,.,,,,,,,..,,,,,.,.,.,.,,..,..,,,,.,,..,.,.,...,.,.,...,,..,.,,,.,,,,,.,
-#7KM2OEVPS4UQ4M4ZDCNOOZUZGJ37GRZVCABIUHZJNLMLBJDRINB3QGA7CQT7H6P5JMXDXF7F6I7KS
-#\\\|R5OZZYTVJULPJ4BPKQUYYJOXW27LX2EPABKRMX4PBULY43J36MG \ / AMOS7 \ YOURUM ::
-#\[7]JM7NJC5LLRGK5ZZXQOCCM37LZW6JB2K6MSNFQMKQ3ZPDRDYLZACY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,...,,,,,..,,...,,..,.,.,.,,,.,.,.,.,...,...,.,.,,,.,.,.,.,,,.,.,
+#PM5DHLT7A4Q7QLTLEWEEWU7DTYPMRYSJV2AXS64NIBKARAAXFJFMFQ5J3ZBIBVLOSZL6ANQDSFKWE
+#\\\|BMIWDTNU7L3R6LXHTLETVWXTR7EKDEH5LCJ3N4EHD7I6NOPD4BB \ / AMOS7 \ YOURUM ::
+#\[7]2KKIO3YPJLLL2KIMCJJP3HFBQL6ZMURASO56CT4IJD2GIJXMUAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
