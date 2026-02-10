@@ -24,11 +24,18 @@ if ( not defined $http_host and $http_protocol eq qw| HTTP/1.0 | ) {
 
 if ( defined $http_host ) {
 
-    ## check if vhost exists in registry (discovered by scan_site_dir in init_code)
-    return $http_host if defined <httpd.vhosts.registry>->{$http_host};
+    ## check if vhost exists :
+    ## : scan_site_dir populates cfg.hostnames with discovered vhosts
+    return $http_host if defined <httpd.cfg.hostnames>->{$http_host};
 
     ## no match found, use default fallback if available
-    return $base_site_directory if defined $base_site_directory;
+    if ( defined $base_site_directory ) {
+        <[base.logs]>->(
+            1,   "[%d] no match for '%s' --> fallback --> '%s'",
+            $id, $http_host, $base_site_directory
+        );
+        return $base_site_directory;
+    }
 
     ## no vhost found and no default available - return 404
     return 404;
@@ -41,8 +48,8 @@ if ( defined $http_host ) {
     return 400;    ## Bad Request ##
 }
 
-#,,.,,..,,...,,..,..,,,.,,,..,,.,,.,,,.,,,.,,,..,,...,...,,,.,,..,,..,.,.,...,
-#5XQBIZFZYAAR6B6FKG54LK4G5DOLMQIF6J7ZRJ6VRW3DLRIU6W3HXRJI3N4F4Z3GDPNU43T2VZO2I
-#\\\|EDP6BBMDL3YG6ACJJWIZ26YLDX5ARTEI4STOFGC4BQD7PNUDNDH \ / AMOS7 \ YOURUM ::
-#\[7]TZ65QLVFG6GJCRP6TKIUSACVX2S3ZZQBMWG6767L2OMG5JSGRUDA 7  DATA SIGNATURE ::
+#,,..,..,,.,.,...,.,.,,..,,.,,..,,.,.,,,.,,.,,..,,...,...,...,.,.,.,,,..,,,.,,
+#3OXQWV5DW6IIFY4RPQMCCQ3NNKWVOQ2OWTIYTRTLGBY2AWA3ZEAYMIMGZTB3QCEIWEQ2QQN37SXXC
+#\\\|W4CIAOPGOXLXQOVDJV7PFMHLPQ4WKGBQJP5N63V23XNOVARNNXW \ / AMOS7 \ YOURUM ::
+#\[7]IFCVI6AQGQXIBJUHJWOV3QAZKCW3ECU4GNSN3TQEZHFLPP4AWGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
