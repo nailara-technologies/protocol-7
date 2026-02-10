@@ -1,0 +1,65 @@
+## [:< ##
+
+# name = httpsd.post_init
+# descr = post-initialization socket creation with graceful cert handling
+# note = called after all modules loaded, can use all functionality
+
+<[base.logs]>->( 2, 'httpsd: post-initialization starting' );
+
+## check if HTTPS is enabled
+unless ( <httpsd.cfg.enable_https> // 1 ) {
+    <[base.logs]>->( 2, 'httpsd: HTTPS disabled, skipping socket creation' );
+    return TRUE;
+}
+
+## check certificate availability
+my $cert_info = <[httpsd.check_certificate_available]>;
+
+if ( !$cert_info->{available} ) {
+    ## certificate not available - defer socket creation
+    <[base.logs]>->(
+        1,
+        'httpsd: certificate not available, deferring HTTPS socket creation'
+    );
+    <[base.logs]>->(
+        2,
+        'httpsd: will retry periodically, use httpsd.socket-status to check'
+    );
+    <httpsd.socket_deferred> = 1;
+    return TRUE;
+}
+
+## certificate available - create SSL socket and bind protocol
+<[base.logs]>->( 2, 'httpsd: certificate available, creating HTTPS socket' );
+
+<httpsd.sock>
+    = <[httpsd.create_ssl_socket]>->( <net.https.addr>, <net.https.port> );
+
+unless ( defined <httpsd.sock> ) {
+    <[base.logs]>->( 0, 'httpsd: failed to create SSL socket' );
+    return FALSE;
+}
+
+## register socket in data structure
+unless ( <[httpsd.register_socket]>->( <httpsd.sock>, 'ip.ssl', 'input' ) ) {
+    <[base.logs]>->( 0, 'httpsd: failed to register SSL socket' );
+    return FALSE;
+}
+
+## bind HTTPS protocol to socket
+unless ( <[base.protocol.bind]>->( <httpsd.sock>, 'https', 'server' ) ) {
+    <[base.logs]>->( 0, 'httpsd: failed to bind HTTPS protocol' );
+    return FALSE;
+}
+
+<[base.logs]>->( 2, 'httpsd: HTTPS socket created and bound successfully' );
+
+return TRUE;
+
+0;
+
+#,,,.,,.,,,..,..,,...,,..,,.,,...,.,,,,..,,,,,..,,...,...,.,.,.,.,..,,...,,,,,
+#K2LQUEQ2XJYR4TF5PX4QIVVCCO2C5STCX625COKZXKW4K5XAS6EL7JX6MU47P2RK3FA6D2J3B74U6
+#\\\|CZGAB3GXKCPHLPKKSMIFINMRT4JMVGXO4E2J4MXLKEUPERKDGHQ \ / AMOS7 \ YOURUM ::
+#\[7]CLVP75SHYV2VT3RDFLRY7VTRURNVDYRGS3U4RPXEE4GNCMKWVQCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

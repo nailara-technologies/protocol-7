@@ -1,0 +1,55 @@
+## [:< ##
+
+# name = httpsd.wait_for_certificate
+# param = timeout in seconds (optional, default 30)
+# descr = wait for certificate to become available, polling with timeout
+# return = TRUE [5] if certificate becomes available, FALSE [0] on timeout
+
+my $timeout = shift // <httpsd.cfg.startup_timeout> // 30;
+
+<[base.logs]>->(
+    2, 'httpsd: waiting for certificate (timeout: %ds)', $timeout
+);
+
+my $start_time    = time();
+my $poll_interval = 1;        ## poll every second
+
+while (1) {
+    my $elapsed = time() - $start_time;
+
+    ## check if certificate is available
+    my $cert_info = <[httpsd.check_certificate_available]>;
+
+    if ( $cert_info->{available} ) {
+        <[base.logs]>->(
+            2, 'httpsd: certificate became available after %ds', $elapsed
+        );
+        return TRUE;
+    }
+
+    ## timeout check
+    if ( $elapsed >= $timeout ) {
+        <[base.logs]>->(
+            2, 'httpsd: certificate timeout after %ds, giving up', $elapsed
+        );
+        return FALSE;
+    }
+
+    ## wait before next poll
+    sleep($poll_interval);
+
+    my $remaining = $timeout - $elapsed;
+    if ( $remaining <= 5 ) {
+        <[base.logs]>->(
+            3, 'httpsd: waiting for certificate... %ds remaining', $remaining
+        );
+    }
+}
+
+0;
+
+#,,,.,...,.,,,,.,,,.,,...,,,.,,,.,,.,,,.,,.,.,..,,...,...,...,.,,,,.,,.,.,,.,,
+#JHOMH7H6Y2XZQSD2UOPVBPBH3SJAS3JD6YOOCPJ7DNSJ642XRDLI2BG3EZNGUGGORFFEHBZITDLEG
+#\\\|6OWWF75K3UVOTQBPPQTBAAAXMPF7FE2Q3EEXW2URU7G5ELH4DKM \ / AMOS7 \ YOURUM ::
+#\[7]SU4Y2BD4PHMITWVAGGZCA2A7Y2B5LW6XCFU6QHLZBH5RWAMTI6BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

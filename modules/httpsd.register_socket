@@ -2,10 +2,10 @@
 
 # name  = httpsd.register_socket
 # param = $socket, $type, $mode
-# descr = register SSL socket in data structure for handler connection lookup
-# note  = Called after SSL socket creation since httpsd.create_ssl_socket doesn't
-#         register the socket like base.open does. This ensures base.handler.connect
-#         can find the handler definitions when a connection arrives.
+# descr = register SSL socket in data structure for handler lookup
+# note  = called after SSL socket creation; httpsd.create_ssl_socket doesn't
+#         register like base.open does, so base.handler.connect can find handler
+#         definitions when a connection arrives
 
 my $socket = shift;
 my $type   = shift;
@@ -25,8 +25,8 @@ unless ( defined $type and defined $mode ) {
 
 my $fd = fileno($socket);
 
-## Register socket in handle data structure using both socket reference AND file descriptor
-## Socket reference is used by base.protocol.bind, numeric FD is used by handler connection lookup
+## register socket in handle data structure using both socket ref and FD
+## socket ref is used by base.protocol.bind, FD used by handler lookup
 $data{'handle'}{$socket}{'link'}     = $type;
 $data{'handle'}{$socket}{'mode'}     = $mode;
 $data{'handle'}{$socket}{'protocol'} = 'https';
@@ -41,12 +41,19 @@ $data{'handle'}{$fd}{'protocol'} = 'https';
 );
 <[base.logs]>->( 3, "  type=$type mode=$mode protocol=https" );
 
+## reset retry counter on successful socket registration
+## indicates httpsd started successfully and no longer needs to retry
+<httpsd.startup.retry_count> = 0;
+<[base.logs]>->(
+    2, 'httpsd: socket registration successful, retry counter reset'
+);
+
 return TRUE;
 
 0;
 
-#,,,.,.,.,,,.,,..,.,.,..,,..,,..,,,..,,.,,,,.,..,,...,...,..,,,,,,,,,,..,,,,.,
-#OLLOHVTVZWPKLQK2EBSVZ46EUQZIHM4JK344JXLZDNUQZLJM2MBCPLQTFOSMXYGWKQJ6BB75SYFXM
-#\\\|LBLLYJJBWUFG6H2K7CS25OTHGB3Y3TRMTPRH4SIN723PMSZ7FHT \ / AMOS7 \ YOURUM ::
-#\[7]66NP7KHA6DUPSLNUM3GTZLNZ6ANL3OFLQWSRV2TPUYAMRILPZCCQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,.,.,,.,,,,,,.,.,..,,,,.,..,,,.,,..,,...,...,..,,,,.,,.,,...,,,.,
+#MNCXPWMGZNBE4ACJVBGYJNGAWGZSGP6PFU2LMLDXYYOARU5OU3FI7VRTZMIUNDUH4UCCYGQ4WWL5Q
+#\\\|CYUSJG5YAXZDZD5GJZ6C5Z7IF63BPLBK4IGI2AJY5TWJ5IDIMXS \ / AMOS7 \ YOURUM ::
+#\[7]SOHPQLCIGXCKFBG2UTDUAVRRYGZNSYYP5Q27KYIHC2RGHG2FNEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

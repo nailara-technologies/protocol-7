@@ -1,0 +1,62 @@
+## [:< ##
+
+# name = httpsd.cmd.socket-status
+# descr = report SSL socket status and certificate availability
+# return = { mode => 'true'|'false', data => status_information }
+
+my $cert_file = <httpsd.cfg.certificate_path>;
+my $key_file  = <httpsd.cfg.key_path>;
+
+## check if socket has been created and is listening
+my $socket_created = defined <httpsd.sock> && fileno(<httpsd.sock>);
+
+if ($socket_created) {
+    ## socket is created and listening - fully operational
+    return {
+        mode => qw| true |,
+        data => {
+            status      => 'operational',
+            description => 'HTTPS socket is listening and operational',
+            certificate => $cert_file,
+            key         => $key_file,
+            tls_version => <httpsd.cfg.tls_version>,
+        }
+    };
+} else {
+    ## socket not yet created - check why
+    my $cert_info = <[httpsd.check_certificate_available]>;
+
+    if ( $cert_info->{available} ) {
+        return {
+            mode => qw| true |,
+            data => {
+                status      => 'ready_for_socket',
+                description =>
+                    'Certificate available but socket not yet created',
+                certificate => $cert_file,
+                key         => $key_file,
+            }
+        };
+    } else {
+        return {
+            mode => qw| false |,
+            data => {
+                status      => 'waiting_for_certificate',
+                description =>
+                    'Waiting for certificate provisioning from letsencr',
+                certificate => $cert_file,
+                key         => $key_file,
+                retry_count => <httpsd.startup.retry_count> // 0,
+                message => 'Use `p7c httpsd.socket-status` to check again',
+            }
+        };
+    }
+}
+
+0;
+
+#,,..,..,,,,.,,.,,.,.,..,,,,.,.,.,.,.,..,,..,,..,,...,...,.,,,,,.,...,.,,,.,.,
+#Y2CRKV2INFNCMIA5VOGKZRY7N25O6XCXO3YVUNDIBB654B6AFX46PZIK3MV3XYXA2EIJS4ROAAHSK
+#\\\|WLN3BV3FT2VS75GJ5UGKYRZJO53PY2RQMTWVW2PLHEWUC3QWX5G \ / AMOS7 \ YOURUM ::
+#\[7]D72MMTSWACBISQOWE62E4W4YFKZNQRFUQ5BXZSMYONHHZJHB7YCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

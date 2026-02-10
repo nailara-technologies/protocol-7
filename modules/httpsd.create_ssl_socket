@@ -17,15 +17,15 @@ my $key_file  = <httpsd.cfg.key_path>;
 <[base.log]>->( 2, "  certificate: $cert_file" );
 <[base.log]>->( 2, "  key: $key_file" );
 
-## Validate certificate files exist
-unless ( -f $cert_file ) {
-    <[base.log]>->( 0, "httpsd: certificate file not found: $cert_file" );
-    return -1;
-}
-
-unless ( -f $key_file ) {
-    <[base.log]>->( 0, "httpsd: key file not found: $key_file" );
-    return -1;
+## check if certificate files exist
+unless ( -f $cert_file && -f $key_file ) {
+    ## certificate not available yet - return undef for graceful deferral
+    my $missing = !-f $cert_file ? 'certificate' : 'key';
+    <[base.logs]>->(
+        1, 'httpsd: %s file not found, deferring socket creation', $missing
+    );
+    <[base.logs]>->( 2, 'will retry when certificate becomes available' );
+    return undef;
 }
 
 ## Get TLS configuration
@@ -175,8 +175,8 @@ return $ssl_socket;
 
 0;
 
-#,,,,,.,.,,.,,,.,,..,,,..,...,,,,,..,,.,.,,,.,..,,...,...,...,..,,,.,,,,.,.,.,
-#DNJX6ABNGTAVRRGS6C7VLWMTMFEAYA7HRT3A2RTD2XGCSHZVEWH6NKR3KAFOW7LKTDVM36UX3P7YK
-#\\\|TMV6A2X4JANKUVGC77DU6Y7BOHLSEKZRIBIAWSGIAVOA5IIF2P2 \ / AMOS7 \ YOURUM ::
-#\[7]6M53UKJXA7IGRZS2ZRBJ7HS2ATTGTP3HSVKDQJLULSBZAT4JREDI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,.,,,.,.,,,,,,,.,...,,..,,,,,..,,..,,...,...,,..,,.,,.,.,,,,,...,
+#MSS27SUO4BEBTK7VXREIKIJBYOV4FL6W7WFTO6447LZKEDOVFJCVMNZRG5ZC5OD5PKH7KPTS3THWI
+#\\\|C6J6GYFZR6E4FJULMUL2Q7MOGU4WUVDDHLAK5GI3EKQF7LUSBNN \ / AMOS7 \ YOURUM ::
+#\[7]IWY32PCW7KZHI35AMPS427SVFF76CBDWE75M6QA4JFSDULPP5UAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

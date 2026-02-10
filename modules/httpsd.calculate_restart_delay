@@ -1,0 +1,32 @@
+## [:< ##
+
+# name = httpsd.calculate_restart_delay
+# descr = exponential backoff for certificate provisioning retries
+# return = delay in seconds (capped at max_delay)
+
+## exponential backoff: 10s, 20s, 40s, 80s, 160s, 320s, 640s...max 600s
+my $attempt = <httpsd.startup.retry_count> // 0;
+
+## formula: 10 * (2 ^ attempt)
+my $delay     = 10 * ( 2**$attempt );
+my $max_delay = <httpsd.cfg.max_retry_delay> // 600;    ## 10 minutes max
+
+## cap at max_delay to prevent indefinite growth
+if ( $delay > $max_delay ) {
+    $delay = $max_delay;
+}
+
+<[base.logs]>->(
+    2, 'httpsd startup retry attempt %d: backoff delay = %ds (max=%ds)',
+    $attempt, $delay, $max_delay
+);
+
+return $delay;
+
+0;
+
+#,,,,,...,,..,...,,,.,,,,,,.,,,,,,.,.,.,,,..,,..,,...,...,..,,,.,,...,,,.,,.,,
+#QUZ6AKXXSH6DVZL2YR6JT5BK42KDU4CHHUF6H4VVRSLZMX65W35KN2PHBSTMP4CEZXV2HBMGMYUFW
+#\\\|OZZWKWPTZ5CYJA23S5PW4HWPMEPPUX4JXAMSHOCX2PUH4B4QDT6 \ / AMOS7 \ YOURUM ::
+#\[7]ZV7ZKWR4WXGVGYQBF3JJN7F3DRITXYZD37ZJCHCMRA2QKKDJ7IBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
