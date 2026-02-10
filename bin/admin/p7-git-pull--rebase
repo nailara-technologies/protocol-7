@@ -1,0 +1,58 @@
+#!/usr/bin/perl
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use File::Spec;
+use Cwd     qw| abs_path |;
+use FindBin qw| $RealBin |;
+
+our $up_dir = File::Spec->updir;
+our $Bin    = $RealBin;
+
+## safely determine protocol-7 root path ##
+my $p7_root = p7_root_dir();
+
+chdir($p7_root) or die "  :\n  :: \l$OS_ERROR : $p7_root\n\n";
+
+print ":\n: p7-git-pull--rebase : checking for modified or untracked files ..,\n:\n";
+
+## check for modified or untracked files using vc-changed-files ##
+my $changed_files = `$p7_root/bin/admin/vc-changed-files 2>&1`;
+chomp($changed_files);
+
+if ( length($changed_files) ) {
+    print ":\n: error : found modified or untracked files :\n";
+    print ":   $_\n" for split( "\n", $changed_files );
+    print ":\n: please commit or stash changes before pulling .\n:\n";
+    exit 1;
+}
+
+print ": no modified or untracked files detected ..\n";
+print ": proceeding with git pull --rebase ..\n:\n";
+
+## run git pull --rebase ##
+system(qw| git pull --rebase |) == 0
+    or die ":\n:: git pull --rebase failed : $OS_ERROR\n\n";
+
+print "\n:\n: git pull --rebase completed successfully .\n:\n";
+
+exit 0;
+
+#[ SUBROUTINES ]##############################################################
+
+sub c_dir  { File::Spec->catdir(@_) }
+sub r2_abs { File::Spec->rel2abs(@_) }
+
+sub p7_root_dir {
+    my $root_path = abs_path( r2_abs( c_dir( $Bin, ($up_dir) x 2 ) ) );
+    die "  :\n  :: not a directory : '$root_path'\n\n" if !-d $root_path;
+    return $root_path;
+}
+
+#,,,,,.,,,,,.,,,,,.,,,,,,,.,.,,..,,,,,,,.,..,,..,,...,...,..,,.,,,.,,,.,,,.,,,
+#5OKF2VHSKC5OALBS5VASKQBFTIBVVOWJHSUPVFDCGUB3CBUEC5F5XJMTPCMOKPSCH45TUTNFLMWFK
+#\\\|7CLWXI4EN7TA3JCRRXGYGN7375CMJZNNF7IJJAYPM65SIEXCKEE \ / AMOS7 \ YOURUM ::
+#\[7]VUA45L3OEDTZXKBZHV2EOQS2244CXHXGJ3V7A7BFEYOT42DKCOCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
