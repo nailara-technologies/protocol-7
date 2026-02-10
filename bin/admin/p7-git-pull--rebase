@@ -38,6 +38,14 @@ system(qw| git pull --rebase |) == 0
 
 print "\n:\n: git pull --rebase completed successfully .\n:\n";
 
+## restore file permissions (fixes perms even without git hooks) ##
+print ": restoring file permissions after pull ..\n:\n";
+
+system(qw| bin/admin/restore-p7-permissions |) == 0
+    or die ":\n:: restore-p7-permissions failed : $OS_ERROR\n\n";
+
+print "\n:\n: file permissions restored successfully .\n:\n";
+
 exit 0;
 
 #[ SUBROUTINES ]##############################################################
@@ -51,8 +59,8 @@ sub p7_root_dir {
     return $root_path;
 }
 
-#,,,,,.,,,,,.,,,,,.,,,,,,,.,.,,..,,,,,,,.,..,,..,,...,...,..,,.,,,.,,,.,,,.,,,
-#5OKF2VHSKC5OALBS5VASKQBFTIBVVOWJHSUPVFDCGUB3CBUEC5F5XJMTPCMOKPSCH45TUTNFLMWFK
-#\\\|7CLWXI4EN7TA3JCRRXGYGN7375CMJZNNF7IJJAYPM65SIEXCKEE \ / AMOS7 \ YOURUM ::
-#\[7]VUA45L3OEDTZXKBZHV2EOQS2244CXHXGJ3V7A7BFEYOT42DKCOCI 7  DATA SIGNATURE ::
+#,,,.,.,.,...,,..,,..,.,,,,.,,..,,.,,,,,.,.,,,..,,...,...,,..,...,,,,,,,,,.,.,
+#RY56U73UO6C6THRJ3SARZCSJJ6AAHFW4HXGOYQEHL7ZEE5YVYJXLMO63X5BQFNBEYEF5LAHRSLZPE
+#\\\|K4XT42A322KOVNWA467ECJMSZTRGSXI7SSDJ3MZGTJOMJHXFDR2 \ / AMOS7 \ YOURUM ::
+#\[7]GCARWSUZG2X4C3IEAIN7PKNILB656CBV4S43JTAM22C7WBDFSIAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
