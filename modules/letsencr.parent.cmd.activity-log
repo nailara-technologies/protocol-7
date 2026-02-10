@@ -12,8 +12,8 @@ my $limit  = shift // 50;   ## optional: limit number of entries (default: 50)
 ## Read activity buffer
 unless ( defined $data{'buffer'}{'acme-activity'} ) {
     return {
-        mode => 'true',
-        data => 'Activity log is empty (no acme-activity buffer found)'
+        'mode' => qw| size |,
+        'data' => 'Activity log is empty (no acme-activity buffer found)'
     };
 }
 
@@ -21,8 +21,8 @@ my @lines = @{ $data{'buffer'}{'acme-activity'}{'data'} };
 
 unless (@lines) {
     return {
-        mode => 'true',
-        data => 'Activity log is empty'
+        'mode' => qw| size |,
+        'data' => 'Activity log is empty'
     };
 }
 
@@ -55,8 +55,8 @@ if ( @filtered_lines == 0 ) {
     $output .= "\n";
 
     return {
-        mode => 'true',
-        data => $output
+        'mode' => qw| size |,
+        'data' => $output
     };
 }
 
@@ -96,12 +96,12 @@ if ($filter) {
 $output .= "\n";
 
 return {
-    mode => 'true',
-    data => $output
+    'mode' => qw| size |,
+    'data' => $output
 };
 
-#,,,.,.,,,.,,,,..,.,.,.,.,,,.,.,.,..,,...,,,.,..,,...,...,...,..,,,,,,..,,,..,
-#EZNWVQ2GIDOUHPN7VPAVKONQ2EX4MVI74A2MHYLMXO6PCIL4PRHVA7Y2W7RLD6IIG75P4VDW6DWCQ
-#\\\|Y6V5TOU52NPPFYXB4ZNZPJ7MGLHCWPBBEF6SARKED6WV4LES2J4 \ / AMOS7 \ YOURUM ::
-#\[7]BWD6IXFTDTCSRG557DM3MJRBUVXWFBRGWJNWMWDQMSMLJPDZE6DQ 7  DATA SIGNATURE ::
+#,,.,,...,,..,...,.,,,...,..,,..,,,,.,..,,,,,,..,,...,...,,..,,,,,,,,,.,,,,.,,
+#LSDJCEHJ4E3KA3SENVF7BYE5ZQJLYIATW4AI3J7UMQ73M5VDWZWIFAN7YVELLCPIOQFOFZTUPCDXM
+#\\\|45VGSWOO2P7YLIKLABZHUN4POFLNTT4MJGUYLG6QCANL42XBUCC \ / AMOS7 \ YOURUM ::
+#\[7]KCEZELXZ5JCG7BL6I3UD5MICYYNN3JMHDMZMMGMLGFVGIFORX6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
