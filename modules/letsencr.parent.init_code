@@ -3,7 +3,7 @@
 # name  = letsencr.parent.init_code
 # descr = initialize parent process for Let's Encrypt ACME operations - manages state, cache, and renewal scheduling
 
-<[base.log]>->( 2, "initializing Let's Encrypt ACME parent process..," );
+<[base.log]>->( 2, 'initializing ACME parent process.,' );
 
 ## letsencr.base is already loaded and initialized by zenka startup
 ## No need to reload/reinitialize here
@@ -14,18 +14,22 @@
 <letsencr.parent.renewal_timers>     = {};
 <letsencr.parent.pending_challenges> = {};
 
-## Load stored certificates from disk into memory registry
+## load stored certificates from disk into memory registry
 my $load_result = <[letsencr.parent.load_certificate_registry]>;
 if ( $load_result && $load_result->{status} eq 'success' ) {
-    <[base.log]>->(
-        2, 'loaded ' . $load_result->{loaded} . ' certificates from disk'
+    <[base.logs]>->(
+        2,
+        'loaded %d certificates from disk',
+        $load_result->{loaded}
     );
 } elsif ( $load_result && $load_result->{status} eq 'partial' ) {
-    <[base.log]>->(
-        1, 'warning: partial certificate load - ' . $load_result->{error_msg}
+    <[base.logs]>->(
+        1,
+        'warning: partial certificate load - %s',
+        $load_result->{error_msg}
     );
 } else {
-    <[base.log]>->(
+    <[base.logs]>->(
         1, 'warning: no stored certificates found on disk (first run)'
     );
 }
@@ -122,7 +126,7 @@ if ( not exists <buffer.acme-activity> ) {
     );
 }
 
-<[base.log]>->( 2, "Let's Encrypt parent process initialization complete" );
+<[base.log]>->( 2, 'ACME parent process initialization complete' );
 <[base.logs]>->( 2, ': Certificate cache : %s', <letsencr.cache.dir> );
 <[base.logs]>->(
     2,
@@ -136,8 +140,8 @@ if ( not exists <buffer.acme-activity> ) {
 
 0;
 
-#,,..,..,,,..,.,,,..,,,,.,...,,,,,,,,,,.,,.,.,..,,...,...,,.,,...,,.,,.,.,,.,,
-#RMXSPYOP3HI4KKU6VLQMY2OHSOCF4ZO5O2GJDCBHGECRJJOUBE5OUOQD7ZO5POKE3USO2JSTJJHSC
-#\\\|4SFORO6FHTSG6XLCJSQGETB6YRMYWOQ5TSL3AGBLWFSR56Q7TAP \ / AMOS7 \ YOURUM ::
-#\[7]GV4UIPKUPOTDJA6GGNYWETE3DAN2QJ372XIEPBR5FINH4N65WUCA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,...,,,,,,..,,,,,,..,,,.,..,,,,,,..,,...,...,.,.,...,...,...,,,,,
+#DVSNEZVIR3BIIGYI5YCFARKYYPPE5SWBLCMC6ZU4MGMDUBBU2LPWA37UHMVPCRGZWV3M652KV54I2
+#\\\|HKLI6ZT5RHXA4AHIC6AXPRZ3EHRKCR4BTSO23447C3XUEUDJGZY \ / AMOS7 \ YOURUM ::
+#\[7]EMDG3QAV3O3RK5TWHKALGLG5RPL5PPE2LQQBN5AVZFZIHNBTQKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
