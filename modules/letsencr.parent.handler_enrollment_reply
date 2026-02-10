@@ -12,25 +12,29 @@ my $data   = $reply_data->{'data'} // '';
 
 unless ($domain) {
     <[base.log]>->(
-        1, "error: enrollment reply handler missing domain in params"
+        1, 'error: enrollment reply handler missing domain in params'
     );
     return FALSE;
 }
 
-<[base.log]>->( 2, "enrollment reply for domain: $domain, mode: $mode" );
+<[base.logs]>->(
+    2,       'enrollment reply for domain: %s, mode: %s',
+    $domain, $mode
+);
 
 <[letsencr.parent.activity_logger]>->(
-    'enrollment', $domain, 'pending', "child replied with mode: $mode"
+    'enrollment', $domain, 'pending',
+    sprintf( 'child replied with mode: %s', $mode )
 );
 
 if ( $mode eq 'TRUE' ) {
-    <[base.log]>->( 2, "enrollment succeeded for $domain" );
+    <[base.logs]>->( 2, 'enrollment succeeded for %s', $domain );
     <[letsencr.parent.activity_logger]>->(
         'enrollment', $domain, 'success', 'certificate enrollment completed'
     );
 
 } elsif ( $mode eq 'FALSE' ) {
-    <[base.log]>->( 1, "enrollment failed for $domain: $data" );
+    <[base.logs]>->( 1, 'enrollment failed for %s: %s', $domain, $data );
     <[letsencr.parent.activity_logger]>->(
         'enrollment', $domain, 'failed', "ACME error: $data"
     );
@@ -43,9 +47,10 @@ if ( $mode eq 'TRUE' ) {
             ;    ## 5min, 15min, 30min (shorter for enrollment than renewal)
         my $delay = $backoff_delays[ $attempt - 1 ] // 1800;
 
-        <[base.log]>->(
+        <[base.logs]>->(
             2,
-            "scheduling enrollment retry for $domain in $delay seconds (attempt $attempt)"
+            'scheduling enrollment retry for %s in %d seconds (attempt %d)',
+            $domain, $delay, $attempt
         );
 
         <[letsencr.parent.activity_logger]>->(
@@ -66,8 +71,9 @@ if ( $mode eq 'TRUE' ) {
             }
         );
     } else {
-        <[base.log]>->(
-            0, "enrollment failed for $domain after 3 attempts - giving up"
+        <[base.logs]>->(
+            0, 'enrollment failed for %s after 3 attempts - giving up',
+            $domain
         );
         <[letsencr.parent.activity_logger]>->(
             'enrollment', $domain, 'failed', 'max retries exceeded'
@@ -75,11 +81,9 @@ if ( $mode eq 'TRUE' ) {
     }
 
 } elsif ( $mode eq 'SIZE' ) {
-    <[base.log]>->(
-        2,
-        "enrollment returned certificate data for $domain ("
-            . length($data)
-            . " bytes)"
+    <[base.logs]>->(
+        2,       'enrollment returned certificate data for %s (%d bytes)',
+        $domain, length($data)
     );
 
     ## Parse certificate bundle from base32r encoded JSON
@@ -90,8 +94,9 @@ if ( $mode eq 'TRUE' ) {
     };
 
     if ($EVAL_ERROR) {
-        <[base.log]>->(
-            1, "failed to decode certificate bundle for $domain: $EVAL_ERROR"
+        <[base.logs]>->(
+            1,       'failed to decode certificate bundle for %s: %s',
+            $domain, $EVAL_ERROR
         );
         <[letsencr.parent.activity_logger]>->(
             'enrollment', $domain, 'failed',
@@ -100,10 +105,10 @@ if ( $mode eq 'TRUE' ) {
         return FALSE;
     }
 
-    ## Validate bundle has required fields
+    ## validate bundle has required fields
     unless ( $bundle_json->{certificate} && $bundle_json->{key} ) {
-        <[base.log]>->(
-            1, "certificate bundle missing required fields for $domain"
+        <[base.logs]>->(
+            1, 'certificate bundle missing required fields for %s', $domain
         );
         <[letsencr.parent.activity_logger]>->(
             'enrollment', $domain, 'failed', 'certificate bundle invalid'
@@ -124,19 +129,19 @@ if ( $mode eq 'TRUE' ) {
     );
 
     unless ($save_result) {
-        <[base.log]>->( 1, "failed to save certificate for $domain" );
+        <[base.logs]>->( 1, 'failed to save certificate for %s', $domain );
         <[letsencr.parent.activity_logger]>->(
             'enrollment', $domain, 'failed', 'failed to save certificate'
         );
         return FALSE;
     }
 
-    <[base.log]>->( 2, "certificate saved for $domain" );
+    <[base.logs]>->( 2, 'certificate saved for %s', $domain );
     <[letsencr.parent.activity_logger]>->(
         'enrollment', $domain, 'success', 'certificate saved to disk'
     );
 
-    ## Update certificate registry
+    ## update certificate registry
     <letsencr.parent.certs> {$domain} = {
         issued_at  => time(),
         expires_at => $bundle_json->{expires_at},
@@ -148,33 +153,33 @@ if ( $mode eq 'TRUE' ) {
         account_id => <letsencr.parent.acme_account> {account_id},
     };
 
-    ## Install certificate to httpsd
-    <[base.log]>->( 2, "installing certificate to httpsd for $domain" );
+    ## install certificate to httpsd
+    <[base.logs]>->( 2, 'installing certificate to httpsd for %s', $domain );
 
     my $httpsd_install_result
         = <[letsencr.parent.install_certificate_to_httpsd]>->($domain);
 
     if ( $httpsd_install_result->{status} eq qw| success | ) {
-        <[base.log]>->( 2, "certificate installed to httpsd successfully" );
+        <[base.logs]>->( 2, 'certificate installed to httpsd successfully' );
         <[letsencr.parent.activity_logger]>->(
             qw| enrollment |,
             $domain, qw| success |, qq| installed to httpsd and reloaded |
         );
     } elsif ( $httpsd_install_result->{status} eq qw| partial | ) {
-        <[base.log]>->(
+        <[base.logs]>->(
             1,
-            "certificate installed but httpsd reload failed: "
-                . $httpsd_install_result->{message}
+            'certificate installed but httpsd reload failed: %s',
+            $httpsd_install_result->{message}
         );
         <[letsencr.parent.activity_logger]>->(
             qw| enrollment |,
             $domain, qw| partial |, qq| installed but httpsd reload failed |
         );
     } else {
-        <[base.log]>->(
+        <[base.logs]>->(
             1,
-            "failed to install certificate to httpsd: "
-                . $httpsd_install_result->{message}
+            'failed to install certificate to httpsd: %s',
+            $httpsd_install_result->{message}
         );
         <[letsencr.parent.activity_logger]>->(
             qw| enrollment |,
@@ -194,9 +199,10 @@ if ( $mode eq 'TRUE' ) {
         );
 
     if ( !$notify_result || $notify_result->{status} ne 'success' ) {
-        <[base.log]>->(
+        <[base.logs]>->(
             1,
-            "warning: failed to notify httpd of certificate installation for $domain"
+            'warning: failed to notify httpd of certificate installation for %s',
+            $domain
         );
         <[letsencr.parent.activity_logger]>->(
             'enrollment', $domain, 'success',
@@ -210,7 +216,10 @@ if ( $mode eq 'TRUE' ) {
     }
 
 } else {
-    <[base.log]>->( 1, "enrollment got unexpected mode: $mode for $domain" );
+    <[base.logs]>->(
+        1,     'enrollment got unexpected mode: %s for %s',
+        $mode, $domain
+    );
     <[letsencr.parent.activity_logger]>->(
         'enrollment', $domain, 'failed', "unexpected response mode: $mode"
     );
@@ -218,8 +227,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,,.,..,,.,,,,..,,..,,,.,.,.,...,..,,.,,,,,.,..,,...,...,...,,,,,..,,,..,,,,,
-#CEOPGG4GMKRRUATT25Y3YEF2ATVBGNVQWTPBT3YG6JKKO7KYNSXFWCA3BTLEGPETWWHXETAEFXZSY
-#\\\|7UBCOT6AATUBQ6SXZ47SWI5GJNHJKFQCGZ7NR7QQQYDQSDJ5BRL \ / AMOS7 \ YOURUM ::
-#\[7]DFZ3GAPZLETISZANXKE2YO2PK7DU6IIFYDZW57IPTYT2AHDHS6CA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,,.,,.,,.,.,,,.,..,,...,...,.,,,..,,...,...,...,.,.,.,,,,..,,,,,
+#DXDFLLOPNEFDKUPPI2UOZYAEAY6LZAOAKVTKVV25REFZCTIRY6X4NMCODKHZQUTY7OOGTTK443ECQ
+#\\\|QWTT3HC5SFR5QTOFZWRMB5YVRYBMPWXFVU2RVCQH43HFEBVDKEH \ / AMOS7 \ YOURUM ::
+#\[7]G7ZPZ4DLGST65ZQ544AOLTSMBDOEQ62B5DT2DH2CQQQ5VSG2BUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
