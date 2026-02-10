@@ -54,6 +54,9 @@ if (   $http_uri =~ m|^/api/certificate|
                 2, '[%d] setting up body accumulation watcher', $id
             );
 
+            ## Store the URI in session for handler to retrieve later
+            $session->{'http'}->{'acme_request_uri'} = $http_uri;
+
             ## Create a variable watcher on the input buffer
             ## This will trigger again when more data arrives
             $session->{'http'}->{'body_watcher'} = <[event.add_var]>->(
@@ -105,8 +108,8 @@ if (   $http_uri =~ m|^/api/certificate|
 
 return 2;    ## Should not reach here
 
-#,,.,,,.,,,..,...,,,,,,,.,..,,,..,,.,,,..,,,.,..,,...,...,.,,,...,,.,,.,.,,,.,
-#3SIN4R7MADY7ABL2YB5ZZEZHAIGL3RCPRNFA4PUGYUHIKTUZHWQJZCYK3LQRFJK3GKBZFOR3BVRRG
-#\\\|HWCEWZJWI7ZUBTQXRCML3K3LUHM6ZWX7ZF2NQYNPU6PWY4PJ6HW \ / AMOS7 \ YOURUM ::
-#\[7]DGCCCOSPFELCLRVSXWTGU5F27VFM766DJPD3AOBHZKBM45KAX6CQ 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,,.,,,,,,..,,..,,.,,,..,...,.,,,..,,...,...,,,.,,,.,..,,,..,,.,,
+#2LU6OIUYGPB4ZQLLKGYTDBBEAGLDGCRM3BJSP2QGTTSP4FXAUF6TLNNPZXC7BFS4SJUOKV5MVQ4JI
+#\\\|6KMCKZMFZGKAQDYLHPWQ4EVD7EQUA3KRDOO5CQMBCZPZYS2G2LF \ / AMOS7 \ YOURUM ::
+#\[7]ZEMBGJ62EJKAUZP27OQGPT453A4IWFWLHDQVGJ6Q7F7PNCO6W4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
