@@ -56,6 +56,10 @@ if (   $http_uri =~ m|^/api/certificate|
 
             ## Store the URI in session for handler to retrieve later
             $session->{'http'}->{'acme_request_uri'} = $http_uri;
+            <[base.logs]>->(
+                3,   '[%d] stored acme_request_uri: %s',
+                $id, $http_uri
+            );
 
             ## Create a variable watcher on the input buffer
             ## This will trigger again when more data arrives
@@ -108,8 +112,8 @@ if (   $http_uri =~ m|^/api/certificate|
 
 return 2;    ## Should not reach here
 
-#,,..,,..,.,.,,,.,,,,,,..,,..,,.,,,..,...,.,,,..,,...,...,,,.,,,.,..,,,..,,.,,
-#2LU6OIUYGPB4ZQLLKGYTDBBEAGLDGCRM3BJSP2QGTTSP4FXAUF6TLNNPZXC7BFS4SJUOKV5MVQ4JI
-#\\\|6KMCKZMFZGKAQDYLHPWQ4EVD7EQUA3KRDOO5CQMBCZPZYS2G2LF \ / AMOS7 \ YOURUM ::
-#\[7]ZEMBGJ62EJKAUZP27OQGPT453A4IWFWLHDQVGJ6Q7F7PNCO6W4BQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,.,,,,.,,,.,,,..,.,,,...,,..,,..,..,,...,..,,.,,,,..,,.,,,,,,,.,,
+#U6GUXUQO2KNWAVJ43C6WZ5ANWQGMEX2LY43E6LFT2OGQIXTZCKCOMPJTMQVVVEMWXD3F3NEJ24E7C
+#\\\|5YAMNQBTMBITNDSMBVGCNQNSOO7PNV3HQZWRVNRI42ALHG3YXJS \ / AMOS7 \ YOURUM ::
+#\[7]EBYDRDYMI66Z4JJJMHHP4M5SVDA3DT77R7YA2Z724TE2KY5RXMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

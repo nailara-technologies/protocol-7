@@ -3,15 +3,34 @@
 # name = httpd.handler.acme_request
 # descr = handle ACME/API certificate request endpoints - routes to letsencr commands
 
-my $id       = shift;
-my $http_uri = shift;  ## optional: passed when called directly from http_post
-my $session  = $data{'session'}->{$id};
+## Handle both direct calls and event handler callbacks
+my $id;
+my $event;
+my $http_uri;
+
+## Detect calling convention: direct call vs event watcher
+if ( index( ref $ARG[0], qw| Event:: | ) != 0 and $ARG[0] =~ m|^\d+| ) {
+    $id = shift;    ## direct call with session id
+    $http_uri
+        = shift;   ## optional: URI passed when called directly from http_post
+} else {
+    ## Event watcher callback (Event::Io, Event::Var, etc.)
+    $event    = shift;             ## fetch event
+    $id       = $event->w->data;   ## stored session id
+    $http_uri = undef;             ## will retrieve from session storage below
+}
+
+my $session = $data{'session'}->{$id};
 
 ## Get URI from multiple possible sources
 unless ( defined $http_uri && length $http_uri ) {
     ## Try session stored URI (set by body_watcher setup)
-    $http_uri = $session->{'http'}->{'acme_request_uri'}
-        // $session->{'http'}->{'request'}->{'uri'};
+    $http_uri
+        = (
+        defined $session ? $session->{'http'}->{'acme_request_uri'} : undef )
+        // (
+        defined $session ? $session->{'http'}->{'request'}->{'uri'} : undef )
+        // 'unknown';
 }
 
 my $request  = $session->{'http'}->{'request'};
@@ -28,7 +47,21 @@ if ( exists $session->{'http'}->{'body'} ) {
     <[base.logs]>->( 3, '[%d] using stored body', $id );
 } elsif ( $session->{'buffer'}->{'input'}
     && length( $session->{'buffer'}->{'input'} ) > 0 ) {
-    ## Still in input buffer - extract it
+    ## Still in input buffer - check if complete first
+    my $content_length = $headers->{'content-length'} // 0;
+    my $bytes_received = length( $session->{'buffer'}->{'input'} );
+
+    if ( $bytes_received < $content_length ) {
+        ## body not yet complete - return without processing
+        ## watcher will fire again when more data arrives
+        <[base.logs]>->(
+            3,   '[%d] body incomplete: %d/%d bytes, waiting for more',
+            $id, $bytes_received, $content_length
+        );
+        return FALSE;
+    }
+
+    ## Body is complete - extract and process
     $req_body = $session->{'buffer'}->{'input'};
     $session->{'buffer'}->{'input'} = '';
     <[base.logs]>->( 3, '[%d] extracted body from buffer', $id );
@@ -117,7 +150,7 @@ if ( $http_uri =~ m|^/api/certificate/request| ) {
                 {   'status'  => qw| accepted |,
                     'domain'  => $domain,
                     'message' =>
-                        qq| Certificate request submitted for processing |
+                        qw| Certificate request submitted for processing |
                 }
             );
         }
@@ -246,8 +279,8 @@ $session->{'buffer'}->{'output'} .= $reply_body;
 
 return $session->{'http'}->{'close'} ? 2 : 0;
 
-#,,.,,,,,,.,.,.,,,.,.,,.,,...,.,.,,,,,.,,,.,,,..,,...,...,,..,,.,,,.,,..,,.,,,
-#K6QDY75RR2ACNEPP5WWYKSKN75YR24TPOL5MC3EWY7OQDA3EW7ESXOIHVUBF42VDHLYPS5D2MDTZI
-#\\\|QUHYAYDRXQJMAGBWQDXDCUFTWP7RSEG6LITCHZ7XHHLEMNROSMQ \ / AMOS7 \ YOURUM ::
-#\[7]QPNGQXVJDIZBWROYLIAPE6ULVPBXX4NR62CMNAYDJERK25WZ6WCQ 7  DATA SIGNATURE ::
+#,,,,,...,,..,,.,,.,.,,..,,..,,,,,,..,,,.,,.,,..,,...,...,.,.,.,,,..,,.,,,..,,
+#2OGFIFK2RZO2OUFUR3YI6E44PFUXWNYTLBIYP2XWUUUIMOQD6TFUX3CEMBMIRODD3AFVBI76AFSSO
+#\\\|UP3A6QM7KZKY5IVFZZEHCR65XJVWFRRN7ZNVWPNC7NCTUG4J4MK \ / AMOS7 \ YOURUM ::
+#\[7]Q3552YKRIFXPQEBBYDZ2ZGXXE2UDTSK2VETLFFTU6KMXDSA72UBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

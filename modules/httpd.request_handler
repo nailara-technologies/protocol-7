@@ -90,8 +90,11 @@ $request->{'protocol'} = $h_req->protocol;
 $request->{'host'}     = lc $h_req->header('host')
     if defined $h_req->header('host');
 
-( $request->{'uri'} = $h_req->uri // '' )
-    =~ s|%([0-9a-f]{2})|chr(hex($1))|egi;
+## Extract path from URI (handles both "GET /path" and "GET http://host/path")
+my $uri_str = $h_req->uri // '';
+## Remove scheme and host if present (e.g., http://host/path --> /path)
+$uri_str =~ s|^https?://[^/]+||;
+( $request->{'uri'} = $uri_str ) =~ s|%([0-9a-f]{2})|chr(hex($1))|egi;
 
 if ( index( $h_req->uri, qw| %0 |, 0 ) >= 0
     or $request->{'uri'} !~ m|^[[:print:]\\]+$| ) {  ##  backslash allowed  ##
@@ -151,8 +154,8 @@ if ( defined <http.handler>->{ lc $request->{'method'} } ) {
 
 return 2;        ## <-- disconnecting client ##
 
-#,,..,,,.,.,,,.,,,,,,,,,.,,.,,,,.,.,.,,.,,.,.,..,,...,...,,.,,,,,,.,.,.,,,,,,,
-#CK4ABYQRD224BF5V3UZVWDABKH6FRYLMURQ7MPBPGTO6EEN55LZ3QVTKMVFQUABCIZMW7ZKHJCWNA
-#\\\|MRW3LKSFS3OCJPCWLBWD3XDO7ODMYEDI5Z2YUKRAXO63ASIK7TR \ / AMOS7 \ YOURUM ::
-#\[7]I6JKWSB5XU4M46AOIDIBZXW2KW7SAQOCFCMRLI3V2OA2XLRIGMDY 7  DATA SIGNATURE ::
+#,,..,...,,,,,,.,,..,,.,.,..,,..,,,..,.,,,,,.,..,,...,...,.,,,,,,,,..,.,,,.,.,
+#UGCMXXYADLK3OQDYIPB7A7ADOD7EQS7CKUDUUBB2BGAQ6N3WIQKFLFODZMLGSHZXPCHD3H2GII3V2
+#\\\|KO2VXYCZCVNXP34RF5LSIM2LXSYI44WDYKDMS3XYCMXIFTYUJCY \ / AMOS7 \ YOURUM ::
+#\[7]6PFYRNT2D5J7ED7DJ3XGETODW7CT2ZCZIMATO6NWFLHERSFNQMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
