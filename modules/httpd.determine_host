@@ -11,11 +11,6 @@ return 400 if not defined( my $request = $session->{'http'}->{'request'} );
 ## can be undefined ##
 my $base_site_directory = <httpd.cfg.default_site_name>;
 
-## Initialize default hostnames if not configured
-unless ( defined <httpd.cfg.hostnames> ) {
-    <httpd.cfg.hostnames> = { 'default' => 1, 'localhost' => 1, '127.0.0.1' => 1 };
-}
-
 my $http_host     = $request->{'host'};
 my $http_uri      = $request->{'uri'};
 my $http_method   = $request->{'method'};
@@ -23,51 +18,20 @@ my $http_protocol = $request->{'protocol'};
 
 ##  HTTP/1.0 allows for absent Host parameter, using base site  ##
 if ( not defined $http_host and $http_protocol eq qw| HTTP/1.0 | ) {
-    return 404    ##  was not configured  ##
-        if not defined $base_site_directory
-        or not defined <httpd.cfg.hostnames>->{$base_site_directory};
+    return 404 if not defined $base_site_directory;
     $http_host = $base_site_directory;    ## using base site name as host ##
 }
 
 if ( defined $http_host ) {
 
-    return $http_host if defined <httpd.cfg.hostnames>->{$http_host};
+    ## check if vhost exists in registry (discovered by scan_site_dir in init_code)
+    return $http_host if defined <httpd.vhosts.registry>->{$http_host};
 
-    foreach my $cfg_host ( keys <httpd.cfg.hostnames>->%* ) {
-        next if $cfg_host !~ m|\*|;
-        return $cfg_host
-            if $cfg_host =~ m|^\*(\..+)$| and $http_host =~ m|^[^\.]+\Q$1\E$|;
-        return $cfg_host
-            if $cfg_host =~ m|^(.+\.)\*$| and $http_host =~ m|^\Q$1\E[^\.]+$|;
-        return $cfg_host
-            if $cfg_host =~ m|^\*\*(\..+)$| and $http_host =~ m|\Q$1\E$|;
-        return $cfg_host
-            if $cfg_host =~ m|^(.+\.)\*\*$| and $http_host =~ m|^\Q$1\E|;
-        return $cfg_host
-            if $cfg_host   =~ m|^\*(\..+\.)\*$|
-            and $http_host =~ m|^[^\.]+\Q$1\E[^\.]+$|;
-        return $cfg_host
-            if $cfg_host   =~ m|^\*\*(\..+\.)\*\*$|
-            and $http_host =~ m|\Q$1\E|;
-    }
+    ## no match found, use default fallback if available
+    return $base_site_directory if defined $base_site_directory;
 
-    <[base.parser.ellipse_center]>->( \$http_host, 37 );
-
-    if (   not defined $base_site_directory
-        or not defined <httpd.cfg.hostnames>->{$base_site_directory} ) {
-        <[base.logs]>->(
-            0,   "[%d] Host '%s' does not match any configured pattern",
-            $id, $http_host
-        );
-        return 404;    ##  not configured \ 'Not Found'  ##
-
-    } else {    ##  make behaviour configurable  ##  [ LLL ]
-        <[base.logs]>->(
-            "[%d] no set-up for \"%s\", using '%s'",
-            $id, $http_host, $base_site_directory
-        );
-        return $base_site_directory;
-    }
+    ## no vhost found and no default available - return 404
+    return 404;
 
 } else {
     <[base.logs]>->(
@@ -77,8 +41,8 @@ if ( defined $http_host ) {
     return 400;    ## Bad Request ##
 }
 
-#,,.,,,..,,,.,,..,...,,,,,.,.,..,,,,.,,.,,,..,..,,...,...,...,.,.,,.,,,.,,..,,
-#RQLZA2QBCXF47HF5W65INIOQEGZXOIFSFANRQ4GODUWQEKHAJU26VPT55DNDZ5SQMHDIJTWTDAW3E
-#\\\|ZV535NP62TGV7Q5XXXAGAM76MG4EWUGL6MKJ7EZ7AJQ7YOSS75P \ / AMOS7 \ YOURUM ::
-#\[7]OUJAQA3YBV46ESQ5M7DBGUOSBDVZEJPB2ESDESAGULBCKRDFGUAI 7  DATA SIGNATURE ::
+#,,.,,..,,...,,..,..,,,.,,,..,,.,,.,,,.,,,.,,,..,,...,...,,,.,,..,,..,.,.,...,
+#5XQBIZFZYAAR6B6FKG54LK4G5DOLMQIF6J7ZRJ6VRW3DLRIU6W3HXRJI3N4F4Z3GDPNU43T2VZO2I
+#\\\|EDP6BBMDL3YG6ACJJWIZ26YLDX5ARTEI4STOFGC4BQD7PNUDNDH \ / AMOS7 \ YOURUM ::
+#\[7]TZ65QLVFG6GJCRP6TKIUSACVX2S3ZZQBMWG6767L2OMG5JSGRUDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
