@@ -25,8 +25,9 @@ unless ($domain) {
 my $certs = <letsencr.parent.certs>;
 if ( $certs->{$domain} && $certs->{$domain}{status} eq 'active' ) {
     my $expires_at = $certs->{$domain}{expires_at};
-    <[base.log]>->(
-        2, "certificate already exists for $domain [expires: $expires_at]"
+    <[base.logs]>->(
+        2,       'certificate already exists for %s [expires: %s]',
+        $domain, $expires_at
     );
     <[letsencr.parent.activity_logger]>->(
         'enrollment', $domain, 'pending',
@@ -49,8 +50,8 @@ my @domains_to_request = ($domain);
     join( ', ', @domains_to_request )
 );
 
-## Send enrollment command to child process
-<[base.log]>->( 2, "sending enrollment command to child for: $domain" );
+## send enrollment command to child process
+<[base.logs]>->( 2, 'sending enrollment command to child for: %s', $domain );
 
 my $result = <[base.protocol-7.command.send.local]>->(
     {   'command'   => qw| child.request-certificate |,
@@ -70,7 +71,7 @@ my $result = <[base.protocol-7.command.send.local]>->(
 );
 
 if ($result) {
-    <[base.log]>->( 2, "enrollment command queued for: $domain" );
+    <[base.logs]>->( 2, 'enrollment command queued for: %s', $domain );
     <[letsencr.parent.activity_logger]>->(
         'enrollment', $domain, 'pending', 'queued to child'
     );
@@ -80,20 +81,22 @@ if ($result) {
         data => "certificate request initiated for '$domain' - processing..",
     };
 } else {
-    <[base.log]>->( 1, "error: failed to queue enrollment for: $domain" );
+    <[base.logs]>
+        ->( 1, 'error: failed to queue enrollment for: %s', $domain );
     <[letsencr.parent.activity_logger]>->(
         'enrollment', $domain, 'failed', 'failed to queue to child'
     );
 
     return {
         mode => qw| false |,
-        data => sprintf "failed to queue certificate request for '%s'",
-        $domain
+        data => sprintf(
+            "failed to queue certificate request for '%s'", $domain
+        )
     };
 }
 
-#,,.,,,,,,,..,,.,,.,,,.,,,..,,,,.,...,,,,,,..,..,,...,...,...,,..,..,,...,,.,,
-#IVGUBVQMEKCPMYQ75AS7PP4OYUYTLZMXQM67W6X6JTDDYVH5THH42WVSBEA4H3G3TYJJPPQ2BH2VO
-#\\\|V5A2E5IN75M5EJYFF6OFRTVSOJTSBGPSIPVFJIXQ5JUUNEE3WPI \ / AMOS7 \ YOURUM ::
-#\[7]6OFAGA2WU4VHCMTESF5KBNVMGZLXUHA7XGZE4VEQPOICGUNPXSBQ 7  DATA SIGNATURE ::
+#,,.,,...,.,.,.,.,,,,,,.,,,,.,,..,,,.,,.,,...,..,,...,...,...,..,,.,,,,,.,,.,,
+#4CRDW5JLVJPRUJ2G2ERSSSRJB4YBKCOZLD35IPFXYVRWGKWIJSAT63WBRMDIA3JWZZTYMZ56HF4C4
+#\\\|BV2PJW3664QLR7MIC3LHRBXCCG32M65G23H5V7O7OOODQEL2R3A \ / AMOS7 \ YOURUM ::
+#\[7]NDFY3KNPWNSYUGZPHABXXABKZCW5XAF3G3MJGUQHCT2TB722I6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

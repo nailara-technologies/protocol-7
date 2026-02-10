@@ -18,7 +18,7 @@ socketpair(
 map { $data{'handle'}{$ARG}{'link'} = qw| ipc.pipe | }
     ( $child_pipe, $parent_pipe );
 
-## <-- restrict later [LLL]
+## TODO: restrict access later after testing
 ##
 <system.access.wildcards.allow> = TRUE;
 <access.cmd.regex.usr.parent>   = qr|.*|o;
@@ -45,7 +45,7 @@ if ( !<letsencr.child.pid> ) {    ## child ##
     <[base.load_modules]>->('letsencr.child');
     <[base.init_modules]>->('letsencr.child');
 
-    ## Mark parent session for shutdown when last session closes
+    ## mark parent session for shutdown when last session closes
     # <callback.session.closing_last.params>->[1] = 1;
     <[base.log]>->( 1, 'preparing to close cube session of child .,' );
     $data{'session'}{$session_id}{'shutdown'} = 1;
@@ -80,9 +80,9 @@ if ( !<letsencr.child.pid> ) {    ## child ##
     my $cache_dir  = <letsencr.cache.dir>;
     my $cert_cache = sprintf '%s/cert.cache', $cache_dir;
     if ( -f $cert_cache ) {
-        <[base.log]>->( 1, "found saved certificate cache.," );
+        <[base.log]>->( 1, 'found saved certificate cache.,' );
 
-        ##  contains serialized cert metadata  ##
+        ## contains serialized cert metadata
         <[file.slurp]>->( $cert_cache, \my $cache_str, qw| :raw | );
 
         # Load cached certificate data (deferred to parent init)
@@ -92,13 +92,13 @@ if ( !<letsencr.child.pid> ) {    ## child ##
     <[event.add_signal]>
         ->( { 'signal' => 'CHLD', 'handler' => qw| base.exit | } );
 
-    <[base.async.get_session_id]>;    ## --> 'online' ##
+    <[base.async.get_session_id]>;    ## signals 'online' state
 
-    <[base.log]>->( 1, 'letsencr parent initialized.' );
+    <[base.log]>->( 1, 'letsencr parent initialized' );
 }
 
-#,,.,,.,,,,.,,,,,,.,.,,..,...,.,.,,.,,,.,,,,.,..,,...,...,...,.,,,,.,,...,.,,,
-#FBW4QJ46WCMNP32RCCZBU4FY66R2IJSOTP3P7DXTKERG3MD552YAISCIZ25ZUH5VOIPZX3MJSLAI6
-#\\\|TLQ4GBQJHYS5UJLQDHXIVNNJ65WFVTF2S7MHRWQX626EDGBZKH4 \ / AMOS7 \ YOURUM ::
-#\[7]OTQTJR3SXC35FYGB54VFFN7VB7CDYR2OZ76AP47YITR6JZB5O4BY 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,...,,,.,,,.,.,.,..,,,.,,,.,,...,..,,...,..,,..,,,.,,...,,,.,,,.,
+#36NXWSAV2WERCN6OMDZVYQKNCJSLWOO45DJASWBVR265FPZPPWT5FY5JFGOM2RAN3ZVX5FBE6TQD6
+#\\\|UNX5OI7JEAPEHR2RQQ52SPGZW7HWBTCZK5RQH27KH2PG2TQ7P5C \ / AMOS7 \ YOURUM ::
+#\[7]7NSYG5NSHCLI472KU6LWWCZ3EQR5HK32DJUCBGGFYQGHOO5JMMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

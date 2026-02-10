@@ -3,7 +3,7 @@
 # name  = letsencr.base.init_code
 # descr = initialize Let's Encrypt ACME client zenka with configuration and utilities
 
-<[base.log]>->( 2, 'initializing Let\x27s Encrypt ACME client zenka..,' );
+<[base.log]>->( 2, 'initializing ACME client zenka.,' );
 
 ## ACME Server Configuration (with defaults)
 <letsencr.acme.server> = <letsencr.acme.server>
@@ -71,27 +71,28 @@ my @dir_configs = (
 foreach my $config (@dir_configs) {
     my ( $name, $dir ) = @$config;
     if ( !-d $dir ) {
-        <[base.log]>->( 2, "creating directory: $dir" );
+        <[base.logs]>->( 2, 'creating directory: %s', $dir );
         mkdir( $dir, 0700 )
-            or <[base.log]>->( 1, "warning: could not create $dir: $!" );
+            or <[base.logs]>
+            ->( 1, 'warning: could not create %s: %s', $dir, $! );
     }
 }
 
 ## All ACME protocol modules are loaded in letsencr.base.pre_init
 
-<[base.log]>->( 2, "Let's Encrypt ACME client initialization complete" );
+<[base.log]>->( 2, 'ACME client initialization complete' );
 <[base.logs]>->(
     2,
-    ": ACME Server     : %s",
+    ': ACME Server     : %s',
     <[base.parser.ellipse_center]>->( <letsencr.acme.server>, 35 )
 );
-<[base.logs]>->( 2, ": Certificate Dir : %s", <letsencr.certs.dir> );
-<[base.logs]>->( 2, ": Admin Email     : %s", <letsencr.admin.email> );
+<[base.logs]>->( 2, ': Certificate Dir : %s', <letsencr.certs.dir> );
+<[base.logs]>->( 2, ': Admin Email     : %s', <letsencr.admin.email> );
 
 0;
 
-#,,,,,.,,,,,.,,,.,,..,.,,,..,,..,,,.,,.,,,.,,,..,,...,..,,...,.,.,.,.,,..,..,,
-#ST3SD3BMYTL6Y24NABVY62R6VV2NAGLCH7MZONKZ2NF6PZS6DYWSAUIEDZENEELHKJWWX3WA4LS3S
-#\\\|BQWGINLQV6NLAQPHI6R6ANMWZCABM2L7YOCXAFFUXE7DN7EELTD \ / AMOS7 \ YOURUM ::
-#\[7]X77YASQRKGKQK26LQJXVVVRWBQJ7QH5IVTI3CI4L4GV2CSSP5IBY 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,.,.,.,,,,.,,,,,,,.,,.,.,.,.,,,.,..,,...,...,.,.,.,,,...,.,,,,..,
+#YEBBAM5YEHBKN2CFUW6WJB6UTVZ6XDT3GN3UC356PL22MLF4Y32FRC5DHWL6X4HQBD3GR6UAEFE6C
+#\\\|4B6DCAKUWALD4AGSMFTPZH5L7PAGCKGW7AXLLDBDGT3BGQZGMLD \ / AMOS7 \ YOURUM ::
+#\[7]ZU2MXUELAXYQUISM2VJ3TQQ7KVBOYAPIEG2UHLEDZV4UGQ4OMODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
