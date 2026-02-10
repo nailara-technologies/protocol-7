@@ -41,11 +41,32 @@ unless ( exists $directory->{newAccount} && exists $directory->{newOrder} ) {
     return undef;
 }
 
-## Get initial nonce from header
+## Get initial nonce from header (HTTP/2) or newNonce endpoint (HTTP/1.1 fallback)
 my $initial_nonce = $response->header('Replay-Nonce');
 unless ($initial_nonce) {
-    <[base.log]>->( 1, "error: no Replay-Nonce in directory response" );
-    return undef;
+    ## fallback: fetch from newNonce endpoint if not in directory response
+    <[base.log]>->(
+        2, "Replay-Nonce not in directory, fetching from newNonce endpoint"
+    );
+
+    unless ( exists $directory->{newNonce} ) {
+        <[base.log]>->( 1, "error: no newNonce endpoint in directory" );
+        return undef;
+    }
+
+    my $nonce_response = $ua->head( $directory->{newNonce} );
+    unless ( $nonce_response->is_success ) {
+        <[base.log]>->(
+            1, "error fetching nonce: " . $nonce_response->status_line
+        );
+        return undef;
+    }
+
+    $initial_nonce = $nonce_response->header('Replay-Nonce');
+    unless ($initial_nonce) {
+        <[base.log]>->( 1, "error: no Replay-Nonce in newNonce response" );
+        return undef;
+    }
 }
 
 <[base.log]>->( 2, 'ACME directory fetched successfully' );
@@ -67,8 +88,8 @@ return {
     },
 };
 
-#,,,.,.,.,,..,..,,,,.,,,.,,..,,.,,.,.,.,,,,,,,..,,...,...,,..,,,.,,,.,,..,...,
-#2BYSJEDMAQOUSVSCYLYZYSTBINJQ2B47OK75TRJNVEJ4AJ364STH7YQZNUY2SRAI4LSYF3QHUFCFI
-#\\\|J74MADFAZFHTRROYQ5SBXPWQLTODPUSIXMHLU57C54SANPJ4EKT \ / AMOS7 \ YOURUM ::
-#\[7]UHKCSLQY2CQJ5HKS7W3WXPQULFG4NQJ5L6OWWMUIBIZ7TU7TRGCQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,,,,,,.,,.,,..,,.,,,..,,,..,,,,,..,,...,..,,,.,,,.,,,..,.,,,..,,
+#YAE6BLTGZEPKBXZLHWDDIPBKTONVRN5DVQANSLDFRXQ2QX3IBQL7HGTQMQOZK4DVK6FD6FRHI3LNM
+#\\\|2SIX3COW5JLK66FNDIM52EFF6BI6V65R4HH3P4E5CSBJEXCFOJ4 \ / AMOS7 \ YOURUM ::
+#\[7]NQUOXF266PE4OOUWTCWVEVSI5NSVZ2GAYWWMMQMXCHJHUN6QVCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
