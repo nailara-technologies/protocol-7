@@ -23,18 +23,54 @@ my $payload = {
     contact              => ["mailto:$email"],
 };
 
-## Make ACME request (no KID yet - this is new account creation)
-my $response = <[letsencr.child.acme_http_request]>->(
-    'POST',
-    $newAccount_url,
-    $payload,
-    $nonce,
-    undef    # no KID for account creation
-);
+## Retry loop for handling badNonce errors
+my $max_retries = 3;
+my $attempt     = 0;
+my $response;
 
-unless ($response) {
-    <[base.log]>->( 1, 'error: account registration request failed' );
-    return undef;
+while ( $attempt < $max_retries ) {
+    $attempt++;
+    $nonce = <letsencr.child.acme_client> {nonce};
+
+    <[base.logs]>->(
+        3, "account registration attempt %d/%d",
+        $attempt, $max_retries
+    );
+
+    ## Make ACME request (no KID yet - this is new account creation)
+    $response = <[letsencr.child.acme_http_request]>->(
+        'POST',
+        $newAccount_url,
+        $payload,
+        $nonce,
+        undef    # no KID for account creation
+    );
+
+    unless ($response) {
+        <[base.log]>->( 1, 'error: account registration request failed' );
+        return undef;
+    }
+
+    ## Check for badNonce error - refresh nonce and retry
+    if ( $response->{status} == 400
+        && $response->{data}{type}
+        && $response->{data}{type} =~ m{badNonce} ) {
+        <[base.log]>->(
+            2, "badNonce error received, fetching fresh nonce for retry"
+        );
+
+        ## Fetch fresh nonce from server
+        my $fresh_nonce = <[letsencr.child.get_fresh_nonce]>;
+        if ( $fresh_nonce && $attempt < $max_retries ) {
+            <[base.log]>->( 3, "retrying with fresh nonce" );
+            next;
+        }
+    }
+
+    ## Exit loop if we got a successful response (not badNonce)
+    last if $response->{status} != 400
+        || !$response->{data}{type}
+        || $response->{data}{type} !~ m{badNonce};
 }
 
 ## Check for success
@@ -87,8 +123,8 @@ return {
     created_at  => time(),
 };
 
-#,,,.,,,,,,,.,.,,,,,,,,.,,..,,,,,,,,,,,.,,,.,,..,,...,..,,,.,,,,.,,.,,,,,,,.,,
-#4UMAA2QV2BWLINJRF57AYWYXMDMHGA5PPNMCZ377EOLMFEH7V2PRRVGGPBPDASILBA347EVBUWYCK
-#\\\|WIJJHQ7ZTYV2O3BA6DBYMK4O6BP2KAJU3EIETCLLG64DI3O5IRG \ / AMOS7 \ YOURUM ::
-#\[7]RTYAZPYNQPGLZIIFLJVXDD6NTFDMXUCXVWFMMP2CA6S3UH7QRGDI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,,,,.,.,..,,..,,,.,,,,,,...,.,,,..,,...,...,...,.,.,...,.,.,..,,
+#AOLVZAZJY5GWEEM4MND3C7O3H33LNZKIVR5HSWNCUBEJPN5ABWO7PQPKE7E7EFIV7TFIWUIYQKLTQ
+#\\\|3EV6RGSGLQW7I45Z64R3ICJMH3RU33BLMOXH6P5YB4DEHF5WPQP \ / AMOS7 \ YOURUM ::
+#\[7]IDU7K2SEVORKAUBU4AE2GLEXRB3AL7WLNGTWONM55SBCXAXNPSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
