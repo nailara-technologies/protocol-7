@@ -1,14 +1,14 @@
 ## [:< ##
 
-# name  = letsencr.parent.cmd.get-supported-algorithms
-# descr = get list of supported signature algorithms from ACME server
+# name  = letsencr.parent.cmd.query-algos
+# descr = query ACME server for supported signature algorithms
 
 <[base.log]>->( 2, 'querying ACME server for supported algorithms' );
 
 ## Call child command to query server
 my $cmd_result = eval {
-    <[base.protocol-7.command.send.local]> - (
-        {   'command'   => qw| letsencr.child.get-supported-algorithms |,
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => qw| letsencr.child.query-algos |,
             'call_args' => {}
         }
     );
@@ -66,8 +66,8 @@ return {
     'data' => 'Failed to parse algorithm list'
 };
 
-#,,,,,.,.,.,,,...,...,,..,...,,..,.,,,..,,.,.,.,.,...,...,...,,.,,..,,,,,,...,
-#VZ7Y64FE4Y7UQIXGERFIU3AC7XRS464MNN2VSM2ZFGUAZGOZ2CHILYLSBLVDVJFUA3X5DSCYSDZEE
-#\\\|Y5FVFHIC6ELEOQQVNTTX7HYYV6S45I4HMFUANQPPSKADHJJWAAI \ / AMOS7 \ YOURUM ::
-#\[7]K7IHTPYI32UQVX7RQAP22PU5AHPKVSU32F5WWJRHBXKUWHA4S2DY 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,,,,,.,,,.,,...,...,.,,,.,,,.,,,.,.,...,...,...,,..,..,,,,.,,..,
+#7EY6GRAAAWXP4NK7KZAMHEHOIMKOGFRWVSY2W75Q5PYZYWXX33NJ7HUOUTBOANX6EFLDFBF3JRASA
+#\\\|L45APFEPRHKBBHO3B634ZLLNJRQWFSVDG2FM4OFDVF3Y72KIMPD \ / AMOS7 \ YOURUM ::
+#\[7]TRW3EMZNUGKILA7DK7UIL355WX6B4GOBTFSV2SCAHC7WIJL6MGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
