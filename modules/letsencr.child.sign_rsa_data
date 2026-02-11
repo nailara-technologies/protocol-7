@@ -24,8 +24,7 @@ unless ( defined $data_ref && ref $data_ref eq 'SCALAR' ) {
 unless ( exists $keys{'RSA'}->{$account_key_name}
     && exists $keys{'RSA'}->{$account_key_name}->{'rsa_object'} ) {
     <[base.log]>->(
-        1,
-        "error: RSA account key '$account_key_name' not found"
+        1, "error: RSA account key '$account_key_name' not found"
     );
     return undef;
 }
@@ -38,9 +37,7 @@ $rsa->use_sha256_hash;
 ## sign using RS256 (OpenSSL RSA with PKCS#1 v1.5 padding)
 ## [ v1.5 is industry standard for RS256 per RFC 7518 ]
 my $signature;
-eval {
-    $signature = $rsa->sign( $data_ref->$* );
-} or do {
+eval { $signature = $rsa->sign( $data_ref->$* ); } or do {
     <[base.log]>->( 1, "error: RSA signing failed: $@" );
     return undef;
 };
@@ -50,8 +47,8 @@ eval {
 ## return raw signature bytes (caller will base64url encode)
 return $signature;
 
-#,,..,,,.,,..,,,,,,..,.,,,...,..,,,,,,,.,,,..,.,.,...,...,..,,...,..,,,,.,,..,
-#BWES5QVCKXZP2DTH3M5L4PLPAC4MLIKSIK54YPZ6HZ6EENJ34PK7FTKRCCDPQS7A2AN2KE4EKHWSY
-#\\\|PVXPBEMUYT5HCC5KDGXJQ7ZJ3YZP4OMOZY76WEXRGJYSISPT6RC \ / AMOS7 \ YOURUM ::
-#\[7]TEVCOXIZCLVYDOBVDAY2VEHUEI7I25NSFKKPI6LD3TU4LNVL54DA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,,.,,,,,..,,,,,,..,,,,.,...,,,.,.,.,...,...,..,,.,,,...,...,,,,,
+#DME2ZOXB5CX7GLKHBLJBBZSRNHPYLEEEXPPG5LT6GPRZCI4IT7GK2LZJ6443GWILCFOSGJDT3RVNE
+#\\\|THEOKHX4SYYYMUYSQKSNNYXQCFRUYCHEV7NJWOMJ6VKKR2QIZ7G \ / AMOS7 \ YOURUM ::
+#\[7]WZPDPFQ52A76FW2WWOWA5L7CY63STDM53G4AUVNWZHXYFWSVKCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
