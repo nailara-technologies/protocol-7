@@ -27,6 +27,10 @@ letsencr.acme.server = https://acme-staging-v02.api.letsencrypt.org/directory
 ## email for Let's Encrypt account and notifications
 letsencr.admin.email = admin@localhost   ## TODO: update to domain email for production
 
+## ACME account key algorithm (RSA or Ed25519)
+## [ RSA 2048-bit is default and required by Let's Encrypt ]
+letsencr.acme.account_key_algorithm = RSA
+
 ## Certificate Storage
 letsencr.certs.dir = /etc/protocol-7/certs
 letsencr.certs.backup = /var/protocol-7/certs
@@ -62,8 +66,8 @@ modules.load = auth net protocol io.unix io.ip letsencr.base      ## devmod
 
 [zenka.loop]
 
-#,,,.,,.,,...,..,,,,,,,..,,,,,,,.,.,.,,.,,...,..,,...,..,,..,,.,.,,.,,.,.,..,,
-#CVJFJ5EP5QMSWOCBYS3DIQAJE56SIWSJ2BQLDXHHIYEIOLTIIUS57XDMASEEPEVCTPORHDXBSEHGE
-#\\\|2GD6NJ7FPPXD7ZE7CI4VNWXLQCYOCXRQ2HO2NJD5EJZZ3DP5OTW \ / AMOS7 \ YOURUM ::
-#\[7]S6XIZWTHKX2JVGGWKMSWAUPOK3KCTBVRSZ374TH7WBIZCNFJAWDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,.,,.,.,.,,,..,,..,,..,,,,.,..,,..,,...,...,..,,,..,,,,,..,,...,
+#XET66KP2QQLM5LY4LT7IIS5ZH55NRJKRPTNEHG5C53EJP3OMYXAWT6MCMV7S6Q4TAWER4FNU7QYGM
+#\\\|K4ZPBXPMKFM2N47LUUEAW7M6KWP4AIB7FSPFHJUH4M563T6ZRSY \ / AMOS7 \ YOURUM ::
+#\[7]VEOFEBB7HH3PDHKQAXAX5VLA4WJTW6F5X45RFZSXEFPFFWS6H6AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

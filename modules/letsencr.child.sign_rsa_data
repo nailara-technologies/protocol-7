@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = letsencr.child.sign_rsa_data
+# descr = sign data with RS256 (SHA-256 + RSA PKCS#1 v1.5 padding) for ACME
+
+my $data_ref         = shift;    # reference to string to sign
+my $account_key_name = shift;
+
+<[base.log]>->( 3, 'signing data with RS256 (RSA 2048-bit + SHA-256)' );
+
+## validate key name is provided
+unless ( defined $account_key_name ) {
+    <[base.log]>->( 1, 'error: account key name required for signing' );
+    return undef;
+}
+
+## validate data reference
+unless ( defined $data_ref && ref $data_ref eq 'SCALAR' ) {
+    <[base.log]>->( 1, 'error: signing requires scalar reference' );
+    return undef;
+}
+
+## retrieve RSA key object from global hash
+unless ( exists $keys{'RSA'}->{$account_key_name}
+    && exists $keys{'RSA'}->{$account_key_name}->{'pk_object'} ) {
+    <[base.log]>->(
+        1, "error: RSA account key '$account_key_name' not found"
+    );
+    return undef;
+}
+
+my $pk = $keys{'RSA'}->{$account_key_name}->{'pk_object'};
+
+## sign using RS256: SHA-256 hash with PKCS#1 v1.5 padding
+## [ v1.5 is industry standard for RS256 per RFC 7518 ]
+my $signature;
+eval { $signature = $pk->sign_message( $data_ref->$*, 'SHA256', 'v1.5' ); }
+    or do {
+    <[base.log]>->( 1, "error: RSA signing failed: $@" );
+    return undef;
+    };
+
+<[base.log]>->( 3, 'RS256 signature generated successfully' );
+
+## return raw signature bytes (caller will base64url encode)
+return $signature;
+
+#,,,.,,.,,,..,..,,...,.,,,,,.,,,,,..,,.,.,.,,,...,...,..,,.,.,,.,,,.,,..,,...,
+#JFF2EFJXZ5JZTOJZTUYDYUO4AWVJXUEJBH4OL74JVY5DFVLWRLJSZNUMIOWIIWUXJMQTEDIIQW2SY
+#\\\|JKW6PSAMRNZHUB3QDZOYVBPZJ2BMGJ7QGCOUSC6NQBIGH2ZJIUK \ / AMOS7 \ YOURUM ::
+#\[7]NKZMB5GFYOXIOH5YTIOIK7M7MCL5L7FSLMP3KK7KBOWQL4XPK4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
