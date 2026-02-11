@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = letsencr.parent.cmd.get-supported-algorithms
+# descr = get list of supported signature algorithms from ACME server
+
+<[base.log]>->( 2, 'querying ACME server for supported algorithms' );
+
+## Call child command to query server
+my $cmd_result = eval {
+    <[base.protocol-7.command.send.local]> - (
+        {   'command'   => qw| letsencr.child.get-supported-algorithms |,
+            'call_args' => {}
+        }
+    );
+};
+
+if ( length $EVAL_ERROR ) {
+    <[base.log]>->(
+        1, 'error querying algorithms: %s',
+        <[base.str.eval_error]>
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => 'Failed to query ACME server'
+    };
+}
+
+unless ($cmd_result) {
+    <[base.log]>->( 1, 'no response from child process' );
+    return {
+        'mode' => qw| false |,
+        'data' => 'No response from child'
+    };
+}
+
+## Parse algorithm list from child response
+my $algo_data;
+if ( $cmd_result->{mode} && $cmd_result->{mode} =~ m,^(size|true)$,i ) {
+    eval { $algo_data = JSON::XS::decode_json( $cmd_result->{data} ); };
+
+    if ( !$EVAL_ERROR && ref($algo_data) eq 'ARRAY' && @$algo_data ) {
+        <[base.log]>->(
+            2,
+            'ACME server supported algorithms: %s',
+            join( ', ', @$algo_data )
+        );
+
+        ## Return formatted output
+        my $output = "Supported ACME Signature Algorithms:\n";
+        $output .= "==================================\n\n";
+
+        foreach my $algo (@$algo_data) {
+            $output .= "  • $algo\n";
+        }
+
+        return {
+            'mode' => qw| size |,
+            'data' => $output
+        };
+    }
+}
+
+## Fallback on error
+return {
+    'mode' => qw| false |,
+    'data' => 'Failed to parse algorithm list'
+};
+
+#,,,,,.,.,.,,,...,...,,..,...,,..,.,,,..,,.,.,.,.,...,...,...,,.,,..,,,,,,...,
+#VZ7Y64FE4Y7UQIXGERFIU3AC7XRS464MNN2VSM2ZFGUAZGOZ2CHILYLSBLVDVJFUA3X5DSCYSDZEE
+#\\\|Y5FVFHIC6ELEOQQVNTTX7HYYV6S45I4HMFUANQPPSKADHJJWAAI \ / AMOS7 \ YOURUM ::
+#\[7]K7IHTPYI32UQVX7RQAP22PU5AHPKVSU32F5WWJRHBXKUWHA4S2DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
