@@ -1415,6 +1415,7 @@ return [ qw[
         models.cmd.add_participant
         llm.service.consensus_vote
         letsencr.parent.cmd.status
+        letsencr.child.get_rsa_jwk
         letsencr.child.acme_revoke
         keys.console.split-keypair
         keys.console.clear-chksums
@@ -1661,6 +1662,7 @@ return [ qw[
         lm-vision.cmd.get_raw_sample
         letsencr.dns.inwx_delete_txt
         letsencr.dns.inwx_create_txt
+        letsencr.child.sign_rsa_data
         keys.console.list-upgradable
         keys.console.get-encoded-key
         keys.console.gen-pwd-keyfile
@@ -2284,6 +2286,7 @@ return [ qw[
         letsencr.parent.process_pending_ops
         letsencr.parent.handler_child_ready
         letsencr.child.respond_to_challenge
+        letsencr.child.load_rsa_account_key
         letsencr.child.generate_account_key
         letsencr.child.fetch_acme_directory
         letsencr.child.extract_rsa_exponent
@@ -2423,6 +2426,7 @@ return [ qw[
         menu-commands.handler.menu-update-reply
         letsencr.parent.cmd.request-certificate
         letsencr.parent.cmd.install-certificate
+        letsencr.child.generate_rsa_account_key
         discover.callback.resend_interval_reset
         debian.parent.ensure_zenka_dependencies
         coding.vision-parser.extract.clean_json
@@ -2562,8 +2566,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,,.,,...,..,,,,,,,,,,...,,,,,..,,.,,,...,.,.,...,...,,,,,,..,...,,,.,,,.,
-#BBFYGMHUKEOSKRKBFZYI3EHTFBQIAGQB7N2VYPJ3M24BVTW7PDO5CFN2J7CGFAAWVGLJISJQQ7MPY
-#\\\|GGUJ25MZP2SSUVJF2DER4TF467ZWQLBLLDDHTI6AECMLWMCIPBJ \ / AMOS7 \ YOURUM ::
-#\[7]US54AEZTBPQ66SOF7AUZSHYTORFRHAKF6KMLMYVCIGZCBSBLHKBY 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,..,,...,,.,,,..,,.,,,.,,...,.,.,.,.,...,..,,..,,,..,,.,,.,.,.,.,
+#YFBFMBNGNCWNTTYYQKQ65ZD3X56SRI2CZFAUIZHYTNTUVSBPPFUC2UIRCLUJ55MMY77R34G6QW2BQ
+#\\\|BLKPBG3DNGE6UAKRX76L5AUJR4W3FM3MVDUD5YO2Z35AR7PJ647 \ / AMOS7 \ YOURUM ::
+#\[7]L7CM4MMY5UHJR273T6CTKOWVPOGLPOE26TVGYDYAIDIPUKJVS4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

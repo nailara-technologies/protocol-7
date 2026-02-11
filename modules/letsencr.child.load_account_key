@@ -1,9 +1,19 @@
 ## [:< ##
 
 # name  = letsencr.child.load_account_key
-# descr = load existing Ed25519 account key from Base32r cache
+# descr = load existing account key from cache (RSA or Ed25519)
 
-my $key_path = shift || sprintf '%s/account.key', <letsencr.cache.dir>;
+my $cache_dir = <letsencr.cache.dir>;
+
+## check for RSA account key cache first
+my $rsa_key_path = sprintf '%s/account.key.rsa', $cache_dir;
+if ( -f $rsa_key_path ) {
+    <[base.log]>->( 2, 'loading RSA account key from cache' );
+    return <[letsencr.child.load_rsa_account_key]>;
+}
+
+## fallback to Ed25519 account key
+my $key_path = sprintf '%s/account.key', $cache_dir;
 
 return undef unless -f $key_path;
 
@@ -71,8 +81,8 @@ unless ( $keypair && $key_name ) {
 
 return <letsencr.child.acme_client>->{account_key};
 
-#,,,,,,,.,.,,,,.,,,..,,,.,,..,,.,,.,,,,..,,..,..,,...,..,,..,,.,.,,.,,,.,,,.,,
-#TNTB5GOQ5EY2V7FK4T65ODJKCRKSTQQHKLUGLWP7KQMFORN5FTUKGJBCPK2JVDZOFZ4GCZSEWXZME
-#\\\|STFPAOHASIOWVJFGWOP7YEDROAIHN7N5MYOULQS25HISE5BTUB3 \ / AMOS7 \ YOURUM ::
-#\[7]XTTUE5WVWYNYJY5X2O456PLLFYZOMTZYADEIXKE3ZEP5GKGJRGAI 7  DATA SIGNATURE ::
+#,,..,..,,,..,,..,...,,..,,.,,,,.,,,,,..,,,..,..,,...,...,.,.,,,,,.,,,..,,..,,
+#3A5RL6YXGQC42NGJUPPXNZE6K4D5DB2QAIGZWBDXCPEAQQHRO6LJNMF5UIZWVE4KND5YJWPTRMJPM
+#\\\|5LVD6BRKV6TDRRVHM3T2HCL3BYFD5RSMCA23MEAMTQAVVX3R6ZW \ / AMOS7 \ YOURUM ::
+#\[7]SQASNG62JX4XUODIH5FR7DQEY26G7TILGW3FL5UVJZ3PT2MNYGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

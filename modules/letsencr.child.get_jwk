@@ -1,50 +1,52 @@
 ## [:< ##
 
 # name  = letsencr.child.get_jwk
-# descr = get public key in JWK (JSON Web Key) format for ACME (RFC 8037 - EdDSA)
-
-<[base.log]>->( 3, 'generating JWK from Ed25519 account key (RFC 8037)' );
+# descr = get public key in JWK (JSON Web Key) format for ACME (RFC 7517/8037)
 
 my $account_key_name = <letsencr.child.acme_client>->{account_key_name};
 return undef unless $account_key_name;
 
-## Validate key type
+## get key type from acme_client state
 my $key_type = <letsencr.child.acme_client>->{account_key_type};
-unless ( $key_type && $key_type eq 'Ed25519' ) {
-    <[base.log]>->( 1, "error: expected Ed25519 account key, got $key_type" );
+unless ($key_type) {
+    <[base.log]>->( 1, 'error: account key type not set in acme_client' );
     return undef;
 }
 
-## Get public key from global %keys{'C25519'} hash
-unless ( exists $keys{'C25519'}->{$account_key_name}
-    && exists $keys{'C25519'}->{$account_key_name}->{'public'} ) {
-    <[base.log]>->(
-        1,
-        "error: account key '$account_key_name' not found or missing public key"
-    );
+<[base.logs]>->( 3, 'generating JWK from %s account key', $key_type );
+
+## route to appropriate JWK generator based on key type
+if ( $key_type eq 'RSA' ) {
+    return <[letsencr.child.get_rsa_jwk]>;
+} elsif ( $key_type eq 'Ed25519' ) {
+    ## generate JWK for Ed25519 (OKP format per RFC 8037)
+    unless ( exists $keys{'C25519'}->{$account_key_name}
+        && exists $keys{'C25519'}->{$account_key_name}->{'public'} ) {
+        <[base.log]>->(
+            1, "error: account key '$account_key_name' not found"
+        );
+        return undef;
+    }
+
+    my $public_key_binary = $keys{'C25519'}->{$account_key_name}->{'public'};
+
+    ## create OKP JWK structure for Ed25519
+    my $jwk = {
+        crv => 'Ed25519',
+        kty => 'OKP',
+        x   => encode_base64url($public_key_binary),
+    };
+
+    ## canonical JSON with sorted keys
+    my $jwk_json = JSON::XS->new->canonical(1)->encode($jwk);
+    return JSON::XS::decode_json($jwk_json);
+} else {
+    <[base.log]>->( 1, "error: unknown account key type: $key_type" );
     return undef;
 }
 
-my $public_key_binary = $keys{'C25519'}->{$account_key_name}->{'public'};
-
-## Create JWK structure per RFC 8037 (CFRG Elliptic Curve Signatures in JOSE)
-## Format: Octet Key Pair (OKP) with Ed25519 curve
-my $jwk = {
-    crv => 'Ed25519',                             # Curve designation
-    kty => 'OKP',                                 # Key type: Octet Key Pair
-    x   => encode_base64url($public_key_binary)
-    ,    # Public key (Base64url for ACME)
-};
-
-## Sort keys for consistent ordering (required by ACME spec)
-my $jwk_json = JSON::XS->new->canonical(1)->encode($jwk);
-
-<[base.log]>->( 3, 'JWK (EdDSA/OKP) generated successfully for ACME' );
-
-return JSON::XS::decode_json($jwk_json);
-
-#,,,,,,,.,.,,,,..,,..,,,.,...,.,,,,,,,,,,,..,,..,,...,...,.,,,..,,,,.,,..,,.,,
-#WC2DRDBO3Z7GAVENE6NPOWO36TUP5EFLB3MBTZ33L3RU6MK6PFYA57HJODTKGSKSHKW56GNGIGXTY
-#\\\|SXOQGSZ4MYDRRBLUVHNYLIVALSX5V4CQIVICGAN4ITBKM3F5GBL \ / AMOS7 \ YOURUM ::
-#\[7]CWRTE7KLH44DHWC3P5SAZZQ3YI6VWWQJ6FTQSCBHW6BJGMHAQ6DQ 7  DATA SIGNATURE ::
+#,,,.,.,.,...,...,,.,,,.,,...,,..,.,,,,..,..,,..,,...,...,,,.,...,.,,,,,.,..,,
+#5D5UZVJK4JWBIDCL4AOV3UPEHS23DDZVXBXN3KYAOLWIQLHLNTDF7ZYFBPJOY6DZPWJDV2WPTCQZC
+#\\\|VHSRHFGE3LCLMVPNGBHB5AQMD6G2SDOANFGYND7BPMT7VHEXNZX \ / AMOS7 \ YOURUM ::
+#\[7]ECWU2WO5IMV62BR3ONRKZ4YHF4E5544GOJQUSTRRDT2JTBN63YCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

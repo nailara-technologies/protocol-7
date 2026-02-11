@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = letsencr.child.create_jws
-# descr = create JSON Web Signature (JWS) for ACME requests (Ed25519/EdDSA signing)
+# descr = create JSON Web Signature (JWS) for ACME requests (RS256 or EdDSA signing)
 
 my $payload = shift;  # hashref or JSON string
 my $nonce   = shift;
@@ -9,7 +9,11 @@ my $kid     = shift;  # Key ID (optional, for account requests use thumbprint)
 
 return undef unless defined $nonce;
 
-<[base.log]>->( 3, 'creating JWS for ACME request (EdDSA/Ed25519)' );
+## determine algorithm based on account key type
+my $key_type  = <letsencr.child.acme_client>->{account_key_type} // 'Ed25519';
+my $algorithm = ( $key_type eq 'RSA' ) ? 'RS256' : 'EdDSA';
+
+<[base.log]>->( 3, "creating JWS for ACME request ($algorithm)" );
 
 ## Ensure we have payload as string
 my $payload_json = ref($payload) ? JSON::XS::encode_json($payload) : $payload;
@@ -17,9 +21,10 @@ my $payload_json = ref($payload) ? JSON::XS::encode_json($payload) : $payload;
 ## URL-safe base64 encode payload
 my $payload_b64 = encode_base64url($payload_json);
 
-## Create JOSE header per RFC 8037 (EdDSA)
+## create JOSE header with appropriate algorithm
+## [ RS256 for RSA keys, EdDSA for Ed25519 keys ]
 my $header = {
-    alg   => 'EdDSA',    # EdDSA signing algorithm
+    alg   => $algorithm,
     nonce => $nonce,
 };
 
@@ -37,7 +42,7 @@ my $header_b64  = encode_base64url($header_json);
 ## Create signing input: header.payload
 my $signing_input = $header_b64 . '.' . $payload_b64;
 
-## Sign with Ed25519 account key using Protocol-7 signing infrastructure
+## sign with account key (RSA or Ed25519)
 my $account_key_name = <letsencr.child.acme_client>->{account_key_name};
 unless ($account_key_name) {
     <[base.log]>->(
@@ -46,11 +51,22 @@ unless ($account_key_name) {
     return undef;
 }
 
-<[base.log]>->( 3, "signing JWS with account key: $account_key_name" );
+<[base.logs]>->(
+    3,                 "signing JWS with account key: %s [ %s ]",
+    $account_key_name, $algorithm
+);
 
-## Use Protocol-7 signing function which accesses key from global %keys{'C25519'} hash
-my $signature
-    = <[crypt.C25519.sign_data]>->( \$signing_input, $account_key_name );
+## route signing to appropriate function based on algorithm
+my $signature;
+if ( $key_type eq 'RSA' ) {
+    $signature = <[letsencr.child.sign_rsa_data]>->(
+        \$signing_input, $account_key_name
+    );
+} else {
+    ## fallback to Ed25519 signing
+    $signature
+        = <[crypt.C25519.sign_data]>->( \$signing_input, $account_key_name );
+}
 
 ## URL-safe base64 encode signature
 my $signature_b64 = encode_base64url($signature);
@@ -62,8 +78,8 @@ return {
     signature => $signature_b64,
 };
 
-#,,.,,,.,,...,.,,,..,,,..,.,.,,..,..,,,,.,.,.,..,,...,..,,.,,,,,.,,.,,...,,.,,
-#FNRYKQ5VMK2AWIQV253KEBCH2TPSJ66OBV3NXN3KXX4RELCFMS5IB2YVBANBKFFWXKIQFWMZWF67Q
-#\\\|NUOQUGJOA6TTAVJ4OWVJIFYKKIPBN55L77YRFFIKSFXFNWQ6VVR \ / AMOS7 \ YOURUM ::
-#\[7]LGEDMLNWUNGA2CL53WZKMKDEYUQ47SHHBCQYETLEB4IXQQ7YCYDY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,.,.,,,.,.,.,.,.,...,.,.,..,,,..,..,,...,...,.,.,...,.,.,,,,,,,,,
+#SMQC5CMPNIIDN6RKINI2JLLA7F3K35JURE3P47Q2EXL65STTTODXZG4NL5ZHFLXL27H2P7APGXP2E
+#\\\|YNKSOV4MWBQY55CF4U4AJ76XAXFVBYHGD7YJTOW5Y6YT6RR7YZT \ / AMOS7 \ YOURUM ::
+#\[7]WLJ4BAITWHP53R2SP2BPAKPDH6242QXGUSZC4REQSISPQU66DQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

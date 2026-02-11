@@ -10,6 +10,11 @@
     || 'https://acme-v02.api.letsencrypt.org/directory';
 <letsencr.admin.email> = <letsencr.admin.email> || 'admin@example.com';
 
+## ACME Account Key Algorithm (with defaults)
+## [ RSA 2048-bit is required by Let's Encrypt, Ed25519 available for backward compatibility ]
+<letsencr.cfg.account_key_algorithm> = <letsencr.acme.account_key_algorithm>
+    // 'RSA';
+
 ## Certificate Storage (with defaults)
 <letsencr.certs.dir>    = <letsencr.certs.dir>    || '/etc/protocol-7/certs';
 <letsencr.certs.backup> = <letsencr.certs.backup> || '/var/protocol-7/certs';
@@ -88,11 +93,16 @@ foreach my $config (@dir_configs) {
 );
 <[base.logs]>->( 2, ': Certificate Dir : %s', <letsencr.certs.dir> );
 <[base.logs]>->( 2, ': Admin Email     : %s', <letsencr.admin.email> );
+<[base.logs]>->(
+    2,
+    ': Key Algorithm   : %s',
+    <letsencr.cfg.account_key_algorithm>
+);
 
 0;
 
-#,,.,,.,.,,.,,.,.,.,,,,.,,,,,,,.,,.,.,.,.,,,.,..,,...,...,.,.,.,,,...,.,,,,..,
-#YEBBAM5YEHBKN2CFUW6WJB6UTVZ6XDT3GN3UC356PL22MLF4Y32FRC5DHWL6X4HQBD3GR6UAEFE6C
-#\\\|4B6DCAKUWALD4AGSMFTPZH5L7PAGCKGW7AXLLDBDGT3BGQZGMLD \ / AMOS7 \ YOURUM ::
-#\[7]ZU2MXUELAXYQUISM2VJ3TQQ7KVBOYAPIEG2UHLEDZV4UGQ4OMODQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,,,,,.,,,.,,,..,,,,,.,,,..,,,,.,..,,...,...,...,.,.,...,,..,..,,
+#NFN5AA7WWGHU4DYFSCRVGXKGAGRMV5OFD7OFYEV2FMHBIYKS6RNAR6UVTYWVBOO6JBTAELXQENNRI
+#\\\|CD64CYDB3VZA4Z6TNJLBRSC77WF4Y4YT5JNXQFYOQCUJ3QKCOZN \ / AMOS7 \ YOURUM ::
+#\[7]LSIKSOB3RE5PWF2GDYYLATGQ4ECXTIXBL3CHOQ3X46ZEURLBAWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
