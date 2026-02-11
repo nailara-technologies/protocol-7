@@ -34,6 +34,9 @@ unless (@lines) {
 ## Filter lines if filter pattern provided
 my @filtered_lines;
 foreach my $line (@lines) {
+    ## Skip undefined lines (from buffer clearing)
+    next unless defined $line;
+
     if ($filter) {
         ## Filter by domain, operation, or status
         if ( $line =~ /acme activity.*:?\s+($filter|\w*$filter\w*)/i ) {
@@ -70,6 +73,9 @@ $output .= sprintf( "%-8s %-20s %-15s %-10s %s\n",
 $output .= "-" x 80 . "\n";
 
 foreach my $line (@filtered_lines) {
+    ## Skip undefined lines
+    next unless defined $line;
+
     ## Parse timestamp and message from buffer line
     if ( $line
         =~ /^(\d{2}:\d{2}:\d{2})\s+(\d+)\s+:\s+acme\s+activity\s+:\s+(\S+)\s+:\s+(\S+)\s+:\s+(\S+)\s*(.*)?$/
@@ -105,8 +111,8 @@ return {
     'data' => $output
 };
 
-#,,.,,,,.,,,,,.,,,.,,,..,,.,,,.,.,...,..,,,..,..,,...,...,..,,...,,,.,,..,,.,,
-#IIL4WYVYNQ3QAEPFWJUO7OS5HG6SZWIU7CUMWOZRTY3RPELKSAJWYFHLLIQEBDEZJDLD7D3UKBX2Y
-#\\\|JMMYFBTNWKDMNDA7J3AF5TTH7W6DHVEYQMZT3WOF7F7HGZJBNYR \ / AMOS7 \ YOURUM ::
-#\[7]OUP64M2BYATHWDL7QGAK7ENS6TOPHN3W3BUE2IFAB2N2JKYNZ6AA 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,,.,,.,,,..,,,.,,,,,,.,,.,.,.,.,..,,...,...,...,,..,...,.,.,,.,,
+#JWYDDJVBN2ZMZXKBQCGI6ZR2GYZ5LHW4P2DPCPYCC7OBXGCYOXMFIMRJI6NQ432DAY27DV3VO5RDK
+#\\\|5NSQZPFXT7ZESK4EZPQKWQ65FNFRY5KAHXXYHGBLLXTL2O6MGLC \ / AMOS7 \ YOURUM ::
+#\[7]3YJPL4UP2J77NY6V4ORTL3CWW7OFGSYDKAMTS24FGKJSQ63NKSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
