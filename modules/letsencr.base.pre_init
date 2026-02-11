@@ -16,8 +16,11 @@
 <[base.perlmod.autoload]>->('Digest::SHA');  ## SHA hashing for JWK thumbprint
 
 ## load RSA libraries for RS256 ACME support
-<[base.perlmod.autoload]>->('Crypt::OpenSSL::RSA');    ## RSA key generation and signing
-<[base.perlmod.autoload]>->('Crypt::OpenSSL::Random'); ## entropy for RSA generation
+<[base.perlmod.autoload]>->('Crypt::OpenSSL::RSA');    ## RSA key generation
+##                                                               and signing
+
+<[base.perlmod.autoload]>->('Crypt::OpenSSL::Random'); ## entropy for RSA
+##                                                             generation
 
 ## Validate ACME server configuration
 if ( not defined <letsencr.acme.server> ) {
@@ -35,8 +38,8 @@ if ( not defined <letsencr.admin.email> ) {
 
 0;
 
-#,,,.,...,.,,,,..,,.,,.,.,.,,,..,,,.,,,.,,,,.,..,,...,...,..,,..,,.,.,...,..,,
-#4V43J2D55HHKYEXPRJO4FPERRHLM76GZV77CRH3VRQ76QVAQOPHUBICPAU2SDPXBSR2GGBLI4CXRC
-#\\\|VUKH5NJIF3BWN2Z7MR6XO6XWFGCV7GTVTSNWOC5MRJMVASDWOWT \ / AMOS7 \ YOURUM ::
-#\[7]NQBEFCJGLGKZPHMA6IVRSW6KY3APXSYDU5GDG2LEUWDSVBRUU6BA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,,,,..,..,,...,..,,...,...,,,,,..,,...,...,.,,,,,,,,..,.,.,,..,
+#CZ4MQJCPROU2Q2G5H6LTQ3KUA3ZH6NDKXNNT5HBBMDFRNEWMFQQRJKE3POKW6GPWKY3KUJ75WBJKE
+#\\\|VCCL343B5YW6FVYIQVKYIJVYQY722ZD7DOW4HNJV6W6BBOLZUJ3 \ / AMOS7 \ YOURUM ::
+#\[7]FONRCUA6I3YZU3KXRNMJ2P4BMX2XTV3XSKOVFZFKAHB624ZCAYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

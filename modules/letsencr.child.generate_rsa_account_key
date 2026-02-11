@@ -36,7 +36,8 @@ my $exponent_b64;
     close($fh_pub);
 
     ## extract modulus as hex
-    my $modulus_hex = `openssl rsa -pubin -noout -modulus < $temp_pub 2>/dev/null`;
+    my $modulus_hex
+        = `openssl rsa -pubin -noout -modulus < $temp_pub 2>/dev/null`;
     $modulus_hex =~ s/Modulus=//;
     chomp($modulus_hex);
 
@@ -50,7 +51,7 @@ my $exponent_b64;
     my $exponent_int = 65537;
     my $exponent_hex = sprintf '%x', $exponent_int;
     my $exponent_bin = pack( 'H*', $exponent_hex );
-    $exponent_b64    = encode_base64url($exponent_bin);
+    $exponent_b64 = encode_base64url($exponent_bin);
 }
 
 ## fallback if openssl extraction failed
@@ -101,8 +102,8 @@ return {
     'exponent' => $exponent_b64,
 };
 
-#,,,.,,.,,,,.,,,.,.,,,,,,,,,.,,..,,.,,.,.,...,...,...,...,..,,.,.,.,.,.,,,,.,,
-#YZI4I4MQPMFVP4QBOS6WQTVCZI5LYZ2GE5NY6MN4V2SWS4UJTQHSZPFZ7FYGKQSQCFX3AAHYDQX7I
-#\\\|LAJCVYQLDIQTMG75KBJ2WE5MP2GZBT3BKXP2JINCHWY6DNHODJO \ / AMOS7 \ YOURUM ::
-#\[7]PIXCVLBMOFHI3PUUBA3UPCX3ERUZBEY7YXWAIN6NPGGDWFMJEMCQ 7  DATA SIGNATURE ::
+#,,..,..,,.,,,..,,.,,,,.,,...,,,.,.,.,.,.,...,...,...,...,.,.,,,.,,..,...,,.,,
+#SEWKAQJRJRTWLNB4HT5DIHRKPQOU7CAQEMRGAU5OVMNLNMKRFM6QQCF4FXQBJP5SLRRNJAVKJ2EBY
+#\\\|6DGADOIA7GNTHFWTXXFN53Z3RDJTTR5GECWRNF5VQMIFRKCBXG2 \ / AMOS7 \ YOURUM ::
+#\[7]RGLZDQ52VNCCXRGDJIWLDKJDHNKEEX5E2KDLKHF2CRUPE554NSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

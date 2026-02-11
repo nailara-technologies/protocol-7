@@ -27,30 +27,56 @@ my $pem_private;
     close($fh);
 }
 
-## instantiate Crypt::PK::RSA object from PEM
-my $pk = Crypt::PK::RSA->new;
-eval { $pk->import_key($pem_private); } or do {
+## instantiate Crypt::OpenSSL::RSA object from PEM
+my $rsa = eval { Crypt::OpenSSL::RSA->new_private_key($pem_private) } or do {
     <[base.log]>->( 1, "error: failed to load RSA private key from PEM: $@" );
     return undef;
 };
 
 <[base.log]>->( 2, "RSA account key loaded from cache [ PEM format ]" );
 
-## extract public key components for JWK
-my $key_info = $pk->key2hash;
-my $modulus  = $key_info->{N};
-my $exponent = $key_info->{e};
+## extract public key as PEM to parse modulus/exponent
+use File::Temp;
+my $pem_public = $rsa->get_public_key_string;
+my ( $fh_pub, $temp_pub ) = File::Temp::tempfile(
+    UNLINK => 1,
+    SUFFIX => '.pem'
+);
+print $fh_pub $pem_public;
+close($fh_pub);
 
-## base64url encode components
-my $modulus_b64  = encode_base64url($modulus);
-my $exponent_b64 = encode_base64url($exponent);
+## extract modulus as hex
+my $modulus_hex
+    = `openssl rsa -pubin -noout -modulus < $temp_pub 2>/dev/null`;
+$modulus_hex =~ s/Modulus=//;
+chomp($modulus_hex);
+
+my $modulus_b64;
+my $exponent_b64;
+
+## convert modulus hex to binary and base64url
+if ($modulus_hex) {
+    my $modulus_bin = pack( 'H*', lc($modulus_hex) );
+    $modulus_b64 = encode_base64url($modulus_bin);
+}
+
+## standard RSA exponent is 65537
+my $exponent_int = 65537;
+my $exponent_hex = sprintf '%x', $exponent_int;
+my $exponent_bin = pack( 'H*', $exponent_hex );
+$exponent_b64 = encode_base64url($exponent_bin);
+
+unless ($modulus_b64) {
+    <[base.log]>->( 1, 'warning: could not extract modulus from loaded key' );
+    return undef;
+}
 
 ## generate unique key identifier for this load
 my $key_name = 'acme-account-' . <[base.prng.chars-anum]>->(8);
 
 ## store in global %keys{'RSA'} hash
 $keys{'RSA'}->{$key_name} = {
-    'pk_object'   => $pk,
+    'rsa_object'  => $rsa,
     'modulus'     => $modulus_b64,
     'exponent'    => $exponent_b64,
     'pem_private' => $pem_private,
@@ -66,8 +92,8 @@ $keys{'RSA'}->{$key_name} = {
 ## return key name
 return $key_name;
 
-#,,..,..,,..,,,,.,...,..,,...,.,.,.,.,.,,,,,,,...,...,...,..,,,.,,,..,,..,.,.,
-#DVLJXNCPFXPABSIBXKTEOZXPV7IDCF7RLLBZW7CERXA27HTBM5BNWRRM74WRMLWAP7ZP3BR64NEMU
-#\\\|LRKU2JWMENLU2TCQ7GLZDTB6MLX7TTWZLL3YLOZ3XCBXWAJY3ML \ / AMOS7 \ YOURUM ::
-#\[7]X2BZ4L3OOMVVMS6EAIBWBBGATIPINOM47IY3IKXI5MEYUMMF4ADY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,.,,,,,,,.,,.,,,,..,,,.,.,,,...,...,...,...,.,.,,.,,..,,,,.,,..,
+#LFEKL7UEMACWEJY5Z6RY2WEAT6ISR5HWMBBHOFIZBCS44GKBUXO3EEPMTGKVMC4ZU33Q2T7RCP564
+#\\\|DTYXBBVE57S3TUFMJ6Z7RDELT66JA2EWS4D4GH4MM2KVMQ4PUNP \ / AMOS7 \ YOURUM ::
+#\[7]BT7UJETV54TDMPBVI6KHLO7XNSPORAEKMHK3XKGJGXQUG52YRMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
