@@ -104,7 +104,9 @@ unless ($keep_content) {
         };
 
         if ($EVAL_ERROR) {
-            <[base.log]>->( 0, "  Failed to remove content directory: $EVAL_ERROR" );
+            <[base.log]>->(
+                0, "  Failed to remove content directory: $EVAL_ERROR"
+            );
             push @{ $result->{actions} }, 'content_remove_failed';
             $result->{content_error} = $EVAL_ERROR;
         } else {
@@ -151,8 +153,8 @@ return $result;
 
 0;
 
-#,,,.,,,,,,.,,,,.,..,,.,,,.,,,,,,,.,.,..,,...,..,,...,...,,.,,...,,.,,,..,,..,
-#UDJ5WOZ7A66A3XYEO2DXC6TSRH7KRLWT7OUNEX2NWXDFTP6OAZCWJUZ4UI7GN2XHSXRHZHNJ7DQTM
-#\\\|EGPSFUMJAC3YKRTO2KGORDZ6UZWQ6R5RAYQJ3RYZL2WGJF5JZDN \ / AMOS7 \ YOURUM ::
-#\[7]TXUTVDZG7JYX5JB7DA7DGXIMA2BWCKR46VTY26J23APYLV5FJOBI 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,.,.,...,.,.,.,,,,,.,,,.,,..,,,,,..,,...,..,,.,,,.,,,,,,,...,...,
+#AHU3RISYHKMNLVTRQPXSXVN7TFP5VXOPAT2PPKOR7NLA6UKXRGDUNKND2ENSTCW3PN6HDPWUOOH2K
+#\\\|YYDDOL7MALGJ7EPQ45PAXYJQFDN5XPYA44XHBEXL6RANX5RHOLL \ / AMOS7 \ YOURUM ::
+#\[7]C5MPGOHSHPQAGJCO5TR3XWJPJMRBEEJRNVP5QJ4XQTBQC6W3XGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

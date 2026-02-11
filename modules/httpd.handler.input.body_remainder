@@ -1,0 +1,88 @@
+## [:< ##
+
+# name = httpd.handler.input.body_remainder
+# descr = accumulate incomplete POST body via variable watcher until complete
+
+my $event = shift;
+my $id    = $event->w->data;
+
+my $session = $data{'session'}->{$id};
+my $request = $session->{'http'}->{'request'};
+my $headers = $request->{'headers'};
+
+my $http_uri       = $session->{'http'}->{'acme_request_uri'};
+my $content_length = $session->{'http'}->{'acme_content_length'} // 0;
+my $current_body   = $session->{'buffer'}->{'input'}             // '';
+my $bytes_received = length($current_body);
+
+<[base.logs]>->(
+    3,   '[%d] body accumulator: %d/%d bytes',
+    $id, $bytes_received, $content_length
+);
+
+## Body still incomplete - wait for more data
+if ( $bytes_received < $content_length ) {
+    return 1;
+}
+
+## Body is complete - restore original watcher and process request
+<[base.logs]>->(
+    2,   '[%d] body accumulation complete: %d bytes',
+    $id, $bytes_received
+);
+
+## Stop the body accumulator watcher
+$event->w->stop;
+
+## Restore the original input_buffer watcher from backup
+if ( defined $session->{'http'}->{'original_input_watcher'} ) {
+    $session->{'watcher'}->{'input_buffer'}
+        = $session->{'http'}->{'original_input_watcher'};
+    delete $session->{'http'}->{'original_input_watcher'};
+
+    ## Restart the backed-up watcher so it listens for future events
+    $session->{'watcher'}->{'input_buffer'}->again;
+} else {
+    ## Fallback if backup missing - recreate with default handler
+    $session->{'watcher'}->{'input_buffer'} = <[event.add_var]>->(
+        {   'var'     => \$session->{'buffer'}->{'input'},
+            'handler' => qw| base.handler.input |,
+            'poll'    => qw| w |,
+            'repeat'  => TRUE,
+            'data'    => $id,
+            'desc'    => sprintf( '[%d] input buffer watcher', $id )
+        }
+    );
+}
+
+## Store the complete body in session
+$session->{'http'}->{'body'}    = $current_body;
+$session->{'buffer'}->{'input'} = '';
+
+<[base.logs]>->(
+    2, '[%d] restored input_buffer watcher, processing ACME request', $id
+);
+
+## Process the ACME request
+if ( $http_uri =~ m|^/\.well-known/acme-challenge| ) {
+    return <[httpd.handler.acme_request]>->( $id, $http_uri );
+} elsif ( $http_uri =~ m|^/api/certificate/request| ) {
+    return <[httpd.handler.acme_request]>->( $id, $http_uri );
+} elsif ( $http_uri =~ m|^/api/certificate/status| ) {
+    return <[httpd.handler.acme_request]>->( $id, $http_uri );
+} elsif ( $http_uri =~ m|^/api/certificate/list| ) {
+    return <[httpd.handler.acme_request]>->( $id, $http_uri );
+}
+
+## Fallback if no route matched
+<[base.logs]>->(
+    1,   '[%d] body accumulator: no route matched for %s',
+    $id, $http_uri
+);
+return 2;
+
+#,,..,..,,,,.,,..,,,.,,.,,.,.,,,,,,,.,,..,...,.,.,...,...,..,,.,,,.,.,,..,,,,,
+#UYLMXJ3BSMVUCR2757726M7LPUUZX4DFLAQPITOEOYSJSDIHZ3SWFUNNBEWRUR4OZOAAPW5FTW3M6
+#\\\|EINHG5SDPRZKKKMAUAAP33KRRRB727TT77JSN67XVT3M5PFLLDR \ / AMOS7 \ YOURUM ::
+#\[7]HP4DSZB26EL2MHJDWZVZ227XOS62L2WP22RUPHRWI6BMM7QY26BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
