@@ -50,6 +50,30 @@ my $response = $ua->request($request);
 
 unless ( $response->is_success ) {
     <[base.log]>->( 1, "ACME request failed: " . $response->status_line );
+
+    ## Capture and log full error response for debugging
+    my $error_body = $response->decoded_content();
+    <[base.log]>->(
+        1,
+        "ACME error response body: %s",
+        substr( $error_body, 0, 500 )
+    );
+
+    ## Try to parse error details from JSON response
+    my $error_data;
+    eval { $error_data = JSON::XS::decode_json($error_body); };
+    if ( !$EVAL_ERROR && $error_data ) {
+        if ( $error_data->{detail} ) {
+            <[base.log]>->(
+                1, "ACME error detail: %s",
+                $error_data->{detail}
+            );
+        }
+        if ( $error_data->{type} ) {
+            <[base.log]>->( 1, "ACME error type: %s", $error_data->{type} );
+        }
+    }
+
     return undef;
 }
 
@@ -74,8 +98,8 @@ return {
     headers => $response->headers,
 };
 
-#,,,.,.,.,,..,,.,,,.,,.,,,,,.,,,.,..,,,,,,.,,,..,,...,...,..,,..,,,..,,.,,...,
-#L7CXMAETU7QOH7R3CGHKWJIBCGGTQU3A77A23E3DPCIWGFJQA2URJWBP4NJSZRKL4K7ZYBFFQ7GKI
-#\\\|UG7E4UZPBCQ5AA76NMQZAD72XBML3CAWQ6AVUDYCGUBGP5XBMM6 \ / AMOS7 \ YOURUM ::
-#\[7]EXFZCHZ4KLZJKPSHWRV2UUVHPKYRGJMAGFMMMJPN47S3RM2VQOBY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,.,,.,,,,..,..,,.,,,,,,,,.,,.,,,..,,...,...,...,.,.,..,,.,.,,,,,
+#FT7ZC7JJUPOL6GMKABY664QNNKLLCC5G365W67IJBITRUWNDXRUR46ZKKF6DXSQV4MQVDSFXKLXUW
+#\\\|CM5ORPYIRNXBEJZSVRO47CK7DHWITAKIHKRMODYH54CGKAETHTJ \ / AMOS7 \ YOURUM ::
+#\[7]FAYXQSXSJDXF6JEMF25C2ROLUOPUC26FNOCFCB6EVSMB25OOZGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
