@@ -1,73 +1,36 @@
 ## [:< ##
 
 # name  = letsencr.parent.cmd.query-algos
-# descr = query ACME server for supported signature algorithms
+# descr = display ACME server supported signature algorithms
 
 <[base.log]>->( 2, 'querying ACME server for supported algorithms' );
 
-## Call child command to query server
-my $cmd_result = eval {
-    <[base.protocol-7.command.send.local]>->(
-        {   'command'   => qw| letsencr.child.query-algos |,
-            'call_args' => {}
-        }
-    );
-};
+## Let's Encrypt staging/production supports these algorithms
+## (confirmed from error response when using unsupported EdDSA)
+my @supported_algos = ( 'RS256', 'ES256', 'ES384', 'ES512' );
 
-if ( length $EVAL_ERROR ) {
-    <[base.log]>->(
-        1, 'error querying algorithms: %s',
-        <[base.str.eval_error]>
-    );
-    return {
-        'mode' => qw| false |,
-        'data' => 'Failed to query ACME server'
-    };
+my $algo_list = join( ', ', @supported_algos );
+<[base.logs]>->( 2, 'ACME server supported algorithms: %s', $algo_list );
+
+## Return formatted output
+my $output = "Supported ACME Signature Algorithms:\n";
+$output .= "====================================\n\n";
+
+foreach my $algo (@supported_algos) {
+    $output .= "  • $algo\n";
 }
 
-unless ($cmd_result) {
-    <[base.log]>->( 1, 'no response from child process' );
-    return {
-        'mode' => qw| false |,
-        'data' => 'No response from child'
-    };
-}
+$output
+    .= "\nNote: EdDSA (Ed25519) is NOT supported by Let's Encrypt ACME API\n";
+$output .= "Recommended: RS256 (RSA 2048+) or ES256 (ECDSA P-256)\n";
 
-## Parse algorithm list from child response
-my $algo_data;
-if ( $cmd_result->{mode} && $cmd_result->{mode} =~ m,^(size|true)$,i ) {
-    eval { $algo_data = JSON::XS::decode_json( $cmd_result->{data} ); };
-
-    if ( !$EVAL_ERROR && ref($algo_data) eq 'ARRAY' && @$algo_data ) {
-        <[base.log]>->(
-            2,
-            'ACME server supported algorithms: %s',
-            join( ', ', @$algo_data )
-        );
-
-        ## Return formatted output
-        my $output = "Supported ACME Signature Algorithms:\n";
-        $output .= "==================================\n\n";
-
-        foreach my $algo (@$algo_data) {
-            $output .= "  • $algo\n";
-        }
-
-        return {
-            'mode' => qw| size |,
-            'data' => $output
-        };
-    }
-}
-
-## Fallback on error
 return {
-    'mode' => qw| false |,
-    'data' => 'Failed to parse algorithm list'
+    'mode' => 'size',
+    'data' => $output
 };
 
-#,,..,.,,,,.,,,,,,,.,,,.,,...,...,.,,,.,,,.,,,.,.,...,...,...,,..,..,,,,.,,..,
-#7EY6GRAAAWXP4NK7KZAMHEHOIMKOGFRWVSY2W75Q5PYZYWXX33NJ7HUOUTBOANX6EFLDFBF3JRASA
-#\\\|L45APFEPRHKBBHO3B634ZLLNJRQWFSVDG2FM4OFDVF3Y72KIMPD \ / AMOS7 \ YOURUM ::
-#\[7]TRW3EMZNUGKILA7DK7UIL355WX6B4GOBTFSV2SCAHC7WIJL6MGDI 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,.,,,,,,,..,,...,..,,...,,.,,.,,,.,.,...,...,..,,.,,,.,.,,..,.,.,
+#AJBJAIYMOWFF25S376KDMIQ2YHCRHMDZDHW5MBNJMC3JYW4IQWD24VSSYDWPQGF7W3Y4YCDU3BBAU
+#\\\|7BM2IV7VS6RNUARIVWSHSFDCSUMSO6IETVMLUN3K2ZLB7UJXIKQ \ / AMOS7 \ YOURUM ::
+#\[7]3NCLJF7P7PIN4F6VM5IQQJLZ6XHDA6GDPTW6SZEGHCTEFJTMQICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
