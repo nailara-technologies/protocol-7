@@ -29,7 +29,10 @@ my $pem_private;
 
 ## instantiate Crypt::OpenSSL::RSA object from PEM
 my $rsa = eval { Crypt::OpenSSL::RSA->new_private_key($pem_private) } or do {
-    <[base.log]>->( 1, "error: failed to load RSA private key from PEM: $@" );
+    my $err = <[base.str.eval_error]>;
+    <[base.logs]>->(
+        1, "error: failed to load RSA private key from PEM: %s", $err
+    );
     return undef;
 };
 
@@ -48,6 +51,8 @@ my $modulus_hex
 $modulus_hex =~ s/Modulus=//;
 chomp($modulus_hex);
 
+<[base.logs]>->( 3, 'modulus hex length: %d chars', length($modulus_hex) );
+
 my $modulus_b64;
 my $exponent_b64;
 
@@ -55,6 +60,8 @@ my $exponent_b64;
 if ($modulus_hex) {
     my $modulus_bin = pack( 'H*', lc($modulus_hex) );
     $modulus_b64 = encode_base64url($modulus_bin);
+    <[base.logs]>
+        ->( 3, 'modulus_b64 length: %d chars', length($modulus_b64) );
 }
 
 ## standard RSA exponent is 65537
@@ -62,6 +69,11 @@ my $exponent_int = 65537;
 my $exponent_hex = sprintf '%x', $exponent_int;
 my $exponent_bin = pack( 'H*', $exponent_hex );
 $exponent_b64 = encode_base64url($exponent_bin);
+
+<[base.logs]>->(
+    3,             'exponent_b64: %s (length %d)',
+    $exponent_b64, length($exponent_b64)
+);
 
 unless ($modulus_b64) {
     <[base.log]>->( 1, 'warning: could not extract modulus from loaded key' );
@@ -89,8 +101,8 @@ $keys{'RSA'}->{$key_name} = {
 ## return key name
 return $key_name;
 
-#,,,,,,,,,..,,,,,,.,.,,,.,,,,,.,.,.,,,.,.,..,,...,...,...,.,,,.,.,...,,..,.,,,
-#WCHKPLFKIT7RICMQMAMUMGRNP2QCOBHVAJKCVGZXQKYKVDPNTFQCT2YMAVDZNYHVRMAMKTCXGQKVW
-#\\\|VEHHF7Y7JLFQA4P7W5IWNN3LJUPAGMV7FISHRPEBN2PPW5L5NBG \ / AMOS7 \ YOURUM ::
-#\[7]2Y5H46FWNIIYARVPRAYSTNH3KKMLDBT7OSZL4FNREIY2GMG77SCQ 7  DATA SIGNATURE ::
+#,,.,,,,,,...,.,.,..,,,.,,,..,,.,,.,.,...,,,,,...,...,...,...,...,,..,,..,.,.,
+#SFJ2ND2FOUPTDBCLQAPR7HWMQ2ESNTBDT3DWRQDD45M2SHSTV2CWVSZFIGTPOGSJJPVMMLEFM4WFU
+#\\\|ZSJTEQXCFHZ7ZNA7LISYUOMSYIH56DIJ3XCUSVXI3RHKJL2F2AD \ / AMOS7 \ YOURUM ::
+#\[7]IXKHRQUAFNW2XC62LAT2TZL6DR37RJJPL64NZE7GITVJ6UNSSOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

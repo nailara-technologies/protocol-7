@@ -37,10 +37,14 @@ my $modulus_hex
 $modulus_hex =~ s/Modulus=//;
 chomp($modulus_hex);
 
+<[base.logs]>->( 3, 'modulus hex length: %d chars', length($modulus_hex) );
+
 ## convert modulus hex to binary and base64url
 if ($modulus_hex) {
     my $modulus_bin = pack( 'H*', lc($modulus_hex) );
     $modulus_b64 = encode_base64url($modulus_bin);
+    <[base.logs]>
+        ->( 3, 'modulus_b64 length: %d chars', length($modulus_b64) );
 }
 
 ## extract exponent (standard RSA exponent is 65537 = 0x10001)
@@ -48,6 +52,11 @@ my $exponent_int = 65537;
 my $exponent_hex = sprintf '%x', $exponent_int;
 my $exponent_bin = pack( 'H*', $exponent_hex );
 $exponent_b64 = encode_base64url($exponent_bin);
+
+<[base.logs]>->(
+    3,             'exponent_b64: %s (length %d)',
+    $exponent_b64, length($exponent_b64)
+);
 
 ## fallback if openssl extraction failed
 unless ($modulus_b64) {
@@ -97,8 +106,8 @@ return {
     'exponent' => $exponent_b64,
 };
 
-#,,.,,.,.,...,,,.,.,.,,,.,.,,,.,,,.,,,,..,,,,,...,...,..,,,,.,,,,,,..,.,.,,,,,
-#73HFE2FWX7I3XR4YEAXUU222OOSUJC2ENMFIJR44A5Y5D632EPXWNWKTD4RCBRE4QUKEETTS3HHPE
-#\\\|YKIIJGZ7EJBSG3HMMC7DJ4OY5P5PVS3YWTNI66WSVGXA53ZQ2VE \ / AMOS7 \ YOURUM ::
-#\[7]LENUGHFYPVCXJVYID6H7JFN2QZESLFSDY4TAKBFVJAHBF2D2MWDQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,.,,,,,,,,,.,,..,,.,,,.,,...,,.,,...,...,...,,.,,,,,,..,,.,,,,.,,
+#WN237FKGRBBEP44OO5RPMJ4OWH26D7FLL6OGWNMN7LAGYJLB6P2TU4QFC3HT4QZGMWAGGVNGZXTPE
+#\\\|76S6PZS76VOOJ3SRAKHUQMGURECFKWC7Q62QWPCKAWRR26GR3JG \ / AMOS7 \ YOURUM ::
+#\[7]HCIPX26TSCUG35L35CCXJT6CDU7OJMGO7EJWY7MSAB47WP3GUKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
