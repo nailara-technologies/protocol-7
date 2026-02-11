@@ -25,7 +25,7 @@ my $request;
 
 if ( $method eq qw| POST | ) {
     ## Create JWS wrapper for authenticated request
-    my $jws = <[letsencr.child.create_jws]>->( $payload, $nonce, $kid );
+    my $jws = <[letsencr.child.create_jws]>->( $payload, $nonce, $kid, $url );
 
     unless ($jws) {
         <[base.log]>->( 1, 'error: failed to create JWS' );
@@ -103,8 +103,8 @@ return {
     headers => $response->headers,
 };
 
-#,,,.,..,,,,.,,,.,...,.,,,.,,,..,,,,,,,..,,,,,..,,...,...,..,,,,.,,..,,,,,,..,
-#KVHJH4ZE7ZD45Q65GVTJQRIYHQGUSVITDP3AC53G4U3JZXI2P5CZCAOFAKIKEF5VB5TOLEQLNGUDK
-#\\\|7SFWXEQOTASB72JHOLISOMOJ7UJ2ZBHWQR6JLDZ47BIYZPLO6TC \ / AMOS7 \ YOURUM ::
-#\[7]LSVVDAIY5NA3C45OFB775RSU6MMCCQMLJO3YSNRPLAPD33JHDSDA 7  DATA SIGNATURE ::
+#,,,,,,,,,...,..,,,.,,,,,,.,.,...,.,,,,,,,,,.,..,,...,...,.,.,,,.,,.,,..,,,.,,
+#VY3SUYOZTKE7XZGPXLPF4WOE2ZUS74D5XEBJSIGJYJNZFMVP3ZVF5NJ5WEBU52WQAKLDG4DNXNYVO
+#\\\|YYEVIRWKLZMGOJFVDD4C7BIWRCN35Z3RKSH3EJ6LEEWRAPZOUE6 \ / AMOS7 \ YOURUM ::
+#\[7]DPCPONCK5BO2CKQ6XPWUCBIE72NYF6OHT7ES7F364MPQDDOSKOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

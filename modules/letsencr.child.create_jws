@@ -6,8 +6,10 @@
 my $payload = shift;  # hashref or JSON string
 my $nonce   = shift;
 my $kid     = shift;  # Key ID (optional, for account requests use thumbprint)
+my $url     = shift;  # ACME request URL (required per RFC 8555)
 
 return undef unless defined $nonce;
+return undef unless defined $url;
 
 ## determine algorithm based on account key type
 my $key_type  = <letsencr.child.acme_client>->{account_key_type} // 'Ed25519';
@@ -26,6 +28,7 @@ my $payload_b64 = encode_base64url($payload_json);
 my $header = {
     alg   => $algorithm,
     nonce => $nonce,
+    url   => $url,
 };
 
 ## Add either 'kid' (Key ID) or 'jwk' (public key)
@@ -88,8 +91,8 @@ return {
     signature => $signature_b64,
 };
 
-#,,..,,,.,,,.,,.,,,.,,,..,,.,,,,.,..,,.,.,.,,,..,,...,...,...,.,,,..,,,,.,,.,,
-#B6QSWSXKU2V2G4TKTJDNKXKENLH5OVZMKN6WCQCCNADQJKTPQM64UM4WZW52GB4BG22ISBDGSPBES
-#\\\|7ISNCRW2JJQVXCYZC4C34XO6GKZ5GHH7FMT3BWEOAULLH6MENHO \ / AMOS7 \ YOURUM ::
-#\[7]CQ6RF2TJTQCOCFSZN64OI2SLJH6SLNPXNKQUNKR5WSYZ3HDAOOAA 7  DATA SIGNATURE ::
+#,,..,,..,.,,,...,,..,.,.,.,.,,,.,,,.,,..,,.,,..,,...,...,,..,.,,,,,.,,.,,,,,,
+#4G64OQ7WKYKDTJ73EZGTT5YI6Q5IVDAJAZG27HWIJEYP72UD2TNIIDTVSSX7WFJIOL646ZBMSC3EO
+#\\\|CNPRJF3ULHRCA72XYHQMFGWMHI72YK25LCARIALJOW3NBOA3Y66 \ / AMOS7 \ YOURUM ::
+#\[7]WPGAXOHIQPSHWRW272QJJZCPKZHZKZ7DODTGGGVCEDT3RYFG62AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
