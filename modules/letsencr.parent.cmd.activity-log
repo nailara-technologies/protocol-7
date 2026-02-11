@@ -12,7 +12,11 @@ if ( ref $filter eq qw| HASH | ) {
     $filter = undef;
 }
 
-<[base.log]>->( 2, "activity-log command: filter=%s, limit=%d", $filter // 'none', $limit );
+<[base.log]>->(
+    2,
+    "activity-log command: filter=%s, limit=%d",
+    $filter // 'none', $limit
+);
 
 ## Read activity buffer
 unless ( defined $data{'buffer'}{'acme-activity'} ) {
@@ -111,8 +115,8 @@ return {
     'data' => $output
 };
 
-#,,,,,..,,,,,,,,.,,.,,,..,,,.,,,,,,.,,.,.,.,.,..,,...,...,...,,..,...,.,.,,.,,
-#JWYDDJVBN2ZMZXKBQCGI6ZR2GYZ5LHW4P2DPCPYCC7OBXGCYOXMFIMRJI6NQ432DAY27DV3VO5RDK
-#\\\|5NSQZPFXT7ZESK4EZPQKWQ65FNFRY5KAHXXYHGBLLXTL2O6MGLC \ / AMOS7 \ YOURUM ::
-#\[7]3YJPL4UP2J77NY6V4ORTL3CWW7OFGSYDKAMTS24FGKJSQ63NKSCI 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,,,,,,.,,.,,,.,,,,,,.,.,.,,,.,,,..,,...,...,.,,,...,,.,,,..,..,,
+#ITMVC7EHMNSVDAWR3WVG7QORL744T736HPSHGNFB2MUDOHLZIPBPEGI43CT7JZNYFWYQXFEZ53OQM
+#\\\|5UH7QCYQLIROPLH4YII4XKFHUVE5X3HSWAXLQ537TN7UO2ZBFPB \ / AMOS7 \ YOURUM ::
+#\[7]X4LBUJEKMWXRYBHAZGAIJR6GEUEPKQDC5JTF7XXBXYUTDT47HSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
