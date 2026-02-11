@@ -56,12 +56,9 @@ unless ( -d $challenge_dir ) {
     <[base.log]>->( 2, "creating challenge directory: $challenge_dir" );
 
     ## Create directory recursively
-    my $result = <[file.mkdir_p]>->($challenge_dir);
-    unless ($result) {
-        <[base.log]>
-            ->( 1, "error: could not create challenge directory: $!" );
-        return undef;
-    }
+    ## file.make_path logs its own errors, so we just check the result
+    my $created_path = <[file.make_path]>->($challenge_dir);
+    return undef unless defined $created_path;
 }
 
 ## Write key authorization to file
@@ -88,8 +85,8 @@ return {
     challenge_url  => $challenge->{url},
 };
 
-#,,.,,.,,,,,,,,..,,,,,.,.,..,,.,.,,..,.,.,.,.,..,,...,...,.,.,.,.,.,,,,,,,.,,,
-#SF4GM5ZQ6I7QWKKNC52MNKPBJ5G566OHPD3VDNNRLY5ZOWDCNERZR3LL4FDOSFS6UBTOGBUXVSADE
-#\\\|EDRBDBALCOSCBPQBNBVH6FCNSEGD3S2OVW2J7SN5WN7SXGPX6RA \ / AMOS7 \ YOURUM ::
-#\[7]LYAGGDTWNLTXC6HN7XPOHRMSRRPCEJY4CN6OLABRGPK54S2VTUBQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,.,,,..,,...,.,.,,,.,.,,,...,.,.,..,,...,...,...,.,.,..,,...,,.,,
+#Q2VW7EPF52VSX7F5FTQBN3S7IXZHHJMHHAT4BGZRNXWC73DMATPO6FVTHA3UUJHOHSQMOD3O6X2S4
+#\\\|TQFHA6CG3RBNZBUKAF3U7LSNF7CDSKRV76UVOZAUINLXN3WL34E \ / AMOS7 \ YOURUM ::
+#\[7]XPR26YICEXDMV3G3IHHJ6QUBJTBFA4YQBOCSHTMJQMJTHGFRXKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
