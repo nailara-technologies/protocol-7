@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = letsencr.child.load_rsa_account_key
+# descr = load cached RSA account key from PEM format
+
+<[base.log]>->( 2, 'loading RSA account key from cache' );
+
+my $key_cache = sprintf '%s/account.key.rsa', <letsencr.cache.dir>;
+
+## check if cache file exists
+unless ( -f $key_cache ) {
+    <[base.log]>->(
+        2, 'RSA account key cache not found, will generate new key'
+    );
+    return undef;
+}
+
+## read PEM-encoded private key from cache
+my $pem_private;
+{
+    open( my $fh, '<:raw', $key_cache ) or do {
+        <[base.log]>->( 1, "error: unable to read RSA account key file: $!" );
+        return undef;
+    };
+    local $/;
+    $pem_private = <$fh>;
+    close($fh);
+}
+
+## instantiate Crypt::PK::RSA object from PEM
+my $pk = Crypt::PK::RSA->new;
+eval { $pk->import_key($pem_private); } or do {
+    <[base.log]>->( 1, "error: failed to load RSA private key from PEM: $@" );
+    return undef;
+};
+
+<[base.log]>->( 2, "RSA account key loaded from cache [ PEM format ]" );
+
+## extract public key components for JWK
+my $key_info = $pk->key2hash;
+my $modulus  = $key_info->{N};
+my $exponent = $key_info->{e};
+
+## base64url encode components
+my $modulus_b64  = encode_base64url($modulus);
+my $exponent_b64 = encode_base64url($exponent);
+
+## generate unique key identifier for this load
+my $key_name = 'acme-account-' . <[base.prng.chars-anum]>->(8);
+
+## store in global %keys{'RSA'} hash
+$keys{'RSA'}->{$key_name} = {
+    'pk_object'   => $pk,
+    'modulus'     => $modulus_b64,
+    'exponent'    => $exponent_b64,
+    'pem_private' => $pem_private,
+    'time-loaded' => time(),
+};
+
+## store key name in child state for signing operations
+<letsencr.child.acme_client>->{account_key_name} = $key_name;
+<letsencr.child.acme_client>->{account_key_type} = 'RSA';
+
+<[base.log]>->( 2, 'RSA account key ready for ACME operations' );
+
+## return key name
+return $key_name;
+
+#,,..,..,,..,,,,.,...,..,,...,.,.,.,.,.,,,,,,,...,...,...,..,,,.,,,..,,..,.,.,
+#DVLJXNCPFXPABSIBXKTEOZXPV7IDCF7RLLBZW7CERXA27HTBM5BNWRRM74WRMLWAP7ZP3BR64NEMU
+#\\\|LRKU2JWMENLU2TCQ7GLZDTB6MLX7TTWZLL3YLOZ3XCBXWAJY3ML \ / AMOS7 \ YOURUM ::
+#\[7]X2BZ4L3OOMVVMS6EAIBWBBGATIPINOM47IY3IKXI5MEYUMMF4ADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
