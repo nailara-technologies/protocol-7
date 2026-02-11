@@ -38,7 +38,8 @@ $rsa->use_sha256_hash;
 ## [ v1.5 is industry standard for RS256 per RFC 7518 ]
 my $signature;
 eval { $signature = $rsa->sign( $data_ref->$* ); } or do {
-    <[base.log]>->( 1, "error: RSA signing failed: $@" );
+    my $err = <[base.str.eval_error]>;
+    <[base.logs]>->( 1, "error: RSA signing failed: %s", $err );
     return undef;
 };
 
@@ -47,8 +48,8 @@ eval { $signature = $rsa->sign( $data_ref->$* ); } or do {
 ## return raw signature bytes (caller will base64url encode)
 return $signature;
 
-#,,,.,,,.,.,.,,,.,,,,,..,,,,,,..,,,,.,...,,,.,.,.,...,...,..,,.,,,...,...,,,,,
-#DME2ZOXB5CX7GLKHBLJBBZSRNHPYLEEEXPPG5LT6GPRZCI4IT7GK2LZJ6443GWILCFOSGJDT3RVNE
-#\\\|THEOKHX4SYYYMUYSQKSNNYXQCFRUYCHEV7NJWOMJ6VKKR2QIZ7G \ / AMOS7 \ YOURUM ::
-#\[7]WZPDPFQ52A76FW2WWOWA5L7CY63STDM53G4AUVNWZHXYFWSVKCBI 7  DATA SIGNATURE ::
+#,,,,,...,,,.,,.,,,,.,.,,,,,,,.,,,,,.,.,,,,,,,.,.,...,...,,.,,,,.,,,.,,,,,,,.,
+#MIDZMKP2X7ZVQCMSGBIOLE3IXFCF7UHNDG7VERJWELVT2IPULSGAZEUOPPYTAOT6N4GFNFEHGKZLS
+#\\\|TICU5KUAXJQ637FPW4OYXHVUNJAQUQ6R46JKFOBV46WGOMVYGEL \ / AMOS7 \ YOURUM ::
+#\[7]RO27SEUB3GTG6OGVSCP5J5S7SBL2V4KJBMOVH7XX35JDNGSK3EAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
