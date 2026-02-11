@@ -1,0 +1,83 @@
+## [:< ##
+
+# name  = letsencr.child.cmd.get-supported-algorithms
+# descr = query ACME server for supported signature algorithms
+
+## Fetch ACME directory if not already cached
+unless ( <letsencr.child.acme_client> {directory} ) {
+    <[base.log]>->( 2, 'fetching ACME directory' );
+    my $dir_info = <[letsencr.child.fetch_acme_directory]>;
+    unless ($dir_info) {
+        return {
+            'mode' => 'false',
+            'data' => 'Failed to fetch ACME directory'
+        };
+    }
+}
+
+## Ensure we have a nonce
+unless ( <letsencr.child.acme_client> {nonce} ) {
+    <[base.log]>->( 1, 'error: no nonce available for ACME request' );
+    return {
+        'mode' => 'false',
+        'data' => 'Failed to get nonce from ACME server'
+    };
+}
+
+my $newAccount_url = <letsencr.child.acme_client> {directory}->{newAccount};
+my $nonce          = <letsencr.child.acme_client> {nonce};
+
+<[base.log]>->( 2, 'querying ACME server for supported algorithms' );
+
+## Make a dummy newAccount request with EdDSA (unsupported)
+## The server will reject it but return the supported algorithms in the error
+my $payload = {
+    termsOfServiceAgreed => JSON::XS::true(),
+    contact              => ['mailto:test@example.com'],
+};
+
+my $response = <[letsencr.child.acme_http_request]>->(
+    'POST',
+    $newAccount_url,
+    $payload,
+    $nonce,
+    undef    # no KID for account creation
+);
+
+## Parse response for supported algorithms
+if ($response) {
+    my $data = $response->{data};
+
+    ## Check if we got an error response with algorithms field
+    if ( $data && ref($data) eq 'HASH' && $data->{algorithms} ) {
+        <[base.log]>->(
+            2,
+            'supported algorithms: %s',
+            join( ', ', @{ $data->{algorithms} } )
+        );
+
+        ## Return as JSON-formatted list for parent
+        my $algo_json = JSON::XS::encode_json( $data->{algorithms} );
+        return {
+            'mode' => 'size',
+            'data' => $algo_json
+        };
+    }
+}
+
+## Fallback: return common algorithms
+<[base.log]>->( 2, 'using default algorithm list (server did not provide)' );
+
+my $default_algos = [ 'RS256', 'ES256', 'ES384', 'ES512', 'EdDSA' ];
+my $algo_json     = JSON::XS::encode_json($default_algos);
+
+return {
+    'mode' => 'size',
+    'data' => $algo_json
+};
+
+#,,.,,,..,...,..,,,.,,,..,,,,,,.,,.,,,,.,,,,.,.,.,...,...,.,.,.,,,...,,..,,.,,
+#AK2EX3WTU4JFIHVWO7OQAVADGFGD3J3VMCBFKNVJONXIVRYS5DBYQKPIKZOCQK6FHQV7O66RBFET6
+#\\\|TE7UUDHETL2E3NXX2J7FDR5BCNSJ63RXWCFYXBIODYU23PMSP2E \ / AMOS7 \ YOURUM ::
+#\[7]IHA7GZXXWAC724OR7YNUQUX4PMCSRVMQVZRPDEDLCSAFNOFZ4IAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
