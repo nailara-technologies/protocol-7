@@ -7,7 +7,12 @@
 my $filter = shift;         ## optional: filter by operation or domain
 my $limit  = shift // 50;   ## optional: limit number of entries (default: 50)
 
-<[base.log]>->( 2, "activity-log command: filter=$filter, limit=$limit" );
+## handle hash ref passed from command routing (convert to undef for no filter)
+if ( ref $filter eq qw| HASH | ) {
+    $filter = undef;
+}
+
+<[base.log]>->( 2, "activity-log command: filter=%s, limit=%d", $filter // 'none', $limit );
 
 ## Read activity buffer
 unless ( defined $data{'buffer'}{'acme-activity'} ) {
@@ -100,8 +105,8 @@ return {
     'data' => $output
 };
 
-#,,.,,...,,..,...,.,,,...,..,,..,,,,.,..,,,,,,..,,...,...,,..,,,,,,,,,.,,,,.,,
-#LSDJCEHJ4E3KA3SENVF7BYE5ZQJLYIATW4AI3J7UMQ73M5VDWZWIFAN7YVELLCPIOQFOFZTUPCDXM
-#\\\|45VGSWOO2P7YLIKLABZHUN4POFLNTT4MJGUYLG6QCANL42XBUCC \ / AMOS7 \ YOURUM ::
-#\[7]KCEZELXZ5JCG7BL6I3UD5MICYYNN3JMHDMZMMGMLGFVGIFORX6CA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,.,,,.,,,..,,.,,,.,.,...,..,,,..,..,,...,...,..,,...,,,.,,..,,.,,
+#IIL4WYVYNQ3QAEPFWJUO7OS5HG6SZWIU7CUMWOZRTY3RPELKSAJWYFHLLIQEBDEZJDLD7D3UKBX2Y
+#\\\|JMMYFBTNWKDMNDA7J3AF5TTH7W6DHVEYQMZT3WOF7F7HGZJBNYR \ / AMOS7 \ YOURUM ::
+#\[7]OUP64M2BYATHWDL7QGAK7ENS6TOPHN3W3BUE2IFAB2N2JKYNZ6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
