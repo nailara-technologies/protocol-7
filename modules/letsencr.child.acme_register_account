@@ -53,7 +53,7 @@ while ( $attempt < $max_retries ) {
 
     ## Check for badNonce error - refresh nonce and retry
     <[base.logs]>->(
-        3,                   "response status: %d, error type: %s",
+        1,                   "ACME response received: status=%d, type=%s",
         $response->{status}, $response->{data}{type} // 'NONE'
     );
 
@@ -61,7 +61,7 @@ while ( $attempt < $max_retries ) {
         && $response->{data}{type}
         && $response->{data}{type} =~ m{badNonce} ) {
         <[base.log]>->(
-            2, "badNonce error received, fetching fresh nonce for retry"
+            1, "badNonce error detected, fetching fresh nonce for retry"
         );
 
         ## Fetch fresh nonce from server
@@ -136,8 +136,8 @@ return {
     created_at  => time(),
 };
 
-#,,,.,,..,...,..,,,..,...,,,.,.,.,...,.,.,,..,..,,...,...,..,,.,.,,.,,...,...,
-#OIGCX2Y2M2NO4QFXZMSXTL7D6QJ7YQQB43KR37GC3USDC77Z3IZK2OJKE426TKQJAYQJMY5INXUMM
-#\\\|S6ZSBQZZUP76HMPJRRQHAFH37I5BTEU3L6EN45GWPQCCIWW6YDB \ / AMOS7 \ YOURUM ::
-#\[7]6PIYR3GSLYXDPWTJ3XL5V7LVG6VSBTBC6PZGMA7UCZPJALQR4UCI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,..,,..,,.,.,..,,,.,,,..,,,,,..,,..,,...,..,,...,,..,.,,,.,,,.,,,
+#CBCLM2D676BYT5IM364DTMYZ6TVTASNX3PYNHE7VY5WEJTXXSANXYTQWQL7JFH5Y7YZX7R7BCIVZQ
+#\\\|FVANIZ2YN3HXD5ZX3YWMAO4S7AILLOKNJDU7HOTJIAPFVA3KKO7 \ / AMOS7 \ YOURUM ::
+#\[7]O3HBQPUSPXTF7HYPP7IBLDQWQQ5KVRW4Y6KEKNN4LOE66BZBHYAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
