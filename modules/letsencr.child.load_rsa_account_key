@@ -64,10 +64,8 @@ if ($modulus_hex) {
         ->( 3, 'modulus_b64 length: %d chars', length($modulus_b64) );
 }
 
-## standard RSA exponent is 65537
-my $exponent_int = 65537;
-my $exponent_hex = sprintf '%x', $exponent_int;
-my $exponent_bin = pack( 'H*', $exponent_hex );
+## standard RSA exponent is 65537 (encode as 3 bytes: 0x01 0x00 0x01)
+my $exponent_bin = pack( 'C*', 0x01, 0x00, 0x01 );
 $exponent_b64 = encode_base64url($exponent_bin);
 
 <[base.logs]>->(
@@ -101,8 +99,8 @@ $keys{'RSA'}->{$key_name} = {
 ## return key name
 return $key_name;
 
-#,,.,,,,,,...,.,.,..,,,.,,,..,,.,,.,.,...,,,,,...,...,...,...,...,,..,,..,.,.,
-#SFJ2ND2FOUPTDBCLQAPR7HWMQ2ESNTBDT3DWRQDD45M2SHSTV2CWVSZFIGTPOGSJJPVMMLEFM4WFU
-#\\\|ZSJTEQXCFHZ7ZNA7LISYUOMSYIH56DIJ3XCUSVXI3RHKJL2F2AD \ / AMOS7 \ YOURUM ::
-#\[7]IXKHRQUAFNW2XC62LAT2TZL6DR37RJJPL64NZE7GITVJ6UNSSOCY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,..,,,.,,,..,,..,...,,..,.,,,.,.,...,...,...,...,,.,,.,,,.,,,,..,
+#VSCEVXRFPYZCAHUQJBY6JKVZZIF73EYEWH2KEOLN365XVZMZZVTCXFIOHBHP4SLXMCS5LPNPAE2RO
+#\\\|MNUERSJXUREF6HN7VD53336AF5QZID3TNP2TTSQT4OAS76BY23E \ / AMOS7 \ YOURUM ::
+#\[7]DIPP3GZKIFHUEJG7TJQL7TI556Q2A53ZBH4F7HWGJZD6LQNQ5GDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
