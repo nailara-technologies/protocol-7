@@ -25,20 +25,20 @@ if ( !defined $json ) {
 
 ## Decode with error handling
 my $parsed_data;
-eval {
-    $parsed_data = $json->decode($json_string);
-};
+eval { $parsed_data = $json->decode($json_string); };
 
-if ( $EVAL_ERROR ) {
-    <[base.logs]>->( 1, 'json.decode error: %s [input: %s]',
-        $EVAL_ERROR, substr( $json_string, 0, 100 ) );
+if ($EVAL_ERROR) {
+    <[base.logs]>->(
+        1,           'json.decode error: %s [input: %s]',
+        $EVAL_ERROR, substr( $json_string, 0, 100 )
+    );
     return {};
 }
 
 return defined $parsed_data ? $parsed_data : {};
 
-#,,..,.,.,...,.,.,,..,,,.,,,,,,..,...,..,,.,.,...,...,...,,..,,..,,..,...,.,,,
-#TDUSJRUDHSN4RAETR35C65B2EDQ6VI45QEIK3ZUGVB3TLRONI77P4QKJBFCMJTHASMQFYYVF6GOXC
-#\\\|SEWTZF4AO3PWOFGTRAEGJ4O6SHKYHCLFVBTTHQUUFOH3ZGW6NWI \ / AMOS7 \ YOURUM ::
-#\[7]QLIMXM5X2XDNU23CWJLIQ5SGFI4LCKFYL6CKKL7EZNBWUKCNREAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,.,.,..,,..,,...,,..,...,.,.,.,,,...,...,...,,.,,..,,...,,.,,.,,,
+#JFCZD32XJ36DJIZIMEKW5EHT7HU2W3VF46OUN7B3RB6NFE5TZQA57B4D2HEJ4LEUYAG2EQ2LSGJL4
+#\\\|L3XBGACDAS6NH2QCSKMDQDCI6N73NPXAGMZM7MBW6RLEAP57Z3K \ / AMOS7 \ YOURUM ::
+#\[7]V2KTQCR2NGSOYMMCFF7DSROM3TTQRRJBGOUAZZ57HYIMXSCZXQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
