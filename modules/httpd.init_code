@@ -61,7 +61,7 @@ if ( !-d $site_dir ) {
     <[base.log]>->( 0, "creating site_dir '$site_dir'..," );
     <[file.make_path]>->(
         "$site_dir/default",
-        { mode => 0750, 'uid' => $httpd_uid, 'group' => $httpd_gid }
+        { mode => 0770, 'uid' => $httpd_uid, 'group' => $httpd_gid }
         )
         or die "<< unable to create httpd dir '$site_dir' >> [ \l$OS_ERROR ]";
 }
@@ -103,7 +103,7 @@ if ( <httpd.cfg.uploads_enabled> and !-d $upload_dir ) {
     <[base.log]>->( 0, "creating upload_dir '$upload_dir'..," );
     <[file.make_path]>->(
         "$upload_dir",
-        { mode => 0750, 'uid' => $httpd_uid, 'group' => $httpd_gid }
+        { mode => 0770, 'uid' => $httpd_uid, 'group' => $httpd_gid }
         )
         or die
         "<< unable to create upload dir '$upload_dir' >> [ \l$OS_ERROR ]";
@@ -111,8 +111,8 @@ if ( <httpd.cfg.uploads_enabled> and !-d $upload_dir ) {
 
 0;
 
-#,,..,,.,,,,.,.,,,,.,,,.,,,,.,,.,,..,,,.,,,.,,..,,...,...,..,,,,.,,,,,,,.,,..,
-#H6CAQQJRZDD5ECIWRXEHBMGWLU5U6YGSY4RQULH74IDUPGY4TDEI63DCQNHEKVORGNQNSC3YFAN5W
-#\\\|PIQJ7V7UMNCAHNX3JGP4W7G4SK23ZDPBQMHLAWW7QFCXBUJGKMC \ / AMOS7 \ YOURUM ::
-#\[7]4KG7ZXKMOU5RI5B5EJ2HJUJZATTDGVSQ53DEJ4OOI675TXS2GMAI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,.,,,,,.,.,.,.,.,,,,.,,.,,,..,,..,,...,...,.,.,,,,,...,,..,...,
+#GZUYSLH52YR2JK4EQTJCH4ADVWWLMULVHLBHI5SKVPOBNRWW5DUCP2ODIGFKXY3QTBINHINXOTMFE
+#\\\|K232BSFTI6LZ35ABG6PO2MI62HTCLIUSNGE2IAFUNNQ2X2FLMYO \ / AMOS7 \ YOURUM ::
+#\[7]3VGMDOHOPUS5EM33DXSOJE7G6V3JABUL3IMYYID7OUUUVCGWYIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

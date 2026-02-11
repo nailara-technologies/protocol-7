@@ -40,29 +40,28 @@ my $key_auth = "$token.$thumbprint";
 ## http://example.com/.well-known/acme-challenge/{token}
 
 ## Create challenge directory
-## For child process: use site_dir from letsencr config or default to /var/httpd/
-my $site_dir       = <letsencr.challenge.site_dir>  || '/var/httpd/';
+## For child process: use site_dir from letsencr config or default to /var/httpd
+my $site_dir       = <letsencr.challenge.site_dir>  || '/var/httpd';
 my $site_name      = <letsencr.challenge.site_name> || 'default';
-my $well_known_dir = '/.well-known/acme-challenge';
-
-my $challenge_file_path = sprintf '%s/%s/%s/%s',
-    $site_dir,
-    $site_name,
-    $well_known_dir,
-    $token;
+my $well_known_dir = '.well-known/acme-challenge';
 
 my $challenge_dir = sprintf '%s/%s/%s',
     $site_dir,
     $site_name,
     $well_known_dir;
 
+my $challenge_file_path = sprintf '%s/%s', $challenge_dir, $token;
+
 unless ( -d $challenge_dir ) {
     <[base.log]>->( 2, "creating challenge directory: $challenge_dir" );
-    mkdir( $challenge_dir, 0755 ) or do {
+
+    ## Create directory recursively
+    my $result = <[file.mkdir_p]>->($challenge_dir);
+    unless ($result) {
         <[base.log]>
             ->( 1, "error: could not create challenge directory: $!" );
         return undef;
-    };
+    }
 }
 
 ## Write key authorization to file
@@ -89,8 +88,8 @@ return {
     challenge_url  => $challenge->{url},
 };
 
-#,,,,,.,.,,,.,...,.,,,.,.,..,,,..,.,.,.,,,,.,,..,,...,...,.,.,.,,,,..,,.,,..,,
-#UJ4XTA3ABC5HFTTAFQPQGHUG6VDAXQJFP6SA5X4Q5IUHAYTIJVCTMW44MQHSYK5NRQIJU3DCP6UD4
-#\\\|WX57NQNNUMY6PKDJRSCGF7UEEYMQFX5XEM4JR77BB6NJRYMEPPB \ / AMOS7 \ YOURUM ::
-#\[7]KXHJQQ23BOZ75RSUTOP37J5GFFCMSI2VQ6NXN2J7OEN5GZ4VFUDA 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,,..,,,,,.,.,..,,.,.,,..,.,.,.,.,..,,...,...,.,.,.,.,.,,,,,,,.,,,
+#SF4GM5ZQ6I7QWKKNC52MNKPBJ5G566OHPD3VDNNRLY5ZOWDCNERZR3LL4FDOSFS6UBTOGBUXVSADE
+#\\\|EDRBDBALCOSCBPQBNBVH6FCNSEGD3S2OVW2J7SN5WN7SXGPX6RA \ / AMOS7 \ YOURUM ::
+#\[7]LYAGGDTWNLTXC6HN7XPOHRMSRRPCEJY4CN6OLABRGPK54S2VTUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
