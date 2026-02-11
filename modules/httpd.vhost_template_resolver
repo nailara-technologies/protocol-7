@@ -18,17 +18,17 @@
 #   Also stores resolution info in $data{'template_resolve_cache'} for caching
 
 my $vhost = shift;
-my $path = shift;
-my $ext = shift // 'tmpl';
+my $path  = shift;
+my $ext   = shift // 'tmpl';
 
 ## Validate parameters ##
-unless (defined $vhost and length $vhost) {
-    <[base.log]>->(0, "vhost_template_resolver: missing vhost parameter");
+unless ( defined $vhost and length $vhost ) {
+    <[base.log]>->( 0, "vhost_template_resolver: missing vhost parameter" );
     return undef;
 }
 
-unless (defined $path and length $path) {
-    <[base.log]>->(0, "vhost_template_resolver: missing path parameter");
+unless ( defined $path and length $path ) {
+    <[base.log]>->( 0, "vhost_template_resolver: missing path parameter" );
     return undef;
 }
 
@@ -43,12 +43,12 @@ $path =~ s|/+$||;
 $path = 'index.html' if !length $path;
 
 ## Initialize caching if needed ##
-unless (exists $data{'template_resolve_cache'}) {
+unless ( exists $data{'template_resolve_cache'} ) {
     $data{'template_resolve_cache'} = {};
 }
 
 my $cache_key = "$vhost:$path:$ext";
-if (exists $data{'template_resolve_cache'}->{$cache_key}) {
+if ( exists $data{'template_resolve_cache'}->{$cache_key} ) {
     return $data{'template_resolve_cache'}->{$cache_key};
 }
 
@@ -63,10 +63,10 @@ if (exists $data{'template_resolve_cache'}->{$cache_key}) {
 my @resolution_attempts;
 
 ## Extract directory and filename from path ##
-my $dirname = $path;
+my $dirname  = $path;
 my $filename = '';
-if ($path =~ m|^(.*/)?([^/]+)$|) {
-    $dirname = defined $1 ? $1 : '';
+if ( $path =~ m|^(.*/)?([^/]+)$| ) {
+    $dirname  = defined $1 ? $1 : '';
     $filename = $2;
 }
 
@@ -76,11 +76,11 @@ if ($path =~ m|^(.*/)?([^/]+)$|) {
 );
 
 ## Priority 1: Subdirectory-level templates (most specific) ##
-if (length $dirname) {
+if ( length $dirname ) {
     my $subdir_path = "$site_root/$vhost/$dirname/_templates/$filename.$ext";
-    <[base.log]>->(3, "  [1] checking: $subdir_path");
+    <[base.log]>->( 3, "  [1] checking: $subdir_path" );
     push @resolution_attempts, $subdir_path;
-    if (-f $subdir_path) {
+    if ( -f $subdir_path ) {
         $data{'template_resolve_cache'}->{$cache_key} = $subdir_path;
         <[base.log]>->(
             1,
@@ -92,9 +92,9 @@ if (length $dirname) {
 
 ## Priority 2: Vhost root templates ##
 my $vhost_template_path = "$site_root/$vhost/_templates/$path.$ext";
-<[base.log]>->(3, "  [2] checking: $vhost_template_path");
+<[base.log]>->( 3, "  [2] checking: $vhost_template_path" );
 push @resolution_attempts, $vhost_template_path;
-if (-f $vhost_template_path) {
+if ( -f $vhost_template_path ) {
     $data{'template_resolve_cache'}->{$cache_key} = $vhost_template_path;
     <[base.log]>->(
         1,
@@ -105,9 +105,9 @@ if (-f $vhost_template_path) {
 
 ## Priority 3: Global templates ##
 my $global_template_path = "$site_root/_global_templates/$path.$ext";
-<[base.log]>->(3, "  [3] checking: $global_template_path");
+<[base.log]>->( 3, "  [3] checking: $global_template_path" );
 push @resolution_attempts, $global_template_path;
-if (-f $global_template_path) {
+if ( -f $global_template_path ) {
     $data{'template_resolve_cache'}->{$cache_key} = $global_template_path;
     <[base.log]>->(
         1,
@@ -118,8 +118,7 @@ if (-f $global_template_path) {
 
 ## Template not found - log all attempts for debugging ##
 <[base.log]>->(
-    2,
-    "vhost_template_resolver: [$vhost] template NOT FOUND for '$path'"
+    2, "vhost_template_resolver: [$vhost] template NOT FOUND for '$path'"
 );
 
 ## Cache the negative result (prevents repeated searches) ##
@@ -127,8 +126,8 @@ $data{'template_resolve_cache'}->{$cache_key} = undef;
 
 return undef;
 
-#,,,,,...,,.,,,..,.,,,.,,,...,...,.,.,...,,..,..,,...,...,,..,..,,..,,,.,,.,.,
-#7DEJH2QMJWMIF57BG2VKP6DWWNLKHSG3BCQRQDB3LLODAE4QCUWPS5XJYFO6D2FLPTXAPAPFOVGXI
-#\\\|I3I2CGVPINFLHMXEOBYMNGJIPPRRFF7MSBAAIQZDRIYZTGS4IJ2 \ / AMOS7 \ YOURUM ::
-#\[7]4M7CWAVQUYM6X577AX25RGMSYXY3F5SIC4GWHX6MLN62LSOOL2CY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,.,,...,..,,,,.,.,.,..,,.,.,,.,,..,,...,...,.,,,.,.,...,..,,...,
+#RFSGSQIU6IWFCYZVH4RA6IPTD4ZCH7HK4N6P5LF646WBAKT7WZCSO2YVOCEB7S6LL5PZ3B6BZD5OG
+#\\\|7R3RXAPBAW7DYJE2VDC3AEUFI7NVZ4WCQGMI2LMBKLKZ5OT5H5R \ / AMOS7 \ YOURUM ::
+#\[7]APTPFZMUURO334AJ5EJHKTVYA47JCQDXWEAHW5ZBKIUK4VWME2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

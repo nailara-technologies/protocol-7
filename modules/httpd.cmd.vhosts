@@ -10,7 +10,7 @@ if ($domain_filter) {
     ## Show specific vhost details
     my $vhost_id = <httpd.vhosts.by_domain>->{$domain_filter};
 
-    if (!defined $vhost_id) {
+    if ( !defined $vhost_id ) {
         return {
             'mode' => qw| false |,
             'data' => "vhost '$domain_filter' not found in registry"
@@ -20,17 +20,15 @@ if ($domain_filter) {
     my $vhost = <httpd.vhosts.registry>->{$vhost_id};
 
     my $cert_status = $vhost->{cert} ? 'active' : 'none';
-    my $age = time() - ($vhost->{added_at} || 0);
-    my $age_str = sprintf("%dd %dh", int($age / 86400), int(($age % 86400) / 3600));
+    my $age         = time() - ( $vhost->{added_at} || 0 );
+    my $age_str     = sprintf( "%dd %dh",
+        int( $age / 86400 ),
+        int( ( $age % 86400 ) / 3600 ) );
 
     my $output = sprintf(
         "VHost: %s\n  ID: %s\n  Path: %s\n  Certificate: %s\n  Status: %s\n  Added: %s ago",
-        $domain_filter,
-        $vhost_id,
-        $vhost->{path},
-        $cert_status,
-        $vhost->{status},
-        $age_str
+        $domain_filter, $vhost_id,        $vhost->{path},
+        $cert_status,   $vhost->{status}, $age_str
     );
 
     return {
@@ -43,31 +41,36 @@ if ($domain_filter) {
 my @output;
 my $count = scalar keys %{<httpd.vhosts.registry>};
 
-if ($count == 0) {
+if ( $count == 0 ) {
     return {
         'mode' => qw| true |,
         'data' => 'no virtual hosts configured'
     };
 }
 
-push @output, sprintf("Configured virtual hosts: %d\n", $count);
+push @output, sprintf( "Configured virtual hosts: %d\n", $count );
 
 ## Use fallback manual display since base.list.formatted.show doesn't exist
-foreach my $id (sort { <httpd.vhosts.registry>->{$a}->{domain} cmp <httpd.vhosts.registry>->{$b}->{domain} }
-                keys %{<httpd.vhosts.registry>}) {
-    my $vh = <httpd.vhosts.registry>->{$id};
+foreach my $id (
+    sort {
+        <httpd.vhosts.registry>->{$a}->{domain} cmp
+            <httpd.vhosts.registry>->{$b}->{domain}
+    }
+    keys %{<httpd.vhosts.registry>}
+) {
+    my $vh   = <httpd.vhosts.registry>->{$id};
     my $cert = $vh->{cert} ? '✓' : '✗';
-    push @output, sprintf("  [%s] %s (cert: %s)",
-        $id, $vh->{domain}, $cert);
+    push @output,
+        sprintf( "  [%s] %s (cert: %s)", $id, $vh->{domain}, $cert );
 }
 
 return {
     'mode' => qw| true |,
-    'data' => join("\n", @output)
+    'data' => join( "\n", @output )
 };
 
-#,,.,,...,,,.,,.,,..,,...,..,,,,,,,,.,,.,,,,.,..,,...,...,,..,.,.,,..,,..,.,.,
-#LP646JI7SUPGHS7E6WH7JKZ2DNHNUCLVQP4XUIJGOGESEMCBORESEWWTLEPTCI3HK7VTPG4LC7VOQ
-#\\\|5ZTAKOOGHDC2UVILBERJXHLOPIRJITAJGQP5W3LMIVQXQAR4YIV \ / AMOS7 \ YOURUM ::
-#\[7]TPGOAVJYDWQVIRNNRH4BWLA56RN4LRCOKH7Y3FM7J5SAB2FMTABQ 7  DATA SIGNATURE ::
+#,,.,,,.,,...,.,.,.,.,.,.,.,.,,,.,...,...,,..,..,,...,...,,..,,,.,,,,,,,.,,,.,
+#CW4F4K5ILZKU2QNBZDAMAD2WGZ2OP7CX43PBKMJ4SRHCTNUEV32MXLFZ2ZIQN4D7IGYHY3V2RZL6I
+#\\\|VZTGURXCLKOLJKQWV27WS3DBE6NWRVNOMD2MS7425GAOLZ3XPOQ \ / AMOS7 \ YOURUM ::
+#\[7]WZO74UQRQ4SS7OWQG2MCUOCX4NDWHFUV5LHSHHQ66RMGIS4RWKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

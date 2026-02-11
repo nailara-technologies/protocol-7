@@ -11,7 +11,10 @@ my $response = $session->{'response'};
 my $headers  = $request->{'headers'};
 my $http_uri = $request->{'uri'};
 
-## Log POST request
+## Log POST request at level 1 for visibility
+<[base.logs]>->( 1, '[%d] handling POST: %s', $id, $http_uri );
+
+## Detailed POST logging
 <[base.logs]>->(
     2,   '[%d] POST request: %s (content-length: %s)',
     $id, $http_uri, $headers->{'content-length'} // 'unknown'
@@ -43,51 +46,47 @@ if (   $http_uri =~ m|^/api/certificate|
         $id, $bytes_received, $content_length
     );
 
-    ## If we don't have the complete body yet, set up a variable watcher
-    ## to trigger when more data arrives
+    ## If body is incomplete, replace input_buffer watcher with body accumulator
     if ( $bytes_received < $content_length ) {
 
-        ## Initialize body accumulation state if not already done
-        unless ( defined $session->{'http'}->{'body_watcher'} ) {
+        ## Store request context for accumulator
+        $session->{'http'}->{'acme_request_uri'}    = $http_uri;
+        $session->{'http'}->{'acme_content_length'} = $content_length;
 
-            <[base.logs]>->(
-                2, '[%d] setting up body accumulation watcher', $id
-            );
+        ## Back up the current watcher so we can restore it later
+        $session->{'http'}->{'original_input_watcher'}
+            = $session->{'watcher'}->{'input_buffer'};
 
-            ## Store the URI in session for handler to retrieve later
-            $session->{'http'}->{'acme_request_uri'} = $http_uri;
-            <[base.logs]>->(
-                3,   '[%d] stored acme_request_uri: %s',
-                $id, $http_uri
-            );
-
-            ## Create a variable watcher on the input buffer
-            ## This will trigger again when more data arrives
-            $session->{'http'}->{'body_watcher'} = <[event.add_var]>->(
-                {   'var'     => \$session->{'buffer'}->{'input'},
-                    'handler' => qw| httpd.handler.acme_request |,
-                    'poll'    => qw| w |,
-                    'repeat'  => TRUE,
-                    'data'    => $id,
-                    'desc' => sprintf( '[%d] body accumulation watcher', $id )
-                }
-            );
+        ## Stop the current input_buffer watcher
+        if ( defined $session->{'watcher'}->{'input_buffer'} ) {
+            $session->{'watcher'}->{'input_buffer'}->stop;
         }
 
-        ## Return control to event loop - handler will be called again when body grows
-        return FALSE;
+        ## Create body remainder watcher on the same buffer
+        $session->{'watcher'}->{'input_buffer'} = <[event.add_var]>->(
+            {   'var'     => \$session->{'buffer'}->{'input'},
+                'handler' => qw| httpd.handler.input.body_remainder |,
+                'poll'    => qw| w |,
+                'repeat'  => TRUE,
+                'data'    => $id,
+                'desc'    => sprintf( '[%d] body accumulator watcher', $id )
+            }
+        );
+
+        <[base.logs]>->(
+            2, '[%d] replaced input_buffer watcher with body accumulator', $id
+        );
+
+        ## Trigger the new watcher to process existing buffer content
+        $session->{'watcher'}->{'input_buffer'}->now;
+
+        ## Return 1: more data needed
+        return 1;
     }
 
-    ## Body is complete - extract it and process
+    ## Body is complete - store it and process
     $session->{'http'}->{'body'}    = $current_body;
     $session->{'buffer'}->{'input'} = '';
-
-    ## Remove the watcher if it exists
-    if ( defined $session->{'http'}->{'body_watcher'} ) {
-        <[base.logs]>->( 2, '[%d] body complete, removing watcher', $id );
-        $session->{'http'}->{'body_watcher'}->stop();
-        delete $session->{'http'}->{'body_watcher'};
-    }
 
     <[base.logs]>->(
         2,   '[%d] ACME POST body complete: %d bytes',
@@ -112,8 +111,8 @@ if (   $http_uri =~ m|^/api/certificate|
 
 return 2;    ## Should not reach here
 
-#,,,,,,,.,,,,,.,,,,.,,,.,,,..,.,,,...,,..,,..,..,,...,..,,.,,,,..,,.,,,,,,,.,,
-#U6GUXUQO2KNWAVJ43C6WZ5ANWQGMEX2LY43E6LFT2OGQIXTZCKCOMPJTMQVVVEMWXD3F3NEJ24E7C
-#\\\|5YAMNQBTMBITNDSMBVGCNQNSOO7PNV3HQZWRVNRI42ALHG3YXJS \ / AMOS7 \ YOURUM ::
-#\[7]EBYDRDYMI66Z4JJJMHHP4M5SVDA3DT77R7YA2Z724TE2KY5RXMAI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,.,.,...,,.,,,.,,...,..,,..,,,,.,..,,...,...,,.,,.,,,.,.,,,,,,,.,
+#TCCHG3RPYGPXOC5SHKU7GBZ7ZAXNCG6QE6ZPU7GUZMUHWIXG2IGKYSXRPYZZ7TWHDMDYNJL4ROQTI
+#\\\|MWCOMAINDTOC6WQTZ7PTYX5B2MSS2EYQX2VBWU5GNXOHCL4VF7J \ / AMOS7 \ YOURUM ::
+#\[7]HWYNROUQEXQKE4LVODCR5RMLJFV6NYPR5H7SQOG6VOZ7HGZNYGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

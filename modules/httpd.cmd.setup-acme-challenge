@@ -12,14 +12,14 @@ return { 'mode' => 'false', 'data' => 'domain parameter required' }
 <[base.log]>->( 2, "setting up ACME HTTP-01 challenge for domain: $domain" );
 
 ## Get challenge parameters from call context
-my $token     = <{call.param.token}>;
-my $key_auth  = <{call.param.key_auth}>;
-my $type      = <{call.param.type}> // 'http-01';
+my $token    = <{call.param.token}>;
+my $key_auth = <{call.param.key_auth}>;
+my $type     = <{call.param.type}> // 'http-01';
 
 return {
     'mode' => 'false',
     'data' => 'missing token or key_auth'
-}
+    }
     unless $token && $key_auth;
 
 <[base.log]>->( 2, "  token: $token" );
@@ -34,7 +34,7 @@ if ( $type ne 'http-01' ) {
 
 ## Create challenge directory path
 ## Path: /var/httpd/default/.well-known/acme-challenge/
-my $httpd_site_dir = <httpd.cfg.site_dir> // '/var/httpd';
+my $httpd_site_dir = <httpd.cfg.site_dir>     // '/var/httpd';
 my $default_site   = <httpd.cfg.default_site> // 'default';
 my $well_known_dir = '/.well-known/acme-challenge';
 
@@ -50,8 +50,7 @@ unless ( -d $challenge_dir ) {
     <[base.log]>->( 2, "creating challenge directory..." );
     mkdir( $challenge_dir, 0755 ) or do {
         <[base.log]>->(
-            1,
-            "failed to create challenge directory $challenge_dir: $!"
+            1, "failed to create challenge directory $challenge_dir: $!"
         );
         return {
             'mode' => 'false',
@@ -68,10 +67,7 @@ my $challenge_file = sprintf '%s/%s', $challenge_dir, $token;
 
 my $fh;
 unless ( open( $fh, '>', $challenge_file ) ) {
-    <[base.log]>->(
-        1,
-        "failed to open challenge file $challenge_file: $!"
-    );
+    <[base.log]>->( 1, "failed to open challenge file $challenge_file: $!" );
     return {
         'mode' => 'false',
         'data' => "failed to create challenge file: $!"
@@ -105,11 +101,12 @@ chmod( 0644, $challenge_file ) or do {
 
 return {
     'mode' => 'true',
-    'data' => "ACME HTTP-01 challenge ready for $domain at /.well-known/acme-challenge/$token"
+    'data' =>
+        "ACME HTTP-01 challenge ready for $domain at /.well-known/acme-challenge/$token"
 };
 
-#,,.,,,,,,...,,.,,,,.,..,,...,.,.,..,,,.,,.,.,..,,...,...,...,,..,.,,,,,.,,.,,
-#3JDJYAFBQ6CUGCAVDBMNUXNZTFQVZ3G6LAHR63U6ODUNDAQOV3LIOSNWTCOPOLP5PPF2J4GROBWZA
-#\\\|B5LVRXQVHJUBDLSS3OOZO6BIFHZELJYLBM7MH5LF22WDQMH5OKL \ / AMOS7 \ YOURUM ::
-#\[7]4VW2GYFIGDPAW33N6UOHMXBJCCANC7SFDNIURNYVVRSY7RXXJ4CA 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,.,.,,..,,.,,,,.,,,.,...,,.,,.,.,..,,...,..,,.,.,..,,.,.,..,,,.,,
+#PK36P3XXBPAXULWMUHVTZXPPMK3YYVYY5UZT6BD6ZNG3X7BM7AJXXVHHUSOPSNEOCC5QSUU5GFIEO
+#\\\|N3IVIOH4TOWENNJQENW5KU5OC7O64ASSIKAMCMPZLBNGZNKMXL5 \ / AMOS7 \ YOURUM ::
+#\[7]ZHHQTZ7SJWPTFABKOANWDR63OFFPJLPK2E3F6P2C377UPFXMTMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
