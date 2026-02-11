@@ -2,23 +2,15 @@
  .:[ local cube user authentication set-up ]:.
 
 
-auth.setup.usr.root         = :unix:root       ## used by './bin/nshell' ##
+auth.setup.usr.root  =  :unix:root   ## used by ./bin/nshell + p7.nshell ##
 
 ## [ taeki + unix-taeki setup - TEMPLATE-BASED ]
 auth.setup.usr.<admin-user> = :unix:<unix-admin>,:unix:<admin-user>
 auth.setup.usr.<unix-admin>  = :unix:<unix-admin>,:unix:<admin-user>
 
-## ## ##
-## # ## ## ### ........... works ................................
-auth.setup.usr.unix-kitten = :unix:root,:unix:<system.admin-user>
-auth.setup.usr.kitten      = :unix:root :unix:<system.admin-user> #res.#:'unix:taeki'
-## # ## ## ### ........... works ................................
-## ## ##
-## ##
-##
-                                              # 'unix-*' are used by ./bin/p7
-auth.setup.usr.unix-root       = :unix:root,protocol-7   ## ,.adjust these as desired ..,
-auth.setup.usr.unix-protocol-7 = :unix:root,protocol-7
+## [ 'unix-*' are used by '/usr/local/bin/p7c' ]
+auth.setup.usr.unix-root       = :unix:root,protocol-7   ## .. adjust these
+auth.setup.usr.unix-protocol-7 = :unix:root,protocol-7   ## .. as desired ..
 
 auth.setup.usr.notify-loves = :unix:protocol-7,<unix-AMOS-user>
 auth.setup.usr.notify-warn  = :unix:protocol-7,<unix-AMOS-user>
@@ -27,14 +19,15 @@ auth.setup.usr.power-x11    = :unix:<unix-admin>,<unix-AMOS-user>
 
 ## [ auth-keypair authentication - Ed25519 signature verification ]
 ## Format: auth <username> <c25519_pubkey_b32> <ed25519_signature_b32>
-## Master key registered via: register-master-key <username> <ed25519_pubkey_b32>
+## Master key registered via: register-master-key <user> <ed25519_pubkey_b32>
+#
 auth.setup.usr.taeki              = :unix:taeki,:auth-keypair:
 auth.setup.usr.test-auth-keypair  = :auth-keypair:
 
 ##  use './bin/mk.usr' to create users with password hashes  ##
 
-#,,..,,..,,.,,,.,,,,.,.,.,...,,..,,,,,.,.,,.,,..,,...,...,,,,,.,,,,..,.,.,.,,,
-#ZJRVXGGALADVRDBQE557MEWVBQM3OCJMZLSQA4WKPDZWFD7S7VPTYGWPMGROSAMFDVXV4V5G25UUA
-#\\\|Y45VC66OBYVNEICIRGMIRLLAONIYHFLBRHKBLL2XINDNDP2YWOG \ / AMOS7 \ YOURUM ::
-#\[7]XNPRI4FBANCJTZVREPXMRUZKISJ4KA6BHCLVUSRIIDT6RDPRZICQ 7  DATA SIGNATURE ::
+#,,.,,...,,.,,.,,,...,,,.,,,,,,,.,,,,,.,.,..,,..,,...,...,,.,,,.,,.,.,...,,,,,
+#TYOACTXZ76UB5IYRYKOQQH5OWF6YKZQXXIG4YIZDIRXJDEGKBMJUGJENOHEQU7D4BEEFRSC4S5YW4
+#\\\|OHXCFP5T2LF6ZESXUIGWB3QUZPAE3HTSDE7CM5M747E5XLNWFTR \ / AMOS7 \ YOURUM ::
+#\[7]DN7DP6Z2TX3UBYDIOGUKSMPCQDQ3ZBVS2DO7JAZWGEQ736XH52AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
