@@ -48,9 +48,8 @@ if ($modulus_hex) {
 }
 
 ## extract exponent (standard RSA exponent is 65537 = 0x10001)
-my $exponent_int = 65537;
-my $exponent_hex = sprintf '%x', $exponent_int;
-my $exponent_bin = pack( 'H*', $exponent_hex );
+## [ encode as 3 bytes: 0x01 0x00 0x01 ]
+my $exponent_bin = pack( 'C*', 0x01, 0x00, 0x01 );
 $exponent_b64 = encode_base64url($exponent_bin);
 
 <[base.logs]>->(
@@ -106,8 +105,8 @@ return {
     'exponent' => $exponent_b64,
 };
 
-#,,,.,,.,,.,.,.,,,,,,,,,.,,..,,.,,,.,,...,,.,,...,...,...,,.,,,,,,..,,.,,,,.,,
-#WN237FKGRBBEP44OO5RPMJ4OWH26D7FLL6OGWNMN7LAGYJLB6P2TU4QFC3HT4QZGMWAGGVNGZXTPE
-#\\\|76S6PZS76VOOJ3SRAKHUQMGURECFKWC7Q62QWPCKAWRR26GR3JG \ / AMOS7 \ YOURUM ::
-#\[7]HCIPX26TSCUG35L35CCXJT6CDU7OJMGO7EJWY7MSAB47WP3GUKDI 7  DATA SIGNATURE ::
+#,,,.,...,,..,,,,,,,,,.,,,,,,,,,,,,,.,..,,,,.,...,...,.,.,.,.,.,.,.,.,.,.,,,,,
+#26U6C33EMS5X34QPLUEGNS4GMXT6CFWB7RRBEMYHYZORDMYLDECIGDG5XRO2OOND6NGGW2QYJOR2W
+#\\\|L7AZCVL7EQV4IB6VX2COMHTB7ZASLEWUE4WNY3SJEGNXBKKZRBK \ / AMOS7 \ YOURUM ::
+#\[7]WR3SRG236OSM7PHHHYJXEKA2D4ZRBBJCIWPYM325UXS3AJLRAEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
