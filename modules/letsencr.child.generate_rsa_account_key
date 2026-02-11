@@ -25,34 +25,29 @@ my $pem_public  = $rsa->get_public_key_string;
 ## extract modulus and exponent using openssl command
 my $modulus_b64;
 my $exponent_b64;
-{
-    ## write public key to temp file for openssl parsing
-    use File::Temp;
-    my ( $fh_pub, $temp_pub ) = File::Temp::tempfile(
-        UNLINK => 1,
-        SUFFIX => '.pem'
-    );
-    print $fh_pub $pem_public;
-    close($fh_pub);
 
-    ## extract modulus as hex
-    my $modulus_hex
-        = `openssl rsa -pubin -noout -modulus < $temp_pub 2>/dev/null`;
-    $modulus_hex =~ s/Modulus=//;
-    chomp($modulus_hex);
+## write public key to temp file for openssl parsing
+my ( $fh, $temp_pub ) = <[file.temp]>;
+print $fh $pem_public;
+close($fh);
 
-    ## convert modulus hex to binary and base64url
-    if ($modulus_hex) {
-        my $modulus_bin = pack( 'H*', lc($modulus_hex) );
-        $modulus_b64 = encode_base64url($modulus_bin);
-    }
+## extract modulus as hex
+my $modulus_hex
+    = `openssl rsa -pubin -noout -modulus < $temp_pub 2>/dev/null`;
+$modulus_hex =~ s/Modulus=//;
+chomp($modulus_hex);
 
-    ## extract exponent (standard RSA exponent is 65537 = 0x10001)
-    my $exponent_int = 65537;
-    my $exponent_hex = sprintf '%x', $exponent_int;
-    my $exponent_bin = pack( 'H*', $exponent_hex );
-    $exponent_b64 = encode_base64url($exponent_bin);
+## convert modulus hex to binary and base64url
+if ($modulus_hex) {
+    my $modulus_bin = pack( 'H*', lc($modulus_hex) );
+    $modulus_b64 = encode_base64url($modulus_bin);
 }
+
+## extract exponent (standard RSA exponent is 65537 = 0x10001)
+my $exponent_int = 65537;
+my $exponent_hex = sprintf '%x', $exponent_int;
+my $exponent_bin = pack( 'H*', $exponent_hex );
+$exponent_b64 = encode_base64url($exponent_bin);
 
 ## fallback if openssl extraction failed
 unless ($modulus_b64) {
@@ -102,8 +97,8 @@ return {
     'exponent' => $exponent_b64,
 };
 
-#,,..,..,,.,,,..,,.,,,,.,,...,,,.,.,.,.,.,...,...,...,...,.,.,,,.,,..,...,,.,,
-#SEWKAQJRJRTWLNB4HT5DIHRKPQOU7CAQEMRGAU5OVMNLNMKRFM6QQCF4FXQBJP5SLRRNJAVKJ2EBY
-#\\\|6DGADOIA7GNTHFWTXXFN53Z3RDJTTR5GECWRNF5VQMIFRKCBXG2 \ / AMOS7 \ YOURUM ::
-#\[7]RGLZDQ52VNCCXRGDJIWLDKJDHNKEEX5E2KDLKHF2CRUPE554NSAQ 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,,.,.,.,,,.,.,,,.,,,.,,,,..,,,,,...,...,..,,,,.,,,,,,..,.,.,,,,,
+#73HFE2FWX7I3XR4YEAXUU222OOSUJC2ENMFIJR44A5Y5D632EPXWNWKTD4RCBRE4QUKEETTS3HHPE
+#\\\|YKIIJGZ7EJBSG3HMMC7DJ4OY5P5PVS3YWTNI66WSVGXA53ZQ2VE \ / AMOS7 \ YOURUM ::
+#\[7]LENUGHFYPVCXJVYID6H7JFN2QZESLFSDY4TAKBFVJAHBF2D2MWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
