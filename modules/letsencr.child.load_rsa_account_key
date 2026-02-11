@@ -36,14 +36,11 @@ my $rsa = eval { Crypt::OpenSSL::RSA->new_private_key($pem_private) } or do {
 <[base.log]>->( 2, "RSA account key loaded from cache [ PEM format ]" );
 
 ## extract public key as PEM to parse modulus/exponent
-use File::Temp;
 my $pem_public = $rsa->get_public_key_string;
-my ( $fh_pub, $temp_pub ) = File::Temp::tempfile(
-    UNLINK => 1,
-    SUFFIX => '.pem'
-);
-print $fh_pub $pem_public;
-close($fh_pub);
+my ( $fh, $temp_pub ) = <[file.temp]>;
+
+print $fh $pem_public;
+close($fh);
 
 ## extract modulus as hex
 my $modulus_hex
@@ -92,8 +89,8 @@ $keys{'RSA'}->{$key_name} = {
 ## return key name
 return $key_name;
 
-#,,,,,,,,,..,,,.,,,,,,,.,,.,,,,..,,,.,.,,,...,...,...,...,.,.,,.,,..,,,,.,,..,
-#LFEKL7UEMACWEJY5Z6RY2WEAT6ISR5HWMBBHOFIZBCS44GKBUXO3EEPMTGKVMC4ZU33Q2T7RCP564
-#\\\|DTYXBBVE57S3TUFMJ6Z7RDELT66JA2EWS4D4GH4MM2KVMQ4PUNP \ / AMOS7 \ YOURUM ::
-#\[7]BT7UJETV54TDMPBVI6KHLO7XNSPORAEKMHK3XKGJGXQUG52YRMCY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,,,,.,.,,,.,,,,,.,.,.,,,.,.,..,,...,...,...,.,,,.,.,...,,..,.,,,
+#WCHKPLFKIT7RICMQMAMUMGRNP2QCOBHVAJKCVGZXQKYKVDPNTFQCT2YMAVDZNYHVRMAMKTCXGQKVW
+#\\\|VEHHF7Y7JLFQA4P7W5IWNN3LJUPAGMV7FISHRPEBN2PPW5L5NBG \ / AMOS7 \ YOURUM ::
+#\[7]2Y5H46FWNIIYARVPRAYSTNH3KKMLDBT7OSZL4FNREIY2GMG77SCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

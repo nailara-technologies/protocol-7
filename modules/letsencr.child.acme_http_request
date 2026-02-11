@@ -9,9 +9,11 @@ my $payload = shift;    # hashref or string (for POST)
 my $nonce   = shift;
 my $kid     = shift;    # Key ID for authenticated requests
 
-<[base.log]>->( 3, "ACME HTTP $method to " . substr( $url, 0, 50 ) . '...' );
+<[base.logs]>->( 3, "ACME HTTP %s to %s...", $method, substr( $url, 0, 50 ) );
 
-## Create HTTP client (use standard LWP::UserAgent to allow localhost for testing)
+## Create HTTP client [ use standard LWP::UserAgent to
+##                         allow localhost for testing.. ]
+
 my $ua = LWP::UserAgent->new( timeout => 10, );
 
 ## Disable SSL verification for localhost/test servers
@@ -21,7 +23,7 @@ if ( $url =~ m{^https?://localhost} ) {
 
 my $request;
 
-if ( $method eq 'POST' ) {
+if ( $method eq qw| POST | ) {
     ## Create JWS wrapper for authenticated request
     my $jws = <[letsencr.child.create_jws]>->( $payload, $nonce, $kid );
 
@@ -33,15 +35,15 @@ if ( $method eq 'POST' ) {
     ## Create request with JWS body
     my $jws_json = JSON::XS::encode_json($jws);
 
-    $request = HTTP::Request->new( POST => $url );
+    $request = HTTP::Request->new( qw| POST | => $url );
     $request->header( 'Content-Type' => 'application/jose+json' );
     $request->content($jws_json);
 
-} elsif ( $method eq 'GET' ) {
-    $request = HTTP::Request->new( GET => $url );
+} elsif ( $method eq qw| GET | ) {
+    $request = HTTP::Request->new( qw| GET | => $url );
     $request->header( 'Accept' => 'application/json' );
 } else {
-    <[base.log]>->( 1, "error: unsupported method: $method" );
+    <[base.logs]>->( 1, "error: unsupported method: %s", $method );
     return undef;
 }
 
@@ -49,11 +51,11 @@ if ( $method eq 'POST' ) {
 my $response = $ua->request($request);
 
 unless ( $response->is_success ) {
-    <[base.log]>->( 1, "ACME request failed: " . $response->status_line );
+    <[base.logs]>->( 1, "ACME request failed: %s", $response->status_line );
 
     ## Capture and log full error response for debugging
     my $error_body = $response->decoded_content();
-    <[base.log]>->(
+    <[base.logs]>->(
         1,
         "ACME error response body: %s",
         substr( $error_body, 0, 500 )
@@ -85,7 +87,7 @@ my $body = $response->decoded_content();
 my $data;
 
 eval { $data = JSON::XS::decode_json($body); };
-if ($EVAL_ERROR) {
+if ( length $EVAL_ERROR ) {
     <[base.logs]>->(
         1, "error parsing ACME response: %s",
         <[base.str.eval_error]>
@@ -101,8 +103,8 @@ return {
     headers => $response->headers,
 };
 
-#,,,.,..,,.,.,,.,,.,,,..,,,.,,..,,..,,,..,..,,..,,...,...,..,,.,,,..,,.,.,.,.,
-#R2ESDCVQKYB2CJIS2M2CRBBOXHVVPF7YPDF72HRZH5Q6KYJWAJ37CC3CDKOISVDFA5LS62KBCT4VA
-#\\\|PRPGNB7WFIY7NN5D6WJJGFMYQGYYKYBAEA3Y5UNXLRFTXXWEYPY \ / AMOS7 \ YOURUM ::
-#\[7]MDCQ5KLKROQY4RTVO4AMXH3INTKDOGPANCKY3EMSKQJTWNUOWWDY 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,,.,...,.,,,.,,,..,,,,,,,..,,,,,..,,...,...,..,,,,.,,..,,,,,,..,
+#KVHJH4ZE7ZD45Q65GVTJQRIYHQGUSVITDP3AC53G4U3JZXI2P5CZCAOFAKIKEF5VB5TOLEQLNGUDK
+#\\\|7SFWXEQOTASB72JHOLISOMOJ7UJ2ZBHWQR6JLDZ47BIYZPLO6TC \ / AMOS7 \ YOURUM ::
+#\[7]LSVVDAIY5NA3C45OFB775RSU6MMCCQMLJO3YSNRPLAPD33JHDSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
