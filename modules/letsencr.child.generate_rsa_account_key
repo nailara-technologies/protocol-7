@@ -7,10 +7,9 @@
 
 my $start_time = time();
 
-## generate RSA 2048-bit keypair using CryptX library
-## uses Crypt::PK::RSA for proper PKCS#1 v1.5 padding and RS256 signing
-my $pk = Crypt::PK::RSA->new;
-$pk->generate_key(2048);
+## generate RSA 2048-bit keypair using Crypt::OpenSSL::RSA
+## [ OpenSSL library with proper PKCS#1 v1.5 padding for RS256 ]
+my $rsa = Crypt::OpenSSL::RSA->generate_key(2048);
 
 <[base.log]>->(
     2,
@@ -19,37 +18,65 @@ $pk->generate_key(2048);
         . ' seconds'
 );
 
-## generate unique key identifier for storage
+## get private key in PEM format for caching
+my $pem_private = $rsa->get_private_key_string;
+my $pem_public  = $rsa->get_public_key_string;
+
+## extract modulus and exponent using openssl command
+my $modulus_b64;
+my $exponent_b64;
+{
+    ## write public key to temp file for openssl parsing
+    use File::Temp;
+    my ( $fh_pub, $temp_pub ) = File::Temp::tempfile(
+        UNLINK => 1,
+        SUFFIX => '.pem'
+    );
+    print $fh_pub $pem_public;
+    close($fh_pub);
+
+    ## extract modulus as hex
+    my $modulus_hex = `openssl rsa -pubin -noout -modulus < $temp_pub 2>/dev/null`;
+    $modulus_hex =~ s/Modulus=//;
+    chomp($modulus_hex);
+
+    ## convert modulus hex to binary and base64url
+    if ($modulus_hex) {
+        my $modulus_bin = pack( 'H*', lc($modulus_hex) );
+        $modulus_b64 = encode_base64url($modulus_bin);
+    }
+
+    ## extract exponent (standard RSA exponent is 65537 = 0x10001)
+    my $exponent_int = 65537;
+    my $exponent_hex = sprintf '%x', $exponent_int;
+    my $exponent_bin = pack( 'H*', $exponent_hex );
+    $exponent_b64    = encode_base64url($exponent_bin);
+}
+
+## fallback if openssl extraction failed
+unless ($modulus_b64) {
+    <[base.log]>->( 1, 'warning: could not extract modulus from openssl' );
+    return undef;
+}
+
+## generate unique key identifier
 my $key_name = 'acme-account-' . <[base.prng.chars-anum]>->(8);
 
-## extract public key components for JWK
-my $key_info = $pk->key2hash;
-my $modulus  = $key_info->{N};
-my $exponent = $key_info->{e};
-
-## base64url encode for JWK usage
-my $modulus_b64  = encode_base64url($modulus);
-my $exponent_b64 = encode_base64url($exponent);
-
-## export private key as PEM format for caching
-my $pem_private = $pk->export_key_pem('private');
-
-## store in global %keys{'RSA'} hash following Protocol-7 pattern
+## store in global %keys{'RSA'} hash
 $keys{'RSA'}->{$key_name} = {
-    'pk_object'   => $pk,
+    'rsa_object'  => $rsa,
     'modulus'     => $modulus_b64,
     'exponent'    => $exponent_b64,
     'pem_private' => $pem_private,
     'time-loaded' => time(),
 };
 
-## cache private key to disk for persistence
+## cache private key to disk
 my $key_cache = sprintf '%s/account.key.rsa', <letsencr.cache.dir>;
 
 {
     open( my $fh, '>:raw', $key_cache ) or do {
-        <[base.log]>
-            ->( 1, "error: unable to write RSA account key file: $!" );
+        <[base.log]>->( 1, "error: unable to write RSA account key: $!" );
         return undef;
     };
     print $fh $pem_private;
@@ -61,22 +88,21 @@ chmod( 0600, $key_cache );
     2, "RSA account key saved to %s [ PEM encoded ]", $key_cache
 );
 
-## store key name in child state for later reference
+## store in child state
 <letsencr.child.acme_client>->{account_key_name} = $key_name;
 <letsencr.child.acme_client>->{account_key_type} = 'RSA';
 
 <[base.log]>->( 2, 'RSA account key ready for ACME operations' );
 
-## return keypair (key_name is already stored in acme_client state)
 return {
     'key_name' => $key_name,
-    'pk'       => $pk,
+    'rsa'      => $rsa,
     'modulus'  => $modulus_b64,
     'exponent' => $exponent_b64,
 };
 
-#,,..,..,,.,.,,,,,,..,.,,,,,.,..,,..,,,..,,.,,...,...,...,.,,,.,,,,..,,,,,...,
-#LU3WZMMO2K37CU7K2QFSGRDTLJFCNA5WUBLV2GRMEOVVX2GY33WJBCS4PX2SU2MNACOBZCWVATMAE
-#\\\|CTN47FSG2FUIOIZJWQ4WXO74AIC2TZUMS4QJDKG4DPL5AE2AFZX \ / AMOS7 \ YOURUM ::
-#\[7]HKRHVEJJLZWWE4OPLM2CNW5Y7QCAJS4MMJUC4FHCXUDUOKFHBSAQ 7  DATA SIGNATURE ::
+#,,..,,..,.,,,..,,.,,,...,..,,.,.,,..,,,,,,.,,.,,,...,...,.,,,...,.,,,..,,,.,,
+#SUXOGW2HEJMDNSGRCGHRHCUCX2UXTHFFQHFUGLQTJQVAM4IY3ONB6L3BTD6DP7EL6WROYP6JQMSFU
+#\\\|TSLXL7ZXMTATM72JTPGRRP3C4NB4WZHMBYUDWNHDH7DIPZGPJGR \ / AMOS7 \ YOURUM ::
+#\[7]GYHMFY3GYQFHC77YCJJU5HHX3G7IWLMYCUOMVM2NOB7WRSR6BQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
