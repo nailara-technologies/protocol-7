@@ -5,14 +5,19 @@
 
 <[base.log]>->( 2, 'letsencr pre-initialization: loading ACME libraries..,' );
 
-## Load ACME-required libraries (Crypt::Ed25519 loaded via crypt.C25519 module)
-## CSR certificate generation via OpenSSL CLI (Ed25519 support, no Perl module needed)
+## load ACME-required libraries
+## [ Crypt::Ed25519 loaded via crypt.C25519 module ]
+## [ CSR certificate generation via OpenSSL CLI ]
 <[base.perlmod.autoload]>->('JSON::XS');
 <[base.perlmod.autoload]>->('LWP::UserAgent');
 <[base.perlmod.autoload]>->('LWPx::ParanoidAgent');
 <[base.perlmod.autoload]>->('Encode');
-<[base.perlmod.autoload]>->('MIME::Base64'); ## Base64url encoding for JWK
+<[base.perlmod.autoload]>->('MIME::Base64'); ## base64url encoding for JWK
 <[base.perlmod.autoload]>->('Digest::SHA');  ## SHA hashing for JWK thumbprint
+
+## load RSA libraries for RS256 ACME support
+<[base.perlmod.autoload]>->('Crypt::PK::RSA')
+    ;    ## RSA key generation and signing for RS256
 
 ## Validate ACME server configuration
 if ( not defined <letsencr.acme.server> ) {
@@ -30,8 +35,8 @@ if ( not defined <letsencr.admin.email> ) {
 
 0;
 
-#,,.,,,,.,...,.,.,,,.,...,.,,,,..,,..,,..,.,,,..,,...,...,..,,,.,,,,,,,,,,.,,,
-#M7YGPXCMOC32XNDP67QUUWRMC5IFFC5MZCA2BKYYUAOIUOHBMHM4FQL6IGZQE5VCZNSFFIMFX32ZU
-#\\\|Z7ZEOY4EHNOZR6UZUNUBM5AGHB7AK2EFIZTVXQG2KUVDE6AGXHR \ / AMOS7 \ YOURUM ::
-#\[7]PFYHAENHTVLOEJ3S4MLJJ5JIQ5EVMWNV7IELZAEM52Y7XA7UEYCQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,..,,..,,.,.,,..,...,,,.,,,.,.,.,..,,...,...,.,,,.,,,.,,,,.,,,,,,
+#RBK56IHSZZWROCMZJNZVKPRLV62ONHRQ4ETPRE67Z6TT6XYIAJ24XRPX7A2RGLSKJ2KR7YKL3SPCI
+#\\\|X3ITQR32OATJRP5LQDFTWF4YS455DGMD5BYMIFH2KFT7BHWS4PA \ / AMOS7 \ YOURUM ::
+#\[7]7YHO7XW2KYAC4YNBEGPHNIV4V54UC72AR27DVTWRZY4MUDB2IUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
