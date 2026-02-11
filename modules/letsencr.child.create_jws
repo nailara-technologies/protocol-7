@@ -71,6 +71,16 @@ if ( $key_type eq 'RSA' ) {
 ## URL-safe base64 encode signature
 my $signature_b64 = encode_base64url($signature);
 
+## log signature sizes for debugging
+<[base.logs]>->(
+    3,
+    'JWS sizes: raw_sig=%d payload=%d header=%d sig_b64=%d',
+    length($signature),
+    length($payload_b64),
+    length($header_b64),
+    length($signature_b64)
+);
+
 ## Return complete JWS (same structure as RSA JWS)
 return {
     protected => $header_b64,
@@ -78,8 +88,8 @@ return {
     signature => $signature_b64,
 };
 
-#,,,,,..,,.,,,.,.,,,.,.,.,.,.,...,.,.,..,,,..,..,,...,...,.,.,...,.,.,,,,,,,,,
-#SMQC5CMPNIIDN6RKINI2JLLA7F3K35JURE3P47Q2EXL65STTTODXZG4NL5ZHFLXL27H2P7APGXP2E
-#\\\|YNKSOV4MWBQY55CF4U4AJ76XAXFVBYHGD7YJTOW5Y6YT6RR7YZT \ / AMOS7 \ YOURUM ::
-#\[7]WLJ4BAITWHP53R2SP2BPAKPDH6242QXGUSZC4REQSISPQU66DQCI 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,,.,,,.,,,..,,.,,,,.,..,,.,.,.,,,..,,...,...,...,.,,,..,,,,.,,.,,
+#B6QSWSXKU2V2G4TKTJDNKXKENLH5OVZMKN6WCQCCNADQJKTPQM64UM4WZW52GB4BG22ISBDGSPBES
+#\\\|7ISNCRW2JJQVXCYZC4C34XO6GKZ5GHH7FMT3BWEOAULLH6MENHO \ / AMOS7 \ YOURUM ::
+#\[7]CQ6RF2TJTQCOCFSZN64OI2SLJH6SLNPXNKQUNKR5WSYZ3HDAOOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
