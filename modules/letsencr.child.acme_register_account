@@ -33,7 +33,7 @@ while ( $attempt < $max_retries ) {
     $nonce = <letsencr.child.acme_client> {nonce};
 
     <[base.logs]>->(
-        3, "account registration attempt %d/%d",
+        3,        "account registration attempt %d/%d",
         $attempt, $max_retries
     );
 
@@ -52,7 +52,12 @@ while ( $attempt < $max_retries ) {
     }
 
     ## Check for badNonce error - refresh nonce and retry
-    if ( $response->{status} == 400
+    <[base.logs]>->(
+        3,                   "response status: %d, error type: %s",
+        $response->{status}, $response->{data}{type} // 'NONE'
+    );
+
+    if (   $response->{status} == 400
         && $response->{data}{type}
         && $response->{data}{type} =~ m{badNonce} ) {
         <[base.log]>->(
@@ -61,14 +66,22 @@ while ( $attempt < $max_retries ) {
 
         ## Fetch fresh nonce from server
         my $fresh_nonce = <[letsencr.child.get_fresh_nonce]>;
-        if ( $fresh_nonce && $attempt < $max_retries ) {
-            <[base.log]>->( 3, "retrying with fresh nonce" );
-            next;
+        if ($fresh_nonce) {
+            <[base.logs]>->(
+                2,
+                "fresh nonce obtained, retrying (attempt %d/%d)",
+                $attempt + 1, $max_retries
+            );
+            next if $attempt < $max_retries;
+        } else {
+            <[base.log]>->( 1, "error: failed to fetch fresh nonce" );
+            return undef;
         }
     }
 
     ## Exit loop if we got a successful response (not badNonce)
-    last if $response->{status} != 400
+    last
+        if $response->{status} != 400
         || !$response->{data}{type}
         || $response->{data}{type} !~ m{badNonce};
 }
@@ -123,8 +136,8 @@ return {
     created_at  => time(),
 };
 
-#,,..,,,.,.,,,,,,,.,.,..,,..,,,.,,,,,,...,.,,,..,,...,...,...,.,.,...,.,.,..,,
-#AOLVZAZJY5GWEEM4MND3C7O3H33LNZKIVR5HSWNCUBEJPN5ABWO7PQPKE7E7EFIV7TFIWUIYQKLTQ
-#\\\|3EV6RGSGLQW7I45Z64R3ICJMH3RU33BLMOXH6P5YB4DEHF5WPQP \ / AMOS7 \ YOURUM ::
-#\[7]IDU7K2SEVORKAUBU4AE2GLEXRB3AL7WLNGTWONM55SBCXAXNPSAY 7  DATA SIGNATURE ::
+#,,,.,,..,...,..,,,..,...,,,.,.,.,...,.,.,,..,..,,...,...,..,,.,.,,.,,...,...,
+#OIGCX2Y2M2NO4QFXZMSXTL7D6QJ7YQQB43KR37GC3USDC77Z3IZK2OJKE426TKQJAYQJMY5INXUMM
+#\\\|S6ZSBQZZUP76HMPJRRQHAFH37I5BTEU3L6EN45GWPQCCIWW6YDB \ / AMOS7 \ YOURUM ::
+#\[7]6PIYR3GSLYXDPWTJ3XL5V7LVG6VSBTBC6PZGMA7UCZPJALQR4UCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
