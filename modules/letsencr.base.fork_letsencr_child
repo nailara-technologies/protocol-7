@@ -18,11 +18,6 @@ socketpair(
 map { $data{'handle'}{$ARG}{'link'} = qw| ipc.pipe | }
     ( $child_pipe, $parent_pipe );
 
-## TODO: restrict access later after testing
-##
-<system.access.wildcards.allow> = TRUE;
-<access.cmd.regex.usr.parent>   = qr|.*|o;
-
 <letsencr.child.pid> = <[base.fork]>;
 
 if ( !<letsencr.child.pid> ) {    ## child ##
@@ -32,6 +27,12 @@ if ( !<letsencr.child.pid> ) {    ## child ##
 
     close($child_pipe);
     delete <letsencr.pipe.child> if exists <letsencr.pipe.child>;
+
+    ## removing not required entries ## [ only used in 'parent' itself ]
+    delete <access.cmd.usr.cube>;
+    delete <access.cmd.usr.child>;
+    delete <access.cmd.regex.usr.cube>;
+    delete <access.cmd.regex.usr.child>;
 
     <letsencr.pipe.parent> = $parent_pipe;
     <log.file.system.retry_timer>->cancel
@@ -62,6 +63,10 @@ if ( !<letsencr.child.pid> ) {    ## child ##
     close($parent_pipe);
     delete <letsencr.pipe.parent> if exists <letsencr.pipe.parent>;
     <letsencr.pipe.child> = $child_pipe;
+
+    ## removing not required entries ## [ only used in 'child' ]
+    delete <access.cmd.usr.parent>;
+    delete <access.cmd.regex.usr.parent>;
 
     my $child_pid = <letsencr.child.pid>;
     <[base.logs]>->( 1, ":. reporting child PID %d.,", $child_pid );
@@ -97,8 +102,8 @@ if ( !<letsencr.child.pid> ) {    ## child ##
     <[base.log]>->( 1, 'letsencr parent initialized' );
 }
 
-#,,..,,.,,,,.,...,,,.,,,.,.,.,..,,,.,,,.,,...,..,,...,..,,..,,,.,,...,,,.,,,.,
-#36NXWSAV2WERCN6OMDZVYQKNCJSLWOO45DJASWBVR265FPZPPWT5FY5JFGOM2RAN3ZVX5FBE6TQD6
-#\\\|UNX5OI7JEAPEHR2RQQ52SPGZW7HWBTCZK5RQH27KH2PG2TQ7P5C \ / AMOS7 \ YOURUM ::
-#\[7]7NSYG5NSHCLI472KU6LWWCZ3EQR5HK32DJUCBGGFYQGHOO5JMMCI 7  DATA SIGNATURE ::
+#,,,,,,,,,...,..,,,.,,..,,..,,,..,...,.,.,.,,,..,,...,...,,..,,..,.,,,...,.,.,
+#E6NTCTD3AXB6YOOE7NRC3TQFS5N4J3UBQELOIRAFI2IGBZRVNRSKYJOOMSOBKG4UZNXACALWXSQRW
+#\\\|5MSQMOJGE366LZYINMPIV4JE6NVGPBWZG75ZQ5UU4BDLNDBCPDX \ / AMOS7 \ YOURUM ::
+#\[7]4MBKUXGKC2LHOKOMXJ5XV37AWPSQPTX3NR7TG22MUTTAJBCJR6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
