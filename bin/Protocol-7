@@ -1472,33 +1472,44 @@ sub p7_load_code {
                     delete $data{'code'}{$file_name}->{'source_not_readable'};
                 }
 
-                # <[sub_name]>->(  -->  $code{'sub_name'}->(
-                my $orig_len
-                    = length $data{'code'}{$file_name}{'source'};
+                # [ improved parser ] line-by-line processing protocol-7 code
+                #                     with protected pattern detection + join
+                #                     continuation lines before processing ..,
+                my $orig_len = length $data{'code'}{$file_name}{'source'};
+                ## join continuation lines first [ lines ending with ->,
+                ## comma, operators but skip protected lines [ comments,
+                ## POD, special sections ]
+                my @lines = split "\n", $data{'code'}{$file_name}{'source'};
+                my @joined;
+                for ( my $i = 0; $i < @lines; $i++ ) {
+                    my $line = $lines[$i];
+                    ## only join non-protected lines ending with
+                    ## continuation pattern [ -> for method calls,
+                    ## comma for args, lists, operators ]
+                    unless ( $line =~ m{^\s*\#}
+                        || $line =~ m{^=\w+}
+                        || $line =~ m{^__(?:DATA|END)__} ) {
+                        while ($i < $#lines
+                            && $line =~ m{[\->,+\-|&.]\s*$}
+                            && $line !~ m{;\s*$} ) {
+                            $line .= "\n" . $lines[ ++$i ];
+                        }
+                    }
+                    push @joined, $line;
+                }
+                $data{'code'}{$file_name}{'source'} = join "\n", map {
 
-                $data{'code'}{$file_name}{'source'}
-                    =~ s|(?<!\\)<\[([\w\-]+\.[\w\-\.]+?)\]>\s*->\(
-                            |\$code{'$LAST_PAREN_MATCH'}->(|sgxo;
+                  # skip protected lines: comments, POD, special Perl sections
+                    m{^\s*\#} || m{^=\w+} || m{^__(?:DATA|END)__} ? $ARG :
 
-                # < ! > the parser currently does not respect quoted strings
-                #       escape like \<[sub.name]> <-- this to avoid a match.
-                #
-                # note: a generic quoted string match might be :  ##########
-                # ####  (["'])(?:\\?+.)*?\1 or "([ˆ"]<(?<=\\)")+" #[mre:212]
-
-                # <[sub_name]>  -->  $code{'sub_name'}->()
-                $data{'code'}{$file_name}{'source'}
-                    =~ s|(?<!\\)<\[([\w\-]+\.[\w\-\.]+)\]>
-                            |\$code{'$LAST_PAREN_MATCH'}->()|gxo;
-
-                ## needs to skip comments + better key syntax check ##
-
-                # <foo.bar>  -->  $data{'foo'}{'bar'}
-                # (requires at least 1 . in the data key to match)
-                $data{'code'}{$file_name}{'source'}
-                    =~ s|(?<!\\)<([\w\-:]+\.(\w[\w\-\.:]+)+)(?<!\\)>
-                            | my $k = "\$data{'$1'}"; $k =~ s,\.,'}{',g;
-                                 $k |gexo;
+                     # transform special syntax [non-destructive with /r flag]
+                     # preserve escaping with (?<!\\) negative lookbehind
+                        s|(?<!\\)<\[([\w\-\.]+)\]>\s*->\(|\$code{'$1'}->(|gr
+                        =~ s|(?<!\\)<\[([\w\-\.]+)\]>|\$code{'$1'}->()|gr
+                        =~ s|(?<!\\)<([\w\-:]+\.[\w\-\.:]+)>|
+                            do { my $k = "\$data{'$1'}";
+                                 $k =~ s<\.><'}{'>g; $k }|reg
+                } @joined;
                 $RS = "\n";
                 if (length( $data{'code'}{$file_name}{'source'} ) > $orig_len
                     and $data{'system'}{'verbosity'}{'console'} > 3 ) {
@@ -5308,8 +5319,8 @@ __DATA__
 :
 :.
 
-#,,.,,.,.,.,,,...,...,..,,.,.,..,,,,.,..,,,..,...,...,...,.,,,..,,,,.,...,.,.,
-#GA4Q2PCB33G3U7E2KKF24CRS3ZWS2FUZA5PBJEXMCNZZ37NAW7Y77ENPUH2MB26KY3FRUWXZN7Y7C
-#\\\|CIXSDPHFCR333SJ5R4F42LHK3FIJRS4YX73JHO7W7WNJSL2LKYE \ / AMOS7 \ YOURUM ::
-#\[7]OEQN24FF34UYPYCC3GR2JECCDDJI7QPQCZTFGGUNPI5OYAZWPKBQ 7  DATA SIGNATURE ::
+#,,,.,...,.,.,...,,,.,,..,,,,,.,.,,.,,,.,,.,,,...,...,...,...,,,.,,,,,..,,,.,,
+#OVQHM4AJEXL4NKBH32CWTD62AVZADXBFJPAPVF5ESDVUTNGSRKTWE5MOLY35G4GL72EKSQHHP6OUE
+#\\\|N5GZBXHPPFRH266WMSMLCL4TXYBDNSC5QRWOO6UGUSIRZ5XWOAI \ / AMOS7 \ YOURUM ::
+#\[7]EPWKX55PKGNOQFWD4ZJKW2AZMEP3HU5VVIDXJSV46PZ5NRWTMMDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
