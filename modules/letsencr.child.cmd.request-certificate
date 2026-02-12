@@ -46,13 +46,13 @@ unless ($result) {
 ## check for async deferred status
 if ( $result->{status} eq qw| deferred | ) {
     ## async processing - challenge coordination with parent ongoing
+    ## reply_id was passed to acme_new and stored in state for later callback
     <[base.logs]>->(
         2, 'certificate request accepted, processing asynchronously'
     );
-    return {
-        'mode' => qw| true |,
-        'data' => 'Certificate request queued for async processing'
-    };
+
+    ## return deferred mode to signal async reply via reply_id callback
+    return { 'mode' => qw| deferred | };
 }
 
 ## check for error result
@@ -103,8 +103,8 @@ return {
     'data' => $bundle_b32r
 };
 
-#,,..,..,,,.,,.,.,,,,,.,.,..,,.,,,,,,,,.,,.,,,..,,...,...,,..,..,,..,,,,,,,,.,
-#2F3W4ERYBVFZFPVZ44DOCOHVCBE5GG6TV67OAQLKOXLMI2ZNMUVMZPQX4576MHZEJXCRZCI252JIY
-#\\\|NLFTRIUPUG4KBSSU3AZTXAKU3ABPCZ6O5YPG7I2WKQG7L2ATWTN \ / AMOS7 \ YOURUM ::
-#\[7]R2NZVLV3HXAEYAXEDHVHIQQN4CJGD5QDBQZB53NNNRLZXBS4HOCY 7  DATA SIGNATURE ::
+#,,..,...,.,,,.,.,...,..,,.,.,,,.,.,,,,.,,,,,,..,,...,...,,,.,,,.,,,,,.,.,...,
+#3BL4FOVEICB5JHALYORQAE4W42ZDDMDPCUC5TQN6DUWPSPGTEDC5LJUYSVTMKJE57PMZSSGME2JVM
+#\\\|XIMH6E4LL263GCTDFOSGJCOTZNQNIYSJAVCLQQPHWBJOZWYQTJ4 \ / AMOS7 \ YOURUM ::
+#\[7]GRDQ5QSEUOVYKUEIEWUJVVMECHGZU6C67GW5QNZIC2HMG2T26OCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

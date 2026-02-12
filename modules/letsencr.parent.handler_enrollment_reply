@@ -28,10 +28,39 @@ unless ($domain) {
 );
 
 if ( $mode eq 'TRUE' ) {
-    <[base.logs]>->( 2, 'enrollment succeeded for %s', $domain );
-    <[letsencr.parent.activity_logger]>->(
-        'enrollment', $domain, 'success', 'certificate enrollment completed'
-    );
+    ## distinguish between async (deferred) vs sync (success) based on data content
+    ## async returns base32r-encoded challenge info, sync returns simple message
+
+    my $challenge_info;
+    eval {
+        $challenge_info
+            = JSON::XS::decode_json( Crypt::Misc::decode_b32r($data) );
+    };
+
+    if ( !$EVAL_ERROR && $challenge_info->{status} eq 'deferred' ) {
+        ## ASYNC CASE: Parent orchestrates challenge setup with httpd
+        <[base.logs]>->( 2, 'async enrollment initiated for %s', $domain );
+        <[letsencr.parent.activity_logger]>->(
+            'enrollment', $domain, 'pending',
+            'async processing: orchestrating challenge setup'
+        );
+
+        ## TODO: Extract challenges from order and call notify_httpd_challenge
+        ## Store challenge_info for continuation handler to access
+
+        <letsencr.parent.pending_challenges>->{$domain} = $challenge_info;
+
+        <[base.logs]>
+            ->( 2, 'challenge orchestration queued for %s', $domain );
+
+    } else {
+        ## SYNC CASE: Certificate enrollment completed synchronously
+        <[base.logs]>->( 2, 'enrollment succeeded for %s', $domain );
+        <[letsencr.parent.activity_logger]>->(
+            'enrollment', $domain, 'success',
+            'certificate enrollment completed'
+        );
+    }
 
 } elsif ( $mode eq 'FALSE' ) {
     <[base.logs]>->( 1, 'enrollment failed for %s: %s', $domain, $data );
@@ -227,8 +256,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,..,.,,,,..,.,,,.,,,.,.,.,,,,.,,.,.,.,,,,..,..,,...,...,...,,,.,..,,,.,,.,.,
-#6THM6RHYA2I5E3RSBL4SQPM6QQVAAU22WVNMGFHFGBXTT4CO4KRXO3PPALK25KA23HHYSZPMU73GG
-#\\\|WCKAVJB6YROFOQQECF4A5JODEOAIIP7235FJ4A3JIKJO2KWHESE \ / AMOS7 \ YOURUM ::
-#\[7]PUYKULD3NTCI4IVMQDNP42B46QDIMX4VGFCCJHAPKZSNO54YGQAY 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,...,..,,..,,...,.,.,,,.,,.,,..,,..,,...,...,..,,,,.,,,,,...,,,,,
+#JJJ4MKHQS7AJMURSFK53V22PNSERVJXF5EPXZUTTLJSY73IIHGMLLLPD5P6B4DYA6FV2XPNYEE3PE
+#\\\|2ZR5GMKBGAJHZHEEUJNZPB7JLOOQRCHXK2FI45VWIVC7BD5OGFH \ / AMOS7 \ YOURUM ::
+#\[7]MUZCOX7BA3X5XZU5QVZTZJOQYASOJGVLMT22GXTO4KWJC26KBUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
