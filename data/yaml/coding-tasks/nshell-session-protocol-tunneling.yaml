@@ -1,0 +1,598 @@
+---
+document_title: "Unified Infrastructure Sessions: Foundation for Shell & Desktop Management Across All Platforms"
+document_date: 2026-02-12
+phase_number: "unified-infra"
+phase_status: "Scoped, awaiting architectural review"
+related_roadmap: "protocol-7-transition-roadmap.yaml"
+vision: "Single unified abstraction for accessing any resource (shells, desktops, services) across heterogeneous infrastructure with safe, capability-based filtering and LLM-friendly constraints"
+
+description: |
+  Implement protocol-level session tunneling and distributed resource buffers as foundation for
+  unified management of shells and graphical desktops across all platforms (Linux, Windows, macOS).
+  Enable safe, capability-based access for zenka and LLM agents through template-filtered access trees.
+  Eliminate distinction between local and remote shells, between different display modes (host/Xvfb/Xephir),
+  and between different operating systems. Resolve nshell technical debt while laying groundwork for
+  comprehensive infrastructure automation with built-in security context. Phase 1 focuses on shell
+  infrastructure; Phase 2 applies identical principles to graphical desktops.
+
+---
+
+## Background & Vision
+
+### The Goal: Unified Multi-Platform Shell Management
+Enable any shell on any OS (Linux, Windows, macOS) to be:
+- Addressed identically through protocol-7 routing
+- Accessed through safe, capability-based templates
+- Used by zenka and LLM agents with built-in constraints
+- Managed through distributed session buffers at protocol level
+
+**Key insight**: Safety comes from filtering at protocol layer, not restricting shell access.
+- Administrator powershell remains powerful
+- But zenka/LLMs interact through template-filtered command trees
+- Even accidental damage prevented by capability abstraction
+- LLMs get partial access without worrying they could break things
+
+### Current Limitations
+1. **OS-specific shell management**: Each OS needs different handling
+2. **No distributed buffers**: Session history stuck at single endpoint
+3. **No safe abstraction layer**: Direct shell access vs. capability-based access
+4. **Workaround infrastructure**: nshell uses error handlers + direct buffer append
+5. **No unified addressing**: 'select' is string-level hack, not proper routing
+
+### Identified Bug (Feb 2026) - Symptom of Architecture Gap
+When 'select httpd' active + user input causes state change:
+- p7-log.append command routed to httpd instead of p7-log zenka
+- Dual route ID prefix corrupts message: `(415059)(731779)p7-log.append ...`
+- Root cause: mixing string-level prefix hacking with protocol-level buffer append
+
+### Why Fix This Now
+- Foundation needed for cubic space topology mapping (already starting)
+- Enables Windows integration via socat (cmd.exe/powershell.exe as protocol-7 sessions)
+- LLM safety model depends on capability abstraction at protocol level
+- With LLM support, complex unified design is now tractable
+- Postponed concepts (relative/absolute routing, context trees) converge here
+
+---
+
+## Proposed Solution: Unified Shell Infrastructure
+
+### Three-Layer Architecture
+
+#### Layer 1: Distributed TTY Buffers
+**Purpose**: Session history/state management at protocol level, not OS-specific
+- Buffers exist as first-class protocol-7 objects
+- Can be mounted to any session, local or remote
+- Accessible from multiple route points (distributed)
+- History moves with session, not stuck at endpoint
+- Example: powershell session keeps history accessible from both Windows node AND management zenka
+
+#### Layer 2: Session Protocol Tunneling
+**Purpose**: Make any shell (Linux/Windows/macOS) addressable identically
+- Transparent one-hop routing (local shell looks same as remote shell)
+- Sessions own their routing context (relative/absolute addressing)
+- 'select' command emerges naturally (just changes session context)
+- Works for all zenka communication, not just user input
+- Removes error-handler abuse workaround
+
+#### Layer 3: Capability-Based Command Filtering
+**Purpose**: Safe access for zenka/LLMs without restricting shell power
+- Template-based command trees define "what can be executed"
+- Security context-aware filtering applies policies per user/agent
+- Administrator shells behind capability abstraction, not restriction
+- LLM agents work with constrained interfaces by design
+- Accidental damage prevented by abstraction, not by limiting access
+- Works identically across all platforms
+
+### Complete Picture
+```
+Windows Machine          Linux Machine          macOS Machine
+  ↓                        ↓                        ↓
+cmd.exe/powershell      bash/zsh               bash/zsh
+  ↓                        ↓                        ↓
+[Capability Tree]  [Capability Tree]    [Capability Tree]
+  ↓                        ↓                        ↓
+[Session Protocol Tunneling Layer]
+  ↓
+[Distributed TTY Buffers] (history accessible from anywhere)
+  ↓
+[Zenka/LLM Agents] (see all shells as identical, work through templates)
+```
+
+### Integration Points
+- **socat**: Bridge Windows shells (cmd.exe/powershell.exe) to protocol-7 sessions
+- **Process reuse**: First process spawns task-specific children (cheap on Windows)
+- **Template system**: Security policies as data, not code
+- **Cubic topology**: Shell sessions are nodes in cubic addressing space
+
+---
+
+## Implementation Phases
+
+### Phase 1: Analysis & Design
+**Effort**: 2-3 hours
+**Blocker**: None
+**Enables**: Phase 2
+
+#### Task 1.1: Trace current session routing
+- How sessions currently handle message routing
+- How base.handler.command manages command prefixes
+- Where 'select' state lives in the session model
+- How protocol-7.send.local works vs. direct buffer append
+
+Implementation notes:
+- Read: base.session.init, base.handler.command
+- Document: Session data structure, handler invocation flow
+- Identify: Points where 'select' state needs to be passed
+
+Acceptance criteria:
+- Clear diagram of session → message → handler flow
+- Understanding of where routing decisions happen
+- Identified integration points for tunneling
+
+#### Task 1.2: Design transparent tunnel protocol extension
+- How to represent "tunnel to different zenka" in session context
+- Protocol changes needed (minimal)
+- How namespace inheritance works (child sessions)
+- Error handling for tunnel failures
+
+Implementation notes:
+- Design: Session contains "routing namespace" field
+- Behavior: Messages automatically tunnel through session chain
+- Migration: How existing code can opt-in to tunneling
+
+Acceptance criteria:
+- Documented protocol extension (1-2 pages)
+- Session model changes clearly specified
+- Migration path from workaround to proper solution defined
+- Risk analysis for backward compatibility
+
+### Phase 2: Infrastructure Implementation
+**Effort**: 4-6 hours
+**Blocker**: Phase 1 completion
+**Enables**: Phase 3
+
+#### Task 2.1: Extend session data structure
+- Add routing namespace field to session context
+- Implement namespace inheritance for child sessions
+- Document new session fields and initialization
+
+Implementation notes:
+- Modify: base.session.init (add namespace parameter)
+- Update: Session data structure docs
+- Backward compat: namespace defaults to current zenka
+
+Acceptance criteria:
+- Sessions track routing namespace
+- Child sessions inherit/override parent namespace
+- All existing sessions continue working
+
+#### Task 2.2: Implement protocol tunneling in base.handler.command
+- Detect when message needs tunneling (namespace != local)
+- Route through proper zenka chain transparently
+- Handle tunnel failures gracefully
+
+Implementation notes:
+- Modify: base.handler.command routing logic
+- Add: Tunnel negotiation with intermediate zenka
+- Handle: Error cases (tunnel unavailable, permission denied)
+
+Acceptance criteria:
+- Messages tunnel to correct zenka when namespace set
+- Errors reported properly
+- No performance regression for non-tunneled messages
+
+#### Task 2.3: Update session initialization to set namespace
+- When session created, set initial routing namespace
+- For nshell: namespace defaults to 'cube' (not 'nshell')
+- Allow namespace switching without creating new session
+
+Implementation notes:
+- Modify: nshell session init
+- Add: Command to change routing namespace (replaces 'select')
+- Document: Namespace context inheritance
+
+Acceptance criteria:
+- nshell sessions correctly initialize namespace
+- Namespace can be changed dynamically
+- System commands (logging) reach correct zenka
+
+### Phase 3: Migration & Testing
+**Effort**: 3-4 hours
+**Blocker**: Phase 2 completion
+**Enables**: Phase 4
+
+#### Task 3.1: Remove nshell protocol error handler workaround
+- Remove error handler registration abuse
+- Replace with proper session-based routing
+- Verify all nshell operations still work
+
+Implementation notes:
+- Remove: Protocol error handler registration from nshell init
+- Replace: With proper session namespace setting
+- Test: All existing nshell operations
+
+Acceptance criteria:
+- Error handler abuse removed
+- nshell functions exactly as before
+- No regression in command routing
+
+#### Task 3.2: Update direct buffer append approach
+- Document new pattern: use session routing instead
+- Migrate high-frequency operations (logging)
+- Leave optimization path open for future
+
+Implementation notes:
+- Document: New pattern for zenka-to-zenka communication
+- Example: p7-log.append now uses session tunneling
+- Preserve: Performance benefits where possible
+
+Acceptance criteria:
+- Documentation updated with new pattern
+- Key operations (logging) using session routing
+- Performance baseline established
+
+#### Task 3.3: Comprehensive testing
+- Test routing with multiple nested hops
+- Verify namespace inheritance works correctly
+- Test error cases (missing zenka, permissions)
+- Load test: concurrent messages with different namespaces
+
+Implementation notes:
+- Create: Test scenarios for each routing pattern
+- Verify: No message corruption (original bug is fixed)
+- Measure: Performance impact (should be minimal)
+
+Acceptance criteria:
+- Original bug (dual route ID prefix) cannot be reproduced
+- All routing scenarios pass
+- Performance acceptable (no regression > 5%)
+
+### Phase 4: Cleanup & Documentation
+**Effort**: 2-3 hours
+**Blocker**: Phase 3 completion
+
+#### Task 4.1: Deprecate 'select' string-level hack
+- Mark as deprecated (still works)
+- Document new namespace switching approach
+- Plan removal for future major version
+
+Implementation notes:
+- Update: nshell help text, documentation
+- Add: Warning when 'select' used
+- Document: Migration path to new approach
+
+Acceptance criteria:
+- 'select' works but marked deprecated
+- Users guided toward new namespace approach
+- Migration documented
+
+#### Task 4.2: Document session routing architecture
+- Write architecture guide for session tunneling
+- Explain benefits over string-level routing
+- Document patterns for other zenka
+
+Implementation notes:
+- Location: data/md/architecture/SESSION_ROUTING.md
+- Include: Diagrams of tunnel flow
+- Examples: How to use in custom zenka
+
+Acceptance criteria:
+- Architecture documented clearly
+- New pattern explained with examples
+- Ready for other zenka to adopt
+
+#### Task 4.3: Commit and close WIP branch
+- Merge into main development branch
+- Create PR with clear description
+- Update MEMORY.md to mark this complete
+
+Acceptance criteria:
+- Clean commit history
+- All tests passing
+- PR approved and merged
+
+---
+
+## Integration Points
+
+### Systems That Will Benefit
+1. **nshell**: Primary beneficiary, removes workaround
+2. **p7-log**: System logging reaches correct destination
+3. **Other zenka**: Can use session routing for multi-hop communication
+4. **Future architecture**: Proper foundation for more complex topologies
+
+### Files to Modify
+- `modules/base.session.init` - Add namespace field
+- `modules/base.handler.command` - Implement tunneling logic
+- `modules/nshell.init_code` - Remove workaround, set initial namespace
+- Configuration files - Remove 'select' where possible
+- Documentation - Explain new pattern
+
+### Files to Document
+- `data/md/architecture/SESSION_ROUTING.md` - New
+- `MEMORY.md` - Update with solution description
+- `data/yaml/coding-tasks/` - This file
+
+---
+
+## Risk Mitigation
+
+### Risk: Session tunneling adds complexity to base.handler.command
+**Mitigation**: Complexity is managed (routing logic isolated), benefits all zenka
+
+### Risk: Performance impact from tunneling
+**Mitigation**: Measure carefully, optimize before committing, keep optimization path open
+
+### Risk: Backward compatibility with existing code
+**Mitigation**: 'select' command continues working unchanged, migration is gradual
+
+### Risk: Multiple zenka affected by changes
+**Mitigation**: Changes to base.* modules, extensive testing before merge
+
+---
+
+## Why Now & Why Worth It
+
+### Lesson From The Bug
+Two routing mechanisms fighting (string prefix + buffer append) showed that:
+- Workarounds become maintenance burden
+- Mixing abstraction levels creates subtle bugs
+- Proper architecture scales better
+
+### Payoff
+- **Elegance**: 'select' emerges from session model, not special case
+- **Flexibility**: All zenka benefit, not just nshell
+- **Simplicity**: Single routing mechanism (session-level), not two
+- **Robustness**: No more protocol error handler abuse
+- **Foundation**: Enables more complex multi-hop topologies later
+
+### Team Bandwidth Consideration
+- This is properly scoped as a coding task
+- Not something to "do on the side" while generating other code
+- Fits in the WIP branch already isolated for nshell infrastructure work
+- Clear phases allow incremental progress
+
+---
+
+## Success Criteria - Complete Implementation
+
+**Foundation (Layers 1-2):**
+- [ ] Distributed TTY buffers designed and documented
+- [ ] Session protocol tunneling implemented in base.handler.command
+- [ ] Relative/absolute addressing unified in session context
+- [ ] 'select' command works naturally through session context (no string hacking)
+- [ ] nshell error handler workaround removed
+- [ ] All tests passing (no regression)
+- [ ] Original bug (dual route ID prefix) fixed and verified
+- [ ] Performance baseline established (no > 5% regression)
+
+**Capability Layer (Layer 3):**
+- [ ] Template-based command trees designed
+- [ ] Security context-aware filtering implemented
+- [ ] LLM-safe capability abstraction working
+- [ ] Works identically across Linux/Windows/macOS shells
+- [ ] Documentation shows how policies are defined as templates
+
+**Windows Integration:**
+- [ ] socat integration tested (cmd.exe/powershell.exe bridging)
+- [ ] Process reuse pattern verified (cheap spawning)
+- [ ] Windows shells addressable identically to Linux shells
+- [ ] Distributed buffers accessible from management zenka
+
+**Documentation & Integration:**
+- [ ] Complete architecture documented (with diagrams)
+- [ ] Session routing patterns documented with examples
+- [ ] Capability template examples provided
+- [ ] Cubic space topology integration explained
+- [ ] Code merged to main development branch
+- [ ] MEMORY.md updated with complete architecture
+
+---
+
+## Architecture Philosophy & Vision
+
+### Why This Matters
+This infrastructure unifies heterogeneous infrastructure (Windows, Linux, macOS) under a single management model:
+- **Slim trunk**: Terminal I/O → route → command handling
+- **Safe abstraction**: Capability trees instead of direct shell access
+- **LLM-friendly**: Agents get safe, constrained interfaces by design
+- **Unifies precedents**: Converges relative/absolute routing, context trees, 'select' into coherent whole
+
+### Safety Model Innovation
+Rather than restricting access to keep systems safe:
+- **Grant full access** through filtered capabilities
+- **Let administrators be powerful** but through abstraction layers
+- **Prevent accidental damage** with template constraints
+- **Enable LLM agents** without worrying about capability misuse
+- **Works the same** across all platforms
+
+### Connection to Broader Work
+- **Cubic space topology**: Shell sessions become nodes in routing hierarchy
+- **Distributed buffers**: History accessible from multiple route points
+- **Template system**: Security policies as declarative data
+- **Management zenka**: Can interact with infrastructure uniformly
+- **LLM groups**: Have safe, structured access to managed systems
+
+### Parallel: Graphical Desktop Unification (Phase 2)
+
+This shell infrastructure mirrors upcoming work on distributed graphical desktops. The same principles that make shells manageable across platforms will unify graphical access.
+
+#### Current State: X-11 Modes & Infrastructure
+
+**Display Modes:**
+- **'host'** - Direct access to real hardware display (physical monitor)
+- **'Xephir'** - Nested X server (X11 window running inside another X session)
+- **'Xvfb'** - Virtual framebuffer (headless, accessible via VNC/SPICE)
+
+**Related Zenka:**
+- **openbox** - Window manager (handles window placement, decorations, focus)
+- **Layer management zenka** - Controls window layer stacking and spatial layout
+- **protocol-7-menu** - Menu system (transitioning from kiosk-focused to flexible user desktops)
+
+**Current Limitations:**
+- Each display mode handled separately (host/Xephir/Xvfb as distinct code paths)
+- Session state not distributed across display modes
+- Window history/layout not accessible from management plane
+- Protocol-7-menu (and by extension nshell) treats graphical access as special case
+- No safe capability filtering for graphical operations (full access or none)
+
+#### Vision: Unified Graphical Desktop Infrastructure
+
+Same three-layer architecture as shell infrastructure:
+
+**Layer 1: Distributed Frame & Session Buffers**
+- Frame buffer accessible as protocol-7 resource (not tied to display hardware)
+- Window layout history and state distributed
+- Session state (open windows, positions, focus) replicated across access points
+- Example: User can start desktop on 'host', pause, resume on 'Xvfb', switch back seamlessly
+
+**Layer 2: Display Mode Tunneling**
+- Real hardware → Xvfb → Xephir all appear identically to clients
+- Transparent switching between display modes (mode parameter in session context)
+- Desktop sessions own their display mode (can switch transparently)
+- Works for all zenka communication, not just user interaction
+- Removes special-case handling for different display modes
+
+**Layer 3: Graphical Capability Filtering**
+- Template-based window/command access (parallel to shell command trees)
+- Security context-aware window access (who can see/interact with which windows)
+- LLM agents interact with GUI through constrained capability trees
+- Example: LLM can navigate menu system but cannot move system tray
+- Works identically across all display modes
+
+#### Integration with Shell Infrastructure
+
+**nshell zenka** will benefit directly:
+- nshell terminal window becomes protocol-7 session object
+- Terminal multiplexing uses same session routing as shell routing
+- User can 'select' between terminal windows and graphical contexts using same mechanism
+- Terminal history and layout distributed alongside shell session history
+
+**protocol-7-menu zenka** will become unified resource:
+- Menu (whether text-based in terminal or graphical in desktop) uses same routing
+- Menu commands deliver to same action handlers regardless of display mode
+- Menu session and shell session can be bridged through unified routing
+
+#### Concrete Example: User Workflow
+
+```
+User boots into Debian (native Linux host)
+  ↓
+Runs: p7 protocol-7-menu (launches protocol-7-menu zenka)
+  ↓
+protocol-7-menu can run in:
+  - Text-mode in nshell (terminal)
+  - Graphical mode on real hardware (Xvfb → hardware bridge)
+  - Nested mode within existing desktop (Xephir)
+  ↓
+User selects 'Windows VM' from menu
+  ↓
+KVM Windows session appears as protocol-7 resource
+  ↓
+User can now:
+  - Access Windows powershell through nshell (shell tunneling)
+  - View Windows desktop through graphical UI (graphical tunneling)
+  - Both shells and windows addressable identically through protocol-7 routing
+  ↓
+User pauses work, switches to laptop
+  ↓
+On laptop: p7 protocol-7-menu connects to same infrastructure
+  ↓
+Session state restored (same windows visible, same shells available)
+    ↓
+Work continues seamlessly (display mode transparently handled)
+```
+
+#### Phase 2 Implementation Structure
+
+Will parallel Phase 1-4 shell infrastructure work:
+
+**Phase 1**: Analyze current X-11/openbox/layer-management interaction
+**Phase 2**: Extend session model with frame buffer distribution
+**Phase 3**: Implement display mode tunneling, migrate from mode-specific code paths
+**Phase 4**: Remove special-case handling, document graphical patterns
+
+**Related Existing Code:**
+- `modules/X-11.*` - Current X11 mode handling
+- `modules/openbox.*` - Window manager integration
+- `modules/protocol-7-menu.*` - Menu zenka (benefits from unified routing)
+- `modules/nshell.*` - Terminal zenka (will integrate with graphical context)
+
+#### Why Both Together?
+
+Shells and desktops follow identical abstraction:
+1. Multiple backends (shells: bash/zsh/powershell | displays: host/Xvfb/Xephir)
+2. Session ownership (every shell/desktop is a protocol-7 resource)
+3. Distributed buffers (history/state accessible from anywhere)
+4. Capability filtering (safe access through templates)
+5. Unified routing (select between them identically)
+
+**The convergence**: Both emerge naturally from protocol-7's core abstraction - **any resource becomes addressable, manageable, and safe**.
+
+#### Concrete Use Case: Windows 11 Virtualization + Debian Host
+
+User has:
+- Real Debian host (native OS, ready for Linux work)
+- Windows 11 VM (KVM, accessible for Windows applications)
+
+With unified infrastructure:
+- **Shell access**: Debian bash and Windows powershell through same nshell interface
+- **Graphical access**: Debian desktop and Windows desktop through same graphical menu
+- **Resource sharing**: File systems and data accessible uniformly
+- **Session continuity**: Pause work on host, resume on Windows VM, back to Debian - seamlessly
+
+This is the **practical realization** of heterogeneous infrastructure management - not a theoretical exercise.
+
+#### Success Criteria - Graphical Phase
+
+**Foundation:**
+- [ ] Display mode abstraction designed (real/Xvfb/Xephir as session parameter)
+- [ ] Frame buffer distribution designed
+- [ ] Window/desktop capability system designed
+
+**Implementation:**
+- [ ] Layer 1: Distributed frame buffers working
+- [ ] Layer 2: Display mode tunneling transparent (user invisible)
+- [ ] Layer 3: Capability-based window access working
+- [ ] nshell properly integrated with graphical context
+- [ ] protocol-7-menu benefits from unified routing
+
+**Integration:**
+- [ ] Real hardware, Xvfb, Xephir all addressable identically
+- [ ] Window layout history distributed
+- [ ] All special-case display mode code removed
+- [ ] Complete documentation of graphical patterns
+
+metadata:
+  created: 2026-02-12
+  priority: "critical - foundational infrastructure"
+  scope: "Phase 1 (Shell): 24-32 hours | Phase 2 (Desktop): 20-28 hours | Total: 44-60 hours"
+  team_size: 1
+  estimated_calendar_days: "10-14 (with focus sessions)"
+  background: |
+    Exposed by nshell protocol error (Feb 2026) showing fragility of mixed abstraction levels.
+    Foundation for unified Windows 11 KVM + Debian host management (concrete real-world use case).
+    Blocks project website launch (dependent on letsencr/httpsd working properly).
+    Blocks proper graphical desktop unification work.
+  phase_1_effort: "24-32 hours - Shell infrastructure (nshell, p7-log, base routing)"
+  phase_2_effort: "20-28 hours - Graphical infrastructure (openbox, X-11 modes, protocol-7-menu)"
+  related_features:
+    - "Windows shell integration via socat (cmd.exe/powershell.exe)"
+    - "LLM-safe capability abstraction for shells and GUIs"
+    - "Cubic space topology mapping with heterogeneous resources"
+    - "Distributed session buffers for history/state"
+    - "Multi-display unification (real hardware/Xvfb/Xephir)"
+    - "nshell zenka enhanced with graphical context"
+    - "protocol-7-menu unified across text and graphical modes"
+  philosophy: |
+    Build single unified abstraction that benefits entire topology.
+    Enable safe, unified management across heterogeneous systems without distinction between:
+    - Local vs. remote resources (transparent routing)
+    - Different OS shells (Windows/Linux/macOS)
+    - Different display modes (hardware/virtual/nested)
+    - Different interface types (terminal/graphical)
+    Safety through capability abstraction (full power + filtering), not restriction.
+  success_indicator: |
+    Project website launches with proper SSL/TLS (letsencr + httpsd working).
+    User can manage heterogeneous infrastructure (Windows VM + Debian host) through unified interface.
+    Both shell and graphical resources addressable identically through protocol-7 routing.
