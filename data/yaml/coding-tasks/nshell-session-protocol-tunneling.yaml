@@ -39,11 +39,37 @@ Enable any shell on any OS (Linux, Windows, macOS) to be:
 4. **Workaround infrastructure**: nshell uses error handlers + direct buffer append
 5. **No unified addressing**: 'select' is string-level hack, not proper routing
 
-### Identified Bug (Feb 2026) - Symptom of Architecture Gap
-When 'select httpd' active + user input causes state change:
-- p7-log.append command routed to httpd instead of p7-log zenka
-- Dual route ID prefix corrupts message: `(415059)(731779)p7-log.append ...`
-- Root cause: mixing string-level prefix hacking with protocol-level buffer append
+### Identified Bugs (Feb 2026) - Symptoms of Architecture Gap
+
+#### Primary Bug: Protocol Corruption on First 'select' Command
+**Reproducibility**: 100% - occurs on first `select` in every nshell session
+
+**Reproduction Steps**:
+1. Start nshell: `./bin/nshell`
+2. As first command, type: `select httpd`
+3. Observe: "protocol mismatch" error with corrupted message
+
+**Observed Corruption**:
+```
+httpd : [7770703] protocol mismatch ['(234771)(975957)p7-log.append zenka 3OY6TQWKA6WJCGA 1 [7753909] TRUE-reply to unknown route id [0], ignored.']
+```
+- Dual route ID prefix: `(234771)(975957)` (two conflicting route prefixes)
+- Wrong message content: `p7-log.append` routed through httpd
+- System recovers: second `select httpd` works normally
+
+**Root Cause**: Three architectural workarounds interfering on initialization:
+1. Error handler registration abuse (protocol-level hack)
+2. String-level prefix manipulation (select command)
+3. Direct buffer append optimization (nshell)
+
+**Impact**: First select always fails, subsequent selects work
+
+#### Secondary Issues Found (Related to Workaround Infrastructure)
+- **SIZE reply broken**: Output no longer prefixed correctly in nshell
+- **Output formatting**: Message prefixing inconsistent (related to buffer append issues)
+- **Terminal state**: Underscore cursor artifacts in terminal history (not sent as command)
+
+**Note**: These issues are all manifestations of the same architectural problem - mixed abstraction levels in routing. Will be resolved together in Phase 1 implementation.
 
 ### Why Fix This Now
 - Foundation needed for cubic space topology mapping (already starting)
@@ -205,16 +231,25 @@ Acceptance criteria:
 - Remove error handler registration abuse
 - Replace with proper session-based routing
 - Verify all nshell operations still work
+- **Fix documented bugs**: First-select protocol mismatch, SIZE reply, output prefixing
 
 Implementation notes:
 - Remove: Protocol error handler registration from nshell init
 - Replace: With proper session namespace setting
 - Test: All existing nshell operations
+- **Regression tests** (from documented bugs):
+  - First `select httpd` must succeed without protocol mismatch
+  - SIZE reply must work with correct output prefixing
+  - Multiple selects must maintain consistent routing
+  - Output formatting must be correct after each select/unselect
 
 Acceptance criteria:
 - Error handler abuse removed
 - nshell functions exactly as before
+- **No protocol mismatch on first select** (primary bug fixed)
+- **SIZE reply working with correct prefixing** (secondary bug fixed)
 - No regression in command routing
+- All documented issues resolved
 
 #### Task 3.2: Update direct buffer append approach
 - Document new pattern: use session routing instead
