@@ -1,46 +1,47 @@
 ## [:< ##
 
 # name  = letsencr.child.acme_new
-# descr = child process ACME new certificate issuance (blocking crypto/network calls)
+# descr = child process ACME new certificate issuance [ blocking calls ]
 
 my $msg = shift;
 
-my $domains = $msg->{domains};                           # array ref
-my $email   = $msg->{email} || <letsencr.admin.email>;
+my $domains = $msg->{'domains'};                           # array ref
+my $email   = $msg->{'email'} || <letsencr.admin.email>;
 
 return {
-    status => 'error',
+    status => qw| error |,
     error  => 'domains array required'
     }
-    unless $domains && ref($domains) eq 'ARRAY' && @$domains;
+    unless $domains && ref($domains) eq qw| ARRAY | && @$domains;
 
 my $primary_domain = $domains->[0];
 
-<[base.log]>->(
+<[base.logs]>->(
     2,
-    "child: issuing new certificate for domains: " . join( ', ', @$domains )
+    'issuing new certificate for domains: %s',
+    join( ', ', $domains->@* )
 );
 
 ## STEP 1: Fetch ACME directory (if not already cached)
 unless ( <letsencr.child.acme_client>->{directory} ) {
-    <[base.log]>->( 2, 'step 1: fetching ACME directory' );
+    <[base.log]>->( 2, ': step 1 : fetching ACME directory' );
     my $dir_info = <[letsencr.child.fetch_acme_directory]>;
     unless ($dir_info) {
         return {
-            status => 'error',
+            status => qw| error |,
             error  => 'Failed to fetch ACME directory'
         };
     }
 }
 
 ## STEP 2: Load or generate account key
-<[base.log]>->( 2, 'step 2: loading or generating account key' );
+<[base.log]>->( 2, ': step 2 : loading or generating account key' );
 my $account_key = <[letsencr.child.load_account_key]>;
 unless ($account_key) {
     $account_key = <[letsencr.child.generate_account_key]>;
     unless ($account_key) {
         return {
-            status => 'error',
+            status => qw| error |,
             error  => 'Failed to generate account key'
         };
     }
@@ -55,7 +56,7 @@ unless ( <letsencr.child.acme_client>->{account_url} ) {
         my $existing = <[letsencr.child.acme_check_account]>;
         unless ($existing) {
             return {
-                status => 'error',
+                status => qw| error |,
                 error  => 'Failed to register ACME account'
             };
         }
@@ -67,14 +68,16 @@ unless ( <letsencr.child.acme_client>->{account_url} ) {
 my $order = <[letsencr.child.acme_create_order]>->($domains);
 unless ($order) {
     return {
-        status => 'error',
+        status => qw| error |,
         error  => 'Failed to create certificate order'
     };
 }
 
-<[base.log]>->( 2, "  order URL: $order->{order_url}" );
-<[base.log]>->(
-    2, "  authorizations: " . scalar( @{ $order->{authorizations} } )
+<[base.logs]>->( 2, 'order URL: %s', $order->{'order_url'} );
+<[base.logs]>->(
+    2,
+    'authorizations: %d',
+    scalar( @{ $order->{authorizations} } )
 );
 
 ## STEP 5: Process authorizations for each domain
@@ -86,16 +89,17 @@ foreach my $auth_url ( @{ $order->{authorizations} } ) {
     $auth_index++;
     my $domain = $domains->[ $auth_index - 1 ];
 
-    <[base.log]>->(
-        2,
-        "  authorization $auth_index/${\(scalar @{$order->{authorizations}})}: $domain"
+    my $total_auths = scalar @{ $order->{authorizations} };
+    <[base.logs]>->(
+        2, 'authorization %d/%d: %s',
+        $auth_index, $total_auths, $domain
     );
 
     ## Get authorization and challenges
     my $auth = <[letsencr.child.acme_get_authorization]>->($auth_url);
     unless ($auth) {
         return {
-            status => 'error',
+            status => qw| error |,
             error  => "Failed to get authorization for $domain"
         };
     }
@@ -114,31 +118,33 @@ foreach my $auth_url ( @{ $order->{authorizations} } ) {
 
     unless ($challenge_data) {
         return {
-            status => 'error',
+            status => qw| error |,
             error  => "No suitable challenge available for $domain"
         };
     }
 
-    <[base.log]>->( 2, "    challenge type: $challenge_type" );
+    <[base.logs]>->( 2, 'challenge type: %s', $challenge_type );
 
     ## Create challenge response based on type
     my $challenge_response;
 
-    if ( $challenge_type eq 'dns-01' ) {
+    if ( $challenge_type eq qw| dns-01 | ) {
         $challenge_response = <[letsencr.child.create_dns01_challenge]>->(
             $challenge_data, $domain
         );
 
         unless ($challenge_response) {
             return {
-                status => 'error',
+                status => qw| error |,
                 error  => "Failed to create DNS-01 challenge for $domain"
             };
         }
 
-        <[base.log]>->(
+        <[base.logs]>->(
             2,
-            "    DNS TXT record: $challenge_response->{dns_record_name} = $challenge_response->{dns_value}"
+            'DNS TXT record: %s = %s',
+            $challenge_response->{'dns_record_name'},
+            $challenge_response->{'dns_value'}
         );
 
         ## Wait for DNS propagation
@@ -150,15 +156,16 @@ foreach my $auth_url ( @{ $order->{authorizations} } ) {
 
         unless ( $dns_check && $dns_check->{propagated} ) {
             return {
-                status => 'error',
+                status => qw| error |,
                 error  =>
                     "DNS propagation failed for $domain: $dns_check->{error}"
             };
         }
 
-        <[base.log]>->(
+        <[base.logs]>->(
             2,
-            "    DNS propagated successfully in $dns_check->{attempts} attempts"
+            'DNS propagated successfully in %d attempts',
+            $dns_check->{'attempts'}
         );
 
     } else {
@@ -169,13 +176,15 @@ foreach my $auth_url ( @{ $order->{authorizations} } ) {
 
         unless ($challenge_response) {
             return {
-                status => 'error',
+                status => qw| error |,
                 error  => "Failed to create HTTP-01 challenge for $domain"
             };
         }
 
-        <[base.log]>->(
-            2, "    challenge file: $challenge_response->{file_path}"
+        <[base.logs]>->(
+            2,
+            'challenge ready at : %s',
+            $challenge_response->{well_known_url}
         );
     }
 
@@ -187,7 +196,7 @@ foreach my $auth_url ( @{ $order->{authorizations} } ) {
 
     unless ($respond_result) {
         return {
-            status => 'error',
+            status => qw| error |,
             error  => "Failed to respond to challenge for $domain"
         };
     }
@@ -205,15 +214,17 @@ foreach my $auth_info (@auth_urls) {
     unless ( $validation && $validation->{valid} ) {
         my $error = $validation->{error} || 'Challenge validation failed';
         return {
-            status => 'error',
+            status => qw| error |,
             error  =>
                 "Domain validation failed for $auth_info->{domain}: $error"
         };
     }
 
-    <[base.log]>->(
+    <[base.logs]>->(
         2,
-        "    $auth_info->{domain}: validated in $validation->{attempts} attempts"
+        '%s: validated in %d attempts',
+        $auth_info->{'domain'},
+        $validation->{'attempts'}
     );
 }
 
@@ -222,7 +233,7 @@ foreach my $auth_info (@auth_urls) {
 my $csr = <[letsencr.child.generate_csr]>->($domains);
 unless ($csr) {
     return {
-        status => 'error',
+        status => qw| error |,
         error  => 'Failed to generate CSR'
     };
 }
@@ -232,13 +243,13 @@ unless ($csr) {
 my $cert_result = <[letsencr.child.acme_finalize_order]>;
 unless ($cert_result) {
     return {
-        status => 'error',
+        status => qw| error |,
         error  => 'Failed to finalize order or download certificate'
     };
 }
 
-<[base.log]>->( 2, "certificate obtained successfully!" );
-<[base.log]>->( 2, "  polled $cert_result->{poll_attempts} times" );
+<[base.log]>->( 2, 'certificate obtained successfully' );
+<[base.logs]>->( 2, 'polled %d times', $cert_result->{'poll_attempts'} );
 
 ## STEP 9: Parse certificate expiration
 my $valid_until = time() + ( 90 * 86400 );    # Default 90 days
@@ -248,28 +259,28 @@ my $valid_until = time() + ( 90 * 86400 );    # Default 90 days
 <[base.log]>->( 2, 'sending certificate to parent process' );
 
 <[letsencr.child.send_to_parent]>->(
-    {   command     => 'cert_ready',
+    {   command     => qw| cert_ready |,
         domain      => $primary_domain,
         domains     => $domains,
         cert        => $cert_result->{certificate},
         key         => $cert_result->{key},
         valid_until => $valid_until,
-        fingerprint => 'SHA256:...',             # TODO: Calculate fingerprint
+        fingerprint => qw| SHA256:... |,         # TODO: Calculate fingerprint
         cert_url    => $cert_result->{cert_url},
     }
 );
 
 return {
-    status      => 'success',
+    status      => qw| success |,
     domains     => $domains,
-    cert        => $cert_result->{certificate},
-    key         => $cert_result->{key},
+    cert        => $cert_result->{'certificate'},
+    key         => $cert_result->{'key'},
     valid_until => $valid_until,
-    cert_url    => $cert_result->{cert_url},
+    cert_url    => $cert_result->{'cert_url'},
 };
 
-#,,,,,...,.,,,...,..,,,,.,.,,,,..,,.,,...,...,..,,...,...,...,.,,,,,,,.,.,...,
-#NZQFBUY7GNP4DXGTYHKN5LACBC2GOGGCQBX4LYDB5A6HFLJDISHQKYHZRQ4RECNWOMUJ4B32CPIT4
-#\\\|UWECUZ3HGA3BF5KCKHG7KL46UMGC4PIFGT36RGBUH5T73ODKD5X \ / AMOS7 \ YOURUM ::
-#\[7]HWDMNITIS2EAWW4QPQ5Y6RMICIFCL5GHQFDM3HW75UFD4EXT5SAQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,.,,,.,,,,,,.,,,.,,.,.,,.,,,.,,..,,...,...,.,,,,.,,..,,.,.,.,,,
+#DJMDQSF4VNUJBGVXLUEXQF2BMV3TCRAW3RFN3WGJ4O6U5PIRH3SOU4HLYSRDFJKXEXRSUZQRB6CUE
+#\\\|LM7E5FS4P2KPAAHDHROVTTRF7XZLC7POJP5FZIWJRVFW6K35MSJ \ / AMOS7 \ YOURUM ::
+#\[7]23Z5ZB2ZZPJLD3J4ETEGKTHWAB3UDQQPR7DE6QOCGUX6VGZHBOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
