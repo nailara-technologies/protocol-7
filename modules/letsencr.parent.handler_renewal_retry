@@ -11,7 +11,7 @@ my $attempt = $timer_data->{attempt} // 1;
 <[base.log]>->( 2, "renewal retry for domain: $domain (attempt $attempt)" );
 
 ## Get certificate info
-my $cert_info = <letsencr.parent.certs> {$domain};
+my $cert_info = <letsencr.parent.certs>->{$domain};
 return FALSE unless $cert_info;
 
 ## Send renewal command to child via Protocol-7 command protocol
@@ -33,15 +33,14 @@ my $renewal_cmd = sprintf 'letsencr.child.cmd.renew-certificate %s', $domain;
 );
 
 ## Update attempt counter
-if ( exists <letsencr.parent.renewal_timers> {$domain} ) {
-    <letsencr.parent.renewal_timers> {$domain}{attempts}
-    ++;
+if ( exists <letsencr.parent.renewal_timers>->{$domain} ) {
+    <letsencr.parent.renewal_timers>->{$domain}{attempts}++;
 }
 
 return TRUE;
 
-#,,,.,,,.,,,,,,,,,,,.,,.,,.,.,.,,,,,,,,..,,,,,..,,...,...,..,,..,,.,.,.,.,,.,,
-#6B75GYT4ADRN6XE7AACPOPLGXKFZ5WBSYLFB6ECPIP4HQHKD4JGQKO3S7SMEM2VWOY6NP54YNIY6G
-#\\\|42I4G3UTF3LQINT7T724TDMLZZ4LUJALRRUXRRQ5QGQ3BYPPQZK \ / AMOS7 \ YOURUM ::
-#\[7]IPPBEP35Z3FMUVF7CVNBWTCX7CXDO52TLBMFILH2OECDBDBU6UCI 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,.,,,,..,...,...,.,.,.,,,,.,,..,,..,,...,...,.,,,,,,,,.,,.,,,,,,,
+#DAZRUA2WWEY7W5JPE3QR5WYM447UG7JDO6B3JNEGTZYDLUMOD4AHPSPGEGGHIFBEZTH54YJO2OB5W
+#\\\|FMUFKAQNCAP4QZKG7KXTJY6KVYHLVGYZVKD55ZKGVPAVU62D5TV \ / AMOS7 \ YOURUM ::
+#\[7]KPH4PPKGFRISH326CTDY2NKMVA7ZP4M6GG6CGAMQYG6WJJULFQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

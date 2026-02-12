@@ -57,9 +57,9 @@ return {
 ##  Update unified all_channels list for display  ##
 <[base.logs]>->( 2, "channels.update: updating all_channels list entry" );
 my $sub_count
-    = scalar keys %{ <channels.subscriptions> {$channel_path} // {} };
+    = scalar keys %{ <channels.subscriptions>->{$channel_path} // {} };
 my $status = 'ACTIVE';
-<channels.all_channels> {$channel_path} = {
+<channels.all_channels>->{$channel_path} = {
     'channel_path' => $channel_path,
     'status'       => $status,
     'last_update'  => '(pending)',
@@ -73,7 +73,7 @@ my $current_ts_b32 = encode_b32r( pack( 'Q>', int($current_time) ) );
 <channels.timestamps>->{$channel_path} = $current_ts_b32;
 
 ##  Update all_channels list with computed timestamp  ##
-<channels.all_channels> {$channel_path}->{'last_update'} = $current_ts_b32;
+<channels.all_channels>->{$channel_path}->{'last_update'} = $current_ts_b32;
 
 ##  Invalidate global timestamp (any channel changed)  ##
 <[base.logs]>->( 2, "channels.update: invalidating checksums" );
@@ -107,8 +107,8 @@ return {
 
 1;
 
-#,,,,,,.,,.,,,,,,,,,.,,..,.,.,,..,,..,..,,,,.,.,.,...,...,.,.,..,,..,,,.,,,,,,
-#SPDTIDDOFLJAJTIYDQSPYJ6UXJSVFSJDNJTDD2CMLFJH64MXQRTETFYN5NCU7U55BCK4JBLH22FTA
-#\\\|73ATVVJ2IKIUJMKPITR4I5IWAXSIQ5DNCKPOZYRNDCOW2UMMTXE \ / AMOS7 \ YOURUM ::
-#\[7]5U77OCKDU364W3IUJFW3DS5UJFTXRHAF7CDC524GE3BLV2HRHGAY 7  DATA SIGNATURE ::
+#,,.,,...,..,,.,,,,,.,,,.,,,.,,..,,,.,,,.,...,.,.,...,..,,...,,.,,,,.,,,,,...,
+#O2DIJVMBFNWU4RMUVSULPY7ACO7CMKQHDZDALGCGGDO5MEJSWXAHJQVK7HKQSZKQ35E73MQWU3SBE
+#\\\|4QEPCURP3O2SVKIPOE4O3XUJN6FRGCAGDBOC35CQUA7JDBGTV5W \ / AMOS7 \ YOURUM ::
+#\[7]HXK7UYK444FODK52YCC3FNOFFNUCI4SIQ4SWXG6WPN7AELXK2UBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

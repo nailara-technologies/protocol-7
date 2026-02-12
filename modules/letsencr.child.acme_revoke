@@ -52,7 +52,7 @@ my $cert_b64u = <[letsencr.child.encode_base64url]>->($cert_der);
 ## STEP 2: Ensure ACME account is set up
 <[base.log]>->( 2, 'step 2: verifying ACME account' );
 
-unless ( <letsencr.child.acme_client> {directory} ) {
+unless ( <letsencr.child.acme_client>->{directory} ) {
     my $dir_info = <[letsencr.child.fetch_acme_directory]>;
     unless ($dir_info) {
         return {
@@ -62,7 +62,7 @@ unless ( <letsencr.child.acme_client> {directory} ) {
     }
 }
 
-unless ( <letsencr.child.acme_client> {account_url} ) {
+unless ( <letsencr.child.acme_client>->{account_url} ) {
     ## Try to get or register account
     my $account_info = <[letsencr.child.acme_check_account]>;
     unless ($account_info) {
@@ -90,7 +90,7 @@ unless ($nonce) {
 ## STEP 4: Create revocation request
 <[base.log]>->( 2, 'step 4: creating revocation request' );
 
-my $revoke_url = <letsencr.child.acme_client> {directory}{revoke};
+my $revoke_url = <letsencr.child.acme_client>->{directory}{revoke};
 unless ($revoke_url) {
     return {
         status => qw| error |,
@@ -106,7 +106,7 @@ my $revoke_payload = { certificate => $cert_b64u };
 
 my $revoke_response = <[letsencr.child.acme_http_request]>->(
     'POST', $revoke_url, $revoke_payload, $nonce,
-    <letsencr.child.acme_client> {kid}
+    <letsencr.child.acme_client>->{kid}
 );
 
 unless ($revoke_response) {
@@ -141,8 +141,8 @@ my $result = {
 
 return $result;
 
-#,,..,...,,,.,..,,,,.,.,,,.,.,,.,,.,.,,..,...,..,,...,...,..,,,,.,,.,,,.,,,,,,
-#2V3FMOTH3BVQPCVBSNSLRUQEOU5IFAESMC4E5I6ZNYKP7QYUOQZNFECYDSKMXPMGQAB4ZLZUYJZSC
-#\\\|YW6VR2VLBITCBCFNNBC4XOOXEYASAURL267COD5WA3MK6UW2QS2 \ / AMOS7 \ YOURUM ::
-#\[7]2Q56BJNVYSG5OB24ATJRLQTCW6NYUVMMA6BNO47A4DAEN2ZADCCQ 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,...,.,,,,,,,,,.,,,.,..,,...,,..,..,,...,...,.,,,,.,,.,,,,..,,,,,
+#R3YZZI2OBBM3JJX44IW5S5ZGHUMYRKIKR23GF4GAMEXL4WMAX45CDZSRPGDN5MSDGJDS5SUYHUD7K
+#\\\|NMRBFJVEYOVIXYQ4DRFEAWLQFUDHNXIV6JDAZTJTP72MXY6SDZ6 \ / AMOS7 \ YOURUM ::
+#\[7]UBK4ZRL2Z524TK5NUC5OVH2HPZSW6VTSFAUNC55TOECR6ZXBAUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

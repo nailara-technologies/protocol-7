@@ -22,7 +22,7 @@ my $response = <[letsencr.child.acme_http_request]>->(
     $auth_url,
     '',        # empty payload for POST-as-GET
     $nonce,
-    <letsencr.child.acme_client> {account_url}
+    <letsencr.child.acme_client>->{account_url}
 );
 
 unless ($response) {
@@ -92,7 +92,7 @@ if ($is_wildcard) {
 }
 
 ## Update nonce
-<letsencr.child.acme_client> {nonce} = $response->{nonce};
+<letsencr.child.acme_client>->{nonce} = $response->{nonce};
 
 return {
     status     => $auth_data->{status},
@@ -103,8 +103,8 @@ return {
     wildcard   => $is_wildcard,
 };
 
-#,,,,,..,,...,.,,,...,..,,.,,,,.,,.,.,,.,,,.,,..,,...,...,,,.,...,.,,,..,,,,.,
-#4WWY5BL7FRNPMWVNQPLN4TIF7GFPNFQ5OORBLDFW7P6NL2LB6XESCF5UEEVMWJLP3MKUNWJ5WBN3K
-#\\\|7MQZHFQZMDNQXUOIUPALWEHWLYS6W7CYI3SUHRAOG5GIXQ6ZUQV \ / AMOS7 \ YOURUM ::
-#\[7]BKNLNAHLI6ZBJONVX3LKULEXKEX5DSGKS2ZBEG5S5W4SI6UNJWCI 7  DATA SIGNATURE ::
+#,,..,,..,.,,,.,,,,,,,..,,,,.,,..,,,.,...,.,.,..,,...,...,.,.,.,.,,.,,,,.,..,,
+#HBEZRFXJY4CF6JNTI7TBY6YLDMD2QXIIKXYBXEC7NXSUOFB4BDG5WKNX5ZQRD74WAXBBXOS2T3PZK
+#\\\|7VGKQVX2DC4RZGQR3FUKIK6GSQQKFORGPHXZZDFOMZV52UMYWY3 \ / AMOS7 \ YOURUM ::
+#\[7]M43FUJPAB6ARVVTUXIQHTB3S2QCK6DI3QCNAO47AMRJPEISHFKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

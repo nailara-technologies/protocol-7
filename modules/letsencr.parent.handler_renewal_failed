@@ -17,15 +17,14 @@ my $error_code = $msg->{error_code};
 <letsencr.stats.renewals_failed>++;
 
 ## Implement retry logic
-if ( !exists <letsencr.parent.renewal_timers> {$domain} ) {
-    <letsencr.parent.renewal_timers> {$domain} = {
+if ( !exists <letsencr.parent.renewal_timers>->{$domain} ) {
+    <letsencr.parent.renewal_timers>->{$domain} = {
         started  => time(),
         attempts => 0,
     };
 }
 
-my $attempts = <letsencr.parent.renewal_timers> {$domain}{attempts}
-++;
+my $attempts    = <letsencr.parent.renewal_timers>->{$domain}{attempts}++;
 my $max_retries = 5;
 
 if ( $attempts < $max_retries ) {
@@ -61,8 +60,8 @@ if ( $attempts < $max_retries ) {
 
 return FALSE;
 
-#,,,,,...,.,,,..,,..,,,,.,..,,...,,..,,,,,.,.,..,,...,...,...,.,.,,,.,...,.,.,
-#DBNPWC4D5VEE4ADXHRSFL7WSR3EVO2O7E7377Y4YIHWIZQSVYHYQI2GJVQQJCNWLFFAHV5NAYRERY
-#\\\|CBJUJRFPKT3MFIAI5PBKRCOLYJ6JFA3AEABWV22Y7ZX3NU4H7RZ \ / AMOS7 \ YOURUM ::
-#\[7]7SXXFTHTMQF6QYWFO3RETS27V3TWTF54QCURUY3ZY7HLKNZC46DQ 7  DATA SIGNATURE ::
+#,,,.,..,,...,.,,,.,.,.,.,.,.,,,,,,,.,,,,,.,,,..,,...,...,.,.,,,.,,..,.,.,..,,
+#Y66TLGUBDDTQMT67ERKD7RI2AKJNRD2H3Z5KMA3KCIUVTUSWCNVNEE6TIXIHDOUZAKGJTTGIDBUXS
+#\\\|7INTQF4RWVON6FOZ765UVGORXTKVVZFWY4U2O4QMXNXOREMSBOA \ / AMOS7 \ YOURUM ::
+#\[7]ZR5F273RJYOM35XH725OOKOVDEQPI6NX2RXDHGGI6QCIBWIDQWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

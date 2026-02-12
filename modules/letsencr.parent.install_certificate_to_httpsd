@@ -20,7 +20,7 @@ return {
 );
 
 ## Get certificate paths from registry
-my $cert_entry = <letsencr.parent.certs> {$domain};
+my $cert_entry = <letsencr.parent.certs>->{$domain};
 
 unless ( defined $cert_entry ) {
     <[base.logs]>->( 1, 'certificate not found in registry: %s', $domain );
@@ -210,8 +210,8 @@ if ($reload_result) {
 
 0;
 
-#,,,.,,,.,,..,,..,,.,,,..,,..,..,,,,,,..,,...,..,,...,...,...,...,.,,,...,...,
-#2XAZGHG7H4KVIENKCHJARP73JPSSRP4ZFI6JL2Q3JSO3B4EBTLKXYSSMGUB2P37Y3RKGZLSA5SC64
-#\\\|SHX2SEGYKW64WAY2YS6VZNT2A7SMKRVDMXTJG4DQHMKZ4EC5ADC \ / AMOS7 \ YOURUM ::
-#\[7]RM6P4P3AHFOV4R423YOVA5IZPTSZNQ2KQQDHTZP63VHYCKZ66SAI 7  DATA SIGNATURE ::
+#,,,,,,..,...,,,,,..,,...,.,,,,..,...,,,,,,,,,..,,...,..,,...,,,.,,.,,.,.,,..,
+#DQKUOHARKSLE6FLNFWM56Q6BZ7NPBAXN5Z2MYIYRCQYTUMOJBBR4DTW6B35MPQFQOEE746FNNLRZM
+#\\\|6IIZFJGY74OQBYZRNEJZ6JCNT4PHDMEWPOX3XY6KMKW6YJGUIUF \ / AMOS7 \ YOURUM ::
+#\[7]KID6UTQJCNIMMTK7UZ6DSTRHDDN66NPUCODIZN2S5INT3ZPFBKCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

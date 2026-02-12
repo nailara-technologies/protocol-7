@@ -15,7 +15,7 @@ return {
 <[base.log]>->( 2, "manual certificate install requested for: $domain" );
 
 ## Check if certificate exists in registry
-unless ( exists <letsencr.parent.certs> {$domain} ) {
+unless ( exists <letsencr.parent.certs>->{$domain} ) {
     <[base.log]>->( 1, "certificate not found in registry: $domain" );
 
     return {
@@ -60,8 +60,8 @@ if ( $install_result->{status} eq qw| success | ) {
 
 0;
 
-#,,.,,.,,,,,,,.,.,,,,,,,.,.,,,.,,,..,,,,,,,.,,..,,...,...,,,,,.,.,...,.,,,..,,
-#PLFNDUD65XEIWTAZRHCR22NXI67XAUPVYKK2OY3IQMUQBQRB74QJW5DGVGKXWT5C3AJEFDFASOQZK
-#\\\|C7XAXAZS4O2TYTPD66L4LGZNXWDAE3QPJDYLPWO7T7AKBPKX26A \ / AMOS7 \ YOURUM ::
-#\[7]U3HXGRT622XNH3NKK5DZORIU5SWHMYDUVFGY33EGN3BLS47AB2BQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,,,,.,.,...,...,..,,.,.,,..,.,.,..,,...,...,,,,,,.,,,,,,..,,..,,
+#CHM5WIYIPSQCKWHPJWMUU6FDN4KIFZZRVC4M636GBJWL5PLSA3JBVNRCM5ZHPOASV5JMDM3L3UHSM
+#\\\|NUFXBPQIA6NHWAHRMIAZUT6T27PGPIH2CQKAMUP6ZARGLX6U7EA \ / AMOS7 \ YOURUM ::
+#\[7]2TG35YZ6SXK2FDW4E2NI63N7DR5PMFJYNW3NNYVY2IH36IEUAKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
