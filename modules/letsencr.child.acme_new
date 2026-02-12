@@ -104,10 +104,16 @@ unless ($order) {
 );
 
 ## return deferred to indicate async processing with parent coordination
-return { 'status' => qw| deferred | };
+## include order info so parent can orchestrate challenge setup
+return {
+    'status'         => qw| deferred |,
+    'order'          => $order,
+    'domains'        => $domains,
+    'primary_domain' => $primary_domain,
+};
 
-#,,.,,..,,.,.,.,,,,..,,.,,,..,,,,,,.,,.,.,...,..,,...,...,.,.,..,,..,,...,,.,,
-#GBZZFIGPTELVBIVITUBRLQT3K5FBR74VYFZG76K6B4U4QRWFQHX5COLNXGUMGN7VXJ4Z46KCIKUP4
-#\\\|IZNACJ2CUCLGOKQZWZMJSHJEGC2MZ7XLKHDWSMRBROWESNUJODK \ / AMOS7 \ YOURUM ::
-#\[7]J7F5FP6WYFM4DXIJY6GQFWKZYKD5OAHHMPRU6YWT6HOCDVNQ6OBA 7  DATA SIGNATURE ::
+#,,..,,..,.,,,,..,,..,,.,,.,.,.,.,,.,,,,.,...,..,,...,...,...,,,.,..,,,..,,.,,
+#23WBF6K5NS5BWKAXVTMOPM22ATV5NROJTABBWPGDITHGKDOSOINTMFP7H67QHV5DWKD2FVTTLTACA
+#\\\|74CLBEJCD5NC25462ERM3QBKRHYNJR4TFTCSDPRW6AULPTRALN7 \ / AMOS7 \ YOURUM ::
+#\[7]ILR7LEMZ7PJOSO6MT7VT6IKW6EICI2EV3X24PYHMW5GISLT7FKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
