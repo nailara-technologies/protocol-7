@@ -5,15 +5,15 @@
 
 my $challenge_info = shift;
 
-my $domain   = $challenge_info->{domain};
-my $token    = $challenge_info->{token};
-my $key_auth = $challenge_info->{key_auth};
-my $type     = $challenge_info->{type} // 'http-01';
+my $domain   = $challenge_info->{'domain'};
+my $token    = $challenge_info->{'token'};
+my $key_auth = $challenge_info->{'key_auth'};
+my $type     = $challenge_info->{'type'} // qw| http-01 |;
 
 unless ( $domain && $token && $key_auth ) {
-    <[base.log]>->( 1, 'error: missing required challenge parameters' );
+    <[base.log]>->( 0, 'missing required challenge parameters' );
     return {
-        status => 'failed',
+        status => qw| failed |,
         error  => 'missing domain, token, or key_auth'
     };
 }
@@ -23,10 +23,10 @@ unless ( $domain && $token && $key_auth ) {
     $type, $domain
 );
 
-## send challenge setup command to HTTPd
+## send challenge setup command to HTTPd via cube router
 ## [ parameters as space-separated args: domain token key_auth type ]
-my $challenge_cmd = 'httpd.cmd.setup-acme-challenge';
-my $args_string   = sprintf '%s %s %s %s', $domain, $token, $key_auth, $type;
+my $challenge_cmd = qw| cube.httpd.setup-acme-challenge |;
+my $args_string   = join ' ', $domain, $token, $key_auth, $type;
 
 my $result = <[base.protocol-7.command.send.local]>->(
     {   'command'   => $challenge_cmd,
@@ -51,8 +51,8 @@ if ($result) {
     };
 }
 
-#,,.,,,,.,.,.,...,,..,..,,..,,..,,.,.,,.,,,,,,..,,...,...,...,,.,,.,,,,,.,..,,
-#5UGCSJQVT7WP6E7B6NC75X2VFLWIOQEO36KMDLLC2T4BA6QKQPCOQVLTIZKVZP6GPMY76FE3VMJQQ
-#\\\|XGAN3VLPICENIDHF5KFRWTOONOO2MHH76C2QKCNGG4LOOKESECA \ / AMOS7 \ YOURUM ::
-#\[7]ILU6XVQHTXGVQ2JVBGSRP3V2GOFSA25RPDEIBVNCY4Y2WC56ISCA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,.,,.,,,...,.,,,..,,,,,,...,,..,..,,...,..,,.,,,.,,,.,,,,..,,,,,
+#FA6OZ4BMPZIJN6XUJZHPN26V2M37ZMEVCU75LFA2HSPVW6AV7K7OTSHI4WPS2Q27QLPBPPQASRVAC
+#\\\|T4WTUOOYIDJC6ULRUX6X75NWUFER5U37W6IXOUM4FWDL3BO5NW3 \ / AMOS7 \ YOURUM ::
+#\[7]O256PZXIXDIH7VOGULRQ7ZBRDHZ656GACRBR4O6YXNNRYF5RJIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
