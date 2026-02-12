@@ -35,9 +35,10 @@ if ( $load_result && $load_result->{status} eq 'success' ) {
 }
 
 ## Initialize renewal check timer using event system
-## Fires every <letsencr.renewal.check-interval> seconds (86400 = 24 hours)
+## fires after 0.7s on startup, then every <letsencr.renewal.check-interval> seconds (3600 = 1 hour)
 <letsencr.parent.renewal_check_timer> = <[event.add_timer]>->(
-    {   'interval' => <letsencr.renewal.check-interval>,
+    {   'after'    => 0.7,
+        'interval' => <letsencr.renewal.check-interval>,
         'handler'  => qw| letsencr.parent.handler_renewal_check |,
         'repeat'   => 1,
         'data'     => {},
@@ -140,8 +141,8 @@ if ( not exists <buffer.acme-activity> ) {
 
 0;
 
-#,,,,,,,,,.,,,...,,,,,,..,,,,,,..,,,.,..,,,,,,..,,...,...,.,.,...,...,...,,,,,
-#DVSNEZVIR3BIIGYI5YCFARKYYPPE5SWBLCMC6ZU4MGMDUBBU2LPWA37UHMVPCRGZWV3M652KV54I2
-#\\\|HKLI6ZT5RHXA4AHIC6AXPRZ3EHRKCR4BTSO23447C3XUEUDJGZY \ / AMOS7 \ YOURUM ::
-#\[7]EMDG3QAV3O3RK5TWHKALGLG5RPL5PPE2LQQBN5AVZFZIHNBTQKAQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,.,,,...,,,,,,..,..,,,..,..,,,,,,..,,...,...,.,,,,,.,..,,,,,,.,.,
+#KPIM4AOKQRC4Q6KU6EU3OWCD7UXSAXGXCCOBEOHRX7YEZVKAQIS5T5APZIVZP4XNFE4QWMC3YT5YI
+#\\\|JGVAEJXOIGM7VOGROZYUJ46BEMY4T27DHVPN3YQPMK5GNTL6RVV \ / AMOS7 \ YOURUM ::
+#\[7]WRVEAUQ6KP2PAS3BY5NQSQMAKTMYP6NTDTAHFCIOERYY2R2MWQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
