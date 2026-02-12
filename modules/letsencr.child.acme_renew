@@ -11,7 +11,7 @@ my $cert_info = $msg->{cert_info};
 <[base.log]>->( 2, "child: starting renewal for domain: $domain" );
 
 ## Initialize ACME protocol if needed
-unless ( <letsencr.child.acme_client> {account_key} ) {
+unless ( <letsencr.child.acme_client>->{account_key} ) {
     my $dir_info = <[letsencr.child.fetch_acme_directory]>;
     unless ($dir_info) {
         <[letsencr.child.send_to_parent]>->(
@@ -30,7 +30,7 @@ unless ( <letsencr.child.acme_client> {account_key} ) {
     }
 
     ## Register account if needed
-    unless ( <letsencr.child.acme_client> {account_url} ) {
+    unless ( <letsencr.child.acme_client>->{account_url} ) {
         my $account = <[letsencr.child.acme_register_account]>;
         unless ($account) {
             <[letsencr.child.send_to_parent]>->(
@@ -175,8 +175,8 @@ unless ($cert_result) {
     }
 );
 
-#,,.,,.,.,,.,,,.,,,..,.,,,,.,,..,,.,,,..,,...,..,,...,..,,,..,,..,,,,,,,,,,,,,
-#JFNDWHI4EY4CADBI4ZEMZWPXAWEL3FEQAT6QRZNBVEP34BK6UEMK6M42BWRKQXJOFGVMMN7M4TGNM
-#\\\|O3LQBIFPGY3SK7EX2C7NLIFZMAV7QUD53H6TD6JE6M3S72NB34A \ / AMOS7 \ YOURUM ::
-#\[7]ELKVKVHHGFNBMQZ5FFDXQLOQ3UIDJTDGTZGRCBH4HFOTZKIB2UAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,.,.,...,,,.,,..,,.,,...,,.,,.,,,..,,...,...,.,.,.,.,,,.,,,,,.,,,
+#622H5D26I3GL5IJEIJR2D5A4XEUV747AQXQLHO2M4XDDSDDJPL6UCDSARZIJRLZLNKRIZL6BOYOLU
+#\\\|PYJAUSOJJLHGSYFI2EIW5RPK42P6YJOEPX5N7MMEXUQNHQD5KDY \ / AMOS7 \ YOURUM ::
+#\[7]ZEHKA2PHOG724DB3PYEC4AAVMTO4MB7FYQYLNI6QD5O32FF23YDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

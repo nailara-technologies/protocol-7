@@ -6,8 +6,8 @@
 <[base.log]>->( 2, 'registering new ACME account' );
 
 ## Ensure we have directory and nonce
-my $directory = <letsencr.child.acme_client> {directory};
-my $nonce     = <letsencr.child.acme_client> {nonce};
+my $directory = <letsencr.child.acme_client>->{directory};
+my $nonce     = <letsencr.child.acme_client>->{nonce};
 
 unless ( $directory && $nonce ) {
     <[base.log]>->( 1, 'error: ACME directory or nonce not available' );
@@ -30,7 +30,7 @@ my $response;
 
 while ( $attempt < $max_retries ) {
     $attempt++;
-    $nonce = <letsencr.child.acme_client> {nonce};
+    $nonce = <letsencr.child.acme_client>->{nonce};
 
     <[base.logs]>->(
         3,        "account registration attempt %d/%d",
@@ -111,9 +111,10 @@ unless ($account_url) {
 <[base.log]>->( 2, "ACME account registered: $account_url" );
 
 ## Store account info in child state
-<letsencr.child.acme_client> {account_url} = $account_url;
-<letsencr.child.acme_client> {account_id} = $account_url; # Use full URL as ID
-<letsencr.child.acme_client> {nonce} = $response->{nonce};   # Get fresh nonce
+<letsencr.child.acme_client>->{account_url} = $account_url;
+<letsencr.child.acme_client>->{account_id}
+    = $account_url;    # Use full URL as ID
+<letsencr.child.acme_client>->{nonce} = $response->{nonce};  # Get fresh nonce
 
 ## Save account info to cache
 my $account_cache = sprintf '%s/account.json', <letsencr.cache.dir>;
@@ -136,8 +137,8 @@ return {
     created_at  => time(),
 };
 
-#,,..,.,,,,..,..,,..,,.,.,..,,,.,,,..,,,,,..,,..,,...,..,,...,,..,.,,,.,,,.,,,
-#CBCLM2D676BYT5IM364DTMYZ6TVTASNX3PYNHE7VY5WEJTXXSANXYTQWQL7JFH5Y7YZX7R7BCIVZQ
-#\\\|FVANIZ2YN3HXD5ZX3YWMAO4S7AILLOKNJDU7HOTJIAPFVA3KKO7 \ / AMOS7 \ YOURUM ::
-#\[7]O3HBQPUSPXTF7HYPP7IBLDQWQQ5KVRW4Y6KEKNN4LOE66BZBHYAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,...,..,,.,.,,.,,,..,,,,,.,.,,.,,.,,,..,,...,...,..,,...,.,,,,,,,,.,,
+#O3ZU6HYNGMOKHMG45JG7ATM5ZQB2RKCLI3NXF42DI7CF3LD7ICPIFM26PGFWD4CPDUX4RA2BNYHRC
+#\\\|ABOKD2X55CNFLGCUR72FVEJCB3RQ2NW3MU7NKN7LYSF2VGWDRTA \ / AMOS7 \ YOURUM ::
+#\[7]IB3TOUV62RELHCSZFSLNYY5GWP34GSMY7P2K7OMYUMXZDQV7ZWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

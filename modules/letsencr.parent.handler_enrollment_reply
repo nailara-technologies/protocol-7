@@ -124,7 +124,7 @@ if ( $mode eq 'TRUE' ) {
             private_key_pem => $bundle_json->{key},
             expires_at      => $bundle_json->{expires_at},
             alt_names       => $bundle_json->{domains} // [],
-            account_id      => <letsencr.parent.acme_account> {account_id},
+            account_id      => <letsencr.parent.acme_account>->{account_id},
         }
     );
 
@@ -142,7 +142,7 @@ if ( $mode eq 'TRUE' ) {
     );
 
     ## update certificate registry
-    <letsencr.parent.certs> {$domain} = {
+    <letsencr.parent.certs>->{$domain} = {
         issued_at  => time(),
         expires_at => $bundle_json->{expires_at},
         domain     => $domain,
@@ -150,7 +150,7 @@ if ( $mode eq 'TRUE' ) {
         cert_path  => sprintf( '%s/%s.pem', <letsencr.certs.dir>, $domain ),
         key_path   => sprintf( '%s/%s.key', <letsencr.certs.dir>, $domain ),
         alt_names  => $bundle_json->{domains} || [],
-        account_id => <letsencr.parent.acme_account> {account_id},
+        account_id => <letsencr.parent.acme_account>->{account_id},
     };
 
     ## install certificate to httpsd
@@ -227,8 +227,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,,,,,.,,.,.,,,.,,.,,.,.,,,.,..,,...,...,.,,,..,,...,...,...,.,.,.,,,,..,,,,,
-#DXDFLLOPNEFDKUPPI2UOZYAEAY6LZAOAKVTKVV25REFZCTIRY6X4NMCODKHZQUTY7OOGTTK443ECQ
-#\\\|QWTT3HC5SFR5QTOFZWRMB5YVRYBMPWXFVU2RVCQH43HFEBVDKEH \ / AMOS7 \ YOURUM ::
-#\[7]G7ZPZ4DLGST65ZQ544AOLTSMBDOEQ62B5DT2DH2CQQQ5VSG2BUBQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,.,,,.,,,.,.,.,,,,.,,.,.,.,,,,..,..,,...,...,...,,,.,..,,,.,,.,.,
+#6THM6RHYA2I5E3RSBL4SQPM6QQVAAU22WVNMGFHFGBXTT4CO4KRXO3PPALK25KA23HHYSZPMU73GG
+#\\\|WCKAVJB6YROFOQQECF4A5JODEOAIIP7235FJ4A3JIKJO2KWHESE \ / AMOS7 \ YOURUM ::
+#\[7]PUYKULD3NTCI4IVMQDNP42B46QDIMX4VGFCCJHAPKZSNO54YGQAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

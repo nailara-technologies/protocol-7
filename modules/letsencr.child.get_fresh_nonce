@@ -6,7 +6,7 @@
 <[base.log]>->( 3, 'requesting fresh nonce from ACME server' );
 
 ## Get nonce URL from directory
-my $directory = <letsencr.child.acme_client> {directory};
+my $directory = <letsencr.child.acme_client>->{directory};
 my $nonce_url = $directory->{newNonce};
 
 unless ($nonce_url) {
@@ -41,12 +41,12 @@ unless ($nonce) {
 <[base.log]>->( 3, 'fresh nonce obtained' );
 
 ## Update current nonce in state
-<letsencr.child.acme_client> {nonce} = $nonce;
+<letsencr.child.acme_client>->{nonce} = $nonce;
 
 return $nonce;
 
-#,,,.,,,,,...,.,,,.,.,,,.,..,,.,.,.,,,,..,.,,,..,,...,...,,.,,...,.,.,,,,,..,,
-#2PD5GOMLEIKTAUTYQN62TYNP2STEHXZ37BUDPN4Q4AYWHJFC6I4SF63AIEKGWO4WXHEFC2COLGRGA
-#\\\|KASMMGSH3S5K26HJGSXBYTKM7YU2AA6KKR4W7VIB2VSFXDU3CS6 \ / AMOS7 \ YOURUM ::
-#\[7]Y4JQAITD5KHTI6EFNEP6Z5HZIS3KXVS32IIDRKFWI3RHEBOZ4IAA 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,..,..,,,,,,.,,,,,.,,..,,..,.,.,..,,...,...,,,.,,.,,,.,,,.,,...,
+#B5IRRMIH2BKUS5TU4A72SMW3VK3BSLQA3NFKC7OFL6UZUMVNG5WN37XDTVBHVHCCRVKYMWI3OKG36
+#\\\|LDVP2DPQVJXB5CEGTSEKTSAQ5CQYJZCDFMU3FZOHTUZNJJTHHKA \ / AMOS7 \ YOURUM ::
+#\[7]T53U5D5EVOL54H42E2NRD3ID4XDDS4CN46WD2ASVSPJYJ3OVPABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

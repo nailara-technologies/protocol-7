@@ -102,7 +102,7 @@ unless ($dns_result) {
 <[base.log]>->( 2, "DNS TXT record created successfully" );
 
 ## Store challenge info in child state for later cleanup
-<letsencr.child.active_challenges> {$token} = {
+<letsencr.child.active_challenges>->{$token} = {
     domain          => $domain,
     base_domain     => $base_domain,
     token           => $token,
@@ -123,8 +123,8 @@ return {
     provider        => $dns_provider,
 };
 
-#,,.,,,..,...,,,,,,.,,,..,,.,,.,.,..,,.,.,,..,..,,...,...,...,,,,,,,.,.,.,.,.,
-#43MPOBEPNBWMCQULCORPUAN7QG7JWZ5UA3GEFRFLRITSSPRORWTYVIO72G2KJJCZG7XUVZ5LXGUZI
-#\\\|DGDAEJMTVCWZRAQO3CBJTF2VXVMZB7UEOZFELOBIVJ7GHKFIU4A \ / AMOS7 \ YOURUM ::
-#\[7]MP6TD3FWZFK5HTMYWGV4HC32UIEYL57JCYD3FDIAXEYAGBYAKWCI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,,,...,,.,,.,,,,..,,,,,,,,,,.,,,,,,..,,...,...,,,.,...,,,,,..,,.,.,
+#2MOUV7IA5VVGPBFPZJJ4USFKZFYOE2KFUHVQ3M6TZRGNUEJ3FPT6J2Y6QAZXABXY7HPVSZFZ2GXSQ
+#\\\|ZB2PVX2FAEO3UIHIW6IBOV3CFR5BWUGT4RNGP2BMZT7ZMHT4Q5D \ / AMOS7 \ YOURUM ::
+#\[7]TAZUUBVTWAIWCRONE4GSCKHFNZJENRVE3WKQM5Y42ALBOP2OQGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

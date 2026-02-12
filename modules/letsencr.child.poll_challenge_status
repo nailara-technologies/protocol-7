@@ -31,7 +31,7 @@ while ( $attempt < $max_attempts ) {
         $auth_url,
         '',    # empty payload for POST-as-GET
         $nonce,
-        <letsencr.child.acme_client> {account_url}
+        <letsencr.child.acme_client>->{account_url}
     );
 
     unless ($response) {
@@ -50,7 +50,7 @@ while ( $attempt < $max_attempts ) {
 
     if ( $status eq 'valid' ) {
         <[base.log]>->( 2, "challenge validated successfully!" );
-        <letsencr.child.acme_client> {nonce} = $response->{nonce};
+        <letsencr.child.acme_client>->{nonce} = $response->{nonce};
         return {
             valid    => 1,
             status   => $status,
@@ -89,8 +89,8 @@ return {
     error    => 'Challenge validation timeout',
 };
 
-#,,,,,.,.,.,,,,.,,...,,..,.,.,.,.,.,.,..,,.,,,..,,...,...,,..,.,,,,,.,..,,,.,,
-#52CNNWQ7OUYWYU7WLIE4MXFUVUDSVDWQZSF46PT5ZVDO53M6QJVS7XRFW3IUN2L7DQESUUXMBIXAY
-#\\\|KS37A6ABXGKN6M3QCRBCBUFBBQW4RHQIADGPKZF5CCROKWFR3A2 \ / AMOS7 \ YOURUM ::
-#\[7]BQX64CK6OGLSRGYYSB7YXXXCCZTCPTS5CPBCYBYIBNIO6R6P7YDY 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,..,,..,..,,..,,...,,..,.,.,,..,..,,...,...,.,.,,..,...,,,.,.,.,
+#Y7N6S4C7GMSZ3YBOMPJEWNMDSPLATAOAIR4XWL5PZCBGIQUSINAR55DRZ7B5CAZMVMS4BOYASSGRY
+#\\\|IQC5GRZH2CAPCT2COEVOY4IDZISBZFPSSKR75HCLY47B7OTVIVE \ / AMOS7 \ YOURUM ::
+#\[7]XGHM3FQLQOMOHXDUXYHIRQU7LQM36GOPKLEZP5DF6QKSGW6X2AAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

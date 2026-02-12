@@ -44,7 +44,7 @@ foreach my $channel_path ( keys <channels.all_channels>->%* ) {
         = scalar keys %{ <channels.subscriptions>->{$channel_path} // {} };
     my $last_update = <channels.timestamps>->{$channel_path} // qw|[never]|;
     my $status      = qw| ACTIVE |;
-    if ( !defined <channels.data> {$channel_path} && $sub_count == 0 ) {
+    if ( !defined <channels.data>->{$channel_path} && $sub_count == 0 ) {
         $status = qw| IDLE |;
     }
 
@@ -98,8 +98,8 @@ foreach my $channel_path ( keys <channels.all_channels>->%* ) {
 
 0;
 
-#,,,,,.,.,...,...,,..,,..,,.,,,,.,.,.,,.,,,.,,.,.,...,...,...,,.,,,,.,.,,,,..,
-#OOFXPFHQFBSRWZKSK7NS4VEJ2H5NQ5HBUG56GEI7OZ45FUJ55G2UVLRKZB5CNQN7IOBQBCXZU6WLS
-#\\\|EWA73CKDID23G3GG7I2WBQUYN36TQ4WAZM5D73VRF264CQFSJCU \ / AMOS7 \ YOURUM ::
-#\[7]KBVH2SFYBVARGNNFBXG3EL4WDMLA52CTJRAFTF3I6DDEWNU47QAI 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,,,,..,,...,.,,,,,.,,,,,.,,,..,,.,.,...,...,,..,..,,,,.,.,,,.,.,
+#Y4TC4INZYMW5UNK3GDMPFCDIRO6F6NT2BC4FHZAK5BWWYWVSVTYQ4WJQ5N6LRZH5BXIQ34SU6VDPM
+#\\\|WZICACPU6JU5A5FJBLOSFX5YEJTZCVEYUJS5KSCUNMRJV22U6WO \ / AMOS7 \ YOURUM ::
+#\[7]XWRRJMK54RRN675BOXSMWJAN4JFPAFH2JIZLOSS63TQTMN5MJACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -22,7 +22,7 @@ my $primary_domain = $domains->[0];
 );
 
 ## STEP 1: Fetch ACME directory (if not already cached)
-unless ( <letsencr.child.acme_client> {directory} ) {
+unless ( <letsencr.child.acme_client>->{directory} ) {
     <[base.log]>->( 2, 'step 1: fetching ACME directory' );
     my $dir_info = <[letsencr.child.fetch_acme_directory]>;
     unless ($dir_info) {
@@ -47,7 +47,7 @@ unless ($account_key) {
 }
 
 ## STEP 3: Register ACME account (or retrieve existing)
-unless ( <letsencr.child.acme_client> {account_url} ) {
+unless ( <letsencr.child.acme_client>->{account_url} ) {
     <[base.log]>->( 2, 'step 3: registering ACME account' );
     my $account_info = <[letsencr.child.acme_register_account]>;
     unless ($account_info) {
@@ -268,8 +268,8 @@ return {
     cert_url    => $cert_result->{cert_url},
 };
 
-#,,.,,.,,,.,.,..,,.,.,..,,...,.,.,,,.,,,.,,.,,..,,...,..,,..,,,.,,,,,,.,.,.,.,
-#DX5BNWPIVL5HE2PI2LVJ62ABFDTQMZIBFNQAWA5274NX3HOTAN32PWLZF2KFLXVMTF3O2IPJXCY6M
-#\\\|DGXKTQE7LGSFZWHDPRMIMQXJDSBWG7TCKASQA67EH7CWONPDF6Y \ / AMOS7 \ YOURUM ::
-#\[7]PC6I3ZUP7TE7AGLCWHALEVXJYJU3Z2HKDD54NE2W345O3K6FL2DQ 7  DATA SIGNATURE ::
+#,,,,,...,.,,,...,..,,,,.,.,,,,..,,.,,...,...,..,,...,...,...,.,,,,,,,.,.,...,
+#NZQFBUY7GNP4DXGTYHKN5LACBC2GOGGCQBX4LYDB5A6HFLJDISHQKYHZRQ4RECNWOMUJ4B32CPIT4
+#\\\|UWECUZ3HGA3BF5KCKHG7KL46UMGC4PIFGT36RGBUH5T73ODKD5X \ / AMOS7 \ YOURUM ::
+#\[7]HWDMNITIS2EAWW4QPQ5Y6RMICIFCL5GHQFDM3HW75UFD4EXT5SAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

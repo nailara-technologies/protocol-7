@@ -23,7 +23,7 @@ my $payload = {};
 ## Make authenticated POST request to challenge URL
 my $response = <[letsencr.child.acme_http_request]>->(
     'POST', $challenge_url, $payload, $nonce,
-    <letsencr.child.acme_client> {account_url}
+    <letsencr.child.acme_client>->{account_url}
 );
 
 unless ($response) {
@@ -46,14 +46,14 @@ unless ( $response->{status} == 200 ) {
 <[base.log]>->( 2, "  status: $response->{data}{status}" );
 
 ## Update nonce
-<letsencr.child.acme_client> {nonce} = $response->{nonce};
+<letsencr.child.acme_client>->{nonce} = $response->{nonce};
 
 ## Update challenge status in child state
-if ( exists <letsencr.child.active_challenges> {$token} ) {
-    <letsencr.child.active_challenges> {$token}{status}
-    = $response->{data}{status};
-    <letsencr.child.active_challenges> {$token}{responded_at}
-    = time();
+if ( exists <letsencr.child.active_challenges>->{$token} ) {
+    <letsencr.child.active_challenges>->{$token}{status}
+        = $response->{data}{status};
+    <letsencr.child.active_challenges>->{$token}{responded_at}
+        = time();
 }
 
 return {
@@ -61,8 +61,8 @@ return {
     processing => $response->{data}{status} eq 'processing',
 };
 
-#,,,.,.,,,...,,,,,.,.,..,,,,,,,..,,,,,,..,.,,,..,,...,...,,,.,.,,,,.,,.,.,..,,
-#DPLA6EXDU5RUG5SJTDZLVYMMIE4EYQXQY2BBJSIWXHCQSK37D5VGSBTD3P2LU7C32MLCXT3R33WN2
-#\\\|RVXIFIEMWPJ5GRASDSCTGMJALCNSVMAUZNQ4DULDY5CK5HXLBCH \ / AMOS7 \ YOURUM ::
-#\[7]CTSHOY3XZBZ6ENKOARLH7YEUMEEBJIITRQ6U7RKD6776AYFGNYDY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,,,.,.,,.,,,..,,.,,.,.,,.,,..,,..,,...,...,,.,,...,..,,,,,,,..,
+#WNN7YHILP6NGYVT567FCDXXRXOIVHJ2B64FLRSMCVLEIAPIFQHBMU7J2FMTNOUM3XTQTBUZTZCQEQ
+#\\\|JHVO5KFWZXYTDHV2MT7TUB2DPNYSTH6GTBGJPMLS4URUB2C6LLI \ / AMOS7 \ YOURUM ::
+#\[7]G7MENMZFFZPE3R4WUXPTI4HPFPA6IBGL4VMH7GDPJ33QFTK66UAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

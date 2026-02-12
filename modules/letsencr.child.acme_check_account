@@ -16,13 +16,13 @@ my $msg = shift;
 
 my $result = {
     status       => 'success',
-    account_id   => <letsencr.child.acme_client> {account_id},
+    account_id   => <letsencr.child.acme_client>->{account_id},
     nonce        => 'new-nonce-from-server',
     tos_accepted => 1,
     email        => <letsencr.admin.email>,
 };
 
-if ( !<letsencr.child.acme_client> {account_key} ) {
+if ( !<letsencr.child.acme_client>->{account_key} ) {
     <[base.log]>->(
         2, "child: account key not initialized - creating new account"
     );
@@ -41,8 +41,8 @@ if ( !<letsencr.child.acme_client> {account_key} ) {
     }
 );
 
-#,,.,,..,,..,,,.,,,,.,,.,,.,,,,..,.,,,...,,,.,..,,...,...,...,,..,.,,,,,.,,.,,
-#G7HN3FZSO5VPZ5Y5DLRMN2K3OK7432YARUQFHBLS4HKBCGU7PWEKXM6ELXTBXF7O7LJJE7TCM2KYY
-#\\\|PAHYAN2HOHV4UDKGXPKQ5EP7Y5JIRMPYL7M5EHWAEOA6T32Y6SJ \ / AMOS7 \ YOURUM ::
-#\[7]2I36UTJDNUUBAJPPR6ZYWM3W3TQ4WMIJORXPVLH3DCFPYXIRB6CI 7  DATA SIGNATURE ::
+#,,,.,...,..,,..,,,,.,.,,,,.,,,,,,,.,,,,.,,,,,..,,...,...,...,.,,,.,,,.,,,,,.,
+#YW4KR64XUAPQRTIVHQG7N3KAOBYU2633V2ZAV6B6HP5BEWZ2VPZYQCRH4V7HEB4PL5JANTFN63IQE
+#\\\|PBCSNB7F7QMJ4355TJP7RAE44DNZILORAH2XKZ3NQCIDQM3Y6ID \ / AMOS7 \ YOURUM ::
+#\[7]OPTHEAATSVVXES5VDUG4TRZ2FFIIWGMXXAFCBR7YRQR2DB7KIKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

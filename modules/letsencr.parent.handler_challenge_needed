@@ -34,7 +34,7 @@ if ( $mode eq 'http-01' ) {
     }
 
     ## Store challenge data for later reference
-    <letsencr.parent.pending_challenges> {$token} = {
+    <letsencr.parent.pending_challenges>->{$token} = {
         domain     => $domain,
         type       => 'http-01',
         token      => $token,
@@ -86,7 +86,7 @@ if ( $mode eq 'http-01' ) {
         );
 
         ## Clean up the stored challenge since HTTPd notification failed
-        delete <letsencr.parent.pending_challenges> {$token};
+        delete <letsencr.parent.pending_challenges>->{$token};
     }
 
 } elsif ( $mode eq 'dns-01' ) {
@@ -104,7 +104,7 @@ if ( $mode eq 'http-01' ) {
     my $challenge_value = $data->{challenge_value};
 
     if ( $token && $challenge_value ) {
-        <letsencr.parent.pending_challenges> {$token} = {
+        <letsencr.parent.pending_challenges>->{$token} = {
             domain          => $domain,
             type            => 'dns-01',
             token           => $token,
@@ -129,8 +129,8 @@ if ( $mode eq 'http-01' ) {
 
 return FALSE;
 
-#,,,.,.,.,..,,,..,,.,,,,,,.,,,,,,,,.,,.,.,.,,,..,,...,...,.,.,.,.,,..,...,,.,,
-#EL7FLKCS2Q5SIM7ECVLYTHMMUMN7TIKNLFEJY5ZHOSPOICNZRADJZ6ISP347F3S7ABL5RQMC6YSMA
-#\\\|BTHAWXZFW32NC5O5ZS2C6NJCZEWR6D2JYUTJ4GV7JVRV64UZSYJ \ / AMOS7 \ YOURUM ::
-#\[7]FD5CUGWICH2KI4TDOHRWVGPKJPBES2NGZH5VFBUZ434MLV7WWWAQ 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,,,,,.,,..,,.,.,.,,,.,,,,,,,,..,..,,...,...,,.,,.,.,.,.,..,,,.,,
+#DLUVY3HJ4366POAHO6QDU6M5C7RQYI6URS4Z7V2IQJSA2LMYZNKRZHI4CHCR3LYGFFWTC6XWEUP3W
+#\\\|7XUCWDOZT7V3DOMXK2VWP3TIYLDQG3Y5EHRBVJQDUGRTBWHLQYR \ / AMOS7 \ YOURUM ::
+#\[7]46JX77HQPRD3QP3LRLE6WBIC5RKWKUO6TEOPSS7AIE5TG442E2AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

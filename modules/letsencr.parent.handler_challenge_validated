@@ -14,14 +14,14 @@ my $mode   = $validation_data->{'cmd'};
     $token, $domain, $mode
 );
 
-unless ( exists <letsencr.parent.pending_challenges> {$token} ) {
+unless ( exists <letsencr.parent.pending_challenges>->{$token} ) {
     <[base.logs]>->(
         1, 'challenge token %s not found in pending challenges', $token
     );
     return FALSE;
 }
 
-my $challenge = <letsencr.parent.pending_challenges> {$token};
+my $challenge = <letsencr.parent.pending_challenges>->{$token};
 
 if ( $mode eq 'TRUE' ) {
     <[base.logs]>->(
@@ -71,8 +71,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,,.,...,,,,,,,,,..,,,,.,...,,.,,...,,,.,,,.,..,,...,...,...,,.,,.,.,..,,.,.,
-#APJOTCZSOBAIJ2KKAXFQZANDXEFGOPLRPNCMKAM4ZFC45BXODNFHSMQ6FDICN3EGZTAETNRPKL5QG
-#\\\|S5KZSZTLYHD5MRU7RGEZWBRL2ROM2AIBKJK7ICJFZ3IO3BVWGMV \ / AMOS7 \ YOURUM ::
-#\[7]6WRZOTLU7CFZN3NHBYJB6A52O67XTJGYEM6TUBR4R4SAF7FLQICQ 7  DATA SIGNATURE ::
+#,,..,,.,,...,.,,,.,.,.,.,,,.,..,,,..,,,.,.,,,..,,...,...,...,.,.,...,,,,,.,,,
+#QFAN4SEDHVBUGKXIUSLRYUTG4INGL7T4VUE7UEBIUL5OJX2F4M5KWQV5RKMMATOLXHISYSRF6JWBY
+#\\\|OWEV7NGY4F3BEXEG7TIM4QFI3CERTXZIW5GTTJZMPEMVEL5SPNP \ / AMOS7 \ YOURUM ::
+#\[7]X2J55XSOAPHMWG3YPIHOXXPLRPGT53RRTYOAE4JKEKEPYIEUSQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
