@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = base.file.path.validate
+# param = <path>
+# descr = validate path component to prevent traversal attacks
+
+my $path_str = shift;    ## path string parameter to validate ##
+
+return FALSE unless defined $path_str && length($path_str);
+
+## use File::Spec to canonicalize path [ pure string parsing, no filesystem ]
+my $canonical = File::Spec->canonpath($path_str);
+
+## reject if path tries to escape (starts with / or contains ..)
+if ( $canonical =~ m{^/} || $canonical =~ m{\.\./} ) {
+    <[base.logs]>->(
+        2, "path validation failed : traversal attempt [ %s ]", $path_str
+    );
+    return FALSE;
+}
+
+## reject if contains directory separators [must be single filename component]
+if ( $canonical =~ m{[/\\]} ) {
+    <[base.logs]>->(
+        2, "path validation failed : contains directory separators [ %s ]",
+        $path_str
+    );
+    return FALSE;
+}
+
+return TRUE;    ## [ path is valid ]
+
+#,,..,,,.,,.,,...,.,.,..,,,.,,.,,,,,.,,,.,,..,.,.,...,...,,.,,,..,.,.,..,,,.,,
+#ZATIOUK2Y54NJLIHPT55KP4EBQ5BY4VAKPLXXFROO6EUPUP2PFZW7SRMKYMDFFCTALPIGYA27EJ2A
+#\\\|2FTJYWKZ4ISQO5GLQ6YIWC62KQ66FOOGMUQ7SJRXB2M2H2I62C6 \ / AMOS7 \ YOURUM ::
+#\[7]AF43SYFS24STXZZ2UAYE2LZEBMQDIMDS7MAAG5SVOR5TLJHRYGAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
