@@ -1,63 +1,65 @@
 ## [:< ##
 
 # name  = letsencr.parent.handler_challenge_timeout
-# descr = handle challenge timeout - clean up pending challenge if validation doesn't complete
+# descr = handle challenge timeout - clean up unvalidated challenges
 
-my $data = shift;
+my $challenge_data = shift;
 
-my $token  = $data->{token};
-my $domain = $data->{domain};
+my $token  = $challenge_data->{'token'}  // '';
+my $domain = $challenge_data->{'domain'} // '';
 
-<[base.log]>->(
-    2, "challenge timeout handler for token: $token (domain: $domain)"
+<[base.s_warn]>->('expected hash ref with token and domain parameter')
+    if not length $token or not length $domain;
+
+<[base.logs]>->(
+    2,      'challenge timeout handler : token=%s domain=%s',
+    $token, $domain
 );
 
-if ( exists <letsencr.parent.pending_challenges> {$token} ) {
-    my $challenge = <letsencr.parent.pending_challenges> {$token};
+if ( exists <letsencr.parent.pending_challenges>->{$token} ) {
+    my $challenge = <letsencr.parent.pending_challenges>->{$token};
 
-    ## Check if challenge has been validated
-    if ( $challenge->{status} eq 'valid' ) {
-        <[base.log]>->(
-            2, "challenge was validated before timeout, keeping record"
+    ## check if challenge has been validated
+    if ( $challenge->{status} eq qw| valid | ) {
+        <[base.logs]>->(
+            2, 'challenge was validated before timeout, keeping record'
         );
         return FALSE;
     }
 
-    ## Challenge has timed out - remove it
-    <[base.log]>->(
-        1,
-        "challenge timeout: token=$token for $domain (no validation received)"
+    ## challenge has timed out - remove it
+    <[base.logs]>->(
+        1,      'challenge timeout: token=%s domain=%s [ no validation ]',
+        $token, $domain
     );
 
     <[letsencr.parent.activity_logger]>->(
         'challenge', $domain, 'failed',
-        'challenge validation timeout (5 minutes)'
+        'challenge validation timeout [ 5 minutes ]'
     );
 
-    delete <letsencr.parent.pending_challenges> {$token};
+    delete <letsencr.parent.pending_challenges>->{$token};
 
-    ## Notify HTTPd to remove the challenge file
-    <[base.log]>->(
-        2, "requesting HTTPd to clean up challenge file for $domain"
+    ## notify HTTPd to remove the challenge file
+    <[base.logs]>->(
+        2, 'requesting HTTPd to clean up challenge for %s', $domain
     );
 
+    ## [ parameters as space-separated args: domain token ]
     <[base.protocol-7.command.send.local]>->(
-        {   'command'   => 'httpd.cmd.remove-acme-challenge',
-            'call_args' => {
-                'args'  => $domain,
-                'param' => { 'token' => $token, }
-            }
+        {   'command'   => qw| httpd.cmd.remove-acme-challenge |,
+            'call_args' => { 'args' => join ' ', $domain, $token }
         }
     );
 
 } else {
-    <[base.log]>->( 3, "token $token not found in pending challenges" );
+    <[base.logs]>->( 3, 'token %s not found in pending challenges', $token );
 }
 
 return FALSE;
 
-#,,..,,,.,...,,,.,...,,,,,,..,,,,,,.,,,,.,...,..,,...,..,,,,,,.,.,,.,,,,.,...,
-#DNFZY46WTKIKGZRGTLZP5EG6EF3UHTF5OYQHISDFNNECJ3PK7QCY356GV657SUL5BQBIGVEWTKA22
-#\\\|QDS63VI2M3VGJONRN4FHRQDG6E7MIW7SCDDWN4BQBWDRRL2UBXY \ / AMOS7 \ YOURUM ::
-#\[7]NFZE5H3NB4BL5SRFAUX6L3MFPDAZ3CNGU6KTXMCVBE6XNVD4E4BY 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,,,,,,,,..,,,,,,...,,..,,..,..,,..,,...,...,..,,...,,..,...,.,.,
+#EUJWKLSZXP273IIETODAMH4P4IQ54VYVR4OXDYEIJ34RGTV6FAKHZWJGP725B2RG5DCFKXOJG32FK
+#\\\|QC3KBF7XHH3C3UQ7Y2Z6G472W3W6GIQJDMQUJMTAHKIH7HXBDOD \ / AMOS7 \ YOURUM ::
+#\[7]VQH6ON4OGXO33UJA3WIEA6E5BX7PHKBGL46DAZBUASAEGIP55QBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

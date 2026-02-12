@@ -18,42 +18,41 @@ unless ( $domain && $token && $key_auth ) {
     };
 }
 
-<[base.log]>->( 2, "notifying HTTPd to serve $type challenge for $domain" );
+<[base.logs]>->(
+    2,     "notifying HTTPd to serve %s challenge for %s",
+    $type, $domain
+);
 
-## Send challenge setup command to HTTPd
+## send challenge setup command to HTTPd
+## [ parameters as space-separated args: domain token key_auth type ]
 my $challenge_cmd = 'httpd.cmd.setup-acme-challenge';
+my $args_string   = sprintf '%s %s %s %s', $domain, $token, $key_auth, $type;
 
 my $result = <[base.protocol-7.command.send.local]>->(
     {   'command'   => $challenge_cmd,
-        'call_args' => {
-            'args'  => $domain,
-            'param' => {
-                'token'    => $token,
-                'key_auth' => $key_auth,
-                'type'     => $type,
-            }
-        }
+        'call_args' => { 'args' => $args_string }
     }
 );
 
 if ($result) {
-    <[base.log]>->( 2, "HTTPd challenge setup queued for $domain" );
+    <[base.logs]>->( 2, "HTTPd challenge setup queued for %s", $domain );
     return {
-        status  => 'success',
-        message => "challenge response setup sent to HTTPd for $domain"
+        status  => qw| success |,
+        message => sprintf( 'challenge response setup sent to HTTPd for %s',
+            $domain )
     };
 } else {
-    <[base.log]>->(
-        1, "failed to queue challenge setup command to HTTPd for $domain"
+    <[base.logs]>->(
+        1, 'failed to queue challenge setup to HTTPd for %s', $domain
     );
     return {
-        status => 'failed',
+        status => qw| failed |,
         error  => 'failed to queue command to HTTPd'
     };
 }
 
-#,,..,.,.,..,,,,.,,.,,.,,,.,.,,.,,,.,,.,.,.,.,..,,...,..,,,,,,,..,..,,.,,,,,.,
-#NWPIATXI5IAWKE6GOAHVZ2PZ6CDEYU3YLFS44CYG5RXQWGUJSYDQKT7CYFOGC5V54FUEBVZRCO47M
-#\\\|CTEGOTUMCGZ2SUHUMAVTTWK34SNB2WTMAAYUGT57VG6BCK6SZSL \ / AMOS7 \ YOURUM ::
-#\[7]LQIZLDZMJYMYP3DN7VFMD6ZFFP47AQXXGIZTYPUJ2PBDB66W76AA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,...,,..,..,,..,,..,,.,.,,.,,,,,,..,,...,...,...,,.,,.,,,,,.,..,,
+#5UGCSJQVT7WP6E7B6NC75X2VFLWIOQEO36KMDLLC2T4BA6QKQPCOQVLTIZKVZP6GPMY76FE3VMJQQ
+#\\\|XGAN3VLPICENIDHF5KFRWTOONOO2MHH76C2QKCNGG4LOOKESECA \ / AMOS7 \ YOURUM ::
+#\[7]ILU6XVQHTXGVQ2JVBGSRP3V2GOFSA25RPDEIBVNCY4Y2WC56ISCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
