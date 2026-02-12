@@ -16,14 +16,13 @@ return { 'mode' => qw| false |, 'data' => 'expected token parameter' }
 
 <[base.logs]>->( 2, ": token : %s", $token );
 
-## build challenge file path
-my $httpd_site_dir = <httpd.cfg.site_dir>     // qw| /var/httpd |;
-my $default_site   = <httpd.cfg.default_site> // qw| default |;
+## build challenge file path using domain
+my $httpd_site_dir = <httpd.cfg.site_dir> // qw| /var/httpd |;
 my $well_known_dir = qw| /.well-known/acme-challenge |;
 
 my $challenge_file = sprintf qw| %s/%s%s/%s |,
     $httpd_site_dir,
-    $default_site,
+    $domain,
     $well_known_dir,
     $token;
 
@@ -58,7 +57,7 @@ unless ( unlink($challenge_file) ) {
 ## check if directory is now empty and remove it if so
 my $challenge_dir = sprintf qw| %s/%s%s |,
     $httpd_site_dir,
-    $default_site,
+    $domain,
     $well_known_dir;
 
 if ( -d $challenge_dir ) {
@@ -85,8 +84,8 @@ return {
     'data' => sprintf( 'ACME challenge file removed for %s', $domain )
 };
 
-#,,,.,..,,..,,,,.,,,,,,,,,..,,,,.,..,,.,,,,,.,..,,...,...,..,,,,.,,.,,,.,,.,.,
-#K4B7D4HC27UCF3FQLTRT5RHWYCUB7NDDCQOARLVW6DWQSLML6YTPEYIQ42MDOYNQQ7JOCECKGLCWU
-#\\\|5CFBABOWFIPNLHMADQHIJZMKPERPBC5X5DO2AE4ACT63JJSBUAO \ / AMOS7 \ YOURUM ::
-#\[7]Z44SIN74SBW55YMDLVXNCPFUMIBFVEMVMI3PAVPUO72X52UPSQAI 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,,,,.,,,,,,,.,.,.,.,,.,,,,.,..,,..,,...,...,...,.,.,..,,,..,,,,,
+#Z6T4SBCTTFZG53THSXUDWDMHFHCVJWAJ6CLZL4QHHZSBRXL5QAV4KPIGCVCB3EW23MRHG2ZCWTIDY
+#\\\|6QMKYEWQ3ZSISC7UKSLQN66VZBRZXGQYY4WANJSP6SC3EDH5BWK \ / AMOS7 \ YOURUM ::
+#\[7]TEU7BV5S3YB7EPLIFGCZ5S4QE4JVM27CBJ25O2VZSY2ZRBQHGWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
