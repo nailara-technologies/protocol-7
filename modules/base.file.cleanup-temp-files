@@ -1,0 +1,92 @@
+## [:< ##
+
+# name  = base.file.cleanup-temp-files
+# descr = generic callback to cleanup registered temp files [ at process end ]
+
+<[base.logs]>->( 2, 'cleaning up temp files..' );
+
+my $temp_files = <base.path.temp_files.clean_list> //= [];
+
+unless ( ref($temp_files) eq qw| ARRAY | ) {
+    <[base.log]>->( 0, 'base.path.temp_files.clean_list is not an array' );
+    return;
+}
+
+## get current process uid/gid for permission checking
+my $current_uid = $EUID;    ## effective uid
+my $current_gid = $EGID;    ## effective gid [ first gid, space-separated ]
+
+my $unlink_count = 0;
+foreach my $file_path ( $temp_files->@* ) {
+
+    ## skip if file doesn't exist
+    unless ( -e $file_path || -l $file_path ) {
+        <[base.logs]>->( 3, ': temp file already gone : %s', $file_path );
+        next;
+    }
+
+    ## stat file to check permissions before unlinking
+    my $f_stat = File::stat::stat($file_path);
+    if ( not defined $f_stat ) {
+        <[base.logs]>->(
+            1,          'failed to stat temp file %s [ %s ]',
+            $file_path, <[base.str.os_err]>
+        );
+        next;
+    }
+
+    ## conservative permission check: only unlink if we or group owns it
+    my $can_unlink = FALSE;
+
+    ## check if current UID can write [ own the file ]
+    if ( $f_stat->cando( S_IWUSR(), $current_uid ) ) {
+        $can_unlink = TRUE;
+    }
+
+    ## fallback to group write permission if uid check failed
+    unless ($can_unlink) {
+        if ( $f_stat->cando( S_IWGRP(), $current_gid ) ) {
+            $can_unlink = TRUE;
+        }
+    }
+
+    unless ($can_unlink) {
+        <[base.logs]>->(
+            1,
+            '[permissions] cannot unlink temp file'
+                . ' %s [ owner: uid %d, gid %d ]',
+            $file_path,
+            $f_stat->uid,
+            $f_stat->gid
+        );
+        next;
+    }
+
+    ## attempt unlink with conservative error handling
+    unless ( unlink $file_path ) {
+        <[base.logs]>->(
+            1,          'cannot unlink temp file %s [ %s ]',
+            $file_path, <[base.str.os_err]>
+        );
+        next;
+    }
+
+    ## verify file actually went away
+    if ( -e $file_path || -l $file_path ) {
+        <[base.logs]>->(
+            1, 'temp file still exists after unlink : %s', $file_path
+        );
+        next;
+    }
+
+    <[base.logs]>->( 3, ': unlinked temp file : %s', $file_path );
+    $unlink_count++;
+}
+
+<[base.logs]>->( 2, 'temp file cleanup complete [files:%d]', $unlink_count );
+
+#,,,,,...,,,.,..,,,,.,,,.,..,,...,,,.,,,.,,,.,.,.,...,...,.,,,,..,..,,,,.,..,,
+#AN2JLX6YR57NSODHUQB4QNGNA3BHO2JG2YJXSPG4BHW5MFPFUS44LLOCCOMNKH2OAUSD4E2TWGUF6
+#\\\|I3AMA6TZOAEBGL2FVV7NCC2LERCRLHXUA4PC5QE3OSUU5Z437F7 \ / AMOS7 \ YOURUM ::
+#\[7]RZJZI4QDSRS34ABZ6E6NB2GTOYQHKFGQOAYHM7TZ5FN7DYK2TIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
