@@ -15,7 +15,8 @@ access.cmd.usr.cube = commands heart verify-instance name reload \
 access.cmd.usr.parent =  status renew force-renew inst-self-signed \
                          list heart commands cur-pid cpu-time src-ver \
                          src-age show-access show-buffer buffer-erase \
-                         buffer-erase-level verbosity \## reload
+                         buffer-erase-level verbosity request-certificate \
+                         ## reload
 ##                       reload command is currently disabled : drops commands!
                          dump get  ## 'devmod' module debug commands
 
@@ -50,16 +51,16 @@ letsencr.cache.dir = /var/cache/letsencr
 letsencr.cache.timeout = 86400  # 24 hours
 
 ## Challenge Configuration
-letsencr.challenge.type = http-01  # http-01 or dns-01
-letsencr.challenge.timeout = 300  # 5 minutes for challenge completion
-letsencr.challenge.site_dir = /var/httpd/  # web server document root for challenges
-letsencr.challenge.site_name = default  # default virtual host directory
+letsencr.challenge.type = http-01   # http-01 or dns-01
+letsencr.challenge.timeout = 300     # 5 minutes for challenge completion
+letsencr.challenge.site_dir = /var/httpd/  # document root for challenges
+letsencr.challenge.site_name = default   # default virtual host directory
 
 ## Rate Limiting Protection
 letsencr.ratelimit.enabled = 1
 letsencr.ratelimit.max-per-hour = 5
 
-modules.load = auth net protocol io.unix io.ip letsencr.base      ## devmod
+modules.load = auth net protocol io.unix io.ip letsencr.base    ## devmod
 [load_modules:<modules.load>]
 [init_modules]
 
@@ -71,8 +72,8 @@ modules.load = auth net protocol io.unix io.ip letsencr.base      ## devmod
 
 [zenka.loop]
 
-#,,..,,,.,.,,,,,.,,,.,,,.,..,,..,,,..,.,,,,..,..,,...,...,,.,,,,,,,.,,.,,,,,.,
-#HFDARPW3DSDHKBXTJE345EYYLOCBUGYNBNTZ7CNMXWMDTZIGUFA2JUP5OXYRLOGB6FVE5VQ67L5SS
-#\\\|IYI2HWZG7KAHA4XTRKVNXKTYHP6B3VOIJDMIHWOHPSPVTMFDX44 \ / AMOS7 \ YOURUM ::
-#\[7]BZ6HANE3NAQNJMRXQR5VRSS27X5RZXGAWU5SB5KJYX2YVXSR54AI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,,.,,,,,,,.,.,,,...,...,.,,,,..,..,,...,...,,,.,,,,,.,.,,,,,,.,,
+#MSFMDVQO2OIUVVMU6VGOFHU6EF2CX3FY42T32BFQG5OOKQNA7T7PEADKWALJO5G3WNRCRK6XOXGRI
+#\\\|LHMVQ5OLO3YUP5JXTQPTQ2KKGTXLDSRI3DPMQEWPE7JL7IDIKJX \ / AMOS7 \ YOURUM ::
+#\[7]C3U6IZ7EI773CGNAOGRLY3I4FBQVOZQYZKDH7DV3V3PHFFITOUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
