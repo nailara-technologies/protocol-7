@@ -49,15 +49,14 @@ if ( $type ne qw| http-01 | ) {
     };
 }
 
-## create challenge directory path
-## [ /var/httpd/default/.well-known/acme-challenge/ ]
-my $httpd_site_dir = <httpd.cfg.site_dir>     // qw| /var/httpd |;
-my $default_site   = <httpd.cfg.default_site> // qw| default |;
+## create challenge directory path using domain
+## [ /var/httpd/{domain}/.well-known/acme-challenge/ ]
+my $httpd_site_dir = <httpd.cfg.site_dir> // qw| /var/httpd |;
 my $well_known_dir = qw| /.well-known/acme-challenge |;
 
 my $challenge_dir = sprintf qw| %s/%s%s |,
     $httpd_site_dir,
-    $default_site,
+    $domain,
     $well_known_dir;
 
 <[base.logs]>->( 2, "challenge directory : %s", $challenge_dir );
@@ -108,8 +107,8 @@ return {
     )
 };
 
-#,,,.,.,,,.,,,,,.,.,.,..,,.,,,...,.,,,.,,,,,.,..,,...,...,...,...,,..,..,,.,.,
-#ZHKYIPCLDCKN2FB56I576YKDHUZRCSIMB4XDXQIQOHVRV36V4GIOOZB6YM3ZRK3G2C3D56QF2T47K
-#\\\|IYOY7QLRZY44VVSZUAALFQQBVO3QQQ5GSP7DMRMMJIVV6B7NKGD \ / AMOS7 \ YOURUM ::
-#\[7]WJENVJ3D6ZUED2GD76EESOUYFQMYSSODFMACHWBGQC33ABSN44CQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,,.,,.,,.,.,..,,,,,,,,.,...,...,..,,...,..,,.,.,,,,,,,,,..,,,,.,
+#2NYSUH6P2WJEJXL2RWHHGYYR343POAJMEEQT765GXTW3QUYBNZRC6IWBMOAU4TCABLD63APXHQAF4
+#\\\|ADFDUOZUAA3CXL2JGZHX5SVKZXW3OFK7UYM3ZB2LMVPWN42UT3O \ / AMOS7 \ YOURUM ::
+#\[7]VF5AODABQD2MMRPQYHLPK4XIUUGAYS7ZW3TAVTDYDJMMVK4JQECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
