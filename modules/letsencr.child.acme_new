@@ -11,8 +11,8 @@ my $domains = $msg->{'domains'};                           # array ref
 my $email   = $msg->{'email'} || <letsencr.admin.email>;
 
 return {
-    status => qw| error |,
-    error  => 'domains array required'
+    'status' => qw| error |,
+    'error'  => 'domains array required'
     }
     unless $domains && ref($domains) eq qw| ARRAY | && @$domains;
 
@@ -30,8 +30,8 @@ unless ( <letsencr.child.acme_client>->{directory} ) {
     my $dir_info = <[letsencr.child.fetch_acme_directory]>;
     unless ($dir_info) {
         return {
-            status => qw| error |,
-            error  => 'Failed to fetch ACME directory'
+            'status' => qw| error |,
+            'error'  => 'Failed to fetch ACME directory'
         };
     }
 }
@@ -43,8 +43,8 @@ unless ($account_key) {
     $account_key = <[letsencr.child.generate_account_key]>;
     unless ($account_key) {
         return {
-            status => qw| error |,
-            error  => 'Failed to generate account key'
+            'status' => qw| error |,
+            'error'  => 'Failed to generate account key'
         };
     }
 }
@@ -58,8 +58,8 @@ unless ( <letsencr.child.acme_client>->{account_url} ) {
         my $existing = <[letsencr.child.acme_check_account]>;
         unless ($existing) {
             return {
-                status => qw| error |,
-                error  => 'Failed to register ACME account'
+                'status' => qw| error |,
+                'error'  => 'Failed to register ACME account'
             };
         }
     }
@@ -70,8 +70,8 @@ unless ( <letsencr.child.acme_client>->{account_url} ) {
 my $order = <[letsencr.child.acme_create_order]>->($domains);
 unless ($order) {
     return {
-        status => qw| error |,
-        error  => 'Failed to create certificate order'
+        'status' => qw| error |,
+        'error'  => 'Failed to create certificate order'
     };
 }
 
@@ -104,10 +104,10 @@ unless ($order) {
 );
 
 ## return deferred to indicate async processing with parent coordination
-return { 'mode' => qw| deferred | };
+return { 'status' => qw| deferred | };
 
-#,,,.,...,..,,..,,..,,...,,.,,..,,,..,...,,..,..,,...,...,.,.,,.,,,..,,..,,.,,
-#5UYTKMLACYAP4L6FTCYUWGGSJTXIYY5JKZ73CU5FCBHUFN64MVC4PM7NBVDX63Q5A6NUZNGRIFB7M
-#\\\|HEIDX76JTIBIBST3LWBSLNQA2OS6GD5UPQAKGCRVINES336HUMP \ / AMOS7 \ YOURUM ::
-#\[7]LQWRPALOW6R5HLYCQGLIJOUC3QUUMKCTYTO5LQVNS3TD3R37GSAI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,.,,,,..,,.,,,..,,,,,,.,,.,.,...,..,,...,...,.,.,..,,..,,...,,.,,
+#GBZZFIGPTELVBIVITUBRLQT3K5FBR74VYFZG76K6B4U4QRWFQHX5COLNXGUMGN7VXJ4Z46KCIKUP4
+#\\\|IZNACJ2CUCLGOKQZWZMJSHJEGC2MZ7XLKHDWSMRBROWESNUJODK \ / AMOS7 \ YOURUM ::
+#\[7]J7F5FP6WYFM4DXIJY6GQFWKZYKD5OAHHMPRU6YWT6HOCDVNQ6OBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
