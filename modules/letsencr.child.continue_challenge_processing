@@ -1,0 +1,241 @@
+## [:< ##
+
+# name  = letsencr.child.continue_challenge_processing
+# descr = resume ACME workflow after parent confirms challenge setup [ async ]
+# note  = called from parent's challenge confirmation handler via reply_id
+
+my $confirmation = shift;    ## confirmation from parent that httpd is ready
+
+## retrieve stored state from deferred acme_new
+my $state = <letsencr.child.acme_state> // {};
+unless ( $state && ref($state) eq qw| HASH | ) {
+    <[base.log]>->( 0, 'no stored ACME state for continuation' );
+    return {
+        status => qw| error |,
+        error  => 'ACME state not found, cannot continue challenge processing'
+    };
+}
+
+my $domains        = $state->{domains};
+my $primary_domain = $state->{primary_domain};
+my $order          = $state->{order};
+my $reply_id       = $state->{reply_id};
+
+<[base.logs]>->(
+    2, 'continuing challenge processing for %d domains',
+    scalar(@$domains)
+);
+
+## STEP 6: Process authorizations and respond to challenges
+my @auth_urls;
+my $auth_index = 0;
+
+foreach my $auth_url ( @{ $order->{authorizations} } ) {
+    $auth_index++;
+    my $domain = $domains->[ $auth_index - 1 ];
+
+    my $total_auths = scalar @{ $order->{authorizations} };
+    <[base.logs]>->(
+        2, 'authorization %d/%d: %s',
+        $auth_index, $total_auths, $domain
+    );
+
+    ## get authorization and determine challenge type
+    my $auth = <[letsencr.child.acme_get_authorization]>->($auth_url);
+    unless ($auth) {
+        my $error_msg = "Failed to get authorization for $domain";
+        <[base.log]>->( 0, $error_msg );
+        goto CHALLENGE_FAILED;
+    }
+
+    ## select challenge type: DNS for wildcard, HTTP for regular
+    my $is_wildcard    = ( $domain =~ /^\*\./ ) || $auth->{wildcard};
+    my $challenge_type = $is_wildcard ? qw| dns-01 |   : qw| http-01 |;
+    my $challenge_data = $is_wildcard ? $auth->{dns01} : $auth->{http01};
+
+    ## fallback to DNS-01 if HTTP-01 unavailable
+    if ( !$challenge_data && $auth->{dns01} ) {
+        <[base.logs]>
+            ->( 2, '%s: HTTP-01 unavailable, using DNS-01', $domain );
+        $challenge_type = qw| dns-01 |;
+        $challenge_data = $auth->{dns01};
+    }
+
+    unless ($challenge_data) {
+        <[base.logs]>->( 0, '%s: no suitable challenge available', $domain );
+        goto CHALLENGE_FAILED;
+    }
+
+    <[base.logs]>->( 2, 'challenge type: %s', $challenge_type );
+
+    ## create and respond to challenge
+    my $challenge_response;
+    if ( $challenge_type eq qw| dns-01 | ) {
+        ## DNS-01 challenge (no parent coordination needed)
+        $challenge_response = <[letsencr.child.create_dns01_challenge]>->(
+            $challenge_data, $domain
+        );
+
+        unless ($challenge_response) {
+            <[base.logs]>
+                ->( 0, '%s: DNS challenge creation failed', $domain );
+            goto CHALLENGE_FAILED;
+        }
+
+        <[base.logs]>->(
+            2,
+            'DNS TXT record: %s = %s',
+            $challenge_response->{'dns_record_name'},
+            $challenge_response->{'dns_value'}
+        );
+
+        ## wait for DNS propagation [ synchronous in DNS-01 flow ]
+        my $dns_check = <[letsencr.child.check_dns_propagation]>->(
+            $challenge_response->{dns_record_name},
+            $challenge_response->{dns_value}
+        );
+
+        unless ( $dns_check && $dns_check->{propagated} ) {
+            <[base.logs]>->( 0, '%s: DNS propagation failed', $domain );
+            goto CHALLENGE_FAILED;
+        }
+
+        <[base.logs]>->(
+            2,
+            'DNS propagated in %d attempts',
+            $dns_check->{'attempts'}
+        );
+
+    } else {
+        ## HTTP-01 challenge (parent already set up in httpd)
+        $challenge_response = <[letsencr.child.create_http01_challenge]>->(
+            $challenge_data, $domain
+        );
+
+        unless ($challenge_response) {
+            <[base.logs]>->(
+                0, '%s: HTTP challenge creation failed', $domain
+            );
+            goto CHALLENGE_FAILED;
+        }
+
+        <[base.logs]>->(
+            2,
+            'challenge ready at: %s',
+            $challenge_response->{well_known_url}
+        );
+    }
+
+    ## respond to challenge [ tell ACME server validation can proceed ]
+    my $respond_result = <[letsencr.child.respond_to_challenge]>->(
+        $challenge_response->{challenge_url},
+        $challenge_response->{token}
+    );
+
+    unless ($respond_result) {
+        <[base.logs]>->( 0, '%s: failed to respond to challenge', $domain );
+        goto CHALLENGE_FAILED;
+    }
+
+    push @auth_urls, { url => $auth_url, domain => $domain };
+}
+
+## STEP 7: Poll authorizations until validation completes
+<[base.log]>->( 2, 'step 6: polling authorization status' );
+foreach my $auth_info (@auth_urls) {
+    my $validation = <[letsencr.child.poll_challenge_status]>->(
+        $auth_info->{url}, $auth_info->{domain}
+    );
+
+    unless ( $validation && $validation->{valid} ) {
+        my $error = $validation->{error} // 'Challenge validation failed';
+        <[base.logs]>->(
+            0,                    '%s: validation failed - %s',
+            $auth_info->{domain}, $error
+        );
+        goto CHALLENGE_FAILED;
+    }
+
+    <[base.logs]>->(
+        2,
+        '%s: validated in %d attempts',
+        $auth_info->{'domain'},
+        $validation->{'attempts'}
+    );
+}
+
+## SUCCESS: all authorizations validated
+<[base.log]>->(
+    2, 'all authorizations validated, proceeding to finalization'
+);
+goto REPLY_PARENT;
+
+CHALLENGE_FAILED:
+## error path: reply to parent with failure status
+<[base.log]>->( 0, 'challenge processing failed' );
+<[base.callback.cmd_reply]>->(
+    $reply_id,
+    {   status => qw| error |,
+        error  => 'Challenge validation failed during async processing'
+    }
+) if defined $reply_id;
+return { status => qw| error |, error => 'Challenge validation failed' };
+
+REPLY_PARENT:
+## continue with order finalization
+<[base.log]>->( 2, 'step 7: generating certificate signing request' );
+my $csr = <[letsencr.child.generate_csr]>->($domains);
+unless ($csr) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id, { status => qw| error |, error => 'CSR generation failed' }
+    ) if defined $reply_id;
+    return { status => qw| error |, error => 'CSR generation failed' };
+}
+
+## STEP 8: Finalize order and download certificate
+<[base.log]>->( 2, 'step 8: finalizing order and downloading certificate' );
+my $cert_result = <[letsencr.child.acme_finalize_order]>;
+unless ($cert_result) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        { status => qw| error |, error => 'Order finalization failed' }
+    ) if defined $reply_id;
+    return { status => qw| error |, error => 'Order finalization failed' };
+}
+
+<[base.log]>->( 2, 'certificate obtained successfully' );
+<[base.logs]>->( 2, 'polled %d times', $cert_result->{'poll_attempts'} );
+
+## STEP 9: Prepare final result
+my $valid_until = time() + ( 90 * 86400 );    ## default 90 days
+
+my $final_result = {
+    status      => qw| success |,
+    domains     => $domains,
+    cert        => $cert_result->{certificate},
+    key         => $cert_result->{key},
+    valid_until => $valid_until,
+    cert_url    => $cert_result->{cert_url},
+};
+
+## reply to parent with success status and certificate data
+<[base.callback.cmd_reply]>->( $reply_id, $final_result )
+    if defined $reply_id;
+
+## cleanup stored state
+delete <letsencr.child.acme_state>;
+
+<[base.log]>->( 2, 'challenge processing complete, certificate ready' );
+return $final_result;
+
+#,,,,,.,,,...,,,.,.,,,,..,.,,,,,.,,,,,,..,...,..,,...,...,.,.,...,,.,,,,,,,.,,
+#PROTOCOL7ACME_ASYNC_CONTINUATION_HANDLER_V1
+#\\\|PLACEHOLDER_AMOS7_SIGNATURE_WILL_BE_GENERATED_ON_COMMIT \ / AMOS7 \ YOURUM ::
+#\[7]PLACEHOLDER_AMOS7_DATA_SIGNATURE_WILL_BE_GENERATED_ON_COMMIT 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+#,,..,,..,,,,,...,.,.,...,,,.,,.,,,.,,,..,,,.,..,,...,.,.,..,,.,.,,,.,,,,,,,,,
+#DWX7Z4YR6WCZQEVLRWAGH4E7BE5JFP4NAWM5ARUTGUNFHA5H6SLXWIXW4UJIIBVTIJHT26NSL2KBK
+#\\\|2ILJ3UCAH6A2AQOP6PNT6A72IQNMC6XQQEA63MTHRSXBVF36OV5 \ / AMOS7 \ YOURUM ::
+#\[7]LKEQJ7VRWOTRKMJAKROBC3L6ML777ZJWNZGQBZ6EA6RA2AGJSYDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
