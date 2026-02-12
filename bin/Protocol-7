@@ -3402,13 +3402,18 @@ sub p7__log__devmod {
 ##############################################################################
 
 sub p7_handler__end_code {
-
     goto RESET_STDERR if not exists $data{'callbacks'}{'end_code'};
-
-    my $callback_name;
-    foreach $callback_name ( reverse $data{'callbacks'}{'end_code'}->@* ) {
-        if ( exists $code{$callback_name} ) {
+    foreach my $callback_name ( reverse $data{'callbacks'}{'end_code'}->@* ) {
+        if ( not length $callback_name // '' ) {
+            my $reason_str
+                = defined $callback_name ? 'empty string' : qw| undefined |;
             $code{'base.logs'}
+                ->( 0, '<< pushed end_code callback was %s >>', $reason_str );
+        } elsif ( ref $callback_name eq qw| CODE | ) {
+            $code{'base.log'}  ##  direct code refs currently not supported ##
+                ->( 0, '<< CODEREF not expected as end_code callback >>' );
+        } elsif ( exists $code{$callback_name} ) {
+            $code{'base.logs'}    ## ..exists =). calling.. ##
                 ->( 2, "calling end_code callback '%s'..,", $callback_name );
             $code{$callback_name}->();
         } else {
@@ -5319,8 +5324,8 @@ __DATA__
 :
 :.
 
-#,,,.,...,.,.,...,,,.,,..,,,,,.,.,,.,,,.,,.,,,...,...,...,...,,,.,,,,,..,,,.,,
-#OVQHM4AJEXL4NKBH32CWTD62AVZADXBFJPAPVF5ESDVUTNGSRKTWE5MOLY35G4GL72EKSQHHP6OUE
-#\\\|N5GZBXHPPFRH266WMSMLCL4TXYBDNSC5QRWOO6UGUSIRZ5XWOAI \ / AMOS7 \ YOURUM ::
-#\[7]EPWKX55PKGNOQFWD4ZJKW2AZMEP3HU5VVIDXJSV46PZ5NRWTMMDA 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,.,,,,,.,..,,,.,,,.,,.,.,,,.,,,,,...,...,...,...,..,,,,.,...,...,
+#IEQDSMXBKUZ64EVLY6CGHODOSJHQSJKM5PH6FSGNX7KM2N2CZONWTZUS72DAMYIGBYZPG24D7D4KO
+#\\\|MVZBWSMZ57GOJ64M6HONZWRJBXBYVJ5INRF357XSM3K5LENFDHY \ / AMOS7 \ YOURUM ::
+#\[7]RQNYKZ33WHVUITZ5VE72Z3ELKU4HIOZC64U7MSZRI4OJPRVOOKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

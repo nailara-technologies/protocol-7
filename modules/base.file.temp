@@ -12,8 +12,9 @@ if ( $tmpl =~ m|/| ) {    # allow paths later
     return undef;
 }
 
-<[base.perlmod.load]>->( 'File::Path', qw| make_path | )
-    if not exists &{'make_path'};
+if ( not exists &{'make_path'} ) {
+    <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
+}
 
 my $first_dir;
 my $zenka_name = <system.zenka.name>;
@@ -43,7 +44,7 @@ my $tmp_file_path;
 while ( not defined $tmp_file_path or -e $tmp_file_path and $retries-- ) {
     $retries = 0 if $tmpl !~ m|X|;    # <-- no rnd char range in template
     ( my $fname = $tmpl )
-        =~ s|(X+)|uc( <[base.prng.chars-anum]>->( length $1 ) )|ge;
+        =~ s|(X+)|uc(<[base.prng.chars-anum]>->( length ${^CAPTURE}[0] ))|ge;
     $tmp_file_path = catfile( $first_dir, $fname );
 }
 
@@ -67,8 +68,23 @@ if ( not open( $tmp_fh, qw| > |, $tmp_file_path ) ) {
 }
 
 if ($unlink) {
-    $data{'callbacks'}{'end_code'} //= [];
-    push $data{'callbacks'}{'end_code'}->@*, sub { unlink $tmp_file_path };
+    ## register generic cleanup callback once, collect filenames in array
+    #
+    <base.path.temp_files.clean_list> //= [];
+    push <base.path.temp_files.clean_list>->@*, $tmp_file_path;
+
+    ## register generic cleanup callback name if not already registered
+    ## : note : registered as 'file.cleanup-temp-files' because base.file.*
+    ##                                       gets swapped to file.* in init
+    unless (
+        scalar(
+            grep { $_ eq 'file.cleanup-temp-files' }
+                $data{'callbacks'}{'end_code'}->@*
+        )
+    ) {
+        $data{'callbacks'}{'end_code'} //= [];
+        push $data{'callbacks'}{'end_code'}->@*, qw|file.cleanup-temp-files|;
+    }
 }
 if ($register) {
     <system.init_reports> //= [];
@@ -83,8 +99,8 @@ if ($register) {
 
 return ( $tmp_fh, $tmp_file_path );
 
-#,,,.,.,,,,,.,,..,,..,,,.,,..,...,...,,.,,,..,..,,...,...,.,.,,..,,,.,,..,.,,,
-#QOU4DMZGXLOTJSVAIUM463LJZP33EO44KYYUSNKU7KB53ZXKOU4YWSS5YRU62VFB3UDHYIBSWMYMQ
-#\\\|O37BD4L5GPEEV7KIESM2QB4IHGDJVX3BT5O3L4FAQU6O2JSU67F \ / AMOS7 \ YOURUM ::
-#\[7]GZZOIPEPAYX57EKXLNF7766OQTYRWQU2EJAQNFXCI32BX75GCIDA 7  DATA SIGNATURE ::
+#,,..,...,,,,,,,,,.,,,,,,,..,,..,,,.,,,,,,,..,..,,...,...,..,,,,.,..,,,,.,..,,
+#AEH3R3BYCNXUJCGH3E3GORQPE7VV34LPDFGUHZ4BMUK376LBJNGYLLMD7FFK75MMWA2FDTFHYQ2YS
+#\\\|ASM55XEBOOHANJDYY6FNDR2K3NCZKJCGPZVMX2U6ULLCVOORJHF \ / AMOS7 \ YOURUM ::
+#\[7]LZQYMD562VKTW4XALAX5HOP3TJCCZJ6LL6UKECYW4QA4SDTWRODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
