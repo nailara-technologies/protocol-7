@@ -6,20 +6,24 @@
 system.verbosity.zenka_buffer = 3
 system.verbosity.console      = 2
 
-access.cmd.usr.cube = commands heart verify-instance reload name \
+access.cmd.usr.cube = commands heart verify-instance name reload \
                       list show-buffer buffer-erase buffer-erase-level \
                       status renew force-renew list-domains child.commands \
                       list-certificates dump echo request-certificate \
                       revoke-certificate activity-log query-algos child.*
 
-                      ## reload command currently disabled (drops parent cmds)
+access.cmd.usr.parent =  status renew force-renew inst-self-signed \
+                         list heart commands cur-pid cpu-time src-ver \
+                         src-age show-access show-buffer buffer-erase \
+                         buffer-erase-level verbosity \## reload
+##                       reload command is currently disabled : drops commands!
+                         dump get  ## 'devmod' module debug commands
 
-access.cmd.usr.parent = commands reload show-buffer \
-                        status renew force-renew \
-                        list inst-self-signed
+access.cmd.usr.child = cube.httpd.setup-acme-challenge \
+                       cube.httpd.remove-acme-challenge
 
 ## ACME Server Configuration
-# Using Let's Encrypt staging server for testing (no rate limits)
+# Using Let's Encrypt staging server for testing [ no rate limits ]
 letsencr.acme.server = https://acme-staging-v02.api.letsencrypt.org/directory
 #letsencr.acme.server = https://acme-v02.api.letsencrypt.org/directory  # production
 #letsencr.acme.server = http://localhost:8555/directory  # local mock
@@ -67,8 +71,8 @@ modules.load = auth net protocol io.unix io.ip letsencr.base      ## devmod
 
 [zenka.loop]
 
-#,,,,,,,.,,,.,,.,,,,.,..,,...,,.,,..,,.,.,...,..,,...,...,..,,..,,,,,,,.,,,,.,
-#YFD24LLYWTA4CSPXTT7DSNXQRZQLUALRJGD5KUR5UBECOCE3BYVV354TJZR2OIESYAJNZYQS34FXY
-#\\\|6K7XQPVF5I4HNJPI7VUTJPV4E5T5RBGFHTB2XZ5UZEPSKSMH6LH \ / AMOS7 \ YOURUM ::
-#\[7]JV633QKA5BEHCMBJIRMPYTBFP5MZJEXENCLP22IEPLI2TMFWJOBQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,,,.,,,.,,,.,..,,..,,,..,.,,,,..,..,,...,...,,.,,,,,,,.,,.,,,,,.,
+#HFDARPW3DSDHKBXTJE345EYYLOCBUGYNBNTZ7CNMXWMDTZIGUFA2JUP5OXYRLOGB6FVE5VQ67L5SS
+#\\\|IYI2HWZG7KAHA4XTRKVNXKTYHP6B3VOIJDMIHWOHPSPVTMFDX44 \ / AMOS7 \ YOURUM ::
+#\[7]BZ6HANE3NAQNJMRXQR5VRSS27X5RZXGAWU5SB5KJYX2YVXSR54AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
