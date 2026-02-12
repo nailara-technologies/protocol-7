@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = letsencr.parent.handler_challenge_validated
-# descr = handle challenge validation notification from child - update challenge status
+# descr = handle challenge validation notification from child process
 
 my $validation_data = shift;
 
@@ -9,14 +9,14 @@ my $token  = $validation_data->{'params'}{'token'};
 my $domain = $validation_data->{'params'}{'domain'};
 my $mode   = $validation_data->{'cmd'};
 
-<[base.log]>->(
-    2,
-    "challenge validation notification: token=$token, domain=$domain, mode=$mode"
+<[base.logs]>->(
+    2, 'challenge validation: token=%s domain=%s mode=%s',
+    $token, $domain, $mode
 );
 
 unless ( exists <letsencr.parent.pending_challenges> {$token} ) {
-    <[base.log]>->(
-        1, "challenge token $token not found in pending challenges"
+    <[base.logs]>->(
+        1, 'challenge token %s not found in pending challenges', $token
     );
     return FALSE;
 }
@@ -24,48 +24,55 @@ unless ( exists <letsencr.parent.pending_challenges> {$token} ) {
 my $challenge = <letsencr.parent.pending_challenges> {$token};
 
 if ( $mode eq 'TRUE' ) {
-    <[base.log]>->( 2, "challenge validated for $domain (token: $token)" );
+    <[base.logs]>->(
+        2,       'challenge validated for %s (token: %s)',
+        $domain, $token
+    );
     <[letsencr.parent.activity_logger]>->(
         'challenge', $domain, 'success', 'ACME challenge validated'
     );
 
-    ## Mark challenge as validated
-    $challenge->{status}       = 'valid';
+    ## mark challenge as validated
+    $challenge->{status}       = qw| valid |;
     $challenge->{validated_at} = time();
 
 } elsif ( $mode eq 'FALSE' ) {
     my $error = $validation_data->{'data'} // 'validation failed';
-    <[base.log]>->( 1, "challenge validation failed for $domain: $error" );
+    <[base.logs]>->(
+        1,       'challenge validation failed for %s: %s',
+        $domain, $error
+    );
     <[letsencr.parent.activity_logger]>->(
-        'challenge', $domain, 'failed', "validation error: $error"
+        'challenge', $domain, 'failed',
+        sprintf( 'validation error: %s', $error )
     );
 
-    ## Mark challenge as failed
-    $challenge->{status}    = 'failed';
+    ## mark challenge as failed
+    $challenge->{status}    = qw| failed |;
     $challenge->{error}     = $error;
     $challenge->{failed_at} = time();
 
-    ## Request HTTPd to clean up the challenge file
+    ## request HTTPd to clean up the challenge file
+    ## [ parameters as space-separated args: domain token ]
     <[base.protocol-7.command.send.local]>->(
         {   'command'   => 'httpd.cmd.remove-acme-challenge',
-            'call_args' => {
-                'args'  => $domain,
-                'param' => { 'token' => $token, }
-            }
+            'call_args' => { 'args' => "$domain $token" }
         }
     );
 
 } else {
-    <[base.log]>->( 1, "unknown validation mode: $mode for $domain" );
+    <[base.logs]>
+        ->( 1, 'unknown validation mode: %s for %s', $mode, $domain );
     <[letsencr.parent.activity_logger]>->(
-        'challenge', $domain, 'failed', "unknown validation mode: $mode"
+        'challenge', $domain, 'failed',
+        sprintf( 'unknown validation mode: %s', $mode )
     );
 }
 
 return FALSE;
 
-#,,.,,..,,.,.,.,.,..,,,,,,...,,..,,..,,,,,...,..,,...,...,.,.,,,.,..,,...,,,.,
-#OFK6ZZWYOBZEXNZ5UTNGNIKDZV5FVZK2GA7BLSSLEUJCVUA5YM2USGJRV2BLPBXSLIUUZZD2BNWM2
-#\\\|MEENTEXL5W5TDZPQPC2SK5QWYMZHCDKMLKC5TF6CKBGVCA2DSTT \ / AMOS7 \ YOURUM ::
-#\[7]5BAGFLXNTTQPOCLYUFHVSN5DRCGF6VKM23M2YRTT5XQIW5HXHGBY 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,,,,..,,,,.,...,,.,,...,,,.,,,.,..,,...,...,...,,.,,.,.,..,,.,.,
+#APJOTCZSOBAIJ2KKAXFQZANDXEFGOPLRPNCMKAM4ZFC45BXODNFHSMQ6FDICN3EGZTAETNRPKL5QG
+#\\\|S5KZSZTLYHD5MRU7RGEZWBRL2ROM2AIBKJK7ICJFZ3IO3BVWGMV \ / AMOS7 \ YOURUM ::
+#\[7]6WRZOTLU7CFZN3NHBYJB6A52O67XTJGYEM6TUBR4R4SAF7FLQICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
