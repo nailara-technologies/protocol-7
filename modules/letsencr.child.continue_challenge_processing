@@ -173,12 +173,18 @@ goto REPLY_PARENT;
 CHALLENGE_FAILED:
 ## error path: reply to parent with failure status
 <[base.log]>->( 0, 'challenge processing failed' );
-<[base.callback.cmd_reply]>->(
-    $reply_id,
-    {   status => qw| error |,
-        error  => 'Challenge validation failed during async processing'
-    }
-) if defined $reply_id;
+if ( defined $reply_id ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| false |,
+            'data' => 'Challenge validation failed during async processing'
+        }
+    );
+} else {
+    <[base.log]>->(
+        0, 'CRITICAL: reply_id undefined in error path - route remains open!'
+    );
+}
 return { status => qw| error |, error => 'Challenge validation failed' };
 
 REPLY_PARENT:
@@ -186,9 +192,17 @@ REPLY_PARENT:
 <[base.log]>->( 2, 'step 7: generating certificate signing request' );
 my $csr = <[letsencr.child.generate_csr]>->($domains);
 unless ($csr) {
-    <[base.callback.cmd_reply]>->(
-        $reply_id, { status => qw| error |, error => 'CSR generation failed' }
-    ) if defined $reply_id;
+    if ( defined $reply_id ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            { 'mode' => qw| false |, 'data' => 'CSR generation failed' }
+        );
+    } else {
+        <[base.log]>->(
+            0,
+            'CRITICAL: reply_id undefined in CSR error - route remains open!'
+        );
+    }
     return { status => qw| error |, error => 'CSR generation failed' };
 }
 
@@ -196,10 +210,17 @@ unless ($csr) {
 <[base.log]>->( 2, 'step 8: finalizing order and downloading certificate' );
 my $cert_result = <[letsencr.child.acme_finalize_order]>;
 unless ($cert_result) {
-    <[base.callback.cmd_reply]>->(
-        $reply_id,
-        { status => qw| error |, error => 'Order finalization failed' }
-    ) if defined $reply_id;
+    if ( defined $reply_id ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id,
+            { 'mode' => qw| false |, 'data' => 'Order finalization failed' }
+        );
+    } else {
+        <[base.log]>->(
+            0,
+            'CRITICAL: reply_id undefined in finalize error - route remains open!'
+        );
+    }
     return { status => qw| error |, error => 'Order finalization failed' };
 }
 
@@ -219,8 +240,19 @@ my $final_result = {
 };
 
 ## reply to parent with success status and certificate data
-<[base.callback.cmd_reply]>->( $reply_id, $final_result )
-    if defined $reply_id;
+if ( defined $reply_id ) {
+    ## encode certificate bundle as base32r for transmission
+    my $bundle_json = JSON::XS::encode_json($final_result);
+    my $bundle_b32r = Crypt::Misc::encode_b32r($bundle_json);
+
+    <[base.callback.cmd_reply]>->(
+        $reply_id, { 'mode' => qw| size |, 'data' => $bundle_b32r }
+    );
+} else {
+    <[base.log]>->(
+        0, 'CRITICAL: reply_id undefined - route remains open forever!'
+    );
+}
 
 ## cleanup stored state
 delete <letsencr.child.acme_state>;
@@ -228,14 +260,8 @@ delete <letsencr.child.acme_state>;
 <[base.log]>->( 2, 'challenge processing complete, certificate ready' );
 return $final_result;
 
-#,,,,,.,,,...,,,.,.,,,,..,.,,,,,.,,,,,,..,...,..,,...,...,.,.,...,,.,,,,,,,.,,
-#PROTOCOL7ACME_ASYNC_CONTINUATION_HANDLER_V1
-#\\\|PLACEHOLDER_AMOS7_SIGNATURE_WILL_BE_GENERATED_ON_COMMIT \ / AMOS7 \ YOURUM ::
-#\[7]PLACEHOLDER_AMOS7_DATA_SIGNATURE_WILL_BE_GENERATED_ON_COMMIT 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,..,,..,,,,,...,.,.,...,,,.,,.,,,.,,,..,,,.,..,,...,.,.,..,,.,.,,,.,,,,,,,,,
-#DWX7Z4YR6WCZQEVLRWAGH4E7BE5JFP4NAWM5ARUTGUNFHA5H6SLXWIXW4UJIIBVTIJHT26NSL2KBK
-#\\\|2ILJ3UCAH6A2AQOP6PNT6A72IQNMC6XQQEA63MTHRSXBVF36OV5 \ / AMOS7 \ YOURUM ::
-#\[7]LKEQJ7VRWOTRKMJAKROBC3L6ML777ZJWNZGQBZ6EA6RA2AGJSYDQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,,,,.,.,,..,..,,.,,,,..,,..,,,.,..,,...,...,...,.,,,,.,,.,.,,..,
+#CVQFJ2JAJVCQ75M7UA2AQJILLG7NNLLZ3RADBXDFKCAWPOUDP7466B2QNI6YDMYFOETDLU74BRQTO
+#\\\|QAXZCDDJO23KFDP7IFJMEOHGZBDOVHY4VGXTG2YDDNOFPM46IPD \ / AMOS7 \ YOURUM ::
+#\[7]U2TUKD6VGJMCSKYASUTEWKIH4Y6QCA3JEI7VBLSABNOF47ZCISCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
