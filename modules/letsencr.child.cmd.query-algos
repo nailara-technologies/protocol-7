@@ -4,7 +4,7 @@
 # descr = query ACME server for supported signature algorithms
 
 ## Fetch ACME directory if not already cached
-unless ( <letsencr.child.acme_client> {directory} ) {
+unless ( <letsencr.child.acme_client>->{directory} ) {
     <[base.log]>->( 2, 'fetching ACME directory' );
     my $dir_info = <[letsencr.child.fetch_acme_directory]>;
     unless ($dir_info) {
@@ -16,7 +16,7 @@ unless ( <letsencr.child.acme_client> {directory} ) {
 }
 
 ## Ensure we have a nonce
-unless ( <letsencr.child.acme_client> {nonce} ) {
+unless ( <letsencr.child.acme_client>->{nonce} ) {
     <[base.log]>->( 1, 'error: no nonce available for ACME request' );
     return {
         'mode' => 'false',
@@ -24,8 +24,8 @@ unless ( <letsencr.child.acme_client> {nonce} ) {
     };
 }
 
-my $newAccount_url = <letsencr.child.acme_client> {directory}->{newAccount};
-my $nonce          = <letsencr.child.acme_client> {nonce};
+my $newAccount_url = <letsencr.child.acme_client>->{directory}->{newAccount};
+my $nonce          = <letsencr.child.acme_client>->{nonce};
 
 <[base.log]>->( 2, 'querying ACME server for supported algorithms' );
 
@@ -76,8 +76,8 @@ return {
     'data' => $algo_json
 };
 
-#,,.,,.,.,,,,,...,.,,,,,.,,,.,,,,,...,,,.,.,,,.,.,...,...,..,,..,,,.,,,,.,,,,,
-#DVPRCAJ54DUWFHHH4B5DEBIAAUIE44QIR3C4LLHKZTYUCB2FHWCNWVBBOQMZ6TLMDIRSKMWKA4E4K
-#\\\|OXP2RMSZGH3IAL7ODZUTTCI5LZW2VFMJLNACBKPMXH2WLMUSJBJ \ / AMOS7 \ YOURUM ::
-#\[7]VJINYXCSBWNS32JKN2VZP6YSO4BHYCYGQAW2ASUPXERGYYZFFUDA 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,.,.,.,,,,,,,.,,,,.,,.,.,,..,.,.,.,.,...,...,.,,,..,,,.,,..,,...,
+#SMJEXYUGVZQJLABWBZ2RB7IPY4YGXI5MFJHQ65UENQFI4C7SYPKNVCEM6HQNSTD6B3O7TWJERFRPQ
+#\\\|JEFNFPOZO4WFENYAPKCQUUS4V6NP54VQYAPOBG2UTNJ6ZIV3ODP \ / AMOS7 \ YOURUM ::
+#\[7]GDMD2SUH5R4IMHW3LAAXBFPYGMHY6QL23F5D7MSWRYO2ZGXYLECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

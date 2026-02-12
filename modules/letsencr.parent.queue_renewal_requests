@@ -32,8 +32,8 @@ foreach my $renewal_info (@$renewal_list) {
     next unless $domain;
 
     ## Check if already in renewal process
-    if ( exists <letsencr.parent.renewal_timers> {$domain} ) {
-        my $timer_info = <letsencr.parent.renewal_timers> {$domain};
+    if ( exists <letsencr.parent.renewal_timers>->{$domain} ) {
+        my $timer_info = <letsencr.parent.renewal_timers>->{$domain};
         if ( $timer_info->{started}
             && ( $now - $timer_info->{started} ) < 300 ) {
             ## Already queued within last 5 minutes - skip duplicate
@@ -71,7 +71,7 @@ foreach my $renewal_info (@$renewal_list) {
         <[base.log]>->( 3, "renewal command queued for $domain" );
 
         ## Track renewal attempt
-        <letsencr.parent.renewal_timers> {$domain} = {
+        <letsencr.parent.renewal_timers>->{$domain} = {
             started  => $now,
             attempts => 1,
             status   => 'pending',
@@ -90,8 +90,8 @@ return {
     queued => $queued_count,
 };
 
-#,,,,,,..,.,.,,,.,.,,,,,.,..,,..,,,.,,,..,,..,..,,...,...,.,.,.,,,,.,,,,,,...,
-#J7EPTR6OML6G542NHFQHCMQBQPAMKKDKYXBGOQNQOABY3EOVDSRNRAQUMFRQNQ4HUS45MPYGZHCCK
-#\\\|37O2K3EFQH53J23JPGR5C2QVQZOOT4F5XWDLPV7EWBL2E25ANIN \ / AMOS7 \ YOURUM ::
-#\[7]EMTBHGZJZ4W67N6DDXRMPTZ7NOSOHKXFHN2GEWKQUBD7B6X4V2BY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,...,,,,,.,,,.,,,..,,,.,,...,,.,,..,,...,...,,,.,.,,,...,.,.,,.,,
+#UANPC5WQGQGY2FRO6TAA4XK4C63R5RTWGN244ALFVXEBP2H6QEK7BBJJH4GDS7CMR3LZZQNTXAAPG
+#\\\|PQC5MAUTI7BHS3E3DYHHMFG22OAUG5WQJHH7KVNK2JWSYLP53OC \ / AMOS7 \ YOURUM ::
+#\[7]YISQ2INHXLZ36TY7QCJ2U6BPWKTU4LFTPF5RZ3EJVLZNJ2SVNGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

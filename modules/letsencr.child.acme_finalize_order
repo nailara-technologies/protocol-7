@@ -34,7 +34,7 @@ my $payload = { csr => $csr->{b64url}, };
 ## Submit finalization request
 my $response = <[letsencr.child.acme_http_request]>->(
     'POST', $finalize_url, $payload, $nonce,
-    <letsencr.child.acme_client> {account_url}
+    <letsencr.child.acme_client>->{account_url}
 );
 
 unless ($response) {
@@ -57,15 +57,15 @@ if ( $response->{data}{status} ) {
 }
 
 ## Update nonce
-<letsencr.child.acme_client> {nonce} = $response->{nonce};
+<letsencr.child.acme_client>->{nonce} = $response->{nonce};
 
 ## Store finalization response
-<letsencr.child.current_order> {finalized_at} = time();
+<letsencr.child.current_order>->{finalized_at} = time();
 
 ## Poll for certificate (order processing)
 <[base.log]>->( 2, 'polling for certificate issuance...' );
 
-my $order_url = <letsencr.child.current_order> {order_url};
+my $order_url = <letsencr.child.current_order>->{order_url};
 my $cert_url;
 
 ## Poll until certificate is ready
@@ -89,7 +89,7 @@ while ( $poll_count < $max_polls ) {
         $order_url,
         '',    # empty payload
         $nonce,
-        <letsencr.child.acme_client> {account_url}
+        <letsencr.child.acme_client>->{account_url}
     );
 
     unless ($order_response) {
@@ -124,7 +124,7 @@ while ( $poll_count < $max_polls ) {
     if ( $order_status eq 'valid' ) {
         $cert_url = $order_data->{certificate};
         <[base.log]>->( 2, 'certificate ready!' );
-        <letsencr.child.acme_client> {nonce} = $order_response->{nonce};
+        <letsencr.child.acme_client>->{nonce} = $order_response->{nonce};
         last;
     } elsif ( $order_status eq 'invalid' ) {
         <[base.log]>->( 1, 'order became invalid during processing' );
@@ -148,7 +148,7 @@ my $cert_response = <[letsencr.child.acme_http_request]>->(
     $cert_url,
     '',    # empty payload for POST-as-GET
     <[letsencr.child.get_fresh_nonce]>,
-    <letsencr.child.acme_client> {account_url}
+    <letsencr.child.acme_client>->{account_url}
 );
 
 unless ( $cert_response && $cert_response->{status} == 200 ) {
@@ -167,14 +167,14 @@ my $cert_pem
 ## Return certificate and key
 return {
     certificate   => $cert_pem,
-    key           => <letsencr.child.cert_key>      {pem},
-    domains       => <letsencr.child.current_order> {domains},
+    key           => <letsencr.child.cert_key>->{pem},
+    domains       => <letsencr.child.current_order>->{domains},
     cert_url      => $cert_url,
     poll_attempts => $poll_count,
 };
 
-#,,.,,,.,,,.,,,,,,,..,...,.,.,,,.,.,.,.,.,.,.,..,,...,...,...,,..,,,,,,,.,,..,
-#TMBMYTEO3DZZBCPCLELXKSDDDXEY7TVQWN7U2TSCVDTRDEHSF27P66YPL3F7JY2JH6Y23TTE73J5U
-#\\\|CYOTWOO73K7C4BXFZU54YVMAZ2P34RN2CZLCEU7ZEUYOHR4L2GX \ / AMOS7 \ YOURUM ::
-#\[7]JUXMUCWPWDLY5OHEOBFPTF6XDGADCN2XRMQ4SFJ3NWTXDGXSJGBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,...,,,.,..,,,.,,,,.,...,..,,,..,..,,...,...,..,,,,.,..,,.,.,...,
+#CRYVCJKAJKLC33LW62YD7VUWVHZ2Q3RGE2TYFKIYB2T3WRVBUFIOAILVAM66Q2LZHGJHPNRIMHTDO
+#\\\|TXKMFUSIUQZBIVLMSKKBATVW76CHRBKZN63OKICZM57XIWGQ6ST \ / AMOS7 \ YOURUM ::
+#\[7]KZSSM5WUFK5JY2UQY7O3FS4JYZETEZXFFGP3BD4EP3CDQ5O5YECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

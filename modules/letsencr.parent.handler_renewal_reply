@@ -16,8 +16,8 @@ if ( $mode eq 'TRUE' ) {
     <[base.log]>->( 2, "renewal succeeded for $domain: $args" );
 
     ## Mark successful renewal
-    if ( exists <letsencr.parent.renewal_timers> {$domain} ) {
-        delete <letsencr.parent.renewal_timers> {$domain};
+    if ( exists <letsencr.parent.renewal_timers>->{$domain} ) {
+        delete <letsencr.parent.renewal_timers>->{$domain};
     }
     <letsencr.stats.renewals_completed>++;
 
@@ -70,13 +70,13 @@ if ( $mode eq 'TRUE' ) {
     <[base.log]>->( 2, "saved certificate for $domain to $cert_path" );
 
     ## Update stats
-    <letsencr.parent.certs> {$domain} = {
+    <letsencr.parent.certs>->{$domain} = {
         issued_at => time(),
         domain    => $domain,
     };
 
-    if ( exists <letsencr.parent.renewal_timers> {$domain} ) {
-        delete <letsencr.parent.renewal_timers> {$domain};
+    if ( exists <letsencr.parent.renewal_timers>->{$domain} ) {
+        delete <letsencr.parent.renewal_timers>->{$domain};
     }
     <letsencr.stats.renewals_completed>++;
 
@@ -140,8 +140,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,..,,,.,.,,,,,,,,,,,,..,,..,,,,,..,,.,.,,.,,..,,...,...,.,.,,..,.,.,..,,.,.,
-#7U7M3WEQYJPAL3RPSN2JIRSENDZ6VIHTG3Z6O5MDGX7JIGXNQ4XLNDZKOHO5YR3NM6FC2XS53F7LC
-#\\\|PNRLMKGS65QCKUEF3AR2YOG27YTPQEN6CKDZOH62YZVQVMDKBYF \ / AMOS7 \ YOURUM ::
-#\[7]PGR7AHJFTPGPZ5KP2LXUTK7NG2A2SLSOEMUJBPPHZ2PLVBNYMYDI 7  DATA SIGNATURE ::
+#,,..,,..,...,,,.,,.,,,,.,.,,,,.,,.,,,..,,,,,,..,,...,...,.,,,,,.,...,,.,,...,
+#ST75KDEP7UZEG5JITO3ANJB2CASOLAN57XRV47KOVFA4HAJ6RQN4IGMEMN3LAD2OZKHWJVRY3JHAU
+#\\\|AJSVVPOES3ZWDQUZ37ZBAXZ6HK3T7UPT2DIXYMHMIMQZGONP6DH \ / AMOS7 \ YOURUM ::
+#\[7]WSLIE65DGQG55TQ4AG7UHZPD3KNBCHXFAGE73ID5BMQ5Q7M3DODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

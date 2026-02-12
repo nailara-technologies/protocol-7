@@ -13,7 +13,7 @@ return undef unless $domains && @$domains;
 );
 
 ## Ensure account is registered
-unless ( <letsencr.child.acme_client> {account_url} ) {
+unless ( <letsencr.child.acme_client>->{account_url} ) {
     <[base.log]>->( 1, 'error: ACME account not registered' );
     return undef;
 }
@@ -39,7 +39,7 @@ foreach my $domain (@$domains) {
 my $payload = { identifiers => \@identifiers, };
 
 ## Get directory
-my $directory    = <letsencr.child.acme_client> {directory};
+my $directory    = <letsencr.child.acme_client>->{directory};
 my $newOrder_url = $directory->{newOrder};
 
 ## Make ACME request (authenticated with account URL as KID)
@@ -48,7 +48,7 @@ my $response = <[letsencr.child.acme_http_request]>->(
     $newOrder_url,
     $payload,
     $nonce,
-    <letsencr.child.acme_client> {account_url}    # KID = account URL
+    <letsencr.child.acme_client>->{account_url}    # KID = account URL
 );
 
 unless ($response) {
@@ -94,7 +94,7 @@ unless ( $order_url && $order_data->{authorizations} ) {
 };
 
 ## Update nonce
-<letsencr.child.acme_client> {nonce} = $response->{nonce};
+<letsencr.child.acme_client>->{nonce} = $response->{nonce};
 
 return {
     order_url      => $order_url,
@@ -103,8 +103,8 @@ return {
     finalize_url   => $order_data->{finalize},
 };
 
-#,,,.,.,,,,,,,..,,,,,,,,,,...,.,.,,,.,,,,,..,,..,,...,...,,..,,,,,.,.,,,,,...,
-#HLFCZQR5A6FJL4QRSWWEMBITBRXI4C56SU3Z7SU2RSOTSQKYB6QYNEDGEUZ5J6XOEUUXCLF5DF5RI
-#\\\|FOMYU4DYV7SSRJSCR4DEFQ4LCWW2WGWBYM7AG75N2QOWSOTBODR \ / AMOS7 \ YOURUM ::
-#\[7]5XZ3YNR3PVSD55Q4L4S3IU2FG426SVDGKCNQ2CNF5F32JACAHKAY 7  DATA SIGNATURE ::
+#,,,,,,..,...,,,.,,,.,,.,,.,.,,,.,...,,..,,.,,..,,...,...,..,,.,.,,,,,.,,,...,
+#HJZ3WBP33CHX3M3IAMOMQHP7RYZIC4N6TSKLMLHUHENX6WDUFMNPNAWNGEFNN54ATJGC2MU6OAQIS
+#\\\|YBGC5WUJOQITP3NCWYUAYMKECQAZK5IAXUD4DLBQG7QT2TC6TJY \ / AMOS7 \ YOURUM ::
+#\[7]RXYNOFTM5ISQAAZV32LC6OH4FEQTCJG4TKJ73GSIP2IBLWS23ICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

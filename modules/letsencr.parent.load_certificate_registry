@@ -81,7 +81,7 @@ foreach my $meta_file ( sort @meta_files ) {
     }
 
     ## Load certificate into registry
-    <letsencr.parent.certs> {$domain} = {
+    <letsencr.parent.certs>->{$domain} = {
         issued_at       => $metadata->{issued_at},
         expires_at      => $metadata->{expires_at},
         domain          => $metadata->{domain}    // $domain,
@@ -119,8 +119,8 @@ return {
     error_msg => $error_count > 0 ? "$error_count errors during load" : undef
 };
 
-#,,,.,.,.,.,.,,,.,..,,,.,,.,.,.,,,,,.,,..,,.,,..,,...,.,.,.,.,.,.,.,,,.,,,...,
-#J5JJLVVJKGWVRQNL4QU6FSUVLEATBNFNCDLESAPXKFUZE7Z4R5CMMVPPOI2KQQGEJOLKS6ADXLCZG
-#\\\|YJ2UCOZCWTXWUB65JOCT2HT3XMRDFAMKGVYUGG4SWZO7YV3UQXS \ / AMOS7 \ YOURUM ::
-#\[7]QKNB7I3Z6R5EOQF6QCTAPIIAQETCSVHQXL725NI2SLHTWDFTNADI 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,..,,,.,,..,,,..,,.,,.,.,.,.,...,..,,...,...,,..,...,,..,...,.,,,
+#6PIFFTTOS3MV6QWSPAXYIJ7SUVWFN4ETDK5GNAOTZUJEQXGY72L2UOFI5V7NLJLHIGLQNEETMOIKC
+#\\\|5FLIKNIHFYCFTHDUTUHPACBIKLHDJPP3Q4ZVXJOHZSNBRSDDW2L \ / AMOS7 \ YOURUM ::
+#\[7]KXRS7DN3VJV3SHSTLGC7QOQ76PNOSZ3CZBTAI2DR4PRS2NCHPCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
