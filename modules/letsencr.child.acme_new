@@ -1,9 +1,11 @@
 ## [:< ##
 
 # name  = letsencr.child.acme_new
-# descr = child process ACME new certificate issuance [ blocking calls ]
+# descr = ACME account creation and order setup [ part 1 : synchronous ]
+# note  = returns deferred to parent at challenge phase, continues w reply_id
 
-my $msg = shift;
+my $msg      = shift;
+my $reply_id = shift;    ## async reply mechanism for challenge coordination
 
 my $domains = $msg->{'domains'};                           # array ref
 my $email   = $msg->{'email'} || <letsencr.admin.email>;
@@ -22,7 +24,7 @@ my $primary_domain = $domains->[0];
     join( ', ', $domains->@* )
 );
 
-## STEP 1: Fetch ACME directory (if not already cached)
+## STEP 1 : Fetch ACME directory [ if not already cached ]
 unless ( <letsencr.child.acme_client>->{directory} ) {
     <[base.log]>->( 2, ': step 1 : fetching ACME directory' );
     my $dir_info = <[letsencr.child.fetch_acme_directory]>;
@@ -34,7 +36,7 @@ unless ( <letsencr.child.acme_client>->{directory} ) {
     }
 }
 
-## STEP 2: Load or generate account key
+## STEP 2 : Load or generate account key
 <[base.log]>->( 2, ': step 2 : loading or generating account key' );
 my $account_key = <[letsencr.child.load_account_key]>;
 unless ($account_key) {
@@ -47,7 +49,7 @@ unless ($account_key) {
     }
 }
 
-## STEP 3: Register ACME account (or retrieve existing)
+## STEP 3 : Register ACME account (or retrieve existing)
 unless ( <letsencr.child.acme_client>->{account_url} ) {
     <[base.log]>->( 2, 'step 3: registering ACME account' );
     my $account_info = <[letsencr.child.acme_register_account]>;
@@ -63,7 +65,7 @@ unless ( <letsencr.child.acme_client>->{account_url} ) {
     }
 }
 
-## STEP 4: Create certificate order
+## STEP 4 : Create certificate order
 <[base.log]>->( 2, 'step 4: creating certificate order' );
 my $order = <[letsencr.child.acme_create_order]>->($domains);
 unless ($order) {
@@ -80,207 +82,32 @@ unless ($order) {
     scalar( @{ $order->{authorizations} } )
 );
 
-## STEP 5: Process authorizations for each domain
-<[base.log]>->( 2, 'step 5: processing authorizations' );
-my @auth_urls;
-my $auth_index = 0;
-
-foreach my $auth_url ( @{ $order->{authorizations} } ) {
-    $auth_index++;
-    my $domain = $domains->[ $auth_index - 1 ];
-
-    my $total_auths = scalar @{ $order->{authorizations} };
-    <[base.logs]>->(
-        2, 'authorization %d/%d: %s',
-        $auth_index, $total_auths, $domain
-    );
-
-    ## Get authorization and challenges
-    my $auth = <[letsencr.child.acme_get_authorization]>->($auth_url);
-    unless ($auth) {
-        return {
-            status => qw| error |,
-            error  => "Failed to get authorization for $domain"
-        };
-    }
-
-    ## Determine challenge type based on domain and availability
-    my $is_wildcard    = ( $domain =~ /^\*\./ ) || $auth->{wildcard};
-    my $challenge_type = $is_wildcard ? 'dns-01'       : 'http-01';
-    my $challenge_data = $is_wildcard ? $auth->{dns01} : $auth->{http01};
-
-    ## Fall back to DNS-01 if HTTP-01 not available
-    if ( !$challenge_data && $auth->{dns01} ) {
-        <[base.log]>->( 2, "    HTTP-01 not available, using DNS-01" );
-        $challenge_type = 'dns-01';
-        $challenge_data = $auth->{dns01};
-    }
-
-    unless ($challenge_data) {
-        return {
-            status => qw| error |,
-            error  => "No suitable challenge available for $domain"
-        };
-    }
-
-    <[base.logs]>->( 2, 'challenge type: %s', $challenge_type );
-
-    ## Create challenge response based on type
-    my $challenge_response;
-
-    if ( $challenge_type eq qw| dns-01 | ) {
-        $challenge_response = <[letsencr.child.create_dns01_challenge]>->(
-            $challenge_data, $domain
-        );
-
-        unless ($challenge_response) {
-            return {
-                status => qw| error |,
-                error  => "Failed to create DNS-01 challenge for $domain"
-            };
-        }
-
-        <[base.logs]>->(
-            2,
-            'DNS TXT record: %s = %s',
-            $challenge_response->{'dns_record_name'},
-            $challenge_response->{'dns_value'}
-        );
-
-        ## Wait for DNS propagation
-        <[base.log]>->( 2, "    waiting for DNS propagation..." );
-        my $dns_check = <[letsencr.child.check_dns_propagation]>->(
-            $challenge_response->{dns_record_name},
-            $challenge_response->{dns_value}
-        );
-
-        unless ( $dns_check && $dns_check->{propagated} ) {
-            return {
-                status => qw| error |,
-                error  =>
-                    "DNS propagation failed for $domain: $dns_check->{error}"
-            };
-        }
-
-        <[base.logs]>->(
-            2,
-            'DNS propagated successfully in %d attempts',
-            $dns_check->{'attempts'}
-        );
-
-    } else {
-        ## HTTP-01 challenge
-        $challenge_response = <[letsencr.child.create_http01_challenge]>->(
-            $challenge_data, $domain
-        );
-
-        unless ($challenge_response) {
-            return {
-                status => qw| error |,
-                error  => "Failed to create HTTP-01 challenge for $domain"
-            };
-        }
-
-        <[base.logs]>->(
-            2,
-            'challenge ready at : %s',
-            $challenge_response->{well_known_url}
-        );
-    }
-
-    ## Notify ACME server that challenge is ready
-    my $respond_result = <[letsencr.child.respond_to_challenge]>->(
-        $challenge_response->{challenge_url},
-        $challenge_response->{token}
-    );
-
-    unless ($respond_result) {
-        return {
-            status => qw| error |,
-            error  => "Failed to respond to challenge for $domain"
-        };
-    }
-
-    push @auth_urls, { url => $auth_url, domain => $domain };
-}
-
-## STEP 6: Poll all authorizations until valid
-<[base.log]>->( 2, 'step 6: polling authorization status' );
-foreach my $auth_info (@auth_urls) {
-    my $validation = <[letsencr.child.poll_challenge_status]>->(
-        $auth_info->{url}, $auth_info->{domain}
-    );
-
-    unless ( $validation && $validation->{valid} ) {
-        my $error = $validation->{error} || 'Challenge validation failed';
-        return {
-            status => qw| error |,
-            error  =>
-                "Domain validation failed for $auth_info->{domain}: $error"
-        };
-    }
-
-    <[base.logs]>->(
-        2,
-        '%s: validated in %d attempts',
-        $auth_info->{'domain'},
-        $validation->{'attempts'}
-    );
-}
-
-## STEP 7: Generate CSR
-<[base.log]>->( 2, 'step 7: generating certificate signing request' );
-my $csr = <[letsencr.child.generate_csr]>->($domains);
-unless ($csr) {
-    return {
-        status => qw| error |,
-        error  => 'Failed to generate CSR'
-    };
-}
-
-## STEP 8: Finalize order and download certificate
-<[base.log]>->( 2, 'step 8: finalizing order and downloading certificate' );
-my $cert_result = <[letsencr.child.acme_finalize_order]>;
-unless ($cert_result) {
-    return {
-        status => qw| error |,
-        error  => 'Failed to finalize order or download certificate'
-    };
-}
-
-<[base.log]>->( 2, 'certificate obtained successfully' );
-<[base.logs]>->( 2, 'polled %d times', $cert_result->{'poll_attempts'} );
-
-## STEP 9: Parse certificate expiration
-my $valid_until = time() + ( 90 * 86400 );    # Default 90 days
-## TODO: Parse certificate to get actual expiration date
-
-## STEP 10: Send result back to parent
-<[base.log]>->( 2, 'sending certificate to parent process' );
-
-<[letsencr.child.send_to_parent]>->(
-    {   command     => qw| cert_ready |,
-        domain      => $primary_domain,
-        domains     => $domains,
-        cert        => $cert_result->{certificate},
-        key         => $cert_result->{key},
-        valid_until => $valid_until,
-        fingerprint => qw| SHA256:... |,         # TODO: Calculate fingerprint
-        cert_url    => $cert_result->{cert_url},
-    }
+## STEP 5 : Transition to async challenge processing
+## store order state for continuation phase and return deferred
+<[base.logs]>->(
+    2,
+    'order created with %d authorizations, transitioning to async phase',
+    scalar( @{ $order->{authorizations} } )
 );
 
-return {
-    status      => qw| success |,
-    domains     => $domains,
-    cert        => $cert_result->{'certificate'},
-    key         => $cert_result->{'key'},
-    valid_until => $valid_until,
-    cert_url    => $cert_result->{'cert_url'},
+## store state in global for continuation handler to access
+<letsencr.child.acme_state> = {
+    domains        => $domains,
+    primary_domain => $primary_domain,
+    email          => $email,
+    order          => $order,
+    reply_id       => $reply_id,
 };
 
-#,,..,..,,,..,.,.,,,.,,,,,,.,,,.,,.,.,,.,,,.,,..,,...,...,.,,,,.,,..,,.,.,.,,,
-#DJMDQSF4VNUJBGVXLUEXQF2BMV3TCRAW3RFN3WGJ4O6U5PIRH3SOU4HLYSRDFJKXEXRSUZQRB6CUE
-#\\\|LM7E5FS4P2KPAAHDHROVTTRF7XZLC7POJP5FZIWJRVFW6K35MSJ \ / AMOS7 \ YOURUM ::
-#\[7]23Z5ZB2ZZPJLD3J4ETEGKTHWAB3UDQQPR7DE6QOCGUX6VGZHBOBY 7  DATA SIGNATURE ::
+<[base.log]>->(
+    2, 'returning deferred, challenge coordination continues asynchronously'
+);
+
+## return deferred to indicate async processing with parent coordination
+return { 'mode' => qw| deferred | };
+
+#,,,.,...,..,,..,,..,,...,,.,,..,,,..,...,,..,..,,...,...,.,.,,.,,,..,,..,,.,,
+#5UYTKMLACYAP4L6FTCYUWGGSJTXIYY5JKZ73CU5FCBHUFN64MVC4PM7NBVDX63Q5A6NUZNGRIFB7M
+#\\\|HEIDX76JTIBIBST3LWBSLNQA2OS6GD5UPQAKGCRVINES336HUMP \ / AMOS7 \ YOURUM ::
+#\[7]LQWRPALOW6R5HLYCQGLIJOUC3QUUMKCTYTO5LQVNS3TD3R37GSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

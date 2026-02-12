@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = letsencr.parent.handler_challenge_confirmed
+# descr = confirm challenge is ready in httpd, resume child async workflow
+# note  = bridges parent httpd coordination with child continuation handler
+
+my $challenge_info = shift;
+
+my $domain   = $challenge_info->{'domain'};
+my $token    = $challenge_info->{'token'};
+my $key_auth = $challenge_info->{'key_auth'};
+my $reply_id = $challenge_info->{'reply_id'};
+
+unless ( $domain && $token && $reply_id ) {
+    <[base.log]>->( 0, 'challenge confirmation missing required fields' );
+    return FALSE;
+}
+
+<[base.logs]>->(
+    2, 'challenge confirmed for %s, resuming child workflow', $domain
+);
+
+## call child's continuation handler to resume async processing
+my $continuation_result = <[letsencr.child.continue_challenge_processing]>->(
+    {   domain   => $domain,
+        token    => $token,
+        key_auth => $key_auth,
+        reply_id => $reply_id,
+    }
+);
+
+if ( $continuation_result && $continuation_result->{status} eq qw| success | )
+{
+    <[base.logs]>->(
+        2, 'challenge processing completed successfully for %s', $domain
+    );
+    return TRUE;
+
+} else {
+    my $error = $continuation_result->{'error'} // 'unknown error';
+    <[base.logs]>->( 1, 'challenge processing failed: %s', $error );
+
+    return FALSE;
+}
+
+#,,,.,,,,,,,,,.,,,.,,,,,.,,,.,..,,,,.,,.,,.,,,..,,...,...,,,.,..,,..,,.,.,...,
+#5HQSUUAN5XZE74CO7IQ3AQP4ENSDAZ46CGPCPCMLIVMCAIYLK4INGVSANMIPNDM4ENF64XQR4F22S
+#\\\|VGJTZWK4V7TLSB22TLPBTWZXLYWKER5OCKI7F3GTAE55257EXT6 \ / AMOS7 \ YOURUM ::
+#\[7]4GOX46ADB6GNVRVTW4TZDXNAAWM7BRMAFUWEIKF5XY6KCMTDTEBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
