@@ -5,107 +5,42 @@
 
 my $timer_data = shift;
 
-<[base.log]>->(
-    2, 'renewal check timer fired - starting certificate renewal workflow'
-);
+<[base.logs]>->( 2, 'renewal check timer fired - sending async vhost query' );
 
 my $now = time();
 <letsencr.stats.last_renewal_check> = $now;
 
-## Phase 2 Workflow:
-## 1. Query HTTPd for configured virtual hosts
-## 2. Determine certificate domains from vhosts
-## 3. Load registry (already loaded in init, but refresh in case of manual updates)
-## 4. Check which certificates need renewal
-## 5. Queue renewal requests for child
+## phase 2 workflow: async vhost query + renewal check continuation
+## step 1: send async query to HTTPd for vhost list
+## when reply arrives, handler will continue with steps 2-5
 
-## Step 1: Query HTTPd for vhost list
-my $vhost_result = <[letsencr.parent.query_httpd_vhosts]>;
-unless ( $vhost_result && $vhost_result->{status} eq 'success' ) {
-    <[base.log]>->(
-        1, "error: cannot query vhosts from httpd - skipping renewal check"
-    );
-    return FALSE;
-}
-
-my @vhosts = @{ $vhost_result->{vhosts} // [] };
-<[base.log]>->( 3, "retrieved " . scalar(@vhosts) . " vhosts from httpd" );
-
-## Step 2: Determine certificate domains from vhosts
-my $domain_result
-    = <[letsencr.parent.determine_certificate_domains]>->( \@vhosts );
-unless ( $domain_result && $domain_result->{status} eq 'success' ) {
-    <[base.log]>->(
-        1,
-        "error: cannot determine certificate domains - skipping renewal check"
-    );
-    return FALSE;
-}
-
-my %domains_map = %{ $domain_result->{domains} // {} };
-<[base.log]>->(
-    3, "determined " . scalar( keys %domains_map ) . " certificate domains"
+my $num_clients = <[base.protocol-7.command.send.local]>->(
+    {   'command'   => qw| cube.httpd.vhost-list |,
+        'call_args' => { 'args' => '' },
+        'reply'     => {
+            'handler' => qw| letsencr.parent.handler_renewal_continue |,
+            'params'  => {}
+        }
+    }
 );
 
-## Step 3: Refresh registry (load from disk in case of external updates)
-my $refresh_result = <[letsencr.parent.load_certificate_registry]>;
-if ( !$refresh_result || $refresh_result->{status} eq 'error' ) {
-    <[base.log]>->(
-        2, "note: no stored certificates yet (first renewal check)"
+if ( !defined $num_clients || $num_clients == 0 ) {
+    <[base.logs]>->(
+        1,
+        'httpd vhost query failed: %s',
+        'permission denied or httpd not running'
     );
-    ## Not an error - continue with enrollment for new domains
-}
-
-## Step 4: Check which certificates need renewal
-my $check_result = <[letsencr.parent.check_certificate_expiration]>
-    ->(<letsencr.parent.certs>);
-unless ( $check_result && ref($check_result) eq 'HASH' ) {
-    <[base.log]>->( 1, "error: cannot check certificate expiration" );
     return FALSE;
 }
 
-my @needs_renewal = @{ $check_result->{needs_renewal} // [] };
-my @expiring_soon = @{ $check_result->{expiring_soon} // [] };
+<[base.log]>->(
+    3, 'vhost query sent async, handler will continue renewal check'
+);
 
-if ( @expiring_soon > 0 ) {
-    <[base.log]>->(
-        1,
-        "warning: " . scalar(@expiring_soon) . " certificates expiring soon"
-    );
-}
+return TRUE;
 
-## Step 5: Queue renewal requests for domains needing renewal
-my $queue_result
-    = <[letsencr.parent.queue_renewal_requests]>->( \@needs_renewal );
-if ( $queue_result && $queue_result->{status} eq 'success' ) {
-    <[base.log]>->(
-        2, "queued " . $queue_result->{queued} . " renewal requests"
-    );
-}
-
-## Also check for new domains that need certificates (have vhosts but no certificate)
-my @new_domains;
-foreach my $domain ( keys %domains_map ) {
-    unless ( exists <letsencr.parent.certs> {$domain} ) {
-        push @new_domains, $domain;
-    }
-}
-
-if ( @new_domains > 0 ) {
-    <[base.log]>->(
-        2,
-        "found " . scalar(@new_domains) . " new domains needing certificates"
-    );
-    ## TODO: Implement automatic enrollment for new domains
-    ## For now, just log that they need certificates
-}
-
-<[base.log]>->( 3, 'renewal check complete' );
-
-return FALSE;
-
-#,,,.,.,.,...,,.,,,,.,,..,.,.,,..,..,,,,,,,,,,..,,...,...,...,,,.,,,,,,,,,.,.,
-#6GKWOPW3TIYAVO4ROS4Y56IBCTIFLQOG47A56YDPJBENIAPXU7INPTHPRIZHWM6QJAL2K73UBONFW
-#\\\|LIK3HYGQUHG25UANZIDA2C7RJSPVLEP5ZDUXR2EO2IAGIZKONWZ \ / AMOS7 \ YOURUM ::
-#\[7]ETC37OCL6C65WLLFNGTGUZEEZF2TYUCMAU5I6BUYC2Y7RCZ6VKDA 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,.,,,..,,..,.,.,..,,,,.,,,,,..,,..,,...,...,.,.,,.,,,..,..,,,..,
+#Y5DR3IB7UXDXSOULHDNOTW3BDZL2NO24X7YBTXQFOMD3QPT4HSQOEZ5ZU55EGM6NOHS72QMFZ5Z5E
+#\\\|H3ZHPTA6I4Z3N3R7A232TKGZAOYCAF7WNRL7IQC2UJR4YJQKB25 \ / AMOS7 \ YOURUM ::
+#\[7]L7Z62VCNL6EIZ3YYHFSVDCHWVBDTBZCV4SFAE3MZCDCCX2TH3GAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
