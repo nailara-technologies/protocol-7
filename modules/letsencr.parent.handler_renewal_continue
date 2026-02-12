@@ -1,0 +1,129 @@
+## [:< ##
+
+# name  = letsencr.parent.handler_renewal_continue
+# descr = continue renewal check after receiving vhost list from httpd
+
+my $reply_data = shift @ARG;
+my $params     = shift @ARG;
+
+<[base.logs]>->( 2, 'renewal check continuing with vhost query reply' );
+
+## validate reply structure
+unless ( $reply_data && ref($reply_data) eq qw| HASH | ) {
+    <[base.log]>->( 0, 'vhost reply structure from httpd is not valid' );
+    return FALSE;
+}
+
+## parse reply based on mode
+my $mode           = $reply_data->{cmd}  // $reply_data->{mode};
+my $reply_data_str = $reply_data->{data} // '';
+
+unless ($mode) {
+    <[base.log]>->( 0, 'httpd vhost-list returned no mode field' );
+    return FALSE;
+}
+
+## parse vhost list from reply
+my @vhosts;
+if ( $mode eq qw| SIZE | || $mode eq qw| TRUE | ) {
+    ## both SIZE and TRUE modes return multi-line vhost names
+    @vhosts = grep { length($_) > 0 } split( m|\n|, $reply_data_str );
+} else {
+    <[base.logs]>->( 1, 'unexpected httpd reply mode : %s', $mode );
+    return FALSE;
+}
+
+## remove whitespace and filter empty lines
+@vhosts = map  { s{^\s+|\s+$}{}g; $_ } @vhosts;
+@vhosts = grep { length($_) > 0 } @vhosts;
+
+unless ( @vhosts > 0 ) {
+    <[base.log]>->( 1, ': warning : httpd returned empty vhost list' );
+    return FALSE;
+}
+
+<[base.logs]>->( 2, 'found %d vhosts from httpd', scalar(@vhosts) );
+foreach my $vh (@vhosts) {
+    <[base.logs]>->( 3, '  - %s', $vh );
+}
+
+## step 2: determine certificate domains from vhosts
+my $domain_result
+    = <[letsencr.parent.determine_certificate_domains]>->( \@vhosts );
+unless ( $domain_result && $domain_result->{status} eq qw| success | ) {
+    <[base.log]>->( 0, 'cannot determine certificate domains' );
+    return FALSE;
+}
+
+my %domains_map = %{ $domain_result->{domains} // {} };
+<[base.logs]>->(
+    2,
+    'determined %d certificate domains',
+    scalar( keys %domains_map )
+);
+
+## step 3: refresh registry (load from disk in case of external updates)
+my $refresh_result = <[letsencr.parent.load_certificate_registry]>;
+if ( !$refresh_result || $refresh_result->{status} eq qw| error | ) {
+    <[base.log]>->(
+        2, ': note : no stored certificates yet [ first renewal check ]'
+    );
+    ## not an error - continue with enrollment for new domains
+}
+
+## step 4: check which certificates need renewal
+my $check_result = <[letsencr.parent.check_certificate_expiration]>
+    ->(<letsencr.parent.certs>);
+unless ( $check_result && ref($check_result) eq qw| HASH | ) {
+    <[base.log]>->( 0, 'cannot check certificate expiration' );
+    return FALSE;
+}
+
+my @needs_renewal = @{ $check_result->{needs_renewal} // [] };
+my @expiring_soon = @{ $check_result->{expiring_soon} // [] };
+
+if ( @expiring_soon > 0 ) {
+    <[base.logs]>->(
+        1, 'warning: %d certificates expiring soon',
+        scalar(@expiring_soon)
+    );
+}
+
+## step 5: queue renewal requests for domains needing renewal
+my $queue_result
+    = <[letsencr.parent.queue_renewal_requests]>->( \@needs_renewal );
+if ( $queue_result && $queue_result->{status} eq qw| success | ) {
+    <[base.logs]>->(
+        2,
+        'queued %d renewal requests',
+        $queue_result->{queued}
+    );
+}
+
+## also check for new domains that need certificates
+## (have vhosts but no certificate)
+my @new_domains;
+foreach my $domain ( keys %domains_map ) {
+    unless ( exists <letsencr.parent.certs>->{$domain} ) {
+        push @new_domains, $domain;
+    }
+}
+
+if ( @new_domains > 0 ) {
+    <[base.logs]>->(
+        2, 'found %d new domains needing certificates',
+        scalar(@new_domains)
+    );
+    ## TODO: implement automatic enrollment for new domains
+    ## for now, just log that they need certificates
+}
+
+<[base.log]>->( 2, 'renewal check complete' );
+
+return TRUE;
+
+#,,,,,.,,,...,,,.,.,,,,..,.,,,,,.,,,,,,..,...,..,,...,...,.,.,...,,.,,,,,,,.,,
+#NTDFXDKYKZQEXXQVAJ2TOHA2ZWSEQHJJBE2SYL6VV3FLKDCVFYSUEAEY5TX7LY7IBPAPHNGEH7CCY
+#\\\|NQJL3N76QXPEZ2J5FHJJFUSMT6N2FJGIN43CZPJWITI3UMOWK5A \ / AMOS7 \ YOURUM ::
+#\[7]MD2ZEQIPJNO25PVDJNSIGKTU4TEUNOHCEFDN4YUISJDXTSIQVODA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
