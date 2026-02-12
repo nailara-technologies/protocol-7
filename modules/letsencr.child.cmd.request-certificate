@@ -30,16 +30,49 @@ my $email = $call->{'param'}{'email'} || <letsencr.admin.email>;
 my $result = <[letsencr.child.acme_new]>->(
     {   domains => \@domains,
         email   => $email,
-    }
+    },
+    $call->{'reply_id'}    ## pass reply_id for async coordination
 );
 
-## Check result status
-unless ( $result && $result->{status} eq 'success' ) {
-    my $error
-        = $result->{error} || 'Unknown error during certificate enrollment';
-    <[base.log]>->( 1, "certificate enrollment failed: $error" );
+## handle result from acme_new (internal status format)
+unless ($result) {
+    <[base.logs]>->( 1, 'acme_new returned undef' );
     return {
-        'mode' => 'false',
+        'mode' => qw| false |,
+        'data' => 'Internal error: acme_new failed'
+    };
+}
+
+## check for async deferred status
+if ( $result->{status} eq qw| deferred | ) {
+    ## async processing - challenge coordination with parent ongoing
+    <[base.logs]>->(
+        2, 'certificate request accepted, processing asynchronously'
+    );
+    return {
+        'mode' => qw| true |,
+        'data' => 'Certificate request queued for async processing'
+    };
+}
+
+## check for error result
+if ( $result->{status} eq qw| error | ) {
+    my $error = $result->{error}
+        // 'Unknown error during certificate enrollment';
+    <[base.logs]>->( 1, 'certificate enrollment failed: %s', $error );
+    return {
+        'mode' => qw| false |,
+        'data' => $error
+    };
+}
+
+## check for completion result (sync path: status='success')
+unless ( $result->{status} eq qw| success | ) {
+    my $error = $result->{error}
+        // 'Unknown error during certificate enrollment';
+    <[base.logs]>->( 1, 'certificate enrollment failed: %s', $error );
+    return {
+        'mode' => qw| false |,
         'data' => $error
     };
 }
@@ -70,8 +103,8 @@ return {
     'data' => $bundle_b32r
 };
 
-#,,..,,..,...,.,.,.,,,,.,,.,,,.,.,.,.,,,.,,.,,..,,...,...,..,,.,,,..,,..,,..,,
-#W7CAOPISNXMBCKKVGMSZXSJZGC5QXNYCICPAZ3J4OAEY4MHHPH2PIGGKHMJ3BRFWC2TRMW2IZSD6Y
-#\\\|XJT26L7DHH47COCWSQBRHYOCUIAVI3OIPSTMWJLTKLUNDLV4XBV \ / AMOS7 \ YOURUM ::
-#\[7]R47TA5CZ2MECQLATAC47DZQVVDP4WU5NAOQE43MWIWBRNZXONUCY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,.,.,,,,,.,.,..,,.,,,,,,,,.,,.,,,..,,...,...,,..,..,,..,,,,,,,,.,
+#2F3W4ERYBVFZFPVZ44DOCOHVCBE5GG6TV67OAQLKOXLMI2ZNMUVMZPQX4576MHZEJXCRZCI252JIY
+#\\\|NLFTRIUPUG4KBSSU3AZTXAKU3ABPCZ6O5YPG7I2WKQG7L2ATWTN \ / AMOS7 \ YOURUM ::
+#\[7]R2NZVLV3HXAEYAXEDHVHIQQN4CJGD5QDBQZB53NNNRLZXBS4HOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
