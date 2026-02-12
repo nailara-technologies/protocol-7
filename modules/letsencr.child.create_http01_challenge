@@ -8,85 +8,61 @@ my $domain    = shift;
 
 return undef unless $challenge && $domain;
 
-<[base.log]>->( 2, "creating HTTP-01 challenge response for $domain" );
+<[base.logs]>->( 2, 'creating HTTP-01 challenge response for %s', $domain );
 
 ## Extract challenge token
-my $token = $challenge->{token};
+my $token = $challenge->{'token'};
 
 unless ($token) {
-    <[base.log]>->( 1, 'error: no token in challenge' );
+    <[base.log]>->( 0, 'no token in challenge' );
     return undef;
 }
 
 ## Get account key thumbprint
 my $jwk = <[letsencr.child.get_jwk]>;
 unless ($jwk) {
-    <[base.log]>->( 1, 'error: failed to get JWK' );
+    <[base.log]>->( 0, 'failed to get JWK' );
     return undef;
 }
 
-## Create JWK thumbprint (RFC 7638)
+## Create JWK thumbprint [ RFC 7638 ]
 my $jwk_ordered = JSON::XS->new->canonical(1)->encode($jwk);
 my $thumbprint  = encode_base64url( sha256($jwk_ordered) );
 
-<[base.log]>->( 3, "JWK thumbprint: $thumbprint" );
+<[base.logs]>->( 3, 'JWK thumbprint: %s', $thumbprint );
 
-## Create key authorization: token.thumbprint
-my $key_auth = "$token.$thumbprint";
+## Create key authorization : token.thumbprint
+my $key_auth = join qw| . |, $token, $thumbprint;
 
-<[base.log]>->( 3, "key authorization: $key_auth" );
+<[base.logs]>->( 3, 'key authorization : %s', $key_auth );
 
 ## For HTTP-01, we need to serve key auth at:
 ## http://example.com/.well-known/acme-challenge/{token}
 
-## Create challenge directory
-## For child process: use site_dir from letsencr config or default to /var/httpd
-my $site_dir       = <letsencr.challenge.site_dir>  || '/var/httpd';
-my $site_name      = <letsencr.challenge.site_name> || 'default';
-my $well_known_dir = '.well-known/acme-challenge';
+## note: child only computes challenge values
 
-my $challenge_dir = sprintf '%s/%s/%s',
-    $site_dir,
-    $site_name,
-    $well_known_dir;
-
-my $challenge_file_path = sprintf '%s/%s', $challenge_dir, $token;
-
-unless ( -d $challenge_dir ) {
-    <[base.log]>->( 2, "creating challenge directory: $challenge_dir" );
-
-    ## Create directory recursively
-    ## file.make_path logs its own errors, so we just check the result
-    my $created_path = <[file.make_path]>->($challenge_dir);
-    return undef unless defined $created_path;
-}
-
-## Write key authorization to file
-<[file.put]>->( $challenge_file_path, $key_auth, qw| :raw | );
-chmod( 0644, $challenge_file_path );
-
-<[base.log]>->( 2, "challenge response written to $challenge_file_path" );
+## parent will contact httpd to actually write files
+#                 [ parent has httpd IPC delegation ]
+<[base.logs]>->( 2, 'HTTP-01 challenge computed for %s', $domain );
 
 ## Store challenge info in child state for later verification
 <letsencr.child.active_challenges>->{$token} = {
     domain        => $domain,
     token         => $token,
     key_auth      => $key_auth,
-    challenge_url => $challenge->{url},
-    file_path     => $challenge_file_path,
-    created_at    => time(),
+    challenge_url => $challenge->{'url'},
+    created_at    => <[base.time]>->(3),
 };
 
 return {
     token          => $token,
     key_auth       => $key_auth,
-    file_path      => $challenge_file_path,
     well_known_url => "http://$domain/.well-known/acme-challenge/$token",
-    challenge_url  => $challenge->{url},
+    challenge_url  => $challenge->{'url'},
 };
 
-#,,,,,..,,..,,...,,..,,.,,,.,,,..,...,,..,,,,,..,,...,...,,,,,,..,...,,..,,,.,
-#CEKKQAGAV5MFZ7HT7C2KXG7JANB7GZ42GLCGEJAPAU4GBHHXBAPU6P36L7QDOR7PEFAMX33L7KSOO
-#\\\|F276EZNP3RUHHR4L77DUEBVRCJ6NNA6X5X6N5VE5YDE5FPIDVLE \ / AMOS7 \ YOURUM ::
-#\[7]S35ICBUC3O6KXHLMKU2B4GYRQRQJUNYLW5LDKSTZCOCPWG7BYMDI 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,..,..,,...,..,,,,,,.,,,,,.,,..,..,,...,...,..,,.,,,,,.,,,,,...,
+#56JIZNMU5SBNEA7U2GNEKEO4UCLI2ORQRKI3U3PRF524NRLXXVR6UORNKNQJUIZPKLZK2EMNP6ET6
+#\\\|D63GC2UXSVLMYOWLXFHUQDX2VITW2XOCZKFJFZZ6KUB6JFX6LOA \ / AMOS7 \ YOURUM ::
+#\[7]AAWAFV5NQB62FMQ6JO7GSC4JACC3UYW73IXWTLTSAGMJ4WVT6UAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
