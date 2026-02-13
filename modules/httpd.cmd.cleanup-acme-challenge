@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = httpd.cmd.cleanup-acme-challenge
+# param = <domain>
+# descr = remove HTTP-01 challenge directory
+
+my $params = $call->{'args'};
+my $domain = $params->{'domain'};
+
+unless ($domain) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'domain required'
+    };
+}
+
+<[base.logs]>->( 2, 'cleaning up HTTP-01 challenge for %s', $domain );
+
+## remove well-known challenge directory
+my $well_known_dir
+    = sprintf( '%s%s/.well-known/acme-challenge', <httpd.site_dir>, $domain );
+
+if ( -d $well_known_dir ) {
+    <[file.clean-paths]>->($well_known_dir)
+        or do {
+        my $error = <[base.str.os_err]>;
+        <[base.logs]>->(
+            1, 'failed to remove challenge directory: %s', $error
+        );
+        ## log but don't fail - cleanup is best-effort
+        };
+    <[base.logs]>->( 2, 'challenge directory removed: %s', $well_known_dir );
+} else {
+    <[base.logs]>
+        ->( 3, 'challenge directory not found: %s', $well_known_dir );
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => 'cleanup complete'
+};
+
+#,,..,,,.,..,,,.,,..,,,..,...,,,,,,..,,.,,.,,,.,.,...,...,,.,,.,,,..,,,,,,..,,
+#TULA53OVEM5AIBPKUQH3MX6VPII4MTSELFCANGRPZEY2BNKVBRBUZP5M2BW6ZHIUZWP27CBF3457K
+#\\\|7Q7KKUEJCKMHN5W2DY2VN4YQGLH7Q37PNYMPU2Z5BMPO44W627U \ / AMOS7 \ YOURUM ::
+#\[7]7MYBDGN6AHFS6YX5QIUFJCVYCQR2O3HZ7RZWUXT5L44OB7542MBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

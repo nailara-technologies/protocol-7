@@ -88,8 +88,8 @@ if ( $path =~ /\.(html|htm)$/ ) {
     $route->{type}          = 'template';
     $route->{handler}       = 'httpd.process_template';
     $route->{reason}        = 'html_file_with_potential_template';
-    $route->{template_path} = "/var/httpd/$vhost/_templates/"
-        . ( split( '/', $path ) )[-1] . '.tmpl';
+    $route->{template_path} = sprintf( '%s%s/_templates/%s.tmpl',
+        <httpd.site_dir>, $vhost, ( split( '/', $path ) )[-1] );
     $route->{handler_args} = {
         session_id    => $session_id,
         template_path => $route->{template_path},
@@ -103,8 +103,8 @@ $route->{handler} = 'httpd.file_transfer';
 $route->{reason}  = 'no_template_match';
 return $route;
 
-#,,.,,.,.,,..,.,.,,,,,,..,...,,..,.,.,.,.,,.,,..,,...,...,.,.,...,,.,,..,,,.,,
-#MWJAIZWCQOXBF633UXNAIDORCS4RRU4OBLTJDD6LHKYR2TRYNHWZ6PW3CKJPVZF2IVLPU6DXPPURA
-#\\\|VO52MSXMZE53HKWIPAXYQSMRYWIXVOAFAB6YOWALOPAMNXGWUVD \ / AMOS7 \ YOURUM ::
-#\[7]KTY6GKT55HRDFGF5YPHWGJ3OAVTU2BTPARUDC3U3KMXP7Z3ADAAQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,,,,..,...,...,.,.,.,,,,.,,.,,,..,,...,...,,,.,.,,,.,,,,,.,..,,
+#S7WRYG5ZFIBXIHHKQQRC2E2RJZOQ2UHHJOV3ZFHWOGHAGKIXBZQWXH4I23AJ45TFKGGGNRVJIHKRO
+#\\\|HLUEMBIB3AHJK7WCGHE3TCJ6OYACFORFRFZT2EQKJYEA22RWM2F \ / AMOS7 \ YOURUM ::
+#\[7]EM5XDUHXSI7GNFNCPGZ7E6534T7S57WJWWMMDOUMIQ3NCIV2JOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
