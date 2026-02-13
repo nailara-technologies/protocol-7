@@ -176,7 +176,7 @@ foreach my $auth_info (@auth_urls) {
 
     ## notify httpd to clean up [ fire-and-forget ]
     <[base.protocol-7.command.send.local]>->(
-        {   'command'   => qw| cube.httpd.cmd.cleanup-acme-challenge |,
+        {   'command'   => qw| parent.cube.httpd.cmd.cleanup-acme-challenge |,
             'call_args' => {
                 'args' => { 'domain' => $domain }
             }
@@ -277,8 +277,8 @@ delete <letsencr.child.acme_state>;
 <[base.log]>->( 2, 'challenge processing complete, certificate ready' );
 return $final_result;
 
-#,,.,,..,,,,.,,..,,..,..,,...,,..,.,,,,,,,.,.,..,,...,..,,,.,,,,.,.,,,.,.,,,,,
-#Y6LQHBCEPMBHRMCBSYLT4MHIOYLBYYPA32HQPBNNYMXQBUHA6DSB7T4XHYF7AVPCVQ2AKQ5BRR37U
-#\\\|4DZQBNV7VC6B36IURJPMA4ADMH6CEKQEYRYYFF3EHPOYUID3DDC \ / AMOS7 \ YOURUM ::
-#\[7]YEIUBX45Q4GCMB5X7DSJP4LFM3NCWRRZVON3I2QK6NLXUNR76UDQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,.,.,,,.,,.,,.,.,,,,,..,,.,.,..,,..,,...,...,.,,,,..,,,.,..,,,.,,
+#ZZDEAIYMXCUJCE4T4SRSKAPTU7FWBEGL73UE4XGOY3ECVVFI45D5LG52QFWL7SLLH3APNNWAYHPVA
+#\\\|NMNUJ4ASN7XRSHWJ6HNFGW6RC4ADEKW6D7PS7ZSISXKHJKGH6BM \ / AMOS7 \ YOURUM ::
+#\[7]4CD4UDZ3VP2SGVRUW5Y2I63VEY2NF2CRW5VZBEOCJSUUQPZO4YCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
