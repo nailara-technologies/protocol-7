@@ -49,14 +49,14 @@ if ( !<letsencr.child.pid> ) {    ## child ##
     ## mark parent session for shutdown when last session closes
     # <callback.session.closing_last.params>->[1] = 1;
     <[base.log]>->( 1, 'preparing to close cube session of child .,' );
-    $data{'session'}{$session_id}{'shutdown'} = 1;
+    $data{'session'}->{$session_id}->{'shutdown'} = TRUE;
 
-    $data{'handle'}{$parent_pipe}{'mode'} = qw| out |;
+    $data{'handle'}->{$parent_pipe}->{'mode'} = qw| out |;
     my $id = <[base.session.init]>->(
         $parent_pipe, qw| protocol-7 client parent |
     );
 
-    $data{'session'}{$id}->{'input'}->{'handler'}
+    $data{'session'}->{$id}->{'input'}->{'handler'}
         = qw| base.handler.command |;
 
 } else {    ## parent ##
@@ -78,9 +78,14 @@ if ( !<letsencr.child.pid> ) {    ## child ##
     $data{'handle'}{$child_pipe}{'mode'} = qw| out |;
     my $id = <[base.session.init]>
         ->( $child_pipe, qw| protocol-7 client child | );
-    $data{'session'}{$id}->{'input'}->{'handler'}
+    $data{'session'}->{$id}->{'input'}->{'handler'}
         = qw| base.handler.command |;
-    $data{'session'}{$id}->{'authenticated'} = qw| yes |; # enabling  commands
+
+    ## enables routing commands to child zenka ##
+    $data{'session'}->{$id}->{'authenticated'} = qw| yes |;
+
+    ## authenticate cube session to allow routed commands to httpd ##
+    $data{'session'}{$session_id}->{'authenticated'} = qw| yes |;
 
     my $cache_dir  = <letsencr.cache.dir>;
     my $cert_cache = sprintf '%s/cert.cache', $cache_dir;
@@ -90,8 +95,8 @@ if ( !<letsencr.child.pid> ) {    ## child ##
         ## contains serialized cert metadata
         <[file.slurp]>->( $cert_cache, \my $cache_str, qw| :raw | );
 
-        # Load cached certificate data (deferred to parent init)
-        <letsencr.cache.loaded> = 1;
+        # load cached certificate data [ deferred to parent init ]
+        <letsencr.cache.loaded> = TRUE;
     }
 
     <[event.add_signal]>
@@ -102,8 +107,8 @@ if ( !<letsencr.child.pid> ) {    ## child ##
     <[base.log]>->( 1, 'letsencr parent initialized' );
 }
 
-#,,,,,,,,,...,..,,,.,,..,,..,,,..,...,.,.,.,,,..,,...,...,,..,,..,.,,,...,.,.,
-#E6NTCTD3AXB6YOOE7NRC3TQFS5N4J3UBQELOIRAFI2IGBZRVNRSKYJOOMSOBKG4UZNXACALWXSQRW
-#\\\|5MSQMOJGE366LZYINMPIV4JE6NVGPBWZG75ZQ5UU4BDLNDBCPDX \ / AMOS7 \ YOURUM ::
-#\[7]4MBKUXGKC2LHOKOMXJ5XV37AWPSQPTX3NR7TG22MUTTAJBCJR6DY 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,.,,.,,,,.,,.,,,,,,,..,,..,,,..,..,,...,...,..,,..,,,,,,.,.,..,,
+#3YYPNE6VPUOPAJODND6PF4NWG7RTLM3YEKPPJV3CFJHH2P23AS4RIFEPWNNUATUQWYNO72SQV3UPE
+#\\\|Y36ODOFWUWUAEUSG4DGRM3SGO3HOC4KJLJCG6CCFASFQPMQ45KC \ / AMOS7 \ YOURUM ::
+#\[7]3KEJI7T7ZMAA65K46Q3OIPT4LGTM77D6WLPZI5O57J2JSMEK6CCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
