@@ -6,11 +6,11 @@
 my $vhosts_list = shift;
 
 return {
-    status  => 'error',
+    status  => qw| error |,
     error   => 'vhosts array required',
     domains => {},
     }
-    unless $vhosts_list && ref($vhosts_list) eq 'ARRAY';
+    unless $vhosts_list && ref($vhosts_list) eq qw| ARRAY |;
 
 <[base.log]>->(
     2,
@@ -21,23 +21,23 @@ return {
 
 my %domains_map;
 
-foreach my $vhost (@$vhosts_list) {
+foreach my $vhost ( $vhosts_list->@* ) {
     next unless defined $vhost && length($vhost) > 0;
 
     ## Skip special vhosts
     # Skip 'default' - it's a generic vhost
-    next if $vhost eq 'default';
+    next if $vhost eq qw| default |;
 
     # Skip localhost references
-    next if $vhost =~ /^localhost|127\.0\.0\.1|::1|\[.*:.*:.*\]$/i;
+    next if $vhost =~ m{^localhost|127\.0\.0\.1|::1|\[.*:.*:.*\]$}i;
 
     # Skip private network ranges (10.x, 172.16-31.x, 192.168.x)
     next
         if $vhost
-        =~ /^10\.|^172\.(1[6-9]|2[0-9]|3[01])\.|^192\.168\.|^fd[0-9a-f]{2}:/i;
+        =~ m{^10\.|^172\.(1[6-9]|2[0-9]|3[01])\.|^192\.168\.|^fd[0-9a-f]{2}:}i;
 
     # Skip IPv6 link-local
-    next if $vhost =~ /^fe80:/i;
+    next if $vhost =~ m{^fe80:}i;
 
     # Valid domain-like vhost - queue for certificate
     # Normalize domain (lowercase)
@@ -46,11 +46,11 @@ foreach my $vhost (@$vhosts_list) {
     # Group wildcards and subdomains under base domain
     # e.g., www.example.com and *.example.com both map to example.com
     my $base_domain = $domain;
-    if ( $domain =~ /^\*\.(.+)$/ ) {
+    if ( $domain =~ m|^\*\.(.+)$| ) {
 
         # Wildcard domain - use base domain
-        $base_domain = $1;
-    } elsif ( $domain =~ /^www\.(.+)$/ ) {
+        $base_domain = $LAST_PAREN_MATCH;
+    } elsif ( $domain =~ m|^www\.(.+)$| ) {
 
         # www subdomain - check if we should use base or subdomain
         # For now, keep both as separate domains
@@ -71,16 +71,16 @@ foreach my $vhost (@$vhosts_list) {
     push @{ $domains_map{$base_domain}{vhosts} }, $vhost;
 
     # If it's a wildcard, add to alt_names
-    if ( $vhost =~ /^\*\./ ) {
-        push @{ $domains_map{$base_domain}{alt_names} }, $vhost;
+    if ( $vhost =~ m|^\*\.| ) {
+        push $domains_map{$base_domain}{alt_names}->@*, $vhost;
     }
 
     # Add www variant if not present
-    if ( $vhost !~ /^\*\./ && $vhost !~ /^www\./ ) {
-        my $www_variant = "www.$vhost";
-        unless ( grep { $_ eq $www_variant }
-            @{ $domains_map{$base_domain}{alt_names} } ) {
-            push @{ $domains_map{$base_domain}{alt_names} }, $www_variant;
+    if ( $vhost !~ m|^\*\.| && $vhost !~ m|^www\.| ) {
+        my $www_variant = sprintf 'www.%s', $vhost;
+        unless ( grep { $ARG eq $www_variant }
+            $domains_map{$base_domain}{alt_names}->@* ) {
+            push $domains_map{$base_domain}{alt_names}->@*, $www_variant;
         }
     }
 }
@@ -93,18 +93,18 @@ foreach my $domain ( sort keys %domains_map ) {
     my $info = $domains_map{$domain};
     my $alts
         = @{ $info->{alt_names} } > 0
-        ? " (+ " . scalar( @{ $info->{alt_names} } ) . " alts)"
+        ? " [ + " . scalar( $info->{alt_names}->@* ) . " alts ]"
         : "";
     <[base.log]>->( 2, "  $domain" . $alts );
 }
 
 return {
-    status  => 'success',
+    status  => qw| success |,
     domains => \%domains_map,
 };
 
-#,,,,,,.,,...,.,,,...,.,.,.,.,,,,,,..,,..,.,,,..,,...,...,,.,,...,.,.,.,,,,,.,
-#UN5F23ZWJ2PTFHT5KWKTWG6DF3PDQFIF2QNZW4ASTSGNNMMV5OLOVFJHJUD5KA6YDV4DBUJPJNPQE
-#\\\|2PC5AEVQUZTSTC7LT5DWLTE3JHNU3ZPTU23YVV3KZERS7337YGB \ / AMOS7 \ YOURUM ::
-#\[7]YWBIZKYFPD2SUUXBK3XESJBKY3OY6TKRWTNL2SLXAB6RLVNBY4BY 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,,.,.,.,.,,,...,,..,,,,,.,.,,.,,..,,...,...,..,,...,..,,..,,.,.,
+#HCYXFRR5EVSMNYVZL767ORA7YM6T3H4CIUVNZD6BQWUF32VLQ3A3XUMHO2X6I2EXK2ERNY7UXRMIE
+#\\\|ZMFANGZ3LUM57654QRK7VTPAUDPQWNL2SCV3QHJOEYEMJR6WRAR \ / AMOS7 \ YOURUM ::
+#\[7]3RJ6VRK563BW2DZ57LUOQVZSAZVOTUQ3GQR3JDU4IA3CFCDN2OCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
