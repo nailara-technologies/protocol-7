@@ -47,9 +47,11 @@ my $key_auth = join qw| . |, $token, $thumbprint;
 my $setup_result = <[base.protocol-7.command.send.local]>->(
     {   'command'   => qw| cube.httpd.cmd.setup-acme-challenge |,
         'call_args' => {
-            'domain'   => $domain,
-            'token'    => $token,
-            'key_auth' => $key_auth,
+            'args' => {
+                'domain'   => $domain,
+                'token'    => $token,
+                'key_auth' => $key_auth,
+            }
         }
     }
 );
@@ -79,8 +81,8 @@ return {
     challenge_url  => $challenge->{'url'},
 };
 
-#,,.,,.,,,,..,,.,,,,.,...,.,,,,,.,,,,,,..,,,.,..,,...,...,,,.,.,,,,,.,,,,,,,,,
-#T3RQBSVI32WJHPL5OH3FNY7PU4EYYOAP3CDB4SIAKBMAQRTECZ7XNTYZS4F3VT6EF5IAUQ5KQQ64W
-#\\\|KWH7X3OELTFEBCHLNTLLD4G54W6DVQ52KWYADYEN7UDYWUW25BD \ / AMOS7 \ YOURUM ::
-#\[7]Z56NDYQTZP6PO5NGYSDDWOPW47HSPRWWKLXAZB2ZHCALBIA5MSBI 7  DATA SIGNATURE ::
+#,,,.,...,.,,,...,,,,,,,.,,.,,,,.,,,,,,,,,..,,..,,...,..,,.,.,,.,,.,,,...,.,.,
+#IBQWGM7GE3USM6ED4JOSGURVBPONZ27CB3DYGBQX2UXKB2SOGZ6OUDZKXYM3BL4OR6C2OELNEERBG
+#\\\|HTYOJSHDZPNCZBMFMJBLI5JFQZPIMJAEMFKSYE7HOFL5HRCZW46 \ / AMOS7 \ YOURUM ::
+#\[7]N7GHUQ2YV46Z2I7D2JAGMKEUI5JCQGV7N3UZ2ZF4GJFIDY7GQWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

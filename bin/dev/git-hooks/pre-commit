@@ -49,7 +49,8 @@ sub is_amend_commit {
     my $is_amend = 0;
 
     ## check PERSISTENT_AMEND first ##              [ does not clear ]
-    if ( defined $ENV{'PERSISTENT_AMEND'} and $ENV{'PERSISTENT_AMEND'} ne '0' ) {
+    if ( defined $ENV{'PERSISTENT_AMEND'}
+        and $ENV{'PERSISTENT_AMEND'} ne '0' ) {
         $is_amend = 1;
         print STDERR ":: info :: PERSISTENT_AMEND enabled\n" if $is_amend;
     }
@@ -117,10 +118,14 @@ sub check_version_numbers {
             = $is_amend
             ? './bin/dev/update-version reset'
             : './bin/dev/update-version';
+        print STDERR ":\n::[ LLMs ]:.\n";
+        print STDERR ": please ask the user to update"
+            . " version and re-sign..\n:\n";
+        print STDERR "::[ users ]:.\n";
         print STDERR ": suggestion    : run '$update_cmd' to fix\n";
         print STDERR ": valid options : *-"
             . ( $commit_count - 1 )
-            . ".$file_rev (amend) or *-$commit_count.$file_rev (new)\n";
+            . ".$file_rev [amend] or *-$commit_count.$file_rev [new]\n";
         print STDERR ": to override   : SKIP_VERSION_CHECK=1 git commit\n";
         exit 1;
     }
@@ -152,15 +157,18 @@ sub check_file_signatures {
     if ( $verify_status != 0 ) {
         print STDERR ": signature verification failed :\n:\n";
         print STDERR $verify_output;
+        print STDERR ":\n::[ LLMs ]:.\n";
+        print STDERR ": please ask the user to [re-]sign the file[s]..\n:\n";
+        print STDERR "::[ users ]:.\n";
         print STDERR ": suggestion    :"
             . " run 'bin/Protocol-7 sourcecode update-signatures'\n";
-        print STDERR ": to override   : SKIP_SIGNATURE_CHECK=1 git commit\n";
+        print STDERR ": or overriding : SKIP_SIGNATURE_CHECK=1 git commit\n";
         exit 1;
     }
 }
 
-#,,,,,,,,,...,.,,,,..,.,.,..,,,.,,.,,,,.,,,,.,..,,...,..,,,..,,,,,,.,,...,.,,,
-#K2SXYGVBWJQUX7PAAJNMR4JB6EOQPOJRXNMVHPKXTHM5FKO6SNMLGSL5XLX6I5FXPWS54RJMSKKBO
-#\\\|FDY2Q4KD6QWAO2TQMT47RSJJOEQH7Q5BRXPETNFD3LOXYMNK3CF \ / AMOS7 \ YOURUM ::
-#\[7]OG5M6RG5FW5W6VRTIJUKZ7CEDEO3AQN2LLEJVZVLRDU2T43S7SAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,,,.,.,.,,.,,..,,,,,,..,,.,,,,,.,..,,...,...,...,,..,,..,.,,,,,,,
+#DBM4S2FBG5SM7QGT6PBPWSI6IBBIJSD2SGM3ZCBELIOUWVJUCEWVZOFHKRX4XNM4N3GTIGBQCY642
+#\\\|K73UTO6LLHEB2PFHXM4VGSS7IRLVEPJHESU673CTOMQOHYZBSPC \ / AMOS7 \ YOURUM ::
+#\[7]4F5LRUSYX6HRHFEU7NU4RKE7FDYCOUTG4ZFINI2TUEGD37L3FODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
