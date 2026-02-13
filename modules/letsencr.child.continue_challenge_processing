@@ -1,10 +1,11 @@
 ## [:< ##
 
 # name  = letsencr.child.continue_challenge_processing
-# descr = resume ACME workflow after parent confirms challenge setup [ async ]
-# note  = called from parent's challenge confirmation handler via reply_id
+# descr = resume ACME workflow: process challenges, contact httpd for setup/cleanup [ async ]
+# note  = called directly from cmd.request-certificate after acme_new returns deferred
 
-my $confirmation = shift;    ## confirmation from parent that httpd is ready
+## retrieve stored state from deferred acme_new
+## child will contact httpd directly via message routing for challenge setup/cleanup
 
 ## retrieve stored state from deferred acme_new
 my $state = <letsencr.child.acme_state> // {};
@@ -164,10 +165,24 @@ foreach my $auth_info (@auth_urls) {
     );
 }
 
-## SUCCESS: all authorizations validated
+## all authorizations validated, clean up httpd challenges
 <[base.log]>->(
-    2, 'all authorizations validated, proceeding to finalization'
+    2, 'all authorizations validated, cleaning up httpd challenges'
 );
+
+foreach my $auth_info (@auth_urls) {
+    my $domain = $auth_info->{domain};
+    <[base.logs]>->( 2, 'cleaning up httpd challenge for %s', $domain );
+
+    ## notify httpd to clean up (handler=>dev.null, fire-and-forget)
+    <[cube.httpd.cleanup-acme-challenge]>->(
+        {   'domain'  => $domain,
+            'handler' => qw| dev.null |,
+        }
+    );
+}
+
+<[base.log]>->( 2, 'proceeding to certificate finalization' );
 goto REPLY_PARENT;
 
 CHALLENGE_FAILED:
@@ -260,8 +275,8 @@ delete <letsencr.child.acme_state>;
 <[base.log]>->( 2, 'challenge processing complete, certificate ready' );
 return $final_result;
 
-#,,..,,,,,,,.,,,,,.,.,,..,..,,.,,,,..,,..,,,.,..,,...,...,...,.,,,,.,,.,.,,..,
-#CVQFJ2JAJVCQ75M7UA2AQJILLG7NNLLZ3RADBXDFKCAWPOUDP7466B2QNI6YDMYFOETDLU74BRQTO
-#\\\|QAXZCDDJO23KFDP7IFJMEOHGZBDOVHY4VGXTG2YDDNOFPM46IPD \ / AMOS7 \ YOURUM ::
-#\[7]U2TUKD6VGJMCSKYASUTEWKIH4Y6QCA3JEI7VBLSABNOF47ZCISCI 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,.,,,,..,.,.,,.,,...,...,,..,.,.,..,,...,...,.,.,,.,,,..,.,.,...,
+#N34DH26PFPV7CGHUUFVVZNWRRDNQUY4HGZQ4YLXFUHSYK4W67L5FTNIUXFKA7HTENKOYZ2RW6H76G
+#\\\|DUSNRD73HNCKXTBJMFU62QEV6N4JTREJZGICGEEXPJODA35LBOJ \ / AMOS7 \ YOURUM ::
+#\[7]AVV46R2R76CX5TIRK4SJ5C6MW3QILVKZOVE5SQGVY732OKX2Z4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
