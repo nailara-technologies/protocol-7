@@ -404,8 +404,8 @@ if ( defined $alias_to and length $alias_to ) {
 
     if ( $cmd =~ s|^([^ ]+) +([^\n]+)$|$1| ) {
         if ( defined $call_args->{'args'} ) {
-            $call_args->{'args'} = sprintf '%s %s',
-                ${^CAPTURE}[1], $call_args->{'args'};
+            $call_args->{'args'} = join ' ', ${^CAPTURE}[1],
+                $call_args->{'args'};
         } else {
             $call_args->{'args'} = ${^CAPTURE}[1];
         }
@@ -434,11 +434,13 @@ $cmd_usr_str = sprintf qw| %s%s |, $data{'session'}{$_m1}{'user'}, $_m2
 
 ##[ COMMAND REPLY \ MATCH TYPE ]##############################################
 
+my $refusal_type;    ##  tracking types of access denial for logging  ##
+
 if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
-    if ( defined $session->{'route'}{$cmd_id} ) {
+    if ( defined $session->{'route'}->{$cmd_id} ) {
 
-        my $route = $data{'route'}{ $session->{'route'}{$cmd_id} };
+        my $route = $data{'route'}->{ $session->{'route'}->{$cmd_id} };
         if ( exists $route->{'target'}->{'sid'}
             and $route->{'target'}->{'sid'} == $id ) {
 
@@ -459,7 +461,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                             {   'sid'       => $id,
                                 'cmd'       => $cmd,
                                 'call_args' => $call_args,
-                                'params'    => $route->{'reply'}{'params'}
+                                'params'    => $route->{'reply'}->{'params'}
                             }
                         );
                     } else {
@@ -471,7 +473,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
                 } elsif (
                     defined $data{'session'}{ $$route{'source'}{'sid'} } ) {
-                    my $source_sid = $$route{'source'}{'sid'};
+                    my $source_sid = $route->{'source'}->{'sid'};
                     ## calling reply handler if a filter hook was applied., ##
                     $route->{'hook_data'}->{'handler'}->(
                         {   'mode' => $cmd,
@@ -484,7 +486,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
                     ##  routing reply packet  ##
                     $call_args->{'args'} //= qw| UNDEFINED |;
-                    $data{'session'}{$source_sid}{'buffer'}{'output'}
+                    $data{'session'}->{$source_sid}->{'buffer'}->{'output'}
                         .= sprintf "%s%s %s\n", $s_cmd_id,
                         $cmd, $call_args->{'args'};
 
@@ -493,7 +495,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         0,
                         sprintf(
                             '[%s] unknown session, reply dropped., [ %d B ]',
-                            $$route{'source'}{'sid'},
+                            $route->{'source'}->{'sid'},
                             length("$s_cmd_id$cmd $call_args->{args}\n")
                         )
                     );
@@ -501,14 +503,14 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
                 ### deleting route ###
                 if ( $cmd ne qw| WAIT | ) {
-                    my $src_sid    = $$route{'source'}{'sid'};
-                    my $src_cmd_id = $$route{'source'}{'cmd_id'};
+                    my $src_sid    = $route->{'source'}->{'sid'};
+                    my $src_cmd_id = $route->{'source'}->{'cmd_id'};
                     delete $data{'session'}{$src_sid}{'route'}{$src_cmd_id};
-                    delete $data{'route'}->{ $session->{'route'}{$cmd_id} }
-                        if defined $session->{'route'}{$cmd_id};
-                    delete $data{'session'}{$src_sid}{'route'}
+                    delete $data{'route'}->{ $session->{'route'}->{$cmd_id} }
+                        if defined $session->{'route'}->{$cmd_id};
+                    delete $data{'session'}->{$src_sid}->{'route'}
                         if not keys $data{'session'}{$src_sid}{'route'}->%*;
-                    delete $session->{'route'}{$cmd_id};
+                    delete $session->{'route'}->{$cmd_id};
                     delete $session->{'route'}
                         if not keys $session->{'route'}->%*;
                 } else {
@@ -568,16 +570,16 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         }
 
                         # delete route
-                        my $src_sid    = $$route{'source'}{'sid'};
-                        my $src_cmd_id = $$route{'source'}{'cmd_id'};
-                        delete $data{'session'}{$src_sid}{'route'}
+                        my $src_sid    = $route->{'source'}->{'sid'};
+                        my $src_cmd_id = $route->{'source'}->{'cmd_id'};
+                        delete $data{'session'}->{$src_sid}->{'route'}
                             ->{$src_cmd_id};
                         delete $data{'route'}
-                            ->{ $session->{'route'}{$cmd_id} }
-                            if defined $session->{'route'}{$cmd_id};
-                        delete $data{'session'}{$src_sid}{'route'}
+                            ->{ $session->{'route'}->{$cmd_id} }
+                            if defined $session->{'route'}->{$cmd_id};
+                        delete $data{'session'}{$src_sid}->{'route'}
                             if !keys $data{'session'}{$src_sid}{'route'}->%*;
-                        delete $session->{'route'}{$cmd_id};
+                        delete $session->{'route'}->{$cmd_id};
                         delete $session->{'route'}
                             if not keys $session->{'route'}->%*;
 
@@ -646,16 +648,16 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         }
 
                         # delete route
-                        my $src_sid    = $$route{'source'}{'sid'};
-                        my $src_cmd_id = $$route{'source'}{'cmd_id'};
-                        delete $data{'session'}{$src_sid}{'route'}
+                        my $src_sid    = $route->{'source'}->{'sid'};
+                        my $src_cmd_id = $route->{'source'}->{'cmd_id'};
+                        delete $data{'session'}->{$src_sid}->{'route'}
                             ->{$src_cmd_id};
                         delete $data{'route'}
-                            ->{ $session->{'route'}{$cmd_id} }
-                            if defined $session->{'route'}{$cmd_id};
-                        delete $data{'session'}{$src_sid}{'route'}
+                            ->{ $session->{'route'}->{$cmd_id} }
+                            if defined $session->{'route'}->{$cmd_id};
+                        delete $data{'session'}->{$src_sid}->{'route'}
                             if !keys $data{'session'}{$src_sid}{'route'}->%*;
-                        delete $session->{'route'}{$cmd_id};
+                        delete $session->{'route'}->{$cmd_id};
                         delete $session->{'route'}
                             if not keys $session->{'route'}->%*;
 
@@ -679,13 +681,13 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                     ## STRM open header: initialize streaming buffer ##
                     my $total_bytes = $1;
 
-                    $session->{'streams'}{$cmd_id} = {
+                    $session->{'streams'}->{$cmd_id} = {
                         'type'           => qw| STRM |,
                         'total_bytes'    => $total_bytes,
                         'received_bytes' => 0,
                         'buffer'         => '',
                         'started_at'     => <[base.time]>->(3),
-                        'route_id'       => $session->{'route'}{$cmd_id},
+                        'route_id'       => $session->{'route'}->{$cmd_id},
                     };
 
                     <[base.logs]>->(
@@ -704,8 +706,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                             '';
 
                         ## Append to stream buffer ##
-                        if ( defined $session->{'streams'}{$cmd_id} ) {
-                            $session->{'streams'}{$cmd_id}->{'buffer'}
+                        if ( defined $session->{'streams'}->{$cmd_id} ) {
+                            $session->{'streams'}->{$cmd_id}->{'buffer'}
                                 .= $chunk_data;
                             $session->{'streams'}{$cmd_id}->{'received_bytes'}
                                 += bytes::length($chunk_data);
@@ -714,9 +716,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                                 2,
                                 "[%d] STRM pkt: %d/%d bytes",
                                 $id,
-                                $session->{'streams'}{$cmd_id}
+                                $session->{'streams'}->{$cmd_id}
                                     ->{'received_bytes'},
-                                $session->{'streams'}{$cmd_id}
+                                $session->{'streams'}->{$cmd_id}
                                     ->{'total_bytes'}
                             );
                         } else {
@@ -727,10 +729,10 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         }
                     }
 
-                } elsif ( $call_args->{'args'} =~ m|^close$| ) {
+                } elsif ( $call_args->{'args'} eq qw| close | ) {
                     ## STRM close: finalize stream ##
 
-                    if ( defined $session->{'streams'}{$cmd_id} ) {
+                    if ( defined $session->{'streams'}->{$cmd_id} ) {
                         my $stream           = $session->{'streams'}{$cmd_id};
                         my $accumulated_data = $stream->{'buffer'};
 
@@ -777,20 +779,20 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         ## Delete route ##
                         my $src_sid    = $route->{'source'}->{'sid'};
                         my $src_cmd_id = $route->{'source'}->{'cmd_id'};
-                        delete $data{'session'}{$src_sid}{'route'}
-                            {$src_cmd_id};
+                        delete $data{'session'}->{$src_sid}->{'route'}
+                            ->{$src_cmd_id};
                         delete $data{'route'}
-                            ->{ $session->{'route'}{$cmd_id} }
-                            if defined $session->{'route'}{$cmd_id};
-                        delete $data{'session'}{$src_sid}{'route'}
+                            ->{ $session->{'route'}->{$cmd_id} }
+                            if defined $session->{'route'}->{$cmd_id};
+                        delete $data{'session'}{$src_sid}->{'route'}
                             if not
                             keys $data{'session'}{$src_sid}{'route'}->%*;
-                        delete $session->{'route'}{$cmd_id};
+                        delete $session->{'route'}->{$cmd_id};
                         delete $session->{'route'}
                             if not keys $session->{'route'}->%*;
 
                         ## Clean up stream state ##
-                        delete $session->{'streams'}{$cmd_id};
+                        delete $session->{'streams'}->{$cmd_id};
 
                     } else {
                         <[base.logs]>->(
@@ -811,7 +813,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
                 if ( $call_args->{'args'} =~ m|^open\s+(\d+)$| ) {
                     ## STRM-SIZE open: initialize stream and block session ##
-                    my $total_bytes = $1;
+                    my $total_bytes = ${^CAPTURE}[0];
 
                     $session->{'streams'}{$cmd_id} = {
                         'type'           => qw| SIZE |,
@@ -819,7 +821,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         'received_bytes' => 0,
                         'buffer'         => '',
                         'started_at'     => <[base.time]>->(3),
-                        'route_id'       => $session->{'route'}{$cmd_id},
+                        'route_id'       => $session->{'route'}->{$cmd_id},
                     };
 
                     ## Save handler and params for later delivery on close ##
@@ -857,12 +859,12 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         my $chunk_data = substr $input->$*, 0, $chunk_size,
                             '';
 
-                        if ( defined $session->{'streams'}{$cmd_id} ) {
+                        if ( defined $session->{'streams'}->{$cmd_id} ) {
                             $session->{'streams'}{$cmd_id}->{'received_bytes'}
                                 += bytes::length($chunk_data);
 
                             ## Forward raw chunk data to source immediately ##
-                            if (defined $session->{'streams'}{$cmd_id}
+                            if (defined $session->{'streams'}->{$cmd_id}
                                 ->{'handler'} ) {
                                 ## Handler will get data on close ##
                                 $session->{'streams'}{$cmd_id}->{'buffer'}
@@ -872,17 +874,17 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                             } else {
                                 ## Forward raw bytes to source zenka output ##
                                 $data{'session'}
-                                    { $route->{'source'}->{'sid'} }{'buffer'}
-                                    {'output'} .= $chunk_data;
+                                    { $route->{'source'}->{'sid'} }
+                                    ->{'buffer'}->{'output'} .= $chunk_data;
                             }
 
                             <[base.logs]>->(
                                 2,
                                 "[%d] STRM-SIZE pkt: %d/%d bytes",
                                 $id,
-                                $session->{'streams'}{$cmd_id}
+                                $session->{'streams'}->{$cmd_id}
                                     ->{'received_bytes'},
-                                $session->{'streams'}{$cmd_id}
+                                $session->{'streams'}->{$cmd_id}
                                     ->{'total_bytes'}
                             );
                         } else {
@@ -893,14 +895,14 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                         }
                     }
 
-                } elsif ( $call_args->{'args'} =~ m|^close$| ) {
+                } elsif ( $call_args->{'args'} eq qw| close | ) {
                     ## STRM-SIZE close: validate and send complete reply ##
 
                     ## Clear blocking flag immediately ##
                     delete $session->{'blocked_by_stream'};
 
-                    if ( defined $session->{'streams'}{$cmd_id} ) {
-                        my $stream = $session->{'streams'}{$cmd_id};
+                    if ( defined $session->{'streams'}->{$cmd_id} ) {
+                        my $stream = $session->{'streams'}->{$cmd_id};
 
                         ## Validate received bytes match announced total ##
                         if ( $stream->{'received_bytes'}
@@ -937,7 +939,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                                 if ( defined $code{ $stream->{'handler'} } ) {
                                     $code{ $stream->{'handler'} }->(
                                         {   'sid'       => $id,
-                                            'cmd'       => 'SIZE',
+                                            'cmd'       => qw| SIZE |,
                                             'call_args' => {
                                                 'args' =>
                                                     $stream->{'total_bytes'}
@@ -962,23 +964,23 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                             }
                         }
 
-                        ## Delete route ##
+                        ## delete route ##
                         my $src_sid    = $route->{'source'}->{'sid'};
                         my $src_cmd_id = $route->{'source'}->{'cmd_id'};
                         delete $data{'session'}{$src_sid}{'route'}
                             {$src_cmd_id};
                         delete $data{'route'}
-                            ->{ $session->{'route'}{$cmd_id} }
-                            if defined $session->{'route'}{$cmd_id};
+                            ->{ $session->{'route'}->{$cmd_id} }
+                            if defined $session->{'route'}->{$cmd_id};
                         delete $data{'session'}{$src_sid}{'route'}
                             if not
                             keys $data{'session'}{$src_sid}{'route'}->%*;
-                        delete $session->{'route'}{$cmd_id};
+                        delete $session->{'route'}->{$cmd_id};
                         delete $session->{'route'}
                             if not keys $session->{'route'}->%*;
 
-                        ## Clean up stream state ##
-                        delete $session->{'streams'}{$cmd_id};
+                        ## clean up stream state ##
+                        delete $session->{'streams'}->{$cmd_id};
 
                     } else {
                         <[base.logs]>->(
@@ -1029,7 +1031,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
             ## [ HOOK POINT: unknown-reply-route - single-line case ]
             ## Hook can intercept single-line replies with unknown route IDs
             if (<[base.handler.hooks.has_hooks]>->(
-                    $id, 'unknown-reply-route'
+                    $id, qw| unknown-reply-route |
                 )
             ) {
                 my $hook_result = <[base.handler.hooks]>->(
@@ -1088,7 +1090,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                 ## [ HOOK POINT: unknown-reply-route - complete case ]
                 ## Hook can intercept complete replies with unknown route IDs
                 if (<[base.handler.hooks.has_hooks]>->(
-                        $id, 'unknown-reply-route'
+                        $id, qw| unknown-reply-route |
                     )
                 ) {
                     my $hook_result = <[base.handler.hooks]>->(
@@ -1343,7 +1345,7 @@ UNKNOWN_TYPE_HANDLED:
                         $offset += $chunk_len;
 
                         <[base.logs]>->(
-                            2,   "[%d] STRM chunk sent: %d/%d bytes",
+                            2,   "[%d] STRM chunk sent : %d/%d bytes",
                             $id, $offset, $total_bytes
                         );
                     }
@@ -1407,7 +1409,7 @@ UNKNOWN_TYPE_HANDLED:
                             $cmd_id_str, $count, $data_to_send;
 
                     } else {
-                        ## CHRSIZE mode (default): count characters
+                        ## CHRSIZE mode [default]: count characters
                         my $test_data = $data_to_send;
                         utf8::upgrade($test_data);
                         $count = length($test_data);
@@ -1434,7 +1436,7 @@ UNKNOWN_TYPE_HANDLED:
 
         } else {    ## command does not exist ##
             ## [ HOOK POINT: unknown-command ]
-            ## Hook can intercept unknown commands user tried to execute
+            ## hook can intercept unknown commands user tried to execute
             if (
                 <[base.handler.hooks.has_hooks]>->( $id, 'unknown-command' ) )
             {
@@ -1446,12 +1448,12 @@ UNKNOWN_TYPE_HANDLED:
                         'context'   => 'local'
                     }
                 );
-                ## If hook returns TRUE, it handled the message,
+                ## if hook returns TRUE, it handled the message,
                 goto UNKNOWN_CMD_HANDLED    ## skip normal processing
                     if defined $hook_result and $hook_result == TRUE;
             }
 
-            ## Only send error response if hook didn't handle it
+            ## only send error response if hook didn't handle it
             $output->$* .= <[base.sprint_t]>->( qw| VPB3EKI |, $cmd_id_str );
             <[base.logt]>->( qw| 4W6K5SY |, $id, $cmd );
         }
@@ -1639,7 +1641,7 @@ UNKNOWN_TYPE_HANDLED:
                 or $user eq qw| v7 |  # [LLL] improve check if really v7 zenka
                 or ( $data{'session'}{$target_sid}{'initialized'} // 0 )
             ) {
-                push( @send_sids_left, $target_sid );
+                push @send_sids_left, $target_sid;
                 next;
             }
 
@@ -1671,12 +1673,12 @@ UNKNOWN_TYPE_HANDLED:
         # send to all clients with that username [ group mode ]
         my $targets_denied = 0;
         foreach my $target_sid (@send_sids) {
-
             my $target_session = $data{'session'}{$target_sid};
             if (   $target_session->{'user'} eq <base.session.uname.server>
                 or $target_session->{'user'} eq <base.session.uname.client>
                 or not
                 <[base.cfg_bool]>->( $target_session->{'authenticated'} ) ) {
+                $refusal_type = qw| authenticated |;
                 $targets_denied++;
                 next;    # skip unauthorized connections
             }
@@ -1736,7 +1738,7 @@ UNKNOWN_TYPE_HANDLED:
                 $cmd_output .= sprintf ' %s', $call_args->{'args'}
                     if defined $call_args->{'args'};
 
-                $data{'session'}{$target_sid}{'buffer'}{'output'}
+                $data{'session'}->{$target_sid}->{'buffer'}->{'output'}
                     .= sprintf "%s\n", $cmd_output;
 
                 # [LLL] set up timeout handler
@@ -1761,6 +1763,11 @@ UNKNOWN_TYPE_HANDLED:
             ##  no perm. .., ##
             $output->$* .= <[base.sprint_t]>->( qw| 3BR4NRI |, $cmd_id_str );
             <[base.logt]>->( qw| 74PTQ6Q |, $id, $user, $target_name, $cmd );
+            <[base.logs]>->(
+                2,   '[%d] :. refusal type : %s .:',
+                $id, $refusal_type // qw| has_access |
+            );
+            undef $refusal_type;
 
             return 0;    ## comand complete ##
         }
@@ -1808,8 +1815,12 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 } else {    ## insufficient access permissions ##
 
     $output->$* .= <[base.sprint_t]>->( qw| AUJWOPY |, $cmd_id_str, $cmd );
-
     <[base.logt]>->( 0, qw| VSY5TBA |, $id, $user, $cmd ); ##  no perm. .., ##
+    <[base.logs]>->(
+        2,   '[%d] :. refusal type : %s .:',
+        $id, $refusal_type // qw| has_access |
+    );
+    undef $refusal_type;
 
     return 0;    ## comand complete ##
 }
@@ -1818,8 +1829,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,.,,,,,.,.,,,,,,..,,,.,.,,,...,,,.,,..,,,,,..,,...,...,.,.,.,.,.,,,,,.,.,.,
-#RQGKOYVAMZIQKFTAJD4CTIPYAXNJLOOK6VHLGIMX63MRTK3CELW4DJMHVCSSM2ZIMVJOVLMWEACDA
-#\\\|QPUT53TIBLZB5BSUAUYSHCXAE7TQ7PAH6RX7OZC23MSL2MKGRLJ \ / AMOS7 \ YOURUM ::
-#\[7]YQQH5IELSJSC54H52TFSK7QVPPUUHLBZZL5YWWVNUPA534FOAYBA 7  DATA SIGNATURE ::
+#,,.,,,,,,...,...,,.,,,,,,...,.,.,.,.,...,,..,..,,...,...,,..,..,,...,...,,,.,
+#NB5IIVSYFLKWZS4IZVABQUPHOKOOYWLH7USH2PFTJJ67CHIDQUBPFIROQIYPOOFEEVNDOH4NVWPGA
+#\\\|FPSBVQDAUGUEBDPAQ37X3S2ARTXHGUM6U3QTBY3VX3YE24277I7 \ / AMOS7 \ YOURUM ::
+#\[7]5EBC7EKD7W4L46Q6IMD54P3U5UABR3KZN2F6VIHYHPTKW7WYDODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
