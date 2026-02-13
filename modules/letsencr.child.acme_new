@@ -53,6 +53,13 @@ unless ($account_key) {
 unless ( <letsencr.child.acme_client>->{account_url} ) {
     <[base.log]>->( 2, 'step 3: registering ACME account' );
     my $account_info = <[letsencr.child.acme_register_account]>;
+    if ( $account_info->{error} ) {
+        ## account registration failed with detailed error
+        return {
+            'status' => qw| error |,
+            'error'  => $account_info->{error}
+        };
+    }
     unless ($account_info) {
         ## Try checking if account already exists
         my $existing = <[letsencr.child.acme_check_account]>;
@@ -112,8 +119,8 @@ return {
     'primary_domain' => $primary_domain,
 };
 
-#,,..,,..,.,,,,..,,..,,.,,.,.,.,.,,.,,,,.,...,..,,...,...,...,,,.,..,,,..,,.,,
-#23WBF6K5NS5BWKAXVTMOPM22ATV5NROJTABBWPGDITHGKDOSOINTMFP7H67QHV5DWKD2FVTTLTACA
-#\\\|74CLBEJCD5NC25462ERM3QBKRHYNJR4TFTCSDPRW6AULPTRALN7 \ / AMOS7 \ YOURUM ::
-#\[7]ILR7LEMZ7PJOSO6MT7VT6IKW6EICI2EV3X24PYHMW5GISLT7FKCY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,.,,,...,,.,,,,,,,.,,..,,,..,.,.,..,,...,..,,,,,,,..,..,,,..,..,,
+#VIBYHZBXXQYWT6DEMGGJJFFE77Q6CGJVXUMGVN6I4EZW6AXPN4ORVC4YWUQ73P2RRWQEIVMUCAEY6
+#\\\|AVD6CL4ZA6HG47TRBPHSANO3BYUQ4N6KCQDSTY73CKY5W4R7HT3 \ / AMOS7 \ YOURUM ::
+#\[7]3OV5OEZ5LQD3QUNKBLCF3FZXGA3LDJHASICMACA3G7SS2GQY62CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

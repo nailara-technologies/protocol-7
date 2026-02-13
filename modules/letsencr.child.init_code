@@ -65,10 +65,33 @@ if ( -f $account_key_path ) {
 );
 <[base.logs]>->( 2, ': Account Key : %s', $account_key_path );
 
+## Initialize enrollment activity buffer
+<buffer.enrollment-activity.max_size> //= 100 * 1024;   ## 100K buffer size ##
+my $enroll_init
+    = defined $data{'buffer'}{'enrollment-activity'}{'data'}
+    ? qw| re-init |
+    : qw| init |;
+
+if (    $enroll_init eq qw| re-init |
+    and $data{'buffer'}{'enrollment-activity'}{'data'}->@* == 3 ) {
+    undef $data{'buffer'}{'enrollment-activity'}{'data'}->@*;
+    $data{'buffer'}{'enrollment-activity'}{'size'} = 0;
+    <[base.buffer.add_line]>->( qw| enrollment-activity |, '' );
+}
+
+<[base.buffer.add_line]>->( qw| enrollment-activity |, '' )
+    if $enroll_init eq qw| init |;
+<[base.buffer.add_line]>->(
+    qw| enrollment-activity |,
+    '.:[ letsencr child | enrollment activity buffer '
+        . $enroll_init . ' ]:.,'
+);
+<[base.buffer.add_line]>->( qw| enrollment-activity |, '' );
+
 0;
 
-#,,,,,,..,,..,...,,..,,..,,,,,..,,,,,,.,,,,..,..,,...,...,,,,,,,,,,..,,.,,...,
-#PZVOA4ZOTCYPPAWIYWRHKZGXBWMHR74WWEGSHOOKPGF3THEIFDQZA4GUIDMRI4XX2LJMBVCZ2RLMQ
-#\\\|WUOLIR56E7UWN72ZNLD5AQGGFK3NGJ7YGNTNKLA7KPSVNUTIPG7 \ / AMOS7 \ YOURUM ::
-#\[7]PCV57P3XC7UWZLQUKOG6FAR5GK5BPFAY5L7PLOUNH5HJMR7QCYCY 7  DATA SIGNATURE ::
+#,,,.,..,,,..,...,..,,...,.,.,...,.,,,,..,...,..,,...,...,.,,,,.,,...,...,..,,
+#DEMPEQJA3OPEKVXRPQDN3NH4CNJBGWIVSFAQ4OUHTKGO6OBX6T5MVQ32DMOPG5CZVOSURLYWZBWUK
+#\\\|RDAYS4U5WCGYESDEEHHHNCECEIA4JD5RBGJX2YW6CSLOEX2ZVNT \ / AMOS7 \ YOURUM ::
+#\[7]POHP4P4NHFHTZYRAHD6WFPHKBS6IXRN42B6NDVFFR2SEAPMZCQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

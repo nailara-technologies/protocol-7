@@ -15,6 +15,16 @@ return {
 
 <[base.log]>->( 2, "child: requesting new certificate for domain: $domain" );
 
+## log enrollment workflow to buffer
+my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+<[base.buffer.add_line]>->(
+    qw| enrollment-activity |,
+    join( ' ',
+        $time_stamp, 2, ': enrollment : cmd.request-certificate : ',
+        $domain,     ' : received' ),
+    2
+);
+
 ## Parse additional domains from parameters (if provided)
 my $alt_names = $call->{'param'}{'domains'} // [$domain];
 my @domains   = @$alt_names if ref($alt_names) eq 'ARRAY' && @$alt_names;
@@ -51,6 +61,17 @@ if ( $result->{status} eq qw| deferred | ) {
         2, 'certificate request accepted, processing asynchronously'
     );
 
+    ## log to enrollment activity buffer
+    my $ts = <[base.anum_log_time]>->( 5, TRUE );
+    <[base.buffer.add_line]>->(
+        qw| enrollment-activity |,
+        join( ' ',
+            $ts,                          2,
+            ': enrollment : acme_new : ', $domain,
+            ' : returned deferred' ),
+        2
+    );
+
     ## return deferred mode to signal async reply via reply_id callback
     return { 'mode' => qw| deferred | };
 }
@@ -60,6 +81,20 @@ if ( $result->{status} eq qw| error | ) {
     my $error = $result->{error}
         // 'Unknown error during certificate enrollment';
     <[base.logs]>->( 1, 'certificate enrollment failed: %s', $error );
+    <[base.logs]>->(
+        3,
+        'full error result: %s',
+        JSON::XS::encode_json($result)
+    );
+
+    ## log failure to enrollment activity buffer with full error details
+    my $ts        = <[base.anum_log_time]>->( 5, TRUE );
+    my $error_msg = sprintf( 'FAILED [%s]', $error );
+    <[base.buffer.add_line]>->(
+        qw| enrollment-activity |,
+        sprintf( '%s 1 : acme_new : %s : %s', $ts, $domain, $error_msg ), 1
+    );
+
     return {
         'mode' => qw| false |,
         'data' => $error
@@ -71,6 +106,19 @@ unless ( $result->{status} eq qw| success | ) {
     my $error = $result->{error}
         // 'Unknown error during certificate enrollment';
     <[base.logs]>->( 1, 'certificate enrollment failed: %s', $error );
+
+    ## log failure to enrollment activity buffer
+    my $ts        = <[base.anum_log_time]>->( 5, TRUE );
+    my $error_msg = sprintf( 'FAILED [%s]', $error );
+    <[base.buffer.add_line]>->(
+        qw| enrollment-activity |,
+        sprintf(
+            '%s 1 : cmd.request-certificate : %s : %s',
+            $ts, $domain, $error_msg
+        ),
+        1
+    );
+
     return {
         'mode' => qw| false |,
         'data' => $error
@@ -103,8 +151,8 @@ return {
     'data' => $bundle_b32r
 };
 
-#,,..,...,.,,,.,.,...,..,,.,.,,,.,.,,,,.,,,,,,..,,...,...,,,.,,,.,,,,,.,.,...,
-#3BL4FOVEICB5JHALYORQAE4W42ZDDMDPCUC5TQN6DUWPSPGTEDC5LJUYSVTMKJE57PMZSSGME2JVM
-#\\\|XIMH6E4LL263GCTDFOSGJCOTZNQNIYSJAVCLQQPHWBJOZWYQTJ4 \ / AMOS7 \ YOURUM ::
-#\[7]GRDQ5QSEUOVYKUEIEWUJVVMECHGZU6C67GW5QNZIC2HMG2T26OCA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,..,,...,..,,.,,,,,.,.,,,.,.,...,..,,...,...,.,,,.,,,,,,,..,,,,,,
+#4JTRG4BWMQLQW6VHV5M3FZBGEGNYTFDNM65DPVNRVSBCSGWA7DGJRMBK2A7KBCLILRHRL5LOSCWJI
+#\\\|PA3GAKTI7XPCKYUT7ZAXUJ6V7VSEWEPLYVD56MBRW3VAMMPBKCL \ / AMOS7 \ YOURUM ::
+#\[7]CNLQ5J4FGUGK73T52HBKLVKIEMKU5ZKSU4TO4FXRHEUUDIJOLUBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
