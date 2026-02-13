@@ -11,7 +11,7 @@ my $nonce     = <letsencr.child.acme_client>->{nonce};
 
 unless ( $directory && $nonce ) {
     <[base.log]>->( 1, 'error: ACME directory or nonce not available' );
-    return undef;
+    return { 'error' => 'ACME directory or nonce not available' };
 }
 
 my $newAccount_url = $directory->{newAccount};
@@ -48,7 +48,7 @@ while ( $attempt < $max_retries ) {
 
     unless ($response) {
         <[base.log]>->( 1, 'error: account registration request failed' );
-        return undef;
+        return { 'error' => 'account registration request failed' };
     }
 
     ## Check for badNonce error - refresh nonce and retry
@@ -75,7 +75,7 @@ while ( $attempt < $max_retries ) {
             next if $attempt < $max_retries;
         } else {
             <[base.log]>->( 1, "error: failed to fetch fresh nonce" );
-            return undef;
+            return { 'error' => 'failed to fetch fresh nonce for retry' };
         }
     }
 
@@ -91,10 +91,12 @@ unless ( $response->{status} == 200 || $response->{status} == 201 ) {
     <[base.log]>->(
         1, "error: ACME server returned status $response->{status}"
     );
+    my $error_detail = $response->{data}{detail}
+        // "ACME server error status $response->{status}";
     if ( $response->{data}{detail} ) {
         <[base.log]>->( 1, "  details: $response->{data}{detail}" );
     }
-    return undef;
+    return { 'error' => $error_detail };
 }
 
 ## Extract account ID from Location header
@@ -105,7 +107,7 @@ unless ($account_url) {
     <[base.log]>->(
         1, 'error: no Location header in account creation response'
     );
-    return undef;
+    return { 'error' => 'no Location header in account creation response' };
 }
 
 <[base.log]>->( 2, "ACME account registered: $account_url" );
@@ -137,8 +139,8 @@ return {
     created_at  => time(),
 };
 
-#,,,.,,,,,...,..,,.,.,,.,,,..,,,,,.,.,,.,,.,,,..,,...,...,..,,...,.,,,,,,,,.,,
-#O3ZU6HYNGMOKHMG45JG7ATM5ZQB2RKCLI3NXF42DI7CF3LD7ICPIFM26PGFWD4CPDUX4RA2BNYHRC
-#\\\|ABOKD2X55CNFLGCUR72FVEJCB3RQ2NW3MU7NKN7LYSF2VGWDRTA \ / AMOS7 \ YOURUM ::
-#\[7]IB3TOUV62RELHCSZFSLNYY5GWP34GSMY7P2K7OMYUMXZDQV7ZWAY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,.,.,,,,,,..,,..,.,,,,,.,,,,,,,,,..,,...,...,.,.,..,,,.,,,,,,.,,,
+#PB42NNA2KJD5ZJVFDH5NRTZPVV4SQKKRCV4QI75GTRDCGKIYMVE33K6OR6VSJWJVAWSFZAHQGC4LS
+#\\\|CVNTHCCRGTBMVNZWGEKOOXRQIQ533AW2Q3M6UHIUCJ2TQ6CHEK6 \ / AMOS7 \ YOURUM ::
+#\[7]ZSTHUCMNIK7JF4CFJ32ICHD22EAU25HMZLJTE5IKCUICO76LWWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
