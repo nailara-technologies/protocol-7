@@ -33,13 +33,14 @@ if ( <system.zenka.name> eq qw| httpsd | and $EUID == 0 ) {
                 and <[base.logs]>->( 1, 'added httpsd to httpd group' );
         }
 
-        # Fix /var/httpd permissions if needed
-        if ( -d '/var/httpd' ) {
-            my $stat = stat('/var/httpd');
+        # Fix site_dir permissions if needed
+        my $site_dir = <httpd.site_dir>;
+        if ( -d $site_dir ) {
+            my $stat = stat($site_dir);
             if (   !( ( $stat->mode & 0007 ) != 0 )
                 && !( ( $stat->mode & 0070 ) != 0 ) ) {
-                chmod( 0755, '/var/httpd' )
-                    and <[base.logs]>->( 1, 'fixed /var/httpd permissions' );
+                chmod( 0755, $site_dir )
+                    and <[base.logs]>->( 1, 'fixed site_dir permissions' );
             }
         }
     }
@@ -54,7 +55,7 @@ unless ( defined <httpd.cfg.hostnames> ) {
 
 ## set defaults with actual directory paths [not just 1/TRUE values]
 ## force overwrite any placeholder values from httpd.determine_host initialization
-my $default_dir = <httpd.site_dir> . '/default' // '/var/httpd/default';
+my $default_dir = <httpd.site_dir> . 'default';
 
 foreach my $hostname (qw| default localhost 127.0.0.1 |) {
     my $current_val = <httpd.cfg.hostnames>->{$hostname};
@@ -174,8 +175,8 @@ $data{'protocol'}{'https'} = {
 
 0;
 
-#,,,.,.,,,,,.,.,.,.,,,.,,,..,,...,..,,..,,,..,..,,...,...,...,,.,,,.,,,,,,.,,,
-#3KBAUCSEADDB43SAJJOL6LOAHODFUU4QY3HRITT2OXNQJ67WMCR63O6E3E7GEJJOPA46C56HN5BMW
-#\\\|5D5BHM7U3UCME3RXIHDPRLFREIR2HU6QNPKBK64HWERNYHYQ7AR \ / AMOS7 \ YOURUM ::
-#\[7]BRXEGNFMUQM2X5YHLKJXI4CRAPJH5EHOVBLFUYAP7THW2HCUR6BQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,,,,...,..,,.,.,,..,,..,.,.,,,.,..,,...,...,,..,,,,,,.,,..,,,..,
+#74QDIBMKCUUPDSA3KXCXTQMKWCZDISHUMKY7PUPN4AHRA5NJTCZQNOPQYFAL64AWDZQAR4BBDKJEK
+#\\\|U7HQJE5LTDO4NX7H74AQJR55U5A2JDKTPRN7MZLWMVLMDVS3WPP \ / AMOS7 \ YOURUM ::
+#\[7]ZDNBZKPV7STRSMPXNMC7WIF2QDRSS2HIYL3RXSWA67GYZCYIVGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

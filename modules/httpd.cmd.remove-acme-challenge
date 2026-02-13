@@ -17,7 +17,7 @@ return { 'mode' => qw| false |, 'data' => 'expected token parameter' }
 <[base.logs]>->( 2, ": token : %s", $token );
 
 ## build challenge file path using domain
-my $httpd_site_dir = <httpd.cfg.site_dir> // qw| /var/httpd |;
+my $httpd_site_dir = <httpd.site_dir>;
 my $well_known_dir = qw| /.well-known/acme-challenge |;
 
 my $challenge_file = sprintf qw| %s/%s%s/%s |,
@@ -84,8 +84,8 @@ return {
     'data' => sprintf( 'ACME challenge file removed for %s', $domain )
 };
 
-#,,,.,,..,,.,,,,,,.,,,,,,,.,.,.,.,,.,,,,.,..,,..,,...,...,...,.,.,..,,,..,,,,,
-#Z6T4SBCTTFZG53THSXUDWDMHFHCVJWAJ6CLZL4QHHZSBRXL5QAV4KPIGCVCB3EW23MRHG2ZCWTIDY
-#\\\|6QMKYEWQ3ZSISC7UKSLQN66VZBRZXGQYY4WANJSP6SC3EDH5BWK \ / AMOS7 \ YOURUM ::
-#\[7]TEU7BV5S3YB7EPLIFGCZ5S4QE4JVM27CBJ25O2VZSY2ZRBQHGWBY 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,...,,.,,.,.,,.,,...,,,,,.,,,...,..,,...,...,..,,..,,,,.,,..,...,
+#BPMCIU7275XILTYUSPUF4YOFCLXKUC467K7K2Y2XAVHBTLNEUGJQA4NRKU5M2QPPGLJ23FRAHKX3S
+#\\\|GUO35O7PJYN5KQ5WN6FRB6JOJSP5DC3FRHZ44PEA2WOB5G56VCN \ / AMOS7 \ YOURUM ::
+#\[7]G7CXX4RDBR42ZSIZ55YQWTJODRCNENCIVMJW6PPARLJVYJOZG2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

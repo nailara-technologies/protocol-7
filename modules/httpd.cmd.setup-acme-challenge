@@ -1,114 +1,67 @@
 ## [:< ##
 
 # name  = httpd.cmd.setup-acme-challenge
-# param = <domain> <tok.> <k.a.>
-# descr = create ACME challenge response file for HTTP-01 validation
+# param = <domain> <token> <key_auth>
+# descr = create HTTP-01 challenge response file
 
-( my $domain, my $token, my $key_auth, my $type ) = split m{\ +},
-    $call->{'args'} // '';
-$type //= qw| http-01 |;
+my $params = $call->{'args'};
 
-return { 'mode' => qw| false |, 'data' => 'domain parameter required' }
-    unless defined $domain && length($domain);
+my $domain   = $params->{domain};
+my $token    = $params->{token};
+my $key_auth = $params->{key_auth};
 
-return { 'mode' => qw| false |, 'data' => 'missing token parameter' }
-    unless defined $token;
-
-return { 'mode' => qw| false |, 'data' => 'missing key_auth paramter' }
-    unless defined $key_auth;
-
-## validate token - prevent path traversal attacks
-unless ( <[file.path.validate]>->($token) ) {
+unless ( $domain && $token && $key_auth ) {
     return {
         'mode' => qw| false |,
-        'data' => 'invalid token format [ security validation failed ]'
+        'data' => 'domain, token, and key_auth required'
     };
 }
 
-## validate key_auth - must be ACME key authorization format
-##                         [ alphanumeric + URL-safe chars ]
-return { 'mode' => qw| false |, 'data' => 'key_auth format not valid' }
-    if $key_auth =~ m{[^\w\-\._~]};    ## only alphanumeric, dash, dot,
-##                         underscore, tilde [ RFC 3986 unreserved ]
-<[base.logs]>->(
-    2, "setting up ACME HTTP-01 challenge for domain : %s", $domain
-);
+<[base.logs]>->( 2, 'setting up HTTP-01 challenge for %s', $domain );
 
-<[base.logs]>->( 2, ": token    : %s", $token );
-<[base.logs]>->( 3, ": key_auth : %s", $key_auth );
-<[base.logs]>->( 2, ": type     : %s", $type );
+## construct well-known challenge path
+my $well_known_dir
+    = sprintf( '%s%s/.well-known/acme-challenge', <httpd.site_dir>, $domain );
 
-## only handle HTTP-01 [ DNS-01 does not need file creation ]
-if ( $type ne qw| http-01 | ) {
-    <[base.logs]>->(
-        2, "challenge type %s does not require file setup", $type
-    );
-    return {
-        'mode' => qw| true |,
-        'data' => sprintf( "challenge type %s registered", $type )
-    };
-}
+<[base.logs]>->( 3, 'challenge directory: %s', $well_known_dir );
 
-## create challenge directory path using domain
-## [ /var/httpd/{domain}/.well-known/acme-challenge/ ]
-my $httpd_site_dir = <httpd.cfg.site_dir> // qw| /var/httpd |;
-my $well_known_dir = qw| /.well-known/acme-challenge |;
-
-my $challenge_dir = sprintf qw| %s/%s%s |,
-    $httpd_site_dir,
-    $domain,
-    $well_known_dir;
-
-<[base.logs]>->( 2, "challenge directory : %s", $challenge_dir );
-
-unless ( -d $challenge_dir ) {    ## create directory if not exists yet
-    <[base.logs]>->( 2, "creating challenge directory.." );
-    <[file.make_path]>->( $challenge_dir, 0770 ) or do {
-        <[base.logs]>->(
-            1,              "failed to create challenge directory %s : %s",
-            $challenge_dir, <[base.str.os_err]>
-        );
-        return {
-            'mode' => qw| false |,
-            'data' => sprintf( "failed to create challenge directory : %s",
-                <[base.str.os_err]> )
-        };
-    };
-    <[base.logs]>->( 2, "challenge directory created.." );
-}
-
-## write challenge response file [ token already validated for safety ]
-my $challenge_file = sprintf '%s/%s', $challenge_dir, $token;
-
-<[base.logs]>->( 2, "writing challenge file : %s", $challenge_file );
-
-## write key authorization content to file using abstracted file operations
-<[file.put]>->( $challenge_file, $key_auth ) or do {
-    <[base.logs]>->(
-        1,               "failed to write challenge file %s : %s",
-        $challenge_file, <[base.str.os_err]>
-    );
+## create directory if needed
+<[file.make_path]>->(
+    $well_known_dir,
+    {   mode  => 0755,
+        group => <system.amos-zenka-user>,
+    }
+    )
+    or do {
+    my $error = <[base.str.os_err]>;
+    <[base.logs]>->( 1, 'failed to create challenge directory: %s', $error );
     return {
         'mode' => qw| false |,
-        'data' => sprintf( "failed to write challenge file : %s",
-            <[base.str.os_err]> )
+        'data' => "failed to create directory: $error"
+    };
+    };
+
+## write challenge response file
+my $challenge_file = sprintf( '%s/%s', $well_known_dir, $token );
+
+<[file.put]>->( $challenge_file, $key_auth, qw| :raw | ) or do {
+    my $error = <[base.str.os_err]>;
+    <[base.logs]>->( 1, 'failed to write challenge file: %s', $error );
+    return {
+        'mode' => qw| false |,
+        'data' => "failed to write file: $error"
     };
 };
 
-<[base.logs]>->( 2, "challenge file created successfully.." );
-<[base.logs]>->( 3, "file : %s",       $challenge_file );
-<[base.logs]>->( 3, "size : %d bytes", length($key_auth) );
+<[base.logs]>->( 2, 'challenge file written: %s', $challenge_file );
 
 return {
     'mode' => qw| true |,
-    'data' => sprintf(
-        "ACME HTTP-01 challenge ready for %s at %s/%s",
-        $domain, qw| /.well-known/acme-challenge |, $token
-    )
+    'data' => 'challenge file set up successfully'
 };
 
-#,,,.,,..,.,,,,,.,,.,,.,.,..,,,,,,,,.,...,...,..,,...,..,,.,.,,,,,,,,,..,,,,.,
-#2NYSUH6P2WJEJXL2RWHHGYYR343POAJMEEQT765GXTW3QUYBNZRC6IWBMOAU4TCABLD63APXHQAF4
-#\\\|ADFDUOZUAA3CXL2JGZHX5SVKZXW3OFK7UYM3ZB2LMVPWN42UT3O \ / AMOS7 \ YOURUM ::
-#\[7]VF5AODABQD2MMRPQYHLPK4XIUUGAYS7ZW3TAVTDYDJMMVK4JQECY 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,..,...,,,.,.,,,..,,..,,,..,,..,.,.,...,...,...,,,,,..,,,.,,...,
+#UPFIWGFBMQ33ZMMVA6X3HBUFP62LGSUUV56YG7R4KAGOI6LLN22JP3KEAGJWXMHZYQKMQI75Y5D7I
+#\\\|GE6HPPVPAM4OVRVAYOXPUWHIPZBZSS66V75IKYFKX437RYRPBWP \ / AMOS7 \ YOURUM ::
+#\[7]7U7QCM246C4PXADR74CK2HOZOOUA46HJNIF5BRUAJ3NNVW52U6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

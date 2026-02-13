@@ -25,7 +25,7 @@ die "expected file path in handler args" if !length($path);
 my $request   = $session->{'http'}->{'request'};
 my $response  = $session->{'response'};
 my $http_host = $session->{'http_host'};
-my $site_dir  = <httpd.cfg.site_dir> // '/var/httpd';
+my $site_dir  = <httpd.site_dir>;
 
 <[base.logs]>
     ->( 1, "[%s] serve_static : request : '%s'", $session_id, $path );
@@ -280,8 +280,8 @@ return <[httpd.download_init]>->(
     }
 );
 
-#,,,,,.,.,.,,,,..,,,,,...,...,.,.,,.,,.,,,,,,,..,,...,...,.,.,,.,,,,,,..,,...,
-#ONIWWUWJ2XHSI3JPNS64PBUWBKECQEJG2JATLLMIONQJPUCSTIOKAJRISUUS2QUSDWMK77HIUPC64
-#\\\|ABP6TIDPUKRPTD5YJOW5ECDHQKSXZIDJPODKWWCAPBEA23V5AK2 \ / AMOS7 \ YOURUM ::
-#\[7]HRAPHWTXEWGOXOM5G33OFZ3RH52XRSJ3RL57JXDJARBWTZXR3WBA 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,..,,,,,,,,,..,,,..,...,,,,,.,.,..,,...,...,.,.,,..,...,,.,,...,
+#GLQNBTQFP3SWP7QO3K4U2HZ6YVPE7GCUKFLVWL4MK3OR3OZAK2S4I6Y65LFBWKDRQUR5336YPOMQI
+#\\\|MJ445VT5RYH6YD4OKFZUPU5GBOL2BJYTXMQRFJV6YIYSPBFXDYV \ / AMOS7 \ YOURUM ::
+#\[7]ZD36F3YG4EEZT3OQQGCZNF4KOHIHLPW5QNRWOQCV56YQSC3THKBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
