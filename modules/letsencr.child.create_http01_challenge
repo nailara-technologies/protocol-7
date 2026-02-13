@@ -39,11 +39,27 @@ my $key_auth = join qw| . |, $token, $thumbprint;
 ## For HTTP-01, we need to serve key auth at:
 ## http://example.com/.well-known/acme-challenge/{token}
 
-## note: child only computes challenge values
+## contact httpd to set up challenge
+<[base.logs]>->(
+    2, 'contacting httpd to set up HTTP-01 challenge for %s', $domain
+);
 
-## parent will contact httpd to actually write files
-#                 [ parent has httpd IPC delegation ]
-<[base.logs]>->( 2, 'HTTP-01 challenge computed for %s', $domain );
+my $setup_result = <[cube.httpd.setup-acme-challenge]>->(
+    {   'domain'   => $domain,
+        'token'    => $token,
+        'key_auth' => $key_auth,
+    }
+);
+
+unless ( $setup_result && $setup_result->{status} eq 'success' ) {
+    my $error_msg = $setup_result->{error} // 'httpd setup failed';
+    <[base.logs]>->(
+        0, 'failed to set up challenge with httpd: %s', $error_msg
+    );
+    return undef;
+}
+
+<[base.logs]>->( 2, 'HTTP-01 challenge set up with httpd for %s', $domain );
 
 ## Store challenge info in child state for later verification
 <letsencr.child.active_challenges>->{$token} = {
@@ -61,8 +77,8 @@ return {
     challenge_url  => $challenge->{'url'},
 };
 
-#,,,,,,,,,..,,,..,..,,...,..,,,,,,.,,,,,.,,..,..,,...,...,..,,.,,,,,.,,,,,...,
-#56JIZNMU5SBNEA7U2GNEKEO4UCLI2ORQRKI3U3PRF524NRLXXVR6UORNKNQJUIZPKLZK2EMNP6ET6
-#\\\|D63GC2UXSVLMYOWLXFHUQDX2VITW2XOCZKFJFZZ6KUB6JFX6LOA \ / AMOS7 \ YOURUM ::
-#\[7]AAWAFV5NQB62FMQ6JO7GSC4JACC3UYW73IXWTLTSAGMJ4WVT6UAA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,..,,.,.,.,.,,.,,,..,,,,,..,,,,,,..,,...,...,.,.,..,,.,,,,,,,,,,,
+#HEHPFAYXTZAU35AY534YWZP2XOIQXB2QKIAD323ZC7OKGG3JIH4GIWXM7NCJVRVFKM74GQV3GMWXA
+#\\\|QW3Z4JX7LXJNYMG3IV2XETT5VJB64TEOIBV33F4PIZ54URWWUZ6 \ / AMOS7 \ YOURUM ::
+#\[7]BPLIKOUX7FF5EJJDQ3P5SRXQMC6K3ILXOJS5TD6GFF6CGFXBYMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

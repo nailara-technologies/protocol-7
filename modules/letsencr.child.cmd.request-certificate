@@ -55,7 +55,7 @@ unless ($result) {
 
 ## check for async deferred status
 if ( $result->{status} eq qw| deferred | ) {
-    ## async processing - challenge coordination with parent ongoing
+    ## async processing - continue with challenge processing
     ## reply_id was passed to acme_new and stored in state for later callback
     <[base.logs]>->(
         2, 'certificate request accepted, processing asynchronously'
@@ -71,6 +71,9 @@ if ( $result->{status} eq qw| deferred | ) {
             ' : returned deferred' ),
         2
     );
+
+    ## continue challenge processing (contacts httpd, calls callback with certificate)
+    my $challenge_result = <[letsencr.child.continue_challenge_processing]>;
 
     ## return deferred mode to signal async reply via reply_id callback
     return { 'mode' => qw| deferred | };
@@ -151,8 +154,8 @@ return {
     'data' => $bundle_b32r
 };
 
-#,,.,,.,,,.,.,..,,...,..,,.,,,,,.,.,,,.,.,...,..,,...,...,.,,,.,,,,,,,..,,,,,,
-#4JTRG4BWMQLQW6VHV5M3FZBGEGNYTFDNM65DPVNRVSBCSGWA7DGJRMBK2A7KBCLILRHRL5LOSCWJI
-#\\\|PA3GAKTI7XPCKYUT7ZAXUJ6V7VSEWEPLYVD56MBRW3VAMMPBKCL \ / AMOS7 \ YOURUM ::
-#\[7]CNLQ5J4FGUGK73T52HBKLVKIEMKU5ZKSU4TO4FXRHEUUDIJOLUBY 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,..,,.,.,.,,,...,.,,,,..,.,.,,,.,..,,...,...,.,.,..,,.,,,.,,,,,.,
+#MBF6BQESAGLIU4TXIQ64OEAQJNWYUMFS6OSI2GR2S2PIMOEVRXTGG2PJRZROGHLUCUT6QLECLNPEE
+#\\\|TFLULGZAPLCIY2O5M2K4SOMPGLH7PBLJXNCVCKWBNH23NAVIWJY \ / AMOS7 \ YOURUM ::
+#\[7]SGQ6UYE7XTEDKICYB33MZ4HFOY43LNPTOFT2SLT7XGAJNZK7GIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
