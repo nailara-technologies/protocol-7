@@ -45,7 +45,7 @@ my $key_auth = join qw| . |, $token, $thumbprint;
 );
 
 my $setup_result = <[base.protocol-7.command.send.local]>->(
-    {   'command'   => qw| parent.cube.httpd.cmd.setup-acme-challenge |,
+    {   'command'   => qw| parent.cube.httpd.setup-acme-challenge |,
         'call_args' => {
             'args' => {
                 'domain'   => $domain,
@@ -81,8 +81,8 @@ return {
     challenge_url  => $challenge->{'url'},
 };
 
-#,,,,,,..,,.,,,,.,.,.,..,,,,.,,,.,..,,...,...,..,,...,...,...,.,.,,..,.,,,,.,,
-#BJSNAHIC4JEITRBEVYIX6UV3SB6BQSAFICL26VTGAJZYMJLGZJGMGLTTKTJW5XKSGDMMELHKO736M
-#\\\|VDTV3A4KRNWO6XPLPOSAMIHXU5CL2ABCBCSI2MB22CAS2N325Z3 \ / AMOS7 \ YOURUM ::
-#\[7]H5T72UTKWZU27GRRRJWVI2GSMN3FRPDSNQ4AKIYJX4V4LAKQG4CY 7  DATA SIGNATURE ::
+#,,..,,,,,..,,.,,,,..,,.,,,.,,,..,...,,..,,..,..,,...,...,.,,,,,.,.,.,,,,,..,,
+#66SFRL54COXFOJLZ6PMDKHVQ5PZGPUU4TIWMO4BXUZK6XGSOHW7H232CFZN2JDWAIBFCXCSJGMQME
+#\\\|GNEJMLRZ6376JA36QNGMTTDU2FT2EUC3ZQ3N7AN7VGXNBAXEWDN \ / AMOS7 \ YOURUM ::
+#\[7]UED5IMU5CDHUE5TM2JZA2UVZPMVMW4FOFLNX42WIJRFAQF2M4OAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
