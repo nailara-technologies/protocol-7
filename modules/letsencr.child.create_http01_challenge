@@ -44,17 +44,19 @@ my $key_auth = join qw| . |, $token, $thumbprint;
     2, 'contacting httpd to set up HTTP-01 challenge for %s', $domain
 );
 
-my $setup_result = <[cube.httpd.setup-acme-challenge]>->(
-    {   'domain'   => $domain,
-        'token'    => $token,
-        'key_auth' => $key_auth,
+my $setup_result = <[base.protocol-7.command.send.local]>->(
+    {   'command'   => qw| cube.httpd.cmd.setup-acme-challenge |,
+        'call_args' => {
+            'domain'   => $domain,
+            'token'    => $token,
+            'key_auth' => $key_auth,
+        }
     }
 );
 
-unless ( $setup_result && $setup_result->{status} eq 'success' ) {
-    my $error_msg = $setup_result->{error} // 'httpd setup failed';
+unless ($setup_result) {
     <[base.logs]>->(
-        0, 'failed to set up challenge with httpd: %s', $error_msg
+        0, 'failed to queue challenge setup with httpd for %s', $domain
     );
     return undef;
 }
@@ -77,8 +79,8 @@ return {
     challenge_url  => $challenge->{'url'},
 };
 
-#,,,.,,.,,.,.,..,,.,.,.,.,,.,,,..,,,,,..,,,,,,..,,...,...,.,.,..,,.,,,,,,,,,,,
-#HEHPFAYXTZAU35AY534YWZP2XOIQXB2QKIAD323ZC7OKGG3JIH4GIWXM7NCJVRVFKM74GQV3GMWXA
-#\\\|QW3Z4JX7LXJNYMG3IV2XETT5VJB64TEOIBV33F4PIZ54URWWUZ6 \ / AMOS7 \ YOURUM ::
-#\[7]BPLIKOUX7FF5EJJDQ3P5SRXQMC6K3ILXOJS5TD6GFF6CGFXBYMBQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,.,,,,.,...,.,,,,,.,,,,,,..,,,.,..,,...,...,,,.,.,,,,,.,,,,,,,,,
+#T3RQBSVI32WJHPL5OH3FNY7PU4EYYOAP3CDB4SIAKBMAQRTECZ7XNTYZS4F3VT6EF5IAUQ5KQQ64W
+#\\\|KWH7X3OELTFEBCHLNTLLD4G54W6DVQ52KWYADYEN7UDYWUW25BD \ / AMOS7 \ YOURUM ::
+#\[7]Z56NDYQTZP6PO5NGYSDDWOPW47HSPRWWKLXAZB2ZHCALBIA5MSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
