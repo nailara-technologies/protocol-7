@@ -5,10 +5,24 @@
 
 my $noop = ( defined $ARG[1] and $ARG[1] eq qw| noop | ) ? TRUE : FALSE;
 
-my $user = shift;
-
+my $user_spec   = shift @ARG;
+my @groups_list = @ARG;       ## variable-length group parameters [ optional ]
 return warn 'drop_privs : expected <user> parameter <{C2}>'
-    if not defined $user;
+    if not defined $user_spec;
+
+## parse user:group syntax [ primary group override ]
+my $user;
+my $override_primary_group;
+
+if ( $user_spec =~ m{:} ) {
+    ( $user, $override_primary_group ) = split m{:}, $user_spec, 2;
+    <[base.logs]>->(
+        3,     ': drop_privs : user:group override [ %s:%s ]',
+        $user, $override_primary_group
+    );
+} else {
+    $user = $user_spec;
+}
 
 my $tmp_dir_parent = qw| /var/tmp/ |;    ##  temp homedir parent directory  ##
 
@@ -27,15 +41,79 @@ if ( not length( $user // '' ) ) {
         $comment, $gcos, $h_directory, $shell
     ) = getpwnam($user);
 
+    ## handle primary group override if user:group syntax used
+    if ( defined $override_primary_group ) {
+        my ( $_gname, $_pw, $_override_gid )
+            = getgrnam($override_primary_group);
+        if ( defined $_override_gid ) {
+            $gid = $_override_gid;
+            <[base.logs]>->(
+                2, ': drop_privs : primary group overridden : %s [gid=%s]',
+                $override_primary_group, $_override_gid
+            );
+        } else {
+            <[base.logs]>->(
+                0, ': drop_privs : primary group not found [ %s ]',
+                $override_primary_group
+            );
+        }
+    }
+
     my %_gid = map { $ARG => TRUE } split( ' ', $GID );
     my %egid = map { $ARG => TRUE } split( ' ', $EGID );
 
+    ## resolve secondary groups  [ explicit only if primary override,
+    ##                                      or auto-detect | explicit ]
+    my @secondary_gids;
+
+    if (@groups_list) {
+        ## process explicit group parameters  [ always used, replaces
+        ##                                                auto-detect ]
+        for my $gname (@groups_list) {
+            ## handle colon-separated groups within single parameter
+            my @gnames = split m{:}, $gname;
+            for my $gname (@gnames) {
+                my ( $_gname, $_pw, $_gid ) = getgrnam($gname);
+                if ( defined $_gid ) {
+                    push( @secondary_gids, $_gid );
+                    <[base.logs]>->(
+                        2,      ': drop_privs : adding group : %s [gid=%s]',
+                        $gname, $_gid
+                    );
+                } else {
+                    <[base.logs]>->(
+                        0, ': drop_privs : group not found [ %s ]', $gname
+                    );
+                }
+            }
+        }
+    } elsif ( !defined $override_primary_group ) {
+        ## auto-detect secondary groups from group membership
+        #                            [ only if no primary override ]
+        while ( my ( $_name, $_pw, $_gid, $_members ) = getgrent ) {
+            push( @secondary_gids, $_gid )
+                if ( grep( $ARG eq $user, split( m|\s+|, $_members ) ) );
+        }
+    }
+
+    ## build complete gid list [ primary + all secondary ]
+    my @all_gids = ( $gid, @secondary_gids );
+
+    ## check if already running as this user with required groups
+    my %required_gids = map { $ARG => TRUE } @all_gids;
+    my $has_all_gids  = 1;
+    for my $req_gid (@all_gids) {
+        unless ( exists $_gid{$req_gid} and exists $egid{$req_gid} ) {
+            $has_all_gids = 0;
+            last;
+        }
+    }
+
     if (    not $noop
         and defined $name
-        and exists $_gid{$gid}
-        and exists $egid{$gid}    ## complete secondary group set-up.., [LLL]
-        and $EUID == $uid and $UID == $uid
-    ) {
+        and $has_all_gids
+        and $EUID == $uid
+        and $UID == $uid ) {
         <[base.logs]>->(
             2, "< drop_privs > already '%s', doing nothing.", $user
         );
@@ -54,11 +132,6 @@ if ( not length( $user // '' ) ) {
             <[base.exit]>->(qw| 0110 |) if not $noop;
             return -1;
         } else {
-            my @rgids;
-            while ( my ( $_name, $_pw, $_gid, $_members ) = getgrent ) {
-                push( @rgids, $_gid )
-                    if ( grep( $ARG eq $user, split( m|\s+|, $_members ) ) );
-            }
 
             if ( not length( $h_directory // '' ) ) {
                 <[base.logs]>->(
@@ -78,7 +151,7 @@ if ( not length( $user // '' ) ) {
                         'group' => $gid
                     }
                 );
-            } elsif ( !-d $h_directory or $user eq 'nobody' ) { # /nonexistent
+            } elsif ( !-d $h_directory or $user eq 'nobody' ) {  #/nonexistent
                 <[base.logs]>->(
                     0, "<< unable to create home directory '%s' >>",
                     $h_directory
@@ -125,15 +198,28 @@ if ( not length( $user // '' ) ) {
             return {
                 qw| uid |      => $uid,
                 qw| gid |      => $gid,
-                qw| all_gids | => join( ' ', $gid, @rgids ),
+                qw| all_gids | => join( ' ', @all_gids ),
                 qw| home |     => $h_directory
                 }
                 if $noop;
 
-            $EGID = join ' ', $gid, @rgids;
+            $EGID = join ' ', @all_gids;
             $GID  = $gid;
             $EUID = $uid;
             $UID  = $uid;
+
+            ## log final configuration
+            <[base.logs]>->(
+                2, 'dropping privs to user %s [uid=%s gid=%s]',
+                $user, $uid, $gid
+            );
+            if (@secondary_gids) {
+                <[base.logs]>->(
+                    2,
+                    'secondary groups: %s',
+                    join( ':', @secondary_gids )
+                );
+            }
 
             $ENV{'USER'}            = $name;
             $ENV{'HOME'}            = $h_directory;
@@ -151,12 +237,24 @@ if ( not length( $user // '' ) ) {
                 or $user ne <system.zenka-user.current>;
 
             <[base.logs]>->( "switched to unix user '%s'.,", $user );
+
+            ## log group configuration only when explicitly specified
+            if ( @groups_list || defined $override_primary_group ) {
+                my @group_names;
+                for my $gid (@all_gids) {
+                    my $gname = getgrgid($gid);
+                    push @group_names, ( $gname // $gid );
+                }
+                <[base.log]>->(    ## skips auto-detected ##
+                    1, ":. groups : " . join( ', ', @group_names )
+                );
+            }
         }
     }
 }
 
-#,,,.,.,,,.,.,,.,,.,,,,,,,,.,,,..,...,,,.,,..,..,,...,..,,..,,,.,,..,,..,,...,
-#SA5RI5CRHUCF4ZG5HS32HXS42U5DZU34YXBGMBWRQXIHIE47HZ2GCETXJE5VMPWIKJB2YGSWLE5JA
-#\\\|54W24CUU2QH22GEDEJSJWIIZQ7D2XDVVITH3MQXWE33YYCT2MWN \ / AMOS7 \ YOURUM ::
-#\[7]PQIMYONYO5W2ZXWVIB7XVQNQ6A7MEFTS4OMVDJ3BVSS3E6HVL6CY 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,..,,,.,,,,,,,,.,,,.,,,,,...,,.,,..,,...,...,,,,,,,.,...,.,,,,..,
+#FM74UTDDVIFCHATMDD2RXLJD66W2CQGRECVLH4IVN5ALJG4FW2AVUAGTNTGYX2VMSVMJML3PV4Y3W
+#\\\|HKBSIP6R5S7CCTDAA2ALIV3P4JDBZ2R5UO7OJV2IRUVUHXSELQF \ / AMOS7 \ YOURUM ::
+#\[7]QDCVAUXU3LDZR5D6RQXFRLVJ5NHBUG5MA3FE5VRU5UAW64UMKUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
