@@ -3,68 +3,105 @@
 # name = httpd.handler.acme_challenge
 # descr = serve HTTP-01 ACME challenge response files
 
-my $session_id = $session->{'session_id'};
-my $vhost      = $session->{'vhost'};
-my $token      = $call->{'handler_args'}->{'token'} // '';
+## handler receives: session_id and handler_args with token
+my $id    = shift;
+my $args  = shift            // {};
+my $token = $args->{'token'} // '';
+
+my $session = $data{'session'}->{$id};
 
 unless ( length $token ) {
-    <[base.logs]>
-        ->( 1, "[%d] challenge handler: missing token", $session_id );
-    return <[httpd.send_error_page]>->( $session, 400 );
+    <[base.logs]>->( 1, "[%d] challenge handler: missing token", $id );
+    my $reply_code   = 400;
+    my $reply_body   = 'Bad Request';
+    my $reply_header = {
+        'Content-Type'   => 'text/plain',
+        'Content-Length' => length($reply_body),
+        'Connection'     => qw| close |,
+    };
+    $session->{'buffer'}->{'output'}
+        .= <[httpd.new_header]>->( $reply_code, $reply_header );
+    $session->{'buffer'}->{'output'} .= $reply_body;
+    return 2;
 }
 
 ## construct path to challenge file
 my $site_dir       = <httpd.site_dir>;
+my $vhost          = $session->{'vhost'};
 my $challenge_file = sprintf '%s%s/.well-known/acme-challenge/%s',
     $site_dir, $vhost, $token;
 
-<[base.logs]>->(
-    2,           "[%d] serving challenge file : %s",
-    $session_id, $challenge_file
-);
+<[base.logs]>
+    ->( 2, "[%d] serving challenge file : %s", $id, $challenge_file );
 
 ## check if file exists
 unless ( -f $challenge_file ) {
     <[base.logs]>->(
-        1,           "[%d] challenge file not found : %s",
-        $session_id, $challenge_file
+        1,   "[%d] challenge file not found : %s",
+        $id, $challenge_file
     );
-    return <[httpd.send_error_page]>->( $session, 404 );
+    my $reply_code   = 404;
+    my $reply_body   = 'Not Found';
+    my $reply_header = {
+        'Content-Type'   => 'text/plain',
+        'Content-Length' => length($reply_body),
+        'Connection'     => qw| close |,
+    };
+    $session->{'buffer'}->{'output'}
+        .= <[httpd.new_header]>->( $reply_code, $reply_header );
+    $session->{'buffer'}->{'output'} .= $reply_body;
+    return 2;
 }
 
 ## read challenge content
-my $content;
-unless ( open my $fh, '<', $challenge_file ) {
-    <[base.logs]>->(
-        1,           "[%d] failed to open challenge file : %s",
-        $session_id, <[base.str.os_err]>
-    );
-    return <[httpd.send_error_page]>->( $session, 500 );
-}
+my $content = <[file.slurp]>->($challenge_file)->$*;
 
-{
-    local $/;
-    $content = <$fh>;
+unless ( defined $content ) {
+    <[base.logs]>->(
+        1,   "[%d] failed to read challenge file : %s",
+        $id, <[base.str.os_err]>
+    );
+    my $reply_code   = 500;
+    my $reply_body   = 'Internal Server Error';
+    my $reply_header = {
+        'Content-Type'   => 'text/plain',
+        'Content-Length' => length($reply_body),
+        'Connection'     => qw| close |,
+    };
+    $session->{'buffer'}->{'output'}
+        .= <[httpd.new_header]>->( $reply_code, $reply_header );
+    $session->{'buffer'}->{'output'} .= $reply_body;
+    return 2;
 }
-close($fh);
 
 <[base.logs]>->(
-    2,           "[%d] challenge content length : %d bytes",
-    $session_id, length($content)
+    2,   "[%d] challenge content length : %d bytes",
+    $id, length($content)
 );
 
 ## send response with plain text content type
-my $response = "HTTP/1.1 200 OK\r\n";
-$response .= "Content-Type: text/plain\r\n";
-$response .= sprintf "Content-Length: %d\r\n", length($content);
-$response .= "Connection: close\r\n";
-$response .= "\r\n";
-$response .= $content;
+my $reply_code   = 200;
+my $reply_header = {
+    'Content-Type'   => 'text/plain',
+    'Content-Length' => length($content),
+    'Connection'     => $session->{'http'}->{'close'}
+    ? qw| close |
+    : qw| keep-alive |,
+};
 
-return <[httpd.send_response]>->( $session, $response );
+$session->{'buffer'}->{'output'}
+    .= <[httpd.new_header]>->( $reply_code, $reply_header );
+$session->{'buffer'}->{'output'} .= $content;
 
-#,,,,,,,.,...,..,,...,,.,,,,,,.,,,,.,,,.,,.,.,..,,...,...,..,,,..,,.,,.,,,,,.,
-#WBINLZQ4IS6FUMDYNW37VUAKRVE2TBR4RSR4ZLQDKZ76QSGAI22KCQIUVF44VXWHWKR3AMFRNIWBO
-#\\\|TBSUZWSF5MTHVBNM32EJMJF7KXEGY6KMSZTO6YHVTXTLA744PDI \ / AMOS7 \ YOURUM ::
-#\[7]NMU63Z4HZBWDOCRMAW6COPXTFB4BFYQLSUTQSBUUS4SN2YG4LUBA 7  DATA SIGNATURE ::
+<[base.logs]>->(
+    2,   "[%d] ACME challenge response: %d (body len: %d)",
+    $id, $reply_code, length($content)
+);
+
+return $session->{'http'}->{'close'} ? 2 : 0;
+
+#,,.,,,..,,.,,...,,,,,.,.,,,,,..,,,..,...,..,,..,,...,...,..,,,.,,.,,,...,.,.,
+#CCQJJO62ONTQLMRKOHM7UKXX4IPI5MNMHRTCT3NXLCVH3AFAWI7J4GHXYS7XGJPCNVGN23EIA2RCQ
+#\\\|574P27CDUUO4JCQ6FIJNKVTTMWB4RXGF5UKSHZ33TXNC6RZSK5B \ / AMOS7 \ YOURUM ::
+#\[7]T72JBRURBYX2JGO6VVXMMWF77ZGH2USLHFSFQWDKWBPOEX4ZQMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
