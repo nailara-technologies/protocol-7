@@ -7,7 +7,8 @@
 #
 # params:
 #   $key_name       = Name of the key to annotate
-#   $algorithm_type = 'Ed25519' or 'Curve25519' (optional, inferred if not provided)
+#   $algorithm_type = 'Ed25519' or 'Curve25519'
+#   (optional, inferred if not provided)
 #
 # returns: 1 (success) | 0 (failure)
 #
@@ -46,7 +47,8 @@ unless ( defined $algorithm_type ) {
     } elsif ( $key_name =~ m/dh|exchange/ ) {
         $algorithm_type = 'Curve25519';    # DH keys
     } else {
-        ## Default based on context: if has 'private' key material, likely Ed25519
+        ## Default based on context:
+        ## if has 'private' key material, likely Ed25519
         if ( defined $keypair->{'private'}
             and length( $keypair->{'private'} ) > 32 ) {
             $algorithm_type = 'Ed25519';    # Ed25519 has extended private key
@@ -58,7 +60,7 @@ unless ( defined $algorithm_type ) {
 
 ## Validate algorithm type
 unless ( $algorithm_type =~ m/^(Ed25519|Curve25519)$/ ) {
-    <[base.logs]>->( 0, "invalid algorithm type: %s", $algorithm_type );
+    <[base.logs]>->( 0, "invalid algorithm type : %s", $algorithm_type );
     return FALSE;
 }
 
@@ -90,8 +92,8 @@ return TRUE;
 
 1;
 
-#,,.,,.,.,,,.,,..,...,,,,,,..,...,...,.,.,..,,..,,...,...,,,.,..,,,..,,,,,.,,,
-#PV7WSVEMWBCVV4FCSWRS2QIHDKF5F7643ZEYCOMK5IAPLYVOXXZPFUFE4C6MSE6REOMBW53JPITI6
-#\\\|RSMK6BHVFGEJKF4L2M2T7YZZUKJDDYDCDYJPZFLEK3YYVQCIGPO \ / AMOS7 \ YOURUM ::
-#\[7]6ZFNMJCDYA6RGGUKL2MGAYCGYZFY5AJNUSZTSQHX32XLF42WG2BY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,...,...,,,,,...,,..,...,,,.,...,..,,...,...,..,,.,,,.,,,.,,,,,.,
+#IOGA2UD46BCW4ESBSP7KBIGUJCBXMOKFDXIONZ5INIVRWK37OQKCALHVSZNWPAGFVCT7VNGFGYO36
+#\\\|K5C4BRXBMPQYAK4SRWN2TIJJPMTYL73VMRSNCECU3WNQJVHYTR4 \ / AMOS7 \ YOURUM ::
+#\[7]HFRXMJQRBIVOHUPAWPBO5R73PB2NV3J3N75C5XT445Y3TDFXGWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,14 +8,14 @@
 my $addr = shift;
 my $port = shift;
 
-<[base.log]>->( 2, "httpsd: creating SSL socket on $addr:$port" );
+<[base.log]>->( 2, "httpsd : creating SSL socket on $addr:$port" );
 
 ## Get certificate paths from configuration
 my $cert_file = <httpsd.cfg.certificate_path>;
 my $key_file  = <httpsd.cfg.key_path>;
 
-<[base.log]>->( 2, "  certificate: $cert_file" );
-<[base.log]>->( 2, "  key: $key_file" );
+<[base.log]>->( 2, "  certificate : $cert_file" );
+<[base.log]>->( 2, "  key : $key_file" );
 
 ## check if certificate files exist
 unless ( -f $cert_file && -f $key_file ) {
@@ -36,8 +36,8 @@ my @cipher_list = qw|
 my $default_ciphers = join( ':', @cipher_list );
 my $cipher_suite    = <httpsd.cfg.cipher_suite> // $default_ciphers;
 
-<[base.log]>->( 2, "  TLS version: $tls_version" );
-<[base.log]>->( 3, "  cipher suite: $cipher_suite" );
+<[base.log]>->( 2, "  TLS version : $tls_version" );
+<[base.log]>->( 3, "  cipher suite : $cipher_suite" );
 
 ## Ensure TLS_version is a scalar string (not a list)
 if ( ref($tls_version) eq 'ARRAY' ) {
@@ -59,7 +59,8 @@ if ( $tls_version =~ m/:/ ) {
     ## Use first (typically highest) version for IO::Socket::SSL
     ## IO::Socket::SSL::SSL_version accepts single versions like 'TLSv1_3'
     $tls_version = $versions[0];
-    <[base.log]>->( 2, "  note: converted to single version: $tls_version" );
+    <[base.log]>
+        ->( 2, "  note : converted to single version : $tls_version" );
 }
 
 ## Verify certificate key type compatibility with cipher suite
@@ -86,9 +87,9 @@ eval {
     <[base.log]>->(
         3, "    SSL_version: $tls_version (ref: " . ref($tls_version) . ")"
     );
-    <[base.log]>->( 3, "    SSL_cert_file: $cert_file" );
-    <[base.log]>->( 3, "    SSL_key_file: $key_file" );
-    <[base.log]>->( 3, "    LocalAddr: $addr, LocalPort: $port" );
+    <[base.log]>->( 3, "    SSL_cert_file : $cert_file" );
+    <[base.log]>->( 3, "    SSL_key_file : $key_file" );
+    <[base.log]>->( 3, "    LocalAddr : $addr, LocalPort : $port" );
 
     $ssl_socket = IO::Socket::SSL->new(
         LocalAddr              => $addr,
@@ -106,19 +107,19 @@ eval {
 };
 
 if ($EVAL_ERROR) {
-    <[base.log]>->( 0, "httpsd: SSL socket creation EVAL ERROR:" );
-    <[base.log]>->( 0, "  error: $EVAL_ERROR" );
+    <[base.log]>->( 0, "httpsd : SSL socket creation EVAL ERROR:" );
+    <[base.log]>->( 0, "  error : $EVAL_ERROR" );
     <[base.log]>->(
         0,
         "  SSL_version parameter: '$tls_version' (type: "
             . ref($tls_version) . ")"
     );
-    <[base.log]>->( 0, "  cert file: $cert_file" );
-    <[base.log]>->( 0, "  key file: $key_file" );
+    <[base.log]>->( 0, "  cert file : $cert_file" );
+    <[base.log]>->( 0, "  key file : $key_file" );
 
     ## Log system error if available
     if ($OS_ERROR) {
-        <[base.log]>->( 0, "  system error: $OS_ERROR" );
+        <[base.log]>->( 0, "  system error : $OS_ERROR" );
     }
 
     ## Provide specific guidance based on error type
@@ -139,15 +140,15 @@ unless ( defined $ssl_socket ) {
     my $ssl_err_full = $ssl_err;
     $ssl_err =~ s|\n.+||mg;
 
-    <[base.log]>->( 0, "httpsd: SSL socket creation returned UNDEF:" );
+    <[base.log]>->( 0, "httpsd : SSL socket creation returned UNDEF:" );
     <[base.log]>->( 0, "  IO::Socket::SSL::errstr(): $ssl_err" );
-    <[base.log]>->( 0, "  full error: $ssl_err_full" );
-    <[base.log]>->( 0, "  SSL_version was: '$tls_version'" );
+    <[base.log]>->( 0, "  full error : $ssl_err_full" );
+    <[base.log]>->( 0, "  SSL_version was : '$tls_version'" );
     <[base.log]>->( 0, "  cert type (Ed25519/RSA): check with:" );
     my $cmd = "openssl x509 -in $cert_file -text -noout |";
     $cmd .= " grep -i 'public key'";
     <[base.log]>->( 0, "    $cmd" );
-    <[base.log]>->( 0, "  key type: check with:" );
+    <[base.log]>->( 0, "  key type : check with:" );
     <[base.log]>->(
         0, "    openssl pkey -in $key_file -text -noout | head -1"
     );
@@ -159,24 +160,24 @@ unless ( defined $ssl_socket ) {
 }
 
 ## Start listening
-<[base.log]>->( 2, "httpsd: SSL socket created successfully" );
-<[base.log]>->( 2, "  socket ref: " . ref($ssl_socket) );
-<[base.log]>->( 2, "  socket fd: " . fileno($ssl_socket) // 'undef' );
+<[base.log]>->( 2, "httpsd : SSL socket created successfully" );
+<[base.log]>->( 2, "  socket ref : " . ref($ssl_socket) );
+<[base.log]>->( 2, "  socket fd : " . fileno($ssl_socket) // 'undef' );
 
 unless ( $ssl_socket->listen() ) {
-    <[base.log]>->( 0, "httpsd: listen failed: $OS_ERROR" );
+    <[base.log]>->( 0, "httpsd : listen failed : $OS_ERROR" );
     return -1;
 }
 
-<[base.log]>->( 1, "httpsd: SSL server launched [$addr:$port]" );
+<[base.log]>->( 1, "httpsd : SSL server launched [$addr:$port]" );
 <[base.log]>->( 2, "  listening with $tls_version" );
 
 return $ssl_socket;
 
 0;
 
-#,,,,,..,,,.,,.,,,.,.,,,,,,,.,...,,..,,,,,..,,..,,...,...,,..,,.,,.,.,,,,,...,
-#MSS27SUO4BEBTK7VXREIKIJBYOV4FL6W7WFTO6447LZKEDOVFJCVMNZRG5ZC5OD5PKH7KPTS3THWI
-#\\\|C6J6GYFZR6E4FJULMUL2Q7MOGU4WUVDDHLAK5GI3EKQF7LUSBNN \ / AMOS7 \ YOURUM ::
-#\[7]IWY32PCW7KZHI35AMPS427SVFF76CBDWE75M6QA4JFSDULPP5UAQ 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,,,,,,,,.,.,,,,,,,,,,..,..,,..,,..,,...,...,...,,..,,,,,..,,,,,,
+#6Y3BT3LBMKZCTPAZBS5DKOGX3EEELMTVDUEETAP2FE7TBXPWX5CY4LCN6PEAP3Z74CZBC4MBRNYRM
+#\\\|RAON7LP526VMPWPHZ4IZOW6JZR7333E3DLLGA4SU4SBKRF7HOI2 \ / AMOS7 \ YOURUM ::
+#\[7]YNQSZ7AQEH7P7JWXXPTT7PCESNCMHY2P4ZH72CN6FJZ52QENZACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

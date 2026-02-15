@@ -39,7 +39,7 @@ $rsa->use_sha256_hash;
 my $signature;
 eval { $signature = $rsa->sign( $data_ref->$* ); } or do {
     my $err = <[base.str.eval_error]>;
-    <[base.logs]>->( 1, "error: RSA signing failed: %s", $err );
+    <[base.logs]>->( 1, "error : RSA signing failed : %s", $err );
     return undef;
 };
 
@@ -48,8 +48,8 @@ eval { $signature = $rsa->sign( $data_ref->$* ); } or do {
 ## return raw signature bytes (caller will base64url encode)
 return $signature;
 
-#,,,,,...,,,.,,.,,,,.,.,,,,,,,.,,,,,.,.,,,,,,,.,.,...,...,,.,,,,.,,,.,,,,,,,.,
-#MIDZMKP2X7ZVQCMSGBIOLE3IXFCF7UHNDG7VERJWELVT2IPULSGAZEUOPPYTAOT6N4GFNFEHGKZLS
-#\\\|TICU5KUAXJQ637FPW4OYXHVUNJAQUQ6R46JKFOBV46WGOMVYGEL \ / AMOS7 \ YOURUM ::
-#\[7]RO27SEUB3GTG6OGVSCP5J5S7SBL2V4KJBMOVH7XX35JDNGSK3EAQ 7  DATA SIGNATURE ::
+#,,.,,...,,,,,.,,,,.,,..,,.,,,...,..,,,,.,..,,.,.,...,...,.,.,...,.,.,,.,,..,,
+#4XGLGOA7UN67FL6G5O36EQFSMWPOREL5NJVAXUCPFDWWMMCQN62ILJ3SHZNFURRES4GYPTSUJTSGU
+#\\\|M7DIJFUARR7MBNB2JAGQ3KVOGNOK3C6JBAEY5VCCPWYPNXAOD45 \ / AMOS7 \ YOURUM ::
+#\[7]ISQ5TAR5CCMGH3ETCEEOBLL6NEANKNOZ7M4524O2PIOF6SS3XACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

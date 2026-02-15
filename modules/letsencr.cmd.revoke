@@ -45,8 +45,8 @@ if ( !-f $key_file ) {
 ## 5 = cessationOfOperation
 my $reason = $params->{reason} || 0;
 
-<[base.log]>->( 2, "  Certificate file: $cert_file" );
-<[base.log]>->( 2, "  Revocation reason: $reason" );
+<[base.log]>->( 2, "  Certificate file : $cert_file" );
+<[base.log]>->( 2, "  Revocation reason : $reason" );
 
 ## Prepare revocation message for child process
 my $revoke_msg = {
@@ -65,7 +65,7 @@ if ( exists $code{'letsencr.child.acme_revoke'} ) {
     eval { $result = <[letsencr.child.acme_revoke]>->($revoke_msg); };
 
     if ($EVAL_ERROR) {
-        <[base.log]>->( 0, "  Revocation failed: $EVAL_ERROR" );
+        <[base.log]>->( 0, "  Revocation failed : $EVAL_ERROR" );
         return {
             success => FALSE,
             error   => qq| revocation failed: $EVAL_ERROR |
@@ -74,7 +74,7 @@ if ( exists $code{'letsencr.child.acme_revoke'} ) {
 
     if ( !$result || $result->{status} ne 'success' ) {
         my $error_msg = $result->{error} || qw| unknown revocation error |;
-        <[base.log]>->( 0, "  Revocation failed: $error_msg" );
+        <[base.log]>->( 0, "  Revocation failed : $error_msg" );
 
         return {
             success => FALSE,
@@ -116,8 +116,8 @@ if ( exists $code{'letsencr.child.acme_revoke'} ) {
 
 0;
 
-#,,,,,.,.,,,,,,..,..,,,,,,.,.,,..,,,,,,,.,..,,..,,...,...,...,.,,,,,.,,,,,..,,
-#BMGA6U3JNKSAZ2QTX4AZFEDK2RPDFT5M5ZQPV247VA7L63EL5W7AUGFFOPYI76QYTOUMAAEPKBG52
-#\\\|VM6BC6ED465DKQFB2FSFO3HYU2ZNVUJHKJQRN73ZFHJY535ODQQ \ / AMOS7 \ YOURUM ::
-#\[7]CT56EOVJXUEXILGGOJ5N553T5YZXP3MZPFPKQ6BPRDNB6GFBQKCA 7  DATA SIGNATURE ::
+#,,..,..,,...,,,,,.,.,,..,,,.,,..,...,,..,,,,,..,,...,...,...,..,,.,,,.,,,...,
+#7TYJD6TEANQNQ63WX6Q7LMQ6FPYVP4C7VVCNM7BPA77BLYJTKYUXGN76BZC3OH2YWEIWEMHEORBWU
+#\\\|F44YEI7QVDF23PZLDLI7N3DJF3V5OIYHZLSJTZHP53KGLQ5PUQV \ / AMOS7 \ YOURUM ::
+#\[7]WRHXKTTSIKLXJIOABMR4JWLRKSIVIGYQL2WBTNTCOWIV4MNBYSCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

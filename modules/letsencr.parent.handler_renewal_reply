@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name  = letsencr.parent.handler_renewal_reply
-# descr = handle renewal command reply from child process (processes TRUE/FALSE/SIZE responses)
+# descr = handle renewal command reply from child process
+#         (processes TRUE/FALSE/SIZE responses)
 
 my $reply_data = shift;
 
@@ -10,7 +11,7 @@ my $mode   = $reply_data->{'cmd'};
 my $args   = $reply_data->{'call_args'}{'args'};
 my $data   = $reply_data->{'data'};
 
-<[base.log]>->( 2, "renewal reply for domain: $domain, mode: $mode" );
+<[base.log]>->( 2, "renewal reply for domain : $domain, mode : $mode" );
 
 if ( $mode eq 'TRUE' ) {
     <[base.log]>->( 2, "renewal succeeded for $domain: $args" );
@@ -34,7 +35,8 @@ if ( $mode eq 'TRUE' ) {
 
         <[base.log]>->(
             2,
-            "scheduling retry for $domain in $delay seconds (attempt $attempt)"
+            "scheduling retry for $domain in $delay seconds"
+                . " (attempt $attempt)"
         );
 
         <[event.add_timer]>->(
@@ -130,18 +132,19 @@ if ( $mode eq 'TRUE' ) {
     if ( !$notify_result || $notify_result->{status} ne 'success' ) {
         <[base.log]>->(
             1,
-            "warning: failed to notify httpd of certificate update for $domain"
+            "warning: failed to notify httpd"
+                . " of certificate update for $domain"
         );
     }
 
 } else {
-    <[base.log]>->( 1, "renewal got unexpected mode: $mode for $domain" );
+    <[base.log]>->( 1, "renewal got unexpected mode : $mode for $domain" );
 }
 
 return FALSE;
 
-#,,..,,..,...,,,.,,.,,,,.,.,,,,.,,.,,,..,,,,,,..,,...,...,.,,,,,.,...,,.,,...,
-#ST75KDEP7UZEG5JITO3ANJB2CASOLAN57XRV47KOVFA4HAJ6RQN4IGMEMN3LAD2OZKHWJVRY3JHAU
-#\\\|AJSVVPOES3ZWDQUZ37ZBAXZ6HK3T7UPT2DIXYMHMIMQZGONP6DH \ / AMOS7 \ YOURUM ::
-#\[7]WSLIE65DGQG55TQ4AG7UHZPD3KNBCHXFAGE73ID5BMQ5Q7M3DODA 7  DATA SIGNATURE ::
+#,,.,,,,.,...,,,,,,.,,.,,,,.,,,..,.,,,,..,,,,,..,,...,...,,,.,,..,,,,,.,.,...,
+#4IAPJVCKMVXGBJIOVWIKD7RHNQZJNUQLP7TVCAUH7Z7GSQZH6U2AT2QLV5AZXS5BEMOIDAJM7OCM6
+#\\\|Z6B45777XGDWW22BBUHO5RTXVD2T7W7QJEVHD7FTKB2HKXMQELV \ / AMOS7 \ YOURUM ::
+#\[7]OTY7LXFWWWDYWING6FHTX3EL65DDQEPPPZUXJX4DJQLKWLWRIABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

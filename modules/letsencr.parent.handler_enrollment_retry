@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name  = letsencr.parent.handler_enrollment_retry
-# descr = retry handler for failed certificate enrollment with exponential backoff
+# descr = retry handler for failed certificate enrollment
+#         with exponential backoff
 
 ## Event callbacks receive the event as first argument
 ## We store retry data as module variables and iterate over pending retries
@@ -46,7 +47,7 @@ my $result = <[base.protocol-7.command.send.local]>->(
 );
 
 if ($result) {
-    <[base.log]>->( 2, "enrollment retry queued for: $domain" );
+    <[base.log]>->( 2, "enrollment retry queued for : $domain" );
 } else {
     <[base.log]>->(
         1, "failed to queue enrollment retry for: $domain (attempt $attempt)"
@@ -62,8 +63,8 @@ delete <letsencr.parent.pending_retry>->{$domain};
 
 return FALSE;
 
-#,,..,,.,,,.,,,,.,.,,,.,.,..,,..,,,..,,.,,.,,,..,,...,...,..,,,,,,..,,..,,,.,,
-#YFIHVEPWIOF4NPKII2HIWFXBA6LOFK6TXX6ER3MVCKCDFQU7WUXZTPBAQV6H4Y72UWNDA23TIMKOU
-#\\\|VNUBX4QT2PD6ZGO6BNP5776M2VATJOBJV6R7W37DVOJV3MCX2MS \ / AMOS7 \ YOURUM ::
-#\[7]FH7RLZKP2M46Q3RYUHTEDMVSJSWB575VX6UHXMN3KWTT2KSAGQCA 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,,.,,,,,,.,,,..,.,.,...,,.,,,,.,..,,...,.,,,..,,.,,,..,,,.,,.,,,
+#Y4Z6VBY4UHVSKF56LKD664SHT4FXL4D5MJ73NBK4SF7KDISVVIFGJ77OB6S47YYWJDTJVK3VNQLLE
+#\\\|4OTBF47JUGDSYJMCHDOYJI7S72BGHEJ7WZGZKWEYRGRJSOFVXSI \ / AMOS7 \ YOURUM ::
+#\[7]SMVXFS3HGR6L4XJP3QIWBFQ4U72JEXKISEXHL7PKXVEGCEZIPKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

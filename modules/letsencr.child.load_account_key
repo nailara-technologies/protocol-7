@@ -23,7 +23,7 @@ return undef unless -f $key_path;
 my $secret_b32;
 {
     open( my $fh, '<:raw', $key_path ) or do {
-        <[base.log]>->( 1, "error: unable to open account key file: $!" );
+        <[base.log]>->( 1, "error : unable to open account key file : $!" );
         return undef;
     };
     local $/;
@@ -48,15 +48,19 @@ unless ( $secret_key && length($secret_key) == 32 ) {
     <[base.log]>->(
         1,
         sprintf(
-            'error: invalid or corrupted account key (expected 32 bytes, got %d)',
-            $secret_key ? length($secret_key) : 0 )
+            'error: invalid or corrupted account key'
+                . ' (expected 32 bytes, got %d)',
+            $secret_key ? length($secret_key) : 0
+        )
     );
     return undef;
 }
 
 ## Generate the account key using Protocol-7 infrastructure
-## Pass the loaded secret seed to gen_keys which will store it in %keys{'C25519'}
-## Use a unique key name with timestamp to avoid conflicts with previously loaded keys
+## Pass the loaded secret seed to gen_keys
+## which will store it in %keys{'C25519'}
+## Use a unique key name with timestamp
+## to avoid conflicts with previously loaded keys
 my $unique_key_name = 'acme-account-' . <[base.prng.chars-anum]>->(8);
 
 my ( $keypair, $key_name ) = <[crypt.C25519.gen_keys]>->(
@@ -81,8 +85,8 @@ unless ( $keypair && $key_name ) {
 
 return <letsencr.child.acme_client>->{account_key};
 
-#,,..,..,,,..,,..,...,,..,,.,,,,.,,,,,..,,,..,..,,...,...,.,.,,,,,.,,,..,,..,,
-#3A5RL6YXGQC42NGJUPPXNZE6K4D5DB2QAIGZWBDXCPEAQQHRO6LJNMF5UIZWVE4KND5YJWPTRMJPM
-#\\\|5LVD6BRKV6TDRRVHM3T2HCL3BYFD5RSMCA23MEAMTQAVVX3R6ZW \ / AMOS7 \ YOURUM ::
-#\[7]SQASNG62JX4XUODIH5FR7DQEY26G7TILGW3FL5UVJZ3PT2MNYGDI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,.,,,..,,..,,,,.,,,,,.,,,,..,,..,..,,...,...,...,...,.,,,,,.,,..,
+#HESH2N7CMQCCCLAE3N24CTPBYVDW3HOVEG6JJGRVDYOTQ4VSP7XL4UL32PRHACBUXQ3KKVQHNSOQ6
+#\\\|CBIW4UENTRV2YD4XPFBVNMD7VXTZWO3COPVDCIN73W6HJ3UV47F \ / AMOS7 \ YOURUM ::
+#\[7]WKICU3THUTVKP2U5MQNID645RDD67PKRCCCPDB4UXV7KFJ3JRIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

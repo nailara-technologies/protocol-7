@@ -130,10 +130,14 @@ my $mmproj_path = <lm-vision.vision_mmproj_path>;
 my $PROMPTS = {
     qw| content-filter | => join( ' ',
         'The task is being a layer in a transit-filter in a peer to peer'
-            . ' network processing a publicly accessible data-pool [route].: can'
-            . ' you assert if the image is safe for work [public networks from'
-            . ' private devices by users of unknown age], as a yaml structured'
-            . ' response? the keys expected are safe-for-any-age => true or false'
+            . ' network processing a publicly accessible data-pool'
+            . ' [route].: can'
+            . ' you assert if the image is safe for work'
+            . ' [public networks from'
+            . ' private devices by users of unknown age],'
+            . ' as a yaml structured'
+            . ' response? the keys expected are'
+            . ' safe-for-any-age => true or false'
             . ' [ or error => true or false ] and reason => reason_string' ),
 
     qw| safe-for-any | => join(
@@ -150,7 +154,8 @@ my $PROMPTS = {
 
     qw| elves | => join(
         ' ', qw{
-            Can reply 'elves = TRUE' or 'elves = FALSE' depending on wether one
+            Can reply 'elves = TRUE' or 'elves = FALSE'
+            depending on wether one
             or more elves are in the image? }
     ),
 
@@ -189,25 +194,25 @@ my @cmd = (
     '-m',       $model_path,
     '--mmproj', $mmproj_path,
     '-ngl',     99,
-    '-c',       4096,                      # Context: image tokens + prompt + response
+    '-c',       4096,           # Context: image tokens + prompt + response
     '-t',       4,
     '--image',  $working_image_path,
-    '--image-min-tokens', 1024,            # Minimum image tokens for Qwen3-VL
-    '-n',       -2,                        # Generate until context size full (better streaming than -1)
-    '--no-warmup',                         # Skip warmup to reduce initialization output
-    '--log-file', $log_file_path,          # Log via symlink to /dev/null
-    '--prompt', $prompt,
+    '--image-min-tokens', 1024,    # Minimum image tokens for Qwen3-VL
+    '-n', -2,    # Generate until context size full (better streaming than -1)
+    '--no-warmup',    # Skip warmup to reduce initialization output
+    '--log-file', $log_file_path,    # Log via symlink to /dev/null
+    '--prompt',   $prompt,
 
     # Reverse prompts: stop generation at natural boundaries
-    '--reverse-prompt', 'User:',           # Stop at conversation turn
-    '--reverse-prompt', '###',             # Stop at section separator
+    '--reverse-prompt', 'User:',     # Stop at conversation turn
+    '--reverse-prompt', '###',       # Stop at section separator
 
     # Qwen3 recommended VL task parameters from modelcard
-    '--temp',             0.7,             # Moderate temperature for focused VL output
-    '--top-k',            20,              # Top-k sampling (recommended for VL)
-    '--top-p',            0.8,             # Nucleus sampling for VL tasks
-    '--repeat-penalty',   1.0,             # Repetition penalty (default)
-    '--presence-penalty', 1.5,             # Presence penalty to reduce repetition
+    '--temp',             0.7,    # Moderate temperature for focused VL output
+    '--top-k',            20,     # Top-k sampling (recommended for VL)
+    '--top-p',            0.8,    # Nucleus sampling for VL tasks
+    '--repeat-penalty',   1.0,    # Repetition penalty (default)
+    '--presence-penalty', 1.5,    # Presence penalty to reduce repetition
 );
 
 # Set up environment for vision model
@@ -221,7 +226,7 @@ $err = Symbol::gensym();
 
 # Open /dev/null for stdin
 open( my $null_in, '<', '/dev/null' ) or do {
-    <[base.logs]>->( 0, "ERROR: Failed to open /dev/null for stdin" );
+    <[base.logs]>->( 0, "ERROR : Failed to open /dev/null for stdin" );
     return { 'mode' => 'false', 'data' => 'failed to open /dev/null' };
 };
 
@@ -268,13 +273,14 @@ my $job = {
     'output'              => '',
     'stderr'              => '',
     'start_time'          => <[base.time]>->(3),
-    'is_completion_chain' => 0                      # Not part of completion chain
+    'is_completion_chain' => 0                  # Not part of completion chain
 };
 
 # Store job in queue
 <lm-vision.jobs>->{$job_id} = $job;
 
-<[base.logs]>->( 1, "[analyze_image] spawned: job=%s pid=%d", $job_id, $pid );
+<[base.logs]>
+    ->( 1, "[analyze_image] spawned : job=%s pid=%d", $job_id, $pid );
 
 # Register non-blocking I/O handler for stdout (read data as it arrives)
 # poll => 'r' means: read data whenever available
@@ -289,7 +295,8 @@ $job->{'rdr_io'} = <[event.add_io]>->(
 );
 
 # Register non-blocking I/O handler for stderr (read data + exception on EOF)
-# poll => 're' means: read data as it arrives, also catch exception/EOF for completion
+# poll => 're' means: read data as it arrives,
+# also catch exception/EOF for completion
 # prio => 2 (lower priority): process EOF after all data has been read
 $job->{'err_io'} = <[event.add_io]>->(
     {   'fd'      => $err,
@@ -306,8 +313,8 @@ $job->{'err_io'} = <[event.add_io]>->(
 );
 return { 'mode' => 'deferred' };
 
-#,,,.,,,.,,.,,,.,,,,.,...,.,.,,.,,,,.,,.,,.,.,..,,...,.,.,,.,,..,,.,.,,,,,.,,,
-#BMY53M2NP6EGJHFCW7Q7X2LHQTSQ5X6VO6MD7CMTJH446U542QTLEP3MAWIZSJ6MQ474LKFHXLX3K
-#\\\|CB3KSPRQN4GI5PJM7H2IBNDQ7K5XOMXGMYJ2T5N5RWKEGDZWETM \ / AMOS7 \ YOURUM ::
-#\[7]ZGTKNKPF2UM5MXMWPWMY6AJ7TQIWR3E5D2HXNNTBSHBISNPX56CI 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,..,,..,,.,,...,,,,,,,,,,.,,...,..,,...,..,,.,,,,,.,.,,,...,,,,,
+#UEEXKV5OGYTDMQZ6W2KUOVYPWBE7KAORWN6UO734WAHXNLBUPJ3AAF2ZLR52PG3C36WPBED3EPOQO
+#\\\|2SWU2FPK5RZKMLIX3DX2PY457Z6UW3YXL4HR3KM6WJQOQL2RNSV \ / AMOS7 \ YOURUM ::
+#\[7]7RY53CBQNESAK7O65PG6CMDDIBDGX2GQ6EGLYQ2TAOCBUV3BNQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

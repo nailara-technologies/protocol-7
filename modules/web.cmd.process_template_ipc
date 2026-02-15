@@ -12,13 +12,21 @@ my $args_str = $hash_ref->{'args'} // '';
 my $result = <[web.process_template_ipc]>->($args_str);
 
 ## Debug logging ##
-<[base.log]>->( 0, "wrapper: mode=" . ($result->{'mode'} // 'unknown') . ", data type=" . ref($result->{'data'}) . ", length=" . (defined $result->{'data'} ? length($result->{'data'}) : 0) );
+<[base.log]>->(
+    0,
+    "wrapper : mode="
+        . ( $result->{'mode'} // 'unknown' )
+        . ", data type="
+        . ref( $result->{'data'} )
+        . ", length="
+        . ( defined $result->{'data'} ? length( $result->{'data'} ) : 0 )
+);
 
 ## Return hash ref directly ##
 return $result;
 
-#,,..,.,,,.,.,,,.,,.,,,,,,..,,..,,...,,..,..,,..,,...,..,,...,..,,,,.,...,..,,
-#KCQIVX7SFY6UQIGWRBRNIJ27622APZSQSDJRMXZ34K3IGHEG5GFCFMTE7GSLLSJ4ZGIBCUNFFMYWK
-#\\\|DFZ2JAKPBJ6G2FYLYRRDNCDXH4O5KEAYTI3JAMF2W22ZTV7RPQZ \ / AMOS7 \ YOURUM ::
-#\[7]ZY5QKCDLCAEY6JJHDAUOY46HUDBL4I7OX3KR54GFUO7KOXWTPABY 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,.,,...,.,,,,.,,.,.,,.,,,,,,.,.,..,,...,..,,,.,,.,.,,,,,.,.,,.,,
+#73M4FPTEVMBO5QFOOWECDDYI6HBRD3NZKNGPA2N5NG3FOJDZAHMI3NEZLQ2SPUZ7TL7FYQCGEYBL6
+#\\\|TEVAWK2CDEQ2VBFIOPHQOVTO6ERNVAYCLDLOAI4GAD6J723JDAH \ / AMOS7 \ YOURUM ::
+#\[7]CKZFGTETCYXDOZJNIRYKS37DJBMRR4CY35WEZVN3MU7JROK5DEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

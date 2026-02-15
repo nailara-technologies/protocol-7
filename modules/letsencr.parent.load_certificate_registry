@@ -5,7 +5,7 @@
 
 my $certs_dir = <letsencr.certs.dir>;
 
-<[base.log]>->( 2, "loading certificate registry from: $certs_dir" );
+<[base.log]>->( 2, "loading certificate registry from : $certs_dir" );
 
 ## Initialize registry if not already present
 <letsencr.parent.certs> = {} unless <letsencr.parent.certs>;
@@ -16,7 +16,7 @@ my $error_count  = 0;
 ## Open certificate directory
 my $dir_handle;
 unless ( opendir( $dir_handle, $certs_dir ) ) {
-    <[base.log]>->( 1, "warning: cannot open certificates directory: $!" );
+    <[base.log]>->( 1, "warning : cannot open certificates directory : $!" );
     return {
         status    => 'error',
         error_msg => "Cannot open directory: $!",
@@ -65,7 +65,8 @@ foreach my $meta_file ( sort @meta_files ) {
 
     ## Verify required fields
     unless ( $metadata->{issued_at} && $metadata->{expires_at} ) {
-        <[base.log]>->( 1, "warning: missing required fields in $meta_path" );
+        <[base.log]>
+            ->( 1, "warning : missing required fields in $meta_path" );
         $error_count++;
         next;
     }
@@ -109,7 +110,8 @@ foreach my $meta_file ( sort @meta_files ) {
 
 <[base.log]>->(
     2,
-    "certificate registry loaded: $loaded_count certificates, $error_count errors"
+    "certificate registry loaded: $loaded_count certificates,"
+        . " $error_count errors"
 );
 
 return {
@@ -119,8 +121,8 @@ return {
     error_msg => $error_count > 0 ? "$error_count errors during load" : undef
 };
 
-#,,,,,,,.,,.,,..,,,.,,..,,,..,,.,,.,.,.,.,...,..,,...,...,,..,...,,..,...,.,,,
-#6PIFFTTOS3MV6QWSPAXYIJ7SUVWFN4ETDK5GNAOTZUJEQXGY72L2UOFI5V7NLJLHIGLQNEETMOIKC
-#\\\|5FLIKNIHFYCFTHDUTUHPACBIKLHDJPP3Q4ZVXJOHZSNBRSDDW2L \ / AMOS7 \ YOURUM ::
-#\[7]KXRS7DN3VJV3SHSTLGC7QOQ76PNOSZ3CZBTAI2DR4PRS2NCHPCCY 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,,.,...,.,.,...,...,,.,,,,.,,,,,..,,...,...,,,,,,..,..,,...,.,,,
+#DSHV3MZJU3GXPJLCKKZPQRQZWRVVOLAYYRZGE2VDQT2BJZOPFMTYV5QPWPHIL6QDJQLG2MNGB3QKG
+#\\\|OJAZRBFLV2H43AWCDXYDSQQJRDOQHCPYZRB5CYM7VCERTM3ILZJ \ / AMOS7 \ YOURUM ::
+#\[7]AT3T3YFBB6ISNT4V4GYORIHTNJKRYIRCLEOZMQLHVTALBTEHXMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

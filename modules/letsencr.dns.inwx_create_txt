@@ -31,7 +31,7 @@ unless ( $username && $password ) {
 my $base_domain = $dns_record_name;
 $base_domain =~ s|^_acme-challenge\.||;
 
-<[base.log]>->( 3, "base domain: $base_domain" );
+<[base.log]>->( 3, "base domain : $base_domain" );
 
 ## Create XMLRPC client
 my $client = XMLRPC::Lite->proxy($api_url);
@@ -48,7 +48,7 @@ my $login_result = $client->call(
 
 unless ( $login_result && $login_result->{code} == 1000 ) {
     my $error = $login_result->{msg} || 'unknown error';
-    <[base.log]>->( 1, "INWX authentication failed: $error" );
+    <[base.log]>->( 1, "INWX authentication failed : $error" );
     return undef;
 }
 
@@ -121,7 +121,7 @@ $client->call('account.logout');
 ## Check result
 unless ( $result && $result->{code} == 1000 ) {
     my $error = $result->{msg} || 'unknown error';
-    <[base.log]>->( 1, "INWX API request failed: $error" );
+    <[base.log]>->( 1, "INWX API request failed : $error" );
     return undef;
 }
 
@@ -137,8 +137,8 @@ return {
     value     => $dns_value,
 };
 
-#,,,,,..,,...,.,.,..,,,.,,.,,,.,,,..,,,.,,,,.,..,,...,...,..,,..,,,..,..,,..,,
-#GGXEASLBSXYA2UDKWYYU4DMWYJHIEQNVJXTJQT5MC4GXAUMGBSCNBFQT634YD3LMLJDBDLPXUR3GS
-#\\\|BQH5WYW25M7C5GDLJUWIUOPCODQ7QQRTUONUDHESXWOC5YJ5HH2 \ / AMOS7 \ YOURUM ::
-#\[7]BKLD3SPZUTJXHXFZHZWHV5KXMILG62TJ24UUB6RDB6SY22G6ZQDI 7  DATA SIGNATURE ::
+#,,..,,..,,.,,.,.,,,,,,.,,,.,,.,,,.,,,,.,,,,,,..,,...,..,,...,.,.,,..,,..,,..,
+#6OX73GX7HK3XUD27W5LZPAE3NTGAWJ256M4KQPWDO3XTWJZ3FO4GIEIGKRO26GSGDGNJWBKDVEXBU
+#\\\|ETRKBJJBNBC5MMHNO72ONSHTV4SHZ3EJGYAMZX7VIEQ74MPJ7NM \ / AMOS7 \ YOURUM ::
+#\[7]A63VU7VB3ABTRMIQ5H3G6MGDTNEPURB7ASWZEZ5HTKHLYR3GVCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

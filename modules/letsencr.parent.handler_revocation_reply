@@ -9,7 +9,7 @@ my $domain = $reply_data->{'params'}{'domain'};
 my $mode   = $reply_data->{'cmd'};
 my $data   = $reply_data->{'data'};
 
-<[base.log]>->( 2, "revocation reply for domain: $domain, mode: $mode" );
+<[base.log]>->( 2, "revocation reply for domain : $domain, mode : $mode" );
 
 if ( $mode eq 'TRUE' ) {
     <[base.log]>->( 2, "revocation succeeded for $domain" );
@@ -36,7 +36,7 @@ if ( $mode eq 'TRUE' ) {
         my $file = "$certs_dir/$domain.$ext";
         if ( -f $file ) {
             unlink($file);
-            <[base.log]>->( 3, "deleted certificate file: $file" );
+            <[base.log]>->( 3, "deleted certificate file : $file" );
         }
     }
 
@@ -57,7 +57,7 @@ if ( $mode eq 'TRUE' ) {
     }
 
 } else {
-    <[base.log]>->( 1, "revocation got unexpected mode: $mode for $domain" );
+    <[base.log]>->( 1, "revocation got unexpected mode : $mode for $domain" );
     <[letsencr.parent.activity_logger]>->(
         'revocation', $domain, 'failed', "unexpected reply mode: $mode"
     );
@@ -65,8 +65,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,..,,,,,,,,,.,,,.,.,.,,,..,,.,.,,.,,...,,..,..,,...,..,,..,,.,,,,,,,.,,,,.,,
-#HEEF523GMYJ4Z73Y3UVWLTJ67JR3L7FL3PVZCJJX7VLXCVCFPHWGRU77U2CDE5PDR2E75DNWK2RZO
-#\\\|QP5M2H74PDWSCENBJ4SRBKY5HQVIN3HQYGM2QDV263HYNTG5NJL \ / AMOS7 \ YOURUM ::
-#\[7]D7BTLEMWLUOGFAPZGYXHIKJOKZL757OQFMBCT6D2RZOXRBOQBYBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,.,...,,.,,,,.,,..,,.,,.,.,,,,,..,,...,...,,.,,,,.,...,.,.,,.,,
+#6JOPBTJKBBVCWJNOQSEA7MDD5FPRVNRA2UV5QOBD6LGEBX43CUMB2YD3CDMV37ZGHTF2D23SV2GDA
+#\\\|ISD3QCGW7OLAMPRUQCBRO65VDQYUNTEFLU4IQDLPUGONEPKA6AC \ / AMOS7 \ YOURUM ::
+#\[7]CRUT2YRL76YWWM32JMDKN2ZCJZP2ZQB4RZK3L2XMUPE3IU6E6EDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

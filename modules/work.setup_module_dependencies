@@ -26,7 +26,7 @@ foreach my $dep (@$essential) {
     my $module_name = $dep->{name};
     my $install_cmd = $dep->{install} // '';
 
-    <[base.log]>->( 3, "  registering essential module: $module_name" );
+    <[base.log]>->( 3, "  registering essential module : $module_name" );
 
     ## Create dependency object ##
     my $object_id = <[dependency.add_object]>->(
@@ -47,7 +47,7 @@ foreach my $dep (@$optional) {
     my $module_name = $dep->{name};
     my $install_cmd = $dep->{install} // '';
 
-    <[base.log]>->( 3, "  registering optional module: $module_name" );
+    <[base.log]>->( 3, "  registering optional module : $module_name" );
 
     ## Create dependency object ##
     my $object_id = <[dependency.add_object]>->(
@@ -66,15 +66,16 @@ my $essential_count = scalar(@$essential);
 my $optional_count  = scalar(@$optional);
 <[base.log]>->(
     2,
-    "  ✓ registered $essential_count essential, $optional_count optional modules"
+    "  ✓ registered $essential_count essential,"
+        . " $optional_count optional modules"
 );
 
 return TRUE;
 
 0;
 
-#,,,,,...,...,,..,,,.,..,,.,.,,..,.,.,..,,,,,,..,,...,...,.,,,,,.,,,.,,,,,,,.,
-#K6TGFLO5EKTIJE3YU23FN47ZZ752UEMFSNXO5NUYJNUDIQVM3644E2HY4WHKSGIDF7NKBWWPHQXYK
-#\\\|FXFFP47SUTQNHXGMBZALW5M65JR5ZOTANEATLOEQ3JE5J622MVK \ / AMOS7 \ YOURUM ::
-#\[7]I6SZ6TUX7IJBPRIQMQ62Q3PGNJTZZMR7IPQ4QXUV2M5KRWAEVAAA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,..,,,,,,..,.,,,,..,,,.,,,.,...,..,,...,...,...,,,,,,..,..,,..,,
+#B7MTB4WVXASYN6RBXH4BMR5WPF2HNSLV5K5DEL44Y6Z3Q2TO545IDN26676RK2LR2D3UZ672JB2YG
+#\\\|SQ5LI3D5Y4MUIVZOLZFVSUJIDJS634S67GUSWRKJKHXUYHARCRZ \ / AMOS7 \ YOURUM ::
+#\[7]GMSLYEARBOAPYBZXBJFEIQJN2ODVGSRPG4WYJQUMOKOI464LUQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

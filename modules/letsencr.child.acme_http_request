@@ -43,7 +43,7 @@ if ( $method eq qw| POST | ) {
     $request = HTTP::Request->new( qw| GET | => $url );
     $request->header( 'Accept' => 'application/json' );
 } else {
-    <[base.logs]>->( 1, "error: unsupported method: %s", $method );
+    <[base.logs]>->( 1, "error : unsupported method : %s", $method );
     return undef;
 }
 
@@ -51,7 +51,7 @@ if ( $method eq qw| POST | ) {
 my $response = $ua->request($request);
 
 unless ( $response->is_success ) {
-    <[base.logs]>->( 1, "ACME request failed: %s", $response->status_line );
+    <[base.logs]>->( 1, "ACME request failed : %s", $response->status_line );
 
     ## Capture and log full error response for debugging
     my $error_body = $response->decoded_content();
@@ -72,11 +72,12 @@ unless ( $response->is_success ) {
             );
         }
         if ( $error_data->{type} ) {
-            <[base.logs]>->( 1, "ACME error type: %s", $error_data->{type} );
+            <[base.logs]>->( 1, "ACME error type : %s", $error_data->{type} );
         }
     }
 
-    ## Return error response to allow caller to handle specific error types (e.g., badNonce retry)
+    ## Return error response to allow caller to handle
+    ## specific error types (e.g., badNonce retry)
     return {
         status  => $response->code,
         data    => $error_data,
@@ -109,8 +110,8 @@ return {
     headers => $response->headers,
 };
 
-#,,.,,,.,,,,,,,.,,,,.,,,.,..,,.,.,,.,,.,,,..,,..,,...,...,,,.,..,,,,,,,,.,,,.,
-#Q3JVITHW4ZM5354VFDAF26YRL7GHEG4QXMTJ7AXXGZVUUAMYEESLXLZG56ACGWAU5B4QX2TZGVJNE
-#\\\|VGMFL54LWKRSZK6TWOLF4PL3FEM4NOXRONLFCHA5XSSQQ3AN26F \ / AMOS7 \ YOURUM ::
-#\[7]U4TMNXM7VVQVELWBPR5VNWWY6O7LFXLAIF2WRALO42NK6JGFJ4DQ 7  DATA SIGNATURE ::
+#,,,.,...,,..,.,.,,,,,..,,.,,,,,.,,,,,,.,,.,.,..,,...,...,.,.,,,.,,,,,,,.,,..,
+#QXRYVDELRMTSLJHP5JEE255Q36QXGJ2WGZVZXAAPMHNSBFVDRIREZQKECE46TZU67QJ7GSHQHG5P6
+#\\\|7IHNO4I6HPCRPL3QJDRPXJIC5JNMA2KP4T2RCJMBL3ZH53HSMOS \ / AMOS7 \ YOURUM ::
+#\[7]VOWRFXC3XM3BD6TCX6NSPVURV5QT2PZEU5D2GNRB2AP5UIT22IDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

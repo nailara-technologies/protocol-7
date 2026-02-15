@@ -80,7 +80,7 @@ my $key_cache = sprintf '%s/account.key.rsa', <letsencr.cache.dir>;
 
 {
     open( my $fh, '>:raw', $key_cache ) or do {
-        <[base.log]>->( 1, "error: unable to write RSA account key: $!" );
+        <[base.log]>->( 1, "error : unable to write RSA account key : $!" );
         return undef;
     };
     print $fh $pem_private;
@@ -105,8 +105,8 @@ return {
     'exponent' => $exponent_b64,
 };
 
-#,,,.,...,,..,,,,,,,,,.,,,,,,,,,,,,,.,..,,,,.,...,...,.,.,.,.,.,.,.,.,.,.,,,,,
-#26U6C33EMS5X34QPLUEGNS4GMXT6CFWB7RRBEMYHYZORDMYLDECIGDG5XRO2OOND6NGGW2QYJOR2W
-#\\\|L7AZCVL7EQV4IB6VX2COMHTB7ZASLEWUE4WNY3SJEGNXBKKZRBK \ / AMOS7 \ YOURUM ::
-#\[7]WR3SRG236OSM7PHHHYJXEKA2D4ZRBBJCIWPYM325UXS3AJLRAEAY 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,...,..,,..,,,..,,,,,.,,,...,,,.,...,...,...,...,.,,,,..,..,,,..,
+#GFLQQU3OQIQ7GYPE67JOROPCSBZTS5AJRPL6ZJTP24JJXGD2W5BUIMXTG5YOXCXRU2T5KJQ2MPYLK
+#\\\|G2Z2B6ERMK3BPI6Y53UTZL4T3MDISHFA7LLQKTP57WFKV6NFOGA \ / AMOS7 \ YOURUM ::
+#\[7]46DVFDHNDX54UD3MS3MYUIMQ2N4EWNIEZTW577N64M5HSNULNSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

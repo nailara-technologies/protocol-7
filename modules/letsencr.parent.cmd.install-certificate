@@ -12,11 +12,11 @@ return {
     }
     unless defined $domain && length($domain);
 
-<[base.log]>->( 2, "manual certificate install requested for: $domain" );
+<[base.log]>->( 2, "manual certificate install requested for : $domain" );
 
 ## Check if certificate exists in registry
 unless ( exists <letsencr.parent.certs>->{$domain} ) {
-    <[base.log]>->( 1, "certificate not found in registry: $domain" );
+    <[base.log]>->( 1, "certificate not found in registry : $domain" );
 
     return {
         qw| mode | => qw| false |,
@@ -49,7 +49,8 @@ if ( $install_result->{status} eq qw| success | ) {
             $install_result->{message} )
     };
 } else {
-    <[base.log]>->( 1, "installation failed: " . $install_result->{message} );
+    <[base.log]>
+        ->( 1, "installation failed : " . $install_result->{message} );
 
     return {
         qw| mode | => qw| false |,
@@ -60,8 +61,8 @@ if ( $install_result->{status} eq qw| success | ) {
 
 0;
 
-#,,,.,.,.,.,.,,,,,.,.,...,...,..,,.,.,,..,.,.,..,,...,...,,,,,,.,,,,,,..,,..,,
-#CHM5WIYIPSQCKWHPJWMUU6FDN4KIFZZRVC4M636GBJWL5PLSA3JBVNRCM5ZHPOASV5JMDM3L3UHSM
-#\\\|NUFXBPQIA6NHWAHRMIAZUT6T27PGPIH2CQKAMUP6ZARGLX6U7EA \ / AMOS7 \ YOURUM ::
-#\[7]2TG35YZ6SXK2FDW4E2NI63N7DR5PMFJYNW3NNYVY2IH36IEUAKDY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,,,.,..,,,.,,,..,...,..,,,.,,,..,..,,...,...,...,.,.,,..,..,,,,.,
+#ABEU4EA27EQYLC3P5AWCWIVOBEHYARXSV7R52R6VVY5BJPAFXTZ7Z26KTRDDEKIOOYFRDOMAWC356
+#\\\|RXENWCMSNBKXYMPSE7OG3YIA3KCTJWARBXHAZXIOSANFDZ5IPCF \ / AMOS7 \ YOURUM ::
+#\[7]XSVKKMLTKEWY32D44VZW35PHYUTLFYZ7NGNVGBOYHPEZGKSTJWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

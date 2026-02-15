@@ -36,7 +36,8 @@ my %discovered;
 foreach my $scan_dir (@$scan_paths) {
     next unless -d $scan_dir;
 
-    <[base.logs]>->( 2, "[$context] scanning directory: path=%s", $scan_dir );
+    <[base.logs]>
+        ->( 2, "[$context] scanning directory : path=%s", $scan_dir );
 
     eval {
         opendir( my $dh, $scan_dir ) or die "Cannot open $scan_dir: $!";
@@ -47,8 +48,15 @@ foreach my $scan_dir (@$scan_paths) {
             next if $entry =~ /^\./ || !-d "$scan_dir/$entry";
 
             ## Recursively search for .gguf files [LLL] fix !!!!!
-            my @find_results
-                = `find "$scan_dir/$entry" -maxdepth 3 -name "*.gguf" -type f 2>/dev/null`;
+            (   my $find_cmd = qq[
+                find "$scan_dir/$entry"
+                    -maxdepth 3
+                    -name "*.gguf"
+                    -type f
+                    2>/dev/null
+            ]
+            ) =~ s|\s+| |g;
+            my @find_results = qx{ $find_cmd };
 
             foreach my $file_path (@find_results) {
                 chomp($file_path);
@@ -99,8 +107,8 @@ return {
     'scanned_paths' => $scan_paths,
 };
 
-#,,.,,,..,,,,,,,.,..,,,.,,..,,..,,,,.,...,,.,,.,.,...,...,,..,.,.,,,,,,.,,.,.,
-#O234DYU2QUPU3QTFIPAXQZJCJYXVP5BUF5DXJUS52EOL4FWMG6EMV6EQJDHN7RKHVLXAK6ST7OKUU
-#\\\|ZY5XE6NBNZL4FQC5TMOL4W3HM6XZ2ABMYFREKPPUON6ZCP7CSPQ \ / AMOS7 \ YOURUM ::
-#\[7]Q5ANCZONG7C2DEWHQZKGE6RKJVXJPFFMGFEFILKOJXH7OZWZMOAQ 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,.,,..,,,.,,,.,,,,,,,..,,.,,..,,.,.,...,...,,..,...,.,.,,,,,..,,
+#7NUXIRFIISIFY36ECDYHXVXBPYHYE6KPOWZHYTQ6FULC4DTG2FNGSRN22FY2R5CIAVOHSIP335CR6
+#\\\|HJ3UL54XR4NOWK472AMSXWWN6PRZP2MTCIBVVEU2544UPWQPH4Z \ / AMOS7 \ YOURUM ::
+#\[7]L7CFOIJYMX33NKYL6OGWGU3WJC7QZQOHGV4PBMICYT6CXQTNEYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

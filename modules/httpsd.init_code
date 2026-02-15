@@ -54,7 +54,8 @@ unless ( defined <httpd.cfg.hostnames> ) {
 }
 
 ## set defaults with actual directory paths [not just 1/TRUE values]
-## force overwrite any placeholder values from httpd.determine_host initialization
+## force overwrite any placeholder values from
+## httpd.determine_host initialization
 my $default_dir = <httpd.site_dir> . 'default';
 
 foreach my $hostname (qw| default localhost 127.0.0.1 |) {
@@ -71,7 +72,8 @@ foreach my $hostname (qw| default localhost 127.0.0.1 |) {
 
 <[base.logs]>->(
     2,
-    'initialized default hostnames for HTTP/HTTPS routing: default, localhost, 127.0.0.1'
+    'initialized default hostnames for HTTP/HTTPS routing: '
+        . 'default, localhost, 127.0.0.1'
 );
 
 # critical fix: copy HTTPS handler configurations to HTTP namespace
@@ -85,14 +87,15 @@ if ( defined <https.handler.get> ) {
     <http.handler.options> = <https.handler.options> // <https.handler.get>;
     <[base.logs]>->(
         2,
-        'copied https.handler.* definitions to http.handler.* for httpd lookup'
+        'copied https.handler.* definitions to http.handler.* '
+            . 'for httpd lookup'
     );
 }
 
 # httpsd-specific TLS configuration [added to httpd config]
-<httpsd.cfg.tls_version> //= 'TLSv1_3:TLSv1_2';
-<httpsd.cfg.cipher_suite>
-    //= 'ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-GCM-SHA256';
+<httpsd.cfg.tls_version>  //= 'TLSv1_3:TLSv1_2';
+<httpsd.cfg.cipher_suite> //= 'ECDHE-ECDSA-CHACHA20-POLY1305:'
+    . 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-GCM-SHA256';
 <httpsd.cfg.certificate_path>        //= '/etc/protocol-7/certs/current.pem';
 <httpsd.cfg.key_path>                //= '/etc/protocol-7/certs/current.key';
 <httpsd.cfg.hsts_max_age>            //= 31536000;
@@ -118,7 +121,8 @@ if ( defined <https.handler.get> ) {
 );
 
 # critical fix: register SSL socket type and HTTPS protocol handlers
-# this allows base.handler.connect to find the handlers when a TLS connection arrives
+# this allows base.handler.connect to find the handlers
+# when a TLS connection arrives
 
 # register IO::Socket::SSL type handlers [for listening socket]
 $data{'io'}{'type'}{'ip.ssl'} = {
@@ -170,13 +174,13 @@ $data{'protocol'}{'https'} = {
 };
 
 <[base.logs]>->( 2, 'HTTPSD initialization complete' );
-<[base.logs]>->( 2, "  TLS Version: %s", <httpsd.cfg.tls_version> );
-<[base.logs]>->( 2, "  Certificate: %s", <httpsd.cfg.certificate_path> );
+<[base.logs]>->( 2, "  TLS Version : %s", <httpsd.cfg.tls_version> );
+<[base.logs]>->( 2, "  Certificate : %s", <httpsd.cfg.certificate_path> );
 
 0;
 
-#,,,.,,..,,,.,,,,,...,..,,.,.,,..,,..,.,.,,,.,..,,...,...,,..,,,,,,.,,..,,,..,
-#74QDIBMKCUUPDSA3KXCXTQMKWCZDISHUMKY7PUPN4AHRA5NJTCZQNOPQYFAL64AWDZQAR4BBDKJEK
-#\\\|U7HQJE5LTDO4NX7H74AQJR55U5A2JDKTPRN7MZLWMVLMDVS3WPP \ / AMOS7 \ YOURUM ::
-#\[7]ZDNBZKPV7STRSMPXNMC7WIF2QDRSS2HIYL3RXSWA67GYZCYIVGAY 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,,.,...,,.,,,.,,,,,,..,,,,,,,.,,..,,...,...,.,.,.,,,.,,,,.,,,..,
+#P7EDB3MU2J4IJOCGUUC44FFJHYWXHPRUOKMD6M462VWVKYXLFAMEUMCC2HQRJOQ6MRZI4AJHPGEH4
+#\\\|QWMYU5V55JOMDO7SV5TV2QMYXNHHIK45AJ75A2FIHPO6U2WIDAQ \ / AMOS7 \ YOURUM ::
+#\[7]EZBAOL6PPL4U2BLYTRN74K4VYEEATJGEHGEKU3Q7CXXCGAGTUIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

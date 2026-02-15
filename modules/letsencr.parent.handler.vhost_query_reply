@@ -11,13 +11,13 @@ my $params     = shift @ARG;
 my $reply_id = $params->{'reply_id'} if ref($params) eq 'HASH';
 
 unless ($reply_id) {
-    <[base.log]>->( 1, "error: no reply_id in handler params" );
+    <[base.log]>->( 1, "error : no reply_id in handler params" );
     return FALSE;
 }
 
 ## Validate reply structure
 unless ( $reply_data && ref($reply_data) eq 'HASH' ) {
-    <[base.log]>->( 1, "error: invalid vhost reply structure from httpd" );
+    <[base.log]>->( 1, "error : invalid vhost reply structure from httpd" );
 
     return <[base.callback.cmd_reply]>->(
         $reply_id,
@@ -32,7 +32,7 @@ my $mode = $reply_data->{cmd}  // $reply_data->{mode};
 my $data = $reply_data->{data} // '';
 
 unless ($mode) {
-    <[base.log]>->( 1, "error: httpd vhost-list returned no mode field" );
+    <[base.log]>->( 1, "error : httpd vhost-list returned no mode field" );
 
     return <[base.callback.cmd_reply]>->(
         $reply_id,
@@ -42,7 +42,9 @@ unless ($mode) {
     );
 }
 
-<[base.log]>->( 3, "httpd reply mode: $mode, data length: " . length($data) );
+<[base.log]>->(
+    3, "httpd reply mode : $mode, data length : " . length($data)
+);
 
 ## Parse vhost list from reply
 my @vhosts;
@@ -50,7 +52,7 @@ if ( $mode eq 'SIZE' || $mode eq 'TRUE' ) {
     ## Both SIZE and TRUE modes return multi-line vhost names
     @vhosts = grep { length($_) > 0 } split( /\n/, $data );
 } else {
-    <[base.log]>->( 1, "error: unexpected reply mode from httpd: $mode" );
+    <[base.log]>->( 1, "error : unexpected reply mode from httpd : $mode" );
 
     return <[base.callback.cmd_reply]>->(
         $reply_id,
@@ -65,7 +67,7 @@ if ( $mode eq 'SIZE' || $mode eq 'TRUE' ) {
 @vhosts = grep { length($_) > 0 } @vhosts;
 
 unless ( @vhosts > 0 ) {
-    <[base.log]>->( 1, "warning: httpd returned empty vhost list" );
+    <[base.log]>->( 1, "warning : httpd returned empty vhost list" );
 
     return <[base.callback.cmd_reply]>->(
         $reply_id,
@@ -99,8 +101,8 @@ foreach my $vh (@vhosts) {
 
 return TRUE;
 
-#,,,,,,,.,,,.,.,.,,..,...,,,,,.,,,,,.,,,,,..,,..,,...,...,.,.,,,.,..,,...,,..,
-#44YF7Y4LYKDY6CYRGY2FQKTNOL6CVM2KBZGELDUGYXPHYKX5ASPGBM4YG2F527CSLYIREXNN6BNEW
-#\\\|FCVXBX5W2PWPYEHVBZYKQLFTTJZTPRAEXT34ZA4MB6O6C4R3LAC \ / AMOS7 \ YOURUM ::
-#\[7]VTACCKJKO3OGCYTLHB5F45G6BH5WJEJH7LLPEVGEJB4AK6WBSYAI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,...,,..,,..,...,,,,,.,,,.,.,.,.,..,,...,...,..,,..,,,,,,.,.,,..,
+#7SXUBHV2YMHXFRC6ACTY2HAAFUUGGG7C5XPULX44CZEB2HCXY2O5I75AFBQJRWJQZSNRBBBEDH67S
+#\\\|6DJDKZL3O5DUZCZ2SPBWHXNSFHVWXKACUKUAJF44GUHTQAGWDBO \ / AMOS7 \ YOURUM ::
+#\[7]LYXVAHCA4X5WQSQKO7IZXUOP4W6ZLN26ONN3PXHJ5VSDJY5BQUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

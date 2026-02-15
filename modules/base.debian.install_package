@@ -36,7 +36,7 @@ while ( !$ok and $max_fail-- ) {
     );
 
     open( my $apt_out, '-|', 'apt-get', '-fy', 'install', @deb_list ) or do {
-        <[base.log]>->( 0, "  ✗ apt-get failed to execute: $!" );
+        <[base.log]>->( 0, "  ✗ apt-get failed to execute : $!" );
         $errors++;
         next;
     };
@@ -61,8 +61,8 @@ while ( !$ok and $max_fail-- ) {
 }
 return $errors;
 
-#,,.,,.,.,..,,..,,,,.,...,,.,,...,,.,,..,,...,..,,...,..,,..,,,.,,,,,,...,,,.,
-#NRIM7OX4CEY2WWSJVJRWKLMQPPFJ76U23SQXFWNPJIF5Q22EH2VXNBOTRQMZPYDYLICSTBVEJDQEQ
-#\\\|JTTHYCZL46KCTRAXTW6Y2QXZH44IDDT3O2PK6UYFE62NLWKHXYR \ / AMOS7 \ YOURUM ::
-#\[7]BNXSTVP7KTQN62RXECKZ5CZO26GSACPMNF2A7ZUCWOK2QYXDR6CQ 7  DATA SIGNATURE ::
+#,,.,,...,.,.,,..,...,.,,,,.,,,,.,...,,.,,,.,,..,,...,...,...,.,.,,..,,..,,,,,
+#RD2WZIDO3BJLHZCDPJOQ3RE2MQCMDMXR3CMDIQ53STXM2QLRCT6BI2KA4BIT6QJ2OJZPXCWOE33TE
+#\\\|CR3BBDNMX2SANA2NCV33FGHOLXS4DFZKBC6P2YK6JXVQXJI44FE \ / AMOS7 \ YOURUM ::
+#\[7]BWICPTSMKIZQXMZBMZQQL7G2ZZE2GAWEGUOXV4M5PY3MJQ5KIQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

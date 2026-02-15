@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name = work.parent.scan_history
-# descr = scan git history for issues (missing versions, unsigned commits, email mismatches)
+# descr = scan git history for issues
+#        (missing versions, unsigned commits, email mismatches)
 
 my $params = shift || {};
 
@@ -28,7 +29,7 @@ unless ($force) {
 }
 
 <[base.log]>->( 2, "work.scan: scanning git history for issues..," );
-<[base.log]>->( 3, "  Scope: $branch_scope" ) if $branch_scope ne 'HEAD';
+<[base.log]>->( 3, "  Scope : $branch_scope" ) if $branch_scope ne 'HEAD';
 <[base.logs]>->(
     1, "  abort_after_valid = %d [0 = scan all commits]",
     $abort_after_valid
@@ -55,14 +56,15 @@ my $template_len = length($template);
 if ( $template_len == 0 ) {
     <[base.log]>->(
         0,
-        "  ✗ ERROR: sign_template is EMPTY - structure validation will always fail!"
+        "  ✗ ERROR: sign_template is EMPTY - "
+            . "structure validation will always fail!"
     );
 }
 
 ## Load public key for verification [no passphrase needed]
 my $sig_key_name = <source.C25519.signature_key_name>
     // qw| proto-7.sourcecode |;
-<[base.logs]>->( 1, "  Using signature key: '%s'", $sig_key_name );
+<[base.logs]>->( 1, "  Using signature key : '%s'", $sig_key_name );
 
 unless ( exists $keys{'C25519'}{$sig_key_name}
     && exists $keys{'C25519'}{$sig_key_name}{'public'} ) {
@@ -94,8 +96,9 @@ my $repo_path        = <git.cfg.repository_path>;
 my $version_file_rel = 'configuration/protocol-7.src-ver';
 my $version_file_abs = File::Spec->catfile( $repo_path, $version_file_rel );
 
-<[base.logs]>->( 1, "  Repository path: '%s'",            $repo_path );
-<[base.logs]>->( 1, "  Version file relative path: '%s'", $version_file_rel );
+<[base.logs]>->( 1, "  Repository path : '%s'", $repo_path );
+<[base.logs]>
+    ->( 1, "  Version file relative path : '%s'", $version_file_rel );
 
 ## Get git log
 my $log_result = <[git.parent.get_log]>->(
@@ -170,7 +173,8 @@ foreach my $commit (@$commits) {
     my $version_file_content
         = `cd $repo_path && git show $hash:$version_file_rel 2>&1`;
 
-    ## Check if content looks like a version file (starts with version number, not an error)
+    ## Check if content looks like a version file
+    ## (starts with version number, not an error)
     ## SIGCHLD=IGNORE interferes with exit codes, so check content instead
     my $looks_valid
         = (    length($version_file_content) > 0
@@ -238,7 +242,8 @@ foreach my $commit (@$commits) {
                 <[base.log]>->(
                     1, "    ✓ Version file signature cryptographically VALID"
                 );
-                ## Step 3: Version file signature is valid - validate ALL source files at this commit
+                ## Step 3: Version file signature is valid
+                ## validate ALL source files at this commit
                 <[base.log]>->(
                     3, "  Validating all source files at commit $hash..,"
                 );
@@ -250,7 +255,8 @@ foreach my $commit (@$commits) {
                 my $invalid_files = 0;
 
                 foreach my $file_path (@source_paths) {
-                    ## Allow event processing for Ctrl+C abort during file validation
+                    ## Allow event processing for Ctrl+C abort
+                    ## during file validation
                     <[event.once]>->(0.07);
 
                     ## Read file at this commit ## change method !!! [LLL]
@@ -294,7 +300,8 @@ foreach my $commit (@$commits) {
                     ## Found invalid source files at this commit
                     <[base.logs]>->(
                         1,
-                        "    ✗ Source file validation failed [checked %d/%d] files",
+                        "    ✗ Source file validation failed "
+                            . "[checked %d/%d] files",
                         $valid_files,
                         $total_files
                     );
@@ -313,7 +320,8 @@ foreach my $commit (@$commits) {
                     ## All source files valid!
                     <[base.logs]>->(
                         1,
-                        "    ✓ All %d source files VALID - commit is fully validated!",
+                        "    ✓ All %d source files VALID - "
+                            . "commit is fully validated!",
                         $valid_files
                     );
                 }
@@ -356,7 +364,7 @@ foreach my $commit (@$commits) {
         <[base.log]>->( 1, "    ✗ Version file NOT FOUND at this commit" );
         my $preview = substr( $version_file_content, 0, 100 );
         $preview =~ s|\n|\\n|g;
-        <[base.logs]>->( 2, "      Content preview: %s", $preview )
+        <[base.logs]>->( 2, "      Content preview : %s", $preview )
             if length($version_file_content) > 0;
 
         $data{'work'}{'history'}{'issues'}{$hash} = {
@@ -393,7 +401,8 @@ foreach my $commit (@$commits) {
             && $consecutive_valid >= $abort_after_valid ) {
             <[base.logs]>->(
                 1,
-                "  EARLY ABORT: reached %d consecutive valid commits [threshold: %d]",
+                "  EARLY ABORT: reached %d consecutive valid "
+                    . "commits [threshold: %d]",
                 $consecutive_valid,
                 $abort_after_valid
             );
@@ -432,16 +441,12 @@ $data{'work'}{'stats'}{'history_scans'}
     = ( $data{'work'}{'stats'}{'history_scans'} // 0 ) + 1;
 
 <[base.log]>->( 2, "  ✓ Scan complete" );
-<[base.log]>->( 2, "    Commits scanned: $commits_scanned / $total" );
-<[base.log]>->( 2, "    Issues found: $issues_found" );
-<[base.log]>->(
-    2, "    Unsigned: " . scalar( @{<work.history.unsigned>} )
-);
-<[base.log]>->(
-    2, "    Version gaps: " . scalar( @{<work.history.gaps>} )
-);
-<[base.log]>->( 2, "    Email addresses: " . scalar( keys %emails_seen ) );
-<[base.log]>->( 2, "    Author names: " . scalar( keys %authors_seen ) );
+<[base.log]>->( 2, "    Commits scanned : $commits_scanned / $total" );
+<[base.log]>->( 2, "    Issues found : $issues_found" );
+<[base.log]>->( 2, "    Unsigned: " . scalar( @{<work.history.unsigned>} ) );
+<[base.log]>->( 2, "    Version gaps: " . scalar( @{<work.history.gaps>} ) );
+<[base.log]>->( 2, "    Email addresses : " . scalar( keys %emails_seen ) );
+<[base.log]>->( 2, "    Author names : " . scalar( keys %authors_seen ) );
 
 return {
     success         => TRUE,
@@ -490,8 +495,8 @@ $code{qw| work.parent.scan_history |} = \&workflow_parent_scan_history;
 
 0;
 
-#,,..,,.,,.,.,..,,,.,,...,.,.,.,,,,.,,..,,...,..,,...,..,,.,,,,.,,...,.,.,,,.,
-#6HQZBYQ3ZCNLHUO6SB2PK2ORKRVXYBXI6KX7ZT6TD5GPDCPCB42CP5OAKGQJN7TS4P7DGCDZ2XM22
-#\\\|5CJ6NKC5CJTDYTETJ6U2LL7RQZNQTKXOLZBWOBJIREWAXWUCN4R \ / AMOS7 \ YOURUM ::
-#\[7]EFPMHOKOVRAWDHUYS6LGPVM3M32BG5VOYWHBHNMRYXRGAQXZWOBA 7  DATA SIGNATURE ::
+#,,..,..,,.,,,.,.,...,,,,,..,,,,,,.,.,,.,,.,.,..,,...,...,..,,..,,,,,,,..,.,.,
+#TTXB2EXXFV7QGY2BS6K5KDXNZI4Z3CXSLSDHBIK4FA25QE557SJBHXBF2UUAUP4EX2RJXRIKA4JBM
+#\\\|KXJLRJJ4IT5ZVOMOGQ6VBKX55SZ2AI7DWHTKOW5ZR6R6P5KZXGQ \ / AMOS7 \ YOURUM ::
+#\[7]GQDWU5A3FWL3U7ZBSBVCXT6PNX72N552LFNGXXOWBFXPR3WQWICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

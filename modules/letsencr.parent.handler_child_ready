@@ -1,20 +1,22 @@
 ## [:< ##
 
 # name  = letsencr.parent.handler_child_ready
-# descr = handle child process ready notification - completes parent initialization
+# descr = handle child process ready notification
+#         - completes parent initialization
 
 my $msg = shift;
 
 my $child_pid = $msg->{pid};
 
-<[base.log]>->( 2, "letsencr parent: child process ready (PID: $child_pid)" );
+<[base.log]>
+    ->( 2, "letsencr parent : child process ready (PID: $child_pid)" );
 
 ## Check for any pending operations
 <[letsencr.parent.process_pending_ops]>
     if defined <[letsencr.parent.process_pending_ops]>;
 
-#,,,.,,,.,...,.,.,.,,,,.,,...,.,.,,..,...,,,.,..,,...,...,...,.,.,,,,,...,..,,
-#2K6WFULBCHJOSNKMFCGDAIZSLGGHJGSH5OZ6BMPTF4G5C6KHMHCS4DXLYXCCX7ZRE7DORC4H5NZRS
-#\\\|SEUIHULZOU6HSL4FDI2BGTS5BCCHWKKQZEGE4MNW4BLHVWGVBO7 \ / AMOS7 \ YOURUM ::
-#\[7]XF3B22TSJKK3JRVF5QW27TWBU6UKK7RM7EAAG6ATW35Q5FT76ODI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,..,,.,,,.,,,,,,.,,,,..,,,,,,..,..,,...,...,,..,..,,.,.,.,.,,,.,
+#G5KRADEOS6PWXQ66ABLJYNBYZIDVK7DJD54QXMT5DOXHVOSTGXKJUGKWCO57ZD6AEPQLXPXJVSGRM
+#\\\|L5SLHBDNG7RIIC2JTJ6PBB26LO3Q2B4YIQVFI5KJ76NUF4COWGX \ / AMOS7 \ YOURUM ::
+#\[7]SP22MCWA5RQUPUI2G3ZPDNF2NUQO3RNT64FSOGS2WN24XCRUUQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

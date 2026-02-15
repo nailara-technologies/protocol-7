@@ -9,7 +9,7 @@ my $params   = shift;
 my $route = $data{'route'}->{$route_id};
 
 unless ($route) {
-    <[base.log]>->( 0, "v7_start_reply: route $route_id not found" );
+    <[base.log]>->( 0, "v7_start_reply : route $route_id not found" );
     return;
 }
 
@@ -20,14 +20,14 @@ my $reply_data = $route->{'reply_data'} || '';
 <[base.log]>->( 2, "v7 start reply for '$zenka_name': mode=$mode" );
 
 if ( $mode eq 'true' || $mode eq 'TRUE' ) {
-    <[base.log]>->( 1, "  ✓ v7 confirmed: $reply_data" );
+    <[base.log]>->( 1, "  ✓ v7 confirmed : $reply_data" );
 
     ## Update statistics
     $data{'zenki'}{'stats'}{'successful_starts'}++
         if exists $data{'zenki'}{'stats'};
 
 } elsif ( $mode eq 'false' || $mode eq 'FALSE' ) {
-    <[base.log]>->( 0, "  ✗ v7 start failed: $reply_data" );
+    <[base.log]>->( 0, "  ✗ v7 start failed : $reply_data" );
 
     ## Update statistics
     $data{'zenki'}{'stats'}{'failed_starts'}++
@@ -43,8 +43,8 @@ if ( $mode eq 'true' || $mode eq 'TRUE' ) {
 
 return TRUE;
 
-#,,,,,,.,,,..,.,,,,,,,..,,.,,,,,.,.,,,,,.,..,,..,,...,...,,,,,..,,.,,,...,,,,,
-#BMZTJ7SRJMS4L7KQ5YGCGLUBLET7FRLSDSLEZ6EEOWLX6EBSCYQWMTSIZYBLHOMY3LC77HSFOHGZK
-#\\\|QBKECDJDKGNLFIS6UASEDYRLWCCTBW52WCZO5CW22JSVYX424NT \ / AMOS7 \ YOURUM ::
-#\[7]WRFVPAAOUZBNLPCVLY6K5DLCVONXY7T6XOHWRBK3RWYRFX7TVGDA 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,...,.,,,.,,,,.,,..,,,..,...,,.,,..,,...,...,,..,,,.,...,.,.,..,,
+#AXC4K57YXWKYRKOSD2AFHJQFTXMTFCY3ZP6C7SBQUQWMS6IYPEDICQ6WRULTHJQNB5KSKLZLS52OW
+#\\\|HPKFAKXSIU5JTFPMCL474Y32SRBBO346DJJPXOHYXQS7WC6JORF \ / AMOS7 \ YOURUM ::
+#\[7]US7GK5JPDF66XRET2BJI4YDUTUVX3XZNSWBN522QJ5YDMG7OJQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

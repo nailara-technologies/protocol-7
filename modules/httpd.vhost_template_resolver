@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name = httpd.vhost_template_resolver
-# descr = resolve template files across vhost hierarchy (3-level priority system)
+# descr = resolve template files across vhost hierarchy
+#         (3-level priority system)
 #
 # Implements template resolution with the following priority:
 #   1. Vhost-subdirectory level:  /var/httpd/{vhost}/{path}/_templates/
@@ -23,12 +24,12 @@ my $ext   = shift // 'tmpl';
 
 ## Validate parameters ##
 unless ( defined $vhost and length $vhost ) {
-    <[base.log]>->( 0, "vhost_template_resolver: missing vhost parameter" );
+    <[base.log]>->( 0, "vhost_template_resolver : missing vhost parameter" );
     return undef;
 }
 
 unless ( defined $path and length $path ) {
-    <[base.log]>->( 0, "vhost_template_resolver: missing path parameter" );
+    <[base.log]>->( 0, "vhost_template_resolver : missing path parameter" );
     return undef;
 }
 
@@ -72,13 +73,14 @@ if ( $path =~ m|^(.*/)?([^/]+)$| ) {
 
 <[base.log]>->(
     2,
-    "vhost_template_resolver: resolving '$path' (dir='$dirname', file='$filename')"
+    "vhost_template_resolver: resolving '$path'"
+        . " (dir='$dirname', file='$filename')"
 );
 
 ## Priority 1: Subdirectory-level templates (most specific) ##
 if ( length $dirname ) {
     my $subdir_path = "$site_root/$vhost/$dirname/_templates/$filename.$ext";
-    <[base.log]>->( 3, "  [1] checking: $subdir_path" );
+    <[base.log]>->( 3, "  [1] checking : $subdir_path" );
     push @resolution_attempts, $subdir_path;
     if ( -f $subdir_path ) {
         $data{'template_resolve_cache'}->{$cache_key} = $subdir_path;
@@ -92,26 +94,28 @@ if ( length $dirname ) {
 
 ## Priority 2: Vhost root templates ##
 my $vhost_template_path = "$site_root/$vhost/_templates/$path.$ext";
-<[base.log]>->( 3, "  [2] checking: $vhost_template_path" );
+<[base.log]>->( 3, "  [2] checking : $vhost_template_path" );
 push @resolution_attempts, $vhost_template_path;
 if ( -f $vhost_template_path ) {
     $data{'template_resolve_cache'}->{$cache_key} = $vhost_template_path;
     <[base.log]>->(
         1,
-        "vhost_template_resolver: [$vhost] FOUND (level 2): $vhost_template_path"
+        "vhost_template_resolver: [$vhost] FOUND (level 2):"
+            . " $vhost_template_path"
     );
     return $vhost_template_path;
 }
 
 ## Priority 3: Global templates ##
 my $global_template_path = "$site_root/_global_templates/$path.$ext";
-<[base.log]>->( 3, "  [3] checking: $global_template_path" );
+<[base.log]>->( 3, "  [3] checking : $global_template_path" );
 push @resolution_attempts, $global_template_path;
 if ( -f $global_template_path ) {
     $data{'template_resolve_cache'}->{$cache_key} = $global_template_path;
     <[base.log]>->(
         1,
-        "vhost_template_resolver: [$vhost] FOUND (level 3): $global_template_path"
+        "vhost_template_resolver: [$vhost] FOUND (level 3):"
+            . " $global_template_path"
     );
     return $global_template_path;
 }
@@ -126,8 +130,8 @@ $data{'template_resolve_cache'}->{$cache_key} = undef;
 
 return undef;
 
-#,,,,,,,.,,.,,,,.,,..,,.,,,,,,.,.,...,.,,,.,.,..,,...,..,,..,,.,.,...,...,..,,
-#YM4P5LCFQVWVYAYDTYTY4WV23H57DDQ4ILVJIZDM34YCHLMUXFAGRVDYLYNWXJ4IGGKMUQUHKLV5Q
-#\\\|LA4ZLTHE6ONLH5KNO4QYV7PQUMYQJLPET6K2SDR5REGF3MRZMRY \ / AMOS7 \ YOURUM ::
-#\[7]EE56JZKLJARYYZEPTSEDDE4GAQSUIOEBZFOXAXOIMT7SQORRF2CY 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,.,,,,..,,,,,,,.,,,,,...,,..,.,,,..,,...,...,,.,,...,,,,,,..,...,
+#5MIAU6MUW7ISRTDL7YB26K3UV7GNMQSGC4NP2ZTJ2LJFDG65WTX3LB3LAJQBVYSUF7PY25T2R3NYY
+#\\\|B6DPNS766VUFZVLDYRM7XMM7DIF3BN3LJIYKL2GSK2RUMZ55CU5 \ / AMOS7 \ YOURUM ::
+#\[7]5SFEYYGAXSLA6NLEDDK3N2LGJLBM6PAC4GZ3NA3PSIRASF3O3UDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,7 +7,7 @@ my $dns_record_name = shift;
 
 return undef unless $dns_record_name;
 
-<[base.log]>->( 2, "deleting Cloudflare TXT record: $dns_record_name" );
+<[base.log]>->( 2, "deleting Cloudflare TXT record : $dns_record_name" );
 
 ## Get Cloudflare API credentials from config
 my $api_token = <letsencr.dns.cloudflare.api_token>;
@@ -59,7 +59,7 @@ unless ( $list_data->{success} && @{ $list_data->{result} } ) {
 
 my $record_id = $list_data->{result}[0]{id};
 
-<[base.log]>->( 2, "deleting record ID: $record_id" );
+<[base.log]>->( 2, "deleting record ID : $record_id" );
 
 ## Delete the record
 my $delete_response = $ua->request(
@@ -84,7 +84,7 @@ my $result = JSON::XS::decode_json( $delete_response->decoded_content );
 
 unless ( $result->{success} ) {
     my $errors = join( ', ', map { $_->{message} } @{ $result->{errors} } );
-    <[base.log]>->( 1, "Cloudflare API error: $errors" );
+    <[base.log]>->( 1, "Cloudflare API error : $errors" );
     return undef;
 }
 
@@ -95,8 +95,8 @@ return {
     deleted => 1,
 };
 
-#,,,,,..,,..,,,,,,...,,,,,,,,,...,...,.,.,,.,,..,,...,...,.,.,,.,,,,.,,,,,,.,,
-#YZ4ADNTQHNKGEYGDT3FIHUIPMZG4XA7PMMUMP4D4Z52YSFOK4AHCLGI7MTSKMOZMKATL52ZA5A5QC
-#\\\|GNXQKZUBSPSTPY7S4JU3WLQDB4K2QNAKBFDREAVOJASCVQMF234 \ / AMOS7 \ YOURUM ::
-#\[7]6QBAA6DWTXWKNCJYKTSAIMGA3F3EQRV32CRXFFZ3TY3AMHTANMDI 7  DATA SIGNATURE ::
+#,,,.,...,...,...,,.,,,..,...,,.,,.,,,,,,,,,,,..,,...,...,,,.,,..,,,.,,,,,,..,
+#5H2TMFLBQZA74SYIWH3QRKABAKW2I4LLUJMG4RDD5APO3CJKLDMWOT4LUCJZAA6KUP6N5ZLB62MUI
+#\\\|RGCNHOD4EL5ACHKJ5X5XF2E6FTI5I5Y3MKMSAYZZ47EUEHPYVT5 \ / AMOS7 \ YOURUM ::
+#\[7]3XOSJHTAMX47XTCZ7V7CQGIUJN55IJKHE3L6VN2BIX2AYQ24XABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

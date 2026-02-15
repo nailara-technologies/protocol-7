@@ -1,11 +1,12 @@
 ## [:< ##
 
 # name  = letsencr.child.acme_check_account
-# descr = child process verifies ACME account status and nonce with Let's Encrypt server
+# descr = child process verifies ACME account status
+#         and nonce with Let's Encrypt server
 
 my $msg = shift;
 
-<[base.log]>->( 2, "child: checking ACME account status" );
+<[base.log]>->( 2, "child : checking ACME account status" );
 
 ## This is where blocking ACME operations occur:
 ## 1. Connect to ACME directory
@@ -41,8 +42,8 @@ if ( !<letsencr.child.acme_client>->{account_key} ) {
     }
 );
 
-#,,,.,...,..,,..,,,,.,.,,,,.,,,,,,,.,,,,.,,,,,..,,...,...,...,.,,,.,,,.,,,,,.,
-#YW4KR64XUAPQRTIVHQG7N3KAOBYU2633V2ZAV6B6HP5BEWZ2VPZYQCRH4V7HEB4PL5JANTFN63IQE
-#\\\|PBCSNB7F7QMJ4355TJP7RAE44DNZILORAH2XKZ3NQCIDQM3Y6ID \ / AMOS7 \ YOURUM ::
-#\[7]OPTHEAATSVVXES5VDUG4TRZ2FFIIWGMXXAFCBR7YRQR2DB7KIKBY 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,.,.,,,,,,,,,...,,,.,..,,,,.,,.,,..,,...,..,,,,.,..,,,..,.,,,..,,
+#LIZVP4OMBXXD5GNXHR2ND4BLAAPELRIM75CZNNHTCCOXU3FEJDIJFCBXXTIDGUJ4ALJGURBOB7XJI
+#\\\|DF2VBCC2KZ7CGUAB2H6RQU3ZSIA44NIP27LF6FFCWPA42FQUVN5 \ / AMOS7 \ YOURUM ::
+#\[7]B4SOGPSONCJVTUIFMGUTNW6WX3MF2ZMRMED4SVJEXF7RSNTPC4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

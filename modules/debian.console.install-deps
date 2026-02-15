@@ -31,14 +31,16 @@ if ( $install_type eq 'minimal' ) {
     <[base.log]>->( 1, "Installing minimal Protocol-7 dependencies..." );
 
     my $script
-        = '/data/projects/protocol-7/bin/dependencies/install_minimal_dependencies.debian.sh';
+        = '/data/projects/protocol-7/bin/dependencies/'
+        . 'install_minimal_dependencies.debian.sh';
 
     unless ( -f $script ) {
-        <[base.log]>->( 0, "Error: Installation script not found: $script" );
+        <[base.log]>
+            ->( 0, "Error : Installation script not found : $script" );
         return say "::\n: Installation failed - script not found\n::";
     }
 
-    <[base.log]>->( 1, "Running: $script" );
+    <[base.log]>->( 1, "Running : $script" );
     <[base.log]>->( 1, "This may take several minutes..." );
 
     system( 'bash', $script );
@@ -59,17 +61,17 @@ if ( $install_type eq 'minimal' ) {
     ## Install dependencies for specific zenka
 
     unless ( defined $zenka_name && length($zenka_name) > 0 ) {
-        <[base.log]>->( 0, "Error: No zenka name specified" );
+        <[base.log]>->( 0, "Error : No zenka name specified" );
         return
-            say
-            "::\n: Error: zenka name required\n: Usage: install-deps <zenka_name>\n::";
+            say "::\n: Error: zenka name required\n"
+            . ": Usage: install-deps <zenka_name>\n::";
     }
 
-    <[base.log]>->( 1, "Installing dependencies for zenka: $zenka_name" );
+    <[base.log]>->( 1, "Installing dependencies for zenka : $zenka_name" );
 
     ## Check if debian.parent.install_missing exists
     unless ( exists $code{'debian.parent.install_missing'} ) {
-        <[base.log]>->( 0, "Error: Dependency installer not available" );
+        <[base.log]>->( 0, "Error : Dependency installer not available" );
         return
             say "::\n: Error: debian.parent.install_missing not loaded\n::";
     }
@@ -102,13 +104,13 @@ if ( $install_type eq 'minimal' ) {
         }
     } else {
         my $error = $result->{error} || 'unknown error';
-        <[base.log]>->( 0, "✗ Installation failed: $error" );
+        <[base.log]>->( 0, "✗ Installation failed : $error" );
         return say "::\n: ✗ Installation failed: $error\n::";
     }
 }
 
-#,,,,,...,,..,..,,.,,,.,.,.,.,...,,..,..,,,..,..,,...,...,,,,,.,.,..,,,.,,..,,
-#OZ3OHFZ5GKKFPS2D573DRVCY3HIM6OFRHUOA6TQZME54ZLL4WKSKN4PFUTMJ3GK5KRTJHP5MEF2OO
-#\\\|4NEW3N7N7R3RWIXWNOY46LS6L22C7JA27XXZZXFZMJ32ZMPCJPG \ / AMOS7 \ YOURUM ::
-#\[7]LWYPJB7VSXKIVHIW6WTGUHF6K7NFDEJLJS3QRR42WHF5CKNI5OCA 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,,,,,,..,,.,,.,.,,,.,.,.,,,.,,.,,..,,...,...,..,,,,,,..,,,,.,,,,,
+#JEOZOVIRGWP2KS4A3EU75RHIVHWSQEM2WOSB5GYHYDVI4LTWDNLES7IQJ4EMX5WNRBIAT44MHS4S6
+#\\\|C5H7QSGJTTELTHXBWCEQVYQOPS7MZV3PXWK325DOL6WURD3UNDD \ / AMOS7 \ YOURUM ::
+#\[7]NIONYNJO3J2762XOJIHB2JMDFMFQ6ORGFBTCKEEGTL6A2QMR4SAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

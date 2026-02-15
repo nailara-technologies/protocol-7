@@ -19,7 +19,9 @@ unless ( -f $key_cache ) {
 my $pem_private;
 {
     open( my $fh, '<:raw', $key_cache ) or do {
-        <[base.log]>->( 1, "error: unable to read RSA account key file: $!" );
+        <[base.log]>->(
+            1, "error : unable to read RSA account key file : $!"
+        );
         return undef;
     };
     local $/;
@@ -99,8 +101,8 @@ $keys{'RSA'}->{$key_name} = {
 ## return key name
 return $key_name;
 
-#,,,,,,..,,,,,..,,,.,,,..,,..,...,,..,.,,,.,.,...,...,...,...,,.,,.,,,.,,,,..,
-#VSCEVXRFPYZCAHUQJBY6JKVZZIF73EYEWH2KEOLN365XVZMZZVTCXFIOHBHP4SLXMCS5LPNPAE2RO
-#\\\|MNUERSJXUREF6HN7VD53336AF5QZID3TNP2TTSQT4OAS76BY23E \ / AMOS7 \ YOURUM ::
-#\[7]DIPP3GZKIFHUEJG7TJQL7TI556Q2A53ZBH4F7HWGJZD6LQNQ5GDY 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,.,.,...,,..,,..,,,.,,..,.,,,..,,...,...,...,,..,.,,,,,,,,..,...,
+#UYJZBVYW6V3BT5FTYNUEWVRNYBW3KVINSUFHX3RGGBKTWJNILJ7Q6Z7LY66UMLOWJYZITIPG6OVAS
+#\\\|7HPHQQFDF6UZPZUGKMLK727TZXOKGAC6PKA6H7XEF44ZDBBYMVJ \ / AMOS7 \ YOURUM ::
+#\[7]PBZBI2HKQ3F7JLNJIM34AWSCWBOMVPCDPE6ZU5RD35TJJJ7BEMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

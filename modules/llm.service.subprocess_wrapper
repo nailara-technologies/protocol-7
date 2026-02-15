@@ -56,11 +56,13 @@ my $get_model_config = sub {
 my $query_subprocess = sub {
     my ( $model, $prompt ) = @_;
 
-    <[base.logs]>->( 1, "[llm.service] query_subprocess: model=%s", $model );
+    <[base.logs]>->( 1, "[llm.service] query_subprocess : model=%s", $model );
 
     my $config = $get_model_config->($model);
     unless ($config) {
-        <[base.logs]>->( 0, "[llm.service] Error: Unknown model: %s", $model );
+        <[base.logs]>->(
+            0, "[llm.service] Error : Unknown model : %s", $model
+        );
         return {
             success => FALSE,
             error   => "Unknown model or unable to fetch config: $model"
@@ -68,7 +70,7 @@ my $query_subprocess = sub {
     }
 
     unless ( defined $prompt && length($prompt) > 0 ) {
-        <[base.log]>->( 0, "[llm.service] Error: Prompt required" );
+        <[base.log]>->( 0, "[llm.service] Error : Prompt required" );
         return {
             success => FALSE,
             error   => "Prompt required"
@@ -215,10 +217,11 @@ my $check_llama_cli = sub {
     return {
         success => FALSE,
         error   => "llama-cli not found in PATH",
-        help    =>
-            "Install ik_llama.cpp from: https://github.com/ikawrakow/ik_llama.cpp",
+        help    => "Install ik_llama.cpp from:"
+            . " https://github.com/ikawrakow/ik_llama.cpp",
         alternatives => [
-            "Build from source: git clone https://github.com/ikawrakow/ik_llama.cpp.git",
+            "Build from source: git clone"
+                . " https://github.com/ikawrakow/ik_llama.cpp.git",
             "Download pre-built binaries from GitHub releases",
             "Install via package manager if available"
         ]
@@ -250,8 +253,8 @@ if ( $cmd eq 'query' ) {
 
 # AMOS7::TEMPLATE::signature_placeholder
 
-#,,,,,..,,,..,...,,,,,..,,,,,,,..,..,,...,,,.,..,,...,...,,,,,.,.,,.,,..,,,,,,
-#BFQA3QYBJSDXG7NXPSGCABGYONLDD7TELW4KVU42DNTVSRTMGAZXIUUIWPMWO4AM5KF7B52ZZVWSU
-#\\\|AP5H5RSUE2TBIIZRC4B2SNUVHBIMKQPRVVZKVGKFSJSXKWYSAGS \ / AMOS7 \ YOURUM ::
-#\[7]NNYWHH2D5CRZBZKHUAFC6WT5PE2ACY7BP7TSWLSUPNARYHKYGWCY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,,..,.,,,..,,..,,.,,,,,.,,,,,,,,,..,,...,...,,..,..,,,,.,...,,..,
+#A6ZLA3XFUQT7L5QECMP2FJIOE7YZVS6VFHHTDHYZDFZRWEFUIAZ7XIXJLGWVB2SMP2CEDRRT3DA3S
+#\\\|366BZUMHFVANSWW7PDAPZAMG62YBPKDHZFU6VRUQLWMILELFKPF \ / AMOS7 \ YOURUM ::
+#\[7]UU2WYQB3FUZ3GP35YSJVME3LLFG77X35J3BJZDEOFXD2ONJF4YAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

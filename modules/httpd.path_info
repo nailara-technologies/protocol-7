@@ -50,13 +50,13 @@ if ( -d $full_path ) {
 
 # Check if path exists
 if ( !-e $full_path && !-d $full_path ) {
-    <[base.logs]>->( 2, "[$id] Resource not found: %s", $full_path );
+    <[base.logs]>->( 2, "[$id] Resource not found : %s", $full_path );
     return ( 404, $full_path, $params );    # Not Found
 }
 
 # Check if path is accessible
 if ( !-r $full_path ) {
-    <[base.logs]>->( 1, "[$id] Permission denied: %s", $full_path );
+    <[base.logs]>->( 1, "[$id] Permission denied : %s", $full_path );
     return ( 403, $full_path, $params );    # Forbidden
 }
 
@@ -65,8 +65,8 @@ $session->{'http'}->{'params'} = $params;
 
 return ( 200, $full_path, $params );        # OK
 
-#,,..,.,,,,.,,,,.,...,,,,,.,.,.,.,..,,,.,,,..,...,...,...,...,,,.,...,...,,,.,
-#J2MKZOXAVA64XMSOP2N7DZVFQVA2CEFY2U3NO3S46AWHU36PCKFVIRGW56TXGLBE2TUMJB73R6KYO
-#\\\|JMH2SYZJAFDNII7USVGWG2GRBOLZC3EXUUARJG5YPJH744FRTDL \ / AMOS7 \ YOURUM ::
-#\[7]BUETY6CQ2XRHK3HFFAY5UHXP5CZCWWDSYB5WSLAFJLA57DW2IQAI 7  DATA SIGNATURE ::
+#,,..,..,,...,.,,,,.,,...,.,.,.,.,.,.,,.,,,.,,...,...,..,,.,,,...,.,.,.,.,.,,,
+#WFWZF4OT7MUJGDMVJ7346E56CJBRQI652IHP3NXOV2BAY2MGMSIGQANWB24N4U5SXLO2RSVWNT7PK
+#\\\|5JIXYAUROJZW5GSGEKWX5BRBDZIRNEXRV6X2K34QQBLEBMRE7SU \ / AMOS7 \ YOURUM ::
+#\[7]7AJRS3KFZZCXXF2A7LWJAWELB2PX42N4BGRT4F47Z4XCTMZIRCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

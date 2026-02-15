@@ -1,41 +1,56 @@
 ## [:< ##
 
 # name  = lm-vision.handler.check_batch_completion
-# descr = check if batched vision job is complete and route responses to individual requests
+# descr = check batched vision job complete
+#         and route responses to individual requests
 
 my $watcher  = shift->w;
 my $batch_id = $watcher->data;
 
-<[base.logs]>->( 2, "[check_batch_completion] I/O event for batch=%s", $batch_id );
+<[base.logs]>->(
+    2, "[check_batch_completion] I/O event for batch=%s", $batch_id
+);
 
 my $batch_job = <lm-vision.jobs>->{$batch_id};
 
 unless ( defined $batch_job ) {
-    <[base.logs]>->( 1, "[check_batch_completion] batch not found: %s", $batch_id );
-    # Guard: only cancel if watcher is valid
-    if ( defined $watcher && length ref $watcher && $watcher->can('is_active') ) {
+    <[base.logs]>->(
+        1, "[check_batch_completion] batch not found : %s", $batch_id
+    );
+
+    ## Guard: only cancel if watcher is valid
+    if (   defined $watcher
+        && length ref $watcher
+        && $watcher->can('is_active') ) {
         $watcher->cancel if $watcher->is_active;
     }
     return;
 }
 
-# If already processed, cancel this handler and return
+## If already processed, cancel this handler and return
 if ( $batch_job->{'processed'} ) {
-    <[base.logs]>->( 2, "[check_batch_completion] already processed, cancelling" );
-    # Guard: only cancel if watcher is valid
-    if ( defined $watcher && length ref $watcher && $watcher->can('is_active') ) {
+    <[base.logs]>->(
+        2, "[check_batch_completion] already processed, cancelling"
+    );
+
+    ## Guard: only cancel if watcher is valid
+    if (   defined $watcher
+        && length ref $watcher
+        && $watcher->can('is_active') ) {
         $watcher->cancel if $watcher->is_active;
     }
 
-    # Also cancel the read handler to prevent warnings
-    if ( defined $batch_job->{'rdr_io'} && length ref $batch_job->{'rdr_io'} && $batch_job->{'rdr_io'}->can('is_active') ) {
+    ## Also cancel the read handler to prevent warnings
+    if (   defined $batch_job->{'rdr_io'}
+        && length ref $batch_job->{'rdr_io'}
+        && $batch_job->{'rdr_io'}->can('is_active') ) {
         $batch_job->{'rdr_io'}->cancel if $batch_job->{'rdr_io'}->is_active;
     }
     return;
 }
 
-# First, try to read any available stderr data
-# Keep reading while data is available
+## First, try to read any available stderr data
+## Keep reading while data is available
 my $read_bytes = 0;
 if ( defined $batch_job->{'err'} ) {
     while ( sysread( $batch_job->{'err'}, my $buf, 4096 ) ) {
@@ -44,74 +59,80 @@ if ( defined $batch_job->{'err'} ) {
     }
 }
 
-# If we got data, this wasn't EOF yet - just accumulate and return
+## If we got data, this wasn't EOF yet - just accumulate and return
 if ( $read_bytes > 0 ) {
     <[base.logs]>->(
-        2, "[check_batch_completion] stderr += %d bytes",
-        $read_bytes
+        2, "[check_batch_completion] stderr += %d bytes", $read_bytes
     );
     return;
 }
 
-# If we reach here, sysread returned 0 (EOF) or undef - process the response
+## If we reach here, sysread returned 0 [ EOF ] or undef - process response
 <[base.logs]>->(
     1, "[check_batch_completion] process has exited, processing response"
 );
 
-# Process has exited - read any remaining stdout (debug output)
+## Process has exited - read any remaining stdout [ debug output ]
 if ( defined $batch_job->{'rdr'} ) {
     while ( sysread( $batch_job->{'rdr'}, my $buf, 4096 ) ) {
         $batch_job->{'output'} .= $buf;
     }
 }
 
-# Close filehandles
+## Close filehandles
 close( $batch_job->{'rdr'} ) if defined $batch_job->{'rdr'};
 close( $batch_job->{'err'} ) if defined $batch_job->{'err'};
 
-# Wait for process to fully terminate and release GPU memory
-# This prevents race conditions when consecutive calls are made
+## Wait for process to fully terminate and release GPU memory
+## This prevents race conditions when consecutive calls are made
 if ( defined $batch_job->{'pid'} ) {
-    <[base.waitpid]>->( $batch_job->{'pid'}, 0 );  # Wait (blocking) for child to exit
+    <[base.waitpid]>->( $batch_job->{'pid'}, 0 );
+    ## Wait [ blocking ] for child to exit
 }
 
-# Mark as processed
+## Mark as processed
 $batch_job->{'processed'} = TRUE;
 
-# Cancel both event handlers to prevent warnings
+## Cancel both event handlers to prevent warnings
 if ( defined $watcher && length ref $watcher && $watcher->can('is_active') ) {
     $watcher->cancel if $watcher->is_active;
 }
-if ( defined $batch_job->{'rdr_io'} && length ref $batch_job->{'rdr_io'} && $batch_job->{'rdr_io'}->can('is_active') ) {
+if (   defined $batch_job->{'rdr_io'}
+    && length ref $batch_job->{'rdr_io'}
+    && $batch_job->{'rdr_io'}->can('is_active') ) {
     $batch_job->{'rdr_io'}->cancel if $batch_job->{'rdr_io'}->is_active;
 }
 
-<[base.logs]>->( 1, "[check_batch_completion] process exited, processing output" );
+<[base.logs]>->(
+    1, "[check_batch_completion] process exited, processing output"
+);
 
-# Extract output (prefer stderr which has actual response)
+## Extract output [ prefer stderr which has actual response ]
 my $full_stdout = $batch_job->{'output'} // '';
 my $full_stderr = $batch_job->{'stderr'} // '';
 my $payload     = '';
 
 <[base.logs]>->(
     1,
-    "[check_batch_completion] raw stdout length: %d bytes, stderr length: %d bytes",
+    "[check_batch_completion] raw stdout length: %d bytes,"
+        . " stderr length: %d bytes",
     length($full_stdout),
     length($full_stderr)
 );
 
-# Model response goes to stderr (larger buffer with actual content)
-# stdout has init/debug output (device lines, batch size)
-# Prefer stderr since it has the actual vision analysis response
+## Model response goes to stderr [ larger buffer with actual content ]
+## stdout has init/debug output [ device lines, batch size ]
+## Prefer stderr since it has the actual vision analysis response
 my $full_output = $full_stderr;
 <[base.logs]>->(
     1,
-    "[check_batch_completion] using stderr for model response (stdout: %d, stderr: %d bytes)",
+    "[check_batch_completion] using stderr for model response"
+        . " (stdout: %d, stderr: %d bytes)",
     length($full_stdout),
     length($full_stderr)
 );
 
-# Log buffer samples for debugging
+## Log buffer samples for debugging
 if ( length($full_stdout) > 0 ) {
     my $stdout_sample = substr( $full_stdout, 0, 80 );
     $stdout_sample =~ s/\n/<newline>/g;
@@ -131,80 +152,109 @@ if ( length($full_stderr) > 0 ) {
     );
 }
 
-# Apply same debug cleanup as single-image handler
+## Apply same debug cleanup as single-image handler
 
-# Remove "Resampling because..." debug messages (grammar constraint issues)
-$full_output =~ s,Resampling\s+because\s+token\s+\d+:[^}]*?does\s+not\s+meet\s+grammar\s+rules\s*,,g;
+## Remove "Resampling because..." debug messages [ grammar constraint issues ]
+$full_output =~ s{
+    Resampling\s+because\s+token\s+\d+:[^\}]*?
+    does\s+not\s+meet\s+grammar\s+rules\s*
+}{}gx;
 
-# Remove all timestamp patterns: [10 digits]
+## Remove all timestamp patterns: [ 10 digits ]
 $full_output =~ s,\[\d{10}\]\s*,,g;
 
-# Remove all file path patterns: [/path: digits]
+## Remove all file path patterns: [ /path: digits ]
 $full_output =~ s{\[\/[^\]]*\]\s*}{}g;
 
-# Replace all function/label patterns: [generate_response], [   main   ], etc.
+## Replace all function/label patterns: [ generate_response ], [ main ], etc.
 $full_output =~ s{\[\s*[a-z_]+\s*\]}{}g;
 
-# Remove build and compiler info
-$full_output =~ s/build:\s+\d+[^\n]+\n?//gm;    # "build: 0 (unknown) with cc ..."
-$full_output =~ s/XXXXXXXXXXXXXXXXXXXXX[^\n]*\n?//gm;  # "XXXXX Setting only active experts offload"
+## Remove build and compiler info
+$full_output =~ s/build:\s+\d+[^\n]+\n?//gm;
+## "build: 0 (unknown) with cc ..."
+$full_output =~ s/XXXXXXXXXXXXXXXXXXXXX[^\n]*\n?//gm;
+## "XXXXX Setting only active experts offload"
 
-# Remove chat template examples (both paired and orphaned markers)
-$full_output =~ s/<\|im_start\|>.*?<\|im_end\|>\s*//gs;  # Remove <|im_start|>...<|im_end|> blocks
-$full_output =~ s/<\|im_start\|>\s*[a-z]*\s*//gi;         # Remove orphaned <|im_start|> markers
-$full_output =~ s/<\|im_end\|>\s*//gi;                    # Remove orphaned <|im_end|> markers
+## Remove chat template examples [ both paired and orphaned markers ]
+$full_output =~ s/<\|im_start\|>.*?<\|im_end\|>\s*//gs;
+## Remove <|im_start|>...<|im_end|> blocks
+$full_output =~ s/<\|im_start\|>\s*[a-z]*\s*//gi;
+## Remove orphaned <|im_start|> markers
+$full_output =~ s/<\|im_end\|>\s*//gi;
+## Remove orphaned <|im_end|> markers
 
-# Remove file operation error messages
-$full_output =~ s/Failed to open logfile[^\n]+\n?//gm;  # "Failed to open logfile 'llama.log'..."
+## Remove file operation error messages
+$full_output =~ s/Failed to open logfile[^\n]+\n?//gm;
+## "Failed to open logfile 'llama.log'..."
 
-# Remove CUDA initialization messages
-$full_output =~ s/ggml_cuda_init:[^\n]+\n?//gm;         # "ggml_cuda_init: ..."
-$full_output =~ s/CUDA\d*:[^\n]+\n?//gm;                # "CUDA0: using device..."
-$full_output =~ s/Device\s+\d+:[^\n]+\n?//gm;           # "Device 0: NVIDIA GeForce..."
-$full_output =~ s/llama_model_loader:[^\n]+\n?//gm;     # "llama_model_loader: ..."
+## Remove CUDA initialization messages
+$full_output =~ s/ggml_cuda_init:[^\n]+\n?//gm;
+## "ggml_cuda_init: ..."
+$full_output =~ s/CUDA\d*:[^\n]+\n?//gm;
+## "CUDA0: using device..."
+$full_output =~ s/Device\s+\d+:[^\n]+\n?//gm;
+## "Device 0: NVIDIA GeForce..."
+$full_output =~ s/llama_model_loader:[^\n]+\n?//gm;
+## "llama_model_loader: ..."
 
-# Remove model loading debug messages
-$full_output =~ s/main:\s+[^\n]+\n?//gm;       # "main: loading model..."
-$full_output =~ s/load:\s+[^\n]+\n?//gm;       # "load: ... cache size"
-$full_output =~ s/llm_load[^\n]+\n?//gm;       # "llm_load_print_meta: ..."
+## Remove model loading debug messages
+$full_output =~ s/main:\s+[^\n]+\n?//gm;
+## "main: loading model..."
+$full_output =~ s/load:\s+[^\n]+\n?//gm;
+## "load: ... cache size"
+$full_output =~ s/llm_load[^\n]+\n?//gm;
+## "llm_load_print_meta: ..."
 
-# Remove load_hparams lines
-$full_output =~ s/load_hparams:[^\n]+\n?//gm;  # "load_hparams: ..."
-$full_output =~ s/---\s+vision\s+hparams\s+---[^\n]*\n?//gm;  # "--- vision hparams ---"
+## Remove load_hparams lines
+$full_output =~ s/load_hparams:[^\n]+\n?//gm;
+## "load_hparams: ..."
+$full_output =~ s{---\s+vision\s+hparams\s+---[^\n]*\n?}{}gm;
+## "--- vision hparams ---"
 
-# Remove vision/image processing debug messages (including inline)
-$full_output =~ s/Adjust\s+batch\s+[^\n]+\n?//gm;       # "Adjust batch size..."
-$full_output =~ s/encoding\s+image\s+[^\n]+\n?//gm;     # "encoding image..."
-$full_output =~ s/decoding\s+image\s+[^\n]+\n?//gm;     # "decoding image..."
-$full_output =~ s/image\s+(?:decoded|slice)[^\n]*\n?//gm;  # "image decoded...", "image slice..."
-$full_output =~ s/^\s*\d+:\s+(?:CPU|CUDA\d*)[^\n]*\n?//gm;  # "  0: CPU", "  1: CUDA0" with leading spaces
+## Remove vision/image processing debug messages [ including inline ]
+$full_output =~ s/Adjust\s+batch\s+[^\n]+\n?//gm;
+## "Adjust batch size..."
+$full_output =~ s/encoding\s+image\s+[^\n]+\n?//gm;
+## "encoding image..."
+$full_output =~ s/decoding\s+image\s+[^\n]+\n?//gm;
+## "decoding image..."
+$full_output =~ s/image\s+(?:decoded|slice)[^\n]*\n?//gm;
+## "image decoded...", "image slice..."
+$full_output =~ s/^\s*\d+:\s+(?:CPU|CUDA\d*)[^\n]*\n?//gm;
+## "  0: CPU", "  1: CUDA0" with leading spaces
 
-# Remove other common llama.cpp debug prefixes
-$full_output =~ s/^(?:alloc_compute_meta|warmup|print_info|clip_[a-z_]+|mtmd_[a-z_]+|llama_[a-z_]+):[^\n]+\n?//gmi;
+## Remove other common llama.cpp debug prefixes [ various functions ]
+$full_output =~ s{
+    ^(?:
+        alloc_compute_meta | warmup | print_info |
+        clip_[a-z_]+ | mtmd_[a-z_]+ | llama_[a-z_]+
+    ) : [^\n]+ \n?
+}{}gxmi;
 
-# Remove llama_print_timings section and everything after it
+## Remove llama_print_timings section and everything after it
 my $timing_pos = index( $full_output, 'llama_print_timings' );
 if ( $timing_pos > 0 ) {
     $full_output = substr( $full_output, 0, $timing_pos );
 }
 
-# Trim and clean up
-$full_output =~ s/\s+/ /g;         # Collapse multiple spaces/newlines
-$full_output =~ s/^\s+|\s+$//g;    # Trim edges
+## Trim and clean up
+$full_output =~ s/\s+/ /g;         ## collapse multiple spaces/newlines
+$full_output =~ s/^\s+|\s+$//g;    ## trim edges
 
-# Remove debug prefix that appears at the start (preserve token output after it)
-$full_output =~ s/^print_info:\s+vocab\s+type\s+=\s+BPE\s+//i;  # Remove "print_info: vocab type = BPE" only
+## Remove debug prefix [ preserve token output after it ]
+$full_output =~ s{^print_info:\s+vocab\s+type\s+=\s+BPE\s+}{}i;
+## Remove "print_info: vocab type = BPE" only
 
-# Strip leading BPE padding dots (single '.' tokens generated during model initialization)
-$full_output =~ s/^\.+\s*//;  # Remove all leading dots until real content starts
+## Strip leading BPE padding dots [ generated during model initialization ]
+$full_output =~ s/^\.+\s*//;   ## remove all leading dots until content starts
 
-# Remove spaces after opening braces and brackets
+## Remove spaces after opening braces and brackets
 $full_output =~ s/([{\[\"])\s+/$1/g;
 
-# Remove spaces before closing braces and brackets
+## Remove spaces before closing braces and brackets
 $full_output =~ s/\s+([}\]"])/$1/g;
 
-# Remove spaces before punctuation (tokenization artifact cleanup)
+## Remove spaces before punctuation [ tokenization artifact cleanup ]
 $full_output =~ s/\s+([,.!?;:'")])/$1/g;
 
 $payload = $full_output;
@@ -214,11 +264,12 @@ $payload = $full_output;
     length($payload)
 );
 
-# Detect if response is complete or truncated
-# Conservative: only trust period/punctuation or very short responses
+## Detect if response is complete or truncated
+## Conservative: only trust period/punctuation or very short responses
 my $appears_complete = (
-    $payload =~ /[\.\!\?]\s*$/  ||              # Ends with period, exclamation, or question mark
-    length($payload) < 80                       # Only short responses without punctuation
+    $payload =~ /[\.\!\?]\s*$/
+        ||    ## ends with period, exclamation, or question mark
+        length($payload) < 80    ## only short responses without punctuation
 );
 
 <[base.logs]>->(
@@ -228,22 +279,20 @@ my $appears_complete = (
     length($payload)
 );
 
-$batch_job->{'payload'}         = $payload;
+$batch_job->{'payload'}          = $payload;
 $batch_job->{'appears_complete'} = $appears_complete ? 1 : 0;
 
-# Send the response to all requests in batch
+## Send the response to all requests in batch
 if ( length $payload ) {
     $batch_job->{'status'} = 'completed';
 
     foreach my $req ( @{ $batch_job->{'requests'} } ) {
         <[base.logs]>->(
-            1,
-            "[check_batch_completion] sending response: reply_id=%s",
+            1, "[check_batch_completion] sending response: reply_id=%s",
             $req->{'reply_id'}
         );
         <[base.callback.cmd_reply]>->(
-            $req->{'reply_id'},
-            { 'mode' => 'size', 'data' => $payload }
+            $req->{'reply_id'}, { 'mode' => 'size', 'data' => $payload }
         );
     }
 } else {
@@ -262,7 +311,7 @@ if ( length $payload ) {
     }
 }
 
-# Schedule cleanup after 70 seconds
+## Schedule cleanup after 70 seconds
 <[event.add_timer]>->(
     {   'after'   => 70,
         'handler' => qw| lm-vision.handler.job_cleanup |,
@@ -270,8 +319,8 @@ if ( length $payload ) {
     }
 );
 
-#,,.,,...,..,,..,,...,...,,..,..,,,..,...,.,,,..,,...,..,,.,,,..,,,..,,..,,,,,
-#6IPRVIZQHM43XPJ626NIYDC4MT446JQQ3JJN3UWWR3RG6DCW3IECF3MVL4JAJXHRIGBRO7YQZ5NLW
-#\\\|MVKIAFEXXVTFDTNBM24OXBBDKZOMT5PEROJPO2ZBMEL535EBSVH \ / AMOS7 \ YOURUM ::
-#\[7]RXS7ASHZIANBROKTIQFMQHLQ35466TDKJG44LGQSY5TS74MSTYDY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,,,,,,.,,,.,,..,,,,,...,,,.,.,,,..,,...,...,.,,,,..,..,,,,,,,.,,
+#LVHWIB7XWYXKIZXQVQ76KJVOLSR4XSX3FBR3NICY7PQHPEY5NVCEIU3FV3A7HZXMQEZOFKVQRDRWK
+#\\\|GVMVAU6CRIAIE7MTH22TNQGQYXAN2MBRDE7YVO33YPA7R7YQT76 \ / AMOS7 \ YOURUM ::
+#\[7]PQC2SWRZDSSRX4H7PRFJFP2N6YLOHZML4O7KRSU4VAJT2OJW7YCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

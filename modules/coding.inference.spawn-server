@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name  = coding.inference.spawn-server
-# descr = spawn and manage inference server process using proper Protocol-7 pattern
+# descr = spawn and manage inference server process
+#         using proper Protocol-7 pattern
 # purpose = Start llama-server with proper configuration for model loading
 
 my $port       = shift @ARG // 8002;
@@ -21,10 +22,12 @@ my $model_id
     ? $data{'inference.backend.gpu.model_id'} // 'gemma3-glitter-4b'
     : $data{'inference.backend.cpu.model_id'} // 'gemma3-glitter-4b';
 
-# Model path must be provided (resolved during startup via network request to models zenka)
+# Model path must be provided (resolved during startup
+# via network request to models zenka)
 unless ( defined $model_path && length $model_path ) {
     <[base.logs]>->(
-        0, "[spawn-server] model_path required (should be resolved during init)"
+        0,
+        "[spawn-server] model_path required (should be resolved during init)"
     );
     return {
         success => FALSE,
@@ -59,7 +62,8 @@ unless ( defined $model_path && -f $model_path ) {
 }
 
 unless ( -x $binary ) {
-    <[base.logs]>->( 0, "[spawn-server] binary not executable: %s", $binary );
+    <[base.logs]>
+        ->( 0, "[spawn-server] binary not executable : %s", $binary );
     return {
         success => FALSE,
         error   => "Binary not executable: $binary"
@@ -102,12 +106,14 @@ if ( !$pid ) {
 # Register child process with zenka
 <[base.zenki.report_child_pid]>->($pid);
 
-# Store pid and filehandle for tracking (keep filehandle alive so pipe stays open)
+# Store pid and filehandle for tracking
+# (keep filehandle alive so pipe stays open)
 $data{'inference.server_pids'}->{$port} = $pid;
 $data{'inference.fh'}->{$port}          = $out_fh;
 
 # Register I/O watcher to consume output and prevent pipe buffer from blocking
-# Whitelist entries are patterns that get logged at level 2 (suppressed by default)
+# Whitelist entries are patterns that get logged at level 2
+# (suppressed by default)
 <[event.add_io]>->(
     {   'fd'      => $out_fh,
         'handler' => qw| base.handler.child_output.simple |,
@@ -163,8 +169,8 @@ return {
     pid     => $pid
 };
 
-#,,..,,..,,,.,..,,,,.,..,,,.,,,,.,.,.,.,,,.,,,..,,...,..,,..,,,,.,,..,,,.,.,,,
-#KOBH6FRZQMLH4DFLLH46HFTORVCA324AIWHH2Q346AJKO7WN4HRH6UXL4OZZLEJL3CO457O4EE7M4
-#\\\|BZKM5EAIRMQSC3PPOTGG5RNLROXRTPXA7SJ6AXCP37FEP36P35A \ / AMOS7 \ YOURUM ::
-#\[7]H7IHEHVC4DAIDPS7IA6DC3CMQ24K7WNTPCUVHEDNX3CNE5UDAODI 7  DATA SIGNATURE ::
+#,,..,,,,,,..,.,,,..,,..,,...,...,,.,,...,,..,..,,...,...,.,.,...,...,.,.,..,,
+#J7SIJAIXGFJEWYAISVGI4HTECKGHYLYMC3X3XMB5HN3LKRF6BUNX7JBSADZVPXVN3QDNXTSPVTLJE
+#\\\|GJ5R5OLX2AYWEZNDJCKUH34OKBLSJUUQZGQY2VX7QTC2UJO3L7P \ / AMOS7 \ YOURUM ::
+#\[7]DNRUSD2AYOBBYZQ2BSHMTWCEJAKGLYS7DSCFJXD6KZ2SWTOIVCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

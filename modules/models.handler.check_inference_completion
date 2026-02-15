@@ -1,12 +1,13 @@
 ## [:< ##
 
 # name = models.handler.check_inference_completion
-# descr = fallback handler - check if inference is complete and process response
+# descr = fallback handler - check if inference
+#         is complete and process response
 
-my $event         = shift->w;
-my $inference_id  = $event->data;
+my $event        = shift->w;
+my $inference_id = $event->data;
 
-my $job           = <models.pending_inferences>->{$inference_id};
+my $job = <models.pending_inferences>->{$inference_id};
 
 unless ( defined $job ) {
     $event->cancel if $event->is_active;
@@ -15,11 +16,16 @@ unless ( defined $job ) {
 
 ## Skip if already completed
 if ( $job->{'completed'} ) {
-    <[base.logs]>->( 2, "[check_inference] already completed, cancelling: id=%s", $inference_id );
+    <[base.logs]>->(
+        2, "[check_inference] already completed, cancelling : id=%s",
+        $inference_id
+    );
     $event->cancel if $event->is_active;
+
     # Also cancel the read handler to prevent warnings
     if ( defined $job->{'io_handler_stdout'} ) {
-        $job->{'io_handler_stdout'}->cancel if $job->{'io_handler_stdout'}->is_active;
+        $job->{'io_handler_stdout'}->cancel
+            if $job->{'io_handler_stdout'}->is_active;
     }
     return;
 }
@@ -33,16 +39,16 @@ if ( $job->{'completed'} ) {
 ## Cancel both handlers
 $event->cancel if $event->is_active;
 if ( defined $job->{'io_handler_stdout'} ) {
-    $job->{'io_handler_stdout'}->cancel if $job->{'io_handler_stdout'}->is_active;
+    $job->{'io_handler_stdout'}->cancel
+        if $job->{'io_handler_stdout'}->is_active;
 }
 
 ## Process the response
-<[models.handler.process_response]>->(
-    { 'inference_id' => $inference_id, 'job' => $job }
-);
+<[models.handler.process_response]>
+    ->( { 'inference_id' => $inference_id, 'job' => $job } );
 
-#,,,,,,.,,,,.,,,.,.,.,,,,,.,.,.,,,,..,..,,,.,,.,.,...,...,..,,.,,,..,,.,,,..,,
-#D2N7DMQBYR4QXL324KLZVKNJGFPG4Z7EAGYZMOPBWR4AKYGTX4VLV6X3RUL2YOIVBKZID7G6LHSSK
-#\\\|CVUVHEE3D5C7BMILTUA3I74333BJ5XANENLNZYEUKKUZ6I3SO43 \ / AMOS7 \ YOURUM ::
-#\[7]SCS6WNGYIPLGZ76STOOVTJE6BR5PK73OHH3JBZHLNL3I7HJNLAAI 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,.,,,..,,,,.,,..,,..,,.,,,.,,,,.,.,.,...,...,...,.,.,,.,,.,,,.,.,
+#XTSTU434SP3G4M2LTMOELRJOHV7E4D4M4IYRBXS6HHYX4XUQWDHUANURSER6VSORTZOV2CGDJ4KAW
+#\\\|ACFSG4C22KTKI4HKLCO5QTNR65VTIG3KCJN36CGW4WUAE7K7D46 \ / AMOS7 \ YOURUM ::
+#\[7]HX3IP5C3CUFTDOGWPACV32ZKGJWLBFZKBPBSMRZTLNCMONI2MUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
