@@ -46,7 +46,7 @@ unless ($vhost_existed) {
 ## write challenge response file
 my $challenge_file = join qw| / |, $well_known_dir, $token;
 
-<[file.put]>->( $challenge_file, $key_auth, qw| :raw | ) or do {
+<[file.put_bin]>->( $challenge_file, $key_auth ) or do {
     my $error = <[base.str.os_err]>;
     <[base.logs]>->( 1, 'failed to write challenge file : %s', $error );
     return {
@@ -63,8 +63,8 @@ return {
     'data' => 'challenge file set up successfully'
 };
 
-#,,..,,.,,.,,,..,,,,,,.,.,..,,.,,,,,,,,..,,,,,.,.,...,...,.,,,.,,,..,,,,,,.,,,
-#KBYQMLBRSU2W4HIRORIF365PWQTA4AGFVEKDTZR46MTAVGN643SQULDX3XGAEX35LYDAPRM5LKMMK
-#\\\|KH64HLFDHOS3I6TGY3VA6XSYKXVVJ6CVORARWC3UVLS7UJ2BTKT \ / AMOS7 \ YOURUM ::
-#\[7]VG5OPA3WZHVFRM3XNCPAD5ZIPNUCR4Z2YAST24ZFFH2H6HPDTIAI 7  DATA SIGNATURE ::
+#,,.,,,..,...,.,.,,,,,...,.,.,..,,,..,...,,..,.,.,...,..,,,..,...,..,,.,,,..,,
+#VOAB4ZVNJJ4TZNZXIBZI2EUVHQV4EZTTL2EQ3GOFKCLX4F2HGOJ44YGPTTG6GUNTPQS5SYX7O32TG
+#\\\|NBDJM56YIYVXPNBN7UUV5HP3S62B2J5PDFYTT652N5IN2SRQCP6 \ / AMOS7 \ YOURUM ::
+#\[7]ZHA67U4FC6J22G3PFI4XY7KOZHPG24QTNU4IDJ64LUPULDJLSMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
