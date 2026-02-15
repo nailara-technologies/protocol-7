@@ -1,160 +1,165 @@
 ## [:< ##
 
 # name = httpd.cmd.del-vhost
-# descr = remove virtual host, optionally revoking certificate
+# descr = remove virtual host directory or symlink
 
-my $params = shift || {};
+my $args        = $call->{'args'} // '';
+my @args        = split m{\ +}, $args;
+my $domain      = $args[0];
+my $backup_mode = grep {m{^:backup:$}} @args;
 
-my $domain = $params->{domain} || $params->{host};
-
-if ( !$domain ) {
+unless ($domain) {
     return {
-        success => FALSE,
-        error   => qw| domain parameter required |,
-        usage   =>
-            qw| httpd.del-vhost domain=example.com [revoke_cert=1] [keep_content=0] |
+        'mode' => qw| false |,
+        'data' => 'domain parameter required'
     };
 }
 
-my $revoke_cert  = $params->{revoke_cert}  || $params->{revoke} || 0;
-my $keep_content = $params->{keep_content} || 0;
-
-<[base.log]>->(
-    2, "httpd.cmd.del-vhost: Removing vhost for domain '$domain'"
-);
+<[base.logs]>->( 2, ': removing vhost for domain : %s', $domain );
 
 ## Configuration
-my $site_dir    = <httpd.site_dir>   || '/var/httpd';
-my $content_dir = <web.cfg.base_dir> || '/data/web';
+my $site_dir   = <httpd.site_dir> // qw| /var/httpd |;
+my $backup_dir = join qw| / |, $site_dir, qw| .vhost-backup |;
 
 ## Paths
-my $vhost_link   = "$site_dir/$domain";
-my $content_path = "$content_dir/$domain";
+my $vhost_path = join qw| / |, $site_dir, $domain;
 
 ## Check if vhost exists
-unless ( -e $vhost_link || -d $content_path ) {
-    <[base.log]>->( 1, "httpd.cmd.del-vhost: vhost '$domain' not found" );
+unless ( -e $vhost_path ) {
+    <[base.logs]>->( 1, 'vhost not found : %s', $domain );
 
     return {
-        success => FALSE,
-        error   => qq| vhost '$domain' does not exist |
+        'mode' => qw| false |,
+        'data' => sprintf "vhost '%s' does not exist",
+        $domain
     };
 }
 
-my $result = {
-    success => TRUE,
-    domain  => $domain,
-    actions => []
-};
+my @actions = ();
+my $symlink_error;
+my $backup_path;
 
-## Step 1: Revoke certificate if requested
-if ($revoke_cert) {
-    <[base.log]>->( 2, "  Revoking certificate for '$domain'" );
+## Step 1: Remove vhost directory or symlink
+if ( -l $vhost_path ) {
+    <[base.logs]>->( 2, 'removing vhost symlink : %s', $vhost_path );
 
-    if ( exists $code{'letsencr.cmd.revoke'} ) {
-        my $revoke_result = <[letsencr.cmd.revoke]>->(
-            {   domain => $domain,
-                reason => 5          ## cessationOfOperation
-            }
-        );
-
-        if ( $revoke_result->{success} ) {
-            <[base.log]>->( 2, "  Certificate revoked successfully" );
-            push @{ $result->{actions} }, 'certificate_revoked';
-        } else {
-            <[base.log]>->(
-                1,
-                "  Certificate revocation failed: "
-                    . ( $revoke_result->{error} || 'unknown' )
-            );
-            push @{ $result->{actions} }, 'certificate_revoke_failed';
-            $result->{cert_error} = $revoke_result->{error};
-        }
+    if ( unlink($vhost_path) ) {
+        push @actions, qw| symlink_removed |;
     } else {
-        <[base.log]>->(
-            1, "  Let's Encrypt module not available for revocation"
+        <[base.logs]>->(
+            0, 'failed to remove symlink : %s',
+            <[base.str.os_err]>
         );
-        push @{ $result->{actions} }, 'certificate_revoke_skipped';
+        push @actions, qw| symlink_remove_failed |;
+        $symlink_error = <[base.str.os_err]>;
     }
-}
-
-## Step 2: Remove vhost symlink
-if ( -l $vhost_link ) {
-    <[base.log]>->( 2, "  Removing vhost symlink: $vhost_link" );
-
-    if ( unlink($vhost_link) ) {
-        push @{ $result->{actions} }, 'symlink_removed';
+} elsif ( -d $vhost_path ) {
+    ## Check if directory is empty
+    my $dirh;
+    my @entries;
+    if ( opendir $dirh, $vhost_path ) {
+        @entries
+            = grep { $ARG ne qw| . | and $ARG ne qw| .. | } readdir $dirh;
+        closedir $dirh;
     } else {
-        <[base.log]>->( 0, "  Failed to remove symlink: $!" );
-        push @{ $result->{actions} }, 'symlink_remove_failed';
-        $result->{symlink_error} = $!;
+        ## Cannot read directory - assume not empty if no backup mode
+        @entries = ('unknown') unless $backup_mode;
     }
-}
 
-## Step 3: Remove content directory (unless keep_content)
-unless ($keep_content) {
-    if ( -d $content_path ) {
-        <[base.log]>->( 2, "  Removing content directory: $content_path" );
-
-        use File::Path qw| remove_tree |;
-
-        my $removed_count = 0;
-        eval {
-            $removed_count = remove_tree( $content_path, { verbose => 0 } );
+    if ( @entries && !$backup_mode ) {
+        return {
+            'mode' => qw| false |,
+            'data' => 'vhost directory is not empty,'
+                . ' use :backup: parameter to move to backup',
+            'domain' => $domain
         };
-
-        if ($EVAL_ERROR) {
-            <[base.log]>->(
-                0, "  Failed to remove content directory: $EVAL_ERROR"
-            );
-            push @{ $result->{actions} }, 'content_remove_failed';
-            $result->{content_error} = $EVAL_ERROR;
-        } else {
-            <[base.log]>->( 2, "  Removed $removed_count files/directories" );
-            push @{ $result->{actions} }, 'content_removed';
-        }
     }
-} else {
-    <[base.log]>->( 2, "  Keeping content directory (keep_content=1)" );
-    push @{ $result->{actions} }, 'content_kept';
+
+    if ($backup_mode) {
+        ## Create backup directory if needed
+        unless ( -d $backup_dir ) {
+            <[file.make_path]>->( $backup_dir, 0750 )
+                or return {
+                'mode' => qw| false |,
+                'data' => 'failed to create backup directory'
+                };
+            push @actions, qw| backup_dir_created |;
+        }
+
+        ## Get network timestamp and move directory to backup
+        my $timestamp   = <[base.ntime.b32]>;
+        my $backup_name = sprintf '%s,%s', $timestamp, $domain;
+        $backup_path = join qw| / |, $backup_dir, $backup_name;
+
+        <[base.logs]>->( 2, 'moving vhost to backup : %s', $backup_path );
+
+        if ( rename( $vhost_path, $backup_path ) ) {
+            push @actions, qw| directory_backed_up |;
+        } else {
+            <[base.logs]>->(
+                0, 'failed to move vhost to backup : %s',
+                <[base.str.os_err]>
+            );
+            push @actions, qw| backup_failed |;
+        }
+    } elsif ( <[httpd.path.remove_vhost_dir]>->($vhost_path) ) {
+        push @actions, qw| directory_removed |;
+    } else {
+        <[base.log]>->( 0, 'failed to remove vhost directory' );
+        push @actions, qw| directory_remove_failed |;
+    }
 }
 
-## Step 4: Remove from vhost registry
+## Step 2: Remove from vhost registry
 my $vhost_id = <httpd.vhosts.by_domain>->{$domain};
 
 if ( defined $vhost_id && exists <httpd.vhosts.registry>->{$vhost_id} ) {
-    <[base.log]>->( 2, "  Removing from vhost registry [id=$vhost_id]" );
+    <[base.logs]>->( 2, 'removing from vhost registry : id=%s', $vhost_id );
 
     delete <httpd.vhosts.registry>->{$vhost_id};
     delete <httpd.vhosts.by_domain>->{$domain};
 
-    push @{ $result->{actions} }, 'registry_removed';
+    push @actions, qw| registry_removed |;
 }
 
-## Step 5: Remove from httpd.cfg.hostnames
+## Step 3: Remove from httpd.cfg.hostnames
 if ( exists <httpd.cfg.hostnames>->{$domain} ) {
-    <[base.log]>->( 2, "  Removing from httpd.cfg.hostnames" );
+    <[base.logs]>
+        ->( 2, 'removing from hostname configuration : %s', $domain );
 
     delete <httpd.cfg.hostnames>->{$domain};
 
-    push @{ $result->{actions} }, 'hostname_removed';
+    push @actions, qw| hostname_removed |;
 }
 
-## Step 6: Optionally rescan site directory
-<[base.log]>->( 2, "  Rescanning site directory" );
+## Step 4: Rescan site directory
+<[base.logs]>->( 2, ':: rescanning site directory for %s', $domain );
 <[httpd.scan_site_dir]>;
 
-<[base.log]>->(
-    2, "httpd.cmd.del-vhost: Vhost '$domain' removed successfully"
-);
-<[base.log]>->( 2, "  Actions: " . join( ', ', @{ $result->{actions} } ) );
+## Build result with actual status
+my $result = {
+    'mode'    => qw| true |,
+    'data'    => 'vhost removed successfully',
+    'domain'  => $domain,
+    'actions' => \@actions
+};
+
+if ( defined $symlink_error ) {
+    $result->{'symlink_error'} = $symlink_error;
+}
+
+if ( defined $backup_path ) {
+    $result->{'backup_path'} = $backup_path;
+}
+
+<[base.logs]>->( 1, ': vhost removed successfully : %s', $domain );
 
 return $result;
 
 0;
 
-#,,,.,.,,,,.,,.,.,...,.,.,.,,,,,.,,,.,,..,,,,,..,,...,..,,.,,,.,,,,,,,...,...,
-#AHU3RISYHKMNLVTRQPXSXVN7TFP5VXOPAT2PPKOR7NLA6UKXRGDUNKND2ENSTCW3PN6HDPWUOOH2K
-#\\\|YYDDOL7MALGJ7EPQ45PAXYJQFDN5XPYA44XHBEXL6RANX5RHOLL \ / AMOS7 \ YOURUM ::
-#\[7]C5MPGOHSHPQAGJCO5TR3XWJPJMRBEEJRNVP5QJ4XQTBQC6W3XGBY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,.,,,..,,..,,,,,,,,.,,,,,.,,,,..,..,,...,..,,.,,,..,,..,,...,.,,,
+#E2HG4SZWUDVNWP345IELLOHR4JERT67VUQ3JJ72XSH6H5N4NYN3S23D3QRCLX3CTXMRSVRFYC3RHK
+#\\\|QEIQ3WGHUAUDLIQF2QJP47N6WED6PMXSWPDM5TSYF74VUFWPGCX \ / AMOS7 \ YOURUM ::
+#\[7]QQAFLCF7EC5QQ4IVWUF3I3BII6C32V3G7I7ZXZAWB265J7HD2ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

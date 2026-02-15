@@ -1548,6 +1548,8 @@ return [ qw[
         image2html.parent.init_code
         httpsd.wait_for_certificate
         httpd.update_download_count
+        httpd.path.remove_vhost_dir
+        httpd.path.create_vhost_dir
         httpd.benchmark.end_request
         httpd.base.file.nonblocking
         discover.init_packet_buffer
@@ -2000,6 +2002,7 @@ return [ qw[
         image2html.base.write_stub_page
         image2html.base.fork_conv_child
         image-quality.vision.subprocess
+        httpd.path.create_default_index
         httpd.handler.download_transfer
         httpd.cmd.remove-acme-challenge
         httpd.benchmark.collect_metrics
@@ -2078,6 +2081,7 @@ return [ qw[
         image2html.base.write_error_page
         httpd.handler.web_template_reply
         httpd.diagnostic.track_operation
+        httpd.cmd.cleanup-acme-challenge
         discover.process_incoming_packet
         discover.handler.incoming_packet
         crypt.C25519.name_from_skey_name
@@ -2571,8 +2575,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,,.,,,,,,.,,,,..,,,.,.,,,...,,..,...,,.,,.,.,...,...,..,,..,,.,.,.,,,,,,,
-#MO4QR6F6VF743JWXSYZ6NSSDJP4JRVUVEAD372LQNVGINRYXENE6FIDAJVUMGBFZ2PDPRUJSUVJNE
-#\\\|ZSUHBCESXAHPISPL7KNFYQK7IW4YZXMK4TSPK3OOFS7VD6LXG2V \ / AMOS7 \ YOURUM ::
-#\[7]QH3S5LA34PO2FFXPHJZLXWSV6E4KCT7CL2S2T6RM6JTLGDITAMBY 7  DATA SIGNATURE ::
+#,,..,,,.,...,.,.,,..,..,,.,.,,,.,,..,,.,,,,.,.,.,...,...,,.,,.,.,...,,.,,,.,,
+#CGBBKSB7O6EVBK54HQR5RKMDDBAAYVOZHSLGM46L5EL3N5O544OSAA4JGSVT7KD5LJS2ZBFW3ASD4
+#\\\|VJF3ETWV3XCECK2ZE2VA5RDKOBTUWE72BSNOGW65QVRNUCINH2D \ / AMOS7 \ YOURUM ::
+#\[7]QD4G3H6JSHG6NYZ452ISAPQ5WRUB6PCD32EJZZ35B25XIIZSMODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
