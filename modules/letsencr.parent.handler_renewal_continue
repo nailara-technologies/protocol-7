@@ -15,8 +15,8 @@ unless ( $reply_data && ref($reply_data) eq qw| HASH | ) {
 }
 
 ## parse reply based on mode
-my $mode           = $reply_data->{cmd}  // $reply_data->{mode};
-my $reply_data_str = $reply_data->{data} // '';
+my $mode           = $reply_data->{'cmd'}  // $reply_data->{'mode'};
+my $reply_data_str = $reply_data->{'data'} // '';
 
 unless ($mode) {
     <[base.log]>->( 0, 'httpd vhost-list returned no mode field' );
@@ -27,15 +27,15 @@ unless ($mode) {
 my @vhosts;
 if ( $mode eq qw| SIZE | || $mode eq qw| TRUE | ) {
     ## both SIZE and TRUE modes return multi-line vhost names
-    @vhosts = grep { length($_) > 0 } split( m|\n|, $reply_data_str );
+    @vhosts = grep { length($ARG) > 0 } split( m|\n|, $reply_data_str );
 } else {
     <[base.logs]>->( 1, 'unexpected httpd reply mode : %s', $mode );
     return FALSE;
 }
 
 ## remove whitespace and filter empty lines
-@vhosts = map  { s{^\s+|\s+$}{}g; $_ } @vhosts;
-@vhosts = grep { length($_) > 0 } @vhosts;
+@vhosts = map { s{^\s+|\s+$}{}g; $ARG } @vhosts;
+@vhosts = <[base.sort]>->( grep { length($ARG) > 0 } @vhosts );
 
 unless ( @vhosts > 0 ) {
     <[base.log]>->( 1, ': warning : httpd returned empty vhost list' );
@@ -55,7 +55,7 @@ unless ( $domain_result && $domain_result->{status} eq qw| success | ) {
     return FALSE;
 }
 
-my %domains_map = %{ $domain_result->{domains} // {} };
+my %domains_map = %{ $domain_result->{'domains'} // {} };
 <[base.logs]>->(
     2,
     'determined %d certificate domains',
@@ -79,12 +79,12 @@ unless ( $check_result && ref($check_result) eq qw| HASH | ) {
     return FALSE;
 }
 
-my @needs_renewal = @{ $check_result->{needs_renewal} // [] };
-my @expiring_soon = @{ $check_result->{expiring_soon} // [] };
+my @needs_renewal = @{ $check_result->{'needs_renewal'} // [] };
+my @expiring_soon = @{ $check_result->{'expiring_soon'} // [] };
 
 if ( @expiring_soon > 0 ) {
     <[base.logs]>->(
-        1, 'warning: %d certificates expiring soon',
+        1, ': warning : %d certificates expiring soon',
         scalar(@expiring_soon)
     );
 }
@@ -122,8 +122,8 @@ if ( @new_domains > 0 ) {
 
 return TRUE;
 
-#,,,,,.,,,...,,,.,.,,,,..,.,,,,,.,,,,,,..,...,..,,...,...,.,.,...,,.,,,,,,,.,,
-#NTDFXDKYKZQEXXQVAJ2TOHA2ZWSEQHJJBE2SYL6VV3FLKDCVFYSUEAEY5TX7LY7IBPAPHNGEH7CCY
-#\\\|NQJL3N76QXPEZ2J5FHJJFUSMT6N2FJGIN43CZPJWITI3UMOWK5A \ / AMOS7 \ YOURUM ::
-#\[7]MD2ZEQIPJNO25PVDJNSIGKTU4TEUNOHCEFDN4YUISJDXTSIQVODA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,,..,,,,,..,,,,,,.,.,,,.,,,,,..,,..,,...,...,..,,..,,.,,,,.,,.,.,
+#P4RS5CBQS4I3AGRTSTHMCKYKATWO4UKAXOGHFCMMXTX72UAQTPBUTBEASW2HAYAQ6YAFQ3ZRESYKS
+#\\\|BYDLOOVT2H2YCNL7X2RFL2H36NPEDM5JB7X22CMD7LAIODQMLNN \ / AMOS7 \ YOURUM ::
+#\[7]V77VNGROQ4IJ2R2PCBVPHDBZLUHPD55WUUZEXWGJE3WAPI3QWMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
