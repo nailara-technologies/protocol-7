@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = letsencr.child.substitute_admin_email
+# param = <email_template> <domain_or_domains>
+# descr = substitute :requested-domain: keyword in email template
+
+my $email_template = shift;
+my $domains        = shift;
+
+unless ($email_template) {
+    return undef;
+}
+
+## Handle domain list (array ref or scalar)
+my $primary_domain = ref $domains eq qw| ARRAY | ? $domains->[0] : $domains;
+
+unless ($primary_domain) {
+    return $email_template;
+}
+
+## Perform substitution
+my $result = $email_template;
+$result =~ s/:requested-domain:/$primary_domain/g;
+
+return $result;
+
+0;
+
+#,,.,,..,,.,,,,..,,,.,.,,,.,,,.,,,,.,,.,.,.,,,..,,...,...,..,,,..,,.,,.,.,...,
+#5GAV4KQZXXLAU6R4OQQD3VRQQFW67VDUIHYXUPBXIL52TAL43MMYRI2A3R43EYSQ4ITLU635LTKLO
+#\\\|JQTZSGYFP4XAMPQ67Y6CTY7ITPTTLOO7YW6WGEDNJUTMOUWVF3X \ / AMOS7 \ YOURUM ::
+#\[7]55EP5SNAVNN765B7IGS4QV62B5GXALPUN4ON3LAQL24RX25SN4BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

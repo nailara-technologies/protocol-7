@@ -33,6 +33,9 @@ my @domains   = @$alt_names if ref($alt_names) eq 'ARRAY' && @$alt_names;
 ## Get admin email from config or parameters
 my $email = $call->{'param'}{'email'} || <letsencr.admin.email>;
 
+## Substitute :requested-domain: keyword with primary domain
+$email = <[letsencr.child.substitute_admin_email]>->( $email, \@domains );
+
 <[base.log]>->( 2, "  domains: " . join( ', ', @domains ) );
 <[base.log]>->( 2, "  email: $email" );
 
@@ -154,8 +157,8 @@ return {
     'data' => $bundle_b32r
 };
 
-#,,,,,,,,,,.,,..,,.,.,.,,,...,.,,,,..,.,.,,,.,..,,...,...,.,.,..,,.,,,.,,,,,.,
-#MBF6BQESAGLIU4TXIQ64OEAQJNWYUMFS6OSI2GR2S2PIMOEVRXTGG2PJRZROGHLUCUT6QLECLNPEE
-#\\\|TFLULGZAPLCIY2O5M2K4SOMPGLH7PBLJXNCVCKWBNH23NAVIWJY \ / AMOS7 \ YOURUM ::
-#\[7]SGQ6UYE7XTEDKICYB33MZ4HFOY43LNPTOFT2SLT7XGAJNZK7GIDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,.,.,,,.,..,,,,,,,,.,,..,,,,,,,.,,,.,..,,...,...,.,.,,.,,.,,,.,.,,,.,
+#2IJR6Q2Q7S6ZRJJ6ENHASC7RBCOYHPYW5N4FP5OUZQKKVHGYSPEWKC7TCS3BYHNHD5A5EPGS2ONGG
+#\\\|PX4TCBKMQUCCEQY3LFHW2CIQSN4OSXPRPUMNTPMJSBXRVFEZQSM \ / AMOS7 \ YOURUM ::
+#\[7]HPK4ZZUW7CXEG4ARR47WHC7RRVFTEMGS7PR6KXU2KKKB4XSF4MDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

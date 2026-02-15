@@ -6,24 +6,24 @@
 my $cert_registry = shift;
 
 return {
-    status        => 'error',
+    status        => qw| error |,
     error         => 'certificate registry required',
     needs_renewal => [],
     expiring_soon => [],
     }
-    unless $cert_registry && ref($cert_registry) eq 'HASH';
+    unless $cert_registry && ref($cert_registry) eq qw| HASH |;
 
 my $renewal_threshold  = <letsencr.renewal.days-before> // 30;
 my $expiring_threshold = 7;    # Alert for certs expiring within 7 days
 
-<[base.log]>->(
-    2,
-    "checking certificate expiration (renewal threshold: $renewal_threshold days)"
+<[base.logs]>->(
+    2, 'checking certificate expiration [ renewal threshold : %s days ]',
+    $renewal_threshold
 );
 
 my @needs_renewal;
 my @expiring_soon;
-my $now = time();
+my $now = <[base.time]>;
 
 foreach my $domain ( keys %$cert_registry ) {
     my $cert_info = $cert_registry->{$domain};
@@ -43,15 +43,13 @@ foreach my $domain ( keys %$cert_registry ) {
             account_id      => $cert_info->{account_id},
             };
 
-        <[base.log]>->(
-            2,
-            "certificate $domain needs renewal (expires in "
-                . sprintf( "%.1f", $days_remaining )
-                . " days)"
+        <[base.logs]>->(
+            2, ': certificate %s needs renewal [ expires in %.1f days ]',
+            $domain, $days_remaining
         );
     }
 
-    ## Check if expiring soon (alert only)
+    ## Check if expiring soon [ alert only ]
     elsif ( $days_remaining <= $expiring_threshold ) {
         push @expiring_soon,
             {
@@ -60,38 +58,32 @@ foreach my $domain ( keys %$cert_registry ) {
             expires_at     => $cert_info->{expires_at},
             };
 
-        <[base.log]>->(
-            1,
-            "warning: certificate $domain expiring soon (in "
-                . sprintf( "%.1f", $days_remaining )
-                . " days)"
+        <[base.logs]>->(
+            1,       ': warning : certificate %s [ expires in %.1f days ]',
+            $domain, $days_remaining
         );
     }
 }
 
-## Sort by urgency (most urgent first)
+## Sort by urgency [ most urgent first ]
 @needs_renewal
     = sort { $a->{days_remaining} <=> $b->{days_remaining} } @needs_renewal;
 @expiring_soon
     = sort { $a->{days_remaining} <=> $b->{days_remaining} } @expiring_soon;
 
-<[base.log]>->(
-    2,
-    "expiration check complete: "
-        . scalar(@needs_renewal)
-        . " need renewal, "
-        . scalar(@expiring_soon)
-        . " expiring soon"
+<[base.logs]>->(
+    2, ': expiration check complete : %d need renewal, %d expiring soon',
+    scalar(@needs_renewal), scalar(@expiring_soon)
 );
 
 return {
-    status        => 'success',
+    status        => qw| success |,
     needs_renewal => \@needs_renewal,
     expiring_soon => \@expiring_soon,
 };
 
-#,,,,,.,.,,..,.,,,,,,,.,.,...,...,.,.,.,.,,,,,..,,...,...,,,.,.,.,,..,.,,,..,,
-#N3HIUMNQVQMILOKIFONOI4BB4EPWNMWTF5CIOUTDAWTCOZUY6SVK3HCRLTOKJHNNYC7NN3NT7WNQE
-#\\\|HEFHEGXWR2YS2RWRYEQLYFRNGOIKEZADZCICGTDKAU6RGMJ4K24 \ / AMOS7 \ YOURUM ::
-#\[7]OMYLDQNX6LMJ6SZOWZVQRSKDCNS5EQN2KYTQ677DXIJWOFSVBCAA 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,..,,..,,.,.,,,.,..,,...,,,.,,.,,..,,...,..,,,.,,.,,,...,..,,,,,,
+#5IXVYXSDWFDRK4WYEG32RE2QJY634GXA2XNAB3EZVZR4NMAOOHQDYHV3JPPBK7KMZ35IPTMM5B2WC
+#\\\|USZOHFV2O63F6KDZ77J3PWMNCE7D2NDL65WPRFLPSAZNYZ2XYI4 \ / AMOS7 \ YOURUM ::
+#\[7]R2QTY32VJBKTASBUIZC62IBP3TYQCD3IBAVZQS5BWWV2SHF6LMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

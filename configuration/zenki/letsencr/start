@@ -25,6 +25,7 @@ access.cmd.usr.parent =  status renew force-renew inst-self-signed \
                          dump get        ## <-- 'devmod' module debug commands
 
 access.cmd.usr.child = cube.httpd.setup-acme-challenge \ ## <-- child to cube
+                       cube.httpd.cleanup-acme-challenge \
                        cube.httpd.remove-acme-challenge
 
 ## ACME Server Configuration
@@ -35,9 +36,9 @@ letsencr.acme.server = https://acme-staging-v02.api.letsencrypt.org/directory
 
 ## email for Let's Encrypt account and notifications
 ## [ REQUIRED: configure this to your organization's email before production use ]
-letsencr.admin.email = admin@localhost
+letsencr.admin.email = domain@:requested-domain:
 
-## ACME account key algorithm (RSA or Ed25519)
+## ACME account key algorithm [ RSA or Ed25519 ]
 ## [ RSA 2048-bit is default and required by Let's Encrypt ]
 letsencr.acme.account_key_algorithm = RSA
 
@@ -76,8 +77,8 @@ modules.load = auth net protocol io.unix io.ip letsencr.base    ## devmod
 
 [zenka.loop]
 
-#,,,,,,,,,.,,,,..,,..,..,,...,...,...,,,,,...,..,,...,...,...,...,,.,,,,,,,,.,
-#ORVOX42Z2BTKWHGPIQJJR3E3WZL4TXIN7ZHFUKGYTD7H3GUXBRBTWFE3HKAS4Z42XNSLPMUJWEPKQ
-#\\\|LPPX67KM7IL3YJSPBB7S6XVW2NNB36MEIX5ZWHHUIINHF2XKFWL \ / AMOS7 \ YOURUM ::
-#\[7]3OYGOTUYJ3RK6UXKCYIZ5WYPSE7SORJRQZMKEDIOKZC7YYW3A4CI 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,...,,.,,,.,,,..,.,,,...,.,,,...,..,,...,...,,..,...,,,.,,,.,.,,,
+#FRZFTK6GON5KYOFJMGDM76K77ENUXWD526YLK4KXB2A22M3RJ5C552UVQUIH5T5TPACTSCJHHVHJY
+#\\\|EZUX5MI2U4VQJHI2TXVCZYTIPVMNJLSPV7HEDDWPYFOJHXIAJNB \ / AMOS7 \ YOURUM ::
+#\[7]ZB5DBSWTPOJJKKBMS6NBPR2DS7MXXRWUOB7UTJYVPB655J7WP4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,6 +7,18 @@
 ## retrieve stored state from deferred acme_new
 ## child will contact httpd directly via message routing for challenge setup/cleanup
 
+## Helper to clean up a specific challenge
+sub _cleanup_challenge {
+    my ( $domain, $token ) = @_;
+    return unless $domain && $token;
+    <[base.logs]>->( 2, 'cleaning up challenge for %s', $domain );
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => qw| parent.cube.httpd.cleanup-acme-challenge |,
+            'call_args' => { 'args' => join( ' ', $domain, $token ) }
+        }
+    );
+}
+
 ## retrieve stored state from deferred acme_new
 my $state = <letsencr.child.acme_state> // {};
 unless ( $state && ref($state) eq qw| HASH | ) {
@@ -117,6 +129,9 @@ foreach my $auth_url ( @{ $order->{authorizations} } ) {
             <[base.logs]>->(
                 0, '%s: HTTP challenge creation failed', $domain
             );
+            ## Clean up the challenge files set up by httpd
+            _cleanup_challenge( $domain, $challenge_data->{token} )
+                if $challenge_data->{token};
             goto CHALLENGE_FAILED;
         }
 
@@ -135,10 +150,17 @@ foreach my $auth_url ( @{ $order->{authorizations} } ) {
 
     unless ($respond_result) {
         <[base.logs]>->( 0, '%s: failed to respond to challenge', $domain );
+        ## Clean up the challenge that was already set up
+        _cleanup_challenge( $domain, $challenge_response->{token} );
         goto CHALLENGE_FAILED;
     }
 
-    push @auth_urls, { url => $auth_url, domain => $domain };
+    push @auth_urls,
+        {
+        url    => $auth_url,
+        domain => $domain,
+        token  => $challenge_response->{token}
+        };
 }
 
 ## STEP 7: Poll authorizations until validation completes
@@ -172,12 +194,13 @@ foreach my $auth_info (@auth_urls) {
 
 foreach my $auth_info (@auth_urls) {
     my $domain = $auth_info->{domain};
+    my $token  = $auth_info->{token};
     <[base.logs]>->( 2, 'cleaning up httpd challenge for %s', $domain );
 
     ## notify httpd to clean up [ fire-and-forget ]
     <[base.protocol-7.command.send.local]>->(
         {   'command'   => qw| parent.cube.httpd.cleanup-acme-challenge |,
-            'call_args' => { 'args' => $domain }
+            'call_args' => { 'args' => join( ' ', $domain, $token ) }
         }
     );
 }
@@ -186,8 +209,23 @@ foreach my $auth_info (@auth_urls) {
 goto REPLY_PARENT;
 
 CHALLENGE_FAILED:
-## error path: reply to parent with failure status
-<[base.log]>->( 0, 'challenge processing failed' );
+## error path: clean up challenges and reply to parent with failure status
+<[base.log]>->( 0, 'challenge processing failed, cleaning up challenges' );
+
+## Clean up any challenges that were set up
+foreach my $auth_info (@auth_urls) {
+    my $domain = $auth_info->{domain};
+    my $token  = $auth_info->{token};
+    <[base.logs]>->( 2, 'cleaning up failed challenge for %s', $domain );
+
+    ## notify httpd to clean up [ fire-and-forget ]
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => qw| parent.cube.httpd.cleanup-acme-challenge |,
+            'call_args' => { 'args' => join( ' ', $domain, $token ) }
+        }
+    );
+}
+
 if ( defined $reply_id ) {
     <[base.callback.cmd_reply]>->(
         $reply_id,
@@ -275,8 +313,8 @@ delete <letsencr.child.acme_state>;
 <[base.log]>->( 2, 'challenge processing complete, certificate ready' );
 return $final_result;
 
-#,,.,,,..,..,,,.,,,.,,,..,...,,,.,.,.,,,,,.,.,..,,...,...,,..,,.,,,..,,..,,.,,
-#SG3MLGCKHMBHCIMJYZ32QFNWH7ATKWD4PGXA33CZO4VOLVQBCKG4L74GXGFUE3V2JA3YFPQC6HONM
-#\\\|C3ELDYQ23UGLTCMYPAQXRUZ2XO7VQ6G3NCRJGUJBQ6Q2QK7E7T3 \ / AMOS7 \ YOURUM ::
-#\[7]V44MCEDVYNLIAPP2AKO4FOTBMV3EX2HBPBD7YEL6NWUZ7FIJ3GAA 7  DATA SIGNATURE ::
+#,,..,..,,..,,,.,,,..,,,,,.,.,.,,,..,,,.,,.,.,..,,...,..,,.,.,.,.,.,.,,,,,,..,
+#5VIJFNIJXHFWNOFGD3LIAFGK65QO4YJHU4HAQ6KH3TQA653TSKNTIBS4XNDUCQCWX66ZMJ5CUS6CG
+#\\\|CIMV2QSMTTV4CWQ7ABIDRHVBVYSN6NFZQ2JLT3ZFSN4KQXK5N32 \ / AMOS7 \ YOURUM ::
+#\[7]U6575EVVKDF6GQRAX6W3Q5QLZDBDBJ7BMCSTN57P7H2FYMDDCOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
