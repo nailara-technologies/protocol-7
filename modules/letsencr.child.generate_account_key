@@ -1,73 +1,15 @@
 ## [:< ##
 
 # name  = letsencr.child.generate_account_key
-# descr = generate account key for ACME operations (RSA or Ed25519)
+# descr = generate account key for ACME operations (RSA 2048-bit, required by Let's Encrypt)
 
-## check configured algorithm for ACME account key
-my $algo_config = <letsencr.cfg.account_key_algorithm> // 'RSA';
+## Let's Encrypt requires RSA 2048-bit for ACME account keys
+<[base.logs]>->( 2, 'generating new RSA 2048-bit account key for ACME' );
 
-<[base.logs]>->( 2, 'generating new %s account key for ACME', $algo_config );
+return <[letsencr.child.generate_rsa_account_key]>;
 
-## route to appropriate key generator
-if ( $algo_config eq 'RSA' ) {
-    return <[letsencr.child.generate_rsa_account_key]>;
-}
-
-## fallback to Ed25519 (kept for backward compatibility)
-<[base.log]>->(
-    2, 'generating new Ed25519 account key for ACME (via C25519)'
-);
-
-my $start_time = time();
-
-## generate Ed25519 account key using existing Protocol-7 C25519
-## infrastructure.
-## this reuses proven code from modules/crypt.C25519.gen_keys and includes:
-## - harmonic key generation [ AMOS7::Assert::Truth ]
-## - memory locking [ IO::AIO::aio_mlock ]
-## - secure entropy [ Crypt::PRNG::Fortuna ]
-my ( $ed_keypair, $key_name ) = <[crypt.C25519.gen_keys]>->(
-    'acme-account-'
-        . <[base.prng.chars-anum]>->(8),    # unique account key identifier
-    <letsencr.admin.email>    # use admin email as derivation seed
-);
-
-<[base.log]>->(
-    2,
-    'Ed25519 account key generated in '
-        . ( time() - $start_time )
-        . ' seconds'
-);
-
-## Store key name in child state
-## [ key binary data is in global ## %keys{'C25519'} hash ]
-##  Following Protocol-7 pattern: key stays in memory, we reference it by name
-<letsencr.child.acme_client>->{account_key_name} = $key_name;
-<letsencr.child.acme_client>->{account_key_type} = 'Ed25519';
-
-## Save secret key to cache for persistence (as Base32r-encoded)
-my $key_cache  = sprintf '%s/account.key', <letsencr.cache.dir>;
-my $secret_b32 = encode_b32r( $ed_keypair->{secret} );
-
-{
-    open( my $fh, '>:raw', $key_cache ) or do {
-        <[base.log]>->( 1, "error : unable to write account key file : $!" );
-        return undef;
-    };
-    print $fh $secret_b32;
-    close($fh);
-}
-chmod( 0600, $key_cache );
-
-<[base.logs]>->(
-    2, "Ed25519 account key saved to %s [ base32r encoded ]", $key_cache
-);
-
-## Return keypair for later use
-return $ed_keypair;
-
-#,,.,,...,,,.,,,,,,,.,.,.,,,.,,.,,.,,,,,,,,,.,..,,...,...,,.,,.,,,.,,,,,.,..,,
-#LT3UDFBQ24454EOVRWTOOYCE4PINSNADJ34XPB5QCHEVWD4XKK7N3PJNQAEKNDHPX5IOESIRDRBRK
-#\\\|LNUAFAXJFTUHWNNHGOCNTWG56DCVWXILRDORJ6UJSQ4JHAVMCSM \ / AMOS7 \ YOURUM ::
-#\[7]TJEZXFOPGZHABW5LAYZM6UGQX4OQLNMU5LFR2F47SQC35PQTIOAA 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,,.,.,,,,,.,..,,,..,,..,..,,,,.,..,,...,...,..,,.,.,.,.,,..,...,
+#TD2S32Y7GMOM3KZTS4BTFYOMMM7NRRDJ2ZP2CFSOBC73KZSTZKO7AW4WU6HKFPLCYSTFTW4YV2SUS
+#\\\|5NDUTOJJEMZQNYZR25SR4QS376HYFWZZ7HHK2NTOB5C2UXWCELK \ / AMOS7 \ YOURUM ::
+#\[7]BISDYC3KC5MKY4ZFJOSUTWZWSEYMNOD4A6NX5S3OQ7XITW2E6SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
