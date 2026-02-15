@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = workspace-transfer.console.bug
-# descr = bug tracking system (Protocol-7 styled console output)
+# descr = bug tracking system
 
 ## Protocol-7 color scheme ##
 my $reset       = "\e[0m";
@@ -28,8 +28,8 @@ if ( $cmd eq 'list' ) {
         say "$blacklight .:[ ${neon_red}BUG TRACKER${blacklight} ]:.$reset";
         say "";
         say "  ${neon_green}No bugs tracked yet.$reset";
-        say
-            "  ${blacklight}Add one with: ${TRUE_blue}bug add <description>$reset";
+        say "  ${blacklight}Add one with:"
+            . " ${TRUE_blue}bug add <description>$reset";
         say "";
         return;
     }
@@ -50,14 +50,14 @@ if ( $cmd eq 'list' ) {
             $count++;
             my $bug_num = $1;
             my $desc    = $2;
-            say
-                "${neon_red}[BUG-${bug_num}]${reset} ${TRUE_blue}●$reset$desc";
+            say "${neon_red}[BUG-${bug_num}]${reset}"
+                . " ${TRUE_blue}●$reset$desc";
         } elsif (/^- \[x\].*\[BUG-(\d+)\](.*)/) {
             $fixed++;
             my $bug_num = $1;
             my $desc    = $2;
-            say
-                "${blacklight}[BUG-${bug_num}]${reset} ${neon_green}✓$reset$desc";
+            say "${blacklight}[BUG-${bug_num}]${reset}"
+                . " ${neon_green}✓$reset$desc";
         } elsif (/^  - (Reported|Status):(.*)/) {
             say "  ${blacklight}$1:${reset}$2";
         } else {
@@ -68,8 +68,9 @@ if ( $cmd eq 'list' ) {
 
     say "";
     say "$blacklight" . "=" x 60 . "$reset";
-    say sprintf
-        "  ${TRUE_blue}Open: ${neon_red}%d${reset} | ${TRUE_blue}Fixed: ${neon_green}%d${reset} | ${TRUE_blue}Total: ${neon_orange}%d${reset}",
+    say sprintf "  ${TRUE_blue}Open: ${neon_red}%d${reset}"
+        . " | ${TRUE_blue}Fixed: ${neon_green}%d${reset}"
+        . " | ${TRUE_blue}Total: ${neon_orange}%d${reset}",
         $count, $fixed, ( $count + $fixed );
     say "$blacklight" . "=" x 60 . "$reset";
     say "";
@@ -107,8 +108,8 @@ if ( $cmd eq 'list' ) {
     close $fh;
 
     say "";
-    say
-        "$neon_green✓$reset ${TRUE_blue}Bug reported:$reset ${neon_red}[BUG-$next_id]$reset $neon_orange$desc$reset";
+    say "$neon_green✓$reset ${TRUE_blue}Bug reported:$reset"
+        . " ${neon_red}[BUG-$next_id]$reset $neon_orange$desc$reset";
     say "";
 
 } elsif ( $cmd eq 'fixed' ) {
@@ -157,8 +158,9 @@ if ( $cmd eq 'list' ) {
             close $out;
 
             say "";
-            say
-                "$neon_green✓$reset ${TRUE_blue}Marked bug$reset ${neon_red}[BUG-$bug_id]$reset ${TRUE_blue}as fixed$reset";
+            say "$neon_green✓$reset ${TRUE_blue}Marked bug$reset"
+                . " ${neon_red}[BUG-$bug_id]$reset"
+                . " ${TRUE_blue}as fixed$reset";
             say "";
             return;
         }
@@ -173,12 +175,12 @@ if ( $cmd eq 'list' ) {
     say "$blacklight .:[ ${neon_red}BUG TRACKER HELP${blacklight} ]:.$reset";
     say "";
     say "  ${TRUE_blue}Usage:$reset";
-    say
-        "    ${neon_green}bug list${reset}              - List all bugs (default)";
-    say
-        "    ${neon_green}bug add${reset} ${neon_orange}<desc>${reset}        - Report a new bug";
-    say
-        "    ${neon_green}bug fixed${reset} ${neon_orange}<id>${reset}       - Mark bug as fixed";
+    say "    ${neon_green}bug list${reset}"
+        . "              - List all bugs (default)";
+    say "    ${neon_green}bug add${reset} ${neon_orange}<desc>${reset}"
+        . "        - Report a new bug";
+    say "    ${neon_green}bug fixed${reset} ${neon_orange}<id>${reset}"
+        . "       - Mark bug as fixed";
     say "    ${neon_green}bug help${reset}              - Show this help";
     say "";
 
@@ -189,8 +191,8 @@ if ( $cmd eq 'list' ) {
     say "";
 }
 
-#,,,,,..,,..,,.,.,,,,,...,,..,,.,,,,,,.,.,...,..,,...,...,,..,,,,,,,.,.,.,,.,,
-#AXXAXRGYP4V7IUPT7OYPNAVXA5VI5SL24VXLELHVSYFX6UBPTRKPFMO6GVXE35DHQMXLT5RAVO7KK
-#\\\|DHTRYN52TM4O3U7B2DGPRVT4RIK2BKRTOL3KENRY32X3GMCOXM3 \ / AMOS7 \ YOURUM ::
-#\[7]2TMCR24HTKKZ2WRP7HPUW7GUAUULN7GLJAHZ7Z734YJVOK55XUDQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,.,,,,.,,,,,,,.,,.,.,.,.,..,,,,.,..,,...,...,...,,,,,.,,,.,.,,..,
+#56UVUO3CGBUTVHYAYXNI3YEWMON6ZYDINEL25W3HJWDA6D6KAG7VGAGDYLM436YY4CK7SONEHP7ZI
+#\\\|X5YCS5MZHFKP5DDFSRCBYC7DEGDUDCSQKCJUPAOAP4UT266JXPW \ / AMOS7 \ YOURUM ::
+#\[7]PND43HOWLUYZPLVY4MW5XIUKQS3EJELYZVLK3KE5CXFSW4XWM2AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

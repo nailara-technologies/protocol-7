@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = work.console.overview
-# descr = display current workflow state with contextualized suggestions
+# descr = display workflow state and suggestions
 
 ## Extend %colors hash with workflow-specific colors ##
 $colors{'wf_neon_red'} //= <system.ansi_color> ? "\e[38;2;195;6;71m"     : '';
@@ -64,8 +64,8 @@ if (@remotes) {
 }
 
 if (@modified_files) {
-    say
-        "${blacklight}│$reset  ${neon_red}Uncommitted changes:$reset ${neon_orange}"
+    say "${blacklight}│$reset  ${neon_red}Uncommitted changes:$reset"
+        . " ${neon_orange}"
         . scalar(@modified_files)
         . " files$reset";
 } else {
@@ -123,15 +123,15 @@ if ( $bugs && ref $bugs eq 'ARRAY' && @$bugs ) {
 my $essential_missing = $dep_status->{essential_missing} // [];
 if (@$essential_missing) {
     say "${blacklight}│$reset";
-    say
-        "${blacklight}├─[ ${neon_red}MISSING DEPENDENCIES${blacklight} ]$reset";
+    say "${blacklight}├─[ ${neon_red}MISSING DEPENDENCIES"
+        . "${blacklight} ]$reset";
     say "${blacklight}│$reset";
 
     foreach my $dep (@$essential_missing) {
         my $name    = $dep->{name};
         my $install = $dep->{install} // '';
-        say
-            "${blacklight}│$reset  ${neon_red}✗$reset ${neon_orange}$name$reset";
+        say "${blacklight}│$reset  ${neon_red}✗$reset"
+            . " ${neon_orange}$name$reset";
         if ($install) {
             say "${blacklight}│$reset    ${dim_blue}Install: $install$reset";
         }
@@ -139,13 +139,13 @@ if (@$essential_missing) {
 } elsif ( $dep_status->{total_tracked} > 0 ) {
     ## Show stats when all dependencies are present ##
     say "${blacklight}│$reset";
-    say
-        "${blacklight}├─[ ${neon_green}DEPENDENCY STATUS${blacklight} ]$reset";
+    say "${blacklight}├─[ ${neon_green}DEPENDENCY STATUS"
+        . "${blacklight} ]$reset";
     say "${blacklight}│$reset";
     my $total     = $dep_status->{total_tracked};
     my $installed = $dep_status->{total_installed};
-    say
-        "${blacklight}│$reset  ${neon_green}✓$reset Dependencies: ${neon_green}$installed$reset / $total tracked";
+    say "${blacklight}│$reset  ${neon_green}✓$reset Dependencies:"
+        . " ${neon_green}$installed$reset / $total tracked";
 }
 
 ## Section 5: Modified Files Detail ##
@@ -243,19 +243,22 @@ if (@formatted_suggestions) {
 }
 
 say '';
-say
-    "${blacklight}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$reset";
+say "${blacklight}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    . "━━━━━━━━━━━━━━━━━━━━━━━━━$reset";
 say '';
-say
-    "  ${dim_blue}Tip: Use ${neon_orange}-nc${dim_blue} flag for plain text output (no colors)$reset";
-say
-    "  ${dim_blue}New session? See ${neon_orange}SESSION-START-HERE.md${dim_blue} and ${neon_orange}data/yaml/project-context/next-session-start.yaml$reset";
+say "  ${dim_blue}Tip: Use ${neon_orange}-nc${dim_blue} flag"
+    . " for plain text output"
+    . " (no colors)$reset";
+say "  ${dim_blue}New session? See"
+    . " ${neon_orange}SESSION-START-HERE.md${dim_blue}"
+    . " and ${neon_orange}data/yaml/project-context/"
+    . "next-session-start.yaml$reset";
 say '';
 
 return FALSE;
 
-#,,,,,..,,.,,,,..,,,,,,,,,,..,..,,.,.,...,,,,,..,,...,...,...,,.,,.,.,,,,,..,,
-#M4EHM52HEOH6QFYWIEP6EQASU2ZW2OXWYDA4HP7VNPQ3LUOBFI7MUDG6GEK5RXRJFYYUULPJULSE4
-#\\\|OTNF6JXPEAX4HZIZNAKC2LMXAGS4PXHS2UBGNNWKEK5IMTMHADS \ / AMOS7 \ YOURUM ::
-#\[7]UUM75AN7XD6NX3DTGHB3KX4L2NOMGOHCMAFW3I2TRGP7OOH3GCAI 7  DATA SIGNATURE ::
+#,,..,,..,,.,,.,,,..,,,,,,,..,..,,,,.,.,.,,,.,..,,...,...,,..,,,.,.,.,,..,..,,
+#YZXC36MHFSPZRTUVHY233KI2DQANEDSJDH6SDM7AX4VJURZ4TV2H4MP3BFUUTYAHEB2YQJ4IICTUI
+#\\\|4I7SARZYFVKRHIMSF3QVMSK4QPYYM3N6ORQE2XKPAZH4OTAWZ43 \ / AMOS7 \ YOURUM ::
+#\[7]DJUCEV7VK53P22E7UXUJIX4KIMPAGZFCDVDKOZZTUYZDZRNY7YDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

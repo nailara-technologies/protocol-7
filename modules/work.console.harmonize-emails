@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = work.console.harmonize-emails
-# param = [execute|harmonize-outliers] [pattern]
+# param = [exec|outliers] [pattern]
 # descr = standardize author+email across git history
 
 my $param1 = shift // '';
@@ -12,12 +12,12 @@ my $dry_run            = 1;
 my $harmonize_outliers = 0;
 my $key_phrase         = '';
 
-if ( $param1 eq 'execute' ) {
+if ( $param1 eq 'execute' || $param1 eq 'exec' ) {
     $dry_run    = 0;
     $key_phrase = $param2;
-} elsif ( $param1 eq 'harmonize-outliers' ) {
+} elsif ( $param1 eq 'harmonize-outliers' || $param1 eq 'outliers' ) {
     $harmonize_outliers = 1;
-    if ( $param2 eq 'execute' ) {
+    if ( $param2 eq 'execute' || $param2 eq 'exec' ) {
         $dry_run = 0;
     } else {
         $key_phrase = $param2;
@@ -68,8 +68,8 @@ unless ( $result->{success} ) {
 my $changed = $result->{changed} || 0;
 return say "::\n: ✓ Harmonized $changed commits\n::";
 
-#,,,.,..,,.,,,.,.,,.,,,.,,.,.,.,,,,.,,,,.,,.,,..,,...,...,..,,.,,,,,.,,..,..,,
-#B2MYZKAFBGPP2SZG3VBDQHOYSUBB7CN7WZJ4YBFDMEGSSSCQ7LDKTMQ6RJFSL5XNSJLNXXV7KJKLW
-#\\\|NNVYCZAKUE5ISW7AT3CDICQIWRO5GCEXRDYTFPTHEB4UIVQZQRX \ / AMOS7 \ YOURUM ::
-#\[7]EBKCZD6AT3FA5ZDLY77DOZNCTGGYXURMJRIJ4TYRHQVBZNCR3CDA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,.,,,...,,..,...,.,.,,,,,,,.,..,,..,,...,...,,,.,.,,,.,,,.,,,,,.,
+#FCHYCWLO6BLB4YU7BZUNAMBLWHXHAXXK3BWVYEFG7V3C3ED62BZPAOWA4MX2HTD56L3KINAFMAY5M
+#\\\|7HMXUGZ2RV64LUOGWU5TFKAADWO3KC3UQWS5D54A6KPFPLVRABR \ / AMOS7 \ YOURUM ::
+#\[7]RHMVLKCI4HWXOVU4XS7H6A5622POME3NUBJUVOTZ3CMX4QIZP4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
