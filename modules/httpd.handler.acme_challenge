@@ -1,0 +1,70 @@
+## [:< ##
+
+# name = httpd.handler.acme_challenge
+# descr = serve HTTP-01 ACME challenge response files
+
+my $session_id = $session->{'session_id'};
+my $vhost      = $session->{'vhost'};
+my $token      = $call->{'handler_args'}->{'token'} // '';
+
+unless ( length $token ) {
+    <[base.logs]>
+        ->( 1, "[%d] challenge handler: missing token", $session_id );
+    return <[httpd.send_error_page]>->( $session, 400 );
+}
+
+## construct path to challenge file
+my $site_dir       = <httpd.site_dir>;
+my $challenge_file = sprintf '%s%s/.well-known/acme-challenge/%s',
+    $site_dir, $vhost, $token;
+
+<[base.logs]>->(
+    2,           "[%d] serving challenge file : %s",
+    $session_id, $challenge_file
+);
+
+## check if file exists
+unless ( -f $challenge_file ) {
+    <[base.logs]>->(
+        1,           "[%d] challenge file not found : %s",
+        $session_id, $challenge_file
+    );
+    return <[httpd.send_error_page]>->( $session, 404 );
+}
+
+## read challenge content
+my $content;
+unless ( open my $fh, '<', $challenge_file ) {
+    <[base.logs]>->(
+        1,           "[%d] failed to open challenge file : %s",
+        $session_id, <[base.str.os_err]>
+    );
+    return <[httpd.send_error_page]>->( $session, 500 );
+}
+
+{
+    local $/;
+    $content = <$fh>;
+}
+close($fh);
+
+<[base.logs]>->(
+    2,           "[%d] challenge content length : %d bytes",
+    $session_id, length($content)
+);
+
+## send response with plain text content type
+my $response = "HTTP/1.1 200 OK\r\n";
+$response .= "Content-Type: text/plain\r\n";
+$response .= sprintf "Content-Length: %d\r\n", length($content);
+$response .= "Connection: close\r\n";
+$response .= "\r\n";
+$response .= $content;
+
+return <[httpd.send_response]>->( $session, $response );
+
+#,,,,,,,.,...,..,,...,,.,,,,,,.,,,,.,,,.,,.,.,..,,...,...,..,,,..,,.,,.,,,,,.,
+#WBINLZQ4IS6FUMDYNW37VUAKRVE2TBR4RSR4ZLQDKZ76QSGAI22KCQIUVF44VXWHWKR3AMFRNIWBO
+#\\\|TBSUZWSF5MTHVBNM32EJMJF7KXEGY6KMSZTO6YHVTXTLA744PDI \ / AMOS7 \ YOURUM ::
+#\[7]NMU63Z4HZBWDOCRMAW6COPXTFB4BFYQLSUTQSBUUS4SN2YG4LUBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
