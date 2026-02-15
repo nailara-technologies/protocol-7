@@ -26,8 +26,8 @@ unless ( length $token ) {
 }
 
 ## construct path to challenge file
-my $site_dir = <httpd.site_dir>;
-my $vhost    = $session->{'http'}->{'request'}->{'matched_host'} // '';
+my $site_dir       = <httpd.site_dir>;
+my $vhost          = $session->{'http'}->{'request'}->{'matched_host'} // '';
 my $challenge_file = sprintf '%s%s/.well-known/acme-challenge/%s',
     $site_dir, $vhost, $token;
 
@@ -54,7 +54,7 @@ unless ( -f $challenge_file ) {
 }
 
 ## read challenge content
-my $content = <[file.content]>->( $challenge_file, ':raw' );
+my $content = <[file.content]>->($challenge_file);
 
 unless ( defined $content ) {
     <[base.logs]>->(
@@ -100,8 +100,8 @@ $session->{'buffer'}->{'output'} .= $content;
 
 return $session->{'http'}->{'close'} ? 2 : 0;
 
-#,,,,,...,,,.,.,.,..,,,,.,,.,,.,,,.,,,,.,,..,,..,,...,...,..,,,,.,.,.,,.,,,,.,
-#6JTU6OF4FU2MBREKXGVKUQ3PM2U56JBCOSKCU6TL2J23STDP5KP2EQ36YJTLAHZ5FBMZN2G5YUSVK
-#\\\|REK6Q2BXGHYK25WW2MEXHYRPSTORESYXN5DVOQCJNOULGKUXDKL \ / AMOS7 \ YOURUM ::
-#\[7]KQMEIKN7VKQZ5RFCV6VX7B3X4SZYX3MPYVUBHXCQT33XXCPVPYBY 7  DATA SIGNATURE ::
+#,,,.,...,..,,,,,,..,,,,,,.,.,,..,,,.,...,..,,..,,...,,..,,,.,.,,,,,,,.,.,.,,,
+#3Y54FKLD6GXGA7K3AXSIHS2DWOTKKLLI2M4LAHSHZ2OGG3XMALBOYYLMP4X3SLAEGYV23UCT4LNXS
+#\\\|SJY2ZTNWFR32HPIJR3M4TBJJFFWIKFUYE67DTB4FZGNPO6I6PNL \ / AMOS7 \ YOURUM ::
+#\[7]EHHZBV3NWFM7S6YVOF4DDJJN4LKMNSBRJ7FYPNP6YS5YXMPFMCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
