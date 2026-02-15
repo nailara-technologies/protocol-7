@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = base.file.remove_tree
+# param = <path> [ <options_hash> ]
+# descr = remove directory tree recursively with error handling
+
+use File::Path qw| remove_tree |;
+
+my $path = shift;
+my $opts = shift // {};
+
+unless ($path) {
+    <[base.log]>->( 0, 'path parameter required' );
+    return FALSE;
+}
+
+unless ( -d $path ) {
+    <[base.logs]>->( 2, 'directory not found: %s', $path );
+    return TRUE;
+}
+
+<[base.logs]>->( 2, 'removing directory tree: %s', $path );
+
+my $removed_count = 0;
+eval {
+    $removed_count = remove_tree( $path, { verbose => 0, %{ $opts // {} } } );
+};
+
+if ( length $EVAL_ERROR ) {
+    <[base.logs]>->(
+        0, 'failed to remove directory tree: %s',
+        <[base.str.os_err]>
+    );
+    return FALSE;
+}
+
+unless ( defined $removed_count && $removed_count > 0 ) {
+    <[base.logs]>
+        ->( 2, 'directory tree empty or already removed: %s', $path );
+    return TRUE;
+}
+
+<[base.logs]>->( 2, 'directory tree removed: %d items', $removed_count );
+return $removed_count;
+
+0;
+
+#,,,.,..,,,,.,...,,..,.,,,,..,,.,,,,.,..,,,..,..,,...,...,...,,,.,.,,,,..,,.,,
+#J6L6YBHW3OQ6KEWKH2UE7CB3JUX3JV6UEVY4JHAGIKN4USS4TH77CY4GQGRMGYA734VO4IZNWAVEC
+#\\\|XL6KC42SUCKCRBEPSXI4455ALBUKJ7222NZUWBKXUCZFYBO2NPK \ / AMOS7 \ YOURUM ::
+#\[7]O5DCGUUKSJ2GIE5MBXU672FT4XISEVA2KF5ISLEMJIFLFO4SXQDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -185,7 +185,7 @@ foreach my $_dir ( split qw| / |, $path ) {
     if ( not chmod( $current_mode, $current_path ) ) {
         <[base.s_warn]>->(
             'chmod[ %04o ] : [ %s ] <{C1}>',
-            $param_mode, scalar <[base.format_error]>->($OS_ERROR)
+            $param_mode, <[base.str.os_err]>
         );
         <[base.logs]>->( 0, 'removing %s [ chmod failed ]', $path );
         if ( not rmdir($path) ) {
@@ -219,8 +219,8 @@ umask $previous_umask if defined $previous_umask;
 
 return $path;
 
-#,,,.,,..,,,.,,.,,,,,,.,,,..,,..,,.,.,.,.,..,,..,,...,...,.,,,,.,,..,,,,,,,,.,
-#HCRV2CYUHLYF6EYPMKG2HZJFWGVRR6MB2DCK7MGKT32APNHERLW7KRFEVNYRJ2EXDBLED2FWUI4FQ
-#\\\|DRQON4FMM2UYVPAMHAJDSBFETE7EILSNV7CCHE5WQN66VEBUY2Z \ / AMOS7 \ YOURUM ::
-#\[7]S6UYS7NSFGNCQIQVKMJU3MK6P4U5QJAL675X5IK3NNT3S6U44QDI 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,.,,...,...,.,,,.,,,,.,,,,.,,,,,..,,...,...,.,,,,,.,...,.,.,...,
+#XTMBXFGVAL6OMNMNNMOTLVEXO4NXEQPRCRQP2BCOJZPCTDSKIH6W4IZWZRDYC5RCXXSSHIIZY3HUA
+#\\\|OJ33HD3SNE5YI426BTTQ52TI7SGHBJ4AQMJQM5JBONU4KKNVGBO \ / AMOS7 \ YOURUM ::
+#\[7]3DK3TQELADL3FHJZAF7EADXCTKVEGEWSOSZCTO6WMLFAQGLM2MAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
