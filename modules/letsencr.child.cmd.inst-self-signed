@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = letsencr.child.cmd.inst-self-signed
-# descr = generate and install self-signed Ed25519 ECDSA cert for local testing
+# descr = create self-signed test certificate
 
 <[base.log]>->( 1, 'installing self-signed certificate.. [requested]' );
 
@@ -32,7 +32,7 @@ unless ( -d $cert_dir ) {
             'data' => "✗ Failed to create certificate directory:\n  $err\n"
         };
     }
-    <[base.log]>->( 2, ": created certificate directory: $cert_dir" );
+    <[base.log]>->( 2, ": created certificate directory : $cert_dir" );
 }
 
 ## Generate private key [Ed25519]
@@ -104,7 +104,7 @@ unless ( <[file.copy]>->( $temp_key_file, $key_path ) ) {
 }
 
 unless ( chmod( 0600, $key_path ) ) {
-    <[base.log]>->( 1, "warning: could not set permissions on $key_path" );
+    <[base.log]>->( 1, "warning : could not set permissions on $key_path" );
 }
 
 <[base.log]>->( 2, "private key installed successfully" );
@@ -138,8 +138,8 @@ return {
     'data' => $reply_string
 };
 
-#,,.,,,,,,.,.,...,...,..,,,..,...,,,,,,.,,,..,..,,...,...,.,.,.,.,..,,..,,.,,,
-#VJEUFQFTIMTRIBIJFRWVXAMOMDXXLEZQQICXP4TZY6U6L3KKKOPNVR6XKA3N5UFFOXGLH3IGGDDEY
-#\\\|5GAPPWC67FDTYHKVPFBGQL3JPHRY44DPN36EDM6JFYFCFQJQVOY \ / AMOS7 \ YOURUM ::
-#\[7]BJQXFVBPXFAMXCD7VBDPQ4EK5KH34UDIMWXKDSWF5YLL6GAAPQCY 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,,.,,..,,,.,...,..,,.,.,.,.,,..,..,,...,...,.,,,.,,,...,..,,,,,,
+#N62YN3Y6CTJ3W5AVCU6GKYA7QUAKXGMNH7BBDL6EV2TED7XRB3DZQEWKT2LPMRCOEHQMDVU7PBQNS
+#\\\|OOVK2RC7EZLBHIF4QXGKL6HG76VJWA562G4KFITQ6MZYSLHILZ7 \ / AMOS7 \ YOURUM ::
+#\[7]VGVQW6ZMDBAB5NV53MHDEO3SZMT6PDMQC5QMQ73WESK74DYWNUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

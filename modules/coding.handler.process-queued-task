@@ -4,7 +4,8 @@
 # descr = dequeue and execute a coding task via inference
 # purpose = Event handler to process tasks from job queue after deferred reply
 
-# Extract meta_id from event data (timer/var event handler receives event object)
+# Extract meta_id from event data
+# (timer/var event handler receives event object)
 my $event   = $_[0];
 my $meta_id = $event->w->data if defined $event && ref $event;
 
@@ -136,7 +137,7 @@ eval {
 };
 
 if ($@) {
-    <[base.logs]>->( 0, "[process-queued-task] inference error: %s", $@ );
+    <[base.logs]>->( 0, "[process-queued-task] inference error : %s", $@ );
     $response_text = "[Error: $@]";
 }
 
@@ -152,8 +153,8 @@ my $final_response = $response_text // "[Error: No response from inference]";
 
 return TRUE;
 
-#,,..,.,,,,.,,,,,,.,,,,,,,.,,,.,,,,,.,.,,,,.,,..,,...,...,,,.,,..,..,,,.,,.,,,
-#6WIU2FXFHXUMQNV5LGLHHIRBGG47GV5YOYNFZG357KUDCGM7FTIRH5GOK2HCJDCOEHPITMRCKHCFU
-#\\\|IH545R547FWP6ANU2DTX624FXXP2RJAHMGDGAQS57GMBEBK5EDI \ / AMOS7 \ YOURUM ::
-#\[7]UAZQFIFX3ELJ3EPR3NBEH2RPCU5OIYOC3DLBFYLCVW5S2V5JFSDA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,...,,.,,,,.,..,,...,,,,,...,,..,..,,...,...,..,,...,..,,,.,,.,.,
+#7QJ4BSRMO33ICKABDTJCHQLXDKLCZGYKZDS2LQ54LQYTTHHAYDDPTVXREREDDANARDI6QLWABNEZK
+#\\\|VVGFV2CRC6ZDX6WZ37PKZOUMRYPNUKBPAC4C7UHATUZ52F4VRBW \ / AMOS7 \ YOURUM ::
+#\[7]TGSPHLAXVXGYBS4WL6R4O76CIIP6LWTKQ5TMH7BFTMONOC6S4IAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

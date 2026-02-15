@@ -16,7 +16,7 @@ my $src_checksum   = <[chk-sum.bmw.filesum]>->( 224, $bin_p7c_src_path );
 if ( -e $p7c_bin_path
     and <[v7.bin_p7c_comp_chksum]>->( $p7c_bin_path, $src_checksum ) ) {
     <[base.log]>->( $log_level, ": 'p7c' binary installed and current =)" );
-    <[base.log]>->( 2, ":. src: $src_checksum" );
+    <[base.log]>->( 2, ":. src : $src_checksum" );
     $current_result = 1;
 } else {
     my $root_path = <system.root_path>;
@@ -26,14 +26,15 @@ if ( -e $p7c_bin_path
         ? "'p7c' binary needs upgrade [ bmw checksum mismatch ].,"
         : "'p7c' binary is not installed [ $bin_path_rel ].,";
     <[base.log]>->( --$log_level, ": $result_msg" );
-    <[base.log]>->( 2,            ":. src: $src_checksum" );
-    <[base.log]>->( 2,            ":: bin: $bin_checksum" )
+    <[base.log]>->( 2,            ":. src : $src_checksum" );
+    <[base.log]>->( 2,            ":: bin : $bin_checksum" )
         if $bin_checksum =~ m|^[0-9A-Z]{45}$|;
     <v7.checksum.bin_p7c_source> = $src_checksum;
 }
 
 if ( -e $p7c_bin_path and not -x $p7c_bin_path ) {
-    ##  automatic repair desired ? ###                                    [LLL]
+    ##  automatic repair desired ? ###
+    ## [LLL]
     map { <[base.log]>->( 0, $ARG ) } (
         ':',
         ": has no exec permission : $p7c_bin_path",
@@ -46,8 +47,8 @@ if ( -e $p7c_bin_path and not -x $p7c_bin_path ) {
 
 return $current_result;
 
-#,,.,,,..,,.,,,.,,.,.,.,.,,,,,...,..,,.,.,.,.,..,,...,...,..,,...,.,,,,,,,.,.,
-#E7FQEYAFMGQ5NJH3IMZVSFMKLTI6GAO7AULWGF2S54TPWQIFNWSY4K7CPYR3AX45UERC3HI7WBND4
-#\\\|H3SEHO35A7R2XXBGDM2QPNTXTP4KL2V5CT4VI6A6FU7AXP6K7HL \ / AMOS7 \ YOURUM ::
-#\[7]UCANNLGG5LRTQX6F2JWHLYW3R6WVW4RCLZ3JS2YCERXFO2BCFGAQ 7  DATA SIGNATURE ::
+#,,..,,.,,...,,..,.,.,..,,..,,,,,,.,.,,,,,,,.,..,,...,...,...,,.,,,..,.,,,.,,,
+#CQ3T7RNBU4YJG7U2QDJESZOMVKAU3CHUOBN2UJ2PNTTCXMCCGE2DBEQPTGBW6LUZGCUDCILPRLQSU
+#\\\|JMFW6EVQGF7VDFA5HH7JWCFZSNGTW7NJZ7KVKNZCP55HKPOEAC6 \ / AMOS7 \ YOURUM ::
+#\[7]LSU57J2VXNGYQ567KH43TN5DPEN5BWHVD2TEEAV5UV5PYXT5FUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,11 +1,12 @@
 ## [:< ##
 
 # name  = letsencr.parent.handler_httpd_vhost_error
-# descr = handle errors in httpd vhost list query - stores error state and triggers recovery
+# descr = handle errors in httpd vhost list query
+#         - stores error state and triggers recovery
 
 my ( $error_msg, $reply_data ) = @_;
 
-<[base.log]>->( 1, "httpd vhost query error: $error_msg" );
+<[base.log]>->( 1, "httpd vhost query error : $error_msg" );
 
 ## Store error state for consumer
 <letsencr.parent.pending_vhosts> = {
@@ -49,8 +50,8 @@ if ( exists <letsencr.parent.vhosts_cache> ) {
 
 return FALSE;
 
-#,,.,,.,.,..,,,..,,.,,,.,,..,,,.,,.,,,,,.,,..,..,,...,...,.,,,,,.,,..,...,,,.,
-#TA3UCZ7BZUELAEPJDUEY2S62ZWOATAW4HFH4ZUZ6X5CYKLWHDUV2E6OYZKO2ODK4WSOYBM3KBETKC
-#\\\|Y7DSTG7BF5BW36FZGYNDHM4SSMFJ2DNPYMVDF6354KQB5BKX3Y2 \ / AMOS7 \ YOURUM ::
-#\[7]HSHRDLG7LNYDP5A32M7VXFILCRUK2CCCGLBOS6F4T2CSJAVCREDA 7  DATA SIGNATURE ::
+#,,..,,,,,.,.,,.,,...,..,,,.,,.,,,,.,,.,,,.,.,..,,...,...,,..,...,,.,,,.,,,.,,
+#L6WQT7IG3E2WY7A4TM4W5OQJUEPMJEZHHFG54ENL7BTSYZFZY7LPIBMFPYHOYFGGXSZUVAKU2XOA6
+#\\\|IFTX2KLVAAYRBGC3576HPZ7KWZ5AIXXJND73QCSUR4BQXD5URVB \ / AMOS7 \ YOURUM ::
+#\[7]SP7FG5Z7YGUQBXJJYWF4KX5ZR55TFJIBUSISJWD36HLDG7WUD4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

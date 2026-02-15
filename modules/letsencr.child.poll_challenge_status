@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name  = letsencr.child.poll_challenge_status
-# descr = poll ACME server for challenge validation status with exponential backoff
+# descr = poll ACME server for challenge validation
+#         status with exponential backoff
 
 my $auth_url = shift;
 my $domain   = shift;
@@ -61,7 +62,7 @@ while ( $attempt < $max_attempts ) {
         if ( $auth_data->{challenges} ) {
             foreach my $c ( @{ $auth_data->{challenges} } ) {
                 if ( $c->{error} ) {
-                    <[base.log]>->( 1, "  error: " . $c->{error}{detail} );
+                    <[base.log]>->( 1, "  error : " . $c->{error}{detail} );
                 }
             }
         }
@@ -89,8 +90,8 @@ return {
     error    => 'Challenge validation timeout',
 };
 
-#,,,,,...,.,.,,..,,..,..,,..,,...,,..,.,.,,..,..,,...,...,.,.,,..,...,,,.,.,.,
-#Y7N6S4C7GMSZ3YBOMPJEWNMDSPLATAOAIR4XWL5PZCBGIQUSINAR55DRZ7B5CAZMVMS4BOYASSGRY
-#\\\|IQC5GRZH2CAPCT2COEVOY4IDZISBZFPSSKR75HCLY47B7OTVIVE \ / AMOS7 \ YOURUM ::
-#\[7]XGHM3FQLQOMOHXDUXYHIRQU7LQM36GOPKLEZP5DF6QKSGW6X2AAI 7  DATA SIGNATURE ::
+#,,..,...,,..,,,,,.,,,,.,,,.,,.,,,.,.,...,,.,,..,,...,..,,,,,,,.,,,,,,,,.,...,
+#5U6AICMIXP4WUEJBOSE5KDPTS45JTMHTCETMRQ4EBN6KRJDLYX2XRJS2WKMCKJCJGROWNYJBNKNGG
+#\\\|CJZMJWDC7SW5BDDW7BFZCJI5JTDJLBP5MOLW2KEVNYVSE2GMUPH \ / AMOS7 \ YOURUM ::
+#\[7]MAOESA35WZ3AZUVXOZ3BAA6ANLA6DUOZN7VBK7H4TSCGXVVBTMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

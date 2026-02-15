@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name = v7.verify_and_install_zenka_dependencies
-# descr = high-level orchestrator for dependency verification and on-demand installation
+# descr = high-level orchestrator for dependency
+#         verification and on-demand installation
 
 my %verification_state = (
     timestamp      => time(),
@@ -23,8 +24,8 @@ my $zenka_deps_registry = $data{'debian'}{'zenki_deps'}{'registry'} // {};
 unless (%$zenka_deps_registry) {
     return {
         success => FALSE,
-        error   =>
-            'No dependency registry found. Run debian.parent.scan_zenki_dependencies first.'
+        error   => 'No dependency registry found. Run'
+            . ' debian.parent.scan_zenki_dependencies first.'
     };
 }
 
@@ -38,7 +39,7 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
 
     push @{ $verification_state{zenka_checked} }, $zenka_name;
 
-    <[base.log]>->( 3, "  Verifying dependencies for zenka: $zenka_name" );
+    <[base.log]>->( 3, "  Verifying dependencies for zenka : $zenka_name" );
 
     ## Verify PM dependencies
     if ( $zenka_entry->{pm_deps} && @{ $zenka_entry->{pm_deps} } ) {
@@ -56,7 +57,7 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
                     error => $verify_result->{error}
                     };
 
-                <[base.log]>->( 3, "    Missing PM module: $pm_module" );
+                <[base.log]>->( 3, "    Missing PM module : $pm_module" );
 
                 ## Attempt installation via CPAN (uses Level 2 installer)
                 my $install_result = <[base.perlmod.install]>->($pm_module);
@@ -103,7 +104,7 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
                     error => $verify_result->{error}
                     };
 
-                <[base.log]>->( 3, "    Missing OS package: $os_package" );
+                <[base.log]>->( 3, "    Missing OS package : $os_package" );
 
                 ## Attempt installation via apt-get (requires privileges)
                 if ( $UID == 0 ) {
@@ -140,8 +141,9 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
                         {
                         type     => 'permission',
                         severity => 'warning',
-                        message  =>
-                            "Cannot install OS package '$os_package' for zenka '$zenka_name' - unprivileged user",
+                        message  => "Cannot install OS package '$os_package'"
+                            . " for zenka '$zenka_name'"
+                            . " - unprivileged user",
                         };
                     <[base.log]>->(
                         2, "    Cannot install (unprivileged): $os_package"
@@ -172,12 +174,14 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
                     type     => 'binary_missing',
                     severity => 'error',
                     message  =>
-                        "Required binary '$binary' for zenka '$zenka_name' not found in \$PATH",
+                        "Required binary '$binary' for zenka '$zenka_name'"
+                        . " not found in \$PATH",
                     };
 
                 <[base.log]>->(
                     2,
-                    "    Missing binary dependency: $binary (requires admin action)"
+                    "    Missing binary dependency: $binary"
+                        . " (requires admin action)"
                 );
             } else {
                 <[base.log]>->(
@@ -221,8 +225,8 @@ return {
     state           => \%verification_state
 };
 
-#,,.,,,,.,.,.,,,,,,..,,,,,.,.,.,.,,,,,.,.,,.,,..,,...,...,..,,...,.,,,..,,.,.,
-#57MEFTSBFN3BLRHDS2QWTTPSOXYIPOSFBHAJK2TCCCH7TFL2NMJJH6Z6WFCO3IXRS4DTRJUBKDXCI
-#\\\|LUETDQYIDCGUOS3KG77AYWYU7BRCVTCEVZRWOIG4SXDI6KWRQMJ \ / AMOS7 \ YOURUM ::
-#\[7]2BLVRPAJJSOX6K2V2ALFA7FZGPCZCWDBU5K3DY3MZQQY3HPO24DI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,,,,,.,,.,,,,.,,,.,,...,,.,,,,,,..,,...,...,...,..,,...,..,,...,
+#WVXLCNFV37TZFL3G4FC46YYEHAHSAHUAL2WKHWHWPOZZO364V6FD2RIQGQAGIRRXNS3Z4XABWFHGW
+#\\\|2PWTXF2RWEMSWOESOOCO3QOEY2HKYF6WS4XMMOZSJFBTL4DMDFU \ / AMOS7 \ YOURUM ::
+#\[7]NE6J7I72TB26QCOR2AEFSPEIFHTNB6LPHJE3MCKC7EMWE4PBCQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

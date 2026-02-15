@@ -64,7 +64,7 @@ EOF
     }
 );
 
-<[base.logs]>->( 2, "[$context_label] STAGE 2: queuing YAML translation" );
+<[base.logs]>->( 2, "[$context_label] STAGE 2 : queuing YAML translation" );
 
 ## STAGE 3: Validate YAML structure
 ## This would be done in Perl after LLM produces YAML
@@ -92,8 +92,8 @@ return {
     'elapsed_ms' => $elapsed_ms
 };
 
-#,,.,,,..,,,,,,,,,.,.,...,,,,,.,.,,.,,.,.,,.,,.,.,...,..,,,..,,..,,..,,.,,...,
-#ANHESLCDRAYIW2GIOZOAQ5MHXH2EAYSP3AH2CL66BBZZMW2HNC2M5ITB6D4WRWCMPVNFURWLTNVIS
-#\\\|XEHXC2VPREFOSTTK7EZI6XIU7Z2TSTQR3BANRT3LMNIE73S6XY4 \ / AMOS7 \ YOURUM ::
-#\[7]DQROZIWAJZIZBI5CCX7JIT5CBBYSYVGJDHLSWFNDNCYS7UNAFADA 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,...,,.,,,..,,..,.,.,..,,,..,,,,,.,.,...,..,,...,,,,,,,,,,.,,.,.,
+#N3GPHUSNLVS2X7FE5P75BQYE4YERZGSCXABHBDLJ3J2JPIVL4JKPHGHEFAXQWCRBUBILARSZZC5B4
+#\\\|GD4FRCDRVDUCASLCCSEK222VU6UUOYQMZ3AEASTK2IBTTXT6LTY \ / AMOS7 \ YOURUM ::
+#\[7]3CSXICVMK5OPQO3UK2H7LFX33ZOYEJR7DDT6ZWYSMADUNTIUYUCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

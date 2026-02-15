@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name  = letsencr.parent.notify_httpd_certificate_update
-# descr = notify httpd zenka that certificate has been updated and needs reload
+# descr = notify httpd zenka that certificate has been
+#         updated and needs reload
 
 my $cert_data = shift;
 
@@ -18,7 +19,7 @@ unless ( $domain && $cert_path && $key_path ) {
     };
 }
 
-<[base.log]>->( 2, "notifying httpd of certificate update for: $domain" );
+<[base.log]>->( 2, "notifying httpd of certificate update for : $domain" );
 
 ## Send notification to httpd via Protocol-7 command protocol
 ## HTTPd can refresh its loaded certificate cache for this domain
@@ -60,8 +61,8 @@ if ($result) {
     };
 }
 
-#,,.,,,,.,,..,.,.,,.,,,..,..,,,,,,,..,,,,,.,,,..,,...,..,,.,.,...,..,,,.,,.,.,
-#TR3753QJ3RO5LYP6UM5YKDLK2VRRZGGSLHDGMSZA6Z4PRWUTYUSWGMVORULJMRXRIERE5QATXSAX4
-#\\\|KD2CTPSEJECTNYGPRJROILDKJXSJVJDDKKF4KEQXW23KBFEKEJF \ / AMOS7 \ YOURUM ::
-#\[7]EMC6WVMDWD7ESZV3TVT3XVLRMMJ7OCTPHFGZVRPY7HZV76TXGGDI 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,,,,,,..,.,,,...,.,,,,.,,,.,,,.,,..,,...,...,,.,,,..,,,,,.,.,.,.,
+#Q52KEIPG2YN6BRG3LDG3DJDVR4N5YN7CZTAMFEKOS7CVAFABCSLP527AYLW3GLN4UA466TPNUT6P2
+#\\\|WRCTNSJP2AMWO4DSC2ZNNU6KDWMGUE5P7K3OR2ZQIN7LRYWNV5Q \ / AMOS7 \ YOURUM ::
+#\[7]RVOVGBWF34G4YLNNAM3NUCLU4LOVBJC4XFTN5A6R42KHM25FHICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

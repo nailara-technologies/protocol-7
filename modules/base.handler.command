@@ -1131,8 +1131,10 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                 $input->$* = '';    ##  truncating buffer to ''  ##
 
                 ## [ ASYNC PROBLEM: incomplete multi-line reply ]
-                ## TODO: defer hook call for incomplete case when next chunk arrives
-                ## For now: incomplete replies to unknown routes don't trigger hooks
+                ## TODO: defer hook call for incomplete case
+                ## when next chunk arrives
+                ## For now: incomplete replies to unknown routes
+                ## don't trigger hooks
             }
         }
         return 1;    ## command not complete ###
@@ -1471,7 +1473,7 @@ UNKNOWN_TYPE_HANDLED:
 
         #        not working yet..,
 
-        <[base.logs]>->( "outgoing: nexthop: '%s' command: '%s'", $1, $2 );
+        <[base.logs]>->( "outgoing : nexthop : '%s' command : '%s'", $1, $2 );
 
         $output->$* .= "FALSE not implemented yet.,\n";
         return 0;    ## comand complete ##
@@ -1716,7 +1718,7 @@ UNKNOWN_TYPE_HANDLED:
                     or not <devmod.skip_v7_heartbeat> );
             }
 
-##[ LOGGING \ DEVMOD MODE ]####################################################
+##[ LOGGING \ DEVMOD MODE  ]##################################################
 
             if ( <system.verbosity.console> >= 3
                 and defined $call_args->{'args'}
@@ -1801,7 +1803,8 @@ UNKNOWN_TYPE_HANDLED:
                 'user'      => $user
             }
         );
-        ## If hook returns TRUE, it handled the message, skip normal processing
+        ## If hook returns TRUE, it handled the message,
+        ## skip normal processing
         goto UNKNOWN_CMD_GLOBAL_HANDLED
             if defined $hook_result and $hook_result == TRUE;
     }
@@ -1829,8 +1832,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,.,,,,,,...,...,,.,,,,,,...,.,.,.,.,...,,..,..,,...,...,,..,..,,...,...,,,.,
-#NB5IIVSYFLKWZS4IZVABQUPHOKOOYWLH7USH2PFTJJ67CHIDQUBPFIROQIYPOOFEEVNDOH4NVWPGA
-#\\\|FPSBVQDAUGUEBDPAQ37X3S2ARTXHGUM6U3QTBY3VX3YE24277I7 \ / AMOS7 \ YOURUM ::
-#\[7]5EBC7EKD7W4L46Q6IMD54P3U5UABR3KZN2F6VIHYHPTKW7WYDODI 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,.,,,,,,..,,.,.,,.,,,.,,.,.,...,..,,...,...,..,,,,.,,,.,,.,,.,.,
+#DOGGIOMEESL57CCHRRN6QJ5Z5B4AS6247DT3JQX5P7PH4LO2HPJCY3G4CS74LEXJNWPJCAV2VNDX2
+#\\\|32AQLDSXU2CEFF2A4OI46WARKGG4X3LQ7U3MDFA26QP6GTPJQZK \ / AMOS7 \ YOURUM ::
+#\[7]TPMY3OUICU5256Y4F73NV52HIP42KXACP6H43PMFVOBDFJF7X2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -26,8 +26,8 @@ $port //= <protocol-7.remote.default-port> // 42;
 
 return {
     'mode' => qw| false |,
-    'data' =>
-        'expected <hostname> <pubkey_b32> parameters (port optional, defaults to 42)'
+    'data' => 'expected <hostname> <pubkey_b32> parameters'
+        . ' (port optional, defaults to 42)'
     }
     if not defined $hostname
     or not defined $pubkey_b32;
@@ -147,7 +147,7 @@ rename( $tmp_file, $file_path )
 
 chmod( 0600, $file_path );
 
-<[base.logs]>->( 2, "remote key stored: %s:%s", $hostname, $port );
+<[base.logs]>->( 2, "remote key stored : %s:%s", $hostname, $port );
 
 return {
     'mode' => qw| true |,
@@ -155,8 +155,8 @@ return {
     $hostname, $port, $ntime_b32
 };
 
-#,,,,,...,,.,,.,,,.,.,,..,,..,...,,,.,,,,,,.,,..,,...,...,.,.,,..,,.,,.,.,,,.,
-#MMSRP2ETJQTF4CN5EHMW6CXIUYC7N3HDWDTOWFZEVQBTYXNOEQ3QEIWXRMEIUOV6XT645Y26HZQCA
-#\\\|IPB7LNVBWSMU4EAFMCGPH6W7TC2VQGAQ5AHHDAQK2OYWTD3FZQ7 \ / AMOS7 \ YOURUM ::
-#\[7]TV2DJMY2GA4O2I4X5CWKUSKMOQDUOAXQTMHQMZ2MRUFQDUED7QBI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,,..,..,,.,.,.,.,..,,,..,,.,,.,.,..,,...,...,.,,,..,,,..,.,.,.,,,
+#VCJXZVC27ZNY3KD4WK4AXPM2P2YIGS4A5OUPQBMC6OOJK7PF32PEMSYRGI5HNAF45RCLCBCPY2P4I
+#\\\|JSSIYQHGII4LN6DGXJTK3SJ65M7OF7KO4E5RFE2NO3NVJB3FC44 \ / AMOS7 \ YOURUM ::
+#\[7]FGX77SNXKUYMHQMYTLH7ZFZ47RQCSDO5CFI35XVIL2ZTUWCSMWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

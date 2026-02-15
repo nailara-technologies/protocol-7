@@ -11,39 +11,42 @@ my $home = $ENV{HOME} || "/root";
 
 my $key_dir = "$home/.n/user-keys";
 
-<[base.log]>->( 2, "  User: $user" );
-<[base.log]>->( 2, "  Home: $home" );
-<[base.log]>->( 2, "  Key directory: $key_dir" );
+<[base.log]>->( 2, "  User : $user" );
+<[base.log]>->( 2, "  Home : $home" );
+<[base.log]>->( 2, "  Key directory : $key_dir" );
 
 ## Check if already exists
-if (-d $key_dir) {
-    my $perms = (stat($key_dir))[2] & 0777;
-    my $perms_oct = sprintf("%04o", $perms);
+if ( -d $key_dir ) {
+    my $perms     = ( stat($key_dir) )[2] & 0777;
+    my $perms_oct = sprintf( "%04o", $perms );
 
-    <[base.log]>->( 2, "  ✓ Key directory already exists (permissions: $perms_oct)" );
+    <[base.log]>->(
+        2, "  ✓ Key directory already exists (permissions: $perms_oct)"
+    );
 
-    if ($perms != 0700) {
+    if ( $perms != 0700 ) {
         <[base.log]>->( 1, "  ⚠ Fixing permissions to 0700..." );
 
-        chmod(0700, $key_dir) or do {
-            <[base.log]>->( 0, "  ✗ Failed to chmod: $!" );
+        chmod( 0700, $key_dir ) or do {
+            <[base.log]>->( 0, "  ✗ Failed to chmod : $!" );
             return say "::\n: ✗ Failed to fix permissions\n: Error: $!\n::";
         };
 
         <[base.log]>->( 2, "  ✓ Permissions fixed" );
     }
 
-    return say "::\n: ✓ Key directory already configured\n: Path: $key_dir\n::";
+    return
+        say "::\n: ✓ Key directory already configured\n: Path: $key_dir\n::";
 }
 
 ## Create directory hierarchy
-<[base.log]>->( 2, "  Creating directory: $key_dir" );
+<[base.log]>->( 2, "  Creating directory : $key_dir" );
 
 ## Create parent directory first
 my $n_dir = "$home/.n";
 
-unless (-d $n_dir) {
-    mkdir($n_dir, 0700) or do {
+unless ( -d $n_dir ) {
+    mkdir( $n_dir, 0700 ) or do {
         <[base.log]>->( 0, "  ✗ Failed to create $n_dir: $!" );
         return say "::\n: ✗ Failed to create .n directory\n: Error: $!\n::";
     };
@@ -52,7 +55,7 @@ unless (-d $n_dir) {
 }
 
 ## Create user-keys directory
-mkdir($key_dir, 0700) or do {
+mkdir( $key_dir, 0700 ) or do {
     <[base.log]>->( 0, "  ✗ Failed to create $key_dir: $!" );
     return say "::\n: ✗ Failed to create key directory\n: Error: $!\n::";
 };
@@ -60,14 +63,14 @@ mkdir($key_dir, 0700) or do {
 <[base.log]>->( 2, "  ✓ Created $key_dir" );
 
 ## Verify permissions
-my $perms = (stat($key_dir))[2] & 0777;
-my $perms_oct = sprintf("%04o", $perms);
+my $perms     = ( stat($key_dir) )[2] & 0777;
+my $perms_oct = sprintf( "%04o", $perms );
 
-<[base.log]>->( 2, "  Permissions: $perms_oct" );
+<[base.log]>->( 2, "  Permissions : $perms_oct" );
 
-if ($perms != 0700) {
+if ( $perms != 0700 ) {
     <[base.log]>->( 1, "  ⚠ Fixing permissions..." );
-    chmod(0700, $key_dir);
+    chmod( 0700, $key_dir );
 }
 
 <[base.log]>->( 1, "  ✓ Key directory setup complete" );
@@ -84,10 +87,10 @@ push @output, ":   Protocol-7 sourcecode <command>";
 push @output, ":   Protocol-7 workflow commit <message>";
 push @output, "::";
 
-return say join("\n", @output);
+return say join( "\n", @output );
 
-#,,,.,..,,,,.,..,,...,,.,,...,,,.,,,.,...,...,..,,...,..,,...,,,,,..,,,,.,..,,
-#FNRIZUIH32DKV4GXACTNOHFUYDH5IHEPBLH3TQ7N5FYDXQXHKXOQVUP5NSBIYMD4IOL6VS4JKGXLQ
-#\\\|7XII7FJFHGLVN3MO4DIKAR4WZUPQSQA2GPXWPBFBQTNHB4423C6 \ / AMOS7 \ YOURUM ::
-#\[7]A6YKT2PFG42QN426ESGLFQVJQVK34J2G6MIZSA3GUGCPH5DR6ABI 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,...,,,.,,,.,,,.,,,,,,..,.,.,,.,,..,,...,...,.,.,.,.,,,,,..,,,,.,
+#C4OWVWE33E4ZU2VNSDL2KSCMLJ6ZRESQ7AJRCV3QBZNEQECEA3AIRQQFM4V23QE7K55UAQN7K73RC
+#\\\|ENDT7GYZXLL7AE7DHWZFMQECZEGMUF3OGBRJX5LBRL6VYI66KF3 \ / AMOS7 \ YOURUM ::
+#\[7]L7A5UOPUIVCIKCOOT3VJC3EWNNQOIPX6VFWELJLBJZLC4DZ3CYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

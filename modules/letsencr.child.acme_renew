@@ -1,14 +1,15 @@
 ## [:< ##
 
 # name  = letsencr.child.acme_renew
-# descr = child process ACME certificate renewal operation (blocking crypto/network calls)
+# descr = child process ACME certificate renewal operation
+#         (blocking crypto/network calls)
 
 my $msg = shift;
 
 my $domain    = $msg->{domain};
 my $cert_info = $msg->{cert_info};
 
-<[base.log]>->( 2, "child: starting renewal for domain: $domain" );
+<[base.log]>->( 2, "child : starting renewal for domain : $domain" );
 
 ## Initialize ACME protocol if needed
 unless ( <letsencr.child.acme_client>->{account_key} ) {
@@ -175,8 +176,8 @@ unless ($cert_result) {
     }
 );
 
-#,,,.,,.,,.,,,.,.,...,,,.,,..,,.,,...,,.,,.,,,..,,...,...,.,.,.,.,,,.,,,,,.,,,
-#622H5D26I3GL5IJEIJR2D5A4XEUV747AQXQLHO2M4XDDSDDJPL6UCDSARZIJRLZLNKRIZL6BOYOLU
-#\\\|PYJAUSOJJLHGSYFI2EIW5RPK42P6YJOEPX5N7MMEXUQNHQD5KDY \ / AMOS7 \ YOURUM ::
-#\[7]ZEHKA2PHOG724DB3PYEC4AAVMTO4MB7FYQYLNI6QD5O32FF23YDA 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,.,,,.,,,...,..,,.,,,..,,,..,.,.,..,,...,...,.,,,.,,,.,,,,.,,.,,,
+#7HDPU6OOZXARCGUO6GCYQ33PHRFVBMDTUNS3RSXDCNOSEJWHDLTT7YERBFK5JKLPIEWO5NO5RW2HI
+#\\\|BXSBKCEM5IEIYIEU52OG6NTDHQDUOUJPIASBEIWLCIXFUFATIPV \ / AMOS7 \ YOURUM ::
+#\[7]LEV4YP3LELISZWZA664OB4FUALI4UHRPB4HEST2TC6KDUKJRQ2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

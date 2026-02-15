@@ -170,7 +170,7 @@ my ( $pos_x, $pos_y );
 if ( defined $saved_position ) {
     $pos_x = $saved_position->{'x'};
     $pos_y = $saved_position->{'y'};
-    <[base.logs]>->( 1, "loaded saved position: x=%d y=%d", $pos_x, $pos_y );
+    <[base.logs]>->( 1, "loaded saved position : x=%d y=%d", $pos_x, $pos_y );
 } else {
 
     # Default: top-right with equal margin
@@ -210,7 +210,7 @@ foreach my $mapping_id ( sort keys %$menu_commands ) {
     my $item = Gtk3::MenuItem->new_with_label($label);
     $item->signal_connect(
         'activate' => sub {
-            <[base.logs]>->( 1, "executing menu command: %s", $command );
+            <[base.logs]>->( 1, "executing menu command : %s", $command );
             system($command) if $command;
         }
     );
@@ -228,8 +228,8 @@ $menu->show_all;
 
 return 0;
 
-#,,..,,.,,,,.,,..,,,,,...,,.,,,,.,,..,,,.,.,.,.,.,...,...,...,,.,,,..,,,,,..,,
-#4P4NHMFCJ6UM2AZGTMR7E7JIBX4LZ3TYJDC4TZR2TOEDPL73FWIB5CEISZDCSAVNG6Z5PNEHFA656
-#\\\|XJSRRV262F2NESCYYJU4WOKFCOWSNO446ZVA3HREDNQ6SXG4BZP \ / AMOS7 \ YOURUM ::
-#\[7]V46UTUMDMKKKMGHRITELMG3ISVTBKPZPRF7TYYAUCGUDVJZVCWDQ 7  DATA SIGNATURE ::
+#,,..,.,,,...,,.,,,..,.,.,.,,,..,,..,,,..,,,,,.,.,...,...,..,,,.,,,,,,,,,,.,,,
+#RXO4KN2DXWOEO6WZNPIU5FBLWPYU3TGLUQJM3SKLKFPDNN7V55LWWOIUAVNQSO3MIF7IIXEO6RVF6
+#\\\|6VTZOXDWOE6LNRZPZPS4PLHUIXN7XDI7JI26HZXHXCEOUYJLV6F \ / AMOS7 \ YOURUM ::
+#\[7]4VFFXRWJ4YYH6LTPPCL3UJSKJQHGILZY6OEOVZW27VADRK746QBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

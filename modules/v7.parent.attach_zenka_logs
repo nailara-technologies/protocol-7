@@ -25,7 +25,7 @@ my $socket_path = "$socket_dir/$zenka_name";
 ## Ensure socket directory exists
 unless ( -d $socket_dir ) {
     mkdir( $socket_dir, 0755 ) or do {
-        <[base.log]>->( 0, "  Failed to create socket dir: $!" );
+        <[base.log]>->( 0, "  Failed to create socket dir : $!" );
         return { success => FALSE, error => "mkdir failed: $!" };
     };
 }
@@ -46,7 +46,7 @@ $data{'v7'}{'zenki_logs'}{$zenka_name} = {
     observers   => []
 };
 
-<[base.log]>->( 2, "  Log socket: $socket_path" );
+<[base.log]>->( 2, "  Log socket : $socket_path" );
 
 return {
     success     => TRUE,
@@ -57,8 +57,8 @@ return {
 
 0;
 
-#,,..,,,.,,..,,..,.,,,..,,.,.,..,,.,.,,,,,.,.,..,,...,..,,...,.,,,..,,,..,.,,,
-#GO5WC2STTHLZMW5B7D2ESTUIFCW6FUJLZSVBWM5KASV4K5QP4GW7JFVWYHA3DUHYRNYRMHKIMIC46
-#\\\|T7ZQY7UQTNF7HKJRN2W5MTFPI7JVW3SVA2ISOQUB5GEO74DDKBF \ / AMOS7 \ YOURUM ::
-#\[7]MDEGLFVMNOIBKIGYOH6XXOOIDJ5VST6WXKQV6AOD4PRMEDKNGQAI 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,..,,.,,...,,,.,.,,,...,.,,,.,,,..,,...,..,,..,,.,,,..,,.,,,,,.,
+#KJPO7J3ZUD7YHOSQCWRWNUZEFDQQQ3OZBY5PYLW7N53OH7EYTKWVDG53VPNUONGS66M72YF2JCMDW
+#\\\|HDWYC2U3AYDRCVPGQVRSSU665MPWENNUO34CSX3A3MQX4VIGKKG \ / AMOS7 \ YOURUM ::
+#\[7]2LVRSRCVGBCPF4KBRI4EAHZ4MFFONL6GJACHPBZPCJZZRRCI26CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

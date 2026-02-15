@@ -17,7 +17,7 @@ my $account_id      = $cert_data->{account_id};
 
 ## Validate required inputs
 unless ( $domain && $certificate_pem ) {
-    <[base.log]>->( 1, "error: domain and certificate_pem are required" );
+    <[base.log]>->( 1, "error : domain and certificate_pem are required" );
     return {
         status    => 'error',
         error_msg => 'domain and certificate_pem are required'
@@ -26,9 +26,9 @@ unless ( $domain && $certificate_pem ) {
 
 my $certs_dir = <letsencr.certs.dir>;
 unless ( -d $certs_dir ) {
-    <[base.log]>->( 2, "creating certificates directory: $certs_dir" );
+    <[base.log]>->( 2, "creating certificates directory : $certs_dir" );
     make_path( $certs_dir, { mode => 0755 } ) or do {
-        <[base.log]>->( 0, "error: cannot create certs directory: $!" );
+        <[base.log]>->( 0, "error : cannot create certs directory : $!" );
         return {
             status    => 'error',
             error_msg => "Cannot create certs directory: $!"
@@ -80,7 +80,7 @@ foreach my $ext ( keys %files ) {
             my ( $src, $dst );
             unless ( open( $src, '<', $file_path )
                 && open( $dst, '>', $backup_path ) ) {
-                <[base.log]>->( 1, "warning: cannot backup $file_path" );
+                <[base.log]>->( 1, "warning : cannot backup $file_path" );
             } else {
                 {
                     local $/;
@@ -97,7 +97,7 @@ foreach my $ext ( keys %files ) {
     ## Write new file
     my $fh;
     unless ( open( $fh, '>', $file_path ) ) {
-        <[base.log]>->( 1, "error: cannot write $file_path: $!" );
+        <[base.log]>->( 1, "error : cannot write $file_path: $!" );
         $any_error = 1;
         next;
     }
@@ -112,7 +112,7 @@ foreach my $ext ( keys %files ) {
         chmod( 0644, $file_path );
     }
 
-    <[base.log]>->( 3, "wrote $ext file: $file_path" );
+    <[base.log]>->( 3, "wrote $ext file : $file_path" );
 }
 
 if ($any_error) {
@@ -156,8 +156,8 @@ return {
     error_msg => undef
 };
 
-#,,..,,..,,,,,,,,,,..,,..,..,,.,,,..,,..,,...,..,,...,...,.,.,.,,,..,,.,.,..,,
-#BLYGJWFDRLHHEZRUMYR7OC6GCCXRCFFI3JANA2V2APCZH74HJNH76V7O562OFWB24JUHDLZJKFUW2
-#\\\|5DQ6PM7WBK7TJYQDH64SWV5EWFNYUN6ZAR4PGSIIHHBK7PCOXOO \ / AMOS7 \ YOURUM ::
-#\[7]VBTWFOO6NASZ5J733J27T254HWGT245TUWRPDXWOVOZNILVWVCCQ 7  DATA SIGNATURE ::
+#,,,,,...,..,,,.,,.,,,.,,,..,,.,,,,.,,.,,,,.,,..,,...,...,...,,,.,,..,,,.,.,,,
+#2WHGBHLTYVGB3ZYZ6NYJNFMNAZDDPPJ4PZ4FYUKFMTETN7JLKWFNBK6HCEPKO5IQ6A4U2EHP22UYO
+#\\\|OBWLHS54IACKZBVZX2OKBHFZ5X3SS2GO4ZPNATAMIT3JHY6W2JG \ / AMOS7 \ YOURUM ::
+#\[7]7W2MRRMCLSGTOYGXWPW4CXFNE6JYDJJ3LXF3HIG3CS3RMZAMFGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

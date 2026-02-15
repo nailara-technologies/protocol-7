@@ -14,7 +14,8 @@ unless ($nonce_url) {
     return undef;
 }
 
-## Create HTTP client (use standard LWP::UserAgent to allow localhost for testing)
+## Create HTTP client (use standard LWP::UserAgent
+## to allow localhost for testing)
 my $ua = LWP::UserAgent->new( timeout => 10, );
 
 ## Disable SSL verification for localhost/test servers
@@ -26,7 +27,7 @@ if ( $nonce_url =~ m{^https?://localhost} ) {
 my $response = $ua->head($nonce_url);
 
 unless ( $response->is_success ) {
-    <[base.log]>->( 1, "error fetching nonce: " . $response->status_line );
+    <[base.log]>->( 1, "error fetching nonce : " . $response->status_line );
     return undef;
 }
 
@@ -45,8 +46,8 @@ unless ($nonce) {
 
 return $nonce;
 
-#,,..,,.,,,,,,,..,..,,,,,,.,,,,,.,,..,,..,.,.,..,,...,...,,,.,,.,,,.,,,.,,...,
-#B5IRRMIH2BKUS5TU4A72SMW3VK3BSLQA3NFKC7OFL6UZUMVNG5WN37XDTVBHVHCCRVKYMWI3OKG36
-#\\\|LDVP2DPQVJXB5CEGTSEKTSAQ5CQYJZCDFMU3FZOHTUZNJJTHHKA \ / AMOS7 \ YOURUM ::
-#\[7]T53U5D5EVOL54H42E2NRD3ID4XDDS4CN46WD2ASVSPJYJ3OVPABQ 7  DATA SIGNATURE ::
+#,,..,,.,,.,.,.,,,,,,,,,.,..,,,,,,...,,,.,.,.,..,,...,...,,..,..,,,,.,..,,..,,
+#WRFGUJM37VY3KZZ6TFOTXXK76LTZNQ26KKIUBP7GGZEVKL27VOCXLWJDD767LAGPN4NU4R4EC2HB6
+#\\\|LHX7U7HV7LQVF4ODOYFEVFT6DAFJYOJUATMYARXAMRU7ZMQJLIT \ / AMOS7 \ YOURUM ::
+#\[7]BQ4CJL5BOFF7QDE4LP64UBOM4SFRHB653UIUNS22PG5KFJKDW2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

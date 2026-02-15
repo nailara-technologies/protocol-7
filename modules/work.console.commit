@@ -7,7 +7,7 @@
 my $message = shift;
 
 unless ($message) {
-    <[base.log]>->( 0, "Error: commit message required" );
+    <[base.log]>->( 0, "Error : commit message required" );
     return say "::\n: Usage: workflow commit <message>\n::";
 }
 
@@ -117,8 +117,8 @@ if ( exists $keys{'C25519'}{$sig_key_name}
 
         unless ($write_status) {
             say ' : ⚠ WARNING: Failed to save LLM dev key to disk';
-            say
-                ' : Continuing with in-memory key (not persistent across sessions)';
+            say ' : Continuing with in-memory key '
+                . '(not persistent across sessions)';
         } else {
             say sprintf ' : ✓ LLM dev key saved: %s', join( ':', @checksums );
 
@@ -154,7 +154,9 @@ if ($use_test_key) {
 
     # Get list of currently modified/new files (unstaged and staged)
     my $git_status
-        = `git diff --name-only; git diff --cached --name-only; git ls-files --others --exclude-standard`;
+        = `git diff --name-only; `
+        . `git diff --cached --name-only; `
+        . `git ls-files --others --exclude-standard`;
     my @modified_files = split /\n/, $git_status // '';
     @modified_files = grep { length $_ && -f $_ } @modified_files;
 
@@ -318,8 +320,8 @@ say '';
 
 return FALSE;
 
-#,,.,,,.,,,..,..,,,,,,.,,,,,.,,,.,...,.,.,.,,,..,,...,...,.,.,.,.,,..,,,.,,,,,
-#4S7WFFHYLBAGKJM4N3GWUAPX6DGY6VAYGTYV65QQPIRCX7FGQKLD3T5NHGBHIPHGSEUQWEH6L7GHU
-#\\\|27PULLXZJLFUAD2HAAB2GHXREH4WOAYTVBVMHEKYOLGT4NZ3Y76 \ / AMOS7 \ YOURUM ::
-#\[7]Y5M2S7MKMVHOCKMGEZGPXVQQHJ2ZXQ5OACU56GTUIXVQ7TGKYSCA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,.,,,...,,..,.,.,.,.,,..,,..,.,,,..,,...,...,..,,...,,,.,,,.,,..,
+#B2GHOJKUXXGIBKCEUWUCNFHSINIZWXZKV6GP6GK5HUPIPMK2WB6MC5X7IYLTBVC6MH6R2SHOXY5ZI
+#\\\|PO7HNW5UVNMXGTU3JQJTDH6GTB7KKTKHI2OQWHCSRIAXWOOHMQ6 \ / AMOS7 \ YOURUM ::
+#\[7]4GT4WI2RS7ITMXZIHUDKR4L245KINNGJN6NDXHSHIFIKPSDTNWBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

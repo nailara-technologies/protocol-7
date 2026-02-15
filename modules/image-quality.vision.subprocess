@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name = image-quality.vision.subprocess
-# descr = Subprocess for GPU-accelerated vision analysis using llama-mtmd-cli (multimodal)
+# descr = Subprocess for GPU-accelerated vision analysis
+#         using llama-mtmd-cli (multimodal)
 
 my ( $image_path, $model_identifier, $analysis_prompt ) = @_;
 
@@ -9,19 +10,19 @@ my ( $image_path, $model_identifier, $analysis_prompt ) = @_;
 
 # Validate inputs
 unless ( defined $image_path ) {
-    <[base.log]>->( 0, "Error: Image path required" );
+    <[base.log]>->( 0, "Error : Image path required" );
     return { success => FALSE, error => 'Image path required' };
 }
 unless ( -f $image_path ) {
-    <[base.logs]>->( 0, "Error: Image file not found: %s", $image_path );
+    <[base.logs]>->( 0, "Error : Image file not found : %s", $image_path );
     return { success => FALSE, error => 'Image file not found' };
 }
 unless ( defined $model_identifier ) {
-    <[base.log]>->( 0, "Error: Model identifier required" );
+    <[base.log]>->( 0, "Error : Model identifier required" );
     return { success => FALSE, error => 'Model identifier required' };
 }
 unless ( defined $analysis_prompt ) {
-    <[base.log]>->( 0, "Error: Analysis prompt required" );
+    <[base.log]>->( 0, "Error : Analysis prompt required" );
     return { success => FALSE, error => 'Analysis prompt required' };
 }
 
@@ -48,7 +49,7 @@ if ( -f $config_file ) {
         }
     }
 } else {
-    <[base.log]>->( 0, "Error: models.yaml not found at $config_file" );
+    <[base.log]>->( 0, "Error : models.yaml not found at $config_file" );
 }
 
 return {
@@ -90,21 +91,26 @@ my $escaped_mmproj = quotemeta($mmproj_file);
 my $escaped_image  = quotemeta($image_path);
 my $escaped_prompt = quotemeta($analysis_prompt);
 
-# Build command: use llama-mtmd-cli with multimodal vision support (GPU-accelerated)
+# Build command: use llama-mtmd-cli
+# with multimodal vision support (GPU-accelerated)
 # Parameters:
 # -m: model file path
 # --mmproj: multimodal projection for vision encoding (CLIP)
 # --image: input image file path
 # -n 100: generate up to 100 tokens (sufficient for image analysis)
-# -c 8192: context size (8K - sufficient for image embeddings + analysis prompt)
-#          Image embeddings can consume 500-1000+ tokens depending on image size
+# -c 8192: context size (8K - sufficient for image embeddings
+# + analysis prompt)
+# Image embeddings can consume 500-1000+ tokens
+# depending on image size
 # -e: process escape sequences in prompt
 # Wrap in sh -c to ensure LD_LIBRARY_PATH is properly propagated
 my $cmd = sprintf(
     'sh -c %s',
     quotemeta(
         sprintf(
-            'export LD_LIBRARY_PATH=/data/source/ik_llama.cpp:$LD_LIBRARY_PATH && %s -m %s --mmproj %s --image %s -n 100 -c 8192 -e --prompt %s 2>&1',
+            'export LD_LIBRARY_PATH=/data/source/ik_llama.cpp:'
+                . '$LD_LIBRARY_PATH && %s -m %s --mmproj %s'
+                . ' --image %s -n 100 -c 8192 -e --prompt %s 2>&1',
             $llama_mtmd_cli, $escaped_model, $escaped_mmproj,
             $escaped_image,  $escaped_prompt
         )
@@ -146,8 +152,8 @@ return {
     model_used => $model_identifier
 };
 
-#,,,,,.,.,,,.,,,,,...,...,,,.,.,,,.,,,,.,,,.,,..,,...,...,..,,,,,,.,,,..,,,,.,
-#FXJ4Q3Q5IDXV5SS2I436UWCJGKOFH3Y2L3OAKY6UJW5GLR4SEXEN4SK7UCRAOMK6AFAZPUAJWSEF4
-#\\\|3KSJYFO47I2VPM2ANYABH4SIOQYZOM2PF5ZJZL2XWHLRCURXP4S \ / AMOS7 \ YOURUM ::
-#\[7]LI3XE2ZXELLBMOTI5ND6YOJKJGQYSLJ6PED5BEBRAX4MO5HSBMCY 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,,.,,.,.,,.,,,,.,,,.,,,.,,.,,,,.,..,,...,...,.,,,,.,,,..,,..,,..,
+#Q3PU2D6TAQPVT4UOIF7WFYOPPQU3NBCRY4JJ2IQNTKYP46CGVR4DT4WJ5ETPIN2STICYAG2RPASQW
+#\\\|XRAHL4U25W5E3NORFID2AIAKHDARSRAPU7HMRCIYH4642UDVO5D \ / AMOS7 \ YOURUM ::
+#\[7]BQQKGQ5EYPBPGQVHSIZT4SYPM66XCPJQ7BC2C3OBYHGOU6PP76AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name  = letsencr.child.check_dns_propagation
-# descr = verify DNS-01 challenge TXT record has propagated before ACME validation
+# descr = verify DNS-01 challenge TXT record
+#         has propagated before ACME validation
 
 my $dns_record_name = shift;
 my $expected_value  = shift;
@@ -46,14 +47,15 @@ while ( $attempt < $max_attempts ) {
             ## Get TXT record value (may be in quotes)
             my $value = join( '', $rr->txtdata );
 
-            <[base.log]>->( 3, "  found TXT: $value" );
+            <[base.log]>->( 3, "  found TXT : $value" );
             push @txt_records, $value;
 
             ## Check if this matches our expected value
             if ( $value eq $expected_value ) {
                 <[base.log]>->(
                     2,
-                    "DNS-01 challenge propagated successfully (attempt $attempt)"
+                    "DNS-01 challenge propagated successfully"
+                        . " (attempt $attempt)"
                 );
                 return {
                     propagated => 1,
@@ -67,12 +69,13 @@ while ( $attempt < $max_attempts ) {
         if (@txt_records) {
             <[base.log]>->(
                 2,
-                "TXT record found but value mismatch (expected: $expected_value)"
+                "TXT record found but value mismatch"
+                    . " (expected: $expected_value)"
             );
         }
     } else {
         my $errorstring = $resolver->errorstring;
-        <[base.log]>->( 3, "  DNS query failed: $errorstring" );
+        <[base.log]>->( 3, "  DNS query failed : $errorstring" );
     }
 
     ## Not propagated yet, wait before retrying
@@ -85,7 +88,8 @@ while ( $attempt < $max_attempts ) {
 
 <[base.log]>->(
     1,
-    "DNS propagation timeout after $max_attempts attempts (record not found or incorrect)"
+    "DNS propagation timeout after $max_attempts attempts"
+        . " (record not found or incorrect)"
 );
 
 return {
@@ -94,8 +98,8 @@ return {
     error      => 'DNS propagation timeout',
 };
 
-#,,..,.,.,.,,,,..,,,,,.,,,.,,,,..,.,.,.,,,,.,,..,,...,..,,.,,,...,.,,,..,,.,.,
-#Q373SVOKSM4HHKDMRLWVSKZIBMV4CJEFI3WOLV3BLOITWG3JBUBJOAIFYPGQY3H6NDL7LNQ75KYYQ
-#\\\|FTAONSPLLRYP4RHLOEYYEGZXHJCUQAXFHZBE36LHQKRV6OLXAL2 \ / AMOS7 \ YOURUM ::
-#\[7]RK3H77FU3EZMYBQZUNH5QIVLMFWNNROTPEIGIEQDET6LJKSYDMBQ 7  DATA SIGNATURE ::
+#,,.,,,..,..,,.,,,.,.,,,.,,,.,,.,,..,,...,...,..,,...,...,...,.,,,,,,,.,,,,,.,
+#BOPMRD2TEVP6VAB4ZFNHWIKVLWSYA6PGKZVQCFDSIALK6K6LE72NTPRTAH5V4ERCBTBT2H2ZWV3S4
+#\\\|FUMYEEP4A2XCI35GY2MPH76BO2PBXJM7BTAAFP3ZSLLC2P4O5SZ \ / AMOS7 \ YOURUM ::
+#\[7]54GHMSKHSJVOQVOHXHTZOARFFTLZE5P46YLOOGF3ETGXA6T4FECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

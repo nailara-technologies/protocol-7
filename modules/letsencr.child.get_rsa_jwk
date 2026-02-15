@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name  = letsencr.child.get_rsa_jwk
-# descr = get public key in JWK (JSON Web Key) format for ACME (RFC 7517 - RSA)
+# descr = get public key in JWK (JSON Web Key) format
+#         for ACME (RFC 7517 - RSA)
 
 <[base.log]>->( 3, 'generating JWK from RSA account key (RFC 7517)' );
 
@@ -11,7 +12,7 @@ return undef unless $account_key_name;
 ## validate key type
 my $key_type = <letsencr.child.acme_client>->{account_key_type};
 unless ( $key_type && $key_type eq 'RSA' ) {
-    <[base.log]>->( 1, "error: expected RSA account key, got $key_type" );
+    <[base.log]>->( 1, "error : expected RSA account key, got $key_type" );
     return undef;
 }
 
@@ -47,8 +48,8 @@ my $jwk_json = JSON::XS->new->canonical(1)->encode($jwk);
 ## return decoded JWK hash for embedding in JOSE header
 return JSON::XS::decode_json($jwk_json);
 
-#,,,.,..,,.,,,...,..,,,,,,,.,,.,.,,,.,,.,,,,.,...,...,..,,,,,,.,.,,,,,,,,,..,,
-#QNZNQSSODWCWIMWQD4IRZMDYJFSQFTGJICDM2CW2P37NPVJBR6PRIKXEOCUJVU7VI4DCIQPW7WVOO
-#\\\|IPEI5OAKZKBMXWDPKDUHWUBTNHJS76GWMNHL5OQJSJJPB7TM27O \ / AMOS7 \ YOURUM ::
-#\[7]RVNHN4LYFED7YI7G475BIIHDN7YAGAX7QTZ2BWS7Q2XXM5QHMSAQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,...,..,,.,,,,,,,.,,,.,,,.,.,...,...,...,...,.,.,,,.,,.,,.,.,.,,,
+#AJKP6QU7CCLS2ZRDXEV5O7WI3UDUHXHZSVZ5DON5X27OJO6CHQ2I324BXTGBPWGTQMSS4MGWJJRRS
+#\\\|UA3DAX4KQAHW4JPW7QZN5JGAHLERFH2CDVLKICOFDEBGHL3BZQQ \ / AMOS7 \ YOURUM ::
+#\[7]724S3G5257SGEXLWQOO3CERFIDXSJBPRFYGOJVX77XO4KBC5CECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

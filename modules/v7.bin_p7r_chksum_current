@@ -16,7 +16,7 @@ my $src_checksum   = <[chk-sum.bmw.filesum]>->( 224, $bin_p7r_src_path );
 if ( -e $p7r_bin_path
     and <[v7.bin_p7r_comp_chksum]>->( $p7r_bin_path, $src_checksum ) ) {
     <[base.log]>->( $log_level, ": 'p-7-r' binary installed and current =)" );
-    <[base.log]>->( 2, ":. src: $src_checksum" );
+    <[base.log]>->( 2, ":. src : $src_checksum" );
     $current_result = 1;
 } else {
     my $root_path = <system.root_path>;
@@ -26,14 +26,15 @@ if ( -e $p7r_bin_path
         ? "'p-7-r' binary needs upgrade [ bmw checksum mismatch ].,"
         : "'p-7-r' binary is not installed [ $bin_path_rel ].,";
     <[base.log]>->( --$log_level, ": $result_msg" );
-    <[base.log]>->( 2,            ":. src: $src_checksum" );
-    <[base.log]>->( 2,            ":: bin: $bin_checksum" )
+    <[base.log]>->( 2,            ":. src : $src_checksum" );
+    <[base.log]>->( 2,            ":: bin : $bin_checksum" )
         if $bin_checksum =~ m|^[0-9A-Z]{45}$|;
     <v7.checksum.bin_p7r_source> = $src_checksum;
 }
 
 if ( -e $p7r_bin_path and not -x $p7r_bin_path ) {
-    ##  automatic repair desired ? ###                                    [LLL]
+    ##  automatic repair desired ? ###
+    ## [LLL]
     map { <[base.log]>->( 0, $ARG ) } (
         ':',
         ": has no exec permission : $p7r_bin_path",
@@ -46,8 +47,8 @@ if ( -e $p7r_bin_path and not -x $p7r_bin_path ) {
 
 return $current_result;
 
-#,,..,.,,,..,,..,,...,,,,,...,.,,,..,,...,,.,,.,.,...,...,.,.,,,.,,..,,,,,,,,,
-#A5PJZRRDTX3OSTFAH3Z34XHAGQ3F5S7CAOIK2WKDVIHTIHJQG5FRAPTWRHRYLPF7DQILF27AADM6E
-#\\\|WTSCG7EVZD2TCL5KXPCTOTOCCBZ2DKSUXKJVU4TQXUXMBJUQLA3 \ / AMOS7 \ YOURUM ::
-#\[7]UFCOBNYVJKU6WKYW6LSFPXQSN6UFWJOTCIHK7YWUH43AU5T3F4AI 7  DATA SIGNATURE ::
+#,,,.,...,..,,.,.,...,,.,,.,,,,,.,,,,,,..,...,.,.,...,.,.,...,.,,,,..,,,,,..,,
+#HTL4HFMA6KSCYWPVCX5E4EJRBDHPSBHCVMYWBFYGN62S6CE6FIDHINRD54V4IAFUU5MEOACKPXUW4
+#\\\|RLEICCDF7NRSK73I5LLVU6O2NP3ICZG552BYILXS3C7Z3Y36745 \ / AMOS7 \ YOURUM ::
+#\[7]DYNEEJJ4FV5ZZYWGOXDHE3QIYBGT6JUVRLMPPT22H7K2P7HFECDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

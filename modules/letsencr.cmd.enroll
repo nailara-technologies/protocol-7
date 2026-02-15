@@ -30,7 +30,8 @@ if ( -f $cert_file && -f $key_file ) {
     if ( $cert_info && $cert_info->{days_until_expiry} > 30 ) {
         <[base.log]>->(
             2,
-            "  Certificate exists and valid for $cert_info->{days_until_expiry} days"
+            "  Certificate exists and valid for"
+                . " $cert_info->{days_until_expiry} days"
         );
 
         return {
@@ -72,7 +73,7 @@ if ( exists $code{'letsencr.parent.enroll_domain'} ) {
     eval { $result = <[letsencr.parent.enroll_domain]>->($domain); };
 
     if ($EVAL_ERROR) {
-        <[base.log]>->( 0, "  Enrollment failed: $EVAL_ERROR" );
+        <[base.log]>->( 0, "  Enrollment failed : $EVAL_ERROR" );
         return {
             success => FALSE,
             error   => qq| enrollment failed: $EVAL_ERROR |
@@ -81,7 +82,7 @@ if ( exists $code{'letsencr.parent.enroll_domain'} ) {
 
     if ( !$result || !$result->{success} ) {
         my $error_msg = $result->{error} || qw| unknown enrollment error |;
-        <[base.log]>->( 0, "  Enrollment failed: $error_msg" );
+        <[base.log]>->( 0, "  Enrollment failed : $error_msg" );
 
         return {
             success => FALSE,
@@ -108,7 +109,7 @@ if ( exists $code{'letsencr.parent.enroll_domain'} ) {
                 = $EVAL_ERROR
                 || $install_result->{error}
                 || qw| unknown install error |;
-            <[base.log]>->( 0, "  Certificate installation failed: $error" );
+            <[base.log]>->( 0, "  Certificate installation failed : $error" );
 
             return {
                 success       => TRUE,    ## Enrollment succeeded
@@ -153,8 +154,8 @@ if ( exists $code{'letsencr.parent.enroll_domain'} ) {
 
 0;
 
-#,,..,,,,,,.,,,..,.,,,,,,,,..,,,,,..,,,..,,,.,..,,...,...,,..,,,.,.,,,.,.,...,
-#BFY75WIDUETWQDLN6BA55IW6MVFF4POKGFV3X57SIKFGRKHN6XAKYM6A4SQPRDYXMQFDGH5XDJEQU
-#\\\|KA4V56I5462NLGMFK3CXBHL5OZDISQK2IOJ53RJPCVTUZ5Q34QG \ / AMOS7 \ YOURUM ::
-#\[7]ATRXHEIBOSAORC3QSKGYDOIB6PPQOSX3SLRBT5AZJ4XJXAZZ6WCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,...,,,,,.,,,..,,.,,,,,,,,..,,,,,,,.,..,,...,...,...,.,,,,..,,.,,.,,,
+#TEQ7AEYOGM2XXFXIC5IKU5RR2UOLA4X6MUBSTS67R6UDGL6WLYGYJJNTMASICXYSYJY3HUBDRY6W4
+#\\\|3OSOK66TN3HINBCXVEYYANYDN4SI4TDNXSPSQL5YVD2QN37OXSN \ / AMOS7 \ YOURUM ::
+#\[7]RGSOJZOG7LFGUX3LQ6JM45J2LT3IOH5BCIZOGMFHHGV4BQTIX4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

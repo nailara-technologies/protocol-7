@@ -37,7 +37,8 @@ return undef
 
 my $pinned_key_ref = <[crypt.C25519.get_remote_key]>->( $hostname, $port );
 
-##  No pinned key yet (first use) - this is not an error, caller may pin it  ##
+##  No pinned key yet (first use) - this is not an error,
+##  caller may pin it  ##
 
 return undef if not defined $pinned_key_ref;
 
@@ -57,14 +58,14 @@ if ( $announced_pubkey_b32 eq $pinned_pubkey_b32 ) {
         0,         "SECURITY: remote key mismatch for %s:%s",
         $hostname, $port
     );
-    <[base.logs]>->( 0, "  pinned:    %s", $pinned_pubkey_b32 );
-    <[base.logs]>->( 0, "  announced: %s", $announced_pubkey_b32 );
+    <[base.logs]>->( 0, "  pinned :    %s", $pinned_pubkey_b32 );
+    <[base.logs]>->( 0, "  announced : %s", $announced_pubkey_b32 );
 
     return FALSE;
 }
 
-#,,.,,,..,.,,,,..,,.,,.,.,,.,,.,,,,,.,..,,,..,.,.,...,...,.,,,,,.,,.,,,,,,,..,
-#43YU3ANQGZZ2VNSVAMOPCOU4C6KHK4NL6TVC2NZRN6YLJAM43SPO5PB3R6ZASPT4YKGIVDOIHCHCY
-#\\\|HLPXUNYLH62QGQQMA2P5UPVXBOFR7HO2P3YHPT4UQHFZHI7DJPX \ / AMOS7 \ YOURUM ::
-#\[7]RSWIO4NP5SCV4PRVJ36UL7UTEFCZQQH6KNW6DAY7Z6H323OO7YBQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,..,,,.,,..,.,,,...,.,,,...,,,.,.,.,...,...,...,,.,,.,.,,,.,,,.,
+#4KCSCNJIUSELMHLD4ZUQ3EGJPGLY5FBHMMPEVS6NGZTDFKDINEK2R3JFBUN2BLGXYVB2PO4YTAJ7A
+#\\\|DHUYW6CAAZ7NGGHGXAXJOPW4Z7LZHB6ZGBKQBV6WAHCVRBKDMDW \ / AMOS7 \ YOURUM ::
+#\[7]6VLVVLA6LUOPNN76IOFHO7RPAOFVI7VRAV43RLO2BC4XTNCOYUAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

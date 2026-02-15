@@ -29,12 +29,12 @@ unless ($jwk) {
 my $jwk_ordered = JSON::XS->new->canonical(1)->encode($jwk);
 my $thumbprint  = encode_base64url( sha256($jwk_ordered) );
 
-<[base.log]>->( 3, "JWK thumbprint: $thumbprint" );
+<[base.log]>->( 3, "JWK thumbprint : $thumbprint" );
 
 ## Create key authorization: token.thumbprint
 my $key_auth = "$token.$thumbprint";
 
-<[base.log]>->( 3, "key authorization: $key_auth" );
+<[base.log]>->( 3, "key authorization : $key_auth" );
 
 ## For DNS-01, we need to create TXT record at:
 ## _acme-challenge.{domain}
@@ -42,7 +42,7 @@ my $key_auth = "$token.$thumbprint";
 
 my $dns_value = encode_base64url( sha256($key_auth) );
 
-<[base.log]>->( 2, "DNS-01 TXT record value: $dns_value" );
+<[base.log]>->( 2, "DNS-01 TXT record value : $dns_value" );
 
 ## Determine the domain to use for DNS record
 ## For wildcard *.example.com, use _acme-challenge.example.com
@@ -52,12 +52,12 @@ $base_domain =~ s|^\*\.||;    # Remove wildcard prefix if present
 
 my $dns_record_name = "_acme-challenge.$base_domain";
 
-<[base.log]>->( 2, "DNS TXT record name: $dns_record_name" );
+<[base.log]>->( 2, "DNS TXT record name : $dns_record_name" );
 
 ## Determine DNS provider from configuration
 my $dns_provider = <letsencr.dns.provider> // 'inwx';
 
-<[base.log]>->( 2, "DNS provider: $dns_provider" );
+<[base.log]>->( 2, "DNS provider : $dns_provider" );
 
 ## Create DNS TXT record via provider API
 my $dns_result;
@@ -90,12 +90,12 @@ if ( $dns_provider eq 'inwx' ) {
     ## Wait for user confirmation (would need user interaction)
     $dns_result = { success => TRUE, manual => 1 };
 } else {
-    <[base.log]>->( 1, "error: unknown DNS provider: $dns_provider" );
+    <[base.log]>->( 1, "error : unknown DNS provider : $dns_provider" );
     return undef;
 }
 
 unless ($dns_result) {
-    <[base.log]>->( 1, "error: failed to create DNS TXT record" );
+    <[base.log]>->( 1, "error : failed to create DNS TXT record" );
     return undef;
 }
 
@@ -123,8 +123,8 @@ return {
     provider        => $dns_provider,
 };
 
-#,,,,,,,,,,,,,...,,.,,.,,,,..,,,,,,,,,,.,,,,,,..,,...,...,,,.,...,,,,,..,,.,.,
-#2MOUV7IA5VVGPBFPZJJ4USFKZFYOE2KFUHVQ3M6TZRGNUEJ3FPT6J2Y6QAZXABXY7HPVSZFZ2GXSQ
-#\\\|ZB2PVX2FAEO3UIHIW6IBOV3CFR5BWUGT4RNGP2BMZT7ZMHT4Q5D \ / AMOS7 \ YOURUM ::
-#\[7]TAZUUBVTWAIWCRONE4GSCKHFNZJENRVE3WKQM5Y42ALBOP2OQGDQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,.,,.,.,,.,,,.,,.,.,,,.,,,,,,..,..,,...,...,,..,,,,,,,.,,..,.,,,
+#ES7DXU4LHRXOOC5XVJGZSPWDPQ6PSQ6JN6XYM22RNRUGITVU6OY5FT7TUX7ZWPEM4WO67CCTGBNYK
+#\\\|5G5CDJRRP2JOPKSODTRNPI5GXWWDEXOPMGNWP4NM24QKN2M7GBZ \ / AMOS7 \ YOURUM ::
+#\[7]L3YRGSJ33SMHOB67RQUG2XWFTOP2UOYDO4UUQWNSIHQOHGQKZSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -47,7 +47,7 @@ foreach my $renewal_info (@$renewal_list) {
     ## Send renewal command to child
     my $cmd = 'letsencr.child.cmd.renew-certificate ' . $domain;
 
-    <[base.log]>->( 2, "sending renewal command to child for: $domain" );
+    <[base.log]>->( 2, "sending renewal command to child for : $domain" );
 
     my $result = <[base.protocol-7.command.send.local]>->(
         {   'command'   => $cmd,
@@ -79,7 +79,7 @@ foreach my $renewal_info (@$renewal_list) {
 
         $queued_count++;
     } else {
-        <[base.log]>->( 1, "error: failed to queue renewal for $domain" );
+        <[base.log]>->( 1, "error : failed to queue renewal for $domain" );
     }
 }
 
@@ -90,8 +90,8 @@ return {
     queued => $queued_count,
 };
 
-#,,.,,,,,,..,,...,,,,,.,,,.,,,..,,,.,,...,,.,,..,,...,...,,,.,.,,,...,.,.,,.,,
-#UANPC5WQGQGY2FRO6TAA4XK4C63R5RTWGN244ALFVXEBP2H6QEK7BBJJH4GDS7CMR3LZZQNTXAAPG
-#\\\|PQC5MAUTI7BHS3E3DYHHMFG22OAUG5WQJHH7KVNK2JWSYLP53OC \ / AMOS7 \ YOURUM ::
-#\[7]YISQ2INHXLZ36TY7QCJ2U6BPWKTU4LFTPF5RZ3EJVLZNJ2SVNGAQ 7  DATA SIGNATURE ::
+#,,,,,,.,,...,.,,,.,,,,..,.,,,,,,,,.,,,,,,...,..,,...,.,.,...,..,,.,.,,..,...,
+#ETA5I52I3XFQ3C3JSAEEN6ZB2VFOCGLTFTB5IK2H72LPKUUDNHVN2VTDRAQLJLTTJX4UD5ZXEM4A2
+#\\\|IF544VGQSLDYIIXP4Z4MDRKQE3CNW55PE6IGRQTI72C7DFCUERJ \ / AMOS7 \ YOURUM ::
+#\[7]Z2U2F35ZVXKOXETYUVPXRIVGOQMB3OLZWYJJFFFVY44YDK2CQ6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

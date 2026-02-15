@@ -2,7 +2,8 @@
 
 # name  = base.validate.composite_name
 # param = $name, $context (optional: 'auth', 'ondemand', 'session')
-# descr = validate username/zenka name against composite length limits with progressive warnings
+# descr = validate username/zenka name against composite
+#         length limits with progressive warnings
 
 my $name    = shift // return { valid => 0, error => 'name required' };
 my $context = shift // 'general';
@@ -11,17 +12,17 @@ my $context = shift // 'general';
 my $MAX_USERNAME    = 32;
 my $MAX_SUBNAME     = 18;
 my $MAX_SYSTEM_USER = 32;
-my $MAX_WITH_PREFIX = 27;  ## Safe limit for 'unix-<name>' to fit in system-usr
-my $MAX_COMPOSITE   = 50;  ## username[subname] composite limit
+my $MAX_WITH_PREFIX = 27; ## Safe limit for 'unix-<name>' to fit in system-usr
+my $MAX_COMPOSITE   = 50; ## username[subname] composite limit
 
 ## Initialize warning tracking
 $data{'validate'}{'composite_name'}{'warnings'} //= {};
 my $warn_key = "$context:$name";
-my $warned   = $data{'validate'}{'composite_name'}{'warnings'}{$warn_key} // 0;
+my $warned = $data{'validate'}{'composite_name'}{'warnings'}{$warn_key} // 0;
 
 ## Start at log level 1 for first warning, increase on repeats (up to level 3)
 my $loglevel = 1;
-$loglevel++ if $warned > 0 && $warned < 2;
+$loglevel++ if $warned > 0  && $warned < 2;
 $loglevel++ if $warned >= 2 && $warned < 5;
 
 ## Basic validation - name matches usr_str pattern
@@ -29,7 +30,8 @@ my $re = $data{'regex'}{'base'};
 if ( $name !~ m{^$re->{'usr_str'}$} ) {
     return {
         valid => 0,
-        error => "invalid username format: '$name' (alphanumeric, hyphen, underscore only)"
+        error => "invalid username format: '$name'"
+            . " (alphanumeric, hyphen, underscore only)"
     };
 }
 
@@ -42,7 +44,7 @@ my @errors;
 
 ## 1. Check 'unix-<name>' prefix safety (critical for unix domain socket auth)
 ## All zenki can be accessed via unix socket, so validate for all contexts
-if ( 1 ) {  ## Always check unix-auth prefix safety
+if (1) {    ## Always check unix-auth prefix safety
     my $with_prefix     = "unix-$name";
     my $with_prefix_len = length($with_prefix);
 
@@ -51,10 +53,10 @@ if ( 1 ) {  ## Always check unix-auth prefix safety
             sprintf(
             "composite 'unix-%s' (%d chars) exceeds system-usr limit (%d)",
             $name, $with_prefix_len, $MAX_SYSTEM_USER );
+        push @errors, "  This breaks: Unix domain socket authentication";
         push @errors,
-            "  This breaks: Unix domain socket authentication";
-        push @errors,
-            sprintf( "  Reduce username to %d chars or reconfigure base.regex",
+            sprintf(
+            "  Reduce username to %d chars or reconfigure base.regex",
             $MAX_WITH_PREFIX );
         $result{valid}           = 0;
         $result{breaks_unixauth} = 1;
@@ -74,7 +76,7 @@ if ( 1 ) {  ## Always check unix-auth prefix safety
 
 ## 2. Check 'name[subname]' composite (informational)
 ## All zenki can have session subnames, so validate for all contexts
-if ( 1 ) {  ## Always check composite patterns
+if (1) {    ## Always check composite patterns
     my $max_composite_len = $name_len + 2 + $MAX_SUBNAME;
 
     if ( $max_composite_len > $MAX_COMPOSITE ) {
@@ -83,10 +85,8 @@ if ( 1 ) {  ## Always check composite patterns
             "username '%s' (%d chars) may cause long session identifiers",
             $name, $name_len );
         push @warnings,
-            sprintf(
-            "  '%s[subname]' could reach %d chars (limit: %d)",
-            $name, $max_composite_len, $MAX_COMPOSITE
-            );
+            sprintf( "  '%s[subname]' could reach %d chars (limit: %d)",
+            $name, $max_composite_len, $MAX_COMPOSITE );
         $result{warn_composite} = 1;
     }
 }
@@ -94,7 +94,7 @@ if ( 1 ) {  ## Always check composite patterns
 ## 3. Log errors (always shown)
 if (@errors) {
     $result{error} = join( "\n", @errors );
-    <[base.log]>->( 0, "composite name validation FAILED: $name" );
+    <[base.log]>->( 0, "composite name validation FAILED : $name" );
     foreach my $err (@errors) {
         <[base.log]>->( 0, "  $err" );
     }
@@ -102,7 +102,7 @@ if (@errors) {
 
 ## 4. Log warnings (progressive: decrease frequency on repeats)
 if ( @warnings && $loglevel <= 2 ) {
-    <[base.log]>->( $loglevel, "composite name validation warning: $name" );
+    <[base.log]>->( $loglevel, "composite name validation warning : $name" );
     foreach my $warn (@warnings) {
         <[base.log]>->( $loglevel, "  $warn" );
     }
@@ -118,8 +118,8 @@ $result{warning_count} = $warned + 1 if @warnings;
 
 return \%result;
 
-#,,,.,..,,.,.,,,.,,,,,,..,.,,,,..,..,,,.,,.,.,..,,...,..,,.,,,...,,,,,,.,,,,,,
-#PRZUUQ7WXB2AOSQNSBGRWYAIPIUDGPIU3ZRIDZD63XJJ277KKOYXOCLUMYW7BI6WMJKI3NQBCZ7WQ
-#\\\|EBLT5ZABGBLASMGZ4SOWT7RZ3R26NQUQ3EKVO3JN4PNCAS4EEY7 \ / AMOS7 \ YOURUM ::
-#\[7]7YGAEDU5WNN2F2XCGEL5ZBWQL2SN2H6DAVLTXI5SM4PSHO27DSBI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,.,.,.,,.,,,.,,..,,,,.,..,,,,,,..,,...,...,...,..,,,.,,..,,,,,,
+#5TJKGPO2JNIROHNFPCP2QE3FLQHUBBC5KSYG5LSF6L7LW7VUHY3GV5OV5EPCZM5V55SY3RBI5J4BM
+#\\\|F7HYECQI42VBU6FSTV5GR4AF35FSV7TE6XZDRCO2KH25TYFI3PM \ / AMOS7 \ YOURUM ::
+#\[7]ATZVIICAPRM7ARFFBH532Q27KUOIXQI75F7R3ZFW2QMOQLX3VEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

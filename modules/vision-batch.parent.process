@@ -42,7 +42,8 @@ my $batch_id = $batch_id_result->{batch_id};
 my $batch_state = <vision-batch.batch_state>;
 
 # Populate jobqueue with all image analysis tasks
-# jobqueue.add_job handles job infrastructure, dependency resolution, and execution
+# jobqueue.add_job handles job infrastructure,
+# dependency resolution, and execution
 my @job_ids;
 foreach my $image_path (@$image_paths) {
     my $job_id = <[jobqueue.add_job]>->(
@@ -96,7 +97,7 @@ if (<[file.zenka_dir.write]>->(
         $batch_file_path, \$batch_file_content, undef, 0660
     )
 ) {
-    <[base.log]>->( 2, "Batch state persisted: $batch_file_path" );
+    <[base.log]>->( 2, "Batch state persisted : $batch_file_path" );
 } else {
     <[base.log]>->(
         1, "WARNING: Failed to persist batch state to $batch_file_path"
@@ -114,8 +115,8 @@ return {
         sprintf( 'Batch %s processing started with single child', $batch_id )
 };
 
-#,,,,,..,,..,,.,,,,..,,,,,,.,,,,.,.,,,.,,,,..,..,,...,...,,,.,.,.,...,...,,,.,
-#GPNJ5O5UQKZRN6L5UOVRJMU22AISEQ3LKHQF3SPKBT3MGYWH4NLFW6HQ5AJNKELV2CRSORPF36QCM
-#\\\|4HEOYG4S6HMAYXBON3SWLPWYVZVOSS6IQJPPRE336ASUCXTSUDT \ / AMOS7 \ YOURUM ::
-#\[7]H4X5NRNK6NK35XUEDX7VJHBENOL6EBZBXFGOR3DRXJ2PTXDVFCCA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,...,.,,,,,.,,,.,...,..,,.,,,,,.,..,,...,...,,.,,,..,.,.,.,,,..,,
+#4RITFJXG6EFZV3IDHEUWIXUJGYPSEDDLCBJC2T5IVGJ32RG3PFXEVGLNBKUP3KWKY7VSSH45BJILG
+#\\\|AO4JFOATEUVSBL4WE3ANEW4UVNTXGDOOPYU7UZPQQ7S2QBWSNUW \ / AMOS7 \ YOURUM ::
+#\[7]XQKNLDRMXJVUX6WEFXGJBCQDGIMP25X4OJKU73KL7XFPMVTTN4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

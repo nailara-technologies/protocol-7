@@ -13,7 +13,7 @@ return {
     }
     unless defined $domain && length($domain);
 
-<[base.log]>->( 2, "child: revoking certificate for domain: $domain" );
+<[base.log]>->( 2, "child : revoking certificate for domain : $domain" );
 
 ## Get certificate and key paths from parent
 my $cert_path = $call->{'param'}{'cert_path'};
@@ -39,8 +39,8 @@ unless ( -f $cert_path && -f $key_path ) {
     };
 }
 
-<[base.log]>->( 2, "  certificate: $cert_path" );
-<[base.log]>->( 2, "  key: $key_path" );
+<[base.log]>->( 2, "  certificate : $cert_path" );
+<[base.log]>->( 2, "  key : $key_path" );
 
 ## Call ACME revocation (blocking operation - safe in child)
 my $result = <[letsencr.child.acme_revoke]>->(
@@ -53,7 +53,7 @@ my $result = <[letsencr.child.acme_revoke]>->(
 ## Check result status
 unless ( $result && $result->{status} eq 'success' ) {
     my $error = $result->{error} || 'Unknown error during revocation';
-    <[base.log]>->( 1, "certificate revocation failed: $error" );
+    <[base.log]>->( 1, "certificate revocation failed : $error" );
     return {
         'mode' => 'false',
         'data' => $error
@@ -68,8 +68,8 @@ return {
     'data' => "Certificate revoked for $domain at " . $result->{revoked_at}
 };
 
-#,,,,,.,,,.,,,,..,,..,,,.,,.,,...,,,.,...,,..,..,,...,...,,..,,..,,,.,.,,,.,,,
-#MMPLUPW5OJWJC23LR75UIBMA2UMQHIFGU36K6O5KAKOTLTA4MW3QLH6WYPW6J4NXVUMMLB65T327Y
-#\\\|ADII5JCUGZYMJKDE4MH5RZCLGFG2SC4FWUTXBYUAQEFFUXVNI5B \ / AMOS7 \ YOURUM ::
-#\[7]WY4IGXQA2434CMHT4S5DMSSB7RIMGH5DZLUTSRHQOAAN7WKM4YDY 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,...,,,.,,,.,,,.,..,,..,,.,.,,,.,..,,...,..,,...,...,,,.,.,.,.,,,
+#BR2YOLZ3WVZLR3VVFG2NYNBMSZUBMFKDOFT2M2LCEYRYHR4YNHRMIIYXZLECBVUTJ73VVXZ2LFPQQ
+#\\\|6MGZ6ETGDK6BOXA3PPUV6GEQPYJAWMPY3I7D2GV5LJB6Q5NB7NA \ / AMOS7 \ YOURUM ::
+#\[7]LACB3VLAKPH7GPLWBWHR7C4Z33AIIAGJCVC24TBGV4CY74EBDSBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name  = letsencr.child.acme_verify_challenge
-# descr = child process verifies ACME challenges with Let's Encrypt server (blocking network call)
+# descr = child process verifies ACME challenges
+#         with Let's Encrypt server (blocking network call)
 
 my $msg = shift;
 
@@ -10,7 +11,7 @@ my $challenge_token   = $msg->{challenge_token};
 my $order_url         = $msg->{order_url};
 my $authorization_url = $msg->{authorization_url};
 
-<[base.log]>->( 2, "child: verifying challenge type: $challenge_type" );
+<[base.log]>->( 2, "child : verifying challenge type : $challenge_type" );
 
 ## This is where blocking verification occurs:
 ## 1. Poll ACME server to check challenge status
@@ -37,7 +38,7 @@ while ( $attempt < $max_attempts ) {
 }
 
 if ($challenge_valid) {
-    <[base.log]>->( 2, "child: challenge verified successfully" );
+    <[base.log]>->( 2, "child : challenge verified successfully" );
     <[letsencr.child.send_to_parent]>->(
         {   command        => 'challenge_verified',
             challenge_type => $challenge_type,
@@ -45,7 +46,7 @@ if ($challenge_valid) {
         }
     );
 } else {
-    <[base.log]>->( 1, "child: challenge verification FAILED" );
+    <[base.log]>->( 1, "child : challenge verification FAILED" );
     <[letsencr.child.send_to_parent]>->(
         {   command        => 'challenge_failed',
             challenge_type => $challenge_type,
@@ -54,8 +55,8 @@ if ($challenge_valid) {
     );
 }
 
-#,,,.,...,,,.,,,.,,..,,,,,.,.,,..,.,.,.,.,,.,,..,,...,..,,...,,,.,.,.,..,,...,
-#HXFX6P4KIIJADJRPOMYRFS6LYQLMFRFWCXEP2L5OEM5VLCLN25LWQY2CLOLAO43ZIKS7YB3ZOF6ZI
-#\\\|AIPH2UZYDAVP7HOA4XOBHYDSTL6UZENR435K5KGSXPGCKQ6PDIO \ / AMOS7 \ YOURUM ::
-#\[7]WZQ3ADNMR4C5K3RXSN6DAKDNNFDBGFICSXZNNBLVV57SINHQLSCQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,.,.,...,..,,.,.,,.,,.,.,,..,.,,,..,,...,...,,..,,.,,,,,,.,.,,.,,
+#X5KP56ZDLFWGTD6USSY5CJ2SYIOETCPTV4IQW36UYTNQV3BM4ZHWJJOE6F4AABTUWZZJJ4VONNYAK
+#\\\|MYZ7A2NBHAUVPZBFBANAGFLS7O2EA6IHMR3BZLW6JRTWGBIZJMM \ / AMOS7 \ YOURUM ::
+#\[7]FZSBMX3KFXBFAT3ZKPRNLWC5IAXYHROJMVI72IXWZ2BRFMBAMICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

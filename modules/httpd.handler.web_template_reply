@@ -18,13 +18,15 @@ my $data        = $reply_data->{'data'};
         . ", length="
         . ( defined $data ? length($data) : 0 )
 );
-<[base.log]>->( 0, "handler: data preview=[" . substr( $data, 0, 100 ) . "]" )
-    if defined $data;
+<[base.log]>->(
+    0, "handler : data preview=[" . substr( $data, 0, 100 ) . "]"
+) if defined $data;
 
 unless ( defined $data{'session'}{$client_sid} ) {
     <[base.log]>->(
         1,
-        "httpd.handler.web_template_reply: session $client_sid no longer exists for $template_id"
+        "httpd.handler.web_template_reply:"
+            . " session $client_sid no longer exists for $template_id"
     );
     return 0;
 }
@@ -33,7 +35,8 @@ my $session = $data{'session'}{$client_sid};
 
 <[base.log]>->(
     2,
-    "httpd.handler.web_template_reply: received reply for $template_id (mode: $mode)"
+    "httpd.handler.web_template_reply:"
+        . " received reply for $template_id (mode: $mode)"
 );
 
 if ( $mode eq 'size' ) {
@@ -47,7 +50,8 @@ if ( $mode eq 'size' ) {
 
     <[base.log]>->(
         2,
-        "[$client_sid] template processing complete: $template_id ($content_length bytes)"
+        "[$client_sid] template processing complete:"
+            . " $template_id ($content_length bytes)"
     );
 
     ## Build HTTP response with processed content ##
@@ -81,7 +85,8 @@ if ( $mode eq 'size' ) {
 
     <[base.log]>->(
         0,
-        "[$client_sid] template processing failed: $template_id - $error_message"
+        "[$client_sid] template processing failed:"
+            . " $template_id - $error_message"
     );
 
     ## Send 500 Internal Server Error ##
@@ -92,7 +97,8 @@ if ( $mode eq 'size' ) {
     ## Unexpected TRUE response without data ##
     <[base.log]>->(
         1,
-        "[$client_sid] unexpected TRUE response for $template_id (expected size)"
+        "[$client_sid] unexpected TRUE response for"
+            . " $template_id (expected size)"
     );
 
     ## Send 500 Internal Server Error ##
@@ -112,8 +118,8 @@ if ( $mode eq 'size' ) {
 
 return 0;
 
-#,,..,...,,..,...,,.,,,,,,.,.,,.,,,..,,,,,.,.,..,,...,...,..,,...,,,.,...,.,.,
-#7U7GWS7NBJTUWIVLMKO3BDAIBX2UEUTH4CC6FYX6QOBV3LG6UQ7OCFGUCWZK2QGKWGAG7J4AJWAUM
-#\\\|JPBOCC3RJXQNQYALY3EFZ6IMF3ISVN67N7SVWQG7AZIGUHUTNF3 \ / AMOS7 \ YOURUM ::
-#\[7]JB7H5FAAXHZRG7JL7IPVWIJXSVH4G2TPFPIFKV6FWEUPE574NSDI 7  DATA SIGNATURE ::
+#,,,.,.,,,.,,,...,,,,,.,,,,..,,,,,,,.,,..,,,,,..,,...,...,,,,,,,.,...,,..,,,,,
+#V7UQ7XI6EX6QQHUVM3BR3SNARYC4VLC7GT7COFQTI775Y2URDDJRMGHFXIVCVXUABACVWYHB6BRGM
+#\\\|SGLQHT4MENMFUHTAOUJS5WZ6MCPJXTZJV4AKVO6TZFS2SGOX2E2 \ / AMOS7 \ YOURUM ::
+#\[7]G6WGRPZMWGG7VFGNXEQ2ELTJMJZXLW6WX3RJ6OWNW27JF7KA6IAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

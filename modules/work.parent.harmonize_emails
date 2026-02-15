@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name = work.parent.harmonize_emails
-# descr = standardize author names and email addresses across git history (surgical rewrite)
+# descr = standardize author names and email addresses
+#         across git history (surgical rewrite)
 
 my $params = shift || {};
 
@@ -178,7 +179,8 @@ foreach my $author ( keys %authors_seen ) {
 
     next if exists $canonical_author_map{$author};    ## Already mapped
 
-    ## Check for similar author names (case-insensitive, whitespace normalized)
+    ## Check for similar author names
+    ## (case-insensitive, whitespace normalized)
     my $normalized = lc($author);
     $normalized =~ s|\s+| |g;
     $normalized =~ s{^\s+|\s+$}{}g;
@@ -283,14 +285,17 @@ if ($dry_run) {
         if ($harmonize_outliers) {
             <[base.log]>->(
                 1,
-                "  To execute: workflow harmonize-emails harmonize-outliers execute"
+                "  To execute: workflow harmonize-emails "
+                    . "harmonize-outliers execute"
             );
             if ( length $key_phrase ) {
                 <[base.log]>->(
                     1,
                     sprintf(
-                        "  With filter: workflow harmonize-emails harmonize-outliers execute \"%s\"",
-                        $key_phrase )
+                        "  With filter: workflow harmonize-emails "
+                            . "harmonize-outliers execute \"%s\"",
+                        $key_phrase
+                    )
                 );
             }
         } else {
@@ -301,8 +306,10 @@ if ($dry_run) {
                 <[base.log]>->(
                     1,
                     sprintf(
-                        "  With filter: workflow harmonize-emails execute \"%s\"",
-                        $key_phrase )
+                        "  With filter: workflow harmonize-emails "
+                            . "execute \"%s\"",
+                        $key_phrase
+                    )
                 );
             }
         }
@@ -333,8 +340,10 @@ if ($dry_run) {
             <[base.log]>->(
                 1,
                 sprintf(
-                    "  Or with pattern filter (e.g. author name): workflow harmonize-emails harmonize-outliers \"%s\"",
-                    $outlier_author )
+                    "  Or with pattern filter (e.g. author name): "
+                        . "workflow harmonize-emails harmonize-outliers \"%s\"",
+                    $outlier_author
+                )
             );
         }
     } else {
@@ -366,7 +375,7 @@ if ($dry_run) {
 ## Get repository path
 my $repo_path = <git.cfg.repository_path>;
 unless ( -d $repo_path ) {
-    <[base.log]>->( 0, "  ✗ Repository path not found: $repo_path" );
+    <[base.log]>->( 0, "  ✗ Repository path not found : $repo_path" );
     return {
         success => FALSE,
         error   => "Repository path not found: $repo_path"
@@ -386,7 +395,7 @@ my $json_data = JSON::encode_json(
 );
 
 open my $data_fh, '>', $data_file or do {
-    <[base.log]>->( 0, "  ✗ Failed to create data file: $!" );
+    <[base.log]>->( 0, "  ✗ Failed to create data file : $!" );
     return { success => FALSE, error => "Failed to create data file: $!" };
 };
 print $data_fh $json_data;
@@ -395,7 +404,7 @@ close $data_fh;
 ## Create the env-filter shell script
 open my $script_fh, '>', $filter_script or do {
     unlink $data_file;
-    <[base.log]>->( 0, "  ✗ Failed to create filter script: $!" );
+    <[base.log]>->( 0, "  ✗ Failed to create filter script : $!" );
     return {
         success => FALSE,
         error   => "Failed to create filter script: $!"
@@ -456,7 +465,7 @@ my $git_cmd
     = sprintf( 'cd %s && git filter-branch -f --env-filter %s -- --all 2>&1',
     $repo_path, $filter_script );
 
-<[base.log]>->( 2, "  Running: git filter-branch --env-filter" );
+<[base.log]>->( 2, "  Running : git filter-branch --env-filter" );
 my $output    = `$git_cmd`;
 my $exit_code = $? >> 8;
 
@@ -489,8 +498,8 @@ return {
 
 0;
 
-#,,,.,,.,,..,,,.,,.,,,...,,.,,..,,...,,,,,,,.,..,,...,...,...,,,,,.,,,..,,.,,,
-#HZOLHHQB3WB3AE3YD7ZD2FAPTB4RTOKQI4P6SJ2NI3UWY3D7U2OGQQ3PVRW566UPN5WTSUTASZAF4
-#\\\|ZLBBFR5NVDJSFDZG3NNNCWXZPACFGKRT3EPLV25QM6GDKWAJEHC \ / AMOS7 \ YOURUM ::
-#\[7]VUID2CFFVGO6THI2BSV4IXNKNAUJ6Q6R7CO6KKX5HKUW347SK4CY 7  DATA SIGNATURE ::
+#,,..,,.,,..,,,,.,.,,,..,,.,.,,,.,,,.,,,.,,,.,..,,...,..,,...,..,,,,.,...,...,
+#JTM3UX6O7THFMRFEF3EZCQSEYF2MX6KEOSKVI2ACSI3MROA7KBKKLOERFYE6CMQLK3NCK7TZMQD44
+#\\\|J6QYXSSP4J4SP5CNLUMA4TPIP7HYH4OHTHGWKVNWSY7ALOVOY2G \ / AMOS7 \ YOURUM ::
+#\[7]I2NPLF4AKSMEULK5LU6DR4YOOXL3HBNLILI73OC5OLPF4SKMN6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

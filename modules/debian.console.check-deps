@@ -24,7 +24,8 @@ if ( defined $param ) {
 my $result = <[debian.parent.check_installed]>;
 
 unless ( $result->{success} ) {
-    <[base.log]>->( 0, "Check failed: " . ( $result->{error} || 'unknown' ) );
+    <[base.log]>
+        ->( 0, "Check failed : " . ( $result->{error} || 'unknown' ) );
     return say "::\n: ✗ Check failed\n::";
 }
 
@@ -114,8 +115,8 @@ push @output, "::";
 
 return say join( "\n", @output );
 
-#,,,.,,..,,..,..,,,..,,,.,,..,.,.,,.,,..,,,,,,..,,...,...,...,,.,,,..,...,.,.,
-#SVPNAPDQ3FBKBATGNRLLK6K2X7XWRSNW75TR5OZEMSTWJ3QLH6FSJDB6TQSBXWFSVQWTNPVFOBLJE
-#\\\|WWYFFW5YV34QEYZMSS5O4RJI6SKAG6KWTGBWTYVKPXWRQAG7HBJ \ / AMOS7 \ YOURUM ::
-#\[7]NQFD74BW2MSAUJK5ST4UT43PJ7ATHMPADVEG2WRDZMZVZQ5NF4DI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,..,...,.,.,..,,.,.,,,,,...,..,,..,,...,...,.,.,.,.,,,.,..,,,.,,
+#QBAJR2BC2BNKYQ3MZICNJSJY4OMGOESP3RFFX2OVEASXZAJVUVKYXA6RBFK3IYOUOQ6EYOWTLXJBG
+#\\\|PQCCVMMKSJAV7CBG3BUQEMNC6UAKF7EY4U5PUFRHC2ORWF4WGZH \ / AMOS7 \ YOURUM ::
+#\[7]NZAC4OZO2T5APXJ6EN6EEWAJR4RU3XTTBIUMXGKXV3M3UHQ2OMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

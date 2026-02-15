@@ -7,7 +7,7 @@ my $dns_record_name = shift;
 
 return undef unless $dns_record_name;
 
-<[base.log]>->( 2, "deleting INWX TXT record: $dns_record_name" );
+<[base.log]>->( 2, "deleting INWX TXT record : $dns_record_name" );
 
 ## Get INWX API credentials from config
 my $username = <letsencr.dns.inwx.username>;
@@ -24,7 +24,7 @@ unless ( $username && $password ) {
 my $base_domain = $dns_record_name;
 $base_domain =~ s|^_acme-challenge\.||;
 
-<[base.log]>->( 3, "base domain: $base_domain" );
+<[base.log]>->( 3, "base domain : $base_domain" );
 
 ## Create XMLRPC client
 my $client = XMLRPC::Lite->proxy($api_url);
@@ -41,7 +41,7 @@ my $login_result = $client->call(
 
 unless ( $login_result && $login_result->{code} == 1000 ) {
     my $error = $login_result->{msg} || 'unknown error';
-    <[base.log]>->( 1, "INWX authentication failed: $error" );
+    <[base.log]>->( 1, "INWX authentication failed : $error" );
     return undef;
 }
 
@@ -71,7 +71,7 @@ if (   $info_result
         if ( $record->{name} eq $dns_record_name && $record->{type} eq 'TXT' )
         {
             $record_id = $record->{id};
-            <[base.log]>->( 2, "found TXT record to delete: $record_id" );
+            <[base.log]>->( 2, "found TXT record to delete : $record_id" );
             last;
         }
     }
@@ -84,7 +84,7 @@ unless ($record_id) {
 }
 
 ## Delete the record
-<[base.log]>->( 2, "deleting record ID: $record_id" );
+<[base.log]>->( 2, "deleting record ID : $record_id" );
 
 my $delete_result
     = $client->call( 'nameserver.deleteRecord', { id => $record_id } )
@@ -96,7 +96,7 @@ $client->call('account.logout');
 ## Check result
 unless ( $delete_result && $delete_result->{code} == 1000 ) {
     my $error = $delete_result->{msg} || 'unknown error';
-    <[base.log]>->( 1, "INWX delete request failed: $error" );
+    <[base.log]>->( 1, "INWX delete request failed : $error" );
     return undef;
 }
 
@@ -107,8 +107,8 @@ return {
     deleted => 1,
 };
 
-#,,..,,.,,.,.,,,,,,.,,...,...,,,.,...,..,,,..,..,,...,...,,..,...,...,,.,,.,,,
-#GG26KEN6ZRYVWVAR4WX4A327M7L2ONHLWPTHFI5QVD2UFGZOG7GG5GESIWAGG4LG5UJHGFFLVV4VC
-#\\\|5C26NWOYBXDJISOEJ2XVEUDLTWVXCWLM73Q4FXYCTCDGVWKGDXZ \ / AMOS7 \ YOURUM ::
-#\[7]6NYE5EGB4CDEFYFFT54Q2IKRIZ3WZREK4LV2VYYBYPS6TKVL3UDQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,,,,,.,.,.,.,.,,,...,,..,...,,,.,..,,...,...,..,,..,,...,...,...,
+#DLJFAHPZXT5G5NFJ26XIGILS3G46PLRJ3CGMCHNTVP3JKGMNJCX6XSDDSOZ6Y4YHW5NLBRGFKHWPA
+#\\\|RVWBJJSXQQO33DOK2TC7NNQOWLJ66Y4UFMHA4EDM2B4NWC5TH2M \ / AMOS7 \ YOURUM ::
+#\[7]AIWFMJAMXWYCPQ3VOW53GS2D33GSOV5C5PBAZZOB7RZ545UXX2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

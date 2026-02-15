@@ -7,11 +7,10 @@
 
 ## load generic modules ##
 <[base.perlmod.autoload]>->('IPC::Open3');
-<[base.perlmod.load]>->('Symbol', qw| gensym |);
+<[base.perlmod.load]>->( 'Symbol', qw| gensym | );
 
 ## load Imager module for image scaling ##
 <[base.perlmod.autoload]>->('Imager');
-
 
 # Vision model binary and library configuration
 <lm-vision.binary>   = qw{/data/source/ik_llama.cpp/llama-mtmd-cli-cuda-fa};
@@ -20,7 +19,8 @@
 <lm-vision.log_dir>  = qw| /var/log/protocol-7 |;
 <lm-vision.log_mask> = 0750;
 
-# Ensure log directory exists with proper permissions (only if running as root)
+# Ensure log directory exists with proper permissions
+# (only if running as root)
 if ( $EUID == 0 ) {
     <[base.perlmod.load]>->( 'File::Path', qw| make_path | );
     <[file.make_path]>->(
@@ -61,7 +61,7 @@ if ( -f $config_file ) {
         }
     }
 } else {
-    <[base.log]>->( 0, " Error: models.yaml not found at $config_file" );
+    <[base.log]>->( 0, " Error : models.yaml not found at $config_file" );
 }
 
 if ( $model_path && $mmproj_path ) {
@@ -115,12 +115,13 @@ if ( $model_path && $mmproj_path ) {
 <lm-vision.max_image_width>  = 1024;    # Scale down if wider
 <lm-vision.max_image_height> = 1024;    # Scale down if taller
 
-# Temp files are managed by base.file.temp with automatic cleanup via end_code callbacks
+# Temp files are managed by base.file.temp
+# with automatic cleanup via end_code callbacks
 
 0;    # Return success for module initialization
 
-#,,,,,,,,,.,,,,..,..,,,.,,,..,,..,.,,,...,...,..,,...,...,.,,,.,,,.,.,,.,,.,,,
-#4WRGKIFVFDH7PPQ4Z2V4MIIV2GZA6JBP3YWZXC3PDATX37YSH7UF2SRUVD4DKZQXYG6NXZD2OSPPA
-#\\\|EBFVDL34K2GSDIF3XAMRIO4MSOFK677B7NSFZEDLXZAE7PIBOJF \ / AMOS7 \ YOURUM ::
-#\[7]VAGC76XE4DAADQOHEU5NXKTUIVEBQ2JANQIUI6OHYM7PCGJSLCCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,,,,.,.,.,.,...,,.,,,,,,...,.,,,,,.,..,,...,...,...,.,,,.,,,,,.,.,.,
+#X5KZGC5EI664C2N62SWHXXWR4XL3OOTY5YU4PERFTCTS7RDOARF63KUWQX4VZTE5CQGS5KPHFDZSG
+#\\\|BS5XELYK62AT7UJOYNBX3FMY3QQ7FTKYAUBYIALXUW33D6QOGDF \ / AMOS7 \ YOURUM ::
+#\[7]MVUQAMAU2BEAV74RAHTLPGV6QB27GJTF24OPFVL7IKUHFPVEQ2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

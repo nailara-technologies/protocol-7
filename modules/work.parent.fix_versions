@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name = work.parent.fix_versions
-# descr = surgical rewrite of commits to fix missing version numbers (minimal changes)
+# descr = surgical rewrite of commits to fix missing version
+#         numbers (minimal changes)
 
 my $params = shift || {};
 
@@ -83,8 +84,8 @@ if ($dry_run) {
 }
 
 ## Execute mode: Actually rewrite commits
-<[base.log]>->( 1, "  EXECUTE MODE: Rewriting $total_to_fix commits..." );
-<[base.log]>->( 1, "  WARNING: This will rewrite git history!" );
+<[base.log]>->( 1, "  EXECUTE MODE : Rewriting $total_to_fix commits..." );
+<[base.log]>->( 1, "  WARNING : This will rewrite git history!" );
 
 ## Load source and sourcecode modules for AMOS7 commit signing
 unless ( exists $code{'source.sign_data'} ) {
@@ -105,14 +106,15 @@ my $key_already_loaded
     && exists $keys{'C25519'}{$sig_key_name}{'public'};
 
 unless ($key_already_loaded) {
-    ## Try to load the key - keys zenka will auto-detect type and ask for passphrase if needed
+    ## Try to load the key - keys zenka will auto-detect type
+    ## and ask for passphrase if needed
     my $load_success = <[source.load_signature_key]>->($sig_key_name);
 
     unless ($load_success) {
         return {
             success => FALSE,
-            error   =>
-                "Failed to load signature key '$sig_key_name' - keys zenka could not load or generate key"
+            error   => "Failed to load signature key '$sig_key_name'"
+                . " - keys zenka could not load or generate key"
         };
     }
 }
@@ -123,8 +125,8 @@ unless ( exists $keys{'C25519'}{$sig_key_name}
     && exists $keys{'C25519'}{$sig_key_name}{'public'} ) {
     return {
         success => FALSE,
-        error   =>
-            "Signature key '$sig_key_name' not properly loaded - missing private key needed for signing"
+        error   => "Signature key '$sig_key_name' not properly loaded"
+            . " - missing private key needed for signing"
     };
 }
 
@@ -270,7 +272,8 @@ if (exists $commit_data{$commit_hash}) {
     my $version = $data->{version};
     my $signature = $data->{signature} // '';
 
-    ## Only add version if not already present (check for full format TIMESTAMP-COUNT.MINOR)
+    ## Only add version if not already present
+    ## (check for full format TIMESTAMP-COUNT.MINOR)
     unless ($message =~ /^\[[A-Z0-9]+-\d+\.\d+\]/) {
         $message = "[$version] $message";
     }
@@ -337,14 +340,14 @@ if ( $exit_code != 0 ) {
 return {
     success => TRUE,
     fixed   => $total_to_fix,
-    message =>
-        "Successfully added version numbers and AMOS7 signatures to $total_to_fix commits"
+    message => "Successfully added version numbers and AMOS7 signatures"
+        . " to $total_to_fix commits"
 };
 
 0;
 
-#,,,,,,.,,...,,..,.,,,.,,,...,..,,.,.,,,,,..,,..,,...,...,..,,,..,,..,,,,,.,.,
-#LOYU5IYAISWVYD62A7F3JVZV3GAH3F5FT3YSUIRC4UASGALXTV7JYKNAMVOID3BF64SJB5EFMFFUI
-#\\\|5ARV42LX6NSXVIW4L7BAUEKNZC3MAO4DQC6NYTPWAWZPLAOX6Q3 \ / AMOS7 \ YOURUM ::
-#\[7]HBYMLJPIPNJXB7XWSF7JGMYEYJM3GPZVJNYZCLDN53RKJ4AXF4AI 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,,,...,,,,,,.,,...,,,.,,,,,,.,,..,,...,...,,,,,,..,,,.,,,,,,,.,
+#OAJQCYVGNPGH35PFMPRPPZKJHQBKDBHOXL75P642J6WVSLA337TRQCZE5LB5EBNVPCS7UZSYOKXQY
+#\\\|N6VQP256HAS6THHHBLYHJYHGLGFISEB4QT5OYU7SK7GTMYASWGT \ / AMOS7 \ YOURUM ::
+#\[7]HZE4SOS6SEP776LC4NSQPNT2PRTIA7LHCLJHFVIC6SJBNK75AMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

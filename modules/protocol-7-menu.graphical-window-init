@@ -116,7 +116,8 @@ my $window_center_y = $win_height / 2;
     $win_width, $win_height, $window_center_x, $window_center_y, $menu_radius
 );
 
-## Button press: detect if in drag zone (dark corners) or menu zone (bright center)
+## Button press: detect if in drag zone
+## (dark corners) or menu zone (bright center)
 $window->signal_connect(
     'button-press-event' => sub {
         my ( $widget, $event ) = @ARG;
@@ -129,7 +130,8 @@ $window->signal_connect(
 
         <[base.log]>->(
             1,
-            "button-press: x=%.0f y=%.0f dist=%.0f radius=%.0f center=(%.0f,%.0f)",
+            "button-press: x=%.0f y=%.0f dist=%.0f"
+                . " radius=%.0f center=(%.0f,%.0f)",
             $click_x,
             $click_y,
             $dist,
@@ -165,7 +167,7 @@ $window->signal_connect(
 
         my $new_x = $window_x + ( $event->x - $drag_offset_x );
         my $new_y = $window_y + ( $event->y - $drag_offset_y );
-        <[base.log]>->( 1, "motion: moving to (%.0f,%.0f)", $new_x, $new_y );
+        <[base.log]>->( 1, "motion : moving to (%.0f,%.0f)", $new_x, $new_y );
         $widget->move( $new_x, $new_y );
         return 1;    # Consume event
     }
@@ -219,8 +221,8 @@ $window->show_all;
 
 return 0;
 
-#,,,,,,,,,...,,,,,..,,.,,,.,,,.,,,.,,,,..,..,,.,.,...,...,.,,,,,,,..,,.,,,..,,
-#BXWG4S4VXW77GT67TYYA4NAJMK4CTZ2VUMGOWC3QPCHJJHHO5LYKRDEOO5ECMMNRYFM6S22UGAWHW
-#\\\|EXDQSU6FQFJNUIQJSAIOIHJMARQHNHI7RW7FVBUHORFPD3IL3MP \ / AMOS7 \ YOURUM ::
-#\[7]CS6NPQERJFZSEYZP6VHIBZTGX4A47MMDIYVO7ACRQKCHEQIT5EBY 7  DATA SIGNATURE ::
+#,,,,,...,.,,,.,.,,.,,,,.,.,,,,,,,,,.,,.,,.,.,.,.,...,.,,,..,,,.,,,.,,,.,,...,
+#DF6ODWWVQQDYWXFW2T2W7BBY3MAG7B347CHCSITV3UM6VWUEGLSOWHLZDOL4G32WMGJZYSIF4JXV4
+#\\\|ZDVOOZ6PWVASBHEFCIDLP4Y6MHVROZGXL4YQXY6XSTRUO7PKOAH \ / AMOS7 \ YOURUM ::
+#\[7]YBS42A2XJRHLYN23PDEEX7R7SCSZ6PBGXV4ML65WPDPQDEJCCABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

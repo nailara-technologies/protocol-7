@@ -8,17 +8,18 @@
 my $model_id
     = $call->{'param'}->{'model_id'} || $call->{'call_args'}->{'model_id'};
 
-# If not in param/call_args, try parsing from args string (for p7 command line)
+# If not in param/call_args, try parsing from args string
+# (for p7 command line)
 unless ($model_id) {
     if ( $call->{'args'} && length( $call->{'args'} ) ) {
         ($model_id) = split( /\s+/, $call->{'args'} );
     }
 }
 
-<[base.logs]>->( 1, "[models.cmd] get_model_path: %s", $model_id // 'NONE' );
+<[base.logs]>->( 1, "[models.cmd] get_model_path : %s", $model_id // 'NONE' );
 
 unless ($model_id) {
-    <[base.log]>->( 0, "[models.cmd] Error: model_id required" );
+    <[base.log]>->( 0, "[models.cmd] Error : model_id required" );
     return {
         'mode' => 'size',
         'data' => "error: model_id required\n",
@@ -63,8 +64,8 @@ return {
     'data' => $json . "\n",
 };
 
-#,,,.,,.,,.,,,,,,,.,.,,,.,,.,,.,.,,..,..,,,.,,..,,...,...,...,.,.,,..,.,,,.,,,
-#I7QHHVOZN7K3BRHMLLXDO72DURUA62RYDPAN4KSN5ON2XBY5TBQQPSFV3FBESXFEIKWXYFHEPHW3K
-#\\\|WBGIPHZ7K5IGDZO5JQJY6XVYVPHM245ME3S7IC67F6AKNTW6YAR \ / AMOS7 \ YOURUM ::
-#\[7]WBF56PYGQRPZ5WOXZTFQ47BNMDEL6SAE7Y7VKIUOO7INENKWNCCQ 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,,,,.,,,.,.,,,,,.,,,,..,..,,..,,..,,...,...,.,,,,.,,,,,,,,.,,.,,
+#EPJXZ32BXYAY7A6J66CB5PTSUH54YQZZONLPV4RBY2MKWBRLKUEPHUWOGQKOOCI4FFV6DQRLGFO7W
+#\\\|XTPWZGQYZ6YE6CWYA7QBZHDV2MTX4NLUOKE42WTTDHQOUPVWGOZ \ / AMOS7 \ YOURUM ::
+#\[7]HDXM2BKWKVDKFTLT5S7RJEDMYYNP6NCCL2TUUAFBMGVZQPOSIODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

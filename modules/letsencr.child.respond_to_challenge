@@ -8,7 +8,7 @@ my $token         = shift;
 
 return undef unless $challenge_url && $token;
 
-<[base.log]>->( 2, "responding to challenge: $token" );
+<[base.log]>->( 2, "responding to challenge : $token" );
 
 ## Get fresh nonce
 my $nonce = <[letsencr.child.get_fresh_nonce]>;
@@ -37,13 +37,13 @@ unless ( $response->{status} == 200 ) {
         1, "error: challenge response returned status $response->{status}"
     );
     if ( $response->{data}{detail} ) {
-        <[base.log]>->( 1, "  details: $response->{data}{detail}" );
+        <[base.log]>->( 1, "  details : $response->{data}{detail}" );
     }
     return undef;
 }
 
 <[base.log]>->( 2, "challenge response submitted" );
-<[base.log]>->( 2, "  status: $response->{data}{status}" );
+<[base.log]>->( 2, "  status : $response->{data}{status}" );
 
 ## Update nonce
 <letsencr.child.acme_client>->{nonce} = $response->{nonce};
@@ -61,8 +61,8 @@ return {
     processing => $response->{data}{status} eq 'processing',
 };
 
-#,,.,,,,,,,,.,.,,,.,.,,.,,,..,,.,,.,.,,.,,..,,..,,...,...,,.,,...,..,,,,,,,..,
-#WNN7YHILP6NGYVT567FCDXXRXOIVHJ2B64FLRSMCVLEIAPIFQHBMU7J2FMTNOUM3XTQTBUZTZCQEQ
-#\\\|JHVO5KFWZXYTDHV2MT7TUB2DPNYSTH6GTBGJPMLS4URUB2C6LLI \ / AMOS7 \ YOURUM ::
-#\[7]G7MENMZFFZPE3R4WUXPTI4HPFPA6IBGL4VMH7GDPJ33QFTK66UAY 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,,..,.,,,,..,,,.,,.,,,.,,,,,,..,,..,,...,...,..,,,,.,...,,.,,,,,,
+#B7AVGPI5GGJHB5HCSZ2BOCPOE35NSCQQMWJMWLGXIF6LWUOWC7WWFDBMQNRDIARBCV5MGOUGUBJFA
+#\\\|VU6JV5KMNMM2HZZHQZQUPWH2K4RCBAG6CN4PUF2G6672IMVHNCH \ / AMOS7 \ YOURUM ::
+#\[7]I7EAZAO4TWXDDUK7YFDDAWQDUA72WLMHSY25PQL5ZCSIRWXS4CAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

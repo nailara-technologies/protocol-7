@@ -62,7 +62,7 @@ unless ( $response->{status} == 201 ) {
         1, "error: order creation returned status $response->{status}"
     );
     if ( $response->{data}{detail} ) {
-        <[base.log]>->( 1, "  details: $response->{data}{detail}" );
+        <[base.log]>->( 1, "  details : $response->{data}{detail}" );
     }
     return undef;
 }
@@ -77,8 +77,8 @@ unless ( $order_url && $order_data->{authorizations} ) {
     return undef;
 }
 
-<[base.log]>->( 2, "order created: $order_url" );
-<[base.log]>->( 2, "  status: $order_data->{status}" );
+<[base.log]>->( 2, "order created : $order_url" );
+<[base.log]>->( 2, "  status : $order_data->{status}" );
 <[base.log]>->(
     2, "  authorizations: " . scalar( @{ $order_data->{authorizations} } )
 );
@@ -103,8 +103,8 @@ return {
     finalize_url   => $order_data->{finalize},
 };
 
-#,,,,,,..,...,,,.,,,.,,.,,.,.,,,.,...,,..,,.,,..,,...,...,..,,.,.,,,,,.,,,...,
-#HJZ3WBP33CHX3M3IAMOMQHP7RYZIC4N6TSKLMLHUHENX6WDUFMNPNAWNGEFNN54ATJGC2MU6OAQIS
-#\\\|YBGC5WUJOQITP3NCWYUAYMKECQAZK5IAXUD4DLBQG7QT2TC6TJY \ / AMOS7 \ YOURUM ::
-#\[7]RXYNOFTM5ISQAAZV32LC6OH4FEQTCJG4TKJ73GSIP2IBLWS23ICA 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,...,,,.,..,,,,,,...,,.,,,..,,,.,..,,...,...,,,.,,,,,..,,.,,,,.,,
+#BX3WYRTXVIEKHQSPG63DF47WSYM4LFW5HIES53MQNCQQC5KPXTWC5HSHAXH53FB7MFRI6AIGN3PM4
+#\\\|FWL5MHY36TSQWQWDBGYZMQXY566QWBNMJCADDCIFA2CXPT3YGSQ \ / AMOS7 \ YOURUM ::
+#\[7]FNHDSNLLSNBDG76LURUPQVP23PF4BMHJWFSNWJW3MJYP5HW3OMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

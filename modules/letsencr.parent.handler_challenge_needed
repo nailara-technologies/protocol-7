@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name  = letsencr.parent.handler_challenge_needed
-# descr = handle challenge notification from child - store pending challenge and notify HTTPd
+# descr = handle challenge notification from child
+#         - store pending challenge and notify HTTPd
 
 my $challenge_data = shift;
 
@@ -44,8 +45,8 @@ if ( $mode eq 'http-01' ) {
         status     => 'pending',
     };
 
-    <[base.log]>->( 2, "  token: $token" );
-    <[base.log]>->( 3, "  key_auth: $key_auth" );
+    <[base.log]>->( 2, "  token : $token" );
+    <[base.log]>->( 3, "  key_auth : $key_auth" );
 
     ## Notify HTTPd to serve the challenge response
     my $notify_result = <[letsencr.parent.notify_httpd_challenge]>->(
@@ -116,12 +117,13 @@ if ( $mode eq 'http-01' ) {
 
         <[base.log]>->(
             2,
-            "DNS-01 challenge stored for manual completion: $_.$domain TXT $challenge_value"
+            "DNS-01 challenge stored for manual completion:"
+                . " $_.$domain TXT $challenge_value"
         );
     }
 
 } else {
-    <[base.log]>->( 1, "unknown challenge type: $mode for $domain" );
+    <[base.log]>->( 1, "unknown challenge type : $mode for $domain" );
     <[letsencr.parent.activity_logger]>->(
         'challenge', $domain, 'failed', "unknown challenge type: $mode"
     );
@@ -129,8 +131,8 @@ if ( $mode eq 'http-01' ) {
 
 return FALSE;
 
-#,,.,,..,,,..,,,,,,.,,..,,.,.,.,,,.,,,,,,,,..,..,,...,...,,.,,.,.,.,.,..,,,.,,
-#DLUVY3HJ4366POAHO6QDU6M5C7RQYI6URS4Z7V2IQJSA2LMYZNKRZHI4CHCR3LYGFFWTC6XWEUP3W
-#\\\|7XUCWDOZT7V3DOMXK2VWP3TIYLDQG3Y5EHRBVJQDUGRTBWHLQYR \ / AMOS7 \ YOURUM ::
-#\[7]46JX77HQPRD3QP3LRLE6WBIC5RKWKUO6TEOPSS7AIE5TG442E2AQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,..,...,,.,,.,.,,..,,..,...,.,,,,..,..,,...,...,...,.,,,,,.,,..,.,,,
+#JTPTQHN46ZF5QMDQR5DJ2C6CJDEMHBUDKGVKAVTWPHX5H7EMPRSMM7O5OFYHATJLE7VBJ6TC7TFPE
+#\\\|FVYGDO7NL2BTVTEAP2B2ZFY7BE4EDYFL66QFCEFTMSXTAOUVM2F \ / AMOS7 \ YOURUM ::
+#\[7]2OLJHCT7SWS4ZVRKZJ2V4VBVLFLW5NJNN65G35LOFH42I6UNTQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

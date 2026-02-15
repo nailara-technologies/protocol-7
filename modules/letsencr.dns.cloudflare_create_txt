@@ -59,7 +59,8 @@ if ( $list_response->is_success ) {
 
     if ( $list_data->{success} && @{ $list_data->{result} } ) {
         $existing_record_id = $list_data->{result}[0]{id};
-        <[base.log]>->( 2, "found existing TXT record: $existing_record_id" );
+        <[base.log]>
+            ->( 2, "found existing TXT record : $existing_record_id" );
     }
 }
 
@@ -117,12 +118,12 @@ my $result = JSON::XS::decode_json( $response->decoded_content );
 
 unless ( $result->{success} ) {
     my $errors = join( ', ', map { $_->{message} } @{ $result->{errors} } );
-    <[base.log]>->( 1, "Cloudflare API error: $errors" );
+    <[base.log]>->( 1, "Cloudflare API error : $errors" );
     return undef;
 }
 
 <[base.log]>->( 2, "Cloudflare TXT record created successfully" );
-<[base.log]>->( 3, "  record ID: $result->{result}{id}" );
+<[base.log]>->( 3, "  record ID : $result->{result}{id}" );
 
 return {
     success   => TRUE,
@@ -131,8 +132,8 @@ return {
     value     => $dns_value,
 };
 
-#,,,.,,..,,..,.,,,.,.,..,,,..,,,.,...,,.,,..,,..,,...,.,.,..,,,.,,,..,..,,,,,,
-#QQQO5PZIC33G5AD4RAOFBH25SUB4HPTQQFSNFHPDGCLYMHSX7UY22CDR3DYMBY5FJ6JDOGFJKY3P6
-#\\\|5UB5XSVIWQGFKNE36IIFRE4U63PW6LDXPKVOVDW5ZSS6VU36XQP \ / AMOS7 \ YOURUM ::
-#\[7]N52KBMEC32LUGLFKTHORZ5TOXT2JQRZYP2T2ZROAA2522SNZXADI 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,..,,.,.,...,..,,..,,,,.,,.,,...,..,,...,...,..,,...,.,.,,,.,,.,,
+#35UHIIZGHRBSVAHMGPN3PBYBBFXJUV3CANTVQFBTKYQ6LOWKMSVP57JH5T23PO4D6BPJAPGTG3ZOO
+#\\\|6OQUM4VPVEZGZQNVWUQYFLDY24VQMTX5FYV7MFAREXH2KH2WTAF \ / AMOS7 \ YOURUM ::
+#\[7]GQZFXFSJ6YWU6MIHTLBKBE63CXB6AT3EJAY6EMQJDBXFLCWU5SCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

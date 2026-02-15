@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name  = letsencr.parent.handler_httpd_vhost_reply
-# descr = handle reply from httpd zenka for vhost list query (error handling and parsing)
+# descr = handle reply from httpd zenka for vhost list query
+#         (error handling and parsing)
 
 <[base.log]>->( 2, "received httpd vhost list reply" );
 
@@ -11,7 +12,7 @@ my $reply_data = shift @ARG;
 
 ## Validate reply structure
 unless ( $reply_data && ref($reply_data) eq 'HASH' ) {
-    <[base.log]>->( 1, "error: invalid vhost reply structure from httpd" );
+    <[base.log]>->( 1, "error : invalid vhost reply structure from httpd" );
 
     ## Trigger error handler
     return <[letsencr.parent.handler_httpd_vhost_error]>->(
@@ -25,14 +26,16 @@ my $mode = $reply_data->{cmd}  // $reply_data->{mode};
 my $data = $reply_data->{data} // '';
 
 unless ($mode) {
-    <[base.log]>->( 1, "error: httpd vhost-list returned no mode field" );
+    <[base.log]>->( 1, "error : httpd vhost-list returned no mode field" );
 
     return <[letsencr.parent.handler_httpd_vhost_error]>->(
         'Missing reply mode', $reply_data
     );
 }
 
-<[base.log]>->( 3, "httpd reply mode: $mode, data length: " . length($data) );
+<[base.log]>->(
+    3, "httpd reply mode : $mode, data length : " . length($data)
+);
 
 ## Parse vhost list from reply
 my @vhosts;
@@ -40,7 +43,7 @@ if ( $mode eq 'SIZE' || $mode eq 'TRUE' ) {
     ## Both SIZE and TRUE modes return multi-line vhost names
     @vhosts = grep { length($_) > 0 } split( /\n/, $data );
 } else {
-    <[base.log]>->( 1, "error: unexpected reply mode from httpd: $mode" );
+    <[base.log]>->( 1, "error : unexpected reply mode from httpd : $mode" );
 
     return <[letsencr.parent.handler_httpd_vhost_error]>->(
         "Unexpected reply mode: $mode", $reply_data
@@ -52,7 +55,7 @@ if ( $mode eq 'SIZE' || $mode eq 'TRUE' ) {
 @vhosts = grep { length($_) > 0 } @vhosts;
 
 unless ( @vhosts > 0 ) {
-    <[base.log]>->( 1, "warning: httpd returned empty vhost list" );
+    <[base.log]>->( 1, "warning : httpd returned empty vhost list" );
 
     return <[letsencr.parent.handler_httpd_vhost_error]>->(
         'No vhosts from httpd', $reply_data
@@ -81,8 +84,8 @@ foreach my $vh (@vhosts) {
 
 return TRUE;
 
-#,,.,,..,,,,,,...,,,,,,,.,.,.,,.,,,,,,,,,,...,..,,...,...,...,,..,...,,,.,..,,
-#EZGIOAGL2RFNT72WJYR5EICQAQ4RGY7MOHO37SAKM6LEY2PMA4WTT45CLLQYM67KPECGPDCLGMLI2
-#\\\|ULD62ZSEOX7HI4JVG3SUTZTPAUU4DGX44VFI3JJ3I76TDVH22DB \ / AMOS7 \ YOURUM ::
-#\[7]BF4LSNPWX4BAADE2WAIIPKNGIZTMKWFPGSEOPQMPSSCPVNNY7IDA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,.,,,.,,...,,..,,,,,,.,,,..,,.,,..,,...,...,..,,.,.,...,,,.,,.,,
+#DSSA4NWXGDKQDPADXGOCBGSXNZZNC2ZWSJLFVE55VDM3JIEV7U4QN2V3NSGTPDQ6BMTGZT3UV7G7G
+#\\\|LZMT6CQN4UA7ZGXV6Q7OBBKN6LRBUV6W5E63E5XMHYWJ7AY6O7Z \ / AMOS7 \ YOURUM ::
+#\[7]LBJG3R6R5EADQEO4HFGX2BDL5B42YHIJXYNFZVYXIYI2BOJVFOCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

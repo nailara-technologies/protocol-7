@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name = web.skin_resolver
-# descr = resolve skins using cascade priority (user-selected > mobile > dark > default)
+# descr = resolve skins using cascade priority
+#         (user-selected > mobile > dark > default)
 #
 # Implements nested skin system with multiple levels:
 #   1. User preference (from cookie or HTTP header)
@@ -29,7 +30,7 @@ my $user_agent = shift // '';
 
 ## Validate parameters ##
 unless ( defined $vhost and length $vhost ) {
-    <[base.log]>->( 0, "skin_resolver: missing vhost parameter" );
+    <[base.log]>->( 0, "skin_resolver : missing vhost parameter" );
     return {
         skin_name => 'default',
         skin_root => '/var/httpd/_global_templates/skins|default',
@@ -60,7 +61,7 @@ foreach my $key ( sort keys %$user_prefs ) {
 my $cache_key = join( ':', @$cache_key_parts );
 
 if ( exists $data{'skin_cache'}->{$cache_key} ) {
-    <[base.log]>->( 3, "skin_resolver: using cached skin resolution" );
+    <[base.log]>->( 3, "skin_resolver : using cached skin resolution" );
     return $data{'skin_cache'}->{$cache_key};
 }
 
@@ -75,7 +76,7 @@ if ($user_agent) {
     }
 }
 
-<[base.log]>->( 2, "skin_resolver: device detected: $device_type" );
+<[base.log]>->( 2, "skin_resolver : device detected : $device_type" );
 
 ## Step 2: Determine skin cascade based on preferences ##
 my @cascade = ();
@@ -100,7 +101,7 @@ if ( defined $user_prefs->{'skin'} and length $user_prefs->{'skin'} ) {
 ## Add device-specific skin if available ##
 if ( $device_type eq 'mobile' ) {
     push @cascade, 'mobile';
-    <[base.log]>->( 2, "skin_resolver: added mobile skin to cascade" );
+    <[base.log]>->( 2, "skin_resolver : added mobile skin to cascade" );
 }
 
 ## Add dark mode skin if time-based or preferred ##
@@ -186,12 +187,12 @@ my $result = {
 ## Cache the resolution ##
 $data{'skin_cache'}->{$cache_key} = $result;
 
-<[base.log]>->( 2, "skin_resolver: [$vhost] resolved to '$resolved_skin'" );
+<[base.log]>->( 2, "skin_resolver : [$vhost] resolved to '$resolved_skin'" );
 
 return $result;
 
-#,,,,,,..,..,,,,.,...,.,.,...,,.,,,,.,,,.,...,..,,...,...,..,,..,,.,.,,..,.,,,
-#HTRBPM7ZEBVW5MEXTI3D636KODC2KUBQVBZQ4UFDGHMYD2RG5BBSNS35VBA3DIW6WM3UVJEC7ZZWU
-#\\\|ITW6RXSPYKLCCVDWGJXXWNYGWZYB3N5M2GYURUZ2N3A2QO3QF6J \ / AMOS7 \ YOURUM ::
-#\[7]SP5STZKJTRKRNNGMVOO2OMMQUARJMG6MN6JKXKSGIXVBVKVVDKDA 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,.,,,..,,,.,,,,,,,.,..,,,..,.,.,..,,...,...,,,.,,..,.,,,...,..,,
+#S2SQ4AJLEW5FQXH5QUU6YC6KOHM7TWLSYK2ZIBC65IB42MAYZM7VJYE2JI5IZPNTHCULMAS53MCP4
+#\\\|2ULAPFECDNSYD7SGFI33EVX3HY7257UNMXOGGSRNNMUORSHQL2T \ / AMOS7 \ YOURUM ::
+#\[7]GDR7QANR3LYM2G33O2KASUSGXFAKOI5RMM5LSE6HHWICG4AZKEBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

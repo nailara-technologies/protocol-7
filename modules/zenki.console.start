@@ -7,21 +7,22 @@
 my $zenka_name = shift;
 
 unless ($zenka_name) {
-    <[base.log]>->( 0, "Error: zenka name required" );
+    <[base.log]>->( 0, "Error : zenka name required" );
     return say "::\n: Usage: start <zenka_name>\n::";
 }
 
-<[base.log]>->( 1, "Starting zenka: $zenka_name (with auto-resolution)" );
+<[base.log]>->( 1, "Starting zenka : $zenka_name (with auto-resolution)" );
 
 ## Use smart launcher
-my $result = <[zenki.parent.start]>->({
-    zenka => $zenka_name,
-    auto_resolve => 1,
-    wait_ready => 1
-});
+my $result = <[zenki.parent.start]>->(
+    {   zenka        => $zenka_name,
+        auto_resolve => 1,
+        wait_ready   => 1
+    }
+);
 
-if ($result->{success}) {
-    my $pid = $result->{pid} || 'unknown';
+if ( $result->{success} ) {
+    my $pid    = $result->{pid} || 'unknown';
     my $status = $result->{already_running} ? 'already running' : 'started';
 
     <[base.log]>->( 1, "✓ Zenka '$zenka_name' $status (PID: $pid)" );
@@ -35,8 +36,8 @@ if ($result->{success}) {
     return say "::\n: ✗ Failed to start zenka\n: Error: $error\n::";
 }
 
-#,,.,,..,,,,.,,,.,.,,,.,.,,..,.,,,...,.,,,,,.,..,,...,...,,..,,,,,,.,,,.,,...,
-#WFXZ64LNU5ZIQTJSE2MNJNXNCNIEBJB5ZRPRQ6FG4OOX3JTNUQ4JRNEKUMBIEMNW5FZMNJS6CJAAM
-#\\\|OSER3ZCD4COPQ2AMRZE7BFVPNERA6M7W2VOVY3ANRJ42OURB463 \ / AMOS7 \ YOURUM ::
-#\[7]XGRD7OBZ4TLELAQOKW5ECEQFZ7Y7D366XANZ2NKFRLFIVHLIY4DQ 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,,,,.,,,.,,,,,,,,..,,,,,,,,,,,,,..,,...,...,,.,,,..,,..,.,.,.,.,
+#Y6LDL3KSXW74AM67QF4VBFIQ3ZHRYDCG5XJOJKJV3J5QBODMULUAXGMPHM6XITB4AF7FCHVCUOHGC
+#\\\|KZ2W5PU6M52O5TXO2EGUOYZZPQBKPKR7AAOODO5VVFWSYPV2AYN \ / AMOS7 \ YOURUM ::
+#\[7]S5GAWF247OI5E5VGZTGMX3GFYQF4MAZ5OEWSBITKTLFRLBUAY2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

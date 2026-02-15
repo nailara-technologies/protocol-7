@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name  = letsencr.parent.handler_renewal_failed
-# descr = handle failed renewal attempts from child process - implement retry logic
+# descr = handle failed renewal attempts from child process
+#         - implement retry logic
 
 my $msg = shift;
 
@@ -11,7 +12,7 @@ my $error_code = $msg->{error_code};
 
 <[base.log]>
     ->( 1, "renewal FAILED for domain: $domain (error: $error_code)" );
-<[base.log]>->( 2, "error details: $error" );
+<[base.log]>->( 2, "error details : $error" );
 
 ## Update statistics
 <letsencr.stats.renewals_failed>++;
@@ -35,7 +36,8 @@ if ( $attempts < $max_retries ) {
 
     <[base.log]>->(
         2,
-        "scheduling retry in $next_retry seconds (attempt $attempts/$max_retries)"
+        "scheduling retry in $next_retry seconds"
+            . " (attempt $attempts/$max_retries)"
     );
 
     ## Schedule retry via event timer
@@ -55,13 +57,14 @@ if ( $attempts < $max_retries ) {
     );
 
     ## Could notify monitoring/alerting services here if needed
-    ## For now, failures are logged and can be checked via letsencr.show-buffer
+    ## For now, failures are logged and can be checked
+    ## via letsencr.show-buffer
 }
 
 return FALSE;
 
-#,,,.,..,,...,.,,,.,.,.,.,.,.,,,,,,,.,,,,,.,,,..,,...,...,.,.,,,.,,..,.,.,..,,
-#Y66TLGUBDDTQMT67ERKD7RI2AKJNRD2H3Z5KMA3KCIUVTUSWCNVNEE6TIXIHDOUZAKGJTTGIDBUXS
-#\\\|7INTQF4RWVON6FOZ765UVGORXTKVVZFWY4U2O4QMXNXOREMSBOA \ / AMOS7 \ YOURUM ::
-#\[7]ZR5F273RJYOM35XH725OOKOVDEQPI6NX2RXDHGGI6QCIBWIDQWDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,.,,,.,,,,,...,.,,,..,,..,,,,.,..,,...,...,...,,.,,,,.,..,,,..,
+#45T4ABFMCKK2W6ORWDN3XWYKTMLZSEADJ75Z22JFU3RHELY4ORQWRRU2C32P4JGXS5NI2PTVPZPO2
+#\\\|3EW7IVC6IEG6SSMWUGW5M5TPOGXTNIVROFSIEIV4LD42TL6WEHF \ / AMOS7 \ YOURUM ::
+#\[7]JA333SL3FNFQO5ABZGSR73CPYIZV6L7JC5BVP2525OZU56SEXSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
