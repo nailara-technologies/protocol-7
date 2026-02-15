@@ -140,27 +140,29 @@ unless ($cert_url) {
     return undef;
 }
 
-## Download certificate
-<[base.log]>->( 2, "downloading certificate from $cert_url" );
+## download certificate with dedicated raw PEM handler
+## [ endpoint returns raw PEM/DER, not JSON ]
+my $fresh_nonce = <[letsencr.child.get_fresh_nonce]>;
+unless ($fresh_nonce) {
+    <[base.log]>->( 1, 'error: failed to get fresh nonce for cert download' );
+    return undef;
+}
 
-my $cert_response = <[letsencr.child.acme_http_request]>->(
-    'POST',
-    $cert_url,
-    '',    # empty payload for POST-as-GET
-    <[letsencr.child.get_fresh_nonce]>,
-    <letsencr.child.acme_client>->{account_url}
+my $account_url   = <letsencr.child.acme_client>->{account_url};
+my $cert_response = <[letsencr.child.download_certificate]>->(
+    $cert_url, $fresh_nonce, $account_url
 );
 
-unless ( $cert_response && $cert_response->{status} == 200 ) {
+unless ($cert_response) {
     <[base.log]>->( 1, 'error: failed to download certificate' );
     return undef;
 }
 
-my $cert_pem
-    = $cert_response->{headers}{'content-type'} eq
-    'application/pem-certificate-chain'
-    ? $cert_response->{data}
-    : $cert_response->{data};
+my $cert_pem = $cert_response->{certificate};
+
+## Update nonce from certificate download
+<letsencr.child.acme_client>->{nonce} = $cert_response->{nonce}
+    if $cert_response->{nonce};
 
 <[base.log]>->( 2, 'certificate downloaded successfully' );
 
@@ -173,8 +175,8 @@ return {
     poll_attempts => $poll_count,
 };
 
-#,,..,..,,,..,,..,.,.,,..,,..,,.,,,..,...,,,.,..,,...,...,...,,,.,.,.,,..,,.,,
-#64PMMFSQ7IWLA75DNU57MD52T2Q6YEMZCFIEXXU5KGWSORBOVILMF53VXWXRAT5OWLJ2NP4P7XRZE
-#\\\|CDTWAHIICKJ2LA6PFBIAOWOF4ARQTXA3KTKW7MZRZK5JB4P6XG2 \ / AMOS7 \ YOURUM ::
-#\[7]WPUOHGDWLC75RP4QT7AYFAZWXOP4USGI2XNBFHIMAEDOTLW43QAY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,.,,,..,,,,,,,.,,,.,,,.,.,.,,.,,..,,...,..,,,..,.,,,..,,,,,,,,.,
+#AAPIB47TBOOY5MGZDFUM4KQVUCJEFS3WKURRPSQLLJL2AICDBKQHNFC35PCLG5JCZAOQ6GXIZARVI
+#\\\|YR22HXJC3E4465JLHVKNGMDE44QGVGUDNBW2Y647WE2DYAGTBFP \ / AMOS7 \ YOURUM ::
+#\[7]24DBBVCAAVLGX35FG6ZA7HCFZQUZ3SPOKWJD2L7QZH5ZBAH4L2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

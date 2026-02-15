@@ -16,7 +16,8 @@ my $p7_root = p7_root_dir();
 
 chdir($p7_root) or die "  :\n  :: \l$OS_ERROR : $p7_root\n\n";
 
-print ":\n: p7-git-pull--rebase : checking for modified or untracked files ..,\n:\n";
+print ":\n: p7-git-pull--rebase : "
+    . "checking for modified or untracked files ..,\n:\n";
 
 ## check for modified or untracked files using vc-changed-files ##
 my $changed_files = `$p7_root/bin/admin/vc-changed-files 2>&1`;
@@ -33,10 +34,23 @@ print ": no modified or untracked files detected ..\n";
 print ": proceeding with git pull --rebase ..\n:\n";
 
 ## run git pull --rebase ##
-system(qw| git pull --rebase |) == 0
-    or die ":\n:: git pull --rebase failed : $OS_ERROR\n\n";
-
-print "\n:\n: git pull --rebase completed successfully .\n:\n";
+my $rebase_exit = system(qw| git pull --rebase |);
+if ( $rebase_exit != 0 ) {
+    ## check if we're in a rebase state (conflict during rebase)
+    if ( -f '.git/REBASE_HEAD' ) {
+        print "\n:\n: rebase conflict detected,"
+            . " attempting to continue ..\n:\n";
+        my $continue_exit = system(qw| git rebase --continue |);
+        if ( $continue_exit != 0 ) {
+            die ":\n:: git rebase --continue failed : $OS_ERROR\n\n";
+        }
+        print "\n:\n: rebase continued successfully .\n:\n";
+    } else {
+        die ":\n:: git pull --rebase failed : $OS_ERROR\n\n";
+    }
+} else {
+    print "\n:\n: git pull --rebase completed successfully .\n:\n";
+}
 
 ## restore file permissions (fixes perms even without git hooks) ##
 print ": restoring file permissions after pull ..\n:\n";
@@ -59,8 +73,8 @@ sub p7_root_dir {
     return $root_path;
 }
 
-#,,,.,.,.,...,,..,,..,.,,,,.,,..,,.,,,,,.,.,,,..,,...,...,,..,...,,,,,,,,,.,.,
-#RY56U73UO6C6THRJ3SARZCSJJ6AAHFW4HXGOYQEHL7ZEE5YVYJXLMO63X5BQFNBEYEF5LAHRSLZPE
-#\\\|K4XT42A322KOVNWA467ECJMSZTRGSXI7SSDJ3MZGTJOMJHXFDR2 \ / AMOS7 \ YOURUM ::
-#\[7]GCARWSUZG2X4C3IEAIN7PKNILB656CBV4S43JTAM22C7WBDFSIAQ 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,.,,..,,,,.,,..,,,.,.,,,,,.,..,,..,,...,..,,..,,,,,,.,,,,,,,,..,
+#RLDGXJYN5CQBU7CV25I2OYTEIPILGIU3X4SXUZQK45NB5MHJT6FOH6QUEYEZG7TMPCLZJYKNIVQ4U
+#\\\|QJVYSMLHXQY5KKOIAVFTJ7DXFB5RZ2H4TZT27UOUJW2UX77YUZK \ / AMOS7 \ YOURUM ::
+#\[7]X3DQOAO2B2AV7DALTCVNJAUSNSBCJ5NGQV27I2ZASUY6LBIPMYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
