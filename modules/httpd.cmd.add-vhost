@@ -1,237 +1,148 @@
 ## [:< ##
 
 # name = httpd.cmd.add-vhost
-# descr = add virtual host with automatic Let's Encrypt enrollment
+# descr = add virtual host directory with default index
 
-use File::Path qw| make_path |;
-use Cwd        qw| abs_path |;
+my $args       = $call->{'args'} // '';
+my @args       = split m{\ +}, $args;
+my $domain     = $args[0];
+my $index_mode = grep {m{^:index:$}} @args;
 
-my $params = shift || {};
-
-my $domain = $params->{domain} || $params->{host};
-
-if ( !$domain ) {
+unless ($domain) {
     return {
-        success => FALSE,
-        error   => qw| domain parameter required |,
-        usage   => qw| httpd.add-vhost domain=example.com [skip_cert=1] |
+        'mode' => qw| false |,
+        'data' => 'domain parameter required'
     };
 }
 
 ## Validate domain format
-if ( $domain
-    !~ /^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$/
+if ($domain !~ m{^
+    [a-zA-Z0-9]                             ## first character [ alphanumeric ]
+    (?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?    ## middle section [ optional, 0-61 chars ]
+    (?:
+        \.                                  ## dot separator
+        [a-zA-Z0-9]                         ## label first character
+        (?:[a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])? ## label middle section [ optional ]
+    )*                                      ## repeat for each subdomain
+    $
+}x
 ) {
     return {
-        success => FALSE,
-        error   => qq| invalid domain format: $domain |
+        'mode' => qw| false |,
+        'data' => sprintf 'domain format not valid : %s',
+        $domain
     };
 }
 
-my $skip_cert   = $params->{skip_cert}   || $params->{no_cert} || 0;
-my $skip_rescan = $params->{skip_rescan} || 0;
-
-<[base.log]>->( 2, "httpd.cmd.add-vhost: Adding vhost for domain '$domain'" );
+<[base.logs]>->( 2, 'adding vhost for domain: %s', $domain );
 
 ## Configuration
-my $site_dir    = <httpd.site_dir>     || '/var/httpd';
-my $content_dir = <web.cfg.base_dir>   || '/data/web';
-my $httpd_user  = <httpd.system.user>  || 'httpd';
-my $httpd_group = <httpd.system.group> || 'httpd';
+my $site_dir             = <httpd.site_dir>     // qw| /var/httpd |;
+my $httpd_user           = <httpd.system.user>  // qw| httpd |;
+my $httpd_group          = <httpd.system.group> // qw| httpd |;
+my $create_default_index = <httpd.cfg.create_default_index> // FALSE;
 
 my ( undef, undef, $httpd_uid, $httpd_gid ) = getpwnam($httpd_user);
 
 if ( !defined $httpd_uid ) {
     return {
-        success => FALSE,
-        error   => qq| httpd user '$httpd_user' does not exist |
+        'mode' => qw| false |,
+        'data' => sprintf "httpd user '%s' does not exist",
+        $httpd_user
     };
 }
 
 ## Paths
-my $vhost_link   = "$site_dir/$domain";
-my $content_path = "$content_dir/$domain";
+my $vhost_path = join qw| / |, $site_dir, $domain;
 
 ## Check if vhost already exists
-if ( -e $vhost_link ) {
-    <[base.log]>
-        ->( 1, "httpd.cmd.add-vhost: vhost '$domain' already exists" );
-
-    ## Check if cert exists
-    my $has_cert = -f "/etc/protocol-7/certs/$domain.pem"
-        && -f "/etc/protocol-7/certs/$domain.key";
+if ( -e $vhost_path ) {
+    <[base.logs]>->( 1, 'vhost already exists: %s', $domain );
 
     return {
-        success      => TRUE,
-        status       => qw| exists |,
-        domain       => $domain,
-        vhost_path   => $vhost_link,
-        content_path => $content_path,
-        has_cert     => $has_cert ? 1 : 0
+        'mode'       => qw| true |,
+        'data'       => 'vhost already exists',
+        'domain'     => $domain,
+        'vhost_path' => $vhost_path
     };
 }
 
-## Step 1: Create content directory
-<[base.log]>->( 2, "  Creating content directory: $content_path" );
+## Step 1: Create vhost directory
+my $create_dir_result = <[httpd.path.create_vhost_dir]>->(
+    $vhost_path, $httpd_uid, $httpd_gid, $httpd_user
+);
+unless ($create_dir_result) {
+    <[base.logs]>->( 0, 'vhost directory creation failed: %s', $vhost_path );
+    return {
+        'mode' => qw| false |,
+        'data' => 'failed to create vhost directory'
+    };
+}
 
-if ( !-d $content_path ) {
-    eval {
-        make_path(
-            $content_path,
-            {   mode  => 0755,
-                uid   => $httpd_uid,
-                group => $httpd_gid
-            }
+## Step 2: Create default index page [ if configured or requested ]
+if ( $create_default_index || $index_mode ) {
+    my $create_index_result = <[httpd.path.create_default_index]>->(
+        $vhost_path, $domain, $httpd_uid, $httpd_gid
+    );
+    unless ($create_index_result) {
+        <[base.logs]>->(
+            0, 'default index creation failed : %s', $vhost_path
         );
-    };
-
-    if ($EVAL_ERROR) {
         return {
-            success => FALSE,
-            error   => qq| failed to create content directory: $EVAL_ERROR |
+            'mode' => qw| false |,
+            'data' => 'failed to create default index page'
         };
-    }
-
-    ## Create default index page
-    my $index_path = "$content_path/index.txt";
-    if ( !-f $index_path ) {
-        my $default_content = qq|<h1>Welcome to $domain</h1>
-
-<p>This is the default page for <strong>$domain</strong>.</p>
-
-<p>This page is being served via HTTPS with automatic Let's Encrypt certificates.</p>
-
-<h2>Protocol-7 Web Infrastructure</h2>
-
-<ul>
-    <li>Content directory: <code>/data/web/$domain/</code></li>
-    <li>Skin templates: <code>/var/httpd/skins/</code></li>
-    <li>HTTPS enabled with TLS 1.2+</li>
-    <li>Recursive template processing</li>
-</ul>
-
-<p>Edit <code>/data/web/$domain/index.txt</code> to customize this page.</p>
-|;
-
-        if ( open my $fh, '>', $index_path ) {
-            print $fh $default_content;
-            close $fh;
-            chown $httpd_uid, $httpd_gid, $index_path;
-            chmod 0644, $index_path;
-            <[base.log]>->( 2, "  Created default index page" );
-        }
     }
 }
 
-## Step 2: Create symlink from /var/httpd/domain → /data/web/domain
-<[base.log]>->( 2, "  Creating symlink: $vhost_link → $content_path" );
+## Step 3: Rescan site directory
+<[base.logs]>->( 2, 'rescanning site directory for %s', $domain );
+<[httpd.scan_site_dir]>;
 
-if ( !symlink( $content_path, $vhost_link ) ) {
+## Verify vhost was discovered
+if ( !exists <httpd.cfg.hostnames>->{$domain} ) {
     return {
-        success => FALSE,
-        error   => qq| failed to create symlink: $! |
+        'mode' => qw| false |,
+        'data' => 'vhost created but not discovered in scan'
     };
 }
 
-## Step 3: Rescan site directory (unless skip_rescan)
-unless ($skip_rescan) {
-    <[base.log]>->( 2, "  Rescanning site directory" );
-    <[httpd.scan_site_dir]>;
-
-    ## Verify vhost was discovered
-    if ( !exists <httpd.cfg.hostnames>->{$domain} ) {
-        return {
-            success => FALSE,
-            error   => qq| vhost created but not discovered in scan |
-        };
-    }
-
-    <[base.log]>->( 2, "  Vhost '$domain' registered successfully" );
-}
+<[base.logs]>->( 2, ': vhost registered successfully : %s', $domain );
 
 ## Step 4: Add to vhost registry list
 my $vhost_id = <[base.list.element.add]>->(
     {   'key_ref' => \$data{'httpd'}{'vhosts'}{'registry'},
         'val_ref' => \{
             'domain'   => $domain,
-            'path'     => $content_path,
-            'cert'     => 0,
+            'path'     => $vhost_path,
+            'cert'     => FALSE,
             'status'   => qw| active |,
-            'added_at' => time()
+            'added_at' => <[base.time]>->(3)
         }
     }
 );
 
 if ( !defined $vhost_id ) {
-    <[base.log]>->( 0, "  Failed to add vhost to registry list" );
+    <[base.log]>->( 0, 'failed to add vhost to registry list' );
 } else {
     <httpd.vhosts.by_domain>->{$domain} = $vhost_id;
-    <[base.log]>->( 2, "  Vhost added to registry [id=$vhost_id]" );
+    <[base.logs]>->( 2, 'vhost added to registry : id=%s', $vhost_id );
 }
 
 my $result = {
-    success      => TRUE,
-    status       => qw| created |,
-    domain       => $domain,
-    vhost_path   => $vhost_link,
-    content_path => $content_path,
-    vhost_id     => $vhost_id,
-    has_cert     => 0
+    'mode'       => qw| true |,
+    'data'       => 'vhost created successfully',
+    'domain'     => $domain,
+    'vhost_path' => $vhost_path,
+    'vhost_id'   => $vhost_id
 };
 
-## Step 5: Trigger Let's Encrypt enrollment (unless skip_cert)
-unless ($skip_cert) {
-    <[base.log]>
-        ->( 2, "  Triggering Let's Encrypt enrollment for '$domain'" );
-
-    ## Check if letsencr zenka is available
-    if ( exists $code{'letsencr.cmd.enroll'} ) {
-        my $cert_result = <[letsencr.cmd.enroll]>->(
-            {   domain       => $domain,
-                auto_install => 1          ## Automatically install to httpsd
-            }
-        );
-
-        if ( $cert_result->{success} ) {
-            <[base.log]>->(
-                2, "  Certificate enrolled and installed successfully"
-            );
-            $result->{has_cert}    = 1;
-            $result->{cert_status} = $cert_result->{status};
-
-            ## Update vhost registry with cert status
-            if ( defined $vhost_id
-                && exists <httpd.vhosts.registry>->{$vhost_id} ) {
-                <httpd.vhosts.registry>->{$vhost_id}->{'cert'} = 1;
-            }
-        } else {
-            <[base.log]>->(
-                0,
-                "  Certificate enrollment failed: "
-                    . ( $cert_result->{error} || 'unknown error' )
-            );
-            $result->{cert_error} = $cert_result->{error};
-        }
-    } else {
-        <[base.log]>->(
-            1,
-            "  Let's Encrypt module not available, skipping cert enrollment"
-        );
-        $result->{cert_status} = qw| skipped_module_unavailable |;
-    }
-} else {
-    <[base.log]>->( 2, "  Skipping certificate enrollment (skip_cert=1)" );
-    $result->{cert_status} = qw| skipped_by_request |;
-}
-
-<[base.log]>->( 2, "httpd.cmd.add-vhost: Vhost '$domain' setup complete" );
+<[base.logs]>->( 1, ': vhost created successfully : %s', $domain );
 
 return $result;
 
-0;
-
-#,,,,,,.,,,..,.,.,..,,.,,,,,.,.,.,...,...,.,.,..,,...,...,...,..,,,,.,,,,,.,,,
-#JBIXA7FY6M4ECIBQVSKJQIGKPHRPEOYVUUZE4IYDW22HQ36F4VLOMEVU5DNOAMZ37L2JMF5QYEZKE
-#\\\|X7CWLHSIYVFDXXVFMCJGWBU5A5WYXBBNAJIWU4EPSV4X2EGE65X \ / AMOS7 \ YOURUM ::
-#\[7]VDX2GPR4WFFBEBAL6BSSX7RNZ27UVJFVGRHGCEIQ5TMMHBYAO4CA 7  DATA SIGNATURE ::
+#,,,.,...,..,,,,.,,..,.,,,,,.,,,,,.,,,,,.,.,,,..,,...,...,,,,,.,,,,,.,,..,...,
+#CRUEZWBT6TTNESSBKIOYIHYH3BJGXQUV6BNMCFNGX4AGJT4PR6ZDUJ5WYKANG3Z42EIRHPVSSNSXM
+#\\\|URWFJUCFLPJFKQJ6BZON5SE4KE2HGONVZBW4NZE233HRSJD3K7M \ / AMOS7 \ YOURUM ::
+#\[7]UKYAS623RGZDCRHAMCWMAIK2KWHWQEQZQYZGDJXZ646H767PMSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

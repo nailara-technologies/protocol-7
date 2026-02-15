@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = httpd.path.remove_vhost_dir
+# param = <content_path>
+# descr = remove vhost content directory recursively
+
+my $content_path = shift;
+
+unless ($content_path) {
+    <[base.log]>->( 0, 'content_path parameter required' );
+    return FALSE;
+}
+
+unless ( -d $content_path ) {
+    <[base.logs]>->( 2, 'vhost directory not found : %s', $content_path );
+    return TRUE;
+}
+
+<[base.logs]>->( 2, 'removing vhost directory : %s', $content_path );
+
+my $removed_count = <[file.remove_tree]>->( $content_path, {} );
+
+if ( $removed_count == FALSE ) {
+    return FALSE;
+}
+
+return TRUE;
+
+#,,..,.,,,...,...,,,.,..,,...,,..,,,.,...,,,,,..,,...,...,,.,,...,,..,.,.,,,,,
+#UN4T6YI6XOMWRCVMQVKIGVPVADKD74AH4FOGC4FYPFAM6ZZ5FN3ISUJ5YCONGJIQXZEG6TXJH7KP4
+#\\\|JKO45DTPIQCVV6VTWP2RI67NCQDIFQ2FEEYR5KSNBPI6VUX77CM \ / AMOS7 \ YOURUM ::
+#\[7]LP5FZPJEIT5TCFMH2RPFSANWF5MXMSVLT7L7MP5EQIWMQN745IAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

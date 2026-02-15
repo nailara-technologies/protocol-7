@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = httpd.path.create_default_index
+# param = <content_path> <domain> <httpd_uid> <httpd_gid>
+# descr = create default index.html for vhost
+
+my $content_path = shift;
+my $domain       = shift;
+my $httpd_uid    = shift;
+my $httpd_gid    = shift;
+
+unless ( $content_path && $domain ) {
+    <[base.log]>->( 0, 'content_path and domain required' );
+    return FALSE;
+}
+
+my $index_path = sprintf '%s/index.html', $content_path;
+
+if ( -f $index_path ) {
+    <[base.logs]>->( 2, 'default index already exists: %s', $index_path );
+    return TRUE;
+}
+
+<[base.logs]>->( 2, 'creating default index: %s', $index_path );
+
+my $default_content = qq|<html><body bgcolor="#000000"></body></html>\n|;
+
+my $put_result = <[file.put]>->( $index_path, $default_content );
+
+unless ($put_result) {
+    <[base.logs]>->(
+        0, 'failed to create index file: %s',
+        <[base.str.os_err]>
+    );
+    return FALSE;
+}
+
+## Set permissions and ownership
+chmod( 0644, $index_path );
+chown( $httpd_uid, $httpd_gid, $index_path );
+
+<[base.log]>->( 2, 'default index created successfully' );
+return TRUE;
+
+#,,.,,,.,,...,,,,,,,,,..,,,..,.,,,.,,,,.,,,,,,..,,...,...,.,.,,..,.,,,,,.,,.,,
+#YFVCGVG3S5AY4AKSSZUL6AVCOIP6SRSRUWZDJVSETTFAJPM7FUJMG3QEXDU4RV472DOWJIQYKR7CK
+#\\\|QNNHCGDMVEKAQMRB5FKQ7SJXWURD5L3K6LQOX5ICGPT6KANO5NS \ / AMOS7 \ YOURUM ::
+#\[7]BI7M7SGUZXMYI2WXIUFCI4SMLXA2VX7H73BVXUELNRQZ7NQBQCDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

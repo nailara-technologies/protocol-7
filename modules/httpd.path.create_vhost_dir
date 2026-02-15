@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = httpd.path.create_vhost_dir
+# param = <content_path> <httpd_uid> <httpd_gid> <httpd_user>
+# descr = create vhost content directory with proper ownership
+
+my $content_path = shift;
+my $httpd_uid    = shift;
+my $httpd_gid    = shift;
+my $httpd_user   = shift;
+
+unless ($content_path) {
+    <[base.log]>->( 0, 'content_path parameter required' );
+    return FALSE;
+}
+
+unless ( defined $httpd_uid && defined $httpd_gid ) {
+    <[base.log]>->( 0, 'httpd_uid and httpd_gid required' );
+    return FALSE;
+}
+
+if ( -d $content_path ) {
+    <[base.logs]>->(
+        2, ': vhost directory already exists : %s',
+        $content_path
+    );
+    return TRUE;
+}
+
+<[base.logs]>->( 2, ': creating vhost directory : %s', $content_path );
+
+unless ( <[file.make_path]>->( $content_path, 0750, $httpd_user ) ) {
+    <[base.logs]>->(
+        0, 'failed to create vhost directory : %s',
+        <[base.str.os_err]>
+    );
+    return FALSE;
+}
+
+<[base.logs]>->( 2, 'vhost directory created successfully' );
+return TRUE;
+
+#,,..,,.,,,,.,.,.,,,.,.,,,,.,,,.,,.,,,,.,,.,,,..,,...,..,,...,..,,,,.,.,.,,.,,
+#LE2BTRGEE47YKN7T3RX3QR3ZAGG7MD3ESVRUEDDAHEJATIKXHGT7QTXIMPHBOO5QQECEA7WRCLRPW
+#\\\|Q7AKWQRLZ4YQ52X3FJVEKGYY5EXYWHU7UHMYWKECYOT5RUWC5HN \ / AMOS7 \ YOURUM ::
+#\[7]VFLWQ6IZ73FRKZPFNSYIXZAFFO5QFWB37PJOR7GJXXVI4J7KVMBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -4,11 +4,7 @@
 # param = <domain> <token> <key_auth>
 # descr = create HTTP-01 challenge response file
 
-my $params = $call->{'args'};
-
-my $domain   = $params->{domain};
-my $token    = $params->{token};
-my $key_auth = $params->{key_auth};
+( my $domain, my $token, my $key_auth ) = split m{\ +}, $call->{'args'} // '';
 
 unless ( $domain && $token && $key_auth ) {
     return {
@@ -20,48 +16,45 @@ unless ( $domain && $token && $key_auth ) {
 <[base.logs]>->( 2, 'setting up HTTP-01 challenge for %s', $domain );
 
 ## construct well-known challenge path
-my $well_known_dir
-    = sprintf( '%s%s/.well-known/acme-challenge', <httpd.site_dir>, $domain );
+my $well_known_dir = sprintf qw| %s%s/.well-known/acme-challenge |,
+    <httpd.site_dir>, $domain;
 
-<[base.logs]>->( 3, 'challenge directory: %s', $well_known_dir );
+<[base.logs]>->( 3, ': challenge directory : %s', $well_known_dir );
 
 ## create directory if needed
-<[file.make_path]>->(
-    $well_known_dir,
-    {   mode  => 0755,
-        group => <system.amos-zenka-user>,
-    }
-    )
+<[file.make_path]>->( $well_known_dir, qw| 0770 |, <system.amos-zenka-user> )
     or do {
     my $error = <[base.str.os_err]>;
-    <[base.logs]>->( 1, 'failed to create challenge directory: %s', $error );
+    <[base.logs]>->( 1, 'failed to create challenge directory : %s', $error );
     return {
         'mode' => qw| false |,
-        'data' => "failed to create directory: $error"
+        'data' => sprintf 'failed to create directory : %s',
+        $error
     };
     };
 
 ## write challenge response file
-my $challenge_file = sprintf( '%s/%s', $well_known_dir, $token );
+my $challenge_file = join qw| / |, $well_known_dir, $token;
 
 <[file.put]>->( $challenge_file, $key_auth, qw| :raw | ) or do {
     my $error = <[base.str.os_err]>;
-    <[base.logs]>->( 1, 'failed to write challenge file: %s', $error );
+    <[base.logs]>->( 1, 'failed to write challenge file : %s', $error );
     return {
         'mode' => qw| false |,
-        'data' => "failed to write file: $error"
+        'data' => sprintf 'failed to write file : %s',
+        $error
     };
 };
 
-<[base.logs]>->( 2, 'challenge file written: %s', $challenge_file );
+<[base.logs]>->( 2, 'challenge file written : %s', $challenge_file );
 
 return {
     'mode' => qw| true |,
     'data' => 'challenge file set up successfully'
 };
 
-#,,..,.,,,,.,,,..,...,,,.,.,,,..,,..,,,..,,..,.,.,...,...,...,,,,,..,,,.,,...,
-#UPFIWGFBMQ33ZMMVA6X3HBUFP62LGSUUV56YG7R4KAGOI6LLN22JP3KEAGJWXMHZYQKMQI75Y5D7I
-#\\\|GE6HPPVPAM4OVRVAYOXPUWHIPZBZSS66V75IKYFKX437RYRPBWP \ / AMOS7 \ YOURUM ::
-#\[7]7U7QCM246C4PXADR74CK2HOZOOUA46HJNIF5BRUAJ3NNVW52U6AA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,,,...,.,,,,..,,.,,,..,,,.,..,,.,.,...,...,,,.,,..,.,.,.,.,,..,
+#H3VA7B2MUR3VBYU4R56FMP4JQCJALTDSZECHNFUX67HODZ6KRDPZOJG73C2CFCFODE3ISIUS2VC5C
+#\\\|KXJP336J7WMG2DDXU5WQ3B5KVOFARWQLWGKJWZ5LRG6QXJO6HHD \ / AMOS7 \ YOURUM ::
+#\[7]HFT5H343SFKQYPGJHE2ZZ7GOEOWHLOMSMQ2EOUEPBXQBHXDPRSDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
