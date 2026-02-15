@@ -11,14 +11,16 @@ return undef unless $domains && @$domains;
 
 my $primary_domain = $domains->[0];
 
-## Generate new certificate key (Ed25519 ECDSA) using openssl
-<[base.log]>->( 2, 'generating certificate key (Ed25519)...' );
+## Generate new certificate key (RSA 2048-bit) matching account key algorithm
+<[base.log]>->( 2, 'generating certificate key (RSA 2048-bit)...' );
 
 my ( $key_fh, $key_file ) = tempfile( UNLINK => 1 );
-system("openssl genpkey -algorithm Ed25519 -out '$key_file' 2>/dev/null");
+system(
+    "openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out '$key_file' 2>/dev/null"
+);
 
 unless ( -f $key_file && -s $key_file ) {
-    <[base.log]>->( 1, 'error: failed to generate Ed25519 key' );
+    <[base.log]>->( 1, 'error: failed to generate RSA 2048-bit key' );
     return undef;
 }
 
@@ -103,8 +105,8 @@ return {
     domains    => $domains,
 };
 
-#,,,.,,,.,..,,.,,,...,.,,,...,,,,,,,.,,,,,,,.,..,,...,...,,.,,...,...,...,...,
-#KPC576YGSU7ZP2Q4TYQRE3YIBRGOEJFGFYIYPE3MTBP4PNNGNQPBAC6NEOEQZRCMXMKRG6SQUUO2G
-#\\\|S7P2WUF32EVGT6QV6AIMJQJNVTVLGSJT54JNI6L6HVJ2V3FHRAR \ / AMOS7 \ YOURUM ::
-#\[7]P36USQQGU35CKEWHVTSWAMR2RRCKCXQHGV6KWZYO6DK2XBK6GYBA 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,.,,,,.,,,,.,,.,,,,.,,,.,...,.,.,..,,...,..,,.,.,,..,..,,.,,,.,,,
+#STNI2PJHXKW664APJJVZWSPK5MXHBPYZ6YPYPDGFU25FY2G7DIPGRTTBG6JLOU7VAYVJMAW3NGM2G
+#\\\|XZA5A5LI2P4MU76WVTQPTVPXPZ2AIZCFXZJQH6GP4DMGBJIXCBB \ / AMOS7 \ YOURUM ::
+#\[7]NNKJIB4VJTBDPFZPU4LHEAZAPHSGGDLMQ2SY4XSVD5HOI6AEJMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
