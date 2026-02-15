@@ -4,8 +4,7 @@
 # param = <domain>
 # descr = remove HTTP-01 challenge directory
 
-my $params = $call->{'args'};
-my $domain = $params->{'domain'};
+my $domain = ( split m{\ +}, $call->{'args'} // '' )[0];
 
 unless ($domain) {
     return {
@@ -40,8 +39,8 @@ return {
     'data' => 'cleanup complete'
 };
 
-#,,..,,,.,..,,,.,,..,,,..,...,,,,,,..,,.,,.,,,.,.,...,...,,.,,.,,,..,,,,,,..,,
-#TULA53OVEM5AIBPKUQH3MX6VPII4MTSELFCANGRPZEY2BNKVBRBUZP5M2BW6ZHIUZWP27CBF3457K
-#\\\|7Q7KKUEJCKMHN5W2DY2VN4YQGLH7Q37PNYMPU2Z5BMPO44W627U \ / AMOS7 \ YOURUM ::
-#\[7]7MYBDGN6AHFS6YX5QIUFJCVYCQR2O3HZ7RZWUXT5L44OB7542MBI 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,,,,,,,,.,,,,,.,.,,,...,.,.,,,.,.,.,...,...,.,.,,..,...,...,,,.,
+#JHEBGXF2T3XNXNI6IVTDBN5ZWWOLTOIIRUAW4F4HXCW73TNTZ5KLMJLGANM6HNTW64VEA47A3C6JW
+#\\\|R375AWB4FB7EG6OFHPLQW6AVVTQ3T27UCFX4POHRGAIWYR2GP2K \ / AMOS7 \ YOURUM ::
+#\[7]RNECRDE56HKC3QO7XCCOEVLFHMWQI3ZHCVAUAHPOJA7LYRXU6IAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
