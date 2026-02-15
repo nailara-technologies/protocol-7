@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = workspace-transfer.console.checkpoint
-# descr = quick checkpoint commit and push (Protocol-7 styled console output)
+# descr = quick checkpoint commit and push
 
 ## Protocol-7 color scheme ##
 my $reset       = "\e[0m";
@@ -72,17 +72,17 @@ if ( $commit_result == 0 ) {
 
     if ( $push_result == 0 ) {
         say "";
-        say
-            "$neon_green✓$reset ${neon_green}Pushed to remote successfully$reset";
+        say "$neon_green✓$reset"
+            . " ${neon_green}Pushed to remote successfully$reset";
         say "";
         say "$neon_green" . "🌳 "
-            . "$reset${TRUE_blue}Checkpoint saved to GitHub!$reset $neon_green"
-            . "🌳"
+            . "$reset${TRUE_blue}Checkpoint saved to"
+            . " GitHub!$reset $neon_green" . "🌳"
             . "$reset";
     } else {
         say "";
-        say
-            "$neon_orange⚠$reset Push failed, but commit is local. Will retry on next checkpoint.";
+        say "$neon_orange⚠$reset Push failed, but commit is local."
+            . " Will retry on next checkpoint.";
     }
 } else {
     say "";
@@ -93,8 +93,8 @@ say "";
 say "$blacklight" . "=" x 70 . "$reset";
 say "";
 
-#,,,.,...,,,,,,,.,.,,,,,,,..,,.,.,..,,.,.,.,,,..,,...,...,..,,.,.,,..,...,.,.,
-#6S5SL4YJ3E7WQ7IDG3KUZX2LBYL4T44XDDLCFR6TSDTCAS2RYAVPIFB6UGXBKTUT2YLWHTNO4JUBA
-#\\\|X7MKIPCYPNHUFGUYITS5MRGXBPBCETWR7HLDUP3UEH5BBIMZVJ4 \ / AMOS7 \ YOURUM ::
-#\[7]GVRTZYRDX24EKUHNGTUKK7TVXJCZXT3GNQVC5VDAMX7GNYBY2KAA 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,.,,...,.,,,..,,...,,,.,.,.,,.,,..,,...,...,,,.,.,,,.,.,.,.,,..,
+#EHNRK5E5MSGYUAPE3R4IVZUUOWP7EAILGDUCHDH6GXE7RJTTHLST5EA5FERDNQMQOZTEGCBZBKZUI
+#\\\|OYDZEVAH4JOX56PJCKL6RRZKVSBB5YWCI57XGDZI4MLCJ3BLGK7 \ / AMOS7 \ YOURUM ::
+#\[7]ZR4J4P3YQBBMYD3FDNKOS3UT27G74JIFLMRTU5XBDAW3XY2FSGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

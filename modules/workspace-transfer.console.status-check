@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = workspace-transfer.console.status-check
-# descr = intelligent workspace status analyzer
+# descr = analyze workspace status
 
 ## Protocol-7 color scheme ##
 my $reset       = "\e[0m";
@@ -25,8 +25,8 @@ unless ( -f 'README.md' && -d '.git' ) {
 
 say "";
 say "$blacklight" . "=" x 70 . "$reset";
-say
-    "$blacklight .:[ ${TRUE_blue}WORKSPACE STATUS CHECK${blacklight} ]:.$reset";
+say "$blacklight .:[ ${TRUE_blue}WORKSPACE STATUS CHECK"
+    . "${blacklight} ]:.$reset";
 say "$blacklight" . "=" x 70 . "$reset";
 say "";
 
@@ -38,8 +38,8 @@ my $status_count = `git status --short | wc -l`;
 chomp $status_count;
 
 if ( $status_count > 0 ) {
-    say
-        "   $neon_red⚠$reset  ${neon_orange}UNCOMMITTED:$reset $status_count files changed";
+    say "   $neon_red⚠$reset  ${neon_orange}UNCOMMITTED:$reset"
+        . " $status_count files changed";
     say "";
     my @status_lines = `git status --short | head -10`;
     foreach (@status_lines) {
@@ -55,12 +55,12 @@ if ( $status_count > 0 ) {
             ( $status_count - 10 );
     }
     say "";
-    say
-        "      ${blacklight}→ Action:$reset ${TRUE_blue}git add -A && git commit -m 'description' && git push$reset";
+    say "      ${blacklight}→ Action:$reset ${TRUE_blue}git add -A"
+        . " && git commit -m 'description' && git push$reset";
     $needs_action = 1;
 } else {
-    say
-        "   $neon_green✓$reset ${neon_green}CLEAN:$reset No uncommitted changes";
+    say "   $neon_green✓$reset ${neon_green}CLEAN:$reset"
+        . " No uncommitted changes";
 }
 
 # Check Remote Sync
@@ -77,24 +77,24 @@ my $behind = `git rev-list HEAD..origin/$branch --count 2>/dev/null`;
 chomp( $ahead, $behind );
 
 if ( $ahead > 0 ) {
-    say sprintf
-        "   $neon_orange⚠$reset  ${neon_orange}AHEAD:$reset %d commits not pushed",
+    say sprintf "   $neon_orange⚠$reset  ${neon_orange}AHEAD:$reset"
+        . " %d commits not pushed",
         $ahead;
-    say sprintf
-        "      ${blacklight}→ Action:$reset ${TRUE_blue}git push origin %s$reset",
+    say sprintf "      ${blacklight}→ Action:$reset"
+        . " ${TRUE_blue}git push origin %s$reset",
         $branch;
     $needs_action = 1;
 } elsif ( $behind > 0 ) {
-    say sprintf
-        "   $neon_orange⚠$reset  ${neon_orange}BEHIND:$reset %d commits on remote",
+    say sprintf "   $neon_orange⚠$reset  ${neon_orange}BEHIND:$reset"
+        . " %d commits on remote",
         $behind;
-    say sprintf
-        "      ${blacklight}→ Action:$reset ${TRUE_blue}git pull origin %s$reset",
+    say sprintf "      ${blacklight}→ Action:$reset"
+        . " ${TRUE_blue}git pull origin %s$reset",
         $branch;
     $needs_action = 1;
 } else {
-    say
-        "   $neon_green✓$reset ${neon_green}SYNCED:$reset Local matches remote";
+    say "   $neon_green✓$reset ${neon_green}SYNCED:$reset"
+        . " Local matches remote";
 }
 
 # Check Git Config
@@ -109,10 +109,10 @@ if ( $git_user && $git_email ) {
         "   $neon_green✓$reset ${neon_green}CONFIGURED:$reset %s <%s>",
         $git_user, $git_email;
 } else {
-    say
-        "   $neon_red⚠$reset  ${neon_orange}MISCONFIGURED:$reset Git identity not set";
-    say
-        "      ${blacklight}→ Action:$reset ${TRUE_blue}Run bootstrap or configure-remote-PAT$reset";
+    say "   $neon_red⚠$reset  ${neon_orange}MISCONFIGURED:$reset"
+        . " Git identity not set";
+    say "      ${blacklight}→ Action:$reset"
+        . " ${TRUE_blue}Run bootstrap or configure-remote-PAT$reset";
     $needs_action = 1;
 }
 
@@ -131,8 +131,8 @@ say sprintf "   ${blacklight}💾 Commits:$reset ${neon_orange}%s$reset",
 say "";
 say "$blacklight" . "=" x 70 . "$reset";
 if ($needs_action) {
-    say
-        "$neon_orange⚠$reset  ${neon_orange}ACTION REQUIRED$reset - See details above";
+    say "$neon_orange⚠$reset  ${neon_orange}ACTION REQUIRED$reset"
+        . " - See details above";
 } else {
     say "$neon_green✅ ALL SYSTEMS GO!$reset";
     say "";
@@ -143,8 +143,8 @@ if ($needs_action) {
 say "$blacklight" . "=" x 70 . "$reset";
 say "";
 
-#,,,,,.,.,,..,,,.,.,.,.,.,,..,.,.,,..,,,.,,..,..,,...,...,.,,,...,,..,,,.,.,,,
-#6DXWV7PDQ77Z67PR2E2FOJTPIWIZOG7CPGPWLBEKGC3CDCHVJJNZPF6YHWCI7JTY2A26WLZE7MFS6
-#\\\|QFU7R43A7W37SVVJZ3MOZ6RXDOV5GFQTUVCVHKRUSCZ2XXEGPCV \ / AMOS7 \ YOURUM ::
-#\[7]QCNIUGY5HF5PMGJEIIV2DRPT5QDOTRM22O5XDJ7VTSSPIOGTYMBY 7  DATA SIGNATURE ::
+#,,..,,..,..,,..,,,..,,..,...,,,,,.,,,,,,,,.,,..,,...,...,..,,,,.,,.,,...,..,,
+#2RWMMJZIA47FYPFOJVDX5DFIPZCDQIFRKAXCTDHGTYMV4IG3QVMWG4GCLKHBCIZM65ZGUXD2O7TUY
+#\\\|VGYTLH3TBEBPTKYYGTWMA6ETEIVJNO2Y3LUNTY5YRYT5TRBPAIB \ / AMOS7 \ YOURUM ::
+#\[7]V3FHY3LMTDQNVHXYR5OA6ABK7G25KKGVEX7DIMMS2GBFTGD77WBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

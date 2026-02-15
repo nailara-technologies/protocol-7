@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = workspace-transfer.console.todo
-# descr = todo list management (Protocol-7 styled console output)
+# descr = todo list management
 
 ## Protocol-7 color scheme ##
 ## my $reset    = "\e[0m"; ## prev.
@@ -17,9 +17,8 @@ my @args = @ARG;
 
 ## my $ws_dir = workspace_transfer::chdir_workspace(); ## [LLL] fix
 
-my $ws_dir = qw| /data/projects/workspace-transfer |; ## fix [LLL]
+my $ws_dir = qw| /data/projects/workspace-transfer |;    ## fix [LLL]
 chdir($ws_dir) or warn <[base.str.os_err]>;
-
 
 <[base.exit]>->(qw| 0110 |) unless defined $ws_dir;
 
@@ -31,8 +30,8 @@ if ( $cmd eq qw| list | ) {
         say "$blacklight .:[ ${TRUE_blue}TODO LIST${blacklight} ]:.$reset";
         say "";
         say "  ${neon_orange}No TODOs yet.$reset";
-        say
-            "  ${blacklight}Add one with: ${TRUE_blue}todo add <description>$reset";
+        say "  ${blacklight}Add one with:"
+            . " ${TRUE_blue}todo add <description>$reset";
         say "";
         return;
     }
@@ -65,8 +64,8 @@ if ( $cmd eq qw| list | ) {
 
     say "";
     say "$blacklight" . "=" x 60 . "$reset";
-    say sprintf
-        "  ${TRUE_blue}Open: ${neon_orange}%d${reset} | ${TRUE_blue}Completed: ${neon_green}%d${reset}",
+    say sprintf "  ${TRUE_blue}Open: ${neon_orange}%d${reset}"
+        . " | ${TRUE_blue}Completed: ${neon_green}%d${reset}",
         $item_num, $completed;
     say "$blacklight" . "=" x 60 . "$reset";
     say "";
@@ -86,8 +85,8 @@ if ( $cmd eq qw| list | ) {
     close $fh;
 
     say "";
-    say
-        "$neon_green✓$reset ${TRUE_blue}Todo added:$reset $neon_orange$desc$reset";
+    say "$neon_green✓$reset ${TRUE_blue}Todo added:$reset"
+        . " $neon_orange$desc$reset";
     say "";
 
 } elsif ( $cmd eq qw| done | ) {
@@ -123,8 +122,9 @@ if ( $cmd eq qw| list | ) {
                 close $out;
 
                 say "";
-                say
-                    "$neon_green✓$reset ${TRUE_blue}Marked item$reset $neon_orange$item_num$reset ${TRUE_blue}as done$reset";
+                say "$neon_green✓$reset ${TRUE_blue}Marked item$reset"
+                    . " $neon_orange$item_num$reset"
+                    . " ${TRUE_blue}as done$reset";
                 say "";
                 return;
             }
@@ -137,16 +137,16 @@ if ( $cmd eq qw| list | ) {
 
 } elsif ( $cmd eq qw| help | ) {
     say "";
-    say
-        "$blacklight .:[ ${TRUE_blue}TODO LIST MANAGEMENT${blacklight} ]:.$reset";
+    say "$blacklight .:[ ${TRUE_blue}TODO LIST MANAGEMENT"
+        . "${blacklight} ]:.$reset";
     say "";
     say "  ${TRUE_blue}Usage:$reset";
-    say
-        "    ${neon_green}todo list${reset}              - List all todos (default)";
-    say
-        "    ${neon_green}todo add${reset} ${neon_orange}<desc>${reset}        - Add a new todo";
-    say
-        "    ${neon_green}todo done${reset} ${neon_orange}<num>${reset}        - Mark todo as done";
+    say "    ${neon_green}todo list${reset}"
+        . "              - List all todos (default)";
+    say "    ${neon_green}todo add${reset} ${neon_orange}<desc>${reset}"
+        . "        - Add a new todo";
+    say "    ${neon_green}todo done${reset} ${neon_orange}<num>${reset}"
+        . "        - Mark todo as done";
     say "    ${neon_green}todo help${reset}              - Show this help";
     say "";
 
@@ -157,8 +157,8 @@ if ( $cmd eq qw| list | ) {
     say "";
 }
 
-#,,..,...,,..,,..,..,,,,,,,,,,..,,,,,,...,...,..,,...,...,..,,,.,,,..,.,,,..,,
-#BHR22OXCFUGTMPOOS6JH5AHBJFCU3TUKLDFPNATJFRVU2OAU3BHGVYEQHCXGNU6HXHOYFK7JNEUKM
-#\\\|UWXGR22E6EKFPFR6RZMVILBDDIXJMKNP7FPDHCNQ322E3QTD26K \ / AMOS7 \ YOURUM ::
-#\[7]OV4ON3JNG5YPNZN72UCMBM3TPPNP2BHOGFZYWSODB2ODLT7W3KBI 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,.,,,.,,,.,,.,,,,,.,,.,,,,.,.,.,..,,...,...,..,,..,,,,.,,.,,,,,,
+#UIU6FE3TDCRXPVEJZEDHZ4TTPVWZMOM2YU77HQVMTBZWNXYPEKROI2QGTN57ERY4MX7RYCSBNVQJK
+#\\\|5LIK4F3ZUHTKSLIB3ON45ZZXAV56D7KQZCMZ4EL5SL7WQNEVMVU \ / AMOS7 \ YOURUM ::
+#\[7]P7ESMJODWNC5L5RLMID6U5KJMORRB7JOKQZBYSHST3APM4DRTSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
