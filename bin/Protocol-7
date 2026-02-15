@@ -68,8 +68,10 @@ $data{'system'}{'args'} = '';    ##  recording options in <system.args>  ##
 ##  remove known parameters from <system.args>  ##
 ##
 if (@ARGV) {
-    my %remove_param = map { sprintf( qw| -%s |, $ARG ) => TRUE }
-        qw| c B nc nb BK stdin console use-http-src core-subs export-inline-subs encode-inline-sub |;
+    my %remove_param = map { sprintf( qw| -%s |, $ARG ) => TRUE } qw[
+        c B nc nb BK stdin console use-http-src
+        core-subs export-inline-subs encode-inline-sub
+    ];
     $data{'system'}{'args'} = join ' ',
         grep { not exists $remove_param{$ARG} } @ARGV;
     if ( length $data{'system'}{'args'} ) {
@@ -710,7 +712,8 @@ sub p7_init_exec {    ##  main variable initialization  ##
                             ':',
                             sprintf( ": invalid -format value : '%s'",
                                 $requested_format ),
-                            ":. .. valid formats are :. 'as-is', 'decoded', and 'encoded'",
+                            ":. .. valid formats are :."
+                                . " 'as-is', 'decoded', and 'encoded'",
                             ':'
                         );
                         exit(1);
@@ -725,7 +728,8 @@ sub p7_init_exec {    ##  main variable initialization  ##
             if ( defined $pattern && length $pattern ) {
                 $code{'log.noerr'}->(
                     sprintf(
-                        ': exporting inline subroutines matching pattern: %s (format: %s)',
+                        ': exporting inline subroutines'
+                            . ' matching pattern: %s (format: %s)',
                         $pattern, $format
                     )
                 );
@@ -757,8 +761,10 @@ sub p7_init_exec {    ##  main variable initialization  ##
                     ':',
                     ': no subroutine name provided.,',
                     sprintf(
-                        ': usage: %s -encode-inline-sub subroutine_name [compression_type]',
-                        $0 ),
+                        ': usage: %s -encode-inline-sub'
+                            . ' subroutine_name [compression_type]',
+                        $0
+                    ),
                     ': compression types: xz (default), gzip',
                     ':'
                 );
@@ -792,12 +798,12 @@ sub p7_init_exec {    ##  main variable initialization  ##
                 $code{'base.test.function'} = sub { return "Hello, World!"; };
 
                 # Output confirmation
-                print
-                    "Test function 'base.test.function' created for export format testing.\n";
-                print
-                    "Try: $0 -export-inline-subs base.test.function -format=as-is\n";
-                print
-                    "and: $0 -export-inline-subs base.test.function -format=decoded\n";
+                print "Test function 'base.test.function' created"
+                    . " for export format testing.\n";
+                print "Try: $0 -export-inline-subs"
+                    . " base.test.function -format=as-is\n";
+                print "and: $0 -export-inline-subs"
+                    . " base.test.function -format=decoded\n";
                 exit(0);
             }
 
@@ -1904,6 +1910,26 @@ sub p7_load_code {
                 if ( $sub_code =~ m|#\s*descr\s*=\s*(\S.*)| ) {
                     my $descr_value = ${^CAPTURE}[0];
                     $descr_value =~ s|\s+$||;    # trim trailing whitespace
+
+                    ## Extract header block [ stops at blank line ]
+                    my ($header_block)
+                        = $sub_code =~ m|#\s*descr\s*=.*?(?=\n\n)|s;
+                    if ( !defined $header_block ) {
+                        $header_block
+                            = $sub_code;    ## No blank line, use entire code
+                    }
+
+                    ## check for continuation lines [ multiline descriptions ]
+                    ## stop when hitting: tag definitions [ name=, param= ]
+                    ## or line directives [ Perl error reporting ]
+                    while ( $header_block
+                        =~ m|\n#\s+(?:(?!line\s+\d+)(?!\w+\s*=))(\S.*)|g ) {
+                        my $continuation = ${^CAPTURE}[0];
+                        $continuation =~ s|\s+$||;  # trim trailing whitespace
+                        last unless length $continuation;
+                        $descr_value .= ' ' . $continuation;
+                    }
+
                     if ( length $descr_value ) {
                         $data{'base'}{'commands'}{$section}{$command}{'descr'}
                             = $descr_value;
@@ -4242,11 +4268,14 @@ sub p7_build_export_metadata {
 ##############################################################################
 ##############################################################################
 # Export Multiple Inline Subroutines
-# Usage: p7_export_inline_subroutines([$export_format], [$pattern_filter], [$content_format])
+# Usage: p7_export_inline_subroutines([$export_format],
+#   [$pattern_filter], [$content_format])
 # Parameters:
 #   $export_format: 'stdout' (default) or 'file' to indicate where output goes
-#   $pattern_filter: Optional regex pattern to filter which subroutines to export
-#   $content_format: Export format - 'decoded' (default) for human-readable or 'as-is' for encoded format as stored
+#   $pattern_filter: Optional regex pattern
+#     to filter which subroutines to export
+#   $content_format: Export format - 'decoded' (default)
+#     for human-readable or 'as-is' for encoded format as stored
 # Returns: Number of exported subroutines
 ##############################################################################
 sub p7_export_inline_subroutines {
@@ -4298,7 +4327,7 @@ sub p7_export_inline_subroutines {
         $export_name =~ s|__|\.|g;
 
         # Generate header line
-        print ":[$export_name]:\n";
+        print "\n:[$export_name]:\n";
 
         # Check if we have stored source code for this subroutine
         my $source_code = $data{'base'}{'inline_subs'}{'source'}{$sub_name};
@@ -4344,10 +4373,10 @@ sub p7_export_inline_subroutines {
             # No stored source available - explain the limitation
             print "# Exported subroutine: $export_name\n";
             print "# NOTE: Original source code not available.\n";
-            print
-                "# This subroutine was imported before source tracking was enabled.\n";
-            print
-                "# To enable source tracking for export, reload Protocol-7 with updated code.\n";
+            print "# This subroutine was imported before"
+                . " source tracking was enabled.\n";
+            print "# To enable source tracking for export,"
+                . " reload Protocol-7 with updated code.\n";
 
             if ( ref($sub_code) eq 'CODE' ) {
                 print "# Code reference type: " . ref($sub_code) . "\n";
@@ -4358,9 +4387,9 @@ sub p7_export_inline_subroutines {
         # print "### End of $export_name ###\n\n";
     }
 
-    print "# Export completed: "
-        . scalar(@subs_to_export)
-        . " subroutine(s)\n";
+    my $s_count = scalar @subs_to_export;
+    printf "# :: export completed :: %03d subroutine%s ::\n", $s_count,
+        $s_count == 1 ? '' : 's';
 
     return scalar(@subs_to_export);
 }
@@ -4371,8 +4400,10 @@ sub p7_export_inline_subroutines {
 # Usage: p7_export_subroutine($sub_name, [$export_file], [$content_format])
 # Parameters:
 #   $sub_name: Name of the subroutine to export
-#   $export_file: Optional file path to write export to (outputs to STDOUT if not provided)
-#   $content_format: Export format - 'decoded' for human-readable or 'as-is' for encoded format as stored
+#   $export_file: Optional file path to write export to
+#     (outputs to STDOUT if not provided)
+#   $content_format: Export format - 'decoded'
+#     for human-readable or 'as-is' for encoded format as stored
 ##############################################################################
 sub p7_export_subroutine {
     my $sub_name       = shift;
@@ -4481,14 +4512,17 @@ sub p7_export_subroutine {
         $output .= "# Exported from: $sub_name\n";
         $output .= "# NOTE: Original source code not available.\n";
         $output
-            .= "# This subroutine was imported before source tracking was enabled.\n";
+            .= "# This subroutine was imported before"
+            . " source tracking was enabled.\n";
         $output
-            .= "# To enable source tracking for export, reload Protocol-7 with updated code.\n";
+            .= "# To enable source tracking for export,"
+            . " reload Protocol-7 with updated code.\n";
 
         if ( ref($sub_code) eq 'CODE' ) {
             $output .= "# Code reference type: " . ref($sub_code) . "\n";
             $output
-                .= "sub {\n    # Source code would be here - not available\n    return 1;\n}\n";
+                .= "sub {\n    # Source code would be here"
+                . " - not available\n    return 1;\n}\n";
         }
     }
 
@@ -4526,11 +4560,14 @@ sub p7_export_subroutine {
 ##############################################################################
 ##############################################################################
 # Export Subroutines to a File
-# Usage: p7_export_subroutines_to_file($file_path, [$pattern_filter], [$content_format])
+# Usage: p7_export_subroutines_to_file($file_path,
+#   [$pattern_filter], [$content_format])
 # Parameters:
 #   $file_path: Path to the file where subroutines will be exported
-#   $pattern_filter: Optional regex pattern to filter which subroutines to export
-#   $content_format: Export format - 'decoded' (default) for human-readable or 'as-is' for encoded format as stored
+#   $pattern_filter: Optional regex pattern
+#     to filter which subroutines to export
+#   $content_format: Export format - 'decoded' (default)
+#     for human-readable or 'as-is' for encoded format as stored
 # Returns: Number of exported subroutines, or undef on error
 ##############################################################################
 sub p7_export_subroutines_to_file {
@@ -4980,11 +5017,14 @@ sub p7_encode_and_print_for_export {
 }
 ##############################################################################
 # Export Multiple Inline Subroutines with Exact Style Matching
-# Usage: p7_export_inline_subroutines_with_exact_style([$export_format], [$pattern_filter], [$content_format])
+# Usage: p7_export_inline_subroutines_with_exact_style(
+#   [$export_format], [$pattern_filter], [$content_format])
 # Parameters:
 #   $export_format: 'stdout' (default) or 'file' to indicate where output goes
-#   $pattern_filter: Optional regex pattern to filter which subroutines to export
-#   $content_format: Export format - 'decoded' (default), 'as-is', or 'encoded'
+#   $pattern_filter: Optional regex pattern
+#     to filter which subroutines to export
+#   $content_format: Export format - 'decoded' (default),
+#     'as-is', or 'encoded'
 # Returns: Number of exported subroutines
 ##############################################################################
 
@@ -5055,7 +5095,7 @@ sub p7_export_inline_subroutines_with_exact_style {
         my $data_format = p7_detect_exact_data_block_format($sub_name);
 
         # Generate header with DATA block format info in Protocol-7 style
-        print ".:[";
+        print "\n.:[";
         print " $export_name";
         print " ]:.";    # Fixed missing colon
         print "\n";
@@ -5279,7 +5319,9 @@ sub p7_export_inline_subroutines_with_exact_style {
     print "\n";
 
     # Print summary
-    print "# Export completed: $export_count subroutine(s)\n";
+    printf "# :: export completed :: %03d subroutine%s ::\n", $export_count,
+        $export_count == 1 ? '' : 's';
+
     return $export_count;
 }
 __DATA__
@@ -5324,8 +5366,8 @@ __DATA__
 :
 :.
 
-#,,..,,,.,.,,,.,,,,,.,..,,,.,,,.,,.,.,,,.,,,,,...,...,...,...,..,,,,.,...,...,
-#IEQDSMXBKUZ64EVLY6CGHODOSJHQSJKM5PH6FSGNX7KM2N2CZONWTZUS72DAMYIGBYZPG24D7D4KO
-#\\\|MVZBWSMZ57GOJ64M6HONZWRJBXBYVJ5INRF357XSM3K5LENFDHY \ / AMOS7 \ YOURUM ::
-#\[7]RQNYKZ33WHVUITZ5VE72Z3ELKU4HIOZC64U7MSZRI4OJPRVOOKCQ 7  DATA SIGNATURE ::
+#,,,,,,.,,...,.,,,,,,,,.,,.,.,...,.,,,.,.,,,,,...,...,...,.,.,,.,,,..,...,,,.,
+#LXW5KVKSLUBUZCIUGXRLRL5BQGTK5BZM5VPOEZMINJ5XCZF7HQ37FV462IVJ6QK3VDBS4GRCVMQ3W
+#\\\|ZJYNDHBQKW2YOOAL3KJSHGDJ4UB5RFR3IOZYBXGCEOCFKEZM3MW \ / AMOS7 \ YOURUM ::
+#\[7]XDKW5N7T4KF2OAYDUE2O2F73EYPNZVYBAR5TJXF6SYHAVNY7EIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
