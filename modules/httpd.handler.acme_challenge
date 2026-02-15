@@ -54,7 +54,7 @@ unless ( -f $challenge_file ) {
 }
 
 ## read challenge content
-my $content = <[file.slurp]>->($challenge_file)->$*;
+my $content = <[file.content]>->( $challenge_file, ':raw' );
 
 unless ( defined $content ) {
     <[base.logs]>->(
@@ -100,8 +100,8 @@ $session->{'buffer'}->{'output'} .= $content;
 
 return $session->{'http'}->{'close'} ? 2 : 0;
 
-#,,..,,,.,,..,...,,.,,,.,,,..,,.,,,..,.,.,.,.,..,,...,...,.,.,,,.,,.,,.,.,,,.,
-#56DKSVWARCKAAIKN2JDKZAN3HYJZFEZDBHXAMKRJN5Q3VEFF3DL27DJD3KZ2I46GLXQT4EA2VAUNG
-#\\\|FDLXLOZCAUS6EURAUECXIPLKDWXHPAUTNG4C6NHX4OP42H2CS5Z \ / AMOS7 \ YOURUM ::
-#\[7]OLHUXEFXXBN3N5XLOZX6MD3VHX3MY54J6HLY5YBJO3ZAGU6Z7ECA 7  DATA SIGNATURE ::
+#,,,,,...,,,.,.,.,..,,,,.,,.,,.,,,.,,,,.,,..,,..,,...,...,..,,,,.,.,.,,.,,,,.,
+#6JTU6OF4FU2MBREKXGVKUQ3PM2U56JBCOSKCU6TL2J23STDP5KP2EQ36YJTLAHZ5FBMZN2G5YUSVK
+#\\\|REK6Q2BXGHYK25WW2MEXHYRPSTORESYXN5DVOQCJNOULGKUXDKL \ / AMOS7 \ YOURUM ::
+#\[7]KQMEIKN7VKQZ5RFCV6VX7B3X4SZYX3MPYVUBHXCQT33XXCPVPYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
