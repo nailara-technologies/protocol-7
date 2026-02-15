@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name = web.process_template_recursive
-# descr = recursively process template with nested commands using base.parser.pattern_split
+# descr = recursively process template with nested commands
+#         using base.parser.pattern_split
 
 my $params = shift;
 
@@ -17,7 +18,8 @@ my $max_depth = <web.cfg.recursion_depth_max> // 8;
 if ( $depth >= $max_depth ) {
     <[base.log]>->(
         1,
-        "[$session_id] template recursion depth limit reached ($max_depth) for template $template_id"
+        "[$session_id] template recursion depth limit reached"
+            . " ($max_depth) for template $template_id"
     );
     <web.metrics>->{recursion_depth_max_hit}++;
     return {
@@ -38,7 +40,8 @@ $template_content =~ s|$meta_pattern|
     if (exists $meta_vars->{$var_name}) {
         $meta_vars->{$var_name};
     } else {
-        <[base.log]>->(2, "[$session_id] undefined meta variable: $var_name");
+        <[base.log]>->(2,
+            "[$session_id] undefined meta variable : $var_name");
         "<{$var_name}>";  ## Leave unchanged if undefined
     }
 |ge;
@@ -157,7 +160,8 @@ foreach my $cmd (@commands) {
 if ( $parsed_content =~ /<\[/ and $depth < $max_depth - 1 ) {
     <[base.log]>->(
         3,
-        "[$session_id] template still contains commands after substitution, recursing again"
+        "[$session_id] template still contains commands"
+            . " after substitution, recursing again"
     );
 
     return <[web.process_template_recursive]>->(
@@ -171,10 +175,12 @@ if ( $parsed_content =~ /<\[/ and $depth < $max_depth - 1 ) {
 }
 
 ## Ensure content is a string, not an array or array of refs ##
-## base.parser.pattern_split returns array ref with scalar refs to text fragments ##
+## base.parser.pattern_split returns array ref
+## with scalar refs to text fragments ##
 my $final_content = $parsed_content;
 if ( ref($final_content) eq 'ARRAY' ) {
-    ## Dereference ALL elements (they're all scalar refs from pattern_split) ##
+    ## Dereference ALL elements
+    ## (they're all scalar refs from pattern_split) ##
     my @deref = map { ref($_) ? $$_ : $_ } @{$final_content};
     $final_content = join( '', @deref );
 }
@@ -185,8 +191,8 @@ return {
     depth   => $depth,
 };
 
-#,,,,,...,...,,..,.,.,,,.,..,,,..,,.,,..,,..,,..,,...,...,,,,,.,.,,.,,.,,,.,,,
-#7KATNMZL3FJ6N7WCMQ475L4DG3PYTKO3NNLUAG7SH3TUOO72LOFU7XRTYRB57W2UM5K47KMSLQYBU
-#\\\|VWSVKFHN4KWUXOQNMT74N63NZFIRUAZBDSFJPKPJLBEKRDO6FQK \ / AMOS7 \ YOURUM ::
-#\[7]XPMSVAQ6UXB4BBBD3Y4UKJZ5UYPCCQG5Z6TPGAQBJTXJCS7D76AA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,.,,,.,,,,.,,..,,,,,,,..,,..,.,,,..,,...,...,,..,.,.,.,.,...,...,
+#SXLBJPYOOS3FMHIJ5BDPLRU4CFWBH4ES7MB6YLZFXPQT7IJT347O6SGUQTHJ6FZ2HVKYSZR3WZWKG
+#\\\|R2ECD2OWBSBGF4SMZGOJHMTXEHSRMGIS6EBU6VEXES3BRG6CPCE \ / AMOS7 \ YOURUM ::
+#\[7]GPS4HKQ4QVEKZ2NH67LZIBUTUJB3K7Z6D3OBR3PXLLFVNDHOGEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

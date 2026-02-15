@@ -74,7 +74,7 @@ while ( $attempt < $max_retries ) {
             );
             next if $attempt < $max_retries;
         } else {
-            <[base.log]>->( 1, "error: failed to fetch fresh nonce" );
+            <[base.log]>->( 1, "error : failed to fetch fresh nonce" );
             return { 'error' => 'failed to fetch fresh nonce for retry' };
         }
     }
@@ -94,7 +94,7 @@ unless ( $response->{status} == 200 || $response->{status} == 201 ) {
     my $error_detail = $response->{data}{detail}
         // "ACME server error status $response->{status}";
     if ( $response->{data}{detail} ) {
-        <[base.log]>->( 1, "  details: $response->{data}{detail}" );
+        <[base.log]>->( 1, "  details : $response->{data}{detail}" );
     }
     return { 'error' => $error_detail };
 }
@@ -110,7 +110,7 @@ unless ($account_url) {
     return { 'error' => 'no Location header in account creation response' };
 }
 
-<[base.log]>->( 2, "ACME account registered: $account_url" );
+<[base.log]>->( 2, "ACME account registered : $account_url" );
 
 ## Store account info in child state
 <letsencr.child.acme_client>->{account_url} = $account_url;
@@ -139,8 +139,8 @@ return {
     created_at  => time(),
 };
 
-#,,,.,,,,,,,.,.,.,,,,,,..,,..,.,,,,,.,,,,,,,,,..,,...,...,.,.,..,,,.,,,,,,.,,,
-#PB42NNA2KJD5ZJVFDH5NRTZPVV4SQKKRCV4QI75GTRDCGKIYMVE33K6OR6VSJWJVAWSFZAHQGC4LS
-#\\\|CVNTHCCRGTBMVNZWGEKOOXRQIQ533AW2Q3M6UHIUCJ2TQ6CHEK6 \ / AMOS7 \ YOURUM ::
-#\[7]ZSTHUCMNIK7JF4CFJ32ICHD22EAU25HMZLJTE5IKCUICO76LWWCY 7  DATA SIGNATURE ::
+#,,..,..,,.,.,..,,...,,,,,.,,,,,.,.,,,..,,.,,,..,,...,...,...,,,.,...,...,...,
+#H5JZTOJ6LLUURPMQSBWHI4MYHMNX7MYGAJOOMA2UPEZNG6CAWLNGMLC7ZKBKT6LJQMIHIHASMT5XY
+#\\\|SDFPUJCW5L54TAHMXGGICGFX4PZSN4TLFKJ765APYOPJ4TYO2JG \ / AMOS7 \ YOURUM ::
+#\[7]34WIEOOUI5ZD7XLR7WCK62Y2EXMTUOWMAOONVGP4FVCOMU32GSCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -13,7 +13,7 @@ return {
     }
     unless defined $domain && length($domain);
 
-<[base.log]>->( 2, "child: renewing certificate for domain: $domain" );
+<[base.log]>->( 2, "child : renewing certificate for domain : $domain" );
 
 ## Get certificate info and retry attempt from parameters
 my $cert_info     = $call->{'param'}{'cert_info'}     // {};
@@ -21,7 +21,7 @@ my $retry_attempt = $call->{'param'}{'retry_attempt'} // 0;
 my $alt_names     = $call->{'param'}{'alt_names'}     // [];
 
 if ($retry_attempt) {
-    <[base.log]>->( 2, "  (retry attempt: $retry_attempt)" );
+    <[base.log]>->( 2, "  (retry attempt : $retry_attempt)" );
 }
 
 ## Build domains list (primary + alt names)
@@ -34,8 +34,8 @@ my $email = $call->{'param'}{'email'} || <letsencr.admin.email>;
 ## Substitute :requested-domain: keyword with primary domain
 $email = <[letsencr.child.substitute_admin_email]>->( $email, \@domains );
 
-<[base.log]>->( 2, "  domains: " . join( ', ', @domains ) );
-<[base.log]>->( 2, "  email: $email" );
+<[base.log]>->( 2, "  domains : " . join( ', ', @domains ) );
+<[base.log]>->( 2, "  email : $email" );
 
 ## Call ACME new certificate workflow (renewal uses same process as new)
 my $result = <[letsencr.child.acme_new]>->(
@@ -48,7 +48,7 @@ my $result = <[letsencr.child.acme_new]>->(
 unless ( $result && $result->{status} eq 'success' ) {
     my $error
         = $result->{error} || 'Unknown error during certificate renewal';
-    <[base.log]>->( 1, "certificate renewal failed: $error" );
+    <[base.log]>->( 1, "certificate renewal failed : $error" );
     return {
         'mode' => 'false',
         'data' => $error
@@ -75,7 +75,7 @@ my $bundle_json = JSON::XS::encode_json($cert_bundle);
 my $bundle_b32r = encode_b32r($bundle_json);
 
 <[base.log]>->( 2, "certificate bundle encoded (base32r)" );
-<[base.log]>->( 3, "  bundle size: " . length($bundle_b32r) . " bytes" );
+<[base.log]>->( 3, "  bundle size : " . length($bundle_b32r) . " bytes" );
 
 ## Return certificate bundle to parent (mode='size' for binary/encoded data)
 return {
@@ -83,8 +83,8 @@ return {
     'data' => $bundle_b32r
 };
 
-#,,,,,.,.,..,,,,.,...,...,..,,..,,,,.,,.,,,..,..,,...,...,...,..,,,,,,,.,,...,
-#E7BPRRGZ4AEPXFAEAB34XJDLHZYC4AWJPG6YOCIG2SUQZL4DR2YDJLL5AOVL22IYDBJCLTR6MPEWS
-#\\\|PMRR22CQB6AEG6YHMXEXGYAL7GD6RWSPCPNDWNDXZGZZZRZPOZL \ / AMOS7 \ YOURUM ::
-#\[7]UMEH4VC3DASF7LFBFES5LKHAT53YPQXUYG3KUVO5LD6LQDQVGMAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,..,,,..,,,,,.,,,,,,,.,,,...,,.,,..,,...,...,...,,..,,.,,,..,.,,,
+#ZKQABEKYBT76AH3W2HUSVVVNZ3YZMV3ODR7BK555PAZZ6AGELEC7RMBKUY5NUMTQS3NFA33PZNZ3Q
+#\\\|SAXRU2A7ZO24IJ2XOADYCOKQJKUGZFNF6ZWA7IRJQLFU3GBLT2U \ / AMOS7 \ YOURUM ::
+#\[7]6SJOG64SGDK3443D3P35OFUGAJZSI7XRWPHIBJTNS7WLPVV2T2BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

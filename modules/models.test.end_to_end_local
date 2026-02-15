@@ -5,7 +5,7 @@
 
 my $params = shift;
 
-my $context = $params->{'context'} // 'e2e_test';
+my $context  = $params->{'context'} // 'e2e_test';
 my $reply_id = $params->{'reply_id'};
 
 <[base.logs]>->(
@@ -47,7 +47,7 @@ my $job_id = 'e2e-local-' . int( <[base.time]>->(2) );
     'template_name' => 'default',
 };
 
-<[base.logs]>->( 1, "[$context] conversation created: job_id=%s", $job_id );
+<[base.logs]>->( 1, "[$context] conversation created : job_id=%s", $job_id );
 
 ## Step 3: Add local coder participant
 my $add_participant = <[models.conversation.add_participant]>->(
@@ -78,8 +78,8 @@ unless ( $add_participant->{'success'} ) {
 ## Step 4: Create test code generation request
 my @messages = (
     {   'role'    => 'user',
-        'content' =>
-            'Write a simple Perl function that reverses a string and returns it.'
+        'content' => 'Write a simple Perl function that reverses'
+            . ' a string and returns it.'
     }
 );
 
@@ -155,8 +155,8 @@ return {
     'full_response'    => $response,
 };
 
-#,,..,,,,,...,,,.,.,,,,,.,.,.,,..,,..,,,,,...,.,.,...,...,..,,,..,.,,,,,,,,,,,
-#BCU43ERPSSTLAIKXFF2KC4CAGL6QFTI7I4IPFPNPLFWIHU3YOW4ZJF7CNRU2ZTMS3KNHSGA5S5U2A
-#\\\|NFYTSEPE2HNOGM4DHHGYQ5ZWHDN2HPQ7CM2D5GCLLXMM2E55N3J \ / AMOS7 \ YOURUM ::
-#\[7]VSCYCN3R33ZD4Y5ZKOHT5UCBTQ2EDK6S3OV33HJ2CAECXJAJ34AY 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,..,..,,.,.,,..,..,,...,,.,,...,.,.,...,...,..,,,,,,,..,...,.,,,
+#CE7RZCSAQTWFEU2WOHVQ6YWTCELVKJMOFPY7HGMD47HSK44ZYCABRZDJ5W4RKKW4QBFV3OBFXNCC4
+#\\\|S5VNLQ3O33MAF7FL7FINE5MO6SUBSQHE7PIRXREZGCYX4PZFVQQ \ / AMOS7 \ YOURUM ::
+#\[7]IWTZ7BJWLRACEBWIG42IKGNCNJBXP5SX3WU5XQZ75IS272TNH4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

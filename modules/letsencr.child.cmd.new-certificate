@@ -13,7 +13,7 @@ return {
     }
     unless defined $domain && length($domain);
 
-<[base.log]>->( 2, "child: obtaining new certificate for domain: $domain" );
+<[base.log]>->( 2, "child : obtaining new certificate for domain : $domain" );
 
 ## Parse additional domains from parameters (if provided)
 my $alt_names = $call->{'param'}{'alt_names'} // [];
@@ -26,8 +26,8 @@ my $email = $call->{'param'}{'email'} || <letsencr.admin.email>;
 ## Substitute :requested-domain: keyword with primary domain
 $email = <[letsencr.child.substitute_admin_email]>->( $email, \@domains );
 
-<[base.log]>->( 2, "  domains: " . join( ', ', @domains ) );
-<[base.log]>->( 2, "  email: $email" );
+<[base.log]>->( 2, "  domains : " . join( ', ', @domains ) );
+<[base.log]>->( 2, "  email : $email" );
 
 ## Call ACME new certificate workflow
 my $result = <[letsencr.child.acme_new]>->(
@@ -40,7 +40,7 @@ my $result = <[letsencr.child.acme_new]>->(
 unless ( $result && $result->{status} eq 'success' ) {
     my $error
         = $result->{error} || 'Unknown error during certificate enrollment';
-    <[base.log]>->( 1, "certificate enrollment failed: $error" );
+    <[base.log]>->( 1, "certificate enrollment failed : $error" );
     return {
         'mode' => 'false',
         'data' => $error
@@ -65,7 +65,7 @@ my $bundle_json = JSON::XS::encode_json($cert_bundle);
 my $bundle_b32r = encode_b32r($bundle_json);
 
 <[base.log]>->( 2, "certificate bundle encoded (base32r)" );
-<[base.log]>->( 3, "  bundle size: " . length($bundle_b32r) . " bytes" );
+<[base.log]>->( 3, "  bundle size : " . length($bundle_b32r) . " bytes" );
 
 ## Return certificate bundle to parent (mode='size' for binary/encoded data)
 return {
@@ -73,8 +73,8 @@ return {
     'data' => $bundle_b32r
 };
 
-#,,,,,.,,,.,.,..,,,..,,..,...,.,,,..,,.,.,,,.,..,,...,...,...,..,,...,..,,.,.,
-#7CEZB5LULEH3INVAEFMRXG2GSGBJXBRHTURQQE3IW6TCKHRXIUJT5XWKHYADLGJGUVCI7IUQPFGOA
-#\\\|6OEY5I2QN4KJ7HOGEFEP6JCNFSTBR2P5XMZYJHORINUJQA42N72 \ / AMOS7 \ YOURUM ::
-#\[7]DSRHVZ7RCGZAXISYNQRW4OKKMBIUBJCU4XPXKULC6PEVR36CRIBQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,,,,.,.,,.,,...,...,,..,...,,.,,..,,...,...,.,,,,.,,,,.,.,,,..,,
+#KSYJMEYLWGJP4XUJXXXFLKDFIBDI4GURYIEVNM2BPKPJGFT2WMACWQHM2KMLRFYEW7MV4PWW4UWSK
+#\\\|SLAGVT7A4XXZKZXUD374E3FDXOFV3IF7J5JB5BCE5JNSJ6FSBCN \ / AMOS7 \ YOURUM ::
+#\[7]S66L22RKXZ3A54YFN7SYHDRDMD25KRQDCEKUVESWPPDFWDOIZUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

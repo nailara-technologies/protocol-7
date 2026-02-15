@@ -9,7 +9,8 @@ return undef unless $server_url;
 
 <[base.log]>->( 2, "fetching ACME directory from $server_url" );
 
-## Create HTTP client (use standard LWP::UserAgent to allow localhost for testing)
+## Create HTTP client (use standard LWP::UserAgent
+## to allow localhost for testing)
 my $ua = LWP::UserAgent->new( timeout => 10, );
 
 ## Disable SSL verification for localhost/test servers
@@ -31,17 +32,18 @@ unless ( $response->is_success ) {
 my $directory;
 eval { $directory = JSON::XS::decode_json( $response->decoded_content() ); };
 if ($EVAL_ERROR) {
-    <[base.log]>->( 1, "error parsing ACME directory: $EVAL_ERROR" );
+    <[base.log]>->( 1, "error parsing ACME directory : $EVAL_ERROR" );
     return undef;
 }
 
 ## Extract important URLs
 unless ( exists $directory->{newAccount} && exists $directory->{newOrder} ) {
-    <[base.log]>->( 1, "error: ACME directory missing required endpoints" );
+    <[base.log]>->( 1, "error : ACME directory missing required endpoints" );
     return undef;
 }
 
-## Get initial nonce from header (HTTP/2) or newNonce endpoint (HTTP/1.1 fallback)
+## Get initial nonce from header (HTTP/2)
+## or newNonce endpoint (HTTP/1.1 fallback)
 my $initial_nonce = $response->header('Replay-Nonce');
 
 <[base.logs]>->(
@@ -57,7 +59,7 @@ unless ($initial_nonce) {
     );
 
     unless ( exists $directory->{newNonce} ) {
-        <[base.log]>->( 1, "error: no newNonce endpoint in directory" );
+        <[base.log]>->( 1, "error : no newNonce endpoint in directory" );
         return undef;
     }
 
@@ -80,7 +82,7 @@ unless ($initial_nonce) {
     );
 
     unless ($initial_nonce) {
-        <[base.log]>->( 1, "error: no Replay-Nonce in newNonce response" );
+        <[base.log]>->( 1, "error : no Replay-Nonce in newNonce response" );
         return undef;
     }
 }
@@ -104,8 +106,8 @@ return {
     },
 };
 
-#,,,.,,..,...,,,.,.,.,..,,.,.,.,.,...,,..,,..,..,,...,...,..,,,,.,,,.,,,.,,..,
-#MZYZ6JLGFBYOF4QRYLVHEH3QL4BBL6U6XOZJUILNAXHAYZUMZSTKUYE6EOCIPBCCVTUAGEQMKASZY
-#\\\|E6NQPBFCADBY7QQORQ72LH6BISLF62QIRZSU5G6SEEYCDEIXUXW \ / AMOS7 \ YOURUM ::
-#\[7]4IN7SJ2SBUZ37DBYEWGFJ4JV4TF2V2GOC5IGIMGWE5ADJHNIEOAQ 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,..,,.,,.,.,...,,,,,,,.,..,,..,,..,,...,...,..,,.,,,.,,,..,,.,,,
+#STNBBMTUVRUEV3MWPM32W4TQYQN7ZVLBFKMJSXGMUSOVXFOC7JK4QJ6CI6AJX64WRAQPSQOS6ZS4K
+#\\\|352A4NQH6LPAX5JFRN3CNJ4ZWG5OAA5X5JR6B2ENV3BX32FL4EI \ / AMOS7 \ YOURUM ::
+#\[7]IBJYMBECNESFU7YJJZCQSVEKZSDN2RLI7RXKSJYW6B35HXQYOICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

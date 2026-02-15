@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name = channels.init_code
-# descr = Initialize channels infrastructure: subscriptions, timestamps, heartbeat
+# descr = Initialize channels infrastructure:
+#         subscriptions, timestamps, heartbeat
 
 <[base.perlmod.autoload]>->( 'Time::HiRes', qw| gettimeofday tv_interval | );
 <[base.perlmod.autoload]>->( 'Digest::SHA', qw| sha256 | );
@@ -63,8 +64,8 @@ foreach my $channel_path ( keys <channels.all_channels>->%* ) {
     'sort_key' => 'alpha-len:channel_path',
     'descr'    =>
         'active channels with subscription status and heartbeat tracking',
-    'mask' =>
-        '<key>:channel status:status updated:last_update subscribers:sub_count',
+    'mask' => '<key>:channel status:status updated:'
+        . 'last_update subscribers:sub_count',
     'align' => {
         'channel'     => 'left+2',
         'status'      => 'center',
@@ -84,7 +85,7 @@ foreach my $channel_path ( keys <channels.all_channels>->%* ) {
     }
 );
 
-<[base.logs]>->( 2, "channels: initialized" );
+<[base.logs]>->( 2, "channels : initialized" );
 <[base.logs]>->(
     2,
     "channels: heartbeat interval %.1f hours",
@@ -98,8 +99,8 @@ foreach my $channel_path ( keys <channels.all_channels>->%* ) {
 
 0;
 
-#,,,.,,..,.,,,,,,,..,,...,.,,,,,.,,,,,.,,,..,,.,.,...,...,,..,..,,,,.,.,,,.,.,
-#Y4TC4INZYMW5UNK3GDMPFCDIRO6F6NT2BC4FHZAK5BWWYWVSVTYQ4WJQ5N6LRZH5BXIQ34SU6VDPM
-#\\\|WZICACPU6JU5A5FJBLOSFX5YEJTZCVEYUJS5KSCUNMRJV22U6WO \ / AMOS7 \ YOURUM ::
-#\[7]XWRRJMK54RRN675BOXSMWJAN4JFPAFH2JIZLOSS63TQTMN5MJACQ 7  DATA SIGNATURE ::
+#,,..,...,...,..,,,.,,,,.,,..,,,.,,.,,,.,,,,.,.,.,...,...,,,.,.,.,,,.,...,,,,,
+#7S5GPYVCZR5MYLNCKF4DGIIG2WEQHY72YHBR75U4IXNCLUKFCP3AKK46CAWPFWTRF2V2KPWKGRF4A
+#\\\|N5HATTSDT7UI4NHUC6PFPWUFJSO4AIQYXSSQOXXRYDK7CCEIZHB \ / AMOS7 \ YOURUM ::
+#\[7]SD3GWYX3NMF2QUXEMXLAWZLJGJN4YAMAVSA2C6IX3R3LNLGOZ4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

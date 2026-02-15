@@ -2,7 +2,7 @@
 
 # name = httpd.http_get
 # descr = HTTP GET handler with intelligent routing via route_dispatcher
-# Updated: 2025-11-14 to integrate httpd.route_dispatcher for modern content routing
+# Updated: 2025-11-14 to integrate httpd.route_dispatcher
 
 my $id            = shift;
 my $session       = $data{'session'}->{$id};
@@ -23,9 +23,7 @@ my $http_uri = $request->{'uri'};
 
 $session->{'http'}->{'request'}->{'matched_host'} = $http_host;
 
-## ============================================================================
-## NEW: Intelligent request routing via route_dispatcher [v2025-11-14]
-## ============================================================================
+## Intelligent request routing via route_dispatcher [v2025-11-14]
 ## Extract URI path and delegate to route_dispatcher for intelligent routing
 
 my $uri_obj  = URI->new($http_uri);
@@ -49,7 +47,7 @@ unless ( ref($route) eq qw| HASH | ) {
 my $handler_name = $route->{'handler'}      // qw| httpd.send_error_page |;
 my $handler_args = $route->{'handler_args'} // {};
 
-<[base.logs]>->( 2, "[%d] dispatcher selected: %s", $id, $handler_name );
+<[base.logs]>->( 2, "[%d] dispatcher selected : %s", $id, $handler_name );
 
 # Dispatch to the appropriate handler
 # Get the actual code reference from the code hash
@@ -84,8 +82,8 @@ if ( $handler_name eq qw| httpd.process_template | ) {
 <[base.logs]>->( 0, "[%d] http_get : unexpected fallthrough", $id );
 return <[httpd.send_error_page]>->( $id, 500 );
 
-#,,,.,..,,,.,,.,.,..,,,,.,.,,,...,,,.,,,,,,..,..,,...,..,,...,.,,,.,.,,,.,.,.,
-#J373BJXALUOFQWNBXFIKALPSE3DVCNJIC73KIQJI6B4SYZQWT5BVWMLB33367YB7CZEQD4XIAF6NU
-#\\\|YMQTQTWBOYFVSSD5ZXJTRRKO6JHBSRM7Q4OCMGYJD2GQE66EA2T \ / AMOS7 \ YOURUM ::
-#\[7]GEJA7WA3I2GIAHW2MWNBX5P2JEKH3TQVBMHJZZQMP45KB56DV4DI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,...,.,,,,..,..,,.,.,.,.,,.,,,,,,..,,...,...,.,.,,,.,,,.,...,...,
+#NVP3S7W5CTVT3GQR6APJLFABYVBAMDIA3AHTWJG2AXMB2AHZPH5JKYD3RCI67GG6YKE7XC3DCB2SQ
+#\\\|BEZKQ3NCVM6UFVENJYPOMGCMHPEO7JGVYMKRCF2ES74EAIPDUSF \ / AMOS7 \ YOURUM ::
+#\[7]F4KTY5GGHEF6UURYXHMDGTB3EHDG523KM3N634XZ5OZ6YTSJEWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

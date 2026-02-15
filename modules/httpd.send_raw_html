@@ -8,12 +8,12 @@ my ( $id, $code, $html_str ) = @_;
 my $session = $data{'session'}{$id};
 
 unless ( defined $session ) {
-    <[base.logs]>->( 0, "[%d] send_raw_html: session not found!", $id );
+    <[base.logs]>->( 0, "[%d] send_raw_html : session not found!", $id );
     return undef;
 }
 
 unless ( defined $session->{'buffer'} ) {
-    <[base.logs]>->( 0, "[%d] send_raw_html: buffer not initialized!", $id );
+    <[base.logs]>->( 0, "[%d] send_raw_html : buffer not initialized!", $id );
     return undef;
 }
 
@@ -76,7 +76,8 @@ my $header_data = <[httpd.new_header]>->(
 );
 
 ## Use explicit assignment instead of .= for tied variables
-## Some tied variable handlers don't properly support compound assignment operators
+## Some tied variable handlers don't properly support
+## compound assignment operators
 $session->{'buffer'}->{'output'}
     = $session->{'buffer'}->{'output'} . $header_data . $html_str;
 
@@ -91,18 +92,20 @@ my $after_len = length( $session->{'buffer'}->{'output'} // '' );
     ( $session->{'is_https'}       ? 'YES' : 'NO' )
 );
 
-## Log buffer state for debugging (response delivery is handled by base.handler.write)
+## Log buffer state for debugging
+## (response delivery is handled by base.handler.write)
 <[base.logs]>->(
     2,   "[%d] send_raw_html: response queued, buffer bytes: %d -> %d",
     $id, $before_len, $after_len
 );
 
-# Set flush_shutdown so base.handler.write will close after flushing the buffer
+# Set flush_shutdown so base.handler.write will close
+# after flushing the buffer
 $session->{'flush_shutdown'} = 1 if $session->{'http'}->{'close'};
 return FALSE;
 
-#,,,,,.,,,.,.,,,,,,,.,.,.,..,,,,.,..,,.,.,,,.,..,,...,...,..,,..,,,,.,...,,,.,
-#AR6343AMWTQ3NTLOWYEIH4SNBF7226C5RMCJGF6N2KRYOOHJXARC36SHQ6Q7VNDXSNDNPCKE6R2DC
-#\\\|LJ74JBOSRWJCCQVCM34DLHDYEJC7YSXO7DNU2PKQG2ORPZZHGJI \ / AMOS7 \ YOURUM ::
-#\[7]3JVO6NWEZAZEZHQ6DUGDKYFBJ626EUQV6T4I3GMN7KII7QEPQKAY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,,..,...,.,.,,,.,,,.,...,,.,,.,.,..,,...,..,,..,,,,,,.,.,.,.,..,,
+#6AF5J7KEUG5KDKDXMF7FBVSO56HDHGRNO6TWIPJRKQNONTEBEH4LU3CLYABGLLOAGQEPGLJPZC66S
+#\\\|LCTKGW5OBJFTQ4CKGUUHXGGTRBGRPPE2S6PN6OON3DPNB2XBQJO \ / AMOS7 \ YOURUM ::
+#\[7]JWMFISVTHO2646YWOKUIHCNRXCLHA2MD6HNGNUCAA7BNTLELPADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

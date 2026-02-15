@@ -7,14 +7,14 @@ my $config_root = <system.conf_path>;
 my $config_file = catfile( $config_root, qw| zenki/models/models.yaml | );
 
 unless ( -f $config_file ) {
-    <[base.logs]>->( 2, "[config] Config file not found: %s", $config_file );
+    <[base.logs]>->( 2, "[config] Config file not found : %s", $config_file );
     return 0;
 }
 
 my $yaml = YAML::Tiny::Load( <[file.slurp]>->($config_file)->$* );
 
 unless ($yaml) {
-    <[base.logs]>->( 2, "[config] Failed to parse YAML: %s", $config_file );
+    <[base.logs]>->( 2, "[config] Failed to parse YAML : %s", $config_file );
     return 0;
 }
 
@@ -36,8 +36,8 @@ if ( exists $yaml->{'aliases'} && ref( $yaml->{'aliases'} ) eq qw| HASH | ) {
 
 return 0;
 
-#,,..,,.,,.,,,,,,,...,...,...,,,,,...,.,,,.,,,..,,...,...,...,,,,,,..,,.,,.,,,
-#IBVB2MUT2DOJBYV25IYYC3D3NB2WL4OTGB5AXHGODSM2ZGL4LO7WVEV3KWLOMLIWWZVOSIEEZKA5W
-#\\\|E6NDWLAHP6I7V7PLBBCKJYAKKWDGNRKHSDTMBLYGM6WZAKBEELL \ / AMOS7 \ YOURUM ::
-#\[7]V4EEJY6BSHQ6WUOOCN7GHX5PSS5CHOF64BR56VSRG5UD3BBSLGDY 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,.,,,,,,,,,,,.,.,,.,,,,,,...,,,.,..,,...,...,.,.,..,,,,,,,,.,..,,
+#67J75ORJ5UVGTZ5HSEKPIIUIKL3EH63SRMV2BDZR7OSVMUDUSBTEKZ75CJ3M23WUQLA5B5STQ75CO
+#\\\|YSP2ILVBSC6X5HGKQLRTSI5UEZUE2GVGXG2V3YAC2HKAN6M3X7F \ / AMOS7 \ YOURUM ::
+#\[7]HDS6F5Z22LBT62P7YLYMA2AEXPPSGZPR5LXXXVTUJVL3SAH7LYAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

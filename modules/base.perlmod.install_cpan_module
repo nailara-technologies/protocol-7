@@ -15,7 +15,7 @@ my $errors = '';
 
 open( my $cpanm_fh, '-|', $cpanm_path, '--quiet', '--notest', $module_name )
     or do {
-    <[base.logs]>->( 0, ": failed to execute cpanm: %s", $! );
+    <[base.logs]>->( 0, ": failed to execute cpanm : %s", $! );
     <[base.buffer.add_line]>->(
         qw| perlmod-install |,
         sprintf '  ✗ %s (exec failed: %s)',
@@ -35,7 +35,7 @@ my $exit_code = $? >> 8;
 
 ## Log captured output if there were issues ##
 if ( $exit_code != 0 and length $output ) {
-    <[base.logs]>->( 2, ": cpanm output: %s", $output );
+    <[base.logs]>->( 2, ": cpanm output : %s", $output );
     <[base.buffer.add_line]>->(
         qw| perlmod-install |,
         sprintf '  ✗ %s (install failed)', $module_name
@@ -49,8 +49,8 @@ if ( $exit_code != 0 and length $output ) {
 
 return $exit_code;
 
-#,,,.,.,,,,,,,,,,,,,,,.,.,.,,,.,.,,,.,...,,..,..,,...,...,...,,,.,.,.,...,,,,,
-#TN34GR4IRUUDRHTBFMCNPXEPYZJVWHG7HDUXN66DCEK7V6FD5ST7UYZFEX4NDJWEMUJWXFWAYMU2Y
-#\\\|5LDKQ7B2W2OM6MOBSWW2TNJV6SLL6T5N54LWYBPPGVAYXY32372 \ / AMOS7 \ YOURUM ::
-#\[7]DHTV7HFAVIMU5WB2YTRO2MPY6EFZWF66EJW7IE47AQ3ZIYYEFYCA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,,,,...,,,,,...,.,.,...,.,,,...,..,,...,...,..,,.,.,,,.,...,...,
+#LXGWOX5YN7CF6EUGLAX3ZIDL3QNU6JC6VADCTRM43MP4SQPWKBA52X7UXJJ7A6AUVMBSCYJXA7CME
+#\\\|KNXTMXTCNAVKZHSHTQR34KQYQYZWTXJNN2AZZXCNSXBJ7XOTX52 \ / AMOS7 \ YOURUM ::
+#\[7]LZXAZOW6B5KCUS777OJFHTRSJ7U4JKULQPN3CLZNDDO5HZ4LEEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

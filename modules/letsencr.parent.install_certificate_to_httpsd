@@ -2,7 +2,8 @@
 
 # name  = letsencr.parent.install_certificate_to_httpsd
 # param = $domain
-# descr = install Let's Encrypt certificate to httpsd - creates symlinks and reloads TLS
+# descr = install Let's Encrypt certificate to httpsd
+#         - creates symlinks and reloads TLS
 # return = { status => 'success'|'error', message => ... }
 
 my $domain = shift;
@@ -40,7 +41,7 @@ my $source_key  = sprintf '%s/%s.key', $cache_dir, $domain;
 
 ## Verify source files exist
 unless ( -f $source_cert ) {
-    <[base.logs]>->( 1, "certificate file not found: $source_cert" );
+    <[base.logs]>->( 1, "certificate file not found : $source_cert" );
     <[letsencr.parent.activity_logger]>->(
         qw| install |, $domain, qw| failed |, qq| cert file missing |
     );
@@ -51,7 +52,7 @@ unless ( -f $source_cert ) {
 }
 
 unless ( -f $source_key ) {
-    <[base.logs]>->( 1, "key file not found: $source_key" );
+    <[base.logs]>->( 1, "key file not found : $source_key" );
     <[letsencr.parent.activity_logger]>->(
         qw| install |, $domain, qw| failed |, qq| key file missing |
     );
@@ -68,14 +69,14 @@ my $target_key      = sprintf '%s/%s.key',      $httpsd_cert_dir, $domain;
 my $current_cert    = sprintf '%s/current.pem', $httpsd_cert_dir;
 my $current_key     = sprintf '%s/current.key', $httpsd_cert_dir;
 
-<[base.logs]>->( 2, "target directory: $httpsd_cert_dir" );
+<[base.logs]>->( 2, "target directory : $httpsd_cert_dir" );
 
 ## Create httpsd certificate directory if needed
 unless ( -d $httpsd_cert_dir ) {
     <[base.logs]>->( 2, "creating httpsd certificate directory" );
 
     unless ( mkdir( $httpsd_cert_dir, 0755 ) ) {
-        <[base.logs]>->( 1, "failed to create directory: $!" );
+        <[base.logs]>->( 1, "failed to create directory : $!" );
         <[letsencr.parent.activity_logger]>->(
             qw| install |, $domain, qw| failed |, qq| mkdir failed |
         );
@@ -87,14 +88,14 @@ unless ( -d $httpsd_cert_dir ) {
 }
 
 ## Copy certificate file
-<[base.logs]>->( 2, "copying certificate: $source_cert -> $target_cert" );
+<[base.logs]>->( 2, "copying certificate : $source_cert -> $target_cert" );
 
 my $cert_content;
 {
     my $fh;
     local $} = undef;
     unless ( open( $fh, '<', $source_cert ) ) {
-        <[base.logs]>->( 1, "failed to open source cert: $!" );
+        <[base.logs]>->( 1, "failed to open source cert : $!" );
         return {
             qw| status |  => qw| error |,
             qw| message | => qq| failed to read certificate: $! |
@@ -107,7 +108,7 @@ my $cert_content;
 {
     my $fh;
     unless ( open( $fh, '>', $target_cert ) ) {
-        <[base.logs]>->( 1, "failed to write target cert: $!" );
+        <[base.logs]>->( 1, "failed to write target cert : $!" );
         return {
             qw| status |  => qw| error |,
             qw| message | => qq| failed to write certificate: $! |
@@ -119,14 +120,14 @@ my $cert_content;
 }
 
 ## Copy key file (more secure handling)
-<[base.logs]>->( 2, "copying private key: $source_key -> $target_key" );
+<[base.logs]>->( 2, "copying private key : $source_key -> $target_key" );
 
 my $key_content;
 {
     my $fh;
     local $/ = undef;
     unless ( open( $fh, '<', $source_key ) ) {
-        <[base.logs]>->( 1, "failed to open source key: $!" );
+        <[base.logs]>->( 1, "failed to open source key : $!" );
         return {
             qw| status |  => qw| error |,
             qw| message | => qq| failed to read private key: $! |
@@ -138,7 +139,7 @@ my $key_content;
 
 my $fh;
 unless ( open( $fh, '>', $target_key ) ) {
-    <[base.logs]>->( 1, "failed to write target key: $!" );
+    <[base.logs]>->( 1, "failed to write target key : $!" );
     return {
         qw| status |  => qw| error |,
         qw| message | => qq| failed to write private key: $! |
@@ -210,8 +211,8 @@ if ($reload_result) {
 
 0;
 
-#,,,,,,..,...,,,,,..,,...,.,,,,..,...,,,,,,,,,..,,...,..,,...,,,.,,.,,.,.,,..,
-#DQKUOHARKSLE6FLNFWM56Q6BZ7NPBAXN5Z2MYIYRCQYTUMOJBBR4DTW6B35MPQFQOEE746FNNLRZM
-#\\\|6IIZFJGY74OQBYZRNEJZ6JCNT4PHDMEWPOX3XY6KMKW6YJGUIUF \ / AMOS7 \ YOURUM ::
-#\[7]KID6UTQJCNIMMTK7UZ6DSTRHDDN66NPUCODIZN2S5INT3ZPFBKCA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,.,.,...,,.,,,,.,.,.,,,,,.,,,,,.,..,,...,..,,..,,..,,,,,,,,.,..,,
+#QF2IPZT7JYIBJC7IOFAJ32RDPAGCGTSXBZZSXBW3E5GXBWK3WQITTHGFQYWIRZRSGJSR3PGP5VT7K
+#\\\|RXMQ4A7QZFL54VQGKBAPBFWHWDOLKWT6YJ3PC5FPQ5NHTF5BMRF \ / AMOS7 \ YOURUM ::
+#\[7]G7AJPY5TFUNF3CKHEMSWPZZSVWDMG4NIWQXOH4HLXAMIEABHXICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -32,7 +32,8 @@ $module_path =~ s{^\s+|\s+$}{}g;
 
 ## Validate module name format (alphanumeric, dots, dashes, underscores) ##
 unless ( $module_path =~ /^[\w\-_.]+$/ ) {
-    <[base.log]>->( 1, "[$session_id] invalid command format: $module_path" );
+    <[base.log]>
+        ->( 1, "[$session_id] invalid command format : $module_path" );
     return {
         status  => qw| error |,
         message => qq| invalid command format |,
@@ -93,7 +94,9 @@ if ($EVAL_ERROR) {
         $timed_out    = 1;
     } else {
         <[base.log]>->(
-            1, "[$session_id] command execution error: $module_path - $EVAL_ERROR"
+            1,
+            "[$session_id] command execution error:"
+                . " $module_path - $EVAL_ERROR"
         );
         $exec_status  = qw| error |;
         $exec_message = qq| command execution error: $EVAL_ERROR |;
@@ -121,7 +124,8 @@ if ( ref($result) eq 'HASH' ) {
     } else {
         <[base.log]>->(
             2,
-            "[$session_id] command returned hash without 'content' key: $module_path"
+            "[$session_id] command returned hash without"
+                . " 'content' key: $module_path"
         );
         $result = '';
     }
@@ -148,8 +152,8 @@ return {
     result  => $result,
 };
 
-#,,.,,...,.,.,,.,,.,.,.,,,.,,,...,..,,,,,,,..,..,,...,...,,,.,...,..,,.,.,,.,,
-#QKI6OKKF2AR7IB7IFHPXCLDB33HMW5YDJPD6UKJNYLROC7QWUA2AA4NYYVELZ625B4IMU7ZA54UT2
-#\\\|SXD6JRGZ6SBPZNZ6GTJBXSXZY3KD4CBDQ4VD6TRCOPVHDAUZLOJ \ / AMOS7 \ YOURUM ::
-#\[7]W7CJGQRX5N35247HJOOLFHUPWPG2TDYEHMJ6HFEOQNDJUA3ZS4BQ 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,,.,...,,,,,,,,,...,.,.,,,,,,.,,..,,...,...,,,.,,.,,,..,.,,,.,,,
+#M6ORMWLOOZ4HTP5K2WXOYFJKCXCVFG6UI5ZGU4OZCSAHS7XP7AOD3ZBR4LKNTS3OGVCV44ELK3PQE
+#\\\|76OY2Y6UO3CT7MW2HBPDDQGAMV5NRQHTKOHGS74X7CJRXTFHUSF \ / AMOS7 \ YOURUM ::
+#\[7]WVEKEZPBHHWMWLYMZTLZCHRMTIHIFM5EAZCYZW24IUP45VDFB2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

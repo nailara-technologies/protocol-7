@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name  = letsencr.child.acme_revoke
-# descr = child process revokes a certificate with Let's Encrypt (blocking operation)
+# descr = child process revokes a certificate with
+#         Let's Encrypt (blocking operation)
 
 my $msg = shift;
 
@@ -9,7 +10,7 @@ my $cert_path = $msg->{cert_path};
 my $key_path  = $msg->{key_path};
 my $domain    = $msg->{domain};
 
-<[base.log]>->( 2, "child: revoking certificate for domain: $domain" );
+<[base.log]>->( 2, "child : revoking certificate for domain : $domain" );
 
 ## STEP 1: Load certificate from disk
 unless ( -f $cert_path ) {
@@ -137,12 +138,12 @@ my $result = {
     revoked_at => time(),
 };
 
-<[base.log]>->( 2, "child: certificate revoked for $domain" );
+<[base.log]>->( 2, "child : certificate revoked for $domain" );
 
 return $result;
 
-#,,.,,..,,,.,,...,.,,,,,,,,,.,,,.,..,,...,,..,..,,...,...,.,,,,.,,.,,,,..,,,,,
-#R3YZZI2OBBM3JJX44IW5S5ZGHUMYRKIKR23GF4GAMEXL4WMAX45CDZSRPGDN5MSDGJDS5SUYHUD7K
-#\\\|NMRBFJVEYOVIXYQ4DRFEAWLQFUDHNXIV6JDAZTJTP72MXY6SDZ6 \ / AMOS7 \ YOURUM ::
-#\[7]UBK4ZRL2Z524TK5NUC5OVH2HPZSW6VTSFAUNC55TOECR6ZXBAUAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,,,...,,.,,,..,,.,,,..,,,.,.,.,..,,...,...,..,,,,,,,,,,,,,,.,,,
+#E4RXWB455HRPCNRB2MXZ7YV4LITSJ62UODZFLCP3KE6QOZTCEZ5J24FXA7327YDMVCWEE3WFN6RPO
+#\\\|JKQIA4X2NPW4M4LH5VSG63LDJRXLLUN63J7L43YRJRZFMTN2JY5 \ / AMOS7 \ YOURUM ::
+#\[7]3LJ4Q4NDLZUTVNZYDH2ZT7X5SRVLAYVXFCSVT7SS4A7GCVSWL4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

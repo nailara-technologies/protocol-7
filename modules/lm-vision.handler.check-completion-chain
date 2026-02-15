@@ -1,25 +1,28 @@
 ## [:< ##
 
 # name  = lm-vision.handler.check-completion-chain
-# descr = manage auto-resume loop for complete-analysis until response is complete
+# descr = manage auto-resume loop until response is complete
 
-my $ev = shift;
+my $ev      = shift;
 my $meta_id = $ev->w->data;
 
 my $meta_job = <lm-vision.complete_analysis_jobs>->{$meta_id};
 
 unless ( defined $meta_job ) {
-    # Meta job not found, cancel monitoring
+
+    ## Meta job not found, cancel monitoring
     return;
 }
 
-# Get the current analysis job
-my $current_job = <lm-vision.jobs>->{$meta_job->{'current_job'}};
+## Get the current analysis job
+my $current_job = <lm-vision.jobs>->{ $meta_job->{'current_job'} };
 
 unless ( defined $current_job ) {
-    # Job not found, send error and stop
+
+    ## Job not found, send error and stop
     <[base.logs]>->(
-        0, "[check-completion-chain] job not found: %s",
+        0,
+        "[check-completion-chain] job not found: %s",
         $meta_job->{'current_job'}
     );
 
@@ -32,9 +35,10 @@ unless ( defined $current_job ) {
     return;
 }
 
-# Check if current job has completed
+## Check if current job has completed
 unless ( $current_job->{'status'} eq 'completed' ) {
-    # Job not yet complete, reschedule check for next cycle
+
+    ## Job not yet complete, reschedule check for next cycle
     <[event.add_timer]>->(
         {   'after'   => 0.7,
             'handler' => qw| lm-vision.handler.check-completion-chain |,
@@ -44,42 +48,44 @@ unless ( $current_job->{'status'} eq 'completed' ) {
     return;
 }
 
-# Job completed - accumulate payload
+## Job completed - accumulate payload
 my $current_payload = $current_job->{'payload'} // '';
 $meta_job->{'accumulated'} .= $current_payload;
 
 <[base.logs]>->(
     1,
-    "[check-completion-chain] job completed: %s (complete=%s, accumulated=%d bytes)",
+    "[check-completion-chain] job completed: %s"
+        . " (complete=%s, accumulated=%d bytes)",
     $meta_job->{'current_job'},
     $current_job->{'appears_complete'} ? 'yes' : 'no',
     length( $meta_job->{'accumulated'} )
 );
 
-# Check if response appears complete
+## Check if response appears complete
 if ( $current_job->{'appears_complete'} ) {
     <[base.logs]>->(
         1, "[check-completion-chain] analysis complete, returning result"
     );
 
-    # Determine reply mode based on internal newlines (excluding trailing)
-    my $final_data = $meta_job->{'accumulated'};
+    ## Determine reply mode based on internal newlines [ excluding trailing ]
+    my $final_data    = $meta_job->{'accumulated'};
     my $stripped_data = $final_data;
-    $stripped_data =~ s/\n$//;  # Remove trailing newline for counting
+    $stripped_data =~ s/\n$//;    ## remove trailing newline for counting
     my $internal_newlines = ( $stripped_data =~ tr/\n// );
 
-    # Single-line (0 internal newlines): strip trailing newline, use 'true' mode (p7c will add its own)
-    # Multi-line (1+ internal newlines): ensure trailing newline, use 'size' mode
+    ## Single-line [ 0 newlines ]: strip trailing newline, use 'true' mode
+    ## Multi-line [ 1+ newlines ]: ensure trailing newline, use 'size' mode
     my $reply_mode;
     if ( $internal_newlines == 0 ) {
-        $final_data =~ s/\n$//;  # Strip trailing newline
+        $final_data =~ s/\n$//;    ## strip trailing newline
         $reply_mode = 'true';
     } else {
-        $final_data .= "\n" if $final_data !~ /\n$/;  # Ensure trailing newline
+        $final_data .= "\n"
+            if $final_data !~ /\n$/;    ## ensure trailing newline
         $reply_mode = 'size';
     }
 
-    # Response is complete - send final result
+    ## Response is complete - send final result
     <[base.callback.cmd_reply]>->(
         $meta_job->{'reply_id'},
         { 'mode' => $reply_mode, 'data' => $final_data }
@@ -89,37 +95,38 @@ if ( $current_job->{'appears_complete'} ) {
     return;
 }
 
-# Response is incomplete - check if we've exceeded max resumes
+## Response is incomplete - check if we've exceeded max resumes
 if ( $meta_job->{'resume_count'} >= $meta_job->{'max_resumes'} ) {
     <[base.logs]>->(
         1,
-        "[check-completion-chain] max resumes exceeded (%d), returning partial result",
+        "[check-completion-chain] max resumes exceeded"
+            . " (%d), returning partial result",
         $meta_job->{'max_resumes'}
     );
 
-    # Send accumulated result even if incomplete (still successful, just capped)
-    # Determine reply mode based on internal newlines (excluding trailing)
-    my $capped_data = $meta_job->{'accumulated'};
+    ## Send accumulated result even if incomplete [ still successful, capped ]
+    ## Determine reply mode based on internal newlines [ excluding trailing ]
+    my $capped_data     = $meta_job->{'accumulated'};
     my $stripped_capped = $capped_data;
-    $stripped_capped =~ s/\n$//;  # Remove trailing newline for counting
+    $stripped_capped =~ s/\n$//;    ## remove trailing newline for counting
     my $capped_internal_newlines = ( $stripped_capped =~ tr/\n// );
 
-    # Single-line (0 internal newlines): strip trailing newline, use 'true' mode
-    # Multi-line (1+ internal newlines): ensure trailing newline, use 'size' mode
+    ## Single-line [ 0 newlines ]: strip trailing newline, use 'true' mode
+    ## Multi-line [ 1+ newlines ]: ensure trailing newline, use 'size' mode
     my $capped_reply_mode;
     if ( $capped_internal_newlines == 0 ) {
-        $capped_data =~ s/\n$//;  # Strip trailing newline
+        $capped_data =~ s/\n$//;    ## strip trailing newline
         $capped_reply_mode = 'true';
     } else {
-        $capped_data .= "\n" if $capped_data !~ /\n$/;  # Ensure trailing newline
+        $capped_data .= "\n"
+            if $capped_data !~ /\n$/;    ## ensure trailing newline
         $capped_reply_mode = 'size';
     }
 
     <[base.callback.cmd_reply]>->(
         $meta_job->{'reply_id'},
-        {
-            'mode'    => $capped_reply_mode,
-            'data'    => $capped_data
+        {   'mode' => $capped_reply_mode,
+            'data' => $capped_data
         }
     );
 
@@ -127,7 +134,7 @@ if ( $meta_job->{'resume_count'} >= $meta_job->{'max_resumes'} ) {
     return;
 }
 
-# Response is incomplete - resume for more content
+## Response is incomplete - resume for more content
 $meta_job->{'resume_count'}++;
 
 <[base.logs]>->(
@@ -137,10 +144,11 @@ $meta_job->{'resume_count'}++;
     $meta_job->{'max_resumes'}
 );
 
-# Create additional prompt for resume
+## Create additional prompt for resume
 my $resume_prompt = $meta_job->{'prompt'};
 if ( $meta_job->{'resume_count'} > 1 ) {
-    $resume_prompt .= " [Please continue and provide more comprehensive detail]";
+    $resume_prompt
+        .= " [Please continue and provide more comprehensive detail]";
 }
 
 # Build continuation command
@@ -154,25 +162,26 @@ my @cmd = (
     '-m',       $model_path,
     '--mmproj', $mmproj_path,
     '-ngl',     99,
-    '-c',       4096,                      # Context: previous response + continuation
+    '-c',       4096,           # Context: previous response + continuation
     '-t',       4,
     '--image',  $meta_job->{'image_path'},
-    '--image-min-tokens', 1024,            # Minimum image tokens for Qwen3-VL
-    '-n',       -2,                        # Generate until context size full (better streaming than -1)
-    '--no-warmup',                         # Skip warmup to reduce initialization output
-    '--log-file', $log_file,               # Log via symlink to /dev/null
-    '--prompt', $meta_job->{'accumulated'} . "\n\n[Continue...]\n" . $resume_prompt,
+    '--image-min-tokens', 1024,    # Minimum image tokens for Qwen3-VL
+    '-n', -2,    # Generate until context size full (better streaming than -1)
+    '--no-warmup',    # Skip warmup to reduce initialization output
+    '--log-file', $log_file,    # Log via symlink to /dev/null
+    '--prompt',
+    $meta_job->{'accumulated'} . "\n\n[Continue...]\n" . $resume_prompt,
 
     # Reverse prompts: stop generation at natural boundaries
-    '--reverse-prompt', 'User:',           # Stop at conversation turn
-    '--reverse-prompt', '###',             # Stop at section separator
+    '--reverse-prompt', 'User:',    # Stop at conversation turn
+    '--reverse-prompt', '###',      # Stop at section separator
 
     # Qwen3 recommended VL task parameters
-    '--temp',             0.7,             # Moderate temperature for focused VL output
-    '--top-k',            20,              # Top-k sampling (recommended for VL)
-    '--top-p',            0.8,             # Nucleus sampling for VL tasks
-    '--repeat-penalty',   1.0,             # Repetition penalty (default)
-    '--presence-penalty', 1.5,             # Presence penalty to reduce repetition
+    '--temp',             0.7,    # Moderate temperature for focused VL output
+    '--top-k',            20,     # Top-k sampling (recommended for VL)
+    '--top-p',            0.8,    # Nucleus sampling for VL tasks
+    '--repeat-penalty',   1.0,    # Repetition penalty (default)
+    '--presence-penalty', 1.5,    # Presence penalty to reduce repetition
 );
 
 # Set up environment for vision model
@@ -184,7 +193,7 @@ my ( $wtr, $rdr, $err );
 $err = Symbol::gensym();
 
 open( my $null_in, '<', '/dev/null' ) or do {
-    <[base.logs]>->( 0, "ERROR: Failed to open /dev/null for stdin" );
+    <[base.logs]>->( 0, "ERROR : Failed to open /dev/null for stdin" );
     return;
 };
 
@@ -200,8 +209,7 @@ if ( !$pid || $EVAL_ERROR ) {
     # Return error response on spawn failure
     <[base.callback.cmd_reply]>->(
         $meta_job->{'reply_id'},
-        {
-            'mode' => 'false',
+        {   'mode' => 'false',
             'data' => 'error during continuation'
         }
     );
@@ -236,8 +244,8 @@ my $continuation_job = {
     'output'              => '',
     'stderr'              => '',
     'start_time'          => <[base.time]>->(3),
-    'is_completion_chain' => 1,             # Mark as part of completion chain
-    'meta_id'             => $meta_id,      # Reference to meta-job
+    'is_completion_chain' => 1,           # Mark as part of completion chain
+    'meta_id'             => $meta_id,    # Reference to meta-job
 };
 
 # Store job in queue
@@ -278,8 +286,8 @@ $continuation_job->{'err_io'} = <[event.add_io]>->(
     }
 );
 
-#,,,.,.,.,.,,,,,.,,,,,,,.,,,.,...,,,.,..,,.,,,..,,...,...,...,,.,,,..,,,.,.,,,
-#3N2BA3DQYB4UFPS6A7756BDQ3ZEQZRBWUICMW7AYPXUFAEWSVYDH6MF5N5V7KS6NSC5OD4ST3PNLW
-#\\\|M3FF5XV723W2CYWHVPQA44XNAKZPI2SXIBHIGQKSFG3OCAFKVSC \ / AMOS7 \ YOURUM ::
-#\[7]IN5F6BKJNC354RJS57QY4AJ2KW26SUB2HTCV6WX5BCI2AQLXYSDA 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,.,,,.,,.,,,,.,,,.,,,.,,.,,,,.,,..,,...,...,.,.,.,.,..,,...,.,,,
+#BXIBBMDGAJATCWGTFC7SVZYGMB5DAKYKUJLMDYD3KHARBKJROEQAJV3RA66GSZWKTFK4N36HKKPFK
+#\\\|TNBS4TS6VGLWBWGO3WSTRHDDMNL42W66GLRMMNUO3VPXK6MHFGS \ / AMOS7 \ YOURUM ::
+#\[7]7BN63J6RZMCCDIPGCGP7WHDIHPIODP6N3GH5VHRFWJJJG2YU44CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

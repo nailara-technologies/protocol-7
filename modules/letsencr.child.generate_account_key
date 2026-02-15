@@ -51,7 +51,7 @@ my $secret_b32 = encode_b32r( $ed_keypair->{secret} );
 
 {
     open( my $fh, '>:raw', $key_cache ) or do {
-        <[base.log]>->( 1, "error: unable to write account key file: $!" );
+        <[base.log]>->( 1, "error : unable to write account key file : $!" );
         return undef;
     };
     print $fh $secret_b32;
@@ -66,8 +66,8 @@ chmod( 0600, $key_cache );
 ## Return keypair for later use
 return $ed_keypair;
 
-#,,,,,,,.,,..,,,,,,.,,.,.,.,,,,.,,,,.,.,,,.,.,..,,...,..,,,.,,,..,..,,.,,,.,,,
-#LMTJDQOFU25FIDBTNUUK7C2WFDTUTY73BI3CE6QHA5TZMVFNYDKOGUCNG6AMEJHUFIODQVITPZ6RI
-#\\\|R64KCHQULSYMEZNOZBNMQEMOBDSAQYA5WTYDGSIWRHXN5KLYMMB \ / AMOS7 \ YOURUM ::
-#\[7]ZD5EEUUVK7QAX3Z3RCOEMG4QUCRHLVCKX3S4MPIHQH5E6Z2WBSCQ 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,,,,,,.,.,.,,,.,,.,,.,,,,,,,,,.,..,,...,...,,.,,.,,,.,,,,,.,..,,
+#LT3UDFBQ24454EOVRWTOOYCE4PINSNADJ34XPB5QCHEVWD4XKK7N3PJNQAEKNDHPX5IOESIRDRBRK
+#\\\|LNUAFAXJFTUHWNNHGOCNTWG56DCVWXILRDORJ6UJSQ4JHAVMCSM \ / AMOS7 \ YOURUM ::
+#\[7]TJEZXFOPGZHABW5LAYZM6UGQX4OQLNMU5LFR2F47SQC35PQTIOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

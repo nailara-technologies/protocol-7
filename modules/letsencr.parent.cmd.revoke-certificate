@@ -12,7 +12,7 @@ unless ($domain) {
     };
 }
 
-<[base.log]>->( 2, "revoke certificate command received for: $domain" );
+<[base.log]>->( 2, "revoke certificate command received for : $domain" );
 
 ## Log activity start
 <[letsencr.parent.activity_logger]>->(
@@ -22,7 +22,7 @@ unless ($domain) {
 ## Check if certificate exists in registry
 my $certs = <letsencr.parent.certs>;
 unless ( $certs->{$domain} ) {
-    <[base.log]>->( 1, "error: certificate not found for domain: $domain" );
+    <[base.log]>->( 1, "error : certificate not found for domain : $domain" );
     <[letsencr.parent.activity_logger]>->(
         'revocation', $domain, 'failed', 'certificate not found'
     );
@@ -39,7 +39,7 @@ my $certs_dir = <letsencr.certs.dir>;
 ## Send revocation command to child process
 my $revoke_cmd = 'letsencr.child.cmd.revoke-certificate ' . $domain;
 
-<[base.log]>->( 2, "sending revocation command to child for: $domain" );
+<[base.log]>->( 2, "sending revocation command to child for : $domain" );
 
 my $result = <[base.protocol-7.command.send.local]>->(
     {   'command'   => $revoke_cmd,
@@ -58,7 +58,7 @@ my $result = <[base.protocol-7.command.send.local]>->(
 );
 
 if ($result) {
-    <[base.log]>->( 2, "revocation command queued for: $domain" );
+    <[base.log]>->( 2, "revocation command queued for : $domain" );
     <[letsencr.parent.activity_logger]>->(
         'revocation', $domain, 'pending', 'queued to child'
     );
@@ -69,7 +69,7 @@ if ($result) {
             "revocation requested for '$domain' - queued to child process",
     };
 } else {
-    <[base.log]>->( 1, "error: failed to queue revocation for: $domain" );
+    <[base.log]>->( 1, "error : failed to queue revocation for : $domain" );
     <[letsencr.parent.activity_logger]>->(
         'revocation', $domain, 'failed', 'failed to queue to child'
     );
@@ -80,8 +80,8 @@ if ($result) {
     };
 }
 
-#,,..,,..,,.,,.,.,,,,,,.,,..,,,..,,.,,.,.,,,,,..,,...,...,..,,,.,,,..,,,.,,,.,
-#446UJVAXLW76E42G522SWX6WR5YKL4BJUGOPCMC6MDDN3RTWBMH7ICVQGLNFXXDXIFRX63G5BS6YA
-#\\\|GR5YXSCQMQH6EIY7LIXNA446OR62257W4EBZ6GIO2RFS7ZA2GNI \ / AMOS7 \ YOURUM ::
-#\[7]2QJ6UZSNNB256IZNYSSQANZTRXNWVMKSVKV3SLVVZ52HAZYCGUBA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,,,,,.,,..,,..,,..,.,,,..,,...,,.,,..,,...,...,,..,,,.,,,,,.,.,,,,,
+#5XEOB6GSKRYM2L4UT2Y7DN4XOEKEKFQKWYJOQ4G3QCRN7IMRMP5FYXZOZ5DUMNP2S22QAZDXGQ7XA
+#\\\|H5F3TFG2LWX2TWPDNGRE7VPUCHSUDHUDHK46TG4AHRMVADL77J5 \ / AMOS7 \ YOURUM ::
+#\[7]VDCS2WX67WYVFAQ4CKFWSGSKXSFLZJ7XL6A7W65WFSCRPPKWLECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

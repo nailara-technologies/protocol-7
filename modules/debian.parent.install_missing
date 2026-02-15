@@ -19,9 +19,9 @@ my $use_cpanm = $params->{use_cpanm} // (
 my $dry_run = $params->{dry_run} // 0;
 
 <[base.log]>->( 2, "debian.install: installing missing dependencies..." );
-<[base.log]>->( 2, "  Prefer debian: $prefer_debian" );
-<[base.log]>->( 2, "  Use cpanm: $use_cpanm" );
-<[base.log]>->( 2, "  Dry run: $dry_run" ) if $dry_run;
+<[base.log]>->( 2, "  Prefer debian : $prefer_debian" );
+<[base.log]>->( 2, "  Use cpanm : $use_cpanm" );
+<[base.log]>->( 2, "  Dry run : $dry_run" ) if $dry_run;
 
 ## Collect missing packages
 my @missing_debian;
@@ -113,8 +113,8 @@ if ($zenka_filter) {
     grep { !$seen{$_}++ } @missing_cpan;
 };
 
-<[base.log]>->( 2, "  Missing debian packages: " . scalar(@missing_debian) );
-<[base.log]>->( 2, "  Missing CPAN modules: " . scalar(@missing_cpan) );
+<[base.log]>->( 2, "  Missing debian packages : " . scalar(@missing_debian) );
+<[base.log]>->( 2, "  Missing CPAN modules : " . scalar(@missing_cpan) );
 
 my $result = {
     success          => TRUE,
@@ -172,7 +172,7 @@ if ( @missing_cpan && $use_cpanm ) {
     $result->{installed_cpan} = $installed;
     $result->{failed_cpan}    = $failed;
 
-    <[base.log]>->( 2, "  ✓ CPAN: $installed installed, $failed failed" );
+    <[base.log]>->( 2, "  ✓ CPAN : $installed installed, $failed failed" );
 }
 
 ## Re-check installation status
@@ -184,8 +184,8 @@ return $result;
 
 0;
 
-#,,..,,,.,,..,,,.,,..,.,,,.,,,,,,,,.,,...,..,,..,,...,...,..,,,.,,..,,,..,.,.,
-#FJQKRAQWZ7CWQHYZR3FJYHOE6Z6KBUJTE5PNYZHFPIZDSVDKTPKF7UENDLMRF722JVC3PNSTAJGOI
-#\\\|AK4KHP6QXU5YLUZ2JJKQPLMYELNNAS2MNC2F36ASKONRYSYPGTS \ / AMOS7 \ YOURUM ::
-#\[7]SF2UXZ7PSWUZYUTC4THT5XQMZUZ3D46UPDLH2XK2Z3WBJDFP5ICQ 7  DATA SIGNATURE ::
+#,,,.,.,.,...,...,,.,,,..,..,,,..,,,,,,..,,,,,..,,...,.,.,,,.,..,,...,..,,,.,,
+#72BEO3XV7UNSD4QIFRJVIRZOLLQIHKDNRFMJFWQ7KFGHLI6PHLKNGLSC6W2VTVKFPMG5X3ZRI4UOK
+#\\\|DL2FF6PB2T74KJCXPATKPJMP6KLJ44MYBG25Z7P5HOZEGPIXJVJ \ / AMOS7 \ YOURUM ::
+#\[7]T5WTSDTPM2VCW22YUTIJQS5WMMN6GUBZYO6HSSUPJEOI2S4JKWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

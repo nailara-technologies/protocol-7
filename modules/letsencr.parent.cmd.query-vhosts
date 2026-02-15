@@ -4,7 +4,8 @@
 # descr = query httpd for virtual hosts (async deferred reply)
 # param = none
 
-<[base.log]>->( 2, "query-vhosts command: initiating async vhost retrieval" );
+<[base.log]>
+    ->( 2, "query-vhosts command : initiating async vhost retrieval" );
 
 ## Store reply_id for deferred reply
 my $reply_id = $call->{'reply_id'};
@@ -32,8 +33,8 @@ unless ($reply_id) {
 ## Return deferred to tell Protocol-7 we'll send reply later
 return { 'mode' => qw| deferred | };
 
-#,,.,,.,,,,,.,,,.,,..,...,.,.,,.,,..,,,..,..,,..,,...,..,,..,,.,,,.,.,.,.,..,,
-#ZNVWJORAMZ3I7KPWUZGMUFHBFTNZJTYK2MNMR3QFDSNJR3OSEMC2E7ZWQGPTBMSB5SXPF7E5A7EMQ
-#\\\|TMOEWDYO5MH4AMSPHHC4ERAQTLFFWY3RMNZY7NGHG6XUVCEMUJV \ / AMOS7 \ YOURUM ::
-#\[7]23DQQQLJFLZ4T364HYZ36GFIBXXUI3CFTPLMYMNWLWXAGQ5YEKCI 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,..,,.,.,,.,,,,.,..,,..,,..,,...,..,,...,...,..,,,.,,...,,,.,,.,,
+#XZVNPFY4FEDBM5NL43JIDURUSYQRPORY624TDIKRROHKOJW2H6AI6E3YCCJBIOI7EGQWHVHFDJ26A
+#\\\|L56I5L6L6OU3VCRVB7RCDAIW2EG72TYNK55GRUU5GVYBRAAEPEY \ / AMOS7 \ YOURUM ::
+#\[7]V6WIEC62Q6F2RYQFSSZWHLYXZF4HO5HHKBPUXUWLNKK3RY2J4YAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

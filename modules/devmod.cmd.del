@@ -15,14 +15,14 @@ return { 'mode' => qw| false |, 'data' => $result[1] } if not $result[0];
 
 my $del_keystr_ref = <[base.resolve_key]>->($del_keystr);
 if ( not defined $del_keystr_ref ) {
-    <[base.logs]>->( 0, "[%d] del: no such key ['%s']", $cid, $del_keystr );
+    <[base.logs]>->( 0, "[%d] del : no such key ['%s']", $cid, $del_keystr );
     return { 'mode' => qw| false |, 'data' => 'no such key' };
 }
 
 <[base.del_key]>->($del_keystr);
 
 if ( not defined <[base.resolve_key]>->($del_keystr) ) {
-    <[base.logs]>->( "[%d] del: key '%s' deleted", $cid, $del_keystr );
+    <[base.logs]>->( "[%d] del : key '%s' deleted", $cid, $del_keystr );
     return { 'mode' => qw| true |, 'data' => qw| deleted | };
 } else {
     <[base.logs]>->(
@@ -32,8 +32,8 @@ if ( not defined <[base.resolve_key]>->($del_keystr) ) {
     return { 'mode' => qw| false |, 'data' => 'not successful' };
 }
 
-#,,,,,.,,,..,,,..,,,,,...,,.,,,..,,.,,..,,,.,,..,,...,...,.,.,,..,..,,,,.,,,.,
-#MBJ72LEKZ2VZLQHLILC35ZBT34CCVRDI75SY6DU462H6GJAAVBELPE2JQT3GL6IYKWDKOCPC7XUH2
-#\\\|3N7MJEKZ2VY6U45TMQV7QIHSLBSIZKPP7S75LCYOVSMII3LJTBY \ / AMOS7 \ YOURUM ::
-#\[7]YCTPOCEDAHULPH2T5SJAGHVXAZIGWJZ6NJKBOHBH4Z6OK5ILKOCI 7  DATA SIGNATURE ::
+#,,,,,..,,,.,,..,,.,.,..,,...,,,,,,..,,,.,,,,,..,,...,...,...,,,.,..,,.,.,,..,
+#RRPCSUM64EOH5IKO3NZZ2EYZINZ3FDCAK4BRK44UOB55WIK3SSUHKUXSBNSKFBRCQ63J564RIRV5A
+#\\\|7OJJAZXAAVHCAO4GMIUBNSL76NVINPIZH6KHD2DH32NMGDXXT34 \ / AMOS7 \ YOURUM ::
+#\[7]M6JR2DYCMLYPTVBH7NPZGSY26AXOS7X52HRD5A3LD6BZ5LL55KDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,14 +1,15 @@
 ## [:< ##
 
 # name  = letsencr.parent.handler_renewal_retry
-# descr = handle scheduled renewal retry from timer - resend renewal request to child
+# descr = handle scheduled renewal retry from timer
+#         - resend renewal request to child
 
 my $timer_data = shift;
 
 my $domain  = $timer_data->{domain};
 my $attempt = $timer_data->{attempt} // 1;
 
-<[base.log]>->( 2, "renewal retry for domain: $domain (attempt $attempt)" );
+<[base.log]>->( 2, "renewal retry for domain : $domain (attempt $attempt)" );
 
 ## Get certificate info
 my $cert_info = <letsencr.parent.certs>->{$domain};
@@ -39,8 +40,8 @@ if ( exists <letsencr.parent.renewal_timers>->{$domain} ) {
 
 return TRUE;
 
-#,,.,,.,.,,..,.,,,,..,...,...,.,.,.,,,,.,,..,,..,,...,...,.,,,,,,,,.,,.,,,,,,,
-#DAZRUA2WWEY7W5JPE3QR5WYM447UG7JDO6B3JNEGTZYDLUMOD4AHPSPGEGGHIFBEZTH54YJO2OB5W
-#\\\|FMUFKAQNCAP4QZKG7KXTJY6KVYHLVGYZVKD55ZKGVPAVU62D5TV \ / AMOS7 \ YOURUM ::
-#\[7]KPH4PPKGFRISH326CTDY2NKMVA7ZP4M6GG6CGAMQYG6WJJULFQBI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,.,.,,.,,..,,.,,,.,,,.,,,,.,,..,,..,,...,.,.,.,.,,..,,,,,.,.,,,,,
+#GPSZXRYCDUSHPUTF5HNB3O3WY6GNZUANH4TTD36OTO6LPPVFWP33HYQI6PMB7BVIQ4Z6H4NR2D3RM
+#\\\|FA6CAT2FXWQQP3OH2WBQABCFDMIZ7X5I36VHJNTZWXLDGOP37IV \ / AMOS7 \ YOURUM ::
+#\[7]KVN3EVD5I66Y2INC43GSHCO2KYYX635PDNYFJDOQTUYCXAAALEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -8,7 +8,7 @@ my $msg = shift;
 my $domain    = $msg->{domain};
 my $cert_data = $msg->{cert};
 
-<[base.log]>->( 2, "certificate ready for domain: $domain" );
+<[base.log]>->( 2, "certificate ready for domain : $domain" );
 
 ## Store certificate info in parent registry
 <letsencr.parent.certs>->{$domain} = {
@@ -40,8 +40,8 @@ delete <letsencr.parent.renewal_timers>->{$domain}
 ## TODO: Notify HTTPSD or other services when certificates are updated
 ## This would be done via: cube.httpd.cert-updated with domain as args
 
-#,,..,..,,,..,,..,.,.,.,.,..,,,,,,,.,,,,.,,,.,..,,...,..,,,.,,,..,,..,.,,,...,
-#425QHDHWZQQZKLGYUEKBTKY7EG5XSXNLZXO7KJ52TWAULKTJEXW2E4GE7TPGN7ZG4L7YXUVE3LXOS
-#\\\|XGNVHLX33226436YW253F7QMOEVY5JTP45RE5VWAACDILDGU3O6 \ / AMOS7 \ YOURUM ::
-#\[7]B3ECINEPMWZYFUAI6BS2TKUZS4ZTHBZ4NXADXMGXLWAISGXQW4BY 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,,,.,.,.,.,,..,,..,.,.,.,.,.,,,..,,...,.,.,.,.,.,.,,..,..,,,,,,
+#TROXBKGBEC2WOCWF42RCBD2VMDJKZR7UZB4YV3JVIPS7GKIVJKWW7VKBFR6AZ35I2ES2R5E4RKKBW
+#\\\|BFYMVBIK3CKE4PNMIJYLARMYWNX63SXII7GQJMBUK4MWORWUWJD \ / AMOS7 \ YOURUM ::
+#\[7]NZKMFPKASHFZBNASIMGNRYJO6XYX37WS3ZBNXC5YIHQKSZXSV4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

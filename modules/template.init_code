@@ -1,8 +1,10 @@
 ## [:< ##
 
 # name = template.init_code
-# descr = initialize template engine zenka with caching, rendering, and sanitization
-# todo = Template loader implementation, Mustache integration, cache invalidation
+# descr = initialize template engine zenka with caching,
+#         rendering, and sanitization
+# todo = Template loader implementation, Mustache integration,
+#        cache invalidation
 
 <[base.perlmod.autoload]>->('Template');
 <[base.perlmod.autoload]>->('HTML::Escape');
@@ -61,19 +63,19 @@ if ( !-d $template_dir ) {
 }
 
 <[base.log]>->( 2, 'template engine initialization complete' );
-<[base.log]>->( 2, "  Engine: " . <template.cfg.engine> );
+<[base.log]>->( 2, "  Engine : " . <template.cfg.engine> );
 <[base.log]>->(
     2, "  Cache: " . ( <template.cfg.cache_enabled> ? 'enabled' : 'disabled' )
 );
-<[base.log]>->( 2, "  Template Directory: " . $template_dir );
+<[base.log]>->( 2, "  Template Directory : " . $template_dir );
 <[base.log]>->(
     2, "  Safe Mode: " . ( <template.cfg.safe_mode> ? 'enabled' : 'disabled' )
 );
 
 0;
 
-#,,..,,..,.,.,,..,..,,.,,,,..,..,,,..,...,,..,..,,...,...,...,...,,,,,,.,,..,,
-#OZC7PHB2YWSUXT4YMCDUBRBEQP7LD2MGYQ63IU6ZDB3RMAI4PSZ5JQRBBOY2UPUP44YGWTAGJHPS6
-#\\\|Y64HK5ZFQK7IQXB6BIA2IRRGDPYJVQ2BTY6PGSHJ27BGBFZ3LEU \ / AMOS7 \ YOURUM ::
-#\[7]3GXXCUS47V3PIWVC6J6YIDNRFPV7JA5B3JXHAF3KZVFJALKEYYCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,.,.,,.,,...,,,,,.,.,..,,,.,,,..,..,,...,...,.,.,.,,,..,,.,.,..,,
+#4DSXEUTJLKDSG5OJRG6VDF3NH47NZHCG7XR6GPJZCPVTON4LMN3ZBUNTPUPZPO2J3IZJMRJZS76SO
+#\\\|5VDMGK4EWHT725IEVHPQ2BL2G3QGBUCQMZHAPP3LFPIGSZJT44T \ / AMOS7 \ YOURUM ::
+#\[7]JYND2CADU6D7Z3CJXZTXGCHIKIGIYRBM73YYXMGGWH347CF2GIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

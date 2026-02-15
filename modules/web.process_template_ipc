@@ -25,7 +25,8 @@ unless ( defined $template_id and defined $template_b32r ) {
 
 <[base.log]>->(
     2,
-    "web.process-template-ipc: received template $template_id from httpd session $session_id"
+    "web.process-template-ipc: received template"
+        . " $template_id from httpd session $session_id"
 );
 
 ## Template content is base32r-encoded to avoid colon delimiter conflicts ##
@@ -87,42 +88,56 @@ delete <web.templates.active>->{$template_id};
 ## Update metrics ##
 <web.templates.processed>++;
 my $prev_avg = <web.metrics>->{avg_processing_time_ms};
-<web.metrics>->{avg_processing_time_ms} =
-    ( $prev_avg * ( <web.templates.processed> - 1 ) + $elapsed_ms )
-    / <web.templates.processed>;
+<web.metrics>->{avg_processing_time_ms}
+    = ( $prev_avg * ( <web.templates.processed> - 1 ) + $elapsed_ms ) /
+    <web.templates.processed>;
 
 if ( $result->{status} eq qw| success | ) {
-    my $content = $result->{content};
+    my $content  = $result->{content};
     my $ref_type = ref($content);
 
-    <[base.log]>->( 0, "ipc: result content ref type=[$ref_type]" );
+    <[base.log]>->( 0, "ipc : result content ref type=[$ref_type]" );
 
     ## If content is an array reference, join it into a string ##
     if ( $ref_type eq 'ARRAY' ) {
-        <[base.log]>->( 0, "ipc: array has " . scalar(@{$content}) . " elements" );
-        <[base.log]>->( 0, "ipc: first element type=[" . ref($content->[0]) . "]" ) if @{$content};
-        <[base.log]>->( 0, "ipc: first element value=[" . substr($content->[0], 0, 50) . "]" ) if @{$content};
+        <[base.log]>->(
+            0, "ipc : array has " . scalar( @{$content} ) . " elements"
+        );
+        <[base.log]>->(
+            0, "ipc : first element type=[" . ref( $content->[0] ) . "]"
+        ) if @{$content};
+        <[base.log]>->(
+            0,
+            "ipc : first element value=["
+                . substr( $content->[0], 0, 50 ) . "]"
+        ) if @{$content};
 
         ## Dereference any scalar refs in the array ##
         my @deref = map { ref($_) eq 'SCALAR' ? $$_ : $_ } @{$content};
         $content = join( '', @deref );
     } elsif ( $ref_type eq 'SCALAR' ) {
-        $content = $$content;  ## Dereference scalar ref
+        $content = $$content;    ## Dereference scalar ref
     }
 
-    <[base.log]>->( 0, "ipc: after processing ref type=[" . ref($content) . "] length=" . length($content) );
+    <[base.log]>->(
+        0,
+        "ipc : after processing ref type=["
+            . ref($content)
+            . "] length="
+            . length($content)
+    );
 
     <[base.log]>->(
         2,
         sprintf(
-            "web.process-template-ipc: completed $template_id in %.2fms (depth: %d, size: %d bytes)",
-            $elapsed_ms,
-            $result->{depth},
-            length( $content )
+            "web.process-template-ipc: completed $template_id"
+                . " in %.2fms (depth: %d, size: %d bytes)",
+            $elapsed_ms, $result->{depth}, length($content)
         )
     );
 
-    ## Return processed content as size response (lowercase for multi-line support) ##
+    ## Return processed content as size response
+    ## (lowercase for multi-line support) ##
     ## This will send the content back to httpd via IPC ##
     return {
         'mode' => qw| size |,
@@ -143,8 +158,8 @@ if ( $result->{status} eq qw| success | ) {
     };
 }
 
-#,,.,,,,.,.,.,...,.,,,.,,,..,,,,,,.,,,,,.,.,.,..,,...,..,,,..,..,,.,,,.,.,.,.,
-#6U5Z67THFN5AAFKMQW43NYNJSFODFWZJRAI7WEO4W2HHJLNU6TK7OSHMG65GWWRJKE3QUDKAX5KPW
-#\\\|WKBRS5ZFG34A6L3BWA34RXWRG2CGRJQVLPLL2N4OF4IBVS5EYVC \ / AMOS7 \ YOURUM ::
-#\[7]CUN4YFFQYMFYF4JBGVT4VBZSDMLIRTDL25SDY566CIJ6C34RRUAI 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,.,,,,,.,.,.,,.,,..,,,,.,.,.,..,,..,,...,...,.,,,,.,,,..,,..,,.,,
+#2YR7OE3TRVFMJNFJ25IFLSQBWUFCL3ZN6J7SZR6BYKXVHV4GL2GRU65IH47MRWADBLZE42YIYHCY2
+#\\\|AOCFHSVRJMZXKJCHYRDDN2J4LLWA3TT7J3P43EXSOHELJJ2L7UC \ / AMOS7 \ YOURUM ::
+#\[7]QCNCNYARO4KM5OLFELTQJLBKUFMGLA5SLNXW6QM5AWHEUOWK4UDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
