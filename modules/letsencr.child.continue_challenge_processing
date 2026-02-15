@@ -286,11 +286,24 @@ my $valid_until = time() + ( 90 * 86400 );
 
 ## parse certificate chain [ PEM format includes multiple certs ]
 my $full_chain = $cert_result->{certificate};
-my @certs      = $full_chain
+
+<[base.logs]>->(
+    3, 'certificate chain length: %d bytes',
+    length($full_chain)
+);
+
+my @certs = $full_chain
     =~ m{(-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----)}gs;
+
+<[base.logs]>->( 3, 'parsed %d certificates from chain', scalar(@certs) );
 
 my $certificate = shift @certs // '';
 my $chain       = join( "\n", @certs );
+
+<[base.logs]>->(
+    3,                    'end-entity cert: %d bytes, chain: %d bytes',
+    length($certificate), length($chain)
+);
 
 my $final_result = {
     status      => qw| success |,
@@ -306,7 +319,16 @@ my $final_result = {
 if ( defined $reply_id ) {
     ## encode certificate bundle as base32r for transmission
     my $bundle_json = JSON::XS::encode_json($final_result);
+    <[base.logs]>->(
+        3, 'encoded bundle JSON: %d bytes',
+        length($bundle_json)
+    );
+
     my $bundle_b32r = Crypt::Misc::encode_b32r($bundle_json);
+    <[base.logs]>->(
+        3, 'encoded base32r bundle: %d bytes',
+        length($bundle_b32r)
+    );
 
     <[base.callback.cmd_reply]>->(
         $reply_id, { 'mode' => qw| size |, 'data' => $bundle_b32r }
@@ -323,8 +345,8 @@ delete <letsencr.child.acme_state>;
 <[base.log]>->( 2, 'challenge processing complete, certificate ready' );
 return $final_result;
 
-#,,,,,,,.,,..,.,.,..,,.,,,...,...,,..,,.,,,,,,..,,...,..,,.,.,.,,,,.,,...,.,.,
-#XH423VFIAPNLWB3YIH7HUBZVOWDEO7M2AXQF3WRKCE2IWZGLQTLV2FUVX4FXV6IIOJ46ZTOWJJGPM
-#\\\|NCUA4775E5OQZNUFYX2TL7L5MN6FLWXPYYSAPNMOQ43BKJR3PWQ \ / AMOS7 \ YOURUM ::
-#\[7]DMTHLOD2KGTKGC4KKSJSTEARAH7VSRRCXHAZO5JTXIG3GE3GI6AA 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,,.,,.,,,..,,,,,,...,.,.,,,,,.,,,..,,...,.,.,,.,,,..,.,,,.,,,..,,
+#DD3XY7KSGL2T7CNO6LVTHVIBSQBERYU7Y6VHMIKMET2VNTCWUO23CWBA32PZERJ535DCDRO2SV4BQ
+#\\\|JB56PR2AVU5Q3EZMCOAJN27VBRNQWUNDTVT74AI6OPICKNYZXAU \ / AMOS7 \ YOURUM ::
+#\[7]4PGFKFZOWONT4YK6ZMASAOKQGG4I5VU3Q3WCJCU775OBWRQOSMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
