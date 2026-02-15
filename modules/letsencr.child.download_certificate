@@ -1,0 +1,85 @@
+## [:< ##
+
+# name  = letsencr.child.download_certificate
+# descr = download raw PEM certificate (no JSON parsing)
+
+my $cert_url = shift;
+my $nonce    = shift;
+my $kid      = shift;
+
+<[base.logs]>->(
+    2,
+    "downloading certificate from: %s",
+    substr( $cert_url, 0, 50 )
+);
+
+unless ( $cert_url && $nonce && $kid ) {
+    <[base.log]>->( 1, 'error: missing cert download parameters' );
+    return undef;
+}
+
+## create HTTP client
+my $ua = LWP::UserAgent->new( timeout => 10, );
+
+## disable SSL verification for localhost/test servers
+if ( $cert_url =~ m{^https?://localhost} ) {
+    $ua->ssl_opts( verify_hostname => 0, SSL_verify_mode => 0 );
+}
+
+## certificate endpoint uses POST-as-GET (RFC 8555)
+my $jws = <[letsencr.child.create_jws]>->( '', $nonce, $kid, $cert_url );
+
+unless ($jws) {
+    <[base.log]>->( 1, 'error: failed to create JWS for cert download' );
+    return undef;
+}
+
+## create request with JWS body
+my $jws_json = JSON::XS::encode_json($jws);
+
+my $request = HTTP::Request->new( qw| POST | => $cert_url );
+$request->header( 'Content-Type' => 'application/jose+json' );
+$request->content($jws_json);
+
+## execute request
+my $response = $ua->request($request);
+
+unless ( $response->is_success ) {
+    <[base.logs]>->(
+        1, "certificate download failed : %s",
+        $response->status_line
+    );
+    return undef;
+}
+
+## get raw certificate bytes [ do NOT parse as JSON ]
+my $cert_pem = $response->decoded_content();
+
+unless ( $cert_pem && length($cert_pem) ) {
+    <[base.log]>->( 1, 'error: certificate response is empty' );
+    return undef;
+}
+
+## verify it looks like a certificate
+unless ( $cert_pem =~ m{-----BEGIN CERTIFICATE-----} ) {
+    <[base.logs]>->(
+        1,
+        "error: response missing BEGIN CERTIFICATE marker: %s",
+        substr( $cert_pem, 0, 50 )
+    );
+    return undef;
+}
+
+<[base.log]>->( 2, 'certificate downloaded successfully' );
+
+## return certificate with new nonce
+return {
+    certificate => $cert_pem,
+    nonce       => $response->header('Replay-Nonce'),
+};
+
+#,,,,,,,.,,,,,...,.,,,.,,,,..,,,.,...,.,.,,..,.,.,...,..,,.,,,,.,,,.,,..,,.,.,
+#IWWZ6JNVXWRC3JDIJWWZI2PRQAGMGAZDYU5SOP6WBD6V6S3ZMGRN2TU6FBUW4RZIRECKHDPQZ7HEA
+#\\\|DXZ5TCWFEUC3J66HSBDUS2A73U6HTE3CRTZ5JUG4VD554OM734H \ / AMOS7 \ YOURUM ::
+#\[7]2U27EABU25QLTRBRPGN2KANFILSXRMDYVNTAKAM4ZDKDM6EBYAAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
