@@ -280,15 +280,25 @@ unless ($cert_result) {
 <[base.log]>->( 2, 'certificate obtained successfully' );
 <[base.logs]>->( 2, 'polled %d times', $cert_result->{'poll_attempts'} );
 
-## STEP 9: Prepare final result
-my $valid_until = time() + ( 90 * 86400 );    ## default 90 days
+## step 9: prepare final result
+## [ certificate response is a PEM chain: split into cert + chain ]
+my $valid_until = time() + ( 90 * 86400 );
+
+## parse certificate chain [ PEM format includes multiple certs ]
+my $full_chain = $cert_result->{certificate};
+my @certs      = $full_chain
+    =~ m{(-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----)}gs;
+
+my $certificate = shift @certs // '';
+my $chain       = join( "\n", @certs );
 
 my $final_result = {
     status      => qw| success |,
     domains     => $domains,
-    cert        => $cert_result->{certificate},
+    certificate => $certificate,
     key         => $cert_result->{key},
-    valid_until => $valid_until,
+    chain       => $chain,
+    expires_at  => $valid_until,
     cert_url    => $cert_result->{cert_url},
 };
 
@@ -313,8 +323,8 @@ delete <letsencr.child.acme_state>;
 <[base.log]>->( 2, 'challenge processing complete, certificate ready' );
 return $final_result;
 
-#,,..,..,,..,,,.,,,..,,,,,.,.,.,,,..,,,.,,.,.,..,,...,..,,.,.,.,.,.,.,,,,,,..,
-#5VIJFNIJXHFWNOFGD3LIAFGK65QO4YJHU4HAQ6KH3TQA653TSKNTIBS4XNDUCQCWX66ZMJ5CUS6CG
-#\\\|CIMV2QSMTTV4CWQ7ABIDRHVBVYSN6NFZQ2JLT3ZFSN4KQXK5N32 \ / AMOS7 \ YOURUM ::
-#\[7]U6575EVVKDF6GQRAX6W3Q5QLZDBDBJ7BMCSTN57P7H2FYMDDCOAI 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,.,..,,.,,,...,...,,..,,.,,,,,,..,,...,..,,.,.,.,,,,.,,...,.,.,
+#XH423VFIAPNLWB3YIH7HUBZVOWDEO7M2AXQF3WRKCE2IWZGLQTLV2FUVX4FXV6IIOJ46ZTOWJJGPM
+#\\\|NCUA4775E5OQZNUFYX2TL7L5MN6FLWXPYYSAPNMOQ43BKJR3PWQ \ / AMOS7 \ YOURUM ::
+#\[7]DMTHLOD2KGTKGC4KKSJSTEARAH7VSRRCXHAZO5JTXIG3GE3GI6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
