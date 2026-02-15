@@ -26,8 +26,8 @@ unless ( length $token ) {
 }
 
 ## construct path to challenge file
-my $site_dir       = <httpd.site_dir>;
-my $vhost          = $session->{'vhost'};
+my $site_dir = <httpd.site_dir>;
+my $vhost    = $session->{'http'}->{'request'}->{'matched_host'} // '';
 my $challenge_file = sprintf '%s%s/.well-known/acme-challenge/%s',
     $site_dir, $vhost, $token;
 
@@ -100,8 +100,8 @@ $session->{'buffer'}->{'output'} .= $content;
 
 return $session->{'http'}->{'close'} ? 2 : 0;
 
-#,,.,,,..,,.,,...,,,,,.,.,,,,,..,,,..,...,..,,..,,...,...,..,,,.,,.,,,...,.,.,
-#CCQJJO62ONTQLMRKOHM7UKXX4IPI5MNMHRTCT3NXLCVH3AFAWI7J4GHXYS7XGJPCNVGN23EIA2RCQ
-#\\\|574P27CDUUO4JCQ6FIJNKVTTMWB4RXGF5UKSHZ33TXNC6RZSK5B \ / AMOS7 \ YOURUM ::
-#\[7]T72JBRURBYX2JGO6VVXMMWF77ZGH2USLHFSFQWDKWBPOEX4ZQMCQ 7  DATA SIGNATURE ::
+#,,..,,,.,,..,...,,.,,,.,,,..,,.,,,..,.,.,.,.,..,,...,...,.,.,,,.,,.,,.,.,,,.,
+#56DKSVWARCKAAIKN2JDKZAN3HYJZFEZDBHXAMKRJN5Q3VEFF3DL27DJD3KZ2I46GLXQT4EA2VAUNG
+#\\\|FDLXLOZCAUS6EURAUECXIPLKDWXHPAUTNG4C6NHX4OP42H2CS5Z \ / AMOS7 \ YOURUM ::
+#\[7]OLHUXEFXXBN3N5XLOZX6MD3VHX3MY54J6HLY5YBJO3ZAGU6Z7ECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
