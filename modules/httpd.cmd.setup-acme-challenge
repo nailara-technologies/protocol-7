@@ -37,6 +37,12 @@ my $vhost_existed = -d $vhost_path;
     };
     };
 
+## if vhost was newly created, trigger httpd vhost scan
+unless ($vhost_existed) {
+    <[base.logs]>->( 2, ': vhost newly created, triggering rescan' );
+    <[httpd.scan_site_dir]>;
+}
+
 ## write challenge response file
 my $challenge_file = join qw| / |, $well_known_dir, $token;
 
@@ -57,8 +63,8 @@ return {
     'data' => 'challenge file set up successfully'
 };
 
-#,,..,,.,,..,,..,,.,.,,,.,,,,,,.,,.,.,...,,.,,.,.,...,...,..,,.,.,.,,,.,.,,..,
-#HSTBQJH6ZZHGJBQLMQLCNOFCR2YJ74WKTNU4M5EMRBZASGBFYWLCM5PLMOQDI42HQ4TIWRTDE3QWG
-#\\\|ROJFJKIAKX6BLPT6AUVENSFY7YLCQQIK3E2P5JLRR2UQQUNIAHD \ / AMOS7 \ YOURUM ::
-#\[7]6HFQYRYUGI33QSOCE26S4VTQSCVKQSFEZWENNKFAH4QNL4SW7EDA 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,..,,,,,,.,.,..,,.,,,,,,,,..,,,,,.,.,...,...,.,,,.,,,..,,,,,,.,,,
+#KBYQMLBRSU2W4HIRORIF365PWQTA4AGFVEKDTZR46MTAVGN643SQULDX3XGAEX35LYDAPRM5LKMMK
+#\\\|KH64HLFDHOS3I6TGY3VA6XSYKXVVJ6CVORARWC3UVLS7UJ2BTKT \ / AMOS7 \ YOURUM ::
+#\[7]VG5OPA3WZHVFRM3XNCPAD5ZIPNUCR4Z2YAST24ZFFH2H6HPDTIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
