@@ -73,7 +73,7 @@ if ( $path =~ m|^/.well-known/acme-challenge/(.+)$| ) {
     );
 
     my $route = {
-        handler      => qw| httpd.handler.acme_request |,
+        handler      => qw| httpd.handler.acme_challenge |,
         handler_args => { token => $token },
         cache_ttl    => 0,    # Don't cache ACME challenges
     };
@@ -135,8 +135,8 @@ my $route = {
 $data{'route_cache'}->{$cache_key} = $route;
 return $route;
 
-#,,,.,..,,,..,...,..,,,,,,..,,...,.,,,,..,,..,..,,...,...,...,,,,,,,,,.,,,,,.,
-#UUKUXFS7M7B3LYODK4UH73E57LIOPGRKLPHQZOQPUS4IAVVFG5X5B3GYR6I6YPXUHUBMBNWNV4KMY
-#\\\|ZHB6H7ONE4U4GE5BQXYFFQOH5APCCROMYNAHXZFU5AJ423HI3RI \ / AMOS7 \ YOURUM ::
-#\[7]QQGHCCLRLA5J5UFYPO6KK67KGTXXFVC7UK6LBXZNXLL6RCZYNCBQ 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,,.,,,,,.,,,.,,,,.,,..,,,..,,,.,..,,...,...,,..,,.,,.,,,..,,.,.,
+#UZ5PCT4YJUZNIYGP7IJXBZGUGJDNW23M4UPXWMTOPUQXFKJNI3MYY4DU25XX7U2YPSUNPDWYZRUVE
+#\\\|H4MXDLROL5ZLPG6KAAKDK6Q2X7ZPMUNC67BNXXDSH3FT4S7RTKC \ / AMOS7 \ YOURUM ::
+#\[7]V7PNTTOOOEDGL54ZSEBO7K57LU6CZNTIKTFS6I7BJKO4DTTKFWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
