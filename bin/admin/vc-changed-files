@@ -7,14 +7,18 @@ use warnings;
 use Capture::Tiny qw| capture |;
 
 my $filter_sig_only = 0;
+my $filter_exc_len  = 0;
 if (@ARGV) {
     if ( $ARGV[0] eq '-sig-only' ) {
         $filter_sig_only = 1;
+    } elsif ( $ARGV[0] eq '-exc-len' ) {
+        $filter_exc_len = 1;
     } else {
         die "\n ::: error ::: [ unknown option '$ARGV[0]' ] :::\n\n"
-            . "  ::[ usage ]:: $0 [-sig-only]\n  :\n"
+            . "  ::[ usage ]:: $0 [-sig-only|-exc-len]\n  :\n"
             . "  :   [no args.]  :  list all changed files\n"
-            . "  :.  -sig-only   :  list signature-only changes\n";
+            . "  :.  -sig-only   :  list signature-only changes\n"
+            . "  :.  -exc-len    :  list files with lines exceeding 78 characters\n";
     }
 }
 
@@ -37,9 +41,17 @@ foreach my $line (
     ##  check if file only has signature changes ##
     my $has_only_sig_changes = _has_only_signature_changes($line);
 
+    ##  check if file has lines exceeding 78 characters ##
+    my $has_exc_len_lines = _has_lines_exceeding_length( $line, 78 );
+
     ##  filter for signature-only changes if --sig-only flag is set ##
     if ($filter_sig_only) {
         next unless $has_only_sig_changes;
+    }
+
+    ##  filter for lines exceeding length if --exc-len flag is set ##
+    if ($filter_exc_len) {
+        next unless $has_exc_len_lines;
     }
 
     say $line;
@@ -89,8 +101,29 @@ sub _has_only_signature_changes {
     return scalar(@code_changes) == 0 ? 1 : 0;
 }
 
-#,,..,,..,.,.,...,..,,...,.,,,..,,..,,,..,,,,,..,,...,...,.,.,,,.,..,,,,.,,..,
-#D5BZN4IAK7RDXORD7Z67FGFIEN5BMUOI3QNJQGKW7BKRQ4MCWHO4OXKZOLXGDR26PTKCXSD5WFQYC
-#\\\|ZRNNBG2CAILLOB76TGIBALM54OABW6ECRPC3QSLZ7BMCIRNOPAX \ / AMOS7 \ YOURUM ::
-#\[7]Y3FYQPU6RTZTUKAWSKP7B2A4BQW23YQEBIZVPBQFF5FGZS7KR6BI 7  DATA SIGNATURE ::
+sub _has_lines_exceeding_length {
+    my ( $filepath, $max_length ) = @_;
+
+    ##  check if file exists ##
+    return 0 unless -f $filepath;
+
+    ##  read file and check for lines exceeding max length ##
+    open( my $fh, '<', $filepath ) or return 0;
+    while ( my $line = <$fh> ) {
+        chomp $line;
+        if ( length($line) > $max_length ) {
+            close($fh);
+            return 1;
+        }
+    }
+    close($fh);
+
+    ##  return false if no lines exceed max length ##
+    return 0;
+}
+
+#,,,,,,,,,.,,,..,,...,.,,,,..,..,,.,,,...,.,,,..,,...,...,..,,.,,,.,.,...,.,.,
+#JAVD6HES5OW6PDGPORZ4SXJL3MWV3IQYNFUM65JET3MOYYYDDGNRPHBLT6V2CZXTTVPGIXG6WWLTU
+#\\\|G3PUARS2CTRQRXHQSRVGH4UVW3ZXMDWQA3THPT577EK5X2SBFAJ \ / AMOS7 \ YOURUM ::
+#\[7]UZVODWPXPZEMTRIY6W42YR2YOWJAVX7F3VPTEYOKON5NA42LEEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
