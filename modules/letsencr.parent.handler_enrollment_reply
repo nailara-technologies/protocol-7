@@ -115,17 +115,27 @@ if ( $mode eq 'TRUE' ) {
         $domain, length($data)
     );
 
-    ## Parse certificate bundle from base32r encoded JSON
+    ## parse certificate bundle from base32r encoded JSON
     my $bundle_json;
+    my $decoded_data;
     eval {
-        $bundle_json
-            = JSON::XS::decode_json( Crypt::Misc::decode_b32r($data) );
+        $decoded_data = Crypt::Misc::decode_b32r($data);
+        <[base.logs]>->(
+            3, 'decoded base32r: %d bytes',
+            length($decoded_data)
+        );
+        $bundle_json = JSON::XS::decode_json($decoded_data);
     };
 
     if ($EVAL_ERROR) {
         <[base.logs]>->(
             1,       'failed to decode certificate bundle for %s: %s',
             $domain, $EVAL_ERROR
+        );
+        <[base.logs]>->(
+            3,
+            'decoded data [ first 200 chars ]: %s',
+            substr( $decoded_data // '', 0, 200 )
         );
         <[letsencr.parent.activity_logger]>->(
             'enrollment', $domain, 'failed',
@@ -256,8 +266,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,,.,,.,,,..,...,..,,..,,...,.,.,,,.,,.,,..,,..,,...,...,..,,,,.,,,,,...,,,,,
-#JJJ4MKHQS7AJMURSFK53V22PNSERVJXF5EPXZUTTLJSY73IIHGMLLLPD5P6B4DYA6FV2XPNYEE3PE
-#\\\|2ZR5GMKBGAJHZHEEUJNZPB7JLOOQRCHXK2FI45VWIVC7BD5OGFH \ / AMOS7 \ YOURUM ::
-#\[7]MUZCOX7BA3X5XZU5QVZTZJOQYASOJGVLMT22GXTO4KWJC26KBUBY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,..,,..,,.,.,..,,..,,.,.,,,.,,..,..,,...,...,..,,,,,,,..,,,,,..,,
+#L3WCG5PPVO2XC4PCMOG3WOK337F6IHOWGVGQGLDWACIJYDGTLOX7R3DLXFABPCCG4I6OND4Q7DE5M
+#\\\|RXZBNUR5RJHN5ETAM3R5RPH5IGUV3K4A2IALBRATTNWB2F5WKIJ \ / AMOS7 \ YOURUM ::
+#\[7]PH4UXTV5YF35JNNOL44Y65I6CZEPQ5VDJK2HYXBEZ7XXOTDBK6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
