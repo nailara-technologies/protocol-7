@@ -13,25 +13,79 @@ unless ($domain) {
     };
 }
 
-<[base.logs]>->( 2, 'cleaning up HTTP-01 challenge for %s', $domain );
+<[base.logs]>->( 1, 'cleaning up HTTP-01 challenge for %s', $domain );
 
 ## remove well-known challenge directory
 my $well_known_dir
     = sprintf( '%s%s/.well-known/acme-challenge', <httpd.site_dir>, $domain );
 
+## Get token from letsencr child call
+my $token = ( split m{\ +}, $call->{'args'} // '' )[1];
+
+if ($token) {
+    my $challenge_file = join qw| / |, $well_known_dir, $token;
+    if ( -f $challenge_file ) {
+        <[base.logs]>->( 2, 'removing challenge file: %s', $challenge_file );
+        if ( unlink($challenge_file) ) {
+            <[base.logs]>->(
+                2, 'challenge file removed: %s',
+                $challenge_file
+            );
+        } else {
+            my $error = <[base.str.os_err]>;
+            <[base.logs]>->(
+                1, 'failed to remove challenge file: %s', $error
+            );
+        }
+    }
+}
+
+## Clean up empty directories if nothing left
 if ( -d $well_known_dir ) {
-    <[file.clean-paths]>->($well_known_dir)
-        or do {
-        my $error = <[base.str.os_err]>;
-        <[base.logs]>->(
-            1, 'failed to remove challenge directory: %s', $error
-        );
-        ## log but don't fail - cleanup is best-effort
+    <[base.logs]>->(
+        2, 'cleaning up challenge directory: %s',
+        $well_known_dir
+    );
+    <[file.clean-paths]>->($well_known_dir);
+}
+
+## Also clean up .well-known parent directory if empty
+my $well_known_parent
+    = sprintf( '%s%s/.well-known', <httpd.site_dir>, $domain );
+if ( -d $well_known_parent ) {
+    <[base.logs]>->(
+        2, 'cleaning up .well-known directory: %s',
+        $well_known_parent
+    );
+    <[file.clean-paths]>->($well_known_parent);
+}
+
+## If vhost directory is now empty, remove it too (temporary challenge-only vhost)
+my $vhost_path = sprintf '%s%s', <httpd.site_dir>, $domain;
+if ( -d $vhost_path ) {
+    opendir my $dirh,
+        $vhost_path
+        or return {
+        'mode' => qw| true |,
+        'data' => 'cleanup complete'
         };
-    <[base.logs]>->( 2, 'challenge directory removed: %s', $well_known_dir );
-} else {
-    <[base.logs]>
-        ->( 3, 'challenge directory not found: %s', $well_known_dir );
+    my @entries = grep { $ARG ne qw| . | and $ARG ne qw| .. | } readdir $dirh;
+    closedir $dirh;
+
+    ## Remove vhost if it's now empty
+    if ( !@entries ) {
+        <[base.logs]>->(
+            2, 'removing empty vhost directory: %s', $vhost_path
+        );
+        if ( rmdir($vhost_path) ) {
+            <[base.logs]>->( 1, 'vhost directory removed: %s', $vhost_path );
+        } else {
+            my $error = <[base.str.os_err]>;
+            <[base.logs]>->(
+                2, 'could not remove vhost directory: %s', $error
+            );
+        }
+    }
 }
 
 return {
@@ -39,8 +93,8 @@ return {
     'data' => 'cleanup complete'
 };
 
-#,,..,,,.,..,,,,,,,,,,.,,,,,.,.,,,...,.,.,,,.,.,.,...,...,.,.,,..,...,...,,,.,
-#JHEBGXF2T3XNXNI6IVTDBN5ZWWOLTOIIRUAW4F4HXCW73TNTZ5KLMJLGANM6HNTW64VEA47A3C6JW
-#\\\|R375AWB4FB7EG6OFHPLQW6AVVTQ3T27UCFX4POHRGAIWYR2GP2K \ / AMOS7 \ YOURUM ::
-#\[7]RNECRDE56HKC3QO7XCCOEVLFHMWQI3ZHCVAUAHPOJA7LYRXU6IAA 7  DATA SIGNATURE ::
+#,,,,,.,.,,..,.,,,...,,..,...,,,.,,,.,,,,,,,,,.,.,...,...,,..,.,.,.,,,,..,.,,,
+#AEYJMOXVXIQEB3XFM6WXVJESMPO3HDUNR6SDKUHTSG3BBRKZVVU4WJ3OWZJTWO2THAIKQLFHLGIVK
+#\\\|G5DCZON7RIGHTXIPATQEBUS5Q74ZTUARNNHZAFEZWE4TA3TMMFE \ / AMOS7 \ YOURUM ::
+#\[7]4MNTHOXNJNH724L2IOKIJW7TXOFE6S7KYOAUHTV3I4UN2YCRHWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
