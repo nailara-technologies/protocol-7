@@ -89,11 +89,11 @@ foreach my $vhost ( $vhosts_list->@* ) {
 <[base.log]>->(
     2, ": determined " . scalar( keys %domains_map ) . " certificate domains"
 );
-foreach my $domain ( sort keys %domains_map ) {
+foreach my $domain ( <[base.sort]>->( keys %domains_map ) ) {
     my $info = $domains_map{$domain};
     my $alts
-        = @{ $info->{alt_names} } > 0
-        ? "  [ + " . scalar( $info->{alt_names}->@* ) . " alts ]"
+        = $info->{'alt_names'}->@* > 0
+        ? "  [ + " . scalar( $info->{'alt_names'}->@* ) . " alts ]"
         : "";
     <[base.log]>->( 2, sprintf ":. %17s%s", $domain, $alts );
 }
@@ -103,8 +103,8 @@ return {
     domains => \%domains_map,
 };
 
-#,,,.,.,.,...,.,,,..,,,,.,,.,,,..,..,,,,.,..,,..,,...,..,,..,,...,,.,,,,.,,..,
-#BC3P6II6QENHKWSFZFVUMWSU2AQSXSF3GA4QKW53VKUN6DKKPJHNB2ULTAHYRLGGSURJ6ACUO36QC
-#\\\|BSY4S4N7I6Z454QN42MXV47MKBLZMC7SSIG32BOJRL3U5N5SGGY \ / AMOS7 \ YOURUM ::
-#\[7]ATZFHLEOIDANLWKXM6KFB3BCF7XUFOQ2KF2FJEXZ6HSNL5ANI4DY 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,.,,.,,,,..,.,,,,..,,.,,,,,,.,,,..,,...,...,..,,.,,,.,.,.,.,,..,
+#HIJYNJV7Q6EFHQA3KG4LEXVNEW4R4M6FVCOJFUUMLBVHQTSJXPGVUFT6CYZCVCNTZ5HIBSBBTXE2Q
+#\\\|PNBSEUVRDZBLYF7V4YH4KH5MTSCRW54UTOJNKZGEAU2Q2DMULGB \ / AMOS7 \ YOURUM ::
+#\[7]R2LA3DL3AFAVED2DPNMWHCTERSKK6LXHMOUM2EQCQCYULHM5DIAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
