@@ -1,52 +1,56 @@
 ## [:< ##
 
 # name  = letsencr.parent.handler_enrollment_reply
-# descr = handle enrollment command reply from child process (processes TRUE/FALSE/SIZE responses)
 
-my $reply_data = shift;
+# descr = handle enrollment command reply from child process
+#                      [ processes TRUE|FALSE|SIZE responses ]
 
-my $domain = $reply_data->{'params'}{'domain'};
-my $mode   = $reply_data->{'cmd'};
-my $args   = $reply_data->{'call_args'}{'args'};
-my $data   = $reply_data->{'data'} // '';
+my $reply = shift;
+
+my $domain     = $reply->{'params'}->{'domain'};
+my $mode       = $reply->{'cmd'};
+my $args       = $reply->{'call_args'}->{'args'};
+my $reply_data = $reply->{'data'} // '';
 
 unless ($domain) {
     <[base.log]>->(
-        1, 'error: enrollment reply handler missing domain in params'
+        1, 'error : enrollment reply handler missing domain in params'
     );
     return FALSE;
 }
 
 <[base.logs]>->(
-    2,       'enrollment reply for domain: %s, mode: %s',
+    2,       'enrollment reply for domain : %s, mode : %s',
     $domain, $mode
 );
 
 <[letsencr.parent.activity_logger]>->(
-    'enrollment', $domain, 'pending',
-    sprintf( 'child replied with mode: %s', $mode )
+    qw| enrollment |,
+    $domain, qw| pending |, sprintf( 'child replied with mode : %s', $mode )
 );
 
-if ( $mode eq 'TRUE' ) {
-    ## distinguish between async (deferred) vs sync (success) based on data content
-    ## async returns base32r-encoded challenge info, sync returns simple message
-
+if ( $mode eq qw| TRUE | ) {
+    ## distinguish between async [deferred] vs sync [success] based on data
+    ## content async returns base32r-encoded challenge info, sync returns
+    ## simple message
     my $challenge_info;
     eval {
         $challenge_info
-            = JSON::XS::decode_json( Crypt::Misc::decode_b32r($data) );
+            = JSON::XS::decode_json( Crypt::Misc::decode_b32r($reply_data) );
     };
 
-    if ( !$EVAL_ERROR && $challenge_info->{status} eq 'deferred' ) {
+    if ( length $EVAL_ERROR && $challenge_info->{status} eq qw|deferred| ) {
         ## ASYNC CASE: Parent orchestrates challenge setup with httpd
         <[base.logs]>->( 2, 'async enrollment initiated for %s', $domain );
         <[letsencr.parent.activity_logger]>->(
-            'enrollment', $domain, 'pending',
+            qw| enrollment |,
+            $domain, qw| pending |,
             'async processing: orchestrating challenge setup'
         );
 
-        ## TODO: Extract challenges from order and call notify_httpd_challenge
-        ## Store challenge_info for continuation handler to access
+        ## [todo] Extract challenges from order and call
+        ## notify_httpd_challenge Store challenge_info for continuation
+        ## handler to access
 
         <letsencr.parent.pending_challenges>->{$domain} = $challenge_info;
 
@@ -57,15 +61,17 @@ if ( $mode eq 'TRUE' ) {
         ## SYNC CASE: Certificate enrollment completed synchronously
         <[base.logs]>->( 2, 'enrollment succeeded for %s', $domain );
         <[letsencr.parent.activity_logger]>->(
-            'enrollment', $domain, 'success',
-            'certificate enrollment completed'
+            qw| enrollment |,
+            $domain, qw| success |, 'certificate enrollment completed'
         );
     }
 
-} elsif ( $mode eq 'FALSE' ) {
-    <[base.logs]>->( 1, 'enrollment failed for %s: %s', $domain, $data );
+} elsif ( $mode eq qw| FALSE | ) {
+    <[base.logs]>
+        ->( 1, 'enrollment failed for %s: %s', $domain, $reply_data );
     <[letsencr.parent.activity_logger]>->(
-        'enrollment', $domain, 'failed', "ACME error: $data"
+        qw| enrollment |,
+        $domain, qw| failed |, sprintf 'ACME error: %s', $reply_data
     );
 
     ## Schedule retry with exponential backoff
@@ -78,13 +84,14 @@ if ( $mode eq 'TRUE' ) {
 
         <[base.logs]>->(
             2,
-            'scheduling enrollment retry for %s in %d seconds (attempt %d)',
+            'scheduling enrollment retry for %s in %d seconds [attempt:%d]',
             $domain, $delay, $attempt
         );
 
         <[letsencr.parent.activity_logger]>->(
-            'enrollment', $domain, 'pending',
-            "retry scheduled in $delay seconds (attempt $attempt)"
+            qw| enrollment |,
+            $domain, qw| pending |,
+            "retry scheduled in $delay seconds [attempt:$attempt]"
         );
 
         ## Store retry data in a module variable for the handler to retrieve
@@ -105,41 +112,41 @@ if ( $mode eq 'TRUE' ) {
             $domain
         );
         <[letsencr.parent.activity_logger]>->(
-            'enrollment', $domain, 'failed', 'max retries exceeded'
+            qw| enrollment |,
+            $domain, qw| failed |, 'max retries exceeded'
         );
     }
 
-} elsif ( $mode eq 'SIZE' ) {
+} elsif ( $mode eq qw| SIZE | ) {
     <[base.logs]>->(
-        2,       'enrollment returned certificate data for %s (%d bytes)',
-        $domain, length($data)
+        2,       'enrollment returned certificate data for %s [bytes:%d]',
+        $domain, length($reply_data)
     );
 
-    ## parse certificate bundle from base32r encoded JSON
-    my $bundle_json;
-    my $decoded_data;
-    eval {
-        $decoded_data = Crypt::Misc::decode_b32r($data);
-        <[base.logs]>->(
-            3, 'decoded base32r: %d bytes',
-            length($decoded_data)
+    ## decode base32r [ no eval - preserve errors ]
+    my $decoded_data = Crypt::Misc::decode_b32r($reply_data);
+    unless ($decoded_data) {
+        <[base.logs]>->( 1, 'failed to decode base32r for %s', $domain );
+        <[letsencr.parent.activity_logger]>->(
+            qw| enrollment |,
+            $domain, qw| failed |, 'failed to decode base32r bundle'
         );
-        $bundle_json = JSON::XS::decode_json($decoded_data);
-    };
+        return FALSE;
+    }
 
-    if ($EVAL_ERROR) {
+    ## parse JSON [ eval to catch JSON decode errors ]
+    my $bundle_json;
+    eval { $bundle_json = JSON::XS::decode_json($decoded_data); };
+
+    if ( length $EVAL_ERROR ) {
         <[base.logs]>->(
-            1,       'failed to decode certificate bundle for %s: %s',
-            $domain, $EVAL_ERROR
-        );
-        <[base.logs]>->(
-            3,
-            'decoded data [ first 200 chars ]: %s',
-            substr( $decoded_data // '', 0, 200 )
+            1,       'failed to parse JSON for %s: %s',
+            $domain, <[base.str.eval_error]>
         );
         <[letsencr.parent.activity_logger]>->(
-            'enrollment', $domain, 'failed',
-            "failed to decode certificate: $EVAL_ERROR"
+            qw| enrollment |,
+            $domain, qw| failed |, sprintf 'failed to parse certificate : %s',
+            <[base.str.eval_error]>
         );
         return FALSE;
     }
@@ -150,7 +157,8 @@ if ( $mode eq 'TRUE' ) {
             1, 'certificate bundle missing required fields for %s', $domain
         );
         <[letsencr.parent.activity_logger]>->(
-            'enrollment', $domain, 'failed', 'certificate bundle invalid'
+            qw| enrollment |,
+            $domain, qw| failed |, 'certificate bundle invalid'
         );
         return FALSE;
     }
@@ -170,22 +178,24 @@ if ( $mode eq 'TRUE' ) {
     unless ($save_result) {
         <[base.logs]>->( 1, 'failed to save certificate for %s', $domain );
         <[letsencr.parent.activity_logger]>->(
-            'enrollment', $domain, 'failed', 'failed to save certificate'
+            qw| enrollment |,
+            $domain, qw| failed |, 'failed to save certificate'
         );
         return FALSE;
     }
 
     <[base.logs]>->( 2, 'certificate saved for %s', $domain );
     <[letsencr.parent.activity_logger]>->(
-        'enrollment', $domain, 'success', 'certificate saved to disk'
+        qw| enrollment |,
+        $domain, qw| success |, 'certificate saved to disk'
     );
 
     ## update certificate registry
     <letsencr.parent.certs>->{$domain} = {
-        issued_at  => time(),
+        issued_at  => <[base.time]>,
         expires_at => $bundle_json->{expires_at},
         domain     => $domain,
-        status     => 'active',
+        status     => qw| active |,
         cert_path  => sprintf( '%s/%s.pem', <letsencr.certs.dir>, $domain ),
         key_path   => sprintf( '%s/%s.key', <letsencr.certs.dir>, $domain ),
         alt_names  => $bundle_json->{domains} || [],
@@ -237,19 +247,21 @@ if ( $mode eq 'TRUE' ) {
         }
         );
 
-    if ( !$notify_result || $notify_result->{status} ne 'success' ) {
+    if ( !$notify_result || $notify_result->{'status'} ne qw| success | ) {
         <[base.logs]>->(
             1,
             'warning: failed to notify httpd of certificate installation for %s',
             $domain
         );
         <[letsencr.parent.activity_logger]>->(
-            'enrollment', $domain, 'success',
+            qw| enrollment |,
+            $domain, qw| success |,
             'certificate installed but httpd notification failed'
         );
     } else {
         <[letsencr.parent.activity_logger]>->(
-            'enrollment', $domain, 'success',
+            qw| enrollment |,
+            $domain, qw| success |,
             'certificate installed and httpd notified'
         );
     }
@@ -260,14 +272,15 @@ if ( $mode eq 'TRUE' ) {
         $mode, $domain
     );
     <[letsencr.parent.activity_logger]>->(
-        'enrollment', $domain, 'failed', "unexpected response mode: $mode"
+        qw| enrollment |,
+        $domain, qw| failed |, "unexpected response mode: $mode"
     );
 }
 
 return FALSE;
 
-#,,,,,.,.,.,,,..,,..,,.,.,..,,..,,.,.,,,.,,..,..,,...,...,..,,,,,,,..,,,,,..,,
-#L3WCG5PPVO2XC4PCMOG3WOK337F6IHOWGVGQGLDWACIJYDGTLOX7R3DLXFABPCCG4I6OND4Q7DE5M
-#\\\|RXZBNUR5RJHN5ETAM3R5RPH5IGUV3K4A2IALBRATTNWB2F5WKIJ \ / AMOS7 \ YOURUM ::
-#\[7]PH4UXTV5YF35JNNOL44Y65I6CZEPQ5VDJK2HYXBEZ7XXOTDBK6AI 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,,,,.,.,,,.,.,,,..,,,.,,...,,.,,..,,...,...,...,...,,,.,.,,,,,.,
+#J5MKENOKPIWETBKMOSGG6TM7FQX22MPC7UPH54GFC5TOS25XWGYGSEYPLQE5FFM7IHOMOGCPXY6BC
+#\\\|XTAZHGTSJO66ENQVKQWDTCLHBEGEUAYUISQ3SSX62KPPHP37H7X \ / AMOS7 \ YOURUM ::
+#\[7]7P6DCUNFE5UWZDSBTJVHDFP5BGQANTH4B6NNADKPZBG6GYHINICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
