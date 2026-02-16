@@ -330,6 +330,9 @@ if ( defined $reply_id ) {
         length($bundle_b32r)
     );
 
+## temporary debug code to check encoding result ##   [LLL] remove when done!
+<[base.buffer.add_line]>->( qw|enrollment-activity|, ' :: ' . $bundle_b32r );
+
     <[base.callback.cmd_reply]>->(
         $reply_id, { 'mode' => qw| size |, 'data' => $bundle_b32r }
     );
@@ -345,8 +348,8 @@ delete <letsencr.child.acme_state>;
 <[base.log]>->( 2, 'challenge processing complete, certificate ready' );
 return $final_result;
 
-#,,,.,..,,,,.,,.,,.,,,..,,,,,,...,.,.,,,,,.,,,..,,...,.,.,,.,,,..,.,,,.,,,..,,
-#DD3XY7KSGL2T7CNO6LVTHVIBSQBERYU7Y6VHMIKMET2VNTCWUO23CWBA32PZERJ535DCDRO2SV4BQ
-#\\\|JB56PR2AVU5Q3EZMCOAJN27VBRNQWUNDTVT74AI6OPICKNYZXAU \ / AMOS7 \ YOURUM ::
-#\[7]4PGFKFZOWONT4YK6ZMASAOKQGG4I5VU3Q3WCJCU775OBWRQOSMAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,,,,..,,..,,.,,..,,,,.,.,.,,..,..,,...,..,,,,,,.,,,,.,,.,.,.,,,
+#LVHMLTML4LUJZIGQ7FQCKJOTV4R733FCQXHZLILUSB4KSFY2A7QE2GDFF3SJEBBGQPCZJ26M42THW
+#\\\|HGAUBD2LGWYQ4PJUCLH4TZPG2NI6NEE65VEOW2LLWLRLLPPPRS3 \ / AMOS7 \ YOURUM ::
+#\[7]5WRTI6QW6UXG2FRIDIGBXZAA2XQO3IZQYRDA2RHIHMQ6JXVRO4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
