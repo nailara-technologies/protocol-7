@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = httpsd.self_restart
+# descr = request v7 to restart this zenka [ binding port 443 requires
+#         root privileges, available only during fresh startup ]
+
+<[base.log]>->( 1, ': . httpsd self-restart requested .,' );
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => qw| cube.v7.restart_own-zenka |,
+        'call_args' => {}
+    }
+);
+
+return TRUE;
+
+#,,.,,,,,,,..,,,,,,,.,..,,.,.,..,,,,.,,..,.,.,.,.,...,...,..,,,,,,.,,,.,.,..,,
+#LXWMKGUWMJ63RV7EUIYY4LSI2UWQOTCCIBQEUNQ2E3KYI5WV4ZNNAJC25JDDRWJUJDDMVDL4QHZK6
+#\\\|Z7FRB2VJS7MMMOE25ETMUG3IFQTBDMW3VDFTCB2C6TRLZI5WYUE \ / AMOS7 \ YOURUM ::
+#\[7]YBTXCQZ77QM52TGRWHVNHM54JJBCWJOSJPGGCZNZT3KFONGXJ2AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

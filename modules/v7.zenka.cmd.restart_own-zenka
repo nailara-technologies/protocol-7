@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = v7.zenka.cmd.restart_own-zenka
+# descr = restart the calling zenka's own instance [ via source_zenka_sid ]
+#         wraps v7.zenka.instance.restart, can only affect the caller
+# note  = cube injects source zenka name and sid via source_zenka_sid alias
+
+my ( $zenka, $zenka_sid ) = split( m| |, $call->{'args'}, 3 );
+
+## validate injected source sid
+unless ( defined $zenka_sid and $zenka_sid =~ m|^\d+$| ) {
+    <[base.logs]>->(
+        1, 'restart_own-zenka: no source sid injected [ cube misconfigured? ]'
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => 'source zenka sid not available'
+    };
+}
+
+## find instance by cube_sid [ same resolution as v7.zenka.cmd.report-temp-path ]
+my $instance_id;
+foreach my $id (<[v7.instance_ids]>) {
+    my $instance = <v7.zenka.instance>->{$id};
+    $instance_id = $id
+        and last
+        if exists $instance->{'cube_sid'}
+        and defined $instance->{'cube_sid'}
+        and $instance->{'cube_sid'} == $zenka_sid;
+}
+
+unless ( defined $instance_id ) {
+    <[base.logs]>->(
+        2,          'restart_own-zenka: sid %s not managed by v7 [ %s ]',
+        $zenka_sid, $zenka
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => 'caller zenka not managed by v7'
+    };
+}
+
+<[zenka.instance.restart]>->($instance_id);
+
+return { 'mode' => qw| true |, 'data' => 'restarting own zenka instance' };
+
+#,,,.,..,,,..,,..,.,,,...,..,,.,.,,,.,..,,.,.,.,.,...,...,..,,,..,...,.,.,..,,
+#QG24DLH5D7D6IFLFPBX5R76EB6UIDK3F3DX5ZL2TCGKWBIGWXHGRKAXGDX3HR45LUG5NALAFOT4XA
+#\\\|J25IF7ZZ6T5O4TZFDBTX7SYJ5BFP74M7GG2XVXIGYVQ6HZ6O24X \ / AMOS7 \ YOURUM ::
+#\[7]VPJ6MDOB7SWEDWYVWRSB6CTGXYF2UMWLHZQFPIAEKZV6SA2XMABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,6 +12,12 @@ unless ( <httpsd.cfg.enable_https> // 1 ) {
     return TRUE;
 }
 
+## skip socket creation if already active [ in-process reload scenario ]
+if ( defined <httpsd.sock> and fileno(<httpsd.sock>) ) {
+    <[base.logs]>->( 2, 'httpsd: ssl socket already active, skipping' );
+    return TRUE;
+}
+
 ## check certificate availability
 my $cert_info = <[httpsd.check_certificate_available]>;
 
@@ -26,6 +32,14 @@ if ( !$cert_info->{available} ) {
         'httpsd: will retry periodically, use httpsd.socket-status to check'
     );
     <httpsd.socket_deferred> = 1;
+    return TRUE;
+}
+
+## binding port 443 requires root privileges [ lost after drop_privs ]
+## if running non-root [ in-process reload ], request a v7 restart instead
+if ( $> != 0 ) {
+    <[base.logs]>->( 1, 'httpsd: non-root: requesting self-restart..' );
+    <[httpsd.self_restart]>;
     return TRUE;
 }
 
@@ -58,8 +72,8 @@ return TRUE;
 
 0;
 
-#,,,.,,.,,,..,..,,...,,..,,.,,...,.,,,,..,,,,,..,,...,...,.,.,.,.,..,,...,,,,,
-#K2LQUEQ2XJYR4TF5PX4QIVVCCO2C5STCX625COKZXKW4K5XAS6EL7JX6MU47P2RK3FA6D2J3B74U6
-#\\\|CZGAB3GXKCPHLPKKSMIFINMRT4JMVGXO4E2J4MXLKEUPERKDGHQ \ / AMOS7 \ YOURUM ::
-#\[7]CLVP75SHYV2VT3RDFLRY7VTRURNVDYRGS3U4RPXEE4GNCMKWVQCA 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,..,..,,.,.,,,.,,..,..,,,.,,.,,,..,,...,...,.,.,.,,,,.,,.,,,.,.,
+#APYHELT7HIMJ4M7HOJY6ENTM6LJJKKSWDGIPD25PEQKPHYISZS46TRP6H6SWOYKC7U25F3W766HHO
+#\\\|BEYPMMMOSDPETC2Q5IQRKQALZFII6GHZVHT7MS24ZYSIUQJ5W2W \ / AMOS7 \ YOURUM ::
+#\[7]BEQV3DZF7SFVEPOCSVL46TLVVJ536A7X4GVJUM7IPYENHDIA4ACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

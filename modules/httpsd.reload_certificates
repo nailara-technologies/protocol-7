@@ -45,15 +45,20 @@ delete <httpsd.cert_cache> if exists <httpsd.cert_cache>;
 
 <[base.log]>->( 2, 'HTTPSD: certificates reloaded successfully' );
 
-## Optional: Perform graceful reload
-## This would close and reopen the TLS socket,
-## or signal child processes to do so
-# <[httpsd.graceful_reload]>;
+## if ssl socket was deferred at startup, request v7 restart so that
+## post_init can create the socket as root [ binding port 443 requires
+## root privileges, which are dropped before zenka.loop begins ]
+if (<httpsd.socket_deferred>) {
+    <[base.logs]>->(
+        1, 'httpsd: SSL socket deferred - requesting self-restart to activate'
+    );
+    <[httpsd.self_restart]>;
+}
 
 return TRUE;
 
-#,,.,,,..,.,.,,..,.,.,,..,,,,,,..,,.,,.,,,.,.,..,,...,...,.,.,...,.,.,...,,.,,
-#AEYPAWMX3ABYO24LFL2V4CNRB552B5BPKH3MXELLODL4PF3XYP2D5XLBRWXHOPYXXUYKFEPPLLCGO
-#\\\|3ZGG5FW4PTDIJR3LRQ2I5MGVLP2PPE4MJ4EP5K6X6QJSUSLXM5M \ / AMOS7 \ YOURUM ::
-#\[7]XGYXSOI3SUPB3BGELVWKBYS5XUPY2JQ6E7IV6E4LKAM7O3QWXICY 7  DATA SIGNATURE ::
+#,,,,,...,,,.,.,.,.,,,.,.,,,,,.,.,,,.,.,,,..,,..,,...,...,,,.,.,.,..,,,,,,,,.,
+#TBHK32JAOXLT2K7BJ3XCUMAAFOVDQ4S4PIHGYE4VOPHAZX3OHAO4546WKXBEEYQWZ6CPYSSLKNINK
+#\\\|KQRAQPGPMAAFXQ544GZFEY3B2JB5YEUFAH75L372TAUJZKYOA4R \ / AMOS7 \ YOURUM ::
+#\[7]ANYIYIYTB24JYMTO4FIXKS6IWA6T46Q3G2HOU6NKXWFHQX5TSMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
