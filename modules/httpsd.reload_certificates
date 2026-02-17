@@ -10,7 +10,7 @@ my $cert_info = <[httpsd.discover_active_certificate]>;
 
 unless ($cert_info) {
     <[base.log]>->( 1, 'error: failed to discover active certificate' );
-    return FALSE;
+    return { 'mode' => qw| false |, 'data' => 'no active certificate found' };
 }
 
 my $cert_dir = $cert_info->{cert_path};
@@ -21,7 +21,10 @@ unless ( -f $cert_dir && -f $key_dir ) {
     <[base.log]>->(
         1, 'error: certificate or key file not found or not readable'
     );
-    return FALSE;
+    return {
+        'mode' => qw| false |,
+        'data' => 'certificate or key file not found'
+    };
 }
 
 ## update config paths to point to discovered certificate files
@@ -55,10 +58,10 @@ if (<httpsd.socket_deferred>) {
     <[httpsd.self_restart]>;
 }
 
-return TRUE;
+return { 'mode' => qw| true |, 'data' => 'certificates reloaded' };
 
-#,,,,,...,,,.,.,.,.,,,.,.,,,,,.,.,,,.,.,,,..,,..,,...,...,,,.,.,.,..,,,,,,,,.,
-#TBHK32JAOXLT2K7BJ3XCUMAAFOVDQ4S4PIHGYE4VOPHAZX3OHAO4546WKXBEEYQWZ6CPYSSLKNINK
-#\\\|KQRAQPGPMAAFXQ544GZFEY3B2JB5YEUFAH75L372TAUJZKYOA4R \ / AMOS7 \ YOURUM ::
-#\[7]ANYIYIYTB24JYMTO4FIXKS6IWA6T46Q3G2HOU6NKXWFHQX5TSMCA 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,,.,...,,.,,..,,,..,,,.,,,,,,..,..,,...,...,,,.,.,,,,,.,,,.,,,,,
+#JEPYOOZ2FZFUN7763OGEB2A7ZSJL7HAVB4HAZVTLD2GN7VHSYFQDWPH5KM4N4JXRC3W5SN75I6GEE
+#\\\|266KQP4MJLBSQWQNN5RYEJBJY7PIU7CDTVRQRNYXCS2KIBICX3U \ / AMOS7 \ YOURUM ::
+#\[7]BSCS5XU24CGX4O2TNJI7CZTB6T3ZHL5TAOILMJHNN3BW6TBLVWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
