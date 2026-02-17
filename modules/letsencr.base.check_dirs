@@ -9,22 +9,6 @@
 ## [ letsencr cannot chgrp after dropping privs ]
 my $certs_dir = <letsencr.certs.dir>;
 
-## add protocol-7 user to httpsd group so setgid inheritance works
-## [ setgid requires creating process to be a member of the target group ]
-my $p7_user    = <system.amos-zenka-user>;
-my $httpsd_gid = ( getgrnam('httpsd') )[2];
-if ( defined $httpsd_gid ) {
-    my @httpsd_members = split qw| , |, ( getgrgid($httpsd_gid) )[3] // '';
-    unless ( grep { $ARG eq $p7_user } @httpsd_members ) {
-        if ( system( 'usermod', qw| -a -G httpsd |, $p7_user ) == 0 ) {
-            <[base.logs]>->(
-                1, 'added %s to httpsd group for cert file ownership',
-                $p7_user
-            );
-        }
-    }
-}
-
 my @dirs = (
     [ $certs_dir,              02770, qw| httpsd | ],
     [ <letsencr.certs.backup>, 0700,  undef ],
@@ -42,8 +26,8 @@ foreach my $dir_cfg (@dirs) {
 
 <[base.log]>->( 2, 'certificate directories created and configured' );
 
-#,,.,,,..,,.,,.,.,...,...,...,.,,,,..,,,,,,,.,..,,...,...,,,.,,,.,...,..,,.,.,
-#5QWUHLCE3J4HR6JEPSK4KQNRSNIU534GGHKOKY7LTXFIYIIOF7FLJFFU42W3OJEKV5OIJVJVEJ4X6
-#\\\|VIPKRQ22JC22IGMHOUWLSNWGIWDH2Q3DV4P5FJJGBF7IL3YYUNZ \ / AMOS7 \ YOURUM ::
-#\[7]KO2LXQ4C4CWWIN4FMHPRGPZ6O42EFRBQVOXN66Y7EKH6TW57FWCQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,...,.,,,...,...,,,.,.,.,,.,,...,..,,...,...,.,,,.,,,,.,,.,.,..,,
+#VRYAD36Y6QTZZZVSSEY5OKR5PFSJBFICM5YLQ5MW5L2TKXLTSF5IUDRBRGFFGPPG6EVOFXQ4VWTXO
+#\\\|EZT7VLOG6NZYFU2MOJP4LZ6POSGZOHROAB2ZU7X7E7RMHL7IC7V \ / AMOS7 \ YOURUM ::
+#\[7]DTY2NRHR7ICSTGTN6D5PHNTVKM2YH74UFRUDV6AZ6CULLWUSNGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

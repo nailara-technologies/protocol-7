@@ -95,7 +95,11 @@ foreach my $ext ( keys %files ) {
         }
     }
 
-    ## Write new file
+    ## unlink before write so open() creates a new inode
+    ## [ setgid group inheritance only applies to newly created files ]
+    unlink $file_path if -f $file_path;
+
+    ## write new file
     my $fh;
     unless ( open( $fh, '>', $file_path ) ) {
         <[base.log]>->( 1, "error : cannot write $file_path: $!" );
@@ -153,8 +157,8 @@ return {
     error_msg => undef
 };
 
-#,,.,,...,...,.,,,,,.,.,,,,..,,,,,...,,,,,,..,..,,...,...,.,.,.,.,.,.,,.,,.,.,
-#X7IJJVZR3UPSADC4EHY4OQEBEEN2V5KPLDSHLLBYCU3J4ZGYXPGWX7Z577O3T7LGIY65WNYISRNWC
-#\\\|Q6FSFZJB7ROHXLHUHGFPPU7ZT7E3SRAJSB5NRTST4664CY5TN3S \ / AMOS7 \ YOURUM ::
-#\[7]7CC4JZGYNIK2USGOAKLOILNGBILTT4EPUZZKANB7T3I66Z7DK4DY 7  DATA SIGNATURE ::
+#,,,.,..,,,.,,.,.,,,,,,..,.,.,...,,.,,...,.,.,..,,...,...,..,,,,.,,.,,...,,..,
+#K65KXZ7T5CX3L6S3PY3JGOQKWVMFUN4QTRVBGB24SBLVEXD34WAIWV4N2PRFEWK3GHL5GR4R4OBGY
+#\\\|KPV7VDW5N2H76MBGAJG26EZQDTA64G25NS56YKKX3E4FJS6CSEM \ / AMOS7 \ YOURUM ::
+#\[7]53VRDRPRBH32LKCA72VHYBJX4STTHRAFOUI6QRH6JY5FOP6K46AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
