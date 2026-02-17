@@ -46,19 +46,6 @@ if ( <system.zenka.name> eq qw| httpsd | and $EUID == 0 ) {
     }
 }
 
-## check /etc/protocol-7/certs
-<[base.path-set-up.check-zenka-paths]>->(
-    FALSE, undef, TRUE, qw| 0750 |, qw| certs |
-);
-
-## set certs directory ownership: letsencr user, httpsd group
-my $letsencr_user = 'letsencr';
-my $letsencr_uid  = ( getpwnam($letsencr_user) )[2];
-my $httpsd_gid    = ( getgrnam('httpsd') )[2];
-if ( defined $letsencr_uid && defined $httpsd_gid ) {
-    chown( $letsencr_uid, $httpsd_gid, '/etc/protocol-7/certs' );
-}
-
 # critical fix: ensure httpd.cfg.hostnames has default entries
 # httpd.scan_site_dir initializes as empty, then populates from /var/httpd
 # if no vhosts exist, we must add defaults for localhost/127.0.0.1
@@ -69,7 +56,9 @@ unless ( defined <httpd.cfg.hostnames> ) {
 ## set defaults with actual directory paths [not just 1/TRUE values]
 ## force overwrite any placeholder values from
 ## httpd.determine_host initialization
-my $default_dir = <httpd.site_dir> . 'default';
+my $site_dir = <httpd.site_dir>;
+$site_dir =~ s|/$|| if $site_dir ne '/';
+my $default_dir = $site_dir . qw| /default |;
 
 foreach my $hostname (qw| default localhost 127.0.0.1 |) {
     my $current_val = <httpd.cfg.hostnames>->{$hostname};
@@ -192,8 +181,8 @@ $data{'protocol'}{'https'} = {
 
 0;
 
-#,,..,,,.,,..,,.,,,.,,,..,,..,,.,,,,.,,,,,,.,,..,,...,...,..,,..,,,..,...,,,.,
-#UA4EGLZH6BZJR5JM6HT7V3BHCSXDEFAHBQYRYEDMLVYMFRXEWBENCZD2L3EJZJPVWQ57VP6UD4FCW
-#\\\|LJDXI366RJSCACKKIPHDE7AH7T7BAS6DKFM6FSJX253ZDFWPYZP \ / AMOS7 \ YOURUM ::
-#\[7]TLLW44PIDBRPIDKW4W3RR2OPVWM5ZEU4PECCLOVLAWNDQ5XTQWDQ 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,..,..,,..,,...,..,,,,,,,,.,...,..,,...,..,,...,,,,,.,.,,.,,...,
+#RFQ6M6ZZJMYEZD4OWDEQGH6CA4VJRMZ7RUFI5YYJZ5ROQGT2C5DK4DQWFN3F6H7T4V4Q7PQA6HO62
+#\\\|6IA7OTW2ZURZ5A6MHWVARX3INA7635XVLL2XXJYJ3YW5OFGV4SO \ / AMOS7 \ YOURUM ::
+#\[7]BFKNCJCHQONGPLPQGWQKLK5ZCJA7WL5QTUELUNGMPM4WEMDZTUCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

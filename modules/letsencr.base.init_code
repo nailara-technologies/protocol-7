@@ -78,16 +78,6 @@ foreach my $config (@dir_configs) {
     }
 }
 
-## ensure /etc/protocol-7/certs is group-writable by httpsd
-my $certs_dir = <letsencr.certs.dir>;
-if ( -d $certs_dir ) {
-    my $httpsd_gid = ( getgrnam('httpsd') )[2];
-    if ( defined $httpsd_gid ) {
-        chown( -1, $httpsd_gid, $certs_dir );
-        chmod( 0775, $certs_dir );
-    }
-}
-
 ## All ACME protocol modules are loaded in letsencr.base.pre_init
 
 <[base.log]>->( 2, 'ACME client initialization complete' );
@@ -106,8 +96,8 @@ if ( -d $certs_dir ) {
 
 0;
 
-#,,,.,..,,,,,,,.,,,..,.,,,,..,.,.,...,,..,,,.,..,,...,...,..,,.,.,,,,,..,,.,.,
-#FBKEL3T6T6FKGPQ35K44U4OOCX23F5FYN25RTCWAMRPG5GDQG7RPZ77SXYT6C43HJUNAGF37E57IA
-#\\\|ME5KTEJBGBS5F7HKHEL7B3KOYEKJOZ7V52RY42UDFGYGH2SUR2Q \ / AMOS7 \ YOURUM ::
-#\[7]CU5JDHB5TYUQ3VMP2M3FUH5FMMAA4TIDEYWZOUHFDCYEG6AP24BA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,..,...,,,,,.,.,,,,,,,,,,.,,,..,..,,...,.,.,...,.,.,,..,...,,..,
+#QXIHAGUK56ZTA7HO6B6XUBTOXYZYWH6A27PDUKIKPJY4INGI56D7Q4WALJCCMHR7ZW2E24TL5TJVU
+#\\\|7NEE3XMEPNT2KFLI2TEYZT3GKOJO7LYRRAQX4UKWOQJ3MMIQ2YJ \ / AMOS7 \ YOURUM ::
+#\[7]K3YE464TY5SPBNK65R64VNKEPODHBZVRH65BLRP4P6QSQU6BTADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
