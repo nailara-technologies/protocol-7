@@ -3,7 +3,7 @@
 
 [load_config_file:'shared-params']
 
-## Enable verbose logging for HTTPS debugging (level 2 = more details)
+## Enable verbose logging for HTTPS debugging [ level 2 = more details ]
 system.verbosity.zenka_buffer = 2
 system.verbosity.zenka_logfile = 2
 
@@ -16,10 +16,10 @@ net.https.port       =  443
 ## TLS/Certificate configuration - TLS 1.2/1.3 for Ed25519 support
 ## SSLv23 deprecated, incompatible with modern Ed25519 certificates
 httpsd.cfg.tls_version              = TLSv1_3:TLSv1_2
-## Use Ed25519-compatible cipher suite (ECDSA recommended for Ed25519)
+## Use Ed25519-compatible cipher suite [ ECDSA recommended for Ed25519 ]
 httpsd.cfg.cipher_suite             = ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-GCM-SHA256:DEFAULT
-httpsd.cfg.certificate_path         = /etc/protocol-7/certs/current.pem
-httpsd.cfg.key_path                 = /etc/protocol-7/certs/current.key
+## certificate paths now auto-discovered from /etc/protocol-7/certs/
+## [ see : httpsd.discover_active_certificate module ]
 httpsd.cfg.hsts_max_age             = 31536000
 httpsd.cfg.hsts_include_subdomains  = 1
 
@@ -29,13 +29,13 @@ httpsd.cfg.startup_timeout          = 30        ## seconds to wait for certifica
 httpsd.cfg.initial_retry_delay      = 10        ## seconds (exponential base: 10, 20, 40, 80...)
 httpsd.cfg.max_retry_delay          = 600       ## 10 minutes max backoff
 
-## HTTP handlers (reuse httpd handlers for HTTPS)
+## HTTP handlers [ reuse httpd handlers for HTTPS ]
 https.handler.get     =  httpd.http_get
 https.handler.head    =  httpd.http_head
 https.handler.post    =  httpd.http_post
 https.handler.options =  httpd.http_options
 
-## Shared settings with httpd (site content)
+## Shared settings with httpd [ site content ]
 httpsd.site_dir    = '/var/httpd/'
 httpsd.upload_dir  = '/var/protocol-7/httpd/uploads'
 
@@ -69,8 +69,8 @@ httpsd.timeout      =  23
 
 [zenka.loop]
 
-#,,..,,.,,,,,,.,.,...,.,.,,..,.,.,.,,,..,,,,,,..,,...,...,,.,,..,,,..,,,,,,,,,
-#IWB2QRWEBBS7XQG7A3VUHYLKEBDUK6YWWY3CPRZXK7HI63GVWPT4NPU3J7UQA4GMTBTSDXZGLG5NA
-#\\\|BCDN77QTRL54SVKMIU6OQ7WGA67R7TPV2S35EG4K6SEVE5SSAX7 \ / AMOS7 \ YOURUM ::
-#\[7]ER6OPIRAEY7CKXFUEEES554WM4TSCORMVGYWODQ7CSERDZ65A6BA 7  DATA SIGNATURE ::
+#,,,.,,..,,..,,,,,,..,..,,,,,,.,.,,..,...,...,..,,...,...,...,,,,,.,.,..,,.,.,
+#CS3BZUKFWJUTX4MFY2O3UUXPMO2VF2NWGH6OQOFZTN7KS6URKXCIKK5RVAMYYRGR5WZHJE6XVKWD2
+#\\\|GM25VL6EL3OPCOI2ZLN6KBDOMWKWRKEMBG7B2W2MZJZFAASWXI5 \ / AMOS7 \ YOURUM ::
+#\[7]6GTYXSZV5ED63SYOGIEJUM6INZ5GCBOVLOYY5TB42WGFJN7M6GBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

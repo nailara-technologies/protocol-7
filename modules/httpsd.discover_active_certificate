@@ -1,0 +1,69 @@
+## [:< ##
+
+# name  = httpsd.discover_active_certificate
+# descr = scan certs directory and return path to active certificate
+
+use File::Spec;
+use File::Find;
+
+my $certs_dir = '/etc/protocol-7/certs';
+
+unless ( -d $certs_dir ) {
+    <[base.log]>->( 1, 'certs directory not found: %s', $certs_dir );
+    return undef;
+}
+
+## scan for certificate files (.pem or .cert, excluding .key)
+my @cert_files;
+opendir( my $dh, $certs_dir ) or do {
+    <[base.log]>->( 1, 'cannot read certs directory: %s', $! );
+    return undef;
+};
+
+while ( my $file = readdir($dh) ) {
+    next if $file     =~ m{\.key$|\.meta$|\.chain$|^\.};
+    next unless $file =~ m{\.pem$|\.cert$};
+    push @cert_files, File::Spec->catfile( $certs_dir, $file );
+}
+closedir($dh);
+
+unless (@cert_files) {
+    <[base.log]>->( 1, 'no certificate files found in: %s', $certs_dir );
+    return undef;
+}
+
+## prefer .cert files over .pem (end-entity cert)
+my @cert_only = grep {m{\.cert$}} @cert_files;
+@cert_only = @cert_files unless @cert_only;
+
+## return most recently modified certificate
+my $active_cert = ( sort { -M $b <=> -M $a } @cert_only )[0];
+
+unless ( -f $active_cert ) {
+    <[base.log]>->(
+        1, 'discovered certificate file not readable: %s', $active_cert
+    );
+    return undef;
+}
+
+<[base.logs]>->( 2, 'discovered active certificate: %s', $active_cert );
+
+## also look for corresponding key
+my $key_file = $active_cert;
+$key_file =~ s{\.(pem|cert)$}{.key};
+
+unless ( -f $key_file ) {
+    <[base.log]>->( 1, 'corresponding key file not found: %s', $key_file );
+    return undef;
+}
+
+return {
+    cert_path => $active_cert,
+    key_path  => $key_file,
+};
+
+#,,.,,,,.,...,,,,,.,,,.,,,..,,.,.,,..,..,,,.,,.,.,...,..,,.,.,,.,,,,.,..,,,..,
+#DYAGBSIOKZXYIQY65IMUMRFPKQDVPEHITRM66UBJZJDNWHCXNVERZU5TVQ4Y5H7VS3GHYK3UI2KQS
+#\\\|A675VDZLS7WXONHEN43BGNOEFPRULZDTJQ3DNO7EUPYSZGCXQFI \ / AMOS7 \ YOURUM ::
+#\[7]MA533WJZYZEQUMZKJ56GMOPT46N6TOPXUXHUGPMC2MEVMF2U3KCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
