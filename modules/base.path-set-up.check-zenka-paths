@@ -91,7 +91,7 @@ foreach my $chk_path ( <[base.sort]>->($paths_and_modes) ) {
 
     if ( not -d $chk_path ) {
         <[base.logs]>->( $log_level, ": creating., : '%s'", $chk_path );
-        <[file.make_path]>->( $chk_path, $dir_mode )
+        <[file.make_path]>->( $chk_path, $dir_mode, $uname )
             or ++$error_count and <[base.logs]>->(
             0, ': :. %s [%s]', <[base.str.os_err]>, $chk_path
             );
@@ -151,8 +151,8 @@ return ( $error_count == 0 ? TRUE : FALSE, $fs_changes_made, $error_count )
 ##[ success status in scalar context ]##
 return $error_count == 0 ? TRUE : FALSE;
 
-#,,.,,...,,,,,,,.,,.,,,.,,..,,..,,,..,.,,,,,,,..,,...,...,,..,...,...,,,,,,..,
-#DMNGSXWFBZSFPJKN7L4LTMHVNMX5PFPCIE3LR3NVLDL6BHWYTLQRV6JPWPAP35AWLHLAUZ3VG7RAE
-#\\\|JESFOG5UIQTZ3SD2APOBJGVNX2VGJOI5XILN7B56QHQQVL6SQ7P \ / AMOS7 \ YOURUM ::
-#\[7]2P4LHCOOZKRYSLFGV5DIDJCVCEUU4YHIXRCYA7KFQV37V7WN4QDI 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,.,,,..,...,...,..,,,,,,...,,,,,..,,...,...,,..,,..,,,.,,,.,,,.,
+#EFK54HM6VDFPF2MKGDGQE7WUOL3ILJTQHP3P5PUHAGMHZW466SODL5ZSUZSSTKWGK3JJU5Z4GOBOQ
+#\\\|7OJBLNVIHYBQOAB7WUAKYKTAHSBOYCSBC4RCZWECFJEUYWOG3R4 \ / AMOS7 \ YOURUM ::
+#\[7]T3GPJYHER7YHDAKMSTWCBP34ZGSD6HC6CGYNPQNMNABZSEDTOKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
