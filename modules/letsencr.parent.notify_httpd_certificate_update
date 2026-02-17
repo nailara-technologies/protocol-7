@@ -21,23 +21,13 @@ unless ( $domain && $cert_path && $key_path ) {
 
 <[base.log]>->( 2, "notifying httpd of certificate update for : $domain" );
 
-## send notification to httpd via Protocol-7 command protocol
-## httpd can refresh its loaded certificate cache for this domain
-my $notify_cmd = 'httpd.reload-certificate';
+## send notification to httpsd via Protocol-7 command protocol
+## httpsd can refresh its loaded certificate cache from disk
+my $notify_cmd = 'httpsd.reload-certificate';
 
 my $result = <[base.protocol-7.command.send.local]>->(
     {   'command'   => $notify_cmd,
-        'call_args' => {
-            'args'  => $domain,
-            'param' => {
-                'cert_path' => $cert_path,
-                'key_path'  => $key_path,
-            }
-        },
-        'reply' => {
-            'handler' => qw| letsencr.parent.handler_httpd_reload_reply |,
-            'params'  => { 'domain' => $domain }
-        }
+        'call_args' => { 'args' => '' }
     }
 );
 
@@ -61,8 +51,8 @@ if ($result) {
     };
 }
 
-#,,.,,,,,,,..,.,,,.,,,,,.,,,,,..,,,..,,,.,,..,..,,...,...,..,,.,.,..,,,,.,..,,
-#WT47K4YMXYFKJU5WA57J55ADRHW63AY22LQITCYIMTSNVLIALTY3LKIJ6ANM7SVSYWRXO7Y6YJZ3A
-#\\\|MMA6WJ5337RY3JY75OGGO7U2SNKQV42RGNHC5EWMJSBRSNUH6KR \ / AMOS7 \ YOURUM ::
-#\[7]52LIAVLK6CWV6EKE2C3QKRXOI62RUF7LPZZDNF4FYSRN7N3PN4DA 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,.,.,,,.,.,.,,..,,,,,.,.,,,,,,..,..,,...,..,,.,.,,,.,.,,,,.,,,..,
+#HASPHBD5HA4CA4JSHKKGTAOLB5IEO4NI6P33S7I6ZT5WLACSOMBOIUAYXXOKKTUVQOPROQGPSOVJK
+#\\\|MNNCHTDP7AFDOULFLRW5HQX7VRMDEBY26JR5Z7I7SQ7RP73WBE6 \ / AMOS7 \ YOURUM ::
+#\[7]VLA73H5JYVHDPGPC4YBEHCV6TNPSZ4KJQGRUTUJMX56DT4FBYKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
