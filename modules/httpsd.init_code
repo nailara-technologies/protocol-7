@@ -10,39 +10,26 @@
 <httpd.timeout>  //= 23;
 <httpsd.timeout> //= 23;
 
-# Check and fix httpsd directory access permissions [httpsd-specific setup]
+## correct /var/httpd/ and vhost directories to httpd:httpsd [ as root ]
+## httpsd group [ owner ] enables httpsd process to read web content
 if ( <system.zenka.name> eq qw| httpsd | and $EUID == 0 ) {
-    my ( undef, undef, $httpsd_gid ) = getpwnam('httpsd');
-    my ( undef, undef, $httpd_gid )  = getgrnam('httpd');
+    my $site_dir = <httpd.site_dir> // qw| /var/httpd |;
+    my ( undef, undef, $httpd_uid ) = getpwnam(qw| httpd |);
+    my $httpsd_gid = getgrnam(qw| httpsd |);
 
-    if ( defined $httpsd_gid && defined $httpd_gid ) {
-
-        # Add httpsd to httpd group if not already member
-        my $in_group = FALSE;
-        setgrent();
-        while ( my ( $name, $passwd, $gid, $members ) = getgrent() ) {
-            if ( $gid == $httpd_gid && $members =~ m|\bhttpsd\b| ) {
-                $in_group = TRUE;
-                last;
-            }
+    if ( defined $httpd_uid and defined $httpsd_gid and -d $site_dir ) {
+        foreach my $dir ( $site_dir, glob( $site_dir . '/*' ) ) {
+            next unless -d $dir;
+            chown( $httpd_uid, $httpsd_gid, $dir )
+                or <[base.logs]>->(
+                0,    'chown httpd:httpsd [ %s ] : %s',
+                $dir, <[base.str.os_err]>
+                );
         }
-        endgrent();
-
-        if ( !$in_group ) {
-            system("usermod -a -G httpd httpsd") == 0
-                and <[base.logs]>->( 1, 'added httpsd to httpd group' );
-        }
-
-        # Fix site_dir permissions if needed
-        my $site_dir = <httpd.site_dir>;
-        if ( -d $site_dir ) {
-            my $stat = stat($site_dir);
-            if (   !( ( $stat->mode & 0007 ) != 0 )
-                && !( ( $stat->mode & 0070 ) != 0 ) ) {
-                chmod( 0755, $site_dir )
-                    and <[base.logs]>->( 1, 'fixed site_dir permissions' );
-            }
-        }
+        <[base.logs]>->( 2, 'set ownership httpd:httpsd : %s', $site_dir );
+    } else {
+        <[base.logs]>->( 1, 'httpsd group not found : skipping chown' )
+            unless defined $httpsd_gid;
     }
 }
 
@@ -96,8 +83,8 @@ if ( defined <https.handler.get> ) {
 
 # httpsd-specific TLS configuration [added to httpd config]
 <httpsd.cfg.tls_version>  //= qw| TLSv1_3:TLSv1_2 |;
-<httpsd.cfg.cipher_suite> //= 'ECDHE-ECDSA-CHACHA20-POLY1305:'
-    . 'ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES128-GCM-SHA256';
+<httpsd.cfg.cipher_suite> //= 'ECDHE-RSA-AES256-GCM-SHA384:'
+    . 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-CHACHA20-POLY1305';
 <httpsd.cfg.certificate_path>        //= '/etc/protocol-7/certs/current.pem';
 <httpsd.cfg.key_path>                //= '/etc/protocol-7/certs/current.key';
 <httpsd.cfg.hsts_max_age>            //= 31536000;
@@ -181,8 +168,8 @@ $data{'protocol'}{'https'} = {
 
 0;
 
-#,,..,..,,,,,,,..,..,,..,,...,..,,,,,,,,.,...,..,,...,..,,...,,,,,.,.,,.,,...,
-#RFQ6M6ZZJMYEZD4OWDEQGH6CA4VJRMZ7RUFI5YYJZ5ROQGT2C5DK4DQWFN3F6H7T4V4Q7PQA6HO62
-#\\\|6IA7OTW2ZURZ5A6MHWVARX3INA7635XVLL2XXJYJ3YW5OFGV4SO \ / AMOS7 \ YOURUM ::
-#\[7]BFKNCJCHQONGPLPQGWQKLK5ZCJA7WL5QTUELUNGMPM4WEMDZTUCA 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,..,,,..,,,.,,,,,..,,..,,,,,,.,.,..,,...,...,..,,,.,,.,.,...,..,,
+#IILDZYP6VOWHSB7GPFGMC3QZG6VB3MM246OLGUFVFLBISKGN4W4PBONLSHGVWEVOYWGXGBSWBWDEG
+#\\\|XTL7RO6WBDMXX64EJCKJVYR6MIAVWPE2EPKIGBQ36II543HMNUK \ / AMOS7 \ YOURUM ::
+#\[7]PSXDKPSNAIWWLE7WSDUTCROZVQ4MGGF6HDSW3OD4LGK5D6F2D4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
