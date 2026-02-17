@@ -54,7 +54,8 @@ if ( <system.zenka.name> eq qw| httpsd | and $EUID == 0 ) {
 ## set certs directory ownership: letsencr user, httpsd group
 my $letsencr_user = 'letsencr';
 my $letsencr_uid  = ( getpwnam($letsencr_user) )[2];
-if ( defined $letsencr_uid ) {
+my $httpsd_gid    = ( getgrnam('httpsd') )[2];
+if ( defined $letsencr_uid && defined $httpsd_gid ) {
     chown( $letsencr_uid, $httpsd_gid, '/etc/protocol-7/certs' );
 }
 
@@ -191,8 +192,8 @@ $data{'protocol'}{'https'} = {
 
 0;
 
-#,,..,.,.,,..,..,,,,.,..,,,.,,,.,,,,,,.,.,...,..,,...,...,.,,,,.,,.,,,,..,.,,,
-#7GXULTA2PDDIB6ZVLJHECORM3EI7HHRLRHHQQHAIPP2UT6IEAXOZ43RG2TTKXKV7WJSJTJ3DRZYOI
-#\\\|FCBFAPXJ5FENXVQTAQXM6VFCXISWBNZ7JNXJPBX55SXEDIC5LIM \ / AMOS7 \ YOURUM ::
-#\[7]J3LN3LLQ3T2UNWOTVILJ5FJGZNY3OEUX4LSQRLUBMWEFCDABV4BA 7  DATA SIGNATURE ::
+#,,..,,,.,,..,,.,,,.,,,..,,..,,.,,,,.,,,,,,.,,..,,...,...,..,,..,,,..,...,,,.,
+#UA4EGLZH6BZJR5JM6HT7V3BHCSXDEFAHBQYRYEDMLVYMFRXEWBENCZD2L3EJZJPVWQ57VP6UD4FCW
+#\\\|LJDXI366RJSCACKKIPHDE7AH7T7BAS6DKFM6FSJX253ZDFWPYZP \ / AMOS7 \ YOURUM ::
+#\[7]TLLW44PIDBRPIDKW4W3RR2OPVWM5ZEU4PECCLOVLAWNDQ5XTQWDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
