@@ -5,17 +5,22 @@
 
 <[base.log]>->( 2, 'HTTPSD: reloading TLS certificates' );
 
-my $cert_dir = <httpsd.cfg.certificate_path>;
-my $key_dir  = <httpsd.cfg.key_path>;
+## discover active certificate from /etc/protocol-7/certs/
+my $cert_info = <[httpsd.discover_active_certificate]>;
 
-## Verify updated certificates exist
-if ( !-f $cert_dir ) {
-    <[base.log]>->( 1, "error : certificate file not found : $cert_dir" );
+unless ($cert_info) {
+    <[base.log]>->( 1, 'error: failed to discover active certificate' );
     return FALSE;
 }
 
-if ( !-f $key_dir ) {
-    <[base.log]>->( 1, "error : key file not found : $key_dir" );
+my $cert_dir = $cert_info->{cert_path};
+my $key_dir  = $cert_info->{key_path};
+
+## verify discovered certificates exist
+unless ( -f $cert_dir && -f $key_dir ) {
+    <[base.log]>->(
+        1, 'error: certificate or key file not found or not readable'
+    );
     return FALSE;
 }
 
@@ -44,8 +49,8 @@ delete <httpsd.cert_cache> if exists <httpsd.cert_cache>;
 
 return TRUE;
 
-#,,,.,.,.,..,,,.,,...,,,.,.,,,,.,,..,,,,.,,,.,..,,...,...,..,,...,,,,,.,.,,,,,
-#TGT3PIH2MQIU6HXCWE4M4Y3YAGP7MD63LOR6CMEJAXKJX27TBZUFCSBMTXGVR5RGZP6CDO4AD4N6W
-#\\\|MJEIEK3TZWLFI7347I6KO7R2Y5LLEOVQVT6Q3SBWNMRJ62VTZEB \ / AMOS7 \ YOURUM ::
-#\[7]2P33PGBHTJKACWBOK7BNGPYD4NCPP2537VR4TU3KTH62FE2YFYDI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,,,..,,,,.,..,,...,..,,..,,.,,,..,,...,...,...,.,,,,,,,,,.,,,,,
+#7JIII4IMQFI46YSRXCA6VFNDB73EMIJICUZKO23YIAB7YWUQ6YMYYEQXIU53OKSL5ZAHTRAXGKPWY
+#\\\|DBTRJ4GWRYUXGKWAXBJOAP7CH53S3OIEUX27VBFRQN6L7MWDNBD \ / AMOS7 \ YOURUM ::
+#\[7]CEYMLIMMH7FY7PYTC5GL4BC6SH7LKUCWYV22RC4ZYC2YITJZLWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
