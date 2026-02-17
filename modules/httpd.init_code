@@ -14,8 +14,8 @@
 
 <protocol.http.state> = {
     '0' => {
-        'input'  => { 'handler' => 'httpd.request_handler' },
-        'output' => { 'handler' => 'base.handler.write' },
+        'input'  => { 'handler' => qw| httpd.request_handler | },
+        'output' => { 'handler' => qw| base.handler.write | },
     },
 };
 
@@ -35,8 +35,8 @@
 
 # check user \ group existence
 <[base.log]>->( 2, 'checking whether httpd user and group exists.,' );
-my $httpd_user  = <httpd.system.user>  //= 'httpd';
-my $httpd_group = <httpd.system.group> //= 'httpd';
+my $httpd_user  = <httpd.system.user>  //= qw| httpd |;
+my $httpd_group = <httpd.system.group> //= qw| httpd |;
 
 my ( undef, undef, $httpd_uid, $httpd_gid ) = getpwnam($httpd_user);
 if ( not defined $httpd_uid ) {
@@ -107,8 +107,8 @@ if ( <httpd.cfg.uploads_enabled> and !-d $upload_dir ) {
 
 0;
 
-#,,,.,,..,..,,.,,,,,.,.,,,..,,,..,..,,,,,,,,.,..,,...,...,,,.,.,.,...,,,,,,,,,
-#PF2BZBK5JPGG4ZRPXUX7R3TN5XDGSCRBF7EE5VZI4CNJBUHSZXQD55HM2G5MO6OTQBRNLJDORTSU2
-#\\\|HNKMSMIYIJTY5WSVYGFYBTABITKKDAHGARTINPX4UCXXJH4JCSW \ / AMOS7 \ YOURUM ::
-#\[7]7GLZHHR3RQ4E42NGZFH2DSURR3REDIATORPTEEHCTMPJ5NTEA4BQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,..,,,..,,,.,,..,...,,.,,,.,,.,,,..,,...,.,.,,.,,,,.,.,,,.,.,,.,,
+#FBL42V7POPLBD6WAEXK57T4YZCN2PPTR5A3LH7DKKGGOW4PHS7YKK4XJM4NJWB7VJUSLRBYOLB4F2
+#\\\|E6KZA73UNYXDBQQDGPIBRRJ3WNIHFILR5Q3CIOSNNMNWTWCLIR2 \ / AMOS7 \ YOURUM ::
+#\[7]FT7ICZEPQY3J352C2AQPPX4U6FFFA6JCJ5ARV3RROMQTPTVTKKDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
