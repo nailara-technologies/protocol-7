@@ -1,7 +1,7 @@
 ## [:< ##
 
-# name  = letsencr.parent.notify_httpd_certificate_update
-# descr = notify httpd zenka that certificate has been
+# name  = letsencr.parent.notify_httpsd_certificate_update
+# descr = notify httpsd zenka that certificate has been
 #         updated and needs reload
 
 my $cert_data = shift;
@@ -11,15 +11,18 @@ my $cert_path = $cert_data->{cert_path};
 my $key_path  = $cert_data->{key_path};
 
 unless ( $domain && $cert_path && $key_path ) {
-    <[base.log]>
-        ->( 1, "error: domain, cert_path, and key_path are required" );
+    <[base.logs]>->(
+        1, 'error: domain, cert_path, and key_path are required'
+    );
     return {
         status => 'error',
         error  => 'Missing required certificate data'
     };
 }
 
-<[base.log]>->( 2, "notifying httpd of certificate update for : $domain" );
+<[base.logs]>->(
+    2, 'notifying httpsd of certificate update for: %s', $domain
+);
 
 ## send notification to httpsd via Protocol-7 command protocol
 ## httpsd can refresh its loaded certificate cache from disk
@@ -32,27 +35,27 @@ my $result = <[base.protocol-7.command.send.local]>->(
 );
 
 if ($result) {
-    <[base.log]>->(
-        2, "certificate update notification sent to httpd for: $domain"
+    <[base.logs]>->(
+        2, 'certificate update notification sent to httpsd for: %s', $domain
     );
     return {
         status => 'success',
         domain => $domain,
-        msg    => 'Notification sent to httpd'
+        msg    => 'Notification sent to httpsd'
     };
 } else {
-    <[base.log]>->(
-        1,
-        "warning: failed to notify httpd of certificate update for: $domain"
+    <[base.logs]>->(
+        1, 'warning: failed to notify httpsd of certificate update for: %s',
+        $domain
     );
     return {
         status => 'error',
-        error  => 'Failed to send notification to httpd'
+        error  => 'Failed to send notification to httpsd'
     };
 }
 
-#,,..,.,.,..,,.,.,.,.,,,,,,.,,,,,,.,.,,.,,...,..,,...,...,.,.,...,..,,...,,.,,
-#DQ7ZANLJGLDGQIU4IQ33MCCSTAEQ2W7ZVFVLRID2J2J3GWTN5ZQW7QZJ7NW4SZPXOK42MNGMTKDAC
-#\\\|AYZXD3HW236BYUKOH5KXJYDBH6EF2ZRMOZ5F6DL27Q6S6LOXMIJ \ / AMOS7 \ YOURUM ::
-#\[7]JYWEFU6SFAEBANHVXQG6HETD4F5HHRXOZRUBYLGVI5L7SAMZOOCQ 7  DATA SIGNATURE ::
+#,,,,,..,,.,,,,,.,,..,...,.,.,...,,,,,.,,,...,..,,...,...,..,,,..,.,.,...,,,.,
+#KOKMWYLG6AG7YSDI4GHKKDOWAPAQEALADDYTU5BAXXEFTEQSKAB4CNDNXOOUCY7IDOEKQHPCAJMVS
+#\\\|OA36K75TOPVZ7FJSHVO5PODTVJQQUMW77ZJIDMZBQOQBQUDNTML \ / AMOS7 \ YOURUM ::
+#\[7]LVWTBIFGT667B6B3JCYI25A6W33UG2U7GYH4PA3UOAUY4CY6WGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
