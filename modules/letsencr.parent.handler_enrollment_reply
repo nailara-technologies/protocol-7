@@ -124,6 +124,7 @@ if ( $mode eq qw| TRUE | ) {
     );
 
     ## decode base32r [ no eval - preserve errors ]
+    chomp($reply_data);    ## remove trailing newline from transmission
     my $decoded_data = Crypt::Misc::decode_b32r($reply_data);
     unless ($decoded_data) {
         <[base.logs]>->( 1, 'failed to decode base32r for %s', $domain );
@@ -279,8 +280,8 @@ if ( $mode eq qw| TRUE | ) {
 
 return FALSE;
 
-#,,..,.,,,,,.,,,,,.,.,,,.,.,,,..,,,.,,...,,.,,..,,...,...,...,...,,,.,.,,,,,.,
-#J5MKENOKPIWETBKMOSGG6TM7FQX22MPC7UPH54GFC5TOS25XWGYGSEYPLQE5FFM7IHOMOGCPXY6BC
-#\\\|XTAZHGTSJO66ENQVKQWDTCLHBEGEUAYUISQ3SSX62KPPHP37H7X \ / AMOS7 \ YOURUM ::
-#\[7]7P6DCUNFE5UWZDSBTJVHDFP5BGQANTH4B6NNADKPZBG6GYHINICQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,.,.,..,,.,.,...,...,..,,,..,.,,,..,,...,...,.,,,,.,,,,,,...,..,,
+#HWWQH2NDGO23G5Q45VLBW2EGBQDNUKA2QBNCLLPANWAPIFLI5VRZ26HUPCFF6V3ZTEPLD5JHPKUYC
+#\\\|GDJRGLQIYGZDCXE3HLINAR6JIKIHKS4RC67GGLNJ4YVQ4ZEPG4O \ / AMOS7 \ YOURUM ::
+#\[7]AJO6ADEQ2CNM6FWMGG4BKHQHCE7QF45UJ6RDKVUPV5E752HBEYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
