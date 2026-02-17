@@ -24,8 +24,11 @@ unless ( -f $cert_dir && -f $key_dir ) {
     return FALSE;
 }
 
-## Update certificate cache in HTTPSD state
-# Clear old certificate data
+## update config paths to point to discovered certificate files
+<httpsd.cfg.certificate_path> = $cert_dir;
+<httpsd.cfg.key_path>         = $key_dir;
+
+## update certificate cache in HTTPSD state
 delete <httpsd.cert_cache> if exists <httpsd.cert_cache>;
 
 ## Load new certificates
@@ -49,8 +52,8 @@ delete <httpsd.cert_cache> if exists <httpsd.cert_cache>;
 
 return TRUE;
 
-#,,.,,,,.,.,,,.,,,..,,,,.,..,,...,..,,..,,.,,,..,,...,...,...,.,,,,,,,,,.,,,,,
-#7JIII4IMQFI46YSRXCA6VFNDB73EMIJICUZKO23YIAB7YWUQ6YMYYEQXIU53OKSL5ZAHTRAXGKPWY
-#\\\|DBTRJ4GWRYUXGKWAXBJOAP7CH53S3OIEUX27VBFRQN6L7MWDNBD \ / AMOS7 \ YOURUM ::
-#\[7]CEYMLIMMH7FY7PYTC5GL4BC6SH7LKUCWYV22RC4ZYC2YITJZLWDI 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,..,.,.,,..,,,,,,..,,.,,.,,,.,.,..,,...,...,.,.,...,.,.,...,,.,,
+#AEYPAWMX3ABYO24LFL2V4CNRB552B5BPKH3MXELLODL4PF3XYP2D5XLBRWXHOPYXXUYKFEPPLLCGO
+#\\\|3ZGG5FW4PTDIJR3LRQ2I5MGVLP2PPE4MJ4EP5K6X6QJSUSLXM5M \ / AMOS7 \ YOURUM ::
+#\[7]XGYXSOI3SUPB3BGELVWKBYS5XUPY2JQ6E7IV6E4LKAM7O3QWXICY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
