@@ -89,7 +89,15 @@ foreach my $ext ( keys %files ) {
                 }
                 close($src);
                 close($dst);
-                chmod( 0600, $backup_path ) if $ext eq 'key';
+                if ( $ext eq qw| key | ) {
+                    my $httpsd_gid = ( getgrnam('httpsd') )[2];
+                    if ( defined $httpsd_gid ) {
+                        chown( -1, $httpsd_gid, $backup_path );
+                        chmod( 0640, $backup_path );
+                    } else {
+                        chmod( 0600, $backup_path );
+                    }
+                }
             }
         }
     }
@@ -105,9 +113,15 @@ foreach my $ext ( keys %files ) {
     print $fh $files{$ext};
     close($fh);
 
-    ## Set proper permissions
-    if ( $ext eq 'key' ) {
-        chmod( 0600, $file_path );
+    ## set proper permissions and group ownership
+    if ( $ext eq qw| key | ) {
+        my $httpsd_gid = ( getgrnam('httpsd') )[2];
+        if ( defined $httpsd_gid ) {
+            chown( -1, $httpsd_gid, $file_path );
+            chmod( 0640, $file_path );
+        } else {
+            chmod( 0600, $file_path );
+        }
     } else {
         chmod( 0644, $file_path );
     }
@@ -156,8 +170,8 @@ return {
     error_msg => undef
 };
 
-#,,,,,...,..,,,.,,.,,,.,,,..,,.,,,,.,,.,,,,.,,..,,...,...,...,,,.,,..,,,.,.,,,
-#2WHGBHLTYVGB3ZYZ6NYJNFMNAZDDPPJ4PZ4FYUKFMTETN7JLKWFNBK6HCEPKO5IQ6A4U2EHP22UYO
-#\\\|OBWLHS54IACKZBVZX2OKBHFZ5X3SS2GO4ZPNATAMIT3JHY6W2JG \ / AMOS7 \ YOURUM ::
-#\[7]7W2MRRMCLSGTOYGXWPW4CXFNE6JYDJJ3LXF3HIG3CS3RMZAMFGDY 7  DATA SIGNATURE ::
+#,,,.,...,,..,.,,,,,.,.,,,..,,.,,,,,.,,.,,,,.,..,,...,...,..,,,,.,.,.,,.,,,,,,
+#HOUUXZLHKOYB3IMXDZHH4DYEEAE5W2PT27O4UISHZYLPKDDRCINE6ZWZHHBFDV3JS2HHPKQXGWWAY
+#\\\|MRCGA5XEUN7DFOJLCSVDKB4SB75TGNZ4LR7UBAPORZVJAPPOCH2 \ / AMOS7 \ YOURUM ::
+#\[7]LRKNEKTW6B2QFQ5TJUWECDQ4DAIH2QTABW76YXI56W2CHDC37SBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
