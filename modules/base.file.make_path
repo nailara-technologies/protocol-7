@@ -115,13 +115,23 @@ if ( -d $path ) {
     }
 
     ## check ownership of already present directory ##
-    if ( defined $param_owner ) {
+    if ( defined $param_owner or defined $owner_group ) {
         ( my $current_uid, my $current_gid ) = <[base.path_owners]>->($path);
 
-        if ( $current_uid != $uid or $current_gid != $gid ) {
-            my $correction_str = sprintf 'uid %d, gid %d', $uid, $gid;
-            $correction_str = sprintf 'uid %d', $uid if $current_gid == $gid;
-            $correction_str = sprintf 'gid %d', $gid if $current_uid == $uid;
+        my $uid_mismatch = defined $param_owner && $current_uid != $uid;
+        my $gid_mismatch = defined $owner_group && $current_gid != $gid;
+        $gid_mismatch = $current_gid != $gid
+            if !defined $owner_group && defined $param_owner;
+
+        if ( $uid_mismatch or $gid_mismatch ) {
+            my $correction_str = '';
+            if ( $uid_mismatch and $gid_mismatch ) {
+                $correction_str = sprintf 'uid %d, gid %d', $uid, $gid;
+            } elsif ($uid_mismatch) {
+                $correction_str = sprintf 'uid %d', $uid;
+            } elsif ($gid_mismatch) {
+                $correction_str = sprintf 'gid %d', $gid;
+            }
             my $install_root = <system.root_path>;
             ( my $rel_path = $path ) =~ s|^$install_root/?||;
             <[base.logs]>->(
@@ -219,8 +229,8 @@ umask $previous_umask if defined $previous_umask;
 
 return $path;
 
-#,,.,,,..,,,,,,.,,...,...,.,,,.,,,,.,,,,.,,,,,..,,...,...,.,,,,,.,...,.,.,...,
-#XTMBXFGVAL6OMNMNNMOTLVEXO4NXEQPRCRQP2BCOJZPCTDSKIH6W4IZWZRDYC5RCXXSSHIIZY3HUA
-#\\\|OJ33HD3SNE5YI426BTTQ52TI7SGHBJ4AQMJQM5JBONU4KKNVGBO \ / AMOS7 \ YOURUM ::
-#\[7]3DK3TQELADL3FHJZAF7EADXCTKVEGEWSOSZCTO6WMLFAQGLM2MAY 7  DATA SIGNATURE ::
+#,,.,,,..,...,,,,,...,.,.,...,...,.,.,,.,,.,,,..,,...,...,..,,,,.,..,,,,,,...,
+#EQDPQWGQKP3ZCNROX7W4GN2APL6JXXH6OW2EPA4HW3S7B7TLWYXX5APLBNYDGRT6PM62SQD73VGAQ
+#\\\|CTWJ3MHBGNE46ZGQHQDC53NYQPOPOU46YFIUYKXH34NIW75O5EV \ / AMOS7 \ YOURUM ::
+#\[7]4BUYAWWLVC7WSUNP7XEFOQPCFIXLNIU7OZ3VZAXDDWIKKGNWXYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

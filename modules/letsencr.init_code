@@ -80,7 +80,10 @@ my $cert_dir = <letsencr.cfg.cert_dir>;
 my $key_dir  = <letsencr.cfg.key_dir>;
 
 foreach my $dir ( $cert_dir, $key_dir ) {
-    <[file.make_path]>->( $dir, 0750, <system.amos-zenka-user> )
+    <[file.make_path]>->(
+        $dir, 0770, <system.amos-zenka-user>,
+        ( $dir eq $cert_dir ? qw| httpsd | : undef )
+        )
         or <[base.logs]>
         ->( 0, "warning: could not create directory '%s'", $dir );
 }
@@ -102,8 +105,8 @@ foreach my $dir ( $cert_dir, $key_dir ) {
 
 0;
 
-#,,,.,.,,,..,,,.,,,.,,,.,,,.,,,..,,..,,.,,,,,,..,,...,...,..,,,..,,.,,.,.,,,.,
-#73KIBLNETFWQKBQSU7EAMLFAWVF7SDWXTRZWZHLI6WKYFAXZD4THVUKYETFQWN6MAWJJ37WOLOS7A
-#\\\|TUBZVR2NE5GCF6AUNC3HKUCXTW2HXHFFWHLSU4F3MK3DR2NG33A \ / AMOS7 \ YOURUM ::
-#\[7]3ELAHD3RSIBIWQL6LNWJEQN24624FUCAFGW4GJCWDBMU6YFW7MDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,..,,,,,,,.,,,,.,,..,,.,,,,,,.,,,..,,...,...,..,,,..,,.,,,,.,,,.,
+#YE47BQKMNFCCTBB5C3ARTMJVKEU4NNL7MB3IYKFXK54WRGDRQAOB5R5FOXDP6LNJQJ2JEX6SEKFJ4
+#\\\|VYWQWWPG7VJTHUFNJ7T3D3YPFTUOT2JNXPCEDJ7JYQXUUL7AXUG \ / AMOS7 \ YOURUM ::
+#\[7]6WC5PHHMWSVCOG6RNH6EK2YBGOPFZLGVRNPQGPIPRPNPUGBKUOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
