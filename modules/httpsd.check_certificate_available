@@ -78,14 +78,18 @@ unless ( $key_header =~ m/^-----BEGIN (?:RSA |EC |)PRIVATE KEY-----$/ ) {
 ## certificate and key are available
 $result->{available} = 1;
 
+## update config paths to point to discovered certificate files
+<httpsd.cfg.certificate_path> = $cert_file;
+<httpsd.cfg.key_path>         = $key_file;
+
 <[base.logs]>->( 3, 'httpsd certificate available: %s', $cert_file );
 
 return $result;
 
 0;
 
-#,,,.,,..,..,,,.,,.,.,..,,,,,,..,,,,,,..,,...,..,,...,...,...,.,.,..,,,,,,...,
-#OCLNWQSE4FWZPXTLOUU2ONH36XUAQ3CAACICCTXL57BXQGM5V5VFJGDB3TBHMODIV5KJMA4JPR3T4
-#\\\|YQ4ZRA3LZPUABQF25UXRK7DRFEQHQNYF4CJ5XLKGGD5LGSCTHPI \ / AMOS7 \ YOURUM ::
-#\[7]GCVCKBS3RK72SOEKDDVS73R57H2U7GJGEF24AQMWUSDN7MV6XSCQ 7  DATA SIGNATURE ::
+#,,.,,..,,,..,,,.,,,,,...,,,,,,.,,.,.,.,.,,,.,..,,...,...,..,,,.,,,.,,,,.,,,,,
+#SPEJ7DVKE2CR572JVWNPXKPW4YRNKLL4K6SJKAER2ZZ552VHC2KP4PG4BEQBUBVQPGYNRTCPPMSB6
+#\\\|EHM4FYA3QYMDJY2W64SGIXJ5HKJ7HFOFV2AUBCYGT6SVUUYDTF5 \ / AMOS7 \ YOURUM ::
+#\[7]73IZPDZ2IAEBC6WLZOHLW4TH5ZOKKRPWVU63OIW2ELLEKRWBD2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

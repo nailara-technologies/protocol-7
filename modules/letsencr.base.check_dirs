@@ -5,12 +5,14 @@
 #         with proper permissions
 
 ## directories to create (called before drop_privs, so runs as root)
+## certs dir uses setgid [02770] so files inherit httpsd group automatically
+## [ letsencr cannot chgrp after dropping privs ]
 my $certs_dir = <letsencr.certs.dir>;
 
 my @dirs = (
-    [ $certs_dir,              0770, qw| httpsd | ],
-    [ <letsencr.certs.backup>, 0700, undef ],
-    [ <letsencr.cache.dir>,    0700, undef ],
+    [ $certs_dir,              02770, qw| httpsd | ],
+    [ <letsencr.certs.backup>, 0700,  undef ],
+    [ <letsencr.cache.dir>,    0700,  undef ],
 );
 
 foreach my $dir_cfg (@dirs) {
@@ -24,8 +26,8 @@ foreach my $dir_cfg (@dirs) {
 
 <[base.log]>->( 2, 'certificate directories created and configured' );
 
-#,,..,..,,.,.,,..,,,,,,.,,...,.,,,,,.,,,,,,.,,..,,...,...,,..,,,.,,,,,,,.,.,.,
-#MKMYQLS5JNYGW7A7LZDMU4R2XQJPP5PZRLLQQUVCCBHXHU27ES4BJTCSQYFDWYG4KMPTQXXOVF6LI
-#\\\|LIOW3TL7GDTIC54TBDROVY3VAYZXUWXODFOTXF2EY6IB7JACOCA \ / AMOS7 \ YOURUM ::
-#\[7]EJY46PQ225IXLIBYHWCKAIXIUCHHUJMCLPHXDFDPT7IK5PGPFGCI 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,...,.,,,...,...,,,.,.,.,,.,,...,..,,...,...,.,,,.,,,,.,,.,.,..,,
+#VRYAD36Y6QTZZZVSSEY5OKR5PFSJBFICM5YLQ5MW5L2TKXLTSF5IUDRBRGFFGPPG6EVOFXQ4VWTXO
+#\\\|EZT7VLOG6NZYFU2MOJP4LZ6POSGZOHROAB2ZU7X7E7RMHL7IC7V \ / AMOS7 \ YOURUM ::
+#\[7]DTY2NRHR7ICSTGTN6D5PHNTVKM2YH74UFRUDV6AZ6CULLWUSNGDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
