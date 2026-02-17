@@ -75,7 +75,8 @@ if ( $mode eq qw| TRUE | ) {
     );
 
     ## Schedule retry with exponential backoff
-    my $attempt = ( $reply_data->{'params'}{'attempt'} // 1 ) + 1;
+    ## attempt number is passed through reply params by handler_enrollment_retry
+    my $attempt = ( $reply->{'params'}->{'attempt'} // 0 ) + 1;
 
     if ( $attempt <= 3 ) {
         my @backoff_delays = ( 300, 900, 1800 )
@@ -280,8 +281,8 @@ if ( $mode eq qw| TRUE | ) {
 
 return FALSE;
 
-#,,,,,,,,,,,.,.,.,..,,.,.,...,...,..,,,..,.,,,..,,...,...,.,,,,.,,,,,,...,..,,
-#HWWQH2NDGO23G5Q45VLBW2EGBQDNUKA2QBNCLLPANWAPIFLI5VRZ26HUPCFF6V3ZTEPLD5JHPKUYC
-#\\\|GDJRGLQIYGZDCXE3HLINAR6JIKIHKS4RC67GGLNJ4YVQ4ZEPG4O \ / AMOS7 \ YOURUM ::
-#\[7]AJO6ADEQ2CNM6FWMGG4BKHQHCE7QF45UJ6RDKVUPV5E752HBEYBY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,,,,,,..,,,.,,,,,...,,..,,.,,...,..,,...,...,...,,,.,.,.,.,,,.,,,
+#UQABHCXJADQSO2O4GKD5HVDE7REXFILZKLNRXYJYRXZJHK26QT326WWOCSCBAA2JP4QM4PTADTWHY
+#\\\|BNMPHVRVIJMTXLXUS3RB3BP5KAIUWFR2FMLFUYGPSLR3W3I5BQD \ / AMOS7 \ YOURUM ::
+#\[7]Z37IEF44IDBW5YBIKYXK3Y2RDS3XMOYIYQKZDXWTFV2IA5BHYAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
