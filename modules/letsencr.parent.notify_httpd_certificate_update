@@ -23,11 +23,11 @@ unless ( $domain && $cert_path && $key_path ) {
 
 ## send notification to httpsd via Protocol-7 command protocol
 ## httpsd can refresh its loaded certificate cache from disk
-my $notify_cmd = 'httpsd.reload-certificate';
+my $notify_cmd = 'httpsd.reload-certificates';
 
 my $result = <[base.protocol-7.command.send.local]>->(
     {   'command'   => $notify_cmd,
-        'call_args' => { 'args' => '' }
+        'call_args' => {}
     }
 );
 
@@ -51,8 +51,8 @@ if ($result) {
     };
 }
 
-#,,.,,..,,,,,,.,.,,,.,.,.,,..,,,,,.,.,,,,,,..,..,,...,..,,.,.,,,.,.,,,,.,,,..,
-#HASPHBD5HA4CA4JSHKKGTAOLB5IEO4NI6P33S7I6ZT5WLACSOMBOIUAYXXOKKTUVQOPROQGPSOVJK
-#\\\|MNNCHTDP7AFDOULFLRW5HQX7VRMDEBY26JR5Z7I7SQ7RP73WBE6 \ / AMOS7 \ YOURUM ::
-#\[7]VLA73H5JYVHDPGPC4YBEHCV6TNPSZ4KJQGRUTUJMX56DT4FBYKDI 7  DATA SIGNATURE ::
+#,,..,.,.,..,,.,.,.,.,,,,,,.,,,,,,.,.,,.,,...,..,,...,...,.,.,...,..,,...,,.,,
+#DQ7ZANLJGLDGQIU4IQ33MCCSTAEQ2W7ZVFVLRID2J2J3GWTN5ZQW7QZJ7NW4SZPXOK42MNGMTKDAC
+#\\\|AYZXD3HW236BYUKOH5KXJYDBH6EF2ZRMOZ5F6DL27Q6S6LOXMIJ \ / AMOS7 \ YOURUM ::
+#\[7]JYWEFU6SFAEBANHVXQG6HETD4F5HHRXOZRUBYLGVI5L7SAMZOOCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
