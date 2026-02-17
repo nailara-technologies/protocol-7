@@ -26,14 +26,14 @@ unless ( $domain && $certificate_pem ) {
 
 my $certs_dir = <letsencr.certs.dir>;
 unless ( -d $certs_dir ) {
-    <[base.log]>->( 2, "creating certificates directory : $certs_dir" );
-    make_path( $certs_dir, { mode => 0755 } ) or do {
-        <[base.log]>->( 0, "error : cannot create certs directory : $!" );
-        return {
-            status    => 'error',
-            error_msg => "Cannot create certs directory: $!"
+    <[base.logs]>->( 2, 'creating certificates directory: %s', $certs_dir );
+    <[file.make_path]>->(
+        $certs_dir, 02770, <system.amos-zenka-user>, qw| httpsd |
+        )
+        or return {
+        status    => 'error',
+        error_msg => "Cannot create certs directory: $certs_dir"
         };
-    };
 }
 
 ## Build certificate metadata
@@ -67,11 +67,12 @@ foreach my $ext ( keys %files ) {
     ## Create backup of existing file if present
     if ( -f $file_path && $backup_dir ) {
         unless ( -d $backup_dir ) {
-            make_path( $backup_dir, { mode => 0755 } ) or do {
-                <[base.log]>->(
-                    1, "warning: cannot create backup directory: $!"
+            <[file.make_path]>->(
+                $backup_dir, 0700, <system.amos-zenka-user>
+                )
+                or <[base.logs]>->(
+                1, 'warning: cannot create backup directory: %s', $backup_dir
                 );
-            };
         }
 
         if ( -d $backup_dir ) {
@@ -89,7 +90,7 @@ foreach my $ext ( keys %files ) {
                 }
                 close($src);
                 close($dst);
-                chmod( 0640, $backup_path ) if $ext eq qw| key |;
+                chmod( 0640, $backup_path );
             }
         }
     }
@@ -105,13 +106,8 @@ foreach my $ext ( keys %files ) {
     print $fh $files{$ext};
     close($fh);
 
-    ## set proper permissions
-    ## [ certs dir has setgid bit, so files inherit httpsd group automatically ]
-    if ( $ext eq qw| key | ) {
-        chmod( 0640, $file_path );    ## group-readable for httpsd
-    } else {
-        chmod( 0644, $file_path );
-    }
+    ## set proper permissions [ no world access: dir is drwxrws--- ]
+    chmod( 0640, $file_path );
 
     <[base.log]>->( 3, "wrote $ext file : $file_path" );
 }
@@ -157,8 +153,8 @@ return {
     error_msg => undef
 };
 
-#,,,.,..,,...,,..,.,,,.,,,.,.,,.,,..,,.,,,,..,..,,...,...,...,,,.,,,,,.,,,.,,,
-#7CKUZAKLL3VBOTGDLW4HI7ELV6UGR7EWJOI5FTSPZWUVNJ7UQQFVWJTKFJ6A2ZZPIXYN2XTYSPE3S
-#\\\|3L4SWKZOHXYCR7XT33K2KX6DVEHBJF34ER3QLCU6VO73NN6QG3I \ / AMOS7 \ YOURUM ::
-#\[7]42UEX4YBYZ4MEOKR34MLTUFEYO2SHEFZQKHWCEBQXUANVHXHEUCY 7  DATA SIGNATURE ::
+#,,.,,...,...,.,,,,,.,.,,,,..,,,,,...,,,,,,..,..,,...,...,.,.,.,.,.,.,,.,,.,.,
+#X7IJJVZR3UPSADC4EHY4OQEBEEN2V5KPLDSHLLBYCU3J4ZGYXPGWX7Z577O3T7LGIY65WNYISRNWC
+#\\\|Q6FSFZJB7ROHXLHUHGFPPU7ZT7E3SRAJSB5NRTST4664CY5TN3S \ / AMOS7 \ YOURUM ::
+#\[7]7CC4JZGYNIK2USGOAKLOILNGBILTT4EPUZZKANB7T3I66Z7DK4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

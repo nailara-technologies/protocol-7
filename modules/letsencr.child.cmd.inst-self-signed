@@ -24,7 +24,11 @@ if ( -f $cert_path && -f $key_path ) {
 
 ## Ensure certificate directory exists
 unless ( -d $cert_dir ) {
-    unless ( <[file.make_path]>->( $cert_dir, 0700 ) ) {
+    unless (
+        <[file.make_path]>->(
+            $cert_dir, 02770, <system.amos-zenka-user>, qw| httpsd |
+        )
+    ) {
         my $err = "error: failed to create directory $cert_dir";
         <[base.log]>->( 1, $err );
         return {
@@ -138,8 +142,8 @@ return {
     'data' => $reply_string
 };
 
-#,,,,,..,,.,,,,,.,,..,,,.,...,..,,.,.,.,.,,..,..,,...,...,.,,,.,,,...,..,,,,,,
-#N62YN3Y6CTJ3W5AVCU6GKYA7QUAKXGMNH7BBDL6EV2TED7XRB3DZQEWKT2LPMRCOEHQMDVU7PBQNS
-#\\\|OOVK2RC7EZLBHIF4QXGKL6HG76VJWA562G4KFITQ6MZYSLHILZ7 \ / AMOS7 \ YOURUM ::
-#\[7]VGVQW6ZMDBAB5NV53MHDEO3SZMT6PDMQC5QMQ73WESK74DYWNUAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,,,,,.,.,.,.,,.,,,,,,,.,,.,.,,..,..,,...,...,.,.,..,,.,,,,.,,.,.,
+#EF2BM44SY77PDOXDRNRVCH5I6LURFQY6QLIMOMNALKLXHBAF7J7K55AIVM2CAGHAVQGNH6WLQMZK6
+#\\\|3UFDZMYAQPZAPRCTYZT4IWFKPJGDOXQZKAACWYXH7DYVAP7RDBP \ / AMOS7 \ YOURUM ::
+#\[7]M36SXCFBYOKJK3ESLNUN7EOML77UIWMRKEB7AAESJTRSXGMUAWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
