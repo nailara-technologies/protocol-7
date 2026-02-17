@@ -7,7 +7,6 @@
 <[base.perlmod.load]>->('JSON::XS');
 <[base.perlmod.load]>->('LWP::UserAgent');
 <[base.perlmod.load]>->( 'File::Spec::Functions', qw| catfile | );
-<[base.perlmod.load]>->( 'File::Path',            qw| make_path | );
 <[base.perlmod.load]>->( 'Digest::MD5',           qw| md5_hex | );
 <[base.perlmod.load]>->('Socket');
 <[base.perlmod.autoload]>->('XMLRPC::Lite');
@@ -81,8 +80,8 @@ my $key_dir  = <letsencr.cfg.key_dir>;
 
 foreach my $dir ( $cert_dir, $key_dir ) {
     <[file.make_path]>->(
-        $dir, 0770, <system.amos-zenka-user>,
-        ( $dir eq $cert_dir ? qw| httpsd | : undef )
+        $dir, ( $dir eq $cert_dir ? 02770 : 0700 ),
+        <system.amos-zenka-user>, ( $dir eq $cert_dir ? qw| httpsd | : undef )
         )
         or <[base.logs]>
         ->( 0, "warning: could not create directory '%s'", $dir );
@@ -105,8 +104,8 @@ foreach my $dir ( $cert_dir, $key_dir ) {
 
 0;
 
-#,,,,,...,,..,,,.,.,.,,..,.,,,,..,...,.,,,,,.,..,,...,...,.,.,,.,,,,.,,.,,.,.,
-#EU5EGYHAAC2GPJWEYUBAAWCAKWZKXO2TKPDLLBE5XVZ5WMMGDC2A3ZM62O6H5SS7JPJKR5C5VIXG4
-#\\\|H2HK7ILQN7T4KAEUQ4GEDBA6ZGT3TQEICTZ56STQD2DYTPJHXCS \ / AMOS7 \ YOURUM ::
-#\[7]2462R4CON3LOLIZMWNCYGBWDJ4BUGIUWV5QSLNEDKDZTORGBIYCI 7  DATA SIGNATURE ::
+#,,,,,..,,,..,,,,,...,,..,.,,,.,,,.,,,.,.,...,..,,...,...,..,,.,.,,..,.,,,.,,,
+#5TQ42QQGWKQ2ICK6PDTBWE7TIVVQKPUZC5NGO2UGC4EWUXBWJSH4VDW72OTEGTPUYKFSNBD43E43K
+#\\\|IYAVEYGSF4W4XJITWRLSV4CAU2MH4QDISAQYXC5VKFSYHFCG2CT \ / AMOS7 \ YOURUM ::
+#\[7]EKEOKRYSQAUNLCQFBOFJHOWVK7VSKKWE4JWWDHE4YQ5NPFMSDCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
