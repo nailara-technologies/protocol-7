@@ -4,23 +4,33 @@
 # descr = check if certificate and key files exist and are readable
 # return = { available => 1/0, path => cert_path, expires => timestamp }
 
-my $cert_file = <httpsd.cfg.certificate_path>;
-my $key_file  = <httpsd.cfg.key_path>;
+## discover active certificate using auto-discovery
+my $cert_info = <[httpsd.discover_active_certificate]>;
 
 my $result = {
     available => 0,
-    path      => $cert_file,
+    path      => undef,
     expires   => undef
 };
 
-## check if both files exist and are readable
+unless ($cert_info) {
+    <[base.logs]>->( 3, 'httpsd: no certificate found via discovery' );
+    return $result;
+}
+
+my $cert_file = $cert_info->{cert_path};
+my $key_file  = $cert_info->{key_path};
+
+$result->{path} = $cert_file;
+
+## verify files exist and are readable
 unless ( -f $cert_file && -r $cert_file ) {
-    <[base.logs]>->( 3, 'httpsd certificate not available: %s', $cert_file );
+    <[base.logs]>->( 3, 'httpsd certificate not readable: %s', $cert_file );
     return $result;
 }
 
 unless ( -f $key_file && -r $key_file ) {
-    <[base.logs]>->( 3, 'httpsd key not available: %s', $key_file );
+    <[base.logs]>->( 3, 'httpsd key not readable: %s', $key_file );
     return $result;
 }
 
@@ -74,8 +84,8 @@ return $result;
 
 0;
 
-#,,..,..,,.,.,,,,,,.,,...,.,,,,.,,.,,,...,..,,..,,...,...,.,,,...,,.,,.,,,...,
-#CCV5KA56HLSHAZCQM7FKTO4L73BERM6T7VT7A5FDSDJ6PYI7HUUUT6JXLILIJ6I5GD7OMOU3CO7U6
-#\\\|4P2GWPV5ASCY3RKWLAUVB6WIS2XBTXFIDE5YSMJMNWXRQJKS6SW \ / AMOS7 \ YOURUM ::
-#\[7]JUACQJSOE73SPU6ROSTFK3GVZWZCVZ3COK2CLKLCIODIAE5HDEDA 7  DATA SIGNATURE ::
+#,,,.,,..,..,,,.,,.,.,..,,,,,,..,,,,,,..,,...,..,,...,...,...,.,.,..,,,,,,...,
+#OCLNWQSE4FWZPXTLOUU2ONH36XUAQ3CAACICCTXL57BXQGM5V5VFJGDB3TBHMODIV5KJMA4JPR3T4
+#\\\|YQ4ZRA3LZPUABQF25UXRK7DRFEQHQNYF4CJ5XLKGGD5LGSCTHPI \ / AMOS7 \ YOURUM ::
+#\[7]GCVCKBS3RK72SOEKDDVS73R57H2U7GJGEF24AQMWUSDN7MV6XSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
