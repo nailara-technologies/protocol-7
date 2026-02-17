@@ -78,10 +78,11 @@ unless ( $response->is_success ) {
 
     ## Return error response to allow caller to handle
     ## specific error types (e.g., badNonce retry)
+    my $err_nonce = scalar $response->header(qw| Replay-Nonce |);
     return {
         status  => $response->code,
         data    => $error_data,
-        nonce   => $response->header('Replay-Nonce'),
+        nonce   => $err_nonce,
         headers => $response->headers,
     };
 }
@@ -110,8 +111,8 @@ return {
     headers => $response->headers,
 };
 
-#,,,.,...,,..,.,.,,,,,..,,.,,,,,.,,,,,,.,,.,.,..,,...,...,.,.,,,.,,,,,,,.,,..,
-#QXRYVDELRMTSLJHP5JEE255Q36QXGJ2WGZVZXAAPMHNSBFVDRIREZQKECE46TZU67QJ7GSHQHG5P6
-#\\\|7IHNO4I6HPCRPL3QJDRPXJIC5JNMA2KP4T2RCJMBL3ZH53HSMOS \ / AMOS7 \ YOURUM ::
-#\[7]VOWRFXC3XM3BD6TCX6NSPVURV5QT2PZEU5D2GNRB2AP5UIT22IDI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,..,,..,,.,,...,,.,,,,,,,..,,..,..,,...,...,,.,,,,.,...,,,,,,.,,
+#IATKH3KYXDDNGVY47HXPQMOSOKW42BNAVVHKNJVXW2VAJJFPD5ZVDUBWB4SXSCI5OGMIFXUKW4ULI
+#\\\|LBRISPBKRCMVPQZQ5O5AZCGAYWH5MAX5FVCBDL44LCNX2B56UO7 \ / AMOS7 \ YOURUM ::
+#\[7]MLUZHFVNKGRMQKNMKHSZVAVXBQQ47B6XPUYDE4LOUT3FRR6JWEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
