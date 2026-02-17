@@ -9,14 +9,17 @@ use File::Find;
 my $certs_dir = '/etc/protocol-7/certs';
 
 unless ( -d $certs_dir ) {
-    <[base.log]>->( 1, 'certs directory not found: %s', $certs_dir );
+    <[base.logs]>->( 1, 'certs directory not found: %s', $certs_dir );
     return undef;
 }
 
 ## scan for certificate files (.pem or .cert, excluding .key)
 my @cert_files;
 opendir( my $dh, $certs_dir ) or do {
-    <[base.log]>->( 1, 'cannot read certs directory: %s', $! );
+    <[base.logs]>->(
+        1, 'cannot read certs directory: %s',
+        <[base.str.os_err]>
+    );
     return undef;
 };
 
@@ -28,7 +31,7 @@ while ( my $file = readdir($dh) ) {
 closedir($dh);
 
 unless (@cert_files) {
-    <[base.log]>->( 1, 'no certificate files found in: %s', $certs_dir );
+    <[base.logs]>->( 1, 'no certificate files found in: %s', $certs_dir );
     return undef;
 }
 
@@ -40,7 +43,7 @@ my @cert_only = grep {m{\.cert$}} @cert_files;
 my $active_cert = ( sort { -M $b <=> -M $a } @cert_only )[0];
 
 unless ( -f $active_cert ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         1, 'discovered certificate file not readable: %s', $active_cert
     );
     return undef;
@@ -53,7 +56,7 @@ my $key_file = $active_cert;
 $key_file =~ s{\.(pem|cert)$}{.key};
 
 unless ( -f $key_file ) {
-    <[base.log]>->( 1, 'corresponding key file not found: %s', $key_file );
+    <[base.logs]>->( 1, 'corresponding key file not found: %s', $key_file );
     return undef;
 }
 
@@ -62,8 +65,8 @@ return {
     key_path  => $key_file,
 };
 
-#,,.,,,,.,...,,,,,.,,,.,,,..,,.,.,,..,..,,,.,,.,.,...,..,,.,.,,.,,,,.,..,,,..,
-#DYAGBSIOKZXYIQY65IMUMRFPKQDVPEHITRM66UBJZJDNWHCXNVERZU5TVQ4Y5H7VS3GHYK3UI2KQS
-#\\\|A675VDZLS7WXONHEN43BGNOEFPRULZDTJQ3DNO7EUPYSZGCXQFI \ / AMOS7 \ YOURUM ::
-#\[7]MA533WJZYZEQUMZKJ56GMOPT46N6TOPXUXHUGPMC2MEVMF2U3KCQ 7  DATA SIGNATURE ::
+#,,..,...,...,.,,,.,.,..,,,.,,...,..,,,,,,,,,,.,.,...,...,...,...,,,,,..,,.,.,
+#K64IKE4NKWMBECQACSLNTB6M3D7CS62MDXRVXH326CDWNAFYIQCOK7CDGWADEBCSJDZM4XEV5RVMK
+#\\\|FTQWQFIDTDN5YU23ECDTK327WFBXTBCHS25AIUT3PAZKPHXWOIP \ / AMOS7 \ YOURUM ::
+#\[7]KAPD6QFSTUOGIVQA7SGNKO3D3QCVA2QB26HUY7Y7UP2C2RFKD2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
