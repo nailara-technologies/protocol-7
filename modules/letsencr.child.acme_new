@@ -49,6 +49,9 @@ unless ($account_key) {
     }
 }
 
+## store substituted email in acme_client state for acme_register_account
+<letsencr.child.acme_client>->{'contact_email'} = $email;
+
 ## STEP 3 : Register ACME account (or retrieve existing)
 unless ( <letsencr.child.acme_client>->{account_url} ) {
     <[base.log]>->( 2, 'step 3: registering ACME account' );
@@ -119,8 +122,8 @@ return {
     'primary_domain' => $primary_domain,
 };
 
-#,,,,,...,.,,,.,,,...,,.,,,,,,,.,,..,,,..,.,.,..,,...,..,,,,,,,..,..,,,..,..,,
-#VIBYHZBXXQYWT6DEMGGJJFFE77Q6CGJVXUMGVN6I4EZW6AXPN4ORVC4YWUQ73P2RRWQEIVMUCAEY6
-#\\\|AVD6CL4ZA6HG47TRBPHSANO3BYUQ4N6KCQDSTY73CKY5W4R7HT3 \ / AMOS7 \ YOURUM ::
-#\[7]3OV5OEZ5LQD3QUNKBLCF3FZXGA3LDJHASICMACA3G7SS2GQY62CY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,,.,.,.,,,,,...,,.,,,,,,..,,...,..,,...,...,...,,.,,.,,,..,,.,,,
+#QPGSNA6XR3W2TGAQ47DC3BQRVLFD43RG2M42NNYSHAIKLR6HOGKYGE22VOJQAIEORS2BKOXQH6YOM
+#\\\|7WV3D7LCAWELT5OSM42RAXZ4FBG5NKTJ7PYEHFIQ4ZDJIINMJRW \ / AMOS7 \ YOURUM ::
+#\[7]XXX47AI6QQFXF2MVGCI6VSMIC4QQBM4KAXUA63P73ALP5HD662CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -15,7 +15,11 @@ unless ( $directory && $nonce ) {
 }
 
 my $newAccount_url = $directory->{newAccount};
-my $email          = <letsencr.admin.email>;
+
+## use pre-substituted email from acme_client state [ set by acme_new ]
+## fallback to raw config only if not set [ may contain template markers ]
+my $email = <letsencr.child.acme_client>->{'contact_email'}
+    // <letsencr.admin.email>;
 
 ## Create account creation payload
 my $payload = {
@@ -139,8 +143,8 @@ return {
     created_at  => time(),
 };
 
-#,,..,..,,.,.,..,,...,,,,,.,,,,,.,.,,,..,,.,,,..,,...,...,...,,,.,...,...,...,
-#H5JZTOJ6LLUURPMQSBWHI4MYHMNX7MYGAJOOMA2UPEZNG6CAWLNGMLC7ZKBKT6LJQMIHIHASMT5XY
-#\\\|SDFPUJCW5L54TAHMXGGICGFX4PZSN4TLFKJ765APYOPJ4TYO2JG \ / AMOS7 \ YOURUM ::
-#\[7]34WIEOOUI5ZD7XLR7WCK62Y2EXMTUOWMAOONVGP4FVCOMU32GSCI 7  DATA SIGNATURE ::
+#,,.,,...,,..,,.,,,..,,,.,.,,,,,.,,.,,..,,,..,..,,...,...,..,,...,..,,,..,.,.,
+#S3KO56ZILF326XTAEZTHSFGQYEFOL2MKMEJCRQYUYJIW2HIXLQ66MGZ6UWYW6IQTMJHVLNV7QZ2MM
+#\\\|5EGPBSVEU4RFZWWIRKUI6XAITWWQ5L7RAUZMNLLDRONMFMOC7OM \ / AMOS7 \ YOURUM ::
+#\[7]PYTYGZWTWIJCGX6UF43GVSI37TNHMD5IWSQHRKNXOH6XXJKQXGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
