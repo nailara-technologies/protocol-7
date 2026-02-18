@@ -79,25 +79,11 @@ my $ssl_socket;
 #
 $SIG{'PIPE'} = qw| IGNORE |;    ### do not crash when client already gone ###
 
-## build SNI cert map by scanning certs directory
-## [ '*' is the default, domain keys select per-SNI hostname ]
-my $certs_dir    = <letsencr.certs.dir> // '/etc/protocol-7/certs';
-my %ssl_cert_map = ( '*' => $cert_file );
-my %ssl_key_map  = ( '*' => $key_file );
-
-if ( opendir( my $cert_dh, $certs_dir ) ) {
-    foreach my $fname ( grep {m|\.pem$|} readdir($cert_dh) ) {
-        my ($domain) = $fname =~ m|^(.+)\.pem$|;
-        my $c        = catfile( $certs_dir, "$domain.pem" );
-        my $k        = catfile( $certs_dir, "$domain.key" );
-        if ( -f $c and -f $k ) {
-            $ssl_cert_map{$domain} = $c;
-            $ssl_key_map{$domain}  = $k;
-            <[base.logs]>->( 1, 'SNI map: %s -> %s.pem', $domain, $domain );
-        }
-    }
-    closedir($cert_dh);
-}
+## SNI callback for per-domain certificate selection
+## [ trampoline ensures %code lookup at call time, not at socket creation ]
+my $sni_callback = sub { $code{'httpsd.callback.ssl_cert_select'}->(@ARG) };
+<[base.log]>
+    ->( 2, '  registered SNI cert_callback for per-domain selection' );
 
 <[base.log]>->( 3, '  creating IO::Socket::SSL with parameters:' );
 <[base.logs]>->(
@@ -114,8 +100,9 @@ $ssl_socket = eval {
         ReuseAddr              => 1,
         Timeout                => <httpsd.timeout> // 23,
         SSL_server             => 1,
-        SSL_cert               => \%ssl_cert_map,
-        SSL_key                => \%ssl_key_map,
+        SSL_cert_file          => $cert_file,
+        SSL_key_file           => $key_file,
+        SSL_cert_callback      => $sni_callback,
         SSL_version            => $tls_version,
         SSL_cipher_list        => $cipher_suite,
         SSL_honor_cipher_order => 1,
@@ -136,8 +123,9 @@ if ( !$ssl_socket and $addr =~ m|^[0:]+$| ) {
             ReuseAddr              => 1,
             Timeout                => <httpsd.timeout> // 23,
             SSL_server             => 1,
-            SSL_cert               => \%ssl_cert_map,
-            SSL_key                => \%ssl_key_map,
+            SSL_cert_file          => $cert_file,
+            SSL_key_file           => $key_file,
+            SSL_cert_callback      => $sni_callback,
             SSL_version            => $tls_version,
             SSL_cipher_list        => $cipher_suite,
             SSL_honor_cipher_order => 1,
@@ -216,8 +204,8 @@ return $ssl_socket;
 
 0;
 
-#,,,.,...,,..,.,.,...,..,,...,..,,...,.,.,...,..,,...,...,.,,,..,,.,.,.,,,,.,,
-#ODOBZRL4Q4URW7WOMBI7BXBK7QNPM5SDY4MIPA5LBJLMUWYMHDCPBYQRL66FMY374B5OYAHU2BPUQ
-#\\\|KKB3QUH7U5XMSQNWAL6IEKZH7FPIXI6ESJXAEZKEHCCX5DRDVJF \ / AMOS7 \ YOURUM ::
-#\[7]MBQR42KSQQYWEYHJXHJ5HAQFPXXBUZGMGLKAJNQI3JPK2ENWROBQ 7  DATA SIGNATURE ::
+#,,..,,..,.,,,.,.,,,,,,,.,.,,,.,.,..,,..,,,,.,..,,...,...,...,...,,.,,,,,,.,,,
+#DVHNI2VW45MXEXZDIGPOCKKPBVGQVPELGEXMFKVLUWRQJB4P2RJEUXVJQEWSZQWTYXNDIHL5VZN3M
+#\\\|L4AY5WXH55BNS5GYZXHE5UBGUIBAI22RUJ2M43NRQQF7D2B3URU \ / AMOS7 \ YOURUM ::
+#\[7]6WLJG6YC5AZWGUOUUWNBN3DTMJ55S4ZOUVED6YIWYFAOKDNVZ2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
