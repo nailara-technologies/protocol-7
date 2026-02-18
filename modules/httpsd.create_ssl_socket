@@ -198,12 +198,45 @@ unless ( $ssl_socket->listen() ) {
 <[base.logs]>->( 1, 'httpsd : SSL server launched [%s:%d]', $addr, $port );
 <[base.logs]>->( 2, '  listening with %s', $tls_version );
 
+## register SNI callback via Net::SSLeay after socket creation
+## [ IO::Socket::SSL SSL_cert_callback has version-dependent behaviour;
+##   Net::SSLeay CTX_set_tlsext_servername_callback is stable across versions ]
+if ( Net::SSLeay->can('CTX_set_tlsext_servername_callback') ) {
+    my $ssl_ctx = ${*$ssl_socket}{'_SSL_ctx'}{'ssl_ctx'};
+    if ( defined $ssl_ctx ) {
+        my $sni_sub = sub {
+            my $ssl      = shift;
+            my $hostname = Net::SSLeay::get_servername($ssl) // '';
+            return 1 unless length $hostname;    ## no SNI: use default cert
+            my ( $k, $c )
+                = $code{'httpsd.callback.ssl_cert_select'}
+                ->( undef, $hostname );
+            if ( defined $c and -f $c and defined $k and -f $k ) {
+                Net::SSLeay::use_certificate_file( $ssl, $c,
+                    Net::SSLeay::FILETYPE_PEM() );
+                Net::SSLeay::use_PrivateKey_file( $ssl, $k,
+                    Net::SSLeay::FILETYPE_PEM() );
+            }
+            return 1;                            ## SSL_TLSEXT_ERR_OK
+        };
+        Net::SSLeay::CTX_set_tlsext_servername_callback( $ssl_ctx, $sni_sub );
+        <[base.log]>
+            ->( 1, 'httpsd: SNI callback registered [ Net::SSLeay ]' );
+    } else {
+        <[base.log]>->( 1, 'httpsd: SSL_CTX not accessible, SNI disabled' );
+    }
+} else {
+    <[base.log]>->(
+        1, 'httpsd: Net::SSLeay SNI unavailable, serving default cert'
+    );
+}
+
 return $ssl_socket;
 
 0;
 
-#,,,.,,,,,,,,,...,,,.,..,,,..,,.,,...,...,..,,..,,...,..,,.,,,,,.,,,.,..,,.,.,
-#ZX3UTMNSZKCC5OE3TSNSBXARP3OTIJGTOBW4EMYBG2YKBB3OOLET52BKBFNKEUY46SBWXNKZ3JGUA
-#\\\|EUGFYIDUMHWU7UVPUB6GBQZ4VO35ESA6ZIHUXFFH2TAUBCGPXSB \ / AMOS7 \ YOURUM ::
-#\[7]4NAEBMFL25RBFSIAKVEOYR5ASXCEYMLJDJPQ75OHENOUMJAB2EAA 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,.,.,,,,,,,,,,,,,,..,..,,...,,,,,..,,...,...,...,..,,,.,,,,.,..,,
+#KLWXVDD7VR2HHL2ZMWOKOFNZHXMAQXHECHYBXC43F7ZBPPNQSHB6WDXCUK42DJEYGI3SKYSXTN5PM
+#\\\|3YG3JF275ENGCJPHFXAPL4I2EBTKM5UZNBZVW4FUZTSL4S44DBW \ / AMOS7 \ YOURUM ::
+#\[7]GXLDSMKCFITWKEJRXGNOK5JYMFSMUP2KMMHK5UGC7NVMHSKLQYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
