@@ -31,8 +31,9 @@ unless ( exists $keys{'RSA'}->{$account_key_name}
 
 my $rsa = $keys{'RSA'}->{$account_key_name}->{'rsa_object'};
 
-## set digest algorithm to SHA-256 for RS256
+## set digest and padding for RS256 [ required explicitly for OpenSSL 3.x ]
 $rsa->use_sha256_hash;
+$rsa->use_pkcs1_padding;
 
 ## sign using RS256 (OpenSSL RSA with PKCS#1 v1.5 padding)
 ## [ v1.5 is industry standard for RS256 per RFC 7518 ]
@@ -48,8 +49,8 @@ eval { $signature = $rsa->sign( $data_ref->$* ); } or do {
 ## return raw signature bytes (caller will base64url encode)
 return $signature;
 
-#,,.,,...,,,,,.,,,,.,,..,,.,,,...,..,,,,.,..,,.,.,...,...,.,.,...,.,.,,.,,..,,
-#4XGLGOA7UN67FL6G5O36EQFSMWPOREL5NJVAXUCPFDWWMMCQN62ILJ3SHZNFURRES4GYPTSUJTSGU
-#\\\|M7DIJFUARR7MBNB2JAGQ3KVOGNOK3C6JBAEY5VCCPWYPNXAOD45 \ / AMOS7 \ YOURUM ::
-#\[7]ISQ5TAR5CCMGH3ETCEEOBLL6NEANKNOZ7M4524O2PIOF6SS3XACA 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,.,,.,.,,,.,..,,.,,,.,,,,..,,.,,.,.,...,..,,...,..,,.,.,,.,,,,.,
+#4UZ76NEJIA3EZSHLMM3FERVZPZ4MX4OEL6HF3PWGO46LJQHOOYYQV353IUKXHOVZ57OQOQSMRJXE2
+#\\\|AAGU6MFR6KLFVVCWPMB4VBNECXDMETHGAGVUWZH2GAM6WVWF3KO \ / AMOS7 \ YOURUM ::
+#\[7]ZYRDMITVAWYSUIUHLTTXJ3UJF44R3Y52WWBDJ3QODLST62WBMSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
