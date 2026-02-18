@@ -79,28 +79,43 @@ my $ssl_socket;
 #
 $SIG{'PIPE'} = qw| IGNORE |;    ### do not crash when client already gone ###
 
-<[base.log]>->( 3, "  creating IO::Socket::SSL with parameters:" );
+## build SNI cert map by scanning certs directory
+## [ '*' is the default, domain keys select per-SNI hostname ]
+my $certs_dir    = <letsencr.certs.dir> // '/etc/protocol-7/certs';
+my %ssl_cert_map = ( '*' => $cert_file );
+my %ssl_key_map  = ( '*' => $key_file );
+
+if ( opendir( my $cert_dh, $certs_dir ) ) {
+    foreach my $fname ( grep {m|\.pem$|} readdir($cert_dh) ) {
+        my ($domain) = $fname =~ m|^(.+)\.pem$|;
+        my $c        = catfile( $certs_dir, "$domain.pem" );
+        my $k        = catfile( $certs_dir, "$domain.key" );
+        if ( -f $c and -f $k ) {
+            $ssl_cert_map{$domain} = $c;
+            $ssl_key_map{$domain}  = $k;
+            <[base.logs]>->( 1, 'SNI map: %s -> %s.pem', $domain, $domain );
+        }
+    }
+    closedir($cert_dh);
+}
+
+<[base.log]>->( 3, '  creating IO::Socket::SSL with parameters:' );
 <[base.logs]>->(
-    3,            "    SSL_version: %s [ref:%s]",
+    3,            '    SSL_version: %s [ref:%s]',
     $tls_version, ref($tls_version),
 );
-<[base.logs]>->( 3, '    SSL_cert_file : %s', $cert_file );
-<[base.logs]>->( 3, '    SSL_key_file : %s',  $key_file );
 <[base.logs]>->( 3, '    LocalAddr : %s, LocalPort : %d', $addr, $port );
 
 $ssl_socket = eval {
     IO::Socket::SSL->new(
-        LocalAddr         => $addr,
-        LocalPort         => $port,
-        Listen            => <max.connections> // 1024,
-        ReuseAddr         => 1,
-        Timeout           => <httpsd.timeout> // 23,
-        SSL_server        => 1,
-        SSL_cert_file     => $cert_file,
-        SSL_key_file      => $key_file,
-        SSL_cert_callback => sub {
-            <[httpsd.callback.ssl_cert_select]>->(@ARG);
-        },
+        LocalAddr              => $addr,
+        LocalPort              => $port,
+        Listen                 => <max.connections> // 1024,
+        ReuseAddr              => 1,
+        Timeout                => <httpsd.timeout> // 23,
+        SSL_server             => 1,
+        SSL_cert               => \%ssl_cert_map,
+        SSL_key                => \%ssl_key_map,
         SSL_version            => $tls_version,
         SSL_cipher_list        => $cipher_suite,
         SSL_honor_cipher_order => 1,
@@ -115,17 +130,14 @@ if ( !$ssl_socket and $addr =~ m|^[0:]+$| ) {
     $EVAL_ERROR = '';
     eval {
         $ssl_socket = IO::Socket::SSL->new(
-            LocalAddr         => $addr,
-            LocalPort         => $port,
-            Listen            => <max.connections> // 1024,
-            ReuseAddr         => 1,
-            Timeout           => <httpsd.timeout> // 23,
-            SSL_server        => 1,
-            SSL_cert_file     => $cert_file,
-            SSL_key_file      => $key_file,
-            SSL_cert_callback => sub {
-                <[httpsd.callback.ssl_cert_select]>->(@ARG);
-            },
+            LocalAddr              => $addr,
+            LocalPort              => $port,
+            Listen                 => <max.connections> // 1024,
+            ReuseAddr              => 1,
+            Timeout                => <httpsd.timeout> // 23,
+            SSL_server             => 1,
+            SSL_cert               => \%ssl_cert_map,
+            SSL_key                => \%ssl_key_map,
             SSL_version            => $tls_version,
             SSL_cipher_list        => $cipher_suite,
             SSL_honor_cipher_order => 1,
@@ -204,8 +216,8 @@ return $ssl_socket;
 
 0;
 
-#,,.,,,,,,,,,,...,,,.,...,,,.,.,.,.,,,,.,,..,,..,,...,...,.,.,,..,.,.,,,,,..,,
-#B6EP2PEKHS27V4DK76CCJTAYNOUGIESFYZGTXTJSJFUK4CW74J2FJWBFISTFNPYELHNCEMWFASG6M
-#\\\|UUUJ63BN2LBONLI5ATJTD7U6ME2GZSV3SGKZX3KEWPNWOTKAEA6 \ / AMOS7 \ YOURUM ::
-#\[7]CYGYB4I73622DE4KXTPXZJJAIGM2IENLIFP4MW7RUVVXOG5M3QDA 7  DATA SIGNATURE ::
+#,,,.,...,,..,.,.,...,..,,...,..,,...,.,.,...,..,,...,...,.,,,..,,.,.,.,,,,.,,
+#ODOBZRL4Q4URW7WOMBI7BXBK7QNPM5SDY4MIPA5LBJLMUWYMHDCPBYQRL66FMY374B5OYAHU2BPUQ
+#\\\|KKB3QUH7U5XMSQNWAL6IEKZH7FPIXI6ESJXAEZKEHCCX5DRDVJF \ / AMOS7 \ YOURUM ::
+#\[7]MBQR42KSQQYWEYHJXHJ5HAQFPXXBUZGMGLKAJNQI3JPK2ENWROBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
