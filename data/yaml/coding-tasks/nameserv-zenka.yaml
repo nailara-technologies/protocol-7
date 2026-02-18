@@ -1,0 +1,211 @@
+---
+# Task: Nameserv Zenka - Protocol-7 DNS Name Server Integration
+# Date: 2026-02-19
+# Status: pending
+# Context: Protocol-7 DNS infrastructure for remote server deployment
+
+task_metadata:
+  title: "Nameserv Zenka - Authoritative DNS with Dynamic Record Management"
+  description: >
+    A Protocol-7 zenka wrapping Net::DNS::Nameserver (or equivalent) to
+    provide authoritative DNS service for domains hosted on the server.
+    Exposes zone management and record control as Protocol-7 commands,
+    enabling other zenki (notably letsencr) to write DNS records directly
+    without shell access or external tools. Authoritative-only initially;
+    recursive resolution and DNSSEC are phase 2 additions.
+  priority: high
+  category: "infrastructure"
+
+## -----------------------------------------------------------------------
+## phase 1: authoritative dns server zenka
+## -----------------------------------------------------------------------
+
+nameserv:
+  motivation: >
+    Remote server acts as authoritative nameserver for hosted domains.
+    A Protocol-7 nameserv zenka provides: (a) authoritative DNS responses
+    without depending on external bind/unbound configuration, (b) dynamic
+    record updates driven by other zenki (letsencr dns-01 challenge,
+    httpsd virtual host additions), (c) zone data stored in Protocol-7
+    configuration format rather than zone files, making it natural to
+    generate, version, and modify records through the zenka network.
+    The server previously had a monolithic hand-written Perl DNS script;
+    this zenka replaces it with a fully integrated, event-driven solution.
+
+  prior_art: >
+    A monolithic Perl DNS script was written previously for this server.
+    It handled authoritative responses for a small zone but had no
+    Protocol-7 integration. That script serves as proof-of-concept that
+    pure-Perl DNS is viable; the zenka design supersedes it with proper
+    async I/O, command surface, and inter-zenka protocol.
+
+  capabilities:
+
+    authoritative_dns:
+      - serve A, AAAA, CNAME, MX, TXT, NS, SOA record types
+      - respond to UDP DNS queries on port 53 (configurable)
+      - handle multiple zones (one zenka serves all hosted domains)
+      - reject recursive queries (authoritative-only in phase 1)
+      - nameserv.status command: running state, zone count, query rate
+
+    zone_management:
+      - zones loaded from configuration/zenki/nameserv/zones/ directory
+      - one YAML file per zone: zone name, TTL, SOA fields, records list
+      - nameserv.reload-zones: reparse all zone files without restart
+      - nameserv.list-zones: show loaded zones and record counts
+      - nameserv.show-zone <domain>: dump all records for a zone
+
+    dynamic_record_control:
+      - nameserv.set-record <domain> <type> <name> <value> [ttl]
+        writes or replaces a record; persists to zone YAML file
+      - nameserv.remove-record <domain> <type> <name>
+        deletes a record; updates zone YAML file
+      - nameserv.get-record <domain> <type> <name>
+        returns current value for a record
+      - all mutations trigger in-memory zone refresh (no restart needed)
+
+    letsencr_integration:
+      - letsencr calls nameserv.set-record to write _acme-challenge TXT
+        records for dns-01 ACME challenge fulfillment
+      - letsencr calls nameserv.remove-record to clean up after validation
+      - nameserv emits dns-record-set / dns-record-removed events for
+        letsencr to confirm propagation before notifying ACME server
+      - enables wildcard certificate issuance (dns-01 only challenge type
+        that works for *.domain.com certificates)
+
+    httpsd_integration:
+      - when httpd.cmd.add-vhost creates a new vhost, nameserv receives
+        nameserv.set-record to add the corresponding A/AAAA record
+      - inverse: nameserv.remove-record called from httpd.cmd.del-vhost
+      - keeps DNS and web serving configuration in sync automatically
+
+    query_logging:
+      - optional query logging to p7-log (level 3 by default)
+      - nameserv.query-stats: queries per second, NX rate, record type breakdown
+      - nameserv.activity-log: recent query log with client IP, query, response
+
+  new_zenka:
+    name: nameserv
+    start_mode: stdin-zenka
+    user: nameserv   # or protocol-7 user with cap_net_bind_service for port 53
+    on_demand: false  # always-on on remote server profile
+    modules:
+      - nameserv.base          # init, config, zone loading infrastructure
+      - nameserv.handler.query # UDP query parsing and response dispatch
+      - nameserv.zone          # in-memory zone data structure and lookup
+      - nameserv.zone.persist  # zone YAML read/write for dynamic updates
+      - nameserv.cmd.*         # set-record, remove-record, reload-zones, etc.
+
+  configuration:
+    nameserv.cfg.listen_addr  = 0.0.0.0
+    nameserv.cfg.listen_port  = 53
+    nameserv.cfg.zones_dir    = configuration/zenki/nameserv/zones
+    nameserv.cfg.default_ttl  = 300
+    nameserv.cfg.log_queries  = 0   ## 0=off 1=errors 3=all
+
+  zone_file_format: |
+    ## example: configuration/zenki/nameserv/zones/example.com.yaml
+    ---
+    domain:  example.com
+    ttl:     300
+    soa:
+      mname:   ns1.example.com
+      rname:   hostmaster.example.com
+      serial:  2026021901
+      refresh: 3600
+      retry:   900
+      expire:  604800
+      minimum: 300
+    records:
+      - type: NS    name: "@"              value: ns1.example.com.
+      - type: NS    name: "@"              value: ns2.example.com.
+      - type: A     name: "@"              value: 203.0.113.1
+      - type: A     name: ns1              value: 203.0.113.1
+      - type: MX    name: "@"   priority: 10  value: mail.example.com.
+      - type: TXT   name: "@"              value: "v=spf1 mx ~all"
+
+  async_implementation:
+    - UDP socket created with IO::Socket::IP, set non-blocking
+    - event watcher via Event.pm add_var on socket file descriptor
+    - on readable: recvfrom() reads one DNS query datagram
+    - parse query with Net::DNS::Packet->new(\$raw_data)
+    - look up records in in-memory zone hash
+    - assemble response with Net::DNS::Packet
+    - sendto() response datagram (single non-blocking UDP send)
+    - entire path synchronous and fast: no AIO, no blocking I/O needed
+    - zone file updates use IO::AIO for async YAML write-back
+
+  net_dns_usage: >
+    Net::DNS::Nameserver provides a callback-based DNS server; however
+    its built-in event loop conflicts with Protocol-7's Event.pm loop.
+    Preferred approach: use Net::DNS::Packet directly for query parsing
+    and response construction, with Protocol-7's own UDP socket event
+    watcher. This gives full control over the event loop and avoids
+    callback thread issues. Net::DNS remains the dependency for DNS
+    protocol parsing; the socket and dispatch layer is custom.
+
+## -----------------------------------------------------------------------
+## phase 2: recursive resolution and dnssec (future)
+## -----------------------------------------------------------------------
+
+phase_2_recursive:
+  motivation: >
+    Some deployments need the nameserv zenka to also resolve external
+    names (for LLM queries, outbound mail MX lookup, etc.) without
+    depending on systemd-resolved or an external resolver. A caching
+    recursive resolver built into the zenka eliminates that dependency
+    and gives the network visibility into DNS queries made by other zenki.
+
+  components:
+    recursive_resolver:
+      - follow referrals from root hints file (IANA root zone)
+      - QNAME minimization for privacy (RFC 7816)
+      - negative caching (NXDOMAIN, NODATA) per RFC 2308
+      - configurable upstream forwarder as fallback
+
+    dnssec_validation:
+      - validate RRSIG / DNSKEY / DS chains for signed zones
+      - trust anchor for root zone (RFC 5011 automatic update)
+      - AD bit set in responses to stub resolver when chain valid
+      - DNSSEC signing of hosted zones (phase 2b, offline key workflow)
+
+    nameserv_integration:
+      - nameserv.cfg.mode = authoritative | recursive | hybrid
+      - hybrid: authoritative for local zones, recursive for others
+      - local zones always take priority over upstream answers
+      - resolver cache exposed: nameserv.flush-cache, nameserv.cache-stats
+
+## -----------------------------------------------------------------------
+## integration summary
+## -----------------------------------------------------------------------
+
+integration_matrix:
+  letsencr:
+    - dns-01 challenge: nameserv.set-record + nameserv.remove-record
+    - wildcard certs become possible via dns-01
+    - letsencr waits for dns propagation before notifying ACME
+  httpsd:
+    - vhost add/remove triggers corresponding A/AAAA record changes
+  postfix:
+    - MX records managed via nameserv.set-record
+    - SPF / DKIM TXT records added during postfix setup
+  events:
+    - SOA serial auto-increment on zone change (event-driven)
+    - zone-changed event emitted after any record mutation
+
+verification:
+  phase_1:
+    - dig @localhost example.com A returns correct IP
+    - nameserv.set-record creates TXT record visible to dig within 1s
+    - nameserv.remove-record deletes record, NXDOMAIN returned after
+    - letsencr dns-01 challenge completes end-to-end (wildcard cert)
+    - nameserv.reload-zones picks up new zone file without restart
+    - multiple concurrent UDP queries answered without event loop stall
+
+  phase_2:
+    - dig @localhost google.com A resolves via recursive path
+    - DNSSEC validation: dig +dnssec returns AD bit for signed domains
+    - cache flush: nameserv.flush-cache clears entries, next query re-resolves
+    - hybrid mode: local zone answers authoritative, external recursive
+
+#,,.,,,.,,,.,..,,.,,.,,...,.,,,,..,..,,..,,...,..,,...,...,,,.,.,,,.,,,,,.,.,,,

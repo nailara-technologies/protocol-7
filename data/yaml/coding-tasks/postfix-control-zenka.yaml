@@ -1,0 +1,167 @@
+---
+# Task: Postfix Control Zenka + Future Native SMTP Integration
+# Date: 2026-02-19
+# Status: pending
+# Context: Protocol-7 mail infrastructure for remote server deployment
+
+task_metadata:
+  title: "Postfix Control Zenka and Native SMTP Integration Path"
+  description: >
+    Two-phase mail integration. Phase 1: a lightweight Protocol-7 wrapper
+    zenka that manages and monitors a pre-existing postfix installation,
+    exposing queue management, rule injection, and log tailing as Protocol-7
+    commands. Phase 2 (later): a native SMTP zenka implemented directly in
+    Protocol-7, with the postfix wrapper remaining as a fallback for
+    installations that prefer to keep postfix. The two can coexist with
+    a routing layer that selects which backend is active.
+  priority: medium
+  category: "infrastructure"
+
+## -----------------------------------------------------------------------
+## phase 1: postfix control / wrapper zenka
+## -----------------------------------------------------------------------
+
+postfix_control:
+  motivation: >
+    The remote server acts as mail MX. postfix is already installed and
+    configured. A Protocol-7 wrapper zenka allows mail flow to be observed,
+    controlled, and enhanced (e.g. LLM-generated filtering rules) without
+    replacing postfix. The zenka exposes the postfix control surface as
+    Protocol-7 commands and events, enabling integration with other zenki.
+
+  capabilities:
+    process_control:
+      - start / stop / reload postfix (via postfix(1) binary)
+      - monitor postfix master process, restart on unexpected exit
+      - report running status: postfix.status command
+
+    queue_management:
+      - list queued messages: postfix.queue-list
+      - flush queue: postfix.queue-flush
+      - delete message by queue-id: postfix.queue-delete <id>
+      - hold / release messages: postfix.queue-hold / postfix.queue-release
+
+    log_monitoring:
+      - tail /var/log/mail.log via IO::AIO inotify or timer poll
+      - parse delivery/rejection/bounce events into structured log entries
+      - emit Protocol-7 events: mail-delivered, mail-rejected, mail-bounced
+      - expose recent activity: postfix.activity-log
+
+    rule_management:
+      - load header_checks / body_checks from config or generated rules
+      - apply new ruleset via postmap + postfix reload (atomic swap)
+      - postfix.set-rules command accepts rule list, writes file, reloads
+      - designed for LLM-generated regex rules: model generates, zenka applies
+
+    integration_hooks:
+      - emit events that other zenki can subscribe to (events zenka timetable
+        or direct event subscription once event-subscription is implemented)
+      - letsencr integration: postfix.set-tls-cert triggers reload after
+        certificate renewal (httpsd.reload_certificates equivalent)
+
+  new_zenka:
+    name: postfix
+    start_mode: stdin-zenka
+    user: postfix  # or protocol-7 user with sudo for postfix commands
+    on_demand: false  # always-on on remote server profile
+    modules:
+      - postfix.base  # init, config loading, postfix binary interaction
+      - postfix.handler.log  # mail.log tail and event parsing
+      - postfix.queue  # queue listing and management commands
+      - postfix.rules  # rule file management and atomic reload
+      - postfix.cmd.*  # individual command implementations
+
+  configuration:
+    postfix.cfg.binary    = /usr/sbin/postfix
+    postfix.cfg.postmap   = /usr/sbin/postmap
+    postfix.cfg.log_path  = /var/log/mail.log
+    postfix.cfg.rules_dir = /etc/postfix/p7-rules
+    postfix.cfg.header_checks = /etc/postfix/p7-rules/header_checks
+    postfix.cfg.body_checks   = /etc/postfix/p7-rules/body_checks
+
+## -----------------------------------------------------------------------
+## phase 2: native smtp zenka (future, postfix-independent)
+## -----------------------------------------------------------------------
+
+native_smtp:
+  motivation: >
+    Long-term goal: a Protocol-7-native SMTP server that handles mail
+    delivery directly without postfix. Written in Perl using the event loop
+    already in place (IO::Socket::IP for listening, Event.pm for async).
+    The postfix wrapper remains available for deployments that prefer it.
+    A backend selection config decides which is active; both can run
+    simultaneously on different ports for testing/migration.
+
+  components:
+    smtp_server:
+      - listen on port 25 (MX) and 587 (submission)
+      - async connection handling via existing io.ip.tcp infrastructure
+      - SMTP protocol state machine: EHLO MAIL RCPT DATA QUIT
+      - STARTTLS via IO::Socket::SSL (reuse httpsd infrastructure)
+      - SPF / DKIM verification hooks
+
+    smtp_client:
+      - outbound delivery queue (persistent, survives restart)
+      - retry with exponential backoff
+      - DNS MX lookup via nameserv zenka (when available)
+      - DKIM signing for outbound mail
+
+    mail_storage:
+      - Maildir format for local delivery
+      - integration with future mail-indexer zenka
+
+    backend_selection:
+      - smtp.cfg.backend = postfix | native | auto
+      - auto: use native if available, fall back to postfix
+      - postfix wrapper receives inbound via postfix pipe transport
+        when postfix is active backend
+
+  design_notes:
+    - reuse io.ip.tcp.input.connect and io.ip.ssl.input.connect patterns
+    - SMTP state machine fits naturally as handler modules
+      (smtp.handler.ehlo, smtp.handler.mail, smtp.handler.data, etc.)
+    - LLM rule integration: same postfix.set-rules interface applies to
+      native SMTP filtering layer -- backend-agnostic rule format
+
+## -----------------------------------------------------------------------
+## llm mail integration (applicable to both phases)
+## -----------------------------------------------------------------------
+
+llm_mail_integration:
+  motivation: >
+    The new server has memory for occasional CPU-only LLM inference.
+    LLM reads and interprets mail content, then generates or refines
+    postfix/native-smtp regex rules for lightweight ongoing filtering.
+    Model runs once per rule-generation cycle; output rules run at
+    near-zero cost indefinitely.
+
+  workflow:
+    - mail arrives, passes basic postfix/smtp checks
+    - postfix.handler.log parses delivery events
+    - borderline mail (scoring near threshold) queued for LLM review
+    - LLM zenka (coding zenka or dedicated) classifies and explains
+    - classification feeds rule-generator: produces header_checks regexes
+    - postfix.set-rules atomically applies new rules + reloads postfix
+    - rule set versioned and stored; can be rolled back via postfix.rules-rollback
+
+  rule_format:
+    - standard postfix header_checks format: /regex/ ACTION
+    - ACTION values: REJECT, DISCARD, PREPEND X-Spam-Score: <score>
+    - rules tagged with generation timestamp and LLM confidence score
+    - human-reviewable before auto-apply (optional approval gate)
+
+verification:
+  phase_1:
+    - postfix.status returns correct state after start/stop/reload
+    - postfix.queue-list shows correct queue contents
+    - postfix.set-rules generates valid postmap db and triggers reload
+    - mail.log tail emits Protocol-7 log events for each delivery
+    - letsencr triggers postfix TLS cert reload after renewal
+
+  phase_2:
+    - native SMTP receives test mail from external MTA on port 25
+    - STARTTLS handshake succeeds with letsencr-issued certificate
+    - outbound delivery queue retries on temporary failure
+    - backend switching between postfix and native with no mail loss
+
+#,,.,,,.,,,.,..,,.,,.,,...,.,,,,..,..,,..,,...,..,,...,...,,,.,.,,,.,,,,,.,.,,,
