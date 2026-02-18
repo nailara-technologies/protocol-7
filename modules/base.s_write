@@ -1,14 +1,14 @@
 ## [:< ##
 
 # name = base.s_write
-# desc = utf8 safe syswrite replacement [ with optional fh_offset parameter ]
+# desc = utf8 safe non-blocking syswrite for sockets and pipes
+# note = use base.s_write.file_io for file handle writes [ IO::AIO with offset ]
 # todo = create custom version to pass buffer by reference + reducing overhead
 
 my $write_fh         = $ARG[0];
 my $write_string_ref = $ARG[1];
 my $write_len        = $ARG[2];
 my $str_offset       = $ARG[3] // 0;
-my $fh_offset        = $ARG[4];
 
 if ( not defined $write_fh ) {
     warn 'write_fh param not defined <{C1}>';
@@ -20,43 +20,29 @@ if ( not defined $write_fh ) {
     $write_string_ref = \$ARG[1];    ## scalar reference to argument ##
 }
 
-$write_len //= length $write_string_ref->$*;
-
-##   [ replacing syswrite : unicode-safe ]
-#
-#    syswrite FILEHANDLE,SCALAR,LENGTH,OFFSET
-#    syswrite FILEHANDLE,SCALAR,LENGTH
-#    syswrite FILEHANDLE,SCALAR
-#
-#    aio_write $fh, $offset, $length, $data, $dataoffset, $callback->($retval)
-##
-
-my $size_written = undef;    ##  until write attempt  ##
-
-if (    $write_len > 0
-    and utf8::is_utf8( $write_string_ref->$* )
-    and $write_string_ref->$* =~ m|[^\p{ASCII}]| ) {
-
-    my $prev_len = length $write_string_ref->$*;
-
-    utf8::encode( $write_string_ref->$* );
-    utf8::downgrade( $write_string_ref->$*, 1 );
-
-    my $delta_len = length( $write_string_ref->$* ) - $prev_len;
-
-    $write_len += $delta_len if $delta_len != 0;    ##  string lengthened  ##
+## utf8 safety : encode in-place before computing byte count ##
+if ( utf8::is_utf8( $write_string_ref->$* ) ) {
+    utf8::encode( $write_string_ref->$* )
+        if $write_string_ref->$* =~ m|[^\p{ASCII}]|;
+    utf8::downgrade( $write_string_ref->$*, 1 );    ## strip internal flag ##
 }
 
-IO::AIO::aio_write( $write_fh, $fh_offset, $write_len, $write_string_ref->$*,
-    $str_offset, sub { $size_written = $ARG[0] } );
+$write_len //= bytes::length( $write_string_ref->$* );
 
-##  blocking until write request has been completed  ##
-while ( not defined $size_written ) { IO::AIO::poll() }
+## non-blocking syswrite : returns 0 on EAGAIN, -1 on error ##
+my $size_written
+    = syswrite( $write_fh, $write_string_ref->$*, $write_len, $str_offset );
 
-return $size_written;    ## [ returns -1 on error ] ##
+return 0
+    if not defined $size_written
+    and ( $OS_ERROR{EAGAIN} or $OS_ERROR{EWOULDBLOCK} );
 
-#,,..,,.,,,.,,,..,...,,.,,.,,,..,,.,,,.,.,,,.,..,,...,...,..,,.,,,,,,,,.,,,,,,
-#UVOQ4XUWKHGEF5454TBJPOR2RQT7RIERZ5JI5CEJRR24MSXVGE4ZLPP6GT22CMCKRIUX2E2RVUIJE
-#\\\|PK6TZXSNH27PDGC5DBD422KXBYDO7NLOOVX4WMTV2UTSOZ7NE3E \ / AMOS7 \ YOURUM ::
-#\[7]5RHYQIUCBWENE5WGXWSROKKNZ3HXPGZ3H7EHO6SK6ZVXARDSBCBY 7  DATA SIGNATURE ::
+return -1 if not defined $size_written;
+
+return $size_written;
+
+#,,,.,,..,,,,,..,,...,..,,.,.,,..,.,,,.,,,...,.,.,...,...,...,,..,.,,,..,,,,,,
+#WZ6QYHX4RQYGLPRLSRZAW2QV5XQO3GPKJTYGPCXRDLSOD5YAIIR47UG5ECYMDSAESOIKPKVNQZQG6
+#\\\|OPLYEBXOOFVNJOLRIBNMBLCHMV5NZAYWLES7SJKTM3ORH6E75O2 \ / AMOS7 \ YOURUM ::
+#\[7]YLP3IWOFRFKBZC6KFI3AMRIILIGGBSRLSA5M3MN4XXIUSQIHI4BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

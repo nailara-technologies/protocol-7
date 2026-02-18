@@ -127,7 +127,7 @@ if ( $read_size == 0 and $part_count ) {
     goto ABORT_DOWNLOAD;
 }
 
-my $bytes_read = <[base.s_read]>->(
+my $bytes_read = <[base.s_read.file_io]>->(
     $content_fh, \$session->{'buffer'}->{'output'}, $read_size
 ) if $read_size;
 
@@ -184,8 +184,8 @@ delete $session->{'download'};
 $session->{'flush_shutdown'} = 1;
 return 0;
 
-#,,.,,...,,..,.,.,.,,,,..,,,.,.,.,,.,,,..,,,,,..,,...,...,...,,..,.,.,...,.,,,
-#SDT4C6F5AJJL4U5WAXVNDAKFSCS5KYBGOZFGPTDVWCFPD56UJ7Y7ZWHWJZQY25J7JJQIOD7QYODKA
-#\\\|H5I4XCRT4DJY7HT7ZDYPLVD53BNPY5CDQWQIT5ODJQBWEN2YRIJ \ / AMOS7 \ YOURUM ::
-#\[7]GPCUGSL35SAWHD5FOKO443RIG3ZUFOCQZ4LOKNTIW6WX7ZSVUYDY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,,,..,,,.,,,.,,,..,,.,,,.,,,..,,,,,..,,...,...,...,.,,,..,,.,.,,.,,
+#NAWOOEEXX4X2WNPRG2QLXZTQT6UK5VRFXOPHEPJ5I6NIFJJEYZQFG3M7R7AT7HW24ZPV445TIJDMK
+#\\\|EDN5H3FWYNWD3KQNW5CF3X7B4MGQZUMV6KP6YRIBTOAKU7GLFRA \ / AMOS7 \ YOURUM ::
+#\[7]UZ6CXZY7ERR4SF7BKA4LTLK7ITK57KUNVCIM6OISFJVQJMEFOUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
