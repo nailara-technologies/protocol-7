@@ -1,0 +1,43 @@
+
+# name  = events-setup.letsencr
+# descr = event handlers [ includes base events ]
+
+.: events :.
+
+    enabled = letsencr-renewal forensics
+
+    - letsencr-renewal
+
+      : action :
+        type       = zenka-present
+        zenka-name = letsencr
+
+    - forensics
+
+      : action :
+        type       = zenka-present
+        zenka-name = forensics
+
+    - dist-upgrade
+
+      : action :
+        type       = zenka-present
+        zenka-name = dist-upgrade
+
+
+.: timetable :.
+
+  - forensics
+    at  =  04:07
+
+  - dist-upgrade
+    at  =  03:47
+
+  - letsencr-renewal
+    at  =  HH:05:47
+
+#,,,,,..,,.,.,,,.,...,.,.,..,,,,,,...,,,,,..,,..,,...,...,,..,.,,,..,,..,,,,.,
+#7M3WB4VH2VAMLMEVCRTM4E6UQ5GCIRZCZCFANVB7TY6WFC5TBNMN2EOBNS424TSKCVRGO5ZULU3GA
+#\\\|QSDR22XNVLFTSXHIVZK2WYFEEEEF2RHTCHEYO7T5T4XPOLCYJ44 \ / AMOS7 \ YOURUM ::
+#\[7]WM5P4JSJDURRA5LJAJF32VN5NS773H4C4OYG7N567S5YAKKOD4BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
