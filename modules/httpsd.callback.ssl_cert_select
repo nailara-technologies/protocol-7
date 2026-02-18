@@ -10,12 +10,14 @@ my $domain  = shift // '';
 
 my $certs_dir = <letsencr.certs.dir> // '/etc/protocol-7/certs';
 
+<[base.logs]>->( 1, 'SNI: cert select callback : domain = [%s]', $domain );
+
 ## try exact domain match first
 my $cert_path = sprintf '%s/%s.pem', $certs_dir, $domain;
 my $key_path  = sprintf '%s/%s.key', $certs_dir, $domain;
 
 if ( -f $cert_path and -f $key_path ) {
-    <[base.logs]>->( 3, 'SNI: %s -> %s.pem', $domain, $domain );
+    <[base.logs]>->( 1, 'SNI: %s -> %s.pem', $domain, $domain );
     return ( $key_path, $cert_path );
 }
 
@@ -27,7 +29,7 @@ if ( $domain =~ m|^[^.]+\.(.+[.].+)$| ) {
     my $parent_key  = sprintf '%s/%s.key', $certs_dir, $parent;
     if ( -f $parent_cert and -f $parent_key ) {
         <[base.logs]>->(
-            3,       'SNI: %s -> %s.pem [ parent domain ]',
+            1,       'SNI: %s -> %s.pem [ parent domain ]',
             $domain, $parent
         );
         return ( $parent_key, $parent_cert );
@@ -35,11 +37,11 @@ if ( $domain =~ m|^[^.]+\.(.+[.].+)$| ) {
 }
 
 ## no match - fall through to default [ SSL_cert_file / SSL_key_file ]
-<[base.logs]>->( 3, 'SNI: %s -> default cert', $domain );
+<[base.logs]>->( 1, 'SNI: %s -> default cert', $domain );
 return ();
 
-#,,,.,,.,,.,.,.,.,,..,,,.,.,.,,,,,..,,...,...,..,,...,...,,,.,,,.,,,.,,..,,..,
-#QHV5OXQ574DB2YWCJCLUWN6ATFNYY4Q5SL2HAEZW7QS3GZCTYN62JTIEZS7VDLE2GWICNSWTRTPTS
-#\\\|4UUZJU4Z5V7E53XZ55QPMKFS6KPFUX3XQKGZ67G7GMY7LM3LVWA \ / AMOS7 \ YOURUM ::
-#\[7]JFJH4UEF3VG7MPO2AVLN43Z7MF7NS4I3XE5BUSBAOLAM3KAW3ECA 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,..,.,,,,,.,.,.,...,..,,...,.,.,..,,...,...,..,,,,,,.,,,,..,.,,,
+#XID2PSR2ZTVFEJQO4IJ43MMYV3VOBNHWBURZBNFIYRTEHC5LUUNSUY4PTNXEYNE5S2KE3G7SPUSGQ
+#\\\|HJX2PIMNTJBWPINDDHMYVZUCAJJ3MXPDQ4VB27VRKWCGM3T2TVV \ / AMOS7 \ YOURUM ::
+#\[7]72XSQJPE6IQEO3JE4AEFKM3A7OBXVR3O4FAGITWVZ2JWKP33CSDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
