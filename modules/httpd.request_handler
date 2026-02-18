@@ -67,10 +67,10 @@ if ( defined $r_key ) {
     return 2;
 }
 
-if ( defined $h_req->protocol and length( $h_req->protocol ) != 8
-    or $h_req->protocol !~ m|HTTP/1.[01]| ) {
+my $proto = $h_req->protocol // '';
+if ( length($proto) != 8 or $proto !~ m|HTTP/1.[01]| ) {
     my $err_reason_str = 'protocol version not supported';
-    if ( index( uc( $h_req->protocol ), qw| HTTP/ | ) == 0 ) {
+    if ( index( uc($proto), qw| HTTP/ | ) == 0 ) {
         ##  HTTP Version not supported  ##
         <[httpd.send_error_page]>->( $id, 505 );
     } else {
@@ -78,10 +78,7 @@ if ( defined $h_req->protocol and length( $h_req->protocol ) != 8
         $err_reason_str = 'unknown protocol requested';
         <[httpd.send_error_page]>->( $id, 501, $err_reason_str );
     }
-    <[base.logs]>->(
-        0,   "[%d] %s [REQ:'%s']",
-        $id, $err_reason_str, $h_req->protocol
-    );
+    <[base.logs]>->( 0, "[%d] %s [REQ:'%s']", $id, $err_reason_str, $proto );
     return 2;
 }
 
@@ -154,8 +151,8 @@ if ( defined <http.handler>->{ lc $request->{'method'} } ) {
 
 return 2;        ## <-- disconnecting client ##
 
-#,,..,...,,,,,,.,,..,,.,.,..,,..,,,..,.,,,,,.,..,,...,...,.,,,,,,,,..,.,,,.,.,
-#UGCMXXYADLK3OQDYIPB7A7ADOD7EQS7CKUDUUBB2BGAQ6N3WIQKFLFODZMLGSHZXPCHD3H2GII3V2
-#\\\|KO2VXYCZCVNXP34RF5LSIM2LXSYI44WDYKDMS3XYCMXIFTYUJCY \ / AMOS7 \ YOURUM ::
-#\[7]6PFYRNT2D5J7ED7DJ3XGETODW7CT2ZCZIMATO6NWFLHERSFNQMCI 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,..,...,.,,,.,,,,,.,,..,..,,.,.,..,,...,..,,,.,,,,,,..,,,,.,,,,,
+#SMHDP7GLUYCT6UAYEWMV5XIJMFC5G6KDL55HYUIA34PXYMLADEN4TGGCBV3KYRUEI6AWGYYQVRJ3K
+#\\\|Q2AOH7LNLEQNIP3KUL5LIPJ6XJDVEUXMHACKIQM4BYAGDZWB7LL \ / AMOS7 \ YOURUM ::
+#\[7]2H57ZPJMXGENYDCKC7S6SPCK7VQTJPD3ESJ2YGPZ2BEVSQBHC4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
