@@ -79,11 +79,11 @@ my $ssl_socket;
 #
 $SIG{'PIPE'} = qw| IGNORE |;    ### do not crash when client already gone ###
 
-## SNI callback for per-domain certificate selection
-## [ trampoline ensures %code lookup at call time, not at socket creation ]
-my $sni_callback = sub { $code{'httpsd.callback.ssl_cert_select'}->(@ARG) };
-<[base.log]>
-    ->( 2, '  registered SNI cert_callback for per-domain selection' );
+## SNI note: SSL_cert_callback is not used here because its behavior
+## varies by IO::Socket::SSL version - on some versions it overrides
+## SSL_cert_file and returning () does not restore the default cert,
+## causing 'bad certificate' alerts when no per-domain match is found.
+## SNI per-domain cert selection is handled after socket upgrade instead.
 
 <[base.log]>->( 3, '  creating IO::Socket::SSL with parameters:' );
 <[base.logs]>->(
@@ -102,7 +102,6 @@ $ssl_socket = eval {
         SSL_server             => 1,
         SSL_cert_file          => $cert_file,
         SSL_key_file           => $key_file,
-        SSL_cert_callback      => $sni_callback,
         SSL_version            => $tls_version,
         SSL_cipher_list        => $cipher_suite,
         SSL_honor_cipher_order => 1,
@@ -204,8 +203,8 @@ return $ssl_socket;
 
 0;
 
-#,,..,,..,.,,,.,.,,,,,,,.,.,,,.,.,..,,..,,,,.,..,,...,...,...,...,,.,,,,,,.,,,
-#DVHNI2VW45MXEXZDIGPOCKKPBVGQVPELGEXMFKVLUWRQJB4P2RJEUXVJQEWSZQWTYXNDIHL5VZN3M
-#\\\|L4AY5WXH55BNS5GYZXHE5UBGUIBAI22RUJ2M43NRQQF7D2B3URU \ / AMOS7 \ YOURUM ::
-#\[7]6WLJG6YC5AZWGUOUUWNBN3DTMJ55S4ZOUVED6YIWYFAOKDNVZ2CQ 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,,,,,,.,.,,,...,,,,,,..,..,,.,,,..,,...,...,...,..,,.,,,,..,.,.,
+#4FWYH77XVGOZWMQZIKN3BZ3S5YXCPYH2UHN53TQRR4LPGYSFGZJM6DMZCTTSBSREFUBZGS7EZRKEC
+#\\\|BLKHQXVLIONVW5HDMOCO6TF64Q7ICFMULJ2R3ZHWZXMCFT6JYI6 \ / AMOS7 \ YOURUM ::
+#\[7]T6WYVJYZK2KYR5VQF3CFOSUMHEI3EXQUFD3CXQFERUN344TSTCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
