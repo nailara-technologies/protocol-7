@@ -107,6 +107,29 @@ eval {
     );
 };
 
+## IPv6 wildcard unavailable - fall back to IPv4 wildcard ##
+if ( !$ssl_socket and $addr =~ m|^[0:]+$| ) {
+    <[base.logs]>->( 1, 'IPv6 wildcard unavailable - retrying with 0.0.0.0' );
+    $addr       = '0.0.0.0';
+    $EVAL_ERROR = '';
+    eval {
+        $ssl_socket = IO::Socket::SSL->new(
+            LocalAddr              => $addr,
+            LocalPort              => $port,
+            Listen                 => <max.connections> // 1024,
+            ReuseAddr              => 1,
+            Timeout                => <httpsd.timeout> // 23,
+            SSL_server             => 1,
+            SSL_cert_file          => $cert_file,
+            SSL_key_file           => $key_file,
+            SSL_version            => $tls_version,
+            SSL_cipher_list        => $cipher_suite,
+            SSL_honor_cipher_order => 1,
+            SSL_alpn_protocols     => [qw| http/1.1 |],
+        );
+    };
+}
+
 if ($EVAL_ERROR) {
     <[base.log]>->( 0, "httpsd : SSL socket creation EVAL ERROR:" );
     <[base.log]>->( 0, "  error : $EVAL_ERROR" );
@@ -177,8 +200,8 @@ return $ssl_socket;
 
 0;
 
-#,,.,,..,,,,.,,.,,,,.,,,,,.,,,.,.,..,,,,,,,,.,..,,...,..,,...,,,.,,,,,,.,,..,,
-#6QSUPHQ7KLXJBW4KZVOJE6PL7JZSUOKH23VQ2N3AQECSCN3R7S2HND7VKS7GW7MIGUJ7BVDTHJF7M
-#\\\|573HSP4XKMQ7G4KK7ZXATUJCXGG4V6QULQISRSSZ3S3YCCLZMEF \ / AMOS7 \ YOURUM ::
-#\[7]QVQHDO45MEOFG7FT3G5CAIDLD2YZON3YFSL6NTA7MXU7GGJPT2BQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,...,.,,,.,,,,,,,.,,,,,.,...,,..,..,,...,...,,..,.,,,,..,,.,,,..,
+#HHSF7FSRFTUKATSUWIJV7IXLLP7HTIAGAE72MKNOJ7HE4NC7XAESMM4EL57QOOX23F5VE4YFQUZ4K
+#\\\|VAMPKQTTRHZ4BKUPDHCTBYFBZVUAMS7K5Y5DZINCYEYJOOUKBZL \ / AMOS7 \ YOURUM ::
+#\[7]B6JLZBKVEG6WB63SVSHJJMHVF33XZYBKRL37ZM7CXTUCLAENFUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
