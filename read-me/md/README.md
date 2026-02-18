@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3O46JOU3AQ-6432.0 :::
+::: SOURCE-CODE VERSION :: 3O46RIX7PA-6433.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -24,9 +24,9 @@
 
 **Interactive Hyperspace Field Visualization** - Experience Protocol-7's cubic space topology in real-time:
 
-### **[http://visual.v7.ax/](http://visual.v7.ax/)**
+### **[https://visual.v7.ax/](https://visual.v7.ax/)**
 
-[![Hyperspace Field Demo](data/asc/what-AI-thinks/html-form/visualizations/cubic-space/remote/screen.0.png)](http://visual.v7.ax/)
+[![Hyperspace Field Demo](data/asc/what-AI-thinks/html-form/visualizations/cubic-space/remote/screen.0.png)](https://visual.v7.ax/)
 
 *Click the screenshot above to launch the interactive demo*
 
@@ -368,8 +368,8 @@ The full vision document explores Protocol-7's unique approach to
 distributed computing, network participation, and the metaphorical framework
 of resource sharing.
 
-#,,,.,...,,,,,..,,.,,,,,,,,,.,,,,,,..,,.,,...,..,,...,...,,,.,,..,,.,,.,,,.,.,
-#7VD5JINRJ5D2MFFR23BEX26MSMRXXKTB7F45ERZ56B7AE75NQ43NQ5C6VQC7ZX63RUSHOP4LCQ2MS
-#\\\|UST7PTB6Z5UX4KAIQSY3HSQ3PTTW6LDCTXYPMJOHTZWG2CETHAC \ / AMOS7 \ YOURUM ::
-#\[7]QQCADKKO5TMI7NTK6AU4BA6CTRUQCYQKR7E62MFB3XFBBRDXCICA 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,..,,.,.,..,,,..,.,,,.,.,,,,,.,.,..,,...,..,,...,,,,,,,,,...,,.,,
+#I33JIIRA7U6M44RC7YOWOXYGI3FYRJKYMYXTPJDDZG2SAVIGN522MB42MDY2SVYG25LWVXSYEY5MA
+#\\\|LYTP7RZKT3J4D3GXUPJWCEVQUFZPT7NUUQL6524NNW6ON73HXXG \ / AMOS7 \ YOURUM ::
+#\[7]BH7FIPHBOLXBQCFLFFO35Z3KJDCROVCW4DQAXR2W4PZS24BOCCAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

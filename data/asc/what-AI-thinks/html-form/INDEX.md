@@ -12,9 +12,9 @@
 
 **Interactive Hyperspace Field Visualization** is now live at:
 
-### **[http://visual.v7.ax/](http://visual.v7.ax/)**
+### **[https://visual.v7.ax/](https://visual.v7.ax/)**
 
-[![Hyperspace Field Demo](visualizations/cubic-space/remote/screen.0.png)](http://visual.v7.ax/)
+[![Hyperspace Field Demo](visualizations/cubic-space/remote/screen.0.png)](https://visual.v7.ax/)
 
 *Click the screenshot above to launch the interactive demo*
 
