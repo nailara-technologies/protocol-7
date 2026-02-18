@@ -1,0 +1,147 @@
+---
+# Task: v7 Zero-Downtime Concurrent Restart + ext-bin Exit Code Handling
+# Date: 2026-02-18
+# Status: pending
+# Context: Protocol-7 v7 zenka manager improvements
+
+task_metadata:
+  title: "v7 Zero-Downtime Concurrent Restart and ext-bin Exit Code Analysis"
+  description: >
+    Two related v7 improvements to be addressed in the same session.
+    First: implement a concurrent restart mode for zenki that need to
+    rebind network sockets (e.g. httpsd on port 443), allowing the new
+    instance to bind and register before the old one terminates, achieving
+    zero-downtime certificate reloads and restarts.
+    Second: fix exec-external (ext-bin) zenka exit code analysis so that
+    non-zero exit from the external script sets zenka status to 'error'
+    rather than silently treating it as a normal exit.
+  priority: medium
+  category: "infrastructure-improvement"
+
+objectives:
+  - Implement SO_REUSEPORT-based concurrent restart in v7 for socket-binding zenki
+  - Add "ready" signal handshake so v7 knows when new instance is serving
+  - Add graceful drain signal so old instance finishes existing connections cleanly
+  - Fix ext-bin exit code analysis to set zenka status to 'error' on non-zero exit
+
+## -----------------------------------------------------------------------
+## task 1: zero-downtime concurrent restart
+## -----------------------------------------------------------------------
+
+concurrent_restart:
+  motivation: >
+    Currently when httpsd needs to reload certificates, it calls
+    v7.restart_own-zenka which kills the old instance and starts a new one.
+    During this gap port 443 is unbound and connections are refused.
+    With SO_REUSEPORT both old and new instances can bind the same port
+    simultaneously, eliminating the gap entirely.
+
+  background:
+    current_flow:
+      - letsencr renews cert, calls httpsd.reload-certificates
+      - reload_certificates calls httpsd.self_restart
+      - self_restart sends cube.v7.restart_own-zenka
+      - v7 kills old instance (port 443 unbound)
+      - v7 starts new instance (port 443 rebound after post_init)
+      - gap of ~0.5-1s where connections are refused
+
+    desired_flow:
+      - letsencr renews cert, calls httpsd.reload-certificates
+      - reload_certificates requests concurrent restart from v7
+      - v7 starts new instance alongside old one
+      - new instance binds port 443 (SO_REUSEPORT allows this)
+      - new instance signals v7 it is ready (existing mechanism available)
+      - v7 signals old instance to drain (stop accepting, finish existing)
+      - old instance terminates cleanly after drain
+      - zero connection gap throughout
+
+  implementation_notes:
+    socket_layer:
+      - add ReusePort => 1 to IO::Socket::SSL and IO::Socket::IP creation
+        in httpsd.create_ssl_socket and io.ip.tcp.input.open
+      - ReuseAddr is already set on both, ReusePort is the missing piece
+      - kernel distributes new connections between old and new instance
+        during the overlap window (acceptable behavior)
+
+    v7_restart_mode:
+      - add new restart mode: 'concurrent' (distinct from current kill+start)
+      - new command: v7.zenka.cmd.restart_own-zenka-concurrent
+        (or extend existing with mode parameter)
+      - v7 starts new instance, records both instance_ids as a replace pair
+      - ready detection: new instance's existing startup registration serves
+        as the ready signal (it already calls back to v7 on successful init)
+      - on new instance ready: v7 sends drain signal to old instance
+
+    drain_signal:
+      - new command: v7.zenka.cmd.drain (or existing stop with mode)
+      - receiving zenka: stops accepting new connections (remove socket watcher)
+        but keeps existing sessions alive
+      - zenka self-terminates when session count reaches zero
+      - use existing base.session.check_remaining mechanism
+
+    new_modules:
+      - v7.zenka.cmd.concurrent-restart (or extend restart_own-zenka)
+      - httpsd.cmd.drain (stop accepting, wait for sessions to clear)
+      - optional: v7.zenka.track_replace_pair (track old+new instance_ids)
+
+    configuration:
+      - add restart_mode = concurrent to httpsd start config when ready
+      - httpsd.reload_certificates: use concurrent restart when available,
+        fall back to self_restart otherwise
+
+## -----------------------------------------------------------------------
+## task 2: ext-bin exit code analysis
+## -----------------------------------------------------------------------
+
+extbin_exit_code:
+  motivation: >
+    exec-external zenki (start_mode = exec-external) such as 'pull-git'
+    run an external binary via IPC::Open2. When the binary exits with a
+    non-zero exit code (indicating failure), v7 currently does not check
+    the exit code and either restarts the zenka or marks it offline without
+    recording an error state. This makes failure diagnosis harder and allows
+    silent failures to appear as normal exits.
+
+  current_behavior:
+    - external program launched via IPC::Open2::open2 in v7.zenka.start
+    - SIGCHLD handled in v7.handler.sig_chld which receives exit code
+    - exit code passed to v7.report_collected_child_pid
+    - no distinction between exit 0 (success) and exit N (failure)
+    - zenka status after exit is not set to 'error' on non-zero exit
+
+  desired_behavior:
+    - when external program exits with non-zero code:
+      - log exit code at level 1 (visible, not debug)
+      - call zenka.change_status -> 'error' for that instance
+      - do NOT auto-restart on error exit (or make configurable)
+      - zero exit -> normal offline/stopped status as currently
+
+  implementation_notes:
+    - v7.handler.sig_chld already receives exit code, passes to
+      v7.report_collected_child_pid - check there for external instances
+    - identify exec-external instances via instance->{'external'} == TRUE
+      (already set in v7.zenka.start line 130)
+    - check $received_exit_code >> 8 for actual exit value (POSIX convention)
+    - relevant modules:
+        v7.handler.sig_chld
+        v7.report_collected_child_pid
+        v7.zenka.instance.restart (should skip restart on error exit)
+
+  test_case:
+    - configure pull-git zenka (already uses exec-external)
+    - trigger a run that fails (e.g. network unavailable, merge conflict)
+    - verify: zenka status changes to 'error', no auto-restart loop
+    - verify: zero exit still works correctly (status -> offline/stopped)
+
+verification:
+  concurrent_restart:
+    - restart httpsd while curl -s https://visual.v7.ax runs in a loop
+    - confirm zero failed requests during restart
+    - confirm SNI cert selection works on new instance
+
+  extbin_exit_code:
+    - pull-git failure shows 'error' status in v7 zenka list
+    - pull-git success shows normal completed/offline status
+    - no regression in other exec-external zenki (namesrv etc.)
+
+#,,.,,,,.,.,.,,,,,..,,.,,,,,..,,,,.,...,,.,,..,,...,..,,..,.,.,,,,.,..,..,,,,
