@@ -82,26 +82,7 @@ if ( $path =~ m|^/.well-known/acme-challenge/(.+)$| ) {
     return $route;
 }
 
-## Route 2: API endpoints (certificate status, management) ##
-## Pattern: /api/{endpoint}
-if ( $path =~ m|^/api/(.+)$| ) {
-    my $endpoint = $LAST_PAREN_MATCH;
-    <[base.logs]>->(
-        1,           "[%d] API route : endpoint='%s'",
-        $session_id, $endpoint
-    );
-
-    my $route = {
-        handler      => qw| letsencr.http.api_handler |,
-        handler_args => { endpoint => $endpoint },
-        cache_ttl    => 300,    # Cache API responses for 5 minutes
-    };
-
-    $data{'route_cache'}->{$cache_key} = $route;
-    return $route;
-}
-
-## Route 3: Template-based dynamic content ##
+## Route 2: Template-based dynamic content ##
 ## Try to resolve template using vhost resolver
 if ( defined $vhost ) {
     my $template_path = <[httpd.vhost_template_resolver]>->( $vhost, $path );
@@ -123,7 +104,7 @@ if ( defined $vhost ) {
     }
 }
 
-## Route 4: Static files [default] ##
+## Route 3: Static files [default] ##
 <[base.logs]>->( 1, '[%d] static file route [default]', $session_id );
 
 my $route = {
@@ -135,8 +116,8 @@ my $route = {
 $data{'route_cache'}->{$cache_key} = $route;
 return $route;
 
-#,,,.,...,.,.,,,.,,,,,.,,,.,,,,.,,..,,,..,,,.,..,,...,...,,..,,.,,.,,,..,,.,.,
-#UZ5PCT4YJUZNIYGP7IJXBZGUGJDNW23M4UPXWMTOPUQXFKJNI3MYY4DU25XX7U2YPSUNPDWYZRUVE
-#\\\|H4MXDLROL5ZLPG6KAAKDK6Q2X7ZPMUNC67BNXXDSH3FT4S7RTKC \ / AMOS7 \ YOURUM ::
-#\[7]V7PNTTOOOEDGL54ZSEBO7K57LU6CZNTIKTFS6I7BJKO4DTTKFWDA 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,,,,..,,.,,,,.,,,,,,,.,,,..,,,.,..,,...,...,.,,,,,,,,,,,,..,,.,,
+#VPWORQGCXX5VZ4GNAX4C7YLGPSR46YAQJNUAF3PZNGLNUI3VFKHCOBDR3AJT6MBJUUH5BJOSDB6P4
+#\\\|6Z4Q4THTBBDBJMXZ4Y7M5LK6PWA7D2TBVMMBTTRWYGD546QGECR \ / AMOS7 \ YOURUM ::
+#\[7]XQFCG3ZXYI6FI67N4AK77VD22OFWWNJ7GMBBLOFXSSEXR6F6K2CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
