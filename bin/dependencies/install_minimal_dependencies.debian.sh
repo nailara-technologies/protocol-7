@@ -13,26 +13,26 @@ cp $EXT_LIB_PATH/systemd/system/Protocol-7.service /lib/systemd/system/
 ### dependencies for 'v7', 'cube', 'p7-log', 'system', 'httpd',
 ##                   'events' and some non-X11 zenki agents + nshell
 
-apt-get -y install gcc git make cpanminus libc6-dev libc6-dev libmce-perl \
+apt-get -y install gcc git make cpanminus libc6-dev libmce-perl \
             liburi-perl libclone-perl libevent-perl libcryptx-perl \
-            libio-stringy-perl liblist-moreutils-perl \ libio-aio-perl
+            libio-stringy-perl liblist-moreutils-perl libio-aio-perl \
             libjson-xs-perl libnet-dns-perl libtimedate-perl \
             libhttp-date-perl liburi-query-perl libdigest-crc-perl \
             libdigest-elf-perl libfile-which-perl libfile-finder-perl \
             libperl-critic-perl libsub-uplevel-perl libbsd-resource-perl \
-            libbsd-resource-perl libdigest-jhash-perl libfile-extattr-perl \
+            libdigest-jhash-perl libfile-extattr-perl \
             libfile-slurper-perl libhash-flatten-perl libhttp-message-perl \
-            libyaml-libyaml-perl libyaml-tiny-perl libconfig-simple-perl
-            libio-socket-ssl-perl \ libtest-requires-perl
-            libppix-utilities-perl shared-mime-info \ libtest-exception-perl
+            libyaml-libyaml-perl libyaml-tiny-perl libconfig-simple-perl \
+            libio-socket-ssl-perl libtest-requires-perl \
+            libppix-utilities-perl shared-mime-info libtest-exception-perl \
             libtest-sharedfork-perl libcurses-perl \
             libhash-merge-simple-perl libproc-processtable-perl \
             libterm-readline-gnu-perl libterm-readpassword-perl \
-            libterm-readkey-perl liblinux-termios2-perl
-            libcompress-raw-lzma-perl \ liblwp-protocol-https-perl
-            libclass-accessor-lite-perl \ libio-socket-multicast-perl
-            libinline-c-perl libconst-fast-perl \ liblwpx-paranoidagent-perl
-            liblinux-inotify2-perl \ libio-compress-perl
+            libterm-readkey-perl liblinux-termios2-perl \
+            libcompress-raw-lzma-perl liblwp-protocol-https-perl \
+            libclass-accessor-lite-perl libio-socket-multicast-perl \
+            libinline-c-perl libconst-fast-perl liblwpx-paranoidagent-perl \
+            liblinux-inotify2-perl libio-compress-perl \
             libcapture-tiny-perl libfreezethaw-perl \
             libio-compress-lzma-perl libgit-wrapper-perl \
             libconvert-asn1-perl libdata-uuid-perl \
@@ -66,8 +66,8 @@ perl -Mv5.13 -e \
 
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
 
-#,,,.,,.,,.,,,..,,.,,,,.,,...,...,,,.,,,.,.,.,..,,...,...,,.,,.,,,,.,,...,.,,,
-#R4INJNOO43O5XYJYJCJLK6NCGZ2L3MKO5LNU233F3VXMDKYODJWQTNYYYDDVTGCZKHK2PNUBB3GDS
-#\\\|FI7SKBL7HIJ6EXV4D2EWHP5STWY4MLGP3CMBKGLGXKAWZN6ZDMD \ / AMOS7 \ YOURUM ::
-#\[7]XA6H55HMWSCB5N6CJ5QKYYG6CRMYZ2GBTV3NKNAMMONLDKNJ4YBQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,.,.,..,,,,.,,..,,..,,..,,..,.,,,..,,...,..,,...,.,,,...,...,...,
+#W2GBWC42UUWGGD5QQ5KZ5R5N5AYI5SFEHUSCBLRMUEK4SYBQMBAGWP2KH4V3RWDU55SW5AFFRRR5Q
+#\\\|XJ5QE6IXDQUAOXLRKYFNRFJIYWICBDNRYX3BMHYACZZTB4VCE55 \ / AMOS7 \ YOURUM ::
+#\[7]IESDDEKV7HKRRZOAE7FIZVFMCIEJC5R4TJIQBVR5ULZ2PI7ANWCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
