@@ -21,6 +21,7 @@
 );
 <[base.perlmod.autoload]>->('Net::DNS');
 <[base.perlmod.load]>->( 'File::Temp', qw| tempfile | );
+<[base.perlmod.autoload]>->('Crypt::PK::RSA');  ## RS256 signing via CryptX ##
 
 ## Initialize ACME client state (child-side)
 <letsencr.child.acme_client> = {
@@ -90,8 +91,8 @@ if (    $enroll_init eq qw| re-init |
 
 0;
 
-#,,,.,..,,,..,...,..,,...,.,.,...,.,,,,..,...,..,,...,...,.,,,,.,,...,...,..,,
-#DEMPEQJA3OPEKVXRPQDN3NH4CNJBGWIVSFAQ4OUHTKGO6OBX6T5MVQ32DMOPG5CZVOSURLYWZBWUK
-#\\\|RDAYS4U5WCGYESDEEHHHNCECEIA4JD5RBGJX2YW6CSLOEX2ZVNT \ / AMOS7 \ YOURUM ::
-#\[7]POHP4P4NHFHTZYRAHD6WFPHKBS6IXRN42B6NDVFFR2SEAPMZCQDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,...,,,.,,,.,,,,,...,,..,,..,.,.,..,,...,..,,...,,.,,.,.,.,.,.,.,
+#ETWMRCXUEEP3DMK4KP2GIRNJM5GDA4BMFM4DR7K3F4J3LCHKLHDNBBLNQD4MDIJZILRW6VAN73WVI
+#\\\|PL6YGYFY3DR42XR6NASO2G5U4VCD2VOHHJ33DUCOCQLLRXVDMEH \ / AMOS7 \ YOURUM ::
+#\[7]D5ENIBGEP67AQDK3XT3NSYYP726E4LFSBOBA4JKYPNEKMY6C6YCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
