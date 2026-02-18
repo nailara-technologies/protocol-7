@@ -17,11 +17,17 @@ my $client_sock_fd;
 # Accept connections from IO::Socket::SSL listening socket
 if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     if ( not $client_sock_fd = $fd->accept() ) {
+        ## no pending connection [ level-triggered re-fire ] ##
+        return undef if $!{EAGAIN} or $!{EWOULDBLOCK};
+
         my $log_level = 0;
         my $known_lvl = 2;
         my $err_msg   = <[base.format_error]>->( IO::Socket::SSL::errstr() );
-        $err_msg = 'client session shutdown'
-            if $err_msg =~ m|error:0A000126|;
+        if ( $err_msg =~ m|error:0A000126| ) {
+            $err_msg = 'client session shutdown';
+            $log_level
+                = $known_lvl;    ## expected : client closed before handshake
+        }
         $err_msg = lc($err_msg) if $err_msg =~ s| attempt||g;
         if ( length( $err_msg // '' ) ) {
             my $os_err = <[base.str.os_err]>;
@@ -89,8 +95,8 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     return undef;              ## <-- connection closed \ error connecting ##
 }
 
-#,,.,,,,.,,,,,...,,..,,,,,..,,.,.,,..,,,,,.,,,..,,...,..,,.,,,.,.,...,,.,,.,,,
-#D2VDFX2LGNAA3RK62ZPCXEDMUMTF7ZQ4OZCJMTRAFZMQIAM3SDPR6FKAAYVBCBK3SRE3QORKQTNWA
-#\\\|EGAQ24X3WYLQCPAJURZ4EZM3I26P4WTZOIZ5EUF6JYVMCHNN4ZG \ / AMOS7 \ YOURUM ::
-#\[7]54DPX5TUAGVIDRUTUYK622BIH7M5D6GK3WDE7MYV6X742ERPP4BI 7  DATA SIGNATURE ::
+#,,,.,...,,,,,...,.,,,.,,,,,.,.,.,.,.,,..,,,,,..,,...,..,,..,,,,.,.,,,,.,,,,.,
+#KDIZMKY3REYJ5EUGT2EYWFQJPDL23OYA7AD7IOU2ECBRNX3M5LDB3QCKVT3URTZ26OMUFGOB4JIL2
+#\\\|XTO6NNZQGWLJZPEIM6V5JLGCJICUXNJDSGBEQDJTVJM53XZ2EPB \ / AMOS7 \ YOURUM ::
+#\[7]MMEHIGII6IBUUNTY7KRAQ7U5UTCQ67BK5W2X6D66T2B7YMMLS4CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
