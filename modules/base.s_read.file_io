@@ -1,0 +1,45 @@
+## [:< ##
+
+# name = base.s_read.file_io
+# desc = utf8 safe IO::AIO read for file handles [ with optional fh_offset ]
+# note = use base.s_read for socket and pipe reads [ non-blocking path ]
+
+my $read_fh    = $ARG[0];
+my $buffer_ref = $ARG[1];
+my $read_len   = $ARG[2];
+my $fh_offset  = $ARG[3];
+
+warn 'filehandle not defined <{C1}>' and return undef if not defined $read_fh;
+warn 'buffer ref not present <{C1}>' and return undef
+    if ref $buffer_ref ne qw| SCALAR |;
+
+## for comparison ##
+#
+## sysread FILEHANDLE,SCALAR,LENGTH,OFFSET
+## sysread FILEHANDLE,SCALAR,LENGTH
+#
+## aio_read  $fh, $offset, $length, $data, $dataoffset, $callback->($retval)
+
+my $b_read;
+IO::AIO::aio_read( $read_fh, $fh_offset, $read_len, my $r_buff //= '',
+    0, sub { $b_read = $ARG[0] // -1 } );
+
+##  wait until read request has been completed  ##
+while ( not defined $b_read ) { IO::AIO::poll() }
+
+if ( $b_read > 0 ) {
+    ## downgrade UTF-8 flag to prevent double-encoding when sending via sockets ##
+    if ( utf8::is_utf8($r_buff) ) {
+        utf8::downgrade( $r_buff, 0 );   ## 0 = non-fatal, strip UTF-8 flag ##
+    }
+    $b_read = length($r_buff);           ##  adjust for decoding  ##
+    $$buffer_ref .= $r_buff;
+}
+
+return $b_read;                          ## [ returns -1 on error ] ##
+
+#,,,.,...,,.,,,.,,,..,,.,,,..,,..,.,.,,,.,,..,.,.,...,...,...,.,.,..,,...,.,,,
+#J5ZP3AWEDXW47EQTPN26SP4I4LPBUELBHMWPCCSG33SFCR4YE5C63DRPUSGFMDLE7YR4UZETEQAWW
+#\\\|7CCUZORJUUXACBXZJYCUZKD74UZ2HSBWJXLK2ZUX3CCYLFHXPXP \ / AMOS7 \ YOURUM ::
+#\[7]UXVN5P4MIVSHAMD2XKOPY7JN2V4NDTLYCLQSLF2UWBCBA4IFE6CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

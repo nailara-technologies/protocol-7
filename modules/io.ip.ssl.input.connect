@@ -52,8 +52,8 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
         return undef;
     }
 
-    ## Set socket to binary mode to prevent UTF-8 encoding/decoding
-    ## This ensures binary file data is not corrupted by automatic UTF-8 processing
+    ## set non-blocking : prevent event loop stall on slow clients ##
+    $client_sock_fd->blocking(0);
     binmode( $client_sock_fd, ':raw' );
 
     my ( $p_host, $p_port )
@@ -102,8 +102,8 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     return undef;              ## <-- connection closed \ error connecting ##
 }
 
-#,,..,,,.,..,,,.,,,..,,.,,..,,...,,,,,,,.,,.,,..,,...,...,,,.,.,,,,,,,.,,,.,,,
-#VPQZJ6KQH2Z2DHMAZMI5FGJ5ZZOBHFIGIVZGWNY36ANOCT5KYQ7DQLJWAPQSN3JLQ77IQJIIRNOD2
-#\\\|ZQFC23DAGT6ML7NRL7M3VSEDCCUX74O3LIYJRBXC33D4T4F4QGJ \ / AMOS7 \ YOURUM ::
-#\[7]4VC2N2MXGDWBVVPRX776XICNXJPFSLB5HJIMSWTEYQ2D5YKNTWDY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,..,,,.,.,,,..,,.,,,.,,,,.,,.,,,..,,...,...,,,,,,,.,,,,,,..,,..,
+#4QH6TBCZDVTZTZCUKRVXOT2TPU36TSYDSDXJJROP2IWWOWIWT7SNUL6LBE7XJPF3ABTA37SXAO33U
+#\\\|DGQAHRJKSF7CZTNP7JUYXMRAZW5L7DRUKHHWGRXYX2PKQP2IAHS \ / AMOS7 \ YOURUM ::
+#\[7]YTMH4HEUXMSWGSXB5JSIXV4JZEM33HQSAFHYGBYJJH3OA7QZR6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

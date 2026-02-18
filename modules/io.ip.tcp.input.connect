@@ -17,6 +17,8 @@ if ( ref($fd) eq qw| IO::Socket::IP | and -S $fd ) {
         <[base.log]>->( 0, "[$id] cannot accept() connection : $err_msg" );
         return undef;
     }
+    ## non-blocking : prevent event loop stall ##
+    $client_sock_fd->blocking(0);
 
     my ( $p_host, $p_port )
         = ( $client_sock_fd->peerhost(), $client_sock_fd->peerport() );
@@ -51,8 +53,8 @@ if ( ref($fd) eq qw| IO::Socket::IP | and -S $fd ) {
     return undef;              ## <-- connection closed \ error connecting ##
 }
 
-#,,.,,..,,...,..,,.,.,,.,,,.,,.,.,,,,,,,,,...,..,,...,...,..,,..,,,,.,..,,,.,,
-#Y7WK7OK6FH6RBZ7XHJCFSXC7WFTK223MGSNGEET32VBGKDQ66Q7VVLXWC22IQ3NJHUQKN2OOMPRIK
-#\\\|5HLRPNOCG4ILQNRTH63SL2M4UXQIB2DPWFNM3XUPNLVCYJOVPHJ \ / AMOS7 \ YOURUM ::
-#\[7]IKERW4BG5MW345SOX5M2CVJKVURERABUHF233TGTKFYUCZ76B6CQ 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,.,,,.,,,..,,.,,,..,,.,.,,..,,,,,..,,...,...,.,,,,,.,,,.,,,,,...,
+#DTEFWCBMZ4WYW62JLHUKF67R2APACS6CKAJPYT4MFULZKOYYV5PP67MURSD4AFG7CREVEVR2XNLP4
+#\\\|6WXCKXKJNJGDZU3K7VBR5KCJSY3FN2PQ6RBJRKDN2JIH6FDOT4P \ / AMOS7 \ YOURUM ::
+#\[7]VHZ3CGA4MWDEWRGNOHQHUG7CJHB6BFFUBGMJUUWVK5H7WAVMEIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
