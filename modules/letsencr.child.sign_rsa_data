@@ -22,35 +22,45 @@ unless ( defined $data_ref && ref $data_ref eq 'SCALAR' ) {
 
 ## retrieve RSA key object from global hash
 unless ( exists $keys{'RSA'}->{$account_key_name}
-    && exists $keys{'RSA'}->{$account_key_name}->{'rsa_object'} ) {
-    <[base.log]>->(
-        1, "error: RSA account key '$account_key_name' not found"
+    && exists $keys{'RSA'}->{$account_key_name}->{'pem_private'} ) {
+    <[base.logs]>->(
+        1, "error : RSA account key '%s' not found",
+        $account_key_name
     );
     return undef;
 }
 
-my $rsa = $keys{'RSA'}->{$account_key_name}->{'rsa_object'};
-
-## set digest and padding for RS256 [ required explicitly for OpenSSL 3.x ]
-$rsa->use_sha256_hash;
-$rsa->use_pkcs1_padding;
-
-## sign using RS256 (OpenSSL RSA with PKCS#1 v1.5 padding)
-## [ v1.5 is industry standard for RS256 per RFC 7518 ]
-my $signature;
-eval { $signature = $rsa->sign( $data_ref->$* ); } or do {
-    my $err = <[base.str.eval_error]>;
-    <[base.logs]>->( 1, "error : RSA signing failed : %s", $err );
+## use Crypt::PK::RSA [ CryptX / libtomcrypt ] for signing
+## avoids OpenSSL 3.2+ Marvin attack restriction on PKCS#1 v1.5 ##
+my $pem = $keys{'RSA'}->{$account_key_name}->{'pem_private'};
+my $pk;
+eval { $pk = Crypt::PK::RSA->new( \$pem ) };
+if ( $EVAL_ERROR or not $pk ) {
+    <[base.logs]>->(
+        1, 'error : failed to load RSA key for signing : %s',
+        <[base.str.eval_error]>
+    );
     return undef;
-};
+}
+
+## sign using RS256 (PKCS#1 v1.5 + SHA-256) ##
+my $signature;
+eval { $signature = $pk->sign_message( $data_ref->$*, 'SHA256', 'v1.5' ) };
+if ( $EVAL_ERROR or not defined $signature ) {
+    <[base.logs]>->(
+        1, 'error : RSA signing failed : %s',
+        <[base.str.eval_error]>
+    );
+    return undef;
+}
 
 <[base.log]>->( 3, 'RS256 signature generated successfully' );
 
 ## return raw signature bytes (caller will base64url encode)
 return $signature;
 
-#,,..,,.,,.,,,,.,,.,.,,,.,..,,.,,,.,,,,..,,.,,.,.,...,..,,...,..,,.,.,,.,,,,.,
-#4UZ76NEJIA3EZSHLMM3FERVZPZ4MX4OEL6HF3PWGO46LJQHOOYYQV353IUKXHOVZ57OQOQSMRJXE2
-#\\\|AAGU6MFR6KLFVVCWPMB4VBNECXDMETHGAGVUWZH2GAM6WVWF3KO \ / AMOS7 \ YOURUM ::
-#\[7]ZYRDMITVAWYSUIUHLTTXJ3UJF44R3Y52WWBDJ3QODLST62WBMSAY 7  DATA SIGNATURE ::
+#,,,.,,..,,..,...,,,,,.,,,.,,,,,,,,.,,,.,,,,,,.,.,...,...,,..,.,,,,.,,,,,,,,,,
+#LECE4HKD57CVYAZOKHWDUFGMA63CWGZ5DXSK2JPYSW3MD4Y4GUCY5737ZV6GHMU5Q3EMTFQ4IOC64
+#\\\|UK55JPRIYBL6ZPSEOLGMHY34ZCCYZZ2BR52Y7IPOSXKHPMR6ARG \ / AMOS7 \ YOURUM ::
+#\[7]4PE3ELPZVIDIGWVMWHCW6QR4P5XEHTA3MP7TKZZ7NWWOFZOSS2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
