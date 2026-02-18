@@ -89,7 +89,7 @@ if ( not length( $user // '' ) ) {
         }
     } elsif ( !defined $override_primary_group ) {
         ## auto-detect secondary groups from group membership
-        #                            [ only if no primary override ]
+        ##                          [ only when no primary group override ]
         while ( my ( $_name, $_pw, $_gid, $_members ) = getgrent ) {
             push( @secondary_gids, $_gid )
                 if ( grep( $ARG eq $user, split( m|\s+|, $_members ) ) );
@@ -253,8 +253,8 @@ if ( not length( $user // '' ) ) {
     }
 }
 
-#,,..,,,.,,,,,..,,,.,,,,,,,,.,,,.,,,,,...,,.,,..,,...,...,,,,,,,.,...,.,,,,..,
-#FM74UTDDVIFCHATMDD2RXLJD66W2CQGRECVLH4IVN5ALJG4FW2AVUAGTNTGYX2VMSVMJML3PV4Y3W
-#\\\|HKBSIP6R5S7CCTDAA2ALIV3P4JDBZ2R5UO7OJV2IRUVUHXSELQF \ / AMOS7 \ YOURUM ::
-#\[7]QDCVAUXU3LDZR5D6RQXFRLVJ5NHBUG5MA3FE5VRU5UAW64UMKUCI 7  DATA SIGNATURE ::
+#,,..,..,,.,.,...,,..,...,.,,,,.,,,,.,...,...,..,,...,...,.,,,.,.,,,.,,,.,...,
+#JUC5ICWUHX2TOZ4KNUN6SN5RRVKC23AWN7SGLJDLDE3CQJJ7UEJYYLMAFQ6AODHH7RPYMVYUGICTA
+#\\\|6RBFEX2LSDORXDHG5375YDE2BLWA6PDGDDQ46V2PDTKBYYN7O7H \ / AMOS7 \ YOURUM ::
+#\[7]CNFQSYPHZRD3X52WL5PFVGGPSCNXNBQY5XV6LBKOEJXXEYX5GACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
