@@ -27,12 +27,32 @@ my $lsock = new IO::Socket::IP(
     Blocking  => 0
 );
 if ( not defined $lsock or !-S $lsock ) {
-    <[base.logs]>->(
-        0, "cannot allocate %s:%d [ %s ]",
-        $l_addr, $l_port, <[base.str.os_err]>
-    );
-    return undef;
-} else {
+    ## IPv6 wildcard not available - fall back to IPv4 wildcard ##
+    if ( $l_addr =~ m|^[0:]+$| ) {
+        <[base.logs]>->(
+            1, 'IPv6 wildcard not available - retrying with 0.0.0.0'
+        );
+        $l_addr = '0.0.0.0';
+        $lsock  = new IO::Socket::IP(
+            LocalAddr => $l_addr,
+            LocalPort => $l_port,
+            Proto     => qw| tcp |,
+            Listen    => 13,
+            ReusePort => 1,
+            ReuseAddr => 1,
+            TimeOut   => 1,
+            Blocking  => 0
+        );
+    }
+    if ( not defined $lsock or !-S $lsock ) {
+        <[base.logs]>->(
+            0, "cannot allocate %s:%d [ %s ]",
+            $l_addr, $l_port, <[base.str.os_err]>
+        );
+        return undef;
+    }
+}
+{
     $l_addr //= qw| <undefined> |;
     my $status = $lsock->listen();
 
@@ -58,8 +78,8 @@ if ( not defined $lsock or !-S $lsock ) {
     return $lsock;
 }
 
-#,,,.,,..,,,,,.,,,..,,,,.,.,,,.,,,,..,,,,,...,..,,...,..,,...,...,.,,,,,.,.,,,
-#EKDFUTU4R35ACTEHXCVUAWCIKST2NZQATTNOFG7IGYU2EGSESLMJMRUHNB4M4WXTHMWJAIUNOZ65M
-#\\\|DLDN3FALI4OUIDFFTPSW4DFK4MZSCCF3JZXG7FJNIFIRPEACAQN \ / AMOS7 \ YOURUM ::
-#\[7]BRH7LCV75LEZKUHPB5ZN267ZCLCDN4W4UROZ6FWKVL7YKVEIMOCY 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,..,,.,,,...,,,.,,,,,,,.,.,,,,,,,..,,...,...,...,.,,,,,.,,,,,..,,
+#FJJ6LBAEJEFBRBEZBDGMWMBFL2Y7SVWXPS5MH4AEJFOGDAQJS34MUZOXHE6PT5FWJ5GMUBUHUDO6E
+#\\\|MYZGUXZOYBVOLCBU7DITSEVXXMUEFURMBT4BGMH5ETXIS6AWIBZ \ / AMOS7 \ YOURUM ::
+#\[7]EGUR5SZKCE5IK3Q3LPCDYPQAZ2UTMLZKSR4DHFFFXXEHS3OIFADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
