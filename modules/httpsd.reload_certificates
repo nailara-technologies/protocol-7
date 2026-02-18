@@ -10,58 +10,44 @@ my $cert_info = <[httpsd.discover_active_certificate]>;
 
 unless ($cert_info) {
     <[base.log]>->( 1, 'error: failed to discover active certificate' );
-    return { 'mode' => qw| false |, 'data' => 'no active certificate found' };
+    return FALSE;
 }
 
-my $cert_dir = $cert_info->{cert_path};
-my $key_dir  = $cert_info->{key_path};
+my $cert_path = $cert_info->{cert_path};
+my $key_path  = $cert_info->{key_path};
 
 ## verify discovered certificates exist
-unless ( -f $cert_dir && -f $key_dir ) {
+unless ( -f $cert_path && -f $key_path ) {
     <[base.log]>->(
         1, 'error: certificate or key file not found or not readable'
     );
-    return {
-        'mode' => qw| false |,
-        'data' => 'certificate or key file not found'
-    };
+    return FALSE;
 }
 
 ## update config paths to point to discovered certificate files
-<httpsd.cfg.certificate_path> = $cert_dir;
-<httpsd.cfg.key_path>         = $key_dir;
+<httpsd.cfg.certificate_path> = $cert_path;
+<httpsd.cfg.key_path>         = $key_path;
 
 ## update certificate cache in HTTPSD state
 delete <httpsd.cert_cache> if exists <httpsd.cert_cache>;
 
-## Load new certificates
-<[file.slurp]>->( $cert_dir, \my $cert_pem, qw| :raw | );
-<[file.slurp]>->( $key_dir,  \my $key_pem,  qw| :raw | );
-
 <httpsd.cert_cache> = {
-    cert_path => $cert_dir,
-    key_path  => $key_dir,
-    cert_pem  => $cert_pem,
-    key_pem   => $key_pem,
+    cert_path => $cert_path,
+    key_path  => $key_path,
     loaded_at => time(),
 };
 
-<[base.log]>->( 2, 'HTTPSD: certificates reloaded successfully' );
+<[base.logs]>->( 2, 'HTTPSD: certificate updated [ %s ]', $cert_path );
 
-## if ssl socket was deferred at startup, request v7 restart so that
-## post_init can create the socket as root [ binding port 443 requires
-## root privileges, which are dropped before zenka.loop begins ]
-if (<httpsd.socket_deferred>) {
-    <[base.logs]>->(
-        1, 'httpsd: SSL socket deferred - requesting self-restart to activate'
-    );
-    <[httpsd.self_restart]>;
-}
+## ssl socket must be re-bound as root on port 443 - request restart
+## [ httpsd drops privileges before zenka.loop - restart runs post_init again ]
+<[base.log]>->( 1, 'httpsd: requesting self-restart to activate new cert' );
+<[httpsd.self_restart]>;
 
-return { 'mode' => qw| true |, 'data' => 'certificates reloaded' };
+return TRUE;
 
-#,,,.,,.,,,,,,,,.,...,,.,,..,,,..,,,.,,,,,,..,..,,...,...,,,.,.,,,,,.,,,.,,,,,
-#JEPYOOZ2FZFUN7763OGEB2A7ZSJL7HAVB4HAZVTLD2GN7VHSYFQDWPH5KM4N4JXRC3W5SN75I6GEE
-#\\\|266KQP4MJLBSQWQNN5RYEJBJY7PIU7CDTVRQRNYXCS2KIBICX3U \ / AMOS7 \ YOURUM ::
-#\[7]BSCS5XU24CGX4O2TNJI7CZTB6T3ZHL5TAOILMJHNN3BW6TBLVWCA 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,,,.,..,,,.,,.,.,,,,,...,.,.,...,..,,...,...,..,,..,,,..,,,,,,,,,
+#JKVOI6KHAKI3AMKJ5YHORJGN6BVMNOEA7FHVA22KZZYW6TEOUNVICY6RRGIUT4XTJ3ITGSJAC53NK
+#\\\|MVM5MSPEEZNUB2NEJ2CGL2UMWYIIEW6CFD4ODXTKHXEFP4QEQAI \ / AMOS7 \ YOURUM ::
+#\[7]HH36XTFOXDHO4R7OCSDCYC2QSNNAZTIYNITHJ5PXZQIQNQINMACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
