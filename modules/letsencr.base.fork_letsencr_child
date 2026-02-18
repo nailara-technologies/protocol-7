@@ -46,8 +46,10 @@ if ( !<letsencr.child.pid> ) {    ## child ##
     <[base.load_modules]>->('letsencr.child');
     <[base.init_modules]>->('letsencr.child');
 
+    ## silencing session shutdown, to log-level 1 ##
+    <callback.session.closing_last.params>->[1] = 1;
+
     ## mark parent session for shutdown when last session closes
-    # <callback.session.closing_last.params>->[1] = 1;
     <[base.log]>->( 1, 'preparing to close cube session of child .,' );
     $data{'session'}->{$session_id}->{'shutdown'} = TRUE;
 
@@ -75,6 +77,9 @@ if ( !<letsencr.child.pid> ) {    ## child ##
     <[base.load_modules]>->('letsencr.parent');
     <[base.init_modules]>->('letsencr.parent');
 
+    ## silencing session shutdown, to log-level 1 ##
+    <callback.session.closing_last.params>->[1] = 1;
+
     $data{'handle'}{$child_pipe}{'mode'} = qw| out |;
     my $id = <[base.session.init]>
         ->( $child_pipe, qw| protocol-7 client child | );
@@ -88,7 +93,7 @@ if ( !<letsencr.child.pid> ) {    ## child ##
     $data{'session'}{$session_id}->{'authenticated'} = qw| yes |;
 
     my $cache_dir  = <letsencr.cache.dir>;
-    my $cert_cache = sprintf '%s/cert.cache', $cache_dir;
+    my $cert_cache = catfile $cache_dir, qw| cert.cache |;
     if ( -f $cert_cache ) {
         <[base.log]>->( 1, 'found saved certificate cache.,' );
 
@@ -107,8 +112,8 @@ if ( !<letsencr.child.pid> ) {    ## child ##
     <[base.log]>->( 1, 'letsencr parent initialized' );
 }
 
-#,,,.,..,,.,.,,.,,.,,,,.,,.,,,,,,,..,,..,,,..,..,,...,...,..,,..,,,,,,.,.,..,,
-#3YYPNE6VPUOPAJODND6PF4NWG7RTLM3YEKPPJV3CFJHH2P23AS4RIFEPWNNUATUQWYNO72SQV3UPE
-#\\\|Y36ODOFWUWUAEUSG4DGRM3SGO3HOC4KJLJCG6CCFASFQPMQ45KC \ / AMOS7 \ YOURUM ::
-#\[7]3KEJI7T7ZMAA65K46Q3OIPT4LGTM77D6WLPZI5O57J2JSMEK6CCY 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,...,...,...,..,,,.,,...,,.,,,,.,..,,...,...,..,,,,,,,.,,.,.,..,,
+#UJXF3ZHY2DSUN3T34PED62NJHF6ST42PYORCC6ODVBKBVAJ32XCNVCDSEGH44PJQ4OOUJNAIIKZ2W
+#\\\|LZHN75EFK5JFSEIHNYVUHSBOHSRYVWRNWSLJFZHNK2L54B6JV5T \ / AMOS7 \ YOURUM ::
+#\[7]IVA7PBYQB6VVPW5VD6LQGMG2OGVUU7CMVSJILC3PVGID6XL2XIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
