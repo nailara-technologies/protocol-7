@@ -3,8 +3,10 @@
 # name  = zenka-startup.v7
 # descr = 'letsencr' zenka startup configuration used by 'v7' zenka
 
-dependencies = cube
-start.on-demand = 1
+dependencies       = cube
+start.on-demand    = 1
+restart.disabled   = 1
+heartbeat.disabled = 1
 
 : v7-init :
   start_mode = stdin-zenka
@@ -13,9 +15,10 @@ start.on-demand = 1
 
 : zenka-init :
   [base.auth.set_zenka_key:'<{cube.key}>']
+  [base.zenki.set_ondemand_timeout:780]
 
-#,,,.,,,.,,,.,,.,,...,,..,,,,,,,.,,.,,,.,,,..,..,,...,...,...,,.,,,,,,.,,,...,
-#2RMRLXB7IV73YFLHASJHM7AQ3C5CFYGAJB7ZL74JW2HNMH442TKB3UQCTUHH3GY3MNBNY6F72JYCU
-#\\\|YITIWHV6JSAXZRXCIMJVMEXNUD6QWPCPG4PGEB7UDS3ULTP2HTN \ / AMOS7 \ YOURUM ::
-#\[7]SNG2RAV7P4CUW6TJBNSXXMVXEGOBUYKIT37WXXB5JQTQFIGDDWAA 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,.,,,...,,,.,,.,,,..,.,,,,..,,.,,..,,...,...,.,.,,,,,..,,...,,.,,
+#GG64WTF6ZGQ3DJKE4MJJBHGO3CXOEFNN7FCE52PXL3ASGFDCAEXNQPKKO6SGTAQ7HFQ5LTEWTHDLQ
+#\\\|ANVJHHK2N7QRW3W7JCUZAA5BRPBD4Y4UGODRPXTEL36MBCHXFYZ \ / AMOS7 \ YOURUM ::
+#\[7]F6BESG36CANHBOKFO4W5OKZBD6RO7WW5SAHYRNTRWIIOYJLQ5EAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
