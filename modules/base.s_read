@@ -1,13 +1,13 @@
 ## [:< ##
 
 # name = base.s_read
-# desc = utf8 safe sysread replacement [ with optional fh_offset parameter ]
+# desc = utf8 safe non-blocking sysread for sockets and pipes
+# note = use base.s_read.file_io for file handle reads [ IO::AIO with offset ]
 # note = buffer parameter expects passing by reference
 
 my $read_fh    = $ARG[0];
 my $buffer_ref = $ARG[1];
 my $read_len   = $ARG[2];
-my $fh_offset  = $ARG[3];
 
 warn 'filehandle not defined <{C1}>' and return undef if not defined $read_fh;
 warn 'buffer ref not present <{C1}>' and return undef
@@ -15,61 +15,29 @@ warn 'buffer ref not present <{C1}>' and return undef
 
 ## no more dataoffset parameter because of UTF-8 decoding ##
 
-## for comparison ##
-#
-## sysread FILEHANDLE,SCALAR,LENGTH,OFFSET
-## sysread FILEHANDLE,SCALAR,LENGTH
-#
-## aio_read  $fh, $offset, $length, $data, $dataoffset, $callback->($retval)
+my $r_buff;
+my $b_read = sysread( $read_fh, $r_buff, $read_len );
 
-# SSL-aware: Check if this is an IO::Socket::SSL object
-if ( ref($read_fh) eq qw| IO::Socket::SSL | ) {
+## non-blocking : return 0 on would-block ##
+return 0
+    if not defined $b_read
+    and ( $OS_ERROR{EAGAIN} or $OS_ERROR{EWOULDBLOCK} );
 
-    # For SSL sockets, use sysread which handles TLS decryption automatically
-    my $b_read = $read_fh->sysread( my $r_buff, $read_len, 0 );
+return -1 if not defined $b_read;    ## [ error ] ##
 
-    if ( defined $b_read && $b_read > 0 ) {
-        ## For binary file data, downgrade UTF-8 flag to prevent
-        ## double-encoding when sending via SSL sockets [syswrite
-        ## auto-encodes UTF-8 strings]
-        if ( utf8::is_utf8($r_buff) ) {
-            ## 0 = non-fatal, silently strips UTF-8 flag
-            utf8::downgrade( $r_buff, 0 );
-        }
-        $b_read = length($r_buff);    ##  adjust for decoding  ##
-        $$buffer_ref .= $r_buff;
-        return $b_read;
-    } else {
-        return $b_read // -1;
+if ( $b_read > 0 ) {
+    ## downgrade UTF-8 flag to prevent double-encoding when sending via sockets ##
+    if ( utf8::is_utf8($r_buff) ) {
+        utf8::downgrade( $r_buff, 0 );   ## 0 = non-fatal, strip UTF-8 flag ##
     }
-
-} else {
-
-    # For TCP and other socket types, use async read
-    my $b_read;
-    IO::AIO::aio_read( $read_fh, $fh_offset, $read_len, my $r_buff //= '',
-        0, sub { $b_read = $ARG[0] // -1 } );
-
-    ##  wait until read request has been completed  ##
-    while ( not defined $b_read ) { IO::AIO::poll() }
-
-    if ( $b_read > 0 ) {
-        ## For binary file data, downgrade UTF-8 flag to prevent double-encoding
-        ## when sending via SSL sockets (syswrite auto-encodes UTF-8 strings)
-        if ( utf8::is_utf8($r_buff) ) {
-            ## 0 = non-fatal, silently strips UTF-8 flag
-            utf8::downgrade( $r_buff, 0 );
-        }
-        $b_read = length($r_buff);    ##  adjust for decoding  ##
-        $$buffer_ref .= $r_buff;
-    }
-
-    return $b_read;                   ## [ returns -1 on error ] ##
-
+    $b_read = length($r_buff);           ##  adjust for decoding  ##
+    $$buffer_ref .= $r_buff;
 }
 
-#,,.,,,,,,,,.,,..,.,.,,.,,..,,...,.,,,.,,,.,.,..,,...,...,.,.,.,,,,.,,.,,,,,.,
-#4T7YC5G6PTDAGQUIAN4UPRNAAKB6F4I622ZCIXZU72YGCBYLPRKMFDWGJOF7FI6XTEXNS2TZZTT5I
-#\\\|Z5H5CBW57E3YHH5C3NTKO3MGRLOP4GAFQBJSXSOOBIC4VUP2TAX \ / AMOS7 \ YOURUM ::
-#\[7]3OQ3H5A4ZAU3CAUKBTEYOXQOASVAJ7OGAIV3PVDKHTV7FPZ55ODY 7  DATA SIGNATURE ::
+return $b_read;                          ## [ returns -1 on error ] ##
+
+#,,,,,,,.,.,.,,..,,..,..,,,..,..,,.,,,...,,..,.,.,...,...,,..,,,.,,,.,..,,...,
+#G2G2ZMGCSHZ46R3XGL7TAMKMHFG33INKSRTK7L6RUDGZBIRLBBG3VEZNRLQOIUHROB5KHJBBN7D3G
+#\\\|GCV2JLN4EVV54LYN73XQO4NRN7FQIYOWO4YB7ZOXXB32KSGFHTF \ / AMOS7 \ YOURUM ::
+#\[7]FDF3X4QBYHL7JHMLCYIMQI5U3QIPN23JFI6IBGYRBE532B5O3CBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

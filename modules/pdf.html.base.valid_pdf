@@ -22,7 +22,7 @@ if ( !open( $file_fh, $file_path ) ) {
 
 my $file_ok = 2;
 
-my $result = <[base.s_read]>->( $file_fh, \my $buffer, 5 );
+my $result = <[base.s_read.file_io]>->( $file_fh, \my $buffer, 5 );
 
 if (   $result != 5
     or not defined $buffer
@@ -32,7 +32,7 @@ if (   $result != 5
     $file_ok--;
 }
 
-$result = <[base.s_read]>->( $file_fh, \$buffer, 7 );
+$result = <[base.s_read.file_io]>->( $file_fh, \$buffer, 7 );
 
 if (   $result < 6
     or not defined $buffer
@@ -60,8 +60,8 @@ if ($file_ok) {
     return FALSE;
 }
 
-#,,,,,.,,,.,.,,..,,,,,..,,...,,,.,,..,.,.,,,,,..,,...,...,...,,.,,.,.,,,.,,,,,
-#BQOMT6UALMNUSOKPUX5YXOL6TSDT2NGPJWYWQJ2CTHKLDY533MV4M7NZ4F2ILJUQLMYWET5ZPLEKY
-#\\\|TS3FB2SX6TRAO7ZW7V5SSWHWKCXSF4YBVBMEMF53YSDRPBWW4FA \ / AMOS7 \ YOURUM ::
-#\[7]NDV5PW5M6HESS577UJ6CGYAVVLY4GE7UQBZFRVJYLKXRQPCZKOAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,,.,.,.,.,,,,,,,,..,,..,,,,,...,..,,...,.,,,.,.,,,.,,,.,,..,,,.,
+#FXTAXJS5PN5RQKCMABJ3PZCZSFHXWF6HJBKAT4VPDH3HQTEZ4SPOU3ABZ5OUFN4UBJCEZ3WGG6UYW
+#\\\|54XTK4VVEWDK44OUZ5VQ7R4S4DBPKXGERVSONOOBHONDSFMSMJD \ / AMOS7 \ YOURUM ::
+#\[7]C55OOW4BHQEVKJMB4CECO6LPGW35OGQSB2EYK6RXUX7ZS4WPVGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

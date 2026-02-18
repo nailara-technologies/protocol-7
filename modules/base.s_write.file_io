@@ -1,14 +1,14 @@
 ## [:< ##
 
-# name = base.s_write
-# desc = utf8 safe non-blocking syswrite for sockets and pipes
-# note = use base.s_write.file_io for file handle writes [ IO::AIO with offset ]
-# todo = create custom version to pass buffer by reference + reducing overhead
+# name = base.s_write.file_io
+# desc = utf8 safe IO::AIO write for file handles [ with optional fh_offset ]
+# note = use base.s_write for socket and pipe writes [ non-blocking path ]
 
 my $write_fh         = $ARG[0];
 my $write_string_ref = $ARG[1];
 my $write_len        = $ARG[2];
 my $str_offset       = $ARG[3] // 0;
+my $fh_offset        = $ARG[4];
 
 if ( not defined $write_fh ) {
     warn 'write_fh param not defined <{C1}>';
@@ -29,20 +29,18 @@ if ( utf8::is_utf8( $write_string_ref->$* ) ) {
 
 $write_len //= bytes::length( $write_string_ref->$* );
 
-## non-blocking syswrite : returns 0 on EAGAIN, -1 on error ##
-my $size_written
-    = syswrite( $write_fh, $write_string_ref->$*, $write_len, $str_offset );
+my $size_written = undef;    ##  until write attempt  ##
 
-return 0
-    if not defined $size_written
-    and ( $OS_ERROR{EAGAIN} or $OS_ERROR{EWOULDBLOCK} );
+IO::AIO::aio_write( $write_fh, $fh_offset, $write_len, $write_string_ref->$*,
+    $str_offset, sub { $size_written = $ARG[0] } );
 
-return -1 if not defined $size_written;
+##  blocking until write request has been completed  ##
+while ( not defined $size_written ) { IO::AIO::poll() }
 
-return $size_written;
+return $size_written;        ## [ returns -1 on error ] ##
 
-#,,,.,,..,,,,,..,,...,..,,.,.,,..,.,,,.,,,...,.,.,...,...,...,,..,.,,,..,,,,,,
-#WZ6QYHX4RQYGLPRLSRZAW2QV5XQO3GPKJTYGPCXRDLSOD5YAIIR47UG5ECYMDSAESOIKPKVNQZQG6
-#\\\|OPLYEBXOOFVNJOLRIBNMBLCHMV5NZAYWLES7SJKTM3ORH6E75O2 \ / AMOS7 \ YOURUM ::
-#\[7]YLP3IWOFRFKBZC6KFI3AMRIILIGGBSRLSA5M3MN4XXIUSQIHI4BQ 7  DATA SIGNATURE ::
+#,,.,,.,,,...,,..,,.,,..,,.,,,.,.,...,.,.,...,.,.,...,...,...,.,,,...,..,,.,.,
+#3PI6JHR3X36Q54VLCDLYXDRXT3QJRBIAJTBZUKMLAXVWL7IOYNWAQ7RFPANSZ6GSWNME32CIHZBJA
+#\\\|U3JWAUGQMVFGDBTOLNE2YJWGRU2667ZFSRE52JYKHTUQPLDW27L \ / AMOS7 \ YOURUM ::
+#\[7]2EAGMC53ZUHKNIDHKEKK47HZ6DBYF2G5ASX3555LEWDX6ZGEEYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
