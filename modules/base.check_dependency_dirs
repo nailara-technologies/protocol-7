@@ -35,13 +35,17 @@ if (    $dep_dir =~ s|zenki/$zenka/$start_cfg_name$|$cfg_path/zenki/$zenka|
         return undef;
     }
 
-    ## Get zenka group ##
+    ## Get zenka group [ gid 0 fallback for root when no 'root' group entry ]
     my $zenka_group = $user;
     my $gid         = getgrnam($zenka_group)
-        or <[base.logs]>->(
-        0, "<< check_dependency_dirs : unix group '%s' not found >>",
-        $zenka_group
-        ) and return undef;
+        // ( $zenka_group eq qw| root | ? 0 : undef );
+    unless ( defined $gid ) {
+        <[base.logs]>->(
+            0, "<< check_dependency_dirs : unix group '%s' not found >>",
+            $zenka_group
+        );
+        return undef;
+    }
 
     ## Get parent owner UID for placeholder chown ##
     my ( undef, undef, $parent_uid ) = getpwnam($parent_owner)
@@ -81,8 +85,8 @@ if (    $dep_dir =~ s|zenki/$zenka/$start_cfg_name$|$cfg_path/zenki/$zenka|
     }
 }
 
-#,,,.,,..,,,.,,.,,..,,.,,,...,...,,..,.,.,.,,,..,,...,...,.,,,.,.,.,.,,..,..,,
-#3P25MV5B4B6Z5CCHU5DCWGDVSN5P2TNFUXNABKZFUHMXPJAKHKNYKKVDEKXDKNAXMPYJ4H5DC4K3U
-#\\\|C5MXWC7AHCJN4EGFSM7XGWTPLSJ36EJXUOCCHTVZBUH65SAPBVK \ / AMOS7 \ YOURUM ::
-#\[7]RSYOMR2OY6YK22PK3LH64Y52IOMNX3AXKDOUP5WNZAMYU6HFF4DI 7  DATA SIGNATURE ::
+#,,..,,.,,,..,..,,,,.,,,.,..,,,,.,...,,,,,..,,..,,...,...,.,,,,,.,,.,,,.,,...,
+#AJS2BBNWZ23RYOLXV4LJ67Y34GVJIS3MY2LVDASO6D3JXG3H6OZL2CCWCANKUKZGU4CLEXAKYHSLS
+#\\\|BYNOZ7CAWVQJY6HDJU3KKKYQKHZOYDWRCTKPI3YVSU62PAG7QR7 \ / AMOS7 \ YOURUM ::
+#\[7]QFPLDXZC67LUYARG4INNUZG5USRGTKR5WB3COTG26YK2UOMMQODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

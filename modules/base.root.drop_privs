@@ -5,8 +5,9 @@
 
 my $noop = ( defined $ARG[1] and $ARG[1] eq qw| noop | ) ? TRUE : FALSE;
 
-my $user_spec   = shift @ARG;
-my @groups_list = @ARG;       ## variable-length group parameters [ optional ]
+my $user_spec = shift @ARG;
+shift @ARG if $noop;       ## remove 'noop' marker before building group list
+my @groups_list = @ARG;    ## variable-length group parameters [ optional ]
 return warn 'drop_privs : expected <user> parameter <{C2}>'
     if not defined $user_spec;
 
@@ -253,8 +254,8 @@ if ( not length( $user // '' ) ) {
     }
 }
 
-#,,..,..,,.,.,...,,..,...,.,,,,.,,,,.,...,...,..,,...,...,.,,,.,.,,,.,,,.,...,
-#JUC5ICWUHX2TOZ4KNUN6SN5RRVKC23AWN7SGLJDLDE3CQJJ7UEJYYLMAFQ6AODHH7RPYMVYUGICTA
-#\\\|6RBFEX2LSDORXDHG5375YDE2BLWA6PDGDDQ46V2PDTKBYYN7O7H \ / AMOS7 \ YOURUM ::
-#\[7]CNFQSYPHZRD3X52WL5PFVGGPSCNXNBQY5XV6LBKOEJXXEYX5GACI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,,,,.,.,,,,,...,.,,,.,,,,,,,,,.,..,,...,...,...,,.,,,.,,,,.,,.,,
+#BUO5PYJFKKDTUXXAKKW2FLFS2QVUOUT7AJMLZTCNC4LCPTH2NRNW2GTYE5UHAHXCEID7UB24ZZRA6
+#\\\|LNYM6WXWM66PE6FGURIQINDKQB2I3NBIRTSHHUVQIM2QCKFOTQQ \ / AMOS7 \ YOURUM ::
+#\[7]QJX4JPNDFWUMSDJCTX7NJSDPWYGR3WXYXMSPFM4EUDYLDSQXDMAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
