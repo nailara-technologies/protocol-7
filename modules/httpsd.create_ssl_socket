@@ -204,6 +204,12 @@ unless ( $ssl_socket->listen() ) {
 if ( Net::SSLeay->can('CTX_set_tlsext_servername_callback') ) {
     ## older IO::Socket::SSL versions store ctx as 'ctx', newer as 'ssl_ctx'
     my $ssl_ctx_obj = ${*$ssl_socket}{'_SSL_ctx'};
+    <[base.logs]>->(
+        1,
+        'httpsd: _SSL_ctx ref=%s, keys=%s',
+        ref($ssl_ctx_obj) // 'undef',
+        ref($ssl_ctx_obj) ? join( ', ', sort keys %{$ssl_ctx_obj} ) : 'n/a'
+    );
     my $ssl_ctx
         = defined $ssl_ctx_obj
         ? ( $ssl_ctx_obj->{'ssl_ctx'} // $ssl_ctx_obj->{'ctx'} )
@@ -240,8 +246,8 @@ return $ssl_socket;
 
 0;
 
-#,,,,,.,,,.,.,.,,,,,.,,,.,...,..,,.,.,,.,,.,.,..,,...,...,,..,,,,,,.,,..,,...,
-#WQCECQENVI2RYWMUPIZWMUY3MSVH22CJ6UUCHFABDCYXX5RL4VYEQI5HWDUFDLPBTBKUWGFTEYSWM
-#\\\|WUYDO4T7ALRBLNET447SO3EZHDUSIHOUNRCD2OZ2JDQCYNPTAPG \ / AMOS7 \ YOURUM ::
-#\[7]GU6WJ7WEZZHCVGYOI3PWRN33C7TEWSZUIOELONYYU5HOKIFNKOAA 7  DATA SIGNATURE ::
+#,,,,,.,.,..,,,,,,,..,.,.,,,,,...,..,,,,,,...,..,,...,..,,,,,,...,.,.,.,.,,.,,
+#4J6MUNQKEGRQCTQJS3L5SKA5APWBXRLJEACRASFCN2VKJT6CZPYXMP56RRRYMYQOJ47WJ7RARIBYY
+#\\\|PUFRLXJXNKWSTKO35MWZCGQYV2K7X2FDFJMHCW7MVDWOFNH7IZL \ / AMOS7 \ YOURUM ::
+#\[7]YBJQ5MLR6R7HJ3QCDY6IY2XMJETXUDW2UPLPDG2PQFJMGZNDWCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
