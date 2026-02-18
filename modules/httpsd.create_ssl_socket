@@ -202,7 +202,12 @@ unless ( $ssl_socket->listen() ) {
 ## [ IO::Socket::SSL SSL_cert_callback has version-dependent behaviour;
 ##   Net::SSLeay CTX_set_tlsext_servername_callback is stable across versions ]
 if ( Net::SSLeay->can('CTX_set_tlsext_servername_callback') ) {
-    my $ssl_ctx = ${*$ssl_socket}{'_SSL_ctx'}{'ssl_ctx'};
+    ## older IO::Socket::SSL versions store ctx as 'ctx', newer as 'ssl_ctx'
+    my $ssl_ctx_obj = ${*$ssl_socket}{'_SSL_ctx'};
+    my $ssl_ctx
+        = defined $ssl_ctx_obj
+        ? ( $ssl_ctx_obj->{'ssl_ctx'} // $ssl_ctx_obj->{'ctx'} )
+        : undef;
     if ( defined $ssl_ctx ) {
         my $sni_sub = sub {
             my $ssl      = shift;
@@ -235,8 +240,8 @@ return $ssl_socket;
 
 0;
 
-#,,,,,,,,,..,,.,.,,,,,,,,,,,,,,..,..,,...,,,,,..,,...,...,...,..,,,.,,,,.,..,,
-#KLWXVDD7VR2HHL2ZMWOKOFNZHXMAQXHECHYBXC43F7ZBPPNQSHB6WDXCUK42DJEYGI3SKYSXTN5PM
-#\\\|3YG3JF275ENGCJPHFXAPL4I2EBTKM5UZNBZVW4FUZTSL4S44DBW \ / AMOS7 \ YOURUM ::
-#\[7]GXLDSMKCFITWKEJRXGNOK5JYMFSMUP2KMMHK5UGC7NVMHSKLQYCY 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,,,,,.,,,.,...,..,,.,.,,.,,.,.,..,,...,...,,..,,,,,,.,,..,,...,
+#WQCECQENVI2RYWMUPIZWMUY3MSVH22CJ6UUCHFABDCYXX5RL4VYEQI5HWDUFDLPBTBKUWGFTEYSWM
+#\\\|WUYDO4T7ALRBLNET447SO3EZHDUSIHOUNRCD2OZ2JDQCYNPTAPG \ / AMOS7 \ YOURUM ::
+#\[7]GU6WJ7WEZZHCVGYOI3PWRN33C7TEWSZUIOELONYYU5HOKIFNKOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
