@@ -27,6 +27,13 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
             $err_msg = 'client session shutdown';
             $log_level
                 = $known_lvl;    ## expected : client closed before handshake
+        } elsif ( $err_msg =~ m|0[Aa]000412|
+            or $err_msg =~ m|bad.certificate| ) {
+            ## client rejected server certificate [ TLS alert 42 ]
+            ## causes: staging CA not trusted, cert/domain mismatch,
+            ##         or Ed25519 cert with incompatible client
+            $err_msg   = 'tls: client rejected certificate [bad_certificate]';
+            $log_level = 1;
         }
         $err_msg = lc($err_msg) if $err_msg =~ s| attempt||g;
         if ( length( $err_msg // '' ) ) {
@@ -95,8 +102,8 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     return undef;              ## <-- connection closed \ error connecting ##
 }
 
-#,,,.,...,,,,,...,.,,,.,,,,,.,.,.,.,.,,..,,,,,..,,...,..,,..,,,,.,.,,,,.,,,,.,
-#KDIZMKY3REYJ5EUGT2EYWFQJPDL23OYA7AD7IOU2ECBRNX3M5LDB3QCKVT3URTZ26OMUFGOB4JIL2
-#\\\|XTO6NNZQGWLJZPEIM6V5JLGCJICUXNJDSGBEQDJTVJM53XZ2EPB \ / AMOS7 \ YOURUM ::
-#\[7]MMEHIGII6IBUUNTY7KRAQ7U5UTCQ67BK5W2X6D66T2B7YMMLS4CY 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,.,,,..,,.,,..,,...,,,,,,,.,,.,,..,,...,...,,,.,.,,,,,,,.,,,.,,,
+#VPQZJ6KQH2Z2DHMAZMI5FGJ5ZZOBHFIGIVZGWNY36ANOCT5KYQ7DQLJWAPQSN3JLQ77IQJIIRNOD2
+#\\\|ZQFC23DAGT6ML7NRL7M3VSEDCCUX74O3LIYJRBXC33D4T4F4QGJ \ / AMOS7 \ YOURUM ::
+#\[7]4VC2N2MXGDWBVVPRX776XICNXJPFSLB5HJIMSWTEYQ2D5YKNTWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
