@@ -204,15 +204,12 @@ unless ( $ssl_socket->listen() ) {
 if ( Net::SSLeay->can('CTX_set_tlsext_servername_callback') ) {
     ## older IO::Socket::SSL versions store ctx as 'ctx', newer as 'ssl_ctx'
     my $ssl_ctx_obj = ${*$ssl_socket}{'_SSL_ctx'};
-    <[base.logs]>->(
-        1,
-        'httpsd: _SSL_ctx ref=%s, keys=%s',
-        ref($ssl_ctx_obj) // 'undef',
-        ref($ssl_ctx_obj) ? join( ', ', sort keys %{$ssl_ctx_obj} ) : 'n/a'
-    );
+    ## field name varies by IO::Socket::SSL version:
+    ## 'context' (newer), 'ssl_ctx' (mid), 'ctx' (older)
     my $ssl_ctx
         = defined $ssl_ctx_obj
-        ? ( $ssl_ctx_obj->{'ssl_ctx'} // $ssl_ctx_obj->{'ctx'} )
+        ? ( $ssl_ctx_obj->{'context'} // $ssl_ctx_obj->{'ssl_ctx'}
+            // $ssl_ctx_obj->{'ctx'} )
         : undef;
     if ( defined $ssl_ctx ) {
         my $sni_sub = sub {
@@ -246,8 +243,8 @@ return $ssl_socket;
 
 0;
 
-#,,,,,.,.,..,,,,,,,..,.,.,,,,,...,..,,,,,,...,..,,...,..,,,,,,...,.,.,.,.,,.,,
-#4J6MUNQKEGRQCTQJS3L5SKA5APWBXRLJEACRASFCN2VKJT6CZPYXMP56RRRYMYQOJ47WJ7RARIBYY
-#\\\|PUFRLXJXNKWSTKO35MWZCGQYV2K7X2FDFJMHCW7MVDWOFNH7IZL \ / AMOS7 \ YOURUM ::
-#\[7]YBJQ5MLR6R7HJ3QCDY6IY2XMJETXUDW2UPLPDG2PQFJMGZNDWCCI 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,..,..,,,,.,,,,,,,,,.,.,,,.,.,.,..,,...,...,.,.,.,.,.,,,,,.,,.,,
+#TSZ266WUGL4GXEV3CGBDOXREX2ZWFFBIQDYIZGXZ64J4FHBGMZSCHDVQH5OC5Z672WHROGUKLVHWG
+#\\\|Q7X7NYEVTIE2OIJSQ4QXOF6EQDSGUYSYP5DY4WYTTDLHDWWWDUM \ / AMOS7 \ YOURUM ::
+#\[7]KIFYLA7DKFXF4Z45RTFOM5VV3OTLWCE7FE2QCCR6A6SGUJLBPEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
