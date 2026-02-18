@@ -35,7 +35,9 @@ apt-get -y install gcc git make cpanminus libc6-dev libc6-dev libmce-perl \
             liblinux-inotify2-perl \ libio-compress-perl
             libcapture-tiny-perl libfreezethaw-perl \
             libio-compress-lzma-perl libgit-wrapper-perl \
-            libcrypt-openssl-x509-perl libcrypt-openssl-rsa-perl &&
+            libconvert-asn1-perl libdata-uuid-perl \
+            libcrypt-openssl-x509-perl libcrypt-openssl-bignum-perl \
+            libcrypt-openssl-random-perl libcrypt-openssl-rsa-perl &&
 
 # no longer found: libmodule-build-pluggable-perl
 
@@ -64,8 +66,8 @@ perl -Mv5.13 -e \
 
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
 
-#,,..,,..,,,,,..,,,,,,..,,,,.,,,,,.,.,,,.,...,..,,...,...,.,.,,,.,,,,,...,,.,,
-#TBZMINGQWL3FH4IWIFN3XI7SUVUHDHFHRH3BVY2M62DLZ4KOP34M6CLY7F7IHWUIPTVMXEKJ4VZUA
-#\\\|VDHZ5EUXV4WUMQBOO7FEVABX7MKZUN3LA77QQXBJ3XSDSTGKCIG \ / AMOS7 \ YOURUM ::
-#\[7]EDORMB35CK36Y3IZ5KIYANEFBRJJCZ2EM2OCPXMYS3WTQ7SPRIAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,..,,.,,,,.,,...,...,,,.,,,.,.,.,..,,...,...,,.,,.,,,,.,,...,.,,,
+#R4INJNOO43O5XYJYJCJLK6NCGZ2L3MKO5LNU233F3VXMDKYODJWQTNYYYDDVTGCZKHK2PNUBB3GDS
+#\\\|FI7SKBL7HIJ6EXV4D2EWHP5STWY4MLGP3CMBKGLGXKAWZN6ZDMD \ / AMOS7 \ YOURUM ::
+#\[7]XA6H55HMWSCB5N6CJ5QKYYG6CRMYZ2GBTV3NKNAMMONLDKNJ4YBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
