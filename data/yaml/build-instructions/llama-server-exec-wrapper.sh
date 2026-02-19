@@ -63,3 +63,9 @@ fi
 
 # Execute with all passed arguments
 exec "$LLAMA_SERVER" "$@"
+
+#,,..,.,,,...,.,.,,..,,.,,..,,,..,,,,,,,,,...,..,,...,...,,..,...,.,.,..,,,..,
+#HBNQSRUEF5O35DFXKSJ3DMQND4RAUEKGBEDAUZVQMFJ2NREVCUIUDR7APLYP7SQQFZ337SYQRHTVI
+#\\\|V62FOXRZK3GG7GQEQG3A2ZAWYET6PBCLXZCCW5QCFAI22GYKYLG \ / AMOS7 \ YOURUM ::
+#\[7]6JURPG6YWESGDZQJVVA3FUD5T6XYHVGOJBFDRUQARYUN3I5JM4AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
