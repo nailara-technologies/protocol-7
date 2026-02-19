@@ -22,33 +22,35 @@ if ( not defined $new_usr or !length($new_usr) ) {
 
     <[base.log]>->(
         0,
-        "[$id] << ! >> switching session from user '$old_usr' to '$new_usr' << ! >>"
+        "[$id] << ! >> switching session "
+            . "from user '$old_usr' to '$new_usr' << ! >>"
     );
 
     $data{'session'}{$id}{'user'} = $new_usr;
 
     $data{'user'}{$new_usr}{'connected_since'} = <[base.time]>->(5);
 
-    $data{'user'}{$new_usr}{'session'}{$id}
+    $data{'user'}{$new_usr}{'session'}{$id}    ## moving session data
         = delete $data{'user'}{$old_usr}{'session'}{$id};
 
-    if ( !keys( %{ $data{'user'}{$old_usr}{'session'} } ) ) {
-        delete $data{'user'}{$old_usr}{'connected_since'};
-        $data{'user'}{$old_usr}{'last_seen'} = time();
-        delete $data{'user'}{$old_usr}{'session'};
+    ## when it was last session of the departing user name
+    if ( !keys $data{'user'}{$old_usr}{'session'}->%* ) {
+        delete $data{'user'}{$old_usr};        ## clear all data ##
+        ## record last seen timestamp for 'present' command
+        $data{'user'}{$old_usr}{'last_seen'} = <[base.time]>;
     }
 
     return {
         'mode' => qw| true |,
-        'data' => "switched session to user '$new_usr'"
+        'data' => sprintf( "switched session to user '%s'", $new_usr )
     };
 
 } else {
     return { 'mode' => qw| false |, 'data' => 'invalid user name syntax' };
 }
 
-#,,.,,,.,,...,.,.,...,..,,,,.,.,,,..,,,,.,...,..,,...,.,.,...,...,,.,,...,,,,,
-#74ZRGAG5GKEKOHIO34ZASANEAB7BCSDJ6JCY6NXYHSD6VLY7P5OH2U727SORMMBY2XXLCTDUV4QJS
-#\\\|WMLVEV7EQUC7JUP7O4JE6JE7WGVQSA7EVCEEODOWCHNRNB27M2Y \ / AMOS7 \ YOURUM ::
-#\[7]LTQP2GAGMUGTEIXKBVHQVZYGSWOWMXEHCNBOOZSTD5B2S7V2XOBA 7  DATA SIGNATURE ::
+#,,..,..,,..,,...,..,,.,,,.,.,,.,,...,...,,,,,..,,...,...,..,,,,,,,..,.,.,.,,,
+#SF5WLVTP6KMG77T3MF5HWY32CQMB3QQGNJRZ2YU4YD3DAZEIW33UE3XQCMVGOW3CDQ23PPSUK7KAC
+#\\\|BRQMUD5JAYNXIDW3ZJEPRLKRJCO37GAOYJTFPCQHVWVSG7QPXMP \ / AMOS7 \ YOURUM ::
+#\[7]2VSCZVOZQQER5Y56E34CIFJX55LMGSULRPJU62ASX5NHDZIYBABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
