@@ -57,10 +57,14 @@ if ( open my $efh, '<', $ext_states ) {
 my $log_dir = qw| /var/log |;
 my @log_files;
 
-## rotated compressed logs first ##
-for my $n ( reverse 2 .. 10 ) {
-    my $gz = sprintf qw| %s/dpkg.log.%d.gz |, $log_dir, $n;
-    push @log_files, [ $gz, 'gz' ] if -f $gz;
+## rotated compressed logs: glob all .N.gz, sort oldest (highest N) first ##
+for my $n (
+    sort { $b <=> $a }
+    map  { m|dpkg\.log\.(\d+)\.gz$|; $1 }
+    grep { -f $_ } glob("$log_dir/dpkg.log.*.gz")
+) {
+    push @log_files,
+        [ sprintf( '%s/dpkg.log.%d.gz', $log_dir, $n ), qw| gz | ];
 }
 
 ## rotated plaintext ##
@@ -219,8 +223,8 @@ return {
     'data' => "\n" . join( "\n", @lines ) . "\n"
 };
 
-#,,..,,,.,.,.,,,.,,.,,,,,,..,,..,,..,,..,,..,,..,,...,...,...,,..,,,,,..,,...,
-#E4CVA2XVZJO3B25FW3RG5D4W7GG4TYCJKBIFEPBHOF4GP7BVXEBAE6KCXYOZLTXXQUG6EAEW7WS7C
-#\\\|XBCMHYDNA4BFLOYAENPBCJJNTASNSGLIKFFLV4D5NELYPIJV6IL \ / AMOS7 \ YOURUM ::
-#\[7]WIXM67ZCT6GOBJJRQMPIDQKLXJ43RTQYIXLBXUF2C5Q4IMS53WBY 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,..,,,,,,,.,.,.,,..,.,,,,.,,,,,,..,,...,...,..,,.,.,,,.,,.,,...,
+#GXI6DSI2PIT52Z3KIK5KHPPIUGQJCDTPQQIHRU5TEY5GGBZFGNHSSLYH7PUKAUHV4IFMYG5QT4MJU
+#\\\|FA7KHEBSIZHCSSXSIHG5SICCWIO5BWTTH2W4KYL72BUW6A3FAOB \ / AMOS7 \ YOURUM ::
+#\[7]YE73B42D3QX2MG7RKUTOFLW2VFXDUJSXXDX2UBYOFBVYMXPJQ4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
