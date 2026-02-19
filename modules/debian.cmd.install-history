@@ -162,6 +162,9 @@ for my $log_ref (@log_files) {
         ## apply action filter ##
         next if $filter_action and $base ne $filter_action;
         push @filtered, $e;
+        last
+            if $limit
+            and @filtered >= $limit;    ## early exit once limit reached ##
     }
     @entries = @filtered;
 }
@@ -223,8 +226,8 @@ return {
     'data' => "\n" . join( "\n", @lines ) . "\n"
 };
 
-#,,..,.,.,,,.,,..,,,,,,,.,.,.,,..,.,,,,.,,,,,,..,,...,...,..,,.,.,,,.,,.,,...,
-#GXI6DSI2PIT52Z3KIK5KHPPIUGQJCDTPQQIHRU5TEY5GGBZFGNHSSLYH7PUKAUHV4IFMYG5QT4MJU
-#\\\|FA7KHEBSIZHCSSXSIHG5SICCWIO5BWTTH2W4KYL72BUW6A3FAOB \ / AMOS7 \ YOURUM ::
-#\[7]YE73B42D3QX2MG7RKUTOFLW2VFXDUJSXXDX2UBYOFBVYMXPJQ4DA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,,..,..,,...,.,,,,,,,,,,,..,,,,.,..,,...,...,...,,..,,,.,,.,,...,
+#IZ5JR45ABDFCQ322WDHOCWWIU4475JRDB7NEMCHEVMVJIA3TBD4BYZDWKNCRKEDVDU636PS56Y7TM
+#\\\|XKU7DEUEY34NOWQC7CU5H2IXN4W4CC5EWV3TWVKGI3T5ZW6EBBM \ / AMOS7 \ YOURUM ::
+#\[7]I55Y633N73BN64XWQQGQ6UBKMSHJGU5MO6LTI4SBRT3VOZJ2L2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
