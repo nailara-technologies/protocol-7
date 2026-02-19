@@ -1,0 +1,226 @@
+## [:< ##
+
+# name  = debian.cmd.install-history
+# descr = show dpkg install/remove/upgrade history
+# param = [A|I|R|U|P] [since=YYYY-MM-DD] [p=<name>] [c=N] [all]
+
+my $param = shift;
+my $args  = $param->{'args'} // '';
+
+## parse optional filter args ##
+my $filter_action;
+my $filter_since;
+my $filter_pkg;
+my $show_auto = 0;     ## default : show manual installs only ##
+my $limit     = 50;    ## default : show last 50 entries ##
+my $all       = 0;
+
+my %_action_map = qw| I install R remove U upgrade P purge |;
+
+for my $arg ( split m|\s+|, $args ) {
+    if ( uc($arg) eq qw| A | ) {
+        $show_auto = 1;
+    } elsif ( exists $_action_map{ uc $arg } ) {
+        $filter_action = $_action_map{ uc $arg };
+    } elsif ( $arg =~ m{^(install|remove|upgrade|purge)$}i ) {
+        $filter_action = lc $arg;
+    } elsif ( $arg =~ m|^since=(\d{4}-\d{2}-\d{2})$| ) {
+        $filter_since = $1;
+    } elsif ( $arg =~ m|^p=(.+)$| ) {
+        $filter_pkg = lc $1;
+    } elsif ( $arg =~ m|^c=(\d+)$| ) {
+        $limit = $1;
+    } elsif ( $arg eq qw| all | ) {
+        $all   = 1;
+        $limit = 0;
+    }
+}
+
+## load apt auto-installed set from extended_states ##
+my %auto_pkg;
+my $ext_states = qw| /var/lib/apt/extended_states |;
+if ( open my $efh, '<', $ext_states ) {
+    my $cur_pkg;
+    while ( my $eline = <$efh> ) {
+        chomp $eline;
+        if    ( $eline =~ m|^Package:\s+(\S+)| ) { $cur_pkg = $1 }
+        elsif ( $eline =~ m|^Auto-Installed:\s+1| and $cur_pkg ) {
+            $auto_pkg{$cur_pkg} = 1;
+        } elsif ( $eline eq '' ) {
+            $cur_pkg = undef;
+        }
+    }
+    close $efh;
+}
+
+## collect dpkg log files in chronological order [ oldest first ] ##
+my $log_dir = qw| /var/log |;
+my @log_files;
+
+## rotated compressed logs first ##
+for my $n ( reverse 2 .. 10 ) {
+    my $gz = sprintf qw| %s/dpkg.log.%d.gz |, $log_dir, $n;
+    push @log_files, [ $gz, 'gz' ] if -f $gz;
+}
+
+## rotated plaintext ##
+my $log1 = sprintf qw| %s/dpkg.log.1 |, $log_dir;
+push @log_files, [ $log1, qw| plain | ] if -f $log1;
+
+## current log last ##
+my $log0 = sprintf qw| %s/dpkg.log |, $log_dir;
+push @log_files, [ $log0, qw| plain | ] if -f $log0;
+
+unless (@log_files) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'dpkg.log not found'
+    };
+}
+
+## parse log entries ##
+my @entries;
+
+for my $log_ref (@log_files) {
+    my ( $path, $type ) = @{$log_ref};
+
+    my $fh;
+    if ( $type eq qw| gz | ) {
+        open $fh, '-|', qw| zcat |, $path or next;
+    } else {
+        open $fh, '<', $path or next;
+    }
+
+    while ( my $line = <$fh> ) {
+        chomp $line;
+
+        ## format: YYYY-MM-DD HH:MM:SS action package:arch old new ##
+        next unless $line =~ m{^(\d{4}-\d{2}-\d{2})\ (\d{2}:\d{2}):\d{2}
+                  \s+(install|remove|upgrade|purge)
+                  \s+(\S+)
+                  \s+(\S+)
+                  \s+(\S+)}x;
+
+        my ( $date, $time, $action, $pkg_arch, $old_ver, $new_ver )
+            = ( $1, $2, $3, $4, $5, $6 );
+
+        ## strip :arch suffix for matching and display ##
+        ( my $pkg = $pkg_arch ) =~ s|:[^:]+$||;
+
+        ## tag install as manual or auto [ action filter applied later ] ##
+        if ( $action eq qw| install | ) {
+            $action = $auto_pkg{$pkg} ? qw| install-A | : qw| install-M |;
+        }
+
+        ## date and package filters applied during collection ##
+        next if $filter_since and $date lt $filter_since;
+        next if $filter_pkg   and index( lc($pkg), $filter_pkg ) == -1;
+
+        push @entries,
+            {
+            date    => $date,
+            time    => $time,
+            action  => $action,
+            pkg     => $pkg,
+            old_ver => $old_ver,
+            new_ver => $new_ver,
+            };
+    }
+    close $fh;
+}
+
+## most recent first ##
+@entries = reverse @entries;
+
+## filter walk: track removed, apply action and auto/manual filters ##
+{
+    my %removed;
+    my @filtered;
+    for my $e (@entries) {
+        my $base = $e->{'action'};
+        $base =~ s|-[MA]$||;    ## normalize install-M / install-A ##
+        if ( $base eq 'remove' or $base eq 'purge' ) {
+            $removed{ $e->{'pkg'} } = 1;
+            ## hide removes/purges unless explicitly requested ##
+            next
+                unless $filter_action
+                and $filter_action =~ m{^(remove|purge)$};
+        } elsif ( $base eq 'upgrade' ) {
+            ## hide upgrades unless explicitly requested ##
+            next unless $filter_action and $filter_action eq qw| upgrade |;
+        } elsif ( $base eq 'install' ) {
+            ## skip packages later removed ##
+            next if $removed{ $e->{'pkg'} };
+            ## apply auto/manual filter ##
+            next if $show_auto  and $e->{'action'} eq qw| install-M |;
+            next if !$show_auto and $e->{'action'} eq qw| install-A |;
+        }
+        ## apply action filter ##
+        next if $filter_action and $base ne $filter_action;
+        push @filtered, $e;
+    }
+    @entries = @filtered;
+}
+
+## apply count limit ##
+@entries = @entries[ 0 .. $limit - 1 ]
+    if $limit and @entries > $limit;
+
+unless (@entries) {
+    return {
+        'mode' => qw| size |,
+        'data' => "\n : no matching entries found\n\n"
+    };
+}
+
+## build version strings and find max width for right-alignment ##
+my @ver_strings;
+for my $e (@entries) {
+    my $ver_info;
+    if ( $e->{'action'} eq qw| upgrade | ) {
+        $ver_info = sprintf '%s <- %s', $e->{'new_ver'}, $e->{'old_ver'};
+    } elsif ( $e->{'action'} =~ m{^(remove|purge)$} ) {
+        $ver_info = $e->{'old_ver'};
+    } else {
+        $ver_info = $e->{'new_ver'};
+    }
+    push @ver_strings, $ver_info;
+}
+
+my $ver_col = 7;    ## minimum width for 'version' header ##
+for my $v (@ver_strings) {
+    $ver_col = length($v) if length($v) > $ver_col;
+}
+
+## format output ##
+my @lines;
+my $hdr = sprintf " : %-16s : %-9s : %-32s : %*s :",
+    qw| date+time |, qw| action |, qw| package |, $ver_col, qw| version |;
+push @lines, $hdr;
+push @lines, ' ' . ( '-' x ( length($hdr) - 1 ) );
+
+for my $i ( 0 .. $#entries ) {
+    my $e = $entries[$i];
+    push @lines, sprintf " : %-16s : %-9s : %-32s : %*s :",
+        "$e->{'date'} $e->{'time'}", $e->{'action'}, $e->{'pkg'},
+        $ver_col, $ver_strings[$i];
+}
+
+push @lines, '';
+push @lines,
+    sprintf(
+    " : %d entries shown%s",
+    scalar @entries,
+    $limit ? " [ use 'all' or 'c=N' for more ]" : ''
+    );
+
+return {
+    'mode' => qw| size |,
+    'data' => "\n" . join( "\n", @lines ) . "\n"
+};
+
+#,,..,,,.,.,.,,,.,,.,,,,,,..,,..,,..,,..,,..,,..,,...,...,...,,..,,,,,..,,...,
+#E4CVA2XVZJO3B25FW3RG5D4W7GG4TYCJKBIFEPBHOF4GP7BVXEBAE6KCXYOZLTXXQUG6EAEW7WS7C
+#\\\|XBCMHYDNA4BFLOYAENPBCJJNTASNSGLIKFFLV4D5NELYPIJV6IL \ / AMOS7 \ YOURUM ::
+#\[7]WIXM67ZCT6GOBJJRQMPIDQKLXJ43RTQYIXLBXUF2C5Q4IMS53WBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

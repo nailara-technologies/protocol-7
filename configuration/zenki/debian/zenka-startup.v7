@@ -3,9 +3,10 @@
 # name  = zenka-startup.v7
 # descr = 'debian' zenka startup configuration used by 'v7' zenka
 
-dependencies = cube
-start.on-demand = 1
-restart.disabled = 1
+dependencies       = cube
+start.on-demand    = 1
+restart.disabled   = 1
+heartbeat.disabled = 1
 
 : v7-init :
   start_mode = stdin-zenka
@@ -14,9 +15,10 @@ restart.disabled = 1
 
 : zenka-init :
   [base.auth.set_zenka_key:'<{cube.key}>']
+  [base.zenki.set_ondemand_timeout:420]
 
-#,,,,,.,,,.,.,,,.,,.,,,,.,,,.,.,.,,.,,,,,,,,,,..,,...,...,,,.,,.,,,.,,,,.,.,.,
-#IDATBQJNVZPBNWHBJIXL2WXBZFMRK5DJEQEWPSSQUCAMW3B3EKKZIGQIK7HDHWTIBPFMTF3SFGOUY
-#\\\|YSVMQMRNCWBYQBX62GYZ6IRSRPLNR56ATZEJFW6LJZRRYEHVXBO \ / AMOS7 \ YOURUM ::
-#\[7]FCUCHI5GGU6SHZZZETQHS44RCYSLACFQVUE2PYDRIVJZQ4OYFIDA 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,.,,,..,,,,,,,,.,...,...,,,.,,,,,..,,...,...,,..,,,,,.,,,...,,.,,
+#TO6PS5EDD43VBK2X6ZBOGMNMF56SPZAZHQQGSWRCORYS3MCZVSSONI63GCG4E7RZTOUD62GG3ODCK
+#\\\|XBMNLPWPSXO52IWVR3TQMYAUK5MRT6EYZ6U4KBTG6AH7AFTKU7D \ / AMOS7 \ YOURUM ::
+#\[7]QLE45ONKAVRM4ZUHEQ3UUWTJRQAWZWIHQSNFG72AP6ERXTX4JGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
