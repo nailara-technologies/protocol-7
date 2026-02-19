@@ -1,0 +1,292 @@
+---
+# Task: Appmgr Zenka - Application Profile Management with Lazy Install
+# Date: 2026-02-19
+# Status: pending
+# Context: Cross-cutting primitive for desktop and server deployments
+
+task_metadata:
+  title: "Appmgr Zenka - Lazy Install Wrappers and Installation Profiles"
+  description: >
+    A Protocol-7 zenka that manages application installation profiles
+    and provides lazy-install binary wrappers. Applications known to
+    the Protocol-7 framework appear to be installed (wrapper present
+    in PATH, .desktop entry present on desktop) even before actual
+    installation. On first invocation the wrapper blocks while the
+    real package installs in the background, then transparently
+    exec()s the real binary with the original arguments. Applies
+    equally to local desktop installations and server application
+    profiles: a zenka dependency missing from a server profile can
+    be silently satisfied at runtime if security policy permits.
+    Packages can be sourced from apt, CPAN, pip, or a local
+    Protocol-7 network package cache shared between nodes.
+  priority: medium
+  category: "infrastructure"
+
+## -----------------------------------------------------------------------
+## motivation
+## -----------------------------------------------------------------------
+
+motivation: >
+  Two problems with traditional package management in distributed
+  systems: (1) installation profiles are never perfectly maintained —
+  a forgotten package causes a hard failure at the worst moment;
+  (2) provisioning a new node requires installing everything upfront,
+  even applications that may never be used. Lazy install wrappers
+  solve both: the system looks complete from the start, actual bytes
+  arrive on first real need, and forgotten dependencies fix themselves.
+  The same mechanism serves desktop users (transparent first-launch
+  install), servers (silent runtime dependency resolution), and the
+  infra orchestration zenka (partial installations that grow to full
+  on demand). Security policy controls which installs are permitted
+  autonomously and which require approval.
+
+## -----------------------------------------------------------------------
+## phase 1: lazy install wrappers and application registry
+## -----------------------------------------------------------------------
+
+application_registry:
+  motivation: >
+    A central registry maps application names to their install method,
+    package sources, binary paths, and Protocol-7 framework role.
+    Any application in the registry can have a lazy wrapper generated
+    for it. Registry entries carry enough metadata to install, verify,
+    and wrap the application without user guidance.
+
+  registry_entry_format: |
+    ## example entry: /etc/protocol-7/appmgr/registry/postmap.yaml
+    ---
+    name:       postmap
+    binary:     /usr/sbin/postmap
+    install:
+      apt:      postfix
+      fallback: []
+    category:   mail
+    p7_role:    postfix-zenka-dependency
+    description: postfix lookup table management tool
+    lazy_wrap:  allowed           ## allowed | require_approval | denied
+    wrapper_path: /usr/local/bin/postmap
+
+  registry_management:
+    - registry stored in /etc/protocol-7/appmgr/registry/ (one YAML per app)
+    - appmgr.list-registry: all known applications and their install state
+    - appmgr.add-registry-entry <name> <...>: register a new application
+    - appmgr.registry-status <name>: installed, wrapped, or unknown
+    - registry shipped with Protocol-7: covers all known P7 dependencies
+    - network registry sync: pull updated entries from trusted P7 nodes
+
+lazy_install_wrappers:
+  motivation: >
+    A lazy wrapper is a small executable placed at the application's
+    expected binary path. It looks identical to the real binary from
+    the outside. On first invocation it triggers installation in the
+    background and blocks (with feedback) until the real binary is
+    available, then exec()s it with all original arguments preserved.
+    Subsequent invocations find the real binary in place and run
+    at full speed with no wrapper overhead.
+
+  wrapper_behavior:
+    on_invocation:
+      1. print status to stderr: "[ installing <name>... ]"
+      2. signal appmgr zenka: appmgr.install-now <name>
+      3. block on install completion
+      4. copy real binary over own path (overwrite self)
+      5. exec() own path with @ARGV intact
+         (now executes the real binary; wrapper no longer exists)
+      6. on install failure: print error to stderr, exit 1
+
+    self_replacement: >
+      the wrapper overwrites itself with the real binary before exec().
+      unix allows a running process to overwrite its own file on disk:
+      the current process continues executing from already-mapped pages
+      while the new binary is written to the same inode path.
+      after exec() the real binary runs at the wrapper path with no
+      indirection. subsequent invocations find only the real binary —
+      the wrapper has ceased to exist. no permanent overhead, no
+      path changes needed in .desktop files or any other reference.
+
+    uninstall_symmetry: >
+      uninstalling is the exact reverse: appmgr writes the wrapper
+      template back over the real binary at the same path. the wrapper
+      detects its own identity from argv[0] (its path), looks up the
+      corresponding registry entry, and knows what to install when
+      next invoked. the binary path IS the registry key — no external
+      state needed to reconstruct the wrapper's purpose. a lazy-uninstall
+      therefore leaves the system in the same state as a lazy-install
+      that has not yet been triggered: application appears present,
+      actual bytes arrive on next use.
+
+    transparency:
+      - wrapper preserves stdin, stdout, stderr (no interception)
+      - exit code from real binary propagated correctly after exec
+      - wrapper itself is a compiled C stub (< 4KB) or a Perl one-liner
+
+    wrapper_generation:
+      - appmgr.create-wrapper <name>: generate wrapper for registry entry
+      - wrapper template compiled from C or generated as shell/Perl script
+      - placed at registry-specified wrapper_path
+      - appmgr.remove-wrapper <name>: remove wrapper (does not uninstall)
+      - appmgr.list-wrappers: all active wrappers and their install state
+
+  desktop_integration:
+    - .desktop entry created alongside wrapper (for GUI launchers)
+    - Icon field points to cached icon (downloaded at wrapper creation time)
+    - Exec= points to wrapper path
+    - on first launch: desktop notification or progress dialog shown
+    - after install: .desktop entry updated to point to real binary
+    - appmgr.cfg.desktop_notifications = 1  ## show install progress dialog
+
+installation_profiles:
+  motivation: >
+    A profile is a named set of applications. Applying a profile
+    ensures all listed applications are either installed or have lazy
+    wrappers present. Profiles compose: a desktop-developer profile
+    includes desktop-base plus developer-tools. Partial application
+    of a profile is supported: install critical items immediately,
+    create lazy wrappers for optional items. The infra zenka uses
+    profiles to define what a server node should look like; the
+    desktop zenka uses them for user role configuration.
+
+  profile_format: |
+    ## example: /etc/protocol-7/appmgr/profiles/server-mail.yaml
+    ---
+    name: server-mail
+    extends: [ server-base ]
+    install_now:    ## these are installed immediately on profile apply
+      - postfix
+      - postmap
+    lazy_wrap:      ## these get wrappers, installed on first use
+      - mailutils
+      - swaks
+    p7_dependencies: ## always installed, required by P7 zenki in this role
+      - postfix
+
+  profile_operations:
+    - appmgr.apply-profile <name>: install now items + create all wrappers
+    - appmgr.profile-status <name>: installed/wrapped/missing per item
+    - appmgr.profile-diff <name>: what would change if profile were applied
+    - appmgr.amend-profile <name> <app>: add app to profile definition
+    - appmgr.list-profiles: all available profiles
+
+  profile_composition:
+    - extends: field causes parent profile to be applied first
+    - no limit on inheritance depth
+    - conflict resolution: install_now wins over lazy_wrap for same app
+    - profile hash verified with AMOS7 checksum (signed profiles only)
+
+package_sources:
+  apt:
+    - primary source for system packages on Debian/Ubuntu
+    - appmgr tracks apt install state via dpkg-query
+    - installs run as root via sudo or direct if already root
+
+  cpan:
+    - for Perl module dependencies
+    - uses existing bin/ncpan or CPAN.pm directly
+    - p7-deps integration: maps P7 module requirements to CPAN packages
+
+  p7_network_cache:
+    - nodes share a local package cache over the Protocol-7 network
+    - packages cached after first download; subsequent nodes pull from cache
+    - cache served by a designated cache-node (or multiple for redundancy)
+    - appmgr.cache-status: what is in the local cache
+    - appmgr.seed-cache <profile>: pre-populate cache for a profile
+    - reduces external bandwidth on multi-node deployments
+    - works offline: nodes can install from cache without internet access
+
+security_policy:
+  motivation: >
+    A server with unrestricted lazy install is a security risk: any
+    zenka that triggers a missing dependency could cause arbitrary
+    package installation. Security policy per source and per application
+    controls what the appmgr zenka will install autonomously.
+
+  policy_levels:
+    strict:   ## only explicitly listed packages may install, never auto
+    managed:  ## packages in signed profiles may auto-install (default server)
+    open:     ## any registry entry may install (development / desktop)
+    paranoid: ## nothing installs without operator approval; wrappers show
+              ## "install requires approval: appmgr.approve <name>"
+
+  configuration:
+    appmgr.cfg.policy              = managed
+    appmgr.cfg.allow_sources       = [ apt, p7_cache ]  ## cpan optional
+    appmgr.cfg.require_signed_profiles = 1
+    appmgr.cfg.notify_on_install   = 1   ## log every auto-install
+
+  commands:
+    - appmgr.approve <name>: grant one-time install in paranoid mode
+    - appmgr.deny <name>: permanently deny install for this application
+    - appmgr.policy-status: current policy and pending approvals
+
+## -----------------------------------------------------------------------
+## phase 2: server runtime dependency resolution
+## -----------------------------------------------------------------------
+
+server_runtime_resolution:
+  motivation: >
+    A zenka may require an external binary at runtime (e.g. postfix
+    zenka needs postmap, nameserv zenka needs dig for diagnostics).
+    If the binary is absent and policy permits, appmgr installs it
+    silently in the background. The requesting zenka blocks on a
+    Protocol-7 wait call rather than failing. When installation
+    completes, appmgr signals completion and the zenka proceeds.
+    This makes partial installations self-healing within policy bounds.
+
+  zenka_api:
+    - <[appmgr.require]>->('postmap')
+      blocks until 'postmap' is available (installed or wrapper satisfies)
+      returns path to binary on success, dies on policy denial
+    - <[appmgr.available]>->('postmap')
+      non-blocking check: returns path or undef, no install triggered
+    - <[appmgr.install_async]>->('postmap', \&callback)
+      triggers install, calls callback when done (non-blocking variant)
+
+  infra_integration: >
+    infra zenka uses appmgr.apply-profile when bootstrapping a new node.
+    if a profile item fails to install (network issue, package conflict),
+    infra zenka falls back to lazy wrap: node is still provisioned and
+    the missing item resolves on first use. forensic differential
+    analysis (from infra-orchestration-zenka.yaml) can distinguish
+    lazy-install additions (expected, listed in profile) from unexpected
+    package additions.
+
+## -----------------------------------------------------------------------
+## desktop management integration (future)
+## -----------------------------------------------------------------------
+
+desktop_management:
+  motivation: >
+    On a managed desktop, the appmgr zenka replaces the role of
+    traditional package managers for user-facing applications. Users
+    are assigned a profile (designer, developer, media) which defines
+    their available application set. All profile applications appear
+    immediately in the application launcher. Usage data feeds back
+    to profile curation: rarely-used applications move to lazy-wrap,
+    frequently-used ones are pre-installed. The local Protocol-7
+    network cache means first-use installs are fast (LAN speed) rather
+    than internet-dependent.
+
+  features:
+    - per-user profiles (different users on same machine, different apps)
+    - application usage tracking (opt-in): feeds profile optimization
+    - appmgr.profile-recommend: suggest profile adjustments based on usage
+    - centrally managed profiles pushed from admin node via P7 commands
+    - offline mode: all lazy-wrap installs served from local P7 cache
+
+verification:
+  phase_1:
+    - appmgr.create-wrapper postmap creates executable at wrapper_path
+    - invoking wrapper triggers install, blocks, then exec()s real binary
+    - original arguments and exit code preserved through wrapper
+    - appmgr.apply-profile server-mail installs now-items, wraps lazy-items
+    - appmgr.profile-status shows correct installed/wrapped/missing counts
+    - p7_network_cache: second node installs from cache, not internet
+
+  phase_2:
+    - <[appmgr.require]>->('postmap') blocks, installs, returns path
+    - policy=strict: auto-install denied, error returned to zenka
+    - policy=paranoid: wrapper shows approval prompt, install waits
+    - infra provisioning with partial profile: missing items wrapped,
+      first-use install completes without infra zenka intervention
+
+#,,.,,,.,,,.,..,,.,,.,,...,.,,,,..,..,,..,,...,..,,...,...,,,.,.,,,.,,,,,.,.,,,
