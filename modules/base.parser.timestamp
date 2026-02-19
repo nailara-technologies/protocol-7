@@ -5,13 +5,13 @@
 # note  = ntime values are also accepted [ length >= 13 ]
 
 my @result;
-my $mode = shift // 'time-stamp';    # [time|time-stamp|date]
-my $time = shift // time;
+my $mode = shift // qw| time-stamp |;    # [time|time-stamp|date]
+my $time = shift // <[base.time]>;
 
-if ( $mode =~ m|^(\d+)(\.\d+)?$| ) { $time = $1 and $mode = 'time-stamp' }
+if ( $mode =~ m|^(\d+)(\.\d+)?$| ) { $time = $1 and $mode = qw| time-stamp | }
 
 $time = <[base.n2u_time]>->($time)
-    if length($time) >= 13;          # <-- network time ##
+    if length( int($time) ) >= 13;       ##  <-- network time ?  ##
 
 my ( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday ) = localtime($time);
 
@@ -19,16 +19,16 @@ $year = sprintf( '%02d', $year + 1900 );
 $mon  = sprintf( '%02d', $mon + 1 );
 $mday = sprintf( '%02d', $mday );
 
-push( @result, "$year-$mon-$mday" )
-    if $mode eq 'time-stamp' or $mode eq 'date';
+push( @result, join qw| - |, $year, $mon, $mday )
+    if $mode eq qw| time-stamp | or $mode eq qw| date |;
 
-push( @result, sprintf( '%02d:%02d:%02d', $hour, $min, $sec ) )
-    if $mode eq 'time-stamp' or $mode eq 'time';
+push( @result, sprintf( qw| %02d:%02d:%02d |, $hour, $min, $sec ) )
+    if $mode eq qw| time-stamp | or $mode eq qw| time |;
 
-return join( ' ', @result );
+return join ' ', @result;
 
-#,,..,..,,.,.,,..,.,,,,..,,,,,...,.,.,...,,,,,..,,...,...,,,.,,..,.,.,,.,,...,
-#NQ5LM7NQBRJUS7DOFUWPEKOSJPBRQA4VGFEKGDPZIRDQO5AHYFKBTTJNXC3FMUC7MPRYC6IZC4NGK
-#\\\|MZXBV56XZKKBKPWVH5TLSZ7UBTPK6LT35SYEVM67GLDAY3SE25B \ / AMOS7 \ YOURUM ::
-#\[7]CUJLAMTO2RCZ7YUS76YANAMY7PAV7HXAHQZOP6QPHGTBYHUCEYDQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,.,,,,,.,..,,,.,,,,.,..,,...,,.,,..,,...,...,..,,..,,...,,.,,,.,,
+#BNXQDAJIVPENMPMPXXZ46U3BUD3HCKXB54DRXNEHCG6OTOECAS4IGFGB5LXNYZZZCXTAQNUQU7IVQ
+#\\\|NXLBHUYT22MIWBARDDJBAXEFTR3JLWOWQ7UX37HWFI342PTOQAN \ / AMOS7 \ YOURUM ::
+#\[7]722VAG2XWB65YVQIJMFG44FHE2ONA4YKRTRGAWKGAVWSZYJYOMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

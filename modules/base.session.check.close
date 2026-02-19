@@ -73,15 +73,14 @@ if ( defined $data{'user'}{$user}{'session'}{$id} ) {
     delete $data{'user'}{$user}{'session'}{$id};
 }
 
+## in case it was the last session terminating .,
 if ( not keys $data{'user'}{$user}{'session'}->%* ) {
-    delete $data{'user'}{$user}{'connected_since'};
 
-    # record time-stamp in case it was the last session
-    $data{'user'}{$user}{'last_seen'} = time();
-
-    delete $data{'user'}{$user}{'session'};
+    # first clear current entries
     delete $data{'user'}{$user};
-    delete $data{'user'} if not keys $data{'user'}->%*;
+
+    # then record last_seen time-stamp
+    $data{'user'}{$user}{'last_seen'} = <[base.time]>;
 }
 
 my $dfh;    ## disconnecting file handle ##
@@ -128,8 +127,8 @@ if ( $session_mode eq qw| server | ) {    ##  closed server session  ##
 
 <[base.session.check_remaining]>;
 
-#,,..,..,,.,.,,..,..,,..,,,,.,...,,,,,..,,,.,,..,,...,...,...,.,,,.,,,,..,,..,
-#UW3DE3DZWRVJG4YAZQ3U7DXLUPYMGGWVGWOD6D5HRFBHT4L53AZOB4YSZTCGOORLKWF3N5MCLAC26
-#\\\|RMOY5ZOTTIZEQA6CQLZ5JJ3ZNRPZ5DUHEMJ3LTOKXKPFHDALW37 \ / AMOS7 \ YOURUM ::
-#\[7]S74V6OOHTP2PCXYZTPENPDLBBSHHED4EGWCZ22IOYLQLGOIZMIAQ 7  DATA SIGNATURE ::
+#,,..,...,,,,,,,.,.,,,,,,,,,.,..,,,,.,,,,,,,,,..,,...,...,,,,,..,,,.,,.,.,..,,
+#F33VITFIEBREUY2WVPEADSVWQLCS4E56WBPPQEIU7KADOPNXLMAKUCNRGNPMMBVPFISLANWVYUTTI
+#\\\|56OURUL7EJOMTBVQQZMWIVDPJGB6B4TBLKEWS3VKRDPFFUXG5NH \ / AMOS7 \ YOURUM ::
+#\[7]JMNGQQBLQIKTB676Q4C7H7IAYMC3DDJULVQ24XBGWRHTTUHMASDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
