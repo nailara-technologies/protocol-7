@@ -256,6 +256,43 @@ elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *SIZE +(0*\d+)\n),o
     return 1;            ## command not complete ###
 }
 
+##[ RETURN \ INCOMPLETE 'STRM-SIZE' CHUNK DATA ]###############################
+
+## incomplete STRM-SIZE chunk data ##
+
+elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *STRM-SIZE +(\d+)\n),o
+    and $buffer_length - bytes::length( ${^CAPTURE}[0] )
+    < 0 + ${^CAPTURE}[2] ) {
+
+    ## chunk header present but data incomplete - switch to bytewise ##
+    $session->{'read-mode'}     = qw| bytewise |;
+    $session->{'bytes-to-read'} = 0 + ${^CAPTURE}[2];
+
+    $event->w->start;    ##  restarting input buffer processing  ##
+    return 1;            ## command not complete ###
+}
+
+##[ RETURN \ INCOMPLETE 'CHRSIZE' REPLY ]######################################
+
+## incomplete CHRSIZE reply ##
+
+elsif ( $input->$* =~ m,^((\($re->{cmd_id}\)|) *CHRSIZE +(0*\d+)\n),o ) {
+
+    my $header_bytes = bytes::length( ${^CAPTURE}[0] );
+    my $char_count   = 0 + ${^CAPTURE}[2];
+
+    ## count UTF-8 characters available after header ##
+    my $data_after_header = substr( $input->$*, $header_bytes );
+    utf8::upgrade($data_after_header);
+    my $chars_available = length($data_after_header);
+
+    if ( $chars_available < $char_count ) {
+        ## incomplete - wait for more data in linewise mode ##
+        $event->w->start;
+        return 1;    ## command not complete ###
+    }
+}
+
 ##[ CLEAN-UP CMD LINE ]#######################################################
 
 elsif ( $input->$* =~ s|^[ \t\n]+||sg ) {
@@ -265,14 +302,8 @@ elsif ( $input->$* =~ s|^[ \t\n]+||sg ) {
 
 ##[ SESSION BLOCKED BY STRM-SIZE STREAM ]#####################################
 
-## Check if session is waiting for STRM-SIZE stream to complete
-## Don't parse new commands - just let STRM packets accumulate in buffer
-
-elsif ( defined $session->{'blocked_by_stream'} ) {
-
-    $event->w->start;    ##  restarting input buffer processing  ##
-    return 1;    ## command not complete (waiting for STRM-SIZE close) ###
-}
+## stream data arrives via routing regex [ line 439 : STRM-SIZE included ] ##
+## no early return here : STRM-SIZE chunks must reach route handler        ##
 
 ##[ SINGLE LINE CMD ]#########################################################
 
@@ -436,7 +467,7 @@ $cmd_usr_str = sprintf qw| %s%s |, $data{'session'}{$_m1}{'user'}, $_m2
 
 my $refusal_type;    ##  tracking types of access denial for logging  ##
 
-if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
+if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
 
     if ( defined $session->{'route'}->{$cmd_id} ) {
 
@@ -839,6 +870,13 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                             = $route->{'source'}->{'sid'};
                         $session->{'streams'}{$cmd_id}
                             ->{'route_source_cmd_id'} = $s_cmd_id;
+
+                        ## convert STRM-SIZE to SIZE for client ##
+                        my $src_sid    = $route->{'source'}->{'sid'};
+                        my $src_cmd_id = $s_cmd_id;
+                        $data{'session'}{$src_sid}{'buffer'}{'output'}
+                            .= sprintf "%sSIZE %d\n", $src_cmd_id,
+                            $total_bytes;
                     }
 
                     ## Block session to STRM-SIZE stream ##
@@ -863,19 +901,19 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                             $session->{'streams'}{$cmd_id}->{'received_bytes'}
                                 += bytes::length($chunk_data);
 
-                            ## Forward raw chunk data to source immediately ##
-                            if (defined $session->{'streams'}->{$cmd_id}
+                            if (defined $session->{'streams'}{$cmd_id}
                                 ->{'handler'} ) {
-                                ## Handler will get data on close ##
+                                ## handler path: accumulate for delivery at close ##
                                 $session->{'streams'}{$cmd_id}->{'buffer'}
                                     //= '';
                                 $session->{'streams'}{$cmd_id}->{'buffer'}
                                     .= $chunk_data;
                             } else {
-                                ## Forward raw bytes to source zenka output ##
-                                $data{'session'}
-                                    { $route->{'source'}->{'sid'} }
-                                    ->{'buffer'}->{'output'} .= $chunk_data;
+                                ## routing path: forward raw data to client ##
+                                my $src_sid = $session->{'streams'}{$cmd_id}
+                                    ->{'route_source_sid'};
+                                $data{'session'}{$src_sid}{'buffer'}{'output'}
+                                    .= $chunk_data;
                             }
 
                             <[base.logs]>->(
@@ -926,8 +964,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                                 $stream->{'total_bytes'};
 
                         } else {
-                            ## Valid: send complete atomic reply ##
-                            my $accumulated_data = $stream->{'buffer'};
+                            ## Valid: stream complete ##
 
                             <[base.logs]>->(
                                 2,   "[%d] STRM-SIZE complete: %d bytes",
@@ -936,6 +973,8 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
 
                             ## Call handler or route to source ##
                             if ( defined $stream->{'handler'} ) {
+                                ## handler path: deliver accumulated data as SIZE ##
+                                my $accumulated_data = $stream->{'buffer'};
                                 if ( defined $code{ $stream->{'handler'} } ) {
                                     $code{ $stream->{'handler'} }->(
                                         {   'sid'       => $id,
@@ -950,19 +989,13 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|STRM|GET|TERM)$, ) {
                                     );
                                 }
                             } else {
-                                ## Forward atomic SIZE reply to source ##
-                                $data{'session'}
-                                    { $stream->{'route_source_sid'} }
-                                    {'buffer'}{'output'}
-                                    .= <[base.sprint_t]>->(
-                                    qw| X3QVAWA |,
-                                    $stream->{'route_source_cmd_id'},
-                                    sprintf( qw| %04d |,
-                                        $stream->{'total_bytes'} ),
-                                    $accumulated_data
-                                    );
+                                ## routing path: SIZE already complete, no action ##
+                                ## client received SIZE header and all data chunks ##
                             }
                         }
+
+                        ## clear stream blocking flag ##
+                        delete $session->{'blocked_by_stream'};
 
                         ## delete route ##
                         my $src_sid    = $route->{'source'}->{'sid'};
@@ -1362,32 +1395,56 @@ UNKNOWN_TYPE_HANDLED:
 
                 } elsif ( uc( $reply->{'mode'} ) eq qw| SIZE | ) {
 
-                    ## SIZE mode: reports BYTE count
-
-                    ## Direct command responses don't use STRM-SIZE
-                    ## fragmentation.  [ STRM-SIZE only applies to
-                    ## routed responses with strm-lock. ]
-                    ## For large direct responses, use STRM mode instead
-                    ##                                [ lines 1223-1259 ].
+                    ## SIZE mode: reports BYTE count ##
                     my $data_to_send = $reply->{'data'};
                     my $session_mode = $session->{'size_mode'} // qw| SIZE |;
-                    my $count;
+                    my $count        = bytes::length($data_to_send);
 
-                    ## Check session preference for response format
-                    if ( $session_mode eq qw| CHRSIZE | ) {
-                        ## Translate to CHRSIZE mode: count UTF-8 characters
+                    ## use STRM-SIZE fragmentation for large replies sent ##
+                    ## through cube relay [ not for cube's own responses ] ##
+                    my $buf_limit = $data{'size'}->{'buffer'}->{'input'};
+                    if ( $count > $buf_limit
+                        and <system.zenka.type> ne qw| cube | ) {
+
+                        my $chunk_size = <protocol.strm_size.packet_size>
+                            // 8192;
+
+                        ## STRM-SIZE open ##
+                        $output->$* .= sprintf "%sSTRM-SIZE open %d\n",
+                            $cmd_id_str, $count;
+
+                        ## send data in chunks ##
+                        my $offset = 0;
+                        while ( $offset < $count ) {
+                            my $chunk_len = $chunk_size;
+                            $chunk_len = $count - $offset
+                                if $offset + $chunk_len > $count;
+                            $output->$* .= sprintf "%sSTRM-SIZE %d\n%s",
+                                $cmd_id_str, $chunk_len,
+                                substr( $data_to_send, $offset, $chunk_len );
+                            $offset += $chunk_len;
+                        }
+
+                        ## STRM-SIZE close ##
+                        $output->$* .= sprintf "%sSTRM-SIZE close\n",
+                            $cmd_id_str;
+
+                        <[base.logs]>->(
+                            2,   '[%d] STRM-SIZE sent : %d bytes in chunks',
+                            $id, $count
+                        );
+
+                    } elsif ( $session_mode eq qw| CHRSIZE | ) {
+                        ## translate to CHRSIZE mode: count UTF-8 characters ##
                         my $test_data = $data_to_send;
                         utf8::upgrade($test_data);
                         $count = length($test_data);
 
-                        ## Send CHRSIZE header instead of SIZE
                         $output->$* .= sprintf "%sCHRSIZE %04d\n%s",
                             $cmd_id_str, $count, $data_to_send;
 
                     } else {
-                        ## SIZE mode [default]: count bytes
-                        $count = bytes::length($data_to_send);
-
+                        ## SIZE mode [ default ]: count bytes ##
                         $output->$* .= <[base.sprint_t]>->(
                             qw| X3QVAWA |, $cmd_id_str,
                             $count,        $data_to_send
@@ -1832,8 +1889,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,.,,,..,.,.,,.,,,,,,..,,.,.,,.,,,.,,.,.,...,..,,...,...,..,,,,.,,,.,,.,,.,.,
-#DOGGIOMEESL57CCHRRN6QJ5Z5B4AS6247DT3JQX5P7PH4LO2HPJCY3G4CS74LEXJNWPJCAV2VNDX2
-#\\\|32AQLDSXU2CEFF2A4OI46WARKGG4X3LQ7U3MDFA26QP6GTPJQZK \ / AMOS7 \ YOURUM ::
-#\[7]TPMY3OUICU5256Y4F73NV52HIP42KXACP6H43PMFVOBDFJF7X2DA 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,..,,..,,..,,...,..,,.,,,...,,,.,..,,...,...,,..,,,.,...,,..,...,
+#5CQOMLRR6RGEC5VAREE3TYT6PH3Z36BLRLP37GPVC5EYHHX6WEOESSQROGSBPPOXWUBWR6CBWYFUU
+#\\\|X3XYBXDKW5EUFXSED54V2EYBA53HI7TBAMBZD7S4LZGUGOFRWAM \ / AMOS7 \ YOURUM ::
+#\[7]7UGOVR467XDZQMY2NWB22JE3SO3IYUCD5YSMIOUIWZDM643CCWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
