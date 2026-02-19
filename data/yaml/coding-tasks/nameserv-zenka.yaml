@@ -176,6 +176,169 @@ phase_2_recursive:
       - resolver cache exposed: nameserv.flush-cache, nameserv.cache-stats
 
 ## -----------------------------------------------------------------------
+## dynamic dns: home node reachability
+## -----------------------------------------------------------------------
+
+dynamic_dns:
+  motivation: >
+    Protocol-7 nodes running at home or on private networks have
+    dynamic public IPs. Without a VPS hop or when a VPS hop has
+    failed, direct reachability depends on knowing the current IP.
+    Dynamic DNS lets home nodes register their current address with
+    the authoritative nameserv, making them directly reachable by
+    name from anywhere. Supports the full range of use cases from
+    fully public routed networks down to partial configurations:
+    single home node with no VPS, multiple nodes with intermittent
+    hops, and IPv6-only home connections with stable prefixes.
+
+  node_registration:
+    - each Protocol-7 node has a stable node identity (Curve25519 key)
+    - nodes register a subdomain: <node-id>.nodes.domain.com
+    - registration authenticated by signing update request with node key
+    - nameserv verifies signature against known node public key
+    - on success: A (IPv4) and/or AAAA (IPv6) records written for node
+    - short TTL on dynamic records: 60s (fast propagation on IP change)
+    - SOA serial auto-incremented on each update
+
+  update_protocol:
+    p7_native: >
+      preferred path: home node sends nameserv.update-address command
+      over existing Protocol-7 session (if any route to server exists).
+      command carries: node-id, new IP(s), timestamp, signature.
+      no extra protocol needed when P7 connectivity is available.
+
+    http_fallback: >
+      when no P7 session is available (VPS down, not yet connected):
+      node sends HTTP POST to a dedicated endpoint on httpd:
+        POST /api/dns/update
+        body: { node_id, ip4, ip6, timestamp, signature }
+      httpd.cmd.dns-update routes to nameserv.update-address internally.
+      enables IP registration from a basic curl/wget script with no
+      Protocol-7 binary required on the home node side.
+
+    dyndns_compat: >
+      optional: expose RFC 2136 DNS UPDATE (dynamic DNS standard)
+      or dyn.com-compatible HTTP API (/nic/update?hostname=&myip=)
+      for compatibility with existing home router DDNS clients.
+      most consumer routers support dyn.com protocol natively,
+      requiring no custom software on the home network.
+
+  commands:
+    - nameserv.update-address <node-id> <ip4> [ip6] [signature]
+      registers or updates address record for a node
+    - nameserv.list-nodes
+      shows all registered nodes, their current IPs, and last-seen time
+    - nameserv.node-status <node-id>
+      current IP, TTL, last update timestamp, online/stale state
+    - nameserv.remove-node <node-id>
+      deregisters a node (admin command, signed)
+    - nameserv.add-node-key <node-id> <pubkey>
+      registers a node's public key for future update authentication
+
+  stale_detection:
+    - nodes must refresh their record within nameserv.cfg.ddns_refresh_ttl
+      (default: 300s) or record is marked stale
+    - stale records kept in zone but flagged: NXDOMAIN not returned
+      immediately (allows reconnection within a grace period)
+    - nameserv.cfg.ddns_stale_grace = 3600s: after this, record removed
+    - stale-node event emitted: other zenki can react (e.g. routing tables)
+
+  ipv6_preference: >
+    home nodes often have stable IPv6 prefixes (provider-assigned /64)
+    even when IPv4 is dynamic. AAAA records updated alongside A records.
+    when both present, IPv6 preferred by resolvers (standard behavior).
+    allows IPv6-native direct connectivity even when IPv4 NAT changes.
+
+  netfilter_integration: >
+    when nameserv.update-address is called with a new IP for a known
+    node, nameserv emits node-address-changed event. netfilter zenka
+    can subscribe and update whitelist rules (e.g. knock whitelist,
+    trusted-source rules for admin ports) automatically when a home
+    node's IP changes. closes the loop: DNS and firewall stay in sync
+    with actual node location.
+
+  partial_use_case_support:
+    no_vps: >
+      home node registers IP directly via HTTP fallback to the server.
+      other nodes resolve the subdomain to reach the home node directly.
+      no routing hop needed; only the authoritative DNS server required.
+
+    vps_down: >
+      if the VPS hop fails, nodes that have cached the dynamic DNS entry
+      (short TTL ensures freshness) can fall back to direct IP connection.
+      home node continues refreshing its DNS record independently.
+      system degrades gracefully: loses routing hop, retains direct reach.
+
+    nat_traversal_hint: >
+      dynamic DNS does not solve NAT traversal for inbound connections.
+      supplementary: node can publish its external port mapping via TXT
+      record (e.g. mapped port from UPnP or manual forward) alongside
+      its A record. resolvers read TXT to determine connection port.
+      future: integrate with a STUN-like zenka for NAT traversal assist.
+
+  configuration:
+    nameserv.cfg.ddns_enabled       = 1
+    nameserv.cfg.ddns_zone          = nodes.domain.com
+    nameserv.cfg.ddns_record_ttl    = 60      ## seconds
+    nameserv.cfg.ddns_refresh_ttl   = 300     ## node must refresh within
+    nameserv.cfg.ddns_stale_grace   = 3600    ## seconds before removal
+    nameserv.cfg.ddns_http_endpoint = 1       ## enable httpd integration
+
+## -----------------------------------------------------------------------
+## network topology dns: p7 resource and branch discoverability
+## -----------------------------------------------------------------------
+
+network_topology_dns:
+  motivation: >
+    DNS is the natural discovery layer for a distributed Protocol-7
+    network. Beyond home node registration, the nameserv zenka can
+    serve as a topology registry: Protocol-7 network branches, service
+    endpoints, checksum-addressed resources, and resource groups are
+    all published in DNS. Any node that can resolve the authoritative
+    zone immediately discovers the current network layout without
+    requiring a central coordinator. Discoverability is passive and
+    decentralized; the DNS zone IS the topology map.
+
+  p7_network_branches:
+    - each Protocol-7 branch (cluster of zenki) registered as SRV records:
+        _p7._tcp.branch-name.nodes.domain.com SRV 10 1 7777 host.domain.com
+    - priority and weight fields used for load distribution and failover
+    - multiple SRV records per branch name = redundant endpoints
+    - branch health: nameserv removes SRV record when branch stops
+      responding (health check integration with infra zenka)
+    - client discovery: nodes query SRV for branch name to find entry points
+
+  checksum_based_resource_addressing: >
+    Protocol-7 resources identified by AMOS7 checksum can be published
+    in DNS as TXT records under a content-addressed subdomain:
+      <checksum>.res.domain.com TXT "p7-resource v=1 size=<n> copies=<n>"
+    resolvers query the checksum subdomain to discover which nodes hold
+    the resource and how many copies exist. combined with SRV records
+    pointing to serving nodes, enables checksum-routed content delivery
+    without a central index. resource groups (sets of related resources)
+    published as additional TXT records linking group checksum to member
+    checksums.
+
+  load_balancing_dns:
+    - multiple A/AAAA records per service name: standard DNS round-robin
+    - weighted round-robin via TTL tuning: lower TTL on preferred nodes
+      causes resolvers to refresh more often, naturally biasing traffic
+    - health-checked records: infra zenka calls nameserv.remove-record
+      on health check failure; nameserv.set-record on recovery
+    - nameserv.cfg.lb_mode = round-robin | weighted | failover
+    - failover: only first healthy record returned until primary recovers
+
+  commands_extension:
+    - nameserv.register-branch <name> <host> <port> [priority] [weight]
+      publishes SRV record for a Protocol-7 branch endpoint
+    - nameserv.deregister-branch <name> <host>
+      removes SRV record (called on graceful shutdown or health failure)
+    - nameserv.register-resource <checksum> <host> [size] [copies]
+      publishes TXT record for a content-addressed resource
+    - nameserv.list-branches: all registered branch SRV records
+    - nameserv.list-resources: all checksum-registered resources
+
+## -----------------------------------------------------------------------
 ## integration summary
 ## -----------------------------------------------------------------------
 
@@ -189,9 +352,13 @@ integration_matrix:
   postfix:
     - MX records managed via nameserv.set-record
     - SPF / DKIM TXT records added during postfix setup
+  netfilter:
+    - node-address-changed event triggers firewall whitelist update
+    - home node IP changes propagate to netfilter knock whitelist
   events:
     - SOA serial auto-increment on zone change (event-driven)
-    - zone-changed event emitted after any record mutation
+    - zone-changed and node-address-changed events emitted on mutation
+    - stale-node event emitted when ddns_refresh_ttl exceeded
 
 verification:
   phase_1:
@@ -201,6 +368,16 @@ verification:
     - letsencr dns-01 challenge completes end-to-end (wildcard cert)
     - nameserv.reload-zones picks up new zone file without restart
     - multiple concurrent UDP queries answered without event loop stall
+
+  dynamic_dns:
+    - nameserv.update-address registers node, A record visible in dig within 1s
+    - unauthenticated update rejected (wrong or missing signature)
+    - HTTP fallback: curl POST /api/dns/update updates record correctly
+    - dyn.com-compat: router DDNS client updates record on IP change
+    - stale detection: record flagged after ddns_refresh_ttl, removed after grace
+    - node-address-changed event delivered to netfilter within 1s of update
+    - IPv6 AAAA record updated alongside A record when both provided
+    - direct connection to home node succeeds after VPS hop simulated down
 
   phase_2:
     - dig @localhost google.com A resolves via recursive path

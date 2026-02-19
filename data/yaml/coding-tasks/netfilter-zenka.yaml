@@ -1,0 +1,221 @@
+---
+# Task: Netfilter Zenka - Firewall Management with Zenka Port Awareness
+# Date: 2026-02-19
+# Status: pending
+# Context: Protocol-7 firewall integration for remote server deployment
+
+task_metadata:
+  title: "Netfilter Zenka - UFW/iptables Control with Port Knocking"
+  description: >
+    A Protocol-7 zenka that manages the host firewall (UFW primary,
+    iptables fallback) with awareness of which ports Protocol-7 zenki
+    are actively listening on. Exposes firewall rule management as
+    Protocol-7 commands and implements port knocking sequences for
+    controlled access to privileged ports. Uses
+    Rex::Resource::firewall::Provider::ufw and
+    Rex::Resource::firewall::Provider::iptables as implementation
+    templates for low-level firewall interaction.
+  priority: high
+  category: "infrastructure"
+
+## -----------------------------------------------------------------------
+## motivation
+## -----------------------------------------------------------------------
+
+motivation: >
+  Remote servers expose a minimal public attack surface. A netfilter
+  zenka lets Protocol-7 manage that surface dynamically: ports open
+  automatically when their zenka starts, close when it stops, and the
+  firewall state stays consistent with the actual service state without
+  manual rule editing. Port knocking adds a second layer: privileged
+  ports (SSH, admin interfaces) only open for an IP after it sends the
+  correct knock sequence, removing them from passive scanners entirely.
+
+## -----------------------------------------------------------------------
+## phase 1: firewall wrapper zenka
+## -----------------------------------------------------------------------
+
+netfilter_wrapper:
+
+  capabilities:
+
+    backend_detection:
+      - auto-detect available backend: UFW preferred, iptables fallback
+      - netfilter.cfg.backend = ufw | iptables | auto
+      - netfilter.backend command: reports active backend and version
+      - graceful degradation: UFW commands translated to iptables if UFW absent
+
+    rule_management:
+      - netfilter.open-port <port> [proto] [from]
+        opens a port, optionally restricted to source IP or CIDR
+      - netfilter.close-port <port> [proto] [from]
+        removes the rule; no-op if rule did not exist
+      - netfilter.list-rules
+        shows all managed rules (Protocol-7-owned, tagged in comment field)
+      - netfilter.flush-managed
+        removes only Protocol-7-managed rules (tagged), leaves others intact
+      - netfilter.status
+        current backend state, rule count, default policy
+
+    zenka_port_awareness:
+      - zenki declare listening ports in configuration:
+          netfilter.cfg.managed_ports = 80 443 53
+          or via command at startup: netfilter.register-port <port> [proto]
+      - v7 integration: when a zenka starts, netfilter.open-port called
+        automatically for its registered ports
+      - when a zenka stops: netfilter.close-port called for its ports
+        (unless another zenka shares the same port)
+      - netfilter.list-zenka-ports: shows port→zenka mapping table
+      - conflict detection: warn if two zenki claim the same port
+
+    policy_management:
+      - netfilter.set-default-policy <in|out|fwd> <accept|drop>
+      - netfilter.allow-established: ensures ESTABLISHED,RELATED allowed
+      - netfilter.lockdown: drop all inbound except explicitly opened ports
+      - netfilter.open-loopback: ensure lo interface always allowed
+
+  implementation_templates:
+    ufw_provider: >
+      Rex::Resource::firewall::Provider::ufw provides Perl methods for
+      UFW rule creation, deletion, and status. Use as template for:
+      - rule syntax and argument ordering
+      - comment field usage for rule tagging
+      - enable/disable/reset operations
+      - status parsing (numbered list output)
+
+    iptables_provider: >
+      Rex::Resource::firewall::Provider::iptables provides equivalent
+      Perl methods for direct iptables interaction. Use as template for:
+      - chain management (INPUT OUTPUT FORWARD)
+      - rule insertion vs append ordering
+      - match extensions (-m state --state, -m comment --comment)
+      - ACCEPT/DROP/REJECT target syntax
+      - save/restore via iptables-save / iptables-restore
+
+    tagging_convention: >
+      all Protocol-7-managed rules carry a comment tag:
+        --comment "p7:[zenka-name]:[port]"
+      this allows netfilter.flush-managed to identify and remove only
+      its own rules without touching manually added rules. ufw supports
+      comments natively; iptables uses -m comment --comment.
+
+  new_zenka:
+    name: netfilter
+    start_mode: stdin-zenka
+    user: root          ## firewall management requires root
+    on_demand: false    ## always-on: port state must be consistent
+    modules:
+      - netfilter.base              ## init, backend detection, config
+      - netfilter.backend.ufw       ## UFW command wrappers
+      - netfilter.backend.iptables  ## iptables command wrappers
+      - netfilter.port_registry     ## zenka→port mapping, conflict detection
+      - netfilter.cmd.*             ## open-port, close-port, status, etc.
+
+  configuration:
+    netfilter.cfg.backend           = auto
+    netfilter.cfg.tag_prefix        = p7
+    netfilter.cfg.allow_established = 1
+    netfilter.cfg.allow_loopback    = 1
+    netfilter.cfg.default_policy_in = drop   ## after managed rules applied
+
+  v7_integration:
+    - v7 calls netfilter.register-port when a zenka connects and announces ports
+    - v7 calls netfilter.release-port when a zenka disconnects
+    - port registry persisted to /var/cache/netfilter/port-registry.yaml
+    - on startup: netfilter reconciles registry with current firewall state
+
+## -----------------------------------------------------------------------
+## phase 2: port knocking
+## -----------------------------------------------------------------------
+
+port_knocking:
+  motivation: >
+    SSH and other privileged ports closed by default in the firewall.
+    An authorized client sends a knock sequence (a series of connection
+    attempts to specific closed ports in order) to temporarily open the
+    target port for their source IP. Invalid knock sequences are silently
+    dropped. Successful knocks open the port for a configurable duration,
+    then auto-close. Eliminates SSH from passive scans entirely.
+
+  design:
+    sequence_monitoring:
+      - monitor iptables DROP log entries for knock ports (via LOG target)
+      - or use raw socket / libpcap approach for zero-rule-overhead sensing
+      - track per-source-IP knock progress in memory hash with timestamp
+      - sequences expire if not completed within knock_timeout seconds
+
+    knock_sequence_format:
+      - sequence: list of port numbers the client must probe in order
+        example: [ 7471, 2381, 9204 ]
+      - each probe: TCP SYN or UDP packet to that port (connection attempt)
+      - all ports in sequence must be DROP-logged (not open)
+      - source IP, destination port, protocol (TCP/UDP) define each step
+      - optional: require specific protocol per step for stronger sequences
+
+    on_successful_knock:
+      - netfilter.open-port <target_port> from <source_ip> ttl <seconds>
+      - tagged with knock origin: p7:netfilter:knock:[target_port]:[ip]
+      - TTL timer closes the rule automatically after configured duration
+      - log event: knock-success <source_ip> → <target_port> opened for Ns
+      - emit Protocol-7 event: knock-success (for other zenki to react)
+
+    on_failed_or_expired_sequence:
+      - silently discard; no feedback to client
+      - optionally log at debug level for admin visibility
+      - rate-limit per source IP: ignore knock attempts after N failures
+
+    configuration:
+      netfilter.knock.sequences:
+        ssh:
+          target_port: 22
+          sequence:    [ 7471, 2381, 9204 ]
+          protocol:    tcp
+          open_ttl:    60      ## seconds port stays open after knock
+          proto_steps: [ tcp, tcp, tcp ]
+      netfilter.knock.timeout:      10   ## max seconds to complete sequence
+      netfilter.knock.max_failures: 5    ## failures before IP rate-limited
+
+    commands:
+      - netfilter.knock-status: show active temporary rules, TTL remaining
+      - netfilter.knock-log: recent knock activity (success and failure)
+      - netfilter.add-knock-sequence <name> <target> <seq...>
+      - netfilter.remove-knock-sequence <name>
+      - netfilter.whitelist-ip <ip>: skip knocking for trusted source
+
+## -----------------------------------------------------------------------
+## integration with other zenki
+## -----------------------------------------------------------------------
+
+integration_matrix:
+  httpd:
+    - port 80 registered by httpd at startup → netfilter.open-port 80 tcp
+  httpsd:
+    - port 443 registered by httpsd at startup → netfilter.open-port 443 tcp
+  nameserv:
+    - port 53 (TCP+UDP) registered → netfilter.open-port 53 tcp+udp
+  postfix:
+    - ports 25, 587 registered → netfilter.open-port for each
+  letsencr:
+    - no direct port (uses httpd port 80 for http-01 challenge)
+    - dns-01 challenge uses nameserv port 53
+  ssh:
+    - not managed by a zenka; controlled via knock sequence only
+    - sshd port kept closed in default firewall, opened per-IP on knock
+
+verification:
+  phase_1:
+    - netfilter.status shows correct backend (ufw or iptables)
+    - netfilter.open-port 8080 tcp creates rule visible in ufw status/iptables -L
+    - netfilter.close-port 8080 tcp removes only that rule
+    - httpsd start causes port 443 to open; httpsd stop causes it to close
+    - netfilter.flush-managed removes all p7-tagged rules, leaves others intact
+
+  phase_2:
+    - SSH port 22 absent from nmap scan before knock
+    - correct knock sequence from test client opens port 22 for that IP
+    - port 22 closes automatically after open_ttl seconds
+    - wrong sequence order leaves port 22 closed
+    - knock-status shows active temporary rule with TTL countdown
+    - knock-log records successful and failed attempts
+
+#,,.,,,.,,,.,..,,.,,.,,...,.,,,,..,..,,..,,...,..,,...,...,,,.,.,,,.,,,,,.,.,,,

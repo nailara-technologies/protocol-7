@@ -1,0 +1,301 @@
+---
+# Task: Infrastructure Orchestration Zenka - VPS Pool Management and
+#       Automated Deployment with Paranoid Security Rotation
+# Date: 2026-02-19
+# Status: pending
+# Context: Protocol-7 self-managing distributed infrastructure
+
+task_metadata:
+  title: "Infra Zenka - Resource Pool Orchestration, Failover, and Forensic Rotation"
+  description: >
+    A Protocol-7 zenka that manages a pool of VPS resources and
+    orchestrates the full lifecycle of Protocol-7 deployments: automatic
+    provisioning, zenka deployment, health monitoring, failover, and
+    paranoid security rotation. Given a pool of VPS credentials, the
+    zenka resolves optimal placement, deploys the required zenki,
+    monitors health, handles failover via nameserv integration, and
+    enforces a rotation policy where each VPS is automatically replaced
+    after a configurable timeframe. LLM-assisted forensic differential
+    analysis between clean baseline and post-use state identifies
+    compromise or drift before images are retired.
+  priority: medium
+  category: "infrastructure"
+
+## -----------------------------------------------------------------------
+## motivation
+## -----------------------------------------------------------------------
+
+motivation: >
+  A self-managing Protocol-7 network needs no manual intervention to
+  maintain optimal distribution, redundancy, and security posture.
+  Operators supply a pool of VPS credentials and high-level intent
+  (which services to run, redundancy targets, security policy). The
+  infra zenka resolves the rest: it provisions nodes, deploys zenki,
+  wires up DNS, monitors health, fails over when nodes degrade, and
+  rotates VPS instances on schedule. The paranoid rotation model treats
+  every VPS as potentially compromised after one work week, replacing it
+  with a fresh instance and using forensic differential analysis to
+  understand what changed — giving both security assurance and an
+  audit trail of node behavior over time.
+
+## -----------------------------------------------------------------------
+## phase 1: resource pool and basic orchestration
+## -----------------------------------------------------------------------
+
+resource_pool:
+  motivation: >
+    Operators register VPS credentials (API keys, provider names, regions)
+    into the infra zenka's encrypted pool. The zenka tracks lifecycle
+    state for each VPS: available, provisioning, active, retiring,
+    forensic-pending, destroyed. Pool operations are idempotent and
+    recoverable; state is persisted so a restart resumes without loss.
+
+  vps_pool_management:
+    - infra.add-vps <provider> <api-key> [region] [plan]
+      registers a VPS credential set into the encrypted pool
+    - infra.list-vps: shows all pool entries with lifecycle state
+    - infra.remove-vps <id>: removes credential from pool (after retire)
+    - pool state persisted to /var/cache/infra/vps-pool.yaml (encrypted)
+    - supported providers: Hetzner, DigitalOcean, Vultr, Linode, OVH
+      (provider-specific API wrappers per provider zenka module)
+
+  lifecycle_states:
+    available:    ## credential registered, no active VPS provisioned
+    provisioning: ## API call placed, waiting for VPS to become ready
+    bootstrapping:## VPS up, Protocol-7 being installed and configured
+    active:       ## zenki running, health checks passing
+    retiring:     ## scheduled for replacement, draining traffic
+    forensic:     ## stopped, forensic image diff in progress
+    destroyed:    ## API deletion called, credential may be reused
+
+  automatic_provisioning:
+    - on pool entry: infra zenka provisions VPS via provider API
+    - waits for SSH access (polls with exponential backoff)
+    - runs bootstrap script: installs Protocol-7 dependencies,
+      clones repo, configures zenki, starts systemd service
+    - verifies Protocol-7 is reachable: connects to cube via IP
+    - registers node in nameserv (calls nameserv.register-branch)
+    - transitions to 'active' state; starts health monitoring
+
+  bootstrap_process:
+    - generate per-node keypair (Curve25519) at provisioning time
+    - send public key to new node over SSH during bootstrap
+    - node joins Protocol-7 network with authenticated identity
+    - infra zenka stores node identity → VPS mapping
+    - bootstrap script templated: supports full/partial installations
+      (only the zenki needed for the node's assigned role are deployed)
+
+automatic_deployment:
+  motivation: >
+    Given a desired service topology (which zenki should run where,
+    redundancy counts per zenka), the infra zenka resolves optimal
+    placement across available VPS pool entries. Partial installations
+    are supported: a node may run only nameserv + netfilter, or only
+    httpd + httpsd, or the full stack. Dependency resolution ensures
+    prerequisite zenki are present before dependents start.
+
+  service_topology_config:
+    infra.cfg.topology: |
+      services:
+        - name: httpsd
+          count: 2           ## two instances for redundancy
+          requires: [ httpd, letsencr, nameserv ]
+        - name: nameserv
+          count: 3           ## three DNS servers for resilience
+          requires: []
+        - name: postfix
+          count: 1
+          requires: [ nameserv ]
+
+  dependency_resolution:
+    - infra zenka builds dependency graph from service topology config
+    - topological sort determines deployment order per node
+    - nodes assigned roles based on available pool entries and constraints
+    - constraints: region affinity, provider diversity, existing load
+    - reassigns roles automatically when a node retires or fails
+
+  dynamic_reconfiguration:
+    - when a node is added to the pool, infra zenka assigns roles and deploys
+    - when a node retires, infra zenka migrates its roles to remaining nodes
+      or provisions a replacement from the pool
+    - nameserv updated (SRV records added/removed) to reflect current state
+    - netfilter rules on each node updated via netfilter zenka commands
+    - zero-downtime migration: new node active in DNS before old one removed
+
+health_monitoring:
+  - periodic health check per active node (configurable interval: 60s)
+  - health check: Protocol-7 heartbeat to node's cube zenka
+  - secondary: HTTP probe to httpsd/httpd if applicable
+  - failure threshold: N consecutive failures → node marked degraded
+  - on degraded: nameserv.deregister-branch removes SRV record (failover)
+  - on recovery: nameserv.register-branch restores SRV record
+  - persistent failure (M checks after degraded): triggers retirement
+  - infra.node-status <id>: current health, uptime, check history
+
+failover:
+  - SRV record removal from nameserv is the primary failover mechanism
+  - resolvers immediately see reduced record set and route around failure
+  - if nameserv itself fails: secondary nameserv takes over (3-node cluster)
+  - infra zenka watches nameserv health with elevated priority
+  - home nodes with dynamic DNS: separate health tracking per node
+  - failover events logged and emitted as Protocol-7 events for LLM analysis
+
+## -----------------------------------------------------------------------
+## phase 2: paranoid security rotation
+## -----------------------------------------------------------------------
+
+paranoid_rotation:
+  motivation: >
+    Any VPS that has been running for a week has had unknown processes,
+    network traffic, and software updates applied. Even a non-compromised
+    node drifts from its baseline. The paranoid rotation model treats
+    temporal exposure as a risk factor independent of detected compromise:
+    after one work week, every VPS is replaced regardless. The retired
+    node's disk image is compared forensically against a known-clean
+    baseline image taken at provisioning time. The diff is analyzed by
+    the LLM zenka for anomalies. This provides both a security assurance
+    mechanism and an operational learning loop: over time, expected drift
+    is characterized, making true anomalies more visible.
+
+  rotation_schedule:
+    - infra.cfg.rotation_period = 604800  ## 7 days in seconds
+    - rotation staggered across pool: not all nodes retire simultaneously
+    - infra.cfg.rotation_stagger = 86400  ## one node per day max
+    - rotation can be triggered manually: infra.rotate-node <id>
+    - rotation paused during high-traffic periods (configurable)
+    - infra.cfg.rotation_pause_hours = [ 08:00-10:00, 18:00-20:00 ]
+
+  replacement_process:
+    1. provision replacement VPS from pool (or provision new one)
+    2. bootstrap and bring to 'active' state alongside retiring node
+    3. add replacement to DNS (nameserv.register-branch)
+    4. allow traffic drain on retiring node (configurable drain period)
+    5. remove retiring node from DNS (nameserv.deregister-branch)
+    6. capture forensic disk image of retiring node
+    7. destroy retiring VPS via provider API
+    8. run forensic differential analysis on captured image
+    9. store forensic report; notify operator if anomalies found
+    10. mark VPS credential as available for re-provisioning
+
+  forensic_differential_analysis:
+    baseline_capture:
+      - immediately after bootstrapping, before any traffic or work:
+        snapshot the VPS disk state (provider snapshot API or rsync)
+      - store baseline hash manifest: AMOS7 checksum per file
+      - baseline stored in /var/cache/infra/forensic/baselines/<node-id>/
+      - manifest includes: file paths, sizes, mtimes, checksums, owner/perms
+
+    post_rotation_capture:
+      - after traffic drain, before destroy: capture current disk state
+      - rsync or snapshot to forensic storage location
+      - generate manifest for post-use state in same format as baseline
+
+    differential_analysis:
+      - compare baseline vs post-use manifests:
+          added files:   present in post, absent in baseline
+          removed files: present in baseline, absent in post
+          modified:      checksum or mtime changed
+          permission changes: owner, group, mode differences
+      - output: structured diff report (YAML) per category
+      - size/count summary: N files added, M modified, K removed
+
+    llm_assisted_review:
+      - diff report submitted to LLM zenka for analysis
+      - LLM classifies changes into categories:
+          expected:   OS updates, log rotation, cache files, temp files
+          suspicious: new binaries, modified system files, added cron jobs,
+                      new network listeners, auth log anomalies
+          critical:   rootkits, backdoors, unauthorized key additions,
+                      unexpected setuid files, core dumps
+      - LLM generates natural-language summary per category
+      - confidence score per classification
+      - generates recommendations: investigate further, ignore, block provider
+
+    reporting:
+      - infra.forensic-report <node-id>: full report for a node
+      - infra.forensic-summary: cross-node anomaly patterns
+      - reports stored versioned in /var/cache/infra/forensic/reports/
+      - critical findings trigger immediate alert event
+      - LLM learns from operator feedback: confirmed false positives
+        feed back to refine future classifications
+
+    reuse_policy:
+      - clean report (no suspicious/critical): credential available immediately
+      - suspicious findings: credential held, operator review required
+      - critical findings: credential permanently retired, provider notified
+      - infra.cfg.auto_reuse = 1  ## reuse after clean forensic report
+
+## -----------------------------------------------------------------------
+## integration with other zenki
+## -----------------------------------------------------------------------
+
+integration_matrix:
+  nameserv:
+    - nameserv.register-branch / deregister-branch on node lifecycle changes
+    - nameserv.update-address for dynamic node IPs
+    - topology map maintained in DNS zone automatically
+  netfilter:
+    - per-node netfilter zenka configured via infra orchestration
+    - infra zenka pushes firewall rules via Protocol-7 commands
+    - port registry kept in sync with deployed zenki per node
+  letsencr:
+    - infra zenka requests certificates for new nodes at bootstrap
+    - certificate provisioning completes before node joins DNS rotation
+  postfix:
+    - MX record managed by infra when postfix zenka deployed to a node
+    - MX failover: secondary MX registered automatically for redundancy
+  llm_zenka:
+    - forensic diff reports submitted for analysis
+    - anomaly classification and natural-language summary
+    - cross-node pattern recognition over time
+  events:
+    - node-provisioned, node-active, node-retiring, node-destroyed events
+    - health-check-failed, health-check-recovered events
+    - forensic-anomaly-detected, forensic-report-ready events
+    - rotation-scheduled, rotation-complete events
+
+## -----------------------------------------------------------------------
+## security considerations
+## -----------------------------------------------------------------------
+
+security:
+  credential_storage:
+    - VPS API credentials stored encrypted at rest
+    - encryption key derived from node's Curve25519 private key
+    - credentials never logged or transmitted in plaintext
+    - access to infra.add-vps restricted to admin sessions only
+
+  bootstrap_security:
+    - per-node SSH key generated fresh per provisioning cycle
+    - SSH key destroyed after bootstrap completes (Protocol-7 takes over)
+    - no shared credentials between nodes
+    - bootstrap script transferred over encrypted SSH, not HTTP
+
+  rotation_as_security_boundary:
+    - weekly rotation limits adversary dwell time to max one week
+    - forensic analysis detects persistence mechanisms
+    - clean node is known-good: no accumulated state to exploit
+    - over time: characterize expected drift, making anomalies clear
+
+  network_trust:
+    - nodes authenticate to each other via Curve25519 identity keys
+    - infra zenka maintains authoritative node identity registry
+    - compromised node key → infra zenka revokes and replaces
+
+verification:
+  phase_1:
+    - infra.add-vps provisions VPS, bootstraps Protocol-7, reaches active state
+    - health check passes; node appears in nameserv SRV records
+    - infra.rotate-node retires node, provisions replacement, migrates DNS
+    - failover: kill node → SRV record removed within 2 health check intervals
+    - dependency resolution: partial deployment (nameserv-only node) correct
+
+  phase_2:
+    - forensic baseline captured immediately after bootstrap
+    - forensic diff after rotation: added/modified/removed files reported
+    - LLM classifies: OS update files as expected, new binary as suspicious
+    - critical finding triggers alert within 60s of forensic analysis
+    - clean report releases credential for re-provisioning automatically
+    - 7-day rotation fires automatically with stagger respected
+
+#,,.,,,.,,,.,..,,.,,.,,...,.,,,,..,..,,..,,...,..,,...,...,,,.,.,,,.,,,,,.,.,,,
