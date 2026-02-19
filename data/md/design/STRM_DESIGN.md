@@ -415,3 +415,221 @@ return { mode => 'STRM', data => $payload };
 
 # Never rely on transparent STRM-SIZE fragmentation for local commands
 ```
+
+---
+
+## CRITICAL MILESTONE: Complete Transparent Reply Size Support (2026-02-19)
+
+### Achievement
+
+**Protocol-7 is now transparent to any reply size by default.**
+
+For the first time, the system can deliver responses of **any size** without code changes:
+- Works with or without STRM awareness in clients
+- Automatic fragmentation when replies exceed buffer limits
+- Transparent protocol conversion (STRM-SIZE → SIZE at final hop)
+- No size constraints on command implementations
+
+### Implementation Status: ✅ COMPLETE
+
+**What works:**
+- SIZE responses automatically fragment to STRM-SIZE when exceeding buffer limit
+- Cube forwards STRM-SIZE packets route-internally (zenki-to-zenki)
+- Final hop converts STRM-SIZE → SIZE transparently for clients
+- Clients (p7c.c, nshell) receive SIZE protocol regardless of internal fragmentation
+- Child zenki can return large SIZE responses without code/config changes
+- Buffer sizes can be dynamically tuned per client type without breaking protocol
+
+**Architecture benefits:**
+- Session managers (cube, parent zenki) use per-session buffer limits
+- Individual zenki use unlimited scalar buffers for output
+- Event loop prioritizes output (draining) over input (reading)
+- Buffer allocation by client type: main zenki (generous), external clients (conservative)
+- Single base.handler.command implementation handles all fragmentation
+
+**Verified working:**
+- debian.install-history returning 477KB (3028 lines) via STRM-SIZE
+- p7c.c client receiving SIZE protocol transparently
+- Cube stability maintained under large response load
+- Route cleanup and blocked_by_stream flag management correct
+
+---
+
+## Known Limitation: Blocking Attack Vulnerability
+
+### Security Issue
+
+**STRM-SIZE relies on route locking which can be abused:**
+
+Malicious zenka attack scenario:
+1. Return large SIZE response (triggers STRM-SIZE fragmentation)
+2. Send STRM-SIZE open (sets `blocked_by_stream` flag on route)
+3. Send partial data chunks
+4. Never send STRM-SIZE close
+5. Target zenka remains blocked indefinitely
+
+**Impact:**
+- Blocked routes prevent other commands from being processed
+- No timeout mechanism for incomplete streams
+- Trust-based system vulnerable to misbehaving zenki
+
+### Potential Solutions
+
+#### Option A: Async-Capable Handler
+Make base.handler.command handle streams without blocking:
+- Remove route locking for STRM-SIZE
+- Allow command interleaving during stream reception
+- Stream state maintained independently of route blocking
+- Complexity: significant refactoring required
+
+#### Option B: Target-Controlled Exclusion
+Allow zenki to exclude fragmented reply types:
+- Target declares: "no STRM-SIZE accepted"
+- Sender must use STRM mode or fail
+- Explicit opt-in for fragmentation support
+- Simpler but less transparent
+
+#### Option C: Capability-Based Command Registry
+Comprehensive command capability system:
+- Registry defines what each command can return (SIZE, STRM, STRM-SIZE)
+- Route validation checks sender capability vs target acceptance
+- Only allow safe command/reply-type combinations
+- Most secure but most complex
+
+### Current Mitigation
+
+For now, Protocol-7 operates on **trust model**:
+- Only trusted zenki should be connected to cube
+- Misbehaving zenki can be detected and disconnected manually
+- Future: implement timeout + automatic stream abort for incomplete STRM-SIZE
+
+---
+
+## Future Enhancements
+
+### STRM-CHRSIZE Support
+Extend transparent fragmentation to character-counted responses:
+- Same pattern as STRM-SIZE
+- STRM-CHRSIZE open → send CHRSIZE header to client
+- STRM-CHRSIZE chunks → forward raw data
+- STRM-CHRSIZE close → cleanup
+
+### STRM-YAML, STRM-* Variants
+Apply transparent fragmentation to other reply types:
+- Each STRM-* variant converts to base type at final hop
+- Single implementation pattern scales to all reply types
+
+### Stream Timeout Protection - IMPLEMENTED DESIGN
+
+**STRM-SIZE Timeout Architecture:**
+
+STRM-SIZE requires timeout to prevent blocking attacks. Timeout is **derived from zenka heartbeat timeout** to ensure stream abort triggers before v7 restart.
+
+**Calculation:**
+```perl
+## zenka calculates during auth ##
+my $heartbeat = <zenka.heartbeat.timeout>;  ## from startup config ##
+my $strm_timeout = int($heartbeat * 0.7);   ## 70% safety margin ##
+
+## example: heartbeat=17s → strm_timeout=12s → 5s margin ##
+```
+
+**Declaration Flow:**
+
+1. **Zenka startup file provides heartbeat timeout:**
+   ```
+   zenka.heartbeat.timeout = 17  ## v7-managed zenki ##
+   ```
+
+2. **Auth routine calculates and declares STRM-SIZE timeout:**
+   ```perl
+   ## during authentication, before traffic ##
+   if (defined <zenka.heartbeat.timeout>) {
+       my $strm_timeout = int(<zenka.heartbeat.timeout> * 0.7);
+       print $socket "declare-strm-size-timeout $strm_timeout\n";
+   }
+   ## if undefined: skip declaration, cube uses defaults ##
+   ```
+
+3. **Cube receives during auth (base.handler.auth):**
+   ```perl
+   elsif ($input =~ m/^declare-strm-size-timeout\s+(\d+)/) {
+       $session->{'strm_size_timeout'} = 0 + $1;
+       ## continue auth ##
+   }
+   ```
+
+4. **Cube uses declared or default timeout:**
+   ```perl
+   ## STRM-SIZE stream management ##
+   $stream->{'max_idle'} = $session->{'strm_size_timeout'} // 12;
+   $stream->{'last_activity'} = time();
+
+   ## timeout check: idle time since last chunk ##
+   if (time() - $stream->{'last_activity'} > $stream->{'max_idle'}) {
+       ## send STRM-SIZE close-timeout ##
+       send_abort($stream_id);
+   }
+   ```
+
+5. **Runtime adjustment (optional):**
+   ```perl
+   ## before large operation ##
+   <[base.protocol-7.send.local]>->(
+       qw| cube |,
+       'declare-strm-size-timeout 60'
+   );
+   ```
+
+**Who declares what:**
+- ✅ **v7-managed zenki** (httpd, debian, system): Have `<zenka.heartbeat.timeout>` → calculate and declare
+- ❌ **Non-v7-managed** (nshell, console, standalone): No heartbeat config → skip declaration
+- 🎯 **Cube defaults**: Use 12s (based on v7 internal defaults: 17s * 0.7)
+- 🔧 **Runtime adjustment**: Any zenka can override via `cube.cmd.declare-strm-size-timeout`
+
+**Timeout abort mechanism:**
+```
+STRM-SIZE close           # normal completion (bytes match expected)
+STRM-SIZE close-timeout   # timeout abort (idle too long)
+```
+
+**Target handling:**
+- Regular close: Validate byte count, success if complete
+- Timeout close: Explicit abort signal, return timeout exit code
+- p7c.c: Terminate session on timeout close
+- Zenki: Log timeout, return error to handler
+
+**Nested timeout safety:**
+- STRM-SIZE timeout < heartbeat timeout
+- Stream abort triggers before v7 restart
+- 70% factor provides 30% safety margin
+- Activity-based: resets on each chunk received
+
+---
+
+### STRM vs STRM-SIZE Philosophy
+
+**STRM-SIZE (Transparent Fragmentation):**
+- Purpose: SIZE protocol extension for large responses
+- Timeout: **Required** (prevents blocking attacks)
+- Calculation: `<zenka.heartbeat.timeout> * 0.7`
+- Use case: Large responses that **must complete** in reasonable time
+- Philosophy: Time-bounded, safety-first, transparent to endpoints
+
+**STRM (Explicit Streaming):**
+- Purpose: Intentional multi-packet streaming
+- Timeout: **Optional** (can be indefinite)
+- Use cases:
+  - File transfers through unreliable routes
+  - Real-time logs/events (continuous streams)
+  - Monitoring data (never-ending)
+  - Potentially slow/blocking sources
+  - Network conditions with intermittent connectivity
+- Philosophy: Explicit intent, flexibility-first, streaming semantics
+- Future: Optional timeout capability while allowing indefinite mode
+
+**Design separation:**
+- Need SIZE semantics + fragmentation? → **STRM-SIZE** (transparent, timeout required)
+- Need streaming semantics? → **STRM** (explicit, timeout optional)
+- Need timeout guarantee? → **STRM-SIZE** or STRM with timeout
+- Need indefinite stream? → **STRM** (no timeout)
