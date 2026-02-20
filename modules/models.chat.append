@@ -1,0 +1,44 @@
+## [:< ##
+
+# name = models.chat.append
+# descr = append message to chat buffer (rolling buffer, format agnostic)
+# param = $session_id, $sender, $message
+# return = TRUE on success
+
+my $session_id = shift;
+my $sender     = shift;
+my $message    = shift // '';
+
+return FALSE unless defined $session_id and defined $sender;
+
+## initialize chat buffer if needed (reuse log buffer pattern)
+<models.chat.buffer> //= [];
+
+## encode escapes for storage (single-line format)
+my $encoded = <[models.escape.encode]>->($message);
+
+## create entry
+my $entry = {
+    'time'    => <[base.time]>->(3),    ## high-precision timestamp
+    'sender'  => $sender,
+    'message' => $encoded,
+};
+
+## append to rolling buffer
+push @{<models.chat.buffer>}, $entry;
+
+## limit buffer size (keep last 500 messages)
+my $max_size = <models.cfg.chat_buffer_size> // 500;
+if ( scalar @{<models.chat.buffer>} > $max_size ) {
+    shift @{<models.chat.buffer>};
+}
+
+return TRUE;
+
+0;
+
+#,,..,...,,..,,,.,,.,,,,.,,,,,...,,..,,,.,.,,,..,,...,...,,.,,.,,,..,,...,...,
+#2JOGTWNHE6UYIMXERVVXE6XO6ZFJYYVLGGLSGD4GVEPGZANJ53Q4YH2UIDXZCCFX7N72RJMUJCAZC
+#\\\|QZYWQSLDOUCBVUOHJQI2ZQQ2MBXM4EUOQJIPTWWDNXX6OEUBKF5 \ / AMOS7 \ YOURUM ::
+#\[7]XL5BTQRVTUW6KZYSUE2WLZFRANNVNJURIPSZ2PHNQXG6YOIOBYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

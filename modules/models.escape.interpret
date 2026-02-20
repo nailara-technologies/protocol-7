@@ -1,0 +1,38 @@
+## [:< ##
+
+# name = models.escape.interpret
+# descr = interpret escape sequences in chat messages for display
+# param = $text - text with :n: :t: escapes
+# return = text with escapes converted to actual characters
+
+my $text      = shift;
+my $tab_width = <models.cfg.tab_width> // 10;
+
+return '' unless defined $text;
+
+## handle escaped markers (literals) first using placeholders
+$text =~ s/\\:n:/__LITERAL_COLON_N__/g;
+$text =~ s/\\:t:/__LITERAL_COLON_T__/g;
+
+## apply actual escapes
+$text =~ s/:n:/\n/g;
+
+## on-demand tab width: :t4: = 4 spaces, :t8: = 8 spaces, etc
+$text =~ s/:t(\d+):/' ' x $1/ge;
+
+## default tab width: :t: uses configured width
+$text =~ s/:t:/' ' x $tab_width/ge;
+
+## restore literals
+$text =~ s/__LITERAL_COLON_N__/:n:/g;
+$text =~ s/__LITERAL_COLON_T__/:t:/g;
+
+return $text;
+
+0;
+
+#,,.,,...,.,,,..,,.,.,,,.,.,.,,.,,.,.,.,,,.,.,..,,...,...,...,,.,,,..,,,,,.,.,
+#HRAQSVAZSE7DEKO3DWQVPI7ZNKQLLIKV37KH6IKKG7L4SUGDZRRM2RIQBJFBZFHWOWKTNNVJSA3GU
+#\\\|5E4G2SXMPO5DY7JQA6KAFFO66H3V27JXCNIQCOZEUGDUHJQHKNX \ / AMOS7 \ YOURUM ::
+#\[7]V3BTFKGBLNOZ47XXMGKM4CLZKBGE4Z4BNYIRNXMCD3VJKA57NIDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
