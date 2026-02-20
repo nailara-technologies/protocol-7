@@ -1,0 +1,75 @@
+## [:< ##
+
+# name = models.chat.invoke_model
+# descr = invoke model backend for chat message [wrapper for backend.*.invoke]
+# param = $model_name, $message
+# return = response text or error
+
+my $model_name = shift;
+my $message    = shift // '';
+
+return ':. error: model name required :.' unless defined $model_name;
+return ':. error: message required :.'    unless length($message);
+
+## model name to backend mapping
+my $backend_map = {
+    'kimi'       => qw| api |,      ## kimi-code API
+    'kimi-code'  => qw| api |,
+    'claude'     => qw| api |,      ## future Claude API
+    'llama'      => qw| local |,    ## local llama-server
+    'local'      => qw| local |,
+    'test-model' => qw| test |,     ## test placeholder [no actual API call]
+};
+
+## get backend type [ default to local for unknown models ]
+my $backend_type = $backend_map->{$model_name} // qw| local |;
+
+## handle test backend (placeholder for testing)
+if ( $backend_type eq 'test' ) {
+    return sprintf ':note: test echo::n::n:%s', $message;
+}
+
+## build messages array (chat format)
+my $messages = [ { 'role' => 'user', 'content' => $message } ];
+
+## build invoke parameters
+my $params = {
+    'participant_id'  => $model_name,    ## use model name as participant
+    'job_id'          => 'chat',         ## simple job id for chat
+    'model_id'        => $model_name,
+    'system_prompt'   => '',             ## no system prompt for now
+    'messages'        => $messages,
+    'temperature'     => 0.7,
+    'max_tokens'      => 2048,           ## reasonable for chat
+    'timeout_seconds' => 30,
+    'context'         => 'chat',
+};
+
+## route to appropriate backend
+my $result;
+
+if ( $backend_type eq qw| api | ) {
+    $result = <[models.backend.api.invoke]>->($params);
+} elsif ( $backend_type eq qw| local | ) {
+    $result = <[models.backend.local.invoke]>->($params);
+} else {
+    return sprintf ':. error: unknown backend type: %s :.', $backend_type;
+}
+
+## extract response from result
+if ( $result->{'success'} ) {
+    my $response = $result->{'response'} // '';
+    return $response if length($response);
+    return ':. error: empty response from model :.';
+} else {
+    my $error = $result->{'error'} // 'unknown error';
+    return sprintf ':. error: %s :.', $error;
+}
+
+0;
+
+#,,..,.,.,.,.,,.,,...,...,.,,,,,,,...,,,.,,,,,..,,...,...,..,,,..,..,,,,.,,,,,
+#VLL4RNZXJY2O4K6MKRVOCV3FFZPD4ECBEMKVHB65VOJNIZG25XFDGP7YCSUVVNNWTS5E32WZU3ZK4
+#\\\|ORRFWIPZJ4KF4L7BU2HYXW3TZBI7EZPJNOVWLGKV35BEBCJB726 \ / AMOS7 \ YOURUM ::
+#\[7]6ZKKCCMNQQW75RPPV5O6S5KJOKMBDAG7BYRPIBAIS2WTZ55PPKDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
