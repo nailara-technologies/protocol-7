@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = models.cmd.memory
+# descr = model specific memory system
+# param = [init|list|<add|del> <id>]
+
+my @call_params = split m{\ +}, $call->{'args'} // '';
+
+return { 'mode' => qw| size |, 'data' => <<'EOT' } if not @call_params;
+
+::[ models.memory <cmd|param> :: command description ]:.
+:
+:: init  ........ initializes a new memory buffer, returns id chksum
+:
+:: add <text> ...... add memory item, receive id, [knows: :n: :t[\d+]: ]
+:
+:: del <id> ........... remove memory item with specified id, [R:TRUE|FALSE]
+:
+:: append <id> <text> ....add additional text to by id specified memory item
+:
+:: show <id> ..... display the by id requested memory item. [TRUE|SIZE|FALSE]
+:
+:: name <id> [descr] .... retrieve or set name of by id specified memory item
+:
+.
+
+EOT
+
+return { 'mode' => qw| false |, 'data' => 'command not implemented [yet]' };
+
+#,,..,,,,,..,,.,,,,.,,,.,,,,,,...,.,.,,.,,..,,..,,...,..,,.,.,..,,,.,,..,,..,,
+#D6WXTAZMQGKLQ56TOSKNL2UIBWFBMKBUKEKWF7U2KSL6I26ZOOVWJP7P2CK4IIGV5I57KIFLHAIDK
+#\\\|NGQ37Y4HXSTVCVYHXMHXPHKIOXCZVDJGP552GFG3DDJOLUCILGJ \ / AMOS7 \ YOURUM ::
+#\[7]IPGLU74NIBAPWEOIT3K6YIVKLV3M7WI656PFUCWRO46XOCSYNSCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
