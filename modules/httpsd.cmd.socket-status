@@ -12,51 +12,52 @@ my $socket_created = defined <httpsd.sock> && fileno(<httpsd.sock>);
 
 if ($socket_created) {
     ## socket is created and listening - fully operational
-    return {
-        mode => qw| true |,
-        data => {
-            status      => 'operational',
-            description => 'HTTPS socket is listening and operational',
-            certificate => $cert_file,
-            key         => $key_file,
-            tls_version => <httpsd.cfg.tls_version>,
-        }
-    };
+    my $output = sprintf(
+        "Status: operational\n"
+            . "Description: HTTPS socket is listening and operational\n"
+            . "Certificate: %s\n"
+            . "Key: %s\n"
+            . "TLS Version: %s",
+        $cert_file               // 'not configured',
+        $key_file                // 'not configured',
+        <httpsd.cfg.tls_version> // 'TLSv1_3'
+    );
+    return { mode => qw| true |, data => $output };
 } else {
     ## socket not yet created - check why
     my $cert_info = <[httpsd.check_certificate_available]>;
 
     if ( $cert_info->{available} ) {
-        return {
-            mode => qw| true |,
-            data => {
-                status      => 'ready_for_socket',
-                description =>
-                    'Certificate available but socket not yet created',
-                certificate => $cert_file,
-                key         => $key_file,
-            }
-        };
+        my $output = sprintf(
+            "Status: ready_for_socket\n"
+                . "Description: Certificate available but socket not yet created\n"
+                . "Certificate: %s\n"
+                . "Key: %s\n"
+                . "Note: Socket creation deferred (non-root or startup timing)",
+            $cert_file // 'not configured',
+            $key_file  // 'not configured'
+        );
+        return { mode => qw| true |, data => $output };
     } else {
-        return {
-            mode => qw| false |,
-            data => {
-                status      => 'waiting_for_certificate',
-                description =>
-                    'Waiting for certificate provisioning from letsencr',
-                certificate => $cert_file,
-                key         => $key_file,
-                retry_count => <httpsd.startup.retry_count> // 0,
-                message => 'Use `p7c httpsd.socket-status` to check again',
-            }
-        };
+        my $retry_count = <httpsd.startup.retry_count> // 0;
+        my $output      = sprintf(
+            "Status: waiting_for_certificate\n"
+                . "Description: Waiting for certificate provisioning from letsencr\n"
+                . "Certificate: %s (not found)\n"
+                . "Key: %s (not found)\n"
+                . "Retry Count: %d\n"
+                . "Action: Use 'p7c httpsd.socket-status' to check again",
+            $cert_file // 'not configured',
+            $key_file // 'not configured', $retry_count
+        );
+        return { mode => qw| false |, data => $output };
     }
 }
 
 0;
 
-#,,..,..,,,,.,,.,,.,.,..,,,,.,.,.,.,.,..,,..,,..,,...,...,.,,,,,.,...,.,,,.,.,
-#Y2CRKV2INFNCMIA5VOGKZRY7N25O6XCXO3YVUNDIBB654B6AFX46PZIK3MV3XYXA2EIJS4ROAAHSK
-#\\\|WLN3BV3FT2VS75GJ5UGKYRZJO53PY2RQMTWVW2PLHEWUC3QWX5G \ / AMOS7 \ YOURUM ::
-#\[7]D72MMTSWACBISQOWE62E4W4YFKZNQRFUQ5BXZSMYONHHZJHB7YCY 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,,..,,.,,,.,,,..,.,.,,.,,,,.,...,..,,...,...,..,,..,,...,,..,,,.,
+#L4MYUK35ZUMIQSWUMRVQSAR25U47AK7BRTS7R7JTZBUWS7R3L7HH2KRXJWO6HFFH22FKS6XBQ2J7U
+#\\\|SFS2WXO3OD5PPRSSJ2DGWITUTTY4CX5KPSVALATS557KAIFBNBF \ / AMOS7 \ YOURUM ::
+#\[7]PH2UHRZXARKJ3EHJWAOJHEA72IGUVQCKQEOCOCAL7THQ6S54EACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
