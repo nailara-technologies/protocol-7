@@ -1,0 +1,41 @@
+## [:< ##
+
+# name = models.memory.append
+# descr = append text to existing memory item
+# param = $checksum, $text
+# return = TRUE on success, FALSE on error
+
+my $checksum = shift;
+my $text     = shift;
+
+return FALSE unless defined $checksum and defined $text;
+return FALSE unless $checksum =~ m|^[A-Z0-9]{7}$|;
+return FALSE unless length($text);
+
+## retrieve existing content
+my $existing = <[models.memory.show]>->($checksum);
+
+return FALSE unless defined $existing;
+
+## append new text
+my $updated = $existing . $text;
+
+## write updated content with new timestamp
+my $timestamp = <[base.ntime.b32]>->(3);
+my $filename  = catfile( 'memory', "${checksum}.${timestamp}" );
+my $file_path = <[file.zenka_dir.write]>->( $filename, \$updated );
+
+return FALSE unless defined $file_path;
+
+## log append
+<[base.logs]>->( 2, 'memory item appended :. %s', $checksum );
+
+return TRUE;
+
+0;
+
+#,,..,.,,,,,.,,.,,,,.,...,.,,,.,,,,.,,,,.,...,..,,...,..,,.,.,.,,,.,,,,,.,..,,
+#5JSNTVQUIAXXPGMFCQTVTHGWGI4ZVOMPW6JIC7HCMV3MLEBFEUWGLK3ZNKTDEH5BVWWDZNC2A3WU2
+#\\\|C3LPQC4TS3Y5GEIB5P7Z2TRVWHVNQXXJ4OM3QRQ6K5BKCRY5NQL \ / AMOS7 \ YOURUM ::
+#\[7]PBF5RCFLIQFD4QEQDEH2ZNDWWOJXE53NLVOC6S7NTQEFCNXOGMBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

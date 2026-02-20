@@ -1,0 +1,47 @@
+## [:< ##
+
+# name = models.memory.generate_unique_checksum
+# descr = generate collision-free AMOS checksum with verification callback
+# param = $text
+# return = unique checksum string
+
+my $text = shift;
+
+return undef unless defined $text and length($text);
+
+## memory storage path for collision detection
+my $memory_dir = catdir( '/var/protocol-7', <system.zenka.name>, 'memory' );
+
+## tie directory for file existence checking
+tie my %memory_files, 'Tie::Dir', $memory_dir or do {
+    <[base.logs]>->( 0, ':. tie directory failed .: %s', $memory_dir );
+    return <[chk-sum.amos]>->($text);    ## fallback to basic checksum
+};
+
+## collision detector callback [ returns TRUE if NO collision ]
+my $collision_detector = sub {
+    my $checksum = shift;
+    ## return TRUE if file does NOT exist
+    return not grep {m|^${checksum}\.|} keys %memory_files;
+};
+
+## set template validation timeout
+AMOS7::TEMPLATE::template_timeout(9);
+
+## generate collision-free checksum with truth template and collision detection
+my $checksum = <[chk-sum.amos.truth_template_chksum]>->(
+    [ 'memory-%s', $collision_detector ], \$text
+);
+
+untie %memory_files;
+
+## reset validation timeout
+AMOS7::TEMPLATE::reset_temp_valid_timeout();
+
+return $checksum;
+
+#,,.,,.,,,.,.,,.,,..,,,..,,.,,,,,,.,.,,..,.,.,..,,...,...,,.,,.,.,.,.,...,,..,
+#5W3RTH2JFSGXOLU65VANGFS5MLXVYFXKSUQGUVJYXCEWZLNAIXISA2RA2JI5H3CVH76JKLGPWHCMW
+#\\\|2EPAAR7UWRF4VB5IPWKIXY4GSMP7K2N6BN3FPEGFGCTSQMMP6V7 \ / AMOS7 \ YOURUM ::
+#\[7]POHL4F2HTZPWUOZVNF2T3YOMW4KSAUKSAGQ5YCW2JY5Z6R5TASDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

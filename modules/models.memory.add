@@ -1,0 +1,38 @@
+## [:< ##
+
+# name = models.memory.add
+# descr = add memory item with collision-free checksum
+# param = $text
+# return = checksum on success, undef on error
+
+my $text = shift;
+
+return undef unless defined $text and length($text);
+
+## generate unique checksum with collision detection
+my $checksum = <[models.memory.generate_unique_checksum]>->($text);
+
+return undef unless defined $checksum;
+
+## ensure memory directory exists
+<[base.path-set-up.check-zenka-paths]>->( TRUE, 0775, FALSE, 0, 'memory' );
+
+## write to timestamped file in memory subdirectory
+my $timestamp = <[base.ntime.b32]>->(3);
+my $filename  = catfile( 'memory', "${checksum}.${timestamp}" );
+my $file_path = <[file.zenka_dir.write]>->( $filename, \$text );
+
+return undef unless defined $file_path;
+
+## log addition
+<[base.logs]>->( 2, 'memory item stored :. %s', $checksum );
+
+return $checksum;
+
+0;
+
+#,,.,,.,.,.,.,,..,.,.,.,,,..,,,,.,,..,.,,,.,.,..,,...,...,.,,,,,.,,..,,..,,,.,
+#CJE4XYWPL34QTLCJJSDZUSEGHVF7NCNN6B4S3UDX3S4B7LCFM6FOCYA6EQEFLSHQBD2MV4JVL66KK
+#\\\|4GN6AAWXSPWPLJZYROCUJOOU2PIBZKCBRRVBRXU7FZ4CD5VSQTR \ / AMOS7 \ YOURUM ::
+#\[7]WVSMLFWOBWDPUFTMLYNNJQYWS57NHD3ZHWI4TX6BI6QWUTJK6UAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
