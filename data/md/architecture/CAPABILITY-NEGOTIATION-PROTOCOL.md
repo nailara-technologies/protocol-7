@@ -2,234 +2,251 @@
 
 ## Overview
 
-The **Capability Negotiation Protocol** provides a unified framework for session features that can be:
-- Enabled/disabled at different lifecycle phases (pre-auth, post-auth, runtime)
-- Locked after initial setup (preventing bypass through routing)
-- Fully unloaded with code cleanup
-- Managed through custom command names via aliases
+The **Capability Negotiation Protocol** provides a unified framework for session features negotiated during authentication and managed at runtime.
 
-This protocol replaces scattered auth-phase options with a clean, extensible architecture using a **capability registry and dispatcher pattern** with optional callbacks for complex features.
+**Key features:**
+- Modular dispatch pattern with dynamic handler discovery
+- Standardized return codes (TRUE/FALSE/3/4)
+- Auth-time capability declarations (declare-*, select-*)
+- Runtime capability adjustment via commands
+- No central registry - handlers discovered by naming convention
+
+**Implementation:** Capabilities are handled by individual `auth.callback.cap-neg.*` modules, dispatched dynamically based on action-capability naming pattern.
 
 ## Architecture
 
-### Three-Layer Design
+### Modular Dispatch Pattern
 
+**Auth-time negotiation** (in `base.handler.auth`):
 ```
-User/Client Layer:
-  Custom command names: "select-size-mode", "enable-tracking", etc.
-       ↓ (via aliases)
-Interface Layer:
-  auth.zenka.cmd.set-session-attribute (wrapper)
+Client sends: "declare-strm-size-support"
        ↓
-Dispatcher Layer:
-  base.handler.auth.set_session_capability (registry-based dispatcher)
-       ↓ (delegates complex features)
-Handler Layer:
-  base.handler.auth.callback.* (focused handlers for each capability)
+Extract: action="declare", capability="strm-size-support"
+       ↓
+Construct handler: "auth.callback.cap-neg.declare-strm-size-support"
+       ↓
+Dispatch: $code{$handler}->($id, $args)
+       ↓
+Return: TRUE/FALSE/3/4 → respond to client
 ```
 
-### Capability Registry
-
-**Location**: Within `base.handler.auth.set_session_capability`
-
-```perl
-my $capability_handlers = {
-    # SIMPLE CAPABILITIES (direct state setting)
-    'select-size-mode' => {
-        type => 'simple',
-        description => 'Set session read mode (SIZE or CHRSIZE)',
-        handler => sub {
-            my ($session, $mode) = @_;
-            return FALSE if $mode !~ m|^(SIZE|CHRSIZE)$|i;
-            $session->{'mode'}{'size'} = uc($mode);
-            return TRUE;
-        },
-        lock_after_auth => TRUE,
-        min_calls => undef,
-        max_calls => 1,  # Only set once
-    },
-
-    'select-strm-mode' => {
-        type => 'simple',
-        description => 'Set stream mode (locked or normal)',
-        handler => sub {
-            my ($session, $mode) = @_;
-            return FALSE if $mode !~ m|^(locked|normal)$|i;
-            $session->{'stream_mode'} = lc($mode);
-            return TRUE;
-        },
-        lock_after_auth => TRUE,
-        max_calls => 3,  # Limited attempts
-    },
-
-    # COMPLEX CAPABILITIES (delegated to callbacks)
-    'enable-character-editing' => {
-        type => 'complex',
-        description => 'Enable character-stream editing (\r, \b)',
-        handler => 'base.handler.auth.callback.enable_character_editing',
-        lock_after_auth => TRUE,
-        requires_auth => FALSE,  # Can be pre-auth
-    },
-
-    'enable-tracking' => {
-        type => 'complex',
-        description => 'Enable temporal proximity mapping with buffer size',
-        handler => 'base.handler.auth.callback.enable_tracking',
-        lock_after_auth => FALSE,  # Can be toggled
-        requires_auth => FALSE,
-    },
-
-    'unload-features' => {
-        type => 'complex',
-        description => 'Unload capabilities (level: unsafe or full)',
-        handler => 'base.handler.auth.callback.unload_features',
-        lock_after_auth => FALSE,  # Can be triggered anytime
-    },
-};
+**Runtime adjustment** (via `cube.cmd.set-capability`):
 ```
+Client sends: "set-capability declare-strm-support true"
+       ↓
+Parse: action="declare", capability="strm-support", value="true"
+       ↓
+Construct handler: "auth.callback.cap-neg.declare-strm-support"
+       ↓
+Dispatch: $code{$handler}->($sid, $value)
+       ↓
+Return: TRUE/FALSE/3/4 → translate to reply mode
+```
+
+### Handler Naming Convention
+
+**Pattern**: `auth.callback.cap-neg.<action>-<capability>`
+
+**Actions:**
+- `declare-*` - Client declares support for a feature
+- `select-*` - Client selects a mode/option
+
+**Examples:**
+- `auth.callback.cap-neg.declare-strm-size-support`
+- `auth.callback.cap-neg.declare-strm-support`
+- `auth.callback.cap-neg.select-size-mode`
+- `auth.callback.cap-neg.select-strm-mode`
 
 ### Dispatcher Implementation
 
+**In `base.handler.auth`** (auth-time negotiation):
+
 ```perl
-# base.handler.auth.set_session_capability
+} elsif ( $input->$* =~ s{^(auth\.)?(declare|select)-(\S+)\s*(.*?)\n}{} ) {
+    ## capability negotiation dispatcher ##
 
-my $capability = $call_args->{'cmd'}{'unalias'} // '';
-my $params = $call_args->{'args'} // {};
-my $cap_def = $capability_handlers->{$capability};
+    my $prefix     = $1 // '';
+    my $action     = $2;
+    my $capability = $3;
+    my $args       = $4 // '';
 
-return error("unknown capability: $capability") if not $cap_def;
+    $event->w->start;
 
-# Check if already locked
-if ($cap_def->{'lock_after_auth'} && $session->{'authenticated'}) {
-    # Check if this capability was already set
-    if ($session->{'capabilities'}{$capability}{'locked'}) {
-        return error("capability locked after authentication");
+    ## construct handler name ##
+    my $handler = sprintf 'auth.callback.cap-neg.%s-%s', $action, $capability;
+
+    if ( defined $code{$handler} ) {
+        my $result = $code{$handler}->( $id, $args );
+
+        if ( $result == TRUE ) {
+            return 1;  ## success: continue auth ##
+        } elsif ( $result == FALSE ) {
+            $output->$* .= "FALSE capability negotiation failed\n";
+            return 2;  ## disconnect ##
+        } elsif ( $result == 3 ) {
+            $output->$* .= "FALSE invalid value\n";
+            return 1;
+        } elsif ( $result == 4 ) {
+            $output->$* .= "FALSE limit exceeded\n";
+            return 2;  ## disconnect ##
+        }
+    } else {
+        ## unknown capability: log and ignore ##
+        return 1;
     }
 }
+```
 
-# Dispatch to handler
-my $result;
-if ($cap_def->{'type'} eq 'simple') {
-    # Simple: inline handler
-    $result = $cap_def->{'handler'}->($session, $params);
-} elsif ($cap_def->{'type'} eq 'complex') {
-    # Complex: invoke callback
-    $result = <[$cap_def->{'handler'}]>->($session, $call_args, $cap_def);
+**In `cube.cmd.set-capability`** (runtime adjustment):
+
+```perl
+my $param = shift;
+my $sid   = $param->{'sid'};
+my $args  = $param->{'args'} // '';
+
+unless ( $args =~ m{^(declare|select)-(\S+)\s*(.*)$} ) {
+    return {
+        mode => qw| false |,
+        data => 'usage: set-capability <action>-<capability> [value]'
+    };
 }
 
-if ($result) {
-    # Track in session
-    $session->{'capabilities'}{$capability}{'enabled'} = 1;
-    if ($cap_def->{'lock_after_auth'}) {
-        $session->{'capabilities'}{$capability}{'locked'} = 1;
-    }
+my $action     = $1;
+my $capability = $2;
+my $value      = $3 // '';
+
+my $handler = sprintf 'auth.callback.cap-neg.%s-%s', $action, $capability;
+
+unless ( defined $code{$handler} ) {
+    return { mode => qw| false |, data => sprintf( 'unknown capability: %s-%s', $action, $capability ) };
 }
 
-return $result;
-```
+my $result = $code{$handler}->( $sid, $value );
 
-## Command Aliases
-
-Map custom command names to the generic interface:
-
-```perl
-# In base.init_code or auth configuration:
-
-$data{'alias'}{'select-size-mode'} = 'auth.zenka.cmd.set-session-attribute';
-$data{'alias'}{'select-strm-mode'} = 'auth.zenka.cmd.set-session-attribute';
-$data{'alias'}{'enable-character-editing'} = 'auth.zenka.cmd.set-session-attribute';
-$data{'alias'}{'enable-tracking'} = 'auth.zenka.cmd.set-session-attribute';
-$data{'alias'}{'unload-features'} = 'auth.zenka.cmd.set-session-attribute';
-```
-
-**Per-user customization** (if needed):
-```perl
-$data{'user'}{$username}{'alias'}{'my-custom-size-mode'} =
-    'auth.zenka.cmd.set-session-attribute';
-```
-
-## Wrapper Command
-
-**Location**: `auth.zenka.cmd.set-session-attribute`
-
-```perl
-# auth.zenka.cmd.set-session-attribute
-
-my ($capability_cmd, $params) = parse_command(@_);
-
-# Validate caller is authenticated or in pre-auth phase
-return error("not authenticated") if not authorized_for_capability($capability_cmd);
-
-# Delegate to dispatcher
-my $result = <[base.handler.auth.set_session_capability]>->(
-    $call_args,
-    $session,
-    $capability_cmd,
-    $params
-);
-
-return $result ? TRUE : FALSE;
-```
-
-## Capability Types
-
-### Simple Capabilities
-
-**Direct state setting**, no complex logic:
-
-```perl
-'set-buffer-size' => {
-    type => 'simple',
-    handler => sub {
-        my ($session, $buffer_size) = @_;
-        return FALSE if $buffer_size !~ m|^\d+$| || $buffer_size < 1024;
-        $session->{'buffer'}{'size'} = $buffer_size;
-        return TRUE;
-    },
+## translate result codes to reply mode ##
+if ( $result == TRUE ) {
+    return { mode => qw| true |, data => sprintf( 'capability %s-%s set', $action, $capability ) };
+} elsif ( $result == 3 ) {
+    return { mode => qw| false |, data => 'validation error : invalid value' };
+} elsif ( $result == 4 ) {
+    return { mode => qw| false |, data => 'limit exceeded' };
+} else {
+    return { mode => qw| false |, data => 'capability negotiation failed' };
 }
 ```
 
-**Use when**:
-- Just updating session state
-- No validation beyond type/range check
-- No external calls needed
-- No side effects (code execution, cleanup, etc.)
+## Standardized Return Codes
 
-### Complex Capabilities
+All capability handlers return numeric codes:
 
-**Delegate to focused callback handler**:
+| Code | Constant | Meaning | Auth Response | Command Response |
+|------|----------|---------|---------------|------------------|
+| 5 | TRUE | Success | Continue auth | mode: true |
+| 0 | FALSE | Failure | Disconnect | mode: false |
+| 3 | - | Validation error (invalid value) | Continue with FALSE | mode: false, "invalid value" |
+| 4 | - | Limit exceeded (too many calls) | Disconnect | mode: false, "limit exceeded" |
 
+**Usage in handlers:**
 ```perl
-'enable-tracking' => {
-    type => 'complex',
-    handler => 'base.handler.auth.callback.enable_tracking',
+return TRUE;   # capability set successfully
+return FALSE;  # critical failure, disconnect
+return 3;      # invalid value, allow retry
+return 4;      # call limit exceeded, disconnect
+```
+
+## Implemented Capabilities
+
+### declare-strm-size-support
+
+**Module**: `auth.callback.cap-neg.declare-strm-size-support`
+
+**Purpose**: Client declares support for STRM-SIZE transparent fragmentation protocol
+
+**Usage:**
+```
+Client: declare-strm-size-support
+Server: (continues auth)
+```
+
+**Implementation:**
+```perl
+my $id    = shift;
+my $value = shift // 'true';
+
+return FALSE unless defined $id and exists $data{'session'}{$id};
+
+my $session = $data{'session'}{$id};
+
+my $bool_value = <[base.cfg_bool]>->($value);
+
+if ( not defined $bool_value ) {
+    return 3;  ## validation error ##
 }
 
-# Then in base.handler.auth.callback.enable_tracking:
-my ($session, $call_args, $cap_def) = @_;
-
-my $buffer_size = $call_args->{'args'}[0];
-
-# Complex logic:
-# 1. Validate buffer size
-# 2. Initialize temporal mappings
-# 3. Set up cube-side tracking
-# 4. Configure auto-expiry
-# 5. Return result
-
-$session->{'tracking'}{'enabled'} = 1;
-$session->{'tracking'}{'buffer_size'} = $buffer_size;
-$session->{'temporal_map'} = {};  # Initialize
+if ($bool_value) {
+    $session->{'strm_size_support'} = TRUE;
+} else {
+    delete $session->{'strm_size_support'};
+}
 
 return TRUE;
 ```
 
-**Use when**:
-- Multiple validation steps
-- Calling other handlers/routines
-- Crypto operations
-- Complex state initialization
-- Cleanup required on disable/unload
+**Effect**: Enables cube to send STRM-SIZE directly instead of converting to SIZE
+
+### declare-strm-support
+
+**Module**: `auth.callback.cap-neg.declare-strm-support`
+
+**Purpose**: Client declares support for STRM explicit streaming protocol
+
+**Implementation**: Similar pattern to declare-strm-size-support
+
+### select-size-mode
+
+**Module**: `auth.callback.cap-neg.select-size-mode`
+
+**Purpose**: Select SIZE vs CHRSIZE mode for responses
+
+**Usage:**
+```
+Client: select-size-mode SIZE
+Server: (continues auth)
+```
+
+**Implementation** with call limiting:
+```perl
+my $id       = shift;
+my $req_mode = shift // '';
+
+return FALSE unless defined $id and exists $data{'session'}{$id};
+
+my $session     = $data{'session'}{$id};
+my $size_select = $session->{'counter'}{'auth'}{'size_select'} //= {};
+
+$size_select->{'limit'}  //= 3;
+$size_select->{'errors'} //= 0;
+$size_select->{'calls'}  //= 0;
+
+if ( $size_select->{'calls'} >= $size_select->{'limit'} ) {
+    return 4;  ## limit exceeded ##
+}
+
+$req_mode = lc($req_mode);
+if ( $req_mode !~ m{^(size|chrsize)$} ) {
+    $size_select->{'errors'}++;
+    return $size_select->{'errors'} > 2 ? 4 : 3;
+}
+
+$session->{'size_mode'} = uc($req_mode);
+$size_select->{'calls'}++;
+return TRUE;
+```
+
+**Features**:
+- Call limit (max 3 attempts)
+- Error tracking (disconnect after 3 validation errors)
+- Counter tracking in session
 
 ## Lifecycle Phases
 
@@ -280,280 +297,194 @@ Level 2: unload-entire-capability
   → No recovery without re-enabling
 ```
 
-## Integration Examples
+## Adding New Capabilities
 
-### Example 1: Extract Existing Auth Option
+### Step 1: Create Handler Module
 
-**Current code in base.handler.auth**:
+**File**: `modules/auth.callback.cap-neg.<action>-<capability>`
+
+**Template**:
 ```perl
-} elsif ( $input->$* =~ s|^(auth\.)?select-size-mode (?<mode>\S+)\n|| ) {
-    my $req_mode = $+{mode};
-    # validation and setup
+## [:< ##
+
+# name = auth.callback.cap-neg.declare-my-feature
+# descr = client declares support for my-feature
+
+my $id    = shift;
+my $value = shift // 'true';
+
+return FALSE unless defined $id and exists $data{'session'}{$id};
+
+my $session = $data{'session'}{$id};
+
+## validation using base.cfg_bool wrapper ##
+my $bool_value = <[base.cfg_bool]>->($value);
+
+if ( not defined $bool_value ) {
+    return 3;  ## validation error : invalid boolean value ##
 }
-```
 
-**Extracted to registry**:
-```perl
-'select-size-mode' => {
-    type => 'simple',
-    handler => sub {
-        my ($session, $mode) = @_;
-        return FALSE if $mode !~ m|^(SIZE|CHRSIZE)$|i;
-        $session->{'mode'}{'size'} = uc($mode);
-        return TRUE;
-    },
-    lock_after_auth => TRUE,
-    max_calls => 1,
+if ($bool_value) {
+    $session->{'my_feature_support'} = TRUE;
+} else {
+    delete $session->{'my_feature_support'};
 }
-```
-
-**Remove from base.handler.auth**, let alias route through dispatcher.
-
-### Example 2: Add New Complex Capability
-
-**Create callback**:
-```perl
-# modules/base.handler.auth.callback.enable_new_feature
-
-my ($session, $call_args, $cap_def) = @_;
-
-# Validation
-my $param = $call_args->{'args'}[0] // '';
-return FALSE if not validate_param($param);
-
-# Complex setup
-setup_feature($session, $param);
-
-# Initialize state
-$session->{'new_feature'}{'enabled'} = 1;
-$session->{'new_feature'}{'config'} = $param;
 
 return TRUE;
+
+0;
 ```
 
-**Add to registry**:
+### Step 2: Test
+
+**No dispatcher changes needed!** Handler auto-discovered by naming convention.
+
+**Auth-time test:**
+```
+Client: declare-my-feature
+Server: (continues auth if TRUE, disconnects if FALSE/4)
+```
+
+**Runtime test:**
+```
+p7c cube.cmd.set-capability declare-my-feature true
+```
+
+### Step 3: Document
+
+Add capability to this file's "Implemented Capabilities" section.
+
+## Use Cases
+
+### Protocol Capability Negotiation
+
+**STRM-SIZE fragmentation support:**
+```
+Client startup:
+  nshell: declare-strm-size-support
+  cube:   (enables STRM-SIZE protocol for this session)
+
+Result:
+  - Cube can send STRM-SIZE directly to client
+  - No conversion to SIZE (with timeout risks)
+  - Client receives termination reason if timeout occurs
+```
+
+**STRM explicit streaming:**
+```
+Client: declare-strm-support
+Cube:   (enables STRM protocol)
+
+Result:
+  - Multi-packet streaming without size limit
+  - No timeout protection (client must handle)
+  - Explicit stream control
+```
+
+### Mode Selection
+
+**SIZE vs CHRSIZE:**
+```
+Client: select-size-mode SIZE
+Cube:   (uses character count for SIZE responses)
+
+Client: select-size-mode CHRSIZE
+Cube:   (uses byte count for SIZE responses)
+```
+
+**Call limiting prevents abuse:**
+- Max 3 attempts to select mode
+- Disconnect after 3 validation errors
+- Prevents hammering with invalid values
+
+### Runtime Adjustment
+
+**Change capabilities after auth:**
+```
+p7c cube.cmd.set-capability declare-strm-size-support false
+
+Result: Disables STRM-SIZE for that session
+```
+
+**Query capability status** (future):
+```
+p7c cube.cmd.get-capability strm-size-support
+→ enabled/disabled
+```
+
+## Session State Tracking
+
+Capabilities modify session state directly:
+
 ```perl
-'enable-new-feature' => {
-    type => 'complex',
-    handler => 'base.handler.auth.callback.enable_new_feature',
-    lock_after_auth => FALSE,
-}
-```
+## STRM-SIZE support flag
+$session->{'strm_size_support'} = TRUE;
 
-**Create alias** (optional, if custom name wanted):
-```perl
-$data{'alias'}{'my-custom-feature'} = 'auth.zenka.cmd.set-session-attribute';
-```
+## STRM support flag
+$session->{'strm_support'} = TRUE;
 
-**Done**. No changes to dispatcher, no scattered code.
+## SIZE mode selection
+$session->{'size_mode'} = 'SIZE';  # or 'CHRSIZE'
 
-### Example 3: Per-User Customization
-
-```perl
-# Different users can have different capability names
-
-# User 'admin': gets all features with standard names
-$data{'alias'}{'enable-tracking'} = 'auth.zenka.cmd.set-session-attribute';
-
-# User 'guest': gets limited features with custom names
-$data{'user'}{'guest'}{'alias'}{'enable-basic-tracking'} =
-    'auth.zenka.cmd.set-session-attribute';
-
-# But both call the same dispatcher with same capability definitions
-```
-
-## Integration with Temporal Proximity Mapping
-
-**Enable tracking capability passes buffer size**:
-```
-Command: "enable-tracking buffer_size=10485760"
-       ↓
-auth.zenka.cmd.set-session-attribute
-       ↓
-base.handler.auth.set_session_capability (dispatcher knows it's 'enable-tracking')
-       ↓
-base.handler.auth.callback.enable_tracking
-       ↓
-Initializes: $session->{'tracking'}{'buffer_size'} = 10485760
-Starts: temporal mapping in cube with buffer awareness
-```
-
-Later, when output arrives:
-- Cube's temporal map has buffer size
-- Maps replies by temporal proximity
-- Knows when to degrade mappings (when data rolls out)
-- Automatic expiry without manual cleanup
-
-## Integration with Character Stream Editing
-
-**Enable character editing capability locks in feature**:
-```
-Pre-auth:
-  nshell: "enable-character-editing"
-  cube:   "OK, \r and \b enabled (locked at auth)"
-
-Post-auth:
-  nshell: "disable-character-editing"
-  cube:   "DENIED - feature locked at auth time"
-         (cannot be bypassed through routing)
-```
-
-This implements the **session state gating** from base.handler.command.analysis.yaml:
-- Feature locked after authentication
-- Prevents routed commands from changing it
-- Protects against authorization bypass
-
-## Session Capability State
-
-Tracked in `$session->{'capabilities'}`**:
-
-```perl
-$session->{'capabilities'} = {
-    'select-size-mode' => {
-        enabled => 1,
-        locked => 1,           # locked after auth
-        value => 'SIZE',
-        set_at => 1234567890.123,
-    },
-    'enable-tracking' => {
-        enabled => 1,
-        locked => 0,           # can be toggled
-        buffer_size => 10485760,
-        started_at => 1234567890.456,
-    },
-    'enable-character-editing' => {
-        enabled => 1,
-        locked => 1,
-        set_at => 1234567890.200,
-    },
+## Call counters (for limiting)
+$session->{'counter'}{'auth'}{'size_select'} = {
+    limit  => 3,
+    errors => 0,
+    calls  => 1,
 };
 ```
 
-Used for:
-- Tracking what's enabled
-- Preventing re-enabling locked features
-- Audit/logging
-- Cleanup on session termination
+**No central capability registry** - state stored per-capability as needed.
 
-## Adding New Capabilities
+## Design Principles
 
-**Process**:
+### No Central Registry
 
-1. **Decide complexity**:
-   - Simple → Inline handler in registry
-   - Complex → Create callback module
+**Why**: Avoid single point of maintenance and version conflicts
 
-2. **Add to registry**:
-   ```perl
-   'my-capability' => {
-       type => 'simple' or 'complex',
-       description => '...',
-       handler => $coderef or 'path.to.callback',
-       lock_after_auth => TRUE/FALSE,
-       max_calls => N,  # optional
-   }
-   ```
+**Instead**: Handler discovery by naming convention
+- Add new capability → create new module
+- No dispatcher changes needed
+- Module filename defines capability name
 
-3. **Create callback** (if complex):
-   ```perl
-   # modules/base.handler.auth.callback.my_capability
-   # Implement the feature logic
-   ```
+### Standardized Return Codes
 
-4. **Create alias** (if custom name wanted):
-   ```perl
-   $data{'alias'}{'my-feature-name'} = 'auth.zenka.cmd.set-session-attribute';
-   ```
+**Why**: Consistent error handling across all capabilities
 
-5. **Done**. Dispatcher auto-discovers from registry.
+**Benefits**:
+- TRUE/FALSE for success/failure (clear semantics)
+- 3 for validation errors (allow retry)
+- 4 for limit exceeded (prevent abuse)
+- Dispatcher translates codes to appropriate responses
 
-## Security Model
+### Stateless Handlers
 
-### Lock-After-Auth Pattern
+**Why**: Handlers are pure functions of (session_id, arguments)
 
-Some capabilities are **locked after authentication** to prevent:
-- Routed commands from changing session features
-- Privilege escalation through routing
-- Inconsistent session state
-
-Example: Character editing enabled pre-auth, locked, cannot be disabled by routed commands.
-
-### Per-User Customization
-
-Different users can have different:
-- Available capabilities
-- Command names (via per-user aliases)
-- Capability limits (max_calls, timeouts)
-
-Without affecting core dispatcher.
-
-### Audit Trail
-
-Every capability change tracked in:
-- `$session->{'capabilities'}{...}{'set_at'}`
-- Terminal-history buffer
-- Optional: separate audit log
-
-## Future Enhancements
-
-### Configuration-Driven Registry
-
-Load capability definitions from configuration file:
-```
-configuration/zenki/cube/capabilities.v7:
-  capability.enable-tracking = complex base.handler.auth.callback.enable_tracking
-  capability.enable-tracking.lock-after-auth = FALSE
-  capability.enable-tracking.max-calls = unlimited
-```
-
-### Capability Dependencies
-
-Some capabilities might require others:
-```perl
-'enable-advanced-tracking' => {
-    requires => ['enable-tracking'],  # Must enable tracking first
-    ...
-}
-```
-
-### Runtime Capability Discovery
-
-Clients query what capabilities are available:
-```
-Command: "list-capabilities"
-Response: [enable-tracking, enable-character-editing, ...]
-```
-
-### Capability Groups
-
-Group related capabilities:
-```perl
-'group:editing' => [
-    'enable-character-editing',
-    'enable-backspace-support',
-    'enable-line-editing',
-]
-
-Command: "enable-group editing"  # Enables all
-```
+**Benefits**:
+- No hidden dependencies
+- Easy to test in isolation
+- Session state is only shared state
+- Handlers can be called from auth or runtime equally
 
 ## Conclusion
 
 The Capability Negotiation Protocol provides:
 
-1. **Unified framework** - Single interface for all session features
-2. **Extensible architecture** - Add new capabilities without touching dispatcher
-3. **Clean separation** - Simple vs complex, interface vs implementation
-4. **Flexible lifecycle** - Pre-auth, post-auth, locked, unlocked, unloadable
-5. **Security-aware** - Lock-after-auth, per-user customization, audit trail
-6. **Integration-ready** - Works with temporal mapping, character editing, harmonic topology
+1. **Modular dispatch** - Add capabilities without changing core code
+2. **Dynamic discovery** - Handlers found by naming convention
+3. **Standardized contracts** - Return codes, parameter patterns
+4. **Runtime flexibility** - Adjust capabilities after auth via commands
+5. **Protocol evolution** - STRM-SIZE, STRM, SIZE mode selection
 
-By using a **registry-based dispatcher with optional callbacks**, the system remains:
-- Maintainable (no scattered code)
-- Extensible (add new capabilities easily)
-- Documentable (all capabilities in one place)
-- Testable (each callback independent)
+By using **modular handlers with dynamic dispatch**, the system remains:
+- Maintainable (one file per capability)
+- Extensible (add file, done)
+- Testable (handlers are pure functions)
+- Documented (handler name = capability name)
 
 ---
 
-*"Capabilities are negotiated once, locked where needed, and managed through a clean, extensible interface."*
+**Current capabilities**: declare-strm-size-support, declare-strm-support, select-size-mode, select-strm-mode, declare-strm-size-timeout
+
+**Adding new**: Create `auth.callback.cap-neg.<action>-<capability>` module → auto-discovered
