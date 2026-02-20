@@ -118,6 +118,16 @@ if ( not exists <buffer.models-action> ) {
     );
 }
 
+# Initialize chat buffer for multi-model communication
+if ( not exists <buffer.models-chat> ) {
+    <buffer.models-chat.max_size> = 128 * 1024;        # 128K buffer
+    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+    <[base.buffer.add_line]>->(
+        qw| models-chat |,
+        join( ' ', $time_stamp, 0, 'multi-model chat buffer initialized' ), 0
+    );
+}
+
 # Load model configuration from YAML
 <[models.config.loader]>;
 
@@ -191,8 +201,8 @@ unless ( exists <models.registry> ) {
 
 return 0;    # Module initialization successful
 
-#,,..,.,.,,,,,.,.,..,,...,.,.,,..,,.,,,,.,.,.,..,,...,...,..,,,.,,,,.,...,...,
-#DZAELJU2ZJXFAAG6ERZD7JYPRFHQ3D5V6K6GX3IYP5M5GWAGFMTNJSPLL24SFUWCZWOUMT2OZ3QBU
-#\\\|7SUS6FOQCFBNP5DSMBEXOXRDLFL5Z6H3OVXPGNMPNQEP2EPCZ4O \ / AMOS7 \ YOURUM ::
-#\[7]724T34ETIJCVJQWSOCUNMH34FBVLX26E3GV4OGXPID2QXZBPHIBY 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,...,,.,,,..,,,,,...,.,.,.,.,..,,..,,...,...,...,...,..,,,.,,,..,
+#J3NB4KV4GFZD4YWOVRMFUSC4WTEGEICHZKJU2PLYPNFE3ATJH3BN5IKODBL57L6Y6CLL6HQ4WM6F2
+#\\\|BKQUU3NF2ON74SUTOFEXCDURH3A6LDQYMHOU3YXDSZIOHL5IJUT \ / AMOS7 \ YOURUM ::
+#\[7]ICWJAZYXPXNXJ5JIQPJ6PPRGHZ73JGPL5ZVEQK3N5JI3YGLPUKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

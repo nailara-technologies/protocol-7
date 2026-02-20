@@ -7,21 +7,21 @@
 
 my $count = shift // 20;
 
-## return empty if no buffer
-return [] unless defined <models.chat.buffer>;
+## return empty if no messages
+return [] unless defined <models.chat.messages>;
 
-my @buffer = @{<models.chat.buffer>};
+my @messages = @{<models.chat.messages>};
 
 ## return last N messages
-my $start = scalar(@buffer) - $count;
+my $start = scalar(@messages) - $count;
 $start = 0 if $start < 0;
 
-return [ @buffer[ $start .. $#buffer ] ];
+return [ @messages[ $start .. $#messages ] ];
 
 0;
 
-#,,,.,,.,,,..,,..,,,,,..,,.,,,,,.,,,.,,.,,...,..,,...,..,,..,,...,,..,..,,,.,,
-#PDI5C5H6PGHWHQ3IAU6GH3763NSKIRXZZXGKIF5VCE6WSBXNMFBUYDATI2YR4P5S7ZH76GL7OTVSY
-#\\\|SVHBNDSRHTIW3SFU4JYWYGHIPWBY7IWGAJ7CJVCTJ4FYBLVMU2S \ / AMOS7 \ YOURUM ::
-#\[7]Z474M2WWH7MXKJ3JGXLOTOB5FELNH2XCNM4ONH3SSVDQF62Z7KAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,...,,.,,,..,.,,,,,,,.,.,.,,,,,.,,.,,..,,...,...,...,,.,,.,,,,.,,,..,
+#FNI43PLYVA47SC6TCB55CRYPQWNJVYVQ2VQ2DBITGXOYMCCB7ZHMMQLDX6NWHPAFW4DFSZMGINSZ2
+#\\\|72ENYXMW4X27YATY2ZMFVPREXOMZ4LXR34N3EYCC5L6I6UQRWK6 \ / AMOS7 \ YOURUM ::
+#\[7]ROTPD5Z5NSY2GQP2JG2LECYROJEE732ZBNF4DR64TP2WSTY5MSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
