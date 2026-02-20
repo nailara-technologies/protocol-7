@@ -26,17 +26,17 @@ my $description
 ## announce full content
 my $checksum = <[models.chat.announce]>->( $message, $description );
 
-## return announcement message instead of full content
-my $announced = <models.chat.announced>->{$checksum};
-my $announce_msg = sprintf ':announce: %s (%d lines) - %s',
-    $checksum, $announced->{'lines'}, $description;
+## return content marker instead of full content
+my $announced    = <models.chat.announced>->{$checksum};
+my $announce_msg = sprintf '[:content:%s:%d:%d] %s', $checksum,
+    $announced->{'lines'}, $announced->{'size'}, $description;
 
 return ( $checksum, $announce_msg );
 
 0;
 
-#,,,.,.,.,...,...,,..,.,.,,,.,,..,,,.,,,,,,.,,..,,...,...,,,,,,,.,.,,,,..,.,.,
-#MEQZMQUBGOOU7PNMIV5NKASQ6G23HHC4VAF5K7OZ5A3AKM26MBA34GOPS75EXKYGOESSDZ2LSIHMM
-#\\\|E2XRD5OZKQRRJGLVSUP4H3VPFD3XR6CCEXLHG7Q7QXAY3YYM35C \ / AMOS7 \ YOURUM ::
-#\[7]IHCGJN5HLRQY3U2AFTHKBD5NNPYKT3U3BAFESRE77HKT5VVNEMBY 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,.,,.,.,...,,.,,,,.,,.,,.,,,,..,..,,...,...,..,,.,.,,,,,,.,,.,.,
+#SIBV5TWQN5OQDUYE7OIGSJ5NMTDPKSO6YNNQ26ECHVSAS5A7FPNYYICBHWKTXYP62L4ENHUPX7HS2
+#\\\|XHI2VNUTHKNBPUNFQDOEJA6ZFBWJVJUOOHNKV6M6S4VY43IMREQ \ / AMOS7 \ YOURUM ::
+#\[7]GGEZXEGVALOCRFFL2CKL3IIAEG6VUGVDPF5Q4XFXUABG7XWQ4IAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
