@@ -22,12 +22,13 @@ my $announced = <models.chat.announced>->{$checksum};
 unless ( defined $announced ) {
     return {
         mode => qw| false |,
-        data => sprintf 'checksum not found: %s', $checksum
+        data => sprintf 'checksum not found: %s',
+        $checksum
     };
 }
 
-## log retrieval in chat
-my $log_msg = sprintf ':request: %s (retrieved by %s)', $checksum,
+## log retrieval in chat (bracket notation for checksum reference)
+my $log_msg = sprintf '[:request:%s] retrieved by %s', $checksum,
     $param->{'sid'} // 'unknown';
 <[models.chat.append]>->( undef, 'system', $log_msg );
 
@@ -46,8 +47,8 @@ return { mode => qw| size |, data => $content };
 
 0;
 
-#,,..,..,,.,.,.,.,.,,,.,.,,..,...,,.,,...,,,,,..,,...,...,...,,.,,..,,,,.,,.,,
-#P3TBY25IEO7HSEZVSIVNGYDV3XEUMKZVEPVNRZUX4M7JJOLVWP7P263IS7M3KZTHG656P3CURX564
-#\\\|JMTGM2U4G3BEOPBZY2KHARM4D4AHEJR6TI3GLUYJVTMFJ7DJZNL \ / AMOS7 \ YOURUM ::
-#\[7]7D5NV6P7LZPKSHDOCB43LVLAE3WV37SDWG4IYP3AT46AS2OO3UDA 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,,,,,,,,,.,.,,,.,.,...,.,.,,.,,..,,...,.,.,.,.,.,,,,.,,,..,,..,
+#337JB4TU3XFYTF2CJ6PY4BH3GIP26I5U2RTN4CWVIUNJXXIQYSMHLIQOHNBR32NEZCQ7SRVYJAISY
+#\\\|VGGJVLUG6KNHDJXDLRHDRFKXXKLNWQCCWKXKMDBCYZTWNACVP42 \ / AMOS7 \ YOURUM ::
+#\[7]AZTLCMJOZP5UQAD4U5LIRDCTIOJDFP7FKFKBBHPHPNMK533V5MAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

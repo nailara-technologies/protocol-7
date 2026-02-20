@@ -29,19 +29,20 @@ my $size  = length($content);
     'description' => $description,
 };
 
-## format announcement message
-my $announce_msg = sprintf ':announce: %s (%d lines, %d bytes)',
-    $checksum, $lines, $size;
+## format content marker for chat buffer (bracket notation for harmony + parsing)
+my $announce_msg = sprintf '[:content:%s:%d:%d]', $checksum, $lines, $size;
 
-$announce_msg .= sprintf ' - %s', $description if $description ne '';
+$announce_msg .= sprintf ' %s', $description if $description ne '';
 
 ## append to chat buffer
 <[models.chat.append]>->( undef, 'Claude', $announce_msg );
 
 ## cleanup old announcements (keep last 100)
-my @checksums = sort { <models.chat.announced>->{$b}{'announced'}
-        <=> <models.chat.announced>->{$a}{'announced'} }
-    keys %{ <models.chat.announced> };
+my @checksums = sort {
+    <models.chat.announced>->{$b}{'announced'} <=>
+        <models.chat.announced>->{$a}{'announced'}
+    }
+    keys %{<models.chat.announced>};
 
 if ( scalar @checksums > 100 ) {
     for my $old_checksum ( @checksums[ 100 .. $#checksums ] ) {
@@ -53,8 +54,8 @@ return $checksum;
 
 0;
 
-#,,,.,..,,..,,,,,,,..,,..,.,,,.,,,..,,.,.,.,,,..,,...,..,,..,,,,.,..,,...,,.,,
-#5RTHNNWXYTJGNILQO647IBKGAAX2NCXOLBTGXP43OGJ7NUJ3GBIDGKXSAO23FG557CO45WAKOWXG6
-#\\\|XGSD2LS4YD77K4VNXV64L4XGFWE5ECI2F77VPCSETEP74YXXYGR \ / AMOS7 \ YOURUM ::
-#\[7]6TG7ACMJT2NFPUKR3R6PDMYNQ3YIZAI4TTNCTHUGM2QKWKVPAQCA 7  DATA SIGNATURE ::
+#,,..,.,,,...,...,,,.,.,,,.,.,..,,,.,,,..,.,,,..,,...,...,.,,,.,,,.,.,..,,,.,,
+#DT4ZNZSDFQMJWPBQOBOGLIHB7D5QUNU7FKOZFR4AWP5GTB3JX6PB7A33KHHTB45C6V3S6UTR5KI5C
+#\\\|DS75QZTXJJVIA6K7R6T33FRGMRW2GUUJADBUTUK6XL4LKZ33IBA \ / AMOS7 \ YOURUM ::
+#\[7]ZLS6U5CV2DHCKZVZEVX4NZTETYBRG3LXRE3Y772G622MHR2RBKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
