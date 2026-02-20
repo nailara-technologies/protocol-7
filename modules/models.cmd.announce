@@ -1,0 +1,33 @@
+## [:< ##
+
+# name = models.cmd.announce
+# descr = announce multi-line content (read from stdin or arg)
+# usage = models.announce [description] < content.txt
+# usage = echo "content" | models.announce "my description"
+# return = checksum
+
+my $param       = shift;
+my $description = $param->{'args'} // '';
+
+## read multi-line content from stdin or argument
+my $content = '';
+
+## TODO: implement stdin reading for piped content
+## for now, return usage message
+
+return {
+    mode => qw| false |,
+    data => 'usage: models.announce [description] < content.txt'
+};
+
+## when implemented:
+# my $checksum = <[models.chat.announce]>->($content, $description);
+# return { mode => qw| true |, data => $checksum };
+
+0;
+
+#,,..,,,.,,.,,.,.,,,.,,,.,.,.,,..,..,,,,,,.,,,..,,...,...,...,,,,,...,...,,,,,
+#YJNU325QUIGPTH5X5HFSHLPRAJUTQPCSMORN75N7JHLLSBSIU6LQIISIV6TWHBCYDECDYJRJN57M4
+#\\\|YWDI4SX6776CC2XVTHE3O3F63UE3LKKLJEYL46AMKSZQHINYLCA \ / AMOS7 \ YOURUM ::
+#\[7]J7H32VVFLHAPWQRHO7HDGEEWKBBJTGR5BQNUQVKO5BWF7RLWVKCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

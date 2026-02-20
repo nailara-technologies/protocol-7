@@ -1,0 +1,60 @@
+## [:< ##
+
+# name = models.chat.announce
+# descr = announce multi-line content with AMOS checksum for retrieval
+# param = $content - multi-line content to announce
+# param = $description - optional description
+# return = checksum
+
+my $content     = shift;
+my $description = shift // '';
+
+return undef unless defined $content;
+
+## compute AMOS checksum for content addressing
+my $checksum = <[base.chk-sum.amos]>->($content);
+
+## count lines and size
+my $lines = ( $content =~ tr/\n/\n/ ) + 1;
+my $size  = length($content);
+
+## store content for retrieval
+<models.chat.announced> //= {};
+<models.chat.announced>->{$checksum} = {
+    'content'     => $content,
+    'announced'   => <[base.time]>->(3),
+    'sender'      => 'Claude',
+    'size'        => $size,
+    'lines'       => $lines,
+    'description' => $description,
+};
+
+## format announcement message
+my $announce_msg = sprintf ':announce: %s (%d lines, %d bytes)',
+    $checksum, $lines, $size;
+
+$announce_msg .= sprintf ' - %s', $description if $description ne '';
+
+## append to chat buffer
+<[models.chat.append]>->( undef, 'Claude', $announce_msg );
+
+## cleanup old announcements (keep last 100)
+my @checksums = sort { <models.chat.announced>->{$b}{'announced'}
+        <=> <models.chat.announced>->{$a}{'announced'} }
+    keys %{ <models.chat.announced> };
+
+if ( scalar @checksums > 100 ) {
+    for my $old_checksum ( @checksums[ 100 .. $#checksums ] ) {
+        delete <models.chat.announced>->{$old_checksum};
+    }
+}
+
+return $checksum;
+
+0;
+
+#,,,.,..,,..,,,,,,,..,,..,.,,,.,,,..,,.,.,.,,,..,,...,..,,..,,,,.,..,,...,,.,,
+#5RTHNNWXYTJGNILQO647IBKGAAX2NCXOLBTGXP43OGJ7NUJ3GBIDGKXSAO23FG557CO45WAKOWXG6
+#\\\|XGSD2LS4YD77K4VNXV64L4XGFWE5ECI2F77VPCSETEP74YXXYGR \ / AMOS7 \ YOURUM ::
+#\[7]6TG7ACMJT2NFPUKR3R6PDMYNQ3YIZAI4TTNCTHUGM2QKWKVPAQCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

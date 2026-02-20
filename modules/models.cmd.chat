@@ -31,6 +31,14 @@ unless ( $args =~ m{^(\S+)\s+(.+)$}s ) {
 my $model   = $1;
 my $message = $2;
 
+## auto-announce multi-line messages (>5 lines)
+my ( $checksum, $final_message ) = <[models.chat.auto_announce]>->($message);
+
+if ( defined $checksum ) {
+    ## message was announced, use announcement instead
+    $message = $final_message;
+}
+
 ## append user message to buffer
 <[models.chat.append]>->( undef, 'Claude', $message );
 
@@ -53,8 +61,8 @@ return { mode => qw| size |, data => $output };
 
 0;
 
-#,,.,,,,,,,,,,,.,,..,,,,.,.,,,,,,,.,.,,..,..,,..,,...,...,.,,,.,.,..,,.,,,,.,,
-#347QKHVHPO2RQQE5GCX2FUJV2EZIY5BBFJ5527Q46GNRE2LFIBNT2NGSUOIFVETWRACBA5ZZNNIVS
-#\\\|54ETA3MN2D2K65VRFDYRAHPSM24EDT5EVFZGMQIOPZAEWWJCHYQ \ / AMOS7 \ YOURUM ::
-#\[7]N5HHL5XXC6OZBZIFJG4Q7M6MVXG3PZAFVQN4E3AY4BBRJ6NTSGDQ 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,,.,..,,.,.,,.,,.,.,,..,,,,,,,,,..,,...,...,...,..,,..,,,,,,,..,
+#DBISEFO2JMOW2H342CKXRPY2GQBKRGGROBKQGHYGZJHT4HIGRHN4GNFCWKLRC2FJM5RWUOSAGGFFU
+#\\\|FVARSEZEBCICLR54ZBPMQNI3SFEA6DYAK3KHNGDLWXJSMBLROD3 \ / AMOS7 \ YOURUM ::
+#\[7]EETUYZDUMCF5MSOTYEG3OBYAEDNA7YGS2SSBJ6QQEHXMKUKNMKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
