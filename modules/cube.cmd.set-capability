@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = cube.cmd.set-capability
+# descr = set session capability [ runtime adjustment ]
+# param = <action>-<cap.> <value>
+# usage = set-capability declare-strm-size-support true
+#         set-capability select-size-mode chrsize
+#         set-capability declare-strm-size-timeout 30
+
+my $param = shift;
+my $sid   = $param->{'sid'};
+my $args  = $param->{'args'} // '';
+
+## parse command: action-capability value ##
+unless ( $args =~ m{^(declare|select)-(\S+)\s*(.*)$} ) {
+    return {
+        mode => qw| false |,
+        data => 'usage: set-capability <action>-<capability> [value]'
+    };
+}
+
+my $action     = $1;
+my $capability = $2;
+my $value      = $3 // '';
+
+## construct handler name ##
+my $handler = sprintf 'auth.callback.cap-neg.%s-%s', $action, $capability;
+
+unless ( defined $code{$handler} ) {
+    return {
+        mode => qw| false |,
+        data => sprintf( 'unknown capability: %s-%s', $action, $capability )
+    };
+}
+
+## dispatch to capability handler ##
+my $result = $code{$handler}->( $sid, $value );
+
+## translate result to reply ##
+if ( $result == TRUE ) {
+    return {
+        mode => qw| true |,
+        data => sprintf( 'capability %s-%s set', $action, $capability )
+    };
+
+} elsif ( $result == FALSE ) {
+    return {
+        mode => qw| false |,
+        data => 'capability update failed'
+    };
+
+} elsif ( $result == 3 ) {
+    return {
+        mode => qw| false |,
+        data => 'validation error : invalid value'
+    };
+
+} elsif ( $result == 4 ) {
+    return {
+        mode => qw| false |,
+        data => 'limit exceeded'
+    };
+
+} else {
+    return {
+        mode => qw| false |,
+        data => sprintf( 'error code : %d', $result )
+    };
+}
+
+#,,..,...,.,.,,,,,,,,,...,,.,,,.,,,,,,,..,,,,,..,,...,...,,..,,..,.,.,,,,,.,.,
+#2E5O63UW7O43ZKWLX3K43GVV74AKOE25DGKWWBFITWEAMB4DGLG5R4UTPGMUKCLOSWKT675SYGR5A
+#\\\|2R4HRE7UPPAGOY4LGGTQL5ZB622L52SR3OIJBERSXLEGV3BWFZI \ / AMOS7 \ YOURUM ::
+#\[7]NQGGNRXSGMXTU5KSYX2YUDQZWQW7PFNB2XIBIL6IDPZNBN5MNYAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -107,99 +107,62 @@ if ( $input->$* =~ s|^(auth\.)?close\n|| ) {
             return 1;        ## continue protocol ##
         }
     }
-} elsif ( $input->$* =~ s|^(auth\.)?select-size-mode (?<mode>\S+)\n|| )
-{    ## size mode selection (SIZE or CHRSIZE) ##
+} elsif ( $input->$* =~ s{^(auth\.)?(declare|select)-(\S+)\s*(.*?)\n}{} ) {
+    ## capability negotiation dispatcher ##
 
-    my $req_mode    = $+{mode};
-    my $size_select = $$session{'counter'}{'auth'}{'size_select'} //= {};
+    my $prefix     = $1 // '';
+    my $action     = $2;
+    my $capability = $3;
+    my $args       = $4 // '';
+
     $event->w->start;
 
-    $size_select->{'limit'}
-        //= 3;    ##  <-- limiting allowed 'select-size-mode' commands ##
-    $size_select->{'errors'} //= 0;
-    $size_select->{'calls'}  //= 0;
+    ## construct handler name ##
+    my $handler = sprintf 'auth.callback.cap-neg.%s-%s', $action, $capability;
 
-    if ( $size_select->{'calls'} >= $size_select->{'limit'} ) {
-        <[base.logs]>->(
-            0, '[%u] size-mode select count limit exceeded >:[', $id
-        );
+    if ( defined $code{$handler} ) {
+        ## dispatch to capability handler ##
+        my $result = $code{$handler}->( $id, $args );
 
-        $output->$* .= "FALSE selection limit exceeded\n";
-        return 2;    ## <-- disconnecting client ##
+        if ( $result == TRUE ) {
+            ## success: continue auth, no response needed ##
+            return 1;
 
-    } elsif ( $req_mode !~ m{^(SIZE|CHRSIZE)$}i ) {
+        } elsif ( $result == FALSE ) {
+            ## general failure: disconnect ##
+            <[base.logs]>->(
+                0,   '[%d] capability %s-%s failed',
+                $id, $action, $capability
+            );
+            $output->$* .= "FALSE capability negotiation failed\n";
+            return 2;    ## disconnect ##
 
-        <[base.logs]>->(
-            0,   "[%d] invalid size-mode '%s' [ SIZE | CHRSIZE ]",
-            $id, $req_mode
-        );
+        } elsif ( $result == 3 ) {
+            ## validation error: continue but report ##
+            $output->$* .= "FALSE invalid value\n";
+            return 1;
 
-        $output->$* .= "FALSE invalid mode\n";
-        $size_select->{'errors'}++;
+        } elsif ( $result == 4 ) {
+            ## limit exceeded: disconnect ##
+            $output->$* .= "FALSE limit exceeded\n";
+            return 2;    ## disconnect ##
 
-        if ( $size_select->{'errors'} > 2 ) {
-            $output->$* .= "FALSE too many errors\n";
-            return 2;    ## <-- disconnecting client ##
+        } else {
+            ## unknown error code ##
+            <[base.logs]>->(
+                0,   '[%d] capability %s-%s error code: %d',
+                $id, $action, $capability, $result
+            );
+            return 1;
         }
-
-        return 1;
 
     } else {
-
-        $session->{'size_mode'} = uc($req_mode);
-        <[base.logs]>->( 2, "[%d] size-mode set to %s", $id, uc($req_mode) );
-        $output->$* .= "TRUE continue\n";
-        $size_select->{'calls'}++;
-        return 1;
-    }
-
-} elsif ( $input->$* =~ s|^(auth\.)?select-strm-mode (?<mode>\S+)\n|| )
-{    ## stream-locking mode selection [ locked | normal ] ##
-
-    my $req_mode    = lc( $+{mode} );
-    my $strm_select = $$session{'counter'}{'auth'}{'strm_select'} //= {};
-    $event->w->start;
-
-    $strm_select->{'limit'}
-        //= 3;    ##  <-- limiting allowed 'select-strm-mode' commands ##
-    $strm_select->{'errors'} //= 0;
-    $strm_select->{'calls'}  //= 0;
-
-    if ( $strm_select->{'calls'} >= $strm_select->{'limit'} ) {
+        ## unknown capability: log and ignore ##
         <[base.logs]>->(
-            0, '[%u] strm-mode select count limit exceeded >:[', $id
+            2,   '[%d] unknown capability: %s-%s',
+            $id, $action, $capability
         );
-
-        $output->$* .= "FALSE selection limit exceeded\n";
-        return 2;    ## <-- disconnecting client ##
-
-    } elsif ( $req_mode !~ m{^(locked|normal)$} ) {
-
-        <[base.logs]>->(
-            0,   "[%d] invalid strm-mode '%s' [ locked | normal ]",
-            $id, $req_mode
-        );
-
-        $output->$* .= "FALSE invalid mode\n";
-        $strm_select->{'errors'}++;
-
-        if ( $strm_select->{'errors'} > 2 ) {
-            $output->$* .= "FALSE too many errors\n";
-            return 2;    ## <-- disconnecting client ##
-        }
-
-        return 1;
-
-    } else {
-        if ( $req_mode eq qw| locked | ) {
-            $session->{'strm-mode-locking'} = TRUE;
-        } else {    ## mode : normal ## [ not set ]
-            delete $session->{'strm-mode-locking'};
-        }
-        <[base.logs]>->( 2, "[%d] strm-mode set to %s", $id, $req_mode );
-        $output->$* .= "TRUE continue\n";
-        $strm_select->{'calls'}++;
-        return 1;
+        return 1;    ## continue auth ##
     }
 
 } elsif ( $input->$* =~ s|^(auth\.)?selected\n|| )
@@ -324,8 +287,8 @@ elsif ( defined $auth_method
     return 2;               ##  no auth method selected + session closing  ##
 }
 
-#,,.,,...,.,,,,,.,..,,,,.,.,,,,..,.,,,...,...,..,,...,...,...,,..,,,,,.,.,,..,
-#UVETBD2PSJTKEB7GCVDZLXFIXQP726KAHJ2PQGITM7APT5NICJOBCPX56MUBKTEQHKACXOTZH463G
-#\\\|HPTN2HR2QMZS2YZ2JT62P4YPNGJDUEG3YHYQ4M7CAAJBLD6FTQE \ / AMOS7 \ YOURUM ::
-#\[7]RKNJCBURNTP5C6VDK7WGTXXLYH6PCYGIYPA56LGQ4HAOJ2C3FYBI 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,.,,,.,,.,,,,,.,.,.,.,.,..,,.,,,..,,...,..,,,..,..,,,,.,,,,,.,,,
+#7TJHJDINXUSNSONQFNEKFC6FKQDLERPFUCILGFZM2IBVDVL3H5LEHKTXQFUOQBPIQYIBQMY3TOCVS
+#\\\|RPR5LB72IACCBG66T7FBDJFGVGAGM75V7HRX2U2SRBDBJINZXJZ \ / AMOS7 \ YOURUM ::
+#\[7]N2QURNW4ENO7JTQI62G3IDSH4OEAECTLDTFCUVW7WYXTMTDV6ODY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

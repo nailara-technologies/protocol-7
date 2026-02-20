@@ -1,0 +1,52 @@
+## [:< ##
+
+# name  = base.handler.check_strm_size_timeouts
+# descr = periodic check for idle strm-size streams
+
+my $event = shift;
+my $id    = $event->w->data;    ## session id ##
+
+return unless defined $id and exists $data{'session'}{$id};
+
+my $session = $data{'session'}{$id};
+my $now     = <[base.time]>->(3);
+
+## check all active streams for this session ##
+for my $cmd_id ( keys %{ $session->{'streams'} } ) {
+    my $stream = $session->{'streams'}{$cmd_id};
+
+    ## skip if not strm-size ##
+    next unless defined $stream->{'type'} and $stream->{'type'} eq 'SIZE';
+
+    ## check idle time since last activity ##
+    my $idle_time = $now - ( $stream->{'last_activity'} // $now );
+
+    ## get timeout: declared or default ##
+    my $timeout = $session->{'strm_size_timeout'} // 12;
+
+    if ( $idle_time > $timeout ) {
+        ## timeout: send close-timeout to abort stream ##
+
+        <[base.logs]>->(
+            0,   "[%d] STRM-SIZE stream %d idle timeout: %.1fs > %ds",
+            $id, $cmd_id, $idle_time, $timeout
+        );
+
+        ## inject close-timeout into input buffer ##
+        $session->{'buffer'}{'input'}
+            .= sprintf "(%d)STRM-SIZE close-timeout\n", $cmd_id;
+
+        ## trigger input processing ##
+        if ( exists $session->{'watcher'}{'input_buffer'} ) {
+            $session->{'watcher'}{'input_buffer'}->again;
+        }
+    }
+}
+
+return TRUE;
+
+#,,..,.,,,.,,,...,,,.,.,,,,.,,.,.,...,,,,,,..,..,,...,..,,.,.,,.,,.,,,,.,,...,
+#EQDOZPBK27US4EQHRGNDEG2PI4GF3TQDLMLUDO63VKI5A3HBGQOKYCD3HV4RO35C737R2K7L4XIX6
+#\\\|JW5DEAV6INKTNNRZ7J6XNEFNYLCJDKIS7PI7BKS5UASBVJNWW4D \ / AMOS7 \ YOURUM ::
+#\[7]U4QGXOKJWVVK5GLAJAU5Q6L2UZT5T32NGUCVQ5CHV5ZLO4HJTGBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

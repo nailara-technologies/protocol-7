@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = base.callback.reset_strm_size_timer
+# descr = reset strm-size idle timeout timer on activity
+
+my $id     = shift;
+my $cmd_id = shift;
+
+return
+        unless defined $id
+    and exists $data{'session'}{$id}
+    and defined $cmd_id;
+
+my $session = $data{'session'}{$id};
+my $stream  = $session->{'streams'}{$cmd_id};
+
+return unless defined $stream;
+
+## get timeout: declared or default ##
+my $timeout = $session->{'strm_size_timeout'} // 12;
+
+## create absolute timer on first call (never reset) ##
+unless ( defined $stream->{'timer'}{'absolute_timeout'} ) {
+    $stream->{'timer'}{'absolute_timeout'} = <[event.add_timer]>->(
+        {   'repeat'  => FALSE,
+            'after'   => $timeout,
+            'handler' => qw| base.handler.strm_size_absolute_timeout |,
+            'data'    => { 'sid' => $id, 'cmd_id' => $cmd_id }
+        }
+    );
+}
+
+## reset idle timer on every call (detects stalls) ##
+if ( defined $stream->{'timer'}{'idle_timeout'}
+    and not $stream->{'timer'}{'idle_timeout'}->is_cancelled ) {
+    $stream->{'timer'}{'idle_timeout'}->cancel;
+}
+
+$stream->{'timer'}{'idle_timeout'} = <[event.add_timer]>->(
+    {   'repeat'  => FALSE,
+        'after'   => $timeout,
+        'handler' => qw| base.handler.strm_size_idle_timeout |,
+        'data'    => { 'sid' => $id, 'cmd_id' => $cmd_id }
+    }
+);
+
+return TRUE;
+
+#,,.,,,,,,,,,,.,.,,..,.,.,,,.,,,,,,,,,.,.,.,.,..,,...,...,..,,,..,...,...,,,.,
+#6SAYFTMW4HY4DWXB57TNYRHTNCDSLNYAZ7BT6AZTY5E5XEA4JHYKUW74O3GS2S7CFKCCUNLQF5SMI
+#\\\|QRRPPTAXTAI7V34RP4O5HVB64MZK3EQHKPTKQATIPCMR2XM7J22 \ / AMOS7 \ YOURUM ::
+#\[7]T5T3EH2C7B3M7PGOZRDP5SAY3RQE7VZK3U536ONV3FEIHRPU6KDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

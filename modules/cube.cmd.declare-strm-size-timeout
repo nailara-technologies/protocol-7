@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = cube.cmd.declare-strm-size-timeout
+# descr = update strm-size timeout for session (runtime adjustment)
+# param = <timeout_seconds>
+
+my $param   = shift;
+my $sid     = $param->{'sid'};
+my $timeout = $param->{'args_list'}[0];
+
+return { mode => 'false', data => 'timeout required' }
+    unless defined $timeout and $timeout =~ m/^\d+$/;
+
+my $session = $data{'session'}{$sid};
+
+## update timeout for strm-size idle detection ##
+$session->{'strm_size_timeout'} = 0 + $timeout;
+
+<[base.logs]>->( 2, '[%d] STRM-SIZE timeout updated: %ds', $sid, $timeout );
+
+return {
+    mode => 'true',
+    data => sprintf( 'timeout set to %ds', $timeout )
+};
+
+#,,..,..,,..,,,..,,,.,,,,,..,,,,,,..,,.,,,,,.,..,,...,...,..,,,..,.,,,,,,,,.,,
+#FCEERS2YCG3Q4EHKNWIL4VEFN52UQTMUPOIK22CMXFUX3DBYDDQHOXXCIHTCKUIKAPDNDBH4WDURG
+#\\\|ZCXX5U6WPLQIFZFFYBBNOVB2WE7FRJURCVJFXVBBU7FKYT3XL2R \ / AMOS7 \ YOURUM ::
+#\[7]CYVW3RVCWLIX6Q6EPLXILLYYSXZ6OKUFJWYUDOZ57YCGW4A3EIDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

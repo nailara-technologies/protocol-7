@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = auth.callback.cap-neg.declare-strm-size-timeout
+# descr = capability negotiation: strm-size timeout declaration
+# param = session_id, timeout_seconds
+# return = TRUE | FALSE | error_code
+
+my $id      = shift;
+my $timeout = shift // '';
+
+return FALSE unless defined $id and exists $data{'session'}{$id};
+
+## validate timeout value ##
+if ( $timeout !~ m/^\d+$/ or $timeout < 1 ) {
+    <[base.logs]>->(
+        0,   '[%d] invalid strm-size-timeout: %s [ positive integer ]',
+        $id, $timeout
+    );
+    return 3;    ## validation error ##
+}
+
+my $session = $data{'session'}{$id};
+
+## store timeout for strm-size idle detection ##
+$session->{'strm_size_timeout'} = 0 + $timeout;
+
+<[base.logs]>->( 2, '[%d] STRM-SIZE timeout declared: %ds', $id, $timeout );
+
+return TRUE;
+
+#,,..,,,,,.,.,...,.,.,,..,,,.,,..,...,.,,,...,..,,...,...,..,,,.,,,.,,,..,.,.,
+#X2FX23IGUFEKK4PW4Q26T5WTX5TAE7KHBIG3H3JZUVIGXSM7HLXXZ6WAW6FAR2J562RTTLPRUNIEO
+#\\\|56HWBJVYNE2DKCB6SWY4AXIPIAPV54THK5GUFWUQBZC75JYLM6O \ / AMOS7 \ YOURUM ::
+#\[7]YLLE5E2HEONB3MMEKJ5V5I4FDTO6B45P24MN6ZABHOIQMQTIWCDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
