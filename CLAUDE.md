@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**For Kimi and other AI assistants**: See `AI-COLLABORATION-GUIDE.md` for a quick-start handover guide with current context and where to look first.
+
 ## Project Overview
 
 Protocol-7 is a Perl-based modular system with a unique architecture focused on asynchronous operations and modular components called "zenka". The current branch `dev/httpd-async-implementation` implements asynchronous HTTP server functionality with non-blocking I/O operations.
