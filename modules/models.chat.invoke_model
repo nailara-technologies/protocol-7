@@ -51,7 +51,8 @@ my $result;
 if ( $backend_type eq qw| api | ) {
     $result = <[models.backend.api.invoke]>->($params);
 } elsif ( $backend_type eq qw| local | ) {
-    $result = <[models.backend.local.invoke]>->($params);
+    ## use synchronous wrapper for chat context [ polls async backend ]
+    $result = <[models.backend.local.invoke_sync]>->($params);
 } else {
     return sprintf ':. error: unknown backend type: %s :.', $backend_type;
 }
@@ -68,8 +69,8 @@ if ( $result->{'success'} ) {
 
 0;
 
-#,,..,.,.,.,.,,.,,...,...,.,,,,,,,...,,,.,,,,,..,,...,...,..,,,..,..,,,,.,,,,,
-#VLL4RNZXJY2O4K6MKRVOCV3FFZPD4ECBEMKVHB65VOJNIZG25XFDGP7YCSUVVNNWTS5E32WZU3ZK4
-#\\\|ORRFWIPZJ4KF4L7BU2HYXW3TZBI7EZPJNOVWLGKV35BEBCJB726 \ / AMOS7 \ YOURUM ::
-#\[7]6ZKKCCMNQQW75RPPV5O6S5KJOKMBDAG7BYRPIBAIS2WTZ55PPKDA 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,,,,,,.,,.,.,.,.,..,,,.,,,..,...,..,,...,...,,..,...,,..,,.,,.,,,
+#BYEWLV2XHDXSOCED5RSUTEX5O3MSABOB5NWTNZOCELBRGLHF6JOW5GGFRBOXLPDBKQL5K3RQX7ZQ4
+#\\\|5SFGEUIMUTI7SYJPNBZVDRHEBH2LBMKYGYG2F7C267NRDFNMIMB \ / AMOS7 \ YOURUM ::
+#\[7]DD35MAY6JI4LGPQ3DJKPNUFINEVP5FTO26LVUJAU5FGUES5Q2YDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

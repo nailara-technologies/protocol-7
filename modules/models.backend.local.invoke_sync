@@ -1,0 +1,68 @@
+## [:< ##
+
+# name = models.backend.local.invoke_sync
+# descr = synchronous wrapper for local backend [ chat use case ]
+# param = $params - same as local.invoke
+# return = response with synchronous completion
+
+my $params = shift;
+
+## check if llama-server is reachable [ quick health check ]
+my $llama_server_url = 'http://127.0.0.1:8000';
+my $health_check     = `curl -s -m 1 ${llama_server_url}/health 2>/dev/null`;
+
+unless ( length($health_check) ) {
+    <[base.logs]>->(
+        0, 'local llama-server not available at %s',
+        $llama_server_url
+    );
+    return {
+        'success' => FALSE,
+        'error'   => 'llama-server not available -'
+            . ' start server or use different backend',
+    };
+}
+
+## call async backend to spawn inference
+my $result = <[models.backend.local.invoke]>->($params);
+
+## check if spawn failed
+return $result unless $result->{'success'};
+
+## if not pending, return immediately [ shouldn't happen with local backend ]
+return $result unless $result->{'pending'};
+
+## extract inference_id for polling
+my $inference_id = $result->{'inference_id'};
+
+return {
+    'success' => FALSE,
+    'error'   => 'no inference_id returned from async backend'
+    }
+    unless defined $inference_id;
+
+## TODO: implement non-blocking sync wrapper
+## current approach blocks event loop with select() - not suitable for async zenka
+## need callback-based or child-process approach for synchronous chat interface
+
+<[base.logs]>->(
+    1,
+    'local inference spawned async: id=%s - sync wrapper not yet implemented',
+    $inference_id
+);
+
+## for now, return immediate response indicating async nature
+return {
+    'success' => FALSE,
+    'error'   => 'local backend is async -'
+        . ' use coding zenka task queue or API backends for chat',
+    'async_id' => $inference_id,
+};
+
+0;
+
+#,,.,,.,,,,,,,,.,,..,,,,,,,,.,,,,,...,,,,,.,.,..,,...,...,...,...,,,,,,,.,...,
+#AWBHCPICQZLB5NKOTQQWIQBX5ZAUEV3N3MJ7KVY75M6C3WE2B3QF2PBW2E27MZKTYPJ43IWZPE64Y
+#\\\|6MLGTJY3VWC5I5IEZPGBTJ4LZQ7OCOKOL4QJUBFP6I657WFZK4V \ / AMOS7 \ YOURUM ::
+#\[7]HAFSMDVZNGS7I3IADPW3D22IE3TED5RSYXQYU7Q3F2PEV2LCD6AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
