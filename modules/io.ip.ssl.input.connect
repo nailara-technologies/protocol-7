@@ -16,6 +16,10 @@ my $client_sock_fd;
 
 # Accept connections from IO::Socket::SSL listening socket
 if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
+    ## set server socket to non-blocking to prevent SSL
+    ## handshake from blocking event loop
+    $fd->blocking(0);
+
     if ( not $client_sock_fd = $fd->accept() ) {
         ## no pending connection [ level-triggered re-fire ] ##
         return undef if $!{EAGAIN} or $!{EWOULDBLOCK};
@@ -102,8 +106,8 @@ if ( ref($fd) eq qw| IO::Socket::SSL | and -S $fd ) {
     return undef;              ## <-- connection closed \ error connecting ##
 }
 
-#,,,.,.,.,,,.,,..,,,.,.,,,..,,.,,,.,,,,.,,.,,,..,,...,...,,,,,,,.,,,,,,..,,..,
-#4QH6TBCZDVTZTZCUKRVXOT2TPU36TSYDSDXJJROP2IWWOWIWT7SNUL6LBE7XJPF3ABTA37SXAO33U
-#\\\|DGQAHRJKSF7CZTNP7JUYXMRAZW5L7DRUKHHWGRXYX2PKQP2IAHS \ / AMOS7 \ YOURUM ::
-#\[7]YTMH4HEUXMSWGSXB5JSIXV4JZEM33HQSAFHYGBYJJH3OA7QZR6CY 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,..,...,,,,,,..,.,,,,,.,..,,,..,..,,...,..,,,,.,.,,,,,,,.,.,,,,,
+#Z7MMBLQ7NSUD5N53IPUIQFTU6QWNCR2UU776OBDJ25XOSVIVBHXLIFKB4U7FH5OSLVU5SG3RJTI52
+#\\\|6OG76B4WCVPYCUCN34BGSBIPXPYTSNYGFDTGGAW3C2G6Y6J6LO3 \ / AMOS7 \ YOURUM ::
+#\[7]E2CSY3ED5HEW4F653SGPF764PYHQE5C2LOWLHPNDS5XW4A7RL6DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
