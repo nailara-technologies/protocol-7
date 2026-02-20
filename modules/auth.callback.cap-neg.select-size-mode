@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = auth.callback.cap-neg.select-size-mode
+# descr = capability negotiation: size mode selection (size | chrsize)
+# param = session_id, requested_mode
+# return = TRUE | FALSE | error_code
+
+my $id       = shift;
+my $req_mode = shift // '';
+
+return FALSE unless defined $id and exists $data{'session'}{$id};
+
+my $session     = $data{'session'}{$id};
+my $size_select = $session->{'counter'}{'auth'}{'size_select'} //= {};
+
+## initialize counters ##
+$size_select->{'limit'}  //= 3;    ## max allowed select-size-mode calls ##
+$size_select->{'errors'} //= 0;
+$size_select->{'calls'}  //= 0;
+
+## check call limit ##
+if ( $size_select->{'calls'} >= $size_select->{'limit'} ) {
+    <[base.logs]>->( 0, '[%d] size-mode select limit exceeded', $id );
+    return 4;    ## error code: limit exceeded ##
+}
+
+## validate mode ##
+$req_mode = lc($req_mode);
+if ( $req_mode !~ m{^(size|chrsize)$} ) {
+    <[base.logs]>->(
+        0,   '[%d] invalid size-mode: %s [ size | chrsize ]',
+        $id, $req_mode
+    );
+    $size_select->{'errors'}++;
+
+    if ( $size_select->{'errors'} > 2 ) {
+        return 4;    ## too many errors ##
+    }
+    return 3;        ## validation error ##
+}
+
+## set mode ##
+$session->{'size_mode'} = uc($req_mode);
+$size_select->{'calls'}++;
+
+<[base.logs]>->( 2, '[%d] size-mode set to %s', $id, uc($req_mode) );
+
+return TRUE;
+
+#,,,,,,,.,,.,,.,,,,,,,,..,,.,,,,.,.,,,...,,.,,..,,...,...,.,.,,,,,.,,,.,.,.,.,
+#6OIZYAXMJRG4BVALZJTPLBJHBKFTSOZOZYKVHJTKQQJMDSNRKYCPEEDLGDQY75JM2NRYHFQE4Q5O2
+#\\\|MTU6OYTZZPVT36RFJLM45LPI4YI7UU3JJKGHJ4JU3MAV4TUPXLR \ / AMOS7 \ YOURUM ::
+#\[7]3A26GAW7EM7CQUH5QA6EDCTWVN7UKYGCFUCH7ONDHJ4SGGB4YWCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

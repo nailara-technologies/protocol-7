@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = base.handler.strm_size_idle_timeout
+# descr = strm-size idle timeout fired (single-shot timer)
+
+my $event  = shift;
+my $data_h = $event->w->data;
+my $id     = $data_h->{'sid'};
+my $cmd_id = $data_h->{'cmd_id'};
+
+return
+        unless defined $id
+    and exists $data{'session'}{$id}
+    and defined $cmd_id;
+
+my $session = $data{'session'}{$id};
+my $stream  = $session->{'streams'}{$cmd_id};
+
+return unless defined $stream;
+
+## timeout fired: inject close-timeout ##
+my $timeout   = $session->{'strm_size_timeout'} // 12;
+my $idle_time = <[base.time]>->(3) - $stream->{'last_activity'};
+my $received  = $stream->{'received_bytes'} // 0;
+my $total     = $stream->{'total_bytes'}    // 0;
+
+<[base.logs]>->(
+    0,   "[%d] STRM-SIZE stream %d idle timeout: %.1fs > %ds [ %d/%d bytes ]",
+    $id, $cmd_id, $idle_time, $timeout, $received, $total
+);
+
+## cancel absolute timer if still active ##
+if ( defined $stream->{'timer'}{'absolute_timeout'}
+    and not $stream->{'timer'}{'absolute_timeout'}->is_cancelled ) {
+    $stream->{'timer'}{'absolute_timeout'}->cancel;
+}
+
+## inject close-timeout into input buffer ##
+$session->{'buffer'}{'input'} .= sprintf "(%d)STRM-SIZE close-timeout\n",
+    $cmd_id;
+
+## trigger input processing ##
+if ( exists $session->{'watcher'}{'input_buffer'} ) {
+    $session->{'watcher'}{'input_buffer'}->again;
+}
+
+return TRUE;
+
+#,,..,.,,,.,,,,,,,,..,,.,,,.,,,,.,,,.,,,.,.,.,..,,...,...,..,,,.,,,..,,.,,,,,,
+#QATZCDKKFEDY3NXHN3A73EVFIFEWFE5YUIKW72MNFNLW3IDEFGCF6CA4HW4BLEV4RIRXMYSIAJOMU
+#\\\|6MUO2YVPAWCW73XVYAEZ6BFS3P3QRAASWW3LM7EWCAANIPNGDC5 \ / AMOS7 \ YOURUM ::
+#\[7]ZLS4ICBTII3VHXDAZWF7B3DREV3WPYCW5BNOCNWCFWBYCXPBDODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

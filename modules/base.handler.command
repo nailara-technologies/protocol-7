@@ -852,6 +852,7 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                         'received_bytes' => 0,
                         'buffer'         => '',
                         'started_at'     => <[base.time]>->(3),
+                        'last_activity'  => <[base.time]>->(3),
                         'route_id'       => $session->{'route'}->{$cmd_id},
                     };
 
@@ -882,6 +883,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                     ## Block session to STRM-SIZE stream ##
                     $session->{'blocked_by_stream'} = $cmd_id;
 
+                    ## start idle timeout timer ##
+                    <[base.callback.reset_strm_size_timer]>->( $id, $cmd_id );
+
                     <[base.logs]>->(
                         2, "[%d] STRM-SIZE open : %d bytes [session blocked]",
                         $id, $total_bytes
@@ -900,6 +904,13 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                         if ( defined $session->{'streams'}->{$cmd_id} ) {
                             $session->{'streams'}{$cmd_id}->{'received_bytes'}
                                 += bytes::length($chunk_data);
+                            $session->{'streams'}{$cmd_id}->{'last_activity'}
+                                = <[base.time]>->(3);
+
+                            ## reset idle timeout timer on activity ##
+                            <[base.callback.reset_strm_size_timer]>->(
+                                $id, $cmd_id
+                            );
 
                             if (defined $session->{'streams'}{$cmd_id}
                                 ->{'handler'} ) {
@@ -933,8 +944,10 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                         }
                     }
 
-                } elsif ( $call_args->{'args'} eq qw| close | ) {
-                    ## STRM-SIZE close: validate and send complete reply ##
+                } elsif ( $call_args->{'args'} =~ m/^close(?:-timeout)?$/ ) {
+                    ## STRM-SIZE close or close-timeout ##
+                    my $is_timeout
+                        = ( $call_args->{'args'} eq 'close-timeout' );
 
                     ## Clear blocking flag immediately ##
                     delete $session->{'blocked_by_stream'};
@@ -943,25 +956,51 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                         my $stream = $session->{'streams'}->{$cmd_id};
 
                         ## Validate received bytes match announced total ##
+                        ## (timeout close expected to be incomplete) ##
                         if ( $stream->{'received_bytes'}
                             != $stream->{'total_bytes'} ) {
-                            <[base.logs]>->(
-                                1,
-                                "[%d] STRM-SIZE close mismatch "
-                                    . ": %d != %d bytes",
-                                $id,
-                                $stream->{'received_bytes'},
-                                $stream->{'total_bytes'}
-                            );
 
-                            ## Send FALSE to source and drop route ##
-                            $data{'session'}{ $route->{'source'}->{'sid'} }
-                                {'buffer'}{'output'}
-                                .= sprintf "%sFALSE STRM-SIZE incomplete "
-                                . ": %d/%d bytes\n",
-                                $s_cmd_id,
-                                $stream->{'received_bytes'},
-                                $stream->{'total_bytes'};
+                            if ($is_timeout) {
+                                ## timeout abort: expected incomplete ##
+                                <[base.logs]>->(
+                                    0,
+                                    "[%d] STRM-SIZE timeout abort: %d/%d bytes "
+                                        . "[ %s ]",
+                                    $id,
+                                    $stream->{'received_bytes'},
+                                    $stream->{'total_bytes'},
+                                    defined $stream->{'handler'}
+                                    ? 'handler: data dropped'
+                                    : 'routing'
+                                );
+                            } else {
+                                ## unexpected incomplete: protocol error ##
+                                <[base.logs]>->(
+                                    0,
+                                    "[%d] STRM-SIZE close mismatch "
+                                        . ": %d != %d bytes [ %s ]",
+                                    $id,
+                                    $stream->{'received_bytes'},
+                                    $stream->{'total_bytes'},
+                                    defined $stream->{'handler'}
+                                    ? 'handler: data dropped'
+                                    : 'routing'
+                                );
+                            }
+
+                            ## Handler path: drop accumulated data (with level 0 log) ##
+                            ## Routing path: send FALSE to source ##
+                            if ( not defined $stream->{'handler'} ) {
+                                $data{'session'}
+                                    { $route->{'source'}->{'sid'} }{'buffer'}
+                                    {'output'}
+                                    .= sprintf
+                                    "%sFALSE STRM-SIZE %s: %d/%d bytes\n",
+                                    $s_cmd_id,
+                                    $is_timeout ? 'timeout' : 'incomplete',
+                                    $stream->{'received_bytes'},
+                                    $stream->{'total_bytes'};
+                            }
 
                         } else {
                             ## Valid: stream complete ##
@@ -992,6 +1031,18 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
                                 ## routing path: SIZE already complete, no action ##
                                 ## client received SIZE header and all data chunks ##
                             }
+                        }
+
+                        ## cancel both timeout timers ##
+                        if ( defined $stream->{'timer'}{'idle_timeout'}
+                            and not $stream->{'timer'}{'idle_timeout'}
+                            ->is_cancelled ) {
+                            $stream->{'timer'}{'idle_timeout'}->cancel;
+                        }
+                        if ( defined $stream->{'timer'}{'absolute_timeout'}
+                            and not $stream->{'timer'}{'absolute_timeout'}
+                            ->is_cancelled ) {
+                            $stream->{'timer'}{'absolute_timeout'}->cancel;
                         }
 
                         ## clear stream blocking flag ##
@@ -1889,8 +1940,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,,,,..,,,.,..,,..,,..,,...,..,,.,,,...,,,.,..,,...,...,,..,,,.,...,,..,...,
-#5CQOMLRR6RGEC5VAREE3TYT6PH3Z36BLRLP37GPVC5EYHHX6WEOESSQROGSBPPOXWUBWR6CBWYFUU
-#\\\|X3XYBXDKW5EUFXSED54V2EYBA53HI7TBAMBZD7S4LZGUGOFRWAM \ / AMOS7 \ YOURUM ::
-#\[7]7UGOVR467XDZQMY2NWB22JE3SO3IYUCD5YSMIOUIWZDM643CCWBY 7  DATA SIGNATURE ::
+#,,,,,...,,..,,,,,,.,,..,,.,.,...,..,,,,.,.,,,..,,...,.,.,,,,,,,.,,..,...,,.,,
+#SEJ5UQX4RDNS2SKFITWZD7WT4YCB4GE3SIDUNXDDD57DWP24VLTREN3ZUVKIQQPAAY4VMXKIYBUAS
+#\\\|KHM74NCEA6Y6MQ55HRPDWY2TISLXWBITJSO2HPLIROHUXXGFBSD \ / AMOS7 \ YOURUM ::
+#\[7]DDPVWU6O7LV7JT7FN7TSTZ34ENPYIUNM7V7ITRMJAGUBCVQ5TGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

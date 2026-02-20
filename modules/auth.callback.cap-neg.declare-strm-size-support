@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = auth.callback.cap-neg.declare-strm-size-support
+# descr = capability negotiation: client supports strm-size protocol
+# param = session_id, [true|false]
+# return = TRUE | FALSE | error_code
+
+my $id    = shift;
+my $value = shift // 'true';
+
+return FALSE unless defined $id and exists $data{'session'}{$id};
+
+my $session = $data{'session'}{$id};
+
+## parse value ##
+$value = lc($value);
+if ( $value =~ m{^(true|1|yes|on)$} ) {
+    $session->{'strm_size_support'} = TRUE;
+} elsif ( $value =~ m{^(false|0|no|off)$} ) {
+    delete $session->{'strm_size_support'};
+} else {
+    <[base.logs]>->(
+        0,   '[%d] invalid strm-size-support value: %s',
+        $id, $value
+    );
+    return 3;    ## validation error ##
+}
+
+<[base.logs]>->(
+    2,   '[%d] STRM-SIZE support: %s',
+    $id, $session->{'strm_size_support'} ? 'enabled' : 'disabled'
+);
+
+return TRUE;
+
+#,,..,,..,,..,.,,,,..,..,,,.,,...,,,,,,..,,,.,..,,...,..,,...,,.,,.,,,,,,,,,.,
+#MU37FFY63LEMH7MHARDL47ERLNWKEBUSGZDUUKRJJGU36JEDHT2MQADKLY6IGTH2WUAN2XIBPYZ4Q
+#\\\|CQPRXZHIFTZFVRJUBYFJDU6HRNVHZ7LTYFZANCW3J352IZIBLQR \ / AMOS7 \ YOURUM ::
+#\[7]K33WROKF55NG7QMBF3ZFZBKKQSWAMPJNLU4NWQ4M2L74VKPPOODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
