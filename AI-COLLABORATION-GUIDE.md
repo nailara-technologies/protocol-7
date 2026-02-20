@@ -132,15 +132,21 @@ git commit -m "message"
 - ✅ Memory system fully implemented with collision detection
 
 **High Priority:**
-1. **Local model chat integration** (IN PROGRESS - needs completion)
+1. **Local model chat integration** (IN PROGRESS - use coding zenka!)
    - Issue: Local backend is fully async, chat needs sync responses
    - Current: `models.backend.local.invoke_sync` started but blocks event loop
    - Problem: Using `select()` for polling blocks entire models zenka → timeout
-   - Solution needed: Child process or callback-based approach for sync wrapper
-   - Files: `modules/models.backend.local.invoke_sync`, `modules/models.chat.invoke_model`
+   - **SOLUTION**: Route through coding zenka's existing async infrastructure!
+   - Coding zenka already has child processes for inference with async→sync bridging
+   - Files to check:
+     - `modules/coding.cmd.submit` - task submission interface
+     - `modules/coding.task.*` - task queue system
+     - `modules/coding.spawn_inference_server` - llama-server management
+     - `modules/coding.handler.*` - async response handlers
    - Binary: `/data/source/ik_llama.cpp/llama-server-cuda-fa` (exists)
    - Models: 20+ models registered, see `p7c 'models.list models'`
-   - Approach: Either (A) fork child to poll synchronously, or (B) use callback/jobqueue pattern
+   - Approach: Create simple chat→coding adapter or use coding.cmd.submit directly
+   - Started: `modules/models.backend.coding.invoke` (basic structure)
 
 2. **Filesystem-driven model discovery** (refactor needed)
    - Remove hardcoded paths like `/data/source/ik_llama.cpp/`

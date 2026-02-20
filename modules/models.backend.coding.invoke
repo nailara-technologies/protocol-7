@@ -1,0 +1,77 @@
+## [:< ##
+
+# name = models.backend.coding.invoke
+# descr = route local inference through coding zenka's async infrastructure
+# param = $params - standard backend params
+# return = response via coding zenka's task system
+
+my $params = shift;
+
+my $model_id       = $params->{'model_id'}       // '';
+my $messages       = $params->{'messages'}       // [];
+my $participant_id = $params->{'participant_id'} // '';
+
+return {
+    'success' => FALSE,
+    'error'   => 'model_id required'
+    }
+    unless length($model_id);
+
+return {
+    'success' => FALSE,
+    'error'   => 'messages must be non-empty array'
+    }
+    unless ref($messages) eq 'ARRAY' && scalar(@$messages) > 0;
+
+## check if coding zenka is available
+my $coding_online = <[base.zenki.is_online]>->('coding');
+
+unless ($coding_online) {
+    return {
+        'success' => FALSE,
+        'error'   => 'coding zenka not available - use API backend instead',
+    };
+}
+
+## extract message content from messages array
+my $message_content = '';
+for my $msg (@$messages) {
+    next unless ref($msg) eq 'HASH';
+    my $role    = $msg->{'role'}    // '';
+    my $content = $msg->{'content'} // '';
+    $message_content .= "$role: $content\n" if length($content);
+}
+
+## build request for coding zenka
+my $request = sprintf 'inference-request: model=%s message=%s',
+    $model_id, $message_content;
+
+## submit to coding zenka's task queue
+my $result = <[base.zenki.send_command]>
+    ->( 'coding', 'coding.cmd.submit', $request );
+
+## check if submission succeeded
+if ( not defined $result or $result->{'mode'} eq 'false' ) {
+    return {
+        'success' => FALSE,
+        'error'   => 'failed to submit to coding zenka: '
+            . ( $result->{'data'} // 'unknown error' ),
+    };
+}
+
+## task submitted successfully
+## in async mode, coding will process and respond via callback
+return {
+    'success' => TRUE,
+    'pending' => TRUE,
+    'message' => 'submitted to coding zenka for async processing',
+    'note'    => 'coding zenka not yet configured for simple chat inference',
+};
+
+0;
+
+#,,,.,.,,,,,,,.,.,,,.,..,,...,...,.,.,,,.,,,,,..,,...,...,.,.,...,,,.,...,...,
+#52AH5URM4A2PT4GM7FCEC77F53W2KYJZEWUIDY5ZS5I4XEXASD2FNWMJQW7DK5CH3Z3QT5KD3FWTM
+#\\\|EA7QIFPMVKWI3M7RH36BOY5HWEPI6JD43II655MFEZHEG3CBKET \ / AMOS7 \ YOURUM ::
+#\[7]EPCX27UGFUXAN2LXOGT3KZ7PXWYLY5YCXTQAHMVCOT5WMAIAYQDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
