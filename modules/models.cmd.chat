@@ -8,8 +8,8 @@
 my $param = shift;
 my $args  = $param->{'args'} // '';
 
-## no args: show recent chat buffer
-if ( $args eq '' ) {
+## no args (only source_zenka from alias): show recent chat buffer
+if ( $args eq '' or $args =~ m|^\S+$| ) {
     my $entries = <[models.chat.get_recent]>->(20);
     my $output  = <[models.chat.format_buffer]>->($entries);
 
@@ -20,16 +20,19 @@ if ( $args eq '' ) {
     return { mode => qw| size |, data => $output };
 }
 
-## parse: <model> <message>
-unless ( $args =~ m{^(\S+)\s+(.+)$}s ) {
-    return {
-        mode => qw| false |,
-        data => 'usage: models.chat [model message]'
-    };
-}
+## parse: <source_zenka> <model> <message> (source_zenka from cube alias)
+return {
+    mode => qw| false |,
+    data => 'usage: models.chat [model message]'
+    }
+    if not defined $args
+    or $args !~ m|^(\S+) +(\S+) +(.+)$|s;
 
-my $model   = $1;
-my $message = $2;
+my ( $sender, $model, $message )
+    = ( ${^CAPTURE}[0], ${^CAPTURE}[1], ${^CAPTURE}[2] );
+
+## strip zenka prefix from source (e.g., 'cube.models' -> 'models')
+$sender =~ s|^.+\.||g;
 
 ## auto-announce multi-line messages (>5 lines)
 my ( $checksum, $final_message ) = <[models.chat.auto_announce]>->($message);
@@ -40,7 +43,7 @@ if ( defined $checksum ) {
 }
 
 ## append user message to buffer
-<[models.chat.append]>->( undef, 'Claude', $message );
+<[models.chat.append]>->( undef, $sender, $message );
 
 ## process keywords in message
 my $processed = <[models.chat.process_keywords]>->($message);
@@ -61,8 +64,8 @@ return { mode => qw| size |, data => $output };
 
 0;
 
-#,,.,,.,,,.,.,,,.,..,,.,.,,.,,.,.,,..,,,,,,,,,..,,...,...,...,..,,..,,,,,,,..,
-#DBISEFO2JMOW2H342CKXRPY2GQBKRGGROBKQGHYGZJHT4HIGRHN4GNFCWKLRC2FJM5RWUOSAGGFFU
-#\\\|FVARSEZEBCICLR54ZBPMQNI3SFEA6DYAK3KHNGDLWXJSMBLROD3 \ / AMOS7 \ YOURUM ::
-#\[7]EETUYZDUMCF5MSOTYEG3OBYAEDNA7YGS2SSBJ6QQEHXMKUKNMKBY 7  DATA SIGNATURE ::
+#,,.,,,..,.,,,..,,...,.,.,,.,,.,,,,..,,..,,..,..,,...,...,...,,.,,,.,,,..,,.,,
+#223GPYMJTABLZVGWKCX6WJWDNZXMPOCMVXTO4T5JTRE6LISKFTZQXZ3TZFAD5K3YROQXV7NB562KW
+#\\\|SQ6LTQ2KT3XNTXYGZER3W72TL67HASF2F6NVRU4GAAR4KV35R5J \ / AMOS7 \ YOURUM ::
+#\[7]4H4STVQFGHJZNFCNQNMGQ3KRSGORSECS4772CUB3C3YC4WVB4SDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
