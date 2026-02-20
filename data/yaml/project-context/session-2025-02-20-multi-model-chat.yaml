@@ -1,0 +1,214 @@
+---
+# Multi-Model Chat System Implementation
+# Date: 2025-02-20
+# Purpose: Enable natural language communication between multiple model instances
+
+## ═══════════════════════════════════════════════════════════════════════════
+## OVERVIEW
+## ═══════════════════════════════════════════════════════════════════════════
+
+description: |
+  Implemented multi-model chat infrastructure for collaboration between Claude,
+  kimi-code, and local model instances. Provides natural language communication
+  with keyword support, escape sequences, and content-addressed announcements.
+
+status: "✅ COMPLETE - Chat system operational"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## QUICK START USAGE
+## ═══════════════════════════════════════════════════════════════════════════
+
+usage:
+  send_message:
+    command: "p7c models.chat <model-name> <message>"
+    example: "p7c models.chat test-model 'Hello! Testing multi-model communication.'"
+    description: "Send message to model, get response, view last 3 exchanges"
+
+  view_buffer:
+    command: "p7c models.chat"
+    description: "View last 20 chat messages (no arguments)"
+
+  show_buffer:
+    command: "p7c models.show-buffer models-chat"
+    description: "View full chat buffer with escape sequences preserved"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## KEY FEATURES
+## ═══════════════════════════════════════════════════════════════════════════
+
+features:
+  source_tracking:
+    description: "Automatic sender identification via cube source_zenka alias"
+    implementation: "Cube prepends source zenka to args, chat extracts and strips prefix"
+    example: "unix-taeki sends message → stored as [unix-taeki]: message"
+
+  escape_sequences:
+    description: "Protocol-7 style escape sequences for formatting"
+    sequences:
+      newline: ":n:"
+      tab_default: ":t:"
+      tab_width: ":t4: :t8: :t10:"
+    encoding: "models.escape.encode (storage) / models.escape.interpret (display)"
+    tab_width_default: 10
+
+  keywords:
+    description: "Embedded keywords for task coordination"
+    supported:
+      - ":note: - General annotations"
+      - ":task: - Task assignments"
+      - ":output: - Command output markers (future)"
+      - ":done: - Completion signals (future)"
+    processing: "models.chat.process_keywords extracts and handles keywords"
+
+  content_addressing:
+    description: "Auto-announce large messages via AMOS checksums"
+    threshold: "5 lines (configurable via models.cfg.auto_announce_threshold)"
+    format: "[:content:<checksum>:<lines>:<bytes>] <description>"
+    retrieval: "p7c models.request <checksum>"
+    implementation: "models.chat.auto_announce + models.cmd.request"
+
+  dual_storage:
+    description: "Messages stored in two formats for different access patterns"
+    structured: "<models.chat.messages> - Array of {time, sender, message} hashes"
+    buffer: "Protocol-7 buffer 'models-chat' - Text log with timestamps"
+    max_messages: 500
+    max_buffer: "128 KB"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## ARCHITECTURE
+## ═══════════════════════════════════════════════════════════════════════════
+
+architecture:
+  command_flow:
+    - "User calls: p7c models.chat test-model 'Hello!'"
+    - "Cube routes with source_zenka alias: prepends 'unix-taeki'"
+    - "models.cmd.chat parses: sender=unix-taeki, model=test-model, message='Hello!'"
+    - "models.chat.append stores message with sender tracking"
+    - "models.chat.process_keywords extracts any keywords"
+    - "Test response generated (placeholder for real model integration)"
+    - "models.chat.format_buffer formats last 3 messages"
+    - "SIZE response returned with formatted output"
+
+  cube_integration:
+    file: "configuration/zenki/cube/command_aliases"
+    setting: "setup.aliases.source_zenka = ... models.chat"
+    behavior: "Cube automatically prepends source zenka name to args"
+
+  key_modules:
+    - "models.cmd.chat - Command entry point, arg parsing, response formatting"
+    - "models.chat.append - Store messages (dual storage)"
+    - "models.chat.get_recent - Retrieve last N messages"
+    - "models.chat.format_buffer - Format for display with escape interpretation"
+    - "models.chat.auto_announce - Auto-announce large messages via checksums"
+    - "models.chat.process_keywords - Extract and handle keywords"
+    - "models.escape.encode - Encode escapes for storage"
+    - "models.escape.interpret - Interpret escapes for display"
+    - "models.cmd.request - Retrieve announced content by checksum"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## IMPLEMENTATION FIXES
+## ═══════════════════════════════════════════════════════════════════════════
+
+fixes_applied:
+  session_id_requirement:
+    issue: "models.chat.append required defined session_id, blocking global chat"
+    fix: "Changed validation to only require sender (session_id optional)"
+    file: "modules/models.chat.append:12"
+
+  source_tracking:
+    issue: "Sender hardcoded to 'Claude', no zenka identification"
+    fix: "Extract source_zenka from cube alias using ${^CAPTURE} array"
+    file: "modules/models.cmd.chat:22-28"
+
+  cube_alias:
+    issue: "models.chat not registered for source_zenka alias"
+    fix: "Added models.chat to setup.aliases.source_zenka list"
+    file: "configuration/zenki/cube/command_aliases:18"
+
+  no_args_handling:
+    issue: "Empty check didn't account for source_zenka prefix from cube"
+    fix: "Check for empty OR single word (just source_zenka)"
+    file: "modules/models.cmd.chat:11"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## TESTING VERIFICATION
+## ═══════════════════════════════════════════════════════════════════════════
+
+testing:
+  send_message_test:
+    command: "p7c models.chat test-model 'Hello from Claude!'"
+    expected: "Message stored with sender=unix-taeki, response generated"
+    verified: "✅ Working - messages display with timestamps and escape sequences"
+
+  view_buffer_test:
+    command: "p7c models.chat"
+    expected: "Last 20 messages formatted with timestamps"
+    verified: "✅ Working - buffer view shows recent messages"
+
+  debug_trace:
+    description: "Full execution trace captured with -vvvq flag"
+    key_findings:
+      - "Source zenka extracted: unix-taeki"
+      - "Messages stored in buffer correctly"
+      - "Escape sequences encoded/decoded properly"
+      - "SIZE response: 204 bytes (not 0)"
+      - "Timestamps formatted via base.parser.timestamp"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## NEXT STEPS
+## ═══════════════════════════════════════════════════════════════════════════
+
+next_implementation:
+  models_memory:
+    priority: "Medium"
+    description: "Conversation memory storage/retrieval for context persistence"
+    command: "models.memory"
+    purpose: "Store important context across sessions, retrieve by topic/checksum"
+
+  real_model_integration:
+    priority: "High"
+    description: "Replace placeholder with actual model API calls"
+    targets:
+      - "kimi-code API integration"
+      - "Local llama-server integration"
+      - "Claude API for multi-instance coordination"
+
+  keyword_actions:
+    priority: "Medium"
+    description: "Implement actual keyword handling"
+    keywords:
+      - ":output: - Execute command and capture output"
+      - ":done: - Mark task completion, trigger notifications"
+
+  multi_instance_sync:
+    priority: "Low"
+    description: "Synchronize chat across multiple Claude/kimi instances"
+    approach: "Shared buffer or message relay via models zenka"
+
+## ═══════════════════════════════════════════════════════════════════════════
+## COMMITS
+## ═══════════════════════════════════════════════════════════════════════════
+
+commits:
+  - hash: "7fe6c1493"
+    message: "Implement multi-model chat system with source zenka tracking"
+    files: 6
+    changes: "+47 -43"
+
+  - hash: "e00193a32"
+    message: "Fix chat buffer integration and models.config.loader logging bug"
+
+  - hash: "9a1d9ccdc"
+    message: "Add models chat and request commands to access permissions"
+
+  - hash: "310ea2236"
+    message: "Use bracket notation for content markers: [:content:checksum:lines:bytes]"
+
+  - hash: "6b1382aa4"
+    message: "Add content-addressed announcement system with AMOS checksums"
+
+#,,.,,,,.,...,.,.,,,.,,.,,.,.,,.,,..,,.,.,,.,,..,,...,...,,,,,...,,..,...,,.,,
+#P7ZFIWNDR6ATD6DSSSKMR7HIMBAE3EEMPIJQ4NQLSMLGVU7GQAGLHOILXEO3XBRWG4OUQQIGPX4PU
+#\\\|VFRNAVHD4MRXIKGM2YLMJLCXGVL4IKX2N5VHPPGYVB3XYXSFTYX \ / AMOS7 \ YOURUM ::
+#\[7]H65PA22CL4MDL7PV4MIEZCC7RA475AANCML4A5CIKLK5OH6TTODQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
