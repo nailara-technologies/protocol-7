@@ -12,8 +12,8 @@ return '' unless defined $entries and ref($entries) eq 'ARRAY';
 my $output = '';
 
 for my $entry (@$entries) {
-    ## format timestamp
-    my $timestamp = <[base.time.readable]>->( $entry->{'time'}, 'short' );
+    ## format timestamp (HH:MM:SS)
+    my $timestamp = <[base.parser.timestamp]>->( 'time', $entry->{'time'} );
 
     ## interpret escapes for display
     my $message = <[models.escape.interpret]>->( $entry->{'message'} );
@@ -27,8 +27,8 @@ return $output;
 
 0;
 
-#,,,,,,.,,,.,,.,,,.,,,,,.,,.,,.,,,...,,,,,..,,..,,...,...,.,.,.,,,..,,.,,,.,,,
-#U6LFCTEAVGM4E3NAKJDUKOGOZXEGOLQQQJXP6KAB7J5R3ZWLG3E2ZCR35QU7C5KRYL4D4WAUCV67G
-#\\\|FUVPO5GEP7JOUDKMFUP2EU72TWEGII3M47P5EPU4PV6X3UXW6OP \ / AMOS7 \ YOURUM ::
-#\[7]TWLRPIQ2LWVWO5X7D6E47UMFEWCXFTWRCNREEFPXZISPE3LSWWBA 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,.,.,.,,,...,,,.,...,.,.,.,,,...,..,,...,...,...,...,...,.,,,.,.,
+#USFXWSCJSRKN7G2QWMPC5ZEHBIODNTAEUDKSKGDFARUHMP5PYEBC5QKRAUINYULU2WU3IPRD557F6
+#\\\|Z4ZI4QWE2E57HZ2FTVRAEUSGSIRB3B6ELN2L2WHZXKYIY7VDM3X \ / AMOS7 \ YOURUM ::
+#\[7]OSEGGZRTADDPWFWC5HGRTHMXPXSONF2QDGFWKHKR5LTQJSCIGKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
