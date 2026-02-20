@@ -1,0 +1,53 @@
+## [:< ##
+
+# name = models.cmd.request
+# descr = request announced content by checksum (SIZE/STRM response)
+# usage = models.request <checksum>
+# return = content via SIZE or STRM
+
+my $param    = shift;
+my $checksum = $param->{'args'} // '';
+
+## validate checksum format (base32r AMOS)
+unless ( $checksum =~ m{^[A-Z0-9]{9}$} ) {
+    return {
+        mode => qw| false |,
+        data => 'usage: models.request <checksum>'
+    };
+}
+
+## lookup announced content
+my $announced = <models.chat.announced>->{$checksum};
+
+unless ( defined $announced ) {
+    return {
+        mode => qw| false |,
+        data => sprintf 'checksum not found: %s', $checksum
+    };
+}
+
+## log retrieval in chat
+my $log_msg = sprintf ':request: %s (retrieved by %s)', $checksum,
+    $param->{'sid'} // 'unknown';
+<[models.chat.append]>->( undef, 'system', $log_msg );
+
+## decide SIZE vs STRM based on content size
+my $content = $announced->{'content'};
+my $size    = $announced->{'size'};
+
+## use STRM for large content (>100KB)
+if ( $size > 102400 ) {
+    ## TODO: implement STRM delivery
+    ## for now, use SIZE regardless
+}
+
+## deliver via SIZE
+return { mode => qw| size |, data => $content };
+
+0;
+
+#,,..,..,,.,.,.,.,.,,,.,.,,..,...,,.,,...,,,,,..,,...,...,...,,.,,..,,,,.,,.,,
+#P3TBY25IEO7HSEZVSIVNGYDV3XEUMKZVEPVNRZUX4M7JJOLVWP7P263IS7M3KZTHG656P3CURX564
+#\\\|JMTGM2U4G3BEOPBZY2KHARM4D4AHEJR6TI3GLUYJVTMFJ7DJZNL \ / AMOS7 \ YOURUM ::
+#\[7]7D5NV6P7LZPKSHDOCB43LVLAE3WV37SDWG4IYP3AT46AS2OO3UDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

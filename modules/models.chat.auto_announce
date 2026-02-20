@@ -1,0 +1,42 @@
+## [:< ##
+
+# name = models.chat.auto_announce
+# descr = auto-announce multi-line messages (>5 lines)
+# param = $message - message to potentially announce
+# return = (announcement_checksum, modified_message) or (undef, original_message)
+
+my $message = shift // '';
+
+## count lines in message
+my $line_count = ( $message =~ tr/\n/\n/ ) + 1;
+
+## threshold for auto-announcement (default: 5 lines)
+my $threshold = <models.cfg.auto_announce_threshold> // 5;
+
+## don't auto-announce if below threshold
+return ( undef, $message ) if $line_count < $threshold;
+
+## extract description from first line or use default
+my $first_line = ( split /\n/, $message, 2 )[0];
+my $description
+    = length($first_line) > 50
+    ? substr( $first_line, 0, 47 ) . '...'
+    : $first_line;
+
+## announce full content
+my $checksum = <[models.chat.announce]>->( $message, $description );
+
+## return announcement message instead of full content
+my $announced = <models.chat.announced>->{$checksum};
+my $announce_msg = sprintf ':announce: %s (%d lines) - %s',
+    $checksum, $announced->{'lines'}, $description;
+
+return ( $checksum, $announce_msg );
+
+0;
+
+#,,,.,.,.,...,...,,..,.,.,,,.,,..,,,.,,,,,,.,,..,,...,...,,,,,,,.,.,,,,..,.,.,
+#MEQZMQUBGOOU7PNMIV5NKASQ6G23HHC4VAF5K7OZ5A3AKM26MBA34GOPS75EXKYGOESSDZ2LSIHMM
+#\\\|E2XRD5OZKQRRJGLVSUP4H3VPFD3XR6CCEXLHG7Q7QXAY3YYM35C \ / AMOS7 \ YOURUM ::
+#\[7]IHCGJN5HLRQY3U2AFTHKBD5NNPYKT3U3BAFESRE77HKT5VVNEMBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
