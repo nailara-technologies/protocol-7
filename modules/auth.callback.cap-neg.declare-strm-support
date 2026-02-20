@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = auth.callback.cap-neg.declare-strm-support
+# descr = capability negotiation: client supports strm protocol
+# param = session_id, [true|false]
+# return = TRUE | FALSE | error_code
+
+my $id    = shift;
+my $value = shift // 'true';
+
+return FALSE unless defined $id and exists $data{'session'}{$id};
+
+my $session = $data{'session'}{$id};
+
+## parse value ##
+$value = lc($value);
+if ( $value =~ m{^(true|1|yes|on)$} ) {
+    $session->{'strm_support'} = TRUE;
+} elsif ( $value =~ m{^(false|0|no|off)$} ) {
+    delete $session->{'strm_support'};
+} else {
+    <[base.logs]>->( 0, '[%d] invalid strm-support value: %s', $id, $value );
+    return 3;    ## validation error ##
+}
+
+<[base.logs]>->(
+    2,   '[%d] STRM support: %s',
+    $id, $session->{'strm_support'} ? 'enabled' : 'disabled'
+);
+
+return TRUE;
+
+#,,,.,,..,,,.,,.,,,.,,,..,,.,,,.,,,..,...,,.,,..,,...,...,,,,,,,,,...,,,.,..,,
+#G3DKHRVMZJ4KP2KY4CMG22ITAU4EQ7ZWGXGFR4LBAGIXZWVDJHVOOEWAF7OLPYHXYPIDBLQQLW3S2
+#\\\|2Q2ZV57VX3K5RPEFQBOXVY2ZMMFGR4ELLNKB7QQ7MYYKGUU5NK6 \ / AMOS7 \ YOURUM ::
+#\[7]4EA2AR5C2HK5X2WYKTH7YLRAOGMGVGTMONVBAPD35VGFOXDAMSBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

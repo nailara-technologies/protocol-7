@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = auth.callback.cap-neg.select-strm-mode
+# descr = capability negotiation: stream locking mode (locked | normal)
+# param = session_id, requested_mode
+# return = TRUE | FALSE | error_code
+
+my $id       = shift;
+my $req_mode = shift // '';
+
+return FALSE unless defined $id and exists $data{'session'}{$id};
+
+my $session     = $data{'session'}{$id};
+my $strm_select = $session->{'counter'}{'auth'}{'strm_select'} //= {};
+
+## initialize counters ##
+$strm_select->{'limit'}  //= 3;    ## max allowed select-strm-mode calls ##
+$strm_select->{'errors'} //= 0;
+$strm_select->{'calls'}  //= 0;
+
+## check call limit ##
+if ( $strm_select->{'calls'} >= $strm_select->{'limit'} ) {
+    <[base.logs]>->( 0, '[%d] strm-mode select limit exceeded', $id );
+    return 4;    ## error code: limit exceeded ##
+}
+
+## validate mode ##
+$req_mode = lc($req_mode);
+if ( $req_mode !~ m{^(locked|normal)$} ) {
+    <[base.logs]>->(
+        0,   '[%d] invalid strm-mode: %s [ locked | normal ]',
+        $id, $req_mode
+    );
+    $strm_select->{'errors'}++;
+
+    if ( $strm_select->{'errors'} > 2 ) {
+        return 4;    ## too many errors ##
+    }
+    return 3;        ## validation error ##
+}
+
+## set mode ##
+if ( $req_mode eq qw| locked | ) {
+    $session->{'strm-mode-locking'} = TRUE;
+} else {
+    delete $session->{'strm-mode-locking'};
+}
+$strm_select->{'calls'}++;
+
+<[base.logs]>->( 2, '[%d] strm-mode set to %s', $id, $req_mode );
+
+return TRUE;
+
+#,,,.,...,,..,,.,,,,,,,,,,.,,,,.,,,,.,.,.,,..,..,,...,.,.,.,.,..,,.,,,.,.,.,,,
+#VVWP2RA7COT5GE2FOTFED4NSFUTMUVKNBKTQD3RQWXLMI7W3EXVG4KQCMRRGRDGNMSXZR52DSBBCW
+#\\\|CH3VB4VWVRXBMS5VE2D56UCTKUNEJW6SKPRCZRESSF2UM2F3KEG \ / AMOS7 \ YOURUM ::
+#\[7]FRPJSGIPSCQCAAAY3UHOOC23FXHLKW6MJU5T5ZDQSJNW4PQYD4DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
