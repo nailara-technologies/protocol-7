@@ -45,11 +45,11 @@ if ( defined $checksum ) {
 ## append user message to buffer
 <[models.chat.append]>->( undef, $sender, $message );
 
-## process keywords in message
+## process keywords in message [ memory expansion, etc ]
 my $processed = <[models.chat.process_keywords]>->($message);
 
-## invoke model backend for response
-my $response = <[models.chat.invoke_model]>->( $model, $message );
+## invoke model backend for response with processed message
+my $response = <[models.chat.invoke_model]>->( $model, $processed );
 
 ## add note prefix if model returned error
 if ( $response =~ m|^:\.\ error:| ) {
@@ -67,8 +67,8 @@ return { mode => qw| size |, data => $output };
 
 0;
 
-#,,..,.,,,,,.,..,,.,,,,,,,..,,,,.,...,...,..,,..,,...,...,..,,..,,...,..,,,,,,
-#OKYYI3Y4Z7YCGRDGLC2EY3KOKSO33TJUOXA7E4E3CH5KVXUHHHXPV55Y5OC7VXO5QMBUAK5NJITUO
-#\\\|BYXHUVBIVLFBBFUXC2ECWMB3VJ3DJRCI7UNNZ3NUCLELPZ3ITOU \ / AMOS7 \ YOURUM ::
-#\[7]WL36ZNBZYOOT7M6P5EPMXYQXKB6U7NY6KVOYXWUZU7ZV346ZGCDA 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,.,,..,..,,.,.,.,.,,,,,,.,,.,,,..,,...,...,...,...,.,,,,,,,.,,,
+#65HVKTLWZP6XWTSFTZWV6XF5NRNO5RPKXTL7JVFE65EPN37TC6LP75Y274E7BU7Z5KTJ2V6RCW7IG
+#\\\|LFYVL456A6FO5EJHIU2U5FO7YUWXZG5GQJ4NDWIKV6U7GMIZ7VE \ / AMOS7 \ YOURUM ::
+#\[7]B5S5ZKPCZNNGKM6GOTJJGABHL4EA2YAPEDRS4Z2DC2OKVGIH62BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -36,15 +36,32 @@ if ( $message =~ m{:done:} ) {
     push @actions, { 'type' => 'done', 'message' => $message };
 }
 
+## [:memory:CHECKSUM] - expand memory items inline
+while ( $message =~ m{\[:memory:([A-Z0-9]{7})\]}g ) {
+    my $checksum = $1;
+    my $content  = <[models.memory.show]>->($checksum);
+
+    if ( defined $content ) {
+        ## replace pattern with actual content
+        $message =~ s{\[:memory:$checksum\]}{$content}g;
+        push @actions,
+            { 'type' => 'memory', 'checksum' => $checksum, 'expanded' => 1 };
+    } else {
+        ## replace with error marker if not found
+        $message =~ s{\[:memory:$checksum\]}{[memory:$checksum:not-found]}g;
+        push @actions,
+            { 'type' => 'memory', 'checksum' => $checksum, 'expanded' => 0 };
+    }
+}
+
 ## TODO: execute :output: commands and inline results
-## for now, just return original message
 
 return $message;
 
 0;
 
-#,,,.,,,.,.,,,,,.,,,,,,,.,,,.,...,,,.,.,,,..,,..,,...,...,,..,,,.,..,,.,.,,,,,
-#IDLPF6SRWPRT6CHLJ6FYTBRXS545YGUZ44U4WDZ6N7MTGT4URMAR3VLR6X6LLFRD2IDELHPPPRFNO
-#\\\|ZLN7ADRYYLK7FWD444QMOT3XR2H63X7G5AUYST4ZOR2PWATSXKY \ / AMOS7 \ YOURUM ::
-#\[7]5HFIJA6JWI7S3WSQX7VDHXR5OBMS52RNHMZGD6FSIRUO46OPNOCQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,.,,,.,,.,,,..,,.,,.,.,,,.,..,,,,,,..,,...,...,,..,,,.,,.,,,.,,,.,,
+#MZSGRQKD7TZPONZRJLDBVK7KW35H7OTMK2VODF3S73P32KNENYFQTCOUA2NYWLGSML2O3ECOSM4R2
+#\\\|L5SHSVPEKTOALKTIAPYV52GZDHSWPQIZWFFWNM45I73WZP4EJNS \ / AMOS7 \ YOURUM ::
+#\[7]5HGYIHOBB7C7QWTMIDZ3GO6RPTDWOTW5C43HOOWYQ43IOO2Z6KCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
