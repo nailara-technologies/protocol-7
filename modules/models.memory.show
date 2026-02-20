@@ -1,0 +1,41 @@
+## [:< ##
+
+# name = models.memory.show
+# descr = retrieve memory item content by checksum
+# param = $checksum
+# return = content string or undef if not found
+
+my $checksum = shift;
+
+return undef unless defined $checksum;
+return undef unless $checksum =~ m|^[A-Z0-9]{7}$|;
+
+## memory storage path
+my $memory_dir = catdir( '/var/protocol-7', <system.zenka.name>, 'memory' );
+
+## tie directory to find files
+tie my %memory_files, 'Tie::Dir', $memory_dir or return undef;
+
+## find files matching checksum [ skip .meta ]
+my @files = sort { $b cmp $a }
+    grep { m|^${checksum}\.| && $_ !~ m|\.meta$| } keys %memory_files;
+
+untie %memory_files;
+
+return undef unless scalar(@files) > 0;
+
+## read latest file using relative path
+my $relative_path = catfile( 'memory', $files[0] );
+my $content       = <[file.zenka_dir.load]>->($relative_path);
+
+return undef unless defined $content;
+
+return $content->$*;
+
+0;
+
+#,,,,,.,.,,..,,,,,,.,,,,.,..,,,..,,,,,,..,,..,..,,...,.,.,.,.,.,.,,..,,,.,..,,
+#KC6EMFNAYAUGR3JCEWRF4CSRNVO4T6SH3Y7F7GEVIM7IBVPRQ3M7FCXK6GZRVJ643RGXFCOKLF556
+#\\\|WUOLM7QCXJ3QCHCCZ2MIGOWZZI52RDDCLAAOLPJUKL6J6ZVMKEU \ / AMOS7 \ YOURUM ::
+#\[7]OIMDREA4CLAMEYCLGAYA7PNDSPJD72EIW42DRVWUOYPFRDI3UQBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

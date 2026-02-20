@@ -1,0 +1,32 @@
+## [:< ##
+
+# name = models.memory.exists
+# descr = check if memory item exists by checksum
+# param = $checksum
+# return = TRUE if exists, FALSE otherwise
+
+my $checksum = shift;
+
+return FALSE unless defined $checksum;
+return FALSE unless $checksum =~ m|^[A-Z0-9]{7}$|;
+
+## memory storage path
+my $memory_dir = catdir( '/var/protocol-7', <system.zenka.name>, 'memory' );
+
+return FALSE unless -d $memory_dir;
+
+## tie directory for efficient file existence check
+tie my %memory_files, 'Tie::Dir', $memory_dir or return FALSE;
+
+## check if any file exists for this checksum
+my @matching = grep {m|^${checksum}\.|} keys %memory_files;
+
+return scalar(@matching) > 0 ? TRUE : FALSE;
+
+0;
+
+#,,,,,..,,,.,,..,,,.,,,..,..,,.,.,.,,,.,,,,..,..,,...,..,,...,,,.,,,.,,,,,,,,,
+#IUWI4R4QWRT7QSA3FDEPPMPZVJUPLR2P72DMFSC3SX2APXZNM5SRCIXCUAL6JHDYQIRDC5DLRAKGY
+#\\\|M5FOI2EHBXF2P65SBRMYU2KG2BQWNUNK7CCL62X45CAX2BINHRI \ / AMOS7 \ YOURUM ::
+#\[7]QIGNE2JHJ2L3NCG3IJGXWVHVGFR6KGACZYOCU3AIJDIKEQOBV4CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,48 @@
+## [:< ##
+
+# name = models.memory.del
+# descr = delete memory item by checksum
+# param = $checksum
+# return = TRUE on success, FALSE on error
+
+my $checksum = shift;
+
+return FALSE unless defined $checksum;
+return FALSE unless $checksum =~ m|^[A-Z0-9]{7}$|;
+
+## memory storage path
+my $memory_dir = catdir( '/var/protocol-7', <system.zenka.name>, 'memory' );
+
+## find all files for this checksum (including .meta)
+my @files = glob( catfile( $memory_dir, "${checksum}.*" ) );
+
+return FALSE unless scalar(@files) > 0;
+
+## delete all files
+my $deleted = 0;
+for my $file (@files) {
+    if ( unlink($file) ) {
+        $deleted++;
+    } else {
+        <[base.logs]>->(
+            0,     ':. failed to delete file .: %s :: %s',
+            $file, <[base.str.os_err]>
+        );
+    }
+}
+
+## log deletion
+<[base.logs]>->(
+    2,         'memory item deleted :. %s [ %d files ]',
+    $checksum, $deleted
+);
+
+return $deleted > 0 ? TRUE : FALSE;
+
+0;
+
+#,,.,,,,,,,,.,,,,,,,,,,,,,,,,,,..,.,.,,.,,..,,..,,...,..,,,..,,.,,.,.,.,,,,,.,
+#7XZSS5ISHRZA37IZD7GOYYE4Y5N7BCBXLQ3SNCDFX7HRZHZT6G6LRA3SAWJJBGTB5MV7Z2R76HP4O
+#\\\|UPWXET2IDQ6OQZXPNRDNCXVUBFVO3JE3BDSPHCJAQIFXLTDUE4J \ / AMOS7 \ YOURUM ::
+#\[7]J576I42WDPGM37VHSLS77YKEYXUVKAYW2CQQXBYH6NYSWMBBOUBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

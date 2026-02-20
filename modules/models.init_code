@@ -12,9 +12,11 @@ my $first_init          = $already_initialized ? FALSE : TRUE; ## ^ inverse ##
 <[base.perlmod.autoload]>->(qw|  JSON::PP  |);
 <[base.perlmod.autoload]>->(qw|  YAML::XS  |);
 <[base.perlmod.autoload]>->(qw| YAML::Tiny |);
+<[base.perlmod.autoload]>->(qw|  Tie::Dir  |);
 
-## Ensure zenka directories exist with proper permissions and ownership
-<[base.path-set-up.check-zenka-paths]>->(TRUE);
+## ensure zenka directories exist with proper permissions and ownership
+## [includes memory storage subdirectory]
+<[base.path-set-up.check-zenka-paths]>->( TRUE, 0775, FALSE, 0, 'memory' );
 
 # =============================================================================
 # DATA STRUCTURES - Initialize in %data hash
@@ -201,8 +203,8 @@ unless ( exists <models.registry> ) {
 
 return 0;    # Module initialization successful
 
-#,,.,,,,,,.,.,...,,.,,,..,,,,,...,.,.,.,.,..,,..,,...,...,...,...,..,,,.,,,..,
-#J3NB4KV4GFZD4YWOVRMFUSC4WTEGEICHZKJU2PLYPNFE3ATJH3BN5IKODBL57L6Y6CLL6HQ4WM6F2
-#\\\|BKQUU3NF2ON74SUTOFEXCDURH3A6LDQYMHOU3YXDSZIOHL5IJUT \ / AMOS7 \ YOURUM ::
-#\[7]ICWJAZYXPXNXJ5JIQPJ6PPRGHZ73JGPL5ZVEQK3N5JI3YGLPUKAY 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,,,,,,.,,..,,..,,,.,.,,,.,,,.,.,..,,...,...,,.,,...,,..,.,.,.,,,
+#Y55R5FL4ZZGJICXBIVQX42DM6CKG5JD6WDEABKXV7YXWUVDYSU6BBD3IG5GHKF22NZICTN7BU36NW
+#\\\|G7LIZNEKTNUEXOUNJXPHL7FQKFEZRWFMEYTT64M472E53GI5WLG \ / AMOS7 \ YOURUM ::
+#\[7]LKVIV53G7QBXFFQ6CGCAVA2TXC5AOQBKQSKYVB5ZGROIM2TMEABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

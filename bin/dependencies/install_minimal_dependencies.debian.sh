@@ -48,7 +48,7 @@ apt-get -y install libterm-size-perl \
 
 cpanm Crypt::Ed25519 Digest::Skein Digest::BMW Net::IP::Lite URI::QueryParam \
   File::MimeInfo::Magic Sys::Statistics::Linux::CpuStats \
-  SigAction::SetCallBack Config::Hosts
+  SigAction::SetCallBack Config::Hosts Tie::Dir
 
 ## [ LLL ] ### repair path[?] ###
 
@@ -66,8 +66,8 @@ perl -Mv5.13 -e \
 
 # LLL cpan2deb --recursive --build --install-deps --install-build-deps --install
 
-#,,,.,.,.,,,,,.,.,..,,,,.,,..,,..,,..,,..,.,,,..,,...,..,,...,.,,,...,...,...,
-#W2GBWC42UUWGGD5QQ5KZ5R5N5AYI5SFEHUSCBLRMUEK4SYBQMBAGWP2KH4V3RWDU55SW5AFFRRR5Q
-#\\\|XJ5QE6IXDQUAOXLRKYFNRFJIYWICBDNRYX3BMHYACZZTB4VCE55 \ / AMOS7 \ YOURUM ::
-#\[7]IESDDEKV7HKRRZOAE7FIZVFMCIEJC5R4TJIQBVR5ULZ2PI7ANWCQ 7  DATA SIGNATURE ::
+#,,,,,.,.,...,.,.,,,,,,.,,..,,,.,,,,.,,,,,,,.,..,,...,...,..,,,,.,,,.,.,,,,,,,
+#HGMQH4WO4X5RY5L7OBSCCM7JFMVEVRDBU2EYJH6O42L7RAL752KS4QZHRLQ3HCKIUE65FOHZ3B5FS
+#\\\|7P3GG53TQGDIFHYQLWBUWXXRAHGW2ZBJ6RPDPKRH7H4WH5OYFOR \ / AMOS7 \ YOURUM ::
+#\[7]EPBGMEAOBNK5CBYY5BOQJ3ME3RW43QEJJDDTV2YIMIC2HQZD2EAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
