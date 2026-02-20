@@ -1,0 +1,57 @@
+## [:< ##
+
+# name = models.memory.name
+# descr = get or set memory item name/description
+# param = $checksum, $name (optional - if provided, sets name; otherwise retrieves)
+# return = name string or TRUE on set success
+
+my $checksum = shift;
+my $name     = shift;
+
+return undef unless defined $checksum;
+return undef unless $checksum =~ m|^[A-Z0-9]{7}$|;
+
+## verify item exists
+return undef unless <[models.memory.exists]>->($checksum);
+
+## memory storage path
+my $memory_dir = catdir( '/var/protocol-7', <system.zenka.name>, 'memory' );
+my $meta_file  = catfile( $memory_dir, "${checksum}.meta" );
+
+## get name
+if ( not defined $name ) {
+    return undef unless -f $meta_file;
+
+    my $meta_content = <[file.slurp]>->($meta_file);
+    return undef unless defined $meta_content;
+
+    my $meta_str = $meta_content->$*;
+
+    ## extract name from meta (first line)
+    my ($name_line) = split m|\n|, $meta_str, 2;
+    return $name_line // '';
+}
+
+## set name
+else {
+    ## create meta content
+    my $timestamp    = <[base.time]>->(3);
+    my $meta_content = sprintf "%s\ncreated_at: %s\n", $name, $timestamp;
+
+    ## write meta file [ relative path in zenka dir ]
+    my $meta_path_rel = catfile( 'memory', "${checksum}.meta" );
+    <[file.zenka_dir.write]>->( $meta_path_rel, \$meta_content );
+
+    <[base.logs]>
+        ->( 2, 'memory item name set :. %s .: %s', $checksum, $name );
+
+    return TRUE;
+}
+
+0;
+
+#,,,,,,,.,..,,,,.,.,,,,..,,.,,,,.,.,.,,..,.,.,..,,...,...,...,,,.,,..,..,,.,.,
+#ADG4QJJ4ASN4YUZE5SXY3TGVFD2K7MW6MORFN343JQ4MHWDSFES2LXO3SCWMF4OFL27XSHWXKXVU4
+#\\\|LFBPDFFXFEEWVDE3SFKUB333UHQYCN4Y36WNDAVRYPIBRHAVID3 \ / AMOS7 \ YOURUM ::
+#\[7]KX2GXRGD6HCWPC5YJ3T4KHBOLMPSL2HYXCH2QBFHCQH4YZVJPICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

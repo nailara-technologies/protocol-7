@@ -25,14 +25,14 @@ apt-get install xvfb cpanminus libevent-perl libio-aio-perl \
 
 # installs the rest from cpan
 $BIN_PATH/perlmod_test_fail_overrides.sh # (temporary) test fail override(s)!
-cpanm   Crypt::Curve25519 Crypt::Ed25519 Digest::Skein \
+cpanm   Crypt::Curve25519 Crypt::Ed25519 Digest::Skein Tie::Dir \
         XML::RSS::TimingBot File::MimeInfo::Magic Config::Hosts \
         HTTP::Soup Mediainfo Poppler Device::Gembird Imager::Screenshot
 
 xvfb-run cpanm Glib::Event Gtk3::WebKit2
 
-#,,.,,,.,,.,.,..,,.,.,,,.,,..,.,.,.,,,..,,..,,..,,...,...,...,,.,,,..,...,,.,,
-#MCI5ZJXWGUUW3MY6KHUJKVHW3E3IUYAVLDGSCHWWZBVDFZ4WNBX5BS6662KWNS7QKSPVEKTKPOI6I
-#\\\|ZCMFAAZREFC6RJAUC3J3GQ5T3J73APIM35HAXUYQWXJ2ACB3MXG \ / AMOS7 \ YOURUM ::
-#\[7]KKSLIGO7HURC54F2XG5BBOEXMRUEY22I4NI3JWLUJO6SSU3LFCAA 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,...,,..,..,,,,,,,,,,,..,.,.,,,.,..,,...,...,...,,..,...,,..,,,,,
+#B7WAQG3J4WVFP5YHSYUXZPVZHJ2OGX4L6QQQUEFXVEIAK6M4NRMNLM5YYFE5MCB5ME6HO25HRSCSE
+#\\\|2U7NCAO7MAMM4RTUTM35ETUORXVQOH53X22RZ2SBWHUDXDQCKY7 \ / AMOS7 \ YOURUM ::
+#\[7]OWLHJGEPIO4Y7YMHANVZAK7LCOWMQMANI7FGU5YXSNNEOYHG7WAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
