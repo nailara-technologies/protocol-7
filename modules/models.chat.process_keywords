@@ -1,0 +1,50 @@
+## [:< ##
+
+# name = models.chat.process_keywords
+# descr = process keywords in chat messages (:task: :output: :note: etc)
+# param = $message - message text with potential keywords
+# return = processed message with keyword actions executed
+
+my $message = shift // '';
+
+## track keyword actions
+my @actions = ();
+
+## :output: <command> - execute command and inline result
+while ( $message =~ m{:output:\s+([^\s:]+(?:\s+[^:]+?)?)\s*(?=:|$)}g ) {
+    my $command = $1;
+    push @actions,
+        {
+        'type'    => 'output',
+        'command' => $command,
+        'pos'     => pos($message)
+        };
+}
+
+## :task: marker - track as delegated task
+if ( $message =~ m{:task:} ) {
+    push @actions, { 'type' => 'task', 'message' => $message };
+}
+
+## :note: marker - metadata/context
+if ( $message =~ m{:note:} ) {
+    push @actions, { 'type' => 'note', 'message' => $message };
+}
+
+## :done: marker - completion signal
+if ( $message =~ m{:done:} ) {
+    push @actions, { 'type' => 'done', 'message' => $message };
+}
+
+## TODO: execute :output: commands and inline results
+## for now, just return original message
+
+return $message;
+
+0;
+
+#,,,.,,,.,.,,,,,.,,,,,,,.,,,.,...,,,.,.,,,..,,..,,...,...,,..,,,.,..,,.,.,,,,,
+#IDLPF6SRWPRT6CHLJ6FYTBRXS545YGUZ44U4WDZ6N7MTGT4URMAR3VLR6X6LLFRD2IDELHPPPRFNO
+#\\\|ZLN7ADRYYLK7FWD444QMOT3XR2H63X7G5AUYST4ZOR2PWATSXKY \ / AMOS7 \ YOURUM ::
+#\[7]5HFIJA6JWI7S3WSQX7VDHXR5OBMS52RNHMZGD6FSIRUO46OPNOCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

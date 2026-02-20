@@ -1,0 +1,32 @@
+## [:< ##
+
+# name = models.escape.interpret_literal
+# descr = interpret escapes preserving literal tab characters (for code)
+# param = $text - text with :n: :t: escapes
+# return = text with literal \n and \t characters
+
+my $text = shift;
+
+return '' unless defined $text;
+
+## handle escaped markers first
+$text =~ s/\\:n:/__LITERAL_COLON_N__/g;
+$text =~ s/\\:t:/__LITERAL_COLON_T__/g;
+
+## apply escapes with literal characters
+$text =~ s/:n:/\n/g;
+$text =~ s/:t:/\t/g;    ## literal tab character
+
+## restore literals
+$text =~ s/__LITERAL_COLON_N__/:n:/g;
+$text =~ s/__LITERAL_COLON_T__/:t:/g;
+
+return $text;
+
+0;
+
+#,,,,,...,...,..,,..,,...,.,.,,,,,,..,,..,...,..,,...,...,,,.,.,.,...,...,,,,,
+#5KTW5IPSN6EDHRQQSIW2TXUWNOS25CPFZVRU76NDPQQNG7VASLYAJIDSIMF5PER6DFCU2ZVQCRBVI
+#\\\|UEUWFYLAU7OMI5HI5BQYGPDHLZCXJM3T7TEEPAHOP4UPZL5MXF2 \ / AMOS7 \ YOURUM ::
+#\[7]ZDQ4EZF4V7O5MOSNJB2Q5KTXXHA7II6S5J2SYYCUV7E7WMQOCEAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
