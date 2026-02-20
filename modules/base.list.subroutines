@@ -166,6 +166,7 @@ return [ qw[
         mpv.cmd.command
         mpv.cmd.align-y
         mpv.cmd.align-x
+        models.cmd.chat
         index.init_code
         httpsd.pre_init
         httpd.path_info
@@ -391,6 +392,8 @@ return [ qw[
         mpv.cmd.get_volume
         mpv.cmd.current-vo
         mpv.cmd.current-ao
+        models.cmd.request
+        models.chat.append
         models.attach_file
         mod-test.post_init
         letsencr.init_code
@@ -498,6 +501,7 @@ return [ qw[
         models.extract_file
         models.conversation
         models.cmd.discover
+        models.cmd.announce
         mediainfo.init_code
         lm-vision.init_code
         letsencr.cmd.revoke
@@ -607,9 +611,12 @@ return [ qw[
         models.registry.init
         models.registry.base
         models.parser.yes_no
+        models.escape.encode
         models.config.loader
         models.cmd.recommend
         models.cmd.get_model
+        models.chat.announce
+        models.cfg.tab_width
         lm-vision.cmd.status
         keys.console.enc-key
         keys.console.dec-key
@@ -874,6 +881,7 @@ return [ qw[
         models.cmd.maintenance
         models.cmd.find_models
         models.cmd.attach_file
+        models.chat.get_recent
         melt.cmd.extract_frame
         mediainfo.cmd.get_info
         logo-display.init_code
@@ -1001,6 +1009,7 @@ return [ qw[
         mpv.cmd.playlist_update
         models.storage.discover
         models.list_attachments
+        models.escape.interpret
         models.cmd.local_server
         models.cmd.extract_file
         menu-commands.init_code
@@ -1022,6 +1031,7 @@ return [ qw[
         decoder.zenka.init_code
         debian.parent.init_code
         dbus.cmd.socket_address
+        cube.cmd.set-capability
         cube.cmd.present-p7-log
         crypt.C25519.write_keys
         crypt.C25519.unload_key
@@ -1278,6 +1288,8 @@ return [ qw[
         models.cmd.discover_files
         models.cmd.consensus_vote
         models.checksum.from_path
+        models.chat.format_buffer
+        models.chat.auto_announce
         models.backend.api.invoke
         menu-commands.update-menu
         melt.trigger.auto_cleanup
@@ -1431,6 +1443,7 @@ return [ qw[
         events.set-up.import_rules
         debian.parser.zenka_status
         debian.parser.deb_name_str
+        debian.cmd.install-history
         crypt.C25519.key_checksums
         crypt.C25519.encrypted_key
         crypt.C25519.clear_chksums
@@ -1535,6 +1548,7 @@ return [ qw[
         models.conversation.compact
         models.cmd.list_attachments
         models.cmd.get_path_by_amos
+        models.cfg.chat_buffer_size
         models.backend.local.vision
         models.backend.local.invoke
         mod-test.cmd.list-successes
@@ -1661,6 +1675,7 @@ return [ qw[
         models.cmd.save_conversation
         models.cmd.record_invocation
         models.cmd.load_conversation
+        models.chat.process_keywords
         mod-test.cmd.erase-blacklist
         mod-test.cmd.blacklisted-add
         lm-vision.fetch_model_config
@@ -1988,6 +2003,7 @@ return [ qw[
         models.test.api_limit_detection
         models.registry.list_by_context
         models.handler.process_response
+        models.escape.interpret_literal
         models.conversation_get_context
         models.conversation.get_context
         models.cmd.compact_conversation
@@ -2230,6 +2246,7 @@ return [ qw[
         models.registry.populate_from_yaml
         models.registry.load.load_registry
         models.conversation.consensus_vote
+        models.cfg.auto_announce_threshold
         models.callback.inference_endpoint
         mod-test.write_out_blacklist_pcode
         menu-commands.parser.element_count
@@ -2251,6 +2268,7 @@ return [ qw[
         graphics-matrix.cmd.filter-rep-col
         discover.handler.anounce_host_addr
         discover.cmd.reset-broadcast-timer
+        cube.cmd.declare-strm-size-timeout
         crypt.C25519.load_keys_from_secret
         crypt.C25519.get_type_from_key_str
         content.handler.weather_urls_reply
@@ -2315,8 +2333,10 @@ return [ qw[
         base.perlmod.register_loaded_module
         base.number-cache.is_valid_template
         base.handler.write.encoding-wrapper
+        base.handler.strm_size_idle_timeout
         base.handler.counter_overflow_reset
         base.event.callback.io-idle-restart
+        base.callback.reset_strm_size_timer
         web-browser.process_crash_mitigation
         web-browser.handler.progress_changed
         weather.parent.cache.read_station_id
@@ -2399,6 +2419,7 @@ return [ qw[
         base.perlmods.reload.chksum_blacklist
         base.perlmod.unregister_loaded_module
         base.handler.write.encryption-wrapper
+        base.handler.check_strm_size_timeouts
         workspace-transfer.console.todo-commit
         web-browser.start-up.init_window_title
         web-browser.handler.signal.load_failed
@@ -2428,6 +2449,8 @@ return [ qw[
         channels.memory-sync.conflict-resolver
         base.log.send-buffer.idle-callback-set
         base.file.path.make-relative-from-list
+        auth.callback.cap-neg.select-strm-mode
+        auth.callback.cap-neg.select-size-mode
         workspace-transfer.console.status-check
         weather.parent.handler.station_id_reply
         sourcecode.console.verify-p7-signatures
@@ -2450,6 +2473,7 @@ return [ qw[
         base.parser.chk-sum.embedded-code-style
         base.log.send-buffer.send-idle-callback
         base.init_zenka.install_signal_handlers
+        base.handler.strm_size_absolute_timeout
         base.chk-sum.amos.truth_template_chksum
         weather.parent.handler.coordinates_reply
         v7.verify_and_install_zenka_dependencies
@@ -2504,6 +2528,7 @@ return [ qw[
         protocol-7-menu.graphical-position-changed
         plugin.auth.auth-keypair.tofu-notification
         letsencr.parent.handler_httpd_reload_reply
+        auth.callback.cap-neg.declare-strm-support
         X-11.background.chksum-cache.write_to_disk
         web-browser.handler.request_starting_signal
         web-browser.disconnect_signal.received_data
@@ -2552,6 +2577,8 @@ return [ qw[
         models.registry.create_entry.create_model_entry
         letsencr.parent.notify_httpd_certificate_update
         coding.vision-parser.helper.dispatch_next_stage
+        auth.callback.cap-neg.declare-strm-size-timeout
+        auth.callback.cap-neg.declare-strm-size-support
         protocol.protocol-7.protocol-version-path-set-up
         models.decision.cost_base.get_latency_importance
         base.log.send-buffer.reply-handler.notify-online
@@ -2583,8 +2610,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,,,,,,.,,,.,,,.,,.,.,,,,,,,.,...,,,,,,.,,.,.,...,...,...,...,...,.,.,,,.,
-#GCY37W67ZDHK2YC7MIKRMQGGVJ7KRC65JWQJHKGPDFKPGLACUMMXNQQJB4E4Z7XHC4D2JHDFCRETS
-#\\\|G5VTFMNR3Y76XBG662VBHLNMLE6HFQREDWAR4S5ECSWPFAK7OI2 \ / AMOS7 \ YOURUM ::
-#\[7]5DJFTZDYZ6BJJS76C7FSUIZ3P74F2Z2RIX6VBKXOLLGKPZHGQQBQ 7  DATA SIGNATURE ::
+#,,,,,,..,,,.,..,,,,.,..,,,,.,,.,,.,.,,..,,,,,.,.,...,...,,.,,.,.,.,,,,..,,,,,
+#QMSHEVT2HSHRWKVD556ZFBXGBEF72NLOE2MZEDU367PMCT7IWVZ2LEEEBPTSNMCHDQJ647IOO3UYQ
+#\\\|HJC53C46DCW4GILB7DZ5QHCNKFGUMJBTDYED7XY2VOPGFJVZROB \ / AMOS7 \ YOURUM ::
+#\[7]SLIXXEXHGSVSXZXDWN4KX557ZBQRWBKVKZEMTESUDJM2MXOGWGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
