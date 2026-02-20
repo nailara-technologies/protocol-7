@@ -126,10 +126,32 @@ git commit -m "message"
 - Async HTTP server with non-blocking I/O
 
 ### Next Steps (Suggestions)
-1. **Chat buffer integration**: Implement `[:memory:CHECKSUM]` expansion in chat messages
-2. **Kimi-coding integration**: Connect Kimi model with coding zenka for task orchestration
-3. **Memory management**: Add list/search commands for memory items
-4. **Multi-turn context**: Use memory system for long-running conversations
+
+**Completed (2026-02-20):**
+- ✅ Chat buffer integration: `[:memory:CHECKSUM]` expansion working
+- ✅ Memory system fully implemented with collision detection
+
+**High Priority:**
+1. **Local model chat integration** (IN PROGRESS - needs completion)
+   - Issue: Local backend is fully async, chat needs sync responses
+   - Current: `models.backend.local.invoke_sync` started but blocks event loop
+   - Problem: Using `select()` for polling blocks entire models zenka → timeout
+   - Solution needed: Child process or callback-based approach for sync wrapper
+   - Files: `modules/models.backend.local.invoke_sync`, `modules/models.chat.invoke_model`
+   - Binary: `/data/source/ik_llama.cpp/llama-server-cuda-fa` (exists)
+   - Models: 20+ models registered, see `p7c 'models.list models'`
+   - Approach: Either (A) fork child to poll synchronously, or (B) use callback/jobqueue pattern
+
+2. **Filesystem-driven model discovery** (refactor needed)
+   - Remove hardcoded paths like `/data/source/ik_llama.cpp/`
+   - Discover binaries dynamically from filesystem
+   - Make it more Protocol-7 style (less hardcoding, more discovery)
+
+3. **Kimi-coding integration**: Connect Kimi model with coding zenka for task orchestration
+
+4. **Memory management**: Add list/search commands for memory items
+
+5. **Vision model detection fix**: Qwen3-VL-8B shows "no" for vision support (should be "yes")
 
 ## Tips for Kimi Specifically
 
