@@ -23,16 +23,6 @@ return {
     }
     unless ref($messages) eq 'ARRAY' && scalar(@$messages) > 0;
 
-## check if coding zenka is available
-my $coding_online = <[base.zenki.is_online]>->('coding');
-
-unless ($coding_online) {
-    return {
-        'success' => FALSE,
-        'error'   => 'coding zenka not available - use API backend instead',
-    };
-}
-
 ## extract message content from messages array
 my $message_content = '';
 for my $msg (@$messages) {
@@ -42,36 +32,48 @@ for my $msg (@$messages) {
     $message_content .= "$role: $content\n" if length($content);
 }
 
-## build request for coding zenka
-my $request = sprintf 'inference-request: model=%s message=%s',
+## build simple inference request for coding zenka
+my $request = sprintf 'Simple inference: model=%s\n\nMessage: %s',
     $model_id, $message_content;
 
-## submit to coding zenka's task queue
-my $result = <[base.zenki.send_command]>
-    ->( 'coding', 'coding.cmd.submit', $request );
+## send command to coding zenka via IPC
+my $cmd_count = <[base.protocol-7.command.send.local]>->(
+    {   'command'   => 'coding.cmd.submit',
+        'call_args' => { 'args' => $request },
+        'reply'     => {
+            'handler' => 'models.handler.coding_inference_reply',
+            'params'  => {
+                'model_id'       => $model_id,
+                'participant_id' => $participant_id
+            }
+        }
+    }
+);
 
-## check if submission succeeded
-if ( not defined $result or $result->{'mode'} eq 'false' ) {
+## check if command was sent
+if ( $cmd_count && $cmd_count > 0 ) {
+    <[base.logs]>->(
+        2, 'inference request sent to coding zenka: model=%s', $model_id
+    );
+
     return {
-        'success' => FALSE,
-        'error'   => 'failed to submit to coding zenka: '
-            . ( $result->{'data'} // 'unknown error' ),
+        'success' => TRUE,
+        'pending' => TRUE,
+        'message' => 'inference request queued via coding zenka',
+        'note'    => 'response will arrive via async callback',
+    };
+} else {
+    return {
+        'success'   => FALSE,
+        'error'     => 'failed to send command to coding zenka',
+        'cmd_count' => $cmd_count // 0,
     };
 }
 
-## task submitted successfully
-## in async mode, coding will process and respond via callback
-return {
-    'success' => TRUE,
-    'pending' => TRUE,
-    'message' => 'submitted to coding zenka for async processing',
-    'note'    => 'coding zenka not yet configured for simple chat inference',
-};
-
 0;
 
-#,,,.,.,,,,,,,.,.,,,.,..,,...,...,.,.,,,.,,,,,..,,...,...,.,.,...,,,.,...,...,
-#52AH5URM4A2PT4GM7FCEC77F53W2KYJZEWUIDY5ZS5I4XEXASD2FNWMJQW7DK5CH3Z3QT5KD3FWTM
-#\\\|EA7QIFPMVKWI3M7RH36BOY5HWEPI6JD43II655MFEZHEG3CBKET \ / AMOS7 \ YOURUM ::
-#\[7]EPCX27UGFUXAN2LXOGT3KZ7PXWYLY5YCXTQAHMVCOT5WMAIAYQDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,..,,...,.,,,,,,,.,.,...,,,.,,,.,..,,...,.,.,...,.,.,..,,,..,,,.,
+#II73KLZZYHZAPZCA3PPKTHAERIUI6OFVRAHA5GXCJX5O3CBH2OAL4C5OLHPUBXHIG65HK3MLUHDSI
+#\\\|KTF67PGPT3TIIIMCC2JHQIDXFZ2NKUI5QZ7LX2EN5XEK4HOQOAU \ / AMOS7 \ YOURUM ::
+#\[7]ULR6M4KNKPIYIOCMBXGXEEM473Y4A27BARFLUBPAUC54LLZNDMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
