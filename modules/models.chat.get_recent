@@ -1,0 +1,27 @@
+## [:< ##
+
+# name = models.chat.get_recent
+# descr = get recent chat messages (last N or from specific point)
+# param = $count - number of messages to retrieve (default: 20)
+# return = arrayref of chat entries
+
+my $count = shift // 20;
+
+## return empty if no buffer
+return [] unless defined <models.chat.buffer>;
+
+my @buffer = @{<models.chat.buffer>};
+
+## return last N messages
+my $start = scalar(@buffer) - $count;
+$start = 0 if $start < 0;
+
+return [ @buffer[ $start .. $#buffer ] ];
+
+0;
+
+#,,,.,,.,,,..,,..,,,,,..,,.,,,,,.,,,.,,.,,...,..,,...,..,,..,,...,,..,..,,,.,,
+#PDI5C5H6PGHWHQ3IAU6GH3763NSKIRXZZXGKIF5VCE6WSBXNMFBUYDATI2YR4P5S7ZH76GL7OTVSY
+#\\\|SVHBNDSRHTIW3SFU4JYWYGHIPWBY7IWGAJ7CJVCTJ4FYBLVMU2S \ / AMOS7 \ YOURUM ::
+#\[7]Z474M2WWH7MXKJ3JGXLOTOB5FELNH2XCNM4ONH3SSVDQF62Z7KAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

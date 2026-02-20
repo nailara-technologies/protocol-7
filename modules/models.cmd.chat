@@ -1,0 +1,60 @@
+## [:< ##
+
+# name = models.cmd.chat
+# descr = multi-model chat interface with keyword support
+# usage = models.chat [model message]
+# return = chat buffer view or model response
+
+my $param = shift;
+my $args  = $param->{'args'} // '';
+
+## no args: show recent chat buffer
+if ( $args eq '' ) {
+    my $entries = <[models.chat.get_recent]>->(20);
+    my $output  = <[models.chat.format_buffer]>->($entries);
+
+    if ( $output eq '' ) {
+        $output = ':. chat buffer empty :.\n';
+    }
+
+    return { mode => qw| size |, data => $output };
+}
+
+## parse: <model> <message>
+unless ( $args =~ m{^(\S+)\s+(.+)$}s ) {
+    return {
+        mode => qw| false |,
+        data => 'usage: models.chat [model message]'
+    };
+}
+
+my $model   = $1;
+my $message = $2;
+
+## append user message to buffer
+<[models.chat.append]>->( undef, 'Claude', $message );
+
+## process keywords in message
+my $processed = <[models.chat.process_keywords]>->($message);
+
+## TODO: send to model and get response
+## for now, just echo back with placeholder
+
+my $response = sprintf ':note: received from Claude::n::n:%s', $message;
+
+## append model response to buffer
+<[models.chat.append]>->( undef, $model, $response );
+
+## format and return
+my $entries = <[models.chat.get_recent]>->(3);
+my $output  = <[models.chat.format_buffer]>->($entries);
+
+return { mode => qw| size |, data => $output };
+
+0;
+
+#,,.,,,,,,,,,,,.,,..,,,,.,.,,,,,,,.,.,,..,..,,..,,...,...,.,,,.,.,..,,.,,,,.,,
+#347QKHVHPO2RQQE5GCX2FUJV2EZIY5BBFJ5527Q46GNRE2LFIBNT2NGSUOIFVETWRACBA5ZZNNIVS
+#\\\|54ETA3MN2D2K65VRFDYRAHPSM24EDT5EVFZGMQIOPZAEWWJCHYQ \ / AMOS7 \ YOURUM ::
+#\[7]N5HHL5XXC6OZBZIFJG4Q7M6MVXG3PZAFVQN4E3AY4BBRJ6NTSGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

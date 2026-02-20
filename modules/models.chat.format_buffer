@@ -1,0 +1,34 @@
+## [:< ##
+
+# name = models.chat.format_buffer
+# descr = format chat buffer entries for display with escape interpretation
+# param = $entries - arrayref of chat entries
+# return = formatted string
+
+my $entries = shift;
+
+return '' unless defined $entries and ref($entries) eq 'ARRAY';
+
+my $output = '';
+
+for my $entry (@$entries) {
+    ## format timestamp
+    my $timestamp = <[base.time.readable]>->( $entry->{'time'}, 'short' );
+
+    ## interpret escapes for display
+    my $message = <[models.escape.interpret]>->( $entry->{'message'} );
+
+    ## format entry
+    $output .= sprintf "[%s] [%s]: %s\n", $timestamp, $entry->{'sender'},
+        $message;
+}
+
+return $output;
+
+0;
+
+#,,,,,,.,,,.,,.,,,.,,,,,.,,.,,.,,,...,,,,,..,,..,,...,...,.,.,.,,,..,,.,,,.,,,
+#U6LFCTEAVGM4E3NAKJDUKOGOZXEGOLQQQJXP6KAB7J5R3ZWLG3E2ZCR35QU7C5KRYL4D4WAUCV67G
+#\\\|FUVPO5GEP7JOUDKMFUP2EU72TWEGII3M47P5EPU4PV6X3UXW6OP \ / AMOS7 \ YOURUM ::
+#\[7]TWLRPIQ2LWVWO5X7D6E47UMFEWCXFTWRCNREEFPXZISPE3LSWWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
