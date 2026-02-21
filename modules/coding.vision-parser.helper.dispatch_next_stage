@@ -16,46 +16,40 @@ unless ( defined $job ) {
 
 if ( $stage eq 'analyzing' ) {
 
-    # STAGE 1: Spawn vision analysis via Protocol-7 routing (inter-zenka call)
+    ## stage 1: send vision analysis request async via reply handler
     <[base.logs]>->(
         1,
         '[vision-parser] STAGE 1: routing vision analysis to lm-vision job=%s',
         $job_id
     );
 
-    # Call vision zenka via Protocol-7 command routing (through cube)
-    my $vision_result = <[base.protocol-7.command.send.local]>->(
+    ## send async - result arrives via coding.vision-parser.handler.vision_reply
+    my $cmd_count = <[base.protocol-7.command.send.local]>->(
         {   'command'   => 'cube.lm-vision.analyze_image',
             'call_args' =>
-                { 'args' => "$job->{'image_path'} $job->{'vision_prompt'}" }
+                { 'args' => "$job->{'image_path'} $job->{'vision_prompt'}" },
+            'reply' => {
+                'handler' => 'coding.vision-parser.handler.vision_reply',
+                'params'  => { 'job_id' => $job_id }
+            }
         }
     );
 
-    my $vision_output = $vision_result->{'data'} // '';
-
-    if ( !defined $vision_output || length $vision_output == 0 ) {
+    if ( !$cmd_count ) {
         <[base.logs]>->(
-            0, '[vision-parser] vision analysis returned no output'
+            0, '[vision-parser] lm-vision zenka unreachable [ job=%s ]',
+            $job_id
         );
-        $job->{'error'} = 'vision analysis returned no output';
+        $job->{'error'} = 'lm-vision zenka offline';
         <coding.vision-parser.state> = 'failed';
-        return;
+    } else {
+        <[base.logs]>->(
+            2,
+            '[vision-parser] vision request sent, awaiting reply [ job=%s ]',
+            $job_id
+        );
+        <coding.vision-parser.state> = 'analyzing_pending';
     }
-
-    <[base.logs]>->(
-        1, '[vision-parser] vision analysis result: %d bytes',
-        length($vision_output)
-    );
-
-    # Store vision result
-    $job->{'vision_result'} = $vision_output;
-
-    # Advance to next stage
-    <coding.vision-parser.state> = 'analyzing_done';
-    <[base.logs]>->(
-        2, '[vision-parser] state transition: analyzing_done (job=%s)',
-        $job_id
-    );
 
 } elsif ( $stage eq 'extracting' ) {
 
@@ -91,8 +85,8 @@ if ( $stage eq 'analyzing' ) {
 
 return;
 
-#,,..,,.,,..,,,..,,,,,...,.,.,.,,,,,,,,,.,,,,,..,,...,...,..,,..,,,..,,.,,,..,
-#RIIZVPUCCFKMZVOQYWG4P2Z2QLVRWYEXW26QX5BMWNU6OGSAJ4GEPN3GPRVHUDKD2NNBHYFFOQYPQ
-#\\\|ATTT432DQDOUC642NQP27A6N5LTSCKDESNK3CH4GNSHULEW37PY \ / AMOS7 \ YOURUM ::
-#\[7]IJOHUGW2GZGZAQ6OMRLKHRZULWLXE6QH4GJOJDUFIG6BXZDSYUDY 7  DATA SIGNATURE ::
+#,,.,,.,,,,.,,,,.,..,,,..,,.,,,,.,.,.,,,.,.,.,..,,...,...,...,.,.,.,.,,.,,,,.,
+#J2TQD5Y4JBAHVAQIF6GYBUG7T76C24X3MBYXNQMVMPVGKNBRBWP6HN62BO6SHEISC45A4O6V3TUC6
+#\\\|6ZH4OEJMGNDT7XOBYB33YGKSZ2BROENDEAA2KRD3WGSSUCBNCZU \ / AMOS7 \ YOURUM ::
+#\[7]7QSICIULDDWDVBXMPXZMNFDI32677HA7UA344JE7CGIM4OIFF2DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
