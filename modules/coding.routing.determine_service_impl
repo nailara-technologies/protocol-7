@@ -19,8 +19,24 @@ my $gpu_model = <inference.backend.gpu.model_id>
     // <inference.backend.cpu.model_id> // 'local';
 
 ## available models from discovery cache [ may be empty on first run ]
-my @available = sort keys %{ <coding.model_metadata> // {} };
-my $primary   = @available ? $available[0] : $gpu_model;
+my $meta_cache = <coding.model_metadata> // {};
+my @available  = sort keys %{$meta_cache};
+
+## filter by memory availability [ prefer smaller models when ram is constrained ]
+my $mem_pct = <coding.system_mem_pct> // 0;
+if ( $mem_pct > 75 && @available ) {
+    ## sort by size_gb ascending to prefer smaller models [ ram pressure ]
+    @available = sort {
+        ( $meta_cache->{$a}{'size_gb'} // 999 )
+            <=> ( $meta_cache->{$b}{'size_gb'} // 999 )
+    } @available;
+    <[base.logs]>->(
+        2, "[coding.routing] memory at %.2f%% :. preferring smaller models",
+        $mem_pct
+    );
+}
+
+my $primary = @available ? $available[0] : $gpu_model;
 
 ## for multi-model scenarios: use discovered models or repeat primary
 my $multi_count = 3;
@@ -132,8 +148,8 @@ return {
     priority       => 'default'
 };
 
-#,,,,,,,.,.,,,.,.,..,,..,,.,,,,..,..,,.,,,,,.,.,.,...,...,,,,,,..,.,.,,..,,,.,
-#RFKJQ6T74Z6UIXAYDJV6IRQLYQ7UA6RCZBCE6MF4CZGLJRPUSXBXG5V6RRDLJOHS24F7EFYN2EWYK
-#\\\|NI4DF2TWEP22SUTYEKYUT3XCG4OZD4MCT6YCZTETARESADQ4NLN \ / AMOS7 \ YOURUM ::
-#\[7]X6G2PWNGDQZB2XBAS4GNYBAPEVA4SPOGNOCPH6KOSPCB35BABKBA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,..,.,,,,..,,,.,,.,,,.,,.,,,..,,.,.,...,...,...,..,,,,,,.,,,.,,,
+#L3LY2KZC7RBJ5ZNKM3IE673KKKGM4RGEABSULQYYFCXDEUZCDFTNYIY524J7GQKBUKV2OIOJJYFDC
+#\\\|KTXZSPWXJ5RDNL46RA7TLOZCUN2ID4EBWCVETXZ7AK6TOD3K7A7 \ / AMOS7 \ YOURUM ::
+#\[7]TRRWEFHF2QDFLS7SYAJ43V3Q6Y5AR5HWEEFO4MK4W26F2MQQMQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
