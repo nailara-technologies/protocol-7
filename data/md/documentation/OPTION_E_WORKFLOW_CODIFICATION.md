@@ -274,3 +274,8 @@ Application Rules:
 
 ═══════════════════════════════════════════════════════════════════════════
 
+#,,..,,,,,.,.,,,,,..,,.,.,,.,,.,,,..,,,..,,.,,..,,...,...,,.,,.,,,,..,,,.,.,,,
+#7V4RQPLGTTB73XM42JOIGHFRWHQLG6YH5VEKDYOU2BO3IIBJNMXMDJGKVNHCUVR2EC3KM3IJJN6IO
+#\\\|BKDS5BM2C636SLPJ3EGG3QYSF54NDXVDQXSYW4AWPSWT7KROZ36 \ / AMOS7 \ YOURUM ::
+#\[7]FMH44VQUTFMGMBCGPF2BSQ6OKG2UNN5BP6GHDPK747KOCQKRE4AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

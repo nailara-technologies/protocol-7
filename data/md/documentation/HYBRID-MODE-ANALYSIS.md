@@ -173,3 +173,9 @@ start_mode = stdin-zenka
 - **Console-only zenka:** ✓ Hybrid mode safe
 - **Network daemon zenka:** ⚠️ 2 known anomalies (coding, data)
 - **Desktop/X11 zenka:** ? Requires user auto-discovery (needs testing)
+
+#,,,,,,.,,,.,,.,,,,..,,.,,...,,,.,.,.,...,,..,..,,...,...,...,..,,...,.,.,...,
+#C5MG4SQMB3UCRQFFUUL33IQ356YGUGBIJGWWUXCKEDV6TDO52JK74ZBDLZFOKURQUCSQ2NOKD5WNE
+#\\\|CEIFJVEX5F7NSA3L4BN4CJMS4J3WMXBRT443TW43CZVTDB7CUL6 \ / AMOS7 \ YOURUM ::
+#\[7]BJS5K5EB5FKQCAU7ZNVWUAWML5O54O73FOQ4CKHWZSH3LQ624ABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
