@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = coding.handler.fetch_model_discovery
+# descr = timer handler: request model discovery from models zenka at startup
+
+## send async request to models zenka - guaranteed online via dependency
+my $cmd_count = <[base.protocol-7.command.send.local]>->(
+    {   'command'   => 'models.cmd.discover',
+        'call_args' => { 'args' => 'available' },
+        'reply'     => {
+            'handler' => 'coding.handler.models_discover_reply',
+            'params'  => { 'context' => 'init' }
+        }
+    }
+);
+
+if ($cmd_count) {
+    <[base.logs]>->( 2, 'model discovery request sent to models zenka' );
+} else {
+    <[base.logs]>->( 1, 'models zenka offline during discovery request' );
+}
+
+#,,,.,.,.,,,.,..,,..,,,.,,,.,,,,,,.,,,,.,,.,.,..,,...,..,,,..,...,,.,,,,.,...,
+#QSMTH3CHTWNAL2KN6MLM6HI4LANJP4GL6XOQ53XGIXY6ZAVXKLEXDUU4GK4N2WJ5L4LYIHEHEBSN4
+#\\\|PSDO2DZPC4E7GGT2O6TNUJU4BAYD3EMVKOIST25SSXAKFKK4ZA3 \ / AMOS7 \ YOURUM ::
+#\[7]ZHQDNNLK442FSQPZOFCTWK6F6HXGLEDXJYM55HOUTKKMIN4F5EDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

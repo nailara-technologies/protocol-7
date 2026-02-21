@@ -11,7 +11,7 @@ my $first_init          = $already_initialized ? FALSE : TRUE; ## ^ inverse ##
 ## load all additionally used perl modules ##
 #
 <[base.perlmod.load]>->(qw| JSON::XS |);
-<[base.perlmod.autoload]>->(qw| IPC::Open3 |);
+map { <[base.perlmod.autoload]>->($_) } qw| IPC::Open3 YAML::XS FreezeThaw |;
 
 # Initialize coding zenka data structure
 <coding.state> //= {
@@ -21,9 +21,19 @@ my $first_init          = $already_initialized ? FALSE : TRUE; ## ^ inverse ##
     status      => qw| ready |
 };
 
-# Defer model metadata loading to async handler to keep init fast
-<[base.logs]>->( 1, 'deferring model metadata loading to async handler' )
-    if not <coding.state.initialized>;  ## spawning skipped on 'reload init'..
+## load persisted model metadata from disk if available
+my $saved_meta_ref = <[file.zenka_dir.load]>->('state/model_metadata.yaml');
+if ( defined $saved_meta_ref && length $saved_meta_ref->$* ) {
+    my $loaded = eval { YAML::XS::Load( $saved_meta_ref->$* ) };
+    if ( !$@ && ref $loaded eq 'HASH' ) {
+        <coding.model_metadata> = $loaded;
+        <[base.logs]>->(
+            2,
+            'loaded %d model metadata entries from disk',
+            scalar keys %{<coding.model_metadata>}
+        );
+    }
+}
 <coding.model_metadata> //= {};
 
 # Set library path for llama-server binaries (CPU and GPU backends)
@@ -41,7 +51,21 @@ my $first_init          = $already_initialized ? FALSE : TRUE; ## ^ inverse ##
 <coding.task.completed> //= [];
 <coding.task.failed>    //= [];
 
-# Initialize budget tracking
+## load persisted budget state from disk [ freeze-thaw encoded ]
+my $saved_budget_ref = <[file.zenka_dir.load]>->('state/budget.b32');
+if ( defined $saved_budget_ref && length $saved_budget_ref->$* ) {
+    my $thawed = eval { FreezeThaw::thaw( $saved_budget_ref->$* ) };
+    if ( !$@ && ref $thawed eq 'HASH' ) {
+        <coding.budget> = $thawed;
+        <[base.logs]>->(
+            2,
+            'loaded budget state from disk :. used=%d tokens',
+            $thawed->{'used'} // 0
+        );
+    }
+}
+
+## initialize budget tracking [ preserved values override defaults ]
 <coding.budget.allocated>          //= 12000;
 <coding.budget.used>               //= 0;
 <coding.budget.transactions>       //= [];
@@ -91,20 +115,49 @@ if ( not <coding.state.initialized> ) {
     );
 }
 
-# Event handlers are now loaded from separate modules:
-# - coding.event.on_task_complete
-# - coding.event.on_task_fail
-# These are registered in the code registry when loaded
+## event handlers are now loaded from separate modules:
+## - coding.event.on_task_complete
+## - coding.event.on_task_fail
+## these are registered in the code registry when loaded
 
-# Register with event system
+## register with event system
 <watcher_list.coding.task_processor> //= TRUE;
 
 <coding.state.initialized> = TRUE;
 
+## fetch fresh model discovery from models zenka [ dependency guarantees it online ]
+## fire once after init completes to not block init itself
+if ( not $already_initialized ) {
+    <[event.add_timer]>->(
+        {   'after'   => 1.0,
+            'repeat'  => FALSE,
+            'handler' => qw| coding.handler.fetch_model_discovery |,
+            'desc'    => 'initial model discovery from models zenka'
+        }
+    );
+
+    ## poll system memory stats periodically [ for spawn decisions and routing ]
+    <[event.add_timer]>->(
+        {   'after'   => 2.0,
+            'repeat'  => FALSE,
+            'handler' => qw| coding.handler.refresh_mem_stats |,
+            'desc'    => 'initial system memory poll'
+        }
+    );
+    <coding.timer.mem_poll> = <[event.add_timer]>->(
+        {   'after'    => 62,
+            'interval' => 62,
+            'repeat'   => TRUE,
+            'handler'  => qw| coding.handler.refresh_mem_stats |,
+            'desc'     => 'periodic system memory poll'
+        }
+    );
+}
+
 return 0;
 
-#,,,,,,,.,,,.,,..,,.,,..,,,,.,,,,,,.,,..,,..,,..,,...,...,.,.,,,.,...,,,,,,..,
-#NLOOHY3RRM4QJJT5E24T5IGNGQTLH4XN6YBF3QVSN72T3C6O7APJ2WZFY2FWCEGA4LLDJXY4XQUM6
-#\\\|KAPBWNJF7M4RPDOCYCIG7UB7XN7MMHO5GJG3KZOQ443AYDJRLUS \ / AMOS7 \ YOURUM ::
-#\[7]ADLNW6XFETF3IUFR6R42EFLFS24GYEQ55NYEQ37T6XUTSVV3J6CQ 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,..,,,..,,.,,,,.,,,,,,,.,,,,,.,,,..,,...,...,..,,,,.,.,,,,..,,,.,
+#37TCUS5IV7YWQSDEXFXI2VYNCUZZWWL5P3MPTUZWMF3ANQWTQBJSPY6ZSH3FM3UQK7FNNH6UXVMG4
+#\\\|2Q3DP3AFZX73HJ4GJS7KDDX3N5WU7QDMZQRZPOVBE75QP6HLDZM \ / AMOS7 \ YOURUM ::
+#\[7]MADRKWEDEJO65IIT6RM4J75WJZMW2QS6GJPIGNKCM2Z2QHX7IYCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

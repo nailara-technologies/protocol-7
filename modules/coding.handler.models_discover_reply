@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = coding.handler.models_discover_reply
+# descr = handle async response from models.cmd.discover, populate model metadata cache
+
+my $reply   = shift;
+my $context = $reply->{'params'}->{'context'} // 'unknown';
+my $data    = $reply->{'call_args'}->{'data'} // '';
+
+<[base.logs]>
+    ->( 2, 'model discovery reply received :. context=%s', $context );
+
+## parse text response from models.cmd.discover
+## format: amos: XXXXXXX\n  name: foo\n  available: yes\n  size_gb: N\n ...
+my %metadata;
+my $current_amos;
+
+for my $line ( split /\n/, $data ) {
+    if ( $line =~ m|^amos:\s+(\S+)| ) {
+        $current_amos = $1;
+    } elsif ( defined $current_amos ) {
+        if ( $line =~ m|^\s+name:\s+(.+)$| ) {
+            $metadata{$current_amos}{'name'} = $1;
+        } elsif ( $line =~ m|^\s+category:\s+(.+)$| ) {
+            $metadata{$current_amos}{'category'} = $1;
+        } elsif ( $line =~ m|^\s+available:\s+(.+)$| ) {
+            $metadata{$current_amos}{'available'}
+                = $1 eq 'yes' ? TRUE : FALSE;
+        } elsif ( $line =~ m|^\s+size_gb:\s+(.+)$| ) {
+            $metadata{$current_amos}{'size_gb'} = $1 + 0;
+        } elsif ( $line =~ m|^\s+success_rate:\s+(.+)$| ) {
+            $metadata{$current_amos}{'success_rate'} = $1 + 0;
+        } elsif ( $line =~ m|^\s+presence_tier:\s+(.+)$| ) {
+            $metadata{$current_amos}{'presence_tier'} = $1;
+        }
+    }
+}
+
+## build name-keyed index [ routing uses model name as key ]
+my %name_index;
+for my $amos ( keys %metadata ) {
+    my $name = $metadata{$amos}{'name'} // $amos;
+    $name_index{$name} = { %{ $metadata{$amos} }, 'amos' => $amos };
+}
+
+my $count = scalar keys %name_index;
+
+if ($count) {
+    <coding.model_metadata> = \%name_index;
+
+    <[base.logs]>->(
+        2, 'model metadata cache updated :. %d models available', $count
+    );
+
+    ## persist to disk as yaml [ human-readable, reloaded on next startup ]
+    my $yaml_str = eval { YAML::XS::Dump( \%name_index ) };
+    if ( !$@ && defined $yaml_str ) {
+        <[file.zenka_dir.write]>->( 'state/model_metadata.yaml', \$yaml_str );
+        <[base.logs]>->( 2, 'model metadata persisted to disk' );
+    } else {
+        <[base.logs]>->( 1, 'failed to serialize model metadata :. %s', $@ );
+    }
+} else {
+    <[base.logs]>->( 1, 'model discovery returned no available models' );
+}
+
+return TRUE;
+
+#,,.,,...,.,.,.,.,..,,,,.,.,,,,,,,,,,,.,,,..,,..,,...,.,,,..,,,,.,,.,,...,,,.,
+#FRMFTICDCUE2IMDR3MYGTHKIMQTJBE3DJASLSNRNYLBY4AOQK2ROTGJD7X446OTNPMINRMT22BTQ6
+#\\\|5C5CWZ72MFRCJY2TVFCV5TR3DE5GIN7S56WULSREXAWJUFF2N6Z \ / AMOS7 \ YOURUM ::
+#\[7]6E6JBEXOVPYXKQLDB2TMOHHWCMGEI7URGMFAJND2KNDFWPCXCCBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
