@@ -5,25 +5,16 @@
 
 my ($model_alias) = @ARG;
 
-<[base.logs]>
-    ->( 1, "[coding.routing] get_model_metadata : %s", $model_alias );
-
-<[base.perlmod.autoload]>->(qw| JSON::PP |);
-
-my $response = <[base.protocol-7.command.send.local]>->(
-    {   'command'   => "models.get_model_path",
-        'call_args' => { 'model_id' => $model_alias }
-    }
+<[base.logs]>->(
+    2, "[coding.routing] get_model_metadata :. %s", $model_alias
 );
 
-return undef
-    unless $response && ref($response) eq 'HASH' && $response->{data};
+## look up local model metadata cache populated during init
+my $metadata = <coding.model_metadata>->{$model_alias};
 
-my $model_data;
-eval { $model_data = JSON::PP::decode_json( $response->{data} ); };
-return undef unless $model_data && ref($model_data) eq 'HASH';
+return $metadata if defined $metadata && ref $metadata eq 'HASH';
 
-return $model_data;
+return undef;
 
 #,,.,.,,,.,,,,.,,,.,,..,,..,,..,...,...,,.,,..,,...,...,..,,,..,,..,,.,,,,.,
 #7H4VLMQ5AJZZXQSOXGDZDGXJ47CNDSM5D2TJWZXVGFLVL7XMGPKPGBXFGFZ7G4QFVUBT47JIJM3GU
@@ -31,8 +22,8 @@ return $model_data;
 #\[7]4YYLVBJ6XVMTMCYAFRGGXHBLVJZQPLWKGX7C4ZVXQRXNHSM6GFXI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-#,,..,,,,,,.,,,..,,,.,,,.,.,.,.,.,,,.,,,,,.,,,..,,...,...,...,,.,,.,,,.,.,,.,,
-#J5JIG62GH7OICG2JW4PK7IPV6Q3YFRSGHNYPVNKY2WHNGAQ343IO7NQDTJT3HLGSLVHG75W6MONVM
-#\\\|PYYI2WIHPQ5LOFPBZSEY2M2VKRVLV5ELLLQYULMKUOKELJJMCMN \ / AMOS7 \ YOURUM ::
-#\[7]YKULRMXRJIXYJ3Q2ULRYJWTR2FWQZWKENQNGQMIG76MXTOSXYKBQ 7  DATA SIGNATURE ::
+#,,..,,,.,..,,..,,,,.,,..,..,,,.,,...,,..,,.,,..,,...,...,...,,.,,,,,,...,.,,,
+#HLK73V4ASLYZ2AVMQQ7ZKJAQWOIFT2GYKXARNCJVWDTGRMH2GTFL2PD53TKNYN37M67RJ6IGXZCM2
+#\\\|BIHQX3O2PKEJQGSBBBJMQAQ5ERCBULH5HG2A6I77DNBCESB3C7Q \ / AMOS7 \ YOURUM ::
+#\[7]AKP47RDQAMUBK4GCZ6ICF4VBENHJUHS5GLQU75NNYGNMCAHYHKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
