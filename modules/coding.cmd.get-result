@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = coding.cmd.get-result
+# descr = fetch result of a completed coding task
+# param = <task_id>
+
+my $task_id = $$call{'args'} // '';
+
+return { 'mode' => qw| false |, 'data' => 'task_id required' }
+    if !length($task_id);
+
+# Look up task in queue
+my $task = <coding.task.queue>->{$task_id};
+
+return { 'mode' => qw| false |, 'data' => "task not found: $task_id" }
+    unless defined $task;
+
+my $status = $task->{'execution'}->{'status'} // 'unknown';
+
+# Return based on task status
+if ( $status eq 'completed' ) {
+    my $result = $task->{'execution'}->{'result'} // '';
+
+    # Determine reply mode based on internal newlines
+    my $stripped = $result;
+    $stripped =~ s/\n$//;
+    my $newlines = ( $stripped =~ tr/\n// );
+
+    if ( $newlines == 0 ) {
+        $result =~ s/\n$//;
+        return { 'mode' => 'true', 'data' => $result };
+    } else {
+        $result .= "\n" if $result !~ /\n$/;
+        return { 'mode' => 'size', 'data' => $result };
+    }
+} elsif ( $status eq 'failed' || $status eq 'error' ) {
+    my $error = $task->{'execution'}->{'error'} // 'unknown error';
+    return { 'mode' => 'false', 'data' => $error };
+} elsif ( $status eq 'in_progress' || $status eq 'pending' ) {
+    return {
+        'mode' => 'true',
+        'data' => "task $task_id is still $status"
+    };
+} else {
+    return {
+        'mode' => 'true',
+        'data' => "task $task_id status: $status"
+    };
+}
+
+#,,,,,...,.,.,,,.,,,.,.,,,.,,,...,,,,,,.,,,.,,.,.,...,...,.,.,,.,,.,.,..,,.,,,
+#ODHGWNW7JNMJFUNGHI6TSGLZOT2RIVDOFSDVQTUJZXFDUFN67TABF7ANNLZBF56AFGPNUQGVFGUOO
+#\\\|BOO263N3GBQP77UWO6KLGCWLAKC7BFBCFSTTA6JGCFUUTMGMNPQ \ / AMOS7 \ YOURUM ::
+#\[7]T6PAVKZTFGX24TVWRUAGSCHTQFU7JKJCKWF6RKIJ3ZYH7AO7T4AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

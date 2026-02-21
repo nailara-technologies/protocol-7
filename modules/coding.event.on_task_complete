@@ -57,12 +57,24 @@ if ( defined $meta_job ) {
     }
 }
 
-# Event callback for task completion
-# Learning module will be expanded here
+# Check for deferred replies waiting on this task
+my $deferred_replies = <coding.deferred_replies> // {};
+foreach my $deferred_id ( keys %$deferred_replies ) {
+    my $deferred = $deferred_replies->{$deferred_id};
+    if ( defined $deferred && $deferred->{'task_id'} eq $task_id ) {
+        <[base.logs]>->(
+            2, "[on-task-complete] triggering deferred reply %s",
+            $deferred_id
+        );
+        <[coding.handler.deferred_reply]>->($deferred_id);
+        last;
+    }
+}
+
 return TRUE;
 
-#,,..,...,.,.,,..,,,.,,.,,,..,.,,,,..,,.,,.,,,..,,...,...,...,...,,,,,,..,,..,
-#DIUJ4QGFNZJYOQ4VKQBUBESY2TGCKQM2JUH2KL4QWP44V5BKBQEXISG4LS3EJFN4ORTZ2WH654P5G
-#\\\|2SFXBOL5TFNTOAZLODU3SZVUMBK3MK7UDORUDBGM7OM6S2Z44MP \ / AMOS7 \ YOURUM ::
-#\[7]MK5JFZTLFHOD4I36JHQJNYVUW2YA2YDZMD2J64U3VIUCE4IXO6DQ 7  DATA SIGNATURE ::
+#,,..,,.,,..,,...,,.,,...,,.,,,,,,.,.,.,,,,,.,..,,...,...,,,,,,,,,,..,,..,,.,,
+#DACOGHUT6I7UX5LYGABKZDPQCG2R6KWNR63ZO2XDMHE2DU5OD6M3NVY26HRJ3HLDWQA65EOY3LVM6
+#\\\|HQ54QHZ7UP66ZW7DVMLJUHOQPFVUBETOCAHHJ2XY7EJEYKIN5Z4 \ / AMOS7 \ YOURUM ::
+#\[7]UYEYO7DRETHSFVSHSQ3NX3JKAWQ6ECUDO3BBGLSO5RLHUJKWTWAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

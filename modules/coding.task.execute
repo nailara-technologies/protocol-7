@@ -1,0 +1,92 @@
+## [:< ##
+
+# name  = coding.task.execute
+# descr = execute a coding task from jobqueue callback
+# purpose = bridge jobqueue execution to coding task processing
+
+my $params          = shift;
+my $job_id          = $params->{'job_id'};
+my $callback_params = $params->{'params'} // {};
+
+my $task_id = $callback_params->{'task_id'};
+
+unless ( defined $task_id ) {
+    <[base.logs]>->(
+        0, "coding.task.execute: missing task_id in callback params"
+    );
+    return FALSE;
+}
+
+## get task from coding queue ##
+my $task = <coding.task.queue>->{$task_id};
+
+unless ( defined $task ) {
+    <[base.logs]>->( 0, "coding.task.execute: task not found: %s", $task_id );
+    return FALSE;
+}
+
+## check if inference server is ready via HTTP ##
+my $routed_to = $task->{'analysis'}->{'routed_to'} // 'gpu';
+my $port
+    = $routed_to eq 'cpu'
+    ? ( <inference.backend.cpu.port> // 8001 )
+    : ( <inference.backend.gpu.port> // 8000 );
+
+## verify http server is actually responding ##
+my $is_ready = eval {
+    use LWP::UserAgent;
+    my $ua       = LWP::UserAgent->new( timeout => 2 );
+    my $response = $ua->get("http://127.0.0.1:${port}/health");
+    return $response->is_success ? 1 : 0;
+};
+
+unless ($is_ready) {
+    ## fail-safe: dependency check passed but HTTP not ready ##
+    <[base.logs]>->(
+        2,        "coding.task.execute: HTTP fail-safe for %s on port %d",
+        $task_id, $port
+    );
+    return FALSE;
+}
+
+## mark task as in_progress ##
+$task->{'execution'}->{'status'}  = qw| in_progress |;
+$task->{'execution'}->{'started'} = <[base.time]>->(3);
+
+## move from pending to active ##
+my $aref_pending = <coding.task.pending> // [];
+my $aref_active  = <coding.task.active>  // [];
+
+$aref_pending->@* = grep { $ARG ne $task_id } $aref_pending->@*;
+push $aref_active->@*, $task_id;
+
+<[base.logs]>->( 2, "coding.task.execute: starting task %s", $task_id );
+
+## call the actual inference processor ##
+## expects: { params => { task_id => ... } } for jobqueue callback mode ##
+my $result = <[coding.handler.process-queued-task]>
+    ->( { 'params' => { 'task_id' => $task_id } } );
+
+## handle job completion based on result ##
+if ( defined $result && $result->{'success'} ) {
+    <[jobqueue.move_job]>->( $job_id, 'completed' );
+    ## extract the actual result text from hashref ##
+    my $result_text = $result->{'result'} // '';
+    <[coding.task.complete]>->( $task_id, $result_text );
+} else {
+    my $error_msg = $result->{'error'} // 'unknown error';
+    <[base.logs]>->(
+        0,        "coding.task.execute: task %s failed: %s",
+        $task_id, $error_msg
+    );
+    <[jobqueue.move_job]>->( $job_id, 'error' );
+    <[coding.task.fail]>->( $task_id, $error_msg );
+}
+
+return $result;
+
+#,,.,,...,...,.,,,.,.,,,,,.,.,,..,,.,,,.,,,.,,.,.,...,...,.,.,,,,,.,.,.,,,,.,,
+#L6WE3ENE4W6W4MRD7WVI2Q5EFZAOU62O7CBKYXCDEFDWGAKG46SDGB4X43PIB3AFJN4PHNDLP32VY
+#\\\|BOTTQSYDSASM2DP46KJVMEOZMRZJBOZMQKFU5YWJR7ZIS6DYCOM \ / AMOS7 \ YOURUM ::
+#\[7]T6J7B27RZBZPRWYB2HB5S4QKF3LXLS7XXE7J6DWYREEII652YCAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

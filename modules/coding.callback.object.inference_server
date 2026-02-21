@@ -1,0 +1,49 @@
+## [:< ##
+
+# name = coding.callback.object.inference_server
+# descr = dependency callback to check if inference server is HTTP ready
+
+my $object_id = shift;
+return undef if not exists <dependency.object>->{$object_id};
+
+my $object = <dependency.object>->{$object_id};
+my $port   = $object->{'port'};
+
+return undef if not defined $port;
+
+## quick check: is port listening? ##
+my $check_cmd      = sprintf 'ss -tlnp 2>/dev/null | grep -q ":%d "', $port;
+my $port_listening = system($check_cmd) == 0 ? 1 : 0;
+
+## fallback socket check if ss not available ##
+if ( !$port_listening ) {
+    $port_listening = eval {
+        use IO::Socket::INET;
+        my $sock = IO::Socket::INET->new(
+            PeerAddr => '127.0.0.1',
+            PeerPort => $port,
+            Proto    => 'tcp',
+            Timeout  => 1
+        );
+        return $sock ? 1 : 0;
+    };
+}
+
+return FALSE unless $port_listening;    ## port not open ##
+
+## verify http server is actually responding ##
+my $http_ready = eval {
+    use LWP::UserAgent;
+    my $ua       = LWP::UserAgent->new( timeout => 2 );
+    my $response = $ua->get("http://127.0.0.1:${port}/health");
+    return $response->is_success ? 1 : 0;
+};
+
+return TRUE if $http_ready;
+return FALSE;                           ## http not ready yet ##
+
+#,,.,,..,,,..,,,.,,,,,..,,.,,,...,..,,..,,..,,.,.,...,..,,...,,,.,...,..,,...,
+#CJ5WCBJC4TUC7DS3JXMKSCXJRN5PJO7GP2J3RUU53HIPR4GOMLH2TJIGFL737EAOI3DHFQI5PUNNC
+#\\\|HYP5UH7N27A6BMDPRYAXX3QSMOEL6Q7R43PZSMFWG5OMRUMOP2D \ / AMOS7 \ YOURUM ::
+#\[7]NNA6KTEFRPJH3XBN377JJXVFWQJYM4MJOY3SD5IEU5NQC3OPEKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -54,7 +54,7 @@ unless ( $server->{'error_checked'} ) {
             && $line =~ m{error|failed|cannot|refused|exception}i ) {
             $has_real_error = TRUE;
             <[base.logs]>->(
-                0,        "[monitor_startup] backend=%s ERROR: %s",
+                0,        "[monitor_startup] backend=%s :ERROR: %s",
                 $backend, substr( $line, 0, 200 )
             );
             last;
@@ -73,6 +73,9 @@ if (
         );
         $server->{'status'}       = qw| ready |;
         $server->{'ready_logged'} = TRUE;
+
+        ## trigger dependency recheck for waiting jobs ##
+        <[jobqueue.check_dependencies]>;
     }
 }
 
@@ -83,8 +86,8 @@ if ( $bytes <= 0 ) {
     <[base.logs]>->( 2, "[monitor_startup] EOF : backend=%s", $backend );
 }
 
-#,,,.,,..,.,.,.,.,...,..,,.,,,,,.,,,.,..,,.,,,..,,...,...,..,,.,,,,,.,...,..,,
-#ZJG5SHIEHH23FDMXVGVPKBIJ5DMLZI24DSOMDXY2OVT5LZUTF56B3YZ355BRL2VUTOBJ3NCH25JQU
-#\\\|74FQBSN5IXX6B73AILF2MDJ33PTGEH7M66BUD4MXIT2NDFP66EJ \ / AMOS7 \ YOURUM ::
-#\[7]KOKFANQ4HDROGH7KRMTJTL2QQPYYH2OET7ETLDWKTH232JAQFYCQ 7  DATA SIGNATURE ::
+#,,..,..,,.,.,...,,,,,,..,,,.,..,,.,,,,.,,..,,..,,...,...,..,,...,..,,.,.,.,.,
+#ULNPQE4OC6X7YUKEEKJSLXU2L6PU6I2JIWDUWRZJ7XJ7UVVR24MYSN6UJBCDI55T4ESNMUMB3JUCK
+#\\\|PYAACNSE3GVGZ4IZ2YJSLCM7LUAGYWNYMVDO4HMF7FYJKTM3PZ5 \ / AMOS7 \ YOURUM ::
+#\[7]NANLIH53ZIPYNMRJJKRZT7FX43G54ZNNWMUQJL7E47VBJD5DWIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

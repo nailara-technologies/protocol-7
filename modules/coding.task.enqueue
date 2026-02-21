@@ -2,7 +2,8 @@
 
 # name = coding.task.enqueue
 # descr = enqueue coding task with jobqueue backend
-# purpose = coding task management : wrapper around jobqueue.add_job with priority calculation
+# purpose = coding task management : wrapper around jobqueue.add_job with
+#           priority calculation and duplicate detection
 
 my ($task) = @ARG;
 
@@ -18,32 +19,65 @@ return {
     }
     unless exists $task->{id};
 
-# calculate priority based on task type
+my $task_id = $task->{id};
+
+## step 1: add to coding queue (for rich data + duplicate detection) ##
+my $queue_href   = <coding.task.queue>   //= {};
+my $aref_pending = <coding.task.pending> //= [];
+
+## prevent duplicates ##
+if ( exists $queue_href->{$task_id} ) {
+    return {
+        success       => FALSE,
+        error         => "task already in queue: $task_id",
+        existing_task => $queue_href->{$task_id}
+    };
+}
+
+## store task in coding queue ##
+$queue_href->{$task_id} = {
+    %$task,
+    queued_at      => <[base.time]>->(3),
+    queue_position => scalar( $aref_pending->@* )
+};
+
+## add to pending list ##
+push $aref_pending->@*, $task_id;
+
+## step 2: add to jobqueue (for auto-execution) ##
 my $priority
     = <[coding.helper.task_priority]>->( $task->{type} // 'general', $task );
 
-# prepare job params for jobqueue
+## determine which inference server to depend on ##
+my $routed_to = $task->{'analysis'}->{'routed_to'} // 'gpu';
+my $dep_object_id
+    = $routed_to eq 'cpu'
+    ? ( <coding.dep.cpu_server> // 0 )
+    : ( <coding.dep.gpu_server> // 0 );
+
 my $job_params = {
-    name            => $task->{id},
+    name            => $task_id,
     priority        => $priority,
-    object_id       => $task->{id},
+    object_id       => $dep_object_id,
     target_queue    => 'queued',
     job_callback    => 'coding.task.execute',
-    callback_params => $task,
+    callback_params => { task_id => $task_id },
 };
 
-# add to jobqueue
 my $job_id = <[jobqueue.add_job]>->($job_params);
 
+<[base.logs]>->( 2, "task enqueued : %s [job_id=%s]", $task_id, $job_id );
+
 return {
-    success => TRUE,
-    job_id  => $job_id,
-    task_id => $task->{id},
-    message => "task enqueued : $task->{id}"
+    success    => TRUE,
+    job_id     => $job_id,
+    task_id    => $task_id,
+    queue_size => scalar( $aref_pending->@* ),
+    message    => "task enqueued: $task_id"
 };
 
-#,,.,,,.,,...,...,.,,,,,.,.,.,.,,,.,,,,,,,.,.,..,,...,...,,..,,,,,,,,,,.,,.,,,
-#7VUL7IDNOIB7ZOH7WS2LDJEIQIGDIDBNLM5B5PJTEXGGWXETWS3VUJ6KMCH3DDUCK5O5M4P2R5YUE
-#\\\|5NAP6LOBCAI5M6RLUSVI5MJ2UI7G2BP4IGV7AFHXZOZFBTTWX67 \ / AMOS7 \ YOURUM ::
-#\[7]2MDRLNMXGHLTS3D4UVMDOEL3LBQE6I46DGRZPKVNMNKVDKDONIBI 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,.,,,..,,,,.,..,,..,,...,,.,,...,..,,...,...,,.,,..,,,,,,.,,,,,.,
+#ZYSBNRHHLHFOQEUJIT32HLQMMIFTHAXQCD3FRJULAF4NX2IT6Q7E3VCNLDCY6FQQWOJMLK7SN2NK6
+#\\\|FRIG4R7T6XWKAAW72IEBT6BXMTX3RCRW2WV5S6XNNLA5IMUYKA3 \ / AMOS7 \ YOURUM ::
+#\[7]JADCLXQQYG54H5P6QHGZXCB2SXJJEYH34G7KXXBD5AGGRFQEFYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

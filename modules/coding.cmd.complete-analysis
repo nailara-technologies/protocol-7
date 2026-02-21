@@ -56,8 +56,8 @@ if ( !$routing->{success} ) {
 
 my $routed_task = $routing->{task};
 
-# Enqueue the task for execution
-my $queue_result = <[coding.task.queue]>->( 'enqueue', $routed_task );
+# Enqueue the task for execution (uses jobqueue backend)
+my $queue_result = <[coding.task.enqueue]>->($routed_task);
 
 if ( !$queue_result->{success} ) {
     return {
@@ -68,29 +68,30 @@ if ( !$queue_result->{success} ) {
 }
 
 # Create meta-job to track the completion chain
-my $meta_id = <[base.gen_id]>->(<coding.complete_analysis_jobs>);
+my $meta_id  = <[base.gen_id]>->(<coding.complete_analysis_jobs>);
 my $meta_job = {
-    'meta_id'         => $meta_id,
-    'reply_id'        => $$call{'reply_id'},
-    'task_id'         => $routed_task->{id},
-    'task'            => $routed_task,
-    'description'     => $task_description,
-    'status'          => qw| analyzing |,
-    'accumulated'     => '',
-    'resume_count'    => 0,
-    'max_resumes'     => 5,    # Safety limit
-    'start_time'      => <[base.time]>->(3),
+    'meta_id'      => $meta_id,
+    'reply_id'     => $$call{'reply_id'},
+    'task_id'      => $routed_task->{id},
+    'task'         => $routed_task,
+    'description'  => $task_description,
+    'status'       => qw| analyzing |,
+    'accumulated'  => '',
+    'resume_count' => 0,
+    'max_resumes'  => 5,                    # Safety limit
+    'start_time'   => <[base.time]>->(3),
 };
 
 <coding.complete_analysis_jobs>->{$meta_id} = $meta_job;
 
 <[base.logs]>->(
-    1, "[complete-analysis] created meta-job=%s for task=%s",
+    1,        "[complete-analysis] created meta-job=%s for task=%s",
     $meta_id, $routed_task->{id}
 );
 
 # Set up variable watcher to detect continuation requests
-# Note: repeat => FALSE because handler sets continue_analysis = FALSE, which would trigger again
+# Note: repeat => FALSE because handler sets continue_analysis = FALSE,
+# which would trigger again
 $meta_job->{'continuation_watcher'} = <[event.add_var]>->(
     {   'var'     => \$meta_job->{'continue_analysis'},
         'poll'    => qw| w |,
@@ -117,8 +118,8 @@ $meta_job->{'continuation_watcher'} = <[event.add_var]>->(
 
 return { 'mode' => 'deferred' };
 
-#,,,,,,..,...,...,.,.,,.,,,,,,..,,.,.,,,,,,.,,..,,...,..,,.,.,,,,,.,.,,.,,,.,,
-#HUWHLMECEMNLZD6W36ZTXDNC72XGXX2PX5FFJ3WM4UDTQGPBOAPAKH4D54LGLJ42RYMQSW3ZO5QJA
-#\\\|VBH6CVX6QPFLNS4YTPVUFZLNNBZ4OJYQDBO3QVLUNTUFK3WAOZV \ / AMOS7 \ YOURUM ::
-#\[7]FYP2NRH2RPZFRJJLGFUUZ3S4S5FJKIQMW2N2QOFBQWMXETW5WGCI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,,..,,..,,.,,,,.,...,,,,,,,.,,.,,..,,...,..,,..,,,..,..,,,.,,.,,,
+#DQ64M7DBSJAK4C6HAUUW2TY22FLLYV3MZWTDYFOG4FYMQZLFHTNQJWXNCGQLYPFB2A4MQNPIVLOXU
+#\\\|ABPMU3KVHH7Z63VRYQVCKPAZJZG2ROSP67ODTIIVH77UGA5RESI \ / AMOS7 \ YOURUM ::
+#\[7]RAHYRT2D5VKKV4TDNUQMKAJITLYEDOVUJYLEYW55M3CZGMU4YIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
