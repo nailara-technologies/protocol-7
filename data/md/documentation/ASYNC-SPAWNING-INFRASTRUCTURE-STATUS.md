@@ -33,7 +33,7 @@
 - `coding.handler.system_mem_reply` — caches `<coding.system_mem_pct>` from `system.mem-used`
 - `coding.async_spawn_inference_servers` — aborts if RAM ≥ 90%
 - `coding.routing.determine_service_impl` — sorts models by `size_gb` ascending when RAM > 75%
-- Note: GPU inference constrained by VRAM (not RAM) — `system.gpu-load` planned for VRAM awareness
+- Note: GPU inference constrained by VRAM (not RAM) — `system.gpu-{load,mem}` planned for VRAM awareness
 
 ### Key API Fixes Discovered
 - `base.perlmod.autoload`: one module per call — use `map {} qw| ... |`
@@ -435,3 +435,9 @@ Currently awaiting:
 **Created**: 2025-01-22
 **Status**: Infrastructure COMPLETE, Cleanup IN PROGRESS
 **Next Review**: After formatting cleanup and models integration
+
+#,,.,,,,,,...,..,,,,.,.,,,,..,.,.,,,,,,..,..,,..,,...,...,...,,..,.,.,,,,,,,,,
+#ZXZNNIDNKETWLVPPJ6W6LZWIS3LX34WOLPBUVJQGZUOQFVM5B3G5GR7XHMT6PG6YROCP3FTLYGGCI
+#\\\|ZHOTFTPXWNMQ33YO26EPXR2PINPY7VAOPZDSTOHZPWC7TQOMTC6 \ / AMOS7 \ YOURUM ::
+#\[7]SAUHB2TIDD23P6OPETYVXY5TQ6BMVHTNTHRLMUZVDZ2OUH3GEOAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

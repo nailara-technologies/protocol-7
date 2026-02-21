@@ -633,3 +633,9 @@ STRM-SIZE close-timeout   # timeout abort (idle too long)
 - Need streaming semantics? → **STRM** (explicit, timeout optional)
 - Need timeout guarantee? → **STRM-SIZE** or STRM with timeout
 - Need indefinite stream? → **STRM** (no timeout)
+
+#,,.,,,.,,,.,,...,,.,,,..,...,,,,,...,...,,,.,..,,...,...,..,,.,.,,..,,,,,.,,,
+#D2FHOVRVCGEPB3A7FCYJGVVDXG7FCIKYBX5TLTNMBIK2TWCTZCNEZOVOPRUTIH2YI5CKAH2DCIJ42
+#\\\|5L2LGA6B5JT7Q2DM22B4BBXA4GIA5LLV2DCFE37LRKZ4DQQRGTH \ / AMOS7 \ YOURUM ::
+#\[7]WUNBSHRYCKSV3U54QR25KJBAX5ADAQP47SJH3PS7IQJCMWRBZSBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

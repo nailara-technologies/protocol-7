@@ -87,3 +87,9 @@ if ($output5 =~ /required|error/i) {
 }
 
 print "=== Template Substitution Tests Complete ===\n\n";
+
+#,,,.,,,,,.,,,.,,,,,.,,,,,,,,,...,,.,,.,,,,.,,..,,...,...,...,,,,,,..,..,,...,
+#EMPMEG2CJVLL23SQIZVBUXYHJGJXGNNPWPSKS4PYVLSYDQEBCHEBQ7M5PPGTOQIIU6I5OHFIHJZGI
+#\\\|Q5JAZG6QM3G3JTF2IWK5SYDVNQTUWIXBQWQVFDXGHLJBAV56633 \ / AMOS7 \ YOURUM ::
+#\[7]3UYTCAWDRJHAWDW74RS5KOGV47TNSA3TLICIPWGLJ6NKHNHKUMCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

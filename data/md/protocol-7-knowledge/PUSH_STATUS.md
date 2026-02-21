@@ -113,3 +113,9 @@ git status
 
 *Local repository is clean and ready*
 *Push requires manual authentication resolution*
+
+#,,.,,..,,.,,,,..,...,...,...,,.,,,,,,.,.,..,,..,,...,...,...,,.,,,,.,,,,,,,,,
+#7MD4YOCFY6M3MFGBRBFXMOG4VUFHHXODMHTOQ6XGOTIBYYEUKKIK4MTSKO53REBKHJFNSZTYT2AS6
+#\\\|RXF3RTPEFYGN4RHGE6HM5EQZHXUQ63NBBMZNMKVF6DQYSB3LNGN \ / AMOS7 \ YOURUM ::
+#\[7]SEKY4ET6HLYPY474UXYN7WOUMZ6IX5PW3BJT7OEVZPMC3ESONABY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
