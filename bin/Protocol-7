@@ -2554,11 +2554,11 @@ sub p7_banner {
     open( my $banner_file_fh,
         catfile( $data{'system'}{'conf_path'}, qw| .banner | ) )
         or return;
-
     local $RS = undef;    ## slurp mode ##
     my $nailara_header = <$banner_file_fh>;
-
     close($banner_file_fh);
+
+    $nailara_header =~ s{\n\n#[,\.]+\n.+$}{\n}s;    ## strip signature ##
 
     my $bg_0 = $colors{'B02'};
     my $bg_1 = $colors{'B00'};
@@ -5366,8 +5366,8 @@ __DATA__
 :
 :.
 
-#,,,,,,.,,...,.,,,,,,,,.,,.,.,...,.,,,.,.,,,,,...,...,...,.,.,,.,,,..,...,,,.,
-#LXW5KVKSLUBUZCIUGXRLRL5BQGTK5BZM5VPOEZMINJ5XCZF7HQ37FV462IVJ6QK3VDBS4GRCVMQ3W
-#\\\|ZJYNDHBQKW2YOOAL3KJSHGDJ4UB5RFR3IOZYBXGCEOCFKEZM3MW \ / AMOS7 \ YOURUM ::
-#\[7]XDKW5N7T4KF2OAYDUE2O2F73EYPNZVYBAR5TJXF6SYHAVNY7EIDA 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,.,,,.,.,,,,,..,,,,.,,,,,,,.,...,...,...,...,.,.,.,.,..,,.,,,.,.,
+#X7DA66NAEM7YK6ACJQKS2EQH4PL2XVJCJWUJTHNTCOXHPYPGVXMIJ6BS3XE6G4RREYGAR2WZD3CVC
+#\\\|BM4K5KTDP65YXYFRGQVBOL5N65QEC2QMG4FAFP75QFAHVZQ3VTZ \ / AMOS7 \ YOURUM ::
+#\[7]UWSAJ3TISXWEP6U64TCVUZVRSZAKQ6UUSHSNC566MRQ6RIHWFQCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
