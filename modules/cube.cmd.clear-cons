@@ -1,7 +1,11 @@
 ## [:< ##
 
 # name  = cube.cmd.clear-cons
+# param = [only]
 # descr = clear 'cube' zenka [stdout] console output
+
+my $params      = $call->{'args'} // '';
+my $reply_clear = $params eq qw| only | ? FALSE : TRUE;
 
 my $clear_reply = 'console cleared';
 my $header_text = 'protocol 7 console';
@@ -20,10 +24,17 @@ if (<system.ansi_color>) {
     printf( STDERR "\n .:[ %s ]:.\n\n", $host_str );
     $clear_reply = "wrote hostname marker only [ active '-nc' option ]";
 }
-return { 'mode' => qw| true |, 'data' => $clear_reply };
+if ( not $reply_clear ) {
+    return { 'mode' => qw| true |, 'data' => $clear_reply };
+} else {
+    my $clear_ansi = $colors{'clear_screen'};
+    ( my $clear_str = <[base.cmd.clear]>->{'data'} )
+        =~ s{^\Q$clear_ansi\E}{$clear_ansi\n};
+    return { 'mode' => qw| size |, 'data' => $clear_str };
+}
 
-#,,..,.,.,...,,.,,.,,,,.,,,.,,...,.,,,,..,,,.,..,,...,...,,,.,,,.,.,.,,,,,,,.,
-#P2GM53K2XAHAVFFMZ4CAVQQRKQCTTVSTHJFTKQ3LDIB2UYLPZBQE3QJ2UV2MVCUXKHXMGCWZVJLQY
-#\\\|KKW3HOLY5A7RFQST6WZUZGRSYBRF7ULKNBIIH4TZDPAEORMNHIR \ / AMOS7 \ YOURUM ::
-#\[7]PNCNLU2LRMMIV3LS6DEMNBSJ2BRTBSQFTDQNDAIXHQCG4VSSDGCI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,,.,,,,,...,.,,,,,,,..,,,.,,,..,..,,...,...,,.,,,,,,.,,,,,,,.,.,
+#4Q63JFTBQKTGTSUUMR7JYL4C6HCFSKFILYUSEB6IZ2QSZCMQFC3GQ2XFI7GJJU3ELS4OEF4FV3HSQ
+#\\\|GPQBOLOIZSWDPT4EBK7YYGKC73VND7WJZBOQY45D3X2GCDMW37V \ / AMOS7 \ YOURUM ::
+#\[7]VDHOF6ZWCXL5MUH2KTGD3SK75AA4GTD6JSYXXQPNC3Q25VK4BWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
