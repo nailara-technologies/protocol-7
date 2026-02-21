@@ -84,6 +84,19 @@ if ($error_exit) {
     return undef;
 }
 
+map {    ## full-recursion wildcard matches [ path/** ] ##
+    ( my $base_path = $ARG ) =~ s|/?\*\*.*$||;
+    my $absolute_path = catfile( $work_tree, $base_path );
+    $absolute_path = abs_path($absolute_path) if -e $absolute_path;
+    if ( defined $absolute_path && -d $absolute_path ) {
+        push @all_files,
+            <[file.all_files]>->( $base_path, qw| recursive | )->@*;
+    } else {
+        <[base.logs]>->( 0, ': pattern \'%s\' - base path not found', $ARG );
+    }
+    }
+    grep {m|\*\*|} $copy_sources->@*;
+
 push(    ## enabling [non-recursive] wildcard matches ##
     @all_dirs,
     map {
@@ -149,6 +162,7 @@ push(    ## enabling [non-recursive] wildcard matches ##
         }
         }
         grep { !m|\*/| }
+        grep { !m|\*\*| }
         grep {m|\*|} $copy_sources->@*
 );
 
@@ -239,8 +253,8 @@ NXT_PATH:
 
 return @source_paths;
 
-#,,,,,.,,,...,,.,,,,,,,,,,..,,,,.,...,,..,,..,..,,...,..,,...,,.,,,,,,.,,,...,
-#XEB433BEQ7YOVH3VL7HCRAGYZOJ7JJI2V57GRYYKC6U2GJWCA5PUTGPUTJYT3GDDNBK77IZ53BDIS
-#\\\|RTQB4M7ZWDGGIAEPQMSMAZ56FERGGNUWJURGEV33BGGN2OGG3RL \ / AMOS7 \ YOURUM ::
-#\[7]CAZC7H67DYUUQAZ7ALLUOKZ3XOHXX6X5MMPPTLSDCOMFZUQDW4DY 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,.,,,...,...,.,,,.,.,,.,,,,.,.,.,..,,...,...,.,.,,,.,,..,.,.,.,.,
+#C4DEXEU5IROC43DJYQLLVW7T3XJEKN5SKRJUQLWFNQFXIUDBH2BY3BZVRRYVJNR32JOFG7JUVY3JY
+#\\\|UGGI3ORMRU4MTKVFZ3E4LV4ICSGNBTZZFRVHH4ZSKLX6ZNWTDSX \ / AMOS7 \ YOURUM ::
+#\[7]JNV4DJUQCLO7U7R4N35VPWVL5WWZQXHG3NGBERRWPCLCF5ARTGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

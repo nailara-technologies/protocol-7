@@ -251,8 +251,8 @@ sub save_registry {
     }
 }
 
-#,,,,,.,.,,,,,.,,,,,.,,,,,.,.,.,,,.,.,.,...,,,.,.,,,...,.,,,.,...,...,...,,,..,
-#PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_1
-#\\\\|PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_2
-#\\[7]PLACEHOLDER_FOR_AMOS7_SIGNATURE_LINE_3
+#,,,.,.,.,,.,,,,.,,,,,,,.,,,,,,..,,,.,.,,,,.,,..,,...,...,,,.,.,,,.,,,,..,.,.,
+#5H2TBSZRYDIEK5WDTLJG6VJ7ZVK6QNHJPXILPXAZA5F5FZ42ZPD6WDEAZSLRBHUT2EIWTYIYCSBE4
+#\\\|M37GFIVXG62WLSCLQOFLO32FYPOQPRWMHY7AG2WAYKT25W75VCS \ / AMOS7 \ YOURUM ::
+#\[7]UPXOBA3OACXTDSDGNVSMNBZBWHVLUVFP3QCMVS7VI3YSNZMYWCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

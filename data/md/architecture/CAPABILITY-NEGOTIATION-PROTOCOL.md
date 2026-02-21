@@ -488,3 +488,9 @@ By using **modular handlers with dynamic dispatch**, the system remains:
 **Current capabilities**: declare-strm-size-support, declare-strm-support, select-size-mode, select-strm-mode, declare-strm-size-timeout
 
 **Adding new**: Create `auth.callback.cap-neg.<action>-<capability>` module → auto-discovered
+
+#,,..,.,,,,.,,,.,,,,.,,.,,.,.,,.,,,..,.,.,,.,,..,,...,...,.,,,,,.,,..,..,,..,,
+#YFY4TDN4LBJEOSIJKGDUUK3XARFVB6AMAGQXNYHYDMMG5SJDJ4XSKZUVBKGHB5H7LXPKEJBRUX6R2
+#\\\|7BX2QIZESRYBUKMSZ4HBZVDQGI6MAN3ZTTTD2G2V3Y25DILOW57 \ / AMOS7 \ YOURUM ::
+#\[7]GDJDYS7XZRJCM4QL6HGJG4NK5KEC5PODSJMZZQSQAP7CCBRAG6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

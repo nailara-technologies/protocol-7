@@ -137,3 +137,9 @@ all can be added to the yaml conventions file and referenced in llm prompts for 
 ## related documents
 
 see `data/yaml/code-style/CONVENTIONS.yaml` for concise reference of all style conventions.
+
+#,,.,,..,,,,.,.,.,,,,,,,,,,.,,,,,,,..,..,,,,,,..,,...,...,,..,.,,,.,,,.,.,,.,,
+#DO6HY4O62YHSL7GA22O4EISQQ7P2DODATYLRHUFG4ZH42HWMGS2GLBFDCSH4E2HHQ4H33X4JFG7JQ
+#\\\|4CKMCD7ODODTC2KDV77HJ5QJ3MGHFRKPXKUF3UESHXKFJMFGUUK \ / AMOS7 \ YOURUM ::
+#\[7]OPSE6KDGN7H2PPQ7OD4KXGBKEGFKLQJZPXMRBNIFZYPK67G3ZADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

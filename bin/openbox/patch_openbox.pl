@@ -93,3 +93,8 @@ die "\n[!] installation failed (target binary not found) [!]\n\n"
 
 print "\n:\n: (openbox) INSTALLATION SUCCESSFUL! :)\n.\n\n";
 
+#,,,,,,,.,.,.,.,,,,.,,,.,,,..,,,.,,.,,,,,,.,.,..,,...,.,.,...,..,,.,.,.,,,.,.,
+#HHSSTD5SYMPK347FFZOETKFMTCXCDFFYNGFI662UETE36UEXQZIOLXWWQ3EWIXHZSWBMERYQWHKQ4
+#\\\|PP5LE42BAWX42IC6TC2I7PL6RN3CHE6J5WHCEYHLDUNEU46UTVR \ / AMOS7 \ YOURUM ::
+#\[7]4PYQQDHNVKVSO4XAPFJYKD7LXOXRB45CTVZC33GGCIT3VTBCFWAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

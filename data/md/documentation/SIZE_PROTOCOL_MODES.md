@@ -255,3 +255,9 @@ if ( $next_hop->{'strm_size_support'} ) {
 - Timer callback: `modules/base.callback.reset_strm_size_timer`
 - Message templates: `modules/protocol.protocol-7.message-templates`
 - p7 Client source: `bin/c_src/p7.c`
+
+#,,,.,.,,,,.,,,..,.,,,,,.,,,.,,..,..,,.,.,...,..,,...,..,,.,,,,..,,..,...,,..,
+#TLNELSCO3ZY4TCN2NCCYFQLO2NJK5ZWXJAU3GAYECQIUN6TC34QR47PLUGG7C5SPOBIN5MZLAWU2U
+#\\\|PJ2DFCLLSQDL3HL53RVT2L46UDH4HTAYMU7CM3IYLQVXGYQONTW \ / AMOS7 \ YOURUM ::
+#\[7]FRN66J7VCN7GYLKT3ZZGB4LXACQVVIUDWP26LHWYLMVRCSCE6QDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

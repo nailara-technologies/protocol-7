@@ -162,3 +162,9 @@ Build scripts are version-locked to specific compiler and CUDA versions for repr
 - `configuration/zenki/coding/start` - Coding zenka configuration
 - `data/yaml/build-instructions/` - Detailed build documentation
 - `/data/source/ik_llama.cpp/` - Source and compiled binaries
+
+#,,,,,.,.,.,.,,..,,,,,,,.,.,.,,..,...,...,.,,,..,,...,...,.,.,.,,,...,..,,.,.,
+#EQGLWWBPOH66NGG72FH4BAPCLYHLTWGL4WNJZVE424D7WNOGHJRUL4GCWBO3MU67LWK4EG2VIKEM2
+#\\\|SL5S4JKGS7UEGJHAOGFTRUURTGPLL7IJMPDMKG5346BLDVHAVWC \ / AMOS7 \ YOURUM ::
+#\[7]SLHI7ROGHEOG3SOLDPWIDCZEWRMQPDK4WEOZ5ROECMLLOTL6HCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
