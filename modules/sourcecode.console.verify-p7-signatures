@@ -106,7 +106,8 @@ foreach my $path_rel (@source_paths) {
     # Check if signature exists
     if ( not $footer_data->{'was-present'} ) {
         <[base.logs]>->(
-            0, ':E: no signature present :: %s',
+            0,
+            ':E: no signature present :: %s',
             <[base.parser.ellipse_center]>->( $path_rel, 44 )
         );
         $invalid_count++;
@@ -117,7 +118,8 @@ foreach my $path_rel (@source_paths) {
     if ( not $footer_data->{'structure-was-valid'} ) {
         my $footer_error = $footer_data->{'encountered-error'};
         <[base.logs]>->(
-            0, ':E: invalid signature structure :: %s',
+            0,
+            ':E: invalid signature structure :: %s',
             <[base.parser.ellipse_center]>->( $path_rel, 44 )
         );
         $invalid_count++;
@@ -202,9 +204,11 @@ foreach my $path_rel (@source_paths) {
             $colors{'B01'}, $valid_count, $colors{'reset'}
             if <system.verbosity.console> == 1;
     } else {
+        <[base.log]>->( 0, qw| : | ) if $invalid_count == 0;
         $invalid_count++;
         <[base.logs]>->(
-            0, ':E: signature validation failed :: %s',
+            0,
+            ':E: signature validation failed :: %s',
             <[base.parser.ellipse_center]>->( $path_rel, 44 )
         );
 
@@ -238,7 +242,7 @@ foreach my $path_rel (@source_paths) {
 }
 
 # Final summary
-<[base.log]>->( 0, qw| : | );
+<[base.log]>->( 0, qw| : | ) if $invalid_count;
 
 # Count repaired and reconstructed files - we don't need to re-read files as we already track this
 my $repaired_count      = 0;
@@ -287,8 +291,8 @@ if ( $verify_mode eq 'repair' ) {
 # Exit with count of invalid signatures (0 = success)
 <[base.exit]>->( sprintf( '%04d', $invalid_count ) );
 
-#,,.,,,,.,..,,.,,,,,.,,,,,.,,,,..,,,,,,.,,...,..,,...,...,.,.,,,.,.,.,,,,,...,
-#L4IJC27FW6CN6T5O4J2B6QXTQACMEX6ZX4KLFIY2BKYBEAD2D2B57ZNZLCPUJHMOR4ZYFPMECZ7FM
-#\\\|Y53YWUMDND2YQLDSI6J4HY5RGDZSMOZJ55FI6G2ZNSWDKF743LI \ / AMOS7 \ YOURUM ::
-#\[7]HYDAHLWOTU6FCZB6A6ARSPYBJEGMCX5QTSP4IYI5QGWTTSTMPEAA 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,..,,,.,,.,,.,,,..,,.,,,.,.,,..,..,,...,...,,,,,,,,,..,,,..,..,,
+#N7PR5IQBTXGZQCT6YUUVH6IES6DBZQYGQ57B2RTCTCETL4LOL4P7RF37ODOPUVVPNZIENCCOFUIYO
+#\\\|6G6IPHTZNOH3HUBCZY2V6NGY4KMWVKCIXI4EBRRCFWHR7SBBROR \ / AMOS7 \ YOURUM ::
+#\[7]FP3BSASAT3APF3CZU7QSAZ2XBQMVGHCSSTFY7TSJTQE3AU3V3IDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

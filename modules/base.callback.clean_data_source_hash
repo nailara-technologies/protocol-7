@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = base.callback.clean_data_source_hash
+# descr = clean up no-error entries from $data{'code'}
+
+return undef if ref $data{'code'} ne qw| HASH |;
+my $cleaned_count = 0;
+foreach my $sub_name ( keys $data{'code'}->%* ) {
+    my $code_status = $data{'code'}->{$sub_name}->{'status'};
+    next if not defined $code_status;
+    if ( $code_status eq qw| no-error | ) {
+        delete $data{'code'}->{$sub_name};
+        $cleaned_count++;
+    } elsif ( $code_status eq qw| undefined |
+        and defined $data{'code'}->{$sub_name}->{'moved_to'} ) {
+        delete $data{'code'}->{$sub_name}->{'status'};
+        $cleaned_count++;
+    }
+}
+
+if ($cleaned_count) {    ## log when done something ##
+    <[base.logs]>->( 2, '::[cleaned:data.source:items:%d]', $cleaned_count );
+    <base.watcher.clean_data_code>->cancel   ## clean up any left-over watcher
+        if defined <base.watcher.clean_data_code>
+        and <base.watcher.clean_data_code>->is_active;
+    delete <base.watcher.clean_data_code>;
+}
+
+return $cleaned_count;
+
+#,,.,,,,,,,.,,,,.,,,.,..,,,,.,,..,..,,,.,,.,.,..,,...,...,...,,,,,.,.,,.,,,,.,
+#AOU4IQK6DXLFTU2XC2FDPWDTQO63PZCYHXGB65X2AH5XCLKXE3JI5BCGCG3GPQF4KX2WXSSRGCPVI
+#\\\|VAPLYOSGLLDYGVDMNZIE3QFEU5Y5OZAMF33YI5VCUYIS7EPUA7Z \ / AMOS7 \ YOURUM ::
+#\[7]4NBDPLJYRFFTT7I236RYRLWPJOGGRT4RMT6IXV7GKOCHKPFAE2AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

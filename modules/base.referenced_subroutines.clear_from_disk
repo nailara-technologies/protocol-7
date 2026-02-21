@@ -8,7 +8,7 @@ return -1 if not $clean_found;    ## keep them ##
 my $report_not_cleared_names = qw| yes |;
 
 my $removed = 0;
-return $removed
+goto SKIP_TO_RETURN
     if ref <base.subroutines.referenced> ne qw| HASH |
     or not keys <base.subroutines.referenced>->%*;
 
@@ -38,7 +38,7 @@ if ( @remaining_files == 0 ) {
     <[base.clean_hashref]>->(<base.subroutines>);
     delete $data{'base'}{'subroutines'}
         if not keys <base.subroutines>->%*;
-    return $removed;    ## return number or cleared entries ##
+    goto SKIP_TO_RETURN;    ## return number or cleared entries ##
 } else {
     <[base.logs]>->(
         $log_level,
@@ -179,10 +179,27 @@ if ( $clean_found and <[base.cfg_bool]>->($report_not_cleared_names) ) {
 
 }
 
+SKIP_TO_RETURN:    ## early return + set up clean-up timer ##
+
+## prepare aut0-clean-up of $data{'source'}{*}{'status'} = no-error
+if ( not exists $data{'buffer'}->{'compile-errors'} ) {
+    my $strt_delay = 17;
+    my $rnd_offset = 13;
+    $rnd_offset    ## randomize timer delay ##
+        = <[base.perlmod.loaded]>->('Crypt::PRNG::Fortuna')
+        ? Crypt::PRNG::Fortuna::rand($rnd_offset)
+        : CORE::rand($rnd_offset);
+    <base.watcher.clean_data_code> = <[event.add_timer]>->(
+        {   'after'   => $strt_delay + sprintf( qw| %.4f |, $rnd_offset ),
+            'handler' => qw| base.callback.clean_data_source_hash |
+        }
+    );
+}
+
 return $removed;    ## return number or cleared entries ##
 
-#,,,,,,,,,,,.,,,.,,..,..,,,,.,,,,,,,.,,,.,.,,,..,,...,...,.,,,,.,,...,.,,,,,.,
-#MLQCX7XTYSRTUDH3ZQYS2K4TH7ZKVFYK56MAJI2C6MQKNT6S5JSVNBM3WFPJB3WHWPKP2JBU43SKS
-#\\\|6YBCM4T5I5ZUCPTQRM5U24FURW3UDOANVD7EVFMCNZH2SY6CB6L \ / AMOS7 \ YOURUM ::
-#\[7]IP477U7AA5PUAYPG7DT6KKYS7UQ473UHEWL2MMEHMTYIBGQYH4DY 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,.,,,..,,..,,..,,...,.,,,..,,..,,..,,...,...,.,.,.,,,..,,.,.,,..,
+#OUO6RZPFTHABYZLKHQYBTM4D565DASDTF7STUUECI6IFPETDRJHLM74XWAYEJ5DC75C6YSWYMFKJY
+#\\\|YQHJNWCRWCSRWUC3QOMCDULTUOC5BIAPZJDNW6X4SGX265EKQQ6 \ / AMOS7 \ YOURUM ::
+#\[7]J4JP4QYV5JN7PBC5JMRQM22XVOKS2GKB5TQCHNILAZXAUQQOMWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
