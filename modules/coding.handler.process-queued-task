@@ -4,30 +4,56 @@
 # descr = dequeue and execute a coding task via inference
 # purpose = Event handler to process tasks from job queue after deferred reply
 
-# Extract meta_id from event data
-# (timer/var event handler receives event object)
-my $event   = $_[0];
-my $meta_id = $event->w->data if defined $event && ref $event;
+## hybrid mode: called from event loop OR jobqueue callback ##
+my $input = $_[0];
+my ( $task_id, $meta_id );
 
-unless ( defined $meta_id && length $meta_id ) {
-    <[base.logs]>->( 0, "[process-queued-task] meta_id required" );
-    return FALSE;
-}
+## detect calling context ##
+if ( defined $input && ref($input) && ref($input) =~ m{Event::} ) {
 
-my $meta_job = <coding.complete_analysis_jobs>->{$meta_id};
+    ## called from event loop (complete-analysis) ##
+    my $event = $input;
+    $meta_id = $event->w->data;
 
-unless ( defined $meta_job ) {
+    unless ( defined $meta_id && length $meta_id ) {
+        <[base.logs]>->( 0, "[process-queued-task] meta_id required" );
+        return { success => FALSE, error => 'meta_id required' };
+    }
+
+    my $meta_job = <coding.complete_analysis_jobs>->{$meta_id};
+
+    unless ( defined $meta_job ) {
+        <[base.logs]>->(
+            0, "[process-queued-task] meta-job not found: %s", $meta_id
+        );
+        return { success => FALSE, error => "meta-job not found: $meta_id" };
+    }
+
+    $task_id = $meta_job->{'task_id'};
+} elsif ( ref($input) eq 'HASH' && ref( $input->{'params'} ) eq 'HASH' ) {
+
+    ## called from jobqueue callback (coding.task.execute) ##
+    $task_id = $input->{'params'}->{'task_id'};
+    $meta_id = undef;    ## no meta-job for direct queue submit ##
+
+    unless ( defined $task_id ) {
+        <[base.logs]>->(
+            0, "[process-queued-task] task_id required in jobqueue mode"
+        );
+        return { success => FALSE, error => 'task_id required' };
+    }
+} else {
     <[base.logs]>->(
-        0, "[process-queued-task] meta-job not found: %s", $meta_id
+        0,
+        "[process-queued-task] unexpected input type: %s",
+        ref($input) || 'undef'
     );
-    return FALSE;
+    return { success => FALSE, error => 'unexpected input type' };
 }
-
-my $task_id = $meta_job->{'task_id'};
 
 <[base.logs]>->(
-    1,        "[process-queued-task] processing task=%s (meta=%s)",
-    $task_id, $meta_id
+    2,        "[process-queued-task] processing task=%s (meta=%s)",
+    $task_id, $meta_id // 'none'
 );
 
 # Get the task from queue
@@ -36,7 +62,7 @@ my $task = <coding.task.queue>->{$task_id};
 unless ( defined $task ) {
     <[base.logs]>
         ->( 0, "[process-queued-task] task not found: %s", $task_id );
-    return FALSE;
+    return { success => FALSE, error => "task not found: $task_id" };
 }
 
 # Get inference configuration
@@ -68,9 +94,9 @@ if ( !$inference_result->{success} ) {
 }
 
 # Get inference configuration (model_id already defined above)
-my $max_tokens     = $data{'inference.model.max_tokens'}  // 256;
-my $temperature    = $data{'inference.model.temperature'} // 0.7;
-my $inference_port = $data{'inference.gpu_port'}          // 8002;
+my $max_tokens     = <inference.model.max_tokens>  // 256;
+my $temperature    = <inference.model.temperature> // 0.7;
+my $inference_port = <inference.gpu_port>          // 8000;
 
 <[base.logs]>->(
     1, "[process-queued-task] using model=%s max_tokens=%d temp=%f port=%d",
@@ -109,7 +135,15 @@ eval {
     );
 
     if ( $http_response->is_success ) {
-        my $result = $json->decode( $http_response->content );
+        my $result = eval { $json->decode( $http_response->content ) };
+
+        if ($@) {
+            return {
+                success => FALSE,
+                error   => "JSON decode error: $@",
+                task_id => $task_id
+            };
+        }
 
         if ( ref($result) eq 'HASH' && $result->{choices} ) {
             $response_text = $result->{choices}->[0]->{message}->{content}
@@ -121,10 +155,11 @@ eval {
                 length($response_text)
             );
         } else {
-            $response_text = $http_response->content;
-            <[base.logs]>->(
-                1, "[process-queued-task] unexpected response format"
-            );
+            return {
+                success => FALSE,
+                error   => 'unexpected response format',
+                task_id => $task_id
+            };
         }
     } else {
         <[base.logs]>->(
@@ -132,29 +167,32 @@ eval {
             "[process-queued-task] HTTP error: %s",
             $http_response->status_line
         );
-        $response_text = "[Error: " . $http_response->status_line . "]";
+        return {
+            success => FALSE,
+            error   => $http_response->status_line,
+            task_id => $task_id
+        };
     }
 };
 
 if ($@) {
     <[base.logs]>->( 0, "[process-queued-task] inference error : %s", $@ );
-    $response_text = "[Error: $@]";
+    return {
+        success => FALSE,
+        error   => $@,
+        task_id => $task_id
+    };
 }
 
-# Use real response from inference, or error message
-my $final_response = $response_text // "[Error: No response from inference]";
+## return result hashref for jobqueue callback ##
+return {
+    success => TRUE,
+    result  => $response_text,
+    task_id => $task_id
+};
 
-<[base.logs]>->(
-    1, "[process-queued-task] marking task complete with inference response"
-);
-
-# Mark task as complete
-<[coding.task.complete]>->( $task_id, $final_response );
-
-return TRUE;
-
-#,,,.,.,.,,,,,...,,.,,,,.,..,,...,,,,,...,,..,..,,...,...,..,,...,..,,,.,,.,.,
-#7QJ4BSRMO33ICKABDTJCHQLXDKLCZGYKZDS2LQ54LQYTTHHAYDDPTVXREREDDANARDI6QLWABNEZK
-#\\\|VVGFV2CRC6ZDX6WZ37PKZOUMRYPNUKBPAC4C7UHATUZ52F4VRBW \ / AMOS7 \ YOURUM ::
-#\[7]TGSPHLAXVXGYBS4WL6R4O76CIIP6LWTKQ5TMH7BFTMONOC6S4IAQ 7  DATA SIGNATURE ::
+#,,,,,.,.,...,.,.,.,.,,.,,..,,,,,,.,.,,.,,.,,,..,,...,...,.,.,..,,..,,.,,,.,.,
+#GM333CI3KAELBIPPCZ4ZQFCTIFCRHO7ZZQ7X3OD656ZCI2U6JCQPAR57BZ47ZKW3QXQTZEXRRFYT4
+#\\\|TKWOMZCQQEWIXLXXO3NGLMGIKWSYDSKVZR2G2BAYZ4OVRCBDVUU \ / AMOS7 \ YOURUM ::
+#\[7]ZUCFV7IVZGDXTZV3LFL3HY2QUEHRKYQ4KFCSXTSG54ILYK5TN6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

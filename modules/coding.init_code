@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name  = coding.init_code
-# descr = initialize coding zenka state, task queue, budget, and event handlers
+# descr = initialize coding zenka state, task queue, budget,
+#         and event handlers
 # purpose = Foundation: Set up all internal data structures for orchestration
 
 my $reinit = shift // TRUE;   ### provided by 'base.init_modules' [TRUE|FALSE]
@@ -120,12 +121,43 @@ if ( not <coding.state.initialized> ) {
 ## - coding.event.on_task_fail
 ## these are registered in the code registry when loaded
 
+## set up dependency tracking for inference server readiness ##
+<[dependency.install_callbacks]>->('coding');
+
+## create dependency objects for inference server ports ##
+my $gpu_port = <inference.backend.gpu.port> // 8000;
+my $cpu_port = <inference.backend.cpu.port> // 8001;
+
+<coding.dep.gpu_server> = <[dependency.add_object]>->(
+    {   'type'    => 'inference_server',
+        'port'    => $gpu_port,
+        'backend' => 'gpu'
+    }
+);
+
+<coding.dep.cpu_server> = <[dependency.add_object]>->(
+    {   'type'    => 'inference_server',
+        'port'    => $cpu_port,
+        'backend' => 'cpu'
+    }
+);
+
+## add self-chains so dependency.ok actually calls our callback ##
+<[dependency.add]>->( <coding.dep.gpu_server>, <coding.dep.gpu_server> );
+<[dependency.add]>->( <coding.dep.cpu_server>, <coding.dep.cpu_server> );
+
+<[base.logs]>->(
+    2,                       "inference server deps: gpu=%s cpu=%s",
+    <coding.dep.gpu_server>, <coding.dep.cpu_server>
+);
+
 ## register with event system
 <watcher_list.coding.task_processor> //= TRUE;
 
 <coding.state.initialized> = TRUE;
 
-## fetch fresh model discovery from models zenka [ dependency guarantees it online ]
+## fetch fresh model discovery from models zenka
+## [ dependency guarantees it online ]
 ## fire once after init completes to not block init itself
 if ( not $already_initialized ) {
     <[event.add_timer]>->(
@@ -136,7 +168,8 @@ if ( not $already_initialized ) {
         }
     );
 
-    ## poll system memory stats periodically [ for spawn decisions and routing ]
+    ## poll system memory stats periodically
+## [ for spawn decisions and routing ]
     <[event.add_timer]>->(
         {   'after'   => 2.0,
             'repeat'  => FALSE,
@@ -156,8 +189,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,,.,,..,,.,,..,,,..,,.,,,,.,,,,,,,.,,,,,.,,,..,,...,...,..,,,,.,.,,,,..,,,.,
-#37TCUS5IV7YWQSDEXFXI2VYNCUZZWWL5P3MPTUZWMF3ANQWTQBJSPY6ZSH3FM3UQK7FNNH6UXVMG4
-#\\\|2Q3DP3AFZX73HJ4GJS7KDDX3N5WU7QDMZQRZPOVBE75QP6HLDZM \ / AMOS7 \ YOURUM ::
-#\[7]MADRKWEDEJO65IIT6RM4J75WJZMW2QS6GJPIGNKCM2Z2QHX7IYCA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,,,,,,,,...,.,,,..,,,,,,,,,,..,,..,,...,.,.,...,,.,,,..,,,,,.,.,
+#Q5WMERO6BF5KNITD4POCHNYDAZYB5MEVXJTACXG3DPTEB4TVHYRWJW6DBIGJ6YIUVIBAXT2MOOHZ2
+#\\\|GNMVIKIQUBMCQPFNYAWQXWBVNAQZWH2T676UZT3EURJW544MYOL \ / AMOS7 \ YOURUM ::
+#\[7]C5BAZZVYCIVN2LJX57EXXP7MWICWRP7JTJJHGTA5SRX33WZIDOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

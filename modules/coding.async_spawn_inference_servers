@@ -2,7 +2,8 @@
 
 # name  = coding.async_spawn_inference_servers
 # descr = asynchronously spawn inference servers at startup
-# purpose = Start GPU and CPU inference servers without blocking zenka initialization
+# purpose = Start GPU and CPU inference servers without blocking zenka
+#           initialization
 
 <[base.logs]>->( 1, ": starting inference servers asynchronously" );
 
@@ -10,7 +11,8 @@
 my $mem_pct = <coding.system_mem_pct> // 0;
 <[base.logs]>->( 2, ": system memory usage :. %.2f%% used", $mem_pct );
 
-## abort if memory critically constrained [ system will kill largest consumer at limit ]
+## abort if memory critically constrained
+## [ system will kill largest consumer at limit ]
 if ( $mem_pct >= 90 ) {
     <[base.logs]>->(
         0, ": system memory at %.2f%% - skipping inference server spawn",
@@ -39,7 +41,7 @@ unless ( defined $model_path && length $model_path ) {
 
 # Spawn GPU server if enabled
 if ( $spawn_params->{'gpu_enabled'} ) {
-    my $gpu_port   = 8002;
+    my $gpu_port   = <inference.backend.gpu.port>    // 8000;
     my $gpu_model  = $spawn_params->{'gpu_model_id'} // qw|gemma3-glitter-4b|;
     my $gpu_binary = $spawn_params->{'gpu_binary'}
         // '/data/source/ik_llama.cpp/llama-server-cuda-fa';
@@ -65,8 +67,8 @@ if ( $spawn_params->{'gpu_enabled'} ) {
             1, ": GPU server spawned [pid=%d] - monitoring startup",
             $gpu_result->{'pid'}
         );
-        $data{'inference.gpu_port'} = $gpu_port;
-        $data{'inference.gpu_pid'}  = $gpu_result->{'pid'};
+        <inference.gpu_port> = $gpu_port;
+        <inference.gpu_pid>  = $gpu_result->{'pid'};
     } else {
         <[base.logs]>->(
             0, 'GPU server spawn failed : %s',
@@ -83,8 +85,8 @@ if ( $spawn_params->{'gpu_enabled'} ) {
 
 return TRUE;
 
-#,,..,,,.,.,.,.,,,.,.,..,,...,,,.,,,.,.,.,,,.,..,,...,...,,,,,,,.,.,,,..,,.,.,
-#JK2CKNR24KI3JBIFFCHXXPIO26ZCDRG6HOEN6BFWDUTZVY7NZ2Q2OBOPJVVXTWJYR2TWOY6C6SALA
-#\\\|BTQEIYK63JP4FE65MYDW6DFHTVE7UKDGTZLLRBR6OJSDNOD2ZHF \ / AMOS7 \ YOURUM ::
-#\[7]VTFMMJWMSAR2ZI24JRLFKSP25SC72HR75FVTQLFIA5P2JLMU22DY 7  DATA SIGNATURE ::
+#,,,,,..,,,..,...,.,,,,.,,.,.,...,,,,,,..,.,.,..,,...,..,,.,.,,.,,.,.,,,,,,.,,
+#ZNHTCX6KR56F7PV4WKUUPQ36S26SHJSGVH3G4JNS76EQCJATTCYGUXVU2QBIBTK7YFAUKLS6MA5ZI
+#\\\|VNDQ6LE62ZCEFNOE2A7Z2PRQBUMNGEM4XIQUH7B6NB35LI7UQIM \ / AMOS7 \ YOURUM ::
+#\[7]RRRN54KUP5BS6OHU2KX5CXPX5FM4JAMU4PJ3EGAOVXA5WZIVAQAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

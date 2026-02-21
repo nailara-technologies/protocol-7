@@ -13,7 +13,7 @@ my $gpu_layers = $params->{'gpu_layers'} // 33;
 my $model_path = $params->{'model_path'} // '';
 
 <[base.logs]>->(
-    1, "[spawn_inference_server] backend=%s port=%d",
+    1,        "[spawn_inference_server] backend=%s port=%d",
     $backend, $port
 );
 if ( length($model_path) ) {
@@ -37,7 +37,7 @@ if ( length($model_path) && !-f $model_path ) {
 }
 
 ## Build llama-server command
-my @cmd = ( $binary, '-p', $port, qw|  --host  127.0.0.1  | );
+my @cmd = ( $binary, '--port', $port, qw|  --host  127.0.0.1  | );
 
 # Add model path if provided
 push @cmd, '-m', $model_path if length($model_path);
@@ -131,8 +131,8 @@ return {
     'port'    => $port
 };
 
-#,,.,,,,,,,,.,...,,,.,,,.,,..,,,.,...,,,.,.,,,..,,...,...,...,.,,,,..,,..,,,,,
-#IVYAVKFEYH467CZBUSFY77T254FQE44EZW7O3Q5LX5H5NHDAOL6IEDGHX72X4VPCVGEOE43DVDN4W
-#\\\|NRVIPQIYJNWCXPVFEUCQDK5ZABFDUIEWU7HWXCEEJKCIQKFH4QI \ / AMOS7 \ YOURUM ::
-#\[7]TE3X6JPAD4OIJCXAP7BA5ZGNQ62A4AAI6CYGJ7KSVERKOW6KEMCA 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,...,,..,,,,,,..,..,,,.,,,,.,.,.,..,,...,...,..,,.,.,,,.,.,,,.,.,
+#QTPKRNE6LU3CDK6PYI2L2RXL35ZTZVUL5EQF5Q3RXVFA6B2PLEJ45JQPAQ47HYM5JIDXRIURMH2LQ
+#\\\|2RYFWC4VT6KYK3HSNEGFJDPJE7JD7TJI7EJIP3LTY4ERSPUUUKX \ / AMOS7 \ YOURUM ::
+#\[7]INKXKI466ZR5UIM5JNCKEGLVDZO3ZDGNT4VJRBXFTKE44NQ3QIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

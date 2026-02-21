@@ -1,0 +1,240 @@
+---
+# Session: 2026-02-21 Coding Zenka - Task Queue & Inference System
+# Status: IMPLEMENTATION COMPLETE - Task queue with deferred replies working
+# Purpose: Document the hybrid task queue system with dependency-based execution
+
+date: "2026-02-21"
+session_id: "coding-zenka-task-queue-implementation"
+status: "COMPLETE"
+
+## ---------------------------------------------------------------------------
+## OVERVIEW: What Was Built
+## ---------------------------------------------------------------------------
+
+summary: |
+  Implemented a complete task queue system for the coding zenka that:
+
+  1. QUEUES tasks via dual-queue architecture (coding queue + jobqueue)
+  2. WAITS for inference server readiness via HTTP health checks
+  3. EXECUTES tasks automatically when server is ready
+  4. RETURNS results via deferred reply mechanism
+  5. TRACKS job lifecycle (queued → depending → running → completed/error)
+
+## ---------------------------------------------------------------------------
+## ARCHITECTURE: Hybrid Queue System
+## ---------------------------------------------------------------------------
+
+hybrid_queue_design:
+  coding_task_queue:
+    purpose: "Rich task metadata, duplicate detection, result storage"
+    storage: "<coding.task.queue> hashref"
+    tracks: [task_id, type, complexity, routing, execution_status, result]
+
+  jobqueue_backend:
+    purpose: "Auto-execution with dependency tracking"
+    storage: "<jobqueue.joblist> priority queues"
+    tracks: [job_id, object_id, priority, status, callback]
+
+  relationship: |
+    Task submitted → Added to both queues
+    jobqueue handles: priority, dependencies, auto-execution
+    coding queue handles: rich metadata, result storage, retrieval
+
+## ---------------------------------------------------------------------------
+## DEPENDENCY SYSTEM: Inference Server Readiness
+## ---------------------------------------------------------------------------
+
+dependency_checking:
+  inference_server_object:
+    type: "inference_server"
+    properties: [port, backend (gpu/cpu)]
+    created_in: "coding.init_code"
+
+  dependency_chain:
+    mechanism: "Self-referential chain triggers callback"
+    setup: "<[dependency.add]>->(gpu_obj, gpu_obj)"
+
+  readiness_check:
+    callback: "coding.callback.object.inference_server"
+    checks:
+      - "Port listening (ss -tlnp)"
+      - "Socket connectable (IO::Socket::INET)"
+      - "HTTP endpoint responding (/health)"
+
+  trigger_on_ready: |
+    monitor_startup detects "listening on" →
+    <[jobqueue.check_dependencies]>->() →
+    Jobs move from 'depending' to 'queued'
+
+## ---------------------------------------------------------------------------
+## COMMAND INTERFACE
+## ---------------------------------------------------------------------------
+
+commands:
+  coding_submit:
+    syntax: 'coding submit "your prompt here"'
+    mode: "fire-and-forget"
+    returns: "task_id|type|complexity|routing|tokens"
+    use_case: "Background task execution"
+
+  coding_ask_reply:
+    syntax: 'coding ask-reply "your prompt here"'
+    mode: "deferred reply"
+    returns_immediately: "{ mode => 'deferred' }"
+    returns_later: "{ mode => 'true'|'size', data => $result }"
+    use_case: "Blocking-style request, async implementation"
+
+  coding_get_result:
+    syntax: 'coding get-result <task_id>'
+    mode: "immediate"
+    returns: "Result or status based on task state"
+    use_case: "Fetch result of existing task"
+
+  coding_complete_analysis:
+    syntax: 'coding complete-analysis "your prompt"'
+    mode: "deferred with auto-resume"
+    use_case: "Long-form content with continuation detection"
+
+## ---------------------------------------------------------------------------
+## MODULES CREATED/MODIFIED
+## ---------------------------------------------------------------------------
+
+modules:
+  # Core task management
+  coding_task_enqueue:
+    purpose: "Bridge coding queue to jobqueue"
+    creates: [coding.task.queue entry, jobqueue job]
+    assigns: "object_id for dependency tracking"
+
+  coding_task_execute:
+    purpose: "Jobqueue callback for task execution"
+    checks: "HTTP server readiness (fail-safe)"
+    calls: "coding.handler.process-queued-task"
+    on_success: "moves job to 'completed', marks task complete"
+    on_error: "moves job to 'error', marks task failed"
+
+  coding_handler_process_queued_task:
+    purpose: "Execute inference via HTTP"
+    input_modes: [event_loop, jobqueue_callback]
+    calls: "llama-server HTTP endpoint"
+    returns: "{ success => 1/0, result => $text, error => $msg }"
+
+  # Deferred reply system
+  coding_cmd_ask_reply:
+    purpose: "Submit task with deferred reply"
+    creates: "deferred reply entry"
+    returns: "{ mode => 'deferred' }"
+
+  coding_handler_deferred_reply:
+    purpose: "Send reply when task completes"
+    triggered_by: "coding.event.on_task_complete"
+    reply_modes: "'true' (single-line) or 'size' (multi-line)"
+
+  coding_cmd_get_result:
+    purpose: "Fetch result of completed task"
+    returns: "Result based on task execution status"
+
+  # Dependency infrastructure
+  coding_callback_object_inference_server:
+    purpose: "Check if inference server is HTTP-ready"
+    levels: [port_check, socket_check, http_health_check]
+
+  coding_handler_monitor_inference_startup:
+    purpose: "Monitor llama-server startup output"
+    triggers: "jobqueue.check_dependencies on 'listening on'"
+
+  coding_init_code:
+    modified: "Added dependency objects and self-chains"
+
+## ---------------------------------------------------------------------------
+## EXECUTION FLOW
+## ---------------------------------------------------------------------------
+
+execution_flow: |
+  1. SUBMIT
+     User: coding ask-reply "prompt"
+     → coding.task.enqueue creates dual queue entries
+     → Job starts in 'queued' with object_id dependency
+
+  2. DEPENDENCY CHECK (queue_counter)
+     → dependency.ok(object_id) → callback checks HTTP
+     → Not ready → job moved to 'depending'
+
+  3. SERVER STARTUP
+     → llama-server starts, outputs "listening on"
+     → monitor_startup triggers check_dependencies
+
+  4. DEPENDENCY RESOLVED
+     → HTTP health check passes
+     → Job moved from 'depending' to 'queued'
+
+  5. EXECUTION
+     → queue_counter moves job to 'running'
+     → coding.task.execute called
+     → process-queued-task sends HTTP request
+     → Result stored in task.execution.result
+
+  6. COMPLETION
+     → Job moved to 'completed'
+     → coding.task.complete updates status
+     → on_task_complete triggers deferred reply
+     → Deferred reply sent to waiting client
+
+## ---------------------------------------------------------------------------
+## KEY DESIGN DECISIONS
+## ---------------------------------------------------------------------------
+
+design_decisions:
+  http_over_port_check: |
+    Originally checked if port was open, but llama-server opens port
+    before HTTP handlers are ready. Now checks /health endpoint.
+
+  dual_queue_approach: |
+    jobqueue provides priority + auto-execution
+    coding queue provides rich metadata + result persistence
+    Both work together via shared task_id
+
+  deferred_reply_pattern: |
+    Uses Protocol-7's built-in reply_id mechanism
+    Allows async execution with blocking-style client experience
+
+  single_vs_multiline_replies: |
+    'true' mode for single-line (no internal newlines)
+    'size' mode for multi-line (has internal newlines)
+    Protocol-7 client displays appropriately
+
+## ---------------------------------------------------------------------------
+## TESTING RESULTS
+## ---------------------------------------------------------------------------
+
+testing: |
+  Verified working:
+
+  [taeki] /data/projects/protocol-7 :. :: coding.ask-reply 'Hi, can you read this message?'
+  Yes, I can read this message.
+
+  Task queue behavior:
+  - Task submitted → queued
+  - Server not ready → moved to depending
+  - Server ready → moved to queued → running → completed
+  - Deferred reply sent with result
+
+## ---------------------------------------------------------------------------
+## NEXT STEPS / FUTURE ENHANCEMENTS
+## ---------------------------------------------------------------------------
+
+future_work:
+  - "Multiple inference backend support (CPU/GPU failover)"
+  - "Task result persistence to disk"
+  - "Batch job submission"
+  - "Task cancellation while queued/running"
+  - "Result caching for duplicate prompts"
+  - "Consensus voting across multiple models"
+  - "Token budget enforcement"
+  - "Learning from success/failure patterns"
+
+#,,.,,..,,.,,,,,,,,..,..,,..,,,,,,...,...,,,.,..,,...,...,.,,,,,,,.,.,..,,.,.,
+#62G6INBRRVZSCA6RMMAZBLTHFESX25IJXAGPKUHIIITWG6ITXKLBYVR6UKIUGAOIKI7FOUX762L3C
+#\\\|WAC26ANZ5N4NNRGWECOZBVSBLIBZ3EOH2YX4AKFEMPANWTY2WSA \ / AMOS7 \ YOURUM ::
+#\[7]Y43MI5EWX2ZIDPNJ24GXHTK3WG7NJK67PE4OSZAUPEIOWGZ5QKAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
