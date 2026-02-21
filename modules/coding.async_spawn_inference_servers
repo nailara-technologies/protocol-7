@@ -6,6 +6,19 @@
 
 <[base.logs]>->( 1, ": starting inference servers asynchronously" );
 
+## check system memory before spawning [ prevents oom conditions ]
+my $mem_pct = <coding.system_mem_pct> // 0;
+<[base.logs]>->( 2, ": system memory usage :. %.2f%% used", $mem_pct );
+
+## abort if memory critically constrained [ system will kill largest consumer at limit ]
+if ( $mem_pct >= 90 ) {
+    <[base.logs]>->(
+        0, ": system memory at %.2f%% - skipping inference server spawn",
+        $mem_pct
+    );
+    return FALSE;
+}
+
 # Get spawn parameters
 my $spawn_params = <coding.spawn_params> // {};
 
@@ -18,15 +31,18 @@ if ( not keys $spawn_params->%* ) {
 my $model_path = <inference.model.path> // undef;
 
 unless ( defined $model_path && length $model_path ) {
-    <[base.logs]>->( 0, ": model path not resolved - cannot spawn inference server" );
+    <[base.logs]>->(
+        0, ": model path not resolved - cannot spawn inference server"
+    );
     return FALSE;
 }
 
 # Spawn GPU server if enabled
 if ( $spawn_params->{'gpu_enabled'} ) {
-    my $gpu_port  = 8002;
-    my $gpu_model = $spawn_params->{'gpu_model_id'} // qw|gemma3-glitter-4b|;
-    my $gpu_binary = $spawn_params->{'gpu_binary'} // '/data/source/ik_llama.cpp/llama-server-cuda-fa';
+    my $gpu_port   = 8002;
+    my $gpu_model  = $spawn_params->{'gpu_model_id'} // qw|gemma3-glitter-4b|;
+    my $gpu_binary = $spawn_params->{'gpu_binary'}
+        // '/data/source/ik_llama.cpp/llama-server-cuda-fa';
     my $gpu_layers = $spawn_params->{'gpu_layers'} // 33;
 
     <[base.logs]>->(
@@ -36,8 +52,7 @@ if ( $spawn_params->{'gpu_enabled'} ) {
 
     # Spawn server asynchronously - don't wait for readiness
     my $gpu_result = <[coding.spawn_inference_server]>->(
-        {
-            'backend'    => 'gpu',
+        {   'backend'    => 'gpu',
             'binary'     => $gpu_binary,
             'port'       => $gpu_port,
             'model_path' => $model_path,
@@ -53,7 +68,10 @@ if ( $spawn_params->{'gpu_enabled'} ) {
         $data{'inference.gpu_port'} = $gpu_port;
         $data{'inference.gpu_pid'}  = $gpu_result->{'pid'};
     } else {
-        <[base.logs]>->( 0, 'GPU server spawn failed : %s', $gpu_result->{error} );
+        <[base.logs]>->(
+            0, 'GPU server spawn failed : %s',
+            $gpu_result->{error}
+        );
         return FALSE;    ## spawning not successful ##
     }
 }
@@ -65,8 +83,8 @@ if ( $spawn_params->{'gpu_enabled'} ) {
 
 return TRUE;
 
-#,,.,,..,,...,,,,,,,.,,..,...,.,.,,,.,...,,,,,..,,...,...,.,,,,..,,.,,.,.,.,.,
-#VAL2BMJK6CUFYKZYBX3XDIY477QPVKN7YT3RJWDE5ZYIN2YZ34ULZMUQGFLC3QM32JEJPBCC3FQAM
-#\\\|SKEUTXP24W4DSIHEHQTGTMH6N5JGGDPJDVQIIJUQK5GBLPWYIBL \ / AMOS7 \ YOURUM ::
-#\[7]7LHL2T6UADFBYY4GBA32LUMRY2PJGDVA5UNUNGUEMJM2LDGXXCAQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,.,,,.,.,..,,...,,,.,,,.,.,.,,,.,..,,...,...,,,,,,,.,.,,,..,,.,.,
+#JK2CKNR24KI3JBIFFCHXXPIO26ZCDRG6HOEN6BFWDUTZVY7NZ2Q2OBOPJVVXTWJYR2TWOY6C6SALA
+#\\\|BTQEIYK63JP4FE65MYDW6DFHTVE7UKDGTZLLRBR6OJSDNOD2ZHF \ / AMOS7 \ YOURUM ::
+#\[7]VTFMMJWMSAR2ZI24JRLFKSP25SC72HR75FVTQLFIA5P2JLMU22DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

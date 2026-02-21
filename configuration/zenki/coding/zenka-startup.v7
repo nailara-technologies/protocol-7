@@ -3,8 +3,11 @@
 # name  = zenka-startup.v7
 # descr = 'coding' zenka startup configuration used by 'v7' zenka
 
-dependencies    = cube models
-max_concurrency = 1
+dependencies       = cube models
+start.on-demand    = 1
+restart.disabled   = 1
+heartbeat.disabled = 1
+max_concurrency    = 1
 
 : v7-init :
   start_mode = stdin-zenka
@@ -13,9 +16,10 @@ max_concurrency = 1
 
 : zenka-init :
   [base.auth.set_zenka_key:'<{coding.key}>']
+  [base.zenki.set_ondemand_timeout:3600]
 
-#,,..,...,,,,,,,,,.,.,.,,,,,.,.,,,..,,,,.,,..,..,,...,...,..,,,..,,..,,,,,.,,,
-#LWVVBEPPWFAON3LCHE7IJ2MNZ46MHTCZG4YDDDGQEU5LMVQZNNEST2ZQ35AB3M6D2STYOXCQT756A
-#\\\|WOWPCSZ4M7NQIAKW7G2CAK3LNSLW5B4JXACF5SNAFXTTRRCBFKO \ / AMOS7 \ YOURUM ::
-#\[7]62NZFTOE7IV2A2U6DALZCFYYIYZWHIJO7TK65FN7Z63M3ZVEJIDA 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,,.,,,,,,,,,.,.,.,,,...,.,.,.,.,..,,...,...,.,.,,.,,.,.,.,.,.,,,
+#S64YOTDG36NTMZ4YBFWF5ZWQ6ZJKE5K3SVPEIEOQRU7QACZMVOISDUWEPHKVP6UD3QWIHGFRGOFTG
+#\\\|6ZRVKN4VLS2DWYI5VSEPNKU5464UIEDUTXFXF3M5U33JKQ5X7SR \ / AMOS7 \ YOURUM ::
+#\[7]GGLEDQCZ3YPZHZ4XZASWVACCQIT3OIWOFTR5KOWLGEWPYV4OUADI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

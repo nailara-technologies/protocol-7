@@ -5,10 +5,10 @@
 
 dependencies = cube
 
-## Deployment Options
-#
-start.on_demand = 0
-max_concurrency = 1
+start.on-demand    = 1
+restart.disabled   = 1
+heartbeat.disabled = 1
+max_concurrency    = 1
 
 : v7-init :
   start_mode = stdin-zenka
@@ -17,9 +17,10 @@ max_concurrency = 1
 
 : zenka-init :
   [base.auth.set_zenka_key:'<{models.key}>']
+  [base.zenki.set_ondemand_timeout:1800]
 
-#,,,,,..,,,.,,,.,,...,,..,.,,,,..,,.,,,..,.,.,..,,...,...,..,,,,,,...,,..,,..,
-#IV4SONW2GDNV5X7LOSKMNDYSFWXYO6S7DZCCZXM5YTGAC4WGNR7P4TOV5VDX5YJI6QDUWE25JIQN6
-#\\\|ULD57TGPDEIJKP4J47PXUTJ4H5M4TE4MU2P6K4J4F2PGWMVIME2 \ / AMOS7 \ YOURUM ::
-#\[7]CEXY76FGN7S7SCK4ZXC7LKDQRPCBVYIP4323KW5CUAE2OSAXZICY 7  DATA SIGNATURE ::
+#,,..,,..,,.,,..,,,..,,,.,...,.,.,,.,,,..,.,.,..,,...,...,,.,,..,,,,,,,.,,..,,
+#C2NKY4OUXHLUDYC4REUCZ2J5CTAWMK7EYHT6FXQRQ47RRIQO26TIDD25NGJ5RXDDDNMWAQ75IK5HK
+#\\\|YWQIPD73ABG23PPHQNZD5DN4LGEYF3KUEJPMAJ7PJD233OFHG7W \ / AMOS7 \ YOURUM ::
+#\[7]VRY4O7RUHZP5NDLOKZLS3TO3WFKKKMQ2E2XZYHIAR7WYFFXFXUBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = coding.state.save
+# descr = persist key coding zenka state to disk [ called on state changes ]
+# param = $what - 'budget' | 'all' (optional, defaults to 'all')
+
+my $what = shift // 'all';
+
+## save budget state [ freeze-thaw for arbitrary perl structure ]
+if ( $what eq 'budget' or $what eq 'all' ) {
+    my $budget_href = {
+        'allocated'          => <coding.budget.allocated>    // 12000,
+        'used'               => <coding.budget.used>         // 0,
+        'transactions'       => <coding.budget.transactions> // [],
+        'session_start'      => <coding.budget.session_start>,
+        'warnings_at_levels' => <coding.budget.warnings_at_levels>
+            // [ 0.75, 0.90, 0.95 ],
+    };
+    my $frozen = FreezeThaw::freeze($budget_href);
+    <[file.zenka_dir.write]>->( 'state/budget.b32', \$frozen );
+    <[base.logs]>->(
+        3,
+        'budget state saved :. %d tokens used',
+        $budget_href->{'used'}
+    );
+}
+
+## save routing statistics [ yaml - simple hash ]
+if ( $what eq 'routing' or $what eq 'all' ) {
+    my $stats_href = <coding.routing.stats> // {};
+    my $yaml_str   = eval { YAML::XS::Dump($stats_href) };
+    if ( !$@ ) {
+        <[file.zenka_dir.write]>->( 'state/routing_stats.yaml', \$yaml_str );
+    }
+}
+
+return TRUE;
+
+#,,..,,,.,.,,,,,,,,..,..,,..,,.,.,...,.,.,.,.,..,,...,...,.,.,,,.,,.,,.,.,.,.,
+#IXJ4EZRSOTQWBKNIPE4KZDC5JTA6XM7AXAVG3CYNI7SWNYISYTBDLZQ75MOBQHL7UNJQO7BBWAZZA
+#\\\|4GZ7YMUUKOHQJBURGE6TNN4UJCWXU7CBGZT3L6MTSWMGC6HRGFD \ / AMOS7 \ YOURUM ::
+#\[7]LGFKRDRVZZXINXURKIHUP2MOC6SZIYSZ63SVQQGDKVKIA3WC4EBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

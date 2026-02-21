@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = coding.handler.system_mem_reply
+# descr = handle async response from system.memory.cmd.mem-used, cache memory stats
+
+my $reply    = shift;
+my $data_str = $reply->{'call_args'}->{'data'} // '';
+
+## parse percentage value from response [ format: '42.13%' ]
+if ( $data_str =~ m|^(\d+(?:\.\d+)?)%?$| ) {
+    my $pct = $1 + 0;
+    <coding.system_mem_pct>      = $pct;
+    <coding.system_mem_pct_time> = <[base.time]>->(3);
+    <[base.logs]>->( 3, 'system memory usage cached :. %.2f%% used', $pct );
+} else {
+    <[base.logs]>->( 1, 'unexpected memory stats format :. %s', $data_str );
+}
+
+return TRUE;
+
+#,,,,,,..,,..,.,,,.,,,...,...,,..,,.,,.,.,.,.,..,,...,...,..,,,..,,..,...,...,
+#TNUC5MVTE5MODSK4XOZ3OHDLPV35GJ2ZKJG2K4TIUYNNVVY6V4DHVVCBATILXMLEZABPKRV2U2ULA
+#\\\|KVLGHOPOKGOWFJOT3KRYHJU3D2F5O65WHONFKSEEGEJYES5TBMH \ / AMOS7 \ YOURUM ::
+#\[7]SR6SXQQ6ZZBCRSNOL7W4YJSCE3IUX2KPLK74CW6JZAFD3BAV4KBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

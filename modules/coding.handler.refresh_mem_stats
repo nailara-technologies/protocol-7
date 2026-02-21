@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = coding.handler.refresh_mem_stats
+# descr = timer handler: request system memory stats from system zenka
+
+my $cmd_count = <[base.protocol-7.command.send.local]>->(
+    {   'command' => 'system.mem-used',
+        'reply'   => {
+            'handler' => 'coding.handler.system_mem_reply',
+            'params'  => {}
+        }
+    }
+);
+
+<[base.logs]>->( 3, 'memory stats request sent to system zenka' )
+    if $cmd_count;
+
+return TRUE;
+
+#,,,,,.,.,,,,,..,,,,,,...,,..,,..,..,,,.,,,,,,..,,...,...,,,.,..,,.,,,...,,,,,
+#DJABBDWILAN6BTEBLPB63D23YMJSOOVKWIKXXN3C46LNBTCGPSIIVNAKXKEKSV6MPXRWOCYWGDKQ6
+#\\\|ZED7RTX3PXS6LHW7PTRCHYB4TEYWX2AWNZCTQ67ZCSECY2IZM6J \ / AMOS7 \ YOURUM ::
+#\[7]XCV3PXR2VD7YNNUT327B2HAJPDRXDVMA4ZAK34TGP2Q5GN67QICQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
