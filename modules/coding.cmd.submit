@@ -18,7 +18,7 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
 
     # Auto-detect and decode BASE32-encoded parameters (pattern: ^[2-7A-Z]+$)
     if ( $request_str =~ /^[2-7A-Z]+$/ ) {
-        my $decoded = <[base_util_base32_decode]>->($request_str);
+        my $decoded = decode_b32r($request_str);
         if ( defined $decoded && length $decoded ) {
             $request_str = $decoded;
         }
@@ -33,7 +33,7 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
         # Auto-detect and decode BASE32-encoded body data
         my $body = $call->{'data'};
         if ( $body =~ /^[2-7A-Z]+$/ ) {
-            my $decoded = <[base_util_base32_decode]>->($body);
+            my $decoded = decode_b32r($body);
             if ( defined $decoded && length $decoded ) {
                 $body = $decoded;
             }
@@ -119,8 +119,8 @@ return {
     'data' => $response
 };
 
-#,,,,,,.,,.,.,,.,,...,,.,,,,.,,,.,...,.,,,,,.,..,,...,...,...,,,.,,,.,,,.,,.,,
-#W3BYFI2IMAVCZT3EX5WGZMJY2565KJXMZH3GPBUPYPTQTWBJ23SHPIKCMD5WRLA63G7XAESRCCWAG
-#\\\|UMK7R2H3UQSHB4ZKGI46DHTMSKAGFCC4J66C5NM5NY3HI42RYE5 \ / AMOS7 \ YOURUM ::
-#\[7]U3MSQFK7ZCHQPMBFWNUJNKJQ2CD5TV6Z66OIUFYJPRTRONDH7YBA 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,,,,.,,,,,,,,,,...,...,,.,,..,,..,,...,..,,..,,.,.,,,.,,,.,...,
+#2KPW3VNNQOIJYCDPVI7ONBGRBQCPYFSPSCPNKP5B7U6BWE65SGU3CJEYPE5XKI7JAFPRVYRE5BJC2
+#\\\|BBE2VLG2MSIE6GGDDXVXJJ4FVAV5EVA46AQVOE7Z2UASNMPX45R \ / AMOS7 \ YOURUM ::
+#\[7]HFXZYOHK222HD3I472TS7I7WXEAG33J44HYYCMPRNYJSMICX7CDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
