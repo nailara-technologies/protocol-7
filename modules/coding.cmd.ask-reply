@@ -1,0 +1,94 @@
+## [:< ##
+
+# name  = coding.cmd.submit-deferred
+# descr = submit coding task and return deferred reply when complete
+# param = <request_string>
+
+# Handle both single-line and multiline modes
+my $request_str;
+
+if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+    $request_str //= $call->{'param'}->{'request'}
+        // $call->{'param'}->{'question'}
+        // $call->{'param'}->{'description'} // '';
+
+    if ( $request_str =~ /^[2-7A-Z]+$/ ) {
+        my $decoded = decode_b32r($request_str);
+        $request_str = $decoded if defined $decoded && length $decoded;
+    }
+
+    $request_str =~ s/\\n/\n/g;
+
+    if ( defined $call->{'data'} && length $call->{'data'} ) {
+        my $body = $call->{'data'};
+        if ( $body =~ /^[2-7A-Z]+$/ ) {
+            my $decoded = decode_b32r($body);
+            $body = $decoded if defined $decoded && length $decoded;
+        }
+        $body =~ s/\\n/\n/g;
+        $request_str .= "\nContext:\n" . $body;
+    }
+} else {
+    $request_str = $call->{'args'} // '';
+}
+
+return { 'mode' => qw| false |, 'data' => "work request required\n" }
+    if !length($request_str);
+
+# Parse and analyze task
+my $intake_result = <[coding.task.intake]>->($request_str);
+return {
+    'mode' => qw| false |,
+    'data' => "Failed to parse: $intake_result->{error}"
+    }
+    if !$intake_result->{success};
+
+my $analysis = <[coding.task.analyze]>->( 'full', $intake_result->{task} );
+return {
+    'mode' => qw| false |,
+    'data' => "Failed to analyze: $analysis->{error}"
+    }
+    if !$analysis->{success};
+
+my $routing
+    = <[coding.routing.decide_service]>->( 'route', $analysis->{task} );
+return {
+    'mode' => qw| false |,
+    'data' => "Failed to route: $routing->{error}"
+    }
+    if !$routing->{success};
+
+my $routed_task = $routing->{'task'};
+
+# Enqueue task
+my $queue_result = <[coding.task.enqueue]>->($routed_task);
+return {
+    'mode' => qw| false |,
+    'data' => "Failed to enqueue: $queue_result->{error}"
+    }
+    if !$queue_result->{success};
+
+# Create deferred reply tracking
+<coding.deferred_replies> //= {};
+
+my $deferred_id = <[base.gen_id]>->(<coding.deferred_replies>);
+<coding.deferred_replies>->{$deferred_id} = {
+    'deferred_id' => $deferred_id,
+    'reply_id'    => $$call{'reply_id'},
+    'task_id'     => $routed_task->{'id'},
+    'submitted'   => <[base.time]>->(3),
+    'status'      => qw| waiting |
+};
+
+<[base.logs]>->(
+    2,                    "[submit-deferred] task=%s deferred_id=%s",
+    $routed_task->{'id'}, $deferred_id
+);
+
+return { 'mode' => 'deferred' };
+
+#,,,,,,.,,,..,..,,,,,,,,.,...,.,,,..,,.,,,,,.,.,.,...,...,,..,,,,,...,..,,...,
+#OUEYAJN5IAW24S7LA3Z7B2IJDQD2LSXTJTFJDS5RPCS6BPGK2CASZ5DXIQLCAS5C3NNWVGR6XTUGU
+#\\\|4J7KLRI6ZWYUVUGJAIFZZWBNYQEL7JJP6ZSKASZXI4NOM4H6P52 \ / AMOS7 \ YOURUM ::
+#\[7]PDQ4EQNZP37LALQW7FNM2ZFL5FTTNMTXDAUSQAGFTO6XIABVS4DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

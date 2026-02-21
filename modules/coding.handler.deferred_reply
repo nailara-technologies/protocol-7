@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = coding.handler.deferred_reply
+# descr = send deferred reply for completed coding task
+#         Called directly from coding.event.on_task_complete
+
+my $deferred_id = shift;
+
+my $deferred = <coding.deferred_replies>->{$deferred_id};
+return unless defined $deferred;
+
+my $task_id = $deferred->{'task_id'};
+my $task    = <coding.task.queue>->{$task_id};
+
+unless ( defined $task ) {
+    <[base.callback.cmd_reply]>->(
+        $deferred->{'reply_id'},
+        { 'mode' => 'false', 'data' => 'task not found' }
+    );
+    delete <coding.deferred_replies>->{$deferred_id};
+    return;
+}
+
+my $status = $task->{'execution'}->{'status'};
+
+if ( $status eq 'completed' ) {
+    my $result = $task->{'execution'}->{'result'} // '';
+
+    # Determine reply mode
+    my $stripped = $result;
+    $stripped =~ s/\n$//;
+    my $newlines = ( $stripped =~ tr/\n// );
+
+    my ( $reply_mode, $final_data );
+    if ( $newlines == 0 ) {
+        $final_data = $result;
+        $final_data =~ s/\n$//;
+        $reply_mode = 'true';
+    } else {
+        $final_data = $result;
+        $final_data .= "\n" if $final_data !~ /\n$/;
+        $reply_mode = 'size';
+    }
+
+    <[base.callback.cmd_reply]>->(
+        $deferred->{'reply_id'},
+        { 'mode' => $reply_mode, 'data' => $final_data }
+    );
+
+    $deferred->{'status'} = 'complete';
+    delete <coding.deferred_replies>->{$deferred_id};
+
+} elsif ( $status eq 'failed' || $status eq 'error' ) {
+    my $error = $task->{'execution'}->{'error'} // 'task failed';
+    <[base.callback.cmd_reply]>->(
+        $deferred->{'reply_id'},
+        { 'mode' => 'false', 'data' => $error }
+    );
+    $deferred->{'status'} = 'error';
+    delete <coding.deferred_replies>->{$deferred_id};
+}
+
+#,,.,,,,.,.,.,...,,..,.,,,,,,,.,.,.,.,.,,,,..,.,.,...,...,..,,..,,..,,..,,...,
+#7GVH4HGUYQAXG3UOUPEAHVOR4XPH77HLNMXG6Q7PVSIGTLX6HNZ6R3RPPGF4MRCERLRJT7NJR6NDO
+#\\\|4ZDC3AR6QVYFGBR5YQQBZBVQP3AFAPIZHBMLKDI64VLCFJTUPFG \ / AMOS7 \ YOURUM ::
+#\[7]CEC3IONGCIO3U3ITOKBBHJUGOYHG6262QKTK36JF3AUSZNDEGAAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

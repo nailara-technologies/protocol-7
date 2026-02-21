@@ -91,8 +91,8 @@ if ( !$routing->{success} ) {
 
 my $routed_task = $routing->{task};
 
-# Enqueue the task
-my $queue_result = <[coding.task.queue]>->( 'enqueue', $routed_task );
+# Enqueue the task (uses jobqueue backend for auto-execution)
+my $queue_result = <[coding.task.enqueue]>->($routed_task);
 
 if ( !$queue_result->{success} ) {
     return {
@@ -119,8 +119,8 @@ return {
     'data' => $response
 };
 
-#,,,,,.,.,,.,,.,,,,.,,,,,,,,,,...,...,,.,,..,,..,,...,..,,..,,.,.,,,.,,,.,...,
-#2KPW3VNNQOIJYCDPVI7ONBGRBQCPYFSPSCPNKP5B7U6BWE65SGU3CJEYPE5XKI7JAFPRVYRE5BJC2
-#\\\|BBE2VLG2MSIE6GGDDXVXJJ4FVAV5EVA46AQVOE7Z2UASNMPX45R \ / AMOS7 \ YOURUM ::
-#\[7]HFXZYOHK222HD3I472TS7I7WXEAG33J44HYYCMPRNYJSMICX7CDA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,,.,,.,,,,.,,..,,.,,,,.,,,.,.,,,..,,...,...,.,.,,..,,.,,...,,,,,
+#BG3UXXJJIRDSDD6N7CI26W5QTMPEUOIGM5RDDKKNKOEBWSWURY6JZZKLDIH6KNMWEXITMEJDMM7J6
+#\\\|5A5BYZWSOW5COCGDIX4AEGWHG6ME3SKFM37426APIQOGMF2IVD2 \ / AMOS7 \ YOURUM ::
+#\[7]Z46ZRNULTE47CM2BNYUHUE7WGMZBLSZYATHCRFWQ3FLMJDUS7YBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
