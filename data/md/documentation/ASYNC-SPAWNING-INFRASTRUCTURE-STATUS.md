@@ -1,9 +1,45 @@
 # Async Spawning Infrastructure - Complete Status
 
 **Date**: 2025-01-22
-**Last Updated**: Current session (after token limit recovery)
-**Status**: IMPLEMENTED & WORKING - Cleanup in progress
-**Commit**: `5f165c484` (auto-resume inference system verified)
+**Last Updated**: 2026-02-21
+**Status**: IMPLEMENTED & WORKING
+**Commit**: `9dd172684`
+
+---
+
+## Update 2026-02-21 — On-Demand Architecture + Memory Awareness
+
+### Architecture Changes
+- **coding + models are now on-demand zenki** — not always-on
+  - `models`: 1800s idle timeout, dependency: `cube`
+  - `coding`: 3600s idle timeout, dependency: `cube models`
+  - Models zenka guaranteed online before coding init (dependency chain)
+  - Idle shutdown protected by `$data{'route'}->%*` (outstanding deferred replies)
+
+### State Persistence
+- `coding.state.save` — persists on demand or at shutdown
+  - Budget: FreezeThaw + base32 → `state/budget.b32`
+  - Routing stats: YAML → `state/routing_stats.yaml`
+- Model metadata: YAML → `state/model_metadata.yaml` (reloaded on restart)
+- Storage via `file.zenka_dir.write/load` → `/var/protocol-7/coding/`
+
+### Model Discovery
+- `coding.handler.fetch_model_discovery` — fires 1s after init via IPC to `models.cmd.discover`
+- `coding.handler.models_discover_reply` — parses response, populates `<coding.model_metadata>`, persists
+- On-disk cache loaded at startup; live discovery refreshes it each run
+
+### Memory-Aware Spawning + Routing
+- `coding.handler.refresh_mem_stats` — fires 2s after init, then every 62s (`interval` + `repeat => TRUE`)
+- `coding.handler.system_mem_reply` — caches `<coding.system_mem_pct>` from `system.mem-used`
+- `coding.async_spawn_inference_servers` — aborts if RAM ≥ 90%
+- `coding.routing.determine_service_impl` — sorts models by `size_gb` ascending when RAM > 75%
+- Note: GPU inference constrained by VRAM (not RAM) — `system.gpu-load` planned for VRAM awareness
+
+### Key API Fixes Discovered
+- `base.perlmod.autoload`: one module per call — use `map {} qw| ... |`
+- Repeating timers: `'interval' => N, 'repeat' => TRUE` — `repeat` alone is a boolean, not a period
+
+---
 
 ---
 
