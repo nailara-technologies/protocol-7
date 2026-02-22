@@ -58,7 +58,7 @@ if ( defined $meta_job ) {
 }
 
 # Check for deferred replies waiting on this task
-my $deferred_replies = <coding.deferred_replies> // {};
+my $deferred_replies = $data{"coding"}{"deferred_replies"} // {};
 foreach my $deferred_id ( keys %$deferred_replies ) {
     my $deferred = $deferred_replies->{$deferred_id};
     if ( defined $deferred && $deferred->{'task_id'} eq $task_id ) {
@@ -73,8 +73,8 @@ foreach my $deferred_id ( keys %$deferred_replies ) {
 
 return TRUE;
 
-#,,..,,.,,..,,...,,.,,...,,.,,,,,,.,.,.,,,,,.,..,,...,...,,,,,,,,,,..,,..,,.,,
-#DACOGHUT6I7UX5LYGABKZDPQCG2R6KWNR63ZO2XDMHE2DU5OD6M3NVY26HRJ3HLDWQA65EOY3LVM6
-#\\\|HQ54QHZ7UP66ZW7DVMLJUHOQPFVUBETOCAHHJ2XY7EJEYKIN5Z4 \ / AMOS7 \ YOURUM ::
-#\[7]UYEYO7DRETHSFVSHSQ3NX3JKAWQ6ECUDO3BBGLSO5RLHUJKWTWAQ 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,...,,.,,,,.,...,.,,,,..,,.,,,..,..,,...,...,,..,..,,..,,...,..,,
+#DYJ3XLYFTG5LRCHLJV7DDHCSFH2FZHWXABZBPMN7AKE42FQRX6VER5RR6CLG6GDZL6IFBOMXYXFWM
+#\\\|YOEJGUVAOXFTNECAUVAX6BNKSNE25VAMEUWHETS6DOSOSMIG56E \ / AMOS7 \ YOURUM ::
+#\[7]WE2ZVRQLZN3OA5G27TQ3YYX4V7TWPKLUTRVLAJWRZPTXSDT4NCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

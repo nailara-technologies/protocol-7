@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = models.handler.coding_result_forward
+# descr = Process coding result, store in chat buffer, and reply to caller
+# param = $reply - { cmd, call_args, data, params }
+
+my $reply = shift;
+
+my $cmd       = $reply->{'cmd'}       // '';
+my $call_args = $reply->{'call_args'} // {};
+my $params    = $reply->{'params'}    // {};
+my $data      = $reply->{'data'}      // '';
+
+my $original_reply_id = $params->{'original_reply_id'} // '';
+my $sender            = $params->{'sender'}            // '';
+my $model             = $params->{'model'}             // '';
+
+<[base.logs]>
+    ->( 2, '[coding.forward] result: cmd=%s model=%s', $cmd, $model );
+
+# Extract response based on reply type
+my $response;
+
+if ( $cmd eq 'TRUE' ) {
+    $response = $call_args->{'args'} // '';
+} elsif ( $cmd eq 'SIZE' ) {
+    $response = $data;
+} elsif ( $cmd eq 'FALSE' ) {
+    $response = sprintf ':. error: %s :.',
+        $call_args->{'args'} // 'unknown error';
+} else {
+    $response = sprintf ':. error: unknown reply type %s :.', $cmd;
+}
+
+# Add note prefix if error
+if ( $response =~ m|^:\.\ error:| ) {
+    $response = sprintf ':note: model error::n::n:%s', $response;
+}
+
+# Store model response in chat buffer
+<[models.chat.append]>->( undef, $model, $response );
+
+# Format and return chat buffer (last 3 entries)
+my $entries = <[models.chat.get_recent]>->(3);
+my $output  = <[models.chat.format_buffer]>->($entries);
+
+# Send reply to original caller
+if ( length($original_reply_id) ) {
+    <[base.callback.cmd_reply]>->(
+        $original_reply_id, { 'mode' => 'size', 'data' => $output }
+    );
+}
+
+return TRUE;
+
+#,,,,,,..,,..,...,.,.,...,...,,.,,.,.,...,...,.,.,...,..,,,..,,.,,,,.,,.,,,..,
+#DJBFQXKE6KOEP64NZAVXHVN4C4SLIGQR7BUXL3UJ2YHQJ6T4S7C3EY7LETY734APB7CT5AORFSNNM
+#\\\|F75KPLLUSTKRG7W6U2DFYNDCQRPIF5PD6DB5GYSJPKJIKIN4IIO \ / AMOS7 \ YOURUM ::
+#\[7]65X6LMGS34665K3P364SUGAHWCJCY7SWHY2DGGLEFONOR5DOYEDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
