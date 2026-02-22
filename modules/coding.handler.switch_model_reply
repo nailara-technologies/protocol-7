@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = coding.handler.switch_model_reply
+# descr = Handle model path reply and execute server restart for switch-model
+
+my $reply      = shift;
+my $reply_data = $reply->{'data'} // '';
+
+## Get pending switch request ##
+my $checksum = <coding.pending_model_switch_checksum>;
+unless ( defined $checksum ) {
+    <[base.logs]>->( 1, "[switch_model_reply] no pending switch request" );
+    return FALSE;
+}
+
+## Parse path from reply ##
+my @lines      = split( /\n/, $reply_data );
+my $model_path = $lines[0] // '';
+
+## Skip error responses ##
+if ( $model_path =~ /^error:/ ) {
+    <[base.logs]>->(
+        0, "[switch_model_reply] model lookup failed: $model_path"
+    );
+    return FALSE;
+}
+
+unless ( length $model_path && -f $model_path ) {
+    <[base.logs]>->(
+        0, "[switch_model_reply] model file not found or invalid: '%s'",
+        $model_path
+    );
+    return FALSE;
+}
+
+my $name    = <coding.pending_model_switch_name>;
+my $backend = <coding.pending_model_switch_backend>;
+
+<[base.logs]>->(
+    1,     "[switch_model_reply] switching to %s on %s",
+    $name, $backend
+);
+
+## Update configuration ##
+if ( $backend eq 'gpu' || $backend eq 'both' ) {
+    $data{'inference.backend.gpu.model_id'} = $checksum;
+    <[base.logs]>->(
+        2, "[switch_model_reply] updated GPU model to %s", $checksum
+    );
+}
+if ( $backend eq 'cpu' || $backend eq 'both' ) {
+    $data{'inference.backend.cpu.model_id'} = $checksum;
+    <[base.logs]>->(
+        2, "[switch_model_reply] updated CPU model to %s", $checksum
+    );
+}
+
+## Use spawn_smart for memory-aware server restart ##
+## This checks memory before spawning and skips if insufficient ##
+<[coding.handler.spawn_smart]>->(
+    {   'backend'    => $backend,
+        'model_path' => $model_path
+    }
+);
+
+## Clear pending state (will be overwritten on next switch anyway) ##
+return TRUE;
+
+#,,,.,.,.,,.,,...,,.,,,,.,...,,,,,,..,.,,,,,.,.,.,...,...,,,.,...,.,.,,,,,..,,
+#72YXZDRE4H3DLWNFJIJTCFCKUXDTUH5RTNYCSQ3VZQHIF4LII2WZUFGE5EHBOUGKXFMDXZXILCWCU
+#\\\|T4WMYRXE7EEIPUF6XEVUNXIXRO76V7OABKQRCDCAFYL3BWOO2LS \ / AMOS7 \ YOURUM ::
+#\[7]5IEJEDOO45T5TAY5NUWJ4LHO6DY3AWO6Q6AMX7SZLD6ZS2T4VUBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

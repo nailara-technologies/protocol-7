@@ -3,9 +3,9 @@
 # name  = coding.handler.models_discover_reply
 # descr = handle async response from models.cmd.discover, populate model metadata cache
 
-my $reply   = shift;
-my $context = $reply->{'params'}->{'context'} // 'unknown';
-my $data    = $reply->{'call_args'}->{'data'} // '';
+my $reply      = shift;
+my $context    = $reply->{'params'} // qw| unknown |;
+my $reply_data = $reply->{'data'}   // '';
 
 <[base.logs]>
     ->( 2, 'model discovery reply received :. context=%s', $context );
@@ -15,7 +15,7 @@ my $data    = $reply->{'call_args'}->{'data'} // '';
 my %metadata;
 my $current_amos;
 
-for my $line ( split /\n/, $data ) {
+for my $line ( split /\n/, $reply_data ) {
     if ( $line =~ m|^amos:\s+(\S+)| ) {
         $current_amos = $1;
     } elsif ( defined $current_amos ) {
@@ -52,6 +52,13 @@ if ($count) {
         2, 'model metadata cache updated :. %d models available', $count
     );
 
+    ## mark discovery dependency as complete so chain can progress ##
+    if ( defined <coding.dep.model_discovery> ) {
+        <dependency.object>->{<coding.dep.model_discovery>}->{'status'}
+            = 'complete';
+        <[base.logs]>->( 2, 'model discovery dependency marked complete' );
+    }
+
     ## persist to disk as yaml [ human-readable, reloaded on next startup ]
     my $yaml_str = eval { YAML::XS::Dump( \%name_index ) };
     if ( !$@ && defined $yaml_str ) {
@@ -66,8 +73,8 @@ if ($count) {
 
 return TRUE;
 
-#,,.,,...,.,.,.,.,..,,,,.,.,,,,,,,,,,,.,,,..,,..,,...,.,,,..,,,,.,,.,,...,,,.,
-#FRMFTICDCUE2IMDR3MYGTHKIMQTJBE3DJASLSNRNYLBY4AOQK2ROTGJD7X446OTNPMINRMT22BTQ6
-#\\\|5C5CWZ72MFRCJY2TVFCV5TR3DE5GIN7S56WULSREXAWJUFF2N6Z \ / AMOS7 \ YOURUM ::
-#\[7]6E6JBEXOVPYXKQLDB2TMOHHWCMGEI7URGMFAJND2KNDFWPCXCCBY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,...,,..,.,.,..,,,,,,,..,..,,...,..,,...,..,,...,.,,,..,,,,.,.,,,
+#GCWEJ7TNSTF3UKWRVQOI4UZYLLN3BO4CRID5EJDXS7ZH2KW4HPZTSVNINMZDABUGXPLE6KYXR2KNG
+#\\\|MEWFKZOA765ECDFDI6UMMV3X3WT3T7CB7BEXCKHT6SQNQZI2EYY \ / AMOS7 \ YOURUM ::
+#\[7]WI7JQYJQIFOBVHZPS4GPC3AKCL6UJFXDLQCGIEINLR2NI2O3QKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

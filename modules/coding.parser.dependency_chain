@@ -1,0 +1,17 @@
+## [:< ##
+
+# name  = coding.parser.dependency_chain
+
+my $object_id = shift;
+
+return qw| -- | if not exists <dependency.chain>->{$object_id};
+
+return join ' ',
+    map { <dependency.object>->{$ARG}->{'type'} }
+    <dependency.chain>->{$object_id}->@*;
+
+#,,..,,,,,...,,,.,..,,...,...,,..,,..,,,.,.,.,..,,...,...,.,,,...,,.,,,.,,,,,,
+#YGZT7LVWIQYUK6BVVZKBRTKPDWBXRL37LTWS75ADIS5XXX447OVIB4WUQLPQW7XTYSUMOBPEFQVPC
+#\\\|ZHOK7WTDCLF4KXSK622BV5L3QYQVVQB36DF7XDQFARMQMEPHJ2W \ / AMOS7 \ YOURUM ::
+#\[7]TBYYPB63YY4NJZ6GI2M2AYZ43VTWXRUHMIU3NKPU3DVQR46UE6DQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

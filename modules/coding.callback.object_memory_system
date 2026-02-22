@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = coding.callback.object_memory_system
+# descr = Dependency callback to check system RAM availability
+
+my $object_id = shift;
+return undef unless exists <dependency.object>->{$object_id};
+
+my $object = <dependency.object>->{$object_id};
+
+## Get configured threshold (default: 4GB free RAM) ##
+my $min_free_mb = $object->{'min_free_mb'} // 4096;
+
+## Read system memory info from /proc/meminfo ##
+my ( $mem_total, $mem_available );
+if ( open my $fh, '<', '/proc/meminfo' ) {
+    while (<$fh>) {
+        if (/^MemTotal:\s+(\d+)/) {
+            $mem_total = $1;
+        } elsif (/^MemAvailable:\s+(\d+)/) {
+            $mem_available = $1;
+            last;    ## MemAvailable comes after MemTotal ##
+        }
+    }
+    close $fh;
+}
+
+unless ( defined $mem_available && defined $mem_total ) {
+    <[base.logs]>->( 2, '[memory_system] cannot read /proc/meminfo' );
+    return FALSE;
+}
+
+## Convert to MB ##
+my $free_mb  = int( $mem_available / 1024 );
+my $total_mb = int( $mem_total / 1024 );
+
+## Check against threshold ##
+if ( $free_mb >= $min_free_mb ) {
+    <[base.logs]>->(
+        3,        '[memory_system] OK: %d MB free (threshold: %d MB)',
+        $free_mb, $min_free_mb
+    );
+    return TRUE;
+} else {
+    <[base.logs]>->(
+        1,        '[memory_system] LOW: %d MB free (threshold: %d MB)',
+        $free_mb, $min_free_mb
+    );
+    return FALSE;
+}
+
+#,,,.,,.,,..,,.,,,...,,,.,,,,,.,.,,.,,.,.,.,.,.,.,...,...,..,,..,,...,,..,,,,,
+#5GLWMVGWDPITX4K6SBWQQZNC7WKDMXICKQ6G6RQCCUDZDJAN5UUHC6TOMIOTO5ODKLA53XEJPIVSY
+#\\\|UATNZOPJI2BKBHLCD3DV7ITPUY4T3XFIOLXVKVKIPWTJAJS2AH7 \ / AMOS7 \ YOURUM ::
+#\[7]JQYQH4W3WXFWMZEKTS3LP5Y35RUMICXDNYP2VCTLSOKZD5WMJ4CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

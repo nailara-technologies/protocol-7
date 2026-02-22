@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = coding.parser.model_name_with_selection
+# descr = Parser callback to show model name with selection indicator
+
+my $name = shift // '';
+
+## Get currently configured model ID ##
+my $gpu_model = <inference.backend.gpu.model_id> // '';
+my $cpu_model = <inference.backend.cpu.model_id> // '';
+
+return $name unless length $name;    ## pass through empty names ##
+
+## Skip vision projector files - never mark as selected ##
+return "  $name" if $name =~ /mmproj/i;
+
+## Normalize for comparison ##
+my $normalize = sub {
+    my $s = lc( shift // '' );
+    $s =~ s/[-_\s\.]+//g;
+    return $s;
+};
+
+my $name_norm = $normalize->($name);
+my $gpu_norm  = $normalize->($gpu_model);
+my $cpu_norm  = $normalize->($cpu_model);
+
+## Check if this model matches the configured one ##
+my $is_selected = 0;
+$is_selected = 1 if $name eq $gpu_model;
+$is_selected = 1 if $name eq $cpu_model;
+$is_selected = 1 if length($gpu_norm) && index( $name_norm, $gpu_norm ) >= 0;
+$is_selected = 1 if length($cpu_norm) && index( $name_norm, $cpu_norm ) >= 0;
+$is_selected = 1 if length($gpu_norm) && index( $gpu_norm,  $name_norm ) >= 0;
+
+## Return name with selection indicator ##
+return $is_selected ? "* $name" : "  $name";
+
+#,,.,,...,.,.,.,,,,.,,..,,,,,,,,,,...,,.,,...,.,.,...,.,.,.,,,,,.,.,,,.,,,,,,,
+#GY2GCCNLVRJSISBN46A433UGOXO7GYP2SVR2QRNJ32IUA2F7CO3OOSNNDEP25MLK2TDAMJUCK7NL4
+#\\\|O7ULUT2RRQTRRZ3SP5FIBW42HYDBJVNKZ4UTNOZ5LLODFQNR7I6 \ / AMOS7 \ YOURUM ::
+#\[7]YD7ZU572DUBMJHFFULAT3YC6FRUO7MLWBP4734BAWTUWKVGMH2CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

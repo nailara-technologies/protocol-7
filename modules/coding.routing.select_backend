@@ -1,0 +1,115 @@
+## [:< ##
+
+# name  = coding.routing.select_backend
+# descr = Select best available backend (GPU preferred, CPU fallback)
+# param = { backend => 'auto'|'gpu'|'cpu', preferred_model => <checksum>|undef }
+# return = { backend => 'gpu'|'cpu', port => <port>, model => <model_id>, available => 0|1 }
+
+my $params            = shift                // {};
+my $preferred_backend = $params->{'backend'} // 'auto';
+my $preferred_model   = $params->{'preferred_model'};
+
+## Get server status ##
+my $gpu_port  = <inference.backend.gpu.port> // 8000;
+my $cpu_port  = <inference.backend.cpu.port> // 8001;
+my $gpu_ready = 0;
+my $cpu_ready = 0;
+
+## Check GPU server health ##
+if ( $preferred_backend eq 'auto' || $preferred_backend eq 'gpu' ) {
+    $gpu_ready = eval {
+        use LWP::UserAgent;
+        my $ua       = LWP::UserAgent->new( timeout => 1 );
+        my $response = $ua->get("http://127.0.0.1:${gpu_port}/health");
+        return $response->is_success ? 1 : 0;
+    } // 0;
+}
+
+## Check CPU server health ##
+if ( $preferred_backend eq 'auto' || $preferred_backend eq 'cpu' ) {
+    $cpu_ready = eval {
+        use LWP::UserAgent;
+        my $ua       = LWP::UserAgent->new( timeout => 1 );
+        my $response = $ua->get("http://127.0.0.1:${cpu_port}/health");
+        return $response->is_success ? 1 : 0;
+    } // 0;
+}
+
+## Determine which backend to use ##
+my ( $selected_backend, $selected_port, $available );
+
+if ( $preferred_backend eq 'gpu' ) {
+    if ($gpu_ready) {
+        $selected_backend = 'gpu';
+        $selected_port    = $gpu_port;
+        $available        = 1;
+    } else {
+        ## GPU requested but not available ##
+        return {
+            backend   => 'gpu',
+            port      => $gpu_port,
+            model     => $preferred_model // <inference.backend.gpu.model_id>,
+            available => 0,
+            error     => 'GPU server not available'
+        };
+    }
+} elsif ( $preferred_backend eq 'cpu' ) {
+    if ($cpu_ready) {
+        $selected_backend = 'cpu';
+        $selected_port    = $cpu_port;
+        $available        = 1;
+    } else {
+        ## CPU requested but not available ##
+        return {
+            backend   => 'cpu',
+            port      => $cpu_port,
+            model     => $preferred_model // <inference.backend.cpu.model_id>,
+            available => 0,
+            error     => 'CPU server not available'
+        };
+    }
+} else {
+    ## Auto-select: GPU preferred, CPU fallback ##
+    if ($gpu_ready) {
+        $selected_backend = 'gpu';
+        $selected_port    = $gpu_port;
+        $available        = 1;
+    } elsif ($cpu_ready) {
+        $selected_backend = 'cpu';
+        $selected_port    = $cpu_port;
+        $available        = 1;
+    } else {
+        ## Neither available ##
+        return {
+            backend   => 'gpu',
+            port      => $gpu_port,
+            model     => undef,
+            available => 0,
+            error     => 'No inference server available'
+        };
+    }
+}
+
+## Determine which model to use ##
+my $selected_model;
+if ( defined $preferred_model ) {
+    ## Use the requested model ##
+    $selected_model = $preferred_model;
+} elsif ( $selected_backend eq 'gpu' ) {
+    $selected_model = <inference.backend.gpu.model_id>;
+} else {
+    $selected_model = <inference.backend.cpu.model_id>;
+}
+
+return {
+    backend   => $selected_backend,
+    port      => $selected_port,
+    model     => $selected_model,
+    available => $available
+};
+
+#,,,,,..,,..,,...,.,.,,..,...,,,.,.,,,..,,.,.,.,.,...,...,.,.,,,.,..,,,.,,,..,
+#GIWOWI62YRIQEDNCMULS3MZUP3FTSA5BN6QSE2MTLGRD4X5NXJ6I3SWLYWQ4X6LOK3UN3T36O7CWK
+#\\\|WVBAWPZGGTXFKIQWEF77ZW75WXXC4QIMX2VLXGK2RG2R7CKWEK4 \ / AMOS7 \ YOURUM ::
+#\[7]2VF7DVZVBXRZNKRUAE7RHS5A2QVCPJKK6MLFLEZ7VDAPTXO6TWAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
