@@ -18,25 +18,60 @@ use Digest::BMW     qw| bmw_256 |;
 use List::MoreUtils qw| minmax uniq |;
 use Crypt::Misc     qw| encode_b32r |;
 
-my @params     = @ARGV;
-my $USE_ANSI   = 1;
-my $AI_FRIENDLY = $ENV{'NCODE_AI_FRIENDLY'} // (defined $ARGV[0] && $ARGV[0] eq '--ai-friendly' ? 1 : 0);
+my @params       = @ARGV;
+my $USE_ANSI     = 1;
+my $AI_FRIENDLY  = $ENV{'NCODE_AI_FRIENDLY'} // 0;
+my $PREVIEW_ONLY = 0;
+my $CONFIRM      = 0;
 
-# Remove --ai-friendly flag from params if present
-shift(@params) if defined $ARGV[0] && $ARGV[0] eq '--ai-friendly';
+# Process and remove flags from params
+while ( @params && $params[0] =~ /^-/ ) {
+    my $flag = shift(@params);
+    if ( $flag eq '-ai-friendly' ) {
+        $AI_FRIENDLY = 1;
+    } elsif ( $flag eq '-preview-only' ) {
+        $PREVIEW_ONLY = 1;
+        $AI_FRIENDLY  = 1;    # Preview-only implies AI-friendly output
+    } elsif ( $flag eq '-no-color' ) {
+        $USE_ANSI = 0;
+    } elsif ( $flag eq '-confirm' ) {
+        $CONFIRM = 1;
+    }
+}
 
-###[ USED TEXT COLORS ]#######################################################
+###[ PROTOCOL-7 COLOR SCHEME ]################################################
+#
+# p7_fg_0000 => \e[38;2;68;39;172m   (purple)
+# p7_fg_0001 => \e[38;2;38;46;153m   (blue)
+# p7_fg_0002 => \e[38;2;170;94;2m    (orange/amber)
+# p7_fg_0003 => \e[38;2;9;170;94m    (green)
+# p7_fg_0004 => \e[38;2;6;71;195m    (bright blue)
+#
+################################################################################
 
 our %C = (
-    qw|  T  | => "\e[38;2;6;71;195m",
-    qw| B00 | => "\e[48;2;0;0;17m",
-    qw| B01 | => "\e[48;2;9;5;24m",
-    qw| B02 | => "\e[48;2;9;5;42m",
-    qw|  0  | => "\e[38;2;68;39;172m",
-    qw|  g  | => "\e[38;2;71;195;6m",
-    qw|  o  | => "\e[38;2;197;141;7m",
-    qw|  B  | => "\e[1m",
-    qw|  R  | => "\e[0m",
+
+    # Primary foreground colors (Protocol-7 palette)
+    qw|  T  | =>
+        "\e[38;2;6;71;195m",    # p7_fg_0004 - bright blue (titles/accents)
+    qw|  0  | => "\e[38;2;68;39;172m",    # p7_fg_0000 - purple (primary text)
+    qw|  1  | => "\e[38;2;38;46;153m",    # p7_fg_0001 - blue (secondary)
+    qw|  2  | =>
+        "\e[38;2;170;94;2m",    # p7_fg_0002 - orange (warnings/attention)
+    qw|  3  | => "\e[38;2;9;170;94m",    # p7_fg_0003 - green (success/ok)
+
+    # Legacy compatibility aliases
+    qw|  g  | => "\e[38;2;9;170;94m",    # green alias -> p7_fg_0003
+    qw|  o  | => "\e[38;2;170;94;2m",    # orange alias -> p7_fg_0002
+
+    # Background colors
+    qw| B00 | => "\e[48;2;0;0;17m",      # dark background
+    qw| B01 | => "\e[48;2;9;5;24m",      # darker blue bg
+    qw| B02 | => "\e[48;2;9;5;42m",      # dark green bg
+
+    # Text formatting
+    qw|  B  | => "\e[1m",                # bold
+    qw|  R  | => "\e[0m",                # reset
 );
 
 map { $C{$ARG} = '' } keys %C if not $USE_ANSI;
@@ -119,7 +154,7 @@ print "\n";
 if ( not defined $commands{$cmd} ) {
     if ( length $cmd ) {
         printf( "\n %s::%s a command '%s$cmd%s' does not exist %s::%s\n",
-            $C{'o'}, $C{'0'}, $C{'o'}, $C{'0'}, $C{'o'}, $C{'R'} );
+            $C{'2'}, $C{'0'}, $C{'2'}, $C{'0'}, $C{'2'}, $C{'R'} );
     } else {
         printf( "\n %s::%s usage %s::%s\n",
             $C{'0'}, $C{'g'}, $C{'0'}, $C{'R'} );
@@ -165,7 +200,18 @@ sub cmd_description {
     if ( not defined $command ) {
         &print_usage;
 
-        print "\n    c o m m a n d     p a r a m e t e r s\n:\n";
+        # Print global options
+        print "\n    g l o b a l     o p t i o n s\n:\n";
+        print
+            ":  -ai-friendly     ... AI-friendly output format (no pager, structured)\n";
+        print
+            ":  -preview-only    ... Show preview without applying changes\n";
+        print
+            ":  -confirm         ... Auto-confirm and apply (use with -ai-friendly)\n";
+        print ":  -no-color        ... Disable ANSI color output\n";
+        print ":\n";
+
+        print "    c o m m a n d     p a r a m e t e r s\n:\n";
 
         ( undef, my $max_len ) = minmax map {length} keys %commands;
 
@@ -386,12 +432,28 @@ sub cmd_replace {
 
     if ( defined $params[0] and $params[0] eq qw| description_txt | ) {
         return description_txt(
-            '[target] [search_pattern] [replace_pattern]', '
+            '[target] [options] [search] [replace]', '
 
-<target> [search] [replace] ..... regular expression replace operation
+<target> [options] [search] [replace] ..... regexp replace operation
 
                             <target>  source code target path keyword
                                       ( see list_targets for details )
+
+                            <target> can include file pattern filter:
+                                      src:.loves      - only files containing ".loves"
+                                      bin:\.pl$       - only files ending with ".pl"
+                                      src:base.*      - files matching "base.*"
+
+                            [options] rec:1|0|<pattern> - enable/disable recursion
+                                                         or match directory pattern
+                                      excl:<pattern>   - exclude files matching
+                                      incl:<pattern>   - include only matching
+
+                                      examples:
+                                      rec:1
+                                      rec:base.cmd.    - recurse only base.cmd.* dirs
+                                      excl:.handler.
+                                      excl:test.*\.pm
 
                             [search]  : regexp search pattern
 
@@ -408,6 +470,10 @@ sub cmd_replace {
 
                             if you do not specify the patterns as parameters
                             you will be asked for them - less to escape then.
+
+                            AI-friendly workflow:
+                              1. Preview:  ./bin/ncode -ai-friendly r src old new
+                              2. Apply:    ./bin/ncode -ai-friendly -confirm r src old new
           ', @params
         );
     }
@@ -416,10 +482,34 @@ sub cmd_replace {
             and exit(0010);    ## '.' is default
     } else {
         my $target = shift(@params);
-        say "  :: '$target' not a valid target ::\n" and exit(0010)
-            if $target !~ m|\+| and not exists $targets{$target};
 
-        my $original_source = load_source($target);
+# Extract base target for validation (handles target:pattern syntax like 'src:.loves')
+        my $base_target_for_validation = $target;
+        if ( $target =~ /^([^:]+):(.+)$/ ) {
+            $base_target_for_validation = $1;
+        }
+
+# Check for file options (rec:, excl:, incl:) at the start of remaining params
+        my @file_options;
+        my @remaining_params;
+        my $found_non_option = 0;
+        foreach my $param (@params) {
+            if ( !$found_non_option && $param =~ /^(rec|excl|incl):/i ) {
+                push @file_options, $param;
+            } else {
+                $found_non_option = 1;
+                push @remaining_params, $param;
+            }
+        }
+
+       # Replace params with remaining (non-option) params for pattern parsing
+        @params = @remaining_params;
+
+        say "  :: '$target' not a valid target ::\n" and exit(0010)
+            if $base_target_for_validation !~ m|\+|
+            and not exists $targets{$base_target_for_validation};
+
+        my $original_source = load_source( $target, @file_options );
 
         my %regexp;
         ( $regexp{'search'}, $regexp{'replace'} ) = (@params);
@@ -462,22 +552,26 @@ sub cmd_replace {
 
         remove_unmodified( $original_source, $modified_source );
 
-        if ($AI_FRIENDLY) {
-            # Output changes in AI-friendly format
-            printf "\n[CHANGES SUMMARY]\n";
-            printf "Target: %s\n", $target;
-            printf "Pattern: %s\n", $regexp{'search'};
-            printf "Replacement: %s\n", $regexp{'replace'};
-            printf "Total files parsed: %d\n", $changes->{'files_parsed'};
-            printf "Files modified: %d\n", $changes->{'files_changed'};
-            printf "Total replacements: %d\n", $changes->{'total_changes'};
-            printf "\n";
-        } else {
-            preview( $original_source, $modified_source, $changes, \%regexp );
-        }
+        # Always show preview - preview() handles AI-friendly output format
+        preview( $original_source, $modified_source, $changes, \%regexp );
 
         # ask if we should apply the changes on the source
-        if ( user_confirmed_ai('apply these changes ?') ) {
+        my $cmd_name = $cmd eq 'r' ? 'r' : 'replace';
+        if ($PREVIEW_ONLY) {
+            printf "[PREVIEW ONLY] Changes NOT applied.\n";
+            printf "Run with -confirm flag to apply:\n";
+            printf "  ./bin/ncode -ai-friendly -confirm %s %s\n", $cmd_name,
+                join( ' ',
+                map { /\s/ ? "'$_'" : $_ } $target,
+                @file_options, @params );
+        } elsif ( $AI_FRIENDLY && !$CONFIRM ) {
+            printf "\n[PREVIEW SHOWN - NOT APPLIED]\n";
+            printf "Add -confirm flag to auto-apply:\n";
+            printf "  ./bin/ncode -ai-friendly -confirm %s %s\n", $cmd_name,
+                join( ' ',
+                map { /\s/ ? "'$_'" : $_ } $target,
+                @file_options, @params );
+        } elsif ( user_confirmed_ai('apply these changes ?') ) {
 
             warn_apply() unless $AI_FRIENDLY;
 
@@ -508,7 +602,8 @@ sub cmd_replace {
             if ($AI_FRIENDLY) {
                 printf "[SUCCESS] Changes applied successfully\n";
                 printf "Files modified: %d\n", $changes->{'files_changed'};
-                printf "Total replacements: %d\n", $changes->{'total_changes'};
+                printf "Total replacements: %d\n",
+                    $changes->{'total_changes'};
             }
         } else {
             &aborted;
@@ -524,7 +619,7 @@ sub cmd_restore_backup {
 
     if ( defined $params[0] and $params[0] eq qw| description_txt | ) {
         return description_txt(
-            '[backup_name] [--latest]', '
+            '[backup_name] [-latest]', '
 
 <backup_archive> .. restore files from a backup archive
 
@@ -534,12 +629,12 @@ sub cmd_restore_backup {
                    <backup_name>  : name or path to backup file
                                     (e.g., backup.replace.2025-11-27.15:03:51.tar.gz)
 
-                   --latest       : restore latest backup without prompts
+                   -latest        : restore latest backup without prompts
                                     (useful for AI automation)
 
                    Examples:
                    bin/ncode restore-backup backup.replace.2025-11-27.15:03:51.tar.gz
-                   bin/ncode restore-backup --latest
+                   bin/ncode restore-backup -latest
           ', @params
         );
     }
@@ -555,7 +650,7 @@ sub cmd_restore_backup {
 
     opendir( my $DIR, $backup_dir ) or die " :: cannot open backup dir ::\n";
     @backups = sort { $b cmp $a }
-        grep { /\.(tar\.gz|tar\.xz)$/ } readdir($DIR);
+        grep {/\.(tar\.gz|tar\.xz)$/} readdir($DIR);
     closedir($DIR);
 
     if ( !@backups ) {
@@ -565,7 +660,8 @@ sub cmd_restore_backup {
 
     my $backup_file;
 
-    if ( $params[0] and $params[0] eq '--latest' ) {
+    if ( $params[0] and $params[0] eq '-latest' ) {
+
         # Use latest backup
         my $latest = shift(@backups);
         $backup_file = $backup_dir . $latest;
@@ -573,15 +669,18 @@ sub cmd_restore_backup {
             printf "[RESTORE] Using latest backup: %s\n", $latest;
         }
     } elsif ( $params[0] and -f $params[0] ) {
+
         # Use specified backup (full path)
         $backup_file = $params[0];
     } elsif ( $params[0] and -f $backup_dir . $params[0] ) {
+
         # Use specified backup (relative to backup dir)
         $backup_file = $backup_dir . $params[0];
     } else {
+
         # Show list and ask
         if ($AI_FRIENDLY) {
-            printf "[ERROR] Specify backup file or use --latest\n";
+            printf "[ERROR] Specify backup file or use -latest\n";
             return;
         }
 
@@ -604,7 +703,8 @@ sub cmd_restore_backup {
     my $temp_dir = $PATH->{'work'} . 'restore_temp_' . time();
     mkdir($temp_dir);
 
-    my $extract_cmd = $backup_file =~ /\.tar\.xz$/
+    my $extract_cmd
+        = $backup_file =~ /\.tar\.xz$/
         ? sprintf( 'cd %s && tar -xJf %s', $temp_dir, $backup_file )
         : sprintf( 'cd %s && tar -xzf %s', $temp_dir, $backup_file );
 
@@ -756,12 +856,21 @@ sub cmd_search {
 
     if ( defined $params[0] and $params[0] eq qw| description_txt | ) {
         return description_txt(
-            '[target] [pattern(s)]', '
+            '[target] [options] [pattern(s)]', '
 
-<target> [pattern] ..... regexp search on all <target> files
+<target> [options] [pattern] ..... regexp search on all <target> files
 
                          <target>  source code target path keyword
                                    [ see list_targets for details ]
+
+                                   can include file pattern:
+                                   src:.loves    - files containing ".loves"
+                                   bin:\.pl$     - files ending with ".pl"
+
+                         [options] rec:1|0|<pattern> - enable/disable recursion
+                                                      or match directory pattern
+                                   excl:<pattern>   - exclude files matching
+                                   incl:<pattern>   - include only matching
 
                          [pattern] regular expression patterns to match
           ', @params
@@ -771,15 +880,35 @@ sub cmd_search {
         if !@params;    ## '.' def
 
     my $target = shift(@params);
+
+# Extract base target for validation (handles target:pattern syntax like 'src:.loves')
+    my $base_target_for_validation = $target;
+    if ( $target =~ /^([^:]+):(.+)$/ ) {
+        $base_target_for_validation = $1;
+    }
+
+    # Check for file options (rec:, excl:, incl:) in params
+    my @file_options;
+    my @remaining_params;
+    foreach my $param (@params) {
+        if ( $param =~ /^(rec|excl|incl):/i ) {
+            push @file_options, $param;
+        } else {
+            push @remaining_params, $param;
+        }
+    }
+    @params = @remaining_params if @remaining_params;
+
     say "  :: '$target' not a valid target ::\n" and exit(0010)
-        if $target !~ m|\+| and not exists $targets{$target};
+        if $base_target_for_validation !~ m|\+|
+        and not exists $targets{$base_target_for_validation};
 
     if (@params) { $search_pattern = join( ' ', @params ) }
     else {
         $search_pattern = get_user_input('regexp search pattern');
     }
 
-    my $source_data = load_source($target);
+    my $source_data = load_source( $target, @file_options );
 
     my $last_filename;
     foreach my $filename ( sort keys %$source_data ) {
@@ -806,51 +935,62 @@ sub cmd_search {
                         if ( $file_changed
                             or not defined $last_filename ) {
                             if ( lc($search_pattern) ne $search_pattern ) {
-                                print print "\n"
+                                print "\n"
                                     . $C{'R'}
                                     . $C{'B01'}
                                     . ansi('dark')
-                                    . $C{'T'}
+                                    . $C{'1'}   # p7_fg_0001 - blue for header
                                     . "::: [ search =~ m{$search_pattern} ]";
                             } else {
                                 print "\n"
                                     . $C{'R'}
                                     . $C{'B01'}
                                     . ansi('dark')
-                                    . $C{'T'}
+                                    . $C{'1'}   # p7_fg_0001 - blue for header
                                     . "::: [ search =~ m{$search_pattern}i ]";
                             }
                             print $C{'R'}
-                                . ansi('dark') . ' :: '
+                                . $C{'1'}
+                                . ' :: '     # p7_fg_0001 - blue for ::
                                 . $C{'R'}
                                 . $C{'B02'}
-                                . $C{'T'}
+                                . $C{'0'}   # p7_fg_0000 - purple for filepath
                                 . $filename
                                 . $C{'R'}
-                                . ansi('dark') . " ::\n"
-                                . $C{'0'} . ":\n";
+                                . $C{'1'}
+                                . " ::\n"    # p7_fg_0001 - blue for ::
+                                . $C{'1'}
+                                . ":\n";     # p7_fg_0001 - blue for separator
                         }
 
-                        print ansi('dark')
-                            . $C{'B01'}
-                            . $C{'T'} . ': '
-                            . $C{'0'}
-                            . sprintf( '%03d', $line_num )
-                            . ansi('dark')
-                            . $C{'T'} . ' :'
-                            . ansi('reset') . ' '
-                            . highlight(
+               # Build the line content without background for the source text
+                        my $line_content = highlight(
                             $source_line, $search_pattern,
-                            $C{'B02'} . $C{'B'} . $C{'T'},
-                            $C{'R'} . ansi('dark')
-                            ) . "\n";
+                            $C{'B02'}
+                                . $C{'B'}
+                                . $C{'3'}
+                            ,    # p7_fg_0003 - phosphor green for matches
+                            $C{'R'}
+                                . $C{'1'} # reset + return to blue after match
+                        );
+
+                        print $C{'B01'}
+                            . $C{'1'}
+                            . ': '       # p7_fg_0001 - blue for separators
+                            . $C{'1'}    # p7_fg_0001 - blue for line numbers
+                            . sprintf( '%03d', $line_num )
+                            . $C{'1'}
+                            . ' :'          # p7_fg_0001 - blue for separators
+                            . $C{'R'} . ' ' # reset before text
+                            . $C{'1'}       # p7_fg_0001 - blue for main text
+                            . $line_content . "\n";
                         $last_filename = $filename;
                     }
                 }
             }
         }
     }
-    print ansi('dark') . $C{'T'} . ":\n" . $C{'R'} . "\n";
+    print ansi('dark') . $C{'1'} . ":\n" . $C{'R'} . "\n";
 }
 
 # :: cmd_move_psubs :: moves subroutine[s] from one module to another
@@ -883,7 +1023,7 @@ sub cmd_move_psubs {
     while ( not defined $source_sub or $source_sub eq '' ) {
         $source_sub = get_user_input('source subroutine[s]');
     }
-    while (not defined $sub_destination
+    while ( not defined $sub_destination
         or $sub_destination eq ''
         or $sub_destination !~ m|^[\w\_\:]+\:\:([\w\_]+)?$| ) {
         if ( $sub_destination !~ m|^[\w\_\:]+\:\:([\w\_]+)?$| ) {
@@ -983,12 +1123,9 @@ sub warn_apply {
             $msg = ' ' x length($msg);
         }
 
-        print $C{'B'}
-            . "\r.:  "
-            . $C{'g'}
-            . $msg
-            . $C{'R'}
-            . $C{'B'} . '  :. '
+        print "\r" . $C{'1'} . '.:  '     # blue prefix
+            . $C{'3'}                     # phosphor green for message
+            . $msg . $C{'1'} . '  :. '    # blue suffix
             . $C{'R'};
 
         if ( $s->can_read(0.42) ) {
@@ -998,11 +1135,9 @@ sub warn_apply {
             &aborted;
         }
     }
-    print "\r"
-        . $C{'B'} . ".:  "
-        . $C{'R'}
-        . $msg
-        . $C{'B'} . "  :."
+    print "\r" . $C{'1'} . ".:  "    # blue prefix
+        . $C{'1'}                    # blue for final message
+        . $msg . $C{'1'} . "  :."    # blue suffix
         . $C{'R'} . "\n\n";
 }
 
@@ -1018,6 +1153,8 @@ sub aborted {
 # :: preview :: shows differences between original and modified source
 
 sub preview {
+    $OUTPUT_AUTOFLUSH = 1;    # Ensure preview output is not buffered
+
     my $original_source = shift;
     my $modified_source = shift;
     my $changes         = shift;
@@ -1033,12 +1170,17 @@ sub preview {
     my ( $search_pattern, $replace_pattern )
         = ( $regexp->{'search'}, $regexp->{'replace'} );
 
+    # Use LLM-friendly preview if AI mode is enabled
+    if ($AI_FRIENDLY) {
+        return preview_llm_friendly( $original_source, $modified_source,
+            $changes, $regexp );
+    }
+
     my $preview_path = $PATH->{'work'} . 'preview/';
 
-    print $C{'B'} . '.:  '
-        . $C{'R'}
-        . "c r e a t i n g   p r e v i e w"
-        . $C{'B'} . '  :.'
+    print $C{'1'} . '.:  '    # blue prefix
+        . $C{'1'}             # p7_fg_0001 - blue for text
+        . "c r e a t i n g   p r e v i e w" . $C{'1'} . '  :.'   # blue suffix
         . $C{'R'} . "\n\n";
 
     # remove any previous contents
@@ -1050,10 +1192,10 @@ sub preview {
     $original_source = add_path( $original_source_path, $original_source );
     $modified_source = add_path( $modified_source_path, $modified_source );
 
-    print ":: saving original source ::\n\n";
+    print $C{'1'} . ":: saving original source ::" . $C{'R'} . "\n\n";
     save_source( $original_source, $preview_path );
 
-    print "\n:: saving modified source ::\n\n";
+    print "\n" . $C{'1'} . ":: saving modified source ::" . $C{'R'} . "\n\n";
     save_source( $modified_source, $preview_path );
 
     if ( !diff_less( $original_source_path, $modified_source_path, $regexp ) )
@@ -1063,6 +1205,96 @@ sub preview {
 
     clean_dir($preview_path);
     print "\n";
+}
+
+# :: preview_llm_friendly :: outputs preview in LLM-consumable format
+# Outputs structured diff data directly to stdout (no pager)
+
+sub preview_llm_friendly {
+    $OUTPUT_AUTOFLUSH = 1;    # Ensure output is not buffered
+
+    my $original_source = shift;
+    my $modified_source = shift;
+    my $changes         = shift;
+    my $regexp          = shift;
+
+    my ( $search_pattern, $replace_pattern )
+        = ( $regexp->{'search'}, $regexp->{'replace'} );
+
+    print "\n[PREVIEW START]\n";
+    print "=" x 60 . "\n";
+
+    # Summary
+    printf "Files to modify: %d\n",    $changes->{'files_changed'} // 0;
+    printf "Total replacements: %d\n", $changes->{'total_changes'} // 0;
+    printf "Search pattern: %s\n",     $search_pattern             // 'N/A';
+    printf "Replace pattern: %s\n",    $replace_pattern            // 'N/A';
+    print "=" x 60 . "\n\n";
+
+    # Show changes per file
+    foreach my $file ( sort keys %{ $changes->{'file'} } ) {
+        my $file_changes = $changes->{'file'}{$file}{'changes'} // 0;
+        next unless $file_changes;
+
+        printf "--- FILE: %s ---\n", $file;
+        printf "Replacements: %d\n", $file_changes;
+
+        # Show context: find and display the actual changes
+        if (   defined $original_source->{$file}
+            && defined $modified_source->{$file} ) {
+            my @orig_lines = split( "\n", $original_source->{$file} );
+            my @mod_lines  = split( "\n", $modified_source->{$file} );
+
+            print "\nChanges:\n";
+
+            my $line_num    = 1;
+            my $shown       = 0;
+            my $max_context = 3;    # lines of context around each change
+
+            for ( my $i = 0; $i < @orig_lines && $shown < 10; $i++ ) {
+                my $orig = $orig_lines[$i] // '';
+                my $mod  = $mod_lines[$i]  // '';
+
+                if ( $orig ne $mod ) {
+
+                    # Show context before
+                    my $start = $i - $max_context;
+                    $start = 0 if $start < 0;
+
+                    for ( my $j = $start; $j < $i; $j++ ) {
+                        printf "  %4d | %s\n", $j + 1, $orig_lines[$j];
+                    }
+
+                    # Show the change
+                    printf "- %4d | %s\n", $i + 1, $orig;
+                    printf "+ %4d | %s\n", $i + 1, $mod;
+                    $shown++;
+
+                    # Show context after
+                    my $end = $i + $max_context;
+                    $end = $#orig_lines if $end > $#orig_lines;
+                    for (
+                        my $j = $i + 1;
+                        $j <= $end && $j < @mod_lines;
+                        $j++
+                    ) {
+                        printf "  %4d | %s\n", $j + 1, $mod_lines[$j];
+                    }
+                    print "\n" if $shown < 10;
+                }
+            }
+
+            if ( $shown >= 10 ) {
+                print "... (more changes omitted for brevity) ...\n";
+            }
+        }
+        print "\n";
+    }
+
+    print "=" x 60 . "\n";
+    print "[PREVIEW END]\n\n";
+
+    return 1;
 }
 
 # :: create_backup :: creates a backup of the actual change
@@ -1077,7 +1309,9 @@ sub create_backup {
     die "second argument to create_backup() expected a hash reference"
         if ref($backup_metadata) ne qw| HASH |;
 
-    print ":: creating backup of original files ::\n\n";
+    print $C{'1'}
+        . ":: creating backup of original files ::"
+        . $C{'R'} . "\n\n";
 
     # first make sure we have a valid backup directory #
 
@@ -1109,7 +1343,7 @@ sub create_backup {
         $backup_metadata->{'backup'}{'created_on'} = $hostname;
     }
 
-    print ":: calculating backup checksums ::\n\n";
+    print $C{'1'} . ":: calculating backup checksums ::" . $C{'R'} . "\n\n";
 
     # add checksums of modified source for target file checks during restore
     if ( ref($modified_source) eq qw| HASH | ) {
@@ -1117,7 +1351,9 @@ sub create_backup {
             = create_checksums($backup_source);    # get checksum hashref
     }
 
-    print ":: calculating modification checksums ::\n\n";
+    print $C{'1'}
+        . ":: calculating modification checksums ::"
+        . $C{'R'} . "\n\n";
 
     # add checksums of modified source for target file checks during restore
     if ( ref($modified_source) eq qw| HASH | ) {
@@ -1187,7 +1423,9 @@ sub pack_backup {
 
     $backup_file_short =~ s|/([^/]+)$| '/' .$C{'g'}.$1.$C{'R'} |e;
 
-    print ":: creating backup archive file $backup_file_short ::\n\n";
+    print $C{'1'}
+        . ":: creating backup archive file $backup_file_short ::"
+        . $C{'R'} . "\n\n";
 
     chdir($pack_dir);
     my $pack_results = qx| tar czvvf $backup_file . |;
@@ -1205,28 +1443,23 @@ sub pack_backup {
             $filename =~ s|([^/]+)$| $C{'g'}. $1 .$C{'R'} |e;
             if ( $filename =~ m|/$| ) { $size = '' }
 
-            print ': '
-                . $C{'T'}
-                . $creation_date
-                . $C{'R'} . ' '
-                . $C{'0'}
+            print $C{'1'} . ': '                    # blue colon
+                . $C{'1'}                           # blue for date
+                . $creation_date . $C{'1'} . ' '    # blue space
+                . $C{'1'}                           # blue for owner
                 . $owner
                 . ' ' x $owner_padding
-
-                #. sprintf("%*s",20,$owner)
-                . $C{'R'} . "\n"
-                . '       '
-                . $C{'T'}
-                . $creation_time
-                . $C{'R'} . ' '
-                . $C{'0'}
-                . $permissions
-                . $C{'R'} . '   '
-                . $C{'g'}
+                . $C{'1'}
+                . "\n"                              # blue newline
+                . '       ' . $C{'1'}               # blue for time
+                . $creation_time . $C{'1'} . ' '    # blue space
+                . $C{'1'}                           # blue for permissions
+                . $permissions . $C{'1'} . '   '    # blue spaces
+                . $C{'3'}                           # phosphor green for size
                 . sprintf( '% 10s', $size ) . ' '
-                . $C{'R'} . ': '
-                . $filename
-                . $C{'R'} . "\n";
+                . $C{'1'}
+                . ': '                              # blue colon
+                . $filename . $C{'R'} . "\n";
         }
     }
     print "\n";
@@ -1388,9 +1621,11 @@ sub save_metadata {
             close($META_FILE);
             my $file_name_short = $file_name;
             if ( defined $cut_path ) { $file_name_short =~ s|^$cut_path|| }
-            $file_name_short =~ s|/([^/]+)$| '/' . $C{'T'}. $1 .$C{'R'} |e;
+            $file_name_short =~ s|/([^/]+)$| '/' . $C{'3'}. $1 .$C{'R'} |e;
 
-            print ":: backup metadata saved to $file_name_short ::\n\n";
+            print $C{'1'}
+                . ":: backup metadata saved to $file_name_short ::"
+                . $C{'R'} . "\n\n";
         } else {
             die " :: cannot open backup meta "
                 . "data file '$file_name' : : \l$OS_ERROR ::\n";
@@ -1415,13 +1650,12 @@ sub create_checksums {
             my $relative_filename = $file;
             $relative_filename =~ s|^$root_path/?||;
 
-            $relative_filename =~ s{/([^/]+)$}{ '/' .$C{'T'}. $1 .$C{'R'} }e;
+            $relative_filename =~ s{/([^/]+)$}{ '/' .$C{'3'}. $1 .$C{'R'} }e;
 
-            print ': '
-                . $C{'T'}
-                . $file_checksums{$file}
-                . $C{'R'}
-                . " : $relative_filename\n";
+            print $C{'1'} . ': '                           # blue colon
+                . $C{'1'}                                  # blue for checksum
+                . $file_checksums{$file} . $C{'1'} . ' : ' # blue colon
+                . $relative_filename . $C{'R'} . "\n";
         }
 
         # else { file is a directory }
@@ -1430,16 +1664,124 @@ sub create_checksums {
     return \%file_checksums;
 }
 
+# :: parse_file_options :: parses rec:, excl:, incl: prefixes from params
+# Returns: (cleaned_target, \%options)
+# Example: parse_file_options('src', 'rec:1', 'excl:.bak', 'excl:test')
+#          -> ('src', { recurse => 1, exclude => [qr/\.bak/, qr/test/] })
+# Example with pattern: parse_file_options('src', 'rec:base.cmd.')
+#          -> ('src', { recurse => 1, recurse_match => qr/base\.cmd\./ })
+# Example with target pattern: parse_file_options('src:.loves', ...)
+#          -> ('src', { include => [qr/.loves/] })
+
+sub parse_file_options {
+    my $target = shift;
+    my @params = @_;
+
+    my %options = (
+        'recurse'       => 0,
+        'recurse_match' =>
+            undef,    # Pattern for directory matching during recursion
+        'exclude' => [],
+        'include' => []
+    );
+
+    # Check for target:pattern syntax (e.g., 'src:.loves' or 'bin:\.pl$')
+    if ( $target =~ /^([^:]+):(.+)$/ ) {
+        my $base_target = $1;
+        my $pattern     = $2;
+        $target = $base_target;
+
+        # Convert the pattern to a regex and add to includes
+        # Support wildcards: * becomes .* and ? becomes .
+        my $regex_pattern = $pattern;
+        $regex_pattern =~ s/\./\\./g;    # Escape dots
+        $regex_pattern =~ s/\*/.*/g;     # Convert * to regex
+        $regex_pattern =~ s/\?/./g;      # Convert ? to single char
+
+        # If pattern doesn't have anchors and looks like a substring search,
+        # make it match anywhere in the filename
+        if ( $regex_pattern !~ /^\^/ && $regex_pattern !~ /\$$/ ) {
+
+            # Keep as-is for substring matching
+        }
+
+        push @{ $options{'include'} }, qr/$regex_pattern/;
+    }
+
+    # Check for recursion marker in target itself
+    if ( $target =~ s/^rec://i ) {
+        my $rec_value = $1 // '1';
+        if ( $rec_value =~ /^[1yt]/i ) {
+            $options{'recurse'} = 1;
+        } elsif ( $rec_value =~ /^(\d+)$/ ) {
+            $options{'recurse'} = $1;
+        } else {
+
+            # It's a pattern
+            $options{'recurse'} = 1;
+            my $pattern = $rec_value;
+            $pattern =~ s/\./\\./g;
+            $pattern =~ s/\*/.*/g;
+            $options{'recurse_match'} = qr/$pattern/;
+        }
+    }
+
+    foreach my $param (@params) {
+        if ( $param =~ /^rec:(.+)/i ) {
+            my $value = $1;
+            if ( $value =~ /^[1yt]/i ) {
+                $options{'recurse'} = 1;
+            } elsif ( $value =~ /^(\d+)$/ ) {
+                $options{'recurse'} = $1;
+            } else {
+
+                # It's a pattern like 'rec:base.cmd.'
+                $options{'recurse'} = 1;
+                my $pattern = $value;
+                $pattern =~ s/\./\\./g;    # Escape dots
+                $pattern =~ s/\*/.*/g;     # Convert * to regex
+                $options{'recurse_match'} = qr/$pattern/;
+            }
+        } elsif ( $param =~ /^excl:(.+)/i ) {
+            my $pattern = $1;
+
+            # Convert simple pattern to regex
+            $pattern =~ s/\./\\./g;    # Escape dots
+            $pattern =~ s/\*/.*/g;     # Convert * to regex
+            push @{ $options{'exclude'} }, qr/$pattern/;
+        } elsif ( $param =~ /^incl:(.+)/i ) {
+            my $pattern = $1;
+            $pattern =~ s/\./\\./g;
+            $pattern =~ s/\*/.*/g;
+            push @{ $options{'include'} }, qr/$pattern/;
+        }
+    }
+
+# Default include: all files if no inclusion pattern specified
+# Protocol-7 modules don't have standard extensions (e.g., 'base.file.pre_init')
+    if ( !@{ $options{'include'} } ) {
+        $options{'include'} = [qr/.*/];    # Match all files by default
+    }
+
+    return ( $target, \%options );
+}
+
 # :: load source :: loads all module files into memory and returns a hash ref
+# Supports options: recurse, exclude patterns
+# Usage: load_source('src') or load_source('src', 'rec:1', 'excl:test')
 
 sub load_source {
-    my $type = shift;
+    my $type   = shift;
+    my @params = @_;
     my %source;
 
     my @load_types = ( split( '\+', $type ) );
 
     foreach my $PATH_key (@load_types) {
-        foreach my $file ( files($PATH_key) ) {
+        my ( $clean_target, $options )
+            = parse_file_options( $PATH_key, @params );
+
+        foreach my $file ( files( $clean_target, $options ) ) {
             next if -d $file;
             check_link($file);
             local $RS = undef;
@@ -1448,7 +1790,7 @@ sub load_source {
                 . $C{'T'}
                 . $file
                 . $C{'R'} . "' ["
-                . $C{'o'}
+                . $C{'2'}
                 . $C{'B'}
                 . lcfirst($OS_ERROR)
                 . $C{'R'} . "]\n\n"
@@ -1487,20 +1829,15 @@ sub save_source {
 
             if ( defined $cut_path ) { $file =~ s|^$cut_path|| }
 
-            ( my $file_str = $file ) =~ s|(plb:/)([^/]+)|$C{'T'}$1|;
-            my $output_line
-                = ': '
-                . $C{'0'}
-                . 'save file'
-                . $C{'R'} . ' :'
-                . $C{'T'}
+            ( my $file_str = $file ) =~ s|(plb:/)([^/]+)|$C{'1'}$1|;
+            my $output_line = $C{'1'} . ': '                # blue colon
+                . $C{'0'} . 'save file' . $C{'1'} . ' :'    # blue colon
+                . $C{'1'}                                   # blue for numbers
                 . sprintf( '% 6d', $bytes_written )
                 . ' bytes'
-                . $C{'R'} . ' : '
-                . $C{'B01'}
-                . $C{'0'}
-                . $file_str
-                . $C{'R'} . "\n";
+                . $C{'1'}
+                . ' : '                                     # blue colon
+                . $C{'B01'} . $C{'0'} . $file_str . $C{'R'} . "\n";
 
             $output_line =~ s|/([^/]+)$| '/'.
                 $C{'B02'}.$C{'T'}. $1 .$C{'R'} |e;
@@ -1538,17 +1875,10 @@ sub check_path {
 
         if ( !-d $current_path ) {
             if ( mkdir($current_path) ) {
-                my $output_line
-                    = ': '
-                    . $C{'0'}
-                    . 'directory'
-                    . $C{'R'}
-                    . ' :     '
-                    . $C{'0'}
-                    . 'created'
-                    . $C{'R'} . ' : '
-                    . $C{'0'}
-                    . $current_path_short . ' ' . "\n";
+                my $output_line = $C{'1'} . ': '                  # blue colon
+                    . $C{'0'} . 'directory' . $C{'1'} . ' :     ' # blue colon
+                    . $C{'0'} . 'created' . $C{'1'} . ' : '       # blue colon
+                    . $C{'0'} . $current_path_short . ' ' . "\n";
 
                 $output_line =~ s/\/([^\/]+)$/'\/'.$C{'T'}.$1.$C{'R'}/e;
                 print $output_line;
@@ -1584,12 +1914,16 @@ sub create_dir {
 
     if ( !-d $full_path ) {
         if ( mkdir($full_path) ) {
-            print ": directory '$full_path' created :\n";
+            print $C{'1'}
+                . ": directory '$full_path' created :"
+                . $C{'R'} . "\n";
         } else {
             die ":: cannot create directory '$full_path' :: ";
         }
     } else {
-        print ": directory '$full_path' already_ exists :\n";
+        print $C{'1'}
+            . ": directory '$full_path' already_ exists :"
+            . $C{'R'} . "\n";
     }
 }
 
@@ -1605,18 +1939,12 @@ sub clean_dir {
 
         # remove ..,
         if ( !system( qw| rm -rf -- |, $directory_path ) ) {
-            my $output_line
-                = ': '
-                . $C{'0'}
-                . 'directory'
-                . $C{'R'}
-                . ' :     '
-                . $C{'0'}
-                . 'removed'
-                . $C{'0'}
-                . " : $directory_path " . "\n";
+            my $output_line = $C{'1'} . ': '                     # blue colon
+                . $C{'0'} . 'directory' . $C{'1'} . ' :     '    # blue colon
+                . $C{'0'} . 'removed' . $C{'1'} . ' : '          # blue colon
+                . $C{'0'} . $directory_path . ' ' . "\n";
 
-            $output_line =~ s/\/([^\/]+)$/'\/'.$C{'T'}.$1.$C{'R'}/e;
+            $output_line =~ s/\/([^\/]+)$/'\/'.$C{'1'}.$1.$C{'R'}/e;
             print $output_line;
             return 1;
         } else {
@@ -1627,39 +1955,103 @@ sub clean_dir {
 }
 
 # :: tree :: returns a list of module files [ with full path ]
+# Supports: recursion depth, exclusion patterns
+# Usage: files('src', { recurse => 1, exclude => [qr/\.bak/, qr/\.git/] })
 
-sub files {    ## LLL : implement recursion [ depth ] keyword ##
+sub files {
+    my $type    = shift;
+    my $options = shift // {};
     my @files;
-    my $type = shift;
+
     my $path = $targets{$type};
 
-    my $recursion = $path =~ s|\.\.,$|| ? 1 : 0;
+    # Check for legacy recursion marker '..,' in target path
+    my $legacy_recurse = $path =~ s|\.\.,$|| ? 1 : 0;
+    my $recurse        = $options->{'recurse'} // $legacy_recurse;
+    my $recurse_match
+        = $options->{'recurse_match'};    # Pattern for directory matching
+    my $exclusions = $options->{'exclude'} // [];
+    my $inclusions = $options->{'include'} // [];
 
     die ":\n:: no such target :. $type\n\n"         if not defined $path;
     die ":\n:: target path not exists :. $path\n\n" if !-e $path;
 
-    if ( defined $path and $path ne '' and -d $path ) {
-        opendir( my $dir_fh, $path )
-            or die "cannot open dir '$path' : \l$OS_ERROR\n";
+    # Helper to check if file matches any exclusion pattern
+    my $is_excluded = sub {
+        my $filepath = shift;
+        my $filename = $filepath;
+        $filename =~ s|^.*/||;
+
+        foreach my $pattern (@$exclusions) {
+            return 1 if $filepath =~ $pattern;
+            return 1 if $filename =~ $pattern;
+        }
+        return 0;
+    };
+
+    # Helper to check if file matches inclusion patterns (if any defined)
+    my $is_included = sub {
+        my $filepath = shift;
+        return 1 unless @$inclusions;    # No filters = include all
+
+        my $filename = $filepath;
+        $filename =~ s|^.*/||;
+
+        foreach my $pattern (@$inclusions) {
+            return 1 if $filepath =~ $pattern;
+            return 1 if $filename =~ $pattern;
+        }
+        return 0;
+    };
+
+    # Recursive file collector
+    my $collect_files;
+    $collect_files = sub {
+        my $current_path = shift;
+        my $depth        = shift // 0;
+
+        return unless -d $current_path;
+
+        opendir( my $dir_fh, $current_path )
+            or die "cannot open dir '$current_path' : \l$OS_ERROR\n";
+
         foreach my $filename ( readdir($dir_fh) ) {
             next if $filename eq '.' or $filename eq '..';
-            ( $filename = "$path/$filename" ) =~ s,//,/,g;
-            if ( $filename !~ m{(\.bak|\.orig|\~)$}i ) {
-                chomp($filename);
-                push( @files, $filename );    # say ' < file > '.$filename;
-                ## configuration/zenki/*/.., ##
-                if ( $recursion and -d $filename )
-                {                             # implement arbitrary depth
-                    opendir( my $adir_fh, $filename )
-                        or die "cannot open dir '$filename' : \l$OS_ERROR\n";
-                    map { push( @files, $filename . "/$ARG" ) }
-                        readdir($adir_fh);
-                    closedir($adir_fh);
+
+            my $fullpath = "$current_path/$filename";
+            $fullpath =~ s|//|/|g;
+
+            # Skip excluded files/directories
+            next if $is_excluded->($fullpath);
+
+            if ( -d $fullpath ) {
+
+                # Recurse into subdirectories if enabled
+                if ($recurse) {
+
+                   # Check if directory matches recurse pattern (if specified)
+                    my $should_recurse = 1;
+                    if ( defined $recurse_match ) {
+                        my $dirname = $filename;
+                        $should_recurse
+                            = ( $dirname =~ $recurse_match ) ? 1 : 0;
+                    }
+                    if ($should_recurse) {
+                        $collect_files->( $fullpath, $depth + 1 );
+                    }
                 }
+            } elsif ( $is_included->($fullpath) ) {
+
+                # Add file if it passes inclusion filters
+                chomp($fullpath);
+                push( @files, $fullpath );
             }
         }
         closedir($dir_fh);
-    }
+    };
+
+    $collect_files->( $path, 0 ) if -d $path;
+
     return sort(@files);
 }
 
@@ -1748,14 +2140,9 @@ sub get_perl_subs {
 # :: done :: print 'done' message and exit program
 
 sub done {
-    print "\n"
-        . $C{'R'}
-        . $C{'B'} . ' :: '
-        . $C{'g'}
-        . 'D O N E'
-        . $C{'R'}
-        . $C{'B'}
-        . "\n :\n ."
+    print "\n" . $C{'R'} . $C{'1'} . ' :: '    # blue for ::
+        . $C{'3'}                              # phosphor green for D O N E
+        . 'D O N E' . $C{'R'} . $C{'1'} . "\n :\n ."    # blue for : and .
         . $C{'R'} . "\n\n";
     exit(00000);
 }
@@ -1772,7 +2159,7 @@ sub check_link {
             . $file
             . $C{'R'}
             . "' is a "
-            . $C{'o'}
+            . $C{'2'}
             . $C{'B'}
             . "dead link"
             . $C{'R'}
@@ -1786,7 +2173,7 @@ sub overwrite_source_files {
     my $source_code     = shift;
     my $backup_metadata = shift;
 
-    print ":: writing changes to disk ::\n\n";
+    print $C{'1'} . ":: writing changes to disk ::" . $C{'R'} . "\n\n";
     save_source( $source_code, $PATH->{'root'} . '/' );
 }
 
@@ -1879,8 +2266,7 @@ sub show_perl_sub {
 
                             my $sub_source
                                 = substr( $source->{$file}, $start_pos,
-                                $offset )
-                                . "\n";
+                                $offset ) . "\n";
 
                             my $file_txt = $file;
                             $file_txt =~ s/^$cut_path\/?//;
@@ -2032,11 +2418,11 @@ sub cut_out_sub {
         substr( $work_source->{$file}, $start_pos, $offset, $substitution );
     } else {
         print $C{'B'} . "\n:: "
-            . $C{'o'}
+            . $C{'2'}
             . "cannot cut out source of subroutine '"
             . $C{'R'}
             . $sub_name
-            . $C{'o'}
+            . $C{'2'}
             . $C{'B'} . "'"
             . $C{'R'}
             . $C{'B'} . " ::"
@@ -2307,7 +2693,7 @@ sub user_confirmed {
 
     ## quoted part is green ##
     $question =~ s|^([^']+)'(.+)'([^']+)$|
-                  $C{'B01'}.$1.$C{'B02'}.$C{'o'}.$2.$C{'B01'}.$C{'T'}.$3
+                  $C{'B01'}.$1.$C{'B02'}.$C{'2'}.$2.$C{'B01'}.$C{'T'}.$3
                   |gxe;
     ## final '?' blinks ., ##
     $question =~ s|\?$| ansi('blink') . '?' . $C{'R'}.$C{'T'} |ge;
@@ -2333,7 +2719,7 @@ sub user_confirmed {
             . $C{'0'} . ']'
             . $C{'T'} . ' :. '
             . $C{'B'}
-            . $C{'o'};
+            . $C{'2'};
         print $question_string;
         $choice = &get_character;
         print $C{'R'};
@@ -2352,6 +2738,7 @@ sub user_confirmed_ai {
     my ($question) = @ARG;
 
     if ($AI_FRIENDLY) {
+
         # Output confirmation in structured format for AI
         printf "[CONFIRM] %s => YES (auto-confirmed in AI mode)\n", $question;
         return 1;
@@ -2391,9 +2778,10 @@ sub raw_mode_off {
 }
 
 # :: diff_less :: displaying an [ansi] diff between two directories using less
+# In AI-friendly mode, outputs directly to stdout without pager
 
 sub diff_less {
-    my $pager = 'less -R';
+    my $pager = $AI_FRIENDLY ? undef : 'less -R';
     my %k_path;
     my $regexp = {};
     ( $k_path{'first'}, $k_path{'second'}, $regexp ) = (@ARG);
@@ -2427,7 +2815,7 @@ sub diff_less {
         $k_path{$_path_type} =~ s|^$cut_path||;
     }
     chdir($cut_path);
-    print "\n :. creating diff preview ..,\r";
+    print "\n" . $C{'1'} . " :. creating diff preview ..," . $C{'R'} . "\r";
     if ( open( my $DIFF, "diff -u -r $k_path{'first'} $k_path{'second'} |" ) )
     {
         my @diff_output = <$DIFF>;
@@ -2442,9 +2830,15 @@ sub diff_less {
                         . $C{'0'}
                         . $1
                         . $C{'R'}
-                        . highlight( $diff_line, $search_pattern,
-                        ansi('blink') . $C{'B01'} . $C{'o'},
-                        $C{'R'} );
+                        . $C{'B01'}    # background for removed lines
+                        . $C{'1'}      # blue for text before match
+                        . highlight(
+                        $diff_line, $search_pattern,
+                        ansi('blink')
+                            . $C{'B01'}
+                            . $C{'2'},    # blinking orange for search match
+                        $C{'R'} . $C{'B01'} . $C{'1'}
+                        );                # stop blink, return to bg+blue
                 } elsif ( $diff_line =~ s/^([>|+]{1})([^+]{1})/$2/ ) {
                     my $replace_highlight = $replace_pattern;
                     if ( $regexp->{'options'} =~ m|e| ) {
@@ -2455,9 +2849,16 @@ sub diff_less {
                         . $C{'T'}
                         . $1
                         . $C{'R'}
-                        . highlight( $diff_line, $replace_highlight,
-                        $C{'B02'} . ansi('blink') . $C{'B'} . $C{'T'},
-                        $C{'R'} );
+                        . $C{'B02'}       # background for added lines
+                        . $C{'1'}         # blue for text before match
+                        . highlight(
+                        $diff_line, $replace_highlight,
+                        $C{'B02'}
+                            . ansi('blink')
+                            . $C{'B'}
+                            . $C{'3'},    # blinking phosphor green
+                        $C{'R'} . $C{'B02'} . $C{'1'}
+                        );                # stop blink, return to bg+blue
                 } elsif ( $diff_line =~ /^(diff |\+\+\+|\-\-\-|\@\@)/ ) {
                     if ( $diff_line =~ /^diff / ) {
 
@@ -2466,16 +2867,22 @@ sub diff_less {
                             $C{R}.$C{B02}.$C{B}.$C{'T'}.$1.ansi('dark')/ge;
                     }
                     $diff_txt
-                        .= ansi('dark') . $C{'0'} . $diff_line . $C{'R'};
+                        .= ansi('dark') . $C{'1'} . $diff_line . $C{'R'};
                 } else {
-                    $diff_txt .= $diff_line;
+                    $diff_txt .= $C{'1'} . $diff_line . $C{'R'};
                 }
             }
         } else {
             $diff_txt = join( '', @diff_output );
         }
 
-        if ( open( my $LESS, '| ' . $pager ) ) {
+        if ($AI_FRIENDLY) {
+
+            # In AI mode, print directly without pager
+            print "\n[DIFF OUTPUT]\n";
+            print $diff_txt;
+            print "[END DIFF]\n";
+        } elsif ( defined $pager and open( my $LESS, '| ' . $pager ) ) {
             print {$LESS} $diff_txt;
         } else {
             print "\n :: pager broken - printing to stdout instead ::\n\n";
@@ -2520,8 +2927,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,,.,.,,,,.,,..,,.,,,,,.,..,,.,,,..,,...,.,.,...,...,...,,.,,.,,,..,,,,.,,.,,
-#EDEZKCF7UCW7JPYVDWZK33A2DCJ3VNSXC3C7XMOPTI3SLZZW7DH24DEXSTPAR6MURXWGBCAKCDVRI
-#\\\|HBFXBPNQ4MZNGMFEMUPVMHGAKM5ZBAOTI2YURTMK5MRUWHQS6ZO \ / AMOS7 \ YOURUM ::
-#\[7]X3KKZ2AP4KN5OIV256EGEZNCU2GSF2AZZEPX6LSU4L2M6ZUJLUAY 7  DATA SIGNATURE ::
+#,,.,,,..,,..,.,,,,..,,.,,,..,.,,,.,,,,,,,,..,...,...,...,..,,.,,,,,.,.,.,...,
+#GVN7CJE3YHNW5CE4ORTHRSFGOH3WQ3G5ODODRCT3PXGSU54QZFSS33ATZYGZTADY3YMX7MDDYE2B2
+#\\\|S3Q6LYDERVLQQUN7CJWLPCT22UM3C5JDWD6IBYBQI2VKMFDXDGU \ / AMOS7 \ YOURUM ::
+#\[7]AE5QCVAZQXRY7BZOUXPOZYPQ2CHOJVWUQYMKLNTBLADGPF3OHMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
