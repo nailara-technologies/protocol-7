@@ -1,0 +1,127 @@
+## [:< ##
+
+# name  = coding.init_dependencies
+# descr = Initialize dependency tracking for inference pipeline
+# purpose = Create dependency chain: discovery -> model_ready -> server_ready
+
+## dependency object types ##
+## Note: callback modules use underscores in names, not dots ##
+my @callbacks = (
+    [ 'model_discovery',  'coding.callback.object_model_discovery' ],
+    [ 'model_available',  'coding.callback.object_model_available' ],
+    [ 'inference_server', 'coding.callback.object_inference_server' ],
+    [ 'memory_system',    'coding.callback.object_memory_system' ],
+    [ 'memory_gpu',       'coding.callback.object_memory_gpu' ],
+);
+
+my $cb_count = 0;
+foreach my $cb (@callbacks) {
+    my ( $type, $sub_name ) = @$cb;
+    if ( exists $code{$sub_name} ) {
+        <[dependency.setup]>->( $type, { 'callback' => $code{$sub_name} } );
+        $cb_count++;
+        <[base.logs]>->(
+            2, '[init_dependencies] registered callback: %s', $type
+        );
+    } else {
+        <[base.logs]>->(
+            0, '[init_dependencies] callback not found: %s', $sub_name
+        );
+    }
+}
+
+<[base.logs]>->(
+    2, '[init_dependencies] registered %d dependency callbacks', $cb_count
+);
+
+## 1. Model discovery dependency ##
+<coding.dep.model_discovery> = <[dependency.add_object]>->(
+    {   'type'        => 'model_discovery',
+        'description' => 'Model discovery completed successfully',
+        'status'      => 'pending'
+    }
+);
+
+## 2. Memory availability dependencies ##
+<coding.dep.memory_system> = <[dependency.add_object]>->(
+    {   'type'        => 'memory_system',
+        'min_free_mb' => 4096,              ## 4GB free RAM required ##
+        'description' => 'System RAM available (4GB+)'
+    }
+);
+
+<coding.dep.memory_gpu> = <[dependency.add_object]>->(
+    {   'type'        => 'memory_gpu',
+        'min_free_mb' => 3072,              ## 3GB free VRAM required ##
+        'description' => 'GPU VRAM available (3GB+)'
+    }
+);
+
+## 3. Model availability dependency (specific models) ##
+<coding.dep.model_gpu> = <[dependency.add_object]>->(
+    {   'type'        => 'model_available',
+        'backend'     => 'gpu',
+        'description' => 'GPU model available and ready'
+    }
+);
+
+<coding.dep.model_cpu> = <[dependency.add_object]>->(
+    {   'type'        => 'model_available',
+        'backend'     => 'cpu',
+        'description' => 'CPU model available and ready'
+    }
+);
+
+## 4. Inference server readiness ##
+<coding.dep.server_gpu> = <[dependency.add_object]>->(
+    {   'type'        => 'inference_server',
+        'backend'     => 'gpu',
+        'port'        => <inference.backend.gpu.port> // 8000,
+        'description' => 'GPU inference server HTTP ready'
+    }
+);
+
+<coding.dep.server_cpu> = <[dependency.add_object]>->(
+    {   'type'        => 'inference_server',
+        'backend'     => 'cpu',
+        'port'        => <inference.backend.cpu.port> // 8001,
+        'description' => 'CPU inference server HTTP ready'
+    }
+);
+
+## Create dependency chains ##
+## discovery must complete before model is considered available ##
+<[dependency.add]>->( <coding.dep.model_gpu>, <coding.dep.model_discovery> );
+<[dependency.add]>->( <coding.dep.model_cpu>, <coding.dep.model_discovery> );
+
+## memory must be available before server can start ##
+<[dependency.add]>->( <coding.dep.server_gpu>, <coding.dep.memory_gpu> );
+<[dependency.add]>->( <coding.dep.server_cpu>, <coding.dep.memory_system> );
+
+## model must be available before server can start ##
+<[dependency.add]>->( <coding.dep.server_gpu>, <coding.dep.model_gpu> );
+<[dependency.add]>->( <coding.dep.server_cpu>, <coding.dep.model_cpu> );
+
+<[base.logs]>->(
+    2, 'deps initialized: discovery=%s gpu_model=%s cpu_model=%s',
+    <coding.dep.model_discovery>, <coding.dep.model_gpu>,
+    <coding.dep.model_cpu>
+);
+<[base.logs]>->(
+    2,                       'deps initialized: gpu_server=%s cpu_server=%s',
+    <coding.dep.server_gpu>, <coding.dep.server_cpu>
+);
+
+return {
+    model_discovery => <coding.dep.model_discovery>,
+    model_gpu       => <coding.dep.model_gpu>,
+    model_cpu       => <coding.dep.model_cpu>,
+    server_gpu      => <coding.dep.server_gpu>,
+    server_cpu      => <coding.dep.server_cpu>
+};
+
+#,,.,,.,,,...,,,.,..,,,.,,..,,,,,,,.,,,..,.,,,.,.,...,...,.,.,,.,,,..,,,.,,,,,
+#KABT2NVLJCEMEXK3OT35T55MZGURCESYSOX7QGFD5ZGGDH55XL4C2F6QBLTT72QCOABVVZ3H5RHDS
+#\\\|RSKCBZZZ7ZEQUWQLBNBJCRMGZLTDT4Q3SYNMFTZJGBFZV3TPDHG \ / AMOS7 \ YOURUM ::
+#\[7]4CHEIEG4XCLJ3MTSEXLVKFECKO7NVJK32KFQQP7L7GMKYKNGFECQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

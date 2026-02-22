@@ -1,0 +1,188 @@
+## [:< ##
+
+# name  = coding.handler.spawn_smart
+# descr = Intelligently spawn inference servers based on memory and existing state
+
+my $params  = shift;
+my $backend = $params->{'backend'} // 'gpu';
+
+<[base.logs]>->(
+    1, '[spawn_smart] evaluating spawn for backend=%s', $backend
+);
+
+## Check if server is already running and healthy ##
+my $port
+    = $backend eq 'gpu'
+    ? ( <inference.backend.gpu.port> // 8000 )
+    : ( <inference.backend.cpu.port> // 8001 );
+
+my $is_healthy = eval {
+    use LWP::UserAgent;
+    my $ua       = LWP::UserAgent->new( timeout => 2 );
+    my $response = $ua->get("http://127.0.0.1:${port}/health");
+    return $response->is_success ? 1 : 0;
+} // 0;
+
+if ($is_healthy) {
+    <[base.logs]>->(
+        2, '[spawn_smart] %s server already healthy on port %d, skipping',
+        $backend, $port
+    );
+    return TRUE;
+}
+
+## Get model path from config ##
+my $model_name
+    = $backend eq 'cpu'
+    ? ( <inference.backend.cpu.model_id> // '' )
+    : ( <inference.backend.gpu.model_id> // '' );
+
+unless ( length $model_name ) {
+    <[base.logs]>
+        ->( 0, '[spawn_smart] no model configured for %s', $backend );
+    return FALSE;
+}
+
+## Lookup model in metadata cache ##
+my $metadata = <coding.model_metadata> // {};
+my ( $matched_entry, $matched_name );
+
+my $search_term = lc($model_name);
+$search_term =~ s/[-_\s]+//g;
+
+foreach my $cache_name ( keys %$metadata ) {
+    my $entry = $metadata->{$cache_name};
+    next if $cache_name =~ /mmproj/i;    ## Skip vision projectors ##
+
+    my $entry_amos = $entry->{'amos'} // '';
+
+    ## Check various match criteria ##
+    my $norm_cache = lc($cache_name);
+    $norm_cache =~ s/[-_\s]+//g;
+
+    if (   $entry_amos eq $model_name
+        || $cache_name eq $model_name
+        || index( $norm_cache, $search_term ) >= 0 ) {
+        $matched_entry = $entry;
+        $matched_name  = $cache_name;
+        last;
+    }
+}
+
+unless ( defined $matched_entry ) {
+    <[base.logs]>->( 0, '[spawn_smart] model not found: %s', $model_name );
+    return FALSE;
+}
+
+## Check memory before spawning ##
+my $model_size_gb = $matched_entry->{'size_gb'} // 0;
+
+if ( $backend eq 'gpu' ) {
+    ## For GPU, check if we have enough VRAM ##
+    my $nvidia_smi
+        = `nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits 2>/dev/null`;
+    if ( $? == 0 && $nvidia_smi =~ /^(\d+)/m ) {
+        my $free_vram_mb  = $1;
+        my $model_size_mb = $model_size_gb * 1024;
+        my $required_mb
+            = $model_size_mb + 512;    ## Model size + 512MB overhead ##
+
+        if ( $free_vram_mb < $required_mb ) {
+            <[base.logs]>->(
+                1,
+                '[spawn_smart] insufficient GPU memory: %d MB free, need %d MB',
+                $free_vram_mb,
+                $required_mb
+            );
+            return FALSE;
+        }
+        <[base.logs]>->(
+            2, '[spawn_smart] GPU memory OK: %d MB free for %d MB model',
+            $free_vram_mb, $model_size_mb
+        );
+    }
+} else {
+    ## For CPU, check system RAM ##
+    my $mem_available = 0;
+    if ( open my $fh, '<', '/proc/meminfo' ) {
+        while (<$fh>) {
+            if (/^MemAvailable:\s+(\d+)/) {
+                $mem_available = int( $1 / 1024 );    ## Convert to MB ##
+                last;
+            }
+        }
+        close $fh;
+    }
+
+    my $model_size_mb = $model_size_gb * 1024;
+    my $required_mb
+        = $model_size_mb + 1024;    ## Model size + 1GB overhead for CPU ##
+
+    if ( $mem_available < $required_mb ) {
+        <[base.logs]>->(
+            1,
+            '[spawn_smart] insufficient system memory: %d MB free, need %d MB',
+            $mem_available,
+            $required_mb
+        );
+        return FALSE;
+    }
+    <[base.logs]>->(
+        2, '[spawn_smart] system memory OK: %d MB free for %d MB model',
+        $mem_available, $model_size_mb
+    );
+}
+
+## Get the actual model path ##
+my $amos_id = $matched_entry->{'amos'} // '';
+my $model_path;
+
+## Check if we already have path cached ##
+if ( exists $matched_entry->{'file_path'}
+    && -f $matched_entry->{'file_path'} ) {
+    $model_path = $matched_entry->{'file_path'};
+} elsif ( length $amos_id ) {
+    ## Need to request path asynchronously ##
+    <[base.logs]>->(
+        2, '[spawn_smart] requesting path for amos=%s', $amos_id
+    );
+
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => 'cube.models.get_path_by_amos',
+            'call_args' => { 'args' => $amos_id },
+            'reply'     => {
+                'params' => {
+                    'amos_id'     => $amos_id,
+                    'backend'     => $backend,
+                    'port'        => $port,
+                    'smart_spawn' =>
+                        1    ## Flag to indicate this is from spawn_smart ##
+                },
+                'handler' => 'coding.handler.spawn_smart_path_reply'
+            }
+        }
+    );
+
+    return TRUE;    ## Async - actual spawn happens in reply handler ##
+} else {
+    <[base.logs]>->( 0, '[spawn_smart] no amos_id for matched model' );
+    return FALSE;
+}
+
+## If we have path, spawn directly ##
+if ( defined $model_path && -f $model_path ) {
+    return <[coding.spawn_inference_server]>->(
+        {   backend    => $backend,
+            model_path => $model_path,
+            port       => $port
+        }
+    );
+}
+
+return FALSE;
+
+#,,,.,,.,,.,.,,.,,,,.,..,,...,,.,,..,,,.,,..,,.,.,...,...,.,,,...,.,.,..,,...,
+#4P4ELBCLMNIBPG3KQJE4SGNFPM3M5N7UFRWZN5SAFO3PT6GNS6X6IBLZENSZZRAUIHVDKEQWYCFUS
+#\\\|JDXNWS5R2G6AHI33ZOLA6TYYXKOVSBQNBGXXJXP22FL5ZTMAXX5 \ / AMOS7 \ YOURUM ::
+#\[7]DKAEVVBBHYCELTDVGMBUVOAENXCRP7PD424FWOL2Y4VFY3EMX2DI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

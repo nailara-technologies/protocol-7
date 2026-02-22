@@ -1,0 +1,63 @@
+## [:< ##
+
+# name  = coding.handler.restart_server
+# descr = Restart inference server with new model
+
+my $job_info   = shift;
+my $params     = $job_info->{'params'}   // {};
+my $backend    = $params->{'backend'}    // 'gpu';
+my $model_path = $params->{'model_path'} // '';
+
+unless ( length $model_path ) {
+    <[base.logs]>->( 0, "[restart_server] no model_path provided" );
+    return FALSE;
+}
+
+<[base.logs]>->( 1, "[restart_server] restarting %s server", $backend );
+<[base.logs]>->( 2, "[restart_server] model: %s",            $model_path );
+
+## Determine port and binary ##
+my $port
+    = $backend eq 'gpu'
+    ? ( <inference.backend.gpu.port> // 8000 )
+    : ( <inference.backend.cpu.port> // 8001 );
+my $binary
+    = $backend eq 'gpu'
+    ? ( <inference.backend.gpu.binary>
+        // '/data/source/ik_llama.cpp/llama-server-cuda-fa' )
+    : ( <inference.backend.cpu.binary>
+        // '/data/source/ik_llama.cpp/llama-server-cpu' );
+
+## Kill existing server on this port ##
+my $pkill_cmd = sprintf 'pkill -f "llama-server.*--port %d" 2>/dev/null',
+    $port;
+system($pkill_cmd);
+sleep 1;    ## brief pause for cleanup ##
+
+## Spawn new server ##
+my $result = <[coding.spawn_inference_server]>->(
+    {   backend    => $backend,
+        model_path => $model_path,
+        binary     => $binary,
+        port       => $port
+    }
+);
+
+if ( $result && $result->{'success'} ) {
+    <[base.logs]>->(
+        1, "[restart_server] %s server restarted successfully", $backend
+    );
+    return TRUE;
+} else {
+    <[base.logs]>->(
+        0,        "[restart_server] failed to restart %s server: %s",
+        $backend, $result->{'error'} // 'unknown error'
+    );
+    return FALSE;
+}
+
+#,,..,,.,,,,.,.,,,.,.,.,,,..,,.,.,,.,,,,.,,,,,.,.,...,...,,..,,.,,..,,...,..,,
+#GELVUEEFLCGRKTPY3BGN77LCK24HPRFB6BYKT5VH35ZNSBZPNOOWOWU3QYPPLVRVQZ4ICKYLEDJ34
+#\\\|ECSCC4MUE37O5EHZ6XA4KEB237GVT76XQEWXR52MB3A736JDDOQ \ / AMOS7 \ YOURUM ::
+#\[7]H4XIFASPDN65RZXSSWNUWVGZG3774IGLGJYUDFYFUVHYUXZZRKBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

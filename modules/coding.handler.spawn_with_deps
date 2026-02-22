@@ -1,0 +1,186 @@
+## [:< ##
+
+# name  = coding.handler.spawn_with_deps
+# descr = Spawn inference server after dependencies are met
+# purpose = Queued job that waits for model discovery before spawning
+
+my $job_info = shift;
+my $params   = $job_info->{'params'} // {};
+my $backend  = $params->{'backend'}  // 'gpu';
+
+<[base.logs]>->(
+    1, '[spawn_with_deps] starting spawn for backend=%s', $backend
+);
+
+## Check model availability dependency ##
+my $model_dep
+    = $backend eq 'cpu'
+    ? <coding.dep.model_cpu>
+    : <coding.dep.model_gpu>;
+
+unless ( $model_dep && <[dependency.ok]>->($model_dep) ) {
+    <[base.logs]>->(
+        2, '[spawn_with_deps] model not available for %s, deferring', $backend
+    );
+    return FALSE;    ## Let jobqueue retry later ##
+}
+
+## Get model path from registry ##
+my $model_name
+    = $backend eq 'cpu'
+    ? ( <inference.backend.cpu.model_id> // '' )
+    : ( <inference.backend.gpu.model_id> // '' );
+
+unless ( length $model_name ) {
+    <[base.logs]>->(
+        0, '[spawn_with_deps] no model configured for %s', $backend
+    );
+    return FALSE;
+}
+
+## Lookup model in coding metadata cache ##
+my $metadata = <coding.model_metadata> // {};
+my $matched_entry;
+
+<[base.logs]>->(
+    2,           '[spawn_with_deps] searching for "%s" in %d cached models',
+    $model_name, scalar( keys %$metadata )
+);
+
+## Search all entries for match on amos, model_id, or name ##
+## Skip mmproj (vision projector) files - we want the actual model files ##
+my $search_term = lc($model_name);
+$search_term =~ s/[-_\s]+//g;    ## Normalize: gemma3glitter4b
+
+foreach my $cache_name ( keys %$metadata ) {
+    my $entry = $metadata->{$cache_name};
+
+    ## Skip vision projector files ##
+    next if $cache_name =~ /mmproj/i;
+
+    my $matched = 0;
+
+    ## Check amos field (primary ID) ##
+    my $entry_amos = $entry->{'amos'} // '';
+    if ( $entry_amos eq $model_name ) {
+        <[base.logs]>->(
+            2,           '[spawn_with_deps] amos match: %s -> %s',
+            $model_name, $cache_name
+        );
+        $matched = 1;
+    }
+    ## Check model_id field ##
+    elsif ( ( $entry->{'model_id'} // '' ) eq $model_name ) {
+        <[base.logs]>->(
+            2, '[spawn_with_deps] model_id match: %s', $cache_name
+        );
+        $matched = 1;
+    }
+    ## Check exact name match ##
+    elsif ( $cache_name eq $model_name ) {
+        <[base.logs]>->( 2, '[spawn_with_deps] name match: %s', $cache_name );
+        $matched = 1;
+    }
+    ## Check partial normalized match ##
+    else {
+        my $cache_norm = lc($cache_name);
+        $cache_norm =~ s/[-_\s]+//g;
+        my $amos_norm = lc($entry_amos);
+        $amos_norm =~ s/[-_\s]+//g;
+
+        if (   index( $cache_norm, $search_term ) >= 0
+            || index( $search_term, $cache_norm ) >= 0
+            || index( $amos_norm,   $search_term ) >= 0
+            || index( $search_term, $amos_norm ) >= 0 ) {
+            <[base.logs]>->(
+                2,           '[spawn_with_deps] partial match: %s -> %s',
+                $model_name, $cache_name
+            );
+            $matched = 1;
+        }
+    }
+
+    if ($matched) {
+        $matched_entry = $entry;
+        last;
+    }
+}
+
+unless ( defined $matched_entry ) {
+    <[base.logs]>
+        ->( 0, '[spawn_with_deps] model not found: %s', $model_name );
+    my @available
+        = sort map { $metadata->{$_}{'amos'} // $_ } keys %$metadata;
+    <[base.logs]>->(
+        1,
+        '[spawn_with_deps] available: %s',
+        join( ', ', @available[ 0 .. ( @available > 5 ? 4 : $#available ) ] )
+            . ( @available > 5 ? '...' : '' )
+    );
+    return FALSE;
+}
+
+## Check if we already have the path cached ##
+my $amos_id    = $matched_entry->{'amos'}      // '';
+my $model_path = $matched_entry->{'file_path'} // $matched_entry->{'path'};
+
+if ( defined $model_path && -f $model_path ) {
+    <[base.logs]>->(
+        2, '[spawn_with_deps] using cached path: %s', $model_path
+    );
+    ## Continue to spawn below ##
+} elsif ( length $amos_id ) {
+    ## Need to request path asynchronously from models zenka ##
+    <[base.logs]>->(
+        2, '[spawn_with_deps] requesting path for amos=%s', $amos_id
+    );
+
+    ## Send async request to models zenka via cube ##
+    ## The reply handler will continue with the spawn ##
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => 'cube.models.get_path_by_amos',
+            'call_args' => { 'args' => $amos_id },
+            'reply'     => {
+                'params' => {
+                    'amos_id' => $amos_id,
+                    'backend' => $backend,
+                    'port'    => $params->{'port'}
+                },
+                'handler' => 'coding.handler.spawn_path_reply'
+            }
+        }
+    );
+
+    ## Return true - the actual spawn will happen in reply handler ##
+    return TRUE;
+} else {
+    <[base.logs]>->( 0, '[spawn_with_deps] no amos_id for matched model' );
+    return FALSE;
+}
+
+<[base.logs]>->( 1, '[spawn_with_deps] model found: %s', $model_path );
+
+## Determine binary based on backend ##
+my $binary
+    = $backend eq 'gpu'
+    ? ( <inference.backend.gpu.binary>
+        // '/data/source/ik_llama.cpp/llama-server-cuda-fa' )
+    : ( <inference.backend.cpu.binary>
+        // '/data/source/ik_llama.cpp/llama-server-cpu' );
+
+## Now spawn the server ##
+my $result = <[coding.spawn_inference_server]>->(
+    {   backend    => $backend,
+        model_path => $model_path,
+        binary     => $binary,
+        port       => $params->{'port'}
+    }
+);
+
+return $result;
+
+#,,,,,,,,,,,.,.,,,,,,,,..,.,.,,.,,.,,,.,.,,.,,.,.,...,...,.,,,.,,,,,.,,,.,...,
+#HPDS5JUXH4MTP4IFYHW2AINOFMLRWLNEOSLSNNXZXF3IKWH4S7G3E4XDNSH5DXEHARVMNCJ6MEB3E
+#\\\|GZOMPYW47BPUXLXPWJKONXNCMBNXFPDRJJ4MRHAG4CKAHAH64MA \ / AMOS7 \ YOURUM ::
+#\[7]QVEC6F2GTCCWB6AZY67IALCRGUBVJRUI7I3WR256YHFYVEUJKYCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

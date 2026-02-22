@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = base.dependency.get_object_id
+# descr = Find dependency object ID by type and attributes
+
+my $params = shift // {};
+
+my $type = $params->{'type'} // '';
+return undef unless length $type;
+
+## Search all dependency objects for match ##
+foreach my $id ( keys %{ <dependency.object> // {} } ) {
+    my $obj = <dependency.object>->{$id};
+    next unless $obj->{'type'} eq $type;
+
+    ## Check additional filters ##
+    my $match = TRUE;
+    foreach my $key ( keys %$params ) {
+        next if $key eq 'type';    ## already checked ##
+        if ( $obj->{$key} ne $params->{$key} ) {
+            $match = FALSE;
+            last;
+        }
+    }
+
+    return $id if $match;
+}
+
+return undef;    ## not found ##
+
+#,,.,,,,,,,..,.,.,,.,,,,.,...,,..,.,,,..,,,,.,.,.,...,...,...,.,.,.,.,...,.,.,
+#UK2V5PG3BPXUERGJL2PJFMGW4ITY74HMCGWRPNMM7HOQ4ZEESKG7NJXJRG4GCGK2CVJNNVK63VO3Y
+#\\\|GRP4M47MMETB4EN7NS5HTZLNV7MJOWRZGYDURTSTM3YC3OERWOZ \ / AMOS7 \ YOURUM ::
+#\[7]IDVWQYQKATIXQY3CYKYJQEEOZKTJ3FHQXQGVS27EMQEQA6ICAUAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

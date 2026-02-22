@@ -1,0 +1,60 @@
+## [:< ##
+
+# name  = coding.handler.spawn_smart_path_reply
+# descr = Handle async path reply for spawn_smart
+
+my $reply  = shift;
+my $params = $reply->{'params'} // {};
+
+my $amos_id = $params->{'amos_id'} // '';
+my $backend = $params->{'backend'} // 'gpu';
+my $port    = $params->{'port'}    // ( $backend eq 'gpu' ? 8000 : 8001 );
+
+<[base.logs]>->(
+    2, '[spawn_smart_path_reply] received path for amos=%s', $amos_id
+);
+
+## Parse reply data ##
+my $reply_data = $reply->{'data'} // '';
+my @lines      = split( /\n/, $reply_data );
+my $model_path = $lines[0] // '';
+
+## Skip error responses ##
+if ( $model_path =~ /^error:/ || !length $model_path || !-f $model_path ) {
+    <[base.logs]>->(
+        0, '[spawn_smart_path_reply] invalid path: %s', $model_path
+    );
+    return FALSE;
+}
+
+## Spawn the server ##
+<[base.logs]>->(
+    1,        '[spawn_smart_path_reply] spawning %s server with %s',
+    $backend, $model_path
+);
+
+my $result = <[coding.spawn_inference_server]>->(
+    {   backend    => $backend,
+        model_path => $model_path,
+        port       => $port
+    }
+);
+
+if ( $result && $result->{'success'} ) {
+    <[base.logs]>->(
+        1, '[spawn_smart_path_reply] %s server spawned successfully', $backend
+    );
+} else {
+    <[base.logs]>->(
+        0,        '[spawn_smart_path_reply] failed to spawn %s server: %s',
+        $backend, $result->{'error'} // 'unknown'
+    );
+}
+
+return $result;
+
+#,,..,.,.,,,,,.,,,.,.,...,..,,,.,,,,.,..,,,,,,.,.,...,...,...,.,,,...,...,,..,
+#CNRUFZMEAWAJ2OTYSLIY52VTZKMKQM2C7IIYQHV5I52HBKXY5SF4QTD5QMXF5ELZVIYPXYUAKITG4
+#\\\|CAPETODPSZ7TN64JODT3GNM3HNW32K7KNJMT3A5HV3U3YYJJDKZ \ / AMOS7 \ YOURUM ::
+#\[7]CZFZ73G5NYASUQYTQ2VZKOQ2F5EYQ7GLUW2QGQVHUSDDSKJJAYAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

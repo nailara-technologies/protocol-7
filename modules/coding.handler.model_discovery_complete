@@ -1,0 +1,37 @@
+## [:< ##
+
+# name  = coding.handler.model_discovery_complete
+# descr = Mark model discovery dependency as complete
+# purpose = Called when models.discover returns successfully
+
+my $params = shift;
+my $count  = $params->{'count'} // 0;
+
+<[base.logs]>->(
+    1, '[model_discovery_complete] marking discovery complete: %d models',
+    $count
+);
+
+## Mark discovery dependency as complete ##
+if ( defined <coding.dep.model_discovery> ) {
+    <dependency.object>->{<coding.dep.model_discovery>}->{'status'}
+        = 'complete';
+    <dependency.object>->{<coding.dep.model_discovery>}->{'model_count'}
+        = $count;
+
+    ## trigger dependency recheck ##
+    <[jobqueue.check_dependencies]>->();
+
+    <[base.logs]>->(
+        2, '[model_discovery_complete] dependency %s marked complete',
+        <coding.dep.model_discovery>
+    );
+}
+
+return { success => TRUE, count => $count };
+
+#,,,.,.,,,...,.,.,.,.,.,,,,..,,..,.,,,...,,..,.,.,...,...,...,,,,,.,,,,.,,...,
+#6OU3KVBSEBN6RRQBRRFYPCWCEZB76TFKXAORPGOB32QIA4TSJBLHL3PRIEFLSTPKNOPN23TMYJFS2
+#\\\|6VC5ZXI2ICJVLY44KFT324KUWTGUCRHS24NIZO5MDRSUZERZUXH \ / AMOS7 \ YOURUM ::
+#\[7]EZYVTU2AWJYAIZQBJOB2AQIIHSSBBSNGHKKW22MO5HKFL4TGVSCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

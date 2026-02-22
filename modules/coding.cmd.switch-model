@@ -1,0 +1,89 @@
+## [:< ##
+
+# name  = coding.cmd.switch-model
+# descr = Switch active inference model and restart servers
+# param = <model_checksum> [backend=gpu|cpu|both]
+
+my $args = $call->{'args'} // '';
+
+unless ( length $args ) {
+    return {
+        mode => 'size',
+        data =>
+            "Usage: switch-model <model_checksum> [backend=gpu|cpu|both]\n"
+            . "Example: switch-model IR65EUQ:ZGJ3K5Y\n"
+            . "Example: switch-model IR65EUQ:ZGJ3K5Y backend=cpu\n"
+    };
+}
+
+## Parse arguments ##
+my ( $model_checksum, $backend_opt )
+    = $args =~ m{^([A-Z2-7]{7}:[A-Z2-7]{7})(?:\s+backend=(\w+))?$}i;
+
+unless ( defined $model_checksum ) {
+    return {
+        mode => 'size',
+        data => "Error: Invalid checksum format. Expected XXXXXXX:XXXXXXX\n"
+    };
+}
+
+$backend_opt = lc( $backend_opt // 'both' );
+unless ( $backend_opt =~ m{^(gpu|cpu|both)$} ) {
+    return {
+        mode => 'size',
+        data => "Error: backend must be gpu, cpu, or both\n"
+    };
+}
+
+## Verify model exists in registry ##
+my $model_path;
+my $model_name;
+
+my $registry = <coding.model_metadata> // {};
+foreach my $key ( keys %$registry ) {
+    my $entry = $registry->{$key};
+    if ( ( $entry->{'amos'} // '' ) eq $model_checksum ) {
+        ## Skip vision projector files ##
+        next if $key =~ /mmproj/i;
+        $model_name = $key;
+        last;
+    }
+}
+
+unless ( defined $model_name ) {
+    return {
+        mode => 'size',
+        data => "Error: Model $model_checksum not found in registry\n"
+            . "Use 'coding.list coding-models' to see available models\n"
+    };
+}
+
+## Get model path from models zenka ##
+$reply = <[base.protocol-7.command.send.local]>->(
+    {   'command'   => 'cube.models.get_path_by_amos',
+        'call_args' => { 'args' => $model_checksum },
+        'reply'     => {
+            'timeout' => 5,
+            'params'  => {},
+            'handler' => 'coding.handler.switch_model_reply'
+        }
+    }
+);
+
+## Store switch request pending reply in task for retrieval ##
+<coding.pending_model_switch_checksum> = $model_checksum;
+<coding.pending_model_switch_name>     = $model_name;
+<coding.pending_model_switch_backend>  = $backend_opt;
+<coding.pending_model_switch_time>     = <[base.time]>->(3);
+
+return {
+    mode => 'size',
+    data => "Switching model to $model_name ($model_checksum)...\n"
+        . "Restarting inference servers. This may take a moment.\n"
+};
+
+#,,,,,,.,,.,,,..,,..,,,.,,,.,,,,,,...,,,.,,,,,.,.,...,...,.,.,..,,,,,,,..,.,.,
+#B42EWMIHPD6TM7MBSXXR6MFMGIJI3YMP4YFJ7KPQG3B3EOGADRICS73HTXTZKB6NO2MLPHFH4Q4DG
+#\\\|6IEQKYD5HA7E5FXA7S7HFA2QKWEBXDHNBSGEMJXQBCNZ32JO2Z5 \ / AMOS7 \ YOURUM ::
+#\[7]JKRNAK2MC4WY7I7WCDDLV623XWJEEGWX4XF6LLDH62W6OPG4QQDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

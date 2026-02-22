@@ -21,29 +21,49 @@ foreach my $model ( $discovered->@* ) {
 
     # Check if already in registry by path
     my $already_exists = FALSE;
+    my $model_path     = $model->{'path'} // '';
+    next unless length $model_path;
+
     foreach my $entry ( values $registry->%* ) {
-        if ( $entry->{path} eq $model->{'path'} ) {
+        my $entry_path = $entry->{path} // '';
+        if ( length $entry_path && $entry_path eq $model_path ) {
             $already_exists = TRUE;
             last;
         }
     }
     next if $already_exists;
 
-    ## Use path as temporary model_id [ will calculate checksums on-demand ]
-    # my $model_id = $model->{'path'};
+    ## Calculate composite checksum: path_checksum:model_checksum
+    my $path_checksum  = <[models.checksum.from_path]>->( $model->{'path'} );
+    my $model_checksum = <[models.checksum.from_metadata]>->(
+        {   'model_id'     => $model->{'name'},
+            'name'         => $model->{'name'},
+            'quantization' => $model->{'quantization'} // 'unknown',
+            'size_gb'      => $model->{'size_gb'}      // 0,
+            'is_vision'    => $model->{'is_vision'}    // FALSE
+        }
+    );
 
-    my $model_id = <[chk-sum.amos]>->( $model->{'path'} );   ## chk collisions
+    unless ( defined $path_checksum && defined $model_checksum ) {
+        <[base.logs]>->(
+            0,
+            '[populate_from_discovery] failed to calculate checksums for: %s',
+            $model->{'name'}
+        );
+        next;
+    }
+
+    my $model_id = "$path_checksum:$model_checksum";
 
     $registry->{$model_id} = {
-        model_id      => $model_id,
-        name          => $model->{'name'},
-        path          => $model->{'path'},
-        size_gb       => $model->{'size_gb'},
-        tier          => $model->{'tier'},
-        source        => qw| discovered |,
+        model_id  => $model->{'name'},    ## Short name as model_id ##
+        name      => $model->{'name'},
+        file_path => $model->{'path'},    ## Standard field name for lookup ##
+        path      => $model->{'path'},
+        size_gb   => $model->{'size_gb'},
+        tier      => $model->{'tier'},
+        source    => qw| discovered |,
         registered_at => <[base.time]>->(3)
-
-        # Checksums calculated on-demand, not during discovery
     };
 
     $added_count++;
@@ -53,8 +73,8 @@ foreach my $model ( $discovered->@* ) {
 
 return { 'success' => TRUE, 'added' => $added_count };
 
-#,,..,..,,.,.,.,.,..,,,,.,,,,,,..,..,,.,,,.,,,..,,...,...,...,..,,,,.,,..,,..,
-#YEAAKXGT4VDKYB4HCAZEFHEGAHJACOFAG3VUDCFJXTYWZAF6XD777HLGCC2ALUQL55CBAMO3KFRZU
-#\\\|SGZJO555IYEMWH2MV6544BWNMEUPFY2JCKOA6M3E5XNYZ27X4WU \ / AMOS7 \ YOURUM ::
-#\[7]HYZS6QIDFOMMXDBXMUKC45YKBLRNMFH2H5WR2IZKES6UHIACXGBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,..,,,,,,..,,..,,,.,,...,,.,,.,,,..,,...,...,..,,...,,.,,..,,..,,
+#5RIWHSIAB3X7QN56PYXG5OQ6USN4LNUCVEWQWDYDAOTET5BISJPAJ7NYIEAVHTQA7DSD3MR74C7PS
+#\\\|3G46FGSQPJFI34F7AVE7HYHA6EC2YMOQ2UJOSZNLD4ZTLL2R3Y7 \ / AMOS7 \ YOURUM ::
+#\[7]MHAN6UWYFOLVADZZMIMPPUP6FRICUI6SKMWD2YWRPIAMMB4LFOAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -655,6 +655,7 @@ return [ qw[
         content.cmd.get_list
         content.check_queued
         coding.task.complete
+        coding.cmd.ask-reply
         channels.memory-sync
         base.vec.offset_read
         base.s_write.file_io
@@ -1052,6 +1053,7 @@ return [ qw[
         content.check_exclusive
         coding.task.queue_stats
         coding.task.queue_clear
+        coding.cmd.switch-model
         coding.analyze.classify
         chk-sum.skein.init_code
         bench.key-32-iterations
@@ -1198,6 +1200,7 @@ return [ qw[
         coding.test.models_async
         coding.task.queue_status
         coding.task.analyze_full
+        coding.init_dependencies
         channels.cmd.unsubscribe
         base.zenka.is_v7_started
         base.time.year_utc_float
@@ -1465,9 +1468,10 @@ return [ qw[
         content.callback.load_file
         coding.task.queue_complete
         coding.queue.complete_task
+        coding.parser.query_prefix
         coding.helper.reset_budget
         coding.helper.check_budget
-        coding.cmd.submit-deferred
+        coding.handler.spawn_smart
         coding.cmd.resume-analysis
         coding.budget.track_tokens
         base.warnings.from_bitmask
@@ -1837,12 +1841,14 @@ return [ qw[
         crypt.C25519.chksum_cache.add
         content.cmd.get_playlist_path
         coding.spawn_inference_server
+        coding.routing.select_backend
         coding.routing.decide_service
         coding.learning.track_success
         coding.inference.spawn-server
         coding.helper.priority_scorer
         coding.helper.log_transaction
         coding.helper.category_mapper
+        coding.handler.restart_server
         coding.handler.deferred_reply
         coding.event.on_task_complete
         channels.subscription.mapping
@@ -1863,6 +1869,7 @@ return [ qw[
         base.file.recursive.pathnames
         base.file.path.chksum.BMW-L13
         base.event.handler.exceptions
+        base.dependency.get_object_id
         base.cube-zenka.output_prompt
         base.config.show_strack_trace
         base.chk-sum.bmw.template_L13
@@ -1963,10 +1970,12 @@ return [ qw[
         content.handler.mimetype_reply
         coding.vision-parser.init_code
         coding.task.analyze_complexity
+        coding.parser.dependency_chain
         coding.learning.reset_learning
         coding.learning.record_outcome
         coding.learning.get_statistics
         coding.helper.subtype_detector
+        coding.handler.spawn_with_deps
         coding.analyze.estimate_tokens
         channels.util.get_review_stage
         channels.cmd.ai-review-approve
@@ -2016,6 +2025,7 @@ return [ qw[
         mpv.handler.rescale_video_reply
         models.test.api_limit_detection
         models.registry.list_by_context
+        models.handler.refresh_registry
         models.handler.process_response
         models.escape.interpret_literal
         models.conversation_get_context
@@ -2050,8 +2060,10 @@ return [ qw[
         crypt.C25519.cmd.get-public-key
         content.callback.check_mimetype
         compton.callback.not_composited
+        coding.parser.dependency_status
         coding.helper.task_id_generator
         coding.handler.system_mem_reply
+        coding.handler.spawn_path_reply
         coding.handler.model_path_reply
         channels.util.extract_json_path
         channels.memory-sync.batch-send
@@ -2136,6 +2148,7 @@ return [ qw[
         coding.routing.get_routing_stats
         coding.routing.determine_service
         coding.routing.check_cache_first
+        coding.parser.dependency_backend
         coding.handler.refresh_mem_stats
         channels.cmd.next-data-timestamp
         channels.cmd.last-data-timestamp
@@ -2209,6 +2222,8 @@ return [ qw[
         coding.routing.get_model_metadata
         coding.routing.determine_fallback
         coding.learning.identify_patterns
+        coding.handler.switch_model_reply
+        coding.callback.object_memory_gpu
         channels.memory-sync.sync-handler
         channels.handler.content-detected
         base.sourcecode.in-mem.sub-source
@@ -2388,6 +2403,7 @@ return [ qw[
         coding.handler.models_list_all_reply
         coding.handler.models_discover_reply
         coding.handler.fetch_model_discovery
+        coding.callback.object_memory_system
         coding.async_spawn_inference_servers
         base.warnings.compact_diff_to_pragma
         base.warnings.compact_diff_from_bits
@@ -2432,6 +2448,7 @@ return [ qw[
         crypt.C25519.create_signature_request
         coding.routing.determine_service_impl
         coding.helper.get_transaction_history
+        coding.handler.spawn_smart_path_reply
         coding.handler.spawn_servers_deferred
         coding.handler.models_get_entry_reply
         coding.handler.check-completion-chain
@@ -2467,6 +2484,8 @@ return [ qw[
         impressive.callback.rendering_finished
         httpd.handler.download_transfer.broken
         httpd.benchmark.get_event_loop_metrics
+        coding.callback.object_model_discovery
+        coding.callback.object_model_available
         channels.memory-sync.conflict-resolver
         base.log.send-buffer.idle-callback-set
         base.file.path.make-relative-from-list
@@ -2488,6 +2507,9 @@ return [ qw[
         discover.callback.resend_interval_reset
         debian.parent.ensure_zenka_dependencies
         coding.vision-parser.extract.clean_json
+        coding.parser.model_name_with_selection
+        coding.handler.model_discovery_complete
+        coding.callback.object_inference_server
         coding.callback.object.inference_server
         channels.handler.llm-content-evaluation
         base.perlmods.reload.reload_blacklisted
@@ -2521,6 +2543,7 @@ return [ qw[
         coding.learning.generate_recommendations
         coding.handler.monitor_inference_startup
         coding.handler.models_resolve_path_reply
+        coding.handler.fetch_model_discovery_job
         base.log.send-buffer.idle-callback-clear
         web-browser.callback.scroll_start_js_exec
         tile-groups.handler.poll_tile_color_reply
@@ -2632,8 +2655,8 @@ return [ qw[
     ]
 ];
 
-#,,..,..,,,.,,,,.,.,.,.,,,,..,.,.,,.,,.,.,,,,,.,.,...,...,,..,,.,,,,,,.,.,..,,
-#7VSHVE7ESPQZ2CO4T7SXG5HAFPL2LT7FYKE7L4RA6YHTFDZDD5BDCTOTSGRD7TXRAZIQHQ6T6SNNM
-#\\\|XN6YENURGJK2TRWZTEKFS5Z6NWZ7XXORILW4QHOE5CRT63EQTKK \ / AMOS7 \ YOURUM ::
-#\[7]3TA5RZOJNFRI23RVSFIFHN3GJEE67EZRMNDFCRVREC7KDJNR6ECA 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,.,.,,.,,,,,,..,,.,.,,,,,,..,,..,.,.,...,...,...,,,.,,.,,,,.,..,,
+#62AHGHYE27VOVSDKCGK6CVR4YPZJ4YUTJVB4WAKMPWE5VMONXWHVUO6CBKWJ5VIC43ITGDRMKYDBG
+#\\\|ZJ5HGKEJJL6DBWR34B7WTYHBLQ3RRG2RM7MQ4UMIBJMXNWY7NBZ \ / AMOS7 \ YOURUM ::
+#\[7]WUMMOG7SAB2YLYTRBQ733AJKZS7FDAYIJYMPTUPMSRG6RMIMUYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

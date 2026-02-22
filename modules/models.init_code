@@ -50,6 +50,15 @@ if ( ref($persisted_registry) eq qw| HASH |
     );
 }
 
+## Schedule deferred refresh from disk to catch updates from other zenka
+<[event.add_timer]>->(
+    {   'after'   => 2.0,
+        'repeat'  => FALSE,
+        'handler' => 'models.handler.refresh_registry',
+        'desc'    => 'deferred registry refresh from disk'
+    }
+);
+
 <list.scan-paths> = {
     'var'   => qw| data |,
     'key'   => qw| models.scan_paths |,
@@ -203,8 +212,8 @@ unless ( exists <models.registry> ) {
 
 return 0;    # Module initialization successful
 
-#,,..,.,,,,..,,,,,,,.,,..,,..,,,.,.,,,.,,,.,.,..,,...,...,,.,,...,,..,.,.,.,,,
-#Y55R5FL4ZZGJICXBIVQX42DM6CKG5JD6WDEABKXV7YXWUVDYSU6BBD3IG5GHKF22NZICTN7BU36NW
-#\\\|G7LIZNEKTNUEXOUNJXPHL7FQKFEZRWFMEYTT64M472E53GI5WLG \ / AMOS7 \ YOURUM ::
-#\[7]LKVIV53G7QBXFFQ6CGCAVA2TXC5AOQBKQSKYVB5ZGROIM2TMEABY 7  DATA SIGNATURE ::
+#,,.,,,..,,,,,,,,,.,.,.,.,..,,..,,..,,,..,.,,,..,,...,...,...,,.,,,,.,,,,,.,,,
+#2MWPVSDLHRMQNAKRHDH5KGFWOIMHJLM6UUK4WCI47AARA2JCDNS57XRUDCLU42YHQXJ7IVMN3KOII
+#\\\|4TIQDIOKIWS7UIPSPGLIGEAO3ZYTI27XV5Y7CL6W5IUI4G5FC5D \ / AMOS7 \ YOURUM ::
+#\[7]BLDZKW5EKX4B7OZ3HC5Z44TSQXAQPE2GR6C26AG2BCK4SDJ52KDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

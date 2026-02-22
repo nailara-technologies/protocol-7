@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = coding.handler.spawn_path_reply
+# descr = Handle async reply from models.get_path_by_amos for spawn_with_deps
+
+my $reply   = shift;
+my $params  = $reply->{'params'}   // {};
+my $amos_id = $params->{'amos_id'} // '';
+my $backend = $params->{'backend'} // 'gpu';
+
+<[base.logs]>->(
+    2, '[spawn_path_reply] received path reply for amos=%s', $amos_id
+);
+
+## Parse reply data ##
+my $reply_data = $reply->{'data'} // '';
+my ($model_path) = split( /\n/, $reply_data );
+
+unless ( defined $model_path && length $model_path && -f $model_path ) {
+    <[base.logs]>->(
+        0, '[spawn_path_reply] invalid or missing path: %s', $reply_data
+    );
+    return FALSE;
+}
+
+<[base.logs]>->(
+    1,        '[spawn_path_reply] spawning %s server with %s',
+    $backend, $model_path
+);
+
+## Determine binary based on backend ##
+my $binary
+    = $backend eq 'gpu'
+    ? ( <inference.backend.gpu.binary>
+        // '/data/source/ik_llama.cpp/llama-server-cuda-fa' )
+    : ( <inference.backend.cpu.binary>
+        // '/data/source/ik_llama.cpp/llama-server-cpu' );
+
+## Now spawn the server ##
+my $result = <[coding.spawn_inference_server]>->(
+    {   backend    => $backend,
+        model_path => $model_path,
+        binary     => $binary,
+        port       => $params->{'port'}
+    }
+);
+
+return $result;
+
+#,,.,,...,,,.,...,.,,,...,,..,,.,,.,,,.,,,,,.,.,.,...,..,,,,,,,.,,.,,,..,,...,
+#LSIGMKYLCZ7MA6SNCO3ARG7TAJ2USWVDMOSAGOKEKR4UR6RXVZKPOBXQ5QKHSCEY7QODWTE2RLEYS
+#\\\|VHXRNS5P3UWUAKNXLDSOB3EV6464YGCUNWXI4YKODOAHTLZDEP5 \ / AMOS7 \ YOURUM ::
+#\[7]EUMKYOAIM5U5HQZGT6Z52UDQWSS2BO5KZA66NJ62LMEB7HGGQOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

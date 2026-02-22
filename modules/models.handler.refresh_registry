@@ -1,0 +1,33 @@
+## [:< ##
+
+# name  = models.handler.refresh_registry
+# descr = Deferred handler to refresh registry from disk
+
+<[base.logs]>->( 2, '[refresh_registry] reloading registry from disk' );
+
+## Reload from disk to catch updates from other zenka instances ##
+my $persisted_registry = <[models.storage.yaml_load]>;
+if ( ref($persisted_registry) eq 'HASH'
+    && scalar( keys %$persisted_registry ) > 0 ) {
+
+    my $current_count = scalar keys %{ <models.registry> // {} };
+    my $new_count     = scalar keys %$persisted_registry;
+
+    if ( $new_count != $current_count ) {
+        <[base.logs]>->(
+            1,              '[refresh_registry] updating: %d -> %d entries',
+            $current_count, $new_count
+        );
+        <models.registry> = $persisted_registry;
+    } else {
+        <[base.logs]>->( 2, '[refresh_registry] no changes needed' );
+    }
+}
+
+return TRUE;
+
+#,,.,,.,.,,,,,...,.,,,,.,,,..,,..,.,,,,,,,.,.,.,.,...,...,.,,,,,,,,..,.,,,.,,,
+#XBRNBTIGFEMIEHLZURYFR3O56R32U6LFUWHYG5QMZ57DZM6FHGS67ATLMDKGQ5I36PSPKHXUZ642M
+#\\\|GUMZZ52MO4BB6OCGCND7NLVN6M5BHUHE5F5C5MFNFXVBYQEPKQD \ / AMOS7 \ YOURUM ::
+#\[7]A7UTUAXNI5RVDFXT7E7OPH5JUPOFMZSIQOYI7LQG5KMBOJ533YAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
