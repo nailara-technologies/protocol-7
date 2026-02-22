@@ -30,6 +30,12 @@ if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
     }
 } else {
     $request_str = $call->{'args'} // '';
+
+    ## Also check for base32r encoding in args
+    if ( $request_str =~ /^[2-7A-Z]+$/ ) {
+        my $decoded = decode_b32r($request_str);
+        $request_str = $decoded if defined $decoded && length $decoded;
+    }
 }
 
 return { 'mode' => qw| false |, 'data' => "work request required\n" }
@@ -69,10 +75,10 @@ return {
     if !$queue_result->{success};
 
 # Create deferred reply tracking
-<coding.deferred_replies> //= {};
+$data{'coding'}{'deferred_replies'} //= {};
 
-my $deferred_id = <[base.gen_id]>->(<coding.deferred_replies>);
-<coding.deferred_replies>->{$deferred_id} = {
+my $deferred_id = <[base.gen_id]>->( $data{"coding"}{"deferred_replies"} );
+$data{"coding"}{"deferred_replies"}->{$deferred_id} = {
     'deferred_id' => $deferred_id,
     'reply_id'    => $$call{'reply_id'},
     'task_id'     => $routed_task->{'id'},
@@ -87,8 +93,8 @@ my $deferred_id = <[base.gen_id]>->(<coding.deferred_replies>);
 
 return { 'mode' => 'deferred' };
 
-#,,,,,,.,,,..,..,,,,,,,,.,...,.,,,..,,.,,,,,.,.,.,...,...,,..,,,,,...,..,,...,
-#OUEYAJN5IAW24S7LA3Z7B2IJDQD2LSXTJTFJDS5RPCS6BPGK2CASZ5DXIQLCAS5C3NNWVGR6XTUGU
-#\\\|4J7KLRI6ZWYUVUGJAIFZZWBNYQEL7JJP6ZSKASZXI4NOM4H6P52 \ / AMOS7 \ YOURUM ::
-#\[7]PDQ4EQNZP37LALQW7FNM2ZFL5FTTNMTXDAUSQAGFTO6XIABVS4DI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,.,,...,..,,.,.,,,.,..,,..,,,..,.,.,...,...,,..,..,,.,,,,,,,,.,,
+#XWNHONBSFXEYPMM4PLWJ5F3MJKOBN6ZP6HFPIBVOKZVTJ7C24TXNTYGQR7RVFZCBXHDLORQFJINEA
+#\\\|KDBGMXHQU7ODBJ6BHNYNO4EW3EWYCUW5NC76YE6VCRA27LRNVOE \ / AMOS7 \ YOURUM ::
+#\[7]7LY772LMKJEPA74UZIYIRGUSHMWTCDCSZQXSJGW4NIYSFUNRR6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,76 +1,114 @@
 ## [:< ##
 
 # name = models.chat.invoke_model
-# descr = invoke model backend for chat message [wrapper for backend.*.invoke]
-# param = $model_name, $message
-# return = response text or error
+# descr = invoke model backend for chat message [with response handler]
+# param = $model_name, $message, $options_hash
+#   $options_hash = { reply_id, handler, sender, model }
+# return = nothing (response handled by callback)
 
 my $model_name = shift;
 my $message    = shift // '';
+my $opts       = shift // {};    # { reply_id, handler, sender, model }
 
-return ':. error: model name required :.' unless defined $model_name;
-return ':. error: message required :.'    unless length($message);
+my $reply_id = $opts->{'reply_id'} // '';
+my $handler  = $opts->{'handler'}  // '';
+my $sender   = $opts->{'sender'}   // '';
+my $model    = $opts->{'model'}    // $model_name;
+
+return unless length($message);
 
 ## model name to backend mapping
 my $backend_map = {
-    'kimi'       => qw| api |,      ## kimi-code API
+    'kimi'       => qw| api |,
     'kimi-code'  => qw| api |,
-    'claude'     => qw| api |,      ## future Claude API
-    'llama'      => qw| local |,    ## local llama-server
+    'claude'     => qw| api |,
+    'llama'      => qw| local |,
     'local'      => qw| local |,
-    'test-model' => qw| test |,     ## test placeholder [no actual API call]
+    'test-model' => qw| test |,
 };
 
-## get backend type [ default to local for unknown models ]
 my $backend_type = $backend_map->{$model_name} // qw| local |;
 
-## handle test backend (placeholder for testing)
+## handle test backend
 if ( $backend_type eq 'test' ) {
-    return sprintf ':note: test echo::n::n:%s', $message;
+    my $response = sprintf ':note: test echo::n::n:%s', $message;
+    ## Store and reply directly
+    <[models.chat.append]>->( undef, $model, $response );
+    my $entries = <[models.chat.get_recent]>->(3);
+    my $output  = <[models.chat.format_buffer]>->($entries);
+    if ( length($reply_id) ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id, { 'mode' => 'size', 'data' => $output }
+        );
+    }
+    return;
 }
 
-## build messages array (chat format)
-my $messages = [ { 'role' => 'user', 'content' => $message } ];
+## Build conversation context from chat history
+## Get recent messages (last 10 exchanges = 20 messages max)
+my $recent_entries = <[models.chat.get_recent]>->(20);
+my @messages;
 
-## build invoke parameters
-my $params = {
-    'participant_id'  => $model_name,    ## use model name as participant
-    'job_id'          => 'chat',         ## simple job id for chat
-    'model_id'        => $model_name,
-    'system_prompt'   => '',             ## no system prompt for now
-    'messages'        => $messages,
-    'temperature'     => 0.7,
-    'max_tokens'      => 2048,           ## reasonable for chat
-    'timeout_seconds' => 30,
-    'context'         => 'chat',
-};
+## Convert chat history to messages format
+foreach my $entry (@$recent_entries) {
+    ## Skip the current message (it was just added by caller)
+    ## Identify by timestamp comparison
+    my $sender = $entry->{'sender'};
+    my $msg    = $entry->{'message'} // '';
 
-## route to appropriate backend
-my $result;
+    ## Decode escapes
+    $msg = <[models.escape.interpret]>->($msg);
 
-if ( $backend_type eq qw| api | ) {
-    $result = <[models.backend.api.invoke]>->($params);
-} elsif ( $backend_type eq qw| local | ) {
-    ## use synchronous wrapper for chat context [ polls async backend ]
-    $result = <[models.backend.local.invoke_sync]>->($params);
+    ## Map sender to role
+    ## User messages: from unix-taeki or other non-model senders
+    ## Assistant messages: from model names
+    my $role;
+    if ( $sender =~ m/^unix-/ || $sender eq 'cube.models' ) {
+        $role = 'user';
+    } elsif ( $sender eq $model_name ) {
+        $role = 'assistant';
+    } else {
+        ## Other senders - treat as user
+        $role = 'user';
+    }
+
+    push @messages, { 'role' => $role, 'content' => $msg };
+}
+
+## If no history, just use current message
+if ( !@messages ) {
+    @messages = { 'role' => 'user', 'content' => $message };
+}
+
+my $messages = \@messages;
+
+## Local backend via coding zenka
+if ( $backend_type eq qw| local | ) {
+    <[models.backend.coding.invoke]>->(
+        {   'participant_id' => $model_name,
+            'messages'       => $messages,
+            'reply_id'       => $reply_id,
+            'sender'         => $sender,
+            'model'          => $model,
+        }
+    );
 } else {
-    return sprintf ':. error: unknown backend type: %s :.', $backend_type;
+    ## API backend not yet async
+    my $error = ':. error: API backend not yet async :.';
+    <[models.chat.append]>->( undef, $model, $error );
+    my $entries = <[models.chat.get_recent]>->(3);
+    my $output  = <[models.chat.format_buffer]>->($entries);
+    if ( length($reply_id) ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id, { 'mode' => 'size', 'data' => $output }
+        );
+    }
 }
 
-## extract response from result
-if ( $result->{'success'} ) {
-    my $response = $result->{'response'} // '';
-    return $response if length($response);
-    return ':. error: empty response from model :.';
-} else {
-    my $error = $result->{'error'} // 'unknown error';
-    return sprintf ':. error: %s :.', $error;
-}
+return;
 
-0;
-
-#,,.,,.,,,,..,,,,,,.,,.,.,.,.,..,,,.,,,..,...,..,,...,...,,..,...,,..,,.,,.,,,
-#BYEWLV2XHDXSOCED5RSUTEX5O3MSABOB5NWTNZOCELBRGLHF6JOW5GGFRBOXLPDBKQL5K3RQX7ZQ4
-#\\\|5SFGEUIMUTI7SYJPNBZVDRHEBH2LBMKYGYG2F7C267NRDFNMIMB \ / AMOS7 \ YOURUM ::
-#\[7]DD35MAY6JI4LGPQ3DJKPNUFINEVP5FTO26LVUJAU5FGUES5Q2YDQ 7  DATA SIGNATURE ::
+#,,..,.,,,,,,,,..,,..,..,,...,,,.,...,.,,,.,,,.,.,...,...,,.,,.,,,..,,.,.,...,
+#3Z2KRMXF2WRSWQFLSF3JDVJIORUMITVQNNIWS5KM77DDPTPCVD7YJLYIUV6CKYHA3LDZNKTRPQLU2
+#\\\|P5NL52RNKEEJDV2ZXB2WBIJ4QTPYBXTEMXVERJD3NOVEYESF7OC \ / AMOS7 \ YOURUM ::
+#\[7]UQZOMD32SOJIS65AU4FTROAR2WJNPWI6MMKPCYTNBYXPL6TDJEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

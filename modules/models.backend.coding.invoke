@@ -1,79 +1,92 @@
 ## [:< ##
 
-# name = models.backend.coding.invoke
-# descr = route local inference through coding zenka's async infrastructure
-# param = $params - standard backend params
-# return = response via coding zenka's task system
+# name  = models.backend.coding.invoke
+# descr = Submit inference request to coding zenka's task queue
+# param = $params - { messages, reply_id, handler, sender, model, participant_id }
+# return = nothing (response handled by callback)
 
 my $params = shift;
 
-my $model_id       = $params->{'model_id'}       // '';
-my $messages       = $params->{'messages'}       // [];
-my $participant_id = $params->{'participant_id'} // '';
+my $messages    = $params->{'messages'}       // [];
+my $participant = $params->{'participant_id'} // 'unknown';
+my $reply_id    = $params->{'reply_id'}       // '';
+my $handler     = $params->{'handler'}        // '';
+my $sender      = $params->{'sender'}         // '';
+my $model       = $params->{'model'}          // $participant;
 
-return {
-    'success' => FALSE,
-    'error'   => 'model_id required'
+# Convert messages array to prompt string for coding
+my $prompt = <[models.chat.messages_to_prompt]>->($messages);
+
+# Base32r encode to handle multiline prompts via single-line command
+my $encoded_prompt = '';
+if ( length($prompt) ) {
+    ## Use Crypt::Misc for base32r encoding
+    eval { $encoded_prompt = Crypt::Misc::encode_b32r($prompt); };
+    if ( $@ || !length($encoded_prompt) ) {
+        <[base.logs]>->(
+            0,
+            '[coding.invoke] base32r encoding failed: %s',
+            $@ // 'unknown'
+        );
+        $encoded_prompt = '';    # Will trigger error below
     }
-    unless length($model_id);
-
-return {
-    'success' => FALSE,
-    'error'   => 'messages must be non-empty array'
-    }
-    unless ref($messages) eq 'ARRAY' && scalar(@$messages) > 0;
-
-## extract message content from messages array
-my $message_content = '';
-for my $msg (@$messages) {
-    next unless ref($msg) eq 'HASH';
-    my $role    = $msg->{'role'}    // '';
-    my $content = $msg->{'content'} // '';
-    $message_content .= "$role: $content\n" if length($content);
 }
 
-## build simple inference request for coding zenka
-my $request = sprintf 'Simple inference: model=%s\n\nMessage: %s',
-    $model_id, $message_content;
+unless ( length($encoded_prompt) ) {
+    my $error = ':. error: empty prompt :.';
+    <[models.chat.append]>->( undef, $model, $error );
+    my $entries = <[models.chat.get_recent]>->(3);
+    my $output  = <[models.chat.format_buffer]>->($entries);
+    if ( length($reply_id) ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id, { 'mode' => 'size', 'data' => $output }
+        );
+    }
+    return;
+}
 
-## send command to coding zenka via IPC
-my $cmd_count = <[base.protocol-7.command.send.local]>->(
-    {   'command'   => 'coding.cmd.submit',
-        'call_args' => { 'args' => $request },
+# Submit to coding via ask-reply command
+# The reply will come to coding_result_forward which will call our handler
+my $sent_count = <[base.protocol-7.command.send.local]>->(
+    {   'command'   => qw| cube.coding.ask-reply |,
+        'call_args' => { 'args' => $encoded_prompt },
         'reply'     => {
-            'handler' => 'models.handler.coding_inference_reply',
+            'handler' => 'models.handler.coding_result_forward',
             'params'  => {
-                'model_id'       => $model_id,
-                'participant_id' => $participant_id
+                'original_reply_id' => $reply_id,
+                'sender'            => $sender,
+                'model'             => $model,
+                'participant_id'    => $participant,
             }
         }
     }
 );
 
-## check if command was sent
-if ( $cmd_count && $cmd_count > 0 ) {
+if ( $sent_count <= 0 ) {
     <[base.logs]>->(
-        2, 'inference request sent to coding zenka: model=%s', $model_id
+        0, '[coding.invoke] failed to send: sent_count=%d', $sent_count
     );
-
-    return {
-        'success' => TRUE,
-        'pending' => TRUE,
-        'message' => 'inference request queued via coding zenka',
-        'note'    => 'response will arrive via async callback',
-    };
-} else {
-    return {
-        'success'   => FALSE,
-        'error'     => 'failed to send command to coding zenka',
-        'cmd_count' => $cmd_count // 0,
-    };
+    my $error = ':. error: coding system not reachable :.';
+    <[models.chat.append]>->( undef, $model, $error );
+    my $entries = <[models.chat.get_recent]>->(3);
+    my $output  = <[models.chat.format_buffer]>->($entries);
+    if ( length($reply_id) ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id, { 'mode' => 'size', 'data' => $output }
+        );
+    }
+    return;
 }
 
-0;
+<[base.logs]>->(
+    2, '[coding.invoke] submitted: participant=%s handler=%s sent_to=%d',
+    $participant, $handler, $sent_count
+);
 
-#,,,,,.,.,,,.,..,,...,.,,,,,,,.,.,...,,,.,,,.,..,,...,.,.,...,.,.,..,,,..,,,.,
-#II73KLZZYHZAPZCA3PPKTHAERIUI6OFVRAHA5GXCJX5O3CBH2OAL4C5OLHPUBXHIG65HK3MLUHDSI
-#\\\|KTF67PGPT3TIIIMCC2JHQIDXFZ2NKUI5QZ7LX2EN5XEK4HOQOAU \ / AMOS7 \ YOURUM ::
-#\[7]ULR6M4KNKPIYIOCMBXGXEEM473Y4A27BARFLUBPAUC54LLZNDMDQ 7  DATA SIGNATURE ::
+return;
+
+#,,..,.,,,.,.,,,.,,,.,,.,,,,.,.,.,,,.,.,.,,..,.,.,...,...,...,.,,,.,.,,,.,,..,
+#V7IWHESA4KKELT7TKX3X7ERAMYBEDYVSRH5KKO75VSQKFOM2D6LIROLDCDZ72DARWTJUSOL7ZMKES
+#\\\|HF5NYWPOD3SHMPGORSHQP7JRRCQDZYF2KFKNN243WXO3VKQFYEP \ / AMOS7 \ YOURUM ::
+#\[7]BKWK7PWKIPWNEPN2SDVKCMAZK5TDR3TXQCEXXYE7PQGEHRODLYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

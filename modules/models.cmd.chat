@@ -3,10 +3,11 @@
 # name = models.cmd.chat
 # descr = multi-model chat interface with keyword support
 # usage = models.chat [model message]
-# return = chat buffer view or model response
+# return = chat buffer view (immediate) or deferred reply with full buffer
 
-my $param = shift;
-my $args  = $param->{'args'} // '';
+my $param    = shift;
+my $args     = $param->{'args'}     // '';
+my $reply_id = $param->{'reply_id'} // '';
 
 ## no args (only source_zenka from alias): show recent chat buffer
 if ( $args eq '' or $args =~ m|^\S+$| ) {
@@ -14,7 +15,7 @@ if ( $args eq '' or $args =~ m|^\S+$| ) {
     my $output  = <[models.chat.format_buffer]>->($entries);
 
     if ( $output eq '' ) {
-        $output = ':. chat buffer empty :.\n';
+        $output = ":. chat buffer empty :.\n";
     }
 
     return { mode => qw| size |, data => $output };
@@ -48,27 +49,23 @@ if ( defined $checksum ) {
 ## process keywords in message [ memory expansion, etc ]
 my $processed = <[models.chat.process_keywords]>->($message);
 
-## invoke model backend for response with processed message
-my $response = <[models.chat.invoke_model]>->( $model, $processed );
+## invoke model backend
+## Pass chat_response handler to store response and reply when ready
+<[models.chat.invoke_model]>->(
+    $model,
+    $processed,
+    {   'reply_id' => $reply_id,
+        'handler'  => 'models.handler.chat_response',
+        'sender'   => $sender,
+        'model'    => $model,
+    }
+);
 
-## add note prefix if model returned error
-if ( $response =~ m|^:\.\ error:| ) {
-    $response = sprintf ':note: model error::n::n:%s', $response;
-}
+## Return deferred - response will come via chat_response handler
+return { mode => 'deferred' };
 
-## append model response to buffer
-<[models.chat.append]>->( undef, $model, $response );
-
-## format and return
-my $entries = <[models.chat.get_recent]>->(3);
-my $output  = <[models.chat.format_buffer]>->($entries);
-
-return { mode => qw| size |, data => $output };
-
-0;
-
-#,,..,.,.,..,,,,.,,..,..,,.,.,.,.,,,,,,.,,.,,,..,,...,...,...,...,.,,,,,,,.,,,
-#65HVKTLWZP6XWTSFTZWV6XF5NRNO5RPKXTL7JVFE65EPN37TC6LP75Y274E7BU7Z5KTJ2V6RCW7IG
-#\\\|LFYVL456A6FO5EJHIU2U5FO7YUWXZG5GQJ4NDWIKV6U7GMIZ7VE \ / AMOS7 \ YOURUM ::
-#\[7]B5S5ZKPCZNNGKM6GOTJJGABHL4EA2YAPEDRS4Z2DC2OKVGIH62BQ 7  DATA SIGNATURE ::
+#,,,.,,,,,...,.,,,.,.,,,.,.,.,,,.,,.,,,.,,.,,,.,.,...,.,.,..,,,,.,...,,,,,.,.,
+#KEVJ4QZFT3NE7JQTTGQTP2MIWV7QPGXLEQHIGYWOVJSVBCVPG62ID7QTXKDOTM32KLKLHM7GHMBI6
+#\\\|5F35JHANJC57APTEY3VLNTD3KCHRJEJRB253OZT4FK7WHUMB53Z \ / AMOS7 \ YOURUM ::
+#\[7]BORQWVBVVK63JV7IQ2QP5JSA4VURF5SWTQ62BTXD6P7GLDU74GDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
