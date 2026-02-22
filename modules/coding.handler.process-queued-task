@@ -30,7 +30,8 @@ if ( defined $input && ref($input) && ref($input) =~ m{Event::} ) {
     }
 
     $task_id = $meta_job->{'task_id'};
-} elsif ( ref($input) eq 'HASH' && ref( $input->{'params'} ) eq 'HASH' ) {
+} elsif ( ref($input) eq qw| HASH |
+    && ref( $input->{'params'} ) eq qw| HASH | ) {
 
     ## called from jobqueue callback (coding.task.execute) ##
     $task_id = $input->{'params'}->{'task_id'};
@@ -195,7 +196,7 @@ eval {
             };
         }
 
-        if ( ref($result) eq 'HASH' && $result->{choices} ) {
+        if ( ref($result) eq qw| HASH | && $result->{choices} ) {
             $response_text = $result->{choices}->[0]->{message}->{content}
                 // '';
 
@@ -241,8 +242,8 @@ return {
     task_id => $task_id
 };
 
-#,,,.,..,,,,,,.,,,,,,,...,,,,,,,,,,.,,.,,,,..,..,,...,...,,,.,,,.,,,,,.,.,.,.,
-#B3BNOT4E2KIUZRCSRG3EAD5SQDHCUAKVDIQHABFJKTUC4C6CUC6DOXTM3724E2HQ27DMNAGIBSAHC
-#\\\|TSYJ7SPALP4HDNE455KHT3GQJ2XI2Z37BLMTN3RN3BLIAGAOJEU \ / AMOS7 \ YOURUM ::
-#\[7]ZGOJ6PGEON24X7BOYWZPYYMNEDML5J3WQURNBSUZV522XPZUIMAQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,.,,,,..,..,,,.,,..,,.,,,...,...,..,,...,...,..,,..,,...,,,.,..,,
+#MLRHCHGFKKK7MIMNZ2ODEWVMW4V6C7XTGMPEXFHM3RXVIVB26IPWKOY6UQIT4IK4RFH5AGPL6WKGG
+#\\\|QLF5PAR7NAMRQHXFHQOQ2ZDDJ3EE32655BYZLGFZG2BHQZG4CFR \ / AMOS7 \ YOURUM ::
+#\[7]EVZE2IPABMKVCEKFS36GU24QC3KOG5DROCHNXT2DCSRAMOOMKYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

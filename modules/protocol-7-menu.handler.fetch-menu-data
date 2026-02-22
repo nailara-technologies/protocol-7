@@ -32,8 +32,8 @@ if ( length $EVAL_ERROR ) {
 }
 
 # Validate structure
-unless ( ref($provider_data) eq 'HASH' && defined $provider_data->{'items'} )
-{
+unless ( ref($provider_data) eq qw| HASH |
+    && defined $provider_data->{'items'} ) {
     <[base.s_warn]>->(
         'provider data not valid - no items hash from %s', $provider
     );
@@ -52,8 +52,8 @@ $menu_structure->{'last-changed'} = <[base.ntime.b32]>;
     $provider, scalar( keys $provider_data->{'items'}->%* )
 );
 
-#,,..,.,,,,..,..,,..,,.,.,..,,..,,,,.,...,,,.,.,.,...,...,,,,,,.,,..,,,..,...,
-#GKDUQI3CJWNWP5GRIKBVP5RGU2J47BWYDNBKSFFHNTHNB6XMNIF2AYBCSGAHL6Y7WVLGE4MSNDONU
-#\\\|LVKF3ETYF3RDUABUZUABTQHRG2WFPATKWX3KV6KHQ7UL4R47TSY \ / AMOS7 \ YOURUM ::
-#\[7]OCPT3XMOCQTAQO23VPT46BZOATESCZX5UKFDN4OJSJ45YYWCWQDI 7  DATA SIGNATURE ::
+#,,,.,.,.,.,.,.,.,,,,,.,.,,.,,.,,,.,,,.,.,,.,,.,.,...,...,...,.,.,.,.,,,.,,..,
+#YXV6VHCOR3BR7USTMOS7JYYNYDP4NQGTBXGVBCB22TIITDJ3HYWZYJ2KYE753FUJV4ZKQK5WAFHOS
+#\\\|QITE5EZVN6IRSVTFZLPIO6KTTXTLVCFF3TL2P73UQNAQU4EDIXO \ / AMOS7 \ YOURUM ::
+#\[7]QTTKDHOUX7PFV6DKMLR5KUGHLK2MG5YT7MXJ3IX2IXHIVZ5N3MBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

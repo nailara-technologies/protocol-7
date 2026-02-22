@@ -7,13 +7,13 @@
 
 my $args = shift;
 return { 'interest_score' => 0, 'relevant' => FALSE }
-    unless defined $args and ref $args eq 'HASH';
+    unless defined $args and ref $args eq qw| HASH |;
 
 my $content = $args->{'content_data'};
 my $context = $args->{'evaluation_context'} // {};
 
 return { 'interest_score' => 0, 'relevant' => FALSE }
-    unless defined $content and ref $content eq 'HASH';
+    unless defined $content and ref $content eq qw| HASH |;
 
 ##  Evaluation criteria ##
 ##  - Content type match (podcasts, technical articles, etc.)
@@ -139,8 +139,8 @@ return {
 
 1;
 
-#,,,.,...,.,.,,,.,,.,,,.,,,,,,.,.,...,,..,,.,,...,...,...,..,,.,,,,,,,.,,,..,,
-#5ANKBQGX3ABHKYT6UPLFPXORELORW3AYRUU5FE3LIAZ5BZZRPY4FWBQDWORFIPHYL7P2RZQRRKSRM
-#\\\|QVBW3RLYPLSLUA4LMC6NQV7XBRANNILZPL6WUVQMEQUIWHUUKZZ \ / AMOS7 \ YOURUM ::
-#\[7]4IKARENFJYQDSM7UNYZKNTHVULSYQJFBZUOVRMXOJAVI3ASOCYDI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,.,,,,..,,.,,,.,,,,,,.,,,.,,,.,.,...,...,...,,.,,,..,,.,,,,.,,.,,
+#W576ER6JTJUJPGPPIOEY6VMN7EKYJ53HRXFSYYFJ4NE3PH4AQPVD6IUM2OU4GL24NEOMDCNHZSLAY
+#\\\|P7SDIOD4OMPYVT3GMZTICANWNZ6KSX3M26KYUFIK4N6HVHGERMO \ / AMOS7 \ YOURUM ::
+#\[7]Q54LZ3OAVCRQTO45VYDYS5NYSSYA4ZBBYR3PT34MAZQEZUJJNQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,7 +6,7 @@ my $rss_url_ref = shift;
 die "expected hash reference containing RSS urls"
     if not defined $rss_url_ref
     or !length($rss_url_ref)
-    or ref($rss_url_ref) ne 'HASH';
+    or ref($rss_url_ref) ne qw| HASH |;
 my $output_file = <rss.ticker.txt_data_path>;
 ( my $data_dir = <rss.data.tmp_path> . '/rssdata' ) =~ s,(/|\.\.)/,/,g;
 my $join_type = <rss.ticker.join_type>;
@@ -184,8 +184,8 @@ move( $output_file . '.NEW', $output_file )
 <[base.log]>->( 2, ": : wrote txt data to '$output_file'" );
 return TRUE;
 
-#,,,,,.,.,...,..,,.,.,,.,,.,,,,,.,...,,,,,,,.,..,,...,...,.,.,..,,.,.,.,.,...,
-#WVPLBL7EUQT5STQXAK7MSYE6C34G322NWO5CPAYJOAFI5GNFR4Z3573MXOW6CGURZP7RV2RXL33DG
-#\\\|X22DRTOWN4XGU6VUWY5W4IICLW6PRKOFAMYEIZ433SE3WEEJ74M \ / AMOS7 \ YOURUM ::
-#\[7]NJ22OHI5PT3SKPW4DKHGGASQV6B46DGO6KC7S6KI7WJPBXSFLUBQ 7  DATA SIGNATURE ::
+#,,.,,.,.,.,.,,,.,,.,,,,.,,..,.,.,.,.,.,,,,,.,..,,...,...,.,,,...,.,.,,.,,,,.,
+#3FPVMBZYTQWEO2NVKYFOXZR2BYBOD3MBYVBK2QSUJPHBW23QCT7EFS3C5OFEK7VHGIJHPZXZUJ35W
+#\\\|CFGZW6CS7T5Z3CSX73CL7W7EUSP6IPH6KKIXLO7ND4RPHESK7WD \ / AMOS7 \ YOURUM ::
+#\[7]HHLVXLXD3MEEZZRO2YJSTV7MEVFAAXYMANJ43WB7XJYDFQXATGCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

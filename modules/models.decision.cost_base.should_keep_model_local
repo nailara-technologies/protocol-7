@@ -5,15 +5,15 @@
 
 my ( $model_entry, $context ) = @ARG;
 
-return 0 unless $model_entry && ref($model_entry) eq 'HASH';
+return 0 unless $model_entry && ref($model_entry) eq qw| HASH |;
 
 my $access_freq = <[models.decision.cost_base.estimate_usage_frequency]>->(
     $model_entry, $context
 );
 return $access_freq->{per_month} > 10;    # Keep local if used >10x/month
 
-#,,.,,.,.,..,,,..,..,,,,.,..,,..,,,..,,.,,,,,,..,,...,...,.,,,.,.,.,,,..,,,,.,
-#QWIHZCVEGWDBFFK2POQVA3OOTJIGNI7SFLRDUHWOKHVXEBFY6KAFYZXUEYVEOUHE5YPYAGDHF3ANY
-#\\\|EW7PMAIO5FZGF7DURV37GIF32M7ROPEJ6DJ2MUNUT7SRFNPID3N \ / AMOS7 \ YOURUM ::
-#\[7]RYFU254QXTHWU3MCTGTLO2HKAHH6NYAPXFDTFAQUQA3LEL6MGQCI 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,.,.,,,.,..,,...,..,,,..,...,,,.,..,,...,...,.,.,,.,,.,.,...,,..,
+#33BTR2CVDOXNVIEYKLKRXQUM6TLPNZ3W2QVVGE4GOWYVRTADLDDQ5TEA6YPFLET5GX4YOJEKICA2Y
+#\\\|YPQM6PWPLCDLTZUUUAQYSZ3QHCD3S2WUFW4MOEOEAWUXUEGWSME \ / AMOS7 \ YOURUM ::
+#\[7]UGNKTSCQP3J7WPDOZ22U23RNXGNNPBMWUUXCH2IXROA4UC3HOAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

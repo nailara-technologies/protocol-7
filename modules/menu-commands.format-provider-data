@@ -7,7 +7,7 @@
 
 my $provider_data = shift @ARG;
 
-return '' unless defined $provider_data && ref($provider_data) eq 'HASH';
+return '' unless defined $provider_data && ref($provider_data) eq qw| HASH |;
 
 <[base.perlmod.load]>->('YAML::XS');
 
@@ -21,7 +21,10 @@ my $yaml_output = YAML::XS::Dump($provider_data);
 ## Remove document marker (---)  - YAML parser will add it back if needed
 $yaml_output =~ s/^---\n//;
 
-<[base.log]>->( 2, "format-provider-data: YAML %d bytes", length($yaml_output) );
+<[base.log]>->(
+    2, "format-provider-data: YAML %d bytes",
+    length($yaml_output)
+);
 
 ## Return pretty-printed YAML (SIZE mode transmission handles multiline safely)
 ## The protocol's SIZE reply mechanism preserves newlines/formatting
@@ -31,8 +34,8 @@ $yaml_output =~ s/^---\n//;
 
 return $yaml_output;
 
-#,,,,,.,.,...,,,.,..,,..,,,,.,,,.,.,,,,,,,,.,,.,.,...,...,,,.,.,,,,.,,.,.,.,,,
-#GBEXROPXSV57M336GGQWM3FXUXWQRQF5LQQRDBHI3VGLKBXGVLSHSXMJXPHOMVXI5GRXSQQZHLXJQ
-#\\\|ISRN6NKYEFKXUP3ZELCP7PBDVNRY34TWVZCYQRLAFEZYJ4POBGY \ / AMOS7 \ YOURUM ::
-#\[7]FLZO2TYYRU3NBMKGUJRJR454YIHOXONMPE4M66NS3IXGLJJSO2BY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,...,,,.,...,.,.,..,,.,,,..,,...,.,.,...,...,...,,,.,.,,,,,,,,,,,
+#7SES6FNM52UTTJ6SARXUM7PPUHFWTRCQZ7ZA2GQIOUW7HTCBM2VNOBLBKXONVH33TN7CUEN6PHQLW
+#\\\|TFGL4DJCMZFVVEHOW32EPLLWLRY2NASMEIV5NYIN4N2VLDNG7BC \ / AMOS7 \ YOURUM ::
+#\[7]HXWFY4C76APU7RD77PJ7UIWOOKHCJZUP3GGVN5FSBVZ3UETXKODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

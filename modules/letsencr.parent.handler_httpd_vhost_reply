@@ -11,7 +11,7 @@
 my $reply_data = shift @ARG;
 
 ## Validate reply structure
-unless ( $reply_data && ref($reply_data) eq 'HASH' ) {
+unless ( $reply_data && ref($reply_data) eq qw| HASH | ) {
     <[base.log]>->( 1, "error : invalid vhost reply structure from httpd" );
 
     ## Trigger error handler
@@ -76,7 +76,7 @@ foreach my $vh (@vhosts) {
 
 ## Store result for consumer (renewal check handler)
 <letsencr.parent.pending_vhosts> = {
-    status => 'success',
+    status => qw| success |,
     vhosts => \@vhosts,
 };
 
@@ -84,8 +84,8 @@ foreach my $vh (@vhosts) {
 
 return TRUE;
 
-#,,,.,..,,,,,,,.,,,.,,...,,..,,,,,,.,,,..,,.,,..,,...,...,..,,.,.,...,,,.,,.,,
-#DSSA4NWXGDKQDPADXGOCBGSXNZZNC2ZWSJLFVE55VDM3JIEV7U4QN2V3NSGTPDQ6BMTGZT3UV7G7G
-#\\\|LZMT6CQN4UA7ZGXV6Q7OBBKN6LRBUV6W5E63E5XMHYWJ7AY6O7Z \ / AMOS7 \ YOURUM ::
-#\[7]LBJG3R6R5EADQEO4HFGX2BDL5B42YHIJXYNFZVYXIYI2BOJVFOCA 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,..,,...,..,,..,,,..,,..,,..,.,.,..,,...,...,.,.,,,,,,..,,..,.,.,
+#K7L3HBJ7GLTNRN6PBTIZBNGENPZTNTNRWLOOUJ6ZOWYURIZ3OPJYAQGGX7VGJAZQB6RA64OSX4GEI
+#\\\|GTWLN35W47Z3GAL4VRQOZPCBP44LGGCDSL3KOV67CYYIJISBDWU \ / AMOS7 \ YOURUM ::
+#\[7]WCI4DZOH4MK52MHBHUE5QVV3UCQL27BWCJRDLJ6C7MBJPUQCOADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

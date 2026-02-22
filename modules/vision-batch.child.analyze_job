@@ -9,7 +9,7 @@ my $job = shift;
 return { success => FALSE, error => 'Job parameter required' }
     unless defined $job;
 return { success => FALSE, error => 'Job must be a hash' }
-    unless ref $job eq 'HASH';
+    unless ref $job eq qw| HASH |;
 return { success => FALSE, error => 'Job missing image_path' }
     unless exists $job->{image_path};
 return { success => FALSE, error => 'Job missing job_id' }
@@ -45,8 +45,8 @@ return {
     method      => $analysis_result->{method}
 };
 
-#,,..,.,.,.,.,...,..,,,,,,,..,,.,,,.,,,.,,,,.,..,,...,...,,..,,.,,,,.,...,.,,,
-#YQ3MDBRPQNBPJI6AL7M4SWRCIZ7CLLPHQCZUEYM43KTBXSIFVIOI27T3ZTNCLDOKSDKK32YMB6UBA
-#\\\|V77KCZARHUW62Z3XRKE4ZLQ2TDIPZWHJCYNKFACUA36NB5ESSOM \ / AMOS7 \ YOURUM ::
-#\[7]E3SXKXW5VL44PADSWNRQV5JYWP76KM3B2RH354B43IXGWLI3CMDA 7  DATA SIGNATURE ::
+#,,..,,,,,,..,...,,..,,.,,,,.,...,,.,,..,,,,,,..,,...,...,...,,,,,,,,,,.,,.,,,
+#WQFPAPOZ4LEEJVRWOVV4RAPEWCFCJW2CBB6ITTO6IYSUFK2IDQTBRKWKKWY2DQ5GWUQBGWK6DDBIU
+#\\\|QKB2EWY7XCG4EESR3DJQNDBES6DQQX32REZMHM6ESSUUNINDYBD \ / AMOS7 \ YOURUM ::
+#\[7]Q4CNX5ZOSNYDHHPTQGS27OSIOULXL4YI23FAFNLYQFVNV5PRFKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

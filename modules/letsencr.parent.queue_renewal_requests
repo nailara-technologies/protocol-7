@@ -6,7 +6,7 @@
 my $renewal_list = shift;
 
 return {
-    status => 'error',
+    status => qw| error |,
     error  => 'renewal list array required',
     queued => 0,
     }
@@ -86,12 +86,12 @@ foreach my $renewal_info (@$renewal_list) {
 <[base.log]>->( 2, "queued $queued_count renewal requests" );
 
 return {
-    status => 'success',
+    status => qw| success |,
     queued => $queued_count,
 };
 
-#,,,,,,.,,...,.,,,.,,,,..,.,,,,,,,,.,,,,,,...,..,,...,.,.,...,..,,.,.,,..,...,
-#ETA5I52I3XFQ3C3JSAEEN6ZB2VFOCGLTFTB5IK2H72LPKUUDNHVN2VTDRAQLJLTTJX4UD5ZXEM4A2
-#\\\|IF544VGQSLDYIIXP4Z4MDRKQE3CNW55PE6IGRQTI72C7DFCUERJ \ / AMOS7 \ YOURUM ::
-#\[7]Z2U2F35ZVXKOXETYUVPXRIVGOQMB3OLZWYJJFFFVY44YDK2CQ6BY 7  DATA SIGNATURE ::
+#,,.,,...,,..,...,.,.,..,,...,,,,,.,.,...,,.,,..,,...,...,...,...,..,,,,.,...,
+#7XT5XMA6BDT42SZLHOXWUUJCL7KXZC522VK53NB4RVASMSN2QKIEVLRAG4HXBCG3IVVZHYBDK7MCI
+#\\\|3AM4EVNYXO4TV5LJEBMNEXFHZNPE3ZAZCHZBSTAGJOKWGANEMNW \ / AMOS7 \ YOURUM ::
+#\[7]NEJLQO5HOE6LCEWIZCKJGVHCLNEJC6BPO5WVE6AFXDOYG33JRQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

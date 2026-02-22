@@ -8,7 +8,7 @@
 # with space-separated arguments
 
 my $batch_id;
-if ( defined $call && ref($call) eq 'HASH' && defined $call->{'args'} ) {
+if ( defined $call && ref($call) eq qw| HASH | && defined $call->{'args'} ) {
 
     # Extract first argument from space-separated args string
     $batch_id = ( split m|\s+|, $call->{'args'} )[0];
@@ -48,8 +48,8 @@ if ( $shutdown_result->{success} ) {
     return { 'mode' => qw| false |, 'data' => $shutdown_result->{error} };
 }
 
-#,,.,,...,..,,..,,,.,,.,.,,,,,...,,,.,,,.,.,,,..,,...,...,...,...,.,.,,.,,,..,
-#QWB3HFEW334TC7WYHVQNSIKGU7PERTINOS3DGSFRQTJZYBXAP35FOVWNMUGZRAEPCWIZZ57RNS5ZO
-#\\\|NTF2VDGPLKXIFVJFGHNOUSVJVEWHEUTRCEKN5ERKGEUDQJWMZV3 \ / AMOS7 \ YOURUM ::
-#\[7]RXDOCKVPVT2KF4ZD7YHLGB4V2YGFZR4I263BDIPTC2XTEF5RJSAQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,,.,,,,,.,,,,,,,...,.,,,...,,.,,..,,...,...,..,,,,.,,,,,...,,,,,
+#GWGAVNOY23WTJFVUMWHJDKGTO576TMRMIVZKNKDHPFPGVI2DX4J6UVLQWDWZAHM2TTQISLTF2CGS2
+#\\\|GXWBECYEA7OXX5YGJ2U6KDD4NREOPWPTDC5CUUARCBCY7YK5PQH \ / AMOS7 \ YOURUM ::
+#\[7]7F33FIO5LJXH43F3IBURH7MTGZCB35S73VU2DVOHE44ZEPGG5WAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

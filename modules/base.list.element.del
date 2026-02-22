@@ -3,7 +3,7 @@
 # name  = base.list.element.del
 # args  = { key_ref id }
 
-if ( ref( $_[0] ) ne 'HASH' ) {
+if ( ref( $_[0] ) ne qw| HASH | ) {
     <[base.log]>->(
         0, 'base.list.element.del: submitted argument is no hash'
     );
@@ -13,7 +13,7 @@ if ( ref( $_[0] ) ne 'HASH' ) {
 my $key_ref = ${ $_[0] }{'key_ref'};
 my $id      = ${ $_[0] }{'id'};
 
-if ( not defined $key_ref or ref($$key_ref) ne 'HASH' ) {
+if ( not defined $key_ref or ref($$key_ref) ne qw| HASH | ) {
     <[base.log]>->(
         0,
         'base.list.element.del: key_ref is no reference to a hash reference'
@@ -29,8 +29,8 @@ $data{'base'}{'element'}{$key_ref}{'count'} = scalar keys( %{$$key_ref} );
 
 return FALSE;
 
-#,,.,,...,...,,.,,...,,.,,.,,,,..,,,.,,,,,,,.,..,,...,...,.,.,,..,,,.,,,,,,,,,
-#ZWUJTXDPYIHYPJUM4BBZZVHBANLIZB4X2EUKUYQ7BE4FOPU2RK7E3NGKRCUB2XJDK77PY3TP5IYU6
-#\\\|3KJEVHNNX6DJVTF7QIRIO2BFKNYR2BWA6EDCHBQM7T3H3LMDVLO \ / AMOS7 \ YOURUM ::
-#\[7]EB5S4CNSKCRUP5QYQFL5KXCQPTVDZWXV5HXBVYCYHUQQD26Z5GBY 7  DATA SIGNATURE ::
+#,,.,,...,.,,,,,.,,..,,,,,,,,,,,,,.,.,.,,,..,,..,,...,...,.,,,,,,,,,.,,,.,,,,,
+#7LLMIUC4LMFB3HOEBJQYDG4YYHYGDKM2SNEU7RCMFSCEXFGAE53T5BNJPFIN4OIAW33LWUXJH6N2O
+#\\\|MQFPCCMRGWWBXONSBDIFHU353DGBGXIPDZ6NN2EMDVDXAOW47Y6 \ / AMOS7 \ YOURUM ::
+#\[7]JLOGLCWHIOAXI5UXI6Z42GVKXZWSCXMMJZ526XLXDUNFLKITVOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

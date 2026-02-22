@@ -18,7 +18,7 @@ if ( $mode eq 'TRUE' ) {
         2, "httpd successfully reloaded certificate for: $domain"
     );
     return {
-        status => 'success',
+        status => qw| success |,
         domain => $domain,
         msg    => 'Certificate reloaded successfully'
     };
@@ -30,7 +30,7 @@ if ( $mode eq 'TRUE' ) {
         <[base.log]>->( 1, "  error details : $data" );
     }
     return {
-        status  => 'error',
+        status  => qw| error |,
         domain  => $domain,
         error   => 'HTTPd reload failed',
         details => $data
@@ -38,14 +38,14 @@ if ( $mode eq 'TRUE' ) {
 } else {
     <[base.log]>->( 1, "warning : unexpected reply mode from httpd : $mode" );
     return {
-        status => 'error',
+        status => qw| error |,
         domain => $domain,
         error  => "Unexpected reply mode: $mode"
     };
 }
 
-#,,,,,.,.,,,,,,.,,,..,..,,,..,.,.,..,,.,.,...,..,,...,..,,,.,,.,,,,,.,.,.,,,.,
-#F74HYAPOIGZ4QTV6GLQXSN5IN4VD2R3XAEXIHDJOWVS7JGKROWMOOGSKAI7HBR25AFPBOM5T3XCHY
-#\\\|7ZIGOOKW743QZK7XW2DSTP2GMKIMMFGNXTMAN5EOP3IIWUZECL6 \ / AMOS7 \ YOURUM ::
-#\[7]HH36VX72NRPFPAEB4OHMWCKL4I5Q7LWWILOSEOHM6Y4XNHR2VMBI 7  DATA SIGNATURE ::
+#,,.,,.,.,.,,,,,.,,.,,.,.,.,,,..,,...,.,,,..,,..,,...,.,,,.,.,.,,,,,.,..,,.,,,
+#TXJ7FJAIXCK7MIOKN4DDACOVY2OQEBTK4LOYM2VCI24YF5333C5I4XRAKHTLPUMBBE5XGFCGJRJYY
+#\\\|WXO66H7IG2RNV2F322JZ2I253MKSOQXHNBJ24KJLCLRSQTMWISW \ / AMOS7 \ YOURUM ::
+#\[7]U6F7UGEV4WT57I4DIBTEUKP3MC3WFD7NSUHLNSZUUNMPP42MEABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
