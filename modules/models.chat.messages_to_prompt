@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = models.chat.messages_to_prompt
+# descr = Convert chat messages array to prompt string for coding system
+# param = $messages - array of { role, content } hashes
+# return = $prompt_string
+
+my $messages = shift // [];
+
+return '' unless ref($messages) eq 'ARRAY';
+return '' unless scalar(@$messages) > 0;
+
+my @parts;
+
+foreach my $msg (@$messages) {
+    next unless ref($msg) eq 'HASH';
+
+    my $role    = $msg->{'role'}    // 'user';
+    my $content = $msg->{'content'} // '';
+
+    next unless length($content);
+
+    if ( $role eq 'system' ) {
+        push @parts, "[System]:\n$content";
+    } elsif ( $role eq 'user' ) {
+        push @parts, $content;
+    } elsif ( $role eq 'assistant' ) {
+        push @parts, "[Assistant]:\n$content";
+    } else {
+
+        # Unknown role - treat as user
+        push @parts, $content;
+    }
+}
+
+# Join with clear separators
+my $prompt = join( "\n\n", @parts );
+
+# Clean up extra whitespace
+$prompt =~ s/^\s+//s;
+$prompt =~ s/\s+$//s;
+
+return $prompt;
+
+#,,.,,..,,,..,...,.,,,.,,,,..,,..,.,,,...,,.,,.,.,...,...,..,,.,,,...,.,,,,.,,
+#IKSSSGZRAXRI4BXN4QJQ7FC5ZFG7I7DO4OQ43YEWNXWLAL47UZHPBVAFBK3PJKMJ2KSK73YKSZ6HY
+#\\\|ZWXILLEGFCXNHTK2WULRMH3IK5KS2IY7PKG73ZHRSXOTRM5LJHC \ / AMOS7 \ YOURUM ::
+#\[7]6RK6DLYYUZPJ5MPGDPYTSQXRUA7DJECT2K6HFUYRMGFWR57D4ADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

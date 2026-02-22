@@ -6,7 +6,7 @@
 
 my $deferred_id = shift;
 
-my $deferred = <coding.deferred_replies>->{$deferred_id};
+my $deferred = $data{"coding"}{"deferred_replies"}->{$deferred_id};
 return unless defined $deferred;
 
 my $task_id = $deferred->{'task_id'};
@@ -17,7 +17,7 @@ unless ( defined $task ) {
         $deferred->{'reply_id'},
         { 'mode' => 'false', 'data' => 'task not found' }
     );
-    delete <coding.deferred_replies>->{$deferred_id};
+    delete $data{"coding"}{"deferred_replies"}->{$deferred_id};
     return;
 }
 
@@ -48,7 +48,7 @@ if ( $status eq 'completed' ) {
     );
 
     $deferred->{'status'} = 'complete';
-    delete <coding.deferred_replies>->{$deferred_id};
+    delete $data{"coding"}{"deferred_replies"}->{$deferred_id};
 
 } elsif ( $status eq 'failed' || $status eq 'error' ) {
     my $error = $task->{'execution'}->{'error'} // 'task failed';
@@ -57,11 +57,11 @@ if ( $status eq 'completed' ) {
         { 'mode' => 'false', 'data' => $error }
     );
     $deferred->{'status'} = 'error';
-    delete <coding.deferred_replies>->{$deferred_id};
+    delete $data{"coding"}{"deferred_replies"}->{$deferred_id};
 }
 
-#,,.,,,,.,.,.,...,,..,.,,,,,,,.,.,.,.,.,,,,..,.,.,...,...,..,,..,,..,,..,,...,
-#7GVH4HGUYQAXG3UOUPEAHVOR4XPH77HLNMXG6Q7PVSIGTLX6HNZ6R3RPPGF4MRCERLRJT7NJR6NDO
-#\\\|4ZDC3AR6QVYFGBR5YQQBZBVQP3AFAPIZHBMLKDI64VLCFJTUPFG \ / AMOS7 \ YOURUM ::
-#\[7]CEC3IONGCIO3U3ITOKBBHJUGOYHG6262QKTK36JF3AUSZNDEGAAA 7  DATA SIGNATURE ::
+#,,,,,.,,,..,,.,.,.,.,,..,...,.,.,.,.,.,.,,,,,.,.,...,...,.,.,,..,,..,..,,..,,
+#VM4XKAXSUWIUUMORZRWYP2NVP2Q323ONP52BHPRRBX2PZ6YCXABJMR4GVWTVU3H25N4A3YOYTAO7U
+#\\\|HTRVWJZ545Q2SCVHYFB5SIW532RZ3NENZHS5Y6OLB2XLMOPW7A7 \ / AMOS7 \ YOURUM ::
+#\[7]TNPUPKVYQ7YRFHL2SRAQ4QYVVDSOIPKBDN6RFKYS4267NRS7WMBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
