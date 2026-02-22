@@ -25,16 +25,16 @@ my $PREVIEW_ONLY = 0;
 my $CONFIRM      = 0;
 
 # Process and remove flags from params
-while ( @params && $params[0] =~ /^-/ ) {
+while ( @params && $params[0] =~ m{^-} ) {
     my $flag = shift(@params);
-    if ( $flag eq '-ai-friendly' ) {
+    if ( $flag eq qw| -ai-friendly | ) {
         $AI_FRIENDLY = 1;
-    } elsif ( $flag eq '-preview-only' ) {
+    } elsif ( $flag eq qw| -preview-only | ) {
         $PREVIEW_ONLY = 1;
         $AI_FRIENDLY  = 1;    # Preview-only implies AI-friendly output
-    } elsif ( $flag eq '-no-color' ) {
+    } elsif ( $flag eq qw| -no-color | ) {
         $USE_ANSI = 0;
-    } elsif ( $flag eq '-confirm' ) {
+    } elsif ( $flag eq qw| -confirm | ) {
         $CONFIRM = 1;
     }
 }
@@ -505,7 +505,8 @@ sub cmd_replace {
        # Replace params with remaining (non-option) params for pattern parsing
         @params = @remaining_params;
 
-        say "  :: '$target' not a valid target ::\n" and exit(0010)
+        say "  :: '$target' not a valid target ::\n"
+            and exit(0010)
             if $base_target_for_validation !~ m|\+|
             and not exists $targets{$base_target_for_validation};
 
@@ -899,7 +900,8 @@ sub cmd_search {
     }
     @params = @remaining_params if @remaining_params;
 
-    say "  :: '$target' not a valid target ::\n" and exit(0010)
+    say "  :: '$target' not a valid target ::\n"
+        and exit(0010)
         if $base_target_for_validation !~ m|\+|
         and not exists $targets{$base_target_for_validation};
 
@@ -1265,9 +1267,39 @@ sub preview_llm_friendly {
                         printf "  %4d | %s\n", $j + 1, $orig_lines[$j];
                     }
 
-                    # Show the change
-                    printf "- %4d | %s\n", $i + 1, $orig;
-                    printf "+ %4d | %s\n", $i + 1, $mod;
+                    # Show the change with highlighting
+                    # For original: highlight search pattern (orange)
+                    my $orig_highlighted = highlight(
+                        $orig, $search_pattern,
+                        ansi('blink') . $C{'2'},    # orange blink
+                        $C{'R'},
+                        0                           # case-sensitive
+                    );
+
+                    # For modified: expand $1, $2, etc. and highlight (green)
+                    my $mod_highlight_pattern = $replace_pattern;
+                    if ( $orig =~ m{$search_pattern} ) {
+                        my @captures = ( $1, $2, $3, $4, $5, $6, $7, $8, $9 );
+                        for ( my $ci = 0; $ci < @captures; $ci++ ) {
+                            next unless defined $captures[$ci];
+                            my $var = '$' . ( $ci + 1 );
+                            $mod_highlight_pattern
+                                =~ s/\Q$var\E/$captures[$ci]/g;
+                        }
+                    }
+
+                    # Escape regex metacharacters for highlighting
+                    $mod_highlight_pattern
+                        =~ s/([\|\(\)\[\]\{\}\^\$\*\+\?\.\\])/\\$1/g;
+                    my $mod_highlighted = highlight(
+                        $mod, $mod_highlight_pattern,
+                        ansi('blink') . $C{'3'},    # phosphor green blink
+                        $C{'R'},
+                        0                           # case-sensitive
+                    );
+
+                    printf "- %4d | %s\n", $i + 1, $orig_highlighted;
+                    printf "+ %4d | %s\n", $i + 1, $mod_highlighted;
                     $shown++;
 
                     # Show context after
@@ -2787,6 +2819,7 @@ sub diff_less {
     ( $k_path{'first'}, $k_path{'second'}, $regexp ) = (@ARG);
     my ( $search_pattern, $replace_pattern )
         = ( $regexp->{'search'}, $regexp->{'replace'} );
+
     my $cut_path = '';
 
     foreach my $offset_identical ( 0 .. length( $k_path{'first'} ) ) {
@@ -2821,10 +2854,18 @@ sub diff_less {
         my @diff_output = <$DIFF>;
         close($DIFF);
         my $diff_txt;
+        my @last_captures;    # Store captures from - line for use in + line
         if ( defined $search_pattern and defined $replace_pattern ) {
             foreach my $diff_line (@diff_output) {
                 if ( $diff_line =~ s/^([<|-]{1})([^-]{1})/$2/ ) {
 
+                    # Extract captures from the - line for later use
+                    if ( $diff_line =~ m{$search_pattern} ) {
+                        @last_captures
+                            = ( $1, $2, $3, $4, $5, $6, $7, $8, $9 );
+                    }
+
+                   # Use case-sensitive matching to match actual Perl behavior
                     $diff_txt
                         .= ansi('dark')
                         . $C{'0'}
@@ -2837,28 +2878,41 @@ sub diff_less {
                         ansi('blink')
                             . $C{'B01'}
                             . $C{'2'},    # blinking orange for search match
-                        $C{'R'} . $C{'B01'} . $C{'1'}
-                        );                # stop blink, return to bg+blue
+                        $C{'R'} . $C{'B01'} . $C{'1'},
+                        0    # case-sensitive (like actual Perl regex)
+                        );
                 } elsif ( $diff_line =~ s/^([>|+]{1})([^+]{1})/$2/ ) {
                     my $replace_highlight = $replace_pattern;
                     if ( $regexp->{'options'} =~ m|e| ) {
                         $replace_highlight = eval $replace_pattern;
                     }
+
+                    # Expand $1, $2, etc. using captures from the - line
+                    for ( my $i = 0; $i < @last_captures; $i++ ) {
+                        next unless defined $last_captures[$i];
+                        my $var = '$' . ( $i + 1 );
+                        $replace_highlight =~ s/\Q$var\E/$last_captures[$i]/g;
+                    }
+
+       # Escape regex metacharacters for highlighting (not for actual replace)
+                    $replace_highlight
+                        =~ s/([\|\(\)\[\]\{\}\^\$\*\+\?\.\\])/\\$1/g;
                     $diff_txt
                         .= ansi('dark')
                         . $C{'T'}
                         . $1
                         . $C{'R'}
-                        . $C{'B02'}       # background for added lines
-                        . $C{'1'}         # blue for text before match
+                        . $C{'B02'}    # background for added lines
+                        . $C{'1'}      # blue for text before match
                         . highlight(
                         $diff_line, $replace_highlight,
                         $C{'B02'}
                             . ansi('blink')
                             . $C{'B'}
                             . $C{'3'},    # blinking phosphor green
-                        $C{'R'} . $C{'B02'} . $C{'1'}
-                        );                # stop blink, return to bg+blue
+                        $C{'R'} . $C{'B02'} . $C{'1'},
+                        0    # case-sensitive (like actual Perl regex)
+                        );    # stop blink, return to bg+blue
                 } elsif ( $diff_line =~ /^(diff |\+\+\+|\-\-\-|\@\@)/ ) {
                     if ( $diff_line =~ /^diff / ) {
 
@@ -2927,8 +2981,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,.,,,..,,..,.,,,,..,,.,,,..,.,,,.,,,,,,,,..,...,...,...,..,,.,,,,,.,.,.,...,
-#GVN7CJE3YHNW5CE4ORTHRSFGOH3WQ3G5ODODRCT3PXGSU54QZFSS33ATZYGZTADY3YMX7MDDYE2B2
-#\\\|S3Q6LYDERVLQQUN7CJWLPCT22UM3C5JDWD6IBYBQI2VKMFDXDGU \ / AMOS7 \ YOURUM ::
-#\[7]AE5QCVAZQXRY7BZOUXPOZYPQ2CHOJVWUQYMKLNTBLADGPF3OHMCA 7  DATA SIGNATURE ::
+#,,,,,.,.,...,,..,,,.,,.,,,,,,,,,,,..,,..,..,,...,...,..,,.,,,,..,,.,,,,.,.,.,
+#OBRQM2EHYFYCBOQTKQ5I2IJ7Y7ZLIRSMP55ESRM3FD55H3RPXCMMMFK2M2ETQZJ3EY2SNKFF3GTT4
+#\\\|XZVN3TS7F2Y4DYLMC7W5A3CPPCZPAF5LT5ARGODVOYCXWYOGEJH \ / AMOS7 \ YOURUM ::
+#\[7]JVLGQLXLM6EW3CLJFFLT3QSWDXEHIBXUXYW5AUXZEEYBOAQY7WCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
