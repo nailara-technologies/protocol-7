@@ -2,8 +2,27 @@
 
 # name  = base.parser.list
 # descr = returns a parsed list table according to supplied specification mask
+#
+# MASK FORMAT (display_keys parameter):
+#  Each element defines one column:
+#  - '<key>:display_name'  -> shows the hash key itself [e.g., session ID]
+#  - 'field:display_name'  -> shows $data{$key}{field}
+#  - 'field'               -> field name used as display name
+#
+# exml : '<key>:usid user:uname' shows ID column + user field as 'uname'
+#
+# PARAMETERS:
+#  var       -> hash variable name [e.g., 'data' -> %data]
+#  key       -> hash key within var [e.g., 'session' -> $data{session}]
+#  mask      -> arrayref of column definitions (see above)
+#  align     -> hashref of alignment specs per field
+#  filters   -> hashref of filter subs for value transformation
+#  sort_key  -> how to sort entries
+#
+# For filtered listing [ search across keys AND values ],
+#                        use base.parser.list_filtered
+#
 # todo  = fix alignment [width] bug. [<key>:ex0 and ex0:ex1 cases]
-#         :     apparenly accumulative offset as result of 'align'
 
 (   my $h_name, my $h_key,    my $sub_key, my $display_keys,
     my $align,  my $defaults, my $filters, my $sort_key
@@ -184,8 +203,8 @@ foreach my $key_val (@sorted_keys) {
 
 return $table_string . "\n";
 
-#,,.,,,,,,,,.,,..,,.,,.,,,,..,.,.,..,,,.,,.,,,..,,...,...,.,,,.,,,...,..,,.,,,
-#4UG5X3DPSHRS2PE2MSDAKSIAEXWRXXDPE7OFA3W5VGBBRHQD767ESTBHWWTMTKA2PGBA52RPTHOMM
-#\\\|VYK4OKR64ZYXIEN47XS5YM5ZBKJORJNOYWTAAUZVHIVRMRCCKTR \ / AMOS7 \ YOURUM ::
-#\[7]HO6QGMCLRG3A3X4MIN77WATIBPQHD6SWYFL53U4CNWPJ2PY7QOAI 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,..,,.,,,.,.,,..,...,,,.,,,,,,,,,..,,...,...,..,,,,.,,,,,...,,,,,
+#YQUW6SIN5LE54GENDYI22K56RZIGJPCRBCJ2CO75CZQ4KWFW2KTWYY6GUWU35YIKHJTNM44SK2A2E
+#\\\|UVSPPCDKQMSUNRA5EGJY5OVN6KVDH7OW36XKAI7H5V7SS3OKUIP \ / AMOS7 \ YOURUM ::
+#\[7]QCZ6PG66CBT7JL2ZIKZZIHYZBKXUG37AUXLSK3E5TGTK6JISFCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
