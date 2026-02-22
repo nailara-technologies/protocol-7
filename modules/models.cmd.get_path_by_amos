@@ -24,7 +24,8 @@ unless ( defined $model_entry ) {
 }
 
 ## Verify file_path exists
-unless ( defined $model_entry->{'file_path'} && length $model_entry->{'file_path'} ) {
+unless ( defined $model_entry->{'file_path'}
+    && length $model_entry->{'file_path'} ) {
     return {
         'mode' => 'size',
         'data' => "error: no file_path for model: $amos_id\n"
@@ -35,23 +36,26 @@ unless ( defined $model_entry->{'file_path'} && length $model_entry->{'file_path
 unless ( -f $model_entry->{'file_path'} ) {
     return {
         'mode' => 'size',
-        'data' => "error: model file not found: " . $model_entry->{'file_path'} . "\n"
+        'data' => "error: model file not found: "
+            . $model_entry->{'file_path'} . "\n"
     };
 }
 
 ## Return success with model metadata and file path
-my $response = $model_entry->{'file_path'} . "\n";
-$response .= "model_id: " . $model_entry->{'model_id'} . "\n";
-$response .= "name: " . $model_entry->{'name'} . "\n";
-$response .= "quantization: " . $model_entry->{'quantization'} . "\n";
+my $response = ( $model_entry->{'file_path'} // '' ) . "\n";
+$response
+    .= "model_id: " . ( $model_entry->{'model_id'} // 'unknown' ) . "\n";
+$response .= "name: " . ( $model_entry->{'name'} // 'unknown' ) . "\n";
+$response .= "quantization: "
+    . ( $model_entry->{'quantization'} // 'unknown' ) . "\n";
 
 return {
     'mode' => 'size',
     'data' => $response
 };
 
-#,,,.,.,,,,,.,.,,,.,.,...,,.,,,,,,.,,,...,.,.,..,,...,..,,,..,...,...,,.,,,,,,
-#2LYGGXNJZR4J4T3LMS2HNH3ZBF4JA3SSU7TZV2FIE75GLJ46ZWEXBUTL4EVWTYVLXYIQU2FI2OKOO
-#\\\|SI3MHVS4GDNRPUZI2XTPPXD5KFGMH4735CO3IUW344DEFTV3GI6 \ / AMOS7 \ YOURUM ::
-#\[7]7RRNXMD2GVBVTQRGT3HT6O56T2S55GTIMMOHOOZJS3756YMBIKDY 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,.,.,,,,,,.,,,.,,,..,.,,,,,.,,,.,..,,...,...,.,,,..,,,..,.,,,...,
+#SIGMIGVEKZVVD6F43R67JGC42IEHLLCS4KNIZDMRC5RWDJ6VF4WGY37GOFRLCSFE3ET5V622M33L6
+#\\\|ZHLWYF6N4LCPOFYE7FJVPEZF4UUEWLO5Q22UM55UO4V2SEHDZAK \ / AMOS7 \ YOURUM ::
+#\[7]PRNGXIONNM6NYYE4FZDMTEL6QKXUJ26AJNAYUZTTOECTM4IF3ODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

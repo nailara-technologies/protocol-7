@@ -124,6 +124,42 @@ if ( not <coding.state.initialized> ) {
 ## set up dependency tracking for inference server readiness ##
 <[dependency.install_callbacks]>->('coding');
 
+## register memory callback types ##
+if ( exists $code{'coding.callback.object_memory_system'} ) {
+    <[dependency.setup]>->(
+        'memory_system',
+        { 'callback' => $code{'coding.callback.object_memory_system'} }
+    );
+    <[base.logs]>->( 2, '[init] registered memory_system callback' );
+}
+if ( exists $code{'coding.callback.object_memory_gpu'} ) {
+    <[dependency.setup]>->(
+        'memory_gpu',
+        { 'callback' => $code{'coding.callback.object_memory_gpu'} }
+    );
+    <[base.logs]>->( 2, '[init] registered memory_gpu callback' );
+}
+
+## create memory availability dependencies ##
+<coding.dep.memory_system> = <[dependency.add_object]>->(
+    {   'type'        => 'memory_system',
+        'min_free_mb' => 4096,              ## 4GB free RAM required ##
+        'description' => 'System RAM available (4GB+)'
+    }
+);
+
+<coding.dep.memory_gpu> = <[dependency.add_object]>->(
+    {   'type'        => 'memory_gpu',
+        'min_free_mb' => 3072,              ## 3GB free VRAM required ##
+        'description' => 'GPU VRAM available (3GB+)'
+    }
+);
+
+## add self-chains for memory callbacks ##
+<[dependency.add]>
+    ->( <coding.dep.memory_system>, <coding.dep.memory_system> );
+<[dependency.add]>->( <coding.dep.memory_gpu>, <coding.dep.memory_gpu> );
+
 ## create dependency objects for inference server ports ##
 my $gpu_port = <inference.backend.gpu.port> // 8000;
 my $cpu_port = <inference.backend.cpu.port> // 8001;
@@ -146,10 +182,54 @@ my $cpu_port = <inference.backend.cpu.port> // 8001;
 <[dependency.add]>->( <coding.dep.gpu_server>, <coding.dep.gpu_server> );
 <[dependency.add]>->( <coding.dep.cpu_server>, <coding.dep.cpu_server> );
 
+## create memory-aware dependency chains ##
+## GPU server needs both GPU memory and system memory ##
+<[dependency.add]>->( <coding.dep.gpu_server>, <coding.dep.memory_gpu> );
+<[dependency.add]>->( <coding.dep.gpu_server>, <coding.dep.memory_system> );
+
+## CPU server needs system memory ##
+<[dependency.add]>->( <coding.dep.cpu_server>, <coding.dep.memory_system> );
+
 <[base.logs]>->(
     2,                       "inference server deps: gpu=%s cpu=%s",
     <coding.dep.gpu_server>, <coding.dep.cpu_server>
 );
+
+## make dependency status available as 'coding.list dependencies'
+<list.depending> = {
+    qw| var |      => qw| data |,
+    qw| key |      => qw| dependency.object |,
+    qw| sort_key | => qw| description |,
+    qw| descr |    => 'current workflow dependency status',
+    qw| mask |     => '<key>:id type status backend',
+    qw| align |    => {
+        qw| <key> |   => qw| center |,
+        qw| type |    => qw| center |,
+        qw| status |  => qw| center-1 |,
+        qw| backend | => qw| center-1 |,
+    },
+    qw| filters | => {
+        qw| dependdency | => qw| coding.parser.dependency_chain |,
+        qw| backend |     => qw| coding.parser.dependency_backend |,
+        qw| status |      => qw| coding.parser.dependency_status |
+    }
+};
+
+## make available models list with selection indicator
+<list.coding-models> = {
+    qw| var |      => qw| data |,
+    qw| key |      => qw| coding.model_metadata |,
+    qw| sort_key | => qw| reverse-num:size_gb |,     ## largest models first
+    qw| descr |    => 'available inference models [marked with * = active]',
+    qw| mask |     => '<key>:model amos size_gb',
+    qw| align |    => {
+        qw| model |   => qw| left |,
+        qw| amos |    => qw| center |,
+        qw| size_gb | => qw| right-2 |,
+    },
+    qw| filters | =>
+        { qw| model | => qw| coding.parser.model_name_with_selection |, }
+};
 
 ## register with event system
 <watcher_list.coding.task_processor> //= TRUE;
@@ -157,14 +237,15 @@ my $cpu_port = <inference.backend.cpu.port> // 8001;
 <coding.state.initialized> = TRUE;
 
 ## fetch fresh model discovery from models zenka
-## [ dependency guarantees it online ]
-## fire once after init completes to not block init itself
+## [ init_reports fires when cube is ready to route ]
 if ( not $already_initialized ) {
-    <[event.add_timer]>->(
-        {   'after'   => 1.0,
-            'repeat'  => FALSE,
-            'handler' => qw| coding.handler.fetch_model_discovery |,
-            'desc'    => 'initial model discovery from models zenka'
+    <system.init_reports> //= [];
+    push(
+        <system.init_reports>->@*,
+        {   'target_command' => qw| cube.models.discover |,
+            'param'          => qw| available |,
+            'handler'        => qw| coding.handler.models_discover_reply |,
+            'descr'          => 'requesting model discovery from models zenka'
         }
     );
 
@@ -189,8 +270,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,.,,,..,,,.,,,,,,,,,...,.,,,..,,,,,,,,,,..,,..,,...,.,.,...,,.,,,..,,,,,.,.,
-#Q5WMERO6BF5KNITD4POCHNYDAZYB5MEVXJTACXG3DPTEB4TVHYRWJW6DBIGJ6YIUVIBAXT2MOOHZ2
-#\\\|GNMVIKIQUBMCQPFNYAWQXWBVNAQZWH2T676UZT3EURJW544MYOL \ / AMOS7 \ YOURUM ::
-#\[7]C5BAZZVYCIVN2LJX57EXXP7MWICWRP7JTJJHGTA5SRX33WZIDOCY 7  DATA SIGNATURE ::
+#,,.,,..,,,,,,,..,..,,,,,,.,.,,.,,,,,,,..,.,.,..,,...,...,...,,,.,.,.,.,.,,,.,
+#N52MIVFPGFVC4YQMPSOVV27DE2YSXCN2AV7T44QC47UPFKLKOSQS7GFD3JNAYYRY2GUS47UKIKUGQ
+#\\\|Z4TJZBACGOLCBNY3LSYIM3VCN6FEBVRLFGZAWKZ6I2UZPBJTJE6 \ / AMOS7 \ YOURUM ::
+#\[7]2DEEMJNXFP67DODIKESAPHIUKZF7GQGMADC6BY6OK7OABYNMNYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

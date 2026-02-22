@@ -25,6 +25,9 @@ my $discovered = \@discovered;
 @ARG = ($discovered);
 my $result = <[models.registry.populate_from_discovery]>;
 
+# Save updated registry to disk for persistence
+<[models.storage.yaml_save]>->(<models.registry>);
+
 my $reply_str = '';
 $reply_str .= "discovered: " . scalar(@$discovered) . " models\n";
 $reply_str .= "added_to_registry: " . $result->{added} . " new models\n";
@@ -39,8 +42,8 @@ if (@$discovered) {
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,.,,..,,,..,,..,,,,,.,.,,.,,.,,,,..,,,.,.,.,..,,...,...,,..,...,.,,,,,.,,.,,
-#NCDYZ5QJYOZMI3OU5SDRW5FILQCM4WBBU4X4S7RYNB7MAOCGDGPCDLT4YLE7XOLV4KMLNBS2SFUN6
-#\\\|TK2FMTXFWKZADCWHY36NEF7HBPBZBCQXYPXA6TFGGMM5SV2TDFH \ / AMOS7 \ YOURUM ::
-#\[7]HCW4IPBJHQ7NWMM27S2TULQOYLT56YXIIG4DXZMXTSQRXEZP5ICY 7  DATA SIGNATURE ::
+#,,.,,...,,,.,,,.,,..,.,.,.,,,,..,.,.,,,,,,,,,..,,...,...,.,,,,,.,.,.,...,,,,,
+#OOGJBH7OL7MUGNKHORRUX3XGLYD64FQLH6SVGHV6KGI3EBZBW4TKCWZ3VNOOJY7RWXTROQD34QG7M
+#\\\|NSQTAEEDED2ZFLKEWYCRNH6V7NIDSY3Z3DK27JECSBFLZLGALH4 \ / AMOS7 \ YOURUM ::
+#\[7]RYZ46LB53RDWSNRHJQM6ANR6FBSEM63FON7XZGY2MHOYAX3TZKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

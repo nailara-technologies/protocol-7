@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = coding.parser.query_prefix
+# descr = Parse query for backend/model prefix: [CPU|GPU]:<name_csum>:<path_csum>: <query>
+# return = { backend => 'cpu'|'gpu'|'auto', model => <checksum>|undef, query => <clean_query> }
+
+my $query = shift // '';
+
+## Return defaults for empty query ##
+return { backend => 'auto', model => undef, query => $query }
+    unless length $query;
+
+## Pattern: CPU|GPU followed by optional :checksum:checksum: prefix ##
+## Examples:
+##   "GPU:IR65EUQ:ZGJ3K5Y: hi there" -> backend=gpu, model=IR65EUQ:ZGJ3K5Y
+##   "CPU: what is 2+2?"             -> backend=cpu, model=undef
+##   "hi there"                      -> backend=auto, model=undef
+
+## First try: backend with checksum (GPU:CHECKSUM:CHECKSUM: query) ##
+if ( $query =~ m{^(CPU|GPU):([A-Z2-7]{7}:[A-Z2-7]{7}):\s*}i ) {
+    return {
+        backend => lc($1),
+        model   => $2,
+        query   => $'
+    };
+}
+
+## Second try: backend only (CPU: query or GPU: query) ##
+if ( $query =~ m{^(CPU|GPU):\s*}i ) {
+    return {
+        backend => lc($1),
+        model   => undef,
+        query   => $'
+    };
+}
+
+## No prefix found - use automatic routing ##
+return { backend => 'auto', model => undef, query => $query };
+
+#,,.,,,..,.,.,..,,...,.,,,.,.,...,..,,.,,,,..,.,.,...,...,,.,,.,,,...,.,.,,..,
+#2JMXR6SLOG7RWIVJCVCWOFHIXSPHPWPT7X27XCIFQTE3VTKC4NULO3UZJG3L5Z423HRVZKEBTYVWS
+#\\\|PXJ5GQNGPWV5DLXWTZCH3F5DV3UEUMTAVXVDVELDVNY6J4TFDW5 \ / AMOS7 \ YOURUM ::
+#\[7]WMBWCNDHXLQT7TPT5ZFPUWQJZSPLO7QONYJH3UI6JY6M3SQS5WCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

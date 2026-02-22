@@ -65,16 +65,65 @@ unless ( defined $task ) {
     return { success => FALSE, error => "task not found: $task_id" };
 }
 
-# Get inference configuration
-my $model_id = $data{'inference.backend.gpu.model_id'} // 'gemma3-glitter-4b';
+# Parse query for backend/model prefix
+# Check metadata.raw_request.type first (set by task intake for "CPU: query" format)
+my $raw_type = $task->{metadata}->{raw_request}->{type}        // '';
+my $raw_desc = $task->{metadata}->{raw_request}->{description} // '';
 
-# Mark task as in-progress
+my $parsed;
+if ( $raw_type =~ m{^(cpu|gpu)$}i ) {
+    ## Task intake parsed "CPU: query" as type=CPU, description=query ##
+    $parsed = {
+        backend => lc($raw_type),
+        model   => undef,
+        query   => $raw_desc
+    };
+} else {
+    ## Try parsing description directly for checksum format ##
+    my $raw_prompt = $task->{request}->{description} // '';
+    $parsed = <[coding.parser.query_prefix]>->($raw_prompt);
+}
+
+# Select best available backend
+my $backend_info = <[coding.routing.select_backend]>->(
+    {   backend         => $parsed->{'backend'},
+        preferred_model => $parsed->{'model'}
+    }
+);
+
+unless ( $backend_info->{'available'} ) {
+    <[base.logs]>->(
+        0,
+        "[process-queued-task] backend not available: %s",
+        $backend_info->{'error'} // 'unknown'
+    );
+    $task->{'execution'}->{'status'} = 'failed';
+    $task->{'execution'}->{'error'}  = $backend_info->{'error'}
+        // 'backend unavailable';
+    return { success => FALSE, error => $task->{'execution'}->{'error'} };
+}
+
+# Update task with routing info
+$task->{'execution'}->{'backend'}    = $backend_info->{'backend'};
+$task->{'execution'}->{'port'}       = $backend_info->{'port'};
+$task->{'execution'}->{'model_used'} = $backend_info->{'model'};
 $task->{'execution'}->{'status'}     = 'in_progress';
 $task->{'execution'}->{'started'}    = <[base.time]>->(3);
-$task->{'execution'}->{'model_used'} = $model_id;
 
-# Build prompt from task description
-my $prompt = $task->{request}->{description} // '';
+# Use the clean query (prefix stripped)
+my $prompt = $parsed->{'query'};
+
+<[base.logs]>->(
+    1,
+    "[process-queued-task] routed to %s:%d",
+    $backend_info->{'backend'},
+    $backend_info->{'port'}
+);
+<[base.logs]>->(
+    2,
+    "[process-queued-task] model=%s",
+    $backend_info->{'model'} // 'default'
+);
 
 <[base.logs]>->(
     1,
@@ -93,10 +142,11 @@ if ( !$inference_result->{success} ) {
     );
 }
 
-# Get inference configuration (model_id already defined above)
+# Get inference configuration
 my $max_tokens     = <inference.model.max_tokens>  // 256;
 my $temperature    = <inference.model.temperature> // 0.7;
-my $inference_port = <inference.gpu_port>          // 8000;
+my $inference_port = $backend_info->{'port'};
+my $model_id       = $backend_info->{'model'};
 
 <[base.logs]>->(
     1, "[process-queued-task] using model=%s max_tokens=%d temp=%f port=%d",
@@ -191,8 +241,8 @@ return {
     task_id => $task_id
 };
 
-#,,,,,.,.,...,.,.,.,.,,.,,..,,,,,,.,.,,.,,.,,,..,,...,...,.,.,..,,..,,.,,,.,.,
-#GM333CI3KAELBIPPCZ4ZQFCTIFCRHO7ZZQ7X3OD656ZCI2U6JCQPAR57BZ47ZKW3QXQTZEXRRFYT4
-#\\\|TKWOMZCQQEWIXLXXO3NGLMGIKWSYDSKVZR2G2BAYZ4OVRCBDVUU \ / AMOS7 \ YOURUM ::
-#\[7]ZUCFV7IVZGDXTZV3LFL3HY2QUEHRKYQ4KFCSXTSG54ILYK5TN6CQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,.,,,,,,,...,,,,,,,,,,.,,.,,,,..,..,,...,...,,,.,,,.,,,,,.,.,.,.,
+#B3BNOT4E2KIUZRCSRG3EAD5SQDHCUAKVDIQHABFJKTUC4C6CUC6DOXTM3724E2HQ27DMNAGIBSAHC
+#\\\|TSYJ7SPALP4HDNE455KHT3GQJ2XI2Z37BLMTN3RN3BLIAGAOJEU \ / AMOS7 \ YOURUM ::
+#\[7]ZGOJ6PGEON24X7BOYWZPYYMNEDML5J3WQURNBSUZV522XPZUIMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
