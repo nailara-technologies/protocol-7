@@ -5,6 +5,7 @@
 # todo  = use internal base.file routines .,.
 
 my $root_path     = <system.root_path>;
+my $conf_path     = <system.conf_path>;
 my $protocol7_bin = sprintf qw| %s/bin/Protocol-7 |, $root_path;    ##[LLL]
 my $symlink_dir   = <v7.cfg.zenka_symlink_dir> || qw| /usr/local/bin |;
 my $enabled = <[base.cfg_bool]>->( <v7.cfg.install_zenka_symlinks> // TRUE );
@@ -41,7 +42,7 @@ return FALSE unless scalar keys %console_zenki;   ## <- implement warning.. ##
 
 ## adding existing console-commands-having zenki from startup configs ##
 ##
-my $zenki_dir = sprintf qw| %s/configuration/zenki |, $root_path;
+my $zenki_dir = catdir( $conf_path, qw| zenki | );
 if ( -d $zenki_dir ) {
     opendir( my $cfg_dh, $zenki_dir ) or return FALSE;
     foreach my $dir_name ( <[base.sort]>->( readdir($cfg_dh) ) )
@@ -116,8 +117,8 @@ if ( $installed_count > 0 or $updated_count > 0 ) {
 
 return $installed_count + $updated_count;
 
-#,,,,,,.,,..,,,.,,,.,,,..,,..,,,.,.,,,,,,,.,.,..,,...,...,...,,,.,,.,,,,,,,,.,
-#ZMUMDUMSG7DAZJU2JZ5JTDCMN2RFCLX3TCBWDNOGPHEQC5PRLU2HCAGCMQZWUDQJBIWWJ67AFR642
-#\\\|ZCFYOX27A3HAQ3POU5TXIHVED3AJZHANYTM7VKPWJL6YDFG7FNU \ / AMOS7 \ YOURUM ::
-#\[7]ELVOEMHEDFNK2NA6LZTGPTAJEHRLVBAYKDQTV7KLLSHS7IB63MCI 7  DATA SIGNATURE ::
+#,,..,,..,,,.,..,,,..,.,.,,.,,.,,,,.,,.,,,,.,,..,,...,...,,,,,,..,,,.,.,.,..,,
+#BJ7U7ASNGXR4XPBBHSO2NYSB5AXRDGNU3YTEDVYJYDBWHNYIRH2CES67V3MFGQELEH4GVFE3JODNC
+#\\\|25WMN4WTKXIT3GTRXNWTZ5XHOPVBVPRUZ7WZU2UZAASIWY3ZZPP \ / AMOS7 \ YOURUM ::
+#\[7]EG7DTYJBSRLGAGPV42ELOJHC63ATO3LN5L32CTXYPBLKY6IA3EAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
