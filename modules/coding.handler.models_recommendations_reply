@@ -26,7 +26,7 @@ if ( ref($call_args) eq 'ARRAY' ) {
         2, "[coding] models_recommendations: call_args = ARRAY[%d]",
         scalar(@$call_args)
     );
-    if ( scalar(@$call_args) > 0 && ref( $call_args->[0] ) eq 'HASH' ) {
+    if ( scalar(@$call_args) > 0 && ref( $call_args->[0] ) eq qw| HASH | ) {
         my @keys = keys %{ $call_args->[0] };
         <[base.log]>->(
             2,
@@ -34,7 +34,7 @@ if ( ref($call_args) eq 'ARRAY' ) {
             join( ", ", @keys )
         );
     }
-} elsif ( ref($call_args) eq 'HASH' ) {
+} elsif ( ref($call_args) eq qw| HASH | ) {
     my @keys = keys %$call_args;
     <[base.log]>->(
         2,
@@ -55,8 +55,8 @@ if ( ref($call_args) eq 'ARRAY' ) {
 
 return 1;
 
-#,,.,,..,,...,.,,,..,,,..,...,,,,,..,,,,,,,,.,..,,...,.,.,,..,,,,,,.,,,..,.,.,
-#Y4OWMAZY62GYT3ZKHF2TXDCLGDHWLPM7QZJ5BBFPGO26XG3FP7ZRUQNVFVBZ7N323M2HZ4SEJWUFO
-#\\\|CSGOO3L7XEZR2VYESYPJN2EPBBZLSPKH2I56KVCP72SIP3RMRNV \ / AMOS7 \ YOURUM ::
-#\[7]WPRIN5USVYQZZJIAYACDU75VZXAWVFR33WT5MOCAUECMXDLZMACI 7  DATA SIGNATURE ::
+#,,.,,,,,,,.,,,,.,.,.,.,,,,..,,.,,,,,,,,.,.,.,..,,...,..,,.,,,,.,,,,.,,,.,.,.,
+#HZTEVUGA2NLBCQVUBRV5XXJNCQ53USGVKAK4IH2UQCM372FMNBQ4IEMASBV7RXO3VHLEYLTOMGTF4
+#\\\|5VOP4CLAPKA56WLIT7MZAW2LTIDPCFGSGJD2CKKG7HW5AWJJ5I2 \ / AMOS7 \ YOURUM ::
+#\[7]OMN7PCEEGBUOWE3XHGDRA33P2ZMQEKNOAAMVDBYP4WN3S7MJH4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

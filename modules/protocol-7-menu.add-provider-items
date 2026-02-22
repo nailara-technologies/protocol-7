@@ -18,16 +18,17 @@ my $items = $provider_data->{items} // {};
 foreach my $item_key ( sort keys %$items ) {
     my $item_config = $items->{$item_key};
     my $label
-        = ref $item_config eq 'HASH'
+        = ref $item_config eq qw| HASH |
         ? ( $item_config->{label} // $item_key )
         : $item_config;
 
     my $menu_item = Gtk3::MenuItem->new_with_label($label);
 
-    if ( ref $item_config eq 'HASH' && defined $item_config->{callback} ) {
-        $menu_item->signal_connect( 'activate' => $item_config->{callback} );
-    } elsif ( ref $item_config eq 'HASH' && defined $item_config->{command} )
+    if ( ref $item_config eq qw| HASH | && defined $item_config->{callback} )
     {
+        $menu_item->signal_connect( 'activate' => $item_config->{callback} );
+    } elsif ( ref $item_config eq qw| HASH |
+        && defined $item_config->{command} ) {
         my $cmd = $item_config->{command};
         $menu_item->signal_connect( 'activate' => sub {qx| $cmd |} );
     }
@@ -54,8 +55,8 @@ $menu->show_all;
 
 return 0;
 
-#,,,.,,..,..,,.,,,,,,,,,.,.,,,..,,..,,...,...,..,,...,...,.,.,...,...,.,.,..,,
-#RMEQ3Q3FMRWGOJXTYHJ4N72T3VP6GJ2K5XH75CQ4ITK2CVXUFVYMIW7AMNDQ6XM7NY2OBTUEWCMF2
-#\\\|FRBP7YRJG7ZD3WQ4YFKPC3HQXYOXPIVENYDV4MJGJF2MGK4QR2S \ / AMOS7 \ YOURUM ::
-#\[7]BLS5TYFCAD6U527TZDKSTYRMRHNS6YHZAJGXMMLC5WAMABWDDWDY 7  DATA SIGNATURE ::
+#,,,.,.,,,.,.,,.,,..,,.,,,.,,,...,.,,,...,.,,,..,,...,...,...,,,,,..,,,,,,,,,,
+#IYZMXY4BFBX2E23VPPXH23RTTOBJN3QZC6B66LJBYDVM5SZGQBULAHBBMS2YY32UYG7JPQ4253NO4
+#\\\|UNMMUYD6XRQNXZRUKTERWSGDS3VGJ42WYPVGZNMPHNT6GEOH424 \ / AMOS7 \ YOURUM ::
+#\[7]BZ7AAFYUS4OOOMSRV7QSBMGYKHQZQXVR7WJT2YE2WAOH2EIVEOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

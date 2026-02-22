@@ -7,7 +7,7 @@
 
 my $args_ref = shift;
 return { 'subscribed' => 0, 'errors' => ['no configuration provided'] }
-    unless defined $args_ref and ref $args_ref eq 'HASH';
+    unless defined $args_ref and ref $args_ref eq qw| HASH |;
 
 my $zenka_name = $args_ref->{'zenka_name'}      // 'unknown';
 my $mappings   = $args_ref->{'config_mappings'} // [];
@@ -31,7 +31,7 @@ my $zenka_entry = <channels.zenka_subscriptions>->{$zenka_name};
 
 ##  Process each mapping  ##
 foreach my $mapping ( @{$mappings} ) {
-    next unless defined $mapping and ref $mapping eq 'HASH';
+    next unless defined $mapping and ref $mapping eq qw| HASH |;
 
     my $channel_path   = $mapping->{'channel_path'};
     my $source_channel = $mapping->{'source_channel'};
@@ -86,8 +86,8 @@ return {
 
 1;
 
-#,,,,,,..,,..,,,,,.,,,.,.,...,...,,,.,.,.,...,...,...,.,,,...,,,.,.,,,,,,,,,.,
-#LTFS63HW2QHHPNU236H35KRN43WPWQO2M7E7OMONHZSLM6PCOGSG3TTWNLTHREQUIZ64ZSCZJWLTW
-#\\\|FVRLDR3QFX24MCCELFYTQ3JBT2QDXL32GRVQYRDGJQ2TZLT764V \ / AMOS7 \ YOURUM ::
-#\[7]RVFCDBOGLWBUZ3B23P3SD44DCPYIFQZTYIQPPMCB5HJYQPT654BY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,,,,...,.,,,.,.,,.,,,..,,.,,,..,...,...,..,,,,.,.,.,.,,,.,,,,,.,
+#CAL3RXR4HZVJ2WUKJUAQIHFGPY7S7TYQRSSYWQW4P5HBFBLRBLIV6B2ARUSBTFHXDYN446KJD2BH2
+#\\\|C4RI4GCYGIGRDWLXJQ2E2YD47EFAZVJNL5D6CQ4QVJPXLIIX6TJ \ / AMOS7 \ YOURUM ::
+#\[7]CXTXJBEAVIAA5L7FHFQJ3VMQ3LM3MBZXJTAQQUAI5HWKOHGC6IAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

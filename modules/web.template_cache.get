@@ -7,11 +7,11 @@
 my $cache_key = shift;
 
 # Validate input
-unless (defined $cache_key && length $cache_key) {
+unless ( defined $cache_key && length $cache_key ) {
     return {
-        status => 'error',
+        status  => qw| error |,
         message => 'Cache key required',
-        hit => 0,
+        hit     => 0,
     };
 }
 
@@ -20,23 +20,24 @@ unless (defined $cache_key && length $cache_key) {
 my $cache_entry = $_[0] if @_ > 1;  # Can pass cache as second arg for testing
 
 # If no cache passed, try to use the global structure (if available)
-unless (defined $cache_entry) {
+unless ( defined $cache_entry ) {
+
     # In Protocol-7, this would access the global data hash
     # For now, return a miss to avoid errors
     return {
-        status => 'miss',
+        status  => 'miss',
         message => 'No cache available',
-        hit => 0,
+        hit     => 0,
         content => undef,
     };
 }
 
 # Check if key exists
-unless (exists $cache_entry->{$cache_key}) {
+unless ( exists $cache_entry->{$cache_key} ) {
     return {
-        status => 'miss',
+        status  => 'miss',
         message => "Key not in cache: $cache_key",
-        hit => 0,
+        hit     => 0,
         content => undef,
     };
 }
@@ -44,46 +45,47 @@ unless (exists $cache_entry->{$cache_key}) {
 my $entry = $cache_entry->{$cache_key};
 
 # Validate entry structure
-unless (ref $entry eq 'HASH' &&
-        defined $entry->{content} &&
-        defined $entry->{timestamp} &&
-        defined $entry->{ttl}) {
+unless ( ref $entry eq qw| HASH |
+    && defined $entry->{content}
+    && defined $entry->{timestamp}
+    && defined $entry->{ttl} ) {
     return {
-        status => 'error',
+        status  => qw| error |,
         message => 'Corrupted cache entry structure',
-        hit => 0,
+        hit     => 0,
         content => undef,
     };
 }
 
 # Check TTL expiration
 my $age = time() - $entry->{timestamp};
-if ($age > $entry->{ttl}) {
+if ( $age > $entry->{ttl} ) {
+
     # Expired - remove from cache
     delete $cache_entry->{$cache_key};
     return {
-        status => 'expired',
+        status  => 'expired',
         message => "Expired after $age seconds (ttl=$entry->{ttl})",
-        hit => 0,
+        hit     => 0,
         content => undef,
-        age => $age,
-        ttl => $entry->{ttl},
+        age     => $age,
+        ttl     => $entry->{ttl},
     };
 }
 
 # Cache hit!
 return {
-    status => 'hit',
+    status  => 'hit',
     message => "Cache hit: $cache_key",
-    hit => 1,
+    hit     => 1,
     content => $entry->{content},
-    age => $age,
-    ttl => $entry->{ttl},
-    size => $entry->{size},
+    age     => $age,
+    ttl     => $entry->{ttl},
+    size    => $entry->{size},
 };
 
-#,,,,,,..,.,,,,.,,,..,.,.,...,.,,,,..,...,..,,..,,...,...,..,,.,.,.,.,...,.,,,
-#CYBABKLYMOHLBW4WVRRFC2Q2M3HGXZJDQD62NTNC6U6SGMIKVFC7WEZZPUPBWHP3H6LJZCQWTBOOC
-#\\\|LSSO7FICRNKQ6X3Y4Z5T47P3NX7EDWLEANTPRYJSBAYCWYXOY2I \ / AMOS7 \ YOURUM ::
-#\[7]D3MB5N35IMEGRJAA7BXISIXQY5N2Q6NINKZOTCBQYCXL5QDW7SAI 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,,.,,..,,,.,,..,..,,.,.,,,,,..,,..,,...,...,..,,.,.,,,.,,..,.,,,
+#MIQF3UJZXZM6TOGWMX23Q5QUIZIPBVI57SIGSSMVHWIV2UGDICNBGMAXXB75TMJXKNTKFJLL4AELK
+#\\\|O6MIWB322H7U4CRETPYSHMKUIFT7WFSGGVJJZVJUHC3R5YKYNXR \ / AMOS7 \ YOURUM ::
+#\[7]IJFD6JCLBOZOXXHVVNOCNFRCAROH7C3U7ZZKQ3QR7S2UL43ACWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

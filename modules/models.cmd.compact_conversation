@@ -5,7 +5,7 @@
 
 my $params = {};
 
-if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
     $params = $call->{'param'};
 } elsif ( defined $call->{'args'} && length $call->{'args'} ) {
     eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
@@ -26,8 +26,7 @@ if ( !length($job_id) ) {
 }
 
 my $result = <[models.conversation.compact]>->(
-    {
-        'job_id'     => $job_id,
+    {   'job_id'     => $job_id,
         'keep_turns' => $keep_turns,
     }
 );
@@ -38,8 +37,8 @@ return {
     'data' => $yaml_data
 };
 
-#,,.,,..,,,.,,,.,,..,,.,,,..,,,,.,...,...,.,.,..,,...,..,,...,,..,,,,,,.,,,,.,
-#27KCFEMMMWJ4FQVCYRUNPH4DZFS3ODYIW33LMJMQH3UP2CFJT5WVQFEY2MVO4DNIPANTQJXBZ6WME
-#\\\|PN6IN4X75KHDLRESBKYME4GA3YK73LEEL2AD5XMSR6NZD76NNKM \ / AMOS7 \ YOURUM ::
-#\[7]TAW5F3EVRKVOYLQEFCG5VPT6SNGFBFNQ2D3FOEZI3ZS4WGFWL2DQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,.,.,.,,,.,,,.,.,.,,,.,.,,,,,.,..,,...,...,.,.,...,...,...,,..,
+#LXZROQVJ2CB22WT7KAAA2QTQJBZDW5MYV477PXZCFV4QGKYTK6JJCCOSBEQIURETJGFPNLYWPQIZW
+#\\\|RZXG74XY3OMNUQ53Z4NRNCWP5Q42L6IQN3GHLQ24JZFSXZF4VHW \ / AMOS7 \ YOURUM ::
+#\[7]N7AO24PBTBQQM5Y2VAR6VK5PCCDJIEKWT63CBMT5LNRXAKQ4JEAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -49,7 +49,7 @@ if ($response) {
     my $data = $response->{data};
 
     ## Check if we got an error response with algorithms field
-    if ( $data && ref($data) eq 'HASH' && $data->{algorithms} ) {
+    if ( $data && ref($data) eq qw| HASH | && $data->{algorithms} ) {
         <[base.log]>->(
             2,
             'supported algorithms: %s',
@@ -76,8 +76,8 @@ return {
     'data' => $algo_json
 };
 
-#,,..,.,.,,,,,.,.,.,,,,,,,.,,,,.,,.,.,,..,.,.,.,.,...,...,.,,,..,,,.,,..,,...,
-#SMJEXYUGVZQJLABWBZ2RB7IPY4YGXI5MFJHQ65UENQFI4C7SYPKNVCEM6HQNSTD6B3O7TWJERFRPQ
-#\\\|JEFNFPOZO4WFENYAPKCQUUS4V6NP54VQYAPOBG2UTNJ6ZIV3ODP \ / AMOS7 \ YOURUM ::
-#\[7]GDMD2SUH5R4IMHW3LAAXBFPYGMHY6QL23F5D7MSWRYO2ZGXYLECY 7  DATA SIGNATURE ::
+#,,.,,.,,,...,...,.,.,.,.,.,,,.,,,..,,.,.,.,,,.,.,...,...,.,.,.,.,,.,,..,,,,.,
+#DPC2MQBWJPVV235XAGRGI2HPJLUU4SOKFRB6IXAZTX35ICI3QKATWKCTP64EROAZLS5PFL5J474LK
+#\\\|5YDFNVBBSKJZTTPYJKXH5Q7DRVJ7DIG3FTFHMAGJVL4CQGWCZV2 \ / AMOS7 \ YOURUM ::
+#\[7]HV73ZQKDELNT5P6GJOPKNA2CT64MT3YJIYV5GRRJWTKRWTLT5GBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

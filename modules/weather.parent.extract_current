@@ -8,7 +8,7 @@ die "expected (valid) station id parameter"
     if not defined $station_id or $station_id !~ /^\d+$/;
 die "expected 'current' weather data"
     if not defined $weather_data
-    or ref($weather_data) ne 'HASH';
+    or ref($weather_data) ne qw| HASH |;
 
 ## compensating for changed 'city' keyword name [ is 'region' meanwhile ] <--LLL
 my $cfg_city = <weather.location>;
@@ -68,8 +68,8 @@ foreach my $key ( 'clouds', 'humidity' ) {
 <[base.log]>->( 2, "writing html pages.. [ got new 'current' data ]" );
 <[weather.parent.write_pages]>->($station_id);
 
-#,,..,.,.,..,,,,,,..,,,,,,.,.,...,,,.,,..,..,,..,,...,...,.,.,,.,,...,.,,,,,,,
-#N7MAYB3EKWFDW5RTD4KRGP3MZ7LQARQDVNWS5OQ24NFJPUNHV3QKHUQ7VJRRLSHCSWQNA7BV3TY4Y
-#\\\|LSKZPEYV2UJ6A64PETTSISUWGUAIODD7P4YY25FWUHQ6JVBRI42 \ / AMOS7 \ YOURUM ::
-#\[7]H364IF6TR7XAUDUMWNL5QBIP2VHBSG33P5AZN37YVBTFJA5TAEDY 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,.,,.,,,,.,,.,,,..,,,,.,...,..,,..,,...,...,,,,,.,.,,..,,,,,,.,,
+#YRF57OJSVZ2DPRXW6A6CGWMZLPRQ6Q2HFTB2FASFI5UEZFCXIT466CFK4DMU5V37DP2C3B6BVEID4
+#\\\|TJRRO26QGLMC3WOD2P2R46ONKZYDRMO7KPFZR7JFABWWB6K42IG \ / AMOS7 \ YOURUM ::
+#\[7]LXDPWVTI3TTS6XP4U6TRABBNRA2YXTOY5U7WRRZSYPHG3JAQMKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

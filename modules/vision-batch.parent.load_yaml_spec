@@ -18,9 +18,10 @@ return { success => FALSE, error => "File not found: $yaml_path" }
 my $spec;
 eval { $spec = LoadFile($yaml_path); };
 
-return { success => FALSE, error => "Failed to parse YAML: $EVAL_ERROR" } if $EVAL_ERROR;
+return { success => FALSE, error => "Failed to parse YAML: $EVAL_ERROR" }
+    if $EVAL_ERROR;
 return { success => FALSE, error => 'YAML did not parse to valid structure' }
-    unless ref $spec eq 'HASH';
+    unless ref $spec eq qw| HASH |;
 
 # Validate required fields
 return { success => FALSE, error => 'Missing "batch" section in YAML' }
@@ -32,7 +33,7 @@ my $batch  = $spec->{batch};
 my $images = $spec->{images};
 
 return { success => FALSE, error => 'batch section must be a hash' }
-    unless ref $batch eq 'HASH';
+    unless ref $batch eq qw| HASH |;
 return { success => FALSE, error => 'images section must be an array' }
     unless ref $images eq 'ARRAY';
 
@@ -49,7 +50,7 @@ return { success => FALSE, error => 'images array must not be empty' }
 foreach my $idx ( 0 .. $#$images ) {
     my $img = $images->[$idx];
     return { success => FALSE, error => "Image at index $idx is not a hash" }
-        unless ref $img eq 'HASH';
+        unless ref $img eq qw| HASH |;
     return {
         success => FALSE,
         error   => "Image at index $idx missing 'path' field"
@@ -97,8 +98,8 @@ return {
     yaml_path         => $yaml_path
 };
 
-#,,,.,,.,,,,.,,.,,,..,,,,,...,,,.,...,..,,.,,,..,,...,...,,.,,..,,,,,,,,.,..,,
-#7252VP3EXMGNUFGTLVXVXKAXJPVAG6YW2QQDXYUVAIZU46375OID5CKAK2NW4UYELW5NCNRTPTWSI
-#\\\|MOYZNYRVBSLYSAO4UFDACIGSG6TWEPERURBKNKXKQT3KKLWRUVH \ / AMOS7 \ YOURUM ::
-#\[7]ZGRDM5WSOKE7JVQF22UEONTOPUMQOYA64YFKFFGULLBZB5R2DCAA 7  DATA SIGNATURE ::
+#,,,,,..,,,,.,,,.,.,.,...,,,,,,..,...,.,.,.,.,..,,...,...,.,,,,.,,,.,,,,,,,,.,
+#HM7DDS7CJTDEHJSW5J3V5X3KJM7ZERXDKZPNNRFH2NB2GADWZA6GMLCVKEUX6CDOFXG7FOZDAUHQ2
+#\\\|T4MI3VKLY4EAK23TWW5CI3OU5DX6HGALEZKHMUNXVCGAN4YLSPP \ / AMOS7 \ YOURUM ::
+#\[7]7Q37DEM66ODUS3GN3CLF5ZPTVY7CFFNTEB2BAJ54D6UE4M5GOKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

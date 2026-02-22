@@ -15,14 +15,14 @@ if ( -f $path ) {
     close $fh;
 
     my $loaded = decode_json($content) if $content;
-    return $loaded                     if $loaded && ref($loaded) eq 'HASH';
+    return $loaded if $loaded && ref($loaded) eq qw| HASH |;
 }
 
 EMPTY:
 return <[models.registry.empty.create_empty_registry]>;
 
-#,,..,..,,..,,.,.,,,.,.,.,...,.,,,,,,,,,,,,,.,..,,...,...,,.,,,,,,,..,,,.,,..,
-#KA32IXSZMBSFNYADVUJDST7OO2UJDKAFIOPW3W3HVW4VMYF4CKVBME4VQZKDCGKJBT4ROMKHGNSNS
-#\\\|PZ4TPEY4AD7JEJUXIOHE4EYICSKEMD4RDS4HD67XGPOSLL3KHYB \ / AMOS7 \ YOURUM ::
-#\[7]I54EANGPMOUPMEFYEP5WFHZJDPCNCTJCL57373FPQUFPYJ7S3EDI 7  DATA SIGNATURE ::
+#,,..,...,.,.,.,.,..,,,..,...,..,,.,.,,.,,,,.,..,,...,...,...,,.,,..,,..,,.,.,
+#3RZNZJF2WSX5OBRHU4S42TEDNBLP3A4CUGUQI5WC7Q7ZTM7YLDV7UFS7VLKJAEWOS4INME3UDPCNK
+#\\\|6FOE3RL2C5W46TYK7UCAZFUY5RJRB3DE7JOQDNJLVWLYGH2HNKW \ / AMOS7 \ YOURUM ::
+#\[7]VTPHDCP7ENJBEKINBO754KKB4BS4AFLIQUE45V6OCMZXBGT5VMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

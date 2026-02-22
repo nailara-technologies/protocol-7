@@ -7,7 +7,7 @@
 
 my $args = shift;
 return { 'synced' => 0, 'errors' => ['no arguments provided'] }
-    unless defined $args and ref $args eq 'HASH';
+    unless defined $args and ref $args eq qw| HASH |;
 
 my $local_path    = $args->{'local_path'};
 my $changed_value = $args->{'changed_value'};
@@ -24,7 +24,7 @@ return { 'synced' => 0, 'errors' => ['no watches registered for path'] }
     unless @{$watches};
 
 foreach my $watch ( @{$watches} ) {
-    next unless defined $watch and ref $watch eq 'HASH';
+    next unless defined $watch and ref $watch eq qw| HASH |;
 
     my $mode = $watch->{'mode'} // 'bidirectional';
     next if $mode eq 'read-only';    ## skip read-only watches ##
@@ -62,8 +62,8 @@ return {
 
 1;
 
-#,,,.,...,,,,,,..,.,,,...,.,,,.,.,,.,,.,,,,,.,...,...,..,,...,..,,,..,...,..,,
-#ZMV5CN2MCGJX6KVBCIXRK3IELU547J5FCCYHOED4XCAL5F6O4B6DUJSKQYOMYB2N2NED6763W5PTS
-#\\\|QOSNRZQXLDTNGL7ZZIY4Z4V336TLCCNWMC3XXPHSERXQSZMQXYT \ / AMOS7 \ YOURUM ::
-#\[7]A53L2SBRIDS3UOJQXAJS4HTOSSY5QSYHUNHFAOF2RHD7WKRAZCDY 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,.,,..,,,,.,.,.,,..,,,,,.,.,.,,,...,...,...,,,,,,.,,..,,,,,,,,.,
+#KEU4ROBIQWRYTTQDIGRGPD77L24PK2RTFYCY6VROTIWSHSDIJW2DVZAYRHZ5O3WMODNKSVEFZUBRK
+#\\\|6YNXGEMC376NGEIKAN6VPIBA7ULKHWYINARWDR7RSWPCBZMVP4O \ / AMOS7 \ YOURUM ::
+#\[7]NFF2EOOKFUYMDCPTCYXHBRB3KP5GR46B6ROYUBZWCHOILAY4WWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

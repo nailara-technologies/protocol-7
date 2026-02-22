@@ -67,8 +67,8 @@ if ($context) {
     $reply_str
         .= "last_invocation: " . ( $stats->{last_invocation} // 0 ) . "\n";
 
-    if ( $stats->{failure_modes} && ref( $stats->{failure_modes} ) eq 'HASH' )
-    {
+    if ( $stats->{failure_modes}
+        && ref( $stats->{failure_modes} ) eq qw| HASH | ) {
         $reply_str .= "\nfailure_modes:\n";
         foreach my $mode ( keys %{ $stats->{failure_modes} } ) {
             $reply_str
@@ -77,7 +77,7 @@ if ($context) {
     }
 
     if ( $stats->{usage_by_period}
-        && ref( $stats->{usage_by_period} ) eq 'HASH' ) {
+        && ref( $stats->{usage_by_period} ) eq qw| HASH | ) {
         $reply_str .= "\nusage_by_period:\n";
         foreach my $period ( sort keys %{ $stats->{usage_by_period} } ) {
             my $period_data = $stats->{usage_by_period}->{$period};
@@ -92,8 +92,8 @@ if ($context) {
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,.,,,..,,,,,...,,,.,,.,,.,.,.,.,,.,,,,,,..,,..,,...,...,,..,,.,,..,,.,,,,,,,
-#3XZMPNYM2X46PLUOJAWWJG5BPXB5AB435IY3JSZBVWX5AVBXRQU2HBRXFVKF3LNEERUEN4PQ3XG2U
-#\\\|UIHBOP4H6NTRTJ6ROQ5ECQFL5W6HECKY7ZLG2WX63TUHNFWADWW \ / AMOS7 \ YOURUM ::
-#\[7]NAFYXX3ZIZ5SMVLAOGY6MUOUZGEIHTKQIHPMY6YBTEAUKJNE6OBA 7  DATA SIGNATURE ::
+#,,.,,.,,,.,.,,..,..,,.,,,,,.,..,,,..,..,,,.,,..,,...,...,..,,,,.,,..,.,,,,..,
+#BZEY632Q5YD6FRAKUQRR3IIXBI7DM4OOHAWN53DVCRLUQCAKSYKPKPN5JDL2TCSZ6JBHTZBIJRJZM
+#\\\|7UCTYC3H2QLIYSBJFWIQ5MVUEOFLZAJH6JCUFPHUT73Q537FOOJ \ / AMOS7 \ YOURUM ::
+#\[7]3COMOVHCULTJYFEBKYMWVZ2C4D6SSX6V245LF6MQNXB7JWYX7GDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

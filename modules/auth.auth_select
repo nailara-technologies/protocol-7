@@ -28,15 +28,22 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
         my $pubkey_response = <[crypt.C25519.cmd.get-public-key]>->();
         my $server_pubkey_b32;
 
-        if ( ref $pubkey_response eq 'HASH' and $pubkey_response->{'mode'} eq 'true' ) {
-            # Extract just the pubkey from format "[protocol-7.base] PUBKEY_B32"
-            ( $server_pubkey_b32 ) = $pubkey_response->{'data'} =~ m/]\s+(\S+)$/;
+        if ( ref $pubkey_response eq qw| HASH |
+            and $pubkey_response->{'mode'} eq qw| true | ) {
+
+          # Extract just the pubkey from format "[protocol-7.base] PUBKEY_B32"
+            ($server_pubkey_b32)
+                = $pubkey_response->{'data'} =~ m/]\s+(\S+)$/;
         }
 
         if ( defined $server_pubkey_b32 and length $server_pubkey_b32 ) {
-            <[base.net.send_to_socket]>->( $client_sock_fd, "TRUE $server_pubkey_b32\n" );
+            <[base.net.send_to_socket]>->(
+                $client_sock_fd, "TRUE $server_pubkey_b32\n"
+            );
         } else {
-            <[base.net.send_to_socket]>->( $client_sock_fd, "FALSE server key not available\n" );
+            <[base.net.send_to_socket]>->(
+                $client_sock_fd, "FALSE server key not available\n"
+            );
             return FALSE;
         }
     } else {
@@ -66,8 +73,8 @@ if ( <[base.list_matches]>->( \@available_auth_methods, $method . '$' ) ) {
     return FALSE;
 }
 
-#,,,.,.,.,,..,.,.,...,...,...,...,.,.,,.,,,,,,..,,...,...,.,.,...,,,,,,,,,,,,,
-#ODCPHW3THBNYB2F4Y6I3EOEG7STSDW3CPO3S4H2DZFYP3OG57JPVR4AIAEYT3PXJ7Y34C6VASPC4M
-#\\\|QEVMWIS63UYX7UP4ZYLJKTPVYHDKU2A4L3DTZCAQC23SV4FR75X \ / AMOS7 \ YOURUM ::
-#\[7]HCCHDAER6COMLNGNRO7QAV7DWHO23YFYPFLGQX45O66PY3NEQSDA 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,..,,,,,..,,,.,,,,.,..,,,.,,.,,,..,,...,...,,,.,,,,,,..,,,.,..,,
+#R5WCBY7LEMNWLUTG76KWNTGJFRSAXO3JP3TV53KT4LOVM4GMBKD4NU4QBT3Q77RMKJFFAIH5LOZKW
+#\\\|27L4A263JDWA4ZWL7MATRBVLCTQHYANHCCZXBFZSIVDUYTNOLFL \ / AMOS7 \ YOURUM ::
+#\[7]NUZZ7PCAQDU6ISKQWSF7WFBALXCRHGK7RGD2DZMCXP36SVJAZ6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

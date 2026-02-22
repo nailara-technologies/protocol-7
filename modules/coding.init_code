@@ -26,7 +26,7 @@ map { <[base.perlmod.autoload]>->($_) } qw| IPC::Open3 YAML::XS FreezeThaw |;
 my $saved_meta_ref = <[file.zenka_dir.load]>->('state/model_metadata.yaml');
 if ( defined $saved_meta_ref && length $saved_meta_ref->$* ) {
     my $loaded = eval { YAML::XS::Load( $saved_meta_ref->$* ) };
-    if ( !$@ && ref $loaded eq 'HASH' ) {
+    if ( !$@ && ref $loaded eq qw| HASH | ) {
         <coding.model_metadata> = $loaded;
         <[base.logs]>->(
             2,
@@ -56,7 +56,7 @@ if ( defined $saved_meta_ref && length $saved_meta_ref->$* ) {
 my $saved_budget_ref = <[file.zenka_dir.load]>->('state/budget.b32');
 if ( defined $saved_budget_ref && length $saved_budget_ref->$* ) {
     my $thawed = eval { FreezeThaw::thaw( $saved_budget_ref->$* ) };
-    if ( !$@ && ref $thawed eq 'HASH' ) {
+    if ( !$@ && ref $thawed eq qw| HASH | ) {
         <coding.budget> = $thawed;
         <[base.logs]>->(
             2,
@@ -270,8 +270,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,.,,..,,,,,,,..,..,,,,,,.,.,,.,,,,,,,..,.,.,..,,...,...,...,,,.,.,.,.,.,,,.,
-#N52MIVFPGFVC4YQMPSOVV27DE2YSXCN2AV7T44QC47UPFKLKOSQS7GFD3JNAYYRY2GUS47UKIKUGQ
-#\\\|Z4TJZBACGOLCBNY3LSYIM3VCN6FEBVRLFGZAWKZ6I2UZPBJTJE6 \ / AMOS7 \ YOURUM ::
-#\[7]2DEEMJNXFP67DODIKESAPHIUKZF7GQGMADC6BY6OK7OABYNMNYBA 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,.,.,...,.,.,..,,..,,,,.,,..,,,,,..,,...,...,...,.,,,,,.,,,,,,,.,
+#7AVGBPPBDOCTV5SXOY3BT7NQORSXIVZQGZYKU6Q5VXLV6LEVHY34E5IDRI4VIBYXHU4NOQZGNCHSE
+#\\\|G5IV2BSDWGPHODKB3MELVCF5E7WTTG6AGJSZEDJUHO46UTZFAPU \ / AMOS7 \ YOURUM ::
+#\[7]VDVDENCPEBZAXZ2HADRK2H4M3NG2FQYZ266ESHYZ2NTKU4GBMAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

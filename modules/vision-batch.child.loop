@@ -35,7 +35,7 @@ while (1) {
 
         # Invalid JSON, send error and continue
         my $error_response = JSON::XS::encode_json(
-            {   cmd   => 'error',
+            {   cmd   => qw| error |,
                 error => "Failed to parse JSON: $EVAL_ERROR"
             }
         );
@@ -65,7 +65,7 @@ while (1) {
 
         # Unknown command
         my $error_response = JSON::XS::encode_json(
-            {   cmd   => 'error',
+            {   cmd   => qw| error |,
                 error => "Unknown command: $job->{cmd}"
             }
         );
@@ -77,8 +77,8 @@ while (1) {
 close $parent_pipe;
 return TRUE;
 
-#,,.,,,.,,,,.,,,,,.,.,..,,,..,.,.,,,,,,,.,,..,..,,...,...,,,.,,,.,,,,,,,,,,,,,
-#3OL4GSHGHV3SLUKDPP3QFYRGM6FEZHOUEU2ZBZA4CMF2DV6XHE56IBXNSNFJP3KFRXGH47TFNUTEG
-#\\\|6KYDGSR5UCF3Z3HRSDLVYWX4RHTP55FLPJX5TZH5FGVFFIM2MIX \ / AMOS7 \ YOURUM ::
-#\[7]YKWRWSUXVMRIMKBZHCNN6LASDBJ55MHUWKEEW6WRVN4P3WG66ADY 7  DATA SIGNATURE ::
+#,,.,,,,,,,,.,.,,,,,,,...,...,.,.,.,.,.,.,...,..,,...,...,,..,,.,,.,.,,..,,,.,
+#65OPWS4EUGBGV4ONN2545CVZMQGCMOE5WT2S6WZIQ4BBAXU63DQ6MI54BGUU7F42D3F6LV52WUL5U
+#\\\|KL3ET2IGZ7DMTGP7MEXOISWMV7ZXNKHPH7WYEZVQU2WFAH5BZW3 \ / AMOS7 \ YOURUM ::
+#\[7]3MSQ6KOUQ2XFXJLOXAIYPF2QRHO67YOK2OT4EOB4MGMQ73GZAKBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -26,7 +26,7 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
     my $authorized_user_ref = $keys{'authorized-remote'}{$username};
 
     unless ( defined $authorized_user_ref
-        and ref $authorized_user_ref eq 'HASH' ) {
+        and ref $authorized_user_ref eq qw| HASH | ) {
         $output->$* .= "AUTH_ERROR user not authorized\n";
         <[base.logs]>->(
             0,   '[%d] auth-keypair failed: user \'%s\' not authorized',
@@ -192,8 +192,8 @@ if ( $input->$* =~ s|^auth ($re->{usr_str}) (\S+) (\S+)\n|| ) {
 
 1;
 
-#,,,.,,,.,.,.,,..,..,,,.,,.,.,.,,,,,.,,,.,.,,,..,,...,...,..,,,..,,.,,,..,.,,,
-#6BMKRQPU4LADGQ4UZMWUUVHD2WH7CDAPVQTWKI7P4NO5ZMIBEGR3MIH3FWVODY7BTCYTHDEPIKW4U
-#\\\|BYT46NP5YVBJWLZZKXP7VY36WTQCNSKGD22NN3DXCAN3RSBTSAN \ / AMOS7 \ YOURUM ::
-#\[7]IBP6TEJRIUTARMBWAS3PQ27HFHGT2MQ6JGJYMDAUKUXOHTY67EDI 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,.,,,...,...,.,.,,..,,,.,.,.,.,,,..,,...,...,...,..,,,,.,,..,.,,,
+#I7KDXZADHQXSDCX3FLSGRLYYRN6F67S6V7ZBXUAFWXYVZJM6MU6FGFIU6QO3IDKI5RAPJQMY7HE7Q
+#\\\|64LKP2NWTHG2RWESVSASK4KH2D47TIOHB2W46HXHNP7ZPW4X4DE \ / AMOS7 \ YOURUM ::
+#\[7]X6GY3U276XGG77EKYGKHE3BGALRGXO5W3L7CM2NTB3BRVPBP6CDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -18,12 +18,13 @@ say ':';
 say ': .:[ TEST CYCLE: BACKUP / UPDATE / VERIFY / RESTORE ]:.::';
 say ':';
 
-my $sig_key_name = qw| proto-7.sourcecode |;
+my $sig_key_name  = qw| proto-7.sourcecode |;
 my $test_key_name = qw| test-proto7-sourcecode |;
 
 # Load unencrypted test key (no passphrase needed)
 say ': Loading test key...';
-unless ( <[crypt.C25519.load_keypair]>->( $test_key_name, undef, FALSE, FALSE ) ) {
+unless (
+    <[crypt.C25519.load_keypair]>->( $test_key_name, undef, FALSE, FALSE ) ) {
     say ': ERROR: Failed to load test key. Create it first with:';
     say ': ./bin/Protocol-7 keys create -U test-proto7-sourcecode';
     return;
@@ -34,7 +35,7 @@ say ':';
 
 my @source_paths = <[base.source.collect_file_list]>->($command_params);
 
-unless ( @source_paths ) {
+unless (@source_paths) {
     printf( ": no files found for pattern: %s\n", $command_params );
     return;
 }
@@ -49,17 +50,18 @@ say ':';
 my $backup_dir = '.test-cycle-backups';
 mkdir $backup_dir unless -d $backup_dir;
 
-foreach my $file_path ( @source_paths ) {
+foreach my $file_path (@source_paths) {
     next unless -f $file_path;
     <[file.slurp]>->( $file_path, \my $content, qw| :raw | );
     my $footer_data = <[source.extract_sig_body]>->( \$content, qw| | );
     if ( $footer_data->{'was-present'} ) {
-        my $sig_footer = $footer_data->{'signature-footer-str'};
-        my $backup_file = sprintf( '%s/%s.orig-sig', $backup_dir, (split '/', $file_path)[-1] );
+        my $sig_footer  = $footer_data->{'signature-footer-str'};
+        my $backup_file = sprintf( '%s/%s.orig-sig',
+            $backup_dir, ( split '/', $file_path )[-1] );
         open my $fh, '>', $backup_file or die "Cannot write $backup_file: $!";
         print $fh $sig_footer;
         close $fh;
-        printf( ": backed up %s\n", (split '/', $file_path)[-1] );
+        printf( ": backed up %s\n", ( split '/', $file_path )[-1] );
     }
 }
 
@@ -93,9 +95,11 @@ foreach my $path_rel (@source_paths) {
         );
     };
 
-    if ( defined $code_data_ref and ref $code_data_ref eq 'HASH' and $code_data_ref->{'mode'} ne 'false' ) {
+    if (    defined $code_data_ref
+        and ref $code_data_ref eq qw| HASH |
+        and $code_data_ref->{'mode'} ne qw| false | ) {
         if ( <[file.put_bin]>->( $path_rel, $code_data_ref->{'data'} ) ) {
-            printf( ": [SIGNED] %s\n", (split '/', $path_rel)[-1] );
+            printf( ": [SIGNED] %s\n", ( split '/', $path_rel )[-1] );
             $update_count++;
         }
     }
@@ -109,10 +113,10 @@ say ':';
 say ': .:[ STEP 4: VERIFYING SIGNATURES ]:.::';
 say ':';
 
-my $valid_count = 0;
+my $valid_count   = 0;
 my $invalid_count = 0;
 
-foreach my $file_path ( @source_paths ) {
+foreach my $file_path (@source_paths) {
     next unless -f $file_path;
 
     <[file.slurp]>->( $file_path, \my $src_str, qw| :raw | );
@@ -120,25 +124,25 @@ foreach my $file_path ( @source_paths ) {
 
     if ( $footer_data->{'was-present'} ) {
         my $state = $footer_data->{'endline-state-encoded'} // '?';
-        my $bmw = $footer_data->{'bmw-chksum'} // 'ERROR';
-        my $sig = $footer_data->{'signature'} // 'ERROR';
+        my $bmw   = $footer_data->{'bmw-chksum'}            // 'ERROR';
+        my $sig   = $footer_data->{'signature'}             // 'ERROR';
 
         my $bmw_short = <[base.parser.ellipse_center]>->( $bmw, 21 );
         my $sig_short = <[base.parser.ellipse_center]>->( $sig, 21 );
 
-        printf( ': %-30s state=%d bmw=%s sig=%s' . "\n",
-            (split '/', $file_path)[-1],
-            $state,
-            $bmw_short,
-            $sig_short
+        printf(
+            ': %-30s state=%d bmw=%s sig=%s' . "\n",
+            ( split '/', $file_path )[-1],
+            $state, $bmw_short, $sig_short
         );
 
-        my ($is_valid, $report_ref) = <[source.signature_valid]>->( \$src_str, $footer_data );
-        if ( $is_valid ) {
+        my ( $is_valid, $report_ref )
+            = <[source.signature_valid]>->( \$src_str, $footer_data );
+        if ($is_valid) {
             $valid_count++;
         } else {
             $invalid_count++;
-            say sprintf( ':  ^ INVALID' );
+            say sprintf(':  ^ INVALID');
         }
     }
 }
@@ -152,10 +156,10 @@ say ': .:[ STEP 5: RESTORING ORIGINAL SIGNATURES ]:.::';
 say ':';
 
 my $restored_count = 0;
-foreach my $file_path ( @source_paths ) {
+foreach my $file_path (@source_paths) {
     next unless -f $file_path;
 
-    my $file_name = (split '/', $file_path)[-1];
+    my $file_name   = ( split '/', $file_path )[-1];
     my $backup_file = sprintf( '%s/%s.orig-sig', $backup_dir, $file_name );
 
     unless ( -f $backup_file ) {
@@ -180,8 +184,8 @@ say ':';
 
 0;
 
-#,,..,,.,,,,.,,.,,,,,,,.,,...,..,,.,.,.,.,,,,,..,,...,...,..,,,.,,..,,.,,,..,,
-#CNSGAHB4Q3H6TJOIDUKX2I7SKHLAHGLR2WTFI4X4PRIWHI7A4PJY6BZ6KRXOKC5BJLYOWWRF4YSUS
-#\\\|ET4BFVWPV4G2DKDL3SQWQ67Q3JGSSFOPF2VAD2AI3A7LM23FRSI \ / AMOS7 \ YOURUM ::
-#\[7]35367S3X3AOO6OTIDBYTUH2YBYTWUBLXIE4326HXX4R3QSJHM2BA 7  DATA SIGNATURE ::
+#,,.,,,.,,...,,..,..,,..,,.,,,.,.,,..,,,,,,,,,..,,...,..,,,,.,,,.,,.,,,..,...,
+#TIKALJQ2WUYTLWLIZBYUIWOZV6FLH4BGBOXIERBVYYLQAOFWUBNELQ7E4NZTQFVV6XDTMRLW4C5WI
+#\\\|SGDYOQPFTQQD3WGCVAKSANBS4M6UPOQJMM65GT7CBDUQGLN7WYM \ / AMOS7 \ YOURUM ::
+#\[7]HTYRVCDIVIFGFESCIXPQJDA66TJTKBFEARQXVC55D7YQYSN5GMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

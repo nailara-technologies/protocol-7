@@ -7,12 +7,12 @@ my $hash_ref = shift;
 foreach my $key ( keys %{$hash_ref} ) {
     $hash_ref->{ uc($key) } = $hash_ref->{$key};
     <[base.hash.force_uc]>->( $hash_ref->{ uc($key) } )
-        if ref $hash_ref->{$key} eq 'HASH';
+        if ref $hash_ref->{$key} eq qw| HASH |;
     delete( $hash_ref->{$key} ) unless $key eq uc($key);
 }
 
-#,,,,,..,,..,,,.,,,,.,.,,,..,,,,.,.,.,,.,,..,,..,,...,..,,,..,,,.,.,,,...,,,.,
-#2Y2O4WNVIDW7LU5RRRLWWDXFN3ZSL2FEAJAI6T72M3CELQUJOGUYYW2EGAA3JIDF4NHGSAYQIQMHO
-#\\\|2ZEPQMTON2ZXSRGSQ6HW6VDG6CRV537RRXHTNFFA2FL2AH56F26 \ / AMOS7 \ YOURUM ::
-#\[7]ZB4B6MYF4KVHFZ2U4DDPTPPR7X357ZC2UVTYXYMLGCJNKW3REOAA 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,,.,,,,,...,.,,,...,,,,,.,.,,.,,..,,...,...,..,,...,,,,,.,.,.,,,
+#AMTTBUA4H3GGJMB337GCJ3AMLLOZHFPXFV6GTLA24SQB35NJR7RW7Z4QUJTRTIF6FANIPUS53RSBS
+#\\\|OOGDUP6P6A2WIBGGG2HPJ25GHLMVCJPA7TJJHUI2DPC2NFSVGU2 \ / AMOS7 \ YOURUM ::
+#\[7]Q554RDECVX576BPBQT7UULF44KUVMESZ6K4MHUBMVKSCPS3KYQDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

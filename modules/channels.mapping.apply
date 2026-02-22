@@ -7,14 +7,14 @@
 
 my $args_ref = shift;
 return { 'success' => 0, 'errors' => ['no arguments provided'] }
-    unless defined $args_ref and ref $args_ref eq 'HASH';
+    unless defined $args_ref and ref $args_ref eq qw| HASH |;
 
 my $source_data = $args_ref->{'source_data'};
 my $map_rules   = $args_ref->{'map_rules'} // [];
 my $target_ref  = $args_ref->{'target_ref'};
 
 return { 'success' => 0, 'errors' => ['source data is not a hash'] }
-    unless ref $source_data eq 'HASH';
+    unless ref $source_data eq qw| HASH |;
 
 return { 'success' => 0, 'errors' => ['map rules is not an array'] }
     unless ref $map_rules eq 'ARRAY';
@@ -24,7 +24,7 @@ my @errors;
 
 ##  Apply each mapping rule  ##
 foreach my $rule ( @{$map_rules} ) {
-    next unless defined $rule and ref $rule eq 'HASH';
+    next unless defined $rule and ref $rule eq qw| HASH |;
 
     my $json_path = $rule->{'json_path'};
     my $to_var    = $rule->{'to_var'};
@@ -39,7 +39,7 @@ foreach my $rule ( @{$map_rules} ) {
         $mapped_vars{$to_var} = $value;
 
         ##  Assign to target reference if provided  ##
-        if ( defined $target_ref and ref $target_ref eq 'HASH' ) {
+        if ( defined $target_ref and ref $target_ref eq qw| HASH | ) {
             $target_ref->{$to_var} = $value;
         }
     } else {
@@ -63,8 +63,8 @@ return {
 
 1;
 
-#,,,.,.,,,...,,.,,,..,,,,,,,,,,,,,,.,,,,.,..,,...,...,...,.,,,,.,,.,,,,.,,,.,,
-#7JGZV4XJSLDFD64LTXF5KT2AWMRXJCP7SO775PT77TTHNGPV27NAGPUCB2K5YAPXQN2SXL62MY6VS
-#\\\|YLR7AL63RJ5EFYWR4Y43JAEYPROAPMUJ2UZDPNEJ4IMPGPEK4AF \ / AMOS7 \ YOURUM ::
-#\[7]7SH5MRXYTCTIUHGKIZYDEPJZKODVLI4GMIZWK6IKP3YHOFL6TADI 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,..,,,.,,...,,.,,,,.,,.,,.,,,.,.,...,...,..,,...,.,,,.,.,,,.,.,.,
+#SRAZFFX4ZVCVKWMVI3GWEUNFLMZIYVCLL4RCMBKG4S2TYB7BWRAI7J7YWGLY77K7NSDXI4STROUMC
+#\\\|CVWWQITC3SCJ2MNI2DNHXZ7CGCNBTSLV4PEW5VDLUM7P2QXWGRP \ / AMOS7 \ YOURUM ::
+#\[7]CVL7CJXEK5S6KPEJP6FAPLML7YI4VBTENQRNX3TEON2YJLHHH4BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

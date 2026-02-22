@@ -46,7 +46,7 @@ unless ( defined $request_result ) {
 my $mode = $request_result->{mode} // 'false';
 my $data = $request_result->{data} // 'no response data';
 
-if ( $mode eq 'true' ) {
+if ( $mode eq qw| true | ) {
     ## cert available OR request successfully initiated
     <[base.logs]>->(
         2, 'httpsd: certificate available or request initiated: %s', $data
@@ -66,8 +66,8 @@ if ( $mode eq 'true' ) {
 
 0;
 
-#,,..,..,,.,.,.,,,,,.,..,,,..,,,.,,,.,,,,,,,,,..,,...,...,,,.,,..,,,.,,,.,.,.,
-#2B74QZMCLF3SCYE6JUFAMS6LAH45BSXAM4JMO3H276F2J2FQI4VIJVSEUXSMBZDIGO5PF25DODUOC
-#\\\|BYOH4A7FEVDFQOEUNY2TLVMXT7YE3CDXOH5N46U4FMQSVYPKJYW \ / AMOS7 \ YOURUM ::
-#\[7]N4Q2EAVPPKH3KMYVKCZ26QAPZHYFBOAM6XVJUE3ZMFILBVRHWACY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,.,,,.,,..,,,.,,,,.,,,.,,.,,...,..,,...,..,,.,,,,,.,,,.,..,,,,,,
+#5CJVQEO46JRWTKMZYP7Q6NZPYGLDHUPVEDREFK4A3JIGAHMR5C3PF52U2PE5ESLRZWGAMPNXFE4II
+#\\\|3PAK7RGQ4MQ5TOIRMGACFFIDUQZWCV6MPIQCIXCFT74RZRN2M6I \ / AMOS7 \ YOURUM ::
+#\[7]R5PSZ6IMR756UJS7H6AM6ERFSUGZ5NGEGDSLPA6OWIEI6M55Z6BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

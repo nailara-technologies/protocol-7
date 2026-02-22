@@ -23,7 +23,7 @@ my $currency_list = <plnx.api.pub>->api_public('returnCurrencies');
 #             'delisted' => 1
 #           },
 
-if ( ref($currency_list) ne 'HASH' ) {
+if ( ref($currency_list) ne qw| HASH | ) {
     ( my $reason_str = lc( <plnx.api.pub>->{'msg'} ) ) =~ s|\.$||;
     my $log_msg = "API request failed ['$reason_str']";
     <[base.log]>->( 0, $api_command . ': ' . $log_msg );
@@ -56,8 +56,8 @@ return {
     'data' => join( '', @currencies )
 };
 
-#,,,,,,..,,,.,.,,,...,,,,,..,,...,...,,.,,,..,..,,...,...,...,,.,,...,,.,,,,,,
-#AITJTVYMFAMVQQRDZOJZBNFHIXHHV3OPSJRSR3AKCIBERXLE7H4JIQUNC6AG4OJWFIA44ZSFYKFNK
-#\\\|DIK4RNUQRPACYRHIEOS4NMEFQYKVX72CNIH34BG6NEK5CWRASE3 \ / AMOS7 \ YOURUM ::
-#\[7]2BEMVVRO5WV2XL5SWO5TFDT2QNCVTK3QPIQ5RO3HBMJ6NHWECCCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,...,.,.,.,,,,..,,,.,,.,,,..,,,,,...,..,,...,...,...,,,.,.,.,.,.,,.,,
+#UHTHIRSR7Y7CYZL54GQMVFUAU3BRXBHXB3QQBQ6I5NIJMWIPBCTZT3POT4QTPMZN3DZYLUZRB6QLI
+#\\\|4MF7VCG4ZL4SLQBJ5YD3QGSZJGQVCVWA5NDEMNJNDERAGFH4M7X \ / AMOS7 \ YOURUM ::
+#\[7]ELQIVPS6CEJ4LK5M5ISCHRVKUN3OEDRSEOZACJIY5VDIJTYZYSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

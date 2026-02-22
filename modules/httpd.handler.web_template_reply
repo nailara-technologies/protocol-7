@@ -78,7 +78,7 @@ if ( $mode eq 'size' ) {
         $session->{'flush'} = 1;
     }
 
-} elsif ( $mode eq 'false' ) {
+} elsif ( $mode eq qw| false | ) {
     ## ERROR: Web zenka failed to process template ##
 
     my $error_message = $data // 'unknown error';
@@ -93,7 +93,7 @@ if ( $mode eq 'size' ) {
     <[httpd.send_error_page]>->( $client_sid, 500 );
     $session->{'flush_shutdown'} = 1;
 
-} elsif ( $mode eq 'true' ) {
+} elsif ( $mode eq qw| true | ) {
     ## Unexpected TRUE response without data ##
     <[base.log]>->(
         1,
@@ -118,8 +118,8 @@ if ( $mode eq 'size' ) {
 
 return 0;
 
-#,,,.,.,,,.,,,...,,,,,.,,,,..,,,,,,,.,,..,,,,,..,,...,...,,,,,,,.,...,,..,,,,,
-#V7UQ7XI6EX6QQHUVM3BR3SNARYC4VLC7GT7COFQTI775Y2URDDJRMGHFXIVCVXUABACVWYHB6BRGM
-#\\\|SGLQHT4MENMFUHTAOUJS5WZ6MCPJXTZJV4AKVO6TZFS2SGOX2E2 \ / AMOS7 \ YOURUM ::
-#\[7]G6WGRPZMWGG7VFGNXEQ2ELTJMJZXLW6WX3RJ6OWNW27JF7KA6IAA 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,...,,..,,,,,.,,,.,.,.,.,..,,.,.,..,,...,...,,..,,..,,,,,.,,,,..,
+#235GLGYVKWP6O6ACDJJ2XT23VE3JPKZCPW74IZJ4DILULL7VO2FBBZ6LWBSOLG5WAOAZCX5UAISGW
+#\\\|SBMAP2SSEVSNQDQ5A2PWWH2FQJ6OMIG6QJ2FPSGMMRXSFKJ3PDF \ / AMOS7 \ YOURUM ::
+#\[7]EQJMIQ3B5ROFUDTWO7NPWQ2ADEMMXC6YWRXGYWAHQD23S4X4UYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

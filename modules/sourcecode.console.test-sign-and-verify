@@ -10,7 +10,8 @@ $command_params =~ s,^ *| *$,,;
 unless ( length $command_params ) {
     say ': usage: sourcecode test-sign-and-verify <file-pattern>';
     say ': example: sourcecode test-sign-and-verify bin/elf';
-    say ': note: creates test-proto7-sourcecode key, signs files, then verifies';
+    say
+        ': note: creates test-proto7-sourcecode key, signs files, then verifies';
     return;
 }
 
@@ -18,7 +19,7 @@ say ':';
 say ': .:[ TEST SIGN AND VERIFY WITH TEMPORARY KEY ]:.::';
 say ':';
 
-my $sig_key_name = qw| proto-7.sourcecode |;
+my $sig_key_name  = qw| proto-7.sourcecode |;
 my $test_key_name = qw| test-proto7-sourcecode |;
 
 # Create temp key if not exists
@@ -26,7 +27,8 @@ unless ( exists $keys{'C25519'}{$test_key_name} ) {
     say ': Creating temporary test key...';
 
     # Generate a new C25519 key pair for testing
-    my ($new_key, $created_name) = <[crypt.C25519.gen_keys]>->( $test_key_name );
+    my ( $new_key, $created_name )
+        = <[crypt.C25519.gen_keys]>->($test_key_name);
 
     unless ( defined $new_key ) {
         say ': ERROR: Failed to generate temporary test key';
@@ -47,9 +49,9 @@ say ':';
 
 my @source_paths = <[base.source.collect_file_list]>->($command_params);
 
-unless ( @source_paths ) {
+unless (@source_paths) {
     printf( ": no files found for pattern: %s\n", $command_params );
-    $keys{'C25519'}{$sig_key_name} = $original_key;  # Restore
+    $keys{'C25519'}{$sig_key_name} = $original_key;    # Restore
     return;
 }
 
@@ -74,10 +76,13 @@ foreach my $path_rel (@source_paths) {
         );
     };
 
-    if ( defined $code_data_ref and ref $code_data_ref eq 'HASH' and $code_data_ref->{'mode'} ne 'false' ) {
+    if (    defined $code_data_ref
+        and ref $code_data_ref eq qw| HASH |
+        and $code_data_ref->{'mode'} ne qw| false | ) {
+
         # Write the signed file
         if ( <[file.put_bin]>->( $path_rel, $code_data_ref->{'data'} ) ) {
-            printf( ': [SIGNED] %s' . "\n", (split '/', $path_rel)[-1] );
+            printf( ': [SIGNED] %s' . "\n", ( split '/', $path_rel )[-1] );
             $signed_count++;
         }
     }
@@ -91,10 +96,10 @@ say ':';
 say ': .:[ VERIFYING SIGNED FILES ]:.::';
 say ':';
 
-my $valid_count = 0;
+my $valid_count   = 0;
 my $invalid_count = 0;
 
-foreach my $file_path ( @source_paths ) {
+foreach my $file_path (@source_paths) {
     next unless -f $file_path;
 
     <[file.slurp]>->( $file_path, \my $src_str, qw| :raw | );
@@ -104,35 +109,37 @@ foreach my $file_path ( @source_paths ) {
 
     if ( $footer_data->{'was-present'} ) {
         my $state = $footer_data->{'endline-state-encoded'} // '?';
-        my $bmw = $footer_data->{'bmw-chksum'} // 'ERROR';
-        my $sig = $footer_data->{'signature'} // 'ERROR';
+        my $bmw   = $footer_data->{'bmw-chksum'}            // 'ERROR';
+        my $sig   = $footer_data->{'signature'}             // 'ERROR';
 
         my $bmw_short = <[base.parser.ellipse_center]>->( $bmw, 21 );
         my $sig_short = <[base.parser.ellipse_center]>->( $sig, 21 );
 
-        printf( ': %-30s state=%d bmw=%s sig=%s' . "\n",
-            (split '/', $file_path)[-1],
-            $state,
-            $bmw_short,
-            $sig_short
+        printf(
+            ': %-30s state=%d bmw=%s sig=%s' . "\n",
+            ( split '/', $file_path )[-1],
+            $state, $bmw_short, $sig_short
         );
 
-        # Verify checksum matches
-        # Use data-reference from footer_data (already set by extract_sig_body)
-        my ($is_valid, $report_ref) = <[source.signature_valid]>->( $footer_data->{'data-reference'}, $footer_data );
-        if ( $is_valid ) {
+       # Verify checksum matches
+       # Use data-reference from footer_data (already set by extract_sig_body)
+        my ( $is_valid, $report_ref ) = <[source.signature_valid]>->(
+            $footer_data->{'data-reference'}, $footer_data
+        );
+        if ($is_valid) {
             $valid_count++;
         } else {
             $invalid_count++;
-            say sprintf( ':  ^ INVALID' );
+            say sprintf(':  ^ INVALID');
         }
     } else {
-        say sprintf( ': %-30s [NOT SIGNED]', (split '/', $file_path)[-1] );
+        say sprintf( ': %-30s [NOT SIGNED]', ( split '/', $file_path )[-1] );
     }
 }
 
 say ':';
-printf( ': Results: %d valid, %d invalid' . "\n", $valid_count, $invalid_count );
+printf( ': Results: %d valid, %d invalid' . "\n",
+    $valid_count, $invalid_count );
 say ':';
 
 # Restore original key
@@ -140,8 +147,8 @@ $keys{'C25519'}{$sig_key_name} = $original_key;
 
 0;
 
-#,,..,,,.,,,,,.,,,.,.,,..,,,.,,..,.,,,,.,,,,.,..,,...,..,,...,,..,.,.,..,,,.,,
-#53HCA7DG4OUVNX6UA5RRTQUC7L7IVILNFIRHKNOGI62MPNHDDQCW2ZHH62EAG7LMK2YCRNARJ7OWG
-#\\\|LM5VMQHBPQ6ZOJ7O42BTVSZVTJVFSE5KLYA72WK2YCCZZNV6BXJ \ / AMOS7 \ YOURUM ::
-#\[7]HJSE4NQZW7RDQ3QM3BU6A3IRMM2IFMLAHRNWO7JVVKA2SHVFAEAY 7  DATA SIGNATURE ::
+#,,..,...,,..,,..,,.,,,.,,,.,,.,,,,,,,,,.,.,,,..,,...,...,.,.,.,,,.,,,.,,,,.,,
+#LUAWMXF2N4FZLQXQXHJX5YF4MLKGTOKVVNRWXYQ6BXKLCLRYUX353VRSY5AM3Q4EDU3SEL7JLVMUG
+#\\\|GXGQ44EZVU4LLYI3Z4X3VAB63EFJQMCVVCM6YQ5GSQDEWUNPW7F \ / AMOS7 \ YOURUM ::
+#\[7]BAQCABS7WHLYK46VJ35MA6AFUEB3INCWODPEZRXXWA4243K4JECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

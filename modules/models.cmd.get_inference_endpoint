@@ -5,7 +5,7 @@
 
 my $params = {};
 
-if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
     $params = $call->{'param'};
 } elsif ( defined $call->{'args'} && length $call->{'args'} ) {
     eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
@@ -23,8 +23,8 @@ return {
     'data' => $yaml_data
 };
 
-#,,,.,,..,,,,,,.,,,..,,,,,,,,,...,,.,,,.,,.,,,.,.,...,..,,,.,,,,,,,,,,,.,,,,,,
-#UOITBN6XTYJFTM3E6QIYMZ4IXON6UEW4MR76HJ65BQARRL7SGMHC3XSKFZQUZAWR7T3ZBAHQBGRTA
-#\\\|7Y2UO5HIWOHRPPJDYM2VPYFMXZI3GX52CGJKMLA2C72ZAHGL4GX \ / AMOS7 \ YOURUM ::
-#\[7]CRZCC4AARUQSLRFZB6MNV5G3CRXKIMUKAEEBKYX2PW22UFSU3IDA 7  DATA SIGNATURE ::
+#,,.,,,,.,...,...,,.,,,.,,.,,,..,,,..,.,.,,..,.,.,...,...,.,,,.,.,...,,..,,..,
+#V2RWBKYYJLGXQM3ENOPEPQUHG5I6KQYQ2QYLAZCKZQCU3ZGROB2PRP2OSW7VIBI3YF6LMD2Z524VC
+#\\\|OU7R7TN3MZBXA4KKTIKIWKDH6XUL6XPJWC7ALBP62QKLPJJSGSG \ / AMOS7 \ YOURUM ::
+#\[7]U4QNITQSYEZK2RQOWJSBZYFOJEI5L5AE56AHET2WXEDXP2Q6EOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

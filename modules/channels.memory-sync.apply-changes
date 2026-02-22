@@ -7,11 +7,11 @@
 
 my $args = shift;
 return { 'applied' => 0, 'errors' => ['no arguments provided'] }
-    unless defined $args and ref $args eq 'HASH';
+    unless defined $args and ref $args eq qw| HASH |;
 
 my $payload = $args->{'sync_payload'};
 return { 'applied' => 0, 'errors' => ['no sync_payload provided'] }
-    unless defined $payload and ref $payload eq 'HASH';
+    unless defined $payload and ref $payload eq qw| HASH |;
 
 my $applied_count = 0;
 my @errors;
@@ -34,7 +34,7 @@ my $source_zenka = $payload->{'source_zenka'} // 'unknown';
 
 ##  Apply each change to local %data  ##
 foreach my $change ( @{$changes} ) {
-    next unless defined $change and ref $change eq 'HASH';
+    next unless defined $change and ref $change eq qw| HASH |;
 
     my $local_path = $change->{'local_path'};
     my $new_value  = $change->{'value'};
@@ -96,8 +96,8 @@ return {
 
 1;
 
-#,,,.,,.,,,.,,,,,,.,,,..,,..,,..,,.,.,,,,,...,...,...,...,.,,,...,.,,,,,.,,,.,
-#ZBMI3WYFFVPO2II63HHC3LSU252NMYY72ACTK7NI3UPGGCAIQNYAARES76M4PVABPZQNAX2YYNVUY
-#\\\|N2TKSCFWLBGPKTRUM2B64P7VN32SRNNVFJ7ONKZW4MLMBX7QKIU \ / AMOS7 \ YOURUM ::
-#\[7]2M6CECZUX4J3VSFNAZVZCPD2FMHQ5TAI5SJFZ5CH7IXBGNQKQWBA 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,.,,.,.,,.,,,,,,...,,.,,,.,,,,.,...,...,...,.,,,,.,,.,.,.,.,...,
+#FGLPV6MXAJABXZJJUHFGESFOSMZVDEWGJKVRSSYAHU3ZABYM7XGONPSGGSGG4COWOA63PHSJY6GQC
+#\\\|T47XO26K4XQXGEGKQ2Y2N4UTLSABZPJTNX7KBR5E45U5R25DHIU \ / AMOS7 \ YOURUM ::
+#\[7]THIZ3P5RF6NUOL7LCGO2XBTKO6UTX56CBD427D3FX6FG5RNGAADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

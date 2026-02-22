@@ -81,7 +81,7 @@ if (<image2html.exif.auto_compensate_rotation>) {
         $exif->file_name($image_location);
         my $image_info = $exif->get_image_info();
         if (    defined $image_info
-            and ref($image_info) eq 'HASH'
+            and ref($image_info) eq qw| HASH |
             and exists $image_info->{'Image Orientation'} ) {
             my $orientation = lc( $image_info->{'Image Orientation'} );
             <[base.log]>->(
@@ -244,8 +244,8 @@ foreach my $reply_id ( @{ $conversion->{'reply_ids'} } ) {
     delete <image2html.conversions>->{$current_key};
 }
 
-#,,.,,,.,,,,.,...,..,,,..,...,,,.,..,,,,,,,.,,..,,...,...,,..,..,,,..,..,,..,,
-#OSJCRROIMQ5MTNXMG2KIQ4YFH7EVBE4HUIMDR6CNF267XHDCPGXW2GIY7NPHB5JWVZFSSARCUAQIK
-#\\\|MEGWZ6XAX4M2YJLMYQRO22T67STNTOP4YGC44TQMYXKDTLQRDYY \ / AMOS7 \ YOURUM ::
-#\[7]I6DO26LEZHURQJ4FSDH4PMP67XBYWFBA23NGMLUFIJE52KFGHKBA 7  DATA SIGNATURE ::
+#,,..,.,.,..,,,,.,.,,,..,,.,,,,,,,,,.,..,,...,..,,...,...,.,.,..,,,,.,..,,,,,,
+#272IG74MBIF5XZT74JRA6D3NAJNFJ4C57LUVDMWOAYXDRVAACXS6PUKUEJ3H3LQOIVV3EU4ZKBZC6
+#\\\|7DP3AFWTA3PRANYLFZLHG6TMNTMMWTWV3T7AG4ZOZCYS2G6SILA \ / AMOS7 \ YOURUM ::
+#\[7]OVPCFZD72AMYWXN42KOMANHF7TOCKBGDALWKZ6QRJHP6CGEGLADY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

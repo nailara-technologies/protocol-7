@@ -17,7 +17,7 @@ my $task_id    = $reply->{'params'}->{'task_id'};
 );
 
 # Log call_args structure for debugging
-if ( ref($call_args) eq 'HASH' ) {
+if ( ref($call_args) eq qw| HASH | ) {
     my @keys = keys %$call_args;
     <[base.log]>->(
         2,
@@ -26,7 +26,7 @@ if ( ref($call_args) eq 'HASH' ) {
     );
     foreach my $key (@keys) {
         my $val = $call_args->{$key};
-        if ( ref($val) eq 'HASH' ) {
+        if ( ref($val) eq qw| HASH | ) {
             my @subkeys = keys %$val;
             <[base.log]>->(
                 2,    "[coding] models_get_entry: %s = HASH with keys: %s",
@@ -57,8 +57,8 @@ if ( ref($call_args) eq 'HASH' ) {
 
 return 1;
 
-#,,.,,...,,.,,,..,,,.,,,,,,..,..,,,,,,,,.,,,,,..,,...,...,,.,,.,.,,,.,,.,,,..,
-#6FAGWVOP2WVWH7SAWN3KC2WOYA6Z652IEY4HL54PZP6INYWLDWVGABOAYD3SA4F4E77QTQ6YMNFGU
-#\\\|SUMJLLWQ3FLDUGHHCMOBNZLRG7F3KS3ZJFRL4BTCTJKAWHB26MB \ / AMOS7 \ YOURUM ::
-#\[7]2RHJD4V6OCIJMKMLFIHQ3GGGYI6BWEADZ6ZOFAUWWMOMBFNJFWAY 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,,..,.,,,..,,,,,,.,.,,,,,..,,...,..,,...,...,.,.,,..,.,,,...,,..,
+#DXO6BWQXPBFXYUHPNQQXI6NGZOAYKES46L3NTRUUGGUFTAKUQUEXJSMNORNWWMQV5KESW7TLJNVJG
+#\\\|G4XBYL5XHD7FIOVXEI3VF74NAULC6IZIRVYICD7KMMZODGOMUDF \ / AMOS7 \ YOURUM ::
+#\[7]ONU74OYHO3B3TJUDJN4DHPEYS3KPQIXU6WMXNY2LYFPVXEB4WCBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
