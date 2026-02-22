@@ -8,7 +8,7 @@ use Fcntl qw| :flock |;
 
 my ($registry) = @ARG;
 
-return 0 unless $registry && ref($registry) eq 'HASH';
+return 0 unless $registry && ref($registry) eq qw| HASH |;
 
 my $path = <[models.registry.base.get_registry_path]>;
 open my $fh, '>', $path or return 0;
@@ -20,8 +20,8 @@ close $fh;
 
 return 1;
 
-#,,,.,.,.,...,...,..,,...,,..,,..,.,.,,,,,...,..,,...,...,,.,,.,.,,..,,,,,,.,,
-#Z3XM6XPGAL36IXBZJGMHGBI24Z33MUMYO2LQ7NPJVHTB5IYICHDTL3BSXS72W5ISQKS6LSBRTOWZ4
-#\\\|6G4MV3MZ6DGRFZIDS3HCN6HJ26VWYRYPFDDOHNLWIMNKDGA4NPY \ / AMOS7 \ YOURUM ::
-#\[7]ZFJJ5BQ3JTIAHMPKYVXJK5DIPKCMZ4BIIRIAGGYQOUSBAL7ZJEBQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,,,.,..,,.,.,,..,...,,.,,..,,,,,,..,,...,...,.,.,,..,...,.,.,,.,,
+#4I732VUMVGVAHZ5I6OSFNIF2UFVPGEJ4IEZLWDCLJFTWI3WLWXZXU4P7VKENXZH2LCRZBYJTSS6PO
+#\\\|YDD6LEQL7A4W7WSDVLXFSK5T7YCIORRQGYPJYG6A3AIUS4JI5GB \ / AMOS7 \ YOURUM ::
+#\[7]L6NHCD3S63CMQRSHML7VCADXDOWC4HPVJILUDGWFH3QZNMG6IWCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

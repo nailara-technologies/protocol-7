@@ -129,7 +129,7 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
         return FALSE;
     } else {
         my $return_href = eval { $code{$cmd_handler}->( $id, $params ) };
-        if ( $EVAL_ERROR or ref( $return_href // '' ) ne 'HASH' ) {
+        if ( $EVAL_ERROR or ref( $return_href // '' ) ne qw| HASH | ) {
             if ($EVAL_ERROR) {
                 warn join( ' ',
                     "[amos-ext-cmd:$command]", <[base.str.eval_error]> );
@@ -180,8 +180,8 @@ if ( $LAST_PAREN_MATCH =~ m|^:\s*((\D*\d+\D*)+)\s*:$| ) {  ## no cmd output ##
 
 return FALSE;
 
-#,,,,,.,.,...,,,.,.,,,,,.,,.,,,,.,,.,,...,,,,,..,,...,...,,,.,,..,,,.,,..,,..,
-#IMZGX66SFWHSP4QFIRZV4LZLLGHGQU27HPTJCMUG6KX4BK5IITWPDEOWGXDO6A3ADYEQUVUGCSSXO
-#\\\|UR2QWRQTQHZGIT7TNAW2RPYUCEJWWCLUX4J2RXWA444DKHVGNDN \ / AMOS7 \ YOURUM ::
-#\[7]5TGVZGCWLQRKWBWN3FC5URZDRYLFRJVZVXJ5LUGP6XQ5YU2MHEDI 7  DATA SIGNATURE ::
+#,,,,,,..,...,,.,,,,,,,,,,,,,,,.,,,,,,.,,,,.,,..,,...,..,,,..,,..,.,,,..,,,..,
+#R6DKHT7QFKUEYFQNRBLNIRK3PEI6QJTQ72NXUZY7KVNSEH5NTURAUEDHFQDYXY6PWTC7IH7XDUUHY
+#\\\|NFJLN7N47ZDVUS7IDWCE5M6X6JG3RXVFOPSMGPZFZQXSM367CMK \ / AMOS7 \ YOURUM ::
+#\[7]YENMUJEKUEXTDSM7Q5F76A354ACOKPCZDCESQQM4HRYO2IKEPUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

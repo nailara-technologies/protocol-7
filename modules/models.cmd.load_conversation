@@ -5,7 +5,7 @@
 
 my $params = {};
 
-if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
     $params = $call->{'param'};
 } elsif ( defined $call->{'args'} && length $call->{'args'} ) {
     eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
@@ -26,8 +26,7 @@ if ( !length($filename) && !length($job_id) ) {
 }
 
 my $result = <[models.conversation.load]>->(
-    {
-        'filename' => $filename,
+    {   'filename' => $filename,
         'job_id'   => $job_id,
     }
 );
@@ -38,8 +37,8 @@ return {
     'data' => $yaml_data
 };
 
-#,,,.,,..,,.,,...,,,,,..,,,,.,..,,..,,,,.,.,,,..,,...,.,.,...,,.,,.,,,,.,,,..,
-#3WPHUY5ZH7I24FUZASOGUX36MRQQLVWUUEULFKMXSNJBSUC5NGCQKVXRK3BFGLGRIOE5XRODTVZSW
-#\\\|2XGQG3RI4M4LZY5TESWBGTCLGWMRFIFRFYSNHICM7P2YSOXGXO6 \ / AMOS7 \ YOURUM ::
-#\[7]32UYZ6OY6GTOYB73FEGLFYYRUJLR7BQ6L7X3572TBVJMU546QCAQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,.,.,.,,,,..,,,,,..,,.,.,.,,,.,,,..,,...,...,,,,,..,,,.,,..,,,,,,
+#MSDN53TLCYDVMN3M2EZQGZWJWK63YFQ4KAQARDG4XQXOZPPLZHVYISSXJUCEYMKLE66MJMMBKBIRA
+#\\\|QPVGIMJ7GCSLTBH3ZKRGU2LYZSYMPOOUKGLMLB7X7N43YHOSJLQ \ / AMOS7 \ YOURUM ::
+#\[7]DPNZCMO3LUDCHSO4GH7NB2SZUHHDCZLFU5NQN4Q3EWPCYNIC4IBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

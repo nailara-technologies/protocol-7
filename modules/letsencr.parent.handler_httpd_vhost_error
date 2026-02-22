@@ -10,14 +10,14 @@ my ( $error_msg, $reply_data ) = @_;
 
 ## Store error state for consumer
 <letsencr.parent.pending_vhosts> = {
-    status => 'error',
+    status => qw| error |,
     error  => $error_msg,
     reply  => $reply_data,
     vhosts => [],
 };
 
 ## Log reply details for debugging if available
-if ( $reply_data && ref($reply_data) eq 'HASH' ) {
+if ( $reply_data && ref($reply_data) eq qw| HASH | ) {
     <[base.log]>->(
         3, "error reply data: " . join( ', ', keys %$reply_data )
     );
@@ -50,8 +50,8 @@ if ( exists <letsencr.parent.vhosts_cache> ) {
 
 return FALSE;
 
-#,,..,,,,,.,.,,.,,...,..,,,.,,.,,,,.,,.,,,.,.,..,,...,...,,..,...,,.,,,.,,,.,,
-#L6WQT7IG3E2WY7A4TM4W5OQJUEPMJEZHHFG54ENL7BTSYZFZY7LPIBMFPYHOYFGGXSZUVAKU2XOA6
-#\\\|IFTX2KLVAAYRBGC3576HPZ7KWZ5AIXXJND73QCSUR4BQXD5URVB \ / AMOS7 \ YOURUM ::
-#\[7]SP7FG5Z7YGUQBXJJYWF4KX5ZR55TFJIBUSISJWD36HLDG7WUD4DY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,.,.,,,,..,.,.,...,,,,,...,,,,,,,,,..,,...,...,..,,,..,..,,.,.,...,
+#K5X62OXQC7C3ILL572XWNWTC2C4YWI3NSTJVDZBSRKUUUFX5GA2KUEF5NIQ2R6CZIXFQ2TCYUG3MI
+#\\\|EHUYPS3NFIACYO533C6VP7OURNSOX44IZQI7LDS7OV4UYUC52L5 \ / AMOS7 \ YOURUM ::
+#\[7]QNSDJLNXSACCJAQGX2HKQNFEN7TLNVR4DQ3XE55HB6JVJIVPG6CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

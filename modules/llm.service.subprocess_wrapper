@@ -34,11 +34,11 @@ my $get_model_config = sub {
     );
 
     return undef
-        unless $response && ref($response) eq 'HASH' && $response->{data};
+        unless $response && ref($response) eq qw| HASH | && $response->{data};
 
     my $model_data;
     eval { $model_data = JSON::PP::decode_json( $response->{data} ); };
-    return undef unless $model_data && ref($model_data) eq 'HASH';
+    return undef unless $model_data && ref($model_data) eq qw| HASH |;
 
     # Return complete config with metadata from models zenka
     return {
@@ -253,8 +253,8 @@ if ( $cmd eq 'query' ) {
 
 # AMOS7::TEMPLATE::signature_placeholder
 
-#,,,,,.,.,.,,,,..,.,,,..,,..,,.,,,,,.,,,,,,,,,..,,...,...,,..,..,,,,.,...,,..,
-#A6ZLA3XFUQT7L5QECMP2FJIOE7YZVS6VFHHTDHYZDFZRWEFUIAZ7XIXJLGWVB2SMP2CEDRRT3DA3S
-#\\\|366BZUMHFVANSWW7PDAPZAMG62YBPKDHZFU6VRUQLWMILELFKPF \ / AMOS7 \ YOURUM ::
-#\[7]UU2WYQB3FUZ3GP35YSJVME3LLFG77X35J3BJZDEOFXD2ONJF4YAI 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,.,.,.,...,.,,,...,,,,,...,.,.,..,,...,..,,.,,,.,,,,.,,,,,,,,,,
+#AKSRSAI6XNFWRYWD6YWX53XM2JJD4JJBXU5XPUYRHIJQTFIJ4PW2VHUSRPIQIYX3OFJEHDCZ34ADC
+#\\\|FJDUKV6W3PYWOIKFZEONDPM6QUEI6AW3GGDZH2FXSQ2SYGQSCUB \ / AMOS7 \ YOURUM ::
+#\[7]4RSIXUSWDGQS22UF7H3W2TM7B4BWYQR3JMNBEAMWWOSJPQQ4E4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

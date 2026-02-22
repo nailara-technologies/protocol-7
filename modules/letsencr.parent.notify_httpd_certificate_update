@@ -15,7 +15,7 @@ unless ( $domain && $cert_path && $key_path ) {
         1, 'error: domain, cert_path, and key_path are required'
     );
     return {
-        status => 'error',
+        status => qw| error |,
         error  => 'Missing required certificate data'
     };
 }
@@ -39,7 +39,7 @@ if ($result) {
         2, 'certificate update notification sent to httpsd for: %s', $domain
     );
     return {
-        status => 'success',
+        status => qw| success |,
         domain => $domain,
         msg    => 'Notification sent to httpsd'
     };
@@ -49,13 +49,13 @@ if ($result) {
         $domain
     );
     return {
-        status => 'error',
+        status => qw| error |,
         error  => 'Failed to send notification to httpsd'
     };
 }
 
-#,,,.,.,,,,..,,,.,...,...,,.,,.,,,.,.,.,.,.,.,..,,...,...,,..,,,.,,,,,..,,,,,,
-#FWUW2AFWH3WABEM5L74UOXELWFTOHS4AKI2YDUSIKLSRL2SOCHZORLJDI6XJDEVGAP3YPVAK6VOXQ
-#\\\|SJU6M6OSYFTJMQXDULV5GEWQ75NE6K2QEG5E675PMPHTWAPIN7G \ / AMOS7 \ YOURUM ::
-#\[7]2FU7MEYLZZQ6Z24C3W25SZTHQD474C6POT3CLIKKCUZFCAY574CA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,,,,...,,..,..,,,..,..,,,,.,,..,..,,...,...,.,,,..,,,.,,,,,,..,,
+#UXEOGWONPLUXY6GA3WBVUFFRQMIS4ZGQ3ONA7ACVLXKP4YJ3AIWB6I2PPJJC4AAOSVPWHDAO5UGG6
+#\\\|PJZJ52VKKBRYDVMSM4NAKENFWZAXITEG2AQQUNVDD2UZ5RGIKKZ \ / AMOS7 \ YOURUM ::
+#\[7]2TC25EFHTIG4WMJFZKTTNT6CRPPKJ45JOZCUXGK6Q2L56FVYNEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

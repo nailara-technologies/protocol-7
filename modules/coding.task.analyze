@@ -12,7 +12,7 @@ my $analyze_complexity = sub {
         success => FALSE,
         error   => "Task must be a hashref"
         }
-        unless ref($task) eq 'HASH';
+        unless ref($task) eq qw| HASH |;
 
     my $desc       = $task->{request}->{description} // '';
     my $complexity = 1;    # Start at base level
@@ -190,7 +190,7 @@ my $analyze_full = sub {
         success => FALSE,
         error   => "Task must be a hashref"
         }
-        unless ref($task) eq 'HASH';
+        unless ref($task) eq qw| HASH |;
 
     # Run all analyses
     my $complexity_result = $analyze_complexity->($task);
@@ -250,8 +250,8 @@ if ( $cmd eq 'complexity' ) {
     };
 }
 
-#,,,,,,.,,,,.,,,,,.,.,.,.,.,.,.,,,,,.,...,,,,,..,,...,...,,.,,,..,.,.,.,,,,,,,
-#VKFW7LANVMQV7FDSMBTI5ZO6FT3CI3Q5VY5P6LUIHCTP4ZBQZZ767RTPUWMH2FENYCYP4ET6HMAYC
-#\\\|SLU3M27ZZUQMJTX3ZYBY4WPA2LO6QSFEBQJFGGZOEB7KPH37IYT \ / AMOS7 \ YOURUM ::
-#\[7]GAZVOY5ZZXQ3UABADS6KAKUNU7PVZYCYH3NAKZKUSEWQ5TWMHMBI 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,...,,..,,,.,..,,..,,.,.,..,,.,,,..,,...,...,.,.,.,,,,,,,,..,.,.,
+#7XDQXYV4D6GEEBU6QZ7X7HT4PYUVXRYJHGJYKNP4ZCCRGYD42CAOYOCKLYBWDNTOE3QJNNDXOLWDQ
+#\\\|GGH3SKFEE7535N2KUYATR4UMVTWYBUZXFK2DZZJD7SWKKCEL3LH \ / AMOS7 \ YOURUM ::
+#\[7]DD4TLTJDHDRBPSM3EWQB7SDJONOWI4SF2TSS2KKRVOFSQRJTEUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

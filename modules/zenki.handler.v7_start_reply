@@ -19,14 +19,14 @@ my $reply_data = $route->{'reply_data'} || '';
 
 <[base.log]>->( 2, "v7 start reply for '$zenka_name': mode=$mode" );
 
-if ( $mode eq 'true' || $mode eq 'TRUE' ) {
+if ( $mode eq qw| true | || $mode eq 'TRUE' ) {
     <[base.log]>->( 1, "  ✓ v7 confirmed : $reply_data" );
 
     ## Update statistics
     $data{'zenki'}{'stats'}{'successful_starts'}++
         if exists $data{'zenki'}{'stats'};
 
-} elsif ( $mode eq 'false' || $mode eq 'FALSE' ) {
+} elsif ( $mode eq qw| false | || $mode eq 'FALSE' ) {
     <[base.log]>->( 0, "  ✗ v7 start failed : $reply_data" );
 
     ## Update statistics
@@ -43,8 +43,8 @@ if ( $mode eq 'true' || $mode eq 'TRUE' ) {
 
 return TRUE;
 
-#,,..,,,,,,.,,...,.,,,.,,,,.,,..,,,..,...,,.,,..,,...,...,,..,,,.,...,.,.,..,,
-#AXC4K57YXWKYRKOSD2AFHJQFTXMTFCY3ZP6C7SBQUQWMS6IYPEDICQ6WRULTHJQNB5KSKLZLS52OW
-#\\\|HPKFAKXSIU5JTFPMCL474Y32SRBBO346DJJPXOHYXQS7WC6JORF \ / AMOS7 \ YOURUM ::
-#\[7]US7GK5JPDF66XRET2BJI4YDUTUVX3XZNSWBN522QJ5YDMG7OJQCQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,,.,...,..,,.,,,,,,,..,,,,,,...,..,,...,...,.,,,.,.,..,,,..,,,.,
+#B7PN5ZJ3POMMBLOGPGV5PWTEGP3URIJVUW6G7SCKAN7EGNG7GZ6ZOCENU3UBCVKQVY2Y77KUPL7IG
+#\\\|DYERTYBZSKYRJTA6V6IWJYK3NLXUXP7ZJRN3XKGL6NGD3BCMTHS \ / AMOS7 \ YOURUM ::
+#\[7]TOO5JPV6ECLMVEEX7S65VHPTWKKB2SCZIOOEQAPVBVAZ7AUYHWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

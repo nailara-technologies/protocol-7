@@ -18,7 +18,7 @@ my $dir_handle;
 unless ( opendir( $dir_handle, $certs_dir ) ) {
     <[base.log]>->( 1, "warning : cannot open certificates directory : $!" );
     return {
-        status    => 'error',
+        status    => qw| error |,
         error_msg => "Cannot open directory: $!",
         loaded    => 0,
         errors    => 1
@@ -121,8 +121,8 @@ return {
     error_msg => $error_count > 0 ? "$error_count errors during load" : undef
 };
 
-#,,,.,.,,,..,,,,.,...,.,.,...,...,,.,,,,.,,,,,..,,...,...,,,,,,..,..,,...,.,,,
-#DSHV3MZJU3GXPJLCKKZPQRQZWRVVOLAYYRZGE2VDQT2BJZOPFMTYV5QPWPHIL6QDJQLG2MNGB3QKG
-#\\\|OJAZRBFLV2H43AWCDXYDSQQJRDOQHCPYZRB5CYM7VCERTM3ILZJ \ / AMOS7 \ YOURUM ::
-#\[7]AT3T3YFBB6ISNT4V4GYORIHTNJKRYIRCLEOZMQLHVTALBTEHXMCQ 7  DATA SIGNATURE ::
+#,,.,,,,,,.,,,,.,,,..,,,,,,,.,..,,.,,,,.,,.,.,..,,...,...,...,,.,,,,,,,,,,.,.,
+#GLAYIPVFKULOCNXS75QKQVHDBQC7X5ZUIQEXSAAYWGM24YEY2ASYH5JKNM75MRA3ONIZDU2XMJ46K
+#\\\|PLMQYBNPCFNQNX6ENR5NFSO7MAQGVKGHF3SXZV6AW7BEOSOACYP \ / AMOS7 \ YOURUM ::
+#\[7]IW2T7O6EKHF566TJKFTDALCM2RVSDFH6ZUEK5GXFIBOS5OYNVCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

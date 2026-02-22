@@ -6,13 +6,13 @@
 # Extract params - $call is set by code header
 my $params = {};
 
-if ( defined $call->{'param'} && ref $call->{'param'} eq 'HASH' ) {
+if ( defined $call->{'param'} && ref $call->{'param'} eq qw| HASH | ) {
     $params = $call->{'param'};
 } elsif ( defined $call->{'args'} && length $call->{'args'} ) {
 
     # Try parsing as JSON first, fall back to YAML
     eval { $params = JSON::PP::decode_json( $call->{'args'} ); };
-    if (length $EVAL_ERROR) {
+    if ( length $EVAL_ERROR ) {
         eval { $params = YAML::XS::Load( $call->{'args'} ); };
     }
     $params = {} if length $EVAL_ERROR;
@@ -133,8 +133,8 @@ return {
     'data' => $yaml_data
 };
 
-#,,..,,,.,..,,.,.,.,,,,,,,..,,.,,,,,.,...,.,,,..,,...,...,..,,,.,,..,,.,.,.,,,
-#FZUB2JJTZQFISLZRKCP7C4PMEPBZH2EUM44IRXBY3CTTRJ6LTMY5A7P6G6Y6E3C3MIWUYT5N7RR2Y
-#\\\|X7L4XHLQPQ3ML4ZWDZ7JW3LNLF6736Q5GZKRHCHNLKCV4YUNLQC \ / AMOS7 \ YOURUM ::
-#\[7]D2RNWOOMFDOG4KA4QVAFJ6YFAN2EUC7DD54P42HQGIOIO6I7CEDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,,..,,,.,,,,,..,,,,.,.,,,.,.,,..,..,,...,...,,..,...,,..,.,.,.,.,
+#3LEHCT3KNPOVAMI4P4KIIHD3W4VY4MJKJUHCYV3WRTVLGCNGI3XZIBTZIJV7HPEPVX4JIXR7EKPSA
+#\\\|FHGLFYLD3JQ4ZVAEEVDV5KX4XVEORXQBKMEWJR7E7YQH6XMADQY \ / AMOS7 \ YOURUM ::
+#\[7]ZOD3ABMOPMBY6Y7NWD4VFLY53ZCSXSKNNN6DOYVWXJVOKB5AVACY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

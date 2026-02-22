@@ -7,7 +7,7 @@
 
 my $args_ref = shift;
 return { 'processed' => 0, 'errors' => ['no arguments provided'] }
-    unless defined $args_ref and ref $args_ref eq 'HASH';
+    unless defined $args_ref and ref $args_ref eq qw| HASH |;
 
 my $channel_path = $args_ref->{'channel_path'};
 my $data         = $args_ref->{'data'};
@@ -16,7 +16,7 @@ return { 'processed' => 0, 'errors' => ['no channel_path provided'] }
     unless defined $channel_path and length $channel_path;
 
 return { 'processed' => 0, 'errors' => ['data is not a hash'] }
-    unless defined $data and ref $data eq 'HASH';
+    unless defined $data and ref $data eq qw| HASH |;
 
 my $processed_count = 0;
 my @errors;
@@ -96,8 +96,8 @@ return {
 
 1;
 
-#,,.,,,..,,.,,.,,,,.,,,,.,...,,,.,.,,,,.,,,.,,...,...,...,..,,,.,,,.,,.,,,,..,
-#YBTP4ECDZ5YCNU7KHI52IFRQKMA4BRHUGRBOX4TEWDH4XY5XQUYHUYWYBQ4MCKCC2HWIP3SHW5T5A
-#\\\|H2BL2SFNZTKHY3HIC4L7CPLIYN6KB6ASPXFAVZFNRNJXYJR3MY5 \ / AMOS7 \ YOURUM ::
-#\[7]2AI3OHOGLJVFUKEOHHN7U34VYDQHG6W6NIIP3NB55I2TTXWUNIDA 7  DATA SIGNATURE ::
+#,,,.,..,,,,,,,..,...,,,,,,,,,,,,,..,,,,.,,.,,...,...,...,.,,,..,,.,,,,.,,...,
+#FSH3RZCYLYLQ6M4VNCG6ANOQQAEGZLBAIZ4WQAMKZQAVEB3WGJASVLMPUAUQL24RABIREPEK7QNKO
+#\\\|DWOVEN5Z3APEWNUF3QUNOYGZY6JURKTLOCF3CQLEIB33UC3NSYZ \ / AMOS7 \ YOURUM ::
+#\[7]ZFEIRM7B3YL7CTACBIJ5CQ3YZCCB6O3G24NXRJZWFS65ROKHWQBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -19,7 +19,7 @@ my $account_id      = $cert_data->{account_id};
 unless ( $domain && $certificate_pem ) {
     <[base.log]>->( 1, "error : domain and certificate_pem are required" );
     return {
-        status    => 'error',
+        status    => qw| error |,
         error_msg => 'domain and certificate_pem are required'
     };
 }
@@ -31,7 +31,7 @@ unless ( -d $certs_dir ) {
         $certs_dir, 02770, <system.amos-zenka-user>, qw| httpsd |
         )
         or return {
-        status    => 'error',
+        status    => qw| error |,
         error_msg => "Cannot create certs directory: $certs_dir"
         };
 }
@@ -151,14 +151,14 @@ my $days_remaining = ( $expires_at - time() ) / 86400;
 );
 
 return {
-    status    => 'success',
+    status    => qw| success |,
     domain    => $domain,
     pem_path  => catfile( $certs_dir, "$domain.pem" ),
     error_msg => undef
 };
 
-#,,,.,..,,,.,,.,.,,,,,,..,.,.,...,,.,,...,.,.,..,,...,...,..,,,,.,,.,,...,,..,
-#K65KXZ7T5CX3L6S3PY3JGOQKWVMFUN4QTRVBGB24SBLVEXD34WAIWV4N2PRFEWK3GHL5GR4R4OBGY
-#\\\|KPV7VDW5N2H76MBGAJG26EZQDTA64G25NS56YKKX3E4FJS6CSEM \ / AMOS7 \ YOURUM ::
-#\[7]53VRDRPRBH32LKCA72VHYBJX4STTHRAFOUI6QRH6JY5FOP6K46AY 7  DATA SIGNATURE ::
+#,,..,..,,,.,,,..,..,,.,.,.,,,..,,,.,,...,..,,..,,...,.,,,,..,.,,,..,,.,.,...,
+#INM3UVEUB2YLZBMALQLG6FN3OSMXVIKVAAHI65COXMLWOMTTSRKL62W7PVUWYU4TFSANQ5QSQAJZC
+#\\\|NCXBY7C6PU6XRUNZUWYB6PSCJNAQJ6XVJH2JKVU46FTHLO44Z7U \ / AMOS7 \ YOURUM ::
+#\[7]GYCRIUZEHPM3MN6KJDOB3EV6FW5CZ5KGI5RWI6VXEMOHZAQOHGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

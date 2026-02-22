@@ -9,7 +9,8 @@ $command_params =~ s,^ *| *$,,;
 
 unless ( length $command_params ) {
     say ': usage: sourcecode test-diagnose <file-pattern>';
-    say ': example: sourcecode test-diagnose configuration/zenki/debian/zenka-startup.v7';
+    say
+        ': example: sourcecode test-diagnose configuration/zenki/debian/zenka-startup.v7';
     say ': note: DOES NOT RESTORE - leaves files with temp key signatures';
     return;
 }
@@ -18,12 +19,13 @@ say ':';
 say ': .:[ TEST DIAGNOSE: SIGN AND VERIFY (NO RESTORE) ]:.::';
 say ':';
 
-my $sig_key_name = qw| proto-7.sourcecode |;
+my $sig_key_name  = qw| proto-7.sourcecode |;
 my $test_key_name = qw| test-proto7-sourcecode |;
 
 # Load unencrypted test key
 say ': Loading test key...';
-unless ( <[crypt.C25519.load_keypair]>->( $test_key_name, undef, FALSE, FALSE ) ) {
+unless (
+    <[crypt.C25519.load_keypair]>->( $test_key_name, undef, FALSE, FALSE ) ) {
     say ': ERROR: Failed to load test key. Create it first with:';
     say ': ./bin/Protocol-7 keys create -U test-proto7-sourcecode';
     return;
@@ -34,7 +36,7 @@ say ':';
 
 my @source_paths = <[base.source.collect_file_list]>->($command_params);
 
-unless ( @source_paths ) {
+unless (@source_paths) {
     printf( ": no files found for pattern: %s\n", $command_params );
     return;
 }
@@ -67,9 +69,11 @@ foreach my $path_rel (@source_paths) {
         );
     };
 
-    if ( defined $code_data_ref and ref $code_data_ref eq 'HASH' and $code_data_ref->{'mode'} ne 'false' ) {
+    if (    defined $code_data_ref
+        and ref $code_data_ref eq qw| HASH |
+        and $code_data_ref->{'mode'} ne qw| false | ) {
         if ( <[file.put_bin]>->( $path_rel, $code_data_ref->{'data'} ) ) {
-            printf( ": [SIGNED] %s\n", (split '/', $path_rel)[-1] );
+            printf( ": [SIGNED] %s\n", ( split '/', $path_rel )[-1] );
             $update_count++;
         }
     }
@@ -84,10 +88,10 @@ say ': .:[ CYCLE 1: VERIFYING SIGNATURES ]:.::';
 say ':';
 
 my $cycle1_results = {};
-my $valid_count = 0;
-my $invalid_count = 0;
+my $valid_count    = 0;
+my $invalid_count  = 0;
 
-foreach my $file_path ( @source_paths ) {
+foreach my $file_path (@source_paths) {
     next unless -f $file_path;
 
     <[file.slurp]>->( $file_path, \my $src_str, qw| :raw | );
@@ -95,28 +99,26 @@ foreach my $file_path ( @source_paths ) {
 
     if ( $footer_data->{'was-present'} ) {
         my $state = $footer_data->{'endline-state-encoded'} // '?';
-        my $bmw = $footer_data->{'bmw-chksum'} // 'ERROR';
-        my $sig = $footer_data->{'signature'} // 'ERROR';
+        my $bmw   = $footer_data->{'bmw-chksum'}            // 'ERROR';
+        my $sig   = $footer_data->{'signature'}             // 'ERROR';
 
         my $bmw_short = <[base.parser.ellipse_center]>->( $bmw, 21 );
         my $sig_short = <[base.parser.ellipse_center]>->( $sig, 21 );
 
-        my $file_name = (split '/', $file_path)[-1];
-        $cycle1_results->{$file_name} = { state => $state, bmw => $bmw_short, sig => $sig_short };
+        my $file_name = ( split '/', $file_path )[-1];
+        $cycle1_results->{$file_name}
+            = { state => $state, bmw => $bmw_short, sig => $sig_short };
 
         printf( ': %-30s state=%d bmw=%s sig=%s' . "\n",
-            $file_name,
-            $state,
-            $bmw_short,
-            $sig_short
-        );
+            $file_name, $state, $bmw_short, $sig_short );
 
-        my ($is_valid, $report_ref) = <[source.signature_valid]>->( \$src_str, $footer_data );
-        if ( $is_valid ) {
+        my ( $is_valid, $report_ref )
+            = <[source.signature_valid]>->( \$src_str, $footer_data );
+        if ($is_valid) {
             $valid_count++;
         } else {
             $invalid_count++;
-            say sprintf( ':  ^ INVALID' );
+            say sprintf(':  ^ INVALID');
         }
     }
 }
@@ -144,9 +146,11 @@ foreach my $path_rel (@source_paths) {
         );
     };
 
-    if ( defined $code_data_ref and ref $code_data_ref eq 'HASH' and $code_data_ref->{'mode'} ne 'false' ) {
+    if (    defined $code_data_ref
+        and ref $code_data_ref eq qw| HASH |
+        and $code_data_ref->{'mode'} ne qw| false | ) {
         if ( <[file.put_bin]>->( $path_rel, $code_data_ref->{'data'} ) ) {
-            printf( ": [SIGNED] %s\n", (split '/', $path_rel)[-1] );
+            printf( ": [SIGNED] %s\n", ( split '/', $path_rel )[-1] );
             $update_count++;
         }
     }
@@ -160,10 +164,10 @@ say ':';
 say ': .:[ CYCLE 2: VERIFYING SIGNATURES ]:.::';
 say ':';
 
-$valid_count = 0;
+$valid_count   = 0;
 $invalid_count = 0;
 
-foreach my $file_path ( @source_paths ) {
+foreach my $file_path (@source_paths) {
     next unless -f $file_path;
 
     <[file.slurp]>->( $file_path, \my $src_str, qw| :raw | );
@@ -171,32 +175,30 @@ foreach my $file_path ( @source_paths ) {
 
     if ( $footer_data->{'was-present'} ) {
         my $state = $footer_data->{'endline-state-encoded'} // '?';
-        my $bmw = $footer_data->{'bmw-chksum'} // 'ERROR';
-        my $sig = $footer_data->{'signature'} // 'ERROR';
+        my $bmw   = $footer_data->{'bmw-chksum'}            // 'ERROR';
+        my $sig   = $footer_data->{'signature'}             // 'ERROR';
 
         my $bmw_short = <[base.parser.ellipse_center]>->( $bmw, 21 );
         my $sig_short = <[base.parser.ellipse_center]>->( $sig, 21 );
 
-        my $file_name = (split '/', $file_path)[-1];
+        my $file_name  = ( split '/', $file_path )[-1];
         my $oscillated = 0;
-        if ( $cycle1_results->{$file_name}{'bmw'} ne $bmw_short or $cycle1_results->{$file_name}{'sig'} ne $sig_short ) {
+        if (   $cycle1_results->{$file_name}{'bmw'} ne $bmw_short
+            or $cycle1_results->{$file_name}{'sig'} ne $sig_short ) {
             $oscillated = 1;
         }
 
         printf( ': %-30s state=%d bmw=%s sig=%s%s' . "\n",
-            $file_name,
-            $state,
-            $bmw_short,
-            $sig_short,
-            $oscillated ? ' [OSCILLATED]' : ''
-        );
+            $file_name, $state, $bmw_short, $sig_short,
+            $oscillated ? ' [OSCILLATED]' : '' );
 
-        my ($is_valid, $report_ref) = <[source.signature_valid]>->( \$src_str, $footer_data );
-        if ( $is_valid ) {
+        my ( $is_valid, $report_ref )
+            = <[source.signature_valid]>->( \$src_str, $footer_data );
+        if ($is_valid) {
             $valid_count++;
         } else {
             $invalid_count++;
-            say sprintf( ':  ^ INVALID' );
+            say sprintf(':  ^ INVALID');
         }
     }
 }
@@ -207,8 +209,8 @@ say ':';
 
 0;
 
-#,,.,,,,,,.,,,,,,,,,.,..,,.,,,...,.,,,,,.,,,.,..,,...,...,.,.,..,,.,,,.,.,..,,
-#OJZPIHDBAVZJOKHJKGPUD5UBUP34AYFA2FD5UNXAAF7BMSZ7Z5AIOCIGMHGQX5VASRWCCM2F7245M
-#\\\|6QOZNRSMN7GYLQ56AOMTQYNRGUA5RYCWLQMINE67D3JEOQRJO7G \ / AMOS7 \ YOURUM ::
-#\[7]H6SDHSVTG2FGG525VK56KEQZPFMX2Y55WYQXOH466TF7EZJ7IECI 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,,,.,.,,,.,,,,,,,,..,..,,,,,,...,..,,...,..,,,,,,.,.,,..,,..,,.,,
+#AA6N3EKRUGOFBJ5YV3TGVDZJWF6RXCKVES2WYS7EGKB2L7XFEYOQ7GZ5RYPZ4EPMMNUPBK274FEF4
+#\\\|2JDOBPUKZDCUHCEKUHXZOJYAFRZ3ZJAF5IKLTIMG4OR4DEIGNS7 \ / AMOS7 \ YOURUM ::
+#\[7]YUIGSXNGMXGXO5DARKDMHODSWNRG3E7XEIX3E2ZPDUGGNZXTPGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

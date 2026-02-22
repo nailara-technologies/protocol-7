@@ -15,7 +15,7 @@ die 'expected [valid] station_id parameter'
 
 die "expected 'forecast' weather data"
     if not defined $weather_data
-    or ref($weather_data) ne 'HASH';
+    or ref($weather_data) ne qw| HASH |;
 
 my $forecast_ref       = {};
 my $forecast_ref_today = {};
@@ -138,8 +138,8 @@ if ( $type eq 'hours' ) {
 <[base.log]>->( 2, "writing html pages.. [ got new 'forecast' data ]" );
 <[weather.parent.write_pages]>->($station_id);
 
-#,,,,,...,,,,,..,,,..,,,,,.,.,...,..,,...,,.,,..,,...,...,...,...,,..,.,,,.,,,
-#TMILSLK7IQEM3F7EJZV6G3HO7ZT2IPKFIURV7JH2M27SO6L5XYF5KK74KOG5FRU3GRFN64IS7QH2Y
-#\\\|CN2D5PIBJD4K5YVLZJ2G276DW3YO5WJ2CM5D5FQYURDFLS35N74 \ / AMOS7 \ YOURUM ::
-#\[7]KE37CPTQ7BR3ICVSPCSHXAMKXRHEEUV4OLQ6CAMI3QTOPFDYPSBI 7  DATA SIGNATURE ::
+#,,..,,,.,,..,.,,,.,,,,..,,..,.,.,.,.,,..,,,.,..,,...,...,...,,,,,...,...,.,,,
+#GX7B74QYLMMS7VDUPBUTEAGDTJ3YPFKYIZG323I5ZRA56KMFXMMAXGF76POWJ5XP7C4UHYOEVNKXE
+#\\\|3PDYD2WAPCN4O53O6HPQGQQBDNYD6VJRZMZNZJ2J4QB5KCIC2ED \ / AMOS7 \ YOURUM ::
+#\[7]DUOA4S46JTC5WSTHUK24OW24PWRFTJJYX635IO7D2UISH42W3GCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

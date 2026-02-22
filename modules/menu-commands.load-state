@@ -7,32 +7,35 @@ use YAML::XS qw| Load |;
 
 # Load mappings
 my $mappings_content_ref = <[file.zenka_dir.load]>->('data/mappings.yaml');
-if (defined $mappings_content_ref) {
+if ( defined $mappings_content_ref ) {
     eval {
         my $yaml_data = Load($$mappings_content_ref);
-        <menu-commands.mappings> = $yaml_data->{'mappings'} // {} if ref($yaml_data) eq 'HASH';
+        <menu-commands.mappings> = $yaml_data->{'mappings'} // {}
+            if ref($yaml_data) eq qw| HASH |;
     };
     if ($EVAL_ERROR) {
-        <[base.s_warn]>->('Error loading mappings: %s', $EVAL_ERROR);
+        <[base.s_warn]>->( 'Error loading mappings: %s', $EVAL_ERROR );
     }
 }
 
 # Load categories
-my $categories_content_ref = <[file.zenka_dir.load]>->('data/categories.yaml');
-if (defined $categories_content_ref) {
+my $categories_content_ref
+    = <[file.zenka_dir.load]>->('data/categories.yaml');
+if ( defined $categories_content_ref ) {
     eval {
         my $yaml_data = Load($$categories_content_ref);
-        <menu-commands.categories> = $yaml_data->{'categories'} // {} if ref($yaml_data) eq 'HASH';
+        <menu-commands.categories> = $yaml_data->{'categories'} // {}
+            if ref($yaml_data) eq qw| HASH |;
     };
     if ($EVAL_ERROR) {
-        <[base.s_warn]>->('Error loading categories: %s', $EVAL_ERROR);
+        <[base.s_warn]>->( 'Error loading categories: %s', $EVAL_ERROR );
     }
 }
 
 1;
 
-#,,.,,...,,..,,,,,..,,.,,,,.,,.,.,.,.,,.,,...,..,,...,...,..,,,,.,...,,..,..,,
-#4UETU7I6FYYYCO6VZTTGWT6LZP5NBAORXUA2WHSCLK7ZGRDMU4HPQLGDG3TNFQ63A6U4KWHYN35HK
-#\\\|PL2ZGODDJ7JHXW5ZDLPMYVGAVG4VR4OQO62TJBJYG7J3BLZNP54 \ / AMOS7 \ YOURUM ::
-#\[7]ZASNWQI4GQ7YB5SJVWSYIYOJAD7VIWN22KT5ANG7YPCT4DEKYABQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,..,,.,.,..,,...,.,.,,.,,,,.,..,,..,,...,.,.,,,,,.,,,.,.,,.,,,.,,
+#XEJ4TEVFYE537JSVK57E5WLX3IJP65DB3FM5K7H7ATYJS4RXFFKIP7BO5UHGPEYXKVYIRJZGBF3AC
+#\\\|J4RKU24QMML2GKTIHVIU4KPFMQBJ7YTBA73YCYC5PI3UVWTV3NA \ / AMOS7 \ YOURUM ::
+#\[7]D7BHWOCNGIOYQZK74LRFUCNSYDJTAED7FSH73RFMUGAUFRDTGIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
