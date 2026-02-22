@@ -1,34 +1,46 @@
 ## [:< ##
 
-# name  = base.parser.list
-# descr = returns a parsed list table according to supplied specification mask
+# name  = base.parser.list_filtered
+# descr = returns parsed list table with opt. regex filtering on keys|values
 #
-# MASK FORMAT (display_keys parameter):
-#  Each element defines one column:
-#  - '<key>:display_name'  -> shows the hash key itself [e.g., session ID]
-#  - 'field:display_name'  -> shows $data{$key}{field}
-#  - 'field'               -> field name used as display name
+# This module extends base.parser.list with a 'filter' parameter that allows
+# searching across both hash keys AND field values.
 #
-# exml : '<key>:usid user:uname' shows ID column + user field as 'uname'
+# FILTER BEHAVIOR:
+#   - When filter is provided, only entries matching the regex are included
+#   - Matching checks: hash key OR any visible field value
+#   - Field names are extracted from mask
+#             [ e.g.: 'user:uname' -> checks $data{user} ]
 #
-# PARAMETERS:
-#  var       -> hash variable name [e.g., 'data' -> %data]
-#  key       -> hash key within var [e.g., 'session' -> $data{session}]
-#  mask      -> arrayref of column definitions (see above)
-#  align     -> hashref of alignment specs per field
-#  filters   -> hashref of filter subs for value transformation
-#  sort_key  -> how to sort entries
+# USAGE VIA base.cmd.list:
+#  list <name> <pattern> -> uses this filtered parser
+#  list sessions cube    -> shows sessions where 'cube' appears
+#                                            in ID or any field
 #
-# For filtered listing [ search across keys AND values ],
-#                        use base.parser.list_filtered
+# MASK FORMAT:
+#   Same as base.parser.list:
+#   - '<key>:display'  -> shows hash key with header 'display'
+#   - 'field:display'  -> shows $data{field} with header 'display'
+#   - 'field'          -> shows $data{field} with header 'field'
 #
-# todo  = fix alignment [width] bug. [<key>:ex0 and ex0:ex1 cases]
+# RELATED: base.parser.list (unfiltered version)
 
-(   my $h_name, my $h_key,    my $sub_key, my $display_keys,
-    my $align,  my $defaults, my $filters, my $sort_key
+(   my $h_name,
+    my $h_key,
+    my $sub_key,
+    my $display_keys,
+    my $align,
+    my $defaults,
+    my $filters,
+    my $sort_key,
+    my $filter
     )
     = map { $ARG[0]->{$ARG} }
-    qw|  var  key  sub_key  mask  align  defaults  filters  sort_key  |;
+    qw[
+    var  key  sub_key
+    mask  align  defaults
+    filters  sort_key  filter
+    ];
 
 my $list_error = sprintf "\n\n%67s\n\n\n",
     'error in list definition  [  details have been logged  ]';
@@ -42,7 +54,7 @@ warn "variable name '$h_name' not valid <{C1}>" and return $list_error
     if $h_name !~ m|^[a-z][\w_]*$|i;
 
 no strict qw| refs |;
-warn "parser.list: hash '\%$h_name' not defined <{C1}>"
+warn "parser.list_filtered: hash '\%$h_name' not defined <{C1}>"
     and return $list_error
     if not defined \%{"$h_name"};
 use strict qw| refs |;
@@ -60,7 +72,7 @@ if ( $h_key !~ m|\.| ) {
     use strict qw| refs |;
 
     <[base.s_warn]>->(
-        "parser.list: no match for '%s' in '%%%s' hash <{C1}>",
+        "parser.list_filtered: no match for '%s' in '%%%s' hash <{C1}>",
         $h_key, $h_name
         )
         and return $list_error
@@ -70,9 +82,37 @@ if ( $h_key !~ m|\.| ) {
     die "list key syntax in '$h_key' not valid";
 }
 
-warn "parser.list : hash key [ or subkey ] not defined <{C1}>"
+warn "parser.list_filtered : hash key [ or subkey ] not defined <{C1}>"
     and return $list_error
     if not defined $data_ref;
+
+# helper : check if entry matches filter [ key or any visible value ]
+my $entry_matches_filter = sub {
+    my ( $key, $entry_data ) = @_;
+    return 1 unless defined $filter;
+
+    ## Check key
+    return 1 if $key =~ $filter;
+
+    ## Check all visible values
+    foreach my $key_name ( $display_keys->@* ) {
+        my $key_name_str = $key_name;
+        next if $key_name_str =~ s|^<key>:||;    ## Skip key column
+
+        ## Extract field name :
+        #            "field:display" -> "field", "field" -> "field"
+        my $field_name;
+        if ( $key_name_str =~ m|^([^:]+):(.+)$| ) {
+            $field_name = $1;    ## Field name is before the colon
+        } else {
+            $field_name = $key_name_str;
+        }
+
+        my $value = $entry_data->{$field_name} // '';
+        return 1 if $value =~ $filter;
+    }
+    return 0;
+};
 
 # .: preparation :.
 my $table_width = 0;
@@ -89,6 +129,10 @@ foreach my $key_name ( $display_keys->@* ) {
     }
     $max_len{$key_name} = length($key_name_str) + $spacing + 3;
     foreach my $key_val ( keys $data_ref->%* ) {
+        ## Skip entries that don't match filter
+        next
+            unless $entry_matches_filter->( $key_val, $data_ref->{$key_val} );
+
         next
             if defined $sub_key
             and not exists $data_ref->{$key_val}->{$sub_key}; # only requested
@@ -99,7 +143,7 @@ foreach my $key_name ( $display_keys->@* ) {
         $value_str //= '';
         my $filtered_val
             = <[base.call_filter]>->( $filters, $key_orig_str, $value_str )
-            // '';    ##  <--  warn when undefined ?  [LLL]
+            // '';
         $max_len{$key_name} = length($filtered_val) + 4
             if length($filtered_val) > $max_len{$key_name} - 3;
     }
@@ -126,11 +170,10 @@ $table_string .= "\n$sub_line\n";
 my @sorted_keys = <[base.reverse-sort]>->($data_ref);
 
 # .: custom sorting :.
-
 if ( defined $sort_key ) {
     my $sort_type = $sort_key =~ s|^([^:]+):|| ? $1 : qw| reverse-len-alpha |;
 
-    if ( $sort_type eq 'alpha-len' ) {  ## length-ascending \ reverse-alpha ##
+    if ( $sort_type eq 'alpha-len' ) {
         @sorted_keys
             = <[base.reverse-sort.key-name]>->( $sort_key, $data_ref );
     } elsif ( $sort_type eq qw| alpha | ) {
@@ -150,8 +193,7 @@ if ( defined $sort_key ) {
                 }
                 keys %{$data_ref};
         };
-    } elsif ( $sort_type eq qw| reverse-len-alpha | )
-    {    ##  [ base sort order ]  length-descending \ reverse-alpha ##
+    } elsif ( $sort_type eq qw| reverse-len-alpha | ) {
         @sorted_keys
             = <[base.reverse-sort.key-name]>->( $sort_key, $data_ref );
     } else {
@@ -164,11 +206,13 @@ warn "custom sort failed [$EVAL_ERROR]" if defined $sort_key and $EVAL_ERROR;
 ##  .: data :.  ##
 
 foreach my $key_val (@sorted_keys) {
+    ## Skip entries that don't match filter
+    next unless $entry_matches_filter->( $key_val, $data_ref->{$key_val} );
+
     next if exists $data{'lists_hidden'}{$key_val};
     next
         if defined $sub_key
-        and not defined $data_ref->{$key_val}->{$sub_key}
-        ;    ## only requested ##
+        and not defined $data_ref->{$key_val}->{$sub_key};
 
     foreach my $key_name ( $display_keys->@* ) {
         my $key_name_str = $key_name;
@@ -178,7 +222,7 @@ foreach my $key_val (@sorted_keys) {
                 $align->{$key_name_str} || qw| left |,
                 <[base.call_filter]>->( $filters, $key_name_str, $key_val ),
                 $max_len{$key_name} - 1
-                ) . ' ';    # <-- LLL: remove ' '!
+                ) . ' ';
         } else {
             my $len = $max_len{$key_name};
             $key_name_str =~ s|:.+$||;
@@ -203,8 +247,8 @@ foreach my $key_val (@sorted_keys) {
 
 return $table_string . "\n";
 
-#,,.,,,,.,,,,,..,,.,,,.,.,,..,...,,,.,,,,,,,,,..,,...,...,..,,,,.,,,,,...,,,,,
-#YQUW6SIN5LE54GENDYI22K56RZIGJPCRBCJ2CO75CZQ4KWFW2KTWYY6GUWU35YIKHJTNM44SK2A2E
-#\\\|UVSPPCDKQMSUNRA5EGJY5OVN6KVDH7OW36XKAI7H5V7SS3OKUIP \ / AMOS7 \ YOURUM ::
-#\[7]QCZ6PG66CBT7JL2ZIKZZIHYZBKXUG37AUXLSK3E5TGTK6JISFCBA 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,.,,...,..,,...,,..,,..,,,,,..,,.,.,...,...,.,,,,.,,,,.,,,.,,.,,
+#D5N7NA4N24GZWVHXSLM3KSAQ2JRTDVCCZDY3FRH4HB5KE7QDA2ZVC5CASASSM7EBOG4J3D7P2NVEI
+#\\\|NMQI4JJ5N5HH3FRWGMMKFSFWHJWBUSQ2VVWSSMRE4T4G7OU6N47 \ / AMOS7 \ YOURUM ::
+#\[7]LAMSAT4BIBFQJVIOS4PSIK74DD6LZI4J23777CUFCXQ3PHRVUEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

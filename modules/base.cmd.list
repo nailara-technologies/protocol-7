@@ -1,12 +1,49 @@
 ## [:< ##
 
 # name  = base.cmd.list
-# param = [list_name]
-# descr = display named lists with content
+# param = [list_name] [pattern]
+# descr = display named lists with content, optional regex pattern filter
+#
+# USAGE:
+#   list                       -> show all available lists (overview)
+#   list <name>                -> show all entries in list
+#   list <name> <pattern>      -> filter entries by regex pattern
+#
+# FILTERING:
+#   The pattern is a Perl regex matched against:
+#   - Entry keys (IDs)
+#   - Any visible field values
+#
+#   Examples:
+#   list sessions taek         -> sessions with 'taek' in ID or username
+#   list models cod            -> models with 'cod' in name or ID
+#   list users 127             -> users with '127' in any field
+#
+# RELATED: base.parser.list, base.parser.list_filtered
 
 my $list_name = $call->{'args'};
 
-if ( not defined $list_name ) {    ## list overview [ no name specified ] ##
+## Parse optional pattern from args
+my $pattern;
+if ( defined $list_name && $list_name =~ s|\s+(.+)$|| ) {
+    $pattern = $1;
+}
+
+## Validate regex pattern if provided
+my $regex_filter;
+if ( defined $pattern && length($pattern) ) {
+    my ( $regex_compiled, $regex_err ) = <[base.eval.comp_regex]>->($pattern);
+
+    if ( not defined $regex_compiled ) {
+        return {
+            'mode' => qw| false |,
+            'data' => sprintf( 'invalid regex pattern: %s', $regex_err )
+        };
+    }
+    $regex_filter = $regex_compiled;
+}
+
+if ( not defined $list_name or $list_name eq '' ) {    ## list overview
     return {
         qw| mode | => qw| size |,
         qw| data | => <[base.parser.list]>->(
@@ -19,7 +56,7 @@ if ( not defined $list_name ) {    ## list overview [ no name specified ] ##
     };
 }
 
-my $list_nam_chars = qw| \w\d\- |; ## valid characters ## [ expand as needed ]
+my $list_nam_chars = qw| \w\d\- |;    ## valid characters
 
 if ( $list_name =~ m|^[$list_nam_chars]+$|
     and defined $data{'list'}->{$list_name} ) {
@@ -28,17 +65,36 @@ if ( $list_name =~ m|^[$list_nam_chars]+$|
 
     $list->{'mask'} //= sprintf qw| <key>:%s |, $list->{'key'};
 
+    ## Use filtered parser if pattern specified
+    if ( defined $regex_filter ) {
+        return {
+            qw| mode | => qw| size |,
+            qw| data | => <[base.parser.list_filtered]>->(
+                {   qw| var |      => $list->{'var'},
+                    qw| key |      => $list->{'key'},
+                    qw| sub_key |  => $list->{'sub_key'},
+                    qw| sort_key | => $list->{'sort_key'},
+                    qw| defaults | => $list->{'defaults'},
+                    qw| filters |  => $list->{'filters'},
+                    qw| align |    => $list->{'align'},
+                    qw| mask |     => [ split( m| +|, $list->{'mask'} ) ],
+                    qw| filter |   => $regex_filter,
+                }
+            )
+        };
+    }
+
     return {
         qw| mode | => qw| size |,
         qw| data | => <[base.parser.list]>->(
-            {   qw| var      | => $list->{'var'},
-                qw| key      | => $list->{'key'},
-                qw| sub_key  | => $list->{'sub_key'},
+            {   qw| var |      => $list->{'var'},
+                qw| key |      => $list->{'key'},
+                qw| sub_key |  => $list->{'sub_key'},
                 qw| sort_key | => $list->{'sort_key'},
                 qw| defaults | => $list->{'defaults'},
-                qw| filters  | => $list->{'filters'},
-                qw| align    | => $list->{'align'},
-                qw| mask     | => [ split( m| +|, $list->{'mask'} ) ]
+                qw| filters |  => $list->{'filters'},
+                qw| align |    => $list->{'align'},
+                qw| mask |     => [ split( m| +|, $list->{'mask'} ) ]
             }
         )
     };
@@ -50,8 +106,8 @@ if ( $list_name =~ m|^[$list_nam_chars]+$|
     $reply->{'data'} = "no such list [ see 'list' command ]";
 }
 
-#,,,,,,,,,,,,,...,..,,,,,,.,.,,,,,,..,,,,,,..,..,,...,..,,.,.,.,,,...,,..,,.,,
-#CDWPB5X457JX7P6G7W6NRD4K3CW3NG3FB7B4GKYAXVRZADBIVHTTBRKHJG2Q4P2JMQ5K7FEDTHWJU
-#\\\|CB55PYA63KOLEWU6O4JN3CBLQANWTTCQ5C4D37QBP752C4WJGDX \ / AMOS7 \ YOURUM ::
-#\[7]SNKCAADS26ULWRIQR5STEQYBOWTOCNWWBUGV5MBJA4OIZJYVLQAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,,,.,,.,,,,,,,,.,,.,,,.,,.,,,,,.,.,.,...,...,..,,.,.,...,...,...,
+#Y2AOC36IP5QSYTPAKFUEJILJATECCP755BLPOZZ2Y22V7MBRDE7EKHHT3Z2MHIZRBO2HEZOVWOSNK
+#\\\|Z5V7F5OPXDOSSC563DXQHKMXEXJQNE2FMSU42S5V3CWESZ3R76A \ / AMOS7 \ YOURUM ::
+#\[7]5UVEVSCTNCVSMZMFWSKVZQ2B33UFUGZLDSHING5C65HI2UHNG6DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
