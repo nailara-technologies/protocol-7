@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = data.ensure_hash_path
+# param = <path>
+# descr = create nested hash path if not exists (mkdir -p equivalent)
+# return = hash ref at path or undef
+
+my $path_str = shift // return undef;
+my $root_ref = shift // \%data;
+
+return $root_ref unless length($path_str);
+
+my @segments = split( /\./, $path_str );
+my $current  = $root_ref;
+
+for my $segment (@segments) {
+    $current->{$segment} //= {};
+    return undef unless ref( $current->{$segment} ) eq 'HASH';
+    $current = $current->{$segment};
+}
+
+return $current;
+
+#,,..,.,.,,.,,.,,,.,.,,,,,...,,,,,...,,.,,,,,,.,.,...,...,...,..,,..,,,,,,,,,,
+#V4ALPRYE47I32Y6U64LB423NKAK7PTD3HKULVOM2WXHNUIH2IA6WGUY7PVLPC6UVRM4Q4TT3ZKNV6
+#\\\|MRA2467GW22WCGDIXBJVPYG2U4R7ISHD36QLFDLMPYCRDPDSYPS \ / AMOS7 \ YOURUM ::
+#\[7]RFWDSQRC3IIN3OQ2AAWDUY4TVUZSDOHDFSTHRUJQZ7ACJ63U7WDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

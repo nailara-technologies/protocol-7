@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = data.hooks.notify
+# param = <event> <hash-path> [data...]
+# descr = notify registered zenki about data events
+
+my ( $event, $hash_path, @extra ) = @ARG;
+
+return unless defined $event and defined $hash_path;
+
+## get registered hooks for this event ##
+my $hooks = <data.hooks.registered>->{$event} // [];
+
+return unless @{$hooks};
+
+<[base.log]>->(
+    2,
+    "data hook: notifying %d subscriber(s) for '%s'",
+    scalar( @{$hooks} ), $event
+);
+
+## send notifications ##
+foreach my $hook ( @{$hooks} ) {
+    my $target_zenka = $hook->{'zenka'}    // 'index';
+    my $command      = $hook->{'command'}  // 'data.imported';
+    my $priority     = $hook->{'priority'} // 1;
+
+    ## skip if priority filter set ##
+    next
+        if defined $extra[0]
+        and $extra[0] =~ m|^\d+$|
+        and $priority > $extra[0];
+
+    ## send command to target zenka ##
+    <[base.protocol-7.command.send.local]>->(
+        {   'command'   => "$target_zenka.$command",
+            'call_args' => { 'args' => join( ' ', $hash_path, @extra ) }
+        }
+    );
+}
+
+return TRUE;
+
+#,,,,,,,.,,,.,...,..,,,,.,,.,,..,,.,,,,.,,...,.,.,...,...,.,.,,.,,,.,,..,,,.,,
+#UMF47Q7JZASK4Y4SH3PXYPBIXCF4V57YYFGJXPWIFLNDNDVFE6CBLVLEFG2OU6JAZMJKYYFOS7KNW
+#\\\|23PX5OGZXOXIZMGK6HPIRTVLM7QV3VCRHYQKQVA35GGTCAP4JOB \ / AMOS7 \ YOURUM ::
+#\[7]KV2WI63CYD7WNYD5YBXKORQIBAKMTRLIVY57NU3XNIGGRISRW6CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
