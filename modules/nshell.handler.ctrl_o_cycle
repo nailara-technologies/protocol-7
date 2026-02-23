@@ -26,43 +26,20 @@ if ( $state_ref->{'ctrl_o_start_position'} < 0 ) {
     }
 }
 
-## Simple toggle: alternate between the two indices
-## Shift accounts for entries added during the cycle
-my $shift   = $state_ref->{'ctrl_o_entries_added'};
-my $index_a = $state_ref->{'ctrl_o_start_position'} + $shift;
-my $index_b = ( $state_ref->{'ctrl_o_start_position'} - 1 ) + $shift;
-
-## Toggle between the two based on current position
-my $next_index
-    = ( $state_ref->{'current_history_index'} == $index_a )
-    ? $index_b
-    : $index_a;
-
-if (<nshell.mode.no_tty_debug>) {
-    <[base.logs]>->(
-        1,
-        "ctrl_o: current=%s index_a=%s index_b=%s next=%s shift=%s",
-        $state_ref->{'current_history_index'},
-        $index_a,
-        $index_b,
-        $next_index,
-        $shift
-    );
-}
-
 ## Print command for execution
-printf "\r\e[K%s%s\n", $colors{'p7_fg_0004'}, $cmd;
+printf "\r\e[K%s%s\e[0m\n", $colors{'p7_fg_0004'}, $cmd;
 STDOUT->flush();
 
-## Add executed command to history
-## Track the shift that happens
+## Add executed command to history FIRST
+## This shifts all indices up by 1, so we calculate next_index after
 if ( length $cmd ) {
     my @lines = split "\n", $cmd;
     AMOS7::TERM::history_add(@lines);
     ## Track that an entry was added [ shifts all indices up by 1 ]
     $state_ref->{'ctrl_o_entries_added'}++;
-    ## Update start_position to track the shifting items
-    $state_ref->{'ctrl_o_start_position'}++;
+    ## Note: we do NOT increment ctrl_o_start_position here
+    ## The shift is applied dynamically via $shift variable
+    ## start_position stays constant (the original cycle start point)
 
     if (<nshell.mode.no_tty_debug>) {
         <[base.logs]>->(
@@ -73,6 +50,28 @@ if ( length $cmd ) {
             $state_ref->{'ctrl_o_start_position'}
         );
     }
+}
+
+## NOW calculate indices (after history_add shifts everything)
+## Shift accounts for entries added during the cycle
+my $shift   = $state_ref->{'ctrl_o_entries_added'};
+my $index_a = $state_ref->{'ctrl_o_start_position'} + $shift;
+my $index_b = ( $state_ref->{'ctrl_o_start_position'} - 1 ) + $shift;
+
+## Toggle between the two based on current position
+## Note: current_history_index needs to account for the shift too
+my $current_shifted = $state_ref->{'current_history_index'}
+    + 1;    ## +1 for the entry just added
+my $next_index
+    = ( $current_shifted == $index_a )
+    ? $index_b
+    : $index_a;
+
+if (<nshell.mode.no_tty_debug>) {
+    <[base.logs]>->(
+        1, "ctrl_o: current=%s index_a=%s index_b=%s next=%s shift=%s",
+        $current_shifted, $index_a, $index_b, $next_index, $shift
+    );
 }
 
 ## Navigate to next entry [ load into editor for display ]
@@ -111,8 +110,8 @@ if ( length $cmd ) { ## stay in VIEWING_HISTORY mode with next entry preloaded
     return undef;
 }
 
-#,,.,,,..,.,,,,..,,,,,,,.,..,,,,,,,,,,,..,..,,.,.,...,.,.,.,.,,,,,...,,,,,,,.,
-#J3DETHQ3RVLLWC2KVUQEUUBH3QFDR6I5ZHFV7T6KITUNCMCXLIMRI3IVTCMDCJOTHQ3KG4TR4CL4O
-#\\\|GV77NV2OWOD3PBMTSC7S2HBEW2SDS3ID7RVCXG3ITYV77AEKFVT \ / AMOS7 \ YOURUM ::
-#\[7]RVA6NSQAD7T74LUKZYBE43LZ6TPN5HMWR7E6YMJWIJ7MZ3XKGOCY 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,.,,,,,,,,,,,..,,...,.,,,..,,,..,.,.,...,..,,...,,..,..,,,..,..,,
+#NAXVTUIMNGKMRC6J4L5Y6WIKB52TTPEC6N4AQTX4NWPOFCFOAJE2FUC4ZMIVVHIO5MPIIXSLTNQUM
+#\\\|FLLYLAPHPRUUFITUJOCDWCLKMAZY2VR6TELL7HPWY3V7EPK46HK \ / AMOS7 \ YOURUM ::
+#\[7]U4CIS4HDQO674NC5CRXZ7M3K7EP5VMJKJ3M6ZQUAKQJAKKJ4QOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
