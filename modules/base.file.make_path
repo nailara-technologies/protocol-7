@@ -16,6 +16,11 @@ if ( not defined $path ) {
 
 $param_mode //= 0700;    # <-- strict default
 $param_mode = oct($param_mode) if $param_mode =~ m|^0|;
+my $user_regex = <regex.base.usr>;
+if ( not defined $user_regex ) {
+    my $anum = qr|0-9A-Za-z|;    ## in case not loaded yet ##
+    $user_regex = qr|^(?:unix-)?[$anum][$anum\-_]{0,31}$|;
+}
 
 ## saving current umask and use permissive setting for mkdir ##
 my $previous_umask = umask(0);
@@ -40,7 +45,7 @@ if ( $path !~ m|^/[^/]+| ) {
 
 my ( $uid, $gid );
 if ( defined $param_owner ) {
-    if ( $param_owner !~ <regex.base.usr> ) {
+    if ( $param_owner !~ $user_regex ) {
         <[base.s_warn]>->(
             "specified username ['%s'] not valid <{C1}>", $param_owner
         );
@@ -59,7 +64,7 @@ if ( defined $owner_group ) {
         warn('the group parameter also requires owner to be defined <{C1}>');
         return undef;
     }
-    if ( $owner_group !~ <regex.base.usr> ) {
+    if ( $owner_group !~ $user_regex ) {
         <[base.s_warn]>->(
             "specified group name not valid ['%s'] <{C1}>", $param_owner
         );
@@ -123,7 +128,7 @@ if ( -d $path ) {
         $gid_mismatch = $current_gid != $gid
             if !defined $owner_group && defined $param_owner;
 
-        if ( $uid_mismatch or $gid_mismatch ) {
+        if ( $EUID == 0 and $uid_mismatch or $gid_mismatch ) {
             my $correction_str = '';
             if ( $uid_mismatch and $gid_mismatch ) {
                 $correction_str = sprintf 'uid %d, gid %d', $uid, $gid;
@@ -207,7 +212,7 @@ foreach my $_dir ( split qw| / |, $path ) {
         return undef;
     }
 
-    if ( defined $param_owner ) {
+    if ( defined $param_owner and $EUID == 0 ) {
         if ( not chown( $uid, $gid, $current_path ) ) {
             <[base.s_warn]>->(
                 'chown [%d:%d] %s : [ %s ] <{C1}>',
@@ -229,8 +234,8 @@ umask $previous_umask if defined $previous_umask;
 
 return $path;
 
-#,,.,,,..,...,,,,,...,.,.,...,...,.,.,,.,,.,,,..,,...,...,..,,,,.,..,,,,,,...,
-#EQDPQWGQKP3ZCNROX7W4GN2APL6JXXH6OW2EPA4HW3S7B7TLWYXX5APLBNYDGRT6PM62SQD73VGAQ
-#\\\|CTWJ3MHBGNE46ZGQHQDC53NYQPOPOU46YFIUYKXH34NIW75O5EV \ / AMOS7 \ YOURUM ::
-#\[7]4BUYAWWLVC7WSUNP7XEFOQPCFIXLNIU7OZ3VZAXDDWIKKGNWXYCI 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,,,,,...,,.,,..,,...,,..,,..,.,.,..,,...,..,,..,,,,.,,..,,,.,...,
+#P7MFFSWKWR3GLLNVMYVTZANZAKQA76UT4YSZG2AXUY34THS7FGVQCPSL5T3CV4F4RKS7B2WMIILWK
+#\\\|TWARG3VB26JO2PUHY3VGDIJAI7C4SXQSO35KGOG26K4DPA7PY7P \ / AMOS7 \ YOURUM ::
+#\[7]GM3EWCQKYC55ETCPX6TAQI6YRPP55BSMXB3373DCZ2VNGJCOGKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
