@@ -73,7 +73,7 @@ foreach my $file (    ## collect signatures ##
 
 my @display_kfiles;
 foreach my $file (@k_files) {
-    ## skip TOFU pinned hostkey files - handled separately in remote_keys section ##
+    ## skip TOFU pinned hostkey files - handled separately in remote_keys
     next if $file =~ m|remote-host\.[0-9a-z\.\-_]+\.public$|;
 
     push @display_kfiles, $file;
@@ -91,7 +91,8 @@ foreach my $file (@display_kfiles) {
 }
 
 my $names_len = 2 + max( map {length} keys %key_files );
-$names_len = max( $names_len, map {length( $_ // '' )} values %key_chksums );
+$names_len
+    = max( $names_len, map { length( $_ // '' ) } values %key_chksums );
 
 <[base.logs]>->( "listing key files ['%s']", $key_dir );
 
@@ -158,9 +159,9 @@ if ( keys %{$remote_keys_ref} and not $display_sigs ) {
         $key_list_string .= sprintf " : %*s .\n", $names_len,
             sprintf( "'%s' [hostkey]", $display_name );
 
-        ##  Display with ntime_b32 as the timestamp and full filename  ##
+        ##  Display with ntime_b32 as timestamp and full filename  ##
         my $ntime_display = $remote_info->{'ntime_b32'};
-        my $key_filename = $remote_info->{'file_path'};
+        my $key_filename  = $remote_info->{'file_path'};
         $key_filename =~ s|^.*/||;    ## extract just the filename ##
 
         $key_list_string .= sprintf " : %*s : %s\n", $names_len,
@@ -185,33 +186,71 @@ if ( <system.ansi_color> or <system.force_colors> ) {
     my $_sn = $names_len + 2;
     no warnings qw| experimental |;    ##  variable length lookbehind  ##
 
+    ##  specific element coloring FIRST  ##
+
+    ##  colons at line start  ##
+    $key_list_string =~ s|^( *)(:{1,2})|$1$C{G}$2$C{T}|mg;
+
+    ##  header line  ##
+    $key_list_string =~ s|::(.+):.|$C{G}::$C{T}$1$C{G}:.$C{R}|m;
+
+    ##  trailing dots  ##
     $key_list_string =~ s|  (\.)$|  $C{b}$C{G}$1$C{R}|mg;
     $key_list_string =~ s|  (\:) |  $C{b}$C{G}$1$C{R} |mg;
-    $key_list_string =~ s|^( *)(:{1,2})|$1$C{G}$2$C{T}|mg;
-    $key_list_string =~ s|::(.+):.|$C{G}::$C{T}$1$C{G}:.$C{R}|m;
-    $key_list_string =~ s|^(.+)$|$C{T}$1$C{R}|mg;
-    $key_list_string =~ s,(*plb:(\ {$_sn}|:\ signed\ :|[\>']))\ (?<n>[\.:])
-                         , $C{G}$+{n}$C{T},mgx;
+
+    ##  key names in quotes [capture content only]  ##
+    $key_list_string =~ s{'([^']+)'}
+                         {$C{G}'$C{T}$1$C{R}$C{G}'$C{T}}mg;
+
+    ##  .public and .secret key names in purple  ##
+    $key_list_string =~ s{(\S+)(\.(public|secret))$}
+                         {$C{0}$1$C{R}$C{0}$2}mg;
+    $key_list_string =~ s{(\S+)(\.(public|secret))(:)}
+                         {$C{0}$1$C{R}$C{0}$2$3}mg;
+
+    ##  all extensions in purple  ##
+    $key_list_string =~ s{(\.(public|private|secret|sig))$}
+                         {$C{0}$1$C{R}}mg;
+    $key_list_string =~ s{(\.(public|private|secret|sig))(:)}
+                         {$C{0}$1$C{R}$2}mg;
+
+    ##  hostkey names in teal  ##
+    $key_list_string =~ s{'([^']+)'( \[hostkey\])}
+                         {$C{G}'$C{T}$1$C{R}$C{G}'$2$C{T}}mg;
+
+    ##  hostkey filenames in teal  ##
+    $key_list_string =~ s{(remote-host\.[^\s]+\.(public|private|secret))$}
+                         {$C{T}$1$C{R}}mg;
+
+    ##  checksums and markers  ##
+    $key_list_string =~ s,(*plb:(\ {$_sn}|:\ signed\ :|[\>']))\ (?<n>[\.\:])
+        , $C{G}$+{n}$C{T},mgx;
     $key_list_string =~ s<(\S+)  (\[incomplete\])>
                          <$C{0}$C{b}$1$C{R}  $C{o}$2$C{R}>mg;
     $key_list_string =~ s|: signed \e\S+|$C{G}: signed :$C{T}|mg;
-    $key_list_string
-        =~ s|(\[hostkey\])|$C{G}$C{b}$1$C{R}|mg;    ##[ remote key marker ]##
-    $key_list_string =~ s|(\[ [^\]]+ \])|$C{G}$1$C{R}|mg;    ##[ no match ]##
-    $key_list_string =~ s|'(.+)'|$C{G}'$C{T}$C{B}$1$C{R}$C{G}'$C{T}|mg;
-    $key_list_string =~ s|(*plb:user)( \S+ )|$C{B}$C{b}$1$C{R}$C{T}|mg;
-    $key_list_string =~ s,(<:.+:>|encrypted),$C{0}$C{b}$1$C{R}$C{T},mg;
-    $key_list_string
-        =~ s,($name_regex\Q:seed-phrase\E),$C{0}$colors{B01}$1$C{R}$C{T},mg;
-    $key_list_string
-        =~ s,(:.virtual.::),$C{0}$colors{B01}$1$C{R}$C{T}$C{B}$C{B02},mg;
+    $key_list_string =~ s|(\[hostkey\])|$C{G}$C{b}$1$C{R}|mg;
+    $key_list_string =~ s|(\[ [^\]]+ \])|$C{G}$1$C{R}|mg;
 
+    ##  encrypted markers  ##
+    $key_list_string =~ s|(*plb:user)( \S+ )|
+                         $C{B}$C{b}$1$C{R}$C{T}|mg;
+    $key_list_string =~ s,(<:.+:>|encrypted),
+                         $C{0}$C{b}$1$C{R}$C{T},mg;
+
+    ##  seed-phrase and virtual key markers  ##
+    $key_list_string =~ s{($name_regex\Q:seed-phrase\E)}
+                         {$colors{'B01'}$1$C{R}$C{T}}mg;
+    $key_list_string =~ s{(:.virtual.::)}
+                         {$colors{'B01'}$1$C{R}$C{T}$C{B}$colors{'B02'}}mg;
+
+    ##  full-line coloring LAST  ##
+    $key_list_string =~ s|^(.+)$|$C{T}$1$C{R}|mg;
 }
 
 return say $key_list_string;
 
-#,,..,.,,,...,...,.,,,,.,,.,,,,.,,,,.,.,,,.,,,..,,...,..,,..,,.,.,,.,,,..,,,,,
-#ITHYTFGQG7QZXR5ZUE5URRHXSEF5BVVKD4IUQBCLSSVHPYUZ4VD7ESM2JX43CU6QTPRTR37CYSDKY
-#\\\|EFO2I54U5OL2RYSSB6QEPNAXIJFVDZVT7BLPU672AITTQ37YICL \ / AMOS7 \ YOURUM ::
-#\[7]AXCE2FJPJRCEYKSGU3RNEDJ2ONMSLQ4BMJXI5MMJUSRJOHX6YEDA 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,..,,,,.,.,,,.,.,..,,...,.,,,,..,..,,...,..,,..,,,.,,.,.,,,,,...,
+#36UONJQXKPEZ47K2R5GMQTRR34YPG7XHSQKRJLP5HDM2WSEZGFPIFYGA2NEG7QY6MVEWORH7RFF7A
+#\\\|A23Y2SN7FYKDOUZ5FWI6OSXYC7DJZCXG4SWXRG6HJBZ6CCUO4RB \ / AMOS7 \ YOURUM ::
+#\[7]4O3NBI7GSSORJVK6OPBX7NNXNI7O57A3LV7BM542UUFNJUYZOGBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
