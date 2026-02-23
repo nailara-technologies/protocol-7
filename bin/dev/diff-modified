@@ -126,7 +126,9 @@ if ( !$has_stdin ) {
         if ($was_cdate) {    ## color commit message in 'git log' output ##
             if ( $was_cdate > 1 ) {
                 $line =~ s|(*plb:.)$| |;
-                $line =~ s|\s+|$nailara_bg$blacklight |;
+                ## color from column 3, skip lines already with ANSI codes ##
+                $line
+                    =~ s|^(.{2})([^\e].+)$|$1$nailara_bg$blacklight$2$reset|;
                 $was_cdate = 0;
             } else {
                 $was_cdate++;
@@ -134,6 +136,10 @@ if ( !$has_stdin ) {
         }
 
         my $current_year = 1900 + [localtime]->[5];
+
+        ## color commit body lines (4-space indented, 2 space padding) ##
+        $line            =~ s|^(  )(  .+)$|$1$nailara_bg$blacklight$2$reset|
+            unless $line =~ m|^\e|;    # skip if already has ANSI codes
 
         while (
             $line =~ s|(mcommit .+?)(\e.+?m)|
@@ -1031,8 +1037,8 @@ sub get_terminal_width {
 
 # vim: tabstop=4 shiftwidth=4 noexpandtab autoindent softtabstop=4
 
-#,,..,.,,,..,,,,.,,,.,.,,,,,.,,..,..,,.,,,,.,,..,,...,..,,.,.,.,.,.,.,,..,.,,,
-#TRBYGSRBCHOEG5QXHOHDHMRZYYI76UQ5WTU5ZGEBRJV2XEWOKOBTNAVNRKHN4FCDLUSYBDCPZTZWI
-#\\\|FP4FMIAHFBFHA3EFRUY7S4KDFPE4Z2J2FEQSFRWHRMKDY4GLYDP \ / AMOS7 \ YOURUM ::
-#\[7]NCW3VZAIIJVLZWV67FWGLTI5LQ5KURDPI2SFJHEZ3LXMCPQXVEDI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,..,.,.,,,,,.,.,,,,,,..,,..,,..,..,,...,...,...,..,,,,.,,,.,,,.,
+#H7ODCLIFONLKJ3OQ5W7X433NDFM4DZGHYUVLNDVVT3J5KFDW2YH5Q2OXF7KU7VELGGWVP5IEKLDBW
+#\\\|XYLYG7F45ACMSFXQG7UOST2IJPQQTR74XZ762ABBKJGXQNODJE4 \ / AMOS7 \ YOURUM ::
+#\[7]P3NIEIUE6GYOGBWDIFX35XEZM4WL5QXE56QZT74PTH6AMOUXMKCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
