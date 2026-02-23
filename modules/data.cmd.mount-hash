@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = data.cmd.mount-hash
+# param = <hash-path> [local-path]
+# descr = mount nested data hash as filesystem
+
+my $hash_path = $$call{'args'} // '';
+$hash_path =~ s|^\s+||;
+$hash_path =~ s|\s+$||;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected <hash-path> parameter'
+    }
+    unless length($hash_path);
+
+## validate hash path exists ##
+my $ref = <[data.resolve_hash_path]>->($hash_path);
+
+return {
+    'mode' => qw| false |,
+    'data' => "hash path '$hash_path' does not exist"
+    }
+    unless defined $ref;
+
+## determine reference type ##
+my $ref_type = <[data.get_ref_type]>->($hash_path);
+
+## list contents based on type ##
+my $listing = '';
+
+if ( $ref_type eq 'HASH' ) {
+    my $entries = <[data.list_entries]>->($hash_path);
+    $listing = "HASH directory with entries:\n";
+    for my $entry ( @{$entries} ) {
+        my $child_path = "$hash_path.$entry";
+        $child_path =~ s|^\.||;
+        my $child_type = <[data.get_ref_type]>->($child_path);
+        $listing .= "  [$child_type] $entry\n";
+    }
+} elsif ( $ref_type eq 'ARRAY' ) {
+    my $entries = <[data.list_entries]>->($hash_path);
+    $listing = "ARRAY listing with " . scalar( @{$entries} ) . " entries:\n";
+    for my $entry ( @{$entries} ) {
+        $listing .= "  - $entry\n";
+    }
+} elsif ( $ref_type eq 'CODE' ) {
+    $listing = "CODE reference (dynamic filter/proxy)\n";
+    ## try executing with 'info' context
+    my $info = eval { $ref->('info') };
+    if ( !$@ && defined $info ) {
+        $listing .= "  info: $info\n";
+    }
+} elsif ( $ref_type eq 'SCALAR' ) {
+    $listing = "SCALAR reference (file content)\n";
+    my $len = length( ${$ref} );
+    $listing .= "  length: $len bytes\n";
+} else {
+    $listing = "$ref_type (plain value)\n";
+}
+
+## return info (actual FUSE mount to be implemented) ##
+return {
+    'mode' => qw| true |,
+    'data' => "Hash path: $hash_path\nType: $ref_type\n\n$listing\n"
+        . "[FUSE mount not yet implemented - showing structure only]"
+};
+
+#,,,.,,,.,,,.,..,,...,.,,,,..,..,,,,,,,.,,,..,.,.,...,...,,,,,,,,,,.,,,,,,...,
+#3HRAHSMSNYVLQFOY2UAIBPWAVYG3I2K7VU4FMZH4UGB4VR3HWFDKYPGS6FTU7BVIZ7UB2LSCFCHA6
+#\\\|MVRK5TQFCRWVCDQQ3ZP7MZHIXMKVTDUS4LBOFLWIAHVRN6UPQ6D \ / AMOS7 \ YOURUM ::
+#\[7]NRQM5G4PS4MMNNWLGH3DQS5X7KFFNUVJ5CZF4B7PI365J7PRAQAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

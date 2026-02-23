@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = data.resolve_hash_path
+# param = <path> [root-ref]
+# descr = resolve dot-separated path to hash reference
+# return = hash ref or undef
+
+my $path_str = shift // return undef;
+my $root_ref = shift // \%data;
+
+return $root_ref unless length($path_str);
+
+my @segments = split( /\./, $path_str );
+my $current  = $root_ref;
+
+for my $segment (@segments) {
+    return undef unless ref($current) eq 'HASH';
+    return undef unless exists $current->{$segment};
+    $current = $current->{$segment};
+}
+
+return $current;
+
+#,,,,,.,.,,,.,,.,,,,,,,..,,.,,,.,,..,,,..,,,.,.,.,...,...,.,.,.,.,.,.,..,,.,.,
+#D7MECYQVMF5PJ4QYI7MYL2JMPR65KGAN4DJQSGKJE7LAEVQN6U2BTNJ36HAFB5H46RGM73FGIJZOU
+#\\\|J5QW34XHN7PPWRNOEFZVZJ2FNNUBCG6RAYRYWTD5RDVF6OAQDQ4 \ / AMOS7 \ YOURUM ::
+#\[7]KKSED53APQD7FPHP3PQPDCACEBXXO22VVKV3VU3CVWQ6P3EYSUDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

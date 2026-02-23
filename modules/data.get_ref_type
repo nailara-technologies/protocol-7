@@ -1,0 +1,23 @@
+## [:< ##
+
+# name  = data.get_ref_type
+# param = <path>
+# descr = determine reference type at hash path
+# return = HASH|ARRAY|CODE|SCALAR|TIED|PLAIN|UNDEF
+
+my $path_str = shift // return 'UNDEF';
+my $ref      = <[data.resolve_hash_path]>->($path_str);
+
+return 'UNDEF' unless defined $ref;
+return 'HASH'   if ref($ref) eq 'HASH';
+return 'ARRAY'  if ref($ref) eq 'ARRAY';
+return 'CODE'   if ref($ref) eq 'CODE';
+return 'SCALAR' if ref($ref) eq 'SCALAR';
+return 'TIED'   if ref($ref) and tied( ${$ref} );
+return 'PLAIN';
+
+#,,..,,,,,,,.,.,,,..,,,..,,.,,...,,..,,..,.,,,.,.,...,...,.,.,,,.,,..,..,,,,,,
+#3WRLM7AH6VAFKBMIMYTNG27VZV3R3YUMBABHU5M3Y3MBCKC6ASW7RSL7MHQSEIRLRUUHXJGTDSA3O
+#\\\|XND2GIHMTKRWZTGAY6VGD6RB4RWS32QEINPSXBH427WTMBO47S7 \ / AMOS7 \ YOURUM ::
+#\[7]D5AYQRAYSAIPPU7PMMJYKN7E3TIFN7CIMFNPUCGVUJNZHGZV72CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

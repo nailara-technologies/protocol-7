@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = data.get_array_entry
+# param = <path> <name>
+# descr = get entry by name from ARRAY listing
+# return = entry hash ref or undef
+
+my $path_str = shift // return undef;
+my $name     = shift // return undef;
+my $ref      = <[data.resolve_hash_path]>->($path_str);
+
+return undef unless ref($ref) eq 'ARRAY';
+
+for my $entry ( @{$ref} ) {
+    return $entry if $entry->{'name'} eq $name;
+}
+
+return undef;
+
+#,,.,,,,,,..,,...,...,,.,,.,,,,,,,.,.,,.,,,,,,.,.,...,...,..,,.,.,,,,,,,,,,..,
+#DF3UN252Z6BKR6LI2WGOTNSRITJWGJQME3HPOLMISJ2XAQ4ZEZ3UBAMEB5J4SGDN6PTD4NESBN4MG
+#\\\|UK3YJ35RNPTXW2CTEKVYSY4ZTOUA7ZF4UNUGBRZAYYW6TDCSQNS \ / AMOS7 \ YOURUM ::
+#\[7]HKTCHZXEF3QKOTQ5RHQVQGMSCTVAWXJNDNDMLDO7F6XSP4WDMYCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
