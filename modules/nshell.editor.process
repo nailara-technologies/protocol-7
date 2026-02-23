@@ -97,20 +97,30 @@ if ( $action eq 'newline' ) {
     my $cursor_pos     = $editor->{cursor_pos};
     my $buffer         = $editor->{buffer};
     my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
+    my $buffer_len     = length($buffer);
 
-    ## Go to start of line, then to cursor position, then clear cursor
+    ## Go to start of line, print everything up to cursor
     print "\r";
     if ( $cursor_pos > 0 ) {
         print substr( $buffer, 0, $cursor_pos );
     }
 
-    if ( $char_at_cursor eq '' or $char_at_cursor eq ' ' ) {
-        ## Cursor was rendered as underscore, erase it
+    ## Handle character at cursor (clear inverse or overwrite underscore)
+    if ( $char_at_cursor eq '' ) {
+        ## Cursor at end of line (underscore), just clear it
         print "\e[K";
+    } elsif ( $char_at_cursor eq ' ' ) {
+        ## Cursor on space (rendered as underscore), print space to overwrite
+        print ' ';
     } else {
         ## Cursor was rendered as inverse video character
         ## Reprint the character without inverse to overwrite
         print $colors{'p7_fg_0004'} . $char_at_cursor;
+    }
+
+    ## Print rest of buffer after cursor (if any)
+    if ( $cursor_pos + 1 < $buffer_len ) {
+        print substr( $buffer, $cursor_pos + 1 );
     }
 
     print "\e[0m" . $colors{'p7_fg_0004'};
@@ -141,8 +151,8 @@ if ( $action eq 'newline' ) {
 ## Unknown action - ignore
 return undef;
 
-#,,.,,.,.,,.,,..,,,,.,...,.,.,,.,,.,.,,.,,,..,.,.,...,...,.,.,,,.,.,.,...,,,.,
-#DXKQA7GHSAKF22ATOQKBVVUXGEXKKLMVZWOR2HPYJRZSLKWIMLNNPFGMA44FS74753C4NW7QDDLQ4
-#\\\|2PMCKBTHBFMXKP5L4KHDQAFZZ3KNPP3IVW2C64ODWPKIJCGIFEX \ / AMOS7 \ YOURUM ::
-#\[7]QQ4F7VYS4WLLBTSLKRAQH2YBL6BTUWDZIQ4AEJVMHPJRUJ7CHODA 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,...,,..,,,,,.,.,,,,,,,,,.,,,,.,,.,.,...,...,,,.,,,,,,,.,.,,,.,,,
+#7T376TXMZJEP4JQLACKZHWJBQPWYMINLPQ5DGN6EDUNVSLV6HXNZ2J2QDVQPLOUYI36P7QICJGJFY
+#\\\|H2JRBVJMRFFDJW5IMDKMNZO3QJ4M3S3NSBJERIUZIASKCYKMWL2 \ / AMOS7 \ YOURUM ::
+#\[7]NPEKKNNRN7MHRN5HSNTIM7NYMJWHSFOKRTP3GBRQUMMVWEQMG4DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

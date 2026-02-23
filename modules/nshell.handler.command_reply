@@ -50,12 +50,12 @@ if ( defined $encoded_payload ) {
 if ( not defined $payload_str ) {
 
     ## single-line reply : colorize and print to console for immediate display
-    ## TRUE replies  : standard text color
+    ## TRUE replies  : standard text color [p7_fg_0004]
     ## FALSE replies : emphasis color [p7_fg_0003]
-    my $reply_color = ( $cmd eq 'FALSE' ) ? $colors{'p7_fg_0003'} : '';
-    my $reset_color = ( $cmd eq 'FALSE' ) ? $colors{'p7_fg_0004'} : '';
+    my $reply_color
+        = ( $cmd eq 'FALSE' ) ? $colors{'p7_fg_0003'} : $colors{'p7_fg_0004'};
 
-    printf "\n%s%s%s\n\n", $reply_color, $args, $reset_color;
+    printf "\n%s%s\e[0m\n\n", $reply_color, $args;
 
 } else {    ## print multi-line output directly without padding to console
 
@@ -68,8 +68,8 @@ STDOUT->flush();
 
 return TRUE;
 
-#,,.,,...,,..,..,,,,.,,,.,.,.,,..,,.,,,,,,,,,,.,.,...,...,..,,,,.,,,.,.,,,..,,
-#SKIY4EW3VWY4445RLDXU3OHVN5B7WLD752WRU3QVPJBWRFZT72TGQCI622S5WVO22PSJ2XTQSGJNI
-#\\\|VPOH3OJOIPL6LBD3YQAOB625QACINJ2YH5VV3FRH7SA5LW2Z2XK \ / AMOS7 \ YOURUM ::
-#\[7]5O3JEPHKHXTEU3YNRQDN2LCN6XEKW6OC6KVINJGLDR5EU6VF5ICI 7  DATA SIGNATURE ::
+#,,..,...,..,,...,..,,,,.,,,.,,,.,,,.,...,.,.,.,.,...,..,,,,.,,.,,...,.,.,..,,
+#GBTFJVAGZIMC5BMYZWYNPAHIFUMISQ4YPKBFDQCF5CHYNS7WL2LGNO7JG232ENFKC7MTQ67M5IB7E
+#\\\|SJLZRKQQSWSEZHMIMAFQH7UASHJCFDV62S3KXJNX5P37QSBE776 \ / AMOS7 \ YOURUM ::
+#\[7]TFJMI2UYMJX7PNXGLJKBCAVHXONNJZH3QRAAU6WQRF73MHM5YIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

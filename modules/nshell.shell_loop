@@ -8,6 +8,9 @@
 ## Read one complete command from keyboard (accumulated by read_from_buffer)
 my $cmd = <[nshell.read_from_buffer]>;
 
+<[base.logs]>->( 2, "shell_loop: received cmd='%s'", $cmd // '<undef>' )
+    if defined $cmd and length $cmd;
+
 # my $cmd = <[nshell.editor.process]>->( ..requires..params.. ); # ? #
 
 return 0 unless defined $cmd and length $cmd;
@@ -36,8 +39,8 @@ if ( defined $cube_sid and exists $data{'session'}{$cube_sid} ) {
 
 return 0;
 
-#,,.,,,..,...,,,.,..,,.,,,...,...,,.,,.,,,..,,.,.,...,...,..,,,,,,,..,,,,,,.,,
-#AVWY2O4532ALRVSOWVKDV5VG4OMD6NRLLLCAB7LLKGTFAO7UEB2CP26QUVJI66FG3VFHRZXOUSTF6
-#\\\|UL3LCIWMZQBYMIC2Z44ITFOZKCUZDHOZWR2TZRVHSNDIJOE77AB \ / AMOS7 \ YOURUM ::
-#\[7]Z2YLV3XRLNXHPRUE272PCBWHBAPDPQKCPNJ2LQAOBWPKP43CQWDI 7  DATA SIGNATURE ::
+#,,..,,.,,,,,,,,,,...,,.,,.,.,,.,,,,,,..,,..,,.,.,...,...,.,.,.,,,,.,,...,.,.,
+#3IALXZQPNA2PHTMDHHCOT4Y2LVSMEKEEUICWBCNC26C5QP7UWD6Y4BBJHBIXRTKWXOCOM2C2EVDY4
+#\\\|OQS7EZLTYWXUCVB5DCJ6DAEDHZDDXLOFJO2T5UWP4YSMHH6XQ4W \ / AMOS7 \ YOURUM ::
+#\[7]BTSFOZW7M3Z4EMCE4A4J4TCM3PX24ZD2E3HMRFAMHHC6Z74OCSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
