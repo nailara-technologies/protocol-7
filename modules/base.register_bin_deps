@@ -16,6 +16,17 @@ if ( $bin_deps =~ s|zenki/$zenka/start$|$cfg_path/zenki/$zenka/os-dep/binary|
     and -d $bin_deps
     and -r $bin_deps ) {
 
+    ## skip if dependencies already registered ##
+    my $already_registered = TRUE;
+    foreach my $bin ( keys %binaries ) {
+        my $bin_file = catfile( $bin_deps, $bin );
+        if ( not -e $bin_file ) {
+            $already_registered = 0;
+            last;
+        }
+    }
+    return TRUE if $already_registered;
+
     ## Get parent directory owner [taeki in dev, root in production] ##
     my ($parent_uid) = <[base.path_owners]>->($bin_deps);
     unless ( defined $parent_uid ) {
@@ -28,12 +39,17 @@ if ( $bin_deps =~ s|zenki/$zenka/start$|$cfg_path/zenki/$zenka/os-dep/binary|
     }
 
     ## Get zenka group [httpd, httpsd, etc.] ##
-    my $zenka_group = <system.amos-zenka-user> // qw| protocol-7 |;
-    my $gid         = getgrnam($zenka_group)
-        or <[base.logs]>->(
-        0, "<< register_bin_deps : unix group '%s' not in passwd >>",
-        $zenka_group
-        ) and return undef;
+    my $zenka_user  = <system.amos-zenka-user> // qw| protocol-7 |;
+    my $zenka_group = $zenka_user;              ## same as user ##
+    my $gid         = getgrnam($zenka_group);
+    if ( not defined $gid ) {                   ## try auto-installing user ##
+        <[base.root.check_system_user]>->($zenka_user);
+        $gid = getgrnam($zenka_group)
+            or <[base.logs]>->(
+            0, "<< register_bin_deps : unix group '%s' not in passwd >>",
+            $zenka_group
+            ) and return undef;
+    }
 
     my $bin_stat = File::stat::stat($bin_deps);
 
@@ -88,8 +104,8 @@ if ( @not_registered and not $warned ) {
     <base.register_bin_deps.warned>++;
 }
 
-#,,.,,,,.,.,.,..,,,.,,,..,...,.,.,,.,,.,.,,.,,..,,...,...,...,,.,,,,.,,..,,,,,
-#HVOH7CJ54HB7J62XLJ7CLZXL4RD3XC3IUKD5ZXSXCXR5RL5E3Y5L46DZ4NZDAHZZDZFWOSLUKLLZO
-#\\\|RJXNMOISVXXRPGHBJNLIK4NV7B4HIY7O45CRFKOWF56MWCHQAD5 \ / AMOS7 \ YOURUM ::
-#\[7]7NZ52NLXEWPOF3F3QE6WFHDHM7AKIEQDHNHBSXBEJGKXFCMHNMCY 7  DATA SIGNATURE ::
+#,,,,,..,,...,..,,,,,,.,.,,..,,,.,,,.,.,.,.,,,..,,...,...,,..,.,,,,..,.,.,.,.,
+#DQ26WG3LDWAAIF73FKBRLXVPEVQ4CY4PQS5O6ILG3NHRHKY7RQ4OGZUN6WRJPJ5RBLUWI7KL2DDYO
+#\\\|JGRX5DFLUUR52D5QSQPVKLYCRAW6HEBYCYQULV2UQHB3MBYXLRV \ / AMOS7 \ YOURUM ::
+#\[7]I6WPSQ22ACQSFNFTPTADMTIPWACUQ3O6A3OCGS2EZRXDT6GBCIDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

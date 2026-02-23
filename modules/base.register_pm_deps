@@ -25,6 +25,18 @@ my @not_registered;
 if ( $mod_dir
     =~ s|zenki/$zenka/$start_cfg_name|$cfg_path/zenki/$zenka/pm-dep| ) {
 
+    ## skip if dependencies already registered ##
+    my $already_registered = TRUE;
+    foreach my $pm ( keys %pmods ) {
+        my $placeholder = catfile( $mod_dir, $pm );
+        $placeholder =~ s|::|__|g;    ## AMOS7::CHKSUM -> AMOS7__CHKSUM ##
+        if ( not -e $placeholder ) {
+            $already_registered = 0;
+            last;
+        }
+    }
+    return TRUE if $already_registered;
+
     <[base.check_dependency_dirs]> if not -d $mod_dir;
 
     ## Get parent directory owner [taeki in dev, root in production] ##
@@ -39,12 +51,17 @@ if ( $mod_dir
     }
 
     ## Get zenka group [httpd, httpsd, etc.] ##
-    my $zenka_group = <system.amos-zenka-user> // qw| protocol-7 |;
-    my $gid         = getgrnam($zenka_group)
-        or <[base.logs]>->(
-        0, "<< register_pm_deps : unix group '%s' not in passwd >>",
-        $zenka_group
-        ) and return undef;
+    my $zenka_user  = <system.amos-zenka-user> // qw| protocol-7 |;
+    my $zenka_group = $zenka_user;              ## same as user ##
+    my $gid         = getgrnam($zenka_group);
+    if ( not defined $gid ) {                   ## try auto-installing user ##
+        <[base.root.check_system_user]>->($zenka_user);
+        $gid = getgrnam($zenka_group)
+            or <[base.logs]>->(
+            0, "<< register_pm_deps : unix group '%s' not in passwd >>",
+            $zenka_group
+            ) and return undef;
+    }
 
     my $src_stat = File::stat::stat($mod_dir);
 
@@ -105,8 +122,8 @@ if ( $mod_dir
     }
 }
 
-#,,,.,,,,,,..,,,,,,.,,...,,.,,.,,,..,,,,.,.,.,..,,...,...,,..,,.,,.,,,,,,,,,,,
-#PN4YXKAEVVIHWYBWIWQ2MUKGJZJ5GMVRPDWTKYCF7AKN5GF74ICXIGCLYLPLYIMS7SUFJIGACPSG6
-#\\\|5EL3SQGO6XJYYSDGPSAAGBTYAT6BQMYMP7PKDQFTP7TFCBSQVJX \ / AMOS7 \ YOURUM ::
-#\[7]Z3IV3X4Q4HSAAUFE25XKOHIZC3SE34OW2FRGKU2MLUNRZLQ52QCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,..,,,.,,,,,,.,,,..,,,,,,..,,,,,.,.,..,,...,...,..,,,,.,.,,,.,,,,,,,
+#TD52OYWAPKVUFAUK35OBHV46VJDWLTDILJMBKYXGLMYDDNULJJ5XLWM6IVI5CC2OPOF5RDD6CWW5O
+#\\\|ZIBT2YRW3FR5RGVOODZOPDM3C2MS6LJZHAUVVJEL47HHUDLQQCL \ / AMOS7 \ YOURUM ::
+#\[7]DZWWKZ7R4FY36INLMNKTSUIGHFCBC6CTQFVDPFODGXEQ32CPWOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
