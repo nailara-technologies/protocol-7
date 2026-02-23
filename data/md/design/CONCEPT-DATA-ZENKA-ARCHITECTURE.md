@@ -444,6 +444,33 @@ Explicit replication control.
 - **`base32`/`base58`** - Encodings from AMOS7
 - **C25519** - Key-linked ownership
 
+### Reference Encoding (`base.p7refs.*`)
+
+**Network-safe reference handling** - for sharing refs across nodes:
+
+```perl
+## Generate P7REF for network sharing
+my ($p7ref, $chksum) = <[base.p7refs.gen_template_chksum]>
+    ->('HASH', $b32_addr, $node_name);
+## Returns: HASH:<chksum>:<b32_addr>
+
+## Anonymized mode (for untrusted peers)
+my $anon_ref = <[base.p7refs.gen_template_chksum]>
+    ->('HASH', $b32_addr, undef, 'exclude_types');
+## Returns: <chksum>:<b32_addr> (no type prefix)
+```
+
+**Applications**:
+- **Network mounts**: Exchange P7REFs instead of raw memory addresses
+- **Cubic replication**: Consistent ref IDs across 27-node neighborhood
+- **Child/parent IPC**: Reference tokens for async communication
+- **Cache keys**: Checksum-based invalidation
+
+**Benefits**:
+- Single optimization hub for reference encoding
+- Half-anonymized (checksum validates without full exposure)
+- Node-aware distributed references
+
 ### Cubic Topology
 - `configuration/zenki/cube/` - Cubic space infrastructure
 - `protocol7-math-topology-reference.yaml` - 13³ calculations
@@ -637,8 +664,8 @@ It bridges the mathematical purity of 13³ space with the messy reality of files
 
 "Data is not stored. Data is *positioned* in truth-space."
 
-#,,,,,,,,,,.,,,,.,,,.,..,,,.,,,,.,.,.,,,,,...,.,.,...,..,,.,.,.,,,,.,,..,,,.,,
-#WP7AFHHAAOFOFH6WYVQE2JNKL57BGYY33XXAEVTO7BP5ZBUIIGRYWDNTZMRXI4ZIKD7E6TTMHPLWA
-#\\\|G4MZ32X324GQMKKRCLG52FLG5EGKIGQCBI7WIN7GIIWJNCFYIPU \ / AMOS7 \ YOURUM ::
-#\[7]X6WLFGFTPCSABIZUSM3ZWJO62UAWRSMVTVCIY3OSAXON6Q7MJACA 7  DATA SIGNATURE ::
+#,,,,,,..,..,,...,..,,,,.,.,.,,..,...,..,,.,,,.,.,...,...,.,,,..,,.,.,..,,..,,
+#GF2XIXEJCXIZVQFO7JSLBJZUYBQNB2PXVROWCVF2SGL46PIDOB7N3S73J5TY2NNWQVA3VMQILHRLC
+#\\\|EQ5JJTE3JISEB3JQZUU637W3BZI64SALLHZ2YUUEEYVUNN24E3W \ / AMOS7 \ YOURUM ::
+#\[7]WXGBRWHCQYQDFFY7YT4PQAZN3NEZVKHHGRYTC5DPJFEZVYIV3YAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
