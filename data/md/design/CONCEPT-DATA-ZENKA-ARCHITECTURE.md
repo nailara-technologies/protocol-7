@@ -418,19 +418,76 @@ Explicit replication control.
 
 ## Integration Points
 
-### Indexer Zenka
-- `index.init_code` - Shared wordlist infrastructure
-- `index.jobs` - Indexing jobs for new data
-- `list.index-jobs` - Monitor indexing progress
+### Existing Infrastructure (Leverage, Don't Duplicate)
 
-### Checksum System
-- `AMOS7::CHKSUM::ELF` - Spatial positioning
-- `AMOS7::CHKSUM::BMW` - Content validation
-- `AMOS7::Protocol::P7` - Data serialization
+#### Indexer Zenka
+- `index.init_code` - Wordlist infrastructure (Digest::BMW, Linux::Inotify2)
+- `index.cmd.add-path` - Path monitoring for indexing
+- `index.callback.wordlist-import` - Content analysis
+- `index.jobs` - Background indexing jobs
+
+#### Storage Zenka
+- `storage.amos_chksum.open_socket` - **Use for ELF checksums**
+- `storage.protocol.SFTP` - Remote storage protocol
+- `storage.map-dirs.*` - Directory tree mapping framework
+- `storage.unix.handler.amos-chksum` - Unix socket checksum service
+
+#### Filesystem (fs) Zenka
+- `fs.cmd.mount` - System mount operations
+- `fs.cmd.unmount` - Cleanup operations
+- `fs.is_mounted` - Mount status checking
+- `fs.init_code` - Filesystem state management
+
+### Checksum System (Use Existing)
+- **`amos-chksum`** - ELF checksum for spatial positioning
+- **`bmw`** - BMW checksum for content validation
+- **`base32`/`base58`** - Encodings from AMOS7
+- **C25519** - Key-linked ownership
 
 ### Cubic Topology
-- `configuration/zenki/cube/` - Existing cubic space infrastructure
-- Neighborhood_27 calculations from `protocol7-math-topology-reference.yaml`
+- `configuration/zenki/cube/` - Cubic space infrastructure
+- `protocol7-math-topology-reference.yaml` - 13³ calculations
+- `configuration/zenki/cube/pm-dep/AMOS7__CHKSUM` - ELF library
+
+### Data Zenka's Role
+
+**Data zenka is the coordinator**, not the implementer:
+- Uses `storage.amos_chksum` for checksums (not reimplementing)
+- Uses `fs.cmd.mount` for FUSE setup (not new mount logic)
+- Uses `index.*` for search/wordlists (existing indexing)
+- Provides **new**: Cubic space mapping, CODE ref evaluation, async child/parent pattern
+
+**Checksum Algorithms (Reuse)**:
+```perl
+## ELF for spatial positioning via storage zenka socket
+my $usock = <storage.unix_socket.amos-chksum>;
+print {$usock} "  $data\n";  # 2-space indent protocol
+my $elf = <$usock>;           # Returns ELF checksum
+my ($x, $y, $z) = elf_to_cubic($elf);  # 13³ coordinates
+
+## BMW for content validation
+my $bmw = bmw_256($content);
+
+## Base32/Base58 for display/encoding
+my $b32 = encode_b32r($checksum);
+my $b58 = encode_b58s($key_id);
+
+## C25519 for ownership/encryption
+my $pubkey = $keys{'C25519'}{$key_id}{'public'};
+```
+
+**Existing Encodings** (from `AMOS7::Protocol::P7`):
+- BASE32 - Checksum display, key identifiers
+- BASE58 - C25519 keys (like Bitcoin)
+- BASE64 - Binary data transport
+- HEX - Raw checksum bytes
+
+**Mode Selection** (ELF truth assertion modes):
+```perl
+## Via storage socket protocol
+print {$usock} ": 7 13 :\n";  # Select modes 7 and 13
+print {$usock} "  $data\n";   # Get checksum in selected modes
+```
 
 ## Security Model
 
@@ -580,8 +637,8 @@ It bridges the mathematical purity of 13³ space with the messy reality of files
 
 "Data is not stored. Data is *positioned* in truth-space."
 
-#,,..,,,,,.,.,.,,,,..,.,,,...,,..,,..,.,,,...,.,.,...,...,,,.,,.,,.,.,..,,.,,,
-#7BI2GVTYRBSFI65KWHGLKVGOIKKK52OVZZ67O6YDPVDCX6DAFPZZOU5XGGCZLOUU2L5FTZZICSYHS
-#\\\|FMMZ6SFSVKEFHUV62STCKHYAPNP3XOPVBW2NPZ6YZAG5HFSDOQQ \ / AMOS7 \ YOURUM ::
-#\[7]AYW6BEYK4E4DVFXC5C5HNBBQ46KLBI5JUX64ZNWNWG7GAW5E5KDI 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,,,.,,,.,..,,,.,,,,.,.,.,,,,,...,.,.,...,..,,.,.,.,,,,.,,..,,,.,,
+#WP7AFHHAAOFOFH6WYVQE2JNKL57BGYY33XXAEVTO7BP5ZBUIIGRYWDNTZMRXI4ZIKD7E6TTMHPLWA
+#\\\|G4MZ32X324GQMKKRCLG52FLG5EGKIGQCBI7WIN7GIIWJNCFYIPU \ / AMOS7 \ YOURUM ::
+#\[7]X6WLFGFTPCSABIZUSM3ZWJO62UAWRSMVTVCIY3OSAXON6Q7MJACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
