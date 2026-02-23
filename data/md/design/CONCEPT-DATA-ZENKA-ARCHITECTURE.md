@@ -669,3 +669,255 @@ It bridges the mathematical purity of 13³ space with the messy reality of files
 #\\\|EQ5JJTE3JISEB3JQZUU637W3BZI64SALLHZ2YUUEEYVUNN24E3W \ / AMOS7 \ YOURUM ::
 #\[7]WXGBRWHCQYQDFFY7YT4PQAZN3NEZVKHHGRYTC5DPJFEZVYIV3YAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+---
+
+## Appendix: Streaming Checksum Modes for Large Files
+
+### Problem: Unknown Full Checksum
+
+When receiving large streams (network uploads, live recordings), the final checksum isn't known until the stream ends. Traditional approaches either:
+- Buffer entirely in memory (resource intensive)
+- Write to temp file, checksum at end (latency)
+- Use placeholder names, rename at end (complexity)
+
+### Solution: Incremental Block Addressing
+
+**BMW checksum continuation** allows resuming from intermediate state:
+
+```perl
+## BMW supports incremental hashing
+my $bmw_state = BMW->new;
+
+while (my $chunk = read_stream()) {
+    $bmw_state->add($chunk);
+
+    ## Current checksum represents all data so far
+    my $current_checksum = $bmw_state->hexdigest;
+
+    ## Write 63K block with current cumulative checksum
+    write_block($chunk, $current_checksum);
+
+    ## Rename file to reflect current state
+    rename_file($path, $current_checksum, $total_bytes);
+}
+```
+
+### Block Structure
+
+**63K Base Blocks** (configurable):
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  63KB Block Format                                      │
+├─────────────────────────────────────────────────────────┤
+│  Header (256 bytes):                                    │
+│    - Block magic (4 bytes): 0x424D57 (BMW)              │
+│    - Block type (1 byte): SINGLE | SPLIT | OVERLAP      │
+│    - Sequence number (8 bytes)                          │
+│    - Cumulative checksum (32 bytes)                     │
+│    - Block size (4 bytes): actual data in block         │
+│    - Flags (4 bytes): CONTINUES | TERMINAL | CHECKPOINT │
+│                                                         │
+│  Data (65024 bytes max):                                │
+│    - Raw file data                                      │
+│    - Or multiple file fragments with inline headers     │
+│                                                         │
+│  Footer (256 bytes):                                    │
+│    - Block checksum (32 bytes)                          │
+│    - Padding/reserved                                   │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Write Modes
+
+#### Mode 1: Single-Contained Single-Segment
+```
+Block N: [File A: bytes 0-63999]     ← complete file fits
+Block N+1: [File B: bytes 0-63999]   ← next file
+```
+Simplest mode - one file per block, no fragmentation.
+
+#### Mode 2: Split-Contained
+```
+Block N: [File A: bytes 0-63999]
+Block N+1: [File A: bytes 64000-127999]  ← continuation
+Block N+2: [File B: bytes 0-63999]       ← new file starts
+```
+Large files span multiple blocks. Each block has cumulative checksum.
+
+#### Mode 3: Split-Overlap
+```
+Block N: [File A: end-1KB][File B: start-62KB]
+Block N+1: [File B: continuation]
+```
+File boundaries overlap within block - useful for small files, ensures atomicity.
+
+### Hierarchical Aggregation
+
+**63K → 63M → 63G blocks**:
+
+```
+Level 0 (63K):  Raw data blocks
+Level 1 (63M):  1024 x 63K block checksums
+Level 2 (63G):  1024 x 63M block checksums
+```
+
+Merkle-tree-like structure allows:
+- Verifying any 63K segment without full file checksum
+- Resuming interrupted transfers at 63K boundaries
+- Parallel verification
+
+### Filename Convention
+
+**Atomic rename pattern**:
+```
+Writing:   .tmp.<partial_checksum>.<offset>
+Complete:  <final_checksum>-<total_bytes>.data
+Append:    <prev_checksum>-<prev_bytes>.data → <new_checksum>-<new_bytes>.data
+```
+
+Example:
+```
+Uploading 500MB file...
+.tmp.a3f7b2.0              (first 63K)
+a3f7b2-65536.data          (renamed after checksum)
+a3f7b2d9-131072.data       (after second block)
+...
+final9a2e-524288000.data   (complete)
+```
+
+### Cross-Node Continuation
+
+**Resuming on different node**:
+```
+Node A wrote: checksum X at offset Y
+Node B receives: checksum X, offset Y, state Z
+Node B: Continue BMW from state Z, verify X matches
+Node B: Append new data, new checksum X'
+```
+
+BMW state is ~32 bytes - can be passed between nodes.
+
+### Implementation Sketch
+
+```perl
+package AMOS7::Data::StreamWriter;
+
+sub write_chunk {
+    my ($self, $data_chunk) = @_;
+
+    ## Add to BMW checksum
+    $self->{'bmw_state'}->add($data_chunk);
+    my $current_checksum = $self->{'bmw_state'}->hexdigest;
+
+    ## Accumulate to 63K
+    $self->{'buffer'} .= $data_chunk;
+
+    ## Flush when buffer full
+    if (length($self->{'buffer'}) >= 63*1024) {
+        my $block = substr($self->{'buffer'}, 0, 63*1024);
+        $self->{'buffer'} = substr($self->{'buffer'}, 63*1024);
+
+        ## Write with current cumulative checksum
+        $self->write_block($block, {
+            'checksum' => $current_checksum,
+            'offset'   => $self->{'total_written'},
+            'flags'    => $self->{'is_complete'} ? 'TERMINAL' : 'CONTINUES',
+        });
+
+        ## Atomic rename to reflect state
+        $self->rename_current_file($current_checksum, $self->{'total_written'});
+    }
+
+    $self->{'total_written'} += length($data_chunk);
+    return $current_checksum;
+}
+```
+
+### Benefits
+
+1. **Always-consistent naming**: Filename reflects actual content
+2. **Resumable transfers**: Continue from any 63K boundary
+3. **Incremental verification**: Verify as you write, not at end
+4. **Cross-node append**: BMW state portability
+5. **No temp files**: Content-addressed from first byte
+6. **Parallel writes**: Different 63M blocks in parallel
+
+### Relation to Cubic Space
+
+63K/63M block boundaries align with cubic topology:
+- 63K blocks → individual cubic nodes
+- 63M superblocks → 27-node neighborhoods
+- Spatial position determines replica placement
+
+#,,,.,.,,,.,.,,..,.,,,..,,,.,,,,.,...,...,,..,.,.,...,...,...,..,,..,,.,,,,..,
+#7NUFN2TPSGNSBSCTMUUJCLYGLCT66MJAZUW5VSAN3QXN743QHVPPYZUUEZQUJ7BMOP373I7OE6QJE
+#\\\|WG5YPAVMDD56IAGFMSKZ4RJ5TQFYQHNY4WBSZLQDWRS7B2A7NQN \ / AMOS7 \ YOURUM ::
+#\[7]5DQBF4Y5RSQM77YGOIR3FPIN3YCAQ6WL4EQ6D2ETTCRCMQDZ5ABQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+### 63K Convergence: Storage = Network
+
+The 63K block size unifies storage and network layers:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  STORAGE LAYER          │  NETWORK LAYER                 │
+│  ─────────────          │  ─────────────                 │
+│  63K content blocks     │  63K packets                   │
+│  BMW checksum addressed │  Cubic topology routed         │
+│  Merkle tree verified   │  Buffer-swapped at nodes       │
+│                         │  Re-encrypted per hop          │
+└─────────────────────────┴────────────────────────────────┘
+                           │
+                           ▼
+              ┌──────────────────────┐
+              │  ZERO-COPY TRANSFER  │
+              │  Block on disk =     │
+              │  Packet in flight    │
+              └──────────────────────┘
+```
+
+**Buffer Swap Operations**:
+- Storage layer writes 63K block → references buffer
+- Network layer sends buffer → zero copy
+- Router receives → swaps to local buffer pool
+- Re-encrypts → forwards to next cubic hop
+
+**Traffic Analysis Resistance**:
+```
+Standardized 63K size + entropy padding
+    ↓
+All packets identical size
+    ↓
+Cannot distinguish file types by size
+    ↓
+Re-encryption at each hop
+    ↓
+Cannot track flows by pattern
+    ↓
+Cubic routing in 3D space
+    ↓
+No source/destination correlation
+```
+
+**Context-Aware Optimization**:
+- Hot paths: Keep buffers in 27-node neighborhood
+- Cold data: Background migration, erasure coding
+- Streaming: Direct block-to-packet mapping
+- Batch: Aggregate 63K→63M superblocks
+
+**Efficiency Benefits**:
+- No size conversion overhead
+- Memory-mapped buffers work for both storage and network
+- CPU cache-friendly (63K fits in L2)
+- DMA-friendly for hardware acceleration
+
+This is **Layer 3D** - not just routing, but spatial positioning of data in truth-space, where storage and transmission become the same operation.
+
+#,,,,,,..,.,,,,,.,,..,,..,.,,,,..,.,,,.,.,,..,.,.,...,...,..,,..,,,,,,,,.,..,,
+#ZJW6D5G6WB7X7EVHK27UQLJGFGNUVSKA35AP66EDL3FJHVDHXDTCCXHGYDZ674FIOTUXX23Y4CV7K
+#\\\|ZV6FEZC3PJ47EATOOQ3DDE2YUD6F4YWR3LJSUSAMKGYIT2ETKTH \ / AMOS7 \ YOURUM ::
+#\[7]C6FTPB7ADECVYMB5HC2G63KL5OJUMFTHEEOK5CV4IRCAXN22RSBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
