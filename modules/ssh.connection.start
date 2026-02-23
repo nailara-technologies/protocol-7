@@ -74,7 +74,7 @@ if ( not $sock ) {
 $sock->sockopt( SO_LINGER(), pack( 'SS', 0, 0 ) );
 
 if ( not $ssh->connect($sock) ) {
-    <[base.log]>->(
+    <[base.logs]>->(
         0, ': : ssh connection error [ %s ]',
         <[base.str.os_err]>
     );
@@ -229,8 +229,8 @@ $connection->{'timer'}->{'reconnect'} = <[event.add_timer]>->(
 
 return 0;
 
-#,,,,,.,.,...,,..,,..,..,,,,,,,,,,..,,..,,.,.,..,,...,...,,,.,,..,,..,.,.,.,.,
-#JIGS3F7THLBIXI2RRUDSR3QB6LCAE3HTD67ZAEBDNUKENWDKCLUKSWPOIRWB3B4KWPSMX7TFN45IO
-#\\\|XDZRWV5FLXQDN4QYJKHHCGILCCQFOMMG4YHKJJYWTONFOZNYLFJ \ / AMOS7 \ YOURUM ::
-#\[7]L3CHWKBD52C5GF5R26BFHSE3BUX5JVUGTZGDX2CEW5ILUXQLP4AQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,,..,,.,,..,,,..,.,,,...,,,,,,.,,..,,...,..,,..,,,..,,..,,..,,..,
+#AKDJ5ZPBKSHVL6DT2BLJSRQMLYVTUFXI6ZDTIMRSWAHVAZURPGF2IQ6GWKHP7P5TAVKYFQ6LPOU5U
+#\\\|FQWZ3IOBLB7ANBQDF5QP62Q74V53CZRVRGS6NWT3UGQMJU7FLY4 \ / AMOS7 \ YOURUM ::
+#\[7]KO2ZT5NJARQUL256OX7HRTRDEN7KCSYYYMMJONPLAWEPQ2RXO4AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

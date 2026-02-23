@@ -22,8 +22,9 @@ if ( $status ne qw| TRUE | ) {
         or not exists <ssh.heartbeat_request>->{$con_id}->{$int_id};
 
     my $msg = $response->{'call_args'}->{'args'};
-    <[base.log]>->(
-        0, "hearbeat reply timeout for link '$link_name'. [ $msg ]"
+    <[base.logs]>->(
+        0,          ': : heartbeat reply timeout for link [%s] [%s]',
+        $link_name, $msg
     );
     <[ssh.connection.stop]>->($con_id);
 } else {
@@ -35,11 +36,11 @@ if ( $status ne qw| TRUE | ) {
     my $delta_t = <[base.time]>->(5) - $request->{'time_sent'};
     my $latency = sprintf( '%.2f', $delta_t * 1000 );
 
-    #   print "[$link_name] link latency : ${latency}ms\n";
+    ## :. link latency debug .: <[base.logs]>->( 3, '[%s] latency : %sms', $link_name, $latency );
 }
 
-#,,..,,..,..,,.,,,.,.,,,.,...,,,.,..,,,,.,,,.,..,,...,...,..,,..,,,..,,,.,,..,
-#JEMO6DXPANI3L5MJR7KZBK4F4PKO5SXN4WFNWMUTRH3J5PYPTFFJ3BMZZRYKF65IB74AHJDLEDIWA
-#\\\|NNY26JB7KGVUHUNWV2YFTUFMFCE5MUHTVOS4Y22SCOIPG6NQMHT \ / AMOS7 \ YOURUM ::
-#\[7]ZRY3QJFVCN7JGKBJ6WNWODTMDZ5UNKDZ3UEC62FXFUVGZUPPNKDQ 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,,.,,,.,,,..,.,.,...,.,.,,,.,...,..,,...,...,...,...,,..,,,,,.,.,
+#B4JLGDQOV24OAQTAVGE37RAJUJKBHJ4SPH3T4IJ4F5TXGHNLMGN6WZGTU2EM5FPAGCQIRQODWN7Z4
+#\\\|O5EV2NMXBWMNF52A3VKETRY6TVQEJ4YGRCAG3FGGE3AA7D2SW3M \ / AMOS7 \ YOURUM ::
+#\[7]A45TJHCMH2RICVQ5KOIRXSJEDY7BCFPTGPN5IW7CNSML43GDNOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
