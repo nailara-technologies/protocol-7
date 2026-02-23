@@ -105,13 +105,16 @@ if ( $next_index >= 0 && $next_index < @AMOS7::TERM::history_entries ) {
 $state_ref->{'ctrl_o_redraw_cursor'} = TRUE;
 
 if ( length $cmd ) { ## stay in VIEWING_HISTORY mode with next entry preloaded
+    if (<nshell.mode.no_tty_debug>) {
+        <[base.logs]>->( 1, "ctrl_o: RETURNING cmd='%s'", $cmd );
+    }
     return $cmd;
 } else {
     return undef;
 }
 
-#,,..,.,.,.,.,.,,,,,,,,,,,..,,...,.,,,..,,,..,.,.,...,..,,...,,..,..,,,..,..,,
-#NAXVTUIMNGKMRC6J4L5Y6WIKB52TTPEC6N4AQTX4NWPOFCFOAJE2FUC4ZMIVVHIO5MPIIXSLTNQUM
-#\\\|FLLYLAPHPRUUFITUJOCDWCLKMAZY2VR6TELL7HPWY3V7EPK46HK \ / AMOS7 \ YOURUM ::
-#\[7]U4CIS4HDQO674NC5CRXZ7M3K7EP5VMJKJ3M6ZQUAKQJAKKJ4QOAY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,...,.,.,...,.,.,,,,,,,.,.,.,,,,,.,.,...,...,...,..,,...,,.,,.,.,
+#HMPQD7MSNDXYRGV7G4SXBT3IKQPAQTB7ADVAAIWW6RZTEFGN7UHUC6EN4SBHD6NEM6JHQGSDDJ6XE
+#\\\|HTZ7F5C7UMRKWZTAC4G2SXFPDPX4SUVJPORVJKTU7ZRW5E2HEDT \ / AMOS7 \ YOURUM ::
+#\[7]73B7S7NN25SQICS25RNXU4ETUJAT272HISUHIURLTWFU7Y2VM6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
