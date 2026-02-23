@@ -57,11 +57,17 @@ if (    $dep_dir =~ s|zenki/$zenka/$start_cfg_name$|$cfg_path/zenki/$zenka|
     foreach my $sub_dir (@sub_dirs) {
         my $dir_path = catfile( $dep_dir, $sub_dir );
 
+        ## ..avoiding race conditions in pre_init phase before swap_subs.. ##
+        my $early_makepath_code_ref
+            = exists $code{'file.make_path'}
+            ? $code{'file.make_path'}
+            : $code{'base.file.make_path'};
+
         ## use file.make_path to create\fix directory with ##
         ##                      parent owner + zenka group ##
-        <[file.make_path]>->(
+        $early_makepath_code_ref->(
             $dir_path, $subdir_perms, $parent_owner, $zenka_group
-        );
+        ) if ref $early_makepath_code_ref eq qw| CODE | and -r $dep_dir;
 
         ( my $relpath = $dir_path ) =~ s|^.*/||;
 
@@ -85,8 +91,8 @@ if (    $dep_dir =~ s|zenki/$zenka/$start_cfg_name$|$cfg_path/zenki/$zenka|
     }
 }
 
-#,,..,,.,,,..,..,,,,.,,,.,..,,,,.,...,,,,,..,,..,,...,...,.,,,,,.,,.,,,.,,...,
-#AJS2BBNWZ23RYOLXV4LJ67Y34GVJIS3MY2LVDASO6D3JXG3H6OZL2CCWCANKUKZGU4CLEXAKYHSLS
-#\\\|BYNOZ7CAWVQJY6HDJU3KKKYQKHZOYDWRCTKPI3YVSU62PAG7QR7 \ / AMOS7 \ YOURUM ::
-#\[7]QFPLDXZC67LUYARG4INNUZG5USRGTKR5WB3COTG26YK2UOMMQODA 7  DATA SIGNATURE ::
+#,,,,,,,.,,,.,...,,.,,...,,,,,,,.,,,.,,.,,.,,,..,,...,...,..,,,.,,,,,,,,.,,..,
+#LEQB4TNO6ZFCNTA6KQKVBIPB34IEAKNS4ZB6DUXO6QDP7EYNY2O5R5GMGMFEFZQXDMEB4WMNWYVNS
+#\\\|T5NK3O6XERN3B4H3GPTCLPKEXAWW6RXCVYWSBD2FXOKBHXRQMTN \ / AMOS7 \ YOURUM ::
+#\[7]NKUAQKLZQIA2NHUCRVRRVEC4VNXD7WZIRMKHAYRO3DAA2DL3JECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
