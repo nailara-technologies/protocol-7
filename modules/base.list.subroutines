@@ -60,6 +60,7 @@ return [ qw[
         base.del_env
         web.init_code
         udev.open_adm
+        ssh.init_code
         power.dev_obj
         power.cmd.off
         pcycle.switch
@@ -151,6 +152,7 @@ return [ qw[
         system.pre_init
         ssl.cmd.del_tcp
         ssl.cmd.add_ssl
+        ssh.load_config
         power.init_code
         plugin.auth.pwd
         p7-log.add_line
@@ -321,6 +323,8 @@ return [ qw[
         filter.del_filter
         filter.add_filter
         discover.pre_init
+        data.list_entries
+        data.get_ref_type
         cube.cmd.unselect
         cube.cmd.basepath
         content.load_file
@@ -386,6 +390,8 @@ return [ qw[
         ticker.calc_colors
         template.init_code
         ssl.client_handler
+        ssh.handler.ssh_io
+        ssh.enable_profile
         power.cmd.show_all
         osd-logo.init_code
         notify.cmd.message
@@ -491,6 +497,8 @@ return [ qw[
         system.cmd.hostname
         storage.map-dirs.fs
         ssl.connect_handler
+        ssh.disable_profile
+        ssh.connection.stop
         sourcecode.pre_init
         source.cmd.get-code
         remote-cam.sdl_loop
@@ -529,6 +537,7 @@ return [ qw[
         devmod.cmd.free-mem
         devmod.cmd.exec-sub
         devmod.cmd.dump-env
+        data.cmd.mount-hash
         data.cmd.mount-cube
         cube.cmd.clear-cons
         crypt.cbc.init_code
@@ -589,6 +598,7 @@ return [ qw[
         ticker.callback.draw
         storchencam.sdl_loop
         start-anim.init_code
+        ssh.connection.start
         sourcecode.post_init
         sourcecode.init_code
         screenshot.init_code
@@ -651,6 +661,7 @@ return [ qw[
         devmod.cmd.list-subs
         devmod.cmd.eval-code
         devmod.cmd.core-subs
+        data.get_array_entry
         data.cmd.detach-cube
         content.cmd.get_list
         content.check_queued
@@ -868,6 +879,8 @@ return [ qw[
         ticker.handler.fade_in
         system.process.cmd.top
         start-anim.open_window
+        ssh.handler.nailara_io
+        ssh.cmd.profile_enable
         source.signature_valid
         set-up.chk_profile_dir
         session.console.config
@@ -914,6 +927,7 @@ return [ qw[
         events.cmd.show-active
         events.calc_unix_table
         devmod.cmd.switch-user
+        data.resolve_hash_path
         crypt.C25519.sign_keys
         crypt.C25519.sign_data
         crypt.C25519.post_init
@@ -997,6 +1011,9 @@ return [ qw[
         storage.map-dirs.fs.del
         storage.map-dirs.fs.add
         start-anim.handler.draw
+        ssh.set-up.import_rules
+        ssh.set-up.export_rules
+        ssh.cmd.profile_disable
         source.extract_sig_body
         set-up.json.import_file
         rss.ticker.fetch.single
@@ -1273,6 +1290,7 @@ return [ qw[
         ticker.font.offsets_table
         storage.map-dirs.tree.del
         storage.map-dirs.tree.add
+        ssh.parser.profile_status
         source.load_signature_key
         set-up.cmd.create-profile
         rss.ticker.fetch.multiple
@@ -1431,6 +1449,7 @@ return [ qw[
         nshell.setup_stdin_watcher
         nshell.render.empty_prompt
         nshell.redraw_command_line
+        nshell.handler.debug_input
         mpv.handler.resume_timeout
         mpv.handler.get_list_reply
         mpv.handler.cmd_prop.pause
@@ -1671,6 +1690,9 @@ return [ qw[
         system.cmd.reload_gfx_module
         storchencam.cmd.disable_time
         storchencam.cmd.disable_temp
+        ssh.parser.connection_target
+        ssh.parser.connection_status
+        ssh.handler.connection_retry
         source.cmd.update-to-current
         rss.ticker.cmd.resend_update
         protocol.protocol-7.pre_init
@@ -1783,6 +1805,7 @@ return [ qw[
         system.handler.X-11_restarted
         system.handler.X-11_pid_reply
         system.callback.xcrash_reboot
+        ssh.handler.heartbeat_timeout
         sourcecode.source_path_set_up
         sourcecode.console.test-cycle
         source.create_harmonic_footer
@@ -1913,6 +1936,8 @@ return [ qw[
         tile-groups.cmd.get-tile-color
         ticker.load_font_offsets_table
         ticker.handler.get-layer_reply
+        ssh.parser.profile_connections
+        ssh.handler.heartbeat_response
         rss.ticker.warn_urls_undefined
         rss-ticker.set-up.import_rules
         rss-ticker.set-up.export_rules
@@ -2104,6 +2129,7 @@ return [ qw[
         system.process.handler.wait_gone
         system.handler.X-11_driver_reply
         storage.unix.handler.amos-chksum
+        ssh.handler.connection_heartbeat
         sourcecode.test-endline-handling
         sourcecode.console.test-diagnose
         sourcecode.callback.load_modules
@@ -2657,8 +2683,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,,,.,,,.,,.,,...,.,,,.,.,.,.,,..,.,,,..,,.,.,...,...,,.,,...,.,.,,..,,,.,
-#UMIZ436OYLCXSS2U66ZPDH3RU2HRGBPC5QHGKNGBJW37Y2JM4472BLDVXIUGR4MTKHDPM6Y676JSM
-#\\\|5JZHI4MHVIBMR5XOEFR32LW2KWNYAEK7JYBWZSQR4XGGNI7ZPOQ \ / AMOS7 \ YOURUM ::
-#\[7]D4ZFK437DKER4V42UWYORMNH7WR7VBHDPJCZTM47W5J2Z3RMQQBA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,.,.,,.,,,.,,,,,,.,,,.,,,,,.,.,.,.,.,...,...,...,,.,,.,.,,,.,,.,,
+#C3JPN55P7DUAM3J345Q4TBISWFS6I2WWQDBIV6F6JKPELOH4PAWDUFPYCFE65NXQ4PRYX3QES3QWS
+#\\\|NR4V5DFM45NFAAZ5VR3UGK3Z2AIUWVI7BVOHMDZD66TJVPOZGQG \ / AMOS7 \ YOURUM ::
+#\[7]QR4UNXHLJTIIRZP545EAHOWAM5BUICGQEQLH7NWSLDBLPPWHNMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
