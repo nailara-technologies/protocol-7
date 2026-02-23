@@ -37,8 +37,21 @@ if (    $dep_dir =~ s|zenki/$zenka/$start_cfg_name$|$cfg_path/zenki/$zenka|
 
     ## Get zenka group [ gid 0 fallback for root when no 'root' group entry ]
     my $zenka_group = $user;
-    my $gid         = getgrnam($zenka_group)
+
+    my $gid = getgrnam($zenka_group)
         // ( $zenka_group eq qw| root | ? 0 : undef );
+
+    ## try auto-installing user if not found and running as root ##
+    if ( not defined $gid and $EUID == 0 ) {
+        <[base.logs]>->(
+            2, ': : auto-creating system user [%s]', $zenka_group
+        );
+        if ( <[base.root.check_system_user]>->($zenka_group) ) {
+            $gid = getgrnam($zenka_group)
+                // ( $zenka_group eq qw| root | ? 0 : undef );
+        }
+    }
+
     unless ( defined $gid ) {
         <[base.logs]>->(
             0, "<< check_dependency_dirs : unix group '%s' not found >>",
@@ -91,8 +104,8 @@ if (    $dep_dir =~ s|zenki/$zenka/$start_cfg_name$|$cfg_path/zenki/$zenka|
     }
 }
 
-#,,,,,,,.,,,.,...,,.,,...,,,,,,,.,,,.,,.,,.,,,..,,...,...,..,,,.,,,,,,,,.,,..,
-#LEQB4TNO6ZFCNTA6KQKVBIPB34IEAKNS4ZB6DUXO6QDP7EYNY2O5R5GMGMFEFZQXDMEB4WMNWYVNS
-#\\\|T5NK3O6XERN3B4H3GPTCLPKEXAWW6RXCVYWSBD2FXOKBHXRQMTN \ / AMOS7 \ YOURUM ::
-#\[7]NKUAQKLZQIA2NHUCRVRRVEC4VNXD7WZIRMKHAYRO3DAA2DL3JECI 7  DATA SIGNATURE ::
+#,,.,,.,,,,,,,..,,..,,...,...,.,,,,,.,,,.,..,,..,,...,..,,.,,,,.,,,,.,,,.,,.,,
+#DL6CPB7TXM2UFM5LUYJSNQTF45LIFKE3YJ4RIA2AU72JWXKAJVOGEPWL5QKGYAT6VLHSNS6Y3ZZYK
+#\\\|S7B3RY2A3CXTI3HT4P7PKAIDXWG4ZVXDPPOALZKMJFGNK3E25M2 \ / AMOS7 \ YOURUM ::
+#\[7]YXLPXUHPF522KHQFT4R7QPTHCTVM2BF73ZAIXZC4AEH2UAI4UKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

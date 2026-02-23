@@ -12,6 +12,17 @@ my $file_perm = 0664;    ## zenka group gets write access ##
 my $src_deps = <[base.get_path.zenka_cfg]>;
 $src_deps =~ s|zenki/$zenka/$start_cfg_name|$cfg_path/zenki/$zenka/source|;
 
+## skip if dependencies already registered ##
+my $already_registered = TRUE;
+foreach my $src ( keys %np7_src ) {
+    my $src_file = catfile( $src_deps, $src );
+    if ( not -e $src_file ) {
+        $already_registered = 0;
+        last;
+    }
+}
+return TRUE if $already_registered;
+
 ## Get parent directory owner [taeki in dev, root in production] ##
 my ($parent_uid) = <[base.path_owners]>->($src_deps);
 unless ( defined $parent_uid ) {
@@ -23,11 +34,17 @@ unless ( defined $parent_uid ) {
 }
 
 ## Get zenka group [httpd, httpsd, etc.] ##
-my $zenka_group = <system.amos-zenka-user> // qw| protocol-7 |;
-my $gid         = getgrnam($zenka_group)
-    or <[base.logs]>->(
-    0, "<< register_src_deps : unix group '%s' not in passwd >>", $zenka_group
-    ) and return undef;
+my $zenka_user  = <system.amos-zenka-user> // qw| protocol-7 |;
+my $zenka_group = $zenka_user;              ## same as user ##
+my $gid         = getgrnam($zenka_group);
+if ( not defined $gid ) {                   ## try auto-installing user ##
+    <[base.root.check_system_user]>->($zenka_user);
+    $gid = getgrnam($zenka_group)
+        or <[base.logs]>->(
+        0, "<< register_src_deps : unix group '%s' not in passwd >>",
+        $zenka_group
+        ) and return undef;
+}
 
 ## log the ownership values being used [ log level 3 ] ##
 my $parent_user = getpwuid($parent_uid) // "UID:$parent_uid";
@@ -87,8 +104,8 @@ if ( -d $src_deps and -w $src_deps ) {
     <[base.log]>->( 2, "<< no [writable] src-deps directory found >>" );
 }
 
-#,,,,,,,,,,.,,,,.,,.,,...,,,.,,..,,,,,,,,,,..,..,,...,...,.,,,..,,,..,,..,,,.,
-#T76XXBAHRCXCFQ2IGNTULOBXSBHWGLCN4UBL4KRGNCC3ZZK3GDSB5DLTYFUMPQYVITIYLF4BHSMZC
-#\\\|NE2TTRJ2UFJUYYAXFHTSBAP5LYMDXOPKYBJVWKF777NH4BYKEZY \ / AMOS7 \ YOURUM ::
-#\[7]LAPU5FVGEBVTBS23WQKNAP2ZBUV5AFKPZDHRZSBXTVHQWHMHP2AQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,..,,,..,.,,,,,.,,.,,,..,.,.,,,.,..,,...,...,.,,,,,.,.,,,,,.,...,
+#2YHLUUIVBBB2NAEY4LB5RETOSPBEJDJOLDUPMXGO4OHGPM7EVQXZUQSETGWWQTHEDFWPKCEYTF2NQ
+#\\\|AEPMUYBINIW36FFY2WOWAP7NOZTZUY56CDUESSCOKN32ETEHMD4 \ / AMOS7 \ YOURUM ::
+#\[7]OOXQHHMMBHZHFH4GXXD2RBKK6LHXMPBXONK7VPWWPN7FW44GISCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
