@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = ssh.handler.ssh_io
-# descr = reads and processes output from mpv control pipe
+# descr = reads and processes output from ssh channel for protocol-7 tunnel
 
 my $event = shift->w;
 
@@ -28,10 +28,17 @@ if ( $channel->eof ) {
 
 my $buffer;
 my $bytes = $channel->read( $buffer, 4096 );
-if ( defined $bytes and $bytes ) {
+
+if ($bytes) {    ## read successful, got data
     $connection->{'buffer'} .= $buffer;
     $event->now;
-} else {
+} elsif ( defined $bytes ) {    ## $bytes == 0, EOF
+    <[base.logs]>->( 1, ': : ssh channel eof for [%s]', $link_name );
+    <[ssh.connection.stop]>->($con_id);
+    return;
+} else {    ## $bytes undef, error
+    <[base.logs]>->( 0, ': : ssh channel read error: %s', $! );
+    <[ssh.connection.stop]>->($con_id);
     return;
 }
 
@@ -125,8 +132,8 @@ if ( !$connection->{'authorized'} ) {
 
 }
 
-#,,,,,...,..,,,.,,,..,...,,,.,.,,,.,.,,,.,,,,,..,,...,..,,..,,,,.,,..,,,.,.,,,
-#DNHGMP45LSBZISBIQHYJVSUXBQ25NPSZRHZVC2UKEQYQB6NWN5G4P2BWBBC3HJBE7RRJOX7MLPZUK
-#\\\|KKFZQSKWMXR4SRX7R4I6G3E7SNR7TXJMII35NBHU6E4E62O6SEI \ / AMOS7 \ YOURUM ::
-#\[7]SDKJSPJNLZMR5QFJY2ZEWD52PHWAC6LLNBCQVIMAWD3GR6NHPGAI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,,.,.,.,.,.,,,,,...,...,.,,,,,,,..,,...,...,,,.,,..,,.,,.,.,,.,,
+#OP3ZS7TNLNJYBYKNNPMIYR4RENQFENHKZRNL6UTHH3SVJW3QWS5GPXYH5K6UY5G2EFJKUIMF7I4AG
+#\\\|CVK325DFFAOH67VEF6UK6WCXCOHNNAZ4W7XXAQRNUHAU7PBQR52 \ / AMOS7 \ YOURUM ::
+#\[7]6S27LDNUXQASJTQMMOCO3N4LFVODKCC4677PAAKWQD5RAFY5EMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -14,7 +14,8 @@ my $link_name    = $connection->{'name'};
     if <ssh.status.connections>->{$con_id} eq 'online';
 
 foreach my $type ( keys %{ $connection->{'io'} } ) {
-    $connection->{'io'}->{$type}->cancel;
+    $connection->{'io'}->{$type}->cancel
+        if ref( $connection->{'io'}->{$type} ) =~ m|Event|;
 }
 if ( defined $connection->{'local_fh'}
     and $connection->{'local_fh'}->connected ) {
@@ -36,13 +37,9 @@ map {
     keys %{ $connection->{'timer'} }
     if exists $connection->{'timer'};
 
-if ( exists <ssh.heartbeat_request>->{$con_id} ) {
-    map { delete <ssh.heartbeat_request>->{$con_id}->{$ARG} }
-        keys %{ <ssh.heartbeat_request>->{$con_id} };
-    delete <ssh.heartbeat_request>->{$con_id}
-        if !keys %{ <ssh.heartbeat_request>->{$con_id} };
-    delete <ssh.heartbeat_request> if !keys %{<ssh.heartbeat_request>};
-}
+## cleanup heartbeat requests for this connection
+delete <ssh.heartbeat_request>->{$con_id}
+    if exists <ssh.heartbeat_request>;
 
 if (    <ssh.cfg.globals>->{'connections.reconnect'}
     and <ssh.status.profiles>->{$profile_name} eq 'enabled' ) {
@@ -52,9 +49,10 @@ if (    <ssh.cfg.globals>->{'connections.reconnect'}
     $connection->{'retry_delay'} //= 0.5;    # LLL: --> config!
     $connection->{'retry_delay'} = 30 if $connection->{'retry_delay'} > 30;
 
-    <[base.log]>->(
+    <[base.logs]>->(
         1,
-        ": : reconnection attempt in $connection->{retry_delay} seconds ..."
+        ': : reconnection attempt in %s seconds ...',
+        $connection->{'retry_delay'}
     );
 
     $connection->{'timer'}->{'reconnect'} = <[event.add_timer]>->(
@@ -70,8 +68,8 @@ if (    <ssh.cfg.globals>->{'connections.reconnect'}
     delete <ssh.status.connections>->{$con_id};
 }
 
-#,,,,,,,,,...,,,.,...,..,,,..,...,.,.,...,...,..,,...,...,...,,..,,.,,.,.,.,.,
-#2RIITBSJ2YMRMVBGSUNRNP5JA6KJCJ5KWIGENUEAVXE2KMTEKE7LE7EUR4ENGDUD2B2DHIOYYD63C
-#\\\|YHYI5IOBO5UWODGCKEPNXXX2TF5TCOJXLSE2O665GQIOIY2TN3I \ / AMOS7 \ YOURUM ::
-#\[7]AMOT6B3ESB4ZWA7LL5L6K74NEXFE5BFWBQW3GHZZSDJFSGZFUQAI 7  DATA SIGNATURE ::
+#,,,,,,..,.,,,...,.,.,,.,,,..,.,,,...,.,.,.,.,..,,...,...,.,.,.,.,,.,,...,...,
+#JJX2M4MNXFJAOWOW3B5UPJZJF6SM2FFOJZCLQK2KNMB7RIUPH2YRYGIWRENOWGU7R4OI3S65AEUZE
+#\\\|EEKDKGZ3BVO64I7RBOCP3MDYNC3FYRQNOXHIGRMNNC45GTWHH5B \ / AMOS7 \ YOURUM ::
+#\[7]22GYD5VXWK56YHXOAFWBB6OA7UEUMZQPEZKPADUO52VCILNPAAAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
