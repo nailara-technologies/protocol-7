@@ -1,16 +1,62 @@
 ## [:< ##
 
 # name  = data.init_code
+# descr = initialize data zenka core structures
 
+use File::Spec;
+
+## autoload required modules ##
 <[base.perlmod.autoload]>->('IO::File');
 <[base.perlmod.autoload]>->( 'File::ExtAttr', qw| :all | );
+<[base.perlmod.autoload]>->( 'Fcntl',         qw| :DEFAULT :mode | );
 
+## data path registry ##
 <data.path> //= {};
+
+## active mount registry ##
+<data.mounts> //= {};
+
+## cubic space registry ##
+<data.cubic> //= {};
+
+## checksum cache ##
+<data.checksum_cache> //= {};
+
+## child zenka pids for async mounts ##
+<data.child_pids> //= {};
+
+## test data structure for development ##
+<[base.log]>->( 2, ": data zenka init : creating test structure .," );
+
+$data{'test'}{'files'} = {
+    'documents' => [
+        {   'name'    => 'readme.txt',
+            'content' => \'This is a test file for data zenka.',
+            'mtime'   => time(),
+        },
+        {   'name'    => 'notes.md',
+            'content' => \'# Notes\n\nTest notes here.',
+            'mtime'   => time(),
+        }
+    ],
+    'code' => {
+        'utils' => { 'helper.pl' => \'#!/usr/bin/perl\nprint "Hello\\n";', }
+    },
+    'dynamic' => sub {
+        my $ctx = shift;
+        return [
+            {   'name'    => 'generated.txt',
+                'content' => \( "Generated at " . localtime() ),
+                'mtime'   => time(),
+            }
+        ];
+    },
+};
 
 0;
 
-#,,,,,,.,,.,.,.,.,,..,...,.,.,,,,,.,,,.,.,,,.,..,,...,..,,..,,.,.,.,.,,,.,.,.,
-#5S3CE4L3JYWPNRLJEMTBTEQLTPIPDLPZ3RXJCPTLXL52DIUGIZ4SSQ4XTJHEYWOMCU263JXZ5CVPA
-#\\\|JRHN6WDNFPQBBY3BKUMQUCUM4TKEHPPJUBFWF3GMLD6LJLDTQC2 \ / AMOS7 \ YOURUM ::
-#\[7]S2XSJMTF2I2RWRXEBHWMTUS5DFGGRA64276EQIDRYHMIBEQ3XSDA 7  DATA SIGNATURE ::
+#,,.,,,.,,,.,,.,,,,.,,..,,.,.,...,,..,,.,,,.,,.,.,...,...,...,...,.,.,...,,.,,
+#X74T7Z44IVGEGZVR5WNI4ZW7PX4AAIXMXDHZS373VKW4WZCEFUMVGRWARBC365NW4LGQKPDKFZX34
+#\\\|2K4MMKD4M4OHQ6AJRNSGRFOVSTVHZUVXS6SXTMIVXIW5Z5HAFEF \ / AMOS7 \ YOURUM ::
+#\[7]WOO4HFXQCRPFKGMSEP2BQKLWCNBDTKLOBBALWAKQKQJDXCNHRGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

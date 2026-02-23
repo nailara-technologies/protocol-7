@@ -1,0 +1,38 @@
+## [:< ##
+
+# name  = data.list_entries
+# param = <path>
+# descr = list directory entries at hash path
+# return = array ref of entry names
+
+my $path_str = shift // return [];
+my $ref      = <[data.resolve_hash_path]>->($path_str);
+
+return [] unless defined $ref;
+
+## HASH: return keys
+if ( ref($ref) eq 'HASH' ) {
+    return [ sort keys %{$ref} ];
+}
+
+## ARRAY: return name fields
+if ( ref($ref) eq 'ARRAY' ) {
+    return [ map { $_->{'name'} // 'unnamed' } @{$ref} ];
+}
+
+## CODE: execute and list result
+if ( ref($ref) eq 'CODE' ) {
+    my $result = eval { $ref->('list') };
+    return []                               if $@;
+    return <[data.list_entries]>->($result) if ref($result);
+    return [];
+}
+
+## SCALAR or other: empty listing
+return [];
+
+#,,..,,,,,..,,,,.,.,.,,..,,.,,.,,,,.,,..,,...,.,.,...,...,.,,,...,,..,..,,,.,,
+#IWFP5I37L3PGQV2J5JTVMEKXZ3QFITAJJ4L3KNBOGHLX3UCHGMVNLM2ORRPHVKYE5JOQ462MOSQKU
+#\\\|UEO7YD7QUMQN6CRH53K3XHC4JJR35NCEKC2V2OXCBAPTRUGLMAF \ / AMOS7 \ YOURUM ::
+#\[7]Z52YE7ZXAV7JGDJ74WC5UVZVNGCVVS764ZLAELBEVYPN5TBOPCCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
