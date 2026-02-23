@@ -32,13 +32,55 @@ unless ($is_debug_status_call) {
 ### [ key mapping for escape sequences ]
 ##
 state %chr_map = (
-    'UpArrow'   => "\e[A",
-    'DownArrow' => "\e[B",
-    'Ctrl+o'    => "\x0f",
-    'Ctrl+r'    => "\x12",
-    'Escape'    => "\e",
-    'Enter'     => "\n",
-    'Backspace' => "\x7f",
+    ## Navigation keys
+    'Up'         => "\e[A",
+    'Down'       => "\e[B",
+    'Right'      => "\e[C",
+    'Left'       => "\e[D",
+    'UpArrow'    => "\e[A",    ## alias
+    'DownArrow'  => "\e[B",    ## alias
+    'RightArrow' => "\e[C",    ## alias
+    'LeftArrow'  => "\e[D",    ## alias
+    'Home'       => "\e[H",
+    'End'        => "\e[F",
+    'PageUp'     => "\e[5~",
+    'PageDown'   => "\e[6~",
+
+    ## Editing keys
+    'Backspace' => "\x7f",     ## DEL (0x7F)
+    'Delete'    => "\e[3~",    ## ESC [ 3 ~
+    'Tab'       => "\t",
+    'Insert'    => "\e[2~",
+
+    ## Control characters
+    'Ctrl+o' => "\x0f",        ## Ctrl-O (15)
+    'Ctrl+r' => "\x12",        ## Ctrl-R (18)
+    'Ctrl+c' => "\x03",        ## Ctrl-C (ETX)
+    'Ctrl+d' => "\x04",        ## Ctrl-D (EOT)
+    'Ctrl+g' => "\x07",        ## Ctrl-G (BEL)
+    'Ctrl+l' => "\x0c",        ## Ctrl-L (FF - clear screen)
+    'Ctrl+a' => "\x01",        ## Ctrl-A (SOH - start of line)
+    'Ctrl+e' => "\x05",        ## Ctrl-E (ENQ - end of line)
+    'Ctrl+k' => "\x0b",        ## Ctrl-K (VT - kill to end)
+    'Ctrl+u' => "\x15",        ## Ctrl-U (NAK - kill line)
+    'Ctrl+w' => "\x17",        ## Ctrl-W (ETB - delete word)
+    'Ctrl+n' => "\x0e",        ## Ctrl-N (SO - next history)
+    'Ctrl+p' => "\x10",        ## Ctrl-P (DLE - prev history)
+    'Ctrl+f' => "\x06",        ## Ctrl-F (ACK - forward char)
+    'Ctrl+b' => "\x02",        ## Ctrl-B (STX - backward char)
+
+    ## Special keys
+    'Escape' => "\e",
+    'Esc'    => "\e",          ## alias
+    'Enter'  => "\n",
+    'Return' => "\n",          ## alias
+    'Space'  => " ",
+
+    ## Function keys F1-F4 (standard SS3 sequences)
+    'F1' => "\eOP",
+    'F2' => "\eOQ",
+    'F3' => "\eOR",
+    'F4' => "\eOS",
 );
 
 ### [ initialize debug state on first use ]
@@ -58,12 +100,41 @@ state %chr_map = (
 
 my $debug_state = <nshell.debug_state>;
 
-### [ parse input: extract [Key1,Key2,...] sequences and literal text ]
+### [ initialize state tracking buffer for LLM-friendly debug output ]
+##
+if ( not exists <buffer.nshell-state-track> ) {
+    <buffer.nshell-state-track.max_size> = 12 * 1024;    ## 12K buffer ##
+    <[base.buffer.add_line]>->(
+        qw| nshell-state-track |,
+        sprintf( '=== nshell state tracking initialized [%s] ===',
+            <[base.time]>->(9) )
+    );
+}
+
+### [ helper: log debug event with timestamp ]
+##
+my $log_debug_event = sub {
+    my ( $event_type, $details ) = @_;
+    return unless <nshell.mode.no_tty_debug>;
+
+    my $timestamp = <[base.anum_log_time]>->( 5, TRUE );
+    my $log_line
+        = sprintf( '[%s] %s: %s', $timestamp, $event_type, $details );
+
+    <[base.buffer.add_line]>->( qw| nshell-state-track |, $log_line );
+    <[base.buffer.add_line]>->( qw| no-tty-debug |,       $log_line );
+
+    return;
+};
+
+### [ parse input: extract [Key1,Key2,...] or :Key1,Key2,...: sequences ]
 ##
 my @tokens = ();
 my $pos    = 0;
 while ( $pos < length $character_string ) {
-    if ( substr( $character_string, $pos, 1 ) eq '[' ) {
+    my $char = substr( $character_string, $pos, 1 );
+
+    if ( $char eq '[' ) {
         ## bracketed comma-separated key sequence: [Up,Down,Ctrl+o,Enter]
         my $close = index( $character_string, ']', $pos );
         if ( $close > $pos ) {
@@ -99,9 +170,42 @@ while ( $pos < length $character_string ) {
                 'data' => '..unclosed bracket in input..'
             };
         }
+    } elsif ( $char eq ':' ) {
+        ## colon-wrapped comma-separated key sequence: :Up,Down,Ctrl+o,Enter:
+        my $close = index( $character_string, ':', $pos + 1 );
+        if ( $close > $pos ) {
+            my $key_spec_list
+                = substr( $character_string, $pos + 1, $close - $pos - 1 );
+            $pos = $close + 1;
+
+            ## split by comma and map each key name
+            foreach my $key_spec ( split m{,}, $key_spec_list ) {
+                $key_spec
+                    =~ s{^\s+|\s+$}{}g;    ## trim whitespace around each key
+                if ( length $key_spec ) {
+                    if ( exists $chr_map{$key_spec} ) {
+                        push @tokens,
+                            {
+                            'type' => 'key',
+                            'name' => $key_spec,
+                            'byte' => $chr_map{$key_spec}
+                            };
+                    } else {
+                        ## unknown key name
+                        return {
+                            'mode' => qw| false |,
+                            'data' => "..unknown key name: [$key_spec].."
+                        };
+                    }
+                }
+            }
+        } else {
+            ## unclosed colon sequence - treat as literal colon
+            push @tokens, { 'type' => 'char', 'byte' => $char };
+            $pos++;
+        }
     } else {
         ## literal text: any characters including spaces, newlines, etc
-        my $char = substr( $character_string, $pos, 1 );
         push @tokens, { 'type' => 'char', 'byte' => $char };
         $pos++;
     }
@@ -109,11 +213,28 @@ while ( $pos < length $character_string ) {
 
 ### [ append tokens to debug input buffer ]
 ##
+my $token_summary = '';
 foreach my $token (@tokens) {
     my $byte = $token->{'byte'};
     ## append to debug input buffer (each token once)
     <nshell.buffer.debug_input> .= $byte;
+
+    ## build summary for logging
+    if ( $token->{'type'} eq 'key' ) {
+        $token_summary .= '[' . $token->{'name'} . ']';
+    } else {
+        $token_summary .= $byte;
+    }
 }
+
+## log the input event
+$log_debug_event->(
+    'INPUT',
+    sprintf(
+        'tokens=%d, data=%s',
+        scalar(@tokens), substr( $token_summary, 0, 80 )
+    )
+) unless $is_debug_status_call;
 
 ### [ let event loop process the queued keys ]
 ##
@@ -143,6 +264,44 @@ if ( exists $nshell_state->{'mode_names'}
     && ref( $nshell_state->{'mode_names'} ) eq qw| HASH | ) {
     $mode_name = $nshell_state->{'mode_names'}->{$nav_mode}
         if exists $nshell_state->{'mode_names'}->{$nav_mode};
+}
+
+### [ log state transition for LLM debugging ]
+##
+my $prev_mode = $debug_state->{'current_mode'};
+my $curr_mode = $nav_mode;
+
+if ( $prev_mode != $curr_mode ) {
+    $log_debug_event->(
+        'MODE_CHANGE',
+        sprintf(
+            '%s(%d) -> %s(%d)',
+            $debug_state->{'mode_names'}->{$prev_mode} // 'UNKNOWN',
+            $prev_mode, $mode_name, $curr_mode
+        )
+    );
+}
+
+## update debug state mirror
+$debug_state->{'current_mode'}          = $curr_mode;
+$debug_state->{'current_history_index'} = $hist_idx;
+$debug_state->{'ctrl_o_start_position'}
+    = $nshell_state->{'ctrl_o_start_position'};
+$debug_state->{'ctrl_o_entries_added'}
+    = $nshell_state->{'ctrl_o_entries_added'} // 0;
+$debug_state->{'editor_buffer'} = $editor_buffer;
+
+## log Ctrl+O relevant state
+if ( defined $nshell_state->{'ctrl_o_start_position'} ) {
+    $log_debug_event->(
+        'CTRL_O_STATE',
+        sprintf(
+            'start_pos=%d, entries_added=%d, history_idx=%d',
+            $nshell_state->{'ctrl_o_start_position'},
+            $nshell_state->{'ctrl_o_entries_added'} // 0,
+            $hist_idx
+        )
+    );
 }
 
 ### [ prepare formatted state reply ]
@@ -175,8 +334,8 @@ my $state_transition_reply = sprintf(
 
 return { 'mode' => qw| size |, 'data' => $state_transition_reply }
 
-#,,,,,,..,,,,,..,,.,.,...,..,,,.,,,,,,,..,.,,,..,,...,...,..,,,.,,.,,,.,,,..,,
-#SSDDTWS4YGOYPKLMAJ6VDX776NBGANNPXG2XVB2NQPFEYGV5WYJ7NYGQECVCXX35L3MVYKRP6YP74
-#\\\|UEZ7YRLI5AWQW57XYNRGAOXFZXNWBB34DWRHVKYYB5TVZILIHPF \ / AMOS7 \ YOURUM ::
-#\[7]KKTLARLAORVBLSXAWU4D6AKINWIY5U4H4AN2AMJP3RM66M64EKCY 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,,,..,,,,.,...,..,,.,.,..,,.,.,..,,...,...,,,.,.,.,.,.,,..,,.,,
+#THFVB22MQ6LQQJ7X5RWP2JRYFG2L2ICQSNEJ4WNUDGJDOAQRX54KAH7Q52D7TUANIMY72YIEV4UYW
+#\\\|R4J653JX3INQXR2SEKVUGOM7M2Q63ITDL2BH5ZZZJZM2KMS6KBS \ / AMOS7 \ YOURUM ::
+#\[7]SK5IN2GMGZGXIHZ5BCXSUUQWZJEFZPKOHXGGLCXQNKXDHALYKACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

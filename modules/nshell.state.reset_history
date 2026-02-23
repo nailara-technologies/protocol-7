@@ -11,12 +11,18 @@ if ( $state_ref->{'current_mode'} == 2 ) {    # VIEWING_HISTORY
     $state_ref->{'current_mode'}          = 0;     # NORMAL
     $state_ref->{'current_history_index'} = -1;
     $state_ref->{'paging_index_stack'}    = [];    # Clear paging stack
+
+    ## Also reset Ctrl+O cycle state to prevent stale state issues
+    $state_ref->{'ctrl_o_start_position'}   = undef;
+    $state_ref->{'ctrl_o_entries_added'}    = 0;
+    $state_ref->{'ctrl_o_redraw_cursor'}    = FALSE;
+    $state_ref->{'display_preloaded_entry'} = FALSE;
 }
 
 return;
 
-#,,,.,.,,,,.,,,.,,,..,,,,,,,.,,,,,..,,,,.,.,,,.,.,...,...,,,.,,,,,..,,.,,,,.,,
-#HLLO77ZN4AJ3IVMU3TA6U2DXTRGLCPJBFF36B4CLSU7RH7LAG6MNE6DJOPIKSYWRV7HFGF6IGJL3W
-#\\\|Q2B6KCUPXCRMYLXAXHTOKT6YW3N3WOK372373L5LVVE7VATL6EA \ / AMOS7 \ YOURUM ::
-#\[7]MUOWAYQSP4X6DWXIWRWDJWBWUPFBDVVINGAKOIKNJFV2OPFAZUDI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,,..,.,.,...,,,.,,..,,,,,,,,,,,.,.,.,...,...,.,.,..,,,.,,,.,,.,,,
+#CXOTVBZFKHLNX6NSP7MJHOEJAYYPWMV4IDVZ3VNZU5YX22P2BJWRDGRLJ4WDBZEG4CSVEU2K33DZI
+#\\\|CTZBO65YW2AGF3WI2M2YBKK2NS4GWJLNBJP3MNDU74BKAID2QND \ / AMOS7 \ YOURUM ::
+#\[7]AZPGDWONC57FSJCRA6LIOG3T6SQJT5HB7RM47NK7FZXFNC26ZWDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

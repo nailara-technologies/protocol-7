@@ -27,9 +27,22 @@ if ($show_cursor_on_call) {
     $state_ref->{'editor'} //= AMOS7::TERM::editor_init();
     AMOS7::TERM::cursor_set_color( $colors{'p7_fg_0003'} );
 
-    ## Display cursor
-    print $colors{'p7_fg_0003'} . "_\r" . "\e[0m" . $colors{'p7_fg_0004'};
-    STDOUT->flush();
+    ## Check if we need to display a preloaded entry (from Ctrl+O cycle)
+    if ( $state_ref->{'display_preloaded_entry'} ) {
+        $state_ref->{'display_preloaded_entry'} = FALSE;
+        ## Display the preloaded buffer with cursor
+        my $buffer = $state_ref->{'editor'}->{'buffer'} // '';
+        print "\r\e[K"    ## Clear line
+            . $colors{'p7_fg_0004'}
+            . $buffer
+            . $colors{'p7_fg_0003'}
+            . "_\e[0m";
+        STDOUT->flush();
+    } else {
+        ## Just display cursor on empty line
+        print $colors{'p7_fg_0003'} . "_\r" . "\e[0m" . $colors{'p7_fg_0004'};
+        STDOUT->flush();
+    }
 
     return undef;    ## Return to event loop to display cursor before input
 }
@@ -305,8 +318,8 @@ while ( length $input_chars ) {
 
 return undef;
 
-#,,..,,.,,,..,,,,,.,,,,,,,.,,,,,.,,,.,,,,,.,,,.,.,...,...,.,,,.,.,,,,,,,,,,.,,
-#RFUTSBNTOFR4DMDY5MZQWUHOIL7FR4IYSETC6O47HK7HRG5YIZ4AF7OJH5ON4OWWCCM3PLOH6PUYA
-#\\\|YGLMRSCDIEUCY4RS7JTVAEVCYCSVOXRM7V3IG7B2PO6BGLES2YW \ / AMOS7 \ YOURUM ::
-#\[7]JXA5JTFEIUJJVXTGBXWI4CCC4BNYHPKNHKY2JSHFPQCC35LEAGBQ 7  DATA SIGNATURE ::
+#,,..,,,.,,.,,,,,,.,,,,,.,,..,..,,..,,..,,,..,.,.,...,...,.,.,...,..,,,.,,...,
+#O5YDBFL2OBLQNRIGAWYZLRWWXYEKVT6ID66PSFNMCST22JKIHRFSOLIDCWYUB77DAREKYJ4D4AFKU
+#\\\|4WDSJ3TOGCYWK4V6JZAF5CUWOAEZT2RPYOAMBCFJJFTZEVFIYBP \ / AMOS7 \ YOURUM ::
+#\[7]YDKOXWKMRL77AWKFOCG23LMQRRG2H3LQ7SWOZTW4YINXM2WRL4CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
