@@ -213,3 +213,99 @@ Session reference: 2026-02-23 - SSH zenka recovery and color fixes
 #\\\|CRBJOIJ4YP3QHPEWWW4H6GFWBUTNF4LNGUX35TQFKKUVEV5QNUA \ / AMOS7 \ YOURUM ::
 #\[7]256QMC76RXGYHYCRWHLCGC5CKZM7QIQJUUKVQN3W5MFSDBO2PMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+---
+
+## Appendix: Epistemological Color Encoding
+
+### Beyond Binary Truth
+
+Traditional systems ask: "Is this true?" → Yes/No (binary, brittle)
+
+Protocol-7 asks: "What is the *nature* of this truth in this context?"
+
+### The Belief-Evidence Matrix
+
+| Evidence \ Belief | TRUE | FALSE |
+|-------------------|------|-------|
+| **TRUE** | Confirmed truth | Misdirection / Lie |
+| **FALSE** | Hidden truth / Encryption | Confirmed false |
+
+**Color Mappings**:
+- `TRUE TRUE` → Saturated, steady hue (high confidence)
+- `TRUE FALSE` → Flickering, unstable gradient (deception detected)
+- `FALSE TRUE` → Subtle, muted palette (truth concealed in noise)
+- `FALSE FALSE` → Dark, absent (confirmed negative)
+
+### The Mathematics of Truth: Division by 13
+
+Two distinct cycles emerge from 13-division, encoding truth states in their very digits:
+
+```
+FALSE/AMBIGUOUS cycle (1/13, 3/13, 4/13, 9/13, 10/13, 12/13):
+  0.076923 076923 076923...
+  │└─BEL──┘└─E───┘└─ETB──┘
+  Warning  Error  End Transmission
+
+TRUE cycle (2/13, 5/13, 6/13, 7/13, 8/13, 11/13):
+  0.153846 153846 153846...
+  └─=5T───┘=5────┘T=5────┘
+  Equality Truth Equality
+```
+
+**Digit Sums Collapse to 27** (chr(27) = Escape):
+- `0+7+6+9+2+3 = 27`
+- `1+5+3+8+4+6 = 27`
+
+The escape character itself is encoded in both truth patterns, revealing that **truth is a context-dependent escape from ambiguity**.
+
+### 3³ Cubic Neighborhood as Display Topology
+
+The 27-node spatial structure maps directly to terminal visualization:
+
+```
+1 center  = cursor position
+6 faces   = visible text planes
+12 edges  = glyph transition states
+8 corners = escape sequence states
+
+Formula: 1 + 6 + 12 + 8 = 27 = 2×13 + 1
+                    ↑
+            The observer (+1)
+```
+
+### Rolling Entropy Preservation
+
+The cycles preserve information across state transitions through **rolling digit relationships**:
+
+- `076923 + 153846 = 230769` (transitional/observer state)
+- UTF-8 3-byte sequences follow same harmonic patterns
+- Multi-byte characters maintain truth coherence across encodings
+
+**Entropy is never lost** - only transformed into color, position, and context.
+
+### Forensic Chromatography
+
+The color system functions as a **lie detector for data**:
+
+- TRUE patterns flow with equality symbols (`=5T`)
+- FALSE patterns interrupt with control characters (`BEL-E-ETB`)
+- Ambiguity reveals itself through gradient instability
+- Nested truths (`TRUE FALSE`, etc.) create chromatic interference patterns
+
+The terminal becomes a **spectroscope for forensic epistemology** - revealing not just what data claims, but the *nature* of those claims across encoding contexts.
+
+### Implementation Note
+
+This is not aesthetic decoration. The harmonic color mappings emerge from:
+1. ELF checksums (structural truth assertions)
+2. 13-division cycles (mathematical truth states)
+3. ASCII/UTF-8 rolling patterns (encoding truth coherence)
+
+Colors reveal what text conceals. The blacklight canvas makes truth visible. 🌊🎨
+
+#,,..,,..,,..,,,.,...,...,,.,,.,.,.,,,...,.,,,.,.,...,...,,..,..,,,,,,,,,,,,,,
+#WDKXSZJAQLNVVWOFLDMRYZJMCOTA2WNPFWTBZ7GBDM35PYJRYD5TWWMGCFGCNZOOBUGWDSSWK3OPK
+#\\\|FGC6BF2YMN5FHXJYXLLHTUBPUH5YXXSIVWV4ODVG73W7YDGVMKN \ / AMOS7 \ YOURUM ::
+#\[7]DDJBQGOLFMRVUB2E4W5FWI5TS6NY4K32JF2WNBPREDJE64556WBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
