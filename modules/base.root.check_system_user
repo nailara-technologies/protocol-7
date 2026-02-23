@@ -7,9 +7,17 @@ my $usr      = shift // ''; ##  unix user to create  ##
 my $not_home = shift // ''; ##  optional 'not-home' param to skip home dir  ##
 
 if ( not length $usr ) {
-    warn 'expected user-name parameter <{C1}>';
+    <[base.logs]>->(
+        0,    ## log what routine is calling us [ without user param ]##
+        'expected user-name parameter %s',
+        scalar <[base.caller]>
+    );
     return undef;
 }
+
+state %creating_user;    ## prevent nested call issues through log routines ##
+return if exists $creating_user{$usr};    ## [ when autoloading event module ]
+$creating_user{$usr} = TRUE;
 
 my @useradd_paths = qw| /usr/sbin/useradd /sbin/useradd |;
 
@@ -43,6 +51,7 @@ if ( not defined $uid and $EFFECTIVE_USER_ID == 0 ) {
             ':',
             sprintf( ":: cannot find 'useradd' binary at '%s' ::", $useradd )
         );
+        delete $creating_user{$usr};
         return undef;    ##  missing useradd binary  ##
     }
 
@@ -64,7 +73,7 @@ if ( not defined $uid and $EFFECTIVE_USER_ID == 0 ) {
         <[base.logs]>->( 0, '< useradd > %s', $reason );
         <[base.log]>->( 0, qw| : | );
         <[base.logs]>->( 0, "::[ cannot create user '%s' ]", $usr );
-
+        delete $creating_user{$usr};
         return undef;    ##  error occurred \ not created  ##
 
     } else {
@@ -81,35 +90,42 @@ if ( not defined $uid and $EFFECTIVE_USER_ID == 0 ) {
         if ( not $not_home ) {
             my $home_dir = <[base.get_homedir]>->($usr);
             if ( defined $home_dir ) {
-                my $key_parent = catdir( $home_dir, '.n' );
-                my $key_dir    = catdir( $key_parent, 'user-keys' );
+                my $key_parent = catdir( $home_dir,   qw| .n | );
+                my $key_dir    = catdir( $key_parent, qw| user-keys | );
 
-                if ( not -d $key_dir ) {
-                    <[base.file.make_path]>->( $key_dir, 0700, $usr, $usr );
-                    <[base.logs]>->( 2, "created key directory '%s'", $key_dir );
+                ## ..avoiding race conditions in pre_init phase.. ##
+                my $early_makepath_code_ref
+                    = exists $code{'file.make_path'}
+                    ? $code{'file.make_path'}
+                    : $code{'base.file.make_path'};
+
+                if ( not -d $key_dir ) {    ## <[file.make_path]> ##
+                    $early_makepath_code_ref->( $key_dir, 0700, $usr, $usr );
+                    <[base.logs]>->(
+                        2, "created key directory '%s'", $key_dir
+                    );
                 }
             }
         }
-
-        return TRUE;     ##[ success ]##
+        delete $creating_user{$usr};
+        return TRUE;    ##[ success ]##
 
     }
 } elsif ( not defined $uid and $EFFECTIVE_USER_ID != 0 ) {
-
     <[base.logs]>->(
         0, "<< am not 'root', not creating system user '%s'., >>", $usr
     );
+    delete $creating_user{$usr};
     return FALSE;    ##  no permission \ not root  ##
 
 } else {
-
     <[base.logs]>->( 2, "user '%s' exists [ %u ].,", $usr, $uid );
-
+    delete $creating_user{$usr};
     return TRUE;     ##[ user already exists ]##
 }
 
-#,,,.,...,..,,..,,.,,,.,.,,..,..,,.,.,,,,,,..,..,,...,...,..,,,..,..,,,.,,...,
-#D4NS26FTRXDA2MCUCJW3YXM4FZFYQHPHEEPEMOXJI3JDB2FLZXKOAO7XX4VF6753A46AKVDKUQJWW
-#\\\|3W7465KJFDRAQ3YMLHZGY7UNLFVUB34VKSN3LQNMWJBY4JLSDCD \ / AMOS7 \ YOURUM ::
-#\[7]3G6VUHMVC3IJEAWQ2OTDD7KHAMSBLFQVJVPRGYPL7TVBTJQ2KCDI 7  DATA SIGNATURE ::
+#,,..,,,.,,..,.,,,.,.,,,,,.,.,..,,,.,,,,,,...,..,,...,...,.,.,,.,,.,,,...,,.,,
+#K542XB2NH75OOOJQNHEC5JVTXKF54L2WG3ZWBLXDZVNYLWUWB6VS3LMPS5NDXBQPVLP66A6BX3HH2
+#\\\|DZTJEE3W7IRLMBWJ4KUDCTPAEIH4ND3T4JFE5AVBAAHRDMUBNTD \ / AMOS7 \ YOURUM ::
+#\[7]NDZTCRNF5EUWHDSXJA73DVN3C2SG6CQ4BIVH5OJCHDFHD3IKZ6CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

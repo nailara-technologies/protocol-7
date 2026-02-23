@@ -29,6 +29,15 @@ if ( $delta_mod > 0 ) {
     return FALSE;
 }
 
+## auto-create system user if required ##
+my $zenka_user = <system.amos-zenka-user> // qw| protocol-7 |;
+if ( $EUID == 0 and not defined getpwnam($zenka_user) ) {
+
+    # :note: logging will autoload Event.pm [ as user checked ]
+    <[base.log]>->( 1, ": . . triggered in load_modules . ." );
+    <[base.root.check_system_user]>->($zenka_user);
+}
+
 <[base.register_src_deps]>->(@modules_to_load);
 <[base.register_p7_mod_load]>->(@modules_to_load);
 
@@ -44,8 +53,8 @@ return TRUE if not $subs_failed and $subs_ok;
 
 return FALSE;
 
-#,,..,.,.,.,.,.,,,,.,,,,.,...,,,.,,.,,,,,,..,,..,,...,...,...,...,,,,,.,.,..,,
-#HO7AWOOGA7WJVOI3SBVJMHY5HUGT3YBELFYE5KHVXTV2SY4HWVM56E76GSUVYHIR4DHRLNZESC7J2
-#\\\|37DIZNACS2YTV54BCLQL2QS3D6MNRFWMHVHH3NGW4FCNBQEHD3W \ / AMOS7 \ YOURUM ::
-#\[7]UZQL2YRRDF3TR2QYIKHVGPGYQQZYUBTRSMAZBBOJXSIIIKQUTWCA 7  DATA SIGNATURE ::
+#,,,,,...,,,,,..,,,,.,.,,,.,,,,.,,,.,,...,,..,..,,...,..,,..,,,..,,..,,.,,,..,
+#C4YX72USOLTXWAIPT5GKGPK254XWGGTBRRAW22IGPIB4Q4W2JURSJDBSCINVMG6SGJ4JVSLAPX42W
+#\\\|EU66WD3Q6G55MT7SLFQ2QIPWWP4LPDK3UPR45VQWTF4GX5W3PYU \ / AMOS7 \ YOURUM ::
+#\[7]JJA6SXWFIWKSGNNHUS4EFVOTC3DF5KMDQCJ6FWOSZT5NMUSVCKDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -3,7 +3,7 @@
 
 [load_config_file:'shared-params']
 
-# [root.drop_privs:<system.amos-zenka-user>]
+system.amos-zenka-user  =  p7-ssh   ## <-- run zenka as 'p7-ssh' [custom user]
 
 access.cmd.usr.cube = commands heart reload verify-instance list * *.* #<-FIX
 
@@ -14,14 +14,15 @@ modules.preload = set-up.json ssh.set-up
 [load_modules:<modules.preload>]
 [init_modules]
 
-[root.drop_privs:<system.amos-zenka-user>]
-
 [set-up.json.import_file:'ssh.link_setup.json']
 [set-up.json.import_file:'ssh.set-up.json']
 
 modules.load = auth net protocol io.unix io.ip ssh
 [load_modules:<modules.load>]
-[init_modules]
+[init_modules:<modules.load>]
+
+## dropping after init [ ability to adjust permissions ]
+[root.drop_privs:<system.amos-zenka-user>]
 
 [base.net.connect:'unix']
 
