@@ -18,7 +18,8 @@ Protocol-7 is a **multi-agent system** (zenki) built in Perl with:
 - **`CLAUDE.md`** - Primary codebase instructions, architecture overview, module system
 - **`data/md/development/CODE-STYLE-AND-LLM-INTEGRATION.md`** - Code style guide
 - **`data/yaml/code-style/CONVENTIONS.yaml`** - Quick style reference
-- **`/home/taeki/.claude/projects/-data-projects-protocol-7/memory/MEMORY.md`** - Session memory with solved issues and patterns
+- **`ai-mem/claude/MEMORY.md`** - Claude's session memory (solved issues, patterns, architecture decisions)
+- **`ai-mem/kimi/MEMORY.md`** - Kimi's session memory (code review notes, bug fixes, conventions)
 
 ### Core Architecture
 - **`modules/`** - All functional code (no `sub {}`, filename = function name)
@@ -103,12 +104,32 @@ p7c 'zenka.show-buffer zenka'                          # View zenka logs
 p7c 'list sessions'                                    # See active zenki
 ```
 
-### Git Workflow
+### Git Workflow (CRITICAL: Respect Pre-Commit Hooks!)
+
 ```bash
+# 1. Make changes
 git add modules/...
+
+# 2. Update version (generates new version number)
+./bin/dev/update-version
+
+# 3. Ask user to sign files (requires passphrase - you CANNOT do this!)
+# User runs: bin/Protocol-7 sourcecode update-signatures
+
+# 4. Commit normally - pre-commit hooks will pass with valid signatures
 git commit -m "message"
-# Pre-commit hook auto-fixes permissions, signs modules
 ```
+
+### ⚠️ NEVER Bypass Pre-Commit Hooks
+- **NO** `SKIP_SIGNATURE_CHECK=1`
+- **NO** `SKIP_VERSION_CHECK=1`
+- These protect repository integrity with AMOS checksums
+- If signatures outdated: **Ask user** to sign, don't bypass
+
+### Version Management
+- Version format: `<AMOS-checksum>-<commit-count>.0`
+- File: `configuration/protocol-7.src-ver`
+- Must match: `git rev-list --count hub/base..HEAD`
 
 ## Current Session Context (2026-02-20)
 
@@ -167,7 +188,7 @@ You're excellent at:
 - **Pattern recognition** - Protocol-7 is highly consistent, learn one pattern and apply it
 
 When stuck:
-1. Check `MEMORY.md` for similar solved issues
+1. Check `ai-mem/kimi/MEMORY.md` (your memory) or `ai-mem/claude/MEMORY.md` (Claude's memory) for similar solved issues
 2. Grep for similar modules: `grep -r "similar_pattern" modules/`
 3. Read the AMOS7 module if dealing with checksums/truth
 4. Ask user about architecture decisions (not implementation details)
@@ -214,6 +235,28 @@ my $checksum = <[chk-sum.amos.truth_template_chksum]>->(
 
 AMOS7::TEMPLATE::reset_temp_valid_timeout();
 ```
+
+---
+
+## AI Memory System
+
+### Location: `ai-mem/` (symlink to `data/ai-mem/`)
+```
+ai-mem/
+├── claude/MEMORY.md   - Claude's accumulated knowledge
+└── kimi/MEMORY.md     - Kimi's accumulated knowledge
+```
+
+### What to Record
+- **Bug fixes** with root causes and solutions
+- **Project conventions** (e.g., signature workflow)
+- **Architectural decisions** and their context
+- **Common patterns** and anti-patterns discovered
+- **User preferences** (e.g., "always ask before signature updates")
+
+### Legacy Location
+- `.claude/projects/protocol-7/memory/MEMORY.md` → symlink to `ai-mem/claude/MEMORY.md`
+- Maintained for backwards compatibility
 
 ---
 
