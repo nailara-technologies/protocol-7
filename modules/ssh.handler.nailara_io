@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = ssh.handler.nailara_io
+# descr = reads and processes output from mpv control pipe
+
+my $event = shift->w;
+
+my $read_fh      = $event->fd;
+my $con_id       = $event->data->{'con_id'};
+my $ssh          = $event->data->{'ssh_obj'};
+my $profile_name = $event->data->{'profile_name'};
+my $link_name    = $event->data->{'link_name'};
+my $connection   = $data{'ssh'}{'connections'}->{$con_id};
+my $profile_data = <ssh.cfg.profiles>->{$profile_name};
+my $channel      = $connection->{'nch'};
+
+my $buffer = '';
+
+my $bytes = <[base.s_read]>->( $read_fh, \$buffer, 4096 );
+
+if ( $bytes <= 0 ) {
+    <[ssh.connection.stop]>->($con_id);
+} else {
+    my $bytes = $channel->write($buffer);
+    if ( not defined $bytes ) {
+        <[base.log]>->( 0, '<< [nailara_io] WRITE ERROR >>' );
+        <[ssh.connection.stop]>->($con_id);
+    }
+}
+
+#,,,,,.,.,.,,,..,,,,,,...,...,...,.,,,.,.,..,,..,,...,...,...,,,.,..,,..,,..,,
+#QENSPFT5K6XY7FRXHJWJOXH7NC4DOSH3CHWCVDSNJH5OHDATSCMRGVV56CHTX2AC436A3XOGK7TGC
+#\\\|NJPEMU5BW2K5C2PN7EXLB6W2MNHP6OAM27SM2E2OO67F45E26HS \ / AMOS7 \ YOURUM ::
+#\[7]7UUVCPEX67QYWRLGVENJZC53IIU4GADHGKBVALNKXQ3KJJVZWQDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

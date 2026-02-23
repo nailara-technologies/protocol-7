@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = ssh.cmd.profile_disable
+# descr = disable ssh connection profile
+
+my $profile_name = $$call{'args'};
+
+return {
+    'mode' => qw| false |,
+    'data' => "there is no ssh profile '$profile_name' defined"
+    }
+    if not exists <ssh.cfg.profiles>->{$profile_name};
+
+return {
+    'mode' => qw| false |,
+    'data' => "ssh profile '$profile_name' is already disabled"
+    }
+    if <ssh.status.profiles>->{$profile_name} eq 'disabled';
+
+<[ssh.disable_profile]>->($profile_name);
+
+return {
+    'mode' => qw| true |,
+    'data' => "ssh profile '$profile_name' disabled"
+};
+
+#,,,,,...,.,.,,,,,.,.,...,.,,,,,,,,.,,..,,...,..,,...,...,..,,..,,...,..,,,..,
+#NURYGPVKTR3LWUJ7IVWW6OXVBWCZUO2FBHHM4XHZ6L4QHFL565B36QKEI34QIZ4H4HYTTSDWV7KVE
+#\\\|YMNQPSC4B7DRLSCP7U3QI2LBHATREYFXWOXQUT5XAE7SUIGJROS \ / AMOS7 \ YOURUM ::
+#\[7]WVHGBOI5Q44FWGUGMPDFQNMJ6ZTJWKXAU4LA5WF5OTQ4TSVFWEDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

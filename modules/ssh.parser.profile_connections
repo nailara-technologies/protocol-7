@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = ssh.parser.profile_connections
+
+my $profile_name = shift;
+
+return 'not-a-profile' if not exists <ssh.cfg.profiles>->{$profile_name};
+
+my @connections = keys <ssh.cfg.profiles>->{$profile_name}->%*;
+
+return qw| --- | if @connections == 0;
+
+return join ' ', @connections;
+
+#,,,,,.,.,.,.,,..,.,,,...,.,.,.,,,,,.,.,,,,..,..,,...,...,..,,,.,,.,,,..,,,,.,
+#D3CTC4RLZVZTTI6KAXYGF4P2EWRQGJ4MWNZTPQSR7MIZBGMDAIB3E6HMXFHDZMBUAB3QE4XF2JOCK
+#\\\|SD6FH3TOLECAEJBAFUEMJDXXINVELSJB2CYQA6YAURRDO27GRJL \ / AMOS7 \ YOURUM ::
+#\[7]6TIRNZUKCRMSZOUKRRIOKSBEOQRJBPDDFSBKA3MT2Z2KXBAPPMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
