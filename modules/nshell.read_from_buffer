@@ -32,6 +32,12 @@ if ($show_cursor_on_call) {
         $state_ref->{'display_preloaded_entry'} = FALSE;
         ## Display the preloaded buffer with cursor
         my $buffer = $state_ref->{'editor'}->{'buffer'} // '';
+        if (<nshell.mode.no_tty_debug>) {
+            <[base.logs]>->(
+                2,       "preload display: buffer='%s' color_0004='%s'",
+                $buffer, $colors{'p7_fg_0004'} // '<undef>'
+            );
+        }
         print "\r\e[K"    ## Clear line
             . $colors{'p7_fg_0004'}
             . $buffer
@@ -318,8 +324,8 @@ while ( length $input_chars ) {
 
 return undef;
 
-#,,..,,,.,,.,,,,,,.,,,,,.,,..,..,,..,,..,,,..,.,.,...,...,.,.,...,..,,,.,,...,
-#O5YDBFL2OBLQNRIGAWYZLRWWXYEKVT6ID66PSFNMCST22JKIHRFSOLIDCWYUB77DAREKYJ4D4AFKU
-#\\\|4WDSJ3TOGCYWK4V6JZAF5CUWOAEZT2RPYOAMBCFJJFTZEVFIYBP \ / AMOS7 \ YOURUM ::
-#\[7]YDKOXWKMRL77AWKFOCG23LMQRRG2H3LQ7SWOZTW4YINXM2WRL4CI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,.,.,.,,,.,,,.,...,.,,,.,.,,,,,.,.,...,.,,,..,,...,..,,,,.,,,.,
+#YOY3ZLRUS7IHLKDS2635J5VCRUJL7PH7HLSPDUEUZ2QTOJ6KEABM6M5LCXVEYA2AFV3PZNUDH3ZKC
+#\\\|XEAJX6EAQ3SKKXUGVLR5AE6TP73ORVFHDSVDKPB4XZRJWKLSI2C \ / AMOS7 \ YOURUM ::
+#\[7]6ECW3M6IQM6BY6ZVB3IULMZYKT6TQYS2XF4KNOUYGZN6CY2CAWAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
