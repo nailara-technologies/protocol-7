@@ -1,26 +1,112 @@
 ## [:< ##
 
 # name  = data.cmd.attach-fs-mount
-# param = <path> <data-src>
-# descr = mount specified data source onto filesystem
+# param = <hash-path> <local-dir>
+# descr = export hash structure to real filesystem directory
 
-( my $mount_path, my $data_source ) = split( / /, $$call{'args'} // '', 2 );
+my ( $hash_path, $local_dir ) = split( / +/, $$call{'args'} // '', 2 );
 
 return {
     'mode' => qw| false |,
-    'data' => 'expected <mount-path> and <data-source> arguments'
+    'data' => 'expected <hash-path> and <local-dir> arguments'
     }
-    if not defined $mount_path or not defined $data_source;
+    unless defined $hash_path and defined $local_dir;
 
-return { 'mode' => qw| false |, 'data' => 'mount point does not exist' }
-    if !-d $mount_path;
+$local_dir =~ s|/+$|| if length($local_dir) > 1;
 
-return { 'mode' => qw| false |, 'data' => 'not implemented yet' }; # <<< ! >>>
+return {
+    'mode' => qw| false |,
+    'data' => "directory '$local_dir' does not exist"
+    }
+    unless -d $local_dir;
 
-return { 'mode' => 'deferred' }
+return {
+    'mode' => qw| false |,
+    'data' => "directory '$local_dir' is not writable"
+    }
+    unless -w $local_dir;
 
-#,,..,..,,.,,,..,,,.,,...,.,,,...,..,,...,.,,,..,,...,...,.,.,...,,,.,,,,,,..,
-#GOUCF3DFALYFKVCWMGIDLBKFFHKONQUZL2IN4GUYCDX3VLFFV2T6AOE2D45NRRDCJZUA7KP5L4XT6
-#\\\|GIKS5V2O67PKWTHKSI4O2S735PYSPCGH656FKMMXCXIPHTZ325F \ / AMOS7 \ YOURUM ::
-#\[7]JHHNZSZYZAY3IBZQX4K434OFZCHJVROLD5LLYUI2FVSDVV4WYSCY 7  DATA SIGNATURE ::
+## validate hash path exists ##
+my $ref = <[data.resolve_hash_path]>->($hash_path);
+
+return {
+    'mode' => qw| false |,
+    'data' => "hash path '$hash_path' does not exist"
+    }
+    unless defined $ref;
+
+## recursive export function ##
+my $export_count = 0;
+
+my $export_ref;
+$export_ref = sub {
+    my ( $ref, $dir_path ) = @_;
+
+    if ( ref($ref) eq 'HASH' ) {
+        ## create directory
+        mkdir( $dir_path, 0755 ) unless -d $dir_path;
+
+        ## recurse into each entry
+        for my $key ( keys %{$ref} ) {
+            my $child_ref  = $ref->{$key};
+            my $child_path = "$dir_path/$key";
+
+            if ( ref($child_ref) ) {
+                $export_ref->( $child_ref, $child_path );
+            } else {
+                ## plain scalar - create file
+                open( my $fh, '>', $child_path ) or next;
+                print $fh $child_ref;
+                close($fh);
+                $export_count++;
+            }
+        }
+    } elsif ( ref($ref) eq 'ARRAY' ) {
+        ## create directory for array
+        mkdir( $dir_path, 0755 ) unless -d $dir_path;
+
+        ## each entry becomes a file
+        for my $entry ( @{$ref} ) {
+            next unless ref($entry) eq 'HASH';
+            my $name        = $entry->{'name'} // 'unnamed';
+            my $content_ref = $entry->{'content'};
+            my $file_path   = "$dir_path/$name";
+
+            if ( ref($content_ref) eq 'SCALAR' ) {
+                open( my $fh, '>', $file_path ) or next;
+                print $fh ${$content_ref};
+                close($fh);
+                $export_count++;
+            }
+        }
+    } elsif ( ref($ref) eq 'SCALAR' ) {
+        ## single file
+        open( my $fh, '>', $dir_path ) or return;
+        print $fh ${$ref};
+        close($fh);
+        $export_count++;
+    } elsif ( ref($ref) eq 'CODE' ) {
+        ## execute and export result
+        my $result = eval { $ref->('export') };
+        return                              if $@;
+        $export_ref->( $result, $dir_path ) if ref($result);
+    }
+};
+
+## do export ##
+my $target_dir = "$local_dir/" . ( $hash_path =~ s|\.|-|gr );
+$export_ref->( $ref, $target_dir );
+
+## clean up recursion ref ##
+undef $export_ref;
+
+return {
+    'mode' => qw| true |,
+    'data' => "Exported $export_count files/directories to $target_dir"
+};
+
+#,,.,,..,,..,,,.,,.,.,,,,,,..,.,.,,.,,.,,,.,,,.,.,...,...,..,,.,,,.,.,.,,,.,,,
+#SEDFKMEAZTODQGQWRZTOZAEH525RCAAFIMGCLWHRJBRDUYFHPZXOQGOF34ETRQFNALOUB3SL6R2KS
+#\\\|7PVIRCLK7M4LHFTDMJ4FJZYGNMV3OQQBVJBJG66AEELUSP2ZHAE \ / AMOS7 \ YOURUM ::
+#\[7]G2W6FS5JTURBLG7673VYMMAN2I27PKGE3AZYBDUNTPCOEYCBXGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
