@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = data.hooks.register
+# param = <event> <target-zenka> <command> [priority]
+# descr = register a zenka to be notified on data events
+
+my ( $event, $zenka, $command, $priority ) = @ARG;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected <event> <target-zenka> <command>'
+    }
+    unless defined $event
+    and defined $zenka
+    and defined $command;
+
+$priority //= 1;
+
+## add hook ##
+push @{ <data.hooks.registered>->{$event} //= [] },
+    {
+    'zenka'    => $zenka,
+    'command'  => $command,
+    'priority' => $priority,
+    'time'     => time(),
+    };
+
+<[base.log]>->(
+    1, "registered hook: %s → %s.%s (priority %d)",
+    $event, $zenka, $command, $priority
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => "registered $event hook for $zenka.$command"
+};
+
+#,,,,,,.,,.,.,..,,...,..,,,.,,..,,,,,,.,.,...,.,.,...,...,..,,,,.,..,,..,,.,.,
+#PUEH6UDJ5QHHLDSSEEZFR7CSUW76TXGLFLQ7XH4WYUYTLLYRLFAYAYUBJRUDVUYM5XFVVG7JEWKTU
+#\\\|USWANEXPKWMHKTXFBEWV5OVJFRUUQHSQVJ77J3R2G5GUJIFZ2SO \ / AMOS7 \ YOURUM ::
+#\[7]UXGEO7TXPPFCPYFHCYVAEJVGJQBUFQAUDP3O3JA27UFR6SWY2ABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
