@@ -1,0 +1,24 @@
+## [:< ##
+
+# name = ssh.handler.heartbeat_timeout
+
+my $event      = shift->w;
+my $con_id     = $event->data->{'con_id'};
+my $int_id     = $event->data->{'int_id'};
+my $connection = <ssh.connections>->{$con_id};
+my $link_name  = $connection->{'name'};
+
+delete $connection->{'timer'}->{$int_id};
+
+if (    exists <ssh.heartbeat_request>
+    and exists <ssh.heartbeat_request>->{$con_id}
+    and exists <ssh.heartbeat_request>->{$con_id}->{$int_id} ) {
+    <[base.log]>->( 0, "[!] ssh link '$link_name' has timed out!" );
+    <[ssh.connection.stop]>->($con_id);
+}
+
+#,,,.,..,,.,.,.,.,,.,,,..,.,,,.,.,.,,,,,,,,,,,..,,...,...,..,,...,,..,.,,,...,
+#Z6MC3KVSKZ5OCBC7IDT3DNCVCH7HVC35AJL66K7WP6NSKLNV6QMLHNEK2P7QGMVOZ3IDAXRK4RWFA
+#\\\|JWGQHCNYAMXLC6L54GXIHTHI23WIFCPUWPOJ7ZR7Y66WSCPX4X6 \ / AMOS7 \ YOURUM ::
+#\[7]WUTGBPWSHOTIAFGHF5KSWQHMGJ67R4WB2WHY24LAVM3UPNUAOAAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
