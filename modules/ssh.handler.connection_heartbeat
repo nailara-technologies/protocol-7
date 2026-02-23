@@ -1,0 +1,41 @@
+## [:< ##
+
+# name = ssh.handler.connection_heartbeat
+
+my $con_id            = shift->w->data;
+my $connection        = $data{'ssh'}{'connections'}->{$con_id};
+my $local_user        = $connection->{'local_user'};
+my $nailara_fh        = $connection->{'local_fh'};
+my $heartbeat_timeout = <ssh.cfg.globals>->{'connections.timeout'};
+<ssh.heartbeat_request> //= {};
+<ssh.heartbeat_request>->{$con_id} //= {};
+
+<[base.log]>->( 2, "checking link status [conn:$con_id]..," );
+
+my $interval_id = <[base.gen_id]>->(<ssh.heartbeat_request>);
+
+$connection->{'timer'}->{$interval_id} = <[event.add_timer]>->(
+    {   'after'   => $heartbeat_timeout,
+        'handler' => 'ssh.handler.heartbeat_timeout',
+        'data'    => { 'con_id' => $con_id, 'int_id' => $interval_id }
+    }
+);
+
+<ssh.heartbeat_request>->{$con_id}->{$interval_id}
+    = { 'time_sent' => <[base.time]>->(5), };
+
+<[base.protocol-7.command.send.local]>->(
+    {   'command'   => "cube.$local_user.heart",
+        'call_args' => { 'args' => '' },
+        'reply'     => {
+            'handler' => 'ssh.handler.heartbeat_response',
+            'params'  => { 'con_id' => $con_id, 'int_id' => $interval_id }
+        }
+    }
+);
+
+#,,..,...,.,,,.,,,.,,,,,.,..,,,..,.,,,,,,,,,,,..,,...,...,,..,,..,.,.,...,.,,,
+#4VF6EOUSOJOMWSTV4SSVNY3UBDSSENEGEPUGWHOXO5LX3F7UNKCSXYQNTF4CZAMJGNATTBZU62IRC
+#\\\|Z4AGFLTJSZERP5HRELEZ4OXVAOMJ4VIO6GKOCUXHOI7X2VWG7QL \ / AMOS7 \ YOURUM ::
+#\[7]RKFUT7MWLDJY6YRK6NPSOJ4GKGW54AWUKSLARDTNUHVTZRS6YSBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

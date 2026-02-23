@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = ssh.cmd.profile_enable
+# descr = enable ssh connection profile
+
+my $profile_name = $$call{'args'};
+
+return {
+    'mode' => qw| false |,
+    'data' => "there is no ssh profile '$profile_name' defined"
+    }
+    if not exists <ssh.cfg.profiles>->{$profile_name};
+
+return {
+    'mode' => qw| false |,
+    'data' => "ssh profile '$profile_name' is already enabled"
+    }
+    if <ssh.status.profiles>->{$profile_name} eq 'enabled';
+
+<[ssh.enable_profile]>->($profile_name);
+
+return {
+    'mode' => qw| true |,
+    'data' => "ssh profile '$profile_name' enabled"
+};
+
+#,,,,,.,.,...,,,,,,,,,...,,,,,,,.,,,,,...,,..,..,,...,...,,,.,,.,,...,.,,,.,.,
+#NMLLCFXDEFKHSKU4AYIYVJI5LJE5MTETXCF4RLM5AFFO4O3IRXZUX5B56GPYHBMMB27L4FYYBZ27I
+#\\\|KRZ4BRYUWS27UOAA6UEXJHZWCYZCAHG5ODIGMVLSYDACF7L5FAC \ / AMOS7 \ YOURUM ::
+#\[7]3BBULXXIAC4FYIMCAPMNBH6HXUHK52Q7WOQFO6CK4MLZFSG5YYBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

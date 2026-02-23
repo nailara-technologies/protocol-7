@@ -1,0 +1,45 @@
+## [:< ##
+
+# name = ssh.handler.heartbeat_response
+
+my $response   = shift;
+my $con_id     = $response->{'params'}->{'con_id'};
+my $int_id     = $response->{'params'}->{'int_id'};
+my $connection = <ssh.connections>->{$con_id};
+my $link_name  = $connection->{'name'};
+
+delete $connection->{'timer'}->{$int_id};
+
+my $request = <ssh.heartbeat_request>->{$con_id}->{$int_id};
+
+my $status = $response->{'cmd'};
+
+if ( $status ne qw| TRUE | ) {
+
+    return
+           if not exists <ssh.heartbeat_request>
+        or not exists <ssh.heartbeat_request>->{$con_id}
+        or not exists <ssh.heartbeat_request>->{$con_id}->{$int_id};
+
+    my $msg = $response->{'call_args'}->{'args'};
+    <[base.log]>->(
+        0, "hearbeat reply timeout for link '$link_name'. [ $msg ]"
+    );
+    <[ssh.connection.stop]>->($con_id);
+} else {
+    delete <ssh.heartbeat_request>->{$con_id}->{$int_id};
+    delete <ssh.heartbeat_request>->{$con_id}
+        if !keys %{ <ssh.heartbeat_request>->{$con_id} };
+    delete <ssh.heartbeat_request> if !keys %{<ssh.heartbeat_request>};
+
+    my $delta_t = <[base.time]>->(5) - $request->{'time_sent'};
+    my $latency = sprintf( '%.2f', $delta_t * 1000 );
+
+    #   print "[$link_name] link latency : ${latency}ms\n";
+}
+
+#,,..,,..,..,,.,,,.,.,,,.,...,,,.,..,,,,.,,,.,..,,...,...,..,,..,,,..,,,.,,..,
+#JEMO6DXPANI3L5MJR7KZBK4F4PKO5SXN4WFNWMUTRH3J5PYPTFFJ3BMZZRYKF65IB74AHJDLEDIWA
+#\\\|NNY26JB7KGVUHUNWV2YFTUFMFCE5MUHTVOS4Y22SCOIPG6NQMHT \ / AMOS7 \ YOURUM ::
+#\[7]ZRY3QJFVCN7JGKBJ6WNWODTMDZ5UNKDZ3UEC62FXFUVGZUPPNKDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
