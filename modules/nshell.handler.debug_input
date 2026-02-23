@@ -1,0 +1,20 @@
+## {:< ##
+
+# name  = nshell.handler.debug_input
+# descr = trigger reading from debug buffer
+
+my $event = shift; ## get var_watcher event ##
+my $id    = $event->w->data; ## get session id ##
+my $session = $data{'session'}->{$id};## acquire session hash ##
+
+<[base.log]>->(2, "[debug_input] called read handler..,");
+
+$session->{'watcher'}{'stdin_handler'}->now; ## nshell.read_from_buffer ##
+
+return 0;
+
+#,,..,...,,.,,,..,,,.,,,,,,.,,...,,..,..,,,..,..,,...,...,.,.,,,.,..,,.,.,,,.,
+#QDSQOVMHTFW2E5VX5SQZFEZTI4O4YM34XTPRQIQO2OKDE4X7FX4T5TTSEB2QHF4MTDNHLUIOOLE6Y
+#\\\|A2YMR2MFPUXXULEUAWVRRPL6PSG6D723762KTMQ7ELZKFQLY7LH \ / AMOS7 \ YOURUM ::
+#\[7]GFCRJMR7CNVMB7B2TJ5KZIIDLMVOA3EMKEWR35VIKMSOQPAY36AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

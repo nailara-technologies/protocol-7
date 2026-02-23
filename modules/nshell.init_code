@@ -48,6 +48,8 @@ if ( not exists <buffer.terminal-history> ) {   ## init msg has a timestamp ##
     <buffer.terminal-history.max_size> = 42 * 1024;    ## 42K buffer size ##
     my $log_msg    = '.   .  . .:[ terminal buffer initialized ]:. .  .   .';
     my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );   # BASE32 encoded #
+    ## endline padding ##
+    <[base.buffer.add_line]>->( 'terminal-history', '' );
     <[base.buffer.add_line]>->(
         qw| terminal-history |,  ## gets initialized on zenka start-up only ##
         sprintf( '%s %s', $time_stamp, $log_msg ) #[timestamp but no loglevel]
@@ -66,7 +68,13 @@ if (<nshell.mode.no_tty_debug>) {    ## present only in no-tty-debug mode ##
             qw| no-tty-debug |,   ## initialized whenever mode gets enabled ##
             sprintf( '%s %s', $time_stamp, $log_msg )    # [ timestamp only ]
         );
+        <[base.buffer.add_line]>->(
+            qw| terminal-history |,    ## log enabled debug mode ##
+            ':. no-tty-debug mode is enabled .. remote input possible..,'
+        );
     }
+    ## endline padding ##
+    <[base.buffer.add_line]>->( 'terminal-history', '' );
 
     ## [ debug input buffer and watcher ]
     #
@@ -74,10 +82,14 @@ if (<nshell.mode.no_tty_debug>) {    ## present only in no-tty-debug mode ##
     ## alternate input buffer for char-add testing ##
     <nshell.buffer.debug_input> //= '';
 
+    ## testing only , extract if worx : ##
+    #
+    $code{'nshell.handler.debug_input'} = sub { };
+
     <nshell.watcher.buffer.debug_input> = <[event.add_var]>->(
         {   'var'     => \<nshell.buffer.debug_input>,
             'poll'    => qw| w |,
-            'handler' => qw| nshell.read_from_buffer |,
+            'handler' => qw| nshell.handler.debug_input |,
             'repeat'  => TRUE,
             'desc'    => 'alternate [no-tty-debug] input buffer watcher'
         }
@@ -121,8 +133,8 @@ $code{'base.handler.end_code'} = sub {
 
 return 0;
 
-#,,..,.,.,,.,,,,,,...,,,.,,,,,.,.,,.,,.,.,...,..,,...,...,.,.,,,.,..,,,,,,.,.,
-#U6U37DQA35FJ77GZNSAVB6TLCPMXNI5BONFCFKVT4AG532OGNCIBOBQRVAHCMAVPXYFAMHIXOV5WU
-#\\\|ZDOINXGEAYUJRDPNMH3H3Y452VY73ECKMDUOBEQU277ZCQ7DDOZ \ / AMOS7 \ YOURUM ::
-#\[7]CGV6Z7UTCC2EOBUM7G2HPBRDCJY6VRHDEG2FYJKFLSTQYMUTWKDY 7  DATA SIGNATURE ::
+#,,..,,,.,,,,,.,.,,,,,,,,,,..,.,.,..,,.,.,...,..,,...,..,,..,,.,.,..,,,,,,.,.,
+#5IBILUB6MDTMUPVWD4LPLBFGZW6UL5S7MEM4U5EJPZPGMNLDUDSL5SW4KLT2F5NJX53NS22M3YIYW
+#\\\|44A3UZV6HKNMHMVU6TV5HLAINE7QH4HTH7H74BFFWFI6XDURIM3 \ / AMOS7 \ YOURUM ::
+#\[7]5OSGPSVBTW5AU6TKR6DOUIR3DKMLPEHT2ZQ5S7HKC3LYDRQNACCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
