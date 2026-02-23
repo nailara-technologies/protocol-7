@@ -135,3 +135,92 @@ Module: `nshell.no-tty-debug.cmd.char-add`
 #\\\|4VKPAQSFECLCDLS7XJ6GRDVZI2QDVAYNOAHICPK6JCCFNWULRLR \ / AMOS7 \ YOURUM ::
 #\[7]BFG6VXDGVOWCMH6JEZ5Y7GZF2CGT5NZZXZHSLYIICGAZSXLUIUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+---
+
+## SSH Zenka Recovery (February 2025)
+
+### Race Condition Fix: Auto-User-Creation
+
+**Issue**: Multiple `register_*_deps` calls racing when creating system user during startup, causing duplicate "not in passwd" errors.
+
+**Root Cause**: SSH zenka loads `ssh.set-up` and `set-up.json` before base module init (unusual pattern), triggering multiple `register_pm_deps`, `register_bin_deps`, `register_src_deps` calls before user exists.
+
+**Fix Strategy**: Check if dependencies already registered before attempting user creation:
+
+```perl
+## early return if deps already registered [ prevents user creation race ] ##
+if ( -d $mod_dir and scalar( glob("$mod_dir/*") ) > 2 ) {
+    return TRUE;    ## already registered, skip user check ##
+}
+```
+
+**Files Modified**:
+- `modules/base.register_pm_deps`
+- `modules/base.register_bin_deps`
+- `modules/base.register_src_deps`
+- `modules/base.load_modules` (add user auto-creation)
+- `modules/base.check_dependency_dirs` (add user auto-creation)
+- `modules/base.root.check_system_user` (auto-detect make_path for pre_init)
+
+**Commit**: 6a2d76206
+
+---
+
+## Terminal Color Consistency (February 2025)
+
+### Problem: White Text in keys.console.list
+
+Unstyled text appeared white/default, breaking visual consistency of Protocol-7 color scheme.
+
+**Solution**: Base teal color on ALL output first, then specific element coloring:
+
+```perl
+##  1. base teal on everything  ##
+$key_list_string =~ s|^(.+)$|$C{T}$1|mg;
+
+##  2. specific colors - always restore to teal after  ##
+$key_list_string =~ s|  (\.)$|  $C{b}$C{0}$1$C{T}|mg;
+```
+
+**Key Principle**: Never use `$C{R}` (reset) mid-string - always restore to base color `$C{T}` to prevent white gaps.
+
+**Color Assignments**:
+- Key names: Teal (`$C{T}`)
+- Extensions (.public/.private/.secret): Purple (`$C{0}`)
+- Quotes, markers, colons: Purple
+- Background: Dark (`$C{b}`)
+
+**Files Modified**:
+- `modules/keys.console.list`
+
+**Commits**: d3747de61, 0cee4bd9c
+
+---
+
+## Research: Dynamic Harmonic Color Templates
+
+**Document**: `data/md/design/CONCEPT-DYNAMIC-HARMONIC-COLOR-TEMPLATES.md`
+
+**Vision**: Replace fragile regex-based coloring with template system using multi-buffer masks (retro video game approach):
+
+1. **TEXT BUFFER**: Raw content for layout calculation
+2. **TYPE BUFFER**: Semantic type IDs (key_name, extension, checksum)
+3. **COLOR BUFFER**: Harmonic palette mapped from types
+4. **OUTPUT**: Composited result
+
+**Benefits**:
+- No sprintf width issues (layout before colors)
+- Semantic coloring ("key name" not "purple")
+- Dynamic palette adaptation via ELF truth assertions
+- Consistent across all tools
+
+**Phases**:
+- Phase 1: Forward templates with semantic registry
+- Phase 2: Dynamic reverse template inference from data streams
+
+#,,,.,,.,,.,,,,,.,,,,,..,,,.,,..,,...,..,,,,,,.,.,...,...,..,,,..,...,.,.,,,,,
+#3PJZUORI2CRMG5WKZK4XM3PO7XDLE26K4QTZWZAY6XB3ETFAP6U2GKYPMSFU7GCBFTT62XSR7BV7A
+#\\\|6RNRELHUOHUNQWXH3ZNWH2JCPWZLC4TYI65OKSGP3HJ7E7VFXMI \ / AMOS7 \ YOURUM ::
+#\[7]T47ATDSTTF7ZDIN35ZQ6G6IIQRU3JYKZDN3WQTV23MR2CT6M5ODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
