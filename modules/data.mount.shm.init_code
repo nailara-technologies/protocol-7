@@ -10,10 +10,10 @@
 
 # Load required Perl modules via base.perlmod.autoload
 # Note: IO::AIO and BSD::Resource already loaded by base.init_code
+# Note: Using file-based SHM in /dev/shm (tmpfs) - no POSIX::shm_open needed
 
-<[base.perlmod.autoload]>->('IPC::Shm::Simple')
-    unless exists $INC{'IPC/Shm/Simple.pm'};
-<[base.perlmod.autoload]>->('Sys::Mmap') unless exists $INC{'Sys/Mmap.pm'};
+<[base.perlmod.autoload]>->('Sys::Mmap')
+    unless exists $INC{'Sys/Mmap.pm'};
 
 ##[ NAMESPACE INITIALIZATION ]##############################################
 
@@ -87,10 +87,10 @@ $SIG{'INT'} = sub {
 <[base.log]>->( 2, "SHM mounting subsystem initialized" );
 
 # Init codes must return 0 or 5 for success
-return 5;
+return TRUE;
 
-#,,,,,,,.,,,,,,,.,..,,,.,,..,,.,.,,.,,,.,,.,,,.,.,...,...,,.,,,..,,,,,.,.,.,.,
-#6IDAPSWPMSLRER6SBWMEF273P6QOWSQ5R2F4OH45RDNHW6W6GATFAPJPGGY2JMNGGQYP6MULQS7RK
-#\\\|LVHZ7C7QOKJUDPM7MB2FLP2EA7V5APXGBQDZHQCLYJ36WSZVMGR \ / AMOS7 \ YOURUM ::
-#\[7]QCWAJSPC7OMA55F25ANXFUMWCTH6WIVFMCCVAMS47C6ZHAUISCCY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,,,,,.,.,,,.,.,.,,..,.,.,.,.,.,,,.,.,...,...,,.,,,,,,...,.,.,.,,,
+#HD7C3TPT424UOQSHRZGQYOB6I7N2U7TR6YXGO4FVZV5P33CTYTWAKUJYKBGW25VJN7DBWIBJYZOFG
+#\\\|4KZ6OYPJZOLJYRGACOHMSEPXZUP7DTKKVRNIDLKLCBBACU5CPRR \ / AMOS7 \ YOURUM ::
+#\[7]7IQKD3SBHT6KXXEU2CIDYSHA7LPQH6Y5CX5JMZLZ5YR2SVIPPUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

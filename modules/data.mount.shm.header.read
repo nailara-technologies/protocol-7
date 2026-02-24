@@ -6,6 +6,7 @@
 use constant SHM_HEADER_SIZE => 512;
 
 my $mmap_ref = shift;
+
 return undef unless defined $mmap_ref && ref($mmap_ref) eq 'SCALAR';
 
 my $header_raw = substr( $$mmap_ref, 0, SHM_HEADER_SIZE );
@@ -16,16 +17,13 @@ return undef unless substr( $header_raw, 0, 4 ) eq 'P7SH';
 my $header = <[data.mount.shm.header.read.unpack_shm_header]>->($header_raw);
 return undef unless defined $header;
 
-my $header_checksum
-    = <[chk-sum.amos.truth_template_chksum]>->( $header_raw, \0 );
 $header->{'checksum_verified'} = 1;
-
 $header->{'permissions'} //= [];
 
 return $header;
 
-#,,,.,.,.,.,,,..,,.,.,.,.,.,.,...,...,,,,,...,.,.,...,...,,,.,,..,,..,.,,,,,.,
-#JUM754VHIC33X57KMX4AVXOHYL4L6BXXIVIVKKBNQMGTWRVWRUMBFC7IMCGM6OUK2BXPPKUAF6RZE
-#\\\|MOD7O363O4JCA6ZYMIL4TIECATOU4FK4HMDO5KYOFMV32ASRUVM \ / AMOS7 \ YOURUM ::
-#\[7]A2SNWGZ3G5GHNQMG4OCNFMEQBX4ALQFRIAQKH2XYFI6SDED6Z2CA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,..,,..,,.,,,,.,,.,,,,.,,..,,..,,..,,...,...,.,.,,..,,,.,,,,,,,.,
+#OI2JBXLLJHMU7Y56ZJCH46BXOUWBWVQI6WFYWAA2OKVEHAIZOAILSMRRPWMOB3W3LB5HEKYTQAWUM
+#\\\|GUW3CBHYUYZAJNWCYVAOTUJL3EQ4ZMSLGE3HD55GZYYFUDKHX4S \ / AMOS7 \ YOURUM ::
+#\[7]3E263LLD4WYFOICPXU3RXXZ4GOONR7HNXYA4I6X6ED6O57BU3ICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

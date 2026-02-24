@@ -5,9 +5,22 @@
 
 my $raw = shift;
 
-if ( $raw =~ m{^P7SH:(\d+):([A-Z0-9]+):(\d+):(\d+):(\d+):([^:]+):} ) {
+<[base.log]>->( 2, "unpack: raw length=" . length($raw) );
+<[base.log]>->( 2, "unpack: first 80 chars=" . substr( $raw, 0, 80 ) );
+
+# Check magic
+my $magic = substr( $raw, 0, 4 );
+if ( $magic ne 'P7SH' ) {
+    <[base.log]>->( 2, "unpack: bad magic='$magic'" );
+    return undef;
+}
+
+# Try regex match
+if ( $raw =~ m{^P7SH:(\d+):([A-Z0-9]+):([\d.]+):(\d+):(\d+):([^:]+):} ) {
     my ( $version, $pubkey, $created, $data_size, $hdr_size, $flags_str )
         = ( $1, $2, $3, $4, $5, $6 );
+
+    <[base.log]>->( 2, "unpack: matched! version=$version, pubkey=$pubkey" );
 
     my %flags;
     for my $flag_pair ( split( /,/, $flags_str ) ) {
@@ -27,10 +40,11 @@ if ( $raw =~ m{^P7SH:(\d+):([A-Z0-9]+):(\d+):(\d+):(\d+):([^:]+):} ) {
     };
 }
 
+<[base.log]>->( 2, "unpack: regex did not match" );
 return undef;
 
-#,,,.,...,...,,,.,,,.,..,,...,...,.,,,...,,,,,..,,...,...,..,,,.,,...,,,,,,,,,
-#6SYYG44PRE43GE56XIGNXHPFIZKC5UIAWSK42ZQHH5CMMAQW4KO6AUBDF5HUN3KQS2PVAQCUTA7TA
-#\\\|RSJTSJUEFSXHJ5UGL6SWCNEZMUFODKJRAF3LTRVHHBK4OXELPQB \ / AMOS7 \ YOURUM ::
-#\[7]SVB2HSKPRTEPX3ENJ7QMGVSPJP3I2LAXBGKSOFU2AE4T6A4MN4AA 7  DATA SIGNATURE ::
+#,,,,,,..,,..,,,,,,..,.,.,,..,.,,,.,,,,,.,..,,..,,...,...,,,.,...,..,,..,,...,
+#RBVNP7UHMBC4PZIUKY4XCNGKDVT7LCUPMJMBXT4HMM5YQDODT7BGX34ZR3NKWWS4D22XXVJVM2NYO
+#\\\|WWC7BED7DYKODLDR3PHYOOHYG7N3B4KWNFFTB6H5GBTPZOHOKCQ \ / AMOS7 \ YOURUM ::
+#\[7]EZTC6JCO3TJBVKC766AC5NPD5X36QKOH255NLOMKYURY32R5M4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
