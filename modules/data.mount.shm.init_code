@@ -1,0 +1,96 @@
+## [:< ##
+
+# name  = data.mount.shm.init_code
+# desc  = Initialize SHM mounting subsystem for data zenka
+#         Registers autoload hooks and initializes namespaces
+
+<[base.log]>->( 2, "initializing SHM mounting subsystem" );
+
+##[ AUTOLOAD PERL MODULES ]#################################################
+
+# Load required Perl modules via base.perlmod.autoload
+# Note: IO::AIO and BSD::Resource already loaded by base.init_code
+
+<[base.perlmod.autoload]>->('IPC::Shm::Simple')
+    unless exists $INC{'IPC/Shm/Simple.pm'};
+<[base.perlmod.autoload]>->('Sys::Mmap') unless exists $INC{'Sys/Mmap.pm'};
+
+##[ NAMESPACE INITIALIZATION ]##############################################
+
+# SHM mount registry
+$data{'mount'}{'shm'}{'segments'}    //= {};    # Active mounts by path
+$data{'mount'}{'shm'}{'by_pubkey'}   //= {};    # Index by owner pubkey
+$data{'mount'}{'shm'}{'groups'}      //= {};    # Group definitions
+$data{'mount'}{'shm'}{'permissions'} //= {};    # Cached permission lookups
+
+# Statistics
+$data{'mount'}{'shm'}{'stats'}{'created'}  //= 0;
+$data{'mount'}{'shm'}{'stats'}{'opened'}   //= 0;
+$data{'mount'}{'shm'}{'stats'}{'locked'}   //= 0;
+$data{'mount'}{'shm'}{'stats'}{'rejected'} //= 0;
+
+##[ CONSTANTS ]#############################################################
+
+$data{'mount'}{'shm'}{'const'}{'header_size'}     //= 512;
+$data{'mount'}{'shm'}{'const'}{'default_size'}    //= 63 * 1024;    # 63K
+$data{'mount'}{'shm'}{'const'}{'max_permissions'} //= 16;
+$data{'mount'}{'shm'}{'const'}{'magic'}           //= 'P7SH';
+
+##[ LOCKING BACKEND DETECTION ]#############################################
+
+# Detect available memory locking mechanisms
+$data{'mount'}{'shm'}{'capabilities'}{'mlock'} = 0;
+
+if ( eval { require IO::AIO } ) {
+    $data{'mount'}{'shm'}{'capabilities'}{'mlock'}         = 1;
+    $data{'mount'}{'shm'}{'capabilities'}{'mlock_backend'} = 'IO::AIO';
+} elsif ( eval { require BSD::Resource } ) {
+    $data{'mount'}{'shm'}{'capabilities'}{'mlock'}         = 1;
+    $data{'mount'}{'shm'}{'capabilities'}{'mlock_backend'} = 'BSD::Resource';
+} else {
+    $data{'mount'}{'shm'}{'capabilities'}{'mlock_backend'} = 'none';
+}
+
+# Detect mmap capabilities
+$data{'mount'}{'shm'}{'capabilities'}{'mmap'} = 0;
+if ( eval { require Sys::Mmap } ) {
+    $data{'mount'}{'shm'}{'capabilities'}{'mmap'} = 1;
+}
+
+##[ POSIX SHM AVAILABILITY ]################################################
+
+$data{'mount'}{'shm'}{'capabilities'}{'posix_shm'} = 0;
+if ( eval { require POSIX } ) {
+
+    # Check if shm_open is available
+    if ( defined &POSIX::shm_open ) {
+        $data{'mount'}{'shm'}{'capabilities'}{'posix_shm'} = 1;
+    }
+}
+
+##[ CLEANUP HANDLER ]#######################################################
+
+# Register cleanup for shutdown
+$SIG{'INT'} = sub {
+    <[base.log]>->( 2, "SHM subsystem cleaning up on interrupt" );
+
+    # Unlock all mlocked segments
+    for my $path ( keys %{ $data{'mount'}{'shm'}{'segments'} } ) {
+        my $seg = $data{'mount'}{'shm'}{'segments'}{$path};
+        if ( $seg && $seg->{'mlocked'} ) {
+            eval { <[data.mount.shm.lock.unlock]>->( $seg->{'mmap_ptr'} ) };
+        }
+    }
+    exit(0);
+};
+
+<[base.log]>->( 2, "SHM mounting subsystem initialized" );
+
+# Init codes must return 0 or 5 for success
+return 5;
+
+#,,,,,,,.,,,,,,,.,..,,,.,,..,,.,.,,.,,,.,,.,,,.,.,...,...,,.,,,..,,,,,.,.,.,.,
+#6IDAPSWPMSLRER6SBWMEF273P6QOWSQ5R2F4OH45RDNHW6W6GATFAPJPGGY2JMNGGQYP6MULQS7RK
+#\\\|LVHZ7C7QOKJUDPM7MB2FLP2EA7V5APXGBQDZHQCLYJ36WSZVMGR \ / AMOS7 \ YOURUM ::
+#\[7]QCWAJSPC7OMA55F25ANXFUMWCTH6WIVFMCCVAMS47C6ZHAUISCCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

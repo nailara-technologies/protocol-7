@@ -1,0 +1,22 @@
+## [:< ##
+
+# name = data.mount.shm.create.mmap_shm
+# desc = mmap POSIX SHM segment
+
+my ( $fd, $size ) = @_;
+
+if ( eval { require Sys::Mmap } ) {
+    my $var;
+    Sys::Mmap::mmap( $var, $size,
+        Sys::Mmap::PROT_READ() | Sys::Mmap::PROT_WRITE(),
+        Sys::Mmap::MAP_SHARED(), $fd, 0 );
+    return \$var if length($var) > 0;
+}
+
+return undef;
+
+#,,.,,.,.,.,,,.,,,,,.,,,,,.,,,...,.,.,,.,,.,,,..,,...,...,,,,,,.,,...,,.,,..,,
+#ALK3JBWMU7U7XEHZYNRCOUCEU54DVRVQN6WOROMB6MXD6HP4AGSCORX3JSGFP4CNIEMMD5Y25FP7W
+#\\\|JRNBCV3M4LQLVJPLXXUYREIEQFIX5CGZMK3TEHLKDIYPWH32KBY \ / AMOS7 \ YOURUM ::
+#\[7]I4XBGGXVWFGIPB2J4RK67BNVFRTEO4J5JEMYKCOGKS5XBKUYQWCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

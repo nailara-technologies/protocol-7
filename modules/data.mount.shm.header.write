@@ -1,0 +1,28 @@
+## [:< ##
+
+# name = data.mount.shm.header.write
+# desc = Write cryptographic header to SHM segment
+
+use constant SHM_HEADER_SIZE => 512;
+
+my $mmap_ref = shift;
+my $header   = shift;
+
+return undef unless defined $mmap_ref && ref($mmap_ref) eq 'SCALAR';
+return undef unless defined $header   && ref($header) eq 'HASH';
+
+my $packed = <[data.mount.shm.header.write.pack_shm_header]>->($header);
+return undef unless length($packed) == SHM_HEADER_SIZE;
+
+substr( $$mmap_ref, 0, SHM_HEADER_SIZE ) = $packed;
+
+return {
+    'written' => SHM_HEADER_SIZE,
+    'version' => $header->{'version'},
+};
+
+#,,,,,,,.,.,,,,..,...,,,,,.,,,,.,,,,,,,,.,.,,,.,.,...,...,...,..,,,,.,,,.,...,
+#OE7GH34XYMHPB7CMHT4HYVO7K44NAJJLEJZOSZRRWZDZNTXFJNEPUBG7Z7R6MEBXI4A4QPKNFPK4C
+#\\\|EKTNJSHKFJRJVJQWTO3A5XMFV4VU4L2Z7EOW5XWBF35JADRAWSR \ / AMOS7 \ YOURUM ::
+#\[7]NLX5N3XLAXQZISHTOI7CCD2VPIKILVWPVDM6WVLWFNHYAMJ4IMDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

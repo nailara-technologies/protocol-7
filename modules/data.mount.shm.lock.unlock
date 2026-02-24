@@ -1,0 +1,33 @@
+## [:< ##
+
+# name = data.mount.shm.lock.unlock
+# desc = Unlock SHM segment memory (munlock)
+
+my $mmap_ref = shift;
+return undef unless defined $mmap_ref && ref($mmap_ref) eq 'SCALAR';
+
+# Use IO::AIO for async munlock if available
+if ( eval { require IO::AIO } ) {
+    IO::AIO::aio_munlock( $$mmap_ref, 0, length($$mmap_ref) );
+    return {
+        'unlocked' => 1,
+        'method'   => 'IO::AIO::aio_munlock',
+    };
+}
+
+# Fallback: no explicit unlock needed on process exit
+return {
+    'unlocked' => 0,
+    'method'   => 'none',
+    'note'     => 'Memory unlocked on process termination',
+};
+
+#,,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.,.
+#SIGNATURE_PLACEHOLDER
+#\
+
+#,,,,,..,,,..,.,.,.,.,,,,,,.,,,..,...,..,,,..,.,.,...,...,...,,..,,,,,,,.,,.,,
+#CYOAL77D7CGFDCS3JICK3FLHOCAMOJXBXOF2PEXAMQRJ6I6MXHM3YEG3ZDKRH4ODWANRDLF23ZXUA
+#\\\|AGWYBJE33SJOHAV2EYNP2G7PROK2BYYQR6V6NGFUCHI357OKXII \ / AMOS7 \ YOURUM ::
+#\[7]D6LEX5WY33QLHWDEPV43SBSFSBNBFFHX4X6HGJ5D5TFOFKOB3EAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

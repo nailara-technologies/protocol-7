@@ -1,0 +1,17 @@
+## [:< ##
+
+# name = data.mount.shm.permission.verify.path_pattern_match
+# desc = Match path against glob pattern
+
+my ( $path, $pattern ) = @_;
+
+$pattern =~ s{\*}{.*}g;
+$pattern =~ s{\?}{.}g;
+
+return $path =~ m{^$pattern$};
+
+#,,..,,,.,.,,,,,.,...,.,,,.,,,.,,,,..,,.,,.,,,..,,...,...,..,,...,.,.,,.,,.,.,
+#5RX2ZXDQU7PE6VA44QAAD7CMFLN5ZLVE2MCM3FWZJCFGMIE2JYDYTTJFOKW7YCLMVGUR3HY2LPMM4
+#\\\|QDRFK6S6MXWQFMRBHLLSP3GVXTVBALS7II7VIPO2L6U5726QPLX \ / AMOS7 \ YOURUM ::
+#\[7]ZFTYXDW2D3YQCSLVIMTTG37G2QEZCBGSO53X7ULMUKL4HNREJ6DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

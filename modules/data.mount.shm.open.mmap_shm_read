@@ -1,0 +1,22 @@
+## [:< ##
+
+# name = data.mount.shm.open.mmap_shm_read
+# desc = mmap POSIX SHM for read access
+
+my $fd = shift;
+
+if ( eval { require Sys::Mmap } ) {
+    my $var;
+    my $size = -s "/proc/self/fd/$fd" // 65536;
+    Sys::Mmap::mmap( $var, $size, Sys::Mmap::PROT_READ(),
+        Sys::Mmap::MAP_SHARED(), $fd, 0 );
+    return \$var if length($var) > 0;
+}
+
+return undef;
+
+#,,.,,...,,,,,,.,,..,,.,.,,,,,,,.,,.,,.,.,,.,,..,,...,...,,..,..,,...,,..,,..,
+#HLQPYX2TREZC7XUVXBY577ZTOJTIPLVOFSPKKDWDNCURIBRIBHAV4PTRX7VEVLP4GKHK777LVROYC
+#\\\|UZEHHSIVCTNXZFBDNAZK7NMDPOZAUBCQW64P5UIJRFLKVGZ5IQO \ / AMOS7 \ YOURUM ::
+#\[7]LE752TVGYEXMP2O3UCWMJM5GUIRME4FERWRSXBBMN7TTOXHD22AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

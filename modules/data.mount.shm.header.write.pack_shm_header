@@ -1,0 +1,40 @@
+## [:< ##
+
+# name = data.mount.shm.header.write.pack_shm_header
+# desc = Pack header with permissions for writing
+
+use constant SHM_HEADER_SIZE => 512;
+
+my $header = shift;
+
+my @perm_strings;
+for my $perm ( @{ $header->{'permissions'} } ) {
+    push @perm_strings,
+        sprintf(
+        "%s|%s|%s|%d|%d|%s",
+        $perm->{'to'}, $perm->{'branch'}, join( ',', @{ $perm->{'rights'} } ),
+        $perm->{'expiry'}, $perm->{'granted'}, $perm->{'sig'} // '0',
+        );
+}
+my $perms_str = join( ';', @perm_strings );
+
+my $flags_str = join( ',',
+    map { $_ . '=' . ( $header->{'flags'}{$_} ? 1 : 0 ) }
+    sort keys %{ $header->{'flags'} } );
+
+my $packed = sprintf(
+    "P7SH:%d:%s:%d:%d:%d:%s:%s:\n",
+    $header->{'version'} // 1,                   $header->{'owner_pubkey'},
+    $header->{'created'},                        $header->{'data_size'},
+    $header->{'header_size'} // SHM_HEADER_SIZE, $flags_str,
+    $perms_str,
+);
+
+$packed .= "\0" x ( SHM_HEADER_SIZE - length($packed) );
+return substr( $packed, 0, SHM_HEADER_SIZE );
+
+#,,..,...,,,,,,,,,,..,.,,,,,.,,,,,...,,..,,.,,..,,...,...,...,...,,..,,..,..,,
+#L623EBAATVMCBIMSUUPQ3GJVBYJEPDVVMOEQUNWJZP37G3IT2K7UXDN5IIMDLXQML37RG2HLC5BMC
+#\\\|CTE56PFJQJ2SH7SY2OLU5ZM2VHXFZRN52G7GGD46D6OGC4PLB33 \ / AMOS7 \ YOURUM ::
+#\[7]IM42NATO4TNJTWKPFMM43E3BWXGNDOHMLBD5KIK76TEONTXV56CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

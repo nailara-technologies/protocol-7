@@ -1,0 +1,20 @@
+## [:< ##
+
+# name = data.mount.shm.permission.add.sign_permission
+# desc = Sign permission with owner's private key
+
+my ( $perm, $priv_key ) = @_;
+
+my $canonical = sprintf( "%s:%s:%s:%d:%s",
+    $perm->{'to'},     $perm->{'branch'}, join( ',', @{ $perm->{'rights'} } ),
+    $perm->{'expiry'}, $perm->{'granted'}, );
+
+my $signature
+    = <[chk-sum.amos.truth_template_chksum]>->( $canonical . $priv_key, \0 );
+return sprintf( "%08X", $signature );
+
+#,,..,.,,,.,.,..,,.,,,,..,,,,,,.,,,.,,,.,,,..,..,,...,...,,.,,,,.,.,,,,.,,..,,
+#VSQAZKCOCMNYCCRS2GM3GD6SCE6UTKJN7U6LLDTVAJCNMIDKB3I26LOSKHLQ3J46NTR6OBMXMJLEG
+#\\\|QIZ6F3TCRWS3GDC4FVOTMKYOUBAU6MSEB2ZRE6ZHV3NKDB2B4HC \ / AMOS7 \ YOURUM ::
+#\[7]GMJOHGCIL4VNDOYYNODEPVVUL7UXFFDDANFLSASWVU2LICLPLIBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,6 +6,7 @@ return [ qw[
 
         net.get
         net.cmd
+        data.get
         base.log
         base.sort
         base.open
@@ -539,6 +540,7 @@ return [ qw[
         devmod.cmd.free-mem
         devmod.cmd.exec-sub
         devmod.cmd.dump-env
+        data.mount.shm.open
         data.hooks.register
         data.cmd.mount-hash
         data.cmd.mount-cube
@@ -787,6 +789,8 @@ return [ qw[
         filter.cmd.del_filter
         filter.cmd.add_filter
         download.cmd.get_file
+        data.mount.shm.create
+        data.init_holographic
         data.ensure_hash_path
         cube.cmd.link-upgrade
         crypt.cbc.init_cipher
@@ -932,6 +936,7 @@ return [ qw[
         events.calc_unix_table
         devmod.cmd.switch-user
         data.resolve_hash_path
+        data.get.classify_path
         crypt.C25519.sign_keys
         crypt.C25519.sign_data
         crypt.C25519.post_init
@@ -1063,6 +1068,8 @@ return [ qw[
         decoder.zenka.init_code
         debian.parent.init_code
         dbus.cmd.socket_address
+        data.get.resolve_plugin
+        data.get.path_to_module
         cube.cmd.set-capability
         cube.cmd.present-p7-log
         crypt.C25519.write_keys
@@ -1209,6 +1216,8 @@ return [ qw[
         devmod.cmd.unload-devmod
         devmod.cmd.mem-allocated
         devmod.cmd.current-umask
+        data.mount.shm.init_code
+        data.get.resolve_virtual
         data.cmd.attach-fs-mount
         cube.set-up.import_rules
         cube.set-up.export_rules
@@ -1346,6 +1355,7 @@ return [ qw[
         devmod.cmd.test-strm-size
         debian.console.list-zenki
         debian.console.check-deps
+        data.get.resolve_physical
         cube.cmd.select-strm-mode
         crypt.C25519.load_keypair
         content.cmd.resolve_b32id
@@ -1482,6 +1492,10 @@ return [ qw[
         debian.parser.zenka_status
         debian.parser.deb_name_str
         debian.cmd.install-history
+        data.mount.shm.lock.unlock
+        data.mount.shm.lock.memory
+        data.mount.shm.header.read
+        data.get.check_permissions
         crypt.C25519.key_checksums
         crypt.C25519.encrypted_key
         crypt.C25519.clear_chksums
@@ -1615,7 +1629,9 @@ return [ qw[
         debian.parser.module_status
         debian.console.install-deps
         dbus.handler.process_output
+        data.mount.shm.header.write
         data.handler.indexer.notify
+        data.get.coordinate_to_hash
         cube.chk-sum.cmd.elf-chksum
         crypt.C25519.sign_file_list
         crypt.C25519.key_is_virtual
@@ -1861,6 +1877,8 @@ return [ qw[
         debian.parser.array_to_string
         debian.parent.install_missing
         debian.parent.check_installed
+        data.mount.shm.permission.add
+        data.get.resolve_interference
         crypt.C25519.validate_keyname
         crypt.C25519.store_remote_key
         crypt.C25519.signature_exists
@@ -1995,6 +2013,10 @@ return [ qw[
         discover.check_packet_timeouts
         devmod.cmd.decode-harmonic-ref
         debian.parser.deb_pkg_vers_str
+        data.topology.interference.map
+        data.mount.shm.create.mmap_shm
+        data.get.extract_plugin_domain
+        data.get.classify_topology_pos
         crypt.C25519.keys.version_info
         crypt.C25519.key_name_and_type
         crypt.C25519.key_bin_checksums
@@ -2086,6 +2108,10 @@ return [ qw[
         events.cmd.get_overlays_visible
         discover.load_update_notify_rqs
         devmod.cmd.change-log-verbosity
+        data.mount.shm.create.mmap_file
+        data.get.validate_path_security
+        data.get.resolve_plugin_handler
+        data.get.get_caller_permissions
         crypt.C25519.keys.annotate_type
         crypt.C25519.decrypt_secret_key
         crypt.C25519.cmd.set-client-key
@@ -2165,6 +2191,8 @@ return [ qw[
         httpd.cmd.cleanup-acme-challenge
         discover.process_incoming_packet
         discover.handler.incoming_packet
+        data.mount.shm.permission.verify
+        data.get.find_interference_match
         crypt.C25519.name_from_skey_name
         crypt.C25519.load_all_signatures
         crypt.C25519.key_signatures_list
@@ -2249,6 +2277,8 @@ return [ qw[
         image-quality.vision.encode_image
         events.cmd.get_playlist_exclusive
         events.callback.object.date_frame
+        data.mount.shm.open.mmap_shm_read
+        data.mount.shm.open.derive_pubkey
         crypt.C25519.verify_key_signature
         content.update.send_notifications
         coding.routing.get_model_metadata
@@ -2332,6 +2362,8 @@ return [ qw[
         graphics-matrix.cmd.filter-rep-col
         discover.handler.anounce_host_addr
         discover.cmd.reset-broadcast-timer
+        data.mount.shm.open.parse_shm_path
+        data.mount.shm.open.mmap_file_read
         cube.cmd.declare-strm-size-timeout
         crypt.C25519.load_keys_from_secret
         crypt.C25519.get_type_from_key_str
@@ -2476,6 +2508,7 @@ return [ qw[
         discover.format_discover_mcast_packet
         debian.parent.verify_dependency_state
         debian.parent.scan_zenki_dependencies
+        data.mount.shm.create.pack_shm_header
         crypt.C25519.list_key_signature_names
         crypt.C25519.generate_session_keypair
         crypt.C25519.create_signature_request
@@ -2572,6 +2605,8 @@ return [ qw[
         letsencr.parent.handler_enrollment_reply
         letsencr.parent.handler_challenge_needed
         httpsd.request_certificate_from_letsencr
+        data.init_holographic.determine_polarity
+        data.init_holographic.coordinate_to_hash
         coding.vision-parser.extraction.workflow
         coding.learning.generate_recommendations
         coding.handler.monitor_inference_startup
@@ -2593,6 +2628,7 @@ return [ qw[
         letsencr.parent.handler_httpd_vhost_error
         letsencr.parent.handler_challenge_timeout
         letsencr.parent.handler.vhost_query_reply
+        data.init_holographic.generate_field_line
         crypt.C25519.validate_remote_key_checksum
         coding.vision-parser.handler.vision_reply
         base.zenki.ondemand.handler.startup_reply
@@ -2625,6 +2661,7 @@ return [ qw[
         httpd.handler.download_transfer.test-broken
         debian.parent.callback.register_deb_package
         debian.parent.callback.register_cpan_module
+        data.mount.shm.header.write.pack_shm_header
         coding.handler.models_recommendations_reply
         base.referenced_subroutines.clear_from_disk
         weather.parent.handler.update_forecast_reply
@@ -2633,6 +2670,8 @@ return [ qw[
         letsencr.parent.check_certificate_expiration
         letsencr.child.continue_challenge_processing
         debian.parent.callback.check_module_loadable
+        data.topology.interference.map.hash_to_phase
+        data.mount.shm.header.read.unpack_shm_header
         coding.vision-parser.cmd.analyze_and_extract
         coding.learning.analyze_model_specialization
         coding.handler.models_find_alternative_reply
@@ -2640,6 +2679,8 @@ return [ qw[
         letsencr.parent.install_certificate_to_httpsd
         letsencr.parent.determine_certificate_domains
         image2html.parent.handler.convert_image_reply
+        data.mount.shm.permission.add.sign_permission
+        data.init_holographic.position_in_intent_path
         coding.vision-parser.handler.state_transition
         coding.learning.update_routing_recommendation
         coding.handler.models_record_invocation_reply
@@ -2649,11 +2690,15 @@ return [ qw[
         plugin.auth.auth-keypair.cleanup-incoming-keys
         models.decision.cost_base.is_latency_sensitive
         debian.parent.callback.check_package_installed
+        data.topology.interference.map.hash_to_cube_3d
         plugin.auth.auth-keypair.validate-incoming-tofu
         models.storage.resolve_model.resolve_model_path
         models.registry.update_entry.update_model_entry
         models.registry.create_entry.create_model_entry
         letsencr.parent.notify_httpd_certificate_update
+        data.topology.interference.map.detect_workholes
+        data.topology.interference.map.coord_to_subcube
+        data.mount.shm.permission.verify.group_contains
         coding.vision-parser.helper.dispatch_next_stage
         auth.callback.cap-neg.declare-strm-size-timeout
         auth.callback.cap-neg.declare-strm-size-support
@@ -2663,22 +2708,44 @@ return [ qw[
         models.storage.create_symlink.create_fast_symlink
         models.decision.cost_base.should_keep_model_local
         debian.parent.callback.register_binary_dependency
+        data.topology.interference.map.determine_next_hop
+        data.topology.interference.map.calculate_antipode
         models.storage.resolve_model.find_location_at_tier
         models.decision.cost_base.estimate_usage_frequency
+        data.topology.interference.map.generate_povray_csg
+        data.topology.interference.map.generate_channel_id
+        data.topology.interference.map.determine_bandwidth
+        data.topology.interference.map.calculate_cache_ttl
+        data.mount.shm.permission.verify.rights_sufficient
+        data.init_holographic.calculate_workhole_bandwidth
         models.decision.cost_base.has_available_alternative
         models.decision.cost_base.can_link_to_group_storage
+        data.mount.shm.permission.verify.path_pattern_match
+        data.init_holographic.calculate_magnetic_trajectory
+        data.topology.interference.map.determine_source_type
         coding.vision-parser.handler.check_vision_completion
+        data.topology.interference.map.min_distance_to_center
         models.statistics.invocation_tracking.cleanup_old_logs
         models.registry.list_by_context.list_models_by_context
         models.registry.find_alternative.find_best_alternative
         models.decision.recommendation_base.generate_reasoning
+        data.topology.interference.map.optimal_multiplex_phase
+        data.topology.interference.map.determine_security_zone
+        data.topology.interference.map.calculate_unified_field
+        data.topology.interference.map.calculate_standing_wave
+        data.mount.shm.permission.verify.verify_permission_sig
         mpv.handler.event.property-change.video-aspect-override
         models.statistics.invocation_tracking.record_invocation
         models.decision.cost_analysis.where_should_model_reside
+        data.topology.interference.map.generate_cubic_neighbors
+        data.topology.interference.map.calculate_resonance_field
         coding.vision-parser.handler.check_extraction_completion
         models.decision.recommendation_base.filter_by_constraints
         models.statistics.invocation_tracking.load_all_invocations
         models.statistics.invocation_tracking.aggregate_statistics
+        data.topology.interference.map.calculate_metadata_distance
+        data.topology.interference.map.calculate_fluorescent_drift
+        data.topology.interference.map.calculate_constructive_zone
         models.decision.recommendation_base.find_models_for_context
         models.statistics.invocation_tracking.get_context_statistics
         models.decision.recommendation_base.calculate_composite_score
@@ -2688,8 +2755,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,..,,,,.,,,.,.,,,.,,,,,,,,..,,,,,,,,,,,.,.,.,...,...,,,.,...,.,,,,,.,,,,,
-#GJQK4HJA6HIPU4UJQ3EZMIPS27QRXTHDBQXCHW2O2WT76RBIZJ7BGE33G443OFNXUIJMWWCEXXENG
-#\\\|A7CZMOHAY6RUVP4BDAAIWU5RFW6P2MRQEIHUP77YP2B5H64YDL3 \ / AMOS7 \ YOURUM ::
-#\[7]6VWWR4U5NT4X42SXKUHGWK5XC5A52BG4QZC3IKEA5E6YQBNGWKDI 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,,.,,,.,,,.,,,.,...,...,,..,...,.,.,...,...,,,,,,,.,,,,,.,,,.,.,
+#GB7U7I5T466I5RPOR4PNCRANV3DUNUQP224RIXXWUSUSVZKXIA7DULSKFP3ZQBOIEPDKL4TLOR2Y2
+#\\\|7YPYFZYOVD35IIOIM3VJWX5L4DH45YW6HQB3A4ZDZB3LSGO3XA5 \ / AMOS7 \ YOURUM ::
+#\[7]GE6YWL7555TQQDPSV7GIY5X6EPZETMCW4NMJKATM6BUPKVDRO2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

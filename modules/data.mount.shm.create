@@ -1,0 +1,90 @@
+## [:< ##
+
+# name = data.mount.shm.create
+# desc = Create SHM segment with cryptographic identity header
+
+use constant SHM_HEADER_SIZE      => 512;
+use constant DEFAULT_SEGMENT_SIZE => 63 * 1024;
+
+my $pub_key_b32 = shift;
+my $size        = shift // DEFAULT_SEGMENT_SIZE;
+my $options     = shift // {};
+
+return undef unless defined $pub_key_b32 && length($pub_key_b32) >= 32;
+
+my $shm_path = sprintf( "/dev/shm/p7:M:%s", $pub_key_b32 );
+
+if ( $options->{'sub_path'} ) {
+    $shm_path .= ":" . $options->{'sub_path'};
+    $shm_path =~ s{[^a-zA-Z0-9_:/\-]}{_}g;
+}
+
+my $total_size = $size + SHM_HEADER_SIZE;
+
+my $shm_id;
+
+if ( eval { require POSIX; require IPC::SysV } ) {
+    $shm_id = POSIX::shm_open( $shm_path, POSIX::O_CREAT() | POSIX::O_RDWR(),
+        0600 );
+}
+
+if ( !defined $shm_id || $shm_id < 0 ) {
+    $shm_id = undef;
+}
+
+my $header = {
+    'magic'        => 'P7SH',
+    'version'      => 1,
+    'owner_pubkey' => $pub_key_b32,
+    'created'      => <[base.time]>->(2),
+    'data_size'    => $size,
+    'header_size'  => SHM_HEADER_SIZE,
+    'flags'        => {
+        'mlocked'    => $options->{'mlock'}      // 1,
+        'encrypted'  => $options->{'encrypted'}  // 0,
+        'compressed' => $options->{'compressed'} // 0,
+    },
+    'permissions' => [],
+};
+
+my $header_packed = <[data.mount.shm.create.pack_shm_header]>->($header);
+
+my $mmap_ptr;
+
+if ( defined $shm_id && $shm_id >= 0 ) {
+    POSIX::ftruncate( $shm_id, $total_size );
+
+    $mmap_ptr = <[data.mount.shm.create.mmap_shm]>->( $shm_id, $total_size );
+    return undef unless defined $mmap_ptr;
+
+    substr( $$mmap_ptr, 0, length($header_packed) ) = $header_packed;
+
+    if ( $header->{'flags'}{'mlocked'} ) {
+        <[data.mount.shm.lock.memory]>->( $mmap_ptr, 0, $total_size );
+    }
+} else {
+    open( my $fh, '+>', $shm_path ) or return undef;
+    binmode($fh);
+
+    truncate( $fh, $total_size );
+    syswrite( $fh, $header_packed );
+
+    $mmap_ptr = <[data.mount.shm.create.mmap_file]>->( $fh, $total_size );
+    close($fh) unless defined $mmap_ptr;
+}
+
+return {
+    'path'       => $shm_path,
+    'pub_key'    => $pub_key_b32,
+    'size'       => $size,
+    'total_size' => $total_size,
+    'mmap_ptr'   => $mmap_ptr,
+    'header'     => $header,
+    'type'       => defined($shm_id) ? 'posix' : 'file',
+};
+
+#,,,,,.,.,,,,,.,,,,.,,..,,.,.,.,,,..,,,.,,,,,,.,.,...,...,,..,,.,,.,,,,,.,,,,,
+#KKZYSD2EW5OTX7UUC2ZZMLA6QKUQWK2FTCG5DOVHMNN3PKFTWQCFHYKM5VZDUJFDNDECLATCXWK5W
+#\\\|75TAEYTXWVVCMB22NS6EA6DVGJHLLY5GL6MJS4VFZHBMA3ND47Q \ / AMOS7 \ YOURUM ::
+#\[7]V3K7YN2CJQEQUSBNTDX3MXMFUC5LVTHMGDHZIM5LDUUKYGI3JWBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

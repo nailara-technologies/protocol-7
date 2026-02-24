@@ -1,0 +1,48 @@
+## [:< ##
+
+# name = data.mount.shm.permission.verify
+# desc = Verify requester has permission to access SHM path
+
+my $header           = shift;
+my $requester_pubkey = shift;
+my $requested_path   = shift;
+my $requested_rights = shift;
+
+return 0 unless defined $header && defined $requester_pubkey;
+
+return 1 if $requester_pubkey eq $header->{'owner_pubkey'};
+
+for my $perm ( @{ $header->{'permissions'} } ) {
+    next if $perm->{'expiry'} < time();
+
+    next
+        unless $perm->{'to'} eq $requester_pubkey
+        || <[data.mount.shm.permission.verify.group_contains]>->(
+        $perm->{'to'}, $requester_pubkey
+        );
+
+    next
+        unless <[data.mount.shm.permission.verify.path_pattern_match]>->(
+        $requested_path, $perm->{'branch'}
+        );
+
+    next
+        unless <[data.mount.shm.permission.verify.rights_sufficient]>->(
+        $requested_rights, $perm->{'rights'}
+        );
+
+    next
+        unless <[data.mount.shm.permission.verify.verify_permission_sig]>->(
+        $perm, $header->{'owner_pubkey'}
+        );
+
+    return 1;
+}
+
+return 0;
+
+#,,.,,...,,,,,,.,,...,,,.,,..,.,,,.,.,...,..,,.,.,...,..,,...,..,,.,,,.,,,..,,
+#UNOWJAPNCQWTKJGK2JE7DZQYREHHY3YEG7RGWMZCRBEAPJBIVCNUNQJULVHXDZF7CLOGDMH5OD56U
+#\\\|LK5H25WIILYG3ILVQLEM3CPH6NEIJ6O7QTAC7HW57EIBS47LLZE \ / AMOS7 \ YOURUM ::
+#\[7]HGKND4M224VNSKZQMINAUPJRB6PNJEE76H5CDSWTFHJC62IJCWCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
