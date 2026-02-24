@@ -1,0 +1,44 @@
+## [:< ##
+
+# name = data.mount.shm.stats
+# desc = Get statistics on SHM usage
+
+my $pattern = shift // 'p7:M:*';
+
+my $stats = {
+    'segments'    => 0,
+    'total_bytes' => 0,
+    'by_owner'    => {},
+};
+
+my $shm_dir = '/dev/shm';
+opendir( my $dh, $shm_dir ) or return undef;
+
+while ( my $entry = readdir($dh) ) {
+    next unless $entry =~ m{^p7:M:};
+
+    my $path = "$shm_dir/$entry";
+    next unless -f $path;
+
+    my $size = -s $path;
+    $stats->{'segments'}++;
+    $stats->{'total_bytes'} += $size;
+
+    # Extract owner from filename
+    if ( $entry =~ m{^p7:M:([^:]+)} ) {
+        my $owner = $1;
+        $stats->{'by_owner'}{$owner} //= { 'count' => 0, 'bytes' => 0 };
+        $stats->{'by_owner'}{$owner}{'count'}++;
+        $stats->{'by_owner'}{$owner}{'bytes'} += $size;
+    }
+}
+
+closedir($dh);
+
+return $stats;
+
+#,,..,...,,,.,,..,.,,,,,,,,.,,,..,...,.,.,.,,,...,...,..,,.,.,,,,,.,,,...,,,,,
+#PBBQTYFXTFF5CHMQKZEFXRCZKLCSUA47UDM333TB6LP2YCQ3YI2D5KRYSSACXFR5EADRK5APX7ING
+#\\\|VLXV3WKZLLJTVFPPSA6DWS4H7YMAAUT66DWVGOH7QZY4FT7Z3OG \ / AMOS7 \ YOURUM ::
+#\[7]6JYG5HOQFYZNUZVB6I53262OHJVCEYORAGOBAKOO555M4CL4GIAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
