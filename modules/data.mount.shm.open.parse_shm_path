@@ -1,0 +1,18 @@
+## [:< ##
+
+# name = data.mount.shm.open.parse_shm_path
+# desc = Parse SHM path into pub-key and sub-path components
+
+my $path = shift;
+
+if ( $path =~ m{/dev/shm/p7:M:([A-Z0-9]+)(?::(.+))?} ) {
+    return ( $1, $2 );
+}
+
+return undef;
+
+#,,.,,..,,,.,,.,,,...,...,...,.,,,..,,,..,.,.,..,,...,...,..,,.,,,.,,,,,,,.,.,
+#M6GODFEBQQ37WSHNODHZPM54Y4HIZLOPCISIUNW2PMKUUQBCKOGMYKRJS533UFEHH7ETTTFXFLN7O
+#\\\|ZDHYNMI2ESZ2AAF6TOSUDGXNADEOPMNLZCAI5JS5X65VP4OJPMT \ / AMOS7 \ YOURUM ::
+#\[7]7CUGFET3PUBTUMFMEQD4KWXKMXU5C3KIKHTQ6AEECH5V4FC4ZMDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

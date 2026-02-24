@@ -1,0 +1,24 @@
+## [:< ##
+
+# name = data.mount.shm.open.mmap_file_read
+# desc = mmap file for read access
+
+my $fh = shift;
+
+if ( eval { require Sys::Mmap } ) {
+    my $var;
+    Sys::Mmap::mmap( $var, 0, Sys::Mmap::PROT_READ(), Sys::Mmap::MAP_SHARED(),
+        fileno($fh), 0 );
+    return \$var if length($var) > 0;
+}
+
+# Fallback: slurp
+local $/;
+my $data = <$fh>;
+return \$data;
+
+#,,,.,.,,,...,,,.,,.,,..,,,..,...,,,,,,,.,,,,,..,,...,..,,.,,,,..,,.,,,..,.,,,
+#3HUU6TCW5JYFQJMTFGECKB6U23THIBIHJV7U7KPI675NO5P2WWZT4GQNZU3FIVYMI2PJMZMOP72BG
+#\\\|Y6CIHVCF6IZM5FFXHE6ZFIGGAFLTUVITQ3ZRTYCUGCJY5HZ3JNY \ / AMOS7 \ YOURUM ::
+#\[7]Q2XGG2PJSOKTFW4EEKB3PZPYNCLV4EBY7SIZBOYZP676O5XOMYBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

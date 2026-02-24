@@ -1,0 +1,29 @@
+## [:< ##
+
+# name = data.mount.shm.create.pack_shm_header
+# desc = Pack SHM header structure into binary format
+
+use constant SHM_HEADER_SIZE => 512;
+
+my $header = shift;
+
+my $packed = sprintf(
+    "P7SH:%d:%s:%d:%d:%d:%s:\n",
+    $header->{'version'},
+    $header->{'owner_pubkey'},
+    $header->{'created'},
+    $header->{'data_size'},
+    $header->{'header_size'},
+    join( ',',
+        map { $_ . '=' . ( $header->{'flags'}{$_} ? 1 : 0 ) }
+            keys %{ $header->{'flags'} } )
+);
+
+$packed .= "\0" x ( SHM_HEADER_SIZE - length($packed) );
+return substr( $packed, 0, SHM_HEADER_SIZE );
+
+#,,,.,,,,,,.,,.,.,...,.,.,,.,,..,,.,.,,..,.,.,..,,...,...,...,,,.,.,,,,..,..,,
+#SU7BXGCLMTHMCV5M26PSKISCXXCJJD2NCP2J4PHJ4GJ5JNDMEHZ7BL5RLNWLWAKFEKG7P3JZCBEEA
+#\\\|25MWMGQTQZNS4IERJ7GWNEUOUE3PK3EPFMGEESS6U32CWUAQR7E \ / AMOS7 \ YOURUM ::
+#\[7]5LGULADPOC36PYJ7JEIF6UPHJCPJB2CSTP6EA7RQBFEZTAIYQOCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

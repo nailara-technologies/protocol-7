@@ -1,0 +1,20 @@
+## [:< ##
+
+# name = data.mount.shm.permission.verify.rights_sufficient
+# desc = Check if allowed rights cover requested rights
+
+my ( $requested, $allowed ) = @_;
+
+my %allowed = map { $_ => 1 } @$allowed;
+
+for my $right (@$requested) {
+    return 0 unless $allowed{$right};
+}
+
+return 1;
+
+#,,.,,.,.,.,,,,.,,,,,,,,,,.,.,.,.,..,,...,.,.,..,,...,...,.,,,.,.,,..,,,,,,,.,
+#VKGMEB4HM2CK464CVN3WKYY6WII2NV6ZP5OPGBABR4LZM6JQXMVKNWREXH5W4D7KIRET454CW4ZQQ
+#\\\|2QSZJUALGBEW73NMJH45XPQPQX7HMQRKCG73NESGEU6AR3O4WQ2 \ / AMOS7 \ YOURUM ::
+#\[7]XU76NCLGDAWVB3TZKSBMELVRH2VVXTTRUXRHM4QH2BSYHMNSGKDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

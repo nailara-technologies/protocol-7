@@ -1,0 +1,63 @@
+## [:< ##
+
+# name = data.mount.shm.lock.memory
+# desc = Lock SHM segment in memory (prevent swap to disk)
+#         Uses IO::AIO::aio_mlock pattern from crypt.C25519.gen_keys
+
+my $mmap_ref = shift;         # Reference to mmap'd scalar
+my $offset   = shift // 0;    # Offset within segment
+my $length   = shift;         # Length to lock (undef = all)
+
+return undef unless defined $mmap_ref && ref($mmap_ref) eq 'SCALAR';
+
+# Default to entire mapped region
+if ( !defined $length ) {
+    $length = length($$mmap_ref);
+}
+
+# Use IO::AIO for async mlock (non-blocking)
+if ( eval { require IO::AIO } ) {
+    IO::AIO::aio_mlock( $$mmap_ref, $offset, $length );
+    return {
+        'locked' => 1,
+        'method' => 'IO::AIO::aio_mlock',
+        'offset' => $offset,
+        'length' => $length,
+    };
+}
+
+# Fallback to POSIX mlock if IO::AIO not available
+if ( eval { require POSIX } ) {
+
+    # mlock requires address and length
+    # For Perl strings, we need to get the SV pointer
+    # This is platform-dependent, so we use a simpler approach:
+    # Advise the kernel via madvise
+
+    if ( eval { require BSD::Resource } ) {
+
+        # Set resource limits to prevent swapping
+        BSD::Resource::setrlimit( RLIMIT_MEMLOCK(), $length, $length );
+    }
+
+    return {
+        'locked'  => 0,
+        'method'  => 'posix_fallback',
+        'warning' => 'IO::AIO not available, swap prevention advisory only',
+        'offset'  => $offset,
+        'length'  => $length,
+    };
+}
+
+# Ultimate fallback: warn but continue
+return {
+    'locked'  => 0,
+    'method'  => 'none',
+    'warning' => 'No mlock mechanism available, sensitive data may swap',
+};
+
+#,,,.,.,,,,,.,,,,,,.,,...,,.,,..,,..,,.,,,.,,,.,.,...,...,...,...,.,,,.,.,,,,,
+#TFQLXTQ45ML5JVE2S3MXMO6PJNMNWRPPTEZOGZVZWVRDBR24JMK5IBTJ3M3W7NLFIQ7MC5ENZZBDO
+#\\\|TK7YZ5L7YWR2ZPTGLMQWMEEB7XNOSOZEYOODXJNCKV5BLWVZWHN \ / AMOS7 \ YOURUM ::
+#\[7]OCTC3OKXSZRNIDKAOKLVJI3QNK3VEJU3SJEVQUP34IHEBS2D5CAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
