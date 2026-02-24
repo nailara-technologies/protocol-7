@@ -1,0 +1,51 @@
+## [:< ##
+
+# name = data.mount.shm.permission.add
+# desc = Add sticky permission to SHM header
+
+use constant SHM_HEADER_SIZE => 512;
+use constant MAX_PERMISSIONS => 16;
+
+my $mount          = shift;
+my $permission     = shift;
+my $owner_priv_key = shift;
+
+return undef unless defined $mount && defined $permission;
+
+$permission->{'to'}     // return undef;
+$permission->{'branch'} // return undef;
+$permission->{'rights'} //= ['read'];
+$permission->{'expiry'} //= time() + 3600;
+
+my $header = <[data.mount.shm.header.read]>->( $mount->{'mmap_ptr'} );
+return undef unless defined $header;
+
+if ( @{ $header->{'permissions'} } >= MAX_PERMISSIONS ) {
+    return {
+        'error'   => 'max_permissions_reached',
+        'max'     => MAX_PERMISSIONS,
+        'current' => scalar( @{ $header->{'permissions'} } ),
+    };
+}
+
+$permission->{'granted'} = time();
+$permission->{'sig'} = <[data.mount.shm.permission.add.sign_permission]>->(
+    $permission, $owner_priv_key
+);
+
+push @{ $header->{'permissions'} }, $permission;
+
+my $result
+    = <[data.mount.shm.header.write]>->( $mount->{'mmap_ptr'}, $header );
+
+return {
+    'added'      => 1,
+    'permission' => $permission,
+    'total'      => scalar( @{ $header->{'permissions'} } ),
+};
+
+#,,..,,,.,..,,.,.,.,.,,..,.,,,,.,,,,,,,.,,..,,.,.,...,...,,.,,.,,,.,,,.,,,.,.,
+#KK7R7GPDGJ4J7GSDBS2TMB6JQL6JD7NQJMF7WMUGWUJEBQSN2FNKQOAWNXGDRMAUWWE3GJ7YLYLBS
+#\\\|7MV6R2V7IK6BNJR3E3LGUAVV5WEBJJ56CD6YGSIJAKMSZUVOF2K \ / AMOS7 \ YOURUM ::
+#\[7]ZO2YOCT4IGRMRFD7IQUBIOUSCKJD3KQ5ZCETZQRDT6LKHMVLN4BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

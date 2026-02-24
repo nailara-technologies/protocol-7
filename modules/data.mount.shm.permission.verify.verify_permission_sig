@@ -1,0 +1,25 @@
+## [:< ##
+
+# name = data.mount.shm.permission.verify.verify_permission_sig
+# desc: Verify permission signature
+
+my ( $perm, $owner_pubkey ) = @_;
+
+my $canonical = sprintf( "%s:%s:%s:%d:%s",
+    $perm->{'to'},     $perm->{'branch'}, join( ',', @{ $perm->{'rights'} } ),
+    $perm->{'expiry'}, $perm->{'granted'}, );
+
+my $expected_sig = sprintf(
+    "%08X",
+    <[chk-sum.amos.truth_template_chksum]>->(
+        $canonical . $owner_pubkey, \0
+    )
+);
+
+return $perm->{'sig'} eq $expected_sig;
+
+#,,,,,..,,.,.,,,.,...,,.,,.,,,...,,.,,,,,,...,..,,...,...,..,,,.,,,..,.,.,..,,
+#ZDS3IODURTN3SCOM32I6VJ3RPXHLRJHJMMC5NOAI44W5W3VBSI3UZAPZLGHJILLJJVDKXR4MR5V2S
+#\\\|IVSAYO6WUFVZQWVU3XZU6IXZYBLQPFMDKGZRIIRV7QAKKG2JJFA \ / AMOS7 \ YOURUM ::
+#\[7]EDKAYYNQ6QNDEDSJVBGCOCMFIXQ6IMS7LG6MK3NWY4TPVIDRBSAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

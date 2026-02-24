@@ -1,0 +1,36 @@
+## [:< ##
+
+# name = data.mount.shm.header.read.unpack_shm_header
+# desc = Unpack binary SHM header into hash structure
+
+my $raw = shift;
+
+if ( $raw =~ m{^P7SH:(\d+):([A-Z0-9]+):(\d+):(\d+):(\d+):([^:]+):} ) {
+    my ( $version, $pubkey, $created, $data_size, $hdr_size, $flags_str )
+        = ( $1, $2, $3, $4, $5, $6 );
+
+    my %flags;
+    for my $flag_pair ( split( /,/, $flags_str ) ) {
+        my ( $key, $val ) = split( /=/, $flag_pair );
+        $flags{$key} = $val if defined $key;
+    }
+
+    return {
+        'magic'        => 'P7SH',
+        'version'      => $version,
+        'owner_pubkey' => $pubkey,
+        'created'      => $created,
+        'data_size'    => $data_size,
+        'header_size'  => $hdr_size,
+        'flags'        => \%flags,
+        'permissions'  => [],
+    };
+}
+
+return undef;
+
+#,,,.,...,...,,,.,,,.,..,,...,...,.,,,...,,,,,..,,...,...,..,,,.,,...,,,,,,,,,
+#6SYYG44PRE43GE56XIGNXHPFIZKC5UIAWSK42ZQHH5CMMAQW4KO6AUBDF5HUN3KQS2PVAQCUTA7TA
+#\\\|RSJTSJUEFSXHJ5UGL6SWCNEZMUFODKJRAF3LTRVHHBK4OXELPQB \ / AMOS7 \ YOURUM ::
+#\[7]SVB2HSKPRTEPX3ENJ7QMGVSPJP3I2LAXBGKSOFU2AE4T6A4MN4AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
