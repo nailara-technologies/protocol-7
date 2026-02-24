@@ -1,0 +1,29 @@
+## [:< ##
+
+# name = data.channel.shm.close
+# desc = Close and cleanup SHM-backed channel
+
+my ($channel_id) = @ARG;
+
+my $channel = delete $data{'channel'}{'shm'}{'registry'}{$channel_id};
+return 0 unless defined $channel;
+
+my $shm = $channel->{'shm'};
+
+# Unlink the SHM segment
+<[data.mount.shm.unlink]>->(
+    $channel->{'owner'}, $channel->{'name'} . ':channel'
+);
+
+# Also try direct path cleanup
+my $path = sprintf( "/dev/shm/p7:M:%s:%s:channel",
+    $channel->{'owner'}, $channel->{'name'} );
+unlink($path) if -f $path;
+
+return 1;
+
+#,,,,,.,.,.,,,,..,..,,,.,,.,,,,,,,.,.,.,,,.,,,...,...,...,...,...,.,.,,..,,,,,
+#LZSBW6MCXEDRZLRFOESF7VM5FRUBT2T5WKWQFZY274BBUMPHF3KQ2URSSXV5Z43YGOXW3PCWGKVKI
+#\\\|NEJ4NILZNLYC7MQJPCQ76KUY6LB356ELWFRN6IECZZRLEKBOTJ6 \ / AMOS7 \ YOURUM ::
+#\[7]3H4LKPGGOGL4MWYREPLU3ULYGOWO5PSXYK76XZ37QWC4XE3F6AAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

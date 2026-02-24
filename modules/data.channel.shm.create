@@ -1,0 +1,54 @@
+## [:< ##
+
+# name = data.channel.shm.create
+# desc = Create a new SHM-backed channel for inter-zenka communication
+
+use constant SHM_CHANNEL_SIZE => 256 * 1024;    # 256KB default channel buffer
+
+my ( $channel_name, $owner_pubkey, $options ) = @ARG;
+
+$options //= {};
+
+# Generate channel path
+my $channel_path = $options->{'sub_path'} // 'channel';
+my $full_path    = "$channel_name:$channel_path";
+
+# Create SHM segment for this channel
+my $shm_size = $options->{'size'} // SHM_CHANNEL_SIZE;
+my $shm      = <[data.mount.shm.create]>->(
+    $owner_pubkey,
+    $shm_size,
+    {   'sub_path' => $full_path,
+        'mlock'    => $options->{'mlock'} // 0,
+    }
+);
+
+return undef unless defined $shm;
+
+# Initialize ring buffer structure in SHM
+my $ring_header = pack( 'NNNN', 0, 0, 0, $shm_size )
+    ;    # read_pos, write_pos, wrap_count, capacity
+substr( ${ $shm->{'mmap_ptr'} }, 512, 16 ) = $ring_header;
+
+# Register channel
+my $channel_id = "$owner_pubkey:$full_path";
+$data{'channel'}{'shm'}{'registry'}{$channel_id} = {
+    'shm'           => $shm,
+    'name'          => $channel_name,
+    'owner'         => $owner_pubkey,
+    'created'       => <[base.time]>->(2),
+    'msg_count'     => 0,
+    'bytes_written' => 0,
+};
+
+return {
+    'channel_id' => $channel_id,
+    'shm'        => $shm,
+    'capacity'   => $shm_size,
+};
+
+#,,,,,,,,,,,,,,,.,,,.,.,.,...,...,.,,,,,,,,,.,...,...,...,.,,,.,,,,..,...,,..,
+#HKXFXFWWC4KSSPUX6Z7APO2M7LXHS5EBYVEGCXLNNL5C7PK5ZVGBJBASXDGXPZPZCVZYCSAT6QDBQ
+#\\\|NDB6UGFBKMHXK46IK6ZE4EQIQEGMPKGR3MYZ6ODWJ7V6MU7GDT6 \ / AMOS7 \ YOURUM ::
+#\[7]BYLLI5OEMRP3KRTBGVOCQMTSGTPKLYQGTNWFTNRIGVWLYFANP6CY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

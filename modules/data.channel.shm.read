@@ -1,0 +1,66 @@
+## [:< ##
+
+# name = data.channel.shm.read
+# desc = Read message from SHM-backed channel (ring buffer)
+
+use constant SHM_HEADER_SIZE  => 512;
+use constant RING_HEADER_SIZE => 16;
+
+my ( $channel_id, $max_messages ) = @ARG;
+
+$max_messages //= 1;
+
+my $channel = $data{'channel'}{'shm'}{'registry'}{$channel_id};
+return undef unless defined $channel;
+
+my $shm      = $channel->{'shm'};
+my $mmap_ptr = $shm->{'mmap_ptr'};
+my $capacity = $shm->{'size'};
+
+# Read current ring buffer state
+my $ring_header = substr( ${$mmap_ptr}, SHM_HEADER_SIZE, RING_HEADER_SIZE );
+my ( $read_pos, $write_pos, $wrap_count, $max_capacity )
+    = unpack( 'NNNN', $ring_header );
+
+return [] if $read_pos == $write_pos;    # Empty
+
+my @messages;
+my $data_start = SHM_HEADER_SIZE + RING_HEADER_SIZE;
+my $data_end   = $data_start + $capacity;
+
+for ( my $i = 0; $i < $max_messages && $read_pos != $write_pos; $i++ ) {
+    my $offset = $data_start + $read_pos;
+
+    # Handle wrap-around
+    if ( $offset >= $data_end ) {
+        $offset   = $data_start;
+        $read_pos = 0;
+    }
+
+    # Read message length
+    my $len_bytes = substr( ${$mmap_ptr}, $offset, 4 );
+    my $msg_len   = unpack( 'N', $len_bytes );
+
+    # Sanity check
+    if ( $msg_len == 0 || $msg_len > $capacity ) {
+        last;
+    }
+
+    # Read message data
+    my $msg_data = substr( ${$mmap_ptr}, $offset + 4, $msg_len );
+    push @messages, $msg_data;
+
+    $read_pos += 4 + $msg_len;
+}
+
+# Update read position in ring header
+substr( ${$mmap_ptr}, SHM_HEADER_SIZE, RING_HEADER_SIZE )
+    = pack( 'NNNN', $read_pos, $write_pos, $wrap_count, $max_capacity );
+
+return \@messages;
+
+#,,.,,.,,,,,,,.,.,,,,,,.,,...,,..,,..,,,,,,..,...,...,...,...,.,,,.,.,.,.,,.,,
+#R67IWG3ZGQWFXLO6UVB75YY42RYEYE2GV3QTU54D2PDBF6ASIA65HWXIGMMWKKFTI3GQLN4HR3VF2
+#\\\|J6TQG3HCKNN5D5MFH3RVCVEBAI7VTDHDCFFWAR65RKKS3ZE3WBI \ / AMOS7 \ YOURUM ::
+#\[7]XMC64J7XSRETOFBA6PZIB2XYM2DWHHJZV42Y37LSGQOJGH5TBUBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
