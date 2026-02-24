@@ -3,20 +3,24 @@
 # name = data.mount.shm.create.mmap_file
 # desc = mmap file-based SHM
 
-my ( $fh, $size ) = @_;
+my ( $fh, $size ) = @ARG;
+
+return undef unless defined $fh;
 
 if ( eval { require Sys::Mmap } ) {
     my $var;
-    Sys::Mmap::mmap( $var, $size,
-        Sys::Mmap::PROT_READ() | Sys::Mmap::PROT_WRITE(),
-        Sys::Mmap::MAP_SHARED(), fileno($fh), 0 );
-    return \$var if length($var) > 0;
+    eval {
+        Sys::Mmap::mmap( $var, $size,
+            Sys::Mmap::PROT_READ() | Sys::Mmap::PROT_WRITE(),
+            Sys::Mmap::MAP_SHARED(), fileno($fh), 0 );
+    };
+    return \$var if !$@ && length($var) > 0;
 }
 
 return undef;
 
-#,,..,,,,,,..,,,.,...,,..,.,,,,..,...,,.,,...,..,,...,...,.,.,.,,,,..,,.,,,..,
-#2IADGEQJTDNV7UEO53GY5CPR6VXZTAT4ARAI7PDFRZMJPX6OUQ2QVBHKVIDF6AROYJGQNTQKHDXIA
-#\\\|Z6UCMVGP43M4ME33DZEA2XJ5PJ5CV3DNEZVQAKFP67X2FBLEEBM \ / AMOS7 \ YOURUM ::
-#\[7]YJI6LFWEJWDDWVD2DASNEPRZK64CCPHVJJJB2YGAJNF6CH6UQQCI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,..,,..,,,,,,.,.,,,,,,,,,.,.,..,,..,,...,...,..,,..,,...,..,,.,,,
+#MMO3WRI6RF6SFZUGURL6Y543XRVYZLIA3U7A4ZNMNJNYVESHKBGQRDTYSR3S3XQBPBJDF6Q2ZX5T2
+#\\\|64HLMEIABUGNZHJQOLNIGZZZ52OLTTWZ27SW4IBRKHSBBDDBGXM \ / AMOS7 \ YOURUM ::
+#\[7]SCU6DNB4YU7RVYTULZ66HJBN4DEJB4TX5YHFMV264NWTKXILGUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

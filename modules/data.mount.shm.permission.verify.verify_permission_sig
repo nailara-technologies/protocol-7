@@ -1,25 +1,32 @@
 ## [:< ##
 
 # name = data.mount.shm.permission.verify.verify_permission_sig
-# desc: Verify permission signature
+# desc: Verify permission signature (simplified)
 
-my ( $perm, $owner_pubkey ) = @_;
+my ( $perm, $owner_pubkey ) = @ARG;
 
-my $canonical = sprintf( "%s:%s:%s:%d:%s",
-    $perm->{'to'},     $perm->{'branch'}, join( ',', @{ $perm->{'rights'} } ),
-    $perm->{'expiry'}, $perm->{'granted'}, );
+# Build canonical string (same as signing)
+my $canonical
+    = $perm->{'to'} . ':'
+    . $perm->{'branch'} . ':'
+    . join( ',', @{ $perm->{'rights'} } ) . ':'
+    . $perm->{'expiry'} . ':'
+    . $perm->{'granted'};
 
-my $expected_sig = sprintf(
-    "%08X",
-    <[chk-sum.amos.truth_template_chksum]>->(
-        $canonical . $owner_pubkey, \0
-    )
-);
+# Calculate expected signature (placeholder)
+my $sig = 0;
+for my $i ( 0 .. length($canonical) - 1 ) {
+    $sig = ( $sig * 31 + ord( substr( $canonical, $i, 1 ) ) ) & 0xFFFFFFFF;
+}
+$sig = ( $sig * length( $owner_pubkey || '' ) ) & 0xFFFFFFFF
+    if length( $owner_pubkey || '' );
+
+my $expected_sig = sprintf( "%08X", $sig );
 
 return $perm->{'sig'} eq $expected_sig;
 
-#,,,,,..,,.,.,,,.,...,,.,,.,,,...,,.,,,,,,...,..,,...,...,..,,,.,,,..,.,.,..,,
-#ZDS3IODURTN3SCOM32I6VJ3RPXHLRJHJMMC5NOAI44W5W3VBSI3UZAPZLGHJILLJJVDKXR4MR5V2S
-#\\\|IVSAYO6WUFVZQWVU3XZU6IXZYBLQPFMDKGZRIIRV7QAKKG2JJFA \ / AMOS7 \ YOURUM ::
-#\[7]EDKAYYNQ6QNDEDSJVBGCOCMFIXQ6IMS7LG6MK3NWY4TPVIDRBSAY 7  DATA SIGNATURE ::
+#,,..,..,,,..,...,.,.,...,...,,.,,,,.,,..,,.,,..,,...,...,.,.,,..,...,.,,,,.,,
+#ZAQ2WIVCDMBD3QNU3R5DG66RMYN5IRTABB5HVLWVZRE3QXN5BVNCMO5JKNMYALGISIR3V4AUQOS5G
+#\\\|55HSYPEH5KHGVJ37PD5XAODWVYWDHOHL72ZCDUYECY3RODL4LPX \ / AMOS7 \ YOURUM ::
+#\[7]B57M532PMQR4RSDE3X6MIZFPOKFFLA5SLSOUSQDHAAAYZYPF4QDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
