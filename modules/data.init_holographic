@@ -1,0 +1,162 @@
+## [:< ##
+
+# name  = data.init_holographic
+# desc  = Initialize holographic topology extensions for data zenka
+
+<[base.log]>->( 2, "initializing holographic topology extensions" );
+
+##[ REGISTER CORE ]#########################################################
+
+my $mapper = <[devmod.cmd.get]>->('data.topology.interference.map');
+$data{'topology'}{'interference'}{'map'} = $mapper;
+
+$data{'get'} = <[devmod.cmd.get]>->('data.get');
+
+##[ UNIFIED PHYSICS ]#######################################################
+
+$data{'unified'}{'physics'}{'electrical'} = sub {
+    my ( $position, $options ) = @_;
+    $options //= {};
+    $options->{'include_electrical'}  = 1;
+    $options->{'include_holographic'} = 0;
+    $options->{'include_magnetic'}    = 0;
+
+    my $hash  = <[data.init_holographic.coordinate_to_hash]>->(@$position);
+    my $field = <[data.topology.interference.map]>->( $hash, $options );
+
+    return $field->{'unified'} // {};
+};
+
+$data{'unified'}{'physics'}{'holographic'} = sub {
+    my ( $position, $options ) = @_;
+    $options //= {};
+    $options->{'include_electrical'}  = 0;
+    $options->{'include_holographic'} = 1;
+    $options->{'include_magnetic'}    = 0;
+
+    my $hash  = <[data.init_holographic.coordinate_to_hash]>->(@$position);
+    my $field = <[data.topology.interference.map]>->( $hash, $options );
+
+    return {
+        'interference' => $field->{'interference'},
+        'workholes'    => $field->{'routing'}{'workholes'},
+    };
+};
+
+$data{'unified'}{'physics'}{'magnetic'} = sub {
+    my ( $position, $intent, $options ) = @_;
+    $options //= {};
+    $options->{'include_electrical'}  = 0;
+    $options->{'include_holographic'} = 0;
+    $options->{'include_magnetic'}    = 1;
+
+    my $hash  = <[data.init_holographic.coordinate_to_hash]>->(@$position);
+    my $field = <[data.topology.interference.map]>->( $hash, $options );
+
+    my $trajectory
+        = <[data.init_holographic.calculate_magnetic_trajectory]>->(
+        $position, $field->{'routing'}{'next_hop'}, $intent
+        );
+
+    return {
+        'trajectory' => $trajectory,
+        'flux'       => $field->{'interference'}{'resonance_map'},
+        'polarity'   =>
+            <[data.init_holographic.determine_polarity]>->($position),
+    };
+};
+
+$data{'unified'}{'physics'}{'field'} = sub {
+    my ( $position, $options ) = @_;
+    my $hash  = <[data.init_holographic.coordinate_to_hash]>->(@$position);
+    my $field = <[data.topology.interference.map]>->( $hash, $options // {} );
+    return $field->{'unified'};
+};
+
+##[ TOPOLOGY ACCESS ]#######################################################
+
+$data{'topology'}{'resolve'} = sub {
+    my ( $x, $y, $z, $property ) = @_;
+    my $hash = <[data.init_holographic.coordinate_to_hash]>->( $x, $y, $z );
+    my $data = <[data.topology.interference.map]>->( $hash, {} );
+    return $property ? $data->{$property} : $data;
+};
+
+##[ INTENT REGISTRY ]#######################################################
+
+$data{'intent'}{'register'} = sub {
+    my ( $entity_id, $current_pos, $intent_pos, $phase ) = @_;
+
+    my $ghost_key = sprintf( "intent:%s:%d:%d:%d",
+        $entity_id, $intent_pos->[0], $intent_pos->[1], $intent_pos->[2] );
+
+    $data{'topology'}{'ghosts'}{$ghost_key} = {
+        'entity'    => $entity_id,
+        'from'      => $current_pos,
+        'to'        => $intent_pos,
+        'phase'     => $phase,
+        'timestamp' => <[base.time]>->(2),
+    };
+
+    return $ghost_key;
+};
+
+$data{'intent'}{'query_at'} = sub {
+    my ($position) = @_;
+    my @affecting;
+
+    for my $ghost_key ( keys %{ $data{'topology'}{'ghosts'} } ) {
+        my $ghost = $data{'topology'}{'ghosts'}{$ghost_key};
+        if (<[data.init_holographic.position_in_intent_path]>->(
+                $position, $ghost
+            )
+        ) {
+            push @affecting, $ghost;
+        }
+    }
+
+    return \@affecting;
+};
+
+##[ WORKHOLE REGISTRY ]#####################################################
+
+$data{'workhole'}{'register'} = sub {
+    my ( $from_func, $to_func, $path_coords ) = @_;
+    my $key = sprintf( "%s->%s", $from_func, $to_func );
+
+    $data{'topology'}{'workholes'}{$key} = {
+        'from_function' => $from_func,
+        'to_function'   => $to_func,
+        'path'          => $path_coords,
+        'bandwidth'     =>
+            <[data.init_holographic.calculate_workhole_bandwidth]>->(
+            $path_coords),
+    };
+
+    return $key;
+};
+
+$data{'workhole'}{'find'} = sub {
+    my ($function) = @_;
+    my @workholes;
+
+    for my $key ( keys %{ $data{'topology'}{'workholes'} } ) {
+        my $wh = $data{'topology'}{'workholes'}{$key};
+        if (   $wh->{'from_function'} eq $function
+            || $wh->{'to_function'} eq $function ) {
+            push @workholes, $wh;
+        }
+    }
+
+    return \@workholes;
+};
+
+<[base.log]>->( 2, "holographic topology extensions initialized" );
+
+return 1;
+
+#,,.,,..,,.,,,,.,,..,,,,,,,..,..,,,.,,,..,,,,,...,...,...,..,,.,,,,.,,.,,,..,,
+#B6ZX4M2QOQKSJAD74WOT7AMM6ZU5I4S6XF3ZCXCQBAF6GFMFCS66H3TLEYFODC774F2AXEF2COZAQ
+#\\\|ENAOOK3LSJVT4HUQFT73QNUBBSDRW2GX7QWOEWRN6JPUCO2EBY6 \ / AMOS7 \ YOURUM ::
+#\[7]RYXV73DPVT5G5LZ5RWR5MSYT5TM4KUPWLYQXIWLVYN6KCSDLEMCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

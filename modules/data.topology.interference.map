@@ -1,0 +1,188 @@
+## [:< ##
+
+# name  = data.topology.interference.map
+# desc  = Maps any data hash to unified 13³ holographic field tensor
+#         Bridge between hash paths and spatial topology
+#
+# input = $data_hash  - BMW/ELF checksum or path string
+#       = $options    - hash ref with include_* flags
+#
+# output = hash ref with spatial, interference, visual, routing, metadata
+
+use constant PI => 3.14159265358979;
+
+my $data_hash = shift;
+my $options   = shift // {};
+
+return undef unless defined $data_hash;
+
+##[ OPTIONS ]###############################################################
+
+my $include_spatial      = $options->{'include_spatial'}      // 1;
+my $include_interference = $options->{'include_interference'} // 1;
+my $include_visual       = $options->{'include_visual'}       // 1;
+my $include_routing      = $options->{'include_routing'}      // 1;
+my $include_metadata     = $options->{'include_metadata'}     // 1;
+my $temporal_phase       = $options->{'temporal_phase'};
+
+##[ CONSTANTS ]#############################################################
+
+use constant PROTOCOL_BLUE      => [ 0.024, 0.278, 0.765 ];    # #0647C3
+use constant MAX_RGB_DIST       => 1.732;                      # sqrt(3)
+use constant CUBE_SIZE          => 13;
+use constant SUBCUBES_PER_GROUP => 63;
+
+##[ SPATIAL ]###############################################################
+
+my $spatial = {};
+
+if ($include_spatial) {
+    my $cube_coord
+        = <[data.topology.interference.map.hash_to_cube_3d]>->($data_hash);
+    my $sub_cube_index
+        = <[data.topology.interference.map.coord_to_subcube]>->($cube_coord);
+    my $neighbors
+        = <[data.topology.interference.map.generate_cubic_neighbors]>
+        ->($cube_coord);
+    my $antipode = <[data.topology.interference.map.calculate_antipode]>
+        ->($cube_coord);
+
+    $spatial = {
+        'cube'        => $cube_coord,
+        'sub_cube'    => $sub_cube_index,
+        'neighbors'   => $neighbors,
+        'antipode'    => $antipode,
+        'layer_depth' =>
+            <[data.topology.interference.map.min_distance_to_center]>->(
+            $cube_coord),
+    };
+}
+
+##[ INTERFERENCE ]##########################################################
+
+my $interference = {};
+
+if ($include_interference) {
+    my $phase = $temporal_phase
+        // <[data.topology.interference.map.hash_to_phase]>->($data_hash);
+    my $constructive
+        = <[data.topology.interference.map.calculate_constructive_zone]>->(
+        $spatial->{'cube'}, $phase
+        );
+
+    $interference = {
+        'phase'        => $phase,
+        'constructive' => $constructive,
+        'channel_id'   =>
+            <[data.topology.interference.map.generate_channel_id]>->(
+            $spatial->{'cube'}, $phase
+            ),
+        'resonance_map' =>
+            <[data.topology.interference.map.calculate_resonance_field]>->(
+            $spatial, $phase
+            ),
+        'standing_wave' =>
+            <[data.topology.interference.map.calculate_standing_wave]>->(
+            $spatial->{'cube'}, $spatial->{'antipode'}
+            ),
+    };
+}
+
+##[ VISUAL ]################################################################
+
+my $visual = {};
+
+if ($include_visual) {
+    my $base_color = PROTOCOL_BLUE;
+    my $metadata_distance
+        = <[data.topology.interference.map.calculate_metadata_distance]>
+        ->($data_hash);
+    my $translucency = 1.0 - ( $metadata_distance / MAX_RGB_DIST );
+    $translucency = 0.24 if $translucency < 0.24;
+
+    my $drift
+        = <[data.topology.interference.map.calculate_fluorescent_drift]>->(
+        $data_hash, $base_color
+        );
+
+    $visual = {
+        'base_color'      => '#0647C3',
+        'rgba'            => [ @$base_color, $translucency ],
+        'translucency'    => $translucency,
+        'drift_direction' => $drift,
+        'emission'        => $interference->{'constructive'} * 0.24,
+        'povray_csg'      =>
+            <[data.topology.interference.map.generate_povray_csg]>->(
+            $spatial->{'cube'}, $base_color,
+            $translucency,      $drift,
+            $interference->{'constructive'}
+            ),
+        'glow_radius' => $interference->{'constructive'} * 2.0,
+    };
+}
+
+##[ ROUTING ]###############################################################
+
+my $routing = {};
+
+if ($include_routing) {
+    $routing = {
+        'bandwidth' =>
+            <[data.topology.interference.map.determine_bandwidth]>->(
+            $interference->{'constructive'}
+            ),
+        'security_zone' =>
+            <[data.topology.interference.map.determine_security_zone]>->(
+            $spatial->{'layer_depth'}
+            ),
+        'next_hop' => <[data.topology.interference.map.determine_next_hop]>->(
+            $spatial, $interference->{'resonance_map'}
+        ),
+        'workholes' => <[data.topology.interference.map.detect_workholes]>->(
+            $spatial->{'cube'}, $data_hash
+        ),
+        'multiplex_phase' =>
+            <[data.topology.interference.map.optimal_multiplex_phase]>->(
+            $interference->{'phase'}
+            ),
+    };
+}
+
+##[ METADATA ]##############################################################
+
+my $metadata = {};
+
+if ($include_metadata) {
+    $metadata = {
+        'original_hash' => $data_hash,
+        'mapped_time'   => <[base.time]>->(2),
+        'source_type'   =>
+            <[data.topology.interference.map.determine_source_type]>->(
+            $data_hash),
+        'access_heatmap' => {},
+        'intent_ghosts'  => [],
+        'cache_ttl'      =>
+            <[data.topology.interference.map.calculate_cache_ttl]>->(
+            $interference->{'constructive'}
+            ),
+    };
+}
+
+##[ RETURN ]################################################################
+
+return {
+    'spatial'      => $spatial,
+    'interference' => $interference,
+    'visual'       => $visual,
+    'routing'      => $routing,
+    'metadata'     => $metadata,
+    'unified' => <[data.topology.interference.map.calculate_unified_field]>->(
+        $spatial, $interference, $visual
+    ),
+};
+
+#,,,.,.,.,,..,,..,,,,,..,,,,,,,.,,,,,,,.,,..,,...,...,...,,..,,,,,...,,.,,...,
+#U7OXLYRWBPQI3NIOZ5WENV4YK2KPAH5PJO5XZZXPMKWR7PGRURY63WCSI7OXLCSTCWAY4UPJGSZ6K
+#\\\|5G2UO2RYD5IXLBFL3TQ4IC2VQ3A6GM2DTZ3FWC3MRJW6V5H5KIQ \ / AMOS7 \ YOURUM ::
+#\[7]ZAZPVHFBBMDKF2MW3USZ3DRJUTBJIFFMP6KX44K6IQKNK4U6XKCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

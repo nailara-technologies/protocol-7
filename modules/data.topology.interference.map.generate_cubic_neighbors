@@ -1,0 +1,35 @@
+## [:< ##
+
+# name = data.topology.interference.map.generate_cubic_neighbors
+# desc = Generate 26 cubic neighbors (6 face + 12 edge + 8 corner)
+
+my $coord = shift;
+my ( $x, $y, $z ) = @$coord;
+
+my @neighbors;
+for my $dx ( -1 .. 1 ) {
+    for my $dy ( -1 .. 1 ) {
+        for my $dz ( -1 .. 1 ) {
+            next if $dx == 0 && $dy == 0 && $dz == 0;
+
+            my $nx = $x + $dx;
+            my $ny = $y + $dy;
+            my $nz = $z + $dz;
+
+            # Wrap around (toroidal topology)
+            $nx = ( $nx + 13 ) % 13;
+            $ny = ( $ny + 13 ) % 13;
+            $nz = ( $nz + 13 ) % 13;
+
+            push @neighbors, [ $nx, $ny, $nz ];
+        }
+    }
+}
+
+return \@neighbors;
+
+#,,,.,,.,,.,,,,,,,.,.,..,,.,.,...,,,.,,..,,,,,.,.,...,...,...,..,,,,,,..,,,,,,
+#ZCSYVRLMI7RNMWXB4CJIPS2JYDSGRVI6G7XMDLFATYADVE4UPJL3O2LTVH7EIPNUDNIKKBYOSG7RS
+#\\\|OV3X6VWXC4X7SCDWAJJDLIWTS4FUMU2Y56FVHV3E5LAXOQTY4T3 \ / AMOS7 \ YOURUM ::
+#\[7]7J6DYW6T3TDYRGMEP7MSI2EMKL4ZVL6KAXZ6SE36RFFN3M62PUAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

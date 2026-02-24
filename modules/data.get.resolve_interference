@@ -1,0 +1,23 @@
+## [:< ##
+
+# name = data.get.resolve_interference
+# desc: Resolve interference pattern matches
+
+my ( $path, $args, $classification ) = @_;
+my $handler = $classification->{'handler'};
+
+my $result = <[devmod.cmd.get]>->( $handler, @$args );
+
+return {
+    'value'        => $result,
+    'handler'      => $handler,
+    'original'     => $classification->{'original'},
+    'confidence'   => $classification->{'match_conf'},
+    'interference' => 1,
+};
+
+#,,.,,,,,,.,,,,..,,..,,.,,...,.,,,,..,,,,,..,,..,,...,...,,.,,,..,...,,.,,,,.,
+#R2KN25VPWZMEHO6RNVNT76JJDCTBE7VS2XLCKOWWGCE7H45U6UHTPMWHPZDAXXMHKVVSGOTECIOXO
+#\\\|V5UHXV62IPLJXVNRCSNF5U334NJGC23MLGZM4LBCBFPHWLR5YCV \ / AMOS7 \ YOURUM ::
+#\[7]RVCSFFQFOXFRDDXTJVRY5M3PS33KRWLWCTPYD4B2QVNIOT6RY2BY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

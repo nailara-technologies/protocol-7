@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = data.get
+# desc  = Universal data path resolution with security and transparency
+
+my $path = shift;
+return undef unless defined $path && length($path);
+
+##[ SECURITY ]##############################################################
+
+my $security_check = <[data.get.validate_path_security]>->($path);
+return {
+    'error'     => 'access_denied',
+    'path'      => $path,
+    'required'  => $security_check->{'required'},
+    'available' => $security_check->{'available'},
+    }
+    unless $security_check->{'allowed'};
+
+##[ CLASSIFICATION ]########################################################
+
+my $classification = <[data.get.classify_path]>->($path);
+my $source_type    = $classification->{'type'};
+
+##[ RESOLUTION ]############################################################
+
+my $metadata = {
+    'path'           => $path,
+    'source_type'    => $source_type,
+    'classification' => $classification,
+    'resolved_time'  => <[base.time]>->(2),
+};
+
+my $result;
+
+if ( $source_type eq 'virtual' ) {
+    $result = <[data.get.resolve_virtual]>->( $path, \@ARG, $classification );
+} elsif ( $source_type eq 'plugin' ) {
+    $result = <[data.get.resolve_plugin]>->( $path, \@ARG, $classification );
+} elsif ( $source_type eq 'physical' ) {
+    $result
+        = <[data.get.resolve_physical]>->( $path, \@ARG, $classification );
+} elsif ( $source_type eq 'interference' ) {
+    $result = <[data.get.resolve_interference]>
+        ->( $path, \@ARG, $classification );
+} else {
+    return {
+        'error'   => 'unknown_path_type',
+        'path'    => $path,
+        'message' => "Cannot classify path: $path",
+    };
+}
+
+##[ RETURN ]################################################################
+
+return {
+    'value'        => $result->{'value'},
+    'source'       => $source_type,
+    'handler'      => $classification->{'handler'},
+    'module_path'  => $result->{'module_path'},
+    'permissions'  => $security_check->{'permissions'},
+    'topology_pos' => $result->{'topology_pos'}
+        // <[data.get.classify_topology_pos]>->($path),
+    'cached'   => $result->{'cached'} // 0,
+    'metadata' => { %$metadata, %{ $result->{'metadata'} // {} } },
+};
+
+#,,..,.,,,,..,,.,,.,,,...,..,,,,.,.,.,..,,,,.,...,...,..,,.,,,,..,,.,,,,.,,,.,
+#7OH26GVGXMQSKOHKKOG76PEZX7PEIJOX5BFVVMYZS44YB32ZA4VA43TF4YQBD554I6QBXMZ3RTYOO
+#\\\|YRV5HPZBF477Z6QWB6RLOALCBFX5TGEWDTAJ5H3D4PZ3ZTQLGTE \ / AMOS7 \ YOURUM ::
+#\[7]2Z6UVGAKTFC2U57YUAZGVSO67ZTAFD46SIS5L4MI7RQ7JO2IXYCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

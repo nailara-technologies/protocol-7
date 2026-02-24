@@ -1,0 +1,27 @@
+## [:< ##
+
+# name = data.init_holographic.calculate_magnetic_trajectory
+# desc = Calculate magnetic field line trajectory
+
+my ( $from, $to, $intent ) = @_;
+
+my $dx = $to->[0] - $from->[0];
+my $dy = $to->[1] - $from->[1];
+my $dz = $to->[2] - $from->[2];
+
+my $intent_strength = $intent->{'strength'} // 0.5;
+
+return {
+    'direction'  => [ $dx, $dy, $dz ],
+    'magnitude'  => sqrt( $dx * $dx + $dy * $dy + $dz * $dz ),
+    'curvature'  => $intent_strength,
+    'field_line' => <[data.init_holographic.generate_field_line]>->(
+        $from, $to, $intent
+    ),
+};
+
+#,,.,,..,,,..,,,,,.,.,..,,,..,.,.,.,.,,.,,.,,,..,,...,...,...,.,,,,..,..,,..,,
+#VGJLMOFIHIT3OESUI4OP3CUGOHZVKFAVPLY4JOP2KZQWNQCL6EMII6OGOH3NDOIUHSXM4BZ5PZWH4
+#\\\|F5FNDOWAQDF4HT5CVWEAUNVK7SDDSGJ45PY6QSJR66LYED3JBT2 \ / AMOS7 \ YOURUM ::
+#\[7]YHL7XR3TDG4LVZQRWCXCTA6QEE5DRYDIDYCOG2UK6D6PU5TWIGBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

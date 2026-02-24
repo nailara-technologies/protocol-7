@@ -1,0 +1,33 @@
+## [:< ##
+
+# name = data.get.resolve_plugin
+# desc: Resolve plugin namespace paths
+
+my ( $path, $args, $classification ) = @_;
+my $handler = $classification->{'handler'};
+
+# Plugin loading logic - simplified for now
+my $core_fallback = $path;
+$core_fallback =~ s/^plugin\./data./;
+
+my $module_path = <[data.get.path_to_module]>->($core_fallback);
+if ( -f $module_path ) {
+    my $result = <[devmod.cmd.get]>->( $core_fallback, @$args );
+    return {
+        'value'       => $result,
+        'module_path' => $module_path,
+        'source'      => 'plugin_fallback',
+    };
+}
+
+return {
+    'value'    => undef,
+    'error'    => 'plugin_not_found',
+    'fallback' => $core_fallback
+};
+
+#,,,,,,.,,,,,,...,..,,.,.,,,,,.,,,..,,,,,,.,.,..,,...,...,,..,.,,,..,,,,,,,,.,
+#DHD5CRUH5ITMDAQJ5NBL6K2MW2WYP3X5OBGUZX3HW7UB6KXZTKNZBSW6IH5S5AR3ON3W2LGJ3OFPA
+#\\\|IAQSRPACDQZ7OGGO7CJRIYYG6Z6ULAAWM2XPD5EZUKK4VEUSK7B \ / AMOS7 \ YOURUM ::
+#\[7]HREZ5YNFI7HEVTCRW2VD3IFGTINXUEAVETX2B5VD5WGTLZ2NS6AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

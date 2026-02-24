@@ -1,0 +1,22 @@
+## [:< ##
+
+# name = data.get.resolve_physical
+# desc: Resolve physical module paths
+
+my ( $path, $args, $classification ) = @_;
+my $module_path = $classification->{'module_path'}
+    // <[data.get.path_to_module]>->($path);
+
+my $result = <[devmod.cmd.get]>->( $path, @$args );
+
+return {
+    'value'       => $result,
+    'module_path' => $module_path,
+    'cached'      => 0,
+};
+
+#,,.,,,,,,..,,,,,,.,,,,,.,,,.,,,,,,..,,.,,,.,,..,,...,...,,,,,..,,,,.,,..,.,,,
+#YVLDRHS3S5RZQ2QL7ESAQ3SNE2R2LCX3F7KCQ63VG33QTGLAJEHC3LHP2KN4LZWHQXRCAUCMBYZLW
+#\\\|IZLUY5KYUJYT3RXL35ZVUJQL6C4CB33NGMNLXCBU6HJMGLUM7Q7 \ / AMOS7 \ YOURUM ::
+#\[7]I6KPAX7ILOD3IUXQMQUMKYZUKJA5VEVCPC2CGD3EMSUNKG7G4ABI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

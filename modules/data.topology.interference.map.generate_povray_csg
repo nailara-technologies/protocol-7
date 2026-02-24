@@ -1,0 +1,31 @@
+## [:< ##
+
+# name = data.topology.interference.map.generate_povray_csg
+# desc = Generate POV-Ray CSG description for node
+
+my ( $coord, $color, $alpha, $drift, $constructive ) = @_;
+
+my ( $x,  $y,  $z )  = @$coord;
+my ( $r,  $g,  $b )  = @$color;
+my ( $dr, $dg, $db ) = @$drift;
+
+# Emission color with drift
+my $er = $r + $dr;
+my $eg = $g + $dg;
+my $eb = $b + $db;
+
+return sprintf(
+    "sphere { <%d,%d,%d>, 0.5\n"
+        . "  pigment { rgbt <%.3f,%.3f,%.3f,%.3f> }\n"
+        . "  finish { emission <%.3f,%.3f,%.3f> }\n" . "}",
+    $x, $y, $z, $r, $g, $b, 1 - $alpha,
+    $er * $constructive,
+    $eg * $constructive,
+    $eb * $constructive
+);
+
+#,,,,,.,,,.,.,..,,,,.,...,..,,..,,,,.,,,.,..,,..,,...,...,,,.,...,,.,,.,.,,..,
+#BRBRFHID7MYGU3IZ2TNNLWBPA5DHBQU74RPRDDWYX2GJWU2KT3TZKGTTXE36OTDWSCB7MD5IDFBFE
+#\\\|2QRRLKHBF5SVBNIMECKPHRXLUPBAGUASAAQZ2ZNJ7RATUGKKANU \ / AMOS7 \ YOURUM ::
+#\[7]PLWHQVCUATUXCZAS5LMUMQTAS4AWKMVB2WDYL63VIVVJWWUZIQBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
