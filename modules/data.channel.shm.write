@@ -1,0 +1,67 @@
+## [:< ##
+
+# name = data.channel.shm.write
+# desc = Write message to SHM-backed channel (ring buffer)
+
+use constant SHM_HEADER_SIZE  => 512;
+use constant RING_HEADER_SIZE => 16;
+
+my ( $channel_id, $message ) = @ARG;
+
+my $channel = $data{'channel'}{'shm'}{'registry'}{$channel_id};
+return undef unless defined $channel;
+
+my $shm      = $channel->{'shm'};
+my $mmap_ptr = $shm->{'mmap_ptr'};
+my $capacity = $shm->{'size'};
+
+# Read current ring buffer state
+my $ring_header = substr( ${$mmap_ptr}, SHM_HEADER_SIZE, RING_HEADER_SIZE );
+my ( $read_pos, $write_pos, $wrap_count, $max_capacity )
+    = unpack( 'NNNN', $ring_header );
+
+my $msg_len   = length($message);
+my $total_len = 4 + $msg_len;       # 4 bytes length prefix + message
+
+# Check available space (simplified - doesn't handle wrap-around fragmentation)
+my $available;
+if ( $write_pos >= $read_pos ) {
+    $available = $capacity - $write_pos + $read_pos;
+} else {
+    $available = $read_pos - $write_pos;
+}
+
+return undef if $total_len + 8 > $available;    # +8 for safety margin
+
+# Write message: [4 bytes length][message data]
+my $offset = SHM_HEADER_SIZE + RING_HEADER_SIZE + $write_pos;
+
+if ( $offset + $total_len > $capacity + SHM_HEADER_SIZE + RING_HEADER_SIZE ) {
+
+    # Wrap around to beginning
+    $write_pos = 0;
+    $offset    = SHM_HEADER_SIZE + RING_HEADER_SIZE;
+    $wrap_count++;
+}
+
+substr( ${$mmap_ptr}, $offset, 4 ) = pack( 'N', $msg_len );
+substr( ${$mmap_ptr}, $offset + 4, $msg_len ) = $message;
+
+# Update write position
+$write_pos += $total_len;
+
+# Write back ring header
+substr( ${$mmap_ptr}, SHM_HEADER_SIZE, RING_HEADER_SIZE )
+    = pack( 'NNNN', $read_pos, $write_pos, $wrap_count, $max_capacity );
+
+# Update stats
+$channel->{'msg_count'}++;
+$channel->{'bytes_written'} += $msg_len;
+
+return length($message);
+
+#,,,.,.,,,.,.,..,,,.,,,,,,,,.,,,,,..,,,..,,..,...,...,...,.,.,,,.,.,,,,.,,.,,,
+#W6OAZVHBZP42QOJBQ6VEJ5PEZHAZONTGAJBSTZBEA77OOEHJLPEXVPPQJIWGZE6EDJWYQOBXWLJE2
+#\\\|3SQUIABZ64D2CHXOUJ6UB6J4MULSZ4ZASFUBUOA4VBQ77JXZ2V6 \ / AMOS7 \ YOURUM ::
+#\[7]PZOSA5SOEYT35WVOANTY6SLOBFNEKGL7NNLLAT4EXLD2VTLRHICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,34 @@
+## [:< ##
+
+# name = data.channel.shm.poll
+# desc = Check if SHM channel has data available (non-blocking)
+
+use constant SHM_HEADER_SIZE  => 512;
+use constant RING_HEADER_SIZE => 16;
+
+my ($channel_id) = @ARG;
+
+my $channel = $data{'channel'}{'shm'}{'registry'}{$channel_id};
+return undef unless defined $channel;
+
+my $shm      = $channel->{'shm'};
+my $mmap_ptr = $shm->{'mmap_ptr'};
+
+# Read ring buffer state
+my $ring_header = substr( ${$mmap_ptr}, SHM_HEADER_SIZE, RING_HEADER_SIZE );
+my ( $read_pos, $write_pos ) = unpack( 'NN', $ring_header );
+
+my $has_data = ( $read_pos != $write_pos ) ? 1 : 0;
+
+return {
+    'has_data'  => $has_data,
+    'readable'  => $has_data,
+    'writable'  => 1,           # Simplified - always writable for now
+    'msg_count' => $channel->{'msg_count'},
+};
+
+#,,..,,,.,,,,,.,,,.,.,.,,,..,,..,,,..,.,,,...,...,...,...,...,,,.,.,.,,..,,,,,
+#4CPRZL5KTRK5QZKEUZPZPANYEB2PIJ4RNA5XBS4HKOGAGJDFPYBWHGKOESIVOSV6J46FNRW6PAESQ
+#\\\|3D3J643EP6AKAKJ3T6XHYYMUJYY77US2M7IGMBFJFRFG3C5GQKC \ / AMOS7 \ YOURUM ::
+#\[7]XDV2L3RK57AS2KG6BBQITLHYTDR5UBWUPVK7SRQ32O2TRB6VNIAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
