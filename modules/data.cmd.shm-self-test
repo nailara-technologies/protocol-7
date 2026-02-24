@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = data.cmd.shm-self-test
+# descr = Run comprehensive SHM self-tests with styled output
+
+my $prefix = ':';             # visual separator
+my $output = "\n$prefix\n";
+
+##[ TEST 1: SHM Mount ]#####################################################
+
+<[base.log]>->( 2, 'running SHM mount test..,' );
+my $mount_result = <[data.mount.shm.test.basic]>;
+my $mount_ok     = ( defined $mount_result && $mount_result == 5 );
+$output .= sprintf "%s shm mount test    [ %s ]\n", $prefix,
+    $mount_ok ? 'success' : ' fail  ';
+
+##[ TEST 2: Channel SHM ]###################################################
+
+<[base.log]>->( 2, 'running channel SHM test..,' );
+my $channel_result = <[data.channel.shm.test.basic]>;
+my $channel_ok     = ( defined $channel_result && $channel_result == 5 );
+$output .= sprintf "%s channel shm test  [ %s ]\n", $prefix,
+    $channel_ok ? 'success' : ' fail  ';
+
+##[ TEST 3: SHM Stats ]#####################################################
+
+<[base.log]>->( 2, 'checking SHM stats..,' );
+my $stats    = <[data.mount.shm.stats]>;
+my $stats_ok = defined $stats;
+$output .= sprintf "%s shm stats check   [ %s ]\n", $prefix,
+    $stats_ok ? 'success' : ' fail  ';
+
+##[ OUTPUT ]################################################################
+
+$output .= "$prefix\n";
+
+# Return as size reply for proper protocol handling
+return { 'mode' => qw| size |, 'data' => $output };
+
+#,,.,,,.,,..,,,..,.,.,,.,,..,,...,.,,,,..,,.,,...,...,...,.,.,..,,.,,,.,.,..,,
+#CY6ERJQMFCPM24W3KLQUSXR3M32B7TFJXUKWVYIVPHMXLO2ZX5SLHOEYLU2DSW2O4US6PDEQNXJGK
+#\\\|VQKLOHRXC7PRBVGFYV4WQJ2YBPIIOJZRLRQ3EIEZWYHKN3KJDVI \ / AMOS7 \ YOURUM ::
+#\[7]DAMMDOXNEZWU4KDRQ56PX5DV2EXK4ZODWNLOP3CCXR75JZL4GSBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
