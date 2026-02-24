@@ -1,0 +1,26 @@
+## [:< ##
+
+# name = data.channel.shm.init_code
+# desc = Initialize SHM-backed channel transport for data zenka
+
+<[base.log]>->( 2, ': initializing SHM channel transport..,' );
+
+# Register SHM as a channel transport type
+$data{'channel'}{'transport'}{'shm'} = {
+    'create' => 'data.channel.shm.create',
+    'read'   => 'data.channel.shm.read',
+    'write'  => 'data.channel.shm.write',
+    'close'  => 'data.channel.shm.close',
+    'poll'   => 'data.channel.shm.poll',
+};
+
+# SHM channel registry - tracks active SHM-backed channels
+$data{'channel'}{'shm'}{'registry'} //= {};
+
+return TRUE;    ## [success] ##
+
+#,,..,,..,,.,,,,,,,,,,..,,...,...,.,,,...,.,,,...,...,...,,.,,,.,,,,.,..,,,.,,
+#GPPY6ML4XYBHDYW5VBDQKNU7TL6XTLIHFEPYMYJQYWVMWMVIMWILJE4FDE467CJV6GD7K3ETW3E7Q
+#\\\|5SB23577PEWUVEKPRWBZNI2GSVUF2XPPBDYOEMVPW73YHRZZUUX \ / AMOS7 \ YOURUM ::
+#\[7]B5I2672AH6UJYXY6ZJIA5LR64CCQUBKARVROZB77MO7BDUNPFSBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
