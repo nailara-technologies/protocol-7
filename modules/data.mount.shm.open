@@ -2,6 +2,7 @@
 
 # name = data.mount.shm.open
 # desc = Open SHM segment with cryptographic verification
+#         Uses file-based SHM in /dev/shm (tmpfs) - portable
 
 use constant SHM_HEADER_SIZE => 512;
 
@@ -21,25 +22,13 @@ return undef unless defined $pub_key;
 
 my $requested_rights = $options->{'rights'} // ['read'];
 
-my ( $mmap_ref, $type );
+# Open file-based SHM
+open( my $fh, '+<', $shm_path )
+    or return { 'error' => 'open_failed', 'path' => $shm_path };
+binmode($fh);
 
-if ( -f $shm_path ) {
-    open( my $fh, '+<', $shm_path )
-        or return { 'error' => 'open_failed', 'path' => $shm_path };
-    binmode($fh);
-
-    $mmap_ref = <[data.mount.shm.open.mmap_file_read]>->($fh);
-    close($fh) unless defined $mmap_ref;
-    $type = 'file';
-} else {
-    if ( eval { require POSIX } ) {
-        my $fd = POSIX::shm_open( $shm_path, POSIX::O_RDWR(), 0 );
-        if ( defined $fd && $fd >= 0 ) {
-            $mmap_ref = <[data.mount.shm.open.mmap_shm_read]>->($fd);
-            $type     = 'posix';
-        }
-    }
-}
+my $mmap_ref = <[data.mount.shm.open.mmap_file_read]>->($fh);
+close($fh) unless defined $mmap_ref;
 
 return { 'error' => 'segment_not_found', 'path' => $shm_path }
     unless defined $mmap_ref;
@@ -66,14 +55,14 @@ return {
     'sub_path'    => $sub_path,
     'mmap_ptr'    => $mmap_ref,
     'header'      => $header,
-    'type'        => $type,
+    'type'        => 'file',
     'data_offset' => SHM_HEADER_SIZE,
     'data_size'   => $header->{'data_size'},
     'requester'   => $requester_pubkey,
 };
 
-#,,..,,.,,,..,.,,,.,,,,,,,..,,,..,..,,.,,,..,,.,.,...,...,,..,,,,,,,.,,..,...,
-#4XR6MZXLDOIFJF7J4TOPYB5TJOMGZUV56PQNNQA6G2R5CFNXHRR2VI62UUUORWMEK5UXN7I7EBQX2
-#\\\|73DIVOIUIKYDRR7LFUGSVCHHLBG5HM2RL72TYCHXXWQXVKNXPFH \ / AMOS7 \ YOURUM ::
-#\[7]CRMXLQ5OOS44TIFIRAPUOQVHXXO7PTSNLPXI5LO7H4GFFWF2ZACQ 7  DATA SIGNATURE ::
+#,,,.,..,,,,.,...,,..,,.,,,,,,,..,..,,.,.,..,,..,,...,...,...,.,.,,,,,.,,,.,,,
+#G4PX4KZTP4BZX6IB4TG52AFOZNOWNFOFE3JVQDJYL4GRKBAHIYALKBRHX66AEBHZCXN3VNLNH7HIA
+#\\\|OWRQ7CQX3VIPEYTWKLF2DSMOQ4OSKYC6YZTAF6STVFSH5E5YOON \ / AMOS7 \ YOURUM ::
+#\[7]3K5S45SNE4H3O4ZXZ3SHYO3RGLNIQRDVARZECTRIR4MKQGBRHCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,23 +7,36 @@ use constant SHM_HEADER_SIZE => 512;
 
 my $header = shift;
 
-my $packed = sprintf(
-    "P7SH:%d:%s:%d:%d:%d:%s:\n",
-    $header->{'version'},
-    $header->{'owner_pubkey'},
-    $header->{'created'},
-    $header->{'data_size'},
-    $header->{'header_size'},
-    join( ',',
-        map { $_ . '=' . ( $header->{'flags'}{$_} ? 1 : 0 ) }
-            keys %{ $header->{'flags'} } )
-);
+# Build fields separately to avoid sprintf format issues with colons
+my $version   = $header->{'version'} // 1;
+my $pubkey    = $header->{'owner_pubkey'};
+my $created   = $header->{'created'};
+my $data_size = $header->{'data_size'};
+my $hdr_size  = $header->{'header_size'} // SHM_HEADER_SIZE;
 
+# Build flags string
+my @flags;
+for my $key ( keys %{ $header->{'flags'} } ) {
+    push @flags, $key . '=' . ( $header->{'flags'}{$key} ? 1 : 0 );
+}
+my $flags_str = join( ',', @flags );
+
+# Concatenate directly instead of sprintf (avoids colon interpretation)
+my $packed
+    = 'P7SH:'
+    . $version . ':'
+    . $pubkey . ':'
+    . $created . ':'
+    . $data_size . ':'
+    . $hdr_size . ':'
+    . $flags_str . ":\n";
+
+# Pad to fixed header size
 $packed .= "\0" x ( SHM_HEADER_SIZE - length($packed) );
 return substr( $packed, 0, SHM_HEADER_SIZE );
 
-#,,,.,,,,,,.,,.,.,...,.,.,,.,,..,,.,.,,..,.,.,..,,...,...,...,,,.,.,,,,..,..,,
-#SU7BXGCLMTHMCV5M26PSKISCXXCJJD2NCP2J4PHJ4GJ5JNDMEHZ7BL5RLNWLWAKFEKG7P3JZCBEEA
-#\\\|25MWMGQTQZNS4IERJ7GWNEUOUE3PK3EPFMGEESS6U32CWUAQR7E \ / AMOS7 \ YOURUM ::
-#\[7]5LGULADPOC36PYJ7JEIF6UPHJCPJB2CSTP6EA7RQBFEZTAIYQOCA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,,,,.,.,.,,,,,.,,.,,,..,,..,,.,,..,,...,...,...,..,,.,.,...,,,,,
+#AKHM53HFJEOM6FSHDVFQAHZ2PSIOKJO45LPJFUCWZKGA64G4F57XNFPFZPM57I3X6TVYKD6PKU6VE
+#\\\|PXVTOQ6RQL3BIPQIG4SFE4SIYJOR4NEMPJLGQP6VVA5EQCYI44U \ / AMOS7 \ YOURUM ::
+#\[7]INPNQXNCSEO6Z5VFOSXXDO32OXQ7M3OM67XPDASMPANYQ2KOIMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

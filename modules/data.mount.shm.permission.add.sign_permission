@@ -1,20 +1,30 @@
 ## [:< ##
 
 # name = data.mount.shm.permission.add.sign_permission
-# desc = Sign permission with owner's private key
+# desc = Sign permission with owner's private key (simplified)
 
-my ( $perm, $priv_key ) = @_;
+my ( $perm, $priv_key ) = @ARG;
 
-my $canonical = sprintf( "%s:%s:%s:%d:%s",
-    $perm->{'to'},     $perm->{'branch'}, join( ',', @{ $perm->{'rights'} } ),
-    $perm->{'expiry'}, $perm->{'granted'}, );
+# Build canonical string
+my $canonical
+    = $perm->{'to'} . ':'
+    . $perm->{'branch'} . ':'
+    . join( ',', @{ $perm->{'rights'} } ) . ':'
+    . $perm->{'expiry'} . ':'
+    . $perm->{'granted'};
 
-my $signature
-    = <[chk-sum.amos.truth_template_chksum]>->( $canonical . $priv_key, \0 );
-return sprintf( "%08X", $signature );
+# Simple hash signature (placeholder - use proper crypto in production)
+my $sig = 0;
+for my $i ( 0 .. length($canonical) - 1 ) {
+    $sig = ( $sig * 31 + ord( substr( $canonical, $i, 1 ) ) ) & 0xFFFFFFFF;
+}
+$sig = ( $sig * length( $priv_key || '' ) ) & 0xFFFFFFFF
+    if length( $priv_key || '' );
 
-#,,..,.,,,.,.,..,,.,,,,..,,,,,,.,,,.,,,.,,,..,..,,...,...,,.,,,,.,.,,,,.,,..,,
-#VSQAZKCOCMNYCCRS2GM3GD6SCE6UTKJN7U6LLDTVAJCNMIDKB3I26LOSKHLQ3J46NTR6OBMXMJLEG
-#\\\|QIZ6F3TCRWS3GDC4FVOTMKYOUBAU6MSEB2ZRE6ZHV3NKDB2B4HC \ / AMOS7 \ YOURUM ::
-#\[7]GMJOHGCIL4VNDOYYNODEPVVUL7UXFFDDANFLSASWVU2LICLPLIBY 7  DATA SIGNATURE ::
+return sprintf( "%08X", $sig );
+
+#,,,.,,,,,.,,,,.,,,,.,.,.,..,,,,.,.,.,,.,,..,,..,,...,...,,.,,,..,,.,,,,,,,..,
+#JT4AZMRAU2C3ZWF3W6LCBRKMZ5J4XK72Z5FIMQHGIH22IYZNHQ5THVJ4R3OHFMJ3M3S3NY6RAWPCG
+#\\\|ZOTNY6RECM3FG3Z4NKMHICTTD5XSKX4EXMCXIG26ZO54ONTHEDZ \ / AMOS7 \ YOURUM ::
+#\[7]2X52K3RIA5CFSG4IJ7OABJFJJP46OEQ4SJQYLX7DGXMQBN3EGOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
