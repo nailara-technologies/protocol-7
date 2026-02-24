@@ -666,6 +666,7 @@ return [ qw[
         devmod.cmd.list-subs
         devmod.cmd.eval-code
         devmod.cmd.core-subs
+        data.mount.shm.stats
         data.get_array_entry
         data.cmd.detach-cube
         content.cmd.get_list
@@ -789,9 +790,12 @@ return [ qw[
         filter.cmd.del_filter
         filter.cmd.add_filter
         download.cmd.get_file
+        data.mount.shm.unlink
         data.mount.shm.create
         data.init_holographic
         data.ensure_hash_path
+        data.channel.shm.read
+        data.channel.shm.poll
         cube.cmd.link-upgrade
         crypt.cbc.init_cipher
         crypt.C25519.pre_init
@@ -937,6 +941,9 @@ return [ qw[
         devmod.cmd.switch-user
         data.resolve_hash_path
         data.get.classify_path
+        data.cmd.shm-self-test
+        data.channel.shm.write
+        data.channel.shm.close
         crypt.C25519.sign_keys
         crypt.C25519.sign_data
         crypt.C25519.post_init
@@ -1070,6 +1077,7 @@ return [ qw[
         dbus.cmd.socket_address
         data.get.resolve_plugin
         data.get.path_to_module
+        data.channel.shm.create
         cube.cmd.set-capability
         cube.cmd.present-p7-log
         crypt.C25519.write_keys
@@ -1355,6 +1363,7 @@ return [ qw[
         devmod.cmd.test-strm-size
         debian.console.list-zenki
         debian.console.check-deps
+        data.mount.shm.test.basic
         data.get.resolve_physical
         cube.cmd.select-strm-mode
         crypt.C25519.load_keypair
@@ -1496,6 +1505,7 @@ return [ qw[
         data.mount.shm.lock.memory
         data.mount.shm.header.read
         data.get.check_permissions
+        data.channel.shm.init_code
         crypt.C25519.key_checksums
         crypt.C25519.encrypted_key
         crypt.C25519.clear_chksums
@@ -1632,6 +1642,7 @@ return [ qw[
         data.mount.shm.header.write
         data.handler.indexer.notify
         data.get.coordinate_to_hash
+        data.channel.shm.test.basic
         cube.chk-sum.cmd.elf-chksum
         crypt.C25519.sign_file_list
         crypt.C25519.key_is_virtual
@@ -2277,6 +2288,7 @@ return [ qw[
         image-quality.vision.encode_image
         events.cmd.get_playlist_exclusive
         events.callback.object.date_frame
+        data.topology.interference.map.PI
         data.mount.shm.open.mmap_shm_read
         data.mount.shm.open.derive_pubkey
         crypt.C25519.verify_key_signature
@@ -2605,6 +2617,7 @@ return [ qw[
         letsencr.parent.handler_enrollment_reply
         letsencr.parent.handler_challenge_needed
         httpsd.request_certificate_from_letsencr
+        data.topology.interference.map.CUBE_SIZE
         data.init_holographic.determine_polarity
         data.init_holographic.coordinate_to_hash
         coding.vision-parser.extraction.workflow
@@ -2661,6 +2674,7 @@ return [ qw[
         httpd.handler.download_transfer.test-broken
         debian.parent.callback.register_deb_package
         debian.parent.callback.register_cpan_module
+        data.topology.interference.map.MAX_RGB_DIST
         data.mount.shm.header.write.pack_shm_header
         coding.handler.models_recommendations_reply
         base.referenced_subroutines.clear_from_disk
@@ -2671,6 +2685,7 @@ return [ qw[
         letsencr.child.continue_challenge_processing
         debian.parent.callback.check_module_loadable
         data.topology.interference.map.hash_to_phase
+        data.topology.interference.map.PROTOCOL_BLUE
         data.mount.shm.header.read.unpack_shm_header
         coding.vision-parser.cmd.analyze_and_extract
         coding.learning.analyze_model_specialization
@@ -2710,6 +2725,7 @@ return [ qw[
         debian.parent.callback.register_binary_dependency
         data.topology.interference.map.determine_next_hop
         data.topology.interference.map.calculate_antipode
+        data.topology.interference.map.SUBCUBES_PER_GROUP
         models.storage.resolve_model.find_location_at_tier
         models.decision.cost_base.estimate_usage_frequency
         data.topology.interference.map.generate_povray_csg
@@ -2755,8 +2771,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,.,.,,,,,,,.,,,.,,,.,,,.,...,...,,..,...,.,.,...,...,,,,,,,.,,,,,.,,,.,.,
-#GB7U7I5T466I5RPOR4PNCRANV3DUNUQP224RIXXWUSUSVZKXIA7DULSKFP3ZQBOIEPDKL4TLOR2Y2
-#\\\|7YPYFZYOVD35IIOIM3VJWX5L4DH45YW6HQB3A4ZDZB3LSGO3XA5 \ / AMOS7 \ YOURUM ::
-#\[7]GE6YWL7555TQQDPSV7GIY5X6EPZETMCW4NMJKATM6BUPKVDRO2BY 7  DATA SIGNATURE ::
+#,,,,,,,.,,..,...,,..,,,.,.,.,,..,,,,,.,.,..,,.,.,...,...,,,,,..,,..,,,,.,.,,,
+#TBTUVSMETVY2LNSFJUT7FWQCFSMJKDKLGUFIFKBNC7TCYAWOWSIYNR7UC6SZPTG4DQRLUOJ3XPIYE
+#\\\|AIJJQDB25I4QQF7ODICHYCUPUQ5CK2FMFWNFYB7SOPJSKWERVND \ / AMOS7 \ YOURUM ::
+#\[7]UX2VHPIPIWWWZMTJK2XVVCPEJT6F4KZOF36BCBS6EOGVWUVJEIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

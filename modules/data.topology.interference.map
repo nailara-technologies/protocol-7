@@ -9,7 +9,7 @@
 #
 # output = hash ref with spatial, interference, visual, routing, metadata
 
-use constant PI => 3.14159265358979;
+my $PI = <[data.topology.interference.map.PI]>;
 
 my $data_hash = shift;
 my $options   = shift // {};
@@ -27,10 +27,11 @@ my $temporal_phase       = $options->{'temporal_phase'};
 
 ##[ CONSTANTS ]#############################################################
 
-use constant PROTOCOL_BLUE      => [ 0.024, 0.278, 0.765 ];    # #0647C3
-use constant MAX_RGB_DIST       => 1.732;                      # sqrt(3)
-use constant CUBE_SIZE          => 13;
-use constant SUBCUBES_PER_GROUP => 63;
+my $PROTOCOL_BLUE = <[data.topology.interference.map.PROTOCOL_BLUE]>;
+my $MAX_RGB_DIST  = <[data.topology.interference.map.MAX_RGB_DIST]>;
+my $CUBE_SIZE     = <[data.topology.interference.map.CUBE_SIZE]>;
+my $SUBCUBES_PER_GROUP
+    = <[data.topology.interference.map.SUBCUBES_PER_GROUP]>;
 
 ##[ SPATIAL ]###############################################################
 
@@ -93,11 +94,11 @@ if ($include_interference) {
 my $visual = {};
 
 if ($include_visual) {
-    my $base_color = PROTOCOL_BLUE;
+    my $base_color = $PROTOCOL_BLUE;
     my $metadata_distance
         = <[data.topology.interference.map.calculate_metadata_distance]>
         ->($data_hash);
-    my $translucency = 1.0 - ( $metadata_distance / MAX_RGB_DIST );
+    my $translucency = 1.0 - ( $metadata_distance / $MAX_RGB_DIST );
     $translucency = 0.24 if $translucency < 0.24;
 
     my $drift
@@ -181,8 +182,8 @@ return {
     ),
 };
 
-#,,,.,.,.,,..,,..,,,,,..,,,,,,,.,,,,,,,.,,..,,...,...,...,,..,,,,,...,,.,,...,
-#U7OXLYRWBPQI3NIOZ5WENV4YK2KPAH5PJO5XZZXPMKWR7PGRURY63WCSI7OXLCSTCWAY4UPJGSZ6K
-#\\\|5G2UO2RYD5IXLBFL3TQ4IC2VQ3A6GM2DTZ3FWC3MRJW6V5H5KIQ \ / AMOS7 \ YOURUM ::
-#\[7]ZAZPVHFBBMDKF2MW3USZ3DRJUTBJIFFMP6KX44K6IQKNK4U6XKCA 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,.,,,,,,,,,,.,,,.,,,..,.,.,...,...,...,...,...,..,,,,.,..,,,,,,
+#PNAZUTVDQYLSOLK4KK7XDE3AW2DYI2TRXHYF2S2K7CPDREK6JYOUGTOSDMTC5MUR6HZEKJ7BVXUHK
+#\\\|JGFMTJFNYCV77JYZYM7WXBLD6CBRTY47Z4M6GZQRXKWFIMMX5BF \ / AMOS7 \ YOURUM ::
+#\[7]NZOKDHWLDCGZ6KWVNETD2UKQCJJKDLENAPGBZ4VMJ65JPYQU3GBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
