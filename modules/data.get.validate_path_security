@@ -1,0 +1,84 @@
+## [:< ##
+
+# name = data.get.validate_path_security
+# desc = Validate data path against security patterns
+
+my $path = shift;
+
+# Pattern-based security rules
+state $security_rules = {
+    qr{^data\.[a-z][a-z0-9_]*\.field$} => {
+        'read'  => ['all'],
+        'write' => [ 'root', 'data-ops' ],
+    },
+    qr{^data\.[a-z][a-z0-9_]*\.cmd\.[a-z_]+$} => {
+        'read'    => ['all'],
+        'execute' => [ 'auth', 'cmd-ops' ],
+        'write'   => ['root'],
+    },
+    qr{^data\.topology\.\d+\.\d+\.\d+(?:\.[a-z]+)?$} => {
+        'read'  => ['all'],
+        'write' => ['topology-zenki'],
+    },
+    qr{^data\.intent\.([^.]+)\.([a-z]+)$} => {
+        'read'  => [ 'owner:$1', 'intent-ops' ],
+        'write' => ['owner:$1'],
+    },
+    qr{^plugin\.[a-z][a-z0-9_]*\.[a-z_]+$} => {
+        'read'    => ['all'],
+        'execute' => ['all'],
+        'load'    => [ 'plugin-ops', 'root' ],
+    },
+    qr{^data\.internal\..*} => {
+        'read'  => [],
+        'write' => [],
+    },
+    qr{^data\.unified\.physics\.[a-z]+$} => {
+        'read'    => ['all'],
+        'execute' => ['physics-zenki'],
+    },
+};
+
+my $caller_perms = <[data.get.get_caller_permissions]>->();
+
+for my $pattern ( keys %$security_rules ) {
+    if ( $path =~ $pattern ) {
+        my $rule     = $security_rules->{$pattern};
+        my $allowed  = 0;
+        my $required = [];
+
+        if ( $path !~ m{\.(?:cmd|init)} && !$ARG[0] ) {
+            $required = $rule->{'read'};
+            $allowed  = <[data.get.check_permissions]>
+                ->( $caller_perms, $required );
+        } elsif ( $path =~ m{\.(?:cmd|execute)} ) {
+            $required = $rule->{'execute'} // $rule->{'read'};
+            $allowed  = <[data.get.check_permissions]>
+                ->( $caller_perms, $required );
+        } else {
+            $required = $rule->{'write'} // [];
+            $allowed  = <[data.get.check_permissions]>
+                ->( $caller_perms, $required );
+        }
+
+        return {
+            'allowed'     => $allowed,
+            'permissions' => $caller_perms,
+            'required'    => $required,
+            'available'   => $rule,
+        };
+    }
+}
+
+return {
+    'allowed'     => 1,
+    'permissions' => $caller_perms,
+    'required'    => ['any'],
+    'note'        => 'default_policy',
+};
+
+#,,,.,.,,,.,.,,,.,...,.,,,,,.,...,,..,..,,,,.,..,,...,...,.,,,,,,,,,.,,.,,...,
+#F5UB2H3EHZ5CJ42WKZ4GJRG4G36S77TRAB3Y7GNBRPNNYMMSQD66TCFBO4P726MRS67QSTLMREK5S
+#\\\|TXIWZX3KUD562SSALVRTAE4AMNCYMHHL7IRRDCZIIH6TQ4LTI5X \ / AMOS7 \ YOURUM ::
+#\[7]OOBPGT7LAF4NEYSTWXTIAEGH7CBX2IWMHR7UYFKWUTLM2QK4LWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

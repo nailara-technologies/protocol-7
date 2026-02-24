@@ -1,0 +1,27 @@
+## [:< ##
+
+# name = data.topology.interference.map.determine_next_hop
+# desc = Determine optimal next hop from resonance field
+
+my ( $spatial, $resonance_map ) = @_;
+
+# Find neighbor with highest resonance
+my $best_neighbor;
+my $best_resonance = 0;
+
+for my $neighbor ( @{ $spatial->{'neighbors'} } ) {
+    my $key = join( ',', @$neighbor );
+    my $res = $resonance_map->{$key} // 0;
+    if ( $res > $best_resonance ) {
+        $best_resonance = $res;
+        $best_neighbor  = $neighbor;
+    }
+}
+
+return $best_neighbor // $spatial->{'neighbors'}[0];
+
+#,,,.,...,,,,,..,,,,.,.,.,.,,,,,.,,.,,,.,,,,.,..,,...,..,,.,.,...,,,,,.,,,,..,
+#BJWW2C7XNTI2JSTST7AWECBYWHB2VFOOQJLAD3Y3FHKP5NSOEMWYGQOKF3IPOUIOSQPTSRHAXVPWS
+#\\\|MKHPE5SREJITJW5ALC44QM63BNO6ASN5RBH27NGM4SR7N25LEYI \ / AMOS7 \ YOURUM ::
+#\[7]K33CFLBYUXFCF6WZSL5UH2NTSLTQHGYXYEQBEJ6K7V3HVGD2GCCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

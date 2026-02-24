@@ -1,0 +1,54 @@
+## [:< ##
+
+# name = data.get.resolve_virtual
+# desc: Resolve virtual topology paths
+
+my ( $path, $args, $classification ) = @_;
+my $subtype = $classification->{'subtype'};
+
+if ( $subtype eq 'coordinate' ) {
+    my @parts = split( /\./, $path );
+    my ( $x, $y, $z ) = @parts[ 2, 3, 4 ];
+    my $property = $parts[5] // 'full';
+
+    my $hash          = <[data.get.coordinate_to_hash]>->( $x, $y, $z );
+    my $topology_data = <[data.topology.interference.map]>->( $hash, {} );
+
+    if ( $property eq 'full' ) {
+        return {
+            'value'        => $topology_data,
+            'topology_pos' => [ $x, $y, $z ],
+            'cached'       => 0,
+        };
+    } else {
+        return {
+            'value'        => $topology_data->{$property},
+            'topology_pos' => [ $x, $y, $z ],
+            'cached'       => 0,
+        };
+    }
+} elsif ( $subtype eq 'physics_field' ) {
+    my $field    = $classification->{'field'};
+    my $position = $args->[0] // [ 6, 6, 6 ];
+
+    my $hash      = <[data.get.coordinate_to_hash]>->(@$position);
+    my $full_data = <[data.topology.interference.map]>->( $hash, {} );
+
+    return {
+        'value'        => $full_data->{'unified'},
+        'topology_pos' => $position,
+        'field_type'   => $field,
+    };
+}
+
+return {
+    'value'   => undef,
+    'error'   => 'unknown_virtual_type',
+    'subtype' => $subtype
+};
+
+#,,,.,...,,,.,,.,,..,,.,.,,..,...,..,,...,,.,,..,,...,...,,.,,.,.,...,,,,,,,,,
+#Q3CN6TTZOGJTVS6MAGOC3LQVVWEFZHBNZCFCLKXETQTK3BMQY2R6TDTK4DERYNZPTX5GSROIKNLMY
+#\\\|UQOBAVKN7NDCN62HCYQAE2ITDPMG4RWH4GSVYLCBSHRIKKNEQLQ \ / AMOS7 \ YOURUM ::
+#\[7]IOZSAONLJLD23K2WDR6UXFNCKH422QMFJZ4YQC6DANJN6E4WDGCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

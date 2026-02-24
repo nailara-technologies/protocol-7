@@ -1,0 +1,30 @@
+## [:< ##
+
+# name = data.init_holographic.position_in_intent_path
+# desc = Check if position is in intent ghost path
+
+my ( $pos, $ghost ) = @_;
+
+my ( $px, $py, $pz ) = @$pos;
+my ( $fx, $fy, $fz ) = @{ $ghost->{'from'} };
+my ( $tx, $ty, $tz ) = @{ $ghost->{'to'} };
+
+my $min_x = ( $fx < $tx ) ? $fx : $tx;
+my $max_x = ( $fx > $tx ) ? $fx : $tx;
+my $min_y = ( $fy < $ty ) ? $fy : $ty;
+my $max_y = ( $fy > $ty ) ? $fy : $ty;
+my $min_z = ( $fz < $tz ) ? $fz : $tz;
+my $max_z = ( $fz > $tz ) ? $fz : $tz;
+
+return (   $px >= $min_x
+        && $px <= $max_x
+        && $py >= $min_y
+        && $py <= $max_y
+        && $pz >= $min_z
+        && $pz <= $max_z );
+
+#,,,,,..,,...,.,.,.,,,...,.,,,,,.,,..,,,.,.,.,..,,...,...,,.,,,.,,,..,,.,,,.,,
+#HW5M4DNH3OKLEZNWZNREUBDRRWAZARWNJB7AXT5KRIIY4A54UMKIWV7R6PMSVYVGUZSPJ3Z2ZKVI2
+#\\\|T5J5EZXVYMP64V5MXDQ6CIM2L4D2B73EX3XWPBQHSRDH4HQZOYK \ / AMOS7 \ YOURUM ::
+#\[7]RXO5MNVAVL7IP7WJTU7GEN3FSQEFKQKPQMYR2BRT2WVKTY5BHKAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,65 @@
+## [:< ##
+
+# name = data.get.classify_path
+# desc = Classify data path into type and handler
+
+my $path = shift;
+
+# Check for plugin namespace
+if ( $path =~ m{^plugin\.} ) {
+    return {
+        'type'    => 'plugin',
+        'handler' => <[data.get.resolve_plugin_handler]>->($path),
+        'domain'  => <[data.get.extract_plugin_domain]>->($path),
+    };
+}
+
+# Check for topology virtual paths
+if ( $path =~ m{^data\.topology\.\d+\.\d+\.\d+} ) {
+    return {
+        'type'    => 'virtual',
+        'handler' => 'data.topology.interference.map',
+        'subtype' => 'coordinate',
+    };
+}
+
+# Check for unified physics virtual paths
+if ( $path
+    =~ m{^data\.unified\.physics\.(field|electrical|holographic|magnetic)$} )
+{
+    return {
+        'type'    => 'virtual',
+        'handler' => 'data.topology.interference.map',
+        'subtype' => 'physics_field',
+        'field'   => $1,
+    };
+}
+
+# Check for physical module
+my $module_path = <[data.get.path_to_module]>->($path);
+if ( -f $module_path ) {
+    return {
+        'type'        => 'physical',
+        'handler'     => $path,
+        'module_path' => $module_path,
+    };
+}
+
+# Check for interference pattern match
+my $fuzzy_match = <[data.get.find_interference_match]>->($path);
+if ($fuzzy_match) {
+    return {
+        'type'       => 'interference',
+        'handler'    => $fuzzy_match->{'handler'},
+        'match_conf' => $fuzzy_match->{'confidence'},
+        'original'   => $path,
+    };
+}
+
+return { 'type' => 'unknown', 'handler' => undef };
+
+#,,..,..,,.,.,,.,,,.,,,..,,..,.,.,,,,,,..,...,..,,...,...,...,.,.,,,.,,.,,..,,
+#27BLEHBXVGQLFGL6S6XSFL6LRP5KQB7ZG3DKPMQMBEM5RFFAIALMMHVYNEODZKP4ZJF3LV73F2XEI
+#\\\|IPG2RMPWP6PKXPBWQTIDJRSXINT2M4LAINZGAOLFYL5ERXW3SSD \ / AMOS7 \ YOURUM ::
+#\[7]HJAF7OQJWR6YQZYQFPZ4ASB5UOQ63P5ATZXJTMBXXH3MKRKWUWCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
