@@ -1,0 +1,23 @@
+## [:< ##
+
+# name = data.get.check_permissions
+# desc = Check if caller has required permissions
+
+my ( $have, $need ) = @_;
+
+for my $required (@$need) {
+    return 1 if $required eq 'all';
+    return 1 if grep { $_ eq $required } @$have;
+
+    if ( $required =~ m{^owner:(.+)$} ) {
+        return 1 if grep { $_ eq "owner:$1" || $_ eq $1 } @$have;
+    }
+}
+
+return 0;
+
+#,,,.,,,,,..,,.,.,,.,,..,,,.,,,,,,,,,,,,,,,.,,..,,...,.,.,..,,,.,,.,.,,,.,,,,,
+#LJCIVMT364TFSSBNRSEI7HM3TWAQLSTY4NQQY4HYZSXJ2IQUG33JT3JWOUZTXESZWPQPFLR577HWI
+#\\\|NHHG6SJ35ALYPOOSHCNPZ7MFB5D6OAP5APO7NS3Y7K3S56S22TJ \ / AMOS7 \ YOURUM ::
+#\[7]NNETRAXGGAGCGKFKYTAZRDUX6QT6I4T4HXOXLUZQQKQGX7MTCWDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

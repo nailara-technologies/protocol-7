@@ -1,0 +1,27 @@
+## [:< ##
+
+# name = data.init_holographic.generate_field_line
+# desc = Generate magnetic field line points
+
+my ( $from, $to, $intent ) = @_;
+
+my @points;
+my $steps = 10;
+
+for my $i ( 0 .. $steps ) {
+    my $t = $i / $steps;
+    push @points,
+        [
+        $from->[0] + ( $to->[0] - $from->[0] ) * $t,
+        $from->[1] + ( $to->[1] - $from->[1] ) * $t,
+        $from->[2] + ( $to->[2] - $from->[2] ) * $t,
+        ];
+}
+
+return \@points;
+
+#,,.,,..,,,.,,..,,...,.,,,.,.,..,,.,.,.,,,.,,,..,,...,...,.,,,,.,,,,.,,.,,,..,
+#J2QIAWZLFIAJKDYZW6GI7PHUEQNB5Y3V77GFGII3VXSIS43TARJWDMXP5PGDRYHNE5J2S5VYGEJ7E
+#\\\|QSMAMS5ZIQFNFSI5WQWQMPL4YNCZUVDOJPKOO7ESNH3NCTXKEOJ \ / AMOS7 \ YOURUM ::
+#\[7]ZYWKOGT6JPNOSZEFCGNDVVTBAIONHPI3A2GUSDRZUS7675MP5OBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

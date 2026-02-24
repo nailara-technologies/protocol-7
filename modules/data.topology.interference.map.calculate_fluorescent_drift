@@ -1,0 +1,22 @@
+## [:< ##
+
+    # name = data.topology.interference.map.calculate_fluorescent_drift
+    # desc = Topology calculation subroutine
+
+    my ( $hash, $base_color ) = @_;
+
+    # Calculate subtle drift direction toward "original" metadata color
+    my $drift_hash = <[chk-sum.amos.truth_template_chksum]>
+        ->( $hash . "drift_marker", \0 ) // 0;
+
+    return [
+        ( ( $drift_hash >> 16 ) % 256 ) / 256 * 0.1 - 0.05,
+        ( ( $drift_hash >> 8 ) % 256 ) / 256 * 0.1 - 0.05,
+        ( $drift_hash % 256 ) / 256 * 0.1 - 0.05,
+    ];
+
+#,,.,,..,,.,,,,,.,..,,,..,,..,.,.,,,,,..,,,,,,.,.,...,...,...,.,.,,,,,..,,,,,,
+#DKRZM3H7PL3GVGTL644T32Z27DVOOUD3RSZJ7YPZKRELKR4WBDE6SX3BAG2LBH2JOIDME3PHU3KVM
+#\\\|5R3S2HPKECR2JP5GNWQFHF5A5G5NCGFQJT2J57GFOAL3BZL4M6G \ / AMOS7 \ YOURUM ::
+#\[7]MZCSHKMJCLTM6D4TYAJPT3AMSKCQPJKLTRARC6SX74K5LO7R32DY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
