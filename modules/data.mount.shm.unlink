@@ -1,0 +1,29 @@
+## [:< ##
+
+# name = data.mount.shm.unlink
+# desc = Remove SHM segment from system
+
+my ( $pub_key_b32, $sub_path ) = @ARG;
+
+return undef unless defined $pub_key_b32;
+
+my $shm_path = sprintf( "/dev/shm/p7:M:%s", $pub_key_b32 );
+
+if ( defined $sub_path && length($sub_path) ) {
+    $shm_path .= ":" . $sub_path;
+    $shm_path =~ s{[^a-zA-Z0-9_:/\-]}{_}g;
+}
+
+my $unlinked = 0;
+
+if ( -f $shm_path ) {
+    $unlinked = unlink($shm_path);
+}
+
+return $unlinked;
+
+#,,..,,,.,,.,,,.,,,,.,.,.,..,,,.,,,..,...,,..,...,...,...,...,,,,,.,,,...,,.,,
+#GD7AFE4Z7FTN4Z73B3RSE4QFYUHGXMVTF7EMHXAEFAK7NYVDRAQET2RGGZ33IMDO6AHZ5K6HNWQC6
+#\\\|U546D3L52WIA6LO2CLXIONTLBNBVXWQNX4BBDL3TXM43DIT5EAJ \ / AMOS7 \ YOURUM ::
+#\[7]XIQV5FSRTNJEZMBOEZFMT6JXAJFJGD7BW5CKFR5BIJNHYNSI4KAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

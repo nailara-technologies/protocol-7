@@ -1,0 +1,89 @@
+## [:< ##
+
+# name = data.mount.shm.test.basic
+# desc = Basic SHM mounting functionality test (with debug)
+
+<[base.log]>->( 2, "=== SHM Mount Basic Test ===" );
+
+##[ TEST 1: Create SHM Segment ]###########################################
+
+my $test_pubkey = 'TEST1234ABCD5678EFGH9012IJKL3456MNOP7890QRST1234UVWX';
+<[base.log]>->( 2, "Creating SHM for pubkey: $test_pubkey" );
+
+my $mount = <[data.mount.shm.create]>->(
+    $test_pubkey,
+    63 * 1024,          # 63K
+    { 'mlock' => 0 }    # Skip mlock for test
+);
+
+if ( !defined $mount ) {
+    <[base.log]>->( 0, "TEST FAIL: Could not create SHM segment" );
+    return 0;
+}
+
+<[base.log]>->( 2, "TEST PASS: Created SHM at $mount->{'path'}" );
+<[base.log]>->(
+    2, "Type: $mount->{'type'}, Total size: $mount->{'total_size'}"
+);
+
+##[ DEBUG: Raw header bytes ]##############################################
+
+my $raw_bytes = substr( ${ $mount->{'mmap_ptr'} }, 0, 64 );
+<[base.log]>->(
+    2, "Raw header (first 64 bytes): " . unpack( "H*", $raw_bytes )
+);
+
+##[ TEST 2: Read Header ]###################################################
+
+my $header = <[data.mount.shm.header.read]>->( $mount->{'mmap_ptr'} );
+
+if ( !defined $header ) {
+    <[base.log]>->( 0, "TEST FAIL: Header read returned undef" );
+    return 0;
+}
+
+if ( $header->{'owner_pubkey'} ne $test_pubkey ) {
+    <[base.log]>->( 0, "TEST FAIL: Header owner mismatch" );
+    <[base.log]>->( 0, "Expected: $test_pubkey" );
+    <[base.log]>->( 0, "Got: $header->{'owner_pubkey'}" );
+    return 0;
+}
+
+<[base.log]>->(
+    2, "TEST PASS: Header verified, owner=$header->{'owner_pubkey'}"
+);
+
+##[ TEST 3: Write/Read Data ]###############################################
+
+# Write test data to SHM (after header)
+my $test_data = "Protocol-7 SHM Test Data " . time();
+substr( ${ $mount->{'mmap_ptr'} }, 512, length($test_data) ) = $test_data;
+
+# Read it back
+my $read_data = substr( ${ $mount->{'mmap_ptr'} }, 512, length($test_data) );
+
+if ( $read_data ne $test_data ) {
+    <[base.log]>->( 0, "TEST FAIL: Data write/read mismatch" );
+    <[base.log]>->( 0, "Expected: $test_data" );
+    <[base.log]>->( 0, "Got: $read_data" );
+    return 0;
+}
+
+<[base.log]>->( 2, "TEST PASS: Data write/read verified" );
+
+##[ CLEANUP ]###############################################################
+
+# Cleanup test file
+if ( $mount->{'type'} eq 'file' ) {
+    unlink( $mount->{'path'} ) if -f $mount->{'path'};
+}
+
+<[base.log]>->( 2, "=== All SHM Tests Passed ===" );
+
+return TRUE;    ## [success] ##
+
+#,,..,...,...,,,,,,.,,,.,,.,.,,.,,,,,,,.,,.,.,..,,...,...,..,,,,,,,,,,,..,.,.,
+#M3X4LRC772HZ62T23H3PKOL4W5WWDQMCU42FWXHXLWBQHCO7BWQQQX22MDHEIVPDNMLIZRIP3XC32
+#\\\|3B4ESZFXVYVHRUAKHO53Z4AFU5E7BJCN43WH3K7X2HPNTW5A2MR \ / AMOS7 \ YOURUM ::
+#\[7]53GVTY6TYBXFBIC7SXQPW7TC7F5D2LPXDDXSHA4AA4WNCNCJ5UBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
