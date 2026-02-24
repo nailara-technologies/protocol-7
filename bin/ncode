@@ -1290,7 +1290,7 @@ sub preview_llm_friendly {
 
                     # Escape regex metacharacters for highlighting
                     $mod_highlight_pattern
-                        =~ s/([\|\(\)\[\]\{\}\^\$\*\+\?\.\\])/\\$1/g;
+                        =~ s/([\|\(\)\[\]\{\}\^\$\*\+\?\.\\\@])/\\$1/g;
                     my $mod_highlighted = highlight(
                         $mod, $mod_highlight_pattern,
                         ansi('blink') . $C{'3'},    # phosphor green blink
@@ -2858,6 +2858,7 @@ sub diff_less {
         if ( defined $search_pattern and defined $replace_pattern ) {
             foreach my $diff_line (@diff_output) {
                 if ( $diff_line =~ s/^([<|-]{1})([^-]{1})/$2/ ) {
+                    my $line_prefix = $1;    # Save prefix before search match
 
                     # Extract captures from the - line for later use
                     if ( $diff_line =~ m{$search_pattern} ) {
@@ -2869,7 +2870,7 @@ sub diff_less {
                     $diff_txt
                         .= ansi('dark')
                         . $C{'0'}
-                        . $1
+                        . $line_prefix
                         . $C{'R'}
                         . $C{'B01'}    # background for removed lines
                         . $C{'1'}      # blue for text before match
@@ -2879,13 +2880,19 @@ sub diff_less {
                             . $C{'B01'}
                             . $C{'2'},    # blinking orange for search match
                         $C{'R'} . $C{'B01'} . $C{'1'},
-                        0    # case-sensitive (like actual Perl regex)
+                        0    # case-sensitive [like actual Perl regex]
                         );
                 } elsif ( $diff_line =~ s/^([>|+]{1})([^+]{1})/$2/ ) {
+                    my $line_prefix
+                        = $1;    # Save prefix before any other matches
                     my $replace_highlight = $replace_pattern;
                     if ( $regexp->{'options'} =~ m|e| ) {
                         $replace_highlight = eval $replace_pattern;
                     }
+
+                 # Remove single backslashes not followed by another backslash
+                 # (converts \\@ -> @, keeps \\ -> \)
+                    $replace_highlight =~ s/\\(?!\\)//g;
 
                     # Expand $1, $2, etc. using captures from the - line
                     for ( my $i = 0; $i < @last_captures; $i++ ) {
@@ -2896,11 +2903,11 @@ sub diff_less {
 
        # Escape regex metacharacters for highlighting (not for actual replace)
                     $replace_highlight
-                        =~ s/([\|\(\)\[\]\{\}\^\$\*\+\?\.\\])/\\$1/g;
+                        =~ s/([\|\(\)\[\]\{\}\^\$\*\+\?\.\\\@])/\\$1/g;
                     $diff_txt
                         .= ansi('dark')
                         . $C{'T'}
-                        . $1
+                        . $line_prefix
                         . $C{'R'}
                         . $C{'B02'}    # background for added lines
                         . $C{'1'}      # blue for text before match
@@ -2938,6 +2945,7 @@ sub diff_less {
             print "[END DIFF]\n";
         } elsif ( defined $pager and open( my $LESS, '| ' . $pager ) ) {
             print {$LESS} $diff_txt;
+            close($LESS);
         } else {
             print "\n :: pager broken - printing to stdout instead ::\n\n";
             print $diff_txt;
@@ -2981,8 +2989,8 @@ sub print_usage {
     print "\n    " . $C{'T'} . $usage_txt . $C{'R'};
 }
 
-#,,,,,.,.,...,,..,,,.,,.,,,,,,,,,,,..,,..,..,,...,...,..,,.,,,,..,,.,,,,.,.,.,
-#OBRQM2EHYFYCBOQTKQ5I2IJ7Y7ZLIRSMP55ESRM3FD55H3RPXCMMMFK2M2ETQZJ3EY2SNKFF3GTT4
-#\\\|XZVN3TS7F2Y4DYLMC7W5A3CPPCZPAF5LT5ARGODVOYCXWYOGEJH \ / AMOS7 \ YOURUM ::
-#\[7]JVLGQLXLM6EW3CLJFFLT3QSWDXEHIBXUXYW5AUXZEEYBOAQY7WCI 7  DATA SIGNATURE ::
+#,,..,...,.,.,,,.,.,,,,..,.,,,..,,..,,...,.,,,...,...,...,,,,,..,,,,.,,..,...,
+#L3X6MGNND7LHPHSXTC7KTJIPKOMDNFI6Y6MLOKJUCKXMEJSNPIJ7VU5HIGNIVX65X3LBVSDSYUW3A
+#\\\|KVF3TMK3IHNMBYELUK2VKLWPEQGTUIBT765AHW2AU5PACKQYZDC \ / AMOS7 \ YOURUM ::
+#\[7]LOIE3ETYXJRJHR2E2V5FOZHPUVSB5TFZOP4BPDOCX645NJS3QUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
