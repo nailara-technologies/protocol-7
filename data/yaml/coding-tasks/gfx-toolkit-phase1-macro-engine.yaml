@@ -1,0 +1,188 @@
+---
+# Task: GFX Toolkit — Phase 1 Macro Engine
+# Date: 2026-02-25
+# Status: pending
+# Context: nailara logo reconstruction revealed need for scriptable graphics construction
+# Spec: data/md/design/GFX-TOOLKIT-SPEC.md
+# Reference impl: bin/dev/gfx/nailara-tool.pl (working GD/PNG renderer)
+# Construction file: data/gfx/nailara/nailara.gfx
+
+task_metadata:
+  title: "GFX Toolkit — Phase 1: .gfx Macro File Parser and Engine"
+  description: >
+    Implement a macro file parser and execution engine for the .gfx graphics
+    construction language. The engine reads a .gfx file, executes each step
+    using the existing GD primitive library (nailara-tool.pl as reference),
+    and produces PNG output plus an HTML step-by-step preview. The key
+    deliverable is a CLI tool `bin/dev/gfx/gfx-render` that accepts a .gfx
+    file and renders it. The nailara.gfx construction file is the primary
+    acceptance test: running `gfx-render nailara.gfx` must produce output
+    matching nailara-tool.pl's BUILD section.
+  priority: normal
+  category: "graphics-tools"
+
+## -----------------------------------------------------------------------
+## problem context
+## -----------------------------------------------------------------------
+
+motivation: >
+  Reconstructing the nailara logo consumed ~20% of weekly LLM credits
+  across 12+ HTML iterations because each attempt held construction state
+  in the model's context rather than in a persistent, versioned file.
+  The nailara-tool.pl BUILD section already encodes the correct construction
+  as Perl code — but it is not agent-readable, not diffable as a parameter
+  change, and requires modifying source code to adjust a single radius.
+  The .gfx macro language externalizes the construction into a plain-text
+  file that any agent or human can read, modify, checkpoint, and hand off.
+
+prior_art:
+  nailara_tool: >
+    bin/dev/gfx/nailara-tool.pl — complete working implementation of all
+    required primitives and transforms. The macro engine is essentially
+    a parser that calls the same functions nailara-tool.pl already has.
+    The BUILD section at the bottom of nailara-tool.pl is the target
+    behavior expressed as Perl; the .gfx parser translates the macro
+    language into those same calls.
+
+  iteration_archive: >
+    data/gfx/nailara/iterations/ — 13 HTML files showing the reconstruction
+    journey. v13 or the nailara-test.png is the closest match. The HTML
+    canvas renderer in these files can serve as a quick visual reference
+    but the GD/PNG renderer in nailara-tool.pl is the canonical one.
+
+  construction_file: >
+    data/gfx/nailara/nailara.gfx — the definitive .gfx construction for the
+    nailara logo. This is the primary test case for the macro engine.
+
+## -----------------------------------------------------------------------
+## phase 1: core macro engine
+## -----------------------------------------------------------------------
+
+phase_1_macro_engine:
+
+  deliverable: >
+    bin/dev/gfx/gfx-render — a Perl CLI script that:
+      1. reads a .gfx macro file
+      2. executes each step using the GD primitive library
+      3. renders @render directives to PNG and/or HTML preview
+      4. accepts --step :label to render only up to a named step
+      5. accepts --ref path for reference overlay in HTML preview
+
+  implementation_approach: >
+    Extract the primitive library from nailara-tool.pl into a shared module
+    (or keep as-is and build the parser on top). The parser tokenizes .gfx
+    line by line, dispatches commands to the existing fill_disc, cut_disc,
+    cut_cardinal, rotate_layer, scale_layer, union_layers, etc. Named steps
+    via :label directives are stored as layer index checkpoints.
+
+  macro_language_subset:
+    phase_1_required:
+      - "@space <N>" — set coordinate space (default 128)
+      - "@center <x> <y>" — set center point (default: space/2)
+      - "@unit <name> <value>" — define named constant
+      - ":label" — name current layer as checkpoint
+      - "disc+ r=<R>" — filled disc at center
+      - "disc- r=<R>" — cut disc at center
+      - "disc- r=<R> offset=<D> cardinal=<N>" — N radially-placed cut discs
+      - "disc- r=<R> at=<X>,<Y>" — cut disc at explicit position
+      - "ring+ r_out=<R1> r_in=<R2>" — filled annulus
+      - "copy :label" — duplicate named checkpoint to new layer
+      - "rotate <degrees>" — rotate current layer around center
+      - "scale <factor>" — scale current layer from center
+      - "union :a :b" or "union :a _" (_ = current) — combine two layers
+      - "checkpoint" — explicit checkpoint (same as :label but anonymous)
+      - "@render png <size> <filename>" — save PNG output
+      - "@render preview <filename> [--ref <path>]" — save HTML preview
+      - "@render svg <filename>" — placeholder (Phase 3)
+
+    phase_1_variables:
+      - "@unit R 26" defines $R for use in "disc+ r=$R"
+      - Simple arithmetic expressions in {}: "r_out={$R+3}"
+      - Operators: + - * /
+
+    phase_2_deferred:
+      - "@macro name(params) ... @end" blocks
+      - "mirror <axis>" transform
+      - "subtract", "intersect", "xor" boolean ops
+      - "measure" commands
+      - "compare :label --ref file" diff scoring
+
+  new_files:
+    gfx_render:
+      path: bin/dev/gfx/gfx-render
+      description: >
+        Main CLI script. Parses .gfx file, dispatches to primitive library,
+        executes @render directives. Accepts:
+          --step :label   render only up to this named step
+          --ref path      reference image for HTML preview overlay
+          --out path      override output path from @render directive
+          --size N        override output size
+          --list          list all named steps (labels) in the macro file
+
+    gfx_lib:
+      path: bin/dev/gfx/gfx-lib.pl
+      description: >
+        Shared library extracted from nailara-tool.pl: _mk(), px(), fill_disc(),
+        fill_ring(), cut_disc(), cut_cardinal(), cut_radial(), rotate_layer(),
+        scale_layer(), union_layers(), save_png(), save_preview(). The original
+        nailara-tool.pl BUILD section becomes the reference test for this library.
+
+  acceptance_test:
+    command: "perl bin/dev/gfx/gfx-render data/gfx/nailara/nailara.gfx --out /tmp/nailara-macro.png --preview /tmp/nailara-macro.html"
+    expected: >
+      Output PNG visually matches bin/dev/gfx/nailara-tool.pl output.
+      HTML preview shows all 7 named steps (:base, :carve, :leaf4, :eight, :inner, :final)
+      as thumbnails with reference overlay available.
+    visual_comparison: >
+      diff score against data/gfx/logos/nailara_logo.trans-dark.png < 5%
+      (same threshold used in Opus 4.6 reconstruction session)
+
+  style_notes: >
+    Follow Protocol-7 code style: lowercase comments, [ bracket ] annotations,
+    no uppercase in comment narrative. The gfx-render script is a standalone
+    Perl tool (not a zenka module), so standard Perl module format applies —
+    but keep style consistent with the wider codebase.
+
+## -----------------------------------------------------------------------
+## phase 2: multi-agent support (future task)
+## -----------------------------------------------------------------------
+
+phase_2_notes: >
+  Separate task to be created after Phase 1 is complete. Covers:
+  - Task descriptor YAML format (agent handoff protocol)
+  - Parameter sweep tool (gfx-sweep)
+  - Checkpoint/restore persistence
+  - Step-by-step diff scoring against reference
+  - Integration with coding zenka as a tool zenka (gfx-matrix)
+  See data/md/design/GFX-TOOLKIT-SPEC.md sections 4 and 9 for full spec.
+
+## -----------------------------------------------------------------------
+## phase 3: svg output (future task)
+## -----------------------------------------------------------------------
+
+phase_3_notes: >
+  SVG backend is high priority for final output (web embedding, resolution
+  independence). Circle primitives map directly to SVG <circle> elements.
+  Boolean operations via SVG clipPath and mask elements.
+  Deferred until Phase 1 GD/PNG engine is verified against reference.
+
+## -----------------------------------------------------------------------
+## verification
+## -----------------------------------------------------------------------
+
+verification:
+  phase_1:
+    - "gfx-render nailara.gfx produces PNG output without errors"
+    - "output PNG matches nailara-tool.pl BUILD output pixel-for-pixel (or within rounding)"
+    - "HTML preview shows correct step thumbnails with clickable navigation"
+    - "gfx-render --step :leaf4 renders only the first 4 steps"
+    - "@unit R 26 followed by disc+ r=$R works correctly"
+    - "gfx-render --list outputs all named steps with step numbers"
+    - "comments (#) and blank lines ignored without error"
+    - "unknown commands produce a clear error with line number"
+
+#,,,,,.,,,.,,,..,,,,,,,.,,,,,,,.,,..,,,..,,,.,..,,...,...,...,...,.,,,..,,..,,
+#4UM2UPGJ2U2JFUDP7B474DZZHDZXAIFQUREIYEH3KBGYP3R74XXJER43I4YB4HRH3NDXU5ERNWMKG
+#\\\|A3TKO6PW5B2XOAZ24KEOZF4MPGQQHTFTEA23DFKQHPGXL3C4OWO \ / AMOS7 \ YOURUM ::
+#\[7]PLMFY7WBZWRDLZUNPWBOL7RAOT5MHDEDLY5SNVUY26FHKG7WPOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
