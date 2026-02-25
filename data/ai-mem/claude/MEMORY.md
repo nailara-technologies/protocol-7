@@ -13,8 +13,25 @@
 ## System Status
 - **HTTPS (httpsd)**: production cert on pri.v7.ax ✅ full chain served (leaf + R12 via .pem)
 - **Models memory system**: completed ✅ collision-free AMOS checksums, `[:memory:CHECKSUM]` expansion
-- **Models-coding integration**: mostly complete ✅ — remaining: `models.handler.coding_inference_reply`
+- **Models-coding integration**: completed ✅ `models.chat` routes local models through coding zenka
 - **Data zenka + SHM mounting**: built by Kimi (Feb 21-25) ✅ — 97 modules, holographic topology
+
+## Coding Zenka — Models Integration (Kimi, Feb 2026)
+Removed all hardcoded model paths/names; full dynamic discovery from models zenka.
+
+- **Model discovery**: on init, coding fetches registry via `cube.models.discover` →
+  stored in `<coding.model_metadata>` (persisted to `state/model_metadata.yaml`)
+- **Dependency-based spawning** (`coding.handler.spawn_with_deps`): servers wait on chain:
+  - `dep.model_gpu` / `dep.model_cpu` — model discovered and available
+  - `dep.memory_gpu` / `dep.memory_system` — memory polled before spawn
+  - GPU server requires both memory deps; CPU server requires system memory only
+- **`coding.switch-model <XXXXXXX:XXXXXXX> [backend=gpu|cpu|both]`**: switch active model
+  by AMOS checksum; fetches path via `cube.models.get_path_by_amos`, restarts servers
+- **`coding.ask-reply`**: synchronous deferred-reply command — submit prompt, wait, return result
+  - Prompt base32r-encoded for multiline safety through single-line IPC
+- **`models.backend.coding.invoke`**: IPC bridge models → coding
+  - Converts `messages[]` → prompt via `models.chat.messages_to_prompt`, sends to `coding.ask-reply`
+  - Enables `models.chat` command to work with local models transparently
 
 ## Key Technical Insights
 
@@ -96,8 +113,8 @@
 - Handlers receive Event object as first param, not data directly
 - Extract: `my $event = shift->w; my $server = $event->data;`
 
-#,,,.,.,.,.,,,..,,...,,..,,..,,,.,,.,,.,.,...,..,,...,...,...,,..,.,.,..,,...,
-#KIWX2PK2NL4Y5EMZZMBPIH6F64FC2DHPBLVZMMZ7HPOPAPQDJIYPAPJF2RR6UGXUKOPZJ6II3GIDQ
-#\\\|CDL3RWBSOP44XXYFXR3ZI6PKL52NBFZMJTLOOYBJFDB57L5HMFH \ / AMOS7 \ YOURUM ::
-#\[7]XNM3I6EALQHN3JHNG2SLLCB74POIWILDW2J6BMPT34D5DZ7W4UBI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,,.,,.,.,...,,..,.,,,,..,,.,,,,,,..,,...,...,,,.,...,...,,..,,.,,
+#HWZDQGOZVLXGTX77KMZ443KUNM6BVFETKBWKOWX6UKXZBKEGVXTHWZZOZUKQMBLUAWLDUIJDQIJ4O
+#\\\|6IF276C6437HIHSNCYMC3GOUBBTMO5U4F2MMCLWBLIPCF3X5P7G \ / AMOS7 \ YOURUM ::
+#\[7]RVH7OVYZINH6KZGJADW57LHDBSGKPV3ZJLLVALOTGXYIBDSBHGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
