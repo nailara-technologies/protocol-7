@@ -380,8 +380,82 @@ All navigation modes fully functional and tested:
 Archive Date: January 24, 2026 (Updated)
 Archive Location: `/data/projects/protocol-7/data/md/documentation/NSHELL_REFACTORING_COMPLETED.md`
 
-#,,..,,.,,.,,,,..,,,,,,,,,,,,,...,,,.,,.,,,.,,..,,...,...,...,,.,,,,,,,.,,.,.,
-#55JSPE24OJCYEEELKUJ4HJCAP7SQNGWMUJR2XN4USIK7VM3OBWND5SV3PF2QYCDRN2SWCHBTQLK7K
-#\\\|4ZSIAZBUIRKRTK2SKHILFRCQVLLOTTYDX7YLZ7YOLB7ROITIY3G \ / AMOS7 \ YOURUM ::
-#\[7]N3HCR6R67KKU4SG7OSGGHTAQKDJ7T2VURKMHG6VBDYQPYM4BCABA 7  DATA SIGNATURE ::
+---
+
+## Phase 8: Ctrl+O Cycle Fixes + Debug Infrastructure (February 23, 2026)
+
+After the refactoring was integrated via a separate branch, Kimi resolved remaining Ctrl+O bugs
+and extended the debug infrastructure. All fixes are in production.
+
+### Ctrl+O Bugs Fixed
+
+**1. Double-Shift Bug (CRITICAL)**
+- `ctrl_o_start_position` was being incremented alongside `ctrl_o_entries_added`
+- Index calculations drifted, loading wrong history entries on each cycle
+- Fix: Removed `$state_ref->{'ctrl_o_start_position'}++` — only `entries_added` changes
+- `start_position` stays as a fixed anchor; shift applied dynamically via `$shift`
+
+**2. Index Calculation Order (CRITICAL)**
+- `next_index` was calculated BEFORE `history_add()`, but used AFTER
+- After `history_add()` shifts all indices up by 1, `next_index` pointed to wrong entry
+- Fix: Reorder — calculate indices AFTER `history_add()` when shift is fully known
+  ```perl
+  ## CORRECT: calculate after history_add() so shift is accurate
+  AMOS7::TERM::history_add(@lines);
+  $state_ref->{'ctrl_o_entries_added'}++;
+  my $shift   = $state_ref->{'ctrl_o_entries_added'};
+  my $index_a = $state_ref->{'ctrl_o_start_position'} + $shift;
+  my $index_b = ( $state_ref->{'ctrl_o_start_position'} - 1 ) + $shift;
+  ```
+
+**3. State Reset When Editing History**
+- Editing a history entry didn't reset Ctrl+O cycle state
+- Next Ctrl+O cycle used stale `ctrl_o_start_position`/`ctrl_o_entries_added`
+- Fix: Added reset of both fields to `nshell.state.reset_history`
+
+**4. Preloaded Entry Not Displayed**
+- `display_preloaded_entry` flag was set but never checked in `read_from_buffer`
+- After Ctrl+O, next command was loaded into buffer silently (empty-looking prompt)
+- Fix: Check flag in `read_from_buffer` when showing cursor; clear and print buffer
+
+**5. Color Reset After Executed Command**
+- Executed command line had no ANSI color reset at end
+- Fix: Added `\e[0m` reset after each executed command print
+
+### Additional Fixes (commit df7568781)
+- **Enter key display**: Full command now shown when cursor is not at end of line
+- **TRUE reply colors**: Command replies with TRUE status use Protocol-7 blue (not default gray)
+- **Ctrl+O trace logging**: Debug-level trace through `nshell.mode.no_tty_debug` gate
+
+### Debug Infrastructure Enhancements (commit b2777cc0b)
+- **Extended key mappings** in `nshell.no-tty-debug.cmd.char-add`:
+  - Navigation: `Up`, `Down`, `Left`, `Right`, `Home`, `End`, `PageUp`, `PageDown`
+  - Editing: `Backspace`, `Delete`, `Tab`, `Insert`
+  - Control: `Ctrl+a` through `Ctrl+z`
+  - Special: `Escape`, `Enter`, `Space`; Function: `F1`–`F4`
+- **Dual syntax support**: `[Up,Down,Ctrl+o]` (bracket) and `:Up,Down,Ctrl+o:` (colon)
+- **`nshell-state-track` buffer** (12K max): logs input events, mode changes, Ctrl+O state
+  transitions in an LLM-friendly format for async debugging
+- **New module**: `nshell.handler.debug_input` — routes debug input events to state tracker
+
+### Files Modified
+- `modules/nshell.handler.ctrl_o_cycle` — index calc order, color reset, debug logging
+- `modules/nshell.state.reset_history` — Ctrl+O state reset added
+- `modules/nshell.read_from_buffer` — check `display_preloaded_entry` flag
+- `modules/nshell.editor.process` — Enter key display fix
+- `modules/nshell.handler.command_reply` — TRUE reply color fix
+- `modules/nshell.shell_loop` — command trace logging
+- `modules/nshell.no-tty-debug.cmd.char-add` — extended key mappings + dual syntax
+- `modules/nshell.handler.debug_input` — new module
+- `modules/nshell.init_code` — register debug_input handler
+- `configuration/zenki/nshell/start` — char-add and debug-status commands
+
+### Commits
+- `b2777cc0b` — Ctrl+O cycle fixes + enhanced debug infrastructure
+- `df7568781` — Enter display, TRUE reply colors, Ctrl+O debug logging
+
+#,,.,,,.,,...,,.,,,,,,,,.,.,.,...,,..,,,,,...,..,,...,...,.,.,,.,,...,.,,,..,,
+#Z5TU5NIZ3WNDH77HBT772MZP3QDBHP3P5OT5XBS2I6ZAZ5CLIUFE4ONF545UUJ2KHY65QHP3YJWZY
+#\\\|EY77SFCXCYIWTHOBT7ZPVERU6WG3R2GUU3SXTPBFHG52NJPQ543 \ / AMOS7 \ YOURUM ::
+#\[7]ZIV6AKLGJFQIKNE5FQSU5SQEOFTYKB7QY3JAFPSMPLOBDC2RVIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
