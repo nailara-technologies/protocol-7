@@ -1,5 +1,5 @@
 
-::: SOURCE-CODE VERSION :: 3PBYL2V2MI-6526.0 :::
+::: SOURCE-CODE VERSION :: 3PBZFFETKA-6527.0 :::
 
 # [ [nailara 'protocol seven' project](http://protocol-7.network/) ]
 
@@ -167,6 +167,7 @@ Three primary methods for interacting with the Protocol-7 network:
    - **Enhanced history navigation**: Session-based Page Up/Down with LIFO symmetry
    - **Sequential arrow keys**: Up/Down navigate sequentially through history
    - **Ctrl+R search**: Real-time history search with phosphor-colored search term display
+   - **Ctrl+O cycle**: Execute and advance through history sequence (cycling two entries)
    - Strips protocol reply strings for cleaner output (similar to p7c and p-7-r)
    - ✅ All navigation features fully tested and production-ready
 
@@ -368,8 +369,8 @@ The full vision document explores Protocol-7's unique approach to
 distributed computing, network participation, and the metaphorical framework
 of resource sharing.
 
-#,,..,,,,,.,.,,..,,..,,..,,,.,..,,,.,,,..,...,..,,...,...,...,,,,,..,,,..,..,,
-#HVQQASLKP57VDAFBT6TJCB37N7GH6AKOCVYLEWJVWXUTRR2SAAZDMWPUMZPQNKA2MO32FW2UO4XTS
-#\\\|MEUV65ULYIHZBRUHZREP7H2QH4JWHWHIRSIVHK6ULSODGFYKK4N \ / AMOS7 \ YOURUM ::
-#\[7]YEV5HG4YZJ324UQ44BIX7HMVZSEJQV7KMLGN4VVQB6HXEMOVC2AY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,,,,...,..,,,.,,.,,,,,,,...,,.,,..,,...,...,,,.,,,.,...,...,,..,
+#2VV5TW4MXMFQ65DXQZMQ5F5UKCBGZC44ZBYSIJINVMCV3YSQHY3APCFPSXZFEIX4RGJFWKEFWAGKW
+#\\\|TNQVRFPR2JNCLDHWZDE7M4KXAENDEDU46EY2NIFVYBQSFHNO3XL \ / AMOS7 \ YOURUM ::
+#\[7]6HZ6RM5SATYPCNRC24UCRV32ELAFO3JFZBLLGRTNDYEEG4LVZADQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
