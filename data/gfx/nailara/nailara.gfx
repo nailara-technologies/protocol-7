@@ -1,0 +1,45 @@
+# nailara logo — definitive construction
+# origin: 2003 GIMP, reconstructed 2026-02-25 (Opus 4.6 session)
+# reference: data/gfx/logos/nailara_logo.trans-dark.png
+#
+# 10 circles. 3 transforms. 1 union. that's the entire logo.
+#
+# parameters verified against nailara-tool.pl BUILD section
+
+@space 128
+@center 64 64
+
+# outer base shape
+:base
+  disc+ r=48
+
+# carve the leaf gaps and center hole
+:carve
+  disc- r=25 offset=35 cardinal=4     # outer leaf gaps (4-fold at 0°,90°,180°,270°)
+  disc- r=29                           # center hole
+  disc- r=17 offset=47 cardinal=4     # inner leaf gaps
+
+# the 4-fold leaf is complete here
+:leaf4
+  checkpoint
+
+# rotate 45° to create 8-fold outer element
+:eight
+  copy :leaf4
+  rotate 45
+  union :leaf4 _
+
+# inner element: rotate -22.5° and scale down
+:inner
+  copy :eight
+  rotate -22.5
+  scale 0.425
+
+# compose final logo
+:final
+  union :eight :inner
+
+# output
+@render png 1024 nailara.png
+@render svg nailara.svg
+@render preview nailara-steps.html --ref ../../logos/nailara_logo.trans-dark.png
