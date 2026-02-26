@@ -3,32 +3,41 @@
 # name = nshell.term_restore
 # descr = Restore terminal settings after nshell session
 
-## Clear any stray cursor character before restoring terminal
-## The cursor \r_\e[K\r sequence positions at line start, so we clear from there
+## clear any stray cursor rendering before restoring terminal
 print "\e[0m\r\e[K";
 STDOUT->flush();
 
-## Retrieve backed-up terminal settings from nshell.term_init
-return TRUE if not defined $main::data{'nshell'}{'orig_termios'};
-
-## Get current terminal file descriptor
-my $tty_fd = fileno(STDIN);
+## prefer tty_fd stored by term_init
+## [ fileno(STDIN) may be stale at exit time ]
+my $tty_fd = $main::data{'nshell'}{'tty_fd'} // fileno(STDIN);
 return FALSE if not defined $tty_fd or $tty_fd < 0;
 
-## Restore STDIN to blocking mode
+## restore STDIN to blocking mode first
 my $flags = fcntl( \*STDIN, F_GETFL, 0 );
-fcntl( \*STDIN, F_SETFL, $flags & ~O_NONBLOCK );
+fcntl( \*STDIN, F_SETFL, $flags & ~O_NONBLOCK ) if defined $flags;
 
-## Restore original terminal settings
-my $restore_termios = $main::data{'nshell'}{'orig_termios'};
-if ( defined $restore_termios ) {
-    $restore_termios->setattr( $tty_fd, TCSAFLUSH() );
+## restore original terminal settings from backup
+## use TCSANOW (apply immediately) rather than TCSAFLUSH, which waits for
+## i/o drain that never completes during a ctrl+c / signal exit path
+my $orig_termios = $main::data{'nshell'}{'orig_termios'};
+if ( defined $orig_termios ) {
+    $orig_termios->setattr( $tty_fd, TCSANOW() );
+    return TRUE;
+}
+
+## fallback: orig_termios unavailable — explicitly re-enable echo and
+## canonical mode so the calling shell is not left in noecho / raw state
+my $fallback = Linux::Termios2->new();
+if ( $fallback->getattr($tty_fd) ) {
+    my $lflag = $fallback->getlflag();
+    $fallback->setlflag( $lflag | ECHO() | ICANON() | ISIG() );
+    $fallback->setattr( $tty_fd, TCSANOW() );
 }
 
 return TRUE;
 
-#,,,,,...,,,,,.,,,,.,,.,.,..,,.,.,.,,,,.,,.,.,..,,...,..,,..,,.,.,,,.,,,,,,,,,
-#KDXXK7USPNDA2YBDDJFZA453UAJPFNHIB3OJEYW6MZE6P7KJIIV2G3UP6MWCI6K5BTGA7S6J2PQCM
-#\\\|CFU6BVKTWEC6L2ITLNAT7SCQK645ADEHO2IOF6IA74HCYL5J4PM \ / AMOS7 \ YOURUM ::
-#\[7]MLBVT7AKLI6EW2JHOVUM3SGJGZ3EWTNFPYSOT736V7JWPNAS4KDY 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,..,,,,,,,,.,.,,,.,.,.,,,...,,,,,..,,...,...,.,,,,,.,,..,,,,,,,,,
+#MS3CIITLBNYBOWKPEDLP5QCP3TR54FNEH3ESBELYEFTWUENZJ7ZS5QVF2CPYZV2YSTECJ37JH3TFC
+#\\\|IWISMYHJSXCTHPGWVC7XOVM4CRUZCJHUT3D746MKTMOQVZEKM6U \ / AMOS7 \ YOURUM ::
+#\[7]JX7UX6CY7PWO4CHGKYL747JHTNUVI5SXCHWKZSYNAUFLBWHN56DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -43,7 +43,8 @@ if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
         my $lines_ref     = $entry->[1];
         my $entry_content = join "\n", $lines_ref->@*;
 
-        ## Skip duplicate commands - if content matches current, search next boundary
+        ## skip duplicate commands - if content matches current,
+        ## search next boundary
         if ( $entry_content eq $state_ref->{'display_buffer'} ) {
             ## Content already displayed, continue search from this boundary
             my $next_index = <[nshell.history.find_session_boundary]>->(
@@ -60,9 +61,8 @@ if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
             }
         }
 
-        ## Clear previous display
-        my $clear_len = length( $state_ref->{'display_buffer'} ) + 8;
-        print "\r" . ( ' ' x $clear_len ) . "\r" if $clear_len > 0;
+        ## clear current line [ \e[2K avoids wrap on long lines ]
+        print "\r\e[2K";
 
         ## Save current position before moving (for Page Down to return to)
         my $prev_index = $state_ref->{'current_history_index'};
@@ -89,8 +89,8 @@ if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
 
 return;
 
-#,,.,,,.,,,.,,,.,,...,.,,,.,.,.,,,...,,,.,...,.,.,...,...,,..,,,.,,,,,.,,,.,,,
-#K2353G4ODJNGPCKJ3YTV6W7GOPFEEXNOAEZBK2BD7FCILSM6SNBJAVJFIDINPU5EVM2GNQZ2H4TGA
-#\\\|FF5FXQQQNZWAH2QGVQJTMOINDJKLUHZUHAFYTC7HPD3CGFYEIGY \ / AMOS7 \ YOURUM ::
-#\[7]DRTYZIKPWFAJYXR2VO7W6M6NDHB3AZYQQ5QYQNTSAL32KBIQSYDI 7  DATA SIGNATURE ::
+#,,.,,,..,.,.,,,,,..,,..,,,.,,.,,,,.,,,,,,.,,,.,.,...,...,,..,..,,,,.,.,,,...,
+#NRSYLUJZECPUYSWP3LDHGHP5M2IJIJAWNUUSDKANU3IVTKFTQG4DCKZFTHLAGLGEL4ITHWQJNRJCK
+#\\\|2K2DUX6S2LTDWF7NE5VYL5XUOXZWXZE7E6M4SXWR3MRWUKC5RXS \ / AMOS7 \ YOURUM ::
+#\[7]DE6YDUQSVI2ZC7HPVPJFE4QB3XRZWQ5B2NVCKOUNT6PP5ZLEQ6BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

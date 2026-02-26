@@ -60,9 +60,9 @@ if ( $state_ref->{'current_history_index'} >= 0 ) {
 
 return unless defined $lines_ref;
 
-## Clear previous display before showing new one
-my $clear_len = length( $state_ref->{'display_buffer'} ) + 8;
-print "\r" . ( ' ' x $clear_len ) . "\r" if $clear_len > 0;
+## clear current line before showing new one
+## [ \e[2K avoids wrap on long lines ]
+print "\r\e[2K";
 
 $state_ref->{'display_buffer'} = join "\n", $lines_ref->@*;
 
@@ -82,8 +82,8 @@ $state_ref->{'current_mode'} = 2;    # VIEWING_HISTORY
 
 return;
 
-#,,..,,..,,,,,,..,,,.,,..,,..,.,.,..,,,,,,.,.,.,.,...,...,.,.,.,.,,,,,...,.,.,
-#XWK4YJU7J72E3EVHMCT5KNLT6WDJCLRMFH54LWJNQLEMJEUXAGE2VJV4XWBAPUCQKZBY633XHH3FS
-#\\\|LTZOIHHKXRUZ6EHQUOP4DOAU6ZVVZWKOV3BT5MISEIR6A74A4LA \ / AMOS7 \ YOURUM ::
-#\[7]HHKJHGRICTZGY2HAXEA3NGNWVPL7W75RPJ3VOXE5JWRRWUNDK4AQ 7  DATA SIGNATURE ::
+#,,..,,..,,,.,,,.,.,.,,,.,..,,,,.,..,,,,,,..,,.,.,...,...,...,..,,,,,,..,,.,.,
+#FPB5V2OQWBTWEF5B3W43KBUBEQBUZ2VBMYARRCYLYMVILLVGYSMGXD5FRJFIXYQGC72FJSUMRCJBC
+#\\\|K2Z73VGRYUUAYI6GBD27WWE5TPJIMIH2SUUORNZQYAQXLRS7JSF \ / AMOS7 \ YOURUM ::
+#\[7]6YQCOGCSNXBEDP65AXCB72BSQ242MBHSVEXCD4GBDBE67HVMM6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

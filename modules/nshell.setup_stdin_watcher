@@ -28,6 +28,18 @@ $session->{'watcher'}->{'stdin_handler'} = <[event.add_io]>->(
 
 <[base.logs]>->( 2, 'nshell: registered STDIN watcher on fd 0' );
 
+## register SIGWINCH handler to track terminal resize events
+<[event.add_signal]>->(
+    {   'signal'  => qw| WINCH |,
+        'handler' => qw| nshell.handler.term_resize |,
+    }
+);
+
+## prime the cache with current terminal dimensions
+my @init_size = AMOS7::TERM::terminal_size();
+$data{'nshell'}{'cfg'}{'term_cols'} = $init_size[0] // 80;
+$data{'nshell'}{'cfg'}{'term_rows'} = $init_size[1] // 24;
+
 ## change message and log level for terminating on session close ##
 #
 <callback.session.closing_last.params>
@@ -35,8 +47,8 @@ $session->{'watcher'}->{'stdin_handler'} = <[event.add_io]>->(
 
 return TRUE;
 
-#,,..,,,,,,.,,,..,,,,,..,,,,.,.,.,.,,,.,,,..,,..,,...,..,,,,.,..,,,,.,,,,,.,.,
-#ESJMUHX5NHVMUZS4EHFPTH2LHFAVNDZZG6NNU7UXGYDGRNQKMTRDGUXPTINASMWISLWFMEJTVQTOI
-#\\\|UBUMCZYQBFW543FSO2G6KH6N6BPH3C4ICSAMWAPSM7ZVEQ3MRJ2 \ / AMOS7 \ YOURUM ::
-#\[7]Y4MDDUYZRCNTUO4SQPJCT2FQIKHLYEKG6TRVRDHBQFCLA7B47GCI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,,,...,,..,,,,,,,.,..,,,,.,,,,,.,,,..,,...,...,...,.,,,.,,,,,.,,..,
+#YWSBYXL6T2W5TVNU3AMUVII2SDV3EZ6G6FSQ3DYDJ7W3ILICJIT5JTVUAWXSZ5P3J5ZN4YRHMTQZI
+#\\\|VEM77SJ27CIJRBWNJFJRVI4P5JVL5I2UOCBKBDZDZMEUMKTV5NZ \ / AMOS7 \ YOURUM ::
+#\[7]DNBUKUKPTHUVN3MICGTIUR6RHEJGNZI4BKTD4ZFDNDHTBSBWOYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
