@@ -106,6 +106,19 @@ Removed all hardcoded model paths/names; full dynamic discovery from models zenk
 - Cryptographic access control: Ed25519 signed permissions per path
 - Docs: `data/md/data-zenka/` and `data/md/data-zenka/AGENTS.md`
 
+### nshell Viewport / Terminal Rendering (Feb 2026)
+- New modules: `nshell.render.viewport` (unified renderer), `nshell.handler.term_resize` (SIGWINCH)
+- **Pending-wrap trap**: printing exactly `term_cols` chars puts cursor in pending-wrap state;
+  `\e[K]` then wraps to next line and erases the rightmost character. Fix: use `term_cols - 1`
+  as available width so total render is always ≤ `term_cols - 1`
+- **SIGWINCH registration**: `<[event.add_signal]>->( { 'signal' => qw| WINCH |, 'handler' => qw| handler.name | } )`
+- **Term restore**: use `TCSANOW` not `TCSAFLUSH` during signal exit (TCSAFLUSH blocks on i/o drain)
+- **Line clearing**: use `\r\e[2K` not `\r . (" " x N)` — space-fill wraps on long lines
+- **Resize remnants**: clear line below too: `print "\r\e[2K\e[1B\r\e[2K\e[1A"`
+- `vc-changed-files -exc-len` finds modules with lines over 78 cols (wraps comment lines only);
+  note: originally had UTF-8 char-width counting issue, fixed in the tool itself
+- Docs: `data/md/documentation/NSHELL_REFACTORING_SUMMARY.md` (updated Feb 2026 addendum)
+
 ### Variable Watcher Backup/Restore (CRITICAL — see topic-patterns.md)
 - Stop → back up → replace → restore with `->again()` (never `->now()`)
 
@@ -113,8 +126,8 @@ Removed all hardcoded model paths/names; full dynamic discovery from models zenk
 - Handlers receive Event object as first param, not data directly
 - Extract: `my $event = shift->w; my $server = $event->data;`
 
-#,,,.,,,,,,.,,,.,,.,.,...,,..,.,,,,..,,.,,,,,,..,,...,...,,,.,...,...,,..,,.,,
-#HWZDQGOZVLXGTX77KMZ443KUNM6BVFETKBWKOWX6UKXZBKEGVXTHWZZOZUKQMBLUAWLDUIJDQIJ4O
-#\\\|6IF276C6437HIHSNCYMC3GOUBBTMO5U4F2MMCLWBLIPCF3X5P7G \ / AMOS7 \ YOURUM ::
-#\[7]RVH7OVYZINH6KZGJADW57LHDBSGKPV3ZJLLVALOTGXYIBDSBHGBY 7  DATA SIGNATURE ::
+#,,.,,...,,..,,.,,,.,,,,,,,..,...,,,,,.,,,,,,,..,,...,...,.,,,,,,,.,,,,,.,.,,,
+#7UY3RSRWABEJ3RBLVZ6QV5VTANFKLC4KZMUQ37DCUDZICEHNC2FUEY2LIKEBE3HQ4NFNFQZX4HKUE
+#\\\|KEEA3M2WE7A45YVPJ23BPZF6VOEDHM64Q7UJSUSSQ3FXEUMMDQG \ / AMOS7 \ YOURUM ::
+#\[7]OYCCR6JTKNRVELGFJG27QNLYKCEIEQW57N65URA6QYJVOHKO2UBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

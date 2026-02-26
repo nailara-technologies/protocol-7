@@ -231,4 +231,41 @@ echo "Session 2 command 2"
 
 ---
 
+## Addendum — February 2026: Viewport Overflow and Terminal Resize
+
+### New Modules
+
+| Module | Purpose |
+|--------|---------|
+| `nshell.render.viewport` | Unified input-line renderer; handles both the minimal no-overflow path and horizontal scroll viewport when buffer exceeds terminal width. Replaces inline rendering in `nshell.editor.process` and `nshell.render.full_line`. |
+| `nshell.handler.term_resize` | SIGWINCH handler; re-queries terminal dimensions on resize, caches cols/rows in `$data{'nshell'}{'cfg'}`, resets `view_offset`, and redraws the current input line. Clears the line below to remove remnants from previously wider renders. |
+
+### Changes to Existing Modules
+
+- **`nshell.render.full_line`** — now delegates entirely to `nshell.render.viewport`; resets `view_offset` to 0 so history entries always display from the start.
+- **`nshell.editor.process`** — `$redraw_with_cursor` lambda replaced with a 1-line call to `nshell.render.viewport`.
+- **`nshell.setup_stdin_watcher`** — registers the SIGWINCH watcher and primes `term_cols`/`term_rows` cache at startup.
+- **`nshell.state.init`** — added `view_offset => 0` to the state hash.
+- **`nshell.search.handler`**, **`nshell.read_from_buffer`**, **`nshell.history.*`** — all long-line clear paths switched from space-fill (`" " x N`) to `\r\e[2K`, and all redraw paths updated to call `nshell.render.viewport`.
+- **`nshell.term_restore`** — switched from `TCSAFLUSH` (blocked on i/o drain during signal exit) to `TCSANOW`; added explicit ECHO/ICANON/ISIG fallback when `orig_termios` is unavailable; uses stored `tty_fd` instead of `fileno(STDIN)`.
+
+### Overflow Marker Config
+
+Marker characters are configurable via `nshell/start` (commented defaults):
+
+```
+# nshell.cfg.overflow_marker_left  = <
+# nshell.cfg.overflow_marker_right = >
+```
+
+Set either to `''` to disable that marker (minimalist mode).
+
+---
+
 **End of Summary**
+
+#,,..,.,,,,.,,,..,.,,,,..,,.,,,.,,,.,,.,.,..,,..,,...,...,..,,,.,,,,.,,.,,.,,,
+#SY5YQVJR5XG5NP5EG6B7QDUXAI5CFC7HMKGGWQCLZDZHCTMIRZ7M3S37VPQBCC2UNXDW6HU6AFYMK
+#\\\|7XWQJRNTLS37FHYQNPF5R7HXAGACLT56W6DEQCGMWJWQHUXYAHT \ / AMOS7 \ YOURUM ::
+#\[7]DIN2FRGTPT5PB4BVRDBWT47NPEISYQLW3DU2Q7N4U4ZGYUAZFEAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

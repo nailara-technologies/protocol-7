@@ -50,10 +50,8 @@ if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
     if ( ref($entry) eq 'ARRAY' && $entry->[1] ) {
         my $lines_ref = $entry->[1];
 
-        ## Clear previous display
-        my $clear_len = length( $state_ref->{'display_buffer'} ) + 20;
-        $clear_len = 20 if $clear_len < 20;
-        print "\r" . ( ' ' x $clear_len ) . "\r";
+        ## clear current line [ \e[2K avoids wrap on long lines ]
+        print "\r\e[2K";
 
         $state_ref->{'display_buffer'}        = join "\n", $lines_ref->@*;
         $state_ref->{'current_history_index'} = $target_index;
@@ -74,8 +72,8 @@ if ( $target_index >= 0 && $target_index < @AMOS7::TERM::history_entries ) {
 
 return;
 
-#,,,.,..,,,.,,.,.,,.,,,,,,...,.,.,,.,,...,,..,.,.,...,...,,,.,,.,,,,.,,,.,..,,
-#7JAOXWMVB7HQZ3X2TTTMDRZQ5X5T4VWGSR6DLY266EWEDVH532WJYHUEVSJLZ4MS3MB5WQSIVDVIK
-#\\\|M7M55OTDKJO72EBS3Q24T6J3JBNJKFV5INJP3VDJZ5MC4VU7IAC \ / AMOS7 \ YOURUM ::
-#\[7]S7WY2Q4FQDI2I27AQ2MOBNBMJICRYLMENEL7WKS7DGOJYQUHA6BI 7  DATA SIGNATURE ::
+#,,,,,...,.,,,,,,,,.,,,..,..,,,,.,,.,,...,.,,,.,.,...,...,..,,..,,...,.,.,,.,,
+#3MZPS4PLVG5GF2HSBIWR3IADHGDQXZDE3EGDFEKBH5JZM22UWQJCTLIO7RWUHPPITLY3K74AZ7ZHG
+#\\\|E25VKN33AR2VWVMMVMJM5OKRLHYLLRA2ZTPLOR7V6I3W4N6OIEZ \ / AMOS7 \ YOURUM ::
+#\[7]M3U7RBRL4SMRXFRPYZS3YN7RUZKIPDYICTP3GXEPYUQCG3E7PACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name = nshell.editor.process
-# descr = Main dispatcher for editor operations (character insertion, deletion, newline)
+# descr = Main dispatcher for editor operations
+#         (character insertion, deletion, newline)
 
 my ( $editor, $key, $colors ) = @ARG;
 
@@ -15,39 +16,9 @@ return unless defined $edit_result;
 
 my $action = $edit_result->{action};
 
-## Helper: inline full-line redraw with cursor
+## helper: redraw with cursor [ viewport-aware for overflow lines ]
 my $redraw_with_cursor = sub {
-    my $cursor_pos = $editor->{cursor_pos};
-    my $buffer     = $editor->{buffer};
-
-    ## Go to start of line
-    print "\r";
-
-    ## Print everything before cursor
-    if ( $cursor_pos > 0 ) {
-        print substr( $buffer, 0, $cursor_pos );
-    }
-
-    ## Render cursor inline
-    my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
-
-    if ( $char_at_cursor eq '' or $char_at_cursor eq ' ' ) {
-        print $colors{'p7_fg_0003'} . '_';
-    } else {
-        print "\e[7m" . $char_at_cursor . "\e[27m";
-    }
-
-    print "\e[0m" . $colors{'p7_fg_0004'};
-
-    ## Print everything after cursor
-    if ( $cursor_pos < length($buffer) ) {
-        my $after_cursor = substr( $buffer, $cursor_pos + 1 );
-        print $after_cursor if length($after_cursor);
-        print "\e[K";
-        print "\x08" x length($after_cursor) if length($after_cursor);
-    } else {
-        print "\e[K";
-    }
+    <[nshell.render.viewport]>->( $editor, $colors );
 };
 
 ## Character insertion (echo action)
@@ -94,65 +65,64 @@ if ( $action eq 'signal' ) {
 
 ## Newline - submit command
 if ( $action eq 'newline' ) {
-    my $cursor_pos     = $editor->{cursor_pos};
-    my $buffer         = $editor->{buffer};
-    my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
-    my $buffer_len     = length($buffer);
+    my $cursor_pos = $editor->{cursor_pos};
+    my $buffer     = $editor->{buffer};
+    my $buffer_len = length($buffer);
 
-    ## Go to start of line, print everything up to cursor
-    print "\r";
-    if ( $cursor_pos > 0 ) {
-        print substr( $buffer, 0, $cursor_pos );
-    }
+    ## get terminal width to choose render path
+    my $term_cols = ( eval { ( AMOS7::TERM::terminal_size() )[1] } // 80 );
 
-    ## Handle character at cursor (clear inverse or overwrite underscore)
-    if ( $char_at_cursor eq '' ) {
-        ## Cursor at end of line (underscore), just clear it
-        print "\e[K";
-    } elsif ( $char_at_cursor eq ' ' ) {
-        ## Cursor on space (rendered as underscore), print space to overwrite
-        print ' ';
+    if ( $buffer_len < $term_cols ) {
+        ## normal mode: de-render cursor and show clean full line
+        my $char_at_cursor = substr( $buffer, $cursor_pos, 1 ) // '';
+        print "\r";
+        print substr( $buffer, 0, $cursor_pos ) if $cursor_pos > 0;
+        if ( $char_at_cursor eq '' ) {
+            print "\e[K";
+        } elsif ( $char_at_cursor eq ' ' ) {
+            print ' ';
+        } else {
+            print $colors{'p7_fg_0004'} . $char_at_cursor;
+        }
+        print substr( $buffer, $cursor_pos + 1 )
+            if $cursor_pos + 1 < $buffer_len;
+        print "\e[0m" . $colors{'p7_fg_0004'};
     } else {
-        ## Cursor was rendered as inverse video character
-        ## Reprint the character without inverse to overwrite
-        print $colors{'p7_fg_0004'} . $char_at_cursor;
+        ## overflow mode: clear marker/cursor escapes,
+        ## submit from current position
+        print "\e[0m" . $colors{'p7_fg_0004'};
     }
 
-    ## Print rest of buffer after cursor (if any)
-    if ( $cursor_pos + 1 < $buffer_len ) {
-        print substr( $buffer, $cursor_pos + 1 );
-    }
-
-    print "\e[0m" . $colors{'p7_fg_0004'};
-
-    ## Print the newline
+    ## print the newline
     print $edit_result->{output};
     STDOUT->flush();
 
     my $result = AMOS7::TERM::editor_submit($editor);
 
-    ## Clear editor buffer for next command
+    ## clear editor buffer and reset viewport for next command
     $editor->{buffer}     = '';
     $editor->{cursor_pos} = 0;
+    my $state_ref = $data{'nshell'}{'state'} //= {};
+    $state_ref->{'view_offset'} = 0;
 
-    ## Save to history if not empty
+    ## save to history if not empty
     if ( length $result ) {
         my @lines = split "\n", $result;
         AMOS7::TERM::history_add(@lines);
     } else {
-        ## Redraw cursor on next line if prompt was empty
+        ## redraw cursor on empty submit
         print $colors{'p7_fg_0003'} . "_\r";
         STDOUT->flush();
     }
 
-    return $result;    ## Return command (or empty string)
+    return $result;    ## return command (or empty string)
 }
 
 ## Unknown action - ignore
 return undef;
 
-#,,,,,,..,.,,,...,,..,,,,,.,.,,,,,,,,,.,,,,.,,.,.,...,...,,,.,,,,,,,.,.,,,.,,,
-#7T376TXMZJEP4JQLACKZHWJBQPWYMINLPQ5DGN6EDUNVSLV6HXNZ2J2QDVQPLOUYI36P7QICJGJFY
-#\\\|H2JRBVJMRFFDJW5IMDKMNZO3QJ4M3S3NSBJERIUZIASKCYKMWL2 \ / AMOS7 \ YOURUM ::
-#\[7]NPEKKNNRN7MHRN5HSNTIM7NYMJWHSFOKRTP3GBRQUMMVWEQMG4DQ 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,.,.,.,,,.,,,,..,,,.,,..,.,.,...,.,.,...,...,..,,,,.,,,.,...,..,,
+#VA3SRNMF32CQS7RXOWMZIY3HGK4NEK5VSKGMSWPPBEOSA46LRHVAZTIRIDH7HUDSQBJCAEO25BI2E
+#\\\|F2A2YCGGGG4TIHRU553P46P6HWIZXUJUAJFWGV6HRHT4JTQMCNI \ / AMOS7 \ YOURUM ::
+#\[7]E74WYUC5CFFIHGQE7C2GA4RGXH4NZL5TJEGZJERQK4V2RAULNYBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

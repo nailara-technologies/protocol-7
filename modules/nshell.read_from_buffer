@@ -1,7 +1,8 @@
 ## [:< ##
 
 # name = nshell.read_from_buffer
-# descr = Orchestrator for keyboard input - delegates to refactored handler modules
+# descr = Orchestrator for keyboard input - delegates to
+#         refactored handler modules
 
 ## Non-blocking keyboard input with buffered I/O
 ## Delegates to specialized modules: history navigation, search, editor
@@ -20,7 +21,8 @@ $main::data{'nshell'}{'edit_state'} = {
     search_mode           => $state_ref->{'search_mode'},
 };
 
-## Show cursor at start of each call (after command execution or on first call)
+## show cursor at start of each call
+## (after command execution or on first call)
 if ($show_cursor_on_call) {
     $show_cursor_on_call = FALSE;
 
@@ -38,12 +40,12 @@ if ($show_cursor_on_call) {
                 $buffer, $colors{'p7_fg_0004'} // '<undef>'
             );
         }
-        print "\r\e[K"    ## Clear line
-            . $colors{'p7_fg_0004'}
-            . $buffer
-            . $colors{'p7_fg_0003'}
-            . "_\e[0m";
-        STDOUT->flush();
+        ## viewport render handles overflow for long preloaded history entries
+        $state_ref->{'view_offset'} = 0;
+        <[nshell.render.viewport]>->(
+            $state_ref->{'editor'},
+            $state_ref->{'colors'}
+        );
     } else {
         ## Just display cursor on empty line
         print $colors{'p7_fg_0003'} . "_\r" . "\e[0m" . $colors{'p7_fg_0004'};
@@ -59,7 +61,8 @@ if ( <nshell.mode.no_tty_debug> && length <nshell.buffer.debug_input> ) {
     if ( !length $input_chars ) {
         $input_chars = <nshell.buffer.debug_input>;
 
-        ## clear the buffer for next input, pausing watcher to prevent re-triggering
+        ## clear the buffer for next input,
+        ## pausing watcher to prevent re-triggering
         <nshell.watcher.buffer.debug_input>->stop;     ## pause watcher ##
         <nshell.buffer.debug_input> = '';              ## clear buffer ##
         <nshell.watcher.buffer.debug_input>->start;    ## resume watcher ##
@@ -324,8 +327,8 @@ while ( length $input_chars ) {
 
 return undef;
 
-#,,,,,.,,,.,.,.,.,.,.,,,.,,,.,...,.,,,.,.,,,,,.,.,...,.,,,..,,...,..,,,,.,,,.,
-#YOY3ZLRUS7IHLKDS2635J5VCRUJL7PH7HLSPDUEUZ2QTOJ6KEABM6M5LCXVEYA2AFV3PZNUDH3ZKC
-#\\\|XEAJX6EAQ3SKKXUGVLR5AE6TP73ORVFHDSVDKPB4XZRJWKLSI2C \ / AMOS7 \ YOURUM ::
-#\[7]6ECW3M6IQM6BY6ZVB3IULMZYKT6TQYS2XF4KNOUYGZN6CY2CAWAY 7  DATA SIGNATURE ::
+#,,,,,,,.,...,...,,,.,.,,,.,.,,,.,...,,,.,..,,.,.,...,...,...,,,,,...,,,,,,,.,
+#IA6Z5RGCD5ZQQFGJPMDUQJRFBEFNGUGLTVM7CLJS3HNO2YKZLOZDI6RN5MFY64Z4YAWJZMTIHBAOG
+#\\\|TAG7IYQ3PXUM3GBVJKKJCIYTUWPTJ5STHN4U5JCCZZCHD3KBHFX \ / AMOS7 \ YOURUM ::
+#\[7]BWWD2QMRMRVODXH4I3BWDMDZGLZ3NBH753XEWGBIQ7VMEDHMSQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

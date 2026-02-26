@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = nshell.handler.term_resize
+# descr = SIGWINCH handler - update cached terminal dimensions
+#         and redraw input line
+
+## re-query terminal size [ terminal_size returns ( cols, rows ) ]
+my @size     = AMOS7::TERM::terminal_size();
+my $new_cols = $size[0] // 80;
+my $new_rows = $size[1] // 24;
+
+## cache new terminal dimensions for render.viewport and other consumers
+$data{'nshell'}{'cfg'}{'term_cols'} = $new_cols;
+$data{'nshell'}{'cfg'}{'term_rows'} = $new_rows;
+
+## redraw current input line at new width (if editor is active)
+my $state_ref = $data{'nshell'}{'state'} // {};
+if ( defined $state_ref->{'editor'} ) {
+
+    ## reset view_offset so viewport recalculates from scratch at new width
+    $state_ref->{'view_offset'} = 0;
+
+    ## clear current line and the line below [ previous wider renders may have
+    ## left remnants on the next screen line when the terminal narrows ]
+    print "\r\e[2K\e[1B\r\e[2K\e[1A";
+    <[nshell.render.viewport]>->(
+        $state_ref->{'editor'},
+        $state_ref->{'colors'}
+    );
+}
+
+#,,,.,,,.,,.,,,.,,,.,,,,.,.,,,..,,,,,,.,.,,..,..,,...,...,..,,...,..,,.,,,,.,,
+#POM4ED4VMWDFPQFO65PCWFVL7Q4K7A74667U4IUC7PNIAZEAE2LQNF7DN3AZ775XZQ2JTQVAAKXKK
+#\\\|SJO2DE44OEIO6TDDFYPOZ7CIJJRKCN43JWGHKYKY2AKZYMX4PE4 \ / AMOS7 \ YOURUM ::
+#\[7]SSL7ACLBKIRDPVEH7VKLSN5FDKY3LCBKNZX3MAEY3IA4KJRTBADY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

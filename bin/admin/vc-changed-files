@@ -108,10 +108,13 @@ sub _has_lines_exceeding_length {
     return 0 unless -f $filepath;
 
     ##  read file and check for lines exceeding max length ##
-    open( my $fh, '<', $filepath ) or return 0;
+    open( my $fh, '<:encoding(UTF-8)', $filepath ) or return 0;
+    my $line_num = 0;
     while ( my $line = <$fh> ) {
         chomp $line;
-        if ( length($line) > $max_length ) {
+        $line_num++;
+        if ( length($line) > $max_length + 1 ) {
+            printf ' :[%03d]: %02d :. ', $line_num, length($line);
             close($fh);
             return 1;
         }
@@ -122,8 +125,8 @@ sub _has_lines_exceeding_length {
     return 0;
 }
 
-#,,,,,,,,,.,,,..,,...,.,,,,..,..,,.,,,...,.,,,..,,...,...,..,,.,,,.,.,...,.,.,
-#JAVD6HES5OW6PDGPORZ4SXJL3MWV3IQYNFUM65JET3MOYYYDDGNRPHBLT6V2CZXTTVPGIXG6WWLTU
-#\\\|G3PUARS2CTRQRXHQSRVGH4UVW3ZXMDWQA3THPT577EK5X2SBFAJ \ / AMOS7 \ YOURUM ::
-#\[7]UZVODWPXPZEMTRIY6W42YR2YOWJAVX7F3VPTEYOKON5NA42LEEDQ 7  DATA SIGNATURE ::
+#,,.,,...,,,.,.,,,,,.,,,.,,,,,,,.,,,.,,,.,.,,,..,,...,...,.,.,,,,,.,,,,.,,,,.,
+#U7M524CGIEPFHQYWJMBOJG3U5ENKJWL7NCASB4BKFCBGYMQ3I77KLFUCWK64YVT6E7KR37TWEGLDQ
+#\\\|CJEE7BN5DNO6LCSZBDGODXWR7KPKC3IGZLBTW56UTFEFKWPJMVL \ / AMOS7 \ YOURUM ::
+#\[7]VCSVM7VHNXHVEVR3EYEZZZH6F5NOOR5GO5B35U45H77E4I2NJSCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

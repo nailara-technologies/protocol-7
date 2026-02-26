@@ -63,7 +63,7 @@ if ( $key eq "\e" ) {
     $key = $escape_buffer;
 }
 
-## Toggle add-to-history mode (Ctrl+R while already in search)
+## Toggle add-to-history mode [ Ctrl+R while already in search ]
 if ( $key eq "\x12" ) {    # Ctrl+R
     $state_ref->{'search_add_to_history'}
         = !$state_ref->{'search_add_to_history'};
@@ -128,16 +128,16 @@ if ( $key eq "\x0f" ) {    # Ctrl+O
         $state_ref->{'display_buffer'}      = '';
         $state_ref->{'show_cursor_on_call'} = TRUE;
 
-        return
-            2
-            ; ## Signal to execute (next input will be in VIEWING_HISTORY mode)
+        ## Signal to execute [ next input will be in VIEWING_HISTORY mode ]
+        return 2;
     }
     return 0;
 }
 
 ## Exit search mode (Ctrl+C or Esc)
 if ( $key eq "\x03" or $key eq "\e" ) {
-    ## If there's a valid search result, load it; otherwise restore original buffer
+    ## if there's a valid search result, load it;
+    ## otherwise restore original buffer
     my $exit_buffer;
 
     if (   $state_ref->{'search_results'}->@*
@@ -176,13 +176,9 @@ if ( $key eq "\x03" or $key eq "\e" ) {
     AMOS7::TERM::editor_load( $editor, $exit_buffer );
     $state_ref->{'display_buffer'} = $colors{'p7_fg_0004'} . $exit_buffer;
 
-    ## Redraw the buffer
-    <[nshell.redraw_command_line]>->(
-        $exit_buffer, $state_ref->{'display_buffer'}
-    );
-
-    ## Render cursor at editor's position
-    <[nshell.render.cursor]>->( $editor, $colors, 1 );
+    ## redraw with viewport [ handles overflow for long commands ]
+    $state_ref->{'view_offset'} = 0;
+    <[nshell.render.viewport]>->( $editor, $colors );
 
     return 1;    ## Signal to exit search mode
 }
@@ -404,8 +400,8 @@ $display_search->( $state_ref->{'search_term'} );
 
 return 0;    ## Continue in search mode
 
-#,,,,,,,,,,..,,,,,,,.,.,.,.,.,,,,,,,,,,,.,.,.,.,.,...,...,..,,.,.,,,.,..,,,..,
-#7LNSMVB7A4H4KLUDGF2ICSG2P67WNCGVX7HMUESGATMZ6ZTMEK4GAXH2WXCPJWW5KGZN2PQLVHM6G
-#\\\|B73MQ6QFPSUK4G4PUYTGJD5D3FZYEREL74ZR64J7LLJQXCD7237 \ / AMOS7 \ YOURUM ::
-#\[7]XZN4SJDRFR54II5DAG64U7GAXODW2QGFCXQAZC3A3USLWEDSB6BA 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,,.,,,,,,.,,..,,.,,,...,,,,,..,,.,.,...,..,,.,.,,,.,.,,,,,,,,..,
+#5YC6KTGUAELXWRCX2BKDEHGNBIKGB5PX52EVLDIN7XUKTTJY5UOAT5ZD45PL4ACS5EN6IOQS7CRMG
+#\\\|FXP7JC2MTAM4XK2XJGR5GTVD5X3BXMWMF72Q56LMK3AN5JN5ZBK \ / AMOS7 \ YOURUM ::
+#\[7]2EO2V3YSDCVOLP37IQS5FHWZH5UOENXVFL7YOGGUJP3XIUOC6GDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
