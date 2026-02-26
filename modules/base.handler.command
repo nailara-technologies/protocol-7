@@ -1107,7 +1107,9 @@ if ( $cmd =~ m,^(TRUE|FALSE|WAIT|SIZE|CHRSIZE|STRM|STRM-SIZE|GET|TERM)$, ) {
             $ignore_log_level,
             "[%d] %s-reply to unknown route id [%d], ignored.",
             $id, $cmd, $cmd_id
-        );
+            )
+            unless exists $session->{'silent_reply_ignore'}
+            and $session->{'silent_reply_ignore'};
 
         ## Handle single-line replies to unknown routes
         if ( $cmd =~ m,^(TRUE|FALSE|WAIT|GET|TERM)$, ) {
@@ -1940,8 +1942,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,,,,...,,..,,,,,,.,,..,,.,.,...,..,,,,.,.,,,..,,...,.,.,,,,,,,.,,..,...,,.,,
-#SEJ5UQX4RDNS2SKFITWZD7WT4YCB4GE3SIDUNXDDD57DWP24VLTREN3ZUVKIQQPAAY4VMXKIYBUAS
-#\\\|KHM74NCEA6Y6MQ55HRPDWY2TISLXWBITJSO2HPLIROHUXXGFBSD \ / AMOS7 \ YOURUM ::
-#\[7]DDPVWU6O7LV7JT7FN7TSTZ34ENPYIUNM7V7ITRMJAGUBCVQ5TGCQ 7  DATA SIGNATURE ::
+#,,..,,,,,..,,.,,,...,.,.,..,,...,,..,.,.,.,,,..,,...,..,,..,,...,,,,,.,.,,,,,
+#BJUZXGFHO6X5SOAVMPN7HB6UGK3NDS66GTQS4MJDXGNRRHQTJORBM2TEUQQOKR44TVX4JBUTNI6ZE
+#\\\|4TNCBL3QF42CW5FX5DLLD74IDSFPI6TVS3JZPS5PHCFA6TXQ5R4 \ / AMOS7 \ YOURUM ::
+#\[7]GJYL3TUZV6QCIHAGLR4IUZ2J77FINOPMVOYBI2FSDKZC2KDQJEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
