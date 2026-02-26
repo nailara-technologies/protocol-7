@@ -28,6 +28,13 @@ unless ( defined $session_id and defined $data{'session'}{$session_id} ) {
     $session_id, 'unknown-reply-type', 'nshell.hook.unknown_reply_type'
 );
 
+## suppress unknown-reply-route log messages for nshell's cube session
+## nshell sends commands without reply routes (transparent relay), so receiving
+## TRUE-reply to unknown route id is normal operation — not an error to log
+## [ without this, the log entry is forwarded to p7-log through the cube session
+##   and gets misrouted to system.p7-log.append when the base path is 'system' ]
+$data{'session'}{$session_id}{'silent_reply_ignore'} = TRUE;
+
 ## unknown-command and unknown-command-global hooks disabled
 ## these would print to console, blocking network replies from being routed back
 ## nshell handles commands through normal reply handlers, not through unknown-command hooks
@@ -39,8 +46,8 @@ unless ( defined $session_id and defined $data{'session'}{$session_id} ) {
 
 return TRUE;
 
-#,,,.,.,.,,,,,,.,,.,,,.,.,..,,,,,,.,,,,,.,,..,.,.,...,...,.,,,..,,,,,,..,,.,,,
-#TTXVSV4RHH6T5KUJ2FHSPU6HGGHGYQ5B74BPZ5FRAYTISNILC6HXRKSHYPAPQBXMUTTY6EANVP7PK
-#\\\|GNE2HEWJ5ZABHNGDOXZPADC7WBHAGYKMR7TQ5JGG4DQAZSA5V2N \ / AMOS7 \ YOURUM ::
-#\[7]RPESC7BR5FYXGFVDFDHUCVGHHYNWUCOBYAM7SJHCGDUN56SRXSAQ 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,,.,,,,,,,.,,.,,.,.,..,,,..,,,,,.,.,...,..,,,..,,..,.,,,..,,,,.,
+#5DVNPZK5M63WK4TKC4IEP6YG4EBO2GRPRRDPP2KLJ3747GBNPPH7JDXJITWCYNCAXCIHSFBLMEOCA
+#\\\|HE54CUXIOTN6BET4QLRO3P25KFIZBVGQTTYIODIT2XQ4M5FC7W2 \ / AMOS7 \ YOURUM ::
+#\[7]ICQWV3PJW2O4RJ2OJQWEFOPX5CRGBBCIFX5XYH3WQFZISW6XXMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
