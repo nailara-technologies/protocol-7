@@ -1450,7 +1450,7 @@ sub p7_load_code {
                     ## loading code from disk [ including ext directory ]
                     $src_rel =~ s|^modules/|m.,/|;    ## shorten. ##
                     $code{'log.devmod'}->(":[src]: $src_rel");
-                    open( my $src_fh, qw| < |, $src_abs_path )
+                    open( my $src_fh, qw| <:encoding(UTF-8) |, $src_abs_path )
                         or die ":$src_abs_path : \l$OS_ERROR";
                     $data{'code'}{$file_name}{'source'} = <$src_fh>;
                     close($src_fh);
@@ -5371,8 +5371,8 @@ __DATA__
 :
 :.
 
-#,,..,.,,,,,.,,,,,,,.,..,,.,,,.,.,,,,,,.,,,.,,...,...,...,,,.,,..,,,,,,,.,.,.,
-#I4EEGSWGFJE6YTX3SCDXTQ5R4IPRQKUFKIUZVF2VZHLSCB2TPJGG2KCK6R4R4DIK3BHWLYAX3VHO6
-#\\\|HVGROPHZK64JVAAWFZELIJGOHILCJN6GJGQLFIISAI357QEBZWK \ / AMOS7 \ YOURUM ::
-#\[7]HHKFFHXX4UTN73FSAYRWOWKO442MEZDJCWXKS4HGE5CVRWF5QECQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,...,.,,,,,.,,,,,,,,,,.,,.,.,...,...,...,..,,,.,,,..,,,,,,..,,,,,
+#ZH7VFZXEWN3I2W63ZF7SAXJCPJIDHLRVS5Z7ZI4VMGO3AZW2P7AQRPS4WSKFXXLUNNEJMQ2SMQMWC
+#\\\|LPZ4GT2LYLMSQSEKOLCLYQWC3NCBSNMG4HUZWWI6BQHLTYFPUBQ \ / AMOS7 \ YOURUM ::
+#\[7]BUXAI64SQX4XPMVEZXFBMA4TININYHN5QHTGKD2FTTQAPGXLQYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
