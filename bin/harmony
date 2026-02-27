@@ -139,7 +139,14 @@ Math::BigFloat->accuracy($accuracy);
 
 my $return_code = 0;    ## code for TRUE ##
 
-state $shown_truth_state = 0;
+## header vars hoisted — constant across all checksum iterations ##
+my $sp_0_len = 37 - length($check_string);
+$sp_0_len = 5 if $sp_0_len < 5;
+my $space_0 = ' ' x $sp_0_len;
+my $q       = $option{'n'} ? '' : "$col{'b'}'$col{'r'}";
+
+## track the header result across iterations; false overrides true ##
+my ( $header_result, $header_col_str );
 
 foreach my $elf_checksum ( reverse sort @elf_checksums ) {
 
@@ -165,11 +172,6 @@ foreach my $elf_checksum ( reverse sort @elf_checksums ) {
     my $dot_pos  = index( $line_str, '.' ) - 1;
     $dot_pos = length($calc_str) if $dot_pos < -1;
 
-    my $sp_0_len = 37 - length($check_string);
-    $sp_0_len = 5 if $sp_0_len < 5;
-
-    my $space_0 = ' ' x $sp_0_len;
-
     $line_str =~ s{(*plb:\.)(\d*?)($true|0000+ )}
               {$1$col{'m_y'}$2$col{'r'}$col{'b'}}
         or $line_str =~ s{(*plb:\.)(\d*?)($false)}
@@ -189,17 +191,23 @@ foreach my $elf_checksum ( reverse sort @elf_checksums ) {
 
     $col{'str'} = $true_color if $return_code == 0;
 
-    my $q = $option{'n'} ? '' : "$col{'b'}'$col{'r'}";
-
     if ( not $option{'q'} and not $option{'N'} ) {
-
-        say sprintf "\n$space_0$q$col{'str'}$check_string"
-            . "$col{'r'}%s $col{fg} === $col{r}"
-            . " $result\n",$q
-            if not $shown_truth_state++;
-
+        ## false always overrides a previously seen true; use per-iteration
+        ## flag — not cumulative $return_code which carries previous state ##
+        my $this_iter_false = $calc_str =~ m|$false|;
+        if ( not defined $header_result or $this_iter_false ) {
+            $header_result  = $result;
+            $header_col_str = $col{'str'};
+        }
         say sprintf '   %97s', $line_str;
     }
+}
+
+## display header once after all checksums — reflects worst-case result ##
+if ( not $option{'q'} and not $option{'N'} and defined $header_result ) {
+    say sprintf "\n$space_0$q$header_col_str$check_string"
+        . "$col{'r'}%s $col{fg} === $col{r}"
+        . " $header_result\n", $q;
 }
 
 print "$col{r}\n  " if not $option{'q'} and not $option{'N'};
@@ -318,8 +326,8 @@ sub display_result {
 
 sub int_exit { print $reset; exit(4) }
 
-#,,.,,.,,,,.,,,,.,,.,,.,.,,,,,.,,,...,,..,,..,...,...,...,...,.,.,,,.,.,,,.,,,
-#RCSNUBDRLXO3KDJ67NLQWJFE2EKZ4VFHG5ZOTOHZV6635NOGNAKPEEL6CIUKSTTVBUJUT3KARFO2G
-#\\\|VF5CBZNHHSEYVBBGEMHYKNNU3ZDU5MUQSHRJTIN6QYHYBYYKZBP \ / AMOS7 \ YOURUM ::
-#\[7]UV5JSI7SY42QB7BD7VAQKGE5NFL3O72BYGPX7CBL75LA4CVQSEDA 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,...,.,.,,..,...,...,..,,,,.,.,,,...,...,...,,.,,,.,,.,.,,..,...,
+#66PPVAVGBGFK2MPC4KVZBAHXY5CQ23L2AA6WOCJURH5J4QO2BLDNVXRYBFM57EZA6CSQTX5ZCXFVI
+#\\\|OG4WMD3WEQGTLVYEYQHTMD3EVZXM7V7OF5YUOVTCU4EK44BJPUW \ / AMOS7 \ YOURUM ::
+#\[7]QF3JTNQ4BBMBEWIS4CC3K2BGB4EM7ZM5I6ZBP7OHPDZLSFMMBYCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
