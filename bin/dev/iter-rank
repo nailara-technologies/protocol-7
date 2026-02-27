@@ -1,0 +1,157 @@
+#!/usr/bin/perl
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Std;
+
+####          ####
+##  iter-rank  ##
+###            ####
+
+##  sort AMOS7-signed files by footer harmonization iteration count  ##
+##  lower remaining = more iterations taken = higher harmonic density  ##
+
+my $max_remaining
+    = 07777777;    ##  octal limit from source.create_harmonic_footer  ##
+
+getopts( 'rq0n', \my %opt );
+
+my $usage
+    = ":\n:: usage: iter-rank [-r] [-q] [-0] [-n] <files|globs>\n"
+    . "::\n"
+    . "::   -r  .....  reverse sort [ highest iter count last ]\n"
+    . "::   -q  .....  quiet [ filenames only, no counts ]\n"
+    . "::   -0  .....  null-separated output [ for xargs -0 ]\n"
+    . "::   -n  .....  show raw remaining value instead of iterations taken\n"
+    . ":\n";
+
+die $usage if not @ARGV;
+
+##  color definitions  ##
+my $blacklight  = "\e[38;2;68;39;172m";
+my $true_color  = "\e[38;2;6;71;195m";
+my $neon_green  = "\e[38;2;71;195;6m";
+my $neon_orange = "\e[38;2;197;141;7m";
+my $nailara_fg  = "\e[38;2;38;46;153m";
+my $reset       = "\e[0m";
+
+##  expand glob patterns, keep regular files only  ##
+my @files = grep {-f} map {glob} @ARGV;
+
+die ":\n:: no matching files found\n:\n" if not @files;
+
+##  extract amos-iterations-remaining from the first footer line  ##
+##
+##  footer first line format [ from amos7.encode_octal_header ]:  ##
+##  #<lead-sep><19 groups of [,\.]3,>  ##
+##  digits 0-10 : amos payload checksum  ##
+##  digit  11   : endline-state-encoded  ##
+##  digits 12-18: iterations-remaining   ##  <- we want these
+##
+sub extract_iter_remaining {
+    my $file = shift;
+    open( my $fh, '<', $file ) or return undef;
+
+    ##  read last 512 bytes — footer block is ~400 bytes  ##
+    my $buf = '';
+    if ( -s $file > 512 ) {
+        seek $fh, -512, 2;
+        read $fh, $buf, 512;
+    } else {
+        local $INPUT_RECORD_SEPARATOR = undef;
+        $buf = <$fh>;
+    }
+    close $fh;
+
+    return undef if not defined $buf or not length $buf;
+
+    ##  scan lines for first footer line pattern  ##
+    foreach my $line ( split /\n/, $buf ) {
+        next unless length $line;
+
+        ##  match: # + leading-sep(,) + 19 groups of [,.]3 + ,  ##
+        next unless $line =~ m|^#,(([,\.]{3},){19})$|;
+
+        ##  extract 19 comma/dot triplets  ##
+        my @groups = ( $1 =~ m|([,\.]{3}),|g );
+        next unless @groups == 19;
+
+        ##  digits 12..18 : iterations-remaining [ 7 octal digits ]  ##
+        my $octal_str = join '', map {
+            ( my $b = $ARG ) =~ tr/,./01/;
+            oct("0b$b")    ##  3-bit binary string -> octal digit value  ##
+        } @groups[ 12 .. 18 ];
+
+        return oct($octal_str);    ##  decoded as octal number  ##
+    }
+
+    return undef;                  ##  no footer found  ##
+}
+
+##  collect results  ##
+my @ranked;
+my $max_file_len = 0;
+
+foreach my $file (@files) {
+    my $remaining = extract_iter_remaining($file);
+    next if not defined $remaining;    ##  skip unsigned files  ##
+
+    my $display_val
+        = $opt{'n'}
+        ? $remaining
+        : $max_remaining - $remaining;    ##  iterations taken  ##
+
+    push @ranked, [ $remaining, $display_val, $file ];
+
+    $max_file_len = length($file) if length($file) > $max_file_len;
+}
+
+if ( not @ranked ) {
+    print STDERR ":\n:: no AMOS7-signed files found in input\n:\n";
+    exit(1);
+}
+
+##  sort ascending by remaining [ low remaining = many iterations = dense ]  ##
+##  -r reverses: high remaining first [ fewest iterations = most immediate ] ##
+my @sorted
+    = $opt{'r'}
+    ? sort { $b->[0] <=> $a->[0] } @ranked
+    : sort { $a->[0] <=> $b->[0] } @ranked;
+
+my $sep = $opt{'0'} ? "\0" : "\n";
+
+if ( $opt{'q'} ) {
+    print join( $sep, map { $ARG->[2] } @sorted ), $sep;
+    exit(0);
+}
+
+##  formatted output  ##
+my $label = $opt{'n'} ? 'remaining' : 'iter';
+
+print $blacklight, ":\n", $reset;
+
+foreach my $entry (@sorted) {
+    my ( $remaining, $display_val, $file ) = @$entry;
+
+    ##  color by density: low iter = immediate [ green ], high = orange  ##
+    my $count_color
+        = $display_val == 0    ? $true_color
+        : $display_val < 13    ? $neon_green
+        : $display_val < 07777 ? $nailara_fg
+        :                        $neon_orange;
+
+    printf "%s: %s%7d%s  %s%s%s\n",
+        $blacklight,
+        $count_color, $display_val, $reset,
+        $nailara_fg,  $file,        $reset;
+}
+
+print $blacklight, ":\n", $reset;
+
+#,,,.,,,.,,..,,..,,,.,,.,,,,,,.,,,,,,,..,,,..,.,.,...,...,.,,,..,,...,,..,.,,,
+#LBF7C7M4ZXTMGNVIMOT7ZIALDGYFMNCGDU5DOPHWGR4ONXKHZWVNAS4Q3YHJ5XKH7OQRELW5FHERO
+#\\\|L5RG377KL5VBN325M3BGNSQBPKX24DXLSWAINOELLWOEG7RMUG7 \ / AMOS7 \ YOURUM ::
+#\[7]GXR2FGKHOHRT5OIWBP4ZXUPAUF7LC443I3DHBR3N4RQJKA4A4SCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
