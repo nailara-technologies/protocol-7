@@ -64,7 +64,7 @@ if ( -e $fifo_path ) {
     }
 }
 
-if ( not $reconnect ) {
+if ( not $reconnect and <system.zenka.name> ne qw| v7 | ) {
     <system.init_reports> //= [];
     push(
         <system.init_reports>->@*,
@@ -73,10 +73,14 @@ if ( not $reconnect ) {
             'target_command' => qw| v7.report-temp-path |,
         }
     );
+} elsif ( not $reconnect ) {    ## v7 zenka case ##
+    <[v7.tmp-paths.global.register]>->($fifo_path);
 }
 
-#,,,,,,..,.,.,,.,,,..,.,,,.,.,..,,,,,,.,.,...,..,,...,...,...,,.,,,.,,.,.,,,.,
-#SQQ22UZOTRS4AER2LH6R3OFABSEFAPP6XMQSFGPFL4RBQHW422EAWTYNKQ3DCJH24LXJF7POXKNTU
-#\\\|IYSSVFT77LQPAI5BKYF2BIQRM27ESA3VBTLBP4TZ7JSD57BQFQG \ / AMOS7 \ YOURUM ::
-#\[7]S4YBL2WJMBXW2NW2S5OFAA2NWODEDYKXP3WOUDUIIY5KIVI3MCDI 7  DATA SIGNATURE ::
+return $fifo_path;              ## passing path through in success case ##
+
+#,,,,,.,,,.,.,,,,,,.,,..,,,.,,,.,,.,,,.,.,,,.,..,,...,...,.,,,,..,,,.,,,.,...,
+#VHMM6AQUQDXMANM2M4XKLH3DYSEQP6LX75V5OE65IFM6VUKCHW7ENNXJS3ABDQLSDWGVZTSOQ7JEY
+#\\\|7ZOZ5CQNZO5RXSY34N6JYY3G76MH65ORJJLFIAZE246TPZ6IBYD \ / AMOS7 \ YOURUM ::
+#\[7]RO4B4QQILFEPKKECIATFDMY7QT2ZBQATPGRXXA63D7RY4RW34UBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
