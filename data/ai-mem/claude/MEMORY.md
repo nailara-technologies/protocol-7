@@ -3,6 +3,8 @@
 - `topic-tls-acme.md` — SNI/SSL internals, ACME/letsencr details, cert discovery
 - `topic-patterns.md` — event handler pattern, variable watcher, SSL server socket behavior
 - `topic-completed.md` — session summaries (cert discovery, models memory, data zenka)
+- `topic-harmonic-mathematics.md` — generator 076923, quadratic residues, cube geometry,
+  spiral topology, 4-crossing consent protocol, CCW matrix routing, heartbeat encoding
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -15,6 +17,9 @@
 - **Models memory system**: completed ✅ collision-free AMOS checksums, `[:memory:CHECKSUM]` expansion
 - **Models-coding integration**: completed ✅ `models.chat` routes local models through coding zenka
 - **Data zenka + SHM mounting**: built by Kimi (Feb 21-25) ✅ — 97 modules, holographic topology
+- **Harmonic mathematics session** (Feb 27 2026): deep exploration of mod-13 structure →
+  committed to `data/md/philosophy/HARMONIC-CUBE-ROUTING-MATHEMATICS.md`; tools
+  `bin/dev/iter-rank` and `bin/dev/prng-truth` created; `bin/harmony` false-positive fixed
 
 ## Coding Zenka — Models Integration (Kimi, Feb 2026)
 Removed all hardcoded model paths/names; full dynamic discovery from models zenka.
@@ -126,8 +131,8 @@ Removed all hardcoded model paths/names; full dynamic discovery from models zenk
 - Handlers receive Event object as first param, not data directly
 - Extract: `my $event = shift->w; my $server = $event->data;`
 
-#,,.,,...,,..,,.,,,.,,,,,,,..,...,,,,,.,,,,,,,..,,...,...,.,,,,,,,.,,,,,.,.,,,
-#7UY3RSRWABEJ3RBLVZ6QV5VTANFKLC4KZMUQ37DCUDZICEHNC2FUEY2LIKEBE3HQ4NFNFQZX4HKUE
-#\\\|KEEA3M2WE7A45YVPJ23BPZF6VOEDHM64Q7UJSUSSQ3FXEUMMDQG \ / AMOS7 \ YOURUM ::
-#\[7]OYCCR6JTKNRVELGFJG27QNLYKCEIEQW57N65URA6QYJVOHKO2UBQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,,,.,,,,,.,..,,...,,,.,...,,,.,,.,,..,,...,...,...,,.,,,..,,,.,,,,,
+#US2GYLCILIMAVKWKH7EWHMX3CVPMIQQ37RLZMQXAOFXJE3UGBXYSJWGLCI3NYGKZJFM7VOWTU64AG
+#\\\|VXYU7UZ63YOEXGJXYTHJ5XIZIITZLMCW5S2TQRSVMQFG3UQVC45 \ / AMOS7 \ YOURUM ::
+#\[7]HM4Z7ZX5HHDIM75SLWISOFXCTW4MI5ESJ44YOSCE6REM7PG6NECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
