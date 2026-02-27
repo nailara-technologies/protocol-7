@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = base.log.format_entry
+# descr = format a log entry string from level, message, and optional prefix;
+#         centralizes level-to-color mapping for base.log, flush paths,
+#         and future log visualization clients
+# args  = log_level, log_msg [, prefix]
+# note  = if prefix is omitted, calls log.format_name for the current zenka
+
+my ( $log_level, $log_msg, $prefix ) = @ARG;
+
+$prefix //= <[log.format_name]>;
+
+## level-to-color index mapping [ 0=error 1=default 2=info 3+=debug ] ##
+my $c_l = 2;
+$c_l = 3 if $log_level == 0;
+$c_l = 4 if $log_level == 1;
+$c_l = 1 if $log_level == 2;
+$c_l = 0 if $log_level > 2;
+
+my $c_fg  = $colors{ sprintf qw| p7_fg_000%s |, $c_l };
+my $col_b = $log_level == 0 ? $colors{'B02'} : $colors{'B01'};
+
+if ( $log_level > 0 ) {
+    return sprintf '%s %s%s%s%s',
+        $prefix, $col_b, $c_fg, $log_msg, $colors{'reset'};
+} else {
+    return sprintf '%s %s%s%s%s%s',
+        $prefix, $colors{'bold'}, $col_b, $c_fg, $log_msg, $colors{'reset'};
+}
+
+#,,,,,,,,,,.,,..,,,.,,..,,...,,..,,,.,,,,,.,.,..,,...,...,.,.,,..,.,.,,.,,,.,,
+#JR2W5IJZLUECGGJESLJ2K6F2HXRZLJM3JAYIU2WIH3MSJOX23PIG3YOAVFZXBT7LIJRABYINLEE4C
+#\\\|ONIGPX54L5T2W4JG4ITYJCMF7NEIOM55RCA73YD5F57OQX53IQB \ / AMOS7 \ YOURUM ::
+#\[7]C4O3TPHBAWN6H7T23YFFUKQ47T72P5ZCZSMFEHA7D3G3QNMDYWAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

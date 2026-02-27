@@ -5,14 +5,14 @@
 
 <[base.log]>->( 2, 'v7 post-initialization: checking session dependencies..,' );
 
-## Trigger session startup dependency check
-## This runs AFTER all modules are initialized
+## trigger session startup dependency check
+## this runs AFTER all modules are initialized
 if (exists $code{'session.parent.check_and_resolve_deps'}) {
-    ## Slight delay to let v7 fully stabilize
-    ## Then check dependencies in background
+    ## slight delay to let v7 fully stabilize
+    ## then check dependencies in background
     <[base.log]>->( 2, '  Scheduling dependency check...' );
 
-    ## For now, run immediately
+    ## for now, run immediately
     ## TODO: Could use event timer for non-blocking background check
     my $result = <[session.parent.check_and_resolve_deps]>;
 
@@ -27,8 +27,8 @@ if (exists $code{'session.parent.check_and_resolve_deps'}) {
 
 0;
 
-#,,,,,,,,,.,,,,,.,..,,.,.,.,.,,..,,..,,,,,,,,,..,,...,...,,,,,..,,,.,,,,.,...,
-#PEFZN5VYFRUPQY7LPTMHHGWKOUHS5XH43TRBQTKBIBQFPSESPHYQ7BICBPWTLIYGQVSOWTCRMSTZ6
-#\\\|37QW7JHNVU3AVLNCD5QUA6T4TU627ZWHRVBUKU6QDVXAGKWHHUW \ / AMOS7 \ YOURUM ::
-#\[7]6GAMPZLY75WCPW2TR7VEW52WYPVHHG7AR55TY7GUF62RB6LBIKBY 7  DATA SIGNATURE ::
+#,,,,,...,.,.,,,,,..,,..,,,,.,,,,,,.,,,.,,.,.,..,,...,...,,,,,,,,,,,,,..,,.,.,
+#7AOOPZWIS5BUGS2S5G7KH5EUITJPDAGDFGTFKVNXGVR23EQYAKLBVJCGJTVKLL4RGBYROOS2OZOWI
+#\\\|6YA34SYU7FPKQP7N4YT5WZIBLSI3RZNVPU33MLMWA37Z555YCKW \ / AMOS7 \ YOURUM ::
+#\[7]SLSRSHOKLSZJGPIMWDF4QZRUK3L5D4RHJ7GRCFJLJ5F5VV5OIWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
