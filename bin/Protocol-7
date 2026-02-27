@@ -645,11 +645,6 @@ sub p7_init_exec {    ##  main variable initialization  ##
         if (   $data{'system'}{'verbosity'}{'console'}
             && $data{'system'}{'start'}{'showbanner'}
             or $show_banner_mode ) {
-            say $prefix, $colors{'B02'}, $colors{'p7_fg_0000'},
-                $start_string,
-                $colors{'B00'},
-                ' ' x 77, $colors{'B02'} . $colors{'p7_fg_0000'}, qw| / |,
-                $colors{'reset'};
             ## centered-xy ## ..,
             $code{'base.banner'}->($prefix);
             print "\n" x $y_offset if $show_banner_mode and $y_offset;
@@ -2541,7 +2536,14 @@ sub p7_strip_ansi {
 
 sub p7_banner {
 
-    my $px = shift // '';
+    my $px     = shift // '';
+    my $out_fh = shift; ## optional: write to supplied fh instead of stdout ##
+    my $old_fh = defined $out_fh ? ( select $out_fh ) : undef;
+
+    ## opening banner line ##
+    say $px, $colors{'B02'}, $colors{'p7_fg_0000'}, '\\',
+        $colors{'B00'}, ' ' x 77, $colors{'B02'} . $colors{'p7_fg_0000'}, '/',
+        $colors{'reset'};
 
     ##  protocol-7 sourcecode version  ##
     my $version_str = sprintf 'protocol-7 srccode ver. : %s',
@@ -2578,6 +2580,7 @@ sub p7_banner {
         "\n", $px, $fg, $bg_0, '/', $bg_1, ' ' x 77, $bg_0 . $fg, '\\',
         $rst,
         "\r";
+    select $old_fh if defined $old_fh;
 }
 
 ##############################################################################
@@ -2780,12 +2783,14 @@ sub p7_purge_code {
             and $ARG ne qw|  base.format_error         |
             and $ARG ne qw|  base.context.list         |
             and $ARG ne qw|  base.clean_unicode        |
+            and $ARG ne qw|  v7.stdout_log.write       |
             and $ARG ne qw|  base.utf8.clean_str       |
             and $ARG ne qw|  base.str.eval_error       |
             and $ARG ne qw|  base.clean_up_caller      |
             and $ARG ne qw|  base.buffer.add_line      |
             and $ARG ne qw|  base.balanced-average     |
             and $ARG ne qw|  base.list.element.add     |
+            and $ARG ne qw|  base.log.format_entry     |
             and $ARG ne qw|  base.utf8.decode_clean           |
             and $ARG ne qw|  v7.handler.zenka_output          |
             and $ARG ne qw|  base.callback.delayed-log        |
@@ -5366,8 +5371,8 @@ __DATA__
 :
 :.
 
-#,,,.,.,.,.,,,.,,,.,.,,,,,..,,,,.,,,,,,,.,...,...,...,...,.,.,.,.,..,,.,,,.,.,
-#X7DA66NAEM7YK6ACJQKS2EQH4PL2XVJCJWUJTHNTCOXHPYPGVXMIJ6BS3XE6G4RREYGAR2WZD3CVC
-#\\\|BM4K5KTDP65YXYFRGQVBOL5N65QEC2QMG4FAFP75QFAHVZQ3VTZ \ / AMOS7 \ YOURUM ::
-#\[7]UWSAJ3TISXWEP6U64TCVUZVRSZAKQ6UUSHSNC566MRQ6RIHWFQCI 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,,,,,,.,..,,.,,,.,.,,,,,,.,,,.,,...,...,...,,,.,,..,,,,,,,.,.,.,
+#I4EEGSWGFJE6YTX3SCDXTQ5R4IPRQKUFKIUZVF2VZHLSCB2TPJGG2KCK6R4R4DIK3BHWLYAX3VHO6
+#\\\|HVGROPHZK64JVAAWFZELIJGOHILCJN6GJGQLFIISAI357QEBZWK \ / AMOS7 \ YOURUM ::
+#\[7]HHKFFHXX4UTN73FSAYRWOWKO442MEZDJCWXKS4HGE5CVRWF5QECQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

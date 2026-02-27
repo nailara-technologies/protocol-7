@@ -11,17 +11,16 @@ my $clear_reply = 'console cleared';
 my $header_text = 'protocol 7 console';
 
 if (<system.ansi_color>) {
-    my $quote_str = "$colors{'p7_fg_0000'}'$colors{'p7_fg_0001'}";
+    my $quote_str = join "'", $colors{'p7_fg_0000'}, $colors{'p7_fg_0001'};
     my $host_str  = sprintf( '%s%s%s protocol 7 console',
         $quote_str, <system.host.hostname>, $quote_str );
-    printf( STDERR "%s\n %s.:[%s %s %s]:.%s\n\n",
-        $colors{'clear_screen'},                  $colors{'p7_fg_0004'},
+    say sprintf "%s\n\r %s.:[%s %s %s]:.%s\n\n",
+        $colors{'clear_screen'}, $colors{'reset'} . $colors{'p7_fg_0004'},
         $colors{'B02'} . $colors{'p7_fg_0004'},   $host_str,
-        $colors{'reset'} . $colors{'p7_fg_0004'}, $colors{'reset'}
-    );
+        $colors{'reset'} . $colors{'p7_fg_0004'}, $colors{'reset'};
 } else {
-    my $host_str = sprintf( '%s %s', <system.host.hostname>, $header_text );
-    printf( STDERR "\n .:[ %s ]:.\n\n", $host_str );
+    my $host_str = sprintf '%s %s', <system.host.hostname>, $header_text;
+    say sprintf "\n\r .:[ %s ]:.\n", $host_str;
     $clear_reply = "wrote hostname marker only [ active '-nc' option ]";
 }
 if ( not $reply_clear ) {
@@ -33,8 +32,8 @@ if ( not $reply_clear ) {
     return { 'mode' => qw| size |, 'data' => $clear_str };
 }
 
-#,,,.,,,.,,,.,,,.,,,,,...,.,,,,,,,..,,,.,,,..,..,,...,...,,.,,,,,,.,,,,,,,.,.,
-#4Q63JFTBQKTGTSUUMR7JYL4C6HCFSKFILYUSEB6IZ2QSZCMQFC3GQ2XFI7GJJU3ELS4OEF4FV3HSQ
-#\\\|GPQBOLOIZSWDPT4EBK7YYGKC73VND7WJZBOQY45D3X2GCDMW37V \ / AMOS7 \ YOURUM ::
-#\[7]VDHOF6ZWCXL5MUH2KTGD3SK75AA4GTD6JSYXXQPNC3Q25VK4BWCI 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,.,,,,.,,.,,,,.,,,,,.,.,.,.,,.,,..,,...,...,.,,,,..,,,,,,..,,,,,
+#6HOCN6P4VVXZDXEP2A2E77SHMM4BDETKC4UN372HJKHP5QKA7E2MZG2LT7WTVVV5RPARDF7UTVYJM
+#\\\|XYTDX2VTIC5YE7IGVERAPFRZFHBFQNF4KZ3PTKOM53IHQLPJLLW \ / AMOS7 \ YOURUM ::
+#\[7]TCLUNYI72HQEMVRY2M5B2MKBU2NDI52SDU4YL47ZGKOZ4YHXRAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

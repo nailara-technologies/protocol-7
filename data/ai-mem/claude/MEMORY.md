@@ -18,6 +18,31 @@
 - **Models-coding integration**: completed ✅ `models.chat` routes local models through coding zenka
 - **Data zenka + SHM mounting**: built by Kimi (Feb 21-25) ✅ — 97 modules, holographic topology
 - **Harmonic mathematics session** (Feb 27 2026): deep exploration of mod-13 structure →
+- **v7 stdout SHM log** (Feb 27 2026): completed ✅ — `/dev/shm/.7/STDOUT/<socket>`, full early
+  message reconstruction, banner re-emit, colored output matching console exactly
+
+## v7 Stdout SHM Log Architecture
+- **Log path**: `/dev/shm/.7/STDOUT/<socket>` symlinked from `/var/run/.7/STDOUT/<socket>`
+- **Config**: `v7.cfg.zenka_stdout_redir = yes`, `v7.path.zenka_stdout.parent_dir`
+- **Early flush source**: `$data{'buffer'}{'zenka'}{'data'}->@*` — base.buffer ring array
+  - NOT `$data{'system'}{'start'}{'zenka-buffer'}` (only has ~4 pre-init messages)
+  - `base.buffer.add_line` is loaded as a module file during `[load_modules]`, so most
+    early messages go to base.buffer directly, not zenka-buffer
+- **Skip indices 1 and 2** in base.buffer (startup + version markers; index 0 is `.\7`)
+- **Colors**: apply `base.log.format_entry` to each `TIMESTAMP LEVEL MSG` line
+- **Banner**: `p7_banner` now owns the opening `\..../` line (moved inside the sub);
+  call `<[base.banner]>->( '', $log_fh )` to re-emit full banner to log
+- **After flush**: `base.log` writes directly to shm via `v7.stdout_log.write` (already colored)
+- **p7_log_hook**: completely unchanged (original destructive drain + delete)
+- **p7-log deferred path**: untouched — reads base.buffer when network logging initializes
+- **Pending**: v7 end_code callback to run shm reinit/teardown (terminate listening `tail -f` processes)
+
+## Planned: SHM Log Viewer Client (next step after stdout log)
+- Console/hybrid zenka: tty UI + cube network access (control commands)
+- Search/filter mode reusing nshell history buffer code → extract into `log-viewer.*` namespace
+- Key bindings: Ctrl+L → clear-cons, Ctrl+C → SIGINT, Ctrl+R → v7.reload (SIGHUP), extensible
+- Shared rendering pipeline with full disk log viewer (p7-log source vs shm live-tail source)
+- `log-viewer.*` modules provide core; shm client and disk viewer load from same namespace
   committed to `data/md/philosophy/HARMONIC-CUBE-ROUTING-MATHEMATICS.md`; tools
   `bin/dev/iter-rank` and `bin/dev/prng-truth` created; `bin/harmony` false-positive fixed
 
@@ -131,8 +156,8 @@ Removed all hardcoded model paths/names; full dynamic discovery from models zenk
 - Handlers receive Event object as first param, not data directly
 - Extract: `my $event = shift->w; my $server = $event->data;`
 
-#,,,.,,,.,.,,,.,,,,,.,..,,...,,,.,...,,,.,,.,,..,,...,...,...,,.,,,..,,,.,,,,,
-#US2GYLCILIMAVKWKH7EWHMX3CVPMIQQ37RLZMQXAOFXJE3UGBXYSJWGLCI3NYGKZJFM7VOWTU64AG
-#\\\|VXYU7UZ63YOEXGJXYTHJ5XIZIITZLMCW5S2TQRSVMQFG3UQVC45 \ / AMOS7 \ YOURUM ::
-#\[7]HM4Z7ZX5HHDIM75SLWISOFXCTW4MI5ESJ44YOSCE6REM7PG6NECI 7  DATA SIGNATURE ::
+#,,..,.,.,...,.,.,...,,.,,.,,,..,,..,,,..,...,..,,...,..,,..,,,..,,..,,.,,.,.,
+#5H37UWDNCCUR2F7PVDSDKTGRAZDHRHPLRYJLVLNSTE4PSCO64VJ4LA56PWNDNHE3JZM7ERAHMM35Y
+#\\\|2OV5TIWWMMAEO2EAPATXEG7UFEALGL3UC5UB2ZLEGD5OYAW65WE \ / AMOS7 \ YOURUM ::
+#\[7]QFQUJYKDTXNWN443DSXAAQZGGMEDTOPSI3SFVTIK33VMDDRFHECA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

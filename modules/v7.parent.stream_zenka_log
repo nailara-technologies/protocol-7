@@ -16,7 +16,7 @@ unless ( $instance_id && $zenka_name ) {
     };
 }
 
-## Get zenka instance
+## get zenka instance
 my $instance = <v7.zenka.instance>->{$instance_id};
 
 unless ($instance) {
@@ -26,12 +26,12 @@ unless ($instance) {
     };
 }
 
-## Create unix domain socket for this zenka's log stream
-## Path: /var/run/.7/logs/<zenka_name>.<instance_id>
+## create unix domain socket for this zenka's log stream
+## path: /var/run/.7/logs/<zenka_name>.<instance_id>
 my $socket_dir  = '/var/run/.7/logs';
 my $socket_path = "$socket_dir/$zenka_name.$instance_id";
 
-## Ensure socket directory exists
+## ensure socket directory exists
 unless ( -d $socket_dir ) {
     mkdir( $socket_dir, 0755 ) or do {
         return { success => FALSE, error => "mkdir failed: $!" };
@@ -39,7 +39,7 @@ unless ( -d $socket_dir ) {
 }
 
 ## TODO: Implement unix domain socket server
-## Features needed:
+## features needed:
 ## 1. Create unix socket at $socket_path
 ## 2. Accept multiple observer connections (clone)
 ## 3. Stream output_buffer data to all connected observers
@@ -47,7 +47,7 @@ unless ( -d $socket_dir ) {
 ## 5. Support reattach (reconnect to existing socket)
 ## 6. Stop v7 console pass-through when terminal zenka with ANSI buffer attached
 
-## For now, register the log stream
+## for now, register the log stream
 <v7.log_streams> //= {};
 <v7.log_streams>->{$instance_id} //= {
     zenka       => $zenka_name,
@@ -57,7 +57,7 @@ unless ( -d $socket_dir ) {
     passthrough => 1               ## v7 shows logs by default
 };
 
-## Add observer if specified
+## add observer if specified
 if ($observer_id) {
     push @{ <v7.log_streams>->{$instance_id}{'observers'} },
         {
@@ -79,8 +79,8 @@ return {
 
 0;
 
-#,,..,,.,,,..,,,,,,,.,.,.,,,.,,,,,,.,,,.,,,,,,..,,...,...,.,.,,..,...,.,.,...,
-#FNNM6ORHVEAZ6RU6V3KRJF2M2RVMPMFP7K5LBZWNMFTSLVW2J6C3MGXTLAYKQ2CPF5EJ2KL2N4PV6
-#\\\|32Z4KGI2WRQPDX2MCMBJHJQRHFXYEPI3FUOAUHZM5RKDLHHS4LL \ / AMOS7 \ YOURUM ::
-#\[7]34O646IO6JGVYMUWLBDWE2LJ2RYFUGQBA5STBFEMBNBBG6TMCYDQ 7  DATA SIGNATURE ::
+#,,,,,...,,,,,..,,,,.,,..,,,.,..,,...,,,,,,..,..,,...,...,..,,,.,,...,.,.,,,.,
+#V6SQHBEPBWDOGDMR54DF43MBB3C3M4L2LRSU3G72BFMMGTBFOSO3AHBCSVD25GN6WF4EE3BPH3MK6
+#\\\|TWIRW7AB6MHSXFPFD7TSUTN4VNN4GVFNMGOJU3VYTSCR3NQLTLF \ / AMOS7 \ YOURUM ::
+#\[7]UK466ZXUNCUMFGHA4MBNT6PWGD5W3EOKBQS2QW7PJCOF4LWV4ACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

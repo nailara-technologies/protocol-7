@@ -28,6 +28,9 @@
 <v7.system-poweroff.enabled>    //= TRUE;
 <v7.system-poweroff.term_delay> //= 1.3787;
 
+<v7.cfg.zenka_stdout_redir>       //= FALSE;
+<v7.path.zenka_stdout.parent_dir> //= qw| /var/run/.7/STDOUT |;
+
 <system.acfg_path> = join( qw| / |, <system.conf_path>, qw| zenki | );
 
 ## instance id cache with automatic clean-up ##
@@ -78,27 +81,27 @@ if ( !-x <v7.gcc_bin> ) {
         or <[base.cfg_bool]>->(<v7.cfg.install_bin_p7r>);
 
 } else {
-    ## Compile p7c (local) binary ##
+    ## compile p7c (local) binary ##
     if ( <[base.cfg_bool]>->(<v7.cfg.install_bin_p7c>)
         and not <[v7.bin_p7c_chksum_current]> ) {
         <[v7.compile_bin_p7c]>;
     }
 
-    ## Compile p-7-r (remote) binary ##
+    ## compile p-7-r (remote) binary ##
     if ( <[base.cfg_bool]>->(<v7.cfg.install_bin_p7r>)
         and not <[v7.bin_p7r_chksum_current]> ) {
         <[v7.compile_bin_p7r]>;
     }
 }
 
-## Install p7.<zenka> symlinks for console-only zenki access ##
+## install p7.<zenka> symlinks for console-only zenki access ##
 ##
 <[v7.install_zenka_symlinks]>;
 
-### Install common workflow shorthand aliases [p7.w, p7.wo, etc.] ###
+### install common workflow shorthand aliases [p7.w, p7.wo, etc.] ###
 ## <[v7.install_workflow_shortcuts]> if $UID == 0; ##################
 ##
-### This above feature is deactivated until further notice.,
+### this above feature is deactivated until further notice.,
 #### it requires an elegant method for parameter propagation
 ##### which symlinks currently do not have yet. additionally
 ###### its function in general might be merged \ integrated
@@ -122,11 +125,11 @@ if ( !defined <v7.rmmod_bin> || !-x <v7.rmmod_bin> ) {
 <[v7.load_start_setup]>->(<load.start_setup>)
     if defined <load.start_setup>;
 
-## Verify and install dependencies for all registered zenka [LLL] refine..,
+## verify and install dependencies for all registered zenka [LLL] refine..,
 if ( $UID == 0 && exists $code{'debian.parent.scan_zenki_dependencies'} ) {
     <[base.log]>->( 2, "v7 : scanning zenka dependencies..." );
 
-    ## Scan all zenka for their dependencies
+    ## scan all zenka for their dependencies
     my $scan_result = <[debian.parent.scan_zenki_dependencies]>;
 
     if ( $scan_result && %$scan_result ) {
@@ -134,7 +137,7 @@ if ( $UID == 0 && exists $code{'debian.parent.scan_zenki_dependencies'} ) {
             2, "dependency scan complete" . " - verifying and installing..."
         );
 
-        ## Verify and install dependencies for all scanned zenka
+        ## verify and install dependencies for all scanned zenka
         if ( exists $code{'v7.verify_and_install_zenka_dependencies'} ) { #[!]
             my $install_result = <[v7.verify_and_install_zenka_dependencies]>;
 
@@ -284,8 +287,8 @@ delete <list.users>;
 
 return 0;    ## successful init ##
 
-#,,.,,..,,,,,,,..,.,.,,..,,,.,...,,.,,..,,,,,,..,,...,...,.,.,...,,.,,,..,,,,,
-#GKD6IFBCFN5KWU7PGCAIFNIVP6QHT5ENFQFNIERIHAE476RSRF7FRCK34LCBDAFI6PLKKUHMVMVP2
-#\\\|F33CAOLVTIQT7J5A5A7LUWMK3ILKTPAOCSJWE6QF6FAHJY7UNX4 \ / AMOS7 \ YOURUM ::
-#\[7]MBHOMBJWISZZTBIQAADECFF5MCRVCN6FCU72ODUFG6W75ATNRYDI 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,,.,,..,,,..,,.,,.,,,.,,,.,,,,,.,..,,...,...,..,,.,,,,..,,,,,.,.,
+#TK26EA6RWXZRS7A5V5J3X5HWJYJQ2HT6AJDYTPQG7YJHSX4R7IDAVA6ZXPCOBP7A43YXNJS57XC5W
+#\\\|BLP2SH5KNVGQVMM35OX6PJ4SQ4YGVVWV5G2YFHSI7ACYSEFPSYN \ / AMOS7 \ YOURUM ::
+#\[7]TQRLDFGMNO2PGXQLRH2G3RZAKRSY3HW4X4WRGL7UMJMI5VZWB2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

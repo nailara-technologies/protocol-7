@@ -22,8 +22,8 @@ return FALSE unless $UID == 0;                             ## root only
 return FALSE unless -x $protocol7_bin;
 return FALSE unless -d $symlink_dir and -w $symlink_dir;
 
-## Common workflow command shortcuts for faster access
-## Format: shorthand => full_command_pattern
+## common workflow command shortcuts for faster access
+## format: shorthand => full_command_pattern
 my %workflow_shortcuts = (
     'w'    => 'work',
     'wc'   => 'work.console',
@@ -44,18 +44,18 @@ my %workflow_shortcuts = (
 my $installed_count = 0;
 my $updated_count   = 0;
 
-## Install shorthand aliases
+## install shorthand aliases
 foreach my $shorthand ( sort keys %workflow_shortcuts ) {
     my $symlink_path = "$symlink_dir/p7.$shorthand";
 
-    ## Check if symlink already exists and is current
+    ## check if symlink already exists and is current
     if ( -l $symlink_path ) {
         my $current_target = readlink($symlink_path);
         if ( $current_target eq $protocol7_bin ) {
-            ## Already correct, skip
+            ## already correct, skip
             next;
         } else {
-            ## Update symlink
+            ## update symlink
             unlink($symlink_path) or do {
                 <[base.log]>->(
                     0, ": cannot update shortcut symlink: $symlink_path"
@@ -66,7 +66,7 @@ foreach my $shorthand ( sort keys %workflow_shortcuts ) {
         }
     }
 
-    ## Create symlink
+    ## create symlink
     if ( symlink( $protocol7_bin, $symlink_path ) ) {
         $installed_count++;
     } else {
@@ -100,8 +100,8 @@ if ( $installed_count > 0 or $updated_count > 0 ) {
 
 return $installed_count + $updated_count;
 
-#,,.,,,.,,..,,...,,.,,..,,...,,,,,.,.,.,,,,.,,..,,...,...,,..,,.,,.,,,.,.,,..,
-#4N6FYXJFIG2MQYX7PVEB25TSWUI3FYGNIZSHHYLUKTQ6TFYI57TYCNTUR5QMWEVYWMO25SJRIOGZQ
-#\\\|MW2FBNCVPQO6I3Z254HW23D7ORURFH6C4NOPT5DVNHAK4D3WTMD \ / AMOS7 \ YOURUM ::
-#\[7]YB4DJQB2X7KS4V6ILXLJKQJTAHR3UJ7Z7OMGLCI3BTEU7VEP6SBY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,,,...,,,,,,..,,.,,,.,,.,.,,..,,.,,..,,...,...,...,..,,.,,,,.,,..,,
+#Z44NF6DHNAD672IHA6GARYSDKWZSEI3UZWMHSM2OCCD47K3UMXTHGU42N6XEL3FWBV7PM3E3XJ3FS
+#\\\|UPHTDQ222S7QMCASY3ZON4B6D2MMOZBPILZHBXFAKLACXHCVSSA \ / AMOS7 \ YOURUM ::
+#\[7]NGVEWGBLO7MR47QKK3ORL2TGUSDTVPKS3COAOIAALQZEL5QK2WAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
