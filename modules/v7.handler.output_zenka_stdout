@@ -1,0 +1,21 @@
+## [:< ##
+
+# name  = v7.handler.output_zenka_stdout
+# descr = outputs v7-managed zenki output with optional stdout redirection
+
+my $zenka_line_sref = ref( $ARG[0] ) eq qw| SCALAR | ? $ARG[0] : \$ARG[0];
+my $line            = $zenka_line_sref->$*;
+
+## output to stdout log buffer if enabled and initialized ##
+if ( defined <v7.stdout_log.fh> and fileno <v7.stdout_log.fh> ) {
+    <[v7.stdout_log.write]>->($line);
+}
+
+## always output to console ##
+say $line;
+
+#,,,,,..,,,..,...,,,,,.,.,,,.,,.,,..,,.,.,,..,.,.,...,...,.,.,,,,,.,.,,,.,.,,,
+#FMQDJ42Y7AN74Y6CSDFNEFJLUHVWF2YCVHDTOIFZCJDXM43D7334SG3A7XRVEYXIKHDARFMV5F2KM
+#\\\|BHU2MR5BLUT256YBBDLAP66ORJPCYKLSV2RMQPELKBUXFG6HBZN \ / AMOS7 \ YOURUM ::
+#\[7]4OSHX6BUZIJIIU7ET2GGHMNH5PS2DVYIJZG3767F22576NEJWSBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

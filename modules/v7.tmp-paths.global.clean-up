@@ -65,6 +65,16 @@ foreach my $remove_path_link (@unlink_path_symlink) {
 
     my $remove_path = readlink($remove_path_link);
 
+    ## handle broken symlinks [ readlink returns undef ] ##
+    if ( not defined $remove_path ) {
+        <[base.logs]>->(
+            2, ': removing broken symlink %s',
+            $remove_path_link
+        );
+        unlink($remove_path_link);
+        next;
+    }
+
     ## check if v7 zenka responsible [ by installation path ] ##
     ##
     if ( not -e $remove_path and not -l $remove_path ) {
@@ -144,8 +154,8 @@ foreach my $remove_path_link (@unlink_path_symlink) {
 
 return $number_files_cleaned;
 
-#,,,.,,,,,.,,,,..,,,.,,.,,,,.,..,,..,,.,,,,,.,..,,...,...,...,,,.,,,.,,..,...,
-#TMZ54TOSAXQNAJIDESKJ5BJDLPTXBK6ZIUHYXRQZ7OJPS7MYGHJUONOTJXBMU6SCB5ROR634MLDZ2
-#\\\|QZ6A7KSRRSM7SO26AZQF7DHOL2WKPG5LV243DWBK7APG3QED5R3 \ / AMOS7 \ YOURUM ::
-#\[7]HWTLIO6OJV3UKBESIGGOA7YC4UXOA6QMCTFBA2SQG7XWLJAEDYDA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,...,,,,,.,,,..,,...,...,.,.,...,..,,...,...,,,,,.,.,...,.,.,,.,,
+#CYNRJ67EP5Y2M3SA3NXB5V7YMMMJDCZNQ3ZQAXQPPJACCYW573OT5H4GJ6V7EXWUOOTPPIPZBKTF2
+#\\\|POJQJQCFLACYPPPJ6JTMDRGWMLYH4OROE4Y2NKPYKWVT3ODZJH6 \ / AMOS7 \ YOURUM ::
+#\[7]DSEE4BTUL3OJWEOUWQ5HHWHITMUY5G66BBLJ5DOPTT2KFLPTCUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

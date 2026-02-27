@@ -5,12 +5,17 @@
 
 my $module_reinitialization = shift;
 
+###  temporary path registration  ###
+##
 my $tmp_dir_owner = <system.amos-zenka-user>;
 <v7.dirpath.tmp_paths> //= qw| /var/run/.7/v7/tmp_paths |;
-
+#
 <[file.make_path]>->( <v7.dirpath.tmp_paths>, 0775, $tmp_dir_owner );
-
+#
 <[v7.cleanup_temp_files]> if not $module_reinitialization;
+
+##  zenka stdout redirection  ##
+<[v7.setup_stdout_redir]> if <[base.cfg_bool]>->(<v7.cfg.zenka_stdout_redir>);
 
 if ( ref <v7.start_setup.zenki.startup.start_order> ne qw| ARRAY |
     or <v7.start_setup.zenki.startup.start_order>->@* == 0 ) {
@@ -77,8 +82,8 @@ print Dumper( $data{'jobqueue'} )
 
 0;
 
-#,,.,,.,,,.,,,,.,,,,,,,..,,.,,...,.,,,.,,,,..,..,,...,...,...,..,,,..,,,,,...,
-#7S3OSGNL4APCKYL3MG6U6HF4K6PVBZQ25VQ2QDQ5I77ZAJR7IINUGMIQURCQTPRCUABKFXDLIR44M
-#\\\|C74AZ7PWL5CXMOI2DOCSUY7EYLATPVCUHBETWVNSLAAZGAIWLSL \ / AMOS7 \ YOURUM ::
-#\[7]CST5ZANLP5E4HXPDSXMVHBYLQQPB277JM5ZVQ32YNY3OOK7V7QBI 7  DATA SIGNATURE ::
+#,,..,..,,.,,,.,.,.,.,,,.,.,.,..,,...,..,,,,.,..,,...,...,...,,,,,,..,.,,,,.,,
+#EZJCGCGGXPCIMZXYO7YMH27FRMPG4PKIZTHL7D4RRFRKKHLPNDHKTXRCHNISXRVFBEN2XPVMLOQQE
+#\\\|DARGYERCN6WWV2624UTKC5ZM3ILLRO36LBYZ4R5ELOV2VBXG3GQ \ / AMOS7 \ YOURUM ::
+#\[7]YUNZFYALAP5TOT3SHLISQWR2YMSD75LWW65VGHFM56FBJL7NEACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

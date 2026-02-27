@@ -13,12 +13,12 @@ my %verification_state = (
     alerts         => []
 );
 
-## Initialize tracking registries if not already done
+## initialize tracking registries if not already done
 $data{'v7'}{'dependency_state'}        //= {};
 $data{'v7'}{'dependency_anomalies'}    //= [];
 $data{'v7'}{'dependency_last_checked'} //= {};
 
-## Get list of all zenka dependencies from debian registries
+## get list of all zenka dependencies from debian registries
 my $zenka_deps_registry = $data{'debian'}{'zenki_deps'}{'registry'} // {};
 
 unless (%$zenka_deps_registry) {
@@ -32,7 +32,7 @@ unless (%$zenka_deps_registry) {
 <[base.log]>
     ->( 2, "v7.verify_and_install: Starting dependency verification" );
 
-## Verify each registered zenka's dependencies
+## verify each registered zenka's dependencies
 foreach my $zenka_id ( keys %$zenka_deps_registry ) {
     my $zenka_entry = $zenka_deps_registry->{$zenka_id};
     my $zenka_name  = $zenka_entry->{zenka};
@@ -41,7 +41,7 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
 
     <[base.log]>->( 3, "  Verifying dependencies for zenka : $zenka_name" );
 
-    ## Verify PM dependencies
+    ## verify PM dependencies
     if ( $zenka_entry->{pm_deps} && @{ $zenka_entry->{pm_deps} } ) {
         foreach my $pm_module ( @{ $zenka_entry->{pm_deps} } ) {
             my $verify_result = <[debian.parent.verify_dependency_state]>->(
@@ -59,7 +59,7 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
 
                 <[base.log]>->( 3, "    Missing PM module : $pm_module" );
 
-                ## Attempt installation via CPAN (uses Level 2 installer)
+                ## attempt installation via CPAN (uses Level 2 installer)
                 my $install_result = <[base.perlmod.install]>->($pm_module);
 
                 if ( $install_result && $install_result->{success} ) {
@@ -88,7 +88,7 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
         }
     }
 
-    ## Verify OS dependencies
+    ## verify OS dependencies
     if ( $zenka_entry->{os_deps} && @{ $zenka_entry->{os_deps} } ) {
         foreach my $os_package ( @{ $zenka_entry->{os_deps} } ) {
             my $verify_result = <[debian.parent.verify_dependency_state]>->(
@@ -106,7 +106,7 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
 
                 <[base.log]>->( 3, "    Missing OS package : $os_package" );
 
-                ## Attempt installation via apt-get (requires privileges)
+                ## attempt installation via apt-get (requires privileges)
                 if ( $UID == 0 ) {
                     my $install_result
                         = system(
@@ -136,7 +136,7 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
                         );
                     }
                 } else {
-                    ## Unprivileged: can't install, alert only
+                    ## unprivileged: can't install, alert only
                     push @{ $verification_state{alerts} },
                         {
                         type     => 'permission',
@@ -153,7 +153,7 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
         }
     }
 
-    ## Verify Binary dependencies
+    ## verify Binary dependencies
     if ( $zenka_entry->{bin_deps} && @{ $zenka_entry->{bin_deps} } ) {
         foreach my $binary ( @{ $zenka_entry->{bin_deps} } ) {
             my $verify_result = <[debian.parent.verify_dependency_state]>->(
@@ -192,11 +192,11 @@ foreach my $zenka_id ( keys %$zenka_deps_registry ) {
     }
 }
 
-## Store state for later retrieval and monitoring
+## store state for later retrieval and monitoring
 $data{'v7'}{'dependency_state'} = \%verification_state;
 $data{'v7'}{'dependency_last_checked'}{timestamp} = time();
 
-## Log summary
+## log summary
 <[base.log]>->( 2, "v7.verify_and_install: Complete" );
 <[base.log]>->(
     2, "  Zenka checked: " . scalar( @{ $verification_state{zenka_checked} } )
@@ -225,8 +225,8 @@ return {
     state           => \%verification_state
 };
 
-#,,.,,.,.,...,,,.,,..,.,.,,.,,,,,,.,.,,..,.,,,..,,...,...,...,.,.,.,.,,.,,,,.,
-#U3OMG2QHAUPNNAYHK2OCEYIC7SYTR4AS7ACJVG7CWRG6MOP5SIVRWHORF7VOGEMPZ52ABZ7RMEZG4
-#\\\|CMVCZH6SV2ESK6LF2H4YS3BK3K7ESLPBZ7ML4DJLZRONHZ55S73 \ / AMOS7 \ YOURUM ::
-#\[7]LUIZSEGP2X2ICGCZLZJNMW3D465TKDA4N6OY57FBTP4NS3V7GCBQ 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,,..,,..,,,,,,,.,,,,,.,.,,.,,..,,..,,...,...,..,,...,.,,,..,,...,
+#DPNVFRKLT3ONEWAVTB4GTADPYL4VYCXWVKI7O2G5K76ETEEMGIVNOJARHZII5UTPV67VZGX6U5PZW
+#\\\|TBJ5UTUQ7STAUGUQFQHV2Z4STUKUUCZKRNPX5WA3URMDTE42PJC \ / AMOS7 \ YOURUM ::
+#\[7]ATENATELGTF7I7IPU3RS2QWPSKHX2KVKLRG4DCBR7FF4ZB3OMMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

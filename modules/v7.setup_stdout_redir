@@ -1,0 +1,155 @@
+## [:< ##
+
+# name  = v7.setup_stdout_redir
+# descr = sets up in-memory stdout log buffer using tmpfs [re-init safe]
+
+<[base.perlmod.autoload]>->('File::Spec');
+<[base.perlmod.autoload]>->( 'File::Basename', qw| dirname | );
+<[base.perlmod.autoload]>->( 'Fcntl', qw| O_WRONLY O_CREAT O_APPEND | );
+
+my $unix_socket;    ## unix domain socket id of the cube zenka ##
+if ( not defined <unix.path> or <unix.path> !~ m{/UNIX/[0-2A-Z]{7}$} ) {
+    <[net.init_code]>    ## initialize variables when called too early ##
+        unless
+        <[base.is_defined_recursive]>->(qw|protocol-7.network.internal|);
+    my $cube_addr = <protocol-7.network.internal.addr>;
+    my $cube_port = <protocol-7.network.internal.port>;
+    $unix_socket = <[base.calc_unix_path]>->( $cube_addr, $cube_port );
+} elsif ( <unix.path> =~ m{/UNIX/([0-2A-Z]{7})$} ) {
+    $unix_socket = $LAST_PAREN_MATCH;
+}
+
+## configuration [ idempotent ] ##
+<v7.stdout_log.max_size>    //= 256 * 1024;    ## 256KB ring buffer ##
+<v7.stdout_log.rotate_to>   //= 128 * 1024;    ## truncate to 128KB ##
+<v7.stdout_log.check_every> //= 100;           ## check size every N writes ##
+
+## initialize early message buffer ##
+<v7.stdout_log.early_messages> //= [];
+
+## paths ##
+#
+## structure : /dev/shm/.7/STDOUT/<socket>  [ file, like UNIX sockets ] ##
+my $shm_base_dir = qw| /dev/shm/.7/STDOUT |;
+my $var_run_link = <v7.path.zenka_stdout.parent_dir>;
+my $shm_log_path
+    = catfile( $shm_base_dir, $unix_socket );    ## the file itself ##
+my $var_run_path = catfile( $var_run_link, $unix_socket );  ## symlink path ##
+
+## re-init check: already set up for this socket? ##
+if (    defined <v7.stdout_log.path>
+    and <v7.stdout_log.path> eq $shm_log_path
+    and defined <v7.stdout_log.fh>
+    and fileno <v7.stdout_log.fh> ) {
+    <[base.logs]>->(
+        2, ': stdout log already initialized [%s]', $unix_socket
+    );
+    return TRUE;    ## skip redundant initialization ##
+}
+
+## clean up previous instance if re-initializing with different socket ##
+if ( defined <v7.stdout_log.fh> ) {
+    close(<v7.stdout_log.fh>) or <[base.s_warn]>->('closing old stdout log');
+    <v7.stdout_log.fh> = undef;
+}
+if ( defined <v7.watchers.stdout_log_rotate> ) {
+    ## note: event.remove_var would be needed here if available ##
+    ## for now we just don't re-add the watcher ##
+}
+
+## initialize data structure [reset on init] ##
+<v7.stdout_log.write_count> = 0;
+
+## create tmpfs parent directory in /dev/shm ##
+<[file.make_path]>->( $shm_base_dir, 0750, <system.amos-zenka-user> );
+if ( not -d $shm_base_dir ) {
+    <[base.logs]>->(
+        0, ': cannot create shm base dir : %s',
+        <[base.str.os_err]>
+    );
+    return undef;
+}
+
+## create parent for symlink if needed ##
+my $var_run_parent = dirname($var_run_link);
+<[file.make_path]>->( $var_run_parent, 0755 ) unless -d $var_run_parent;
+
+## remove stale symlink/file if exists (or points elsewhere) ##
+if ( -l $var_run_path or -e $var_run_path ) {
+    my $current_target = readlink($var_run_path);
+    if ( not defined $current_target
+        or $current_target ne
+        File::Spec->abs2rel( $shm_log_path, $var_run_link ) ) {
+        unlink($var_run_path)
+            or <[base.logs]>->(
+            1, ': removing stale stdout link: %s',
+            <[base.str.os_err]>
+            );
+    }
+}
+
+## create relative symlink for portability ##
+my $rel_shm_path = File::Spec->abs2rel( $shm_log_path, $var_run_link );
+if ( not -l $var_run_path ) {
+    symlink( $rel_shm_path, $var_run_path )
+        or do {
+        <[base.logs]>->(
+            0, ': cannot create stdout symlink : %s',
+            <[base.str.os_err]>
+        );
+        return undef;
+        };
+}
+
+## open log file in non-blocking append mode ##
+sysopen( my $log_fh, $shm_log_path, O_WRONLY | O_CREAT | O_APPEND, 0600 )
+    or do {
+    <[base.logs]>
+        ->( 0, ': cannot open stdout log : %s', <[base.str.os_err]> );
+    return undef;
+    };
+
+## configure autoflush for real-time tail -f ##
+$log_fh->autoflush(1);
+
+<v7.stdout_log.fh>      = $log_fh;
+<v7.stdout_log.path>    = $shm_log_path;
+<v7.stdout_log.symlink> = $var_run_path;
+
+## register for cleanup on v7 exit [idempotent registration] ##
+<[v7.tmp-paths.global.register]>->($shm_log_path);
+<[v7.tmp-paths.global.register]>->($var_run_path);
+
+## re-emit startup banner to log [static at this point in startup] ##
+<[base.banner]>->( '', $log_fh );
+
+## flush any early messages captured before we opened the file ##
+<[v7.stdout_log.early_buffer]>->(qw| flush |);
+
+## set up periodic rotation watcher [only once] ##
+if ( not defined <v7.watchers.stdout_log_rotate> ) {
+    <v7.watchers.stdout_log_rotate> = <[event.add_var]>->(
+        {   'var'     => \<v7.stdout_log.write_count>,
+            'poll'    => qw| w |,                       ## watch for writes ##
+            'prio'    => 5,
+            'repeat'  => TRUE,
+            'handler' => qw| v7.callback.stdout_log_rotate |,
+            'desc'    => 'stdout log rotation check'
+        }
+    );
+}
+
+#### end_code callback for closing the redirection ####
+push <callbacks.end_code>->@*, qw| v7.stdout_log.close |;
+
+<[base.logs]>->( 1, ': stdout log buffer [%s]', $unix_socket );
+<[base.logs]>->( 1, ':. %s',                    $shm_log_path );
+<[base.logs]>->( 2, ':. tail -f %s .:',         <v7.stdout_log.symlink> );
+
+return TRUE;
+
+#,,,,,.,.,.,,,,.,,..,,,..,.,.,,,,,,.,,.,.,.,,,..,,...,...,.,,,.,.,,,,,..,,,..,
+#4JTX3JZX5GFHITKQCMZAIM2VPO5PHBXGU26ATKKIAFKRTPNDKWQ2Z3FBLW3GTTWC726SZHLVEFLQI
+#\\\|CY6DQTB3LN7PGRLI235E6ETWN6VFD4SZ3J3HGQCF7TLMAQPSUFS \ / AMOS7 \ YOURUM ::
+#\[7]JVIJFT4NVQG4ZQUW7BFGDCZU4S4YA5SH5V5PDTA6TOI3JYBJTYDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
