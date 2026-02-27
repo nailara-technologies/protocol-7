@@ -4,7 +4,6 @@
 # descr = sets up in-memory stdout log buffer using tmpfs [re-init safe]
 
 <[base.perlmod.autoload]>->('File::Spec');
-<[base.perlmod.autoload]>->( 'File::Basename', qw| dirname | );
 <[base.perlmod.autoload]>->( 'Fcntl', qw| O_WRONLY O_CREAT O_APPEND | );
 
 my $unix_socket;    ## unix domain socket id of the cube zenka ##
@@ -70,9 +69,8 @@ if ( not -d $shm_base_dir ) {
     return undef;
 }
 
-## create parent for symlink if needed ##
-my $var_run_parent = dirname($var_run_link);
-<[file.make_path]>->( $var_run_parent, 0755 ) unless -d $var_run_parent;
+## create parent dir for symlink if needed ##
+<[file.make_path]>->( $var_run_link, 0755 ) unless -d $var_run_link;
 
 ## remove stale symlink/file if exists (or points elsewhere) ##
 if ( -l $var_run_path or -e $var_run_path ) {
@@ -148,8 +146,8 @@ push <callbacks.end_code>->@*, qw| v7.stdout_log.close |;
 
 return TRUE;
 
-#,,,,,.,.,.,,,,.,,..,,,..,.,.,,,,,,.,,.,.,.,,,..,,...,...,.,,,.,.,,,,,..,,,..,
-#4JTX3JZX5GFHITKQCMZAIM2VPO5PHBXGU26ATKKIAFKRTPNDKWQ2Z3FBLW3GTTWC726SZHLVEFLQI
-#\\\|CY6DQTB3LN7PGRLI235E6ETWN6VFD4SZ3J3HGQCF7TLMAQPSUFS \ / AMOS7 \ YOURUM ::
-#\[7]JVIJFT4NVQG4ZQUW7BFGDCZU4S4YA5SH5V5PDTA6TOI3JYBJTYDA 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,..,.,.,,,,,...,,..,..,,.,,,..,,..,,...,..,,.,,,,,.,.,.,,,.,,,.,
+#767752FLQNBJKUXYWQCFXHNNEESLLBMGGH7HNN54TG5SOL6EP7TLVRXH7ZDOOEW4SSKBZLUVSGMJM
+#\\\|A4KV2XB53VOZ6K5FCROTTX5TCNVEI35GLDWDI6G4IZCZ7XPXVID \ / AMOS7 \ YOURUM ::
+#\[7]NBCHIHB46KEFDN4G4WXVXGUFTJ74NBWE4L6BSZ2HVNPIPOWAZGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
