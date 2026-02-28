@@ -15,7 +15,7 @@ our @INDEXCUBE;
 our %signatures;
 our %p7_subroutines;
 our %fh_encoding;    ## [ file handle encoding mapping ] :.
-## :. $fh_encoding{fileno($fh)} = 'UTF-8'|'OCTETS'|etc .:
+##  :. $fh_encoding{fileno($fh)} = 'UTF-8'|'OCTETS'|etc .:
 
 p7_load_time_hires();
 p7_security_hardening();    ##  initializing @INC with local lib-path  ##
@@ -3243,6 +3243,18 @@ sub p7_clean_up_caller {
 
 ##############################################################################
 
+sub p7__log__base_log_complete {
+    state $are_present = FALSE;
+    return TRUE if $are_present;    ## cached once confirmed ##
+    $are_present = TRUE
+        if exists $code{'base.log'}
+        and exists $code{'base.log.format_entry'}
+        and exists $code{'v7.stdout_log.write'};
+    return $are_present;
+}
+
+##############################################################################
+
 sub p7__log__name_template {
 
     my $lpw = shift // $data{'system'}{'zenka'}{'log_prefix_width'};
@@ -3324,13 +3336,13 @@ sub p7__log__noerr {
     $s_len //= 1;    # <-- << ! >>
     my $spaces = ' ' x $s_len;
     while ( my $lmsg = shift @ARG ) {
-        if ( defined $code{'base.log'}
+        if (    $code{'log.base_log_complete'}->()
             and $code{'base.log'} ne $code{'log.noerr'} ) {
             $code{'base.log'}->( 1, $lmsg );
         } else {
-            if (defined $code{'base.log'}    ##  routine was purged  ##
+            if (exists $code{'base.log'}   ##  was purged or not loaded yet ##
                 and $code{'base.log'} eq $code{'log.noerr'}
-                ) {    ## setting emergenncy log levels ##
+                ) {                        ## setting emergenncy log levels ##
                 $data{'system'}{'verbosity'}{'console'} //= 1;
                 $data{'system'}{'verbosity'}{'console'} = 1
                     if $data{'system'}{'verbosity'}{'console'} < 1;
@@ -3369,10 +3381,10 @@ sub p7__log__error {
         ? $colors{'bold'}
         : '';
     $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
-    if ( defined $code{'base.log'} ) {
+    if ( $code{'log.base_log_complete'}->() ) {
         map {
             $code{'base.log'}->( 0, $ARG )
-                if defined $code{'base.log'}    ##  still defined ?  ##
+                if $code{'log.base_log_complete'}->() ##  still complete ?  ##
         } @ARG;
     } else {
         map {
@@ -3406,7 +3418,7 @@ sub p7__log__error {
 sub p7__log__devmod {
 
     $code{'base.log_hook'}->() if defined $code{'base.log_hook'};
-    if ( defined $code{'base.log'} ) {
+    if ( $code{'log.base_log_complete'}->() ) {
         map { $code{'base.log'}->( 2, $ARG ) } @ARG;
     } else {
         if ( $data{'system'}{'verbosity'}{'console'} > 1 ) {
@@ -3575,7 +3587,8 @@ sub p7_uncompress_subroutine_str {
 
         if ( not exists $ENV{'NO_ANYCOMPRESS_WARN'} ) {
 
-            my $caller_lvl = defined $code{'base.log'} ? ' <{NC}>' : "\n";
+            my $caller_lvl
+                = $code{'log.base_log_complete'}->() ? ' <{NC}>' : "\n";
             map { warn sprintf '%s%s', $ARG, $caller_lvl } @err_reason;
 
         } else {
@@ -5371,8 +5384,8 @@ __DATA__
 :
 :.
 
-#,,,.,,,.,,.,,...,.,,,,,.,,,,,,,,,,.,,.,.,...,...,...,..,,,.,,,..,,,,,,..,,,,,
-#ZH7VFZXEWN3I2W63ZF7SAXJCPJIDHLRVS5Z7ZI4VMGO3AZW2P7AQRPS4WSKFXXLUNNEJMQ2SMQMWC
-#\\\|LPZ4GT2LYLMSQSEKOLCLYQWC3NCBSNMG4HUZWWI6BQHLTYFPUBQ \ / AMOS7 \ YOURUM ::
-#\[7]BUXAI64SQX4XPMVEZXFBMA4TININYHN5QHTGKD2FTTQAPGXLQYCQ 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,,,,.,,.,.,,.,,,..,,.,,,,.,.,,,...,...,...,,,.,.,,,...,,..,..,,
+#VMMEDJFMRCQPNZVHRIVRCRVG7NFPIL3EGIY3KHBOARI5XZYAXKMLHBR23PYG2IM72QNJLPSWOWRNK
+#\\\|AHZZE3LRK6Z4SECV2VPYNYMUP3TZL3OTU3KD6WOONCJKJNJ66JH \ / AMOS7 \ YOURUM ::
+#\[7]EIPZETH57OKBFESWC7TEJJAQJIOQ35GFJLA4TGFBRUGT4C2TFMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
