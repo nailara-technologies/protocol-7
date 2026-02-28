@@ -109,6 +109,7 @@ sysopen( my $log_fh, $shm_log_path, O_WRONLY | O_CREAT | O_APPEND, 0600 )
 
 ## configure autoflush for real-time tail -f ##
 $log_fh->autoflush(1);
+binmode( $log_fh, ':encoding(UTF-8)' ); ## write character strings as utf-8 ##
 
 <v7.stdout_log.fh>      = $log_fh;
 <v7.stdout_log.path>    = $shm_log_path;
@@ -146,8 +147,8 @@ push <callbacks.end_code>->@*, qw| v7.stdout_log.close |;
 
 return TRUE;
 
-#,,,,,,.,,,,,,,..,.,.,,,,,...,,..,..,,.,,,..,,..,,...,..,,.,,,,,.,.,.,,,.,,,.,
-#767752FLQNBJKUXYWQCFXHNNEESLLBMGGH7HNN54TG5SOL6EP7TLVRXH7ZDOOEW4SSKBZLUVSGMJM
-#\\\|A4KV2XB53VOZ6K5FCROTTX5TCNVEI35GLDWDI6G4IZCZ7XPXVID \ / AMOS7 \ YOURUM ::
-#\[7]NBCHIHB46KEFDN4G4WXVXGUFTJ74NBWE4L6BSZ2HVNPIPOWAZGAI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,..,,,.,.,,,,,.,..,,,,.,.,,,.,,,..,,...,...,...,...,..,,..,,,.,,
+#MZ32ZKRRXSSI3JOVR2S4OZOOVIXEJRMSGVGNTZNXRL5HYSPXZGTCME6Y35H66YLSNAZZQZFJFF4VE
+#\\\|IEOEINUPUODP6GZOI53M3CJBYFTPI2CXFGL5HEQNME2VO3NRUKM \ / AMOS7 \ YOURUM ::
+#\[7]HLRNQI6EBSEZIKFOR2RPJWLFWARI54A2GUWMK42F2GVWPIXTO6DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

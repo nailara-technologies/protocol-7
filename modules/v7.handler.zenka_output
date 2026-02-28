@@ -44,9 +44,12 @@ my $read_length
     ? sprintf( qw| %.0f |, 1 + $avg_line_length )
     : 113;
 
-my $read_bytes = <[base.s_read]>->(
+my $read_bytes = <[base.s_read]>->(    ## read STDOUT of zenka ##
     $read_fh, \$zenka_instance->{'output_buffer'}, $read_length
 );
+
+## ensure character string before any processing ##
+utf8::decode( $zenka_instance->{'output_buffer'} );
 
 if ( $read_bytes <= 0 ) {    ## [ assumed filehandle exception ] ##
     $watcher->cancel;
@@ -61,8 +64,8 @@ if ( $read_bytes <= 0 ) {    ## [ assumed filehandle exception ] ##
 
 <[v7.handler.process_output_line]>->( $watcher, $read_bytes );
 
-#,,..,,.,,...,,,.,,,.,,.,,,,,,,.,,...,.,.,,,,,..,,...,..,,,,,,,,,,.,.,..,,.,.,
-#MMS437IYT3LC6XLGJBUVWTBK5EE24BEITEHZNJNYGRSYOEFPHAMGRIENSDIXDZV5RTN4N5O7CAEI4
-#\\\|WH7OBIELLZXRIUD74NE7A5O6PDDSGEHCYDQI22ILGU7LQFQEIKD \ / AMOS7 \ YOURUM ::
-#\[7]6NE4RG2FNEXOHQY5BK3IHPWUI3HUSXXVNZNECSNXN37GDQZXGWCI 7  DATA SIGNATURE ::
+#,,..,,..,..,,,,.,...,...,.,,,...,,.,,...,,,.,..,,...,...,...,,..,...,.,.,.,.,
+#2J352GS27AQJJZQJP4FAXUZ4DBGW6BUS2WJ4ZCAT7VXT3OITHP6LQ4QIJYDX3MMTSL5TTAZQPM7JS
+#\\\|CPPYSRW2PAXB43VHXUVPHOWXLPORLGUVJJOAMKAM72SJWCUBWC4 \ / AMOS7 \ YOURUM ::
+#\[7]Q5TIHWVF2MN34DEFQ46XXSEN3LNVKDJAK5JTRQTW7RMV22LNTOAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
