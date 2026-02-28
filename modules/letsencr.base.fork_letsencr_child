@@ -15,6 +15,7 @@ socketpair(
     my $child_pipe, my $parent_pipe, AF_UNIX(),
     SOCK_STREAM(),  PF_UNSPEC()
 ) || die "can't create socketpair. [ \l$OS_ERROR ]";
+map { binmode($ARG) } ( $child_pipe, $parent_pipe );     ## ipc pipe : raw ##
 map { $data{'handle'}{$ARG}{'link'} = qw| ipc.pipe | }
     ( $child_pipe, $parent_pipe );
 
@@ -112,8 +113,8 @@ if ( !<letsencr.child.pid> ) {    ## child ##
     <[base.log]>->( 1, 'letsencr parent initialized' );
 }
 
-#,,,,,.,,,,..,...,...,...,..,,,.,,...,,.,,,,.,..,,...,...,..,,,,,,,.,,.,.,..,,
-#UJXF3ZHY2DSUN3T34PED62NJHF6ST42PYORCC6ODVBKBVAJ32XCNVCDSEGH44PJQ4OOUJNAIIKZ2W
-#\\\|LZHN75EFK5JFSEIHNYVUHSBOHSRYVWRNWSLJFZHNK2L54B6JV5T \ / AMOS7 \ YOURUM ::
-#\[7]IVA7PBYQB6VVPW5VD6LQGMG2OGVUU7CMVSJILC3PVGID6XL2XIBY 7  DATA SIGNATURE ::
+#,,..,..,,.,,,,,.,,.,,,.,,.,,,..,,,,,,...,,..,..,,...,...,...,.,,,..,,,..,.,.,
+#ISVYJY6KQRLX2CH2RXOXQMPISWMBJRPZJYW4UDFIFR5VA546HU6XFZKATYJNT2X6CL5YGUQELOA4Q
+#\\\|JCKYV6TV23VOC5PL4RWS7RYZFNZ3MKXWJBUQTS5ZSPPB5RIONLE \ / AMOS7 \ YOURUM ::
+#\[7]OOMBW6DY2F7PBAFRK34JCDAW6IHQDNWJXKHNCQEPSRJNIQQER2DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,6 +12,7 @@ use Socket;
 
 socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
     || die "can't create socketpair! [ \l$OS_ERROR ]";
+map { binmode($ARG) } ( $child_pipe, $parent_pipe );     ## ipc pipe : raw ##
 map { $data{'handle'}{$ARG}{'link'} = qw| ipc.pipe | }
     ( $child_pipe, $parent_pipe );
 
@@ -64,8 +65,8 @@ if ( !<image2html.child.pid> ) {    ## child ##
 
 }
 
-#,,,,,,.,,...,,.,,,,.,..,,,..,,,,,.,.,.,,,,.,,..,,...,...,.,.,,..,.,.,,,.,,..,
-#Y7WSY5C3TXJGZDPCBWJKN6S7KAFTQH6C6P622WWU277LOHXQRUPJVJW6D22GA5ZOC5B5SZXL6PCBO
-#\\\|NDNQIEA6P3SKBQNQFLLRL4WB2PYOI7VUISLE43JQXGHK2K5RPDM \ / AMOS7 \ YOURUM ::
-#\[7]BNAQDGLULAKRX7RHXMKBU4JXL6HYWPHRBLYYQCOCMSLATGRZTQCA 7  DATA SIGNATURE ::
+#,,,,,...,,..,...,,,.,,.,,,,,,,,,,...,,.,,...,..,,...,...,,.,,..,,,,,,..,,,.,,
+#F6VWWL7235VCVJPP6WABRCMVFMEGJQ3ECSNCECZUGK5EQHL6MWTQECNV7CPELILZMSBLDWKS5K5IS
+#\\\|LRKYULL5W2B75YUVFGXVYKUO7PZATRJDZA4BB52TRSUQCIXYJDF \ / AMOS7 \ YOURUM ::
+#\[7]JVT6CU5USHHSK7W7ODQIVJBOXDXFV5YZABBPR25QK3SJZ55ZRIBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
