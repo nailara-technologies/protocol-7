@@ -2159,7 +2159,8 @@ sub p7_devmod_sub {
         if $sub_name ne qw| base.log |
         and ( $sub_name ne qw| base.buffer.add_line |
         or $ARG[0] ne qw| zenka | )    # skipping too much output ..,
-        and $sub_name ne qw| base.dump_data |;
+        and $sub_name ne qw| base.dump_data |
+        and defined fileno( \*STDOUT );
 }
 
 ##############################################################################
@@ -3396,9 +3397,9 @@ sub p7__log__error {
                     ? $code{'base.log_hook'}->()
                     : 0;
                 my $spaces = ' ' x $s_len;
-                say &{ $code{'log.format_name'} }, ' ',
-                    $colors{'p7_fg_0002'}, $ARG,
-                    $spaces;
+                say $code{'log.format_name'}->(), ' ',
+                    $colors{'p7_fg_0002'}, $ARG, $spaces
+                    if defined fileno( \*STDOUT );
 
             } else {
                 warn '<< error message not defined >> <{C1}>';
@@ -3406,7 +3407,7 @@ sub p7__log__error {
         } @ARG;
         map {    ## early start-up buffer ##
             push(
-                @{ $data{'system'}{'start'}{'zenka-buffer'} },
+                $data{'system'}{'start'}{'zenka-buffer'}->@*,
                 join( ' ', $code{'base.anum_log_time'}->(), 0, $ARG )
             )
         } @ARG;
@@ -5384,8 +5385,8 @@ __DATA__
 :
 :.
 
-#,,.,,,,.,,,.,,,,,,.,,.,.,,.,,,..,,.,,,,.,.,,,...,...,...,,,.,.,,,...,,..,..,,
-#VMMEDJFMRCQPNZVHRIVRCRVG7NFPIL3EGIY3KHBOARI5XZYAXKMLHBR23PYG2IM72QNJLPSWOWRNK
-#\\\|AHZZE3LRK6Z4SECV2VPYNYMUP3TZL3OTU3KD6WOONCJKJNJ66JH \ / AMOS7 \ YOURUM ::
-#\[7]EIPZETH57OKBFESWC7TEJJAQJIOQ35GFJLA4TGFBRUGT4C2TFMCA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,,,,,.,.,...,.,.,.,,,.,,,..,,.,.,...,...,...,.,,,...,,,,,.,,,,..,
+#DF3JVN5GKU6JNCLAI42EILHKUCULRVJDMN4IOJMUN7ASWQZZXKPWS4SWAQZVKKWZEKEB6QGH2XEIQ
+#\\\|RFWZXWBXD6HVA2LJ3E5AOVPVB3C5BXBLA2DJ5SLYM3QOPXQLGFQ \ / AMOS7 \ YOURUM ::
+#\[7]7I6XSVHER62CBSA6OMOTEYYASI7DSQTBXMQSPZBNOL3IT2XLYYCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
