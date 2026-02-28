@@ -1222,8 +1222,17 @@ sub editor_process_key {
     ## Ctrl-D - Delete char at cursor [ or EOF if buffer empty ]
     if ( $key eq "\x04" ) {
         if ( $editor->{cursor_pos} < length $editor->{buffer} ) {
+            ## determine byte length of the utf-8 char at cursor position
+            my $first_b = ord(
+                substr( $editor->{buffer}, $editor->{cursor_pos}, 1 ) );
+            my $del_len_d
+                = ( $first_b & 0xF8 ) == 0xF0 ? 4
+                : ( $first_b & 0xF0 ) == 0xE0 ? 3
+                : ( $first_b & 0xE0 ) == 0xC0 ? 2
+                :                               1;
             ## delete character at cursor position
-            substr( $editor->{buffer}, $editor->{cursor_pos}, 1, '' );
+            substr( $editor->{buffer}, $editor->{cursor_pos}, $del_len_d,
+                '' );
             $result->{action} = 'delete';
 
             ## output : rest of line + clear to end + reposition
@@ -1350,9 +1359,22 @@ sub editor_process_key {
     ## left arrow key - move cursor left [ ANSI: \e[D ]
     if ( $key eq "\e[D" or $key eq "\x1b[D" ) {
         if ( $editor->{cursor_pos} > 0 ) {
-            $editor->{cursor_pos}--;
+            ## scan back over utf-8 continuation bytes [ 10xxxxxx = 0x80-0xBF ]
+            my $step = 1;
+            while (
+                $editor->{cursor_pos} - $step > 0
+                && (ord(substr(
+                            $editor->{buffer},
+                            $editor->{cursor_pos} - $step, 1
+                        )
+                    ) & 0xC0
+                ) == 0x80
+            ) {
+                $step++;
+            }
+            $editor->{cursor_pos} -= $step;
             $result->{action} = 'cursor_left';
-            $result->{output} = "\x08";          ## single backspace
+            $result->{output} = "\x08" x $step;
         }
         return $result;
     }
@@ -1360,8 +1382,17 @@ sub editor_process_key {
     ## right arrow key - move cursor right [ ANSI: \e[C ]
     if ( $key eq "\e[C" or $key eq "\x1b[C" ) {
         if ( $editor->{cursor_pos} < length $editor->{buffer} ) {
-            my $char = substr( $editor->{buffer}, $editor->{cursor_pos}, 1 );
-            $editor->{cursor_pos}++;
+            ## determine byte length of the utf-8 char at cursor position
+            my $first = ord(
+                substr( $editor->{buffer}, $editor->{cursor_pos}, 1 ) );
+            my $step
+                = ( $first & 0xF8 ) == 0xF0 ? 4
+                : ( $first & 0xF0 ) == 0xE0 ? 3
+                : ( $first & 0xE0 ) == 0xC0 ? 2
+                :                             1;
+            my $char
+                = substr( $editor->{buffer}, $editor->{cursor_pos}, $step );
+            $editor->{cursor_pos} += $step;
             $result->{action} = 'cursor_right';
             $result->{output} = $char;    ## echo the character under cursor
         }
@@ -1371,7 +1402,15 @@ sub editor_process_key {
     ## delete key escape sequence [ ANSI: \e[3~ ] - delete character at cursor
     if ( $key eq "\e[3~" or $key eq "\x1b[3~" ) {
         if ( $editor->{cursor_pos} < length $editor->{buffer} ) {
-            substr( $editor->{buffer}, $editor->{cursor_pos}, 1, '' );
+            ## determine byte length of the utf-8 char at cursor position
+            my $first = ord(
+                substr( $editor->{buffer}, $editor->{cursor_pos}, 1 ) );
+            my $del_len
+                = ( $first & 0xF8 ) == 0xF0 ? 4
+                : ( $first & 0xF0 ) == 0xE0 ? 3
+                : ( $first & 0xE0 ) == 0xC0 ? 2
+                :                             1;
+            substr( $editor->{buffer}, $editor->{cursor_pos}, $del_len, '' );
             $result->{action} = 'delete';
 
             ## output : rest of line + clear to end + reposition
@@ -1387,14 +1426,29 @@ sub editor_process_key {
     ##                             many terminals send backspace as DEL
     if ( $key eq "\x08" or $key eq "\x7f" ) {
         if ( $editor->{cursor_pos} > 0 ) {
-            $editor->{cursor_pos}--;
-            substr( $editor->{buffer}, $editor->{cursor_pos}, 1, '' );
+            ## scan back over utf-8 continuation bytes [ 10xxxxxx = 0x80-0xBF ]
+            my $del_len = 1;
+            while (
+                $editor->{cursor_pos} - $del_len > 0
+                && (ord(substr(
+                            $editor->{buffer},
+                            $editor->{cursor_pos} - $del_len, 1
+                        )
+                    ) & 0xC0
+                ) == 0x80
+            ) {
+                $del_len++;
+            }
+            $editor->{cursor_pos} -= $del_len;
+            substr( $editor->{buffer}, $editor->{cursor_pos}, $del_len, '' );
             $result->{action} = 'backspace';
 
             ## output : rest of line + clear + reposition
             my $rest = substr( $editor->{buffer}, $editor->{cursor_pos} );
             $result->{output}
-                = "\x08" . $rest . ' ' . ( "\x08" x ( length($rest) + 1 ) );
+                = "\x08" x $del_len
+                . $rest . ' '
+                . ( "\x08" x ( length($rest) + 1 ) );
         }
         return $result;
     }
@@ -1409,7 +1463,7 @@ sub editor_process_key {
 
         ## insert character at cursor position
         substr( $editor->{buffer}, $editor->{cursor_pos}, 0, $key );
-        $editor->{cursor_pos}++;
+        $editor->{cursor_pos} += length($key);   ## byte-accurate for utf-8 ##
         $result->{action} = 'echo';
 
         ## output : character + rest of line + reposition cursor
@@ -1540,8 +1594,8 @@ sub cursor_disable {
 
 return TRUE ##################################################################
 
-#,,,,,...,,,.,.,,,,.,,,.,,.,,,,.,,..,,..,,,..,..,,...,...,.,,,,.,,,,.,.,,,.,,,
-#XLXIEDBHB3Q53YXOATBC2YVFSVMX4UJDKHD7OMCI5NAECEXMRDFXBOCUQYHPJOMIKHYN6NWX47XSK
-#\\\|4FL6XABJWLENWZKZQC2VMA7U46YTJVOJR5NLJMGZFJ7K2RJQ7OV \ / AMOS7 \ YOURUM ::
-#\[7]5P3LILD3WJQNC6S36VB3KBBOHTUHRWCP5WPDGV6QGGUBC3YHNQCA 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,,.,..,,,,.,,,,,...,.,,,,.,,.,,,..,,...,...,...,,.,,,..,,,.,,.,,
+#EFWBNEXNR377XPMCIN6NAK6KHN7VVBN52IDYN4HYCXRKMKUHNM6CWKADKFHKEYBLIIMY6BFYT6WK2
+#\\\|BCFXGFFPUQD3UDQGUGGRSHPRLTSWXSLCVCSLZUBN4OOQIVYGHZS \ / AMOS7 \ YOURUM ::
+#\[7]VHWONOGSJ7R47XHQRN2M5WR2RJG33C6B6UFUY7KIPUAZPKBLTGAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
