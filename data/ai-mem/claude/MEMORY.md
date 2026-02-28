@@ -136,6 +136,16 @@ Removed all hardcoded model paths/names; full dynamic discovery from models zenk
 - Cryptographic access control: Ed25519 signed permissions per path
 - Docs: `data/md/data-zenka/` and `data/md/data-zenka/AGENTS.md`
 
+### nshell UTF-8 Echo Fix (Feb 2026)
+- **File**: `data/lib-path/pm/AMOS7/TERM.pm` — `editor_process_key`
+- **Bug**: `cursor_pos++` on insertion split multi-byte UTF-8 sequences; `render.viewport`
+  then printed byte 0xCF alone + byte 0x84 alone → `ÏÂ` instead of `τ`
+- **Fix**: `cursor_pos += length($key)` for insertion; backspace/left-arrow scan back over
+  continuation bytes (0x80-0xBF) to find char start; right-arrow/delete/Ctrl-D determine
+  forward byte length from leading byte
+- All rendering goes through `render.viewport` (full `\r` redraw), so the `result->{output}`
+  strings in editor_process_key are never printed by nshell — only `cursor_pos` accuracy matters
+
 ### nshell Viewport / Terminal Rendering (Feb 2026)
 - New modules: `nshell.render.viewport` (unified renderer), `nshell.handler.term_resize` (SIGWINCH)
 - **Pending-wrap trap**: printing exactly `term_cols` chars puts cursor in pending-wrap state;
@@ -149,6 +159,25 @@ Removed all hardcoded model paths/names; full dynamic discovery from models zenk
   note: originally had UTF-8 char-width counting issue, fixed in the tool itself
 - Docs: `data/md/documentation/NSHELL_REFACTORING_SUMMARY.md` (updated Feb 2026 addendum)
 
+### `protocol-7.network.parent_route` (Feb 2026)
+- Arraref tracking network path back to root, nearest-first: `['parent', 'cube']` in children,
+  `['cube']` in directly-connected zenki
+- Initialized empty in `net.init_code`, assigned directly in `base.net.connect` and
+  `v7.callback.connect_to_cube`, prepended with `unshift` in five fork-child modules
+- Fork-child modules use `qw| parent |` (not `<system.zenka.name>`) — matches the literal
+  session alias; using zenka name would give `weather.weather.cmd` redundancy from cube
+- Direct assignment (not push) for connection-side modules — idempotent on reconnect
+- Reference: `data/md/documentation/NETWORK-ADDRESSING-AND-TOPOLOGY.md`
+
+### `log.base_log_complete` core sub (Feb 2026)
+- Gates full log chain readiness: `base.log` + `base.log.format_entry` + `v7.stdout_log.write`
+  all present before any log output path attempts to use them
+- Defined in `bin/Protocol-7` as `sub p7__log__base_log_complete` — naming convention:
+  `p7__` prefix stripped, `__` → `.` for dots → `$code{'log.base_log_complete'}`
+- State-cached with `state $are_present` — checks `exists` not `defined`, returns TRUE once set
+- Call sites use `$code{'log.base_log_complete'}->()` not `defined $code{'base.log'}`
+  (except line 3343 purge-detection path which correctly keeps `exists $code{'base.log'}`)
+
 ### Variable Watcher Backup/Restore (CRITICAL — see topic-patterns.md)
 - Stop → back up → replace → restore with `->again()` (never `->now()`)
 
@@ -156,8 +185,8 @@ Removed all hardcoded model paths/names; full dynamic discovery from models zenk
 - Handlers receive Event object as first param, not data directly
 - Extract: `my $event = shift->w; my $server = $event->data;`
 
-#,,..,.,.,...,.,.,...,,.,,.,,,..,,..,,,..,...,..,,...,..,,..,,,..,,..,,.,,.,.,
-#5H37UWDNCCUR2F7PVDSDKTGRAZDHRHPLRYJLVLNSTE4PSCO64VJ4LA56PWNDNHE3JZM7ERAHMM35Y
-#\\\|2OV5TIWWMMAEO2EAPATXEG7UFEALGL3UC5UB2ZLEGD5OYAW65WE \ / AMOS7 \ YOURUM ::
-#\[7]QFQUJYKDTXNWN443DSXAAQZGGMEDTOPSI3SFVTIK33VMDDRFHECA 7  DATA SIGNATURE ::
+#,,..,...,,,.,,..,,.,,..,,,..,,,.,.,.,.,.,,..,..,,...,...,.,,,,..,.,,,.,.,,,,,
+#OEWGQ7GGZV567KDKJO4DKNTMX4SEL5BJBAQXKGEVT4WRKIM4L35IODGFKCUKU7QM267OOTSNLFZFC
+#\\\|YJQ2UL3BQCVMPPY6EKESXXBI6BWYHV45Q37CEOPXQ3PEZFG7RIJ \ / AMOS7 \ YOURUM ::
+#\[7]7EJHG3W6MOHCZHXC7GZIXS3HXFMOAA672NCKLNJSPXYVWZJLBSBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
