@@ -13,6 +13,7 @@ use Socket;
 
 socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
     || die "can't create socketpair. [ \l$OS_ERROR ]";
+map { binmode($ARG) } ( $child_pipe, $parent_pipe );     ## ipc pipe : raw ##
 map { $data{'handle'}{$ARG}{'link'} = qw| ipc.pipe | }
     ( $child_pipe, $parent_pipe );
 
@@ -100,8 +101,8 @@ if ( !<vision-batch.child.pid> ) {
     <[base.log]>->( 1, 'child process forked and ready for commands.,' );
 }
 
-#,,.,,,,.,..,,.,.,,.,,..,,..,,.,,,,.,,,..,.,,,..,,...,...,.,,,.,,,,..,.,,,.,.,
-#BU7K2RTUSS5BHIK7E4AQWXGJJNAY4IJPNV6VVSZ2VULXT6QMBVV7JPPOJZJ4ORDSTGYDEPMM2FMIO
-#\\\|TS4THKOJ3HIL56GTE43HS5KMHUQ56I2ZTLH5RB7XJ5MCY54GJEL \ / AMOS7 \ YOURUM ::
-#\[7]NBDYIOGSM7B5524HMKV3QUSOYQZ3QR4NLRTKO2BUQBWOJD7C6GAI 7  DATA SIGNATURE ::
+#,,,.,.,.,,.,,,..,.,.,,,.,,.,,.,.,..,,,..,.,.,..,,...,...,..,,...,.,.,..,,.,.,
+#JZDW6PAZJBBIZMRGFRXLQ5PGLQXSCI5S4QYGNLLUTU2UPZH6FXAPROLLKC55RUK3KG4DCVXY5A2OS
+#\\\|XQ4JSQC5WJ6SDMKOZ6T57CCMTE4TP7H2LXKIPDUK6QV7NNAYXVP \ / AMOS7 \ YOURUM ::
+#\[7]2V6JIN6ROWPKDB6I4V6GYAK6SESOEYUZGZXCKIHC6LMQK3VQWKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
