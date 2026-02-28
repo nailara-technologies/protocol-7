@@ -3,6 +3,9 @@
 # name  = work.init_code
 # descr = workflow zenka initialization
 
+## no network logging when 'work' zenka
+delete <buffer.zenka.log_cmd> if <system.zenka.name> eq qw| work |;
+
 # Load YAML module for aggregation features
 eval { <[base.perlmod.autoload]>->('YAML::XS'); };
 if ($EVAL_ERROR) {
@@ -126,8 +129,8 @@ if ( not exists <buffer.workflow-aggregation> ) {
 
 return FALSE;
 
-#,,..,..,,,.,,.,,,.,.,,,.,.,,,.,,,,.,,..,,,..,..,,...,...,...,.,,,..,,.,.,.,,,
-#5L2ZNSAZNWUK2PHLNHXWI7XIONTB4LSBGGXEETRDAKTD4GDEEZ26DAENB6KXJYY3NGQ5ZYVCR47TS
-#\\\|VJDWQDRA725RVB5DLUKO5PKEY7JY5R3TOVVJW7DYZDEN74ND322 \ / AMOS7 \ YOURUM ::
-#\[7]TB7XRB6ZUYO237KMVBHHDUHD5F4QB4R6SS4RMNBWNHVD4RMZ4EAI 7  DATA SIGNATURE ::
+#,,,,,.,,,,,.,.,,,,,,,,..,,.,,,.,,,..,.,,,.,.,..,,...,...,,..,.,.,,.,,,.,,,,.,
+#NH63ERUPXIUIE5D25IARJKJVAJOKJALK4JIM6ZXNR7ZRGHCP6WVHISMW5IREBER6BOCIQJDIZCX7Q
+#\\\|AUQWJOLIEZPAH2MQY75MUF54K6CLRTUCGCSFW2UYZ5AFO74FURO \ / AMOS7 \ YOURUM ::
+#\[7]3JK47ZYTLQYYB2BRNYUKXDIS6W4H7V62UGGFE7H7PIQXDGKRGSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
