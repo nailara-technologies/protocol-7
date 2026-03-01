@@ -1,0 +1,19 @@
+## [:< ##
+
+# name  = base.parser.prefix_str
+# param = <prefix> [values]
+# descr = return prefixed list as space seperated string [for cfg inclusion]
+
+my $prefix_str = shift;
+return warn 'expected prefix string param <{C1}>' if not defined $prefix_str;
+
+my @values = split m|\s+|, join ' ', @ARG;
+return '' if !@values;    ## nothing to do ##
+
+return join ' ', map { join '', $prefix_str, $ARG } @values;    ## prefixed ##
+
+#,,.,,.,.,,,,,.,.,..,,,.,,.,.,...,,,.,,,,,...,..,,...,...,..,,,,.,..,,.,,,,,,,
+#XN2YLGR74KVLT4JMYPFOEFFSPTDGGK7IRP2IN4QMKIKKSZNURD5GNVWGHFLOYYAPH4N62G7D6ECHI
+#\\\|IMSA2TPUIROMGLVE54NOA3DKX3VOUQIPYYHU2LTLC5EOCFE2ZOQ \ / AMOS7 \ YOURUM ::
+#\[7]QLOYYG4BPCYRDLJQN2NHV6A54GKST7OKA5RVMIM4LC77HNKMSKDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

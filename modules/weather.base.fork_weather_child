@@ -26,6 +26,9 @@ map { $data{'handle'}{$ARG}{'link'} = qw| ipc.pipe | }
 
 if ( !<weather.child.pid> ) {    ## child ##
 
+    ## logging uses automatic route over parent ##
+    <buffer.zenka.log_cmd> = qw| p7-log.append |;
+
     <[event.add_signal]>->( { 'signal' => 'CHLD', 'handler' => 'dev.null' } );
     close($child_pipe);
     delete <weather.pipe.child> if exists <weather.pipe.child>;
@@ -34,18 +37,25 @@ if ( !<weather.child.pid> ) {    ## child ##
     IO::AIO::reinit();
 
     <weather.pipe.parent> = $parent_pipe;
-    <log.file.system.retry_timer>->cancel
-        if exists <log.file.system.retry_timer>;
+
+    ## removing not required entries ## [ only used in 'parent' itself ]
+    delete <access.cmd.usr.cube>;
+    delete <access.cmd.usr.child>;
+    delete <access.cmd.regex.usr.cube>;
+    delete <access.cmd.regex.usr.child>;
 
     my $subname = <system.zenka.subname>;
     my $sn_str  = defined $subname ? ':' . $subname : '';
     <system.zenka.subname> = sprintf 'child%s', $sn_str;
     $PROGRAM_NAME = sprintf '%s[child%s]', <system.zenka.name>, $sn_str;
 
-    $data{'session'}{$session_id}{'shutdown'} = 1;
+    $data{'session'}{$session_id}{'shutdown'} = TRUE;
+    $data{'handle'}{$parent_pipe}{'mode'}     = qw| out |;
 
-    $data{'handle'}{$parent_pipe}{'mode'} = qw| out |;
     unshift <protocol-7.network.parent_route>->@*, qw| parent |;
+    ## logging uses automatic route over parent ##
+    <buffer.zenka.log_cmd> = qw| p7-log.append |;
+
     my $id = <[base.session.init]>->(
         $parent_pipe, qw| protocol-7 client parent |
     );
@@ -55,12 +65,19 @@ if ( !<weather.child.pid> ) {    ## child ##
     <[base.load_modules]>->('weather.child');
     <[base.init_modules]>->('weather.child');
 
+    ## silencing session shutdown, to log-level 1 ##
+    <callback.session.closing_last.params>->[1] = 1;
+
     <[base.log]>->( 1, 'preparing to close cube session of child .,' );
 
 } else {    ## parent ##
     close($parent_pipe);
     delete <weather.pipe.parent> if exists <weather.pipe.parent>;
     <weather.pipe.child> = $child_pipe;
+
+    ## removing not required entries ## [ only used in 'child' ]
+    delete <access.cmd.usr.parent>;
+    delete <access.cmd.regex.usr.parent>;
 
     <[base.load_modules]>->('weather.parent');
     <[base.init_modules]>->('weather.parent');
@@ -71,9 +88,15 @@ if ( !<weather.child.pid> ) {    ## child ##
         ->( $child_pipe, qw| protocol-7 client child | );
     $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
 
+    ## enables routing commands to child zenka ##
+    $data{'session'}->{$id}->{'authenticated'} = qw| yes |;
+
+    ## authenticate cube session to allow routed commands to httpd ##
+    $data{'session'}{$session_id}->{'authenticated'} = qw| yes |;
+
     my $cache_dir = <weather.cache_dir>;
-    my $city_file = sprintf '%s/city.current', $cache_dir;
-    if ( -f $city_file ) {
+    my $city_file = catfile( $cache_dir, qw| city.current | );
+    if ( -f $city_file and -r $city_file ) {
         <[base.log]>->( 1, "found saved location setup in cache.," );
 
         ##  contains UTF8 data  ##
@@ -95,6 +118,8 @@ if ( !<weather.child.pid> ) {    ## child ##
             );
             unlink($city_file) or warn "unlink failed : \l$OS_ERROR";
         }
+    } elsif ( -f $city_file ) {
+        <[base.logs]>->( 0, ':: no read access : %s', $city_file );
     }
 
     if ( defined <weather.location> and length(<weather.location>) ) {
@@ -103,14 +128,14 @@ if ( !<weather.child.pid> ) {    ## child ##
         <[base.log]>->( 1, '<< no city configured at startup >>' );
         if ( !<weather.zenka.initialized> ) {
             <[base.async.get_session_id]>;   # change zenka status to 'online'
-            <weather.zenka.initialized> = 1;
+            <weather.zenka.initialized> = TRUE;
         }
     }
 
 }
 
-#,,..,...,,,.,,,,,...,,,.,,,,,..,,,..,,.,,,,.,..,,...,...,..,,.,.,,,,,.,.,,,,,
-#PL6KPDNDWZCMST4YNKWIT6QWCI7VHF2TWZURYES47ZPDLDCLN5V72HXZSYDXZS2LN7WOT6NEERXMU
-#\\\|7RWC4AUFQDIP7OBO7VN4YV6OUW347LZJXS36HKHD25GU4RLFYDT \ / AMOS7 \ YOURUM ::
-#\[7]CMDHH7K5JHH265RFQ4JN244NLRBYLZN23HGD4JL6POQGRJKVQMDQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,,,,...,,..,.,.,,.,,...,,,.,..,,..,,...,...,..,,..,,.,.,,,,,.,,,
+#7BMPVRH4BTSCQNH3BR5C4SPFLDR4H2YUTZZCF6EY2GC3F3HVRZKAU3OLT2M57S5VISANGVT3W22HO
+#\\\|KA4DUUSXO2U73XGNC6Z6QQ5K6NWN54D4WNMQYFRYOGO6KD4STD5 \ / AMOS7 \ YOURUM ::
+#\[7]N3GEAFPW5E6TODT7BXECTOPBE2IZLE2ATHAE5Q5KKDDZEYNBUYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
