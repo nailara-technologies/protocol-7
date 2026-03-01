@@ -24,9 +24,7 @@ my $wildcard_permissions_allowed          #                            :::
 
 ## [ LLL ] create command registry in module initialization code ..,
 
-<[base.log]>->( $warn_level, '<< wildcard access pattern configured >>' )
-    if $wildcard_permissions_allowed;
-
+my $wildcards_used   = 0;
 my $access_regex_log = {};
 my $disallowed_match = {};
 my $disallowed_count = 0;
@@ -87,11 +85,12 @@ foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
                         $errors++;
                     }
                 } else {
-                    $cmd =~ s|^\.\*\*,[^\.\\^]|%|;
-                    $cmd =~ s|\*\*|.+|g;
-                    $cmd =~ s|^\.\*|[^\\\.\\^][^\\.]%|;
-                    $cmd =~ s|\*|[^\\.]+|g;
-                    $cmd =~ s|\%|*|g;
+                    $wildcards_used++ if $cmd =~ m{^\.\*\*|\*\*|\*|\%};
+                    $cmd                      =~ s|^\.\*\*,[^\.\\^]|%|;
+                    $cmd                      =~ s|\*\*|.+|g;
+                    $cmd                      =~ s|^\.\*|[^\\\.\\^][^\\.]%|;
+                    $cmd                      =~ s|\*|[^\\.]+|g;
+                    $cmd                      =~ s|\%|*|g;
                 }
                 next if not length($cmd);
                 push( @patterns_kept, $unchanged_pattern );
@@ -179,6 +178,10 @@ foreach my $user ( <[base.reverse-sort]>->(<access.cmd.usr>) ) {
 SKIP_COMPILATION:
 }
 
+## warn when wildcard patterns are actually in use ##
+<[base.log]>->( $warn_level, '<!> wildcard access patterns are configured.' )
+    if $wildcards_used;
+
 ## report matched disallowed access patterns ##
 #
 if ($disallowed_count) {
@@ -216,8 +219,8 @@ foreach my $user ( <[base.reverse-sort]>->($access_regex_log) ) {
 
 return $errors;
 
-#,,.,,,,,,,,,,..,,...,.,,,.,.,,,,,.,.,...,..,,..,,...,...,,.,,...,..,,,,.,..,,
-#GRWORDTJ2UKKO6HBUZ3TPTSXSRKY7VAUDENKAH7LGLSWHSJHD4FCUSMBK46XFHZD2UJAW37G77HKK
-#\\\|HG3T4CJWPLO2Y3LLZUHLKNRKXVWGGVOU7ZMA2SRD4KXG4XSMFH3 \ / AMOS7 \ YOURUM ::
-#\[7]VBWFUGJLCBX277XVGH5MA42JOXEEZ5FKECHHU32KJTIDPPMBXIDY 7  DATA SIGNATURE ::
+#,,,,,...,..,,,,.,.,,,,.,,...,.,.,,,.,..,,,..,..,,...,...,...,,..,,..,,,,,,..,
+#FKRKXEYDI5CI6W5VKNN4H2LFASAM5LNX6EREL7ZHTBQSSOUSRTJNNGZUERS6BAFBSBTIPACOKNI7Q
+#\\\|CU7A5Z2W52NSFWOGK22CS7AZXMFGK6ULJXIMEMPSZNGFBRLYYCH \ / AMOS7 \ YOURUM ::
+#\[7]ZSWG5ED4RANPZL7YT6LYZW44Q6K7XT44GOA77TGSPK4LTIW37KAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
