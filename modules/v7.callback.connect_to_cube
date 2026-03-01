@@ -49,7 +49,8 @@ if ( exists $init_data->{'cube'}->{'key'} ) {    ## secure key erasure ##
 #[ error \ <false> ]
 return FALSE if not defined $c_fh;
 
-<base.log.allow_buffer_send> = TRUE;    ## enable sending to 'p7-log' ##
+<base.log.allow_buffer_send>      = TRUE;    ## enable sending to 'p7-log' ##
+<protocol-7.network.parent_route> = [qw| cube |];
 
 my $session_id
     = <[base.session.init]>->( $c_fh, qw|  protocol-7  client  cube  | );
@@ -75,8 +76,8 @@ my $root_sid = <v7.zenka.instance>->{$instance_id}->{'root_sid'};
 #[success]
 return TRUE;
 
-#,,,,,..,,..,,,..,,,,,...,..,,.,.,,,,,,,.,...,..,,...,...,...,,.,,,..,,,.,,,,,
-#5334GCTEEIWPIANUIRK56KQSQJOEVI5UKG6LKGABJYKOTZLD47CEBDK7ZTZJM7TZKDYLWLF3KZD3G
-#\\\|RBUHCO7YTT532JDSYYYRQFGF2XKUINMEIOVSIRL6YYAHAGIYWK7 \ / AMOS7 \ YOURUM ::
-#\[7]TE73L36NXZXKTOU54T25NABQPWBIQGPWKW4EGSQSVW577LHRVSCQ 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,.,,,,.,.,,,...,,..,,,.,,..,,,,,..,,...,...,.,.,.,.,,..,,..,,.,,
+#7CKUJR2PUGZSGRMGXQHJK6SNXVUBG2N3QXHI77ZBUSLN7AUF4E3YEMKMTODKKVMTCCPERZQUCMMD4
+#\\\|FKTSPMJTT2K2S4XBGEZ4RI7FLESNYAC2NKSSRNDHL42CTSWPDB5 \ / AMOS7 \ YOURUM ::
+#\[7]KUPIPPCBPWX4HPCA2CRWU7M74M66CUO3SUBNT3L2E4EG5W5MVMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
