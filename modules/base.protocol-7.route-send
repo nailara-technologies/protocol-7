@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = base.protocol-7.route-send
+# descr = send command via protocol-7.network.parent_route prefix
+
+my $params  = shift                // return 0;
+my $command = $params->{'command'} // return 0;
+my @route;
+
+## prepend parent_route hops to command [e.g.:'parent.cube','p7-log.append'..]
+@route = <protocol-7.network.parent_route>->@*
+    if ref(<protocol-7.network.parent_route>) eq qw| ARRAY |;
+
+$params->{'command'} = @route ? join( '.', @route, $command ) : $command;
+
+return <[base.protocol-7.command.send.local]>->($params);
+
+#,,.,,..,,.,.,,,.,,..,,,,,,.,,..,,..,,,.,,,..,..,,...,.,.,..,,...,,,,,,,.,,,,,
+#YYETWGNUYC7KH3IQ5YGA4YSUBQJKW77LVVMMYXFIZSN5KI4OG4KIY42VMIROVAQL2YPX6UAP2W7TY
+#\\\|CPFXVFBNECM7YXPFRVXBRPSL4HXRKEPQEZ5K6UHZLUJNPTO7AY3 \ / AMOS7 \ YOURUM ::
+#\[7]SC4HAPKGBPBLG7JFTD2WVYFGRBXZS64HWXGB4VG5GFD6J7FZRYBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
