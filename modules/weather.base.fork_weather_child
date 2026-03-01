@@ -45,6 +45,7 @@ if ( !<weather.child.pid> ) {    ## child ##
     $data{'session'}{$session_id}{'shutdown'} = 1;
 
     $data{'handle'}{$parent_pipe}{'mode'} = qw| out |;
+    unshift <protocol-7.network.parent_route>->@*, qw| parent |;
     my $id = <[base.session.init]>->(
         $parent_pipe, qw| protocol-7 client parent |
     );
@@ -108,8 +109,8 @@ if ( !<weather.child.pid> ) {    ## child ##
 
 }
 
-#,,,,,...,,..,,,,,,.,,.,,,,,,,,.,,,,,,.,,,.,.,..,,...,...,...,.,,,,,.,,..,.,.,
-#4Z4OULNXMNNSEQISPDBKGOIA734B6BRPZZ2VAOB74CRGAJJGBYPRWDC6N4MD4JM2MY3KFF5NWI6HO
-#\\\|AY4FXCWRCXTSBUES4SRBA27QR2QKTAXQWI5A7AEK4ML7BX2K4VB \ / AMOS7 \ YOURUM ::
-#\[7]ZGKCZMMRWWQIZK3RK7KL5F4PD5G6IVRLS6QOHKOBB6KSPBJGJIDA 7  DATA SIGNATURE ::
+#,,..,...,,,.,,,,,...,,,.,,,,,..,,,..,,.,,,,.,..,,...,...,..,,.,.,,,,,.,.,,,,,
+#PL6KPDNDWZCMST4YNKWIT6QWCI7VHF2TWZURYES47ZPDLDCLN5V72HXZSYDXZS2LN7WOT6NEERXMU
+#\\\|7RWC4AUFQDIP7OBO7VN4YV6OUW347LZJXS36HKHD25GU4RLFYDT \ / AMOS7 \ YOURUM ::
+#\[7]CMDHH7K5JHH265RFQ4JN244NLRBYLZN23HGD4JL6POQGRJKVQMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
