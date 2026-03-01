@@ -3,6 +3,9 @@
 # name  = letsencr.child.init_code
 # descr = initialize child process for Let's Encrypt ACME operations - handles blocking crypto and network calls
 
+## route child log messages via parent_route to p7-log ##
+<buffer.zenka.log_cmd> = qw| p7-log.append |;
+
 <[base.log]>->( 2, "initializing Let's Encrypt ACME child process..," );
 
 ## Load child-specific cryptographic module (letsencr.base already loaded/initialized by zenka startup)
@@ -91,8 +94,8 @@ if (    $enroll_init eq qw| re-init |
 
 0;
 
-#,,.,,.,.,.,,,...,,,.,,,.,,,,,...,,..,,..,.,.,..,,...,..,,...,,.,,.,.,.,.,.,.,
-#ETWMRCXUEEP3DMK4KP2GIRNJM5GDA4BMFM4DR7K3F4J3LCHKLHDNBBLNQD4MDIJZILRW6VAN73WVI
-#\\\|PL6YGYFY3DR42XR6NASO2G5U4VCD2VOHHJ33DUCOCQLLRXVDMEH \ / AMOS7 \ YOURUM ::
-#\[7]D5ENIBGEP67AQDK3XT3NSYYP726E4LFSBOBA4JKYPNEKMY6C6YCI 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,..,,,..,.,,,..,,,,.,...,.,.,.,,,..,,...,...,...,.,.,...,..,,,,,,
+#H3YIOUDCTGNF33FRJSLJNSVHARBK4FTSKI2DN564I6NBBHYKQLLXTSDOM2ZE277JPRG6KBM563AE2
+#\\\|EI2SSXJOB6CQUO7P7VTZW4ITS6UV4YW4RHKJ3ZB7W6BJM4WQCPS \ / AMOS7 \ YOURUM ::
+#\[7]YP2MNEOWZORUD3GQ24XEGZSRYZJ5COELONBAZ2EAWV5YVC4YDQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

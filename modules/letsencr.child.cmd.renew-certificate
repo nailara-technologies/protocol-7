@@ -8,12 +8,12 @@
 my $domain = $call->{'args'};
 
 return {
-    'mode' => 'false',
+    'mode' => qw| false |,
     'data' => 'domain parameter required'
     }
     unless defined $domain && length($domain);
 
-<[base.log]>->( 2, "child : renewing certificate for domain : $domain" );
+<[base.logs]>->( 2, 'child : renewing certificate for domain : %s', $domain );
 
 ## Get certificate info and retry attempt from parameters
 my $cert_info     = $call->{'param'}{'cert_info'}     // {};
@@ -21,12 +21,12 @@ my $retry_attempt = $call->{'param'}{'retry_attempt'} // 0;
 my $alt_names     = $call->{'param'}{'alt_names'}     // [];
 
 if ($retry_attempt) {
-    <[base.log]>->( 2, "  (retry attempt : $retry_attempt)" );
+    <[base.logs]>->( 2, ':. retry attempt : %d', $retry_attempt );
 }
 
 ## Build domains list (primary + alt names)
 my @domains = ($domain);
-push @domains, @$alt_names if ref($alt_names) eq 'ARRAY' && @$alt_names;
+push @domains, @$alt_names if ref($alt_names) eq qw| ARRAY | && @$alt_names;
 
 ## Get admin email from config or parameters
 my $email = $call->{'param'}{'email'} || <letsencr.admin.email>;
@@ -41,32 +41,55 @@ $email = <[letsencr.child.substitute_admin_email]>->( $email, \@domains );
 my $result = <[letsencr.child.acme_new]>->(
     {   domains => \@domains,
         email   => $email,
-    }
+    },
+    $call->{'reply_id'}    ## pass reply_id for async challenge coordination
 );
 
-## Check result status
-unless ( $result && $result->{status} eq 'success' ) {
-    my $error
-        = $result->{error} || 'Unknown error during certificate renewal';
-    <[base.log]>->( 1, "certificate renewal failed : $error" );
+unless ($result) {
+    <[base.logs]>->( 1, 'acme_new returned undef' );
     return {
-        'mode' => 'false',
-        'data' => $error
+        'mode' => qw| false |,
+        'data' => 'internal error : acme_new failed'
     };
 }
 
-<[base.log]>->( 2, "certificate renewed successfully for $domain" );
+## handle deferred status [ challenge coordination via parent ]
+if ( $result->{status} eq qw| deferred | ) {
+    <[base.logs]>->(
+        2, 'renewal accepted, processing challenge asynchronously'
+    );
+    <[letsencr.child.continue_challenge_processing]>;    ## contacts httpd ##
+    return { 'mode' => qw| deferred | };
+}
+
+## handle error result
+if ( $result->{status} eq qw| error | ) {
+    my $error = $result->{'error'}
+        // 'unknown error during certificate renewal';
+    <[base.logs]>->( 1, 'certificate renewal failed : %s', $error );
+    return { 'mode' => qw| false |, 'data' => $error };
+}
+
+## expect success at this point
+unless ( $result->{status} eq qw| success | ) {
+    my $error = $result->{error} // 'unexpected status during renewal';
+    <[base.logs]>
+        ->( 1, 'certificate renewal unexpected result : %s', $error );
+    return { 'mode' => qw| false |, 'data' => $error };
+}
+
+<[base.logs]>->( 2, 'certificate renewed successfully for %s', $domain );
 
 ## Create certificate bundle for parent
 my $cert_bundle = {
     certificate => $result->{cert},
     key         => $result->{key},
-    issued_at   => time(),
+    issued_at   => <[base.time]>->(3),
     expires_at  => $result->{valid_until},
     domain      => $domain,
     domains     => \@domains,
     cert_url    => $result->{cert_url},
-    renewed     => 1,                        # Mark as renewal
+    renewed     => TRUE,                     # Mark as renewal
     retry_count => $retry_attempt,
 };
 
@@ -74,17 +97,17 @@ my $cert_bundle = {
 my $bundle_json = JSON::XS::encode_json($cert_bundle);
 my $bundle_b32r = encode_b32r($bundle_json);
 
-<[base.log]>->( 2, "certificate bundle encoded (base32r)" );
-<[base.log]>->( 3, "  bundle size : " . length($bundle_b32r) . " bytes" );
+<[base.log]>->( 2, "certificate bundle encoded [base32r]" );
+<[base.logs]>->( 3, ':. bundle size : %d bytes', length($bundle_b32r) );
 
-## Return certificate bundle to parent (mode='size' for binary/encoded data)
+## Return certificate bundle to parent [ mode='size' for binary|encoded data ]
 return {
-    'mode' => 'size',
+    'mode' => qw| size |,
     'data' => $bundle_b32r
 };
 
-#,,,,,,,.,..,,..,,,..,,,,,.,,,,,,,.,,,...,,.,,..,,...,...,...,,..,,.,,,..,.,,,
-#ZKQABEKYBT76AH3W2HUSVVVNZ3YZMV3ODR7BK555PAZZ6AGELEC7RMBKUY5NUMTQS3NFA33PZNZ3Q
-#\\\|SAXRU2A7ZO24IJ2XOADYCOKQJKUGZFNF6ZWA7IRJQLFU3GBLT2U \ / AMOS7 \ YOURUM ::
-#\[7]6SJOG64SGDK3443D3P35OFUGAJZSI7XRWPHIBJTNS7WLPVV2T2BI 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,,..,,.,,,..,..,,,,.,,,.,,,.,,,,,..,,...,..,,.,,,.,.,,.,,...,...,
+#3EOD36V24TLFIZVD3EEOLSPI6H6PJWCQ7A5AI7YZVJX3EETXII45Z3EDQUEZH7XHXX6W4KC55HMLK
+#\\\|O7OYJTROCZTPATBEAZ6JWOVKDALN5T4YUSWP4OAC7542DRRVYNK \ / AMOS7 \ YOURUM ::
+#\[7]OUQGM335Z7VRUH2TZORN6MATUXZM6XC4P7PDQKPBFHCEETPVH2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
