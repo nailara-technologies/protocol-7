@@ -6,16 +6,16 @@
 
 my $zoom;
 my $tile_name;
-my $city = $$call{'args'};
+my $city = $call->{'args'};
 $tile_name = $1 if defined $city and $city =~ s| \[([^\]]+)\]||;
 
-push( @{<weather.get-urls.reply_ids>}, $$call{'reply_id'} );
+push <weather.get-urls.reply_ids>->@*, $call->{'reply_id'};
 
 my $window_name
-    = defined $tile_name ? "[$tile_name]" : 'web-browser';    #'universal'?
+    = defined $tile_name ? "[$tile_name]" : qw| web-browser |;   #'universal'?
 
-<[base.protocol-7.command.send.local]>->(
-    {   'command'   => 'cube.tile-groups.get_coordinates',
+<[base.protocol-7.route-send]>->(
+    {   'command'   => qw| tile-groups.get_coordinates |,
         'call_args' => { 'args' => $window_name },
         'reply'     => {
             'handler' => qw| weather.parent.handler.coordinates_reply |,
@@ -24,10 +24,10 @@ my $window_name
     }
 );
 
-return { 'mode' => 'deferred' };
+return { 'mode' => qw| deferred | };
 
-#,,.,,.,.,,..,..,,...,...,,,.,,,,,...,,.,,..,,..,,...,...,...,,,,,.,.,,,.,,.,,
-#2IPNW5FIRWECB5EGLYDTREDRA4HTZOLHGCFBTRGBWS7RUOC4JFGAS6OEWIZSJECYNLUQ2XQI32KL4
-#\\\|TDS7SZZIVIJL33EODLJXFIBQS7MEXHTERUHWNFLZVRO7VXWLHIV \ / AMOS7 \ YOURUM ::
-#\[7]RPDKF3FCSTPC7KOS7SDNWE7FNPOGBBCAZAEKPQ5A43KT35DGOUAY 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,,.,.,,,,..,,,.,,..,.,,,..,,.,.,..,,...,...,..,,...,,,.,,,,,.,,,
+#JSMHCOHBI3NTOKUH4WILV66COWMYCPBXLYWVKJ6XWHYLOTAHIYPX3ZCVM25Q673AC6ELA46Z7SLCU
+#\\\|LOOFU57JEW45JATNU5NINYCMW355RLK5BPLX66KJDQQOLK6DH2N \ / AMOS7 \ YOURUM ::
+#\[7]T6QCSXVM4VOHCVZZIBXIJ677SOU3MHQCNM7E4JTECRRSBBSGRGDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
