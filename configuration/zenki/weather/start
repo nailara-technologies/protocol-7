@@ -3,17 +3,29 @@
 
 [load_config_file:'shared-params']
 
+system.access.wildcards.allow = 0
+
+# child commad accessed by or through the parent process
+access.cmd.usr.parent = commands reload show-buffer show-access verbosity \
+                        list cpu-time cur-pid src-ver src-age name heart \
+                        loaded-configs update_current update_forecast \
+                        get-station-id request-data \
+                        get dump echo ##  <-- devmod
+acc_str.prefixed = [base.parser.prefix_str:'child.',<access.cmd.usr.parent>]
+
+# commands accessed from cube zenka [ parent or routed by it to child ]
 access.cmd.usr.cube = commands heart verify-instance reload name \
                       list show-buffer buffer-erase buffer-erase-level \
-                      get-urls station-id child.* clean-cache clear-location \
+                      get-urls station-id clean-cache clear-location \
+                      loaded-configs cpu-time src-ver src-age show-access \
                       location temp desc clouds humid present \
-                      dump echo # <-- require devmod module
-
-                      # reload command currently disabled [ drops parent cmds ]
-
-access.cmd.usr.parent = commands reload show-buffer \
-                        update_current update_forecast \
-                        * # <-- LLL
+                      <acc_str.prefixed> \ ## <-- include cube to child list
+                                  get dump  # <-- require loaded devmod module
+                      # reload command currently disabled
+                      # [ as it is dropping parent cmds ]
+[base.del_key:'acc_str'] ## clean-up
+# commands from child routed by parent to cube [ to v7 and p7-log ]
+access.cmd.usr.child = cube.v7.notify_online cube.p7-log.append
 
 weather.api.key = '5659adaa37c4bd7ad94ac32f5a375fb2' # <-- a working test API key
 #                 [!] get your own API key at http://openweathermap.org/register
@@ -88,9 +100,9 @@ modules.load = auth net protocol io.unix io.ip weather.base
 
 [weather.base.fork_weather_child]
 
-[root.drop_privs:<system.amos-zenka-user>]
+[root.drop_privs:<system.amos-zenka-user>] ## init_code done - processing next
 
-[zenka.loop]
+[zenka.loop]  ## processing \ serving network commands
 
 #,,,,,..,,,,,,,..,,.,,..,,,..,.,,,,,.,...,,..,..,,...,...,,,,,.,,,.,.,,,,,...,
 #4PF75GAF4QIBIWN2WMUSXI4QUFYYUACAMGYTZUWQNXLJBLM2OUS7J5MOPQMU7LKOGXVXR4HDQ4WBK
