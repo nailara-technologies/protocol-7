@@ -26,7 +26,9 @@ access.cmd.usr.parent =  status renew force-renew inst-self-signed \
 
 access.cmd.usr.child = cube.httpd.setup-acme-challenge \ ## <-- child to cube
                        cube.httpd.cleanup-acme-challenge \
-                       cube.httpd.remove-acme-challenge
+                       cube.httpd.remove-acme-challenge \
+                       cube.v7.notify_online \           ## <-- log routing ##
+                       cube.p7-log.append
 
 ## ACME Server Configuration
 letsencr.acme.server = https://acme-v02.api.letsencrypt.org/directory

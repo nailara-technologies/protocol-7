@@ -5,8 +5,13 @@
 
 my $name = length ref $ARG[0] ? shift->w->data : shift;    ## buffer name ##
 
-## path to target zenka.., ##
-my $route_prefix = <system.zenka.name> eq qw| cube | ? '' : qw| cube. |;
+## path to target zenka via parent_route [ empty for cube, 'cube.' for
+##                          direct, 'parent.cube.' for child zenki, etc. ] ##
+my $route_prefix = '';
+if ( ref(<protocol-7.network.parent_route>) eq qw| ARRAY |
+    and <protocol-7.network.parent_route>->@* ) {
+    $route_prefix = join( '.', <protocol-7.network.parent_route>->@* ) . '.';
+}
 
 if ( not defined $data{'buffer'}->{$name}->{'log_cmd'} ) {
     <[base.s_warn]>->(
@@ -127,8 +132,8 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
     }
 }
 
-#,,.,,.,.,,..,,,.,,,.,,,.,..,,.,,,...,,,.,.,.,..,,...,...,,,,,,,.,.,,,..,,...,
-#7BVUFN5TKFCUA2TOFLUCJ5T2RP634TU3EZITLWKO3LVDYIJAMGTFO3VST3GKSSPDY3DEKJUTBW4R4
-#\\\|NI2EWHZLHG7DLHH3SW6L7MN54WH4RPQI2TNIM7XLNL3E2JTEOKS \ / AMOS7 \ YOURUM ::
-#\[7]GUDCK7OE5WAZ6ANCA4H2QWNHWI4OHA5BBXN5AMQ3SDVSC7EGJSDI 7  DATA SIGNATURE ::
+#,,..,..,,,,,,,..,.,.,,..,.,,,.,.,...,..,,,,.,..,,...,...,...,..,,...,,..,...,
+#NGN6Z7IKBKIKX3YMAN5FHMBWWZBTUWOOR3ZEBZLLVJ26IXPGZFHZMG7XBGJUEEEISRXOIGVVCV4IY
+#\\\|3LGYMZZPWTCQSAFAOFC7ASU4BVWEIQ6BW2EFHLU4ANJ2QVVUJZF \ / AMOS7 \ YOURUM ::
+#\[7]HUZ2CX4NHW7YI7A3YTLSPI56RD5UVXKOX5XVZBNN473F6UG45ABA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

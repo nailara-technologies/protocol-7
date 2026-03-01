@@ -54,7 +54,10 @@ if ( !<letsencr.child.pid> ) {    ## child ##
     <[base.log]>->( 1, 'preparing to close cube session of child .,' );
     $data{'session'}->{$session_id}->{'shutdown'} = TRUE;
 
+    <buffer.zenka.log_cmd> = qw| p7-log.append |;
+
     $data{'handle'}->{$parent_pipe}->{'mode'} = qw| out |;
+    unshift <protocol-7.network.parent_route>->@*, qw| parent |;
     my $id = <[base.session.init]>->(
         $parent_pipe, qw| protocol-7 client parent |
     );
@@ -113,8 +116,8 @@ if ( !<letsencr.child.pid> ) {    ## child ##
     <[base.log]>->( 1, 'letsencr parent initialized' );
 }
 
-#,,..,..,,.,,,,,.,,.,,,.,,.,,,..,,,,,,...,,..,..,,...,...,...,.,,,..,,,..,.,.,
-#ISVYJY6KQRLX2CH2RXOXQMPISWMBJRPZJYW4UDFIFR5VA546HU6XFZKATYJNT2X6CL5YGUQELOA4Q
-#\\\|JCKYV6TV23VOC5PL4RWS7RYZFNZ3MKXWJBUQTS5ZSPPB5RIONLE \ / AMOS7 \ YOURUM ::
-#\[7]OOMBW6DY2F7PBAFRK34JCDAW6IHQDNWJXKHNCQEPSRJNIQQER2DY 7  DATA SIGNATURE ::
+#,,..,,,.,.,.,,.,,...,,.,,..,,...,,..,...,,.,,..,,...,...,,.,,,.,,.,.,.,.,,,,,
+#UZSSIXS3LAKHH7WJK6EPGQVMV4SPAWADWMCSVZY5ID33ZHVSW3VMLFJ35Q6MTPNNO5A2L3SAKAYQU
+#\\\|DXJ3JHOEZDQEDQ3ZFXQH3CPZQUQT5O72CY54WKO7SJOBBA3FHSC \ / AMOS7 \ YOURUM ::
+#\[7]BPH3IPVFTOQY2EC7T3Q2PDUXKWIU2C5ITUOGHJJYIKZVJSACLGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
