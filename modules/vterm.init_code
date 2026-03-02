@@ -1,0 +1,67 @@
+## [:< ##
+
+# name  = vterm.init_code
+# descr = initializes vterm generic terminal buffer system
+
+## core constants ##
+<vterm.version> //= qw| 0.7.13 |;
+<vterm.cell.size_bytes>
+    //= 23;    ## actual pack size: c4 N C3C3C C c C C N = 23 bytes
+<vterm.subbit.threshold>     //= 5;     ## ±5 = declaration boundary
+<vterm.subbit.range_min>     //= -5;
+<vterm.subbit.range_max>     //= +5;
+<vterm.subbit.states_count>  //= 11;    ## -5 to +5 inclusive
+<vterm.consensus.layers_min> //= 5;     ## minimum for consensus
+<vterm.consensus.layers_typ> //= 7;     ## typical 5+2 configuration
+<vterm.consensus.threshold>  //= 5;     ## 5 of 7
+<vterm.default_rows>         //= 24;
+<vterm.default_cols>         //= 80;
+<vterm.max_layers>           //= 16;    ## 0-15 for 4-bit addressing
+
+## state enumerations ##
+<vterm.state.superposition>  //= 0;     ## -4 to +4: voting in progress
+<vterm.state.declared_set>   //= 1;     ## +5: consensus achieved, bit SET
+<vterm.state.declared_clear> //= 2;     ## -5: consensus achieved, bit CLEAR
+<vterm.state.indeterminate>  //= 3;     ## no clear consensus
+<vterm.state.error>          //= 4;     ## corruption detected
+
+## alternation phases ##
+<vterm.phase.undetermined> //= 0;
+<vterm.phase.even>         //= 1;       ## even number of sign changes
+<vterm.phase.odd>          //= 2;       ## odd number of sign changes
+
+## shm configuration [optional, configurable] ##
+<vterm.shm.enabled>        //= FALSE;   ## default: off, enable as needed
+<vterm.shm.base_path>      //= qw| /dev/shm/p7:vterm |;
+<vterm.shm.use_data_zenka> //= FALSE;  ## use data zenka shm mounting if avail
+<vterm.shm.fallback_local>
+    //= TRUE;    ## fallback to local hash if shm unavailable
+<vterm.shm.auto_create> //= TRUE;    ## create shm on first buffer alloc
+<vterm.shm.permissions> //= 0600;
+
+## compositor configuration ##
+<vterm.compositor.blend_mode>
+    //= qw| consensus_5of7 |;        ## or: normal, add, multiply
+<vterm.compositor.forensic_enabled> //= TRUE;
+<vterm.compositor.temporal_window>  //= 13;   ## frames of alternation history
+<vterm.compositor.spiral_sync> //= TRUE;    ## use spiral priority for damage
+
+## buffer registry [zenka-specific instances] ##
+<vterm.instances> //= {};                   ## keyed by zenka_name:instance_id
+
+## auto-detect data zenka capabilities ##
+if ( defined $code{'data.shm.mount'} or defined $code{'data.mount_hash'} ) {
+    <vterm.shm.data_zenka_available> = TRUE;
+} else {
+    <vterm.shm.data_zenka_available> = FALSE;
+}
+
+<[base.logs]>->( 2, ': vterm system initialized [v%s]', <vterm.version> );
+
+return TRUE;
+
+#,,,,,,.,,,,,,,..,,.,,.,,,.,.,.,.,,,.,.,.,,.,,.,.,...,...,...,.,,,,,.,,,,,...,
+#SANVLC26FMINTF75OESGJ734KGP6B3PHK5H2UK6A5HDFN2VV46TVLPNTRVOKSREADDX4Y6GGBUXTE
+#\\\|B4JO56GHT3XNDZ7QRGKPIC5LLCL4S6ZCLPEWNY65MIGNSJLJ5NH \ / AMOS7 \ YOURUM ::
+#\[7]C4K2CGGXSZLQU6EXUVRR2ASXQYTQTFOE64AOA5Q7YDOXBELFO2CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

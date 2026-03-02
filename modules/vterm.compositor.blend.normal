@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = vterm.compositor.blend.normal
+# descr = normal overlay blend (last layer wins)
+
+my ( $rows, $cols, $layers_ref, $output_ref ) = @ARG;
+
+for my $y ( 0 .. $rows - 1 ) {
+    for my $x ( 0 .. $cols - 1 ) {
+        ## find topmost non-empty cell
+        my $top_cell;
+        foreach my $layer ( reverse @$layers_ref ) {
+            my $cell = <[vterm.shm]>->( qw| read_cell |, $layer, $x, $y );
+            if ( $cell and $cell->{state} != <vterm.state.superposition> ) {
+                $top_cell = $cell;
+                last;
+            }
+        }
+
+        $top_cell //= <[vterm.cell]>->(qw| create |);
+        <[vterm.shm]>->( qw| write_cell |, $output_ref, $x, $y, $top_cell );
+    }
+}
+
+return TRUE;
+
+#,,..,,,,,,,,,...,,,.,,.,,..,,,.,,.,,,,,.,.,,,..,,...,...,,,,,,.,,...,,,.,,..,
+#3EX5MEJRHTHC7XNN4AVNSJZU5U7HCCOEA4LBR7G4Q2BB2BVRA3HCHEKQMK5NA5G427XT4DQJPT2MW
+#\\\|NKVJR7WQUSKWI7J4ORWUG7NDHB5DLUJDRQTAAO5F73JA5GARZZF \ / AMOS7 \ YOURUM ::
+#\[7]74VYTV7NAS5WNSQCCAA2FQNGVGN4AVESADXOR3DLDDHS2IE4IAAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
