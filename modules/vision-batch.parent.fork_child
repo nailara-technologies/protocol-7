@@ -42,26 +42,26 @@ if ( !<vision-batch.child.pid> ) {
     <system.zenka.subname> = sprintf 'child%s', $sn_str;
     $PROGRAM_NAME = sprintf '%s[child%s]', <system.zenka.name>, $sn_str;
 
-   # Mark parent's cube session for shutdown in child
-   # Child inherits the parent's cube session after fork, but child should NOT
-   # communicate with cube. Only the parent should handle cube messages.
-   # This line closes the child's inherited copy of the cube session.
-   # The parent keeps its own copy and continues communicating with cube.
-    $data{'session'}{$session_id}{'shutdown'} = 1;
+    ## closing inherited cube session in child [ parent keeps its own copy ] ##
+    $data{'session'}{$session_id}{'shutdown'} = TRUE;
 
-    # Initialize Protocol-7 session over socketpair
+    ## logging uses automatic route over parent ##
+    <buffer.zenka.log_cmd> = qw| p7-log.append |;
+
+    ## removing not required entries ## [ only used in 'parent' itself ]
+    delete <access.cmd.usr.cube>;
+    delete <access.cmd.regex.usr.cube>;
+
     $data{'handle'}{$parent_pipe}{'mode'} = qw| out |;
+    unshift <protocol-7.network.parent_route>->@*, qw| parent |;
     my $id = <[base.session.init]>->(
         $parent_pipe, qw| protocol-7 client parent |
     );
 
-    # Set command handler so child can receive and execute Protocol-7 commands
     $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
 
     <[base.log]>->( 1, 'preparing to load child modules .,' );
 
-# Load child-specific modules ONLY in child process (not inherited from parent)
-# Include image-quality modules for image analysis
     <[base.load_modules]>->('vision-batch.child');
     <[base.load_modules]>->('image-quality');
     <[base.init_modules]>->('vision-batch.child');
@@ -79,30 +79,34 @@ if ( !<vision-batch.child.pid> ) {
     <[base.load_modules]>->('vision-batch.parent');
     <[base.init_modules]>->('vision-batch.parent');
 
-    # Initialize Protocol-7 session over socketpair
+    ## removing not required entries ## [ only used in 'child' ]
+    delete <access.cmd.usr.parent>;
+    delete <access.cmd.regex.usr.parent>;
+
     $data{'handle'}{$child_pipe}{'mode'} = qw| out |;
     my $id = <[base.session.init]>
         ->( $child_pipe, qw| protocol-7 client child | );
 
-    # Set command handler so parent can send commands and receive replies
     $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
 
-    $data{'session'}{$id}->{'authenticated'} = qw| yes |; # enabling  commands
+    ## enables routing commands to child zenka ##
+    $data{'session'}{$id}->{'authenticated'} = qw| yes |;
 
-    # Store child process and session info
+    ## authenticate cube session to allow routed commands ##
+    $data{'session'}{$session_id}->{'authenticated'} = qw| yes |;
+
     <vision-batch.child.session_id> = $id;
 
     ## reporting child PID to v7 zenka so it is able to terminate it ##
     <[base.zenki.report_child_pid]>->(<vision-batch.child.pid>);
 
-    # Mark zenka as online (following weather pattern)
-    <[base.async.get_session_id]>;                        ## --> 'online' ##
+    <[base.async.get_session_id]>;    ## --> 'online' ##
 
     <[base.log]>->( 1, 'child process forked and ready for commands.,' );
 }
 
-#,,,.,.,.,,.,,,..,.,.,,,.,,.,,.,.,..,,,..,.,.,..,,...,...,..,,...,.,.,..,,.,.,
-#JZDW6PAZJBBIZMRGFRXLQ5PGLQXSCI5S4QYGNLLUTU2UPZH6FXAPROLLKC55RUK3KG4DCVXY5A2OS
-#\\\|XQ4JSQC5WJ6SDMKOZ6T57CCMTE4TP7H2LXKIPDUK6QV7NNAYXVP \ / AMOS7 \ YOURUM ::
-#\[7]2V6JIN6ROWPKDB6I4V6GYAK6SESOEYUZGZXCKIHC6LMQK3VQWKBY 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,..,,,,.,,,.,,.,,,.,,,..,..,,,,.,..,,...,...,..,,..,,,..,.,.,,,.,
+#QRTLQKURALODWBVHN5M6WSVJ7QFHJZZYFFIJMVGLGNJ34R3GJ2V4X35LWVDT7GAARPK55XBDBUIDG
+#\\\|W7JLW73DGFNXDGGFFUHBPMIXLKPFRHBQWIXMM2ZOABQX2QHRZMC \ / AMOS7 \ YOURUM ::
+#\[7]RDV7W3HVJ6F3BLCM4VDAF53VPLSWKCQ5XDNS32JU7BQYCD6H3WCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

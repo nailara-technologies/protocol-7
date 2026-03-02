@@ -2,19 +2,24 @@
  .:[ 'image2html' conversion zenka ]:.
 
 [load_config_file:'shared-params']
+system.access.wildcards.allow = false
 
-access.cmd.usr.cube = commands heart verify-instance list show-buffer get_url reload
+access.cmd.usr.cube = commands heart verify-instance \
+                      list show-buffer get_url reload \
+                      child.cur-pid
 
-access.cmd.usr.parent = commands show-buffer convert_image
+access.cmd.usr.parent = commands show-buffer convert_image cur-pid
+
+access.cmd.usr.child = cube.v7.notify_online cube.p7-log.append
 
 image2html.cache_dir  = /var/cache/image2html
 image2html.cache_perm = 0755
 image2html.cache_days = 30 # days
 
-image2html.exif.auto_compensate_rotation = 1 # rotate automatically --> EXIF-info
-image2html.scale.landscape.scale_height = 1  # reduces height to avoid scrolling
-image2html.scale.landscape.crop_to_fit = 0 # crops images to fill screen instead
-image2html.scale.portrait.fit_width  = 0  # vertical scrolling (portrait images)
+image2html.exif.auto_compensate_rotation = 1 # rotate automatically [EXIF-info]
+image2html.scale.landscape.scale_height = 1 # reduces height to avoid scrolling
+image2html.scale.landscape.crop_to_fit = 0 # crop images to fill screen instead
+image2html.scale.portrait.fit_width = 0 # vertical scrolling [portrait images]
 
 image2html.write_error_page = 1
 
