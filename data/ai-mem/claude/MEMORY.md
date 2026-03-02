@@ -23,10 +23,10 @@
   message reconstruction, banner re-emit, colored output matching console exactly
 - **fork-child cleanup + sig_chld pid filter** (Mar 2 2026): completed ✅ — commit `1ffe1d2fa`
   image2html, pdf.html, vision-batch pattern unified; `base.handler.sig_chld.shutdown` upgraded
-- **kimi-web WebSocket client zenka** (Mar 2 2026): completed ✅ — 14 modules: `websocket.*`
-  (generic WS client) + `kimi.*` (kimi-web integration); `models.chat` routes kimi/kimi-code
-  through `models.backend.kimi_web` → `kimi.cmd.ask-reply`; deferred `get_session_id` goes
-  online only after WS+initialize handshake; exponential backoff 2→4→…→60s on disconnect
+- **kimi-web WebSocket client zenka** (Mar 2 2026): completed ✅ commit `68af03d0a` — 14 new
+  modules: `websocket.*` (generic reusable WS client) + `kimi.*` (kimi-web integration);
+  `models.chat` routes kimi/kimi-code through `models.backend.kimi_web` → `kimi.cmd.ask-reply`;
+  deferred `get_session_id` — online only after WS+initialize handshake; backoff 2→4→…→60s
 
 ## v7 Stdout SHM Log Architecture
 - **Log path**: `/dev/shm/.7/STDOUT/<socket>` symlinked from `/var/run/.7/STDOUT/<socket>`
@@ -234,8 +234,8 @@ Removed all hardcoded model paths/names; full dynamic discovery from models zenk
 - Handlers receive Event object as first param, not data directly
 - Extract: `my $event = shift->w; my $server = $event->data;`
 
-#,,,.,..,,.,,,,.,,,..,.,,,,..,,,,,..,,.,,,..,,..,,...,...,,..,...,,,,,,.,,..,,
-#QUWMHQIF3RUUYDOGCIYVM2GQFSGHM6C3J727SNIXFIGZM3LRFMO37POSTLOG5UYWXGEHHNB2VOKAQ
-#\\\|LBV67HCOS24QENEQI4DR57WITVGTXAW4C2TTFMFMKQC4ETOIQBT \ / AMOS7 \ YOURUM ::
-#\[7]RJOV5LE2BPPFL6ZLMTY6QQTSGFAMADXSMCFFYBW2J5SHOCEPJSDI 7  DATA SIGNATURE ::
+#,,,.,...,,..,,,,,,,.,...,,..,..,,,,.,..,,,.,,..,,...,...,,..,...,.,,,,,,,..,,
+#H2QFEAAUROSDV2XVPZKPK6ELXULXRLWW2MZVHLFJJVQTD47GVYEP35XHDRO2GIOXYYDJUERM7LZPA
+#\\\|7TDETE6UAJMK3QPVXIVDHX4C5CVEIFBLAMZ2MNXQSZA6JCN5BNN \ / AMOS7 \ YOURUM ::
+#\[7]BT5U4FQUTNHTY4D64YZ7S27BVHZH57ZCVKTE6ZTPFCMALAJEK2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -22,7 +22,7 @@ if (   not exists <weather.data>->{$station_id}
 }
 
 <[base.log]>->( 2, "<$station_id> updating current weather data.." );
-<[base.protocol-7.command.send.local]>->(
+<[protocol-7.command.send.local]>->(
     {   'command'   => "child.request-data",
         'call_args' => { 'args' => "$station_id current" },
         'reply'     => {
@@ -32,8 +32,8 @@ if (   not exists <weather.data>->{$station_id}
     }
 );
 
-#,,,,,...,..,,...,,..,.,.,,,,,,.,,.,,,,..,,..,..,,...,.,.,...,,,,,.,.,..,,,..,
-#TI46L53R5YJGSCGCQZU4Q2T4TMSWHRSO5ZXMBE2C63PT3CFZXY7EGFZJHBNUGQRNCBGFCRX6JC3TC
-#\\\|ESHDKXNBN7J6YLPAWVTUUVNXIM36PBPNDBU4OLEBUHF5Y6FQJL7 \ / AMOS7 \ YOURUM ::
-#\[7]WNWI7SIWQFBQ7RETWFU53ADYIR5TBCIMQJS3NFPI6LBLO7UUWUAQ 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,,.,,..,,..,,,.,,,,,,,,,,,,.,...,..,,...,..,,,..,,,,,,..,..,,,,.,
+#3426U7SQLUN2HYC3J66SH5VKM4UKESXPCDCYWNOZNRBC2YVNRHEE4JTMVEPUDYYRWJQQUW365JLUY
+#\\\|5F3J6FBXP2BUC32TYUHUXEO5HDR3H7SNCPVPH4CTSONLQHHEL6B \ / AMOS7 \ YOURUM ::
+#\[7]V26ZY6UQFJMTVB7FFHQZERHCG53ZYTRATBIJUA2QMC46LIRRV6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

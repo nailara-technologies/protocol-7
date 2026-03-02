@@ -86,7 +86,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
             my $hide_wid = <universal.child>->{$hide_zenka}->{'window_id'};
             next if not defined $hide_wid;
             <[base.log]>->( 2, ": hiding '$hide_zenka' [$hide_wid]" );
-            <[base.protocol-7.command.send.local]>->(
+            <[protocol-7.command.send.local]>->(
                 {   'command'   => "cube.X-11.hide_window",
                     'call_args' => { 'args' => $hide_wid }
                 }
@@ -96,7 +96,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
         <universal.playlist_was_empty> = 1;
         <universal.playlist_bmw>       = $playlist_bmw;
         map {
-            <[base.protocol-7.command.send.local]>
+            <[protocol-7.command.send.local]>
                 ->( { 'command' => "$ARG.playlist_update" } )
         } @{<universal.display_zenki>};
     }
@@ -186,7 +186,7 @@ if ( @file_list and <universal.playlist_was_empty> ) {
         or !$switch_count )
 ) {
     map {
-        <[base.protocol-7.command.send.local]>
+        <[protocol-7.command.send.local]>
             ->( { 'command' => "$ARG.playlist_update" } )
     } @{<universal.display_zenki>};
 } elsif ( !<universal.cfg.fade_on_switch> ) {
@@ -195,8 +195,8 @@ if ( @file_list and <universal.playlist_was_empty> ) {
     <[universal.collect_video_frames]>; # need to extract video frames first.,
 }
 
-#,,,.,,.,,.,,,...,..,,,..,..,,..,,,,.,.,.,,.,,..,,...,...,,,,,.,.,...,...,,.,,
-#YYT25AIPNSYTRWOTPQWFIWSOYYS7Q33RLVPSVKEK2J5CV6EHBZVDSRLKY3EVNU34GYCTAYXI77EO2
-#\\\|5EFKBBPWXT5ORFPUCSS6OLFGKQXRLXAS5L2CP6F52B6SBMTMGEO \ / AMOS7 \ YOURUM ::
-#\[7]KFZZADXRATKXWKNWH2Y5HTFWMU7PDNKH45ADIN7N6DFSI2YFCGAQ 7  DATA SIGNATURE ::
+#,,.,,.,,,,,.,.,,,,..,,..,,,,,,,.,.,.,,,,,.,,,..,,...,..,,,,,,...,,.,,,,,,.,.,
+#7RGX3F7O63RICXGSBG2FEGQXHWYUXH4W5SFOZNEFDQTHFKTEKXJL35Y47Q57HIYO4QVGP4K2ZSK3O
+#\\\|27U3Z6MZVCRXBC2CZWCOUL74QH54IY7T32N47DG2JFHJMIONGVU \ / AMOS7 \ YOURUM ::
+#\[7]FY4VS4IKZTGZ3LK7YC7SHY7MIXMGUG55TM4CWIWTWO2PHK3NFCAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

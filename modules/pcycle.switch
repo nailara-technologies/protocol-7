@@ -15,14 +15,14 @@ my ( $dev_id, $socket_num ) = split( /\D/, <pcycle.cfg.socket_id> );
 
 <[base.log]>->( 2, ": switching fan < $cmd >" );
 
-<[base.protocol-7.command.send.local]>->(
+<[protocol-7.command.send.local]>->(
     {   'command'   => 'cube.power.' . $cmd,
         'call_args' => { 'args' => join( ' ', $dev_id, $socket_num ) }
     }
 );
 
-#,,.,,,.,,,..,.,.,,..,,,.,..,,..,,..,,,,,,...,..,,...,...,.,,,.,.,.,.,,.,,.,.,
-#WS2MJS75U7GWNPUVXENM7P6LZFU7NPIXHOZQWNDZ4UFSFYUZ47C5KYJJTM4G4BEBWVQ3VWKL2QEA6
-#\\\|SJNAUB3YJQHI25L72V7GQEG4URMIRATM46RXU7THZGNYEIMLLN3 \ / AMOS7 \ YOURUM ::
-#\[7]I673ZYVHFCIW7UAQSGI4ZSEUPOWBPBA2NF4JQ6EZTP5PIXAVPIDY 7  DATA SIGNATURE ::
+#,,,.,...,.,.,.,.,,,.,.,,,...,,,,,,,.,..,,.,,,..,,...,..,,...,,.,,,,.,...,,.,,
+#H6N4QLUOAJD4VUJTC737RIK44PPB7I7KZ3XE3YVNHOTWGV5I4F5VO67DEFM2LQIPIO4GCB4OXEQ52
+#\\\|UGEIL5OK4ESY7G7NGLWD2UWRQXJQ5FPKEULDZDD4OYE4UBRI45A \ / AMOS7 \ YOURUM ::
+#\[7]AW55UX4ZIX6GXJP44BUB2JY7VLALOZMZGB3VAHIKHYEIKJ35KIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

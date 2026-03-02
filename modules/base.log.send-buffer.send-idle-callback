@@ -63,7 +63,7 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
 
         ##  implement p7-log specific command  ## [ LLL ]
 
-        <[base.protocol-7.command.send.local]>->(
+        <[protocol-7.command.send.local]>->(
             {   qw| command | =>
                     join( '', $route_prefix, qw| v7.notify_online | ),
                 qw| call_args | => { qw| args | => $target_zenka },
@@ -109,7 +109,7 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
 
         ##  log buffer name and message  ##
         push @send_line, $name, $line_sref->$*;
-        <[base.protocol-7.command.send.local]>->(
+        <[protocol-7.command.send.local]>->(
             {   qw| command | => join( '', $route_prefix, $log_send_cmd ),
                 'call_args'   => { qw| args | => join ' ', @send_line },
 
@@ -132,8 +132,8 @@ if ( $b_ref->{'paused'} and not $b_ref->{'n.o.-asking'} ) {
     }
 }
 
-#,,..,..,,,,,,,..,.,.,,..,.,,,.,.,...,..,,,,.,..,,...,...,...,..,,...,,..,...,
-#NGN6Z7IKBKIKX3YMAN5FHMBWWZBTUWOOR3ZEBZLLVJ26IXPGZFHZMG7XBGJUEEEISRXOIGVVCV4IY
-#\\\|3LGYMZZPWTCQSAFAOFC7ASU4BVWEIQ6BW2EFHLU4ANJ2QVVUJZF \ / AMOS7 \ YOURUM ::
-#\[7]HUZ2CX4NHW7YI7A3YTLSPI56RD5UVXKOX5XVZBNN473F6UG45ABA 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,...,..,,.,.,,,.,,.,,.,.,..,,,,.,..,,...,...,,.,,,.,,,,.,...,,..,
+#MYPNNZAVCJ57AKJOI5IQ25OU42OGAUWBIVAZRYHLVF6VRUUFWQTWR55FAG6R54ATTKMFLKLMT7X6M
+#\\\|L4RFGAJ7VGU3BUBAXLGSHFKWKYMYNHPS4PDNEJRUYDYYAYFC7ES \ / AMOS7 \ YOURUM ::
+#\[7]XCEO7NO7YUSCC4E4J2EINADBX3U5NZCBO27IYB7HOKECALPGISBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

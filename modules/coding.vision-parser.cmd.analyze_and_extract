@@ -97,7 +97,7 @@ my $job = {
 # STAGE 1: Queue vision analysis (asynchronous via Protocol-7 API)
 <[base.logs]>->( 1, '[vision-parser] STAGE 1: queuing vision analysis' );
 
-my $queue_result = <[base.protocol-7.command.send.local]>->(
+my $queue_result = <[protocol-7.command.send.local]>->(
     {   'command'   => 'cube.lm-vision.analyze_image',
         'call_args' => { 'args' => "$image_path $vision_prompt" },
         'reply'     => {
@@ -116,8 +116,8 @@ my $queue_result = <[base.protocol-7.command.send.local]>->(
 # Return deferred response - actual result will come via reply handler
 return { 'mode' => 'deferred', 'data' => "Vision analysis queued\n" };
 
-#,,.,,.,.,.,.,...,.,.,,,,,.,.,,..,.,,,,,.,,,.,..,,...,..,,...,.,,,.,,,,,,,,..,
-#Q452F2JR2TPDZCTLMH6A36MV7YCGPCYVLV54DJ3BNIJW26KX4N46JEPSLPV3SSQV4J2FF5GZ44J4Y
-#\\\|OI737RI6TXKP37INLDPYBOXMHGIMP4UJMFXGRCHSUCWPO4EEAQM \ / AMOS7 \ YOURUM ::
-#\[7]FDITT3IGKMNO3JIIO7MUD6RT6RUXENTQSEDVG3ZNMNCZZTASD6AQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,...,,..,,,.,,.,,,,.,,,.,...,.,,,..,,...,...,.,.,,..,..,,..,,.,.,
+#UIIELGWJQJFXTBSNBEOOH7IXJD5KOU3LD5EG5PFDAMDP65Q5P2PWZT4SQDAKVC5LCFOSBA7M2YVNO
+#\\\|PKG3IHFGXZVT4KA3VS6ZFRIS2VSESGMR3BLJAGYK5RU7FAVKKZW \ / AMOS7 \ YOURUM ::
+#\[7]DXUUOZML34ARJ4LNO4RCDBPZJWHY73RFB5LYD5UWIF3T5K74OUDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

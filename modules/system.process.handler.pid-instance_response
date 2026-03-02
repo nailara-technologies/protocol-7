@@ -16,7 +16,7 @@ if ( $response->{'cmd'} eq qw| TRUE | ) {    # restart by 'v7' zenka
     my $instance_id = $cmd_rep_str;
     <[base.log]>->( 0, " : asking 'v7' to restart instance $instance_id" );
 
-    <[base.protocol-7.command.send.local]>->(
+    <[protocol-7.command.send.local]>->(
         {   'command'   => qw| cube.v7.restart |,
             'call_args' => { 'args' => $instance_id }
         }
@@ -30,8 +30,8 @@ if ( $response->{'cmd'} eq qw| TRUE | ) {    # restart by 'v7' zenka
     return warn "aborted autokill for pid $process_id [no v7 zenka access?]";
 }
 
-#,,.,,,.,,..,,...,,.,,,..,,,.,,..,.,,,,,.,,,.,..,,...,...,..,,..,,,,.,.,.,.,.,
-#PL5E4YMQYWWGT7KNV5PWGAIASOYDXG2IAVLGYSTXIGVAJLK5K5JYYWLTPZWZUVKIBRDB3CSTDJFOO
-#\\\|VTWRCUANXQ6KC6357RAY7AQ4ODWB5YUAHYQVIPYDMNAX5BNVRA2 \ / AMOS7 \ YOURUM ::
-#\[7]3RD72LNBTNTDWFKDWUWCBJ4M7W7QXTNKIEM7S3YMB6KTNHJ4DWCA 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,,,,,,..,,..,,,,,.,.,..,,,..,,.,,..,,...,.,,,.,,,,..,,,.,,.,,.,.,
+#6UHN7EQKMWD2LSQCGZS2J5NJC5WKZYEUHDQPWUTAUANHMS7DSNY2ICL2SE6CUDGMNJL4FIUBX5RLO
+#\\\|RFL6D2GECJOD5JGT7CNPIOYYDYR2VJP6TBJELEBFHJN3FYYJZK4 \ / AMOS7 \ YOURUM ::
+#\[7]KVXL5GHUSYR4IU2O6G4BSZVM6IBOPSMNFG2TVYPMKDGTXE736KAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -7,20 +7,29 @@
 
 my $model_amos_id = <inference.model.amos_id> // '';
 
-<[base.logs]>->( 1, '[resolve_model_path] amos_id from config: [%s] (length=%d)', $model_amos_id, length($model_amos_id) );
+<[base.logs]>->(
+    1, '[resolve_model_path] amos_id from config: [%s] (length=%d)',
+    $model_amos_id, length($model_amos_id)
+);
 
 unless ( defined $model_amos_id && length $model_amos_id ) {
     <[base.logs]>->( 0, '[resolve_model_path] no model amos_id configured' );
     return FALSE;
 }
 
-<[base.logs]>->( 1, '[resolve_model_path] requesting model path for amos_id=%s', $model_amos_id );
+<[base.logs]>->(
+    1, '[resolve_model_path] requesting model path for amos_id=%s',
+    $model_amos_id
+);
 
 ## Request model path from models zenka via network (route through cube)
 ## Response arrives asynchronously through reply handler
-<[base.logs]>->( 2, '[resolve_model_path] sending call_args with amos_id=[%s]', $model_amos_id );
+<[base.logs]>->(
+    2, '[resolve_model_path] sending call_args with amos_id=[%s]',
+    $model_amos_id
+);
 
-my $clients_reached = <[base.protocol-7.command.send.local]>->(
+my $clients_reached = <[protocol-7.command.send.local]>->(
     {   'command'   => 'cube.models.get_path_by_amos',
         'call_args' => { 'args' => $model_amos_id },
         'reply'     => {
@@ -39,11 +48,13 @@ unless ( $clients_reached == 1 ) {
     return FALSE;
 }
 
-<[base.logs]>->( 1, '[resolve_model_path] model path request sent, awaiting async reply' );
+<[base.logs]>->(
+    1, '[resolve_model_path] model path request sent, awaiting async reply'
+);
 return TRUE;
 
-#,,..,,,,,.,,,,,.,,.,,,..,,,,,,.,,,,,,.,,,,,.,..,,...,...,...,,,,,.,.,,..,,,.,
-#7BVKR4NCN4AGRC2RJCP3PDGTXUPUBJUMBXDWXPS6PT4FTZKKTROKYMDBRQPIYHY4W6GTWSZ2RCOOO
-#\\\|WMNQ6XUARW7ZKENDEZTLRGCHVLPPGMEZAPJSL5FDJGEDTNEC7KS \ / AMOS7 \ YOURUM ::
-#\[7]RBCHAUPZWIS25MWG3JJO6KR7MZHT4JABDOEIJPHNUUNILNUXVAAA 7  DATA SIGNATURE ::
+#,,..,,..,...,,.,,,..,,..,..,,,,,,...,,,,,,.,,..,,...,...,...,,,,,,,.,,,,,,,,,
+#CALBKDCUMDNPJ2GGR24W4OWJAU4A46B33ME7PGYI6PSYQMVINELDHQDHET242D7J6KPEXX2FPNX46
+#\\\|54KUSITD4MTSFSOOCKRXOUTFNRSGFJS3XQYCPNH4RVYVKW7P22A \ / AMOS7 \ YOURUM ::
+#\[7]MZTSXBZ7QY5246DTCAPMUJPLLGGL62ZRMQGREZRSYYOIIC6ALACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

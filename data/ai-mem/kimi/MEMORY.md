@@ -219,8 +219,58 @@ $key_list_string =~ s|  (\.)$|  $C{b}$C{0}$1$C{T}|mg;
 - Phase 1: Forward templates with semantic registry
 - Phase 2: Dynamic reverse template inference from data streams
 
-#,,,.,,.,,.,,,,,.,,,,,..,,,.,,..,,...,..,,,,,,.,.,...,...,..,,,..,...,.,.,,,,,
-#3PJZUORI2CRMG5WKZK4XM3PO7XDLE26K4QTZWZAY6XB3ETFAP6U2GKYPMSFU7GCBFTT62XSR7BV7A
-#\\\|6RNRELHUOHUNQWXH3ZNWH2JCPWZLC4TYI65OKSGP3HJ7E7VFXMI \ / AMOS7 \ YOURUM ::
-#\[7]T47ATDSTTF7ZDIN35ZQ6G6IIQRU3JYKZDN3WQTV23MR2CT6M5ODY 7  DATA SIGNATURE ::
+---
+
+## VTERM Buffer System (Mar 2 2026)
+
+**Status**: Committed ✅ `B5DBE8DB1FD92B02F973FE855C7746E126B5FFB1`
+
+**22 modules**: `vterm.*` namespace implementing 5-of-7 visual consensus rendering
+
+**Core Architecture**:
+- **Cell format**: 23-byte packed structure with sub-bit accumulators (-128..+127)
+- **11-member consensus**: `-5..0..+5` with 0 as alternation router
+- **5-of-7 threshold**: 5+ layers agree = sharp pixel; <5 = sub-visible interference
+- **SHM backing**: Optional, auto-detects data zenka, falls back to local hash
+
+**Key Modules**:
+- `vterm.init_code` — constants, configuration, SHM auto-detection
+- `vterm.cell` — 23-byte cell structure (pack/unpack/create)
+- `vterm.subbit` — ±5 threshold voting, 0-state routing
+- `vterm.consensus` — 5-of-7 consensus with superposition collapse
+- `vterm.compositor` — blend modes (consensus/normal/additive) + forensic expansion
+- `vterm.shm` — shared memory interface with data zenka integration
+- `vterm.instance` — zenka-specific buffer lifecycle
+
+**Extracted Helpers** (one-callable-one-file):
+- `vterm.subbit.check_threshold`, `vterm.subbit.determine_route`
+- `vterm.consensus.check_channel`, `declaration_value`, `interference_pattern`, `ghosts`
+- `vterm.compositor.blend.consensus`, `normal`, `additive`
+- `vterm.compositor.layout.grid`, `stack`, `diff`
+- `vterm.util.clamp`, `vterm.shm.path`, `vterm.consensus.cell_fingerprint`
+
+**Critical Bugs Fixed During Review**:
+1. **BUG-3**: Cell size constant 16→23 bytes (pack format miscalculation)
+2. **BUG-4**: Missing `->` on hashref access in instance.pm
+3. **BUG-2**: Channel argument handling broken in subbit.vote
+4. **BUG-1**: Sort on flattened hash (fixed to `values %hash`)
+
+**Design Philosophy**:
+- Generic namespace: any zenka can use vterm for multi-layer output
+- Visual truth: disagreement literally creates blur/ghost trails
+- Connection to stdout log: vterm is the visual evolution of the text buffer
+- Forensic mode: split-view showing all 7 layers for debugging consensus
+
+**Next Steps for Decoder Integration**:
+- Connect 7 zulum streams to input layers
+- Wire division-by-13 truth to sub-bit votes
+- Add Term::VTerm Screen integration for actual terminal output
+- Implement damage tracking and spiral sync optimization
+
+---
+
+#,,,.,,.,,,..,..,,.,.,..,,,,.,...,,,,,...,..,,.,.,...,...,,.,,,,.,,,.,...,.,.,
+#CDGDLZAYTTO5KXFJQI5ONIWPU7WA7UYVTNF6IFUSHWZIHTEM73U3CLK7YJ6BH3QMFAJKOW27OB2QE
+#\\\|S5YZHASVE6EBYLTBKX6WARLZBJNY4YYIC6X4LZD3NAVXPSOAMBH \ / AMOS7 \ YOURUM ::
+#\[7]KX2ACQQWLCXWCZUHEOQJ2QO2CGUMYFKX475545TY4IX5N2CJT6AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
