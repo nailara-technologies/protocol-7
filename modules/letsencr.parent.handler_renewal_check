@@ -14,8 +14,8 @@ my $now = time();
 ## step 1: send async query to HTTPd for vhost list
 ## when reply arrives, handler will continue with steps 2-5
 
-my $num_clients = <[protocol-7.command.send.local]>->(
-    {   'command'   => qw| cube.httpd.vhost-list |,
+my $num_clients = <[protocol-7.route-send]>->(
+    {   'command'   => qw| httpd.vhost-list |,
         'call_args' => { 'args' => '' },
         'reply'     => {
             'handler' => qw| letsencr.parent.handler_renewal_continue |,
@@ -39,8 +39,8 @@ if ( !defined $num_clients || $num_clients == 0 ) {
 
 return TRUE;
 
-#,,,.,,,,,..,,,..,.,,,...,.,,,,..,...,,..,,..,..,,...,...,.,.,,.,,.,.,.,,,,,.,
-#XOS7RNJE2WJEG2P2XVAMQ35POJW3Q7YWTP3KIBH5IFPGTAQRH3HNWE65KYKI26ZCAN5G76EJXSPEC
-#\\\|535R6FYEXM3Q5OJTM5TF6C7K4NLBMBLIQ3X5UOTZNPBDLSPKPBJ \ / AMOS7 \ YOURUM ::
-#\[7]HALEWJFD3TEEE3WZH2RL3YG3SXDJHDUHH25RPYABMQ6KAN3TP4AA 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,..,,,.,,,,.,,..,,,.,,,,,...,,.,,..,,...,...,..,,...,.,.,,,,,,..,
+#RBJY3ERZMBEEQY65MQ3VY3JTSZDY62Z7W7CB2HOGV4XD4HD4VZVDJ5JDPVIK2VND4OJHFTHK3AKF4
+#\\\|OQS7WOGUDEWCEYENVACARPGEXJG7SGV6E3NZN3RONDELZNM3UQJ \ / AMOS7 \ YOURUM ::
+#\[7]MZFAADSPA4SHKUNMD4ZRGWVFEUMNB3MFQDMW7QNGXLEJBA7456BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -12,8 +12,8 @@ sub _cleanup_challenge {
     my ( $domain, $token ) = @_;
     return unless $domain && $token;
     <[base.logs]>->( 2, 'cleaning up challenge for %s', $domain );
-    <[protocol-7.command.send.local]>->(
-        {   'command'   => qw| parent.cube.httpd.cleanup-acme-challenge |,
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| httpd.cleanup-acme-challenge |,
             'call_args' => { 'args' => join( ' ', $domain, $token ) }
         }
     );
@@ -198,8 +198,8 @@ foreach my $auth_info (@auth_urls) {
     <[base.logs]>->( 2, 'cleaning up httpd challenge for %s', $domain );
 
     ## notify httpd to clean up [ fire-and-forget ]
-    <[protocol-7.command.send.local]>->(
-        {   'command'   => qw| parent.cube.httpd.cleanup-acme-challenge |,
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| httpd.cleanup-acme-challenge |,
             'call_args' => { 'args' => join( ' ', $domain, $token ) }
         }
     );
@@ -219,8 +219,8 @@ foreach my $auth_info (@auth_urls) {
     <[base.logs]>->( 2, 'cleaning up failed challenge for %s', $domain );
 
     ## notify httpd to clean up [ fire-and-forget ]
-    <[protocol-7.command.send.local]>->(
-        {   'command'   => qw| parent.cube.httpd.cleanup-acme-challenge |,
+    <[protocol-7.route-send]>->(
+        {   'command'   => qw| httpd.cleanup-acme-challenge |,
             'call_args' => { 'args' => join( ' ', $domain, $token ) }
         }
     );
@@ -345,8 +345,8 @@ delete <letsencr.child.acme_state>;
 <[base.log]>->( 2, 'challenge processing complete, certificate ready' );
 return $final_result;
 
-#,,..,..,,,..,.,,,,.,,.,,,,,,,.,.,..,,..,,.,,,..,,...,...,,,,,.,.,.,.,..,,,,,,
-#3RJU43CM6KHLTYYX4MUAEL73QPKZHLJECB6V3IYVBYS5ZBCAJ43ZERVXN5M7PI67VU5BXTZRU664U
-#\\\|U34CWYQEVUZ66LO5WUHEPCGNBVJZUY2W5N3SWA5OSMWV2XOBEJG \ / AMOS7 \ YOURUM ::
-#\[7]DJO4G5FHFMCLNJJFQJAXKKKMSN3LKR4BADRHNXLVFJMFMQUAJ2AY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,..,,.,,,,,,,,.,,..,,,.,,...,,.,,..,,...,...,,.,,,,.,,..,..,,,.,,
+#RULRC6KOAYIIGLPZUBBMCCKJR4DNZDQSRKHZ7WSB7L5J7NHQHKMOEZWWVGESPBQTXLA3BUH3JF2LK
+#\\\|DKSV2WC3JRPGSNNJB3AK2QRX323CSSW337AS2RRAP7LA7REPN6T \ / AMOS7 \ YOURUM ::
+#\[7]L4YLW6RXVDHI72YBFFNTO6QN7UW6LO7IW3WE22SRC3SKUA265SBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
