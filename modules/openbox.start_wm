@@ -21,6 +21,8 @@ if ( !-f $cfg_path ) {
     join( ' ',
         <openbox.bin_path>, "--sm-disable --config-file $cfg_path 2>&1 |" )
 );
+binmode( $out_fh, ':raw' )
+    if defined $out_fh;    ## strip :utf8 from pipe-open ##
 if ( !<child.openbox.pid> ) {
     <[base.log]>->( 0, "<< ! >> unable to start openbox [ \l$OS_ERROR ]" );
     <[base.log]>->( 1, ' : aborting zenka startup .,' );
@@ -30,7 +32,7 @@ if ( !<child.openbox.pid> ) {
 }
 <[base.log]>->( 1, ": openbox started [pid=<child.openbox.pid>].," );
 <[base.log]>->( 2, ': : registering output handler..,' );
-my $max_wait = 70;    # wait no longer than 7 seconds..,
+my $max_wait = 70;         # wait no longer than 7 seconds..,
 <[base.log]>->( 1, 'waiting for openbox log file creation.,' );
 while ( !-f <openbox.log_file> and $max_wait-- ) { <[base.sleep]>->(0.1) }
 if ( -f <openbox.log_file> ) {
@@ -67,8 +69,8 @@ if ( -f <openbox.log_file> ) {
 
 <[event.once:0.07]>;
 
-#,,..,,.,,,..,...,,,,,,.,,,,.,,..,...,...,,..,..,,...,..,,,..,.,,,...,,.,,...,
-#XDDMFU5L2L2KMD4KKJMGO7C6QBRRPMKH26GHC2U6TI6QV2C4FQI7M67IN6Z2LGUWDBW44D43CWPTM
-#\\\|7WKWZDIOZ5XK5QFE5QOF3ROOMCEBAFSKBFDVWJBW5EQWFEHA7CN \ / AMOS7 \ YOURUM ::
-#\[7]DLZVOPV7FLG47KRUA463UX6UGT6C5SP6MSE4MIQO2RNJ6675XGDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,,.,,...,.,.,,..,,.,,..,,,..,,,,,,,,,..,,...,...,..,,,,,,..,,,.,,,..,
+#EQODN4PGS6RBZ7CVYKZRRQB5APAJRNKGRUWR5HYYFIEDZM363FYKVV6OPCXZDK4325ZJOULNDH5G4
+#\\\|2JMYPKKJJDLK4JGQN3HZGGU3TMQOHGPEI7MSDHQRN2R3YVMSXRV \ / AMOS7 \ YOURUM ::
+#\[7]37DPCWW5GYXDQQYXNQO2KENNQVASJRYNLBXIXPR35QE37HRQY2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

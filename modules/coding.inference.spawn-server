@@ -86,6 +86,8 @@ $data{'inference.server_pids'} //= {};
 $data{'inference.fh'}          //= {};
 
 my $pid = open( my $out_fh, $cmd_str );
+binmode( $out_fh, ':raw' )
+    if defined $out_fh;    ## strip :utf8 from pipe-open ##
 
 if ( !$pid ) {
     <[base.logs]>->(
@@ -169,8 +171,8 @@ return {
     pid     => $pid
 };
 
-#,,..,,,,,,..,.,,,..,,..,,...,...,,.,,...,,..,..,,...,...,.,.,...,...,.,.,..,,
-#J7SIJAIXGFJEWYAISVGI4HTECKGHYLYMC3X3XMB5HN3LKRF6BUNX7JBSADZVPXVN3QDNXTSPVTLJE
-#\\\|GJ5R5OLX2AYWEZNDJCKUH34OKBLSJUUQZGQY2VX7QTC2UJO3L7P \ / AMOS7 \ YOURUM ::
-#\[7]DNRUSD2AYOBBYZQ2BSHMTWCEJAKGLYS7DSCFJXD6KZ2SWTOIVCCQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,,,,,..,.,,,...,.,,,,..,,,.,,,,,..,,...,...,...,.,.,...,,,.,,,,,
+#3XFXGM5KZ7V7JVC7LRLJ4COPD4XBZDFCEL4LMRTR6VCXY4DNUNIBNTYEGODPVV6KRWPS5K3QQKJZ4
+#\\\|X6THFW2BYNJ7PCD6AADOH44KC54LLISIK67BICVMP6TGCWSHBKV \ / AMOS7 \ YOURUM ::
+#\[7]MYTTCFHLTSCC7W6NJVDYLPT4HXK23X76IALEFO5ZCHJDR43LKEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
