@@ -2,6 +2,7 @@
  .:[ protocol-7 vision-batch - on-demand batch processing orchestrator ]:.
 
 [load_config_file:'shared-params']
+# system.access.wildcards.allow = false ## [ still uses * ]
 
 ### access control to zenka commands, refine later when final commands known ##
 ##                                                                            #
@@ -11,12 +12,14 @@ access.cmd.usr.cube = commands heart reload verify-instance \
                       * ### enabled all commands for development and testing ##
 
 access.cmd.usr.parent = commands reload list show-buffer heart * # <- same here
+
+access.cmd.usr.child = cube.v7.notify_online cube.p7-log.append
 ##
 ###
 
 ## Module loading ##
 ## Note: vision-batch.parent and vision-batch.child are loaded selectively
-##       in fork_child to maintain module isolation (parent != child)
+##       in fork_child to maintain module isolation [ parent != child ]
 ## Load parent init_code here for global state initialization
 ## Fork_child and other parent modules load in parent scope after fork
 modules.load = auth net protocol io.unix io.ip crypt.C25519 jobqueue \
@@ -25,10 +28,7 @@ modules.load = auth net protocol io.unix io.ip crypt.C25519 jobqueue \
                                          devmod ## <-- developement only
 [load_modules:<modules.load>]
 
-system.verbosity.zenka_buffer  = 2  ## increasing verbosity for development
-system.verbosity.console       = 2  ##                       and testing ..
-system.verbosity.zenka_logfile = 2
-
+#system.verbosity.console = 2  ## temporary debug log level
 
 [init_modules] ## initializes the modules from modules.load
 

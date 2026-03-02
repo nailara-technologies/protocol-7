@@ -2,11 +2,14 @@
  .:[ 'pdf2html' conversion zenka ]:.
 
 [load_config_file:'shared-params']
+system.access.wildcards.allow = false
 
-access.cmd.usr.cube = commands heart reload verify-instance list show-buffer \
-                      get_url check_format
-
-access.cmd.usr.parent = commands reload show-buffer convert_pdf
+access.cmd.usr.cube = commands heart reload verify-instance \
+                      list show-buffer get_url check_format \
+                                              child.cur-pid
+access.cmd.usr.parent = commands reload show-buffer convert_pdf \
+                                                        cur-pid
+access.cmd.usr.child  = cube.v7.notify_online cube.p7-log.append
 
 pdf.html.cache_dir   = /var/cache/pdf2html
 pdf.html.cache_perm  = 0755
