@@ -6,8 +6,8 @@
 <[base.log]>->( 2, "querying httpd zenka for vhost list [ async ].." );
 
 ## Send async command to httpd via cube with reply handler
-<[protocol-7.command.send.local]>->(
-    {   'command'   => qw| cube.httpd.vhost-list |,
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| httpd.vhost-list |,
         'call_args' => { 'args' => '' },
         'reply'     =>
             { 'handler' => qw| letsencr.parent.handler_httpd_vhost_reply |, }
@@ -18,8 +18,8 @@
 
 return TRUE;
 
-#,,.,,,.,,.,,,,,,,.,.,...,,..,..,,..,,,.,,,,,,..,,...,...,.,,,...,,.,,,,,,..,,
-#7IM3D7ASXCD6G7DRP7YDUW4QNIANENPLKSSICWQSC5B3WKPFBZD23YZRYKDMD6WY72EWNJKZXQEIM
-#\\\|O4PWV4WIYTXHGDDKQFBP35VGADKAUAPV2DM3LRCRVNVB7FF7HIL \ / AMOS7 \ YOURUM ::
-#\[7]5FCJTFOTXJATQD7L6XNYWAIZFYB5MSZUKABDILWUGCMVTFWIPECA 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,..,.,.,,,.,,,,,.,.,...,.,.,,,,,..,,...,...,...,.,.,...,.,,,,,,,
+#6NCHL6PZFAWLTG7FFDGBNZPPBSQQ6YUKZ4WRFC5HZDIRNYCSLGDACW2FNLZA7VVSPUBXH5L4OT7GW
+#\\\|DLBLPKVKM5M4MKEMKRCC2IFWOQX6XDMTAUKYTIN6TOEOI277SCA \ / AMOS7 \ YOURUM ::
+#\[7]XBNIWUA3VYIZ5GSPKCORMYWJRWEXSV7PO6EIMRARXRW6IUVAZ2BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
