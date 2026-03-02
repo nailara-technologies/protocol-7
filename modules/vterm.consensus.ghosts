@@ -1,0 +1,40 @@
+## [:< ##
+
+# name  = vterm.consensus.ghosts
+# descr = identify dissenting layers from cells
+
+my $cells_ref = shift // return [];
+
+## identify dissenting layers
+my @ghosts;
+my %state_counts;
+
+foreach my $cell (@$cells_ref) {
+    next if not defined $cell;
+    my $state_key = sprintf( "%d,%d,%d",
+        $cell->{subbit_r} // 0,
+        $cell->{subbit_g} // 0,
+        $cell->{subbit_b} // 0 );
+    $state_counts{$state_key}++;
+}
+
+## find minority states (dissenters)
+my ($majority) = sort { $b <=> $a } values %state_counts;
+foreach my $cell (@$cells_ref) {
+    next if not defined $cell;
+    my $sk = sprintf( "%d,%d,%d",
+        $cell->{subbit_r} // 0,
+        $cell->{subbit_g} // 0,
+        $cell->{subbit_b} // 0 );
+    if ( $state_counts{$sk} < $majority ) {
+        push @ghosts, $cell;
+    }
+}
+
+return \@ghosts;
+
+#,,.,,,..,,,,,,..,..,,,..,...,..,,..,,.,,,..,,..,,...,...,...,,..,...,,.,,...,
+#FMFP5MTZDDDMIKGEWCXZJPOSQQI7JZXZ3SW5BXYN7YP4A7SAKSRIFTIIENHKLAW4QUCM5NUEVOG6U
+#\\\|HCFHQXGLAQL6S2UNO3GKEZ7P23OJICZTKUEPBHHZIJ5QIUEHA3G \ / AMOS7 \ YOURUM ::
+#\[7]KY3FGNWYUCSUH5LKEFNBV65RHDT4JF72BFH4IZFXU7JM6ANSA6BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

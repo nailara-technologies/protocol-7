@@ -1,0 +1,97 @@
+## [:< ##
+
+# name  = vterm.instance
+# descr = create and manage vterm buffer instances for zenki
+
+my $action = shift // qw| create |;
+
+if ( $action eq qw| create | ) {
+    ## create new vterm instance
+    my ($config_ref) = @ARG;
+    return undef if not defined $config_ref;
+
+    my $zenka_name = $config_ref->{zenka} // <system.zenka.name>
+        // qw| unknown |;
+    my $instance_id = $config_ref->{id}     // <[base.anum]>->(7);
+    my $rows        = $config_ref->{rows}   // <vterm.default_rows>;
+    my $cols        = $config_ref->{cols}   // <vterm.default_cols>;
+    my $layer_count = $config_ref->{layers} // 7;
+
+    my $key = sprintf( "%s:%s", $zenka_name, $instance_id );
+
+    ## create instance record
+    my $instance = {
+        id          => $instance_id,
+        zenka       => $zenka_name,
+        rows        => $rows,
+        cols        => $cols,
+        layers      => {},
+        layer_count => $layer_count,
+        created     => <[base.time]>->(),
+        shm_enabled => <vterm.shm.enabled>,
+    };
+
+    ## allocate layers
+    for my $layer_id ( 0 .. $layer_count - 1 ) {
+        my $shm
+            = <[vterm.shm]>->( qw| attach |, $key, $layer_id, $rows, $cols );
+        $instance->{layers}{$layer_id} = $shm if $shm;
+    }
+
+    ## create output layer (layer 13 conventionally)
+    $instance->{output_layer}
+        = <[vterm.shm]>->( qw| attach |, $key, 13, $rows, $cols );
+
+    ## register in global instances
+    <vterm.instances>->{$key} = $instance;
+
+    <[base.logs]>->(
+        2,    ': vterm instance created [%s] %dx%d x %d layers',
+        $key, $cols, $rows, $layer_count
+    );
+
+    return $instance;
+
+} elsif ( $action eq qw| get | ) {
+    ## retrieve existing instance
+    my ( $zenka_name, $instance_id ) = @ARG;
+    return undef if not defined $zenka_name;
+
+    $instance_id //= qw| default |;
+    my $key = sprintf( "%s:%s", $zenka_name, $instance_id );
+
+    return <vterm.instances>->{$key};
+
+} elsif ( $action eq qw| destroy | ) {
+    ## destroy instance and free resources
+    my ( $zenka_name, $instance_id ) = @ARG;
+    return FALSE if not defined $zenka_name;
+
+    $instance_id //= qw| default |;
+    my $key = sprintf( "%s:%s", $zenka_name, $instance_id );
+
+    my $instance = delete <vterm.instances>->{$key};
+    return FALSE if not $instance;
+
+    ## detach all layers
+    foreach my $layer_id ( keys %{ $instance->{layers} } ) {
+        <[vterm.shm]>->( qw| detach |, $instance->{layers}{$layer_id} );
+    }
+    <[vterm.shm]>->( qw| detach |, $instance->{output_layer} )
+        if $instance->{output_layer};
+
+    <[base.logs]>->( 2, ': vterm instance destroyed [%s]', $key );
+    return TRUE;
+
+} elsif ( $action eq qw| list | ) {
+    ## list all instances
+    return [ keys %{<vterm.instances>} ];
+}
+
+return undef;
+
+#,,,.,,,.,.,.,,,,,.,.,,.,,..,,,,,,.,.,..,,,,,,.,.,...,...,.,,,...,.,,,,.,,...,
+#CTQGFQQUGAHBSZHAKVBM4ABRI32EXMDUPOHQN3CGK75ABFCI3HMJWXMN2TQCGXNE7GA4GYUR5SO62
+#\\\|PHEUKNX3DX5FY6HJJFKOMXH5WZPXHLJUIGAF53NC7OYFFRIWRWZ \ / AMOS7 \ YOURUM ::
+#\[7]7BUW264Q7UA7U2SEKAKDQJVDUCLBH4HURLABVSS2KRZXDMF2OGBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

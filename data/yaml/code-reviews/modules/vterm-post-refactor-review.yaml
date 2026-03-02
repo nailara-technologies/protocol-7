@@ -1,0 +1,225 @@
+## vterm post-refactor review
+## reviewer : claude
+## date      : 2026-03-02
+## scope     : all 22 modules after kimi's inline-sub extraction pass
+## spec      : data/md/design/VTERM-BUFFER-SPECIFICATION.md
+
+review:
+  summary: >
+    architecture compliance is solid — all phantom calls resolved, all inline
+    sub declarations extracted, 22 proper module files present with signatures.
+    four bugs found that will cause runtime failures; two design issues that
+    affect mathematical correctness; three minor style notes.
+
+  architecture_compliance:
+    status: PASS
+    notes:
+      - all 22 modules follow one-callable-one-file rule
+      - no inline sub _name{} declarations remain
+      - all phantom calls now resolve to real module files
+      - all dispatchers correctly proxy to extracted helpers
+      - idempotent //= init pattern used throughout
+      - AMOS7 signatures present on all files
+
+  ## ── CRITICAL BUGS (will fail at runtime) ─────────────────────────────────
+
+  bugs_critical:
+
+    - id: BUG-1
+      severity: critical
+      module: vterm.consensus
+      location: line 87 (check_layer_agreement action)
+      title: sort on hash in list context
+      description: >
+        %fingerprints in list context produces a flat key/value alternating list.
+        the sort block tries $b->{count} on string keys, which either dies or
+        produces garbage. the winner/data destructuring then assigns a string and
+        undef, not two hashrefs.
+      broken_code: |
+        my ( $winner, $data )
+            = sort { $b->{count} <=> $a->{count} } %fingerprints;
+        return $data->{count} >= 5 ? $data->{cell} : FALSE;
+      fix: |
+        my ($top) = sort { $b->{count} <=> $a->{count} } values %fingerprints;
+        return ( defined $top and $top->{count} >= 5 ) ? $top->{cell} : FALSE;
+
+    - id: BUG-2
+      severity: critical
+      module: vterm.subbit
+      location: lines 12-18 (vote action)
+      title: channel argument extracted from wrong position
+      description: >
+        my ($cell_ref, $vote, $direction) = @ARG copies values but does NOT
+        consume @ARG. the subsequent shift @ARG then shifts $cell_ref (the
+        first element), not the channel string (fourth argument). the channel
+        always falls back to 'r'.
+      call_example: |
+        <[vterm.subbit]>->('vote', $cell, +1, 'even', 'r');
+        ## after 'vote' is shifted: @ARG = ($cell, +1, 'even', 'r')
+        ## list assignment copies, @ARG unchanged
+        ## shift @ARG gets $cell, not 'r'
+      fix: |
+        my ( $cell_ref, $vote, $direction, $channel ) = @ARG;
+        $channel //= 'r';
+        ## remove the "my $channel = shift @ARG // 'r';" line entirely
+
+    - id: BUG-3
+      severity: critical
+      module: vterm.cell (pack/unpack) + vterm.init_code (size_bytes constant)
+      location: vterm.cell lines 52-53, vterm.init_code line 8
+      title: pack format is 23 bytes, not 16 as claimed
+      description: >
+        pack template 'c4 N C3C3C C c C C N' encodes:
+          c4      = 4 bytes  (subbit_r/g/b/attr)
+          N       = 4 bytes  (codepoint)
+          C3C3C   = 7 bytes  (fg_r/g/b, bg_r/g/b, attrs)
+          C       = 1 byte   (state)
+          c       = 1 byte   (confidence as int8)
+          C       = 1 byte   (alternation)
+          C       = 1 byte   (vote_count)
+          N       = 4 bytes  (last_update)
+          total   = 23 bytes
+        but vterm.init_code sets <vterm.cell.size_bytes> //= 16 and the pack
+        comment also says "## 16 bytes total". the SHM buffer allocation
+        ($rows * $cols * <vterm.cell.size_bytes>) and all offset calculations
+        will be 30% too small, causing cells to overwrite each other in the
+        buffer.
+      impact: >
+        every SHM read/write will address wrong offsets; cells will corrupt
+        each other. the entire vterm.shm read_cell/write_cell is broken until
+        this is resolved.
+      options:
+        - redesign pack format to exactly 16 bytes (requires dropping fields)
+        - update <vterm.cell.size_bytes> to 23 (or actual measured value)
+        - use preferred option: length(pack(...)) to auto-measure during init
+
+    - id: BUG-4
+      severity: critical
+      module: vterm.instance
+      location: lines 46, 63, 73, 88
+      title: hashref dereference missing arrow operator
+      description: >
+        <vterm.instances> resolves to a hashref (initialized as {} in init_code).
+        accessing elements needs -> dereferencing. without it, perl interprets
+        the space+braces as a separate expression, not a dereference.
+      broken_code: |
+        <vterm.instances> {$key} = $instance;       ## line 46
+        return <vterm.instances> {$key};             ## line 63
+        my $instance = delete <vterm.instances> {$key};  ## line 73
+      correct_code: |
+        <vterm.instances>->{$key} = $instance;
+        return <vterm.instances>->{$key};
+        my $instance = delete <vterm.instances>->{$key};
+      note: >
+        line 88 [ keys %{<vterm.instances>} ] is correct — %{...} dereference
+        works fine there.
+
+  ## ── DESIGN ISSUES (mathematically incorrect behavior) ───────────────────
+
+  bugs_design:
+
+    - id: DESIGN-1
+      severity: medium
+      module: vterm.subbit.determine_route
+      location: line 10
+      title: counts vote history length, not actual sign changes
+      description: >
+        the comment says "count sign changes / phase alternations" but the code
+        does scalar @$history_ref, which counts total number of vote entries.
+        alternation_history stores the 'direction' string on every vote call, so
+        its length equals total vote count, not the number of even↔odd transitions.
+        example: history ['even','even','odd','even'] has length 4 (even phase)
+        but only 2 actual sign changes. the "secret" is just vote-count parity,
+        not the alternation memory the spec describes.
+      impact: >
+        0-state routing is technically functional (consistent output for same
+        history), but the "secret" is trivially predictable from vote count.
+        the alternation_history window trimming (temporal_window = 13) is also
+        meaningless without actual transition tracking.
+      suggested_fix: >
+        count actual direction transitions in the history array, not length:
+        my $changes = grep { $history_ref->[$_] ne $history_ref->[$_-1] }
+                           1 .. $#$history_ref;
+        my $phase = ($changes % 2 == 0) ? 'even' : 'odd';
+
+    - id: DESIGN-2
+      severity: low
+      module: vterm.consensus.ghosts
+      title: returns cells without layer identity
+      description: >
+        ghosts() returns copies of dissenting cells but callers have no way to
+        know which layer index each ghost came from. forensic layout modules
+        (grid/stack/diff) will need layer indices to render dissent views
+        meaningfully. the ghost_trails key in consensus.compute receives this
+        list but it's not useful without position info.
+      suggested_fix: >
+        accept the original layers array and return
+        [ { layer_id => $i, cell => $cell } ] structures.
+
+  ## ── MINOR STYLE NOTES ────────────────────────────────────────────────────
+
+  style_notes:
+
+    - id: STYLE-1
+      module: vterm.consensus.interference_pattern
+      location: lines 10-14
+      title: inline anonymous sub (minor)
+      description: >
+        my $normalize = sub { ... } is a lexical anonymous sub. the module
+        system cannot see it, but it's also not a structural problem since it's
+        used only within this file. could be inlined as a formula for clarity,
+        but this is low priority.
+
+    - id: STYLE-2
+      module: vterm.instance
+      location: line 51
+      title: log format has cols/rows swapped
+      description: >
+        base.logs format string says '%dx%d x %d layers' with args ($key, $cols,
+        $rows, $layer_count) — this logs cols×rows, but convention is rows×cols.
+        cosmetic only.
+
+    - id: STYLE-3
+      module: vterm.shm.path
+      title: path format differs slightly from spec
+      description: >
+        spec says /dev/shm/p7:vterm:<cube>:<layer_id> but the path is built as
+        <vterm.shm.base_path>:<instance_id>:<layer_id> which produces
+        /dev/shm/p7:vterm:<instance_id>:<layer_id>. instance_id is a
+        zenka_name:random_id composite, not a cube address. this is fine for
+        local use but worth aligning with spec terminology.
+
+  ## ── EXPECTED STUBS (spec-confirmed incomplete) ───────────────────────────
+
+  expected_stubs:
+    - vterm.compositor.layout.grid   ## placeholder, returns TRUE
+    - vterm.compositor.layout.stack  ## placeholder, returns TRUE
+    - vterm.compositor.layout.diff   ## placeholder, returns TRUE
+
+  ## ── WHAT IS CORRECT ──────────────────────────────────────────────────────
+
+  confirmed_correct:
+    - vterm.init_code: all constants, states, phases, shm config properly initialized
+    - vterm.shm: fallback_local default is TRUE, attach/read/write/detach all functional
+    - vterm.consensus.check_channel: clean 3-line threshold check
+    - vterm.consensus.declaration_value: clean set→255, clear→0, superposition→128
+    - vterm.consensus.cell_fingerprint: pack('c4') sub-bit fingerprint is sound
+    - vterm.compositor.blend.consensus: logic correct (once BUG-3 is fixed in shm)
+    - vterm.compositor.blend.normal: correct reverse-layer last-wins pattern
+    - vterm.compositor.blend.additive: correct clamped additive blend
+    - vterm.util.clamp: correct 3-line clamp
+    - vterm.subbit.check_threshold: threshold/state update logic is correct
+    - vterm.compositor: dispatches all three blend modes and three layouts correctly
+    - vterm.consensus.compute: overall structure matches spec design
+
+  ## ── RECOMMENDED FIX ORDER ────────────────────────────────────────────────
+
+  fix_priority:
+    1: BUG-3  ## cell.size_bytes must be correct before any shm I/O works
+    2: BUG-4  ## instance hashref access (init path)
+    3: BUG-2  ## vote channel extraction (all writes are wrong until fixed)
+    4: BUG-1  ## check_layer_agreement crashes at runtime
+    5: DESIGN-1  ## 0-state routing mathematical correctness
+    6: DESIGN-2  ## ghost layer identity (needed before forensic layouts)
+
+#,,,.,,,..,,,,,,.,,,,,,,,,.,,.,,,,.,,,,,,.,,.,..,,...,...,.,,,,.,,,.,,..,.,,,

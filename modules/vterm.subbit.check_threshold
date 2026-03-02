@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = vterm.subbit.check_threshold
+# descr = check if accumulator reached ±5 threshold and update cell state
+
+my ( $cell_ref, $channel ) = @ARG;
+return FALSE if not defined $cell_ref;
+$channel //= 'r';
+
+my $accumulator
+    = $channel eq 'r' ? $cell_ref->{subbit_r}
+    : $channel eq 'g' ? $cell_ref->{subbit_g}
+    : $channel eq 'b' ? $cell_ref->{subbit_b}
+    :                   $cell_ref->{subbit_attr};
+
+my $threshold = <vterm.subbit.threshold>;
+
+if ( $accumulator >= $threshold ) {
+    ## collapse to SET
+    $cell_ref->{state} = <vterm.state.declared_set>
+        if $cell_ref->{state} == <vterm.state.superposition>;
+    $cell_ref->{confidence} = 1.0;
+    return qw| declared_set |;
+} elsif ( $accumulator <= -$threshold ) {
+    ## collapse to CLEAR
+    $cell_ref->{state} = <vterm.state.declared_clear>
+        if $cell_ref->{state} == <vterm.state.superposition>;
+    $cell_ref->{confidence} = 1.0;
+    return qw| declared_clear |;
+} elsif ( $accumulator == 0 ) {
+    ## 0-state: determine routing secret from alternation
+    $cell_ref->{route} = <[vterm.subbit.determine_route]>
+        ->( $cell_ref->{alternation_history} );
+    return qw| zero_state |;
+} else {
+    ## still in superposition
+    $cell_ref->{state}      = <vterm.state.superposition>;
+    $cell_ref->{confidence} = abs($accumulator) / $threshold;
+    return qw| superposition |;
+}
+
+#,,,.,.,.,.,,,,..,,.,,,,.,,..,...,...,,,,,,.,,..,,...,..,,..,,.,.,..,,..,,,..,
+#VXNLBAYQQXQ5FUVHHJGDYUSMWL7Z4QA2VD3KWJWREKLPWH2PAZGQBR62JAVSCEJCRJQ6GWE2LB2XU
+#\\\|PXHOKOR2NGSTSR555NW23XXLY33DSJ4GDNMDVHMWD2W3KAPBTNM \ / AMOS7 \ YOURUM ::
+#\[7]RJTOYEM6AYQRBX4Q56N4U34JUPJ2D726LSDJXOAKKNANTANKE4AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

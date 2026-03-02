@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = vterm.compositor
+# descr = layer blending and forensic expansion modes
+
+my $action = shift // qw| blend |;
+
+if ( $action eq qw| blend | ) {
+    ## blend layers to output buffer
+    my ($config_ref) = @ARG;
+    return undef if not defined $config_ref;
+
+    my @input_layers = @{ $config_ref->{layers} // [] };
+    my $mode         = $config_ref->{mode} // <vterm.compositor.blend_mode>;
+    my $output_ref   = $config_ref->{output};
+
+    return undef if scalar @input_layers < 2;
+
+    my $rows = $input_layers[0]{rows} // <vterm.default_rows>;
+    my $cols = $input_layers[0]{cols} // <vterm.default_cols>;
+
+    ## dispatch to blend mode
+    if ( $mode eq qw| consensus_5of7 | ) {
+        return <[vterm.compositor.blend.consensus]>->(
+            $rows, $cols, \@input_layers, $output_ref
+        );
+    } elsif ( $mode eq qw| normal | ) {
+        return <[vterm.compositor.blend.normal]>->(
+            $rows, $cols, \@input_layers, $output_ref
+        );
+    } elsif ( $mode eq qw| add | ) {
+        return <[vterm.compositor.blend.additive]>->(
+            $rows, $cols, \@input_layers, $output_ref
+        );
+    }
+
+    return undef;
+
+} elsif ( $action eq qw| forensic_expand | ) {
+    ## enter forensic mode: split view of all layers
+    my ($config_ref) = @ARG;
+    return undef if not defined $config_ref;
+
+    my @layers       = @{ $config_ref->{layers} // [] };
+    my $layout       = $config_ref->{layout}    // qw| grid |;
+    my $highlight    = $config_ref->{highlight} // qw| dissent |;
+    my $viewport_ref = $config_ref->{viewport};
+
+    ## calculate layout
+    my $layer_count = scalar @layers;
+    return undef if $layer_count == 0;
+
+    if ( $layout eq qw| grid | ) {
+        return <[vterm.compositor.layout.grid]>->(
+            \@layers, $viewport_ref, $highlight
+        );
+    } elsif ( $layout eq qw| stack | ) {
+        return <[vterm.compositor.layout.stack]>->(
+            \@layers, $viewport_ref, $highlight
+        );
+    } elsif ( $layout eq qw| diff | ) {
+        return <[vterm.compositor.layout.diff]>->( \@layers, $viewport_ref );
+    }
+
+    return undef;
+}
+
+return undef;
+
+#,,..,...,.,,,,..,,,,,,,,,,.,,...,.,.,,..,,.,,..,,...,...,...,,.,,,.,,,..,.,,,
+#OKVTZOMFIRTWO5XERWENOSHB7REZEM7TMPPKHZX44JSDC6L4UOIPHX4LLAIJ6DCQYJWRDTSBVJ746
+#\\\|FDYZUMB3XV7DOMZDVEH25UCMTBYASDIYXV2R6I6JZATBXGGZPTJ \ / AMOS7 \ YOURUM ::
+#\[7]6WC4NFIYIXQESHYOCE4UG4NADC62Z2BLTUSVDOOVJRBIIJSXQIDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

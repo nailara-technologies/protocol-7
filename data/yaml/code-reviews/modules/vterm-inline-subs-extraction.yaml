@@ -1,0 +1,175 @@
+---
+review_id: vterm-inline-subs-extraction
+date: 2026-03-02
+author: taeki / claude
+target_model: kimi
+modules_reviewed:
+  - vterm.compositor
+  - vterm.consensus
+  - vterm.shm
+  - vterm.subbit
+
+# Context: Protocol-7 module system rules
+
+p7_module_rule: |
+  In Protocol-7 EVERY callable must be a separate file in modules/.
+  The filename IS the subroutine name. There are no inline sub declarations.
+  The module system loads files into %code as:
+    $code{'vterm.compositor.blend.consensus'} = sub { <file contents> };
+  and these are called as:
+    <[vterm.compositor.blend.consensus]>->( $rows, $cols, $layers_ref, $out )
+
+  Inline  sub _name { }  declarations inside a module file are invisible
+  to the module system -- they can only be called from within that same
+  file, cannot be reloaded independently, and cannot be called from
+  any other module via <[name]>->(). They must be extracted.
+
+  Likewise, any call written as <[some.dotted.name]>->() REQUIRES a real
+  module file named 'some.dotted.name' in modules/. If that file does not
+  exist the call will fail at runtime with a 'nonexistent callback' error.
+
+# Issue 1: inline sub declarations that must be extracted
+# ─────────────────────────────────────────────────────────
+
+inline_subs_to_extract:
+
+  vterm.compositor:
+    note: |
+      the main dispatch block in vterm.compositor calls _blend_* and _layout_*
+      as plain perl sub calls -- these will never be reachable from other
+      modules and cannot be independently reloaded or swapped.
+    subs:
+      - inline_name: _blend_consensus
+        extract_to:  vterm.compositor.blend.consensus
+        signature:   my ( $rows, $cols, $layers_ref, $output_ref ) = @ARG;
+
+      - inline_name: _blend_normal
+        extract_to:  vterm.compositor.blend.normal
+        signature:   my ( $rows, $cols, $layers_ref, $output_ref ) = @ARG;
+
+      - inline_name: _blend_additive
+        extract_to:  vterm.compositor.blend.additive
+        signature:   my ( $rows, $cols, $layers_ref, $output_ref ) = @ARG;
+
+      - inline_name: _layout_grid
+        extract_to:  vterm.compositor.layout.grid
+        signature:   my ( $layers_ref, $viewport_ref, $highlight ) = @ARG;
+
+      - inline_name: _layout_stack
+        extract_to:  vterm.compositor.layout.stack
+        signature:   my ( $layers_ref, $viewport_ref, $highlight ) = @ARG;
+
+      - inline_name: _layout_diff
+        extract_to:  vterm.compositor.layout.diff
+        signature:   my ( $layers_ref, $viewport_ref ) = @ARG;
+
+      - inline_name: _clamp
+        extract_to:  vterm.util.clamp
+        note: |
+          shared utility -- place in vterm.util.* namespace rather than
+          compositor so other modules can use it too.
+        signature:   my ( $val, $min, $max ) = @ARG;
+
+  vterm.consensus:
+    subs:
+      - inline_name: _check_channel_declaration
+        extract_to:  vterm.consensus.check_channel
+        signature:   my $total = shift // 0;
+
+      - inline_name: _declaration_to_value
+        extract_to:  vterm.consensus.declaration_value
+        signature:   my $declaration = shift;
+
+      - inline_name: _interference_pattern
+        extract_to:  vterm.consensus.interference_pattern
+        signature:   my ( $tr, $tg, $tb ) = @ARG;
+
+      - inline_name: _calculate_ghosts
+        extract_to:  vterm.consensus.ghosts
+        signature:   my $cells_ref = shift // return [];
+
+      - inline_name: _cell_fingerprint
+        extract_to:  vterm.consensus.cell_fingerprint
+        note: |
+          alternatively vterm.cell.fingerprint if it belongs conceptually
+          with the cell module. currently only used by consensus internally.
+        signature:   my $cell = shift // return '';
+
+# Issue 2: phantom module calls -- referenced names with no module file
+# ──────────────────────────────────────────────────────────────────────
+
+phantom_module_calls:
+  note: |
+    these call sites use <[dot.ted.name]>->() syntax but no corresponding
+    module file exists. they will fail with 'nonexistent callback' at runtime.
+    each must either become a real module file OR the call must be rewritten
+    to use the action-dispatcher form: <[vterm.shm]>->( qw| path |, ... )
+
+  vterm.shm:
+    - call:    <[vterm.shm.path]>->( $instance_id, $layer_id )
+      problem: 'vterm.shm' already has a 'path' action in its dispatcher,
+               but 'vterm.shm.path' is NOT a separate module file.
+      fix_option_a: extract path action into modules/vterm.shm.path  [ preferred ]
+      fix_option_b: change call to <[vterm.shm]>->( qw| path |, $instance_id, $layer_id )
+
+  vterm.subbit:
+    - call:    <[vterm.subbit.check_threshold]>->( $cell_ref, $channel )
+      problem: 'check_threshold' is an action in vterm.subbit dispatcher,
+               but 'vterm.subbit.check_threshold' is NOT a separate module file.
+      fix:     extract into modules/vterm.subbit.check_threshold
+
+    - call:    <[vterm.subbit.determine_route]>->( $cell_ref->{alternation_history} )
+      problem: same -- 'determine_route' action exists in dispatcher but no file.
+      fix:     extract into modules/vterm.subbit.determine_route
+
+# Suggested namespace layout after extraction
+# ────────────────────────────────────────────
+
+suggested_namespace:
+  vterm.cell:             cell structure ops [ already clean, no changes needed ]
+  vterm.cell.fingerprint: [ optional move from consensus.cell_fingerprint ]
+  vterm.instance:         instance lifecycle [ already clean ]
+  vterm.shm:              shm attach/detach/read_cell/write_cell/detach dispatch
+  vterm.shm.path:         generate shm path string for a layer
+  vterm.subbit:           vote + reset dispatch
+  vterm.subbit.check_threshold:  collapse check and state update
+  vterm.subbit.determine_route:  0-state routing secret from alternation history
+  vterm.consensus:             compute + check_layer_agreement dispatch
+  vterm.consensus.check_channel:      channel declaration test [ set/clear/superposition ]
+  vterm.consensus.declaration_value:  declaration string -> 0/128/255
+  vterm.consensus.interference_pattern: sub-visible blur pattern from totals
+  vterm.consensus.ghosts:       dissenting layer identification
+  vterm.consensus.cell_fingerprint: sub-bit fingerprint for agreement check
+  vterm.compositor:          blend + forensic_expand dispatch
+  vterm.compositor.blend.consensus:  5-of-7 blend
+  vterm.compositor.blend.normal:     overlay blend
+  vterm.compositor.blend.additive:   glow blend
+  vterm.compositor.layout.grid:      forensic grid layout
+  vterm.compositor.layout.stack:     forensic stack layout
+  vterm.compositor.layout.diff:      forensic diff view
+  vterm.util.clamp:          numeric clamp utility [ shared across vterm.* ]
+
+# Refactoring rule for extracted modules
+# ────────────────────────────────────────
+
+extraction_pattern: |
+  each extracted module follows the standard p7 format:
+
+    ## [:< ##
+
+    # name  = vterm.compositor.blend.consensus
+    # descr = 5-of-7 layer blend at each cell position
+
+    my ( $rows, $cols, $layers_ref, $output_ref ) = @ARG;
+
+    ... [ body of former sub _blend_consensus, unchanged ] ...
+
+  the call site in vterm.compositor changes from:
+    return _blend_consensus( $rows, $cols, \@input_layers, $output_ref );
+  to:
+    return <[vterm.compositor.blend.consensus]>->( $rows, $cols, \@input_layers, $output_ref );
+
+  note: do NOT add the signature stub [ #,,.,,... ] to new files --
+  leave them clean and run: bin/Protocol-7 sourcecode update-signatures
+
+---

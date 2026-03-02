@@ -1,0 +1,96 @@
+## [:< ##
+
+# name  = vterm.consensus
+# descr = 5-of-7 consensus with sub-bit superposition collapse
+
+my $action = shift // qw| compute |;
+
+if ( $action eq qw| compute | ) {
+    ## compute consensus across 7 layers for given coordinate
+    my ( $x, $y, @seven_cells ) = @ARG;
+    return undef if scalar @seven_cells < <vterm.consensus.layers_min>;
+
+    ## sum sub-bits across all contributing layers
+    my $total_r        = 0;
+    my $total_g        = 0;
+    my $total_b        = 0;
+    my $declared_count = 0;
+    my @alternations;
+
+    foreach my $cell (@seven_cells) {
+        next if not defined $cell;
+
+        $total_r += $cell->{subbit_r} // 0;
+        $total_g += $cell->{subbit_g} // 0;
+        $total_b += $cell->{subbit_b} // 0;
+
+        ## count how many have declared
+        $declared_count++
+            if ( $cell->{state} == <vterm.state.declared_set>
+            || $cell->{state} == <vterm.state.declared_clear> );
+
+        push @alternations,
+            $cell->{alternation} // <vterm.phase.undetermined>;
+    }
+
+    ## check channel declarations
+    my $dr = <[vterm.consensus.check_channel]>->($total_r);
+    my $dg = <[vterm.consensus.check_channel]>->($total_g);
+    my $db = <[vterm.consensus.check_channel]>->($total_b);
+
+    ## 5-of-7 macro consensus
+    if ( $declared_count >= <vterm.consensus.threshold> ) {
+        ## consensus achieved - render sharp pixel
+        return {
+            fg_rgb => [
+                <[vterm.consensus.declaration_value]>->($dr),
+                <[vterm.consensus.declaration_value]>->($dg),
+                <[vterm.consensus.declaration_value]>->($db)
+            ],
+            bg_rgb       => [ 0, 0, 0 ],
+            state        => <vterm.state.declared_set>,
+            confidence   => 1.0,
+            sharpness    => 1.0,
+            alternations => \@alternations,
+            totals       => { r => $total_r, g => $total_g, b => $total_b },
+        };
+    } else {
+        ## sub-visible interference pattern
+        return {
+            fg_rgb => <[vterm.consensus.interference_pattern]>->(
+                $total_r, $total_g, $total_b
+            ),
+            state        => <vterm.state.superposition>,
+            confidence   => $declared_count / <vterm.consensus.threshold>,
+            sharpness    => 0.0,
+            alternations => \@alternations,
+            totals       => { r => $total_r, g => $total_g, b => $total_b },
+            ghost_trails => <[vterm.consensus.ghosts]>->( \@seven_cells ),
+        };
+    }
+
+} elsif ( $action eq qw| check_layer_agreement | ) {
+    ## check if 5+ layers agree on exact same cell state
+    my @cells = @ARG;
+    return FALSE if scalar @cells < 5;
+
+    my %fingerprints;
+    foreach my $cell (@cells) {
+        next if not defined $cell;
+        my $fp = <[vterm.consensus.cell_fingerprint]>->($cell);
+        $fingerprints{$fp}{count}++;
+        $fingerprints{$fp}{cell} = $cell;
+    }
+
+    ## find majority (sort values, not hash)
+    my ($data) = sort { $b->{count} <=> $a->{count} } values %fingerprints;
+    return $data && $data->{count} >= 5 ? $data->{cell} : FALSE;
+}
+
+return undef;
+
+#,,,,,,,.,,..,..,,.,,,,.,,,.,,,,.,..,,,,,,,,,,..,,...,...,...,,..,,.,,...,,.,,
+#WIDL3IYGD6KB7LTC33L6LJYO7YQEPBKBB7LTJISJ4XQ2SYFSY753A6SIN52LVFLQSSUGYKHMFUM3I
+#\\\|EUG7V7EDFAESBJD3LDWLYQFXDYAEE567YRN6MKRBXWT2KJGYNAS \ / AMOS7 \ YOURUM ::
+#\[7]DLP2DXTLAEYBDNPZR75GBHPFEMHG35HYIA3QBC5ANNKG6TTBGKCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

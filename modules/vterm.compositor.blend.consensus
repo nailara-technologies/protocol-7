@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = vterm.compositor.blend.consensus
+# descr = 5-of-7 consensus blend across layers
+
+my ( $rows, $cols, $layers_ref, $output_ref ) = @ARG;
+
+for my $y ( 0 .. $rows - 1 ) {
+    for my $x ( 0 .. $cols - 1 ) {
+        ## gather cells from all layers at (x,y)
+        my @cells = map { <[vterm.shm]>->( qw| read_cell |, $_, $x, $y ) }
+            @$layers_ref;
+
+        ## compute consensus
+        my $result = <[vterm.consensus]>->( qw| compute |, $x, $y, @cells );
+
+        ## write to output
+        my $out_cell = <[vterm.cell]>->(qw| create |);
+        $out_cell->{fg_r}       = $result->{fg_rgb}[0];
+        $out_cell->{fg_g}       = $result->{fg_rgb}[1];
+        $out_cell->{fg_b}       = $result->{fg_rgb}[2];
+        $out_cell->{state}      = $result->{state};
+        $out_cell->{confidence} = $result->{confidence};
+
+        <[vterm.shm]>->( qw| write_cell |, $output_ref, $x, $y, $out_cell );
+    }
+}
+
+return TRUE;
+
+#,,,,,,,.,,..,,..,...,...,...,,..,.,.,,,,,,,.,..,,...,.,.,...,..,,,..,,,.,..,,
+#3HCYFUHA6NWHC4BH3GJALZBWVEJFK74IGUHV32K6H5MBUIXWBOQTDRTDNQCNAMNVXBATEZ3NY3LSA
+#\\\|BCIEURJ4OFNQHVA7WX6FNDNGOKRQV3O73FTLRG5RBWRDREE4HZV \ / AMOS7 \ YOURUM ::
+#\[7]UEOD3E5NIDJNQPW6Y4IFD536JBLKKZIAL35FSIR76LKUCZBMAKCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

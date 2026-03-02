@@ -1,0 +1,112 @@
+## [:< ##
+
+# name  = vterm.cell
+# descr = vterm cell structure operations and accessors
+# note  = 16-byte cell format, sub-bit native
+
+my $action = shift // qw| create |;
+
+## cell structure definition ##
+my %cell_template = (
+    ## sub-bit accumulators (-128 to +127, threshold at ±5)
+    subbit_r    => 0,    ## red channel votes
+    subbit_g    => 0,    ## green channel votes
+    subbit_b    => 0,    ## blue channel votes
+    subbit_attr => 0,    ## attribute votes
+
+    ## collapsed/declared state (visible output)
+    codepoint => 0x20,   ## space (default)
+    fg_r      => 192,    ## default fg: light gray
+    fg_g      => 192,
+    fg_b      => 192,
+    bg_r      => 0,      ## default bg: black
+    bg_g      => 0,
+    bg_b      => 0,
+    attrs     => 0,      ## bold=1, italic=2, underline=4, blink=8, inverse=16
+
+    ## consensus metadata
+    state       => <vterm.state.superposition>, ## 0=superposition
+    confidence  => 0,                           ## 0.0 to 1.0
+    alternation => <vterm.phase.undetermined>,  ## even/odd phase
+    vote_count  => 0,                           ## how many layers contributed
+    last_update => 0,                           ## timestamp
+
+    ## temporal routing (the 11th member - 0-state secret holder)
+    alternation_history => [],       ## last N sign changes
+    route               => undef,    ## determined by phase when at 0
+);
+
+if ( $action eq qw| create | ) {
+    ## return fresh cell copy
+    return {%cell_template};
+
+} elsif ( $action eq qw| reset | ) {
+    ## reset existing cell to template
+    my $cell_ref = shift // return undef;
+    %$cell_ref = %cell_template;
+    return $cell_ref;
+
+} elsif ( $action eq qw| pack | ) {
+    ## pack cell to binary string (for SHM/storage)
+    my $cell_ref = shift // return undef;
+    return pack(
+        'c4 N C3C3C C c C C N',    ## 23 bytes total
+        $cell_ref->{subbit_r},
+        $cell_ref->{subbit_g},
+        $cell_ref->{subbit_b},
+        $cell_ref->{subbit_attr},
+        $cell_ref->{codepoint},
+        $cell_ref->{fg_r}, $cell_ref->{fg_g}, $cell_ref->{fg_b},
+        $cell_ref->{bg_r}, $cell_ref->{bg_g}, $cell_ref->{bg_b},
+        $cell_ref->{attrs},
+        $cell_ref->{state},
+        $cell_ref->{confidence},
+        $cell_ref->{alternation},
+        $cell_ref->{vote_count},
+        $cell_ref->{last_update}
+    );
+
+} elsif ( $action eq qw| unpack | ) {
+    ## unpack binary string to cell
+    my $packed = shift // return undef;
+    my @values = unpack( 'c4 N C3C3C C c C C N', $packed );
+    return {
+        subbit_r    => $values[0],
+        subbit_g    => $values[1],
+        subbit_b    => $values[2],
+        subbit_attr => $values[3],
+        codepoint   => $values[4],
+        fg_r        => $values[5],
+        fg_g        => $values[6],
+        fg_b        => $values[7],
+        bg_r        => $values[8],
+        bg_g        => $values[9],
+        bg_b        => $values[10],
+        attrs       => $values[11],
+        state       => $values[12],
+        confidence  => $values[13] / 127,    ## normalize from int8
+        alternation => $values[14],
+        vote_count  => $values[15],
+        last_update => $values[16],
+    };
+
+} elsif ( $action eq qw| get_subbit_total | ) {
+    ## sum of RGB sub-bits (confidence metric)
+    my $cell_ref = shift // return 0;
+    return $cell_ref->{subbit_r} + $cell_ref->{subbit_g}
+        + $cell_ref->{subbit_b};
+
+} elsif ( $action eq qw| is_declared | ) {
+    ## check if cell has collapsed to declared state
+    my $cell_ref = shift // return FALSE;
+    return (   $cell_ref->{state} == <vterm.state.declared_set>
+            || $cell_ref->{state} == <vterm.state.declared_clear> );
+}
+
+return undef;
+
+#,,,.,,.,,...,,.,,,,.,.,.,.,.,.,,,.,.,,,.,,..,.,.,...,...,..,,...,,,.,,..,..,,
+#UCXNLGVDBHLECW4EXPPHZFSER6GGS64GMKEP7YBNQCTXBLGIGIDGXTFLM7M7RKCHHNMNUPCZH6QV2
+#\\\|3SFJ7RM6O4YKYZRAK5E6JRIWH47U5RGUIOUFBH7V5DX2CSWVPTR \ / AMOS7 \ YOURUM ::
+#\[7]XFJRYA6VBVLQ7E7OU6YGX4YGQJTVI2ZXXR65BTYWXQU2DRO2XOBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
