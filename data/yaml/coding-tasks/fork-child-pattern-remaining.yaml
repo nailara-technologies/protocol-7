@@ -25,6 +25,15 @@ completed_in_session:
   - image2html child: dev.null sigchld installed after IO::AIO::reinit
   - image2html.parent.init_code: handler restored, child pid registered
   - pdf.html.parent.init_code: child pid registered
+  - base.protocol-7.pre_init created with swap_subs [ base.protocol-7 → protocol-7,
+    overwrite policy to preserve inline protocol-7.source-key ] [ commit ab9a85666 ]
+  - base.referenced_subroutines.clear_from_disk: fixed wrong source prefix
+    [ protocol-7. with trailing dot → base.protocol-7 ] that caused double-dot
+    path in reverse substitution check, silently failing resolution
+  - bin/Protocol-7 export inline sub check reverted to base.protocol-7.source-key
+    [ registered name before swap; runtime name only valid after swap_subs ]
+  - work.parent.scan_history + zenki.parent.start_via_v7: exists checks updated
+    to post-swap names [ protocol-7.source-key, protocol-7.command.send.local ]
 
 # Remaining tasks
 
@@ -32,7 +41,8 @@ tasks:
 
   - id: protocol-7-swap-subs
     title: create base.protocol-7.pre_init with swap_subs alias
-    status: pending
+    status: completed
+    completed_commit: ab9a85666
     description: |
       following the pattern of base.event.pre_init, base.file.pre_init etc.,
       create a base.protocol-7.pre_init module that calls:
@@ -45,6 +55,11 @@ tasks:
       - modules/base.async.get_session_id
       - modules/base.protocol-7.command.send.local
       - modules/base.protocol-7.route-send
+    notes: |
+      overwrite policy used instead of default undefine, to preserve the inline
+      sub protocol-7.source-key [ registered as base.protocol-7.source-key in
+      bin/Protocol-7 ] which must not be clobbered by the swap.
+      clear_from_disk bug also fixed [ wrong source prefix caused double-dot path ].
 
   - id: replace-hardcoded-cube-routes
     title: replace hardcoded cube.v7.notify_online / cube.p7-log.append routes
@@ -165,10 +180,26 @@ tasks:
       so the canonical pattern is fully stable and all edge cases [ sigchld modes,
       log storm trap ] are understood before abstracting.
 
+# Future: documentation sweep
+
+  - id: doc-stale-base-prefix-cleanup
+    title: sweep docs for stale base.protocol-7.* references
+    status: long-term
+    priority: low
+    description: |
+      many documentation files and module comments still reference the long-form
+      base.protocol-7.command.send.local etc. once local model infrastructure is
+      in place, this is an ideal automated task: scan data/md/, data/yaml/,
+      module # comments for base.protocol-7.* call patterns and suggest replacements
+      with the post-swap protocol-7.* short form.
+    notes: |
+      perfect candidate for a local model pass once models.chat + coding zenka
+      infrastructure is stable enough for doc-editing tasks.
+
 ---
 
-#,,.,,.,.,,,.,,,,,..,,,..,...,,,,,,,,,,,.,..,,..,,...,...,.,.,...,,.,,,,.,..,,
-#ITIXA5LVMQCOGOBCKNFYDE7RCXN3FN57VCNOAMMO5AE4NLCRCS7FHYZIC27QYZXFP6NLYY6LF4JKO
-#\\\|XXOXLXAUS7EAZCE3FIPNLOLODFFQ42GF6LNRAGAXDBTJN74QOPQ \ / AMOS7 \ YOURUM ::
-#\[7]HZO5N5XHWKEZOQOUTUZUZGI5MF6DDH5AD62HNPNVPL2PZKNTHOBI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,.,,,.,,...,,.,,,,.,,,.,...,,,,,..,,...,...,.,.,...,.,.,,.,,,,,,
+#FCJ54VW24HBRKTPTBXG67HYXKT6A5W46JDPFVXYUDPIFOAAL5ZNUBKPFZPDIKBXYLL3K5THZEUTWU
+#\\\|DAQNS5WXF5GZ4LKZBPHDHEFIT2LG42LXCOIEKPVMJ3P2AUD2QNF \ / AMOS7 \ YOURUM ::
+#\[7]IQ5EA7NCFB2L35I3T45ESAGWCWP7HE3G3W5DSXJYHJKPTBZO32BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
