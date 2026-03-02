@@ -1,0 +1,107 @@
+## [:< ##
+
+# name  = vterm.shm
+# descr = shared memory interface for vterm buffers
+# note  = optional, auto-detects data zenka, falls back to local
+
+my $action = shift // qw| attach |;
+
+if ( $action eq qw| attach | ) {
+    ## attach to or create SHM segment for a layer
+    my ( $instance_id, $layer_id, $rows, $cols ) = @ARG;
+    return undef if not defined $instance_id or not defined $layer_id;
+
+    $rows //= <vterm.default_rows>;
+    $cols //= <vterm.default_cols>;
+
+    my $shm_path = <[vterm.shm.path]>->( $instance_id, $layer_id );
+    my $size     = $rows * $cols * <vterm.cell.size_bytes>;
+
+    ## try data zenka first if available
+    if ( <vterm.shm.use_data_zenka> and <vterm.shm.data_zenka_available> ) {
+        my $mounted = <[data.shm.mount]>->( $shm_path, $size )
+            // <[data.mount_hash]>->( $shm_path, $size );
+        return $mounted if $mounted;
+    }
+
+    ## fallback: direct shm
+    if (<vterm.shm.fallback_local>) {
+        ## use local hash storage (non-persistent, per-process)
+        my $local_key
+            = sprintf( "vterm:%s:layer%d", $instance_id, $layer_id );
+        $data{'vterm'}{'local_shm'}{$local_key} //= \( ' ' x $size );
+        return {
+            type => qw| local |,
+            path => $shm_path,
+            size => $size,
+            ref  => $data{'vterm'}{'local_shm'}{$local_key},
+            rows => $rows,
+            cols => $cols,
+        };
+    }
+
+    return undef;
+
+} elsif ( $action eq qw| path | ) {
+    ## proxy to extracted module
+    return <[vterm.shm.path]>->(@ARG);
+
+} elsif ( $action eq qw| read_cell | ) {
+    ## read cell from SHM at (x,y)
+    my ( $shm_ref, $x, $y ) = @ARG;
+    return undef if not defined $shm_ref;
+
+    my $offset = ( $y * $shm_ref->{cols} + $x ) * <vterm.cell.size_bytes>;
+
+    if ( $shm_ref->{type} eq qw| local | ) {
+        my $packed = substr( ${ $shm_ref->{ref} }, $offset,
+            <vterm.cell.size_bytes> );
+        return <[vterm.cell]>->( qw| unpack |, $packed );
+    }
+
+    ## data zenka mounted shm
+    ## ... would use data zenka read interface
+    return undef;
+
+} elsif ( $action eq qw| write_cell | ) {
+    ## write cell to SHM at (x,y)
+    my ( $shm_ref, $x, $y, $cell_ref ) = @ARG;
+    return FALSE if not defined $shm_ref or not defined $cell_ref;
+
+    my $offset = ( $y * $shm_ref->{cols} + $x ) * <vterm.cell.size_bytes>;
+    my $packed = <[vterm.cell]>->( qw| pack |, $cell_ref );
+
+    if ( $shm_ref->{type} eq qw| local | ) {
+        substr(
+            ${ $shm_ref->{ref} },    $offset,
+            <vterm.cell.size_bytes>, $packed
+        );
+        return TRUE;
+    }
+
+    return FALSE;
+
+} elsif ( $action eq qw| detach | ) {
+    ## detach from SHM
+    my $shm_ref = shift // return FALSE;
+
+    if ( $shm_ref->{type} eq qw| local | ) {
+        ## local refs auto-cleanup
+        return TRUE;
+    }
+
+    ## data zenka unmount
+    if (<vterm.shm.data_zenka_available>) {
+        ## <[data.shm.unmount]>->($shm_ref->{path});
+    }
+
+    return TRUE;
+}
+
+return undef;
+
+#,,,.,...,.,,,.,.,.,.,,.,,,.,,,,,,,.,,,..,.,,,..,,...,...,.,.,.,.,.,,,,,.,.,,,
+#WB4HGQ2XNOUUELTJP4HAEK663YWJ3R6QDJ236EJ2XB64W5U3JAHIMWM5K443SFQ2CFJEMAOJNJHKM
+#\\\|QDB3GFENIJN6WSP4GM2TIGKRZRMBHXGIGTQNTK6QHRPGDDBGOYC \ / AMOS7 \ YOURUM ::
+#\[7]TT4DPIJG2MPQF7JIJWOU2B4VBPANQM5MKHMR7M7GGI3VOJQ66UCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

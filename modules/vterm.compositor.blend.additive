@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = vterm.compositor.blend.additive
+# descr = additive blend mode for glow effects
+
+my ( $rows, $cols, $layers_ref, $output_ref ) = @ARG;
+
+for my $y ( 0 .. $rows - 1 ) {
+    for my $x ( 0 .. $cols - 1 ) {
+        my ( $sum_r, $sum_g, $sum_b ) = ( 0, 0, 0 );
+
+        foreach my $layer (@$layers_ref) {
+            my $cell = <[vterm.shm]>->( qw| read_cell |, $layer, $x, $y );
+            next if not $cell;
+            $sum_r += $cell->{fg_r} // 0;
+            $sum_g += $cell->{fg_g} // 0;
+            $sum_b += $cell->{fg_b} // 0;
+        }
+
+        my $out_cell = <[vterm.cell]>->(qw| create |);
+        $out_cell->{fg_r} = <[vterm.util.clamp]>->( $sum_r, 0, 255 );
+        $out_cell->{fg_g} = <[vterm.util.clamp]>->( $sum_g, 0, 255 );
+        $out_cell->{fg_b} = <[vterm.util.clamp]>->( $sum_b, 0, 255 );
+
+        <[vterm.shm]>->( qw| write_cell |, $output_ref, $x, $y, $out_cell );
+    }
+}
+
+return TRUE;
+
+#,,,.,,,.,,.,,...,...,..,,,.,,.,.,,.,,,.,,..,,..,,...,...,.,.,..,,...,..,,.,,,
+#NSRNH5BDHSXC7LD4KQ65HXZJ65SI4AVPOH46XPABQ7NMFHFYLUK7LXO2OVVAAYF5GGDE5DY77JPW6
+#\\\|WCS7CPCSD6PJNXWJSHPYULSMK2AXCEPLL2726XBYQ2RDFUU6WME \ / AMOS7 \ YOURUM ::
+#\[7]3OJSZXAJQEVKLAASEQXHSQZPHPUMDMDYRAB2GJ3K6PQBKRNWJICY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
