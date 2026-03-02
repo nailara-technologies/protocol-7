@@ -67,14 +67,31 @@ tasks:
     description: |
       in fork-child startup flows, cube.v7.notify_online and cube.p7-log.append
       are hardcoded command strings in access.cmd.usr.child and in the modules
-      that send them. investigate using configurable route variables [ similar to
-      <buffer.zenka.log_cmd> ] so the target zenka names are not baked in.
-      also relevant in ticker, universal.startup, impressive, system, mpv, tile-groups
-      which all hardcode "cube.v7.notify_online".
+      that send them. also relevant in ticker, universal.startup, impressive,
+      system, mpv, tile-groups which all hardcode "cube.v7.notify_online".
+
+      migration approach: use base.protocol-7.route-send [ aliased to
+      protocol-7.route-send after swap ] instead of protocol-7.command.send.local
+      with hardcoded cube.X prefix. route-send prepends
+      <protocol-7.network.parent_route> automatically, so call sites use relative
+      command names [ e.g. "v7.notify_online" ] instead of "cube.v7.notify_online".
+
+      do in step-by-step batches with ncode, one natural grouping at a time, with
+      testing between each batch. not all send.local calls should become route-send
+      [ direct cube commands like "whoami" in get_session_id must remain as-is ].
+
+    natural_batches: |
+      1. fork-child startup modules [ notify_online + p7-log.append in fork_conv_child ]
+      2. notify_online cluster [ ticker, universal.startup, impressive, system,
+         mpv, tile-groups ] -- all send the same cube.v7.notify_online pattern
+      3. letsencr + weather child-side sends [ if applicable ]
+
     notes: |
-      cube is the correct router prefix -- the question is whether v7 and p7-log
-      as hardcoded targets should be abstracted. a base module
-      like base.zenki.notify_online could look up the route from config.
+      cube is the correct router prefix -- v7 and p7-log as hardcoded targets
+      are what is being abstracted. route-send handles the cube. prefix via
+      parent_route automatically in child contexts where parent_route is set.
+      in root-level zenki [ no parent_route ] route-send passes the command
+      through unchanged, so "v7.notify_online" routes correctly via cube.
     files_to_review:
       - modules/ticker.callback.request_updates
       - modules/universal.startup
@@ -198,8 +215,8 @@ tasks:
 
 ---
 
-#,,.,,,.,,,,.,,.,,,.,,...,,.,,,,.,,,.,...,,,,,..,,...,...,.,.,...,.,.,,.,,,,,,
-#FCJ54VW24HBRKTPTBXG67HYXKT6A5W46JDPFVXYUDPIFOAAL5ZNUBKPFZPDIKBXYLL3K5THZEUTWU
-#\\\|DAQNS5WXF5GZ4LKZBPHDHEFIT2LG42LXCOIEKPVMJ3P2AUD2QNF \ / AMOS7 \ YOURUM ::
-#\[7]IQ5EA7NCFB2L35I3T45ESAGWCWP7HE3G3W5DSXJYHJKPTBZO32BI 7  DATA SIGNATURE ::
+#,,.,,...,...,.,.,.,.,..,,.,.,...,,..,...,,,.,..,,...,...,..,,.,,,,..,,,.,.,.,
+#O6TKSRI5ALM7H5MMFEIP5D4FRJQOMW22FGQR37SKFMTU5IEOB4DXE3QXORTOVKPP25LIFSGHPWC6O
+#\\\|4E4MF3NXBLJUQHGQDCJCWERB2JMANDIT2AEUPMHVYBHP443JLGU \ / AMOS7 \ YOURUM ::
+#\[7]EGM5EEP7OVDUQZNNDYJBJXND4QP7ZL3FI237IV7B5BIMKLM3SIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
