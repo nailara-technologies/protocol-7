@@ -11,6 +11,8 @@ my $idle_time = <auto-hide.idle_time>;
     "/usr/bin/unclutter -display $display "
         . "-root -noevents -idle $idle_time 2>&1 |"
 );
+binmode( $out_fh, ':raw' )
+    if defined $out_fh;    ## strip :utf8 from pipe-open ##
 if ( !<child.auto-hide.unclutter-pid> ) {
     <[base.log]>->( 0, "<< cannot start 'unclutter' [ \l$OS_ERROR ] >>" );
     <[base.log]>->( 1, " : aborting zenka startup .," );
@@ -29,8 +31,8 @@ if ( !<child.auto-hide.unclutter-pid> ) {
     }
 );
 
-#,,,.,,,,,...,,..,,,.,,,.,..,,,,,,.,.,,.,,,,,,..,,...,...,...,,..,.,.,...,,,.,
-#EIR734JZRT7CYIGE6ZF4PWHXH3AOMGAI3JKCFOREZ7BHXPZRYT5O4F7HVNON7XYQA36GQDJDYH3VS
-#\\\|HPCENL2OZXGHRX5JE3TAZIPR3L6YKHCJR3DIHPH5ONDJ2262BGS \ / AMOS7 \ YOURUM ::
-#\[7]G4BOJ4R5WWSGCEI7DC7AXDYJAR4CEW6UXKNPALDONBMF25VICOAA 7  DATA SIGNATURE ::
+#,,,.,.,,,,,.,..,,,.,,,,.,..,,,,.,.,.,..,,,,.,..,,...,...,...,,,.,.,.,..,,,,,,
+#SAEYRRJL2XS2H6WAKIWRJN4TYFWZQYPRVGXV56MXWBAP2GIVODCJBT3TEWCNJPTJ3YGH4AZLZWAZ4
+#\\\|AYXRWS6ZSCJOACXAD2CAHRR2P7AX545FGETOMG6OUY7AP7ADXSB \ / AMOS7 \ YOURUM ::
+#\[7]PSMWDQGKXBW3VPRRTNVJC574JVOGSNBR7ZSV6I3DPP2LTSN73SCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
