@@ -35,8 +35,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
         and !<web-browser.slideshow.iteration> ) {
         <web-browser.slideshow.iteration>
             = 1;    ## reporting universal-child 'ready'
-        <[protocol-7.command.send.local]>
-            ->( { 'command' => 'cube.report_paused' } );
+        <[protocol-7.route-send]>->( { 'command' => 'report_paused' } );
     }
     return;
 } else {
@@ -77,8 +76,8 @@ my $index = 0;
 
 foreach my $entry (@url_list) {
     if ( $type_list{$entry} eq 'pdf' ) {
-        <[protocol-7.command.send.local]>->(
-            {   'command'   => "cube.pdf2html.get_url",
+        <[protocol-7.route-send]>->(
+            {   'command'   => "pdf2html.get_url",
                 'call_args' => { 'args' => "$entry $width" },
                 'reply'     => {
                     'handler' => qw| web-browser.handler.2html_reply |,
@@ -90,8 +89,8 @@ foreach my $entry (@url_list) {
             = '!' . <web-browser.url.list_reply>->[$index];
 
     } elsif ( $type_list{$entry} eq 'image' ) {
-        <[protocol-7.command.send.local]>->(
-            {   'command'   => "cube.image2html.get_url",
+        <[protocol-7.route-send]>->(
+            {   'command'   => "image2html.get_url",
                 'call_args' => { 'args' => "$entry $width $height" },
                 'reply'     => {
                     'handler' => qw| web-browser.handler.2html_reply |,
@@ -133,8 +132,8 @@ if (@{<web-browser.url.list>}
     <[web-browser.start_slideshow]>;
 }
 
-#,,.,,...,,,.,.,,,..,,,,.,.,.,,..,,.,,,,,,,,.,..,,...,...,...,...,.,,,.,.,,..,
-#Q7FCI4VXF7K2DF37UXZVTIUZY6FUO3NITEVQQKNFGBBDAVZB4R33RZSW2FMYXDAQFPMD3ODCBT7NE
-#\\\|4VRRCCIPN3UQUSD3KMGWR27IVGR65CPZ4WBPHQ7D7ZKBC4B2WB2 \ / AMOS7 \ YOURUM ::
-#\[7]GF67YTUS6PH54DPHNFAGXQYXOJRIYJRCBTXAX6F6YHB6I6MI6YDA 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,...,.,,,,.,,,..,,..,,,,,.,.,,,.,..,,...,...,.,,,,,,,,..,,.,,,.,,
+#WAT5KYAPIUWQKS2J2S6XJTPTPLVEBGFNP322N5KOXJ2U6HVC4VQHSKHWB2DFUX77I2LDOK56FAAMA
+#\\\|ON2I6Z6A6QYKICDXHWSQI6IKJDPTKY6J5U4JGL57F35RAQXMUXH \ / AMOS7 \ YOURUM ::
+#\[7]HM6F5F4F2XK3LCU6PNGFTQHA5D3EOWIXG2PNNMDDT6WFIESST4CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
