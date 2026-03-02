@@ -1,0 +1,174 @@
+---
+task_id: fork-child-pattern-remaining
+date_created: 2026-03-02
+status: pending
+priority: medium
+context_commit: 1ffe1d2fa
+
+title: |
+  fork-child pattern remaining cleanup steps
+
+description: |
+  follow-up items after the fork-child cleanup and sig_chld pid filter
+  session [ commit 1ffe1d2fa ]. these were planned but deferred, covering
+  namespace aliasing for base.protocol-7 and replacing hardcoded cube
+  command routes in fork-child startup.
+
+# Completed context
+
+completed_in_session:
+  - base.handler.sig_chld.shutdown upgraded with pid-based filter
+    [ sig.chld.shutdown.pid / sig.chld.ignore.pid, wnohang ]
+  - image2html, pdf.html, vision-batch fork-child modules cleaned up
+    [ log_cmd routing, access deletes, authenticated flags ]
+  - access.cmd.usr.child added to image2html, pdf2html, vision-batch start configs
+  - image2html child: dev.null sigchld installed after IO::AIO::reinit
+  - image2html.parent.init_code: handler restored, child pid registered
+  - pdf.html.parent.init_code: child pid registered
+
+# Remaining tasks
+
+tasks:
+
+  - id: protocol-7-swap-subs
+    title: create base.protocol-7.pre_init with swap_subs alias
+    status: pending
+    description: |
+      following the pattern of base.event.pre_init, base.file.pre_init etc.,
+      create a base.protocol-7.pre_init module that calls:
+        <[base.swap_subs]>->( 'base.protocol-7', 'protocol-7' );
+      so call sites can use <[protocol-7.command.send.local]> instead of
+      <[base.protocol-7.command.send.local]>. currently base.async.get_session_id
+      and all fork-child modules use the long form.
+    files_affected:
+      - modules/base.protocol-7.pre_init  ## new
+      - modules/base.async.get_session_id
+      - modules/base.protocol-7.command.send.local
+      - modules/base.protocol-7.route-send
+
+  - id: replace-hardcoded-cube-routes
+    title: replace hardcoded cube.v7.notify_online / cube.p7-log.append routes
+    status: pending
+    description: |
+      in fork-child startup flows, cube.v7.notify_online and cube.p7-log.append
+      are hardcoded command strings in access.cmd.usr.child and in the modules
+      that send them. investigate using configurable route variables [ similar to
+      <buffer.zenka.log_cmd> ] so the target zenka names are not baked in.
+      also relevant in ticker, universal.startup, impressive, system, mpv, tile-groups
+      which all hardcode "cube.v7.notify_online".
+    notes: |
+      cube is the correct router prefix -- the question is whether v7 and p7-log
+      as hardcoded targets should be abstracted. a base module
+      like base.zenki.notify_online could look up the route from config.
+    files_to_review:
+      - modules/ticker.callback.request_updates
+      - modules/universal.startup
+      - modules/impressive.handler.get_list_reply
+      - modules/system.handler.mod_reload_reply
+      - modules/mpv.callback.start_reenc_msg
+      - modules/tile-groups.handler.transition
+      - configuration/zenki/image2html/start
+      - configuration/zenki/pdf2html/start
+      - configuration/zenki/vision-batch/start
+
+  - id: pdf-html-child-sigchld-null
+    title: add dev.null sigchld in pdf.html child side
+    status: pending
+    description: |
+      image2html child received <[event.add_signal]>->('CHLD','dev.null') after
+      IO::AIO::reinit() to prevent inherited signal handler interference.
+      pdf.html.base.fork_conv_child should get the same treatment for consistency,
+      since both zenki use Graphics::Magick and LWPx::ParanoidAgent pre-fork.
+    files_affected:
+      - modules/pdf.html.base.fork_conv_child
+
+  - id: vision-batch-sigchld-review
+    title: review vision-batch sigchld handling for child side
+    status: pending
+    description: |
+      vision-batch.parent.fork_child intentionally avoids sigchld handlers
+      [ comment: "cause expected numerical reply_id error in v7" ]. verify
+      whether the dev.null approach used in image2html child would be safe here,
+      or if the current approach [ no handler ] is correct for vision-batch's
+      architecture [ child does not fork further ].
+    files_affected:
+      - modules/vision-batch.parent.fork_child
+
+# Long-term architectural task
+
+  - id: generic-fork-child-handler
+    title: base.fork_child -- generic forking handler with hook callbacks
+    status: long-term
+    priority: architectural
+    description: |
+      create a generic base.fork_child module that encapsulates the full canonical
+      fork-child boilerplate so individual zenki only provide what is unique to them.
+      currently ~50 lines of session machinery are repeated in every forking zenka
+      [ weather, letsencr, image2html, pdf.html, vision-batch, and any future ones ].
+      centralizing this into one module with named hook points means:
+        - bugfixes propagate everywhere automatically
+        - new multi-process zenki are as easy to implement as single-process ones
+        - llms can implement forking zenki without needing deep knowledge of the
+          p7 session machinery -- just provide hook callbacks and module lists
+
+    proposed_interface: |
+      [base.fork_child] called from a zenka's start config or fork module,
+      taking a config hashref:
+
+        pipe_namespace    -- prefix for <pipe.*> data keys [ e.g. 'image2html' ]
+        child_modules     -- module group(s) to load/init in child
+        parent_modules    -- module group(s) to load/init in parent
+        sigchld_mode      -- 'shutdown_pid' | 'dev_null' | 'none'
+                             [ shutdown_pid: registers child pid + shutdown handler ]
+                             [ dev_null: null handler in child, none in parent     ]
+                             [ none: vision-batch style, no handler either side    ]
+        on_pre_fork       -- optional callback: runs before socketpair/fork
+        on_child_init     -- optional callback: runs in child after boilerplate
+        on_parent_ready   -- optional callback: runs in parent after boilerplate
+                             [ after module load/init, before get_session_id ]
+
+    hook_points_detail:
+      on_pre_fork: |
+        zenka-specific state setup before the fork [ e.g. setting <image2html.pipe> = {...} ]
+      on_child_init: |
+        after: io_aio_reinit, dev_null_sigchld, session_shutdown, log_cmd, access_deletes,
+               parent_route_unshift, session_init
+        before: base.load_modules / base.init_modules for child_modules
+        use for: any child-specific data initialization
+      on_parent_ready: |
+        after: base.load_modules / base.init_modules for parent_modules,
+               session_init, authenticated flags
+        before: base.async.get_session_id
+        use for: parent-specific state setup, additional pid registrations
+
+    benefits:
+      - boilerplate bugs fixed once, all zenki benefit
+      - consistent behavior across all forking zenki [ no subtle divergences ]
+      - llm-friendly: implement a forking zenka by filling in hooks, not learning
+        the session machinery
+      - multi-process zenki become a first-class pattern rather than a special technique
+      - divergent cases [ vision-batch sigchld, letsencr base.exit ] handled via
+        sigchld_mode and escape-hatch callbacks
+
+    existing_forking_zenki:
+      - modules/weather.base.fork_weather_child
+      - modules/letsencr.base.fork_letsencr_child
+      - modules/image2html.base.fork_conv_child
+      - modules/pdf.html.base.fork_conv_child
+      - modules/vision-batch.parent.fork_child
+
+    prerequisite_tasks:
+      - protocol-7-swap-subs  ## base.protocol-7 shorthand useful inside base.fork_child
+
+    notes: |
+      should be implemented AFTER the remaining cleanup tasks above are done,
+      so the canonical pattern is fully stable and all edge cases [ sigchld modes,
+      log storm trap ] are understood before abstracting.
+
+---
+
+#,,.,,.,.,,,.,,,,,..,,,..,...,,,,,,,,,,,.,..,,..,,...,...,.,.,...,,.,,,,.,..,,
+#ITIXA5LVMQCOGOBCKNFYDE7RCXN3FN57VCNOAMMO5AE4NLCRCS7FHYZIC27QYZXFP6NLYY6LF4JKO
+#\\\|XXOXLXAUS7EAZCE3FIPNLOLODFFQ42GF6LNRAGAXDBTJN74QOPQ \ / AMOS7 \ YOURUM ::
+#\[7]HZO5N5XHWKEZOQOUTUZUZGI5MF6DDH5AD62HNPNVPL2PZKNTHOBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

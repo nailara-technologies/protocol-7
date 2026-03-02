@@ -20,6 +20,8 @@
 - **Harmonic mathematics session** (Feb 27 2026): deep exploration of mod-13 structure →
 - **v7 stdout SHM log** (Feb 27 2026): completed ✅ — `/dev/shm/.7/STDOUT/<socket>`, full early
   message reconstruction, banner re-emit, colored output matching console exactly
+- **fork-child cleanup + sig_chld pid filter** (Mar 2 2026): completed ✅ — commit `1ffe1d2fa`
+  image2html, pdf.html, vision-batch pattern unified; `base.handler.sig_chld.shutdown` upgraded
 
 ## v7 Stdout SHM Log Architecture
 - **Log path**: `/dev/shm/.7/STDOUT/<socket>` symlinked from `/var/run/.7/STDOUT/<socket>`
@@ -64,6 +66,31 @@ Removed all hardcoded model paths/names; full dynamic discovery from models zenk
   - Enables `models.chat` command to work with local models transparently
 
 ## Key Technical Insights
+
+### fork-child Pattern (canonical form, Mar 2026)
+- **Child side** (in fork_conv_child, child branch):
+  - `IO::AIO::reinit()` first
+  - `<[event.add_signal]>->( { 'signal' => 'CHLD', 'handler' => 'dev.null' } );` — null inherited handler
+  - `<callback.session.closing_last.params>->[1] = 1;` — silence shutdown
+  - `$data{'session'}{$session_id}{'shutdown'} = TRUE;` — close inherited cube session
+  - `<buffer.zenka.log_cmd> = qw| p7-log.append |;` — route logs through parent
+  - `delete <access.cmd.usr.cube>; delete <access.cmd.regex.usr.cube>;`
+  - `unshift <protocol-7.network.parent_route>->@*, qw| parent |;`
+- **Parent side** (in fork_conv_child, parent branch):
+  - `delete <access.cmd.usr.parent>; delete <access.cmd.regex.usr.parent>;`
+  - `$data{'session'}{$id}->{'authenticated'} = qw| yes |;` — child session
+  - `$data{'session'}{$session_id}->{'authenticated'} = qw| yes |;` — cube session
+- **Parent init_code**: register SIGCHLD + child PID filter:
+  ```perl
+  <[event.add_signal]>->( { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
+  <sig.chld.shutdown.pid>->{<zenka.child.pid>} = 1;
+  ```
+- **Start config**: `access.cmd.usr.child = cube.v7.notify_online cube.p7-log.append`
+- **sig_chld.shutdown filter**: `<sig.chld.shutdown.pid>` triggers exit; `<sig.chld.ignore.pid>` silent skip;
+  unknown PIDs logged at level 1 but no exit. Uses WNOHANG to avoid blocking on live children.
+- **Log storm trap**: child log routing at `zenka_logfile = 2` → every `:network:` routing message
+  becomes a p7-log.append call → feedback loop. Keep `zenka_logfile` at default (1) for child zenki.
+- **Remaining tasks**: `data/yaml/coding-tasks/fork-child-pattern-remaining.yaml`
 
 ### Event Timers (CRITICAL)
 - Repeating timers require BOTH `'interval' => N` AND `'repeat' => TRUE`
@@ -185,8 +212,8 @@ Removed all hardcoded model paths/names; full dynamic discovery from models zenk
 - Handlers receive Event object as first param, not data directly
 - Extract: `my $event = shift->w; my $server = $event->data;`
 
-#,,..,...,,,.,,..,,.,,..,,,..,,,.,.,.,.,.,,..,..,,...,...,.,,,,..,.,,,.,.,,,,,
-#OEWGQ7GGZV567KDKJO4DKNTMX4SEL5BJBAQXKGEVT4WRKIM4L35IODGFKCUKU7QM267OOTSNLFZFC
-#\\\|YJQ2UL3BQCVMPPY6EKESXXBI6BWYHV45Q37CEOPXQ3PEZFG7RIJ \ / AMOS7 \ YOURUM ::
-#\[7]7EJHG3W6MOHCZHXC7GZIXS3HXFMOAA672NCKLNJSPXYVWZJLBSBQ 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,..,,,..,,..,,.,,,,.,,..,,..,,,,,..,,...,...,,.,,..,,,.,,,,.,,.,,
+#LN7LNLIIDMN64Q3XRH2Q4PP5FFPSF5M5ZNFSO2D526R6OKBDBNOCWSUYOMYBAZ3JGT3PETFRMQHKA
+#\\\|FQ3SCJMD4IQMHRPWDOFGUXOXNBICYIGDSRY2PEJRQNPJTZ3W73K \ / AMOS7 \ YOURUM ::
+#\[7]6RWUE3HY5IEPSW3HHRNI22JARII6QHX5CA66B5T46KBZCNDB4CDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
