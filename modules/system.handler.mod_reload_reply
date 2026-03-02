@@ -2,21 +2,21 @@
 
 # name = system.handler.mod_reload_reply
 
-<[protocol-7.command.send.local]>->(
-    {   'command'   => qw| cube.v7.notify_online |,
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| v7.notify_online |,
         'call_args' => { 'args'    => 'X-11' },
         'reply'     => { 'handler' => 'system.handler.X-11_restarted' }
     }
 );
 
-<[protocol-7.command.send.local]>->(
-    {   'command'   => qw| cube.v7.start |,
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| v7.start |,
         'call_args' => { 'args' => 'X-11' }
     }
 );
 
-#,,.,,.,.,,..,,,.,,,.,.,.,...,.,,,.,,,,..,..,,..,,...,...,.,.,,,,,.,,,,.,,,.,,
-#F3XW7K6INUAHUOVFEJLJ5TCZ5YE74GHQBBOVILCMCNMGO2NVQVF26V7BPATIM2ACVSU57S2H4J4FS
-#\\\|LDVCMWM6UWR6TOSKIU53CLHL3JDYNKN4QMOPV3VQT27HSH6G25U \ / AMOS7 \ YOURUM ::
-#\[7]DLUJXLPD4CUYNW3TVSJ3LR6AH6T2UJCKEJQUBRFVVKSSERDS7KAQ 7  DATA SIGNATURE ::
+#,,..,,..,,,,,,.,,.,,,...,.,.,,,,,,,.,,.,,,..,..,,...,...,.,,,..,,..,,,,,,,.,,
+#AMTNLR76PMFKW3FNJ5HUMLML6TTGIVMBWVE6P3PFWSQVDE3URECKYSBKWIGKQWXYC3RKXBUQRI7NU
+#\\\|PLJNPMNJEUWP4AUHGRX3QDWWFGQTURMVNWUXSIWITXHJFGTUNML \ / AMOS7 \ YOURUM ::
+#\[7]5ONJVA4EKKUAXNIT52ZYYB7VMNEP6NVIBBTZQXNZQ63ZH33XLEDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
