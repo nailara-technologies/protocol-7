@@ -70,6 +70,29 @@
 
 ---
 
+## fork-child Critical Gotchas (Mar 2026)
+
+### access.cmd.usr.child — keep cube. prefix (CRITICAL)
+- `access.cmd.usr.child = cube.v7.notify_online cube.p7-log.append`
+- ⚠️ do NOT strip the `cube.` prefix — `has_access` checks the command AFTER the
+  `parent.` routing hop is consumed, not the full routed path
+- child sends `parent.cube.v7.notify_online`; parent receives `cube.v7.notify_online`
+- access list must match the post-hop form: `cube.v7.notify_online` ✅
+
+### event.add_signal — hashref form only (CRITICAL)
+- ❌ `<[event.add_signal]>->('CHLD', 'dev.null')` — positional args, silently wrong
+- ✅ `<[event.add_signal]>->( { 'signal' => 'CHLD', 'handler' => 'dev.null' } )`
+
+### protocol-7.route-send — when and when not to use
+- Use for cube-routed zenka commands (`v7.*`, `httpd.*`, `p7-log.*`, `X-11.*`, etc.)
+- route-send auto-prepends `<protocol-7.network.parent_route>` → correct for both
+  root zenki (`['cube']`) and fork-child children (`['parent','cube']`)
+- Do NOT use for `child.*` commands — local socketpair aliases, not cube-routed
+  (route-send would produce `cube.child.*` which doesn't exist)
+- Direct cube protocol commands (`whoami`, etc.) → stay `send.local` with literal `cube.`
+
+---
+
 ## Project Workflow Rules (CRITICAL)
 
 ### Signature Updates Require User Passphrase
@@ -269,8 +292,8 @@ $key_list_string =~ s|  (\.)$|  $C{b}$C{0}$1$C{T}|mg;
 
 ---
 
-#,,,.,,.,,,..,..,,.,.,..,,,,.,...,,,,,...,..,,.,.,...,...,,.,,,,.,,,.,...,.,.,
-#CDGDLZAYTTO5KXFJQI5ONIWPU7WA7UYVTNF6IFUSHWZIHTEM73U3CLK7YJ6BH3QMFAJKOW27OB2QE
-#\\\|S5YZHASVE6EBYLTBKX6WARLZBJNY4YYIC6X4LZD3NAVXPSOAMBH \ / AMOS7 \ YOURUM ::
-#\[7]KX2ACQQWLCXWCZUHEOQJ2QO2CGUMYFKX475545TY4IX5N2CJT6AA 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,,.,,..,.,.,,..,..,,.,.,.,,,..,,.,.,...,...,,,,,...,,.,,..,,,.,,
+#QZFG2KHDGWPVATBNWMR2ULPMAKZCZD6QGACIC5RZALEOQJMLJP73IJXHCCD4WKHUCLS56Z6Z6QCW2
+#\\\|JFPKFXELDJ6GVO6PXXBNZ3UN77E4HNA6POMM5LLMBCIQWIS2PO6 \ / AMOS7 \ YOURUM ::
+#\[7]7NMYGOU74Q25NF7IHUM4B43JHPHYDQBVAGZB3FVITPR3FVWGQYBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
