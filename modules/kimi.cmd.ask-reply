@@ -1,0 +1,58 @@
+## [:< ##
+
+# name  = kimi.cmd.ask-reply
+# descr = send prompt to kimi-web and return response
+# param = <prompt>
+
+<[base.perlmod.load]>->(qw| Crypt::Misc |);
+
+## extract prompt from call args [supports base32r-encoded multiline prompts]
+my $prompt;
+
+if ( defined $call->{'param'} and ref $call->{'param'} eq qw| HASH | ) {
+    $prompt = $call->{'param'}->{'prompt'} // $call->{'param'}->{'request'}
+        // $call->{'param'}->{'question'} // '';
+} else {
+    $prompt = $call->{'args'} // '';
+}
+
+## decode base32r if the string looks encoded
+if ( $prompt =~ m{^[2-7A-Z]+$} ) {
+    my $decoded = eval { Crypt::Misc::decode_b32r($prompt) };
+    $prompt = $decoded if defined $decoded and length $decoded;
+}
+
+unless ( length $prompt ) {
+    return { 'mode' => 'false', 'data' => 'prompt required' };
+}
+
+unless (<kimi.ws.connected>) {
+    return { 'mode' => 'false', 'data' => 'kimi not connected' };
+}
+
+unless ( <kimi.ws.status> eq qw| ready | ) {
+    return {
+        'mode' => 'false',
+        'data' => sprintf( 'kimi not ready [ status=%s ]', <kimi.ws.status> )
+    };
+}
+
+my $reply_id = $$call{'reply_id'};
+
+my $msg_id = <[kimi.wire.prompt]>->( $prompt, $reply_id );
+
+return { 'mode' => 'false', 'data' => 'kimi.wire.prompt failed' }
+    unless defined $msg_id;
+
+<[base.logs]>->(
+    2,       '[ask-reply] submitted [ msg_id=%s reply_id=%s ]',
+    $msg_id, $reply_id
+);
+
+return { 'mode' => 'deferred' };
+
+#,,..,.,,,...,..,,.,,,,,,,,.,,,,,,.,,,.,.,.,,,..,,...,...,,,.,...,,,.,.,.,,.,,
+#XXH7HEC2FYWIXREXWMNPY6BLMSON662ZPMDOPXFTG6BFOL2N3ZRQH62MQI5IMJRKI5K44HY2L6AE4
+#\\\|2TX7F3US43SXKBAW7EYPRU74CBNMRISJBKLJX3UL2URSAKE7DQN \ / AMOS7 \ YOURUM ::
+#\[7]DBYVVVZI56RPB3KMHI2VPVXMCB6FENSJHJR6CW2MEQ2QDJCIWSCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

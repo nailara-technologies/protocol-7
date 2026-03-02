@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = models.handler.kimi_web_result
+# descr = process kimi reply, store in chat buffer, and return to caller
+# param = $reply  [ { cmd, call_args, data, params } ]
+
+my $reply = shift;
+
+my $cmd       = $reply->{'cmd'}       // '';
+my $call_args = $reply->{'call_args'} // {};
+my $params    = $reply->{'params'}    // {};
+my $data      = $reply->{'data'}      // '';
+
+my $original_reply_id = $params->{'original_reply_id'} // '';
+my $sender            = $params->{'sender'}            // '';
+my $model             = $params->{'model'}             // 'kimi';
+
+<[base.logs]>->( 2, '[kimi_web.result] cmd=%s model=%s', $cmd, $model );
+
+my $response;
+if ( $cmd eq 'TRUE' ) {
+    $response = $call_args->{'args'} // '';
+} elsif ( $cmd eq 'SIZE' ) {
+    $response = $data;
+} elsif ( $cmd eq 'FALSE' ) {
+    $response = sprintf ':. error: %s :.', $call_args->{'args'} // 'unknown';
+} else {
+    $response = sprintf ':. error: unknown reply type %s :.', $cmd;
+}
+
+## store in chat buffer and return to original caller
+<[models.chat.append]>->( undef, $model, $response );
+
+my $entries = <[models.chat.get_recent]>->(3);
+my $output  = <[models.chat.format_buffer]>->($entries);
+
+if ( length($original_reply_id) ) {
+    <[base.callback.cmd_reply]>->(
+        $original_reply_id, { 'mode' => 'size', 'data' => $output }
+    );
+}
+
+return TRUE;
+
+#,,.,,.,,,,.,,.,,,,.,,,..,..,,,..,.,.,,,.,.,,,..,,...,...,...,...,...,..,,,,.,
+#CFKTZCO5MP7WO43O3OPIM3VXTADTP7WNEXNIP7B4SFIDAMTGIOE3L6B7CSARYCODNLQCMHMRID6VS
+#\\\|XGGNFTNZ4MRND3FPPYSYZT2PE7EXAUI4OSV2JCBCTFKETMBCJRV \ / AMOS7 \ YOURUM ::
+#\[7]O77HKSURO72VQOS3C4QRPXDRFJE2VR5VNRR3KYACQQERYYHJDOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

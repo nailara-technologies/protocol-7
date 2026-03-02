@@ -8,6 +8,7 @@ return [ qw[
         net.cmd
         data.get
         base.log
+        vterm.shm
         base.sort
         base.open
         base.logt
@@ -15,6 +16,7 @@ return [ qw[
         base.init
         base.fork
         base.exit
+        vterm.cell
         ssl.server
         ssl.client
         base.regex
@@ -32,6 +34,7 @@ return [ qw[
         base.gen_id
         .context.md
         web.cmd.skin
+        vterm.subbit
         v7.post_init
         v7.init_code
         v7.child.add
@@ -46,6 +49,7 @@ return [ qw[
         mpv.cmd.next
         mpv.cmd.loop
         mpv.cmd.fade
+        kimi.connect
         fs.init_code
         fs.cmd.mount
         calc.cmd.val
@@ -92,8 +96,11 @@ return [ qw[
         base.cfg_bool
         X-11.grab_key
         work.init_code
+        websocket.send
         web.cmd.assets
         web.assets.get
+        vterm.shm.path
+        vterm.instance
         v7.zenka.start
         v7.start_count
         udev.init_code
@@ -103,6 +110,8 @@ return [ qw[
         mpv.cmd.resume
         mpv.cmd.append
         melt.init_code
+        kimi.wire.send
+        kimi.init_code
         keys.post_init
         keys.init_code
         jobqueue.count
@@ -146,6 +155,8 @@ return [ qw[
         X-11.WM.update
         zulum.init_code
         web.cmd.content
+        vterm.init_code
+        vterm.consensus
         v7.zenka.get_id
         v7.instance_ids
         v7.cmd.teardown
@@ -202,6 +213,8 @@ return [ qw[
         base.calc_gauss
         amos7.init_code
         X-11.ungrab_key
+        vterm.util.clamp
+        vterm.compositor
         ticker.main_loop
         ticker.init_code
         ticker.cmd.pause
@@ -226,6 +239,7 @@ return [ qw[
         mpv.get_playlist
         mpv.cmd.add_file
         models.init_code
+        kimi.wire.prompt
         jobqueue.add_job
         httpsd.post_init
         httpsd.init_code
@@ -281,6 +295,7 @@ return [ qw[
         X-11.check-mouse
         work.console.scan
         work.cmd.bug-list
+        websocket.connect
         web.skin_resolver
         v7.zenka.pre_init
         v7.zenka.cmd.stop
@@ -411,6 +426,7 @@ return [ qw[
         models.attach_file
         mod-test.post_init
         letsencr.init_code
+        kimi.cmd.ask-reply
         keys.checksum_href
         jobqueue.init_code
         jobqueue.find_jobs
@@ -486,6 +502,7 @@ return [ qw[
         work.cmd.sig-verify
         work.cmd.sig-update
         work.aggregate_bugs
+        websocket.init_code
         web.assets.registry
         web.assets.register
         web-browser.js_call
@@ -644,6 +661,7 @@ return [ qw[
         models.chat.announce
         models.cfg.tab_width
         lm-vision.cmd.status
+        kimi.wire.initialize
         keys.console.enc-key
         keys.console.dec-key
         io.ip.tcp.input.open
@@ -866,6 +884,7 @@ return [ qw[
         work.console.sig-cycle
         work.console.shortcuts
         work.console.run-tests
+        websocket.handler.read
         web.template_cache.set
         web.template_cache.get
         web.assets.by_template
@@ -874,6 +893,7 @@ return [ qw[
         web-browser.cmd.run_js
         web-browser.cmd.resume
         weather.base.init_code
+        vterm.consensus.ghosts
         v7.zenka.instance.stop
         v7.zenka.get_object_id
         v7.zenka.change_status
@@ -1062,10 +1082,12 @@ return [ qw[
         models.escape.interpret
         models.cmd.local_server
         models.cmd.extract_file
+        models.backend.kimi_web
         menu-commands.init_code
         letsencr.child.acme_new
         letsencr.base.post_init
         letsencr.base.init_code
+        kimi.handler.ws_message
         keys.console.github-pat
         jobqueue.queue_template
         io.unix.socket.end_code
@@ -1629,6 +1651,7 @@ return [ qw[
         lm-vision.cmd.get_debug_log
         lm-vision.cmd.analyze_image
         letsencr.child.generate_csr
+        kimi.connect.schedule_retry
         keys.write_key_archive_file
         keys.console.get-sp-pub-key
         keys.console.enc-key-chksum
@@ -1710,6 +1733,10 @@ return [ qw[
         web-browser.cmd.scroll_start
         web-browser.cmd.get_progress
         weather.base.calc_zoom_level
+        vterm.subbit.determine_route
+        vterm.subbit.check_threshold
+        vterm.compositor.layout.grid
+        vterm.compositor.layout.diff
         vision-batch.parent.shutdown
         vision-batch.child.init_code
         v7.zenka.cmd.resume-instance
@@ -1824,6 +1851,9 @@ return [ qw[
         weather.parent.update_current
         weather.parent.get_station_id
         weather.parent.cmd.station-id
+        vterm.consensus.check_channel
+        vterm.compositor.layout.stack
+        vterm.compositor.blend.normal
         vision-batch.parent.init_code
         vision-batch.parent.cmd.pause
         v7.zenka.cmd.report-temp-path
@@ -2003,6 +2033,7 @@ return [ qw[
         mpv.callback.check_parent_dirs
         models.test.api_fallback_chain
         models.storage.tier_management
+        models.handler.kimi_web_result
         models.discover.scan_directory
         models.conversation.task_chain
         models.conversation.list_saved
@@ -2082,6 +2113,7 @@ return [ qw[
         weather.parent.extract_forecast
         weather.parent.cache.write_data
         weather.base.fork_weather_child
+        vterm.compositor.blend.additive
         vision-batch.parent.execute_job
         vision-batch.parent.cmd.process
         v7.callback.object.root.session
@@ -2169,6 +2201,8 @@ return [ qw[
         web-browser.handler.fade_in_view
         weather.parent.populate_html_dir
         weather.child.cmd.get-station-id
+        vterm.consensus.cell_fingerprint
+        vterm.compositor.blend.consensus
         v7.zenka.end-handler.web-browser
         v7.handler.set_initialized_reply
         v7.handler.instance_verification
@@ -2260,6 +2294,7 @@ return [ qw[
         web-browser.handler.auto_slowdown
         web-browser.cmd.enable_javascript
         weather.parent.cmd.clear-location
+        vterm.consensus.declaration_value
         vision-batch.parent.calculate_eta
         v7.parser.manually_stopped_tstamp
         v7.callback.delete_instance_cache
@@ -2460,6 +2495,7 @@ return [ qw[
         web-browser.handler.progress_changed
         weather.parent.cache.read_station_id
         weather.parent.cache.read_cache_data
+        vterm.consensus.interference_pattern
         vision-batch.parent.handle_job_reply
         vision-batch.child.cmd.analyze_image
         universal.handler.start-anim_timeout
@@ -2782,8 +2818,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,,,.,.,.,,.,,..,,,..,,,,,.,,,,..,,,.,..,,.,.,...,...,..,,,.,,,,.,.,,,,..,
-#66VKJR45K5ERWRIBUZEGGTXC5IQ4LYEJLZBLXW2B4AXA3HG7P2A3QLEQLFJ7N2JYOFLVH3RL3SYRU
-#\\\|DLAKGJARZTLPIRUCI75ZFKFDAAW3VCI4DVYK3AOUTMRHYCQJTFD \ / AMOS7 \ YOURUM ::
-#\[7]JP6R3R6VW2MQPMCSA3YSODMNDMOVVZ6Z3Y7AHL2JCKHEMATMLWDI 7  DATA SIGNATURE ::
+#,,.,,,,,,...,,,.,.,,,.,,,,..,...,..,,.,.,,.,,.,.,...,...,..,,...,,..,,,.,.,,,
+#QJ33AXQ7P35KZS5THWS77LKC2P7QSKIET3HIP74CQJ5S65BYG73WA3PSACOAXWHNQZCKNBO5VY4EQ
+#\\\|TF7O4IA75KI3KFQB6PF4DGOXEFQOJ4GFJOKU7NJEKGVPYAKFMV3 \ / AMOS7 \ YOURUM ::
+#\[7]RNLC5Z3OWV6Y534QE72JOB5C6FLMRZ4NKNSJRD53JRMFEH7K7GBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

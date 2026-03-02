@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = models.backend.kimi_web
+# descr = route models.chat inference requests to kimi zenka via ask-reply
+# param = $params  [ { messages, reply_id, sender, model, participant_id } ]
+
+<[base.perlmod.load]>->(qw| Crypt::Misc |);
+
+my $params = shift // {};
+
+my $messages    = $params->{'messages'}       // [];
+my $reply_id    = $params->{'reply_id'}       // '';
+my $sender      = $params->{'sender'}         // '';
+my $model       = $params->{'model'}          // 'kimi';
+my $participant = $params->{'participant_id'} // $model;
+
+## convert messages array to plain prompt string
+my $prompt = <[models.chat.messages_to_prompt]>->($messages);
+
+unless ( length($prompt) ) {
+    my $error = ':. error: empty prompt :.';
+    <[models.chat.append]>->( undef, $model, $error );
+    my $entries = <[models.chat.get_recent]>->(3);
+    my $output  = <[models.chat.format_buffer]>->($entries);
+    if ( length($reply_id) ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id, { 'mode' => 'size', 'data' => $output }
+        );
+    }
+    return;
+}
+
+## base32r encode for safe single-line ipc transmission
+my $encoded = eval { Crypt::Misc::encode_b32r($prompt) };
+if ( $@ or not length($encoded) ) {
+    <[base.logs]>->( 0, '[kimi_web] base32r encode failed : %s', $@ // '' );
+    $encoded = $prompt;    ## fall back to raw (may fail on multiline)
+}
+
+## route to kimi zenka via cube
+my $sent = <[base.protocol-7.command.send.local]>->(
+    {   'command'   => qw| cube.kimi.ask-reply |,
+        'call_args' => { 'args' => $encoded },
+        'reply'     => {
+            'handler' => qw| models.handler.kimi_web_result |,
+            'params'  => {
+                'original_reply_id' => $reply_id,
+                'sender'            => $sender,
+                'model'             => $model,
+                'participant_id'    => $participant,
+            }
+        }
+    }
+);
+
+if ( $sent <= 0 ) {
+    <[base.logs]>->( 0, '[kimi_web] kimi zenka not reachable' );
+    my $error = ':. error: kimi not reachable :.';
+    <[models.chat.append]>->( undef, $model, $error );
+    my $entries = <[models.chat.get_recent]>->(3);
+    my $output  = <[models.chat.format_buffer]>->($entries);
+    if ( length($reply_id) ) {
+        <[base.callback.cmd_reply]>->(
+            $reply_id, { 'mode' => 'size', 'data' => $output }
+        );
+    }
+}
+
+#,,..,..,,,,,,,..,.,.,.,.,,..,..,,.,,,,,,,,,.,..,,...,...,,,,,,,.,,..,,.,,.,,,
+#MQIHR4K33NCJSNNE6YY7HPH6WSQKXNZBL6BEA6FYVQUN6NJIYIXXVQ3GMIV3FLZ3IEP77U5NORTDO
+#\\\|RGHTQUOLU4UXEKMV7AYXVKKR22HCDH5GJNNQELBR5YHP5DITTSA \ / AMOS7 \ YOURUM ::
+#\[7]4FJXUZU2DEPKSC7HAFA7UYUMD5XAEN2MI224QHUPC3IACTMSSOBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

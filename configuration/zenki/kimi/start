@@ -1,0 +1,37 @@
+
+ .:[ protocol-7 kimi-web client zenka ]:.
+
+[load_config_file:'shared-params']
+
+access.cmd.usr.cube = commands heart reload verify-instance \
+                      list show-buffer buffer-erase buffer-erase-level \
+                      ask-reply status get set dump
+
+system.verbosity.zenka_buffer  = 2
+system.verbosity.zenka_console = 2
+
+## kimi-web endpoint
+#           ##   [ override if kimi-web is on a different host|port ]
+# kimi.web.host = 127.0.0.1
+# kimi.web.port = 5494
+
+## reconnect backoff [ 2s initial, doubling up to max cap ]
+# kimi.connect.retry_delay = 60
+
+crypt.C25519.autocreate-user-key = yes
+
+modules.load = auth net protocol io.unix crypt.C25519 websocket kimi
+[load_modules:<modules.load>]
+[init_modules]
+
+[root.drop_privs:<system.amos-zenka-user>]
+
+[base.net.connect:'unix']
+
+[zenka.loop]
+
+#,,.,,,.,,..,,.,,,...,,,,,,,.,,,.,,,,,,.,,.,,,..,,...,...,.,,,.,.,.,,,.,.,,,.,
+#FQUO7UH7KDV3IFY3FZS22T25YAKIWCJCQ6EOYFWR7FGEASFBT3X37XFGFLGM2NMWI3UDXUTXSCKXI
+#\\\|EPR62GTAJQ2N5242I5UR5O3EKWQVTJ6ZDSVJBMS7QYM2PFWD5CT \ / AMOS7 \ YOURUM ::
+#\[7]S725TMRHXBQDF37KBHDCER44MX2FLTKENML3YQYQRUNWND3GUCDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

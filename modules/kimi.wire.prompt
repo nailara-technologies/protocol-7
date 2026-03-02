@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = kimi.wire.prompt
+# descr = send a prompt to kimi and register deferred reply tracking
+# param = $prompt_text [ utf-8 string ]
+# param = $reply_id    [ p7 reply id for deferred response ]
+# return = msg_id on success, undef on error
+
+my $prompt_text = shift // return undef;
+my $reply_id    = shift;
+
+unless ( <kimi.ws.status> eq qw| ready | ) {
+    <[base.logs]>->(
+        0, 'kimi.wire.prompt: not ready [ status=%s ]',
+        <kimi.ws.status>
+    );
+    return undef;
+}
+
+## generate unique message id
+<kimi.wire.seq>++;
+my $msg_id = sprintf( 'p7-prompt-%d', <kimi.wire.seq> );
+
+## reset accumulator for new response
+<kimi.wire.accumulator> = '';
+<kimi.ws.status>        = qw| busy |;
+
+## register pending reply context
+<kimi.wire.pending>->{$msg_id} = {
+    'type'     => qw| prompt |,
+    'reply_id' => $reply_id,
+    'sent_at'  => <[base.time]>->(3)
+};
+
+my $n = <[kimi.wire.send]>->(
+    qw| prompt |, $msg_id, { 'user_input' => $prompt_text }
+);
+
+if ( not defined $n ) {
+    delete <kimi.wire.pending>->{$msg_id};
+    <kimi.ws.status> = qw| ready |;
+    return undef;
+}
+
+<[base.logs]>->(
+    2,       'kimi.wire.prompt: sent [ id=%s len=%d ]',
+    $msg_id, length($prompt_text)
+);
+
+return $msg_id;
+
+#,,.,,,,,,.,.,,,.,...,.,,,,,.,.,,,.,,,,.,,,,.,..,,...,...,...,,,,,,,,,.,,,.,.,
+#HUJXX3C6HAZOICGF4PYVEW4UKKDKLHS2F4IKVRUW7HSRVYYD5QLFZ6NBPYFCZQXICOJ6HWLWV4Y72
+#\\\|MYBQDAQ32BDXFMSXEB7PBS2AUU64CPBR33LD7IGHGUZCBPAIBWG \ / AMOS7 \ YOURUM ::
+#\[7]7F5KH7RHEB4XBYV25KBQARLYL65KUID2C5AUOLDXTN37XTWIKUAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
