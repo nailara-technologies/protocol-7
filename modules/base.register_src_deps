@@ -23,6 +23,8 @@ foreach my $src ( keys %np7_src ) {
 }
 return TRUE if $already_registered;
 
+<[base.check_dependency_dirs]> if not -d $src_deps;
+
 ## Get parent directory owner [taeki in dev, root in production] ##
 my ($parent_uid) = <[base.path_owners]>->($src_deps);
 unless ( defined $parent_uid ) {
@@ -104,8 +106,8 @@ if ( -d $src_deps and -w $src_deps ) {
     <[base.log]>->( 2, "<< no [writable] src-deps directory found >>" );
 }
 
-#,,,,,,,,,.,,,..,,,..,.,,,,,.,,.,,,..,.,.,,,.,..,,...,...,.,,,,,.,.,,,,,.,...,
-#2YHLUUIVBBB2NAEY4LB5RETOSPBEJDJOLDUPMXGO4OHGPM7EVQXZUQSETGWWQTHEDFWPKCEYTF2NQ
-#\\\|AEPMUYBINIW36FFY2WOWAP7NOZTZUY56CDUESSCOKN32ETEHMD4 \ / AMOS7 \ YOURUM ::
-#\[7]OOXQHHMMBHZHFH4GXXD2RBKK6LHXMPBXONK7VPWWPN7FW44GISCQ 7  DATA SIGNATURE ::
+#,,.,,...,..,,..,,,.,,,,,,,.,,,.,,..,,,..,..,,..,,...,...,..,,..,,,,,,,.,,,.,,
+#ZL3ARKZ3ZU6PUH3EM34B7AK233WPXZ7W6HSFTIZNWGZDQRHMIFT5INI2MGY3CDKO7CMYSCUYWD7U2
+#\\\|SPUBT5ZYZAGISM7MMW2KXJE5XB2GTPQ7Z6A3Y7PI5HVAQR2LIB2 \ / AMOS7 \ YOURUM ::
+#\[7]VC4TBKPOUOJP4KA7DR32YUBHYOBXHKLOZKXW32LIYIXRSECI4SAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

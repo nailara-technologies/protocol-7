@@ -1,0 +1,100 @@
+## [:< ##
+
+# name  = kimi.connect
+# descr = create kimi-web session and establish persistent websocket
+#         connection
+
+map { <[base.perlmod.load]>->($_) }
+    qw| JSON LWP::UserAgent Protocol::WebSocket::Frame |;
+
+if (<kimi.ws.connected>) {
+    <[base.logs]>->( 2, 'kimi.connect: already connected' );
+    return;
+}
+
+<kimi.ws.status>        = qw| connecting |;
+<kimi.connect.retrying> = FALSE;
+
+## create new kimi-web session via rest api (once per lifetime)
+if ( not defined <kimi.session_id> ) {
+    my $ua   = LWP::UserAgent->new( timeout => 10 );
+    my $resp = $ua->post(
+        sprintf( '%s/api/sessions/', <kimi.web.base_url> ),
+        'Content-Type' => 'application/json',
+        'Content'      => '{}'
+    );
+
+    if ( not $resp->is_success ) {
+        <[base.logs]>->(
+            0, 'kimi.connect: session create failed : %s',
+            $resp->status_line
+        );
+        <kimi.ws.status> = qw| disconnected |;
+        <[kimi.connect.schedule_retry]>;
+        return;
+    }
+
+    my $session = eval { JSON::decode_json( $resp->decoded_content ) };
+    if ( $@ or not defined $session or not defined $session->{'session_id'} )
+    {
+        <[base.logs]>->(
+            0,
+            'kimi.connect: invalid session response : %s',
+            $@ // 'no session_id'
+        );
+        <kimi.ws.status> = qw| disconnected |;
+        <[kimi.connect.schedule_retry]>;
+        return;
+    }
+
+    <kimi.session_id> = $session->{'session_id'};
+    <[base.logs]>->(
+        2, 'kimi.connect: session created [ %s ]',
+        <kimi.session_id>
+    );
+}
+
+## websocket connect
+my $ws_url = sprintf( '%s/api/sessions/%s/stream',
+    <kimi.web.ws_base>, <kimi.session_id> );
+
+my $sock = <[websocket.connect]>->($ws_url);
+
+if ( not defined $sock ) {
+    <[base.logs]>->(
+        0, 'kimi.connect: websocket connect failed [ %s ]', $ws_url
+    );
+    <kimi.ws.status>  = qw| disconnected |;
+    <kimi.session_id> = undef;  ## clear so next attempt creates fresh session
+    <[kimi.connect.schedule_retry]>;
+    return;
+}
+
+<kimi.ws.socket>         = $sock;
+<kimi.ws.frame>          = Protocol::WebSocket::Frame->new;
+<kimi.wire.accumulator>  = '';
+<kimi.connect.retry_cur> = 2;    ## reset backoff on each new connect
+
+## register event.add_io for incoming frames
+<kimi.ws.io_watcher> = <[event.add_io]>->(
+    {   'fd'      => $sock,
+        'handler' => qw| websocket.handler.read |,
+        'data'    => {
+            'frame'      => <kimi.ws.frame>,
+            'on_message' => qw| kimi.handler.ws_message |,
+            'context'    => { 'session_id' => <kimi.session_id> }
+        },
+        'poll' => qw| re |
+    }
+);
+
+<kimi.ws.connected> = TRUE;
+## status set to 'ready' after history_complete + initialize handshake succeed
+
+<[base.logs]>->( 2, 'kimi.connect: websocket connected [ %s ]', $ws_url );
+
+#,,.,,,,,,,,,,,..,,..,,.,,...,..,,,.,,,..,,,.,..,,...,...,.,,,,,,,,..,...,,,.,
+#T7YLEGCFKPVR2BHYFZESLI4RGUETTANUR2N56UUGVHA5LPSHSYEKIIFSQ7WJS3KVKVZCEO37LB5F2
+#\\\|EZITOEVCUANR4EPHEYH5CVDSEJIRXDANAIBDDRTAQ3PB34YAVJY \ / AMOS7 \ YOURUM ::
+#\[7]BIAE5BLFNJY4O7G2WYAGUGHOT37TTXBRNGCH25IABBIIT76ZT6CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

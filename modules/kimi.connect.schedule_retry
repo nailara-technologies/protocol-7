@@ -1,0 +1,30 @@
+## [:< ##
+
+# name  = kimi.connect.schedule_retry
+# descr = schedule a reconnect attempt after retry_delay seconds
+
+return if <kimi.connect.retrying>;
+
+<kimi.connect.retrying> = TRUE;
+
+my $delay = <kimi.connect.retry_cur>;
+
+<[event.add_timer]>->(
+    {   'after'   => $delay,
+        'handler' => qw| kimi.connect |,
+        'desc'    => 'kimi-web reconnect attempt'
+    }
+);
+
+<[base.logs]>->( 2, 'kimi.connect: retry scheduled in %ds', $delay );
+
+## double delay for next attempt, capped at configured maximum
+my $next = $delay * 2;
+<kimi.connect.retry_cur>
+    = $next < <kimi.connect.retry_delay> ? $next : <kimi.connect.retry_delay>;
+
+#,,..,...,,,,,..,,...,,,,,,,,,..,,.,,,.,,,...,..,,...,...,,,,,..,,,,,,,,.,,.,,
+#5TY2EF2Q2OSIR74KGFPNHUQ37PGJ2RGKORUPSSZBATIVGYZ4M2QTYYFL6OXKF3ZO55J3GHVYC4H7M
+#\\\|OWR2VWZINXPVFERMBVDGRK7SWYCYCQDKYVSQHVQ75E2I57YQ4WJ \ / AMOS7 \ YOURUM ::
+#\[7]JF4YNG4RIAQFZFSYCO6K2MUSUWINMR3KC7YNQORW52QBPE2CVGCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

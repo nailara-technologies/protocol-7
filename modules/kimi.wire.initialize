@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = kimi.wire.initialize
+# descr = send json-rpc initialize handshake to kimi-web wire server
+
+my $msg_id = 'p7-kimi-init';
+
+<[base.logs]>->( 2, 'kimi.wire.initialize: sending initialize handshake' );
+
+## register pending so we notice the response
+<kimi.wire.pending>->{$msg_id} = {
+    'type'    => qw| initialize |,
+    'sent_at' => <[base.time]>->(3)
+};
+
+<[kimi.wire.send]>->(
+    qw| initialize |,
+    $msg_id,
+    {   'protocol_version' => '1.3',
+        'client'           => { 'name' => 'p7-kimi', 'version' => '0.1.0' }
+    }
+);
+
+#,,,,,,.,,.,,,.,,,,,.,.,,,,..,.,.,,.,,,..,,..,..,,...,...,...,.,,,.,,,,.,,,,,,
+#I4G6LWKHGBPEGNQ3XZVXRX2RH4WLD5D3UPMWNRSBXI76NTRU74ZWNBFI657ZE2OEOG6OSYZEC4V4G
+#\\\|ZD5HGTLYZMAEDWLPTYEQ4KNSNIJUZ6DVDEOCWPV5NOIDFHC6ECN \ / AMOS7 \ YOURUM ::
+#\[7]EXODBDD5YIVIWOSD4TYDPJXDWTEQ7AN55J7TD6XN4EGY5TZER6CQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

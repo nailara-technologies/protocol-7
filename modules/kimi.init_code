@@ -1,0 +1,53 @@
+## [:< ##
+
+# name  = kimi.init_code
+# descr = initialize kimi-web zenka client state and schedule connection
+
+map { <[base.perlmod.load]>->($_) }
+    qw| JSON LWP::UserAgent Protocol::WebSocket::Frame |;
+
+## kimi-web endpoint configuration
+<kimi.web.host> //= qw| 127.0.0.1 |;
+<kimi.web.port> //= 5494;
+<kimi.web.base_url>
+    //= sprintf( 'http://%s:%d', <kimi.web.host>, <kimi.web.port> );
+<kimi.web.ws_base>
+    //= sprintf( 'ws://%s:%d', <kimi.web.host>, <kimi.web.port> );
+
+## connection state
+<kimi.ws.connected> //= FALSE;
+<kimi.ws.status>    //= qw| disconnected |;
+<kimi.session_id>   //= undef;
+
+## wire protocol state
+<kimi.wire.seq>     //= 0;
+<kimi.wire.pending> //= {};    ## { $msg_id => { type, reply_id, params } }
+<kimi.wire.accumulator>
+    //= '';    ## response text accumulated across ContentParts
+
+## session state
+<kimi.session.acquired>
+    //= FALSE;    ## true after first successful get_session_id
+
+## reconnect configuration [ exponential backoff ]
+<kimi.connect.retry_delay> //= 60;      ## max retry delay cap [ seconds ]
+<kimi.connect.retry_cur>   //= 2;       ## current delay [ reset on connect ]
+<kimi.connect.retrying>    //= FALSE;
+
+## schedule initial connection attempt after init completes
+<[event.add_timer]>->(
+    {   'after'   => 1.0,
+        'handler' => qw| kimi.connect |,
+        'desc'    => 'initial kimi-web websocket connection'
+    }
+);
+
+<[base.logs]>->( 2, ': kimi-web client initialized :..' );
+
+return TRUE;
+
+#,,..,,..,.,.,...,.,,,,..,,,,,...,...,,,.,...,..,,...,..,,,.,,,.,,,,.,,,,,..,,
+#CDRYY7OUYKF2KLSHCZWTRDEW4ELQ22562MDDF7KJIZPCKZTYYICWG7WMQBJIME4CFLL52QKLWDNDE
+#\\\|JIMOOP4QICDQDKTDFRPYGBPAFOVBJP223DBVF4LRRKSP43FYS6D \ / AMOS7 \ YOURUM ::
+#\[7]BETQLOZN45UK6WGB3SMBUF5X36PMINHFKICTHOF2UTDQSXLQUCDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
