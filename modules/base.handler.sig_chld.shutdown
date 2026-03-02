@@ -2,16 +2,17 @@
 
 # name  = base.handler.sig_chld.shutdown
 
-<[base.log]>->( 0, 'SIGCHLD received. collecting children.,' );
 my %died_pid;
+my $do_shutdown = FALSE;
 local ( $OS_ERROR, $CHILD_ERROR );
-while ( ( my $pid = <[base.waitpid]>->( -1, 0 ) ) > 0 ) {
 
-    # determine exit status
+while ( ( my $pid = <[base.waitpid]>->(-1) ) > 0 ) {    ##  WNOHANG  ##
+
+    ## determine exit status ##
     my $exit_val     = $CHILD_ERROR >> 8;
     my $exit_sig     = $CHILD_ERROR & 127;
     my $exit_sig_str = $exit_sig ? sprintf( ', signal %s', $exit_sig ) : '';
-    my $e_core_dump  = $CHILD_ERROR & 128 ? ' < with a cube dump. >'   : '';
+    my $e_core_dump  = $CHILD_ERROR & 128 ? ' < with a core dump. >'   : '';
 
     my $log_level = 2;
     $log_level = 1 if $exit_val or $exit_sig == 9;
@@ -21,20 +22,56 @@ while ( ( my $pid = <[base.waitpid]>->( -1, 0 ) ) > 0 ) {
         and not length $e_core_dump
         and $exit_sig == 11;
 
-    <[base.logs]>->(
-        $log_level, ': child pid=%d shut down [ exit code %s ]%s',
-        $pid, $exit_val, $exit_sig_str, $e_core_dump
-    );
-    $died_pid{$pid} = 1;
+    ## silently skip registered ignore-list pids ##
+    if (    exists <sig.chld.ignore.pid>
+        and exists <sig.chld.ignore.pid>->{$pid} ) {
+        delete <sig.chld.ignore.pid>->{$pid};
+        delete <sig.chld.ignore.pid> if not keys <sig.chld.ignore.pid>->%*;
+        <[base.logs]>->(
+            2, ': sig-chld : ignoring PID %d [ as registered ].,', $pid
+        );
+        next;
+    }
+
+    ## pid filter configured : only registered pids trigger shutdown ##
+    if ( exists <sig.chld.shutdown.pid> ) {
+
+        if ( exists <sig.chld.shutdown.pid>->{$pid} ) {
+            delete <sig.chld.shutdown.pid>->{$pid};
+            <[base.logs]>->(
+                $log_level, ': child pid=%d shut down [ exit code %s%s%s ]',
+                $pid, $exit_val, $exit_sig_str, $e_core_dump
+            );
+            $died_pid{$pid} = $do_shutdown = TRUE;
+
+        } else {
+            ## unexpected pid -- report but do not shut down ##
+            <[base.logs]>->(
+                0,    ':. child PID %d [ exit %s%s ] [ not registered ].,',
+                $pid, $exit_val, $exit_sig_str
+            );
+            $died_pid{$pid} = TRUE;
+        }
+
+    } else {
+        ## no pid filter --
+        ##      original behavior : any child PID triggers shutdown ##
+        <[base.logs]>->(
+            $log_level, ': child pid=%d shut down [ exit code %s%s%s ]',
+            $pid, $exit_val, $exit_sig_str, $e_core_dump
+        );
+        $died_pid{$pid} = $do_shutdown = TRUE;
+    }
 }
 
-<[base.logs]>->( 0, ': shutting down %s zenka ..,', <system.zenka.name> );
+if ($do_shutdown) {
+    <[base.log]>->( 0, 'SIGCHLD received. shutting down.,' );
+    <[base.logs]>->( 1, ': shutting down %s zenka ..,', <system.zenka.name> );
+    <[base.exit]>->( 1, ': done.' );
+}
 
-<[base.log]>->( 1, ': done.' );
-exit(0);
-
-#,,,,,,.,,,,.,...,...,,.,,,,,,,,.,,,.,...,...,..,,...,...,..,,...,,,.,.,.,.,.,
-#7KTOMSDL4VH37FQWXI7OTBEQURUZBLFTYYGUGP7PIX7EGYIDI3MCGAQQY6F6U7ZEQOQL4V6DZ7Q6G
-#\\\|QGWPORGYB3YLZ6BNGU4SU534L6GLFRDMRYI5T5E3CEYGVDULGOE \ / AMOS7 \ YOURUM ::
-#\[7]OHNJC5TLQGV3A2VWPHUIF6OM5HDXGXB2JNS6VUXSXXBA6NQJTADI 7  DATA SIGNATURE ::
+#,,..,,,,,..,,..,,...,,,,,.,,,,..,.,,,.,.,.,,,..,,...,...,..,,..,,,..,,,,,,,,,
+#I35G46GYYFET6KBDWTNYZKTZM4CWCXYKE7BQ7AIXJS66PBJH2JTGPUTSJMAJYVFUEKYKTMEQD36PY
+#\\\|CZFO4FQXVQSB2XDOUZX2HP5R367F7VSUF3JQONWM43PJOBKUB3L \ / AMOS7 \ YOURUM ::
+#\[7]IPGI5QFSWKCAWR5BN74IL3E72KNZWXBQCCYAD7OTSHKHFRQYGUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

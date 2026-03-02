@@ -24,9 +24,10 @@ if ( !<image2html.child.pid> ) {    ## child ##
     ## making base.s_read() and base.s_write() work after fork ., ##
     IO::AIO::reinit();
 
+    ## null out sigchld in child -- shutdown handler only needed in parent ##
+    <[event.add_signal]>->( { 'signal' => 'CHLD', 'handler' => 'dev.null' } );
+
     <image2html.pipe.parent> = $parent_pipe;
-    <log.file.system.retry_timer>->cancel
-        if exists <log.file.system.retry_timer>;
 
     my $subname = <system.zenka.subname>;
     my $sn_str  = defined $subname ? ':' . $subname : '';
@@ -34,10 +35,19 @@ if ( !<image2html.child.pid> ) {    ## child ##
     $PROGRAM_NAME = sprintf '%s[child%s]', <system.zenka.name>, $sn_str;
 
     ## silencing child shutdown ##
+    # local $SIG{'CHLD'} = qw| IGNORE |;
     <callback.session.closing_last.params>->[1] = 1;
-    $data{'session'}{$session_id}{'shutdown'} = 1;
+    $data{'session'}{$session_id}{'shutdown'} = TRUE;
+
+    ## logging uses automatic route over parent ##
+    <buffer.zenka.log_cmd> = qw| p7-log.append |;
+
+    ## removing not required entries ## [ only used in 'parent' itself ]
+    delete <access.cmd.usr.cube>;
+    delete <access.cmd.regex.usr.cube>;
 
     $data{'handle'}{$parent_pipe}{'mode'} = qw| out |;
+    unshift <protocol-7.network.parent_route>->@*, qw| parent |;
     my $id = <[base.session.init]>->(
         $parent_pipe, qw|  protocol-7  client  parent  |
     );
@@ -49,8 +59,12 @@ if ( !<image2html.child.pid> ) {    ## child ##
 
 } else {    ## parent ##
     close($parent_pipe);
-    delete <image2html.pipe.parent> if defined <image2html.pipe.parent>;
+    delete <image2html.pipe.parent> if exists <image2html.pipe.parent>;
     <image2html.pipe.child> = $child_pipe;
+
+    ## removing not required entries ## [ only used in 'child' ]
+    delete <access.cmd.usr.parent>;
+    delete <access.cmd.regex.usr.parent>;
 
     <[base.load_modules]>->('image2html.parent');
     <[base.init_modules]>->('image2html.parent');
@@ -61,12 +75,18 @@ if ( !<image2html.child.pid> ) {    ## child ##
     );
     $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
 
+    ## enables routing commands to child zenka ##
+    $data{'session'}{$id}->{'authenticated'} = qw| yes |;
+
+    ## authenticate cube session to allow routed commands ##
+    $data{'session'}{$session_id}->{'authenticated'} = qw| yes |;
+
     <[base.async.get_session_id]>;    ## --> 'online' ##
 
 }
 
-#,,,,,...,,..,...,,,.,,.,,,,,,,,,,...,,.,,...,..,,...,...,,.,,..,,,,,,..,,,.,,
-#F6VWWL7235VCVJPP6WABRCMVFMEGJQ3ECSNCECZUGK5EQHL6MWTQECNV7CPELILZMSBLDWKS5K5IS
-#\\\|LRKYULL5W2B75YUVFGXVYKUO7PZATRJDZA4BB52TRSUQCIXYJDF \ / AMOS7 \ YOURUM ::
-#\[7]JVT6CU5USHHSK7W7ODQIVJBOXDXFV5YZABBPR25QK3SJZ55ZRIBY 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,.,,,.,,,..,,...,.,,,...,..,,...,..,,...,...,...,...,,,.,,.,,.,.,
+#XT4H2OE762AHEQSDGEK65FD6X3CHLYSGW5PMTG3QD7WVRCSHCXAGXZ2LOCYE3U3H6MKWUARTFFOYO
+#\\\|EYZWYLH3ATF6QRJSSR2YF5GUXAPDAL52WZ37ESDZRA7MBIWHO7K \ / AMOS7 \ YOURUM ::
+#\[7]UVCLNTMN7GPXMXTM272T6NOVTJ3PWGMDO5EXZLMT3Y3OG5RERQCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

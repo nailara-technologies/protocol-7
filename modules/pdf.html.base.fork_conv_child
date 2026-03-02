@@ -35,10 +35,17 @@ if ( !<pdf.html.child.pid> ) {    ## child ##
 
     ## silencing child shutdown ##
     <callback.session.closing_last.params>->[1] = 1;
+    $data{'session'}{$session_id}{'shutdown'} = TRUE;
 
-    $data{'session'}{$session_id}{'shutdown'} = 1;
+    ## logging uses automatic route over parent ##
+    <buffer.zenka.log_cmd> = qw| p7-log.append |;
+
+    ## removing not required entries ## [ only used in 'parent' itself ]
+    delete <access.cmd.usr.cube>;
+    delete <access.cmd.regex.usr.cube>;
 
     $data{'handle'}{$parent_pipe}{'mode'} = qw| out |;
+    unshift <protocol-7.network.parent_route>->@*, qw| parent |;
     my $id = <[base.session.init]>->(
         $parent_pipe, qw|  protocol-7  client  parent  |
     );
@@ -50,8 +57,12 @@ if ( !<pdf.html.child.pid> ) {    ## child ##
 
 } else {    ## parent ##
     close($parent_pipe);
-    delete <pdf.html.pipe.parent> if defined <pdf.html.pipe.parent>;
+    delete <pdf.html.pipe.parent> if exists <pdf.html.pipe.parent>;
     <pdf.html.pipe.child> = $child_pipe;
+
+    ## removing not required entries ## [ only used in 'child' ]
+    delete <access.cmd.usr.parent>;
+    delete <access.cmd.regex.usr.parent>;
 
     <[base.load_modules]>->('pdf.html.parent');
     <[base.init_modules]>->('pdf.html.parent');
@@ -62,12 +73,18 @@ if ( !<pdf.html.child.pid> ) {    ## child ##
         ->( $child_pipe, qw| protocol-7 client child | );
     $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
 
+    ## enables routing commands to child zenka ##
+    $data{'session'}{$id}->{'authenticated'} = qw| yes |;
+
+    ## authenticate cube session to allow routed commands ##
+    $data{'session'}{$session_id}->{'authenticated'} = qw| yes |;
+
     <[base.async.get_session_id]>;    ## --> 'online' ##
 
 }
 
-#,,.,,,..,..,,..,,.,,,,,.,,.,,,.,,,.,,,.,,,,.,..,,...,...,...,,.,,,,,,,.,,...,
-#H7ILMDEWJUF5RUTNB5WXJB6TQRQGYEXQQAJ4JPCR4P2WDOBD4VNNC7O5OIXQZLS63LHH2QA23YQJI
-#\\\|CJQL2MCUPJG36BYF2IPU2TDN4VEI2PTVDGBL3JDA4SLTQS6CPOL \ / AMOS7 \ YOURUM ::
-#\[7]B55KE5PEBT2UZL6OLMTLTMJNUYA3P7SQRWACHHQGJZKH2JE4K2AA 7  DATA SIGNATURE ::
+#,,.,,..,,..,,,,,,..,,,,,,..,,,,,,,,.,,,.,.,,,..,,...,..,,.,,,...,,.,,...,,..,
+#HWMQMMUWTXWYC3DYGTWSBF36E7MXCF5KUFMADY4SWB2ZCNZUC6V5VDS2DWNTAPGI2VN7U4MR3DYMQ
+#\\\|HW3KXLDVXWD5F42EASR33C7VTWNOI4KML2T2TBVSXQMUB3T34OB \ / AMOS7 \ YOURUM ::
+#\[7]YI255VTWDT5LR4CGEMAZ3QTJHPK27DL6OSJMQD5SDYUCMAIP7AAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

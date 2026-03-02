@@ -3,12 +3,14 @@
 # name = image2html.parent.init_code
 
 <[event.add_signal]>->(
-    { 'signal' => 'CHLD', 'handler' => 'base.handler.sig_chld.shutdown' } );
+    { 'signal' => 'CHLD', 'handler' => qw|base.handler.sig_chld.shutdown| } );
+
+<sig.chld.shutdown.pid>->{<image2html.child.pid>} = TRUE;
 
 0;
 
-#,,.,,..,,,,,,...,...,...,,..,.,.,.,,,,.,,,,.,..,,...,..,,...,,.,,...,,..,,,.,
-#P3VFI7PB72FR4CAFYTJPI6GUXPYOU2YV3IRIS6VJFAVQG4LOEWXTEGD6PNHCEFAAI7ULMDXTZ4PBE
-#\\\|5EPSNKZ3GVDEJWZZBV6AZS5X7A7ZPTGR3MAZX7LQ5GVN4PTCXIN \ / AMOS7 \ YOURUM ::
-#\[7]XB27XYUFQNY5HRCZFYMHEX7OV57HINNONKKSVZQA3RQ3Q3B4IOCY 7  DATA SIGNATURE ::
+#,,..,.,.,,,.,,.,,,,.,...,...,.,.,,..,,..,,,,,..,,...,...,..,,...,...,,,,,.,,,
+#2SYOSCYPUSTPNLDZ7KUHCALW3SNE6X5HRZVT4S7TAKOFWT7CZJ7L4IBAX4I2ZTRWQNLOQREAQ2G54
+#\\\|APK5FAYIC6DAAOUR7HL2Q3GRMROPFC2BHKMFXA5RSQAS3WCXAMI \ / AMOS7 \ YOURUM ::
+#\[7]4M4FLRPN5XKVSOPG53EK6Q722FNNXSE2J45SNO4AAKOEY76OTSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

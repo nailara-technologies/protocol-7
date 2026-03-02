@@ -23,14 +23,15 @@ apt-get -y install mpv melt xvfb fuse3 pdftk xnest expect ffmpeg compton \
 cpanm IPC::Shm::Simple
 cpanm Glib::Event  ##   <--   may fail on 32-bit systems [ .. check ., ]
 cpanm HTTP::Soup
+cpanm Poppler
 cpanm --force XML::RSS::Timing  # <-- temporary forced [ date_conv test fails ]
 cpanm --force XML::RSS::TimingBot  # <-- evaluate if above module still required
 
 # optional [i.e. not on raspbian]
 apt-get -y install intel-gpu-tools firmware-misc-nonfree 2>/dev/null
 
-#,,,,,,,,,..,,...,,,.,.,,,...,.,.,...,,,,,...,..,,...,...,,,,,.,,,.,.,,,.,,,,,
-#KYRY6WSM2TRVOHANW2XMGUOGSXR3J4KY6AQ4JGRY2MZF26IHOWCFV2JCWMQVYWER7OEOY5ZDJ5DBY
-#\\\|W5U7OIWGZYNMBWRRJZAOCGQWJBJMCJOG7CEKY3Y7NT4DMR2DGO4 \ / AMOS7 \ YOURUM ::
-#\[7]FRAZIPHLULR6LJOHBVTIL7FAJUPA6H6RNV2NROXPO3MNVCNIA2CQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,,,,,,,.,,,.,,,..,,.,.,...,,,.,,,.,..,,...,..,,,,.,,,.,..,,...,...,
+#G7YE4ZN3UYNTYE3UWSDA4JJGNTZLYVAV6EOTBZ3FP4WUAB2GJETHVBKY26JFHY563J5VCG75BAUMS
+#\\\|VRVD723Z44DEQMVQTF2CJKPAUSYAN5Q3BNYB3DJ7HVMOLJSF7VY \ / AMOS7 \ YOURUM ::
+#\[7]TV5UE6UTT3I5TSYL5KIZOII3BI67O4DCWOGJOTSDQ4OOS6EVFCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
