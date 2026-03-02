@@ -68,7 +68,7 @@ if ( $http_uri =~ m|^/api/certificate/request| ) {
                 'command'   => qw| letsencr.request-certificate |,
                 'call_args' => { 'args' => $domain }
             };
-            $cmd_result = <[base.protocol-7.command.send.local]>->($cmd_call);
+            $cmd_result = <[protocol-7.command.send.local]>->($cmd_call);
         };
 
         if ( length $EVAL_ERROR ) {
@@ -126,7 +126,7 @@ if ( $http_uri =~ m|^/api/certificate/request| ) {
 
         ## Get certificate status from letsencr
         my $cmd_result = eval {
-            <[base.protocol-7.command.send.local]>->(
+            <[protocol-7.command.send.local]>->(
                 {   'command'   => qw| letsencr.parent.status |,
                     'call_args' => { 'args' => $domain }
                 }
@@ -169,7 +169,7 @@ if ( $http_uri =~ m|^/api/certificate/request| ) {
 
     ## Get certificate list from letsencr
     my $cmd_result = eval {
-        <[base.protocol-7.command.send.local]>->(
+        <[protocol-7.command.send.local]>->(
             {   'command'   => qw| letsencr.parent.status |,
                 'call_args' => { 'args' => '' }
             }
@@ -233,8 +233,8 @@ $session->{'buffer'}->{'output'} .= $reply_body;
 
 return $session->{'http'}->{'close'} ? 2 : 0;
 
-#,,,,,,,.,,..,.,.,,,.,..,,,..,..,,..,,,..,.,,,..,,...,...,..,,,,.,,.,,,..,.,,,
-#EXWG6NUWX6HCXHZA5ZYCMMYMVWOLOMQKH7NLBQQO65ZSBVSK75QP7JY33SKK5IJVF4YJCGNET735A
-#\\\|EFTZCYR5MLMURAF5T4XVWKOP3I2Q4OXZDGFTW7YLMJXXOUB5HOO \ / AMOS7 \ YOURUM ::
-#\[7]EB3P4PY6RC437W5HXUK4UEPJY2PKAEKVQSDQ5W55JGZBDPBW5IDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,.,.,,,.,,,.,.,.,,..,,,.,,..,,,.,..,,...,...,...,...,,,,,,,,,.,,,
+#EYWJRMMCZHH6C5FUOMVAYCFU6W5DJ3277C4WUEOJJADZLT553HZJTOCJHIEF2CVX5YR3PTX6QHZEM
+#\\\|TB74LWB52YPSXTC3Z457EGOR4CNRC3TSKAJGJC6JTSQFA53U7DM \ / AMOS7 \ YOURUM ::
+#\[7]5N6SHTNZC3PG7T2B5UDSH34XS2DEUSZOHUO53CZQVZJ4Z2UJG4DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1711,7 +1711,7 @@ UNKNOWN_TYPE_HANDLED:
                     <[base.logs]>->(
                         "ondemand zenka '%s' requested ..,", $start_name
                     );
-                    <[base.protocol-7.command.send.local]>->(
+                    <[protocol-7.command.send.local]>->(
                         {   'command'   => $target_command,
                             'call_args' => { 'args' => $start_name },
                             'reply'     => {
@@ -1942,8 +1942,8 @@ UNKNOWN_CMD_GLOBAL_HANDLED:
 
 return 0;        ## comand complete ##
 
-#,,..,,,,,..,,.,,,...,.,.,..,,...,,..,.,.,.,,,..,,...,..,,..,,...,,,,,.,.,,,,,
-#BJUZXGFHO6X5SOAVMPN7HB6UGK3NDS66GTQS4MJDXGNRRHQTJORBM2TEUQQOKR44TVX4JBUTNI6ZE
-#\\\|4TNCBL3QF42CW5FX5DLLD74IDSFPI6TVS3JZPS5PHCFA6TXQ5R4 \ / AMOS7 \ YOURUM ::
-#\[7]GJYL3TUZV6QCIHAGLR4IUZ2J77FINOPMVOYBI2FSDKZC2KDQJEBI 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,.,,,,.,,..,,.,,,,..,.,,,,.,,.,,,..,,...,...,,.,,.,.,,..,..,,,.,,
+#DITICHR73LNW4WA5VHTFUAJCJJDTKHJR5QZBRM3VJSHBCH2DBDTJ4QY62RTXQLG67EQHSWC6OYNDS
+#\\\|SO2EARR72RSHOEY2IX5ZHLEAMDVX7EZCUMCHJ25EWT6H47ONG4E \ / AMOS7 \ YOURUM ::
+#\[7]DDKOYNIOQQHWRGZJUVECBIW6SG4BQDLGKHBNTZTXGGUABIGHBODA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

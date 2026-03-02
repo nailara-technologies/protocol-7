@@ -70,11 +70,11 @@ unless ( exists $keys{'C25519'}{$sig_key_name}
     && exists $keys{'C25519'}{$sig_key_name}{'public'} ) {
     <[base.log]>->( 1, "  Loading public key for verification..." );
     ## Try loading from embedded public key first
-    if ( exists $code{'base.protocol-7.source-key'}
-        && <[base.protocol-7.source-key]> ) {
+    if ( exists $code{'protocol-7.source-key'}
+        && <[protocol-7.source-key]> ) {
         <[base.log]>->( 1, "    Loading from embedded public key..." );
         <[crypt.C25519.load_from_string]>->(
-            $sig_key_name, <[base.protocol-7.source-key]>
+            $sig_key_name, <[protocol-7.source-key]>
         );
     } elsif ( <[crypt.C25519.key_exists]>->($sig_key_name) ) {
         <[base.log]>->( 1, "    Loading from key file..." );
@@ -495,8 +495,8 @@ $code{qw| work.parent.scan_history |} = \&workflow_parent_scan_history;
 
 0;
 
-#,,..,..,,.,,,.,.,...,,,,,..,,,,,,.,.,,.,,.,.,..,,...,...,..,,..,,,,,,,..,.,.,
-#TTXB2EXXFV7QGY2BS6K5KDXNZI4Z3CXSLSDHBIK4FA25QE557SJBHXBF2UUAUP4EX2RJXRIKA4JBM
-#\\\|KXJLRJJ4IT5ZVOMOGQ6VBKX55SZ2AI7DWHTKOW5ZR6R6P5KZXGQ \ / AMOS7 \ YOURUM ::
-#\[7]GQDWU5A3FWL3U7ZBSBVCXT6PNX72N552LFNGXXOWBFXPR3WQWICQ 7  DATA SIGNATURE ::
+#,,,,,..,,,..,...,.,,,...,,,.,.,.,.,,,,,.,...,..,,...,.,,,.,.,..,,..,,...,...,
+#OXYKFQYIXN243GH6WZZUSRV6Z7C6RRBFD66ZUZH3SDKF4PXLAJRDPVXUJS5BI4EH6JP7LRW62KYGA
+#\\\|EZ3GALYHNGV3T33OAYDH7J633FRFZNUPRNEATSUMIXYJCWCAA3D \ / AMOS7 \ YOURUM ::
+#\[7]6WYCTA6YVZ3SIF46PBXCB25MDKNMEFPVMZUIDMK6UG3J5LPZJEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

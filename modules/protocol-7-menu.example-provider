@@ -20,7 +20,7 @@ my $menu_data = {
     }
 };
 
-<[base.protocol-7.command.send.local]>->(
+<[protocol-7.command.send.local]>->(
     {   'command'   => 'protocol-7-menu.menu-update',
         'call_args' =>
             { 'args' => 'weather ' . JSON::encode_json($menu_data) }
@@ -52,7 +52,7 @@ my $updated_menu = {
 };
 
 ## Push the update (reverse route - zenka sends to protocol-7-menu)
-<[base.protocol-7.command.send.local]>->(
+<[protocol-7.command.send.local]>->(
     {   'command'   => 'protocol-7-menu.menu-update',
         'call_args' =>
             { 'args' => 'weather ' . JSON::encode_json($updated_menu) }
@@ -65,7 +65,7 @@ my $updated_menu = {
 ##    ====================================
 
 ## Remove menu items when zenka shuts down
-<[base.protocol-7.command.send.local]>->(
+<[protocol-7.command.send.local]>->(
     {   'command'   => 'protocol-7-menu.menu-update',
         'call_args' => { 'args' => 'weather' }         ## No data = unregister
     }
@@ -102,8 +102,8 @@ my $updated_menu = {
 ##
 ## Each layer uses the same timestamp-based .updated pattern or direct hash updates.
 
-#,,,.,,,,,...,..,,,..,,..,,..,,,.,...,,,.,,,.,..,,...,..,,...,,,.,,,,,,.,,,,.,
-#I43TXHVOMV27T3IBNNZJSINWDXOPKL3OUWY3Y4MOD4WGL4ATO6IDF7Z7BSQSZ2FQHJANJVWX4OTFM
-#\\\|PP5QPPPASHVH3AYYGDEU4GTZJLEO3V65B323TUM6PCWTFQWS2GM \ / AMOS7 \ YOURUM ::
-#\[7]NSLBO4F46M7JD3D2N7FCDUZYK2T7HS2TCPEGT5JA5LRKZRFAM2AA 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,,.,,,,,..,,...,,..,...,,.,,...,..,,...,..,,,..,..,,..,,.,.,,.,,
+#ZTOQD4H2IRQFTS75UFFMNJCI7LSATKJIZT6VYLRSPNPNZNGA52TOY3KZJ4YTINBDN6B74LBM5XPRK
+#\\\|Q5XF3WF5IGX7P3NMEX6Y5ESCUD362W2UYS45FV2X7B5BGUQAM7X \ / AMOS7 \ YOURUM ::
+#\[7]QWEPQKR64HP4BWMLSTQWZV4AENWUGSFFPFETMBLKPKNM4ZCAYIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

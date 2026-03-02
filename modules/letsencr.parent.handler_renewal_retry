@@ -17,7 +17,7 @@ return FALSE unless $cert_info;
 
 ## Send renewal command to child via Protocol-7 command protocol
 my $renewal_cmd = sprintf 'letsencr.child.cmd.renew-certificate %s', $domain;
-<[base.protocol-7.command.send.local]>->(
+<[protocol-7.command.send.local]>->(
     {   'command'   => $renewal_cmd,
         'call_args' => {
             'args'  => '',
@@ -40,8 +40,8 @@ if ( exists <letsencr.parent.renewal_timers>->{$domain} ) {
 
 return TRUE;
 
-#,,..,.,,,,..,.,.,,.,,..,,.,,,.,,,.,,,,.,,..,,..,,...,.,.,.,.,,..,,,,,.,.,,,,,
-#GPSZXRYCDUSHPUTF5HNB3O3WY6GNZUANH4TTD36OTO6LPPVFWP33HYQI6PMB7BVIQ4Z6H4NR2D3RM
-#\\\|FA6CAT2FXWQQP3OH2WBQABCFDMIZ7X5I36VHJNTZWXLDGOP37IV \ / AMOS7 \ YOURUM ::
-#\[7]KVN3EVD5I66Y2INC43GSHCO2KYYX635PDNYFJDOQTUYCXAAALEBA 7  DATA SIGNATURE ::
+#,,..,.,,,,,.,,,.,,,.,,,.,,.,,.,,,.,,,,.,,,,,,..,,...,...,.,.,,,,,.,.,...,,.,,
+#BBQZDJQIELLDYCE5IYOATKPTFL5LWKAFV5DSLKQSBTBCAYEPXCI6TSBKAN47DDY6OGZV4QLDUR2GQ
+#\\\|SLTZ346KAM6WF5LPFFVJI6RUBU4ZXPA7MVJNOIN7UGAMMVIFQNR \ / AMOS7 \ YOURUM ::
+#\[7]PVVZPRB6VI6PEWROY5MWSX2LA4YH6IUYHGMFMKNCIZ2X6RAC6EAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

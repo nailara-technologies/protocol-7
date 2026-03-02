@@ -44,7 +44,7 @@ unless ( -f $cert_file && -f $key_file ) {
 
 ## signal httpsd to reload certificates
 ## [ httpsd.discover_active_certificate will find new cert automatically ]
-my $reload_result = <[base.protocol-7.command.send.local]>->(
+my $reload_result = <[protocol-7.command.send.local]>->(
     {   'command'   => qw| cube.httpsd.reload-certificates |,
         'call_args' => {}
     }
@@ -74,8 +74,8 @@ return {
     qw| message | => qq| certificate installed successfully |
 };
 
-#,,,.,,,.,.,.,...,.,.,,.,,,,.,,,,,,,,,,,.,,..,.,.,...,...,.,.,.,.,..,,,.,,.,,,
-#ENOQT73XAEEQBE5SHOZDIOTTTR7WV4CNBTGDAECV7TQKJONOCUZ4TTRZIFGNLWH26B6CEZHHVIHUG
-#\\\|NBG5Q24GOFHLG5YSOSXR554FYJLBTYWAK3D4DQTDYGXHDMPQIRM \ / AMOS7 \ YOURUM ::
-#\[7]WYXX7M5TVEALJ5RR4IQ5QGODSUPOEECTZEXXICSLIXO6JADIH6DI 7  DATA SIGNATURE ::
+#,,,.,.,.,,,,,...,,..,,,,,,.,,,,.,..,,...,.,,,.,.,...,...,...,...,..,,,.,,,,,,
+#Z6OEGCVSUKNTNFRDJS6K5LGRWC3DXM3IMVJPJ3FPCZTMDJLFNPCTG42XNU7YO7F42FFWPIQSZOK2M
+#\\\|4FEYR6R4Y7SYBTPPVTNSIJRVH7XNLFVJ5ISA3D6AP3B4BE644UU \ / AMOS7 \ YOURUM ::
+#\[7]VWJW2FBJ7ELML64OA2UVKMGO4X7R2X5DQHA5K7EPXQQHSWPPVSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -76,7 +76,7 @@ if (<tile-groups.startup.initializing>) {
                 ? join( ' ', $_tile_groups_data->{$ARG}->{'stop_zenki'},
                 $ARG )
                 : $ARG;
-            <[base.protocol-7.command.send.local]>->(
+            <[protocol-7.command.send.local]>->(
                 {   'command'   => qw| cube.v7.stop_implicit |,
                     'call_args' => { 'args' => $stop_zenki }
                 }
@@ -223,7 +223,7 @@ if (<tile-groups.watch_tiles.poll_tile_color>) {
         <[base.log]>->(
             1, ' : fetching X-11 background color., [ bgcol-mode ]'
         );
-        <[base.protocol-7.command.send.local]>->(
+        <[protocol-7.command.send.local]>->(
             {   'command' => qw| cube.X-11.bg_color |,
                 'reply'   =>
                     { 'handler' => qw| tile-groups.handler.bg_color_reply | }
@@ -260,13 +260,13 @@ if (<tile-groups.watch_tiles.poll_tile_color>) {
 
 <tile-groups.startup.initializing> = 0;    ##  false  ##
 
-<[base.protocol-7.command.send.local]>
+<[protocol-7.command.send.local]>
     ->( { 'command' => qw| cube.content.update | } );
 
 <[tile-groups.handler.transition]>;
 
-#,,..,.,,,,,.,.,.,..,,,.,,.,,,,.,,..,,.,,,.,.,..,,...,..,,.,.,,,,,.,.,...,...,
-#E6JRPVKHGK2KXXKLR6KWAL635DTUGQL6C4JGQDHLRDVEHCQXBKBIOZJ6HM7CHZL37XCPANXGU6WRI
-#\\\|RU6KSA6SWHXUFLJWZILE5IRBP5CNYSF3XU7H7ABR5Z63O6D7FC7 \ / AMOS7 \ YOURUM ::
-#\[7]DOJC2CUNEMARENQ6AJWP7SW3OA54QDPBVCE4J7D4HL3TUDQTSSBI 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,...,,,.,,.,,,,.,...,,.,,,..,,..,..,,...,...,...,,,,,.,.,.,,,,.,,
+#NLI33UKMGE6JWYTA7TV3SVOLZVR66C4WEEHQ2DCR4LPDBDZDJTIMMHBDNNPNW3GWGU5FQVMGYLDVK
+#\\\|GXZ77RNIKWPVZ2PSYTJ2ZYINDQLULSAUOGWVKLYONUOQ6JVECU2 \ / AMOS7 \ YOURUM ::
+#\[7]3AWROX3GLG75U5IY2GUXIYA4AQKF23VQU3W6D4FFO36Q2GBN7YDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

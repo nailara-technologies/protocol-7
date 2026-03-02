@@ -1,6 +1,6 @@
 ## [:< ##
 
-# name  = letsencr.parent.notify_httpsd_certificate_update
+# name  = letsencr.parent.notify_httpd_certificate_update
 # descr = notify httpsd zenka that certificate has been
 #         updated and needs reload
 
@@ -28,7 +28,7 @@ unless ( $domain && $cert_path && $key_path ) {
 ## httpsd can refresh its loaded certificate cache from disk
 my $notify_cmd = 'cube.httpsd.reload-certificates';
 
-my $result = <[base.protocol-7.command.send.local]>->(
+my $result = <[protocol-7.command.send.local]>->(
     {   'command'   => $notify_cmd,
         'call_args' => {}
     }
@@ -54,8 +54,8 @@ if ($result) {
     };
 }
 
-#,,,,,,.,,,,,,,,,,...,,..,..,,,..,..,,,,.,,..,..,,...,...,.,,,..,,,.,,,,,,..,,
-#UXEOGWONPLUXY6GA3WBVUFFRQMIS4ZGQ3ONA7ACVLXKP4YJ3AIWB6I2PPJJC4AAOSVPWHDAO5UGG6
-#\\\|PJZJ52VKKBRYDVMSM4NAKENFWZAXITEG2AQQUNVDD2UZ5RGIKKZ \ / AMOS7 \ YOURUM ::
-#\[7]2TC25EFHTIG4WMJFZKTTNT6CRPPKJ45JOZCUXGK6Q2L56FVYNEDI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,.,...,,.,,,,,,.,.,..,,.,,,...,.,,,..,,...,...,,.,,,.,,,,.,,,.,..,,
+#FS5IFBKQ6AR2OXUKUD3RRNFEAUUGTAAVHN2GILTDHYMX6ROA33KCGHVX6S2PDAND7QAH4X56COFWW
+#\\\|S5B7QOOW366LT4BXMVVK74IYI6LIEASEHRNTULQWELPRH2TT2EF \ / AMOS7 \ YOURUM ::
+#\[7]2R552FLDYTMIXXIQUGICERLF2S3OU64FK3YXE4KIUVQ4P7IA7SCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

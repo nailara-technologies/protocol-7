@@ -11,15 +11,15 @@ $route_str .= '.' if length($route_str);
 
 map {
     <[base.log]>->( 1, "reporting child process [PID:$ARG] to 'v7'" );
-    <[base.protocol-7.command.send.local]>->(
+    <[protocol-7.command.send.local]>->(
         {   'command'   => "${route_str}v7.register_child",
             'call_args' => { 'args' => $ARG }
         }
     );
 } @{<system.report_children>};
 
-#,,,.,,,.,..,,,,,,,.,,..,,.,.,.,,,...,,.,,,,,,..,,...,...,..,,,,.,,.,,,..,,,,,
-#DYWNMV6LONIHYKZ4VHTVJ4VPI4ALA4BNFQBGEOCDRPAKZ23K5TNAEELCHSHAWGXNZECDYDHACRQ2A
-#\\\|HNS4SO5YXKETF3DMWOGJFY327VPQ4A4T45ENNJPV3QQTOHFYTMZ \ / AMOS7 \ YOURUM ::
-#\[7]GTSDQRQUDKB3SDBR7BLN3HXPOW5BD5WSF274B5U7JE5NOO5D2WBQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,,.,.,.,...,.,.,.,.,,.,,..,,.,.,..,,...,...,,..,,..,,.,,..,,,..,
+#74T2OXZWPB7BCXYAJGUQS44UH2VUU24V62J4DO6ISIJDHBMITES2JHEEINPUZMR3SYNW4KF6F5UQE
+#\\\|LO5CGU52V5VKI7CDIC6HRKM5DRHKXTGQCB2UQAY65PZ43HSDE2B \ / AMOS7 \ YOURUM ::
+#\[7]7GIMUPRVALTTS2LJK4YRWITNWTCG5ZCVKIMYWFFHBGFZVW2RRWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

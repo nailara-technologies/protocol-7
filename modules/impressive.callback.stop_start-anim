@@ -19,14 +19,14 @@ my $lsp_name
     : 'start-anim';
 
 # LLL: needs X-11.fade_in command..,
-<[base.protocol-7.command.send.local]>->(
+<[protocol-7.command.send.local]>->(
     {   'command'   => "cube.X-11.set_opacity",
         'call_args' => { 'args' => <x11.id> . ' 100' }
     }
 );
 
 if (<impressive.cfg.use_start-anim>) {
-    <[base.protocol-7.command.send.local]>->(
+    <[protocol-7.command.send.local]>->(
         {   'command'   => "cube.v7.stop_implicit",
             'call_args' => { 'args' => $lsp_name },
             'reply' => { 'handler' => 'impressive.handler.stop_lsp_reply' }
@@ -35,8 +35,8 @@ if (<impressive.cfg.use_start-anim>) {
     <impressive.stop_lsp_sent> = 1;
 }
 
-#,,..,,..,.,.,.,.,...,..,,,..,,,.,,.,,.,.,,..,..,,...,...,..,,,..,..,,.,,,,..,
-#5FB2POIF3OGII6JACUZI5L5UWC6FE3ET3LCMTGLZBAPVXKNSGY2W4SLBBCE54YMDUK4BTJNTYCR2Q
-#\\\|A7DMEWJNZZK65SZXQV6KZQTMQENHODDUSUYYIG6HY3R4WRJADQF \ / AMOS7 \ YOURUM ::
-#\[7]XRBKVM5XEKE2NESABCBI52MNNXCFJE5CLUNHYYBIARZOC4BNVKAQ 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,,.,,.,.,...,,,.,.,.,...,..,,..,,..,,...,...,,.,,.,.,,,,,.,,,.,,,
+#73NYI3VYLVSWF73Y47JM6ZLOYHQERVPH3DST4XRZ47IBJVGNU26RCV2OR5W4DWDBWVVO77J7STQGY
+#\\\|YKTRZYBDJSDPSKYHFNJENEJKILZX7Z2GDY4HONMLGY4FV6TBNER \ / AMOS7 \ YOURUM ::
+#\[7]VYL6K6YDR5LEIHQDP46SUEHQC46DD63IXDOX37FMWJCN26HXTUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

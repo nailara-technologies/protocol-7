@@ -46,7 +46,7 @@ if (    <universal.cfg.fade_on_switch>
         if defined <universal.timer.switch>->{$window_id}->{'fade'}
         and <universal.timer.switch>->{$window_id}->{'fade'}->is_active;
 
-    <[base.protocol-7.command.send.local]>->(
+    <[protocol-7.command.send.local]>->(
         {   'command'   => "cube.X-11.set_opacity",
             'call_args' => { 'args' => join( ' ', $window_id, 0 ) }
         }
@@ -66,7 +66,7 @@ if (    <universal.cfg.fade_on_switch>
 
 <[base.sleep]>->(0.37);
 
-<[base.protocol-7.command.send.local]>->(
+<[protocol-7.command.send.local]>->(
     {   'command'   => "cube.X-11.unhide_window",
         'call_args' => { 'args' => $window_id }
     }
@@ -88,7 +88,7 @@ if (<universal.start-anim_running>) {
     or ( !<universal.cfg.fade_on_switch>
     and $zenka_name ne 'web-browser' );
 
-<[base.protocol-7.command.send.local]>
+<[protocol-7.command.send.local]>
     ->( { 'command' => 'web-browser.clear_views' } )
     if !<universal.sequence.startup>
     and !<universal.cfg.fade_on_switch>
@@ -96,7 +96,7 @@ if (<universal.start-anim_running>) {
 
 <universal.sequence.startup> = 0;
 
-<[base.protocol-7.command.send.local]>->(
+<[protocol-7.command.send.local]>->(
     {   'command' => "$zenka_name.resume",
         'reply'   => {
             'handler' => qw| universal.handler.resume_reply |,
@@ -114,8 +114,8 @@ if ( $zenka_name eq 'mpv' ) {    # check if mpv actually resumed playing
 
 }
 
-#,,,.,...,,.,,,,.,,,,,,,,,.,,,..,,,.,,.,.,...,..,,...,..,,.,.,.,,,..,,.,,,.,.,
-#DAMIMXSWHLWXXMLZ4RWDEQ6JVRFQUFDDMQRRCUY6KUA2V7RYWNO7JKHAKJT5QSU7N3TOCKBGLD3R4
-#\\\|QDA6N2EQ3NRILBS35GK6MTKZXHI3357UCWJ7JUAUINYZCNWDORA \ / AMOS7 \ YOURUM ::
-#\[7]E3J3JJKVWUBVXFD2FHWHSQM2T4P5BERQLW4UI6JN2CNRRLJNTMDI 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,,,...,,,.,.,,,.,,,,.,,.,,,,,,,..,,...,...,..,,.,,,.,.,.,.,,.,,
+#OEGRHQGWDHZBVSVQKDB3R54XK2HBWVCZYCLHRMIST5MM2E7CZSXPAGSQZJMGJ5USC7MVQYUXCB6BK
+#\\\|PFXOTVG2T3UNH7TDDT4E577WWAJ7XMQMIBKKLG5X4GM4N6DTDTR \ / AMOS7 \ YOURUM ::
+#\[7]7GVNQYOG4MFZ5RM6OTJVG2ZQOGHE3LEU2JM7IKHKISPBXL7BQOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

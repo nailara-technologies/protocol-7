@@ -46,7 +46,7 @@ if ( exists <letsencr.parent.pending_challenges>->{$token} ) {
     );
 
     ## [ parameters as space-separated args: domain token ]
-    <[base.protocol-7.command.send.local]>->(
+    <[protocol-7.command.send.local]>->(
         {   'command'   => qw| httpd.cmd.remove-acme-challenge |,
             'call_args' => { 'args' => join ' ', $domain, $token }
         }
@@ -58,8 +58,8 @@ if ( exists <letsencr.parent.pending_challenges>->{$token} ) {
 
 return FALSE;
 
-#,,..,.,.,,.,,,,,,,,,,..,,,,,,...,,..,,..,..,,..,,...,...,..,,...,,..,...,.,.,
-#EUJWKLSZXP273IIETODAMH4P4IQ54VYVR4OXDYEIJ34RGTV6FAKHZWJGP725B2RG5DCFKXOJG32FK
-#\\\|QC3KBF7XHH3C3UQ7Y2Z6G472W3W6GIQJDMQUJMTAHKIH7HXBDOD \ / AMOS7 \ YOURUM ::
-#\[7]VQH6ON4OGXO33UJA3WIEA6E5BX7PHKBGL46DAZBUASAEGIP55QBQ 7  DATA SIGNATURE ::
+#,,..,...,,..,,.,,.,.,.,.,.,,,,,.,,.,,.,,,.,.,..,,...,...,..,,,,,,..,,..,,,,.,
+#NIFBNA6CAOGGENGZZBOBQ24T3WL5RFWUJNAHKN3R5UJZAI42JSMDXJSSN3FWEGUS2IVU6DSMRFRXU
+#\\\|GWIGFEHJMSYK2T7XLZAHTEQBLQHLM2J76SX4L54TEURQEBBS5Q6 \ / AMOS7 \ YOURUM ::
+#\[7]P77XWTSBH7RKSW5IV425KERQ46LH4XYUEUZMTBHGBXQ4NFVYFEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

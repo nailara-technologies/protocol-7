@@ -6,15 +6,15 @@
 
 my $msg_str = @ARGV == 2 ? join( ' ', map {"'$ARG'"} @ARGV ) : <system.args>;
 
-<[base.protocol-7.command.send.local]>->(
+<[protocol-7.command.send.local]>->(
     {   'command'   => qw| cube.notify.warn |,
         'call_args' => { 'args'    => $msg_str },
         'reply'     => { 'handler' => qw| base.exit | }
     }
 );
 
-#,,,,,,..,,..,,..,.,.,.,.,...,,,.,..,,,,.,,,,,..,,...,...,..,,,,.,,,,,.,.,,.,,
-#R4R6WSUHEERSCABYTA74VEYMIRDFQ5XQ53S3MA42EM2GTSU4ZFXJTZRNKFPDNZ5LHC34WO4BC2BHY
-#\\\|T633MRWIKUPIF3IWGVSGATUMX6DTM5QSWBLTB2F7223NJRUEA3E \ / AMOS7 \ YOURUM ::
-#\[7]3OOD5JJYRBEQBDR6H4G6NUXTGTNM2HZYAJSULWVHTIUI7HWIGUDY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,..,,.,.,.,,,.,.,,,,,.,,,..,,,..,..,,...,...,...,,.,,...,,,,,,.,,
+#RPFAAA2HLU3OBQPNCCZORCSMHZ6BFZ453IGY6Y2XVHZZKBCK7UAI66E2O7O4YTXDDKEHTEJ5R3TGS
+#\\\|L25XRFTDVEC62EMNQGPZ4JJJS6P3FUQ2M3IBLXTGUCZFLUZREFM \ / AMOS7 \ YOURUM ::
+#\[7]HDBQ2BB2AIHX55NA2XUMUDTEKDJ45TEQG4NHTA2FYSR67VHKHMBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
