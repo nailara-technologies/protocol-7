@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = zenka-startup.v7
+# descr = 'kimi' zenka startup configuration used by 'v7' zenka
+
+dependencies = cube
+
+start.on-demand    = 1
+restart.disabled   = 1
+heartbeat.disabled = 1
+max_concurrency    = 1
+
+: v7-init :
+  start_mode = stdin-zenka
+  kimi.key = [base.prng.chars-anum:44]
+  [v7.callback.setup_zenka_key:<instance_id>,'<zenka_name>',<kimi.key>]
+
+: zenka-init :
+  [base.auth.set_zenka_key:'<{kimi.key}>']
+  [base.zenki.set_ondemand_timeout:1800]
+
+#,,,,,.,.,,,.,,,,,.,.,,,,,..,,...,,,.,...,,,,,..,,...,...,,,,,,.,,,.,,...,,,.,
+#LDXDGAG33IMGORLWBLOMUCF3LVJFFHUS4NNO4YWSF357XEOGGTZLSYOPCKLCMAV7TBQUL36L3Y67C
+#\\\|GK43TIW4XW4JK4GYSQXWVWOHRTZUFVI5JBYVMJK5ECQW2WWAUKS \ / AMOS7 \ YOURUM ::
+#\[7]TCJK7PLVGGTSETLYGC3OHJO6PXZ3QQZ2ZHQFQAOLXMJEFKHWSWBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

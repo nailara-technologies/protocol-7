@@ -1,0 +1,42 @@
+## [:< ##
+
+# name  = kimi.wire.send
+# descr = send a json-rpc 2.0 message over the kimi websocket
+# param = $method  [ string, e.g. 'initialize', 'prompt', 'cancel' ]
+# param = $id      [ string message id, or undef for notifications ]
+# param = $params  [ hashref or undef ]
+# return = bytes written, or undef on error
+
+<[base.perlmod.load]>->(qw| JSON |);
+
+my $method = shift;
+my $id     = shift;
+my $params = shift;
+
+unless ( <kimi.ws.connected> and defined <kimi.ws.socket> ) {
+    <[base.logs]>->(
+        0,
+        'kimi.wire.send: not connected [ method=%s ]',
+        $method // ''
+    );
+    return undef;
+}
+
+my %msg = ( 'jsonrpc' => '2.0' );
+$msg{'method'} = $method if defined $method;
+$msg{'id'}     = $id     if defined $id;
+$msg{'params'} = $params if defined $params;
+
+my $json = eval { JSON::encode_json( \%msg ) };
+if ($@) {
+    <[base.logs]>->( 0, 'kimi.wire.send: json encode error : %s', $@ );
+    return undef;
+}
+
+return <[websocket.send]>->( <kimi.ws.socket>, $json );
+
+#,,.,,,..,..,,,..,,.,,,,.,,..,..,,,.,,,,.,,,.,..,,...,.,.,..,,,,.,,,,,..,,,,,,
+#5Y5S3Z5BRHIYGTOZTKJR4OUGJV5CA2SXFRKWZN3XATH5CSLTGY6DHO6SSWLVNLFIRE45ZJU3YDTRI
+#\\\|AGD442FZN6ZRTHZ5A426KNQMDGYPYEFESKJ4A4OXVSLVBLR22Q2 \ / AMOS7 \ YOURUM ::
+#\[7]ZS7ZO6A7CZBZSW6LNB5D3F4I44H7DSURL4D3LFFQSQ2JEK4X2OAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

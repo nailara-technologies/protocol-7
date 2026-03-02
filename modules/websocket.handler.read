@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = websocket.handler.read
+# descr = event.add_io callback for incoming websocket frames
+# note  = handler data keys: frame, on_message, context
+# note  = on_message called as $code{handler}->($text, $context)
+#         on disconnect: called with undef as first arg
+
+my $event        = shift->w;
+my $handler_data = $event->data;
+my $frame_parser = $handler_data->{'frame'};
+my $on_message   = $handler_data->{'on_message'};
+my $context      = $handler_data->{'context'} // {};
+
+my $sock = $event->fd;
+my $buf  = '';
+my $n    = <[base.s_read]>->( $sock, \$buf, <websocket.read_buffer_size> );
+
+if ( $n < 0 ) {
+    ## socket error — cancel watcher and signal disconnect
+    <[base.logs]>->(
+        1, 'websocket.handler.read: socket error [%s]', $OS_ERROR
+    );
+    $event->cancel if $event->is_active;
+    if ( defined $on_message and defined $code{$on_message} ) {
+        $code{$on_message}->( undef, $context );    ## disconnect signal
+    }
+    return;
+}
+
+return if $n == 0;    ## would-block — nothing available yet
+
+$frame_parser->append($buf);
+while ( defined( my $msg = $frame_parser->next ) ) {
+    ## close frame — signal disconnect and stop
+    if ( $frame_parser->is_close ) {
+        $event->cancel if $event->is_active;
+        if ( defined $on_message and defined $code{$on_message} ) {
+            $code{$on_message}->( undef, $context );
+        }
+        last;
+    }
+    ## only dispatch text frames to message handler
+    next unless $frame_parser->is_text;
+    next unless defined $msg and length $msg;
+    if ( defined $on_message and defined $code{$on_message} ) {
+        $code{$on_message}->( $msg, $context );
+    }
+}
+
+#,,..,,..,,,.,,..,,,,,..,,,.,,,.,,,,.,.,,,,.,,..,,...,...,...,...,,,.,..,,,,.,
+#7WJTLCRDW7F5BEOW2AOV4G7BLDVQSLG22OJKLKJX6DX7CVXRI34ZFIC2GUXZGKXURGNPAWBDFTR2I
+#\\\|VXA5LVAZTTFU453OMBJKJQUCUUU5C3IOLCPCFR3XPRPE3YTLOQ4 \ / AMOS7 \ YOURUM ::
+#\[7]GN7NUVARS2H4XO7NEZLOG5UH3DT77YF644UF7D7PF4TMPVPNYSBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

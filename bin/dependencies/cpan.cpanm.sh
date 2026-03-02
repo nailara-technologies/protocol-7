@@ -9,8 +9,8 @@ xvfb-run cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
       Sys::Filesystem IO::Scalar \
       Crypt::CBC CryptX Digest::JHash \
       JSON JSON::PP \
-      Net::SSH2 Config::Hosts \
-      LWP::UserAgent LWP::Protocol::https File::MimeInfo::Magic \
+      Net::SSH2 Config::Hosts File::MimeInfo::Magic \
+      LWP::UserAgent LWP::Protocol::https Protocol::WebSocket \
       X11::Protocol X11::Keyboard X11::Protocol::WM X11::Tops \
       Convert::Color \
       Linux::Inotify2 \
@@ -34,8 +34,8 @@ xvfb-run cpanm Event Clone Hash::Flatten Hash::Merge::Simple \
 # Graphics::Magick : http://sourceforge.net/projects/graphicsmagick/files/graphicsmagick/
 #                    ..or check your distribution packages!
 
-#,,,,,,..,..,,.,,,,,.,,,.,..,,,..,,..,...,...,..,,...,...,..,,,..,.,,,,,,,,,.,
-#IIS4HVRZER7C7QRRMU7ZI5OJWFHBXMRKSMADIXQMRAXD7SPIXCVOIO5OKUVRFF5GBIBABID3KNSTO
-#\\\|B7SHBTEY3WM332IU7S3ZJW4GOIPCDBQAUOSZH4UJT7RQM2CE3YR \ / AMOS7 \ YOURUM ::
-#\[7]LV7R554ZSGQ5HFWNTDHR3KV7TCAHWMCD4UODJKGGYAKTZSWMN6BI 7  DATA SIGNATURE ::
+#,,,.,,..,,.,,,,,,,,.,..,,,,.,,..,.,,,,.,,.,,,..,,...,...,.,.,.,.,,..,.,.,,,.,
+#DLS4OINYQRSQIBJ3RVMLQOBKV4AYRIOJOYZXZ5CKEWAF7PSYRCP2UB4RFOBRS3EDJ77ZGF6GRQOLA
+#\\\|NJYHIKYFW4X5HISML5JEZOWEIUJNHBWUIVTFNTRD3IZQBZUDG4Z \ / AMOS7 \ YOURUM ::
+#\[7]USEE5KK2FV2YWBZCESY7PSSUFYNCRNXHK6WRE73F64FWA7MKX4BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

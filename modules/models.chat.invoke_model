@@ -19,8 +19,8 @@ return unless length($message);
 
 ## model name to backend mapping
 my $backend_map = {
-    'kimi'       => qw| api |,
-    'kimi-code'  => qw| api |,
+    'kimi'       => qw| kimi_web |,
+    'kimi-code'  => qw| kimi_web |,
     'claude'     => qw| api |,
     'llama'      => qw| local |,
     'local'      => qw| local |,
@@ -82,7 +82,7 @@ if ( !@messages ) {
 
 my $messages = \@messages;
 
-## Local backend via coding zenka
+## local backend via coding zenka
 if ( $backend_type eq qw| local | ) {
     <[models.backend.coding.invoke]>->(
         {   'participant_id' => $model_name,
@@ -92,8 +92,18 @@ if ( $backend_type eq qw| local | ) {
             'model'          => $model,
         }
     );
+} elsif ( $backend_type eq qw| kimi_web | ) {
+    ## kimi-web backend via persistent websocket to kimi-web
+    <[models.backend.kimi_web]>->(
+        {   'participant_id' => $model_name,
+            'messages'       => $messages,
+            'reply_id'       => $reply_id,
+            'sender'         => $sender,
+            'model'          => $model,
+        }
+    );
 } else {
-    ## API backend not yet async
+    ## api backend not yet async
     my $error = ':. error: API backend not yet async :.';
     <[models.chat.append]>->( undef, $model, $error );
     my $entries = <[models.chat.get_recent]>->(3);
@@ -107,8 +117,8 @@ if ( $backend_type eq qw| local | ) {
 
 return;
 
-#,,..,.,,,,,,,,..,,..,..,,...,,,.,...,.,,,.,,,.,.,...,...,,.,,.,,,..,,.,.,...,
-#3Z2KRMXF2WRSWQFLSF3JDVJIORUMITVQNNIWS5KM77DDPTPCVD7YJLYIUV6CKYHA3LDZNKTRPQLU2
-#\\\|P5NL52RNKEEJDV2ZXB2WBIJ4QTPYBXTEMXVERJD3NOVEYESF7OC \ / AMOS7 \ YOURUM ::
-#\[7]UQZOMD32SOJIS65AU4FTROAR2WJNPWI6MMKPCYTNBYXPL6TDJEBI 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,...,,,,,,,.,,..,,,.,,..,..,,,,,,.,.,...,..,,...,..,,.,.,,..,...,
+#ENUCUZPQYLL5YLM4BM2AKPKDDZJC64HIXHUZXMLVJZQEOKPAMQYUGMJM2BOTL4N5FVJ2KJ3BZG3GO
+#\\\|PHDGCLSW5RG6MJHIRUWNCGIUER42TBOMUDU3W3GQXLPOC2PVSIQ \ / AMOS7 \ YOURUM ::
+#\[7]XUVKWZEQKCMMF3EE7EAYAEDXNNOUC3ZXNHIO3WVLLR3DJEZWB4BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

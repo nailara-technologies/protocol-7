@@ -1,0 +1,177 @@
+## [:< ##
+
+# name  = kimi.handler.ws_message
+# descr = dispatch incoming kimi-web json-rpc messages from websocket frames
+# note  = called by websocket.handler.read on each complete frame
+#         first arg is undef on disconnect
+
+<[base.perlmod.load]>->(qw| JSON |);
+
+my $text    = shift;
+my $context = shift // {};
+
+## disconnect signal — tear down and schedule reconnect
+if ( not defined $text ) {
+    <[base.logs]>->( 2, 'kimi.handler.ws_message: websocket disconnected' );
+    <kimi.ws.connected> = FALSE;
+    <kimi.ws.status>    = qw| disconnected |;
+    if ( defined <kimi.ws.io_watcher> ) {
+        <kimi.ws.io_watcher>->cancel
+            if <kimi.ws.io_watcher>->is_active;
+        <kimi.ws.io_watcher> = undef;
+    }
+    ## fail any pending reply so caller does not hang
+    foreach my $pend_id ( keys %{<kimi.wire.pending>} ) {
+        my $pend = delete <kimi.wire.pending>->{$pend_id};
+        my $rid  = $pend->{'reply_id'} // '';
+        if ( length($rid) ) {
+            <[base.callback.cmd_reply]>->(
+                $rid, { 'mode' => 'false', 'data' => 'kimi disconnected' }
+            );
+        }
+    }
+    <[kimi.connect.schedule_retry]>;
+    return;
+}
+
+## parse json-rpc frame
+my $msg = eval { JSON::decode_json($text) };
+if ($@) {
+    <[base.logs]>
+        ->( 0, 'kimi.handler.ws_message: json parse error : %s', $@ );
+    return;
+}
+
+my $method = $msg->{'method'} // '';
+my $msg_id = $msg->{'id'}     // '';
+my $params = $msg->{'params'} // {};
+
+## --- server-sent events (method present, no id or id not a response) ---
+
+if ( $method eq qw| history_complete | ) {
+    ## environment ready — send wire initialize handshake
+    <[base.logs]>
+        ->( 2, 'kimi.handler.ws_message: history_complete received' );
+    <[kimi.wire.initialize]>;
+    return;
+}
+
+if ( $method eq qw| session_status | ) {
+    my $state = $params->{'state'} // '';
+    <[base.logs]>->(
+        2, 'kimi.handler.ws_message: session_status [ %s ]', $state
+    );
+    return;
+}
+
+if ( $method eq qw| event | ) {
+    ## wire events: ContentPart, TurnBegin, TurnEnd, StepBegin, ToolCall, ...
+    my $type    = $params->{'type'}    // '';
+    my $payload = $params->{'payload'} // {};
+
+    if ( $type eq qw| ContentPart | ) {
+        my $part_type = $payload->{'type'} // '';
+        if ( $part_type eq qw| text | ) {
+            my $chunk = $payload->{'text'} // '';
+            <kimi.wire.accumulator> .= $chunk;
+        }
+        ## ignore think/tool ContentParts for the plain response
+        return;
+    }
+
+    if ( $type eq qw| TurnEnd | ) {
+        <[base.logs]>->(
+            2,
+            'kimi.handler.ws_message: TurnEnd — reply length=%d',
+            length(<kimi.wire.accumulator>)
+        );
+
+        ## find the pending prompt entry and fire deferred reply
+        my ($pend_id) = grep {
+            ( <kimi.wire.pending>->{$_}->{'type'} // '' ) eq qw| prompt |
+        } keys %{<kimi.wire.pending>};
+
+        if ( defined $pend_id ) {
+            my $pend     = delete <kimi.wire.pending>->{$pend_id};
+            my $reply_id = $pend->{'reply_id'} // '';
+            my $response = <kimi.wire.accumulator>;
+            <kimi.wire.accumulator> = '';
+            <kimi.ws.status>        = qw| ready |;
+
+            if ( length($reply_id) ) {
+                <[base.callback.cmd_reply]>->(
+                    $reply_id, { 'mode' => 'size', 'data' => $response }
+                );
+            }
+        } else {
+            <kimi.wire.accumulator> = '';
+            <kimi.ws.status>        = qw| ready |;
+        }
+        return;
+    }
+
+    ## other event types (TurnBegin, StepBegin, ToolCall, etc.) — log at debug
+    <[base.logs]>->( 3, 'kimi.handler.ws_message: event [ type=%s ]', $type );
+    return;
+}
+
+if ( $method eq qw| request | ) {
+    ## kimi requests us to invoke an external tool — not yet implemented
+    <[base.logs]>->(
+        2, 'kimi.handler.ws_message: tool request [ id=%s ] — not handled',
+        $msg_id
+    );
+    return;
+}
+
+## --- responses to our requests (method is absent or empty) ---
+
+if ( not length($method) and length($msg_id) ) {
+    my $pend = delete <kimi.wire.pending>->{$msg_id};
+
+    unless ( defined $pend ) {
+        <[base.logs]>->(
+            2,
+            'kimi.handler.ws_message: response for unknown id [ %s ]', $msg_id
+        );
+        return;
+    }
+
+    if ( $pend->{'type'} eq qw| initialize | ) {
+        if ( defined $msg->{'result'} ) {
+            <kimi.ws.status> = qw| ready |;
+            if ( not <kimi.session.acquired> ) {
+                ## first successful handshake — go online
+                <kimi.session.acquired> = TRUE;
+                <[base.logs]>
+                    ->( 1, ': kimi-web ready to serve requests :..' );
+                <[base.async.get_session_id]>;
+            } else {
+                <[base.logs]>->( 2, 'kimi: reconnected — status ready' );
+            }
+        } else {
+            my $err = $msg->{'error'}{'message'} // 'unknown';
+            <[base.logs]>->(
+                0, 'kimi.handler.ws_message: initialize failed : %s', $err
+            );
+        }
+        return;
+    }
+
+    if ( $pend->{'type'} eq qw| prompt | ) {
+        ## success/cancel response for the prompt request itself
+        ## actual content arrives via event stream above
+        my $status = ( $msg->{'result'} // {} )->{'status'} // 'unknown';
+        <[base.logs]>->(
+            2,
+            'kimi.handler.ws_message: prompt response [ status=%s ]', $status
+        );
+        return;
+    }
+}
+
+#,,,.,..,,...,..,,,,,,,,,,,,.,,,,,.,.,,,.,,,.,..,,...,...,...,.,,,.,.,,,,,,..,
+#IWTYAYPTERVY3VT2JIISTPIKL5P7PR5STAJJ7PY6A53W7CUFBZEZ7BFIFTLPYATKONB7MIZXV3NGA
+#\\\|LDOL42QOYBZLO5JFJS5QSZOZ5K5TTIFBZLD344T2XANA4SFEN7J \ / AMOS7 \ YOURUM ::
+#\[7]2TDKKMSPTHKZMDR3UA22NJ23CZINQILFZCW2B4YYWHIW2ZQ2O2CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

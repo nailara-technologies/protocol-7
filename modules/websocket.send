@@ -1,0 +1,35 @@
+## [:< ##
+
+# name  = websocket.send
+# descr = encode and send a websocket text frame
+# param = $sock  [ IO::Socket handle ]
+# param = $text  [ utf-8 string payload ]
+# return = bytes written, or undef on error
+
+<[base.perlmod.load]>->(qw| Protocol::WebSocket::Frame |);
+
+my $sock = shift // return undef;
+my $text = shift // return 0;
+
+## client-to-server frames must be masked per rfc6455
+my $frame = Protocol::WebSocket::Frame->new(
+    buffer => $text,
+    type   => qw| text |,
+    masked => 1
+);
+
+my $wire = $frame->to_bytes;
+my $n    = $sock->syswrite($wire);
+
+if ( not defined $n ) {
+    <[base.logs]>->( 0, 'websocket.send: write error : %s', $OS_ERROR );
+    return undef;
+}
+
+return $n;
+
+#,,.,,,,,,,.,,,,,,...,.,.,.,.,.,.,,,,,,,.,,,.,..,,...,..,,.,,,,,,,.,.,...,.,,,
+#WK3FSN7U3PFPN3N6PT4DCBW6MPCFU5IEXOWB4QPICUUNCFQ3OFQNH3Q6AB3KTXT27ZHGY3FX7WZRU
+#\\\|U3ELBGHWDSJS2HHY5EBYB2QRD47DY47BY2JRVMLSSEAIE3SPTU3 \ / AMOS7 \ YOURUM ::
+#\[7]T4KTGENKBGRIPCINBHASY65P2ZA5WTGYOUBHVQEFB77COV5MECCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

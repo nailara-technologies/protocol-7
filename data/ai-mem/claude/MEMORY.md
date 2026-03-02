@@ -5,6 +5,7 @@
 - `topic-completed.md` — session summaries (cert discovery, models memory, data zenka)
 - `topic-harmonic-mathematics.md` — generator 076923, quadratic residues, cube geometry,
   spiral topology, 4-crossing consent protocol, CCW matrix routing, heartbeat encoding
+- `topic-vterm.md` — vterm module system: cell format, consensus algorithm, review findings
 
 ## File Creation Notes (CRITICAL)
 - **Never add** the single-line `#,,.,,,...` stub at end of new files
@@ -22,6 +23,10 @@
   message reconstruction, banner re-emit, colored output matching console exactly
 - **fork-child cleanup + sig_chld pid filter** (Mar 2 2026): completed ✅ — commit `1ffe1d2fa`
   image2html, pdf.html, vision-batch pattern unified; `base.handler.sig_chld.shutdown` upgraded
+- **kimi-web WebSocket client zenka** (Mar 2 2026): completed ✅ — 14 modules: `websocket.*`
+  (generic WS client) + `kimi.*` (kimi-web integration); `models.chat` routes kimi/kimi-code
+  through `models.backend.kimi_web` → `kimi.cmd.ask-reply`; deferred `get_session_id` goes
+  online only after WS+initialize handshake; exponential backoff 2→4→…→60s on disconnect
 
 ## v7 Stdout SHM Log Architecture
 - **Log path**: `/dev/shm/.7/STDOUT/<socket>` symlinked from `/var/run/.7/STDOUT/<socket>`
@@ -205,6 +210,23 @@ Removed all hardcoded model paths/names; full dynamic discovery from models zenk
 - Call sites use `$code{'log.base_log_complete'}->()` not `defined $code{'base.log'}`
   (except line 3343 purge-detection path which correctly keeps `exists $code{'base.log'}`)
 
+### Protocol::WebSocket::Frame Constructor (CRITICAL)
+- `Frame->new($text, type => ..., masked => ...)` passes ODD elements → "odd number of
+  elements in hash" warning; `$text` becomes a hash KEY, buffer is empty → silent data loss
+- ✅ Always use named arg: `Frame->new( buffer => $text, type => 'text', masked => 1 )`
+
+### Deferred Zenka Online (`base.async.get_session_id`)
+- Remove `[get_session_id]` from start file; call `<[base.async.get_session_id]>` from within
+  the event loop once the zenka is ready to serve (e.g., after a backend handshake completes)
+- Guards: checks `cube_sid` already set (idempotent); use a `<zenka.session.acquired>` flag
+  to avoid duplicate calls on reconnects
+- Pattern used by: weather, dbus, start-anim, image2html, ticker, kimi, etc.
+
+### Config Variable Path Conflicts (CRITICAL)
+- `<a.b.c>` and `<a.b.c.d>` CONFLICT — `a.b.c` is a scalar, `.d` tries to deref it as hash
+- ❌ `<kimi.connect.retry_delay>` = 60 AND `<kimi.connect.retry_delay.current>` = 2
+- ✅ Use a flat sibling name: `<kimi.connect.retry_cur>` = 2
+
 ### Variable Watcher Backup/Restore (CRITICAL — see topic-patterns.md)
 - Stop → back up → replace → restore with `->again()` (never `->now()`)
 
@@ -212,8 +234,8 @@ Removed all hardcoded model paths/names; full dynamic discovery from models zenk
 - Handlers receive Event object as first param, not data directly
 - Extract: `my $event = shift->w; my $server = $event->data;`
 
-#,,,,,.,.,.,.,..,,,..,,..,,.,,,,.,,..,,..,,,,,..,,...,...,,.,,..,,,.,,,,.,,.,,
-#LN7LNLIIDMN64Q3XRH2Q4PP5FFPSF5M5ZNFSO2D526R6OKBDBNOCWSUYOMYBAZ3JGT3PETFRMQHKA
-#\\\|FQ3SCJMD4IQMHRPWDOFGUXOXNBICYIGDSRY2PEJRQNPJTZ3W73K \ / AMOS7 \ YOURUM ::
-#\[7]6RWUE3HY5IEPSW3HHRNI22JARII6QHX5CA66B5T46KBZCNDB4CDA 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,.,,,..,.,,,,..,,,,,..,,.,,,..,,..,,...,...,,..,...,,,,,,.,,..,,
+#QUWMHQIF3RUUYDOGCIYVM2GQFSGHM6C3J727SNIXFIGZM3LRFMO37POSTLOG5UYWXGEHHNB2VOKAQ
+#\\\|LBV67HCOS24QENEQI4DR57WITVGTXAW4C2TTFMFMKQC4ETOIQBT \ / AMOS7 \ YOURUM ::
+#\[7]RJOV5LE2BPPFL6ZLMTY6QQTSGFAMADXSMCFFYBW2J5SHOCEPJSDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

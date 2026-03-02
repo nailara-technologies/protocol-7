@@ -1,0 +1,88 @@
+## [:< ##
+
+# name  = websocket.connect
+# descr = establish a websocket connection via http upgrade handshake
+# param = $url  [ ws://host:port/path ]
+# return = IO::Socket::INET handle (non-blocking) or undef on failure
+
+<[base.perlmod.load]>->(qw| IO::Socket::INET |);
+<[base.perlmod.load]>->(qw| Protocol::WebSocket::Handshake::Client |);
+
+my $url = shift // return undef;
+
+## parse ws://host:port/path
+my ( $host, $port, $path );
+if ( $url =~ m{^ws://([^/:]+)(?::(\d+))?(/.*)? $}x ) {
+    $host = $1;
+    $port = $2 // 80;
+    $path = $3 // '/';
+} else {
+    <[base.logs]>->( 0, 'websocket.connect: invalid url [ %s ]', $url );
+    return undef;
+}
+
+## tcp connect
+my $sock = IO::Socket::INET->new(
+    PeerAddr => $host,
+    PeerPort => $port,
+    Proto    => qw| tcp |,
+    Timeout  => <websocket.connect_timeout>
+);
+
+if ( not defined $sock ) {
+    <[base.logs]>->(
+        0, 'websocket.connect: tcp connect failed : %s:%d : %s',
+        $host, $port, $OS_ERROR
+    );
+    return undef;
+}
+
+## http upgrade handshake
+my $handshake = Protocol::WebSocket::Handshake::Client->new(
+    url => sprintf( 'ws://%s:%d%s', $host, $port, $path ) );
+
+## send upgrade request
+my $req_str = $handshake->to_string;
+$sock->syswrite($req_str) or do {
+    <[base.logs]>->( 0, 'websocket.connect: failed to send upgrade request' );
+    $sock->close;
+    return undef;
+};
+
+## read server response until handshake is complete (blocking)
+while ( not $handshake->is_done ) {
+    my $chunk = '';
+    my $n     = sysread( $sock, $chunk, 4096 );
+    if ( not defined $n or $n == 0 ) {
+        <[base.logs]>->(
+            0, 'websocket.connect: connection closed during handshake'
+        );
+        $sock->close;
+        return undef;
+    }
+    $handshake->parse($chunk);
+    if ( $handshake->error ) {
+        <[base.logs]>->(
+            0, 'websocket.connect: handshake error : %s',
+            $handshake->error
+        );
+        $sock->close;
+        return undef;
+    }
+}
+
+## set socket non-blocking before handing to event loop
+$sock->blocking(0);
+
+<[base.logs]>->(
+    2, 'websocket.connect: connected [ ws://%s:%d%s ]',
+    $host, $port, $path
+);
+
+return $sock;
+
+#,,..,.,,,,.,,,..,...,,..,,,,,,.,,,..,,..,,..,..,,...,...,,..,.,.,,,,,,,.,,.,,
+#YAAOEXDNOUWK4EM6NNT27IBLTH4A7IOOFFWBUW5RX73YRXLMQ7FNVBN5WLOL42B3QCNOCSAFRMNG4
+#\\\|IPYOAFD7HR2KHEUAFLMYOFELKDBXYXQFOMJNSYPZTFBBTXLWHDJ \ / AMOS7 \ YOURUM ::
+#\[7]DA6UJ4CA7H4A6E4BI4LJEJJWCXG5CTTTKYUXPJ7CEENDN4CC56BQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
