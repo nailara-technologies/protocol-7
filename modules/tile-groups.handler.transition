@@ -32,8 +32,8 @@ if ( not defined <tile-groups.transition.status.waiting.stop>
                 = 1;
         }
         if ( !$fade ) {    ## instance_id (no_fade) ##
-            <[protocol-7.command.send.local]>->(
-                {   'command'   => "cube.v7.get-instance-ids",
+            <[protocol-7.route-send]>->(
+                {   'command'   => "v7.get-instance-ids",
                     'call_args' => { 'args' => $zenka },
                     'reply'     => {
                         'handler' => qw| tile-groups.handler.transition |,
@@ -45,8 +45,8 @@ if ( not defined <tile-groups.transition.status.waiting.stop>
                 }
             );
         } else {    ## window_id(s) (fade) ##
-            <[protocol-7.command.send.local]>->(
-                {   'command'   => "cube.X-11.get_window_ids",
+            <[protocol-7.route-send]>->(
+                {   'command'   => "X-11.get_window_ids",
                     'call_args' => { 'args' => $zenka },
                     'reply'     => {
                         'handler' => qw| tile-groups.handler.transition |,
@@ -78,8 +78,8 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
         and $cube_reply->{'call_args'}->{'args'} =~ /^\d+/ ) {
         my $instance_id = $cube_reply->{'call_args'}->{'args'};
         ## notify_offline ##
-        <[protocol-7.command.send.local]>->(
-            {   'command'   => "cube.v7.notify_offline",
+        <[protocol-7.route-send]>->(
+            {   'command'   => "v7.notify_offline",
                 'call_args' => { 'args' => $instance_id },
                 'reply'     => {
                     'handler' => qw| tile-groups.handler.transition |,
@@ -95,15 +95,15 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
             <tile-groups.transition.status.zenki.fade_out>->{$zenka}
             or <tile-groups.transition.status.zenki.fade_out>->{$zenka} ne
             '1' ) {
-            <[protocol-7.command.send.local]>->(    ## stop (no fade) ##
-                {   'command'   => "cube.v7.stop_implicit",
+            <[protocol-7.route-send]>->(    ## stop (no fade) ##
+                {   'command'   => "v7.stop_implicit",
                     'call_args' => { 'args' => $instance_id }
                 }
             );
         } else {
             my $window_ids = $cube_reply->{'params'}->{'window_ids'};
-            <[protocol-7.command.send.local]>->(
-                {   'command'   => "cube.X-11.fade_out",
+            <[protocol-7.route-send]>->(
+                {   'command'   => "X-11.fade_out",
                     'call_args' => {
                         'args' => join( ' ', $fade_out_duration, $window_ids )
                     },
@@ -137,8 +137,8 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
         ? $cube_reply->{'call_args'}->{'args'}
         : 0;    # <-- 0 == failed, fade will be skipped!
 
-    <[protocol-7.command.send.local]>->(
-        {   'command'   => "cube.v7.get-instance-ids",
+    <[protocol-7.route-send]>->(
+        {   'command'   => "v7.get-instance-ids",
             'call_args' => { 'args' => $zenka },
             'reply'     => {
                 'handler' => qw| tile-groups.handler.transition |,
@@ -153,13 +153,13 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
 } elsif ( $event_type eq 'fade_out' ) {
     my $zenka       = $cube_reply->{'params'}->{'zenka_name'};
     my $instance_id = $cube_reply->{'params'}->{'instance_id'};
-    <[protocol-7.command.send.local]>->(    ## stop (fading complete) ##
-        {   'command'   => "cube.v7.stop_implicit",
+    <[protocol-7.route-send]>->(    ## stop (fading complete) ##
+        {   'command'   => "v7.stop_implicit",
             'call_args' => { 'args' => $instance_id }
         }
     );
 } elsif (
-    $event_type eq 'is_offline'             ## zenka stopped or not running ##
+    $event_type eq 'is_offline'     ## zenka stopped or not running ##
     and defined $cube_reply->{'params'}->{'zenka_name'}
 ) {
     my $zenka = $cube_reply->{'params'}->{'zenka_name'};
@@ -174,8 +174,8 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
         if (
             exists <tile-groups.transition.status.zenki.concurrency>->{$ARG} )
         {
-            <[protocol-7.command.send.local]>->(
-                {   'command'   => "cube.v7.start",
+            <[protocol-7.route-send]>->(
+                {   'command'   => "v7.start",
                     'call_args' => { 'args' => $ARG },
                     'reply'     => {
                         'handler' => qw| tile-groups.handler.transition |,
@@ -207,8 +207,8 @@ if ( $event_type eq 'instance_id' ) {    # instance ids of zenki to be stopped
     } else {
         ( my $job_id = $cube_reply->{'call_args'}->{'args'} ) =~ s|^\D+||;
         ## notify_online ##
-        <[protocol-7.command.send.local]>->(
-            {   'command'   => "cube.v7.notify_online",
+        <[protocol-7.route-send]>->(
+            {   'command'   => "v7.notify_online",
                 'call_args' => { 'args' => "job:$job_id" },
                 'reply'     => {
                     'handler' => qw| tile-groups.handler.transition |,
@@ -230,8 +230,8 @@ if (    ( $event_type eq 'instance_id' or $event_type eq 'init' )
 
     foreach my $zenka (@start_zenki) {
         ## start ##
-        <[protocol-7.command.send.local]>->(
-            {   'command'   => "cube.v7.start",
+        <[protocol-7.route-send]>->(
+            {   'command'   => "v7.start",
                 'call_args' => { 'args' => $zenka },
                 'reply'     => {
                     'handler' => qw| tile-groups.handler.transition |,
@@ -283,8 +283,8 @@ if ( defined <tile-groups.transition.status.waiting> ) {    ## in progress? ##
 #print STDERR ">---\n" . Dumper( $cube_reply, <tile-groups.transition> ) . "<---\n";
 #     if $event_type eq 'fade_out';
 
-#,,,,,...,...,,.,,,.,,...,,..,.,,,,,.,,..,.,,,..,,...,...,...,.,.,.,,,,,,,,,,,
-#BNACB5VNIMQWFY6AYIIVUVYFHZSY6CSV6CMGNKCKUCKGVN2GJZIPIPWS2G763XMLT4MRGICYSRXUE
-#\\\|OMGNLDTZNLPJYGIGYCOUAST3JQTRIYCYHFVBZ55MPJI44NWWTAM \ / AMOS7 \ YOURUM ::
-#\[7]DSMM7SZB5LTHYIEV2TPN66FPCJL2DRPEK7LACIKBAD2OIDJ2LYCI 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,.,.,,.,,,.,,,,.,,..,..,,.,.,.,.,..,,...,..,,..,,...,,,,,...,,..,
+#I7SMWCAONOFVOWOFZ44YGH6LZMDGJ4CWVU5CYX74G52MOTHCCSDB6PAQ2RWXECF3G5TL2MIXQWPCU
+#\\\|UZPW62B7YAMCQIEQK6FAPDMZC34GYJ45O7B7E54ICY4VKSTYXGO \ / AMOS7 \ YOURUM ::
+#\[7]JG2XYVUJXJHS4D6U4ZQHIIQXZK4TJFF2OYRT7L77WK4U5RAB2CBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

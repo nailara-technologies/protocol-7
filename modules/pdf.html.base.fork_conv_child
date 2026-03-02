@@ -24,6 +24,9 @@ if ( !<pdf.html.child.pid> ) {    ## child ##
     ## making base.s_read() and base.s_write() work after fork ., ##
     IO::AIO::reinit();
 
+    ## null out sigchld in child -- shutdown handler only needed in parent ##
+    <[event.add_signal]>->( { 'signal' => 'CHLD', 'handler' => 'dev.null' } );
+
     <pdf.html.pipe.parent> = $parent_pipe;
     <log.file.system.retry_timer>->cancel
         if exists <log.file.system.retry_timer>;
@@ -83,8 +86,8 @@ if ( !<pdf.html.child.pid> ) {    ## child ##
 
 }
 
-#,,.,,..,,..,,,,,,..,,,,,,..,,,,,,,,.,,,.,.,,,..,,...,..,,.,,,...,,.,,...,,..,
-#HWMQMMUWTXWYC3DYGTWSBF36E7MXCF5KUFMADY4SWB2ZCNZUC6V5VDS2DWNTAPGI2VN7U4MR3DYMQ
-#\\\|HW3KXLDVXWD5F42EASR33C7VTWNOI4KML2T2TBVSXQMUB3T34OB \ / AMOS7 \ YOURUM ::
-#\[7]YI255VTWDT5LR4CGEMAZ3QTJHPK27DL6OSJMQD5SDYUCMAIP7AAY 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,.,..,,,,.,.,,,.,,,...,,,,,,,.,..,,...,...,..,,,..,,.,,,,,,...,
+#FZTWKJCPZUYUU5APUU6LOZQ75OMXLE3PZ2PPHPTHIFTZSLXWZIQID2VOXNZ3O4QI3UPNT46QSDVLK
+#\\\|3OVZWJ7IESJE2AX4JGD4XWR6YVPWGSOENDB34T6NEPQLRWR7OSQ \ / AMOS7 \ YOURUM ::
+#\[7]YZ43E7QWW6IRL6KHPCISEKWNBWAGKZ2373CHUULFHKC3ADOSBCDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

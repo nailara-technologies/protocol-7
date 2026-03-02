@@ -24,15 +24,15 @@ $ENV{'DISPLAY'} = <x11.display>;
 
 # LLL: need startup timeout., [ beyond 'v7' zenka implementation ]
 
-<[protocol-7.command.send.local]>->(
-    {   'command'   => "cube.v7.notify_online",
+<[protocol-7.route-send]>->(
+    {   'command'   => "v7.notify_online",
         'call_args' => { 'args'    => <universal.lsp_name> },
         'reply'     => { 'handler' => 'universal.handler.start-anim_started' }
     }
 );
 
-<[protocol-7.command.send.local]>->(
-    {   'command'   => "cube.v7.start_once",
+<[protocol-7.route-send]>->(
+    {   'command'   => "v7.start_once",
         'call_args' => { 'args' => <universal.lsp_name> }
     }
 );
@@ -43,8 +43,8 @@ $SIG{'INT'} = $SIG{'TERM'} = sub {
     <[universal.stop_start-anim]>;
 };
 
-#,,,.,.,.,,.,,,,.,,.,,,..,,..,,.,,,,.,.,.,,.,,..,,...,...,,,,,.,.,.,.,.,.,.,.,
-#FJCIHAJ3GCWIRMNJXOQVLT5NNJYF5OTLQZJUYZCE7IVH7LV4SVP6KZBVMIXZFAWBC4VS2WVMAXWNG
-#\\\|RWQVO3AC5ZS7SSU3JWVYYESKKTKLNJFXR3FVT43BEZIHOIIXT7D \ / AMOS7 \ YOURUM ::
-#\[7]UOTIHT4QX3WQLDQ3RQYLTLNQ7UXKD4USUPQNPLBKDH3P5JTIJUBY 7  DATA SIGNATURE ::
+#,,..,.,,,.,,,.,,,...,,..,.,,,.,.,.,,,.,.,,.,,..,,...,..,,...,...,,,,,,,.,..,,
+#FVVO37OYJS5IKP3RKN2LZWP5PFQRFVFM4NQOAMCA3NPCAKZLGPMBICEFHYOOGAAJFAPGV5OH2Y2TA
+#\\\|WVIZRAWXJRIX3U4LLQLWPTJSAE4RI2VKSYHSUXOLB3F7AOFTET4 \ / AMOS7 \ YOURUM ::
+#\[7]C6P6VOXXTLVQY442H2AJWXBSEEO3FJVTVJZYHKE5JJM2KOOEQKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -6,15 +6,15 @@ return if !<ticker.request_rss_updates>;
 
 <[base.log]>->( 1, 'requesting updates from rss-ticker zenka..' );
 
-<[protocol-7.command.send.local]>->(
-    {   'command'   => "cube.v7.notify_online",
+<[protocol-7.route-send]>->(
+    {   'command'   => "v7.notify_online",
         'call_args' => { 'args'    => 'rss-ticker' },
         'reply'     => { 'handler' => 'ticker.request_rss_update' }
     }
 );
 
-#,,.,,,,,,,,,,,,,,...,,,,,,..,..,,,..,...,..,,..,,...,...,,,.,,,,,.,.,.,,,...,
-#JP2PDKEYESIGHCCLEUXKKL7LV2XZG25UOOTGRTQBCD5VAK5NGROAZQTVQ5KBEGMWLOHP35ZAYT7T6
-#\\\|GSWCUH4UFJA6WWCCTLFEK6UD2NLN2FAGMY3N4KFMGPRXIILJV2E \ / AMOS7 \ YOURUM ::
-#\[7]LBBTPBIMCXTVD4WIMJAN66CQCWAQ634KAKYPTU5IBGH7ZM2WCEDQ 7  DATA SIGNATURE ::
+#,,..,.,.,,,,,,..,.,,,,,.,,.,,...,...,,..,.,.,..,,...,...,,..,..,,.,.,,,.,,,.,
+#JTGC2DGNS2AGT56UZGVB6IYKJ55ROBKTYHJE27ZMFN2SJ7WHPGU5F27QZAWEPYPWY35SK3E76IH7S
+#\\\|3F4TWLXRUIF6DWZAOY7P73GM6LYHOASSAUDJWLVI5RKEEZTCR2H \ / AMOS7 \ YOURUM ::
+#\[7]FNLYEMCIMG3FVNHOBIJLXMKVCNSEWXJGFGCGEVRPGSUWYME4LOBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

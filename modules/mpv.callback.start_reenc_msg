@@ -8,21 +8,21 @@ my $r_name
     ? sprintf qw| reenc-msg[%s] |, <system.zenka.subname>
     : qw| reenc-msg |;
 
-<[protocol-7.command.send.local]>->(
-    {   'command'   => qw| cube.v7.notify_online |,
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| v7.notify_online |,
         'call_args' => { 'args'    => $r_name },
         'reply'     => { 'handler' => qw| mpv.handler.reenc_notify_reply | }
     }
 );
 
-<[protocol-7.command.send.local]>->(
-    {   'command'   => qw| cube.v7.start_once |,
+<[protocol-7.route-send]>->(
+    {   'command'   => qw| v7.start_once |,
         'call_args' => { 'args' => $r_name }
     }
 );
 
-#,,,.,.,.,.,,,.,.,,..,,..,,..,,,.,,..,...,,,,,..,,...,...,,.,,.,.,,,.,.,.,.,.,
-#WXDKTU6GNC3V2T6I3MMPO27EGWT4XAH6XKF6RI3T5RELZA3NPAXNH65TJEBPHOM7B3ABCHDJ3SETY
-#\\\|ALAK7SXGB743S2BVCUZL24DNFGP3NT7CZLPOZUIZ2JKIWOYB4CH \ / AMOS7 \ YOURUM ::
-#\[7]LSBZBPTY3IHQWD4JZGHLWMXDSUMFNRWERSNZJONZVJEOFWUQX4DQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,,..,.,,,,,,,.,,,.,,,..,,..,,,,.,..,,...,..,,.,,,,,,,.,,,,,,,..,,
+#T6O6727QE7JELIN4DFTBIBNUQFRIBVUAZ6CC2T7KQ4D2I25Z2B5DUVS4R2OA7FOARPYB3IFIVBWZY
+#\\\|E4PC725PNV7WXHGD6IEUB2CHLAV5WO4POUHJX3IOTFR5FRBROYO \ / AMOS7 \ YOURUM ::
+#\[7]ISEQADNFVQQJ4REYZLWTDS36SCCPLKQE5KH5GKAQQ34T4NKVBMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
