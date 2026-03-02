@@ -1,7 +1,7 @@
 ---
 task_id: fork-child-pattern-remaining
 date_created: 2026-03-02
-status: pending
+status: completed
 priority: medium
 context_commit: 1ffe1d2fa
 
@@ -63,7 +63,8 @@ tasks:
 
   - id: replace-hardcoded-cube-routes
     title: replace hardcoded cube.v7.notify_online / cube.p7-log.append routes
-    status: pending
+    status: completed
+    completed_date: 2026-03-02
     description: |
       in fork-child startup flows, cube.v7.notify_online and cube.p7-log.append
       are hardcoded command strings in access.cmd.usr.child and in the modules
@@ -81,10 +82,43 @@ tasks:
       [ direct cube commands like "whoami" in get_session_id must remain as-is ].
 
     natural_batches: |
-      1. fork-child startup modules [ notify_online + p7-log.append in fork_conv_child ]
-      2. notify_online cluster [ ticker, universal.startup, impressive, system,
+      1. [DONE] fork-child startup modules [ notify_online + p7-log.append in fork_conv_child ]
+      2. [DONE] notify_online cluster [ ticker, universal.startup, impressive, system,
          mpv, tile-groups ] -- all send the same cube.v7.notify_online pattern
-      3. letsencr + weather child-side sends [ if applicable ]
+      3. [DONE] letsencr + weather child-side sends [ if applicable ]
+
+    batch_1_completed:
+      date: 2026-03-02
+      changes:
+        - updated access.cmd.usr.child in image2html/start, pdf2html/start, vision-batch/start
+          from "cube.v7.notify_online cube.p7-log.append" to "v7.notify_online p7-log.append"
+      note: |
+        fork-child modules already use relative log_cmd "p7-log.append" and
+        base.log.send-buffer.send-idle-callback already prepends route_prefix.
+        only the access control entries needed updating.
+
+    batch_2_completed:
+      date: 2026-03-02
+      files_changed:
+        - modules/ticker.callback.request_updates
+        - modules/universal.startup
+        - modules/impressive.handler.get_list_reply
+        - modules/system.handler.mod_reload_reply
+        - modules/mpv.callback.start_reenc_msg
+        - modules/tile-groups.handler.transition
+      changes: |
+        replaced protocol-7.command.send.local with protocol-7.route-send
+        and removed 'cube.' prefix from commands (v7.* and X-11.* targets).
+        all these zenki run at root level with parent_route=['cube'],
+        so route-send correctly prepends 'cube.' to relative names.
+
+    batch_3_completed:
+      date: 2026-03-02
+      note: |
+        letsencr.child and weather.child modules already use route-send.
+        no hardcoded cube routes found in child-side code.
+        parent-side sends use direct routing to various zenki (httpd, etc.)
+        and do not need conversion.
 
     notes: |
       cube is the correct router prefix -- v7 and p7-log as hardcoded targets
@@ -99,13 +133,14 @@ tasks:
       - modules/system.handler.mod_reload_reply
       - modules/mpv.callback.start_reenc_msg
       - modules/tile-groups.handler.transition
-      - configuration/zenki/image2html/start
-      - configuration/zenki/pdf2html/start
-      - configuration/zenki/vision-batch/start
+      - configuration/zenki/image2html/start  ## DONE ##
+      - configuration/zenki/pdf2html/start    ## DONE ##
+      - configuration/zenki/vision-batch/start  ## DONE ##
 
   - id: pdf-html-child-sigchld-null
     title: add dev.null sigchld in pdf.html child side
-    status: pending
+    status: completed
+    completed_date: 2026-03-02
     description: |
       image2html child received <[event.add_signal]>->('CHLD','dev.null') after
       IO::AIO::reinit() to prevent inherited signal handler interference.
@@ -116,7 +151,12 @@ tasks:
 
   - id: vision-batch-sigchld-review
     title: review vision-batch sigchld handling for child side
-    status: pending
+    status: completed
+    completed_date: 2026-03-02
+    conclusion: |
+      child process confirmed to not fork further. no SIGCHLD signals possible
+      in child, so no handler needed. comment about "reply_id error" refers to
+      parent side, not child. current approach (no sigchld handler in child) is correct.
     description: |
       vision-batch.parent.fork_child intentionally avoids sigchld handlers
       [ comment: "cause expected numerical reply_id error in v7" ]. verify
@@ -215,8 +255,8 @@ tasks:
 
 ---
 
-#,,.,,...,...,.,.,.,.,..,,.,.,...,,..,...,,,.,..,,...,...,..,,.,,,,..,,,.,.,.,
-#O6TKSRI5ALM7H5MMFEIP5D4FRJQOMW22FGQR37SKFMTU5IEOB4DXE3QXORTOVKPP25LIFSGHPWC6O
-#\\\|4E4MF3NXBLJUQHGQDCJCWERB2JMANDIT2AEUPMHVYBHP443JLGU \ / AMOS7 \ YOURUM ::
-#\[7]EGM5EEP7OVDUQZNNDYJBJXND4QP7ZL3FI237IV7B5BIMKLM3SIDY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,...,,,.,,,.,.,,,,,,,.,,,,,.,.,,,..,,...,...,,.,,,..,.,.,..,,.,,,
+#JAPH5GSKFQYCROWWBCM3AAJ27A7DKVLCSHJ7TKQLRL6O2Y5X2WOSHEOGTOM7NYZSISKCTGYUH73RQ
+#\\\|LM5YPTO344AFWDRWGYSUCDQVL7M4XHIUAIWZ2MJVHLP7SJSWTTG \ / AMOS7 \ YOURUM ::
+#\[7]VMPDT2UH5BOSHIKRDOT3IYDKFAI7EU4DR3GQPPBYT2KKBPHLN2BA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

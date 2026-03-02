@@ -58,14 +58,14 @@ if (<impressive.cfg.use_start-anim>) {
 
     <[base.log]>->( 1, "starting start-anim zenka.." );
 
-    <[protocol-7.command.send.local]>->(
-        {   'command'   => "cube.v7.notify_online",
+    <[protocol-7.route-send]>->(
+        {   'command'   => "v7.notify_online",
             'call_args' => { 'args'    => $lsp_name },
             'reply'     => { 'handler' => 'impressive.open_window' }
         }
     );
-    <[protocol-7.command.send.local]>->(
-        {   'command'   => "cube.v7.start_once",
+    <[protocol-7.route-send]>->(
+        {   'command'   => "v7.start_once",
             'call_args' => { 'args' => $lsp_name }
         }
     );
@@ -73,8 +73,8 @@ if (<impressive.cfg.use_start-anim>) {
     <[impressive.open_window]>;
 }
 
-#,,,.,...,..,,.,.,...,...,..,,.,.,..,,...,,,,,..,,...,...,,,,,,..,.,.,,.,,...,
-#QLHPRVRJKOLNXH35UYVMWEVNJCTUFVA5TVDNQXNFDSCKEJR3YZVDAO6NGXCNNDADV22VQON5RLGRW
-#\\\|WEKGDXXNBTWNE2HYESTOIN4IAMIWWKZG2KWQIIVZKADLW4YO6DH \ / AMOS7 \ YOURUM ::
-#\[7]HBFARMRO43D43OVR3XTG7Y73OWTDD2EMAQJ52LATYZY53TPEWSCY 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,.,,,,,,,,,.,,,.,,.,,,.,,.,,,,,,,..,,...,..,,...,...,,,,,.,,,,..,
+#LC7CSY7H2QLAQEVD3MLMXW6RHFYNZI2XUPJFTLNBKWGUEPI4WYRW2RBTWPKEOXEGFBRENYQRZRSZE
+#\\\|I73KJOEK7RXADIOPNJLH6F27EMJRPUO545FQL66XZUHBQAJPTMM \ / AMOS7 \ YOURUM ::
+#\[7]XVZBTRAB22LJ33OTXLX6XF6KCPNF3E3RDAA4ZY76YKTNBCPFU2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
