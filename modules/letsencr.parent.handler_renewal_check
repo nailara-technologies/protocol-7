@@ -14,7 +14,7 @@ my $now = time();
 ## step 1: send async query to HTTPd for vhost list
 ## when reply arrives, handler will continue with steps 2-5
 
-my $num_clients = <[base.protocol-7.command.send.local]>->(
+my $num_clients = <[protocol-7.command.send.local]>->(
     {   'command'   => qw| cube.httpd.vhost-list |,
         'call_args' => { 'args' => '' },
         'reply'     => {
@@ -39,8 +39,8 @@ if ( !defined $num_clients || $num_clients == 0 ) {
 
 return TRUE;
 
-#,,,.,,..,.,.,,.,,,..,,..,.,.,..,,,,.,,,,,..,,..,,...,...,.,.,,.,,,..,..,,,..,
-#Y5DR3IB7UXDXSOULHDNOTW3BDZL2NO24X7YBTXQFOMD3QPT4HSQOEZ5ZU55EGM6NOHS72QMFZ5Z5E
-#\\\|H3ZHPTA6I4Z3N3R7A232TKGZAOYCAF7WNRL7IQC2UJR4YJQKB25 \ / AMOS7 \ YOURUM ::
-#\[7]L7Z62VCNL6EIZ3YYHFSVDCHWVBDTBZCV4SFAE3MZCDCCX2TH3GAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,..,,,..,.,,,...,.,,,,..,...,,..,,..,..,,...,...,.,.,,.,,.,.,.,,,,,.,
+#XOS7RNJE2WJEG2P2XVAMQ35POJW3Q7YWTP3KIBH5IFPGTAQRH3HNWE65KYKI26ZCAN5G76EJXSPEC
+#\\\|535R6FYEXM3Q5OJTM5TF6C7K4NLBMBLIQ3X5UOTZNPBDLSPKPBJ \ / AMOS7 \ YOURUM ::
+#\[7]HALEWJFD3TEEE3WZH2RL3YG3SXDJHDUHH25RPYABMQ6KAN3TP4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

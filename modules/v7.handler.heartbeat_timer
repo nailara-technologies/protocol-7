@@ -51,7 +51,7 @@ $instance->{'timer'}->{'heartbeat-timeout'} = <[event.add_timer]>->(
 
 my $command_route = defined $cube_sid ? "$root_sid.$cube_sid" : $root_sid;
 
-<[base.protocol-7.command.send.local]>->(
+<[protocol-7.command.send.local]>->(
     {   'command'   => "$command_route.heart",
         'call_args' => { 'args' => 'notime' },
         'reply'     => {
@@ -65,8 +65,8 @@ delete $zenka_config->{'heartbeat'}
     if !keys %{ $zenka_config->{'heartbeat'} };
 delete $globals->{'heartbeat'} if !keys %{ $globals->{'heartbeat'} };
 
-#,,.,,...,..,,...,..,,..,,,,.,,,.,.,,,,..,..,,..,,...,...,,..,,.,,.,.,,,.,.,,,
-#72WAV6RGOBBHUREGY5B7IUJF5DNURYETZ2UOMBFI5L4NDD43T4SQVY5OXMNVLVYPHKWFIMPQB5H2A
-#\\\|6NO2LHEVMQL4YJDKBVWIUVAZEW35ZRYQKKNEJRL5F5VNQMNSJ6E \ / AMOS7 \ YOURUM ::
-#\[7]CBBPQFCGCSLRH4EDPOGUQ26LAEBAWLS7PCDZITRK2LP7NTSDT2CQ 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,.,,,,,,,,.,,.,,,,,,,,,,,,,,,.,,,..,,...,..,,,,.,.,.,.,.,..,,,..,
+#FSGCGI7BNYJ2ZDRJL2K2TGQ6JFTYWEU2X7IZEW4RNF3R4DKYGZJO727WHWMUAVF2WGCVCU6X7DDKW
+#\\\|HA5JZIOCYJWVRHJVNGDLJ6BR725P6KEOE37WFOZJKEJR6YKYIUH \ / AMOS7 \ YOURUM ::
+#\[7]TVC6JSHRQHOCQ4OZHS2DYLORKKKKOXSNEGY7KEIIP2MGWQMHHWCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

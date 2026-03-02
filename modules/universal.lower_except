@@ -9,15 +9,15 @@ foreach my $lower_zenka ( keys %{<universal.child>} ) {
     next if $lower_zenka eq $zenka_name;
     my $lower_wid = <universal.child>->{$lower_zenka}->{'window_id'};
     <[base.log]>->( 2, ": lowering '$lower_zenka' window ($lower_wid)" );
-    <[base.protocol-7.command.send.local]>->(
+    <[protocol-7.command.send.local]>->(
         {   'command'   => "cube.X-11.lower_window",
             'call_args' => { 'args' => $lower_wid }
         }
     );
 }
 
-#,,.,,,,.,.,,,..,,...,,..,,.,,.,,,,,.,...,,.,,..,,...,...,,.,,.,.,,.,,.,.,,..,
-#E25OCCAZCCK6WJQ2UFPTZVIGC6EFT44NYIAOSOA52NIEH5F5VZCKVZO43TJHKSLTTNAEW7Y23LRMK
-#\\\|BE2R6JAE564HS7ZWEE3TCY3QCSWD4UG6OXCNH7T6UX4ODBSPEK3 \ / AMOS7 \ YOURUM ::
-#\[7]KF7XPPEICVXCJZUB3HLRUNFJ3D3CPTPGZINL7F2BGIKAX3OCMYDY 7  DATA SIGNATURE ::
+#,,.,,.,,,..,,,,,,,..,,..,,..,,.,,..,,,..,.,.,..,,...,...,...,...,...,..,,...,
+#NHKNFZKSOYGOCMS22BCLJNMFLYA347BQ55DXJJBAMAVG37ROL2MABBTCX6IWGU2NZXDEOLFIEYBIW
+#\\\|L526UHJZJDZIQUS47UUKM5VEZCKLKMJBNMZPF5BSMC3WHGSYMZC \ / AMOS7 \ YOURUM ::
+#\[7]OHPOSUWMOHK57HVSA6BRQOD2O6R55SBBP4DNSCE345EWQVJNHGAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

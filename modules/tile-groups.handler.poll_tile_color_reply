@@ -57,7 +57,7 @@ if (!<tile-groups.tile_alert_triggered>->{$tile_name}
                 1, " : checking playlist for tile '$tile_name'.."
             );
 
-            <[base.protocol-7.command.send.local]>->(
+            <[protocol-7.command.send.local]>->(
                 {   'command'   => 'cube.content.get_list',
                     'call_args' => { 'args' => "[$tile_name]" },
                     'reply'     => {
@@ -75,7 +75,7 @@ if (!<tile-groups.tile_alert_triggered>->{$tile_name}
 
             <[base.log]>->( 0, " :  restarting zenka '$zenka_name_str' ..." );
 
-            <[base.protocol-7.command.send.local]>->(
+            <[protocol-7.command.send.local]>->(
                 {   'command'   => qw| cube.v7.restart |,
                     'call_args' => { 'args' => $zenka_name_str }
                 }
@@ -123,8 +123,8 @@ if (!<tile-groups.tile_alert_triggered>->{$tile_name}
 
 <tile-groups.last_tile_color>->{$tile_name} = $tile_color;
 
-#,,..,,,.,.,.,...,,,,,...,,..,.,.,,,,,.,.,,.,,..,,...,...,...,...,..,,.,,,.,,,
-#KVKHOYEEMZYXZQW4V2FSEYP76754YBELLBHFAB7BDFJMUAF2MM7AQABUKAKVCMYO2UGQ7ESVK6K2M
-#\\\|DYT77AQQ4H6F5FDBBZKSAORVYH7JJVVJHGTLIGLV6CU2AFSXL37 \ / AMOS7 \ YOURUM ::
-#\[7]UXY3HPKOUT7MVU2PVKN6NP5ZMDE6FMPFNLACV5ZDLR5SI2LDWKDI 7  DATA SIGNATURE ::
+#,,..,,,.,,..,..,,,..,.,.,,.,,,,.,...,...,,,.,..,,...,..,,...,.,.,.,,,.,,,,,,,
+#BCIKCHRJDI3WJ4T3IWNAPHISIMLXMAH2HBGARTASNED5V7YILJ2EDAWEU3YM2C6UMESDZK47ZCTOK
+#\\\|2USVGNRZO56T3WPOV6WJM2YAGOXDFR2JAHTQSYJGY2YNXXTHGYT \ / AMOS7 \ YOURUM ::
+#\[7]MIKVQAYTXTI4BTJ7ZZAER27APLE4G7ZAUVNMHEZ2VELHRNE3GYDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

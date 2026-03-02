@@ -51,7 +51,7 @@ if ( $action_type eq qw| zenka-present | ) {
     $command = qw|  start_once   | if $ev_type eq qw|   at  |;
     die "event $ev_id action command undefined" if not defined $command;
 
-    <[base.protocol-7.command.send.local]>->(
+    <[protocol-7.command.send.local]>->(
         {   'command'   => qw| cube.v7. | . $command,
             'call_args' => { 'args' => $zenka_name }
         }
@@ -74,7 +74,7 @@ if ( $action_type eq qw| zenka-present | ) {
 
     my $args_lstr = defined $args_str ? " [ $args_str ]" : '';
     <[base.log]>->( 1, "sending '$target_route' command" . $args_lstr );
-    <[base.protocol-7.command.send.local]>->(
+    <[protocol-7.command.send.local]>->(
         {   'command'   => "cube.$target_route",
             'call_args' => $args_ref
         }
@@ -146,7 +146,7 @@ if ( $action_type eq qw| zenka-present | ) {
 #         ->( { 'at' => time + 1, 'handler' => qw| events.recalc | } );
 # }
 
-<[base.protocol-7.command.send.local]>
+<[protocol-7.command.send.local]>
     ->( { 'command' => qw| cube.content.update | } )
     if index( $action_type, qw| playlist- | ) == 0;
 
@@ -181,7 +181,7 @@ if ( index( $action_type, qw| tile-groups- | ) == 0 ) {
             $restore_config,
             sprintf( "%.4f %s\n", <[base.time]>->(4), $current_tile_group )
         ) if defined $restore_config;
-        <[base.protocol-7.command.send.local]>->(
+        <[protocol-7.command.send.local]>->(
             {   'command'   => qw| cube.tile-groups.switch-tile-group |,
                 'call_args' => { 'args' => $current_tile_group }
             }
@@ -189,7 +189,7 @@ if ( index( $action_type, qw| tile-groups- | ) == 0 ) {
     } else {
         unlink $restore_config
             if defined $restore_config and -f $restore_config;
-        <[base.protocol-7.command.send.local]>
+        <[protocol-7.command.send.local]>
             ->( { 'command' => qw| cube.tile-groups.reset-tile-group | } );
     }
 }
@@ -204,14 +204,14 @@ if ( $action_type =~ m,^overlay\-(show|hide)$, ) {
 
     if ( $command_str eq qw| add |
         and <events.stack.overlay.visibility>->{$overlay_name} ) {
-        <[base.protocol-7.command.send.local]>->(
+        <[protocol-7.command.send.local]>->(
             {   'command'   => qw| cube.tile-groups.add_overlay |,
                 'call_args' => { 'args' => $overlay_name }
             }
         );
     } elsif ( $command_str eq qw| remove |
         and !<events.stack.overlay.visibility>->{$overlay_name} ) {
-        <[base.protocol-7.command.send.local]>->(
+        <[protocol-7.command.send.local]>->(
             {   'command'   => qw| cube.tile-groups.remove_overlay |,
                 'call_args' => { 'args' => $overlay_name }
             }
@@ -221,8 +221,8 @@ if ( $action_type =~ m,^overlay\-(show|hide)$, ) {
         if 0 == ( <events.stack.overlay.visibility>->{$overlay_name} // -1 );
 }
 
-#,,,,,,..,...,,.,,.,,,,,.,,..,.,.,.,,,.,.,,..,..,,...,...,.,,,.,,,...,...,,,,,
-#RICSNMC6YR46OZNPXD4MWF3SE4ZXCFOSV4WIMOPZ75JNQ4HS3UR7IXU3UL7OV4AAJ3PRNR22S7Z3Q
-#\\\|ASAVY6CN4I3HGFRKXORYHNGTNRBSMWRETVBMKNTT5L6EDBTTNZO \ / AMOS7 \ YOURUM ::
-#\[7]M4VMPBDPELLW32H2W7KC74OI4LEUNDCVA2XRDZ5I2K4XP7M7B2DQ 7  DATA SIGNATURE ::
+#,,,.,...,,.,,.,,,..,,,,,,,,.,,.,,..,,,.,,.,.,..,,...,...,..,,,,.,,,.,,,,,,,,,
+#ZSOO2VMEBZFXUANXWW3MCK2RCI752ZVRTVNXBW2V7LJBHQPEJNWVSNYV24YLS55MWGWNLPA6T7OE2
+#\\\|AH3JPD5Z4HQQXBHGNUVPAE5K2ESXK5YPXWD4N5LUWLKVDQEKVGT \ / AMOS7 \ YOURUM ::
+#\[7]N2FOXM3PSBHCCRU4Q3INUP2ZGMVBRKVRLY5GOJRBM7AA3LVAKECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

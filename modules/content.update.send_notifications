@@ -7,13 +7,13 @@ my $update_cmd = shift // 'playlist_update';
 my $count = 0;
 map {
     # LLL: check zenka name syntax!
-    <[base.protocol-7.command.send.local]>
+    <[protocol-7.command.send.local]>
         ->( { 'command' => "cube.$ARG.$update_cmd" } );
     $count++;
 } split( / +/, <update.notify_zenki> );
 
 if (<content.content_changed>) {
-    <[base.protocol-7.command.send.local]>->(
+    <[protocol-7.command.send.local]>->(
         {   'command'   => "cube.notify.msg_reload",
             'call_args' =>
                 { 'args' => "'" . <locales.string.playlist_updated> . "'" }
@@ -24,8 +24,8 @@ if (<content.content_changed>) {
 
 return $count;
 
-#,,,,,.,.,..,,.,.,,,.,.,.,,,,,.,.,,..,,,.,.,.,..,,...,...,,,.,.,,,.,,,,,.,..,,
-#4XOXQZ72SRZOJPUMTEITQEZLLVIVJK52CZWJPHNSMNVG2WVFTCLSR2KA5VS3E6VS2ELOIQRJOX3YS
-#\\\|X67YZTOHDKAPM7GAWKBQHG3Q6GUKDUPOJYAZH5DMVLM7UPWCBWO \ / AMOS7 \ YOURUM ::
-#\[7]SL33ANEOSHQEFPOUVLNFW7DKZWMIOKRNT527GTKTQBAKNJCNE4BA 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,..,,.,,..,,...,,,,,..,,,..,..,,..,,...,..,,...,..,,,.,,...,.,,,
+#6H4QXKYEP4WM3NB7UDIOWBYESCXE3MPYHQMSLF57IXDVDMJY5HSRPHELRYHIWAUQGMOBPUEODTLLI
+#\\\|B6SRQB6UIMI6SGL2SSYEPSQMPAEMEMIIDQ3FAFBOENAH5AGVY7H \ / AMOS7 \ YOURUM ::
+#\[7]PONYIAIDH25CBEPYMP3DEDU66UQXBAI4YS2PD5Y27OZX7D7FZWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

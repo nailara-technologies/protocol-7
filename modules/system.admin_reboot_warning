@@ -28,7 +28,7 @@ if ( !length($wall_bin_path) ) {
         );
         my $warn_secs = $regular_reboot_delay + $reboot_delay_seconds;
         <[base.log]>->( 2, ": asking 'v7' to broadcast warning .," );
-        <[base.protocol-7.command.send.local]>->(
+        <[protocol-7.command.send.local]>->(
             {   'command'   => qw| cube.v7.reboot-warning |,
                 'call_args' => { 'args' => "$warn_secs xorg crashed" }
             }
@@ -39,8 +39,8 @@ if ( !length($wall_bin_path) ) {
 ## additional reboot delay when admin is present ###
 return $regular_reboot_delay + $reboot_delay_seconds;
 
-#,,,,,.,.,...,.,.,,.,,,,,,...,,,,,,.,,...,.,,,..,,...,...,...,,,,,,,,,,.,,...,
-#PMXYHCZ66N3WAJN3BXOKV37MTLZS4BEMVQUOEQF7KGXF5LOCNS345NAE26SRWHL2H5Z5RAV6OK66O
-#\\\|KAMLG4S5HFI3ODVAZCFVPYPPGYQ65UDYDJSIE3XRGEQYE734TPF \ / AMOS7 \ YOURUM ::
-#\[7]LRAW4IN2GBM42BZHPG7F5V5OUWIOQM3COJ7BUIYMDUH2FBWI6WDY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,..,,..,,,.,..,,.,,,,..,,,,,.,.,..,,...,...,...,..,,,..,..,,,,,,
+#OMKJCRHL5YCHSDGNGY5YB4KAOYF4QGC2RUMP6WZKB5SVFEFSANIXWDJOE6NDJR3OJBGGDSA53ONQW
+#\\\|ZSDVM5LEBTRF3YEEHI5O6JWIPOSJG72GRGT46CPNJYL6L5P3D7O \ / AMOS7 \ YOURUM ::
+#\[7]SSPHEEOUW2ITFGS4BXNLBN5W7OLUNT6QE2CD7SDKWXGI4PZEA2CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

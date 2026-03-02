@@ -66,7 +66,7 @@ my $session_id
 
 my $root_sid = <v7.zenka.instance>->{$instance_id}->{'root_sid'};
 
-<[base.protocol-7.command.send.local]>->(
+<[protocol-7.command.send.local]>->(
     {   'command' => sprintf( qw| %d.set-initialized |, $root_sid ),
         'reply'   => { 'handler' => qw| v7.handler.set_initialized_reply | },
         'call_args' => { 'args' => 0 }    # [ 0 == v7-zenka session [self] ]
@@ -76,8 +76,8 @@ my $root_sid = <v7.zenka.instance>->{$instance_id}->{'root_sid'};
 #[success]
 return TRUE;
 
-#,,..,.,,,,.,,,.,,,,.,.,,,...,,..,,,.,,..,,,,,..,,...,...,.,.,.,.,,..,,..,,.,,
-#7CKUJR2PUGZSGRMGXQHJK6SNXVUBG2N3QXHI77ZBUSLN7AUF4E3YEMKMTODKKVMTCCPERZQUCMMD4
-#\\\|FKTSPMJTT2K2S4XBGEZ4RI7FLESNYAC2NKSSRNDHL42CTSWPDB5 \ / AMOS7 \ YOURUM ::
-#\[7]KUPIPPCBPWX4HPCA2CRWU7M74M66CUO3SUBNT3L2E4EG5W5MVMAY 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,,..,...,,,,,...,,.,,.,,,.,.,,..,..,,...,...,,..,,,,,...,...,.,.,
+#JCLKA2KXLUUMOM75AKP75DBPUUG5O6LCR344M6FYBFPR4VLWEPQQVD3NRNBXR7VEFMFWNBP7QVTSC
+#\\\|FF2JFZCOOKRDUCOXYJOG56MBVM6OAA4LRF2CHMILNXKMX3ARKFU \ / AMOS7 \ YOURUM ::
+#\[7]GBBQ77OTTEANJPAIZB7KZAJMDQ4VOISRVGQB6VBCUSQOTTO77UCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

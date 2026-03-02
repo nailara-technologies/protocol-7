@@ -14,7 +14,7 @@ my $hostname = shift // <system.host.hostname> // 'unknown';
 
 ## request certificate from letsencr using zenka IPC
 my $request_result = eval {
-    <[base.protocol-7.command.send.local]>->(
+    <[protocol-7.command.send.local]>->(
         {   'command'   => 'letsencr.parent.cmd.request-certificate',
             'call_args' => { 'args' => $hostname },
         }
@@ -66,8 +66,8 @@ if ( $mode eq qw| true | ) {
 
 0;
 
-#,,.,,,,.,,,,,,.,,,.,,..,,,.,,,,.,,,.,,.,,...,..,,...,..,,.,,,,,.,,,.,..,,,,,,
-#5CJVQEO46JRWTKMZYP7Q6NZPYGLDHUPVEDREFK4A3JIGAHMR5C3PF52U2PE5ESLRZWGAMPNXFE4II
-#\\\|3PAK7RGQ4MQ5TOIRMGACFFIDUQZWCV6MPIQCIXCFT74RZRN2M6I \ / AMOS7 \ YOURUM ::
-#\[7]R5PSZ6IMR756UJS7H6AM6ERFSUGZ5NGEGDSLPA6OWIEI6M55Z6BA 7  DATA SIGNATURE ::
+#,,,,,.,,,...,,,,,,..,,.,,,..,..,,.,,,,..,.,.,..,,...,...,..,,...,,,,,..,,..,,
+#22NZIPS5OPU4IMX6KI3R77IGRTB3EOR7SHME3OHQAJJQLYOA3JST52DBD35ZAEEQ2KNGD72N5BARA
+#\\\|VUJLYOUWKTZAFKUKUXXO3OMDDIDKEPCSHXIGKBVUPR5QM5LDNVW \ / AMOS7 \ YOURUM ::
+#\[7]34TUW3W6ZKDK2AKTWHSQJLBH53PWAORWF5B3EXUEECTVBAJJXACQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

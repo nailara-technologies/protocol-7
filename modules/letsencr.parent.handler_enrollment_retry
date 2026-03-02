@@ -29,7 +29,7 @@ my $attempt = $retry_data->{attempt} // 2;
 );
 
 ## Send enrollment command to child process
-my $result = <[base.protocol-7.command.send.local]>->(
+my $result = <[protocol-7.command.send.local]>->(
     {   'command'   => 'child.request-certificate',
         'call_args' => {
             'args'  => $domain,
@@ -63,8 +63,8 @@ delete <letsencr.parent.pending_retry>->{$domain};
 
 return FALSE;
 
-#,,.,,..,,,,.,,,.,,,,,,.,,,..,.,.,...,,.,,,,.,..,,...,.,,,..,,.,,,..,,,.,,.,,,
-#Y4Z6VBY4UHVSKF56LKD664SHT4FXL4D5MJ73NBK4SF7KDISVVIFGJ77OB6S47YYWJDTJVK3VNQLLE
-#\\\|4OTBF47JUGDSYJMCHDOYJI7S72BGHEJ7WZGZKWEYRGRJSOFVXSI \ / AMOS7 \ YOURUM ::
-#\[7]SMVXFS3HGR6L4XJP3QIWBFQ4U72JEXKISEXHL7PKXVEGCEZIPKAQ 7  DATA SIGNATURE ::
+#,,..,,,,,..,,,,.,,,.,.,.,...,,,,,,,.,,,,,.,,,..,,...,...,..,,,,,,...,.,.,..,,
+#SZ5CFIGL2YREVGJQ3AH6YCTHRF3PF6RS6YQ7QHB6ZQ65KFO3XVHTRZR4F4QLCAN7ATDKEFNYHFEAA
+#\\\|NZSSJVRKOAAAFBKLPGM7X4IQJQ7DXC5NSZILEGW45M6DK3ORJIR \ / AMOS7 \ YOURUM ::
+#\[7]HY4P5CBDZLMM3UIB2WUAKWMFK32UFGL2NQWGDA3Z74CXKRRWWKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

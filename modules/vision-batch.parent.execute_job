@@ -37,7 +37,7 @@ unless ( defined <vision-batch.child.pid> && <vision-batch.child.pid> > 0 ) {
 # Parameters are passed via call_args.args, NOT in the command string
 my $cmd = qw| child.analyze_image |;
 
-<[base.protocol-7.command.send.local]>->(
+<[protocol-7.command.send.local]>->(
     {   'command'   => $cmd,
         'call_args' => { 'args' => join( ' ', $image_path, $job_id ) },
         'reply'     => {
@@ -49,8 +49,8 @@ my $cmd = qw| child.analyze_image |;
 
 return { success => TRUE, message => "Job $job_id dispatched to child" };
 
-#,,,.,,.,,.,,,.,,,..,,...,,.,,,.,,,,.,,.,,,..,..,,...,...,..,,...,.,.,...,,.,,
-#MXTCSC6LNWPIF2Y5JIG5EYCQPVBSBQF64I2FTDZQN4OODSPPSLTXF35KRPLMEINAOH3TM5IX4L5A4
-#\\\|6UOKY6WR5NQN6LKEK3JOUAMGG3A5M55EMPFTHQ7VJTFX4T24NSQ \ / AMOS7 \ YOURUM ::
-#\[7]OCIOM2F7F3TRISTJ7M63CTJFMAO7YIKLS4F3TIEVOUNBKVUQBSDI 7  DATA SIGNATURE ::
+#,,.,,..,,.,.,,..,,.,,..,,.,.,.,,,..,,,.,,,.,,..,,...,...,...,...,.,.,,,.,.,.,
+#2KOEZFZ5J6J2BNU26U3DOAISQJYLQO3GNHRWRB5YWOYFPKGQHKBHBOR2RRQKMEJ3BO2JCV3KILQ4E
+#\\\|BEJBPMBK2BJUI2NPMUT7PMRBQZJW73SZYOP32APG22PQ3FR6PMS \ / AMOS7 \ YOURUM ::
+#\[7]BJ2RGVQ555XBGHF25EYCKFPVXT6YXLDZEBT5MASRF7ZTJPKHVGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

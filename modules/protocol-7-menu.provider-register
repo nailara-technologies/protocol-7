@@ -17,7 +17,7 @@ if ( $operation eq 'register' ) {
     ## Register provider with menu system
     $provider_data //= { 'items' => {} };
 
-    my $response = <[base.protocol-7.command.send.local]>->(
+    my $response = <[protocol-7.command.send.local]>->(
         {   'command'   => 'protocol-7-menu.menu-update',
             'call_args' => {
                 'args' => "$provider_name "
@@ -34,7 +34,7 @@ if ( $operation eq 'register' ) {
     return $response;
 } elsif ( $operation eq 'unregister' ) {
     ## Unregister provider (removes from menu)
-    my $response = <[base.protocol-7.command.send.local]>->(
+    my $response = <[protocol-7.command.send.local]>->(
         {   'command'   => 'protocol-7-menu.menu-update',
             'call_args' => { 'args' => $provider_name }
         }
@@ -50,7 +50,7 @@ if ( $operation eq 'register' ) {
     ## Update provider menu items
     $provider_data //= {};
 
-    my $response = <[base.protocol-7.command.send.local]>->(
+    my $response = <[protocol-7.command.send.local]>->(
         {   'command'   => 'protocol-7-menu.menu-update',
             'call_args' => {
                 'args' => "$provider_name "
@@ -68,8 +68,8 @@ if ( $operation eq 'register' ) {
     };
 }
 
-#,,.,,,..,..,,..,,...,..,,,,,,,.,,..,,,..,,,.,..,,...,...,...,,,.,,.,,,.,,,,,,
-#RWKV7Y5SFSM2IYWD3UCQAGRNHLLFIYM34HXJ7DPI2AT4353Z5XW4N7KGBXXXU5CLJISBKSHAAGCHY
-#\\\|3JL5EOCDKX7VSSC4XLEIPIMUNL3DOQBHIBXYOIXYPZJNBLUCVOM \ / AMOS7 \ YOURUM ::
-#\[7]TIRZT4D5ANSKHAGSIDPTER57V4I67M3SCKXYB3KE4FZBMBAEIMDA 7  DATA SIGNATURE ::
+#,,..,.,,,,.,,,.,,,..,,.,,.,,,,..,...,,,,,..,,..,,...,..,,,.,,,..,...,,..,...,
+#7M2H5AFB5PNN3F2MSS5MFLH3PMXDVEALA53NCKULPVF5SBZVQFC6ZDKYEAMYQKCF7NOLX4X5ZFDVY
+#\\\|DPKPKWPXLTT5RDEZ5JGVO45WEEZH25MNBXMHVSIRAFEKVAUB6X7 \ / AMOS7 \ YOURUM ::
+#\[7]U3QBVFLXS4ZV7HADO7L3TMI4NSCAOMZMDWAADS4YR5QD7ER7IMAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

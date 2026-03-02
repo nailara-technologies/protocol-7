@@ -75,7 +75,7 @@ if ( $data_source eq 'file' and -f $tiles_visible_file ) {
 if ( !@file_names ) {
     <content.type_cache> = {};
     <[base.log]>->( 0, "no files in playlist." );
-    <[base.protocol-7.command.send.local]>->(
+    <[protocol-7.command.send.local]>->(
         {   'command'   => "cube.v7.restart",
             'call_args' => { 'args' => <update.restart_on_empty> }
         }
@@ -128,7 +128,7 @@ foreach my $file (@file_names) {
             ( my $city_str = $1 ) =~ s|\[.*$||g;
             my $city = $city_str;
             $city_str .= " [$zenka_subname]" if defined $zenka_subname;
-            <[base.protocol-7.command.send.local]>->(
+            <[protocol-7.command.send.local]>->(
                 {   'command'   => "cube.weather.get-urls",
                     'call_args' => { 'args' => $city_str },
                     'reply'     => {
@@ -246,8 +246,8 @@ if ( <content.had_network_errors> and !<content.network_errors> ) {
 <[content.update.send_notifications]>
     ;    ##  <-- check if required [yet].., [LLL]
 
-#,,,,,,,,,.,,,.,.,,,,,.,,,.,,,,..,..,,...,,,,,..,,...,.,.,,.,,.,.,.,,,.,.,.,.,
-#ME3S4M2A6QZUKLJGBZVNDTH65NVUNCL2ORHGKGLNOJI3E2LTWCLSXKUKBKNAN73LBNOZFX3YFG5NY
-#\\\|ZBZKD35TIVTC2XE4HMCVEQY5X6LSHHV7C7S7P3VM3WHTSHNCDKU \ / AMOS7 \ YOURUM ::
-#\[7]GXRQWQPCFFY4PCUKLKQW2I26EPGCI3I6TZFUT6WZBTBHDSWUGUAI 7  DATA SIGNATURE ::
+#,,,.,...,.,.,,..,..,,,..,.,.,,,.,,.,,.,,,,.,,..,,...,...,.,.,,,.,,..,..,,.,,,
+#NQEZMG4OOWYXKXDKZ474VD3D5Z6VUQRALD2MPCHFUFI5COMTGUEF4UNCLXSROGVBOZA5KPPUGVDIA
+#\\\|7Y6WWETAJRBTARACQVEPXPTEEFN3H2MSV23HAOVLNMMHITTYDEA \ / AMOS7 \ YOURUM ::
+#\[7]QAU6PZIMTJBSALWD7PQSX5DZCEW45LRPZZFZV6HL6CCI4B5CLACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

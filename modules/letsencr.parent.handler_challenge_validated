@@ -54,7 +54,7 @@ if ( $mode eq 'TRUE' ) {
 
     ## request HTTPd to clean up the challenge file
     ## [ parameters as space-separated args: domain token ]
-    <[base.protocol-7.command.send.local]>->(
+    <[protocol-7.command.send.local]>->(
         {   'command'   => 'httpd.cmd.remove-acme-challenge',
             'call_args' => { 'args' => "$domain $token" }
         }
@@ -71,8 +71,8 @@ if ( $mode eq 'TRUE' ) {
 
 return FALSE;
 
-#,,..,,.,,...,.,,,.,.,.,.,,,.,..,,,..,,,.,.,,,..,,...,...,...,.,.,...,,,,,.,,,
-#QFAN4SEDHVBUGKXIUSLRYUTG4INGL7T4VUE7UEBIUL5OJX2F4M5KWQV5RKMMATOLXHISYSRF6JWBY
-#\\\|OWEV7NGY4F3BEXEG7TIM4QFI3CERTXZIW5GTTJZMPEMVEL5SPNP \ / AMOS7 \ YOURUM ::
-#\[7]X2J55XSOAPHMWG3YPIHOXXPLRPGT53RRTYOAE4JKEKEPYIEUSQAQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,.,.,..,,.,.,...,,,,,.,,,.,,,.,,,..,,...,...,..,,,,.,...,,..,..,,
+#ULSH4H2V2ATCGW5LGQOHRCVX5ON4RD3MNJE44AGI5VK5RDQ4TZWAWABP4PUXPP7PQC2VPCNHN27SG
+#\\\|4TSD3P6EMGJAVTIWUSXV3HZXJTA3RMUE54X7AIPXU7TNMBZLLDA \ / AMOS7 \ YOURUM ::
+#\[7]AK6TWIJJDNN4AKKG4GFIWTIPXUIH3GNYHT3DLGAFZJO6FDAL22BI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

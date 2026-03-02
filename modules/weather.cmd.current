@@ -5,29 +5,30 @@
 
 my $params = shift || {};
 
-    my $location = $params->{location} || <weather.location> || qw| Offenburg,DE |;
+my $location
+    = $params->{location} || <weather.location> || qw| Offenburg,DE |;
 
-    ## In future, fetch from weather zenka via IPC:
-    ## <[base.protocol-7.command.send.local]>->(
-    ##     { 'command' => 'weather.present', 'zenka' => 'weather', ... }
-    ## );
+## In future, fetch from weather zenka via IPC:
+## <[protocol-7.command.send.local]>->(
+##     { 'command' => 'weather.present', 'zenka' => 'weather', ... }
+## );
 
-    ## For now, use example data to demonstrate the UI pattern
-    my $weather_data = {
-        location     => $location,
-        temperature  => 18,
-        feels_like   => 16,
-        description  => qw| partly cloudy |,
-        clouds       => 65,
-        humidity     => 72,
-        pressure     => 1013,
-        wind_speed   => 12,
-        wind_dir     => qw| NW |,
-        icon         => qw| 02d |,
-        updated      => time(),
-    };
+## For now, use example data to demonstrate the UI pattern
+my $weather_data = {
+    location    => $location,
+    temperature => 18,
+    feels_like  => 16,
+    description => qw| partly cloudy |,
+    clouds      => 65,
+    humidity    => 72,
+    pressure    => 1013,
+    wind_speed  => 12,
+    wind_dir    => qw| NW |,
+    icon        => qw| 02d |,
+    updated     => time(),
+};
 
-    ## Generate psychedelic HTML
+## Generate psychedelic HTML
 my $html = _format_current_widget($weather_data);
 
 return $html;
@@ -99,8 +100,8 @@ sub _format_current_widget {
 
 0;
 
-#,,..,.,.,,.,,,,,,,..,,..,...,,.,,.,,,,.,,...,..,,...,...,.,,,,,,,..,,,,.,.,.,
-#7AM6QPO4GEQ33TY56TG4UQY5MV2YE32THTFW5XP5QAMA2P7XOLXCSHRHA22IBOYUAX7QSKAZCI44S
-#\\\|2U5JI5WTWIZQJ3NQ3GKL3FQO2D27JNPOZFWJFKDJE3LUSO2RMYT \ / AMOS7 \ YOURUM ::
-#\[7]KXCMILGAZXAEQQHKZIVXMUXSMEK7YUBZSEDUKU53JHCP2SEOMCCQ 7  DATA SIGNATURE ::
+#,,..,.,.,..,,.,,,,,,,..,,.,.,,,.,,,.,,..,..,,..,,...,...,...,..,,..,,...,..,,
+#5NKM5TAIFQICJ3LNGSE3MJVBL3K5CIU6OI7GLU5QPG2GDTDE6UBCBMYG5CI4LCATFARTFWOPVHKPC
+#\\\|226XYEERIDVPEWDYKVZTJLEEMLGT6DO5QPO7VPUI4MJIC7W52QX \ / AMOS7 \ YOURUM ::
+#\[7]ZAN3KAUYNFX7VXDINL5IKVASLKDN47ZTXETKZZV6F4BF5DTDIMAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

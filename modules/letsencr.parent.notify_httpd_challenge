@@ -28,7 +28,7 @@ unless ( $domain && $token && $key_auth ) {
 my $challenge_cmd = qw| cube.httpd.setup-acme-challenge |;
 my $args_string   = join ' ', $domain, $token, $key_auth, $type;
 
-my $result = <[base.protocol-7.command.send.local]>->(
+my $result = <[protocol-7.command.send.local]>->(
     {   'command'   => $challenge_cmd,
         'call_args' => { 'args' => $args_string }
     }
@@ -51,8 +51,8 @@ if ($result) {
     };
 }
 
-#,,..,,..,,,,,,.,,.,,,...,.,,,..,,,,,,...,,..,..,,...,..,,.,,,.,,,.,,,,..,,,,,
-#FA6OZ4BMPZIJN6XUJZHPN26V2M37ZMEVCU75LFA2HSPVW6AV7K7OTSHI4WPS2Q27QLPBPPQASRVAC
-#\\\|T4WTUOOYIDJC6ULRUX6X75NWUFER5U37W6IXOUM4FWDL3BO5NW3 \ / AMOS7 \ YOURUM ::
-#\[7]O256PZXIXDIH7VOGULRQ7ZBRDHZ656GACRBR4O6YXNNRYF5RJIDI 7  DATA SIGNATURE ::
+#,,,,,...,,..,,,.,,..,.,.,,.,,,,.,...,.,,,.,,,..,,...,..,,.,,,,,,,,.,,,,,,,,,,
+#UPFNK7A7KZPA7JAFMXY7LXN25MRMZJJUTP5I7LOHYO353RX3YPYOEJN6VDWVXDTJV6Z5EHYNABHAA
+#\\\|X6W7HESM7X235YEGBHPBHA6OJHYB4VTNZN2DOCVHLT4YFT34JTX \ / AMOS7 \ YOURUM ::
+#\[7]LECYGLP7K5WZNQO6HH4QQDQ64SJ7HB2XCJYMIOFGQSVJHCCUAQCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

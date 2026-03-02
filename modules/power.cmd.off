@@ -31,7 +31,7 @@ my @states    = <[power.set_states]>->( $device_id, @set_states );
 my $new_state = $states[$index];
 
 if ( not defined $new_state ) {
-    <[base.protocol-7.command.send.local]>->(
+    <[protocol-7.command.send.local]>->(
         {   'command'   => "cube.power-x11.set_states",
             'call_args' =>
                 { 'args' => join( ' ', $device_id, @{<power.last_states>} ) }
@@ -46,7 +46,7 @@ if ( $new_state ne '0' ) {
     return { 'mode' => qw| FALSE |, 'data' => $err_msg };
 }
 
-<[base.protocol-7.command.send.local]>->(
+<[protocol-7.command.send.local]>->(
     {   'command'   => "cube.power-x11.set_states",
         'call_args' => { 'args' => join( ' ', $device_id, @states ) }
     }
@@ -54,8 +54,8 @@ if ( $new_state ne '0' ) {
 
 return { 'mode' => qw| TRUE |, 'data' => "socket $sock_num switched OFF" }
 
-#,,..,...,..,,.,.,,,,,..,,.,,,,,.,.,,,,,,,,,.,..,,...,...,,..,.,.,...,.,,,,.,,
-#DEOSHDBO5M5CDF2RQGMKAVHTBWZYZUKH4HEDHWEPLGFVXLRX7ZXLABIWZWYIA3VZMGFNS42MB4FS4
-#\\\|G7JXJN633VWKIHFPRB27K2NDU6BBMBY4UZM2SBJNZ3L3W4QD42N \ / AMOS7 \ YOURUM ::
-#\[7]UPRAJ4C5UHYG55H5QD24GWTXW7CEWBD5754GGOGJQ4HFAXCBXAAY 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,...,,.,,...,.,,,...,,.,,,,,,.,,,..,,...,...,,.,,,.,,,,.,...,...,
+#7YQ7HORXBP5NZ35L5VQIT32LJPI4MGNDQBKJMNYGAKWZMNEO27ZE67THAXO65M7B4SP4D56EPE3AA
+#\\\|E5BI2KZILBLP7D6O6CHSB6NIDGXBVRVXHVCGGU6FPFKDIQ7OXJV \ / AMOS7 \ YOURUM ::
+#\[7]FEXJTBLUUKOMMJVPX2CLLPPCBQQPCMXZLW37LE6VHIFOQUEBCUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

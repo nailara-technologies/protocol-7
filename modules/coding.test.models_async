@@ -7,7 +7,7 @@ my $test_results = {};
 
 # Test 1: models.list_all
 <[base.log]>->( 2, "[coding.test] Sending async request to models.list_all" );
-<[base.protocol-7.command.send.local]>->(
+<[protocol-7.command.send.local]>->(
     {   'command'   => "models.list_all",
         'call_args' => { 'args' => "" },
         'reply'     => {
@@ -20,7 +20,7 @@ my $test_results = {};
 # Test 2: models.get_entry
 <[base.log]>
     ->( 2, "[coding.test] Sending async request to models.get_entry" );
-<[base.protocol-7.command.send.local]>->(
+<[protocol-7.command.send.local]>->(
     {   'command'   => "models.get_entry",
         'call_args' => {
             'model_amos' => 'llama-3.1-8b-instruct',
@@ -40,7 +40,7 @@ my $test_results = {};
 <[base.log]>->(
     2, "[coding.test] Sending async request to models.resolve_model_path"
 );
-<[base.protocol-7.command.send.local]>->(
+<[protocol-7.command.send.local]>->(
     {   'command'   => "models.resolve_model_path",
         'call_args' =>
             { 'model_amos' => 'gpt-3.5', 'context' => 'inference' },
@@ -57,7 +57,7 @@ my $test_results = {};
     2,
     "[coding.test] Sending async request to models.get_model_recommendations"
 );
-<[base.protocol-7.command.send.local]>->(
+<[protocol-7.command.send.local]>->(
     {   'command'   => "models.get_model_recommendations",
         'call_args' =>
             { 'context' => 'batch_processing', 'task_id' => 'test_002' },
@@ -73,7 +73,7 @@ my $test_results = {};
 <[base.log]>->(
     2, "[coding.test] Sending async request to models.record_invocation"
 );
-<[base.protocol-7.command.send.local]>->(
+<[protocol-7.command.send.local]>->(
     {   'command'   => "models.record_invocation",
         'call_args' => {
             'model_amos' => 'llama-3.1-8b-instruct',
@@ -95,7 +95,7 @@ my $test_results = {};
 <[base.log]>->(
     2, "[coding.test] Sending async request to models.find_best_alternative"
 );
-<[base.protocol-7.command.send.local]>->(
+<[protocol-7.command.send.local]>->(
     {   'command'   => "models.find_best_alternative",
         'call_args' =>
             { 'primary_model_amos' => 'gpt-4', 'context' => 'streaming' },
@@ -113,8 +113,8 @@ my $test_results = {};
 
 return 1;
 
-#,,..,,..,...,.,,,.,,,...,.,.,..,,,.,,.,,,.,,,..,,...,...,...,...,...,,..,..,,
-#6UUWIJFAXNAHXXZ4AFYEP5TJUV5BPHWQMHTA2IJQP23QEPNSCRCL7HYMW3DUNZHXD6DXGXZITEHBU
-#\\\|3WYRU6HSGXVX7XLZSRKFPH4DDHLZ3VHBDECVXJVERHCEBWHTCSZ \ / AMOS7 \ YOURUM ::
-#\[7]2QORG4EEVH2GIXODQL4EPGCXMXMJHK5P4YER4GJERSUBW3M62EAA 7  DATA SIGNATURE ::
+#,,..,,.,,.,,,,..,,,.,.,,,,,.,,,,,,,.,.,.,...,..,,...,...,.,,,,.,,,,,,,.,,,..,
+#BEYFQJEHAR724EHSKHVO5XWTKAUCAR2HIXX2EIRNYWLHJV3ONUV2F4HEZ4EMUZEBT4BRUNGPNXNFK
+#\\\|57FRZZDU3EMIKI4EKXE2CPMEZSCKF7LJOOX44DDKQLI47PLEJXO \ / AMOS7 \ YOURUM ::
+#\[7]QJY75FIUZTHQPIN4YVAVHWVYPZ76PXQIJAV3Y2B2JG6VUX4YCUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

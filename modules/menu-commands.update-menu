@@ -17,7 +17,7 @@ my $item_count = scalar keys <menu-commands.mappings>->%*;   # [LLL] use ->$#*
 # - provider name: menu-commands
 # - reference: timestamp [ allows protocol-7-menu to fetch when ready ]
 # - reply handler: protocol-7-menu will call get-provider-data to fetch the YAML
-my $client_count = <[base.protocol-7.command.send.local]>->(
+my $client_count = <[protocol-7.command.send.local]>->(
     {   'command'   => qw| cube.protocol-7-menu.menu-update-notify |,
         'call_args' =>
             { 'args' => sprintf( 'menu-commands %s', $update_timestamp ) },
@@ -45,8 +45,8 @@ if ( $client_count == 0 ) {
 }
 ##
 
-#,,,.,...,.,.,...,..,,,,.,,.,,.,,,.,.,,..,,,,,..,,...,...,,..,,..,.,,,,.,,.,,,
-#HWXDSEIZWR6SOEYSQKZ6DNNJBQATXIVHWBI7V7YC4FZCIVWXN3U33P5AWQSZFPIVYGF5PYTGTZC6S
-#\\\|33MB2ZEBPN6UCN4CRCFUA2CBNG4M7GSJ73LGQ22MCPAUMZL7C7Y \ / AMOS7 \ YOURUM ::
-#\[7]A4UJKOHI6DQ4U6M7CZTDCBU6LJAXTN54M6RKPVIHZQ4PWKH2RKDA 7  DATA SIGNATURE ::
+#,,..,,,.,..,,.,.,,,.,,,,,,..,...,,..,,,,,,..,..,,...,...,,.,,...,,,.,.,.,.,,,
+#LSYUB5MYAXE6CJO5CR6OKD37TKNENH3I4WYKBPJLGCAWUWIXYNYXVQ6WO64LY4UGMTIFUI3TBOKMO
+#\\\|43QQDYM7D5M2VXRT6SAOUEVXNQZ2ASQMVC2GTB3CWIRIXWTGDY6 \ / AMOS7 \ YOURUM ::
+#\[7]PBFBJETKHPD7GM2UF3Y3Q2DJJYP72REXZOKGW76AJT7BPK42JOCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,7 +9,7 @@ foreach my $hide_zenka ( keys %{<universal.child>} ) {
     next if $hide_zenka eq $zenka_name;
     my $hide_wid = <universal.child>->{$hide_zenka}->{'window_id'};
     <[base.log]>->( 2, ": hiding '$hide_zenka' ($hide_wid)" );
-    <[base.protocol-7.command.send.local]>->(
+    <[protocol-7.command.send.local]>->(
         {   'command'   => "cube.X-11.hide_window",
             'call_args' => { 'args' => $hide_wid }
         }
@@ -17,8 +17,8 @@ foreach my $hide_zenka ( keys %{<universal.child>} ) {
     <universal.child>->{$hide_zenka}->{'visible'} = 0;
 }
 
-#,,.,,,.,,,,,,.,.,.,.,.,,,.,,,.,,,.,.,.,,,.,.,..,,...,...,,..,..,,,..,,,.,,.,,
-#YBMDQSRHPNA3CSDXXZNWSWONMKQQBE2MVCSXD5QBRAURL5DINOK4SJYK5HWBTRPYVSCPLQAMHUWGE
-#\\\|ELCVF7EAY5GUWJULNW756B333IJCF4MGVLBLYCIUTRCB3DGTVF2 \ / AMOS7 \ YOURUM ::
-#\[7]LCYCCZSUPT3ZHFVAR7EU7WLOMMC7AY3U57F2UFVZ47FC3B4NZEAY 7  DATA SIGNATURE ::
+#,,..,,,.,,,.,...,,.,,...,.,,,,,,,,..,..,,.,.,..,,...,...,.,,,,,.,,.,,..,,...,
+#OVZORPDAVPXIMIWW7G2LCIY6N6U4B6CIH32W6RUUWN664FX3ALZGCI45BUGU54PGQOA6DLJQRC3UW
+#\\\|6CHHZPPNIJYCZ4UCFYBT6N3B4YGOZ6K6OHUICSHSH7J7HPLDEZF \ / AMOS7 \ YOURUM ::
+#\[7]F3STTQB5IAP3GSS4COBPFYIAEDEYCKB7OFNL6PFTKFCVCV64HODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

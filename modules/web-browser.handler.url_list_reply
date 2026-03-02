@@ -35,7 +35,7 @@ if ( $reply->{'call_args'}->{'args'} == 0 ) {
         and !<web-browser.slideshow.iteration> ) {
         <web-browser.slideshow.iteration>
             = 1;    ## reporting universal-child 'ready'
-        <[base.protocol-7.command.send.local]>
+        <[protocol-7.command.send.local]>
             ->( { 'command' => 'cube.report_paused' } );
     }
     return;
@@ -77,7 +77,7 @@ my $index = 0;
 
 foreach my $entry (@url_list) {
     if ( $type_list{$entry} eq 'pdf' ) {
-        <[base.protocol-7.command.send.local]>->(
+        <[protocol-7.command.send.local]>->(
             {   'command'   => "cube.pdf2html.get_url",
                 'call_args' => { 'args' => "$entry $width" },
                 'reply'     => {
@@ -90,7 +90,7 @@ foreach my $entry (@url_list) {
             = '!' . <web-browser.url.list_reply>->[$index];
 
     } elsif ( $type_list{$entry} eq 'image' ) {
-        <[base.protocol-7.command.send.local]>->(
+        <[protocol-7.command.send.local]>->(
             {   'command'   => "cube.image2html.get_url",
                 'call_args' => { 'args' => "$entry $width $height" },
                 'reply'     => {
@@ -133,8 +133,8 @@ if (@{<web-browser.url.list>}
     <[web-browser.start_slideshow]>;
 }
 
-#,,.,,,,.,,..,...,.,.,,..,,.,,,.,,,.,,.,.,,.,,..,,...,...,...,.,,,,,.,,,.,,,,,
-#ER3G2HJ4WGYTLLWPI3T6OJJW5LIXISAEL6O5EBE5MZ7CL3NYVWKJDGGW254VQGER3JNPMDMI3KHRO
-#\\\|TVHN4V4SGGAB6W33PF2CU3KR3DWINWH74EDTIJK7IENME72JO3Q \ / AMOS7 \ YOURUM ::
-#\[7]6K6SAWXOHZURZ5F5FAVC5ZZ45ADZGTPMWD6CDJI5Q6XLCZ3DZWCI 7  DATA SIGNATURE ::
+#,,.,,...,,,.,.,,,..,,,,.,.,.,,..,,.,,,,,,,,.,..,,...,...,...,...,.,,,.,.,,..,
+#Q7FCI4VXF7K2DF37UXZVTIUZY6FUO3NITEVQQKNFGBBDAVZB4R33RZSW2FMYXDAQFPMD3ODCBT7NE
+#\\\|4VRRCCIPN3UQUSD3KMGWR27IVGR65CPZ4WBPHQ7D7ZKBC4B2WB2 \ / AMOS7 \ YOURUM ::
+#\[7]GF67YTUS6PH54DPHNFAGXQYXOJRIYJRCBTXAX6F6YHB6I6MI6YDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

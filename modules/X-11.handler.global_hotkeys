@@ -92,7 +92,7 @@ if ( defined <X-11.hotkeys.recording> and $event_type eq 'press' ) {
             }
         );
 
-        <[base.protocol-7.command.send.local]>->(
+        <[protocol-7.command.send.local]>->(
             {   'command'   => "cube.notify.info",
                 'call_args' => { 'args' => "hotkey configured" }
             }
@@ -114,7 +114,7 @@ if ( defined <X-11.hotkeys.recording> and $event_type eq 'press' ) {
                 ? ( 'call_args' =>
                     { 'args' => <X-11.hotkeys.active>->{$h_id}->{'params'} } )
                 : ();
-            <[base.protocol-7.command.send.local]>->(
+            <[protocol-7.command.send.local]>->(
                 {   'command' => "cube.$cmd_str",
                     @params
                 }
@@ -132,8 +132,8 @@ if ($no_key_pressed) {
     delete <X-11.hotkeys.triggered>;
 }
 
-#,,..,,,,,,.,,...,.,.,,.,,.,,,...,.,,,.,.,,.,,..,,...,..,,..,,.,,,.,,,,..,.,.,
-#UBXNXW3K7TSIPILPRFTDGTSOUFE4DVDVRIL2KTLXUQUM3AJFJKRC76ZFFRNURVUGYXTRMUIGORLAQ
-#\\\|QBMRNVB3ZYEDPXQSVZF3S7KW75SPR3EPTFG33JOKJ5EJHFCUGYQ \ / AMOS7 \ YOURUM ::
-#\[7]V6GLH75RUTCFYRXSP7OEV3B6FEL476P4IHGTOUZSFAOPMESGNQBY 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,,,,.,,,..,,.,.,.,.,..,,.,,,...,..,,...,..,,,,.,,.,,,,,,.,.,,.,,
+#NJRX5R4V6TDY2K2ZOELLKYBIC6AJI7374VBLY6O44U7DVQO7QAUAZ2DILOIF66DYAYRSVMAS2QKHS
+#\\\|JMC7PCFBBRUAP44DA4CHXN3ZSUBOFKBQJLJIO35A54YHOFIMWKE \ / AMOS7 \ YOURUM ::
+#\[7]CUSZBNE7AB465XXLMBLMEAU6YMXQW7EOEX3YLLP22BVVDU3TFWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

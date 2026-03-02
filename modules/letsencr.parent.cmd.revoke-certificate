@@ -41,7 +41,7 @@ my $revoke_cmd = 'letsencr.child.cmd.revoke-certificate ' . $domain;
 
 <[base.log]>->( 2, "sending revocation command to child for : $domain" );
 
-my $result = <[base.protocol-7.command.send.local]>->(
+my $result = <[protocol-7.command.send.local]>->(
     {   'command'   => $revoke_cmd,
         'call_args' => {
             'args'  => $domain,
@@ -80,8 +80,8 @@ if ($result) {
     };
 }
 
-#,,.,,.,,,.,,,,,.,,..,,..,,..,.,,,..,,...,,.,,..,,...,...,,..,,,.,,,,,.,.,,,,,
-#5XEOB6GSKRYM2L4UT2Y7DN4XOEKEKFQKWYJOQ4G3QCRN7IMRMP5FYXZOZ5DUMNP2S22QAZDXGQ7XA
-#\\\|H5F3TFG2LWX2TWPDNGRE7VPUCHSUDHUDHK46TG4AHRMVADL77J5 \ / AMOS7 \ YOURUM ::
-#\[7]VDCS2WX67WYVFAQ4CKFWSGSKXSFLZJ7XL6A7W65WFSCRPPKWLECQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,,.,.,.,,,,,..,,,.,,..,,.,,,.,,,,.,,..,,...,...,,,,,...,..,,.,.,,,,,
+#UHF3DD7WTDOBDVVLGYUDN7RT6ZPWSEZOVKCIZFPSTNCVIO6DVCMBHF5QYHDCXRWSQBCBDC5WDPJ5K
+#\\\|S4I7ESXHDIB43AA4WUQPBNUPZKFTHYCBAURHSAKVIAQVUQBLANQ \ / AMOS7 \ YOURUM ::
+#\[7]LE3FJPRUT7FN5OCN4QKHRTLZTYNONYZ2DUESALWYE4IMIKH6VMDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

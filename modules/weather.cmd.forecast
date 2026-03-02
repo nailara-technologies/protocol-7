@@ -5,24 +5,54 @@
 
 my $params = shift || {};
 
-    my $days = $params->{days} || 5;
+my $days = $params->{days} || 5;
 
-    ## In future, fetch from weather zenka via IPC:
-    ## <[base.protocol-7.command.send.local]>->(
-    ##     { 'command' => 'weather.forecast', 'zenka' => 'weather', ... }
-    ## );
+## In future, fetch from weather zenka via IPC:
+## <[protocol-7.command.send.local]>->(
+##     { 'command' => 'weather.forecast', 'zenka' => 'weather', ... }
+## );
 
-    ## For now, use example data
-    my @forecast = (
-        { day => qw| Mon |, temp_min => 12, temp_max => 19, desc => qw| sunny |,        clouds => 20, icon => qw| 01d | },
-        { day => qw| Tue |, temp_min => 14, temp_max => 21, desc => qw| clear |,         clouds => 15, icon => qw| 01d | },
-        { day => qw| Wed |, temp_min => 13, temp_max => 18, desc => qw| cloudy |,        clouds => 75, icon => qw| 03d | },
-        { day => qw| Thu |, temp_min => 11, temp_max => 16, desc => qw| rain |,          clouds => 90, icon => qw| 10d | },
-        { day => qw| Fri |, temp_min => 10, temp_max => 15, desc => qw| light rain |,    clouds => 80, icon => qw| 09d | },
-    );
+## For now, use example data
+my @forecast = (
+    {   day      => qw| Mon |,
+        temp_min => 12,
+        temp_max => 19,
+        desc     => qw| sunny |,
+        clouds   => 20,
+        icon     => qw| 01d |
+    },
+    {   day      => qw| Tue |,
+        temp_min => 14,
+        temp_max => 21,
+        desc     => qw| clear |,
+        clouds   => 15,
+        icon     => qw| 01d |
+    },
+    {   day      => qw| Wed |,
+        temp_min => 13,
+        temp_max => 18,
+        desc     => qw| cloudy |,
+        clouds   => 75,
+        icon     => qw| 03d |
+    },
+    {   day      => qw| Thu |,
+        temp_min => 11,
+        temp_max => 16,
+        desc     => qw| rain |,
+        clouds   => 90,
+        icon     => qw| 10d |
+    },
+    {   day      => qw| Fri |,
+        temp_min => 10,
+        temp_max => 15,
+        desc     => qw| light rain |,
+        clouds   => 80,
+        icon     => qw| 09d |
+    },
+);
 
-    ## Limit to requested days
-    @forecast = @forecast[ 0 .. ( $days - 1 ) ] if $days < scalar(@forecast);
+## Limit to requested days
+@forecast = @forecast[ 0 .. ( $days - 1 ) ] if $days < scalar(@forecast);
 
 my $html = _format_forecast_widget( \@forecast );
 
@@ -73,8 +103,8 @@ sub _format_forecast_widget {
 
 0;
 
-#,,,,,,..,.,,,...,,.,,...,.,.,,.,,,.,,,..,.,,,..,,...,...,.,.,.,.,.,.,,,.,,,,,
-#5YXTXJHBIIGOSA3G6Z6OYF3XYQYOEZO2QWVGORJ4E56LQSKCDY4L4FF5X5L2SQ676LNURGBLQDJSC
-#\\\|CMIJ7IQ2FH6WTNW5APBDURTR7PBCPMYIGVKXDLYMENXCAT5BWHN \ / AMOS7 \ YOURUM ::
-#\[7]IBW5HDXLLRY7GJ7QN7P2I7TG26YHHXV5KREYEZBGABCEZERSNWDY 7  DATA SIGNATURE ::
+#,,..,...,,.,,.,.,.,,,.,.,,,.,.,,,,.,,,,.,..,,..,,...,...,.,,,,.,,.,.,,,.,...,
+#YNLYWIIF2S22GHM5DCS7VAVMSIROH6WZIOBGQ5QPRMMVHMKGDJUGFKKWDWSWW3JRXIWR44R5BLCDA
+#\\\|GSK55GXKIS6ZRH4T4AXJULNWCKJBTKPH3WTEVEACZGNYZH42GZU \ / AMOS7 \ YOURUM ::
+#\[7]77R3AD6Y7VN6HKPEGGAYC7OBR7M3AR7JOWTCAU6FMLQ7HB6CW4AQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

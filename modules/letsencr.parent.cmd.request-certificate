@@ -53,7 +53,7 @@ my @domains_to_request = ($domain);
 ## send enrollment command to child process
 <[base.logs]>->( 2, 'sending enrollment command to child for: %s', $domain );
 
-my $result = <[base.protocol-7.command.send.local]>->(
+my $result = <[protocol-7.command.send.local]>->(
     {   'command'   => qw| child.request-certificate |,
         'call_args' => {
             'args'  => $domain,
@@ -95,8 +95,8 @@ if ($result) {
     };
 }
 
-#,,.,,...,.,.,.,.,,,,,,.,,,,.,,..,,,.,,.,,...,..,,...,...,...,..,,.,,,,,.,,.,,
-#4CRDW5JLVJPRUJ2G2ERSSSRJB4YBKCOZLD35IPFXYVRWGKWIJSAT63WBRMDIA3JWZZTYMZ56HF4C4
-#\\\|BV2PJW3664QLR7MIC3LHRBXCCG32M65G23H5V7O7OOODQEL2R3A \ / AMOS7 \ YOURUM ::
-#\[7]NDFY3KNPWNSYUGZPHABXXABKZCW5XAF3G3MJGUQHCT2TB722I6CA 7  DATA SIGNATURE ::
+#,,..,,..,.,,,.,,,,,,,..,,..,,.,.,,..,,,.,,..,..,,...,...,.,,,,..,.,.,,,.,.,.,
+#4BMIYUQZC5CS5PALHOPKEM3ZQMVQHGNVWXLH5V75NPFBGAJPNHDD5RJE5BWVXJHZ4RHL2Z5AN4O4K
+#\\\|QE5KAJQH2SYXTXOU4AXINLYYZQXDW2HJIGVLQGDD7MYGMTUEU45 \ / AMOS7 \ YOURUM ::
+#\[7]V3F2SQNLCSTI5JPOWYMDR7F3CDBKLODEX5IS3RSNT2QZWPCZHGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

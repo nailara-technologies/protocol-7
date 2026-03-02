@@ -74,7 +74,7 @@ if ( $dev->{poller}->can_write(0.1) ) {
     $dev->{sock}->close();
 }
 
-<[base.protocol-7.command.send.local]>->(
+<[protocol-7.command.send.local]>->(
     {   'command'   => "cube.power-x11.set_states",
         'call_args' => { 'args'    => join( ' ', $device_id, @new_states ) },
         'reply'     => { 'handler' => 'dev.null' }
@@ -83,8 +83,8 @@ if ( $dev->{poller}->can_write(0.1) ) {
 
 return { 'mode' => qw| TRUE |, 'data' => join( ' ', @new_states ) }
 
-#,,,.,.,.,..,,,..,...,,..,.,.,.,,,.,.,,,.,..,,..,,...,...,..,,,.,,,..,,..,,,,,
-#VT7YD5I3GLX7CCVPFWTXEVCQON2BDWOKIKGX37TWN2SNY4CWKHDARFJ767SSIQLKUOCVUEMBWAQN2
-#\\\|FXKPW7XVYTO53LVPJ45PU7X7QFLA7TE5SMNL7O2T2EARSETJV6Y \ / AMOS7 \ YOURUM ::
-#\[7]IUF3QQN5CRR5SGAFUF6EBHKUNJOJA2KHBCM32V236VUJYOTLYCDQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,.,.,,,,,..,,,,.,...,.,,,,,,,..,,..,,...,...,...,,,,,..,,.,,,,,.,
+#HLUPKO3KIHWVVBXWKXWRSL6SG7K4ZC7BJEQ5REQX7H555572MNVRWNQPBXYRGUQDV42GZRNX5FNSI
+#\\\|SU6WWONUSQ222B5PPO7WPOCTNQEAKGYOUZ2AKGRP3H7GHMG3RMQ \ / AMOS7 \ YOURUM ::
+#\[7]FIPUANWFOMKOHETB7NUTPHG2ZYB327HY4HEUXCIIAHDCL2ECP2AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

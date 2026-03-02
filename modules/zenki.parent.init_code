@@ -6,17 +6,18 @@
 <[base.log]>->( 2, 'initializing zenki dependency resolution system..,' );
 
 ## Configuration
-<zenki.cfg.v7_binary>           //= '/data/projects/protocol-7/bin/Protocol-7';
-<zenki.cfg.v7_startup_timeout>  //= 10;   ## Seconds to wait for v7 startup
-<zenki.cfg.cube_startup_timeout> //= 5;   ## Seconds to wait for cube startup
+<zenki.cfg.v7_binary> //= '/data/projects/protocol-7/bin/Protocol-7';
+<zenki.cfg.v7_startup_timeout>    //= 10; ## Seconds to wait for v7 startup
+<zenki.cfg.cube_startup_timeout>  //= 5;  ## Seconds to wait for cube startup
 <zenki.cfg.zenka_startup_timeout> //= 8;  ## Seconds to wait for zenka startup
-<zenki.cfg.auto_start_v7>       //= ($UID == 0 ? 1 : 0);  ## Auto-start v7 when root
-<zenki.cfg.cube_socket_path>    //= '/var/run/.7/UNIX';   ## Cube socket directory
+<zenki.cfg.auto_start_v7>
+    //= ( $UID == 0 ? 1 : 0 );            ## Auto-start v7 when root
+<zenki.cfg.cube_socket_path> //= '/var/run/.7/UNIX';  ## Cube socket directory
 
 ## Registries for tracking running processes
-<zenki.running.v7>    //= {};  ## v7 process info
-<zenki.running.cube>  //= {};  ## cube process info
-<zenki.running.zenki> //= {};  ## Other zenki processes
+<zenki.running.v7>    //= {};                         ## v7 process info
+<zenki.running.cube>  //= {};                         ## cube process info
+<zenki.running.zenki> //= {};                         ## Other zenki processes
 
 ## NOTE: Dependency resolution is handled by v7's existing system
 ## (see v7.zenka.cmd.start:105-141 and zenka-startup.v7 files)
@@ -24,7 +25,7 @@
 ##
 ## Two integration modes:
 ## 1. Inside v7: Direct call to zenka.cmd.start
-## 2. Outside v7: IPC via cube using base.protocol-7.command.send.local
+## 2. Outside v7: IPC via cube using protocol-7.command.send.local
 
 ## Initialize statistics
 <zenki.stats> = {
@@ -38,8 +39,8 @@
 
 0;
 
-#,,.,,.,,,,.,,,.,,,,,,.,.,...,,..,,,.,,,,,...,..,,...,...,,,.,,,.,,,.,,..,...,
-#AJQU5AOTUHSWOUOZRYT7JJSVMPLCDVYVXFTFHAHJKJHP6SXXXWNWSTRH7ZJI66VDOKIJCNSYWZPFU
-#\\\|N5HB7CNEQB26PKOAPO26M4QF3JIOOU5W2UCBQMJRJLURXWTGUSF \ / AMOS7 \ YOURUM ::
-#\[7]KSTYLN7LNTCLFXQDBFW36TF5MCH54SFOHTYT2PFYLDZHVY6EVQAQ 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,...,.,,,.,.,.,,,,,.,,..,.,.,.,.,..,,...,...,,,,,,.,,,.,,..,,...,
+#QWD62U7SEF3M2CVF2VQTH63AODA57MHEINXZVFGUBWKV6Y37TZFPTVYM6MY52UJTGCKFTWVYQLK6U
+#\\\|6EHXUSFWPSE5IQTQP646DVNSE7XEWBPJB52LUR4PVRF7S2L7URJ \ / AMOS7 \ YOURUM ::
+#\[7]IXO6NY4KO4VIIXTHMQWFQTIGEPVJSVNZ4OEI75ONYLQ5AIPPUKAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

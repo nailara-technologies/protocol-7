@@ -42,7 +42,7 @@ if ( !$count ) {    # frames already complete
 } else {
     <[base.log]>->( 1, "extracting video frames ($count to go..)" );
     my ( $frame_id, $vid_file_path ) = each %{<universal.frames_to_go>};
-    <[base.protocol-7.command.send.local]>->(
+    <[protocol-7.command.send.local]>->(
         {   'command'   => "cube.melt.extract_frame",
             'call_args' => { 'args' => "-0 $vid_file_path" },
             'reply'     => {
@@ -53,8 +53,8 @@ if ( !$count ) {    # frames already complete
     );
 }
 
-#,,,.,,..,,.,,..,,.,,,.,.,..,,,,.,,.,,..,,,,,,..,,...,.,.,,..,,,.,,,,,..,,..,,
-#7IUVMADBJBVVBJCAVCYV43BDPIUKCJXAAW3ND7JIZPD4NEZ2UVG6YHTCJTVTZ5MPQXJOTW2YSKREE
-#\\\|HH6FKWMMKFBPQF2BXUA5GDKPPDOI3BYLENRCMV2BE5N5KVJRHSU \ / AMOS7 \ YOURUM ::
-#\[7]43IIL35YRNHLK7XT2T52463RFJIJMF2XN3HJXPPNZ2MLZRL3WUCI 7  DATA SIGNATURE ::
+#,,,,,.,.,,.,,.,.,.,,,,,.,,,,,.,.,,,.,,,.,,..,..,,...,..,,,.,,.,,,...,..,,,..,
+#VV66UV67DJW6A3M3PD5OI56KKYU43L55P2J5Y6PHXSRS5N5XNY6AXRQAT46EE3U2AQKBGXBCYI6OI
+#\\\|TRFFVLFWOWDGJAMPRCDRLPF6HE6Z56J5RHLCZVUPWHGUVGIRSXU \ / AMOS7 \ YOURUM ::
+#\[7]WIV6S7N4CAU764O3S5KKW5KMM3VAW7Y26JLO45UP4F55TYWRS6CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
