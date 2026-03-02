@@ -65,6 +65,7 @@ tasks:
     title: replace hardcoded cube.v7.notify_online / cube.p7-log.append routes
     status: completed
     completed_date: 2026-03-02
+    completed_commit: 0c1f202ba
     description: |
       in fork-child startup flows, cube.v7.notify_online and cube.p7-log.append
       are hardcoded command strings in access.cmd.usr.child and in the modules
@@ -89,13 +90,13 @@ tasks:
 
     batch_1_completed:
       date: 2026-03-02
-      changes:
-        - updated access.cmd.usr.child in image2html/start, pdf2html/start, vision-batch/start
-          from "cube.v7.notify_online cube.p7-log.append" to "v7.notify_online p7-log.append"
       note: |
         fork-child modules already use relative log_cmd "p7-log.append" and
         base.log.send-buffer.send-idle-callback already prepends route_prefix.
-        only the access control entries needed updating.
+        access.cmd.usr.child entries kept as "cube.v7.notify_online cube.p7-log.append"
+        [ has_access checks command AFTER the parent. routing hop is consumed; child
+        sends "parent.cube.v7.notify_online", parent receives "cube.v7.notify_online" ].
+        kimi initially stripped cube. prefix — reverted before commit 0c1f202ba.
 
     batch_2_completed:
       date: 2026-03-02
@@ -141,6 +142,7 @@ tasks:
     title: add dev.null sigchld in pdf.html child side
     status: completed
     completed_date: 2026-03-02
+    completed_commit: 0c1f202ba
     description: |
       image2html child received <[event.add_signal]>->('CHLD','dev.null') after
       IO::AIO::reinit() to prevent inherited signal handler interference.
@@ -153,6 +155,7 @@ tasks:
     title: review vision-batch sigchld handling for child side
     status: completed
     completed_date: 2026-03-02
+    completed_commit: 0c1f202ba
     conclusion: |
       child process confirmed to not fork further. no SIGCHLD signals possible
       in child, so no handler needed. comment about "reply_id error" refers to
@@ -255,8 +258,8 @@ tasks:
 
 ---
 
-#,,,,,...,,.,,...,,,.,,,.,.,,,,,,,.,,,,,.,.,,,..,,...,...,,.,,,..,.,.,..,,.,,,
-#JAPH5GSKFQYCROWWBCM3AAJ27A7DKVLCSHJ7TKQLRL6O2Y5X2WOSHEOGTOM7NYZSISKCTGYUH73RQ
-#\\\|LM5YPTO344AFWDRWGYSUCDQVL7M4XHIUAIWZ2MJVHLP7SJSWTTG \ / AMOS7 \ YOURUM ::
-#\[7]VMPDT2UH5BOSHIKRDOT3IYDKFAI7EU4DR3GQPPBYT2KKBPHLN2BA 7  DATA SIGNATURE ::
+#,,.,,,,.,.,.,.,,,,.,,,.,,,..,,,.,,,.,,.,,.,,,..,,...,...,.,.,..,,..,,,,.,,,,,
+#IRYDNQSHEIVNRWF44VMIH6MGB5W3SY42TBL5NH5TCOQHMIRTP75TL5QOUGSNYWDJPROVISBZZSEFK
+#\\\|APKASQOJW76DM2JFZ247VPLOSRWOT3BMA5MOHLKG6DFMV27VPRG \ / AMOS7 \ YOURUM ::
+#\[7]R463XNCQDQMO3WIR5NXKTEJGK3BTJ4C4N23NWODIXM2M65WAFQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
