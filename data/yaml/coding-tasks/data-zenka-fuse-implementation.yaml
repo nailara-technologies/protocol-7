@@ -1,0 +1,151 @@
+---
+title: Data Zenka FUSE Filesystem Implementation
+description: |
+  implement real FUSE filesystem mounting for the data zenka. the command
+  stubs exist with parameter validation but stop before any actual FUSE
+  integration. hash structure (dots→slashes, HASH→dir, SCALAR→file,
+  ARRAY→dir listing) is fully designed and documented.
+
+priority: medium
+status: ready-to-implement
+
+existing_stubs:
+  - modules/data.cmd.attach-fs-mount   # validation done, no FUSE calls
+  - modules/data.cmd.mount-hash        # shows hash listing only, no mount
+  - modules/data.cmd.import-fs         # recursive import started, needs finishing
+  - modules/data.cmd.mount-cube        # 10 lines, explicitly "not implemented yet"
+
+design_references:
+  - data/md/design/CONCEPT-DATA-ZENKA-ARCHITECTURE.md   # section 4: FUSE integration
+  - data/md/data-zenka/DATA_ZENKA_SHM_MOUNTING.md       # SHM context
+  - data/md/data-zenka/DATA_ZENKA_HOLOGRAPHIC_TOPOLOGY.md
+
+existing_infrastructure_to_leverage:
+  - data.resolve_hash_path    # dot-notation path → hash ref
+  - data.list_entries         # entries at a hash path
+  - data.get_ref_type         # returns HASH / ARRAY / SCALAR
+  - data.get                  # value retrieval with permission checks
+  - data.ensure_hash_path     # creates nested hash path if missing
+  - data.mount.shm.*          # SHM layer (complete, can share cache with FUSE child)
+  - fork-child pattern        # canonical form in data/yaml/archive/completed-coding-tasks/fork-child-pattern-remaining.yaml
+
+perl_module_needed:
+  - Fuse   # or Fuse::Simple for simpler callback interface
+  - note: load via base.perlmod.load (one module per call)
+
+---
+
+## phase 1 — local hash FUSE mount (no network async needed)
+
+description: |
+  for data living in the local in-process hash, FUSE callbacks can return
+  data directly — no async/blocking problem. this is the primary use case
+  and should work without a child process.
+
+type_mapping:
+  HASH   → fuse directory (getattr returns S_IFDIR, readdir returns keys)
+  SCALAR → fuse file      (getattr returns S_IFREG + size, read returns value)
+  ARRAY  → fuse directory (entries are array elements with auto-named keys)
+
+path_translation:
+  fuse path  /user/taeki/files/uploads
+  hash path  user.taeki.files.uploads
+  rule: strip leading slash, replace / with .
+
+modules_to_implement:
+  - name: data.mount.fuse.init_code
+    descr: load Fuse module, set up mount registry in <data.fuse.mounts>
+
+  - name: data.mount.fuse.getattr
+    descr: fuse getattr callback — translate path, check ref type, return stat struct
+
+  - name: data.mount.fuse.readdir
+    descr: fuse readdir callback — return list of keys/indices at hash path
+
+  - name: data.mount.fuse.read
+    descr: fuse read callback — return scalar value (or serialized ref) as file content
+
+  - name: data.mount.fuse.write
+    descr: fuse write callback — update scalar value in hash (optional phase 1)
+
+  - name: data.mount.fuse.open
+    descr: fuse open callback — validate path exists, check permissions via data.get.check_permissions
+
+  - name: data.mount.fuse.release
+    descr: fuse release callback — cleanup open file state
+
+  - name: data.mount.fuse.spawn
+    descr: |
+      fork a child process (fork-child pattern) that calls Fuse::main() with
+      the above callbacks. child blocks in FUSE event loop; parent continues
+      async. register child pid in <data.fuse.mounts>{$local_dir}.
+
+modules_to_complete:
+  - name: data.cmd.attach-fs-mount
+    current_state: |
+      validation done (hash_path exists, local_dir exists + writable),
+      then: my $export_count = 0;  — stops here
+    needed: call data.mount.fuse.spawn to fork FUSE child for this mount
+
+  - name: data.cmd.mount-hash
+    current_state: shows hash listing only (no actual mount)
+    needed: same as attach-fs-mount — delegate to data.mount.fuse.spawn
+
+  - name: data.cmd.mount-cube
+    current_state: pure stub (10 lines, "not implemented yet")
+    needed: mount cube namespace subtree — implement after basic hash mount works
+
+  - name: data.cmd.import-fs
+    current_state: recursive import loop started but not finished
+    needed: complete the recursive function body and the return/result reporting
+
+---
+
+## phase 2 — network-backed / remote data (optional, future)
+
+description: |
+  when the requested hash path is not local (remote cubic lookup, network
+  fetch), the FUSE child cannot return immediately. use the child+IPC pattern
+  from the design doc: child queues request to parent, parent fetches async,
+  populates shared cache (data.mount.shm), signals child, child returns data.
+
+  this phase is NOT required for phase 1 to be useful. defer unless needed.
+
+async_strategy: Option C (Protocol-7 native deferred replies) preferred
+  — child sends request with callback id via parent route
+  — parent issues deferred data.get call
+  — when reply arrives, parent sends to child session
+  — child matches callback id, serves FUSE read
+
+reference: |
+  data/md/design/CONCEPT-DATA-ZENKA-ARCHITECTURE.md
+  section "The FUSE Blocking Problem" and "Child Zenka Pattern" diagram
+
+---
+
+## testing
+
+manual_test_sequence:
+  - "p7 data.attach-fs-mount network.hosts /tmp/test-mount"
+  - "ls /tmp/test-mount"       # should show hash keys as dirs/files
+  - "cat /tmp/test-mount/..."  # read scalar value
+  - "p7 data.dump data.fuse.mounts"  # verify registry entry
+  - "fusermount -u /tmp/test-mount"  # unmount and verify child exits
+
+success_criteria:
+  - mount command forks child, returns immediately to parent
+  - ls on mount point shows correct directory structure
+  - cat on a scalar key returns the value
+  - child process exits cleanly on unmount
+  - parent remains stable throughout
+
+notes: |
+  the fork-child canonical pattern is documented in MEMORY.md and the
+  completed task archive. use IO::AIO::reinit() in child before Fuse::main().
+  keep zenka_logfile at default (1) in the child to avoid log storm.
+
+#,,.,,,,.,..,,.,.,...,.,.,,.,,.,,,,.,,.,.,,,,,..,,...,...,...,.,.,.,.,,,,,,,.,
+#SFJMNJFAFFP7IBVAM4WURH25LPUP6NXY46GX5ES437DVBWWS7GHI2CABLIKW43VSDW3MBRD3F6GYM
+#\\\|CWKB7FTNPHH6ZOY2A23R3GNLACEIUHDAV4OMDCOK657YLN53BC7 \ / AMOS7 \ YOURUM ::
+#\[7]TATOEYJY72253VR5BBYG3OH6H6MQPZBRXAVPB5PZJLWUUYL3AEAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
