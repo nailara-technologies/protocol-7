@@ -1,18 +1,26 @@
-#!/usr/bin/env perl
-# Module: web.template_cache.set
-# Purpose: Store rendered template with timestamp and TTL
-# Pattern: Timestamp-based TTL storage
-# Storage: $data{'web.template_cache'} = { key => { content, timestamp, ttl, size } }
+## [:< ##
+
+# name = web.template_cache.set
+# descr = Store rendered template with timestamp and TTL
+#
+# Parameters:
+#   $ARG[0] - Cache key (required)
+#   $ARG[1] - Content to cache (required)
+#   $ARG[2] - TTL in seconds (optional, defaults to web.cfg.cache_ttl)
+#
+# Returns:
+#   On success: { status => 'success', stored => 1, size => ..., ttl => ... }
+#   On error:   { status => 'error', stored => 0, message => ... }
 
 my $cache_key = shift;
 my $content   = shift;
 my $ttl       = shift;
 
-# Configuration defaults (caller should provide these)
-my $default_ttl = $_[0] // 1800;                   # 30 minutes
-my $max_size    = $_[1] // ( 5 * 1024 * 1024 );    # 5MB
+## get configuration ##
+my $default_ttl = <web.cfg.cache_ttl>         // 1800;
+my $max_size    = <web.cfg.template_max_size> // ( 5 * 1024 * 1024 );
 
-# Validation
+## validate params ##
 unless ( defined $cache_key && length $cache_key ) {
     return {
         status  => qw| error |,
@@ -29,10 +37,10 @@ unless ( defined $content ) {
     };
 }
 
-# Use provided TTL or default
-$ttl = $default_ttl unless defined $ttl && $ttl > 0;
+## use provided ttl or default [ validate numeric to avoid warnings ] ##
+$ttl = $default_ttl unless defined $ttl && $ttl =~ m|\A[1-9][0-9]*\z|;
 
-# Check size limit
+## check size limit ##
 my $content_size = length($content);
 if ( $content_size > $max_size ) {
     return {
@@ -45,28 +53,33 @@ if ( $content_size > $max_size ) {
     };
 }
 
-# Store entry
-my $entry = {
+## ensure cache structure exists ##
+<web.template_cache> = {}
+    unless defined <web.template_cache>;
+
+## store entry ##
+<web.template_cache> {$cache_key} = {
     content   => $content,
     timestamp => time(),
     ttl       => $ttl,
     size      => $content_size,
 };
 
-# In Protocol-7 context, would store in $data{'web.template_cache'}{$cache_key}
-# For modular testing, return the entry to be stored by caller
+## update metrics ##
+<web.metrics.templates_cached>++
+    if defined <web.metrics.templates_cached>;
+
 return {
     status    => qw| success |,
     message   => "Cached $content_size bytes with ttl=$ttl",
     stored    => 1,
-    entry     => $entry,
     cache_key => $cache_key,
     size      => $content_size,
     ttl       => $ttl,
 };
 
-#,,..,.,.,.,,,,,,,.,.,...,..,,,.,,...,,.,,..,,..,,...,.,.,.,,,,..,.,,,..,,.,,,
-#QE3Z6DLISY6ZZ2VMJXIUREKCLE7VTFFDLVHG6UIPFOC6AS42YC53PJ57MXAKSALVK6I4LFNVLSMMI
-#\\\|A7O2UTS7FQYV3WTJBTCADARK3UDRU5I25HMSXTQDLOZBOQUUW6H \ / AMOS7 \ YOURUM ::
-#\[7]VOPSSK7QMZU75KVNVOJB3WCIR5DLLMNIOOQNUQDCMKVIBEUNTCCA 7  DATA SIGNATURE ::
+#,,.,,.,.,,,,,,,.,.,.,.,.,,,,,,.,,,.,,,,.,.,,,..,,...,...,...,...,,..,.,.,.,,,
+#QZQML7OBTZFIHD7XEGLHY6XS25XYFESL532HSJGJMUY3AA6D5LTGKQQPZSREB5Z45PMDT7MKXNIDK
+#\\\|6Z5PUYVVZZ5OUP7AMQRXIKWHZXTTWSWXS6T5B5DZUZHNTOV5WCI \ / AMOS7 \ YOURUM ::
+#\[7]5IGN6M6B77VDLPWPELKIAMUW2A5VKGBBX4NBNVMZGXI25QKMAICQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

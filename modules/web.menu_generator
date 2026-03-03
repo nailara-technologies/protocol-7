@@ -10,9 +10,9 @@
 #   - Supports custom metadata from menu.yaml files
 #
 # Parameters:
-#   $_[0] - Vhost name (e.g., "127.0.0.1")
-#   $_[1] - Menu context/level (e.g., "main", "sidebar", or specific path)
-#   $_[2] - Optional: base path (default: "/")
+#   $ARG[0] - Vhost name (e.g., "127.0.0.1")
+#   $ARG[1] - Menu context/level (e.g., "main", "sidebar", or specific path)
+#   $ARG[2] - Optional: base path (default: "/")
 #
 # Returns:
 #   Array reference of menu items with structure:
@@ -49,14 +49,10 @@ unless ( -d $vhost_root ) {
     return [];
 }
 
-## Initialize caching if needed ##
-unless ( exists $data{'menu_cache'} ) {
-    $data{'menu_cache'} = {};
-}
-
+## check cache ##
 my $cache_key = "$vhost:$menu_context:$base_path";
-if ( exists $data{'menu_cache'}->{$cache_key} ) {
-    return $data{'menu_cache'}->{$cache_key};
+if ( exists <web.menu_cache>->{$cache_key} ) {
+    return <web.menu_cache>->{$cache_key};
 }
 
 <[base.log]>->(
@@ -157,8 +153,8 @@ foreach my $entry ( sort @dir_contents ) {
     $order_a <=> $order_b or $a->{'label'} cmp $b->{'label'};
 } @menu_items;
 
-## Cache the result ##
-$data{'menu_cache'}->{$cache_key} = \@menu_items;
+## cache the result ##
+<web.menu_cache>->{$cache_key} = \@menu_items;
 
 <[base.log]>->(
     2, "menu_generator: generated " . scalar(@menu_items) . " menu items"
@@ -166,8 +162,8 @@ $data{'menu_cache'}->{$cache_key} = \@menu_items;
 
 return \@menu_items;
 
-#,,,.,..,,,.,,..,,..,,.,.,...,..,,.,.,..,,...,..,,...,..,,..,,.,.,.,,,.,,,...,
-#HD2PSYMEB5KUMJSVXC2Z543OYUUJETI5KFOY2SUFVOAELF2YTU4Q4G2C2HCBSJLXCQR2PGBZKJB6Y
-#\\\|V5HRCHVHVTLJOR7D6BMSE3X3DK74PX77ZNVJPURNONQT7RWGXFK \ / AMOS7 \ YOURUM ::
-#\[7]B6BKHJNWC2YWEJDRPK4SSDFOHCJPYK6CIN7HXKGTL7IJBJI7QEBA 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,.,,.,,.,.,.,.,,.,,.,,,...,,..,..,,...,...,,.,,,,.,,.,,,.,,.,,,
+#5J5VTUCUEUN3M6KAVCUZYWYP55DDDLQNK3G66FWLTZOPJOJLRHP2ETC3ZPQ555SYV5EXRS4JHYAGI
+#\\\|F2BMXAEJK22NIMT4H4XWRP6MIN72PR7GTBGOS6U5YV3QVPBHWKZ \ / AMOS7 \ YOURUM ::
+#\[7]PKKKAUNG6H7WQGKE5C57EPPNHIHDN6VREP5TMGZAWNGN3RLJCSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
