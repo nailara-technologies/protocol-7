@@ -22,6 +22,13 @@
 <web.cfg.template_max_size>     //= 1024 * 1024 * 5;    ## 5MB max template
 <web.cfg.parallel_commands_max> //= 16;
 
+## ensure content and skins directories exist with correct permissions ##
+my $web_user  = <system.amos-zenka-user>  // $ENV{'USER'} // qw| root |;
+my $web_group = <system.amos-zenka-group> // $web_user;
+
+<[file.make_path]>->( <web.cfg.base_dir>,  0750, $web_user, $web_group );
+<[file.make_path]>->( <web.cfg.skins_dir>, 0750, $web_user, $web_group );
+
 # Template command pattern for base.parser.pattern_split
 # Matches: <[command.name:param1:param2]>
 # Also matches nested: <[outer:<[inner]>]>
@@ -37,6 +44,10 @@
 <web.commands.pending>   = {};
 <web.commands.completed> = 0;
 <web.commands.failed>    = 0;
+
+## runtime caches [ skin and menu resolution ] ##
+<web.skin_cache> //= {};
+<web.menu_cache> //= {};
 
 # Performance metrics
 <web.metrics> = {
@@ -104,8 +115,8 @@ if (<[web.assets.load_registry]>) {
 
 0;
 
-#,,.,,.,,,.,.,,..,.,.,,,,,.,.,,,.,.,,,,.,,,..,..,,...,...,,..,...,,.,,,..,.,.,
-#LHEX6M6XZKXBA5OHNWK3GIGEBV2P2XJABWRBWEWCKFO7A5BQOQLXNMSQWNDTEK3LN7DA6SRAOMPS4
-#\\\|KIQGQXLGN7CW46T5O3QLOL4SJMAKGEGW3AVWSZMHU6VLAS4JQ6B \ / AMOS7 \ YOURUM ::
-#\[7]S754LP5FVYP7IFL75WE7IWOAN3EUSYMWDDNYFOJ5MJAFH7MQMECA 7  DATA SIGNATURE ::
+#,,,,,,,.,...,.,.,.,.,..,,,..,,.,,.,,,,,,,..,,..,,...,...,,.,,.,.,,,,,,.,,.,,,
+#JVZMTUKFABOM3ORCVMFZVABMDUVLYFRQXY3R7RWYNGJA2GJRCGYZFVUHSNPBCKDYAWMWYJSOZ2PRO
+#\\\|MZPYFF24AG7GGYTUH75HX66EBH3L7IWLHCYKYGANXVL6EKMMDVK \ / AMOS7 \ YOURUM ::
+#\[7]57V6NBCOTE6YBT7P7BEINBJ57PCS3L6UJVLPBZLCXPKZYQCJJGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

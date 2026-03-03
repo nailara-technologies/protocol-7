@@ -5,15 +5,15 @@
 # note : return 2 to close connection
 
 ## mark session as https for response generation [ HSTS headers, scheme ]
-my $id = $_[0]->w->data;
+my $id = $ARG[0]->w->data;
 $data{'session'}->{$id}->{'is_https'} = TRUE
     if defined $data{'session'}->{$id};
 
 ## delegate to standard http request handler [ TLS is transparent ]
-return <[httpd.request_handler]>->( $_[0] );
+return <[httpd.request_handler]>->( $ARG[0] );
 
-#,,..,.,,,,,.,,,,,,.,,,.,,,,.,,.,,,,,,.,,,,.,,..,,...,.,.,.,.,..,,.,.,,,.,.,.,
-#Z7TQ6RJZ4X36UAL4UHXNFOX5GWADZD2UCZTIXD3D44BBJHPLYYANV6PLKQHXXIWLGXWDWJ33RIE3U
-#\\\|FYNVND5CMJE2WSF2T2AJJQFKQVWRLSV4CZD6LPUCBX2DJHYPQ42 \ / AMOS7 \ YOURUM ::
-#\[7]H3OXAWPHEGXCEOGMJIFUBZHP3GXC4KM2BWJVAQFOFIIFVIE2FWBA 7  DATA SIGNATURE ::
+#,,..,...,.,.,.,,,...,,,.,.,.,.,.,...,.,,,...,..,,...,...,.,,,.,.,...,...,.,,,
+#CRYP4C3LTPU6VWI7BNVWGE6AYAD26WIYWEBNBIITLBJVNMEHDBDDIXWZO3MLBCDFPQH56A3TS73GU
+#\\\|5A5ZX3WCRCGRGQSUVOJTYTRUSD262CSAB4Z6PZ4SGDLNJ4TPEKT \ / AMOS7 \ YOURUM ::
+#\[7]23EIKMPR5H2S3G7LKI7VFEBOWYTMQ5Y5H3D4S4C4CL234LMQ26AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
