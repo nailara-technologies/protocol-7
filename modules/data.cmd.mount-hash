@@ -2,11 +2,13 @@
 
 # name  = data.cmd.mount-hash
 # param = <hash-path> [local-path]
-# descr = mount nested data hash as filesystem
+# descr = mount nested data hash as FUSE filesystem
 
-my $hash_path = $$call{'args'} // '';
-$hash_path =~ s|^\s+||;
-$hash_path =~ s|\s+$||;
+my $args = $$call{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+
+my ( $hash_path, $local_path ) = split( / +/, $args, 2 );
 
 return {
     'mode' => qw| false |,
@@ -23,51 +25,63 @@ return {
     }
     unless defined $ref;
 
-## determine reference type ##
-my $ref_type = <[data.get_ref_type]>->($hash_path);
+## determine local mount path ##
+if ( !defined $local_path || !length($local_path) ) {
 
-## list contents based on type ##
-my $listing = '';
-
-if ( $ref_type eq 'HASH' ) {
-    my $entries = <[data.list_entries]>->($hash_path);
-    $listing = "HASH directory with entries:\n";
-    for my $entry ( @{$entries} ) {
-        my $child_path = "$hash_path.$entry";
-        $child_path =~ s|^\.||;
-        my $child_type = <[data.get_ref_type]>->($child_path);
-        $listing .= "  [$child_type] $entry\n";
-    }
-} elsif ( $ref_type eq 'ARRAY' ) {
-    my $entries = <[data.list_entries]>->($hash_path);
-    $listing = "ARRAY listing with " . scalar( @{$entries} ) . " entries:\n";
-    for my $entry ( @{$entries} ) {
-        $listing .= "  - $entry\n";
-    }
-} elsif ( $ref_type eq 'CODE' ) {
-    $listing = "CODE reference (dynamic filter/proxy)\n";
-    ## try executing with 'info' context
-    my $info = eval { $ref->('info') };
-    if ( !$@ && defined $info ) {
-        $listing .= "  info: $info\n";
-    }
-} elsif ( $ref_type eq 'SCALAR' ) {
-    $listing = "SCALAR reference (file content)\n";
-    my $len = length( ${$ref} );
-    $listing .= "  length: $len bytes\n";
-} else {
-    $listing = "$ref_type (plain value)\n";
+    # Generate default mount path under /tmp
+    my $safe_name = $hash_path;
+    $safe_name =~ s|\\.|_|g;    # replace dots with underscores
+    $local_path = "/tmp/p7-data-$safe_name-$$";
 }
 
-## return info (actual FUSE mount to be implemented) ##
-return {
-    'mode' => qw| true |,
-    'data' => "Hash path: $hash_path\nType: $ref_type\n\n$listing\n"
-        . "[FUSE mount not yet implemented - showing structure only]"
-};
+$local_path =~ s|/+$|| if length($local_path) > 1;
 
-#,,,.,,,.,,,.,..,,...,.,,,,..,..,,,,,,,.,,,..,.,.,...,...,,,,,,,,,,.,,,,,,...,
-#3HRAHSMSNYVLQFOY2UAIBPWAVYG3I2K7VU4FMZH4UGB4VR3HWFDKYPGS6FTU7BVIZ7UB2LSCFCHA6
-#\\\|MVRK5TQFCRWVCDQQ3ZP7MZHIXMKVTDUS4LBOFLWIAHVRN6UPQ6D \ / AMOS7 \ YOURUM ::
-#\[7]NRQM5G4PS4MMNNWLGH3DQS5X7KFFNUVJ5CZF4B7PI365J7PRAQAY 7  DATA SIGNATURE ::
+## create mount directory if it doesn't exist ##
+if ( !-d $local_path ) {
+    mkdir( $local_path, 0755 )
+        or return {
+        'mode' => qw| false |,
+        'data' => "cannot create mount directory '$local_path': $!"
+        };
+}
+
+## check if FUSE is available ##
+if ( !<data.fuse.capabilities.available> ) {
+    return {
+        'mode' => qw| false |,
+        'data' =>
+            "FUSE module not available - install Fuse.pm to use mount feature"
+    };
+}
+
+## check if already mounted at this path ##
+if ( exists <data.fuse.mounts> {$local_path} ) {
+    my $existing = <data.fuse.mounts> {$local_path};
+    return {
+        'mode' => qw| false |,
+        'data' =>
+            "already mounted at $local_path (pid $existing->{'pid'}, hash: $existing->{'hash_path'})"
+    };
+}
+
+## initialize FUSE subsystem if needed ##
+if ( !<data.fuse.mounts> ) {
+    <[data.mount.fuse.init_code]>;
+}
+
+## spawn FUSE child process ##
+my $result = <[data.mount.fuse.spawn]>->( $hash_path, $local_path );
+
+# Add mount info to result
+if ( $result->{'mode'} eq 'true' ) {
+    $result->{'data'} .= "\n\nMount point: $local_path";
+    $result->{'data'} .= "\nTo unmount: fusermount -u $local_path";
+}
+
+return $result;
+
+#,,..,...,,..,,..,...,...,...,,..,.,.,..,,.,.,.,.,...,...,..,,.,.,.,,,.,.,.,,,
+#2T3LV3SNKVGIBMNPSDNOOPAITNOAMROQMGM6OXCJDUKJZUEVCSEFIPPKUQAXFYWCYAPRPEHBD43XE
+#\\\|ALERXRS6WVQQARIZQJF7DEN4XQOTNDU2TZWVO2CJXBET2D3VQRB \ / AMOS7 \ YOURUM ::
+#\[7]OSMY7KOYLEIU6P3F5PJM5WZWGWRRDMAM6V7GYDNIK42VYXY3YSBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

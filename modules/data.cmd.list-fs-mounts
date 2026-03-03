@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = data.cmd.list-fs-mounts
+# descr = list active FUSE filesystem mounts
+
+## check if FUSE subsystem is initialized ##
+if ( !<data.fuse.mounts> || !keys <data.fuse.mounts>->%* ) {
+    return {
+        'mode' => qw| true |,
+        'data' => "No active FUSE mounts"
+    };
+}
+
+## build mount listing ##
+my @lines = ( "Active FUSE mounts:", "-" x 50 );
+
+for my $mountpoint ( sort keys <data.fuse.mounts>->%* ) {
+    my $info      = <data.fuse.mounts> {$mountpoint};
+    my $pid       = $info->{'pid'}       // 'unknown';
+    my $hash_path = $info->{'hash_path'} // 'unknown';
+    my $started   = $info->{'started'}   // 0;
+
+    my $age = $started ? sprintf( "%.0fs", time() - $started ) : 'unknown';
+    my $running
+        = ( $pid && $pid =~ /^\\d+$/ && kill( 0, $pid ) )
+        ? 'running'
+        : 'exited';
+
+    push @lines, "Mount:    $mountpoint";
+    push @lines, "  Source: $hash_path";
+    push @lines, "  PID:    $pid ($running, age: $age)";
+    push @lines, "";
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => join( "\n", @lines )
+};
+
+#,,,.,..,,.,.,.,,,,.,,.,.,...,.,.,..,,,,.,.,,,.,.,...,...,.,,,..,,,..,,..,,,.,
+#ERMXT57ELY4ZD5X5BMHZU7I26BNTUABK5D4SE4EZPTLJB5RC5AEOXA5RPNBPGDLKNJFWRMOYY3J5Y
+#\\\|5HVVEXPMXYGPETGUN7GSIZBYBXUH5TF4UXIQAWTNFXDKSMBBRF5 \ / AMOS7 \ YOURUM ::
+#\[7]LCPESSZ7TTNV2NDT7FL7QLHONWTHG3TIC7GC3LL7XSPA3H4O2ADI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

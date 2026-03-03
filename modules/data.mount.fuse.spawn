@@ -1,0 +1,232 @@
+## [:< ##
+
+# name  = data.mount.fuse.spawn
+# param = <hash_path> <mountpoint> [options]
+# descr = fork a child process and start FUSE filesystem
+# return = { mode => true/false, data => message }
+
+use Socket;
+
+my ( $hash_path, $mountpoint, $options ) = @ARG;
+
+# Validate arguments
+return {
+    'mode' => qw| false |,
+    'data' => 'expected <hash_path> and <mountpoint> arguments'
+    }
+    unless defined $hash_path and defined $mountpoint;
+
+# Ensure mountpoint exists and is a directory
+return {
+    'mode' => qw| false |,
+    'data' => "mountpoint '$mountpoint' does not exist or is not a directory"
+    }
+    unless -d $mountpoint;
+
+# Check if FUSE module is available
+if ( !<data.fuse.capabilities.available> ) {
+    return {
+        'mode' => qw| false |,
+        'data' =>
+            'FUSE module (Fuse.pm) not available - install to use mount feature'
+    };
+}
+
+# Load Fuse module on demand
+if ( !<data.fuse.load_module>->() ) {
+    return {
+        'mode' => qw| false |,
+        'data' => 'Failed to load Fuse module'
+    };
+}
+
+# Get current session for child communication
+my ($session_id) = keys <user.cube.session>->%*;
+
+<[base.log]>->( 1, "forking FUSE child for $hash_path at $mountpoint" );
+
+# Create socketpair for parent-child communication
+socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
+    || return {
+    'mode' => qw| false |,
+    'data' => "can't create socketpair: $OS_ERROR"
+    };
+
+map { binmode($ARG) } ( $child_pipe, $parent_pipe );
+map { $data{'handle'}{$ARG}{'link'} = qw| ipc.pipe | }
+    ( $child_pipe, $parent_pipe );
+
+# Store mount parameters for child
+my %mount_info = (
+    'hash_path'  => $hash_path,
+    'mountpoint' => $mountpoint,
+    'started'    => time(),
+);
+
+# Fork the child process
+my $child_pid = <[base.fork]>;
+
+if ( !$child_pid ) {    ## CHILD PROCESS ##
+    close($child_pipe);
+
+    # Reinit IO::AIO for child process
+    IO::AIO::reinit() if defined &IO::AIO::reinit;
+
+    # Null out SIGCHLD handler - child doesn't need it
+    <[event.add_signal]>->( { 'signal' => 'CHLD', 'handler' => 'dev.null' } );
+
+    # Update process name
+    my $subname = <system.zenka.subname>;
+    my $sn_str  = defined $subname ? ':' . $subname : '';
+    <system.zenka.subname> = sprintf 'fuse-child%s', $sn_str;
+    $PROGRAM_NAME = sprintf '%s[fuse%s]', <system.zenka.name>, $sn_str;
+
+    # Silence child shutdown logging
+    <callback.session.closing_last.params>->[1] = 1;
+    $data{'session'}{$session_id}{'shutdown'} = TRUE if defined $session_id;
+
+    # Set up logging to route through parent
+    <buffer.zenka.log_cmd> = qw| p7-log.append |;
+
+    # Remove parent-only access entries
+    delete <access.cmd.usr.cube>;
+    delete <access.cmd.regex.usr.cube>;
+
+    # Set up session for parent communication
+    $data{'handle'}{$parent_pipe}{'mode'} = qw| out |;
+    unshift <protocol-7.network.parent_route>->@*, qw| parent |;
+
+    my $id = <[base.session.init]>->(
+        $parent_pipe, qw| protocol-7 client parent |
+    );
+
+    $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
+
+    # Initialize FUSE-specific data structures in child
+    <data.fuse.current_mount>  = \\%mount_info;
+    <data.fuse.root_hash_path> = $hash_path;
+
+    <[base.log]>->( 2, "FUSE child starting: $hash_path -> $mountpoint" );
+
+    # Prepare FUSE callbacks with proper path resolution
+    # The key insight: FUSE paths are relative to the mountpoint,
+    # so we need to prepend the root hash_path for resolution
+
+    my $cb_getattr = sub {
+        my $fuse_path = shift;
+
+        # Convert FUSE path (e.g., /uploads/documents) to full hash path
+        # by combining with root hash path (e.g., user.taeki.files)
+        my $full_hash_path;
+        if ( $fuse_path eq '/' ) {
+            $full_hash_path = $hash_path;
+        } else {
+
+            # Remove leading / and convert / to .
+            ( my $rel_path = $fuse_path ) =~ s|^/||;
+            $rel_path =~ s|/|.|g;
+            $full_hash_path = "$hash_path.$rel_path";
+        }
+
+        # Resolve the full path to check existence and type
+        my $ref = <[data.resolve_hash_path]>->($full_hash_path);
+        return ( -ENOENT() ) unless defined $ref;
+
+        # Now call the actual getattr with proper context
+        return <[data.mount.fuse.getattr]>->($fuse_path);
+    };
+
+    my $cb_readdir = sub {
+        my $fuse_path = shift;
+        return <[data.mount.fuse.readdir]>->($fuse_path);
+    };
+
+    my $cb_read = sub {
+        my ( $fuse_path, $size, $offset ) = @ARG;
+        return <[data.mount.fuse.read]>->( $fuse_path, $size, $offset );
+    };
+
+    my $cb_open = sub {
+        my ( $fuse_path, $flags ) = @ARG;
+        return <[data.mount.fuse.open]>->( $fuse_path, $flags );
+    };
+
+    my $cb_release = sub {
+        my ( $fuse_path, $flags ) = @ARG;
+        return <[data.mount.fuse.release]>->( $fuse_path, $flags );
+    };
+
+    my $cb_statfs = sub {
+        my $fuse_path = shift;
+        return <[data.mount.fuse.statfs]>->($fuse_path);
+    };
+
+    # Start FUSE main loop
+    <[base.log]>->( 2, "Entering FUSE main loop for $mountpoint" );
+
+    eval {
+        Fuse::main(
+            'mountpoint' => $mountpoint,
+            'getattr'    => $cb_getattr,
+            'readdir'    => $cb_readdir,
+            'read'       => $cb_read,
+            'open'       => $cb_open,
+            'release'    => $cb_release,
+            'statfs'     => $cb_statfs,
+            'debug'      => 0,
+            'threaded'   => 0,
+        );
+    };
+
+    if ($@) {
+        <[base.log]>->( 0, "FUSE main loop error: $@" );
+    }
+
+    <[base.log]>->( 2, "FUSE child exiting for $mountpoint" );
+    exit(0);
+
+} else {    ## PARENT PROCESS ##
+    close($parent_pipe);
+
+    # Remove child-only access entries
+    delete <access.cmd.usr.parent>;
+    delete <access.cmd.regex.usr.parent>;
+
+    # Set up session for child communication
+    $data{'handle'}{$child_pipe}{'mode'} = qw| out |;
+    my $id = <[base.session.init]>
+        ->( $child_pipe, qw| protocol-7 client child | );
+
+    $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
+    $data{'session'}{$id}{'authenticated'} = qw| yes |;
+
+    # Authenticate cube session
+    $data{'session'}{$session_id}{'authenticated'} = qw| yes |
+        if defined $session_id;
+
+    # Register mount in parent registry
+    <data.fuse.mounts> {$mountpoint} = {
+        'pid'        => $child_pid,
+        'hash_path'  => $hash_path,
+        'session_id' => $id,
+        'started'    => time(),
+    };
+
+    push <data.fuse.child_pids>->@*, $child_pid;
+
+    <[base.log]>->(
+        2, "FUSE mount registered: $hash_path at $mountpoint (pid $child_pid)"
+    );
+
+    return {
+        'mode' => qw| true |,
+        'data' =>
+            "FUSE mount started: $hash_path at $mountpoint (pid $child_pid)"
+    };
+}
+
+#,,,,,.,,,..,,,,,,,,.,,,,,.,.,.,,,...,.,.,,,.,.,.,...,.,.,.,.,,.,,,,.,,..,...,
+#2N2YW6BQLTH6S2W7QPSTF4HRUJNZQIT3KVWJF22BZXBA4XJNG5MIGQBCWOS6M4YHWO55HIATSWPWM
+#\\\|LLD5QUFV5E6WSDJFHX5SNO4EZEX77TP6ZCQJIONGLLXLFRX4JPW \ / AMOS7 \ YOURUM ::
+#\[7]U5CYJMWXLV2A6NOJDBBFBTO5FWKKACYYSOZ27JA3EY6PWVHKDKDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

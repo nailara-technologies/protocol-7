@@ -1,0 +1,160 @@
+## [:< ##
+
+# name  = data.mount.fuse.getattr
+# param = <fuse_path>
+# descr = FUSE getattr callback - return file/directory attributes
+# return = list: (dev, ino, mode, nlink, uid, gid, rdev, size,
+#                 atime, mtime, ctime, blksize, blocks)
+
+my $fuse_path = shift // return ( -ENOENT() );
+
+# Handle root path
+return (
+    0,                             # dev
+    1,                             # ino
+    <data.fuse.const.MODE_DIR>,    # mode (directory)
+    1,                             # nlink
+    $<,                            # uid
+    $(,                            # gid
+    0,                             # rdev
+    4096,                          # size
+    time(),                        # atime
+    time(),                        # mtime
+    time(),                        # ctime
+    4096,                          # blksize
+    8,                             # blocks
+) if $fuse_path eq '/';
+
+# Translate FUSE path to relative hash path
+my $rel_hash_path = $fuse_path;
+$rel_hash_path =~ s|^/||;     # Remove leading /
+$rel_hash_path =~ s|/|.|g;    # Convert / to .
+
+# Combine with root hash path if set (in FUSE child context)
+my $full_hash_path;
+if ( defined <data.fuse.root_hash_path> ) {
+    if ( length($rel_hash_path) ) {
+        $full_hash_path = <data.fuse.root_hash_path> . '.' . $rel_hash_path;
+    } else {
+        $full_hash_path = <data.fuse.root_hash_path>;
+    }
+} else {
+    $full_hash_path = $rel_hash_path;
+}
+
+# Resolve the hash path
+my $ref = <[data.resolve_hash_path]>->($full_hash_path);
+
+# Path not found
+return ( -ENOENT() ) unless defined $ref;
+
+my $now = time();
+
+# Determine type and attributes based on reference type
+if ( ref($ref) eq 'HASH' ) {
+
+    # Directory from HASH
+    my $nlink = 2 + scalar( keys %{$ref} );    # . + .. + entries
+    return (
+        0,                                     # dev
+        2,                                     # ino (simplified)
+        <data.fuse.const.MODE_DIR>,            # mode (directory)
+        $nlink,                                # nlink
+        $<,                                    # uid
+        $(,                                    # gid
+        0,                                     # rdev
+        4096,                                  # size
+        $now,                                  # atime
+        $now,                                  # mtime
+        $now,                                  # ctime
+        4096,                                  # blksize
+        8,                                     # blocks
+    );
+} elsif ( ref($ref) eq 'ARRAY' ) {
+
+    # Directory from ARRAY (listing)
+    my $nlink = 2 + scalar( @{$ref} );         # . + .. + entries
+    return (
+        0,                                     # dev
+        3,                                     # ino (simplified)
+        <data.fuse.const.MODE_DIR>,            # mode (directory)
+        $nlink,                                # nlink
+        $<,                                    # uid
+        $(,                                    # gid
+        0,                                     # rdev
+        4096,                                  # size
+        $now,                                  # atime
+        $now,                                  # mtime
+        $now,                                  # ctime
+        4096,                                  # blksize
+        8,                                     # blocks
+    );
+} elsif ( ref($ref) eq 'SCALAR' ) {
+
+    # Regular file from SCALAR ref
+    my $content = ${$ref} // '';
+    my $size    = length($content);
+    my $blocks  = int( $size / 512 ) + ( $size % 512 ? 1 : 0 );
+
+    return (
+        0,                                     # dev
+        4,                                     # ino (simplified)
+        <data.fuse.const.MODE_FILE>,           # mode (regular file)
+        1,                                     # nlink
+        $<,                                    # uid
+        $(,                                    # gid
+        0,                                     # rdev
+        $size,                                 # size
+        $now,                                  # atime
+        $now,                                  # mtime
+        $now,                                  # ctime
+        4096,                                  # blksize
+        $blocks || 1,                          # blocks
+    );
+} elsif ( ref($ref) eq 'CODE' ) {
+
+    # CODE refs appear as directories (dynamic)
+    return (
+        0,                                     # dev
+        5,                                     # ino (simplified)
+        <data.fuse.const.MODE_DIR>,            # mode (directory)
+        2,                                     # nlink
+        $<,                                    # uid
+        $(,                                    # gid
+        0,                                     # rdev
+        4096,                                  # size
+        $now,                                  # atime
+        $now,                                  # mtime
+        $now,                                  # ctime
+        4096,                                  # blksize
+        8,                                     # blocks
+    );
+} else {
+
+    # Plain scalar or other - treat as file
+    my $content = defined $ref ? "$ref" : '';
+    my $size    = length($content);
+    my $blocks  = int( $size / 512 ) + ( $size % 512 ? 1 : 0 );
+
+    return (
+        0,                                     # dev
+        6,                                     # ino (simplified)
+        <data.fuse.const.MODE_FILE>,           # mode (regular file)
+        1,                                     # nlink
+        $<,                                    # uid
+        $(,                                    # gid
+        0,                                     # rdev
+        $size,                                 # size
+        $now,                                  # atime
+        $now,                                  # mtime
+        $now,                                  # ctime
+        4096,                                  # blksize
+        $blocks || 1,                          # blocks
+    );
+}
+
+#,,..,..,,...,,.,,,..,,,.,.,.,.,.,.,.,,..,,,.,.,.,...,..,,...,,..,,,.,,,,,,.,,
+#2POGT2BAMMMQ4RWMNX2TRAMBBLJUXIWFUM5WBJQ3RYRAACPZ47CVB7AKELD3EZJZFAUQHDARDPAJG
+#\\\|VPCJFEC5RJKEM5W5N4I4YGXRTINP5IWMDD5ENWDMYK4NEVKDWK2 \ / AMOS7 \ YOURUM ::
+#\[7]SGBBPEQMXW2LS6BCWRXSPOHVQQNB3NBDOMIBQ5QCDH5RBLY6REAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
