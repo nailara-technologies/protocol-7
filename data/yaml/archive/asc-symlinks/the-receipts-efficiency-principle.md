@@ -1,0 +1,1 @@
+../../../asc/what-AI-thinks/markdown-form/protocol7/theory/the-receipts-efficiency-principle.md

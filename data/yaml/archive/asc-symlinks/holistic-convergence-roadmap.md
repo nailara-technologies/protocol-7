@@ -1,0 +1,1 @@
+../../../asc/what-AI-thinks/markdown-form/protocol7/architecture/holistic-convergence-roadmap.md

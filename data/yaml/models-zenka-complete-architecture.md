@@ -1,1 +1,0 @@
-../asc/what-AI-thinks/markdown-form/protocol7/architecture/models-zenka-complete-architecture.md
