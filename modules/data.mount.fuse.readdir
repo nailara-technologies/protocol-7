@@ -1,0 +1,76 @@
+## [:< ##
+
+# name  = data.mount.fuse.readdir
+# param = <fuse_path>
+# descr = FUSE readdir callback - return directory entries
+# return = list of filenames (or entries for Fuse::Simple)
+
+my $fuse_path = shift // return ();
+
+# Translate FUSE path to relative hash path
+my $rel_hash_path = $fuse_path;
+$rel_hash_path =~ s|^/||;     # Remove leading /
+$rel_hash_path =~ s|/|.|g;    # Convert / to .
+
+# Combine with root hash path if set (in FUSE child context)
+my $full_hash_path;
+if ( defined <data.fuse.root_hash_path> ) {
+    if ( length($rel_hash_path) ) {
+        $full_hash_path = <data.fuse.root_hash_path> . '.' . $rel_hash_path;
+    } else {
+        $full_hash_path = <data.fuse.root_hash_path>;
+    }
+} else {
+    $full_hash_path = $rel_hash_path;
+}
+
+# Resolve the hash path
+my $ref = <[data.resolve_hash_path]>->($full_hash_path);
+
+# Return empty if not found or not traversable
+return () unless defined $ref;
+
+my @entries = ( '.', '..' );    # Standard directory entries
+
+# Handle different reference types
+if ( ref($ref) eq 'HASH' ) {
+
+    # HASH: keys become directory entries
+    push @entries, sort keys %{$ref};
+} elsif ( ref($ref) eq 'ARRAY' ) {
+
+    # ARRAY: each element's 'name' field becomes entry
+    for my $i ( 0 .. $#{$ref} ) {
+        my $entry = $ref->[$i];
+        if ( ref($entry) eq 'HASH' && exists $entry->{'name'} ) {
+            push @entries, $entry->{'name'};
+        } else {
+
+            # Use index as name for unnamed entries
+            push @entries, "entry_$i";
+        }
+    }
+} elsif ( ref($ref) eq 'CODE' ) {
+
+    # CODE: execute with 'list' context and process result
+    my $result = eval { $ref->('list') };
+    if ( !$@ && defined $result ) {
+        if ( ref($result) eq 'HASH' ) {
+            push @entries, sort keys %{$result};
+        } elsif ( ref($result) eq 'ARRAY' ) {
+            for my $entry ( @{$result} ) {
+                if ( ref($entry) eq 'HASH' && exists $entry->{'name'} ) {
+                    push @entries, $entry->{'name'};
+                }
+            }
+        }
+    }
+}
+
+return @entries;
+
+#,,,,,...,...,.,.,.,,,.,.,..,,.,,,,.,,.,.,,,.,.,.,...,...,,,,,...,,..,...,.,.,
+#5ZEXI34Q6T67C3BSMIRWWI6A2KJDD6XZDDTMDBYIWWUMEXHJH3S3PHOPSLGYQUF5MGS5OGQHSS3MM
+#\\\|6L4BPYQQ26FIPAM3SN5Z5BACMTPXTLUTRNU3U3Y5R2VYEB4ZMM4 \ / AMOS7 \ YOURUM ::
+#\[7]4P2SF4K77YKFNGSH2VGCZDTTHQV64M6WW2LJOZCPYOXRHQB5TKBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

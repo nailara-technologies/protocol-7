@@ -6,6 +6,9 @@
     my $coord = shift;
     my ( $x, $y, $z ) = @$coord;
 
+    my $subcubes_per_group
+        = <[data.topology.interference.map.SUBCUBES_PER_GROUP]>;
+
     # Determine which of 8 outer cubes (0-7)
     my $outer_cube = ( ( $x > 6 ) ? 4 : 0 ) | ( ( $y > 6 ) ? 2 : 0 )
         | ( ( $z > 6 ) ? 1 : 0 );
@@ -19,10 +22,10 @@
     my $missing_corner = ( $sx == 0 && $sy == 0 && $sz == 0 ) ? 1 : 0;
     my $sub_index      = $sx + $sy * 4 + $sz * 16 - $missing_corner;
 
-    return $outer_cube * SUBCUBES_PER_GROUP + $sub_index;
+    return $outer_cube * $subcubes_per_group + $sub_index;
 
-#,,,,,.,,,.,.,,..,.,,,,.,,..,,,..,...,...,,.,,.,.,...,...,.,,,.,,,..,,.,.,,,,,
-#GLTGRWAGROCFTCN6V3YKHRN6GZMKE3RYO4BAKTVVGJFDG7QRFAH7KNTUNB5WYXNGEDDEOUWPYLUOO
-#\\\|CXFGPUB347LFZLYAETCURDSXIP3F5QBSBFBEBQGZCGYKJ3TOQ52 \ / AMOS7 \ YOURUM ::
-#\[7]GBXJIBNMF6F4PHUAGA4JWAHW6EILBI4EICX42ALCQ7MOJRMTDUAA 7  DATA SIGNATURE ::
+#,,,.,...,,.,,.,.,,.,,...,,.,,.,,,.,.,,..,,,,,.,.,...,.,.,...,,,.,.,,,,,,,,..,
+#FLCTGA7MGNMZEWSEXXGHH5RGA3MYMS3OAZUIMRH67ZVP3UQYKTPOOLXOWD44YEJ25JTTKNHSKUFAM
+#\\\|ARXT2PSVK5AXSE62PRLV4PPPH2ZY7HC7E3SPQSVSW6LAGVAAPBY \ / AMOS7 \ YOURUM ::
+#\[7]NFOZB4YGLY7AOBWU6JA34KHTSAIPFFKKBRONIDKJCEI262NAEQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

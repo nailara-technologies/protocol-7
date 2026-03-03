@@ -2,7 +2,7 @@
 
 # name  = data.cmd.attach-fs-mount
 # param = <hash-path> <local-dir>
-# descr = export hash structure to real filesystem directory
+# descr = mount hash structure as FUSE filesystem at local directory
 
 my ( $hash_path, $local_dir ) = split( / +/, $$call{'args'} // '', 2 );
 
@@ -35,78 +35,37 @@ return {
     }
     unless defined $ref;
 
-## recursive export function ##
-my $export_count = 0;
+## check if FUSE is available ##
+if ( !<data.fuse.capabilities.available> ) {
+    return {
+        'mode' => qw| false |,
+        'data' =>
+            "FUSE module not available - install Fuse.pm to use mount feature"
+    };
+}
 
-my $export_ref;
-$export_ref = sub {
-    my ( $ref, $dir_path ) = @ARG;
+## check if already mounted at this path ##
+if ( exists <data.fuse.mounts> {$local_dir} ) {
+    my $existing = <data.fuse.mounts> {$local_dir};
+    return {
+        'mode' => qw| false |,
+        'data' =>
+            "already mounted at $local_dir (pid $existing->{'pid'}, hash: $existing->{'hash_path'})"
+    };
+}
 
-    if ( ref($ref) eq 'HASH' ) {
-        ## create directory
-        mkdir( $dir_path, 0755 ) unless -d $dir_path;
+## initialize FUSE subsystem if needed ##
+if ( !<data.fuse.mounts> ) {
+    <[data.mount.fuse.init_code]>;
+}
 
-        ## recurse into each entry
-        for my $key ( keys %{$ref} ) {
-            my $child_ref  = $ref->{$key};
-            my $child_path = "$dir_path/$key";
+## spawn FUSE child process ##
+my $result = <[data.mount.fuse.spawn]>->( $hash_path, $local_dir );
 
-            if ( ref($child_ref) ) {
-                $export_ref->( $child_ref, $child_path );
-            } else {
-                ## plain scalar - create file
-                open( my $fh, '>', $child_path ) or next;
-                print $fh $child_ref;
-                close($fh);
-                $export_count++;
-            }
-        }
-    } elsif ( ref($ref) eq 'ARRAY' ) {
-        ## create directory for array
-        mkdir( $dir_path, 0755 ) unless -d $dir_path;
+return $result;
 
-        ## each entry becomes a file
-        for my $entry ( @{$ref} ) {
-            next unless ref($entry) eq 'HASH';
-            my $name        = $entry->{'name'} // 'unnamed';
-            my $content_ref = $entry->{'content'};
-            my $file_path   = "$dir_path/$name";
-
-            if ( ref($content_ref) eq 'SCALAR' ) {
-                open( my $fh, '>', $file_path ) or next;
-                print $fh ${$content_ref};
-                close($fh);
-                $export_count++;
-            }
-        }
-    } elsif ( ref($ref) eq 'SCALAR' ) {
-        ## single file
-        open( my $fh, '>', $dir_path ) or return;
-        print $fh ${$ref};
-        close($fh);
-        $export_count++;
-    } elsif ( ref($ref) eq 'CODE' ) {
-        ## execute and export result
-        my $result = eval { $ref->('export') };
-        return                              if $@;
-        $export_ref->( $result, $dir_path ) if ref($result);
-    }
-};
-
-## do export ##
-my $target_dir = "$local_dir/" . ( $hash_path =~ s|\.|-|gr );
-$export_ref->( $ref, $target_dir );
-
-## clean up recursion ref ##
-undef $export_ref;
-
-return {
-    'mode' => qw| true |,
-    'data' => "Exported $export_count files/directories to $target_dir"
-};
-
-#,,.,,.,,,.,,,...,...,.,.,,.,,.,,,,.,,..,,,,.,.,.,...,...,,..,.,.,,.,,.,,,,,,,
-#OI4CVV7P3OPKT2D5WDQDNGMRBDQAXTQVDMFEGMHMMJARJTVZDOIQFNLRFFU5PORKD5LRMRQFKDPRW
-#\\\|PTLW27VM2BRXYNSIB5JUMUP5W7UNTNYLSU57EG2ZVJWC4WBSQRB \ / AMOS7 \ YOURUM ::
-#\[7]K32U2WRJBA4XRDZPVLATEHFTBNBGHOGNEXP433MGSTUTK7KEKCDI 7  DATA SIGNATURE ::
+#,,.,,,..,...,,.,,.,,,,..,,.,,,.,,,,,,.,.,..,,.,.,...,...,,..,...,,..,,..,,.,,
+#VWOHIW6226FWWA5IGLJAXMFZFWNS3HZE42HYMWCGOSA7TOE6VLVRHEKMQC5AG7EH7ZQBSL4IJ4ZMG
+#\\\|ENNYA2XWDZ6DGEVWUFNRDCAQWT7XBHLCVVHP6V6HWRQH45MED7O \ / AMOS7 \ YOURUM ::
+#\[7]GFPCLVHBRF6NZEC7SDG77KQGKFDUL56PCA5PD2IHGJW6WJQ6O2AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

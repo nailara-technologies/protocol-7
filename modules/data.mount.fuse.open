@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = data.mount.fuse.open
+# param = <fuse_path> <file_info_flags>
+# descr = FUSE open callback - validate file access
+# return = 0 on success, -EACCES or -ENOENT on error
+
+my ( $fuse_path, $flags ) = @ARG;
+
+$fuse_path //= '';
+$flags     //= 0;
+
+# Translate FUSE path to relative hash path
+my $rel_hash_path = $fuse_path;
+$rel_hash_path =~ s|^/||;     # Remove leading /
+$rel_hash_path =~ s|/|.|g;    # Convert / to .
+
+# Combine with root hash path if set (in FUSE child context)
+my $full_hash_path;
+if ( defined <data.fuse.root_hash_path> ) {
+    if ( length($rel_hash_path) ) {
+        $full_hash_path = <data.fuse.root_hash_path> . '.' . $rel_hash_path;
+    } else {
+        $full_hash_path = <data.fuse.root_hash_path>;
+    }
+} else {
+    $full_hash_path = $rel_hash_path;
+}
+
+# Resolve the hash path
+my $ref = <[data.resolve_hash_path]>->($full_hash_path);
+
+# Return ENOENT if path doesn't exist
+return -ENOENT() unless defined $ref;
+
+# Check permissions via data.get.check_permissions if available
+# For now, allow all access to local data (permissions handled at higher level)
+
+# Return EACCES if trying to write to a read-only reference
+if ( ( $flags & O_WRONLY ) || ( $flags & O_RDWR ) ) {
+
+    # Check if this is a SCALAR ref (writable) or other type
+    if ( ref($ref) eq 'HASH' || ref($ref) eq 'ARRAY' ) {
+
+        # Can't write to directories
+        return -EISDIR();
+    }
+}
+
+# Success
+return 0;
+
+#,,,.,...,...,,,,,,..,.,.,..,,,.,,,,,,.,.,,,.,.,.,...,...,...,...,,..,,,.,...,
+#JQTQUCQT3733L3KGFCAFUWESDLEU5WR4FDUSBSFKAU7ZJ6XLW7CIECT3IMNGVLV5A6OVQWCO5LHBK
+#\\\|3COCIVEJAY5JIRRH5GRTUWQTERAYR2MTV72I5EED7H6TTORUUNA \ / AMOS7 \ YOURUM ::
+#\[7]C5QWFXF242B6NTQ5KJ7W7DXP7LOD4HX3M4EV7Z4Q7WXE2HM3WKBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

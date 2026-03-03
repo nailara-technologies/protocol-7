@@ -1,10 +1,78 @@
 ## [:< ##
 
 # name  = data.cmd.detach-cube
-# descr = not implemented yet.
+# param = <mountpoint>
+# descr = unmount FUSE filesystem and terminate child process
 
-#,,,,,,..,,,.,.,.,.,,,,,.,,,,,,,.,,..,,,,,...,..,,...,..,,,..,...,.,.,.,,,,,.,
-#IJBBJ4BJ43EZ35LGFYYNOBSYPS3UAGFTJ7RGW2W6PZZITY3O25BESXVPWYNPY6UPCF2GJ5ED5GI4M
-#\\\|F4WONILDOZ7QN67FC57OM76BRKMSSOO44JJ54AN3GRKGZMPNRJY \ / AMOS7 \ YOURUM ::
-#\[7]47PUWJA5OPIUBGVC62ZMA5EF63DLTGWQZPHN3VJRQJCVMZAXYOCA 7  DATA SIGNATURE ::
+my $mountpoint = $$call{'args'} // '';
+$mountpoint =~ s|^\s+||;
+$mountpoint =~ s|\s+$||;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected <mountpoint> argument'
+    }
+    unless length($mountpoint);
+
+$mountpoint =~ s|/+$|| if length($mountpoint) > 1;
+
+## check if mount exists in registry ##
+if ( !exists <data.fuse.mounts> {$mountpoint} ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "no active mount found at '$mountpoint'"
+    };
+}
+
+my $mount_info = <data.fuse.mounts> {$mountpoint};
+my $pid        = $mount_info->{'pid'};
+
+## try graceful unmount via fusermount ##
+my $unmount_result = 0;
+my $unmount_output = '';
+
+if ( -x '/usr/bin/fusermount' || -x '/bin/fusermount' ) {
+    $unmount_output = `fusermount -u "$mountpoint" 2>&1`;
+    $unmount_result = $?;
+} elsif ( -x '/usr/bin/umount' || -x '/bin/umount' ) {
+
+    # Fallback to regular umount
+    $unmount_output = `umount "$mountpoint" 2>&1`;
+    $unmount_result = $?;
+}
+
+## kill child process if still running ##
+my $killed = 0;
+if ( defined $pid && kill( 0, $pid ) ) {
+    kill( 'TERM', $pid );
+    sleep(0.1);
+    if ( kill( 0, $pid ) ) {
+
+        # Force kill if still running
+        kill( 'KILL', $pid );
+    }
+    $killed = 1;
+}
+
+## remove from registry ##
+delete <data.fuse.mounts> {$mountpoint};
+
+## clean up child_pids array ##
+<data.fuse.child_pids> = [ grep { $_ != $pid } <data.fuse.child_pids>->@* ];
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf(
+        "Unmounted %s (pid %d)%s%s",
+        $mountpoint,
+        $pid // 'unknown',
+        $killed         ? ' - process terminated'    : '',
+        $unmount_result ? " - note: $unmount_output" : ''
+    )
+};
+
+#,,.,,,,,,...,.,,,,.,,,..,...,..,,.,,,,,,,.,.,..,,...,...,,.,,.,,,,,,,...,.,,,
+#OK4Z5APMIYWQGQ3PSSSIU4XZWO6ZNGZVS6QHIGMRXPHQ5UQCDZTMHPNUAAQXIKI465MT5R553QCLK
+#\\\|XJCC56FDIYNOKUKL62GKUTCCL5UQN4TDT25IDALKPG5OGP24QHN \ / AMOS7 \ YOURUM ::
+#\[7]F4A4TPSOCTULPJPIPSEDYMIRIZDS5V4OBINC6Q25ZNWHKNLU62DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
