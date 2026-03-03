@@ -1,0 +1,52 @@
+---
+title: HTTPSD Daily Crash Investigation
+description: |
+  httpsd crashes approximately once per day. httpd has been running stable
+  for 7+ days since the file-handle race condition fix, confirming the httpsd
+  crash is a separate, unrelated issue.
+
+priority: high
+status: investigation-required
+severity: high
+
+observed_behavior: |
+  - httpsd crashes roughly once per day (frequency ~1/24h)
+  - httpd (plain http zenka) fully stable for 7+ days — rules out shared base issue
+  - v7 restarts httpsd automatically, so service recovers
+  - exact crash trigger unknown — may be TLS/SSL layer, cert handling, or connection
+    edge case specific to httpsd
+
+context: |
+  - httpsd runs on pri.v7.ax with production Let's Encrypt cert
+  - full cert chain served (leaf + R12 via .pem) — HTTPS working correctly
+  - httpsd is based on httpd with added TLS layer (IO::Socket::SSL)
+  - letsencr integration: cert install, renewal, ACME challenge handling
+
+investigation_starting_points:
+  - check v7 restart logs around crash times for any last message before silent exit
+  - look for pattern: crash after cert renewal? after ACME challenge? after idle timeout?
+  - compare httpsd vs httpd code paths: what does httpsd do that httpd does not?
+  - check for file descriptor leak in TLS handshake or SSL_accept timeout paths
+  - look at httpsd.self_restart — does it have a triggering condition that fires daily?
+
+related_files:
+  - modules/httpsd.self_restart
+  - modules/httpsd.request_certificate_from_letsencr
+  - modules/httpsd.handler.acme_request
+  - modules/letsencr.parent.handler_renewal_check
+  - configuration/zenki/httpsd/start
+
+related_completed_task:
+  - data/yaml/archive/completed-fix-tasks/httpd-file-handle-race-condition.yaml
+
+first_step: |
+  next time httpsd crashes, capture the v7 log window around the restart event
+  and check if there is any last message from httpsd before v7 triggers the restart.
+  also check if the crash time correlates with any scheduled event (renewal check timer,
+  heartbeat timeout, etc.)
+
+#,,,,,...,...,,,.,..,,,,,,,..,.,,,.,.,.,,,,,,,..,,...,...,.,,,.,.,,.,,.,.,,,,,
+#G4LQHKPXRWRY5MJPQH55ULW74XHPDO7WNCAD2FLS6ZZEDAUPZSE65IJTE6TEHQSGIVW6WHJ4QCLMS
+#\\\|IH3SKVDZCQSPVF7AIKVIP7GD6QF7K4H6Q32KL5MGVO7WTDVFC6G \ / AMOS7 \ YOURUM ::
+#\[7]72DLT27QSO6WZ74FKMLJYGGKMCJ22TGYWGJ5CTOJ66WSPX3KMOAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
