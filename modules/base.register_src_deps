@@ -13,6 +13,7 @@ my $src_deps = <[base.get_path.zenka_cfg]>;
 $src_deps =~ s|zenki/$zenka/$start_cfg_name|$cfg_path/zenki/$zenka/source|;
 
 ## skip if dependencies already registered ##
+## [ when root : fall through to fix any ownership or permission issues ] ##
 my $already_registered = TRUE;
 foreach my $src ( keys %np7_src ) {
     my $src_file = catfile( $src_deps, $src );
@@ -21,7 +22,7 @@ foreach my $src ( keys %np7_src ) {
         last;
     }
 }
-return TRUE if $already_registered;
+return TRUE if $already_registered and $EUID != 0;
 
 <[base.check_dependency_dirs]> if not -d $src_deps;
 
@@ -59,8 +60,8 @@ my $group_name  = getgrgid($gid)        // "GID:$gid";
 if ( -d $src_deps and -w $src_deps ) {
     my $src_stat = File::stat::stat($src_deps);
 
-    ## skip chmod if not running under v7 control or not running as root ##
-    my $skip_chmod = !<[base.zenka.is_v7_started]> || $EUID != 0;
+    ## skip chmod only when running standalone, not under v7 control ##
+    my $skip_chmod = !<[base.zenka.is_v7_started]>;
 
     foreach my $mod_name ( sort keys %np7_src ) {
         my $touch_file = catfile( $src_deps, $mod_name );
@@ -106,8 +107,8 @@ if ( -d $src_deps and -w $src_deps ) {
     <[base.log]>->( 2, "<< no [writable] src-deps directory found >>" );
 }
 
-#,,.,,...,..,,..,,,.,,,,,,,.,,,.,,..,,,..,..,,..,,...,...,..,,..,,,,,,,.,,,.,,
-#ZL3ARKZ3ZU6PUH3EM34B7AK233WPXZ7W6HSFTIZNWGZDQRHMIFT5INI2MGY3CDKO7CMYSCUYWD7U2
-#\\\|SPUBT5ZYZAGISM7MMW2KXJE5XB2GTPQ7Z6A3Y7PI5HVAQR2LIB2 \ / AMOS7 \ YOURUM ::
-#\[7]VC4TBKPOUOJP4KA7DR32YUBHYOBXHKLOZKXW32LIYIXRSECI4SAI 7  DATA SIGNATURE ::
+#,,..,.,.,,..,..,,,..,,.,,,,.,,..,.,,,..,,..,,..,,...,...,..,,,,,,..,,..,,,..,
+#QYA7I5SFBQK6IJJFWGCIJXXATEQCOE4D7FXL3P3SDRXJTVD25UVSXW3Z3N5XADR4BZ2L6H2QWDJQM
+#\\\|OFYATBXCQ5RWODQCA4KN6TKHTPWUUL3Z55UMIX7ZS54WQRKBUPP \ / AMOS7 \ YOURUM ::
+#\[7]JH7CX35N5OL5VB6INX6W72YXVJ5BMQXONFPGRTMIQ4P46LOPYYDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

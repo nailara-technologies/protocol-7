@@ -26,6 +26,7 @@ if ( $mod_dir
     =~ s|zenki/$zenka/$start_cfg_name|$cfg_path/zenki/$zenka/pm-dep| ) {
 
     ## skip if dependencies already registered ##
+    #[ when root : fall through to fix any ownership or permission issues ]#
     my $already_registered = TRUE;
     foreach my $pm ( keys %pmods ) {
         my $placeholder = catfile( $mod_dir, $pm );
@@ -35,7 +36,7 @@ if ( $mod_dir
             last;
         }
     }
-    return TRUE if $already_registered;
+    return TRUE if $already_registered and $EUID != 0;
 
     <[base.check_dependency_dirs]> if not -d $mod_dir;
 
@@ -67,8 +68,8 @@ if ( $mod_dir
 
     if ( -d $mod_dir and -r $mod_dir ) {
 
-        ## skip chmod if not running under v7 control or not running as root ##
-        my $skip_chmod = !<[base.zenka.is_v7_started]> || $EUID != 0;
+        ## skip chmod only when running standalone, not under v7 control ##
+        my $skip_chmod = !<[base.zenka.is_v7_started]>;
 
         foreach my $mod_name ( <[base.reverse-sort]>->( \%pmods ) ) {
             ## Convert :: to __ for Windows filesystem compatibility
@@ -122,8 +123,8 @@ if ( $mod_dir
     }
 }
 
-#,,,.,.,,,,..,,,.,,,,,,.,,,..,,,,,,..,,,,,.,.,..,,...,...,..,,,,.,.,,,.,,,,,,,
-#TD52OYWAPKVUFAUK35OBHV46VJDWLTDILJMBKYXGLMYDDNULJJ5XLWM6IVI5CC2OPOF5RDD6CWW5O
-#\\\|ZIBT2YRW3FR5RGVOODZOPDM3C2MS6LJZHAUVVJEL47HHUDLQQCL \ / AMOS7 \ YOURUM ::
-#\[7]DZWWKZ7R4FY36INLMNKTSUIGHFCBC6CTQFVDPFODGXEQ32CPWOCY 7  DATA SIGNATURE ::
+#,,,,,.,,,,.,,.,,,,,.,..,,.,,,.,.,...,,..,.,,,..,,...,...,...,.,.,,,,,..,,,,.,
+#SVHJYCUCPIQ4C3EZCKXSK3FXCZLEJGYQTZSFYQXHGBEBCHANLB3VLDZXHIHSUJ3DTCQUB357UKRMG
+#\\\|K275QC5T3JMRIZBLJKXLNRGHX5E47BEHV6PLN2QQXA4TKHXUDDI \ / AMOS7 \ YOURUM ::
+#\[7]BU5L3ZQ7LPZ57G7ZL2LHDREL3ZEYO4XS6KNOTYXSNVNJHZNCV4DY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
