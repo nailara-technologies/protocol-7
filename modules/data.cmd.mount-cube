@@ -1,10 +1,99 @@
 ## [:< ##
 
 # name  = data.cmd.mount-cube
-# descr = not implemented yet.
+# param = <cube-coords> <local-path>
+# descr = mount cubic space coordinates as FUSE filesystem
 
-#,,..,,,,,.,,,,.,,,.,,.,,,,,.,.,.,,,.,..,,.,.,..,,...,...,.,,,,.,,...,...,...,
-#WTTTSBI4B33RQEQNW3M7KMDVXGIBIENPLMTJHS2TX3YW2ISYUH35GIMPUUAUNTZ6BWCMEWO5YXHKC
-#\\\|FSMWHW2BZCS57ZTXKVRUKOMWYRHIR2H4WLGCKEMQ2XNIOHMMP54 \ / AMOS7 \ YOURUM ::
-#\[7]4FXDW2MABP33E34G5UGQLNBELONREHC7HWQCIFUXOM2S3Q2KOMAA 7  DATA SIGNATURE ::
+my ( $cube_coords, $local_path ) = split( / +/, $$call{'args'} // '', 2 );
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected <cube-coords> and <local-path> arguments'
+    }
+    unless defined $cube_coords and defined $local_path;
+
+$local_path =~ s|/+$|| if length($local_path) > 1;
+
+## validate cube coordinates format ##
+my $hash_path;
+
+if ( $cube_coords =~ m|^cubic\\.| ) {
+
+    # Direct cubic path in data hash (e.g., cubic.hosts.7-7-7)
+    $hash_path = $cube_coords;
+} elsif ( $cube_coords =~ m|^\\d{1,2}-\\d{1,2}-\\d{1,2}$| ) {
+
+    # Coordinate format (e.g., 7-7-7)
+    $hash_path = "cubic.$cube_coords";
+} else {
+    return {
+        'mode' => qw| false |,
+        'data' =>
+            "invalid cube coordinates '$cube_coords' - expected format: x-y-z (0-12) or cubic.path"
+    };
+}
+
+## validate hash path exists ##
+my $ref = <[data.resolve_hash_path]>->($hash_path);
+
+return {
+    'mode' => qw| false |,
+    'data' => "cube path '$hash_path' does not exist"
+    }
+    unless defined $ref;
+
+## create mount directory if needed ##
+if ( !-d $local_path ) {
+    mkdir( $local_path, 0755 )
+        or return {
+        'mode' => qw| false |,
+        'data' => "cannot create mount directory '$local_path': $!"
+        };
+}
+
+## check if writable ##
+return {
+    'mode' => qw| false |,
+    'data' => "directory '$local_path' is not writable"
+    }
+    unless -w $local_path;
+
+## check if FUSE is available ##
+if ( !<data.fuse.capabilities.available> ) {
+    return {
+        'mode' => qw| false |,
+        'data' =>
+            "FUSE module not available - install Fuse.pm to use mount feature"
+    };
+}
+
+## check if already mounted ##
+if ( exists <data.fuse.mounts> {$local_path} ) {
+    my $existing = <data.fuse.mounts> {$local_path};
+    return {
+        'mode' => qw| false |,
+        'data' =>
+            "already mounted at $local_path (pid $existing->{'pid'}, hash: $existing->{'hash_path'})"
+    };
+}
+
+## initialize FUSE subsystem if needed ##
+if ( !<data.fuse.mounts> ) {
+    <[data.mount.fuse.init_code]>;
+}
+
+## spawn FUSE child process ##
+my $result = <[data.mount.fuse.spawn]>->( $hash_path, $local_path );
+
+if ( $result->{'mode'} eq 'true' ) {
+    $result->{'data'} .= "\n\nCube mount: $cube_coords -> $local_path";
+    $result->{'data'} .= "\nTo unmount: fusermount -u $local_path";
+}
+
+return $result;
+
+#,,.,,.,.,..,,...,...,.,.,.,.,,.,,,,,,.,,,.,.,.,.,...,...,...,,,,,,.,,,.,,.,.,
+#P7T6G5WTDHQMJC2XMODYG5YAZ7VWV5OJ3ZOAFF4ZMMVON4OPTA44XGXROAQYQTNIZZ4YSRAKVGRXE
+#\\\|CLOF2JK6YM5FDOATKDZZW5XGXPGTJII7QKZVX3C2CJHZMCMLN7O \ / AMOS7 \ YOURUM ::
+#\[7]6Z5NBFXBUHJSPFW3FPCWJ6NBZ224UR3L7VU2FWH6MIA4DTFQPUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
