@@ -11,9 +11,9 @@
 #   4. Default fallback
 #
 # Parameters:
-#   $_[0] - Vhost name (e.g., "127.0.0.1", "example.com")
-#   $_[1] - Optional: user_prefs hash ref with { skin => "dark", ... }
-#   $_[2] - Optional: user_agent string for device detection
+#   $ARG[0] - Vhost name (e.g., "127.0.0.1", "example.com")
+#   $ARG[1] - Optional: user_prefs hash ref with { skin => "dark", ... }
+#   $ARG[2] - Optional: user_agent string for device detection
 #
 # Returns:
 #   Hash ref with resolved skin structure:
@@ -39,8 +39,7 @@ unless ( defined $vhost and length $vhost ) {
     };
 }
 
-my $site_root  = <httpd.cfg.site_dir> || '/var/httpd';
-my $skins_root = "$site_root/_global_templates/skins";
+my $skins_root = <web.cfg.skins_dir> // '/var/httpd/skins';
 
 <[base.log]>->(
     2,
@@ -48,21 +47,16 @@ my $skins_root = "$site_root/_global_templates/skins";
         . ( join ', ', keys %$user_prefs )
 );
 
-## Initialize caching if needed ##
-unless ( exists $data{'skin_cache'} ) {
-    $data{'skin_cache'} = {};
-}
-
-## Build cache key from user preferences ##
+## build cache key from user preferences ##
 my $cache_key_parts = [$vhost];
 foreach my $key ( sort keys %$user_prefs ) {
     push @$cache_key_parts, "$key=" . $user_prefs->{$key};
 }
 my $cache_key = join( ':', @$cache_key_parts );
 
-if ( exists $data{'skin_cache'}->{$cache_key} ) {
+if ( exists <web.skin_cache>->{$cache_key} ) {
     <[base.log]>->( 3, "skin_resolver : using cached skin resolution" );
-    return $data{'skin_cache'}->{$cache_key};
+    return <web.skin_cache>->{$cache_key};
 }
 
 ## Step 1: Detect device type from user agent ##
@@ -185,14 +179,14 @@ my $result = {
 };
 
 ## Cache the resolution ##
-$data{'skin_cache'}->{$cache_key} = $result;
+<web.skin_cache>->{$cache_key} = $result;
 
 <[base.log]>->( 2, "skin_resolver : [$vhost] resolved to '$resolved_skin'" );
 
 return $result;
 
-#,,..,,,.,,.,,,.,,,..,,,.,,,,,,,.,..,,,..,.,.,..,,...,...,,,.,,..,.,,,...,..,,
-#S2SQ4AJLEW5FQXH5QUU6YC6KOHM7TWLSYK2ZIBC65IB42MAYZM7VJYE2JI5IZPNTHCULMAS53MCP4
-#\\\|2ULAPFECDNSYD7SGFI33EVX3HY7257UNMXOGGSRNNMUORSHQL2T \ / AMOS7 \ YOURUM ::
-#\[7]GDR7QANR3LYM2G33O2KASUSGXFAKOI5RMM5LSE6HHWICG4AZKEBQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,...,...,,.,,,..,.,.,,,,,,,,,..,,..,,...,...,..,,.,.,...,.,,,,.,,
+#FCIYJVJMV3I56ZDJLPO3XHB3IZX6WE5XCS3ARDTYL7TKLDDUMZS7J3BAS6TU3ZAMLKSARZQTINKRG
+#\\\|ZXPOAFW46CHFPUZD62D562XTTZ5DBSDST56YLJ67YXQ5QICIEQI \ / AMOS7 \ YOURUM ::
+#\[7]CPYNCHHZSSNVQWSTLDW4NSDSU3YFON2G222OIBYRYJS7TYER2WAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

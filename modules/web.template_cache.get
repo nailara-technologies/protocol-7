@@ -1,12 +1,19 @@
-#!/usr/bin/env perl
-# Module: web.template_cache.get
-# Purpose: Retrieve cached template by key, checking TTL expiration
-# Pattern: Timestamp-based TTL check (like weather.parent.cache)
-# Storage: $data{'web.template_cache'} = { key => { content, timestamp, ttl, size } }
+## [:< ##
+
+# name = web.template_cache.get
+# descr = Retrieve cached template by key, checking TTL expiration
+#
+# Parameters:
+#   $ARG[0] - Cache key (required)
+#
+# Returns:
+#   On hit:  { status => 'hit', content => ..., hit => 1, age => ..., ttl => ..., size => ... }
+#   On miss: { status => 'miss', hit => 0 }
+#   On expired: { status => 'expired', hit => 0, age => ... }
 
 my $cache_key = shift;
 
-# Validate input
+## validate input ##
 unless ( defined $cache_key && length $cache_key ) {
     return {
         status  => qw| error |,
@@ -15,40 +22,34 @@ unless ( defined $cache_key && length $cache_key ) {
     };
 }
 
-# Access cache (assume $data structure is available in calling context)
-# We'll build it as a regular hash reference that caller manages
-my $cache_entry = $_[0] if @_ > 1;  # Can pass cache as second arg for testing
-
-# If no cache passed, try to use the global structure (if available)
-unless ( defined $cache_entry ) {
-
-    # In Protocol-7, this would access the global data hash
-    # For now, return a miss to avoid errors
+## check if cache structure exists ##
+my $cache = <web.template_cache>;
+unless ( defined $cache && ref $cache eq qw| HASH | ) {
     return {
-        status  => 'miss',
-        message => 'No cache available',
+        status  => qw| miss |,
+        message => 'Cache not initialized',
         hit     => 0,
         content => undef,
     };
 }
 
-# Check if key exists
-unless ( exists $cache_entry->{$cache_key} ) {
+## check if key exists ##
+unless ( exists $cache->{$cache_key} ) {
     return {
-        status  => 'miss',
+        status  => qw| miss |,
         message => "Key not in cache: $cache_key",
         hit     => 0,
         content => undef,
     };
 }
 
-my $entry = $cache_entry->{$cache_key};
+my $entry = $cache->{$cache_key};
 
-# Validate entry structure
+## validate entry structure ##
 unless ( ref $entry eq qw| HASH |
-    && defined $entry->{content}
-    && defined $entry->{timestamp}
-    && defined $entry->{ttl} ) {
+    && defined $entry->{'content'}
+    && defined $entry->{'timestamp'}
+    && defined $entry->{'ttl'} ) {
     return {
         status  => qw| error |,
         message => 'Corrupted cache entry structure',
@@ -57,35 +58,43 @@ unless ( ref $entry eq qw| HASH |
     };
 }
 
-# Check TTL expiration
-my $age = time() - $entry->{timestamp};
-if ( $age > $entry->{ttl} ) {
+## check ttl expiration ##
+my $age = time() - $entry->{'timestamp'};
+if ( $age > $entry->{'ttl'} ) {
 
-    # Expired - remove from cache
-    delete $cache_entry->{$cache_key};
+    ## expired - remove from cache ##
+    delete $cache->{$cache_key};
+
+    ## update metrics ##
+    <web.metrics.cache_misses>++
+        if defined <web.metrics.cache_misses>;
+
     return {
-        status  => 'expired',
-        message => "Expired after $age seconds (ttl=$entry->{ttl})",
+        status  => qw| expired |,
+        message => "Expired after $age seconds (ttl=$entry->{'ttl'})",
         hit     => 0,
         content => undef,
         age     => $age,
-        ttl     => $entry->{ttl},
+        ttl     => $entry->{'ttl'},
     };
 }
 
-# Cache hit!
+## cache hit - update metrics ##
+<web.metrics.cache_hits>++
+    if defined <web.metrics.cache_hits>;
+
 return {
-    status  => 'hit',
+    status  => qw| hit |,
     message => "Cache hit: $cache_key",
     hit     => 1,
-    content => $entry->{content},
+    content => $entry->{'content'},
     age     => $age,
-    ttl     => $entry->{ttl},
-    size    => $entry->{size},
+    ttl     => $entry->{'ttl'},
+    size    => $entry->{'size'},
 };
 
-#,,,,,,,.,,.,,,,.,,..,,,.,,..,..,,.,.,,,,,..,,..,,...,...,..,,.,.,,,.,,..,.,,,
-#MIQF3UJZXZM6TOGWMX23Q5QUIZIPBVI57SIGSSMVHWIV2UGDICNBGMAXXB75TMJXKNTKFJLL4AELK
-#\\\|O6MIWB322H7U4CRETPYSHMKUIFT7WFSGGVJJZVJUHC3R5YKYNXR \ / AMOS7 \ YOURUM ::
-#\[7]IJFD6JCLBOZOXXHVVNOCNFRCAROH7C3U7ZZKQ3QR7S2UL43ACWBQ 7  DATA SIGNATURE ::
+#,,..,,.,,...,..,,,..,..,,..,,,..,.,,,,,,,,,,,..,,...,...,.,,,,,.,...,,,,,,.,,
+#RVHCX5FZCTFUNZFWXUM2OFURP6MM6N3XKQFMGXL6YJUNPRZ47SVBJ6QR757TVTNCYEI4BYY3FLZZE
+#\\\|GWFEFGEQUPCUXKNL6TLBIBBRISIV7WKGBCZQC7UFKQE3GQB42QI \ / AMOS7 \ YOURUM ::
+#\[7]NASAM7YNMPDXL4Z5633TGF4VDSI44JI2AYO27JSBUKPJGBTZXKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,185 @@
+## [:< ##
+
+# name = httpsd.route_template_request
+# descr = Route HTTP request to appropriate handler with caching
+#
+# Routes in priority order:
+#   1. ACME challenges (/.well-known/acme-challenge/)
+#   2. API endpoints (/api/, /webhook/)
+#   3. Template-based dynamic content
+#   4. Static files (default)
+#
+# Parameters:
+#   $ARG[0] - HTTP request method (GET, POST, etc.)
+#   $ARG[1] - Request URI path (e.g., "/blog/post.html")
+#   $ARG[2] - Vhost name (e.g., "127.0.0.1")
+#   $ARG[3] - Session ID (for logging)
+#
+# Returns:
+#   Hash reference with routing decision:
+#   {
+#     type         => 'acme' | 'api' | 'template' | 'static',
+#     path         => normalized path,
+#     handler      => handler module name,
+#     handler_args => { ... },
+#     reason       => human-readable routing reason,
+#     cached       => 0 | 1,
+#   }
+
+my $method     = shift // qw| GET |;
+my $uri        = shift // qw| / |;
+my $vhost      = shift;
+my $session_id = shift // qw| unknown |;
+
+# Validate parameters
+unless ( defined $uri && length $uri ) {
+    <[base.log]>->(
+        0, "[%s] route_template_request: missing URI parameter", $session_id
+    );
+    return {
+        type         => qw| error |,
+        path         => undef,
+        handler      => qw| httpd.send_error_page |,
+        handler_args => { code => 400 },
+        reason       => 'Missing URI parameter',
+        cached       => 0,
+    };
+}
+
+# Normalize path
+my $path = $uri;
+
+# Remove query string
+$path =~ s|\?.*$||;
+
+# Remove fragment
+$path =~ s|#.*$||;
+
+# Normalize multiple slashes
+$path =~ s|/+/+|/|g;
+
+# Ensure path starts with /
+$path = "/$path" unless $path =~ m|^/|;
+
+# Remove trailing slash (except for root)
+$path =~ s|/+$|| unless $path eq qw| / |;
+
+<[base.log]>->(
+    2, "[%s] routing %s %s [vhost=%s]",
+    $session_id, $method, $path, $vhost // 'default'
+);
+
+# Initialize route cache if needed
+<httpsd.route_cache> = {}
+    unless defined <httpsd.route_cache>;
+
+my $cache_key = "$method:$path:$vhost";
+
+# Check cache for route decision
+if ( exists <httpsd.route_cache> {$cache_key} ) {
+    my $cached_route = <httpsd.route_cache> {$cache_key};
+    <[base.log]>->( 2, "[%s] :. using cached route decision", $session_id );
+    return { %$cached_route, cached => 1 };
+}
+
+# Priority 1: ACME challenges (Let's Encrypt HTTP-01 validation)
+# Pattern: /.well-known/acme-challenge/{token}
+if ( $path =~ m|^/.well-known/acme-challenge/(.+)$| ) {
+    my $token = $1;
+    <[base.log]>->(
+        1,           "[%s] ACME challenge route: token='%s'",
+        $session_id, $token
+    );
+
+    my $route = {
+        type         => qw| acme |,
+        path         => $path,
+        handler      => qw| httpd.handler.acme_challenge |,
+        handler_args => { token => $token, session_id => $session_id },
+        reason       => "ACME challenge: $token",
+        cache_ttl    => 0,    # Don't cache ACME challenges
+    };
+
+    # Don't cache ACME routes (they're one-time)
+    return $route;
+}
+
+# Priority 2: API endpoints
+# Pattern: /api/... or /webhook/...
+if ( $path =~ m|^/api/| || $path =~ m|^/webhook/| ) {
+    <[base.log]>->( 1, "[%s] API route: %s", $session_id, $path );
+
+    my $route = {
+        type         => qw| api |,
+        path         => $path,
+        handler      => qw| base.protocol-7.command.send.local |,
+        handler_args => {
+            path       => $path,
+            method     => $method,
+            vhost      => $vhost,
+            session_id => $session_id,
+        },
+        reason    => "API endpoint: $path",
+        cache_ttl => 0,                       # Don't cache API calls
+    };
+
+    # Don't cache API routes
+    return $route;
+}
+
+# Priority 3: Template-based dynamic content
+# Try to resolve template using vhost resolver
+if ( defined $vhost ) {
+    my $template_path = <[httpd.vhost_template_resolver]>->( $vhost, $path );
+
+    if ( defined $template_path ) {
+        <[base.log]>->(
+            1,           "[%s] template route: %s",
+            $session_id, $template_path
+        );
+
+        my $route = {
+            type         => qw| template |,
+            path         => $path,
+            handler      => qw| httpd.process_template |,
+            handler_args => {
+                template_path => $template_path,
+                vhost         => $vhost,
+                session_id    => $session_id,
+                uri           => $uri,
+            },
+            reason    => "Template found: $template_path",
+            cache_ttl => <web.cfg.cache_ttl> // 1800,
+        };
+
+        # Cache the route decision
+        <httpsd.route_cache> {$cache_key} = $route;
+        return { %$route, cached => 0 };
+    }
+}
+
+# Priority 4: Static files (default)
+<[base.log]>->( 1, "[%s] static file route: %s", $session_id, $path );
+
+my $route = {
+    type         => qw| static |,
+    path         => $path,
+    handler      => qw| httpd.serve_static |,
+    handler_args => {
+        path       => $path,
+        vhost      => $vhost,
+        session_id => $session_id,
+    },
+    reason    => "No template found, serving static file",
+    cache_ttl => 3600,    # Cache static file routes for 1 hour
+};
+
+# Cache the route decision
+<httpsd.route_cache> {$cache_key} = $route;
+return { %$route, cached => 0 };
+
+#,,.,,,..,,,,,...,...,.,,,,.,,,..,...,...,,,,,..,,...,...,..,,,.,,..,,,..,,..,
+#KL7ZOO43EYOATNJCF5ZVLUBVHTFWTMUKOHOTFEY5ASRDQU4A4KEBYFEKLTSIBW6DP5AMVKL34XALU
+#\\\|EJKEXZOL2FSUVXE7DPIEARGV5ZAVFZJROK7RDCPB435NCQRDJNX \ / AMOS7 \ YOURUM ::
+#\[7]672MHW54KOHA6XHGN7NE33PWHGFTJHKKI3KX5EI4SIR2DX66EGAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

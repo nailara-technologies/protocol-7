@@ -1,23 +1,25 @@
-#!/usr/bin/env perl
-# Module: web.scan_content_directories
-# Purpose: Index available templates at startup/on-demand
-# Pattern: Simple in-memory hash caching (like web.menu_generator)
-# Storage: $data{'web.content_index'} with mtime tracking
+## [:< ##
 
-use strict;
-use warnings;
-use File::Find;
-use File::stat;
+# name = web.scan_content_directories
+# descr = Recursively scan content directories for template candidates
+#
+# Scans /var/httpd/{vhost}/ for files and checks if templates exist
+# using the 3-level hierarchy: vhost-subdir -> vhost-root -> global
+#
+# Parameters:
+#   $ARG[0] - Base directory (default: /var/httpd)
+#   $ARG[1] - Vhost name (optional: scan specific vhost only)
+#
+# Returns:
+#   Hash reference with { status, message, count, index }
+#   Stores results in $data{'web'}{'content_index'}
 
-my $base_dir = shift // '/var/httpd';
-my $vhost    = shift // '';             # Optional: scan specific vhost only
-
-# Build content index
-my $index = {};
+my $base_dir = shift // <web.cfg.base_dir> // '/var/httpd';
+my $vhost    = shift // '';
 
 my $scan_dir = $vhost ? "$base_dir/$vhost" : $base_dir;
 
-# Only proceed if directory exists
+## skip if directory not found ##
 unless ( -d $scan_dir ) {
     return {
         status  => qw| error |,
@@ -26,87 +28,119 @@ unless ( -d $scan_dir ) {
     };
 }
 
-# Callback for File::Find
-my $wanted = sub {
-    my $file = $_;
-    my $path = $File::Find::name;
+## build content index ##
+my $index = {};
 
-    # Skip special directories
-    return if $path =~ m|/_|;     # Skip _templates, _skins, _config, etc.
-    return if $path =~ m|/\.|;    # Skip hidden dirs
-    return unless -f $path;       # Only files
+## manual directory recursion [ no File::Find needed ] ##
+my @dirs_to_scan = ($scan_dir);
 
-    # Build relative path from vhost root
-    my $rel_path = $path;
-    $rel_path =~ s|^$scan_dir||;
-    $rel_path =~ s|^/||;
+while ( my $current_dir = shift @dirs_to_scan ) {
+    opendir my $dh, $current_dir
+        or next;    # Skip directories we can't read
 
-    # Check if template exists for this file
-    my $has_template   = 0;
-    my $template_path  = undef;
-    my $template_level = 0;       # 1=vhost-subdir, 2=vhost-root, 3=global
+    my @entries = readdir $dh;
+    closedir $dh;
 
-    # Level 1: Check vhost subdirectory templates
-    my $dir = ( split( '/', $rel_path ) )[0];
-    if ($dir) {
-        my $subdir_template = "$scan_dir/$dir/_templates/$file.tmpl";
-        if ( -f $subdir_template ) {
-            $has_template   = 1;
-            $template_path  = $subdir_template;
-            $template_level = 1;
+    foreach my $entry (@entries) {
+        next if $entry eq '.' or $entry eq '..';
+        next if $entry =~ m/^[_.]/;    ## skip hidden and special dirs
+
+        my $full_path = "$current_dir/$entry";
+
+        if ( -d $full_path ) {
+
+            ## queue subdirectory for scanning ##
+            push @dirs_to_scan, $full_path;
+        } elsif ( -f $full_path ) {
+
+            ## process file ##
+            my $rel_path = $full_path;
+            $rel_path =~ s|^$scan_dir||;
+            $rel_path =~ s|^/||;
+
+            my $file = $entry;
+
+            ## check if template exists [ 3-level hierarchy ] ##
+            my $has_template   = 0;
+            my $template_path  = undef;
+            my $template_level = 0;
+
+            ## get subdirectory name if any ##
+            my $subdir = '';
+            if ( $rel_path =~ m|^(.+)/[^/]+$| ) {
+                $subdir = $1;
+            }
+
+            ## level 1 : vhost subdirectory templates ##
+            if ($subdir) {
+                my $subdir_template
+                    = "$base_dir/$vhost/$subdir/_templates/$file.tmpl";
+                if ( -f $subdir_template ) {
+                    $has_template   = 1;
+                    $template_path  = $subdir_template;
+                    $template_level = 1;
+                }
+            }
+
+            ## level 2 : vhost root templates ##
+            unless ($has_template) {
+                my $vhost_template = "$base_dir/$vhost/_templates/$file.tmpl";
+                if ( -f $vhost_template ) {
+                    $has_template   = 1;
+                    $template_path  = $vhost_template;
+                    $template_level = 2;
+                }
+            }
+
+            ## level 3 : global templates ##
+            unless ($has_template) {
+                my $global_template
+                    = "$base_dir/_global_templates/$file.tmpl";
+                if ( -f $global_template ) {
+                    $has_template   = 1;
+                    $template_path  = $global_template;
+                    $template_level = 3;
+                }
+            }
+
+            ## get file stats ##
+            my $mtime = ( stat($full_path) )[9] // 0;
+            my $size  = -s $full_path           // 0;
+
+            ## store in index ##
+            $index->{ "/" . $rel_path } = {
+                path           => "/" . $rel_path,
+                has_template   => $has_template ? 1 : 0,
+                template_path  => $template_path,
+                template_level => $template_level,
+                mtime          => $mtime,
+                size           => $size,
+                is_dynamic     => $has_template ? 1 : 0,
+            };
         }
     }
+}
 
-    # Level 2: Check vhost root templates (if not found at level 1)
-    unless ($has_template) {
-        my $vhost_template = "$scan_dir/_templates/$file.tmpl";
-        if ( -f $vhost_template ) {
-            $has_template   = 1;
-            $template_path  = $vhost_template;
-            $template_level = 2;
-        }
-    }
+## store in global data structure ##
+my $vhost_key = $vhost || '_all_';
+<web.content_index> {$vhost_key} = $index;
 
-    # Level 3: Check global templates (if not found at levels 1-2)
-    unless ($has_template) {
-        my $global_template = "$base_dir/_global_templates/$file.tmpl";
-        if ( -f $global_template ) {
-            $has_template   = 1;
-            $template_path  = $global_template;
-            $template_level = 3;
-        }
-    }
-
-    # Get file modification time
-    my $sb    = stat($path);
-    my $mtime = $sb->mtime if defined $sb;
-
-    # Store in index
-    $index->{"/$rel_path"} = {
-        path           => "/$rel_path",
-        has_template   => $has_template ? 1 : 0,
-        template_path  => $template_path,
-        template_level => $template_level,
-        mtime          => $mtime // 0,
-        size           => -s $path,
-        is_dynamic     => $has_template ? 1 : 0,
-    };
-};
-
-# Perform the scan
-find( $wanted, $scan_dir );
-
-# Return results (data storage happens in calling context)
 my $entry_count = scalar( keys %$index );
 
-{   status  => qw| success |,
+<[base.log]>->(
+    2,
+    "scanned content directories: $entry_count entries for vhost='$vhost_key'"
+);
+
+return {
+    status  => qw| success |,
     message => "Scanned $entry_count entries",
     count   => $entry_count,
     index   => $index,
 };
 
-#,,.,,.,,,,,,,,..,..,,.,.,,..,.,,,,,,,..,,,,,,..,,...,...,...,,..,..,,.,.,,.,,
-#6AM3ZDVXLIKW5347KTYSFB5GZGDN4LZTPFVQAEECMBVJXNXPJEY3Q6WHWNQ2LA4PLOR6XC3UFFQBW
-#\\\|QYBDXFUVT4GAKGA773DTVRFXZ4BEJELMQ6EDMWME6OYO7NAKQU7 \ / AMOS7 \ YOURUM ::
-#\[7]TVPU5WXNHQIOUCEDROQFSI2QFABSYWVNVFL3K4DJXN2MTU3K6GAY 7  DATA SIGNATURE ::
+#,,.,,,.,,,,.,,,.,,,,,,.,,.,.,...,.,,,,,,,..,,..,,...,...,,..,,..,,,,,.,.,,.,,
+#PQYIXYP6FOJ53DKSEXDUI2IYHVIKU3QJA7JKMR2CBLAXDOXKXY22KAML3NKC2MWRZMMTFRODJDHDM
+#\\\|LDQHQNDUJFJLZBXX65CJRVQCX262APTTG7JN4FANOOH7572GT7Q \ / AMOS7 \ YOURUM ::
+#\[7]WKGQKF6Q4CVN34JHR36GGVWCY7JVXQEMWUGIT3EB7RKQDLI6XCBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
