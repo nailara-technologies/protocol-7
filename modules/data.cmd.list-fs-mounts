@@ -12,13 +12,14 @@ if ( !<data.fuse.mounts> || !keys <data.fuse.mounts>->%* ) {
 }
 
 ## build mount listing ##
-my @lines = ( "Active FUSE mounts:", "-" x 50 );
+my @lines = ( "Active FUSE mounts:", "-" x 60 );
 
 for my $mountpoint ( sort keys <data.fuse.mounts>->%* ) {
-    my $info      = <data.fuse.mounts> {$mountpoint};
-    my $pid       = $info->{'pid'}       // 'unknown';
-    my $hash_path = $info->{'hash_path'} // 'unknown';
-    my $started   = $info->{'started'}   // 0;
+    my $info        = <data.fuse.mounts> {$mountpoint};
+    my $pid         = $info->{'pid'}         // 'unknown';
+    my $hash_path   = $info->{'hash_path'}   // 'unknown';
+    my $started     = $info->{'started'}     // 0;
+    my $allow_other = $info->{'allow_other'} // 0;
 
     my $age = $started ? sprintf( "%.0fs", time() - $started ) : 'unknown';
     my $running
@@ -29,6 +30,19 @@ for my $mountpoint ( sort keys <data.fuse.mounts>->%* ) {
     push @lines, "Mount:    $mountpoint";
     push @lines, "  Source: $hash_path";
     push @lines, "  PID:    $pid ($running, age: $age)";
+    push @lines, "  Flags:  allow_other" if $allow_other;
+
+    # Show mount point ownership
+    if ( -d $mountpoint ) {
+        my $st = File::stat::stat($mountpoint);
+        if ($st) {
+            my $uid   = $st->uid;
+            my $owner = getpwuid($uid) // 'unknown';
+            my $mode  = sprintf '%#o', $st->mode & 07777;
+            push @lines, sprintf '  Owner:  %s (uid %d, mode %s)',
+                $owner, $uid, $mode;
+        }
+    }
     push @lines, "";
 }
 
@@ -37,8 +51,8 @@ return {
     'data' => join( "\n", @lines )
 };
 
-#,,,.,..,,.,.,.,,,,.,,.,.,...,.,.,..,,,,.,.,,,.,.,...,...,.,,,..,,,..,,..,,,.,
-#ERMXT57ELY4ZD5X5BMHZU7I26BNTUABK5D4SE4EZPTLJB5RC5AEOXA5RPNBPGDLKNJFWRMOYY3J5Y
-#\\\|5HVVEXPMXYGPETGUN7GSIZBYBXUH5TF4UXIQAWTNFXDKSMBBRF5 \ / AMOS7 \ YOURUM ::
-#\[7]LCPESSZ7TTNV2NDT7FL7QLHONWTHG3TIC7GC3LL7XSPA3H4O2ADI 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,,,,,.,,,,,,,,.,,,.,,,.,...,,..,.,.,...,...,,..,.,,,..,,,,,,,..,
+#DDKCO2MI43DR3TGPKKYGL23CAKRGBTGWOLGNMSQLKGSA44L7SACGHFXSWB4Y4GHEF3OOGMWI4RADS
+#\\\|OP5KGZFQZBCXKI7TXQ2MXXXCFRBTM5NUTZ66672MNCMTYHI3J55 \ / AMOS7 \ YOURUM ::
+#\[7]2UFTSYHXMIPTUPR5EIB4NAUSKAO3HWENV5RQ63MG4X7BRQ6HAUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

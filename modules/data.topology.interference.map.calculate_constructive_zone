@@ -1,23 +1,23 @@
 ## [:< ##
 
-    # name = data.topology.interference.map.calculate_constructive_zone
-    # desc = Topology calculation subroutine
+# name  = data.topology.interference.map.calculate_constructive_zone
+# descr = calculate constructive interference zone for topology coordinate
 
-    my ( $coord, $phase ) = @ARG;
+my ( $coord, $phase ) = @ARG;
 
-    # Constructive interference based on position and phase alignment
-    my ( $x, $y, $z ) = @$coord;
+## constructive interference based on position and phase alignment ##
+my ( $x, $y, $z ) = @$coord;
 
-    # Standing wave calculation
-    use constant PI => 3.14159265358979;
-    my $wave
-        = sin( $x * PI / 13 ) * sin( $y * PI / 13 ) * sin( $z * PI / 13 );
-    my $phase_align = cos( ( $x + $y + $z + $phase ) * PI / 7 );
+## standing wave calculation ##
+my $pi = 4 * atan2( 1, 1 );
+my $wave
+    = sin( $x * $pi / 13 ) * sin( $y * $pi / 13 ) * sin( $z * $pi / 13 );
+my $phase_align = cos( ( $x + $y + $z + $phase ) * $pi / 7 );
 
-    return 0.5 + 0.5 * $wave * $phase_align;
+return 0.5 + 0.5 * $wave * $phase_align;
 
-#,,,,,,.,,..,,,,,,..,,.,,,.,,,.,,,.,,,,.,,.,.,.,.,...,..,,.,,,..,,,,,,,.,,,.,,
-#RJTSOJEZ3JN5RPSYCFD5MEPYC2WXXRWM5JW7L7FXZSG3HY53X2EFRQZLHRWY6MEFRDC7GGSUGZE2M
-#\\\|THBICNIP4E2GTSRZU255ZPLRWMRPZISO3IKGYVWTVW4NE4NFNQL \ / AMOS7 \ YOURUM ::
-#\[7]5BL5B5CNALFZ6NRZMTVJHZQQMPOV6BO5FT6MJXHAE5WRQUMNWIDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,,,.,.,.,.,.,.,,,.,.,...,,..,,..,,,,,.,.,...,...,.,.,,..,.,.,,,.,..,,
+#KIMXPBQ7A2IUCLVPCHFEVEQHFJ327XCDVEQKAMHO32OASR3A6C46WVOXQAVO5YUIYHKPJJSBA4FKY
+#\\\|2ZGUX4OOI2GXP73WAILKQIFXAKFJ22U2VVWNN6V4TM54WICI24I \ / AMOS7 \ YOURUM ::
+#\[7]PZFRL47MVOU6526RAA64HD3DHOCVU7RAPKFL4EOJGPBALTORUIDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

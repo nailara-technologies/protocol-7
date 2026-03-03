@@ -1,10 +1,25 @@
 ## [:< ##
 
 # name  = data.cmd.attach-fs-mount
-# param = <hash-path> <local-dir>
+# param = <hash-path> <local-dir> [options]
 # descr = mount hash structure as FUSE filesystem at local directory
 
-my ( $hash_path, $local_dir ) = split( / +/, $$call{'args'} // '', 2 );
+my $args = $call->{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+
+# Parse options [ format: key=value,key2=value ]
+my $options = {};
+if ( $args =~ s|\s+--\s*(.+)$|| || $args =~ s|\s+:\s*(.+)$|| ) {
+    my $opt_str = $LAST_PAREN_MATCH;
+    for my $pair ( split m|,\s*|, $opt_str ) {
+        my ( $k, $v ) = split '=', $pair, 2;
+        $v = 1 if !defined $v;
+        $options->{$k} = $v;
+    }
+}
+
+my ( $hash_path, $local_dir ) = split( m| +|, $args, 2 );
 
 return {
     'mode' => qw| false |,
@@ -16,43 +31,18 @@ $local_dir =~ s|/+$|| if length($local_dir) > 1;
 
 return {
     'mode' => qw| false |,
-    'data' => "directory '$local_dir' does not exist"
+    'data' => sprintf( "directory '%s' does not exist", $local_dir )
     }
     unless -d $local_dir;
-
-return {
-    'mode' => qw| false |,
-    'data' => "directory '$local_dir' is not writable"
-    }
-    unless -w $local_dir;
 
 ## validate hash path exists ##
 my $ref = <[data.resolve_hash_path]>->($hash_path);
 
 return {
     'mode' => qw| false |,
-    'data' => "hash path '$hash_path' does not exist"
+    'data' => sprintf( "hash path '%s' does not exist", $hash_path )
     }
     unless defined $ref;
-
-## check if FUSE is available ##
-if ( !<data.fuse.capabilities.available> ) {
-    return {
-        'mode' => qw| false |,
-        'data' =>
-            "FUSE module not available - install Fuse.pm to use mount feature"
-    };
-}
-
-## check if already mounted at this path ##
-if ( exists <data.fuse.mounts> {$local_dir} ) {
-    my $existing = <data.fuse.mounts> {$local_dir};
-    return {
-        'mode' => qw| false |,
-        'data' =>
-            "already mounted at $local_dir (pid $existing->{'pid'}, hash: $existing->{'hash_path'})"
-    };
-}
 
 ## initialize FUSE subsystem if needed ##
 if ( !<data.fuse.mounts> ) {
@@ -60,12 +50,12 @@ if ( !<data.fuse.mounts> ) {
 }
 
 ## spawn FUSE child process ##
-my $result = <[data.mount.fuse.spawn]>->( $hash_path, $local_dir );
+my $result = <[data.mount.fuse.spawn]>->( $hash_path, $local_dir, $options );
 
 return $result;
 
-#,,.,,,..,...,,.,,.,,,,..,,.,,,.,,,,,,.,.,..,,.,.,...,...,,..,...,,..,,..,,.,,
-#VWOHIW6226FWWA5IGLJAXMFZFWNS3HZE42HYMWCGOSA7TOE6VLVRHEKMQC5AG7EH7ZQBSL4IJ4ZMG
-#\\\|ENNYA2XWDZ6DGEVWUFNRDCAQWT7XBHLCVVHP6V6HWRQH45MED7O \ / AMOS7 \ YOURUM ::
-#\[7]GFPCLVHBRF6NZEC7SDG77KQGKFDUL56PCA5PD2IHGJW6WJQ6O2AI 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,.,,,,,,,,,,.,,,,,,,,..,...,,.,,.,.,...,...,,..,...,.,.,.,,,,,,,
+#AJCMPTNBFFR4INCSWOGAZUPUQMKYX72YR3STMLE7TZKIF5V475YKPB3YATPTQHXHAOJQWJD7BWBOK
+#\\\|N43MIOMPPAHFFWGQRAEHNZYOKG3EVD3T3BY5LYRM4XSW2T3CQEO \ / AMOS7 \ YOURUM ::
+#\[7]M342U2T22D4BO5ZTPAWHS4ZZOSMDWUZI3S274OJOALVVD3D2PQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

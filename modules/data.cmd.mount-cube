@@ -1,10 +1,25 @@
 ## [:< ##
 
 # name  = data.cmd.mount-cube
-# param = <cube-coords> <local-path>
+# param = <cube-coords> <local-path> [options]
 # descr = mount cubic space coordinates as FUSE filesystem
 
-my ( $cube_coords, $local_path ) = split( / +/, $$call{'args'} // '', 2 );
+my $args = $call->{'args'} // '';
+$args =~ s|^\s+||;
+$args =~ s|\s+$||;
+
+# Parse options [ format : key=value,key2=value ]
+my $options = {};
+if ( $args =~ s|\s+--\s*(.+)$|| || $args =~ s|\s+:\s*(.+)$|| ) {
+    my $opt_str = $1;
+    for my $pair ( split m|,\s*|, $opt_str ) {
+        my ( $k, $v ) = split '=', $pair, 2;
+        $v = 1 if !defined $v;
+        $options->{$k} = $v;
+    }
+}
+
+my ( $cube_coords, $local_path ) = split( m| +|, $args, 2 );
 
 return {
     'mode' => qw| false |,
@@ -19,17 +34,17 @@ my $hash_path;
 
 if ( $cube_coords =~ m|^cubic\\.| ) {
 
-    # Direct cubic path in data hash (e.g., cubic.hosts.7-7-7)
+    # Direct cubic path in data hash [e.g., cubic.hosts.7-7-7]
     $hash_path = $cube_coords;
 } elsif ( $cube_coords =~ m|^\\d{1,2}-\\d{1,2}-\\d{1,2}$| ) {
 
-    # Coordinate format (e.g., 7-7-7)
-    $hash_path = "cubic.$cube_coords";
+    # Coordinate format [ e.g., 7-7-7 ]
+    $hash_path = join '.', qw| cubic |, $cube_coords;
 } else {
     return {
         'mode' => qw| false |,
-        'data' =>
-            "invalid cube coordinates '$cube_coords' - expected format: x-y-z (0-12) or cubic.path"
+        'data' => "invalid cube coordinates '$cube_coords'"
+            . " - expected format: x-y-z [0-12] or cubic.path"
     };
 }
 
@@ -38,43 +53,20 @@ my $ref = <[data.resolve_hash_path]>->($hash_path);
 
 return {
     'mode' => qw| false |,
-    'data' => "cube path '$hash_path' does not exist"
+    'data' => sprintf( "cube path '%s' does not exist", $hash_path )
     }
     unless defined $ref;
 
 ## create mount directory if needed ##
 if ( !-d $local_path ) {
-    mkdir( $local_path, 0755 )
+    <[file.make_path]>->( $local_path, 0755 )
         or return {
         'mode' => qw| false |,
-        'data' => "cannot create mount directory '$local_path': $!"
+        'data' => sprintf(
+            "cannot create mount directory '%s' : %s",
+            $local_path, <[base.str.os_err]>
+        )
         };
-}
-
-## check if writable ##
-return {
-    'mode' => qw| false |,
-    'data' => "directory '$local_path' is not writable"
-    }
-    unless -w $local_path;
-
-## check if FUSE is available ##
-if ( !<data.fuse.capabilities.available> ) {
-    return {
-        'mode' => qw| false |,
-        'data' =>
-            "FUSE module not available - install Fuse.pm to use mount feature"
-    };
-}
-
-## check if already mounted ##
-if ( exists <data.fuse.mounts> {$local_path} ) {
-    my $existing = <data.fuse.mounts> {$local_path};
-    return {
-        'mode' => qw| false |,
-        'data' =>
-            "already mounted at $local_path (pid $existing->{'pid'}, hash: $existing->{'hash_path'})"
-    };
 }
 
 ## initialize FUSE subsystem if needed ##
@@ -83,17 +75,12 @@ if ( !<data.fuse.mounts> ) {
 }
 
 ## spawn FUSE child process ##
-my $result = <[data.mount.fuse.spawn]>->( $hash_path, $local_path );
-
-if ( $result->{'mode'} eq 'true' ) {
-    $result->{'data'} .= "\n\nCube mount: $cube_coords -> $local_path";
-    $result->{'data'} .= "\nTo unmount: fusermount -u $local_path";
-}
+my $result = <[data.mount.fuse.spawn]>->( $hash_path, $local_path, $options );
 
 return $result;
 
-#,,.,,.,.,..,,...,...,.,.,.,.,,.,,,,,,.,,,.,.,.,.,...,...,...,,,,,,.,,,.,,.,.,
-#P7T6G5WTDHQMJC2XMODYG5YAZ7VWV5OJ3ZOAFF4ZMMVON4OPTA44XGXROAQYQTNIZZ4YSRAKVGRXE
-#\\\|CLOF2JK6YM5FDOATKDZZW5XGXPGTJII7QKZVX3C2CJHZMCMLN7O \ / AMOS7 \ YOURUM ::
-#\[7]6Z5NBFXBUHJSPFW3FPCWJ6NBZ224UR3L7VU2FWH6MIA4DTFQPUBI 7  DATA SIGNATURE ::
+#,,,.,,,,,,.,,.,,,,.,,.,,,,..,..,,,..,.,.,,..,.,.,...,...,,..,.,,,..,,,..,,,.,
+#F24JA7HYFZN2Y4JKPZEXNSM5H3XLJJKATVCVMGNC63NYZMUGXW2ULYYQN732EMME5XNGF3OFGJU7I
+#\\\|MBUDCEBJYB5FP7OYSU45DRXBBWKPBJ3SJJS5WWKNIGZFU4BFUOX \ / AMOS7 \ YOURUM ::
+#\[7]T3GDFDPKH5LTUXIDUDAI63ZRVUH2GOEEXOLHYCRSMEXHKVRONWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
