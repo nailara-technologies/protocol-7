@@ -5,9 +5,11 @@
 # descr = fork a child process and start FUSE filesystem
 # return = { mode => true/false, data => message }
 
-use Socket;
+require Socket;
 
 my ( $hash_path, $mountpoint, $options ) = @ARG;
+
+$options //= {};
 
 # Validate arguments
 return {
@@ -19,37 +21,124 @@ return {
 # Ensure mountpoint exists and is a directory
 return {
     'mode' => qw| false |,
-    'data' => "mountpoint '$mountpoint' does not exist or is not a directory"
+    'data' => "mountpoint '$mountpoint' does"
+        . " not exist or is not a directory"
     }
     unless -d $mountpoint;
+
+## Check mount point ownership
+#  [ fusermount requires user to own the mount point ]
+my $mountpoint_stat = File::stat::stat($mountpoint);
+if ( !$mountpoint_stat ) {
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf(
+            "cannot stat mountpoint '%s': %s",
+            $mountpoint, $OS_ERROR
+        )
+    };
+}
+
+if ( $mountpoint_stat->uid != $< ) {
+    my $mp_owner = getpwuid( $mountpoint_stat->uid ) // qw| unknown |;
+    my $cur_user = getpwuid($<)                      // qw| unknown |;
+    return {
+        'mode' => qw| false |,
+        'data' => sprintf(
+            "mountpoint '%s' is owned by user '%s' [uid %d], "
+                . "but current user is '%s' [uid %d]. "
+                . "fusermount requires the mount point"
+                . " to be owned by the mounting user.",
+            $mountpoint, $mp_owner, $mountpoint_stat->uid, $cur_user, $<
+        )
+    };
+}
 
 # Check if FUSE module is available
 if ( !<data.fuse.capabilities.available> ) {
     return {
         'mode' => qw| false |,
         'data' =>
-            'FUSE module (Fuse.pm) not available - install to use mount feature'
+            'FUSE module [ Fuse.pm ] not available - install to use mount feature'
     };
 }
 
-# Load Fuse module on demand
-if ( !<data.fuse.load_module>->() ) {
+## load Fuse module on demand ##
+if ( !<[base.perlmod.autoload]>->('Fuse') ) {
     return {
         'mode' => qw| false |,
-        'data' => 'Failed to load Fuse module'
+        'data' => 'failed to load Fuse module'
     };
+}
+
+# Check fusermount availability and permissions
+my $fusermount_path;
+for my $path (
+    qw| /usr/bin/fusermount /bin/fusermount /usr/local/bin/fusermount |) {
+    if ( -x $path ) {
+        $fusermount_path = $path;
+        last;
+    }
+}
+
+if ( !$fusermount_path ) {
+    return {
+        'mode' => qw| false |,
+        'data' => "fusermount not found. Install fuse-utils or fuse package."
+    };
+}
+
+# Check if fusermount is setuid (required for non-root users)
+my $fusermount_stat = File::stat::stat($fusermount_path);
+if ( $< != 0 && !( $fusermount_stat->mode & 04000 ) ) {
+    <[base.s_warn]>->(
+        'fusermount at %s is not setuid root - unmount may fail',
+        $fusermount_path
+    );
+}
+
+# Check /etc/fuse.conf for user_allow_other if allow_other requested
+my $allow_other = $options->{'allow_other'} // 0;
+if ($allow_other) {
+    my $fuse_conf            = qw| /etc/fuse.conf |;
+    my $has_user_allow_other = 0;
+    if ( -r $fuse_conf ) {
+        open( my $fh, '<', $fuse_conf )
+            or <[base.s_warn]>->(
+            'cannot read %s : %s',
+            $fuse_conf, <[base.str.os_err]>
+            );
+        while (<$fh>) {
+            $has_user_allow_other = 1 if m|^\s*user_allow_other|;
+        }
+        close($fh);
+    }
+    if ( !$has_user_allow_other ) {
+        return {
+            'mode' => qw| false |,
+            'data' => sprintf(
+                "allow_other option requested but 'user_allow_other' is not "
+                    . "enabled in %s. Add 'user_allow_other' to that file as"
+                    . " root, or remove the allow_other option.",
+                $fuse_conf
+            )
+        };
+    }
 }
 
 # Get current session for child communication
 my ($session_id) = keys <user.cube.session>->%*;
 
-<[base.log]>->( 1, "forking FUSE child for $hash_path at $mountpoint" );
+<[base.logs]>->( "forking FUSE child for %s at %s", $hash_path, $mountpoint );
 
 # Create socketpair for parent-child communication
-socketpair( my $child_pipe, my $parent_pipe, AF_UNIX, SOCK_STREAM, PF_UNSPEC )
+socketpair(
+    my $child_pipe,      my $parent_pipe, Socket::AF_UNIX,
+    Socket::SOCK_STREAM, Socket::PF_UNSPEC
+    )
     || return {
     'mode' => qw| false |,
-    'data' => "can't create socketpair: $OS_ERROR"
+    'data' => sprintf( "can't create socketpair : %s", <[base.str.os_err]> )
     };
 
 map { binmode($ARG) } ( $child_pipe, $parent_pipe );
@@ -58,9 +147,10 @@ map { $data{'handle'}{$ARG}{'link'} = qw| ipc.pipe | }
 
 # Store mount parameters for child
 my %mount_info = (
-    'hash_path'  => $hash_path,
-    'mountpoint' => $mountpoint,
-    'started'    => time(),
+    'hash_path'   => $hash_path,
+    'mountpoint'  => $mountpoint,
+    'started'     => time(),
+    'allow_other' => $allow_other,
 );
 
 # Fork the child process
@@ -103,10 +193,13 @@ if ( !$child_pid ) {    ## CHILD PROCESS ##
     $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
 
     # Initialize FUSE-specific data structures in child
-    <data.fuse.current_mount>  = \\%mount_info;
+    <data.fuse.current_mount>  = \%mount_info;
     <data.fuse.root_hash_path> = $hash_path;
 
-    <[base.log]>->( 2, "FUSE child starting: $hash_path -> $mountpoint" );
+    <[base.logs]>->(
+        2,          "FUSE child starting : %s --> %s",
+        $hash_path, $mountpoint
+    );
 
     # Prepare FUSE callbacks with proper path resolution
     # The key insight: FUSE paths are relative to the mountpoint,
@@ -118,14 +211,14 @@ if ( !$child_pid ) {    ## CHILD PROCESS ##
         # Convert FUSE path (e.g., /uploads/documents) to full hash path
         # by combining with root hash path (e.g., user.taeki.files)
         my $full_hash_path;
-        if ( $fuse_path eq '/' ) {
+        if ( $fuse_path eq qw| / | ) {
             $full_hash_path = $hash_path;
         } else {
 
             # Remove leading / and convert / to .
             ( my $rel_path = $fuse_path ) =~ s|^/||;
             $rel_path =~ s|/|.|g;
-            $full_hash_path = "$hash_path.$rel_path";
+            $full_hash_path = join '.', $hash_path, $rel_path;
         }
 
         # Resolve the full path to check existence and type
@@ -161,29 +254,36 @@ if ( !$child_pid ) {    ## CHILD PROCESS ##
         return <[data.mount.fuse.statfs]>->($fuse_path);
     };
 
+    # Build mount options
+    my @mount_opts = (
+        'mountpoint'          => $mountpoint,
+        'getattr'             => $cb_getattr,
+        'readdir'             => $cb_readdir,
+        'read'                => $cb_read,
+        'open'                => $cb_open,
+        'release'             => $cb_release,
+        'statfs'              => $cb_statfs,
+        'debug'               => $options->{'debug'} // 0,
+        'threaded'            => 0,
+        'default_permissions' => 1,    # Let kernel enforce Unix permissions
+    );
+
+    push @mount_opts, 'allow_other' => 1 if $allow_other;
+
     # Start FUSE main loop
-    <[base.log]>->( 2, "Entering FUSE main loop for $mountpoint" );
+    <[base.logs]>->( 2, "Entering FUSE main loop for %s", $mountpoint );
 
-    eval {
-        Fuse::main(
-            'mountpoint' => $mountpoint,
-            'getattr'    => $cb_getattr,
-            'readdir'    => $cb_readdir,
-            'read'       => $cb_read,
-            'open'       => $cb_open,
-            'release'    => $cb_release,
-            'statfs'     => $cb_statfs,
-            'debug'      => 0,
-            'threaded'   => 0,
+    eval { Fuse::main(@mount_opts); };
+
+    if ( length $EVAL_ERROR ) {
+        <[base.log]>->(
+            0, "FUSE main loop error : %s",
+            <[base.str.eval_error]>
         );
-    };
-
-    if ($@) {
-        <[base.log]>->( 0, "FUSE main loop error: $@" );
     }
 
-    <[base.log]>->( 2, "FUSE child exiting for $mountpoint" );
-    exit(0);
+    <[base.logs]>->( 2, "FUSE child exiting for %s", $mountpoint );
+    <[base.exit]>;
 
 } else {    ## PARENT PROCESS ##
     close($parent_pipe);
@@ -206,27 +306,32 @@ if ( !$child_pid ) {    ## CHILD PROCESS ##
 
     # Register mount in parent registry
     <data.fuse.mounts> {$mountpoint} = {
-        'pid'        => $child_pid,
-        'hash_path'  => $hash_path,
-        'session_id' => $id,
-        'started'    => time(),
+        'pid'         => $child_pid,
+        'hash_path'   => $hash_path,
+        'session_id'  => $id,
+        'started'     => <[base.time]>,
+        'allow_other' => $allow_other,
     };
 
     push <data.fuse.child_pids>->@*, $child_pid;
 
-    <[base.log]>->(
-        2, "FUSE mount registered: $hash_path at $mountpoint (pid $child_pid)"
+    <[base.logs]>->(
+        2, "FUSE mount registered : %s at %s [pid %d]",
+        $hash_path, $mountpoint, $child_pid
     );
+
+    my $result_data = sprintf( "FUSE mount started: %s at %s [pid %d]",
+        $hash_path, $mountpoint, $child_pid );
+    $result_data .= " [allow_other enabled]" if $allow_other;
 
     return {
         'mode' => qw| true |,
-        'data' =>
-            "FUSE mount started: $hash_path at $mountpoint (pid $child_pid)"
+        'data' => $result_data
     };
 }
 
-#,,,,,.,,,..,,,,,,,,.,,,,,.,.,.,,,...,.,.,,,.,.,.,...,.,.,.,.,,.,,,,.,,..,...,
-#2N2YW6BQLTH6S2W7QPSTF4HRUJNZQIT3KVWJF22BZXBA4XJNG5MIGQBCWOS6M4YHWO55HIATSWPWM
-#\\\|LLD5QUFV5E6WSDJFHX5SNO4EZEX77TP6ZCQJIONGLLXLFRX4JPW \ / AMOS7 \ YOURUM ::
-#\[7]U5CYJMWXLV2A6NOJDBBFBTO5FWKKACYYSOZ27JA3EY6PWVHKDKDQ 7  DATA SIGNATURE ::
+#,,,.,,,.,,..,,,,,,.,,,.,,,,,,,,.,,,,,...,.,,,.,.,...,...,,,.,.,.,,.,,,,.,.,.,
+#5T2X3MQUJ4YEVUFXB5K4REUEYE3V5YCCG4IIFBNUSTWRGH4KN66J2EEXVSFNPA762OPBSTDVTMRMQ
+#\\\|TULLFT4QBC4H4ZAQKMOE4BCM45WYY45N2MCXLCCRDUKUUFGBBM6 \ / AMOS7 \ YOURUM ::
+#\[7]NOD6GGAMNW7W35W7C6Y56BVBX2AYOON35GAJT6Z7SGCXPMXS7OCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

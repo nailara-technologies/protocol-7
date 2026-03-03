@@ -1,12 +1,23 @@
 ## [:< ##
 
 # name  = data.cmd.mount-hash
-# param = <hash-path> [local-path]
+# param = <hash-path> [local-path] [options]
 # descr = mount nested data hash as FUSE filesystem
 
 my $args = $$call{'args'} // '';
 $args =~ s|^\s+||;
 $args =~ s|\s+$||;
+
+# Parse options (format: key=value,key2=value)
+my $options = {};
+if ( $args =~ s|\s+--\s*(.+)$|| || $args =~ s|\s+:\s*(.+)$|| ) {
+    my $opt_str = $LAST_PAREN_MATCH;
+    for my $pair ( split m|,\s*|, $opt_str ) {
+        my ( $k, $v ) = split '=', $pair, 2;
+        $v = 1 if !defined $v;
+        $options->{$k} = $v;
+    }
+}
 
 my ( $hash_path, $local_path ) = split( / +/, $args, 2 );
 
@@ -38,30 +49,14 @@ $local_path =~ s|/+$|| if length($local_path) > 1;
 
 ## create mount directory if it doesn't exist ##
 if ( !-d $local_path ) {
-    mkdir( $local_path, 0755 )
+    <[file.make_path]>->( $local_path, 0755 )
         or return {
         'mode' => qw| false |,
-        'data' => "cannot create mount directory '$local_path': $!"
+        'data' => sprintf(
+            "cannot create mount directory '%s': %s",
+            $local_path, $OS_ERROR
+        )
         };
-}
-
-## check if FUSE is available ##
-if ( !<data.fuse.capabilities.available> ) {
-    return {
-        'mode' => qw| false |,
-        'data' =>
-            "FUSE module not available - install Fuse.pm to use mount feature"
-    };
-}
-
-## check if already mounted at this path ##
-if ( exists <data.fuse.mounts> {$local_path} ) {
-    my $existing = <data.fuse.mounts> {$local_path};
-    return {
-        'mode' => qw| false |,
-        'data' =>
-            "already mounted at $local_path (pid $existing->{'pid'}, hash: $existing->{'hash_path'})"
-    };
 }
 
 ## initialize FUSE subsystem if needed ##
@@ -70,18 +65,12 @@ if ( !<data.fuse.mounts> ) {
 }
 
 ## spawn FUSE child process ##
-my $result = <[data.mount.fuse.spawn]>->( $hash_path, $local_path );
-
-# Add mount info to result
-if ( $result->{'mode'} eq 'true' ) {
-    $result->{'data'} .= "\n\nMount point: $local_path";
-    $result->{'data'} .= "\nTo unmount: fusermount -u $local_path";
-}
+my $result = <[data.mount.fuse.spawn]>->( $hash_path, $local_path, $options );
 
 return $result;
 
-#,,..,...,,..,,..,...,...,...,,..,.,.,..,,.,.,.,.,...,...,..,,.,.,.,,,.,.,.,,,
-#2T3LV3SNKVGIBMNPSDNOOPAITNOAMROQMGM6OXCJDUKJZUEVCSEFIPPKUQAXFYWCYAPRPEHBD43XE
-#\\\|ALERXRS6WVQQARIZQJF7DEN4XQOTNDU2TZWVO2CJXBET2D3VQRB \ / AMOS7 \ YOURUM ::
-#\[7]OSMY7KOYLEIU6P3F5PJM5WZWGWRRDMAM6V7GYDNIK42VYXY3YSBI 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,.,,,..,,,.,,...,...,...,.,.,,.,,.,.,...,...,.,,,,,,,..,,...,...,
+#AMDUD5VD5HSAQVR5IRL4UHXKIEDXQUZHAFIE5A5MMMRMXVXIMUBWOJRMUB5NNMGSJDDMGYOSMLA3G
+#\\\|R5JVHVMNQ2SJBF4YJXIB2BHHNQN2YXKLNHLXECQXP4J4RZ2NP7Y \ / AMOS7 \ YOURUM ::
+#\[7]KSJJAICSJG4V3D7IA6XXTDXGXPVPFD4PRSKI6TQLLWZ2BK7IFIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
