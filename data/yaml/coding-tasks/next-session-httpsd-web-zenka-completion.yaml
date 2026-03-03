@@ -20,11 +20,18 @@ session:
     • Complete architecture design for vhost/template hierarchy
     • Module stubs and configuration files ready
 
-    Current status:
-    • HTTPSD: Production-ready, auto-cert-install complete
-    • Web zenka: Recursive template processing operational
-    • Template architecture: Designed but not fully integrated
-    • Critical blocker: base.parser.pattern_split recovery needed
+    Current status (updated 2026-03-03):
+    • HTTPSD: production-ready, auto-cert-install complete
+    • web zenka: recursive template processing operational
+    • web.skin_resolver: complete (0975ecf98)
+    • web.menu_generator: complete (0975ecf98)
+    • web.scan_content_directories: complete (0975ecf98)
+    • web.template_cache.get/set: complete (0975ecf98)
+    • httpsd.route_template_request: complete (0975ecf98)
+    • TEMPLATE-CACHING-IMPLEMENTATION.md: complete (f180ef468)
+    • remaining: integrate httpsd.route_template_request into httpd.http_get
+    • remaining: sample skin template content
+    • base.parser.pattern_split: not needed — route dispatcher uses direct regex
 
 ---
 
@@ -228,70 +235,24 @@ phase_2:
 
       success_criteria: "All routes tested, dynamic content generated correctly"
 
-    - name: "Implement Vhost Template Resolver"
-      tokens: 2
-      actions:
-        - "Create: modules/web.vhost_template_resolver"
-        - "Implement: 3-level priority hierarchy"
-          - "Level 1: /var/httpd/{vhost}/{path}/_templates/"
-          - "Level 2: /var/httpd/{vhost}/_templates/"
-          - "Level 3: /var/httpd/_global_templates/"
-        - "Add template file caching"
-        - "Test with multiple vhosts"
-
-      success_criteria: "Template resolution working across vhost hierarchy"
+    - name: "Implement Vhost Template Resolver"  # STATUS: DONE (existing module)
+      status: completed
+      module: modules/httpd.vhost_template_resolver
 
 phase_3:
   name: "Skin & Menu System Integration"
   tokens_allocated: 8
   duration: "~3-4 hours"
+  status: "PARTIALLY COMPLETE"
 
   tasks:
-    - name: "Implement Nested Skin System"
-      tokens: 3
-      actions:
-        - "Create: modules/web.skin_resolver"
-        - "Implement: Nested skin layers"
-          - "Default skin: /var/httpd/_global_templates/skins/default/"
-          - "Dark skin: /var/httpd/_global_templates/skins/dark/"
-          - "Mobile skin: /var/httpd/_global_templates/skins/mobile/"
-        - "Add user preference detection (Cookie/HTTP header)"
-        - "Implement skin cascade (mobile → dark → default)"
+    - name: "Implement Nested Skin System"   # STATUS: DONE (0975ecf98)
+      status: completed
+      module: modules/web.skin_resolver
 
-      skin_structure: |
-        /var/httpd/_global_templates/skins/
-        ├── default/
-        │   ├── layout.html.template
-        │   ├── header.html.template
-        │   ├── footer.html.template
-        │   └── style.css
-        ├── dark/
-        │   └── style.css (overrides)
-        └── mobile/
-            └── layout.html.template (mobile-optimized)
-
-      success_criteria: "Skin switching functional, cascading working"
-
-    - name: "Implement Automatic Menu Generation"
-      tokens: 3
-      actions:
-        - "Create: modules/web.menu_generator"
-        - "Scan: /var/httpd/{vhost}/ for directories"
-        - "Generate: Navigation menu from directory structure"
-        - "Support: Custom menu metadata (title, icon, order)"
-        - "Add: Active page highlighting"
-
-      menu_generation: |
-        /var/httpd/127.0.0.1/
-        ├── index.html
-        ├── blog/
-        │   └── (auto-menu entry "Blog")
-        ├── shop/
-        │   └── (auto-menu entry "Shop")
-        └── admin/
-            └── (auto-menu entry "Admin")
-
-      success_criteria: "Menu generation working, appears in rendered pages"
+    - name: "Implement Automatic Menu Generation"  # STATUS: DONE (0975ecf98)
+      status: completed
+      module: modules/web.menu_generator
 
     - name: "Create Comprehensive Skin Example"
       tokens: 2
@@ -454,19 +415,19 @@ estimated_additional_effort:
 
 expected_commits:
   - "recovery: Extract and integrate base.parser.pattern_split"
-  - "feat: Implement HTTP route dispatcher for dynamic content"
-  - "feat: Add vhost template resolver with 3-level hierarchy"
-  - "feat: Implement nested skin system with user preferences"
-  - "feat: Add automatic menu generation from filesystem"
+  - "feat: Implement HTTP route dispatcher for dynamic content"  # httpsd.route_template_request ✅ done (0975ecf98)
+  - "feat: Add vhost template resolver with 3-level hierarchy"  # httpd.vhost_template_resolver ✅ done (existing)
+  - "feat: Implement nested skin system with user preferences"   # web.skin_resolver ✅ done (0975ecf98)
+  - "feat: Add automatic menu generation from filesystem"        # web.menu_generator ✅ done (0975ecf98)
   - "docs: Add comprehensive web-zenka implementation guide"
-  - "docs: Create session status and handoff documentation"
+  - "docs: Create session status and handoff documentation"      # TEMPLATE-CACHING-IMPLEMENTATION.md ✅ done (f180ef468)
 
 ---
 
 end_of_task_definition: true
 
-#,,,.,,..,,..,,..,.,,,,,,,,,.,,.,,,,.,.,,,..,,..,,...,...,,..,,,,,.,.,..,,.,.,
-#FEMNEXJWE3DPBX3WPO6HDQBLOLGZPWRTWWXYT2EXAJ6TRDIC5H3JA4GEQT3UDZZXCZ6LAHVI3SGQG
-#\\\|VYPQNWAA7XBXR4BGZHTQ4IUQYVXBZ7VWKEJIHUBDHI3JS4F47IE \ / AMOS7 \ YOURUM ::
-#\[7]MMFH5DIZFFJICWQIA7I5M7O6IUKEL3MDWDP6BPC33HOH2QQREUCY 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,.,,...,,.,,..,,..,,,.,,,,,,..,,..,,...,...,,,.,,..,,,.,,,.,.,.,
+#JLWVVOOA52KSNWVYG6HQ3KNOKW6HHYIFK3TKQCIOB4QPSJOEOHK44N52HXBDBOVOKYL6MWXWLN2SO
+#\\\|TBGNW7CWQTLIR2P73XGGNGOYPWUG34O7SGJASOOCZQC6C45H24O \ / AMOS7 \ YOURUM ::
+#\[7]MSZW5KJ5VGN5NZU3FQ2QKMRM7O5EDHITXP5XS47HPX2SM575LCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
