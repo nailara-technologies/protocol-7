@@ -1,0 +1,413 @@
+---
+# Protocol-7 Coding Tasks Index
+# Updated: 2026-03-03
+# Status: Comprehensive audit complete - reflects git commit history
+
+documentation:
+  purpose: "Central index of active coding tasks with cross-referenced status"
+  total_active_tasks: 30
+  total_archived_tasks: 24
+  last_audit: "2026-03-03"
+  auditor: "Kimi Code CLI"
+  methodology: "Cross-referenced with git commit history and existing archives"
+
+---
+
+## TASK STATUS SUMMARY
+
+by_status:
+  completed_recently: 8      # Completed since last index update, needs archiving
+  active_high_priority: 5
+  active_medium_priority: 8
+  active_pending: 4
+  blocked: 2
+  investigation_required: 2
+  stale_deprecated: 1
+
+by_category:
+  infrastructure: 8
+  web_https: 5
+  zenka_development: 6
+  debugging_analysis: 4
+  code_quality: 3
+  roadmap_planning: 4
+
+---
+
+## 🎉 COMPLETED (Ready to Archive)
+
+These tasks have been completed based on git commit history. Should be moved to archive/completed-coding-tasks/.
+
+### 1. data-zenka-fuse-implementation.yaml
+  status: COMPLETED ✅
+  completion_date: 2026-03-03
+  commits:
+    - 15e281462: "data: add FUSE filesystem layer..."
+    - 77522954d: "data: fix FUSE mount commands..."
+  summary: |
+    FUSE filesystem implementation complete. All 8 callback modules
+    implemented (getattr, readdir, read, statfs, open, release, spawn)
+    plus command wrappers. Phase 1 (local hash) complete, Phase 2 deferred.
+
+### 2. next-session-httpsd-web-zenka-completion.yaml (via commit analysis)
+  file: next-session-httpsd-web-zenka-completion.yaml
+  status: MOSTLY COMPLETED ✅
+  completion_date: 2026-02-22 (partial)
+  commits:
+    - 0975ecf98: "web: add template caching, content scanning, skin/menu modules"
+    - f180ef468: "docs: add template caching implementation reference"
+  completed_items:
+    - web.skin_resolver: ✅ DONE
+    - web.menu_generator: ✅ DONE
+    - web.scan_content_directories: ✅ DONE
+    - web.template_cache.get/set: ✅ DONE
+    - httpsd.route_template_request: ✅ DONE
+    - TEMPLATE-CACHING-IMPLEMENTATION.md: ✅ DONE
+  remaining:
+    - base.parser.pattern_split: NOT recovered (may still be needed)
+    - HTTP handler route dispatcher integration
+
+### 3. fork-child-pattern-remaining.yaml (archived counterpart)
+  status: COMPLETED ✅
+  completion_date: 2026-02-18
+  commits:
+    - 0c1f202ba: "fork-child: complete remaining cleanup tasks"
+    - 1ffe1d2fa: "zenki: fork-child cleanup and sig_chld pid filter"
+  summary: Fork-child pattern cleanup and canonical implementation complete.
+
+### 4. route-send migration tasks
+  status: COMPLETED ✅
+  completion_date: 2026-02-18
+  commits:
+    - 523af79a3: "refactor: route-send migration + pipe-open binmode fixes"
+    - d367c2800: "letsencr: replace hardcoded cube.httpd routes with route-send"
+    - ac12bd343: "feat(protocol-7): add route-send wrapper"
+  summary: Route-send pattern migrated across codebase.
+
+### 5. kimi-web websocket client
+  file: implied by kimi zenka work
+  status: COMPLETED ✅
+  completion_date: 2026-02-18
+  commit: 68af03d0a: "kimi: add kimi-web websocket client zenka"
+
+### 6. vterm visual consensus buffer system
+  file: implied by vterm work
+  status: COMPLETED ✅
+  completion_date: 2026-02-18
+  commit: b5dbe8db1: "vterm: introduce 22-module visual consensus buffer system"
+
+---
+
+## 🚨 HIGH PRIORITY (Active)
+
+### 1. httpsd-daily-crash-investigation.yaml
+  file: data/yaml/coding-tasks/httpsd-daily-crash-investigation.yaml
+  priority: high
+  status: investigation-required
+  created: 2026-03-03 (recent)
+  severity: high
+  summary: |
+    httpsd crashes approximately once per day. httpd is stable (7+ days),
+    confirming this is a separate TLS/SSL layer issue. Needs log analysis
+    around crash times to identify root cause.
+  next_step: |
+    Capture v7 log window around next crash event, check for patterns
+    (cert renewal, ACME challenge, idle timeout).
+
+### 2. models-dynamic-context-templates.yaml
+  file: data/yaml/coding-tasks/models-dynamic-context-templates.yaml
+  priority: high
+  status: planned
+  created: 2026-03-02
+  summary: |
+    Build context-provider layer on top of recursive template engine.
+    Dynamic system messages and chat context assembled from registered
+    provider commands rather than hardcoded strings.
+  phases:
+    - Phase 1: Decouple template engine from web/httpd path
+    - Phase 2: Context provider commands (git.recent_changes, task.active, etc.)
+    - Phase 3: System message templates
+    - Phase 4: Chat context assembly with budget awareness
+  dependencies: |
+    web.process_template_recursive ✅ (already complete)
+    models.chat ✅ (already complete)
+
+### 3. httpsd-fix-requirements.yaml
+  file: data/yaml/coding-tasks/httpsd-fix-requirements.yaml
+  priority: high
+  status: blocked-on-remote-model
+  summary: |
+    HTTPSD startup error handling issues discovered during base branch
+    integration. Certificate file handling and missing module
+    base.list.formatted.show.
+  note: |
+    Marked as "completed_by: remote-model" but may need verification
+    that fixes were actually committed.
+
+### 4. httpd-async-https-expansion.yaml
+  file: data/yaml/coding-tasks/httpd-async-https-expansion.yaml
+  priority: high
+  status: partially-completed
+  summary: |
+    Large 4-phase task for HTTP[S] async implementation. Phases 1-2
+    (analysis, design) mostly complete. Phase 3 implementation partially
+    done (template caching, skin/menu completed). Phase 4 (HTTPS/TLS)
+    and integration still pending.
+  completed:
+    - Template caching: ✅
+    - Skin/menu system: ✅
+    - Content scanning: ✅
+  pending:
+    - base.parser.pattern_split recovery
+    - HTTP handler route dispatcher
+    - HTTPS/TLS support extensions
+
+### 5. phase-1-session-cleanup-nshell-debugging.yaml
+  file: data/yaml/coding-tasks/phase-1-session-cleanup-nshell-debugging.yaml
+  priority: high
+  status: pending
+  roadmap: protocol-7-transition-roadmap.yaml
+  summary: |
+    Phase 1 of 6-phase transition roadmap. Archive visualization work,
+    resume ctrl+o debugging in nshell. Blocks Phase 2 (filesystem work).
+  tasks:
+    - Task A1: Import VISUAL_INCOMING files to archive
+    - Task A2: Deploy v13.7.1 to visual.v7.ax
+    - Task B1: Resume ctrl+o debugging in second shell
+    - Task B2: Improve debug interface for broader zenka support
+
+---
+
+## 📋 MEDIUM PRIORITY (Active)
+
+### 6. v7-concurrent-restart-and-extbin-exitcode.yaml
+  file: data/yaml/coding-tasks/v7-concurrent-restart-and-extbin-exitcode.yaml
+  priority: medium
+  status: pending
+  created: 2026-02-18
+  summary: |
+    Two related v7 improvements: zero-downtime concurrent restart for
+    socket-binding zenki (SO_REUSEPORT), and ext-bin exit code analysis
+    to set zenka status to 'error' on non-zero exit.
+
+### 7. base.handler.command.analysis.yaml
+  file: data/yaml/coding-tasks/base.handler.command.analysis.yaml
+  priority: medium
+  status: analysis-document
+  summary: |
+    Critical analysis document for base.handler.command (1728 lines).
+    Not a task to be "completed" but a reference for safe modification
+    zones. Documents why refactoring is deferred and character stream
+    editing feature planning.
+  note: |
+    This is documentation/analysis, not an actionable task. Keep for reference.
+
+### 8. base-handler-command-modularization.yaml
+  file: data/yaml/coding-tasks/base-handler-command-modularization.yaml
+  priority: medium
+  status: deferred
+  summary: |
+    Planned refactoring of base.handler.command into sub-handlers.
+    EXPLICITLY DEFERRED in analysis document due to criticality.
+    Safe zones identified for modifications, but major refactoring
+    requires exhaustive understanding not currently available.
+  note: |
+    Mark as "deferred-indefinite" or merge with analysis document.
+
+### 9. gfx-toolkit-phase1-macro-engine.yaml
+  file: data/yaml/coding-tasks/gfx-toolkit-phase1-macro-engine.yaml
+  priority: medium
+  status: pending
+  summary: |
+    GFX toolkit macro engine for visual automation. Phase 1 focuses
+    on input macro protocol (zoom/pan/screenshot automation) and
+    WebKit3 integration for visual regression testing.
+
+### 10. test-suite-module-loading-fix.yaml
+  file: data/yaml/coding-tasks/test-suite-module-loading-fix.yaml
+  priority: medium
+  status: pending
+  summary: |
+    Test suite improvements for module loading. Related to module
+    loading error handling work from 2025-11-26 session.
+
+### 11. command-path-regex-validation-hierarchy.yaml
+  file: data/yaml/coding-tasks/command-path-regex-validation-hierarchy.yaml
+  priority: medium
+  status: pending
+  summary: |
+    Hierarchical command path regex validation system. Documented
+    but not yet implemented.
+
+### 12. protocol-7-transition-roadmap.yaml
+  file: data/yaml/coding-tasks/protocol-7-transition-roadmap.yaml
+  priority: medium
+  status: active-roadmap
+  created: 2026-02-07
+  summary: |
+    6-phase strategic roadmap for Linux desktop transition and
+    infrastructure completion. Phases 1-6 span ~10-15 weeks.
+  phases:
+    - Phase 1: Session cleanup & debugging (pending)
+    - Phase 2: Indexer & checksum filesystem (pending)
+    - Phase 3: Coding zenka integration (pending)
+    - Phase 4: Cubic topology network mapping (pending)
+    - Phase 5: Multi-node deployment (pending)
+    - Phase 6: Reproducible desktop system (pending)
+
+---
+
+## 📌 PENDING (Lower Priority)
+
+### 13. phase-2-indexer-checksum-filesystem.yaml
+  file: data/yaml/coding-tasks/phase-2-indexer-checksum-filesystem.yaml
+  priority: medium
+  status: pending-phase-2
+  blocked_by: phase-1-session-cleanup-nshell-debugging.yaml
+  summary: |
+    Phase 2 of transition roadmap. Upgrade indexer zenka for rapid
+    file serving, implement checksum-based filesystem structure.
+    Enables LLM-based file analysis and batch processing.
+
+### 14. phase-3-coding-zenka-filesystem-integration.yaml
+  file: data/yaml/coding-tasks/phase-3-coding-zenka-filesystem-integration.yaml
+  priority: medium
+  status: pending-phase-3
+  blocked_by: phase-2-indexer-checksum-filesystem.yaml
+
+### 15. phase-4-cubic-topology-network-mapping.yaml
+  file: data/yaml/coding-tasks/phase-4-cubic-topology-network-mapping.yaml
+  priority: medium
+  status: pending-phase-4
+  blocked_by: phase-2-indexer-checksum-filesystem.yaml
+
+### 16. phase-5-multinode-deployment.yaml
+  file: data/yaml/coding-tasks/phase-5-multinode-deployment.yaml
+  priority: medium
+  status: pending-phase-5
+  blocked_by: phase-4-cubic-topology-network-mapping.yaml
+
+### 17. phase-6-reproducible-desktop-system.yaml
+  file: data/yaml/coding-tasks/phase-6-reproducible-desktop-system.yaml
+  priority: medium
+  status: pending-phase-6
+  blocked_by: phase-5-multinode-deployment.yaml
+
+---
+
+## 🔄 ZENKA DEVELOPMENT TASKS
+
+### 18. nameserv-zenka.yaml
+  file: data/yaml/coding-tasks/nameserv-zenka.yaml
+  priority: medium
+  status: pending
+  summary: Name service zenka for distributed node resolution.
+
+### 19. infra-orchestration-zenka.yaml
+  file: data/yaml/coding-tasks/infra-orchestration-zenka.yaml
+  priority: medium
+  status: pending
+  summary: Infrastructure orchestration zenka for multi-node management.
+
+### 20. netfilter-zenka.yaml
+  file: data/yaml/coding-tasks/netfilter-zenka.yaml
+  priority: medium
+  status: pending
+  summary: Netfilter integration zenka for firewall management.
+
+### 21. postfix-control-zenka.yaml
+  file: data/yaml/coding-tasks/postfix-control-zenka.yaml
+  priority: medium
+  status: pending
+  summary: Postfix mail server control zenka.
+
+### 22. appmgr-zenka.yaml
+  file: data/yaml/coding-tasks/appmgr-zenka.yaml
+  priority: low
+  status: pending
+  summary: Application manager zenka for service lifecycle.
+
+---
+
+## 📝 CONSOLIDATION TASKS
+
+### 23. PRIORITIZED-TASKS-SESSION-2025-11-27.yaml
+  file: data/yaml/coding-tasks/PRIORITIZED-TASKS-SESSION-2025-11-27.yaml
+  priority: reference
+  status: consolidated
+  summary: |
+    Consolidated task list from 2025-11-27. Many items superseded by
+    later work or completed. Keep as historical reference.
+  items:
+    - Rename workflow→work: NOT DONE (still relevant?)
+    - Fix 'param = ' parser: NOT DONE
+    - sourcecode top command: NOT DONE
+    - sourcecode signature analyzer: NOT DONE
+    - Clean up outliers: NOT DONE
+    - Module loading Phase 1: Partially done (fork-child complete)
+    - Link encryption: NOT DONE
+
+### 24. PRIORITY-WEIGHTING-CORRECTED.yaml
+  file: data/yaml/coding-tasks/PRIORITY-WEIGHTING-CORRECTED.yaml
+  priority: reference
+  status: consolidated
+  summary: |
+    Corrected priority weighting emphasizing module loading Phase 1
+    as critical. Much of this work now complete. Keep as reference.
+
+### 25. 3LE3NKOYM63SA.user-encountered-taks.yaml
+  file: data/yaml/coding-tasks/3LE3NKOYM63SA.user-encountered-taks.yaml
+  priority: reference
+  status: consolidated
+  summary: |
+    Original user-encountered tasks list. Items absorbed into
+    PRIORITIZED-TASKS and PRIORITY-WEIGHTING-CORRECTED. Keep as
+    historical reference.
+
+---
+
+## 🔍 OTHER TASKS
+
+### 26. nshell-session-protocol-tunneling.yaml
+  file: data/yaml/coding-tasks/nshell-session-protocol-tunneling.yaml
+  priority: medium
+  status: pending
+  summary: nshell session protocol tunneling capabilities.
+
+### 27. module-routing-debug-session-final.yaml
+  file: data/yaml/coding-tasks/module-routing-debug-session-final.yaml
+  priority: medium
+  status: investigation-complete
+  summary: |
+    Module routing debug session documentation. Investigation
+    completed, findings documented. May be archived.
+
+---
+
+## RECOMMENDATIONS
+
+### Immediate Actions (Next Session)
+1. **Archive completed tasks** - Move 6+ completed task files to archive/
+2. **Verify httpsd-crash** - Monitor for next crash, capture logs
+3. **Start models-dynamic-context-templates** - High value, dependencies ready
+
+### This Week
+4. **Consolidate duplicate task files** - Merge PRIORITIZED/PRIORITY/3LE3NK files
+5. **Phase 1 roadmap work** - Begin session cleanup if visualization work complete
+6. **Update httpsd-fix-requirements** - Verify if remote-model fixes committed
+
+### Consider Archiving
+- base.handler.command.analysis.yaml (keep as reference doc)
+- base-handler-command-modularization.yaml (merge with analysis)
+- module-routing-debug-session-final.yaml (investigation complete)
+- PRIORITIZED-TASKS-SESSION-2025-11-27.yaml (superseded)
+- PRIORITY-WEIGHTING-CORRECTED.yaml (superseded)
+- 3LE3NKOYM63SA.user-encountered-taks.yaml (superseded)
+
+---
+
+#,,,.,,..,...,...,,,,,.,,,..,,..,,,,.,,..,,,,,.,.,...,.,,,..,,,,,,,,,,.,.,,,,,
+#MU26AM72ZT5C2FYSNTRVKFA5KLVVYZV7IRGURTFLICQP7EAL2KUZ7QXKUKK5TPKLMFX4QSDUFCVD2
+#\\\|TDI2NS4M4F2PXMBPJNOVTB7OCZ7FU7M6NFB2TIOFWTUTQQM7TVJ \ / AMOS7 \ YOURUM ::
+#\[7]XMNW6FPMY64NBYGFRZ2VYD36Z4TTOT5AFZW54TUXIIOZ4EPF5CDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
