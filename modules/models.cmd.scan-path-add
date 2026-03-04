@@ -45,8 +45,8 @@ foreach my $path_id ( keys $scan_paths->%* ) {
 ## Generate path-id from directory name [ fallback to checksum ]
 my ( $volume, $directories, $filename ) = File::Spec->splitpath($dir_path);
 my $path_id_base = $filename // 'path';
-my $path_id = $path_id_base;
-my $counter = 1;
+my $path_id      = $path_id_base;
+my $counter      = 1;
 
 while ( exists $scan_paths->{$path_id} ) {
     $path_id = sprintf( '%s-%d', $path_id_base, $counter );
@@ -54,29 +54,30 @@ while ( exists $scan_paths->{$path_id} ) {
 }
 
 <[base.logs]>->(
-    1, '[scan-path-add] adding path: %s with id: %s',
+    1,         '[scan-path-add] adding path: %s with id: %s',
     $dir_path, $path_id
 );
 
 ## Register the scan path
 $scan_paths->{$path_id} = {
-    'path'      => $dir_path,
-    'enabled'   => TRUE,
-    'recursive' => TRUE,
-    'tier'      => 3,           # Default tier for manually added paths
+    'path'             => $dir_path,
+    'enabled'          => TRUE,
+    'recursive'        => TRUE,
+    'tier'             => 3,           # Default tier for manually added paths
     'discovered_count' => 0,
-    'added_at'  => <[base.time]>->(3)
+    'added_at'         => <[base.time]>->(3)
 };
 
 <models.scan_paths> = $scan_paths;
 
 ## Trigger discovery scan
 <[base.logs]>->( 1, '[scan-path-add] scanning directory for models' );
-my $discovered = <[models.storage.discover_directory]>->($dir_path, TRUE) // [];
+my $discovered = <[models.storage.discover_directory]>->( $dir_path, TRUE )
+    // [];
 
 <[base.logs]>->(
     1, '[scan-path-add] found %d model files',
-    scalar( @$discovered )
+    scalar(@$discovered)
 );
 
 ## Load current registry
@@ -86,22 +87,29 @@ my $registry = <[models.storage.yaml_load]>->();
 my $added_count = 0;
 foreach my $model ( $discovered->@* ) {
     ## Calculate path checksum (for composite key)
-    my $path_checksum = <[models.checksum.from_path]>->($model->{'path'});
+    my $path_checksum = <[models.checksum.from_path]>->( $model->{'path'} );
     unless ( defined $path_checksum ) {
-        <[base.logs]>->( 0, '[scan-path-add] failed to calculate checksum for: %s', $model->{'path'} );
+        <[base.logs]>->(
+            0, '[scan-path-add] failed to calculate checksum for: %s',
+            $model->{'path'}
+        );
         next;
     }
 
     ## Calculate model checksum from metadata
-    my $model_checksum = <[models.checksum.from_metadata]>->({
-        'model_id'     => $model->{'name'},
-        'name'         => $model->{'name'},
-        'quantization' => $model->{'quantization'} // 'unknown',
-        'size_gb'      => $model->{'size_gb'} // 0,
-        'is_vision'    => $model->{'is_vision'} // FALSE
-    });
+    my $model_checksum = <[models.checksum.from_metadata]>->(
+        {   'model_id'     => $model->{'name'},
+            'name'         => $model->{'name'},
+            'quantization' => $model->{'quantization'} // 'unknown',
+            'size_gb'      => $model->{'size_gb'}      // 0,
+            'is_vision'    => $model->{'is_vision'}    // FALSE
+        }
+    );
     unless ( defined $model_checksum ) {
-        <[base.logs]>->( 0, '[scan-path-add] failed to calculate model checksum for: %s', $model->{'name'} );
+        <[base.logs]>->(
+            0, '[scan-path-add] failed to calculate model checksum for: %s',
+            $model->{'name'}
+        );
         next;
     }
 
@@ -111,31 +119,34 @@ foreach my $model ( $discovered->@* ) {
     ## Check if already in registry (by path)
     my $already_exists = FALSE;
     foreach my $entry ( values $registry->%* ) {
-        if ( ($entry->{'file_path'} // '') eq $model->{'path'} ) {
+        if ( ( $entry->{'file_path'} // '' ) eq $model->{'path'} ) {
             $already_exists = TRUE;
             last;
         }
     }
 
-    if ( $already_exists ) {
-        <[base.logs]>->( 2, '[scan-path-add] model already registered: %s', $model->{'name'} );
+    if ($already_exists) {
+        <[base.logs]>->(
+            2, '[scan-path-add] model already registered: %s',
+            $model->{'name'}
+        );
         next;
     }
 
     ## Add to registry
     $registry->{$composite_key} = {
-        'amos_id'      => $composite_key,
-        'path_checksum'   => $path_checksum,
-        'model_checksum'  => $model_checksum,
-        'model_id'     => $model->{'name'},
-        'name'         => $model->{'name'},
-        'file_path'    => $model->{'path'},
-        'quantization' => $model->{'quantization'} // 'unknown',
-        'size_gb'      => $model->{'size_gb'} // 0,
-        'is_vision'    => $model->{'is_vision'} // FALSE,
-        'source'       => $path_id,
-        'scan_path_id' => $path_id,
-        'discovered'   => <[base.time]>->(3)
+        'amos_id'        => $composite_key,
+        'path_checksum'  => $path_checksum,
+        'model_checksum' => $model_checksum,
+        'model_id'       => $model->{'name'},
+        'name'           => $model->{'name'},
+        'file_path'      => $model->{'path'},
+        'quantization'   => $model->{'quantization'} // 'unknown',
+        'size_gb'        => $model->{'size_gb'}      // 0,
+        'is_vision'      => $model->{'is_vision'}    // FALSE,
+        'source'         => $path_id,
+        'scan_path_id'   => $path_id,
+        'discovered'     => <[base.time]>->(3)
     };
 
     $added_count++;
@@ -158,7 +169,10 @@ unless ( defined $bytes_saved ) {
 my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
 <[base.buffer.add_line]>->(
     qw| models-action |,
-    join( ' ', $time_stamp, 1, 'system', 'scan-path-add', $path_id, $added_count, 'completed' ), 1
+    join( ' ',
+        $time_stamp, 1,            'system', 'scan-path-add',
+        $path_id,    $added_count, 'completed' ),
+    1
 );
 
 return {
@@ -166,8 +180,8 @@ return {
     'data' => "added path [$path_id] with $added_count models"
 };
 
-#,,.,,.,.,,,.,,..,.,,,,.,,,.,,,,,,,,.,,..,...,..,,...,...,,.,,.,,,...,,,,,..,,
-#GD7TE3PPD2GWPVBIHG63RQFPKVHFVC5XVTRSZ65HVW6MFJAVY5FHN6T6VLTVC3JEHEBWIMT3PSIQY
-#\\\|NENAMPMK4WP3XUDY3GR7OI5R3OPTRDL4POUIIWALUENCZIFDV6A \ / AMOS7 \ YOURUM ::
-#\[7]5WWNTXAIGM4MYK7MJPF25AINH367UESR2Y7FGWHDK6ZXR5SDPKCY 7  DATA SIGNATURE ::
+#,,,.,.,.,,,.,...,,,,,.,.,,,,,...,.,,,.,.,,,.,..,,...,..,,...,..,,,,,,...,,..,
+#FNCAHJHCP2L3543QCRXRDSJTXAIJI2XG2I2KGU42ZBNYB7MBFX77WVX7PHGRQOBBCHP2KFGFXUGHY
+#\\\|6EDOMCEZ2UL2GRPWADL4M6G6XFPJBER2KUO2G34PCIGGIVZJVUU \ / AMOS7 \ YOURUM ::
+#\[7]VZEAAAG7HVT3JANKOZIBB35BUMJR3ABRYP25VHNC3D3ADXU6NUAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

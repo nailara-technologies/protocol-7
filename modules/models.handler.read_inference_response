@@ -3,8 +3,8 @@
 # name = models.handler.read_inference_response
 # descr = non-blocking I/O handler - read curl response from llama-server
 
-my $event   = shift->w;
-my $read_fh = $event->fd;
+my $event        = shift->w;
+my $read_fh      = $event->fd;
 my $inference_id = $event->data;
 
 my $job = <models.pending_inferences>->{$inference_id};
@@ -23,7 +23,7 @@ my $bytes = <[base.s_read]>->(
 
 if ( $bytes > 0 ) {
     <[base.logs]>->(
-        1, "[read_inference] id=%s bytes=%d",
+        1,             "[read_inference] id=%s bytes=%d",
         $inference_id, $bytes
     );
 }
@@ -33,8 +33,8 @@ if ( $job->{'completed'} ) {
     return;
 }
 
-#,,,.,..,,,,.,..,,,,.,,.,,,..,,..,,.,,,..,.,.,.,.,...,...,,,.,,,.,.,.,,.,,,,,,
-#JTAAHFGPVNNWOVELOMK7XRDMO7JJYJYAUZIGCCZBGCW7FWCO23CKGLMLE5CZC6EJCSL2KGBUK6KGU
-#\\\|OJJYYDMD77BDSVFZBEOOO4MJCS45JYGD2VCW3W7UUZGJLBEMQ5G \ / AMOS7 \ YOURUM ::
-#\[7]DMH5PXUAPJIBTEBZJW7FQZA3TZYRY5STPUXH74ZDR44BOTN7HCDA 7  DATA SIGNATURE ::
+#,,..,.,.,...,.,.,,,.,,,.,.,.,,,,,..,,,,.,..,,.,.,...,...,...,,,.,,..,,.,,...,
+#NSRW34BACZPWT7HNVTKHVVPNRKQ2SCYPVP2YEXULZ2UR56ORDOK62NC53PNCHUVKR6SLYE6GJ5BPQ
+#\\\|XCUV7MAQWJPD365C6NUHNAU5TUVUYU6OV76GUCMJURF6TBRESTM \ / AMOS7 \ YOURUM ::
+#\[7]WAKPU2PBY7DJKRJHX7K2ITAV46L6WFSSA7DR64LZAKZ7OMHPEKDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

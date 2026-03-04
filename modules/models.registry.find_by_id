@@ -21,23 +21,19 @@ unless ( keys $registry->%* ) {
 
 ## Search registry for matching model_id
 foreach my $entry ( values $registry->%* ) {
-    if ( ($entry->{'model_id'} // '') eq $model_id ) {
+    if ( ( $entry->{'model_id'} // '' ) eq $model_id ) {
         <[base.logs]>->(
-            1, '[registry.find_by_id] found model: %s',
-            $model_id
+            1, '[registry.find_by_id] found model: %s', $model_id
         );
         return $entry;
     }
 }
 
-<[base.logs]>->(
-    2, '[registry.find_by_id] model not found: %s',
-    $model_id
-);
+<[base.logs]>->( 2, '[registry.find_by_id] model not found: %s', $model_id );
 return undef;
 
-#,,..,...,.,,,..,,.,,,,,,,,,.,.,,,,,,,,,,,,.,,..,,...,...,..,,,..,..,,..,,.,.,
-#POMBKJWSUXMMN3IUJANG4PCLFXWNJ2JFXX4HGBK6U2Y3LZB3QTZBTJZ2LHDXZ4QYRDWH4CE3UNQ3Q
-#\\\|SYN6MWILUVM6OO6XXBWIMV7CJJONIO6FPSLCDSX4WIBSYWNM2ZD \ / AMOS7 \ YOURUM ::
-#\[7]URAQZIHCPKMBT4F2MKEAFOWXV4LT4PB2WX2QVM6OPWOIKL5XROBA 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,,,,.,.,,..,,,,,.,,,,.,,,,,,.,,,..,,...,...,.,,,...,,,.,..,,.,.,
+#WXROWSXYMDMYIUVZTSPBTLVWVXZJIKMR7Z3IGV6SLTV3XJMNYCQR6SPLG5LZCKJBFAK5GOTB5Q254
+#\\\|Y63XPZCNXR4DL57IG7F5AAM22TURSSXFXI7CPXCC7OQ52IAWZBO \ / AMOS7 \ YOURUM ::
+#\[7]SLTBXDFQDHWJNQ747QPQ6KC54PEKP6GF7KG5PGV5LNZ4ONQW5KBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

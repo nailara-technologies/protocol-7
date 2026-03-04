@@ -2,7 +2,7 @@
 
 # name  = models.registry.lookup
 # param = <checksum_or_composite_id>
-# descr = Smart lookup supporting both single (7-char) and composite (15-char) checksums
+# descr = lookup for single (7-char) and composite (15-char) checksums
 # return = model entry hashref or undef if not found
 
 my $lookup_id = shift;
@@ -24,12 +24,13 @@ if ( $lookup_id =~ m{:} ) {
 
     ## COMPOSITE LOOKUP: path_checksum:model_checksum
     if ( exists $registry->{$lookup_id} ) {
-        <[base.logs]>->( 1, '[registry.lookup] found composite key: %s', $lookup_id );
+        <[base.logs]>->(
+            1, '[registry.lookup] found composite key: %s', $lookup_id
+        );
         return $registry->{$lookup_id};
     } else {
         <[base.logs]>->(
-            2, '[registry.lookup] composite key not found: %s',
-            $lookup_id
+            2, '[registry.lookup] composite key not found: %s', $lookup_id
         );
         return undef;
     }
@@ -43,7 +44,8 @@ if ( $lookup_id =~ m{:} ) {
 
     ## Direct match on registry key
     if ( exists $registry->{$lookup_id} ) {
-        push @matches, { key => $lookup_id, entry => $registry->{$lookup_id} };
+        push @matches,
+            { key => $lookup_id, entry => $registry->{$lookup_id} };
     }
 
     ## Check composite keys (format: path:model)
@@ -56,10 +58,9 @@ if ( $lookup_id =~ m{:} ) {
         }
     }
 
-    unless ( @matches ) {
+    unless (@matches) {
         <[base.logs]>->(
-            2, '[registry.lookup] no matches found for model: %s',
-            $lookup_id
+            2, '[registry.lookup] no matches found for model: %s', $lookup_id
         );
         return undef;
     }
@@ -76,7 +77,8 @@ if ( $lookup_id =~ m{:} ) {
     foreach my $match (@matches) {
         if ( $match->{key} !~ m{:} ) {
             <[base.logs]>->(
-                1, '[registry.lookup] found %d matches, returning primary: %s',
+                1,
+                '[registry.lookup] found %d matches, returning primary: %s',
                 scalar(@matches), $match->{key}
             );
             return $match->{entry};
@@ -91,8 +93,8 @@ if ( $lookup_id =~ m{:} ) {
     return $matches[0]->{entry};
 }
 
-#,,.,,.,,,.,,,..,,..,,,,,,.,,,.,.,.,.,,,,,.,,,..,,...,...,...,,..,,,.,.,.,,.,,
-#7ROWG5YEZJAINOYY7I5QMCYX5ZAUZIJBMBGF5OQMYTIWNJAXXGEN2JCGGVG7QCNPLHX54VFQCRXCC
-#\\\|MQS6GTTXPJNBLGPOTKLXWE6O7VGGG6WA47AMYZKYIDWJGCLQTBS \ / AMOS7 \ YOURUM ::
-#\[7]LQCLPIW3DCM3CBPGLZULSHTKRT35BXTPJYWK35BUAXBZPEOTGAAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,,,,,...,,,,,.,,,..,,.,.,,,.,,,,,..,,...,...,,.,,.,,,.,,,...,,..,
+#FFIUSXBPJTCYASL6HCCHH4M2LLZEEOCMZHKGOGPMVZKPUVPYI2YZY5I7HIFB4BLQTUTJXT2LK3PJ6
+#\\\|QMNUBRZ5ZFPBZ4GMRFGAI67YBCQX4EZ3T2J755KG25ENDDFOFUB \ / AMOS7 \ YOURUM ::
+#\[7]NV32ANPY4MTMWYZJY5M75UQRKF4FT5YGUTFQWC5BL5C4XWKZ6IBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

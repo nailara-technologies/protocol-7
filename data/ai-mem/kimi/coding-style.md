@@ -171,6 +171,17 @@ the effective verbosity is the max of all three (see modules/base.get_max_verbos
 my $params = shift // {};
 ```
 
+### signature footer [ critical ]
+**never add signature footer manually** — `bin/Protocol-7 sourcecode update-signatures` adds the real footer.
+
+**placeholder footers**: do not include placeholder signature lines with trailing spaces — they block the signing system.
+```
+#,,,.,,,.,,..,.,.,..,,,..,..,,,..  ## wrong — trailing space
+#,,,.,,,.,,..,.,.,..,,,..,..,,,..  ## correct — no space
+```
+
+leave files clean for proper signing.
+
 ### never add signature footer manually
 `bin/Protocol-7 sourcecode update-signatures` adds the real footer.
 leave files clean for proper signing.
@@ -212,6 +223,30 @@ qq|error: $err at line $line|;       ## when you need interpolation
 ### single quotes for literals
 ```perl
 'fixed string'                       ## no interpolation needed
+```
+
+---
+
+## column width
+
+### 78 character limit
+code and comments must fit within 78 columns. ptd enforces this.
+
+### breaking long strings
+ptd **cannot** automatically break up long strings. you must manually split them:
+
+```perl
+## wrong — exceeds 78 columns
+"[module] failed to render system message: $result->{message}"
+
+## correct — split with concatenation
+"[module] render failed: "
+    . $result->{message}
+```
+
+### check for violations
+```bash
+./bin/vc-changed-files -exc-len | grep modules/
 ```
 
 ---
@@ -407,8 +442,8 @@ my $r = eval { operation() } // {};
 
 ---
 
-#,,,.,...,.,.,.,,,.,,,..,,,,.,,,,,,.,,,,,,,.,,.,.,...,..,,...,,,,,,.,,,,.,,..,
-#XVVD6TZMQOQS5ADLZLZOSQIJL2GVC7KTSA35DNEUFXSIU4OPJCWOJ4MXLGUCJHPIGVJ7LQYKBWYJU
-#\\\|KENH52EHJECHKZYAAFBE256I6Z5ZIDD2CGROUDY4X7VL6LKJUZW \ / AMOS7 \ YOURUM ::
-#\[7]TLV2NFIS7WVMZN23Y5Z5HWM47EDGMGWQREUOZU777RKAUNAMPKAY 7  DATA SIGNATURE ::
+#,,,,,..,,.,.,,..,,..,,,.,...,...,.,.,,,.,.,,,.,.,...,..,,,,.,...,,,.,.,.,..,,
+#6UMBOY64NHZ6PZPFDM5MF3YBLF6SAAR2VZBQGZNXFEFX76KU4V2FTJC5TGUYRFTJYHRCX3DZKSGMO
+#\\\|QJIT5VF2HB6QVW7HUXD4QWGG7HU3CMH73V5OUV2LZN4DPXW6S62 \ / AMOS7 \ YOURUM ::
+#\[7]3U7NC4W37QOVEM5TFNJ6E2FQDHTLCOGMG2P625IQJAPX4QY7B2CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

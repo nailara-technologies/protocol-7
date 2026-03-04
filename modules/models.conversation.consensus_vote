@@ -70,42 +70,43 @@ foreach my $pid (@enabled_participants) {
 
     if ( $result->{'success'} ) {
         my $response_text = $result->{'response'} // '';
-        push @{ $responses{$response_text} }, {
+        push @{ $responses{$response_text} },
+            {
             'participant_id' => $pid,
             'model_id'       => $result->{'model_id'},
             'tokens_used'    => $result->{'tokens_used'},
             'latency_ms'     => $result->{'latency_ms'},
-        };
+            };
     }
 
-    push @participant_results, {
+    push @participant_results,
+        {
         'participant_id' => $pid,
         'success'        => $result->{'success'},
         'model_id'       => $result->{'model_id'},
         'response'       => $result->{'response'},
         'tokens_used'    => $result->{'tokens_used'},
         'error'          => $result->{'error'},
-    };
+        };
 }
 
 ## Aggregate consensus
 my @consensus_responses;
 foreach my $response_text ( sort keys %responses ) {
-    push @consensus_responses, {
-        'response'  => $response_text,
-        'vote_count' => scalar( @{ $responses{$response_text} } ),
+    push @consensus_responses,
+        {
+        'response'     => $response_text,
+        'vote_count'   => scalar( @{ $responses{$response_text} } ),
         'participants' => $responses{$response_text},
-    };
+        };
 }
 
 ## Sort by vote count (descending)
-@consensus_responses = sort {
-    $b->{'vote_count'} <=> $a->{'vote_count'}
-} @consensus_responses;
+@consensus_responses
+    = sort { $b->{'vote_count'} <=> $a->{'vote_count'} } @consensus_responses;
 
 <[base.logs]>->(
-    1,
-    "[$context] consensus vote: job_id=%s participants=%d responses=%d",
+    1, "[$context] consensus vote: job_id=%s participants=%d responses=%d",
     $job_id,
     scalar(@enabled_participants),
     scalar(@consensus_responses)
@@ -114,19 +115,23 @@ foreach my $response_text ( sort keys %responses ) {
 my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
 
 return {
-    'success'                => TRUE,
-    'job_id'                 => $job_id,
-    'question'               => $question,
-    'total_participants'     => scalar(@enabled_participants),
-    'consensus_responses'    => \@consensus_responses,
-    'participant_results'    => \@participant_results,
-    'dominant_consensus'     => scalar(@consensus_responses) ? $consensus_responses[0]->{'response'} : undef,
-    'consensus_vote_count'   => scalar(@consensus_responses) ? $consensus_responses[0]->{'vote_count'} : 0,
-    'elapsed_ms'             => $elapsed_ms
+    'success'             => TRUE,
+    'job_id'              => $job_id,
+    'question'            => $question,
+    'total_participants'  => scalar(@enabled_participants),
+    'consensus_responses' => \@consensus_responses,
+    'participant_results' => \@participant_results,
+    'dominant_consensus'  => scalar(@consensus_responses)
+    ? $consensus_responses[0]->{'response'}
+    : undef,
+    'consensus_vote_count' => scalar(@consensus_responses)
+    ? $consensus_responses[0]->{'vote_count'}
+    : 0,
+    'elapsed_ms' => $elapsed_ms
 };
 
-#,,.,,.,,,,..,...,,,,,.,.,.,.,..,,..,,..,,.,.,.,.,...,...,,..,.,,,,,.,,..,,,,,
-#EBFA4NI36VXSZM3UJH3WXRWJ7FXC3PDXWQSM4LAPGQHNLHE2JQPOL5R47LY42TMZ6KJAMX6TMAZS6
-#\\\|OWFZIRR3RNB7JU5RFF2TFPFZVVUHY6MKMLJFZV7JG7I3RGG4K65 \ / AMOS7 \ YOURUM ::
-#\[7]2WCS3ZFW22DW5KKL4AHHIZDCOKG63HBCCZ42X2DRZHE2EY7OMEBI 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,...,..,,...,,..,...,,,,,,,,,,,.,.,.,...,...,,,.,,.,,.,.,,.,,,..,
+#YWHH7OZLT2RAFEQ37GWKU3NPLHVISZQTKDOYXWM2NBH2APYYZSE2YNGL2W3L5K4HNGSZ5OSKO7HMI
+#\\\|PTFNLER27CGY5FFZPQVBEW47POFL76NCM2BATZOJPL35QSKRP6B \ / AMOS7 \ YOURUM ::
+#\[7]GZO3B5KDGMSSPPMNP2NOAV6C5WWMNIKXEODZSC2AB6SKODYNG6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

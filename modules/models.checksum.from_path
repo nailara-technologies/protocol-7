@@ -14,7 +14,7 @@ unless ( defined $file_path && length $file_path ) {
 
 ## Validate path doesn't try to escape or use relative traversal
 if ( $file_path =~ m{\.\.} || $file_path !~ m{^/} ) {
-    <[base.s_warn]>->('invalid path format: %s', $file_path);
+    <[base.s_warn]>->( 'invalid path format: %s', $file_path );
     return undef;
 }
 
@@ -22,14 +22,14 @@ if ( $file_path =~ m{\.\.} || $file_path !~ m{^/} ) {
 my $checksum = <[chk-sum.amos]>->($file_path);
 
 unless ( defined $checksum && length $checksum ) {
-    <[base.s_warn]>->('failed to calculate checksum for: %s', $file_path);
+    <[base.s_warn]>->( 'failed to calculate checksum for: %s', $file_path );
     return undef;
 }
 
 return $checksum;
 
-#,,.,,..,,.,.,,.,,,,,,.,,,,..,.,,,...,,,.,,,,,..,,...,...,.,.,.,,,,.,,.,.,,.,,
-#4HHCHYVAEXSZAOCF7RHTNZ7NVVHGI5JY3YZ77K7LPYCHYAGNNL6TTUZNTULXMFFDE5SZNIKNTIHLE
-#\\\|6LCQVSRD4IJE52J5CJ7G7M4ULCVCWKWNND3INRQQWV4IS67M7G4 \ / AMOS7 \ YOURUM ::
-#\[7]LVM2NWQ2G4MOTV2XAOWVLKY67FZCG24USAQ43RJ32253E7VUQWAY 7  DATA SIGNATURE ::
+#,,.,,...,,..,,,,,...,,,.,.,,,,.,,,,.,..,,,,,,..,,...,...,...,,,.,..,,..,,,,.,
+#FOCKNTWGSSBBVQJVMVHDEYBKLNMDQQJGBJA3WZCLBX2NZ7AEPBUP3Z2NS6TGQOCIHDM34U7FKSWYM
+#\\\|ENPEWJ7EK3L4OKR4ZF2TL3PVXHJZ64AM4SSOZKTYALANVV2JQ7F \ / AMOS7 \ YOURUM ::
+#\[7]A2PFVTC7IEIRLJX6UMWV6KWLUUVOOFSW4S56TLNNX2QHOCQ3X4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
