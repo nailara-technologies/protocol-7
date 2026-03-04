@@ -28,7 +28,7 @@ unless ( exists $scan_paths->{$path_id} ) {
 my $path_dir = $scan_paths->{$path_id}->{'path'};
 
 <[base.logs]>->(
-    1, '[scan-path-del] removing path: %s (id: %s)',
+    1,         '[scan-path-del] removing path: %s (id: %s)',
     $path_dir, $path_id
 );
 
@@ -36,7 +36,7 @@ my $path_dir = $scan_paths->{$path_id}->{'path'};
 my $registry = <[models.storage.yaml_load]>->();
 
 ## Find and remove all models from this scan path
-my $removed_count = 0;
+my $removed_count  = 0;
 my @keys_to_remove = ();
 
 foreach my $key ( keys $registry->%* ) {
@@ -50,7 +50,8 @@ foreach my $key ( keys $registry->%* ) {
 foreach my $key (@keys_to_remove) {
     delete $registry->{$key};
     <[base.logs]>->(
-        2, '[scan-path-del] removed model: %s',
+        2,
+        '[scan-path-del] removed model: %s',
         $registry->{$key}->{'name'} // 'unknown'
     );
 }
@@ -77,7 +78,10 @@ unless ( defined $bytes_saved ) {
 my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
 <[base.buffer.add_line]>->(
     qw| models-action |,
-    join( ' ', $time_stamp, 1, 'system', 'scan-path-del', $path_id, $removed_count, 'completed' ), 1
+    join( ' ',
+        $time_stamp, 1, 'system', 'scan-path-del',
+        $path_id,    $removed_count, 'completed' ),
+    1
 );
 
 return {
@@ -85,8 +89,8 @@ return {
     'data' => "removed path [$path_id] and $removed_count models"
 };
 
-#,,.,,..,,,,.,.,.,.,,,..,,.,,,,..,.,.,...,,..,..,,...,...,..,,...,.,,,.,,,.,.,
-#4R5QPMD36ENVFNINMVC2JY2EWCSK3GV3HA2LTCF6ENY5BDJJAY5BYW5CST2P42MH2CQS33SXR4M72
-#\\\|ZY47CN2RRKPJNJ3UCKQAA56RT2WMIAA3GGTCHMDMJJYV5JKGPU2 \ / AMOS7 \ YOURUM ::
-#\[7]QC5QBI4RRIYIP4QFTL3JK3WKGZMK3XGM2NW23VYZLUDHLWQLDKBA 7  DATA SIGNATURE ::
+#,,,,,,.,,...,...,,.,,...,,..,,,,,.,.,..,,,,,,..,,...,...,...,.,.,..,,,..,.,,,
+#W2LVFGTPKIHSDSEGHAAWSKE7OLD7V27RLLS5P7KC2CSGZM5SIKRMDUBTZAAW7N6JH4N5RVQZWJ2YQ
+#\\\|PS7FNOJJL32KYFS4FFUZQZ2XU47X4NG25O7GNKA4PNPRSA3UMDD \ / AMOS7 \ YOURUM ::
+#\[7]WBTOYOZJWRCF5JQ4WIKEKROF4BNNJOWJ7ALU2R75AJ2YCENUSEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

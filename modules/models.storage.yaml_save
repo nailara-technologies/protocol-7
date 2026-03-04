@@ -19,21 +19,19 @@ my $scan_paths = <models.scan_paths> // {};
 
 ## Prepare YAML structure with metadata
 my $yaml_data = {
-    models => $registry,
+    models     => $registry,
     scan_paths => $scan_paths,
-    metadata => {
-        saved_at => <[base.time]>->(3),
-        entry_count => scalar( keys $registry->%* ),
+    metadata   => {
+        saved_at        => <[base.time]>->(3),
+        entry_count     => scalar( keys $registry->%* ),
         scan_path_count => scalar( keys $scan_paths->%* )
     }
 };
 
 ## Convert to YAML
 my $yaml_content;
-eval {
-    $yaml_content = Dump($yaml_data);
-};
-if ( $EVAL_ERROR ) {
+eval { $yaml_content = Dump($yaml_data); };
+if ($EVAL_ERROR) {
     <[base.s_warn]>->(
         'YAML serialization failed: %s',
         <[base.str.eval_error]>
@@ -50,9 +48,9 @@ unless ( defined $yaml_content && length $yaml_content ) {
 my $bytes_written = <[file.zenka_dir.write]>->(
     'registry/models.yaml',
     \$yaml_content,
-    '>',      # Overwrite mode
-    0600,     # File permissions (owner read/write only)
-    ':utf8'   # UTF-8 encoding
+    '>',       # Overwrite mode
+    0600,      # File permissions (owner read/write only)
+    ':utf8'    # UTF-8 encoding
 );
 
 unless ( defined $bytes_written ) {
@@ -61,7 +59,8 @@ unless ( defined $bytes_written ) {
 }
 
 <[base.logs]>->(
-    1, '[storage.yaml_save] saved %d models and %d scan paths (%d bytes)',
+    1,
+    '[storage.yaml_save] saved %d models and %d scan paths (%d bytes)',
     scalar( keys $registry->%* ),
     scalar( keys $scan_paths->%* ),
     $bytes_written
@@ -69,8 +68,8 @@ unless ( defined $bytes_written ) {
 
 return $bytes_written;
 
-#,,.,,.,.,.,.,.,,,..,,..,,,,.,,,.,..,,...,,,.,..,,...,...,.,.,.,.,,..,,,.,...,
-#6BJHHP6GRGGFM2P2QDP56TYAWORVNCG7F3VHEZCENPN4BWS5YDVPYSLQHEPRZRRCOWH4T66FONF52
-#\\\|SR55MKQMEJD5T2WQPZ5VV4Y2GXUI55MO7KXVVMCXICYDSXMQE25 \ / AMOS7 \ YOURUM ::
-#\[7]FUNZI4CZHFBBCXA6PUGRVKWUGAAPF5NNL5HPVHRLU6VJNQ5MPOAQ 7  DATA SIGNATURE ::
+#,,,.,..,,..,,.,.,..,,.,.,,,,,,,.,..,,,,,,.,,,..,,...,...,.,,,,,.,...,..,,,,,,
+#SWF7T7DWIXZEEPXPFUIWORXSG3GNRGAVPX2MFFXIN7U5ORSHDQHF2DEUZKG23QVAAIHPHOYU2RA3Y
+#\\\|BBJ7QMXIKDVUHD4JYQC5SBD6QB2RODSSDUIIIVQGZWKBH32WZPH \ / AMOS7 \ YOURUM ::
+#\[7]T6C45Z6TC34OQSUPXGUDQVEVGNSTW56MP24XBMBATTHA6PF4W2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

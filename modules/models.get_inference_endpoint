@@ -20,11 +20,11 @@ if ( $backend_type eq 'cpu' ) {
 }
 
 ## Test if endpoint is reachable using direct socket
-my $is_alive = 0;
+my $is_alive       = 0;
 my $endpoint_error = undef;
 eval {
     use IO::Socket::INET;
-    my ($host, $port) = $endpoint =~ m{http://([^:]+):(\d+)};
+    my ( $host, $port ) = $endpoint =~ m{http://([^:]+):(\d+)};
     my $socket = IO::Socket::INET->new(
         PeerHost => $host,
         PeerPort => $port,
@@ -32,18 +32,21 @@ eval {
     ) or die "Cannot connect to $host:$port: $!";
 
     ## Send HTTP GET request to verify endpoint
-    print $socket "GET /v1/models HTTP/1.0\r\nHost: $host:$port\r\nConnection: close\r\n\r\n";
+    print $socket "GET /v1/models HTTP/1.0\r\n"
+        . "Host: $host:$port\r\n"
+        . "Connection: close\r\n\r\n";
     my $response = <$socket>;
-    if ($response && $response =~ /200/) {
+    if ( $response && $response =~ /200/ ) {
         $is_alive = 1;
     } else {
-        $endpoint_error = "HTTP: " . (defined $response ? $response : 'no response');
+        $endpoint_error
+            = "HTTP: " . ( defined $response ? $response : 'no response' );
     }
     close($socket);
 };
 if ($@) {
     $endpoint_error = "Socket: $@";
-    $is_alive = 0;
+    $is_alive       = 0;
 }
 
 <[base.logs]>->(
@@ -62,8 +65,8 @@ return {
     'endpoint_error'  => $endpoint_error,
 };
 
-#,,,,,.,,,...,,..,,,.,.,.,,.,,,,,,.,.,,.,,.,,,.,.,...,..,,,.,,...,.,.,,,,,.,.,
-#SLYBV3STVZ3KORNRD65JAEHK5YT42GCV7J67SETLWNY7HB6MQFBSFZFM4JONGM6ICBPPOOSALKH5S
-#\\\|N4RNRDAV56J6VA2GZCDTLOXWF5CPBN4U5XECWJYL2UFCGQTNWA7 \ / AMOS7 \ YOURUM ::
-#\[7]EUE7GWM23S5FDL3LZ6S4MGTETXE5FWZXX7OBQDAXWUFAUIBUWWBQ 7  DATA SIGNATURE ::
+#,,.,,..,,..,,.,,,...,.,,,,,.,...,,..,.,.,.,,,.,.,...,...,.,,,,.,,,..,.,,,,,,,
+#QXVNC4MTQIZKENEQ6FYDT3QGPJP7F5ZLVWCZF5BLO4W3HH4VLK6AHSDP4P5TURH57LLMGU6JHKXGI
+#\\\|2BGMQPE6E6DIJB5I324YAUYYGBRD26HPR2WUUT4HNMLUPZ36CND \ / AMOS7 \ YOURUM ::
+#\[7]ZUX4RRLQF27QXT6F2G7W6J3I7AX7OOEZPCK3BGXPSVKLLYIW7ODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

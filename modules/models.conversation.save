@@ -46,9 +46,7 @@ my $file_path = catfile( $save_dir, "$filename.yaml" );
 
 ## Serialize conversation to YAML
 my $yaml_data;
-eval {
-    $yaml_data = YAML::XS::Dump($conversation);
-};
+eval { $yaml_data = YAML::XS::Dump($conversation); };
 
 if ($EVAL_ERROR) {
     return {
@@ -75,7 +73,7 @@ if ($EVAL_ERROR) {
 }
 
 <[base.logs]>->(
-    1, "[$context] conversation saved: job_id=%s path=%s",
+    1,       "[$context] conversation saved: job_id=%s path=%s",
     $job_id, $file_path
 );
 
@@ -90,8 +88,8 @@ return {
     'elapsed_ms' => $elapsed_ms
 };
 
-#,,..,,,.,.,,,...,,,,,,,.,.,.,,,,,,,.,.,.,,..,..,,...,...,.,,,..,,,.,,,..,..,,
-#PGRIDNARZXO25WQQOKEPBQPYGKQI6HF27BLH7KS2JOTZMVSH3ESLKNKAVQP4JRIPALG2GYMJNDY6W
-#\\\|RVYB5JMQVKWTSSE5JLETHUNLXMAN6ZLLBWUHCR67M3VKWDLXEP3 \ / AMOS7 \ YOURUM ::
-#\[7]6FD2S6LRACIONT2JHFWCWSN73ID7OP6LJWQDCBNZWBRMQIH6OEDA 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,,,.,,,,,..,,,..,,.,,...,.,.,,.,,..,,...,...,...,...,.,.,,,,,,..,
+#KNCPMQZE4OMOOKD524Q57G4VJDF7CV4AIKOSW5I27NP6UL2K2TI4X6HR3Q3HIIJTOBUECCLDQQ6RI
+#\\\|OUKFM6P2XTQSOMTBDUG6FQRAD5KHOQZYYMNL3QUKM3C54D6PT5M \ / AMOS7 \ YOURUM ::
+#\[7]WLXUUTY5WMP7OKMLQA23KGNGTGQWENL57WZMOGJRFMUNTZS5R6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
