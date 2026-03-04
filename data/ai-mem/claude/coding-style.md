@@ -133,11 +133,23 @@ do not append help text or instructions to reply data — machine replies only.
 
 ## logging ##
 
+full reference: data/md/documentation/LOGGING-AND-VERBOSITY-REFERENCE.md
+
+levels: 0=error (always visible), 1=normal, 2=info/debug, 3+=extended (tracing, perf cost).
+three independent verbosity targets: `<system.verbosity.console>`,
+`<system.verbosity.zenka_buffer>`, `<system.verbosity.zenka_logfile>`.
+
 no variable interpolation in format strings — use sprintf-style codes:
 ```perl
 <[base.log]>->( 1, "loading module '%s'", $name )  ## correct
 <[base.log]>->( 1, "loading module '$name'" )       ## wrong — interpolation
 ```
+
+fork-child log burst: when a child zenka connects and `v7.notify_online p7-log`
+is replied to, the child's buffered startup logs flush all at once — looks like
+a runaway loop but settles once the buffer drains. keep `zenka_logfile` at
+default (1) for child zenki; raising it to 2 produces a large burst of network
+routing messages from the parent that can obscure other output.
 
 ---
 
@@ -197,8 +209,8 @@ repeating timers require BOTH keys — a common source of silent failure:
 
 one-shot: `'after' => $seconds` with no interval key.
 
-#,,,.,,,,,,,.,,..,.,.,,.,,.,,,.,,,..,,,..,,.,,..,,...,...,.,,,..,,,..,..,,.,,,
-#H4Z6ON6UVYH35ZZITKCAF3EEXUJYUXIZ7BVOQIN6SUCQ2OV4FJXBPBETYUWQJEQH3YHURFQJWRFUW
-#\\\|MG7KHEL34GLKLC6NLEHXUKQMCMGS4NJ2FDYBXK3SOMINX7BWC37 \ / AMOS7 \ YOURUM ::
-#\[7]5N34TG4RJL3LBYCC7Q62M4W7PYZ5USKVDN2UOXPEND67OKMK32CY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,...,,,,,,,.,,..,..,,,..,,.,,..,,..,,...,...,..,,.,.,,..,,,,,,..,
+#ERHMPR3UXU3ADTAAJMVHBSZ4HWHQNJ2DPZSQVWPQWMGTMRMVP3VIRHQMHUXEBMKWGOE42E4L743ZS
+#\\\|V355T2F3BABEWVDPQVQNGZ2SO6SR5OD2SOFNCMPJXF4RCSYHVRQ \ / AMOS7 \ YOURUM ::
+#\[7]ZGN24HFLM2CL6ZTBZ6T5BOICLO5AZNHBKALWFOIQ43VC6H4KM2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
