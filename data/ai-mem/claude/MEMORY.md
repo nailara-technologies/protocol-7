@@ -28,8 +28,36 @@
   deferred `get_session_id` — online only after WS+initialize handshake; backoff 2→4→…→60s
 - **route-send migration + binmode fix** (Mar 2 2026): completed ✅ — commit `0c1f202ba`
   `cube.X.Y` → `protocol-7.route-send` + relative names across all zenki; pipe-open `:utf8` fix
+- **standalone zenka log_cmd race fix** (Mar 4 2026): completed ✅ — commit `8f81bfdb1`
+  Ctrl+U in AMOS7::TERM called `Event::loop(0.07)` which fired idle send-buffer callback installed
+  before `pre_init` could delete `log_cmd` — race between early log message and pre_init ordering.
+  Fix: `buffer.zenka.log_cmd = ''` in start file immediately after `[load_config_file:'shared-params']`,
+  before `[load_modules]` — deterministic, no module code ever sees non-empty log_cmd.
+  Applied to: sourcecode/start, keys/start, work/start.
+- **work zenka cleanup** (Mar 4 2026): completed ✅ — commit `8f81bfdb1`
+  Removed network modules (auth net protocol io.unix), access.cmd.usr.cube block; 8 obsolete
+  work.cmd.* deleted (superseded by work.console.*); work.cmd.regenerate-indexes renamed to
+  work.console.regenerate-indexes; work.init_code now splits space-separated config string to
+  arrayref for work.git.remotes; explicit remotes set: `hub ext-bundle`
 
 ## Key Technical Insights
+
+### Standalone Zenka Pattern (CRITICAL)
+- sourcecode, keys, work are standalone (no cube connection, no network logging)
+- In start file, after `[load_config_file:'shared-params']` and BEFORE `[load_modules]`:
+  `buffer.zenka.log_cmd = ''    ## standalone zenka : no network logging`
+- `shared-params` → `logging-configuration` sets `buffer.zenka.log_cmd = p7-log.append`
+  so this override must come AFTER shared-params loads
+- `add_line` guard: `defined AND length` — empty string is sufficient to block send-buffer init
+- `base.log.send-buffer.idle-callback-set` guards: checks `log_cmd` defined, send-buffer exists
+- `base.log.send-buffer.add-queue` foreach block (lines 28-45): user noted "that entire foreach
+  block is wrong" — recursive re-queue of existing buffer content; **still present, not yet fixed**
+
+### Config String → Arrayref Pattern
+- P7 start file values are scalars — `work.git.remotes = hub ext-bundle` sets a string, not arrayref
+- Code checking `ref(<key>) eq 'ARRAY'` fails on strings from config files
+- Fix in init_code: `if defined and not ref → split m|\s+|, $val into arrayref`
+- Applied to `work.git.remotes` in `work.init_code`
 
 ### fork-child Pattern (canonical form, Mar 2026)
 - **Child side** (in fork_conv_child, child branch):
@@ -172,8 +200,8 @@
 - State-cached with `state $are_present` — checks `exists` not `defined`, returns TRUE once set
 - Call sites use `$code{'log.base_log_complete'}->()` not `defined $code{'base.log'}`
 
-#,,,.,..,,.,,,...,.,,,...,,,.,,.,,...,,..,,..,..,,...,...,...,...,.,,,..,,,,.,
-#43WQXVI6QED4VEZGDGC57LEGKOAYBMATWVM6PITDHIB7LO2W3YDH6OMBENB7CUC6BCEYQCAN5L6TO
-#\\\|KYWFJVWPF4GPCBMLEWDVSWBHNQWOU2DYHBSLY646OFW7YQ4ZAE4 \ / AMOS7 \ YOURUM ::
-#\[7]3CW66BIMU7HP2ZWRFNNTFDC3CMAEFCUSRCLLNDCEHVL64W55MWBI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,...,..,,,..,.,.,,,.,,..,,.,,.,.,..,,...,...,.,.,,,,,.,,,...,...,
+#SEVMU7GS33F4KHUQR7LHQG7PA45DCFZETZ5F2ZPC253HYZYAWF3YLPJFC74UDD62BQP42UJPIYVEE
+#\\\|UPWDRYOADMZSHCGHG6GL5Y3RSEIK2MDIBXYS5S52ZWNJ35S4KLD \ / AMOS7 \ YOURUM ::
+#\[7]UJCRL7WWKSONOP5OUBBARPFDIC4D2SNTNKBERIF3PDDX4XLSQQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
