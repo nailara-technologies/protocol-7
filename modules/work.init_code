@@ -28,11 +28,12 @@ my $root_path = <system.root_path>;
 ## Workspace-transfer paths ##
 <work.cfg.workspace_root> //= '/var/run/.7';
 
-## Git remote configuration ##
-## Configure multiple remotes to push to all of them
-## Example: <work.git.remotes> = ['origin', 'backup', 'mirror'];
-## Leave empty or undefined to use single remote 'origin'
-<work.git.remotes> //= [];
+## git remote configuration [ space-separated string from config → arrayref ] ##
+if ( defined <work.git.remotes> and not ref <work.git.remotes> ) {
+    <work.git.remotes> = [ split m|\s+|, <work.git.remotes> ];
+} else {
+    <work.git.remotes> //= [];
+}
 
 ## Initialize data structures ##
 <work.yaml.tasks>      //= {};
@@ -129,8 +130,8 @@ if ( not exists <buffer.workflow-aggregation> ) {
 
 return FALSE;
 
-#,,,,,.,,,,,.,.,,,,,,,,..,,.,,,.,,,..,.,,,.,.,..,,...,...,,..,.,.,,.,,,.,,,,.,
-#NH63ERUPXIUIE5D25IARJKJVAJOKJALK4JIM6ZXNR7ZRGHCP6WVHISMW5IREBER6BOCIQJDIZCX7Q
-#\\\|AUQWJOLIEZPAH2MQY75MUF54K6CLRTUCGCSFW2UYZ5AFO74FURO \ / AMOS7 \ YOURUM ::
-#\[7]3JK47ZYTLQYYB2BRNYUKXDIS6W4H7V62UGGFE7H7PIQXDGKRGSDA 7  DATA SIGNATURE ::
+#,,.,,.,,,,..,.,.,,.,,.,,,.,.,.,.,...,,,,,.,,,..,,...,...,..,,,..,,..,...,,,,,
+#HCEHIRA3YOE5LFJHO7S23VM6VLJFXLGWANVDXLWZCUYONP7QTTM47GHRMLEU7AJUOZLB6BZ574RHW
+#\\\|OTTZ2MXBPPCPNROKVLJLJXTCYVSLJD3P7QL25KGCWXDXOASJUXX \ / AMOS7 \ YOURUM ::
+#\[7]SKD72ZXSO4JN4MXMBMLKUJSD3WMG2XFKVCNKU3CIZPRHBEW7TOAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

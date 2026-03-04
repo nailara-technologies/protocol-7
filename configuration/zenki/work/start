@@ -2,47 +2,16 @@
  .:[ protocol-7 development work[flow] zenka ]:.
 
 [load_config_file:'shared-params']
+buffer.zenka.log_cmd = ''    ## standalone zenka : no network logging
 
-system.verbosity.zenka_buffer  = 2
-system.verbosity.zenka_logfile = 2
-
-## Disable automatic key loading for work zenka ##
-##
-## Keys are explicitly loaded by commands that need
-##                  them [ e.g. version-sign-commit ]
-##
-## Read-only commands [fix-versions, harmonize-emails] don't need keys
-##
-crypt.C25519.auto_load_keys = no
-
-## Disable automatic key creation for console execution
-## Console/admin commands run as root don't need key initialization
-## v7-started zenka will enable this for proper privilege-dropped users
+## keys are explicitly loaded by commands that need them [ e.g. version-sign-commit ]
+crypt.C25519.auto_load_keys      = no
 crypt.C25519.autocreate-user-key = no
 
-## Git repository path is auto-detected from <system.root_path> ##
-## No need to hardcode it here ##
+## git remotes for version-sign-commit [ hub = github, ext-bundle = local bundle ]
+work.git.remotes = hub ext-bundle
 
-access.cmd.usr.cube = commands heart reload verify-instance \
-                      list show-buffer buffer-erase buffer-erase-level \
-                      test-oscillation sig-verify sig-update sig-cycle \
-                      run-tests version-sign-commit todo bug \
-                      todo-list bug-list regenerate-indexes \
-                      fix-versions harmonize-emails *
-
-## Git remote configuration for version-sign-commit ##
-## By default, remotes are auto-detected with
-##   priority: hub > origin > first available
-##
-## Configure multiple remotes to push to all of them automatically:
-## Examples:
-##   work.git.remotes = origin backup      # two remotes
-##   work.git.remotes = origin backup mirror # three remotes
-##   work.git.remotes =                    # empty = auto-detect [default]
-# work.git.remotes =
-
-modules.load = auth net protocol io.unix crypt.C25519 \
-                          git workspace-transfer work
+modules.load = crypt.C25519 git workspace-transfer work
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -51,8 +20,8 @@ modules.load = auth net protocol io.unix crypt.C25519 \
 
 [exit]
 
-#,,..,.,.,.,,,..,,,.,,,,.,,..,,,,,,.,,,.,,.,,,..,,...,...,.,.,,,.,..,,.,,,,,.,
-#RD27HQ3WRQM3K6453UNUZZXQIWDLIE4I6DPAVD6EEHYTMZIOFCLLYUDFNDLR2VXIQCSH3RMAWDRMM
-#\\\|YVOL2J3XYPG2KXCYA5JBARO4GZYWI2GVFVAXABPEDWDLW33UCUV \ / AMOS7 \ YOURUM ::
-#\[7]SYCFLCQBINPRJS4UM5VQAWACLCPVUFZ4IMK7YTSWX6GA42Z7BKAA 7  DATA SIGNATURE ::
+#,,.,,,.,,,,,,,.,,,,,,.,,,.,,,..,,,.,,,,.,,.,,..,,...,..,,...,,,,,...,,,,,,,.,
+#YOEVCZY7YNVHUCUNIR5O6C5DYJRZQR62PEPJYN5NBAUWNL5S4MFVPLSQVONACFCYJMWWFSIJ6MYFC
+#\\\|XJHWZRUIMW4OELPRHDB6S7RPFINXKJHOWF56Y5HF4YT26ZFAVY4 \ / AMOS7 \ YOURUM ::
+#\[7]EQB56FCYUJ46WIKELC3GGY3I6GEBMEJXEGDAH2OB573CXX6IKOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
