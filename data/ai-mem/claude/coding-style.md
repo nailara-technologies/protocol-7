@@ -141,6 +141,15 @@ no variable interpolation in format strings — use sprintf-style codes:
 
 ---
 
+## cli flag conventions ##
+
+single `-` prefix always — multi-character flags are fine, `--` prefix is not used:
+```
+-c          ## ok — single char
+-check      ## ok — multi-char with single dash
+--check     ## wrong — double dash not used in this project
+```
+
 ## module headers ##
 
 ```perl
@@ -188,8 +197,8 @@ repeating timers require BOTH keys — a common source of silent failure:
 
 one-shot: `'after' => $seconds` with no interval key.
 
-#,,,.,..,,,.,,.,.,,.,,..,,.,.,.,.,..,,...,,..,..,,...,...,.,.,,..,,.,,,,,,,,,,
-#3J42JURDHVGFZZN4GJZ3LRMHFKBHCZSBD5RFS6GQMAL4U4TWTNXCTWYBDUJGFSKEFWH5AXDDEGICA
-#\\\|Q2OFGE4FF2GCFLBA4V3LBC5H62TF6GFKKOUPKZAMTO4M3GXKTRV \ / AMOS7 \ YOURUM ::
-#\[7]SLWECQYVC6WFXG7TNDKK2V23XOZXGT4CLTVLKAKCCEBV43EGJODY 7  DATA SIGNATURE ::
+#,,,.,,,,,,,.,,..,.,.,,.,,.,,,.,,,..,,,..,,.,,..,,...,...,.,,,..,,,..,..,,.,,,
+#H4Z6ON6UVYH35ZZITKCAF3EEXUJYUXIZ7BVOQIN6SUCQ2OV4FJXBPBETYUWQJEQH3YHURFQJWRFUW
+#\\\|MG7KHEL34GLKLC6NLEHXUKQMCMGS4NJ2FDYBXK3SOMINX7BWC37 \ / AMOS7 \ YOURUM ::
+#\[7]5N34TG4RJL3LBYCC7Q62M4W7PYZ5USKVDN2UOXPEND67OKMK32CY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
