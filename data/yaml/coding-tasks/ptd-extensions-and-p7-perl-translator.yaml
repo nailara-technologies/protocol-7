@@ -1,0 +1,58 @@
+task: ptd extensions and p7-perl bidirectional translator
+status: pending
+priority: medium
+created: 2026-03-04
+
+## completed ##
+- bin/ptd: -c flag for check-only (no reformat, no backup, syntax pass/fail only)
+
+## deferred items ##
+
+### bin/ptd: -d flag (diff-only) ###
+description: >
+  run perltidy to a temp file, then invoke ccdiff on original vs reformatted output.
+  shows what ptd would change without modifying the file.
+  useful for reviewing style drift before committing to a reformat.
+
+implementation notes:
+  - write formatted output to $tmp = File::Temp::tempfile()
+  - remove -b/-bext from args, add -o $tmp
+  - invoke: system( 'ccdiff', $file_path, $tmp )
+  - clean up temp file after display
+  - can chain with -c: ptd -d file shows diff, exit code reflects syntax status
+
+flag: -diff
+
+### p7 <-> perl bidirectional translator ###
+description: >
+  standalone tool that translates between protocol-7 source syntax and plain perl.
+  p7 -> perl: expand <[module]>->() to $code{'module'}->(), <key.path> to
+  $data{'key'}{'path'}, etc. perl -> p7: reverse transformation where unambiguous.
+
+rationale:
+  - enables proper perl -c validation of p7 modules
+  - opens full perl toolchain to p7 code: perlcritic, Devel::NYTProf, coverage
+  - any perl-aware llm can reason about translated code without p7 syntax context
+  - foundation for idle-time autonomous style convergence
+    [ see data/md/concepts/CONCEPT-SELF-MORPHING-CODE-STYLE-CONVERGENCE.md ]
+
+translation rules (p7 -> perl):
+  - <[module.name]>->($arg)   =>  $code{'module.name'}->($arg)
+  - <[module.name]>           =>  $code{'module.name'}->()
+  - <key.path> = $val         =>  $data{'key'}{'path'} = $val
+  - <key.path>                =>  $data{'key'}{'path'}
+  - <key.path>->@*            =>  $data{'key'}{'path'}->@*
+  - <key.path>->%*            =>  $data{'key'}{'path'}->%*
+  - ## [:< ##  header         =>  (strip or convert to comment)
+
+tool name: bin/p7toperl  (or integrated into bin/ptd as -t flag)
+
+ccdiff integration:
+  - p7toperl file | ccdiff /dev/stdin file  -- shows p7 layer visually
+  - layered view: p7 source -> parsed perl -> formatted perl, each as ccdiff step
+
+#,,,.,.,,,.,,,,..,.,,,...,,,,,...,,..,...,,,,,..,,...,..,,,..,.,,,.,,,,,,,,..,
+#UR33J4HEFX4DE5D2NDR4KS3PFXZTZGKG4AARQUKHJBGPM3C4SB44QDOD5BMKDMDN2T7DHHNLEXMVW
+#\\\|XXB2YALETM73F5SJ4RYYGA7IM4P63DBHPNLIGIZHPD4DCW4WG6V \ / AMOS7 \ YOURUM ::
+#\[7]2COFEI2D4PJYU3ZAGAMZBATYJVMVD7JSU4SISWZMMU7C2PPQXYBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
