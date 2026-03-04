@@ -1,0 +1,75 @@
+## [:< ##
+
+# name  = context.file
+# descr = return content of a specific file, truncated to budget
+# usage = <[context.file]>->( { path => 'modules/base.handler.command',
+#                       budget => 2000, from_line => 1, to_line => 100 } )
+
+my $params = shift // {};
+
+my $path      = $params->{'path'}      // '';
+my $budget    = $params->{'budget'}    // 2000;
+my $from_line = $params->{'from_line'} // 1;
+my $to_line   = $params->{'to_line'}   // 0;
+
+my $char_budget = int( $budget * 4 );
+
+## validate path ##
+unless ( length($path) ) {
+    return "<!-- no path specified -->";
+}
+
+## sanitize path (prevent path traversal) ##
+$path =~ s|\.\./||g;
+$path =~ s|^/||;
+
+## check if file exists ##
+unless ( -f $path and -r $path ) {
+    ## try prefixing with modules/ ##
+    if ( -f "modules/$path" and -r "modules/$path" ) {
+        $path = "modules/$path";
+    } else {
+        return "<!-- file not found: $path -->";
+    }
+}
+
+## read file ##
+open my $fh, '<', $path or return "<!-- cannot read: $path -->";
+my @lines = <$fh>;
+close $fh;
+
+## apply line range ##
+$from_line = 1              if $from_line < 1;
+$to_line   = scalar(@lines) if $to_line == 0 or $to_line > scalar(@lines);
+
+@lines = @lines[ $from_line - 1 .. $to_line - 1 ];
+
+## truncate to budget ##
+my $content = '';
+my $used    = 0;
+
+foreach my $line (@lines) {
+    my $line_len = length($line);
+
+    if ( $used + $line_len > $char_budget ) {
+        $content .= "\n... (truncated at line budget)";
+        last;
+    }
+
+    $content .= $line;
+    $used += $line_len;
+}
+
+## format output ##
+my $output = "## file: $path ##\n";
+$output .= "\`\`\`\n";
+$output .= $content;
+$output .= "\n\`\`\`\n";
+
+return $output;
+
+#,,,.,..,,.,,,..,,..,,.,,,..,,,,.,.,,,,,.,,,,,..,,...,...,.,,,.,.,.,,,...,,,.,
+#7VBPI6HIAPAE2RUEHRHETYWL7FK37HUSZ25JXVK6WMYXL3VZG6RIOA3VE6KIAUZYAE6T2ILCFOXMM
+#\\\|Z6L5IMK3PSON64SLD74MJRPSWELPMX57RMQXTQTZDCWGSQ37QRT \ / AMOS7 \ YOURUM ::
+#\[7]RA7Z7BZU4EAOF5ACYPZRGU47R6LZXUGMPJOKEIM4C335C23MPODY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
