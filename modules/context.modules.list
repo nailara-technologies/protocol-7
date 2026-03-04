@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = context.modules.list
+# descr = list modules in a namespace, truncated to budget
+# usage = <[context.modules.list]>->( { namespace => 'coding',
+#                                          budget => 800 } )
+
+my $params = shift // {};
+
+my $namespace   = $params->{'namespace'} // '';
+my $budget      = $params->{'budget'}    // 800;
+my $char_budget = int( $budget * 4 );
+
+## validate namespace ##
+unless ( length($namespace) ) {
+    return "<!-- no namespace specified -->";
+}
+
+## sanitize namespace (prevent path traversal) ##
+$namespace =~ s|[^\w.\-]||g;
+
+## find modules ##
+my $pattern = "modules/$namespace.*";
+my @modules = glob($pattern);
+
+## sort by filename length (shorter = more generic = more important) ##
+@modules = sort { length($a) <=> length($b) } @modules;
+
+## build output ##
+my $header = "## modules in $namespace ##\n";
+my $used   = length($header);
+my @output = ($header);
+
+foreach my $mod (@modules) {
+    ## extract module name from path ##
+    $mod =~ s|^modules/||;
+
+    my $line     = "- $mod\n";
+    my $line_len = length($line);
+
+    if ( $used + $line_len > $char_budget ) {
+        push @output, "... (truncated)";
+        last;
+    }
+
+    push @output, $line;
+    $used += $line_len;
+}
+
+return join( '', @output );
+
+#,,.,,...,..,,,,.,.,.,...,...,.,,,..,,,,,,..,,..,,...,...,,..,..,,...,,,,,,..,
+#TNJLRI3ERFGUGYPOBJRJXOCMNEXJI3GFEAHBFSGD7IQSTA7BFC6YUKR52JIXUOOA2MFW5IWPCMOGQ
+#\\\|R7RV46TFJDGMAVR7SRGNKRRSLTFF7XFWNUCQHQVOJHDLN6ZTL3W \ / AMOS7 \ YOURUM ::
+#\[7]BMAJEX6LYJ5IUSVYV36NPFXACMWASXZRZA2KH5Q3SHE2XAAZB4CA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

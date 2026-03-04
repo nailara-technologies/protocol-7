@@ -1,0 +1,62 @@
+## [:< ##
+
+# name  = context.task.active
+# descr = return current active task from yaml/task system
+# usage = <[context.task.active]>->({ format => 'short|full' })
+
+my $params = shift               // {};
+my $format = $params->{'format'} // 'short';
+
+## look for active task files ##
+my $task_dir   = 'data/yaml/coding-tasks';
+my @task_files = glob("$task_dir/*.yaml");
+
+my @active_tasks = ();
+
+foreach my $task_file (@task_files) {
+    next unless -f $task_file;
+
+    ## quick check for status markers ##
+    open my $fh, '<', $task_file or next;
+    my $content = do { local $/; <$fh> };
+    close $fh;
+
+    ## skip if marked as completed or archived ##
+    next if $content =~ /status:\s*(completed|done|archived)/i;
+    next if $content =~ /priority:\s*low/i;
+
+    ## extract title ##
+    my $title = '';
+    if ( $content =~ /title:\s*["']?([^"'\n]+)/i ) {
+        $title = $1;
+    } elsif ( $content =~ /^#\s*(.+)/m ) {
+        $title = $1;
+    }
+
+    push @active_tasks,
+        {
+        file  => $task_file,
+        title => $title || 'untitled task',
+        };
+}
+
+## return formatted output ##
+if ( @active_tasks == 0 ) {
+    return "<!-- no active tasks -->";
+}
+
+if ( $format eq 'short' ) {
+    return $active_tasks[0]->{'title'};
+} else {
+    my $output = "## active tasks ##\n";
+    foreach my $task ( @active_tasks[ 0 .. 2 ] ) {    ## max 3 tasks
+        $output .= "- " . $task->{'title'} . "\n";
+    }
+    return $output;
+}
+
+#,,.,,.,.,,.,,..,,,,,,.,,,..,,.,.,,.,,,.,,,.,,..,,...,...,..,,,.,,,.,,,,,,,,.,
+#PFORZEDXCX5RRA2ZWMXNXFTWANVOUYDQ4H6OVRZU2ZXYBKAMOPQ6EYRNPZ3SMUCYQ4EUFZ2MI4RLO
+#\\\|LK2NWI437WJOPQFBZHK56TGRMKKOE3S6SKMT5CLNZEHZPF7UCPQ \ / AMOS7 \ YOURUM ::
+#\[7]ZMHD2FYO4FE4MDHXI4RHH5POU4ZVM5SUEGVTUJUBC5EF7I4V3GAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

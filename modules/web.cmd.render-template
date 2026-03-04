@@ -1,0 +1,119 @@
+## [:< ##
+
+# name  = web.cmd.render-template
+# descr = render template content with context providers, deferred reply
+# usage = render-template <template_path> [meta-var=value ...] [budget=N]
+
+my $params = shift // {};
+
+## extract parameters ##
+my $template_path    = $params->{'template_path'} // '';
+my $template_content = $params->{'content'}
+    // '';    ## alternative: inline content
+my $meta_vars  = $params->{'meta'}       // {};
+my $budget     = $params->{'budget'}     // 0;  ## token budget, 0 = unlimited
+my $reply_id   = $params->{'reply_id'}   // '';
+my $session_id = $params->{'session_id'} // <session.id>
+    // 'render_' . time();
+
+## validate input ##
+unless ( length($template_path) or length($template_content) ) {
+    return {
+        status  => qw| error |,
+        message => qq| render-template: template_path or content required |,
+    };
+}
+
+## load template from path if provided ##
+if ( length($template_path) and not length($template_content) ) {
+    unless ( -f $template_path and -r $template_path ) {
+        return {
+            status  => qw| error |,
+            message =>
+                qq| render-template: template not found: $template_path |,
+        };
+    }
+
+    my $max_size  = <web.cfg.template_max_size> // ( 1024 * 1024 * 5 );
+    my $file_size = -s $template_path;
+
+    if ( $file_size > $max_size ) {
+        return {
+            status  => qw| error |,
+            message => sprintf(
+                qq| render-template: template too large: %d bytes (max: %d) |,
+                $file_size, $max_size
+            ),
+        };
+    }
+
+    $template_content = <[file.slurp]>->($template_path);
+
+    unless ( defined $template_content ) {
+        return {
+            status  => qw| error |,
+            message => qq| render-template: failed to read: $template_path |,
+        };
+    }
+}
+
+## generate template id ##
+my $template_id = sprintf( 'render_%s_%d',
+    <[chk-sum.elf.vax-BASE32]>->( substr( $template_content, 0, 256 ) ),
+    time() );
+
+<[base.log]>->(
+    2, "render-template: starting $template_id (budget: $budget)"
+);
+
+## add budget to meta vars if specified ##
+if ( $budget > 0 ) {
+    $meta_vars->{'budget'} = $budget;
+    ## estimate chars from tokens ( ~4 chars/token ) ##
+    $meta_vars->{'char_budget'} = int( $budget * 4 );
+}
+
+## process template recursively ##
+my $start_time = <[base.time]>->(4);
+
+my $result = <[web.process_template_recursive]>->(
+    {   content     => $template_content,
+        meta        => $meta_vars,
+        depth       => 0,
+        template_id => $template_id,
+        session_id  => $session_id,
+    }
+);
+
+my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
+
+## log completion ##
+<[base.log]>->(
+    2,
+    sprintf(
+        "render-template: %s in %.2fms (depth: %d)",
+        $result->{status}, $elapsed_ms, $result->{depth} // 0
+    )
+);
+
+## return result ##
+if ( $result->{status} eq qw| success | ) {
+    return {
+        status      => qw| success |,
+        content     => $result->{content},
+        template_id => $template_id,
+        elapsed_ms  => $elapsed_ms,
+    };
+} else {
+    return {
+        status      => qw| error |,
+        message     => $result->{message} // 'template processing failed',
+        template_id => $template_id,
+    };
+}
+
+#,,..,,,,,,.,,.,,,,,.,,,.,.,,,.,.,,..,,,,,...,..,,...,...,..,,...,...,,..,..,,
+#D2WDZPQWDAYIYDLM3AZQF5S5SVNGVLQRMCVQKMBHGHVNDR26ABO3BZMCNJHXUIL6PCYB57X5ORIEE
+#\\\|HQZWC5AYEKFJVKLGR3H3DO3S3LVYAMZP6I2FOL3SWSUK44V5UDA \ / AMOS7 \ YOURUM ::
+#\[7]BAJNF3EXFYZ5HYNDLN4EM7CTH5HOSUAXD3JYENIKWUNBKEQ2D4AI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
