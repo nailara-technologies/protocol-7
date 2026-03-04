@@ -5,9 +5,9 @@
 
 my $params = shift;
 
-my $job_id     = $params->{'job_id'}     // '';
-my $tasks      = $params->{'tasks'}      // [];
-my $context    = $params->{'context'}    // 'conversation';
+my $job_id  = $params->{'job_id'}  // '';
+my $tasks   = $params->{'tasks'}   // [];
+my $context = $params->{'context'} // 'conversation';
 
 return {
     'success' => FALSE,
@@ -94,11 +94,8 @@ while ( scalar(@ready_queue) ) {
 }
 
 <[base.logs]>->(
-    2,
-    "[$context] task_chain: job_id=%s tasks=%d execution_order=%s",
-    $job_id,
-    scalar(@$tasks),
-    join( ',', @execution_order )
+    2, "[$context] task_chain: job_id=%s tasks=%d execution_order=%s",
+    $job_id, scalar(@$tasks), join( ',', @execution_order )
 );
 
 ## Execute tasks in order
@@ -107,7 +104,8 @@ foreach my $task_name (@execution_order) {
 
     ## Check dependencies completed
     my $deps_ok = 1;
-    if ( defined $task->{'depends_on'} && ref $task->{'depends_on'} eq 'ARRAY' ) {
+    if ( defined $task->{'depends_on'}
+        && ref $task->{'depends_on'} eq 'ARRAY' ) {
         foreach my $dep ( @{ $task->{'depends_on'} } ) {
             unless ( $executed_tasks{$dep} ) {
                 $deps_ok = 0;
@@ -118,10 +116,10 @@ foreach my $task_name (@execution_order) {
 
     unless ($deps_ok) {
         $task_results{$task_name} = {
-            'success'       => FALSE,
-            'error'         => 'dependency not executed',
-            'task_name'     => $task_name,
-            'depends_on'    => $task->{'depends_on'}
+            'success'    => FALSE,
+            'error'      => 'dependency not executed',
+            'task_name'  => $task_name,
+            'depends_on' => $task->{'depends_on'}
         };
         next;
     }
@@ -147,17 +145,19 @@ foreach my $task_name (@execution_order) {
 
     ## Build message from task + previous results
     my $task_message = $task->{'description'} // $task_name;
-    if ( defined $task->{'depends_on'} && ref $task->{'depends_on'} eq 'ARRAY' ) {
+    if ( defined $task->{'depends_on'}
+        && ref $task->{'depends_on'} eq 'ARRAY' ) {
         $task_message .= "\n\n[Previous context]:\n";
         foreach my $dep ( @{ $task->{'depends_on'} } ) {
             if ( $task_results{$dep}->{'response'} ) {
-                $task_message .= "- $dep: " . $task_results{$dep}->{'response'} . "\n";
+                $task_message
+                    .= "- $dep: " . $task_results{$dep}->{'response'} . "\n";
             }
         }
     }
 
     ## Invoke participant
-    my @messages = ( { 'role' => 'user', 'content' => $task_message } );
+    my @messages      = ( { 'role' => 'user', 'content' => $task_message } );
     my $invoke_result = <[models.invoke_participant]>->(
         {   'job_id'         => $job_id,
             'participant_id' => $participant_id,
@@ -198,7 +198,8 @@ foreach my $task_name (@execution_order) {
 
 <[base.logs]>->(
     1,
-    "[$context] task_chain completed: job_id=%s completed=%d failed=%d tokens=%d",
+    "[$context] task_chain done: job_id=%s "
+        . "completed=%d failed=%d tokens=%d",
     $job_id,
     scalar(@completed_tasks),
     scalar(@failed_tasks),
@@ -208,20 +209,20 @@ foreach my $task_name (@execution_order) {
 my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
 
 return {
-    'success'          => scalar(@failed_tasks) == 0 ? TRUE : FALSE,
-    'job_id'           => $job_id,
-    'task_count'       => scalar(@$tasks),
-    'completed_count'  => scalar(@completed_tasks),
-    'failed_count'     => scalar(@failed_tasks),
-    'execution_order'  => \@execution_order,
-    'completed_tasks'  => \@completed_tasks,
-    'failed_tasks'     => \@failed_tasks,
-    'total_tokens'     => $total_tokens,
-    'elapsed_ms'       => $elapsed_ms
+    'success'         => scalar(@failed_tasks) == 0 ? TRUE : FALSE,
+    'job_id'          => $job_id,
+    'task_count'      => scalar(@$tasks),
+    'completed_count' => scalar(@completed_tasks),
+    'failed_count'    => scalar(@failed_tasks),
+    'execution_order' => \@execution_order,
+    'completed_tasks' => \@completed_tasks,
+    'failed_tasks'    => \@failed_tasks,
+    'total_tokens'    => $total_tokens,
+    'elapsed_ms'      => $elapsed_ms
 };
 
-#,,.,,...,..,,,.,,...,,,.,...,,..,,..,...,.,.,.,.,...,...,,,,,,.,,.,.,,.,,...,
-#GHBNSXHX2QAOTGCZQV44BSR3TECWMUD46SBE2L4SUFUL53B3AUMICDAML7O4CQGN7O5LGU6ANGKJW
-#\\\|HTPR3HBMCUKPNRNGEAZPV7IDMC3ZZF25VPVZWLKDHUUAQ22ASK7 \ / AMOS7 \ YOURUM ::
-#\[7]53KLY7CFR56UYAXQPWGRVFPHUIUUA7WEAABAE56PBNJ2JWYC6GDQ 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,,,.,.,,..,,,.,,.,,,..,..,,.,.,.,.,...,..,,...,,,,,,.,,,,.,,,,,
+#CYFIL5CL3K6X5IH2ZFJAW67E24RP644R5JYII2GUQFZZD5YLQDHYKS2HKDR7RTIYECNQC4H6F2PP2
+#\\\|M3YIR54A74ZR7OKTLGTMJADNHWZRKHX4YCPLE75ESO27MSGZOBC \ / AMOS7 \ YOURUM ::
+#\[7]GD7TAKSUXPPCCRWXNT62BH3LEWJIFRG4GTUM437RKIZPK65V6YCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

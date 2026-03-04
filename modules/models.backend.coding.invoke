@@ -1,21 +1,54 @@
 ## [:< ##
 
 # name  = models.backend.coding.invoke
-# descr = Submit inference request to coding zenka's task queue
-# param = $params - { messages, reply_id, handler, sender, model, participant_id }
+# descr = submit to coding zenka with dynamic system message
+# param = $params [messages, reply_id, handler, sender, model, template]
 # return = nothing (response handled by callback)
 
 my $params = shift;
 
-my $messages    = $params->{'messages'}       // [];
-my $participant = $params->{'participant_id'} // 'unknown';
-my $reply_id    = $params->{'reply_id'}       // '';
-my $handler     = $params->{'handler'}        // '';
-my $sender      = $params->{'sender'}         // '';
-my $model       = $params->{'model'}          // $participant;
+my $messages        = $params->{'messages'}       // [];
+my $participant     = $params->{'participant_id'} // 'unknown';
+my $reply_id        = $params->{'reply_id'}       // '';
+my $handler         = $params->{'handler'}        // '';
+my $sender          = $params->{'sender'}         // '';
+my $model           = $params->{'model'}          // $participant;
+my $system_template = $params->{'system_template'}
+    // 'configuration/models/system-messages/coding-assistant.tmpl';
+
+## render dynamic system message from template ##
+my $system_message  = '';
+my $template_result = <[web.cmd.render-template]>->(
+    {   template_path => $system_template,
+        meta          => { model => $model, sender => $sender },
+        budget        => 2000,    ## ~2000 tokens for system message
+        session_id    => "coding_invoke_$reply_id",
+    }
+);
+
+if ( $template_result->{status} eq qw| success | ) {
+    $system_message = $template_result->{content};
+    <[base.log]>->(
+        2,
+        "[coding.invoke] system message rendered ("
+            . "$template_result->{elapsed_ms}ms, "
+            . length($system_message)
+            . " chars)"
+    );
+} else {
+    <[base.log]>->(
+        1, "[coding.invoke] render failed: " . $template_result->{message}
+    );
+    ## fall back to minimal system message ##
+    $system_message = 'you are a protocol-7 coding assistant.';
+}
+
+## prepend system message to messages array ##
+my @enhanced_messages
+    = ( { role => 'system', content => $system_message }, @$messages );
 
 # Convert messages array to prompt string for coding
-my $prompt = <[models.chat.messages_to_prompt]>->($messages);
+my $prompt = <[models.chat.messages_to_prompt]>->( \@enhanced_messages );
 
 # Base32r encode to handle multiline prompts via single-line command
 my $encoded_prompt = '';
@@ -85,8 +118,8 @@ if ( $sent_count <= 0 ) {
 
 return;
 
-#,,..,.,,,.,.,,,,,,.,,,,,,.,,,,..,..,,,..,...,.,.,...,...,,..,,..,,,,,..,,,,.,
-#UFAHRGQ6CPEBEKQHLBUBHF255S7PAMWSTLUFNRVZ2RVRNTN6Y37IJJZFLUFUUJGY52PYGMM7HMBV4
-#\\\|2N6CRXLQNWPHF4LNSCNOEI55BDTB7PMMQO7GCLZHP6YJEWP5YUO \ / AMOS7 \ YOURUM ::
-#\[7]RRU3UEBGI3MPXOST5YNHK2JYJJA5XJZ7TWYOQBAGY36YIQH6HQBI 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,,.,,,.,,..,,,..,..,,,,,,,..,..,,..,,...,...,,.,,,,,,,,,,,,,,,..,
+#B74GYDZQBUAARWLKUJCIV5YUEPV6TGAL7GVIB3KSXC7ZLLP4VK43EBRIPTQRRANYLQSWO7SDIBDM2
+#\\\|5LNS7Y5NQBMOBEIDA7KOIA5JKBMXCRJ7MWJELTSDACZCBHZIMG6 \ / AMOS7 \ YOURUM ::
+#\[7]UBDXJB76F2KIHVOQBCQE5RJPIHXUDBFOR7PDYTH5U2ORDHA3GYCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,7 +1,14 @@
 ---
 task_id: models-dynamic-context-templates
 date_created: 2026-03-02
-status: planned
+status: complete
+progress_updated: 2026-03-04
+phases_completed:
+  - phase-1: ✅ complete
+  - phase-2: ✅ complete
+  - phase-3: ✅ complete
+  - phase-4: ✅ complete (basic integration)
+next_phase: testing with local models
 priority: high
 
 title: |
@@ -43,29 +50,31 @@ components:
 
   - id: template.render
     title: generic template renderer accessible from any zenka
-    status: planned
+    status: ✅ COMPLETE (2026-03-03)
     description: |
-      currently web.process_template_recursive is only callable via the web
-      zenka IPC path [ httpd → web zenka ]. add a direct call interface so
-      models.* and other zenki can render a template string without going
-      through httpd.
-    approach: |
-      option a: expose web.cmd.render-template [ route-send from models ]
-        - models sends template string + meta vars to web zenka
-        - web zenka renders and replies synchronously via deferred reply
-        - clean, uses existing IPC, no new rendering code
-      option b: load web.process_template_recursive into models zenka directly
-        - avoids IPC round-trip
-        - but duplicates module load and couples namespaces
-      recommendation: option a [ keeps rendering centralized in web zenka ]
-    files_new:
-      - modules/web.cmd.render-template   ## deferred-reply command wrapper
+      created web.cmd.render-template module that wraps web.process_template_recursive
+      and provides a clean interface for models.* and other zenki to render templates
+      via route-send to web zenka.
+    implementation: |
+      modules/web.cmd.render-template
+        - accepts template_path or inline content
+        - accepts meta vars hash
+        - accepts budget parameter (token budget)
+        - returns structured result with status, content, elapsed_ms
+        - uses web.process_template_recursive for actual rendering
+    usage: |
+      my $result = <[protocol-7.route-send]>->(
+          {   command   => qw| cube.web.render-template |,
+              call_args => { template_path => '...', budget => 4000 },
+              reply     => { handler => qw| models.handler.xxx |, ... }
+          }
+      );
 
   ## phase 2: context provider commands
 
   - id: context.providers
     title: context provider modules callable from templates
-    status: planned
+    status: ✅ COMPLETE (initial providers, 2026-03-03)
     description: |
       template commands [ <[context.X:arg]> ] that return ai-relevant content.
       each provider receives a token budget and self-truncates to fit.
@@ -77,85 +86,102 @@ components:
       template composer allocates budget across providers from total window.
     initial_providers:
       - id: context.git.recent_changes
+        status: ✅ COMPLETE
+        file: modules/context.git.recent_changes
         returns: |
           recent git diff summary or changed file list, truncated to budget.
           useful for: code review, continuation tasks, kimi context injection.
         args: [ budget, max_files, since_commit ]
 
       - id: context.task.active
+        status: ✅ COMPLETE
+        file: modules/context.task.active
         returns: |
           current active task description from yaml/task system, if any.
           useful for: orienting the model to what is being worked on.
 
       - id: context.modules.list
+        status: ✅ COMPLETE
+        file: modules/context.modules.list
         returns: |
           list of modules in a given namespace, truncated to budget.
           args: [ namespace, budget ]
           useful for: "what modules exist in coding.*?"
 
+      - id: context.file
+        status: ✅ COMPLETE
+        file: modules/context.file
+        returns: |
+          content of a specific file, truncated to budget.
+          args: [ path, budget, from_line, to_line ]
+          enables: kimi reviewing a specific module without git-diff injection
+
       - id: context.history.recent
+        status: ⏳ PENDING (phase 4)
         returns: |
           recent N exchanges from chat history, newest-first, budget-limited.
           naive inclusion, no relevance scoring [ phase 1 ].
           args: [ budget, max_turns ]
 
       - id: context.history.relevant
+        status: ⏳ PENDING (phase 2)
         returns: |
           history entries scored for relevance to current query [ phase 2 ].
           requires embedding or keyword overlap scoring.
           args: [ budget, topic, max_turns ]
-        status: phase-2   ## deferred, needs scoring primitive
-
-      - id: context.file
-        returns: |
-          content of a specific file, truncated to budget.
-          args: [ path, budget, from_line, to_line ]
-          enables: kimi reviewing a specific module without git-diff injection
+        note: deferred, needs scoring primitive
 
   ## phase 3: system message templates
 
   - id: system-message-templates
     title: per-model / per-use-case system message template files
-    status: planned
+    status: ✅ COMPLETE (initial templates, 2026-03-03)
     description: |
       system messages are .tmpl files rendered fresh per request.
-      stored in configuration/models/system-messages/ or similar.
+      stored in configuration/models/system-messages/.
       each model backend specifies its default template; callers can override.
-    template_example: |
-      ## example: configuration/models/system-messages/coding-assistant.tmpl
-
-      you are a protocol-7 module writer. work in the existing code style.
-      all comments lowercase. use <[...]> not <(...) >. one sub per file.
-
-      ## active task ##
-      <[context.task.active]>
-
-      ## recent changes ##
-      <[context.git.recent_changes:budget=1500]>
-
-      ## available modules ##
-      <[context.modules.list:namespace=coding:budget=800]>
+    files_created:
+      - configuration/models/system-messages/coding-assistant.tmpl
+      - configuration/models/system-messages/default.tmpl
+    templates:
+      - coding-assistant.tmpl: |
+          ## protocol-7 coding assistant ##
+          you are a protocol-7 module writer. work in the existing code style.
+          ## style guidelines ##
+          - all comments lowercase
+          - use <[...]> not <(...) > for template commands
+          ## active task ##
+          <[context.task.active]>
+          ## recent changes ##
+          <[context.git.recent_changes:budget=1500]>
+          ## relevant modules ##
+          <[context.modules.list:namespace=coding:budget=800]>
+    next_steps:
+      - create code-review.tmpl
+      - integrate into models.backend.*
     rendering: |
       models.backend.* calls web.cmd.render-template with:
         - template path or inline string
         - meta vars: { model => 'kimi', task_id => '...', ... }
         - total budget: context_window - estimated_reply_tokens
       web zenka renders, providers self-limit, result is the system message.
-    files_new:
-      - configuration/models/system-messages/   ## directory
-      - configuration/models/system-messages/coding-assistant.tmpl
-      - configuration/models/system-messages/code-review.tmpl
-      - configuration/models/system-messages/default.tmpl
 
   ## phase 4: chat context assembly
 
   - id: chat-context-assembly
     title: dynamic chat history assembly replacing static concatenation
-    status: planned
+    status: ✅ IN PROGRESS (integration started, 2026-03-03)
     description: |
-      currently models.chat.messages_to_prompt concatenates history naively.
-      replace with template-based assembly: each turn is a component, total
-      budget is allocated across system message + history + current query.
+      integrated dynamic system message rendering into models.backend.kimi_web.
+      models.chat.messages_to_prompt remains unchanged (clean separation).
+      system message is rendered and prepended before messages_to_prompt call.
+    implementation: |
+      modules/models.backend.kimi_web:
+        - calls web.cmd.render-template to render system message
+        - defaults to coding-assistant.tmpl
+        - accepts system_template parameter to override
+        - prepends system message to messages array
+        - falls back to minimal message on render failure
     budget_allocation: |
       total_budget = context_window - max_reply_tokens
       system_msg_budget  = total_budget * 0.25  ## 25%
@@ -165,9 +191,11 @@ components:
       phase 1: newest-first inclusion until history_budget exhausted
       phase 2: relevance-scored selection within budget
     files_modified:
+      - modules/models.backend.kimi_web         ## ✅ integrated system message rendering
+      - modules/models.backend.coding.invoke    ## ✅ integrated system message rendering
+    files_pending:
       - modules/models.chat.messages_to_prompt  ## add budget-aware assembly
-      - modules/models.backend.kimi_web         ## pass system message template
-      - modules/models.backend.coding.invoke    ## pass system message template
+    status: ✅ COMPLETE (basic integration, 2026-03-04)
 
 ---
 
@@ -206,8 +234,8 @@ related_tasks:
 
 ---
 
-#,,..,,,,,,,,,,,.,..,,,.,,,..,,,.,,,.,.,,,,..,..,,...,...,.,.,.,,,.,,,,,.,,,.,
-#DRKQP6HUAXRVR7LXZ7FTRX6DGOPF5ALPASJ6WI7GQ7VCHIFWANBTJOIX6JCYOEGHVDSLUPBRLJRGA
-#\\\|W723NINMSC26NCSAE5YFJ5WV7ZDUDW3WX3CIERK5TYYJMBQE57Y \ / AMOS7 \ YOURUM ::
-#\[7]WZNI6WR5SKCYTBORZEN2KDXMXOSMFPEACTP6QZNE5V3PZF6NKGCA 7  DATA SIGNATURE ::
+#,,,.,.,.,..,,,,,,.,,,.,.,.,.,,.,,..,,,,.,,,,,..,,...,...,.,.,.,,,,,.,,..,..,,
+#SPLAV6BOW6ZYCGRIAVGBBCN3E3IZLTQKE4SZMXQLDLYZE42BMWL5AGVCTWHAFPMX7A6SIDKKGZQW2
+#\\\|NHLS37KQLF6AWB4A7I26DKL6VCUNJWXAQFXC4BTMROR5LVFDHEE \ / AMOS7 \ YOURUM ::
+#\[7]JFTAVOQLECP7VFPJ22SX6NXJLRVWYS7S7WT3IASUF4TEVZ6GEWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -52,6 +52,7 @@ return [ qw[
         kimi.connect
         fs.init_code
         fs.cmd.mount
+        context.file
         calc.cmd.val
         base.waitpid
         base.tmp_dir
@@ -560,6 +561,7 @@ return [ qw[
         cube.cmd.clear-cons
         crypt.cbc.init_code
         crypt.XTEA.pre_init
+        context.task.active
         configure.init_code
         coding.task.execute
         coding.task.enqueue
@@ -681,8 +683,11 @@ return [ qw[
         devmod.cmd.eval-code
         devmod.cmd.core-subs
         data.mount.shm.stats
+        data.mount.fuse.read
+        data.mount.fuse.open
         data.get_array_entry
         data.cmd.detach-cube
+        context.modules.list
         content.cmd.get_list
         content.check_queued
         coding.task.complete
@@ -807,6 +812,7 @@ return [ qw[
         download.cmd.get_file
         data.mount.shm.unlink
         data.mount.shm.create
+        data.mount.fuse.spawn
         data.init_holographic
         data.ensure_hash_path
         data.channel.shm.read
@@ -959,6 +965,7 @@ return [ qw[
         events.calc_unix_table
         devmod.cmd.switch-user
         data.resolve_hash_path
+        data.mount.fuse.statfs
         data.get.classify_path
         data.cmd.shm-self-test
         data.channel.shm.write
@@ -1016,6 +1023,7 @@ return [ qw[
         work.console.sig-verify
         work.console.sig-update
         work.check_dependencies
+        web.cmd.render-template
         web-browser.proxy_setup
         web-browser.open_window
         web-browser.cmd.iconify
@@ -1097,8 +1105,12 @@ return [ qw[
         decoder.zenka.init_code
         debian.parent.init_code
         dbus.cmd.socket_address
+        data.mount.fuse.release
+        data.mount.fuse.readdir
+        data.mount.fuse.getattr
         data.get.resolve_plugin
         data.get.path_to_module
+        data.cmd.list-fs-mounts
         data.channel.shm.create
         cube.cmd.set-capability
         cube.cmd.present-p7-log
@@ -1386,6 +1398,7 @@ return [ qw[
         debian.console.list-zenki
         debian.console.check-deps
         data.mount.shm.test.basic
+        data.mount.fuse.init_code
         data.get.resolve_physical
         cube.cmd.select-strm-mode
         crypt.C25519.load_keypair
@@ -1535,6 +1548,7 @@ return [ qw[
         crypt.C25519.clear_chksums
         crypt.C25519.cached_chksum
         crypt.C25519.all_key_names
+        context.git.recent_changes
         content.http.get_mime_type
         content.cmd.get_list_types
         content.callback.load_file
@@ -2096,6 +2110,7 @@ return [ qw[
         X-11.cmd.dpms-blanking-disable
         X-11.background.next-rnd-index
         workspace-transfer.console.todo
+        work.console.regenerate-indexes
         web-browser.set-up.import_rules
         web-browser.handler.auto_scroll
         web-browser.handler.2html_reply
@@ -2811,8 +2826,8 @@ return [ qw[
     ]
 ];
 
-#,,,,,.,.,..,,,..,,.,,,.,,...,...,..,,,,.,.,,,.,.,...,...,,..,.,.,...,,..,.,,,
-#NWDHU7GWDUAK76H2VLF2OA23H5QZQE2KGGHIFALKJDRP7Q66TIQPY6PC62QRTKIXTETYQANSKGNFY
-#\\\|CNLM6WT67LWLIPV5LLTTLVVEME6QVSSWD6CCK5DWPKIGKLXQ34U \ / AMOS7 \ YOURUM ::
-#\[7]5QIBUXOVXEUWZ33OP3UVKK4RJSZWHD37DXYYV632PXSU3IKIZQBI 7  DATA SIGNATURE ::
+#,,,,,,,,,,,.,,..,.,,,,,.,.,.,...,...,,,,,.,,,.,.,...,...,...,.,,,..,,.,.,,,,,
+#DQN2IC4VXGX3UD4EZ76D7P54Y7PHGP3ARYRIUVF46CURUBKTAPOZXZ64XEEQ5JREBZYPA4KL64BE2
+#\\\|ALIYRGBV7H5ZBDDVNXBMQJUBYD2VJK6HWD6RML5NWZMHWOPCE65 \ / AMOS7 \ YOURUM ::
+#\[7]T3YJQ5UW3QWYZEFNIACQWHDE2IP52QB6VVADAX2RPVERGKS2O6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

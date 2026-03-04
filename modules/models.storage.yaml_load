@@ -11,25 +11,31 @@ my $yaml_content_ref = <[file.zenka_dir.load]>->('registry/models.yaml');
 
 ## If file doesn't exist, return empty registry
 unless ( defined $yaml_content_ref ) {
-    <[base.logs]>->( 2, '[storage.yaml_load] registry file not found, returning empty registry' );
+    <[base.logs]>->(
+        2,
+        '[storage.yaml_load] registry file not found, returning empty registry'
+    );
     return {};
 }
 
 ## Dereference the content (file.zenka_dir.load returns scalar reference)
-my $yaml_content = ref($yaml_content_ref) eq qw| SCALAR | ? $$yaml_content_ref : $yaml_content_ref;
+my $yaml_content
+    = ref($yaml_content_ref) eq qw| SCALAR |
+    ? $$yaml_content_ref
+    : $yaml_content_ref;
 
 ## Parse YAML content
-my $registry = {};
+my $registry        = {};
 my $scan_paths_data = {};
 if ( defined $yaml_content && length $yaml_content ) {
     eval {
         my $parsed = Load($yaml_content);
         if ( ref($parsed) eq qw| HASH | ) {
-            $registry = $parsed->{models} // {};
+            $registry        = $parsed->{models}     // {};
             $scan_paths_data = $parsed->{scan_paths} // {};
         }
     };
-    if ( $EVAL_ERROR ) {
+    if ($EVAL_ERROR) {
         <[base.logs]>->(
             0, '[storage.yaml_load] YAML parse error: %s',
             <[base.str.eval_error]>
@@ -42,20 +48,22 @@ if ( defined $yaml_content && length $yaml_content ) {
 if ( scalar( keys %$scan_paths_data ) > 0 ) {
     <models.scan_paths> = $scan_paths_data;
     <[base.logs]>->(
-        1, '[storage.yaml_load] loaded %d scan paths',
+        1,
+        '[storage.yaml_load] loaded %d scan paths',
         scalar( keys $scan_paths_data->%* )
     );
 }
 
 <[base.logs]>->(
-    1, '[storage.yaml_load] loaded registry with %d entries',
+    1,
+    '[storage.yaml_load] loaded registry with %d entries',
     scalar( keys $registry->%* )
 );
 
 return $registry;
 
-#,,.,,,..,,..,,..,.,,,...,..,,,.,,..,,.,.,...,..,,...,...,...,,,.,.,.,...,,,,,
-#32ULTROAEB3RCVEVVQYQHWZ32O5JY7BAFMARLXIZEPNGWU7FNKQCTTD3TEPH7ZTMA3BUAI2WXOZRW
-#\\\|7U2HGMSAXAGOIN2LQHFRCBWCOGIYLFKK446SSO6KSTK7EARNSBA \ / AMOS7 \ YOURUM ::
-#\[7]C6LHYTFBMTQPCNTXUAUL3QDO32FW6U3NUYPKSKTMGS3DE63P44BA 7  DATA SIGNATURE ::
+#,,..,...,,,,,,,.,,,,,.,,,...,,,.,,,.,...,..,,..,,...,...,,.,,.,,,,..,.,,,...,
+#VLASXJGOMJVJ2REQKF7MTZQAF2PARRRMZTI75RCUAHTNBNWJLTNDCQS3BO64DOXBYKLYAXRNIQOL2
+#\\\|FQR2AO737OJYPI5RZ76XTXHM4O7SOTGWGGUIHOT6QGFS6YHBZZ7 \ / AMOS7 \ YOURUM ::
+#\[7]Z2B6SRV2O4PUEVTUPRFMUGZR6YTOD24YQNHU2TBU263PI6LLTUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
