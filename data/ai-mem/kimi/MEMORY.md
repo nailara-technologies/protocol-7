@@ -153,14 +153,6 @@ Module: `nshell.no-tty-debug.cmd.char-add`
 - `char-add <sequence>`: Inject key sequence into nshell input
 - `debug-status`: Query current nshell state
 
-#,,..,.,.,,,,,,,.,.,,,.,.,,.,,,,.,...,..,,,.,,.,.,...,..,,...,.,.,..,,,,.,,,.,
-#Q2RT3KEGLS4BESDD7FEVCFR2MG5Y3HZCPOKBNAKWVYL4UNUO3GKVFIZ67FGDA4DSHK3TF6T5KRO22
-#\\\|4VKPAQSFECLCDLS7XJ6GRDVZI2QDVAYNOAHICPK6JCCFNWULRLR \ / AMOS7 \ YOURUM ::
-#\[7]BFG6VXDGVOWCMH6JEZ5Y7GZF2CGT5NZZXZHSLYIICGAZSXLUIUAY 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
----
-
 ## SSH Zenka Recovery (February 2025)
 
 ### Race Condition Fix: Auto-User-Creation
@@ -290,16 +282,6 @@ $key_list_string =~ s|  (\.)$|  $C{b}$C{0}$1$C{T}|mg;
 - Add Term::VTerm Screen integration for actual terminal output
 - Implement damage tracking and spiral sync optimization
 
----
-
-#,,,.,.,,,..,,,,.,,..,.,.,,..,..,,.,.,.,,,..,,.,.,...,...,,,,,...,,.,,..,,,.,,
-#QZFG2KHDGWPVATBNWMR2ULPMAKZCZD6QGACIC5RZALEOQJMLJP73IJXHCCD4WKHUCLS56Z6Z6QCW2
-#\\\|JFPKFXELDJ6GVO6PXXBNZ3UN77E4HNA6POMM5LLMBCIQWIS2PO6 \ / AMOS7 \ YOURUM ::
-#\[7]7NMYGOU74Q25NF7IHUM4B43JHPHYDQBVAGZB3FVITPR3FVWGQYBY 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
----
-
 ## Data Directory Structure Reorganization (March 2026)
 
 ### Overview
@@ -408,8 +390,120 @@ vision/                 # VISION docs (complete, data-sync, timestamp)
 ### Result
 Both `data/yaml/` and `data/md/` root directories are now clean - no loose files. All content is categorized for easier navigation and maintenance.
 
-#,,,,,,,.,.,.,...,,.,,.,,,,.,,.,,,,.,,.,.,,,,,.,.,...,..,,.,,,.,.,...,,.,,,,.,
-#XUQLK5CBWGPZBT4H2BPKO5RTFSQ5KGIPU6MWKLENZR5P6SEQCS5ZRZWM636CFRUC6ZERCHN6SUUSI
-#\\\|67DKJWSA2GLXWGOZ73S2GKC3J72FC5QK5Q3O24NVB2GD5PYWA5F \ / AMOS7 \ YOURUM ::
-#\[7]QBKEPJSXZRS5ERXMP5AX55RJYILBQ47OLI7TQTQCPCUY3NNIO4CY 7  DATA SIGNATURE ::
+## Coding Tasks Audit (March 3 2026)
+
+### Overview
+Comprehensive audit of `data/yaml/coding-tasks/` (30 files) cross-referenced with git commit history. Identified 6+ completed tasks still in active folder and significant consolidation opportunities.
+
+### Key Findings
+
+**Completed Tasks (Ready to Archive):**
+1. **data-zenka-fuse-implementation.yaml** - ✅ Completed 2026-03-03 (commits 15e281462, 77522954d)
+2. **next-session-httpsd-web-zenka-completion.yaml** - ✅ Mostly complete (commit 0975ecf98)
+3. **fork-child-pattern-remaining** - ✅ Completed (commits 0c1f202ba, 1ffe1d2fa)
+4. **route-send migration** - ✅ Completed (commit 523af79a3)
+5. **kimi-web websocket** - ✅ Completed (commit 68af03d0a)
+6. **vterm 22-module system** - ✅ Completed (commit b5dbe8db1)
+
+**High Priority Active:**
+1. **httpsd-daily-crash-investigation.yaml** - Production stability issue, crashes ~1/day
+2. **models-dynamic-context-templates.yaml** - High value, all dependencies ready
+3. **httpsd-fix-requirements.yaml** - Blocked on remote-model verification
+4. **httpd-async-https-expansion.yaml** - Partially complete, needs route dispatcher
+5. **phase-1-session-cleanup-nshell-debugging.yaml** - Blocks 6-phase roadmap
+
+**Duplicates to Consolidate:**
+- PRIORITIZED-TASKS-SESSION-2025-11-27.yaml
+- PRIORITY-WEIGHTING-CORRECTED.yaml
+- 3LE3NKOYM63SA.user-encountered-taks.yaml
+
+### Recommended Next Actions
+1. Archive 6+ completed task files
+2. Start models-dynamic-context-templates (high value, ready)
+3. Investigate httpsd daily crash
+4. Begin Phase 1 session cleanup
+
+### Reference Files
+- Full audit: `data/yaml/CODING-TASKS-AUDIT-REPORT-2026-03-03.md`
+- Updated index: `data/yaml/indexes/todos-index-UPDATED-2026-03-03.yaml`
+
+---
+
+## Dynamic Context Templates - Integration Complete (March 3 2026)
+
+### What Was Built
+
+**Foundation (Phases 1-3):**
+1. web.cmd.render-template - Generic template renderer with budget support
+2. Context providers: git.recent_changes, task.active, modules.list, file
+3. System message templates: coding-assistant.tmpl, default.tmpl
+
+**Integration (Phase 4):**
+- Modified models.backend.kimi_web to render dynamic system messages
+- System message rendered fresh for each request
+- Includes: active task, recent git changes, relevant modules
+- Budget: 2000 tokens (~8000 chars)
+- Fallback: minimal message if render fails
+
+### How It Works
+
+```
+User query → models.backend.kimi_web
+    ↓
+Render system message template
+    ↓
+Template executes context providers:
+  - context.task.active → current task
+  - context.git.recent_changes → git diff stat
+  - context.modules.list → module list
+    ↓
+Prepend system message to conversation
+    ↓
+Send to kimi zenka with full context
+```
+
+### Testing
+
+```bash
+## Test template rendering directly ##
+p7c web.render-template template_path=configuration/models/system-messages/coding-assistant.tmpl budget=2000
+
+## Test context provider ##
+p7c context.git.recent_changes budget=500
+
+## Test kimi with dynamic context (via chat interface) ##
+```
+
+### Next Steps
+
+1. Test end-to-end with kimi chat
+2. Add context.history.recent provider
+3. Implement budget allocation (system:history:current = 25:50:25)
+4. Update models.backend.coding.invoke similarly
+
+### Files Modified/Created
+
+New modules:
+- modules/web.cmd.render-template
+- modules/context.git.recent_changes
+- modules/context.task.active
+- modules/context.modules.list
+- modules/context.file
+
+Modified:
+- modules/models.backend.kimi_web (integrated system message rendering)
+
+New templates:
+- configuration/models/system-messages/coding-assistant.tmpl
+- configuration/models/system-messages/default.tmpl
+
+Documentation:
+- data/md/documentation/DYNAMIC-CONTEXT-TEMPLATES-USAGE.md
+
+---
+
+#,,,.,,..,,,.,,..,.,,,,.,,,,.,.,.,,.,,,.,,..,,..,,...,...,,.,,..,,...,,..,,..,
+#D5QGFR2NUJDJY5WOL337TPIHTK6I55F6YMDKM5OTHRWFXA27MRWCXBKAMUKNVXJ7GMFJHVISQNRVU
+#\\\|RIJCWW4MTQG6EZOVMRKCEQD7FWTUUPD4RVP44BEFBL4Q5P4CJFV \ / AMOS7 \ YOURUM ::
+#\[7]SQLNMUZDHA2IEIPT5HB7ZMXTBI32KEN2AJBVD44PBSVOTXWILOBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
