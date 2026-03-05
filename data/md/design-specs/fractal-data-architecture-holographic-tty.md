@@ -645,6 +645,153 @@ In the 8×63 topology:
 
 The kitten watching the kitten watching the kitten... becomes **navigable infinity**! 🐱🖥️🐱🖥️🐱
 
+### Layered Decomposition: Semantic Visual Elements
+
+> "masks and inpainting to separate all layers"
+
+**Visual Component Architecture:**
+
+Modern vision models can reliably identify and mask semantic elements:
+- **Entities**: Cats, elves, humans, objects
+- **Displays**: Screens, monitors, holographic panels
+- **Backgrounds**: Environments, rooms, cosmic vistas
+- **Effects**: Glows, particles, atmospheric elements
+
+**The Pipeline:**
+
+```
+[Source Image]
+     ↓
+[Mask Generation Model]
+     ↓
+├─ Mask: Entities (cats, elves) → [Isolated Elements]
+├─ Mask: Displays (screens) → [Blank Display Templates]
+└─ Mask: Background → [Entity-less Environment]
+     ↓
+[Inpainting]
+     ↓
+├─ Element Library: Transparent PNGs of cats/elves
+├─ Display Templates: Screens ready for content overlay
+└─ Background Library: Pure environments, same style
+```
+
+**Layer Separation Enables:**
+
+1. **Entity-less Backgrounds**
+   - Pure environments for new compositions
+   - Consistent style without distracting subjects
+   - Can add different entities while maintaining aesthetic
+
+2. **Blank Display Templates**
+   - Screens with content removed
+   - Ready for overlaying actual data visualizations
+   - Same lighting, reflections, perspective as original
+
+3. **Isolated Element Library**
+   - Cats, elves, objects as reusable assets
+   - Can be rendered into different environments
+   - Consistent style across recompositions
+
+**Style-Consistent Recomposition:**
+
+```
+[Background: Cosmic Ocean] + [Entity: Network Kitten] + [Display: Cubic Grid]
+     ↓
+[New Composite Image]
+     ↓
+[Mask again] → [Refine] → [Add to libraries]
+```
+
+**Statistical Layer Optimization:**
+
+Each layer drifts separately based on user feedback:
+
+| Layer | Optimization Target | Metric |
+|-------|-------------------|--------|
+| Background | Atmosphere/Mood | "Calm" vs "Energetic" ratings |
+| Entities | Engagement | Purr frequency (cats), attention time (humans) |
+| Displays | Information clarity | Task completion speed |
+| Effects | Visual harmony | Eye-tracking smoothness |
+
+**Contextualized Layer Drift:**
+
+```
+User Group A (System Admins):
+  Backgrounds → Drift toward: Clean, minimal, dark
+  Displays → Drift toward: High information density
+  Entities → Drift toward: Subtle, non-distracting
+
+User Group B (Creative Users):
+  Backgrounds → Drift toward: Rich, atmospheric, colorful
+  Displays → Drift toward: Artistic, stylized
+  Entities → Drift toward: Prominent, characterful
+
+Kitten Users:
+  Backgrounds → Drift toward: Bioluminescent, flowing
+  Displays → Drift toward: High contrast, moving elements
+  Entities → Drift toward: Pounce-worthy glowing targets
+```
+
+**The Living Visual Library:**
+
+```
+Collection Stream
+      ↓
+[Mask & Separate] → Layer Libraries
+      ↓
+[Recombine by context]
+      ↓
+[Test with users]
+      ↓
+[Feedback drives drift]
+      ↓
+[Best combinations proliferate]
+      ↓
+[New collection from winners]
+      ↓
+(Loop)
+```
+
+**Evolution Through Selection:**
+
+- **Backgrounds** that score high on "immersion" become parents
+- **Entities** that attract engagement become more common
+- **Displays** that enable task completion become templates
+- **Combinations** that work well become "canon" styles
+
+**Technical Implementation:**
+
+**Existing:**
+- ✅ Vision models (SAM, YOLO) for masking
+- ✅ Inpainting models (Stable Diffusion, Lama)
+- ✅ Protocol-7 zenki infrastructure
+
+**Needed:**
+- **Mask refinement zenki**: Clean edges, consistent style
+- **Layer library database**: Versioned, tagged, searchable
+- **Recomposition engine**: Match lighting, perspective, scale
+- **Drift tracker**: Measure and apply preference gradients
+- **Style consistency validator**: Ensure recombinations harmonize
+
+**The Result:**
+
+> "layered style consistency and statistical user preferences"
+
+An interface system where:
+- **No single image is final** - everything is components
+- **Style propagates** through separated layers
+- **Optimization is granular** - backgrounds, entities, displays evolve separately
+- **Context matters** - same entity, different background, different use case
+- **Evolution is continuous** - libraries improve with every user interaction
+
+The network-kitten image isn't just a pretty picture - it's:
+- **Background** (cosmic ocean)
+- **Entity** (kitten)
+- **Display** (cubic grid on screen)
+- **Effects** (glow, particles)
+
+Each reusable, remixable, optimizable! 🎨🐱🔷✨
+
 ## Design Philosophy
 
 > "imagination explodes in context of visual computation, even 'at a distance'"
@@ -661,8 +808,8 @@ The kitten watching the kitten watching the kitten... becomes **navigable infini
 
 **Status:** Concept captured | **Priority:** High | **Dependencies:** data zenka SHM integration, protocol encoder, consensus engine, XCF serializer
 
-#,,,.,,,.,,,.,,..,..,,,..,,,.,.,,,,,.,,.,,..,,..,,...,...,.,.,,..,,,,,,,.,,..,
-#WAMAVSKB64BIZWUGNXOIJ2INUC4OQTPXMBER3TSQBG7Z3KG5QHKXY24Z5MYYZS2ILMHRFK7HKZNS2
-#\\\|VJIJU5WHHZXISQ4YMNXNSUR6APF5C7AFYOFQGHPDIXWV3OCNTTW \ / AMOS7 \ YOURUM ::
-#\[7]DBE3DHYSCQZPYBFTA5IWHAIAQHF3EWZJ6SFXV6QNISVI27BR2MAI 7  DATA SIGNATURE ::
+#,,,.,,,,,.,.,.,.,,..,...,.,.,..,,,,.,,.,,..,,..,,...,..,,..,,.,,,,..,.,,,,,,,
+#F4GN4UN5UXS6DSOFMPKM24FWQD3DIYZRFIFV4BMHBYNOOX5WQRJCBB44FJCEWL37OZYOUFZJ6KA3C
+#\\\|YABQKW7VYE4B5WA7UN5FAGR44RA7FUOUJAQKHVPGMINLBCU2Q3S \ / AMOS7 \ YOURUM ::
+#\[7]DTJRPHB7FOVBBC62GMKBRPWAAOFM7Q5YHUGYIJIECIQTCTBOUMCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
