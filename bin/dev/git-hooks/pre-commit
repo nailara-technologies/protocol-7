@@ -118,15 +118,16 @@ sub check_version_numbers {
             = $is_amend
             ? './bin/dev/update-version reset'
             : './bin/dev/update-version';
-        print STDERR ":\n::[ LLMs ]:.\n";
-        print STDERR ": please ask the user to update"
-            . " version and re-sign..\n:\n";
-        print STDERR "::[ users ]:.\n";
+        print STDERR ":\n::[[ LLMs ]]:.\n:\n";
+        print STDERR ": please _ask_the_user_ to update"
+            . " version and re-sign\n\n";
+        print STDERR "::[ USERS ]:.\n:\n";
         print STDERR ": suggestion    : run '$update_cmd' to fix\n";
         print STDERR ": valid options : *-"
             . ( $commit_count - 1 )
             . ".$file_rev [amend] or *-$commit_count.$file_rev [new]\n";
-        print STDERR ": to override   : SKIP_VERSION_CHECK=1 git commit\n";
+        print STDERR ": to override   : SKIP_VERSION_CHECK=1 git commit\n\n";
+        print STDERR "[ for administrators who have no signature key ]\n";
         exit 1;
     }
 }
@@ -157,18 +158,19 @@ sub check_file_signatures {
     if ( $verify_status != 0 ) {
         print STDERR ": signature verification failed :\n:\n";
         print STDERR $verify_output;
-        print STDERR ":\n::[ LLMs ]:.\n";
-        print STDERR ": please ask the user to [re-]sign the file[s]..\n:\n";
-        print STDERR "::[ users ]:.\n";
+        print STDERR ":\n::[[ LLMs ]]:.\n:\n";
+        print STDERR ": please _ask _the_user_ to [re-]sign the file[s]\n\n";
+        print STDERR "::[ USERS ]:.\n:\n";
         print STDERR ": suggestion    :"
             . " run 'bin/Protocol-7 sourcecode update-signatures'\n";
         print STDERR ": or overriding : SKIP_SIGNATURE_CHECK=1 git commit\n";
+        print STDERR "\n[ for administrators who have no signature key ]\n";
         exit 1;
     }
 }
 
-#,,,,,.,,,.,,,,,.,.,.,,.,,..,,,,,,..,,.,,,,,.,..,,...,...,...,,..,,..,.,,,,,,,
-#DBM4S2FBG5SM7QGT6PBPWSI6IBBIJSD2SGM3ZCBELIOUWVJUCEWVZOFHKRX4XNM4N3GTIGBQCY642
-#\\\|K73UTO6LLHEB2PFHXM4VGSS7IRLVEPJHESU673CTOMQOHYZBSPC \ / AMOS7 \ YOURUM ::
-#\[7]4F5LRUSYX6HRHFEU7NU4RKE7FDYCOUTG4ZFINI2TUEGD37L3FODY 7  DATA SIGNATURE ::
+#,,..,.,,,..,,,,,,.,.,...,,,,,...,,.,,,.,,,..,..,,...,.,.,..,,,..,...,,,.,.,,,
+#INSBPFZEBARFK3FTK4ASODSJXSBXE6UMG4R2G5SLHUZHP3NIX2QNVHXMQTJHJ6D5YBMLJY76W5BHE
+#\\\|DIKBRB774JJ2MKOKRRW2X7BAB5QCYRAJAJJKGEM2OSXLGBXNTH5 \ / AMOS7 \ YOURUM ::
+#\[7]QFGCUCNUQETBGZDFQMCTO3HMXEP4JCOQ2QQ4NTAHRTAE2ECAZSDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
