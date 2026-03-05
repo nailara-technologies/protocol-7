@@ -123,6 +123,7 @@ profiles:
     description: "Common modules for active zenka (v7, httpd, httpsd, letsencr, nshell, test-link-upgrade)"
     apt:
       - libbsd-resource-perl
+      - libcrypt-dev
       - libcrypt-openssl-x509-perl
       - libdata-uuid-perl
       - libprotocol-websocket-perl
@@ -178,8 +179,15 @@ profiles:
       - tools
       - zenka-common
 
+  ai-models:
+    description: "AI/LLM model support (local and remote backends)"
+    apt:
+      - libanyevent-http-perl
+      - libanyevent-perl
+
   protocol7-extended:
     description: "Complete Protocol-7 with GUI and advanced tools"
     includes:
       - development
       - X11-Desktop
+      - ai-models
