@@ -1,0 +1,396 @@
+#!/usr/bin/perl
+## [:< ##
+# name  = invoke-model-recover
+# descr = Recover deleted Invoke.ai models from database metadata
+# usage = invoke-model-recover [-dry-run|-download] [model_name...]
+
+use strict;
+use warnings;
+use utf8;
+use v5.24;
+use open ':std', ':encoding(UTF-8)';
+
+use JSON::PP;
+use Getopt::Long;
+use LWP::UserAgent;
+use File::Path qw(make_path);
+use File::Basename;
+
+my ($opt_dry_run, $opt_download, $opt_list, $opt_help);
+GetOptions(
+    'dry-run'  => \$opt_dry_run,
+    'download' => \$opt_download,
+    'list'     => \$opt_list,
+    'help'     => \$opt_help,
+) or usage();
+
+usage() if $opt_help;
+
+my $DB_FILE = $ENV{'INVOKE_DB'} // "$ENV{HOME}/.invokeai/db/invokeai.db";
+my $OUTPUT_DIR = $ENV{'INVOKE_MODELS_DIR'} // '/mnt/ext-xfs-data/models-invoke';
+my $HF_TOKEN = $ENV{'HF_TOKEN'} // read_hf_token_from_invoke() // read_hf_token_from_lmstudio();
+
+## Query database for lost models
+my $models = query_database();
+
+if ($opt_list) {
+    list_models($models);
+    exit(0);
+}
+
+## Filter by name if specified
+if (@ARGV) {
+    my %wanted = map { $_ => 1 } @ARGV;
+    $models = [grep { $wanted{$_->{name}} } @$models];
+}
+
+if ($opt_dry_run) {
+    dry_run($models);
+} elsif ($opt_download) {
+    download_models($models);
+} else {
+    usage();
+}
+
+##===========================================================================##
+
+sub query_database {
+    my $cmd = qq{sqlite3 "$DB_FILE" ".mode json" "SELECT name, source, source_type, json_extract(config, '\$.description') as description, json_extract(config, '\$.file_size') as size FROM models WHERE type='main' ORDER BY name;" 2>/dev/null};
+
+    my $json = `$cmd`;
+    unless ($json) {
+        die "Cannot query database: $DB_FILE\n" .
+            "Make sure Invoke.ai database exists.\n";
+    }
+
+    my $models = eval { JSON::PP::decode_json($json) };
+    if ($@) {
+        die "Failed to parse database output: $@\n";
+    }
+
+    return $models;
+}
+
+sub list_models {
+    my ($models) = @_;
+    my $total_size = 0;
+
+    print "Models found in database:\n";
+    print "=" x 80 . "\n";
+    printf "%-40s %10s %s\n", "Name", "Size", "Source Type";
+    print "-" x 80 . "\n";
+
+    for my $m (@$models) {
+        my $size = human_size($m->{size} // 0);
+        $total_size += ($m->{size} // 0);
+        printf "%-40s %10s %s\n",
+            substr($m->{name}, 0, 38),
+            $size,
+            $m->{source_type};
+    }
+
+    print "=" x 80 . "\n";
+    printf "Total: %d models, %s\n", scalar(@$models), human_size($total_size);
+}
+
+sub dry_run {
+    my ($models) = @_;
+    my ($total, $have, $missing) = (0, 0, 0);
+    my $total_size = 0;
+
+    print "DRY RUN - Checking what needs recovery:\n";
+    print "=" x 80 . "\n";
+
+    for my $m (@$models) {
+        $total++;
+        my $filename = get_filename($m);
+        my $filepath = "$OUTPUT_DIR/$filename";
+        $total_size += ($m->{size} // 0);
+
+        if (-f $filepath) {
+            my $size = -s $filepath;
+            if ($size >= ($m->{size} // 0) * 0.99) {
+                print "✓ $m->{name} (already have: " . human_size($size) . ")\n";
+                $have++;
+            } else {
+                print "~ $m->{name} (partial: " . human_size($size) . "/" . human_size($m->{size}) . ")\n";
+                $missing++;
+            }
+        } else {
+            print "✗ $m->{name} (MISSING: " . human_size($m->{size}) . ")\n";
+            print "  Source: $m->{source}\n";
+            $missing++;
+        }
+    }
+
+    print "=" x 80 . "\n";
+    print "Summary: $total total, $have have, $missing need download\n";
+    print "Total size to download: " . human_size($total_size) . "\n";
+    print "\nRun with -download to fetch missing models.\n";
+}
+
+sub download_models {
+    my ($models) = @_;
+    my $ua = LWP::UserAgent->new(
+        timeout => 600,
+        agent   => 'invoke-model-recover/1.0',
+    );
+
+    ## Add HF auth if available
+    if ($HF_TOKEN) {
+        $ua->default_header('Authorization' => "Bearer $HF_TOKEN");
+        print "Using HuggingFace token for authenticated downloads\n";
+    } else {
+        print "Warning: No HF_TOKEN found - some models may fail\n";
+    }
+
+    make_path($OUTPUT_DIR, { verbose => 0 });
+
+    print "Downloading models to: $OUTPUT_DIR\n";
+    print "=" x 80 . "\n";
+
+    my ($downloaded, $skipped, $failed) = (0, 0, 0);
+
+    for my $m (@$models) {
+        my $filename = get_filename($m);
+        my $filepath = "$OUTPUT_DIR/$filename";
+
+        ## Check if already exists
+        if (-f $filepath && -s $filepath >= ($m->{size} // 0) * 0.99) {
+            print "• $m->{name} (already have)\n";
+            $skipped++;
+            next;
+        }
+
+        ## Get download URL
+        my $url_info = get_download_url($m);
+        unless ($url_info) {
+            print "✗ $m->{name} - Cannot determine download URL\n";
+            $failed++;
+            next;
+        }
+
+        print "↓ $m->{name} (" . human_size($m->{size}) . ")\n";
+
+        ## Handle different source types
+        my $success;
+        if (ref $url_info eq 'HASH' && $url_info->{type} eq 'hf_repo') {
+            ## HuggingFace repo - need to find model file
+            $success = download_from_hf_repo($ua, $url_info, $filepath, $m->{size});
+        } else {
+            ## Direct URL
+            print "  From: $url_info\n";
+            $success = download_file($ua, $url_info, $filepath, $m->{size});
+        }
+
+        if ($success) {
+            $downloaded++;
+        } else {
+            $failed++;
+        }
+    }
+
+    print "=" x 80 . "\n";
+    print "Complete: $downloaded downloaded, $skipped skipped, $failed failed\n";
+}
+
+sub download_from_hf_repo {
+    my ($ua, $url_info, $filepath, $expected_size) = @_;
+    my $repo = $url_info->{repo};
+    my $model_name = $url_info->{model_name};
+
+    ## Try to construct download URL for common model filenames
+    my @filenames_to_try = (
+        "$model_name.safetensors",
+        "model.safetensors",
+        "diffusion_pytorch_model.safetensors",
+        "pytorch_model.safetensors",
+    );
+
+    ## If model name looks like it has version, try variations
+    if ($model_name =~ /^(.*?)_v?\d+/) {
+        my $base = $1;
+        push @filenames_to_try, "$base.safetensors";
+    }
+
+    for my $filename (@filenames_to_try) {
+        my $url = "https://huggingface.co/$repo/resolve/main/$filename";
+        print "  Trying: $url\n";
+
+        my $success = download_file($ua, $url, $filepath, $expected_size);
+        return 1 if $success;
+    }
+
+    print "  ✗ Failed to find model file in repo: $repo\n";
+    return 0;
+}
+
+sub get_filename {
+    my ($m) = @_;
+
+    ## Extract filename from source
+    if ($m->{source} =~ m|/([^/]+\.safetensors)$|) {
+        return $1;
+    }
+    if ($m->{source} =~ m|/([^/]+\.ckpt)$|) {
+        return $1;
+    }
+
+    ## Default to name with safetensors extension
+    return "$m->{name}.safetensors";
+}
+
+sub read_hf_token_from_lmstudio {
+    ## Try to read HF token from LM Studio config
+    my $lmstudio_config = "$ENV{HOME}/.cache/lm-studio/config.json";
+    if (-f $lmstudio_config) {
+        open(my $fh, '<', $lmstudio_config) or return undef;
+        my $content = do { local $/; <$fh> };
+        close($fh);
+        if ($content =~ /"hfToken"\s*:\s*"([^"]+)"/) {
+            return $1;
+        }
+    }
+    ## Try environment file
+    my $env_file = "$ENV{HOME}/.config/lmstudio/.env";
+    if (-f $env_file) {
+        open(my $fh, '<', $env_file) or return undef;
+        while (<$fh>) {
+            if (/HF_TOKEN[=:](.+)/) {
+                close($fh);
+                return $1;
+            }
+        }
+        close($fh);
+    }
+    return undef;
+}
+
+sub read_hf_token_from_invoke {
+    ## Try to read HF token from Invoke.ai config locations
+    ## Check invokeai.yaml for remote_api_tokens section
+    my $invoke_yaml = "$ENV{HOME}/invokeai/invokeai.yaml";
+    if (-f $invoke_yaml) {
+        open(my $fh, '<', $invoke_yaml) or return undef;
+        my $content = do { local $/; <$fh> };
+        close($fh);
+        ## Look for huggingface token in various formats
+        if ($content =~ /huggingface[:\s]+["']?([hf_][a-zA-Z0-9_-]+)/i) {
+            return $1;
+        }
+    }
+
+    ## Check database for stored credentials
+    my $db_file = "$ENV{HOME}/.invokeai/db/invokeai.db";
+    if (-f $db_file) {
+        my $token = `sqlite3 "$db_file" "SELECT value FROM client_state WHERE key LIKE '%huggingface%' OR key LIKE '%hf_token%' LIMIT 1;" 2>/dev/null`;
+        chomp($token);
+        return $token if $token && length($token) > 10;
+    }
+
+    ## Check systemd service environment
+    my $systemd_env = "/etc/systemd/system/invokeai.service";
+    if (-f $systemd_env) {
+        open(my $fh, '<', $systemd_env) or return undef;
+        while (<$fh>) {
+            if (/Environment="?HF_TOKEN=(.+?)"?\s*$/i) {
+                close($fh);
+                return $1;
+            }
+            if (/Environment="?HUGGINGFACE_TOKEN=(.+?)"?\s*$/i) {
+                close($fh);
+                return $1;
+            }
+        }
+        close($fh);
+    }
+
+    return undef;
+}
+
+sub get_download_url {
+    my ($m) = @_;
+
+    ## Direct URL
+    if ($m->{source_type} eq 'url') {
+        return $m->{source};
+    }
+
+    ## HuggingFace repo ID - construct download URL for main model file
+    if ($m->{source_type} eq 'hf_repo_id') {
+        my $repo = $m->{source};
+        ## Try common model file patterns
+        ## Return repo info - actual file discovery happens in download
+        return { type => 'hf_repo', repo => $repo, model_name => $m->{name} };
+    }
+
+    return undef;
+}
+
+sub download_file {
+    my ($ua, $url, $filepath, $expected_size) = @_;
+    my $tmpfile = "$filepath.tmp";
+
+    my $response = $ua->get($url, ':content_file' => $tmpfile);
+
+    if ($response->is_success) {
+        my $size = -s $tmpfile;
+
+        ## Verify size (within 1% tolerance)
+        if ($expected_size && abs($size - $expected_size) > $expected_size * 0.01) {
+            print "    Warning: Size mismatch (got " . human_size($size)
+                . ", expected " . human_size($expected_size) . ")\n";
+        }
+
+        rename($tmpfile, $filepath) or die "Cannot rename: $!";
+        print "    ✓ Complete (" . human_size($size) . ")\n";
+        return 1;
+    } else {
+        print "    ✗ Failed: " . $response->status_line . "\n";
+        unlink($tmpfile) if -f $tmpfile;
+        return 0;
+    }
+}
+
+sub human_size {
+    my ($bytes) = @_;
+    return '0 B' unless $bytes;
+    my @units = ('B', 'KB', 'MB', 'GB', 'TB');
+    my $unit = 0;
+    while ($bytes >= 1024 && $unit < @units - 1) {
+        $bytes /= 1024;
+        $unit++;
+    }
+    return sprintf('%.1f %s', $bytes, $units[$unit]);
+}
+
+sub usage {
+    print <<'USAGE';
+Usage: invoke-model-recover [-dry-run|-download] [model_name...]
+
+Commands:
+    -list       List all models from database
+    -dry-run    Check what needs recovery (no download)
+    -download   Download missing models
+
+Environment:
+    INVOKE_DB          Path to invokeai.db (default: ~/.invokeai/db/invokeai.db)
+    INVOKE_MODELS_DIR  Output directory (default: /mnt/ext-xfs-data/models-invoke)
+
+Examples:
+    invoke-model-recover -list                    # Show all models
+    invoke-model-recover -dry-run                 # Check what needs recovery
+    invoke-model-recover -download                # Download all missing
+    invoke-model-recover -download kittens        # Recover specific model
+
+Note: Only models with direct URLs can be auto-downloaded.
+      HuggingFace repo IDs need manual download.
+USAGE
+    exit(0);
+}
+
+#,,..,.,,,.,,,,,.,,..,,,.,,,.,.,,,.,.,..,,.,,,.,.,...,...,,..,,..,...,,,.,.,,,
+#PHRIEKKZLJPRIIV45YZMPE32VVDBKB5YQTM7GJ6QKGP4V5DLGQOE6USZND52KIKZCE3FMQC62SQ3M
+#\\\|XEWHCTZL7NA4KFGXI2LJ63ROUG2GKIYU2MGN5SH6D6KVJMOMMOL \ / AMOS7 \ YOURUM ::
+#\[7]4MLKIBKHHKZTIOLRYTKVBNZ3XMEW5FWGL5CATKMJMP3XCRHQSIBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

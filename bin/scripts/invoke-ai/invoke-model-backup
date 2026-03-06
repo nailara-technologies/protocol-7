@@ -1,0 +1,168 @@
+#!/usr/bin/perl
+## [:< ##
+# name  = invoke-model-backup
+# descr = Backup and restore Invoke.ai model configurations
+# usage = invoke-model-backup [-export|-import|-restore] [file.yaml]
+#
+# Prevents future data loss by exporting model metadata
+
+use strict;
+use warnings;
+use utf8;
+use v5.24;
+use open ':std', ':encoding(UTF-8)';
+
+use YAML::XS;
+use File::Copy;
+use File::Path qw(make_path);
+use Getopt::Long;
+
+my ($opt_export, $opt_import, $opt_restore, $opt_help);
+GetOptions(
+    'export'   => \$opt_export,
+    'import'   => \$opt_import,
+    'restore'  => \$opt_restore,
+    'help'     => \$opt_help,
+) or usage();
+
+usage() if $opt_help;
+
+my $INVOKE_DIR    = $ENV{'INVOKE_DIR'} // '/home/taeki/invokeai';
+my $MODELS_DIR    = "$INVOKE_DIR/models";
+my $DB_FILE       = "$INVOKE_DIR/databases/invokeai.db";
+my $BACKUP_FILE   = shift // "$INVOKE_DIR/models-backup.yaml";
+
+if ($opt_export) {
+    export_models();
+} elsif ($opt_import) {
+    import_models();
+} elsif ($opt_restore) {
+    restore_models();
+} else {
+    usage();
+}
+
+sub export_models {
+    print "Exporting model metadata from: $MODELS_DIR\n";
+
+    my $backup = {
+        exported_at => scalar(localtime),
+        models_dir  => $MODELS_DIR,
+        models      => [],
+    };
+
+    ## Scan for actual model files
+    my @model_files = (
+        glob("$MODELS_DIR/*.safetensors"),
+        glob("$MODELS_DIR/*.ckpt"),
+        glob("$MODELS_DIR/*/*.safetensors"),
+        glob("$MODELS_DIR/*/*.ckpt"),
+    );
+
+    for my $file (@model_files) {
+        next unless -f $file;
+
+        my $size = -s $file;
+        my $mtime = (stat($file))[9];
+
+        push @{$backup->{models}}, {
+            filename    => $file,
+            basename    => (split(m|/|, $file))[-1],
+            size        => $size,
+            size_human  => human_size($size),
+            modified    => scalar(localtime($mtime)),
+            ## TODO: Calculate hash for verification
+        };
+    }
+
+    $backup->{total_models} = scalar(@{$backup->{models}});
+    $backup->{total_size} = human_size(
+        sum(map { $_->{size} } @{$backup->{models}})
+    );
+
+    ## Write YAML
+    open(my $fh, '>:encoding(UTF-8)', $BACKUP_FILE)
+        or die "Cannot write $BACKUP_FILE: $!";
+    print $fh YAML::XS::Dump($backup);
+    close($fh);
+
+    print "Exported $backup->{total_models} models to: $BACKUP_FILE\n";
+    print "Total size: $backup->{total_size}\n";
+}
+
+sub import_models {
+    print "Importing model list from: $BACKUP_FILE\n";
+
+    my $backup = YAML::XS::LoadFile($BACKUP_FILE);
+    print "Backup from: $backup->{exported_at}\n";
+    print "Original location: $backup->{models_dir}\n";
+    print "Models in backup: $backup->{total_models}\n";
+    print "Total size: $backup->{total_size}\n\n";
+
+    ## Check which exist
+    my ($found, $missing) = (0, 0);
+    for my $model (@{$backup->{models}}) {
+        my $basename = $model->{basename};
+        my $path = "$MODELS_DIR/$basename";
+
+        if (-f $path) {
+            print "✓ $basename\n";
+            $found++;
+        } else {
+            print "✗ $basename (MISSING)\n";
+            $missing++;
+        }
+    }
+
+    print "\nFound: $found, Missing: $missing\n";
+}
+
+sub restore_models {
+    die "Not implemented - manual restore recommended:\n" .
+        "1. Copy from Windows: cp -r /mnt/windows-disk/user/Invoke/models/* $MODELS_DIR/\n" .
+        "2. Re-download missing from Civitai/HuggingFace\n";
+}
+
+sub usage {
+    print <<'USAGE';
+Usage: invoke-model-backup [-export|-import|-restore] [file.yaml]
+
+Commands:
+    -export     Export model metadata to YAML
+    -import     Import and verify against current files
+    -restore    [Not implemented - manual restore]
+
+Environment:
+    INVOKE_DIR      Invoke.ai directory (default: ~/invokeai)
+
+Examples:
+    invoke-model-backup -export                    # Export to default location
+    invoke-model-backup -export /backup/models.yaml
+    invoke-model-backup -import                    # Verify against backup
+USAGE
+    exit(0);
+}
+
+sub human_size {
+    my ($bytes) = @_;
+    return '0 B' unless $bytes;
+    my @units = ('B', 'KB', 'MB', 'GB', 'TB');
+    my $unit = 0;
+    while ($bytes >= 1024 && $unit < @units - 1) {
+        $bytes /= 1024;
+        $unit++;
+    }
+    return sprintf('%.1f %s', $bytes, $units[$unit]);
+}
+
+sub sum {
+    my $total = 0;
+    $total += $_ for @_;
+    return $total;
+}
+
+#,,.,,.,.,...,..,,,,,,.,.,..,,.,,,,,.,,,.,,,.,.,.,...,...,.,,,.,,,.,,,...,,.,,
+#ND7MAF2QPB67TMNKORODW2RHVSGO5UWZEDYC5BKFOGOXLSYO6MUN7P34OLLKPNZ7WCL5JD3W5DFWQ
+#\\\|S7FRWAAIFBPNKNCNZZETS7EANEP4JJJB25GBHBQKNGT6ZNES7NL \ / AMOS7 \ YOURUM ::
+#\[7]VJU5BUSE5HPQWBPWIRJWDSZMHXL3H3KPM4AQUAAM6B546NSQMIAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
