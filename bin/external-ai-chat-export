@@ -1,0 +1,209 @@
+#!/usr/bin/perl
+## [:< ##
+# name  = external-ai-chat-export
+# descr = Export external AI service chats (duck.ai, etc.) to Protocol-7 format
+# usage = external-ai-chat-export [-input FILE.json] [-format duckai|claude|chatgpt]
+
+use strict;
+use warnings;
+use utf8;
+use v5.24;
+use open ':std', ':encoding(UTF-8)';
+
+use YAML::XS;
+use JSON::PP;
+use Getopt::Long;
+use POSIX qw(strftime);
+
+my ( $opt_input, $opt_format, $opt_output, $opt_help );
+GetOptions(
+    'input=s'  => \$opt_input,
+    'format=s' => \$opt_format,
+    'output=s' => \$opt_output,
+    'help'     => \$opt_help,
+) or usage();
+
+usage() if $opt_help;
+
+## Auto-detect format from filename if not specified
+$opt_format //= detect_format($opt_input) if $opt_input;
+$opt_format //= 'duckai';
+
+print "External AI Chat Exporter\n";
+print "Format: $opt_format\n";
+print "Input: " . ( $opt_input // 'stdin' ) . "\n";
+
+## Read input
+my $content;
+if ( $opt_input && -f $opt_input ) {
+    open( my $fh, '<', $opt_input ) or die "Cannot read $opt_input: $!";
+    $content = do { local $/; <$fh> };
+    close($fh);
+} else {
+    $content = do { local $/; <STDIN> };
+}
+
+## Parse based on format
+my $chats = parse_chats( $content, $opt_format );
+
+## Generate output filename
+my $output = $opt_output
+    // "/data/backup/external-ai/external-chats-$opt_format-"
+    . strftime( "%Y%m%d-%H%M%S", localtime ) . ".yaml";
+
+## Ensure directory exists
+system(
+    "mkdir -p /data/backup/external-ai /mnt/ext-xfs-data/backup/external-ai 2>/dev/null"
+);
+
+## Export
+my $export = {
+    export_info => {
+        timestamp     => scalar(localtime),
+        source_format => $opt_format,
+        source_file   => $opt_input,
+        chat_count    => scalar(@$chats),
+    },
+    chats => $chats,
+};
+
+open( my $fh, '>:encoding(UTF-8)', $output )
+    or die "Cannot write $output: $!";
+print $fh YAML::XS::Dump($export);
+close($fh);
+
+print "\n✓ Exported " . scalar(@$chats) . " chats to: $output\n";
+
+## Also save to external
+my $ext_output
+    = "/mnt/ext-xfs-data/backup/external-ai/external-chats-$opt_format-"
+    . strftime( "%Y%m%d-%H%M%S", localtime ) . ".yaml";
+copy( $output, $ext_output ) if -d '/mnt/ext-xfs-data/backup/external-ai';
+
+##===========================================================================##
+
+sub detect_format {
+    my ($filename) = @_;
+    return 'duckai'  if $filename =~ /duck/i;
+    return 'claude'  if $filename =~ /claude/i;
+    return 'chatgpt' if $filename =~ /chatgpt|openai/i;
+    return undef;
+}
+
+sub parse_chats {
+    my ( $content, $format ) = @_;
+
+    if ( $format eq 'duckai' ) {
+        return parse_duckai($content);
+    } elsif ( $format eq 'claude' ) {
+        return parse_claude($content);
+    } elsif ( $format eq 'chatgpt' ) {
+        return parse_chatgpt($content);
+    } else {
+        die "Unknown format: $format\n";
+    }
+}
+
+sub parse_duckai {
+    my ($content) = @_;
+
+    ## Duck.ai JSON format has "conversations" array
+    my $data = eval { JSON::PP::decode_json($content) };
+    unless ($data) {
+        ## Try to extract just the conversations part
+        if ( $content =~ /"conversations"\s*:\s*(\[.*?\])(?:,|\s*}\s*$)/s ) {
+            $data = { conversations => eval { JSON::PP::decode_json($1) } };
+        }
+    }
+
+    unless ( $data && $data->{conversations} ) {
+        die
+            "Could not parse Duck.ai format. Expected 'conversations' array.\n";
+    }
+
+    my @chats;
+    for my $conv ( @{ $data->{conversations} } ) {
+        my $chat = {
+            id            => $conv->{id},
+            title         => $conv->{title},
+            created_at    => $conv->{createdAt},
+            updated_at    => $conv->{updatedAt},
+            model         => $conv->{model},
+            message_count => scalar( @{ $conv->{messages} // [] } ),
+            messages      => [],
+        };
+
+        ## Extract messages
+        for my $msg ( @{ $conv->{messages} // [] } ) {
+            push @{ $chat->{messages} }, {
+                role      => $msg->{role},        # user, assistant
+                content   => $msg->{content},
+                timestamp => $msg->{timestamp},
+            };
+        }
+
+        push @chats, $chat;
+    }
+
+    return \@chats;
+}
+
+sub parse_claude {
+    my ($content) = @_;
+    ## Claude export format (if available)
+    my $data = eval { JSON::PP::decode_json($content) };
+
+    ## TODO: Implement Claude format
+    die "Claude format not yet implemented\n";
+}
+
+sub parse_chatgpt {
+    my ($content) = @_;
+    ## ChatGPT export format (conversations.json)
+    my $data = eval { JSON::PP::decode_json($content) };
+
+    unless ($data) {
+        ## Try array format
+        $data = eval { [ JSON::PP::decode_json($content) ] };
+    }
+
+    ## TODO: Implement ChatGPT format
+    die "ChatGPT format not yet implemented\n";
+}
+
+sub usage {
+    print <<'USAGE';
+Usage: external-ai-chat-export [options]
+
+Options:
+    -input FILE.json     Input JSON file (default: stdin)
+    -format FORMAT       duckai|claude|chatgpt (auto-detected from filename)
+    -output FILE.yaml    Output file
+    -help                Show this help
+
+Examples:
+    ## Export Duck.ai chats
+    external-ai-chat-export -input duckai_chats.json
+
+    ## From clipboard (copy JSON then)
+    xclip -o | external-ai-chat-export -format duckai
+
+    ## Specific output
+    external-ai-chat-export -input claude_chats.json -format claude -output /backup/claude.yaml
+
+Supported Formats:
+    duckai   - Duck.ai (DuckDuckGo AI Chat) JSON export
+    claude   - Anthropic Claude (coming soon)
+    chatgpt  - OpenAI ChatGPT (coming soon)
+
+Note: This exports to YAML for long-term archival in Protocol-7.
+      The original JSON should also be kept as backup.
+USAGE
+    exit(0);
+}
+
+#,,,,,...,,,.,,,.,.,.,,,.,...,.,.,,.,,.,.,,.,,.,.,...,...,...,,..,.,,,.,.,,..,
+#IK3RMAHFGLDB5ZH5EOFYPHTE3PQWZWQSGCMNUSJXZOGD7C27IJ7G5FAOXMIFSVZ3EOGPENMGW36T6
+#\\\|QPSOOKR4S6HUHPGJMDIVYSTRFP7RVJXSX7BNHR345PLPZTOHIJB \ / AMOS7 \ YOURUM ::
+#\[7]V6PEWLNPI2NM4AIGGBPLIBKL5R2GWVG7EHLVRW6SVTQ4LGCKIADA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
