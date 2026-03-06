@@ -1,0 +1,262 @@
+#!/usr/bin/perl
+## [:< ##
+# name  = invoke-export-config
+# descr = Export complete Invoke.ai configuration to YAML for backup/migration
+# usage = invoke-export-config [-output FILE.yaml] [-include-images]
+
+use strict;
+use warnings;
+use utf8;
+use v5.24;
+use open ':std', ':encoding(UTF-8)';
+
+use YAML::XS;
+use JSON::PP;
+use Getopt::Long;
+use File::Copy;
+use File::Path qw(make_path);
+use POSIX qw(strftime);
+
+my ($opt_output, $opt_include_images, $opt_compact, $opt_help);
+GetOptions(
+    'output=s'       => \$opt_output,
+    'include-images' => \$opt_include_images,
+    'compact'        => \$opt_compact,
+    'help'           => \$opt_help,
+) or usage();
+
+usage() if $opt_help;
+
+## Configuration
+my $INVOKE_DIR = $ENV{'INVOKE_DIR'} // "$ENV{HOME}/.invokeai";
+my $DB_FILE = "$INVOKE_DIR/db/invokeai.db";
+my $OUTPUT_DIR = $opt_output // "$INVOKE_DIR/backup-config-".strftime("%Y%m%d-%H%M%S", localtime).".yaml";
+
+print "Exporting Invoke.ai configuration...\n";
+print "Source: $INVOKE_DIR\n";
+print "Output: $OUTPUT_DIR\n\n";
+
+## Build export structure
+my $export = {
+    export_info => {
+        timestamp => scalar(localtime),
+        version   => '1.0',
+        source_db => $DB_FILE,
+    },
+    models      => export_models(),
+    images      => export_images($opt_include_images),
+    workflows   => export_workflows(),
+    style_presets => export_style_presets(),
+    boards      => export_boards(),
+};
+
+## Write YAML
+open(my $fh, '>:encoding(UTF-8)', $OUTPUT_DIR)
+    or die "Cannot write $OUTPUT_DIR: $!";
+
+if ($opt_compact) {
+    ## Compact format - smaller but less readable
+    print $fh YAML::XS::Dump($export);
+} else {
+    ## Pretty format
+    local $YAML::XS::UseHeader = 1;
+    local $YAML::XS::Indent = 2;
+    print $fh YAML::XS::Dump($export);
+}
+
+close($fh);
+
+my $size = -s $OUTPUT_DIR;
+print "\n✓ Export complete: $OUTPUT_DIR\n";
+print "  Size: " . human_size($size) . "\n";
+print "  Models: " . scalar(@{$export->{models}}) . "\n";
+print "  Images: " . scalar(@{$export->{images}}) . "\n" if $export->{images};
+print "  Workflows: " . scalar(@{$export->{workflows}}) . "\n" if $export->{workflows};
+
+##===========================================================================##
+
+sub export_models {
+    print "Exporting models...\n";
+
+    my $sql = q{SELECT
+        name,
+        json_extract(config, '$.base') as base,
+        json_extract(config, '$.type') as type,
+        json_extract(config, '$.format') as format,
+        json_extract(config, '$.description') as description,
+        json_extract(config, '$.source') as source,
+        json_extract(config, '$.source_type') as source_type,
+        json_extract(config, '$.path') as path,
+        json_extract(config, '$.file_size') as file_size,
+        json_extract(config, '$.hash') as hash,
+        json_extract(config, '$.trigger_phrases') as trigger_phrases,
+        created_at,
+        updated_at
+    FROM models ORDER BY type, name};
+
+    my $json = run_sql($sql);
+    return [] unless $json;
+
+    my $models = eval { JSON::PP::decode_json($json) } // [];
+
+    ## Add Windows path warnings
+    for my $m (@$models) {
+        if ($m->{path} && $m->{path} =~ /^[A-Z]:/i) {
+            $m->{_warning} = "Windows path detected - needs conversion";
+        }
+    }
+
+    return $models;
+}
+
+sub run_sql {
+    my ($sql) = @_;
+    require DBI;
+    my $dbh = DBI->connect("dbi:SQLite:dbname=$DB_FILE", "", "",
+        { RaiseError => 0, PrintError => 0 });
+    return undef unless $dbh;
+
+    my $sth = $dbh->prepare($sql);
+    return undef unless $sth;
+
+    $sth->execute();
+    my $rows = $sth->fetchall_arrayref({});
+    $dbh->disconnect();
+
+    return JSON::PP::encode_json($rows);
+}
+
+sub export_images {
+    my ($include_metadata) = @_;
+
+    return undef unless $include_metadata;
+
+    print "Exporting image metadata (this may take a while)...\n";
+
+    ## Export only essential metadata
+    ## Note: metadata field uses 'positive_prompt' not 'prompt'
+    my $sql = q{SELECT
+        i.image_name,
+        i.image_origin,
+        i.created_at,
+        i.updated_at,
+        i.width,
+        i.height,
+        i.session_id,
+        i.node_id,
+        i.starred,
+        json_extract(i.metadata, '$.positive_prompt') as prompt,
+        json_extract(i.metadata, '$.negative_prompt') as negative_prompt,
+        json_extract(i.metadata, '$.seed') as seed,
+        json_extract(i.metadata, '$.steps') as steps,
+        json_extract(i.metadata, '$.cfg_scale') as cfg_scale,
+        json_extract(i.metadata, '$.sampler') as sampler,
+        json_extract(i.metadata, '$.model') as model,
+        json_extract(i.metadata, '$.generation_mode') as generation_mode
+    FROM images i
+    ORDER BY i.created_at DESC
+    LIMIT 50000};
+
+    my $json = run_sql($sql);
+    return [] unless $json;
+
+    return eval { JSON::PP::decode_json($json) } // [];
+}
+
+sub export_workflows {
+    print "Exporting workflows...\n";
+
+    my $sql = q{SELECT
+        name,
+        json_extract(workflow, '$.description') as description,
+        json_extract(workflow, '$.tags') as tags,
+        json_extract(workflow, '$.author') as author,
+        created_at,
+        updated_at
+    FROM workflow_library ORDER BY name};
+
+    my $json = run_sql($sql);
+    return [] unless $json;
+
+    return eval { JSON::PP::decode_json($json) } // [];
+}
+
+sub export_style_presets {
+    print "Exporting style presets...\n";
+
+    my $sql = q{SELECT
+        name,
+        json_extract(preset_data, '$.positive_prompt') as positive_prompt,
+        json_extract(preset_data, '$.negative_prompt') as negative_prompt,
+        json_extract(preset_data, '$.width') as width,
+        json_extract(preset_data, '$.height') as height,
+        created_at
+    FROM style_presets ORDER BY name};
+
+    my $json = run_sql($sql);
+    return [] unless $json;
+
+    return eval { JSON::PP::decode_json($json) } // [];
+}
+
+sub export_boards {
+    print "Exporting boards...\n";
+
+    ## Use board_images join table for correct counts
+    my $sql = q{SELECT
+        b.board_id,
+        b.board_name,
+        b.created_at,
+        COUNT(bi.image_name) as image_count
+    FROM boards b
+    LEFT JOIN board_images bi ON b.board_id = bi.board_id
+    GROUP BY b.board_id
+    ORDER BY b.board_name};
+
+    my $json = run_sql($sql);
+    return [] unless $json;
+
+    return eval { JSON::PP::decode_json($json) } // [];
+}
+
+sub human_size {
+    my ($bytes) = @_;
+    return '0 B' unless $bytes;
+    my @units = ('B', 'KB', 'MB', 'GB', 'TB');
+    my $unit = 0;
+    while ($bytes >= 1024 && $unit < @units - 1) {
+        $bytes /= 1024;
+        $unit++;
+    }
+    return sprintf('%.1f %s', $bytes, $units[$unit]);
+}
+
+sub usage {
+    print <<'USAGE';
+Usage: invoke-export-config [options]
+
+Options:
+    -output FILE.yaml    Output file (default: backup-config-TIMESTAMP.yaml)
+    -include-images      Include image metadata (large!)
+    -compact             Compact YAML format
+    -help                Show this help
+
+Environment:
+    INVOKE_DIR          Invoke.ai directory (default: ~/.invokeai)
+
+Examples:
+    invoke-export-config                          # Basic config export
+    invoke-export-config -include-images          # Full export with metadata
+    invoke-export-config -output /backup/invoke.yaml
+
+Note: Image pixels are NOT exported, only metadata.
+      Actual images remain in outputs/ directory.
+USAGE
+    exit(0);
+}
+
+#,,.,,,,,,,.,,.,,,,,,,,,,,..,,.,.,...,,..,,.,,.,.,...,...,,.,,.,,,..,,,,.,,,,,
+#2NJKVFI2M3HPS47XEAGHTXB3VXRBT25EL2QQNB4IXI6VWUMKZAV5XGMBBATXH5FNJ2LPCZFF2PDNK
+#\\\|IJSXTXWMSIAUDIXQMHIMTTXCUTXNHKAD4GOW55OVGXIVLOE27WS \ / AMOS7 \ YOURUM ::
+#\[7]HFP77WHNCDZUQHLH6CPO2YOX37R6UEPXJ7KV5HCBFJWFZG4WKYDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
