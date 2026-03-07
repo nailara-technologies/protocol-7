@@ -27,6 +27,9 @@ if ( $session->{'last-bytes-read'} == 0 and length $input->$* ) {
     return 2;    ## <-- disconnecting client ##
 }
 
+## linewise : wait for complete line [ with newline ] before processing ##
+return 1 if rindex( $input->$*, "\n" ) == -1;
+
 $count_select->{'limit'}  //= 3; ##  <-- limiting allowed 'select' commands ##
 $count_select->{'errors'} //= 0;
 $count_select->{'calls'}  //= 0;
@@ -287,8 +290,8 @@ elsif ( defined $auth_method
     return 2;               ##  no auth method selected + session closing  ##
 }
 
-#,,.,,...,,.,,,.,,,.,,.,,,,,.,.,.,.,.,..,,.,,,..,,...,..,,,..,..,,,,.,,,,,.,,,
-#7TJHJDINXUSNSONQFNEKFC6FKQDLERPFUCILGFZM2IBVDVL3H5LEHKTXQFUOQBPIQYIBQMY3TOCVS
-#\\\|RPR5LB72IACCBG66T7FBDJFGVGAGM75V7HRX2U2SRBDBJINZXJZ \ / AMOS7 \ YOURUM ::
-#\[7]N2QURNW4ENO7JTQI62G3IDSH4OEAECTLDTFCUVW7WYXTMTDV6ODY 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,.,,,..,,,.,...,.,,,.,.,.,.,..,,..,,...,...,...,.,,,,,,,.,.,,.,,
+#HMAJYNDJYRHQNYM2SDSSYT4LR5WL2MLKF6747W755LCPTEDVFIQW53FPSLPO4ASWPQQFK2AZKMSQ2
+#\\\|N6BOMQDCVXUGICASFDZFXD76RNLZMK3GZ4HWMIX2WHXJPPGEZWJ \ / AMOS7 \ YOURUM ::
+#\[7]OZMHXXMFW7DV4X4RNEB5YIP3ZZBHX45R5YRVKAMODK7ZPGYEQ2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
