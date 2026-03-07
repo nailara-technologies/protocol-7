@@ -26,12 +26,12 @@ while ( my $entry = readdir($dh) ) {
 
         ## Detect vision models by filename patterns
         my $is_vision = 0;
-        $is_vision = 1 if $model_name =~ /vl|vision/i;
+        $is_vision = 1 if $model_name =~ m{vl|vision}i;
 
         ## Handle mmproj files (vision projectors) specially
         ## mmproj can be at start (mmproj-xxx.gguf) or embedded (xxx.mmproj-f16.gguf)
         my $is_mmproj = 0;
-        if ( $model_name =~ /(?:^|[-._])mmproj/i ) {
+        if ( $model_name =~ m{(?:^|[-._])mmproj}i ) {
             $is_mmproj = 1;
             $is_vision = 1;    ## mmproj files are always vision-related
         }
@@ -45,21 +45,21 @@ while ( my $entry = readdir($dh) ) {
         if ($is_mmproj) {
             $quantization = 'mmproj';
             ## Strip mmproj and surrounding separators from anywhere in name
-            $clean_name =~ s/(?:^|[-._])mmproj[-._]?//gi;
-            $clean_name =~ s/[-._]+$//;
+            $clean_name =~ s{(?:^|[-._])mmproj[-._]?}{}gi;
+            $clean_name =~ s|[-._]+$||;
         }
         ## Match quantization pattern: Q or IQ, number 2-8, optional _K_M suffix
-        elsif ( $clean_name =~ /([IQ][2-8](?:_[A-Z]+)+)/i ) {
+        elsif ( $clean_name =~ m|([IQ][2-8](?:_[A-Z]+)+)|i ) {
             $quantization = uc($1);
 
             ## Remove quant and everything after it (including -imat/imatrix)
-            $clean_name =~ s/[-_]?[IQ][2-8](?:_[A-Z]+)+.*$//i;
-            $clean_name =~ s/[-_]+$//;
-        } elsif ( $clean_name =~ /([IQ][2-8])(?:[-_]|$)/i ) {
+            $clean_name =~ s|[-_]?[IQ][2-8](?:_[A-Z]+)+.*$||i;
+            $clean_name =~ s|[-_]+$||;
+        } elsif ( $clean_name =~ m{([IQ][2-8])(?:[-_]|$)}i ) {
             ## Simple Q6, Q8, etc. (without suffix)
             $quantization = uc($1);
-            $clean_name =~ s/[-_]?[IQ][2-8]//i;
-            $clean_name =~ s/[-_]+$//;
+            $clean_name =~ s|[-_]?[IQ][2-8]||i;
+            $clean_name =~ s|[-_]+$||;
         }
 
         ## Get proper model name using smart extraction
@@ -95,8 +95,8 @@ closedir($dh);
 
 return \@models;
 
-#,,.,,.,.,...,,..,..,,.,.,.,.,.,.,.,.,...,,,,,..,,...,...,.,,,,..,,,,,.,.,,,,,
-#LKEW3MYE6VPZPNSIAWGNNHUXKAKBKSN752BGTXLNUX6RSEAIJ5KSETAANOATN6VTODDSGVGVUVI4Q
-#\\\|Y67PFHKHGH4N6ZUVTJAZCLVVHEWFUUACMEHRWMME4THO6UHDFYP \ / AMOS7 \ YOURUM ::
-#\[7]ASJYPK6N7ACYO5M3A6RDMNFPXNOZTGD3U2T4VKCYSJ32UGMQ7SDI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,.,..,,,,.,...,,,,,,,.,,..,,..,,,,,..,,...,..,,.,,,.,.,...,,,,,..,,
+#TVPGNAEZOUBTARBJ66LQDO3PZFDFOIT2VXCWXDGTA3O2FUVVM2XIUIQTARL2Z4RERFPZZWCRWDHYE
+#\\\|WRQS4FKFH6FRC2UAZUAGEI7ELP7XPAJSTQH52XZZAE475S3PP7V \ / AMOS7 \ YOURUM ::
+#\[7]G4FP3O2YOHU25SE67UY6B4ULZB4C2NVJFLMQCNA2RV3BWRHLICAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

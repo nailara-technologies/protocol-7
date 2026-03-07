@@ -33,7 +33,7 @@ my %substituted;
 my $sub_count = 0;
 
 ## Perform substitution with undefined handling
-$result =~ s/$var_pattern/{
+$result =~ s|$var_pattern|{
     my $var_name = $1;
     if ( exists $vars->{$var_name} ) {
         $substituted{$var_name}++;
@@ -50,7 +50,7 @@ $result =~ s/$var_pattern/{
         );
         "<{$var_name}>";  ## Leave unchanged if undefined
     }
-}/ge;
+}|ge;
 
 my $elapsed_ms = ( <[base.time]>->(4) - $start_time ) * 1000;
 
@@ -80,12 +80,12 @@ return {
     'elapsed_ms'  => $elapsed_ms,
     'undefined'   => [
         grep { !exists $vars->{$_} }
-            keys %{ { map { $_ => 1 } $template =~ /$var_pattern/g } }
+            keys %{ { map { $_ => 1 } $template =~ m|$var_pattern|g } }
     ]
 };
 
-#,,,.,,..,,..,,..,,.,,.,.,,.,,,,.,.,.,...,..,,..,,...,...,,,.,..,,,,,,.,,,,.,,
-#55Z4AFXRMH7JQDDQVECKQE7TMMKKJF3JFK52XHI22AFGBDPZ2M55JHMXGMD7M56IAHN64IX4JAAHQ
-#\\\|R7IBWENCHGLMB5ZFQSH67IVQ3OGYE7S7O4HOYYGXTMPEWNBDSIJ \ / AMOS7 \ YOURUM ::
-#\[7]XMNTWSGWJOWXI7HGCACYCQMQJXRFNOHT3JZSXXPIMGBFN7VQFSCA 7  DATA SIGNATURE ::
+#,,,,,,,.,...,,..,,,,,,,,,,,.,...,.,.,,,.,.,,,..,,...,.,.,,,,,.,.,.,,,..,,,,,,
+#HJWBQ6TUKEMZWIX2B4X6ECATVQVCIE52MBFPUJVW2LZJAVTZUVH6J4E5UO3B4WC6LSZXDZRURYA4S
+#\\\|KOP4NR52322W4L4WIAFYQGUJVCLFLX275FKTGORWMFCABW6B5YK \ / AMOS7 \ YOURUM ::
+#\[7]HZNYMUYEGOKWKTFEEZDTYKI6PK5SYMEHXKN5MVLXBX5IS7UNUCBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

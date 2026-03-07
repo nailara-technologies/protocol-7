@@ -36,7 +36,7 @@ eval {
         . "Host: $host:$port\r\n"
         . "Connection: close\r\n\r\n";
     my $response = <$socket>;
-    if ( $response && $response =~ /200/ ) {
+    if ( $response && $response =~ m|200| ) {
         $is_alive = 1;
     } else {
         $endpoint_error
@@ -65,8 +65,8 @@ return {
     'endpoint_error'  => $endpoint_error,
 };
 
-#,,,,,,,,,.,,,,,,,...,.,.,.,,,.,,,..,,,..,...,.,.,...,...,..,,...,,,,,.,,,,,.,
-#2NYDLD5YDUIV2UWBAVN7B4BYG7EIDVPMQZDCLPHSDGQTJQOOD6GRQNF6FJX7M475T4A7XRV6NXXQ6
-#\\\|KVQGORO6ATQ5HT42ODUZ3JHFDKACA4M6EVJO3NVSWXLEEOZLVVO \ / AMOS7 \ YOURUM ::
-#\[7]LQX4QLNHKS5VBRNFDBNVYJUV5VD7EFF3U7FVZMNJHSWKKY72K6DQ 7  DATA SIGNATURE ::
+#,,,.,,.,,.,.,...,.,,,,.,,...,,.,,...,,,.,..,,.,.,...,...,.,.,...,...,,..,...,
+#OEZBMQF4AQKVGEIKCF42LQJZOI6SJ4AP7U6Q3DHZLNX3FZ4I44VSNW6XICHC745RFD3WUTIOVHR5K
+#\\\|UUGKMAYEXJYJ4XNDGIJBDMI62R74GCN2OO2OOOE3FL63L7I75SL \ / AMOS7 \ YOURUM ::
+#\[7]XPISBKZ2TXPYJKMQWUX6LIAZJFKGJGUMTIKDTP5TM5FFBTQDPQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

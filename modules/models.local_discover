@@ -45,7 +45,7 @@ foreach my $scan_dir (@$scan_paths) {
         closedir($dh);
 
         foreach my $entry (@entries) {
-            next if $entry =~ /^\./ || !-d "$scan_dir/$entry";
+            next if $entry =~ m|^\.| || !-d "$scan_dir/$entry";
 
             ## Recursively search for .gguf files [LLL] fix !!!!!
             (   my $find_cmd = qq[
@@ -65,26 +65,26 @@ foreach my $scan_dir (@$scan_paths) {
                 ## Extract model name from path and filename
                 my $filename = $file_path;
                 $filename =~ s|.*/||;
-                $filename =~ s/\.gguf$//;
+                $filename =~ s|\.gguf$||;
 
                 ## Skip mmproj files - they're vision projectors, not models
-                next if $filename =~ /^mmproj/i;
+                next if $filename =~ m|^mmproj|i;
 
                 say STDERR $filename;
 
                 ## Detect vision models by filename
                 my $is_vision = 0;
-                $is_vision = 1 if $filename =~ /vl|vision/i;
+                $is_vision = 1 if $filename =~ m{vl|vision}i;
 
                 ## Extract model family from path
                 my $family = 'local';
-                $family = 'qwen'  if $file_path =~ /qwen/i;
-                $family = 'llama' if $file_path =~ /llama/i;
-                $family = 'coder' if $file_path =~ /coder/i;
+                $family = 'qwen'  if $file_path =~ m|qwen|i;
+                $family = 'llama' if $file_path =~ m|llama|i;
+                $family = 'coder' if $file_path =~ m|coder|i;
 
                 ## Extract quantization from filename
                 my $quantization = 'unknown';
-                if ( $filename =~ /([IQ][0-8](?:_[A-Z0-9_]+)?)\s*$/i ) {
+                if ( $filename =~ m|([IQ][0-8](?:_[A-Z0-9_]+)?)\s*$|i ) {
                     $quantization = uc($1);
                 }
 
@@ -122,8 +122,8 @@ return {
     'scanned_paths' => $scan_paths,
 };
 
-#,,,.,,,,,.,,,..,,,,.,...,,,.,...,.,.,,,.,,,.,.,.,...,...,...,,..,...,,..,..,,
-#XDDJX64477Z3WPSVAMKJTXMANTWYYMYHK6J6TKXYMUIJSV37Q77IZVET6QNLQQLJX6KDREM5EUJDQ
-#\\\|3OSQDPVQIKSTTUGJCMWPXTCRHP4ONUTMQ7DCP2KEERUFP4WKHXJ \ / AMOS7 \ YOURUM ::
-#\[7]ZRVHGASV7RZDEA7WMLOEEGT7O7CDJCLCLYWZOO5QAIQKARTQ4ODI 7  DATA SIGNATURE ::
+#,,,,,,.,,...,..,,,,.,.,,,...,,..,,.,,,,.,,,,,.,.,...,...,...,.,,,.,,,.,.,...,
+#I2E5KWQ3MM5XJ2EAS57M3T3ZQCDDSYG5EMKRD32BGNCFMKIJF5QBOF7J7XB3KWONBWWQXP2TJOU7M
+#\\\|BXGA4OIYFSIFHJAGZAH3VXKPYFBOWU3H2M5ZI7CWANH645XNPFB \ / AMOS7 \ YOURUM ::
+#\[7]ZT2RJMUDIZ7NL3U3KY7YZIKP3YSFAXVTOT6CPEN5ULFFLCXZECBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
