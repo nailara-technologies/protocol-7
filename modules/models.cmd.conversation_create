@@ -85,14 +85,14 @@ my $response = {
 };
 
 my $json_data    = JSON::PP::encode_json($response);
-my $is_multiline = $json_data =~ /\n/ ? 1 : 0;
+my $is_multiline = $json_data =~ m|\n| ? 1 : 0;
 return {
     'mode' => $is_multiline ? 'size' : 'true',
     'data' => $json_data . "\n"
 };
 
-#,,..,.,.,,..,.,.,,.,,,,.,.,,,,..,..,,.,,,...,.,.,...,.,.,,..,,..,.,.,,.,,,..,
-#2Q43PIKDROKMLEBDZONB2ZCBOUL32WOLFC6DFBFSSOE6P2CLYBWMHNGXTDDFFDMVNJZP2NZUKCNE2
-#\\\|2XMHU7DNO4LH5I2LGJTZ6QYVEYF7WI6MCRC7MTDERQBIMZAEDNG \ / AMOS7 \ YOURUM ::
-#\[7]24SAZRFFJJUJCOMVVHBCPVWARAKXBM7ZAL2EGVJK3LETTQGQBACI 7  DATA SIGNATURE ::
+#,,,.,,..,...,,,,,...,,,,,.,,,.,,,.,,,.,.,,..,.,.,...,...,.,,,.,,,.,.,,..,,,,,
+#BRGOYS7EQPAHIOKLMAVPAP2JSCE7FJT46RLBXYRZ72EGYFSNH6QDFKDQOBNQ2ZSJLPYY76RXXEC6A
+#\\\|3AYPGJSSCERTEYQ3VRIIQCUIJH2D2NADC6OGSWQUMEXZWZYPBUI \ / AMOS7 \ YOURUM ::
+#\[7]ESLLFQQYYSJAGFSMMVG2OP4VYFQTTF33XSBODYNXAM6LNL7VVSAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

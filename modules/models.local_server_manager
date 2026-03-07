@@ -121,16 +121,16 @@ if ( $action eq 'status' ) {
         $pid = `pgrep -f "llama-server-.*--port $port"`;
         chomp($pid);
         ## If pgrep didn't work, try ps
-        unless ( $pid && $pid =~ /^\d+$/ ) {
+        unless ( $pid && $pid =~ m|^\d+$| ) {
             my $ps_output
                 = `ps aux | grep "llama-server.*--port $port" | grep -v grep`;
-            if ( $ps_output =~ /\s(\d+)\s/ ) {
+            if ( $ps_output =~ m|\s(\d+)\s| ) {
                 $pid = $1;
             }
         }
     };
 
-    if ( length($pid) && $pid =~ /^\d+$/ ) {
+    if ( length($pid) && $pid =~ m|^\d+$| ) {
         <models.local_servers>->{$server_key} = {
             'server_type' => $server_type,
             'port'        => $port,
@@ -200,8 +200,8 @@ if ( $action eq 'status' ) {
     };
 }
 
-#,,.,,,,,,...,,..,..,,...,,,.,,,.,,,,,.,,,.,,,.,.,...,...,..,,..,,,..,..,,,,.,
-#ACPBGPRRFQTZRRKYEJRGOAG5ZMROMSQZIP6QPLE7EZ7LSO3HQCHADO74HW7Z34OFTTU6NTAAIHZ22
-#\\\|JMBBVWEPU7S7NFIKDPXCYCF5NUAZZQ2NZ3ZYJII3XCAC6S2IQPK \ / AMOS7 \ YOURUM ::
-#\[7]PNLAC6TFPOZNBIJYH7IY6SEUMGRYBUI54KZCPQ6OFPEASNXJUIBI 7  DATA SIGNATURE ::
+#,,,,,...,,.,,,.,,,,,,.,.,,,.,,,,,,..,.,.,.,.,.,.,...,...,.,.,..,,,.,,,,,,...,
+#EUSOMVFGMY7S2XJBCZNODCAQ442RMH7RT5M6GNZASIIXFUD2GX6VK2CW6XMYUHJXT537W2RZ5HC6W
+#\\\|E7WBJNR7VNPGS4NPBDNYDJCM3QFTQOON4SNUOOTBNMWN3MMYNUF \ / AMOS7 \ YOURUM ::
+#\[7]ZC4A7IPFI3GZEALKU5AQBRPJP6XVUQBXARMSFTZAV7BQWWMUP2CQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
