@@ -10,23 +10,23 @@ my $text = shift;
 return '' unless defined $text;
 
 ## handle escaped markers first
-$text =~ s/\\:n:/__LITERAL_COLON_N__/g;
-$text =~ s/\\:t:/__LITERAL_COLON_T__/g;
+$text =~ s|\\:n:|__LITERAL_COLON_N__|g;
+$text =~ s|\\:t:|__LITERAL_COLON_T__|g;
 
 ## apply escapes with literal characters
-$text =~ s/:n:/\n/g;
-$text =~ s/:t:/\t/g;    ## literal tab character
+$text =~ s|:n:|\n|g;
+$text =~ s|:t:|\t|g;    ## literal tab character
 
 ## restore literals
-$text =~ s/__LITERAL_COLON_N__/:n:/g;
-$text =~ s/__LITERAL_COLON_T__/:t:/g;
+$text =~ s|__LITERAL_COLON_N__|:n:|g;
+$text =~ s|__LITERAL_COLON_T__|:t:|g;
 
 return $text;
 
 0;
 
-#,,,,,...,...,..,,..,,...,.,.,,,,,,..,,..,...,..,,...,...,,,.,.,.,...,...,,,,,
-#5KTW5IPSN6EDHRQQSIW2TXUWNOS25CPFZVRU76NDPQQNG7VASLYAJIDSIMF5PER6DFCU2ZVQCRBVI
-#\\\|UEUWFYLAU7OMI5HI5BQYGPDHLZCXJM3T7TEEPAHOP4UPZL5MXF2 \ / AMOS7 \ YOURUM ::
-#\[7]ZDQ4EZF4V7O5MOSNJB2Q5KTXXHA7II6S5J2SYYCUV7E7WMQOCEAI 7  DATA SIGNATURE ::
+#,,,.,...,..,,,.,,..,,.,,,..,,..,,.,.,,,,,...,..,,...,..,,..,,,,,,,..,.,,,,.,,
+#QS3RHV3QPRO56URLH6IANRKCQMF2JQCD4ULLH2K2Q4TJCRQDDQTTFWCZOWNZLSKMGIVIU2QXXL6Y4
+#\\\|TTVXKMT2RKJFRBVHJUIDL4DVIHTLKZTGZXMVUUW5PSSKI5DX7U4 \ / AMOS7 \ YOURUM ::
+#\[7]JQAGQZFMEZCQQO6RNDCA6FJIC43EHJZQBJPT6N6P53E7ZFAPGEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

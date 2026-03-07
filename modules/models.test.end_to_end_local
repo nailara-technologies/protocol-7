@@ -133,7 +133,7 @@ if ( $invoke_result->{'pending'} ) {
 
 ## Step 6: Verify response quality
 my $response = $invoke_result->{'response'} // '';
-my $has_code = $response =~ /sub\s+\w+|my\s+\$|return\s+/ ? 1 : 0;
+my $has_code = $response =~ m{sub\s+\w+|my\s+\$|return\s+} ? 1 : 0;
 
 <[base.logs]>->(
     1, "[$context] response received: length=%d contains_code=%d",
@@ -155,8 +155,8 @@ return {
     'full_response'    => $response,
 };
 
-#,,..,.,,,,,.,,..,..,,.,.,,..,..,,...,,.,,...,.,.,...,...,..,,,,,,,..,...,.,,,
-#CE7RZCSAQTWFEU2WOHVQ6YWTCELVKJMOFPY7HGMD47HSK44ZYCABRZDJ5W4RKKW4QBFV3OBFXNCC4
-#\\\|S5VNLQ3O33MAF7FL7FINE5MO6SUBSQHE7PIRXREZGCYX4PZFVQQ \ / AMOS7 \ YOURUM ::
-#\[7]IWTZ7BJWLRACEBWIG42IKGNCNJBXP5SX3WU5XQZ75IS272TNH4AI 7  DATA SIGNATURE ::
+#,,..,...,..,,,,,,.,.,.,.,,.,,,.,,,,.,,..,...,.,.,...,...,,,.,..,,,..,,.,,...,
+#CVQ532N3AEFHGWNXV4NVNKZHXUZ4CUVH2W64H2VMWH6LCAQVXSD2SDO2QOZ53AG64HFPGUWDMONSE
+#\\\|D2QIMAMAS4LBUE3LZEG67VMVAUDQAS6V33YNXMOG4J2I32HKNFF \ / AMOS7 \ YOURUM ::
+#\[7]F76KGSJJYQNO2C3XVDDHOSHKIAR4Z5F5D2BQUYPLA5H7IXFKYUAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

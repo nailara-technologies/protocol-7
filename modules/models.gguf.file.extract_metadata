@@ -72,7 +72,7 @@ for my $i ( 0 .. $kv_count - 1 ) {
 
     ## Only extract fields we need for naming
     unless ( $key
-        =~ /^general\.(name|basename|size_label|architecture|type|file_type)$/
+        =~ m{^general\.(name|basename|size_label|architecture|type|file_type)$}
     ) {
         ## Skip this value
         my $type_buf;
@@ -142,8 +142,8 @@ for my $i ( 0 .. $kv_count - 1 ) {
 close($fh);
 return \%metadata;
 
-#,,..,.,.,...,,.,,,,,,,,,,,,,,,,.,..,,...,,,,,..,,...,...,..,,...,...,,..,,,,,
-#DGG4Y3QLYXZ3ESOMWYS5BJSC5DDW5PPVSXZWYTFO5Q3JKY52N5HLIL4LLRNXBXE5GOA67IJIW5Z3Y
-#\\\|KEH3PDDEWCPLPXVSTJSRQWOZI4X6TE63VSCEHBLTXWR3S3LMD4G \ / AMOS7 \ YOURUM ::
-#\[7]ZDAAJFUYMUNQOTIQOYZ7UU7B5K4JP4QIQ5B3EYR4ETMCLQNNH6CI 7  DATA SIGNATURE ::
+#,,,,,..,,,..,.,,,.,,,...,,,.,...,,..,.,,,.,.,..,,...,...,...,.,.,...,,,.,,,.,
+#H7OTL75OG3GUAGWFFPSCYDSUPFWEQQXYGXYYSDZHQ5O4Y6E5N7SCLXZY4H3REDWOKIJCYMWNIO4AY
+#\\\|ULKD4YBNWAKCLUW6HTLIL6TK4JQFRCZU4474YJVZHRPDT3OTF5L \ / AMOS7 \ YOURUM ::
+#\[7]CSARDJZAKPLXILDFX7SY32V23V4II4KYZN42CRL755UGZ42LBIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
