@@ -34,15 +34,12 @@ foreach my $line (
 ) {
     $line =~ s|\e\[.*?[mJH]||g;    ##[ strip ansi colors ]##
     ##  match only git status lines (modified:, deleted:, renamed:, etc.) ##
-    next unless $line =~ m/\b(modified|deleted|renamed|new file|both):/;
+    next unless $line =~ m{\b(modified|deleted|renamed|new file|both):};
     $line             =~ s|^.*?:\s+||; ##  remove status label (non-greedy) ##
     next if $displayed{$line}++;
 
     ##  check if file only has signature changes ##
     my $has_only_sig_changes = _has_only_signature_changes($line);
-
-    ##  check if file has lines exceeding 78 characters ##
-    my $has_exc_len_lines = _has_lines_exceeding_length( $line, 78 );
 
     ##  filter for signature-only changes if --sig-only flag is set ##
     if ($filter_sig_only) {
@@ -51,6 +48,8 @@ foreach my $line (
 
     ##  filter for lines exceeding length if --exc-len flag is set ##
     if ($filter_exc_len) {
+        ##  check if file has lines exceeding 78 characters ##
+        my $has_exc_len_lines = _has_lines_exceeding_length( $line, 78 );
         next unless $has_exc_len_lines;
     }
 
@@ -108,7 +107,7 @@ sub _has_lines_exceeding_length {
     return 0 unless -f $filepath;
 
     ##  read file and check for lines exceeding max length ##
-    open( my $fh, '<:encoding(UTF-8)', $filepath ) or return 0;
+    open( my $fh, qw| <:encoding(UTF-8) |, $filepath ) or return 0;
     my $line_num = 0;
     while ( my $line = <$fh> ) {
         chomp $line;
@@ -125,8 +124,8 @@ sub _has_lines_exceeding_length {
     return 0;
 }
 
-#,,.,,...,,,.,.,,,,,.,,,.,,,,,,,.,,,.,,,.,.,,,..,,...,...,.,.,,,,,.,,,,.,,,,.,
-#U7M524CGIEPFHQYWJMBOJG3U5ENKJWL7NCASB4BKFCBGYMQ3I77KLFUCWK64YVT6E7KR37TWEGLDQ
-#\\\|CJEE7BN5DNO6LCSZBDGODXWR7KPKC3IGZLBTW56UTFEFKWPJMVL \ / AMOS7 \ YOURUM ::
-#\[7]VCSVM7VHNXHVEVR3EYEZZZH6F5NOOR5GO5B35U45H77E4I2NJSCQ 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,,.,,,.,.,,,..,,.,,,,.,,,.,,.,.,..,,...,...,,.,,,,.,...,,,.,,.,,
+#IW345XYRQNG3PYI6UNDIO5IB67ADZXC5MUZS3XAQE5ZJWNHVYDJXAAP6UCO6Z7MDX32VVQNAXA2EU
+#\\\|XDFXT53PWO4XNTH5NBXAFDN7YAS2CGMCO6N3PQK3LF36PLDB5IG \ / AMOS7 \ YOURUM ::
+#\[7]NJKXLAJYN6RAROFJB5IOR6YHF2KQJKIHL5MV2AWAIHT5ENRGRABY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
