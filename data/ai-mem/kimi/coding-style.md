@@ -432,6 +432,63 @@ my $r = eval { operation() } // {};
 
 ---
 
+## regular expressions [ critical ]
+
+### delimiter hierarchy
+
+**never use `//` or `s///` forms** — they obscure delimiter intent and complicate escaping.
+
+preferred order based on pattern content:
+
+```perl
+## 1. pipes preferred (no pipes in pattern)
+$path    =~ m|/var/log/.*\.txt$|;      ## correct — pipes
+$filename =~ s|\.gguf$||i;               ## correct — pipes
+
+## 2. braces when pipes exist in pattern
+$html    =~ m{[|]};                      ## braces — pipe in pattern
+$cmd     =~ s{\|}{ }g;                  ## braces — pipe in replacement
+
+## 3. other delimiters as needed (parens, etc.)
+$expr    =~ s(\(([^)]+)\))[$1]g;        ## parens for paren-heavy patterns
+```
+
+### matching
+
+```perl
+## correct — m||
+if ( $path =~ m|/var/log/.*| ) { ... }
+if ( $name =~ m{vl|vision}i ) { ... }   ## braces — pipe in pattern
+
+## wrong — // form
+if ( $path =~ /\/var\/log\/.*\/ ) { ... }
+```
+
+### substitution
+
+```perl
+## correct — s|||
+$filename =~ s|\.gguf$||i;
+$path     =~ s|^/tmp/|/var/|;
+
+## correct — s{}{} when pipes present
+$html =~ s{\|}{<pipe>}g;
+$html =~ s{<([^>]+)>}{[$1]}gsx;          ## complex patterns — braces read better
+
+## wrong — s/// form
+$filename =~ s/\.gguf$//i;
+```
+
+### modifiers always explicit
+
+```perl
+m|pattern|i      ## case-insensitive
+m|pattern|g      ## global match
+s|old|new|gsx    ## global + single-line + extended
+```
+
+---
+
 ## style principles
 
 1. **readability first** — code is read more than written
@@ -442,8 +499,8 @@ my $r = eval { operation() } // {};
 
 ---
 
-#,,,,,..,,.,.,,..,,..,,,.,...,...,.,.,,,.,.,,,.,.,...,..,,,,.,...,,,.,.,.,..,,
-#6UMBOY64NHZ6PZPFDM5MF3YBLF6SAAR2VZBQGZNXFEFX76KU4V2FTJC5TGUYRFTJYHRCX3DZKSGMO
-#\\\|QJIT5VF2HB6QVW7HUXD4QWGG7HU3CMH73V5OUV2LZN4DPXW6S62 \ / AMOS7 \ YOURUM ::
-#\[7]3U7NC4W37QOVEM5TFNJ6E2FQDHTLCOGMG2P625IQJAPX4QY7B2CY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,,,.,.,,..,,,.,,..,,,,,.,.,,,.,.,.,.,.,...,...,..,,,,.,.,.,...,,,.,
+#JJFGKN6CCL7DPZXUKEHA7ZXVIIQSS2A5A5QAGXMINQTNHKXWCHEFHXPDZMJCDJXXZZYK5YNTQOL2Q
+#\\\|WCIW6WG4ZJY44BWOMLIKAZFLY55HEAFZMFJNOCEDGW4GTXXETPX \ / AMOS7 \ YOURUM ::
+#\[7]MZ25LGG5TFYN5IR7SIKX7VIOWLQXYZ3LPUY2UWJMAXUJTHBRRECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
