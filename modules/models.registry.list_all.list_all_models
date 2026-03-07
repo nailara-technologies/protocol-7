@@ -4,11 +4,12 @@
 # descr = List all models in registry
 
 my $registry = <[models.registry.base.get_registry]>;
-my @models   = values %{ $registry->{models} };
+## Registry is flat format: { <id> => {...} }
+my @models = values %$registry;
 return \@models;
 
-#,,..,,,,,,.,,,,.,..,,..,,...,.,,,...,...,..,,..,,...,...,...,,,,,,,.,..,,,..,
-#KKRNIV4GVELRUVQVXDLJBTUKRSYABIYD5IYMWN2WJ7RD2CWT2DL7CX7R2EU3H66U2WKYGSFR4YT2K
-#\\\|PDRUXN2UAC45YW74GASOU253UIWIY2CDBPJNNTYA6KNVVCM3A53 \ / AMOS7 \ YOURUM ::
-#\[7]YAU75YZB7AHZYJVWO3YCKMPRYZEGWH7GCANNRGOXQUFG353VPQDA 7  DATA SIGNATURE ::
+#,,.,,,,,,,,,,,,.,.,,,.,,,,.,,,.,,,..,,.,,.,,,..,,...,...,..,,..,,.,.,.,,,..,,
+#3SRQQBBAO2URN6DLQWMGQ7SUJ72Q7BD44W6U7EHO4LCPZTES3ZISYRHA4KZJM62XDZ4AI6RWPBPHM
+#\\\|CDOQZ3RJY24CWT6URUPIC4JJM2M4MAFWU4F23ES55SZQOCPBS4D \ / AMOS7 \ YOURUM ::
+#\[7]UFBLZTDEA45UQDUZISMYPDPSYKZDGWAGSCJVEGJCTSTY5MNY7EDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
