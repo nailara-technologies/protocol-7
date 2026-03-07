@@ -1,0 +1,103 @@
+## [:< ##
+
+# name = models.gguf.file.extract_name
+# descr = Extract canonical model name from GGUF file metadata
+# param = $file_path
+# return = $canonical_name (string) or ($name, $quantization) in list context
+#
+# Name composition strategy (in priority order):
+#   1. If general.name is valid (not garbage) -> use it
+#   2. If general.basename + general.size_label exist -> "basename size_label"
+#   3. If general.basename exists -> use basename
+#   4. Fallback to cleaned filename with file_type quantization
+#   5. Fallback to cleaned filename only
+
+my $file_path = shift;
+return undef unless defined $file_path && -f $file_path;
+
+## Get filename for fallback
+my $filename = $file_path;
+$filename =~ s|.*/||;
+$filename =~ s/\.gguf$//i;
+
+## Clean filename (strip quantization suffix)
+my $clean_filename = $filename;
+$clean_filename =~ s/[-_]?[IQ][0-8](?:_[A-Z0-9_]+)?\s*$//i;
+$clean_filename =~ s/[-_]$//;
+$clean_filename =~ s/_/ /g;
+
+## Strip mmproj references and trailing precision indicators
+$clean_filename =~ s/\s*\.?mmproj[-_\s]?[a-z0-9]*\s*//gi;
+$clean_filename =~ s/\s+/ /g;
+$clean_filename =~ s/^\s+|\s+$//g;
+
+## Extract metadata using external module
+my $meta = <[models.gguf.file.extract_metadata]>->($file_path);
+
+## Strategy 1: Use general.name if valid
+if ( $meta && $meta->{'general.name'} ) {
+    my $name = $meta->{'general.name'};
+
+    ## Basic cleanup
+    $name =~ s/_/ /g;
+    $name =~ s/\s+/ /g;
+    $name =~ s/^\s+|\s+$//g;
+
+    ## Strip mmproj references (clean metadata artifacts)
+    $name =~ s/\s*\.?mmproj[-_\s]?\w*\s*//gi;
+    $name =~ s/\s+/ /g;
+    $name =~ s/^\s+|\s+$//g;
+
+    ## Check if name is valid (not garbage)
+    unless ( <[models.gguf.file.is_garbage_name]>->($name) ) {
+        return $name;
+    }
+}
+
+## Strategy 2: Combine basename + size_label
+if ( $meta && $meta->{'general.basename'} && $meta->{'general.size_label'} ) {
+    my $base = $meta->{'general.basename'};
+    my $size = $meta->{'general.size_label'};
+
+    $base =~ s/_/ /g;
+    $base =~ s/-/ /g;
+    $base =~ s/\s+/ /g;
+    $base =~ s/\s*\.?mmproj[-_\s]?\w*\s*//gi;    ## Strip mmproj
+    $base =~ s/\s+/ /g;
+
+    return "$base $size";
+}
+
+## Strategy 3: Use basename only
+if ( $meta && $meta->{'general.basename'} ) {
+    my $base = $meta->{'general.basename'};
+    $base =~ s/_/ /g;
+    $base =~ s/-/ /g;
+    $base =~ s/\s+/ /g;
+    $base =~ s/\s*\.?mmproj[-_\s]?\w*\s*//gi;    ## Strip mmproj
+    $base =~ s/\s+/ /g;
+
+    ## Include file_type quantization if available
+    if ( defined $meta->{'general.file_type'} ) {
+        my $quant = <[models.gguf.file.file_type_to_quant]>
+            ->( $meta->{'general.file_type'} );
+        return wantarray ? ( $base, $quant ) : $base;
+    }
+    return $base;
+}
+
+## Strategy 4: Fallback to cleaned filename with file_type quantization
+if ( $meta && defined $meta->{'general.file_type'} ) {
+    my $quant = <[models.gguf.file.file_type_to_quant]>
+        ->( $meta->{'general.file_type'} );
+    return wantarray ? ( $clean_filename, $quant ) : $clean_filename;
+}
+
+## Strategy 5: Fallback to cleaned filename only
+return $clean_filename;
+
+#,,,,,...,.,,,..,,..,,.,.,,,.,.,.,.,.,,..,..,,..,,...,...,...,.,.,.,.,,..,...,
+#AJGULQRPGZUAN26NEMGDDYJJWPFCE7NPNZJORJPMRNRYWVEKVEQMUQF4A4RMPZVCW3CZP25CIQO6Y
+#\\\|4CJTGKOYJZSBUIQNRJULXHRN4QMFCELE43NPE5M3Y2RLDXWGIUS \ / AMOS7 \ YOURUM ::
+#\[7]S75K7XGJQJQ5ZNV2OM3QA6HLKKUYZULA66VML7TFUZX6NRKXREAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

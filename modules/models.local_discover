@@ -67,23 +67,38 @@ foreach my $scan_dir (@$scan_paths) {
                 $filename =~ s|.*/||;
                 $filename =~ s/\.gguf$//;
 
+                ## Skip mmproj files - they're vision projectors, not models
+                next if $filename =~ /^mmproj/i;
+
                 say STDERR $filename;
+
+                ## Detect vision models by filename
+                my $is_vision = 0;
+                $is_vision = 1 if $filename =~ /vl|vision/i;
 
                 ## Extract model family from path
                 my $family = 'local';
-                $family = 'qwen'   if $file_path =~ /qwen/i;
-                $family = 'llama'  if $file_path =~ /llama/i;
-                $family = 'coder'  if $file_path =~ /coder/i;
-                $family = 'vision' if $file_path =~ /vision|vl|vit/i;
+                $family = 'qwen'  if $file_path =~ /qwen/i;
+                $family = 'llama' if $file_path =~ /llama/i;
+                $family = 'coder' if $file_path =~ /coder/i;
+
+                ## Extract quantization from filename
+                my $quantization = 'unknown';
+                if ( $filename =~ /([IQ][0-8](?:_[A-Z0-9_]+)?)\s*$/i ) {
+                    $quantization = uc($1);
+                }
 
                 ## Get file size
                 my $size_bytes = -s $file_path;
+                my $size_gb    = $size_bytes / ( 1024**3 );
 
                 $discovered{$filename} = {
-                    'path'     => $file_path,
-                    'family'   => $family,
-                    'size'     => $size_bytes,
-                    'found_at' => $now,
+                    'path'         => $file_path,
+                    'family'       => $family,
+                    'is_vision'    => $is_vision,
+                    'quantization' => $quantization,
+                    'size_gb'      => sprintf( '%.3f', $size_gb ),
+                    'found_at'     => $now,
                 };
             }
         }
@@ -107,8 +122,8 @@ return {
     'scanned_paths' => $scan_paths,
 };
 
-#,,,.,...,,.,,,.,,..,,,.,,,.,,,,,,,..,,.,,..,,.,.,...,...,,..,...,.,.,,,,,..,,
-#7NUXIRFIISIFY36ECDYHXVXBPYHYE6KPOWZHYTQ6FULC4DTG2FNGSRN22FY2R5CIAVOHSIP335CR6
-#\\\|HJ3UL54XR4NOWK472AMSXWWN6PRZP2MTCIBVVEU2544UPWQPH4Z \ / AMOS7 \ YOURUM ::
-#\[7]L7CFOIJYMX33NKYL6OGWGU3WJC7QZQOHGV4PBMICYT6CXQTNEYDA 7  DATA SIGNATURE ::
+#,,,.,,,,,.,,,..,,,,.,...,,,.,...,.,.,,,.,,,.,.,.,...,...,...,,..,...,,..,..,,
+#XDDJX64477Z3WPSVAMKJTXMANTWYYMYHK6J6TKXYMUIJSV37Q77IZVET6QNLQQLJX6KDREM5EUJDQ
+#\\\|3OSQDPVQIKSTTUGJCMWPXTCRHP4ONUTMQ7DCP2KEERUFP4WKHXJ \ / AMOS7 \ YOURUM ::
+#\[7]ZRVHGASV7RZDEA7WMLOEEGT7O7CDJCLCLYWZOO5QAIQKARTQ4ODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

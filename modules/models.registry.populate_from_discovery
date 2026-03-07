@@ -56,13 +56,15 @@ foreach my $model ( $discovered->@* ) {
     my $model_id = "$path_checksum:$model_checksum";
 
     $registry->{$model_id} = {
-        model_id  => $model->{'name'},    ## Short name as model_id ##
-        name      => $model->{'name'},
-        file_path => $model->{'path'},    ## Standard field name for lookup ##
-        path      => $model->{'path'},
-        size_gb   => $model->{'size_gb'},
-        tier      => $model->{'tier'},
-        source    => qw| discovered |,
+        model_id     => $model->{'name'}, ## Short name as model_id ##
+        name         => $model->{'name'},
+        file_path    => $model->{'path'}, ## Standard field name for lookup ##
+        path         => $model->{'path'},
+        size_gb      => $model->{'size_gb'}      // 0,
+        quantization => $model->{'quantization'} // 'unknown',
+        tier          => $model->{'tier'},
+        is_vision     => $model->{'is_vision'} // FALSE,
+        source        => qw| discovered |,
         registered_at => <[base.time]>->(3)
     };
 
@@ -73,8 +75,8 @@ foreach my $model ( $discovered->@* ) {
 
 return { 'success' => TRUE, 'added' => $added_count };
 
-#,,,,,,,,,.,,,..,,,,,,..,,..,,,.,,...,,.,,.,,,..,,...,...,..,,...,,.,,..,,..,,
-#5RIWHSIAB3X7QN56PYXG5OQ6USN4LNUCVEWQWDYDAOTET5BISJPAJ7NYIEAVHTQA7DSD3MR74C7PS
-#\\\|3G46FGSQPJFI34F7AVE7HYHA6EC2YMOQ2UJOSZNLD4ZTLL2R3Y7 \ / AMOS7 \ YOURUM ::
-#\[7]MHAN6UWYFOLVADZZMIMPPUP6FRICUI6SKMWD2YWRPIAMMB4LFOAI 7  DATA SIGNATURE ::
+#,,.,,,..,...,,,.,...,...,..,,,,,,,.,,.,,,,..,..,,...,...,...,...,.,.,,,.,.,.,
+#724JMUGPORVRIJU7VG653PEVAQPTRO5RICQCHQUNCGOR6KXYAXWY3SY55QHJWZL4QPLGMSLZFRCQ4
+#\\\|HHJYQMBC5EIHABHHISW7UO2L7WVPKQ4QBBOQAFHSTVUAHDICKV6 \ / AMOS7 \ YOURUM ::
+#\[7]WVMBOWCI3VRDVHAX5QKNCOMVXKBGRSMK7PYDARKP42SMQWZXVWBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

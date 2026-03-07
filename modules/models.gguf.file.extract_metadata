@@ -1,0 +1,149 @@
+## [:< ##
+
+# name = models.gguf.file.extract_metadata
+# descr = Extract key metadata fields from GGUF file header
+# param = $file_path
+# return = hashref with metadata fields (name, basename, size_label, architecture, file_type)
+
+use Fcntl qw(:seek);
+
+my $file_path = shift;
+return undef unless defined $file_path && -f $file_path;
+
+## GGUF v3 Value Types
+use constant {
+    GGUF_TYPE_UINT8   => 0,
+    GGUF_TYPE_INT8    => 1,
+    GGUF_TYPE_UINT16  => 2,
+    GGUF_TYPE_INT16   => 3,
+    GGUF_TYPE_UINT32  => 4,
+    GGUF_TYPE_INT32   => 5,
+    GGUF_TYPE_FLOAT32 => 6,
+    GGUF_TYPE_BOOL    => 7,
+    GGUF_TYPE_STRING  => 8,
+    GGUF_TYPE_ARRAY   => 9,
+    GGUF_TYPE_UINT64  => 10,
+    GGUF_TYPE_INT64   => 11,
+    GGUF_TYPE_FLOAT64 => 12,
+};
+
+my %FIXED_SIZE = (
+    GGUF_TYPE_UINT8()   => 1,
+    GGUF_TYPE_INT8()    => 1,
+    GGUF_TYPE_BOOL()    => 1,
+    GGUF_TYPE_UINT16()  => 2,
+    GGUF_TYPE_INT16()   => 2,
+    GGUF_TYPE_UINT32()  => 4,
+    GGUF_TYPE_INT32()   => 4,
+    GGUF_TYPE_FLOAT32() => 4,
+    GGUF_TYPE_UINT64()  => 8,
+    GGUF_TYPE_INT64()   => 8,
+    GGUF_TYPE_FLOAT64() => 8,
+);
+
+open my $fh, '<:raw', $file_path or return undef;
+
+## Read header
+my $header;
+read( $fh, $header, 24 ) == 24 or do { close($fh); return undef; };
+
+my ( $magic, $version, $tensor_count, $kv_count )
+    = unpack( 'A4 V Q< Q<', $header );
+
+unless ( $magic eq 'GGUF' ) {
+    close($fh);
+    return undef;
+}
+
+$kv_count = 1000 if $kv_count > 1000;
+
+my %metadata;
+
+for my $i ( 0 .. $kv_count - 1 ) {
+    ## Key length
+    my $key_len_buf;
+    read( $fh, $key_len_buf, 8 ) == 8 or last;
+    my ($key_len) = unpack( 'Q<', $key_len_buf );
+    last if $key_len > 1024 || $key_len == 0;
+
+    ## Key
+    my $key;
+    read( $fh, $key, $key_len ) == $key_len or last;
+
+    ## Only extract fields we need for naming
+    unless ( $key
+        =~ /^general\.(name|basename|size_label|architecture|type|file_type)$/
+    ) {
+        ## Skip this value
+        my $type_buf;
+        read( $fh, $type_buf, 4 ) or last;
+        my ($val_type) = unpack( 'V', $type_buf );
+
+        if ( $val_type == GGUF_TYPE_STRING ) {
+            my $len_buf;
+            read( $fh, $len_buf, 8 );
+            my ($len) = unpack( 'Q<', $len_buf );
+            seek( $fh, $len, SEEK_CUR ) if $len < 65536;
+        } elsif ( exists $FIXED_SIZE{$val_type} ) {
+            seek( $fh, $FIXED_SIZE{$val_type}, SEEK_CUR );
+        } elsif ( $val_type == GGUF_TYPE_ARRAY ) {
+            my $buf;
+            read( $fh, $buf, 4 );
+            my $etype = unpack( 'V', $buf );
+            read( $fh, $buf, 8 );
+            my $count = unpack( 'Q<', $buf );
+            if ( exists $FIXED_SIZE{$etype} ) {
+                seek( $fh, $count * $FIXED_SIZE{$etype}, SEEK_CUR );
+            }
+        }
+        next;
+    }
+
+    ## Type
+    my $type_buf;
+    read( $fh, $type_buf, 4 ) == 4 or last;
+    my ($val_type) = unpack( 'V', $type_buf );
+
+    ## Value
+    my $val;
+    if ( $val_type == GGUF_TYPE_STRING ) {
+        my $str_len_buf;
+        read( $fh, $str_len_buf, 8 ) == 8 or last;
+        my ($str_len) = unpack( 'Q<', $str_len_buf );
+        last if $str_len > 65536;
+        if ( $str_len > 0 ) {
+            read( $fh, $val, $str_len ) == $str_len or last;
+        } else {
+            $val = '';
+        }
+    } elsif ( $val_type == GGUF_TYPE_UINT32 ) {
+        ## Read UINT32 values (like file_type)
+        my $buf;
+        read( $fh, $buf, 4 ) == 4 or last;
+        $val = unpack( 'V', $buf );
+    } else {
+        ## Skip other types
+        if ( exists $FIXED_SIZE{$val_type} ) {
+            seek( $fh, $FIXED_SIZE{$val_type}, SEEK_CUR );
+        }
+        next;
+    }
+
+    $metadata{$key} = $val if defined $val;
+
+    ## Early exit once we have all we need
+    last
+        if exists $metadata{'general.name'}
+        && exists $metadata{'general.basename'}
+        && exists $metadata{'general.size_label'}
+        && exists $metadata{'general.file_type'};
+}
+
+close($fh);
+return \%metadata;
+
+#,,..,.,.,...,,.,,,,,,,,,,,,,,,,.,..,,...,,,,,..,,...,...,..,,...,...,,..,,,,,
+#DGG4Y3QLYXZ3ESOMWYS5BJSC5DDW5PPVSXZWYTFO5Q3JKY52N5HLIL4LLRNXBXE5GOA67IJIW5Z3Y
+#\\\|KEH3PDDEWCPLPXVSTJSRQWOZI4X6TE63VSCEHBLTXWR3S3LMD4G \ / AMOS7 \ YOURUM ::
+#\[7]ZDAAJFUYMUNQOTIQOYZ7UU7B5K4JP4QIQ5B3EYR4ETMCLQNNH6CI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -9,7 +9,23 @@ my $cmd = shift @ARG;    # Remove command name from @ARG
 my @discovered;
 
 # Try to scan each search path
+# Fall back to scan_paths if search_paths is not populated
 my $search_paths = <models.storage.search_paths> // [];
+
+# Convert scan_paths to search_paths format if needed
+if ( !@$search_paths && scalar keys %{ <models.scan_paths> // {} } ) {
+    foreach my $path_id ( keys <models.scan_paths>->%* ) {
+        my $path_data = <models.scan_paths>->{$path_id};
+        push @$search_paths,
+            {
+            path      => $path_data->{path},
+            enabled   => $path_data->{enabled} // TRUE,
+            recursive => TRUE,
+            tier      => $path_data->{tier} // 3
+            };
+    }
+}
+
 foreach my $path_config (@$search_paths) {
     next unless $path_config->{enabled};
     next unless -d $path_config->{path};
@@ -42,8 +58,8 @@ if (@$discovered) {
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,.,,...,,,.,,,.,,..,.,.,.,,,,..,.,.,,,,,,,,,..,,...,...,.,,,,,.,.,.,...,,,,,
-#OOGJBH7OL7MUGNKHORRUX3XGLYD64FQLH6SVGHV6KGI3EBZBW4TKCWZ3VNOOJY7RWXTROQD34QG7M
-#\\\|NSQTAEEDED2ZFLKEWYCRNH6V7NIDSY3Z3DK27JECSBFLZLGALH4 \ / AMOS7 \ YOURUM ::
-#\[7]RYZ46LB53RDWSNRHJQM6ANR6FBSEM63FON7XZGY2MHOYAX3TZKBA 7  DATA SIGNATURE ::
+#,,..,,.,,,,.,,,.,...,,..,,,.,..,,..,,,,,,.,,,..,,...,...,..,,,,,,,,,,,,.,.,,,
+#5YJXMTS72HBGUVYNBZWRPCTDGQ7YMY2ZDRL24XXTN446NEBG55P456T7LGIZHBNBJPU3VPGPIXRJU
+#\\\|INGQMIMSW6RTIMJAY6TE272X4VUTKI5MC3SZLIWVMTZUG64GBPU \ / AMOS7 \ YOURUM ::
+#\[7]IJRN6GPLMFRT2EIPJKYQX7QWZUQ3U6URVZNDL4JG7IAWK24PEYBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

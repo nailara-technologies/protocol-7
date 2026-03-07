@@ -1,0 +1,88 @@
+## [:< ##
+
+# name = models.cmd.clear-registry
+# descr = Clear models registry and optionally re-scan
+# param = :re-scan: (optional) - immediately re-populate from scan paths
+#
+# Usage:
+#   models.clear-registry          - Clear registry, save empty
+#   models.clear-registry :re-scan: - Clear, then re-scan and populate
+
+my $re_scan = 0;
+$re_scan = 1 if defined $call->{'args'} && $call->{'args'} =~ /:re-scan:/;
+$re_scan = 1
+    if defined $call->{'param'}->{'re_scan'} && $call->{'param'}->{'re_scan'};
+
+## Get current counts for reporting
+my $old_count = scalar keys %{ <models.registry> // {} };
+
+## Clear the registry
+<models.registry> = {};
+<[base.logs]>->(
+    1, '[clear-registry] registry cleared (%d entries removed)', $old_count
+);
+
+my $reply_str = "registry_cleared: $old_count entries removed\n";
+
+## Optionally re-scan
+if ($re_scan) {
+    $reply_str .= "re_scan: enabled\n";
+
+    ## Build search_paths from scan_paths if needed
+    my @search_paths;
+    my $storage_paths = <models.storage.search_paths> // [];
+
+    if (@$storage_paths) {
+        @search_paths = @$storage_paths;
+    } elsif ( scalar keys %{ <models.scan_paths> // {} } ) {
+        foreach my $path_id ( keys <models.scan_paths>->%* ) {
+            my $path_data = <models.scan_paths>->{$path_id};
+            push @search_paths,
+                {
+                path      => $path_data->{path},
+                enabled   => $path_data->{enabled} // TRUE,
+                recursive => TRUE,
+                tier      => $path_data->{tier} // 3
+                };
+        }
+    }
+
+    ## Discover models
+    my @discovered;
+    foreach my $path_config (@search_paths) {
+        next unless $path_config->{enabled};
+        next unless -d $path_config->{path};
+
+        @ARG = ( $path_config->{path}, $path_config->{recursive} );
+        my $result = <[models.storage.discover_directory]>;
+        push @discovered, @$result if $result;
+    }
+
+    ## Populate registry
+    @ARG = ( \@discovered );
+    my $result = <[models.registry.populate_from_discovery]>;
+
+    $reply_str .= "discovered: " . scalar(@discovered) . " models\n";
+    $reply_str .= "added_to_registry: " . $result->{added} . " new models\n";
+
+    <[base.logs]>->(
+        1, '[clear-registry] re-scan complete: discovered=%d added=%d',
+        scalar(@discovered), $result->{added}
+    );
+} else {
+    $reply_str .= "re_scan: disabled\n";
+    $reply_str
+        .= "note: run 'models.clear-registry :re-scan:' to repopulate\n";
+    $reply_str .= "      or 'v7.restart models' to load empty registry\n";
+}
+
+## Save to disk
+<[models.storage.yaml_save]>->(<models.registry>);
+
+return { 'mode' => 'size', 'data' => $reply_str };
+
+#,,,,,,,.,,..,,.,,,,.,,..,.,.,,..,,,.,,.,,..,,..,,...,...,.,.,.,.,,,.,..,,,.,,
+#RI4HU46YPPHVDKX3RU55ODPMLBSOMN4ZMTLDI2RNAAZT75AQMJD5B6Q4SXMTG332WV7ALX7IGE3TI
+#\\\|RTYSGK4Y4K7YTTTYO2EEDAVN3R6DVIKFVQKHM7YGFSKJWN2TFCP \ / AMOS7 \ YOURUM ::
+#\[7]CLNHE3NVGHUBDQKGZHLDPNL7NKPBEONKHK6UJFAWWGX2SQMYKOAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

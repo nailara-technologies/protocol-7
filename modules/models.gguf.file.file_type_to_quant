@@ -1,0 +1,42 @@
+## [:< ##
+
+# name = models.gguf.file.file_type_to_quant
+# descr = Convert GGUF file_type value to quantization name
+# param = $file_type (integer from general.file_type metadata)
+# return = $quantization_name (string)
+
+my $file_type = shift;
+
+return 'unknown' unless defined $file_type;
+
+## GGUF file_type to quantization mapping
+my %FILE_TYPE_MAP = (
+    0  => 'F32',
+    1  => 'F16',
+    2  => 'Q4_0',
+    3  => 'Q4_1',
+    6  => 'Q5_0',
+    7  => 'Q5_1',
+    8  => 'Q8_0',
+    9  => 'Q8_1',
+    10 => 'Q2_K',
+    11 => 'Q3_K',
+    12 => 'Q4_K',
+    13 => 'Q5_K',
+    14 => 'Q6_K',
+    15 => 'Q8_K',
+    16 => 'IQ2_XXS',
+    17 => 'IQ2_XS',
+    18 => 'IQ3_XXS',
+    19 => 'IQ3_S',
+    20 => 'IQ4_XS',
+    21 => 'IQ4_NL',
+);
+
+return $FILE_TYPE_MAP{$file_type} // 'unknown';
+
+#,,.,,,.,,,,.,.,.,,,,,..,,.,.,.,.,,.,,..,,,,,,..,,...,...,..,,,,.,,..,,,.,,,.,
+#CLAWYERJPBPNQZXFIYRB5HOYIU74QOTZ3NBW4QPWUE4UXHIULA3ELJN6ZYDSBXLKYEM3QC55CCF44
+#\\\|TJGCPNENPSO3PPQ5JOLTXO3SYZAHRQXWTX3NWMZNNSRQUIRBMS5 \ / AMOS7 \ YOURUM ::
+#\[7]MP6ACJHL7ARMGCGPFFGLIOZQQZKHXMUVIJYLM7MMIER5AHCWREDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
