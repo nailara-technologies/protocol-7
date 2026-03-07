@@ -1,41 +1,40 @@
 ## [:< ##
 
 # name = models.cmd.discover
-# descr = Discover all available models in registry
+# descr = Discover all available models in registry [uses flat registry format]
 
 my $cmd = shift @ARG;         # Remove command name from @ARG
 my ($filter) = @ARG;
 $filter //= 'all';
 
-# Load registry - call extracted module directly
+# Load registry - returns flat format: { <id> => { name => ..., size_gb => ... } }
 my $all_models = <[models.registry.list_all.list_all_models]>;
 
-# Apply filter
+# Apply filter and build response data
 my @discovered;
 foreach my $model (@$all_models) {
-    next
-        if $filter eq 'available'
-        && !$model->{presence_decision}->{currently_present};
-    next
-        if $filter eq 'unavailable'
-        && $model->{presence_decision}->{currently_present};
 
-    push @discovered,
-        {
-        'amos'         => $model->{amos_checksum},
-        'name'         => $model->{metadata}->{name},
-        'version'      => $model->{metadata}->{version},
-        'category'     => $model->{metadata}->{category},
-        'available'    => $model->{presence_decision}->{currently_present},
-        'size_gb'      => $model->{resource_profile}->{storage}->{size_gb},
-        'success_rate' => $model->{statistics}->{success_rate},
-        'total_invocations' => $model->{statistics}->{total_invocations},
-        'presence_tier'     => $model->{presence_decision}->{presence_tier},
-        };
+    # Check file availability for filtering
+    my $file_exists = -f ( $model->{file_path} // $model->{path} // '' );
+
+    next if $filter eq 'available'   && !$file_exists;
+    next if $filter eq 'unavailable' && $file_exists;
+
+    push @discovered, {
+        'amos'      => $model->{amos_id} // $model->{model_id} // 'unknown',
+        'name'      => $model->{name}         // 'unnamed',
+        'version'   => $model->{quantization} // 'unknown',
+        'category'  => 'gguf',
+        'available' => $file_exists,
+        'size_gb'   => $model->{size_gb} // 0,
+        'success_rate'      => 1.0,    # Default for discovered models
+        'total_invocations' => 0,      # No stats yet
+        'presence_tier'     => $file_exists ? 1 : 0,
+    };
 }
 
-# Sort by success rate
-@discovered = sort { $b->{success_rate} <=> $a->{success_rate} } @discovered;
+# Sort by size (largest first) since success_rate is uniform
+@discovered = sort { $b->{size_gb} <=> $a->{size_gb} } @discovered;
 
 my $reply_str = '';
 $reply_str .= "filter: $filter\n";
@@ -62,8 +61,8 @@ foreach my $model (@discovered) {
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,,,,,,.,,,.,,..,,,.,...,.,.,...,,,,,,,,,..,,..,,...,...,..,,,,.,..,,..,,...,
-#S3NSBZPGN4XAFK7QGFBMIRXDO3MVBUFB77DNFQVVWCLDMHL57GKREW6TWNVVBNYWMD3KVT6PWUDIG
-#\\\|X3XI5PIE3C3OHVYHQTM4JUH7FYJCG33OFYDCEAPBYDIWD7EBVM7 \ / AMOS7 \ YOURUM ::
-#\[7]T6VZP5IM67L7PEC5WEDVXEBUKB2PUEFNNM555RPRJXZDEI3JQQDQ 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,,..,,..,,,,,.,,,,,.,...,,,,,,,.,..,,...,...,...,,,,,.,,,..,,,..,
+#23ASCQIGUIPCBX3TVYAYLY3KEPGGQV23CO6IPWTR5GZXH3FDCTESXTM3N23KGZ6XOWC2HVY5U73F4
+#\\\|BV4FUU5XF6WUXMWJQSSXLSE3BOU7MLLE6T2OPXRQ2LJAR6GQ7CZ \ / AMOS7 \ YOURUM ::
+#\[7]ZSRYHW5WWO2DGGERLZY6LYYHXBBJMH5FA4SAZQFCSTSUAHAR46AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

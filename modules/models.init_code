@@ -76,18 +76,20 @@ if ( ref($persisted_registry) eq qw| HASH |
     'var'  => qw| data |,
     'key'  => qw| models.registry |,
     'mask' =>
-        '<key>:id name quantization:quant size_gb:size_GB is_vision:vision source',
+        '<key>:id name quantization:quant size_gb:size_GB is_vision:vision'
+    ,    # source',
     'align' => {
-        'id'           => qw|  left+1  |,
-        'name'         => qw|  left+2  |,
+        'id'           => qw|   left   |,
+        'name'         => qw|  left+1  |,
         'quantization' => qw| center-1 |,
-        'size_gb'      => qw|  right-6 |,
+        'size_gb'      => qw|  right-5 |,
         'is_vision'    => qw| center-1 |,
-        'source'       => qw|  center  |
+
+        #       'source'       => qw|  center  |
     },
     'filters' => {
         'name'      => qw| models.parser.ellipse_name |,
-        'is_vision' => qw| base.parser.yes_no_bool |,
+        'is_vision' => qw| models.parser.str.is_vision |,
 
 #       'size_gb'   => qw| models.parser.size_gb | ## [LLL] update to numerical ##
     },
@@ -212,8 +214,8 @@ unless ( exists <models.registry> ) {
 
 return 0;    # Module initialization successful
 
-#,,.,,,..,,,,,,,,,.,.,.,.,..,,..,,..,,,..,.,,,..,,...,...,...,,.,,,,.,,,,,.,,,
-#2MWPVSDLHRMQNAKRHDH5KGFWOIMHJLM6UUK4WCI47AARA2JCDNS57XRUDCLU42YHQXJ7IVMN3KOII
-#\\\|4TIQDIOKIWS7UIPSPGLIGEAO3ZYTI27XV5Y7CL6W5IUI4G5FC5D \ / AMOS7 \ YOURUM ::
-#\[7]BLDZKW5EKX4B7OZ3HC5Z44TSQXAQPE2GR6C26AG2BCK4SDJ52KDQ 7  DATA SIGNATURE ::
+#,,,,,.,.,...,,..,.,,,,.,,..,,,..,,.,,,,,,,..,..,,...,...,.,,,,..,.,,,,,.,..,,
+#VQ3VOINM4TAUUW7OSDCQQV65DU6DQMO5N4VKFCDOVFUMHK2GT3KD3E3RQBHKWL3KSA5WTEXKKVJNY
+#\\\|DWBMKLDYMMSZ7FP5GF7PJMKQ7F6P27UO2G2JDNS4NW56MFUV7UH \ / AMOS7 \ YOURUM ::
+#\[7]CLENT7U2Q67DHGQ6AYK4NGQ5WUX2WQYWE4IVFNPUMCGAYW33GKCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

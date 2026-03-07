@@ -24,12 +24,61 @@ while ( my $entry = readdir($dh) ) {
         my $size_gb      = $size_bytes / ( 1024**3 );
         my ($model_name) = $entry =~ m|^(.+)\.gguf$|i;
 
+        ## Detect vision models by filename patterns
+        my $is_vision = 0;
+        $is_vision = 1 if $model_name =~ /vl|vision/i;
+
+        ## Handle mmproj files (vision projectors) specially
+        ## mmproj can be at start (mmproj-xxx.gguf) or embedded (xxx.mmproj-f16.gguf)
+        my $is_mmproj = 0;
+        if ( $model_name =~ /(?:^|[-._])mmproj/i ) {
+            $is_mmproj = 1;
+            $is_vision = 1;    ## mmproj files are always vision-related
+        }
+
+        ## Extract quantization from filename (e.g., Q4_K_M, Q6_K, Q8_0, IQ4_XS)
+        ## Handles: Q4_K_M-imat, Q4_K_S-imatrix, Q6_K, IQ4_XS, etc.
+        my $quantization = 'unknown';
+        my $clean_name   = $model_name;
+
+        ## For mmproj files, quantization is always mmproj
+        if ($is_mmproj) {
+            $quantization = 'mmproj';
+            ## Strip mmproj and surrounding separators from anywhere in name
+            $clean_name =~ s/(?:^|[-._])mmproj[-._]?//gi;
+            $clean_name =~ s/[-._]+$//;
+        }
+        ## Match quantization pattern: Q or IQ, number 2-8, optional _K_M suffix
+        elsif ( $clean_name =~ /([IQ][2-8](?:_[A-Z]+)+)/i ) {
+            $quantization = uc($1);
+
+            ## Remove quant and everything after it (including -imat/imatrix)
+            $clean_name =~ s/[-_]?[IQ][2-8](?:_[A-Z]+)+.*$//i;
+            $clean_name =~ s/[-_]+$//;
+        } elsif ( $clean_name =~ /([IQ][2-8])(?:[-_]|$)/i ) {
+            ## Simple Q6, Q8, etc. (without suffix)
+            $quantization = uc($1);
+            $clean_name =~ s/[-_]?[IQ][2-8]//i;
+            $clean_name =~ s/[-_]+$//;
+        }
+
+        ## Get proper model name using smart extraction
+        ## Also get file_type-based quantization as fallback
+        my ( $gguf_name, $file_type_quant )
+            = <[models.gguf.file.extract_name]>->($full_path);
+
+        ## Use file_type quantization if filename didn't provide one
+        $quantization = $file_type_quant
+            if $quantization eq 'unknown' && $file_type_quant;
+
         push @models,
             {
-            path    => $full_path,
-            name    => $model_name,
-            size_gb => sprintf( qw| %.3f |, $size_gb ),
-            source  => qw| discovered |
+            path         => $full_path,
+            name         => $gguf_name,
+            size_gb      => sprintf( qw| %.3f |, $size_gb ),
+            quantization => $quantization,
+            source       => qw| discovered |,
+            is_vision    => $is_vision
             };
     } elsif ( -d $full_path && $do_recurse ) {
 
@@ -46,8 +95,8 @@ closedir($dh);
 
 return \@models;
 
-#,,..,.,,,,.,,.,,,,,.,.,.,..,,,,.,,..,..,,.,,,..,,...,...,.,,,...,,.,,.,,,,.,,
-#JMM4HJP4UZDCI5EQY34BLDSCKSMVTOAE3JC72GWM4UEQ575EJEGGXW7H42LIZLJM7WXYIPN6QS4YS
-#\\\|U36TZPRJSUNZXSPF3IRQPO777BEPDB42JYGWXR246PMHFU4M5AX \ / AMOS7 \ YOURUM ::
-#\[7]XLUPAJMG2UHACXZ2UGQYOGAMQVN23ZE4P23RHGIZRGYSQ3GIE2CQ 7  DATA SIGNATURE ::
+#,,.,,.,.,...,,..,..,,.,.,.,.,.,.,.,.,...,,,,,..,,...,...,.,,,,..,,,,,.,.,,,,,
+#LKEW3MYE6VPZPNSIAWGNNHUXKAKBKSN752BGTXLNUX6RSEAIJ5KSETAANOATN6VTODDSGVGVUVI4Q
+#\\\|Y67PFHKHGH4N6ZUVTJAZCLVVHEWFUUACMEHRWMME4THO6UHDFYP \ / AMOS7 \ YOURUM ::
+#\[7]ASJYPK6N7ACYO5M3A6RDMNFPXNOZTGD3U2T4VKCYSJ32UGMQ7SDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

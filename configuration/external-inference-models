@@ -1,0 +1,83 @@
+.:[ external inference model backends configuration ]:.
+
+## This file provides centralized configuration for external AI model
+## inference systems (LM Studio, Invoke.ai, Ollama, etc.)
+##
+## Include after shared-params in zenka that need model paths:
+##   #include <external-inference-models>
+##
+## Then reference paths via <external.models.*> namespace
+
+##==========================================================================##
+## MODEL STORAGE PATHS
+##==========================================================================##
+
+## LM Studio models (GGUF format, local inference)
+external.models.lmstudio.path = /mnt/ext-xfs-data/models-lmstudio
+
+## Invoke.ai models (diffusers/checkpoint format)
+external.models.invokeai.path = /mnt/ext-xfs-data/models-invoke
+
+## Ollama models (if installed)
+external.models.ollama.path = /usr/share/ollama/.ollama/models
+
+## Generic local models directory
+external.models.local.path = /data/models
+
+##==========================================================================##
+## CACHE AND TEMP DIRECTORIES
+##==========================================================================##
+
+## HuggingFace cache (configs, tokenizers, small files)
+external.models.huggingface.cache = /var/cache/invoke-ai/huggingface
+
+## LM Studio cache
+external.models.lmstudio.cache = ~/.cache/lm-studio
+
+## Temporary download directory
+external.models.download.temp = /tmp/model-downloads
+
+##==========================================================================##
+## SERVER ENDPOINTS (for API-based backends)
+##==========================================================================##
+
+## LM Studio local server
+external.models.lmstudio.url = http://127.0.0.1:1234
+external.models.lmstudio.api_path = /v1/chat/completions
+
+## Ollama local server
+external.models.ollama.url = http://127.0.0.1:11434
+external.models.ollama.api_path = /api/generate
+
+## Invoke.ai local server
+external.models.invokeai.url = http://127.0.0.1:9090
+
+## Generic OpenAI-compatible endpoint
+external.models.openai_compatible.url = http://127.0.0.1:8080
+external.models.openai_compatible.api_path = /v1/chat/completions
+
+##==========================================================================##
+## DEFAULT MODELS (for quick reference)
+##==========================================================================##
+
+## Default LM Studio model for text generation
+## Using checksum ID for precise model selection
+
+### [ CRASHES SERVER - NOT LOADING IT ] ###
+#
+# external.models.lmstudio.default_chat = MBZAAII:ZRCGL5Q ## Qwen Qwen3.5 9B
+# external.models.lmstudio.default_chat = A2B4TAI:JBY5PLA ## codegeex4-all-9b
+
+external.models.lmstudio.default_chat = O6A7F7Q:CQGT4CA
+
+## Default embedding model [not yet configured]
+## external.models.lmstudio.default_embedding = <embedding-model-checksum>
+
+## Default Invoke.ai model for image generation
+external.models.invokeai.default_model = stable-diffusion-xl-base-1.0
+
+#,,.,,.,,,.,.,.,.,.,,,,.,,,,.,,,,,,.,,...,,,.,.,.,...,...,...,.,,,.,,,.,.,,..,
+#OCY2XJ4RFKGKKJSH3QEESS4DOAKZY3GSXAIEP2BC4DN6PR7M2GYCG4YQNP36W3T3ECMZOXA2ZVATS
+#\\\|44PHX7TCMOR7AFVVNGQEVJHUYY4FWWPXZSHNCNDZ5TVG7SEIIQV \ / AMOS7 \ YOURUM ::
+#\[7]XOTRBC6NPXZETDI7GHNES4VVR62UQ5K6KORHXOZX4XKUT24VLWAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

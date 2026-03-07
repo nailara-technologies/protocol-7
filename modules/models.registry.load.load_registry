@@ -15,14 +15,22 @@ if ( -f $path ) {
     close $fh;
 
     my $loaded = decode_json($content) if $content;
-    return $loaded if $loaded && ref($loaded) eq qw| HASH |;
+    if ( $loaded && ref($loaded) eq qw| HASH | ) {
+        ## Handle legacy wrapped format: { models => {...} }
+        ## Return flat format: { <id> => {...} }
+        if ( exists $loaded->{models}
+            && ref( $loaded->{models} ) eq qw| HASH | ) {
+            return $loaded->{models};
+        }
+        return $loaded;
+    }
 }
 
 EMPTY:
 return <[models.registry.empty.create_empty_registry]>;
 
-#,,..,...,.,.,.,.,..,,,..,...,..,,.,.,,.,,,,.,..,,...,...,...,,.,,..,,..,,.,.,
-#3RZNZJF2WSX5OBRHU4S42TEDNBLP3A4CUGUQI5WC7Q7ZTM7YLDV7UFS7VLKJAEWOS4INME3UDPCNK
-#\\\|6FOE3RL2C5W46TYK7UCAZFUY5RJRB3DE7JOQDNJLVWLYGH2HNKW \ / AMOS7 \ YOURUM ::
-#\[7]VTPHDCP7ENJBEKINBO754KKB4BS4AFLIQUE45V6OCMZXBGT5VMDQ 7  DATA SIGNATURE ::
+#,,.,,.,.,..,,.,.,...,.,.,,.,,...,,,.,...,,,.,..,,...,...,,,,,,.,,,,,,,,.,.,.,
+#VHHMBM66H2P4DEA6COYGHHE2JLREOTPMT4S3MP6X7TBPNZQ5S2CJL2AF3IKLAJRNQTELWRCINMFBA
+#\\\|WMI7HF2LVUVZWYS3B3KJWAAWVYMXIVCPZHNV3LQQSP2LUVHYEU5 \ / AMOS7 \ YOURUM ::
+#\[7]BBOG5UM5TABWGWBEZVKC5YICMWBZ2FPFMYYLHYNSVRQLRSPBAQCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

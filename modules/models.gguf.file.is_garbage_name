@@ -1,0 +1,23 @@
+## [:< ##
+
+# name = models.gguf.file.is_garbage_name
+# descr = Check if a GGUF model name is garbage/invalid
+# param = $name (string from general.name metadata)
+# return = 1 if garbage, 0 if valid
+
+my $name = shift;
+
+return 1 unless defined $name;
+return 1 if length($name) == 0;
+return 1 if $name =~ /^[.\s]+$/;      # Just dots/spaces
+return 1 if $name =~ /\\/;            # Windows backslash
+return 1 if $name =~ /^[A-Za-z]:/;    # Drive letter
+return 1 if $name =~ /:\\\\[^\\]/;    # Windows path pattern
+
+return 0;
+
+#,,..,...,,,.,.,.,,,.,,..,...,.,,,,,.,...,..,,..,,...,...,,..,.,,,,..,,.,,...,
+#QNWFNGXVEJ37Y4JXW7KSS3IFKQYEK77YON4LBKFWEY7LZ6DUMFOJ7Y56HYLS2MAN3URJQMUA62Z3C
+#\\\|RMNU5XTJVAUAOV2VITWH562YUPBNQPWR5D2T5M2IT4R342CXUA2 \ / AMOS7 \ YOURUM ::
+#\[7]3FW5AYN6RDFGT4CFEKJSSA64S3HUFFYBURVTUZM27W6QDVLRKQCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,124 @@
+## [:< ##
+
+# name = models.parser.gguf_metadata
+# descr = Extract metadata from GGUF model files
+# param = $file_path
+# return = hashref with metadata fields (name, architecture, etc.)
+
+my $file_path = shift;
+
+return undef unless defined $file_path && -f $file_path;
+
+my %metadata;
+
+## Open file in binary mode
+open my $fh, '<:raw', $file_path or return undef;
+
+## Read GGUF header (minimal parsing)
+## GGUF format: magic (4) + version (4) + tensor_count (8) + metadata_kv_count (8)
+my $header;
+read( $fh, $header, 24 ) or do { close($fh); return undef; };
+
+## Check magic number (GGUF = 0x46554747 in little-endian)
+my ($magic) = unpack( 'V', $header );
+unless ( $magic == 0x46554747 || $magic == 0x47475546 ) {
+    close($fh);
+    return undef;
+}
+
+## Parse header
+my ( $version, $tensor_count, $metadata_count ) = unpack( 'x4VVQ<', $header );
+
+## Read metadata key-value pairs
+for my $i ( 0 .. $metadata_count - 1 ) {
+    last if $i > 1000;    # Safety limit
+
+    ## Read key length (uint32)
+    my $key_len_raw;
+    read( $fh, $key_len_raw, 4 ) or last;
+    my ($key_len) = unpack( 'V', $key_len_raw );
+    last if $key_len > 1024;    # Sanity check
+
+    ## Read key
+    my $key;
+    read( $fh, $key, $key_len ) or last;
+
+    ## Read value type (uint32)
+    my $type_raw;
+    read( $fh, $type_raw, 4 ) or last;
+    my ($val_type) = unpack( 'V', $type_raw );
+
+    ## Read value based on type
+    my $val;
+    if ( $val_type == 0 ) {    # UINT8
+        my $raw;
+        read( $fh, $raw, 1 );
+        $val = unpack( 'C', $raw );
+    } elsif ( $val_type == 1 ) {    # INT8
+        my $raw;
+        read( $fh, $raw, 1 );
+        $val = unpack( 'c', $raw );
+    } elsif ( $val_type == 2 ) {    # UINT16
+        my $raw;
+        read( $fh, $raw, 2 );
+        $val = unpack( 'v', $raw );
+    } elsif ( $val_type == 3 ) {    # INT16
+        my $raw;
+        read( $fh, $raw, 2 );
+        $val = unpack( 'v', $raw );
+    } elsif ( $val_type == 4 ) {    # UINT32
+        my $raw;
+        read( $fh, $raw, 4 );
+        $val = unpack( 'V', $raw );
+    } elsif ( $val_type == 5 ) {    # INT32
+        my $raw;
+        read( $fh, $raw, 4 );
+        $val = unpack( 'V', $raw );
+    } elsif ( $val_type == 6 ) {    # FLOAT32
+        my $raw;
+        read( $fh, $raw, 4 );
+        $val = unpack( 'f', $raw );
+    } elsif ( $val_type == 7 ) {    # UINT64
+        my $raw;
+        read( $fh, $raw, 8 );
+        $val = unpack( 'Q<', $raw );
+    } elsif ( $val_type == 8 ) {    # INT64
+        my $raw;
+        read( $fh, $raw, 8 );
+        $val = unpack( 'q<', $raw );
+    } elsif ( $val_type == 9 ) {    # FLOAT64
+        my $raw;
+        read( $fh, $raw, 8 );
+        $val = unpack( 'd', $raw );
+    } elsif ( $val_type == 10 ) {    # BOOL
+        my $raw;
+        read( $fh, $raw, 1 );
+        $val = unpack( 'C', $raw ) ? 1 : 0;
+    } elsif ( $val_type == 11 ) {    # STRING
+        my $len_raw;
+        read( $fh, $len_raw, 8 );
+        my ($len) = unpack( 'Q<', $len_raw );
+        last                    if $len > 65536;    # Sanity check
+        read( $fh, $val, $len ) if $len > 0;
+    } else {
+        ## Skip unknown types
+        last;
+    }
+
+    $metadata{$key} = $val if defined $val;
+
+    ## Early exit if we got the main fields we need
+    last
+        if exists $metadata{'general.name'}
+        && exists $metadata{'general.architecture'};
+}
+
+close($fh);
+
+return \%metadata;
+
+#,,,,,,,.,,,.,...,,..,...,.,.,,.,,.,,,...,.,.,..,,...,...,.,.,..,,,.,,,,.,.,,,
+#L7TA423YRGFDL4WWW3XMOA7WWV4TMQT2HRPPN55464A5ZPZYUIXM3KISZ5RKYKNQHHK5W6JUGB7UW
+#\\\|X6RGDRGM7KWUMT46HRH3SQKT3QXVQRNBVCXBBW55RTC7KUBCQOE \ / AMOS7 \ YOURUM ::
+#\[7]DQNG2XQXBMZNXYBI7B3BDMHTXT56G2GK25N3PHBGG7FDMM5A7MCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

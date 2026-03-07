@@ -31,8 +31,24 @@ if ( exists $data{models}{aliases}{$model_id} ) {
     $model_id = $data{models}{aliases}{$model_id};
 }
 
-# Look up model definition (from YAML definitions)
+# Look up model definition (from YAML definitions or discovered registry)
 my $model_def = $data{models}{definitions}{$model_id};
+
+# Fallback to discovered registry if not in definitions
+unless ($model_def) {
+    my $registry_entry = <models.registry> {$model_id};
+    if ($registry_entry) {
+        $model_def = {
+            name => $registry_entry->{name},
+            path => $registry_entry->{file_path}
+            ,    ## registry uses file_path ##
+            quantization => $registry_entry->{quantization},
+            is_vision    => $registry_entry->{is_vision},
+            description  => $registry_entry->{name},
+            metadata     => {},
+        };
+    }
+}
 
 unless ($model_def) {
     return {
@@ -64,8 +80,8 @@ return {
     'data' => $json . "\n",
 };
 
-#,,..,,,.,,..,,,,,.,,,.,.,,,,,.,,,,..,..,,..,,..,,...,...,.,,,,.,,,,,,,,.,,.,,
-#EPJXZ32BXYAY7A6J66CB5PTSUH54YQZZONLPV4RBY2MKWBRLKUEPHUWOGQKOOCI4FFV6DQRLGFO7W
-#\\\|XTPWZGQYZ6YE6CWYA7QBZHDV2MTX4NLUOKE42WTTDHQOUPVWGOZ \ / AMOS7 \ YOURUM ::
-#\[7]HDXM2BKWKVDKFTLT5S7RJEDMYYNP6NCCL2TUUAFBMGVZQPOSIODQ 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,..,,..,,,.,..,,.,.,..,,,..,,.,,..,,...,...,.,.,,.,,.,,,,..,..,,
+#EBJEYXIOVSJ4TDJDGO5NY5KUUVIFETFH7VV45KMBF4TPZVFSM3F5KWDVYZKZKIRNVKBYVSNCEO3LS
+#\\\|EL7EPELQ6JXA7JOJTQPQF4IMBTK34H6Q6SOUIEHFT2PRI74MEBQ \ / AMOS7 \ YOURUM ::
+#\[7]EPN7IZ6RVKPQWRA272D5JA4XIJ7VYHGUX5G6FYJRDTAHVM5HCGCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
