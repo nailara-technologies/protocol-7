@@ -1,150 +1,133 @@
-# Fix List Alignment Offset Truncation Bug
+# Fix List Alignment / Offset Truncation Bug
 
-## Problem Summary
+## Problem Description
 
-The Protocol-7 list display system has a bug where alignment offsets (e.g., `left+2`, `right-5`, `center-1`) cause content truncation.
+The separator line in `base.parser.list` does not match the header width, causing misalignment:
 
-### Example
+```
+list sessions
 
-With this list definition:
-```perl
-<list.scan-paths> = {
-    'var'   => qw| data |,
-    'key'   => qw| models.scan_paths |,
-    'mask'  => '<key>:id path:scan-path',
-    'align' => {
-        'id'   => qw| left+1 |,
-        'path' => qw| left+2 |  # <-- This +2 causes truncation!
-    },
-    'descr' => 'model scan paths and their path-ids'
-};
+ : usid :.  : protocol :.  : type :.  : mode :.  : uname :.  : since :.
+--------------------------------------------------------------------------
+  7147002     protocol-7     unix      server       ---        20h 49'26"
 ```
 
-A path like `/mnt/ext-xfs-data/models-lmstudio` (36 chars) displays as:
-```
-/mnt/ext-xfs-data/models-lmstudi   # <-- truncated to 35 chars!
-```
+The separator (74 dashes) is 2 chars shorter than the actual header (76 chars). This causes visual misalignment.
 
 ## Root Cause Analysis
 
-### Location of Bug
-
-**Primary files:**
-- `modules/base.parser.list` - list rendering logic
-- `modules/base.parser.align` - alignment helper
-
-**The issue:**
-
-1. In `base.parser.list`, `$max_len` is calculated from content width only (lines 90-104)
-2. When rendering data rows (lines 166-212), `$field_len = $max_len{$key_name} - 1` is passed to `base.parser.align`
-3. In `base.parser.align` (line 24 for `left` mode):
-   ```perl
-   return pack( "A$field_len", $l_str . $string );
-   ```
-   Where `$l_str` is the offset padding (e.g., 2 spaces for `left+2`)
-4. `pack("A35", "  " . $string)` truncates the total content to 35 characters
-
-### The Math Problem
-
-For `left+2` with 36-character content:
-- `$max_len` = 35 (based on content length)
-- `$field_len` = 34 ($max_len - 1)
-- Content passed to `pack()`: "  " + 36 chars = 38 chars
-- Result: `pack("A34", "  " . $string)` → 34 chars only (truncation!)
-
-## Failed Approaches
-
-**Attempt 1:** Add offset to `$max_len` in the preparation phase (line 106)
-- **Result:** Broke table width calculation, causing column drift
-- **Why it failed:** `$max_len` is used for both column width AND table width calculation
-
-**Attempt 2:** Add offset only to `$field_len` passed to `align()` in data rows
-- **Result:** Data rows wider than headers, misaligned display
-- **Why it failed:** Header row doesn't use the same offset calculation
-
-## Requirements for Proper Fix
-
-### Option A: Modify `base.parser.align`
-
-Change alignment logic to NOT include offset padding in the packed string:
+The code calculates `$table_width` by summing `$max_len{$key_name}` for all columns during the first pass (line 106):
 
 ```perl
-# Current (broken):
-return pack( "A$field_len", $l_str . $string );
-
-# Fixed:
-my $content_len = length($string);
-return $l_str . pack( "A$content_len", $string );
-```
-
-**Pros:** Minimal changes, doesn't affect table width calculation
-**Cons:** Requires changing all three alignment modes (left, right, center)
-
-### Option B: Unify Header and Data Row Calculations
-
-Ensure headers use the same `$field_len` calculation as data rows:
-
-1. Calculate `$field_len` consistently including offset
-2. Update header rendering (line 117) to use same `$field_len`
-3. Update separator line calculation (line 123)
-
-**Pros:** Consistent across the module
-**Cons:** More invasive changes, risk of breaking other lists
-
-### Option C: Pre-calculate Offset-Aware Column Widths
-
-In the preparation phase (lines 77-107), calculate `$max_len` to include offset:
-
-```perl
-# After calculating $max_len from content:
-if ( defined $align->{$key_orig_str}
-    && $align->{$key_orig_str} =~ m|[-+]\s*(\d+)$| ) {
-    $max_len{$key_name} += $1;  # Add offset to column width
+foreach my $key_name ( $display_keys->@* ) {
+    # ... calculate max_len{$key_name} ...
+    $table_width += $max_len{$key_name};
 }
 ```
 
-Then ensure table width calculation accounts for this correctly (line 123 may need adjustment).
+Then it reduces the last column width AFTER calculating `$table_width` (lines 120-121):
 
-**Pros:** Cleanest solution, fixes it at the source
-**Cons:** Requires careful testing with various list configurations
+```perl
+my $last_d_key = $$display_keys[ scalar $display_keys->@* - 1 ];
+$max_len{$last_d_key} -= 2;
+$table_width-- if $table_width >= 80;
+```
 
-## Test Cases
+**Problem**: The header is rendered using the REDUCED `$max_len{$last_d_key}`, but `$table_width` still has the ORIGINAL (unreduced) value. This causes a 2-char mismatch.
 
-After any fix, verify these lists work correctly:
+Additionally, `<key>` columns in data rows add 2 extra spaces (leading `'  '` + trailing `' '`) that aren't accounted for in `$table_width`.
 
-1. **models.list scan-paths** - uses `left+2` for path column
-2. **models.list buffers** - uses `right-5`, `right-3` for numeric columns
-3. **models.list models** - uses `left+1`, `left+2`, `center-1`, `right-6`
-4. **list sessions** - verify no regression
-5. **list nodes** - verify no regression
+## Failed Approaches
 
-## Files to Modify
+### Attempt 1: Remove width reduction entirely
 
-- `modules/base.parser.list` - main fix
-- `modules/base.parser.align` - optional alternative fix location
+**Change**: Removed `$max_len{$last_d_key} -= 2` and `$table_width--`
 
-## Definition of Done
+**Result**: Still broken. The `<key>` columns add 2 extra spaces in data rows (line 174: `'  '` prefix, line 179: `' '` suffix), making data rows wider than the separator.
 
-- [ ] All lists with `+N`/`-N` alignment offsets display correctly
-- [ ] No truncation of content longer than column width
-- [ ] No column drift/misalignment between headers and data
-- [ ] All existing lists continue to work (backward compatible)
-- [ ] Test with at least 3 different zenki's list commands
+### Attempt 2: Use actual header string length for separator
 
-## Related Files
+**Change**: `$sub_line = '-' x (length($table_string) - 1)`
 
-- `modules/base.init_code` - defines `<list.buffers>` with `right-5`
-- `modules/models.init_code` - defines `<list.scan-paths>` with `left+2`
-- `modules/nodes.init_code` - defines `<list.lan-nodes>` etc.
+**Result**: Separator became 4 chars too SHORT. The calculation didn't account for the 2-char padding in `<key>` columns.
 
-## Notes
+### Attempt 3: Statically add 2 to separator width
 
-- The TODO comment in `base.parser.list` line 25 mentions alignment bugs
-- This bug affects ANY list using alignment offsets with content near column width
-- Workaround for now: use plain alignments (`left`, `right`, `center`) without offsets
+**Change**: `$sub_line = '-' x ($table_width + 2)`
 
-#,,,,,..,,,,.,,,,,..,,..,,..,,..,,..,,.,,,,,.,..,,...,...,,..,,.,,.,,,..,,,.,,
-#LVNQMO5FUUEJ5LLP6UJMKU6HUGRTMAQUSC5FRLGTEPSKEYIRR4JYJTOQYTFLSVHRWNMY5LR3EQ7TE
-#\\\|L45NBKGEW7GEH2HQJA2SRDUAXPQ3DQJRJXNIJ7LZF7AJJ4A6FLO \ / AMOS7 \ YOURUM ::
-#\[7]64H4B7R7CYITGKFZVS3TWZ6XJRBLNQ2B525BVF7BJC2GEPXXWUCA 7  DATA SIGNATURE ::
+**Result**: Works for tables with exactly one `<key>` column, but breaks tables with zero or multiple `<key>` columns. This is a static hack that doesn't generalize.
+
+### Attempt 4: Dynamic adjustment based on `<key>` column count
+
+**Change**: `$key_col_count = scalar grep { m|^<key>:| } $display_keys->@*; $sub_line = '-' x ($table_width + ($key_col_count * 2))`
+
+**Result**: Rejected. User considered this "bending" (workaround) rather than a proper fix.
+
+## Correct Solution (Not Yet Implemented)
+
+The proper fix requires ensuring consistent width calculation between:
+1. Header generation (uses `$max_len{$key_name}` via `pack`)
+2. Data row generation (uses `$max_len{$key_name}` with hardcoded padding for `<key>` columns)
+3. Separator generation (uses `$table_width`)
+
+**Options:**
+
+### Option A: Account for padding in `$table_width`
+```perl
+# During first pass
+my $key_col_count = 0;
+foreach my $key_name ( $display_keys->@* ) {
+    $max_len{$key_name} = ...;
+    $table_width += $max_len{$key_name};
+    $key_col_count++ if $key_name =~ m|^<key>:|;
+}
+$table_width += $key_col_count * 2;  # Account for <key> padding
+```
+
+### Option B: Remove hardcoded padding from `<key>` columns
+Modify data row generation to not add extra spaces, making widths consistent.
+
+### Option C: Calculate separator from rendered header + data width
+Generate both header and a sample data row, then use the max length for separator.
+
+## Current Workarounds
+
+Some list configurations use `center-1` or `center-2` alignment offsets to visually compensate for the bug:
+- `models.init_code`: `'is_vision' => 'center-1'` (was `center-2`)
+
+These should be removed once the alignment bug is properly fixed.
+
+## Files Involved
+
+- `modules/base.parser.list` - Main list rendering logic
+- `modules/models.init_code` - Has `center-1` workaround
+- Other init_code files may have similar workarounds
+
+## Related Code Sections
+
+```perl
+# base.parser.list line ~77-122
+my $table_width = 0;
+foreach my $key_name ( $display_keys->@* ) {
+    # ... calculate max_len ...
+    $table_width += $max_len{$key_name};  # Uses unreduced width
+}
+
+# Header generation uses reduced max_len
+foreach my $key_name ( $display_keys->@* ) {
+    $table_string .= pack( "A$max_len{$key_name}", ... );
+}
+$max_len{$last_d_key} -= 2;  # Reduction happens AFTER table_width calc
+$table_width-- if $table_width >= 80;
+
+# Data rows for <key> columns have extra padding (lines 174-179)
+$table_string .= '  '  # 2 leading spaces
+    . <[base.parser.align]>->( ..., $max_len{$key_name} - 1 )
+    . ' ';  # 1 trailing space
+```
+
+#,,..,.,.,..,,,.,,.,.,...,.,,,,,,,.,,,..,,.,,,..,,...,.,.,.,.,,.,,..,,,,.,.,.,
+#YUQUSNTYWUAWOVCW5QA4NVFJKYA3QHMC4ILGVUUDMUOZU7KA64MPO3J5IDI6IQB72BHJCV62BGRLG
+#\\\|NEDKL47R445OLH2RDOQT4FJDQNLOFHYRT44TQK6H3B7P3RY3SSP \ / AMOS7 \ YOURUM ::
+#\[7]NR6HINRUGBQXNWQHI4TWWHMU4ZP7X4MELCBKRYKDSC5QG37TEOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
