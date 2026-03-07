@@ -26,7 +26,7 @@ if (   not defined $id
 my $session     = $data{'session'}->{$id};
 my $handle_href = $data{'handle'}->{ $session->{'handle'} };
 $session->{'buffer'}->{'input'} //= '';    ## re-init if gone ##
-$session->{'last-bytes-read'} //= 0;       ## initialize bytes read counter ##
+$session->{'last-bytes-read'}   //= 0;     ## initialize bytes read counter ##
 
 if ( not fileno $session->{'handle'} ) {    ##  filehandle gone ?  ##
     $session->{'fh-last-read-error'} = TRUE;
@@ -70,8 +70,10 @@ if ( $session->{'read-mode'} eq qw| binary | ) {    ##  binary protocol  ##
 ## See IO::Socket::SSL manpage: need to check pending() after sysread
 ## BUT: Only re-trigger if we actually read new bytes
 ## If pending() but last-bytes-read == 0, we're stuck with same frame data
-if ( $protocol eq qw| https | and ref($session->{'handle'}) eq qw| IO::Socket::SSL | ) {
-    if ( $session->{'handle'}->pending and $session->{'last-bytes-read'} > 0 ) {
+if ( $protocol eq qw| https |
+    and ref( $session->{'handle'} ) eq qw| IO::Socket::SSL | ) {
+    if ( $session->{'handle'}->pending and $session->{'last-bytes-read'} > 0 )
+    {
         ## Data is pending in SSL layer AND we just read new bytes
         ## Schedule protocol handler at event loop end to avoid infinite loops
         if ( exists $session->{'watcher'}{'input_buffer'} ) {
@@ -99,7 +101,8 @@ if ( $return_code > 1 ) {    ##  disconnect  ##
         ## CRITICAL: After reading new data, re-trigger input_buffer tied variable watcher
         ## to re-check if protocol handler can now process complete request
         ## Use ->again (not ->now) to avoid infinite loops
-        if ( exists $session->{'watcher'}{'input_buffer'} and $session->{'last-bytes-read'} > 0 ) {
+        if ( exists $session->{'watcher'}{'input_buffer'}
+            and $session->{'last-bytes-read'} > 0 ) {
             $session->{'watcher'}{'input_buffer'}->again;
         }
 
@@ -114,8 +117,8 @@ if ( $return_code > 1 ) {    ##  disconnect  ##
 
 return $return_code; ##  2 : disconnect | 1 : more to read | 0 : completed  ##
 
-#,,..,.,.,...,,,,,,.,,..,,,..,...,,.,,.,,,.,.,..,,...,...,.,.,.,.,.,.,..,,,,.,
-#FMBB2CVSRKAXNTQPJ43V6VLAYRQWWIYHM7WDHXAHDLG7QUXTEJ6QS2MRDXLGFRXNS7GPKJWWMMYF2
-#\\\|MAMABKD77RTTFAZQMFJ2RMAUQETVDKS4LKJ4WTHDF3SCDY7HJNK \ / AMOS7 \ YOURUM ::
-#\[7]URREGI7O3EHTHU3BL3GYKOK5ATJXS25ID4WXH2WYC2Y5HEVK5EBQ 7  DATA SIGNATURE ::
+#,,,,,..,,,,,,,,.,,,.,,,.,...,.,,,...,,,.,.,.,..,,...,...,..,,,..,.,,,...,..,,
+#TJPYZO7DYKIE4ID2TPWLBB4C6LW2ABUIDO6M43JM5NVDCGSQKEZUCMYRB6TNPIOWB7MBX7QZXVRXE
+#\\\|3WL2X3AUIFKOYMMA6C73AGFO6L3CL67PL3ZA7UXXFDPOXJ7WYIG \ / AMOS7 \ YOURUM ::
+#\[7]6ILCOOHIROYILUTLOTTJZGPD5R6V3MUM2PJP2CUYSJYGPK3XCGAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
