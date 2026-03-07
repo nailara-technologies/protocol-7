@@ -76,7 +76,7 @@ if ( $protocol eq qw| https |
     {
         ## Data is pending in SSL layer AND we just read new bytes
         ## Schedule protocol handler at event loop end to avoid infinite loops
-        if ( exists $session->{'watcher'}{'input_buffer'} ) {
+        if ( exists $session->{'watcher'}->{'input_buffer'} ) {
             $session->{'watcher'}{'input_buffer'}->again;
         }
     }
@@ -86,6 +86,13 @@ if ( $return_code > 1 ) {    ##  disconnect  ##
     $session->{'last-bytes-read'} = 0;
     $session->{'flush_shutdown'}  = TRUE;
     $event->w->cancel;
+    if ( $return_code > 2 ) {   # return code unknown : defensive disconnect #
+        <[base.logs]>->(
+            0, "[%d] [ base.handler.read : %s ] unexpected return code [%d]",
+            $id, $session->{'read-mode'}, $return_code
+        );    # log changed or not expected code behaviour and session end #
+        <[base.logs]>->( 0, '[%d] :. terminating client session .:', $id );
+    }
 } else {
 
     my $size_left = $data{'size'}->{'buffer'}->{'input'}
@@ -117,8 +124,8 @@ if ( $return_code > 1 ) {    ##  disconnect  ##
 
 return $return_code; ##  2 : disconnect | 1 : more to read | 0 : completed  ##
 
-#,,,,,..,,,,,,,,.,,,.,,,.,...,.,,,...,,,.,.,.,..,,...,...,..,,,..,.,,,...,..,,
-#TJPYZO7DYKIE4ID2TPWLBB4C6LW2ABUIDO6M43JM5NVDCGSQKEZUCMYRB6TNPIOWB7MBX7QZXVRXE
-#\\\|3WL2X3AUIFKOYMMA6C73AGFO6L3CL67PL3ZA7UXXFDPOXJ7WYIG \ / AMOS7 \ YOURUM ::
-#\[7]6ILCOOHIROYILUTLOTTJZGPD5R6V3MUM2PJP2CUYSJYGPK3XCGAY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,...,..,,..,,,,.,..,,...,...,,..,..,,...,..,,.,,,..,,,.,,..,,,,,,
+#IMDOHAYKQGY6P64IK6FCHJQCA7FDLNGVVXP3KYP7FR5KMDA7E24UC5L6BXOQUWFF2M4SBKKDOE5TW
+#\\\|YJZ725GWYIIHSCYUAN7KETK5X5GWLFRR4NMH3ND2LU6YC24GKWO \ / AMOS7 \ YOURUM ::
+#\[7]7L3OBHSAEQGKEHJ6YJOPON2FH2R4GQILBYLZF3RKJKYNWAOU22CA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -35,10 +35,15 @@
   before `[load_modules]` — deterministic, no module code ever sees non-empty log_cmd.
   Applied to: sourcecode/start, keys/start, work/start.
 - **work zenka cleanup** (Mar 4 2026): completed ✅ — commit `8f81bfdb1`
-  Removed network modules (auth net protocol io.unix), access.cmd.usr.cube block; 8 obsolete
-  work.cmd.* deleted (superseded by work.console.*); work.cmd.regenerate-indexes renamed to
-  work.console.regenerate-indexes; work.init_code now splits space-separated config string to
-  arrayref for work.git.remotes; explicit remotes set: `hub ext-bundle`
+  Removed network modules, 8 obsolete work.cmd.* deleted; work.init_code splits remotes string
+  to arrayref; explicit remotes: `hub ext-bundle`
+- **non-blocking socket read fix** (Mar 7 2026): completed ✅ — commit `0c590de22`
+  Three bugs: (1) `io.unix.socket.input.connect` missing `blocking(0)` after accept() — TCP/SSL
+  had it from `2d64177a3` but unix was missed, freezing event loop on partial input; (2)
+  `net.read_linewise_estimated` returning `TRUE` (=5) for incomplete — style conversion in
+  `a2f0550bd` changed `return 1` to `return TRUE`, but TRUE=5 so `> 1` in `base.handler.read`
+  triggered disconnect; (3) `base.handler.auth` missing newline guard — input buffer variable
+  watcher fires with partial data, auth fell through to protocol error
 
 ## Key Technical Insights
 
@@ -193,12 +198,21 @@
 - Reference: `data/md/documentation/NETWORK-ADDRESSING-AND-TOPOLOGY.md`
 
 ### `log.base_log_complete` core sub (Feb 2026)
-- Gates full log chain readiness: `base.log` + `base.log.format_entry` + `v7.stdout_log.write`
-  all present before any log output path attempts to use them
-- Defined in `bin/Protocol-7` as `sub p7__log__base_log_complete` — naming convention:
-  `p7__` prefix stripped, `__` → `.` for dots → `$code{'log.base_log_complete'}`
-- State-cached with `state $are_present` — checks `exists` not `defined`, returns TRUE once set
-- Call sites use `$code{'log.base_log_complete'}->()` not `defined $code{'base.log'}`
+- Gates full log chain readiness; defined in `bin/Protocol-7` as `sub p7__log__base_log_complete`
+- State-cached with `state $are_present`; checks `exists` not `defined`
+
+### Style Conversion Hazard: TRUE ≠ 1 (CRITICAL)
+- In this codebase: `TRUE=5`, `FALSE=0`, `UNKNOWN=2`
+- Style conversions replacing `return 1` with `return TRUE` silently change semantics
+- `> 1` checks (disconnect guards) will trigger on `TRUE` (5) — causes false disconnects
+- Always use literal `1` for "more to read / continue" return codes, not `TRUE`
+- Caught in `net.read_linewise_estimated` via commit `a2f0550bd`, fixed in `0c590de22`
+
+### PERSISTENT_AMEND env var
+- Not normally set; user sets it temporarily for interactive rebase sessions
+- Claude Code shell re-inherits it from parent env across Bash tool calls
+- `unset` inside a tool call doesn't persist; prefix the git commit instead:
+  `PERSISTENT_AMEND=0 git commit -m "..."`
 
 #,,.,,,.,,.,,,...,..,,,..,.,.,,,.,,..,,.,,.,.,..,,...,...,.,.,,,,,.,,,...,...,
 #SEVMU7GS33F4KHUQR7LHQG7PA45DCFZETZ5F2ZPC253HYZYAWF3YLPJFC74UDD62BQP42UJPIYVEE
