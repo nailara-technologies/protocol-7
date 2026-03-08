@@ -1,23 +1,12 @@
 ## [:< ##
 
 # name  = models.registry.base.get_registry
-# descr = Get or load registry from persistent storage
+# descr = get registry hash reference
 
-return $data{models}{registry} if defined $data{models}{registry};
+return <models.registry> // {};
 
-# Load from disk if not in memory
-my $registry = <[models.registry.load.load_registry]>;
-$data{models}{registry} = $registry;
-return $registry;
-
-#,,.,...,,,,,..,,.,,.,,,,..,.,,..,.,..,,.,.,.,..,,.,,,.,,,,..,..,,...,...,,.,
-#5IXLZTMG2MZR2LGXVNGYVK5STHKUVQFVJMQTKFBSCFVMEFVX2VY2IIZ6XYRNPZQFSWBZZ7NBWU3VM
-#\\\|PXPQH7PZ2OFLRTMXQQQMVWCVR47ZWJ4R4APKJKQF7H2RH4AQXHY \ / AMOS7 \ YOURUM ::
-#\[7]IVK7OXOJM5JQLCTCGUHVXBNLX6THZUKUTYFQP7M3C4BFQFYWVSDIA 7  DATA SIGNATURE ::
-#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-
-#,,.,,..,,,,,,,,,,,..,..,,,..,,..,.,,,,.,,,.,,..,,...,...,..,,..,,,..,.,,,...,
-#TP5Y5UDIETD7HCGMZWGQOLWKSZCZF5HP5CSSIPO7ASQSWWXXPHWTK2BMBPHSLTQ34T2GURQV4USNW
-#\\\|R4P4F2C2EJ2RGJLFPAFPV5J3XDB44KVAWFCMV7BGRMXWXTO3AGF \ / AMOS7 \ YOURUM ::
-#\[7]XS2FLJBBOGXW3KXDMTEIPID5XLI7KLWO4Q6I75BH3WROGFJFTMCI 7  DATA SIGNATURE ::
+#,,,,,,,.,..,,.,.,,..,.,.,,,,,,,.,,,,,.,.,,.,,..,,...,...,,.,,,,,,.,,,,..,..,,
+#PEPN5KUVE5ALJFBG74NYM4ATVIJNDC4QCRTA67CHURMI4XLPCSYM2GOPKNYMAGXOXMAWKBXQTJJN6
+#\\\|Q77GOTBKQNCZBAPBXIWPDBYRGQ63Y57PMJQULPVJNLPRHC65RAV \ / AMOS7 \ YOURUM ::
+#\[7]DD372TGQCSDDB7KMECETF7JE7ZNXVRQEQ6E67LHP7IX5UIRADOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
