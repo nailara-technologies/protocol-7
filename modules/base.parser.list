@@ -136,19 +136,35 @@ if ( defined $sort_key ) {
     } elsif ( $sort_type eq qw| alpha | ) {
         eval { @sorted_keys = sort keys( %{$data_ref} ); };
     } elsif ( $sort_type eq qw| num | ) {
+        my @non_num = grep {
+            my $v = $data_ref->{$ARG}->{$sort_key};
+            defined $v and not looks_like_number($v)
+        } keys $data_ref->%*;
+        <[base.s_warn]>->(
+            ":. non-numerical value in sort column '%s' [ key '%s' ]",
+            $sort_key, $ARG
+        ) for @non_num;
         eval {
             @sorted_keys = grep {m|.|} sort {
                 ( $data_ref->{$a}->{$sort_key} // 0 )
                     <=> ( $data_ref->{$b}->{$sort_key} // 0 )
                 }
-                keys %{$data_ref};
+                keys $data_ref->%*;
         };
     } elsif ( $sort_type eq qw| reverse-num | ) {
+        my @non_num = grep {
+            my $v = $data_ref->{$ARG}->{$sort_key};
+            defined $v and not looks_like_number($v)
+        } keys $data_ref->%*;
+        <[base.s_warn]>->(
+            ":. non-numerical value in sort column '%s' [ key '%s' ]",
+            $sort_key, $ARG
+        ) for @non_num;
         eval {
             @sorted_keys = sort {
                 $data_ref->{$b}->{$sort_key} <=> $data_ref->{$a}->{$sort_key}
                 }
-                keys %{$data_ref};
+                keys $data_ref->%*;
         };
     } elsif ( $sort_type eq qw| reverse-len-alpha | )
     {    ##  [ base sort order ]  length-descending \ reverse-alpha ##
@@ -203,8 +219,8 @@ foreach my $key_val (@sorted_keys) {
 
 return $table_string . "\n";
 
-#,,.,,,,.,,,,,..,,.,,,.,.,,..,...,,,.,,,,,,,,,..,,...,...,..,,,,.,,,,,...,,,,,
-#YQUW6SIN5LE54GENDYI22K56RZIGJPCRBCJ2CO75CZQ4KWFW2KTWYY6GUWU35YIKHJTNM44SK2A2E
-#\\\|UVSPPCDKQMSUNRA5EGJY5OVN6KVDH7OW36XKAI7H5V7SS3OKUIP \ / AMOS7 \ YOURUM ::
-#\[7]QCZ6PG66CBT7JL2ZIKZZIHYZBKXUG37AUXLSK3E5TGTK6JISFCBA 7  DATA SIGNATURE ::
+#,,,.,,,.,,.,,...,..,,,.,,..,,.,,,.,,,.,.,,..,..,,...,...,...,...,.,.,.,,,,,.,
+#4TDFE34IALCHVSY627Z3ZEB3A2MABXICEEAQWNCOKFVVDDQ5SCNVQYHIUKAMWNGU6GFJRLRJYLTNQ
+#\\\|Y33UTDYK43WHXMC6FEZSWMHCQAZERIQBOBECEVMQQUZCJUDJDMP \ / AMOS7 \ YOURUM ::
+#\[7]6OMPJAW2DI4L4DOW4H2Z7QAKVX6HMFY2IHFOIDUSXE75NYCZQCAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
