@@ -1,46 +1,53 @@
 #!/usr/bin/perl
 use strict;
+use English;
 use warnings;
 
-my $changes = 0;
-my @files   = @ARGV;
+my $changes    = 0;
+my $regex_mode = grep { $ARG eq qw| -r | } @ARGV;
+my @files      = grep { $ARG ne qw| -r | } @ARGV;
 if ( !@files ) {
-    opendir( DIR, '.' ) or die $!;
+    opendir( DIR, '.' ) or die $OS_ERROR;
     @files = readdir(DIR);
     closedir(DIR);
 }
 
 $! = 1;
 
-print "\n<!> [ make sure you have backups ] <!>\n .\n"
-    . " :\n :: find    :. ";
+my $mode_str = $regex_mode ? 'regex' : 'string';
+print "\n<!> [ make sure you have backups ]\n .\n"
+    . " . : mode : $mode_str :\n .\n :\n :: find    :. ";
 my $find = <STDIN>;
 chop($find);
 print " :: replace :. ";
 my $replace = <STDIN>;
 chop($replace);
 
-$/ = undef;
+$INPUT_RECORD_SEPARATOR = undef;
 
 print " ::\n";
 
 foreach my $file (@files) {
     if ( -f $file ) {
         print " :: parsing file $file..\n";
-        open( FILE, "<$file" ) or die $!;
+        open( FILE, "<$file" ) or die $OS_ERROR;
         my $file_data = <FILE>;
         close(FILE);
-        $changes += $file_data =~ s/\Q$find/$replace/gm;
-        open( FILE, ">$file" ) or die $!;
+
+        $changes
+            += $regex_mode
+            ? ( $file_data =~ s{$find}{$replace}gm )
+            : ( $file_data =~ s{\Q$find\E}{$replace}gm );
+        open( FILE, ">$file" ) or die $OS_ERROR;
         print FILE $file_data;
         close(FILE);
     }
 }
 
-print " ::\n ::\n :::. [ done. ($changes changes) ]\n\n";
+print " ::\n ::\n :::. done. [ changes : $changes ]\n\n";
 
-#,,,.,,,.,...,,..,,,.,...,.,,,..,,.,,,,.,,...,..,,...,...,..,,...,,..,.,.,...,
-#JCPXIWUAGXC5WI5KO6AV4RGIISFTBZBC5XTXPZLMF7TZG4ELPEFOHGOWFAXGOUYAZY7EEOQ3PQKUM
-#\\\|4UFVPCULM4QLNGDWI6MENBIM3TDNDN2CRICWS6JSE2MSPY3UAES \ / AMOS7 \ YOURUM ::
-#\[7]4YEGKYBC6EZVK5L535M7RAC7C47Q34VTHNZCVSOAWQ6NDTXA74CI 7  DATA SIGNATURE ::
+#,,,,,,.,,,.,,,.,,.,.,.,.,,,.,.,,,,,.,.,,,.,,,..,,...,...,...,.,.,.,,,,,.,.,.,
+#BCPJO3AP4PEGPZAXJXQ475GDQ2EKUSVQ4NGGQK4DP4VV7WRBPTYXZA5ND4JRVXPTK3TNQYBXKONZA
+#\\\|YU55RPQ4V4DNM2K6LRFYLRSEAU6VWUUDUONGE6DN64FYWJ2T3SU \ / AMOS7 \ YOURUM ::
+#\[7]5F545STRENA4NSZ3VST5O3ZLJRE4QGYDT565ESN5XBJJRUZXVCDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
