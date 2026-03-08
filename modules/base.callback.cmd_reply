@@ -8,7 +8,7 @@ my ( $reply_id, $reply ) = @ARG;
 ## 'silent' [no] reply mode ##
 return if defined $reply_id and $reply_id eq qw| silent |;
 
-die sprintf( 'expected numerical reply_id %s', <[base.caller]> )
+die sprintf( 'expected numerical reply_id %s', scalar <[base.caller]> )
     if @ARG != 2
     or not defined $reply_id
     or $reply_id !~ m|^\d+$|;
@@ -18,7 +18,8 @@ warn 'expected reply data hash reference <{C1}>'
     or ref $reply ne qw| HASH |;
 
 return <[base.s_warn]>->(
-    "no command meta data set up for id '%s' [ zenka gone? ] <{C1}>", $reply_id
+    "no command meta data set up for id '%s' [ zenka gone? ] <{C1}>",
+    $reply_id
 ) if not exists <base.cmd_reply>->{$reply_id};
 
 my $meta_data  = <base.cmd_reply>->{$reply_id};
@@ -102,8 +103,8 @@ if ( $reply->{'mode'} =~ m{^(TRUE|FALSE|WAIT)$}io ) {
 
 delete <base.cmd_reply>->{$reply_id};
 
-#,,,,,,.,,,.,,,,,,.,.,..,,,,,,...,...,,,,,...,..,,...,...,...,,,,,,..,,,.,.,,,
-#GLHRODBUQ3OP6PPY5MIQ3MKVFVID2I3EAVRCE5MIH4I2KBGWISDJUHBZHAHUBYBCBYQKP3G5JF24I
-#\\\|CNM4HNNWI2QTQOZAEAK5VEPXZULGZPGQANGJNIXDCMYNVKQWJRT \ / AMOS7 \ YOURUM ::
-#\[7]YSFZUJDBBZNWXRVNXYLICNJ4VSJ54XVHN6INFDJDXD2QDBAHVYDY 7  DATA SIGNATURE ::
+#,,,.,.,.,.,,,,.,,.,.,.,,,.,,,,,.,...,...,.,.,..,,...,...,...,,,.,.,,,,..,..,,
+#DLMIIWGI5PIIZHGLCGT6KATVJL2ZRQI6OM6Z3RK6XCZVZSEWF2QLQC35DZXV3IBXXOI26SRFJFY36
+#\\\|ZRPHPPPGPJYYGVTSELINMIHTSFDCAQOBTLLH27EEYAKD5JLTWA3 \ / AMOS7 \ YOURUM ::
+#\[7]O6GP5HKA5V3WK3PKF2KQZGD3K34H5BVXNRHATSN26O4IA6HNUMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
