@@ -14,13 +14,20 @@ my $port    = $params->{'port'}    // ( $backend eq 'gpu' ? 8000 : 8001 );
     2, '[spawn_smart_path_reply] received path for amos=%s', $amos_id
 );
 
-## Parse reply data ##
+## Parse YAML reply from models zenka ##
 my $reply_data = $reply->{'data'} // '';
-my @lines      = split( /\n/, $reply_data );
-my $model_path = $lines[0] // '';
+my $entry      = eval { YAML::XS::Load($reply_data) };
+if ( $@ || !ref $entry ) {
+    <[base.logs]>->(
+        0, '[spawn_smart_path_reply] failed to parse reply: %s', $@
+    );
+    return FALSE;
+}
 
-## Skip error responses ##
-if ( $model_path =~ /^error:/ || !length $model_path || !-f $model_path ) {
+my $model_path  = $entry->{'file_path'}   // '';
+my $mmproj_path = $entry->{'mmproj_path'} // '';
+
+unless ( length $model_path && -f $model_path ) {
     <[base.logs]>->(
         0, '[spawn_smart_path_reply] invalid path: %s', $model_path
     );
@@ -34,9 +41,10 @@ if ( $model_path =~ /^error:/ || !length $model_path || !-f $model_path ) {
 );
 
 my $result = <[coding.spawn_inference_server]>->(
-    {   backend    => $backend,
-        model_path => $model_path,
-        port       => $port
+    {   backend     => $backend,
+        model_path  => $model_path,
+        mmproj_path => $mmproj_path,
+        port        => $port
     }
 );
 
@@ -53,8 +61,8 @@ if ( $result && $result->{'success'} ) {
 
 return $result;
 
-#,,..,.,.,,,,,.,,,.,.,...,..,,,.,,,,.,..,,,,,,.,.,...,...,...,.,,,...,...,,..,
-#CNRUFZMEAWAJ2OTYSLIY52VTZKMKQM2C7IIYQHV5I52HBKXY5SF4QTD5QMXF5ELZVIYPXYUAKITG4
-#\\\|CAPETODPSZ7TN64JODT3GNM3HNW32K7KNJMT3A5HV3U3YYJJDKZ \ / AMOS7 \ YOURUM ::
-#\[7]CZFZ73G5NYASUQYTQ2VZKOQ2F5EYQ7GLUW2QGQVHUSDDSKJJAYAA 7  DATA SIGNATURE ::
+#,,..,,,.,...,...,,,.,..,,..,,.,,,...,,,.,,..,.,.,...,...,,..,,,.,...,...,,,,,
+#EPZGF2WC3KOSTEDXEWGDFDR2BNJPAISF7U75C2LWULRPBFQ555I7SI3M3GKUT77ZGXZ2JIP3DG2VW
+#\\\|YFZ4L36BCBSXGFTR7HJ2OAB4UIE6ZRDTROZF2CKAM2V43BOTQIO \ / AMOS7 \ YOURUM ::
+#\[7]2ULIOF35GAF5SMTPHVJNWS6RCCRAGWIDROP6LBVVOFGFOD4KZGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

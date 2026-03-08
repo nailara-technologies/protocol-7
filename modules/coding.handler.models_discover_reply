@@ -11,16 +11,24 @@ my $reply_data = $reply->{'data'}   // '';
     ->( 2, 'model discovery reply received :. context=%s', $context );
 
 ## parse text response from models.cmd.discover
-## format: amos: XXXXXXX\n  name: foo\n  available: yes\n  size_gb: N\n ...
+## format: amos: <id>\n  name: foo\n  available: yes\n  size_gb: N\n ...
+## amos value may contain spaces (yaml-named models) or not (composite checksums)
 my %metadata;
 my $current_amos;
 
 for my $line ( split /\n/, $reply_data ) {
-    if ( $line =~ m|^amos:\s+(\S+)| ) {
+    if ( $line =~ m|^amos:\s+(.+)$| ) {
         $current_amos = $1;
+        $metadata{$current_amos}{'amos'} = $current_amos;
     } elsif ( defined $current_amos ) {
         if ( $line =~ m|^\s+name:\s+(.+)$| ) {
             $metadata{$current_amos}{'name'} = $1;
+        } elsif ( $line =~ m|^\s+version:\s+(.+)$| ) {
+            ## skip mmproj entries [ vision projector files, not runnable models ]
+            if ( $1 eq 'mmproj' ) {
+                delete $metadata{$current_amos};
+                undef $current_amos;
+            }
         } elsif ( $line =~ m|^\s+category:\s+(.+)$| ) {
             $metadata{$current_amos}{'category'} = $1;
         } elsif ( $line =~ m|^\s+available:\s+(.+)$| ) {
@@ -36,17 +44,10 @@ for my $line ( split /\n/, $reply_data ) {
     }
 }
 
-## build name-keyed index [ routing uses model name as key ]
-my %name_index;
-for my $amos ( keys %metadata ) {
-    my $name = $metadata{$amos}{'name'} // $amos;
-    $name_index{$name} = { %{ $metadata{$amos} }, 'amos' => $amos };
-}
-
-my $count = scalar keys %name_index;
+my $count = scalar keys %metadata;
 
 if ($count) {
-    <coding.model_metadata> = \%name_index;
+    <coding.model_metadata> = \%metadata;
 
     <[base.logs]>->(
         2, 'model metadata cache updated :. %d models available', $count
@@ -60,7 +61,7 @@ if ($count) {
     }
 
     ## persist to disk as yaml [ human-readable, reloaded on next startup ]
-    my $yaml_str = eval { YAML::XS::Dump( \%name_index ) };
+    my $yaml_str = eval { YAML::XS::Dump( \%metadata ) };
     if ( !$@ && defined $yaml_str ) {
         <[file.zenka_dir.write]>->( 'state/model_metadata.yaml', \$yaml_str );
         <[base.logs]>->( 2, 'model metadata persisted to disk' );
@@ -73,8 +74,8 @@ if ($count) {
 
 return TRUE;
 
-#,,..,,..,.,.,...,,..,.,.,..,,,,,,,..,..,,...,..,,...,..,,...,.,,,..,,,,.,.,,,
-#GCWEJ7TNSTF3UKWRVQOI4UZYLLN3BO4CRID5EJDXS7ZH2KW4HPZTSVNINMZDABUGXPLE6KYXR2KNG
-#\\\|MEWFKZOA765ECDFDI6UMMV3X3WT3T7CB7BEXCKHT6SQNQZI2EYY \ / AMOS7 \ YOURUM ::
-#\[7]WI7JQYJQIFOBVHZPS4GPC3AKCL6UJFXDLQCGIEINLR2NI2O3QKAI 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,.,.,,,,,.,.,,.,,,..,...,.,,,...,..,,...,...,...,..,,,..,,.,,...,
+#MFWQHE6Q5KRDCBP53FCDWSTT3TOHPF5H3NA37WZ2QJ4VPZUNGQRH55UEPCRUWIBKBFDXMJFBN2HSO
+#\\\|L6GTBXNG36DQZIJLIBAERM42EZYBTERFRJPO7MB2H45WFNZSTRR \ / AMOS7 \ YOURUM ::
+#\[7]C4Q67WO3LEJSLKJYDWROPHTOPQ3OTDVMK2C436FIBS452W5O4OBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
