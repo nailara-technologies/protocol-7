@@ -502,8 +502,101 @@ Documentation:
 
 ---
 
-#,,,.,,..,,,.,,..,.,,,,.,,,,.,.,.,,.,,,.,,..,,..,,...,...,,.,,..,,...,,..,,..,
-#D5QGFR2NUJDJY5WOL337TPIHTK6I55F6YMDKM5OTHRWFXA27MRWCXBKAMUKNVXJ7GMFJHVISQNRVU
-#\\\|RIJCWW4MTQG6EZOVMRKCEQD7FWTUUPD4RVP44BEFBL4Q5P4CJFV \ / AMOS7 \ YOURUM ::
-#\[7]SQLNMUZDHA2IEIPT5HB7ZMXTBI32KEN2AJBVD44PBSVOTXWILOBI 7  DATA SIGNATURE ::
+## Coding Zenka Event Loop Stability (March 2025)
+
+### The Return TRUE Bug (CRITICAL)
+
+**Issue**: Style fix changed `return 1` to `return TRUE` in base.handler.auth
+**Effect**: `TRUE` evaluates to non-zero (5 or string), triggering defensive disconnect (codes > 2 = unknown state)
+**Root Cause**: Defensive coding treats return codes > 2 as errors, but `TRUE` constant != 1
+
+**Fix**: Reverted to `return 1`, added explicit logging for return code anomalies
+
+**Lesson**: Never change numeric return codes to boolean constants in protocol handlers. Document return code contracts explicitly.
+
+### Blocking I/O Fix (CRITICAL)
+
+**Issue**: base.s_read used blocking sysread, freezing event loop during auth
+**Effect**: Authentication timeout never fired, heartbeats blocked, v7 restarted cube
+**Chain**: Missing `blocking(0)` on Unix sockets + incomplete line handling + sysread blocking
+
+**Fix**: Three-part solution
+1. Add `$read_fh->blocking(0)` for Unix sockets (TCP already had it)
+2. Fix incomplete line return code in base.handler.auth
+3. Proper EAGAIN handling in base.s_read
+
+**Commit**: 0C590DE229E2F3E2A6A61F710320464667A2654D, A28A159C6BC45D8096B7DFA51C9B2BD774C9E284
+
+---
+
+## Registry Consolidation (March 2025)
+
+### JSON to YAML Migration
+
+**Goal**: Unify model registry on YAML format, remove redundant JSON system
+
+**Changes**:
+- Deleted: `models.registry.load.load_registry`, `save.save_registry`, etc.
+- Added: `models.resolve.entry` for shared model lookup
+- Updated: All zenki use `<models.registry>` data path directly
+- Format: Both commands now return YAML via `YAML::XS::Dump`
+
+**Vision Model Support**:
+- mmproj_path now included in registry entries
+- Required for llama-server even for text-only inference on vision models
+
+**Files**: See `data/md/coding-tasks/remove-redundant-json-registry.md`
+
+---
+
+## Multiline Command Protocol (March 2025)
+
+### Specification for p7c/p-7-r
+
+**Format**:
+```
+command+
+Header: value
+
+body content
+more lines
+.
+```
+
+**Suffixes**:
+- `+` : Simple mode, terminates on `\n.\n`
+- `++` : Dot-safe mode, caller space-prefixes each line, terminator is ` \n.\n`
+
+**Status**: Task file created, implementation pending
+- Task: `data/md/coding-tasks/add-multiline-command-support-to-clients.md`
+
+---
+
+## Zenki Profile Configuration (March 2025)
+
+### Design Overview
+
+**Subname → Profile Mapping**:
+```
+v7[minimal]    → start-set-up.minimal
+v7[desktop]    → start-set-up.DESKTOP-FP4OP26
+v7[setup]      → first-run wizard
+```
+
+**Resolution Cascade**:
+1. `start-set-up.<hostname>` (normal operation)
+2. `start-set-up.local` (manual override)
+3. `start-set-up.setup` (first-run)
+4. `start-set-up.base` (fallback)
+
+**UI Design**: Color-as-feedback living options table (see amos-chksum -options style)
+
+**Task**: `data/md/coding-tasks/zenki-profile-configuration-interface.md`
+
+---
+
+#,,,,,.,,,,,.,,,.,,.,,,,,,,,,,...,.,.,.,,,,,,,..,,...,...,.,.,...,.,.,..,,,.,,
+#RQWQJ5U4MQXLEQ2FV7Y4SJPIADP2BVABGCDQMPC4I2IZMB7YHEPZYGYBWAKYFWZWD5N3ZQMNJ3DRY
+#\\\|AGYZRP2J2E5D5VDMBQZE42ZY2CAUTILC74OYVQNO7F5BGMREI56 \ / AMOS7 \ YOURUM ::
+#\[7]5RTDDU3ULQ5AOOQSK5XXBKHXJ475FJOVJCHRZA6WXAM3Q77UPSAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
