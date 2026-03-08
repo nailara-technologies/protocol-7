@@ -1,0 +1,297 @@
+#!/usr/bin/env perl
+# Standalone GGUF name analyzer
+# Analyzes all GGUF files to understand metadata patterns
+
+use strict;
+use warnings;
+use Fcntl qw(:seek);
+
+my $SCAN_DIR = $ARGV[0] || '/mnt/ext-xfs-data/models-lmstudio';
+
+## GGUF v3 Value Types
+use constant {
+    GGUF_TYPE_UINT8   => 0,
+    GGUF_TYPE_INT8    => 1,
+    GGUF_TYPE_UINT16  => 2,
+    GGUF_TYPE_INT16   => 3,
+    GGUF_TYPE_UINT32  => 4,
+    GGUF_TYPE_INT32   => 5,
+    GGUF_TYPE_FLOAT32 => 6,
+    GGUF_TYPE_BOOL    => 7,
+    GGUF_TYPE_STRING  => 8,
+    GGUF_TYPE_ARRAY   => 9,
+    GGUF_TYPE_UINT64  => 10,
+    GGUF_TYPE_INT64   => 11,
+    GGUF_TYPE_FLOAT64 => 12,
+};
+
+my %FIXED_SIZE = (
+    GGUF_TYPE_UINT8()   => 1,
+    GGUF_TYPE_INT8()    => 1,
+    GGUF_TYPE_BOOL()    => 1,
+    GGUF_TYPE_UINT16()  => 2,
+    GGUF_TYPE_INT16()   => 2,
+    GGUF_TYPE_UINT32()  => 4,
+    GGUF_TYPE_INT32()   => 4,
+    GGUF_TYPE_FLOAT32() => 4,
+    GGUF_TYPE_UINT64()  => 8,
+    GGUF_TYPE_INT64()   => 8,
+    GGUF_TYPE_FLOAT64() => 8,
+);
+
+## Extract all metadata from GGUF file
+sub extract_gguf_metadata {
+    my ($file_path) = @_;
+
+    open my $fh, '<:raw', $file_path or return undef;
+
+    my $header;
+    read( $fh, $header, 24 ) == 24 or do { close($fh); return undef; };
+
+    my ( $magic, $version, $tensor_count, $kv_count )
+        = unpack( 'A4 V Q< Q<', $header );
+
+    unless ( $magic eq 'GGUF' ) {
+        close($fh);
+        return undef;
+    }
+
+    $kv_count = 1000 if $kv_count > 1000;
+
+    my %metadata;
+
+    for my $i ( 0 .. $kv_count - 1 ) {
+        my $key_len_buf;
+        read( $fh, $key_len_buf, 8 ) == 8 or last;
+        my ($key_len) = unpack( 'Q<', $key_len_buf );
+        last if $key_len > 1024 || $key_len == 0;
+
+        my $key;
+        read( $fh, $key, $key_len ) == $key_len or last;
+
+        my $type_buf;
+        read( $fh, $type_buf, 4 ) == 4 or last;
+        my ($val_type) = unpack( 'V', $type_buf );
+
+        my $val;
+
+        if ( $val_type == GGUF_TYPE_STRING ) {
+            my $str_len_buf;
+            read( $fh, $str_len_buf, 8 ) == 8 or last;
+            my ($str_len) = unpack( 'Q<', $str_len_buf );
+            last if $str_len > 65536;
+            if ( $str_len > 0 ) {
+                read( $fh, $val, $str_len ) == $str_len or last;
+            } else {
+                $val = '';
+            }
+        } elsif ( exists $FIXED_SIZE{$val_type} ) {
+            my $size = $FIXED_SIZE{$val_type};
+            my $buf;
+            read( $fh, $buf, $size ) == $size or last;
+            $val
+                = $val_type == GGUF_TYPE_UINT8   ? unpack( 'C',  $buf )
+                : $val_type == GGUF_TYPE_INT8    ? unpack( 'c',  $buf )
+                : $val_type == GGUF_TYPE_UINT16  ? unpack( 'v',  $buf )
+                : $val_type == GGUF_TYPE_INT16   ? unpack( 's<', $buf )
+                : $val_type == GGUF_TYPE_UINT32  ? unpack( 'V',  $buf )
+                : $val_type == GGUF_TYPE_INT32   ? unpack( 'l<', $buf )
+                : $val_type == GGUF_TYPE_FLOAT32 ? unpack( 'f',  $buf )
+                : $val_type == GGUF_TYPE_BOOL    ? unpack( 'C',  $buf )
+                : $val_type == GGUF_TYPE_UINT64  ? unpack( 'Q<', $buf )
+                : $val_type == GGUF_TYPE_INT64   ? unpack( 'q<', $buf )
+                : $val_type == GGUF_TYPE_FLOAT64 ? unpack( 'd',  $buf )
+                :                                  undef;
+        } elsif ( $val_type == GGUF_TYPE_ARRAY ) {
+            my $buf;
+            read( $fh, $buf, 4 ) == 4 or last;
+            my ($elem_type) = unpack( 'V', $buf );
+            read( $fh, $buf, 8 ) == 8 or last;
+            my ($count) = unpack( 'Q<', $buf );
+            last if $count > 10000;
+
+            if ( exists $FIXED_SIZE{$elem_type} ) {
+                seek( $fh, $count * $FIXED_SIZE{$elem_type}, SEEK_CUR );
+            } elsif ( $elem_type == GGUF_TYPE_STRING ) {
+                for ( 1 .. $count ) {
+                    read( $fh, $buf, 8 ) or last;
+                    my ($s_len) = unpack( 'Q<', $buf );
+                    seek( $fh, $s_len, SEEK_CUR );
+                }
+            }
+            $val = '[ARRAY]';
+        } else {
+            next;
+        }
+
+        $metadata{$key} = $val if defined $val;
+    }
+
+    close($fh);
+    return \%metadata;
+}
+
+## Categorize name quality
+sub categorize_name {
+    my ($name) = @_;
+
+    return 'empty' if !defined $name || length($name) == 0;
+    return 'garbage_path'
+        if $name =~ /:\\/ || $name =~ /^[A-Za-z]:/ || $name =~ /\\/;
+    return 'garbage_dots' if $name =~ /^[.\s]+$/;
+    return 'short'        if length($name) < 5;
+    return 'good';
+}
+
+## Main scan
+print "Scanning $SCAN_DIR for GGUF files...\n\n";
+
+my @results;
+my %stats = (
+    good         => 0,
+    garbage_path => 0,
+    garbage_dots => 0,
+    short        => 0,
+    empty        => 0
+);
+
+## Find all GGUF files
+open my $find, "find '$SCAN_DIR' -name '*.gguf' -type f 2>/dev/null |" or die;
+while ( my $file = <$find> ) {
+    chomp $file;
+    next if $file =~ /mmproj/i;    # Skip vision projectors
+
+    my $filename = $file;
+    $filename =~ s|.*/||;
+    $filename =~ s/\.gguf$//i;
+
+    my $meta = extract_gguf_metadata($file);
+
+    my $name       = $meta->{'general.name'}         // '[NOT SET]';
+    my $arch       = $meta->{'general.architecture'} // '[NOT SET]';
+    my $basename   = $meta->{'general.basename'}     // '[NOT SET]';
+    my $type       = $meta->{'general.type'}         // '[NOT SET]';
+    my $size_label = $meta->{'general.size_label'}   // '[NOT SET]';
+
+    my $category = categorize_name($name);
+    $stats{$category}++;
+
+    push @results,
+        {
+        file       => $file,
+        filename   => $filename,
+        name       => $name,
+        arch       => $arch,
+        basename   => $basename,
+        type       => $type,
+        size_label => $size_label,
+        category   => $category,
+        };
+}
+close($find);
+
+## Report statistics
+print "=== NAME QUALITY STATISTICS ===\n";
+for my $cat (qw(good garbage_path garbage_dots short empty)) {
+    printf "  %-15s: %d\n", $cat, $stats{$cat};
+}
+print "\n";
+
+## Show samples of each category
+for my $cat (qw(good garbage_path garbage_dots short)) {
+    next if $stats{$cat} == 0;
+
+    print "=== $cat EXAMPLES ===\n";
+    my @examples = grep { $_->{category} eq $cat } @results;
+    @examples = @examples[ 0 .. 4 ] if @examples > 5;    # Show max 5
+
+    for my $ex (@examples) {
+        print "\nFile: $ex->{filename}\n";
+        print "  general.name:         $ex->{name}\n";
+        print "  general.architecture: $ex->{arch}\n"
+            if $ex->{arch} ne '[NOT SET]';
+        print "  general.basename:     $ex->{basename}\n"
+            if $ex->{basename} ne '[NOT SET]';
+        print "  general.size_label:   $ex->{size_label}\n"
+            if $ex->{size_label} ne '[NOT SET]';
+    }
+    print "\n";
+}
+
+## Show patterns in good names vs garbage
+print "=== ANALYSIS: What do good names have that garbage doesn't? ===\n\n";
+
+my @good = grep { $_->{category} eq 'good' } @results;
+my @bad  = grep { $_->{category} =~ /garbage/ } @results;
+
+print "Good names with basename:\n";
+my $good_with_basename = grep { $_->{basename} ne '[NOT SET]' } @good;
+print "  $good_with_basename / ", scalar(@good), " have general.basename\n";
+
+print "\nGarbage names with basename:\n";
+my $bad_with_basename = grep { $_->{basename} ne '[NOT SET]' } @bad;
+print "  $bad_with_basename / ", scalar(@bad), " have general.basename\n";
+
+print "\nGood names with size_label:\n";
+my $good_with_size = grep { $_->{size_label} ne '[NOT SET]' } @good;
+print "  $good_with_size / ", scalar(@good), " have general.size_label\n";
+
+print "\n=== PROPOSED NAME COMPOSITION STRATEGY ===\n";
+print "1. If general.name is 'good' -> use it\n";
+print "2. If general.basename + general.size_label exist -> combine them\n";
+print "3. If only basename exists -> use basename\n";
+print "4. Fall back to cleaned filename\n";
+print "\n";
+
+## Show what the composition would produce
+print "=== COMPOSITION PREVIEW ===\n";
+for my $ex ( @results[ 0 .. 9 ] ) {
+    my $composed = compose_name($ex);
+    printf "%-40s -> %s\n", substr( $ex->{filename}, 0, 40 ), $composed;
+}
+
+## Name composition function
+sub compose_name {
+    my ($info) = @_;
+
+    # Priority 1: Good general.name
+    if ( $info->{category} eq 'good' ) {
+        return $info->{name};
+    }
+
+    # Priority 2: basename + size_label
+    if (   $info->{basename} ne '[NOT SET]'
+        && $info->{size_label} ne '[NOT SET]' ) {
+        my $clean_base = $info->{basename};
+        $clean_base =~ s/_/ /g;
+        return "$clean_base $info->{size_label}";
+    }
+
+    # Priority 3: basename only
+    if ( $info->{basename} ne '[NOT SET]' ) {
+        my $clean_base = $info->{basename};
+        $clean_base =~ s/_/ /g;
+        return $clean_base;
+    }
+
+    # Priority 4: architecture + size_label
+    if ( $info->{arch} ne '[NOT SET]' && $info->{size_label} ne '[NOT SET]' )
+    {
+        return "$info->{arch} $info->{size_label}";
+    }
+
+    # Fallback: cleaned filename
+    my $clean = $info->{filename};
+    $clean =~ s/[-_]?[IQ][0-8](?:_[A-Z0-9_]+)?\s*$//i;
+    $clean =~ s/[-_]$//;
+    $clean =~ s/_/ /g;
+    return $clean;
+}
+
+print "\n";
+
+#,,..,.,.,,.,,,,.,,.,,.,,,,.,,,..,.,.,..,,,..,..,,...,..,,.,.,...,...,.,.,...,
+#3OPEMIHGMTTF4T6S43YHXGYHQE7OYUI72D6QD7QJUP4UQT266GHABFZA5UJW3244CRDEI2MTDRSLS
+#\\\|AD2D3IYDT6SWLV5C72QARD3LFWXSICE6ECKLWPRNLL645XPA27O \ / AMOS7 \ YOURUM ::
+#\[7]IFVQTNEHFKIKMVGELYHJF472LUBGHNNEG7FLMHL3TOK4CIMSZIBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
