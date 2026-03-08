@@ -56,12 +56,13 @@ foreach my $model ( $discovered->@* ) {
     my $model_id = "$path_checksum:$model_checksum";
 
     $registry->{$model_id} = {
-        model_id     => $model->{'name'}, ## Short name as model_id ##
-        name         => $model->{'name'},
-        file_path    => $model->{'path'}, ## Standard field name for lookup ##
-        path         => $model->{'path'},
-        size_gb      => $model->{'size_gb'}      // 0,
-        quantization => $model->{'quantization'} // 'unknown',
+        amos          => $model_id,           ## composite checksum key ##
+        model_id      => $model->{'name'},    ## short name ##
+        name          => $model->{'name'},
+        file_path     => $model->{'path'},
+        path          => $model->{'path'},
+        size_gb       => $model->{'size_gb'}      // 0,
+        quantization  => $model->{'quantization'} // 'unknown',
         tier          => $model->{'tier'},
         is_vision     => $model->{'is_vision'} // FALSE,
         source        => qw| discovered |,
@@ -75,8 +76,8 @@ foreach my $model ( $discovered->@* ) {
 
 return { 'success' => TRUE, 'added' => $added_count };
 
-#,,.,,,..,...,,,.,...,...,..,,,,,,,.,,.,,,,..,..,,...,...,...,...,.,.,,,.,.,.,
-#724JMUGPORVRIJU7VG653PEVAQPTRO5RICQCHQUNCGOR6KXYAXWY3SY55QHJWZL4QPLGMSLZFRCQ4
-#\\\|HHJYQMBC5EIHABHHISW7UO2L7WVPKQ4QBBOQAFHSTVUAHDICKV6 \ / AMOS7 \ YOURUM ::
-#\[7]WVMBOWCI3VRDVHAX5QKNCOMVXKBGRSMK7PYDARKP42SMQWZXVWBA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,...,,.,,,..,...,,.,,...,.,.,..,,..,,...,...,..,,,..,,,,,,..,,,.,
+#RFETQZALKJ7FUPSXANCZCG32LGZAZ6KOJHPUXZR4ERPKWCBCMH4XR4OSTVD7M3GCHC2IJTGPFGNPC
+#\\\|4CTXH62XEM4UQLPD7W2SUIL77CV6OCRBYLPIMZOGGDKWDFS5455 \ / AMOS7 \ YOURUM ::
+#\[7]QPPMBVZF5P45OHLQNLCU4RE5LCW7OGUGHSUZDDSIH76VC33RJGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

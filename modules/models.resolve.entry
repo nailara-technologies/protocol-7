@@ -1,0 +1,74 @@
+## [:< ##
+
+# name  = models.resolve.entry
+# param = <lookup_id> (amos composite ID, alias, or model name)
+# descr = unified model lookup: aliases -> definitions -> discovered registry
+# return = normalized hashref or undef if not found
+
+my $lookup_id = shift;
+
+unless ( defined $lookup_id && length $lookup_id ) {
+    <[base.s_warn]>->('lookup ID required');
+    return undef;
+}
+
+## resolve alias first
+if ( exists $data{models}{aliases}{$lookup_id} ) {
+    $lookup_id = $data{models}{aliases}{$lookup_id};
+    <[base.logs]>->( 2, '[resolve.entry] alias resolved to: %s', $lookup_id );
+}
+
+my $entry;
+
+## check yaml-configured definitions
+if ( my $def = $data{models}{definitions}{$lookup_id} ) {
+    <[base.logs]>->(
+        2, '[resolve.entry] found in definitions: %s', $lookup_id
+    );
+    my $meta = $def->{'metadata'} // {};
+    $entry = {
+        model_id    => $lookup_id,
+        name        => $def->{'name'}   // $lookup_id,
+        file_path   => $def->{'path'}   // '',
+        mmproj_path => $def->{'mmproj'} // '',
+        is_vision   => (
+            $def->{'is_vision'} && lc( $def->{'is_vision'} ) ne qw| false |
+        ) ? 1 : 0,
+        quantization => $def->{'quantization'}  // '',
+        context_size => $meta->{'context_size'} // 2048,
+        batch_size   => $meta->{'batch_size'}   // 256,
+    };
+}
+
+## fallback: discovered registry
+unless ( defined $entry ) {
+    my $reg = <[models.registry.lookup]>->($lookup_id);
+    if ($reg) {
+        <[base.logs]>->(
+            2, '[resolve.entry] found in registry: %s', $lookup_id
+        );
+        $entry = {
+            model_id    => $reg->{'model_id'}  // $lookup_id,
+            name        => $reg->{'name'}      // '',
+            file_path   => $reg->{'file_path'} // $reg->{'path'}        // '',
+            mmproj_path => $reg->{'mmproj'}    // $reg->{'mmproj_path'} // '',
+            is_vision   => $reg->{'is_vision'} ? 1 : 0,
+            quantization => $reg->{'quantization'} // '',
+            context_size => $reg->{'context_size'} // 2048,
+            batch_size   => $reg->{'batch_size'}   // 256,
+        };
+    }
+}
+
+unless ( defined $entry ) {
+    <[base.logs]>->( 2, '[resolve.entry] not found: %s', $lookup_id );
+    return undef;
+}
+
+return $entry;
+
+#,,.,,.,,,,..,,.,,,,.,,.,,...,.,.,.,.,..,,.,.,..,,...,..,,,..,,,.,...,...,.,.,
+#5JMJIH2RZ2ZJIGDNRUBLEJNSOQPQZSS6ZX4V5RUEKKEAE6T3KFC5WW5W335AGPVZ5ZBX5XL2QRA7G
+#\\\|WTKW5TXXS7P6ERYS7QMW4TQNOSFEBJY55LK5NM2GLKQCNUCTQMW \ / AMOS7 \ YOURUM ::
+#\[7]NTJ47E7RMEWGHDMHMQKOSL45EHLTHEHTHLTDWGB6ED3BQZITF2AA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

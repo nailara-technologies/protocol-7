@@ -7,33 +7,34 @@ my $cmd = shift @ARG;         # Remove command name from @ARG
 my ($filter) = @ARG;
 $filter //= 'all';
 
-# Load registry - returns flat format: { <id> => { name => ..., size_gb => ... } }
-my $all_models = <[models.registry.list_all.list_all_models]>;
+## access registry directly to preserve keys (keys are the amos composite ids)
+my $registry = <models.registry> // {};
 
-# Apply filter and build response data
+## apply filter and build response data
 my @discovered;
-foreach my $model (@$all_models) {
+foreach my $amos_id ( keys %$registry ) {
+    my $model = $registry->{$amos_id};
 
-    # Check file availability for filtering
+    ## check file availability for filtering
     my $file_exists = -f ( $model->{file_path} // $model->{path} // '' );
 
     next if $filter eq 'available'   && !$file_exists;
     next if $filter eq 'unavailable' && $file_exists;
 
     push @discovered, {
-        'amos'      => $model->{amos_id} // $model->{model_id} // 'unknown',
-        'name'      => $model->{name}         // 'unnamed',
-        'version'   => $model->{quantization} // 'unknown',
-        'category'  => 'gguf',
-        'available' => $file_exists,
-        'size_gb'   => $model->{size_gb} // 0,
-        'success_rate'      => 1.0,    # Default for discovered models
-        'total_invocations' => 0,      # No stats yet
+        'amos'              => $amos_id,    ## registry key ##
+        'name'              => $model->{name}         // 'unnamed',
+        'version'           => $model->{quantization} // 'unknown',
+        'category'          => 'gguf',
+        'available'         => $file_exists,
+        'size_gb'           => $model->{size_gb} // 0,
+        'success_rate'      => 1.0,
+        'total_invocations' => 0,
         'presence_tier'     => $file_exists ? 1 : 0,
     };
 }
 
-# Sort by size (largest first) since success_rate is uniform
+## sort by size (largest first)
 @discovered = sort { $b->{size_gb} <=> $a->{size_gb} } @discovered;
 
 my $reply_str = '';
@@ -61,8 +62,8 @@ foreach my $model (@discovered) {
 
 return { 'mode' => qw| size |, 'data' => $reply_str };
 
-#,,,.,,.,,,.,,,..,,..,,,,,.,,,,,.,...,,,,,,,.,..,,...,...,...,,,,,.,,,..,,,..,
-#23ASCQIGUIPCBX3TVYAYLY3KEPGGQV23CO6IPWTR5GZXH3FDCTESXTM3N23KGZ6XOWC2HVY5U73F4
-#\\\|BV4FUU5XF6WUXMWJQSSXLSE3BOU7MLLE6T2OPXRQ2LJAR6GQ7CZ \ / AMOS7 \ YOURUM ::
-#\[7]ZSRYHW5WWO2DGGERLZY6LYYHXBBJMH5FA4SAZQFCSTSUAHAR46AA 7  DATA SIGNATURE ::
+#,,..,.,,,.,.,..,,...,,,,,.,,,.,.,.,.,..,,..,,..,,...,...,.,.,,.,,,,.,.,.,,,.,
+#R4SFWHWNTCN3HMX7LWRIUZX4PIOI6YDY5DIMQ2GG7D4NLUCOOVF2RM26QKROMUYP4FLR3VV6BR542
+#\\\|WMIOFQQVHWW44VLGVABM6OFOI2O23BAQKH52CGGQH47JYQKBHGI \ / AMOS7 \ YOURUM ::
+#\[7]6DQDNDQFMPTI674V5V7ANNYLFD6DH32FU3UJLHDNL6HB7GL6PACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,87 +1,41 @@
 ## [:< ##
 
-# name = models.cmd.get_model_path
-# descr = Retrieve model path by model ID or alias
+# name  = models.cmd.get_model_path
+# descr = retrieve model metadata by model ID, alias, or AMOS checksum
+# return = { mode, data } YAML-encoded model entry or error string
 
-# Extract model_id from call parameters
-# $call is provided in scope by command framework
+use YAML::XS qw| Dump |;
+
+## extract model_id from call parameters
 my $model_id
     = $call->{'param'}->{'model_id'} || $call->{'call_args'}->{'model_id'};
 
-# If not in param/call_args, try parsing from args string
-# (for p7 command line)
 unless ($model_id) {
     if ( $call->{'args'} && length( $call->{'args'} ) ) {
         ($model_id) = split( /\s+/, $call->{'args'} );
     }
 }
 
-<[base.logs]>->( 1, "[models.cmd] get_model_path : %s", $model_id // 'NONE' );
+<[base.logs]>->( 1, '[models.cmd] get_model_path: %s', $model_id // 'NONE' );
 
 unless ($model_id) {
-    <[base.log]>->( 0, "[models.cmd] Error : model_id required" );
+    return { 'mode' => 'size', 'data' => "error: model_id required\n" };
+}
+
+## unified lookup: aliases -> definitions -> discovered registry
+my $entry = <[models.resolve.entry]>->($model_id);
+
+unless ($entry) {
     return {
         'mode' => 'size',
-        'data' => "error: model_id required\n",
+        'data' => "error: model not found: $model_id\n"
     };
 }
 
-# Check aliases first
-if ( exists $data{models}{aliases}{$model_id} ) {
-    $model_id = $data{models}{aliases}{$model_id};
-}
+return { 'mode' => 'size', 'data' => Dump($entry) };
 
-# Look up model definition (from YAML definitions or discovered registry)
-my $model_def = $data{models}{definitions}{$model_id};
-
-# Fallback to discovered registry if not in definitions
-unless ($model_def) {
-    my $registry_entry = <models.registry> {$model_id};
-    if ($registry_entry) {
-        $model_def = {
-            name => $registry_entry->{name},
-            path => $registry_entry->{file_path}
-            ,    ## registry uses file_path ##
-            quantization => $registry_entry->{quantization},
-            is_vision    => $registry_entry->{is_vision},
-            description  => $registry_entry->{name},
-            metadata     => {},
-        };
-    }
-}
-
-unless ($model_def) {
-    return {
-        'mode' => 'size',
-        'data' => "error: model not found: $model_id\n",
-    };
-}
-
-# Return model metadata with runtime parameters
-my $metadata = $model_def->{metadata} // {};
-my $response = {
-    model_id       => $model_id,
-    name           => $model_def->{name},
-    description    => $model_def->{description},
-    path           => $model_def->{path},
-    mmproj         => $model_def->{mmproj} // '',
-    quantization   => $model_def->{quantization},
-    is_vision      => $model_def->{is_vision} ? 1 : 0,
-    context_size   => $metadata->{context_size}   // 2048,
-    batch_size     => $metadata->{batch_size}     // 256,
-    threads        => $metadata->{threads}        // 4,
-    tokens_per_sec => $metadata->{tokens_per_sec} // 5,
-};
-
-my $json = JSON::PP::encode_json($response);
-
-return {
-    'mode' => 'size',
-    'data' => $json . "\n",
-};
-
-#,,,,,,,,,...,,..,,..,,,.,..,,.,.,..,,,..,,.,,..,,...,...,.,.,,.,,.,,,,..,..,,
-#EBJEYXIOVSJ4TDJDGO5NY5KUUVIFETFH7VV45KMBF4TPZVFSM3F5KWDVYZKZKIRNVKBYVSNCEO3LS
-#\\\|EL7EPELQ6JXA7JOJTQPQF4IMBTK34H6Q6SOUIEHFT2PRI74MEBQ \ / AMOS7 \ YOURUM ::
-#\[7]EPN7IZ6RVKPQWRA272D5JA4XIJ7VYHGUX5G6FYJRDTAHVM5HCGCQ 7  DATA SIGNATURE ::
+#,,..,...,...,,,,,..,,,.,,...,,,,,,,.,,,,,.,,,..,,...,.,.,.,.,.,,,,.,,...,,..,
+#4NHH5EIWL54QDZS3PFOLOXMAB2KETD7JLIU6DEUYKDVM4EQKRVYCKMYJDPC54STAONVSANCEJRZDI
+#\\\|3X3PHMTFNRPZZQC5DKF7DV63WG3MZ5BZUY5WFSOY66HGIRK4AWA \ / AMOS7 \ YOURUM ::
+#\[7]BBY5FQZPC4AZMJAKXXM4GATTIPAZQLXJVGBKTR7RJUTPVCHE6ICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

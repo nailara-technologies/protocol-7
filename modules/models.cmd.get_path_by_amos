@@ -1,8 +1,10 @@
 ## [:< ##
 
 # name  = models.cmd.get_path_by_amos
-# descr = Get model file path from registry by AMOS checksum (composite or single)
-# return = { mode, data } with file_path or error
+# descr = get model metadata by AMOS checksum (composite or single)
+# return = { mode, data } YAML-encoded model entry or error string
+
+use YAML::XS qw| Dump |;
 
 my $amos_id = $call->{'args'} // '';
 
@@ -13,49 +15,28 @@ unless ( defined $amos_id && length $amos_id ) {
     };
 }
 
-## Look up model in registry
-my $model_entry = <[models.registry.lookup]>->($amos_id);
+## unified lookup: aliases -> definitions -> discovered registry
+my $entry = <[models.resolve.entry]>->($amos_id);
 
-unless ( defined $model_entry ) {
+unless ( defined $entry ) {
     return {
         'mode' => 'size',
         'data' => "error: model not found: $amos_id\n"
     };
 }
 
-## Verify file_path exists
-unless ( defined $model_entry->{'file_path'}
-    && length $model_entry->{'file_path'} ) {
+## verify file exists on disk
+unless ( length $entry->{'file_path'} && -f $entry->{'file_path'} ) {
     return {
         'mode' => 'size',
-        'data' => "error: no file_path for model: $amos_id\n"
+        'data' => "error: model file not found: $entry->{'file_path'}\n"
     };
 }
 
-## Verify file exists on disk
-unless ( -f $model_entry->{'file_path'} ) {
-    return {
-        'mode' => 'size',
-        'data' => "error: model file not found: "
-            . $model_entry->{'file_path'} . "\n"
-    };
-}
+return { 'mode' => 'size', 'data' => Dump($entry) };
 
-## Return success with model metadata and file path
-my $response = ( $model_entry->{'file_path'} // '' ) . "\n";
-$response
-    .= "model_id: " . ( $model_entry->{'model_id'} // 'unknown' ) . "\n";
-$response .= "name: " . ( $model_entry->{'name'} // 'unknown' ) . "\n";
-$response .= "quantization: "
-    . ( $model_entry->{'quantization'} // 'unknown' ) . "\n";
-
-return {
-    'mode' => 'size',
-    'data' => $response
-};
-
-#,,..,,.,,,,,,.,.,,,,,,.,,,.,,,..,.,,,,,.,,,.,..,,...,...,.,,,..,,,..,.,,,...,
-#SIGMIGVEKZVVD6F43R67JGC42IEHLLCS4KNIZDMRC5RWDJ6VF4WGY37GOFRLCSFE3ET5V622M33L6
-#\\\|ZHLWYF6N4LCPOFYE7FJVPEZF4UUEWLO5Q22UM55UO4V2SEHDZAK \ / AMOS7 \ YOURUM ::
-#\[7]PRNGXIONNM6NYYE4FZDMTEL6QKXUJ26AJNAYUZTTOECTM4IF3ODI 7  DATA SIGNATURE ::
+#,,.,,,.,,..,,..,,...,,..,,.,,,..,..,,..,,..,,..,,...,...,..,,.,,,,.,,,.,,,,.,
+#ITLHPVQNIL7IJTHYSULNFL5EJUJ6Y6IJHIHD7HDJUIY4FO6TSE4QOTFFSOQAFM2GGWYH7OYJ6ES5Q
+#\\\|FB244R4D46KFQKXBAKQUHWPHJ5L7O3RSKDIYFW6GTMIFU7JVIXP \ / AMOS7 \ YOURUM ::
+#\[7]RBVYL3TAMA7LTJZM3FNYFL6F3NCSDTEXU6CYKMQ6XTO4RPZCQABQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

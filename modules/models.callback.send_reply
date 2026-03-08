@@ -1,0 +1,28 @@
+## [:< ##
+# name  = models.callback.send_reply
+# descr = send YAML reply via base.callback.cmd_reply
+# param = { reply_id, result_hashref }
+
+my $params   = shift                 // {};
+my $reply_id = $params->{'reply_id'} // '';
+my $result   = $params->{'result'}   // {};
+
+return unless length($reply_id);
+
+my $yaml_data = eval { YAML::XS::Dump($result) } // '';
+if ( length($yaml_data) ) {
+    <[base.log]>->( 1, "[send_reply] sending reply: reply_id=$reply_id" );
+    <[base.callback.cmd_reply]>->(
+        $reply_id, { 'mode' => 'size', 'data' => $yaml_data }
+    );
+    return TRUE;
+} else {
+    <[base.log]>->( 0, "[send_reply] YAML encode failed" );
+    return FALSE;
+}
+
+#,,..,.,.,...,.,.,.,,,,,.,.,,,,,.,...,.,,,,.,,..,,...,..,,...,.,.,,..,...,.,,,
+#CAMDZ7NXPTPFVWKHNMCY2GFIMK7PNH6BN67NVUWU2RUDIBKTPI7LU7CF22JNTB2PSABGIMPPSMKDK
+#\\\|BAC6INAW2YUUJSNR3GG4BBY4UZOGZRHXEW6T6SPD24ERXUDE6PC \ / AMOS7 \ YOURUM ::
+#\[7]6QO7JKLEXHOSXM7GGYQULOHUAVQBTXK7SQDZIHHBXYFLUZTKCSAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
