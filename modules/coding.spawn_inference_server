@@ -5,12 +5,41 @@
 
 my $params = shift;
 
-my $backend    = $params->{'backend'}    // qw| cpu |;
-my $binary     = $params->{'binary'}     // '';
-my $port       = $params->{'port'}       // 8000;
-my $threads    = $params->{'threads'}    // 8;
-my $gpu_layers = $params->{'gpu_layers'} // 33;
-my $model_path = $params->{'model_path'} // '';
+my $backend = $params->{'backend'} // qw| cpu |;
+my $port    = $params->{'port'}    // 8000;
+
+## look up binary from config if not explicitly provided ##
+my $binary = $params->{'binary'} // (
+    $backend eq 'gpu'
+    ? ( <inference.backend.gpu.binary>
+            // '/data/source/ik_llama.cpp/llama-server-cuda-fa' )
+    : ( <inference.backend.cpu.binary>
+            // '/data/source/ik_llama.cpp/llama-server-cpu' )
+);
+my $threads     = $params->{'threads'}     // 8;
+my $gpu_layers  = $params->{'gpu_layers'}  // 33;
+my $model_path  = $params->{'model_path'}  // '';
+my $mmproj_path = $params->{'mmproj_path'} // '';
+
+## cancel watchers, close fds, and kill old server before spawning new one ##
+my $old = <coding.inference_servers>->{$backend} // {};
+for my $w_key (qw| watcher_stdout watcher_stderr |) {
+    my $w = $old->{$w_key};
+    $w->cancel() if defined $w && $w->is_active();
+}
+for my $fh_key (qw| io_stdout io_stderr |) {
+    my $fh = $old->{$fh_key};
+    close($fh) if defined $fh;
+}
+if ( my $old_pid = $old->{'pid'} ) {
+    if ( kill( 0, $old_pid ) ) {    ## process still exists ##
+        kill( 'KILL', $old_pid );   ## SIGKILL : gpu servers ignore SIGTERM ##
+        <[base.logs]>->(
+            1, '[spawn_inference_server] killed old %s server [pid:%d]',
+            $backend, $old_pid
+        );
+    }
+}
 
 <[base.logs]>->(
     1,        "[spawn_inference_server] backend=%s port=%d",
@@ -39,8 +68,12 @@ if ( length($model_path) && !-f $model_path ) {
 ## Build llama-server command
 my @cmd = ( $binary, '--port', $port, qw|  --host  127.0.0.1  | );
 
-# Add model path if provided
+# add model path if provided
 push @cmd, '-m', $model_path if length($model_path);
+
+# add multimodal projector for vision models
+push @cmd, '--mmproj', $mmproj_path
+    if length($mmproj_path) && -f $mmproj_path;
 
 # disable log file for now [LLL] fix location and permissions [owner]
 push @cmd, qw| --log-disable --log-file /dev/null |;
@@ -77,6 +110,13 @@ if ( !$pid || $EVAL_ERROR ) {
     return { 'success' => FALSE, 'error' => $EVAL_ERROR // 'spawn failed' };
 }
 
+## set pipes to non-blocking : prevent event loop stall on partial reads ##
+for my $pipe_fh ( $server_out, $server_err ) {
+    my $flags = fcntl( $pipe_fh, Fcntl::F_GETFL(), 0 );
+    fcntl( $pipe_fh, Fcntl::F_SETFL(), $flags | Fcntl::O_NONBLOCK() )
+        if defined $flags;
+}
+
 <[base.logs]>->(
     1, "[spawn_inference_server] spawned: backend=%s pid=%d port=%d",
     $backend, $pid, $port
@@ -99,30 +139,34 @@ if ( !$pid || $EVAL_ERROR ) {
 };
 
 ## Register I/O handlers to monitor startup
-<[event.add_io]>->(
+my $watcher_out = <[event.add_io]>->(
     {   'fd'      => $server_out,
         'handler' => qw| coding.handler.monitor_inference_startup |,
         'data'    => {
             'backend'       => $backend,
+            'pid'           => $pid,
             'log_whitelist' => [qw| INFO |]
         },
         'poll' => qw| re |
     }
 );
 
-<[event.add_io]>->(
+my $watcher_err = <[event.add_io]>->(
     {   'fd'      => $server_err,
         'handler' => qw| coding.handler.monitor_inference_startup |,
         'data'    => {
             'backend'       => $backend,
+            'pid'           => $pid,
             'log_whitelist' => [qw| INFO |]
         },
         'poll' => qw| re |
     }
 );
 
-<coding.inference_servers>->{$backend}->{'io_stdout'} = $server_out;
-<coding.inference_servers>->{$backend}->{'io_stderr'} = $server_err;
+<coding.inference_servers>->{$backend}->{'io_stdout'}      = $server_out;
+<coding.inference_servers>->{$backend}->{'io_stderr'}      = $server_err;
+<coding.inference_servers>->{$backend}->{'watcher_stdout'} = $watcher_out;
+<coding.inference_servers>->{$backend}->{'watcher_stderr'} = $watcher_err;
 
 return {
     'success' => TRUE,
@@ -131,8 +175,8 @@ return {
     'port'    => $port
 };
 
-#,,.,,,.,,..,,...,,..,,,,,,..,..,,,.,,,,.,.,.,..,,...,...,..,,.,.,,,.,.,,,.,.,
-#QTPKRNE6LU3CDK6PYI2L2RXL35ZTZVUL5EQF5Q3RXVFA6B2PLEJ45JQPAQ47HYM5JIDXRIURMH2LQ
-#\\\|2RYFWC4VT6KYK3HSNEGFJDPJE7JD7TJI7EJIP3LTY4ERSPUUUKX \ / AMOS7 \ YOURUM ::
-#\[7]INKXKI466ZR5UIM5JNCKEGLVDZO3ZDGNT4VJRBXFTKE44NQ3QIDQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,.,...,..,,,,,,..,,,,,,,..,,..,.,,,..,,...,..,,...,,.,,..,,,,,,,.,,
+#CIUWCTHLXCQ5ZK6XUHV7W3ATVBG27Z3KMHTZ3HDZ4PWBWH4RWA7VWEJHW3NW3IIXYRNK2UDUYQL72
+#\\\|DERSTQRRXZ4M4VZ3QUXCUT3GF5LN3KVX5ANREZ3RIQZKUNUR5ED \ / AMOS7 \ YOURUM ::
+#\[7]AQX7JGJ47J5WOV6AQN3RIP5SWZN53SCEJ4FWMGXYEJAF5DYM4EBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

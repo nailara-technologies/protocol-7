@@ -10,9 +10,10 @@ unless ( length $args ) {
     return {
         mode => 'size',
         data =>
-            "Usage: switch-model <model_checksum> [backend=gpu|cpu|both]\n"
+            "Usage: switch-model <model_checksum> [backend=gpu|cpu|both|auto]\n"
             . "Example: switch-model IR65EUQ:ZGJ3K5Y\n"
             . "Example: switch-model IR65EUQ:ZGJ3K5Y backend=cpu\n"
+            . "Default: auto [ tries gpu, falls back to cpu if gpu lacks VRAM ]\n"
     };
 }
 
@@ -27,11 +28,11 @@ unless ( defined $model_checksum ) {
     };
 }
 
-$backend_opt = lc( $backend_opt // 'both' );
-unless ( $backend_opt =~ m{^(gpu|cpu|both)$} ) {
+$backend_opt = lc( $backend_opt // 'auto' );
+unless ( $backend_opt =~ m{^(gpu|cpu|both|auto)$} ) {
     return {
         mode => 'size',
-        data => "Error: backend must be gpu, cpu, or both\n"
+        data => "Error: backend must be gpu, cpu, both, or auto\n"
     };
 }
 
@@ -82,8 +83,8 @@ return {
         . "Restarting inference servers. This may take a moment.\n"
 };
 
-#,,,,,,,.,.,.,...,,,.,..,,..,,,,,,,,,,,.,,...,.,.,...,..,,...,..,,..,,,..,,.,,
-#EKNO4YOQHC2YI3YEXPTEOJRG4CGZWUVJ7JI37IREFYRLHTS7CWSD3MQUSFT2KHGEYSJUGCPLB3F74
-#\\\|N2SQJMPVBNPFC4PBJXDQ2H4ZRUEWJ4H7UBFPIQ7VNKOOM3OREMQ \ / AMOS7 \ YOURUM ::
-#\[7]UQ2BHOIN342ZV4XWPB5B2CQX7QHNHOVGTMLO7QQQPHLMWP4XBUBI 7  DATA SIGNATURE ::
+#,,,.,...,,,.,,,.,,,.,.,.,,,.,,,,,.,,,.,.,,,,,.,.,...,..,,.,.,.,.,.,.,.,,,.,.,
+#DTPKWRSWCDRDRBF2ZPCJTTVQCY76IVVVVQCHQF4NUAW4IX5PALIQF4P2XORRKWCC52YOBTLQEADN2
+#\\\|VZQE477TXJW3CE72CNQC62QYMISMZHIGI7BJW742TBDNET5VXU6 \ / AMOS7 \ YOURUM ::
+#\[7]MGNJPGKUXEUC2RDSH6LISMUFYRKFKIQEWWVWHPIQQB63YRCCXGBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

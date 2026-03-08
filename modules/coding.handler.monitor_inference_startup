@@ -6,11 +6,14 @@
 my $event        = shift->w;
 my $handler_data = $event->data;
 my $backend      = $handler_data->{'backend'};
+my $expected_pid = $handler_data->{'pid'};
 my $whitelist    = $handler_data->{'log_whitelist'} // [];
 
 my $server = <coding.inference_servers>->{$backend};
 
-unless ( defined $server ) {
+## stale watcher guard : cancel if server was replaced by a newer spawn ##
+if ( !defined $server
+    || ( defined $expected_pid && $server->{'pid'} != $expected_pid ) ) {
     $event->cancel if $event->is_active;
     return;
 }
@@ -75,7 +78,8 @@ if (
         $server->{'ready_logged'} = TRUE;
 
         ## trigger dependency recheck for waiting jobs ##
-        <[jobqueue.check_dependencies]>;
+        <[jobqueue.check_dependencies]>
+            if exists $code{'jobqueue.check_dependencies'};
     }
 }
 
@@ -83,11 +87,52 @@ if (
 if ( $bytes <= 0 ) {
     close($read_fh);
     $event->cancel if $event->is_active;
-    <[base.logs]>->( 2, "[monitor_startup] EOF : backend=%s", $backend );
+
+    ## Check if server became ready before EOF (normal) or crashed (error)
+    ## crash_logged guard : both stdout+stderr watchers fire EOF on crash ##
+    if ( !$server->{'ready_logged'} && !$server->{'crash_logged'} ) {
+        $server->{'crash_logged'} = TRUE;
+        <[base.logs]>->(
+            0, "[monitor_startup] backend=%s CRASHED before ready (exit)",
+            $backend
+        );
+        ## log last output lines to help diagnose the crash ##
+        my $crash_out = $server->{'output'} // '';
+        if ( length $crash_out ) {
+            my @lines = grep {length} split /\n/, $crash_out;
+            my @tail  = @lines > 3 ? @lines[ -3 .. -1 ] : @lines;
+            for my $line (@tail) {
+                <[base.logs]>->( 0, "[monitor_startup] :. %s", $line );
+            }
+        }
+        $server->{'status'} = qw| crashed |;
+
+        ## Mark dependency as failed by setting failed flag on object ##
+        my $dep_id
+            = $backend eq qw| gpu |
+            ? ( <coding.dep.gpu_server> // 0 )
+            : ( <coding.dep.cpu_server> // 0 );
+        if ( $dep_id && exists <dependency.object>->{$dep_id} ) {
+            <dependency.object>->{$dep_id}->{'failed'} = TRUE;
+            <dependency.object>->{$dep_id}->{'error'}
+                = 'server crashed during startup';
+            <[base.logs]>->(
+                1, "[monitor_startup] marked dependency %s as failed", $dep_id
+            );
+        }
+
+        ## Trigger dependency check so jobs can see failure and fail gracefully ##
+        <[jobqueue.check_dependencies]>
+            if exists $code{'jobqueue.check_dependencies'};
+    } else {
+        <[base.logs]>->(
+            2, "[monitor_startup] EOF : backend=%s (normal)", $backend
+        );
+    }
 }
 
-#,,..,..,,.,.,...,,,,,,..,,,.,..,,.,,,,.,,..,,..,,...,...,..,,...,..,,.,.,.,.,
-#ULNPQE4OC6X7YUKEEKJSLXU2L6PU6I2JIWDUWRZJ7XJ7UVVR24MYSN6UJBCDI55T4ESNMUMB3JUCK
-#\\\|PYAACNSE3GVGZ4IZ2YJSLCM7LUAGYWNYMVDO4HMF7FYJKTM3PZ5 \ / AMOS7 \ YOURUM ::
-#\[7]NANLIH53ZIPYNMRJJKRZT7FX43G54ZNNWMUQJL7E47VBJD5DWIBY 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,..,..,,,,,,.,.,,,,,,.,,,..,...,..,,...,...,..,,,,.,..,,.,,,,,.,
+#2G25LVHMIXRXZT6NHOO5JFFQYLKYIV3L7NINFUIGFEK5OVJLP7QPZA6I7EOXPGDJ4PMFKP6HHBYP2
+#\\\|JIWBIO45FLHYTTYPFDFL7D5UQTQETF5YEHGLFC3LCF2WDRRT72C \ / AMOS7 \ YOURUM ::
+#\[7]ZMSGCBFNVKG5K3AYYDDFMLUIS3QWTDOSJACRAXFIOS4J2RSEVEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

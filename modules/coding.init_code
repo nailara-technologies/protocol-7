@@ -12,7 +12,8 @@ my $first_init          = $already_initialized ? FALSE : TRUE; ## ^ inverse ##
 ## load all additionally used perl modules ##
 #
 <[base.perlmod.load]>->(qw| JSON::XS |);
-map { <[base.perlmod.autoload]>->($_) } qw| IPC::Open3 YAML::XS FreezeThaw |;
+map { <[base.perlmod.autoload]>->($_) }
+    qw| IPC::Open3 YAML::XS FreezeThaw Fcntl |;
 
 # Initialize coding zenka data structure
 <coding.state> //= {
@@ -221,14 +222,16 @@ my $cpu_port = <inference.backend.cpu.port> // 8001;
     qw| key |      => qw| coding.model_metadata |,
     qw| sort_key | => qw| reverse-num:size_gb |,     ## largest models first
     qw| descr |    => 'available inference models [marked with * = active]',
-    qw| mask |     => '<key>:model amos size_gb',
+    qw| mask |     => '<key>:amos-chksum-id name:model_name size_gb:size_GB',
     qw| align |    => {
-        qw| model |   => qw| left |,
-        qw| amos |    => qw| center |,
-        qw| size_gb | => qw| right-2 |,
+        qw| amos-chksum-id | => qw| center-1 |,
+        qw|   name  |        => qw|  left+1  |,
+        qw| size_gb |        => qw|  center  |,
     },
-    qw| filters | =>
-        { qw| model | => qw| coding.parser.model_name_with_selection |, }
+    qw| filters | => {
+        qw| amos-chksum-id | => qw| coding.parser.model_name_with_selection |,
+        qw| name |           => qw| coding.parser.ellipse_model_name |,
+    }
 };
 
 ## register with event system
@@ -270,8 +273,8 @@ if ( not $already_initialized ) {
 
 return 0;
 
-#,,,,,,..,,,,,.,.,...,.,.,..,,..,,,,.,,..,,,,,..,,...,...,...,.,,,,,.,,,,,,,.,
-#7AVGBPPBDOCTV5SXOY3BT7NQORSXIVZQGZYKU6Q5VXLV6LEVHY34E5IDRI4VIBYXHU4NOQZGNCHSE
-#\\\|G5IV2BSDWGPHODKB3MELVCF5E7WTTG6AGJSZEDJUHO46UTZFAPU \ / AMOS7 \ YOURUM ::
-#\[7]VDVDENCPEBZAXZ2HADRK2H4M3NG2FQYZ266ESHYZ2NTKU4GBMAAA 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,..,.,.,..,,...,,,,,,,,,,..,..,,..,,...,...,...,..,,,,,,,..,...,
+#MFIE7LEJQRT4XOSRS27VBAT25PG6XSV7VZ5JDJ7W4MOMEBP36UQKA2KFXURP6LQ5S6AF7QMKEWACI
+#\\\|FA7FX5ZXZSWCYYDSOMYRMKE4P67HT24AOZ5PGVTLXZ4L7KPSGMJ \ / AMOS7 \ YOURUM ::
+#\[7]PXCL7KLG6TMUP3TQUTH3JXCXKHAQHJZY5U3X574BKOLJ4MFZB2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

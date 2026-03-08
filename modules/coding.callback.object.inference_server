@@ -7,43 +7,33 @@ my $object_id = shift;
 return undef if not exists <dependency.object>->{$object_id};
 
 my $object = <dependency.object>->{$object_id};
-my $port   = $object->{'port'};
 
-return undef if not defined $port;
-
-## quick check: is port listening? ##
-my $check_cmd      = sprintf 'ss -tlnp 2>/dev/null | grep -q ":%d "', $port;
-my $port_listening = system($check_cmd) == 0 ? 1 : 0;
-
-## fallback socket check if ss not available ##
-if ( !$port_listening ) {
-    $port_listening = eval {
-        use IO::Socket::INET;
-        my $sock = IO::Socket::INET->new(
-            PeerAddr => '127.0.0.1',
-            PeerPort => $port,
-            Proto    => 'tcp',
-            Timeout  => 1
-        );
-        return $sock ? 1 : 0;
-    };
+## check if permanently failed [ flagged by monitor_inference_startup ] ##
+if ( $object->{'failed'} ) {
+    <[base.logs]>->(
+        1,
+        "[dep_check] backend=%s dependency marked as failed: %s",
+        $object->{'backend'} // 'unknown',
+        $object->{'error'}   // 'unknown error'
+    );
+    return FALSE;
 }
 
-return FALSE unless $port_listening;    ## port not open ##
+my $backend = $object->{'backend'} // 'gpu';
 
-## verify http server is actually responding ##
-my $http_ready = eval {
-    use LWP::UserAgent;
-    my $ua       = LWP::UserAgent->new( timeout => 2 );
-    my $response = $ua->get("http://127.0.0.1:${port}/health");
-    return $response->is_success ? 1 : 0;
-};
+## read server status set by monitor_inference_startup [ non-blocking ] ##
+my $server = ( <coding.inference_servers> // {} )->{$backend};
 
-return TRUE if $http_ready;
-return FALSE;                           ## http not ready yet ##
+return undef unless defined $server;    ## not spawned yet ##
 
-#,,.,,..,,,..,,,.,,,,,..,,.,,,...,..,,..,,..,,.,.,...,..,,...,,,.,...,..,,...,
-#CJ5WCBJC4TUC7DS3JXMKSCXJRN5PJO7GP2J3RUU53HIPR4GOMLH2TJIGFL737EAOI3DHFQI5PUNNC
-#\\\|HYP5UH7N27A6BMDPRYAXX3QSMOEL6Q7R43PZSMFWG5OMRUMOP2D \ / AMOS7 \ YOURUM ::
-#\[7]NNA6KTEFRPJH3XBN377JJXVFWQJYM4MJOY3SD5IEU5NQC3OPEKBY 7  DATA SIGNATURE ::
+my $status = $server->{'status'} // 'starting';
+
+return FALSE if $status eq qw| crashed |;
+return TRUE  if $status eq qw| ready |;
+return undef;                           ## still starting ##
+
+#,,.,,,,.,...,,,,,,.,,..,,.,.,,,,,,,.,...,,,,,.,.,...,...,.,,,,.,,..,,,..,.,,,
+#WBTNXLPFGD6URYS5ZQJXJENS2BBRY6W23S3WAE7MRHITXDYU5HB3BU2GGNT3LRHUHVSTTWVGNLFKO
+#\\\|UVF6GRGLAWGI3MGUFKMOYKLTPNDLYJQZMO2TNPLPK2Y22IZBO2N \ / AMOS7 \ YOURUM ::
+#\[7]WE5FFEQZPDWGX6TTKOL2KAH2SPMD7AKTE34XLWI2L6EBX7P2S2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
