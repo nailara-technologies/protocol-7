@@ -642,8 +642,8 @@ return [ qw[
         mpv.cmd.drop_buffers
         mpv.cmd.current-file
         mpv.callback.fade_in
+        models.resolve.entry
         models.registry.save
-        models.registry.path
         models.registry.load
         models.registry.init
         models.registry.base
@@ -1412,6 +1412,7 @@ return [ qw[
         coding.queue.enqueue_task
         coding.queue.dequeue_next
         coding.event.on_task_fail
+        coding.cmd.clear-registry
         coding.analyze.complexity
         channels.util.yaml_encode
         channels.util.yaml_decode
@@ -1523,6 +1524,7 @@ return [ qw[
         models.conversation_create
         models.conversation.create
         models.cmd.add_participant
+        models.callback.send_reply
         llm.service.consensus_vote
         letsencr.parent.cmd.status
         letsencr.child.get_rsa_jwk
@@ -1650,6 +1652,7 @@ return [ qw[
         models.parser.str.is_vision
         models.parser.gguf_metadata
         models.local_server_manager
+        models.handler.llm_response
         models.conversation.compact
         models.cmd.list_attachments
         models.cmd.get_path_by_amos
@@ -2277,6 +2280,7 @@ return [ qw[
         coding.routing.get_routing_stats
         coding.routing.determine_service
         coding.routing.check_cache_first
+        coding.parser.ellipse_model_name
         coding.parser.dependency_backend
         coding.handler.refresh_mem_stats
         channels.cmd.next-data-timestamp
@@ -2408,9 +2412,7 @@ return [ qw[
         pdf.html.child.check_cache_timeout
         nshell.hook.unknown_command_global
         nodes.handler.discover_node_online
-        models.registry.save.save_registry
         models.registry.populate_from_yaml
-        models.registry.load.load_registry
         models.conversation.consensus_vote
         models.cfg.auto_announce_threshold
         models.callback.inference_endpoint
@@ -2608,7 +2610,6 @@ return [ qw[
         protocol-7-menu.graphical-startup-init
         protocol-7-menu.cmd.menu-update-notify
         mpv.handler.event.property-change.path
-        models.registry.base.get_registry_path
         models.memory.generate_unique_checksum
         models.handler.read_inference_response
         mod-test.callback.reload-test.add-link
@@ -2728,8 +2729,6 @@ return [ qw[
         tile-groups.tile_activity.change_poll_timer
         mpv.handler.event.property-change.core-idle
         models.storage.check_space.check_tier_space
-        models.registry.empty.create_empty_registry
-        models.registry.base.save_registry_internal
         mod-test.callback.reload-test.is_registered
         letsencr.parent.handler_challenge_validated
         letsencr.parent.handler_challenge_confirmed
@@ -2752,7 +2751,6 @@ return [ qw[
         coding.vision-parser.cmd.analyze_and_extract
         coding.learning.analyze_model_specialization
         coding.handler.models_find_alternative_reply
-        models.registry.path.get_registry_path_public
         letsencr.parent.install_certificate_to_httpsd
         letsencr.parent.determine_certificate_domains
         image2html.parent.handler.convert_image_reply
@@ -2833,8 +2831,8 @@ return [ qw[
     ]
 ];
 
-#,,,.,,,,,.,.,,,.,.,.,,,.,,..,,,.,.,,,...,,,.,.,.,...,...,.,,,..,,,,,,,.,,...,
-#YWDE6YLORMDPHKGLBJZADFMMOFP4KD7RUGGM3FYQX2YJEY37W3Y2YXNRFCBZEBUJ6U2NDJXUJAUAU
-#\\\|UQU64TRNMUCNPENHSJMLEND2JNMXXML6HR2JRKE3FEC5EPO7HYO \ / AMOS7 \ YOURUM ::
-#\[7]NKUO7E47M4MMLTODTUHQNQFM5JEZTBZR4JQVKLCAQ6LGXAY2FUCY 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,,.,,.,.,.,.,,,.,.,.,.,.,,,,,...,.,.,...,...,.,,,,,,,,,,,.,,,,..,
+#LAXHGRS6HD6ZHQDT3DUPECCUTFELYMMPIWV6EGQ3CEWWUVZSDV6IFNSMCGB2I2H6EVI6OQPKIPHUS
+#\\\|I6EUWLF7F532RGRGADOOXZAOAOPXISFX3YW4EI6UZUX7WPSOC76 \ / AMOS7 \ YOURUM ::
+#\[7]ZLHZ4RN4UWKHA3PPB4YJQEYDEGT25JQLTSL3Z4NPLWZLNGMEBCCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

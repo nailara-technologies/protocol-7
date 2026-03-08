@@ -6,20 +6,23 @@ return if not exists <system.report_children> or !@{<system.report_children>};
 
 return warn 'zenka not initialized' if !<system.zenka.initialized>;
 
-my $route_str = <system.net.cube_route> // 'cube';
+my $route_str = <system.net.cube_route> // qw| cube |;
 $route_str .= '.' if length($route_str);
 
+my @pending = <system.report_children>->@*;
+<system.report_children>->@* = ();    ## clear before sending ##
+
 map {
-    <[base.log]>->( 1, "reporting child process [PID:$ARG] to 'v7'" );
-    <[protocol-7.command.send.local]>->(
+    <[base.logs]>->( 1, "reporting child process [PID:%d] to 'v7'", $ARG );
+    <[protocol-7.command.send.local]>->(   ## [LLL] use new route-send command
         {   'command'   => "${route_str}v7.register_child",
             'call_args' => { 'args' => $ARG }
         }
     );
-} @{<system.report_children>};
+} @pending;
 
-#,,,.,,,.,,,.,,,.,.,.,...,.,.,.,.,,.,,..,,.,.,..,,...,...,,..,,..,,.,,..,,,..,
-#74T2OXZWPB7BCXYAJGUQS44UH2VUU24V62J4DO6ISIJDHBMITES2JHEEINPUZMR3SYNW4KF6F5UQE
-#\\\|LO5CGU52V5VKI7CDIC6HRKM5DRHKXTGQCB2UQAY65PZ43HSDE2B \ / AMOS7 \ YOURUM ::
-#\[7]7GIMUPRVALTTS2LJK4YRWITNWTCG5ZCVKIMYWFFHBGFZVW2RRWDA 7  DATA SIGNATURE ::
+#,,,,,,,,,..,,,,.,,,.,,,,,.,.,,..,,,.,..,,..,,..,,...,...,,,,,...,,..,...,...,
+#AR75WHFLPXISZCMZEQTLKSYZL77P5CDUC5UC3LEX5PUKXIEIVZDA4XXOHMPSBMB62LYBRYMXYH4YE
+#\\\|DHRJUDDM4KQUX32RHAN6TRSN5BEDMHXHZE6WUK5NMGEH2BFUODX \ / AMOS7 \ YOURUM ::
+#\[7]32ZHW7JRSSJN5UPDHY3YI6TVJIWYYLYGPYXQ5P53XLJVGDI4S6DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
