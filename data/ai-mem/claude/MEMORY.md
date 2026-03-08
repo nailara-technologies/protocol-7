@@ -13,6 +13,23 @@
 - Leave new files clean; `bin/Protocol-7 sourcecode update-signatures` adds the real 4-line footer
 - Real footer: checksum line, hash line, two AMOS7/YOURUM lines, separator
 
+## coding zenka switch-model fixes (Mar 8 2026)
+- **Root cause of event loop freeze**: `@lines[-3..-1]` slice when `@lines < 3` throws
+  "Modification of non-creatable array value attempted" (lvalue for-loop alias context);
+  `base.event.handler.exceptions` catches it but the watcher re-fires endlessly at 93% CPU.
+  Fix: `my @tail = @lines > 3 ? @lines[-3..-1] : @lines`
+- **Double crash log**: stdout+stderr watchers both fire EOF → both run crash handler;
+  fixed with `$server->{'crash_logged'}` flag to suppress duplicate.
+- **Blocking dependency callback**: `coding.callback.object.inference_server` had `system(ss)` +
+  `IO::Socket::INET(Timeout=>1)` + `LWP::UserAgent(timeout=>2)` — all replaced with status
+  lookup from `<coding.inference_servers>->{$backend}->{'status'}` (set by monitor_inference_startup)
+- **Blocking health check**: `coding.handler.spawn_smart` LWP call replaced with status check
+- **Blocking IPC pipes**: `IPC::Open3` pipes are blocking by default; fixed with `fcntl O_NONBLOCK`
+  on `$server_out`/`$server_err` after `open3()` in `coding.spawn_inference_server`
+- **`Fcntl` loaded**: added to `coding.init_code` perlmod.autoload list
+- **log.send-buffer counter_overflow_reset loop**: cosmetic — log burst from crash handling fills
+  send-buffer past overflow threshold repeatedly; stops naturally when burst ends
+
 ## System Status
 - **HTTPS (httpsd)**: production cert on pri.v7.ax ✅ full chain served (leaf + R12 via .pem)
 - **Models memory system**: completed ✅ collision-free AMOS checksums, `[:memory:CHECKSUM]` expansion
@@ -37,6 +54,12 @@
 - **work zenka cleanup** (Mar 4 2026): completed ✅ — commit `8f81bfdb1`
   Removed network modules, 8 obsolete work.cmd.* deleted; work.init_code splits remotes string
   to arrayref; explicit remotes: `hub ext-bundle`
+- **models registry consolidation** (Mar 8 2026): completed ✅ — JSON registry removed,
+  unified `models.resolve.entry` (aliases→definitions→registry), both `get_path_by_amos`
+  and `get_model_path` now return YAML with consistent fields (file_path, mmproj_path,
+  is_vision, quantization, context_size, batch_size); coding+lm-vision handlers parse YAML;
+  `coding.spawn_inference_server` gains `--mmproj` support; 7 dead JSON modules deleted;
+  `update_model_entry` now saves via `yaml_save` (single source of truth)
 - **non-blocking socket read fix** (Mar 7 2026): completed ✅ — commit `0c590de22`
   Three bugs: (1) `io.unix.socket.input.connect` missing `blocking(0)` after accept() — TCP/SSL
   had it from `2d64177a3` but unix was missed, freezing event loop on partial input; (2)
@@ -214,8 +237,8 @@
 - `unset` inside a tool call doesn't persist; prefix the git commit instead:
   `PERSISTENT_AMEND=0 git commit -m "..."`
 
-#,,..,,,.,.,.,,,.,.,.,,..,...,,.,,,,,,.,.,...,..,,...,...,.,,,..,,..,,,,,,.,.,
-#WAIDVGCEFNPBL4CRVZ3TKZ4TLQRA6P7KHH4YOATHFZEDHWZT4BRY6QGF3SREIRKDC53VBLKOTKO7Y
-#\\\|NF6ULLLSVXUGDRGLZVTXWD455N534FOQIONHPCI76ICKTWLOLRO \ / AMOS7 \ YOURUM ::
-#\[7]ZZKY6DHRJ4MS2Q5BZY6TJGX6QVXP5UNFFXBYNAFBUEIPGHDCWMCI 7  DATA SIGNATURE ::
+#,,,.,...,.,.,...,.,,,..,,..,,.,,,,.,,,,.,,,,,..,,...,...,,..,..,,,..,,.,,,,.,
+#C6UUKOROT6BTDYL6GVXLOSWRYL32FBK4FHVWBNRA5LYFJWKWZAMEWDWDMI4Q4U4YM5I7Q4QHDBREI
+#\\\|DXXSRVCSE4A2OCUKE4WMDKP72W7XQNF75GKJ3ZWLKFKWGMIL3TU \ / AMOS7 \ YOURUM ::
+#\[7]F3AVG34DB43YFJSP6D3RM62LRUYHOERTOHDCXX33R4LC53PLPGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
