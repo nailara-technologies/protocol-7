@@ -1,60 +1,62 @@
 ## [:< ##
 
 # name = lm-vision.fetch_model_config
-# descr = Handle async response from models.get_model_path for vision config
+# descr = handle async response from models.get_model_path for vision config
 
-<[base.perlmod.autoload]>->(qw| JSON::PP |);
+use YAML::XS qw| Load |;
 
 my $reply = shift;
 
-# Extract response data from reply
 my $response_data = $reply->{'data'} // '';
 
 <[base.logs]>->(
-    1, "[lm-vision] fetch_model_config: received %d bytes",
+    1, '[lm-vision] fetch_model_config: received %d bytes',
     length($response_data)
 );
 
-# Parse model configuration from response
-if ( $response_data && length($response_data) > 0 ) {
-    my $model_data;
-    eval { $model_data = JSON::PP::decode_json($response_data); };
-
-    if ( $model_data && ref($model_data) eq qw| HASH | ) {
-        my $model_path  = $model_data->{path};
-        my $mmproj_path = $model_data->{mmproj};
-
-        if ( -f $model_path && -f $mmproj_path ) {
-            <lm-vision.vision_model_path>  = $model_path;
-            <lm-vision.vision_mmproj_path> = $mmproj_path;
-
-            <[base.log]>->(
-                1, "[lm-vision] Vision model loaded: %s", $model_path
-            );
-            <[base.log]>->(
-                1, "[lm-vision] Multimodal proj: %s", $mmproj_path
-            );
-
-            return 1;
-        } else {
-            <[base.log]>->( 0, "[lm-vision] Error : Model files not found" );
-        }
-    } else {
-        <[base.log]>->(
-            0, "[lm-vision] Error: Failed to parse model configuration JSON"
-        );
-    }
-} else {
-    <[base.log]>->(
-        0,
-        "[lm-vision] Error: Empty or missing response data from models zenka"
-    );
+## check for error response
+if ( $response_data =~ m|^error:| ) {
+    my ($err_line) = split( m|\n|, $response_data );
+    <[base.log]>
+        ->( 0, '[lm-vision] fetch_model_config error: %s', $err_line );
+    return 0;
 }
 
-return 0;
+## parse YAML response
+my $model_data;
+eval { $model_data = Load($response_data) };
+if ( $EVAL_ERROR || !ref($model_data) ) {
+    <[base.log]>->( 0, '[lm-vision] failed to parse model config YAML' );
+    return 0;
+}
 
-#,,.,,.,,,,,.,,..,.,,,,,,,,,.,,.,,,,,,,..,..,,..,,...,...,...,.,,,,,,,.,.,.,,,
-#PEJE2MB7FZYGFZYV5SRPZ7ZMDNN7C2HJZITB2VXVFRWQIXDKIW7LL6KUALHX6PFVCJFEHUI5WB26I
-#\\\|KYM5AJ3W5MI55K2AZNVSXENSV5IMAFQGAPIBE45Y63X4I4E2KUJ \ / AMOS7 \ YOURUM ::
-#\[7]N44EXLWX3VG2MYPGTSYAQYVHSUMV5RPGFAIVKRD4UYIVMOBYVSDQ 7  DATA SIGNATURE ::
+my $model_path  = $model_data->{'file_path'}   // '';
+my $mmproj_path = $model_data->{'mmproj_path'} // '';
+
+## for vision models, mmproj is required; for non-vision it may be empty
+my $is_vision = $model_data->{'is_vision'} // 0;
+if ( $is_vision && !-f $mmproj_path ) {
+    <[base.log]>
+        ->( 0, '[lm-vision] mmproj file not found: %s', $mmproj_path );
+    return 0;
+}
+
+unless ( -f $model_path ) {
+    <[base.log]>->( 0, '[lm-vision] model file not found: %s', $model_path );
+    return 0;
+}
+
+<lm-vision.vision_model_path>  = $model_path;
+<lm-vision.vision_mmproj_path> = $mmproj_path;
+
+<[base.log]>->( 1, '[lm-vision] vision model loaded: %s', $model_path );
+<[base.log]>->( 1, '[lm-vision] multimodal proj: %s',     $mmproj_path )
+    if length $mmproj_path;
+
+return 1;
+
+#,,.,,,..,...,...,.,,,.,,,.,.,...,.,,,..,,,,,,..,,...,...,.,,,..,,,,,,.,.,,..,
+#7MJSJUP25VX7NHYAQXQRHYZN4T7YP5GGAUDM376TAPMKE4HNCEZP7SU7DG6HZG6AV6T3ZVRT3XZAG
+#\\\|FSVM3K24XTTEEFXL7J5XRPEBWYAGRQALZHJ7GEW3QYG54NJJ75I \ / AMOS7 \ YOURUM ::
+#\[7]26M5KHTD44NOG4DW6QPJNERQ3DE444W6EDH7P3W4CTQVKAS7KEAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

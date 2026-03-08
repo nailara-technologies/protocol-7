@@ -1,206 +1,126 @@
 ## [:< ##
-
-# name = models.backend.local.invoke
-# descr = Local backend for on-device LLM models served via llama-server
+# name  = models.backend.local.invoke
+# descr = local backend for on-device LLMs with AnyEvent::HTTP
 
 my $params = shift;
 
-my $participant_id = $params->{'participant_id'}  // '';
-my $job_id         = $params->{'job_id'}          // '';
-my $model_id       = $params->{'model_id'}        // '';
-my $system_prompt  = $params->{'system_prompt'}   // '';
-my $messages       = $params->{'messages'}        // [];
-my $temperature    = $params->{'temperature'}     // 0.7;
-my $max_tokens     = $params->{'max_tokens'}      // 4096;
-my $timeout_secs   = $params->{'timeout_seconds'} // 30;
-my $context        = $params->{'context'}         // 'backend';
-my $reply_id       = $params->{'reply_id'};
+## Extract parameters ##
+my $participant_id  = $params->{'participant_id'} // '';
+my $job_id          = $params->{'job_id'}         // '';
+my $model_id        = $params->{'model_id'}       // '';
+my $reply_id        = $params->{'reply_id'}       // '';
+my $system_prompt   = $params->{'system_prompt'}  // '';
+my $system_template = $params->{'system_template'}
+    // 'configuration/models/system-messages/coding-assistant.tmpl';
+my $messages    = $params->{'messages'}         // [];
+my $temperature = $params->{'temperature'}      // 0.7;
+my $max_tokens  = $params->{'max_tokens'}       // 2048;
+my $llama_url   = $params->{'llama_server_url'} // 'http://127.0.0.1:8080';
 
-return {
-    'success' => FALSE,
-    'error'   => 'participant_id required'
-    }
-    unless length($participant_id);
-
-return {
-    'success' => FALSE,
-    'error'   => 'model_id required'
-    }
+## Validate required params ##
+return { 'success' => FALSE, 'error' => 'no model_id' }
     unless length($model_id);
+return { 'success' => FALSE, 'error' => 'no messages' }
+    unless @$messages;
 
-unless ( ref($messages) eq 'ARRAY' && scalar( @{$messages} ) > 0 ) {
-    return {
-        'success' => FALSE,
-        'error'   => 'messages must be non-empty array'
-    };
-}
+## Generate inference ID for tracking ##
+my $inference_id
+    = <[chk-sum.elf.vax-BASE32]>->( $job_id . <[base.time]>->(2) );
 
-my $start_time = <[base.time]>->(4);
-
-## Check if this is a vision task (has image_path parameter)
-my $image_path = $params->{'image_path'} // '';
-my $model_path = $params->{'model_path'} // '';
-
-if ( length($image_path) && -f $image_path ) {
-    ## Route to vision backend (CLI-based, not HTTP)
-    return <[models.backend.local.vision]>->(
-        {   'participant_id' => $participant_id,
-            'job_id'         => $job_id,
-            'model_id'       => $model_id,
-            'system_prompt'  => $system_prompt,
-            'messages'       => $messages,
-            'image_path'     => $image_path,
-            'model_path'     => $model_path,
-            'temperature'    => $temperature,
-            'max_tokens'     => $max_tokens,
-            'context'        => $context,
+## Render dynamic system message from template if no explicit prompt ##
+if ( !length($system_prompt) && length($system_template) ) {
+    my $template_result = <[web.cmd.render-template]>->(
+        {   template_path => $system_template,
+            meta          => { model => $model_id, context => 'local' },
+            budget        => 2000,
+            session_id    => "local_invoke_$job_id",
         }
     );
+    if ( $template_result->{'status'} eq qw| success | ) {
+        $system_prompt = $template_result->{'content'};
+        <[base.log]>->(
+            2,
+            "[local.invoke] system message rendered ("
+                . "$template_result->{'elapsed_ms'}ms, "
+                . length($system_prompt)
+                . " chars)"
+        );
+    } else {
+        <[base.log]>->(
+            1,
+            "[local.invoke] render failed: " . $template_result->{'message'}
+        );
+        $system_prompt = 'you are a protocol-7 assistant.';
+    }
 }
 
-## Build request payload for llama-server /v1/chat/completions (text/code)
-my $request_payload = {
-    'model'       => $model_id,
-    'messages'    => $messages,
-    'temperature' => $temperature,
-    'max_tokens'  => $max_tokens,
+## Build request payload ##
+my $payload = {
+    model       => $model_id,
+    messages    => $messages,
+    temperature => $temperature,
+    max_tokens  => $max_tokens,
+    stream      => JSON::PP::false,
+};
+$payload->{'system'} = $system_prompt if length($system_prompt);
+
+## Encode JSON ##
+my $json_body = eval { JSON::PP::encode_json($payload) };
+if ($@) {
+    <[base.log]>->( 0, "[local.invoke] JSON encode error: $@" );
+    return { 'success' => FALSE, 'error' => 'json_encode_failed' };
+}
+
+## Store request metadata for callback ##
+<models.pending.requests>->{$inference_id} = {
+    job_id         => $job_id,
+    participant_id => $participant_id,
+    model_id       => $model_id,
+    reply_id       => $reply_id,
+    start_time     => <[base.time]>->(2),
 };
 
-$request_payload->{'system'} = $system_prompt if length($system_prompt);
-
-## Get llama-server endpoint from coding zenka or fallback to localhost
-my $endpoint_check = <[models.get_inference_endpoint]>->(
-    {   'backend_type' => 'cpu',
-        'context'      => $context,
+## Submit async HTTP request via AnyEvent::HTTP ##
+## Watcher registered directly into Event.pm - no polling! ##
+http_post(
+    "$llama_url/v1/chat/completions",
+    $json_body,
+    headers => {
+        'Content-Type' => 'application/json',
+        'Accept'       => 'application/json',
+    },
+    sub {
+        my ( $body, $headers ) = @_;
+        <[models.handler.llm_response]>->(
+            {   inference_id => $inference_id,
+                body         => $body,
+                headers      => $headers,
+            }
+        );
     }
 );
 
-my $llama_server_url = $endpoint_check->{'endpoint'}
-    // <models.llama_server_url> // 'http://127.0.0.1:8000';
+<[base.log]>->( 2, "[local.invoke] request submitted: $inference_id" );
 
-## Generate unique inference ID
-my $inference_id = "$job_id:$participant_id:" . int( <[base.time]>->(2) );
-
-## Prepare JSON payload
-my $json_payload = JSON::PP::encode_json($request_payload);
-
-## Write payload to temp file for curl
-my $temp_file = "/tmp/llama_req_$$.json";
-open( my $payload_fh, '>', $temp_file )
-    or die "Cannot write temp file: $!";
-print $payload_fh $json_payload;
-close($payload_fh);
-
-## Build curl command for async execution
-my @curl_cmd = (
-    'curl',                                  '-s',
-    '-m',                                    $timeout_secs,
-    '-X',                                    'POST',
-    "$llama_server_url/v1/chat/completions", '-H',
-    'Content-Type: application/json',        '-d',
-    "\@$temp_file"
-);
-
-## Spawn curl process asynchronously with open3
-my ( $curl_in, $curl_out, $curl_err );
-$curl_err = Symbol::gensym();
-
-my $pid = eval {
-    use IPC::Open3;
-    delete $ENV{'http_proxy'};
-    delete $ENV{'https_proxy'};
-    delete $ENV{'HTTP_PROXY'};
-    delete $ENV{'HTTPS_PROXY'};
-    delete $ENV{'ALL_PROXY'};
-    $ENV{'NO_PROXY'} = 'localhost,127.0.0.1';
-
-    IPC::Open3::open3( $curl_in, $curl_out, $curl_err, @curl_cmd );
-};
-
-if ( !$pid || $EVAL_ERROR ) {
-    unlink($temp_file);
-    <[base.logs]>->(
-        2, "[$context] failed to spawn inference: participant=%s error=%s",
-        $participant_id, $EVAL_ERROR // 'unknown error'
-    );
+## Return immediately (non-blocking) ##
+## If reply_id provided, async callback will handle response ##
+if ( length($reply_id) ) {
     return {
-        'success'        => FALSE,
-        'model_id'       => $model_id,
-        'participant_id' => $participant_id,
-        'error'          => "Failed to spawn inference: $EVAL_ERROR",
-        'rate_limited'   => 0,
-        'elapsed_ms'     => ( <[base.time]>->(4) - $start_time ) * 1000
+        'success' => TRUE,
+        'pending' => TRUE,
+        'async'   => TRUE,
+    };
+} else {
+    ## Synchronous fallback - return inference_id for polling
+    return {
+        'success'      => TRUE,
+        'pending'      => TRUE,
+        'inference_id' => $inference_id,
     };
 }
 
-## Report child PID to v7 for lifecycle management
-<[base.zenki.report_child_pid]>->($pid);
-
-## Store pending inference job
-<models.pending_inferences>->{$inference_id} = {
-    'pid'            => $pid,
-    'job_id'         => $job_id,
-    'participant_id' => $participant_id,
-    'model_id'       => $model_id,
-    'system_prompt'  => $system_prompt,
-    'messages'       => $messages,
-    'context'        => $context,
-    'start_time'     => $start_time,
-    'timeout_secs'   => $timeout_secs,
-    'output'         => '',
-    'errors'         => '',
-    'curl_out'       => $curl_out,
-    'curl_err'       => $curl_err,
-    'temp_file'      => $temp_file,
-    'rdr_closed'     => 0,
-    'err_closed'     => 0,
-    'reply_id'       => $reply_id,
-};
-
-<[base.logs]>->(
-    1, "[$context] inference spawned: id=%s job=%s participant=%s pid=%d",
-    $inference_id, $job_id, $participant_id, $pid
-);
-
-## Register non-blocking I/O handler for curl stdout (data reading - lightweight)
-my $io_handler_stdout = <[event.add_io]>->(
-    {   'fd'      => $curl_out,
-        'handler' => qw| models.handler.read_inference_response |,
-        'data'    => $inference_id,
-        'poll'    => qw| r |
-    }
-);
-
-<models.pending_inferences>->{$inference_id}->{'io_handler_stdout'}
-    = $io_handler_stdout;
-
-## Register non-blocking I/O handler for curl stderr (completion trigger via exception)
-my $io_handler_stderr = <[event.add_io]>->(
-    {   'fd'      => $curl_err,
-        'handler' => qw| models.handler.check_inference_completion |,
-        'data'    => $inference_id,
-        'poll'    => qw| e |
-    }
-);
-
-<models.pending_inferences>->{$inference_id}->{'io_handler_stderr'}
-    = $io_handler_stderr;
-
-## Return immediately with pending status
-## Response will be delivered asynchronously via event handlers
-return {
-    'success'        => TRUE,
-    'pending'        => TRUE,
-    'inference_id'   => $inference_id,
-    'model_id'       => $model_id,
-    'participant_id' => $participant_id,
-    'job_id'         => $job_id,
-    'message'        => 'inference spawned, response pending',
-    'rate_limited'   => 0,
-};
-
-#,,.,,,.,,..,,...,...,,,.,,,,,.,.,.,,,,,.,,,.,..,,...,...,,..,...,,,,,,,,,,..,
-#MP3KPNQIFIATMANR2QTLD2A4MNGQAGI2Y5FCIPMSIFVMXZ4EEOHNRVB6UCZXHNW5KVEW772LIOB4Y
-#\\\|QKKMYA3FLIAAGYM3GD4PUATHVESEZFJ32NL73TSZWNTGIDKBQ23 \ / AMOS7 \ YOURUM ::
-#\[7]WKAYBNXJ4O4P3W7UQ5HS677H6TEBAX3DBP5J6E2LMYNCJGE6CYBQ 7  DATA SIGNATURE ::
+#,,,.,...,,.,,,.,,,.,,.,,,.,.,..,,...,,,.,.,,,.,.,...,...,...,,.,,..,,,,.,,..,
+#WXHXFWCBSYNHDGYPJASW4WELWPFKFUPFPP3MKRYEYUH5PJQWX4NNRG7SP365I3UPW6XY4UW5IJDR4
+#\\\|IVKC6JXMTM457TMCT5MJXJIMRT3NE3K5DJHX4637MR2LSBAYHT4 \ / AMOS7 \ YOURUM ::
+#\[7]OQBZQEZ3ZG2D36Q6FUMZAQY7YUVFOQUUCHRXIZPHARY3FXQVQKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
