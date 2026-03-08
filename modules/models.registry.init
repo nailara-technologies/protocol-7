@@ -1,28 +1,16 @@
 ## [:< ##
 
 # name = models.registry.init
-# descr = Initialize registry data structures
+# descr = initialize registry data structures
 
-use JSON::PP;
-use File::Path qw| make_path |;
-
-# Initialize registry cache in $data{models} namespace
+## initialize registry in $data{models} namespace
 $data{models} //= {};
-$data{models}{registry} ||= {};
+$data{models}{registry} //= {};
 
-# Ensure registry directory exists
-make_path('/var/protocol-7/models') unless -d '/var/protocol-7/models';
+return { 'success' => 1, 'message' => 'registry initialized' };
 
-# Preload base helpers for faster access
-my $base = <[models.registry.base]>;
-
-# Entry point - just returns success
-{   'success' => 1,
-    'message' => 'registry initialized',
-};
-
-#,,,.,.,.,,.,,..,,,..,,.,,...,,,.,.,.,..,,.,,,..,,...,...,..,,,,.,.,,,,.,,.,.,
-#2TIVA3HGMJV4VN4N5NPK4MGFZPEJ2UOASZTFNNAPYS7IKKFBQ4FS2FZR3ZRUMPULF3SCMNLEPLARO
-#\\\|FCM4DCVCCEJ5ITSB756GAFKTHSULBEWDTNYMVPVD52R6LMCLSMH \ / AMOS7 \ YOURUM ::
-#\[7]UMT55M67UXQVFZO5CH7BQ2KSBX5XSPKSHOWWTUDM3LQJVZUFBKDQ 7  DATA SIGNATURE ::
+#,,,,,...,,,,,,.,,,..,.,,,,.,,,..,,..,..,,,,.,..,,...,...,...,.,.,,,.,.,.,.,,,
+#S7BVPVOIZTKZ5D4M4ICYEVBCWJBSB7KZMBPDVNDX4WZ55A7RRE2MXPN7OFE2G3UB7N3SOJCPVRV52
+#\\\|WYLQPMH2OHWMMKSSWQ3QYZAHB2MTPYEFKTFIY47RWMLIJNVDVFX \ / AMOS7 \ YOURUM ::
+#\[7]KXY7OXNXEXQOKOR7MGQV4QZCCYYQ6L32GEA2TVYZSWV6XK4Y54AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,105 @@
+## [:< ##
+# name  = models.handler.llm_response
+# descr = handle completed LLM response from AnyEvent::HTTP callback
+
+my $params = shift;
+
+my $inference_id = $params->{'inference_id'} // '';
+my $body         = $params->{'body'}         // '';
+my $headers      = $params->{'headers'}      // {};
+
+## Lookup pending request metadata ##
+my $pending = <models.pending.requests>->{$inference_id};
+if ( !$pending ) {
+    <[base.log]>->(
+        0, "[handle.llm_response] unknown inference_id: " . $inference_id
+    );
+    return;
+}
+
+my $job_id         = $pending->{'job_id'};
+my $participant_id = $pending->{'participant_id'};
+my $model_id       = $pending->{'model_id'};
+my $reply_id       = $pending->{'reply_id'};
+my $start_time     = $pending->{'start_time'};
+
+## Calculate elapsed time ##
+my $elapsed_ms = int( ( <[base.time]>->(2) - $start_time ) * 1000 );
+
+## Clean up pending tracking ##
+delete <models.pending.requests>->{$inference_id};
+
+## Build result structure (compatible with existing handlers)
+my $final_result = {
+    'success'        => TRUE,
+    'inference_id'   => $inference_id,
+    'job_id'         => $job_id,
+    'participant_id' => $participant_id,
+    'model_id'       => $model_id,
+    'elapsed_ms'     => $elapsed_ms,
+    'tokens_used'    => 0,
+    'response'       => '',
+};
+
+## Check HTTP status ##
+my $status = $headers->{'Status'} // 0;
+if ( $status !~ /^2/ ) {
+    my $reason = $headers->{'Reason'} // 'unknown';
+    <[base.log]>->( 0, "[handle.llm_response] HTTP error: $status $reason" );
+    $final_result->{'success'}    = FALSE;
+    $final_result->{'error'}      = "http_error: $status $reason";
+    $final_result->{'raw_output'} = substr( $body, 0, 500 );
+    <[models.callback.send_reply]>
+        ->( { reply_id => $reply_id, result => $final_result } );
+    return;
+}
+
+## Check for transport error (empty body with status 0) ##
+if ( !$status && !length($body) ) {
+    <[base.log]>->( 0, "[handle.llm_response] transport error" );
+    $final_result->{'success'} = FALSE;
+    $final_result->{'error'}   = "transport_error: connection failed";
+    <[models.callback.send_reply]>
+        ->( { reply_id => $reply_id, result => $final_result } );
+    return;
+}
+
+## Parse JSON response ##
+my $data = eval { JSON::PP::decode_json($body) };
+if ($@) {
+    <[base.log]>->( 0, "[handle.llm_response] JSON parse error: $@" );
+    $final_result->{'success'}    = FALSE;
+    $final_result->{'error'}      = "json_parse_error: $@";
+    $final_result->{'raw_output'} = substr( $body, 0, 500 );
+    <[models.callback.send_reply]>
+        ->( { reply_id => $reply_id, result => $final_result } );
+    return;
+}
+
+## Extract generated content ##
+$final_result->{'response'} = $data->{'choices'}[0]{'message'}{'content'}
+    // $data->{'content'} // '';
+
+$final_result->{'tokens_used'} = $data->{'usage'}{'total_tokens'}
+    // $data->{'usage'}{'completion_tokens'} // 0;
+
+<[base.log]>->(
+    2,
+    "[handle.llm_response] completed: $inference_id "
+        . "(${elapsed_ms}ms, "
+        . $final_result->{'tokens_used'} . "tok, "
+        . length( $final_result->{'response'} )
+        . " chars)"
+);
+
+## Send reply to caller ##
+<[models.callback.send_reply]>
+    ->( { reply_id => $reply_id, result => $final_result } );
+
+return $final_result;
+
+#,,,,,.,.,..,,...,,..,,.,,...,.,.,,,.,.,.,,.,,.,.,...,..,,...,,.,,,,,,,,.,,.,,
+#BQXYCCAOKHBGDYWOCCSUYGMYVNAP6I7ZAD75TL4AYQIHIQBXLXVTYLEWWFWFKN25BSBXDLL6U54QM
+#\\\|Z7FDO3AE5MKD2O3X5BAIM2SXN6VHJHKX6B52Z4P56NJKZBRCPSZ \ / AMOS7 \ YOURUM ::
+#\[7]Y3M4NJQTTRDVKOEH3PA6YHLYJUGLWBST5JBAOERZKS656NVL3GCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
