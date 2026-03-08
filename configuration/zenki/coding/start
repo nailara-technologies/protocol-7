@@ -8,7 +8,7 @@ access.cmd.usr.cube = commands heart reload verify-instance \
                       budget status submit get-result analyze_and_extract \
                       complete-analysis resume-analysis ask-reply switch-model \
                       vision-parser.analyze_and_extract vision-parser.status \
-                      infer query test-inference \ ## ^ <- coding zenka comands ##
+                      infer query test-inference clear-registry \
                       get set dump ## <-- development commands to access %data. ##
 
 system.verbosity.zenka_buffer  = 2  ##  memory ring buffer verbosity   ##
@@ -20,13 +20,22 @@ crypt.C25519.autocreate-user-key = yes
 ## GPU+CPU Dual Inference Configuration ##
 inference.backend.gpu.enabled = yes
 inference.backend.gpu.binary = /data/source/ik_llama.cpp/llama-server-cuda-fa
-inference.backend.gpu.model_id = gemma3-glitter-4b  ## Fetched from models zenka during init ##
-inference.backend.gpu.vram_threshold = 3221225472  ## 3GB in bytes (Gemma3 Glitter is 2.21GB) ##
+inference.backend.gpu.vram_threshold = 3221225472  ## 3GB in bytes [Gemma3 Glitter is 2.21GB] ##
 inference.backend.gpu.gpu_layers = 33  ## Full offload for RTX 3060 ##
 
 inference.backend.cpu.enabled = yes
-inference.backend.cpu.binary = /data/source/ik_llama.cpp/llama-server-cuda-fa
-inference.backend.cpu.model_id = gemma3-glitter-4b  ## Fetched from models zenka during init ##
+inference.backend.cpu.binary = /data/source/ik_llama.cpp/llama-server-cpu
+
+### [ CRASHING INFERENCE SERVER - NOT LOADING ] ###
+##
+#  inference.backend.gpu.model_id = MBZAAII:ZRCGL5Q  ## Qwen Qwen3.5 9B Q6_K ##
+## inference.backend.cpu.model_id = MBZAAII:ZRCGL5Q  ## Qwen Qwen3.5 9B Q6_K ##
+
+### [ CURRENT DEFAULT MODELS ]
+##
+inference.backend.gpu.model_id = O6A7F7Q:CQGT4CA ## kidle Nist Coder v1.1 ##
+inference.backend.cpu.model_id = O6A7F7Q:CQGT4CA ## kidle Nist Coder v1.1 ##
+
 inference.backend.cpu.threads = 8  ## Use system thread count ##
 
 ## Routing Configuration ##
@@ -41,7 +50,14 @@ inference.model.max_tokens = 256
 inference.model.temperature = 0.7
 
 ## Default model AMOS checksum (resolved from models zenka during init) ##
-inference.model.amos_id = IR65EUQ:ZGJ3K5Y  ## Gemma-3-Glitter-4B-Uncensored.Q4_K_S ##
+
+
+### [ CRASHING INFERENCE SERVER - NOT LOADING ] ###
+##
+## inference.model.amos_id = MBZAAII:ZRCGL5Q  ## Qwen Qwen3.5 9B Q6_K ##
+
+inference.model.amos_id = O6A7F7Q:CQGT4CA ## kidle Nist Coder v1.1 ##
+
 inference.model.path = null  ## Resolved during init via network request ##
 
 modules.load = auth net protocol io.unix io.ip jobqueue crypt.C25519 coding \
@@ -52,17 +68,17 @@ modules.load = auth net protocol io.unix io.ip jobqueue crypt.C25519 coding \
 
 [root.drop_privs:<system.amos-zenka-user>] ## [LLL] needs hybrid mode version
 
-[base.net.connect:'unix']
+[base.net.connect:'unix'] ## [ has network from here ] ##
 
-## Resolve configured model path from models zenka registry (after network ready)
+## Resolve configured model path from models zenka registry
 [coding.resolve_model_path]
 
 [get_session_id]
 
 [zenka.loop]
 
-#,,.,,,,.,.,.,...,..,,,,.,..,,,,,,,,,,.,,,...,..,,...,..,,.,.,..,,,,.,,..,,..,
-#Z2JDEMPIMDLOGK54XFF4PYWHQ2MR2K35FX4KDZY2IAUBAIS33BCJ24L2R5WHAX67723A5G6B4DHJW
-#\\\|KJGTRMBGT5LOHGTBUMCHVJFXAJX22ME4G6ZZAOZEXL23BGAKDPY \ / AMOS7 \ YOURUM ::
-#\[7]5ITX23RPDL3EXKK5ZEYOV2UJSBPSZOKB6CBQKHVKMTDILSDVZCDQ 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,..,,,,,,,,,,..,,...,...,.,.,..,,..,,...,...,..,,.,.,..,,,.,,.,,,
+#BQVLTE737DEORMR2U64FL2P7YOC6CWCHJEOW5JHAAPJVH3KI25GBUBTWC4FPKLQAFSD4P6MCQNJOI
+#\\\|A66LUDOSOEO4ESEMZBB724WDOEF2IY3KZ3XW22F5U3T437NOG5W \ / AMOS7 \ YOURUM ::
+#\[7]KFMTFZLGMV6SSOWBJ5JIMBH32DJZHVSMK2Z3B4DWG3NDSCKDK6AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
