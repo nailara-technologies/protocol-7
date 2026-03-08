@@ -22,8 +22,10 @@ my $backend_map = {
     'kimi'       => qw| kimi_web |,
     'kimi-code'  => qw| kimi_web |,
     'claude'     => qw| api |,
-    'llama'      => qw| local |,
-    'local'      => qw| local |,
+    'llama'      => qw| local |,       ## coding-managed (spawn + queue)
+    'local'      => qw| local |,       ## coding-managed (spawn + queue)
+    'external'   => qw| external |,    ## direct HTTP (unmanaged server)
+    'lmstudio'   => qw| external |,    ## LM Studio (unmanaged)
     'test-model' => qw| test |,
 };
 
@@ -82,7 +84,7 @@ if ( !@messages ) {
 
 my $messages = \@messages;
 
-## local backend via coding zenka
+## local backend via coding zenka (managed: spawn + queue)
 if ( $backend_type eq qw| local | ) {
     <[models.backend.coding.invoke]>->(
         {   'participant_id' => $model_name,
@@ -92,7 +94,23 @@ if ( $backend_type eq qw| local | ) {
             'model'          => $model,
         }
     );
-} elsif ( $backend_type eq qw| kimi_web | ) {
+}
+
+## external backend: direct HTTP to unmanaged server (LM Studio, etc.)
+elsif ( $backend_type eq qw| external | ) {
+    <[models.backend.local.invoke]>->(
+        {   'participant_id'   => $model_name,
+            'messages'         => $messages,
+            'reply_id'         => $reply_id,
+            'model_id'         => $model,
+            'llama_server_url' => <models.external.server_url>
+                // 'http://127.0.0.1:8080',
+        }
+    );
+}
+
+## kimi-web backend via persistent websocket
+elsif ( $backend_type eq qw| kimi_web | ) {
     ## kimi-web backend via persistent websocket to kimi-web
     <[models.backend.kimi_web]>->(
         {   'participant_id' => $model_name,
@@ -117,8 +135,8 @@ if ( $backend_type eq qw| local | ) {
 
 return;
 
-#,,,,,,,.,..,,...,,,,,,,.,,..,,,.,,..,..,,,,,,.,.,...,..,,...,..,,.,.,,..,...,
-#ENUCUZPQYLL5YLM4BM2AKPKDDZJC64HIXHUZXMLVJZQEOKPAMQYUGMJM2BOTL4N5FVJ2KJ3BZG3GO
-#\\\|PHDGCLSW5RG6MJHIRUWNCGIUER42TBOMUDU3W3GQXLPOC2PVSIQ \ / AMOS7 \ YOURUM ::
-#\[7]XUVKWZEQKCMMF3EE7EAYAEDXNNOUC3ZXNHIO3WVLLR3DJEZWB4BI 7  DATA SIGNATURE ::
+#,,,.,..,,,..,,.,,,,.,,,,,..,,,.,,,,,,,,.,,,.,.,.,...,...,,..,.,.,,,.,...,..,,
+#RF2JXMWAFQEJ26SDEZ2WIFAUH6UFA7UZCA3KR6PBSIKOW7XFE4PVJKZB5GWPJWUX3ZS74MXPHTSZE
+#\\\|VIZP2GGOWCVRO4WPKYDBIPZZW2YYA5FTIMK6J44EL5AHXRKCYQ6 \ / AMOS7 \ YOURUM ::
+#\[7]HNILZIVZNBLGCUXUYSRY6Z74JHECDWBD2L7TFSAL2GBRHMNHE4AA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
