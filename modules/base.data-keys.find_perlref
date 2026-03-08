@@ -20,7 +20,7 @@ if ( defined $ref_type and $ref_type !~ m{^($ref_types)$} ) {
 ## perl style ##
 $ref_type = ${^CAPTURE}[0] if $refaddr =~ s{^($ref_types)\(([^\)]+)\)$}{$2};
 
-if ( $refaddr =~ m,^($ref_types):[2-9A-Z]{7}:([2-9A-Z]{16})$, ) {
+if ( $refaddr =~ m'^($ref_types):[2-9A-Z]{7}:([2-9A-Z]{1,16})$' ) {
 
     ## protocol-7 style encoded perl ref ##
 
@@ -107,8 +107,8 @@ foreach my $cur_data_key ( keys $href->%* ) {
 
 return undef;    ##  no match \ undef  ##
 
-#,,,.,,..,,.,,.,.,..,,.,.,.,,,.,.,.,.,..,,,.,,..,,...,...,...,,..,.,.,,.,,...,
-#F3DQ5GQPBXBGBOMUCWKAAA25BJT7GNIZMLBVXTGTZYJLKQ6W4YHCTXJ2GJ2IJOEMN4LOL2V77MIGC
-#\\\|SXBHJWIDL7ZG3K7LYDXKPFLNARFQOUFF5UIW3HG2HWIRE6WS5OM \ / AMOS7 \ YOURUM ::
-#\[7]JLPZXDQQ6KSUY46AUAAQAB6QVFLH4DZSWET7DNWEPS24EOW6M6BY 7  DATA SIGNATURE ::
+#,,..,.,.,.,.,.,,,..,,,..,,,.,,.,,,..,.,.,...,..,,...,...,..,,.,,,.,,,...,.,.,
+#OK54UV3JFA4WDRFSTCPKCOGWNJA4H3OKSLO2JTC2WXQWMSAPSCWGQNIBTH2NZFVFQEJP4KHNOWQSM
+#\\\|OHPEOSMMPD3AY4E7UJY6OCJ4RQDXAWC3J2IXWYYNP6EZUBXWWVV \ / AMOS7 \ YOURUM ::
+#\[7]HC362LTAGBB7B5EM4LU5RVAUEGK7ZP7QZSJA2L6O2TQKOUAX7EBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
