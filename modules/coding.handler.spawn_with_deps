@@ -76,8 +76,15 @@ foreach my $cache_name ( keys %$metadata ) {
         );
         $matched = 1;
     }
-    ## Check exact name match ##
+    ## Check exact amos key match ##
     elsif ( $cache_name eq $model_name ) {
+        <[base.logs]>->(
+            2, '[spawn_with_deps] amos key match: %s', $cache_name
+        );
+        $matched = 1;
+    }
+    ## Check exact name field match ##
+    elsif ( ( $entry->{'name'} // '' ) eq $model_name ) {
         <[base.logs]>->( 2, '[spawn_with_deps] name match: %s', $cache_name );
         $matched = 1;
     }
@@ -120,9 +127,10 @@ unless ( defined $matched_entry ) {
     return FALSE;
 }
 
-## Check if we already have the path cached ##
-my $amos_id    = $matched_entry->{'amos'}      // '';
-my $model_path = $matched_entry->{'file_path'} // $matched_entry->{'path'};
+## check if we already have the path cached ##
+my $amos_id     = $matched_entry->{'amos'}        // '';
+my $model_path  = $matched_entry->{'file_path'}   // $matched_entry->{'path'};
+my $mmproj_path = $matched_entry->{'mmproj_path'} // '';
 
 if ( defined $model_path && -f $model_path ) {
     <[base.logs]>->(
@@ -168,19 +176,20 @@ my $binary
     : ( <inference.backend.cpu.binary>
         // '/data/source/ik_llama.cpp/llama-server-cpu' );
 
-## Now spawn the server ##
+## spawn the server
 my $result = <[coding.spawn_inference_server]>->(
-    {   backend    => $backend,
-        model_path => $model_path,
-        binary     => $binary,
-        port       => $params->{'port'}
+    {   backend     => $backend,
+        model_path  => $model_path,
+        mmproj_path => $mmproj_path,
+        binary      => $binary,
+        port        => $params->{'port'}
     }
 );
 
 return $result;
 
-#,,,.,,..,,.,,.,,,,..,...,,,,,.,,,.,.,...,,.,,.,.,...,...,,,.,,,,,..,,,..,..,,
-#TXIW5525X7HIYK6C6KNHP6ZRGYKMDVRRYS2F56ETOOEOWL2D24MBYR67FZIQDNTMIXUES6X3IPLIW
-#\\\|6MXF3RCT4MANZYYQXH4D5TR7NML2XZB3QLLNKIUAKW7KSD34YUJ \ / AMOS7 \ YOURUM ::
-#\[7]4L4CVRCOAOZ4F7LIOQJIEFSQRJWNYP7HNI6QNFXVTXVAYIZRGICA 7  DATA SIGNATURE ::
+#,,.,,,,.,,.,,,.,,,,.,.,,,,..,,,.,,.,,,,.,,.,,.,.,...,...,...,,,.,,.,,..,,..,,
+#KAVKKG3IHLB3RQIM3FL3AUYZHJ4KW4PHDBI3UH7E2FXT3LAKZ2XJIGTW7RNQVPGX6L4FG6Q6LJWYY
+#\\\|DDBEQ4SGHAKN7OGGKASOMCFVJVRIGZNP7IUSXJRSP6Y3ZZOP3XJ \ / AMOS7 \ YOURUM ::
+#\[7]JBT52YQBXWOTPQYSCB2REGZYU5W36SWMH4XQ7CCNDI74IGYE5UCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,45 +1,66 @@
 ## [:< ##
 
 # name  = coding.handler.model_path_reply
-# descr = Handle async reply from models zenka with resolved model path
-# note  = Called when models.get_path_by_amos command response arrives
+# descr = handle async reply from models zenka with resolved model path
+# note  = called when models.get_path_by_amos command response arrives
 
-my $reply = shift;
+use YAML::XS qw| Load |;
+
+my $reply         = shift;
 my $model_amos_id = $reply->{'params'}->{'model_amos_id'} // '';
 
-<[base.logs]>->( 1, '[model_path_reply] received response for amos_id=%s', $model_amos_id );
+<[base.logs]>->(
+    1, '[model_path_reply] received response for amos_id=%s',
+    $model_amos_id
+);
 
-## The reply->{'data'} contains the response text from the command
-## The models.cmd.get_path_by_amos returns mode='size' with file path in data
 my $response_text = $reply->{'data'} // '';
 
-<[base.logs]>->( 2, '[model_path_reply] response data length=%d', length($response_text) );
+<[base.logs]>->(
+    2, '[model_path_reply] response data length=%d',
+    length($response_text)
+);
 
-## Extract file path from first line of response
-my ($model_path) = split( /\n/, $response_text );
-
-## Check if response is an error
-if ( $model_path =~ /^error:/ ) {
-    <[base.logs]>->( 0, '[model_path_reply] model lookup failed: %s', $model_path );
+## check for error response (plaintext, starts with 'error:')
+if ( $response_text =~ m|^error:| ) {
+    my ($err_line) = split( m|\n|, $response_text );
+    <[base.logs]>->(
+        0, '[model_path_reply] model lookup failed: %s', $err_line
+    );
     return FALSE;
 }
 
-## Verify we got a valid path
+## parse YAML response
+my $entry;
+eval { $entry = Load($response_text) };
+if ( $EVAL_ERROR || !ref($entry) ) {
+    <[base.logs]>->(
+        0, '[model_path_reply] YAML parse failed: %s',
+        <[base.str.eval_error]>
+    );
+    return FALSE;
+}
+
+my $model_path = $entry->{'file_path'} // '';
+
 unless ( defined $model_path && length $model_path ) {
-    <[base.logs]>->( 0, '[model_path_reply] no model path in response' );
+    <[base.logs]>->( 0, '[model_path_reply] no file_path in response' );
     return FALSE;
 }
 
-## Success - store the resolved model path
 <[base.logs]>->( 1, '[model_path_reply] model path resolved' );
-my $path_display = <[base.parser.ellipse_center]>->( $model_path, 60 );
-<[base.logs]>->( 1, ':. %s', $path_display );
-<inference.model.path> = $model_path;
+<[base.logs]>->(
+    1, ':. %s', <[base.parser.ellipse_center]>->( $model_path, 60 )
+);
+
+<inference.model.path>        = $model_path;
+<inference.model.mmproj_path> = $entry->{'mmproj_path'} // '';
+<inference.model.is_vision>   = $entry->{'is_vision'}   // 0;
 
 return TRUE;
 
-#,,.,,,,.,,.,,.,.,,.,,,,.,,,,,.,.,.,,,..,,.,,,..,,...,...,,,.,,.,,,,.,...,..,,
-#DW4K4F4EGWECVVLTV6WNBJAR4QUNNB6WJQBCNWGJUOIXBBXPLZH4HOFHA3FEUE2PT5RBCR3B7II6I
-#\\\|TNOKAM36XS2MMEUZBC5NZKCRIC2XVR5MPM2BGGWOH6FOLGVPEZ2 \ / AMOS7 \ YOURUM ::
-#\[7]6XM4ARX7VPVBWO52E62ANBYNZHEXBRPOLMVT6RVB6ILXE22UJUAQ 7  DATA SIGNATURE ::
+#,,..,..,,.,.,,,.,.,,,,.,,..,,..,,,,,,,,,,,..,..,,...,...,...,,..,,,.,..,,,..,
+#E5KBDWETFO4JPJAUOBXC6RO5H7D2OXJGK7LGOGI6RFLOUJ2GREZKDTNELXAFBPCO7NRMRN5D4BJKG
+#\\\|TGBAWLWI6ZTZU2HBB77IXUNOSCL5IX74RBSES44JTBEKGGZFYN7 \ / AMOS7 \ YOURUM ::
+#\[7]CDGFA4NTTV6T25GYNYJ5AAXQWNMLMUOPTVDQUTIT4LCVCXRIISAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
