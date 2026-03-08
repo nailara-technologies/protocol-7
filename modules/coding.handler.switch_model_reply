@@ -13,17 +13,16 @@ unless ( defined $checksum ) {
     return FALSE;
 }
 
-## Parse path from reply ##
-my @lines      = split( /\n/, $reply_data );
-my $model_path = $lines[0] // '';
-
-## Skip error responses ##
-if ( $model_path =~ /^error:/ ) {
-    <[base.logs]>->(
-        0, "[switch_model_reply] model lookup failed: $model_path"
-    );
+## Parse YAML reply from models zenka ##
+my $entry = eval { YAML::XS::Load($reply_data) };
+if ( $@ || !ref $entry ) {
+    <[base.logs]>
+        ->( 0, "[switch_model_reply] failed to parse reply: %s", $@ );
     return FALSE;
 }
+
+my $model_path  = $entry->{'file_path'}   // '';
+my $mmproj_path = $entry->{'mmproj_path'} // '';
 
 unless ( length $model_path && -f $model_path ) {
     <[base.logs]>->(
@@ -43,31 +42,60 @@ my $backend = <coding.pending_model_switch_backend>;
 
 ## Update configuration ##
 if ( $backend eq 'gpu' || $backend eq 'both' ) {
-    $data{'inference.backend.gpu.model_id'} = $checksum;
+    <inference.backend.gpu.model_id> = $checksum;
     <[base.logs]>->(
         2, "[switch_model_reply] updated GPU model to %s", $checksum
     );
 }
 if ( $backend eq 'cpu' || $backend eq 'both' ) {
-    $data{'inference.backend.cpu.model_id'} = $checksum;
+    <inference.backend.cpu.model_id> = $checksum;
     <[base.logs]>->(
         2, "[switch_model_reply] updated CPU model to %s", $checksum
     );
 }
 
-## Use spawn_smart for memory-aware server restart ##
-## This checks memory before spawning and skips if insufficient ##
-<[coding.handler.spawn_smart]>->(
-    {   'backend'    => $backend,
-        'model_path' => $model_path
+## use spawn_smart for memory-aware server restart ##
+if ( $backend eq qw| auto | ) {
+    ## try gpu first : fall back to cpu if gpu has insufficient resources ##
+    my $gpu_ok = <[coding.handler.spawn_smart]>->(
+        {   'backend'     => qw| gpu |,
+            'model_path'  => $model_path,
+            'mmproj_path' => $mmproj_path,
+            'force'       => 1,
+        }
+    );
+    ## spawn_smart returns FALSE [ not TRUE ] when resources are insufficient ##
+    unless ($gpu_ok) {
+        <[base.logs]>->(
+            1, '[switch_model_reply] gpu unavailable, trying cpu'
+        );
+        <[coding.handler.spawn_smart]>->(
+            {   'backend'     => qw| cpu |,
+                'model_path'  => $model_path,
+                'mmproj_path' => $mmproj_path,
+                'force'       => 1,
+            }
+        );
     }
-);
+} else {
+    ## expand 'both' into separate gpu + cpu spawns ##
+    my @backends = $backend eq qw| both | ? qw| gpu cpu | : ($backend);
+    for my $b (@backends) {
+        <[coding.handler.spawn_smart]>->(
+            {   'backend'     => $b,
+                'model_path'  => $model_path,
+                'mmproj_path' => $mmproj_path,
+                'force'       => 1,
+            }
+        );
+    }
+}
 
 ## Clear pending state (will be overwritten on next switch anyway) ##
 return TRUE;
 
-#,,,.,.,.,,.,,...,,.,,,,.,...,,,,,,..,.,,,,,.,.,.,...,...,,,.,...,.,.,,,,,..,,
-#72YXZDRE4H3DLWNFJIJTCFCKUXDTUH5RTNYCSQ3VZQHIF4LII2WZUFGE5EHBOUGKXFMDXZXILCWCU
-#\\\|T4WMYRXE7EEIPUF6XEVUNXIXRO76V7OABKQRCDCAFYL3BWOO2LS \ / AMOS7 \ YOURUM ::
-#\[7]5IEJEDOO45T5TAY5NUWJ4LHO6DY3AWO6Q6AMX7SZLD6ZS2T4VUBQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,.,.,.,...,...,..,,,.,,,,,,,..,,..,.,.,...,..,,,..,,..,,,.,,,,,.,,,
+#3W3HSSWJLHNVXPV77WMFWR2BPTGU2TYXE67CS5M6BQ7IXPXWS5XPVJ4RAQTVOYPNJ6UKXLVC2YWJE
+#\\\|HBOMEJC5PHFBINBBUMXZXOIQFELRCTCUXE2RD5IHRNDXVCZPY76 \ / AMOS7 \ YOURUM ::
+#\[7]YFUZEON2EMYJIJ4MJ7XSWJW5CYN2KJMKVOS7PXVQS44S6SK56IBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

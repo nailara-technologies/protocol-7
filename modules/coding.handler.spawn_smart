@@ -5,30 +5,28 @@
 
 my $params  = shift;
 my $backend = $params->{'backend'} // 'gpu';
+my $force   = $params->{'force'}   // 0;
 
 <[base.logs]>->(
     1, '[spawn_smart] evaluating spawn for backend=%s', $backend
 );
 
 ## Check if server is already running and healthy ##
+## skip health check when force=1 [ e.g. model switch always needs respawn ] ##
 my $port
     = $backend eq 'gpu'
     ? ( <inference.backend.gpu.port> // 8000 )
     : ( <inference.backend.cpu.port> // 8001 );
 
-my $is_healthy = eval {
-    use LWP::UserAgent;
-    my $ua       = LWP::UserAgent->new( timeout => 2 );
-    my $response = $ua->get("http://127.0.0.1:${port}/health");
-    return $response->is_success ? 1 : 0;
-} // 0;
-
-if ($is_healthy) {
-    <[base.logs]>->(
-        2, '[spawn_smart] %s server already healthy on port %d, skipping',
-        $backend, $port
-    );
-    return TRUE;
+## check server status set by monitor_inference_startup [ non-blocking ] ##
+unless ($force) {
+    my $server = ( <coding.inference_servers> // {} )->{$backend};
+    if ( defined $server && ( $server->{'status'} // '' ) eq qw| ready | ) {
+        <[base.logs]>->(
+            2, '[spawn_smart] %s server already ready, skipping', $backend
+        );
+        return TRUE;
+    }
 }
 
 ## Get model path from config ##
@@ -72,6 +70,36 @@ foreach my $cache_name ( keys %$metadata ) {
 unless ( defined $matched_entry ) {
     <[base.logs]>->( 0, '[spawn_smart] model not found: %s', $model_name );
     return FALSE;
+}
+
+## kill existing server before memory check when force=1 ##
+## ensures freed VRAM / RAM is reflected in the check below ##
+if ($force) {
+    my $old = ( <coding.inference_servers> // {} )->{$backend};
+    if ( defined $old ) {
+        for my $w_key (qw| watcher_stdout watcher_stderr |) {
+            my $w = $old->{$w_key};
+            $w->cancel() if defined $w && $w->is_active();
+        }
+        for my $fh_key (qw| io_stdout io_stderr |) {
+            my $fh = $old->{$fh_key};
+            close($fh) if defined $fh;
+        }
+        if ( my $old_pid = $old->{'pid'} ) {
+            if ( kill( 0, $old_pid ) ) {
+                kill( 'KILL', $old_pid );
+                <[base.logs]>->(
+                    1,
+                    '[spawn_smart] killed old %s server [pid:%d] before memory check',
+                    $backend,
+                    $old_pid
+                );
+                ## brief wait for gpu driver to release vram after sigkill ##
+                select( undef, undef, undef, 0.3 ) if $backend eq 'gpu';
+            }
+        }
+        delete <coding.inference_servers>->{$backend};
+    }
 }
 
 ## Check memory before spawning ##
@@ -134,15 +162,28 @@ if ( $backend eq 'gpu' ) {
 }
 
 ## Get the actual model path ##
-my $amos_id = $matched_entry->{'amos'} // '';
-my $model_path;
+my $amos_id     = $matched_entry->{'amos'} // '';
+my $model_path  = $params->{'model_path'}  // '';
+my $mmproj_path = $params->{'mmproj_path'} // '';
 
-## Check if we already have path cached ##
+## use provided path directly if available [ e.g. from switch_model_reply ] ##
+if ( length $model_path && -f $model_path ) {
+    <[base.logs]>->( 2, '[spawn_smart] using provided model path directly' );
+    return <[coding.spawn_inference_server]>->(
+        {   backend     => $backend,
+            model_path  => $model_path,
+            mmproj_path => $mmproj_path,
+            port        => $port
+        }
+    );
+}
+
+## check if path cached in metadata entry ##
 if ( exists $matched_entry->{'file_path'}
     && -f $matched_entry->{'file_path'} ) {
     $model_path = $matched_entry->{'file_path'};
 } elsif ( length $amos_id ) {
-    ## Need to request path asynchronously ##
+    ## need to request path asynchronously ##
     <[base.logs]>->(
         2, '[spawn_smart] requesting path for amos=%s', $amos_id
     );
@@ -155,34 +196,34 @@ if ( exists $matched_entry->{'file_path'}
                     'amos_id'     => $amos_id,
                     'backend'     => $backend,
                     'port'        => $port,
-                    'smart_spawn' =>
-                        1    ## Flag to indicate this is from spawn_smart ##
+                    'smart_spawn' => 1
                 },
                 'handler' => 'coding.handler.spawn_smart_path_reply'
             }
         }
     );
 
-    return TRUE;    ## Async - actual spawn happens in reply handler ##
+    return TRUE;    ## async : actual spawn happens in reply handler ##
 } else {
     <[base.logs]>->( 0, '[spawn_smart] no amos_id for matched model' );
     return FALSE;
 }
 
-## If we have path, spawn directly ##
+## spawn directly with resolved path ##
 if ( defined $model_path && -f $model_path ) {
     return <[coding.spawn_inference_server]>->(
-        {   backend    => $backend,
-            model_path => $model_path,
-            port       => $port
+        {   backend     => $backend,
+            model_path  => $model_path,
+            mmproj_path => $mmproj_path,
+            port        => $port
         }
     );
 }
 
 return FALSE;
 
-#,,..,,,,,,.,,.,,,...,.,.,,,.,..,,,,.,,,.,..,,.,.,...,...,.,,,..,,,,.,,,.,.,,,
-#CWHVHBYHOCM3SE6AEIDKBENDBJKDWBNDUQDLWGE7JFVYHLKRMRD4ETZ2QPFCRDPEYINWN6ANKMOLM
-#\\\|KLVHZ5ASV646UQ37ZIIK6KCKYFCDMHMLU77IOLC6VBOHTYGZPIU \ / AMOS7 \ YOURUM ::
-#\[7]QIKVFRUB7JC6A7RVL6FZICZZKEKJ7HQTKFWCVNC75VYEIKXW3EAA 7  DATA SIGNATURE ::
+#,,..,,.,,,.,,,,.,,,,,,,,,,..,,.,,,.,,,..,.,,,.,.,...,...,.,,,..,,..,,...,,,.,
+#AAMHI3WP64PZJEAEJQWOD4OF27I734FGUIMLKUSVQ4KBNPUJXDNZBWK42HUA4ZZVXVIZTZGFMAIJ4
+#\\\|M3ZT6BIBRW6OLQ25GEHWB53EFRZQPHOYJTMZXW43OPBADKHYG6I \ / AMOS7 \ YOURUM ::
+#\[7]7RC5WGGZADJRCV47S3BBK7BSUORTOIIZMFC52KTZ3XBRMRQADGDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
