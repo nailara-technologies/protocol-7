@@ -1,0 +1,72 @@
+## [:< ##
+
+# name  = coding.cmd.clear-registry
+# descr = clear local model metadata cache and optionally re-fetch from models zenka
+#
+# usage:
+#   coding.clear-registry              - clear cache, save empty
+#   coding.clear-registry [:re-fetch:] - clear, then re-fetch from models zenka
+
+use YAML::XS qw| Dump |;
+
+my $re_fetch = 0;
+$re_fetch = 1
+    if defined $call->{'args'} && $call->{'args'} =~ m|:re-fetch:|;
+$re_fetch = 1
+    if defined $call->{'param'}->{'re_fetch'}
+    && $call->{'param'}->{'re_fetch'};
+
+## get current count for reporting
+my $old_count = scalar keys %{ <coding.model_metadata> // {} };
+
+## clear in-memory cache
+<coding.model_metadata> = {};
+
+<[base.logs]>->(
+    1, '[clear-registry] metadata cache cleared (%d entries removed)',
+    $old_count
+);
+
+## write empty cache to disk
+my $empty_yaml = eval { Dump( {} ) } // "--- {}\n";
+<[file.zenka_dir.write]>->( 'state/model_metadata.yaml', \$empty_yaml );
+
+my $reply_str = "cache_cleared: $old_count entries removed\n";
+
+if ($re_fetch) {
+    $reply_str .= "re_fetch: enabled\n";
+
+    ## send discover request to models zenka
+    my $sent = <[protocol-7.route-send]>->(
+        {   'command'   => 'models.discover',
+            'call_args' => { 'args' => 'available' },
+            'reply'     => {
+                'handler' => 'coding.handler.models_discover_reply',
+                'params'  => {}
+            }
+        }
+    );
+
+    if ( $sent && $sent > 0 ) {
+        $reply_str .= "re_fetch: request sent to models zenka\n";
+        <[base.logs]>->( 1, '[clear-registry] re-fetch request sent' );
+    } else {
+        $reply_str .= "re_fetch: failed (models zenka offline?)\n";
+        <[base.logs]>->(
+            0, '[clear-registry] re-fetch failed to reach models zenka'
+        );
+    }
+} else {
+    $reply_str .= "re_fetch: disabled\n";
+    $reply_str
+        .= "note: run 'coding.clear-registry :re-fetch:' to repopulate\n";
+    $reply_str .= "      or 'v7.restart coding' to reload empty cache\n";
+}
+
+return { 'mode' => 'size', 'data' => $reply_str };
+
+#,,,,,,.,,...,,..,,.,,..,,...,.,.,,..,,,.,...,..,,...,..,,,,.,.,,,..,,,.,,,,,,
+#MXPNGOJF5EISANH35ML6THIJ6ZYATVECVFTC7YW42W7PDI3P57ZVSKAE7Y3MGF4CTYOWZU5JFUD5I
+#\\\|Z5AO5BXDV3F4PY4ACKAQKGWE23XPPBCUCRSVAUSFMVOVETR7ELB \ / AMOS7 \ YOURUM ::
+#\[7]GLZABL2O4CFIEQBH76D54WK7DPVY7KRLZUPXP7G43PHJN7KYWQDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
