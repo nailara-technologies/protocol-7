@@ -172,6 +172,130 @@ These experiments now have a formal geometric home: the cube. The topology was
 always implicit in the address arithmetic; the cube makes it explicit and
 unifies it with the routing, multicast, and holographic packet header work.
 
+## The Fourth Dimension : Tint / Ambience Color
+
+The 255×255×255 cube has a natural fourth dimension: the **tint** (or ambience
+color) of each bit sub-cube position. Where the three spatial axes encode
+location, the tint encodes category — what kind of content or service occupies
+that coordinate.
+
+```
+(X, Y, Z, tint)  →  fully qualified cube address
+```
+
+### Tint as Address Prefix
+
+Network prefixes are already tint values in disguise:
+
+```
+10.A.B.C    →  (A, B, C) at tint 'private-rfc1918-a'
+172.16.A.B  →  (A, B, *)  at tint 'private-rfc1918-b'
+192.168.A.B →  (A, B, *)  at tint 'private-rfc1918-c'
+fc00::...   →  (...)       at tint 'private-rfc4193'
+```
+
+The prefix IS the tint — different address families and ranges are different
+color families in the same spatial cube, occupying the same coordinate axes
+without collision because the tint discriminates them.
+
+### Color Mixing — Multiple Categories at One Coordinate
+
+When multiple tint values are present at the same (X, Y, Z) coordinate, the
+colors mix. Color mixing does not mean conflict — it means multiple bit
+categories are simultaneously valid at that location:
+
+```
+(5, 30, 11) with tint {routing, storage, rfc1918-a}
+  → routable as a network node
+  → addressable as a storage location
+  → reachable as a private IP endpoint
+  → all simultaneously, same coordinate
+```
+
+A coordinate with a single tint is unambiguous. A coordinate with mixed tints
+is a superposition — the reader selects the relevant tint layer for its purpose,
+just as the holographic packet header reading modes select interpretation from
+identical bits. Same coordinate, multiple coherent readings.
+
+### Tint as Universal Category Layer
+
+The tint dimension is not limited to network address families. Any categorical
+distinction that needs to coexist at the same spatial coordinates without
+collision is a tint value:
+
+```
+tint examples:
+  network layer   →  routing, forwarding, multicast group membership
+  service layer   →  http, storage, inference, key-exchange, time-sync
+  data layer      →  file type (image, audio, code, structured data, key)
+  index layer     →  search category, content hash prefix, mime type family
+  access layer    →  public, authenticated, encrypted, signed, revoked
+  state layer     →  available, busy, degraded, draining, offline
+```
+
+A file index and a routing table share the same coordinate space — the tint
+distinguishes them. A node offering both HTTP and inference services occupies
+the same (X, Y, Z) with two tint bits set. The coordinate system is the same
+object viewed at different categorical layers simultaneously.
+
+### Scale Invariance — Internal and External Addressing Unified
+
+The cube coordinate system scales continuously from inside a process to across
+a global network, with the node or container boundary representing the **1.0
+scale point**:
+
+```
+scale < 1.0  [ inward ]   →  internal data structures, memory layout,
+                               in-process service registry, local file index
+scale = 1.0  [ boundary ] →  the node or container surface — where internal
+                               addressing meets external routing
+scale > 1.0  [ outward ]  →  LAN topology, WAN routing, inter-datacenter,
+                               global mesh
+```
+
+The same (X, Y, Z, tint) tuple is valid at every scale. A data structure
+inside a zenka process, a service registered on a local node, and a host in
+the wider network all use the same coordinate vocabulary — only the scale
+factor changes. Crossing the node boundary is a scale transition, not an
+addressing system change.
+
+This means internal and external addressing are **not two systems that must
+be bridged** — they are the same system at different zoom levels. Distributed
+data structures, local service discovery, and network routing topology are all
+projections of the same cube, compatible and mutually navigable. A query that
+starts inside a process can scale outward through the container boundary into
+the network and back inward into another process without changing its
+coordinate representation.
+
+### Color Mixing — Multiple Categories at One Coordinate
+
+Tint can be encoded compactly alongside the cube coordinate:
+
+```
+[ X:1 byte | Y:1 byte | Z:1 byte | tint:1 byte ]  →  4 bytes total
+```
+
+One tint byte = 256 categories, or used as a bitmask: 8 simultaneous category
+flags per coordinate. Color mixing then corresponds to setting multiple bits in
+the tint byte — popcount(tint) = number of active categories at that point.
+
+For richer color spaces (RGB tint, HSL tint), 3 tint bytes map the cube's own
+geometry onto its category axis — a cube of cubes, each point in the outer cube
+having an inner cube of category space. The recursion is exact and consistent
+with the base-255 geometry throughout.
+
+### Spatial Color Gradients
+
+Adjacent cube coordinates sharing similar tints form **color regions** — spatial
+clusters of related services or address families. Routing decisions can exploit
+color gradients: a packet destined for tint 'storage' at coordinate (5, 30, 11)
+that finds no storage node there can search outward along the gradient toward the
+nearest (storage-tinted) coordinate, without any lookup table.
+
+The CCW routing matrix from the harmonic topology session already encodes
+directional traversal — color gradient routing is that same traversal with a
+tint filter applied at each step.
+
 ## IPv6 Coexistence — Not a Conflict
 
 The clean cube mapping is not threatened by IPv6. The cube is a **logical**
@@ -413,8 +537,8 @@ cube coordinate; routing decisions use Manhattan distance or CCW geodesic.
 
 #,,,.,..,,,,,.,,,..,,,.,,,,..,.,,,,,,,,,,..,,,...,...,.,.,,,.,..,...,...,..,,
 
-#,,.,,,,.,,.,,...,,,,,,..,,,,,.,.,.,.,...,..,,..,,...,...,,..,.,,,,..,,.,,.,.,
-#NXCRTPMFX2LVRM4WN6CZNXYPTTIM7HZZDPGW2RTPDFWRRYPZGDAT2VIEPONQKCLYFNBUBAI2K2AZ2
-#\\\|EPAZQHJELZTAWPGBDVLUXOSZ4EFZ5K5STDOKLVP4YPKT73MWOE4 \ / AMOS7 \ YOURUM ::
-#\[7]6WS7J2LTMUVRSOK6D6UDNHUPK44AUGJRGNYX47IAOG3ZGOQ4PMAY 7  DATA SIGNATURE ::
+#,,,,,,,.,.,,,,,.,,.,,.,.,..,,,.,,...,...,,..,..,,...,..,,...,,,.,...,.,.,..,,
+#5I63P3NVECYX6QZ2XKC2P3ALBMH5PUIZ3OAOQEAHHD4PB5K32QMPFYX5WGKFMF6W6SEADV5IKGXSU
+#\\\|AMBWAA2UORP52RJ2YXYWICB4QFD5NP6RRGCA7PLOPBSJOBCVLWX \ / AMOS7 \ YOURUM ::
+#\[7]HWJMAHYCHDJOLHYT7OPC2E3VVFOBQ3H4VMS4LPQJWIP6YWB73CDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
