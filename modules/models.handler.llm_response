@@ -80,6 +80,9 @@ if ($@) {
 $final_result->{'response'} = $data->{'choices'}[0]{'message'}{'content'}
     // $data->{'content'} // '';
 
+$final_result->{'finish_reason'} = $data->{'choices'}[0]{'finish_reason'}
+    // $data->{'stop_reason'} // 'stop';
+
 $final_result->{'tokens_used'} = $data->{'usage'}{'total_tokens'}
     // $data->{'usage'}{'completion_tokens'} // 0;
 
@@ -98,8 +101,8 @@ $final_result->{'tokens_used'} = $data->{'usage'}{'total_tokens'}
 
 return $final_result;
 
-#,,,,,.,.,..,,...,,..,,.,,...,.,.,,,.,.,.,,.,,.,.,...,..,,...,,.,,,,,,,,.,,.,,
-#BQXYCCAOKHBGDYWOCCSUYGMYVNAP6I7ZAD75TL4AYQIHIQBXLXVTYLEWWFWFKN25BSBXDLL6U54QM
-#\\\|Z7FDO3AE5MKD2O3X5BAIM2SXN6VHJHKX6B52Z4P56NJKZBRCPSZ \ / AMOS7 \ YOURUM ::
-#\[7]Y3M4NJQTTRDVKOEH3PA6YHLYJUGLWBST5JBAOERZKS656NVL3GCY 7  DATA SIGNATURE ::
+#,,,.,.,,,..,,,..,..,,,,.,.,.,,.,,,,.,..,,,..,.,.,...,...,.,,,...,.,.,,,.,..,,
+#L3F3NXZIGAJBFODGCS5BL6I6DGRRS5ROLYRQUFQX2YDM7EB4CTSMVWNULTVZOCZ4AHBYG62WICOV2
+#\\\|F3HHIGMSVVQN32MJ6Y7LLKH7SM7IPRK5OGFQ5UG7UXHKO23KC6B \ / AMOS7 \ YOURUM ::
+#\[7]NC7X3M2QK76LIH4AKEDL573X746QF4XEHXQYYLOA5H2XEF4L56BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

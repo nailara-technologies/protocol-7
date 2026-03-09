@@ -37,6 +37,50 @@ $table_width-- if $table_width >= 80;
 
 Additionally, `<key>` columns in data rows add 2 extra spaces (leading `'  '` + trailing `' '`) that aren't accounted for in `$table_width`.
 
+## Progress
+
+### Option B: Implemented (Mar 2026)
+
+`<key>:` column data rows now produce exactly `$max_len{$key_name}` chars, matching
+the header. Changed `$max_len{$key_name} - 1` → `$max_len{$key_name} - 3` in the
+`<key>:` data branch, which accounts for the `'  '` (2) prefix + `' '` (1) suffix.
+
+The `<key>:` data/header alignment is now correct. The remaining separator bug is
+simpler: `$table_width -= 2` alongside `$max_len{$last_d_key} -= 2` to keep them
+in sync.
+
+### ⚠ Before Applying the Remaining Fix: Capture Reference Output
+
+There are **46 manual `center-1` / `center-2` / `center-3` alignment offsets** across
+the codebase that were tuned to compensate for the current buggy layout. After the
+separator fix these will all need re-evaluation — some may shift by 1-2 chars.
+
+**Affected zenki (partial list):** `system`, `httpd`, `web`, `v7`, `coding`, `index`,
+`menu-commands`, `channels`, `models`, `events`, `ssh`, `letsencr`, `mpv`
+
+**Required before fixing:**
+1. Capture `list <name>` output for every affected list command while the bug is
+   present (this is the reference baseline)
+2. Apply `$table_width -= 2` fix
+3. Capture the same list outputs again
+4. Diff each pair — any column that shifted needs its `center-N` tuned or removed
+
+The captures must be on a live system with real data so column widths reflect actual
+content, not empty tables. Commands to capture: `list sessions`, `list zenki`,
+`list models`, `list processes`, `list connections`, etc.
+
+Without this before/after record it is difficult to know which offsets were compensating
+for the bug vs. which are genuinely needed for the data shape of that column.
+
+Once a few representative before/after pairs are captured and the shift pattern is clear
+(likely a consistent 1 or 2 char delta), the remaining offsets can be calculated and
+batch-adjusted rather than checked individually — e.g. all `center-2` → `center-1`,
+or all `center-1` → `center`. The representative sample only needs to cover a few
+different column types (`<key>:`, regular field, last column, non-last column) to be
+confident the formula generalises.
+
+---
+
 ## Failed Approaches
 
 ### Attempt 1: Remove width reduction entirely
@@ -92,10 +136,27 @@ Generate both header and a sample data row, then use the max length for separato
 
 ## Current Workarounds
 
-Some list configurations use `center-1` or `center-2` alignment offsets to visually compensate for the bug:
-- `models.init_code`: `'is_vision' => 'center-1'` (was `center-2`)
+46 `center-N` alignment offsets across the codebase compensate for the bug. Full list
+(grep: `center-[123]` in `modules/`, excluding CSS):
 
-These should be removed once the alignment bug is properly fixed.
+| Module | Fields |
+|--------|--------|
+| `system.process.init_code` | pid (center-1), state (center-2) |
+| `httpd.init_code` | added_at (center-1) |
+| `web.init_code` | client_id, status, depth, started_at, template_id, status, created_at (all center-1) |
+| `v7.init_code` | status (center-1), status (center-2) |
+| `coding.init_code` | status, backend, amos-chksum-id (center-1) |
+| `index.init_code` | type (center-2) |
+| `menu-commands.init_code` | enabled (center-1), order (center-2), items (center-1) |
+| `channels.init_code` | subscribers (center-1) |
+| `models.init_code` | quantization, is_vision (center-1) |
+| `events.init_code` | event_ID (center-1) |
+| `ssh.init_code` | profile (center-2) |
+| `letsencr.parent.init_code` | issued_at, expires_at, status, started, status, type (center-1) |
+| `mpv.init_code` | key (center) |
+
+These should be audited (not blindly removed) once the fix is applied with before/after
+reference captures in hand.
 
 ## Files Involved
 
@@ -126,8 +187,8 @@ $table_string .= '  '  # 2 leading spaces
     . ' ';  # 1 trailing space
 ```
 
-#,,..,.,.,..,,,.,,.,.,...,.,,,,,,,.,,,..,,.,,,..,,...,.,.,.,.,,.,,..,,,,.,.,.,
-#YUQUSNTYWUAWOVCW5QA4NVFJKYA3QHMC4ILGVUUDMUOZU7KA64MPO3J5IDI6IQB72BHJCV62BGRLG
-#\\\|NEDKL47R445OLH2RDOQT4FJDQNLOFHYRT44TQK6H3B7P3RY3SSP \ / AMOS7 \ YOURUM ::
-#\[7]NR6HINRUGBQXNWQHI4TWWHMU4ZP7X4MELCBKRYKDSC5QG37TEOCI 7  DATA SIGNATURE ::
+#,,,,,.,,,...,.,.,,,,,,.,,,.,,,.,,,,,,,,,,,,.,..,,...,...,...,,..,,..,,,.,...,
+#GJ6DNOIOM2MSJJAZJ7UZYJ4JGQLSUOB7EYEG7S5LYZFSUJAQ6TVMIFYYJM4UIIPIPJMK3G46DRILE
+#\\\|FTKSITPQJ3TK2LJDVHZVGUVPJI3B2CYN25YWJZPQXI5ZSKIWBX3 \ / AMOS7 \ YOURUM ::
+#\[7]4XVRL4A63H6GTZXO4ELH7Y2DS6XPLXRYF5HTJSTUZ2FNYYVUAEAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

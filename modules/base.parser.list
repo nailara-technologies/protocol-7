@@ -22,7 +22,7 @@
 # For filtered listing [ search across keys AND values ],
 #                        use base.parser.list_filtered
 #
-# todo  = fix alignment [width] bug. [<key>:ex0 and ex0:ex1 cases]
+# todo  = fix alignment [width] bug. [ex0:ex1 case]
 
 (   my $h_name, my $h_key,    my $sub_key, my $display_keys,
     my $align,  my $defaults, my $filters, my $sort_key
@@ -112,7 +112,6 @@ foreach my $key_name ( $display_keys->@* ) {
     $key_name_str =~ s|^<key>:||;
     $key_name_str =~ s|^[^:]+:([^:]+)$|$1|;
     $key_name_str =~ s|_| |g;
-    my $len = length($key_name_str) + $spacing;
     $table_string
         .= pack( "A$max_len{$key_name}", " : " . $key_name_str . " :." );
 }
@@ -193,8 +192,8 @@ foreach my $key_val (@sorted_keys) {
                 . <[base.parser.align]>->(
                 $align->{$key_name_str} || qw| left |,
                 <[base.call_filter]>->( $filters, $key_name_str, $key_val ),
-                $max_len{$key_name} - 1
-                ) . ' ';    # <-- LLL: remove ' '!
+                $max_len{$key_name} - 3
+                ) . ' ';
         } else {
             my $len = $max_len{$key_name};
             $key_name_str =~ s|:.+$||;
@@ -219,8 +218,8 @@ foreach my $key_val (@sorted_keys) {
 
 return $table_string . "\n";
 
-#,,,.,,,.,,.,,...,..,,,.,,..,,.,,,.,,,.,.,,..,..,,...,...,...,...,.,.,.,,,,,.,
-#4TDFE34IALCHVSY627Z3ZEB3A2MABXICEEAQWNCOKFVVDDQ5SCNVQYHIUKAMWNGU6GFJRLRJYLTNQ
-#\\\|Y33UTDYK43WHXMC6FEZSWMHCQAZERIQBOBECEVMQQUZCJUDJDMP \ / AMOS7 \ YOURUM ::
-#\[7]6OMPJAW2DI4L4DOW4H2Z7QAKVX6HMFY2IHFOIDUSXE75NYCZQCAQ 7  DATA SIGNATURE ::
+#,,..,...,...,...,.,,,,..,...,..,,,..,...,,,.,..,,...,...,,..,.,.,.,,,,..,,.,,
+#7FDG4J2PFQT72IZUGGXFCBBQO34OQFDDTCFMBAFVDAY5MRVXWOKGRG24VGRDBSNAUPLNJB7YHT4NG
+#\\\|V64NHKCB7SUHN3EXKZADR7D7DGHLJK7ODKKG7RDRFIF6263U7ZP \ / AMOS7 \ YOURUM ::
+#\[7]RZ6LAXPWKKKSVDW2CZK7YNUFIE4ZKITBBL4O47RO4J4CYW7W2KBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

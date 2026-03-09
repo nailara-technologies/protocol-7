@@ -144,7 +144,7 @@ if ( !$inference_result->{success} ) {
 }
 
 # Get inference configuration
-my $max_tokens     = <inference.model.max_tokens>  // 256;
+my $max_tokens     = <inference.model.max_tokens>  // 4096;
 my $temperature    = <inference.model.temperature> // 0.7;
 my $inference_port = $backend_info->{'port'};
 my $model_id       = $backend_info->{'model'};
@@ -155,24 +155,25 @@ my $model_id       = $backend_info->{'model'};
 );
 
 # Make HTTP request to inference server
-my $response_text = '';
+my $response_text     = '';
+my $finish_reason_val = 'stop';
+my $http_error;
+
 eval {
     use LWP::UserAgent;
     use JSON::PP;
 
     my $ua = LWP::UserAgent->new;
-    $ua->timeout(30);
-
-    # Build inference request
-    my $request_body = {
-        model       => $model_id,
-        messages    => [ { role => "user", content => $prompt } ],
-        max_tokens  => $max_tokens,
-        temperature => $temperature,
-    };
+    $ua->timeout(300);    ## 5 min [ allows 4096 token generation on gpu ] ##
 
     my $json = JSON::PP->new->utf8->canonical;
-    my $body = $json->encode($request_body);
+    my $body = $json->encode(
+        {   model       => $model_id,
+            messages    => [ { role => 'user', content => $prompt } ],
+            max_tokens  => $max_tokens,
+            temperature => $temperature,
+        }
+    );
 
     <[base.logs]>->(
         2, "[process-queued-task] sending inference request to port %d",
@@ -185,65 +186,49 @@ eval {
         Content      => $body
     );
 
-    if ( $http_response->is_success ) {
-        my $result = eval { $json->decode( $http_response->content ) };
-
+    if ( !$http_response->is_success ) {
+        $http_error = $http_response->status_line;
+    } else {
+        my $decoded = eval { $json->decode( $http_response->content ) };
         if ($@) {
-            return {
-                success => FALSE,
-                error   => "JSON decode error: $@",
-                task_id => $task_id
-            };
-        }
-
-        if ( ref($result) eq qw| HASH | && $result->{choices} ) {
-            $response_text = $result->{choices}->[0]->{message}->{content}
+            $http_error = "json decode error: $@";
+        } elsif ( ref($decoded) eq qw| HASH | && $decoded->{'choices'} ) {
+            $response_text = $decoded->{'choices'}[0]{'message'}{'content'}
                 // '';
+            $finish_reason_val = $decoded->{'choices'}[0]{'finish_reason'}
+                // 'stop';
+
+            ## store finish_reason on task so completion chain can read it ##
+            my $t = <coding.task.queue>->{$task_id};
+            $t->{'execution'}->{'finish_reason'} = $finish_reason_val
+                if defined $t;
 
             <[base.logs]>->(
                 1,
-                "[process-queued-task] inference success, received %d chars",
-                length($response_text)
+                "[process-queued-task] inference success: %d chars, finish_reason=%s",
+                length($response_text),
+                $finish_reason_val
             );
         } else {
-            return {
-                success => FALSE,
-                error   => 'unexpected response format',
-                task_id => $task_id
-            };
+            $http_error = 'unexpected response format';
         }
-    } else {
-        <[base.logs]>->(
-            0,
-            "[process-queued-task] HTTP error: %s",
-            $http_response->status_line
-        );
-        return {
-            success => FALSE,
-            error   => $http_response->status_line,
-            task_id => $task_id
-        };
     }
 };
 
-if ($@) {
-    <[base.logs]>->( 0, "[process-queued-task] inference error : %s", $@ );
-    return {
-        success => FALSE,
-        error   => $@,
-        task_id => $task_id
-    };
+$http_error //= $@ if $@;    ## capture eval die ##
+
+if ( defined $http_error ) {
+    <[base.logs]>->(
+        0, "[process-queued-task] inference error: %s", $http_error
+    );
+    return { success => FALSE, error => $http_error, task_id => $task_id };
 }
 
 ## return result hashref for jobqueue callback ##
-return {
-    success => TRUE,
-    result  => $response_text,
-    task_id => $task_id
-};
+return { success => TRUE, result => $response_text, task_id => $task_id };
 
-#,,..,,,,,,,.,.,,,,..,..,,,.,,..,,.,,,...,...,..,,...,...,..,,..,,...,,,.,..,,
-#MLRHCHGFKKK7MIMNZ2ODEWVMW4V6C7XTGMPEXFHM3RXVIVB26IPWKOY6UQIT4IK4RFH5AGPL6WKGG
-#\\\|QLF5PAR7NAMRQHXFHQOQ2ZDDJ3EE32655BYZLGFZG2BHQZG4CFR \ / AMOS7 \ YOURUM ::
-#\[7]EVZE2IPABMKVCEKFS36GU24QC3KOG5DROCHNXT2DCSRAMOOMKYCY 7  DATA SIGNATURE ::
+#,,.,,,,,,..,,,..,.,,,..,,.,,,..,,,,.,..,,,,.,..,,...,...,.,.,.,.,,.,,,,.,.,,,
+#NGN46C4NIJ5Z5WYOKP6RCWNO73DUODZX33FKVTFK3B6V6QUKGBFTB5ZTFF34NBKBYZTTYLJE4YZBG
+#\\\|EPR24XT2BPWHGVCFLBEMHXTY3BKTL74UF4DPI5J3QFHBUHJTJAZ \ / AMOS7 \ YOURUM ::
+#\[7]WM7S7I3TFDSL5HV53OJNY3PPYVGQRUBLENQAGVSUH7LK47IVPWBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
