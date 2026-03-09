@@ -127,6 +127,106 @@ table simultaneously. Adding a zenka to a task = creating a subdirectory.
 Removing it = deleting that subtree. The structure enforces the access
 model by construction.
 
+## Multicast Namespace Sharding
+
+Rather than a flat key-space, senders compute a multicast group from the recipient
+pubkey — no registry lookup needed:
+
+```
+multicast_group = AMOS7_CHKSUM( pubkey )[0..1]   ## first 1-2 chars of AMOS7 checksum
+```
+
+- **Sender-local computation**: any zenka can derive the group from a public key alone
+- **No directory service required**: group membership is implicit, derivable by anyone
+- **Entropy**: AMOS7 over 36^4 space → natural, collision-resistant distribution
+- **Implicit load balancing**: task key density distributes evenly across groups
+  without any coordinator
+- **CCW topology alignment**: multicast groups map directly onto the CCW routing
+  matrix explored in the harmonic mathematics session — spatial locality for free
+
+### Checksum Width and Cube Addressing
+
+The group discriminator width is adjustable:
+
+```
+2 base32 chars → 36^2 = 1296 groups  [ 1 byte boundary: maps to 256 ]
+3 base32 chars → 36^3 = 46656 groups [ finer sharding, still compact ]
+```
+
+**2-char width** is particularly interesting: two base32 characters encode exactly
+one full byte (0–255), which maps directly onto one axis of the 255×255×255 cubic
+addressing space explored in the harmonic topology session. A task's multicast group
+becomes a coordinate on that cube — the routing table IS the cube face, with no
+translation layer needed.
+
+This also keeps short route announcements compact: a 2-byte group discriminator in
+a UDP multicast header fits in the first word, leaving the rest for the pubkey hash.
+
+### Path Announcement (Optional, Pull-Based Replication)
+
+The nodes zenka currently tracks host presence from discover multicast observations.
+The same infrastructure could carry short routing path announcements — host-to-group
+affinity, updated as task directories migrate:
+
+- **Not required for routing**: multicast delivery already works without it; any
+  sender computes the group and sends — no directory needed
+- **Useful for pull replication**: a host wanting to replicate a task directory can
+  ask "which hosts recently handled group XY?" and get a short candidate list
+- **Reduced width attractive here**: 2-3 char group IDs keep announcement payloads
+  minimal; the nodes zenka's existing presence table gains a group column with
+  negligible overhead
+- **Not a single point of failure**: announcements are advisory; routing falls back
+  to multicast broadcast if the nodes table is stale or absent
+
+### Quantity-Based Attack Resistance
+
+A flood directed at one multicast group cannot be silently forwarded — the receiving
+hop detects the excess immediately and triggers forensics. The originating pubkey is
+already known from the signed payload: no source-obscuring relay is possible when
+the delivery proof requires the sender's key. High-volume attacks are self-identifying
+by construction.
+
+## Self-Assembling Route Logs
+
+Each task directory contains a world-appendable `log/` subdirectory:
+
+```
+tasks/<pubkey>/
+  log/                     ## world-appendable, no key required to add
+    <timestamp>-<hop>.entry ## signed, timestamped forwarding record
+```
+
+Forwarding zenkas write a signed entry as they relay the task directory:
+
+```yaml
+timestamp: 1741478400
+hop_pubkey: <forwarder-pubkey>
+from_host:  host-A
+to_host:    host-B
+task_pubkey: <task-pubkey>
+signature:  <sig-of-above-fields>
+```
+
+### Why This Matters
+
+- **Locality of reference**: the route log travels WITH the task directory —
+  wherever the directory arrives, its full transit history is already present
+- **No meta-log problem**: conventional distributed logging requires a separate
+  log directory per host, then a meta-log to find all log shards, then a
+  meta-meta-log to find the meta-logs — each layer needs its own lookup chain
+- **Append-only without capability**: forwarding nodes need no key to append;
+  they cannot read encrypted payloads, but they CAN record their participation
+- **Audit without coordination**: any node with the task directory reconstructs
+  the full route from the log entries, verifying each hop's signature independently
+- **Complements key chain resolution**: the discover zenka's existing signature
+  chain resolution already walks the key ancestry — the route log adds the
+  spatial/temporal forwarding trace alongside the cryptographic ancestry
+- **nodes zenka integration**: the nodes zenka tracks announced hosts that the
+  discover zenka observed over multicast — it already has the host presence map
+  that short route announcements would populate. path announcement (host → group
+  affinity) could be layered onto the existing nodes/discover infrastructure
+  rather than built separately
+
 ## Implementation Phases
 
 1. **Key generation per zenka** — ephemeral task keys derived from zenka
@@ -146,8 +246,8 @@ model by construction.
 
 #,,..,,.,,,.,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,...,..,,...,..,.,,.,
 
-#,,.,,.,,,..,,,.,,,,.,..,,,,,,...,,,,,,,.,,,.,..,,...,..,,..,,..,,,.,,..,,...,
-#5B6OOU6TR3QU37DNRD3JYAZINH5F4E4WP2WU3N6KTYHCFP74QSUJIMBJAPSMONEL4DZH6QZW57JYA
-#\\\|GT7JVUATM5L3KDBJC4RAVSEPH5NICUKCNHDBJFLAZWHSTON3EBE \ / AMOS7 \ YOURUM ::
-#\[7]NC4K3H4CGFNY3RQHFXPLGMPMWWHCO4FR3UGLSIEY74BBLYGNB4DY 7  DATA SIGNATURE ::
+#,,.,,,,.,,,.,.,.,..,,,,.,.,.,..,,..,,.,,,,,.,..,,...,...,...,,.,,,,.,.,,,,.,,
+#5XRQKYSCO55DGZV2BDCYR3734H4OFAJWPOWGWUCFDK4STOWPYSM2KY526WJDN3H62YYOVAG4PA5VQ
+#\\\|TUGL5EX2GNX5IJT7VSRNBZQKQGKWLYAGLKGFAPTETGFDCBPYM4O \ / AMOS7 \ YOURUM ::
+#\[7]GTNI3HBM72ZDBGPFIQFRUQVBGWWSJ5SUHQLKLTLSUELJSWYOPOBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
