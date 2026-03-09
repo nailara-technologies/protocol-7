@@ -79,6 +79,40 @@ or all `center-1` → `center`. The representative sample only needs to cover a 
 different column types (`<key>:`, regular field, last column, non-last column) to be
 confident the formula generalises.
 
+## Testing Requirements
+
+### 1. Content-Driven Column Widening
+
+Test cases must include tables where **actual data content** forces columns wider than
+the header minimum, AND tables where the **header is the widest element**. Both cases
+exercise different code paths in `max_len` calculation. Verifying that the separator,
+header, and data rows all align correctly in both scenarios confirms the fix is
+general — not just coincidentally correct for short-content tables.
+
+### 2. Filter Output vs Input Length
+
+The preparation phase calculates `max_len` using the **filtered** value:
+
+```perl
+my $filtered_val = <[base.call_filter]>->( $filters, $key_orig_str, $value_str ) // '';
+$max_len{$key_name} = length($filtered_val) + 4
+    if length($filtered_val) > $max_len{$key_name} - 3;
+```
+
+This is correct in principle — column width should reflect the displayed output, not
+the raw input. However, this needs explicit verification for filters that:
+- **expand** values (e.g. adding units, formatting durations like `20h 49'26"`)
+- **contract** values (e.g. truncating long paths, eliding middle chars)
+- **transform** values to a different length (e.g. checksums, b32 encoding)
+
+If any existing filter was being called with different args or context in the prep
+phase vs the render phase, the `max_len` would be sized for the wrong string. Also
+verify that `base.call_filter` is called identically in both phases — same `$filters`
+hashref, same `$key_orig_str` key — so the same filter function fires both times.
+
+Any column where the separator/header width does not match the rendered data after
+the fix is a candidate for a filter output length bug rather than a padding bug.
+
 ---
 
 ## Failed Approaches
@@ -187,8 +221,8 @@ $table_string .= '  '  # 2 leading spaces
     . ' ';  # 1 trailing space
 ```
 
-#,,,,,.,,,...,.,.,,,,,,.,,,.,,,.,,,,,,,,,,,,.,..,,...,...,...,,..,,..,,,.,...,
-#GJ6DNOIOM2MSJJAZJ7UZYJ4JGQLSUOB7EYEG7S5LYZFSUJAQ6TVMIFYYJM4UIIPIPJMK3G46DRILE
-#\\\|FTKSITPQJ3TK2LJDVHZVGUVPJI3B2CYN25YWJZPQXI5ZSKIWBX3 \ / AMOS7 \ YOURUM ::
-#\[7]4XVRL4A63H6GTZXO4ELH7Y2DS6XPLXRYF5HTJSTUZ2FNYYVUAEAA 7  DATA SIGNATURE ::
+#,,..,.,.,,.,,,,.,...,.,.,...,,..,...,...,,,,,..,,...,...,..,,,,,,,..,,.,,...,
+#3FC5TBZST27MRJB23CSLWQLEYPTU6RHWS4ELR42VJZPQGH6VOEJ5QARG54PQR54MJJNII4V4QRPTY
+#\\\|SJKUORRJ3QGCIOPC4FO5YJTHBKFUAGF2COYSDD3BDA3UNIDOCMY \ / AMOS7 \ YOURUM ::
+#\[7]LNQS6M35ONSMHNMCVQLEELKLWAZB7GOCCPGU2TGHVJQ7D6SLCQDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
