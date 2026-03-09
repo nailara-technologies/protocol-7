@@ -115,6 +115,7 @@ RUN apt-get update && apt-get install -y --allow-change-held-packages libgomp1 l
 COPY --from=0 /build/build/bin/llama-server /usr/local/bin/llama-server
 COPY --from=0 /build/build/ggml/src/libggml.so /usr/local/lib/libggml.so
 COPY --from=0 /build/build/src/libllama.so /usr/local/lib/libllama.so
+COPY --from=0 /build/build/examples/mtmd/libmtmd.so /usr/local/lib/libmtmd.so
 
 RUN chmod +x /usr/local/bin/llama-server
 RUN ldconfig
@@ -155,7 +156,7 @@ extract_binary() {
 
     # Extract required libraries
     log_info "Extracting supporting libraries..."
-    for lib in libggml.so libllama.so; do
+    for lib in libggml.so libllama.so libmtmd.so; do
         $DOCKER_CMD cp ${CONTAINER_ID}:/usr/local/lib/${lib} \
             ${OUTPUT_DIR}/ 2>/dev/null || log_warn "Library ${lib} not found in container"
     done
