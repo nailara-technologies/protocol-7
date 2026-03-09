@@ -8,6 +8,19 @@ return undef unless exists <dependency.object>->{$object_id};
 
 my $object = <dependency.object>->{$object_id};
 
+## bypass ram check if any inference server is already running [ ram already committed ] ##
+my $servers = <coding.inference_servers> // {};
+for my $backend ( keys $servers->%* ) {
+    if ( ( $servers->{$backend}->{'status'} // '' ) eq 'ready' ) {
+        <[base.logs]>->(
+            3,
+            '[memory_system] %s server already ready, bypassing ram check',
+            $backend
+        );
+        return TRUE;
+    }
+}
+
 ## Get configured threshold (default: 4GB free RAM) ##
 my $min_free_mb = $object->{'min_free_mb'} // 4096;
 
@@ -49,8 +62,8 @@ if ( $free_mb >= $min_free_mb ) {
     return FALSE;
 }
 
-#,,,.,,.,,..,,.,,,...,,,.,,,,,.,.,,.,,.,.,.,.,.,.,...,...,..,,..,,...,,..,,,,,
-#5GLWMVGWDPITX4K6SBWQQZNC7WKDMXICKQ6G6RQCCUDZDJAN5UUHC6TOMIOTO5ODKLA53XEJPIVSY
-#\\\|UATNZOPJI2BKBHLCD3DV7ITPUY4T3XFIOLXVKVKIPWTJAJS2AH7 \ / AMOS7 \ YOURUM ::
-#\[7]JQYQH4W3WXFWMZEKTS3LP5Y35RUMICXDNYP2VCTLSOKZD5WMJ4CQ 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,...,...,.,,,.,.,,,,,,.,,.,,,,..,.,.,...,...,..,,.,,,,..,.,,,,,,,
+#GCDQBI2T5TBIEC3GIUCVGCBGFR2BFDICYEO3BVXKSYFYYRIY2YDUNXYFZ7W3SE4MZQMYJG55P3RPA
+#\\\|4T5G7ABWSXOB7XWCE6DB26IAIYEH5UZLTMD4547WSXS7QBZUNGC \ / AMOS7 \ YOURUM ::
+#\[7]I3X54ROGQWXQTSD56DMNU5ETP3UWN6COMGPGNOH7WHSWX5WDJCCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -81,7 +81,8 @@ unless ( defined $queue_task
 }
 
 # Get task result from the completed task
-my $task_result = $queue_task->{'execution'}->{'result'} // '';
+my $task_result   = $queue_task->{'execution'}->{'result'}        // '';
+my $finish_reason = $queue_task->{'execution'}->{'finish_reason'} // 'stop';
 
 # On first response (resume_count == 0), accumulated is already set by on_task_complete
 # On continuations (resume_count > 0), append the new result to accumulated
@@ -90,16 +91,16 @@ if ( $meta_job->{'resume_count'} > 0 ) {
 }
 
 <[base.logs]>->(
-    1, "[check-completion-chain] task completed: %s (accumulated=%d bytes)",
-    $task->{'id'}, length( $meta_job->{'accumulated'} )
+    1,
+    "[check-completion-chain] task completed: %s (finish_reason=%s, accumulated=%d bytes)",
+    $task->{'id'},
+    $finish_reason,
+    length( $meta_job->{'accumulated'} )
 );
 
-# Check if response appears complete (ends with proper punctuation or is short)
-my $appears_complete = (
-    $task_result =~ /[\.\!\?]\s*$/
-        ||    # Ends with period, exclamation, or question
-        length($task_result) < 100    # Very short responses likely complete
-);
+## use finish_reason from the llm api as primary completion signal ##
+## 'stop' = model finished naturally; 'length' = truncated by context/token limit ##
+my $appears_complete = ( $finish_reason eq 'stop' );
 
 if ($appears_complete) {
     <[base.logs]>->(
@@ -109,7 +110,7 @@ if ($appears_complete) {
     # Determine reply mode based on internal newlines (excluding trailing)
     my $final_data    = $meta_job->{'accumulated'};
     my $stripped_data = $final_data;
-    $stripped_data =~ s/\n$//;        # Remove trailing newline for counting
+    $stripped_data =~ s/\n$//;    # Remove trailing newline for counting
     my $internal_newlines = ( $stripped_data =~ tr/\n// );
 
  # Single-line (0 internal newlines): strip trailing newline, use 'true' mode
@@ -268,8 +269,8 @@ $meta_job->{'task'}    = $cont_routed;
     $cont_routed->{id}
 );
 
-#,,..,,,,,,,.,.,,,..,,.,,,,,,,.,,,..,,.,,,..,,..,,...,...,.,.,.,.,.,.,..,,...,
-#XNSQ6QMTBHEZTMYNEPPJP3CYL7WF6UIFOLPMGGLXCLKLIL7RG5M632S55QVJLTRUDPWMMRRLSUMNW
-#\\\|VLDJK34CESBWUOLK2V3OKQLPWV2YRTOZQJUNKRWTOPL2ONG4J6R \ / AMOS7 \ YOURUM ::
-#\[7]D7GJLDJAL2AQDUT52H6I4ENRZJI6NLYKJ3L6VBRBJZIXTMH7EKDA 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,.,,...,,,.,...,,,.,...,,.,,,,,,..,,...,...,.,.,,..,.,,,...,...,
+#ZTL2EDYESQDJGHXA3CRE3QLPTEKZU6VR6WY577B5VS6KBF4H2JUUABTBGJNA67VIMMLDEV6NJ4ZZG
+#\\\|EE7V3P3VSZ5VWTFI6VASLS2I2576OFNPHJPS2BZIGZG7EG6NPC3 \ / AMOS7 \ YOURUM ::
+#\[7]PACA2KGFOJ3G36EVOMHGW7ZF2DUVQNSIVKW76EDUZDIUHMES54DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
