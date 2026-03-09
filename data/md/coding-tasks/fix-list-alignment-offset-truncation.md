@@ -192,6 +192,13 @@ Generate both header and a sample data row, then use the max length for separato
 These should be audited (not blindly removed) once the fix is applied with before/after
 reference captures in hand.
 
+**Not all offsets are bug workarounds.** Some are intentional design — e.g. the
+`since` column in `list sessions` is deliberately sized for the full expected uptime
+range (`3d 14h 22'` is routine; `1y 47d 6h 12'` is a real target for a system
+designed for continuous operation). A before/after diff showing a shift does not by
+itself mean the offset should be removed — the original intent must be known. When
+in doubt, keep the offset and note it as reviewed.
+
 ## Files Involved
 
 - `modules/base.parser.list` - Main list rendering logic
@@ -221,8 +228,8 @@ $table_string .= '  '  # 2 leading spaces
     . ' ';  # 1 trailing space
 ```
 
-#,,..,.,.,,.,,,,.,...,.,.,...,,..,...,...,,,,,..,,...,...,..,,,,,,,..,,.,,...,
-#3FC5TBZST27MRJB23CSLWQLEYPTU6RHWS4ELR42VJZPQGH6VOEJ5QARG54PQR54MJJNII4V4QRPTY
-#\\\|SJKUORRJ3QGCIOPC4FO5YJTHBKFUAGF2COYSDD3BDA3UNIDOCMY \ / AMOS7 \ YOURUM ::
-#\[7]LNQS6M35ONSMHNMCVQLEELKLWAZB7GOCCPGU2TGHVJQ7D6SLCQDY 7  DATA SIGNATURE ::
+#,,..,..,,,,,,...,.,.,,..,,.,,.,,,,,,,,,.,,,.,..,,...,...,..,,...,...,.,.,.,,,
+#B5JDGYX2XAYSKNZ7HB7Y66AZDTKLOTSKASIH5PAEAPC5USWFRT4KWTNRWHSVMIAKQK4334SWQHWCE
+#\\\|53ISHY5P2X6EUSGJQMMOXGAU7VAPL3GHWP4TNE5EGJ3MYNHB5TD \ / AMOS7 \ YOURUM ::
+#\[7]LXYKGMCHK6HHQV727FZZG7F7PLAOQCHXOOIFOBKYFNIUVNF53AAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
