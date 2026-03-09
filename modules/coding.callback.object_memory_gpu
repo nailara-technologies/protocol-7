@@ -8,6 +8,15 @@ return undef unless exists <dependency.object>->{$object_id};
 
 my $object = <dependency.object>->{$object_id};
 
+## bypass vram check if gpu server is already running [ vram already committed ] ##
+my $gpu_server = ( <coding.inference_servers> // {} )->{'gpu'};
+if ( defined $gpu_server && ( $gpu_server->{'status'} // '' ) eq 'ready' ) {
+    <[base.logs]>->(
+        3, '[memory_gpu] gpu server already ready, bypassing vram check'
+    );
+    return TRUE;
+}
+
 ## Get configured threshold [ default: 3GB free VRAM ] ##
 my $min_free_mb = $object->{'min_free_mb'} // 3072;
 
@@ -43,8 +52,8 @@ if ( $free_mb >= $min_free_mb ) {
     return FALSE;
 }
 
-#,,..,.,,,..,,.,.,.,,,.,.,..,,.,,,,.,,,..,..,,.,.,...,...,...,,..,.,.,...,.,,,
-#UPL6MOYPKRUFMB4UI6FWCRAM4HJENHPDCBKN7CORH7BOAXJK4QWIN2HIG6QQVNCNTELNJLDTKATIK
-#\\\|7QBGML4VFYWXAMMNEZOWRJ2FNJ256TZMDHMJ3XQP5OR3PQEGY4D \ / AMOS7 \ YOURUM ::
-#\[7]4RESFTSQ3EJ7KL7BP67PTU6XYWNW55SZIFYB43RZRYGHBTM4DSAQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,..,,..,,.,,,.,,,,,.,,..,.,.,.,.,.,.,...,...,..,,...,.,,,,..,,..,
+#MUH6IJNB3OA75KKXQOUYQVXFCRKIFNU7BK562W3PG74NCD6NOZPT7ME6QB6IXFBVTMXZFXYDNTZOK
+#\\\|XBLSP44F7YZ7VQENAEAS3XSE6PMD7XN5VL3VFUNDK2ULXGDGBIA \ / AMOS7 \ YOURUM ::
+#\[7]PSZTWFIRJANTWRC62544OQAU7GRY3NIGI6NZESYHVBNWUURRPIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
