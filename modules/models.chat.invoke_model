@@ -15,6 +15,18 @@ my $handler  = $opts->{'handler'}  // '';
 my $sender   = $opts->{'sender'}   // '';
 my $model    = $opts->{'model'}    // $model_name;
 
+## Expand inline file references ##
+## [::file::], [::code::], [::tail::], [::head::], [::grep::] ##
+my $expanded = <[models.chat.expand_refs]>->( { 'message' => $message } );
+if ( $expanded->{'mode'} eq qw| true | && $expanded->{'expansions'} ) {
+    $message = $expanded->{'data'};
+    <[base.log]>->(
+        2,
+        "[invoke_model] expanded %d file refs",
+        $expanded->{'expansions'}
+    );
+}
+
 return unless length($message);
 
 ## model name to backend mapping
@@ -135,8 +147,8 @@ elsif ( $backend_type eq qw| kimi_web | ) {
 
 return;
 
-#,,,.,..,,,..,,.,,,,.,,,,,..,,,.,,,,,,,,.,,,.,.,.,...,...,,..,.,.,,,.,...,..,,
-#RF2JXMWAFQEJ26SDEZ2WIFAUH6UFA7UZCA3KR6PBSIKOW7XFE4PVJKZB5GWPJWUX3ZS74MXPHTSZE
-#\\\|VIZP2GGOWCVRO4WPKYDBIPZZW2YYA5FTIMK6J44EL5AHXRKCYQ6 \ / AMOS7 \ YOURUM ::
-#\[7]HNILZIVZNBLGCUXUYSRY6Z74JHECDWBD2L7TFSAL2GBRHMNHE4AA 7  DATA SIGNATURE ::
+#,,..,,.,,..,,.,.,,..,,,,,.,,,,,.,..,,,.,,.,.,.,.,...,..,,..,,.,.,.,,,.,.,.,.,
+#ZA6MEIAU3FKXU6WQ4FGJNYX4UBKKZSLWSGR6DYZRY4YWIGGNFCLU6KCW63ZNV5L6AUXM3ONHODOZG
+#\\\|5YUZC5UL2JO2LWRSSW2WB7H5TIMRPNK5CTLMLG4GJBFXK4FUSY4 \ / AMOS7 \ YOURUM ::
+#\[7]EQ7QFPFF2P5S4Q2B7QQGNU7CPC7DWPNQIYTBQBNYVPEP4PT3NUDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

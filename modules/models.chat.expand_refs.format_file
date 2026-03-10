@@ -1,0 +1,22 @@
+## [:< ##
+
+# name  = models.chat.expand_refs.format_file
+# descr = format full file content for inline expansion
+# param = $path    - file path label
+# param = $content - file content string
+# return = formatted string with header/footer markers
+
+my ( $path, $content ) = @ARG;
+
+return $content if $content =~ m{^\[ERROR:};
+
+return sprintf( "\n=== FILE: %s ===\n%s\n=== END: %s ===\n",
+    $path, $content, $path );
+
+0;
+
+#,,,,,..,,...,.,.,..,,..,,..,,,,.,,.,,,,,,,,.,..,,...,..,,...,...,,,,,.,,,..,,
+#6J7GUSRRJKQHGXQ3ZVVXCYR3Q3NPA6QHYPQSDJMP65F6K3UZLS4PSPPK5O7H45XH6WXA7CBZE7ZNE
+#\\\|74XQXKF56LK2TB6O2XZ7ZYP4NGUFTHQPAJ4TKLKIBPPQVYEWKRF \ / AMOS7 \ YOURUM ::
+#\[7]UXYEMIY4QP7FVBJVQ7XKSG65FEDMN33YRDX7BYPC4DPCG27BEYBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

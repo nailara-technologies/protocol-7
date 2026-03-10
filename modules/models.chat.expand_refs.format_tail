@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = models.chat.expand_refs.format_tail
+# descr = format last N lines of file content for inline expansion
+# param = $path    - file path label
+# param = $content - file content string
+# param = $n       - number of lines from end
+# return = formatted string with tail lines
+
+my ( $path, $content, $n ) = @ARG;
+
+return $content if $content =~ m{^\[ERROR:};
+
+my @lines = split( m{\n}, $content );
+my @tail  = @lines >= $n ? @lines[ -$n .. -1 ] : @lines;
+
+return sprintf( "\n=== TAIL (%d lines): %s ===\n%s\n=== END ===\n",
+    $n, $path, join( "\n", @tail ) );
+
+0;
+
+#,,..,,,.,.,.,,,,,,.,,,.,,,,,,,,,,,,,,...,,..,..,,...,...,.,.,,,,,,,.,..,,,,,,
+#BNPIVO7B2NT4PBGJN5MCX3QSU2WMD7LC46C5KLHQNQMPOR6EZPZX3W4YHX7YXSRDZK6U4VXMEFJZW
+#\\\|W4TNQCLYWL5CZI6LMNR7IG7JBECCANY2CAGDGUNECSGBRDQ5CYS \ / AMOS7 \ YOURUM ::
+#\[7]XROLNC6O46IP3JC735P347HBWHSPDQIKL6LA2ERDO4PSBJGODABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

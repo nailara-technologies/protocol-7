@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = models.chat.expand_refs.format_head
+# descr = format first N lines of file content for inline expansion
+# param = $path    - file path label
+# param = $content - file content string
+# param = $n       - number of lines from start
+# return = formatted string with head lines
+
+my ( $path, $content, $n ) = @ARG;
+
+return $content if $content =~ m{^\[ERROR:};
+
+my @lines = split( m{\n}, $content );
+my @head  = splice( @lines, 0, $n );
+
+return sprintf( "\n=== HEAD (%d lines): %s ===\n%s\n=== END ===\n",
+    $n, $path, join( "\n", @head ) );
+
+0;
+
+#,,..,..,,,..,.,.,,,.,,.,,,,,,,,.,.,,,,,.,,,.,..,,...,...,,..,..,,..,,...,...,
+#Y5WKQP5HI2N4I22BV6TYXIDZGNX7J37U23SW5TFEZCHVGM4SRISRSEBR6EBNCQX36VGUT6ZS2JBII
+#\\\|ZE2EVJGEFTUXF2N22YJPCEWIKI5OQH7HUPB3VO2YDVJ4CWE5KVR \ / AMOS7 \ YOURUM ::
+#\[7]SGKT6BZCUYC47COZLLPNADCAAPR6QHQ27A6QHJJHQWBQRTUDYWBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
