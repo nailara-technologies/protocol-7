@@ -23,27 +23,21 @@ $type = 'HTTPD'  if $zenka_name =~ m{^httpd}i;
 ## Use first 7 chars of AMOS7 checksum ##
 my $chk_input = "$zenka_name:" . ( <system.hostname> // 'localhost' );
 
-## Check which AMOS checksum module is available ##
-my $full_chksum;
-if ( exists $code{'chk-sum.amos'} ) {
-    $full_chksum = <[chk-sum.amos]>->($chk_input);
-} else {
-    $full_chksum = <[base.chk-sum.amos]>->($chk_input);
-}
+## resolve amos checksum sub — works before and after swap ##
+## use $code{} directly to bypass P7 pre-validation of <[...]> names ##
+my $amos_chksum = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
 
-my $chksum7 = substr( $full_chksum, 0, 7 );
+my $chksum7 = substr( $amos_chksum->($chk_input), 0, 7 );
 
-## Generate ADDR_B32 - 6 chars base32-encoded ##
-## Derive from C25519 pubkey if available ##
+## generate ADDR_B32 — 6 chars from AMOS7 checksum of pubkey ##
 my $addr_input;
 if ( exists $keys{'C25519'}{'pubkey'} && length $keys{'C25519'}{'pubkey'} ) {
     $addr_input = $keys{'C25519'}{'pubkey'};
 } else {
-    $addr_input = $chk_input;    # deterministic fallback
+    $addr_input = $chk_input;    ## deterministic fallback ##
 }
 
-## Use Crypt::Misc for base32 encoding ##
-my $addr_b32 = substr( encode_b32r($addr_input), 0, 6 );
+my $addr_b32 = substr( $amos_chksum->($addr_input), 0, 6 );
 
 ## Assemble P7REF: TYPE:CHKSUM7:ADDR_B32 ##
 my $p7ref = sprintf( "%s:%s:%s", $type, $chksum7, $addr_b32 );
@@ -52,8 +46,8 @@ my $p7ref = sprintf( "%s:%s:%s", $type, $chksum7, $addr_b32 );
 
 return $p7ref;
 
-#,,.,,,.,,,,.,,..,...,,..,,,.,,,.,,,.,...,.,,,.,.,...,...,...,,.,,,..,,..,,..,
-#QMDP34SYCDE54YWJPDHF5QXQLU5XQ6IBICENB2KP7JJPNKMNZ4K4ZNSEDBO7CGUITSHH3XXS6Y55C
-#\\\|BRFHSB2JZSX7RZQUQQ4HYUBYGFPRB4JRZADLFJGE5OSZCYJEKSX \ / AMOS7 \ YOURUM ::
-#\[7]QFMJICYWVZMPMONCYW7JYKIULLPCXMWXGYMVHAIEPCGQ5WKCMOBI 7  DATA SIGNATURE ::
+#,,,,,.,.,...,,..,,,.,..,,...,,,.,.,,,.,,,.,.,.,.,...,...,.,,,,,,,,,.,..,,,,.,
+#MJ2ELVP6WCGJPU7OGDIZCXVLIKX75MBNWXHHUYFT6QXOKPTCURE4OP3AI3ZRM3WUUMP2LXFXFAGDU
+#\\\|XKE3MY4ZE2HDJQ4RTUIFP6P6PMW5G72HRO3WE76XHULF6RB6TJ3 \ / AMOS7 \ YOURUM ::
+#\[7]QNJATH7PEWPSQ4T54EX656HTHCJXAQRJMUG5D5ZHHIJFITPYOODQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
