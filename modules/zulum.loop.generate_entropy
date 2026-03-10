@@ -1,0 +1,64 @@
+## [:< ##
+
+# name  = zulum.loop.generate_entropy
+# descr = Inner loop: generate next entropy value from stream
+
+my $params    = shift                  // {};
+my $stream_id = $params->{'stream_id'} // 1;
+
+## Validate stream ID ##
+return { 'mode' => qw| false |, 'data' => 'invalid stream_id' }
+    unless $stream_id >= 1 && $stream_id <= 13;
+
+my $stream = <zulum.stream> {$stream_id};
+return { 'mode' => qw| false |, 'data' => 'stream not initialized' }
+    unless defined $stream;
+
+## Get current state ##
+my $Z         = $stream->{'state'};
+my $iteration = ++$stream->{'iteration'};
+
+## Inner loop: division-by-13 entropy generation ##
+RECALC:
+## Shift left 4 bits ##
+$Z <<= 4;
+
+## Divide by 13 (equivalent to: $Z * 11 * 77 / 1001) ##
+$Z /= 13;
+
+## Additional shift based on truth value ##
+## is_true returns 1 for TRUE (non-quadratic residue mod 13) ##
+$Z <<= is_true($Z) ? 2 : 1;
+
+## Verify entropy quality: check truth state ##
+my $num_bits_64      = sprintf( '%064b', int($Z) );
+my $main_entropy_bin = substr( $num_bits_64, 0, 42 );
+
+## Regenerate if truth checks fail ##
+goto RECALC unless is_true( $Z, 2, 1 ) && is_true( $main_entropy_bin, 0, 1 );
+
+## Update stream state ##
+$stream->{'state'}   = $Z;
+$stream->{'entropy'} = $main_entropy_bin;
+
+## Notify attached consumers ##
+foreach my $callback ( @{ $stream->{'attached'} } ) {
+    eval { $callback->( $stream_id, $main_entropy_bin, $iteration ) };
+}
+
+## Return 42-bit entropy value ##
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'stream_id' => $stream_id,
+        'iteration' => $iteration,
+        'entropy'   => $main_entropy_bin,
+        'state'     => $Z,
+    }
+};
+
+#,,,.,.,,,,,,,...,,.,,.,.,...,,..,.,,,.,,,,.,,.,.,...,...,.,,,.,.,..,,,.,,..,,
+#E4GTZFDCTPEGJ73LET3G3XKGVACEYA3VG34BGVGXJZ2FWVWAMGP3AAOQGFH42KLEYHVNWMP5VTUB6
+#\\\|CSIL653VJJ7MJT4MPQZUOYTHNW6BEZPUST2AURSGN5XOHLRQADS \ / AMOS7 \ YOURUM ::
+#\[7]QY6CVASLLSGQEM3ZIHFEEXVR2O4GODUYY35BPPHYY3YF63IJ5ICI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

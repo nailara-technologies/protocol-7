@@ -1,13 +1,46 @@
 ## [:< ##
 
 # name  = zulum.init_code
+# descr = Initialize 13 entropy streams from harmonic generator
 
-<[base.perlmod.load]>->(qw| Math::BigFloat |);
+## Zulum: 13 parallel entropy streams from division-by-13 harmonic table ##
+## Each stream initialized from gen×n seed (n=1..13) ##
 
-0;
+## Load required modules ##
+<[base.perlmod.autoload]>->('AMOS7::Assert::Truth');
 
-#,,,.,,.,,,,.,...,...,,,,,..,,,.,,.,.,,,.,...,..,,...,...,...,,..,,,.,,.,,..,,
-#I6EPHIMVC3XZ2R3OVRENH3LZDR75C4OHZXI42KPIWEBGZAFNVYD636XM7DOTPIRDAK5E6WMN7XEDE
-#\\\|IKGAZ52OR4Y3QI2VZTEMNG432ZL4YNMEW5CTS5AQYTURMGLOVDH \ / AMOS7 \ YOURUM ::
-#\[7]2WP6DLWDYWQDIDSYLJ76RO62S3GYVDONRB65OWY4F2V2XQ66Z2AI 7  DATA SIGNATURE ::
+## Generator constant: 076923 = fractional part of 1/13 as 6-digit block ##
+my $GENERATOR = 76923;
+
+## Initialize 13 streams ##
+for my $stream_id ( 1 .. 13 ) {
+    ## Seed = generator × stream_id ##
+    my $seed = $GENERATOR * $stream_id;
+
+    ## Initialize stream state ##
+    <zulum.stream> {$stream_id} = {
+        'seed'      => $seed,
+        'state'     => $seed,
+        'iteration' => 0,
+        'entropy'   => 0,
+        'active'    => 1,
+        'attached'  => [],      ## consumer callbacks ##
+    };
+
+    <[base.log]>->(
+        2,          "[zulum] stream %d initialized, seed=%d",
+        $stream_id, $seed
+    );
+}
+
+## Global stream state ##
+<zulum.generator>      = $GENERATOR;
+<zulum.streams_active> = 13;
+
+return TRUE;
+
+#,,,,,,,,,..,,,,,,.,.,,,.,,,,,,.,,,.,,...,,..,.,.,...,...,..,,,,.,.,,,.,.,,,.,
+#357BGXYRMGXD7QWGBOXMYP6OOVCZWTWGV6OFYWRXK2IBKS6LO4IZ6XGFUSW4EKZXKV4SL2PWGMNLK
+#\\\|2DZBAQD73ARJNKSOO4ZFKRZQMNAE7PZNO2YXEJTI4EHEOCQ2MU4 \ / AMOS7 \ YOURUM ::
+#\[7]TL7QTUPB37JPOPZB54G3DP2KB4U3HUI6FDZK3SGEO3QZ6SNBMYAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
