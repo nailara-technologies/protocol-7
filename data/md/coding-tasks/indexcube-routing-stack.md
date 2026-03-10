@@ -157,8 +157,10 @@ base.indexcube.reset  ## unwind to origin (keep [0], discard rest)    ##
 ### Phase 3 : Tint Resolution
 
 ```
-base.indexcube.tint   ## resolve TYPE of current entry via %colors    ##
-base.indexcube.color_mix  ## return all TYPE values at current ADDR_B32 ##
+base.indexcube.tint       ## resolve TYPE of current entry via %colors         ##
+base.indexcube.color_mix  ## return all TYPE values at current depth            ##
+base.indexcube.neighbors  ## N nearest zenki by ADDR_B32 manhattan distance    ##
+base.indexcube.distance   ## spatial distance between two ADDR_B32 coordinates ##
 ```
 
 ### Phase 4 : Serialization / Route Log Sync
@@ -173,20 +175,179 @@ Standardize the handoff message format: when routing to another zenka,
 send your current `@INDEXCUBE` state alongside the command, allowing the
 receiving zenka to append your stack to theirs for full route continuity.
 
-## Open Questions
+## Design Decisions (resolved)
 
-- **Signing granularity**: sign each push individually, or sign the full
-  stack state at each checkpoint? Individual signing is more tamper-evident;
-  checkpoint signing is cheaper for deep stacks.
-- **ADDR_B32 assignment**: who assigns cube coordinates to zenki? Options:
-  derived from zenka identity key (deterministic), assigned at registration
-  (registry-based), or self-selected with collision detection via AMOS7.
-- **Stack depth limit**: unbounded is correct for routing but could accumulate
-  for long-lived zenki. Periodic checkpointing + pruning needed for sessions
-  lasting days/weeks.
-- **Color mixing representation**: one P7REF per tint at a given coordinate,
-  or a compound P7REF with multiple TYPE fields? Current parser expects one
-  TYPE field — extension needed for mixing.
+### Signing Granularity — Hybrid
+
+Sign every push individually AND support checkpoint compression:
+
+```
+n signed pushes  →  one summary signature (compressed form)
+verification accepts either granular or compressed form
+```
+
+Storage pressure triggers compression; cryptographic strength is preserved
+either way. Granular form is the default; compressed form is an optimization
+applied retrospectively, never during active routing.
+
+### ADDR_B32 Assignment — Deterministic from Identity Key
+
+```perl
+## no registry, no collision detection needed ##
+$addr_b32 = amos7_chksum( $zenka_pubkey )[0..5];   ## first 6 chars of AMOS7 ##
+```
+
+The cube coordinate is derived, not assigned. Same pubkey always produces
+the same coordinate. Spatial position is cryptographically bound to identity
+— you cannot claim a coordinate without the matching key.
+
+This also connects to the zenka key identity infrastructure: the pubkey IS
+the task directory name; the ADDR_B32 IS the cube coordinate. Both derived
+from the same key material, the cube addressing and the key hierarchy are
+the same structure viewed at different layers.
+
+### Color Mixing — Array of P7REFs at One Depth
+
+Multiple tints at the same depth = array of P7REFs at that stack position:
+
+```perl
+## single tint (common case) ##
+@INDEXCUBE[2] = 'MODEL:MBZAAII:ZRCGL5Q';
+
+## color mixing (multiple categories at same coordinate) ##
+@INDEXCUBE[2] = [ 'MODEL:ABC123:XYZ789', 'CODE:DEF456:UVW012' ];
+```
+
+No parser changes needed — existing P7REF handling wraps in arrayref check.
+`base.indexcube.color_mix` returns the full list; `base.indexcube.tint`
+returns the primary (first) TYPE. Color mixing is opt-in at each depth.
+
+### Cube Neighborhood Queries
+
+ADDR_B32 decoded to 3-byte coordinate enables spatial proximity without
+network broadcast — compare decoded byte values directly:
+
+```perl
+## manhattan distance between two cube coordinates ##
+$dist = abs($ax - $bx) + abs($ay - $by) + abs($az - $bz);
+
+## find N nearest zenki from nodes zenka presence table ##
+base.indexcube.neighbors( $addr_b32, $n )
+```
+
+Useful for locality-aware routing: prefer nearby zenki (same LAN segment
+sharing a /16 prefix = same cube plane) before going to distant hops.
+Connects to the discover/nodes zenka infrastructure already tracking
+host presence — neighborhood queries add a spatial filter to the existing
+presence table.
+
+## Dual Reading : Routing Stack AND Compression Index
+
+`@INDEXCUBE` has two consistent readings sharing the same structural property:
+**position encodes importance**.
+
+```
+routing reading      : position = hop depth, value = cube coordinate
+compression reading  : position = frequency rank, value = element reference
+```
+
+Both are valid simultaneously. @INDEXCUBE[0] = parent/root/origin in both.
+
+### Inverse-Occurrence Sorted Deduplication Index
+
+Elements sorted by descending usage frequency — the position in the array
+IS the compression coefficient:
+
+```
+@INDEXCUBE[0]   =  parent reference         [ FALSE=0, the whole/undifferentiated ]
+@INDEXCUBE[1]   =  TRUE/FALSE group         [ the fundamental binary distinction   ]
+@INDEXCUBE[2]   =  first content element    [ UNKNOWN=2, highest refcount, base32  ]
+...
+@INDEXCUBE[N]   =  Nth ranked element       [ longer address = rarer               ]
+```
+
+The existing base32 charset `[2-9A-Z]` excludes 0 and 1 for exactly this
+reason — the content alphabet begins where UNKNOWN begins. Every AMOS7
+checksum is already an element reference in this index, starting at position
+2 by construction. The three AMOS7 constants mark the three structural layers:
+
+```
+FALSE   = 0  →  parent reference     [ root, excluded from base32 ]
+UNKNOWN = 2  →  first content slot   [ start of base32 alphabet   ]
+TRUE    = 5  →  resolved/confirmed   [ within base32 range        ]
+```
+
+UNKNOWN = 2 is the right constant for the first content position: the element
+being resolved, the starting point of discrimination before TRUE/FALSE is
+determined. The charset boundary was encoding the index structure all along.
+
+Address length = log2(N) bits to encode position N. High-frequency elements
+cost fewer bits to reference — implicit Huffman coding without pre-calculation.
+The code lengths emerge from live usage rather than a computed tree.
+
+### Natural Element Hierarchy
+
+The frequency sort produces the linguistic hierarchy without explicit
+categorization — statistics discover the structure:
+
+```
+rank 1..~52       →  single characters    [ alphabet — always most frequent ]
+rank ~53..~400    →  common syllables     [ phonetic units emerge naturally  ]
+rank ~400..~15k   →  words
+rank ~15k+        →  phrases, paragraphs
+```
+
+Phonetic syllables appear between characters and words in the frequency
+ordering because they ARE statistically between characters and words —
+no explicit phonetic analysis required. The index discovers phonology.
+
+### Implicit Compression via Address Length
+
+Referencing an element is stating its rank. Rank 1 costs ~1 bit; rank
+65536 costs 16 bits. The address space self-compresses: the most-used
+content occupies the shortest addresses, least-used the longest.
+
+This is equivalent to a Huffman code where:
+- The code book is the sorted @INDEXCUBE array
+- The code lengths emerge from refcount-driven rank, not pre-computation
+- The code book updates continuously as usage patterns shift
+
+### Distributed Caching via Refcount Gradient
+
+No explicit cache eviction policy needed — the refcount gradient drives
+distribution automatically:
+
+```
+high local refcount  →  short address → many nodes cache it
+                     →  pulled toward local @INDEXCUBE (stays in memory)
+
+low local refcount   →  longer address → fewer local references
+                     →  drifts toward nodes where it IS frequently referenced
+                     →  cube coordinate proximity drives the drift direction
+```
+
+Elements migrate to the cube region where they're most needed. The tint
+layer marks element type (character / syllable / word / phrase = tint value),
+so neighborhood queries find semantically similar content at nearby coordinates.
+
+### Connection to Routing Stack
+
+The routing stack traversal and the content index inhabit the same coordinate
+space — navigating toward a destination is simultaneously navigating through
+the frequency-ranked content space. A packet routed to cube coordinate X
+passes through content cached at intermediate coordinates ranked by their
+frequency in traffic toward X.
+
+The @INDEXCUBE[0] parent reference unifies both readings: in routing it is
+the origin of the traversal; in the compression index it is the root of the
+element hierarchy. The same slot, the same value, two coherent purposes.
+
+## Remaining Open Question
+
+- **Stack depth limit**: unbounded is correct for routing but accumulates
+  for long-lived zenki. Periodic checkpoint compression (see above) handles
+  storage; a maximum uncompressed depth (e.g. 64 hops) before forced
+  compression is a reasonable operational bound.
 
 ## Minimal Useful Starting Point
 
@@ -201,8 +362,8 @@ Everything else can be layered on top of a populated `@INDEXCUBE[0]`.
 
 #,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
 
-#,,,.,,,.,,.,,,,.,...,...,...,,,.,,.,,,,.,.,,,..,,...,...,..,,...,.,,,,..,.,.,
-#FWQOMGQ5R5JV6QPSCXMZCAHWQS62Q7Z7LDQKUUW3OJJYYKI7P3MZDLVLIRL2APK5IZWVWHSEG37R6
-#\\\|BUCML4SNOEAD2HHJXRMPJYJ6TEGKKQYOUWXRUTZFSYEFN5KYAEG \ / AMOS7 \ YOURUM ::
-#\[7]PMHER75KRO5YEM4V275FQMOHU3O6FA5MT6DKPXY4DMHWSBMQRWCA 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,.,,,,,,,...,...,.,.,.,,,,,.,.,.,..,,...,...,.,.,,,,,,,.,...,...,
+#V7GQFQJKK5MVDFL2ZOU6J6JL3GYLBJ4XROWO4Y2NI2BZSYSH7XWABXSX2P4DQUQUKFRVCOYDLFUKI
+#\\\|MQG6UJBEIUIE6W4IM76P4OKQA74373BK2U2MCLKDZQRAFHKMRBI \ / AMOS7 \ YOURUM ::
+#\[7]PUBKZW4CTLCWAVHPFL6ODLKDOVA3N76N6LM53PYYOJBJCXCZNWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
