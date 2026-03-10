@@ -1,0 +1,48 @@
+## [:< ##
+
+# name  = format.json.decode
+# descr = decode JSON string to perl data structure with error handling
+# param = $json_string - JSON encoded string
+# return = perl data structure or empty hashref on error
+
+my $json_string = shift;
+
+## handle empty input ##
+unless ( defined $json_string && length($json_string) > 0 ) {
+    <[base.logs]>->( 3, 'json.decode: empty input' );
+    return {};
+}
+
+## use cached parser or create new one ##
+state $json;
+if ( !defined $json ) {
+    $json = JSON::XS->new();
+    $json->convert_blessed(1);
+    $json->allow_nonref(1);
+    $json->canonical(1);
+    $json->relaxed(1);
+    $json->pretty(1);
+    $json->utf8(1);
+}
+
+## decode with error handling ##
+my $parsed_data;
+eval { $parsed_data = $json->decode($json_string); };
+
+if ($EVAL_ERROR) {
+    <[base.logs]>->(
+        1,           'json.decode error: %s [input: %s]',
+        $EVAL_ERROR, substr( $json_string, 0, 100 )
+    );
+    return {};
+}
+
+return defined $parsed_data ? $parsed_data : {};
+
+0;
+
+#,,..,,..,,.,,,..,,..,,,,,,.,,..,,,..,...,.,,,..,,...,..,,.,,,,,.,.,,,.,,,,.,,
+#FVGZRN6XNXYLGEBRGAJDDXIZ5GLGWMHBJS5XNKCKBHS7JBOTIFEREQILW45WUFIIRYHTHNI5TPQEK
+#\\\|HXLIFEWH43D72FGOE6UGNJUII73WIVX6JA6SCKVQCB7QCET4MEI \ / AMOS7 \ YOURUM ::
+#\[7]UORVDU32YEJAJTX4RON7ACDAS3ZVYZH56A33XZS3B42I5SEEZYCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

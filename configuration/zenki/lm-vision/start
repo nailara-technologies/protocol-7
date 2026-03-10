@@ -12,13 +12,19 @@ access.cmd.usr.parent = commands reload list show-buffer heart *
 
 ## Module loading ##
 ## Job-dispatch architecture: all lm-vision.* modules auto-loaded
-modules.load = auth net protocol io.unix io.ip crypt.C25519 lm-vision \
+modules.load = auth net protocol io.unix io.ip crypt.C25519 format.json lm-vision \
                                                             devmod  ## <-- development.., ##
 [load_modules:<modules.load>]
 
 system.verbosity.zenka_buffer  = 2
 system.verbosity.console       = 2
 system.verbosity.zenka_logfile = 2
+
+## Backend selection ##
+## auto  = use HTTP if coding zenka server ready, else CLI
+## http  = force HTTP backend (fails if server unavailable)
+## cli   = force CLI backend (llama-mtmd-cli-cuda-fa)
+lm-vision.backend = auto
 
 [init_modules]
 
@@ -30,8 +36,8 @@ system.verbosity.zenka_logfile = 2
 
 [zenka.loop]
 
-#,,,.,.,.,.,.,,..,..,,.,.,,..,,.,,,,,,.,.,.,,,..,,...,...,,,.,..,,...,,,,,,,.,
-#G5PSEONQPXIJKLZPFFFCHBDOMR5NHL4R6GCX3XZPV7W24QG7I7HLN5UPXZZ4GLU4YGFQMRAKUBEZO
-#\\\|NCBVKZDU2P5DPW7J2EYFXEHD5XOTAUAD6UR7YAFRB5H7J2CAEH7 \ / AMOS7 \ YOURUM ::
-#\[7]WADIWETUPWRUPUVEBSV7K43BJASRLUWQVDAB33YSGGDW5TJ3D2CA 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,,,,.,.,,..,,..,,,.,,,,,.,,,...,..,,...,...,,,,,.,,,,,.,,,.,,..,
+#WOOFGAKX7AAOF2SHAYKCYJBNUR3CKXQM2QFAPCCTN3WRGFNOVOAETKVUYI3JSRGGHMCIF67AAINN4
+#\\\|FR3UTRPFKT4SMIBBROTKLEHS7SB2KWKOKTLXL4QOGJ5G4IGI6YF \ / AMOS7 \ YOURUM ::
+#\[7]27BIK34FTPFMP3HKTYLFAUXQYFJPKETVX6WNGCV3HMVQOKPTHMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

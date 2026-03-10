@@ -1,26 +1,16 @@
 ## [:< ##
 
-# name = httpd.json.encode
-# descr = encode Perl data structure to JSON string
+# name  = httpd.json.encode
+# descr = encode perl data structure to JSON string [ delegates to format.json ]
+# param = $data - perl data structure to encode
+# return = JSON octet string
 
-my $data = shift;
+return <[format.json.encode]>->(shift);
 
-state $json;
-if ( !defined $json ) {
-    $json = JSON::XS->new();
-    $json->convert_blessed(1);
-    $json->allow_nonref(1);
-    $json->canonical(1);
-    $json->relaxed(1);
-    $json->pretty(1);
-    $json->utf8(0);
-    ## Output octets [bytes], not UTF-8 flagged strings
-    ## With global 'use bytes;' pragma, SIZE mode counts bytes
-}
-return $json->encode($data);
+0;
 
-#,,,.,,,,,.,.,..,,.,,,,..,,.,,,,.,...,,,.,,,.,...,...,..,,.,.,,.,,,,.,.,.,,,,,
-#BFIJAQQ4EE3QZJDHHWHCWCMR3P5HIEPFUF3U7FXM5VROFQUZFRVNFG3H6LEOIG372H4SEC75SXLF6
-#\\\|6YMFUXS34GQ5MAEXJ527UQICHVRQPUI45BANN2WV7WSDRGZUOKO \ / AMOS7 \ YOURUM ::
-#\[7]IQF5ZF3HI7NKDKTPWIWZKXD5GHIADWHTI2DCSK5R44GJEB36SIAQ 7  DATA SIGNATURE ::
+#,,.,,,.,,.,.,,,.,.,,,,.,,,.,,,,,,,,.,..,,.,,,..,,...,..,,.,.,,,,,...,,.,,..,,
+#MDBMNYBRDSR2R4XO3YETBCXQ4OIZHFAFKKDURJ4RG7B6RNHVV3NCDMRK45Y3LRIVGQTPN2GVNLW66
+#\\\|4IZHPGGXFUVNLWMHYHBNYFFEPZYSSOTULGIACWIIXIVTB4RERXK \ / AMOS7 \ YOURUM ::
+#\[7]5YTQDXDA47ON4I5E27MTJV4MOZWME5CCI6UY5GVQ7B6IJUR6IAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

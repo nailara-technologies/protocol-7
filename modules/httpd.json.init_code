@@ -1,23 +1,16 @@
 ## [:< ##
 
-# name = httpd.json.init_code
-# descr = initialize JSON handling for HTTP server
+# name  = httpd.json.init_code
+# descr = initialize JSON handling [ delegates to format.json ]
 
-<[base.perlmod.autoload]>->('JSON::XS');
-
-<httpd.json.parser> = JSON::XS->new();
-<httpd.json.parser>->convert_blessed(1);
-<httpd.json.parser>->allow_nonref(1);
-<httpd.json.parser>->canonical(1);
-<httpd.json.parser>->relaxed(1);
-<httpd.json.parser>->pretty(1);
-## Keep UTF-8 capable for logging and standard operations
-## Only use utf8(0) in httpd.json.encode for OCTETS mode output
+<[format.json.init_code]>;
 
 return FALSE;
 
-#,,..,,,,,,..,.,.,,.,,,,,,,.,,.,.,,,,,...,.,.,...,...,..,,,..,,..,...,...,,,,,
-#V6W2I72KYEINF47RM7B73MU2XLTULYX7SKEQZIXGNKCVKMNFKGUZ7DN76X6SXMX77D5NSRCCXEEMG
-#\\\|GHREOEULKMJJX5QAA5S3YZ6XXHFZDWUTR64KOYYVMCF6TY23VY3 \ / AMOS7 \ YOURUM ::
-#\[7]QUT6MIYXNEVHVXVUTNQYJQF5RM7DHDMGNWRCL2JMNFIB7M2NAGCA 7  DATA SIGNATURE ::
+0;
+
+#,,.,,,..,..,,,,.,.,.,,,,,..,,.,,,.,,,.,,,.,,,..,,...,...,.,,,.,.,,..,,,,,,..,
+#CLUK6K6W3M4ZK5ZSEZRAQFFHFIJQYC5GFVIQVLXVLWNT273SBBMVE4BIFEGSKYCYT3PIBRBSO3HU6
+#\\\|MQA4KMM774QJ3AGNWPQAWLLEKQMXJLYUFBJ6ZN36OLVWZLMDGIU \ / AMOS7 \ YOURUM ::
+#\[7]QYCVZXRFF5JCSOUEISZDCHTELG5CWRQU6K5QFADAKL6E2MSYUMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

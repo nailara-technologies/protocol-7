@@ -186,6 +186,32 @@ unless ( $model_path && $mmproj_path ) {
     };
 }
 
+##[ BACKEND SELECTION ]#######################################################
+## Check if HTTP backend is available (coding zenka server) ##
+my $backend = <lm-vision.backend> // 'auto';    # auto | http | cli
+
+my $http_available = 0;
+if ( $backend eq 'auto' || $backend eq 'http' ) {
+    my $server_info = <coding.inference_servers> // {};
+    $http_available = 1
+        if exists $server_info->{'gpu'}
+        && $server_info->{'gpu'}{'status'} eq 'ready';
+}
+
+## Route to HTTP backend if available and not forced to CLI ##
+if ( $backend eq 'http' || ( $backend eq 'auto' && $http_available ) ) {
+    <[base.log]>->( 1, "[analyze_image] routing to HTTP backend" );
+    return <[lm-vision.handler.http_analyze]>->(
+        {   'image_path' => $working_image_path,
+            'prompt'     => $prompt,
+            'reply_id'   => $$call{'reply_id'}
+        }
+    );
+}
+
+## Fall through to CLI backend ##
+<[base.log]>->( 1, "[analyze_image] routing to CLI backend" );
+
 # Build portable log file path using system.root_path
 my $log_file_path = <system.root_path> . '/llama';
 
@@ -313,8 +339,8 @@ $job->{'err_io'} = <[event.add_io]>->(
 );
 return { 'mode' => 'deferred' };
 
-#,,.,,.,,,.,.,,..,,..,,.,,...,,,,,,,,,,.,,...,..,,...,..,,.,,,,,.,.,,,...,,,,,
-#UEEXKV5OGYTDMQZ6W2KUOVYPWBE7KAORWN6UO734WAHXNLBUPJ3AAF2ZLR52PG3C36WPBED3EPOQO
-#\\\|2SWU2FPK5RZKMLIX3DX2PY457Z6UW3YXL4HR3KM6WJQOQL2RNSV \ / AMOS7 \ YOURUM ::
-#\[7]7RY53CBQNESAK7O65PG6CMDDIBDGX2GQ6EGLYQ2TAOCBUV3BNQCI 7  DATA SIGNATURE ::
+#,,..,,,,,,,,,...,,,,,...,.,,,..,,,,,,.,,,,,,,..,,...,...,...,,,.,.,.,,.,,,.,,
+#M6MP5LU7YUUM4N7LSWNI6EIVHBWONX3L2ZNOXAVEUP62VF7LDSXUJKUMS4EN4KK3BDPBRLOAR5UE4
+#\\\|DSKOMM76VUBFNNUTRD462R5KGTCTML5SP4OHUEI4IN2HVPZPZT3 \ / AMOS7 \ YOURUM ::
+#\[7]SXCRQJ7FKJDQSDTEB5WNDDJOH463OY6ISIJWZN6MCXSHHHVRQUDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

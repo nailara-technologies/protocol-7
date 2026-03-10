@@ -1,0 +1,149 @@
+## [:< ##
+
+# name  = lm-vision.handler.http_analyze
+# descr = HTTP backend for vision analysis via llama-server
+# param = image_path, prompt, reply_id
+
+my $params     = shift                   // {};
+my $image_path = $params->{'image_path'} // '';
+my $prompt     = $params->{'prompt'}     // 'describe this image';
+my $reply_id   = $params->{'reply_id'}   // '';
+
+return { 'mode' => qw| false |, 'data' => 'image_path required' }
+    unless length($image_path);
+return { 'mode' => qw| false |, 'data' => 'image not found' }
+    unless -f $image_path;
+
+## Get server endpoint from coding zenka ##
+my $server_info = <coding.inference_servers>->{'gpu'} // {};
+my $server_url  = $server_info->{'url'}   // 'http://localhost:8000';
+my $model_name  = $server_info->{'model'} // 'vision-model';
+
+<[base.log]>->(
+    1,           "[http_analyze] analyzing %s via %s",
+    $image_path, $server_url
+);
+
+## Load and base64-encode image ##
+open my $img_fh, '<:raw',
+    $image_path
+    or return {
+    'mode' => qw| false |,
+    'data' => "failed to open image: $!"
+    };
+local $/;
+my $img_data = <$img_fh>;
+close $img_fh;
+
+my $b64_image = encode_base64( $img_data, '' );
+
+## Determine MIME type from extension ##
+my $mime_type = 'image/jpeg';
+if ( $image_path =~ m{\.(png|gif|webp)$}i ) {
+    $mime_type
+        = lc($1) eq 'png'  ? 'image/png'
+        : lc($1) eq 'gif'  ? 'image/gif'
+        : lc($1) eq 'webp' ? 'image/webp'
+        :                    'image/jpeg';
+}
+
+## Build OpenAI-compatible request ##
+my $request = {
+    'model'    => $model_name,
+    'messages' => [
+        {   'role'    => 'user',
+            'content' => [
+                { 'type' => 'text', 'text' => $prompt },
+                {   'type'      => 'image_url',
+                    'image_url' =>
+                        { 'url' => "data:$mime_type;base64,$b64_image" }
+                }
+            ]
+        }
+    ],
+    'max_tokens' => <lm-vision.max_tokens> // 4096,
+};
+
+## Send HTTP POST (blocking for Phase 1) ##
+my $ua = LWP::UserAgent->new( 'timeout' => <lm-vision.http_timeout> // 120, );
+
+my $http_request
+    = HTTP::Request->new( 'POST', "$server_url/v1/chat/completions" );
+$http_request->header( 'Content-Type' => 'application/json' );
+$http_request->content( <[format.json.encode]>->($request) );
+
+<[base.log]>->(
+    2, "[http_analyze] sending %d bytes image data",
+    length($b64_image)
+);
+
+my $response = $ua->request($http_request);
+
+## Handle response ##
+if ( !$response->is_success ) {
+    <[base.log]>->(
+        0, "[http_analyze] HTTP error: %s",
+        $response->status_line
+    );
+    return {
+        'mode' => qw| false |,
+        'data' => "HTTP error: " . $response->status_line
+    };
+}
+
+## Parse JSON response ##
+my $result = <[format.json.decode]>->( $response->content );
+
+if ( !$result || !exists $result->{'choices'} ) {
+    <[base.log]>->( 0, "[http_analyze] JSON parse error or unexpected response" );
+    return {
+        'mode' => qw| false |,
+        'data' => 'json parse error or unexpected response format'
+    };
+}
+
+## Extract generated text ##
+my $generated_text = $result->{'choices'}[0]{'message'}{'content'} // '';
+my $finish_reason  = $result->{'choices'}[0]{'finish_reason'}      // 'stop';
+
+<[base.log]>->(
+    1, "[http_analyze] complete: %d chars, finish_reason=%s",
+    length($generated_text), $finish_reason
+);
+
+## Store result ##
+my $job_id = <[base.gen_id]>->(<lm-vision.jobs>);
+<lm-vision.jobs>->{$job_id} = {
+    'job_id'        => $job_id,
+    'reply_id'      => $reply_id,
+    'image_path'    => $image_path,
+    'prompt'        => $prompt,
+    'status'        => 'complete',
+    'output'        => $generated_text,
+    'finish_reason' => $finish_reason,
+    'start_time'    => <[base.time]>->(3),
+    'end_time'      => <[base.time]>->(3),
+    'backend'       => 'http',
+};
+
+## Send reply if requested ##
+if ( length($reply_id) ) {
+    <[base.callback.cmd_reply]>->(
+        $reply_id, { 'mode' => 'size', 'data' => $generated_text }
+    );
+}
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'job_id'        => $job_id,
+        'output'        => $generated_text,
+        'finish_reason' => $finish_reason,
+    }
+};
+
+#,,..,...,...,,,.,.,.,,,.,,..,,..,,,,,...,,..,.,.,...,...,.,.,,,,,,.,,.,,,.,.,
+#HDLX72ANNVU62HQ6NDDBNJTWITRDOOLYJDFR7N4QE2DOULUSFGPDEA4OMAQXUVRMW2NABXLY3V26I
+#\\\|MICRRGES3TBTNS7YFHHAV3QAR75POMAOCL6RDGMKW4DYHQ2XF7H \ / AMOS7 \ YOURUM ::
+#\[7]AXPWYAY2QHAVQ6LATZZO6FLDQ7V3LWGMWOYXUP6N2D3DGFQY6QAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
