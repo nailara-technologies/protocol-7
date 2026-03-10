@@ -29,6 +29,8 @@
 - **models registry consolidation** (Mar 8 2026): completed ✅ — see `topic-completed.md`
 - **coding zenka event loop + switch-model** (Mar 8 2026): completed ✅ — see `topic-completed.md`
   and `topic-patterns.md` (inference server status pattern)
+- **zulum→decoder entropy wiring** (Mar 10 2026): completed ✅ — route-send callback,
+  level-5-B32 buffer, is_true stream state; see `zulum-decoder-routing-reference.md`
 
 ## Key Technical Insights
 
@@ -136,8 +138,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,..,,,..,,..,...,,.,,,,,,,,,,,..,,,,,,..,..,,...,...,,..,,,,,...,.,.,..,,
-#6ZAAZ7X7ADE752S3PM3QGDJEJWXAKYGRJSVLLUCQFUVZUYYASLTEI7TG4MAKRRUXDW3V4QTAEILZI
-#\\\|LVZT37UQ4XAFNJXOIH2QZPLDIVIXDNBM3CGPPAIFP7JNUM2GYE6 \ / AMOS7 \ YOURUM ::
-#\[7]HX2IWRRQSK3BQVIUH2L6KPTGWFBDZGFP6FVRE32X47G5ZQPBT6CI 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,,..,.,.,,,.,,..,,.,,.,,,..,,..,,..,,...,..,,.,.,,..,..,,.,,,,,,,
+#FVAAZHEDGYOGGIPTSSQ7VSLYH3RVC5ZLHQCZT3B5WSVHMTOUQZ72RYNYFLLQCQ3UNQBT7EKPIKBCI
+#\\\|6GKGNXYXM2KEEC4HVCJMZU7JLZAQ4RZXSWP5BJTLQHHQKTJFHC4 \ / AMOS7 \ YOURUM ::
+#\[7]PRUUPA6JTGMUUWGDJDL4KQEAH4A2FHCOKHBUWJMTQEDFWIXB4WBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

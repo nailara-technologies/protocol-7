@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = zulum.cmd.stream-status
+# descr = Show stream attachment status
+# param = [stream_id] (default: 1)
+
+my $params = shift // {};
+my $stream_id = $params->{'stream_id'} // $params->{'args'} // 1;
+
+return { 'mode' => qw| false |, 'data' => 'invalid stream_id' }
+    unless $stream_id >= 1 && $stream_id <= 13;
+
+my $stream = <zulum.stream> {$stream_id};
+return {
+    'mode' => qw| false |,
+    'data' => "stream $stream_id not initialized"
+    }
+    unless defined $stream;
+
+my $attached_count = scalar( @{ $stream->{'attached'} // [] } );
+
+return {
+    'mode' => qw| true |,
+    'data' =>
+        "stream $stream_id: iteration=$stream->{'iteration'}, attached=$attached_count"
+};
+
+#,,.,.,,,.,.,.,,,.,,..,,.,.,..,,.,.,.,,..,.,.,.,.,...,...,,.,.,.,,..,,.,.,.,,,,,
+
+#,,..,,,.,,..,..,,..,,...,..,,,.,,.,.,,,,,.,.,..,,...,...,,..,.,,,,,.,.,,,...,
+#GS76J5ZHISBDEJV3WVENFYJRHB2Q3G7JKARNB7W5VBDV74J365RXPLUTV2AQRHLJXTH2R2ECJ56US
+#\\\|42A6DBCHCCFFUATWNSUSADRNGKMYUHQT2ZXK4CJ56ONUPOB2NCU \ / AMOS7 \ YOURUM ::
+#\[7]YGUEIRQDIGK6V54DTWDXBTEFISMSXTLVIPAIZEH4PHFWT7Z4ECCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

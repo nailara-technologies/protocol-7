@@ -40,6 +40,7 @@ goto RECALC unless is_true( $Z, 2, 1 ) && is_true( $main_entropy_bin, 0, 1 );
 ## Update stream state ##
 $stream->{'state'}   = $Z;
 $stream->{'entropy'} = $main_entropy_bin;
+$stream->{'is_true'} = is_true($Z);       ## required for cube-13 jump true ##
 
 ## Notify attached consumers ##
 foreach my $callback ( @{ $stream->{'attached'} } ) {
@@ -57,8 +58,8 @@ return {
     }
 };
 
-#,,,.,.,,,,,,,...,,.,,.,.,...,,..,.,,,.,,,,.,,.,.,...,...,.,,,.,.,..,,,.,,..,,
-#E4GTZFDCTPEGJ73LET3G3XKGVACEYA3VG34BGVGXJZ2FWVWAMGP3AAOQGFH42KLEYHVNWMP5VTUB6
-#\\\|CSIL653VJJ7MJT4MPQZUOYTHNW6BEZPUST2AURSGN5XOHLRQADS \ / AMOS7 \ YOURUM ::
-#\[7]QY6CVASLLSGQEM3ZIHFEEXVR2O4GODUYY35BPPHYY3YF63IJ5ICI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,.,,..,.,,,,,,,,,,,,,,,,..,...,,,,,.,.,...,..,,,.,,..,,..,,,,.,,,,,
+#FOLY4PI3JJWLRG46NGTN3IIS7XVPG23FYQPYFMDWNW4FW66UZ6YQFHIBVIF54A2IWVWIJTSJ6TL2A
+#\\\|HBVK5QFK7PQYL7O44BMINNRSGYCGMEXU5DI7E5PIRAMICHLBWRD \ / AMOS7 \ YOURUM ::
+#\[7]EX4IEW6MKF6QAQIA3WOH23JOTK62GKPQZLPXNT32DQJPFKH6Q6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

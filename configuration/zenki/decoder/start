@@ -4,14 +4,17 @@
 
 [load_config_file:'shared-params']
 
-modules.load           = auth net protocol io.unix decoder.zenka      ## devmod
+modules.load           = auth net protocol io.unix decoder ## devmod
 
-access.cmd.usr.cube-13 = heart commands stream-add stream-remove stream-attach
+access.cmd.usr.cube-13 = heart commands stream-add stream-remove stream-attach \
+                                                               devmod ## <-- !
 
 access.cmd.usr.cube    = verify-instance commands heart reload subname \
                          list show-buffer buffer-erase buffer-erase-level \
                          list-deps cur-pid src-ver rel-ver src-age \
-                         ask-question save-state load-state * ## <-- devmod
+                         ask-question save-state load-state show-accumulator \
+                         receive-entropy show-access
+                               ## * ## <-- devmod
 
 [load_modules:<modules.load>]
 [init_modules]
@@ -25,8 +28,8 @@ access.cmd.usr.cube    = verify-instance commands heart reload subname \
 
 [zenka.loop]
 
-#,,,,,,,.,...,,,,,,,,,...,...,..,,,.,,,,.,.,.,..,,...,..,,...,..,,,,,,,.,,,.,,
-#XCROVM77FDF4KSWF64Y6NB6KNBWRWNBT4E5TYNI5NSQPJO3KRGFQVZMTFGLLX6YVCS36IIBV4WDRK
-#\\\|XABEHGYKRKAWVEZWNCH3YDR74DLQNB4P56WGGBEADZYN4TQP3TO \ / AMOS7 \ YOURUM ::
-#\[7]TKHMHYTM4LDUE2IIGYYWSH7QNVI6ALQSIQ5K4MTGE5ILKWZASYDY 7  DATA SIGNATURE ::
+#,,,.,...,,..,,.,,.,,,,..,..,,.,,,.,,,.,.,,,,,..,,...,...,,.,,,..,.,,,,,,,..,,
+#UE2ZUEHDONNYWMGDPOBYVJIPSYBRIE7W6AXE6RBXH5IINYFA6DDNPLLZERLMY5ZBS3QFT36M7HIWU
+#\\\|5YDBFDA3OCOAXX3TYA7EHYXXWFVK7XESZFO4OYYNSLQOFU7N3EJ \ / AMOS7 \ YOURUM ::
+#\[7]6UCUK7O5NECXIC7G473PNZ3HLKEL4Z2BBIISBL4XGDZM5JIZHSAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
