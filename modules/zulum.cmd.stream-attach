@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = zulum.cmd.stream-attach
+# descr = Attach a consumer to an entropy stream
+# param = stream_id (1-13), consumer callback
+
+my $params      = shift                  // {};
+my $stream_id   = $params->{'stream_id'} // $ARG[0] // 1;
+my $consumer_id = $params->{'consumer'}  // $ARG[1] // 'decoder';
+
+## Validate stream ID ##
+return {
+    'mode' => qw| false |,
+    'data' => "stream_id must be 1-13, got: $stream_id"
+    }
+    unless $stream_id >= 1 && $stream_id <= 13;
+
+## Get stream ##
+my $stream = <zulum.stream> {$stream_id};
+return {
+    'mode' => qw| false |,
+    'data' => "stream $stream_id not initialized"
+    }
+    unless defined $stream;
+
+## Create callback wrapper ##
+my $callback = sub {
+    my ( $sid, $entropy, $iteration ) = @_;
+
+    ## Route to consumer via protocol-7 ##
+    <[protocol-7.route-send]>->(
+        {   'command'   => "$consumer_id.zulum.receive_entropy",
+            'call_args' => {
+                'stream_id' => $sid,
+                'entropy'   => $entropy,
+                'iteration' => $iteration,
+            },
+        }
+    );
+};
+
+## Attach to stream ##
+push @{ $stream->{'attached'} }, $callback;
+
+<[base.log]>->(
+    1,          "[zulum] stream %d attached to consumer '%s'",
+    $stream_id, $consumer_id
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => "attached to stream $stream_id"
+};
+
+#,,,,,.,.,.,.,.,.,,..,,,,,,,.,,,,,...,,,.,,..,.,.,...,.,.,.,.,.,,,,,,,,.,,..,,
+#4B7D4FWVWAJ3HYFYWLD6MT67PALJ22IND7BQ73IADPCAQWI73HLXEDHYVF4DXWEUSRQRQZOOCY2DG
+#\\\|BXJUQPWK7GO6MF6PM3ZJQ6O7MF65QLWO37REYKQIJAMKYFIG6LU \ / AMOS7 \ YOURUM ::
+#\[7]KBNTULEMGQKFMSOSWNG3UQ477O6VTKQARL7BDZU25SXQOK6R7WDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

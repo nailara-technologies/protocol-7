@@ -1,0 +1,49 @@
+## [:< ##
+
+# name  = decoder.cmd.show-buffer
+# descr = Show level-5 accumulator contents
+# param = [level] (default: 5)
+
+my $params = shift // {};
+my $level  = $params->{'level'} // $params->{'args'} // 5;
+
+## Validate level ##
+return {
+    'mode' => qw| false |,
+    'data' => "level must be 5, got: $level"
+    }
+    unless $level == 5;
+
+## Get level-5 state ##
+my $L5 = <decoder.level5>;
+
+## Build output ##
+my $output = "=== Level-5 Accumulator ===\n";
+$output .= sprintf "Accumulated bits: %d\n", $L5->{'bit_count'};
+$output .= sprintf "Total values: %d\n\n",   scalar( @{ $L5->{'values'} } );
+
+## Show values (base32) ##
+$output .= "Values (base32):\n";
+my $count = 0;
+foreach my $val ( @{ $L5->{'values'} } ) {
+    $output .= sprintf "%02d ", $val;
+    $output .= "\n" if ++$count % 16 == 0;
+}
+$output .= "\n" if $count % 16 != 0;
+
+## Show pending bits ##
+if ( $L5->{'bit_count'} > 0 ) {
+    $output .= sprintf "\nPending bits: %s (%d bits)\n",
+        $L5->{'accumulator'}, $L5->{'bit_count'};
+}
+
+return {
+    'mode' => 'size',
+    'data' => $output
+};
+
+#,,,.,..,,,.,,,.,,.,,,..,,.,.,,.,,...,,..,..,,.,.,...,...,,,.,.,,,,..,,,,,..,,
+#KS7IBCTGEZYKQ66TIJLIV6273C2I6SYQK6GGVYLXPAHEZPP2TJRM7ZWMPFWKKHOUOBP6ZQ23TLI6K
+#\\\|WGLHQYWT4FINTCYKLORZDIDDZX3QWLI4KPWUOZSV7KDO7VSNDYE \ / AMOS7 \ YOURUM ::
+#\[7]ICVTYH5GVML5RYQLGWLO7YRSLFDXIZZUX7WSHQUVMX62AL7HPGDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
