@@ -65,11 +65,11 @@ if ( !$status && !length($body) ) {
 }
 
 ## Parse JSON response ##
-my $data = eval { JSON::PP::decode_json($body) };
-if ($@) {
-    <[base.log]>->( 0, "[handle.llm_response] JSON parse error: $@" );
+my $data = <[format.json.decode]>->($body);
+if ( !$data || !keys %$data ) {
+    <[base.log]>->( 0, "[handle.llm_response] JSON parse error" );
     $final_result->{'success'}    = FALSE;
-    $final_result->{'error'}      = "json_parse_error: $@";
+    $final_result->{'error'}      = "json_parse_error: invalid JSON";
     $final_result->{'raw_output'} = substr( $body, 0, 500 );
     <[models.callback.send_reply]>
         ->( { reply_id => $reply_id, result => $final_result } );
@@ -101,8 +101,8 @@ $final_result->{'tokens_used'} = $data->{'usage'}{'total_tokens'}
 
 return $final_result;
 
-#,,,.,.,,,..,,,..,..,,,,.,.,.,,.,,,,.,..,,,..,.,.,...,...,.,,,...,.,.,,,.,..,,
-#L3F3NXZIGAJBFODGCS5BL6I6DGRRS5ROLYRQUFQX2YDM7EB4CTSMVWNULTVZOCZ4AHBYG62WICOV2
-#\\\|F3HHIGMSVVQN32MJ6Y7LLKH7SM7IPRK5OGFQ5UG7UXHKO23KC6B \ / AMOS7 \ YOURUM ::
-#\[7]NC7X3M2QK76LIH4AKEDL573X746QF4XEHXQYYLOA5H2XEF4L56BY 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,..,,.,,,,..,,,.,,.,,,..,.,,,.,.,.,.,...,...,.,,,...,,..,,,.,..,,
+#EZK4MABDUUM7KGW5OVLOXPYQS7WW6UCZ2CMSNOHNL56H65TO3N5J46H6LS6NJXGFTXDSU2IHZEK4K
+#\\\|EYOOHK5V6JORWCIKEFF6523NWGDIISHGOGIL4Q527UJCWWIYKIY \ / AMOS7 \ YOURUM ::
+#\[7]JTKWTGFZP52SAM2UJKYBAKMGEPBUEDZOFHPUHESPGHAE3244PUCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

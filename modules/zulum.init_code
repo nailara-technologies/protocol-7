@@ -37,10 +37,24 @@ for my $stream_id ( 1 .. 13 ) {
 <zulum.generator>      = $GENERATOR;
 <zulum.streams_active> = 13;
 
+##[ AUTO-ATTACH DECODER ]#####################################################
+## Wire all streams to decoder.zenka.receive_entropy by default ##
+###############################################################################
+
+for my $stream_id ( 1 .. 13 ) {
+    <[zulum.cmd.stream-attach]>->(
+        {   'stream_id' => $stream_id,
+            'consumer'  => 'decoder'
+        }
+    );
+}
+
+<[base.log]>->( 1, "[zulum] all 13 streams attached to decoder" );
+
 return TRUE;
 
-#,,,,,,,,,..,,,,,,.,.,,,.,,,,,,.,,,.,,...,,..,.,.,...,...,..,,,,.,.,,,.,.,,,.,
-#357BGXYRMGXD7QWGBOXMYP6OOVCZWTWGV6OFYWRXK2IBKS6LO4IZ6XGFUSW4EKZXKV4SL2PWGMNLK
-#\\\|2DZBAQD73ARJNKSOO4ZFKRZQMNAE7PZNO2YXEJTI4EHEOCQ2MU4 \ / AMOS7 \ YOURUM ::
-#\[7]TL7QTUPB37JPOPZB54G3DP2KB4U3HUI6FDZK3SGEO3QZ6SNBMYAI 7  DATA SIGNATURE ::
+#,,,.,,.,,...,...,.,.,,.,,...,,.,,.,,,,,.,...,.,.,...,...,,..,...,.,,,,..,,..,
+#D6JJ3YNWFTTBNMU7YUYJIMMWLWT4FV65EN5UPHVVI2NX2SE3KQSTLTV6IQBNCPA6VBU53QI7DJGP4
+#\\\|CSSZ5TBBUMZMNIYID6EJFAWTLUACJKU4C2P2NQWKMP5FUHZ5SRF \ / AMOS7 \ YOURUM ::
+#\[7]2CXCSJKZAQC2EF7C67OAEFLHJLNQ6MQAJRAM5QQGD43WX44JTGCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
