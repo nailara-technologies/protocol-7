@@ -1,0 +1,45 @@
+## [:< ##
+
+# name  = devmod.cmd.receive-multiline
+# descr = Test command for receiving and echoing multiline input
+
+## Access multiline data from $call ##
+my $headers = $call->{'param'} // {};
+my $body    = $call->{'data'}  // '';
+
+<[base.log]>->(
+    2,             "[receive-multiline] received %d bytes, %d headers",
+    length($body), scalar( keys %$headers )
+);
+
+## Build verification output ##
+my $output = "=== MULTILINE RECEIPT ===\n";
+
+## Headers (parsed into param hash) ##
+if ( keys %$headers ) {
+    $output .= "Headers:\n";
+    foreach my $key ( sort keys %$headers ) {
+        $output .= sprintf "  %s: %s\n", $key, $headers->{$key};
+    }
+} else {
+    $output .= "Headers: (none)\n";
+}
+
+## Body content ##
+$output .= sprintf "\nBody:\n";
+$output .= sprintf "  Length: %d bytes\n", length($body);
+$output .= sprintf "  Lines: %d\n", scalar( split m{\n}, $body );
+$output .= "\n--- BODY START ---\n";
+$output .= length($body) ? $body : "(empty body)\n";
+$output .= "\n--- BODY END ---\n";
+
+return {
+    'mode' => 'size',
+    'data' => $output
+};
+
+#,,..,,..,.,.,,.,,.,.,.,,,,,.,.,,,.,,,...,.,.,.,.,...,...,.,.,,,,,,,,,,..,,..,
+#BGGB2YFRESSBPVOBBJ724G7Z2RNMBDDNQPUIYPPX35AMZMM7OLD4TSRW6NTDACGV2CL6NGCJG6SMO
+#\\\|G6EQF5BHW5IP3VONCIWQIRULYE6D6J2RIUVW5ODUN7S2K2TSK2D \ / AMOS7 \ YOURUM ::
+#\[7]IYX3GCQI4Y2TSR3NOKQXIRDGOM5FLAY2WD5N3Y3Z4ZDYFLMVTAAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
