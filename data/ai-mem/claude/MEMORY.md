@@ -110,6 +110,16 @@
 - `<a.b.c>` and `<a.b.c.d>` CONFLICT — `a.b.c` is scalar, `.d` tries to deref as hash
 - ✅ Use flat sibling name: `<kimi.connect.retry_cur>` not `<kimi.connect.retry_delay.current>`
 
+### Swap-Boundary Module Dispatch (CRITICAL)
+- `<[chk-sum.amos]>` fails P7 pre-validation during base init (swap not yet applied)
+- `<[base.chk-sum.amos]>` fails after re-init (swap already applied, name gone)
+- Fix: use raw `$code{}` dispatch — checked at runtime, not compile time:
+  ```perl
+  my $amos_chksum = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+  $amos_chksum->($input);
+  ```
+- Pattern applies to any module called across a swap boundary
+
 ### Style Conversion Hazard: TRUE ≠ 1 (CRITICAL)
 - `TRUE=5`, `FALSE=0`, `UNKNOWN=2`
 - `> 1` checks trigger on `TRUE` (5) — use literal `1` for "more to read" return codes
@@ -126,8 +136,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,.,...,,,.,,,,,.,,,,,,,,,,,,.,,,..,...,...,..,,...,...,,..,,,.,.,.,,,,,,,,,
-#HZKSRXF353YMDBW42M743PQFQEBN3ERTXEUP3FZ73WKOI2QDH4OSOOEVMCV4UYVIX3LYCTOHY7JRE
-#\\\|ZDXLPSCFJIW5XJTXFR4KEQMXWREZOJEDKKLOOVJXQBIWOTVLC5C \ / AMOS7 \ YOURUM ::
-#\[7]L7K7BVLMPK6T7574EYT2YIFXTJHBNS3YJZLXBOXUWHFUUDTSOEBQ 7  DATA SIGNATURE ::
+#,,..,..,,,..,,..,...,,.,,,,,,,,,,,..,,,,,,..,..,,...,...,,..,,,,,...,.,.,..,,
+#6ZAAZ7X7ADE752S3PM3QGDJEJWXAKYGRJSVLLUCQFUVZUYYASLTEI7TG4MAKRRUXDW3V4QTAEILZI
+#\\\|LVZT37UQ4XAFNJXOIH2QZPLDIVIXDNBM3CGPPAIFP7JNUM2GYE6 \ / AMOS7 \ YOURUM ::
+#\[7]HX2IWRRQSK3BQVIUH2L6KPTGWFBDZGFP6FVRE32X47G5ZQPBT6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
