@@ -1,0 +1,28 @@
+## [:< ##
+
+# name  = base.indexcube.here
+# descr = Return current position (top of @INDEXCUBE)
+
+return { 'mode' => qw| false |, 'data' => 'stack empty' }
+    unless @INDEXCUBE;
+
+my $entry = $INDEXCUBE[-1];
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'p7ref'     => $entry->{'p7ref'},
+        'depth'     => $entry->{'depth'},
+        'timestamp' => $entry->{'timestamp'},
+        'signature' => $entry->{'signature'},
+        'is_origin' => scalar(@INDEXCUBE) == 1,
+    }
+};
+
+#,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
+
+#,,,.,.,,,.,.,,.,,...,.,,,...,,,.,...,,,,,,.,,..,,...,...,,,.,.,,,..,,,,,,..,,
+#5IBXHFRQ3BSHRVLWPPAULZWKQVI6D2P7XVKDGVB6UQJJFUSIXTGMXWEMXOF6KG5OWRA72FNS3IVXC
+#\\\|432XLLKR4ZY34C7YGPLUQNFNUWKDDB5N7TZLE3GKA3YKBAQGCJX \ / AMOS7 \ YOURUM ::
+#\[7]2EH5FP53QXEL57W6L3H37KYXRMC6R7H24ETFZ7BDF2MPYNRG7SDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
