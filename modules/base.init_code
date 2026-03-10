@@ -33,7 +33,8 @@ use Const::Fast;   ## loading too late causes 'const' to be a syntax error! ##
 
 ##[ AMOS MODULE ]#############################################################
 
-<[base.perlmod.autoload]>->('AMOS7::Assert::Truth');   ##  exports is_true  ##
+<[base.perlmod.autoload]>->('AMOS7::Assert::Truth');  ##  exports is_true  ##
+<[base.perlmod.autoload]>->('AMOS7::CHKSUM');         ##  algorithm_set_up  ##
 
 ##############################################################################
 
@@ -269,6 +270,14 @@ if ( defined <setup.aliases> ) {
 <base.filter_hooks.command.heart.send> = qw| base.handler.heart           |;
 <base.filter_hooks.command.heart.recv> = qw| base.handler.heart_ack_reply |;
 ## \ implement permission filter hooks [ LLL ]
+
+##[ INDEXCUBE IDENTITY ANCHOR ]##############################################
+## Initialize @INDEXCUBE[0] with this zenka's P7REF for routing stack   ##
+## Phase 1: minimal useful state — everything else builds on this        ##
+##############################################################################
+
+push @INDEXCUBE, <[base.p7ref.self]>->()
+    if scalar(@INDEXCUBE) == 0;    ## only if not already populated ##
 
 return FALSE;
 

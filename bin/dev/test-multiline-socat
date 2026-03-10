@@ -1,0 +1,56 @@
+#!/bin/bash
+## [:< ##
+# name  = test-multiline-socat
+# descr = Test multiline command protocol via socat
+# usage = test-multiline-socat [command+] [ < input.txt ]
+
+SOCKET="${PROTOCOL_7_UNIX_PATH:-/var/run/.7/UNIX/NIW7OAQ}"
+COMMAND="${1:-coding.receive-multiline+}"
+
+if [[ "$COMMAND" != *+ ]]; then
+    echo "Error: command must end with + for multiline mode" >&2
+    exit 1
+fi
+
+echo "Testing multiline command: $COMMAND"
+echo "Socket: $SOCKET"
+echo "---"
+
+# Build the protocol sequence
+{
+    echo "select unix"
+    echo "auth unix-${USER:-taeki}"
+    echo "select-strm-mode locked"
+    echo "$COMMAND"
+
+    # Read body from stdin or use default
+    if [ -t 0 ]; then
+        # No stdin, use default test content
+        cat << 'BODY'
+length: 42
+test-header: value
+
+Hello, this is line 1
+This is line 2 of the body
+Final line here
+.
+BODY
+    else
+        # Read from stdin
+        cat
+    fi
+
+    # Small delay to ensure data is sent
+    sleep 0.5
+} | socat - UNIX:"$SOCKET" 2>&1
+
+echo "---"
+echo "Test complete"
+
+#,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
+
+#,,..,.,,,,,.,..,,.,,,,,.,,,.,.,,,,,,,.,,,...,..,,...,...,..,,...,...,.,,,.,.,
+#EB5FX7JT2Y4GQGGJ5XW2FNOD4MCJOB45OIUGYRAJLLCORZQEDLKJDLM3RZZ67C73QEA65SSOE7GHS
+#\\\|33VB7K6DE5EAR2AHYPJQCYG2SBEUJURYBBK6V5RDWTUFRHLGDBE \ / AMOS7 \ YOURUM ::
+#\[7]KBGJOFMF3ZOR6HCCHRNCSBMFORG4NWXHVKO2PQENUDDX2JRX74AQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
