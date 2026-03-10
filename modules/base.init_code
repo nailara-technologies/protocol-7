@@ -276,13 +276,22 @@ if ( defined <setup.aliases> ) {
 ## Phase 1: minimal useful state — everything else builds on this        ##
 ##############################################################################
 
-push @INDEXCUBE, <[base.p7ref.self]>->()
-    if scalar(@INDEXCUBE) == 0;    ## only if not already populated ##
+## pack identity anchor as hashref matching base.indexcube.push format ##
+## [ cannot call base.indexcube.push here — chk-sum swap not yet applied ] ##
+if ( scalar(@INDEXCUBE) == 0 ) {
+    my $p7ref = <[base.p7ref.self]>->();
+    push @INDEXCUBE, {
+        'p7ref'     => $p7ref,
+        'timestamp' => <[base.time]>->(5),
+        'depth'     => 0,
+        'signature' => '',    ## identity anchor is self-evidencing at [0] ##
+    };
+}
 
 return FALSE;
 
-#,,,,,..,,...,.,,,,,,,,..,,.,,,..,,..,..,,..,,..,,...,...,,,.,.,.,,,,,..,,,,.,
-#SFANVRSRIPSM5BOU3K2YHWTRQK47BNWGBFRD5VE6CBZ33GHKYFDHTBPCGOTSUDB36H2ZNG3GKE5D6
-#\\\|JGSYPOVDXNIJPRP4W5RNVRU6V27QOIDLM2RNS2S4A5UDV57NASI \ / AMOS7 \ YOURUM ::
-#\[7]6NSNJSEPHACJGL3DXEZR4RVEBJZX7OKOGX6FWBWVKEIXANGDVSCA 7  DATA SIGNATURE ::
+#,,,,,,..,,.,,...,.,.,.,.,,.,,..,,.,.,.,,,..,,..,,...,...,.,.,.,,,..,,,.,,..,,
+#WVZFXJUXDE6GSIGIYOGXUDKFNVHM4YX7PVZM6Z2LGG2ZWRO7S42L3MZIUX6X64XFM6GI6POTHIA4E
+#\\\|YSKSZSSKFV5CL6PAM2J6UVGO4L2KOPT7WK54OZVLKDNI6HLH2ZK \ / AMOS7 \ YOURUM ::
+#\[7]ABER5V7IX6KETCT7TILBJRQCONHQARFQKDRZMZWRY6NFCUCTLMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
