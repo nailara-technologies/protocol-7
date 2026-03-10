@@ -29,7 +29,11 @@ while ( $L5->{'bit_count'} >= 5 ) {
     push @{ $L5->{'values'} }, $val;
 
     ## Add to buffer for display ##
-    push @{ $data{'buffer'}{5}{'data'} }, sprintf( "%02d", $val );
+    <[base.buffer.add_line]>->(
+        qw| level-5-B32 |,
+        sprintf( "value: %02d [stream %s]", $val, $stream_id ),
+        2    ## log level 2 ##
+    );
 }
 
 ## Log accumulation ##
@@ -48,8 +52,8 @@ return {
     }
 };
 
-#,,,.,,.,,,.,,,.,,.,,,,.,,,,.,..,,,.,,,,.,.,,,.,.,...,...,,..,.,,,,.,,..,,.,,,
-#6WZ74ZGILVANTAGITSKPFZELRE5IQLOEGU57WBZOCY4DM6EDSFTFWA44SDYAMUFXAAAI2P2Q2CRNC
-#\\\|E62N5WJ47AQQFKJBBMLOGS2W76IZWUASGP2PR62CZIXNRNRQMQO \ / AMOS7 \ YOURUM ::
-#\[7]FM775CW7IURHOOCUHPUWPZ3NP34XO72JI6VWPBWLKY4FOTINEEBI 7  DATA SIGNATURE ::
+#,,.,,...,,,.,...,...,.,,,,.,,,..,,..,,.,,.,,,.,.,...,...,...,,..,...,,..,.,,,
+#ZYBE5BOCE3ADKS7HQS6EPDTVE7NQF3JS4XRYT5LIBYCTPFD65DNWY5DQE6FVAAGND4VBKJ5PSE4WE
+#\\\|7326QUSJGXW2BKISRJY2SZZJQIHR3WZ4NSHFDXQGCYB2PV6R4YF \ / AMOS7 \ YOURUM ::
+#\[7]4P7F4TQNATJ5YBMYSX7PBRXF3NTZNU4GH6ACI7GDGJIAAEU5BYDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
