@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = zulum.cmd.step
+# descr = Run one entropy generation cycle on specified stream
+# param = stream_id (1-13, default: 1)
+
+my $params = shift // {};
+my $stream_id = $params->{'stream_id'} // $params->{'args'} // 1;
+
+## Validate stream ID ##
+return {
+    'mode' => qw| false |,
+    'data' => "stream_id must be 1-13, got: $stream_id"
+    }
+    unless $stream_id >= 1 && $stream_id <= 13;
+
+## Run one entropy generation cycle ##
+my $result
+    = <[zulum.loop.generate_entropy]>->( { 'stream_id' => $stream_id } );
+
+if ( $result->{'mode'} eq qw| true | ) {
+    my $data = $result->{'data'};
+    return {
+        'mode' => qw| true |,
+        'data' => sprintf(
+            "stream %d: iteration %d, entropy %s... (%d bits)",
+            $data->{'stream_id'},
+            $data->{'iteration'},
+            substr( $data->{'entropy'}, 0, 16 ),
+            length( $data->{'entropy'} )
+        )
+    };
+} else {
+    return $result;
+}
+
+#,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
+
+#,,,.,,.,,,,.,.,,,,,,,,.,,.,,,,,,,..,,,..,,.,,..,,...,...,.,.,.,.,,,,,,,,,...,
+#SMH3MYS5W4E53ELFJP4ZPZN6J6OUSILAZHWY3TYEWZEU62SHK4MVLIWQF7NET57WBEILZS6M6KCCG
+#\\\|FMEFVKCCIMXIOZSR33PRFZ5DJ42YT4P626LUWD6NVLEDQLFOGQ4 \ / AMOS7 \ YOURUM ::
+#\[7]D52HPIW4GAC4AZVTDG26DFKD35D64TZSPEKZVJKOW4TDNOTPU6BA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
