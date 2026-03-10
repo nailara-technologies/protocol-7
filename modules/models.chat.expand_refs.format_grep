@@ -1,0 +1,29 @@
+## [:< ##
+
+# name  = models.chat.expand_refs.format_grep
+# descr = format matching lines from file content for inline expansion
+# param = $path    - file path label
+# param = $content - file content string
+# param = $pattern - regex pattern to match lines
+# return = formatted string with matching lines and count
+
+my ( $path, $content, $pattern ) = @ARG;
+
+return $content if $content =~ m{^\[ERROR:};
+
+my @lines   = split( m{\n}, $content );
+my @matches = grep {/$pattern/} @lines;
+
+return sprintf(
+    "\n=== GREP '%s': %s ===\n%s\n=== END (%d matches) ===\n",
+    $pattern, $path, join( "\n", @matches ),
+    scalar(@matches)
+);
+
+0;
+
+#,,.,,...,.,,,,..,.,.,..,,.,,,..,,.,,,,.,,,.,,..,,...,...,.,,,,.,,..,,.,,,..,,
+#IPIY3XGFPKV7W2SB6JR7ENS2CB2UEE2I5PGHGQQ4HUXBETXCSCKZDHYVZROOKLFUJXOTOK62KHOI6
+#\\\|VJ2PHM6BKGJ2HJKKB4AREPL6LFLDRKZ2YFRPGFP5XVEZRK2QR43 \ / AMOS7 \ YOURUM ::
+#\[7]GNM2RX63AGXU7OCWEPUY2WDBVSM63C4QXZ2YNI2RXDJYCVVUKOAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

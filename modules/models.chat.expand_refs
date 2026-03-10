@@ -1,0 +1,87 @@
+## [:< ##
+
+# name  = models.chat.expand_refs
+# descr = expand inline file references in chat messages
+# param = $params - hashref with 'message' key
+# return = hashref with 'mode', 'data', 'expansions' keys
+
+my $params  = shift // {};
+my $message = $params->{'message'} // $params->{'data'} // '';
+
+return { 'mode' => qw| true |, 'data' => $message, 'expansions' => 0 }
+    unless length $message;
+
+## track expansions for logging ##
+my @expansions;
+
+## [::file:: 'path'] - full file content ##
+while ( $message =~ m{\[::file::\s*['"]([^'"]+)['"]\s*\]} ) {
+    my $path    = $LAST_PAREN_MATCH;
+    my $content = <[models.chat.expand_refs.read_file]>->($path);
+    my $replacement
+        = <[models.chat.expand_refs.format_file]>->( $path, $content );
+    $message =~ s{\[::file::\s*['"]\Q$path\E['"]\s*\]}{$replacement};
+    push @expansions, "file:$path";
+}
+
+## [::code:: 'path'] - file with line numbers ##
+while ( $message =~ m{\[::code::\s*['"]([^'"]+)['"]\s*\]} ) {
+    my $path    = $LAST_PAREN_MATCH;
+    my $content = <[models.chat.expand_refs.read_file]>->($path);
+    my $replacement
+        = <[models.chat.expand_refs.format_code]>->( $path, $content );
+    $message =~ s{\[::code::\s*['"]\Q$path\E['"]\s*\]}{$replacement};
+    push @expansions, "code:$path";
+}
+
+## [::tail:: 'path' N] - last N lines ##
+while ( $message =~ m{\[::tail::\s*['"]([^'"]+)['"]\s+(\d+)\s*\]} ) {
+    my ( $path, $n ) = ( $1, $2 );
+    my $content = <[models.chat.expand_refs.read_file]>->($path);
+    my $replacement
+        = <[models.chat.expand_refs.format_tail]>->( $path, $content, $n );
+    $message =~ s{\[::tail::\s*['"]\Q$path\E['"]\s+\Q$n\E\s*\]}
+                 {$replacement};
+    push @expansions, "tail:$path:$n";
+}
+
+## [::head:: 'path' N] - first N lines ##
+while ( $message =~ m{\[::head::\s*['"]([^'"]+)['"]\s+(\d+)\s*\]} ) {
+    my ( $path, $n ) = ( $1, $2 );
+    my $content = <[models.chat.expand_refs.read_file]>->($path);
+    my $replacement
+        = <[models.chat.expand_refs.format_head]>->( $path, $content, $n );
+    $message =~ s{\[::head::\s*['"]\Q$path\E['"]\s+\Q$n\E\s*\]}
+                 {$replacement};
+    push @expansions, "head:$path:$n";
+}
+
+## [::grep:: 'path' 'pattern'] - matching lines ##
+while ( $message =~ m{\[::grep::\s*['"]([^'"]+)['"]\s+['"]([^'"]+)['"]\s*\]} )
+{
+    my ( $path, $pattern ) = ( $1, $2 );
+    my $content     = <[models.chat.expand_refs.read_file]>->($path);
+    my $replacement = <[models.chat.expand_refs.format_grep]>
+        ->( $path, $content, $pattern );
+    $message =~ s{\[::grep::\s*['"]\Q$path\E['"]\s+['"]\Q$pattern\E['"]\s*\]}
+                 {$replacement};
+    push @expansions, "grep:$path:$pattern";
+}
+
+## log expansions ##
+<[base.log]>->( 2, "[expand_refs] expanded: %s", join( ', ', @expansions ) )
+    if @expansions;
+
+return {
+    'mode'       => qw| true |,
+    'data'       => $message,
+    'expansions' => scalar(@expansions),
+};
+
+0;
+
+#,,,.,.,,,,..,,,,,..,,,.,,...,..,,.,,,...,,..,..,,...,...,...,,,.,,,.,,,,,,.,,
+#A6AXOBSGR5XOVYCVNTJSVOQ7H4G5IEF5A4QDMC55AS5TVJH4HZYJQ72J6GHZMZ5JSZLX2PFLXQ6GY
+#\\\|MZ565JYMZE446LAJT7NHBRS2HZCUGYITVBT4NJP6H7FBISXBBSE \ / AMOS7 \ YOURUM ::
+#\[7]AKPRR757LHLPBXPHBGWVJ4UOKRR223JFAB7ZPWGDKIY5NG2HTEAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

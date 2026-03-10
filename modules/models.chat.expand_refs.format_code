@@ -1,0 +1,31 @@
+## [:< ##
+
+# name  = models.chat.expand_refs.format_code
+# descr = format file content with line numbers for inline expansion
+# param = $path    - file path label
+# param = $content - file content string
+# return = formatted string with numbered lines
+
+my ( $path, $content ) = @ARG;
+
+return $content if $content =~ m{^\[ERROR:};
+
+my @lines  = split( m{\n}, $content );
+my $width  = length( scalar(@lines) );
+my $result = "\n=== CODE: $path ===\n";
+
+my $line_num = 1;
+for my $line (@lines) {
+    $result .= sprintf( "%${width}d: %s\n", $line_num++, $line );
+}
+$result .= "=== END: $path ===\n";
+
+return $result;
+
+0;
+
+#,,,,,,,.,..,,,.,,,,.,.,,,,,.,.,.,,.,,,,,,.,.,..,,...,...,..,,,,,,,.,,,,.,,,.,
+#UX4QI6QDIPXACCNYHQD5C3ETQA6Q6SGUPR4ER45JV7AFTC4Z5253OQSIXY244TQZ5CJ7RMS7NXLBA
+#\\\|XNKVGWZUERFKWZZZ4POVNZX5PCQ6YM2UKZCN32E3MQIASIP5JBC \ / AMOS7 \ YOURUM ::
+#\[7]QGEOTX5VJXRJVDP7JYGEKEIEVRQTYKGPOV4BTBFQRFXIV54Y4SCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
