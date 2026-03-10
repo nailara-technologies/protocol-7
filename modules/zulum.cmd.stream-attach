@@ -25,16 +25,11 @@ return {
 
 ## Create callback wrapper ##
 my $callback = sub {
-    my ( $sid, $entropy, $iteration ) = @_;
-
-    ## Route to consumer via protocol-7 ##
+    ## phase 1 : direct wiring for testing — cube-13 is not yet involved ##
+    my ( $sid, $entropy, $iteration ) = @ARG;
     <[protocol-7.route-send]>->(
-        {   'command'   => "$consumer_id.zulum.receive_entropy",
-            'call_args' => {
-                'stream_id' => $sid,
-                'entropy'   => $entropy,
-                'iteration' => $iteration,
-            },
+        {   'command'   => 'decoder.receive-entropy',
+            'call_args' => { 'args' => "$sid $entropy" },
         }
     );
 };
@@ -43,8 +38,11 @@ my $callback = sub {
 push @{ $stream->{'attached'} }, $callback;
 
 <[base.log]>->(
-    1,          "[zulum] stream %d attached to consumer '%s'",
-    $stream_id, $consumer_id
+    1,
+    sprintf(
+        "[zulum] stream %d attached to consumer '%s'",
+        $stream_id, $consumer_id
+    )
 );
 
 return {
@@ -52,8 +50,8 @@ return {
     'data' => "attached to stream $stream_id"
 };
 
-#,,,,,.,.,.,.,.,.,,..,,,,,,,.,,,,,...,,,.,,..,.,.,...,.,.,.,.,.,,,,,,,,.,,..,,
-#4B7D4FWVWAJ3HYFYWLD6MT67PALJ22IND7BQ73IADPCAQWI73HLXEDHYVF4DXWEUSRQRQZOOCY2DG
-#\\\|BXJUQPWK7GO6MF6PM3ZJQ6O7MF65QLWO37REYKQIJAMKYFIG6LU \ / AMOS7 \ YOURUM ::
-#\[7]KBNTULEMGQKFMSOSWNG3UQ477O6VTKQARL7BDZU25SXQOK6R7WDI 7  DATA SIGNATURE ::
+#,,.,,,.,,.,,,,..,.,,,,,.,,,,,,,.,...,,..,,,.,.,.,...,...,...,,,.,,,.,..,,,.,,
+#MA4NP5WWFUEPVYPXFEZYNOM27FH7JCRAVOA57SGQ2GPZ2RRUBKRJOS4C7TDNZRDRUNO4IZFQ5TTDA
+#\\\|QNVPFLXCUDVMGTDQFZS3TGDK5DFAKJX3NTYHWV73LZEVKXV3PFV \ / AMOS7 \ YOURUM ::
+#\[7]MIBDIHXLAS6K6BIX5KFOFWV42K7LF6ESAFKWQB7ASDJ5WJXN7YCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

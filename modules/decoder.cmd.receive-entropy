@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = decoder.cmd.receive-entropy
+# descr = Command wrapper for decoder.zenka.receive_entropy
+# param = <stream_id> <entropy_bits>
+
+my ( $stream_id, $entropy ) = split m| +|, $call->{'args'} // '', 2;
+
+return {
+    'mode' => qw| false |,
+    'data' => 'expected: <stream_id> <entropy_bits>'
+    }
+    unless defined $stream_id && defined $entropy;
+
+return <[decoder.zenka.receive_entropy]>->(
+    {   'stream_id' => $stream_id,
+        'entropy'   => $entropy,
+    }
+);
+
+#,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
+
+#,,.,,.,,,,,,,...,.,,,,,,,.,.,...,,,.,,..,,,,,..,,...,...,..,,,,,,...,,,.,..,,
+#E3VULC2KQU52KV5XNLSI2S7PE7QGTQVXJLF4JW7RIBDGUD2MUP6LVIMKLUMZSW35UCXWGTDSITTRC
+#\\\|WDXHA2SSMCVSKESXFM3T7BFLIPEQUUSOJLFAGCHONETFGAHHGAD \ / AMOS7 \ YOURUM ::
+#\[7]KGY22EOHEDV2PYSP2YIPUQPJIZJACCT3X6KCLWAAYE37KQ262EDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
