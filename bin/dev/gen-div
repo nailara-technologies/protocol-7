@@ -1,0 +1,133 @@
+#!/usr/bin/perl
+
+use v5.28;
+use strict;
+use English;
+use warnings;
+use Scalar::Util qw| looks_like_number |;
+
+###            ###
+# #  gen-div   # #
+###            ###
+
+## map clean division results across 1/13 cycle multiples        ##
+## usage: gen-div [operator [operator ..]]                        ##
+## default operators: 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.3           ##
+
+$SIG{'INT'} = sub { say "\b\b\n\n"; exit(0) };
+
+##[ configuration ]###########################################################
+
+my $generator = 76923;     ## 1/13 repeating cycle generator  ##
+my $cycle_39  = 25641;     ## 1/39 = 1/(3x13) cycle           ##
+my $attractor = 769230;    ## gen*10 — convergence attractor   ##
+## asc-enc 769230 → L\ (corner+diagonal boundary marker) ##
+## almost every cycle pos reaches here through some op   ##
+
+my @operators = @ARGV ? @ARGV : qw| 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.3 |;
+
+for my $op (@operators) {
+    die ":\n: not a valid operator: $op\n:\n"
+        if !looks_like_number($op)
+        or $op == 0;
+}
+
+## amos7 true / false / unknown cycle positions ##
+my %tf_label = ( 0 => 'FALSE', 2 => 'UNKNOWN', 5 => 'TRUE' );
+
+## known cycle membership table ##
+my %known;
+for my $n ( 1 .. 13 ) { $known{ $generator * $n } = sprintf 'gen*%d', $n }
+for my $n ( 1 .. 999 ) { $known{ $cycle_39 * $n } //= sprintf 'c39*%d', $n }
+
+## recognizable segment values [ cube axes, bit widths, system constants ] ##
+my %sig_seg
+    = map { $ARG => 1 } ( 255, 128, 64, 32, 16, 14, 13, 10, 9, 7, 5, 3 );
+
+##[ output ]##################################################################
+
+say '';
+say ' gen-div : 1/13 cycle × operator clean result map';
+say ' ', '-' x 68;
+printf " %-14s  %-9s  %-12s  %-12s  %s\n",
+    'input [pos]', 'op', 'result', 'membership', 'notes';
+say ' ', '-' x 68;
+
+##[ main ]####################################################################
+
+my $check = 0;
+
+for my $mult ( 1 .. 13 ) {
+
+    $check += $generator;
+
+    my $tf_in  = exists $tf_label{$mult} ? "[$tf_label{$mult}]" : '';
+    my $lbl_in = sprintf '%d [%d]%s', $check, $mult, $tf_in;
+    my $any    = 0;
+
+    for my $op (@operators) {
+
+        my $result = $check / $op;
+        next unless $result == int($result);    ## clean integer only ##
+
+        $any++;
+        my $ri = int($result);
+        my @notes;
+
+        ## digit reversal ##
+        my $rev_str = reverse sprintf '%d', $ri;
+        $rev_str =~ s/^0+(\d)/$1/;
+        if ( looks_like_number($rev_str) ) {
+            my $rev = int($rev_str);
+            if    ( exists $known{$rev} ) { push @notes, "rev=$known{$rev}" }
+            elsif ( $rev == $generator )  { push @notes, 'rev=generator' }
+            elsif ( $rev == $check )      { push @notes, 'rev=input' }
+        }
+
+        ## tf position if result is a gen multiple ##
+        if ( $ri % $generator == 0 ) {
+            my $rpos = $ri / $generator;
+            my $tf   = $tf_label{$rpos} // '';
+            push @notes, $tf ? "pos=$rpos\[$tf\]" : "pos=$rpos";
+        }
+
+        ## scan for recognizable digit segments ##
+        my $rs = sprintf '%d', $ri;
+        my %seen;
+        for my $len ( 2 .. 3 ) {
+            for my $off ( 0 .. length($rs) - $len ) {
+                my $seg = substr $rs, $off, $len;
+                $seg =~ s/^0+(\d)/$1/;
+                push @notes, "seg=$seg"
+                    if exists $sig_seg{$seg} && !$seen{$seg}++;
+            }
+        }
+
+        ## operator identity notes ##
+        push @notes, 'op=13/10'   if abs( $op - 1.3 ) < 1e-9;
+        push @notes, 'op=0.6+0.7' if abs( $op - 1.3 ) < 1e-9;
+
+        ## convergence attractor ##
+        push @notes, '[attractor:L\\]' if $ri == $attractor;
+
+        my $membership = $known{$ri} // '-';
+
+        printf " %-14s  /%-8s  %-12d  %-12s  %s\n",
+            $any == 1 ? $lbl_in : '',
+            $op,
+            $ri,
+            $membership,
+            join( ' ', @notes );
+    }
+
+    say '' if $any;
+}
+
+say ' ', '-' x 68;
+say '';
+
+#,,,.,..,,,.,,.,,,,.,,...,,.,,...,,,,,,..,,,,,..,,...,...,...,..,,,,,,,,,,,,.,
+#YCSVOAZ7UTARCZ6E3ZWDIL5SQFCS73JG67PMYLN7U4QNMFDBADDTTK2BAPD32R3RO4VKLXYYRFAF4
+#\\\|GNQLPYMR77ERGDT6PK66ZZNTA6P2XJWBYPZ3QEQO3WOK25KO25V \ / AMOS7 \ YOURUM ::
+#\[7]RPPJA2DVNYOERRA36JUAWRCXVC4RRZONMECXWBMU5D4JI2CXSMAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

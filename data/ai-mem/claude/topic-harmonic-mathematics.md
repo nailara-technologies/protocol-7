@@ -143,6 +143,79 @@ Predicted by a shaman before the subtraction had meaning.
 - `data/md/philosophy/HARMONIC-ENTROPY-INFORMATION-TRANSFER-RESEARCH.md`
 - `data/md/design/CONCEPT-HARMONIC-VISUAL-INTELLIGENCE.md`
 
+## Navigation Operators (Mar 2026 session)
+
+```
+/ 0.7  →  reversal operator: digits of result reverse back to generator
+           230769 / 0.7 = 329670  →  reversed = 076923 (generator)
+/ 0.6  →  truth operator: navigates to TRUE (×5) cycle position
+           230769 / 0.6 = 384615  =  gen×5  [TRUE]
+           1/0.6 = 5/3  — numerator=TRUE, denominator=source position
+
+0.6 + 0.7 = 1.3 = 13/10  →  sum of both operators = the fundamental constant
+
+operator fingerprint: denominator of operator merges with 13 in result cycle
+  153846 / 0.6 = 256410 = 025641×10  where 025641 = cycle of 1/39 = 1/(3×13)
+  (the 3 from 0.6=3/5 combines with 13 to produce 39 in the result)
+```
+
+## gen×10 = 769230 — Convergence Attractor
+
+Nearly every cycle position reaches 769230 through some operator:
+- `asc-enc 769230` → `L\` (corner + diagonal boundary marker)
+- `L` = ASCII 76 = first two digits of generator 76923
+- `\` = the diagonal boundary marker from source.init_code dimensional table
+- Template meaning: TRUE seed announcing its own coordinate, then filled by payload
+
+## 32-Dimensional Mapping Table (source.init_code)
+
+Pre-existing table maps dimensions 01D–32D with boundary markers:
+```
+32D  [10=5+5]   TRUE+TRUE at top
+30D  [14=7×2] * double-7, starred
+22D  [7]       * starred — reversal operator's integer
+19D  [11+05]     birthday annotation, also [7+1+8][8+8]
+10D  -+-[0]      decimal boundary (0-9), clean base
+09D  (0-8)       9D: where cube+tint+decimal-selector arrived today
+08D  (0-7)       byte-complete, maps to uint64
+03D  octal        existing octal header system
+01D  binary       the floor
+```
+`[not clean]` at 14D and 15D = natural discontinuities, useful as gen-div signals.
+The `\` diagonal traverses all rows = native boundary marker of each dimension.
+
+## 1024 = 1000 + 24 (holographic decomposition)
+
+```
+1024  =  1000 + 24
+          │       └── the 3D cube (3×8 bits)
+          └────────── decimal container (10^3)
+```
+1000 readable as octal-style container: `1|000` = leading-1 delimiter for
+zero-payload, matching existing octal header convention. 24-bit cube color
+stripped first as category/result; 1000 parsed through existing header logic.
+
+## 9D Hyperspace — Minimal Color-Complete Cube
+
+```
+8D  =  8 × 0..255  =  64-bit machine word  (byte-complete spatial cube)
+9D  =  8D + 1 × 0..9  =  decimal color-layer selector
+```
+9D = minimal structure with full color character. The `%colors` and `@INDEXCUBE`
+globals in bin/Protocol-7 (lines 13–14) were declared waiting for this definition.
+@INDEXCUBE as routing stack: each element = (X,Y,Z,tint,scale) position;
+push/pop = enter/exit sub-cube; stack depth = route depth = tamper-evidence depth.
+
+## Birthday Encoding
+
+```
+day=11   →  gen×11 = 846153  →  asc-enc → TRUE (T=5)
+month=05 →  TRUE constant itself
+year=78  →  Protocol-7 column width
+gen×11 / 0.6 = 1410255  →  segments: 14|10|255 (INDEXCUBE line|base32 bridge|cube max)
+```
+At 19D in source.init_code dimensional table: `[11+05]` already annotated.
+
 ## Key Tools
 
 - `bin/dev/iter-rank` — sort AMOS7-signed files by harmonization iteration count
@@ -151,8 +224,8 @@ Predicted by a shaman before the subtraction had meaning.
 - `bin/question` — network time oracle (`Q: <b32_ntime> : <question> .: A!`)
 - `bin/is-true` — simple harmonic truth check
 
-#,,,,,..,,,.,,...,...,,,.,.,.,...,...,..,,,,,,..,,...,...,.,.,,,,,,..,...,,.,,
-#C2OB7XXYCMOISJTKUC7CHQIKGR3ZTLOCZXYAZCWJZRITDXI2PIT6BJJWWPS6ALXEAZJIPXPSSRDK2
-#\\\|XUTBMENM3NZ2YSZ3DA6GUY6VBKDVGFMHH5XUNKGOEB46E2IGBWC \ / AMOS7 \ YOURUM ::
-#\[7]DIFOZT7IH7PZ3XSYLP2VHCLNAN33B2U4G6PTCVPKEXLULBTRGKDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,..,,.,.,,..,.,.,..,,..,,..,,...,..,,...,...,,..,.,,,,,,,.,,,,.,,
+#X5OXSJE4646POHHO4RCKT35GDBBRMN7AN43QHLXZCRN7UJXQB5IGA7F43O4SD43BUZVQO76A2COIQ
+#\\\|UX6R22U6LULDZ77H7VU3UJ27FY3PPPU2PXPFBMZR5CNNYBY7JWV \ / AMOS7 \ YOURUM ::
+#\[7]C7TTFTPPGQ6OTDNSFNF2X4GBMLMJV5B64Q3A3SZZZMGHA4TYLMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
