@@ -1,11 +1,27 @@
 ## [:< ##
 
 # name  = decoder.zenka.init_code
+# descr = Initialize decoder for level-5 base32 stream handling
 
-0;
+## Decoder: receives entropy from zulum, accumulates base32 values ##
 
-#,,.,,...,...,,..,...,..,,,,.,,.,,,,.,..,,...,..,,...,...,,.,,...,,.,,,,.,.,.,
-#6F3E4DUN56ZSIHONF4ICQZ3SNVJZERXO7JDMFUQ6QEZL6ZC3YQRK3QGLVJ6CEUDLDC5UOABMRG32W
-#\\\|CPAXMXLVA7F5E7QGEHMC26QJANIE4E7BGIYIMT764D7MD627BKN \ / AMOS7 \ YOURUM ::
-#\[7]DMPAFQ4FNHKKEA5THVMYSD2XKNOWFE55HQ62S52MKXWYY47CYKCY 7  DATA SIGNATURE ::
+## Level-5 accumulator state ##
+<decoder.level5> = {
+    'accumulator' => '',     ## accumulated bits ##
+    'bit_count'   => 0,      ## bits in accumulator ##
+    'values'      => [],     ## decoded base32 values ##
+    'buffer_name' => '5',    ## buffer level identifier ##
+};
+
+## Attach to zulum streams on request ##
+<decoder.attached_streams> = [];
+
+<[base.log]>->( 2, "[decoder] level-5 accumulator initialized" );
+
+return TRUE;
+
+#,,,,,,.,,,,.,.,,,.,,,,,.,.,,,,,.,..,,,.,,.,.,.,.,...,...,.,,,..,,.,.,.,,,,..,
+#3Z63QMNL74KCOLETYTUIS4K2XYUFRPGRLSQR7MUGFKWMM6VXPOC2GVNZG65N5A5X5IO6FBF5LDEWU
+#\\\|DPYHMNFVCXY4PWS77OZJX3UX3ISLDG6LQJ4LXN3T7WGBM353UU7 \ / AMOS7 \ YOURUM ::
+#\[7]BFXLPNLNOZA6F23XGNP44WSRRNZWS6MA2VSSV2ATXN5UOC5SLQAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

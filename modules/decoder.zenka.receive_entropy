@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = decoder.zenka.receive_entropy
+# descr = Receive entropy from zulum and accumulate into level-5 buffer
+
+my $params    = shift                  // {};
+my $stream_id = $params->{'stream_id'} // $ARG[0];
+my $entropy   = $params->{'entropy'}   // $ARG[1];
+
+return { 'mode' => qw| false |, 'data' => 'missing stream_id' }
+    unless defined $stream_id;
+return { 'mode' => qw| false |, 'data' => 'missing entropy' }
+    unless defined $entropy;
+
+## Get level-5 state ##
+my $L5 = <decoder.level5>;
+
+## Add 42-bit entropy to accumulator ##
+$L5->{'accumulator'} .= $entropy;
+$L5->{'bit_count'} += length($entropy);
+
+## Extract 5-bit chunks (base32) ##
+while ( $L5->{'bit_count'} >= 5 ) {
+    my $chunk = substr( $L5->{'accumulator'}, 0, 5, '' );
+    $L5->{'bit_count'} -= 5;
+
+    ## Convert 5 bits to base32 value (0-31) ##
+    my $val = oct("0b$chunk");
+    push @{ $L5->{'values'} }, $val;
+
+    ## Add to buffer for display ##
+    push @{ $data{'buffer'}{5}{'data'} }, sprintf( "%02d", $val );
+}
+
+## Log accumulation ##
+<[base.log]>->(
+    2,          "[decoder] stream %d: +42 bits, total values: %d",
+    $stream_id, scalar( @{ $L5->{'values'} } )
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'stream_id'    => $stream_id,
+        'values_added' => int( length($entropy) / 5 ),
+        'total_values' => scalar( @{ $L5->{'values'} } ),
+        'pending_bits' => $L5->{'bit_count'},
+    }
+};
+
+#,,,.,,.,,,.,,,.,,.,,,,.,,,,.,..,,,.,,,,.,.,,,.,.,...,...,,..,.,,,,.,,..,,.,,,
+#6WZ74ZGILVANTAGITSKPFZELRE5IQLOEGU57WBZOCY4DM6EDSFTFWA44SDYAMUFXAAAI2P2Q2CRNC
+#\\\|E62N5WJ47AQQFKJBBMLOGS2W76IZWUASGP2PR62CZIXNRNRQMQO \ / AMOS7 \ YOURUM ::
+#\[7]FM775CW7IURHOOCUHPUWPZ3NP34XO72JI6VWPBWLKY4FOTINEEBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

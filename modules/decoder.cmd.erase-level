@@ -1,0 +1,51 @@
+## [:< ##
+
+# name  = decoder.cmd.erase-level
+# descr = Clear level-5 accumulator on clean 5-bit boundary
+# param = level (must be 5)
+
+my $params = shift // {};
+my $level  = $params->{'level'} // $params->{'args'} // 5;
+
+## Validate level ##
+return {
+    'mode' => qw| false |,
+    'data' => "level must be 5, got: $level"
+    }
+    unless $level == 5;
+
+## Get level-5 state ##
+my $L5 = <decoder.level5>;
+
+## Check if on clean 5-bit boundary ##
+if ( $L5->{'bit_count'} != 0 ) {
+    return {
+        'mode' => qw| false |,
+        'data' =>
+            sprintf( "cannot erase: %d bits pending (not on 5-bit boundary)",
+            $L5->{'bit_count'} )
+    };
+}
+
+## Clear accumulator ##
+my $cleared_count = scalar( @{ $L5->{'values'} } );
+$L5->{'values'}      = [];
+$L5->{'accumulator'} = '';
+
+delete $data{'buffer'}{5} if exists $data{'buffer'}{5};
+
+<[base.log]>->(
+    1, "[decoder] level-5 erased, cleared %d values",
+    $cleared_count
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( "level-5 erased, cleared %d values", $cleared_count )
+};
+
+#,,,.,,,,,,,.,.,,,,,,,.,.,...,.,,,..,,.,.,...,.,.,...,...,...,,,,,.,.,,,.,,,.,
+#KFNU5JD7224VEPBOQ3IDXFFXLX3P67766VHKH2HBVDZFLFQ6L2ALW75OHGRELXBVKNBXZ5XHC7GNG
+#\\\|OCHDUTFAQFC76II4CHLZHU6CQWW46T2IED7H7IPGXAFR63ZJFZ4 \ / AMOS7 \ YOURUM ::
+#\[7]M4SRRAQH6B3ZCCBAPFP2NTYNV6J2B5YRLHVU3DAIRJBNVTXMNCBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
