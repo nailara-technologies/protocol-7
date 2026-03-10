@@ -1,0 +1,36 @@
+## [:< ##
+
+# name  = base.indexcube.reset
+# descr = Unwind to origin (keep [0], discard rest)
+
+return { 'mode' => qw| false |, 'data' => 'stack empty' }
+    unless @INDEXCUBE;
+
+my $original_depth = scalar(@INDEXCUBE);
+my $popped_count   = $original_depth - 1;
+
+## Keep only index 0 (identity anchor) ##
+@INDEXCUBE = ( $INDEXCUBE[0] ) if @INDEXCUBE;
+
+<[base.log]>->(
+    1, "[indexcube.reset] unwound from depth %d to origin",
+    $original_depth
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'previous_depth' => $original_depth,
+        'current_depth'  => scalar(@INDEXCUBE),
+        'popped_entries' => $popped_count,
+        'origin_p7ref'   => $INDEXCUBE[0]{'p7ref'},
+    }
+};
+
+#,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
+
+#,,,,,..,,,.,,,,.,...,.,,,...,,,.,,,,,,,,,...,..,,...,...,...,.,,,.,,,.,.,,.,,
+#GQN5JQJQPDVQ5WQYL2YZTERE4RTN32C5ALARUNDSJ3RZQJUBMBNHTV3VXU4AS42EF7MBHYL6UPORM
+#\\\|MRNQW4DUBX3BM7QQCERKMCFQAYTE6HUG37GLFECMKRZGTITDNFH \ / AMOS7 \ YOURUM ::
+#\[7]DAICL7IB6KDOAF53BVCD7XWFVTUDAH5BO36AWE5KO2OFQS4W3GCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
