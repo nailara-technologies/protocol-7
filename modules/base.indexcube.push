@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = base.indexcube.push
+# descr = Sign and push P7REF onto @INDEXCUBE routing stack
+# param = p7ref string (TYPE:CHKSUM7:ADDR_B32)
+
+my $params = shift // {};
+my $p7ref  = $params->{'p7ref'} // $params->{'args'} // '';
+
+return {
+    'mode' => qw| false |,
+    'data' => 'p7ref required'
+    }
+    unless length($p7ref) && $p7ref =~ m{^\w+:\w+:\w+$};
+
+## Validate P7REF format ##
+my ( $type, $chksum7, $addr_b32 ) = split( /:/, $p7ref, 3 );
+return {
+    'mode' => qw| false |,
+    'data' => 'invalid P7REF format'
+    }
+    unless length($type) && length($chksum7) && length($addr_b32);
+
+## Sign the entry with current timestamp ##
+my $entry = {
+    'p7ref'     => $p7ref,
+    'timestamp' => <[base.time]>->(5),
+    'depth'     => scalar(@INDEXCUBE),
+};
+
+## Serialize and sign ##
+my $entry_str
+    = sprintf( "%s:%d:%d", $p7ref, $entry->{'timestamp'}, $entry->{'depth'} );
+$entry->{'signature'} = <[chk-sum.amos]>->($entry_str);
+
+## Push onto stack ##
+push @INDEXCUBE, $entry;
+
+my $new_depth = scalar(@INDEXCUBE);
+
+<[base.log]>->( 2, "[indexcube.push] %s at depth %d", $p7ref, $new_depth );
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'p7ref'     => $p7ref,
+        'depth'     => $new_depth,
+        'signature' => $entry->{'signature'},
+    }
+};
+
+#,,.,,,.,,...,,.,,.,,,..,,,,,,.,,,.,,,,.,,,..,.,.,...,...,.,,,,,.,,.,,.,.,.,,,
+#KFZOT25JE5HLUJOLOYITOCTCJGN35GJ7XELOF35KLA32NYDGE7MQGN76SE7JTUWYJ2DP2AFBHEWSG
+#\\\|KADH6PFPGOLU4C5OFWMT7G4I326EKMDLYL5VLJDSNEVI2SE7HSB \ / AMOS7 \ YOURUM ::
+#\[7]SHVMOHY7NIWVWCIMZKJ3PVJBTXGPRCJETQMBTSRUL7AMWZC6GABA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

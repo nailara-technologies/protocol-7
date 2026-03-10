@@ -1,0 +1,47 @@
+## [:< ##
+
+# name  = base.indexcube.pop
+# descr = Pop top entry from @INDEXCUBE and verify signature
+
+return { 'mode' => qw| false |, 'data' => 'stack empty' }
+    unless @INDEXCUBE;
+
+## Cannot pop the identity anchor (index 0) ##
+return {
+    'mode' => qw| false |,
+    'data' => 'cannot pop identity anchor (INDEXCUBE[0])'
+    }
+    if scalar(@INDEXCUBE) == 1;
+
+## Pop top entry ##
+my $entry = pop @INDEXCUBE;
+
+## Verify signature ##
+my $entry_str = sprintf( "%s:%d:%d",
+    $entry->{'p7ref'}, $entry->{'timestamp'}, $entry->{'depth'} );
+my $expected_sig = <[chk-sum.amos]>->($entry_str);
+
+my $sig_valid = ( $entry->{'signature'} eq $expected_sig );
+
+<[base.log]>->(
+    $sig_valid ? 2 : 0,
+    "[indexcube.pop] %s depth %d - signature %s",
+    $entry->{'p7ref'}, $entry->{'depth'}, $sig_valid ? 'valid' : 'INVALID'
+);
+
+return {
+    'mode' => $sig_valid ? qw| true | : qw| false |,
+    'data' => {
+        'p7ref'     => $entry->{'p7ref'},
+        'depth'     => $entry->{'depth'},
+        'timestamp' => $entry->{'timestamp'},
+        'signature' => $entry->{'signature'},
+        'valid'     => $sig_valid,
+    }
+};
+
+#,,,,,..,,,.,,,..,.,,,,,.,,..,,.,,,.,,..,,,.,,.,.,...,...,...,..,,...,,,,,,,.,
+#SN5PDUODSD7WSJLQM6FMW5GAZ2PI27AMCT32RTYTWJHMMF5D7TZRDPKALCQMUOIHJNL63EZ4GLKPI
+#\\\|6JSKKPM5TXZIMXHBSER5GAAJMOMLXJGIBD2NA55VXEMUSIJ53LZ \ / AMOS7 \ YOURUM ::
+#\[7]2IVCAZRQNVCRYQU5OIW5XN7MQIYWSWACMBXXPTD36NH6QWHM4ODI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
