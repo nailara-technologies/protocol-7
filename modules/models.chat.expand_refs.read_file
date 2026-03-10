@@ -1,0 +1,34 @@
+## [:< ##
+
+# name  = models.chat.expand_refs.read_file
+# descr = read file contents for inline expansion
+# param = $path - file path (absolute or relative to project root)
+# return = file content string or [ERROR:...] string
+
+my $path = shift // '';
+
+## security: restrict to project directory ##
+if ( $path =~ m{^/} && $path !~ m{^/data/projects/protocol-7} ) {
+    return "[ERROR: path outside project: $path]";
+}
+
+## resolve relative paths ##
+my $full_path = $path =~ m{^/} ? $path : "/data/projects/protocol-7/$path";
+
+return "[ERROR: file not found: $path]" unless -f $full_path;
+return "[ERROR: cannot read: $path]"    unless -r $full_path;
+
+open my $fh, '<', $full_path or return "[ERROR: open failed: $path]";
+local $/;
+my $content = <$fh>;
+close $fh;
+
+return $content;
+
+0;
+
+#,,..,,.,,...,.,.,..,,..,,.,,,,..,,.,,..,,,.,,..,,...,..,,..,,,,.,...,...,.,.,
+#R2ZC43RULTYGSAJJ22ZNN3HRJNG3JI247HJHLU5PNZOM2UUE2O4DELTPE72KNZBI4MGQQWOISFSUQ
+#\\\|IOBLNITSYQDWZTQK4YRTHBYPHY7W62GEKVUU2CKSMQ5OIXA4I6Q \ / AMOS7 \ YOURUM ::
+#\[7]XIPVRY75RYRJ7DNENQ75DTOU7AADJIVHZJMRTTDNKYEE74JCDECA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
