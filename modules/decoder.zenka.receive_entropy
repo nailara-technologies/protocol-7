@@ -1,7 +1,7 @@
 ## [:< ##
 
 # name  = decoder.zenka.receive_entropy
-# descr = Receive entropy from zulum and accumulate into level-5 buffer
+# descr = Receive 42-bit entropy frame — boundary detection, B32, D3, vterm
 
 my $params    = shift                  // {};
 my $stream_id = $params->{'stream_id'} // $ARG[0];
@@ -12,48 +12,74 @@ return { 'mode' => qw| false |, 'data' => 'missing stream_id' }
 return { 'mode' => qw| false |, 'data' => 'missing entropy' }
     unless defined $entropy;
 
-## Get level-5 state ##
-my $L5 = <decoder.level5>;
+## reconstruct harmonic decimal value from 42-bit binary string ##
+my $decimal = oct("0b$entropy");
 
-## Add 42-bit entropy to accumulator ##
-$L5->{'accumulator'} .= $entropy;
-$L5->{'bit_count'} += length($entropy);
-
-## Extract 5-bit chunks (base32) ##
-while ( $L5->{'bit_count'} >= 5 ) {
-    my $chunk = substr( $L5->{'accumulator'}, 0, 5, '' );
-    $L5->{'bit_count'} -= 5;
-
-    ## Convert 5 bits to base32 value (0-31) ##
-    my $val = oct("0b$chunk");
-    push @{ $L5->{'values'} }, $val;
-
-    ## Add to buffer for display ##
-    <[base.buffer.add_line]>->(
-        qw| level-5-B32 |,
-        sprintf( "value: %02d [stream %s]", $val, $stream_id ),
-        2    ## log level 2 ##
+## passive boundary detection — PYTAURAZA canvas-clean at 769230 ##
+if ( $decimal == 769230 ) {
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'decoder.handler.on-boundary',
+            'call_args' => { 'args' => "$stream_id 769230" },
+        }
     );
 }
 
-## Log accumulation ##
+## feed raw entropy bytes into Term::VTerm for ANSI/sequence parsing ##
+if ( defined $data{'decoder'}{'vterm'} ) {
+    $data{'decoder'}{'vterm'}->input_write( pack 'B42', $entropy );
+}
+
+## level-5 : extract 5-bit chunks → base32 values ##
+my $L5 = <decoder.level5>;
+$L5->{'accumulator'} .= $entropy;
+$L5->{'bit_count'} += 42;
+
+my $chunks_added = 0;
+while ( $L5->{'bit_count'} >= 5 ) {
+    my $chunk = substr( $L5->{'accumulator'}, 0, 5, '' );
+    $L5->{'bit_count'} -= 5;
+    my $val = oct("0b$chunk");
+    push @{ $L5->{'values'} }, $val;
+    $chunks_added++;
+    <[base.buffer.add_line]>->(
+        qw| level-5-B32 |,
+        sprintf( "%02d [ stream %s ]", $val, $stream_id ), 2
+    );
+}
+
+## level-6 : accumulate 3 decimal digits → unicode codepoint ##
+$data{'decoder'}{'level6_acc'} //= '';
+$data{'decoder'}{'level6_acc'} .= sprintf '%d', $decimal;
+while ( length( $data{'decoder'}{'level6_acc'} ) >= 3 ) {
+    my $code_point = 0 + substr( $data{'decoder'}{'level6_acc'}, 0, 3 );
+    $data{'decoder'}{'level6_acc'}
+        = substr( $data{'decoder'}{'level6_acc'}, 3 );
+    my $unicode_char = chr($code_point);
+    <[base.buffer.add_line]>->(
+        qw| level-6-D3 |,
+        join( ' ', sprintf( "%03d", $code_point ), $unicode_char ), 0
+    );
+}
+
 <[base.log]>->(
-    2,          "[decoder] stream %d: +42 bits, total values: %d",
-    $stream_id, scalar( @{ $L5->{'values'} } )
+    2, "decoder stream %s : decimal %d : +%d B32 chunks",
+    $stream_id, $decimal, $chunks_added
 );
 
 return {
     'mode' => qw| true |,
     'data' => {
         'stream_id'    => $stream_id,
-        'values_added' => int( length($entropy) / 5 ),
+        'decimal'      => $decimal,
+        'boundary'     => ( $decimal == 769230 ) ? TRUE : FALSE,
+        'chunks_added' => $chunks_added,
         'total_values' => scalar( @{ $L5->{'values'} } ),
         'pending_bits' => $L5->{'bit_count'},
     }
 };
 
-#,,.,,...,,,.,...,...,.,,,,.,,,..,,..,,.,,.,,,.,.,...,...,...,,..,...,,..,.,,,
-#ZYBE5BOCE3ADKS7HQS6EPDTVE7NQF3JS4XRYT5LIBYCTPFD65DNWY5DQE6FVAAGND4VBKJ5PSE4WE
-#\\\|7326QUSJGXW2BKISRJY2SZZJQIHR3WZ4NSHFDXQGCYB2PV6R4YF \ / AMOS7 \ YOURUM ::
-#\[7]4P7F4TQNATJ5YBMYSX7PBRXF3NTZNU4GH6ACI7GDGJIAAEU5BYDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,...,.,.,...,,,,,.,.,,,.,.,.,.,,,..,,...,...,...,...,...,,,,,,,,,
+#JKGYMC6IGVJ3C3FSNHUISQK46LPBKP4BC5KPVK5KC6XT2WD6FOVD2VORBJXRD6CAGADKFSFOIPIOG
+#\\\|DDQSPUZVFPUV76HLRSY2JET7WNDTO7MTZ4QMYVT5CACEFULXA3N \ / AMOS7 \ YOURUM ::
+#\[7]PJINDVCFJGXT35C5HRWGZOPXZHFWJBTMDOEHF6YLTLEWSBDQPGDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

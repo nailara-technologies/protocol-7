@@ -1,38 +1,66 @@
 ## [:< ##
 
 # name  = decoder.zenka.init_code
-# descr = Initialize decoder for level-5 base32 stream handling
+# descr = Initialize decoder — level-5 B32, level-6 D3, Term::VTerm surface
 
-## Decoder: receives entropy from zulum, accumulates base32 values ##
+## load Term::VTerm for ANSI/VT sequence parsing ##
+<[base.perlmod.autoload]>->('Term::VTerm');
+<[base.perlmod.autoload]>->('Term::VTerm::Screen');
 
-## Level-5 accumulator state ##
+## level-5 accumulator state ##
 <decoder.level5> = {
     'accumulator' => '',    ## accumulated bits ##
     'bit_count'   => 0,     ## bits in accumulator ##
     'values'      => [],    ## decoded base32 values ##
 };
 
-## Initialize rolling buffer for base32 values ##
+## level-6 D3 state — 3 decimal digits per unicode char ##
+$data{'decoder'}{'level6_acc'}     = '';
+$data{'decoder'}{'boundary_count'} = 0;
+$data{'decoder'}{'INDEXCUBE'}      = [];
+
+## initialize level-5-B32 rolling buffer ##
 if ( not exists <buffer.level-5-B32> ) {
-    <buffer.level-5-B32.max_size> = 65536;    ## 64K rolling buffer ##
+    <buffer.level-5-B32.max_size> = 65536;
     my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
     <[base.buffer.add_line]>->(
         qw| level-5-B32 |,
         join( ' ',
-            $time_stamp, 0, 'level-5 base32 accumulator initialized ..,' ),
+            $time_stamp, 0, 'level-5 base32 accumulator initialized .., ' ),
         0
     );
 }
 
-## Attach to zulum streams on request ##
+## initialize level-6-D3 rolling buffer ##
+if ( not exists <buffer.level-6-D3> ) {
+    <buffer.level-6-D3.max_size> = 65536;
+    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+    <[base.buffer.add_line]>->(
+        qw| level-6-D3 |,
+        join( ' ',
+            $time_stamp, 0,
+            'level-6 d3 linguistic projection initialized .., ' ),
+        0
+    );
+}
+
+## initialize Term::VTerm surface — 25×80 terminal [ matches xterm wrapper ] ##
+$data{'decoder'}{'vterm'} = Term::VTerm->new( rows => 25, cols => 80 );
+my $screen = $data{'decoder'}{'vterm'}->obtain_screen;
+$screen->set_damage_merge(2);    ## VTERM_DAMAGE_SCROLL ##
+$data{'decoder'}{'vterm_screen'} = $screen;
+
+## stream attachment registry ##
 <decoder.attached_streams> = [];
 
-<[base.log]>->( 2, "[decoder] level-5 accumulator initialized" );
+<[base.log]>->(
+    2, "decoder initialized — level-5 B32, level-6 D3, vterm 25×80"
+);
 
 return TRUE;
 
-#,,,.,,,.,,,.,,.,,.,,,.,.,.,,,,.,,,.,,,.,,,.,,.,.,...,...,...,,.,,,,.,,,.,,.,,
-#HLOPAOE6AMZPQQY2JQDL72VBNQP4VRLICIVFJFFUFX26L5EQNANXYKVVZZ5OS3W5IA2TDG7TWYISU
-#\\\|UQ6KNEDZ25XZTCWNWAJK6U3WQC34FVOXQSUT6MRRQY4JZBWRRX7 \ / AMOS7 \ YOURUM ::
-#\[7]BEOW2LPII4EN2XEIKFAHBD6OYLOFXE2YR4K4VDKHTTFD324M7ABY 7  DATA SIGNATURE ::
+#,,.,,,,.,.,,,,,,,..,,.,.,,,,,..,,,,,,,.,,..,,..,,...,..,,...,,,,,,.,,..,,,,,,
+#OM2QQS2QMDUDY6WTOVESYX5BLTQVDAV3V55IYGLWPQB3IFMNDEG7DY3K76PQUKZL7UQRZ2BS5N55K
+#\\\|NIZ6BGSAX2ZMNSFBZPDKTZFZLJ4EQMOGQUUIRC3SR2RCL2652AU \ / AMOS7 \ YOURUM ::
+#\[7]M35THN5SJE6PRITELHCO6YPZO4TMRF45VXR3ATCC4NEVMLTGDKAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

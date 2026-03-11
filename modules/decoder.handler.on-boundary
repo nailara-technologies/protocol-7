@@ -1,0 +1,50 @@
+## [:< ##
+
+# name  = decoder.handler.on-boundary
+# descr = Handle harmonic convergence boundary — close level buffers, log, INDEXCUBE
+
+my ( $stream_id, $boundary_value ) = split m| +|, $call->{'args'}, 2;
+
+$stream_id      //= 'unknown';
+$boundary_value //= 769230;
+
+$data{'decoder'}{'boundary_count'}++;
+my $boundary_n = $data{'decoder'}{'boundary_count'};
+
+## close all level buffers for this stream ##
+for my $level_name (qw| level-5-B32 level-6-D3 |) {
+    if ( exists $data{'buffer'}{$level_name} ) {
+        $data{'buffer'}{$level_name}{'state'} = 'closed';
+    }
+}
+
+## log boundary event ##
+<[base.log]>->(
+    2, "decoder boundary #%d — stream %s at convergence root [ %s ]",
+    $boundary_n, $stream_id, $boundary_value
+);
+
+## push stream coordinate onto INDEXCUBE traversal log ##
+$data{'decoder'}{'INDEXCUBE'} //= [];
+push @{ $data{'decoder'}{'INDEXCUBE'} },
+    {
+    'stream_id'      => $stream_id,
+    'boundary_value' => $boundary_value + 0,
+    'boundary_n'     => $boundary_n,
+    'timestamp'      => time(),
+    'depth'          => scalar @{ $data{'decoder'}{'INDEXCUBE'} },
+    };
+
+<[base.log]>->(
+    2,
+    "INDEXCUBE depth %d — stream %s traversal recorded",
+    scalar( @{ $data{'decoder'}{'INDEXCUBE'} } ), $stream_id
+);
+
+return { 'mode' => qw| true |, 'data' => "boundary $boundary_n recorded" };
+
+#,,.,,,.,,.,.,.,.,.,,,...,.,.,.,,,.,,,...,,..,..,,...,...,.,,,,..,.,.,..,,,.,,
+#5KB3NUON23LY3ALPMOH4UEDVJZZ736WTEUIUCJ7HFJCDHZ3K4S3G75XLSLQT6BXBVSBPBI5OPEIF6
+#\\\|5OY6T6O7FY334Y7DTWEPINHPK3CJSPMCEAAZRK65AQFNX2KIDVW \ / AMOS7 \ YOURUM ::
+#\[7]KZQJKZRJZTS4AKF7TKMIZNE4CDRUWTQCYTPLN2VNRPIXV6Z47YAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
