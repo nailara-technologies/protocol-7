@@ -1173,6 +1173,81 @@ scales — the numbers enforce the structure.
 
 ---
 
+## 15. The Sync Frame as Implicit Packet Group Address
+
+### (324 + 1) × 8 / 13 = 200
+
+```
+324          =  18²  =  (2 × 3²)²   node-group logical space  [ not 13-divisible ]
+324 + 1      =  325  =  13 × 5²     sync frame added          [ 13-divisible ]
+325 / 13     =   25  =  5²          per-axis depth squared
+ 25 × 8      =  200  =  5² × 2³     × binary row depth
+```
+
+324 frames does not divide cleanly by 13 (324/13 = 24.923...).
+The +1 sync frame makes it 325 = 13 × 5² — exact. The sync frame
+is not overhead; it is the frame that makes the entire logical space
+harmonically coherent.
+
+### The sync frame IS the group address
+
+No explicit address field is sent. The harmonic factoring of the frame
+count at the sync position reveals the group address:
+
+```
+frame 325  →  13 × 5²  →  cycle 25 of 13  →  group address: (5², 13)
+```
+
+Any node knowing the harmonic structure derives the group address from
+the sync frame position alone. The +1 frame does not announce the
+address — it is the address, encoded in when it appears.
+
+### Rebase from binary-world to harmonic-world
+
+The sync frame converts the binary-world factoring into the
+harmonic-world factoring:
+
+```
+18²         →  binary-world  (18 = 2 × 3², squares as binary depth)
+13 × 5²     →  harmonic-world (13 = cycle length, 5² = addressing depth)
+```
+
+Whatever produces that rebase at that moment IS the group, IS the
+address. Same principle as `comp-int` LSB continuation signaling and
+the TRUE/FALSE stream grouping (Section 3): boundary marker carries
+the structural information implicitly. No separate address layer.
+
+### Connection to PYTAURAZA and group separators
+
+The sync frame is the `.000000` group separator from the TRUE/FALSE
+grouping architecture (Section 6):
+
+```
+TRUE segment   →  unit separator  (closes one payload unit)
+sync frame     →  group separator  (closes one packet group)
+               →  implicit group address via harmonic position
+```
+
+The PYTAURAZA canvas-clean (769230, the 4th zero-crossing) is the
+same event at the stream level. At the frame-count level it is the
++1 that converts 18² into 13 × 5². Both are the same implicit
+addressing mechanism operating at different scales.
+
+### 200 = 5² × 2³ — the clean output
+
+200 = 2 × 100 = 2 × 10². The frame count after sync lands on the
+decimal base squared × 2. Harmonic arithmetic producing clean decimal
+round numbers — same family as 076923 × 13 = 999999 and
+692307 × (1/0.9) = 769230.
+
+`5² × 2³`: the per-axis address depth (5 bits) squared, times the
+binary expansion factor (8 rows = 2³). The same two primitive factors
+that build the 6³ deployment from the 3³ template recombine at the
+frame-count level to produce 200 — confirming the universal
+serialization principle (Section 14) holds across scales.
+
+---
+
 ## Related Files
 
 - `data/md/documentation/harmonic-cycle-correlations.md`     — math basis
@@ -1183,8 +1258,8 @@ scales — the numbers enforce the structure.
 - `modules/source.init_code`        — dimensional table (lines 32-64)
 - `data/md/philosophy/HARMONIC-ENTROPY-INFORMATION-TRANSFER-RESEARCH.md`
 
-#,,,,,,,.,,.,,...,.,.,,,.,.,,,...,,.,,,,.,..,,.,.,...,...,.,.,,,,,..,,.,,,..,,
-#YINYNQFTPAD2JAA2QGHCGX2ATD4ZH7RJDBK2ZPUJ4FZGWXS6VFM4VKVJXYU4YHZW4TAHTOQWF4CHE
-#\\\|BNJ5AOI6I7ZS32RWBK57ZJHB6YQ4U26AWJ6SJU3ZAABUJKMWZKC \ / AMOS7 \ YOURUM ::
-#\[7]HSRQE3T6A7TTZZHNYOT5H7NZPCAA5MPLNTZXDEQOEEBF7TZJZCAA 7  DATA SIGNATURE ::
+#,,,,,.,.,,,,,,.,,.,,,.,.,,,.,,,,,,,,,,..,,,,,.,.,...,..,,...,...,,,,,,..,.,.,
+#TU7SHTZWEP5WYDSDY2DCKBZCGGWMWA256S6IHETBUUICTP2LB3DFSUHUFLVLSD4CTQ7POS2SRJDKG
+#\\\|NQB4VQ2QYPOEZJG4PLM3A4KV5T6AX5WRFXKMQHA3FLD2EZOEYFF \ / AMOS7 \ YOURUM ::
+#\[7]XKV4VNIH7WA2H34YWAR7FUAKZUKC2MO6YVXSWVBWWE267DJWAKCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
