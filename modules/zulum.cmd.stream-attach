@@ -16,7 +16,7 @@ return {
     unless $stream_id >= 1 && $stream_id <= 13;
 
 ## Get stream ##
-my $stream = <zulum.stream> {$stream_id};
+my $stream = <zulum.stream>->{$stream_id};
 return {
     'mode' => qw| false |,
     'data' => "stream $stream_id not initialized"
@@ -25,11 +25,13 @@ return {
 
 ## Create callback wrapper ##
 my $callback = sub {
-    ## phase 1 : direct wiring for testing — cube-13 is not yet involved ##
+    ## phase 2 : route through cube-13 switch matrix ##
     my ( $sid, $entropy, $iteration ) = @ARG;
-    <[protocol-7.route-send]>->(
-        {   'command'   => 'decoder.receive-entropy',
-            'call_args' => { 'args' => "$sid $entropy" },
+    my $stream  = <zulum.stream>->{$sid};
+    my $is_true = $stream->{'is_true'} // 0;
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => 'cube-13.receive-entropy',
+            'call_args' => { 'args' => "$sid $entropy $is_true" },
         }
     );
 };
@@ -50,8 +52,8 @@ return {
     'data' => "attached to stream $stream_id"
 };
 
-#,,.,,,.,,.,,,,..,.,,,,,.,,,,,,,.,...,,..,,,.,.,.,...,...,...,,,.,,,.,..,,,.,,
-#MA4NP5WWFUEPVYPXFEZYNOM27FH7JCRAVOA57SGQ2GPZ2RRUBKRJOS4C7TDNZRDRUNO4IZFQ5TTDA
-#\\\|QNVPFLXCUDVMGTDQFZS3TGDK5DFAKJX3NTYHWV73LZEVKXV3PFV \ / AMOS7 \ YOURUM ::
-#\[7]MIBDIHXLAS6K6BIX5KFOFWV42K7LF6ESAFKWQB7ASDJ5WJXN7YCQ 7  DATA SIGNATURE ::
+#,,,.,..,,...,,,,,..,,,.,,,,.,,..,,,.,...,,,.,.,.,...,..,,..,,,..,.,.,,.,,,,,,
+#BYUZEFOU2Z63JFUQOTDK4WJRZVOTYM4MB5A6ZDB5YVXSJV3IIUGBF3GYG4CBX555OUELBIYKDODZM
+#\\\|R677LILAOALBV737ZLARPZ35VDKF2LONS4ELKDXTJ7Z6UDE6VKI \ / AMOS7 \ YOURUM ::
+#\[7]BHUGZDBZILQS5SCMJ7M26QAUCHDQL4WZ7TDGFFKJKRLHWI5YAGCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

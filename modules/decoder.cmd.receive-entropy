@@ -4,7 +4,11 @@
 # descr = Command wrapper for decoder.zenka.receive_entropy
 # param = <stream_id> <entropy_bits>
 
-my ( $stream_id, $entropy ) = split m| +|, $call->{'args'} // '', 2;
+my $args_str = $call->{'args'} // '';
+my ( $stream_id, $entropy );
+if ( $args_str =~ m|^(\d+) ([01]{42})| ) {
+    ( $stream_id, $entropy ) = ( $1, $2 );
+}
 
 return {
     'mode' => qw| false |,
@@ -18,10 +22,8 @@ return <[decoder.zenka.receive_entropy]>->(
     }
 );
 
-#,,.,,,..,,,.,,,.,,,.,,..,,,.,,,,.,.,,,,.,,,.,,..,,.,,,.,..,.,,,,.,..,,...,..
-
-#,,.,,.,,,,,,,...,.,,,,,,,.,.,...,,,.,,..,,,,,..,,...,...,..,,,,,,...,,,.,..,,
-#E3VULC2KQU52KV5XNLSI2S7PE7QGTQVXJLF4JW7RIBDGUD2MUP6LVIMKLUMZSW35UCXWGTDSITTRC
-#\\\|WDXHA2SSMCVSKESXFM3T7BFLIPEQUUSOJLFAGCHONETFGAHHGAD \ / AMOS7 \ YOURUM ::
-#\[7]KGY22EOHEDV2PYSP2YIPUQPJIZJACCT3X6KCLWAAYE37KQ262EDY 7  DATA SIGNATURE ::
+#,,..,.,.,.,,,,,.,.,.,.,.,,,,,,..,,..,,..,...,..,,...,...,...,,,.,.,.,,,.,,..,
+#DLULPZCN7TKUOHFX2O6WIEQZYNLIF6FXYZR3PEPWTZQSOOWFFJVIDJDT2ANDM7QG3SQH2EG66JHSA
+#\\\|747YA5WHPTMNYKJ5WR6IVT6HMTTIVWEKT45O3IZKMUWI4FITC45 \ / AMOS7 \ YOURUM ::
+#\[7]FFFRPAR6UTUDXQFVM7JT3UXGRK773KMAS5M2NSV55DVBTSNA2OCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

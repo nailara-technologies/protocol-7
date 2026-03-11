@@ -17,7 +17,7 @@ system.verbosity.zenka_buffer = 1
 system.zenka.type            =  cube
 
 modules.load                 =  auth net protocol io.unix io.ip crypt.C25519 \
-                                cube                                  ## devmod
+                                cube cube-13                          ## devmod
 plugins.load                 =  plugin.auth
 auth.supported_methods       =  zenka unix
 
@@ -37,7 +37,7 @@ cube.set-up.use_unix_socket = yes
 [init_modules]                           ##  also launches above sockets  ##
 
 # drop root priviledges [ now 'online' ]
-[root.drop_privs:<system.amos-zenka-user>,<cube.local.port>]
+[root.drop_privs:<system.amos-zenka-user>]
 
 ## loading [auth.] plugins ##
 [load_plugins:<plugins.load>]
@@ -50,8 +50,8 @@ unix.path = [undef]    ##  disassociate next conn. from unix server socket  ##
 # run zenka
 [zenka.loop]
 
-#,,..,.,.,,.,,..,,.,,,..,,...,,,,,,.,,,,,,...,..,,...,...,,..,,.,,,.,,,,,,..,,
-#VNU5723OS5CKZVY2BYSZQDGVP24ERTPC6GM4XX5LVTFWP2QOPLEZ4OCHE4ZOGYFRIGLOCDKH2SOGW
-#\\\|GZVB7Q2CCEIEGUK3UKN2RJCZFSE62KNSTIN226NV6DXD7HOOFNX \ / AMOS7 \ YOURUM ::
-#\[7]HGCZNMMLGTP6UTMR26K45UG5XFLGXP7V7UT7AK6LEWKTUL4LWEAA 7  DATA SIGNATURE ::
+#,,,.,,..,.,,,.,.,,..,,,.,,.,,.,,,.,,,.,.,,,,,..,,...,...,...,.,.,.,.,...,.,,,
+#D3HEI7JZVG6BA7IWFIRLIZNUVPJ7US6VJ4GGZRGVEXTA4VV5H3HDE2IUBOKUW6AE5A252VXAHJGCW
+#\\\|FTYJFWEHNY4RZXYVGHV3V2JPFA32XPR2YYJLG5723VBGXV7X4P2 \ / AMOS7 \ YOURUM ::
+#\[7]2NCCDRGVBCK7P5DRRK64SI4MFKJUPSQZISDDYBM66TBHT6JVPGAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

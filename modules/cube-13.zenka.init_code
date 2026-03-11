@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = cube-13.zenka.init_code
+# descr = Initialize cube-13 switch matrix for zulum-13 stream routing
+
+## cube-13: switch matrix between 13 entropy streams ##
+## Implements jump true, jump reverse, jump next navigation ##
+
+## Stream registry: tracks which decoder is connected to which stream ##
+<cube-13.streams> = {
+    map {
+        $ARG => {
+            'id'          => $ARG,
+            'is_true'     => undef,    ## harmonic truth of current value ##
+            'decoder_sid' => undef,    ## connected decoder session ID ##
+            'boundary'    => 0,        ## boundary marker sequence ##
+        }
+    } ( 1 .. 13 )
+};
+
+## Current active stream for jump operations ##
+<cube-13.active_stream> = 1;
+
+## Jump table: direction -> next stream calculation ##
+<cube-13.jump_table> = {
+    'true' => sub {    ## jump to stream with is_true=1 ##
+        my $current = <cube-13.active_stream>;
+        my $streams = <cube-13.streams>;
+
+        ## Search forward from current, wrap around ##
+        for my $offset ( 1 .. 13 ) {
+            my $sid = ( ( $current - 1 + $offset ) % 13 ) + 1;
+            return $sid if $streams->{$sid}{'is_true'};
+        }
+        return $current;    ## no true stream found, stay ##
+    },
+    'reverse' => sub {      ## jump to previous stream ##
+        my $current = <cube-13.active_stream>;
+        return ( ( $current - 2 + 13 ) % 13 ) + 1;
+    },
+    'next' => sub {         ## jump to next stream ##
+        my $current = <cube-13.active_stream>;
+        return ( $current % 13 ) + 1;
+    },
+};
+
+<[base.log]>->( 1, "[cube-13] switch matrix initialized, 13 streams ready" );
+
+return TRUE;
+
+#,,.,,...,,,,,..,,.,.,,..,.,,,.,,,.,,,,..,,,.,..,,...,..,,,.,,...,.,,,.,,,,.,,
+#SNBHY7VOFGITOWPNHN5A4ZLIBB7T6XDY52V53PFVTNCDWPWIOZJQ5JMNDKA7UKK3QHEXGAUW5NFJO
+#\\\|HKK23ZBWOJX4FSG3O2BDRZKNIPJYQGRZIMVI5KHKR3HQEQUMGQ5 \ / AMOS7 \ YOURUM ::
+#\[7]OXTA6EN35APR6OBTVZTRC3WXX4OV5W4YCJZ46TUJDJ7TCAN23QDA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
