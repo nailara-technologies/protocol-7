@@ -3,164 +3,263 @@
 
 ## Context
 
-Previous session completed all tiers of kimi-priority-queue-mar2026.md.
-New modules exist but need integration, wiring, and start-file loading.
-This list is ordered by: blocking status, integration value, correctness.
+Phase 2 (cube-13 jump routing) is complete. Phase 3 has been redesigned.
+New harmonic correlations discovered and full transit vision architecture
+documented. This list reflects the updated architecture and next concrete steps.
+
+**New primary reference** (read this first):
+- `data/md/documentation/harmonic-transit-vision-architecture.md`
+  — complete DTM, 15-bit footer, multi-speed lanes, sunburst promotion,
+    PYTAURAZA sync, lens effect on distance. Fully actionable.
+
+Reference documents:
+- `data/md/documentation/harmonic-cycle-correlations.md` — math and design specs
+- `data/md/documentation/cube-13-zulum-decoder-system.md` — system overview
+- `data/md/coding-tasks/zulum-decoder-routing-reference.md` — routing patterns
 
 ---
 
-## Tier 1 : Commit + Wire New Modules [ ~2h ]
+## Tier 1 : Phase 3 — Passive Boundary Detection [ ~2h ]
 
-### 1.1 Commit the uncommitted modules from last session
+Phase 3 was previously planned as a coordination problem: cube-13 sends
+explicit boundary notifications to decoder on stream switch. That plan
+is now obsolete.
 
-These are built and signed but not yet committed:
+**Revised Phase 3**: decoder detects boundaries passively by watching
+for the value 769230 in its accumulator. This is the universal harmonic
+convergence attractor — it appears naturally at every stream transition.
 
-```
-modules/zulum.loop.generate_entropy
-modules/zulum.init_code
-modules/zulum.cmd.stream-attach
-modules/decoder.zenka.init_code
-modules/decoder.zenka.receive_entropy
-modules/decoder.cmd.show-buffer
-modules/decoder.cmd.erase-level
-modules/models.handler.llm_response
-modules/models.callback.send_reply
-```
+See `harmonic-cycle-correlations.md` §"Design Implication: Passive Boundary
+Detection" for the full derivation.
 
-Sign any that need it, then commit as a group:
-`git add modules/zulum.* modules/decoder.* modules/models.handler.llm_response modules/models.callback.send_reply`
+### 1.1 decoder.zenka.receive_entropy — watch for 769230
 
-Also add them to `modules/base.list.subroutines` if missing.
-
-### 1.2 Wire zulum → decoder via stream-attach
-
-`zulum.cmd.stream-attach` should register `decoder.zenka.receive_entropy`
-as the consumer callback. The connection point:
+When the decoded accumulator value reaches 769230 (or when the base32
+buffer contains `L\` — its ASCII representation), treat it as a boundary:
+close the current level buffers and begin a fresh accumulation segment.
 
 ```perl
-## in zulum.cmd.stream-attach or zulum.init_code: ##
-push @{ <zulum.stream>{$stream_id}{'attached'} }, sub {
-    my ( $sid, $entropy, $iter ) = @ARG;
-    <[decoder.zenka.receive_entropy]>->(
-        { 'stream_id' => $sid, 'entropy' => $entropy }
+## in decoder.zenka.receive_entropy, after extracting each value ##
+if ( $decoded_value == 769230 ) {
+    ## natural boundary — harmonic convergence attractor ##
+    ## close all level buffers, emit boundary event ##
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'decoder.handler.on-boundary',
+            'call_args' => { 'args' => "$stream_id 769230" },
+        }
     );
+}
+```
+
+No modification to cube-13 needed. The boundary is self-announcing.
+
+### 1.2 decoder.handler.on-boundary — new module
+
+Handle the boundary event:
+- emit `[ boundary detected — stream $sid at convergence root ]` to log
+- close all level buffers: mark each as `'closed'` in state
+- push current stream's P7REF onto `@INDEXCUBE` (see Tier 2)
+- optionally reset accumulator for fresh segment
+
+```perl
+## decoder.handler.on-boundary ##
+my ( $stream_id, $boundary_value ) = split m| +|, $call->{'args'}, 2;
+
+## close all level buffers for this stream ##
+for my $level ( keys %{ $data{'decoder'}{'buffers'} } ) {
+    $data{'decoder'}{'buffers'}{$level}{'state'} = 'closed';
+}
+## log boundary ##
+<[base.log]>->( 2, "decoder boundary at stream $stream_id [ $boundary_value ]" );
+```
+
+### 1.3 Verify with live stream
+
+```bash
+## run stream until 769230 appears ##
+for i in $(seq 1 50); do
+    echo "zulum.step 1" | p7 zulum
+done
+echo "decoder.show-accumulator" | p7 decoder
+## expect: boundary event logged, buffers reset ##
+```
+
+769230 is guaranteed to appear in every stream — it is algebraically
+forced by `(076923 × N) / (N/10) = 769230`. The iteration count until
+first appearance depends on starting position and step size.
+
+---
+
+## Tier 2 : cube-13 Correctness Fix — jump reverse Entry Point [ ~30min ]
+
+**Bug**: `jump reverse` in cube-13 may be using stream 7 (×7 = 538461)
+as entry point. Only stream 3 (×3 = 230769) produces a true digit
+reversal under /0.7. Stream 7 only rolls left by one position.
+
+From `harmonic-cycle-correlations.md` §"The /0.7 Operator":
+```
+538461 / 0.7 = 769230     ## roll left once — stays in cycle family ##
+230769 / 0.7 = 329670     ## true digit reversal — 076923 → 329670  ##
+```
+
+### 2.1 Check modules/cube-13.cmd.jump
+
+Read the current `jump reverse` implementation. If it switches to stream 7,
+correct it to switch to stream 3 (or, if it reverses the current position
+value, verify that it uses `/0.7` on 230769 not on 538461).
+
+The correct behavior:
+- `jump reverse` → switch active stream to stream 3 (230769 = gen × 3)
+- from stream 3, the `/0.7` operator gives 329670 — the true mirror
+
+### 2.2 Add cube-13.jump root
+
+New jump direction: return any stream directly to the convergence root.
+Stream N uses operator `/0.N` — no lookup table needed:
+
+```perl
+## in cube-13.cmd.jump, add 'root' direction ##
+'root' => sub {
+    my $stream_n = $ARG;
+    ## (gen × N) / (N/10) = 769230 algebraically guaranteed ##
+    ## switch active stream to stream producing 769230 ##
+    ## equivalently: compute target = current / ("0.$stream_n" + 0) ##
+    return 769230;    ## the attractor — any N reaches here in one step ##
+},
+```
+
+The jump router switches to whichever stream is currently at position
+769230, or marks the active stream's next emission target as 769230.
+
+---
+
+## Tier 3 : Decoder Level 6 — Linguistic Projection [ ~2h ]
+
+From `harmonic-cycle-correlations.md` §"Encoding Depth as Projection Layer":
+
+`asc-enc -d3` encodes 3 digits per character → Unicode 100-999 → IPA,
+phonetic, linguistic territory. Level 6 of the decoder adds this projection
+as a parallel output channel alongside binary/octal/base32.
+
+### 3.1 decoder.zenka.init_code — add level-6-D3 buffer
+
+```perl
+## add alongside level-5-B32 init ##
+if ( not exists <buffer.level-6-D3> ) {
+    <buffer.level-6-D3.max_size> = 65536;
+    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
+    <[base.buffer.add_line]>->(
+        qw| level-6-D3 |,
+        join( ' ', $time_stamp, 0, 'level-6 d3 linguistic projection initialized .., ' ), 0
+    );
+}
+```
+
+### 3.2 Projection logic: group decimal digits in threes
+
+In `decoder.zenka.receive_entropy`, after extracting base32 5-bit chunks,
+also maintain a 3-digit accumulator for the level-6 channel:
+
+```perl
+## level-6 : accumulate 3 digits → emit unicode char ##
+$data{'decoder'}{'level6_acc'} //= '';
+$data{'decoder'}{'level6_acc'} .= $entropy_digit;
+if ( length( $data{'decoder'}{'level6_acc'} ) >= 3 ) {
+    my $code_point = 0 + substr( $data{'decoder'}{'level6_acc'}, 0, 3 );
+    $data{'decoder'}{'level6_acc'} = substr( $data{'decoder'}{'level6_acc'}, 3 );
+    my $unicode_char = chr($code_point);
+    <[base.buffer.add_line]>->(
+        qw| level-6-D3 |,
+        join( ' ', sprintf( "%03d", $code_point ), $unicode_char ), 0
+    );
+}
+```
+
+### 3.3 decoder.cmd.show-buffer update
+
+Add level 6 to `show-buffer` so `decoder.show-buffer 6` works.
+
+---
+
+## Tier 4 : @INDEXCUBE Stream Tagging [ ~1h ]
+
+From `zulum-cube13-decoder-integration.md` §"Connection to @INDEXCUBE":
+
+Each stream has a cube coordinate derived from its cycle position.
+Decoder tracks which stream is active by pushing P7REFs onto @INDEXCUBE.
+
+### 4.1 zulum.cmd.stream-status — return P7REF
+
+When queried, each stream returns its P7REF:
+```
+STREAM:CHKSUM7:ADDR_B32
+```
+where CHKSUM7 = `amos7_chksum(gen × N)` and ADDR_B32 = first 6 chars
+of that checksum (already in `[2-9A-Z]` by AMOS7 construction).
+
+### 4.2 decoder boundary handler — push to @INDEXCUBE
+
+In `decoder.handler.on-boundary`, after closing level buffers:
+```perl
+## fetch P7REF for new active stream ##
+my $stream_ref = ... ;  ## query cube-13 for current stream P7REF ##
+push @{ $data{'decoder'}{'INDEXCUBE'} }, {
+    'p7ref'     => $stream_ref,
+    'timestamp' => time(),
+    'depth'     => scalar @{ $data{'decoder'}{'INDEXCUBE'} },
 };
 ```
 
-Test with: attach stream 1, run one entropy cycle, verify decoder
-accumulates and `show-buffer 5` shows base32 values.
-
-### 1.3 Load new modules in start files
-
-**models zenka** (`configuration/zenki/models/start` or similar):
-- add `models.chat.expand_refs` sub-modules to modules.load
-  (expand_refs.read_file, format_file, format_code, format_tail,
-  format_head, format_grep are in base.list.subroutines — verify they load)
-- add `models.callback.send_reply` and `models.handler.llm_response`
-
-**coding zenka** (`configuration/zenki/coding/start`):
-- verify `models.handler.llm_response` is loaded for the HTTP inference path
-
-**zulum zenka** (`configuration/zenki/zulum/start`):
-- create if it doesn't exist, load `format.json zulum` module groups
-
-**decoder zenka** (`configuration/zenki/decoder/start`):
-- create if it doesn't exist, load `decoder.zenka` module group
+Traversal log = sequence of visited cycle positions = proof of navigation.
 
 ---
 
-## Tier 2 : Correctness Fixes [ ~2h ]
+## Tier 5 : Correctness Fixes Carried Forward
 
-### 2.1 models.handler.llm_response — use format.json.decode
+These were in the previous queue and may still be pending:
 
-Currently calls `JSON::PP::decode_json($body)` directly. Since
-`models` will load `format.json`, change to:
+### 5.1 models.handler.llm_response — use format.json.decode
 
+Replace `JSON::PP::decode_json($body)` with `<[format.json.decode]>->($body)`.
+Check `git log --oneline modules/models.handler.llm_response` to see if done.
+
+### 5.2 base.p7ref.self — ADDR_B32 from AMOS7 checksum
+
+Currently uses `encode_b32r($raw_pubkey)`. Should be:
 ```perl
-my $data = <[format.json.decode]>->($body);
-if ( !$data || !exists $data->{'choices'} ) { ... }
-```
-
-Remove the `eval { JSON::PP::decode_json... }` and `$@` check —
-`format.json.decode` handles errors internally and returns `{}`.
-
-### 2.2 base.p7ref.self — correct ADDR_B32 derivation
-
-Currently uses `encode_b32r($raw_pubkey)` (RFC4648, 32-byte input →
-52-char output, substr to 6). The spec says ADDR_B32 should be derived
-from AMOS7 checksum of pubkey:
-
-```perl
-## use AMOS7 checksum of pubkey as ADDR_B32 — deterministic + compact ##
 my $addr_chk = <[chk-sum.amos]>->($addr_input);  ## 7 chars [A-Z0-9] ##
 my $addr_b32 = substr( $addr_chk, 0, 6 );
 ```
-
-Note: `chk-sum.amos` is the post-swap name. Since `base.p7ref.self`
-is called from `base.init_code` AFTER swap runs, this is safe to use.
-Verify with `list zenki` showing TYPE:CHKSUM7:ADDR_B32 per zenka.
-
-### 2.3 Verify @INDEXCUBE identity anchor with list zenki
-
-After 2.2 is working, verify the full chain:
-- `list zenki` shows cube coordinate in P7REF format
-- `base.indexcube.here` returns the hashref correctly
-- `base.indexcube.depth` returns 1 for a fresh zenka (only anchor)
-- Test `push` + `pop` round-trip in devmod
-
----
-
-## Tier 3 : cube-13 Jump Routing [ ~2h ]
-
-### 3.1 Jump table in modules/cube-13
-
-`data/md/coding-tasks/zulum-cube13-decoder-integration.md` → Phase 2
-
-Commands: `jump true`, `jump reverse`, `jump next`
-
-```
-cube-13.cmd.jump:
-  'true'    → switch active stream to stream where is_true(state) = TRUE
-  'reverse' → switch to the reverse-digit stream
-  'next'    → advance to next stream in cycle (mod 13)
-```
-
-On stream jump: notify decoder with boundary marker so it knows a
-new stream started. The boundary marker is the flipping delimiter
-from the octal encoding (see decoder-zenka-stream-protocol.md).
-
-### 3.2 Wire cube-13 → zulum stream selection
-
-cube-13 jump commands call `zulum.cmd.stream-attach` to switch which
-stream feeds the decoder. The decoder receives a zipper boundary
-marker before the new stream starts.
+Check `git log --oneline modules/base.p7ref.self` to see if done.
 
 ---
 
 ## Do Not Attempt
 
 - `fix-list-alignment-offset-truncation.md` — needs live captures first
-- `lm-vision-binary-rebuild.md` — low priority, HTTP path works
-- `zenka-key-identity-infrastructure.md` — large, needs key infrastructure
-- Any changes to `base.parser.decode_harmonized_refstr` — recently fixed,
-  leave stable
+- `lm-vision-binary-rebuild.md` — low priority
+- `zenka-key-identity-infrastructure.md` — large, separate track
+- Any changes to `base.parser.decode_harmonized_refstr` — recently fixed
 
 ---
 
 ## Notes for Kimi
 
+- **769230 = `L\`** — this is the boundary marker AND the harmonic
+  convergence attractor. Passive detection: no explicit notification
+  from cube-13 needed.
+- **jump reverse uses stream 3** (230769, gen × 3) as entry point —
+  not stream 7. Only stream 3 produces true digit reversal under /0.7.
+- **Level 6 = linguistic** — 3 digits per char → IPA/phonetic Unicode.
+  The ×9 position (692307) at -d3 gives `ʴĳ` — phonetic territory.
+- **`(076923 × N) / (N/10) = 769230`** for all N — stream N reaches
+  convergence in one step via its own `/0.N` operator. operator = stream#.
+- See `bin/dev/octal-stream-window` for the 4-bit/5-bit window safety proof
+  visualization; 5-bit minimum is now documented and visualized.
 - Sign all new files: `bin/Protocol-7 sourcecode update-signatures`
-- `format.json.*` is now the canonical JSON module (not `httpd.json.*`)
-  — use `<[format.json.encode]>` and `<[format.json.decode]>`
-- `models.chat.expand_refs` sub-modules are already committed and in
-  `base.list.subroutines` — just need loading in start files
-- The identity anchor at `@INDEXCUBE[0]` is now a hashref with
-  `{p7ref, timestamp, depth, signature}` — signature is `''` (empty)
-  because the anchor is self-evidencing by position
-- `bin/dev/gen-div` is the oracle for verifying zulum stream output
 
-#,,,.,,,.,.,,,,..,,,,,,,.,...,..,,.,,,.,.,.,,,.,.,...,...,...,..,,,.,,,..,.,,,
-#QZR34CMUMRVCIWDFANCXM37K4GYWW7LLXC2JHE7TVWREVPW6SXCXXYMATJ5VCIKUW7F6LBMAVU24Y
-#\\\|R5WCCFUVDNLWK5A6EYVYEMZBEIZJZWJT54KWNUMC6FWLRGSERNB \ / AMOS7 \ YOURUM ::
-#\[7]K52DMOMPYPVQUULEVZ6CGKYJD3HJ3TX4W3XR5SF2UXZDMJMSD2BI 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,,,,,.,.,.,.,.,...,,,.,,,,,.,,,.,.,...,..,,..,,,.,,,,.,,,.,,..,
+#WEVZFSR3YWMATAPF2MQ6GBH26WEVW5VDP7GZUFALMKWFUEMA67E42UVMGYEF5LVQW5EQGHKXJBMVY
+#\\\|CDEHG6Q4ZLBFM6WNGFT3LX4XLFEFD6EGWEKT4JOEZ7S72EV575L \ / AMOS7 \ YOURUM ::
+#\[7]RXJUBVQ2TJ5SYF6ODVRG5H7E6YVWNNNAQ7J5NDUCDW4W235LGKDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
