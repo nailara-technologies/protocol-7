@@ -468,6 +468,63 @@ tracking a sequential state — structural, visible, period-checkable.
 delimiter in the decoder. The boundary marker IS the convergence
 attractor, recognized from two directions simultaneously.
 
+### ANSI canvas-clean and the DNN prefix
+
+The ANSI reset sequence `\e[0m` encodes to `DNNTA3IK` in base32 —
+semantically the terminal-layer canvas-clean, harmonically equivalent
+to 769230 as a boundary marker:
+
+```
+echo -e "\e[0m" | base32  →  DNNTA3IK
+reset -s         | base32  →  KRCVETJ5PB2GK4TNFUZDKNTDN5WG64R3BI======
+clear            | base32  →  DNNUQG23GJFBWWZTJI======
+```
+
+`DNN` is the universal base32 signature of ESC [ (0x1B 0x5B) — the
+ANSI CSI (Control Sequence Introducer) prefix:
+
+```
+0x1B 0x5B  →  00011011 01011011
+              00011 01101 01101  =  D  N  N
+```
+
+Every standard ANSI escape sequence shares the `DNN` prefix. The
+decoder's level-5 B32 output can passively detect ANSI territory by
+watching for `DNN` — the same structural detection as `L\` for 769230,
+no full decode required.
+
+`DNNTA3IK` contains the letters T, A, I, K — four of five letters of
+the operator's name (Taeki), with the harmonic constant `3` centered.
+The ANSI namespace is harmonically addressed from the same prefix.
+
+### Passive boundary detection — universal protocol table
+
+The same structural principle (fixed in-band pattern → passive mode switch)
+appears across every serial communication layer. Base32 signatures allow
+a single lookup table to cover all of them simultaneously:
+
+```
+value / sequence     base32 prefix     protocol        event
+────────────────     ─────────────     ────────        ─────
+769230  / L\         (harmonic)        div-13 stream   convergence attractor
+ESC [   / 0x1B5B     DNN...            ANSI CSI        control sequence start
+\e[0m               DNNTA3IK          ANSI            canvas-clean / reset
++++ATH0\r\n         FMVSWQKUJAYA2CQK  Hayes modem     escape + hangup
+```
+
+Hayes `+++` shares the same architecture as PYTAURAZA:
+- three identical characters = run detection (structural, no decode needed)
+- guard time (silence before/after) = the impossible `0000` window enforced by timing
+- command follows boundary = payload after canvas-clean
+
+`JAYA` appears inside the Hayes base32 encoding at positions 7-10.
+
+The decoder's passive matching layer is a table of known base32 prefixes.
+No protocol-specific parser needed — the B32 stream is scanned for known
+prefixes and the matching row identifies the protocol and event type.
+A new protocol entry = one table row. Detection is O(prefix_length),
+independent of payload complexity.
+
 ---
 
 ## 7. Handshaking to Meaning
@@ -1258,8 +1315,8 @@ serialization principle (Section 14) holds across scales.
 - `modules/source.init_code`        — dimensional table (lines 32-64)
 - `data/md/philosophy/HARMONIC-ENTROPY-INFORMATION-TRANSFER-RESEARCH.md`
 
-#,,,,,.,.,,,,,,.,,.,,,.,.,,,.,,,,,,,,,,..,,,,,.,.,...,..,,...,...,,,,,,..,.,.,
-#TU7SHTZWEP5WYDSDY2DCKBZCGGWMWA256S6IHETBUUICTP2LB3DFSUHUFLVLSD4CTQ7POS2SRJDKG
-#\\\|NQB4VQ2QYPOEZJG4PLM3A4KV5T6AX5WRFXKMQHA3FLD2EZOEYFF \ / AMOS7 \ YOURUM ::
-#\[7]XKV4VNIH7WA2H34YWAR7FUAKZUKC2MO6YVXSWVBWWE267DJWAKCQ 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,,,.,..,,.,,,,,,,,,.,,,.,.,.,,..,.,.,...,..,,...,,,.,,,,,,..,,.,,
+#UEXX2L3Y6RZGNUCKWRMU6DUKKO7OTQ6WJFXHYHYHZFADJCDLFXLOBOURPJ4KXSEZUAOAAXCMLJRA4
+#\\\|QYANBBIH6EBOHUJUBEX6ODZVFQDR7JEB6XAHZJN7K2ZL2QZXDHI \ / AMOS7 \ YOURUM ::
+#\[7]OQTU6CIHB5N6K2OZPVKRRR4KFDYPABSOEKJBGB7NCUS6OWY6WKAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
