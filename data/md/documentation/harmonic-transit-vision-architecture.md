@@ -1,0 +1,706 @@
+
+ .:[  harmonic transit vision architecture  ]:.
+
+ .:[  darkening transmission matrix · spatial footer · multi-speed lanes  ]:.
+
+---
+
+## Overview
+
+This document captures a complete, actionable architecture for harmonic
+network vision — the ability of every node in a cubic topology to maintain
+omnidirectional spatial awareness as a passive byproduct of normal traffic,
+with no dedicated spatial protocol required.
+
+The architecture is not designed onto the system — it is already present
+in the harmonic mathematics. This document makes it explicit and implementable.
+
+Core components:
+
+```
+topology.dtm          →  darkening transmission matrix zenka
+AMOS7 footer line 5   →  15-bit spatial coordinate per signed packet
+source.init_code      →  binary sunburst crossing map (already present)
+multi-speed lanes     →  77-bit window, lens effect on distance
+PYTAURAZA protocol    →  self-framing stream sync (4 zero-crossing preamble)
+```
+
+---
+
+## 1. The Darkening Transmission Matrix (DTM)
+
+### Volume structure
+
+One DTM volume per cubic face direction (6 total per node):
+
+```
+X axis  :  6  columns  →  cycle digit positions  [ 0, 7, 6, 9, 2, 3 ]
+Y axis  :  7  rows     →  harmonic pulse levels  [ 1, 3, 5, 7, 13, 42, root ]
+Z axis  :  13 frames   →  CCW shift register     [ one full harmonic cycle ]
+
+total   :  6 × 7 × 13  =  546 cells  =  42 × 13
+```
+
+`42 × 13`: entropy frame size times cycle length. The minimum volume
+containing one complete harmonic cycle across every encoding level
+simultaneously.
+
+### Darkening rate per harmonic level
+
+Each confirmation event darkens its cell by a level-specific step:
+
+```
+level  1  :  step = 1/42    (per bit — fastest)
+level  3  :  step = 1/14    (per octal boundary)
+level  5  :  step = 1/8     (per base32 boundary — TRUE heartbeat)
+level  7  :  step = 1/6     (per septimal marker)
+level 13  :  step = 1/3     (per full cycle step)
+level 42  :  step = 1       (per complete entropy frame — full saturation)
+```
+
+One complete 42-bit frame brings any cell from zero to full saturation
+if all levels fire. The darkening IS the frequency divider — same principle
+as the 42-bit entropy frame, expressed as cell brightness.
+
+### Decay (lossy transport)
+
+Cells decay toward zero when not re-confirmed:
+
+```
+decay rate  =  1 / (frame_rate × 2.5)   per step
+```
+
+A source that goes silent darkens to zero over ~2-3 frames. The matrix
+stays a live window, not a historical accumulation.
+
+### CCW shift register (Z axis)
+
+The Z axis is not passive history — it is the CCW multiplexer clock.
+
+For the +X face, the four adjacent faces in CCW order (looking inward):
+
+```
+        +Y
+         │
+ +Z ─────┼───── -Z     CCW sequence: +Y → +Z → -Y → -Z
+         │
+        -Y
+```
+
+Z slot assignment per frame:
+
+```
+Z mod 4 == 0  :  own face accumulation
+Z mod 4 == 1  :  +Y neighbor state   (CCW position 1)
+Z mod 4 == 2  :  +Z neighbor state   (CCW position 2)
+Z mod 4 == 3  :  -Y neighbor state   (CCW position 3)
+             :  -Z neighbor state   (CCW position 4, wraps to slot 0)
+```
+
+Reading `Z mod 4` gives direction without labels. Position IS the direction.
+
+### Why 13 frames is exact
+
+```
+4 CCW positions × 3 complete rotations  =  12 frames
++ 1 PYTAURAZA sync frame                =  13 total
+gcd(13, 4) = 1  →  coprime, combined period = 52
+```
+
+Within 13 frames: exactly 3 full CCW sweeps + 1 harmonic sync pulse.
+The sync frame (Z=12) is the PYTAURAZA canvas-clean boundary.
+
+### Bidirectional = omnidirectional
+
+Each axis has two opposing face matrices. +X face CCW sweep is the
+mirror of -X face CCW sweep. Signal traveling in +X direction appears
+at lower Z in +X register, higher Z in -X register. The Z-depth
+difference between opposing registers gives direction of travel —
+no separate direction header needed.
+
+Six faces, three axes, two opposing radars per axis. Every node has
+full omnidirectional neighborhood vision.
+
+---
+
+## 2. The 15-bit Spatial Coordinate
+
+### Mathematical basis
+
+```
+15  =  3 × 5  =  mod-3 assertion × mod-5 (TRUE constant)
+15 remainder states in mod-15  →  one bit per state  =  15-bit register
+```
+
+The 15-bit auxiliary field already exists in the 64-bit division-13
+state (bits 49-63, rightmost). It is not designed — it emerges from
+the mathematics (`division-13-table`, seed=1):
+
+```
+bits  0-41  [ 42 bits ]  main entropy body
+bits 42-48  [  7 bits ]  routing mini-protocol
+bits 49-63  [ 15 bits ]  auxiliary  ←  spatial coordinate / assertion register
+```
+
+The auxiliary field is the leading edge — newest, rightmost, most
+recently computed in the leftward-traveling bit stream.
+
+### The mod-15 assertion register
+
+Each bit position corresponds to one mod-15 remainder state (0-14).
+A set bit means: this value has recently occupied that cycle position.
+The register is a trajectory fingerprint — "where has this value been
+in the mod-15 space?"
+
+Decomposition:
+```
+mod-15  =  mod-3 × mod-5
+         =  (FALSE/UNKNOWN/TRUE assertion) × (5-position TRUE window)
+```
+
+Three base32 symbols (5 bits each) cover the full 15-bit register.
+Three axes × one base32 symbol = complete spatial address.
+
+### Footer encoding: the #::::: line
+
+The fifth (bottom) line of every AMOS7 signature footer carries the
+15-bit assertion register, right-aligned, octal-interlaced:
+
+**Format**: `[b2][:][b1][:][b0][:]` per group, 5 groups, right-aligned
+
+```
+# + 45 leading colons + 5 groups × 6 chars = 77 chars total
+```
+
+Character set: `.` = bit 1, `:` = bit 0 / separator
+
+Interlacing rule: every other position is always `:` — adjacent dots
+are structurally impossible. First validation layer: any `..` in the
+line is immediately invalid without decoding.
+
+**Validation hierarchy:**
+```
+level 0  :  line starts with #:             free
+level 1  :  no .. anywhere                  structural, no decode needed
+level 2  :  (length - 2) mod 6 == 0         group alignment
+level 3  :  positions 2,4,6 mod 6 = :       separator positions
+level 4  :  5 groups × 3 bits in range      decode and check
+level 5  :  value matches mod-15 state      harmonic assertion
+```
+
+**Right-alignment is structurally correct**: the auxiliary bits sit at
+the right of the 64-bit row in `division-13-table` output. The footer
+mirrors this — newest at right, aging leftward. The left side of the
+`#:::::` line is available for future prefix fields.
+
+**Perl encoding (one line):**
+```perl
+my $payload = sprintf ':%s:', join ':', split //, $encoded_value;
+my $line    = '#' . ':' x ( 76 - length($payload) ) . $payload;
+```
+
+### Passive spatial awareness from traffic scraping
+
+Every signed packet carries its origin's 15-bit coordinate in the
+`#:::::` footer. Any transit node reads this footer without being
+the intended recipient. The DTM feeds itself from two sources:
+
+```
+active   →  neighbor nodes explicitly transmitting matrix state
+passive  →  scraping #::::: footer from every transiting packet
+```
+
+**Resolution gradient:**
+```
+direct neighbor  →  many packets  →  DTM cells dark   (well confirmed)
+2-hop node       →  fewer packets →  cells partial    (lower update rate)
+N-hop node       →  sparse        →  cells bright     (rarely confirmed)
+```
+
+Darkening physics automatically encodes distance. No explicit range
+measurement. Unrelated traffic is never truly unrelated — it always
+carries a spatial whisper.
+
+---
+
+## 3. TRUE/FALSE as Focal Position
+
+### Leftward travel is the physics
+
+The zulum step is always leftward:
+```perl
+$Z <<= 4;                              ## left shift 4
+$Z /= 13;                              ## divide by 13
+$Z <<= is_true($Z) ? 2 : 1;           ## left shift 1 or 2
+```
+
+The value travels left continuously. TRUE/FALSE marks whether the value
+is currently at the focal reading position of the lens — not absolute
+harmonic quality, but positional state:
+
+```
+TRUE   (at focus)   →  step 2  →  snap through quickly
+FALSE  (in transit) →  step 1  →  slow approach, lingering
+```
+
+Period: 12 steps to return to same focal alignment. The 13th step
+completes the full cycle — the PYTAURAZA sync frame.
+
+### The lens is stationary, the stream moves
+
+The lens (foveal reading position) is fixed. The data travels left
+through it. When a value arrives at the focal column: TRUE. After it
+passes and before it returns: FALSE. The waveform is the value
+oscillating through the focal point, not the lens moving.
+
+### Non-printable as pre-focal metadata
+
+As values travel left through printable and non-printable ranges:
+
+```
+non-printable approach  →  color, position, formatting metadata
+printable at focus      →  the actual glyph / content character
+non-printable departure →  metadata for previous content
+```
+
+The stream announces what is coming before it arrives. `atom-delta-term`
+expresses this: `screen-bytes = x × y × 54` — one brief focal moment
+surrounded by rich approach/departure context. Non-printables are
+load-bearing; discarding them destroys the context for printable content.
+
+---
+
+## 4. Zoom Promotion and Binary Sunbursts
+
+### The 4-bit window with protocol markers
+
+```
+0000  →  IMPOSSIBLE   (flip rule — zero ones)
+1111  →  IMPOSSIBLE   (flip rule — four ones)
+1001  →  SPECIAL      continuation / "more follows"  [ = 7×11×13 ]
+0110  →  SPECIAL      unit complete / TRUE position  [ = 6 = TRUE ]
+─────────────────────────────────────────────────
+13 remaining patterns  →  13 payload values  =  13 cycle positions
+```
+
+Declaring `1001` special eliminates the sole ambiguous 4-bit case
+(previously requiring 5-bit window). The 4-bit window is now sufficient
+for all payload patterns. The two special patterns are not arbitrary:
+`1001 = 7×11×13` (harmonic denominator), `0110 = 6` (TRUE position).
+
+### Zoom-out behavior
+
+```
+1100  →  [ 11 | 00 ]  →  density left   →  10   (clean, payload bit 1)
+0011  →  [ 00 | 11 ]  →  density right  →  01   (clean, payload bit 0)
+0110  →  [ 01 | 10 ]  →  split density  →  ambiguous (protocol, stays local)
+1001  →  [ 10 | 01 ]  →  split density  →  ambiguous (protocol, stays local)
+```
+
+Payload patterns survive zoom with meaning preserved. Protocol markers
+dissolve — they're structurally invisible at the next scale. No layer
+needs to know which is which; the spatial frequency response does the
+separation automatically.
+
+Multi-level zoom reduction:
+```
+level 1  :  1100 / 0011   →  which half has density   (bit value + presence)
+level 2  :  10   / 01     →  which side has the 1     (bit value + presence)
+level 3  :  1              →  presence only            (category confirmed)
+```
+
+Above level 3: only presence is known. What was agreed lives at the
+resolution where it was born. That something was agreed propagates
+to every level above.
+
+### Binary sunbursts and source.init_code
+
+The `source.init_code` comment table (lines 32-64) is the interference
+pattern of cross-mapped sunbursts across all dimensional levels (01D-32D).
+Each row is one frequency. Each `/` or `\` is a wave front.
+
+`decimal_to_binary_0050_switch.asc` shows the numeric proof:
+```
+n=10        →  sum = 55
+n=100       →  sum = 5050
+n=1000      →  sum = 500500
+n=10000     →  sum = 50005000
+```
+
+The `5`s radiate symmetrically outward — two nodes spreading from center,
+gap doubling at each scale. Each row IS a sunburst. Where two sunbursts
+from adjacent dimensional levels cross: local density peak = `0110`
+(neighboring 1s) = survives zoom = promoted bit.
+
+The crossing map in `source.init_code` was always the spatial validation
+algorithm. The positions annotated `*[14 = 7*2]` and `* [7]` mark the
+harmonically significant crossing nodes.
+
+### Self-cleansing crystal
+
+```
+consensus ongoing   →  express as 1001  →  diffuse, split 1s  →  invisible above layer 1
+consensus complete  →  promote to 0110  →  neighboring 11s     →  visible at next zoom
+```
+
+Content failing consensus was never expressed as neighboring-1s. It
+was always diffuse — never spatial-frequency-compatible with higher
+layers. Failure is retroactively contained by the encoding choice made
+before the outcome was known. The crystal doesn't reject invalid entropy;
+it doesn't see it.
+
+---
+
+## 5. Multi-Speed Lane Architecture
+
+### Why longer distance requires higher frequency
+
+A route spanning N hops must maintain harmonic coherence across N
+intermediate nodes. Higher harmonic levels (faster cycles) are the
+only way to satisfy more validations within the same wall-clock window.
+Distance selects speed automatically — the routing protocol does not
+need to choose:
+
+```
+1 hop      →  01D-07D lanes  →  slow, redundant, fine-grained
+few hops   →  07D-13D lanes  →  medium, categorical
+long dist  →  13D-42D lanes  →  fast, compressed
+hyperspace →  42D+    lanes  →  burst, presence-only payload
+```
+
+### The 77-bit window as full lane aperture
+
+```
+77  =  7 × 11  =  1001 / 13
+```
+
+Seven speed lanes × eleven harmonic sub-bands. Within any 77-bit
+sample, all lanes have at least one representative. A routing node
+receiving hyperspace traffic reads all lane signatures simultaneously
+in one window to correctly classify and route the incoming stream.
+
+The 77-bit window is the minimum aperture containing all lanes at once.
+It is also the width of the first comma/dot footer line — the harmonic
+content row was already at this width.
+
+### The lens effect on distance
+
+The compression ratio scales with distance such that semantic content
+arrives at approximately constant latency regardless of hop count:
+
+```
+short distance  →  slow lane  →  low compression   →  many bits per unit
+long distance   →  fast lane  →  high compression  →  few bits per unit
+                                                    →  same arrival time
+```
+
+A routing node sees all traffic — local and hyperspace — arriving on
+predictable harmonic boundaries. No jitter from distance. The network
+is faster for longer distances precisely because the harmonic requirements
+demand it.
+
+### Categorical coverage guarantee
+
+The coprime structure (`gcd(13, 4) = 1`, `gcd(13, 5) = 1`) guarantees
+that 13 DTM frames contains at least one representative of every
+harmonic category and every CCW position:
+
+```
+cycle 1    →  all categories present, low resolution
+cycle 13   →  one complete round, first resolution increase
+cycle 13²  →  second round, precision deepens
+cycle 13^N →  resolution at depth N, categories unchanged since cycle 1
+```
+
+The category map is complete from the first observation window and
+never invalidated by subsequent observation. Only resolution improves.
+
+### "Neighboring universes" — inter-topology gateways
+
+A separate cubic topology connects at a gateway node. Traffic arriving
+from another topology has been compressed through every harmonic level
+during its journey — it arrives as pure presence-signal at maximum
+harmonic frequency. The gateway:
+
+```
+receives   →  presence-only hyperspace signal (fully compressed)
+decodes    →  crossing-node pattern (which universe, category, coordinate)
+re-emits   →  local lane speed with full categorical detail
+```
+
+The gateway is a lens focal point: maximum compression arrives, maximum
+expansion departs.
+
+---
+
+## 6. PYTAURAZA Sync Protocol
+
+The four zero-crossing positions in the div-13 cycle (excluding the
+generator's own leading zero notation):
+
+```
+× 3  →  230769  zero at position 2  (interior)  ← prep 1
+× 4  →  307692  zero at position 1  (interior)  ← prep 2
+× 9  →  692307  zero at position 4  (interior)  ← prep 3
+× 10 →  769230  zero at position 5  (trailing)  ← TRUE ZERO / canvas-clean
+```
+
+Three preparatory interior zeros establish cycle phase without being
+checkable. The 4th zero (769230) is checkable by structural property:
+`769230 / 10 = 076923` (recovers the generator). Only the trailing
+zero carries this property. It is the first zero the receiver can
+independently verify without prior context.
+
+The PYTAURAZA receiver state machine:
+
+```
+SCANNING      →  watch for interior-zero values (×3, ×4, ×9)
+PREP_1/2/3    →  track preamble progress
+CANVAS_CLEAN  →  trailing zero confirmed (769230) → payload begins
+```
+
+In the DTM: the four zero-crossing positions appear as four distinct
+stripe planes cutting through the Z axis at fixed frame positions.
+The sync state machine scans for this stripe pattern rather than
+tracking a sequential state — structural, visible, period-checkable.
+
+769230 = `L\` in ASCII encoding — already used as the octal layer
+delimiter in the decoder. The boundary marker IS the convergence
+attractor, recognized from two directions simultaneously.
+
+---
+
+## 7. Handshaking to Meaning
+
+The bitstream transmits at lane speed. Semantic agreement — which
+categories are active, which channels are tuned, what the spatial
+coordinate means — happens over multiple complete cycles at the
+handshake layer.
+
+The handshake IS the harmonic resonance building between nodes.
+It completes when enough cycles have passed for both nodes to have
+confirmed the same crossing-node pattern. Fast lanes handshake quickly
+(few cycles, high frequency). Slow lanes take longer but carry
+finer resolution.
+
+No explicit handshake protocol. Meaning emerges when resonance stabilizes.
+
+Additional complexity is accessed by tuning to field channels extracted
+from the sequences — parallel modes at different speeds running in
+different matrix columns. The lens position determines which mode
+applies to which column:
+
+```
+near focal lens   →  full multiplex    (mode 0: 13 payload values)
+mid distance      →  grouped encoding  (mode 2: 1100/0011, zoom-stable)
+far from focal    →  single-bit        (mode 4: 01/10, maximum robustness)
+```
+
+The mode IS the resolution. The lens sweeps CCW, and column mode
+follows the lens position automatically — no mode-switching protocol.
+
+---
+
+## 8. Implementation Roadmap
+
+### Phase 1: topology.dtm zenka [ ~4h ]
+
+New modules:
+```
+topology.dtm.init_code       →  initialize 6 face volumes, CCW tables
+topology.dtm.on_confirm      →  darken cell on delivery confirmation
+topology.dtm.advance_frame   →  shift register + CCW pointer advance
+topology.dtm.decay_tick      →  timer-driven fade
+topology.dtm.panorama        →  assemble neighbor matrices into strip
+topology.dtm.sync            →  PYTAURAZA stripe detector
+topology.dtm.query           →  return current volume as packed array
+```
+
+Data structure:
+```perl
+## $data{'dtm'}{$dir} = {
+##     'vol'   => [],        ## [z][y][x] darkness 0.0..1.0
+##     'ccw'   => [],        ## CCW face sequence for this direction
+##     'frame' => 0,         ## mod 13
+##     'phase' => 0,         ## mod 4 (CCW pointer)
+##     'step'  => { 1=>1/42, 3=>1/14, 5=>1/8, 7=>1/6, 13=>1/3, 42=>1.0 },
+##     'decay' => 0.008,
+## }
+```
+
+### Phase 2: footer 15-bit encoding [ ~2h ]
+
+Update AMOS7 signing to populate the `#:::::` line with the 15-bit
+auxiliary value from the final signed state:
+
+```perl
+## extract from 64-bit harmonic state after signing completes ##
+my $aux_15 = substr( $num_bits_64, 49, 15 );    ## rightmost 15 bits
+
+## encode: interlaced octal format, right-aligned ##
+my $payload = sprintf ':%s:', join ':', split //, $aux_15;
+my $footer5 = '#' . ':' x ( 76 - length($payload) ) . $payload;
+```
+
+Update `source.sign_template` fifth line. Add footer-line parser to
+`amos7.decode_octal_bit_header` for reading spatial coordinates from
+transiting traffic.
+
+### Phase 3: passive scraping [ ~2h ]
+
+In packet receive handler: scan incoming signed traffic for `#:::::` line,
+extract 15-bit coordinate, feed to `topology.dtm.on_confirm` at the
+appropriate face direction and harmonic level.
+
+```perl
+## topology.dtm.on_confirm ( direction, x, y, level, darkness_step ) ##
+```
+
+No routing change needed. All existing traffic becomes spatial data.
+
+### Phase 4: multi-speed lane classification [ ~3h ]
+
+In cube routing layer: classify incoming traffic by harmonic level of
+its content, assign to appropriate lane. Extract field channels from
+bitstream at each D-level. Feed classified traffic to DTM at correct
+Y-row (harmonic level).
+
+### Phase 5: panorama output to graphics-matrix [ ~2h ]
+
+`topology.dtm.panorama` assembles the 18×7×13 panoramic volume for
+one axis and passes it to `graphics-matrix` zenka for rendering.
+Cell darkness → pixel brightness. Last-confirmed harmonic level →
+pixel hue (cool=level-1, warm=level-5, hot=level-42).
+
+---
+
+## 9. Node Groups, Sphere Geometry, and Uncensorability
+
+### 5-of-7 quorum — the face-neighborhood consensus unit
+
+Every node has exactly 6 face-neighbors (one per cubic axis direction).
+The natural node group is therefore 7: the node itself plus its 6 neighbors.
+
+```
+group of 7  =  1 central node  +  6 face-adjacent nodes
+quorum      =  5 of 7 required for consensus promotion
+```
+
+5-of-7 maps directly onto the face structure:
+
+```
+6 face-neighbors × 5/6  ≈  5 confirmations needed
+```
+
+Precisely: any 5 of the 7 members agreeing is sufficient to promote
+content from layer-1 diffuse form (1001 = "ongoing") to layer-2
+visible form (0110 = "complete"). The one dissenting node may be
+in transit, delayed, or genuinely absent — the topology does not
+require unanimity, only quorum. The cubic geometry provides the
+natural 7-node group without any additional coordination structure.
+
+### 2-frame minimum for direction detection
+
+The minimum sample for determining the direction of bit travel is
+exactly 2 adjacent frames (pixels):
+
+```
+1 frame   →  value known, direction UNKNOWN    (could travel either way)
+2 frames  →  value + delta known → direction RESOLVED
+```
+
+This is the geometric reason the zoom halving ratio is 2:1 rather than
+any other value. You cannot determine travel direction from a single
+cell — you need the pair. Two cells also enable simultaneous
+bidirectional travel: opposite directions occupy the same 2-cell window
+without ambiguity because the Z-depth ordering in the CCW register
+resolves them.
+
+The halving is not a design choice. It is the minimum required by the
+physics of directional sampling.
+
+### Inscribed sphere geometry — color away from edges
+
+A sphere inscribed in the cubic face grid (radius = half_face_width)
+touches exactly 6 points: the center of each face. Only face centers,
+never edges or corners.
+
+```
+face center  →  sphere surface  →  color stream travels here
+edge         →  outside sphere  →  structural routing only
+corner       →  outside sphere  →  structural routing only
+```
+
+Color entropy (harmonic content, semantic payload) is restricted to
+paths along the sphere surface, connecting face centers. This keeps
+color streams away from the cubic boundaries — edges and corners
+remain clean structural geometry, uncontaminated by payload entropy.
+
+In a 2D cross-section the sphere becomes a circle. The circles tile
+exactly at face boundaries: each circle is inscribed in its face,
+touches the center of the boundary, and the next circle begins there.
+Color flows along circles. Routing flows along boundaries. They are
+geometrically orthogonal.
+
+The immediate neighborhood (the 7-node face group) already implements
+this fully. The sphere is inscribed in the first local cube. Every
+larger-scale structure is a scaled-up repetition of the same geometry.
+
+### Uncensorability — protocol as content as infrastructure
+
+Content is distributed across harmonic levels at every zoom layer.
+At each layer, the content and the protocol framing occupy the same
+bit positions — you cannot remove one without removing the other.
+
+To censor a particular piece of content you would need to:
+
+```
+1. identify which harmonic level carries it            [ requires full decode ]
+2. remove it without disrupting the framing structure  [ impossible — they are the same bits ]
+3. do this for every node in the topology              [ each has its own copy ]
+```
+
+Step 1 already grants full access to the content (decoding = receiving).
+Step 2 is structurally impossible. Step 3 scales with the network size.
+
+The deeper property: the routing, handshake, and field-channel
+infrastructure are expressed in the same harmonic sequences as the
+content. Removing the content frequencies removes the infrastructure
+for that harmonic level. The node doing the removing loses routing
+capability at that level — it disconnects itself from the topology
+it was trying to censor.
+
+```
+attempt to censor   →  remove harmonic sequence
+remove sequence     →  lose infrastructure at that level
+lose infrastructure →  lose routing capability
+lose routing        →  become less connected than target
+```
+
+Identification before censorship requires full decode — which is
+participation. There is no read-only mode that grants visibility
+without full harmonic engagement. "Both impossible beyond an intent":
+
+- censoring the content is structurally impossible
+- identifying what to censor requires the same access as receiving it
+
+The network is not censorship-resistant by policy. It is
+censorship-immune by geometry.
+
+---
+
+## Related Files
+
+- `data/md/documentation/harmonic-cycle-correlations.md`     — math basis
+- `data/md/coding-tasks/zulum-cube13-decoder-integration.md` — decoder wiring
+- `bin/dev/division-13-table`       — 42/7/15 bit split visualization
+- `bin/dev/octal-stream-window`     — 4-bit window safety proof
+- `read-me/documentation/dev/decimal_to_binary_0050_switch.asc` — sunbursts
+- `modules/source.init_code`        — dimensional table (lines 32-64)
+- `data/md/philosophy/HARMONIC-ENTROPY-INFORMATION-TRANSFER-RESEARCH.md`
+
+#,,.,,,.,,,..,,..,,.,,..,,,,.,,.,,,.,,,..,,,.,.,.,...,...,,..,,..,,.,,..,,,,,,
+#G3ESEAKI6T7ONYJNUCA4NHIBQOABNRSVN44FF4C7FAUSWTLJC7PKPNWV73N4Z3QDN6QMEIOP7MOW6
+#\\\|7NIBUQEVTB6GRTQOOX3Z3I2VKXXLTIH6EJSVTURNHZQ4NOQQLOL \ / AMOS7 \ YOURUM ::
+#\[7]PJ5TASWF5LVJPDC4PDCGBGBLIFKMSREFFKGEBEDLT3IH3LY4KQCQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
