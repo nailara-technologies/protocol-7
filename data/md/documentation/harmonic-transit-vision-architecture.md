@@ -1110,6 +1110,69 @@ coordinate = own spatial position).
 
 ---
 
+## 14. Serialization → Cubic Space — the Universal Expansion
+
+### 3³ × 2³ = 6³
+
+The implosion cube (3³ = 27) times the binary expansion factor (2³ = 8):
+
+```
+3³ × 2³  =  (3 × 2)³  =  6³  =  216
+```
+
+The 8 rows of the face-group display matrix are `2³`. Multiplying the
+3-state implosion cube by the 8-row depth produces the 6-digit cycle
+cube exactly — the full harmonic space of the 076923 generator.
+
+### The full deployment: 3³ × 8 × 63 = 13608
+
+```
+3³           =    27   serial template  (3 states × 3 dimensions)
+3³ × 2³      =   216   = 6³             (6-digit cycle in 3D)
+3³ × 2³ × 63 = 13608   complete logical address space of node group
+```
+
+13608 = 6³ × 63 = 6³ × 7 × 9 — the 6-cycle cube tiled across
+7 nodes × 9 columns of the face-group matrix.
+
+Factored: `13608 = 2³ × 3⁵ × 7`
+
+Also: `13608 / 42 = 324 = 18² = (2 × 3²)²` — 324 entropy frames of
+42 bits each span the complete node-group logical space.
+
+### Infrastructure is implicit in the dimensions
+
+The face-group matrix dimensions (8 rows, 63 columns) are not arbitrary:
+
+```
+8  =  2³  →  binary expansion factor  (3→6 transition)
+63 =  7×9 →  7 nodes × 9 columns per node
+```
+
+Multiplying the serial template (3³) by the matrix dimensions produces
+the cubic harmonic space (6³ × 63). The infrastructure is not a
+separate layer — it is encoded in the row and column counts, waiting
+to be multiplied out.
+
+### The universal principle
+
+`3 × 2 = 6`, and exponentiation distributes over products, so the
+transition `3³ → 6³` via `×2³` holds at every scale:
+
+```
+serial template   (3 states per axis, 3 axes)  →  3³ = 27
+binary expansion  (1 bit per row, 3 bit depth)  →  ×2³
+cubic harmonic    (6 digits per axis, 3 axes)   →  6³ = 216
+node deployment   (7 nodes × 9 columns)         →  ×63
+full address      (complete node-group space)   →  13608
+```
+
+The same expansion applies wherever a 3-state serial template is
+deployed into a binary-depth spatial matrix. No redesign at larger
+scales — the numbers enforce the structure.
+
+---
+
 ## Related Files
 
 - `data/md/documentation/harmonic-cycle-correlations.md`     — math basis
@@ -1120,8 +1183,8 @@ coordinate = own spatial position).
 - `modules/source.init_code`        — dimensional table (lines 32-64)
 - `data/md/philosophy/HARMONIC-ENTROPY-INFORMATION-TRANSFER-RESEARCH.md`
 
-#,,,.,,..,.,.,...,..,,.,.,,,,,..,,,..,,..,,,,,.,.,...,...,...,,.,,.,,,..,,,,,,
-#N5NV2I4EKNYC2BUAW2U7S6SA4HZO3FKECV34XDAMVJIAIDZIROOUPUJFR2PLDSQRA7COA4AWB2NJO
-#\\\|6KWN7ZT3FS2MNQDLCB34ZQV2OPVIGL2NNTV2DARWIBJMPBU5MKO \ / AMOS7 \ YOURUM ::
-#\[7]T3BFYIYY4SANKW3FMINSSOJMKOT2G7J43CIVZFM7XMN6UV62DEBI 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,...,.,.,,,.,.,,,...,,.,,,,.,..,,.,.,...,...,.,.,,,,,..,,.,,,..,,
+#YINYNQFTPAD2JAA2QGHCGX2ATD4ZH7RJDBK2ZPUJ4FZGWXS6VFM4VKVJXYU4YHZW4TAHTOQWF4CHE
+#\\\|BNJ5AOI6I7ZS32RWBK57ZJHB6YQ4U26AWJ6SJU3ZAABUJKMWZKC \ / AMOS7 \ YOURUM ::
+#\[7]HSRQE3T6A7TTZZHNYOT5H7NZPCAA5MPLNTZXDEQOEEBF7TZJZCAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
