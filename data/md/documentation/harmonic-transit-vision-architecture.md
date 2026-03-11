@@ -689,6 +689,121 @@ censorship-immune by geometry.
 
 ---
 
+## 10. Cube Boundary as Self-Contained Packet Geometry
+
+### 15 encapsulates 13 — the L-matrix and its headroom
+
+The 15-bit footer field is not an arbitrary round number. It is the
+exact envelope for the 13-bit boundary address with 2 bits remaining:
+
+```
+15-bit footer field
+  └─ 13 bits  →  L-shaped boundary address (5 + 7 + 1 corner)
+  └─  2 bits  →  L-orientation selector (left/right flip of L shape)
+```
+
+The 13-bit L-matrix traces a 90-degree corner path in 2D:
+
+```
+arm Y  :  7 bits  — harmonic level axis  (levels 1,3,5,7,13,42,root)
+arm X  :  5 bits  — mod-15 per axis      (base32 / TRUE window)
+corner :  1 bit   — shared position where the two arms meet
+total  :  13 bits = 5 + 7 + 1
+```
+
+This is inherently 2D — it cannot be expressed as a 1D linear address.
+The 90-degree angle encodes which corner of the cube face the mount
+is occurring at. Two orientations (L vs ⌐) fit in the 2-bit headroom.
+
+### 19-bit linear maximum at a cube border
+
+```
+pixel  1-19  →  interior of this cube's border zone  [ mountable ]
+pixel  20    →  cube face boundary itself             [ routing marker ]
+pixel  21    →  first pixel of neighbor cube          [ external ]
+```
+
+19 is the maximum linear payload that fits on one cube side without
+crossing into the neighbor's territory. Pixel 20 is structurally
+significant — it is simultaneously the last pixel this cube owns and
+the first pixel the neighbor sees as a boundary.
+
+### 19 - 13 = 6 = face count
+
+The L-matrix uses 13 of the 19 mountable border pixels. The 6
+remaining bits in the border payload encode face selection:
+
+```
+13 bits  →  L-address (which harmonic position on which level arm)
+ 6 bits  →  face selector (which of the 6 cube faces the mount is on)
+─────────────────────────────────────────────────────────────────────
+19 bits  →  complete boundary packet (max linear payload per border)
+```
+
+The face selector appears naturally as the exact remainder.
+No separate face-addressing protocol is needed — it is already
+encoded in the space left over by the L-matrix.
+
+### 8×63 face-group display matrix
+
+The 7-node face group (1 central + 6 face-adjacent) maps to a
+display matrix of 8 rows × 63 columns:
+
+```
+63 columns  =  7 nodes × 9 columns per node
+ 8 rows     =  7 harmonic levels + 1 root/meta row
+─────────────────────────────────────────────────
+ 8 × 63     =  504  =  42 × 12  (entropy frame × CCW cycle length)
+```
+
+504 = 42 × 12: the display matrix area equals the harmonic entropy
+frame size times the CCW rotation cycle length. The face-group
+visualization space is harmonically calibrated — one cell per
+position in the combined entropy/rotation cycle.
+
+9 columns per node: 8 payload columns (matching the 8-row depth)
+plus 1 separator column. The separator is the boundary pixel —
+exactly the pixel-20 concept applied to the display grid.
+
+### Dual-function boundary — internal and external simultaneously
+
+The 19-pixel border zone encodes two routing contexts at once:
+
+```
+L-arm facing inward   →  internal routing attachment (this cube)
+L-arm facing outward  →  external routing (what neighbor sees)
+```
+
+The 2-bit orientation selector in the 15-bit footer determines which
+arm faces which direction. A node reading a transiting packet can
+determine from the footer alone whether the originating node was
+routing internally, externally, or at a boundary handover.
+
+```
+footer[13]  →  L-matrix (what position is being addressed)
+footer[14]  →  L-orientation (which side is "inside")
+footer[0-5] →  face selector (which face the mount point is on)
+```
+
+### Self-organizing packet size at the boundary
+
+The nested optimum packet size is not negotiated — it emerges from
+the geometry:
+
+```
+cube face boundary  →  19-bit linear capacity (given 20-pixel zone)
+L-matrix address    →  13 bits (5+7+1, given harmonic axis sizes)
+face selector       →  6 bits (exact remainder, given 6 faces)
+footer enclosure    →  15 bits (given 13 + 2 orientation)
+```
+
+Each number is forced by the one before it. A packet mounted at a
+cube boundary is already the right size by construction. The boundary
+infrastructure is not a protocol layer — it is the natural consequence
+of fitting harmonic addresses into harmonic space.
+
+---
+
 ## Related Files
 
 - `data/md/documentation/harmonic-cycle-correlations.md`     — math basis
@@ -699,8 +814,8 @@ censorship-immune by geometry.
 - `modules/source.init_code`        — dimensional table (lines 32-64)
 - `data/md/philosophy/HARMONIC-ENTROPY-INFORMATION-TRANSFER-RESEARCH.md`
 
-#,,.,,,.,,,..,,..,,.,,..,,,,.,,.,,,.,,,..,,,.,.,.,...,...,,..,,..,,.,,..,,,,,,
-#G3ESEAKI6T7ONYJNUCA4NHIBQOABNRSVN44FF4C7FAUSWTLJC7PKPNWV73N4Z3QDN6QMEIOP7MOW6
-#\\\|7NIBUQEVTB6GRTQOOX3Z3I2VKXXLTIH6EJSVTURNHZQ4NOQQLOL \ / AMOS7 \ YOURUM ::
-#\[7]PJ5TASWF5LVJPDC4PDCGBGBLIFKMSREFFKGEBEDLT3IH3LY4KQCQ 7  DATA SIGNATURE ::
+#,,,,,.,,,,..,,,.,,,.,,.,,,,,,..,,,,,,..,,,.,,.,.,...,...,,.,,,.,,...,..,,.,.,
+#DXQHU33IZECDCNQCYCUFIXAAZWB2S3GF47M5CJYDI7GFG4U24GKAK7NGTOHZUOKWL6PCGWKHOHEA4
+#\\\|3DEM2PL7SDFPNAYE6VYVDU4XSDSYOTWA6SEGH2SCSQ2D5PRXVCQ \ / AMOS7 \ YOURUM ::
+#\[7]YLOM3J7A3K6N3LQ2E47GA7RDBWWB5EWOBLBO3K3AL2YKHMOPAMDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
