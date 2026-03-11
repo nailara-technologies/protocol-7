@@ -981,6 +981,135 @@ complete a full harmonic cycle reading.
 
 ---
 
+## 13. Relative Addressing — Harmonic Modulus Rings
+
+### The three access rings
+
+From any node at position 0, the relative addressing space decomposes
+into three harmonic rings:
+
+```
+-5  ..  0  ..  +5    =   11 positions   local window      (always listening)
+-13 ..  0  ..  +13   =   27 positions   hyperspace uplink (full-duplex)
+-15 ..  0  ..  +15   =   31 positions   node-group edge   (footer-addressed)
+```
+
+Each boundary is a harmonic modulus:
+
+```
+11  =  7 × 11 × 13 / (7 × 13)  →  the mod-11 factor; also 1001's middle term
+27  =  0+7+6+9+2+3              →  digit sum of 076923 — the cycle invariant
+31  =  2⁵ - 1                  →  maximum 5-bit value; maps onto 15-bit footer
+```
+
+### ±5 — the always-listening local window
+
+The center node (position 0) passively receives all traffic within ±5
+without explicit addressing. The 0 is always included — the node listens
+to itself as one of the 11 positions. No directed address needed for
+local-range communication; presence in the window is sufficient.
+
+11 positions = the mod-11 local neighborhood. `1001 = 7 × 11 × 13`:
+the continuation marker (Section 4) encodes all three ring moduli
+simultaneously.
+
+### ±13 — the full-duplex hyperspace uplink
+
+Modulo-13 offset from any node reaches a harmonically equivalent
+position at hyperspace distance:
+
+```
+position N  and  position N+13  →  same harmonic phase, different location
+```
+
+This is the hyperspace shortcut: jump by exactly 13 positions = land at
+harmonic alias. The two lanes at ±13 are bidirectional (one inbound,
+one outbound) — a full-duplex uplink pair embedded at the digit-sum
+boundary.
+
+27 = the digit sum of 076923 = the conserved quantity of the harmonic
+cycle. The full-duplex range IS the digit-sum window. The cycle closes
+from any starting position exactly at ±13 — no larger range needed for
+a complete harmonic traversal.
+
+Within the node group, -13..0..+13 addressing is intra-group traffic.
+The hyperspace gateway transition occurs at ±14 — the first position
+outside the digit-sum window.
+
+### ±15 — the node-group boundary with inter-node gaps
+
+The 7-node face group has 6 inter-neighbor gaps. Each gap holds 2
+positions (the minimum for binary direction sampling, Section 9):
+
+```
+6 gaps × 2 positions  =  12 additional positions
+symmetrically distributed: 6 on each side of center
+13 + 2  =  15  →  ±15 is the outer node-group boundary
+```
+
+31 = 2⁵ - 1 = maximum 5-bit value. The node-group boundary aligns
+with the 5-bit base32 address limit. Three axes × 5 bits = 15 — the
+footer field (Section 2) addresses exactly this range.
+
+The ±14 and ±15 positions are the actual hyperspace gateway transitions
+— inter-node gap infrastructure sitting at the node-group edge, handling
+the handover between intra-group and inter-group (hyperspace) traffic.
+The uplink is embedded at the boundary without extending into neighbor
+territory.
+
+### 2-bit full-duplex collapse → 27 logical bits = 3³
+
+A full-duplex cycle requires exactly 2 physical bits:
+
+```
+00  →  clear  (both directions agree: bit = 0)
+11  →  raise  (both directions agree: bit = 1)
+01  →  in-transit rightward  (not yet settled)
+10  →  in-transit leftward   (not yet settled)
+```
+
+Once the full-duplex cycle completes, the 2 physical bits merge to
+1 logical bit. The 2 inter-node gap positions (±14/±15) collapse to
+1 logical position connecting the two 13-bit rows:
+
+```
+physical  :  13  +  2  +  13  =  28 positions
+logical   :  13  +  1  +  13  =  27 logical bits  =  3³
+```
+
+27 = 3³ = three harmonic states (FALSE / UNKNOWN / TRUE) in each of
+three spatial dimensions. The 3×3×3 implosion cube is not a separate
+construct — it is the natural shape of the ±13 address space after
+full-duplex bit resolution collapses the 2-bit gap to 1 logical bit.
+
+Three identities for the same object:
+
+```
+digit sum of 076923          →  0+7+6+9+2+3  =  27
+full-duplex uplink range     →  -13..0..+13  =  27 positions
+3D harmonic state space      →  3³           =  27
+```
+
+The 27-bit logical space is one template group — it serializes one
+complete logical bit intersection of the node group. Every node-group
+interaction fits within this space because it is defined by the same
+harmonic invariant that defines the cycle itself.
+
+### Access key: modulo-13 offset
+
+To reach hyperspace from any node: compute the modulo-13 offset. No
+routing table, no explicit gateway address — harmonic equivalence IS
+the address. Any two positions separated by a multiple of 13 are
+harmonically identical and can relay to each other directly via the
+±13 uplink pair.
+
+The 0-position (current node) always participates passively in all
+three rings simultaneously: local listener (mod-11), hyperspace relay
+candidate (mod-13 self-alias = 0), and footer-addressed (mod-15
+coordinate = own spatial position).
+
+---
+
 ## Related Files
 
 - `data/md/documentation/harmonic-cycle-correlations.md`     — math basis
@@ -991,8 +1120,8 @@ complete a full harmonic cycle reading.
 - `modules/source.init_code`        — dimensional table (lines 32-64)
 - `data/md/philosophy/HARMONIC-ENTROPY-INFORMATION-TRANSFER-RESEARCH.md`
 
-#,,..,.,.,,..,,..,.,.,.,,,,..,..,,.,.,,,,,,,.,.,.,...,...,.,.,..,,.,,,..,,..,,
-#A4OXARU46YFQRWUHXKS34XE3JAWFHHTYCPUCSZGRGVAW36FGTMO2IFWOWQNYYHJZBHXSKTDTOCM26
-#\\\|3VD65PX3FM46JJ3PQMBNIKH57S6FYZ5NHFH52KMXAXV2JHQYVO2 \ / AMOS7 \ YOURUM ::
-#\[7]EL5RR5PWUATCTFJAQ2TUGEMYBOOWFRGVQAEFFMOQLVHG2FLA7WBI 7  DATA SIGNATURE ::
+#,,,.,,..,.,.,...,..,,.,.,,,,,..,,,..,,..,,,,,.,.,...,...,...,,.,,.,,,..,,,,,,
+#N5NV2I4EKNYC2BUAW2U7S6SA4HZO3FKECV34XDAMVJIAIDZIROOUPUJFR2PLDSQRA7COA4AWB2NJO
+#\\\|6KWN7ZT3FS2MNQDLCB34ZQV2OPVIGL2NNTV2DARWIBJMPBU5MKO \ / AMOS7 \ YOURUM ::
+#\[7]T3BFYIYY4SANKW3FMINSSOJMKOT2G7J43CIVZFM7XMN6UV62DEBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
