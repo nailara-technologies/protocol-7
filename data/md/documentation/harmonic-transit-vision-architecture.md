@@ -804,6 +804,86 @@ of fitting harmonic addresses into harmonic space.
 
 ---
 
+## 11. The 13³ Cube and the 4200 Constant
+
+### 13³ = minimum harmonic processing space
+
+```
+13 × 13 × 13  =  2197
+```
+
+A 13×13×13 cube is the minimum 3D volume in which every harmonic cycle
+position (1-13) can be visited simultaneously across all three dimensions.
+One full traversal in X, one in Y, one in Z, all at the same time — no
+smaller cube satisfies this constraint.
+
+This is the natural payload/processing unit: the minimum space where
+harmonic computation is complete without cropping any dimension.
+
+### 4200 = 13³ + 2003
+
+```
+4200 - 2197  =  2003
+4200         =  13³ + 2003
+```
+
+The 4200 constant already present in the protocol decomposes exactly:
+
+```
+13³   =  2197  →  one complete 13-cube (payload/processing volume)
+2003  =  2003  →  infrastructure remainder
+─────────────────────────────────────────────────────────────────
+4200  =  one processing unit + infrastructure overhead
+```
+
+The time seed `(time × 4200) / 13 / 13 / 13` = `time × (1 + 2003/2197)`:
+time scaled by one full cube plus the infrastructure fraction per cube.
+
+4200 AMOS drops = one resource token = one 13-cube of processing capacity
+(2197) plus 2003 units of infrastructure — the node-group hypervisor cost.
+The token was already sized to the geometric unit.
+
+### 2003 — the infrastructure remainder
+
+```
+2002  =  2 × 7 × 11 × 13   →  epoch start year, product of harmonic primes
+2003  =  2002 + 1           →  prime, ≡ 1 (mod 13)
+```
+
+2002 is the product of four harmonically significant primes (the epoch
+start: `(unix_time - 1023228000) × 4200`, reference date 2002-06-05).
+2003 = 2002 + 1 is prime and sits exactly 1 above a multiple of 13.
+
+The infrastructure remainder encodes the epoch. The +1 above the harmonic
+multiple is the "first true step" — same structure as PYTAURAZA (4th zero
+= first checkable zero = canvas-clean). One above the harmonic base = the
+first position that is verifiably outside the cycle.
+
+### The node group as hypervisor
+
+The 7-node face group (Section 9) is the infrastructure required to
+correctly address and access the 13³ cube from outside:
+
+```
+13³ cube         →  2197 cells  →  minimum harmonic payload/processing space
+7-node group     →  8 × 63 = 504 = 42 × 12  →  surrounding hypervisor
+19-bit boundary  →  13-bit L-address + 6-bit face selector  →  mount point
+15-bit footer    →  13-bit L-matrix + 2-bit orientation     →  transport address
+```
+
+The node group does not compute inside the cube — it provides the routing,
+addressing, and boundary infrastructure to reach any position in it from
+any external direction. The cube is the virtual machine; the face group
+is the hypervisor.
+
+`4200 / 42  =  100`: 100 entropy frames fit in one resource token.
+`4200 / 13  ≈  323.1`: not integer — the token is not divisible by the
+cycle length, which ensures no resonance aliasing between token boundaries
+and harmonic cycle boundaries. The infrastructure remainder (2003 ≡ 1 mod 13)
+is precisely what breaks that divisibility cleanly.
+
+---
+
 ## Related Files
 
 - `data/md/documentation/harmonic-cycle-correlations.md`     — math basis
@@ -814,8 +894,8 @@ of fitting harmonic addresses into harmonic space.
 - `modules/source.init_code`        — dimensional table (lines 32-64)
 - `data/md/philosophy/HARMONIC-ENTROPY-INFORMATION-TRANSFER-RESEARCH.md`
 
-#,,,,,.,,,,..,,,.,,,.,,.,,,,,,..,,,,,,..,,,.,,.,.,...,...,,.,,,.,,...,..,,.,.,
-#DXQHU33IZECDCNQCYCUFIXAAZWB2S3GF47M5CJYDI7GFG4U24GKAK7NGTOHZUOKWL6PCGWKHOHEA4
-#\\\|3DEM2PL7SDFPNAYE6VYVDU4XSDSYOTWA6SEGH2SCSQ2D5PRXVCQ \ / AMOS7 \ YOURUM ::
-#\[7]YLOM3J7A3K6N3LQ2E47GA7RDBWWB5EWOBLBO3K3AL2YKHMOPAMDQ 7  DATA SIGNATURE ::
+#,,..,,..,,,,,.,.,..,,.,.,..,,,.,,.,.,.,.,...,.,.,...,..,,,..,...,,,,,.,,,.,,,
+#ISPMIPNEK3DNUHFSJJGPXAOB2H6DMVJL565Q7WYOEUGOPNNQNXWGYJUJ4JTT3IIWCXJQRZLVMUS2I
+#\\\|6SG6SUXO7QTXDSRRZQWDIJ6PH27XRYXPNDTHA7BN55G546RYBAI \ / AMOS7 \ YOURUM ::
+#\[7]NUEEL4MNDSJVTD3BRDIBS5OJGPKFSPXZCRIRZXMVM2MO43WGBQDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
