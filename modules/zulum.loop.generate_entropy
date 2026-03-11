@@ -10,7 +10,7 @@ my $stream_id = $params->{'stream_id'} // 1;
 return { 'mode' => qw| false |, 'data' => 'invalid stream_id' }
     unless $stream_id >= 1 && $stream_id <= 13;
 
-my $stream = <zulum.stream> {$stream_id};
+my $stream = <zulum.stream>->{$stream_id};
 return { 'mode' => qw| false |, 'data' => 'stream not initialized' }
     unless defined $stream;
 
@@ -58,8 +58,8 @@ return {
     }
 };
 
-#,,,,,.,.,.,.,,..,.,,,,,,,,,,,,,,,,..,...,,,,,.,.,...,..,,,.,,..,,..,,,,.,,,,,
-#FOLY4PI3JJWLRG46NGTN3IIS7XVPG23FYQPYFMDWNW4FW66UZ6YQFHIBVIF54A2IWVWIJTSJ6TL2A
-#\\\|HBVK5QFK7PQYL7O44BMINNRSGYCGMEXU5DI7E5PIRAMICHLBWRD \ / AMOS7 \ YOURUM ::
-#\[7]EX4IEW6MKF6QAQIA3WOH23JOTK62GKPQZLPXNT32DQJPFKH6Q6BY 7  DATA SIGNATURE ::
+#,,.,,,..,,,.,,..,,,.,,..,,..,.,,,,,.,,,.,.,.,.,.,...,..,,,,.,..,,,,,,,,.,,,,,
+#AA6Q3WZCWBOJTUZ22ATLXQE3ZQIKPAVDTQCJQZEKSTU5ML6R4HVVXW77GAIXFJUF2YGB4MGRPYVOM
+#\\\|CSNDFUELTFDZ6GILDNXXZRAN6FQT3AFIBLWPWXWMZQVMZTLEWWO \ / AMOS7 \ YOURUM ::
+#\[7]QTOYQJUVXAPDPVE7FIGK4G2XAECHL4CPBL75J5OA7YQ7LHSQYIBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
