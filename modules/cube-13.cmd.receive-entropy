@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = cube-13.cmd.receive-entropy
+# descr = Receive entropy from zulum, route to active decoder with boundary markers
+# param = <stream_id> <entropy_bits> <is_true>
+
+my $args = $call->{'args'} // '';
+my ( $stream_id, $entropy, $is_true ) = split m| +|, $args, 3;
+
+<[base.log]>->(
+    0, "[cube-13] receive-entropy called: sid=$stream_id is_true=$is_true"
+);
+
+return { 'mode' => qw| false |, 'data' => 'missing stream_id' }
+    unless defined $stream_id;
+return { 'mode' => qw| false |, 'data' => 'missing entropy' }
+    unless defined $entropy;
+
+$is_true //= 0;    ## default to false if not provided ##
+
+## Update stream state ##
+my $streams = <cube-13.streams>;
+return { 'mode' => qw| false |, 'data' => "invalid stream $stream_id" }
+    unless exists $streams->{$stream_id};
+
+$streams->{$stream_id}{'is_true'} = $is_true;
+
+## Get active stream ##
+my $active_sid = <cube-13.active_stream>;
+
+## Only forward if this is the active stream ##
+if ( $stream_id == $active_sid ) {
+    my $boundary = $streams->{$stream_id}{'boundary'};
+
+    ## Route to decoder via main cube ##
+    ## Use send.local targeting decoder through main cube ##
+    <[protocol-7.command.send.local]>->(
+        {   'command'   => 'decoder.receive-entropy',
+            'call_args' => { 'args' => "$stream_id $entropy $boundary" },
+        }
+    );
+
+    return {
+        'mode' => qw| true |,
+        'data' => "stream $stream_id forwarded [boundary:$boundary]"
+    };
+} else {
+    ## Stream not active, just update state ##
+    return {
+        'mode' => qw| true |,
+        'data' => "stream $stream_id state updated [inactive]"
+    };
+}
+
+#,,,.,,.,,,,.,.,,,..,,...,,..,,,.,,..,,..,...,..,,...,...,,.,,,..,...,...,..,,
+#5GUZ6DYM357K7TP2O3XB4P3UFXJHTYFUNRFLZIUOQBTBZIC5GLX5D6MA3P4DGB7BLX2LE7VK7PHKQ
+#\\\|6LARXTUZSE54JKZHK7HII7JOWACRK65K72PJYVOZVIB7RJY6FSC \ / AMOS7 \ YOURUM ::
+#\[7]GIMWTIQ4WSOZ2Q3ODNGNWCDIX6JJVF6KXBVV553QZ5ISCFNQBKCA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

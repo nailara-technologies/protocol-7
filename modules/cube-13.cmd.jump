@@ -1,0 +1,70 @@
+## [:< ##
+
+# name  = cube-13.cmd.jump
+# descr = Jump navigation: true, reverse, next
+# param = <direction> (true | reverse | next)
+
+my $args        = $call->{'args'} // '';
+my ($direction) = split m| +|, $args, 1;
+
+## Validate direction ##
+my %valid_dirs = map { $ARG => 1 } qw| true reverse next |;
+return {
+    'mode' => qw| false |,
+    'data' =>
+        "invalid direction '$direction', expected: true | reverse | next"
+    }
+    unless exists $valid_dirs{$direction};
+
+## Get jump table ##
+my $jump_table = <cube-13.jump_table>;
+my $streams    = <cube-13.streams>;
+
+## Calculate target stream ##
+my $current_sid = <cube-13.active_stream>;
+my $target_sid  = $jump_table->{$direction}->();
+
+## No change (e.g., no true stream found) ##
+if ( $target_sid == $current_sid ) {
+    return {
+        'mode' => qw| true |,
+        'data' => "jump $direction: staying on stream $current_sid"
+    };
+}
+
+## Increment boundary marker for clean decoder handoff ##
+my $boundary = ++$streams->{$target_sid}{'boundary'};
+
+## Update active stream ##
+$data{'cube-13'}{'active_stream'} = $target_sid;
+
+## Notify connected decoder of stream change with boundary marker ##
+my $decoder_sid = $streams->{$target_sid}{'decoder_sid'};
+if ( defined $decoder_sid ) {
+    <[protocol-7.route-send]>->(
+        {   'command'   => 'decoder.stream-boundary',
+            'call_args' => { 'args' => "$target_sid $boundary" },
+        }
+    );
+}
+
+<[base.log]>->(
+    1, "[cube-13] jump %s: stream %d -> %d [boundary:%d]",
+    $direction, $current_sid, $target_sid, $boundary
+);
+
+return {
+    'mode' => qw| true |,
+    'data' => {
+        'direction' => $direction,
+        'from'      => $current_sid,
+        'to'        => $target_sid,
+        'boundary'  => $boundary,
+    }
+};
+
+#,,,,,.,.,,,,,,.,,.,,,...,,..,,,,,,,,,,,,,...,..,,...,...,...,,,.,.,.,,.,,,,.,
+#CMJSUMF7IYKYFILON3RSXJPGSLCEM2B65MNHDNL3MF5XWOFMJG2QDBIYBZZJD3A5TONZ6HSAQ73AC
+#\\\|PRKUMDCFZIRX5AZLXFNTU73BSAAYJG6NAIBCH7F7HXSQFS2U4DG \ / AMOS7 \ YOURUM ::
+#\[7]YZ7WYSEWL4AW3WJXX6R4UE5JCHSTJTFZ6AIEONHR64JXULKF66BI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

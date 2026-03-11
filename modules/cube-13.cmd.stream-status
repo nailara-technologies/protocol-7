@@ -1,0 +1,59 @@
+## [:< ##
+
+# name  = cube-13.cmd.stream-status
+# descr = Show cube-13 switch matrix status
+# param = [stream_id] (default: all)
+
+my $args        = $call->{'args'} // '';
+my ($stream_id) = split m| +|, $args, 1;
+
+my $streams = <cube-13.streams>;
+my $active  = <cube-13.active_stream>;
+
+if ( defined $stream_id && $stream_id =~ m|^\d+$| ) {
+    ## Single stream detail ##
+    return { 'mode' => qw| false |, 'data' => "invalid stream $stream_id" }
+        unless exists $streams->{$stream_id};
+
+    my $s           = $streams->{$stream_id};
+    my $active_flag = ( $stream_id == $active ) ? " [ACTIVE]" : "";
+
+    return {
+        'mode' => qw| true |,
+        'data' => sprintf(
+            "stream %d%s: is_true=%s, boundary=%d, decoder=%s",
+            $stream_id, $active_flag,
+            $s->{'is_true'} // 'undef', $s->{'boundary'},
+            $s->{'decoder_sid'} // 'none'
+        )
+    };
+} else {
+    ## All streams summary ##
+    my @lines = ( "=== cube-13 Switch Matrix ===", "" );
+    push @lines, sprintf "Active stream: %d", $active;
+    push @lines, "";
+    push @lines, "Stream | is_true | Boundary | Decoder";
+    push @lines, "-------|---------|----------|--------";
+
+    for my $sid ( sort { $a <=> $b } keys %$streams ) {
+        my $s      = $streams->{$sid};
+        my $marker = ( $sid == $active ) ? "*" : " ";
+        push @lines,
+            sprintf(
+            " %s %2d  | %7s | %8d | %s",
+            $marker, $sid, $s->{'is_true'} // '-',
+            $s->{'boundary'}, $s->{'decoder_sid'} // '-'
+            );
+    }
+
+    return {
+        'mode' => qw| size |,
+        'data' => join( "\n", @lines )
+    };
+}
+
+#,,,.,,,.,.,.,..,,,.,,,..,,..,,,.,.,,,,,.,,,,,..,,...,...,..,,,.,,,..,.,.,,,,,
+#KDMDWRXOA557APYCULQGLOLHWLTK4FRVLYUJ6GWIOB3YJLI3QMBET5NWDZFIT4M6L3BTO547IT7RW
+#\\\|MJVLIROHTO3L3EUTJN4ULA6TN2LVY2HMLY4YHQRQE7SN6NAMIT2 \ / AMOS7 \ YOURUM ::
+#\[7]5PKTSK6AIKEQCLPMFISKI5W2Z5PXZKK57SDZUAEAS2O4LWWHBGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
