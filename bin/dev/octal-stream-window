@@ -1,0 +1,400 @@
+#!/usr/bin/perl
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+
+###                      ###
+##  octal-stream-window   ##
+###                      ###
+
+##  visualize 4-bit sliding window safety of octal-encoded binary stream  ##
+##  demonstrates: separator detection, flip rule, offset-safe sync        ##
+
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd     qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $Bin    = $RealBin;
+    our $up_dir = File::Spec->updir;
+    my $data_pm_path   = qw| data/lib-path/pm |;
+    my $root_path      = abs_path( r2_abs( c_dir( $Bin, ($up_dir) x 2 ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##[ AMOS MODULE ]#############################################################
+
+use AMOS7;
+use AMOS7::Assert::Truth qw| is_true |;
+
+##[ COLORS ]##################################################################
+
+our %C = (
+    qw| sep   | => "\e[38;2;255;90;60m",      ## separator — red-orange   ##
+    qw| flip  | => "\e[38;2;255;200;0m",      ## flip rule  — yellow      ##
+    qw| val   | => "\e[38;2;6;71;195m",       ## valid payload — blue     ##
+    qw| win   | => "\e[38;2;180;255;180m",    ## window highlight — green ##
+    qw| true  | => "\e[38;2;0;220;120m",      ## is_true TRUE  — green    ##
+    qw| false | => "\e[38;2;120;80;180m",     ## is_true FALSE — purple   ##
+    qw| dim   | => "\e[38;2;60;60;90m",       ## dim background           ##
+    qw| bold  | => "\e[1m",
+    qw| bg    | => "\e[48;2;9;5;42m",
+    qw| R     | => "\e[0m",
+);
+
+$SIG{'INT'} = sub { say "\b\b\n\n$C{R}"; exit(0) };
+
+##[ OCTAL ENCODING ]##########################################################
+
+##  encode a number as octal digits 1-7, separated by 0  ##
+##  separator = octal 0 = binary 000                      ##
+##  payload digits 1-7 = binary 001..111, never 000       ##
+
+sub encode_octal_stream {
+    my @values = @ARG;
+    my @digits;
+    for my $val (@values) {
+        my $oct = sprintf '%o', $val;
+        push @digits, split '', $oct;
+    }
+    ## join with 0 separators, wrap in separators ##
+    return join '0', '', @digits, '';
+}
+
+sub digits_to_bits {
+    my $octal_str = shift;
+    return join '', map { sprintf '%03b', $ARG } split '', $octal_str;
+}
+
+##[ GENERATE TEST STREAM ]####################################################
+
+##  use division-by-13 values as payload — known harmonic content  ##
+my $Z = 76923;
+my @words;
+for my $i ( 1 .. 8 ) {
+    $Z <<= 4;
+    $Z /= 13;
+    $Z <<= is_true($Z) ? 2 : 1;
+    push @words, $Z % 77;    ## keep values in displayable range ##
+}
+
+my $octal_stream = encode_octal_stream(@words);
+my $bit_stream   = digits_to_bits($octal_stream);
+
+##[ DISPLAY HEADER ]##########################################################
+
+say '';
+say $C{bg}
+    . $C{val}
+    . $C{bold}
+    . ' ' x 2
+    . ' .:[  octal stream — 4-bit window visualizer  ]:. '
+    . ' ' x 2
+    . $C{R};
+say '';
+
+##  legend  ##
+say $C{dim} . '  legend :' . $C{R};
+say '  ' . $C{sep} . '0' . $C{R} . '  separator [ octal 0 = binary 000 ]';
+say '  ' . $C{val} . '1-7' . $C{R} . '  payload digits [ binary 001..111 ]';
+say '  '
+    . $C{flip} . '!'
+    . $C{R}
+    . '  flip rule triggered [ 000 → unambiguous separator ]';
+say '  ' . $C{win} . '[ ]' . $C{R} . '  active 4-bit window';
+say '  '
+    . $C{true} . 'T'
+    . $C{R} . '/'
+    . $C{false} . 'F'
+    . $C{R}
+    . '  is_true result of decoded word';
+say '';
+
+##[ SHOW RAW STREAM ]#########################################################
+
+say $C{dim} . '  octal stream :' . $C{R};
+print '  ';
+for my $digit ( split '', $octal_stream ) {
+    if ( $digit eq '0' ) {
+        print $C{sep} . $C{bold} . '0' . $C{R};
+    } else {
+        print $C{val} . $digit . $C{R};
+    }
+}
+say '';
+say '';
+
+say $C{dim} . '  binary stream [ 3 bits per octal digit ] :' . $C{R};
+print '  ';
+my $pos = 0;
+for my $digit ( split '', $octal_stream ) {
+    my $bits = sprintf '%03b', $digit;
+    if ( $digit eq '0' ) {
+        print $C{sep} . $bits . $C{R} . $C{dim} . '|' . $C{R};
+    } else {
+        print $C{val} . $bits . $C{R} . $C{dim} . '|' . $C{R};
+    }
+}
+say '';
+say '';
+
+##[ 4-BIT WINDOW SCAN ]#######################################################
+
+say $C{dim} . '  sliding 4-bit window — boundary detection :' . $C{R};
+say '';
+
+my @bits   = split '', $bit_stream;
+my $n_bits = scalar @bits;
+my @detected_boundaries;
+
+for my $offset ( 0 .. $n_bits - 4 ) {
+    my $window = join '', @bits[ $offset .. $offset + 3 ];
+    my $w0     = substr $window, 0, 3;    ## first 3 bits  ##
+    my $w1     = substr $window, 1, 3;    ## last 3 bits   ##
+
+    my $is_sep  = 0;
+    my $is_flip = 0;
+
+    ##  separator detection: 000 in window  ##
+    if ( $w0 eq '000' ) {
+        $is_sep = 1;
+        push @detected_boundaries, $offset;
+    }
+    ##  flip rule: 0000 — separator followed by separator  ##
+    ##  data cannot produce this — unambiguous double boundary  ##
+    if ( $window eq '0000' ) {
+        $is_flip = 1;
+    }
+
+    ##  display window with annotation  ##
+    printf '  %s offset %03d %s [ ', $C{dim}, $offset, $C{R};
+    for my $i ( 0 .. 3 ) {
+        my $b = $bits[ $offset + $i ];
+        if ( $i < 3 && $w0 eq '000' ) {
+            print $C{sep} . $C{bold} . $b . $C{R};
+        } elsif ( $window eq '0000' ) {
+            print $C{flip} . $C{bold} . $b . $C{R};
+        } else {
+            print $C{win} . $b . $C{R};
+        }
+    }
+    print ' ] ';
+
+    if ($is_flip) {
+        say $C{flip}
+            . $C{bold}
+            . '  ← flip rule: 0000 → separator asserts 1'
+            . $C{R};
+    } elsif ($is_sep) {
+        say $C{sep} . $C{bold} . '  ← separator detected [ 000 ]' . $C{R};
+    } else {
+        say $C{dim} . '    payload' . $C{R};
+    }
+}
+
+say '';
+
+##[ OFFSET-SAFE DEMONSTRATION ]###############################################
+
+say $C{dim}
+    . '  offset-safe sync — entering stream at arbitrary positions :'
+    . $C{R};
+say '';
+
+for my $entry_offset ( 0, 1, 2, 5, 7, 11 ) {
+    last if $entry_offset >= $n_bits - 4;
+
+    printf '  %sentry at bit %02d%s → ', $C{dim}, $entry_offset, $C{R};
+
+    ##  scan forward from entry point to find first separator  ##
+    my $sync_pos  = undef;
+    my $scan_bits = 0;
+    for my $i ( $entry_offset .. $n_bits - 3 ) {
+        my $w = join '', @bits[ $i .. $i + 2 ];
+        if ( $w eq '000' ) {
+            $sync_pos  = $i;
+            $scan_bits = $i - $entry_offset;
+            last;
+        }
+    }
+
+    if ( defined $sync_pos ) {
+        printf '%ssynced at bit %02d%s [ scanned %d bits ] ',
+            $C{sep}, $sync_pos, $C{R}, $scan_bits;
+
+        ##  decode first complete word after sync  ##
+        my $word_start = $sync_pos + 3;    ## skip separator  ##
+        my $word_bits  = '';
+        for my $i ( $word_start .. $n_bits - 3 ) {
+            my $w = join '', @bits[ $i .. $i + 2 ];
+            last                    if $w eq '000';
+            $word_bits .= $bits[$i] if ( $i - $word_start ) % 3 == 0;
+        }
+
+        if ( length $word_bits >= 3 ) {
+            my $oct_word = oct("0b$word_bits");
+            my $truth = is_true($oct_word) ? $C{true} . 'T' : $C{false} . 'F';
+            printf '→ %sfirst word : %s %s%s',
+                $C{val}, $oct_word, $truth, $C{R};
+        }
+        say '';
+    } else {
+        say $C{dim} . 'no sync found in remaining stream' . $C{R};
+    }
+}
+
+say '';
+
+##[ DECODED VALUES WITH is_true ]#############################################
+
+say $C{dim} . '  decoded payload words with harmonic truth :' . $C{R};
+say '';
+
+my $in_word   = 0;
+my $bit_accum = '';
+my @words_out;
+for my $i ( 0 .. $n_bits - 1 ) {
+    my $b = $bits[$i];
+    if ( $i + 2 < $n_bits ) {
+        my $triplet = join '', @bits[ $i .. $i + 2 ];
+        if ( $triplet eq '000' ) {
+            if ( length $bit_accum ) {
+                push @words_out, oct("0b$bit_accum");
+                $bit_accum = '';
+            }
+            $i += 2;    ## skip separator ##
+            next;
+        }
+    }
+    $bit_accum .= $b;
+}
+
+printf '  %-12s  %-8s  %-6s  %s' . "\n",
+    'octal', 'decimal', 'is_true', 'binary';
+say '  ' . $C{dim} . '-' x 42 . $C{R};
+
+for my $word (@words_out) {
+    my $truth   = is_true($word);
+    my $t_color = $truth ? $C{true} : $C{false};
+    my $t_label = $truth ? 'TRUE '  : 'false';
+    printf '  %s%-12s%s  %s%-8d%s  %s%-6s%s  %s' . "\n",
+        $C{val}, sprintf( '%o', $word ), $C{R}, $C{val}, $word, $C{R},
+        $t_color, $t_label, $C{R},
+        $C{dim} . sprintf( '%09b', $word ) . $C{R};
+}
+
+say '';
+
+##[ PROOF: 4-BIT SPACE CLASSIFICATION ]#######################################
+
+##  4-bit window count rule:                                                ##
+##    ones count 1-3 only  [ never 0, never 4 ]                             ##
+##    0000 impossible: flip rule — four zeros asserts separator as 1        ##
+##    1111 impossible: four payload bits require 4 consecutive non-zero     ##
+##                     octal digits — but separator density prevents this   ##
+##                                                                           ##
+##  1001 is the ONE ambiguous case — possible but needs 5-bit resolution:   ##
+##    10010 → separator was LEFT  0 [ position 1 ]                          ##
+##    10011 → separator was RIGHT 0 [ position 2 ]                          ##
+##  → 5-bit reading [ or 4 encoded payload bits ] is the safe minimum       ##
+##                                                                           ##
+##  special: 1001₁₀ = 7 × 11 × 13  →  77/1001 = 1/13 = 0.076923..        ##
+##           the ambiguous window encodes the harmonic generator root       ##
+##                                                                           ##
+##  5-bit window count rule: 1-4 ones [ never 0, never 5 ]                 ##
+
+say $C{dim}
+    . '  4-bit space — count rule [ 1-3 ones ] and positional meaning :'
+    . $C{R};
+say '';
+
+## [ bits, ones, state, meaning ] ##
+## state: 1=unambiguous, 0=impossible, 2=ambiguous(needs 5-bit) ##
+my @states = (
+    [   '0000', 0, 0,
+        'IMPOSSIBLE — flip rule: 0 ones triggers separator assert'
+    ],
+    [   '0001', 1, 1,
+        'separator complete, payload digit starting with 1 next'
+    ],
+    [ '0010', 1, 1, 'payload borders separator on right — offset locatable' ],
+    [ '0011', 2, 1, 'separator + first two bits of payload' ],
+    [ '0100', 1, 1, 'payload borders two separators — offset known exactly' ],
+    [ '0101', 2, 1, 'separator boundary visible on both sides' ],
+    [ '0110', 2, 1, 'separator boundary visible on both sides' ],
+    [ '0111', 3, 1, 'full payload digit visible after separator' ],
+    [ '1000', 1, 1, 'payload borders separator on left — clean boundary' ],
+    [   '1001',
+        2,
+        2,
+        'AMBIGUOUS — 5-bit needed:  10010=left sep  10011=right sep  [ 1001₁₀=7×11×13 → 1/13 ]'
+    ],
+    [ '1010', 2, 1, 'two payload bits crossing separator' ],
+    [ '1011', 3, 1, 'payload crossing into separator, right side payload' ],
+    [ '1100', 2, 1, 'two payload bits, separator follows' ],
+    [ '1101', 3, 1, 'three payload bits, separator embedded' ],
+    [ '1110', 3, 1, 'three payload bits touching separator' ],
+    [ '1111', 4, 0, 'IMPOSSIBLE — flip rule: 4 ones, no separator present' ],
+);
+
+printf '  %-6s  %-5s  %-8s  %s' . "\n", 'bits', 'ones', 'state', 'meaning';
+say '  ' . $C{dim} . '-' x 72 . $C{R};
+
+for my $s (@states) {
+    my ( $bits, $ones, $state, $meaning ) = @{$s};
+
+    my $state_mark
+        = $state == 0 ? $C{false} . $C{bold} . 'NO   ' . $C{R}
+        : $state == 2 ? $C{flip} . $C{bold} . '5-bit' . $C{R}
+        :               $C{true} . $C{bold} . 'clear' . $C{R};
+
+    my $bits_col
+        = $state == 0 ? $C{false} . $C{bold} . $bits . $C{R}
+        : $state == 2 ? $C{flip} . $C{bold} . $bits . $C{R}
+        :               $C{val} . $bits . $C{R};
+
+    my $ones_col
+        = ( $ones == 0 || $ones == 4 )
+        ? $C{false} . $ones . $C{R}
+        : $C{dim} . $ones . $C{R};
+
+    my $meaning_col
+        = $state == 0 ? $C{false} . $meaning . $C{R}
+        : $state == 2 ? $C{flip} . $meaning . $C{R}
+        :               $C{dim} . $meaning . $C{R};
+
+    printf '  %s  %s    %s  %s' . "\n",
+        $bits_col, $ones_col, $state_mark, $meaning_col;
+}
+
+say '';
+say $C{bg}
+    . $C{true}
+    . $C{bold}
+    . '  4-bit window: ones count always 1-3  [ never 0, never 4 ]    '
+    . $C{R};
+say $C{bg}
+    . $C{flip}
+    . $C{bold}
+    . '  1001 only ambiguous case — 5-bit resolves: 10010 / 10011      '
+    . $C{R};
+say $C{bg}
+    . $C{val}
+    . '  5-bit reading [ 4 encoded payload bits ] is the safe minimum  '
+    . $C{R};
+say '';
+
+#,,,,,...,,,,,.,.,...,,,,,,.,,.,,,...,...,.,,,..,,...,...,,..,,..,,,,,,..,.,,,
+#PRQ4P3CYJBBMXGOFW53J55LC6UHHTAOZ556STY4IXFAC2SHS7YJI53NAVNRTC2X44AU3UAWXISC7U
+#\\\|KMKJQZLKB2C34BC63U5OCITTEAF2KQZ7UOLRLWXKRUTZS4FKVJ7 \ / AMOS7 \ YOURUM ::
+#\[7]Y2P7IO4I5275R563CIRYH6GDR6TZNXQUDF4DMAH763M5D5EOQCAQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
