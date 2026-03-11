@@ -31,6 +31,10 @@
   and `topic-patterns.md` (inference server status pattern)
 - **zulum→decoder entropy wiring** (Mar 10 2026): completed ✅ — route-send callback,
   level-5-B32 buffer, is_true stream state; see `zulum-decoder-routing-reference.md`
+- **harmonic transit vision architecture** (Mar 11 2026): documented ✅ —
+  DTM 6×7×13 CCW shift register, 15-bit `#:::::` footer encoding, binary sunburst
+  zoom promotion (0110/1001), multi-speed lanes, lens effect on distance, PYTAURAZA;
+  see `data/md/documentation/harmonic-transit-vision-architecture.md`
 
 ## Key Technical Insights
 
@@ -138,8 +142,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,,,,,,.,,,..,.,.,,,.,,..,,.,,.,,,..,,..,,..,,...,..,,.,.,,..,..,,.,,,,,,,
-#FVAAZHEDGYOGGIPTSSQ7VSLYH3RVC5ZLHQCZT3B5WSVHMTOUQZ72RYNYFLLQCQ3UNQBT7EKPIKBCI
-#\\\|6GKGNXYXM2KEEC4HVCJMZU7JLZAQ4RZXSWP5BJTLQHHQKTJFHC4 \ / AMOS7 \ YOURUM ::
-#\[7]PRUUPA6JTGMUUWGDJDL4KQEAH4A2FHCOKHBUWJMTQEDFWIXB4WBQ 7  DATA SIGNATURE ::
+#,,,,,,.,,...,..,,..,,.,,,,,.,,..,,,.,..,,..,,..,,...,...,..,,..,,,.,,...,,.,,
+#IZKVOU5SBSXV23E76X3MSLCU4GFX6EI4XZ2LS2SIEBX4YIZUW7KZDS6EYUQD7PJRPHPOOATEIZEV6
+#\\\|RSOLLLSPH4WXFH5IMLZ2UDKLJSGKDTPLOWH6D6BOI6XL2WHAIYU \ / AMOS7 \ YOURUM ::
+#\[7]LGCZP4KPPAJADQYFGEEQUMZ2TWP2XYRRAXILWPFIVKN72UYXR2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
