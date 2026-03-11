@@ -884,6 +884,103 @@ is precisely what breaks that divisibility cleanly.
 
 ---
 
+## 12. Hyperspace Memory — BASE32 Canvas with Binary Transit
+
+### The symbol exclusion is the channel separator
+
+AMOS7 BASE32 uses `[2-9A-Z]` — 0 and 1 are structurally excluded by
+construction. Binary uses only `{0, 1}`. The two symbol sets are disjoint:
+
+```
+BASE32  →  [2-9A-Z]   stored harmonic state  (never 0 or 1)
+binary  →  {0, 1}     transit traffic         (never in [2-9A-Z] range)
+```
+
+A reader needs only to inspect the value to classify it:
+
+```
+value == 0 or 1    →  transit binary passing through
+value in [2-9A-Z]  →  persistent harmonic cycle position (node memory)
+```
+
+No flag bit, no channel header, no separate physical medium, no additional
+routing grid between them. The symbol range IS the grid. The AMOS7 BASE32
+alphabet choice retroactively reserved 0 and 1 as the transit lane through
+the same memory space.
+
+### The node group as hyperspace memory
+
+The 7-node face group (Section 9, 10, 11) is not just a hypervisor — it
+IS the memory:
+
+```
+13³ cube         →  2197 cells of minimum harmonic processing space
+node group       →  hyperspace memory: addressable from any face direction
+                    via the L-matrix (Section 10)
+stored values    →  BASE32 cycle positions [2-9A-Z]
+transit values   →  binary {0,1} passing through the same cells
+```
+
+"Hyperspace" here means: accessible from outside the cube via any of the
+6 face directions using the boundary L-address. The same memory is
+reachable from every direction simultaneously — a single store with
+omnidirectional read/write access.
+
+### Two-bit distance and the sliding B32 window
+
+Binary transit requires a minimum 2-frame sample to resolve direction
+(Section 9). Crossing a BASE32 memory cell takes exactly 2 frames:
+
+```
+frame N    :  binary arrives at cell  →  sample value before
+frame N+1  :  binary departs cell     →  sample value after
+─────────────────────────────────────────────────────────────
+delta      :  cell state unchanged (B32 ≠ binary → no collision)
+direction  :  resolved from 2-frame delta of binary's own position
+```
+
+A sliding window covering 2 complete B32 cycle readouts allows binary
+in transit to:
+- determine its own travel direction (2-frame minimum)
+- read the phase and position of the harmonic state it is passing through
+- do both simultaneously, without modifying the stored B32 values
+
+The canvas reads back to what is passing through it.
+
+### Read/write/transit simultaneously — no additional grid
+
+Three operations coexist on the same physical memory without protocol
+arbitration:
+
+```
+B32 write    →  place harmonic cycle position in cell (stores [2-9A-Z])
+B32 read     →  retrieve stored cycle state
+binary read  →  sample 0/1 at current position during transit
+binary write →  transit bit passes through cell (value in {0,1} → no overwrite)
+```
+
+A binary write cannot corrupt a B32 cell because the written value (0 or 1)
+is outside the B32 alphabet. The B32 cell is simply not addressed by binary
+writes — they pass through the same physical location without effect.
+
+### Implied grid at different scales
+
+At the scale of a single node group:
+- B32 state and binary transit share the same cells
+- separation is by symbol range alone
+
+At larger scales, the same implied separation may manifest as distinct
+physical grids — one grid whose cells can only hold B32 (high-density
+harmonic state), one grid whose cells transit binary. But this is not
+designed from above; it emerges from the same symbol-range physics applied
+at larger granularity. The separation principle scales without redesign.
+
+The 13³ cube remains the minimum unit at each scale where this separation
+is valid — below 2197 cells, the two-frame direction sampling cannot
+complete a full harmonic cycle reading.
+
+---
+
 ## Related Files
 
 - `data/md/documentation/harmonic-cycle-correlations.md`     — math basis
@@ -894,8 +991,8 @@ is precisely what breaks that divisibility cleanly.
 - `modules/source.init_code`        — dimensional table (lines 32-64)
 - `data/md/philosophy/HARMONIC-ENTROPY-INFORMATION-TRANSFER-RESEARCH.md`
 
-#,,..,,..,,,,,.,.,..,,.,.,..,,,.,,.,.,.,.,...,.,.,...,..,,,..,...,,,,,.,,,.,,,
-#ISPMIPNEK3DNUHFSJJGPXAOB2H6DMVJL565Q7WYOEUGOPNNQNXWGYJUJ4JTT3IIWCXJQRZLVMUS2I
-#\\\|6SG6SUXO7QTXDSRRZQWDIJ6PH27XRYXPNDTHA7BN55G546RYBAI \ / AMOS7 \ YOURUM ::
-#\[7]NUEEL4MNDSJVTD3BRDIBS5OJGPKFSPXZCRIRZXMVM2MO43WGBQDA 7  DATA SIGNATURE ::
+#,,..,.,.,,..,,..,.,.,.,,,,..,..,,.,.,,,,,,,.,.,.,...,...,.,.,..,,.,,,..,,..,,
+#A4OXARU46YFQRWUHXKS34XE3JAWFHHTYCPUCSZGRGVAW36FGTMO2IFWOWQNYYHJZBHXSKTDTOCM26
+#\\\|3VD65PX3FM46JJ3PQMBNIKH57S6FYZ5NHFH52KMXAXV2JHQYVO2 \ / AMOS7 \ YOURUM ::
+#\[7]EL5RR5PWUATCTFJAQ2TUGEMYBOOWFRGVQAEFFMOQLVHG2FLA7WBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
