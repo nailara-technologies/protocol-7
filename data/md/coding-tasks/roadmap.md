@@ -35,6 +35,18 @@ items are loosely ordered by dependency, not strict priority.
 
 - [ ] **INDEXCUBE query** — command to inspect traversal log depth and entries
 
+- [ ] **per-stream level-5 accumulator isolation** — currently all streams
+      share one accumulator; isolate state per stream_id so concurrent
+      streams don't interleave bits
+
+- [ ] **passive prefix detection table as code** — the ANSI/Hayes/JJFE prefix
+      table documented in the architecture (section 8) should become a live
+      lookup module in the decoder, not just documentation
+
+- [ ] **reduce-entropy result store** — job fingerprints are returned once then
+      lost; a result registry keyed by stream_id + boundary_n would allow
+      querying and comparing previous reduction runs
+
 ---
 
 ### multi-model collaboration
@@ -70,6 +82,22 @@ items are loosely ordered by dependency, not strict priority.
 
 ---
 
+### decoder and harmonic analysis
+
+- [ ] **display-D13-collection as decoder command** — expose the
+      bin/dev/display-D13-collection reduction tool as a live zenka command
+      feeding from the current accumulator or a named buffer
+
+- [ ] **harmony -n as decoder command** — pure /13 chain without left shifts,
+      currently only in bin/dev; wire as decoder.cmd.harmony for live use
+      on arbitrary input or accumulated values
+
+- [ ] **deduplication tree initial implementation** — reference-counted node
+      tree rooted by most-frequent smallest elements; first real code step
+      of the architecture described in section 16
+
+---
+
 ### code architecture
 
 - [ ] **function call and dependency tracing** — infrastructure to trace
@@ -81,6 +109,17 @@ items are loosely ordered by dependency, not strict priority.
 - [ ] **single-script and perl module export** — export protocol-7 code with
       full dependency resolution to standalone script or .pm with no runtime
       dependency on the protocol-7 loader
+
+- [ ] **module signature verification on load** — detect tampered or unsigned
+      modules at load time using the AMOS7 footer; currently signatures are
+      written but not checked during module loading
+
+- [ ] **pre-commit descr/param length check** — automated hook to catch
+      header lines exceeding table width before they accumulate again
+
+- [ ] **static dependency graph tool** — analyse all `<[module.name]>->()`
+      call sites to build a static dependency map; prerequisite for safe
+      lazy loading and export
 
 ---
 
@@ -94,8 +133,8 @@ items are loosely ordered by dependency, not strict priority.
 - [x] zulum→decoder entropy wiring
 - [x] kimi-web websocket client zenka
 
-#,,,,,,.,,,..,...,..,,.,,,,,,,,,.,,.,,..,,...,..,,...,...,,..,...,...,.,,,,,.,
-#JUWVCYAGHUFQED42UTQWTD5ZFAWTRGMON5OYD736UUZ2HP3QZ3LNV7FC7MGDNNU2QFAA2VZB4I5BQ
-#\\\|JEXBSBZZ5R47RHJWAMOLL7LN3V5HVEV3ZGC6DT2SVUNNBYBK4OY \ / AMOS7 \ YOURUM ::
-#\[7]5R7AE7SX5V5JK5EBNHRRR6YQUKWQBZCLPAROHYLQV5WVMU6KZODI 7  DATA SIGNATURE ::
+#,,..,..,,,..,..,,..,,,,.,.,,,,,,,,,,,,..,,,.,..,,...,...,,..,...,.,.,.,.,...,
+#2SRVEGDPOCAEIXUDIQCQQMCSDBPB5QCQRNWERJFEACV7LPWMV6G3L23EJ3DJEH6ZCE7XS6PXHOMKW
+#\\\|G4CJHTSNL3TBT2OP4D4FVQDHJGWS4AAABAHZT5DIJSJDBBHEPH7 \ / AMOS7 \ YOURUM ::
+#\[7]KRMIMJFR5XF6CS6XY7ETZYFQOKW4K44D3MKX6LLSAXZXZLQUVECY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
