@@ -1,0 +1,354 @@
+#!/usr/bin/perl
+#..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+#:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
+
+use v5.24;
+use strict;
+use English;
+use warnings;
+use Getopt::Long;
+
+###           ###
+##  dep-graph  ##                                #:..:..:..:..:..:..:..:..:..:
+###           ###
+
+##  static dependency graph generator for protocol-7 modules  ##
+##  maps module-to-module call sites across the modules/ directory  ##
+
+#:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:..:
+##[ LOCAL PM LIB PATH ]#######################################################
+
+BEGIN {
+    use English;
+    use File::Spec;
+    use Cwd qw| abs_path |;
+    use FindBin qw| $RealBin |;
+    our $up_dir = File::Spec->updir;
+    our $Bin    = $RealBin;
+    my $data_pm_path = qw| data/lib-path/pm |;
+    our $root_path   = abs_path( r2_abs( c_dir( $Bin, $up_dir, $up_dir ) ) );
+    my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
+    $local_lib_path //= $data_pm_path;
+    die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
+    unshift( @INC, $local_lib_path )               if -d $local_lib_path;
+    sub c_dir  { File::Spec->catdir(@ARG) }
+    sub r2_abs { File::Spec->rel2abs(@ARG) }
+}
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ COMMAND LINE OPTIONS ]#####################################################
+
+my %opt = (
+    qw| text   | => 0,
+    qw| dot    | => 0,
+    qw| reverse| => 0,
+    qw| module | => undef,
+    qw| depth  | => 1,
+);
+
+GetOptions(
+    qw| text   | => \$opt{text},
+    qw| dot    | => \$opt{dot},
+    qw| reverse| => \$opt{reverse},
+    qw| module=s | => \$opt{module},
+    qw| depth=i  | => \$opt{depth},
+) or die ":: invalid command line arguments\n";
+
+##  default to text output if no format specified  ##
+$opt{text} = 1 if !$opt{text} && !$opt{dot};
+
+##  validate depth is positive  ##
+die ":: depth must be >= 0\n" if $opt{depth} < 0;
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ CONFIGURATION ]############################################################
+
+our $root_path;  ##  from BEGIN block  ##
+my $modules_dir = c_dir( $root_path, qw| modules | );
+my $output_dir  = c_dir( $root_path, qw| data |, qw| md |, qw| documentation | );
+
+##  output file paths  ##
+my $text_output_path = c_dir( $output_dir, qw| module-dependency-graph.txt | );
+my $dot_output_path  = c_dir( $output_dir, qw| module-dependency-graph.dot  | );
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ MAIN ]#####################################################################
+
+##  scan all modules and build dependency graph  ##
+my $graph = scan_modules($modules_dir);
+
+##  filter graph if module specified  ##
+if ( defined $opt{module} ) {
+    $graph = filter_graph( $graph, $opt{module}, $opt{depth} );
+}
+
+##  reverse graph if requested  ##
+if ( $opt{reverse} ) {
+    $graph = reverse_graph($graph);
+}
+
+##  output results  ##
+if ( $opt{text} ) {
+    my $text_output = generate_text_output($graph);
+    if ( defined $opt{module} ) {
+        say $text_output;
+    } else {
+        write_file( $text_output_path, $text_output );
+        say ":: written to $text_output_path";
+    }
+}
+
+if ( $opt{dot} ) {
+    my $dot_output = generate_dot_output($graph);
+    if ( defined $opt{module} ) {
+        say $dot_output;
+    } else {
+        write_file( $dot_output_path, $dot_output );
+        say ":: written to $dot_output_path";
+    }
+}
+
+exit 0;
+
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ SUBROUTINES ]##############################################################
+
+sub scan_modules {
+    ##  scan modules directory and build dependency graph  ##
+    my $dir = shift;
+
+    my %graph;      ##  module -> { dep_module => call_count }  ##
+    my %module_names;  ##  filename -> canonical module name  ##
+
+    ##  get all module files  ##
+    my @files = get_module_files($dir);
+
+    ##  first pass: extract canonical module names  ##
+    for my $file (@files) {
+        my $module_name = extract_module_name($file);
+        $module_names{$file} = $module_name if defined $module_name;
+    }
+
+    ##  second pass: scan for call patterns  ##
+    for my $file (@files) {
+        my $source_module = $module_names{$file};
+        next if !defined $source_module;
+
+        my @calls = extract_calls($file);
+        for my $target_module (@calls) {
+            ##  only count if target is a known module  ##
+            if ( grep { $module_names{$ARG} eq $target_module } keys %module_names ) {
+                $graph{$source_module}{$target_module}++;
+            }
+        }
+    }
+
+    return \%graph;
+}
+
+sub get_module_files {
+    ##  recursively find all module files  ##
+    my $dir = shift;
+    my @files;
+
+    opendir my $dh, $dir or die ":: cannot open $dir: $OS_ERROR\n";
+    my @entries = readdir $dh;
+    closedir $dh;
+
+    for my $entry (@entries) {
+        next if $entry eq qw| . | || $entry eq qw| .. |;
+        my $path = c_dir( $dir, $entry );
+        if ( -d $path ) {
+            push @files, get_module_files($path);
+        } elsif ( -f $path ) {
+            push @files, $path;
+        }
+    }
+
+    return @files;
+}
+
+sub extract_module_name {
+    ##  extract canonical module name from # name  = header line  ##
+    my $file = shift;
+
+    open my $fh, qw| < |, $file or return undef;
+    while ( my $line = <$fh> ) {
+        if ( $line =~ m/^#\s*name\s*=\s*(\S+)/ ) {
+            close $fh;
+            return $1;
+        }
+    }
+    close $fh;
+    return undef;
+}
+
+sub extract_calls {
+    ##  extract all module calls from file  ##
+    my $file = shift;
+    my @calls;
+
+    open my $fh, qw| < |, $file or return @calls;
+    my @lines = <$fh>;
+    close $fh;
+
+    ##  exclude AMOS7 signature footer [last 5 lines]  ##
+    my $end_idx = scalar(@lines) - 6;
+    $end_idx = 0 if $end_idx < 0;
+
+    for my $i ( 0 .. $end_idx ) {
+        my $line = $lines[$i];
+
+        ##  primary call pattern: <[module.name]>  ##
+        while ( $line =~ m/<\[([a-zA-Z0-9._-]+)\]>/g ) {
+            push @calls, $1;
+        }
+
+        ##  runtime dispatch: $code{'module.name'} or $code{"module.name"}  ##
+        while ( $line =~ m/\$code\{['"]([a-zA-Z0-9._-]+)['"]\}/g ) {
+            push @calls, $1;
+        }
+    }
+
+    return @calls;
+}
+
+sub filter_graph {
+    ##  limit graph to module and its dependencies up to depth  ##
+    my ( $graph, $start_module, $depth ) = @ARG;
+
+    my %filtered;
+    my %visited;
+    my @queue = ( [ $start_module, 0 ] );
+
+    while (@queue) {
+        my ( $module, $current_depth ) = @{ shift @queue };
+        next if $visited{$module};
+        $visited{$module} = 1;
+
+        ##  copy edges for this module  ##
+        if ( exists $graph->{$module} ) {
+            $filtered{$module} = { %{ $graph->{$module} } };
+
+            ##  queue dependencies if within depth  ##
+            if ( $current_depth < $depth ) {
+                for my $dep ( keys %{ $graph->{$module} } ) {
+                    push @queue, [ $dep, $current_depth + 1 ]
+                        if !$visited{$dep};
+                }
+            }
+        }
+
+        ##  also find reverse edges [modules that call this one]  ##
+        if ( $current_depth < $depth ) {
+            for my $caller ( keys %{$graph} ) {
+                next if $visited{$caller};
+                if ( exists $graph->{$caller}{$module} ) {
+                    $filtered{$caller}{$module} = $graph->{$caller}{$module};
+                    push @queue, [ $caller, $current_depth + 1 ];
+                }
+            }
+        }
+    }
+
+    return \%filtered;
+}
+
+sub reverse_graph {
+    ##  reverse dependency direction [who calls module X]  ##
+    my $graph = shift;
+
+    my %reversed;
+    for my $caller ( keys %{$graph} ) {
+        for my $callee ( keys %{ $graph->{$caller} } ) {
+            my $weight = $graph->{$caller}{$callee};
+            $reversed{$callee}{$caller} = $weight;
+        }
+    }
+
+    return \%reversed;
+}
+
+sub generate_text_output {
+    ##  generate sorted adjacency list  ##
+    my $graph = shift;
+
+    my @lines;
+    for my $module ( sort keys %{$graph} ) {
+        my @deps;
+        for my $dep ( sort keys %{ $graph->{$module} } ) {
+            my $weight = $graph->{$module}{$dep};
+            push @deps, "$dep [$weight]";
+        }
+        push @lines, "$module -> " . join( qw| , |, @deps ) if @deps;
+    }
+
+    return join( "\n", @lines ) . "\n";
+}
+
+sub generate_dot_output {
+    ##  generate graphviz digraph format  ##
+    my $graph = shift;
+
+    my @lines = (
+        qw| digraph protocol7_modules { |,
+        qw|     rankdir=LR; |,
+        qw|     node [shape=box, style=filled, fillcolor="#1a1a2e", fontcolor="#eaeaea"]; |,
+        qw|     edge [color="#444466"]; |,
+        qw|  |,
+    );
+
+    ##  collect unique nodes  ##
+    my %nodes;
+    for my $caller ( keys %{$graph} ) {
+        $nodes{$caller} = 1;
+        for my $callee ( keys %{ $graph->{$caller} } ) {
+            $nodes{$callee} = 1;
+        }
+    }
+
+    ##  declare nodes  ##
+    for my $node ( sort keys %nodes ) {
+        my $escaped = escape_dot_id($node);
+        push @lines, qq|    "$escaped";|;
+    }
+
+    push @lines, qw|  |;
+
+    ##  declare edges with weights  ##
+    for my $caller ( sort keys %{$graph} ) {
+        my $caller_escaped = escape_dot_id($caller);
+        for my $callee ( sort keys %{ $graph->{$caller} } ) {
+            my $callee_escaped = escape_dot_id($callee);
+            my $weight         = $graph->{$caller}{$callee};
+            push @lines,
+                qq|    "$caller_escaped" -> "$callee_escaped" [label="$weight"];|;
+        }
+    }
+
+    push @lines, qw| } |;
+
+    return join( "\n", @lines ) . "\n";
+}
+
+sub escape_dot_id {
+    ##  escape special characters for graphviz node ids  ##
+    my $id = shift;
+    $id =~ s|"|\\"|g;
+    return $id;
+}
+
+sub write_file {
+    ##  write content to file  ##
+    my ( $path, $content ) = @ARG;
+
+    open my $fh, qw| > |, $path or die ":: cannot write to $path: $OS_ERROR\n";
+    print $fh $content;
+    close $fh;
+}
+
+#,,,.,,,,..,,,.,.,,..,,,.,,..,,.,,,.,.,.,,,,.,.,,,,.,.,...,.,.,...,...,,.,.,.,,
+#NXWAQEWUWXW7XKR5PM4O3WUSLJLSWZ2RJXJCPXFCXV2MJFIJC3EWEPYT4VWJPI6JYP3AJ4T57JEXY
+#\\\|QNZLWCO3ZUQNFGQFKVIXH6ZD2QOSMGQEWPVKLCHY4ZPXW76OFVCY \ / AMOS7 \ YOURUM ::
+#\[7]VVWU6WQLC53FX7FKVYFESBIFZQLSLKFS3ZQJF7P3I52VQMOVKYLQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
