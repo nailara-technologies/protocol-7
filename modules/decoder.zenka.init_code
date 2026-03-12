@@ -7,6 +7,9 @@
 <[base.perlmod.autoload]>->('Term::VTerm');
 <[base.perlmod.autoload]>->('Term::VTerm::Screen');
 
+## load harmonic truth for /13 reduction jobs ##
+<[base.perlmod.autoload]>->( 'AMOS7::Assert::Truth', qw| is_true | );
+
 ## level-5 accumulator state ##
 <decoder.level5> = {
     'accumulator' => '',    ## accumulated bits ##
@@ -53,14 +56,29 @@ $data{'decoder'}{'vterm_screen'} = $screen;
 ## stream attachment registry ##
 <decoder.attached_streams> = [];
 
+## async job queue — entropy reduction and buffer analysis ##
+<decoder.jobs> //= {};
+
+<list.decoder-jobs> = {
+    'var'   => qw| data |,
+    'key'   => 'decoder.jobs',
+    'mask'  => '<key>:job-id job-type stream_id total cursor',
+    'align' => {
+        'job-type'  => 'left',
+        'stream_id' => qw| center-2 |,
+    },
+    'descr' => 'active [running] decoder jobs'
+};
+
 <[base.log]>->(
-    2, "decoder initialized — level-5 B32, level-6 D3, vterm 25×80"
+    2,
+    "decoder initialized — level-5 B32, level-6 D3, vterm 25×80, jobs queue"
 );
 
 return TRUE;
 
-#,,.,,,,.,.,,,,,,,..,,.,.,,,,,..,,,,,,,.,,..,,..,,...,..,,...,,,,,,.,,..,,,,,,
-#OM2QQS2QMDUDY6WTOVESYX5BLTQVDAV3V55IYGLWPQB3IFMNDEG7DY3K76PQUKZL7UQRZ2BS5N55K
-#\\\|NIZ6BGSAX2ZMNSFBZPDKTZFZLJ4EQMOGQUUIRC3SR2RCL2652AU \ / AMOS7 \ YOURUM ::
-#\[7]M35THN5SJE6PRITELHCO6YPZO4TMRF45VXR3ATCC4NEVMLTGDKAY 7  DATA SIGNATURE ::
+#,,,.,,.,,,.,,.,,,,,.,,,.,..,,,,,,...,,,.,,,.,..,,...,...,,..,..,,,..,,..,.,,,
+#UNKENUU4KAVIY44QBG2KORTLJTUMBF75AUMTGKQVJMI5RI2RK2DPKV4SNRJM2OOP3R7DNUBSDRGL4
+#\\\|LJT3WUC7H2CVLAG2U6MAIQRLFLOOP6RSPDB7ASSTOF3ZZ6AQ43M \ / AMOS7 \ YOURUM ::
+#\[7]MBYIHWBLEIKJPNN2HCGFYFVZBAVNOJKY64A6I5MP2WZ4ZNJ4FEAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

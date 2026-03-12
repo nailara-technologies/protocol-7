@@ -1,0 +1,27 @@
+## [:< ##
+
+# name  = decoder.cmd.stop-job
+# param = <job-id>
+# descr = stop a running decoder job by id
+
+my $job_id = $call->{'args'};
+
+return { 'mode' => qw| false |, 'data' => 'no such job running' }
+    if not exists <decoder.jobs>->{$job_id};
+
+my $job      = <decoder.jobs>->{$job_id};
+my $job_type = $job->{'job-type'};
+
+## inject stop request — callback checks on next tick ##
+$job->{'stop-requested'} = TRUE;
+
+return {
+    'mode' => qw| true |,
+    'data' => sprintf( 'stopping %s job ..,', $job_type )
+};
+
+#,,..,,,,,,,,,...,.,.,,.,,,,,,..,,,,.,,.,,,..,..,,...,...,.,.,,,.,...,.,,,.,.,
+#7S64UKZM4NCZKCQLB3QIAKITCK4PN4IHVFSY35NJACUZ2CERB4KVXAT3YIKZQIETOPGXBB5VFL3GC
+#\\\|OQZD6NCIYZ7747IEVLMQSD4YCTJOVDE3G5G2EORYSGYD2B7PXWA \ / AMOS7 \ YOURUM ::
+#\[7]CSPMACIDAH4PXZBUQL4SZD6VKWXTKBVRPVEWLKII5S3JJLUOISCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
