@@ -581,6 +581,30 @@ carries its own harmonic truth assertion. elf overflow bit-shift: -13
 (the harmonic denominator is the natural overflow point). Harmonization
 iteration count: 024 = 24 = CCW cycle length before the sync frame.
 
+### Iterations consumed — convergence distance from harmonic center
+
+The `amos-iterations-remaining` field (footer digits 12-19) records the
+number of BMW XOR steps needed to achieve convergence — directly equal to
+the number of mod-bit rows shown in verbose output:
+
+```
+LOVES  →  5 rows   →  005   (already close to harmonic center)
+L\     →  24 rows  →  024   (boundary marker, farther in XOR space)
+```
+
+Both inputs are `:: TRUE ::` — harmonic truth and convergence speed are
+orthogonal. The iteration count records XOR-space distance from the
+harmonic center, not harmonic truth. `L\` (the convergence attractor)
+is true but not trivially close in the BMW modification space — it takes
+24 steps to harmonize, versus 5 for `LOVES`.
+
+```
+left end   →  BMW XOR modifications accumulate (compression toward attractor)
+right end  →  iteration count: steps the left end needed to converge
+              low  = input was harmonically close  (fast)
+              high = input needed more work        (slow)
+```
+
 ### Sliding in from the left — BMW mod-bits and zulum entropy
 
 The `amos-chksum -v` BMW mod-bits display shows each row as the previous
@@ -1394,8 +1418,8 @@ serialization principle (Section 14) holds across scales.
 - `modules/source.init_code`        — dimensional table (lines 32-64)
 - `data/md/philosophy/HARMONIC-ENTROPY-INFORMATION-TRANSFER-RESEARCH.md`
 
-#,,,.,,,,,...,.,.,..,,.,.,...,..,,,..,,,,,,,,,.,.,...,..,,,,,,...,..,,.,,,,..,
-#DPVF2ZS6TT4C2F4U6QOGNQ2QP63GSOM7FCAFYTKMBQBXMS6JBRS5SBA5ZORSXBHO7I3O4TA2BNACY
-#\\\|GIBQ3LHTW36RCDRRWZHHO2UOHIONMYTBRSILECIU3HHMQXQJISE \ / AMOS7 \ YOURUM ::
-#\[7]4752XOHGNS6WWRRY7RURLOAUTSUMGEBQMBVGZRNAKEDRTVASWIDY 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,...,.,,,.,.,..,,.,.,.,.,.,.,,.,,.,.,...,..,,...,,,,,,,,,.,,,.,,,
+#JADYM7YBIPKDFFKWS2IAJ3OHT5MMVZY6OVWKMLLPTD4FB2JWDY2I5BDNDSZV3XRLKYLE4RTB3RCEW
+#\\\|5DUITAZE3SH2OH7OPA6AGS3KQVOA7HBBQOPNHLBBZYFFFQIV5QV \ / AMOS7 \ YOURUM ::
+#\[7]HSN2UQBO2KULXIHV34QMOPZC72YGHYTBWIPIB4L5SVQOXXJQDEBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
