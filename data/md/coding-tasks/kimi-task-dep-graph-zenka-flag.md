@@ -136,6 +136,53 @@ it cannot resolve variable-keyed dispatch like `$code{$callback}->()` or
 
 ---
 
+## start file list output flags
+
+three complementary flags for inspecting what a start file declares,
+without running reachability analysis. works with both `-zenka=NAME`
+and `-stdin`.
+
+- [ ] `-list` — print a deduplicated, sorted list of all declared items
+      (modules and config includes combined), one per line
+- [ ] `-list-modules` — print only `modules.load` entries, one per line
+- [ ] `-list-configs` — print only `load_config` file includes, one per line
+
+### context
+
+start files can include config files alongside module loading:
+```
+load_config = configuration/shared-params
+load_config = configuration/zenki/cube/zenka-startup.v7
+modules.load = auth net protocol cube ...
+```
+
+`-list-configs` extracts the `load_config = VALUE` lines.
+`-list-modules` extracts the `modules.load = VALUE` token list.
+`-list` combines both, deduplicates, and sorts.
+
+output is plain one-per-line — pipe-friendly for use with grep, xargs, etc.
+
+### runtime-loaded module ambiguity
+
+the static loaded set from `modules.load` is not the complete picture.
+modules can also be loaded at runtime via:
+- `<[base.load_modules]>->( $list )` — loads additional module sets
+- `<[base.perlmod.register_loaded_module]>->( $name )` — registers a
+  dynamically loaded perl module as part of the loaded set
+
+these calls are detectable by the dep-graph scanner (already scans
+`$code{'literal'}` patterns). a future pass could:
+- collect all `base.load_modules` call sites within reachable modules
+- flag them in the ambiguous section alongside variable dispatch:
+  ```
+  :: runtime module loading [ statically unresolvable set extension ]:
+     module.name  [ base.load_modules at line N ]
+  ```
+- `base.perlmod.register_loaded_module` calls with a literal string arg
+  ARE resolvable statically and should be added to the loaded set
+
+---
+
 ## future enhancements [roadmap]
 
 ### phase 1: variable origin backtracking
@@ -192,8 +239,8 @@ it cannot resolve variable-keyed dispatch like `$code{$callback}->()` or
 - [ ] edges resolved by rules tagged `[ rule-resolved ]` vs `[ static ]` in
       output — keeps provenance clear and makes rules auditable
 
-#,,.,,..,,,.,,.,,,..,,,,,,,..,.,.,...,,,,,,,,,..,,...,...,...,..,,...,,,,,.,.,
-#K2MAXME2SVOFVSZE6W5YFY6ZRFW5SON2CLQMUFPFXIAWPNMJMIWPSIDPMJH3LVIK7UJAYUF4PWW5S
-#\\\|QKRO4QMQSU47VOUN52ZZKK445NBIGL3M6KQS4Y5JUOS4UYNVTAA \ / AMOS7 \ YOURUM ::
-#\[7]XLY2KRK4QLSTI5KR3G6AAVBNWROMYXXINSVVIPWER6BG3A2ORUCY 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,...,.,.,.,,,,..,,..,.,,,.,,,...,..,,...,...,.,.,...,.,,,...,.,,,
+#BUPD3HDHH7G72FRDZP2BDKXY42D4CDC6CWZL4SADEUZXQQOIEXUNDFLPIWPM2PLUXPBLATKBXFWZE
+#\\\|J26W7F2EUFS2Z2C3CUOYTLTTHEUDCOQZY6YNBESBBIZWO46SSIJ \ / AMOS7 \ YOURUM ::
+#\[7]Z5BUKOXXGYUIAITUJZYED553WMUAQ65UFO36JBYAK7LKZ4T7SEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
