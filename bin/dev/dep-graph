@@ -45,6 +45,7 @@ my %opt = (
     qw| module | => undef,
     qw| depth  | => 1,
     qw| zenka  | => undef,
+    qw| stdin  | => 0,
 );
 
 Getopt::Long::Configure('prefix_pattern=--|-');
@@ -56,6 +57,7 @@ GetOptions(
     qw| module=s | => \$opt{module},
     qw| depth=i  | => \$opt{depth},
     qw| zenka=s  | => \$opt{zenka},
+    qw| stdin    | => \$opt{stdin},
 ) or die ":: invalid command line arguments\n";
 
 ##  default to text output if no format specified  ##
@@ -67,6 +69,12 @@ die ":: depth must be >= 0\n" if $opt{depth} < 0;
 ##  validate -zenka not combined with -module  ##
 die ":: -zenka cannot be used with -module\n"
     if defined $opt{zenka} && defined $opt{module};
+
+##  validate -stdin not combined with -zenka or -module  ##
+die ":: -stdin cannot be used with -zenka\n"
+    if $opt{stdin} && defined $opt{zenka};
+die ":: -stdin cannot be used with -module\n"
+    if $opt{stdin} && defined $opt{module};
 
 ##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
 ##[ CONFIGURATION ]############################################################
@@ -91,6 +99,13 @@ my $graph = scan_modules($modules_dir);
 ##  handle -zenka mode [reachability analysis]  ##
 if ( defined $opt{zenka} ) {
     analyze_zenka_reachability( $graph, $opt{zenka} );
+    exit 0;
+}
+
+##  handle -stdin mode [reachability from piped start content]  ##
+if ( $opt{stdin} ) {
+    my @lines = <STDIN>;
+    analyze_zenka_reachability( $graph, 'stdin', \@lines );
     exit 0;
 }
 
@@ -409,14 +424,20 @@ sub write_file {
 
 sub analyze_zenka_reachability {
     ##  analyze which modules are reachable from a zenka's entry points  ##
-    my ( $graph, $zenka_name ) = @ARG;
+    my ( $graph, $zenka_name, $lines_ref ) = @ARG;
 
-    ##  locate and parse start file  ##
-    my $start_file = c_dir( $root_path, qw| configuration zenki |,
-        $zenka_name, qw| start | );
-    die ":: zenka start file not found: $start_file\n" if !-f $start_file;
-
-    my ( $loaded_set, $entry_commands ) = parse_zenka_start_file($start_file);
+    my ( $loaded_set, $entry_commands );
+    if ( defined $lines_ref ) {
+        ##  stdin mode: parse lines directly  ##
+        ( $loaded_set, $entry_commands ) = parse_start_lines($lines_ref);
+    } else {
+        ##  file mode: locate and parse start file  ##
+        my $start_file = c_dir( $root_path, qw| configuration zenki |,
+            $zenka_name, qw| start | );
+        die ":: zenka start file not found: $start_file\n" if !-f $start_file;
+        ( $loaded_set, $entry_commands )
+            = parse_zenka_start_file($start_file);
+    }
 
     say ":: zenka : $zenka_name";
     say ":: loaded   : " . scalar( keys %{$loaded_set} ) . " modules";
@@ -505,7 +526,7 @@ sub analyze_zenka_reachability {
 }
 
 sub parse_zenka_start_file {
-    ##  parse zenka start file to extract loaded modules and entry commands  ##
+    ##  read a start file from disk and delegate to parse_start_lines  ##
     my $start_file = shift;
 
     open my $fh, qw| < |, $start_file
@@ -513,10 +534,17 @@ sub parse_zenka_start_file {
     my @lines = <$fh>;
     close $fh;
 
+    return parse_start_lines( \@lines );
+}
+
+sub parse_start_lines {
+    ##  parse start file lines to extract loaded modules and entry commands  ##
+    my $lines_ref = shift;
+
     ##  join continuation lines [ending with \]  ##
     my @joined_lines;
     my $current = '';
-    for my $line (@lines) {
+    for my $line ( @{$lines_ref} ) {
         chomp $line;
         if ( $line =~ m/\\\s*$/ ) {
             ##  line continues - strip \ and append  ##
@@ -763,8 +791,8 @@ sub backtrack_variable_origin {
     return $result;
 }
 
-#,,,,,,..,..,,,,.,,..,...,.,.,.,.,,,,,.,.,.,,,.,.,...,...,...,...,..,,.,,,,.,,
-#5EQKC6LPEH6O3TRL5PA2G2PPBBGFJIBOEGJQ4VMG7EFCPSEW7NG4PBG6653C36DZWLT66VYWATNXK
-#\\\|AKCZPAZFGL6EBFLJTT42PCEJEUMV7SVVHWX7CY5KHFTJX2DCW5E \ / AMOS7 \ YOURUM ::
-#\[7]XOFSYUQC22JLQI4BVJ7GOPNO3YONGFDS6P34JO7VFCS4RCWHSUBI 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,,,.,...,,,.,,.,,,.,,,..,...,..,,.,.,...,...,,..,..,,,,,,,,.,.,,,
+#FX22GBV3AKQRTPQT4IRQ2HPQIIJ4OZXETOK222OYSQQYBHRT44MQ5YR4TS5UPWFMP3C4RVKR3XBPY
+#\\\|UCMELBFJA3L45GWN4YRKJELADXCZSFATNZH6C2R7TSNFDIKHMHF \ / AMOS7 \ YOURUM ::
+#\[7]VPVNZJB2D3NEFQF5VU26OE354DVI435G35YTUIVCTO7DTFQZAWCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
