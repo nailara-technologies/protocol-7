@@ -117,9 +117,12 @@ foreach my $path_rel (@source_paths) {
     # Check signature structure
     if ( not $footer_data->{'structure-was-valid'} ) {
         my $footer_error = $footer_data->{'encountered-error'};
+        my $err_msg
+            = $footer_data->{'extraction_failed_with_markers'}
+            ? 'no extractable signature footer'
+            : ( $footer_error // 'invalid signature structure' );
         <[base.logs]>->(
-            0,
-            ':E: invalid signature structure :: %s',
+            0, ':E: %s :: %s', $err_msg,
             <[base.parser.ellipse_center]>->( $path_rel, 44 )
         );
         $invalid_count++;
@@ -291,8 +294,8 @@ if ( $verify_mode eq 'repair' ) {
 # Exit with count of invalid signatures (0 = success)
 <[base.exit]>->( sprintf( '%04d', $invalid_count ) );
 
-#,,,,,.,.,..,,,,.,..,,..,,.,,,,.,,,,,,,..,.,,,..,,...,...,...,.,.,..,,.,.,,,.,
-#TSU5HGG3LRWFKIAYVQ2VN7HU2PPXKCJ4PFERM4OPXHUZRHK5QDED5725Z7TAYBGRTMIDIQKBIEXNQ
-#\\\|NSVYV33IY26XJBK4HSJ5U4XKU3MF25R57ZMKSAZDOSTT2CUOG2X \ / AMOS7 \ YOURUM ::
-#\[7]XYUDR4K3VWJ47UED63Z4BTWNJP5EZK6RZLO5BWRQFGYG7HQD44BA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,...,,,.,,,,,,..,,,.,,..,,,.,.,,,..,,...,.,.,,.,,,,,,,.,,,.,,.,,,
+#RA7XIXDYTVEHSNXEHK7S4XCIWJ5NTAWD7ZOFMSIEV36EZD4HB3JW2ENF7UBTBRSG45LBGC7DQGPXS
+#\\\|NM55JTVA55FMVFHU7VZIP25TFIUT7ATUVT4GZKBNNWODCGXRJGG \ / AMOS7 \ YOURUM ::
+#\[7]3ORCZ3RKLUISU6BQUVPGOGAKRMVJ4FUK2IH6W57VIIQHDL4EGEDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
