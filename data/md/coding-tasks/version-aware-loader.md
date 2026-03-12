@@ -1,0 +1,309 @@
+## version-aware loader + deferred compilation ##
+
+architectural upgrade to the protocol-7 module loader enabling atomic
+reload, rollback, lazy loading, and elimination of the purge exclusion list.
+
+mark checklist items as completed alongside the corresponding commits.
+
+---
+
+### motivation
+
+the current `p7_purge_code` in `bin/Protocol-7` maintains a hardcoded
+exclusion list of 30+ modules that must survive reload because they are
+called during the reload process itself. this list requires manual maintenance
+and is a source of subtle reload failures when new core dependencies are added.
+
+the version-aware loader eliminates this problem entirely: the new version
+compiles into a separate hash while the active `%code` is never touched.
+the exclusion list exists solely because the current method overwrites the
+live hash in-place — modules called during reload must survive the process.
+with the staging hash approach, the active version remains fully intact and
+callable throughout compilation. the swap only happens after the new version
+is complete and all replacement strategy assertions have passed. the exclusion
+list becomes structurally unnecessary.
+
+---
+
+### core data structures
+
+#### versioned code hash
+
+```perl
+##  $CODE{$version}{'module.name'} = \&compiled_sub  ##
+my %CODE;    ##  versioned code store  ##
+
+##  active version pointer  ##
+my $active_version = undef;    ##  set after first successful load  ##
+
+##  %code becomes a proxy into the active version  ##
+##  (implementation detail — may use tie or generation pointer)  ##
+```
+
+#### source store
+
+```perl
+##  $SOURCE{$version}{'module.name'} = $source_str  ##
+my %SOURCE;    ##  content-addressed source store  ##
+```
+
+- `%SOURCE` may later be tied to alternative backends:
+  disk (default), SHM, network (fetched via cube routing),
+  content-addressed store keyed by AMOS7 checksum
+- source is always read at load time — never deferred — to freeze disk state
+  and avoid drift. only the `eval` step is deferred.
+
+#### version key
+
+the version key IS the AMOS7 checksum from the module footer —
+content-addressed, collision-free, already computed at signing time.
+no separate versioning scheme needed.
+
+format: `$CODE{$version_string}{'module.name'}` where `$version_string`
+is the src-ver string e.g. `3PL75UU7LY-6684.0`
+
+---
+
+### load modes
+
+#### default: transactional load
+
+- compile all modules into `$CODE{$new_version}` staging hash
+- if any module fails: abort, discard staging hash, keep active version
+- if all succeed: atomic pointer swap `$active_version = $new_version`
+- old version hash kept in memory for rollback window (configurable duration)
+
+#### `:force-replace:`
+
+- partial overwrite: modules that compiled successfully replace active versions
+- modules that failed keep the prior compiled version
+- safe when api surface of changed modules is compatible [ fingerprint check ]
+
+#### `:force-keep:`
+
+- failed modules keep prior compiled version
+- successful modules are applied
+- reports which modules were kept vs replaced
+
+#### low-memory mode
+
+- keep only one version in memory at a time (no rollback window)
+- discard previous version immediately after successful swap
+
+---
+
+### eliminating the purge exclusion list
+
+with atomic swap, the exclusion list in `p7_purge_code` becomes unnecessary:
+
+- reload compiles into `$CODE{$new_version}` — the old `%code` is untouched
+- modules called during reload (base.log, base.sort, etc.) continue using
+  the active version throughout
+- after successful compile: swap active version pointer
+- `p7_purge_code` exclusion list can be dropped entirely
+- `$data{'base'}{'core_subs'}` registry remains for documentation purposes
+  but is no longer load-critical
+
+---
+
+### compatibility fingerprint
+
+a hash of the public api surface of a module set:
+- exported subroutine names
+- arity (number of expected parameters where statically determinable)
+
+two versions with matching fingerprints are provably safe to hot-swap.
+feeds into `:force-keep:` and `:force-replace:` decisions.
+
+stored alongside the version: `$FINGERPRINT{$version}`.
+
+---
+
+### rollback
+
+- after atomic swap, old `$CODE{$old_version}` remains in memory
+- rollback = `$active_version = $old_version` (zero recompilation)
+- rollback window: configurable, default suggested 60-300s
+- after window expires: `delete $CODE{$old_version}` to free memory
+
+#### auto-rollback
+
+- start a one-shot timer after reload (configurable interval)
+- monitor error counters in `%data` during window
+- if unexpected error rate exceeds threshold → revert active version pointer
+- triggers a log event and optional alert via cube routing
+- rollback rules (phase 2): declarative rules in
+  `configuration/loader/rollback-rules/` specifying conditions under which
+  auto-rollback is safe or should be forced
+
+#### concurrent versions
+
+- different zenki can hold different `$active_version` pointers
+- enables staged rollouts: route a subset of requests to the new version
+- v7 can coordinate version adoption across the network
+- useful for A/B testing module versions in production
+
+---
+
+### deferred / lazy compilation
+
+goal: read source from disk at load time (freeze), defer `eval` to first use.
+
+#### compile-time deferral decision
+
+- dep-graph `-zenka=NAME` reachability analysis determines load tiers:
+  - tier 0: entry-point modules → compile immediately (synchronous)
+  - tier 1: reachable within 2 hops → compile during init, before loop
+  - tier 2: reachable, deeper → compile via short post-init timer
+  - tier 3: loaded but unreachable (static analysis) → lazy on first call
+  - remove: modules in dep-graph `unreachable` list → drop from `modules.load`
+
+- deferral decision made at load time from dep-graph data
+  NOT at disk-read time — source always read immediately
+
+#### lazy trigger
+
+- `%code` proxy: if `$CODE{$active_version}{'module.name'}` is undef
+  but `$SOURCE{$active_version}{'module.name'}` is present → compile on access
+- no change to call sites — `$code{'module.name'}->()` syntax unchanged
+
+#### error reporting while deferred
+
+deferred modules report errors WITHOUT compiling:
+- checksum verified against AMOS7 footer at load time
+- if checksum matches signed version AND perl version unchanged since signing →
+  `perl -c` result from signing time is considered still valid
+  → status: `[ deferred, syntax valid ]`
+- if checksum mismatch → report immediately as `[ deferred, checksum invalid ]`
+- if perl version changed → revalidate with `perl -c` before deferring
+- compilation errors surface on first access attempt, reported with module name
+
+---
+
+### %SOURCE tie interface
+
+```perl
+tie %SOURCE, 'Protocol7::Source::Disk';       ##  default  ##
+tie %SOURCE, 'Protocol7::Source::SHM';        ##  shared memory  ##
+tie %SOURCE, 'Protocol7::Source::Network';    ##  cube-routed fetch  ##
+tie %SOURCE, 'Protocol7::Source::ContentAddr'; ## by AMOS7 checksum  ##
+```
+
+the compile step always reads from `$SOURCE{$version}{'module.name'}` —
+backend is transparent. low-memory mode uses tied backends that do not
+cache in `%SOURCE` and re-read on demand.
+
+---
+
+### speed / memory profiles
+
+| profile      | versions kept | source kept | deferred tiers | rollback |
+|--------------|--------------|-------------|---------------|---------|
+| performance  | 2 (curr+prev)| both        | tier 2+       | yes      |
+| balanced     | 2            | active only | tier 3 only   | yes      |
+| low-memory   | 1            | none        | none          | no       |
+| development  | N (all)      | all         | none          | full     |
+
+configurable per-zenka via start file or runtime command.
+
+---
+
+### integration with dep-graph
+
+- `dep-graph -zenka=NAME` provides the exact tier assignment for all modules
+- `dep-graph -zenka=NAME -list-modules` → tier 0+1 eager load list
+- unreachable list → candidates for removal from `modules.load`
+- `-stdin` mode → allows a zenka to self-report its runtime call patterns
+  for dynamic tier refinement beyond static analysis
+- rule-resolved dispatch targets → tier 2 (will be called, not necessarily soon)
+
+---
+
+### implementation phases
+
+#### phase 1: versioned staging hash + atomic swap
+
+- [ ] add `%CODE` and `$active_version` to `bin/Protocol-7` core
+- [ ] compile new loads into `$CODE{$new_version}` staging
+- [ ] implement atomic swap on success
+- [ ] keep old version for rollback window (default 120s timer)
+- [ ] drop purge exclusion list from `p7_purge_code`
+- [ ] verify reload of all base modules works without exclusion list
+
+#### phase 2: load modes + fingerprint
+
+- [ ] implement `:force-replace:` and `:force-keep:` merge strategies
+- [ ] implement compatibility fingerprint generation and comparison
+- [ ] expose reload mode via `base.cmd.reload` parameter
+
+#### phase 3: rollback + auto-rollback
+
+- [ ] manual rollback command: `reload rollback`
+- [ ] configurable rollback window timer
+- [ ] auto-rollback: error counter monitoring + threshold trigger
+- [ ] rollback rules in `configuration/loader/rollback-rules/`
+
+#### phase 4: %SOURCE + deferred compilation
+
+- [ ] introduce `%SOURCE` store (disk-backed by default)
+- [ ] compile-time tier assignment from dep-graph data
+- [ ] `%code` proxy for lazy compilation on first access
+- [ ] signed syntax check status for deferred modules (`[ deferred, syntax valid ]`)
+- [ ] low-memory mode (no %SOURCE caching, single version)
+
+#### phase 5: %SOURCE tie backends + concurrent versions
+
+- [ ] `Protocol7::Source::SHM` — shared memory backend
+- [ ] `Protocol7::Source::Network` — cube-routed source fetch
+- [ ] per-zenka version pointers (staged rollouts)
+- [ ] v7 version coordination across network
+
+---
+
+### current loader structure (reference)
+
+`p7_load_code` in `bin/Protocol-7` already has two distinct phases:
+
+**phase A — parse + transform** (lines ~1418–1530):
+- read source from disk or HTTP into `$data{'code'}{$file_name}{'source'}`
+- join continuation lines
+- transform `<[module]>->()` → `$code{'module'}->()`
+- transform `<data.key>` → `$data{'key'}`
+- wrap `.cmd.` modules with compiled-in header/footer
+- result: preprocessed source string, ready to `eval`
+
+**phase B — compile** (lines ~1579–1740):
+- `eval($sub_code)` → `$sub_cref`
+- on success: `$code{$sub_name} = $sub_cref` (direct assignment to live hash)
+
+line 1730 already carries the developer's own intent:
+```
+## todo-list : compile to seperate hash, replace on full success ##
+```
+
+the version-aware loader fulfills this exactly:
+- `%SOURCE` = phase A output (`$data{'code'}{...}{'source'}` already stores this)
+- `$CODE{$version}` = phase B output, currently going directly to `%code`
+- the staged hash approach inserts between phase B compile and the live assignment
+
+`$data{'code'}{$file_name}{'source'}` already exists as the preprocessed
+source store — `%SOURCE` formalizes and versions it. the transformation
+step does NOT need to be re-run on lazy compilation, only the `eval`.
+
+---
+
+### notes
+
+- `$data{'base'}{'core_subs'}` can stay as documentation / introspection
+  but must no longer be required for reload correctness
+- `base.cmd.reload` keywords (`config`, `source`, `init`, `all`) remain
+  unchanged at the user-visible layer
+- `p7_purge_code` exclusion list: `bin/Protocol-7` lines ~2759–2808
+- `## todo-list` comment at line 1730 documents the known intent this task fulfills
+- speed/memory profiles should be adjustable at runtime without restart
+
+#,,.,,,,.,,,,,,.,,,.,,.,,,.,,,..,,,,,,..,,,.,,..,,...,...,...,.,,,.,.,.,,,,.,,
+#WSODXAMNYTONOTXXVGKQY5K4CT7VNZ37M5EVVSH5KBLZ24S4ZKJ4YWRNBUTZSPMKRWSDJJZIZVNG2
+#\\\|6VNSIKCBCFSNRIEZQILC5T4AAYZNRJ5YNJLMKCZCTH2D6JAWCDI \ / AMOS7 \ YOURUM ::
+#\[7]WJOKY6NAG6YQBVXWAWWA5WSS64L5M3KOHQGWG3YBLV3OTM6SGGDQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
