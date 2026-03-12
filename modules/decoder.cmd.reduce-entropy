@@ -1,0 +1,57 @@
+## [:< ##
+
+# name  = decoder.cmd.reduce-entropy
+# param = [stream_id]
+# descr = async /13 reduction of accumulated level-5 entropy — no left shifts
+
+my $stream_id
+    = defined $$call{'args'} && length $$call{'args'}
+    ? $$call{'args'}
+    : 'all';
+
+<decoder.jobs> //= {};
+
+## snapshot current level-5 values ##
+my $values_ref = <decoder.level5>->{'values'};
+
+return { 'mode' => qw| false |, 'data' => 'no accumulated values' }
+    if not defined $values_ref
+    or not @{$values_ref};
+
+my $job_id = <[chk-sum.elf.inline]>
+    ->( join( ':', $stream_id, scalar @{$values_ref}, time() ) );
+
+return { 'mode' => qw| false |, 'data' => 'reduction job already running' }
+    if exists <decoder.jobs>->{$job_id};
+
+my $index_job = {
+    'reply_id'       => $$call{'reply_id'},
+    'job-type'       => 'reduce-entropy',
+    'stream_id'      => $stream_id,
+    'values'         => [ @{$values_ref} ],      ## snapshot ##
+    'total'          => scalar @{$values_ref},
+    'cursor'         => 0,
+    'batch_size'     => 64,
+    'bits'           => '',
+    'stop-requested' => 0,
+    'idle-event'     => Event->idle(
+        cb     => $code{'decoder.callback.reduce-entropy'},
+        'data' => $job_id,
+        repeat => 1
+    ),
+};
+
+<decoder.jobs>->{$job_id} = $index_job;
+
+<[base.log]>->(
+    1,       ": starting entropy reduction job [ %s ] — %d values",
+    $job_id, scalar @{$values_ref}
+);
+
+return { 'mode' => 'deferred' };
+
+#,,..,,,.,,..,,,,,,,.,...,,,,,,,.,...,...,.,.,..,,...,...,.,,,...,..,,,,.,,.,,
+#2GSY67EQXW5G2ZFXFCXDQ6NOTSETWHNPXFKZAAEPSGOHKE6XYGO6CQVBAXOP55JOOKIWTWEAB5VLS
+#\\\|7YKIJXXB4QJIJEQSTKOOH3IWXFV7JMOCTG6KFUOVRFLZQDLK745 \ / AMOS7 \ YOURUM ::
+#\[7]RTSY2CNMH4GJH7NWJXLZWB63Q7TJMJ6L7WVU67CDXTL6FZ2522DA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
