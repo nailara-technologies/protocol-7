@@ -46,17 +46,17 @@ in the dep-graph, skip silently if not.
 
 ### implementation: -zenka=NAME flag
 
-- [ ] add `-zenka=NAME` option to `%opt` and `GetOptions`
-- [ ] when `-zenka` is set, locate start file at
+- [x] add `-zenka=NAME` option to `%opt` and `GetOptions`
+- [x] when `-zenka` is set, locate start file at
       `configuration/zenki/NAME/start` — die with clear message if not found
 
 ### start file parsing (static only — no execution)
 
-- [ ] extract `modules.load` value: join continuation lines (trailing `\`),
+- [x] extract `modules.load` value: join continuation lines (trailing `\`),
       split on whitespace — this is the **loaded set**
-- [ ] extract entry-point commands: lines matching `^\s*\[([^\]:]+)` —
+- [x] extract entry-point commands: lines matching `^\s*\[([^\]:]+)` —
       capture the command name, strip params after `:`
-- [ ] resolve each entry-point command to a module name using the same
+- [x] resolve each entry-point command to a module name using the same
       prefix logic as the loader:
       - try `base.cmd.NAME` first, then `base.NAME`, then `NAME` as-is
       - keep only names present as keys in the dep-graph
@@ -64,15 +64,15 @@ in the dep-graph, skip silently if not.
 
 ### reachability walk
 
-- [ ] seed the walk with all resolved entry-point module names
-- [ ] walk transitively using the existing dep-graph (same logic as
+- [x] seed the walk with all resolved entry-point module names
+- [x] walk transitively using the existing dep-graph (same logic as
       `_append_tree_deps` but collecting a set, not rendering)
-- [ ] result: `%reachable` — all modules transitively called from any
+- [x] result: `%reachable` — all modules transitively called from any
       entry point
 
 ### output
 
-- [ ] default (no `-text` / `-dot`): print reachability summary to STDOUT:
+- [x] default (no `-text` / `-dot`): print reachability summary to STDOUT:
       ```
       :: zenka : cube
       :: loaded   : N modules
@@ -82,9 +82,9 @@ in the dep-graph, skip silently if not.
          another.dead.one
          ...
       ```
-- [ ] with `-text`: render the full reachable subgraph as a tree
+- [x] with `-text`: render the full reachable subgraph as a tree
       (one tree per entry-point, using existing `generate_tree_output`)
-- [ ] unreachable list sorted by `sort_by_length` [ consistent with rest ]
+- [x] unreachable list sorted by `sort_by_length` [ consistent with rest ]
 
 ### ambiguity warnings for runtime dispatch
 
@@ -92,17 +92,17 @@ the dep-graph scanner already detects `$code{'literal.name'}` patterns.
 it cannot resolve variable-keyed dispatch like `$code{$callback}->()` or
 `$code{$ARG}->()` — these are runtime-determined call targets.
 
-- [ ] during the reachability walk, collect any module that uses variable
+- [x] during the reachability walk, collect any module that uses variable
       dispatch: `\$code\{\s*\$\w+\s*\}` (no quotes around the key)
-- [ ] report these separately after the unreachable list:
+- [x] report these separately after the unreachable list:
       ```
       :: ambiguous dispatch (runtime-resolved, may call any loaded module):
          module.name  [ $code{$callback}->() at line N ]
          ...
       ```
-- [ ] this gives llm context to reason about which modules COULD be called
+- [x] this gives llm context to reason about which modules COULD be called
       even if they appear unreachable from static analysis
-- [ ] note: `$code{'literal'}` patterns are already resolved by the scanner
+- [x] note: `$code{'literal'}` patterns are already resolved by the scanner
       and do not need to appear here
 
 ### notes
@@ -125,17 +125,17 @@ it cannot resolve variable-keyed dispatch like `$code{$callback}->()` or
 
 ### review
 
-- [ ] reviewer runs `bin/dev/dep-graph -zenka=cube` and confirms output
+- [x] reviewer runs `bin/dev/dep-graph -zenka=cube` and confirms output
       lists loaded/reachable counts and any unreachable modules
-- [ ] reviewer runs `bin/dev/dep-graph -zenka=cube -text` and confirms
+- [x] reviewer runs `bin/dev/dep-graph -zenka=cube -text` and confirms
       tree output is scoped to reachable modules only
-- [ ] reviewer spot-checks one reported unreachable module against grep
+- [x] reviewer spot-checks one reported unreachable module against grep
       to confirm it is genuinely uncalled in the cube zenka context
 
-### completed — ready for commit
+### completed — commit [pending]
 
-#,,.,,..,,.,,,..,,.,,,,,.,,,,,...,.,.,.,.,,.,,..,,...,...,.,,,.,,,...,...,...,
-#IWBISEOODPZ5KEFG5ETK4VOZ6E5QLXLQZURPMDTFXGZJOJFYVXSWMO3O3XEUPM7FT42M7I4P74ZNE
-#\\\|EJHXZDIETAAOQX2AKQRZ7MQVHUXOZPVRSOB2JAQ6MPWTIXTA6MV \ / AMOS7 \ YOURUM ::
-#\[7]HQQD5OFENEFSWCAVITJG2GSFB4AEYUHMZLAR3FXFYZIUUT6XMKBI 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,.,.,..,,,,.,.,,,,..,..,,.,.,...,..,,...,...,..,,.,.,,,.,.,.,,..,
+#ZFGPEFJR674MCAVTUNYLEZOHSTJIWIB55GG627MGU2IBEIPVWOL2CYL5463GVTQBT562VMJMGUTEU
+#\\\|3SGD76BD6IHB63FYJ5SCS3XV2DFQG2JZWZRUN7VTNN5JTR5KGWZ \ / AMOS7 \ YOURUM ::
+#\[7]752GNNGPT7GFMW36YGM666XJQH5LCFJAPYZK2HP5ENPWVVDQPWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
