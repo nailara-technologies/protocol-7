@@ -523,8 +523,29 @@ sub analyze_zenka_reachability {
         push @unreachable, $loaded if !$found;
     }
 
-    ##  find modules with variable dispatch [runtime-resolved calls]  ##
-    my @ambiguous = find_variable_dispatch( $graph, $loaded_set );
+    ##  phase 3: load rules and find/resolve variable dispatch  ##
+    my $rules = load_rules();
+    my ( $ambiguous_ref, $resolved_ref )
+        = find_variable_dispatch( $graph, $loaded_set, $rules );
+    my @ambiguous = @{$ambiguous_ref};
+    my @resolved  = @{$resolved_ref};
+
+    ##  extend reachable set with rule-resolved targets  ##
+    for my $res (@resolved) {
+        for my $target ( @{ $res->{targets} } ) {
+            next if $reachable{$target};
+            if ( $target =~ s/\.\*$// ) {
+                ##  prefix wildcard — add all matching graph nodes  ##
+                for my $node ( grep {m/^\Q$target\E/} keys %{$graph} ) {
+                    my %new = walk_reachable( $graph, [$node] );
+                    %reachable = ( %reachable, %new );
+                }
+            } elsif ( exists $graph->{$target} ) {
+                my %new = walk_reachable( $graph, [$target] );
+                %reachable = ( %reachable, %new );
+            }
+        }
+    }
 
     ##  output unreachable list  ##
     if (@unreachable) {
@@ -559,6 +580,17 @@ sub analyze_zenka_reachability {
 
             say "   $entry->{module} [ $range :"
                 . " code{ \$$entry->{var} }$origin_tag$via_str$conf_tag ]";
+        }
+    }
+
+    ##  phase 3: output rule-resolved dispatch  ##
+    if (@resolved) {
+        say ":: rule-resolved dispatch [ static after rule application ] :.";
+        for my $res (@resolved) {
+            my $targets = join( ', ', @{ $res->{targets} } );
+            say "   $res->{module} [ $res->{line} :"
+                . " code{ \$$res->{var} } -> $targets ]"
+                . " [rule-resolved] [ $res->{rule} ]";
         }
     }
 
@@ -706,9 +738,11 @@ sub walk_reachable {
 
 sub find_variable_dispatch {
     ##  find modules that use variable-keyed dispatch [\$code{\$var}]  ##
-    my ( $graph, $loaded_set ) = @ARG;
+    my ( $graph, $loaded_set, $rules ) = @ARG;
+    $rules //= [];
 
     my @ambiguous;
+    my @resolved;
     my $modules_dir = c_dir( $root_path, qw| modules | );
     my @files       = get_module_files($modules_dir);
 
@@ -751,23 +785,131 @@ sub find_variable_dispatch {
                         = classify_dispatch_confidence( \@lines, $i,
                         $var_name );
 
-                    push @ambiguous,
-                        {
-                        module     => $module,
-                        var        => $var_name,
-                        line       => $usage_line,
-                        start_line => $origin->{start_line},
-                        origin     => $origin->{type},
-                        context    => $origin->{context},
-                        via        => $origin->{via} // [],
-                        confidence => $confidence
-                        };
+                    ##  phase 3: try rule resolution before marking ambiguous  ##
+                    my $start_scan = $i - 15;
+                    $start_scan = 0 if $start_scan < 0;
+                    my $end_scan = $i + 5;
+                    $end_scan = $#lines if $end_scan > $#lines;
+                    my $context_str
+                        = join( "\n", @lines[ $start_scan .. $end_scan ] );
+
+                    my ( $rule_targets_ref, $rule_name )
+                        = apply_rules( $rules, $module, $var_name,
+                        $context_str );
+
+                    if ( defined $rule_targets_ref ) {
+                        push @resolved,
+                            {
+                            module  => $module,
+                            var     => $var_name,
+                            line    => $usage_line,
+                            targets => $rule_targets_ref,
+                            rule    => $rule_name,
+                            };
+                    } else {
+                        push @ambiguous,
+                            {
+                            module     => $module,
+                            var        => $var_name,
+                            line       => $usage_line,
+                            start_line => $origin->{start_line},
+                            origin     => $origin->{type},
+                            context    => $origin->{context},
+                            via        => $origin->{via} // [],
+                            confidence => $confidence
+                            };
+                    }
                 }
             }
         }
     }
 
-    return @ambiguous;
+    return ( \@ambiguous, \@resolved );
+}
+
+##[ PHASE 3: RULE PLUGIN INTERFACE ]###########################################
+
+sub load_rules {
+    ##  load dispatch resolution rules from configuration/dep-graph/rules/  ##
+    my $rules_dir = c_dir( $root_path, qw| configuration dep-graph rules | );
+    my @rules;
+    return \@rules unless -d $rules_dir;
+
+    opendir my $dh, $rules_dir or return \@rules;
+    my @rule_files = sort grep {m/\.rules$/} readdir $dh;
+    closedir $dh;
+
+    for my $filename (@rule_files) {
+        my $path = c_dir( $rules_dir, $filename );
+        open my $fh, qw| < |, $path or next;
+        while ( my $line = <$fh> ) {
+            chomp $line;
+            next if $line =~ m/^\s*(?:#.*)?$/;   ##  skip blank / comments  ##
+
+            ##  parse: module_glob : var ~ /pattern/ -> template  ##
+            ##     or: var ~ /pattern/ -> template                 ##
+            my ( $module_glob, $var_name, $pattern, $template );
+            if ( $line =~ m{^(\S+)\s*:\s*(\w+)\s*~\s*/(.+)/\s*->\s*(.+)$} ) {
+                ( $module_glob, $var_name, $pattern, $template )
+                    = ( $1, $2, $3, $4 );
+            } elsif ( $line =~ m{^(\w+)\s*~\s*/(.+)/\s*->\s*(.+)$} ) {
+                ( $module_glob, $var_name, $pattern, $template )
+                    = ( '*', $1, $2, $3 );
+            } else {
+                next;
+            }
+            $template =~ s/\s+$//;
+
+            push @rules,
+                {
+                module_glob => $module_glob,
+                var_name    => $var_name,
+                pattern     => $pattern,
+                template    => $template,
+                source      => $filename,
+                };
+        }
+        close $fh;
+    }
+
+    return \@rules;
+}
+
+sub module_matches_glob {
+    ##  check if module name matches a glob pattern  ##
+    ##  supports: '*' (any), 'foo.bar.*' (prefix), 'foo.bar' (exact)  ##
+    my ( $glob, $module ) = @ARG;
+    return 1 if $glob eq '*';
+    if ( $glob =~ s/\.\*$// ) {
+        return $module =~ m/^\Q$glob\E/;
+    }
+    return $module eq $glob;
+}
+
+sub apply_rules {
+    ##  try each rule against a dispatch site  ##
+    ##  returns ( \@targets, $rule_source ) on match, or ( undef, undef )  ##
+    my ( $rules, $module, $var_name, $context_str ) = @ARG;
+
+    for my $rule ( @{$rules} ) {
+        next unless module_matches_glob( $rule->{module_glob}, $module );
+        next
+            if $rule->{var_name} ne '*'
+            && $rule->{var_name} ne $var_name;
+
+        my $pattern = $rule->{pattern};
+        if ( $context_str =~ m/$pattern/m ) {
+            ##  build resolution from template substituting captures  ##
+            my @cap    = map { $_ // '' } ( $1, $2, $3, $4, $5 );
+            my $target = $rule->{template};
+            $target =~ s/\$(\d)/$cap[$1-1]/g;
+            $target =~ s/\$\{?var\}?/$var_name/g;
+            $target =~ s/\s+$//;
+            return ( [$target], $rule->{source} ) if $target =~ m/\S/;
+        }
+    }
+
+    return ( undef, undef );
 }
 
 sub backtrack_variable_origin {
@@ -953,8 +1095,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,..,..,,...,,,.,,,.,..,,..,,.,.,..,,,,,,,..,.,.,...,...,.,.,..,,..,,,,,,.,.,
-#AK4KPQ5BO536GYSJFRC3PDC63QYPEAJX6R27BETSMC3BGILWMQJWMWMQRIVL4MOPNQL2SCA6MFKQ4
-#\\\|UPS3WFMD6FDW4UPXL573W6JNDZOOKCLFMO2QXEJZAU6VVHPVCH7 \ / AMOS7 \ YOURUM ::
-#\[7]Y3SMRVP3CLITG4LUX2U47Q7MTNHSIFHDXWBF3HFUAIHZL4SP7MAQ 7  DATA SIGNATURE ::
+#,,,,,..,,..,,.,,,,,,,,,.,,.,,.,.,,,.,...,,,,,.,.,...,...,...,...,,.,,.,.,,.,,
+#KHFXJGB6QCDFYCSKX4SUZIXWL454XWGAMYAGSW6WMJAFDKKDGBSVMCPK6MREFNOHR4EYZAINN76ZI
+#\\\|TPUVQ3D4ZWIENG4AD3GPMGK3NVWVIN5G6UWQY3ETKELXUBHQ5GA \ / AMOS7 \ YOURUM ::
+#\[7]S6FXRI2PXO2VS3BYSXXU2TAM4PQG3AT3BAFGSRFTLI6BYRHQWIBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

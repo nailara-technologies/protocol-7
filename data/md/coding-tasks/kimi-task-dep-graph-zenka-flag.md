@@ -236,10 +236,19 @@ these calls are detectable by the dep-graph scanner (already scans
 
 ### phase 3: regex logic rule plugin interface
 
-- [ ] declarative rule format for resolving ambiguity
-- [ ] LLMs write rules: `if $callback =~ /^(foo|bar)$/ → resolve to base.cmd.$1`
-- [ ] rules stored in `configuration/dep-graph/rules/`
-- [ ] rules applied automatically during analysis
+- [x] declarative rule format for resolving ambiguity
+- [x] LLMs write rules: `module_glob : var ~ /context_pattern/ -> resolution`
+- [x] rules stored in `configuration/dep-graph/rules/*.rules`
+- [x] rules applied automatically during analysis
+- [x] resolved sites removed from ambiguous list, reported as `[rule-resolved]`
+- [x] resolved targets added to reachable set (with `.*` prefix wildcard support)
+
+**implementation notes:**
+- rule format: `module_glob : var ~ /pattern/ -> template` or `var ~ /pattern/ -> template`
+- module_glob: `*` = any, `foo.bar.*` = prefix, `foo.bar.baz` = exact
+- context_pattern matched against ±15 lines around dispatch site
+- template: `$1`..'$5` are regex captures, `$var` is variable name
+- first real rule: `protocol.amos-chksum.command-handler` → `protocol.amos-chksum.ext-cmd.*`
 
 ### phase 4: automated coverage completion
 
@@ -249,8 +258,8 @@ these calls are detectable by the dep-graph scanner (already scans
 - [ ] edges resolved by rules tagged `[ rule-resolved ]` vs `[ static ]` in
       output — keeps provenance clear and makes rules auditable
 
-#,,.,,.,.,,.,,..,,..,,,,,,,,,,.,,,,,,,.,.,,,.,..,,...,...,..,,..,,,..,..,,.,,,
-#DM7TS2T2NODQRHOMFWU5QPJQIOJP7W6OQ57O4DKME2U32TZOKPONVMRYLUUBU5MC64CLZ4A3YIOFW
-#\\\|DWUPQXQ5TCJCRL35GXLXMO557ASWP6CKNCP37B7JVYGM4GEIDHR \ / AMOS7 \ YOURUM ::
-#\[7]2MNEX236PMU6CHBDKDZ6JGA3JHWYEEAK3AENU2JP4RWB5KSFKQDI 7  DATA SIGNATURE ::
+#,,,,,.,,,.,.,,,.,..,,...,..,,,,.,,,,,.,.,...,..,,...,...,..,,,.,,.,.,..,,,..,
+#KOMA7AN5JYDZA74CBBLJKYDBCZ5MVX6W4EXJDMAZXAR32A4YZAQCRYTWAOPZGMHFFSZJU45Y3DRBQ
+#\\\|CDM4STNKXNJV63G6N3Y7ECD5AL7ROHS6RNHGYO27L4QTVQASTIF \ / AMOS7 \ YOURUM ::
+#\[7]FWOJD5NRGRE74SPV5KUCA32UHSOI7IQW6WXZHAIZAYKVHN7VRACA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
