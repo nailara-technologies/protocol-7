@@ -465,11 +465,14 @@ sub analyze_zenka_reachability {
         say ":: ambiguous dispatch [ runtime-resolved,"
             . " may call any loaded module ] :.";
         for my $entry (@ambiguous) {
-            my $range = $entry->{start_line} == $entry->{line}
-                ? $entry->{line}
-                : "$entry->{start_line}-$entry->{line}";
-            my $origin_tag = $entry->{origin} eq 'parameter' ? ' [param]' : '';
-            say "   $entry->{module} [ $range : code{ \$$entry->{var} }$origin_tag ]";
+            my $range
+                = $entry->{start_line} eq '?'            ? "?-$entry->{line}"
+                : $entry->{start_line} == $entry->{line} ? $entry->{line}
+                :   "$entry->{start_line}-$entry->{line}";
+            my $origin_tag
+                = $entry->{origin} eq 'parameter' ? ' [param]' : '';
+            say "   $entry->{module} [ $range :"
+                . " code{ \$$entry->{var} }$origin_tag ]";
         }
     }
 
@@ -621,12 +624,13 @@ sub find_variable_dispatch {
                 my $line = $lines[$i];
                 ##  match variable dispatch: $code{$var} or $code{ $var }  ##
                 while ( $line =~ m/\$code\{\s*\$(\w+)\s*\}/g ) {
-                    my $var_name = $1;
+                    my $var_name   = $1;
                     my $usage_line = $i + 1;
-                    
+
                     ##  backtrack to find variable origin  ##
-                    my $origin = backtrack_variable_origin( \@lines, $i, $var_name );
-                    
+                    my $origin
+                        = backtrack_variable_origin( \@lines, $i, $var_name );
+
                     push @ambiguous,
                         {
                         module     => $module,
@@ -650,21 +654,23 @@ sub backtrack_variable_origin {
     my @lines = @{$lines_ref};
 
     my $result = {
-        start_line => $usage_idx + 1,  ##  default: single line  ##
+        start_line => $usage_idx + 1,    ##  default: single line  ##
         type       => 'local',
         context    => ''
     };
 
     ##  scan backward from usage to find variable introduction  ##
     for my $i ( reverse 0 .. $usage_idx ) {
-        my $line = $lines[$i];
+        my $line     = $lines[$i];
         my $line_num = $i + 1;
 
         ##  check for parameter assignment patterns  ##
         ##  my $var = shift; my $var = $ARG[0]; my ( $var ) = @ARG;  ##
-        if ( $line =~ m/^\s*my\s*\(?\s*\$\Q$var_name\E\s*\)?\s*=\s*shift\b/ ||
-             $line =~ m/^\s*my\s*\$\Q$var_name\E\s*=\s*\$ARG\s*\[\s*\d+\s*\]/ ||
-             $line =~ m/^\s*my\s*\(?\s*[^)]*\$\Q$var_name\E[^)]*\)\s*=\s*\@ARG\b/ ) {
+        if (   $line =~ m/^\s*my\s*\(?\s*\$\Q$var_name\E\s*\)?\s*=\s*shift\b/
+            || $line
+            =~ m/^\s*my\s*\$\Q$var_name\E\s*=\s*\$ARG\s*\[\s*\d+\s*\]/
+            || $line
+            =~ m/^\s*my\s*\(?\s*[^)]*\$\Q$var_name\E[^)]*\)\s*=\s*\@ARG\b/ ) {
             $result->{start_line} = $line_num;
             $result->{type}       = 'parameter';
             $result->{context}    = "from \@ARG";
@@ -673,12 +679,23 @@ sub backtrack_variable_origin {
 
         ##  check for my $var = ... assignment [local variable]  ##
         ##  handles both: my $var = ...  and  my $var\n    = ...  ##
-        if ( $line =~ m/^\s*my\s*\$\Q$var_name\E\s*=/ ||
-             ( $line =~ m/^\s*my\s*\$\Q$var_name\E\s*$/ &&
-               $i < $#lines && $lines[$i+1] =~ m/^\s*=/ ) ) {
+        if ($line =~ m/^\s*my\s*\$\Q$var_name\E\s*=/
+            || (   $line =~ m/^\s*my\s*\$\Q$var_name\E\s*$/
+                && $i < $#lines
+                && $lines[ $i + 1 ] =~ m/^\s*=/ )
+        ) {
             $result->{start_line} = $line_num;
             $result->{type}       = 'local';
             $result->{context}    = 'my assignment';
+            return $result;
+        }
+
+        ##  check for list-context my declaration: my ( ..., $var, ... ) = ...  ##
+        ##  covers: my ( $a, $b ) = @$ref  and  ( my $var, ... ) = split ...   ##
+        if ( $line =~ m/my\s*\(?\s*[^)]*\$\Q$var_name\E[^)]*\)?\s*=/ ) {
+            $result->{start_line} = $line_num;
+            $result->{type}       = 'local';
+            $result->{context}    = 'list assignment';
             return $result;
         }
 
@@ -699,16 +716,16 @@ sub backtrack_variable_origin {
         }
     }
 
-    ##  if we reach the top without finding origin, mark as external  ##
-    $result->{type}    = 'external';
-    $result->{context} = 'undefined in module';
-    $result->{start_line} = 1;
-    
+    ##  if we reach the top without finding origin, mark as unknown  ##
+    $result->{type}       = 'unknown';
+    $result->{context}    = 'origin not found';
+    $result->{start_line} = '?';
+
     return $result;
 }
 
-#,,,,,,.,,.,,,,..,.,,,,,.,...,..,,...,,,,,...,.,.,...,..,,.,.,,..,,..,,.,,.,,,
-#643NM5UMQTWPYXPK6UGZR7RFI3ZZJWZTX4H5G7CZZ6KVF4FHH4TBFY25GC3RNORXR4KKPMJR3IALG
-#\\\|WVAMAV3Z2D2M2A4VE2WY7XYHDDNQFUTYK6AOOZNIDN5QY4CWBOU \ / AMOS7 \ YOURUM ::
-#\[7]5QDJSTVBTJOF53SGP6TGFLJ76AYIE7QVB2Z7FTOAIYVDE2GS3KCI 7  DATA SIGNATURE ::
+#,,..,.,.,...,,..,.,.,,..,.,,,...,,,.,,.,,,,,,.,.,...,...,...,...,..,,,..,.,,,
+#R3BHVTEIRS3U7TYTAEJBIOMYBMWUWFD5NPFUIZWCR5N47T4XIW3J5SCPCH4PJSAG3KYP5XNCMYHOO
+#\\\|R7PQF7NAUVMSLMAGOU6JDD3GHA5CCB6F34O6PTQNEN754D2L3QX \ / AMOS7 \ YOURUM ::
+#\[7]EMNQJWWOXBNBNG6GYT26M7NYNIIIXCCK7SJGUDQBU4AUTZ7OCECI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

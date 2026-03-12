@@ -185,8 +185,8 @@ it cannot resolve variable-keyed dispatch like `$code{$callback}->()` or
 - [ ] edges resolved by rules tagged `[ rule-resolved ]` vs `[ static ]` in
       output — keeps provenance clear and makes rules auditable
 
-#,,.,,.,.,..,,,,,,,.,,,..,.,.,,..,..,,,,,,,,,,..,,...,...,..,,..,,,,,,,,.,.,.,
-#YF2BFRDWFJGSFTZNKUSJLOXUID2SVGGG6QTTSJYXPIHUZIF5ST2D6XNL3WXC4LCN3IOVK4CAT3LVS
-#\\\|FQQXUJW6DGHTMVIJMLSXLZAPET2JMVIIILJNJNC77JKHSAW5UQY \ / AMOS7 \ YOURUM ::
-#\[7]5BSEJXCCH4QG5ABSM2SX7Z4ZSPEPPYERQTAU7BG7W7562M26KKBY 7  DATA SIGNATURE ::
+#,,,.,..,,.,,,,,,,,,,,..,,,..,,.,,..,,,.,,,,,,..,,...,..,,,,.,...,..,,,..,,.,,
+#XHEOAJMMSG4GENHH5WVKDYYOARVARG2VCCUVMHSEOJ2W3MD5Z3FQ3MQXOIMGYYHLMENUCHOJTLXR4
+#\\\|XOQPDSOKY4EOKX6ERQ44WXIG4YQU7WN4TXJ2E4BU4AY52GJCK4Z \ / AMOS7 \ YOURUM ::
+#\[7]GZKMIRE6JSTEFZA7V2ARBFXNZJGOLSH3NBRAJZ2IDTX3NTRIGICA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
