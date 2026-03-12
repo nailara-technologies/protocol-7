@@ -471,8 +471,15 @@ sub analyze_zenka_reachability {
                 :   "$entry->{start_line}-$entry->{line}";
             my $origin_tag
                 = $entry->{origin} eq 'parameter' ? ' [param]' : '';
+
+            ##  phase 2: add via chain if variable was handed over  ##
+            my $via_str = '';
+            if ( @{ $entry->{via} // [] } ) {
+                $via_str = ' via ' . join( '->', @{ $entry->{via} } );
+            }
+
             say "   $entry->{module} [ $range :"
-                . " code{ \$$entry->{var} }$origin_tag ]";
+                . " code{ \$$entry->{var} }$origin_tag$via_str ]";
         }
     }
 
@@ -638,7 +645,8 @@ sub find_variable_dispatch {
                         line       => $usage_line,
                         start_line => $origin->{start_line},
                         origin     => $origin->{type},
-                        context    => $origin->{context}
+                        context    => $origin->{context},
+                        via        => $origin->{via} // []
                         };
                 }
             }
@@ -650,19 +658,53 @@ sub find_variable_dispatch {
 
 sub backtrack_variable_origin {
     ##  trace variable backwards to find where it was introduced  ##
-    my ( $lines_ref, $usage_idx, $var_name ) = @ARG;
+    ##  phase 2: follows handovers through multiple variables  ##
+    my ( $lines_ref, $usage_idx, $var_name, $visited_vars ) = @ARG;
+    $visited_vars //= {};
     my @lines = @{$lines_ref};
 
+    ##  prevent infinite recursion on circular references  ##
+    return undef if $visited_vars->{$var_name};
+    $visited_vars->{$var_name} = 1;
+
     my $result = {
-        start_line => $usage_idx + 1,    ##  default: single line  ##
-        type       => 'local',
-        context    => ''
+        start_line  => $usage_idx + 1,    ##  default: usage line  ##
+        type        => 'local',
+        context     => '',
+        via         => [],                ##  phase 2: handover chain  ##
+        origin_line => undef    ##  phase 2: where ultimate source found  ##
     };
 
     ##  scan backward from usage to find variable introduction  ##
     for my $i ( reverse 0 .. $usage_idx ) {
         my $line     = $lines[$i];
         my $line_num = $i + 1;
+
+        ##  phase 2: check for handover: $var = $other_var  ##
+        ##  captures: $var = $other; $var = $other->(); $var = $other->{key}  ##
+        if ( $line =~ m/^\s*\$\Q$var_name\E\s*=\s*\$(\w+)/ ) {
+            my $source_var = $1;
+
+            ##  recursively trace the source variable  ##
+            my $source_result
+                = backtrack_variable_origin( $lines_ref, $i, $source_var,
+                $visited_vars );
+
+            if ( defined $source_result ) {
+                ##  merge source info with current result  ##
+                $result->{start_line}  = $source_result->{start_line};
+                $result->{origin_line} = $source_result->{origin_line}
+                    // $line_num;
+                $result->{type} = $source_result->{type};
+
+                ##  build via chain: current var + any upstream vias  ##
+                push @{ $result->{via} }, $var_name;
+                push @{ $result->{via} }, @{ $source_result->{via} }
+                    if @{ $source_result->{via} };
+
+                return $result;
+            }
+        }
 
         ##  check for parameter assignment patterns  ##
         ##  my $var = shift; my $var = $ARG[0]; my ( $var ) = @ARG;  ##
@@ -671,9 +713,10 @@ sub backtrack_variable_origin {
             =~ m/^\s*my\s*\$\Q$var_name\E\s*=\s*\$ARG\s*\[\s*\d+\s*\]/
             || $line
             =~ m/^\s*my\s*\(?\s*[^)]*\$\Q$var_name\E[^)]*\)\s*=\s*\@ARG\b/ ) {
-            $result->{start_line} = $line_num;
-            $result->{type}       = 'parameter';
-            $result->{context}    = "from \@ARG";
+            $result->{start_line}  = $line_num;
+            $result->{origin_line} = $line_num;
+            $result->{type}        = 'parameter';
+            $result->{context}     = "from \@ARG";
             return $result;
         }
 
@@ -684,48 +727,44 @@ sub backtrack_variable_origin {
                 && $i < $#lines
                 && $lines[ $i + 1 ] =~ m/^\s*=/ )
         ) {
-            $result->{start_line} = $line_num;
-            $result->{type}       = 'local';
-            $result->{context}    = 'my assignment';
+            $result->{start_line}  = $line_num;
+            $result->{origin_line} = $line_num;
+            $result->{type}        = 'local';
+            $result->{context}     = 'my assignment';
             return $result;
         }
 
         ##  check for list-context my declaration: my ( ..., $var, ... ) = ...  ##
         ##  covers: my ( $a, $b ) = @$ref  and  ( my $var, ... ) = split ...   ##
         if ( $line =~ m/my\s*\(?\s*[^)]*\$\Q$var_name\E[^)]*\)?\s*=/ ) {
-            $result->{start_line} = $line_num;
-            $result->{type}       = 'local';
-            $result->{context}    = 'list assignment';
+            $result->{start_line}  = $line_num;
+            $result->{origin_line} = $line_num;
+            $result->{type}        = 'local';
+            $result->{context}     = 'list assignment';
             return $result;
-        }
-
-        ##  check for assignment without my [reassignment]  ##
-        if ( $line =~ m/^\s*\$\Q$var_name\E\s*=/ ) {
-            $result->{start_line} = $line_num;
-            $result->{type}       = 'reassigned';
-            $result->{context}    = 'assignment';
-            ##  continue scanning to find original source  ##
         }
 
         ##  check for foreach my $var  ##
         if ( $line =~ m/\bmy\s*\$\Q$var_name\E\s+\b/ ) {
-            $result->{start_line} = $line_num;
-            $result->{type}       = 'local';
-            $result->{context}    = 'loop variable';
+            $result->{start_line}  = $line_num;
+            $result->{origin_line} = $line_num;
+            $result->{type}        = 'local';
+            $result->{context}     = 'loop variable';
             return $result;
         }
     }
 
-    ##  if we reach the top without finding origin, mark as unknown  ##
-    $result->{type}       = 'unknown';
-    $result->{context}    = 'origin not found';
-    $result->{start_line} = '?';
+    ##  if we reach the top without finding origin, mark as external  ##
+    $result->{type}        = 'external';
+    $result->{context}     = 'external source';
+    $result->{start_line}  = '?';
+    $result->{origin_line} = '?';
 
     return $result;
 }
 
-#,,..,.,.,...,,..,.,.,,..,.,,,...,,,.,,.,,,,,,.,.,...,...,...,...,..,,,..,.,,,
-#R3BHVTEIRS3U7TYTAEJBIOMYBMWUWFD5NPFUIZWCR5N47T4XIW3J5SCPCH4PJSAG3KYP5XNCMYHOO
-#\\\|R7PQF7NAUVMSLMAGOU6JDD3GHA5CCB6F34O6PTQNEN754D2L3QX \ / AMOS7 \ YOURUM ::
-#\[7]EMNQJWWOXBNBNG6GYT26M7NYNIIIXCCK7SJGUDQBU4AUTZ7OCECI 7  DATA SIGNATURE ::
+#,,,,,,..,..,,,,.,,..,...,.,.,.,.,,,,,.,.,.,,,.,.,...,...,...,...,..,,.,,,,.,,
+#5EQKC6LPEH6O3TRL5PA2G2PPBBGFJIBOEGJQ4VMG7EFCPSEW7NG4PBG6653C36DZWLT66VYWATNXK
+#\\\|AKCZPAZFGL6EBFLJTT42PCEJEUMV7SVVHWX7CY5KHFTJX2DCW5E \ / AMOS7 \ YOURUM ::
+#\[7]XOFSYUQC22JLQI4BVJ7GOPNO3YONGFDS6P34JO7VFCS4RCWHSUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
