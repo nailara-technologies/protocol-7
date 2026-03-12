@@ -39,25 +39,31 @@ BEGIN {
 ##[ COMMAND LINE OPTIONS ]#####################################################
 
 my %opt = (
-    qw| text   | => 0,
-    qw| dot    | => 0,
-    qw| reverse| => 0,
-    qw| module | => undef,
-    qw| depth  | => 1,
-    qw| zenka  | => undef,
-    qw| stdin  | => 0,
+    qw| text         | => 0,
+    qw| dot          | => 0,
+    qw| reverse      | => 0,
+    qw| module       | => undef,
+    qw| depth        | => 1,
+    qw| zenka        | => undef,
+    qw| stdin        | => 0,
+    qw| list         | => 0,
+    qw| list-modules | => 0,
+    qw| list-configs | => 0,
 );
 
 Getopt::Long::Configure('prefix_pattern=--|-');
 
 GetOptions(
-    qw| text   |   => \$opt{text},
-    qw| dot    |   => \$opt{dot},
-    qw| reverse|   => \$opt{reverse},
-    qw| module=s | => \$opt{module},
-    qw| depth=i  | => \$opt{depth},
-    qw| zenka=s  | => \$opt{zenka},
-    qw| stdin    | => \$opt{stdin},
+    qw| text   |        => \$opt{text},
+    qw| dot    |        => \$opt{dot},
+    qw| reverse|        => \$opt{reverse},
+    qw| module=s      | => \$opt{module},
+    qw| depth=i       | => \$opt{depth},
+    qw| zenka=s       | => \$opt{zenka},
+    qw| stdin         | => \$opt{stdin},
+    qw| list          | => \$opt{list},
+    qw| list-modules  | => \$opt{'list-modules'},
+    qw| list-configs  | => \$opt{'list-configs'},
 ) or die ":: invalid command line arguments\n";
 
 ##  default to text output if no format specified  ##
@@ -76,6 +82,11 @@ die ":: -stdin cannot be used with -zenka\n"
 die ":: -stdin cannot be used with -module\n"
     if $opt{stdin} && defined $opt{module};
 
+##  validate list flags require a start file source  ##
+my $any_list = $opt{list} || $opt{'list-modules'} || $opt{'list-configs'};
+die ":: -list flags require -zenka=NAME or -stdin\n"
+    if $any_list && !defined $opt{zenka} && !$opt{stdin};
+
 ##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
 ##[ CONFIGURATION ]############################################################
 
@@ -92,6 +103,49 @@ my $dot_output_path
 
 ##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
 ##[ MAIN ]#####################################################################
+
+##  handle list flags [ no dep-graph scan needed ]  ##
+if ($any_list) {
+    my @lines;
+    if ( $opt{stdin} ) {
+        @lines = <STDIN>;
+    } else {
+        my $start_file = c_dir( $root_path, qw| configuration zenki |,
+            $opt{zenka}, qw| start | );
+        die ":: zenka start file not found: $start_file\n" if !-f $start_file;
+        open my $fh, qw| < |, $start_file
+            or die ":: cannot read $start_file: $OS_ERROR\n";
+        @lines = <$fh>;
+        close $fh;
+    }
+
+    my ( $loaded_set, undef, $config_files, $config_ambiguous )
+        = parse_start_lines( \@lines );
+
+    my @to_print;
+    if ( $opt{'list-modules'} || $opt{list} ) {
+        push @to_print, sort_by_length( keys %{$loaded_set} );
+    }
+    if ( $opt{'list-configs'} || $opt{list} ) {
+        push @to_print, sort_by_length( @{$config_files} );
+    }
+
+    ##  deduplicate and sort for -list  ##
+    if ( $opt{list} ) {
+        my %seen;
+        @to_print = sort_by_length( grep { !$seen{$ARG}++ } @to_print );
+    }
+
+    say $ARG for @to_print;
+
+    ##  flag runtime-resolved config paths  ##
+    if ( ( $opt{'list-configs'} || $opt{list} ) && @{$config_ambiguous} ) {
+        say ":: ambiguous [ runtime-resolved config path ]:";
+        say "   $ARG" for sort_by_length( @{$config_ambiguous} );
+    }
+
+    exit 0;
+}
 
 ##  scan all modules and build dependency graph  ##
 my $graph = scan_modules($modules_dir);
@@ -436,7 +490,8 @@ sub analyze_zenka_reachability {
             $zenka_name, qw| start | );
         die ":: zenka start file not found: $start_file\n" if !-f $start_file;
         ( $loaded_set, $entry_commands )
-            = parse_zenka_start_file($start_file);
+            = parse_zenka_start_file($start_file)
+            ;    ##  config_files unused here  ##
     }
 
     say ":: zenka : $zenka_name";
@@ -572,6 +627,25 @@ sub parse_start_lines {
         }
     }
 
+    ##  extract load_config_file includes [ [load_config_file:'name'] ]  ##
+    my @config_files;
+    my @config_ambiguous;    ##  variable-ref cases [ runtime-resolved ]  ##
+    for my $line (@joined_lines) {
+        if ( $line =~ m/^\s*\[load_config_file\s*:\s*([^\]]+)\]/ ) {
+            my $arg = $1;
+            $arg =~ s/^\s+|\s+$//g;
+            if ( $arg =~ m/^['"](.+)['"]$/ ) {
+                ##  literal string — extractable  ##
+                push @config_files, $1;
+            } elsif ( $arg =~ m/^<([^>]+)>$/ ) {
+                ##  variable reference — runtime-resolved  ##
+                push @config_ambiguous, $arg;
+            } else {
+                push @config_files, $arg;
+            }
+        }
+    }
+
     ##  extract entry-point commands from [cmd:param] lines  ##
     my @entry_commands;
     for my $line (@joined_lines) {
@@ -583,7 +657,10 @@ sub parse_start_lines {
         }
     }
 
-    return ( \%loaded_set, \@entry_commands );
+    return (
+        \%loaded_set,   \@entry_commands,
+        \@config_files, \@config_ambiguous
+    );
 }
 
 sub resolve_command_to_module {
@@ -791,8 +868,8 @@ sub backtrack_variable_origin {
     return $result;
 }
 
-#,,.,,..,,,,.,,,.,...,,,.,,.,,,.,,,..,...,..,,.,.,...,...,,..,..,,,,,,,,.,.,,,
-#FX22GBV3AKQRTPQT4IRQ2HPQIIJ4OZXETOK222OYSQQYBHRT44MQ5YR4TS5UPWFMP3C4RVKR3XBPY
-#\\\|UCMELBFJA3L45GWN4YRKJELADXCZSFATNZH6C2R7TSNFDIKHMHF \ / AMOS7 \ YOURUM ::
-#\[7]VPVNZJB2D3NEFQF5VU26OE354DVI435G35YTUIVCTO7DTFQZAWCY 7  DATA SIGNATURE ::
+#,,..,,.,,..,,.,.,,.,,,..,.,,,,..,.,.,,.,,,.,,.,.,...,...,...,,,.,...,.,,,,,,,
+#2Y4IFMJZXYPVBXRJDID6XSYGSCPMN64PFPXFT7GXE25LLKOKTB42FAAQGGWEXBMQCR4ZLN6UESQNI
+#\\\|SAESUJ6QTRD62T5ILDLTFG6HPIUUSZ5OBFYU552YJJCGVOBYYZ6 \ / AMOS7 \ YOURUM ::
+#\[7]3D5HQIBEAACNTEGOU3YDZUDXHYJCZDFXNUFBSEX4VCZ7MYIGMWDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
