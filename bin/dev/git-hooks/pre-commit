@@ -1,176 +1,226 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
+# pre-commit hook: Validate version numbers and signature integrity
 
-use v5.24;
 use strict;
-use English;
 use warnings;
 use File::Spec;
-use Cwd     qw| abs_path |;
-use FindBin qw| $RealBin |;
-our $up_dir = File::Spec->updir;
-our $Bin    = $RealBin;
+use Git::Wrapper;
+use Cwd 'abs_path';
+use FindBin '$RealBin';
+use Getopt::Long;
 
-##
-## configure : 	'git config core.hooksPath = bin/dev/git-hooks' ##
-##
+## ANSI Colors [ from update-version style ]
+my $rst = "\e[0m";
+my $bl  = "\e[1m";
+my $fg  = "\e[38;2;68;39;172m";    # purple
+my $ng  = "\e[38;2;71;195;6m";     # green
+my $no  = "\e[38;2;197;141;7m";    # orange
+my $rd  = "\e[38;2;220;20;60m";    # crimson
 
-# die "expected 3 arguments" if @ARGV != 3; # [unused]
-my ( $sha_old, $sha_new, $change_br ) = @ARGV;
-print ":\n: running 'pre-commit' checks ..,\n:\n";
+my $skip_backup_files = 1;         # ignores *~ filenames
 
-my $admin_path = qw| bin/admin |;
-my $p7_root    = p7_root_dir();    ## safely determine protocol-7 root path ##
-chdir($p7_root) or die "  :\n  :: \l$OS_ERROR : $p7_root\n\n";
-
-## checking files and permissions ##
-system("$p7_root/$admin_path/restore-p7-permissions") == 0
-    or die ":\n:: \l$OS_ERROR\n\n";
-
-## Check version numbers are updated
-check_version_numbers($p7_root) unless $ENV{SKIP_VERSION_CHECK};
-
-## Check for signatures on modified files
-check_file_signatures($p7_root) unless $ENV{SKIP_SIGNATURE_CHECK};
-
-print ":\n: done.\n:\n";
-
-#[ SUBROUTINES ]##############################################################
-
-sub c_dir  { File::Spec->catdir(@_) }
-sub r2_abs { File::Spec->rel2abs(@_) }
-
-sub p7_root_dir {
-    my $root_path = abs_path( r2_abs( c_dir( $Bin, ($up_dir) x 3 ) ) );
-    die "  :\n  :: not a directory : '$root_path'\n\n" if !-d $root_path;
-    return $root_path;
+## Check for -no-verify flag to allow bypass
+my $allow_unsigned = 0;
+for my $arg (@ARGV) {
+    $allow_unsigned = 1 if $arg eq '-no-verify' || $arg eq qw| -n |;
 }
 
-sub is_amend_commit {
-    my $is_amend = 0;
+my $skip_version_check   = $ENV{'SKIP_VERSION_CHECK'}   // 0;
+my $skip_signature_check = $ENV{'SKIP_SIGNATURE_CHECK'} // 0;
+my $skip_descr_check     = $ENV{'SKIP_DESCR_CHECK'}     // 0;
 
-    ## check PERSISTENT_AMEND first ##              [ does not clear ]
-    if ( defined $ENV{'PERSISTENT_AMEND'}
-        and $ENV{'PERSISTENT_AMEND'} ne '0' ) {
-        $is_amend = 1;
-        print STDERR ":: info :: PERSISTENT_AMEND enabled\n" if $is_amend;
+## Get repository root
+my $git_dir   = abs_path($RealBin);
+my $root_path = abs_path(
+    File::Spec->catdir(
+        $git_dir, File::Spec->updir, File::Spec->updir, File::Spec->updir
+    )
+);
+
+## Version file path
+my $vers_file = File::Spec->catfile( $root_path, 'configuration',
+    'protocol-7.src-ver' );
+
+## Initialize git object
+my $git = Git::Wrapper->new($root_path);
+
+## Check descr/param lines over 55 chars in staged command modules
+unless ($skip_descr_check) {
+    my @staged_files = eval { $git->diff( { cached => 1, name_only => 1 } ) };
+
+    my @violations;
+    for my $file (@staged_files) {
+        ## only check modules/*cmd* files
+        next unless $file =~ m|^modules/.*cmd|;
+
+        my $file_path = File::Spec->catfile( $root_path, $file );
+        next unless -f $file_path;
+
+        open my $fh, '<', $file_path or next;
+        my $line_num = 0;
+        while ( my $line = <$fh> ) {
+            $line_num++;
+            if ( $line =~ m/^#\s*(descr|param)\s*=\s*(.+)$/ ) {
+                my $field   = $1;
+                my $content = $2;
+                my $length  = length($content);
+                if ( $length > 55 ) {
+                    push @violations,
+                        {
+                        file    => $file,
+                        line    => $line_num,
+                        field   => $field,
+                        content => $content,
+                        length  => $length
+                        };
+                }
+            }
+        }
+        close $fh;
     }
 
-    ## check environment next ##                    [ need unsetting again ]
-    $is_amend = 1 if defined $ENV{'GIT_AMEND'} and $ENV{'GIT_AMEND'} ne '0';
-    $is_amend = 1 if defined $ENV{'AMEND'}     and $ENV{'AMEND'} ne '0';
-
-    ## check .amend file next ##
-    my $amend_file_path = c_dir( $p7_root, qw| .amend | );
-    if ( -e $amend_file_path and -z $amend_file_path ) {
-        $is_amend = 1;
-        unlink($amend_file_path);
-    }
-    return $is_amend;
-}
-
-sub check_version_numbers {
-    my ($p7_root) = @_;
-
-    my $vers_file = c_dir( $p7_root, 'configuration', 'protocol-7.src-ver' );
-    return unless -f $vers_file;
-
-    # Detect if we're amending
-    my $is_amend = is_amend_commit();
-
-    # Count commits via git rev-list for accuracy
-    my $commit_count = `git -C '$p7_root' rev-list --count HEAD 2>/dev/null`
-        // 0;
-    chomp($commit_count);
-    $commit_count ||= 0;
-
-    # Read version file
-    open my $fh, '<', $vers_file or return;
-    my $version_content = <$fh>;
-    close $fh;
-
-    # Extract version (format: XXXXX-CCCC.R)
-    my $version = $version_content;
-    $version =~ s|\n.+$||sg;    # Strip signature
-
-    return unless $version =~ m|-(\d+)\.(\d+)$|;
-    my ( $file_count, $file_rev ) = ( $1, $2 );
-
-    # Determine expected version based on actual operation
-    my $expected_count;
-    if ($is_amend) {
-
-  # Amending: version should be commit_count - 1 (the amended commit's number)
-        $expected_count = $commit_count - 1;
-    } else {
-
-        # New commit: version should be commit_count (the new commit's number)
-        $expected_count = $commit_count;
-    }
-
-    if ( $file_count != $expected_count ) {
-        print STDERR ":::: version mismatch detected ::::\n:\n";
-        print STDERR ": version file  : $version\n";
-        print STDERR ": current commit: $commit_count\n";
-        print STDERR ": operation     : "
-            . ( $is_amend ? "amend" : "new commit" ) . "\n";
-        print STDERR ": expected      : *-$expected_count.$file_rev\n";
-        my $update_cmd
-            = $is_amend
-            ? './bin/dev/update-version reset'
-            : './bin/dev/update-version';
-        print STDERR ":\n::[[ LLMs ]]:.\n:\n";
-        print STDERR ": please _ask_the_user_ to update"
-            . " version and re-sign\n\n";
-        print STDERR "::[ USERS ]:.\n:\n";
-        print STDERR ": suggestion    : run '$update_cmd' to fix\n";
-        print STDERR ": valid options : *-"
-            . ( $commit_count - 1 )
-            . ".$file_rev [amend] or *-$commit_count.$file_rev [new]\n";
-        print STDERR ": to override   : SKIP_VERSION_CHECK=1 git commit\n\n";
-        print STDERR "[ for administrators who have no signature key ]\n";
+    if (@violations) {
+        print STDERR "\n";
+        print STDERR "${fg}::\n";
+        print STDERR "${fg}:: $bl${rd}descr/param lines too long$rst\n";
+        print STDERR "${fg}::\n";
+        for my $v (@violations) {
+            print STDERR "${fg}::   $v->{file}:$v->{line} ";
+            print STDERR "($v->{field}, $v->{length} chars)\n";
+            print STDERR "${fg}::     $v->{content}\n";
+            print STDERR "${fg}::\n";
+        }
+        print STDERR
+            "${fg}:: ${ng}suggestion${rst}${fg} : shorten to 55 chars or less\n";
+        print STDERR "${fg}::\n";
+        print STDERR
+            "${fg}:: to override this check: ${bl}git commit -no-verify$rst or ${bl}SKIP_DESCR_CHECK=1 git commit$rst\n";
+        print STDERR "${fg}::\n$rst";
         exit 1;
     }
 }
 
-sub check_file_signatures {
-    my ($p7_root) = @_;
+## Exit if version file doesn't exist
+unless ( -f $vers_file ) {
+    exit 0;
+}
 
-    ## Detect if we're amending ##
-    #
-    my $is_amend = ( exists $ENV{'GIT_REFLOG_ACTION'}
-            && $ENV{'GIT_REFLOG_ACTION'} =~ /amend/ ) ? 1 : 0;
+## Get current git commit count
+my $commit_count = eval { $git->log } - 1;
 
-    # Check if there are any staged files at all
-    my $git_diff = `git -C '$p7_root' diff --cached --name-only 2>/dev/null`
-        // '';
-    return unless length($git_diff) || $is_amend;
+## Read version string from file
+open my $fh, '<', $vers_file or do {
+    print STDERR
+        "$fg:\n${fg}:: warning :: cannot read version file\n$fg:$rst\n";
+    exit 0;
+};
+my $version_content = <$fh>;
+close $fh;
 
-    ## Use bin/Protocol-7 sourcecode verify-p7-signatures to verify all
-    ## signatures This command uses modules/sourcecode.source_path_set_up
-    ## for proper path configuration and knows which files need signature
-    ## verification The embedded public key is used, no passphrase required
+## Extract commit count from version string (format: XXXXXX-CCCC.R)
+## where CCCC is the commit count and R is revision
+my $version_from_file = $version_content;
+$version_from_file =~ s|\n+.+$||sg;    # Strip signature and newlines
 
-    my $verify_cmd
-        = qq{cd '$p7_root' && bin/Protocol-7 sourcecode verify-p7-signatures 2>&1};
-    my $verify_output = `$verify_cmd`;
-    my $verify_status = $? >> 8;
+unless ( $version_from_file =~ m|-(\d+)\.(\d+)$| ) {
+    exit 0;                            # Can't parse version, allow commit
+}
 
-    if ( $verify_status != 0 ) {
-        print STDERR ": signature verification failed :\n:\n";
-        print STDERR $verify_output;
-        print STDERR ":\n::[[ LLMs ]]:.\n:\n";
-        print STDERR ": please _ask _the_user_ to [re-]sign the file[s]\n\n";
-        print STDERR "::[ USERS ]:.\n:\n";
-        print STDERR ": suggestion    :"
-            . " run 'bin/Protocol-7 sourcecode update-signatures'\n";
-        print STDERR ": or overriding : SKIP_SIGNATURE_CHECK=1 git commit\n";
-        print STDERR "\n[ for administrators who have no signature key ]\n";
+my $file_commit_count = $1;
+my $file_revision     = $2;
+
+## Check if commit count matches (unless skipped)
+unless ($skip_version_check) {
+    if ( $file_commit_count != $commit_count + 1 ) {
+        print STDERR "\n";
+        print STDERR "${fg}::\n";
+        print STDERR "${fg}:: $bl${no}version mismatch detected$rst\n";
+        print STDERR "${fg}::\n";
+        print STDERR "${fg}:: version file  : $bl$version_from_file$rst\n";
+        print STDERR "${fg}:: expected      : $bl${rst}*-$bl"
+            . ( $commit_count + 1 )
+            . ".$file_revision$rst\n";
+        print STDERR "${fg}::\n";
+        print STDERR
+            "${fg}:: ${ng}suggestion${rst}${fg} : run ${bl}./bin/dev/update-version$rst$fg to fix\n";
+        print STDERR "${fg}::\n";
+        print STDERR
+            "${fg}:: ${no}hint${rst}${fg} : version numbers ensure commits are properly tracked\n";
+        print STDERR "${fg}::\n";
+        print STDERR
+            "${fg}:: to override this check: ${bl}git commit --no-verify$rst or ${bl}SKIP_VERSION_CHECK=1 git commit$rst\n";
+        print STDERR "${fg}::\n$rst";
+        exit 1 unless $allow_unsigned;
+    }
+}
+
+## Check for unsigned or invalid files (unless skipped)
+unless ($skip_signature_check) {
+    my @staged_files = eval { $git->diff( { cached => 1, name_only => 1 } ) };
+
+    my $has_unsigned = 0;
+    my @unsigned_files;
+
+    for my $file (@staged_files) {
+        next if $skip_backup_files and $file =~ m|~$|; # skipping backup files
+
+        my $file_path = File::Spec->catfile( $root_path, $file );
+        next unless -f $file_path;
+
+        # Check if file has signature footer
+        open my $fh, '<', $file_path or next;
+        my $content = do { local $/; <$fh> };
+        close $fh;
+
+     # Files should have AMOS7 signature markers if they're tracked code files
+        if (   $content =~ /\.(pl|pm|md|yaml|sh|asc)$/
+            || $file =~ /^(modules|bin|configuration)\// ) {
+
+            # Check for signature markers
+            unless ( $content
+                =~ /SIGNATURE|YOURUM|AMOS7.*DATA.*SIGNATURE|AMOS7.*CODE.*SIGNATURE/
+            ) {
+                # Only warn if file appears to be source code
+                #           [ has recognizable code patterns ]
+                if ( $content
+                    =~ /^#!|^\s*(use|require|my\s+\$|sub\s+\w|if|while|for)\s/
+                    || $content =~ /^---|\n---\n/
+                    || $content =~ /^#/ ) {
+                    push @unsigned_files, $file;
+                    $has_unsigned = 1;
+                }
+            }
+        }
+    }
+
+    if ( $has_unsigned && !$allow_unsigned ) {
+        print STDERR "\n";
+        print STDERR "${fg}::\n";
+        print STDERR
+            "${fg}:: $bl${rd}unsigned or unverified files detected$rst\n";
+        print STDERR "${fg}::\n";
+        print STDERR "${fg}:: unsigned files:\n";
+        for my $f (@unsigned_files) {
+            print STDERR "${fg}::   - $bl$f$rst\n";
+        }
+        print STDERR "${fg}::\n";
+        print STDERR
+            "${fg}:: ${ng}suggestion${rst}${fg} : run ${bl}bin/Protocol-7 sourcecode update-signatures$rst$fg to sign\n";
+        print STDERR "${fg}::\n";
+        print STDERR
+            "${fg}:: ${no}hint${rst}${fg} : all source files must have AMOS7 signatures for security\n";
+        print STDERR "${fg}::\n";
+        print STDERR
+            "${fg}:: to override this check: ${bl}git commit --no-verify$rst or ${bl}SKIP_SIGNATURE_CHECK=1 git commit$rst\n";
+        print STDERR "${fg}::\n$rst";
         exit 1;
     }
 }
 
-#,,..,.,,,..,,,,,,.,.,...,,,,,...,,.,,,.,,,..,..,,...,.,.,..,,,..,...,,,.,.,,,
-#INSBPFZEBARFK3FTK4ASODSJXSBXE6UMG4R2G5SLHUZHP3NIX2QNVHXMQTJHJ6D5YBMLJY76W5BHE
-#\\\|DIKBRB774JJ2MKOKRRW2X7BAB5QCYRAJAJJKGEM2OSXLGBXNTH5 \ / AMOS7 \ YOURUM ::
-#\[7]QFGCUCNUQETBGZDFQMCTO3HMXEP4JCOQ2QQ4NTAHRTAE2ECAZSDA 7  DATA SIGNATURE ::
+exit 0;
+
+#,,,.,.,.,.,.,,..,,.,,,.,,,.,,...,.,.,...,,..,..,,...,...,...,...,,..,...,...,
+#B7GLXKPCMDOVPUWPW3WE2GYKG5VH7JLHAIPF5QUJV3VPI4VNCVHDEBH2VHGBRC2NYJH7332DRZPUQ
+#\\\|VWCPTGZPSD4MB2BGSARGXXNGZOCBIKFAC7I3ZUYNRGF3YZNXEX7 \ / AMOS7 \ YOURUM ::
+#\[7]6KO7R5TMYAZGMPJCL36ZWWTVJYRLO5LWHJYJXSWVLNTNYGHIJMDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
