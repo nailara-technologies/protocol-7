@@ -44,6 +44,7 @@ my %opt = (
     qw| reverse| => 0,
     qw| module | => undef,
     qw| depth  | => 1,
+    qw| zenka  | => undef,
 );
 
 Getopt::Long::Configure('prefix_pattern=--|-');
@@ -54,6 +55,7 @@ GetOptions(
     qw| reverse|   => \$opt{reverse},
     qw| module=s | => \$opt{module},
     qw| depth=i  | => \$opt{depth},
+    qw| zenka=s  | => \$opt{zenka},
 ) or die ":: invalid command line arguments\n";
 
 ##  default to text output if no format specified  ##
@@ -61,6 +63,10 @@ $opt{text} = 1 if !$opt{text} && !$opt{dot};
 
 ##  validate depth is positive  ##
 die ":: depth must be >= 0\n" if $opt{depth} < 0;
+
+##  validate -zenka not combined with -module  ##
+die ":: -zenka cannot be used with -module\n"
+    if defined $opt{zenka} && defined $opt{module};
 
 ##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
 ##[ CONFIGURATION ]############################################################
@@ -81,6 +87,12 @@ my $dot_output_path
 
 ##  scan all modules and build dependency graph  ##
 my $graph = scan_modules($modules_dir);
+
+##  handle -zenka mode [reachability analysis]  ##
+if ( defined $opt{zenka} ) {
+    analyze_zenka_reachability( $graph, $opt{zenka} );
+    exit 0;
+}
 
 ##  filter graph if module specified  ##
 if ( defined $opt{module} ) {
@@ -390,8 +402,236 @@ sub write_file {
     close $fh;
 }
 
-#,,..,,,.,..,,,,,,,..,..,,.,,,...,...,,.,,.,.,.,.,...,...,..,,.,,,.,,,,.,,.,.,
-#ULFIZX5EKJTL32XTCGG3MLITVMSFMFTUROYHH644NY2IP7QPH6WRSSTZOV5QD5ROWGDTCQESOMFK4
-#\\\|HD4DVW7FIFZDL2YEIOM7M2COEEU3YYOSXFULDCZAW7HGXKSCAVK \ / AMOS7 \ YOURUM ::
-#\[7]KPXTWCUDLR5ZS2CN5TIR53IXQM6RA553QDPNHUC6RFORSOC6RMCQ 7  DATA SIGNATURE ::
+##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
+##[ ZENKA REACHABILITY ANALYSIS ]#############################################
+
+sub analyze_zenka_reachability {
+    ##  analyze which modules are reachable from a zenka's entry points  ##
+    my ( $graph, $zenka_name ) = @ARG;
+
+    ##  locate and parse start file  ##
+    my $start_file = c_dir( $root_path, qw| configuration zenki |,
+        $zenka_name, qw| start | );
+    die ":: zenka start file not found: $start_file\n" if !-f $start_file;
+
+    my ( $loaded_set, $entry_commands ) = parse_zenka_start_file($start_file);
+
+    say ":: zenka : $zenka_name";
+    say ":: loaded   : " . scalar( keys %{$loaded_set} ) . " modules";
+
+    ##  resolve entry commands to module names  ##
+    my @entry_modules;
+    for my $cmd ( @{$entry_commands} ) {
+        my $module = resolve_command_to_module( $graph, $cmd );
+        push @entry_modules, $module if defined $module;
+    }
+
+    ##  find all modules reachable from entry points  ##
+    my %reachable = walk_reachable( $graph, \@entry_modules );
+
+    say ":: reachable: " . scalar( keys %reachable ) . " modules";
+
+    ##  find unreachable loaded modules  ##
+    my @unreachable;
+    for my $loaded ( keys %{$loaded_set} ) {
+        ##  check if loaded module or any of its expansions are reachable  ##
+        my $found = 0;
+        for my $reachable_module ( keys %reachable ) {
+            if ( $reachable_module =~ m/^\Q$loaded\E/ ) {
+                $found = 1;
+                last;
+            }
+        }
+        push @unreachable, $loaded if !$found;
+    }
+
+    ##  find modules with variable dispatch [runtime-resolved calls]  ##
+    my @ambiguous = find_variable_dispatch( $graph, $loaded_set );
+
+    ##  output unreachable list  ##
+    if (@unreachable) {
+        say ":: unreachable [never called]:";
+        for my $mod ( sort_by_length(@unreachable) ) {
+            say "   $mod";
+        }
+    } else {
+        say ":: unreachable: none";
+    }
+
+    ##  output ambiguous dispatch warnings  ##
+    if (@ambiguous) {
+        say
+            ":: ambiguous dispatch [runtime-resolved, may call any loaded module]:";
+        for my $entry (@ambiguous) {
+            say
+                "   $entry->{module}  [ \$code{$entry->{var}}->() at line $entry->{line} ]";
+        }
+    }
+
+    ##  generate tree output if -text specified  ##
+    if ( $opt{text} ) {
+        say "";
+        ##  create filtered graph with only reachable modules  ##
+        my %reachable_graph;
+        for my $module ( keys %reachable ) {
+            next unless exists $graph->{$module};
+            ##  only include edges to other reachable modules  ##
+            for my $dep ( keys %{ $graph->{$module} } ) {
+                $reachable_graph{$module}{$dep} = $graph->{$module}{$dep}
+                    if exists $reachable{$dep};
+            }
+        }
+
+        ##  generate a tree for each entry point  ##
+        for my $entry_module ( sort_by_length(@entry_modules) ) {
+            say generate_tree_output( \%reachable_graph, $entry_module );
+        }
+    }
+}
+
+sub parse_zenka_start_file {
+    ##  parse zenka start file to extract loaded modules and entry commands  ##
+    my $start_file = shift;
+
+    open my $fh, qw| < |, $start_file
+        or die ":: cannot read $start_file: $OS_ERROR\n";
+    my @lines = <$fh>;
+    close $fh;
+
+    ##  join continuation lines [ending with \]  ##
+    my @joined_lines;
+    my $current = '';
+    for my $line (@lines) {
+        chomp $line;
+        if ( $line =~ m/\\\s*$/ ) {
+            ##  line continues - strip \ and append  ##
+            $line =~ s/\\\s*$//;
+            $current .= $line . ' ';
+        } else {
+            $current .= $line;
+            push @joined_lines, $current if $current =~ m/\S/;
+            $current = '';
+        }
+    }
+    push @joined_lines, $current if $current =~ m/\S/;
+
+    ##  extract modules.load value  ##
+    my %loaded_set;
+    for my $line (@joined_lines) {
+        if ( $line =~ m/^\s*modules\.load\s*=\s*(.+)/ ) {
+            my $value = $1;
+            ##  strip comments  ##
+            $value =~ s/\s*##.*$//;
+            ##  split on whitespace  ##
+            for my $mod ( split /\s+/, $value ) {
+                $loaded_set{$mod} = 1 if $mod =~ m/\S/;
+            }
+        }
+    }
+
+    ##  extract entry-point commands from [cmd:param] lines  ##
+    my @entry_commands;
+    for my $line (@joined_lines) {
+        if ( $line =~ m/^\s*\[([^\]:]+)/ ) {
+            my $cmd = $1;
+            ##  strip params after : if present  ##
+            $cmd =~ s/:.*$//;
+            push @entry_commands, $cmd if $cmd =~ m/\S/;
+        }
+    }
+
+    return ( \%loaded_set, \@entry_commands );
+}
+
+sub resolve_command_to_module {
+    ##  resolve command name to module name using loader prefix logic  ##
+    my ( $graph, $cmd ) = @ARG;
+
+    ##  try prefix variations in order: base.cmd.NAME, base.NAME, NAME  ##
+    my @candidates = ( "base.cmd.$cmd", "base.$cmd", $cmd );
+
+    for my $candidate (@candidates) {
+        return $candidate if exists $graph->{$candidate};
+    }
+
+    ##  silently skip if not found [infrastructure calls like root.*]  ##
+    return undef;
+}
+
+sub walk_reachable {
+    ##  transitively walk dep-graph from entry points to find all reachable modules  ##
+    my ( $graph, $entry_modules ) = @ARG;
+
+    my %reachable;
+    my @queue = @{$entry_modules};
+
+    while (@queue) {
+        my $module = shift @queue;
+        next if $reachable{$module};
+        $reachable{$module} = 1;
+
+        ##  queue all dependencies  ##
+        if ( exists $graph->{$module} ) {
+            for my $dep ( keys %{ $graph->{$module} } ) {
+                push @queue, $dep if !$reachable{$dep};
+            }
+        }
+    }
+
+    return %reachable;
+}
+
+sub find_variable_dispatch {
+    ##  find modules that use variable-keyed dispatch [\$code{\$var}]  ##
+    my ( $graph, $loaded_set ) = @ARG;
+
+    my @ambiguous;
+    my $modules_dir = c_dir( $root_path, qw| modules | );
+    my @files       = get_module_files($modules_dir);
+
+    ##  build reverse lookup: module name -> file path  ##
+    my %module_to_file;
+    for my $file (@files) {
+        my $name = extract_module_name($file);
+        $module_to_file{$name} = $file if defined $name;
+    }
+
+    ##  check each loaded module's source for variable dispatch  ##
+    for my $loaded ( keys %{$loaded_set} ) {
+        ##  find all modules matching this loaded prefix  ##
+        for my $module ( keys %module_to_file ) {
+            next unless $module =~ m/^\Q$loaded\E/;
+            next unless exists $graph->{$module};
+
+            my $file = $module_to_file{$module};
+            open my $fh, qw| < |, $file or next;
+            my @lines = <$fh>;
+            close $fh;
+
+            ##  exclude AMOS7 footer  ##
+            my $end_idx = scalar(@lines) - 6;
+            $end_idx = 0 if $end_idx < 0;
+
+            for my $i ( 0 .. $end_idx ) {
+                my $line = $lines[$i];
+                ##  match variable dispatch: $code{$var} or $code{ $var }  ##
+                if ( $line =~ m/\$code\{\s*\$(\w+)\s*\}/ ) {
+                    push @ambiguous,
+                        {
+                        module => $module,
+                        var    => $1,
+                        line   => $i + 1
+                        };
+                }
+            }
+        }
+    }
+
+    return @ambiguous;
+}
+
+#,,..,,,.,..,,,.,,...,..,,,..,,..,,,,,,..,..,,.,.,...,...,,,.,...,,.,,..,,..,,
+#ORDTSD7UXSQRAADSHS2FCJELJPYDVHSBMQYGPJPBMOXUM2363AYUIJTXZN24OABFAFXLT4AVAN4QI
+#\\\|MMA6H4FVPBL2LK2YT3UARCOKQS2UMWHVMY64H5MN5JJOCLRVRIT \ / AMOS7 \ YOURUM ::
+#\[7]ILGWWKR2LLDELTLC3VO7LIFMN6OLKYMBOFDAC5WDTGOMUNGR2CDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
