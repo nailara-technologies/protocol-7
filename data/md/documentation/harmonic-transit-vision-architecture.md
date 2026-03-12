@@ -22,7 +22,7 @@ topology.dtm          →  darkening transmission matrix zenka
 AMOS7 footer line 5   →  15-bit spatial coordinate per signed packet
 source.init_code      →  binary sunburst crossing map (already present)
 multi-speed lanes     →  77-bit window, lens effect on distance
-PYTAURAZA protocol    →  self-framing stream sync (4 zero-crossing preamble)
+PYTAURAZUMA protocol  →  self-framing stream sync (4 zero-crossing preamble)
 ```
 
 ---
@@ -103,12 +103,12 @@ Reading `Z mod 4` gives direction without labels. Position IS the direction.
 
 ```
 4 CCW positions × 3 complete rotations  =  12 frames
-+ 1 PYTAURAZA sync frame                =  13 total
++ 1 PYTAURAZUMA sync frame              =  13 total
 gcd(13, 4) = 1  →  coprime, combined period = 52
 ```
 
 Within 13 frames: exactly 3 full CCW sweeps + 1 harmonic sync pulse.
-The sync frame (Z=12) is the PYTAURAZA canvas-clean boundary.
+The sync frame (Z=12) is the PYTAURAZUMA canvas-clean boundary.
 
 ### Bidirectional = omnidirectional
 
@@ -244,7 +244,7 @@ FALSE  (in transit) →  step 1  →  slow approach, lingering
 ```
 
 Period: 12 steps to return to same focal alignment. The 13th step
-completes the full cycle — the PYTAURAZA sync frame.
+completes the full cycle — the PYTAURAZUMA sync frame.
 
 ### The lens is stationary, the stream moves
 
@@ -433,7 +433,7 @@ expansion departs.
 
 ---
 
-## 6. PYTAURAZA Sync Protocol
+## 6. PYTAURAZUMA Sync Protocol
 
 The four zero-crossing positions in the div-13 cycle (excluding the
 generator's own leading zero notation):
@@ -451,7 +451,7 @@ checkable. The 4th zero (769230) is checkable by structural property:
 zero carries this property. It is the first zero the receiver can
 independently verify without prior context.
 
-The PYTAURAZA receiver state machine:
+The PYTAURAZUMA receiver state machine:
 
 ```
 SCANNING      →  watch for interior-zero values (×3, ×4, ×9)
@@ -512,7 +512,7 @@ ESC [   / 0x1B5B     DNN...            ANSI CSI        control sequence start
 +++ATH0\r\n         FMVSWQKUJAYA2CQK  Hayes modem     escape + hangup
 ```
 
-Hayes `+++` shares the same architecture as PYTAURAZA:
+Hayes `+++` shares the same architecture as PYTAURAZUMA:
 - three identical characters = run detection (structural, no decode needed)
 - guard time (silence before/after) = the impossible `0000` window enforced by timing
 - command follows boundary = payload after canvas-clean
@@ -524,6 +524,41 @@ No protocol-specific parser needed — the B32 stream is scanned for known
 prefixes and the matching row identifies the protocol and event type.
 A new protocol entry = one table row. Detection is O(prefix_length),
 independent of payload complexity.
+
+### JJFE — the recursive base32 fixed-point prefix
+
+`JJ` in ASCII (0x4A 0x4A) base32-encodes to `JJFE...` — and `JJFE`
+starts with `JJ`, so it encodes to `JJFE...` again. A fixed-point prefix:
+the first bytes of the ASCII string reproduce the same prefix when encoded.
+
+The stable prefix grows by ×8/5 (the base32 expansion ratio) per iteration:
+
+```
+depth 1  →  JJFE                                            (4  chars)
+depth 2  →  JJFEMRIK                                        (8  chars)
+depth 3  →  JJFEMRKNKJEUWCQ                                 (15 chars)
+depth 4  →  JJFEMRKNKJFU4S2KIVKVOQ2RBI                     (26 chars)
+depth 5  →  JJFEMRKNKJFU4S2KIZKTIUZSJNEVMS2WJ5ITEUSCJEFA   (44 chars)
+```
+
+Encoding depth = `floor( log(stable_prefix_length / 4) / log(1.6) ) + 1`
+
+No decoding required — count stable `JJFE...` prefix characters, read
+depth directly. Adding to the prefix table:
+
+```
+value / sequence     base32 prefix     protocol          event
+────────────────     ─────────────     ────────          ─────
+769230  / L\         (harmonic)        div-13 stream     convergence attractor
+ESC [   / 0x1B5B     DNN...            ANSI CSI          control sequence start
+\e[0m               DNNTA3IK          ANSI              canvas-clean / reset
++++ATH0\r\n         FMVSWQKUJAYA2CQK  Hayes modem       escape + hangup
+JJ...               JJFE...           base32 (recursive) encoding depth indicator
+```
+
+The `JJFE` prefix is the base32 quine: self-describing recursive encoding,
+depth readable from prefix length, same structure as PYTAURAZUMA preamble
+phase accumulation — more stable prefix = more encoding layers survived.
 
 ---
 
@@ -569,7 +604,7 @@ topology.dtm.on_confirm      →  darken cell on delivery confirmation
 topology.dtm.advance_frame   →  shift register + CCW pointer advance
 topology.dtm.decay_tick      →  timer-driven fade
 topology.dtm.panorama        →  assemble neighbor matrices into strip
-topology.dtm.sync            →  PYTAURAZA stripe detector
+topology.dtm.sync            →  PYTAURAZUMA stripe detector
 topology.dtm.query           →  return current volume as packed array
 ```
 
@@ -912,7 +947,7 @@ start: `(unix_time - 1023228000) × 4200`, reference date 2002-06-05).
 2003 = 2002 + 1 is prime and sits exactly 1 above a multiple of 13.
 
 The infrastructure remainder encodes the epoch. The +1 above the harmonic
-multiple is the "first true step" — same structure as PYTAURAZA (4th zero
+multiple is the "first true step" — same structure as PYTAURAZUMA (4th zero
 = first checkable zero = canvas-clean). One above the harmonic base = the
 first position that is verifiably outside the cycle.
 
@@ -1274,7 +1309,7 @@ address. Same principle as `comp-int` LSB continuation signaling and
 the TRUE/FALSE stream grouping (Section 3): boundary marker carries
 the structural information implicitly. No separate address layer.
 
-### Connection to PYTAURAZA and group separators
+### Connection to PYTAURAZUMA and group separators
 
 The sync frame is the `.000000` group separator from the TRUE/FALSE
 grouping architecture (Section 6):
@@ -1285,7 +1320,7 @@ sync frame     →  group separator  (closes one packet group)
                →  implicit group address via harmonic position
 ```
 
-The PYTAURAZA canvas-clean (769230, the 4th zero-crossing) is the
+The PYTAURAZUMA canvas-clean (769230, the 4th zero-crossing) is the
 same event at the stream level. At the frame-count level it is the
 +1 that converts 18² into 13 × 5². Both are the same implicit
 addressing mechanism operating at different scales.
@@ -1315,8 +1350,8 @@ serialization principle (Section 14) holds across scales.
 - `modules/source.init_code`        — dimensional table (lines 32-64)
 - `data/md/philosophy/HARMONIC-ENTROPY-INFORMATION-TRANSFER-RESEARCH.md`
 
-#,,,.,..,,.,.,,,.,..,,.,,,,,,,,,.,,,.,.,.,,..,.,.,...,..,,...,,,.,,,,,,..,,.,,
-#UEXX2L3Y6RZGNUCKWRMU6DUKKO7OTQ6WJFXHYHYHZFADJCDLFXLOBOURPJ4KXSEZUAOAAXCMLJRA4
-#\\\|QYANBBIH6EBOHUJUBEX6ODZVFQDR7JEB6XAHZJN7K2ZL2QZXDHI \ / AMOS7 \ YOURUM ::
-#\[7]OQTU6CIHB5N6K2OZPVKRRR4KFDYPABSOEKJBGB7NCUS6OWY6WKAI 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,,.,,.,,..,,,,.,,.,,,,.,,.,,..,,.,.,...,...,..,,..,,,,.,,..,,,.,
+#GXZUPWIJQW3RQI2KTWFLAC4BPDFB7FT7YIC6SPXL3SMLAZ22OM7XFO3KH4CHWEZKOKYANNO6BCQQG
+#\\\|WVGTWODA4BR5BLYX6EEEIMKEG5IDWR7DLGSGZKETDWFTZN43Z74 \ / AMOS7 \ YOURUM ::
+#\[7]QCBF7OJ7DTOCOWSHHPBFZYDS7U5AT3ZYMQVKCWEDFX7M4L73DACI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
