@@ -1,26 +1,26 @@
 ## [:< ##
 
 # name = weather.cmd.widget
-# descr = complete weather widget combining current conditions and forecast
+# descr = weather widget combining current conditions and forecast
 
 my $params = shift || {};
 
-    my $show_current  = $params->{current}  // 1;
-    my $show_forecast = $params->{forecast} // 1;
-    my $forecast_days = $params->{days}     || 5;
+my $show_current  = $params->{current}  // 1;
+my $show_forecast = $params->{forecast} // 1;
+my $forecast_days = $params->{days} || 5;
 
-    my $html = qq|<div class="weather-widget">|;
+my $html = qq|<div class="weather-widget">|;
 
-    ## Include psychedelic CSS inline for self-contained widget
-    $html .= _get_weather_widget_css();
+## Include psychedelic CSS inline for self-contained widget
+$html .= _get_weather_widget_css();
 
-    if ($show_current) {
-        $html .= <[weather.current]>->($params);
-    }
+if ($show_current) {
+    $html .= <[weather.current]>->($params);
+}
 
-    if ($show_forecast) {
-        $html .= <[weather.forecast]>->( { days => $forecast_days } );
-    }
+if ($show_forecast) {
+    $html .= <[weather.forecast]>->( { days => $forecast_days } );
+}
 
 $html .= qq|</div>|;
 
@@ -349,8 +349,8 @@ sub _get_weather_widget_css {
 
 0;
 
-#,,,.,.,.,...,,.,,,.,,.,,,,,.,.,.,.,,,..,,.,.,..,,...,...,,..,,..,...,..,,,,.,
-#GANS4MAK66XG2JQPN5ZHOMBZZFH5OQSIZZFALSTGVXMRUAQOPXTSKOOCDMWIS7ALUXSB3PQKVO7KE
-#\\\|PPE3N6I2MDMDXB2ROVTG3X7SEETPP5ZXBUREADMMASSFD3DREJK \ / AMOS7 \ YOURUM ::
-#\[7]MGFUTGG6PQVUEF6FF2HAJO6IRVJLC5KPPVWN27Q5PM2NAV6OFAAI 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,,,,,..,...,...,,,.,..,,,..,...,..,,...,..,,.,.,,.,,.,.,.,,,...,
+#U4FQKQN5ZDRMVD4CWGNGSFJQOMKOSCNMR3Z7TWQHQ7F45URF7GKFZBVND4HU3DCEMWPCCUFBKMLQY
+#\\\|OKXB6JD42ESAW4AJ2CUMKCYZBUOU3AFJ73YGMVIQ3YBTMITVHKN \ / AMOS7 \ YOURUM ::
+#\[7]RFOFWDOASLWYHG4VILWS3JYUSRQBUWNJ2LPOBPYOQMFGVTC4EUBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

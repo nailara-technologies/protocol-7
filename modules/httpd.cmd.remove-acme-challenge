@@ -2,7 +2,7 @@
 
 # name  = httpd.cmd.remove-acme-challenge
 # param = <domain> <token>
-# descr = remove ACME challenge response file after validation completes
+# descr = remove ACME challenge response file after validation
 
 ( my $domain, my $token ) = split m{\ +}, $call->{'args'} // '';
 
@@ -84,8 +84,8 @@ return {
     'data' => sprintf( 'ACME challenge file removed for %s', $domain )
 };
 
-#,,.,,..,,.,.,...,,.,,.,.,,.,,...,,,,,.,,,...,..,,...,...,..,,..,,,,.,,..,...,
-#BPMCIU7275XILTYUSPUF4YOFCLXKUC467K7K2Y2XAVHBTLNEUGJQA4NRKU5M2QPPGLJ23FRAHKX3S
-#\\\|GUO35O7PJYN5KQ5WN6FRB6JOJSP5DC3FRHZ44PEA2WOB5G56VCN \ / AMOS7 \ YOURUM ::
-#\[7]G7CXX4RDBR42ZSIZ55YQWTJODRCNENCIVMJW6PPARLJVYJOZG2BY 7  DATA SIGNATURE ::
+#,,.,,,,.,..,,,..,,,,,,..,..,,,,,,,..,,,,,.,,,..,,...,...,...,..,,...,,,,,,,,,
+#7WPS7QI34FQZNEYUS7SUDRCAYGW4LS7V77OKSCEWDS5HQIXDAWFFUI7SFF6OZIHTNQQBEW57NU2YS
+#\\\|2ENDINREIVME6XHNSXOPFUQBSKNIYN37KHRAVPWXOWJCT3DQJKH \ / AMOS7 \ YOURUM ::
+#\[7]YWXTCIKMTOFLSLHXIE7PXL6IGB5JV7ZSVTCMKJZFC6APMSRQZABI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
