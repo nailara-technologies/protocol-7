@@ -1,0 +1,17 @@
+## dep-graph dispatch resolution rules : protocol modules
+##
+## format: module_glob : var ~ /context_pattern/ -> resolution_template
+##    or:  var ~ /context_pattern/ -> resolution_template  [ any module ]
+##
+## module_glob: '*' matches any module
+##              'foo.bar.*' matches any module starting with foo.bar.
+##              'foo.bar.baz' matches exactly that module
+##
+## context_pattern: perl regex applied to ±15 lines around dispatch site
+## resolution_template: $1..$5 are regex captures, $var is variable name
+##
+## edges resolved by these rules are tagged [rule-resolved] in output
+
+## amos-chksum command handler always dispatches to ext-cmd submodules
+## evidence: $cmd_handler = "protocol.amos-chksum.ext-cmd.$command"
+protocol.amos-chksum.command-handler : cmd_handler ~ /protocol\.amos-chksum\.ext-cmd/ -> protocol.amos-chksum.ext-cmd.*
