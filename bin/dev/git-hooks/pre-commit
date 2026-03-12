@@ -108,11 +108,11 @@ unless ($skip_descr_check) {
             print STDERR "${fg}::     $v->{content}\n";
             print STDERR "${fg}::\n";
         }
-        print STDERR
-            "${fg}:: ${ng}suggestion${rst}${fg} : shorten to 55 chars or less\n";
+        print STDERR "${fg}:: ${ng}suggestion${rst}${fg} :"
+            . " shorten to 55 chars or less\n";
         print STDERR "${fg}::\n";
-        print STDERR
-            "${fg}:: to override this check: ${bl}git commit -no-verify$rst or ${bl}SKIP_DESCR_CHECK=1 git commit$rst\n";
+        print STDERR "${fg}:: to override this check: ${bl}git commit "
+            . "-no-verify$rst or ${bl}SKIP_DESCR_CHECK=1 git commit$rst\n";
         print STDERR "${fg}::\n$rst";
         exit 1;
     }
@@ -159,14 +159,14 @@ unless ($skip_version_check) {
             . ( $commit_count + 1 )
             . ".$file_revision$rst\n";
         print STDERR "${fg}::\n";
-        print STDERR
-            "${fg}:: ${ng}suggestion${rst}${fg} : run ${bl}./bin/dev/update-version$rst$fg to fix\n";
+        print STDERR "${fg}:: ${ng}suggestion${rst}${fg} :"
+            . " run ${bl}./bin/dev/update-version$rst$fg to fix\n";
         print STDERR "${fg}::\n";
-        print STDERR
-            "${fg}:: ${no}hint${rst}${fg} : version numbers ensure commits are properly tracked\n";
+        print STDERR "${fg}:: ${no}hint${rst}${fg} : version numbers ensure "
+            . "commits are properly tracked\n";
         print STDERR "${fg}::\n";
-        print STDERR
-            "${fg}:: to override this check: ${bl}git commit -no-verify$rst or ${bl}SKIP_VERSION_CHECK=1 git commit$rst\n";
+        print STDERR "${fg}:: to override this check: ${bl}git commit "
+            . "-no-verify$rst or ${bl}SKIP_VERSION_CHECK=1 git commit$rst\n";
         print STDERR "${fg}::\n$rst";
         exit 1 unless $allow_unsigned;
     }
@@ -181,7 +181,49 @@ unless ($skip_signature_check) {
         . ( $staged_count == 1 ? '' : 's' )
         . " — checking signatures ]\n:\n";
 
-    ## run authoritative signature verification ##
+    ## pass 1: check staged files for missing signatures [ presence check ] ##
+    my @unsigned_files;
+    for my $file (@staged_files) {
+        next if $skip_backup_files and $file =~ m|~$|;
+        next
+            unless $file =~ /\.(pl|pm|md|yaml|sh)$/
+            or $file =~ m{^(modules|bin|configuration)/};
+
+        my $file_path = File::Spec->catfile( $root_path, $file );
+        next unless -f $file_path;
+
+        open my $fh, '<', $file_path or next;
+        my $content = do { local $/; <$fh> };
+        close $fh;
+
+        ## only flag files that look like source but have no signature ##
+        if (   $content =~ /^#!|^\s*(use|my\s+\$|sub\s+\w)|^#\s*name\s*=/m
+            || $content =~ /^---/m ) {
+            unless ( $content =~ /YOURUM|AMOS7.*DATA.*SIGNATURE/ ) {
+                push @unsigned_files, $file;
+            }
+        }
+    }
+
+    if (@unsigned_files) {
+        print STDERR "${fg}::\n";
+        print STDERR "${fg}:: $bl${rd}unsigned files in staged set$rst\n";
+        print STDERR "${fg}::\n";
+        for my $f (@unsigned_files) {
+            print STDERR "${fg}::   - $bl$f$rst\n";
+        }
+        print STDERR "${fg}::\n";
+        print STDERR "${fg}:: ${ng}suggestion${rst}${fg} : "
+            . "run ${bl}bin/Protocol-7 sourcecode "
+            . "update-signatures$rst$fg to sign\n";
+        print STDERR "${fg}::\n";
+        print STDERR "${fg}:: to override: "
+            . "${bl}SKIP_SIGNATURE_CHECK=1 git commit$rst\n";
+        print STDERR "${fg}::\n$rst";
+        exit 1 unless $allow_unsigned;
+    }
+
+    ## pass 2: run authoritative signature verification ##
     my $verify_cmd
         = "cd '$root_path' && bin/Protocol-7 "
         . "sourcecode verify-p7-signatures 2>&1";
@@ -194,11 +236,13 @@ unless ($skip_signature_check) {
         print STDERR "${fg}::\n";
         print STDERR $verify_output;
         print STDERR "${fg}::\n";
-        print STDERR
-            "${fg}:: ${ng}suggestion${rst}${fg} : run ${bl}bin/Protocol-7 sourcecode update-signatures$rst$fg to sign\n";
+        print STDERR "${fg}:: ${ng}suggestion${rst}${fg} : "
+            . "run ${bl}bin/Protocol-7 sourcecode "
+            . "update-signatures$rst$fg to sign\n";
         print STDERR "${fg}::\n";
-        print STDERR
-            "${fg}:: to override this check: ${bl}git commit -no-verify$rst or ${bl}SKIP_SIGNATURE_CHECK=1 git commit$rst\n";
+        print STDERR "${fg}:: to override this check: "
+            . "${bl}git commit -no-verify$rst or ${bl}SKIP_SIGNATURE_CHECK=1 "
+            . "git commit$rst\n";
         print STDERR "${fg}::\n$rst";
         exit 1 unless $allow_unsigned;
     } else {
@@ -209,8 +253,8 @@ unless ($skip_signature_check) {
 print ":\n: done.\n:\n";
 exit 0;
 
-#,,.,,...,,.,,,.,,...,,,.,,,.,,..,,,.,..,,...,..,,...,...,...,,,.,.,,,.,.,.,,,
-#7OCBDIVWPDKEBZ3UEWYYY2F5PD52UOWEZDFRQVNNAMHXIOEAH52Q2F7ZTZNGKNBXOQPDNHE6NS7CM
-#\\\|G24CMHD4CJ2CYAEVRF5KPNR6OT7CCY2SP5IHYD4B4YE3WLO74VK \ / AMOS7 \ YOURUM ::
-#\[7]POQ5FBQ6QYGIFH6ISAGWRHUPDQY4VK246IP3YXUFHZQRBOIMCUAY 7  DATA SIGNATURE ::
+#,,.,,,,.,,..,.,.,,..,..,,...,,,.,,,.,,.,,.,.,..,,...,..,,...,,,.,,,,,...,.,,,
+#5CUNJ6RZUFIWOQA6D6WQBGZHGJAYRNZ4OT7D3UWHKMMNGSNMYJ6M3XA6EGUZLW4XQ5CXXVS3ZBEL6
+#\\\|EY5LZW3FU7TUOJNNCJOMY2DIN47FZE4YVMT5AKWEZGXRHK3QDVL \ / AMOS7 \ YOURUM ::
+#\[7]3C3NULXQ7RL52ZTXSS5LYKGU6VANITTSMYW6XLH6NTQ4RQVDPOCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
