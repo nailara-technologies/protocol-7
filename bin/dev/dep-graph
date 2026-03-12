@@ -21,12 +21,12 @@ use Getopt::Long;
 BEGIN {
     use English;
     use File::Spec;
-    use Cwd qw| abs_path |;
+    use Cwd     qw| abs_path |;
     use FindBin qw| $RealBin |;
     our $up_dir = File::Spec->updir;
     our $Bin    = $RealBin;
     my $data_pm_path = qw| data/lib-path/pm |;
-    our $root_path   = abs_path( r2_abs( c_dir( $Bin, $up_dir, $up_dir ) ) );
+    our $root_path = abs_path( r2_abs( c_dir( $Bin, $up_dir, $up_dir ) ) );
     my $local_lib_path = abs_path( c_dir( $root_path, $data_pm_path ) );
     $local_lib_path //= $data_pm_path;
     die "\n:\n:: not found : $local_lib_path\n:\n" if !-d $local_lib_path;
@@ -47,9 +47,9 @@ my %opt = (
 );
 
 GetOptions(
-    qw| text   | => \$opt{text},
-    qw| dot    | => \$opt{dot},
-    qw| reverse| => \$opt{reverse},
+    qw| text   |   => \$opt{text},
+    qw| dot    |   => \$opt{dot},
+    qw| reverse|   => \$opt{reverse},
     qw| module=s | => \$opt{module},
     qw| depth=i  | => \$opt{depth},
 ) or die ":: invalid command line arguments\n";
@@ -63,13 +63,16 @@ die ":: depth must be >= 0\n" if $opt{depth} < 0;
 ##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
 ##[ CONFIGURATION ]############################################################
 
-our $root_path;  ##  from BEGIN block  ##
+our $root_path;    ##  from BEGIN block  ##
 my $modules_dir = c_dir( $root_path, qw| modules | );
-my $output_dir  = c_dir( $root_path, qw| data |, qw| md |, qw| documentation | );
+my $output_dir
+    = c_dir( $root_path, qw| data |, qw| md |, qw| documentation | );
 
 ##  output file paths  ##
-my $text_output_path = c_dir( $output_dir, qw| module-dependency-graph.txt | );
-my $dot_output_path  = c_dir( $output_dir, qw| module-dependency-graph.dot  | );
+my $text_output_path
+    = c_dir( $output_dir, qw| module-dependency-graph.txt | );
+my $dot_output_path
+    = c_dir( $output_dir, qw| module-dependency-graph.dot  | );
 
 ##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
 ##[ MAIN ]#####################################################################
@@ -117,8 +120,8 @@ sub scan_modules {
     ##  scan modules directory and build dependency graph  ##
     my $dir = shift;
 
-    my %graph;      ##  module -> { dep_module => call_count }  ##
-    my %module_names;  ##  filename -> canonical module name  ##
+    my %graph;           ##  module -> { dep_module => call_count }  ##
+    my %module_names;    ##  filename -> canonical module name  ##
 
     ##  get all module files  ##
     my @files = get_module_files($dir);
@@ -137,7 +140,8 @@ sub scan_modules {
         my @calls = extract_calls($file);
         for my $target_module (@calls) {
             ##  only count if target is a known module  ##
-            if ( grep { $module_names{$ARG} eq $target_module } keys %module_names ) {
+            if ( grep { $module_names{$ARG} eq $target_module }
+                keys %module_names ) {
                 $graph{$source_module}{$target_module}++;
             }
         }
@@ -280,7 +284,7 @@ sub generate_text_output {
             my $weight = $graph->{$module}{$dep};
             push @deps, "$dep [$weight]";
         }
-        push @lines, "$module -> " . join( qw| , |, @deps ) if @deps;
+        push @lines, "$module -> " . join( ', ', @deps ) if @deps;
     }
 
     return join( "\n", @lines ) . "\n";
@@ -291,11 +295,11 @@ sub generate_dot_output {
     my $graph = shift;
 
     my @lines = (
-        qw| digraph protocol7_modules { |,
-        qw|     rankdir=LR; |,
-        qw|     node [shape=box, style=filled, fillcolor="#1a1a2e", fontcolor="#eaeaea"]; |,
-        qw|     edge [color="#444466"]; |,
-        qw|  |,
+        'digraph protocol7_modules {',
+        '    rankdir=LR;',
+        '    node [shape=box, style=filled, fillcolor="#1a1a2e", fontcolor="#eaeaea"];',
+        '    edge [color="#444466"];',
+        '',
     );
 
     ##  collect unique nodes  ##
@@ -342,13 +346,14 @@ sub write_file {
     ##  write content to file  ##
     my ( $path, $content ) = @ARG;
 
-    open my $fh, qw| > |, $path or die ":: cannot write to $path: $OS_ERROR\n";
+    open my $fh, qw| > |, $path
+        or die ":: cannot write to $path: $OS_ERROR\n";
     print $fh $content;
     close $fh;
 }
 
-#,,,.,,,,..,,,.,.,,..,,,.,,..,,.,,,.,.,.,,,,.,.,,,,.,.,...,.,.,...,...,,.,.,.,,
-#NXWAQEWUWXW7XKR5PM4O3WUSLJLSWZ2RJXJCPXFCXV2MJFIJC3EWEPYT4VWJPI6JYP3AJ4T57JEXY
-#\\\|QNZLWCO3ZUQNFGQFKVIXH6ZD2QOSMGQEWPVKLCHY4ZPXW76OFVCY \ / AMOS7 \ YOURUM ::
-#\[7]VVWU6WQLC53FX7FKVYFESBIFZQLSLKFS3ZQJF7P3I52VQMOVKYLQ 7  DATA SIGNATURE ::
+#,,..,,..,...,,,,,,.,,,.,,,,.,,..,,..,.,.,.,,,.,.,...,...,.,.,,,,,.,,,.,,,,..,
+#XEWLYOEXBZ4JW7JSH7O4UEJRHZ4AQFAEMNNRHIVQNANBTDJEF5NQMNUKLR7U6JTJF53KVEZBLMF5O
+#\\\|6US7GWB7R3DPIM7X3764457ZM3DKNEMGW6RFAGPJRVZXYVE7EXV \ / AMOS7 \ YOURUM ::
+#\[7]WXTMXZGVOY6ZNXEMUKNQKAXA6BTBXN6JNVZT6XJL4S6TF6EVKMCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
