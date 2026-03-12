@@ -30,20 +30,35 @@ list becomes structurally unnecessary.
 #### versioned code hash
 
 ```perl
-##  $CODE{$version}{'module.name'} = \&compiled_sub  ##
+##  $CODE{$version}->{'module.name'} = \&compiled_sub  ##
 my %CODE;    ##  versioned code store  ##
-
-##  active version pointer  ##
-my $active_version = undef;    ##  set after first successful load  ##
-
-##  %code becomes a proxy into the active version  ##
-##  (implementation detail — may use tie or generation pointer)  ##
 ```
+
+the swap itself is as simple as it gets:
+
+```perl
+$CODE{$old_version} = \%code;        ##  archive current live hash  ##
+%code = $CODE{$new_version}->%*;    ##  replace with new version    ##  =)  ##
+```
+
+rollback is the mirror:
+
+```perl
+%code = $CODE{$old_version}->%*;    ##  restore prior version  ##  =)  ##
+```
+
+`%code` remains `%code` at every call site — no proxy, no tie, no
+`$active_version` indirection required for phase 1. single-threaded perl
+hash assignment is effectively atomic within the event loop.
+
+`$active_version` (a string tracking the current version key) is still
+useful for logging, fingerprint comparison, and the rollback window timer,
+but is not load-critical for the swap itself.
 
 #### source store
 
 ```perl
-##  $SOURCE{$version}{'module.name'} = $source_str  ##
+##  $SOURCE{$version}->{'module.name'} = $source_str  ##
 my %SOURCE;    ##  content-addressed source store  ##
 ```
 
@@ -59,31 +74,56 @@ the version key IS the AMOS7 checksum from the module footer —
 content-addressed, collision-free, already computed at signing time.
 no separate versioning scheme needed.
 
-format: `$CODE{$version_string}{'module.name'}` where `$version_string`
+format: `$CODE{$version_string}->{'module.name'}` where `$version_string`
 is the src-ver string e.g. `3PL75UU7LY-6684.0`
 
 ---
 
 ### load modes
 
+the swap line is identical for all modes — what differs is how the staging
+hash is prepared before the swap:
+
+```perl
+$CODE{$old_version} = \%code;        ##  archive current live hash  ##
+%code = $CODE{$new_version}->%*;    ##  swap in prepared staging    ##
+```
+
+patching happens IN `$CODE{$new_version}` before the swap, so the swap
+itself stays a simple one-liner regardless of mode.
+
 #### default: transactional load
 
 - compile all modules into `$CODE{$new_version}` staging hash
 - if any module fails: abort, discard staging hash, keep active version
-- if all succeed: atomic pointer swap `$active_version = $new_version`
+- if all succeed: swap as above
 - old version hash kept in memory for rollback window (configurable duration)
 
-#### `:force-replace:`
+#### `:force-replace:` and `:force-keep:`
 
-- partial overwrite: modules that compiled successfully replace active versions
-- modules that failed keep the prior compiled version
-- safe when api surface of changed modules is compatible [ fingerprint check ]
+designed for developers and auto-upgrade scenarios where backends must
+remain online and a fast iteration pace is required:
 
-#### `:force-keep:`
+- compile new version into staging hash as usual
+- for each module that failed compilation:
+  ```perl
+  $CODE{$new_version}->{$mod} = $CODE{$old_version}->{$mod};  ## borrow working slot ##
+  ```
+- swap proceeds with the patched staging hash — backend stays fully online
+- borrowed slots are tracked and reported: `[ kept from prior: N modules ]`
+- on the next reload attempt, successfully compiled modules replace their
+  own borrowed slots — the borrowed set shrinks with each bug fixed
+- converges to a fully new version over successive reload cycles without
+  ever requiring a full restart or a clean-compile gate
 
-- failed modules keep prior compiled version
-- successful modules are applied
-- reports which modules were kept vs replaced
+`:force-replace:` additionally checks compatibility fingerprint before
+borrowing — only borrows if api surface is compatible with the new callers.
+`:force-keep:` borrows unconditionally and reports the kept set.
+
+both modes accommodate:
+- developers iterating fast with partial fixes
+- prod auto-upgrades where some modules may temporarily lag
+- systems where intentional restart is the only acceptable downtime event
 
 #### low-memory mode
 
@@ -179,8 +219,8 @@ goal: read source from disk at load time (freeze), defer `eval` to first use.
 
 #### lazy trigger
 
-- `%code` proxy: if `$CODE{$active_version}{'module.name'}` is undef
-  but `$SOURCE{$active_version}{'module.name'}` is present → compile on access
+- `%code` proxy: if `$CODE{$active_version}->{'module.name'}` is undef
+  but `$SOURCE{$active_version}->{'module.name'}` is present → compile on access
 - no change to call sites — `$code{'module.name'}->()` syntax unchanged
 
 #### error reporting while deferred
@@ -205,7 +245,7 @@ tie %SOURCE, 'Protocol7::Source::Network';    ##  cube-routed fetch  ##
 tie %SOURCE, 'Protocol7::Source::ContentAddr'; ## by AMOS7 checksum  ##
 ```
 
-the compile step always reads from `$SOURCE{$version}{'module.name'}` —
+the compile step always reads from `$SOURCE{$version}->{'module.name'}` —
 backend is transparent. low-memory mode uses tied backends that do not
 cache in `%SOURCE` and re-read on demand.
 
@@ -283,7 +323,7 @@ configurable per-zenka via start file or runtime command.
 **phase A — parse + transform** (lines ~1418–1530):
 - read source from disk or HTTP into `$data{'code'}{$file_name}{'source'}`
 - join continuation lines
-- transform `<[module]>->()` → `$code{'module'}->()`
+- transform `<[module]>` → `$code{'module'}->()`
 - transform `<data.key>` → `$data{'key'}`
 - wrap `.cmd.` modules with compiled-in header/footer
 - result: preprocessed source string, ready to `eval`
@@ -318,8 +358,8 @@ step does NOT need to be re-run on lazy compilation, only the `eval`.
 - `## todo-list` comment at line 1730 documents the known intent this task fulfills
 - speed/memory profiles should be adjustable at runtime without restart
 
-#,,,,,,,,,.,,,,,,,...,..,,.,.,,.,,,..,.,,,,.,,..,,...,...,.,,,,.,,.,,,,..,...,
-#5BBAPSHUQF3M6XHRWBWFTLE6L7CSN4XIZALB7MQZRVCJ2EP2VAO6S4ZSNKH7D3GYLW7NXQOP54SEO
-#\\\|7ZB4XZ7TQFYP5MS4BRBFLDX7FUT2CZIYHK5AOICBHFKHCQ5N35G \ / AMOS7 \ YOURUM ::
-#\[7]KDDRNC4MLX7PZMSQW66QU3HOU2Y6TAEIVTTEC565WQFPEGIHMWBY 7  DATA SIGNATURE ::
+#,,.,,..,,.,,,,..,,,,,,,,,...,,,,,.,,,.,.,,..,..,,...,...,...,...,,,,,..,,,,,,
+#M6DIXHKUUPSUTH5RWVM7MGWA6MJVNCNHSM6YU2DMSNHTTMAED7VWY6KNSWMYO6VUNAI6J7EKE7ZVQ
+#\\\|CGAA2CA6ZPJCPN3V3XVPVRLJMEEFHZHN2X5IYQMT5GKVNUZ6R5O \ / AMOS7 \ YOURUM ::
+#\[7]3YFJY5QPY2MXXTTEGG2RNHSVHL63EPVUNCPAWQTXX6JICBK76GDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
