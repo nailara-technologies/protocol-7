@@ -136,6 +136,22 @@ stored alongside the version: `$FINGERPRINT{$version}`.
   `configuration/loader/rollback-rules/` specifying conditions under which
   auto-rollback is safe or should be forced
 
+#### fallback machinery protection
+
+the rollback handler, auto-rollback timer, and error counter monitor
+dispatch through `$CODE{$old_version}` — the same atomic swap property
+that eliminates the exclusion list also protects recovery code:
+
+- a failed reload that never swaps in never touches the old version
+- fallback routines cannot be destroyed by the reload they are guarding
+- during parallel transition: migrate rollback handler into the versioned
+  store FIRST — it is then protected before any other module is migrated
+- one-by-one migration is safe: each module moved into `%CODE{$version}`
+  is immediately protected; no "all or nothing" cutover required
+- slim interface: fallback path needs only `$active_version = $old_version`
+  — keep it in compiled-in `bin/Protocol-7` code, not in `%code` at all,
+  so it survives any module-level reload failure unconditionally
+
 #### concurrent versions
 
 - different zenki can hold different `$active_version` pointers
@@ -302,8 +318,8 @@ step does NOT need to be re-run on lazy compilation, only the `eval`.
 - `## todo-list` comment at line 1730 documents the known intent this task fulfills
 - speed/memory profiles should be adjustable at runtime without restart
 
-#,,.,,,,.,,,,,,.,,,.,,.,,,.,,,..,,,,,,..,,,.,,..,,...,...,...,.,,,.,.,.,,,,.,,
-#WSODXAMNYTONOTXXVGKQY5K4CT7VNZ37M5EVVSH5KBLZ24S4ZKJ4YWRNBUTZSPMKRWSDJJZIZVNG2
-#\\\|6VNSIKCBCFSNRIEZQILC5T4AAYZNRJ5YNJLMKCZCTH2D6JAWCDI \ / AMOS7 \ YOURUM ::
-#\[7]WJOKY6NAG6YQBVXWAWWA5WSS64L5M3KOHQGWG3YBLV3OTM6SGGDQ 7  DATA SIGNATURE ::
+#,,,,,,,,,.,,,,,,,...,..,,.,.,,.,,,..,.,,,,.,,..,,...,...,.,,,,.,,.,,,,..,...,
+#5BBAPSHUQF3M6XHRWBWFTLE6L7CSN4XIZALB7MQZRVCJ2EP2VAO6S4ZSNKH7D3GYLW7NXQOP54SEO
+#\\\|7ZB4XZ7TQFYP5MS4BRBFLDX7FUT2CZIYHK5AOICBHFKHCQ5N35G \ / AMOS7 \ YOURUM ::
+#\[7]KDDRNC4MLX7PZMSQW66QU3HOU2Y6TAEIVTTEC565WQFPEGIHMWBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
