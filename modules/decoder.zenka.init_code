@@ -6,16 +6,14 @@
 ## load Term::VTerm for ANSI/VT sequence parsing ##
 <[base.perlmod.autoload]>->('Term::VTerm');
 <[base.perlmod.autoload]>->('Term::VTerm::Screen');
+<[base.perlmod.autoload]>->('Term::VTerm::Pos');
+<[base.perlmod.autoload]>->('Term::VTerm::Rect');
 
 ## load harmonic truth for /13 reduction jobs ##
 <[base.perlmod.autoload]>->( 'AMOS7::Assert::Truth', qw| is_true | );
 
-## level-5 accumulator state ##
-<decoder.level5> = {
-    'accumulator' => '',    ## accumulated bits ##
-    'bit_count'   => 0,     ## bits in accumulator ##
-    'values'      => [],    ## decoded base32 values ##
-};
+## level-5 accumulator state — keyed by stream_id ##
+<decoder.level5> = {};
 
 ## level-6 D3 state — 3 decimal digits per unicode char ##
 $data{'decoder'}{'level6_acc'}     = '';
@@ -77,8 +75,8 @@ $data{'decoder'}{'vterm_screen'} = $screen;
 
 return TRUE;
 
-#,,,.,,.,,,.,,.,,,,,.,,,.,..,,,,,,...,,,.,,,.,..,,...,...,,..,..,,,..,,..,.,,,
-#UNKENUU4KAVIY44QBG2KORTLJTUMBF75AUMTGKQVJMI5RI2RK2DPKV4SNRJM2OOP3R7DNUBSDRGL4
-#\\\|LJT3WUC7H2CVLAG2U6MAIQRLFLOOP6RSPDB7ASSTOF3ZZ6AQ43M \ / AMOS7 \ YOURUM ::
-#\[7]MBYIHWBLEIKJPNN2HCGFYFVZBAVNOJKY64A6I5MP2WZ4ZNJ4FEAQ 7  DATA SIGNATURE ::
+#,,,,,...,.,,,..,,.,.,.,,,,.,,,,.,.,.,.,,,,,,,..,,...,...,,..,.,.,,.,,,,,,.,.,
+#HSPJ4LYYYEPQ3A7TUFTPFYNYDW2Z7NJCYNNSYIRJXJWJZQQJU6E3JCDIYLYB4OKMIRSKKEWOJRLRM
+#\\\|WPPRJ46NOITVAMHKWLXQBEL5GYMQGD3FZMQSYCR2B776EMA4L33 \ / AMOS7 \ YOURUM ::
+#\[7]7AQM5ORRXXXVFVJZZD4OMWYSW5JV3GEVZ4RWPTYBY4SDZP2KG2DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

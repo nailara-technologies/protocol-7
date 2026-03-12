@@ -29,8 +29,13 @@ if ( defined $data{'decoder'}{'vterm'} ) {
     $data{'decoder'}{'vterm'}->input_write( pack 'B42', $entropy );
 }
 
-## level-5 : extract 5-bit chunks → base32 values ##
-my $L5 = <decoder.level5>;
+## level-5 : extract 5-bit chunks → base32 values [ per-stream state ] ##
+<decoder.level5>->{$stream_id} //= {
+    'accumulator' => '',
+    'bit_count'   => 0,
+    'values'      => [],
+};
+my $L5 = <decoder.level5>->{$stream_id};
 $L5->{'accumulator'} .= $entropy;
 $L5->{'bit_count'} += 42;
 
@@ -73,13 +78,14 @@ return {
         'decimal'      => $decimal,
         'boundary'     => ( $decimal == 769230 ) ? TRUE : FALSE,
         'chunks_added' => $chunks_added,
-        'total_values' => scalar( @{ $L5->{'values'} } ),
-        'pending_bits' => $L5->{'bit_count'},
+        'total_values' =>
+            scalar( @{ <decoder.level5>->{$stream_id}{'values'} } ),
+        'pending_bits' => <decoder.level5>->{$stream_id}{'bit_count'},
     }
 };
 
-#,,,,,.,,,...,.,.,.,.,,,.,.,,,,,.,...,,,,,,,.,..,,...,...,,,.,,,.,,..,...,,..,
-#MZS6YI65WPRNG44PAQU7E4DYLFNQZ5BXYZO2B3X6SUJL366BHPOLF3VZR4MY3P2ZQL2YZPUHEPMRM
-#\\\|XW7BYKRDA7YLP2MLIRBXANOW5LLG63WPLCOZKM25EVXBUADWPY7 \ / AMOS7 \ YOURUM ::
-#\[7]2PIKRGAWQDHT2UA4SC3PFHGBWWC46SWXEMLGVPUQZGHZXCGY2WBQ 7  DATA SIGNATURE ::
+#,,,.,,.,,..,,,..,,,,,.,,,,,.,.,.,,,,,,..,,,.,..,,...,..,,..,,,.,,.,.,...,,,.,
+#KSNCU7CISWZ5Z5YI24UNL4GZDULOIQKKTM4TLQ2CRXIF7F4BOAIOZZNBHFXCWTQNVED3EWDDLYG7M
+#\\\|DAKG5QFIMDPLJPGVZI3DOV6N7HYRLHQUXKVXD5AZ4O2R6R37F5H \ / AMOS7 \ YOURUM ::
+#\[7]CQAGIGXJ2LKAV5PNA3CFHVWCBQ4V4RI6SBNAH6LGEFUNJ2HNA2BQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

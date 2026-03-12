@@ -1,49 +1,66 @@
 ## [:< ##
 
 # name  = decoder.cmd.show-accumulator
-# descr = Show level-5 accumulator contents
-# param = [level]
+# param = [stream_id]
+# descr = show level-5 and level-6 accumulator state
 
-my $params = shift // {};
-my $level  = $params->{'level'} // $params->{'args'} // 5;
+my $stream_id
+    = defined $$call{'args'} && length $$call{'args'}
+    ? $$call{'args'}
+    : undef;
 
-## Validate level ##
-return {
-    'mode' => qw| false |,
-    'data' => "level must be 5, got: $level"
+my @lines;
+
+## level-5 state — per stream ##
+my $l5_streams = <decoder.level5> // {};
+
+if ( defined $stream_id ) {
+    ## single stream detail ##
+    if ( not exists $l5_streams->{$stream_id} ) {
+        return {
+            'mode' => qw| false |,
+            'data' => "no level-5 state for stream $stream_id"
+        };
     }
-    unless $level == 5;
-
-## Get level-5 state ##
-my $L5 = <decoder.level5>;
-
-## Build output ##
-my $output = "=== Level-5 Accumulator ===\n";
-$output .= sprintf "Accumulated bits: %d\n", $L5->{'bit_count'};
-$output .= sprintf "Total values: %d\n\n",   scalar( @{ $L5->{'values'} } );
-
-## Show values (base32) ##
-$output .= "Values (base32):\n";
-my $count = 0;
-foreach my $val ( @{ $L5->{'values'} } ) {
-    $output .= sprintf "%02d ", $val;
-    $output .= "\n" if ++$count % 16 == 0;
-}
-$output .= "\n" if $count % 16 != 0;
-
-## Show pending bits ##
-if ( $L5->{'bit_count'} > 0 ) {
-    $output .= sprintf "\nPending bits: %s (%d bits)\n",
-        $L5->{'accumulator'}, $L5->{'bit_count'};
+    my $s = $l5_streams->{$stream_id};
+    push @lines,
+        sprintf( "level-5 stream %s :", $stream_id ),
+        sprintf( "  values      : %d",  scalar @{ $s->{'values'} } ),
+        sprintf( "  pending bits: %d",  $s->{'bit_count'} ),
+        sprintf( "  acc preview : %s", substr( $s->{'accumulator'}, 0, 40 ) );
+} else {
+    ## summary of all active streams ##
+    push @lines,
+        sprintf( "level-5 streams : %d active", scalar keys %{$l5_streams} );
+    for my $sid ( sort keys %{$l5_streams} ) {
+        my $s = $l5_streams->{$sid};
+        push @lines,
+            sprintf(
+            "  stream %-8s  values:%5d  pending:%2d bits",
+            $sid, scalar @{ $s->{'values'} },
+            $s->{'bit_count'}
+            );
+    }
 }
 
-return {
-    'mode' => 'size',
-    'data' => $output
-};
+## level-6 shared state ##
+push @lines, '', 'level-6 D3 :',
+    sprintf( "  boundary count : %d",
+    $data{'decoder'}{'boundary_count'} // 0 ),
+    sprintf(
+    "  pending acc    : [%s]  %d chars",
+    $data{'decoder'}{'level6_acc'} // '',
+    length( $data{'decoder'}{'level6_acc'} // '' )
+    );
 
-#,,,,,.,,,.,.,,..,.,.,,.,,.,,,..,,,,.,,.,,,,,,.,.,...,...,,..,...,,,,,.,.,,,,,
-#XYH7IIBHREPFKXKECWWM7PVHPGHR4TY3MS5AP6T24AU535Z6NK7KZNYFFZRSRPA6VNFPWAF4UHZC6
-#\\\|5KI5FU6KXKSLKSOQFJDBC7KRLYXEFEEC4GZJSKTAISOJ33NODXS \ / AMOS7 \ YOURUM ::
-#\[7]KKETGJXBD53BR2WXHKMDIKQX4GWOQ6DPHJ5MMWFYL7NYSWWAU2CA 7  DATA SIGNATURE ::
+## jobs ##
+my $job_count = scalar keys %{ <decoder.jobs> // {} };
+push @lines, '', sprintf( "active jobs : %d", $job_count );
+
+return { 'mode' => qw| true |, 'data' => join( "\n", @lines ) };
+
+#,,..,...,.,,,,.,,.,.,,.,,...,,..,,,,,...,..,,..,,...,...,.,.,...,,.,,,,,,,,,,
+#CGXFMVASEAZ5ZFJIBFGOCBSJ6XHUQBRBHKF2EFPWJDAIPI5VJVTTVQMB6BE7FSWCVPSZHFFPFLV6Y
+#\\\|FE2IC5YKXY7RUSXWQCZHV4YK4IOAORPORWSZTXIIV6NR35SQJLE \ / AMOS7 \ YOURUM ::
+#\[7]BN7YASYGCJ3B7EOKY2KMT6UHZN5EPF2JCFMM2455LMBZ2DYKYQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
