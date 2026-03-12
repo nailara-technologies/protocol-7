@@ -154,12 +154,19 @@ it cannot resolve variable-keyed dispatch like `$code{$callback}->()` or
 
 ### phase 2: variable handover tracking
 
-- [ ] track variable assignments through the code
-- [ ] follow handovers: `$callback = $other_var`
-- [ ] widen scope when variables pass through multiple subroutines
-- [ ] report extended range: `[ 12-145 : code{ $callback } via $other_var ]`
-- [ ] if variable crosses a module boundary via parameter passing, note the
+- [x] track variable assignments through the code
+- [x] follow handovers: `$callback = $other_var`
+- [x] widen scope when variables pass through multiple subroutines
+- [x] report extended range: `[ 12-145 : code{ $callback } via $other_var ]`
+- [x] if variable crosses a module boundary via parameter passing, note the
       originating call site so cross-module flow is traceable
+
+**implementation notes:**
+- recursive `backtrack_variable_origin()` follows handover chains
+- detects: `$var = $other_var`, `$var = $other->()`, `$var = $other->{key}`
+- builds via chain: `via var1->var2->var3` for multi-hop handovers
+- circular reference protection via `$visited_vars` tracking
+- cross-module parameter passing detected via `[param]` origin type
 
 ### phase 2.5: confidence annotation
 
@@ -185,8 +192,8 @@ it cannot resolve variable-keyed dispatch like `$code{$callback}->()` or
 - [ ] edges resolved by rules tagged `[ rule-resolved ]` vs `[ static ]` in
       output — keeps provenance clear and makes rules auditable
 
-#,,,.,..,,.,,,,,,,,,,,..,,,..,,.,,..,,,.,,,,,,..,,...,..,,,,.,...,..,,,..,,.,,
-#XHEOAJMMSG4GENHH5WVKDYYOARVARG2VCCUVMHSEOJ2W3MD5Z3FQ3MQXOIMGYYHLMENUCHOJTLXR4
-#\\\|XOQPDSOKY4EOKX6ERQ44WXIG4YQU7WN4TXJ2E4BU4AY52GJCK4Z \ / AMOS7 \ YOURUM ::
-#\[7]GZKMIRE6JSTEFZA7V2ARBFXNZJGOLSH3NBRAJZ2IDTX3NTRIGICA 7  DATA SIGNATURE ::
+#,,.,,..,,,.,,.,,,..,,,,,,,..,.,.,...,,,,,,,,,..,,...,...,...,..,,...,,,,,.,.,
+#K2MAXME2SVOFVSZE6W5YFY6ZRFW5SON2CLQMUFPFXIAWPNMJMIWPSIDPMJH3LVIK7UJAYUF4PWW5S
+#\\\|QKRO4QMQSU47VOUN52ZZKK445NBIGL3M6KQS4Y5JUOS4UYNVTAA \ / AMOS7 \ YOURUM ::
+#\[7]XLY2KRK4QLSTI5KR3G6AAVBNWROMYXXINSVVIPWER6BG3A2ORUCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
