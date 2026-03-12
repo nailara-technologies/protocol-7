@@ -1,0 +1,71 @@
+## [:< ##
+
+# name  = decoder.callback.reduce-entropy
+# descr = idle worker — processes batch of /13 reduction steps per event tick
+
+my $watcher    = shift->w;
+my $job_id     = $watcher->data;
+my $job        = <decoder.jobs>->{$job_id};
+my $reply_id   = $job->{'reply_id'};
+my $values     = $job->{'values'};
+my $cursor     = $job->{'cursor'};
+my $batch_size = $job->{'batch_size'};
+my $total      = $job->{'total'};
+
+if ( $job->{'stop-requested'} ) {
+    $watcher->cancel if $watcher->is_active;
+    delete <decoder.jobs>->{$job_id};
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| false |,
+            'data' => 'reduction aborted [ admin request ]'
+        }
+    );
+    return;
+}
+
+## process batch — /13 chain per value, no left shifts ##
+my $end = $cursor + $batch_size;
+$end = $total if $end > $total;
+
+for my $idx ( $cursor .. $end - 1 ) {
+    my $n = $values->[$idx];
+    while ( $n > 0 ) {
+        $job->{'bits'} .= is_true($n) ? '1' : '0';
+        $n = int( $n / 13 );
+    }
+}
+
+$job->{'cursor'} = $end;
+
+## check completion ##
+if ( $end >= $total ) {
+    $watcher->cancel if $watcher->is_active;
+    my $fingerprint = $job->{'bits'};
+    my $stream_id   = $job->{'stream_id'};
+    delete <decoder.jobs>->{$job_id};
+
+    <[base.log]>->(
+        1, ": reduction complete [ %s ] stream %s — %d values → %d bits",
+        $job_id, $stream_id, $total, length $fingerprint
+    );
+
+    <[base.callback.cmd_reply]>->(
+        $reply_id,
+        {   'mode' => qw| true |,
+            'data' => {
+                'job_id'    => $job_id,
+                'stream_id' => $stream_id,
+                'total'     => $total,
+                'bits'      => $fingerprint,
+                'bit_count' => length($fingerprint),
+            }
+        }
+    );
+}
+
+#,,,,,,.,,,,,,,..,,,.,.,.,.,.,.,,,...,,,,,,..,..,,...,..,,,..,,..,..,,..,,,,.,
+#A6TTTMYBZ3T6FOD3FALZATS5JQPPU2WAR5LJD26MTHNLLRPNNGORYLVVYNCVSHXTIN27JWCDOY2L4
+#\\\|C4S4WLIBIUHP6LNHXLKJEJV6TMMBCWSIOUBEZM6HWETU7OCMEOE \ / AMOS7 \ YOURUM ::
+#\[7]4IDH422QUAWQTLPO3QTYMHQTVQOMOLTMXFH7HGSWMYB6S3VW2ABQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
