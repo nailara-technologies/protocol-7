@@ -560,6 +560,50 @@ The `JJFE` prefix is the base32 quine: self-describing recursive encoding,
 depth readable from prefix length, same structure as PYTAURAZUMA preamble
 phase accumulation — more stable prefix = more encoding layers survived.
 
+### L\ reaches JJFE in exactly 3 layers
+
+The harmonic boundary marker `L\` (= 769230 in ASCII encoding) reaches
+the `JJFE` fixed point after exactly 3 recursive base32 encodings:
+
+```
+L\              →  JROAU===              (no JJFE)
+JROAU===        →  JJJE6QKVHU6T2CQ=     (JJ stabilizing)
+JJJE6QK...      →  JJFEURJW...          (JJFE locked — fixed point)
+```
+
+3 layers = the PYTAURAZUMA prep count (3 interior zero-crossings before
+canvas-clean). The preamble is not arbitrary — it equals the number of
+encoding transformations the boundary value needs to reach self-stability.
+PYTAURAZUMA prep length IS the convergence depth of `L\` under base32.
+
+`L\` is `:: TRUE ::` under amos-chksum — the convergence attractor
+carries its own harmonic truth assertion. elf overflow bit-shift: -13
+(the harmonic denominator is the natural overflow point). Harmonization
+iteration count: 024 = 24 = CCW cycle length before the sync frame.
+
+### Sliding in from the left — BMW mod-bits and zulum entropy
+
+The `amos-chksum -v` BMW mod-bits display shows each row as the previous
+row shifted right, with a new bit entering from the left edge:
+
+```
+10000000000000000000000000000000
+11000000000000000000000000000000
+01100000000000000000000000000000
+10110000000000000000000000000000   ...
+```
+
+This is the leftward travel of the entropy stream made visible. The stream
+moves left (`<<= 4`, `/13`, `<<= 1 or 2`); from the bit-array perspective
+the content slides in from the left, existing bits drifting right. Two
+viewpoints of the same physics — the reader is stationary, the stream
+moves; the bits are stationary, the new content arrives from the left.
+
+The base32 fixed-point accumulation has the same structure: each encoding
+layer adds stable characters from the left side of the output, the
+rightward content still converging. The `JJFE` prefix is the left-locked
+region; everything to its right is still sliding toward stability.
+
 ---
 
 ## 7. Handshaking to Meaning
@@ -1350,8 +1394,8 @@ serialization principle (Section 14) holds across scales.
 - `modules/source.init_code`        — dimensional table (lines 32-64)
 - `data/md/philosophy/HARMONIC-ENTROPY-INFORMATION-TRANSFER-RESEARCH.md`
 
-#,,.,,,,,,,..,,,.,,.,,..,,,,.,,.,,,,.,,.,,..,,.,.,...,...,..,,..,,,,.,,..,,,.,
-#GXZUPWIJQW3RQI2KTWFLAC4BPDFB7FT7YIC6SPXL3SMLAZ22OM7XFO3KH4CHWEZKOKYANNO6BCQQG
-#\\\|WVGTWODA4BR5BLYX6EEEIMKEG5IDWR7DLGSGZKETDWFTZN43Z74 \ / AMOS7 \ YOURUM ::
-#\[7]QCBF7OJ7DTOCOWSHHPBFZYDS7U5AT3ZYMQVKCWEDFX7M4L73DACI 7  DATA SIGNATURE ::
+#,,,.,,,,,...,.,.,..,,.,.,...,..,,,..,,,,,,,,,.,.,...,..,,,,,,...,..,,.,,,,..,
+#DPVF2ZS6TT4C2F4U6QOGNQ2QP63GSOM7FCAFYTKMBQBXMS6JBRS5SBA5ZORSXBHO7I3O4TA2BNACY
+#\\\|GIBQ3LHTW36RCDRRWZHHO2UOHIONMYTBRSILECIU3HHMQXQJISE \ / AMOS7 \ YOURUM ::
+#\[7]4752XOHGNS6WWRRY7RURLOAUTSUMGEBQMBVGZRNAKEDRTVASWIDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
