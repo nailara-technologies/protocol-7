@@ -554,8 +554,11 @@ sub analyze_zenka_reachability {
                 $via_str = ' via ' . join( '->', @{ $entry->{via} } );
             }
 
+            ##  phase 2.5: add confidence annotation  ##
+            my $conf_tag = " [$entry->{confidence}]";
+
             say "   $entry->{module} [ $range :"
-                . " code{ \$$entry->{var} }$origin_tag$via_str ]";
+                . " code{ \$$entry->{var} }$origin_tag$via_str$conf_tag ]";
         }
     }
 
@@ -743,6 +746,11 @@ sub find_variable_dispatch {
                     my $origin
                         = backtrack_variable_origin( \@lines, $i, $var_name );
 
+                    ##  phase 2.5: classify confidence based on context  ##
+                    my $confidence
+                        = classify_dispatch_confidence( \@lines, $i,
+                        $var_name );
+
                     push @ambiguous,
                         {
                         module     => $module,
@@ -751,7 +759,8 @@ sub find_variable_dispatch {
                         start_line => $origin->{start_line},
                         origin     => $origin->{type},
                         context    => $origin->{context},
-                        via        => $origin->{via} // []
+                        via        => $origin->{via} // [],
+                        confidence => $confidence
                         };
                 }
             }
@@ -868,8 +877,84 @@ sub backtrack_variable_origin {
     return $result;
 }
 
-#,,..,,.,,..,,.,.,,.,,,..,.,,,,..,.,.,,.,,,.,,.,.,...,...,...,,,.,...,.,,,,,,,
-#2Y4IFMJZXYPVBXRJDID6XSYGSCPMN64PFPXFT7GXE25LLKOKTB42FAAQGGWEXBMQCR4ZLN6UESQNI
-#\\\|SAESUJ6QTRD62T5ILDLTFG6HPIUUSZ5OBFYU552YJJCGVOBYYZ6 \ / AMOS7 \ YOURUM ::
-#\[7]3D5HQIBEAACNTEGOU3YDZUDXHYJCZDFXNUFBSEX4VCZ7MYIGMWDI 7  DATA SIGNATURE ::
+sub classify_dispatch_confidence {
+    ##  phase 2.5: analyze code context to classify dispatch confidence  ##
+    ##  returns: 'probable' | 'constrained' | 'open'  ##
+    my ( $lines_ref, $usage_idx, $var_name ) = @ARG;
+    my @lines = @{$lines_ref};
+
+    ##  scan surrounding context for constraining patterns  ##
+    my $has_regex_check       = 0;
+    my $has_literal_compare   = 0;
+    my $has_conditional_guard = 0;
+    my $has_hash_lookup       = 0;
+
+    ##  scan backward and forward from usage for context  ##
+    my $start_scan = $usage_idx - 15;    ##  15 lines before  ##
+    $start_scan = 0 if $start_scan < 0;
+    my $end_scan = $usage_idx + 5;       ##  5 lines after  ##
+    $end_scan = $#lines if $end_scan > $#lines;
+
+    for my $i ( $start_scan .. $end_scan ) {
+        next if $i == $usage_idx;        ##  skip the dispatch line itself  ##
+        my $line = $lines[$i];
+
+        ##  check for regex validation: $var =~ /pattern/  ##
+        if ( $line =~ m/\$\Q$var_name\E\s*=~\s*m?[^\w]/ ) {
+            $has_regex_check       = 1;
+            $has_conditional_guard = 1 if $i < $usage_idx;
+        }
+
+        ##  check for literal string comparison: $var eq 'literal'  ##
+        if ( $line =~ m/\$\Q$var_name\E\s+(eq|ne)\s+['"]/ ) {
+            $has_literal_compare   = 1;
+            $has_conditional_guard = 1 if $i < $usage_idx;
+        }
+
+        ##  check for hash key existence: exists $handlers{$var}  ##
+        if ( $line =~ m/exists\s+\$\w+\{\$\Q$var_name\E\}/ ) {
+            $has_hash_lookup       = 1;
+            $has_conditional_guard = 1 if $i < $usage_idx;
+        }
+
+        ##  check for conditional guarding the dispatch  ##
+        ##  if ( $var =~ /.../ ) { ... $code{$var}->()  ##
+        if ( $i < $usage_idx && $line =~ m/\b(if|unless|while)\s*\(/ ) {
+            ##  check if condition involves our variable  ##
+            my $cond_line = $line;
+            ##  peek at next few lines for multi-line conditions  ##
+            for my $j ( $i + 1 .. $i + 3 ) {
+                last                     if $j >= $usage_idx;
+                $cond_line .= $lines[$j] if $j <= $#lines;
+            }
+            if ( $cond_line =~ m/\$\Q$var_name\E/ ) {
+                $has_conditional_guard = 1;
+            }
+        }
+    }
+
+    ##  classify based on findings  ##
+    ##  probable: strong constraints (regex + conditional)  ##
+    if ( $has_regex_check && $has_conditional_guard ) {
+        return 'probable';
+    }
+
+    ##  probable: literal comparison with conditional  ##
+    if ( $has_literal_compare && $has_conditional_guard ) {
+        return 'probable';
+    }
+
+    ##  constrained: some validation but not definitive  ##
+    if ( $has_hash_lookup || $has_regex_check || $has_literal_compare ) {
+        return 'constrained';
+    }
+
+    ##  open: no usable constraints found  ##
+    return 'open';
+}
+
+#,,..,..,,...,,,.,,,.,..,,..,,.,.,..,,,,,,,..,.,.,...,...,.,.,..,,..,,,,,,.,.,
+#AK4KPQ5BO536GYSJFRC3PDC63QYPEAJX6R27BETSMC3BGILWMQJWMWMQRIVL4MOPNQL2SCA6MFKQ4
+#\\\|UPS3WFMD6FDW4UPXL573W6JNDZOOKCLFMO2QXEJZAU6VVHPVCH7 \ / AMOS7 \ YOURUM ::
+#\[7]Y3SMRVP3CLITG4LUX2U47Q7MTNHSIFHDXWBF3HFUAIHZL4SP7MAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
