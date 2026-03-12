@@ -347,7 +347,8 @@ sub generate_dot_output {
     my @lines = (
         'digraph protocol7_modules {',
         '    rankdir=LR;',
-        '    node [shape=box, style=filled, fillcolor="#1a1a2e", fontcolor="#eaeaea"];',
+        '    node [shape=box, style=filled,'
+            . 'fillcolor="#1a1a2e", fontcolor="#eaeaea"];',
         '    edge [color="#444466"];',
         '',
     );
@@ -376,7 +377,8 @@ sub generate_dot_output {
             my $callee_escaped = escape_dot_id($callee);
             my $weight         = $graph->{$caller}{$callee};
             push @lines,
-                qq|    "$caller_escaped" -> "$callee_escaped" [label="$weight"];|;
+                qq|    "$caller_escaped" -> |
+                . qq|"$callee_escaped" [label="$weight"];|;
         }
     }
 
@@ -460,11 +462,11 @@ sub analyze_zenka_reachability {
 
     ##  output ambiguous dispatch warnings  ##
     if (@ambiguous) {
-        say
-            ":: ambiguous dispatch [runtime-resolved, may call any loaded module]:";
+        say ":: ambiguous dispatch [ runtime-resolved,"
+            . " may call any loaded module ] :.";
         for my $entry (@ambiguous) {
-            say
-                "   $entry->{module}  [ \$code{$entry->{var}}->() at line $entry->{line} ]";
+            say "   $entry->{module} [ $entry->{line} "
+                . ": code{ \$$entry->{var} } ]";
         }
     }
 
@@ -630,8 +632,8 @@ sub find_variable_dispatch {
     return @ambiguous;
 }
 
-#,,..,,,.,..,,,.,,...,..,,,..,,..,,,,,,..,..,,.,.,...,...,,,.,...,,.,,..,,..,,
-#ORDTSD7UXSQRAADSHS2FCJELJPYDVHSBMQYGPJPBMOXUM2363AYUIJTXZN24OABFAFXLT4AVAN4QI
-#\\\|MMA6H4FVPBL2LK2YT3UARCOKQS2UMWHVMY64H5MN5JJOCLRVRIT \ / AMOS7 \ YOURUM ::
-#\[7]ILGWWKR2LLDELTLC3VO7LIFMN6OLKYMBOFDAC5WDTGOMUNGR2CDY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,..,.,,,,,.,...,..,,...,,,,,...,.,.,...,..,,.,.,,..,,..,,.,,.,,,
+#643NM5UMQTWPYXPK6UGZR7RFI3ZZJWZTX4H5G7CZZ6KVF4FHH4TBFY25GC3RNORXR4KKPMJR3IALG
+#\\\|WVAMAV3Z2D2M2A4VE2WY7XYHDDNQFUTYK6AOOZNIDN5QY4CWBOU \ / AMOS7 \ YOURUM ::
+#\[7]5QDJSTVBTJOF53SGP6TGFLJ76AYIE7QVB2Z7FTOAIYVDE2GS3KCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
