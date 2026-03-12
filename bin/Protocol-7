@@ -17,6 +17,9 @@ our %p7_subroutines;
 our %fh_encoding;    ## [ file handle encoding mapping ] :.
 ##  :. $fh_encoding{fileno($fh)} = 'UTF-8'|'OCTETS'|etc .:
 
+my %CODE;            ##  versioned code store  ##
+my $active_version;  ##  currently active version key  ##
+
 p7_load_time_hires();
 p7_security_hardening();    ##  initializing @INC with local lib-path  ##
 p7_load_perl_modules();
@@ -1401,9 +1404,12 @@ sub p7_load_code {
         $data{'base'}{'p7_mod'}{'errors'}->{$code_name} = 0;
         $data{'base'}{'p7_mod'}{'loaded'}->{$code_name} = 0;
 
-        if ( my $purge_count = $code{'base.purge_code'}->($code_name) ) {
-            my $s = $purge_count == 1 ? '' : 's';
-            $code{'log.devmod'}->(": $purge_count sub$s undefined");
+        ##  staged compilation keeps old code live during reload  ##
+        if ( not defined $active_version ) {    ##  first load only  ##
+            if ( my $purge_count = $code{'base.purge_code'}->($code_name) ) {
+                my $s = $purge_count == 1 ? '' : 's';
+                $code{'log.devmod'}->(": $purge_count sub$s undefined");
+            }
         }
 
         my $code_count      = 0;
@@ -1564,6 +1570,11 @@ sub p7_load_code {
     next   if $mod_count == 0;
     my $src_bytes_total = 0;
     $code{'log.devmod'}->(': compiling ..,');
+
+    state $load_seq = 0;
+    my $new_version = sprintf '_v%d_', ++$load_seq;    ##  staging key  ##
+    my $staging     = {%code};    ##  seed with pre-imported subs  ##
+
     my ( $ok_count, $err_count, $warn_count, $warn_count_total )
         = ( 0, 0, 0, 0 );
 
@@ -1733,9 +1744,13 @@ sub p7_load_code {
         my $compilation_success = ref $sub_cref eq qw| CODE | ? TRUE : FALSE;
         $compilation_success = FALSE if length $EVAL_ERROR;
 
-        if ($compilation_success) {    ##  init \ replacing subroutine  ##
-            eval { $code{$sub_name} = $sub_cref };
+        if ($compilation_success) {    ##  compile into staging hash  ##
+            eval { $staging->{$sub_name} = $sub_cref };
             $compilation_success = FALSE if length $EVAL_ERROR;
+            ##  first load: also populate %code immediately so compile-loop  ##
+            ##  calls [ base.sort, log.*, etc ] resolve within the same pass  ##
+            $code{$sub_name} = $sub_cref
+                if $compilation_success and not defined $active_version;
         }
 
         my $err_str = $EVAL_ERROR;
@@ -1810,38 +1825,41 @@ sub p7_load_code {
 
             $data{'base'}{'p7_mod'}{'errors'}->{$module_name}++;
 
-            $code{$sub_name} = sub {
-                my $caller_str = $code{'base.caller'}->(1);
-                my $reason
-                    = $data{'code'}{$sub_name}{'source_not_readable'}
-                    ? qw| undefined |
-                    : qw|   broken  |;
-                undef $code{$sub_name}    ##  removing  ##
-                    if $sub_name =~ m{^base.(log|buffer)};
-                if ( $sub_name !~ m{\.(cmd|console)\.(.+)$} ) {    ## proto.,
-                    my $lmsg = ": called $reason routine : '$sub_name'";
-                    $code{'log.error'}->($lmsg);
-                    $code{'log.error'}->(":. $caller_str");
-                    push(
-                        $data{'system'}{'start'}{'zenka-buffer'}->@*,
-                        join( ' ',
-                            $code{'base.anum_log_time'}->(), 0,
-                            join( ' ', $lmsg, '<-- UNDEFINED `:|' ) )
-                    ) if $sub_name eq qw| base.log |;
-                    ## raising silent exception ##
-                    warn sprintf ':silent: %s <{C1}>', $lmsg;
-                    return undef;
-                } else {
-                    $code{'log.error'}
-                        ->(": $reason command called : '$sub_name'");
-                    $code{'log.error'}->(":. $caller_str");
-                    return {
-                        'mode' => qw| false |,
-                        'data' => "command '$sub_name' is $reason.,"
-                            . " details in startup log.,"
-                    };
-                }
-            };
+            ##  on reload: prior version stays live — stub on first load only  ##
+            if ( not defined $active_version ) {
+                $code{$sub_name} = sub {
+                    my $caller_str = $code{'base.caller'}->(1);
+                    my $reason
+                        = $data{'code'}{$sub_name}{'source_not_readable'}
+                        ? qw| undefined |
+                        : qw|   broken  |;
+                    undef $code{$sub_name}    ##  removing  ##
+                        if $sub_name =~ m{^base.(log|buffer)};
+                    if ( $sub_name !~ m{\.(cmd|console)\.(.+)$} ) { ## proto.,
+                        my $lmsg = ": called $reason routine : '$sub_name'";
+                        $code{'log.error'}->($lmsg);
+                        $code{'log.error'}->(":. $caller_str");
+                        push(
+                            $data{'system'}{'start'}{'zenka-buffer'}->@*,
+                            join( ' ',
+                                $code{'base.anum_log_time'}->(), 0,
+                                join( ' ', $lmsg, '<-- UNDEFINED `:|' ) )
+                        ) if $sub_name eq qw| base.log |;
+                        ## raising silent exception ##
+                        warn sprintf ':silent: %s <{C1}>', $lmsg;
+                        return undef;
+                    } else {
+                        $code{'log.error'}
+                            ->(": $reason command called : '$sub_name'");
+                        $code{'log.error'}->(":. $caller_str");
+                        return {
+                            'mode' => qw| false |,
+                            'data' => "command '$sub_name' is $reason.,"
+                                . " details in startup log.,"
+                        };
+                    }
+                };
+            } ##  end first-load stub  ##
             delete $data{'code'}{$sub_name}{'source'};
             $data{'base'}{'modules'}{'load_errors'}++;
             $data{'buffer'}{'compile-errors'}{'max_size'} //= 42 * 1024;
@@ -1988,6 +2006,23 @@ sub p7_load_code {
             )
         );
     }
+
+    ##  staged hash swap  ##
+    if ( not $err_count ) {
+
+        ##  archive prior version under its load-seq key  ##
+        ##  using seq key avoids collision when same src-ver reloaded  ##
+        $CODE{$active_version} = {%code}    ##  snapshot prior  ##
+            if defined $active_version;
+
+        %code           = $staging->%*;     ##  atomic swap  ##  =)  ##
+        $active_version = $new_version;
+
+        $code{'log.devmod'}->(
+            sprintf '..: [%03d] code swap iteration successful =)', $load_seq
+        );
+
+    }   ##  else : staging discarded, %code unchanged, old code stays live  ##
 
     return ( $ok_count, $err_count );
 }
@@ -5385,8 +5420,8 @@ __DATA__
 :
 :.
 
-#,,,.,,,,,,.,,,..,,,.,,,.,,,.,.,.,,,,,..,,...,...,...,...,..,,...,,..,.,.,,.,,
-#G5676SZ2J7MD2WYUGDM277XW5UQTOERD7E5J2KFTMSREEVYQ4W3T5EXZZ7WXLDUHL6K4OMHRLJVKM
-#\\\|FPZQRU472NGQRZ6TW2UPIWZS5ZQROM2BJJ6JPVUIUG6GXKL4SDX \ / AMOS7 \ YOURUM ::
-#\[7]QHW5EH6A4BNI2BVUPOFSH4HHVY5MPEQDR7Y4ANMBVMNXHM3SVWBQ 7  DATA SIGNATURE ::
+#,,,.,,,.,..,,...,.,,,,,,,...,,,,,,,,,.,.,.,.,...,...,...,...,,.,,,,,,..,,.,,,
+#C6WNCXJ6DVMTAMLY7GLJ3BNRYCUDJWHQCG6RX7GUNH75XY7LFL4H4OCN4JY75YXMCCB7GKJJV3STM
+#\\\|TW7CAOPKUNP7R75UZ32OD5ORZFKEXWZ3LBRZDZPLCEZV3WB2RPO \ / AMOS7 \ YOURUM ::
+#\[7]7FKZTLJEPJ73BBTYU5DCKW7OV3SXRAAHCYDO3EQVKOMQS4JMDIDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
