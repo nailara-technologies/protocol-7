@@ -134,8 +134,54 @@ it cannot resolve variable-keyed dispatch like `$code{$callback}->()` or
 
 ### completed — commit [pending]
 
-#,,,.,,,.,.,.,.,.,..,,,,.,.,,,,..,..,,.,.,...,..,,...,...,..,,.,.,,,.,.,.,,..,
-#ZFGPEFJR674MCAVTUNYLEZOHSTJIWIB55GG627MGU2IBEIPVWOL2CYL5463GVTQBT562VMJMGUTEU
-#\\\|3SGD76BD6IHB63FYJ5SCS3XV2DFQG2JZWZRUN7VTNN5JTR5KGWZ \ / AMOS7 \ YOURUM ::
-#\[7]752GNNGPT7GFMW36YGM666XJQH5LCFJAPYZK2HP5ENPWVVDQPWDI 7  DATA SIGNATURE ::
+---
+
+## future enhancements [roadmap]
+
+### phase 1: variable origin backtracking
+
+- [ ] backtrack where ambiguous dispatch variables are introduced
+- [ ] report start range line numbers: `[ 45-120 : code{ $callback } ]`
+- [ ] gives LLMs the full context window to reason about possible values
+- [ ] special case: if variable originates from `@ARG` / a parameter, flag it
+      explicitly — scope widens to "whatever the caller passed" and tracking
+      must cross into the caller's code [ qualitatively different from local ]
+
+### phase 2: variable handover tracking
+
+- [ ] track variable assignments through the code
+- [ ] follow handovers: `$callback = $other_var`
+- [ ] widen scope when variables pass through multiple subroutines
+- [ ] report extended range: `[ 12-145 : code{ $callback } via $other_var ]`
+- [ ] if variable crosses a module boundary via parameter passing, note the
+      originating call site so cross-module flow is traceable
+
+### phase 2.5: confidence annotation
+
+- [ ] once partial context is available, classify each dispatch site:
+      `[ probable ]`   — name pattern or conditionals strongly constrain values
+      `[ constrained ]` — some context narrows the set but not to one target
+      `[ open ]`       — no usable context, all loaded modules are candidates
+- [ ] gives LLMs a signal for where to focus analysis effort
+- [ ] confidence label included in output alongside line/variable info
+
+### phase 3: regex logic rule plugin interface
+
+- [ ] declarative rule format for resolving ambiguity
+- [ ] LLMs write rules: `if $callback =~ /^(foo|bar)$/ → resolve to base.cmd.$1`
+- [ ] rules stored in `configuration/dep-graph/rules/`
+- [ ] rules applied automatically during analysis
+
+### phase 4: automated coverage completion
+
+- [ ] rules run automatically on new code
+- [ ] only "logic-breaking" code [variable mutations] needs LLM review
+- [ ] dep-graph becomes self-improving: rules → less ambiguity → more rules
+- [ ] edges resolved by rules tagged `[ rule-resolved ]` vs `[ static ]` in
+      output — keeps provenance clear and makes rules auditable
+
+#,,.,,.,.,..,,,,,,,.,,,..,.,.,,..,..,,,,,,,,,,..,,...,...,..,,..,,,,,,,,.,.,.,
+#YF2BFRDWFJGSFTZNKUSJLOXUID2SVGGG6QTTSJYXPIHUZIF5ST2D6XNL3WXC4LCN3IOVK4CAT3LVS
+#\\\|FQQXUJW6DGHTMVIJMLSXLZAPET2JMVIIILJNJNC77JKHSAW5UQY \ / AMOS7 \ YOURUM ::
+#\[7]5BSEJXCCH4QG5ABSM2SX7Z4ZSPEPPYERQTAU7BG7W7562M26KKBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
