@@ -140,12 +140,17 @@ it cannot resolve variable-keyed dispatch like `$code{$callback}->()` or
 
 ### phase 1: variable origin backtracking
 
-- [ ] backtrack where ambiguous dispatch variables are introduced
-- [ ] report start range line numbers: `[ 45-120 : code{ $callback } ]`
-- [ ] gives LLMs the full context window to reason about possible values
-- [ ] special case: if variable originates from `@ARG` / a parameter, flag it
+- [x] backtrack where ambiguous dispatch variables are introduced
+- [x] report start range line numbers: `[ 45-120 : code{ $callback } ]`
+- [x] gives LLMs the full context window to reason about possible values
+- [x] special case: if variable originates from `@ARG` / a parameter, flag it
       explicitly — scope widens to "whatever the caller passed" and tracking
       must cross into the caller's code [ qualitatively different from local ]
+
+**implementation notes:**
+- handles multi-line `my` declarations: `my $var\n    = ...`
+- detects parameter patterns: `my $var = shift`, `my $var = $ARG[N]`, `my ( $var ) = @ARG`
+- output format: `[ 112-120 : code{ $var } ]` or `[ 112-120 : code{ $var } [param] ]`
 
 ### phase 2: variable handover tracking
 

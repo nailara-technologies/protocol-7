@@ -465,8 +465,11 @@ sub analyze_zenka_reachability {
         say ":: ambiguous dispatch [ runtime-resolved,"
             . " may call any loaded module ] :.";
         for my $entry (@ambiguous) {
-            say "   $entry->{module} [ $entry->{line} "
-                . ": code{ \$$entry->{var} } ]";
+            my $range = $entry->{start_line} == $entry->{line}
+                ? $entry->{line}
+                : "$entry->{start_line}-$entry->{line}";
+            my $origin_tag = $entry->{origin} eq 'parameter' ? ' [param]' : '';
+            say "   $entry->{module} [ $range : code{ \$$entry->{var} }$origin_tag ]";
         }
     }
 
@@ -617,12 +620,21 @@ sub find_variable_dispatch {
             for my $i ( 0 .. $end_idx ) {
                 my $line = $lines[$i];
                 ##  match variable dispatch: $code{$var} or $code{ $var }  ##
-                if ( $line =~ m/\$code\{\s*\$(\w+)\s*\}/ ) {
+                while ( $line =~ m/\$code\{\s*\$(\w+)\s*\}/g ) {
+                    my $var_name = $1;
+                    my $usage_line = $i + 1;
+                    
+                    ##  backtrack to find variable origin  ##
+                    my $origin = backtrack_variable_origin( \@lines, $i, $var_name );
+                    
                     push @ambiguous,
                         {
-                        module => $module,
-                        var    => $1,
-                        line   => $i + 1
+                        module     => $module,
+                        var        => $var_name,
+                        line       => $usage_line,
+                        start_line => $origin->{start_line},
+                        origin     => $origin->{type},
+                        context    => $origin->{context}
                         };
                 }
             }
@@ -630,6 +642,69 @@ sub find_variable_dispatch {
     }
 
     return @ambiguous;
+}
+
+sub backtrack_variable_origin {
+    ##  trace variable backwards to find where it was introduced  ##
+    my ( $lines_ref, $usage_idx, $var_name ) = @ARG;
+    my @lines = @{$lines_ref};
+
+    my $result = {
+        start_line => $usage_idx + 1,  ##  default: single line  ##
+        type       => 'local',
+        context    => ''
+    };
+
+    ##  scan backward from usage to find variable introduction  ##
+    for my $i ( reverse 0 .. $usage_idx ) {
+        my $line = $lines[$i];
+        my $line_num = $i + 1;
+
+        ##  check for parameter assignment patterns  ##
+        ##  my $var = shift; my $var = $ARG[0]; my ( $var ) = @ARG;  ##
+        if ( $line =~ m/^\s*my\s*\(?\s*\$\Q$var_name\E\s*\)?\s*=\s*shift\b/ ||
+             $line =~ m/^\s*my\s*\$\Q$var_name\E\s*=\s*\$ARG\s*\[\s*\d+\s*\]/ ||
+             $line =~ m/^\s*my\s*\(?\s*[^)]*\$\Q$var_name\E[^)]*\)\s*=\s*\@ARG\b/ ) {
+            $result->{start_line} = $line_num;
+            $result->{type}       = 'parameter';
+            $result->{context}    = "from \@ARG";
+            return $result;
+        }
+
+        ##  check for my $var = ... assignment [local variable]  ##
+        ##  handles both: my $var = ...  and  my $var\n    = ...  ##
+        if ( $line =~ m/^\s*my\s*\$\Q$var_name\E\s*=/ ||
+             ( $line =~ m/^\s*my\s*\$\Q$var_name\E\s*$/ &&
+               $i < $#lines && $lines[$i+1] =~ m/^\s*=/ ) ) {
+            $result->{start_line} = $line_num;
+            $result->{type}       = 'local';
+            $result->{context}    = 'my assignment';
+            return $result;
+        }
+
+        ##  check for assignment without my [reassignment]  ##
+        if ( $line =~ m/^\s*\$\Q$var_name\E\s*=/ ) {
+            $result->{start_line} = $line_num;
+            $result->{type}       = 'reassigned';
+            $result->{context}    = 'assignment';
+            ##  continue scanning to find original source  ##
+        }
+
+        ##  check for foreach my $var  ##
+        if ( $line =~ m/\bmy\s*\$\Q$var_name\E\s+\b/ ) {
+            $result->{start_line} = $line_num;
+            $result->{type}       = 'local';
+            $result->{context}    = 'loop variable';
+            return $result;
+        }
+    }
+
+    ##  if we reach the top without finding origin, mark as external  ##
+    $result->{type}    = 'external';
+    $result->{context} = 'undefined in module';
+    $result->{start_line} = 1;
+    
+    return $result;
 }
 
 #,,,,,,.,,.,,,,..,.,,,,,.,...,..,,...,,,,,...,.,.,...,..,,.,.,,..,,..,,.,,.,,,
