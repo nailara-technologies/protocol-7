@@ -46,6 +46,8 @@ my %opt = (
     qw| depth  | => 1,
 );
 
+Getopt::Long::Configure('prefix_pattern=--|-');
+
 GetOptions(
     qw| text   |   => \$opt{text},
     qw| dot    |   => \$opt{dot},
@@ -92,10 +94,10 @@ if ( $opt{reverse} ) {
 
 ##  output results  ##
 if ( $opt{text} ) {
-    my $text_output = generate_text_output($graph);
     if ( defined $opt{module} ) {
-        say $text_output;
+        say generate_tree_output( $graph, $opt{module} );
     } else {
+        my $text_output = generate_text_output($graph);
         write_file( $text_output_path, $text_output );
         say ":: written to $text_output_path";
     }
@@ -140,8 +142,9 @@ sub scan_modules {
         my @calls = extract_calls($file);
         for my $target_module (@calls) {
             ##  only count if target is a known module  ##
-            if ( grep { $module_names{$ARG} eq $target_module }
-                keys %module_names ) {
+            if (grep { $module_names{$ARG} eq $target_module }
+                keys %module_names
+            ) {
                 $graph{$source_module}{$target_module}++;
             }
         }
@@ -273,18 +276,48 @@ sub reverse_graph {
     return \%reversed;
 }
 
+sub generate_tree_output {
+    ##  generate indented subroutine tree from a root module  ##
+    my ( $graph, $root ) = @ARG;
+
+    my @lines;
+    my %visited = ( $root => 1 );
+
+    push @lines, sprintf ':%03d: %s', 1, $root;
+    _append_tree_deps( $graph, $root, 1, \%visited, \@lines );
+
+    return join( "\n", @lines ) . "\n";
+}
+
+sub _append_tree_deps {
+    ##  recursively append dependency lines with increasing indentation  ##
+    my ( $graph, $module, $depth, $visited, $lines ) = @ARG;
+
+    return unless exists $graph->{$module};
+
+    my $indent = '  ' x $depth;
+    for my $dep ( sort keys %{ $graph->{$module} } ) {
+        my $weight = $graph->{$module}{$dep};
+        push @{$lines}, sprintf '%s--> :%03d: %s', $indent, $weight, $dep;
+        unless ( $visited->{$dep} ) {
+            $visited->{$dep} = 1;
+            _append_tree_deps( $graph, $dep, $depth + 1, $visited, $lines );
+        }
+    }
+}
+
 sub generate_text_output {
-    ##  generate sorted adjacency list  ##
+    ##  generate sorted adjacency tree — recursive per-root, fresh cycle set  ##
     my $graph = shift;
 
     my @lines;
+    my $count = 0;
     for my $module ( sort keys %{$graph} ) {
-        my @deps;
-        for my $dep ( sort keys %{ $graph->{$module} } ) {
-            my $weight = $graph->{$module}{$dep};
-            push @deps, "$dep [$weight]";
-        }
-        push @lines, "$module -> " . join( ', ', @deps ) if @deps;
+        next unless exists $graph->{$module} && %{ $graph->{$module} };
+        $count++;
+        push @lines, sprintf ':%03d: %s', $count, $module;
+        my %visited = ( $module => 1 );
+        _append_tree_deps( $graph, $module, 1, \%visited, \@lines );
     }
 
     return join( "\n", @lines ) . "\n";
@@ -352,8 +385,8 @@ sub write_file {
     close $fh;
 }
 
-#,,..,,..,...,,,,,,.,,,.,,,,.,,..,,..,.,.,.,,,.,.,...,...,.,.,,,,,.,,,.,,,,..,
-#XEWLYOEXBZ4JW7JSH7O4UEJRHZ4AQFAEMNNRHIVQNANBTDJEF5NQMNUKLR7U6JTJF53KVEZBLMF5O
-#\\\|6US7GWB7R3DPIM7X3764457ZM3DKNEMGW6RFAGPJRVZXYVE7EXV \ / AMOS7 \ YOURUM ::
-#\[7]WXTMXZGVOY6ZNXEMUKNQKAXA6BTBXN6JNVZT6XJL4S6TF6EVKMCY 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,..,,,,,,,,,..,,,,,,,,,,.,,,.,,,.,.,...,...,.,,,.,,,,.,,..,,,,,,
+#LQWCD3U2YOFGNWEDVJ2CAZHUF6SRC7JWNHYBPZMO552YGYBN67KI3DD7RL6FT2MJIPCKJ5FGSKMK4
+#\\\|UN2ESO3LY3U6ELCE7XHHVKFC7JRE4KDT524D7Y5OUFWDDWMT6AN \ / AMOS7 \ YOURUM ::
+#\[7]BHU25BUNZOKAHKZTLNWQWS662CAJLN7DQQBNWQ2BFLT3HQCSTQBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
