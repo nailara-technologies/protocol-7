@@ -276,6 +276,11 @@ sub reverse_graph {
     return \%reversed;
 }
 
+sub sort_by_length {
+    ##  sort by length ascending, ties broken by reverse-alpha [ base.sort ] ##
+    return sort { length $a <=> length $b } reverse sort grep {defined} @ARG;
+}
+
 sub generate_tree_output {
     ##  generate indented subroutine tree from a root module  ##
     my ( $graph, $root ) = @ARG;
@@ -296,7 +301,7 @@ sub _append_tree_deps {
     return unless exists $graph->{$module};
 
     my $indent = '  ' x $depth;
-    for my $dep ( sort keys %{ $graph->{$module} } ) {
+    for my $dep ( sort_by_length( keys %{ $graph->{$module} } ) ) {
         my $weight = $graph->{$module}{$dep};
         push @{$lines}, sprintf '%s--> :%03d: %s', $indent, $weight, $dep;
         unless ( $visited->{$dep} ) {
@@ -312,7 +317,7 @@ sub generate_text_output {
 
     my @lines;
     my $count = 0;
-    for my $module ( sort keys %{$graph} ) {
+    for my $module ( sort_by_length( keys %{$graph} ) ) {
         next unless exists $graph->{$module} && %{ $graph->{$module} };
         $count++;
         push @lines, sprintf ':%03d: %s', $count, $module;
@@ -385,8 +390,8 @@ sub write_file {
     close $fh;
 }
 
-#,,,.,,,.,,,.,,..,,,,,,,,,..,,,,,,,,,,.,,,.,,,.,.,...,...,.,,,.,,,,.,,..,,,,,,
-#LQWCD3U2YOFGNWEDVJ2CAZHUF6SRC7JWNHYBPZMO552YGYBN67KI3DD7RL6FT2MJIPCKJ5FGSKMK4
-#\\\|UN2ESO3LY3U6ELCE7XHHVKFC7JRE4KDT524D7Y5OUFWDDWMT6AN \ / AMOS7 \ YOURUM ::
-#\[7]BHU25BUNZOKAHKZTLNWQWS662CAJLN7DQQBNWQ2BFLT3HQCSTQBA 7  DATA SIGNATURE ::
+#,,..,,,.,..,,,,,,,..,..,,.,,,...,...,,.,,.,.,.,.,...,...,..,,.,,,.,,,,.,,.,.,
+#ULFIZX5EKJTL32XTCGG3MLITVMSFMFTUROYHH644NY2IP7QPH6WRSSTZOV5QD5ROWGDTCQESOMFK4
+#\\\|HD4DVW7FIFZDL2YEIOM7M2COEEU3YYOSXFULDCZAW7HGXKSCAVK \ / AMOS7 \ YOURUM ::
+#\[7]KPXTWCUDLR5ZS2CN5TIR53IXQM6RA553QDPNHUC6RFORSOC6RMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
