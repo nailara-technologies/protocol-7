@@ -217,12 +217,22 @@ these calls are detectable by the dep-graph scanner (already scans
 
 ### phase 2.5: confidence annotation
 
-- [ ] once partial context is available, classify each dispatch site:
+- [x] once partial context is available, classify each dispatch site:
       `[ probable ]`   — name pattern or conditionals strongly constrain values
       `[ constrained ]` — some context narrows the set but not to one target
       `[ open ]`       — no usable context, all loaded modules are candidates
-- [ ] gives LLMs a signal for where to focus analysis effort
-- [ ] confidence label included in output alongside line/variable info
+- [x] gives LLMs a signal for where to focus analysis effort
+- [x] confidence label included in output alongside line/variable info
+
+**implementation notes:**
+- `classify_dispatch_confidence()` scans ±15 lines around dispatch site
+- detects: regex patterns (`=~ /.../`), literal comparisons (`eq '...'`)
+- detects: hash lookups (`exists $hash{$var}`)
+- detects: conditional guards (`if/unless/while` containing the variable)
+- classification:
+  - `probable`: regex + conditional, or literal + conditional
+  - `constrained`: hash lookup, or regex/literal without conditional
+  - `open`: no constraining patterns found
 
 ### phase 3: regex logic rule plugin interface
 
@@ -239,8 +249,8 @@ these calls are detectable by the dep-graph scanner (already scans
 - [ ] edges resolved by rules tagged `[ rule-resolved ]` vs `[ static ]` in
       output — keeps provenance clear and makes rules auditable
 
-#,,.,,..,,,,.,...,.,.,.,,,,..,,..,.,,,.,,,...,..,,...,...,.,.,...,.,,,...,.,,,
-#BUPD3HDHH7G72FRDZP2BDKXY42D4CDC6CWZL4SADEUZXQQOIEXUNDFLPIWPM2PLUXPBLATKBXFWZE
-#\\\|J26W7F2EUFS2Z2C3CUOYTLTTHEUDCOQZY6YNBESBBIZWO46SSIJ \ / AMOS7 \ YOURUM ::
-#\[7]Z5BUKOXXGYUIAITUJZYED553WMUAQ65UFO36JBYAK7LKZ4T7SEDI 7  DATA SIGNATURE ::
+#,,.,,.,.,,.,,..,,..,,,,,,,,,,.,,,,,,,.,.,,,.,..,,...,...,..,,..,,,..,..,,.,,,
+#DM7TS2T2NODQRHOMFWU5QPJQIOJP7W6OQ57O4DKME2U32TZOKPONVMRYLUUBU5MC64CLZ4A3YIOFW
+#\\\|DWUPQXQ5TCJCRL35GXLXMO557ASWP6CKNCP37B7JVYGM4GEIDHR \ / AMOS7 \ YOURUM ::
+#\[7]2MNEX236PMU6CHBDKDZ6JGA3JHWYEEAK3AENU2JP4RWB5KSFKQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
