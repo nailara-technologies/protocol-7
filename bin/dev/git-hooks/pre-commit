@@ -37,9 +37,27 @@ my $root_path = abs_path(
     )
 );
 
+## amend detection — skip version check when amending ##
+my $is_amend = 0;
+if ( ( defined $ENV{'PERSISTENT_AMEND'} and $ENV{'PERSISTENT_AMEND'} ne '0' )
+    or ( defined $ENV{'GIT_AMEND'} and $ENV{'GIT_AMEND'} ne '0' )
+    or ( defined $ENV{'AMEND'}     and $ENV{'AMEND'} ne '0' ) ) {
+    $is_amend = 1;
+}
+## also check for .amend file [ one-shot, cleared on use ] ##
+my $amend_file = File::Spec->catfile( $root_path, qw| .amend | );
+if ( -e $amend_file and -z $amend_file ) {
+    $is_amend = 1;
+    unlink $amend_file;
+}
+$skip_version_check = 1 if $is_amend;
+
 ## Version file path
 my $vers_file = File::Spec->catfile( $root_path, 'configuration',
     'protocol-7.src-ver' );
+
+print ":\n: running 'pre-commit' checks ..,\n:\n";
+print ": [ amend mode ]\n:\n" if $is_amend;
 
 ## Initialize git object
 my $git = Git::Wrapper->new($root_path);
@@ -158,69 +176,41 @@ unless ($skip_version_check) {
 unless ($skip_signature_check) {
     my @staged_files = eval { $git->diff( { cached => 1, name_only => 1 } ) };
 
-    my $has_unsigned = 0;
-    my @unsigned_files;
+    my $staged_count = scalar @staged_files;
+    print ": [ $staged_count staged file"
+        . ( $staged_count == 1 ? '' : 's' )
+        . " — checking signatures ]\n:\n";
 
-    for my $file (@staged_files) {
-        next if $skip_backup_files and $file =~ m|~$|; # skipping backup files
+    ## run authoritative signature verification ##
+    my $verify_cmd
+        = "cd '$root_path' && bin/Protocol-7 "
+        . "sourcecode verify-p7-signatures 2>&1";
+    my $verify_output = `$verify_cmd`;
+    my $verify_status = $? >> 8;
 
-        my $file_path = File::Spec->catfile( $root_path, $file );
-        next unless -f $file_path;
-
-        # Check if file has signature footer
-        open my $fh, '<', $file_path or next;
-        my $content = do { local $/; <$fh> };
-        close $fh;
-
-     # Files should have AMOS7 signature markers if they're tracked code files
-        if (   $content =~ /\.(pl|pm|md|yaml|sh|asc)$/
-            || $file =~ /^(modules|bin|configuration)\// ) {
-
-            # Check for signature markers
-            unless ( $content
-                =~ /SIGNATURE|YOURUM|AMOS7.*DATA.*SIGNATURE|AMOS7.*CODE.*SIGNATURE/
-            ) {
-                # Only warn if file appears to be source code
-                #           [ has recognizable code patterns ]
-                if ( $content
-                    =~ /^#!|^\s*(use|require|my\s+\$|sub\s+\w|if|while|for)\s/
-                    || $content =~ /^---|\n---\n/
-                    || $content =~ /^#/ ) {
-                    push @unsigned_files, $file;
-                    $has_unsigned = 1;
-                }
-            }
-        }
-    }
-
-    if ( $has_unsigned && !$allow_unsigned ) {
-        print STDERR "\n";
+    if ( $verify_status != 0 ) {
         print STDERR "${fg}::\n";
-        print STDERR
-            "${fg}:: $bl${rd}unsigned or unverified files detected$rst\n";
+        print STDERR "${fg}:: $bl${rd}signature verification failed$rst\n";
         print STDERR "${fg}::\n";
-        print STDERR "${fg}:: unsigned files:\n";
-        for my $f (@unsigned_files) {
-            print STDERR "${fg}::   - $bl$f$rst\n";
-        }
+        print STDERR $verify_output;
         print STDERR "${fg}::\n";
         print STDERR
             "${fg}:: ${ng}suggestion${rst}${fg} : run ${bl}bin/Protocol-7 sourcecode update-signatures$rst$fg to sign\n";
         print STDERR "${fg}::\n";
         print STDERR
-            "${fg}:: ${no}hint${rst}${fg} : all source files must have AMOS7 signatures for security\n";
-        print STDERR "${fg}::\n";
-        print STDERR
             "${fg}:: to override this check: ${bl}git commit -no-verify$rst or ${bl}SKIP_SIGNATURE_CHECK=1 git commit$rst\n";
         print STDERR "${fg}::\n$rst";
-        exit 1;
+        exit 1 unless $allow_unsigned;
+    } else {
+        print ": [ signatures ok ]\n:\n";
     }
 }
 
+print ":\n: done.\n:\n";
 exit 0;
 
-#,,,.,...,.,,,,..,.,,,..,,,..,,,.,,,.,.,,,.,.,..,,...,...,..,,,,,,,,.,,.,,.,.,
-#6VBR2P5WRDHKHUAK3PO2RETOIKHFIUY7ZVNAWDXUQIKSTVHBCVIGQJ3LHYVUUDSPEGM25ZDXTL5M4
-#\\\|SO756OJCJ3M3MFOW6LMIQM22ZXJDLQVAESA5BERIW3HOFQQXGHX \ / AMOS7 \ YOURUM ::
-#\[7]QNOXSLTO4YWMMQYDJTZHLD6F3JP5NYPTR3WODC2C3R3B7MHXV2DY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,,.,,...,,,.,,,.,,..,,,.,..,,...,..,,...,...,...,,,.,.,,,.,.,.,,,
+#7OCBDIVWPDKEBZ3UEWYYY2F5PD52UOWEZDFRQVNNAMHXIOEAH52Q2F7ZTZNGKNBXOQPDNHE6NS7CM
+#\\\|G24CMHD4CJ2CYAEVRF5KPNR6OT7CCY2SP5IHYD4B4YE3WLO74VK \ / AMOS7 \ YOURUM ::
+#\[7]POQ5FBQ6QYGIFH6ISAGWRHUPDQY4VK246IP3YXUFHZQRBOIMCUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
