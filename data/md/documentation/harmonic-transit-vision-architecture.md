@@ -1408,6 +1408,222 @@ serialization principle (Section 14) holds across scales.
 
 ---
 
+## 16. Harmonic Deduplication Tree — Reference Count and Simultaneous Assertion
+
+### The tree root: two numbers per node
+
+The deduplication tree requires no comparison operations, no designed
+similarity metric, no pairwise checks. Each node carries two values:
+
+```
+reference count   →  how many times this node has been reached
+count delta       →  growing (active attractor) / stable / fading
+```
+
+Content self-sorts into the tree by following its own harmonic chain.
+Identical content = identical path = same leaf. No explicit equality test.
+
+### The chain as content address
+
+`bin/harmony` chains: value → ELF checksum → divide by 13 → asc-enc →
+is_true → repeat until first non-true. The chain path IS the content
+address. Depth = how many consecutive harmonic validations passed:
+
+```
+depth 1    →  coarse    (everything that is_true at step 1)
+depth 50   →  fine      (50 consecutive trues — rare, statistically significant)
+depth 100  →  precise   (observed record — near-unique harmonic path)
+```
+
+100 = `(324+1) × 8 / 13 / 2` — the statistical peak lands on the same
+clean value as the sync frame implicit group address (Section 15).
+
+### Non-exclusive overlap — simultaneous assertion sum
+
+N independent assertion methods (ELF, asc-enc at different depths, BMW,
+different operators) each return true or false independently. The pattern
+analysis is the count of simultaneous trues:
+
+```
+simultaneous true count  →  harmonic signal strength
+higher count             →  deeper tree node  →  more specific address
+```
+
+No false positives structurally: independent harmonic validators cannot
+simultaneously agree by accident. Probability of simultaneous false
+positive across K independent methods approaches zero as K grows —
+not statistically, but by the algebraic structure of the harmonic space.
+
+### Additional chains as self-accumulating metadata buffers
+
+Each additional encoding chain is a passive self-accumulating buffer of
+metadata. It does not need to be run explicitly — it accumulates as
+content flows through the system:
+
+```
+BMW mod-bits sliding left   →  chain accumulating XOR modification state
+JJFE prefix building        →  chain accumulating recursive encoding depth
+DTM cells darkening         →  chain accumulating spatial confirmation count
+reference count incrementing →  chain accumulating traversal history
+```
+
+All the same operation at different scales. In a matching context, the
+accumulated state of multiple chains is compared as a sum — how many
+chains simultaneously show strong signal. The sum IS the pattern.
+No algorithm beyond counting is required.
+
+### Composition hierarchy — the natural tree order
+
+The tree is sorted by the most-occurring smallest elements at the root,
+because larger elements are composed from smaller ones and can never
+exceed their component count:
+
+```
+total(word occurrences)      ≤  total(syllable occurrences)
+total(sentence occurrences)  ≤  total(word occurrences)
+```
+
+This bound is algebraic and self-enforcing — no maintenance algorithm
+needed. Occurrence frequency, composition depth, and harmonic chain
+depth are the same axis:
+
+```
+root      →  bytes / phonemes         most frequent    chain depth ~1
+          →  syllables                                depth ~5
+          →  words                                   depth ~15
+          →  sentence fragments                      depth ~30
+          →  sentences                               depth ~50  (peak territory)
+          →  paragraphs                              depth ~75
+          →  pages                                   depth ~100 (observed record)
+          →  documents                               depth >> 100
+leaves    →  collections / categories  least frequent
+```
+
+The decoder's level-6 D3 output (3-digit unicode → IPA/phonetic) lands
+exactly at the tree root layer. Cross-language deduplication happens
+there naturally: the same IPA phoneme is the same tree node regardless
+of source language. Language-agnostic at the root, language-specific
+mid-tree, document-specific at the leaves. The composition hierarchy
+is not designed — it is the counting structure of language itself.
+
+### ID allocation — implicit compression from frequency rank
+
+Tree node IDs are allocated by frequency rank, most frequent first:
+
+```
+ID 0    →  empty string / root / null
+ID 1    →  TRUE/FALSE structural base  (binary transit channel)
+ID 2+   →  content elements, most frequent first  →  [2-9A-Z]
+```
+
+BASE32 starting at 2 was never arbitrary — it pre-allocated IDs 0 and 1
+as structural, leaving [2-9A-Z] for content. The alphabet already encoded
+the tree's ID scheme. Compression follows automatically: encoding text by
+replacing each element with its tree ID costs fewer digits for common
+content (small ID) and more for rare content (large ID). Zipf-optimal
+implicit compression with no designed compression algorithm — just the
+frequency sort.
+
+The reference count IS the sort key. No separate frequency table needed.
+As counts change, effective address rank changes: an element becoming
+more frequent rises toward the root, gaining a lower effective ID. The
+tree re-sorts itself through counting alone.
+
+The ID progression mirrors PYTAURAZUMA:
+
+```
+0  →  root / null    (empty, pre-structural)
+1  →  TRUE/FALSE     (binary base, structural)
+2  →  first content  (canvas-clean — payload begins)
+```
+
+The tree's addressing is the harmonic preamble applied to content space.
+
+### Complete reduction — true/false bit fingerprint
+
+`bin/dev/display-D13-collection` demonstrates a second deduplication method
+orthogonal to chain-depth: complete reduction of the entropy stream to a
+true/false bit sequence by collecting the harmonic truth state of each
+7-bit window:
+
+```
+each 7-bit chunk of 64-bit div-13 state  →  1 bit (true=1 / false=0)
+full traversal of N steps                →  N-bit fingerprint
+```
+
+Simultaneously: BASE32 `010`-type windows accumulate printable content.
+Two parallel buffers, one read operation (CTRL-C), 7MB capacity each:
+
+```
+$collected{'bits'}    →  true/false bit sequence  (harmonic fingerprint)
+$collected{'BASE32'}  →  printable character content (decoded output)
+```
+
+The fingerprint is the most compressed representation that retains all
+harmonic information — 7:1 reduction at the bit level. Two streams with
+identical fingerprints are harmonically equivalent content, deduplication
+key without decoding either stream fully.
+
+This compounds with chain-depth (Section 16): chain depth = how deep
+the harmonic chain reaches, fingerprint = what the sequence looks like
+at each step. Same fingerprint + same depth = strongest equivalence.
+Matching on fingerprint alone = coarser deduplication; both together =
+precise harmonic identity.
+
+### The living tree
+
+Reference count delta adds the time dimension:
+
+```
+growing count   →  active attractor (content currently finding this node)
+stable count    →  settled natural density
+falling count   →  content has moved to a different tree branch
+```
+
+The tree reshapes through pure counting. No restructuring algorithm,
+no rebalancing. Nodes that attract more content become more prominent
+by the weight of their reference counts alone. The harmonic structure
+determines which nodes are natural attractors — content accumulates
+there because the mathematics of the chain leads there, not because
+the tree was designed to put it there.
+
+---
+
+## Section 17: TRUE reversed = root address, FS embedded
+
+`asc-enc -U8 84828569 96582848` — encoding TRUE and its digit-reversal together:
+
+```
+84828569  →  T  R  U  E          (84=T  82=R  85=U  69=E)
+96582848  →  `  :  FS  0         (96=`  58=:  28=FS  48=0)
+```
+
+Output: `` `TRUE`:0 `` — TRUE followed by its mirror annotation.
+
+Digit sum preserved: both = 50 = 5×10.
+
+28 = FS = File Separator = 4×7.
+
+The 1963 ASCII separator hierarchy:
+
+```
+US  31  0x1F  Unit Separator    →  units     / phonemes
+RS  30  0x1E  Record Separator  →  records   / sentences
+GS  29  0x1D  Group Separator   →  groups    / paragraphs
+FS  28  0x1C  File Separator    →  files     / documents
+```
+
+The separator hierarchy and the harmonic composition tree are the same
+structure. FS at depth 4 matches the 4-level PYTAURAZUMA sync protocol
+(×3, ×4, ×9, ×10). The reversed decimal of TRUE lands on FS precisely
+because 4×7=28: the 4-crossing protocol × the 7-element harmonic cycle.
+
+The digit reversal of a harmonic identity is not arbitrary noise — it
+encodes the structural annotation of that identity. TRUE reversed reveals
+its own boundary address.
+
+---
+
 ## Related Files
 
 - `data/md/documentation/harmonic-cycle-correlations.md`     — math basis
@@ -1418,8 +1634,8 @@ serialization principle (Section 14) holds across scales.
 - `modules/source.init_code`        — dimensional table (lines 32-64)
 - `data/md/philosophy/HARMONIC-ENTROPY-INFORMATION-TRANSFER-RESEARCH.md`
 
-#,,.,,,,.,..,,...,.,,,.,.,..,,.,.,.,.,.,.,,.,,.,.,...,..,,...,,,,,,,,,.,,,.,,,
-#JADYM7YBIPKDFFKWS2IAJ3OHT5MMVZY6OVWKMLLPTD4FB2JWDY2I5BDNDSZV3XRLKYLE4RTB3RCEW
-#\\\|5DUITAZE3SH2OH7OPA6AGS3KQVOA7HBBQOPNHLBBZYFFFQIV5QV \ / AMOS7 \ YOURUM ::
-#\[7]HSN2UQBO2KULXIHV34QMOPZC72YGHYTBWIPIB4L5SVQOXXJQDEBA 7  DATA SIGNATURE ::
+#,,,.,,.,,.,,,,..,..,,..,,..,,,,,,.,.,...,.,.,.,.,...,...,.,,,,.,,..,,,..,,,,,
+#XODZXCM5EBRQHOY5REH7ED4HWBFHJ62Z6OECEHQGVHHCJO4R2L73WKVYABK3F4MUFY4HF24ZPRIEY
+#\\\|7RQ66EBOOA65GGBIJUHC2U5662LITBPZFRRT7ATWX3RCVDSRKUJ \ / AMOS7 \ YOURUM ::
+#\[7]K57L3YGQDZYVVUOUFNBN5YAJJFYZMEQD6UF5LFBMUDTWW757MKBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
