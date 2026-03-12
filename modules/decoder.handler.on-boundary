@@ -3,7 +3,9 @@
 # name  = decoder.handler.on-boundary
 # descr = Handle harmonic convergence boundary — close level buffers, log, INDEXCUBE
 
-my ( $stream_id, $boundary_value ) = split m| +|, $call->{'args'}, 2;
+my $args_str
+    = ref( $ARG[0] ) eq 'HASH' ? $ARG[0]->{'args'} : ( $ARG[0] // '' );
+my ( $stream_id, $boundary_value ) = split m| +|, $args_str, 2;
 
 $stream_id      //= 'unknown';
 $boundary_value //= 769230;
@@ -43,8 +45,8 @@ push @{ $data{'decoder'}{'INDEXCUBE'} },
 
 return { 'mode' => qw| true |, 'data' => "boundary $boundary_n recorded" };
 
-#,,.,,,.,,.,.,.,.,.,,,...,.,.,.,,,.,,,...,,..,..,,...,...,.,,,,..,.,.,..,,,.,,
-#5KB3NUON23LY3ALPMOH4UEDVJZZ736WTEUIUCJ7HFJCDHZ3K4S3G75XLSLQT6BXBVSBPBI5OPEIF6
-#\\\|5OY6T6O7FY334Y7DTWEPINHPK3CJSPMCEAAZRK65AQFNX2KIDVW \ / AMOS7 \ YOURUM ::
-#\[7]KZQJKZRJZTS4AKF7TKMIZNE4CDRUWTQCYTPLN2VNRPIXV6Z47YAQ 7  DATA SIGNATURE ::
+#,,..,,.,,...,,,.,...,,,,,,.,,,,.,,.,,,,,,.,.,..,,...,...,.,,,,,.,,..,,,,,,,.,
+#NQUTFXN53XBX35N77VHRQ3DFEQGS5CNMP7OUFRTSZTNSVIPZT53VNOJNFYGQEL72C62WZLDPU6RBK
+#\\\|TYGBIS4INVY3BE3I7ACURV76ZMMQNJSLXWT2BVMB4ZN3E4IHN3A \ / AMOS7 \ YOURUM ::
+#\[7]C24BNM7UDQNAZW2DO6TA27LQ44VJXSPC25GYEXRRBXFHP4WH6QAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
