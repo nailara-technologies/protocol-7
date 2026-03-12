@@ -11,12 +11,21 @@ my $stream_id
 
 <decoder.jobs> //= {};
 
-## snapshot current level-5 values ##
-my $values_ref = <decoder.level5>->{'values'};
+## snapshot level-5 values — per-stream or merged across all streams ##
+my $values_ref;
+if ( $stream_id eq 'all' ) {
+    my @merged = map { @{ <decoder.level5>->{$ARG}{'values'} } }
+        sort keys %{<decoder.level5>};
+    $values_ref = \@merged;
+} else {
+    $values_ref
+        = exists <decoder.level5>->{$stream_id}
+        ? <decoder.level5>->{$stream_id}{'values'}
+        : [];
+}
 
 return { 'mode' => qw| false |, 'data' => 'no accumulated values' }
-    if not defined $values_ref
-    or not @{$values_ref};
+    if not @{$values_ref};
 
 my $job_id = <[chk-sum.elf.inline]>
     ->( join( ':', $stream_id, scalar @{$values_ref}, time() ) );
@@ -50,8 +59,8 @@ my $index_job = {
 
 return { 'mode' => 'deferred' };
 
-#,,,,,,.,,..,,,.,,,,,,...,..,,,.,,,..,,,,,.,.,..,,...,..,,..,,.,.,..,,,.,,,..,
-#XN6KSYNHBEDMRX35FXZ7XIUOYT2S2CMDS2M36LEDC6ELVJJR3RC3UT2LIQOYJXAUOSSCS5ZS4UH4S
-#\\\|JAHCWSBMHUPPPI2NXTP7RZTOUKIZVZ2VPBP745SBHXZN6WV7LFI \ / AMOS7 \ YOURUM ::
-#\[7]WQ3OODLLF7JN4LIGBPCZY6ZKE7GV52XTSTBH7DU4LVQJZGUIJWAA 7  DATA SIGNATURE ::
+#,,,.,..,,.,.,...,,..,,..,..,,,.,,...,...,,..,..,,...,..,,.,.,,,.,.,.,,.,,..,,
+#TM2PPXLZJST2RAZM6FYTNETJQDKJNIDR5LXL65J7GJVV42AVMZLW3GNLC5K7IE34Q5KN3MPPUBIRG
+#\\\|FIYBKRWGBVS5KOS3OQMYXQ3FX2U4T3WTVGEEUCVYHJRA6CUDZNB \ / AMOS7 \ YOURUM ::
+#\[7]OLZ644C5CTVJVG4XJHKRVEZT2GGHTQV5SFJJZPHSH4HOB45KMWDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
