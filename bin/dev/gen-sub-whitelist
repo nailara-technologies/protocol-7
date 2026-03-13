@@ -1,0 +1,120 @@
+#!/usr/bin/perl
+use v5.24;
+use strict;
+use English;
+use warnings;
+
+###                   ###
+##  gen-sub-whitelist  ##
+###                   ###
+
+##  generate subroutine.white-list for one or all zenki  ##
+##  output : configuration/zenki/<name>/subroutine.white-list [ unsigned ]  ##
+##  sign with : bin/Protocol-7 sourcecode update-signatures <path>  ##
+
+use File::Spec;
+use Cwd     qw| abs_path |;
+use FindBin qw| $RealBin |;
+
+my $root_path = abs_path(
+    File::Spec->catdir( $RealBin, File::Spec->updir, File::Spec->updir ) );
+
+my $dep_graph = File::Spec->catfile( $root_path, qw| bin dev dep-graph | );
+my $zenki_dir = File::Spec->catdir( $root_path, qw| configuration zenki | );
+my $sign_cmd  = File::Spec->catfile( $root_path, qw| bin Protocol-7 | )
+    . ' sourcecode update-signatures';
+
+my @targets = @ARGV;
+
+##  default : all zenki with a start file  ##
+if ( not @targets ) {
+    opendir my $dh, $zenki_dir
+        or die ":: cannot open $zenki_dir: $OS_ERROR\n";
+    @targets
+        = sort grep { -f File::Spec->catfile( $zenki_dir, $ARG, 'start' ) }
+        grep { $ARG !~ m|^\.| } readdir $dh;
+    closedir $dh;
+}
+
+die ":: no zenki found\n" if not @targets;
+
+my $generated = 0;
+my $failed    = 0;
+
+for my $zenka (@targets) {
+    my $out_path
+        = File::Spec->catfile( $zenki_dir, $zenka, 'subroutine.white-list' );
+
+    printf ":: %s ..,\n", $zenka;
+
+    ##  run dep-graph and capture output  ##
+    my @subs = qx| $dep_graph -list-subs -zenka=$zenka 2>/dev/null |;
+
+    if ( $CHILD_ERROR != 0 ) {
+        printf "   [!] dep-graph failed [ exit %d ]\n", $CHILD_ERROR >> 8;
+        $failed++;
+        next;
+    }
+
+    ##  strip header lines [ :: prefix ] and empty lines  ##
+    @subs = grep { length $ARG && $ARG !~ m|^::| } @subs;
+    chomp @subs;
+
+    if ( not @subs ) {
+        print "   [!] no subroutines found, skipping\n";
+        $failed++;
+        next;
+    }
+
+    ##  compare with existing file : skip write if content unchanged  ##
+    ##  preserves valid signature footer when list has not changed    ##
+    ##
+    if ( -f $out_path ) {
+        open my $rfh, qw| < |, $out_path
+            or do {
+            printf "   [!] cannot read %s : %s\n", $out_path, $OS_ERROR;
+            $failed++;
+            next;
+            };
+        my @existing = <$rfh>;
+        close $rfh;
+        chomp @existing;
+
+        ##  strip signature footer [ trailing lines starting with # ]  ##
+        pop @existing while @existing && $existing[-1] =~ m|^#|;
+        pop @existing while @existing && !length $existing[-1];
+
+        if ( "@existing" eq "@subs" ) {
+            printf "   %d subroutines [ unchanged, signature preserved ]\n",
+                scalar @subs;
+            next;
+        }
+    }
+
+    ##  write file  ##
+    open my $fh, qw| > |, $out_path
+        or do {
+        printf "   [!] cannot write %s : %s\n", $out_path, $OS_ERROR;
+        $failed++;
+        next;
+        };
+    say $fh $ARG for @subs;
+    close $fh;
+
+    printf "   %d subroutines -> %s [ needs signing ]\n", scalar @subs,
+        $out_path;
+    $generated++;
+}
+
+printf "\n:: %d updated, %d failed\n", $generated, $failed;
+printf ":: sign with : bin/Protocol-7 sourcecode update-signatures"
+    . " configuration/zenki/*/subroutine.white-list\n"
+    if $generated;
+
+exit( $failed ? 1 : 0 );
+
+#,,,,,.,.,,..,.,,,.,,,...,,.,,.,,,,,,,,,,,,,.,..,,...,...,,..,,.,,,..,,,.,...,
+#QI6Y6HRUUKQIULC3ZTXBQFERMBZFZWL4JRUCKVCJG4CQA6NZUPN6PJRKJYSHUFPILHC2W6QD4GZ4Y
+#\\\|H2E3ATN64SV653U3L5FYOLOYMPV7KIAH4E6VZEFHWIAMCGDBQRF \ / AMOS7 \ YOURUM ::
+#\[7]AEXTZ7BZAXXSPGUH6Q4HHMMBWWF7VXD46Y4NOVJLMB7TD4YPPEAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

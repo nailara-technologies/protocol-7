@@ -1,0 +1,95 @@
+## [:< ##
+
+# name  = base.zenka.load_sub_list
+# descr = load per-zenka subroutine whitelist for selective compilation
+# param = undef [ read default path ] | \@list | \$content
+# return = TRUE on success, FALSE to fall back to compile-all
+
+my $param = shift;
+
+my @lines;
+
+if ( not defined $param ) {
+
+    ##  default : read from zenka configuration directory  ##
+    ##
+    my $list_path = join( qw| / |,
+        <system.conf_path>,
+        sprintf( qw| zenki/%s/subroutine.white-list |, <system.zenka.name> )
+    );
+
+    if ( not -f $list_path ) {
+        <[base.log]>
+            ->( 2, 'no subroutine whitelist found [ compiling all ]' );
+        return FALSE;
+    }
+
+    my $content_ref = <[base.get_file.aref]>->($list_path);
+
+    if ( not defined $content_ref ) {
+        <[base.log]>->( 0, 'whitelist unreadable [ compiling all ]' );
+        return FALSE;
+    }
+
+    @lines = @{$content_ref};
+
+} elsif ( ref $param eq qw| ARRAY | ) {
+
+    @lines = @{$param};
+
+} elsif ( ref $param eq qw| SCALAR | ) {
+
+    @lines = split m|\n|, ${$param};
+
+} else {
+    <[base.log]>->(
+        0, 'base.zenka.load_sub_list : unexpected parameter type'
+    );
+    return FALSE;
+}
+
+##  parse : strip signature footer, empty lines, and comments  ##
+##
+my %whitelist;
+my $skipped = 0;
+
+foreach my $line (@lines) {
+    chomp $line;
+    next if not length $line;
+    next if $line =~ m|^#|;     ##  signature footer and comments  ##
+
+    ##  validate sub name format  ##
+    if ( $line !~ m|^[a-z][a-z0-9._-]+$| ) {
+        $skipped++;
+        next;
+    }
+
+    $whitelist{$line} = TRUE;
+}
+
+if ( not %whitelist ) {
+    <[base.log]>->( 1, 'whitelist empty or unparseable [ compiling all ]' );
+    return FALSE;
+}
+
+<[base.logs]>->(
+    1,        'whitelist : skipped %d unrecognized line%s',
+    $skipped, <[base.cnt_s]>->($skipped)
+) if $skipped;
+
+<base.loader.sub_whitelist> = \%whitelist;
+
+<[base.logs]>->(
+    2,
+    ':.sub whitelist loaded : %d entr%s',
+    scalar keys %whitelist,
+    scalar keys %whitelist == 1 ? 'y' : 'ies'
+);
+
+return TRUE;
+
+#,,,.,..,,..,,..,,,.,,.,.,..,,,,,,.,,,.,,,..,,..,,...,...,,,,,..,,,..,..,,..,,
+#BC7JO4PND7ELFQXCY7TVVB4LIZRVDGPBPNNIQPCQN3YZCUGU37BCBLFBJ342FZVEFL7CSNY27WBPK
+#\\\|6E5XTXAG7SNLD6RJMVQTAQZY5J3OHHPWE5MDPUXJKRFFYARQIJ5 \ / AMOS7 \ YOURUM ::
+#\[7]ZFPBJ7BS6KAEMU7EZAKWSQFW4MS7C6SWGX5UA3JDTQ5CJMO4UIDY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
