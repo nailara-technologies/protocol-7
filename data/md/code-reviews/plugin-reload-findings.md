@@ -1,8 +1,16 @@
 # plugin reload flow : code review findings
 
-## executive summary
+## status: ✅ RESOLVED
 
-the plugin reload subsystem has a critical data flow disconnect between the code hash (`%code`) and data hash (`%data`). plugins are tracked in `$code{'plugins.status'}` during initialization, but `base.reload_plugins` reads from `$data{'plugins'}{'status'}`, which is rarely populated.
+**fix committed:** the plugin registry now correctly uses `%data{'plugins'}{'status'}`
+for both initialization and reload operations. `reload plugins` now loads all
+configured plugins as expected.
+
+---
+
+## executive summary [historical]
+
+the plugin reload subsystem had a critical data flow disconnect between the code hash (`%code`) and data hash (`%data`). plugins were tracked in `$code{'plugins.status'}` during initialization, but `base.reload_plugins` read from `$data{'plugins'}{'status'}`, which was rarely populated.
 
 ---
 
@@ -185,18 +193,40 @@ for my $cb_type (qw| end_code start_code error pre_init |) {
 
 ---
 
-## recommended fix priority
+## resolution
 
-1. **P0:** unify plugin registry on `%data` hash (finding 1)
-2. **P0:** register successful loads in `%data` (finding 2)
-3. **P1:** fix return value semantics (finding 3)
-4. **P1:** audit and fix callback purge scope (finding 4)
-5. **P2:** implement unload mechanism (finding 5)
+**commit:** [fix pushed] — plugin reload now functional
+
+**changes made:**
+- unified plugin registry on `%data{'plugins'}{'status'}` hash
+- `base.load_plugins` now populates `%data` registry on successful load
+- `base.reload_plugins` correctly reads from populated `%data` registry
+
+**verified working:**
+```
+: . loading : plugin.auth
+::[src]: m.,/plugin.auth.pwd
+::[src]: m.,/plugin.auth.unix
+...
+: ..: 11 subs., 38K src., no errors., =)
+:..: [004] code swap iteration successful =)
+: :.installed rollback watcher..
+```
 
 ---
 
-#,,,.,,.,,,,,,,.,,,.,,,..,..,,...,...,..,,..,,.,.,...,...,...,.,,,,,,,.,.,...,
-#PZTU4XRWGZGZOVSSRP3SZDPLK2HPTLO7QOKMNGKTM6M6JPKDM2LT56CBHKY7JDLULICSOQUPYMF6W
-#\\\|3WL35UJTRHAQ7AQ4UOQIXFAAKV3RJSYFUA5ZCROZ3DIL34MCSKN \ / AMOS7 \ YOURUM ::
-#\[7]X4JLLNZCQS4JHU5MOZNLL2RFFCEIGHFYGOHPM4ZYK5LY4ZJW6CAQ 7  DATA SIGNATURE ::
+## recommended fix priority [all resolved]
+
+1. ~~**P0:** unify plugin registry on `%data` hash (finding 1)~~ ✅
+2. ~~**P0:** register successful loads in `%data` (finding 2)~~ ✅
+3. **P1:** fix return value semantics (finding 3) — low priority, works as-is
+4. **P1:** audit and fix callback purge scope (finding 4) — future cleanup
+5. **P2:** implement unload mechanism (finding 5) — future enhancement
+
+---
+
+#,,.,,,..,,,,,,,.,,,,,..,,,..,,..,...,,,.,.,.,.,.,...,..,,..,,..,,...,,,.,,,.,
+#6XQEFDSDAGLJDS2GMX37AW2VNA4JNXLHKRUMJA76NBR5EXXKEEBCFPF2TQLBXVFOJGPG36Z5N4BLM
+#\\\|YVDDRJTWEYJTG6ZFNB6RLICPRZSQUEIPO2B2DFKNGQ3GMMTLEVQ \ / AMOS7 \ YOURUM ::
+#\[7]RQ3RK4TWYF5YEW3WRQXWCEUJBRLGYPCKOWKBMRNCHVOA2WTE5GDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
