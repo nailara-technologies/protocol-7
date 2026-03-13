@@ -2008,7 +2008,9 @@ sub p7_load_code {
     }
 
     ##  staged hash swap  ##
-    if ( not $err_count ) {
+    ##  on reload: abort if any errors [ old code stays live ]  ##
+    ##  on first load: swap regardless [ no prior version to fall back to ]  ##
+    if ( not $err_count or not defined $active_version ) {
 
         ##  archive prior version under its load-seq key  ##
         ##  using seq key avoids collision when same src-ver reloaded  ##
@@ -5420,8 +5422,8 @@ __DATA__
 :
 :.
 
-#,,,.,,,.,..,,...,.,,,,,,,...,,,,,,,,,.,.,.,.,...,...,...,...,,.,,,,,,..,,.,,,
-#C6WNCXJ6DVMTAMLY7GLJ3BNRYCUDJWHQCG6RX7GUNH75XY7LFL4H4OCN4JY75YXMCCB7GKJJV3STM
-#\\\|TW7CAOPKUNP7R75UZ32OD5ORZFKEXWZ3LBRZDZPLCEZV3WB2RPO \ / AMOS7 \ YOURUM ::
-#\[7]7FKZTLJEPJ73BBTYU5DCKW7OV3SXRAAHCYDO3EQVKOMQS4JMDIDQ 7  DATA SIGNATURE ::
+#,,..,,,,,.,,,,,,,,,,,,..,.,,,,,,,,.,,,..,,..,...,...,...,,..,...,,.,,...,..,,
+#7FJVK7QA4EETSWGMI2PRBBLIO257YJ7YSOCBKUA3DITEMCJW56NMRWFJJJDBOKIH7OHIPO5OUKEGS
+#\\\|GIJNVM2ZTGK3MRY3RW3FBEKZVAPEYDOJXBYYAFS4IFMECKTANUK \ / AMOS7 \ YOURUM ::
+#\[7]3FUXDT2KMLW35X7RDAXFG2T6ZDCHIWS5GLZ4FIOSRSAOL3TMNEDQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
