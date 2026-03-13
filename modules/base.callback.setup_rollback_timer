@@ -1,0 +1,25 @@
+## [:< ##
+
+# name  = base.callback.setup_rollback_timer
+# descr = install rollback window watcher when new code was loaded
+
+return FALSE    ##  no rollback pending  ##
+    if not <base.loader.rollback_pending>;
+
+delete <base.loader.rollback_pending>;    ##  clear flag  ##
+
+<base.loader.rollback_watcher> = <[event.add_timer]>->(
+    {   'after'   => <base.loader.rollback-window> // 93,
+        'handler' => qw| base.callback.expire_code_version |
+    }
+);
+
+<[base.log]>->( 2, ':.installed rollback watcher..' );
+
+return FALSE;
+
+#,,.,,,,.,.,,,..,,,,.,.,.,,.,,.,,,...,,,,,.,,,..,,...,...,..,,...,,,.,,.,,,,.,
+#2GBZZLMFBZLU6IQOLM5EWXGU3PGGW7J2OMB7AL6N6HIXDLM7ZPVIDG2WMZAX4DVLVYBVI3ZADFGGM
+#\\\|QUBLNP253EGUAOQKZ33OREESYGASIW3L4ICTTQX7PS5MAGRBYWT \ / AMOS7 \ YOURUM ::
+#\[7]THEPCNUEWOALZMGB5N7K7QXJWHAKFFUN7EE7SEJNURCMEAP36MAI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

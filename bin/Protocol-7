@@ -2014,15 +2014,45 @@ sub p7_load_code {
 
         ##  archive prior version under its load-seq key  ##
         ##  using seq key avoids collision when same src-ver reloaded  ##
-        $CODE{$active_version} = {%code}    ##  snapshot prior  ##
-            if defined $active_version;
+        my $prev_version = $active_version;
+        $CODE{$prev_version} = {%code}    ##  snapshot prior  ##
+            if defined $prev_version;
 
-        %code           = $staging->%*;     ##  atomic swap  ##  =)  ##
+        %code           = $staging->%*;    ##  atomic swap  ##  =)  ##
         $active_version = $new_version;
 
         $code{'log.devmod'}->(
             sprintf '..: [%03d] code swap iteration successful =)', $load_seq
         );
+
+        ##  rollback window : cancel prior watcher if still active  ##
+        if ( defined $prev_version ) {
+
+            if ( defined $data{'base'}{'loader'}{'rollback_watcher'}
+                and $data{'base'}{'loader'}{'rollback_watcher'}->is_active ) {
+                $data{'base'}{'loader'}{'rollback_watcher'}->cancel;
+                ##  prior window was still open : free the older archived ver  ##
+                delete $CODE{
+                    delete $data{'base'}{'loader'}{'rollback_version'}
+                        // '' };
+            } elsif ( $data{'base'}{'loader'}{'rollback_pending'} ) {
+                ##  no watcher yet [ pre-init ] : free orphaned ver now  ##
+                delete $CODE{
+                    delete $data{'base'}{'loader'}{'rollback_version'}
+                        // '' };
+            }
+
+            $data{'base'}{'loader'}{'code_store'} //= \%CODE;
+            $data{'base'}{'loader'}{'rollback_version'} = $prev_version;
+            $data{'base'}{'loader'}{'rollback_pending'} = TRUE; ##  always  ##
+
+            if ( exists $code{'event.add_timer'} ) {
+                ##  event ready : install watcher inline  ##
+                $code{'base.callback.setup_rollback_timer'}->()
+                    if exists $code{'base.callback.setup_rollback_timer'};
+            }
+            ##  else : event not yet initialized : defer to base.event.post_init  ##
+        }
 
     }   ##  else : staging discarded, %code unchanged, old code stays live  ##
 
@@ -5422,8 +5452,8 @@ __DATA__
 :
 :.
 
-#,,..,,,,,.,,,,,,,,,,,,..,.,,,,,,,,.,,,..,,..,...,...,...,,..,...,,.,,...,..,,
-#7FJVK7QA4EETSWGMI2PRBBLIO257YJ7YSOCBKUA3DITEMCJW56NMRWFJJJDBOKIH7OHIPO5OUKEGS
-#\\\|GIJNVM2ZTGK3MRY3RW3FBEKZVAPEYDOJXBYYAFS4IFMECKTANUK \ / AMOS7 \ YOURUM ::
-#\[7]3FUXDT2KMLW35X7RDAXFG2T6ZDCHIWS5GLZ4FIOSRSAOL3TMNEDQ 7  DATA SIGNATURE ::
+#,,,,,,.,,,..,..,,..,,...,,..,.,,,,,,,,,.,.,.,...,...,..,,...,...,...,.,,,,..,
+#6ZULBFYEP3IYRU7MWF3R47ITZ3UP56ZUAG67ZMSFYUPIP22EWGRDHXR4CEGUMH2PNJRSQJYDFJK2K
+#\\\|VKAMLWFDP5XBXRM7RW6OMGD563FG76S5WZOEKSNHIQL5IUYDXRP \ / AMOS7 \ YOURUM ::
+#\[7]Y3CHA5FPWUY6TV3D4DOU7G3LBPF5GZCA2ILRGCBZ5C7RNQ6UBAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
