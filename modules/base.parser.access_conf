@@ -6,6 +6,10 @@
 
 <[base.log]>->( 2, ': compiling command permission masks..,' );
 
+##  clear stale compiled masks before recompilng  ##
+##
+delete <access.cmd.regex.usr>;
+
 my $user_re = <regex.base.usr_str>;
 my $cmdp_re = <regex.base.cmdrp>;
 my $errors  = 0;
@@ -219,8 +223,8 @@ foreach my $user ( <[base.reverse-sort]>->($access_regex_log) ) {
 
 return $errors;
 
-#,,,,,...,..,,,,.,.,,,,.,,...,.,.,,,.,..,,,..,..,,...,...,...,,..,,..,,,,,,..,
-#FKRKXEYDI5CI6W5VKNN4H2LFASAM5LNX6EREL7ZHTBQSSOUSRTJNNGZUERS6BAFBSBTIPACOKNI7Q
-#\\\|CU7A5Z2W52NSFWOGK22CS7AZXMFGK6ULJXIMEMPSZNGFBRLYYCH \ / AMOS7 \ YOURUM ::
-#\[7]ZSWG5ED4RANPZL7YT6LYZW44Q6K7XT44GOA77TGSPK4LTIW37KAQ 7  DATA SIGNATURE ::
+#,,,.,...,.,,,,..,...,,,,,,..,.,,,,,.,.,,,,.,,..,,...,...,..,,..,,.,,,..,,..,,
+#Q7WAXWAOCV3GASBQ55C23TMEKN3RLHW4ZNRQAUOKDWBSYMIB3JBTWAOII3IDHR4CB5ISJQT5IFIVW
+#\\\|UPBATBKQFBKDRG7PJYXJWJUOWFBMBS25676WKOXJ5APST725DQT \ / AMOS7 \ YOURUM ::
+#\[7]ASYSF6Z2ASQIAVGUFW4AG7AU2AUOWI2AMTFTWHTODIOGCSYE34AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
