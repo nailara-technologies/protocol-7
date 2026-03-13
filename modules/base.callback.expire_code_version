@@ -1,0 +1,26 @@
+## [:< ##
+
+# name  = base.callback.expire_code_version
+# descr = free archived code version after rollback window expires
+
+my $version    = delete <base.loader.rollback_version>;
+my $code_store = <base.loader.code_store>;
+
+return if not defined $version or not defined $code_store;
+
+delete $code_store->{$version};    ##  free archived version  ##
+
+delete <base.loader.rollback_watcher>;
+
+## strip _v _ for numerical display ##
+( my $iteration = $version ) =~ s|\D||g;
+
+<[base.log]>->(
+    2, sprintf '..: rollback window expired, unreferenced [%03d]', $iteration
+);
+
+#,,,.,,,,,.,.,,.,,,,,,...,,..,..,,.,,,.,,,,,.,..,,...,...,.,,,..,,,..,,,.,,,,,
+#5XFG2KIHQHGWQEXZK5UMW74KA5JA7W57EAHSNDEYK4MSYJZLUUSVC4C6WOJLJCZMN7HEJNL7RSI7Y
+#\\\|WKPDKDUGYFSRX3A65AZYDYPOVCRBWSDQFDSQ23YVNUWMQVMZGJZ \ / AMOS7 \ YOURUM ::
+#\[7]OOVYYCQIQS7TBRGCUYOI2CSFDSVFV2VPWARY6Y65YDA3ZJZUMUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
