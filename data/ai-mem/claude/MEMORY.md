@@ -35,6 +35,7 @@
   DTM 6×7×13 CCW shift register, 15-bit `#:::::` footer encoding, binary sunburst
   zoom promotion (0110/1001), multi-speed lanes, lens effect on distance, PYTAURAZA;
   see `data/md/documentation/harmonic-transit-vision-architecture.md`
+- **config double-load bug**: pre-existing duplicate config key warnings on startup/reload — needs "already loaded" guard in config parser; see `bug-config-double-load.md`
 
 ## Key Technical Insights
 
@@ -142,8 +143,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,,,,,.,,...,..,,..,,.,,,,,.,,..,,,.,..,,..,,..,,...,...,..,,..,,,.,,...,,.,,
-#IZKVOU5SBSXV23E76X3MSLCU4GFX6EI4XZ2LS2SIEBX4YIZUW7KZDS6EYUQD7PJRPHPOOATEIZEV6
-#\\\|RSOLLLSPH4WXFH5IMLZ2UDKLJSGKDTPLOWH6D6BOI6XL2WHAIYU \ / AMOS7 \ YOURUM ::
-#\[7]LGCZP4KPPAJADQYFGEEQUMZ2TWP2XYRRAXILWPFIVKN72UYXR2BQ 7  DATA SIGNATURE ::
+#,,..,.,.,,..,..,,,,,,.,,,,,,,.,.,..,,...,,,,,..,,...,...,,..,,,.,.,,,,,,,,,,,
+#3PWIJ34XCXUPXE4SARP3TJAFH4E2SMALFSWJ6OPLVGYIQPMPW6OXHSRBAA4MW32FBBGIJ7F4OIUEQ
+#\\\|3RSZVGZ7O4BS2QMXQRDNVR3CI4EPSG3VQR4VY55E4XEUQZIAWSV \ / AMOS7 \ YOURUM ::
+#\[7]QAKGF55WMMDYZBOL666YJJMGFBMMJD4SXH5I3TBBADSDPGUCXKAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
