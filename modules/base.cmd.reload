@@ -12,7 +12,7 @@ my $id  = $call->{'session_id'};
 ##
 $arg = qw| perl-mods | if $arg eq qw| p-mods |;   ## reloading perl modules ##
 
-my ( $success, $output ) = ( FALSE, '' );
+my ( $success, $output ) = ( TRUE, '' );    ##  sticky : &&= keeps FALSE  ##
 
 <base.devmod.keep_on_reload> //= FALSE;   # devmod module persistence override
 <base.reload.success.clean-code> //= TRUE;  # delete $data{'code'} [ success ]
@@ -36,7 +36,7 @@ if ( $arg eq qw| config | or $arg eq qw| all | ) {
         $reply->{'data'} .= sprintf "%s reload config  [  error  ]\n", $s_str;
     }
     <[base.parser.access_conf]> if $arg eq qw| config |;
-    $success = TRUE;          ## true ##
+    $success &&= TRUE;        ## true ##
 }
 if ( $arg eq qw| perl-mods | or $arg eq qw| all | ) {
     $keyword_match = TRUE;    ## true ##
@@ -44,7 +44,7 @@ if ( $arg eq qw| perl-mods | or $arg eq qw| all | ) {
     eval { Module::Refresh->refresh };
     if ( not length $EVAL_ERROR ) {
 
-        $success = TRUE;      ## true ##
+        $success &&= TRUE;    ## true ##
         $reply->{'data'} .= sprintf "%s reload p-mods  [ success ]\n", $s_str;
 
     } else {
@@ -60,6 +60,7 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
     $keyword_match = TRUE;                                        ## true ##
     delete <base.commands>;
     delete <base.subroutines>;
+    delete <buffer.compile-errors>;    ##  clear previous errors  ##
     <base.modules.load_errors>      = 0;
     <base.modules.compile_warnings> = 0;
     $data{'callbacks'}{'end_code'} = [];
@@ -83,16 +84,16 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
     if ( $load_success and <base.modules.compile_warnings> ) {
 
         $reply->{'data'} .= "$s_str reload source  [ warning ]\n";
-        $success = TRUE;    ## [ still ] true ##
+        $success &&= TRUE;    ## true ##
 
     } elsif ( $load_success and not <base.modules.load_errors> ) {
 
         $reply->{'data'} .= "$s_str reload source  [ success ]\n";
-        $success = TRUE;    ## true ##
+        $success &&= TRUE;    ## true ##
 
     } else {
         $reply->{'data'} .= "$s_str reload source  [  error  ]\n";
-        $success = FALSE;    ## false ##
+        $success = FALSE;     ## false ##
     }
 
     ## source version ##
@@ -125,7 +126,7 @@ if ( $arg eq qw| plugins | or $arg eq qw| all | ) {
     if (<[base.reload_plugins]>) {    ## [ LLL ] add warnings
 
         $reply->{'data'} .= sprintf "%s plugin reload  [ success ]\n", $s_str;
-        $success = TRUE;              ## true ##
+        $success &&= TRUE;            ## true ##
 
     } else {
 
@@ -154,12 +155,12 @@ if ( $arg eq qw| init | or $arg eq qw| all | ) {
     if ($modules_init_success) {
 
         $reply->{'data'} .= "$s_str reinit source  [ success ]\n";
-        $success = TRUE;    ## true ##
+        $success &&= TRUE;    ## true ##
 
     } else {
 
         $reply->{'data'} .= "$s_str reinit source  [  error  ]\n";
-        $success = FALSE;    ## false ##
+        $success = FALSE;     ## false ##
     }
 }
 if ( not $keyword_match ) {
@@ -191,8 +192,8 @@ delete <system.reload>;    ## completed ##
 $reply->{'mode'} = qw| data |;
 $reply->{'data'} .= $reply_footer;
 
-#,,,.,.,.,,,.,..,,.,.,..,,.,,,,,,,,.,,...,.,.,..,,...,...,,,.,,.,,.,.,...,,,.,
-#TOYTL7JEUMT5GDMFWHAYFFNDCOL5V75C7ZH2XHU2WZGNJWSW2JUDEZBIQ5JGVHDV4IBHOWIGWGE54
-#\\\|TPNNAXGRBAR36F2LE5AV2EPTJSRRIUS6ZTJYE4IAIENOUE723PD \ / AMOS7 \ YOURUM ::
-#\[7]2NVZQMR2KLVFYK54MX2JNJO7O4H47UTUMJLJ774XBHTFIUBH32BY 7  DATA SIGNATURE ::
+#,,..,,..,.,.,,.,,.,.,.,.,,,.,..,,..,,,,,,..,,..,,...,...,...,,,.,..,,,..,,,,,
+#O7NZO4NDWLQFC5RUJ5WMJU32LBGEUFYIBRNKCRPRGAD2XTELI4BFTZADJDTHBHJFCBD4P3P2YNRCM
+#\\\|NSI2CVMNH6E2W5Q6URU4S2LADB4EEHL4ZTF7QJ77NV4M3V5XAYD \ / AMOS7 \ YOURUM ::
+#\[7]XX7I2KGIYULNHNNF5DNL3UTWHGOSF63JVJ4CPW5ND57U5XNGPOBA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

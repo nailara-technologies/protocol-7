@@ -62,7 +62,11 @@ $data{'devmod'} //= {};
 ##
 <devmod.sig_int_dump> = FALSE; ## dump %data state on SIGINT in log level 2 ##
 
-*main::dump_var = $code{'base.devmod.dump_var'};
+{
+    no warnings qw| redefine |;
+    *main::dump_var
+        = $code{'base.devmod.dump_var'}
+}
 
 ## skipping p7-log.append commands in log level 2 devmod output ##
 <devmod.skip_log_msg> = TRUE;
@@ -290,8 +294,8 @@ if ( scalar(@INDEXCUBE) == 0 ) {
 
 return FALSE;
 
-#,,,,,,..,,.,,...,.,.,.,.,,.,,..,,.,.,.,,,..,,..,,...,...,.,.,.,,,..,,,.,,..,,
-#WVZFXJUXDE6GSIGIYOGXUDKFNVHM4YX7PVZM6Z2LGG2ZWRO7S42L3MZIUX6X64XFM6GI6POTHIA4E
-#\\\|YSKSZSSKFV5CL6PAM2J6UVGO4L2KOPT7WK54OZVLKDNI6HLH2ZK \ / AMOS7 \ YOURUM ::
-#\[7]ABER5V7IX6KETCT7TILBJRQCONHQARFQKDRZMZWRY6NFCUCTLMBQ 7  DATA SIGNATURE ::
+#,,,.,,,,,,..,.,.,,..,..,,,..,...,.,,,.,.,.,.,..,,...,...,..,,...,,.,,,.,,..,,
+#DB3QJ2QTJWLOWTESTJ4YZHJABHW3UFC7XFIYJ5SQHHYLQQVG3XRVCBPSFMPXYY3SP3OC2ABPP72QE
+#\\\|GGSLOF6JB42NTCYYL5GXZVOTFD3OF7BHMLX7DJTDIKQSOUMCL7E \ / AMOS7 \ YOURUM ::
+#\[7]PQRXTCTJAJMF4EQXBOFUZXFGO62ILIWIWQNWHYLEOJ3TGMFETWAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
