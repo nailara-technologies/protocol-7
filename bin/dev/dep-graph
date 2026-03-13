@@ -35,6 +35,8 @@ BEGIN {
     sub r2_abs { File::Spec->rel2abs(@ARG) }
 }
 
+use AMOS7::Graph;    ##  graph_to_adjacency, adjacency_to_graph  ##
+
 ##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
 ##[ COMMAND LINE OPTIONS ]#####################################################
 
@@ -49,6 +51,9 @@ my %opt = (
     qw| list         | => 0,
     qw| list-modules | => 0,
     qw| list-configs | => 0,
+    ##  flat reachable subroutine list [ full scan ]  ##
+    qw| list-subs    | => 0,
+    qw| count        | => 0,   ##  include call counts in adjacency output  ##
 );
 
 Getopt::Long::Configure('prefix_pattern=--|-');
@@ -64,6 +69,8 @@ GetOptions(
     qw| list          | => \$opt{list},
     qw| list-modules  | => \$opt{'list-modules'},
     qw| list-configs  | => \$opt{'list-configs'},
+    qw| list-subs     | => \$opt{'list-subs'},
+    qw| count         | => \$opt{'count'},
 ) or die ":: invalid command line arguments\n";
 
 ##  default to text output if no format specified  ##
@@ -87,6 +94,10 @@ my $any_list = $opt{list} || $opt{'list-modules'} || $opt{'list-configs'};
 die ":: -list flags require -zenka=NAME or -stdin\n"
     if $any_list && !defined $opt{zenka} && !$opt{stdin};
 
+##  -list-subs requires -zenka (needs full graph scan)  ##
+die ":: -list-subs requires -zenka=NAME\n"
+    if $opt{'list-subs'} && !defined $opt{zenka};
+
 ##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
 ##[ CONFIGURATION ]############################################################
 
@@ -97,9 +108,9 @@ my $output_dir
 
 ##  output file paths  ##
 my $text_output_path
-    = c_dir( $output_dir, qw| module-dependency-graph.txt | );
-my $dot_output_path
-    = c_dir( $output_dir, qw| module-dependency-graph.dot  | );
+    = c_dir( $output_dir, qw| module-dependency-graph.asc | );
+my $dot_output_path = c_dir( $output_dir, qw| module-dependency-graph.dot | );
+my $txz_output_path = c_dir( $output_dir, qw| module-dependency-graph.txz | );
 
 ##::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..::..
 ##[ MAIN ]#####################################################################
@@ -178,7 +189,8 @@ if ( $opt{text} ) {
     if ( defined $opt{module} ) {
         say generate_tree_output( $graph, $opt{module} );
     } else {
-        my $text_output = generate_text_output($graph);
+        my $text_output
+            = graph_to_adjacency( $graph, { 'with-counts' => $opt{count} } );
         write_file( $text_output_path, $text_output );
         say ":: written to $text_output_path";
     }
@@ -392,23 +404,6 @@ sub _append_tree_deps {
     }
 }
 
-sub generate_text_output {
-    ##  generate sorted adjacency tree — recursive per-root, fresh cycle set  ##
-    my $graph = shift;
-
-    my @lines;
-    my $count = 0;
-    for my $module ( sort_by_length( keys %{$graph} ) ) {
-        next unless exists $graph->{$module} && %{ $graph->{$module} };
-        $count++;
-        push @lines, sprintf ':%03d: %s', $count, $module;
-        my %visited = ( $module => 1 );
-        _append_tree_deps( $graph, $module, 1, \%visited, \@lines );
-    }
-
-    return join( "\n", @lines ) . "\n";
-}
-
 sub generate_dot_output {
     ##  generate graphviz digraph format  ##
     my $graph = shift;
@@ -547,6 +542,12 @@ sub analyze_zenka_reachability {
         }
     }
 
+    ##  flat subroutine list mode : output and exit  ##
+    if ( $opt{'list-subs'} ) {
+        say $ARG for sort_by_length( keys %reachable );
+        return;
+    }
+
     ##  output unreachable list  ##
     if (@unreachable) {
         say ":: unreachable [never called]:";
@@ -666,7 +667,8 @@ sub parse_start_lines {
     my @config_files;
     my @config_ambiguous;    ##  variable-ref cases [ runtime-resolved ]  ##
     for my $line (@joined_lines) {
-        if ( $line =~ m/^\s*\[load_config_file\s*:\s*([^\]]+)\]/ ) {
+        if ( $line =~ m/^\s*\[(?:base\.)?load_config_file\s*:\s*([^\]]+)\]/ )
+        {
             my $arg = $1;
             $arg =~ s/^\s+|\s+$//g;
             if ( $arg =~ m/^['"](.+)['"]$/ ) {
@@ -1095,8 +1097,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,,,,..,,..,,.,,,,,,,,,.,,.,,.,.,,,.,...,,,,,.,.,...,...,...,...,,.,,.,.,,.,,
-#KHFXJGB6QCDFYCSKX4SUZIXWL454XWGAMYAGSW6WMJAFDKKDGBSVMCPK6MREFNOHR4EYZAINN76ZI
-#\\\|TPUVQ3D4ZWIENG4AD3GPMGK3NVWVIN5G6UWQY3ETKELXUBHQ5GA \ / AMOS7 \ YOURUM ::
-#\[7]S6FXRI2PXO2VS3BYSXXU2TAM4PQG3AT3BAFGSRFTLI6BYRHQWIBI 7  DATA SIGNATURE ::
+#,,,,,.,.,.,,,...,..,,.,.,,.,,,,,,...,,,,,,.,,.,.,...,...,,,.,,,.,,,.,,..,.,.,
+#X3J2GHVQV5ICVP5JVCCYDEUEWOFDCH7QUPL45DDZS27BBP3PC6JT3OURIRF3CBMBD7QCJ4PG4F6L4
+#\\\|4JB25PF452XIPYPRIKBWRTXCOQRCWWRCDLTV4465G6LCKPZ7THN \ / AMOS7 \ YOURUM ::
+#\[7]XNMYXL2Q7TJOVCVPLKITUTSOT77KDDT5XJ25L4UFB3AAUMPZZAAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

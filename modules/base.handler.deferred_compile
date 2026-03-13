@@ -1,0 +1,24 @@
+## [:< ##
+
+# name  = base.handler.deferred_compile
+# descr = placeholder for deferred module compilation on first call
+#
+# install as $code{$name} compiled with '# line 1 "$name"' filename
+# hint so base.caller can self-identify and load the actual source
+
+my $sub_name = [<[base.caller]>]->[0];    ##  own name via filename hint  ##
+
+<[base.log]>->( 2, sprintf '..: deferred compile : %s ..,', $sub_name );
+
+<[base.load_code]>->($sub_name);    ##  compile actual source from disk  ##
+
+goto &{ $code{$sub_name} }          ##  transparent hand-off on first call  ##
+    if ref $code{$sub_name} eq qw| CODE |;
+
+<[base.log]>->( 0, sprintf '..: deferred compile failed [ %s ]', $sub_name );
+
+#,,.,,,..,,..,,.,,,..,...,,..,,,.,,,,,.,.,,,.,..,,...,...,...,,..,.,.,,.,,..,,
+#QBKWYFA2NNECKMCI6WU47QQ6UGTLMZOWQ3TRRQSLOYDVBWAKWSDIX5ONTVP3BOBXCQWKW2TVYJER4
+#\\\|2EGHE4MO4YUPNTLDUEZBN3E7VJDFPTBB4ZQB4JA27WZHUQHWZXQ \ / AMOS7 \ YOURUM ::
+#\[7]BNITHEOOE36AMQTPPSGYVAUWYEQOM3DBKSOSLL4D4GGAD32U2YAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
