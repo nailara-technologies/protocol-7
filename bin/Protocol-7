@@ -42,6 +42,8 @@ p7_load_inline_subroutines();   ## load subroutine code from DATA block ##
 
 p7_init_exec();                 ##  main variable initialization  ##
 
+p7_early_whitelist_load();      ##  load sub whitelist before base module  ##
+
 p7_load_code(qw| base |);       ## loading remaining base module routines ##
 
 ###                                               ###
@@ -369,6 +371,65 @@ sub p7_security_hardening {    ## SOME BASIC SECURITY HARDENING ##
 
 ##############################################################################
 
+sub p7_early_whitelist_load {    ##  load sub whitelist before base module  ##
+
+    return if $data{'base'}{'loader'}{'whitelist_init_done'};
+    $data{'base'}{'loader'}{'whitelist_init_done'} = TRUE;
+
+    ##  peek at zenka name non-destructively [ before @ARGV is processed ]  ##
+    my $zenkaname;
+    if ( $PROGRAM_NAME =~ m|^.*Protocol-7\.|i ) {
+        ( $zenkaname = lc $PROGRAM_NAME ) =~ s|^.*protocol-7\.||i;
+    } elsif ( $PROGRAM_NAME =~ m|^.*p7\.|i ) {
+        ( $zenkaname = lc $PROGRAM_NAME ) =~ s|^.*p7\.||i;
+    } elsif ( defined $ARGV[0] and $ARGV[0] =~ m|^([^\-].*)| ) {
+        $zenkaname = $LAST_PAREN_MATCH;
+    }
+
+    return unless defined $zenkaname and length $zenkaname;
+
+    ##  handle 'name arg1 arg2' style zenka names  ##
+    $zenkaname = ( split m| +|, $zenkaname )[0]
+        if index( $zenkaname, ' ' ) != -1;
+
+    my $conf_path = $data{'system'}{'conf_path'};
+    return unless defined $conf_path;
+
+    my $wl_path = catfile(
+        $conf_path, qw| zenki |, $zenkaname, qw| subroutine.white-list |
+    );
+    return unless -f $wl_path;
+
+    open my $fh, qw| < |, $wl_path or return;
+    my @lines = <$fh>;
+    close $fh;
+    chomp @lines;
+
+    ##  skip blank lines and signature footer lines  ##
+    my %whitelist = map { $ARG => TRUE }
+        grep { length $ARG and $ARG !~ m|^#| } @lines;
+
+    return unless %whitelist;
+
+    ##  always include bootstrap subs required regardless of call graph  ##
+    $whitelist{'base.init'}      = TRUE;    ##  called from bin/Protocol-7  ##
+    $whitelist{'base.sig_int'}   = TRUE;    ##  called from bin/Protocol-7  ##
+    $whitelist{'base.init_code'} = TRUE;    ##  loads Const::Fast globally  ##
+
+    $data{'base'}{'loader'}{'sub_whitelist'}         = \%whitelist;
+    $data{'base'}{'loader'}{'sub_whitelist_enabled'} = TRUE;
+
+    ##  set zenka name early so log output shows it before base.init runs  ##
+    $data{'system'}{'zenka'}{'name'} = $zenkaname;
+
+    $code{'log.noerr'}->(
+        sprintf ': early whitelist [ %d subs ] [ %s ]',
+        scalar keys %whitelist, $zenkaname
+    ) if defined $code{'log.noerr'};
+}
+
+##############################################################################
+
 sub p7_init_exec {    ##  main variable initialization  ##
 
     $SIG{'INT'} = sub { print "\b\b" if fileno(STDOUT); exit };    ## ^C ##
@@ -529,7 +590,11 @@ sub p7_init_exec {    ##  main variable initialization  ##
         }
         if ( $arg =~ m|^-N(.+)$| ) {
             $data{'system'}{'zenka'}{'name'} = $LAST_PAREN_MATCH;
-        } elsif ($stdin_mode) {
+        } elsif ( $stdin_mode
+            and $data{'system'}{'zenka'}{'name'} eq qw| <init> | ) {
+            ##  only set <stdin> when no name was determined from PROGRAM_NAME  ##
+            ##  prevents symlink-named zenki [ Protocol-7.work ] from having   ##
+            ##  their name overwritten when flag-only args are present          ##
             $data{'system'}{'zenka'}{'name'} = qw| <stdin> |;
         }
         if ( $arg =~ m|^-lpw=(\d{1,2})$| ) {    # <-- used by 'p7' zenka
@@ -656,6 +721,7 @@ sub p7_init_exec {    ##  main variable initialization  ##
             my $lpw = $data{'system'}{'zenka'}{'log_prefix_width'};
             $spaces = ' ' x int( 68 - $lpw );
         }
+        p7_early_whitelist_load();    ##  set zenka name before .\7 banner  ##
         $code{'log.noerr'}->( qw| .\\7 | . $spaces );
     }
     ## initializing early zenka buffer capture ###
@@ -1439,6 +1505,13 @@ sub p7_load_code {
             if (    $src_rel =~ m|^(.*/)?$code_name(\..+)?$|
                 and $code{'base.source_path_valid'}->($src_rel) ) {
                 $code_count++;
+
+                ##  skip subs not in whitelist [ when active and enabled ]  ##
+                my $wl = $data{'base'}{'loader'}{'sub_whitelist'};
+                next if defined $wl
+                    and $data{'base'}{'loader'}{'sub_whitelist_enabled'}
+                    and not exists $wl->{$file_name};
+
                 local $RS = undef;
                 $data{'system'}{'no_http_source'} //= FALSE;
                 if ( $src_from_http
@@ -5452,8 +5525,8 @@ __DATA__
 :
 :.
 
-#,,,,,,.,,,..,..,,..,,...,,..,.,,,,,,,,,.,.,.,...,...,..,,...,...,...,.,,,,..,
-#6ZULBFYEP3IYRU7MWF3R47ITZ3UP56ZUAG67ZMSFYUPIP22EWGRDHXR4CEGUMH2PNJRSQJYDFJK2K
-#\\\|VKAMLWFDP5XBXRM7RW6OMGD563FG76S5WZOEKSNHIQL5IUYDXRP \ / AMOS7 \ YOURUM ::
-#\[7]Y3CHA5FPWUY6TV3D4DOU7G3LBPF5GZCA2ILRGCBZ5C7RNQ6UBAAA 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,.,,,,,,,,.,..,,,.,,,,.,...,,..,...,...,...,..,,,.,,,,,,,..,,,.,
+#TXIFADDIB7WTUBS3I2WT2Z2X7YBEXE2EBULUQ4IAW3JPOGSYFE5QQ23UN2IZURQMC76WJOSS7ZHSE
+#\\\|2E373A6AZOFTY77ZS7LOQCI4NKBKFPQUWO4QUJ7DJE2TO6RHJTG \ / AMOS7 \ YOURUM ::
+#\[7]4FQQVZ3LYACSVTYTCFW4NSR3QGOP5RVUTVKRNILFKR6KER6434DI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
