@@ -44,7 +44,7 @@ if ( !<letsencr.child.pid> ) {    ## child ##
     <system.zenka.subname> = sprintf 'child%s', $sn_str;
     $PROGRAM_NAME = sprintf '%s[child%s]', <system.zenka.name>, $sn_str;
 
-    <[base.load_modules]>->('letsencr.child');
+    <[base.load_runtime_modules]>->('letsencr.child');
     <[base.init_modules]>->('letsencr.child');
 
     ## silencing session shutdown, to log-level 1 ##
@@ -78,7 +78,7 @@ if ( !<letsencr.child.pid> ) {    ## child ##
     <[base.logs]>->( 1, ":. reporting child PID %d.,", $child_pid );
     <[base.zenki.report_child_pid]>->($child_pid);
 
-    <[base.load_modules]>->('letsencr.parent');
+    <[base.load_runtime_modules]>->('letsencr.parent');
     <[base.init_modules]>->('letsencr.parent');
 
     ## silencing session shutdown, to log-level 1 ##
@@ -116,8 +116,8 @@ if ( !<letsencr.child.pid> ) {    ## child ##
     <[base.log]>->( 1, 'letsencr parent initialized' );
 }
 
-#,,..,,,.,.,.,,.,,...,,.,,..,,...,,..,...,,.,,..,,...,...,,.,,,.,,.,.,.,.,,,,,
-#UZSSIXS3LAKHH7WJK6EPGQVMV4SPAWADWMCSVZY5ID33ZHVSW3VMLFJ35Q6MTPNNO5A2L3SAKAYQU
-#\\\|DXJ3JHOEZDQEDQ3ZFXQH3CPZQUQT5O72CY54WKO7SJOBBA3FHSC \ / AMOS7 \ YOURUM ::
-#\[7]BPH3IPVFTOQY2EC7T3Q2PDUXKWIU2C5ITUOGHJJYIKZVJSACLGDY 7  DATA SIGNATURE ::
+#,,.,,...,,.,,..,,.,,,...,,,,,,,,,,,.,.,.,.,.,..,,...,...,...,..,,,,,,,..,..,,
+#DJZTII4MQZIAFRJJB57QBX7W46P5O4NYNVVIKADMDE7L3FXQXYI64B7RXOL4463R7TSK7MYJQLFUI
+#\\\|ESRQOMNEEM4IZENFPGTE62XUJHDLHNE7UOOYZ2YSW4TJBMCEUVC \ / AMOS7 \ YOURUM ::
+#\[7]6BCE3TLNHXW3MAXMWBVE5QWMQIQUB2SR3NAHSFKHJB4DD4H42SCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -596,6 +596,12 @@ sub analyze_zenka_reachability {
         push @entry_modules, $bootstrap if exists $graph->{$bootstrap};
     }
 
+    ##  all base.sig_* handlers are registered dynamically via sprintf in      ##
+    ##  base.init_zenka.install_signal_handlers — dep-graph cannot trace them  ##
+    push @entry_modules,
+        grep { exists $graph->{$ARG} }
+        grep { m|^base\.sig_| } keys %{$graph};
+
     ##  include subroutines called from zenka-startup.v7 zenka-init section  ##
     ##  these lines are injected over stdin by v7 at startup and eval'd       ##
     if ( defined $zenka_name and $zenka_name ne 'stdin' ) {
@@ -1283,8 +1289,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,,.,.,.,...,.,.,..,,.,,,,,.,,..,.,.,..,,.,.,.,.,...,...,.,,,...,.,,,,.,,,,.,
-#B44CDE6V77LQ26XOE4S67YBWJQLNRJFMT67OMFJL7VEOJZPOLBGEV4TIBYLQX73BIHDKGO2KYW4U2
-#\\\|3DJKMWXXUMSOI7VNNN77QHKILCOJKNN4FS6Z7JELDYJKIPK54BJ \ / AMOS7 \ YOURUM ::
-#\[7]7H34XSGKZ2CHPQUNEA7X36JDY722MGHY7JDT5B2JSEMNB2HOTCCY 7  DATA SIGNATURE ::
+#,,,,,,,,,...,,,.,,,.,...,...,..,,.,,,.,,,,..,.,.,...,...,.,.,.,,,,..,...,.,,,
+#HASO6IZZXVPTFOU3SMBK3JAHAO77PLBOBN3GFN6QOM6JMG74RET2QHLFC3OU5U6MVNUVLU7GLKLLA
+#\\\|4QBNJS7Z2UI24QD6JAZ63TG3DHLDINBZ6VU6RGDVUDAWMOSSPZH \ / AMOS7 \ YOURUM ::
+#\[7]MXBFBFTTTUV2K4BKUBY2NF4MYC4ERPVWTHR5CBERLYDZ5XAPPYDY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
