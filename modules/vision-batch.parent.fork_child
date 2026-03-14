@@ -62,8 +62,8 @@ if ( !<vision-batch.child.pid> ) {
 
     <[base.log]>->( 1, 'preparing to load child modules .,' );
 
-    <[base.load_modules]>->('vision-batch.child');
-    <[base.load_modules]>->('image-quality');
+    <[base.load_runtime_modules]>->('vision-batch.child');
+    <[base.load_runtime_modules]>->('image-quality');
     <[base.init_modules]>->('vision-batch.child');
     <[base.init_modules]>->('image-quality');
 
@@ -76,7 +76,7 @@ if ( !<vision-batch.child.pid> ) {
     <vision-batch.pipe.child> = $child_pipe;
 
 # Load parent-specific modules ONLY in parent process [not inherited by child]
-    <[base.load_modules]>->('vision-batch.parent');
+    <[base.load_runtime_modules]>->('vision-batch.parent');
     <[base.init_modules]>->('vision-batch.parent');
 
     ## removing not required entries ## [ only used in 'child' ]
@@ -105,8 +105,8 @@ if ( !<vision-batch.child.pid> ) {
     <[base.log]>->( 1, 'child process forked and ready for commands.,' );
 }
 
-#,,..,,,.,.,,,..,,,,.,,,.,,.,,,.,,,..,..,,,,.,..,,...,...,..,,..,,,..,.,.,,,.,
-#QRTLQKURALODWBVHN5M6WSVJ7QFHJZZYFFIJMVGLGNJ34R3GJ2V4X35LWVDT7GAARPK55XBDBUIDG
-#\\\|W7JLW73DGFNXDGGFFUHBPMIXLKPFRHBQWIXMM2ZOABQX2QHRZMC \ / AMOS7 \ YOURUM ::
-#\[7]RDV7W3HVJ6F3BLCM4VDAF53VPLSWKCQ5XDNS32JU7BQYCD6H3WCA 7  DATA SIGNATURE ::
+#,,,.,...,,,,,.,.,..,,..,,..,,..,,..,,,,.,,..,..,,...,...,,..,.,.,,,.,.,,,.,,,
+#HI24ADVLQ3XBH57IQOXVTIJHQ4MJ3WF3QXTW5PTPAPVXNAQ7GIKGXE7MDGMFH67KKQC6QNAKIHUC6
+#\\\|K6EDZYDHZQNUABY7RMBDFKWASBRLQ2QG7VVA5EBWCNGGN7PPP6B \ / AMOS7 \ YOURUM ::
+#\[7]AQ7EVGFROO3OWHLHVZCXITIICOCDYGRJMTLJUZM4MZBZVU24JQBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -421,11 +421,6 @@ sub p7_early_whitelist_load {    ##  load sub whitelist before base module  ##
 
     ##  set zenka name early so log output shows it before base.init runs  ##
     $data{'system'}{'zenka'}{'name'} = $zenkaname;
-
-    $code{'log.noerr'}->(
-        sprintf ': early whitelist [ %d subs ] [ %s ]',
-        scalar keys %whitelist, $zenkaname
-    ) if defined $code{'log.noerr'};
 }
 
 ##############################################################################
@@ -721,8 +716,12 @@ sub p7_init_exec {    ##  main variable initialization  ##
             my $lpw = $data{'system'}{'zenka'}{'log_prefix_width'};
             $spaces = ' ' x int( 68 - $lpw );
         }
-        p7_early_whitelist_load();    ##  set zenka name before .\7 banner  ##
+        p7_early_whitelist_load();
         $code{'log.noerr'}->( qw| .\\7 | . $spaces );
+        my $wl = $data{'base'}{'loader'}{'sub_whitelist'};
+        $code{'log.noerr'}->(
+            sprintf '. sub whitelist : %d', scalar keys %{$wl}
+        ) if defined $wl;
     }
     ## initializing early zenka buffer capture ###
     $data{'system'}{'start'}{'zenka-buffer'} //= [];
@@ -5525,8 +5524,8 @@ __DATA__
 :
 :.
 
-#,,.,,,,,,,..,,.,,,,,,,,.,..,,,.,,,,.,...,,..,...,...,...,..,,,.,,,,,,,..,,,.,
-#TXIFADDIB7WTUBS3I2WT2Z2X7YBEXE2EBULUQ4IAW3JPOGSYFE5QQ23UN2IZURQMC76WJOSS7ZHSE
-#\\\|2E373A6AZOFTY77ZS7LOQCI4NKBKFPQUWO4QUJ7DJE2TO6RHJTG \ / AMOS7 \ YOURUM ::
-#\[7]4FQQVZ3LYACSVTYTCFW4NSR3QGOP5RVUTVKRNILFKR6KER6434DI 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,,,,,.,,,,,.,.,.,.,,,,..,,,,,.,.,...,...,...,..,,...,...,.,,,,,.,
+#3VV6IZY6RJO7NXHZMMCG32YA22MOPBOQQV5BIMIYWYMOIIY7H4H4PBDS753ZTLT5QD6F5YCDZAHJC
+#\\\|WOL4O4E6H2PSSGTQ35JACFU3JY5RTXAYVTZJIWJUDOFL6BWAGC4 \ / AMOS7 \ YOURUM ::
+#\[7]JLTH76VSVREML4FGOH25QPZIZQ5DDFJXYGVT33TBUO7ZRH6CHICI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
