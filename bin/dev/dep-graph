@@ -233,6 +233,10 @@ sub scan_modules {
     my %known     = map { $module_names{$ARG} => 1 } keys %module_names;
     my %swap_from = extract_swap_pairs( \@files );    ##  short -> base  ##
 
+    ##  seed graph with all known modules [ leaf nodes have no outgoing edges ]  ##
+    ##  without this, resolve_command_to_module misses leaf nodes entirely      ##
+    $graph{$ARG} //= {} for values %module_names;
+
     ##  second pass: scan for call patterns  ##
     for my $file (@files) {
         my $source_module = $module_names{$file};
@@ -246,6 +250,16 @@ sub scan_modules {
             ##  try each known base prefix for the matched short prefix  ##
             if ( !$known{$resolved} ) {
             SWAP: for my $short ( keys %swap_from ) {
+                    ##  exact rename [ base.chk-sum.elf -> chk-sum.elf ]  ##
+                    if ( $resolved eq $short ) {
+                        for my $base ( @{ $swap_from{$short} } ) {
+                            if ( $known{$base} ) {
+                                $resolved = $base;
+                                last SWAP;
+                            }
+                        }
+                    }
+                    ##  prefix namespace swap [ base.event -> event ]  ##
                     if ( $resolved =~ m|^\Q$short\E(\..+)$| ) {
                         my $suffix = $1;
                         for my $base ( @{ $swap_from{$short} } ) {
@@ -361,6 +375,28 @@ sub extract_calls {
 
         ##  runtime dispatch: $code{'module.name'} or $code{"module.name"}  ##
         while ( $line =~ m/\$code\{['"]([a-zA-Z0-9._-]+)['"]\}/g ) {
+            push @calls, $1;
+        }
+
+        ##  event callback / handler string refs [ registered, called later ]  ##
+        ##  key forms : handler  'handler'  qw| handler |                      ##
+        ##  val forms : => qw| name |  => 'name'  => "name"                   ##
+        while ( $line =~ m/(?:qw\|\s*)?['"]?(?:handler|callback)['"]?(?:\s*\|)?\s*=>\s*(?:qw\|\s*|['"])([a-zA-Z0-9._-]+)/g ) {
+            push @calls, $1;
+        }
+
+        ##  handler|callback key with value on next line [ multiline split ]  ##
+        if (    $i < $end_idx
+            and $line =~ m/(?:qw\|\s*)?['"]?(?:handler|callback)['"]?(?:\s*\|)?\s*=>\s*$/ ) {
+            my $next = $lines[ $i + 1 ] // '';
+            if ( $next =~ m/^\s*(?:qw\|\s*|['"])([a-zA-Z0-9._-]+)/ ) {
+                push @calls, $1;
+            }
+        }
+
+        ##  data-variable assigned sub name [ filter_hooks and similar ]       ##
+        ##  pattern : <data.variable> = qw| sub.name |                         ##
+        if ( $line =~ m/=\s*qw\|\s*([a-zA-Z][\w.-]+)\s*\|/ ) {
             push @calls, $1;
         }
     }
@@ -554,6 +590,40 @@ sub analyze_zenka_reachability {
         push @entry_modules, $module if defined $module;
     }
 
+    ##  seed bootstrap modules [ always loaded by bin/Protocol-7 regardless   ##
+    ##  of whitelist ] so their dependencies are included in the reachable set ##
+    for my $bootstrap ( qw| base.init base.sig_int base.init_code | ) {
+        push @entry_modules, $bootstrap if exists $graph->{$bootstrap};
+    }
+
+    ##  include subroutines called from zenka-startup.v7 zenka-init section  ##
+    ##  these lines are injected over stdin by v7 at startup and eval'd       ##
+    if ( defined $zenka_name and $zenka_name ne 'stdin' ) {
+        my $startup_file = c_dir( $root_path, qw| configuration zenki |,
+            $zenka_name, qw| zenka-startup.v7 | );
+        if ( -f $startup_file ) {
+            my $in_zenka_init = 0;
+            open my $sfh, '<', $startup_file
+                or warn ":: cannot read $startup_file: $!\n";
+            while ( defined $sfh and my $line = <$sfh> ) {
+                chomp $line;
+                if ( $line =~ m|^\s*:\s*zenka-init\s*:| ) {
+                    $in_zenka_init = 1;
+                } elsif ( $line =~ m|^\s*:\s*\S+\s*:| ) {
+                    $in_zenka_init = 0;
+                } elsif ( $in_zenka_init ) {
+                    ##  extract [ sub.name ] and [ sub.name : args ] calls  ##
+                    while ( $line =~ m|\[([a-zA-Z][\w.-]+)(?::[^\]]+)?\]|g ) {
+                        my $sub = $1;
+                        push @entry_modules, $sub
+                            if exists $graph->{$sub};
+                    }
+                }
+            }
+            close $sfh if defined $sfh;
+        }
+    }
+
     ##  find all modules reachable from entry points  ##
     my %reachable = walk_reachable( $graph, \@entry_modules );
 
@@ -599,6 +669,67 @@ sub analyze_zenka_reachability {
 
     ##  flat subroutine list mode : output and exit  ##
     if ( $opt{'list-subs'} ) {
+        ##  include all subs from runtime-loaded modules  ##
+        ##  base.load_modules loads the full namespace at runtime  ##
+        for my $loaded ( keys %{$loaded_set} ) {
+            for my $node ( grep { m/^\Q$loaded\E(?:\.|$)/ } keys %{$graph} ) {
+                my %new = walk_reachable( $graph, [$node] );
+                %reachable = ( %reachable, %new );
+            }
+        }
+
+        ##  include all cmd and console subs — only when net module is loaded  ##
+        ##  without net, zenka cannot accept connections or dispatch commands  ##
+        if ( exists $loaded_set->{'net'} ) {
+            for my $ns ( qw| base |, keys %{$loaded_set} ) {
+                for my $node (
+                    grep { m/^\Q$ns\E\.(?:cmd|console)\./ } keys %{$graph}
+                ) {
+                    next if $reachable{$node};
+                    my %new = walk_reachable( $graph, [$node] );
+                    %reachable = ( %reachable, %new );
+                }
+            }
+        }
+
+        ##  include all plugin.* modules [ dynamically dispatched at runtime ]  ##
+        ##  auth plugins selected by client, cannot be statically determined    ##
+        if ( exists $loaded_set->{'net'} ) {
+            for my $node ( grep { m/^plugin\./ } keys %{$graph} ) {
+                next if $reachable{$node};
+                my %new = walk_reachable( $graph, [$node] );
+                %reachable = ( %reachable, %new );
+            }
+        }
+
+        ##  include lifecycle subs [ pre_init init_code post_init ] for all  ##
+        ##  namespaces present in the reachable set, at every prefix depth   ##
+        ##  catches base.file.pre_init [ swap_subs ] and base.init_code      ##
+        ##  [ compile-time Const::Fast ] which are never called by name      ##
+        ##  seed 'base' explicitly since it is always loaded by bin/P7       ##
+        ##  repeat until no new additions [ new subs may introduce new namespaces  ##
+        ##  that need their own lifecycle subs — frozen for-list misses them ]     ##
+        my %ns_seen;
+        my $prev_count = 0;
+        while ( scalar( keys %reachable ) != $prev_count ) {
+            $prev_count = scalar keys %reachable;
+            for my $mod ( qw| base |, keys %reachable ) {
+                my @parts = split m|\.| , $mod;
+                for my $len ( 1 .. scalar @parts ) {
+                    my $ns = join '.', @parts[ 0 .. $len - 1 ];
+                    next if $ns_seen{$ns}++;
+                    for my $lifecycle ( qw| pre_init init_code post_init | ) {
+                        my $sub = "$ns.$lifecycle";
+                        next if $reachable{$sub};
+                        if ( exists $graph->{$sub} ) {
+                            my %new = walk_reachable( $graph, [$sub] );
+                            %reachable = ( %reachable, %new );
+                        }
+                    }
+                }
+            }
+        }
+
         say $ARG for sort_by_length( keys %reachable );
         return;
     }
@@ -1152,8 +1283,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,.,,..,,,,.,.,,,..,,..,,...,,.,,,.,,,..,,,,,.,.,...,...,,.,,..,,,,.,,.,,...,
-#OSEFOREM347JSQ3G7O23F5TJE3LLBEFRH2KPRJCJRB6PREAZPTPARGWBPKLFXDWNJ5TBCE2C2BXWE
-#\\\|5ALKAAPPBQIZLWIF7SLQ2MU73BCULFFP2ME2PDTZZFUUYMEYSQH \ / AMOS7 \ YOURUM ::
-#\[7]W33HJP3TYY45FI3W7HMEPAMTB6WWWCNO52BGEAUN2HYMEBV5BAAA 7  DATA SIGNATURE ::
+#,,,.,.,.,...,.,.,..,,.,,,,,.,,..,.,.,..,,.,.,.,.,...,...,.,,,...,.,,,,.,,,,.,
+#B44CDE6V77LQ26XOE4S67YBWJQLNRJFMT67OMFJL7VEOJZPOLBGEV4TIBYLQX73BIHDKGO2KYW4U2
+#\\\|3DJKMWXXUMSOI7VNNN77QHKILCOJKNN4FS6Z7JELDYJKIPK54BJ \ / AMOS7 \ YOURUM ::
+#\[7]7H34XSGKZ2CHPQUNEA7X36JDY722MGHY7JDT5B2JSEMNB2HOTCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
