@@ -62,7 +62,7 @@ if ( !<weather.child.pid> ) {    ## child ##
 
     $data{'session'}{$id}{'input'}{'handler'} = qw| base.handler.command |;
 
-    <[base.load_modules]>->('weather.child');
+    <[base.load_runtime_modules]>->('weather.child');
     <[base.init_modules]>->('weather.child');
 
     ## silencing session shutdown, to log-level 1 ##
@@ -79,7 +79,7 @@ if ( !<weather.child.pid> ) {    ## child ##
     delete <access.cmd.usr.parent>;
     delete <access.cmd.regex.usr.parent>;
 
-    <[base.load_modules]>->('weather.parent');
+    <[base.load_runtime_modules]>->('weather.parent');
     <[base.init_modules]>->('weather.parent');
 
     $data{'handle'}{$child_pipe}{'mode'} = qw| out |;
@@ -134,8 +134,8 @@ if ( !<weather.child.pid> ) {    ## child ##
 
 }
 
-#,,,.,,,,,,,.,,,,,...,,..,.,.,,.,,...,,,.,..,,..,,...,...,..,,..,,.,.,,,,,.,,,
-#7BMPVRH4BTSCQNH3BR5C4SPFLDR4H2YUTZZCF6EY2GC3F3HVRZKAU3OLT2M57S5VISANGVT3W22HO
-#\\\|KA4DUUSXO2U73XGNC6Z6QQ5K6NWN54D4WNMQYFRYOGO6KD4STD5 \ / AMOS7 \ YOURUM ::
-#\[7]N3GEAFPW5E6TODT7BXECTOPBE2IZLE2ATHAE5Q5KKDDZEYNBUYBY 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,,,,,..,,..,,.,,,,,,,,,.,,.,,,,.,..,,...,...,..,,...,,.,,,..,.,,,
+#4LQSKLQC7IYHXF47NEDRTLY3YNLMVQ53IGKDIVVRWKNI7YEVO4ML3CZB6W7IKZSEYAO33QCG4JHFA
+#\\\|IAXBLADTIYBSXDJP4SUNCDG2WU5FHKUOVIASGESODCMIGVM4JFD \ / AMOS7 \ YOURUM ::
+#\[7]4I2BJPARDBJ5FNHLXHTVED7657W67QDKULGAFZN6AR7OU6VFIADA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

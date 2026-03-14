@@ -67,6 +67,9 @@ if ( $arg eq qw| source | or $arg eq qw| all | ) {
 
     <[base.logs]>->( '[%d] < reload source code >', $id );
 
+    ##  pick up any updated whitelist before reloading [ new subs included ]  ##
+    <[base.reload_whitelist]>;
+
     if ( not <base.devmod.keep_on_reload> and not exists $mod{'devmod'} ) {
         <[base.log]>->( 0, '[reload] .. removing devmod module [mem] .,' )
             if ref( $code{'devmod.dump'} ) eq qw| CODE |;
@@ -192,8 +195,8 @@ delete <system.reload>;    ## completed ##
 $reply->{'mode'} = qw| data |;
 $reply->{'data'} .= $reply_footer;
 
-#,,..,,..,.,.,,.,,.,.,.,.,,,.,..,,..,,,,,,..,,..,,...,...,...,,,.,..,,,..,,,,,
-#O7NZO4NDWLQFC5RUJ5WMJU32LBGEUFYIBRNKCRPRGAD2XTELI4BFTZADJDTHBHJFCBD4P3P2YNRCM
-#\\\|NSI2CVMNH6E2W5Q6URU4S2LADB4EEHL4ZTF7QJ77NV4M3V5XAYD \ / AMOS7 \ YOURUM ::
-#\[7]XX7I2KGIYULNHNNF5DNL3UTWHGOSF63JVJ4CPW5ND57U5XNGPOBA 7  DATA SIGNATURE ::
+#,,.,,,..,..,,,..,,.,,.,,,,..,.,.,,,.,...,.,.,..,,...,...,..,,...,,,,,,..,...,
+#HSDFXLJZWJGPQ2ATCL3XHYQB7WZ2YM6E42SGSKLP2CNJUILGK2QJOVACBAC765YHYRNXPRKURHVBO
+#\\\|4R5KUKS64CG2CLJZBOVPGLTSBCJBOP4JLYPKBMDHK2MPONNM67I \ / AMOS7 \ YOURUM ::
+#\[7]WOOPXE7ZDHUDRQN53W5YKWE6AWODMVTR32H26IOSQNJHFKWL6IAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = base.reload_whitelist
+# descr = reload subroutine whitelist from disk [ picks up updated list ]
+
+my $zenka_name = <system.zenka.name>;
+my $wl_file    = catfile(
+    $data{'system'}{'conf_path'}, qw| zenki |,
+    $zenka_name, qw| subroutine.white-list |
+);
+
+return FALSE if not -f $wl_file;
+
+open my $fh, '<', $wl_file
+    or do {
+    <[base.log]>->(
+        0, "cannot read whitelist '%s' : %s", $wl_file, $OS_ERROR
+    );
+    return FALSE;
+    };
+
+my %new_wl;
+while ( my $line = <$fh> ) {
+    chomp $line;
+    next if not length $line or $line =~ m|^#|;
+    $new_wl{$line} = TRUE;
+}
+close $fh;
+
+my $old_count = scalar keys %{ $data{'base'}{'loader'}{'sub_whitelist'} // {} };
+my $new_count = scalar keys %new_wl;
+
+$data{'base'}{'loader'}{'sub_whitelist'} = \%new_wl;
+
+<[base.logs]>->(
+    'whitelist reloaded [ %d -> %d entries ]', $old_count, $new_count
+);
+return TRUE;
+
+#,,,.,,,,,,..,..,,.,,,.,.,,..,,.,,,.,,...,,,.,..,,...,...,,,.,.,,,.,,,...,,.,,
+#ZZOWZR4OHXLIZ4FVY27AAQSIMWXJDQ5QINDN7TBQ4UEPOZZ3PZNLFPIW4OG5C27A2CPGT5CGVMTLA
+#\\\|RYKWSCJVAGDJA33J5I2HM5VEB2Q6XB4MDE54PC5WM25ULWFVLRI \ / AMOS7 \ YOURUM ::
+#\[7]LHFMZEYOF3I34NUYGB52XSO37PTCHD67HAV5PE3CILIKPXNADCBY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
