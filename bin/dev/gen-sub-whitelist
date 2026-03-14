@@ -42,8 +42,8 @@ my @targets = @ARGV;
 if ( not @targets ) {
     opendir my $dh, $zenki_dir
         or die ":: cannot open $zenki_dir: $OS_ERROR\n";
-    @targets
-        = sort grep { -f File::Spec->catfile( $zenki_dir, $ARG, 'start' ) }
+    @targets = sort { length $a <=> length $b || $b cmp $a }
+        grep { -f File::Spec->catfile( $zenki_dir, $ARG, 'start' ) }
         grep { $ARG !~ m|^\.| } readdir $dh;
     closedir $dh;
 }
@@ -76,7 +76,8 @@ for my $zenka (@targets) {
             $num,
             $total,
             sprintf( '[!] dep-graph failed [ exit %d ]', $CHILD_ERROR >> 8 ),
-            $warn_color
+            $warn_color,
+            "\n"
         );
         $failed++;
         next;
@@ -91,7 +92,7 @@ for my $zenka (@targets) {
 
     if ( not @subs ) {
         print_result( $zenka, $num, $total, '[!] no subroutines found',
-            $warn_color );
+            $warn_color, "\n" );
         $failed++;
         next;
     }
@@ -103,7 +104,8 @@ for my $zenka (@targets) {
         open my $rfh, qw| < |, $out_path
             or do {
             print_result( $zenka, $num, $total,
-                sprintf( '[!] cannot read : %s', $OS_ERROR ), $warn_color );
+                sprintf( '[!] cannot read : %s', $OS_ERROR ),
+                $warn_color, "\n" );
             $failed++;
             next;
             };
@@ -128,7 +130,8 @@ for my $zenka (@targets) {
     open my $fh, qw| > |, $out_path
         or do {
         print_result( $zenka, $num, $total,
-            sprintf( '[!] cannot write : %s', $OS_ERROR ), $warn_color );
+            sprintf( '[!] cannot write : %s', $OS_ERROR ),
+            $warn_color, "\n" );
         $failed++;
         next;
         };
@@ -136,10 +139,12 @@ for my $zenka (@targets) {
     close $fh;
 
     print_result( $zenka, $num, $total,
-        sprintf( '%d subs [ updated ]', scalar(@subs) - 1 ), $ok_color );
+        sprintf( '%d subs [ updated ]', scalar(@subs) - 1 ),
+        $ok_color, "\n" );
     $generated++;
 }
 
+print "\n";
 printf "%s:%s\n", $blacklight, $reset;
 printf "%s::%s %d updated, %d unchanged, %d failed%s\n",
     $blacklight, $TRUE_color, $generated, $unchanged, $failed, $reset;
@@ -157,7 +162,7 @@ sub show_progress {
     my $bar        = ':' x $char_count;
 
     printf "\r%s:::[%s%s%-${chars_max}s%s%s]::[%s%s %-${zenka_max}s %s%s]"
-        . ":.%s\r",
+        . ":.%s\e[K\r",
         $blacklight,
         $nailara_bg, $TRUE_color, $bar,   $reset, $blacklight,
         $nailara_bg, $TRUE_color, $zenka, $reset, $blacklight,
@@ -165,21 +170,22 @@ sub show_progress {
 }
 
 sub print_result {
-    my ( $zenka, $num, $total, $result, $result_color ) = @ARG;
+    my ( $zenka, $num, $total, $result, $result_color, $term ) = @ARG;
+    $term //= "\r";
     my $chars_max  = 13;
     my $char_count = int( $chars_max * $num / $total );
     my $bar        = ':' x $char_count;
 
     printf "\r%s:::[%s%s%-${chars_max}s%s%s]::[%s%s %-${zenka_max}s %s%s]"
-        . " %s%s%s\n",
+        . " %s%s%s\e[K$term",
         $blacklight,
         $nailara_bg,   $TRUE_color, $bar,   $reset, $blacklight,
         $nailara_bg,   $TRUE_color, $zenka, $reset, $blacklight,
         $result_color, $result,     $reset;
 }
 
-#,,,.,...,.,,,,..,,.,,,,,,...,,,,,,,.,,.,,,.,,..,,...,...,...,,..,.,.,,.,,,,,,
-#MOTDIR3DVK5JKVA2VKZLYQZNXZXWNQXUV4DDWZ3VKGA3MDB4EZDFEUINP4FXZNZRPSYHMNLDVYBNI
-#\\\|WEMTLXWT4LZXD4L43NZE544DOQFCGV7JSNIR3XXSF7HUNYYDFGB \ / AMOS7 \ YOURUM ::
-#\[7]5YEXBWJRKIUV2H4XYS7WPNPNQX4HIVOAVZXOQEIJYJVQ7FHIPIBQ 7  DATA SIGNATURE ::
+#,,..,.,,,,..,,,,,,.,,,,,,.,,,.,,,.,.,.,,,,.,,..,,...,...,.,.,.,,,,.,,.,,,..,,
+#ICIL3XOTCOWTW7F67K4QDCRZEX4WFJZN6L6QODFJ5M67TXMYIP4IJQFKR2AKWEZYD2FYSQEAYLB3K
+#\\\|SY34S2DXUVC3BL2BQX6MZH35NIQULLMDTCLYYGYJSBSRT7XKV3O \ / AMOS7 \ YOURUM ::
+#\[7]IUFJRMKAWQVSPC2E7FV7UZQHARDXP6ZTYQD7S4PJSH24HCKHYMAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
