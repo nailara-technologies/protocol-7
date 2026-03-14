@@ -227,23 +227,78 @@ sub scan_modules {
         $module_names{$file} = $module_name if defined $module_name;
     }
 
+    ##  build known module set and reverse swap map  ##
+    ##  swap_subs renames base.X.* -> X.* at runtime  ##
+    ##  resolve swapped call targets back to their source module names  ##
+    my %known     = map { $module_names{$ARG} => 1 } keys %module_names;
+    my %swap_from = extract_swap_pairs( \@files );    ##  short -> base  ##
+
     ##  second pass: scan for call patterns  ##
     for my $file (@files) {
         my $source_module = $module_names{$file};
         next if !defined $source_module;
 
         my @calls = extract_calls($file);
-        for my $target_module (@calls) {
-            ##  only count if target is a known module  ##
-            if (grep { $module_names{$ARG} eq $target_module }
-                keys %module_names
-            ) {
-                $graph{$source_module}{$target_module}++;
+        for my $target (@calls) {
+            my $resolved = $target;
+
+            ##  resolve swapped name to source module name  ##
+            ##  try each known base prefix for the matched short prefix  ##
+            if ( !$known{$resolved} ) {
+            SWAP: for my $short ( keys %swap_from ) {
+                    if ( $resolved =~ m|^\Q$short\E(\..+)$| ) {
+                        my $suffix = $1;
+                        for my $base ( @{ $swap_from{$short} } ) {
+                            my $candidate = $base . $suffix;
+                            if ( $known{$candidate} ) {
+                                $resolved = $candidate;
+                                last SWAP;
+                            }
+                        }
+                    }
+                }
             }
+
+            $graph{$source_module}{$resolved}++
+                if $known{$resolved};
         }
     }
 
     return \%graph;
+}
+
+sub extract_swap_pairs {
+    ##  scan module files for base.swap_subs calls  ##
+    ##  returns hash : short_prefix -> [ base_prefix, ... ]  ##
+    ##  e.g. 'event' -> [ 'base.event' ], 'file' -> [ 'base.file' ]  ##
+    ##  multiple sources can swap to the same short prefix, store all  ##
+    my $files_ref = shift;
+    my %swap_from;
+
+    for my $file ( @{$files_ref} ) {
+        open my $fh, qw| < |, $file or next;
+        while ( my $line = <$fh> ) {
+            next if $line !~ m|swap_subs|;
+
+            my ( $from, $to );
+
+            ##  single-quote form : swap_subs( 'base.X', 'X' )  ##
+            if ( $line =~ m{'([^']+)'\s*,\s*'([^']+)'} ) {
+                ( $from, $to ) = ( $1, $2 );
+
+                ##  qw form : swap_subs(qw| base.X X |)  ##
+            } elsif ( $line =~ m{qw.\s*(\S+)\s+(\S+)\s*.} ) {
+                ( $from, $to ) = ( $1, $2 );
+            }
+
+            ##  store as arrayref to handle multiple sources -> same short  ##
+            push @{ $swap_from{$to} }, $from
+                if defined $from and defined $to;
+        }
+        close $fh;
+    }
+
+    return %swap_from;
 }
 
 sub get_module_files {
@@ -1097,8 +1152,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,,,,.,.,.,,,...,..,,.,.,,.,,,,,,...,,,,,,.,,.,.,...,...,,,.,,,.,,,.,,..,.,.,
-#X3J2GHVQV5ICVP5JVCCYDEUEWOFDCH7QUPL45DDZS27BBP3PC6JT3OURIRF3CBMBD7QCJ4PG4F6L4
-#\\\|4JB25PF452XIPYPRIKBWRTXCOQRCWWRCDLTV4465G6LCKPZ7THN \ / AMOS7 \ YOURUM ::
-#\[7]XNMYXL2Q7TJOVCVPLKITUTSOT77KDDT5XJ25L4UFB3AAUMPZZAAQ 7  DATA SIGNATURE ::
+#,,.,,..,,,,.,.,,,..,,..,,...,,.,,,.,,,..,,,,,.,.,...,...,,.,,..,,,,.,,.,,...,
+#OSEFOREM347JSQ3G7O23F5TJE3LLBEFRH2KPRJCJRB6PREAZPTPARGWBPKLFXDWNJ5TBCE2C2BXWE
+#\\\|5ALKAAPPBQIZLWIF7SLQ2MU73BCULFFP2ME2PDTZZFUUYMEYSQH \ / AMOS7 \ YOURUM ::
+#\[7]W33HJP3TYY45FI3W7HMEPAMTB6WWWCNO52BGEAUN2HYMEBV5BAAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
