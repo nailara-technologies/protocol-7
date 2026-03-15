@@ -261,23 +261,23 @@ Traversal log = sequence of visited cycle positions = proof of navigation.
 
 ---
 
-## Tier 5 : Correctness Fixes Carried Forward
+## Tier 5 : Correctness Fixes Carried Forward [ ✅ COMPLETED ]
 
-These were in the previous queue and may still be pending:
+**Status**: Verified — both fixes already applied in prior commits.
 
 ### 5.1 models.handler.llm_response — use format.json.decode
 
-Replace `JSON::PP::decode_json($body)` with `<[format.json.decode]>->($body)`.
-Check `git log --oneline modules/models.handler.llm_response` to see if done.
+✅ **Fixed in commit `83a4d0f5a`**
+Uses `<[format.json.decode]>->($body)` instead of `JSON::PP::decode_json($body)`.
 
 ### 5.2 base.p7ref.self — ADDR_B32 from AMOS7 checksum
 
-Currently uses `encode_b32r($raw_pubkey)`. Should be:
+✅ **Fixed in commit `262d0f130`** (swap-boundary dispatch)
+ADDR_B32 derived from AMOS7 checksum:
 ```perl
-my $addr_chk = <[chk-sum.amos]>->($addr_input);  ## 7 chars [A-Z0-9] ##
-my $addr_b32 = substr( $addr_chk, 0, 6 );
+my $amos_chksum = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+my $addr_b32 = substr( $amos_chksum->($addr_input), 0, 6 );
 ```
-Check `git log --oneline modules/base.p7ref.self` to see if done.
 
 ---
 
@@ -305,8 +305,8 @@ Check `git log --oneline modules/base.p7ref.self` to see if done.
   visualization; 5-bit minimum is now documented and visualized.
 - Sign all new files: `bin/Protocol-7 sourcecode update-signatures`
 
-#,,,,,,..,,,,,.,.,.,,,.,.,,.,,,..,.,,,,,,,.,,,.,.,...,...,.,.,.,,,.,.,,.,,.,,,
-#HWXMGASJTKCPZHM6JX2MJQVNXJX2IF7BEXELFE7VFP76DUJLUBFXCDJ2ZHCHT35XWXZEPR7ZUX2CK
-#\\\|MP44OLPXHKB3WCCKLA5WM2K3TVEEOEKRCWPFXWNQNQWHDDGYTFW \ / AMOS7 \ YOURUM ::
-#\[7]DISVKA4TELMPIF7UKE3B2DUFJTI6SQDNLBG646CDRCZJKLPGX6BY 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,..,,.,.,...,...,.,.,.,,,.,.,..,,.,.,...,...,,,.,,,,,.,,,.,.,.,.,
+#IL4B5YDFO4NYNG5NNGFNMHAHXQCYARNNMBSICL6NA5H22SYJ66UKZXTTK4OKG6B4M7QL56MHHWIAK
+#\\\|CPNUWSYMLGHQQUPEFT4DAKV3JOTCVOT3CHHXDKOEA7GULWJRUGS \ / AMOS7 \ YOURUM ::
+#\[7]D45EZJ3NUFLD5SO65KFC5YSY6XP5O2NHYAYXGVPBWERWTCRE44DQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
