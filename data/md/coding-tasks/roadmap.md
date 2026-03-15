@@ -35,9 +35,9 @@ items are loosely ordered by dependency, not strict priority.
 
 - [ ] **INDEXCUBE query** — command to inspect traversal log depth and entries
 
-- [ ] **per-stream level-5 accumulator isolation** — currently all streams
-      share one accumulator; isolate state per stream_id so concurrent
-      streams don't interleave bits
+- [x] **per-stream level-6 accumulator isolation** — [was labeled level-5,
+      but level-5 was already per-stream; level-6 was global] now isolated
+      per stream_id so concurrent streams don't interleave decimal digits
 
 - [ ] **passive prefix detection table as code** — the ANSI/Hayes/JJFE prefix
       table documented in the architecture (section 8) should become a live
@@ -133,8 +133,8 @@ items are loosely ordered by dependency, not strict priority.
 - [x] zulum→decoder entropy wiring
 - [x] kimi-web websocket client zenka
 
-#,,..,..,,,..,..,,..,,,,.,.,,,,,,,,,,,,..,,,.,..,,...,...,,..,...,.,.,.,.,...,
-#2SRVEGDPOCAEIXUDIQCQQMCSDBPB5QCQRNWERJFEACV7LPWMV6G3L23EJ3DJEH6ZCE7XS6PXHOMKW
-#\\\|G4CJHTSNL3TBT2OP4D4FVQDHJGWS4AAABAHZT5DIJSJDBBHEPH7 \ / AMOS7 \ YOURUM ::
-#\[7]KRMIMJFR5XF6CS6XY7ETZYFQOKW4K44D3MKX6LLSAXZXZLQUVECY 7  DATA SIGNATURE ::
+#,,..,...,.,,,,.,,,.,,...,.,.,,..,.,.,,,.,..,,..,,...,...,...,,.,,..,,.,.,...,
+#2ME7RMY3U6PHEEXP7K3CGGOUFTYWFELJWRJY5X7USDSH47PEZSRCR5YMVCIO3FIBR6IN6JMSLERG4
+#\\\|JE4VPYPAHE7P6FBDIFXCX6KHEEZSOULLOWVOBTPUSUUI6C7TZQX \ / AMOS7 \ YOURUM ::
+#\[7]ARQOMFOVFFEN6PA3JKTWVCRUAGBFPZEMOBUQLT2THEL4IOM7PMBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

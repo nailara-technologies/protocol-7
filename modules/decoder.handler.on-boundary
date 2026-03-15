@@ -20,6 +20,14 @@ for my $level_name (qw| level-5-B32 level-6-D3 |) {
     }
 }
 
+## reset per-stream accumulators to prevent fragment bleed across boundary ##
+<decoder.level5>->{$stream_id}{'accumulator'} = ''
+    if exists <decoder.level5>->{$stream_id};
+<decoder.level5>->{$stream_id}{'bit_count'} = 0
+    if exists <decoder.level5>->{$stream_id};
+<decoder.level6>->{$stream_id}{'accumulator'} = ''
+    if exists <decoder.level6>->{$stream_id};
+
 ## log boundary event ##
 <[base.log]>->(
     2, "decoder boundary #%d — stream %s at convergence root [ %s ]",
@@ -45,8 +53,8 @@ push @{ $data{'decoder'}{'INDEXCUBE'} },
 
 return { 'mode' => qw| true |, 'data' => "boundary $boundary_n recorded" };
 
-#,,..,,.,,...,,,.,...,,,,,,.,,,,.,,.,,,,,,.,.,..,,...,...,.,,,,,.,,..,,,,,,,.,
-#NQUTFXN53XBX35N77VHRQ3DFEQGS5CNMP7OUFRTSZTNSVIPZT53VNOJNFYGQEL72C62WZLDPU6RBK
-#\\\|TYGBIS4INVY3BE3I7ACURV76ZMMQNJSLXWT2BVMB4ZN3E4IHN3A \ / AMOS7 \ YOURUM ::
-#\[7]C24BNM7UDQNAZW2DO6TA27LQ44VJXSPC25GYEXRRBXFHP4WH6QAA 7  DATA SIGNATURE ::
+#,,..,.,,,..,,..,,,..,,..,.,,,.,,,,.,,,.,,.,,,..,,...,...,,,.,,..,..,,...,,.,,
+#WMKENMQYV47NRJMAIZT2N2V3DIO7KKIDHEEANFV2RVQ43Y7ODFSZURYLX4BP2E2LLWWRZSPJGQYNO
+#\\\|P5AZIMB7LSJOKJG5P2DWSVXESCDPQ4BEBFKI4ZPB2CUJT774KFJ \ / AMOS7 \ YOURUM ::
+#\[7]O5FZTUF5FRP2BZJZRNZOFPYPVLZMQDDWY4B2KVIKIAGR74MOUEDA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

@@ -52,13 +52,14 @@ while ( $L5->{'bit_count'} >= 5 ) {
     );
 }
 
-## level-6 : accumulate 3 decimal digits → unicode codepoint ##
-$data{'decoder'}{'level6_acc'} //= '';
-$data{'decoder'}{'level6_acc'} .= sprintf '%d', $decimal;
-while ( length( $data{'decoder'}{'level6_acc'} ) >= 3 ) {
-    my $code_point = 0 + substr( $data{'decoder'}{'level6_acc'}, 0, 3 );
-    $data{'decoder'}{'level6_acc'}
-        = substr( $data{'decoder'}{'level6_acc'}, 3 );
+## level-6 : accumulate 3 decimal digits → unicode codepoint [ per-stream state ] ##
+<decoder.level6>->{$stream_id}{'accumulator'} //= '';
+my $L6 = <decoder.level6>->{$stream_id};
+$L6->{'accumulator'} .= sprintf '%d', $decimal;
+while ( length( $L6->{'accumulator'} ) >= 3 ) {
+    my $code_point = 0 + substr( $L6->{'accumulator'}, 0, 3 );
+    $L6->{'accumulator'}
+        = substr( $L6->{'accumulator'}, 3 );
     my $unicode_char = chr($code_point);
     <[base.buffer.add_line]>->(
         qw| level-6-D3 |,
@@ -84,8 +85,8 @@ return {
     }
 };
 
-#,,,.,,.,,..,,,..,,,,,.,,,,,.,.,.,,,,,,..,,,.,..,,...,..,,..,,,.,,.,.,...,,,.,
-#KSNCU7CISWZ5Z5YI24UNL4GZDULOIQKKTM4TLQ2CRXIF7F4BOAIOZZNBHFXCWTQNVED3EWDDLYG7M
-#\\\|DAKG5QFIMDPLJPGVZI3DOV6N7HYRLHQUXKVXD5AZ4O2R6R37F5H \ / AMOS7 \ YOURUM ::
-#\[7]CQAGIGXJ2LKAV5PNA3CFHVWCBQ4V4RI6SBNAH6LGEFUNJ2HNA2BQ 7  DATA SIGNATURE ::
+#,,.,,..,,..,,..,,,..,,.,,.,,,.,,,,,,,,.,,..,,..,,...,...,,.,,...,,,,,.,,,,..,
+#D5KGURBWYO3DNIK7BODHP7HTEC3T7MP7DUFQO7WH6GKXB5U6AOT5MPDRN3DXLTYM6FVLNVCZLLSIE
+#\\\|7NFF7ZMPMEHR6MAN4LFOZDKKMLXBQBKJPZBO64HGAM4JRJ3FLVB \ / AMOS7 \ YOURUM ::
+#\[7]6NDUHDIZD3EJYIXXWLGJANNN3SVGJR4GT3DD4JOXR7X3RWGCGGBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

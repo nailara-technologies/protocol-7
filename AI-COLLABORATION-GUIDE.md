@@ -102,7 +102,10 @@ p7c 'v7.restart zenka-name'       # Reload zenka to pick up code changes
 p7c 'zenka.eval-code $code{"module.name"}->("test")'   # Execute module
 p7c 'zenka.show-buffer zenka'                          # View zenka logs
 p7c 'list sessions'                                    # See active zenki
+p7c -c modules/module.name                             # Syntax check protocol-7 module
 ```
+
+**Note**: Use `p7c -c` not `perl -c` for syntax checking. Protocol-7 modules use `<[...]>` syntax that requires transformation before Perl can parse them.
 
 ### Git Workflow (CRITICAL: Respect Pre-Commit Hooks!)
 
@@ -121,10 +124,12 @@ git commit -m "message"
 ```
 
 ### ⚠️ NEVER Bypass Pre-Commit Hooks
+- **NO** `git commit --no-verify` (equivalent to `--no-verify`)
 - **NO** `SKIP_SIGNATURE_CHECK=1`
 - **NO** `SKIP_VERSION_CHECK=1`
 - These protect repository integrity with AMOS checksums
 - If signatures outdated: **Ask user** to sign, don't bypass
+- Unsigned commits must be fixed later — always wait for proper signing
 
 ### Version Management
 - Version format: `<AMOS-checksum>-<commit-count>.0`

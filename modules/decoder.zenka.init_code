@@ -15,8 +15,11 @@
 ## level-5 accumulator state — keyed by stream_id ##
 <decoder.level5> = {};
 
-## level-6 D3 state — 3 decimal digits per unicode char ##
-$data{'decoder'}{'level6_acc'}     = '';
+## level-6 D3 state — keyed by stream_id [ was global, now per-stream ] ##
+<decoder.level6> = {};
+delete $data{'decoder'}{'level6_acc'};    ## clean up old global if present ##
+
+## boundary tracking ##
 $data{'decoder'}{'boundary_count'} = 0;
 $data{'decoder'}{'INDEXCUBE'}      = [];
 
@@ -75,8 +78,8 @@ $data{'decoder'}{'vterm_screen'} = $screen;
 
 return TRUE;
 
-#,,,,,...,.,,,..,,.,.,.,,,,.,,,,.,.,.,.,,,,,,,..,,...,...,,..,.,.,,.,,,,,,.,.,
-#HSPJ4LYYYEPQ3A7TUFTPFYNYDW2Z7NJCYNNSYIRJXJWJZQQJU6E3JCDIYLYB4OKMIRSKKEWOJRLRM
-#\\\|WPPRJ46NOITVAMHKWLXQBEL5GYMQGD3FZMQSYCR2B776EMA4L33 \ / AMOS7 \ YOURUM ::
-#\[7]7AQM5ORRXXXVFVJZZD4OMWYSW5JV3GEVZ4RWPTYBY4SDZP2KG2DI 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,,,,,..,...,,..,.,,,,,,,..,,..,,..,,...,...,,,.,,.,,,,.,..,,,,.,
+#YQCUHDB6VLR3G3HZFG2LNK7GG5MQZRU5LP2M7SYV4G26EDSIYYHSIV4WM26DQTGPHL6YLCLC5C2OU
+#\\\|YZW7Z6OI4UQ3D4ZJGDJAW4IRSQFBXEMNZJ3ZZRQ5XE5VJNHZ4MU \ / AMOS7 \ YOURUM ::
+#\[7]MQYO5KFXF2IURXG2T3ABBQVJIGYMMDOHBAOKJB26YAGKJM5KMQAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
