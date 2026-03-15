@@ -43,15 +43,34 @@ if ( defined $stream_id ) {
     }
 }
 
-## level-6 shared state ##
-push @lines, '', 'level-6 D3 :',
-    sprintf( "  boundary count : %d",
-    $data{'decoder'}{'boundary_count'} // 0 ),
-    sprintf(
-    "  pending acc    : [%s]  %d chars",
-    $data{'decoder'}{'level6_acc'} // '',
-    length( $data{'decoder'}{'level6_acc'} // '' )
-    );
+## level-6 state — per stream ##
+my $l6_streams = <decoder.level6> // {};
+
+if ( defined $stream_id ) {
+    ## single stream detail ##
+    if ( not exists $l6_streams->{$stream_id} ) {
+        push @lines, '', "level-6 stream $stream_id : no state";
+    } else {
+        my $s = $l6_streams->{$stream_id};
+        push @lines, '', sprintf( "level-6 stream %s :", $stream_id ),
+            sprintf(
+            "  pending acc : [%s]  %d chars",
+            $s->{'accumulator'} // '',
+            length( $s->{'accumulator'} // '' )
+            );
+    }
+} else {
+    ## summary of all active streams ##
+    push @lines, '',
+        sprintf( "level-6 D3 streams : %d active",
+        scalar keys %{$l6_streams} );
+    for my $sid ( sort keys %{$l6_streams} ) {
+        my $s = $l6_streams->{$sid};
+        push @lines,
+            sprintf( "  stream %-8s  pending:%2d chars",
+            $sid, length( $s->{'accumulator'} // '' ) );
+    }
+}
 
 ## jobs ##
 my $job_count = scalar keys %{ <decoder.jobs> // {} };
@@ -59,8 +78,8 @@ push @lines, '', sprintf( "active jobs : %d", $job_count );
 
 return { 'mode' => qw| true |, 'data' => join( "\n", @lines ) };
 
-#,,..,...,.,,,,.,,.,.,,.,,...,,..,,,,,...,..,,..,,...,...,.,.,...,,.,,,,,,,,,,
-#CGXFMVASEAZ5ZFJIBFGOCBSJ6XHUQBRBHKF2EFPWJDAIPI5VJVTTVQMB6BE7FSWCVPSZHFFPFLV6Y
-#\\\|FE2IC5YKXY7RUSXWQCZHV4YK4IOAORPORWSZTXIIV6NR35SQJLE \ / AMOS7 \ YOURUM ::
-#\[7]BN7YASYGCJ3B7EOKY2KMT6UHZN5EPF2JCFMM2455LMBZ2DYKYQBY 7  DATA SIGNATURE ::
+#,,..,,,,,,.,,...,.,,,,,,,,,,,..,,...,..,,,,.,..,,...,...,.,.,..,,..,,.,,,,,.,
+#UXDU3LHBQDSPFXBHRBLEIK6Z34SCHXSNG36CD4RVFDTV22HIOVMTVNZZG765YQK5HBWCK5P4BPSN2
+#\\\|AVQSJGOEAAXJJHJ4WXFHLM7STWMEG7GFMG3HIXZGW232Z7Y2CZJ \ / AMOS7 \ YOURUM ::
+#\[7]Z2UGYM6D2EETU5HH3NLQFHJBMLYUDBU66YFT5JQQRA2KJD4YIQDI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
