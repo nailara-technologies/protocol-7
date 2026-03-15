@@ -28,6 +28,11 @@
 - **non-blocking socket read fix** (Mar 7 2026): completed ✅ — commit `0c590de22`
 - **models registry consolidation** (Mar 8 2026): completed ✅ — see `topic-completed.md`
 - **coding zenka event loop + switch-model** (Mar 8 2026): completed ✅ — see `topic-completed.md`
+- **deferred compilation stub mechanism** (Mar 15 2026): partial ✅ — stubs install for non-whitelisted
+  runtime subs; lifecycle hooks excluded (absence = skip by convention); event loop readiness guard
+  fixed (`$data{'watcher'}{'io'}{'transfer'}` check); `base.handler.deferred_compile` uses
+  `base.load_runtime_modules` to bypass whitelist; level-1 log visibility for any stray triggers;
+  design doc at `data/md/documentation/deferred-compilation-design.md` for deeper namespace/phase work
   and `topic-patterns.md` (inference server status pattern)
 - **zulum→decoder entropy wiring** (Mar 10 2026): completed ✅ — route-send callback,
   level-5-B32 buffer, is_true stream state; see `zulum-decoder-routing-reference.md`
@@ -143,8 +148,8 @@
 - Pattern: `my @non_num = grep { defined $data_ref->{$ARG}->{$key} and not looks_like_number(...) } keys $data_ref->%*`
 - Global `$SIG{__WARN__}` exists — if wrapping warn handler, capture `$prev_warn = $SIG{__WARN__}` first and call through
 
-#,,..,.,.,,..,..,,,,,,.,,,,,,,.,.,..,,...,,,,,..,,...,...,,..,,,.,.,,,,,,,,,,,
-#3PWIJ34XCXUPXE4SARP3TJAFH4E2SMALFSWJ6OPLVGYIQPMPW6OXHSRBAA4MW32FBBGIJ7F4OIUEQ
-#\\\|3RSZVGZ7O4BS2QMXQRDNVR3CI4EPSG3VQR4VY55E4XEUQZIAWSV \ / AMOS7 \ YOURUM ::
-#\[7]QAKGF55WMMDYZBOL666YJJMGFBMMJD4SXH5I3TBBADSDPGUCXKAQ 7  DATA SIGNATURE ::
+#,,,.,,,.,.,.,,..,,..,,,,,,..,..,,,,.,,,,,,,.,..,,...,..,,...,,.,,...,.,,,,..,
+#RH7GFLFNSERQC36KM7CUMW6255F335X4XKSZT4KZ6YJA2MBQ7FETHK7KYI7Z7FQBIBSQXS3SXL3YW
+#\\\|WG6DVGVQJJXBMMYSAWG5GC52ZQ42GFZRDQCHTCSGCFMOLWK3XTV \ / AMOS7 \ YOURUM ::
+#\[7]CKCIFSZSQ6XMZ5LYXJY5NJ5RDKXTRIJILA6OGHJNMFAPOKBZI2DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
