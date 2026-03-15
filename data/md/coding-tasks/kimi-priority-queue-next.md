@@ -199,7 +199,10 @@ while ( length( $L6->{'accumulator'} ) >= 3 ) {
 
 ---
 
-## Tier 4 : @INDEXCUBE Stream Tagging [ ~1h ]
+## Tier 4 : @INDEXCUBE Stream Tagging [ ✅ COMPLETED ]
+
+**Status**: Implemented
+**Commit**: `[pending]` Tier 4: @INDEXCUBE Stream Tagging
 
 From `zulum-cube13-decoder-integration.md` §"Connection to @INDEXCUBE":
 
@@ -208,23 +211,49 @@ Decoder tracks which stream is active by pushing P7REFs onto @INDEXCUBE.
 
 ### 4.1 zulum.cmd.stream-status — return P7REF
 
-When queried, each stream returns its P7REF:
-```
-STREAM:CHKSUM7:ADDR_B32
-```
-where CHKSUM7 = `amos7_chksum(gen × N)` and ADDR_B32 = first 6 chars
-of that checksum (already in `[2-9A-Z]` by AMOS7 construction).
-
-### 4.2 decoder boundary handler — push to @INDEXCUBE
-
-In `decoder.handler.on-boundary`, after closing level buffers:
+✅ Returns formatted status with P7REF:
 ```perl
-## fetch P7REF for new active stream ##
-my $stream_ref = ... ;  ## query cube-13 for current stream P7REF ##
+## generate P7REF: TYPE:CHKSUM7:ADDR_B32 ##
+my $cycle_val = $stream->{'seed'};    ## 76923 × stream_id ##
+my $amos_chk  = $code{'chk-sum.amos'} // $code{'base.chk-sum.amos'};
+my $chksum7   = $amos_chk->($cycle_val);
+my $addr_b32  = substr( $chksum7, 0, 6 );
+my $p7ref     = "STREAM:$chksum7:$addr_b32";
+
+return {
+    'mode' => qw| size |,
+    'data' => sprintf(
+          "stream    : %d\n"
+        . "p7ref     : %s\n"
+        . "seed      : %d\n"
+        . "iteration : %d\n"
+        . "attached  : %d\n",
+        $stream_id, $p7ref, $stream->{'seed'},
+        $stream->{'iteration'}, $attached_count
+    )
+};
+```
+
+### 4.2 decoder.handler.on-boundary — push to @INDEXCUBE
+
+✅ Queries zulum for P7REF and records traversal:
+```perl
+my $stream_status = <[zulum.cmd.stream-status]>->(
+    { 'stream_id' => $stream_id }
+);
+my $p7ref = "STREAM:UNKNOWN:XXXXXX";
+if ( $stream_status->{'mode'} eq 'size' ) {
+    ( $p7ref ) = $stream_status->{'data'} =~ m|^p7ref\s+:\s+(\S+)|m;
+    $p7ref //= "STREAM:PARSE_ERROR:XXXXXX";
+}
+
 push @{ $data{'decoder'}{'INDEXCUBE'} }, {
-    'p7ref'     => $stream_ref,
-    'timestamp' => time(),
-    'depth'     => scalar @{ $data{'decoder'}{'INDEXCUBE'} },
+    'stream_id'      => $stream_id,
+    'boundary_value' => $boundary_value + 0,
+    'boundary_n'     => $boundary_n,
+    'p7ref'          => $p7ref,
+    'timestamp'      => time(),
+    'depth'          => scalar @{ $data{'decoder'}{'INDEXCUBE'} },
 };
 ```
 
@@ -276,8 +305,8 @@ Check `git log --oneline modules/base.p7ref.self` to see if done.
   visualization; 5-bit minimum is now documented and visualized.
 - Sign all new files: `bin/Protocol-7 sourcecode update-signatures`
 
-#,,,.,,.,,,..,..,,..,,...,.,.,...,..,,.,.,,..,.,.,...,..,,...,,.,,.,.,...,,,,,
-#T3TEMPSQJ45SD7TVQC4RC7AF546LHYHUY6G4OFSEKMQ6HQWPJ745543YLEFHUS2OYASOIL3JQPWI4
-#\\\|JFNPQ6ITUVFRSDOFHZ75AKSP2YNA3JAWAP37KMMQPQVK6SM4ABV \ / AMOS7 \ YOURUM ::
-#\[7]PZUWRUQLUAKH4XOEHJUPDV23O2R2XCH64LSIWMCIBTML6OWW2ODI 7  DATA SIGNATURE ::
+#,,..,,,.,.,,,...,,..,,.,,,,.,,..,,.,,..,,,,,,.,.,...,..,,,..,,,,,.,.,...,.,.,
+#HMWJBG5C24UADLE437KFQZLGYY7HM2S2KPPXY3FRQA23XCQJHOL3E3HD7UWCX6JKC7OP3MEZCBHTS
+#\\\|5CJFM4X5OWURCDRUN4WIFTQLGC6H6RP4PZ72Q2HQNBZAUBBYFKO \ / AMOS7 \ YOURUM ::
+#\[7]XJDLDKEUZRLFE5RZO3H44C72RWPXVMUH2ZMF42EVZR7MZ76VW6CI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

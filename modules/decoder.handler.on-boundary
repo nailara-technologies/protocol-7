@@ -34,6 +34,15 @@ for my $level_name (qw| level-5-B32 level-6-D3 |) {
     $boundary_n, $stream_id, $boundary_value
 );
 
+## fetch P7REF from zulum for this stream ##
+my $stream_status
+    = <[zulum.cmd.stream-status]>->( { 'stream_id' => $stream_id } );
+my $p7ref = "STREAM:UNKNOWN:XXXXXX";
+if ( $stream_status->{'mode'} eq 'size' ) {
+    ($p7ref) = $stream_status->{'data'} =~ m|^p7ref\s+:\s+(\S+)|m;
+    $p7ref //= "STREAM:PARSE_ERROR:XXXXXX";
+}
+
 ## push stream coordinate onto INDEXCUBE traversal log ##
 $data{'decoder'}{'INDEXCUBE'} //= [];
 push @{ $data{'decoder'}{'INDEXCUBE'} },
@@ -41,20 +50,22 @@ push @{ $data{'decoder'}{'INDEXCUBE'} },
     'stream_id'      => $stream_id,
     'boundary_value' => $boundary_value + 0,
     'boundary_n'     => $boundary_n,
+    'p7ref'          => $p7ref,
     'timestamp'      => time(),
     'depth'          => scalar @{ $data{'decoder'}{'INDEXCUBE'} },
     };
 
 <[base.log]>->(
     2,
-    "INDEXCUBE depth %d — stream %s traversal recorded",
-    scalar( @{ $data{'decoder'}{'INDEXCUBE'} } ), $stream_id
+    "INDEXCUBE depth %d — stream %s [%s] traversal recorded",
+    scalar( @{ $data{'decoder'}{'INDEXCUBE'} } ),
+    $stream_id, $p7ref
 );
 
 return { 'mode' => qw| true |, 'data' => "boundary $boundary_n recorded" };
 
-#,,..,.,,,..,,..,,,..,,..,.,,,.,,,,.,,,.,,.,,,..,,...,...,,,.,,..,..,,...,,.,,
-#WMKENMQYV47NRJMAIZT2N2V3DIO7KKIDHEEANFV2RVQ43Y7ODFSZURYLX4BP2E2LLWWRZSPJGQYNO
-#\\\|P5AZIMB7LSJOKJG5P2DWSVXESCDPQ4BEBFKI4ZPB2CUJT774KFJ \ / AMOS7 \ YOURUM ::
-#\[7]O5FZTUF5FRP2BZJZRNZOFPYPVLZMQDDWY4B2KVIKIAGR74MOUEDA 7  DATA SIGNATURE ::
+#,,,.,,,.,,,.,,,.,,.,,,.,,,..,..,,,..,...,,.,,..,,...,...,,..,.,.,,..,.,,,...,
+#H2Y6H55HFS3OWKY5SPXQXDMOLQM5PTOM2C2TQXTGSV55HREODBQLUR3U2X2PIR7DLWZVI5TUGAOJY
+#\\\|OPWUBTYIRV3X7HA3RXLRFI4BPCPYWVQ3YRK3LXSP7UUDOQK4EPW \ / AMOS7 \ YOURUM ::
+#\[7]WPAZYE4YFK35BN53L5Z4FUVKIY5WIUPJRCIRB63CMAKK7FYJJUAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
