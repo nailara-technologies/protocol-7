@@ -1,0 +1,56 @@
+## [:< ##
+
+# name  = decoder.cmd.reset
+# param = [stream_id]
+# descr = clear per-stream decoder state
+
+my $params    = shift // {};
+my $stream_id = $params->{'args'};
+
+my @cleared;
+
+if ( defined $stream_id and length $stream_id ) {
+    ## clear single stream ##
+    my $had_l5 = exists <decoder.level5>->{$stream_id};
+    my $had_l6 = exists <decoder.level6>->{$stream_id};
+
+    delete <decoder.level5>->{$stream_id};
+    delete <decoder.level6>->{$stream_id};
+
+    push @cleared,
+        sprintf(
+        "stream %s : L5=%s L6=%s",
+        $stream_id,
+        $had_l5 ? 'cleared' : 'absent',
+        $had_l6 ? 'cleared' : 'absent'
+        );
+
+} else {
+    ## clear all streams ##
+    my $l5_count = scalar keys %{ <decoder.level5> // {} };
+    my $l6_count = scalar keys %{ <decoder.level6> // {} };
+
+    $data{'decoder'}{'level5'} = {};
+    $data{'decoder'}{'level6'} = {};
+
+    push @cleared,
+        sprintf( "all streams : L5=%d cleared, L6=%d cleared",
+        $l5_count, $l6_count );
+}
+
+## vterm is shared across all streams — cleared on any reset ##
+if ( defined $data{'decoder'}{'vterm'} ) {
+    $data{'decoder'}{'vterm'}->input_write("\033[2J");
+    push @cleared, "vterm : screen cleared";
+}
+
+return {
+    'mode' => qw| size |,
+    'data' => join( "\n", @cleared )
+};
+
+#,,..,,..,,..,,.,,,.,,,,.,,..,.,,,.,.,,,,,,,,,.,.,...,...,..,,..,,.,.,...,...,
+#NRRZL4XQOF2AWKM5WDP7HBGEBWXMRNMBZLYSGD4CUTUVCCJ4QYTENDXEMO3YNFGZBSSFEMYI6EVYQ
+#\\\|KYYITS5URKFI632TZMOGKDBPAFILEC2PHAHIZZCRB7BID4IS4CJ \ / AMOS7 \ YOURUM ::
+#\[7]2KP4X4WBKNXCSDHDD5P4RFDV74A5HRFONJ2SPRZFPIGLQFVSMSBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
