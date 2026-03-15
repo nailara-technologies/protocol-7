@@ -1,44 +1,66 @@
 ## [:< ##
 
 # name  = decoder.cmd.show-buffer
-# descr = show level-5 B32 or level-6 D3 buffer content
-# param = <5|6>
+# param = [stream_id]
+# descr = show raw bit buffer feeding level-5 B32 accumulation
 
-my $params = shift             // {};
-my $level  = $params->{'args'} // $ARG[0];
+my $params    = shift // {};
+my $stream_id = $params->{'args'};
 
-return { 'mode' => qw| false |, 'data' => 'level required (5 or 6)' }
-    unless defined $level;
+my $l5_streams = <decoder.level5> // {};
 
-## map level to buffer name ##
-my %buffer_map = (
-    5 => qw| level-5-B32 |,
-    6 => qw| level-6-D3 |,
-);
+return { 'mode' => qw| false |, 'data' => 'no level-5 streams active' }
+    unless keys %{$l5_streams};
 
-return {
-    'mode' => qw| false |,
-    'data' => "invalid level '$level' (use 5 or 6)"
+my @lines;
+
+if ( defined $stream_id and length $stream_id ) {
+    ## single stream detail ##
+    my $s = $l5_streams->{$stream_id};
+    return {
+        'mode' => qw| false |,
+        'data' => "stream $stream_id not found"
+        }
+        unless defined $s;
+
+    my $acc         = $s->{'accumulator'} // '';
+    my $bit_cnt     = $s->{'bit_count'}   // 0;
+    my $to_boundary = 5 - ( $bit_cnt % 5 );
+    $to_boundary = 5 if $to_boundary == 5;
+
+    push @lines,
+        sprintf( "stream     : %s",                     $stream_id ),
+        sprintf( "bit_count  : %d",                     $bit_cnt ),
+        sprintf( "to_boundary: %d bits until next B32", $to_boundary ),
+        sprintf( "buffer_len : %d bits",                length $acc ),
+        sprintf( "preview    : %s", substr( $acc, 0, 80 ) );
+
+} else {
+    ## summary of all streams ##
+    push @lines,
+        sprintf( "level-5 bit buffers: %d streams",
+        scalar keys %{$l5_streams} );
+
+    for my $sid ( sort { $a <=> $b } keys %{$l5_streams} ) {
+        my $s           = $l5_streams->{$sid};
+        my $acc         = $s->{'accumulator'} // '';
+        my $bit_cnt     = $s->{'bit_count'}   // 0;
+        my $to_boundary = 5 - ( $bit_cnt % 5 );
+        $to_boundary = 5 if $to_boundary == 5;
+
+        push @lines,
+            sprintf( "  stream %-3s | bits:%3d | to_b32:%d | preview:%s",
+            $sid, $bit_cnt, $to_boundary, substr( $acc, 0, 20 ) );
     }
-    unless exists $buffer_map{$level};
-
-my $buffer_name = $buffer_map{$level};
+}
 
 return {
-    'mode' => qw| false |,
-    'data' => "buffer '$buffer_name' not initialized"
-    }
-    unless defined $data{'buffer'}{$buffer_name};
-
-my @lines = @{ $data{'buffer'}{$buffer_name}{'data'} // [] };
-
-return {
-    'mode' => qw| true |,
-    'data' => join( "\n", @lines ) || "[buffer '$buffer_name' empty]"
+    'mode' => qw| size |,
+    'data' => join( "\n", @lines )
 };
 
-#,,,.,,.,,.,.,,..,.,,,..,,.,.,,,.,...,,..,.,.,.,.,...,...,...,,..,.,,,,,.,,.,,
-#4TXK7UDUNBHEPZHQGJZEPNEZYJMUY3IYCDXPRVVEYZSQECQWX2SLIKOXUBM52SYI46BRAT67KS54G
-#\\\|VQECTVQUWVKVI6WZPLID3Y46NA677AAEJBOGFFQXVA5HNXEHBGF \ / AMOS7 \ YOURUM ::
-#\[7]XLX4ZAM2VJ5EXMP7NEKI46HIAAQ7CEURJVG6IXR2YLSWEMVUPGAY 7  DATA SIGNATURE ::
+#,,.,,,,,,,..,..,,,,,,,,,,..,,.,,,...,...,,,,,.,.,...,..,,,,,,...,,..,,,,,.,.,
+#JKE7EKVIRZ3ROTKQBGFJDG4QQBNMVFSMIEY5C3ANSBSKFCPLGZHFTLCX7QNAWEC6MIMBSZJF55N76
+#\\\|4RJ7XFOX7QU4Z6QKS77S4RDSI65NQ4YXWM7XF565EPBBBUJ7BVP \ / AMOS7 \ YOURUM ::
+#\[7]NSCVNHLQECEFWG3RPD3SXSQEIX6BTW3WGVTEN3HOCJC7HWFCKMCQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

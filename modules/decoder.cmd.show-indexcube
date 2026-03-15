@@ -5,7 +5,7 @@
 
 my $cube = $data{'decoder'}{'INDEXCUBE'} // [];
 
-return { 'mode' => qw| true |, 'data' => 'INDEXCUBE empty' }
+return { 'mode' => qw| false |, 'data' => 'INDEXCUBE empty' }
     unless @{$cube};
 
 my @lines = sprintf( "INDEXCUBE depth : %d", scalar @{$cube} );
@@ -23,10 +23,10 @@ for my $entry ( @{$cube} ) {
         );
 }
 
-return { 'mode' => qw| true |, 'data' => join( "\n", @lines ) };
+return { 'mode' => qw| size |, 'data' => join( "\n", @lines ) };
 
-#,,..,..,,,.,,.,.,...,.,.,,,.,.,,,.,,,..,,.,.,..,,...,...,...,,..,,,.,,.,,.,,,
-#JIMQ3YEDESNU3X3IMFFS5SE7DQU5Q4AQNRHYYXNVURRTUQINC7PCDCV6VSUXMDOGQT67BK5Y3XBI6
-#\\\|6WJJNGP3LVR7DFACX7T352QRUC4RTJVX7CP7ZJQR2CYITAWA2L2 \ / AMOS7 \ YOURUM ::
-#\[7]2M2QIIBQNAH5APXLEB4TI3S2B4B4J6ITMHBDD4RWLLQUYXLELIAY 7  DATA SIGNATURE ::
+#,,,,,,.,,.,,,,..,,,.,,..,.,.,.,,,,,.,,,,,,,.,..,,...,...,.,,,...,..,,.,.,,..,
+#7ZXHYXFPY6DDQSUE6NOGCXWRJLFGTZAP2MGDVQSSDCHE3FK6HMILOZ5EXEA5SNBU3VF2L57CKKIRG
+#\\\|ZWHPHEGP7DYUL7ZZZYMNJBPDRICSAXQVWP6DNAXS6J3IUDOOCXO \ / AMOS7 \ YOURUM ::
+#\[7]2GLWYYJXBAGLBAXE26SUKSROHOT4KDTRLUBEWXXZYV3SVSTQXMCI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
