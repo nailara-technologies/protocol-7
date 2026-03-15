@@ -201,8 +201,8 @@ while ( length( $L6->{'accumulator'} ) >= 3 ) {
 
 ## Tier 4 : @INDEXCUBE Stream Tagging [ ✅ COMPLETED ]
 
-**Status**: Implemented
-**Commit**: `[pending]` Tier 4: @INDEXCUBE Stream Tagging
+**Status**: Implemented and committed
+**Commit**: `40359a72e` Tier 4: @INDEXCUBE Stream Tagging
 
 From `zulum-cube13-decoder-integration.md` §"Connection to @INDEXCUBE":
 
@@ -305,8 +305,8 @@ Check `git log --oneline modules/base.p7ref.self` to see if done.
   visualization; 5-bit minimum is now documented and visualized.
 - Sign all new files: `bin/Protocol-7 sourcecode update-signatures`
 
-#,,..,,,.,.,,,...,,..,,.,,,,.,,..,,.,,..,,,,,,.,.,...,..,,,..,,,,,.,.,...,.,.,
-#HMWJBG5C24UADLE437KFQZLGYY7HM2S2KPPXY3FRQA23XCQJHOL3E3HD7UWCX6JKC7OP3MEZCBHTS
-#\\\|5CJFM4X5OWURCDRUN4WIFTQLGC6H6RP4PZ72Q2HQNBZAUBBYFKO \ / AMOS7 \ YOURUM ::
-#\[7]XJDLDKEUZRLFE5RZO3H44C72RWPXVMUH2ZMF42EVZR7MZ76VW6CI 7  DATA SIGNATURE ::
+#,,,,,,..,,,,,.,.,.,,,.,.,,.,,,..,.,,,,,,,.,,,.,.,...,...,.,.,.,,,.,.,,.,,.,,,
+#HWXMGASJTKCPZHM6JX2MJQVNXJX2IF7BEXELFE7VFP76DUJLUBFXCDJ2ZHCHT35XWXZEPR7ZUX2CK
+#\\\|MP44OLPXHKB3WCCKLA5WM2K3TVEEOEKRCWPFXWNQNQWHDDGYTFW \ / AMOS7 \ YOURUM ::
+#\[7]DISVKA4TELMPIF7UKE3B2DUFJTI6SQDNLBG646CDRCZJKLPGX6BY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
