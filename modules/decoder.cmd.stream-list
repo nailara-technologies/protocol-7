@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = decoder.cmd.stream-list
+# descr = list all known decoder streams
+
+my $l5_streams = <decoder.level5> // {};
+my $l6_streams = <decoder.level6> // {};
+
+## union of all stream IDs ##
+my %all_streams;
+$all_streams{$ARG} = 1 for keys %{$l5_streams};
+$all_streams{$ARG} = 1 for keys %{$l6_streams};
+
+return { 'mode' => qw| false |, 'data' => 'no streams active' }
+    unless keys %all_streams;
+
+## build INDEXCUBE lookup for tagged streams ##
+my %tagged;
+for my $entry ( @{ $data{'decoder'}{'INDEXCUBE'} // [] } ) {
+    $tagged{ $entry->{'stream_id'} } = 1;
+}
+
+my @lines;
+push @lines, sprintf( "streams : %d active", scalar keys %all_streams );
+push @lines, '';
+push @lines,
+    sprintf( "%-8s | %-8s | %-8s | %-8s | %s",
+    'stream', 'L5_vals', 'L5_bits', 'L6_chars', 'tagged' );
+push @lines, '-' x 50;
+
+for my $sid ( sort { $a <=> $b } keys %all_streams ) {
+    my $l5 = $l5_streams->{$sid} // {};
+    my $l6 = $l6_streams->{$sid} // {};
+
+    push @lines,
+        sprintf(
+        "%-8s | %-8s | %-8s | %-8s | %s",
+        $sid,
+        scalar( @{ $l5->{'values'} // [] } ),
+        $l5->{'bit_count'} // 0,
+        length( $l6->{'accumulator'} // '' ),
+        $tagged{$sid} ? 'YES' : 'no'
+        );
+}
+
+return {
+    'mode' => qw| size |,
+    'data' => join( "\n", @lines )
+};
+
+#,,.,,.,,,.,,,,,.,...,,.,,..,,...,...,.,,,,,.,.,.,...,...,.,.,...,,,.,,,,,..,,
+#MULONW65SPNIWHIM2NB2UZGUONGGCIYXORZSOGYNYTFG2QF7KEVGTVM4ERXN4J5RTOTA5DUR6QNGE
+#\\\|ZN4LRFZPJYFB2SMALBLLRIHCUKSTYPEQJCFCKSQOKRUBYGMSZ4X \ / AMOS7 \ YOURUM ::
+#\[7]JNPSWPZMDBPHQXJLZCPWMT7FBBX6KO3X74VOUGYCRFR34TQK3KDI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
