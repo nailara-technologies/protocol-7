@@ -186,8 +186,9 @@ unless ($skip_signature_check) {
     for my $file (@staged_files) {
         next if $skip_backup_files and $file =~ m|~$|;
         next
-            unless $file =~ /\.(pl|pm|md|yaml|sh)$/
-            or $file =~ m{^(modules|bin|configuration)/};
+            unless $file =~ /\.(pl|pm|yaml|sh)$/
+            or $file =~ m{^(modules|bin|configuration)/}
+            or ( $file =~ /\.md$/ and $file =~ m{/} );
 
         my $file_path = File::Spec->catfile( $root_path, $file );
         next unless -f $file_path;
@@ -253,8 +254,8 @@ unless ($skip_signature_check) {
 print ":\n: done.\n:\n";
 exit 0;
 
-#,,.,,..,,.,.,,,.,.,,,...,..,,,,,,..,,,,.,..,,..,,...,...,,,.,.,,,.,.,,..,,,,,
-#S5OGZBM5C3PV5YYZ7D3CV32SLJY4EDQEXSYEX4WSWQSWO3E4EWVDMMCGGQBHOKUJJO7UT42D3J5PO
-#\\\|KSDRUELQSLPZGNJUVLMTWR4MLCKWT2GEWNRLATXUWO4D3AX5ZWY \ / AMOS7 \ YOURUM ::
-#\[7]5PX42Y5B3R64CA7V5OK4OQEZI5TKJX5UUXVA2CNEOURQFNAHMCDQ 7  DATA SIGNATURE ::
+#,,..,..,,,,.,,,.,...,.,.,,..,...,,,,,,,.,...,..,,...,...,.,.,,,,,...,..,,,,,,
+#JIX66BNDTFROJG3XAOWY3QXMKI3RC27ODC3ZTEUNK7OEIHDA4AG3CODVQEB5253F5B472ENLHVPBA
+#\\\|ZTIKXT6LSRGVBC2WMTXCFWN2QUGRUCEUF7SG7IXX5UC2ELHTWCY \ / AMOS7 \ YOURUM ::
+#\[7]7YBEDE5HSSANWNVRF6NSD77WA7KJWLURBX6V27IBKKV4XORZJUBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
