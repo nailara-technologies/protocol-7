@@ -19,7 +19,10 @@ Reference documents:
 
 ---
 
-## Tier 1 : Phase 3 — Passive Boundary Detection [ ~2h ]
+## Tier 1 : Phase 3 — Passive Boundary Detection [ ✅ COMPLETED ]
+
+**Status**: Implemented and committed
+**Commit**: `69635653c` Fix per-stream level-6 accumulator isolation in decoder
 
 Phase 3 was previously planned as a coordination problem: cube-13 sends
 explicit boundary notifications to decoder on stream switch. That plan
@@ -31,6 +34,11 @@ convergence attractor — it appears naturally at every stream transition.
 
 See `harmonic-cycle-correlations.md` §"Design Implication: Passive Boundary
 Detection" for the full derivation.
+
+**Implementation notes**:
+- Passive boundary detection via 769230 already functional in `decoder.zenka.receive_entropy`
+- `decoder.handler.on-boundary` exists and handles buffer closure
+- Per-stream accumulator isolation completed to prevent interleaving
 
 ### 1.1 decoder.zenka.receive_entropy — watch for 769230
 
@@ -90,11 +98,21 @@ first appearance depends on starting position and step size.
 
 ---
 
-## Tier 2 : cube-13 Correctness Fix — jump reverse Entry Point [ ~30min ]
+## Tier 2 : cube-13 Correctness Fix — jump reverse Entry Point [ ✅ COMPLETED ]
+
+**Status**: Implemented and committed
+**Commit**: `36160ccc2` Fix cube-13 jump reverse entry point and add root jump
 
 **Bug**: `jump reverse` in cube-13 may be using stream 7 (×7 = 538461)
 as entry point. Only stream 3 (×3 = 230769) produces a true digit
 reversal under /0.7. Stream 7 only rolls left by one position.
+
+**Fix applied**:
+- `jump reverse` now correctly returns stream 3 (230769), the harmonic mirror entry point
+- Old buggy behavior: decremented stream ID, which doesn't reach 230769
+- New behavior: always jumps to stream 3 where /0.7 produces true reversal
+
+**Bonus**: Added `jump root` to stream 10 (769230), the convergence attractor
 
 From `harmonic-cycle-correlations.md` §"The /0.7 Operator":
 ```
@@ -258,8 +276,8 @@ Check `git log --oneline modules/base.p7ref.self` to see if done.
   visualization; 5-bit minimum is now documented and visualized.
 - Sign all new files: `bin/Protocol-7 sourcecode update-signatures`
 
-#,,,,,..,,..,,.,,,,,.,.,.,.,.,...,,,.,,,,,.,,,.,.,...,..,,..,,,.,,,,.,,,.,,..,
-#WEVZFSR3YWMATAPF2MQ6GBH26WEVW5VDP7GZUFALMKWFUEMA67E42UVMGYEF5LVQW5EQGHKXJBMVY
-#\\\|CDEHG6Q4ZLBFM6WNGFT3LX4XLFEFD6EGWEKT4JOEZ7S72EV575L \ / AMOS7 \ YOURUM ::
-#\[7]RXJUBVQ2TJ5SYF6ODVRG5H7E6YVWNNNAQ7J5NDUCDW4W235LGKDY 7  DATA SIGNATURE ::
+#,,..,..,,...,...,,,.,..,,..,,,.,,,..,...,.,.,.,.,...,...,..,,,.,,..,,.,.,...,
+#UF4CQZ47WCWGCPRPCQU3UDEKQ4HMGCMJNN7MELD6DPNREW4AGRTKRPEXBROJMXEPMY72EYGWCSTAQ
+#\\\|BUODHOCA5UOSALDUQNE4UPNX4JG4S6T2RYYIMXBZUKO4SOC4OV5 \ / AMOS7 \ YOURUM ::
+#\[7]JEHETE5SHEBMKLNSG4KAVGVD4GXDF2QG2YCPB3SZ6HIGDNFDV4AI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
