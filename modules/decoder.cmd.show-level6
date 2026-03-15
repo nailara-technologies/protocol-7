@@ -1,0 +1,54 @@
+## [:< ##
+
+# name  = decoder.cmd.show-level6
+# param = [stream_id]
+# descr = show level-6 D3 linguistic projection state
+
+my $params    = shift // {};
+my $stream_id = $params->{'args'};
+
+my $l6_streams = <decoder.level6> // {};
+
+return { 'mode' => qw| false |, 'data' => 'no level-6 streams active' }
+    unless keys %{$l6_streams};
+
+my @lines;
+
+if ( defined $stream_id and length $stream_id ) {
+    ## single stream detail ##
+    my $s = $l6_streams->{$stream_id};
+    return {
+        'mode' => qw| false |,
+        'data' => "stream $stream_id not found"
+        }
+        unless defined $s;
+
+    my $acc = $s->{'accumulator'} // '';
+    push @lines,
+        sprintf( "stream  : %s", $stream_id ),
+        sprintf( "pending : [%s] %d chars", $acc, length $acc );
+
+} else {
+    ## summary of all streams ##
+    push @lines,
+        sprintf( "level-6 D3 streams: %d active",
+        scalar keys %{$l6_streams} );
+
+    for my $sid ( sort { $a <=> $b } keys %{$l6_streams} ) {
+        my $s   = $l6_streams->{$sid};
+        my $len = length( $s->{'accumulator'} // '' );
+        push @lines,
+            sprintf( "  stream %-3s | pending:%2d chars", $sid, $len );
+    }
+}
+
+return {
+    'mode' => qw| size |,
+    'data' => join( "\n", @lines )
+};
+
+#,,..,,,,,,,,,,..,..,,,,,,..,,,,.,,,,,,.,,,,,,.,.,...,..,,.,.,.,.,...,...,,,.,
+#KLQHRIGX4XEXN52C7PQUQ3M52DKX2DVQIGC7ELJ7AXQIMGYQMIPL3FYRGIF7WQJG3MVVFCDZOCH7C
+#\\\|HAI2PPAV2DPG7UGSV6EERBHZKQJUAZENHN4QRZYTETAZ33C4O35 \ / AMOS7 \ YOURUM ::
+#\[7]ZLAT3DUOJTCMSCMQHLKICHV7FJAGAO7FB736F2CNOSAPRJ3XHGAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
