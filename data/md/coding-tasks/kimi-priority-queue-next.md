@@ -151,7 +151,10 @@ The jump router switches to whichever stream is currently at position
 
 ---
 
-## Tier 3 : Decoder Level 6 — Linguistic Projection [ ~2h ]
+## Tier 3 : Decoder Level 6 — Linguistic Projection [ ✅ COMPLETED ]
+
+**Status**: Implemented and committed
+**Commit**: `[pending]` Tier 3: Decoder Level 6 — Linguistic Projection
 
 From `harmonic-cycle-correlations.md` §"Encoding Depth as Projection Layer":
 
@@ -159,32 +162,23 @@ From `harmonic-cycle-correlations.md` §"Encoding Depth as Projection Layer":
 phonetic, linguistic territory. Level 6 of the decoder adds this projection
 as a parallel output channel alongside binary/octal/base32.
 
-### 3.1 decoder.zenka.init_code — add level-6-D3 buffer
+### 3.1 decoder.zenka.init_code — level-6-D3 buffer
 
+✅ Level-6-D3 buffer initialized alongside level-5-B32:
+- Per-stream state: `<decoder.level6>->{$stream_id}`
+- Buffer: `level-6-D3` with 65536 max_size
+
+### 3.2 Projection logic: per-stream D3 accumulator
+
+✅ `decoder.zenka.receive_entropy` extracts 3-digit groups → Unicode codepoints:
 ```perl
-## add alongside level-5-B32 init ##
-if ( not exists <buffer.level-6-D3> ) {
-    <buffer.level-6-D3.max_size> = 65536;
-    my $time_stamp = <[base.anum_log_time]>->( 5, TRUE );
-    <[base.buffer.add_line]>->(
-        qw| level-6-D3 |,
-        join( ' ', $time_stamp, 0, 'level-6 d3 linguistic projection initialized .., ' ), 0
-    );
-}
-```
-
-### 3.2 Projection logic: group decimal digits in threes
-
-In `decoder.zenka.receive_entropy`, after extracting base32 5-bit chunks,
-also maintain a 3-digit accumulator for the level-6 channel:
-
-```perl
-## level-6 : accumulate 3 digits → emit unicode char ##
-$data{'decoder'}{'level6_acc'} //= '';
-$data{'decoder'}{'level6_acc'} .= $entropy_digit;
-if ( length( $data{'decoder'}{'level6_acc'} ) >= 3 ) {
-    my $code_point = 0 + substr( $data{'decoder'}{'level6_acc'}, 0, 3 );
-    $data{'decoder'}{'level6_acc'} = substr( $data{'decoder'}{'level6_acc'}, 3 );
+## level-6 : accumulate 3 decimal digits → unicode codepoint [ per-stream state ] ##
+<decoder.level6>->{$stream_id}{'accumulator'} //= '';
+my $L6 = <decoder.level6>->{$stream_id};
+$L6->{'accumulator'} .= sprintf '%d', $decimal;
+while ( length( $L6->{'accumulator'} ) >= 3 ) {
+    my $code_point = 0 + substr( $L6->{'accumulator'}, 0, 3 );
+    $L6->{'accumulator'} = substr( $L6->{'accumulator'}, 3 );
     my $unicode_char = chr($code_point);
     <[base.buffer.add_line]>->(
         qw| level-6-D3 |,
@@ -193,9 +187,15 @@ if ( length( $data{'decoder'}{'level6_acc'} ) >= 3 ) {
 }
 ```
 
-### 3.3 decoder.cmd.show-buffer update
+### 3.3 decoder.cmd.show-buffer — level 5/6 support
 
-Add level 6 to `show-buffer` so `decoder.show-buffer 6` works.
+✅ New module `decoder.cmd.show-buffer` maps level to buffer:
+- `decoder.show-buffer 5` → `level-5-B32` buffer
+- `decoder.show-buffer 6` → `level-6-D3` buffer
+
+### 3.4 decoder.cmd.show-accumulator — per-stream level-6
+
+✅ Updated to display per-stream level-6 accumulator state alongside level-5.
 
 ---
 
@@ -276,8 +276,8 @@ Check `git log --oneline modules/base.p7ref.self` to see if done.
   visualization; 5-bit minimum is now documented and visualized.
 - Sign all new files: `bin/Protocol-7 sourcecode update-signatures`
 
-#,,..,..,,...,...,,,.,..,,..,,,.,,,..,...,.,.,.,.,...,...,..,,,.,,..,,.,.,...,
-#UF4CQZ47WCWGCPRPCQU3UDEKQ4HMGCMJNN7MELD6DPNREW4AGRTKRPEXBROJMXEPMY72EYGWCSTAQ
-#\\\|BUODHOCA5UOSALDUQNE4UPNX4JG4S6T2RYYIMXBZUKO4SOC4OV5 \ / AMOS7 \ YOURUM ::
-#\[7]JEHETE5SHEBMKLNSG4KAVGVD4GXDF2QG2YCPB3SZ6HIGDNFDV4AI 7  DATA SIGNATURE ::
+#,,,,,,.,,,,,,,..,,,,,,.,,.,,,...,.,,,.,.,,..,.,.,...,...,,..,,,,,...,,,,,..,,
+#T2LQJJ2TPIFNNGEZRX2MF3VTDCBP42XM3X7SFAZQXKTVS3HNYCNXCBNMPKUOELYUSRRJCPX37C2LI
+#\\\|MNEFJLGD7NFJXCQQC42MLEW774OH6URC2QXPUD3O57UFBLNQP7I \ / AMOS7 \ YOURUM ::
+#\[7]I5AJBBYJXINLUG5FAPKYIXL2LUT4MVZHURBA3TAAWUKFILX5ESBY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

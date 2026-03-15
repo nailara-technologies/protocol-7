@@ -1,0 +1,44 @@
+## [:< ##
+
+# name  = decoder.cmd.show-buffer
+# descr = show level-5 B32 or level-6 D3 buffer content
+# param = <5|6>
+
+my $params = shift             // {};
+my $level  = $params->{'args'} // $ARG[0];
+
+return { 'mode' => qw| false |, 'data' => 'level required (5 or 6)' }
+    unless defined $level;
+
+## map level to buffer name ##
+my %buffer_map = (
+    5 => qw| level-5-B32 |,
+    6 => qw| level-6-D3 |,
+);
+
+return {
+    'mode' => qw| false |,
+    'data' => "invalid level '$level' (use 5 or 6)"
+    }
+    unless exists $buffer_map{$level};
+
+my $buffer_name = $buffer_map{$level};
+
+return {
+    'mode' => qw| false |,
+    'data' => "buffer '$buffer_name' not initialized"
+    }
+    unless defined $data{'buffer'}{$buffer_name};
+
+my @lines = @{ $data{'buffer'}{$buffer_name}{'data'} // [] };
+
+return {
+    'mode' => qw| true |,
+    'data' => join( "\n", @lines ) || "[buffer '$buffer_name' empty]"
+};
+
+#,,,.,,.,,.,.,,..,.,,,..,,.,.,,,.,...,,..,.,.,.,.,...,...,...,,..,.,,,,,.,,.,,
+#4TXK7UDUNBHEPZHQGJZEPNEZYJMUY3IYCDXPRVVEYZSQECQWX2SLIKOXUBM52SYI46BRAT67KS54G
+#\\\|VQECTVQUWVKVI6WZPLID3Y46NA677AAEJBOGFFQXVA5HNXEHBGF \ / AMOS7 \ YOURUM ::
+#\[7]XLX4ZAM2VJ5EXMP7NEKI46HIAAQ7CEURJVG6IXR2YLSWEMVUPGAY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
