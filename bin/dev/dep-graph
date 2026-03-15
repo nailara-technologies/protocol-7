@@ -381,13 +381,17 @@ sub extract_calls {
         ##  event callback / handler string refs [ registered, called later ]  ##
         ##  key forms : handler  'handler'  qw| handler |                      ##
         ##  val forms : => qw| name |  => 'name'  => "name"                   ##
-        while ( $line =~ m/(?:qw\|\s*)?['"]?(?:handler|callback)['"]?(?:\s*\|)?\s*=>\s*(?:qw\|\s*|['"])([a-zA-Z0-9._-]+)/g ) {
+        while ( $line
+            =~ m/(?:qw\|\s*)?['"]?(?:handler|callback)['"]?(?:\s*\|)?\s*=>\s*(?:qw\|\s*|['"])([a-zA-Z0-9._-]+)/g
+        ) {
             push @calls, $1;
         }
 
         ##  handler|callback key with value on next line [ multiline split ]  ##
         if (    $i < $end_idx
-            and $line =~ m/(?:qw\|\s*)?['"]?(?:handler|callback)['"]?(?:\s*\|)?\s*=>\s*$/ ) {
+            and $line
+            =~ m/(?:qw\|\s*)?['"]?(?:handler|callback)['"]?(?:\s*\|)?\s*=>\s*$/
+        ) {
             my $next = $lines[ $i + 1 ] // '';
             if ( $next =~ m/^\s*(?:qw\|\s*|['"])([a-zA-Z0-9._-]+)/ ) {
                 push @calls, $1;
@@ -592,21 +596,27 @@ sub analyze_zenka_reachability {
 
     ##  seed bootstrap modules [ always loaded by bin/Protocol-7 regardless   ##
     ##  of whitelist ] so their dependencies are included in the reachable set ##
-    for my $bootstrap ( qw| base.init base.sig_int base.init_code | ) {
+    for my $bootstrap (qw| base.init base.sig_int base.init_code |) {
         push @entry_modules, $bootstrap if exists $graph->{$bootstrap};
     }
 
     ##  all base.sig_* handlers are registered dynamically via sprintf in      ##
     ##  base.init_zenka.install_signal_handlers — dep-graph cannot trace them  ##
-    push @entry_modules,
-        grep { exists $graph->{$ARG} }
-        grep { m|^base\.sig_| } keys %{$graph};
+    push @entry_modules, grep { exists $graph->{$ARG} }
+        grep {m|^base\.sig_|} keys %{$graph};
+
+    ##  deferred compile handler installed as stub by bin/Protocol-7 loader     ##
+    ##  for non-whitelisted modules — reference not traceable by dep-graph      ##
+    push @entry_modules, 'base.handler.deferred_compile'
+        if exists $graph->{'base.handler.deferred_compile'};
 
     ##  include subroutines called from zenka-startup.v7 zenka-init section  ##
     ##  these lines are injected over stdin by v7 at startup and eval'd       ##
     if ( defined $zenka_name and $zenka_name ne 'stdin' ) {
-        my $startup_file = c_dir( $root_path, qw| configuration zenki |,
-            $zenka_name, qw| zenka-startup.v7 | );
+        my $startup_file = c_dir(
+            $root_path,  qw| configuration zenki |,
+            $zenka_name, qw| zenka-startup.v7 |
+        );
         if ( -f $startup_file ) {
             my $in_zenka_init = 0;
             open my $sfh, '<', $startup_file
@@ -617,7 +627,7 @@ sub analyze_zenka_reachability {
                     $in_zenka_init = 1;
                 } elsif ( $line =~ m|^\s*:\s*\S+\s*:| ) {
                     $in_zenka_init = 0;
-                } elsif ( $in_zenka_init ) {
+                } elsif ($in_zenka_init) {
                     ##  extract [ sub.name ] and [ sub.name : args ] calls  ##
                     while ( $line =~ m|\[([a-zA-Z][\w.-]+)(?::[^\]]+)?\]|g ) {
                         my $sub = $1;
@@ -678,7 +688,7 @@ sub analyze_zenka_reachability {
         ##  include all subs from runtime-loaded modules  ##
         ##  base.load_modules loads the full namespace at runtime  ##
         for my $loaded ( keys %{$loaded_set} ) {
-            for my $node ( grep { m/^\Q$loaded\E(?:\.|$)/ } keys %{$graph} ) {
+            for my $node ( grep {m/^\Q$loaded\E(?:\.|$)/} keys %{$graph} ) {
                 my %new = walk_reachable( $graph, [$node] );
                 %reachable = ( %reachable, %new );
             }
@@ -688,9 +698,8 @@ sub analyze_zenka_reachability {
         ##  without net, zenka cannot accept connections or dispatch commands  ##
         if ( exists $loaded_set->{'net'} ) {
             for my $ns ( qw| base |, keys %{$loaded_set} ) {
-                for my $node (
-                    grep { m/^\Q$ns\E\.(?:cmd|console)\./ } keys %{$graph}
-                ) {
+                for my $node ( grep {m/^\Q$ns\E\.(?:cmd|console)\./}
+                    keys %{$graph} ) {
                     next if $reachable{$node};
                     my %new = walk_reachable( $graph, [$node] );
                     %reachable = ( %reachable, %new );
@@ -701,7 +710,7 @@ sub analyze_zenka_reachability {
         ##  include all plugin.* modules [ dynamically dispatched at runtime ]  ##
         ##  auth plugins selected by client, cannot be statically determined    ##
         if ( exists $loaded_set->{'net'} ) {
-            for my $node ( grep { m/^plugin\./ } keys %{$graph} ) {
+            for my $node ( grep {m/^plugin\./} keys %{$graph} ) {
                 next if $reachable{$node};
                 my %new = walk_reachable( $graph, [$node] );
                 %reachable = ( %reachable, %new );
@@ -720,11 +729,11 @@ sub analyze_zenka_reachability {
         while ( scalar( keys %reachable ) != $prev_count ) {
             $prev_count = scalar keys %reachable;
             for my $mod ( qw| base |, keys %reachable ) {
-                my @parts = split m|\.| , $mod;
+                my @parts = split m|\.|, $mod;
                 for my $len ( 1 .. scalar @parts ) {
                     my $ns = join '.', @parts[ 0 .. $len - 1 ];
                     next if $ns_seen{$ns}++;
-                    for my $lifecycle ( qw| pre_init init_code post_init | ) {
+                    for my $lifecycle (qw| pre_init init_code post_init |) {
                         my $sub = "$ns.$lifecycle";
                         next if $reachable{$sub};
                         if ( exists $graph->{$sub} ) {
@@ -1289,8 +1298,8 @@ sub classify_dispatch_confidence {
     return 'open';
 }
 
-#,,,,,,,,,...,,,.,,,.,...,...,..,,.,,,.,,,,..,.,.,...,...,.,.,.,,,,..,...,.,,,
-#HASO6IZZXVPTFOU3SMBK3JAHAO77PLBOBN3GFN6QOM6JMG74RET2QHLFC3OU5U6MVNUVLU7GLKLLA
-#\\\|4QBNJS7Z2UI24QD6JAZ63TG3DHLDINBZ6VU6RGDVUDAWMOSSPZH \ / AMOS7 \ YOURUM ::
-#\[7]MXBFBFTTTUV2K4BKUBY2NF4MYC4ERPVWTHR5CBERLYDZ5XAPPYDY 7  DATA SIGNATURE ::
+#,,..,..,,,..,.,.,.,,,,,.,,..,..,,...,,.,,,..,.,.,...,...,.,,,,.,,,.,,,..,,,,,
+#5RUTDQYXKGE67ADF3ZW4OCXOWREGCMET7SD3ZDCQV3ACPFSO6N454IPPVSJ7FNELODJ2X6252AXMA
+#\\\|YHAGYSRCIXZ7ORNZL6ZFIBSAIZOW3EEQQDH22TT2AA4G635YQPO \ / AMOS7 \ YOURUM ::
+#\[7]GK6F43TT5B5R6M62TTYAAAYD5275FFMRJHAVVPLLMK3HFNG3GSAI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
