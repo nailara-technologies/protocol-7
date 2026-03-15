@@ -1,0 +1,43 @@
+## [:< ##
+
+# name  = decoder.cmd.harmony
+# param = [value]
+# descr = classify by /13 chain [TRUE|FALSE]
+
+my $params = shift // {};
+my $value  = $params->{'args'};
+
+## if no value provided, use current stream's entropy from accumulator ##
+if ( not defined $value ) {
+    my $stream_id = $params->{'stream_id'} // 1;
+    my $L5        = <decoder.level5>->{$stream_id};
+    if ( defined $L5 and @{ $L5->{'values'} // [] } ) {
+        ## use most recent accumulated value ##
+        $value = $L5->{'values'}[-1];
+    } else {
+        return {
+            'mode' => qw| false |,
+            'data' => 'no value provided and no accumulator data'
+        };
+    }
+}
+
+return { 'mode' => qw| false |, 'data' => 'value must be numeric' }
+    unless $value =~ m|^\d+$|;
+
+## classify using AMOS7 truth assertion ##
+my $is_true = AMOS7::Assert::Truth::is_true( \$value, 0, 1 );
+
+return {
+    'mode' => $is_true ? qw| size | : qw| false |,
+    'data' => sprintf(
+        "value : %s\nclass : %s\n",
+        $value, $is_true ? 'TRUE' : 'FALSE'
+    )
+};
+
+#,,,,,.,.,...,,,.,.,,,,.,,,,.,,,.,,,,,,.,,,,,,.,.,...,...,,.,,,.,,,,.,,,.,,,,,
+#S7U5I4JRDOBCV3XHQLEHNMO7O7CJ3NVYDKGMIOFLYJGDPX3NER372L7XTIFKOMUZFCBSSPNRNSASI
+#\\\|TRYMXKHS53TJBVBXXARDSKSSYOSILRQR5LGO2DB4ZT3TZTTHLFV \ / AMOS7 \ YOURUM ::
+#\[7]VZTETWKPPVHODGJRWBKB55G4JS4CIKGQGAGEGX77A4AMETNFG2AY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
