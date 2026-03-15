@@ -11,20 +11,22 @@ return { 'mode' => qw| true |, 'data' => 'INDEXCUBE empty' }
 my @lines = sprintf( "INDEXCUBE depth : %d", scalar @{$cube} );
 
 for my $entry ( @{$cube} ) {
-    push @lines, sprintf(
-        "  [%02d] stream %-8s  boundary:%s  val:%s  t:%s",
+    push @lines,
+        sprintf(
+        "  [%02d] stream %-8s  boundary:%s  val:%s  %s  t:%s",
         $entry->{'depth'}          // 0,
         $entry->{'stream_id'}      // '?',
         $entry->{'boundary_n'}     // 0,
         $entry->{'boundary_value'} // 0,
+        $entry->{'p7ref'}          // 'STREAM:?:?',
         $entry->{'timestamp'}      // 0,
-    );
+        );
 }
 
 return { 'mode' => qw| true |, 'data' => join( "\n", @lines ) };
 
-#,,.,,,,.,...,.,,,.,,,...,,..,...,,..,,..,.,.,..,,...,...,.,.,.,.,.,.,.,,,.,.,
-#UUAMZW2NMJOW5U3UVVJDQE264HIDL6J6I4SIHXRPHKPK7YT6EV33PUY2N6GUE76YOVQL5SJ74AY5U
-#\\\|BATIBGZDIEUW2GHYLU6B54NKCSIJGWPB7Q56ZB2BLWIE4WQ7EJO \ / AMOS7 \ YOURUM ::
-#\[7]SI6GIPW7C4BTVCUOKSZUE4XLZRVOHNYHFSD5PNS5MR4KKFMV4EAQ 7  DATA SIGNATURE ::
+#,,..,..,,,.,,.,.,...,.,.,,,.,.,,,.,,,..,,.,.,..,,...,...,...,,..,,,.,,.,,.,,,
+#JIMQ3YEDESNU3X3IMFFS5SE7DQU5Q4AQNRHYYXNVURRTUQINC7PCDCV6VSUXMDOGQT67BK5Y3XBI6
+#\\\|6WJJNGP3LVR7DFACX7T352QRUC4RTJVX7CP7ZJQR2CYITAWA2L2 \ / AMOS7 \ YOURUM ::
+#\[7]2M2QIIBQNAH5APXLEB4TI3S2B4B4J6ITMHBDD4RWLLQUYXLELIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
