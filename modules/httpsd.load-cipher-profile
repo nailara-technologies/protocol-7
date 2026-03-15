@@ -1,13 +1,11 @@
-package HTTPSD::LoadCipherProfile;
+## [:< ##
 
-use v5.24;
-use strict;
-use warnings;
-use Carp qw(croak carp);
+# name = httpsd.load-cipher-profile
+# descr = load cipher profile configuration for HTTPSD
 
-our @EXPORT_OK = qw(load_cipher_profile list_profiles);
+my $profile_name = shift // qw| firefox_compatible |;
 
-# Default profiles (hardcoded fallback)
+## default profiles (hardcoded fallback) ##
 my %DEFAULT_PROFILES = (
     firefox_compatible => {
         description =>
@@ -55,50 +53,31 @@ my %DEFAULT_PROFILES = (
     },
 );
 
-sub load_cipher_profile {
-    my ($profile_name) = @_;
-    $profile_name //= 'firefox_compatible';
+my $config_file = '/etc/protocol-7/httpsd-ciphers.yaml';
 
-    my $config_file = '/etc/protocol-7/httpsd-ciphers.yaml';
-
-    # Try YAML config first
-    if ( -f $config_file ) {
-        my $profile = _load_from_yaml( $config_file, $profile_name );
-        return $profile if $profile;
-    }
-
-    # Fall back to hardcoded defaults
-    return _get_default_profile($profile_name);
-}
-
-sub list_profiles {
-    my %profiles;
-    foreach my $name ( keys %DEFAULT_PROFILES ) {
-        $profiles{$name} = $DEFAULT_PROFILES{$name}{description};
-    }
-    return \%profiles;
-}
-
-# Private: Load profile from YAML file
-sub _load_from_yaml {
-    my ( $config_file, $profile_name ) = @_;
+## try YAML config first ##
+if ( -f $config_file ) {
+    my $yaml_profile = undef;
 
     eval { require YAML::XS; } or do {
-        return undef;
+        goto FALLBACK_DEFAULT;
     };
 
     my $yaml;
     eval { $yaml = YAML::XS::LoadFile($config_file); } or do {
-        carp("Failed to load YAML config: $@");
-        return undef;
+        <[base.log]>->( 1, "cipher-profile: failed to load YAML config: $@" );
+        goto FALLBACK_DEFAULT;
     };
 
     my $profile = $yaml->{cipher_profiles}{$profile_name};
     unless ($profile) {
-        croak("Cipher profile not found: $profile_name");
+        <[base.log]>->(
+            1, "cipher-profile: profile not found in YAML: $profile_name"
+        );
+        goto FALLBACK_DEFAULT;
     }
 
-    # Normalize cipher suite
+    ## normalize cipher suite ##
     my $cipher_suite = $profile->{cipher_suite};
     $cipher_suite =~ s|\s+| |g;
     $cipher_suite =~ s{^\s+|\s+$}{}g;
@@ -112,18 +91,25 @@ sub _load_from_yaml {
     };
 }
 
-# Private: Get default profile
-sub _get_default_profile {
-    my ($profile_name) = @_;
+FALLBACK_DEFAULT:
 
-    my $profile = $DEFAULT_PROFILES{$profile_name};
-    unless ($profile) {
-        my @available = sort keys %DEFAULT_PROFILES;
-        croak( "Unknown cipher profile: $profile_name. Available: "
-                . join( ', ', @available ) );
-    }
-
-    return {%$profile};
+## fall back to hardcoded defaults ##
+my $default_profile = $DEFAULT_PROFILES{$profile_name};
+unless ($default_profile) {
+    my @available = sort keys %DEFAULT_PROFILES;
+    <[base.log]>->(
+        0,
+        "cipher-profile: unknown profile '$profile_name', "
+            . "available: "
+            . join( ', ', @available )
+    );
+    return undef;
 }
 
-1;
+return {%$default_profile};
+
+#,,.,,..,,,,.,..,,.,,,.,.,.,,,,,.,...,,,.,.,.,.,.,...,.,.,.,,,.,.,.,.,,,.,,,.,
+#ATPJ7IVIAIHDGJWIL4P2BHDTBIBBUEJNKWNWGNAELNDSONSUCHGHLSTKA26OXFFSPL7WCJFQ33X5U
+#\\\|NVSSW45JAXABG77AWO6SCQ5XBC44UINPMEOFYAZX4CHUI7WFFWB \ / AMOS7 \ YOURUM ::
+#\[7]6CTRRM3OQ5CWZMOM7QDDLUS7QWYMQS5NNF6PIFBH4UHY6ML2LSBA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
