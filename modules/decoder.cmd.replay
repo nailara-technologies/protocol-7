@@ -1,0 +1,46 @@
+## [:< ##
+
+# name  = decoder.cmd.replay
+# param = [line_count]
+# descr = read back level-6-D3 unicode projection buffer
+
+my $params = shift // {};
+my $limit  = $params->{'args'};
+
+## access buffer data directly ##
+my $buffer_data = $data{'buffer'}{'level-6-D3'}{'data'} // [];
+
+return { 'mode' => qw| false |, 'data' => 'level-6-D3 buffer empty' }
+    unless @{$buffer_data};
+
+my $total = scalar @{$buffer_data};
+$limit //= $total;    ## default: show all ##
+$limit = $total if $limit > $total;
+
+my @lines;
+push @lines,
+    sprintf( "level-6-D3 buffer : %d entries [showing %d]", $total, $limit );
+push @lines, '';
+
+## show entries (skip header line if present) ##
+my $shown = 0;
+for my $entry ( @{$buffer_data} ) {
+    last if $shown >= $limit;
+
+    ## skip initialization header line ##
+    next if $entry =~ m|initialized|;
+
+    push @lines, $entry;
+    $shown++;
+}
+
+return {
+    'mode' => qw| size |,
+    'data' => join( "\n", @lines )
+};
+
+#,,.,,,.,,.,,,...,,..,,.,,.,,,...,.,,,..,,...,.,.,...,..,,.,.,,..,.,,,,..,,,.,
+#DBWWESJYYKFWLWSCE3KVBPRFE55BNFZ4RSUTSDCI27I7Y7P3BH4ROAPIEBFSFEMJ4DJRQWSRRU6L6
+#\\\|M743I2TPG4WIB7XT6ZXWLDAVPBGSAWDKF3PHFJT3OMMC66QL6VT \ / AMOS7 \ YOURUM ::
+#\[7]4Y6QDA7VU2FP4LQ6KWKDEDZMH2RFR66DJGEYM2CC2SZN66JRZUAA 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
