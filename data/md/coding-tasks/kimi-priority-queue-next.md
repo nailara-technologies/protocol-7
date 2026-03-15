@@ -281,6 +281,26 @@ my $addr_b32 = substr( $amos_chksum->($addr_input), 0, 6 );
 
 ---
 
+## Next Session Candidates (Claude suggestions)
+
+Well-suited for Kimi (self-contained, documented, ~2h scope):
+
+### decoder.cmd.harmony — /13 chain tool as live zenka command
+Wire `bin/dev/display-D13-collection` or similar /13 chain tool as a live decoder command feeding from the accumulator. Pure decoder work, well-scoped.
+
+### decoder.cmd.D13-collection — harmonic display command
+Expose `bin/dev/display-D13-collection` as `decoder.cmd.D13-collection`. Shares harmonic math context with harmony command.
+
+### decoder.cmd.show-vterm damage query — screen readback
+Expose what's landed on the 25×80 vterm surface. Documented in roadmap, fits decoder context. Query damage/screen state.
+
+### passive prefix detection table — ANSI/Hayes/JJFE lookup
+Architecture section 8 prefix table as live lookup module in decoder. Creative/architectural, good fit.
+
+**Suggested starting point**: decoder.cmd.harmony + D13-collection as a pair (shared harmonic math context), then vterm screen readback if time remains.
+
+---
+
 ## Do Not Attempt
 
 - `fix-list-alignment-offset-truncation.md` — needs live captures first
@@ -305,8 +325,8 @@ my $addr_b32 = substr( $amos_chksum->($addr_input), 0, 6 );
   visualization; 5-bit minimum is now documented and visualized.
 - Sign all new files: `bin/Protocol-7 sourcecode update-signatures`
 
-#,,..,,,,,,.,,..,,.,.,...,...,.,.,.,,,.,.,..,,.,.,...,...,,,.,,,,,.,,,.,.,.,.,
-#IL4B5YDFO4NYNG5NNGFNMHAHXQCYARNNMBSICL6NA5H22SYJ66UKZXTTK4OKG6B4M7QL56MHHWIAK
-#\\\|CPNUWSYMLGHQQUPEFT4DAKV3JOTCVOT3CHHXDKOEA7GULWJRUGS \ / AMOS7 \ YOURUM ::
-#\[7]D45EZJ3NUFLD5SO65KFC5YSY6XP5O2NHYAYXGVPBWERWTCRE44DQ 7  DATA SIGNATURE ::
+#,,,.,,..,,,,,..,,.,,,..,,...,.,,,.,,,,..,..,,.,.,...,...,,..,.,.,,,.,,..,,,,,
+#NCSKOWPRCYAQBORIGXOAJFHSLIVKPHISJBU5PEEAI6KYRFAIOLTJ3WB4AICYO3CTN7J2QKSIKCQUK
+#\\\|JP42GFTN3GUPTNLZ2V5L6VGJDF4CDSKXIRY73WVRBS7L7SWO5BI \ / AMOS7 \ YOURUM ::
+#\[7]7HFLEXWNLD4VHPNBTP6LLJFWDTWTMYF2CUX5WU5EFBQYM54QSIAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
