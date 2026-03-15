@@ -395,9 +395,8 @@ sub p7_early_whitelist_load {    ##  load sub whitelist before base module  ##
     my $conf_path = $data{'system'}{'conf_path'};
     return unless defined $conf_path;
 
-    my $wl_path = catfile(
-        $conf_path, qw| zenki |, $zenkaname, qw| subroutine.white-list |
-    );
+    my $wl_path = catfile( $conf_path, qw| zenki |, $zenkaname,
+        qw| subroutine.white-list | );
     return unless -f $wl_path;
 
     open my $fh, qw| < |, $wl_path or return;
@@ -719,9 +718,9 @@ sub p7_init_exec {    ##  main variable initialization  ##
         p7_early_whitelist_load();
         $code{'log.noerr'}->( qw| .\\7 | . $spaces );
         my $wl = $data{'base'}{'loader'}{'sub_whitelist'};
-        $code{'log.noerr'}->(
-            sprintf '. sub whitelist : %d', scalar keys %{$wl}
-        ) if defined $wl;
+        $code{'log.noerr'}
+            ->( sprintf '. sub whitelist : %d', scalar keys %{$wl} )
+            if defined $wl;
     }
     ## initializing early zenka buffer capture ###
     $data{'system'}{'start'}{'zenka-buffer'} //= [];
@@ -1507,9 +1506,20 @@ sub p7_load_code {
 
                 ##  skip subs not in whitelist [ when active and enabled ]  ##
                 my $wl = $data{'base'}{'loader'}{'sub_whitelist'};
-                next if defined $wl
+                if (    defined $wl
                     and $data{'base'}{'loader'}{'sub_whitelist_enabled'}
-                    and not exists $wl->{$file_name};
+                    and not exists $wl->{$file_name} ) {
+                    ##  lifecycle hooks are optional-by-convention : skip silently  ##
+                    ##  only install deferred stubs for regular runtime subs        ##
+                    if ( $file_name
+                        !~ m{\.(pre_init|init_code|post_init|end_code)$} ) {
+                        $code{$file_name}
+                            //= eval( "sub {\n# line 1 \"$file_name\"\n"
+                                . q|$code{'base.handler.deferred_compile'}->(@_)|
+                                . "\n}" );
+                    }
+                    next;
+                }
 
                 local $RS = undef;
                 $data{'system'}{'no_http_source'} //= FALSE;
@@ -2118,8 +2128,9 @@ sub p7_load_code {
             $data{'base'}{'loader'}{'rollback_version'} = $prev_version;
             $data{'base'}{'loader'}{'rollback_pending'} = TRUE; ##  always  ##
 
-            if ( exists $code{'event.add_timer'} ) {
-                ##  event ready : install watcher inline  ##
+            if ( exists $code{'event.add_timer'}
+                and defined $data{'watcher'}{'io'}{'transfer'} ) {
+                ##  event ready and loop initialized : install watcher inline  ##
                 $code{'base.callback.setup_rollback_timer'}->()
                     if exists $code{'base.callback.setup_rollback_timer'};
             }
@@ -5524,8 +5535,8 @@ __DATA__
 :
 :.
 
-#,,.,,,,,,,..,,,,,.,,,,,.,.,.,.,,,,..,,,,,.,.,...,...,...,..,,...,...,.,,,,,.,
-#3VV6IZY6RJO7NXHZMMCG32YA22MOPBOQQV5BIMIYWYMOIIY7H4H4PBDS753ZTLT5QD6F5YCDZAHJC
-#\\\|WOL4O4E6H2PSSGTQ35JACFU3JY5RTXAYVTZJIWJUDOFL6BWAGC4 \ / AMOS7 \ YOURUM ::
-#\[7]JLTH76VSVREML4FGOH25QPZIZQ5DDFJXYGVT33TBUO7ZRH6CHICI 7  DATA SIGNATURE ::
+#,,.,,.,.,,..,..,,..,,..,,.,.,,.,,,,.,,.,,,,,,...,...,...,...,,,,,,..,...,...,
+#5BKL5UJLFBPC35NGNDTBN3QAMYQQZWOYC6BKGYJ67JTMAG6ZXXLSGUXJK3QA2AMHWOPATCIA27EYC
+#\\\|PUVOPLPT3YAHZS77CHO3LDQNG42H6TULN7BFMPUJWY4SS6LHNBX \ / AMOS7 \ YOURUM ::
+#\[7]ZM7PIMDJN34QRDLMCORFMLHW5S4SP2XDRKJRXPPOLUKU3WXEKIAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
