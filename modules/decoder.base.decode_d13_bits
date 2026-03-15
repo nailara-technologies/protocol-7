@@ -1,0 +1,55 @@
+## [:< ##
+
+# name  = decoder.base.decode_d13_bits
+# param = <7-bit-string>
+# descr = decode 7-bit chunk according to D13 protocol
+
+my $bits = shift // return 'UNK';
+return 'UNK' if length($bits) < 7;
+
+## make a copy to avoid modifying the original ##
+my $work = $bits;
+
+## extract type prefix ##
+my $type = substr( $work, 0, 1, '' );
+$type .= substr( $work, 0, 1, '' ) if $type eq qw| 0 |;
+$type .= substr( $work, 0, 1, '' ) if $type eq qw| 01 |;
+$type .= substr( $work, 0, 1, '' ) if $type eq qw| 011 |;
+
+## type 1 : graphical character / 5x7 pixel matrix ##
+return sprintf( 'GFX[%s]', $work ) if $type eq qw| 1 |;
+
+## type 01 : 5x7 pixel matrix (alternate) ##
+return sprintf( 'PIX[%s]', $work ) if $type eq qw| 01 |;
+
+## type 010 : BASE32 character ##
+if ( $type eq qw| 010 | ) {
+    my $num = 0;
+    $num = $num << 1 | $_ for split '', $work;
+    ## 0-5 or A-Z ##
+    my $char = $num <= 5 ? chr( 48 + $num ) : chr( 55 + $num );
+    return sprintf( 'B32[%s]', $char );
+}
+
+## type 0110/0111 : document headers ##
+return 'DOC[mono]'  if $type eq qw| 0110 |;
+return 'DOC[color]' if $type eq qw| 0111 |;
+
+## type 00 : routing direction ##
+## 00 + 2-bit turn + 3-bit hop count ##
+if ( $type eq qw| 00 | ) {
+    my @bits = split '', $work;
+    my $turn = join( '', shift @bits, shift @bits );
+    my $hops = 0;
+    $hops = $hops << 1 | $_ for @bits;
+    state $dir //= {qw| 00 U 10 L 01 R 11 D |};
+    return sprintf( 'RT[%s%d]', $dir->{$turn} // '?', $hops );
+}
+
+return 'UNK';
+
+#,,.,,,,,,..,,.,,,,,.,,,.,...,...,.,,,,.,,,,.,.,.,...,...,...,..,,,,,,,.,,.,.,
+#CGKSTQLALZH4EWGVRW4GOGTY63WZGWYOUTW2LNIMRAU4UUKRFGPYIIGOOKNEDVU7STSQKYRKMMWFC
+#\\\|KK66CUXCUDOV3XR73EYAQFQRVRJUQ4RT5TRSIHTVWD4OC4E4IQG \ / AMOS7 \ YOURUM ::
+#\[7]XVHV66UYEOD45PITLJAUFLQQ7BFBF54YBUAY6GHU7J7T3DVVYMBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

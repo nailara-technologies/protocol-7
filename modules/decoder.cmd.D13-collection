@@ -1,0 +1,73 @@
+## [:< ##
+
+# name  = decoder.cmd.D13-collection
+# param = [value|count]
+# descr = D13 collection decode from value or accumulator
+
+my $params = shift // {};
+my $arg    = $params->{'args'};
+
+## parse args: either "value" or "value count" ##
+my ( $value, $count ) = split m|\s+|, $arg // '', 2;
+$count //= 1;    ## default single iteration ##
+
+## if no value, use accumulator ##
+if ( not defined $value or $value eq '' ) {
+    my $stream_id = $params->{'stream_id'} // 1;
+    my $L5        = <decoder.level5>->{$stream_id};
+    if ( defined $L5 and @{ $L5->{'values'} // [] } ) {
+        $value = $L5->{'values'}[-1];
+    } else {
+        return {
+            'mode' => qw| false |,
+            'data' => 'no value provided and no accumulator data'
+        };
+    }
+}
+
+return { 'mode' => qw| false |, 'data' => 'value must be numeric' }
+    unless $value =~ m|^\d+$|;
+
+$count = 1 if $count < 1 or $count > 16;    ## limit iterations ##
+
+## load truth assertion ##
+my $is_true = AMOS7::Assert::Truth::is_true( \$value, 0, 1 );
+
+my $Z = $value + 0;
+my @results;
+
+for my $iter ( 1 .. $count ) {
+
+    ## D13 transformation: Z <<= 4; Z /= 13; Z <<= is_true(Z) ? 2 : 1 ##
+    $Z <<= 4;
+    $Z /= 13;    ##  also : $Z * 11 * 77 / 1001  ##
+    $Z <<= AMOS7::Assert::Truth::is_true( \$Z, 0, 1 ) ? 2 : 1;
+
+    my $num_bits_64 = sprintf( qw| %064b |, $Z );
+    my $main_42     = substr( $num_bits_64, 0,  42 );
+    my $decoded_7   = substr( $num_bits_64, 42, 7 );
+    my $aux_15      = substr( $num_bits_64, 49, 15 );
+
+    ## decode 7-bit chunk via base module ##
+    my $decoded_str = <[decoder.base.decode_d13_bits]>->($decoded_7);
+
+    push @results,
+        sprintf( "[%02d] Z=%020d | main=%s | dec=%s | %s | aux=%s",
+        $iter, int($Z), $main_42, $decoded_7, $decoded_str, $aux_15 );
+}
+
+return {
+    'mode' => qw| size |,
+    'data' => sprintf(
+        "seed  : %s\niter  : %d\ntrue  : %s\n\n%s\n",
+        $value, $count,
+        $is_true ? 'YES' : 'NO',
+        join( "\n", @results )
+    )
+};
+
+#,,..,.,.,,,.,,..,..,,,.,,,.,,,.,,,.,,,..,,.,,.,.,...,...,,,,,.,.,,..,,.,,.,,,
+#CDGE5WOI2FMRJPMD5X7YSWVPJMXK3PO42FXEKETMVAAU4EA3UKEEY7NSRXN4PGKBS4MNHZFFNSOF4
+#\\\|SI7SISKNJYGAOXAUTJZR7IHOYJTLODOJZUIO3DJMKYPSKPQAIL4 \ / AMOS7 \ YOURUM ::
+#\[7]J2K723W43N6Q55LXMZHWHTPEANMMM55KBOVOAZERSCDKCFZB4WCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
