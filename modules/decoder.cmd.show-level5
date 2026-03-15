@@ -1,0 +1,68 @@
+## [:< ##
+
+# name  = decoder.cmd.show-level5
+# param = [stream_id]
+# descr = show level-5 B32 accumulator state
+
+my $params    = shift // {};
+my $stream_id = $params->{'args'};
+
+my $l5_streams = <decoder.level5> // {};
+
+return { 'mode' => qw| false |, 'data' => 'no level-5 streams active' }
+    unless keys %{$l5_streams};
+
+my @lines;
+
+if ( defined $stream_id and length $stream_id ) {
+    ## single stream detail ##
+    my $s = $l5_streams->{$stream_id};
+    return {
+        'mode' => qw| false |,
+        'data' => "stream $stream_id not found"
+        }
+        unless defined $s;
+
+    push @lines,
+        sprintf( "stream : %s",        $stream_id ),
+        sprintf( "  values : %d",      scalar @{ $s->{'values'} // [] } ),
+        sprintf( "  pending: %d bits", $s->{'bit_count'} // 0 ),
+        sprintf( "  preview: %s",
+        substr( $s->{'accumulator'} // '', 0, 40 ) );
+
+    ## show last 10 values ##
+    my @vals = @{ $s->{'values'} // [] };
+    push @lines,
+        sprintf(
+        "  [last %d] : %s",
+        scalar( @vals > 10    ? @vals[ -10 .. -1 ] : @vals ),
+        join( ' ', @vals > 10 ? @vals[ -10 .. -1 ] : @vals )
+        );
+
+} else {
+    ## summary of all streams ##
+    push @lines,
+        sprintf( "level-5 streams: %d active", scalar keys %{$l5_streams} );
+
+    for my $sid ( sort { $a <=> $b } keys %{$l5_streams} ) {
+        my $s = $l5_streams->{$sid};
+        push @lines,
+            sprintf(
+            "  stream %-3s | values:%4d | pending:%2d bits",
+            $sid,
+            scalar @{ $s->{'values'} // [] },
+            $s->{'bit_count'} // 0
+            );
+    }
+}
+
+return {
+    'mode' => qw| size |,
+    'data' => join( "\n", @lines )
+};
+
+#,,.,,,,.,,..,.,.,,,,,,.,,,,.,.,.,,,,,.,,,.,,,.,.,...,...,.,.,..,,...,...,...,
+#IL5FRFDS6LI5KRGZHM6MCKSQCTXWMWGKG2H4R2KOTEXRULEWPZ2C5GADXXAHNB5LYEURYLIOGGZ6U
+#\\\|47NET7AIWTM4JG43AXKDAX4BXNY4LGHX7RZ443X5NKUJEDA6RWW \ / AMOS7 \ YOURUM ::
+#\[7]OTXLMZOFRP5OWRQPKMKP4HLQTYGP3YOQNEYQ5DI2SVAZXI4AAECQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
