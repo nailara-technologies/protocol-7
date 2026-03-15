@@ -1,0 +1,58 @@
+---
+task_id: modules-subdir-pm-extraction
+date_created: 2026-03-15
+status: pending
+priority: medium
+
+title: |
+  Extract .pm subdirectory modules from modules/ into conventional locations
+
+description: |
+  The modules/ directory contains two subdirectories with Perl .pm files,
+  not by convention. Only flat dot-notation module files belong there.
+  Each .pm has a different situation — see per-file notes below.
+
+files:
+  modules/HTTPSD/LoadCipherProfile.pm:
+    status: active — used by test scripts via require/use
+    callers:
+      - bin/test-httpsd-cipher-config.pl
+      - bin/dev/tests/encryption/test-httpsd-cipher-config.pl
+      - bin/dev/tests/encryption/test_cipher_mgmt_command.pl
+    action: |
+      Extract logic into flat module httpsd.load-cipher-profile (and
+      httpsd.cmd.list-cipher-profiles). Update test scripts to call
+      via p7 command or load flat module directly. Then delete .pm.
+
+  modules/HTTPSD/ScanContentDirectories.pm:
+    status: duplicate — flat module web.scan_content_directories already exists
+    action: audit overlap, merge any missing logic into flat module, delete .pm
+
+  modules/HTTPSD/TemplateCache.pm:
+    status: unused — no callers found outside the .pm itself
+    action: evaluate if logic is needed; if yes extract to flat module, else delete
+
+  modules/BaseHandler/RemoteSessionInit.pm:
+    status: unused stub — only a TODO skeleton, no callers
+    action: delete (functionality belongs to link-upgrade / base.handler work)
+
+tasks:
+  - Extract LoadCipherProfile logic into httpsd.load-cipher-profile flat module
+  - Update test scripts to use flat module or p7 command
+  - Merge/verify ScanContentDirectories vs web.scan_content_directories
+  - Delete TemplateCache.pm and RemoteSessionInit.pm (unused)
+  - Remove modules/HTTPSD/ and modules/BaseHandler/ directories
+  - Sign and commit
+
+notes: |
+  Discovered 2026-03-15. Anonymous sub refs in httpsd modules (callbacks,
+  SNI handler) are fine — not inline named subs. Only the .pm subdirectories
+  are the actual convention violation.
+
+---
+
+#,,.,,..,,,.,,,..,,..,...,..,,,..,.,,,...,..,,..,,...,...,,..,,..,...,.,.,,,,,
+#C265VWCLJ635GNTV63JZQEJR7WTQX3DFDK3IGDDJPY26QRYUFYAOA7WR2SLPUNTVM3CSFVDFOJWP6
+#\\\|GQZOMZO5RER7SQJXL4Q4WB4HIVQN276NAZNTTJCBI7X2LNIZBXY \ / AMOS7 \ YOURUM ::
+#\[7]MUDH3YR5O3XPLCXL2TLYT65FZSMYWL4KOPDQ5MYDJSOJULVNZKCY 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
