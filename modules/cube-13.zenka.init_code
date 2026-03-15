@@ -34,13 +34,20 @@
         }
         return $current;    ## no true stream found, stay ##
     },
-    'reverse' => sub {      ## jump to previous stream ##
-        my $current = <cube-13.active_stream>;
-        return ( ( $current - 2 + 13 ) % 13 ) + 1;
-    },
-    'next' => sub {         ## jump to next stream ##
+    'reverse' =>
+        sub {  ## jump to harmonic mirror entry point [ stream 3 = 230769 ] ##
+        ## 230769 / 0.7 = 329670 -- true digit reversal, not just roll ##
+        ## 538461 / 0.7 = 769230 -- only rolls left, NOT true reversal ##
+        return 3;    ## stream 3 = 076923 × 3 = 230769 ##
+        },
+    'next' => sub {    ## jump to next stream ##
         my $current = <cube-13.active_stream>;
         return ( $current % 13 ) + 1;
+    },
+    'root' => sub {  ## jump to convergence attractor [ 769230 = gen × 10 ] ##
+        ## 769230 is reachable from any stream via /0.N operator ##
+        ## algebra: (076923 × N) / (N/10) = 769230 for any N ##
+        return 10;    ## stream 10 = 076923 × 10 = 769230 ##
     },
 };
 
@@ -48,8 +55,8 @@
 
 return TRUE;
 
-#,,.,,...,,,,,..,,.,.,,..,.,,,.,,,.,,,,..,,,.,..,,...,..,,,.,,...,.,,,.,,,,.,,
-#SNBHY7VOFGITOWPNHN5A4ZLIBB7T6XDY52V53PFVTNCDWPWIOZJQ5JMNDKA7UKK3QHEXGAUW5NFJO
-#\\\|HKK23ZBWOJX4FSG3O2BDRZKNIPJYQGRZIMVI5KHKR3HQEQUMGQ5 \ / AMOS7 \ YOURUM ::
-#\[7]OXTA6EN35APR6OBTVZTRC3WXX4OV5W4YCJZ46TUJDJ7TCAN23QDA 7  DATA SIGNATURE ::
+#,,,,,,,,,...,.,.,.,,,...,.,.,...,,,.,,,.,.,,,..,,...,..,,.,.,,..,..,,,,,,,,,,
+#ZZSBKBGVRBD72EB6FI4H3ABR2TXUQFE4N27DLU6YNEASS3ICX4YBMBPN5I7UGLOL55L7X35EF735K
+#\\\|CTKQBIJAX3EDZJXEAHES3AGZENJDL3DJXVODSOVBRZ3BDQ3GQF7 \ / AMOS7 \ YOURUM ::
+#\[7]CFQW6VHIP6MTZZFWYJ2XSBA7FOUW23APROQP4J5CUQBRFLAVPYAY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
