@@ -154,7 +154,7 @@ The jump router switches to whichever stream is currently at position
 ## Tier 3 : Decoder Level 6 — Linguistic Projection [ ✅ COMPLETED ]
 
 **Status**: Implemented and committed
-**Commit**: `[pending]` Tier 3: Decoder Level 6 — Linguistic Projection
+**Commit**: `557172226` Tier 3: Decoder Level 6 — Linguistic Projection
 
 From `harmonic-cycle-correlations.md` §"Encoding Depth as Projection Layer":
 
@@ -276,8 +276,8 @@ Check `git log --oneline modules/base.p7ref.self` to see if done.
   visualization; 5-bit minimum is now documented and visualized.
 - Sign all new files: `bin/Protocol-7 sourcecode update-signatures`
 
-#,,,,,,.,,,,,,,..,,,,,,.,,.,,,...,.,,,.,.,,..,.,.,...,...,,..,,,,,...,,,,,..,,
-#T2LQJJ2TPIFNNGEZRX2MF3VTDCBP42XM3X7SFAZQXKTVS3HNYCNXCBNMPKUOELYUSRRJCPX37C2LI
-#\\\|MNEFJLGD7NFJXCQQC42MLEW774OH6URC2QXPUD3O57UFBLNQP7I \ / AMOS7 \ YOURUM ::
-#\[7]I5AJBBYJXINLUG5FAPKYIXL2LUT4MVZHURBA3TAAWUKFILX5ESBY 7  DATA SIGNATURE ::
+#,,,.,,.,,,..,..,,..,,...,.,.,...,..,,.,.,,..,.,.,...,..,,...,,.,,.,.,...,,,,,
+#T3TEMPSQJ45SD7TVQC4RC7AF546LHYHUY6G4OFSEKMQ6HQWPJ745543YLEFHUS2OYASOIL3JQPWI4
+#\\\|JFNPQ6ITUVFRSDOFHZ75AKSP2YNA3JAWAP37KMMQPQVK6SM4ABV \ / AMOS7 \ YOURUM ::
+#\[7]PZUWRUQLUAKH4XOEHJUPDV23O2R2XCH64LSIWMCIBTML6OWW2ODI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
