@@ -1,6 +1,41 @@
+## [:< ##
 
-#,,..,.,.,,..,.,.,.,.,,,,,,.,,..,,,,.,.,.,..,,..,,...,...,..,,,,.,,,,,,,,,.,,,
-#74AFPVEGD364ZDJNH4CRKVOGL2CGIU2XCJKXAUC676MDVXXMKA462QOWHNT3EA5IXMWJCFKWVOSHY
-#\\\|JERQYM7XJ5UH64NNN6J7NW4BSJAQQ4E5D7KY5SROULZEFYKE7NX \ / AMOS7 \ YOURUM ::
-#\[7]HQ4OQKU35SG57XMV6OQ4FMTNAXG6RYTHDH7Q6IERTMFIKRODGGCQ 7  DATA SIGNATURE ::
+# name = coding.intake.parse_command_string
+# descr = parses CLI-style "type: description | constraints" strings
+# purpose = Extract structured task data from command strings
+
+my ($cmd) = @ARG;
+
+## Simple command parsing: "type: description | constraints"
+#
+# Example: "code-generation: Create Whisper module | Protocol-7 compatible,
+# cache results"
+
+if ( $cmd =~ m{^([\w-]+):\s*(.+?)(?:\s*\|\s*(.+))?$} ) {
+    my ( $type, $desc, $constraints_str ) = ( $1, $2, $3 );
+
+    my @constraints = ();
+    if ($constraints_str) {
+        @constraints = split( m{\s*,\s*}, $constraints_str );
+    }
+
+    return {
+        type        => $type,
+        description => $desc,
+        constraints => \@constraints,
+        source      => qw| console |
+    };
+}
+
+# Fallback: treat entire string as description
+return {
+    type        => qw| analysis |,
+    source      => qw|  console |,
+    description => $cmd
+};
+
+#,,,,,...,,,,,..,,.,,,..,,,..,...,..,,,..,,,.,..,,...,...,,,.,...,,,,,,,,,,.,,
+#SKXTYHG3QW32BQSBNN7LO7JI2T2NXT7LQ5DSGL3FGANE5MPADDVP7E2TT2WCPOGVDD7Q2V4YSZFC4
+#\\\|44HZRWNLFTGTC5KC6HL36ZBDWKG3RHFU6UMELJLMH564LONVS7S \ / AMOS7 \ YOURUM ::
+#\[7]6SDMS7CHLW47XU2GIH6D26QQ3AIIWZAQAO7OJYM2K3BC6Y4RI6AY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

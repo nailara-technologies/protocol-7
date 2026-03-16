@@ -1,6 +1,25 @@
+## [:< ##
 
-#,,..,.,.,,..,.,.,.,.,,,,,,.,,..,,,,.,.,.,..,,..,,...,...,..,,,,.,,,,,,,,,.,,,
-#74AFPVEGD364ZDJNH4CRKVOGL2CGIU2XCJKXAUC676MDVXXMKA462QOWHNT3EA5IXMWJCFKWVOSHY
-#\\\|JERQYM7XJ5UH64NNN6J7NW4BSJAQQ4E5D7KY5SROULZEFYKE7NX \ / AMOS7 \ YOURUM ::
-#\[7]HQ4OQKU35SG57XMV6OQ4FMTNAXG6RYTHDH7Q6IERTMFIKRODGGCQ 7  DATA SIGNATURE ::
+# name = coding.intake.normalize_task
+# descr = normalizes task data with defaults and cleanup
+# purpose = Standardize task fields for consistent processing
+
+my ($task) = @ARG;
+
+# Ensure all required fields exist with sensible defaults
+$task->{type}                    = lc( $task->{type} // qw| analysis | );
+$task->{priority}                = $task->{request}->{priority} // qw|normal|;
+$task->{'execution'}->{'status'} = qw| pending |;
+
+# Normalize priority values
+if ( $task->{priority} !~ m{^(critical|high|normal|low)$} ) {
+    $task->{priority} = qw| normal |;
+}
+
+return $task;
+
+#,,.,,,,,,..,,..,,,,,,,,.,,.,,,,.,,..,,..,,,.,..,,...,...,.,.,,..,..,,...,,.,,
+#XEHMK34FTTT4NYNHVQBGNJB7OEVVDALEDGBVWU34FU63CK5CSCZ7QVNPHIEEFDBZPFIRLETH2L26A
+#\\\|SONZKRQW5FP7YI6N7YUD2XDJCRN3BVI64ES424ZPGP2XY4MOSUV \ / AMOS7 \ YOURUM ::
+#\[7]B5ZXB4M6OQ3ZJPFVHRXPUFC6MSMKSBNZFGOHGMOKVGTOJMCMVQBI 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

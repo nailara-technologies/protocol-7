@@ -1,6 +1,90 @@
+## [:< ##
 
-#,,..,.,.,,..,.,.,.,.,,,,,,.,,..,,,,.,.,.,..,,..,,...,...,..,,,,.,,,,,,,,,.,,,
-#74AFPVEGD364ZDJNH4CRKVOGL2CGIU2XCJKXAUC676MDVXXMKA462QOWHNT3EA5IXMWJCFKWVOSHY
-#\\\|JERQYM7XJ5UH64NNN6J7NW4BSJAQQ4E5D7KY5SROULZEFYKE7NX \ / AMOS7 \ YOURUM ::
-#\[7]HQ4OQKU35SG57XMV6OQ4FMTNAXG6RYTHDH7Q6IERTMFIKRODGGCQ 7  DATA SIGNATURE ::
+# name = coding.intake.work
+# descr = main intake logic for task ingestion
+# purpose = Process and structure incoming work requests
+
+my ($request) = @ARG;
+
+# Support multiple input formats
+if ( ref($request) eq qw| HASH | ) {
+
+    # Already structured as hash
+    return $request if exists $request->{'id'};
+} elsif ( not length ref $request ) {
+
+    # Plain string - parse as command
+    $request = <[coding.intake.parse_command_string]>->($request);
+} else {
+    return {
+        success => FALSE,
+        error   => "Invalid request format: must be hash or string",
+        input   => $request
+    };
+}
+
+# Validate and structure the work request
+my $task = {
+    id => $request->{id} // <[coding.helper.task_id_generator]>->(
+        $request->{type}, $request->{'description'}
+    ),
+    type    => $request->{'type'}    // qw| analysis |,
+    subtype => $request->{'subtype'} // '',
+    source  => $request->{'source'}  // qw| api |,
+
+    request => {
+        description => $request->{'description'} // '',
+        language    => $request->{'language'}    // qw| en |,
+        target      => $request->{'target'}      // qw| auto |,
+        constraints => ref( $request->{'constraints'} ) eq qw| ARRAY |
+        ? $request->{'constraints'}
+        : [],
+        deadline => $request->{'deadline'} // qw| flexible |,
+        priority => $request->{'priority'} // qw| normal |
+    },
+
+    analysis => {
+        complexity       => undef,          # Will be calculated
+        estimated_tokens => undef,          # Will be estimated
+        routed_to        => undef,          # Will be decided
+        fallback         => undef,          # Will be determined
+        cache_priority   => qw| normal |,
+        success_history  => { similar_tasks => 0, success_rate => 0 }
+    },
+
+    execution => {
+        status      => qw| pending |,
+        started     => undef,
+        completed   => undef,
+        model_used  => undef,
+        tokens_used => 0,
+        result      => undef,
+        success     => undef,
+        error       => undef
+    },
+
+    learning => {
+        approach_effectiveness => undef,
+        should_cache           => TRUE,
+        pattern_id             => undef,
+        next_improvement       => undef
+    },
+
+    metadata => {
+        ingested_at => <[base.time]>->(3),
+        ingested_by => $request->{'source'} // qw| unknown |,
+        raw_request => $request
+    }
+};
+
+return {
+    success => TRUE,
+    task    => $task,
+    message => sprintf( "Task ingested: %s", $task->{'id'} )
+};
+
+#,,,.,..,,..,,.,.,...,,.,,...,.,.,,..,...,,..,..,,...,...,,.,,,,,,.,.,...,...,
+#XMKFTN276RV3723ZFAVYTHTUTV6SUDPKZ5X3Q4PDGOB6NVNHW6MTX3TOMN2NKLKQBG5FAZOTA4MPU
+#\\\|HDMD635REQXCSWVOPG4NLSEFKZGT2QJOFFUUWF2RWZ462WEEUD3 \ / AMOS7 \ YOURUM ::
+#\[7]EFIKO3434LVRCFAYEXIO7FXJ655DRWLCBQPR7OOIUREU6CPZZGBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
