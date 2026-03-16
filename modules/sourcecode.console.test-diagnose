@@ -71,7 +71,10 @@ foreach my $path_rel (@source_paths) {
 
     if (    defined $code_data_ref
         and ref $code_data_ref eq qw| HASH |
-        and $code_data_ref->{'mode'} ne qw| false | ) {
+        and $code_data_ref->{'mode'} ne qw| false |
+        and not($code_data_ref->{'mode'} eq qw| true |
+            and $code_data_ref->{'data'} eq 'still valid. =)' )
+    ) {
         if ( <[file.put_bin]>->( $path_rel, $code_data_ref->{'data'} ) ) {
             printf( ": [SIGNED] %s\n", ( split '/', $path_rel )[-1] );
             $update_count++;
@@ -148,7 +151,10 @@ foreach my $path_rel (@source_paths) {
 
     if (    defined $code_data_ref
         and ref $code_data_ref eq qw| HASH |
-        and $code_data_ref->{'mode'} ne qw| false | ) {
+        and $code_data_ref->{'mode'} ne qw| false |
+        and not($code_data_ref->{'mode'} eq qw| true |
+            and $code_data_ref->{'data'} eq 'still valid. =)' )
+    ) {
         if ( <[file.put_bin]>->( $path_rel, $code_data_ref->{'data'} ) ) {
             printf( ": [SIGNED] %s\n", ( split '/', $path_rel )[-1] );
             $update_count++;
@@ -209,8 +215,8 @@ say ':';
 
 0;
 
-#,,..,,,.,,,,,,,.,.,,,.,,,,,,,,..,..,,,,,,...,..,,...,..,,,,,,.,.,,..,,..,,.,,
-#AA6N3EKRUGOFBJ5YV3TGVDZJWF6RXCKVES2WYS7EGKB2L7XFEYOQ7GZ5RYPZ4EPMMNUPBK274FEF4
-#\\\|2JDOBPUKZDCUHCEKUHXZOJYAFRZ3ZJAF5IKLTIMG4OR4DEIGNS7 \ / AMOS7 \ YOURUM ::
-#\[7]YUIGSXNGMXGXO5DARKDMHODSWNRG3E7XEIX3E2ZPDUGGNZXTPGAA 7  DATA SIGNATURE ::
+#,,,.,.,,,,.,,.,.,,,.,,..,.,,,,..,.,.,,,,,.,,,..,,...,...,.,.,,.,,,,,,,,,,,,.,
+#VBWL7ZVXNE27UIF7DOCDS3DIHCGXJ5QYENRAT4MLAMDXRKPXJ7PCEZFJI3NFJWNGXRFIGDZCEJUBE
+#\\\|5R5PPOS4FPZYIN4MH36GRVBAYHKPX5CQR2TYOKIJ5AQ3ZRBTJVX \ / AMOS7 \ YOURUM ::
+#\[7]WND47S6EZQIMQ27FUUIXRLLQJPBS5DLBYBDVS6NK5VUSZEJ63YAQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
