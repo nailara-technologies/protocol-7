@@ -235,3 +235,9 @@ Expected output: `/data/projects/protocol-7` (or your actual root)
 - `FindProtocol7Root.pm` - Perl implementation
 - `bin/test-*.sh` - Test scripts to migrate
 - `bin/dev/tests/` - Test script home directory
+
+#,,,.,.,.,..,,,.,,.,,,...,.,.,..,,,.,,,..,.,.,..,,...,...,...,.,,,,,.,,,.,,,,,
+#KZOUOUAFS4KAS7GWGWBDWBEFK7GRGEW6PCN2TG4FXUBYZ4KL7G7K5KKPZI5FQYRPVEO345LYXL3DC
+#\\\|WMOJD4YV3K2HIJORDZJSMACZBAUWFVEBIACCRLKUHLSLKDOCQJG \ / AMOS7 \ YOURUM ::
+#\[7]ASY5MUZ3WD3HEGYH2AWUBTEWTYQRVYIU4CVCSYUCO3HDBYLIBADQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

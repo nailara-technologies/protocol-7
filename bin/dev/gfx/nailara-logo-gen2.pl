@@ -512,3 +512,9 @@ JSBLOCK
 
 close $fh;
 print "Generated: $output (" . ( -s $output ) . " bytes)\n";
+
+#,,..,,..,...,...,,.,,,..,,..,...,,,,,.,.,.,,,..,,...,...,,,.,..,,.,,,,,.,...,
+#T2QL3DCNYRXZ6FMI5KTMEI3TISL5E4OUP7MPEYAZF77JQLDFMH57XO5HZSNCQ5Y22XJZXPHP4ULZY
+#\\\|E54ZBAPITY3CYMHBRSIYS4HQUMF32QLAVCLFSQGDAD5B5J5KVLO \ / AMOS7 \ YOURUM ::
+#\[7]6WGGRZFB2BL65ZPASD5F6YXAS3OQXEHXVNRNHJYDB4HX3CM2LQBI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

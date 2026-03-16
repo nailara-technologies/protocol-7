@@ -388,3 +388,9 @@ my $final = union_layers( a => $outer, b => $is, name => 'final' );
 save_png( $OUT_FILE, $final );
 save_preview($PREVIEW) if $PREVIEW;
 print STDERR "\nDone.\n";
+
+#,,..,,..,,.,,,.,,.,.,,,.,,.,,,,,,.,.,,.,,,,.,..,,...,..,,,,,,.,,,.,.,,,,,,.,,
+#MVA2VCOESCBH6AN3GJIHKKUK2HAA2UA63YXONUJITIZLFXATAES3KTMU2ACJCFXREF7WF7HIS7LDO
+#\\\|YRNV5IH6N6K2KPFU6V4SQYQJ6FRKFQIG2E2YO5TBFRYE4LBTW3Z \ / AMOS7 \ YOURUM ::
+#\[7]CDMRCQCJLF72WNIOGBGJFY43B4EOBGKD4OXNRFAH4M7RMMUX7UCI 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

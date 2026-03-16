@@ -15,9 +15,9 @@ use JSON::PP;
 use Getopt::Long;
 use File::Copy;
 use File::Path qw(make_path);
-use POSIX qw(strftime);
+use POSIX      qw(strftime);
 
-my ($opt_output, $opt_include_images, $opt_compact, $opt_help);
+my ( $opt_output, $opt_include_images, $opt_compact, $opt_help );
 GetOptions(
     'output=s'       => \$opt_output,
     'include-images' => \$opt_include_images,
@@ -29,8 +29,9 @@ usage() if $opt_help;
 
 ## Configuration
 my $INVOKE_DIR = $ENV{'INVOKE_DIR'} // "$ENV{HOME}/.invokeai";
-my $DB_FILE = "$INVOKE_DIR/db/invokeai.db";
-my $OUTPUT_DIR = $opt_output // "$INVOKE_DIR/backup-config-".strftime("%Y%m%d-%H%M%S", localtime).".yaml";
+my $DB_FILE    = "$INVOKE_DIR/db/invokeai.db";
+my $OUTPUT_DIR = $opt_output // "$INVOKE_DIR/backup-config-"
+    . strftime( "%Y%m%d-%H%M%S", localtime ) . ".yaml";
 
 print "Exporting Invoke.ai configuration...\n";
 print "Source: $INVOKE_DIR\n";
@@ -43,15 +44,15 @@ my $export = {
         version   => '1.0',
         source_db => $DB_FILE,
     },
-    models      => export_models(),
-    images      => export_images($opt_include_images),
-    workflows   => export_workflows(),
+    models        => export_models(),
+    images        => export_images($opt_include_images),
+    workflows     => export_workflows(),
     style_presets => export_style_presets(),
-    boards      => export_boards(),
+    boards        => export_boards(),
 };
 
 ## Write YAML
-open(my $fh, '>:encoding(UTF-8)', $OUTPUT_DIR)
+open( my $fh, '>:encoding(UTF-8)', $OUTPUT_DIR )
     or die "Cannot write $OUTPUT_DIR: $!";
 
 if ($opt_compact) {
@@ -60,7 +61,7 @@ if ($opt_compact) {
 } else {
     ## Pretty format
     local $YAML::XS::UseHeader = 1;
-    local $YAML::XS::Indent = 2;
+    local $YAML::XS::Indent    = 2;
     print $fh YAML::XS::Dump($export);
 }
 
@@ -69,9 +70,11 @@ close($fh);
 my $size = -s $OUTPUT_DIR;
 print "\n✓ Export complete: $OUTPUT_DIR\n";
 print "  Size: " . human_size($size) . "\n";
-print "  Models: " . scalar(@{$export->{models}}) . "\n";
-print "  Images: " . scalar(@{$export->{images}}) . "\n" if $export->{images};
-print "  Workflows: " . scalar(@{$export->{workflows}}) . "\n" if $export->{workflows};
+print "  Models: " . scalar( @{ $export->{models} } ) . "\n";
+print "  Images: " . scalar( @{ $export->{images} } ) . "\n"
+    if $export->{images};
+print "  Workflows: " . scalar( @{ $export->{workflows} } ) . "\n"
+    if $export->{workflows};
 
 ##===========================================================================##
 
@@ -101,7 +104,7 @@ sub export_models {
 
     ## Add Windows path warnings
     for my $m (@$models) {
-        if ($m->{path} && $m->{path} =~ /^[A-Z]:/i) {
+        if ( $m->{path} && $m->{path} =~ /^[A-Z]:/i ) {
             $m->{_warning} = "Windows path detected - needs conversion";
         }
     }
@@ -112,15 +115,15 @@ sub export_models {
 sub run_sql {
     my ($sql) = @_;
     require DBI;
-    my $dbh = DBI->connect("dbi:SQLite:dbname=$DB_FILE", "", "",
-        { RaiseError => 0, PrintError => 0 });
+    my $dbh = DBI->connect( "dbi:SQLite:dbname=$DB_FILE", "", "",
+        { RaiseError => 0, PrintError => 0 } );
     return undef unless $dbh;
 
     my $sth = $dbh->prepare($sql);
     return undef unless $sth;
 
     $sth->execute();
-    my $rows = $sth->fetchall_arrayref({});
+    my $rows = $sth->fetchall_arrayref( {} );
     $dbh->disconnect();
 
     return JSON::PP::encode_json($rows);
@@ -222,13 +225,13 @@ sub export_boards {
 sub human_size {
     my ($bytes) = @_;
     return '0 B' unless $bytes;
-    my @units = ('B', 'KB', 'MB', 'GB', 'TB');
-    my $unit = 0;
-    while ($bytes >= 1024 && $unit < @units - 1) {
+    my @units = ( 'B', 'KB', 'MB', 'GB', 'TB' );
+    my $unit  = 0;
+    while ( $bytes >= 1024 && $unit < @units - 1 ) {
         $bytes /= 1024;
         $unit++;
     }
-    return sprintf('%.1f %s', $bytes, $units[$unit]);
+    return sprintf( '%.1f %s', $bytes, $units[$unit] );
 }
 
 sub usage {
@@ -255,8 +258,8 @@ USAGE
     exit(0);
 }
 
-#,,.,,,,,,,.,,.,,,,,,,,,,,..,,.,.,...,,..,,.,,.,.,...,...,,.,,.,,,..,,,,.,,,,,
-#2NJKVFI2M3HPS47XEAGHTXB3VXRBT25EL2QQNB4IXI6VWUMKZAV5XGMBBATXH5FNJ2LPCZFF2PDNK
-#\\\|IJSXTXWMSIAUDIXQMHIMTTXCUTXNHKAD4GOW55OVGXIVLOE27WS \ / AMOS7 \ YOURUM ::
-#\[7]HFP77WHNCDZUQHLH6CPO2YOX37R6UEPXJ7KV5HCBFJWFZG4WKYDI 7  DATA SIGNATURE ::
+#,,.,,,.,,,..,,..,,,.,,,.,..,,...,,,.,.,,,,,,,.,.,...,...,.,,,,..,,..,...,..,,
+#63462SDUR7X523LJAE5RI5OOSJMGKTTURQBM6L2GU2V2AJY7OBPQNR6HXSEUFFYE5ZHPFMURYK3UW
+#\\\|FKAT3NWQAMYIBBRVC4TYNQJU6PIJIAAEMYCAVNEOKYPU667AN36 \ / AMOS7 \ YOURUM ::
+#\[7]U454N7CBRFOSO2HSDU4UYY3MIEYSVKECQJXR6UXOP6E2AUDNUOAA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
