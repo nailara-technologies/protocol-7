@@ -76,8 +76,8 @@ Desideri veramente sovrascrivere il file "
 [file_err_opendir_post] "
 [file_err_nofileselected] Nessun file selezionato!
 
-#,,..,,,,,,,.,.,,,.,.,...,.,.,,,.,,,.,,..,,,,,.,.,...,..,,.,.,,,.,.,.,.,,,..,,
-#TG6VRG27RGXPQF3B2PLFY6EMPWBLYJGG5RMDFOIBBTM5TXGLYCH2ADQNWGJVN66K5QTG5DFEPHCQM
-#\\\|FH7KK56D5GNI6AHDA47WS2GMXPLRIXAZ2CHA667KSBOVOZTKIKN \ / AMOS7 \ YOURUM ::
-#\[7]XMDHWCSFRLU6M7DQCXDE6BVCISOP4M6RC3ASQIKCQ5ZZO7CP2UAQ 7  DATA SIGNATURE ::
+#,,..,,,,,,,.,.,,,.,.,...,.,.,,,.,,,.,,..,,,,,.,.,...,..,,...,,,,,,..,.,,,,,,,
+#VHSHLTZC4SXCE53SWRN4LEAZGJWXA66SRTU5MESKB2VARLPBGME3CRHGY2IUBTZW2B2VQBWMTSYYI
+#\\\|5ZLCRWANZRV7HXEVYYKBFAKMWUJF35NFSHLFDW6UJZEQT44KWAQ \ / AMOS7 \ YOURUM ::
+#\[7]7SAH2GY3UULQGZFVXV5VGHGDHSO5LWOBXSYHZX37NVZQAQHLFCCY 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

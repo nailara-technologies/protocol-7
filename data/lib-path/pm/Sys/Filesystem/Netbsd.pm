@@ -26,7 +26,7 @@ use 5.008001;
 
 use strict;
 use warnings;
-use vars qw($VERSION);
+use vars   qw($VERSION);
 use parent qw(Sys::Filesystem::Unix);
 
 use Carp qw(croak);
@@ -158,3 +158,8 @@ L<http://www.apache.org/licenses/LICENSE-2.0>
 
 =cut
 
+#,,..,,..,,,,,,.,,..,,.,,,,,.,,..,...,.,,,.,,,..,,...,...,,,.,,,.,,..,,..,...,
+#T76KCKDB2UCUWE3ZLWX5ZFUCLFNW4N5KW4OGAQM2GRVZBZPPYN6MWX4CNVD2SXTHOHAUGRT7KRR22
+#\\\|XTCLTXJFDGURK72XFRP5RS35O333KUF2U7OOZOFUFAB75GPZCS3 \ / AMOS7 \ YOURUM ::
+#\[7]V7WZ4ADAIGHX3H24HKJ3SOOUGHK3MCFPXA5FML7RL4S46TGUMCBQ 7  DATA SIGNATURE ::
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

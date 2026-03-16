@@ -76,8 +76,8 @@ Opravdu chcete prepsat soubor "
 [file_err_opendir_post] "
 [file_err_nofileselected] Nevybral jste soubor!
 
-#,,,,,,,.,,,,,,,,,,..,...,.,.,...,,..,,.,,.,.,..,,...,...,,.,,..,,,,,,.,.,,,,,
-#S3J7MLMND3SGCT24RLDHTB3VCRJFEZNXMBUB7KPHBKMWHEOZ3WLNKK6TWKBPSVT72EL3SEJIV2IPS
-#\\\|CXHA5U3XCDSQHFP4JNV4HVFNILDJBC4RILWQ6GOW5ZUIGHXVR7O \ / AMOS7 \ YOURUM ::
-#\[7]LI2BLZC46OFWYEJ3MV6SGPOGMRFXIT7IS325GX3RUHRIKMAQTUBQ 7  DATA SIGNATURE ::
+#,,,,,,,.,,,,,,,,,,..,...,.,.,...,,..,,.,,.,.,..,,...,...,...,,,,,.,,,,,.,,.,,
+#I7YPL36IO5ASFYB2BNERAEBOQAJHUQ4A5CSIAONIXYKYIRFACS6VU7S6D2NEB2KVTNED7FG2EAB3S
+#\\\|4CA2ZL6XQTXRJBA5WZAKMANSQ6PA2Z4YHOW3CS37TK6OYDIVA4Z \ / AMOS7 \ YOURUM ::
+#\[7]Z3BDOWQJU42QTCOWFJFZMDZ7LMKUZUHQQX4UI7GJVUZCARGWZCCA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

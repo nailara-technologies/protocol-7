@@ -44,12 +44,12 @@ sub new () {
         -y             => 0,        # the vert. pos. rel. to the parent
         -text          => undef,    # the text to show
         -textalignment => undef,    # left / middle / right
-        -bold          => 0,        # Special attributes
-        -reverse       => 0,
-        -underline     => 0,
-        -dim           => 0,
-        -blink         => 0,
-        -paddingspaces => 0,        # Pad text with spaces?
+        -bold          =>  0,       # Special attributes
+        -reverse       =>  0,
+        -underline     =>  0,
+        -dim           =>  0,
+        -blink         =>  0,
+        -paddingspaces =>  0,       # Pad text with spaces?
         -bg            => -1,
         -fg            => -1,
 
@@ -419,8 +419,8 @@ This package is free software and is provided "as is" without express
 or implied warranty. It may be used, redistributed and/or modified
 under the same terms as perl itself.
 
-#,,..,.,,,.,,,,.,,,..,.,.,,,.,,,.,.,.,,.,,,.,,.,.,...,...,,,.,,.,,,,.,,,,,,,,,
-#E4RG4V3C4RFTYCEC65CQBTEMITVO6O6JUN7OIWFPNRYDIOJFBUZD7FMY6OADQTHG4G7HV7JRELIWM
-#\\\|YHNB7FKTOFDXS3SZCCOC24YKT5N6FOOMDEHW57KQZIZ6FBSPYMC \ / AMOS7 \ YOURUM ::
-#\[7]CKKGV7IY6B3T5N4STDUUQSKFQDWCVVFSSD4KXEWGO3CU3ZZOHYAI 7  DATA SIGNATURE ::
+#,,,,,,,.,,.,,.,,,,,.,,,.,,,.,,,,,,..,.,,,..,,.,.,...,...,.,.,,,.,...,...,,,,,
+#FX7NZLFJUAIWLQQ5LFMUA6HZO4A3ZJSBYNHYZR27PQA25ZBIJIMXVZKYJ5ARLWLYOUTVROO6S6DFG
+#\\\|7JQS5UYXQGN2EJ4FP66MGX7DJ5B4RYJSF2Y437Q6A2UCK74NLZS \ / AMOS7 \ YOURUM ::
+#\[7]T4XLC7ABFPRISYF6H3BHXX2DOS4U3SUZSD2GBRDL4SJ3L45GN4DA 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::

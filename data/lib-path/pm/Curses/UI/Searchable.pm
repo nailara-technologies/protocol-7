@@ -46,7 +46,7 @@ sub new() {
 
         %userargs,
 
-        -x         => 0,
+        -x         =>  0,
         -y         => -1,
         -width     => undef,
         -border    => 0,
@@ -487,8 +487,8 @@ This package is free software and is provided "as is" without express
 or implied warranty. It may be used, redistributed and/or modified
 under the same terms as perl itself.
 
-#,,,,,.,,,.,.,,,,,..,,..,,,..,.,.,,,.,,.,,..,,.,.,...,...,...,...,...,,.,,.,.,
-#QFY2HYDFQCN3U6VHT7JHL3NXY7QEGOHZWNYUTWGAVT6Z5EKURIV6A6QCRGGJ6IG3ZDWE3BIG5T6UI
-#\\\|T7AHAJMDTJWUJG5ZDDGUXLOQF22Q254HQKWLDL7IECCRN5XS4YQ \ / AMOS7 \ YOURUM ::
-#\[7]WHCSXOJJTK66TKTLAXSCV4QPLJYJ64WBFLYLD7Y4BQ5Q3VB7SGBI 7  DATA SIGNATURE ::
+#,,.,,,..,,.,,,..,..,,.,,,...,,.,,.,.,..,,,..,.,.,...,..,,...,,..,.,,,.,.,...,
+#E2AI5DLILM3K6VTF2OXNTTDWLPVAQUUI2OTNCEVUTPD6OENRB2CNH4VKSPCJXFGUSCI3LBQEX44CG
+#\\\|SZD544UZ3KBX4NZJBNVORN6RIPQ23CGZNKTQZVTMZPLE52HB2AW \ / AMOS7 \ YOURUM ::
+#\[7]SQHGIN2RDRAKOUQ4MASLAJL3MVRHOC2OI6UZMDQYRXRXH5D6JMBQ 7  DATA SIGNATURE ::
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
